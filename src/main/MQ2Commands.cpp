@@ -3575,25 +3575,26 @@ void WindowState(SPAWNINFO* pChar, char* szLine)
 	{
 		bool show = pWnd->IsVisible();
 
-		if (!_stricmp(Arg2, "open")) show = true;
-		if (!_stricmp(Arg2, "close")) show = false;
+		if (ci_equals(Arg2, "open")) show = false;
+		if (ci_equals(Arg2, "close")) show = true;
+		show = !show;
 
 		if (show)
 		{
-			pWnd->Show(false);
+			pWnd->Activate();
 		}
 		else
 		{
-			pWnd->Show(true);
+			pWnd->Deactivate();
 		}
 
 		if (!pWnd->GetWindowText().empty())
 		{
-			WriteChatf("Window '%s' is now %s.", show ? "open" : "closed", pWnd->GetWindowText().c_str());
+			WriteChatf("Window '%s' is now %s.", pWnd->GetWindowText().c_str(), show ? "open" : "closed");
 		}
 		else
 		{
-			WriteChatf("Window '%s' is now %s.", show ? "open" : "closed", Arg1);
+			WriteChatf("Window '%s' is now %s.", Arg1, show ? "open" : "closed");
 		}
 
 		pWnd->StoreIniVis();
@@ -4146,18 +4147,24 @@ void DoHotButton(PSPAWNINFO pChar, char* pBuffer)
 	GetArg(szName, pBuffer, 1);
 	GetArg(szNext, pBuffer, 2);
 
+	int offset = 1;
+	if (strchr(szName, ' ')) // the only way this can have a space in it, is if the user used quotes
+	{
+		offset = 3;
+	}
+
 	if (IsNumber(szNext))
 	{
 		// we have a color
 		iColor = atoi(szNext);
 		// that means the rest of the buffer IS Text
-		int len = strlen(szName) + 1 + strlen(szNext) + 1;
+		int len = strlen(szName) + offset + strlen(szNext) + 1;
 		strcpy_s(szText, &pBuffer[len]);
 	}
 	else
 	{
 		// no color detected, that means the rest of the buffer IS Text
-		int len = strlen(szName) + 1;
+		int len = strlen(szName) + offset;
 		strcpy_s(szText, &pBuffer[len]);
 	}
 

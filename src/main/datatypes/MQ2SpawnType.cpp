@@ -503,7 +503,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 
 	case SpawnMembers::PctHPs:
 		// avoid dividing by zero!
-		Dest.Int64 = pSpawn->HPMax == 0 ? 0 : pSpawn->HPCurrent / pSpawn->HPMax * 100;
+		Dest.Int64 = pSpawn->HPMax == 0 ? 0 : pSpawn->HPCurrent * 100 / pSpawn->HPMax;
 		Dest.Type = pInt64Type;
 		return true;
 

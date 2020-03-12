@@ -658,7 +658,6 @@ bool gbAlwaysDrawMQHUD = false;
 bool gbMQ2LoadingMsg = true;
 bool gbExactSearchCleanNames = false;
 
-MQPlugin* pPlugins = nullptr;
 std::map<std::string, MQDataVar*> VariableMap;
 std::unordered_map<std::string, std::unique_ptr<MQDataItem>> MQ2DataMap;
 

@@ -30,6 +30,9 @@ namespace mq {
 static std::atomic_bool s_pluginsInitialized = false;
 static uint32_t s_mq2mainstamp = 0;
 static std::recursive_mutex s_pluginsMutex;
+MQPlugin* pPlugins = nullptr;
+
+std::vector<MQModule*> gInternalModules;
 
 // Defined in MQ2Utilities.cpp
 DWORD CALLBACK InitializeMQ2SpellDb(void* pData);
@@ -47,6 +50,42 @@ static uint32_t checkme(char* module)
 
 	pf = reinterpret_cast<PIMAGE_FILE_HEADER>(p);
 	return pf->TimeDateStamp;
+}
+
+void AddInternalModule(MQModule* module)
+{
+	gInternalModules.push_back(module);
+
+	if (module->Initialize)
+		module->Initialize();
+	if (module->SetGameState)
+		module->SetGameState(GetGameState());
+
+	module->loaded = true;
+}
+
+void RemoveInternalModule(MQModule* module)
+{
+	auto iter = std::find(std::begin(gInternalModules),
+		std::end(gInternalModules), module);
+	if (iter == std::end(gInternalModules))
+		return;
+
+	gInternalModules.erase(iter);
+
+	if (module->loaded && module->Shutdown)
+	{
+		module->Shutdown();
+		module->loaded = false;
+	}
+}
+
+void ShutdownInternalModules()
+{
+	while (!gInternalModules.empty())
+	{
+		RemoveInternalModule(gInternalModules.back());
+	}
 }
 
 int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
@@ -299,9 +338,9 @@ void UnloadMQ2Plugins()
 
 void ShutdownMQ2Plugins()
 {
-	std::scoped_lock lock(s_pluginsMutex);
 	s_pluginsInitialized = false;
 
+	std::scoped_lock lock(s_pluginsMutex);
 	MQPlugin* pPlugin = nullptr;
 	while (pPlugins)
 	{
@@ -340,9 +379,16 @@ void PluginsWriteChatColor(const char* Line, int Color, int Filter)
 		DebugSpew("WriteChatColor(%s)", Line);
 	}
 
+	for (const MQModule* module : gInternalModules)
+	{
+		if (module->WriteChatColor)
+		{
+			module->WriteChatColor(Line, Color, Filter);
+		}
+	}
+
 	// enter lock before accessing the plugin list
 	std::scoped_lock lock(s_pluginsMutex);
-
 	MQPlugin* pPlugin = pPlugins;
 	while (pPlugin)
 	{
@@ -364,11 +410,10 @@ bool PluginsIncomingChat(const char* Line, DWORD Color)
 	if (!Line[0])
 		return false;
 
-	std::scoped_lock lock(s_pluginsMutex);
 	PluginDebug("PluginsIncomingChat()");
 
+	std::scoped_lock lock(s_pluginsMutex);
 	bool Ret = false;
-
 	MQPlugin* pPlugin = pPlugins;
 	while (pPlugin)
 	{
@@ -388,9 +433,17 @@ void PulsePlugins()
 	if (!s_pluginsInitialized)
 		return;
 
-	std::scoped_lock lock(s_pluginsMutex);
 	PluginDebug("PulsePlugins()");
 
+	for (const MQModule* module : gInternalModules)
+	{
+		if (module->Pulse)
+		{
+			module->Pulse();
+		}
+	}
+
+	std::scoped_lock lock(s_pluginsMutex);
 	MQPlugin* pPlugin = pPlugins;
 	while (pPlugin)
 	{
@@ -408,9 +461,17 @@ void PluginsZoned()
 	if (!s_pluginsInitialized)
 		return;
 
-	std::scoped_lock lock(s_pluginsMutex);
 	PluginDebug("PluginsZoned()");
 
+	for (const MQModule* module : gInternalModules)
+	{
+		if (module->Zoned)
+		{
+			module->Zoned();
+		}
+	}
+
+	std::scoped_lock lock(s_pluginsMutex);
 	MQPlugin* pPlugin = pPlugins;
 	while (pPlugin)
 	{
@@ -437,12 +498,12 @@ void PluginsCleanUI()
 	if (!s_pluginsInitialized)
 		return;
 
-	std::scoped_lock lock(s_pluginsMutex);
 	PluginDebug("PluginsCleanUI()");
 
 	DeleteMQ2NewsWindow();
 	RemoveAutoBankMenu();
 
+	std::scoped_lock lock(s_pluginsMutex);
 	MQPlugin* pPlugin = pPlugins;
 	while (pPlugin)
 	{
@@ -460,9 +521,9 @@ void PluginsReloadUI()
 	if (!s_pluginsInitialized)
 		return;
 
-	std::scoped_lock lock(s_pluginsMutex);
 	PluginDebug("PluginsReloadUI()");
 
+	std::scoped_lock lock(s_pluginsMutex);
 	MQPlugin* pPlugin = pPlugins;
 	while (pPlugin)
 	{
@@ -480,8 +541,6 @@ void PluginsSetGameState(DWORD GameState)
 {
 	if (!s_pluginsInitialized)
 		return;
-
-	std::scoped_lock lock(s_pluginsMutex);
 
 	PluginDebug("PluginsSetGameState()");
 
@@ -553,6 +612,15 @@ void PluginsSetGameState(DWORD GameState)
 		LoadCfgFile("CharSelect", false);
 	}
 
+	for (const MQModule* module : gInternalModules)
+	{
+		if (module->SetGameState)
+		{
+			module->SetGameState(GameState);
+		}
+	}
+
+	std::scoped_lock lock(s_pluginsMutex);
 	MQPlugin* pPlugin = pPlugins;
 	while (pPlugin)
 	{
@@ -571,10 +639,9 @@ void PluginsDrawHUD()
 	if (!s_pluginsInitialized)
 		return;
 
-	std::scoped_lock lock(s_pluginsMutex);
-
 	PluginDebug("PluginsDrawHUD()");
 
+	std::scoped_lock lock(s_pluginsMutex);
 	MQPlugin* pPlugin = pPlugins;
 	while (pPlugin)
 	{
@@ -592,8 +659,6 @@ void PluginsAddSpawn(SPAWNINFO* pNewSpawn)
 	if (!s_pluginsInitialized)
 		return;
 
-	std::scoped_lock lock(s_pluginsMutex);
-
 	DWORD BodyType = GetBodyType(pNewSpawn);
 	PluginDebug("PluginsAddSpawn(%s,%d,%d)", pNewSpawn->Name, pNewSpawn->mActorClient.Race, BodyType);
 
@@ -603,6 +668,7 @@ void PluginsAddSpawn(SPAWNINFO* pNewSpawn)
 	if (GetBodyTypeDesc(BodyType)[0] == '*')
 		WriteChatf("Spawn '%s' has unknown bodytype %d", pNewSpawn->Name, BodyType);
 
+	std::scoped_lock lock(s_pluginsMutex);
 	MQPlugin* pPlugin = pPlugins;
 	while (pPlugin)
 	{
@@ -620,11 +686,11 @@ void PluginsRemoveSpawn(SPAWNINFO* pSpawn)
 	if (!s_pluginsInitialized)
 		return;
 
-	std::scoped_lock lock(s_pluginsMutex);
 	PluginDebug("PluginsRemoveSpawn(%s)", pSpawn->Name);
 
 	SpawnByName.erase(pSpawn->Name);
 
+	std::scoped_lock lock(s_pluginsMutex);
 	MQPlugin* pPlugin = pPlugins;
 	while (pPlugin)
 	{
@@ -647,11 +713,9 @@ void PluginsAddGroundItem(GROUNDITEM* pNewGroundItem)
 		return;
 	}
 
-	std::scoped_lock lock(s_pluginsMutex);
-	PluginDebug("PluginsAddGroundItem()");
-
 	DebugSpew("PluginsAddGroundItem(%s) %.1f,%.1f,%.1f", pNewGroundItem->Name, pNewGroundItem->X, pNewGroundItem->Y, pNewGroundItem->Z);
 
+	std::scoped_lock lock(s_pluginsMutex);
 	MQPlugin* pPlugin = pPlugins;
 	while (pPlugin)
 	{
@@ -668,9 +732,9 @@ void PluginsRemoveGroundItem(GROUNDITEM* pGroundItem)
 	if (!s_pluginsInitialized)
 		return;
 
-	std::scoped_lock lock(s_pluginsMutex);
 	PluginDebug("PluginsRemoveGroundItem()");
 
+	std::scoped_lock lock(s_pluginsMutex);
 	MQPlugin* pPlugin = pPlugins;
 	while (pPlugin)
 	{
@@ -688,12 +752,12 @@ void PluginsBeginZone()
 	if (!s_pluginsInitialized)
 		return;
 
-	std::scoped_lock lock(s_pluginsMutex);
 	PluginDebug("PluginsBeginZone()");
 
 	gbInZone = false;
 	gZoning = true;
 
+	std::scoped_lock lock(s_pluginsMutex);
 	MQPlugin* pPlugin = pPlugins;
 	while (pPlugin)
 	{
@@ -711,13 +775,13 @@ void PluginsEndZone()
 	if (!s_pluginsInitialized)
 		return;
 
-	std::scoped_lock lock(s_pluginsMutex);
 	PluginDebug("PluginsEndZone()");
 
 	gbInZone = true;
 	WereWeZoning = true;
 	LastEnteredZone = MQGetTickCount64();
 
+	std::scoped_lock lock(s_pluginsMutex);
 	MQPlugin* pPlugin = pPlugins;
 	while (pPlugin)
 	{
@@ -743,8 +807,17 @@ void PluginsUpdateImGui()
 	if (!s_pluginsInitialized)
 		return;
 
-	std::scoped_lock lock(s_pluginsMutex);
 	PluginDebug("PluginsUpdateImGui");
+
+	for (const MQModule* module : gInternalModules)
+	{
+		if (module->UpdateImGui)
+		{
+			module->UpdateImGui();
+		}
+	}
+
+	std::scoped_lock lock(s_pluginsMutex);
 
 	MQPlugin* pPlugin = pPlugins;
 	while (pPlugin)
@@ -763,9 +836,9 @@ void PluginsMacroStart(const char* Name)
 	if (!s_pluginsInitialized)
 		return;
 
-	std::scoped_lock lock(s_pluginsMutex);
 	PluginDebug("PluginsMacroStart");
 
+	std::scoped_lock lock(s_pluginsMutex);
 	MQPlugin* pPlugin = pPlugins;
 	while (pPlugin)
 	{
@@ -781,9 +854,9 @@ void PluginsMacroStop(const char* Name)
 	if (!s_pluginsInitialized)
 		return;
 
-	std::scoped_lock lock(s_pluginsMutex);
 	PluginDebug("PluginsMacroStop");
 
+	std::scoped_lock lock(s_pluginsMutex);
 	MQPlugin* pPlugin = pPlugins;
 	while (pPlugin)
 	{
@@ -799,9 +872,9 @@ void PluginsLoadPlugin(const char* Name)
 	if (!s_pluginsInitialized)
 		return;
 
-	std::scoped_lock lock(s_pluginsMutex);
 	PluginDebug("PluginsLoadPlugin");
 
+	std::scoped_lock lock(s_pluginsMutex);
 	MQPlugin* pPlugin = pPlugins;
 	while (pPlugin)
 	{
@@ -817,9 +890,9 @@ void PluginsUnloadPlugin(const char* Name)
 	if (!s_pluginsInitialized)
 		return;
 
-	std::scoped_lock lock(s_pluginsMutex);
 	PluginDebug("PluginsUnloadPlugin");
 
+	std::scoped_lock lock(s_pluginsMutex);
 	MQPlugin* pPlugin = pPlugins;
 	while (pPlugin)
 	{

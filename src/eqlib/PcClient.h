@@ -1811,22 +1811,23 @@ public:
 /*0x324*/ int                         NoBuffResistPhysical;
 /*0x328*/
 
-	EQLIB_OBJECT unsigned int GetEffectId(int index);
-
-	EQLIB_OBJECT LONG GetMemorizedSpell(int gem);             // 0-0xf this func returns the spellid for whatever is in the gem
-
+	// Verified
+	EQLIB_OBJECT int IsExpansionFlag(int);
+	EQLIB_OBJECT int GetMemorizedSpell(int gem);             // 0-0xf this func returns the spellid for whatever is in the gem
 	EQLIB_OBJECT ItemGlobalIndex CreateItemGlobalIndex(int Slot0, int Slot1 = -1, int Slot2 = -1);
 	EQLIB_OBJECT ItemIndex CreateItemIndex(int Slot0, int Slot1 = -1, int Slot2 = -1);
+	EQLIB_OBJECT VePointer<CONTENTS> GetItemPossession(const ItemIndex& lIndex) const;
+	EQLIB_OBJECT VePointer<CONTENTS> GetItemByGlobalIndex(const ItemGlobalIndex& GlobalIndex) const;
+	EQLIB_OBJECT VePointer<CONTENTS> GetItemByGlobalIndex(const ItemGlobalIndex& GlobalIndex, GILocationOption Option) const;
+
+	// Unverified
+	EQLIB_OBJECT unsigned int GetEffectId(int index);
+	EQLIB_OBJECT BYTE GetLanguageSkill(int) const;
 
 	EQLIB_OBJECT const BaseProfile& GetCurrentBaseProfile() const
 	{
 		return *ProfileManager.GetCurrentProfile();
 	}
-
-	EQLIB_OBJECT BYTE GetLanguageSkill(int) const;
-	EQLIB_OBJECT VePointer<CONTENTS> GetItemByGlobalIndex(const ItemGlobalIndex& GlobalIndex) const;
-	EQLIB_OBJECT VePointer<CONTENTS> GetItemByGlobalIndex(const ItemGlobalIndex& GlobalIndex, GILocationOption Option) const;
-	EQLIB_OBJECT VePointer<CONTENTS> GetItemPossession(const ItemIndex& lIndex) const;
 };
 
 class [[offsetcomments(0x2418)]] CharacterZoneClient : virtual public CharacterBase
@@ -1905,6 +1906,32 @@ public:
 /*0x27dc*/
 
 	EQLIB_OBJECT CharacterZoneClient();
+
+	// Verified
+	EQLIB_OBJECT bool CanUseItem(CONTENTS** pItem, bool bUseRequiredLvl, bool bOutput = true);
+	EQLIB_OBJECT unsigned char CastSpell(unsigned char gemid, int spellid, EQ_Item** ppItem, const ItemGlobalIndex& itemLoc, ItemSpellTypes slot, unsigned char spell_loc, int arg7, int arg8, int arg9, bool arg10);
+	EQLIB_OBJECT int Cur_HP(int Spawntype/*PC = 0 NPC=1 and so on*/, bool bCapAtMax = true);
+	EQLIB_OBJECT int Cur_Mana(bool bCapAtMax = true);
+	EQLIB_OBJECT int GetAdjustedSkill(int);
+	EQLIB_OBJECT int GetCurrentMod(int index); // CalculateHeroicModAmount
+	/* virtual */ EQLIB_OBJECT int GetBaseSkill(int);
+	EQLIB_OBJECT int GetEnduranceRegen(bool bIncItemsAndBuffs = true, bool bCombat = true);
+	EQLIB_OBJECT const int GetCastingTimeModifier(const EQ_Spell* pSpell); // used to get aa modifiers
+	EQLIB_OBJECT const int GetFocusCastingTimeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut, bool bEvalOnly = false);
+	EQLIB_OBJECT const int GetFocusRangeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut);
+	EQLIB_OBJECT int GetHPRegen(bool bIncItemsAndBuffs = true, bool* pOutIsBleeding = nullptr, bool bCombat = false);
+	EQLIB_OBJECT int GetManaRegen(bool bIncItemsAndBuffs = true, bool bCombat = true);
+	EQLIB_OBJECT int GetModCap(int index, bool bToggle = false);
+	EQLIB_OBJECT EQ_Affect* GetPCSpellAffect(int affectId, int* slotnum, int* spaslot = nullptr) const;
+	EQLIB_OBJECT int Max_Endurance(bool bCapAtMax = true);
+	EQLIB_OBJECT int Max_HP(int SpawnType, bool bCapAtMax = true);
+	EQLIB_OBJECT int Max_Mana(bool bCapAtMax = true);
+	EQLIB_OBJECT int SpellDuration(EQ_Spell const*, uint8_t casterLevel, uint8_t item /* bool? */);
+	EQLIB_OBJECT int TotalEffect(int spaID, bool bIncludeItems = true, int subindex = 0, bool bIncludeAA = true, bool bincludeBuffs = true);
+	EQLIB_OBJECT void UseSkill(unsigned char skill, PlayerZoneClient* Target, bool bAuto = false);
+
+	// Unverified
+
 	EQLIB_OBJECT int CalcAffectChange(const EQ_Spell* spell, BYTE casterLevel, BYTE affextIndex, const EQ_Affect* theAffect, int EffectIndex = 0, PlayerZoneClient* pCaster = NULL, bool overrideChangeVal = false, int ChangeVal = -1, bool bCap = true);
 	EQLIB_OBJECT int CalcAffectChangeGeneric(const EQ_Spell* spell, BYTE casterLevel, BYTE affextIndex, const EQ_Affect* theAffect, int EffectIndex, bool bCap = true);
 	EQLIB_OBJECT void MakeMeVisible(int, bool);
@@ -1926,29 +1953,12 @@ public:
 	EQLIB_OBJECT BYTE FindItemByRecord(int ItemNumber, int* pos_slot, int* con_slot, bool bReverseLookup);
 
 	// From EQ_Character1
-	EQLIB_OBJECT int GetEnduranceRegen(bool bIncItemsAndBuffs, bool bCombat);
-	EQLIB_OBJECT int GetHPRegen(bool bIncItemsAndBuffs, bool* bIsBleeding/*no you shouldnt set this, its an OUT value.*/, bool bCombat);
-	EQLIB_OBJECT int GetManaRegen(bool bIncItemsAndBuffs, bool bCombat);
-	EQLIB_OBJECT int Cur_HP(int Spawntype/*PC = 0 NPC=1 and so on*/, bool bCapAtMax = true);
-	EQLIB_OBJECT int Max_Endurance(bool bCapAtMax = true);
-	EQLIB_OBJECT int Max_HP(int SpawnType, bool bCapAtMax = true);
-	EQLIB_OBJECT int Max_Mana(bool bCapAtMax = true);
-	EQLIB_OBJECT const int GetCastingTimeModifier(const EQ_Spell* pSpell);//used to get aa modifiers
-	EQLIB_OBJECT const int GetFocusCastingTimeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut, bool bEvalOnly = false);
 	// int const GetFocusCastingTimeModifier(class EQ_Spell const*, class EQ_Equipment**, int);
-	EQLIB_OBJECT unsigned char CastSpell(unsigned char gemid, int spellid, EQ_Item** ppItem, const ItemGlobalIndex& itemLoc, ItemSpellTypes slot, unsigned char spell_loc, int arg7, int arg8, int arg9, bool arg10);
 	EQLIB_OBJECT void SetEffectId(unsigned char, unsigned int);
 	EQLIB_OBJECT void StopSpellCast(unsigned char);
 	EQLIB_OBJECT void StopSpellCast(unsigned char, int);
 	EQLIB_OBJECT void StunMe(unsigned int, bool, bool, bool);
 	EQLIB_OBJECT void UnStunMe();
-	EQLIB_OBJECT void UseSkill(unsigned char skill, PlayerZoneClient* Target, bool bAuto = false);
-	EQLIB_OBJECT const int GetFocusRangeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut);
-	EQLIB_OBJECT int IsExpansionFlag(int); // CharacterBase
-	EQLIB_OBJECT int TotalEffect(int spaID, bool bIncludeItems = true, int subindex = 0, bool bIncludeAA = true, bool bincludeBuffs = true);
-	EQLIB_OBJECT int GetAdjustedSkill(int);
-	EQLIB_OBJECT int GetBaseSkill(int);
-	EQLIB_OBJECT bool CanUseItem(CONTENTS** pItem, bool bUseRequiredLvl, bool bOutput);
 
 	// From EQ_Character
 	EQLIB_OBJECT bool DoesSpellMatchFocusFilters(EQ_Spell const*, EQ_Spell const*);
@@ -1959,7 +1969,6 @@ public:
 	EQLIB_OBJECT char* KunarkClass(int, int, int, bool);
 	EQLIB_OBJECT char* Race(int);
 	EQLIB_OBJECT EQ_Affect& GetEffect(int);
-	EQLIB_OBJECT EQ_Affect* GetPCSpellAffect(int theaffect, int* slotnum, int* spaslot = NULL) const;
 	EQLIB_OBJECT EQ_Equipment* GetFocusItem(EQ_Spell const*, int);
 	EQLIB_OBJECT EQ_Spell* GetFocusEffect(EQ_Spell const*, int);
 	EQLIB_OBJECT PlayerClient* FindClosest(int, int, int, int, int);
@@ -1985,7 +1994,6 @@ public:
 	EQLIB_OBJECT int compute_defense();
 	EQLIB_OBJECT int compute_tohit(unsigned char);
 	EQLIB_OBJECT int cur_encumbrance();
-	EQLIB_OBJECT int Cur_Mana(bool bCapAtMax = true);
 	EQLIB_OBJECT int defense_agility_bonus();
 	EQLIB_OBJECT int Dex();
 	EQLIB_OBJECT int ElementResistDmg(EQ_Equipment*, int);
@@ -2021,7 +2029,6 @@ public:
 	EQLIB_OBJECT int save_poison();
 	EQLIB_OBJECT int SetLocalVar(char*, int);
 	EQLIB_OBJECT int Skill(int);
-	EQLIB_OBJECT int SpellDuration(EQ_Spell const*, unsigned char, unsigned char);
 	EQLIB_OBJECT int Sta();
 	EQLIB_OBJECT int Str();
 	EQLIB_OBJECT int TakeFallDamage(float);
@@ -2090,7 +2097,6 @@ public:
 	EQLIB_OBJECT void RemovePCAffectex(EQ_Affect*, int);
 	EQLIB_OBJECT void ResetCur_HP(int);
 	EQLIB_OBJECT void UpdateMyVisibleStatus();
-	EQLIB_OBJECT bool DoCombatAbility(int spellID, int dummy = 1);
 
 	// private from EQ_Character
 	EQLIB_OBJECT int GetCachEQSPA(int);
@@ -2335,22 +2341,25 @@ public:
 /*0x2818*/ int         LastLanguageSpoken;
 /*0x281c*/ int         CurPowerSourceDrain;
 /*0x2820*/ EQList<ALCHEMYBONUSSKILLDATA*> AlchemyBaseSkillBonusList;
-/*0x2830*/ UINT        MomentumBalance;
-/*0x2834*/ UINT        LoyaltyRewardBalance;
+/*0x2830*/ uint32_t    MomentumBalance;
+/*0x2834*/ uint32_t    LoyaltyRewardBalance;
 /*0x2838*/
 
-	EQLIB_OBJECT int GetPcSkillLimit(int);
-	EQLIB_OBJECT bool HasCombatAbility(int);
+	// Verified
+	EQLIB_OBJECT void DestroyHeldItemOrMoney();
+	EQLIB_OBJECT bool DoCombatAbility(int spellID, bool allowLowerRank = true);
+	EQLIB_OBJECT int GetPcSkillLimit(int, bool = true);
 	EQLIB_OBJECT void RemovePetEffect(int);
-	EQLIB_OBJECT bool CanEquipItem(CONTENTS** pCont, int slotid, bool bOutputDebug, bool bUseRequiredLevel);
-	EQLIB_OBJECT bool HasAlternateAbility(int aaindex, int*, bool, bool);
-	EQLIB_OBJECT int GetCurrentMod(int index);
-	EQLIB_OBJECT int GetModCap(int index, bool bToggle = false);
+	EQLIB_OBJECT bool HasAlternateAbility(int aaindex, int* pIndex = nullptr, bool bProfile = false, bool bMerc = false);
+	EQLIB_OBJECT bool CanEquipItem(CONTENTS** pCont, int slotid, bool bOutputDebug, bool bUseRequiredLevel = false);
+	EQLIB_OBJECT CONTENTS** GetItemByID(CONTENTS** contOut, int itemid, ItemIndex* itemindex = nullptr); // FIXME RVO
+	EQLIB_OBJECT CONTENTS** GetItemByItemClass(CONTENTS** contOut, int itemclass, ItemIndex* itemindex = nullptr); // FIXME RVO
 	EQLIB_OBJECT void RemoveBuffEffect(int Index, int SpawnID);
-	EQLIB_OBJECT CONTENTS** GetItemByID(CONTENTS** contOut, int itemid, ItemIndex* itemindex = nullptr);
-	EQLIB_OBJECT CONTENTS** GetItemByItemClass(CONTENTS** contOut, int itemclass, ItemIndex* itemindex = nullptr);
 	EQLIB_OBJECT void BandolierSwap(int index);
-	EQLIB_OBJECT UINT GetLinkedSpellReuseTimer(int index);
+	EQLIB_OBJECT uint32_t GetLinkedSpellReuseTimer(int index);
+
+	// Unverified
+	EQLIB_OBJECT bool HasCombatAbility(int);
 };
 
 class [[offsetcomments]] PcClient : public PcZoneClient
@@ -2362,11 +2371,11 @@ public:
 /*0x2838*/ BYTE Filler[0x3C];
 /*0x2874*/
 
-	// Formerly in EQ_Character
+	// Verified
 	EQLIB_OBJECT unsigned long GetConLevel(const PlayerClient*);
 
+	// Unverified
 	// TODO: Methods from EQ_PC: The ones we use need to be validated. Not all of them live in PcClient.
-	// but it may not matter.
 	EQLIB_OBJECT int BitchCanTrain(int, int, int);
 	EQLIB_OBJECT int CheckDupLoreItems();
 	EQLIB_OBJECT int checkLang(int);
@@ -2389,7 +2398,6 @@ public:
 	EQLIB_OBJECT void CheckForLanguageImprovement(unsigned char, unsigned char);
 	EQLIB_OBJECT void CheckSkillImprove(int, float);
 	EQLIB_OBJECT void ClearSharedVault();
-	EQLIB_OBJECT void DestroyHeldItemOrMoney();
 	EQLIB_OBJECT void DetermineQuestExpGained(int);
 	EQLIB_OBJECT void EmptyPossessionSlots();
 	EQLIB_OBJECT void InitializeNewPCVariables(int);
