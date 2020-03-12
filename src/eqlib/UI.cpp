@@ -597,12 +597,16 @@ bool CListWnd::Contains(const std::function<bool(const CXStr)>& predicate)
 #ifdef CPageWnd__CPageWnd_x
 FUNCTION_AT_ADDRESS(CPageWnd::CPageWnd(CXWnd*, uint32_t, CXRect, class CXStr, CPageTemplate*), CPageWnd__CPageWnd);
 #endif
+#ifdef CPageWnd__FlashTab_x
+FUNCTION_AT_ADDRESS(void CPageWnd::FlashTab(bool, int) const, CPageWnd__FlashTab);
+#endif
 #ifdef CPageWnd__GetTabText_x
 FUNCTION_AT_ADDRESS(CXStr CPageWnd::GetTabText(bool) const, CPageWnd__GetTabText);
 #endif
 #ifdef CPageWnd__SetTabText_x
 FUNCTION_AT_ADDRESS(void CPageWnd::SetTabText(CXStr&) const, CPageWnd__SetTabText);
 #endif
+
 
 //============================================================================
 // CSliderWnd
@@ -821,6 +825,14 @@ FUNCTION_AT_ADDRESS(int CTabWnd::DrawTab(int) const, CTabWnd__DrawTab);
 #endif
 #ifdef CTabWnd__DrawCurrentPage_x
 FUNCTION_AT_ADDRESS(int CTabWnd::DrawCurrentPage() const, CTabWnd__DrawCurrentPage);
+#endif
+
+//============================================================================
+// CAAWnd
+//============================================================================
+
+#ifdef CAAWnd__ShowAbility_x
+FUNCTION_AT_ADDRESS(bool CAAWnd::ShowAbility(int), CAAWnd__ShowAbility);
 #endif
 
 //============================================================================

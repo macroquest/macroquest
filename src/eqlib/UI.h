@@ -991,7 +991,7 @@ public:
 /*0x270*/ CXRect              PrevInsideRect;
 /*0x280*/ uint32_t            ListWndStyle;
 /*0x284*/ __time32_t          LastVisibleTime;
-/*0x28c*/
+/*0x288*/
 
 	struct [[offsetcomments]] VirtualFunctionTable : public CXWnd::VirtualFunctionTable
 	{
@@ -1023,6 +1023,19 @@ public:
 
 	EQLIB_OBJECT CXStr GetTabText(bool bSomething = false) const;
 	EQLIB_OBJECT void SetTabText(CXStr&) const;
+	EQLIB_OBJECT void FlashTab(bool flash, int msTime) const;
+
+/*0x228*/ CXStr              TabText;
+/*0x22c*/ CXStr              OrigTabText;
+/*0x230*/ COLORREF           CRTabText;
+/*0x234*/ COLORREF           CRTabTextActive;
+/*0x238*/ CTextureAnimation* pTATabIcon;
+/*0x23c*/ CTextureAnimation* pTATabIconActive;
+/*0x240*/ int64_t            LastFlashTime;
+/*0x248*/ COLORREF           CRHighlightFlashColor;
+/*0x24c*/ bool               bHighlightOnNewMessages;
+/*0x24d*/ bool               bFlashing;
+/*0x250*/
 };
 
 //============================================================================
@@ -1280,23 +1293,27 @@ public:
 	CTabWnd(CXWnd* pParent, uint32_t uId, const CXRect& rect, CTabBoxTemplate* pTabContents);
 	virtual ~CTabWnd();
 
+	// functions we have offsets for
+	EQLIB_OBJECT int DrawCurrentPage() const;
+	EQLIB_OBJECT int DrawTab(int) const;
 	EQLIB_OBJECT CPageWnd* GetCurrentPage() const;
-	EQLIB_OBJECT CXRect GetPageClientRect() const;
+	EQLIB_OBJECT int GetCurrentTabIndex() const;
+	EQLIB_OBJECT CPageWnd* GetPageFromTabIndex(int) const;
 	EQLIB_OBJECT CXRect GetPageInnerRect() const;
 	EQLIB_OBJECT CXRect GetTabInnerRect(int) const;
 	EQLIB_OBJECT CXRect GetTabRect(int) const;
-	EQLIB_OBJECT int GetCurrentTabIndex() const;
-	EQLIB_OBJECT int GetNumTabs() const;
-	EQLIB_OBJECT void InsertPage(CPageWnd*, int);
-	EQLIB_OBJECT bool SetPage(CPageWnd*, bool bNotifyParent = true, bool bBringToTop = true);
+	EQLIB_OBJECT void InsertPage(CPageWnd* pTabWnd, int position = -1); // defaults to the last tab
+	EQLIB_OBJECT void RemovePage(CPageWnd* pTabWnd);
 	EQLIB_OBJECT void SetPage(int index, bool bNotifyParent = true, bool bBringToTop = true, bool bSomething = true);
 	EQLIB_OBJECT void SetPageRect(const CXRect&);
 	EQLIB_OBJECT void UpdatePage();
+
+	// functions we don't have offsets for.
+	EQLIB_OBJECT CXRect GetPageClientRect() const;
+	EQLIB_OBJECT int GetNumTabs() const;
+	EQLIB_OBJECT bool SetPage(CPageWnd*, bool bNotifyParent = true, bool bBringToTop = true);
 	EQLIB_OBJECT bool IndexInBounds(int) const;
-	EQLIB_OBJECT CPageWnd* GetPageFromTabIndex(int) const;
 	EQLIB_OBJECT CPageWnd* GetPageFromTabPoint(CXPoint) const;
-	EQLIB_OBJECT int DrawCurrentPage() const;
-	EQLIB_OBJECT int DrawTab(int) const;
 
 	//----------------------------------------------------------------------------
 	// data members
@@ -1336,7 +1353,7 @@ public:
 	EQLIB_OBJECT void CancelAASpend();
 	EQLIB_OBJECT void ConfirmAASpend();
 	EQLIB_OBJECT void SendNewPercent();
-	EQLIB_OBJECT void ShowAbility(int);
+	EQLIB_OBJECT bool ShowAbility(int);
 	EQLIB_OBJECT void Update();
 	EQLIB_OBJECT void UpdateTimer();
 
@@ -2643,13 +2660,24 @@ public:
 	//----------------------------------------------------------------------------
 	// data members
 
-/*0x22c*/ int          Type;
-/*0x230*/ int          Index;
-/*0x234*/ EqItemGuid   ItemGuid;
-/*0x248*/ int          ItemID;
-/*0x24c*/ int          Qty;
-/*0x250*/ CXStr        ButtonText;
-	/*0x254*/ // and more...
+/*0x22c*/ int                       Type;
+/*0x230*/ int                       Index;
+/*0x234*/ EqItemGuid                ItemGuid;
+/*0x248*/ int                       ItemID;
+/*0x24c*/ int                       Qty;
+/*0x250*/ int                       IconID;
+/*0x254*/ SoeUtil::String           AssignedName;
+/*0x264*/ int                       Unknown0x264;
+/*0x268*/ char                      AssignedNameCopy[0x40];
+/*0x2a8*/ CXStr                     ButtonText;
+/*0x2ac*/ CStaticAnimationTemplate* pBGStaticAnim;
+/*0x2b0*/ CStaticAnimationTemplate* pOverlayStaticAnim;
+/*0x2b4*/ CSpellGemWnd*             pSpellGem;
+/*0x2b8*/ CTextObjectInterface*     pTextObjectInterface;
+/*0x2bc*/ CTextObjectInterface*     pButtonTextObjectInterface;
+/*0x2c0*/ int                       TextfontStyle;
+/*0x2c4*/ int                       Unknown0x2C4;
+/*0x2c8*/
 };
 
 //============================================================================

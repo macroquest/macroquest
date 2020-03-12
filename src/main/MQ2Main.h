@@ -139,6 +139,12 @@ struct MQRenderCallbacks
 MQLIB_API int AddRenderCallbacks(const MQRenderCallbacks& callbacks);
 MQLIB_API void RemoveRenderCallbacks(uint32_t id);
 
+using fPanelDrawFunction = void(*)();
+MQLIB_API void AddSettingsPanel(const char* name, fPanelDrawFunction drawFunction);
+MQLIB_API void RemoveSettingsPanel(const char* name);
+MQLIB_API void AddDebugPanel(const char* name, fPanelDrawFunction drawFunction);
+MQLIB_API void RemoveDebugPanel(const char* name);
+
 /* EQ Menu */
 MQLIB_OBJECT void AddCascadeMenuItem(const char* name, const char* keyBind, int icon = -1);
 MQLIB_OBJECT void AddCascadeMenuItem(const char* name, fCascadeItemFunction function, int icon = -1);
