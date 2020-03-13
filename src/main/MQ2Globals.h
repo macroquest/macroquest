@@ -58,6 +58,7 @@ MQLIB_API DWORD bmEndZone;
 MQLIB_API DWORD bmPluginsUpdateImGui;
 MQLIB_API DWORD bmSpellLoad;
 MQLIB_API DWORD bmSpellAccess;
+MQLIB_API DWORD bmAnonymizer;
 
 /* OTHER */
 
@@ -83,13 +84,7 @@ MQLIB_VAR DWORD ThreadID;
 MQLIB_VAR bool gStringTableFixed;
 MQLIB_VAR bool gbWriteAllConfig;
 
-enum EAnonFlags
-{
-	EAF_None,
-	EAF_Class,
-};
-MQLIB_VAR EAnonFlags gAnonymizeFlag;
-MQLIB_VAR bool gAnonymize;
+MQLIB_VAR bool gAnonymize DEPRECATE("Anonymize is now handled at display, see MQ2Anonymize wiki for more information.");
 
 MQLIB_VAR HMODULE ghModule;
 MQLIB_VAR HINSTANCE ghInstance;

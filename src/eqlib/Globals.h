@@ -771,6 +771,8 @@ EQLIB_VAR DWORD CTaskWnd__UpdateTaskTimers;
 EQLIB_VAR DWORD CTextOverlay__DisplayText;
 EQLIB_VAR DWORD CTextureAnimation__SetCurCell;
 EQLIB_VAR DWORD CTextureFont__DrawWrappedText;
+EQLIB_VAR DWORD CTextureFont__DrawWrappedText1;
+EQLIB_VAR DWORD CTextureFont__DrawWrappedText2;
 EQLIB_VAR DWORD CTextureFont__GetTextExtent;
 EQLIB_VAR DWORD CWebManager__CreateHtmlWnd;
 EQLIB_VAR DWORD CWndDisplayManager__FindWindowA;

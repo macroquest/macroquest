@@ -117,14 +117,17 @@ inline std::string join(const std::vector<T>& vec, std::string_view delim)
 inline std::vector<std::string_view> tokenize_args(std::string_view line)
 {
 	std::vector<std::string_view> args;
+	if (line.empty())
+		return args;
+
 	auto b = std::begin(line); // "beginning" iterator
 	auto d = b; // progress this iterator as we consume words
 	std::string_view::size_type s = 0; // this will be the distance to the found character
     char quote = '\0';
 
     // fast-forward past any whitespace
-    for (; *(b + s) == ' ' || *(b + s) == '\t'; ++s);
-	if (s == std::string_view::npos)
+    for (; s < line.length() && (*(b + s) == ' ' || *(b + s) == '\t'); ++s);
+	if (s >= line.length())
 		return args;
 
 	d += s;
@@ -136,7 +139,7 @@ inline std::vector<std::string_view> tokenize_args(std::string_view line)
 		{
 			// hit a boundary, let's put it in the vector
 			args.emplace_back(std::string_view(&d[0], std::distance(d, c)));
-            for (; *(b + s) == ' ' || *(b + s) == '\t'; ++s);
+            for (; s < line.length() && (*(b + s) == ' ' || *(b + s) == '\t'); ++s);
 			d = b + s;
 		}
 		else if (((*c == '"' || *c == '\'') && (quote == *c || quote == '\0') && *(c - 1) != '\\'))
@@ -180,6 +183,11 @@ inline std::vector<std::string_view> tokenize_args(std::string_view line)
 		args.emplace_back(std::string_view(&d[0], std::distance(d, std::end(line))));
 
 	return args;
+}
+
+inline std::vector<std::string> allocate_args(std::string_view line) {
+	auto args = tokenize_args(line);
+	return std::vector<std::string>(args.begin(), args.end());
 }
 
 // allocates a string from a string_view, replaces all occurrences of each

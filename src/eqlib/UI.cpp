@@ -70,10 +70,13 @@ FUNCTION_AT_ADDRESS(int CTextureFont::GetHeight() const, CTextureFont__GetHeight
 FUNCTION_AT_ADDRESS(CXStr CTextureFont::GetName() const, CTextureFont__GetName);
 #endif
 #ifdef CTextureFont__DrawWrappedText_x
-FUNCTION_AT_ADDRESS(int CTextureFont::DrawWrappedText(const CXStr&, int, int, int, const CXRect&, COLORREF, WORD, int) const, CTextureFont__DrawWrappedText);
+FUNCTION_AT_ADDRESS(int CTextureFont::DrawWrappedText(const CXStr&, int, int, int, const CXRect&, COLORREF, uint16_t, int) const, CTextureFont__DrawWrappedText);
 #endif
 #ifdef CTextureFont__DrawWrappedText1_x
-FUNCTION_AT_ADDRESS(int CTextureFont::DrawWrappedText(const CXStr&, const CXRect&, const CXRect&, unsigned long, unsigned short, int) const, CTextureFont__DrawWrappedText1);
+FUNCTION_AT_ADDRESS(int CTextureFont::DrawWrappedText(const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const, CTextureFont__DrawWrappedText1);
+#endif
+#ifdef CTextureFont__DrawWrappedText2_x
+FUNCTION_AT_ADDRESS(int CTextureFont::DrawWrappedText(CTextObjectInterface*, const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const, CTextureFont__DrawWrappedText);
 #endif
 
 //============================================================================

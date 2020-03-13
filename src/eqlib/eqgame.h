@@ -803,6 +803,8 @@
 
 // CTextureFont
 #define CTextureFont__DrawWrappedText_x                            0x93D320
+#define CTextureFont__DrawWrappedText1_x                           0x93D250
+#define CTextureFont__DrawWrappedText2_x                           0x93D370
 #define CTextureFont__GetTextExtent_x                              0x93D4E0
 
 // CWebManager

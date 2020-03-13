@@ -488,13 +488,6 @@ bool dataMacro(const char* szIndex, MQTypeVar& Ret)
 	return false;
 }
 
-bool dataMacroQuest(const char* szIndex, MQTypeVar& Ret)
-{
-	Ret.Ptr = 0;
-	Ret.Type = pMacroQuestType;
-	return true;
-}
-
 bool dataEverQuest(const char* szIndex, MQTypeVar& Ret)
 {
 	Ret.Ptr = 0;
