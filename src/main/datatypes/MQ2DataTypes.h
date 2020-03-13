@@ -1699,38 +1699,10 @@ public:
 class MQ2MacroQuestType : public MQ2Type
 {
 public:
-	enum MacroQuestMembers
-	{
-		Error = 1,
-		SyntaxError = 2,
-		MQ2DataError = 3,
-		BuildDate = 4,
-		Build = 5,
-		Path = 6,
-		Version = 7,
-		InternalName = 8,
-		Parser = 9,
-	};
-
-	MQ2MacroQuestType() : MQ2Type("macroquest")
-	{
-		TypeMember(Error);
-		TypeMember(SyntaxError);
-		TypeMember(MQ2DataError);
-		TypeMember(BuildDate);
-		TypeMember(Build);
-		TypeMember(Path);
-		TypeMember(Version);
-		TypeMember(InternalName);
-		TypeMember(Parser);
-	}
-
+	MQ2MacroQuestType();
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		return false;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	static bool dataMacroQuest(const char* szIndex, MQTypeVar& Ret);
 };
 
 class MQ2MathType : public MQ2Type

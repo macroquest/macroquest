@@ -387,7 +387,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("Menu", dataMenu);
 	AddMQ2Data("Macro", dataMacro);
 	AddMQ2Data("EverQuest", dataEverQuest);
-	AddMQ2Data("MacroQuest", dataMacroQuest);
+	AddMQ2Data("MacroQuest", datatypes::MQ2MacroQuestType::dataMacroQuest);
 	AddMQ2Data("Math", dataMath);
 	AddMQ2Data("Zone", dataZone);
 	AddMQ2Data("Group", dataGroup);

@@ -419,15 +419,6 @@ bool ParseINIFile(const std::string& iniFile)
 	if (gbWriteAllConfig)
 		WritePrivateProfileString("MacroQuest", "HUDMode", szBuffer, iniFile);
 
-	gAnonymize               = GetPrivateProfileBool("Captions", "Anonymize", gAnonymize, iniFile);
-	gAnonymizeFlag           = (EAnonFlags)GetPrivateProfileInt("Captions", "AnonymizeFlag", gAnonymizeFlag, iniFile);
-
-	if (gbWriteAllConfig)
-	{
-		WritePrivateProfileBool("Captions", "Anonymize", gAnonymize, iniFile);
-		WritePrivateProfileInt("Captions", "AnonymizeFlag", gAnonymizeFlag, iniFile);
-	}
-
 	gFilterSWho.Lastname        = GetPrivateProfileBool("SWho Filter", "Lastname", gFilterSWho.Lastname, iniFile);
 	gFilterSWho.Class           = GetPrivateProfileBool("SWho Filter", "Class", gFilterSWho.Class, iniFile);
 	gFilterSWho.Race            = GetPrivateProfileBool("SWho Filter", "Race", gFilterSWho.Race, iniFile);
@@ -597,6 +588,7 @@ public:
 // Perform first time initialization on the main thread.
 void DoInitialization()
 {
+	InitializeAnonymizer();
 	gPipeClient.SetHandler(std::make_shared<PipeEventsHandler>());
 	gPipeClient.Start();
 	::atexit([]() { gPipeClient.Stop(); });
@@ -807,6 +799,7 @@ void MQ2Shutdown()
 	DebugTry(ShutdownMQ2CrashHandler());
 	DebugTry(ShutdownParser());
 	DebugTry(ShutdownMQ2Commands());
+	DebugTry(ShutdownAnonymizer());
 	DebugTry(ShutdownMQ2Plugins());
 	DebugTry(ShutdownMQ2Overlay());
 	DebugTry(DeInitializeMQ2IcExports());

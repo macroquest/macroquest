@@ -115,8 +115,9 @@ public:
 	virtual ~CTextureFont();
 
 	EQLIB_OBJECT CXStr GetName() const;
-	EQLIB_OBJECT int DrawWrappedText(const CXStr&, const CXRect&, const CXRect&, unsigned long, unsigned short, int) const;
+	EQLIB_OBJECT int DrawWrappedText(const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const;
 	EQLIB_OBJECT int DrawWrappedText(const CXStr& Str, int x, int y, int Width, const CXRect& BoundRect, COLORREF Color, uint16_t Flags = 0, int StartX = 0) const;
+	EQLIB_OBJECT int DrawWrappedText(CTextObjectInterface* Interface, const CXStr& Str, const CXRect& Rect, const CXRect& BoundRect, COLORREF Color, uint16_t Flags = 0, int StartX = 0) const;
 	EQLIB_OBJECT int GetHeight() const;
 	EQLIB_OBJECT int GetKerning(unsigned short, unsigned short) const;
 	EQLIB_OBJECT int GetTextExtent(const CXStr&);

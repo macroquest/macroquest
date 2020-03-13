@@ -39,8 +39,8 @@ static char gszSpawnPlayerName[8][MAX_STRING] = {
 
 static char gszSpawnNPCName[MAX_STRING] = "${If[${NamingSpawn.Mark},${NamingSpawn.Mark} - ,]}${If[${NamingSpawn.Assist},>> ,]}${NamingSpawn.DisplayName}${If[${NamingSpawn.Assist}, - ${NamingSpawn.PctHPs}%<<,]}${If[${NamingSpawn.Surname.Length},\n(${NamingSpawn.Surname}),]}";
 static char gszSpawnPetName[MAX_STRING] = "${If[${NamingSpawn.Mark},${NamingSpawn.Mark} - ,]}${If[${NamingSpawn.Assist},>> ,]}${NamingSpawn.DisplayName}${If[${NamingSpawn.Assist}, - ${NamingSpawn.PctHPs}%<<,]}${If[${NamingSpawn.Master.Type.Equal[PC]},\n(${NamingSpawn.Master}),]}";
+static char gszSpawnMercName[MAX_STRING] = "${If[${NamingSpawn.Mark},${NamingSpawn.Mark} - ,]}${If[${NamingSpawn.Assist},>> ,]}${NamingSpawn.DisplayName}${If[${NamingSpawn.Assist}, - ${NamingSpawn.PctHPs}%<<,]}${If[${NamingSpawn.Owner.Type.Equal[PC]},\n(${NamingSpawn.Owner}),]}";
 static char gszSpawnCorpseName[MAX_STRING] = "${NamingSpawn.DisplayName}'s corpse";
-static char gszAnonCaption[MAX_STRING] = "[${NamingSpawn.Level}] ${NamingSpawn.Race} ${NamingSpawn.Class} ${NamingSpawn.Type}";
 
 // TLO used for controlling what we are currently naming.
 static bool dataNamingSpawn(const char* szIndex, MQTypeVar& Ret)
@@ -120,7 +120,7 @@ static void CaptionCmd(SPAWNINFO* pChar, char* szLine)
 
 	if (!Arg1[0])
 	{
-		SyntaxError("Usage: /caption <list|type <value>|update #|MQCaptions <on|off>|Anon <on|off>>");
+		SyntaxError("Usage: /caption <list|type <value>|update #|MQCaptions <on|off>>");
 		return;
 	}
 
@@ -135,6 +135,7 @@ static void CaptionCmd(SPAWNINFO* pChar, char* szLine)
 
 		WriteChatf("\ayNPC\ax: \ag%s\ax", gszSpawnNPCName);
 		WriteChatf("\ayPet\ax: \ag%s\ax", gszSpawnPetName);
+		WriteChatf("\ayMerc\ax: \ag%s\ax", gszSpawnMercName);
 		WriteChatf("\ayCorpse\ax: \ag%s\ax", gszSpawnCorpseName);
 		return;
 	}
@@ -169,6 +170,10 @@ static void CaptionCmd(SPAWNINFO* pChar, char* szLine)
 	{
 		pCaption = gszSpawnPetName;
 	}
+	else if (!_stricmp(Arg1, "Merc"))
+	{
+		pCaption = gszSpawnMercName;
+	}
 	else if (!_stricmp(Arg1, "NPC"))
 	{
 		pCaption = gszSpawnNPCName;
@@ -193,14 +198,6 @@ static void CaptionCmd(SPAWNINFO* pChar, char* szLine)
 		WriteChatf("MQCaptions are now \ay%s\ax.", (gMQCaptions ? "On" : "Off"));
 		return;
 	}
-	else if (!_stricmp(Arg1, "Anon"))
-	{
-		gAnonymize = (!_stricmp(GetNextArg(szLine), "On"));
-		UpdatedMasterLooterLabel();
-		WritePrivateProfileBool("Captions", "Anonymize", gAnonymize, mq::internal_paths::MQini);
-		WriteChatf("Anonymize is now \ay%s\ax.", (gAnonymize ? "On" : "Off"));
-		return;
-	}
 	else if (!_stricmp(Arg1, "reload"))
 	{
 		GetPrivateProfileString("Captions", "NPC", gszSpawnNPCName, gszSpawnNPCName, MAX_STRING, mq::internal_paths::MQini);
@@ -212,7 +209,7 @@ static void CaptionCmd(SPAWNINFO* pChar, char* szLine)
 		GetPrivateProfileString("Captions", "Player6", gszSpawnPlayerName[6], gszSpawnPlayerName[6], MAX_STRING, mq::internal_paths::MQini);
 		GetPrivateProfileString("Captions", "Corpse", gszSpawnCorpseName, gszSpawnCorpseName, MAX_STRING, mq::internal_paths::MQini);
 		GetPrivateProfileString("Captions", "Pet", gszSpawnPetName, gszSpawnPetName, MAX_STRING, mq::internal_paths::MQini);
-		GetPrivateProfileString("Captions", "AnonCaption", gszAnonCaption, gszAnonCaption, MAX_STRING, mq::internal_paths::MQini);
+		GetPrivateProfileString("Captions", "Merc", gszSpawnMercName, gszSpawnMercName, MAX_STRING, mq::internal_paths::MQini);
 
 		ConvertCR(gszSpawnNPCName, MAX_STRING);
 		ConvertCR(gszSpawnPlayerName[1], MAX_STRING);
@@ -223,9 +220,14 @@ static void CaptionCmd(SPAWNINFO* pChar, char* szLine)
 		ConvertCR(gszSpawnPlayerName[6], MAX_STRING);
 		ConvertCR(gszSpawnCorpseName, MAX_STRING);
 		ConvertCR(gszSpawnPetName, MAX_STRING);
-		ConvertCR(gszAnonCaption, MAX_STRING);
+		ConvertCR(gszSpawnMercName, MAX_STRING);
 
 		WriteChatf("Updated Captions from INI.");
+		return;
+	}
+	else if (ci_equals(Arg1, "anon"))
+	{
+		MacroError("Anon is no longer accessed through /caption, please use /mqanon");
 		return;
 	}
 	else
@@ -382,7 +384,7 @@ public:
 	int SetNameSpriteState_Trampoline(bool Show);
 	int SetNameSpriteState_Detour(bool Show)
 	{
-		if (!gAnonymize && (gGameState != GAMESTATE_INGAME || !Show || !gMQCaptions))
+		if (gGameState != GAMESTATE_INGAME || !Show || !gMQCaptions)
 			return SetNameSpriteState_Trampoline(Show);
 
 		return 1;
@@ -391,7 +393,7 @@ public:
 	bool SetNameSpriteTint_Trampoline();
 	bool SetNameSpriteTint_Detour()
 	{
-		if (!gAnonymize && (gGameState != GAMESTATE_INGAME || !gMQCaptions))
+		if (gGameState != GAMESTATE_INGAME || !gMQCaptions)
 			return SetNameSpriteTint_Trampoline();
 
 		return true;
@@ -511,140 +513,48 @@ static void SetNameSpriteTint(SPAWNINFO* pSpawn)
 	}
 }
 
-static bool SetCaption(SPAWNINFO* pSpawn, const char* CaptionString, eSpawnType type)
+static bool SetCaption(SPAWNINFO* pSpawn, const char* CaptionString)
 {
-	char NewCaption[MAX_STRING] = { 0 };
-
-	if (CaptionString[0] || gAnonymize)
+	if (CaptionString[0])
 	{
-		if (CHARINFO* pChar = GetCharInfo())
-		{
-			strcpy_s(NewCaption, CaptionString);
-			pNamingSpawn = pSpawn;
-
-			if (gAnonymize)
-			{
-				char szType[64] = { 0 };
-				bool okToAnon = false;
-
-				switch (type)
-				{
-				case MERCENARY:
-					okToAnon = true;
-					strcpy_s(szType, "Mercenary");
-					break;
-
-				case NPC:
-					ParseMacroParameter(pChar->pSpawn, NewCaption);
-					break;
-
-				case PC:
-					okToAnon = true;
-					strcpy_s(szType, "Player");
-					break;
-
-				case PET:
-					if (pSpawn->MasterID)
-					{
-						SPAWNINFO* petMaster = (SPAWNINFO*)GetSpawnByID(pSpawn->MasterID);
-
-						if (petMaster && petMaster->Type == SPAWN_PLAYER)
-						{
-							okToAnon = true;
-							strcpy_s(szType, "PET");
-						}
-						else
-						{
-							ParseMacroParameter(pChar->pSpawn, NewCaption);
-						}
-					}
-					break;
-
-				case CORPSE:
-					if (pSpawn->Deity)
-					{
-						okToAnon = true;
-						strcpy_s(szType, "CORPSE");
-					}
-					else
-					{
-						ParseMacroParameter(pChar->pSpawn, NewCaption);
-					}
-					break;
-				};
-
-				if (okToAnon)
-				{
-					if (!gszAnonCaption[0])
-					{
-						const char* theRace = pEverQuest->GetRaceDesc(pSpawn->mActorClient.Race);
-						const char* theClass = pEverQuest->GetClassDesc(pSpawn->mActorClient.Class);
-
-						sprintf_s(NewCaption, "[%d] %s %s %s", pSpawn->Level, theRace, theClass, szType);
-					}
-					else
-					{
-						strcpy_s(NewCaption, gszAnonCaption);
-						ParseMacroParameter(pChar->pSpawn, NewCaption);
-					}
-				}
-			}
-			else
-			{
-				ParseMacroParameter(pChar->pSpawn, NewCaption);
-			}
-
-			pNamingSpawn = nullptr;
-		}
-
-		((PlayerClient*)pSpawn)->ChangeBoneStringSprite(0, NewCaption);
+		pNamingSpawn = pSpawn;
+		reinterpret_cast<PlayerClient*>(pSpawn)->ChangeBoneStringSprite(0, Anonymize(ModifyMacroString(CaptionString).c_str()).c_str());
+		pNamingSpawn = nullptr;
 		return true;
 	}
+
 	return false;
 }
 
-static bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
+bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
 {
 	//DebugSpew("SetNameSpriteState(%s) --race %d body %d)",pSpawn->Name,pSpawn->Race,GetBodyType(pSpawn));
-	if (!Show)
+	if (!Show || !gMQCaptions)
 	{
-		((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(Show);
+		return reinterpret_cast<EQPlayerHook*>(pSpawn)->SetNameSpriteState_Trampoline(Show) != 0;
 	}
 
-	if (!gMQCaptions && !gAnonymize)
-	{
-		return ((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(Show);
-	}
-
-	if (!pSpawn->mActorClient.pcactorex || !((CActorEx*)pSpawn->mActorClient.pcactorex)->CanSetName(0))
+	if (!pSpawn->mActorClient.pcactorex || !static_cast<CActorEx*>(pSpawn->mActorClient.pcactorex)->CanSetName(0))
 	{
 		return true;
 	}
 
 	switch (GetSpawnType(pSpawn))
 	{
-	case MERCENARY:
-		if (gAnonymize)
-		{
-			if (SetCaption(pSpawn, "", MERCENARY))
-				return true;
-		}
-		break;
-
 	case NPC:
-		if (SetCaption(pSpawn, gszSpawnNPCName, NPC))
+		if (SetCaption(pSpawn, gszSpawnNPCName))
 			return true;
 		break;
 
 	case PC:
-		if (!gPCNames && pSpawn != (SPAWNINFO*)pTarget)
+		if (!gPCNames && pSpawn != pTarget)
 			return false;
-		if (SetCaption(pSpawn, gszSpawnPlayerName[gShowNames], PC))
+		if (SetCaption(pSpawn, gszSpawnPlayerName[gShowNames]))
 			return true;
 		break;
 
 	case CORPSE:
-		if (SetCaption(pSpawn, gszSpawnCorpseName, CORPSE))
+		if (SetCaption(pSpawn, gszSpawnCorpseName))
 			return true;
 		break;
 
@@ -659,40 +569,39 @@ static bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
 		return false;
 
 	case PET:
-		if (SetCaption(pSpawn, gszSpawnPetName, PET))
+		if (SetCaption(pSpawn, gszSpawnPetName))
+			return true;
+		break;
+
+	case MERCENARY:
+		if (SetCaption(pSpawn, gszSpawnMercName))
 			return true;
 		break;
 	}
 
-	return ((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(Show) != 0;
+	return reinterpret_cast<EQPlayerHook*>(pSpawn)->SetNameSpriteState_Trampoline(Show) != 0;
 }
 
 static void UpdateSpawnCaptions()
 {
-	int Count = 0;
-	for (int index = 0; index < 120; index++)
+	if (!gMQCaptions)
+		return;
+
+	int count = 0;
+	for (auto d : EQP_DistArray)
 	{
-		SPAWNINFO* pSpawn = (SPAWNINFO*)EQP_DistArray[index].VarPtr.Ptr;
-		if (!pSpawn || pSpawn == (SPAWNINFO*)pTarget)
+		auto pSpawn = static_cast<SPAWNINFO*>(d.VarPtr.Ptr);
+		if (!pSpawn || pSpawn == pTarget)
 			continue;
 
-		if (gAnonymize || (EQP_DistArray[index].Value.Float <= 80.0f && gMQCaptions))
+		if (SetNameSpriteState(pSpawn, true))
 		{
-			if (SetNameSpriteState(pSpawn, true))
-			{
-				SetNameSpriteTint(pSpawn);
-				Count++;
+			SetNameSpriteTint(pSpawn);
+			++count;
+		}
 
-				if (Count >= gMaxSpawnCaptions)
-				{
-					return;
-				}
-			}
-		}
-		else
-		{
-			return;
-		}
+		if (count >= gMaxSpawnCaptions)
+			break;
 	}
 }
 
@@ -714,7 +623,7 @@ static void LoadCaptionSettings()
 	GetPrivateProfileString("Captions", "Player6", gszSpawnPlayerName[6], gszSpawnPlayerName[6], MAX_STRING, iniFile);
 	GetPrivateProfileString("Captions", "Corpse", gszSpawnCorpseName, gszSpawnCorpseName, MAX_STRING, iniFile);
 	GetPrivateProfileString("Captions", "Pet", gszSpawnPetName, gszSpawnPetName, MAX_STRING, iniFile);
-	GetPrivateProfileString("Captions", "AnonCaption", gszAnonCaption, gszAnonCaption, MAX_STRING, iniFile);
+	GetPrivateProfileString("Captions", "Merc", gszSpawnMercName, gszSpawnMercName, MAX_STRING, iniFile);
 
 	gMaxSpawnCaptions = GetPrivateProfileInt("Captions", "Update", gMaxSpawnCaptions, iniFile);
 	gMQCaptions = GetPrivateProfileBool("Captions", "MQCaptions", gMQCaptions, iniFile);
@@ -730,7 +639,7 @@ static void LoadCaptionSettings()
 		WritePrivateProfileString("Captions", "Player6", gszSpawnPlayerName[6], iniFile);
 		WritePrivateProfileString("Captions", "Corpse", gszSpawnCorpseName, iniFile);
 		WritePrivateProfileString("Captions", "Pet", gszSpawnPetName, iniFile);
-		WritePrivateProfileString("Captions", "AnonCaption", gszAnonCaption, iniFile);
+		WritePrivateProfileString("Captions", "Merc", gszSpawnMercName, iniFile);
 
 		WritePrivateProfileInt("Captions", "Update", gMaxSpawnCaptions, iniFile);
 		WritePrivateProfileBool("Captions", "MQCaptions", gMQCaptions, iniFile);
@@ -745,7 +654,7 @@ static void LoadCaptionSettings()
 	ConvertCR(gszSpawnPlayerName[6], MAX_STRING);
 	ConvertCR(gszSpawnCorpseName, MAX_STRING);
 	ConvertCR(gszSpawnPetName, MAX_STRING);
-	ConvertCR(gszAnonCaption, MAX_STRING);
+	ConvertCR(gszSpawnMercName, MAX_STRING);
 }
 
 #pragma endregion
@@ -876,7 +785,7 @@ static void UpdateMQ2SpawnSort()
 	ZeroMemory(EQP_DistArray, sizeof(EQP_DistArray));
 	gSpawnCount = 0;
 
-	SPAWNINFO* pSpawn = (SPAWNINFO*)pSpawnList;
+	SPAWNINFO* pSpawn = pSpawnList;
 	while (pSpawn)
 	{
 		EQP_DistArray[gSpawnCount].VarPtr.Ptr = pSpawn;
@@ -894,13 +803,14 @@ static void UpdateMQ2SpawnSort()
 
 	if (LastTarget)
 	{
-		if (SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByID(LastTarget))
+		if (auto pSpawnTarget = reinterpret_cast<SPAWNINFO*>(GetSpawnByID(LastTarget)))
 		{
-			if (pSpawn != pTarget)
+			if (pSpawnTarget != pTarget)
 			{
-				SetNameSpriteState(pSpawn, false);
+				SetNameSpriteState(pSpawnTarget, false);
 			}
 		}
+		
 		LastTarget = 0;
 	}
 
@@ -912,7 +822,7 @@ static void UpdateMQ2SpawnSort()
 
 	if (pTarget)
 	{
-		LastTarget = ((SPAWNINFO*)pTarget)->SpawnID;
+		LastTarget = pTarget->SpawnID;
 		pTarget.get_as<EQPlayerHook>()->SetNameSpriteTint_Trampoline();
 		SetNameSpriteState(pTarget, true);
 	}
@@ -1035,6 +945,11 @@ void PulseMQ2Spawns()
 bool IsTargetable(SPAWNINFO* pSpawn)
 {
 	return pSpawn && ((PlayerBase*)pSpawn)->IsTargetable();
+}
+
+bool AreNameSpritesCustomized()
+{
+	return gMQCaptions;
 }
 
 } // namespace mq

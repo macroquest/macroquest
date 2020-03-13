@@ -639,70 +639,13 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		return false;
 
 	case SpawnMembers::Type:
-		DataTypeTemp[0] = 0;
 		Dest.Type = pStringType;
+		strcpy_s(DataTypeTemp, GetTypeDesc(GetSpawnType(pSpawn)));
+		if (strncmp(DataTypeTemp, "Unk", 3))
+			return false;
 
-		switch (GetSpawnType(pSpawn))
-		{
-		case MOUNT:
-			strcpy_s(DataTypeTemp, "Mount");
-			break;
-		case UNTARGETABLE:
-			strcpy_s(DataTypeTemp, "Untargetable");
-			break;
-		case NPC:
-			strcpy_s(DataTypeTemp, "NPC");
-			break;
-		case PC:
-			strcpy_s(DataTypeTemp, "PC");
-			break;
-		case CHEST:
-			strcpy_s(DataTypeTemp, "Chest");
-			break;
-		case TRAP:
-			strcpy_s(DataTypeTemp, "Trap");
-			break;
-		case TRIGGER:
-			strcpy_s(DataTypeTemp, "Trigger");
-			break;
-		case TIMER:
-			strcpy_s(DataTypeTemp, "Timer");
-			break;
-		case PET:
-			strcpy_s(DataTypeTemp, "Pet");
-			break;
-		case ITEM:
-			strcpy_s(DataTypeTemp, "Item");
-			break;
-		case CORPSE:
-			strcpy_s(DataTypeTemp, "Corpse");
-			break;
-		case AURA:
-			strcpy_s(DataTypeTemp, "Aura");
-			break;
-		case OBJECT:
-			strcpy_s(DataTypeTemp, "Object");
-			break;
-		case BANNER:
-			strcpy_s(DataTypeTemp, "Banner");
-			break;
-		case CAMPFIRE:
-			strcpy_s(DataTypeTemp, "Campfire");
-			break;
-		case MERCENARY:
-			strcpy_s(DataTypeTemp, "Mercenary");
-			break;
-		case FLYER:
-			strcpy_s(DataTypeTemp, "Flyer");
-			break;
-		}
-
-		if (DataTypeTemp[0] != 0)
-		{
-			Dest.Ptr = &DataTypeTemp[0];
-			return true;
-		}
-		return false;
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
 
 	case SpawnMembers::Light:
 		strcpy_s(DataTypeTemp, GetLightForSpawn(pSpawn));

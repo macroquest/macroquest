@@ -134,6 +134,49 @@ inline const char* GetClassDesc(DWORD ClassID)
 	}
 }
 
+inline const char* GetTypeDesc(eSpawnType TypeID)
+{
+	switch (TypeID)
+	{
+	case MOUNT:
+		return "Mount";
+	case UNTARGETABLE:
+		return "Untargetable";
+	case NPC:
+		return "NPC";
+	case PC:
+		return "PC";
+	case CHEST:
+		return "Chest";
+	case TRAP:
+		return "Trap";
+	case TRIGGER:
+		return "Trigger";
+	case TIMER:
+		return "Timer";
+	case PET:
+		return "Pet";
+	case ITEM:
+		return "Item";
+	case CORPSE:
+		return "Corpse";
+	case AURA:
+		return "Aura";
+	case OBJECT:
+		return "Object";
+	case BANNER:
+		return "Banner";
+	case CAMPFIRE:
+		return "Campfire";
+	case MERCENARY:
+		return "Mercenary";
+	case FLYER:
+		return "Flyer";
+	default:
+		return "Unknown Type";
+	}
+}
+
 inline bool IsMarkedNPC(SPAWNINFO* pSpawn)
 {
 	if (GetCharInfo() && GetCharInfo()->pSpawn && pSpawn)

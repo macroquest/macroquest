@@ -881,7 +881,7 @@ void InitializeMQ2Commands()
 		{ "/drop",              DropCmd,                    true,  false },
 		{ "/delay",             Delay,                      false, false }, // do not parse
 		{ "/hud",               HudCmd,                     true,  false },
-		{ "/caption",           DoHotButton,                true,  true  },
+		{ "/hotbutton",         DoHotButton,                true,  true  },
 		{ "/useitem",           UseItemCmd,                 true,  true  },
 		{ "/spellslotinfo",     SpellSlotInfo,              true,  true  },
 		{ "/getwintitle",       GetWinTitle,                true,  false },

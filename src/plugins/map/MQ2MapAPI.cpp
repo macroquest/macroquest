@@ -504,7 +504,7 @@ void MapUpdate()
 		else
 		{
 			Type = GetSpawnType(pMapSpawn->pSpawn);
-			if (Type != pMapSpawn->SpawnType || ((pMapSpawn == pOldLastTarget) && bTargetChanged) || needAnon)
+			if (Type != pMapSpawn->SpawnType || ((pMapSpawn == pOldLastTarget) && bTargetChanged))
 			{
 				if (!pMapSpawn->Explicit && !CanDisplaySpawn(Type, pMapSpawn->pSpawn))
 				{
@@ -548,8 +548,6 @@ void MapUpdate()
 			RemoveMarker(pMapSpawn);
 		pMapSpawn = pMapSpawn->pNext;
 	}
-
-	needAnon = false;
 
 	if (IsOptionEnabled(MAPFILTER_CastRadius))
 	{
@@ -1080,33 +1078,19 @@ char* GenerateSpawnName(SPAWNINFO* pSpawn, char* NameString)
 		if (NameString[N] == '%')
 		{
 			N++;
+			CXStr NameOut;
 			switch (NameString[N])
 			{
 			case 'N': // cleaned up name
-				if (gAnonymize)
-				{
-					FormatAnonymizedName(pSpawn, pSpawn->DisplayedName);
-				}
-				else
-				{
-					AddString(pSpawn->DisplayedName);
-				}
+				AddString(pSpawn->DisplayedName);
 
 				if (pSpawn->Type == SPAWN_CORPSE)
-				{
 					sOutput.append("'s Corpse");
-				}
+
 				break;
 
 			case 'n': // original name
-				if (gAnonymize)
-				{
-					FormatAnonymizedName(pSpawn, pSpawn->Name);
-				}
-				else
-				{
-					AddString(pSpawn->Name);
-				}
+				AddString(pSpawn->Name);
 				break;
 
 			case 'h': // current health %
@@ -1114,14 +1098,7 @@ char* GenerateSpawnName(SPAWNINFO* pSpawn, char* NameString)
 				break;
 
 			case 'i':
-				if (gAnonymize)
-				{
-					AddInt(0); // Don't display SpawnID if we are Anon.
-				}
-				else
-				{
-					AddInt(pSpawn->SpawnID);
-				}
+				AddInt(pSpawn->SpawnID);
 				break;
 
 			case 'x':
@@ -1141,29 +1118,11 @@ char* GenerateSpawnName(SPAWNINFO* pSpawn, char* NameString)
 				break;
 
 			case 'C':
-				if (gAnonymize)
-				{
-					// Only display the class if it's an NPC, otherwise we'll display it twice for corpses and players.
-					if (pSpawn->Type == SPAWN_NPC)
-						AddString(GetClassDesc(pSpawn->mActorClient.Class));
-				}
-				else
-				{
-					AddString(GetClassDesc(pSpawn->mActorClient.Class));
-				}
+				AddString(GetClassDesc(pSpawn->mActorClient.Class));
 				break;
 
 			case 'c':
-				if (gAnonymize)
-				{
-					// Only display the 3 letter race if it's an NPC, we're already displaying the full race name otherwise.
-					if (pSpawn->Type == SPAWN_NPC)
-						AddString(pEverQuest->GetClassThreeLetterCode(pSpawn->mActorClient.Class));
-				}
-				else
-				{
-					AddString(pEverQuest->GetClassThreeLetterCode(pSpawn->mActorClient.Class));
-				}
+				AddString(pEverQuest->GetClassThreeLetterCode(pSpawn->mActorClient.Class));
 				break;
 
 			case 'l':

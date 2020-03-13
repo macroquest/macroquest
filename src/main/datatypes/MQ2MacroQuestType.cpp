@@ -18,6 +18,34 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class MacroQuestMembers
+{
+	Error,
+	SyntaxError,
+	MQ2DataError,
+	BuildDate,
+	Build,
+	Path,
+	Version,
+	InternalName,
+	Parser,
+	Anonymize
+};
+
+MQ2MacroQuestType::MQ2MacroQuestType() : MQ2Type("macroquest")
+{
+	ScopedTypeMember(MacroQuestMembers, Error);
+	ScopedTypeMember(MacroQuestMembers, SyntaxError);
+	ScopedTypeMember(MacroQuestMembers, MQ2DataError);
+	ScopedTypeMember(MacroQuestMembers, BuildDate);
+	ScopedTypeMember(MacroQuestMembers, Build);
+	ScopedTypeMember(MacroQuestMembers, Path);
+	ScopedTypeMember(MacroQuestMembers, Version);
+	ScopedTypeMember(MacroQuestMembers, InternalName);
+	ScopedTypeMember(MacroQuestMembers, Parser);
+	ScopedTypeMember(MacroQuestMembers, Anonymize);
+}
+
 bool MQ2MacroQuestType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQTypeMember* pMember = MQ2MacroQuestType::FindMember(Member);
@@ -26,7 +54,7 @@ bool MQ2MacroQuestType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 
 	switch (static_cast<MacroQuestMembers>(pMember->ID))
 	{
-	case Error:
+	case MacroQuestMembers::Error:
 		if (gszLastNormalError[0]) // QUIT SETTING THIS MANUALLY, USE MacroError, FatalError, ETC
 		{
 			Dest.Ptr = &gszLastNormalError[0];
@@ -35,7 +63,7 @@ bool MQ2MacroQuestType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 		}
 		return false;
 
-	case SyntaxError:
+	case MacroQuestMembers::SyntaxError:
 		if (gszLastSyntaxError[0])
 		{
 			Dest.Ptr = &gszLastSyntaxError[0];
@@ -44,7 +72,7 @@ bool MQ2MacroQuestType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 		}
 		return false;
 
-	case MQ2DataError:
+	case MacroQuestMembers::MQ2DataError:
 		if (gszLastMQ2DataError[0])
 		{
 			Dest.Ptr = &gszLastMQ2DataError[0];
@@ -53,7 +81,7 @@ bool MQ2MacroQuestType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 		}
 		return false;
 
-	case BuildDate: {
+	case MacroQuestMembers::BuildDate: {
 		SYSTEMTIME st;
 		HANDLE hFile;
 		WIN32_FIND_DATA FileData;
@@ -68,12 +96,12 @@ bool MQ2MacroQuestType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 		return true;
 	}
 
-	case Build:
+	case MacroQuestMembers::Build:
 		Dest.DWord = gBuild;
 		Dest.Type = pIntType;
 		return true;
 
-	case Path:
+	case MacroQuestMembers::Path:
 		Dest.Type = pStringType;
 		if (!Index[0] || ci_equals(Index, "root"))
 		{
@@ -113,7 +141,7 @@ bool MQ2MacroQuestType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 		}
 		return true;
 
-	case Version: {
+	case MacroQuestMembers::Version: {
 		// Read the version resource and produce a version number
 
 		// Get module handle to MQ2Main.dll
@@ -167,7 +195,7 @@ bool MQ2MacroQuestType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 		return true;
 	}
 
-	case InternalName: {
+	case MacroQuestMembers::InternalName: {
 		// Read the version resource and produce an internal name string
 
 		// Get module handle to MQ2Main.dll
@@ -221,14 +249,30 @@ bool MQ2MacroQuestType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 		return true;
 	}
 
-	case Parser:
+	case MacroQuestMembers::Parser:
 		Dest.DWord = gParserVersion;
 		Dest.Type = pIntType;
 		return true;
 
-	default: break;
-	}
+	case MacroQuestMembers::Anonymize:
+		Dest.DWord = IsAnonymized();
+		Dest.Type = pBoolType;
+		return true;
 
+	default:
+		return false;
+	}
+}
+
+bool MQ2MacroQuestType::ToString(MQVarPtr VarPtr, char* Destination)
+{
 	return false;
+}
+
+bool MQ2MacroQuestType::dataMacroQuest(const char* szIndex, MQTypeVar& Ret)
+{
+	Ret.Ptr = 0;
+	Ret.Type = pMacroQuestType;
+	return true;
 }
 

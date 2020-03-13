@@ -744,6 +744,8 @@ INITIALIZE_EQGAME_OFFSET(CTaskWnd__UpdateTaskTimers);
 INITIALIZE_EQGAME_OFFSET(CTextOverlay__DisplayText);
 INITIALIZE_EQGAME_OFFSET(CTextureAnimation__SetCurCell);
 INITIALIZE_EQGAME_OFFSET(CTextureFont__DrawWrappedText);
+INITIALIZE_EQGAME_OFFSET(CTextureFont__DrawWrappedText1);
+INITIALIZE_EQGAME_OFFSET(CTextureFont__DrawWrappedText2);
 INITIALIZE_EQGAME_OFFSET(CTextureFont__GetTextExtent);
 INITIALIZE_EQGAME_OFFSET(CWebManager__CreateHtmlWnd);
 INITIALIZE_EQGAME_OFFSET(CWndDisplayManager__FindWindowA);
