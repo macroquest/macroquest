@@ -121,6 +121,7 @@ MQLIB_API void ShutdownMQ2Spawns();
 MQLIB_API void PulseMQ2Spawns();
 MQLIB_API bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show);
 MQLIB_API bool IsTargetable(SPAWNINFO* pSpawn);
+MQLIB_API bool AreNameSpritesCustomized();
 
 /* OVERLAY */
 MQLIB_API void InitializeMQ2Overlay();
@@ -676,8 +677,13 @@ MQLIB_API void memchecks(char*, DWORD, void*, DWORD, bool);
 MQLIB_API void RemoveAutoBankMenu();
 MQLIB_API bool WillFitInBank(CONTENTS* pContent);
 MQLIB_API bool WillFitInInventory(CONTENTS* pContent);
-MQLIB_API bool Anonymize(char* name, int maxlen, int NameFlag = 0);
-MQLIB_API bool Anonymize2(CXStr& name, int NameFlag = 0);
-MQLIB_API void UpdatedMasterLooterLabel();
+
+/* MQ2ANONYMIZE */
+void InitializeAnonymizer();
+void ShutdownAnonymizer();
+MQLIB_API bool IsAnonymized();
+MQLIB_OBJECT CXStr Anonymize(const CXStr& Text);
+// this is only made available for things that need c-linkage (are grabbing this function out of a DLL)
+MQLIB_API CXStr& PluginAnonymize(CXStr& Text);
 
 } // namespace mq
