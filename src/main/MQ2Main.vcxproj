@@ -473,6 +473,7 @@
     <ClInclude Include="datatypes\DataTypeList.h" />
     <ClInclude Include="datatypes\MQ2DataTypes.h" />
     <ClInclude Include="CrashHandler.h" />
+    <ClInclude Include="MQ2Args.h" />
     <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQ2Globals.h" />
     <ClInclude Include="MQ2Inlines.h" />
