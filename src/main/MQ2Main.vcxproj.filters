@@ -490,22 +490,19 @@
     <ClInclude Include="datatypes\MQ2DataTypes.h">
       <Filter>Header Files\datatypes</Filter>
     </ClInclude>
-    <ClInclude Include="DebugHandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\contrib\mini-yaml\yaml\Yaml.hpp">
       <Filter>Header Files\contrib\mini-yaml</Filter>
     </ClInclude>
     <ClInclude Include="..\..\contrib\args\args.hxx">
       <Filter>Header Files\contrib\args</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\contrib\argparse\include\argparse\argparse.h">
-      <Filter>Header Files\contrib\argparse</Filter>
-    </ClInclude>
     <ClInclude Include="..\common\NamedPipes.h">
       <Filter>Header Files\common</Filter>
     </ClInclude>
     <ClInclude Include="CrashHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MQ2Args.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
