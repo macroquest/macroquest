@@ -330,11 +330,11 @@ static void SetAnonymization(AnonymizationClasses AnonClass, Anonymization Strat
 		break;
 
 	default:
-		WriteChatf("Could not find class \ag%s\ax, no anonymization change.", GetStringFromAnonClass(AnonClass));
+		WriteChatf("Could not find class \ag%s\ax, no anonymization change.", GetStringFromAnonClass(AnonClass).data());
 		return;
 	}
 
-	WriteChatf("Updated \ag%s\ax anonymization to \ao%s\ax.", GetStringFromAnonClass(AnonClass), GetStringFromAnonymization(Strategy));
+	WriteChatf("Updated \ag%s\ax anonymization to \ao%s\ax.", GetStringFromAnonClass(AnonClass).data(), GetStringFromAnonymization(Strategy).data());
 }
 
 // add an anonymization rule to the map -- if the rule already exists, assume we want to update the target
@@ -708,65 +708,154 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	arg_parser.RequireCommand(false);
 	args::Group commands(arg_parser, "", args::Group::Validators::AtMostOne);
 
-	MQ2Argument asterisk(commands, "asterisk", "anonymize with asterisks",
-		[](auto name) { if (name) AddAnonymization(name.Get(), Anonymization::Asterisk); },
-		MQ2AddArg<args::Positional<std::string>>("name", "the name to anonymize"));
+	args::Command asterisk(commands, "asterisk", "anonymize with asterisks",
+		[](args::Subparser& parser)
+		{
+			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::Positional<std::string> name(arguments, "name", "the name to anonymize");
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+			if (name) AddAnonymization(name.Get(), Anonymization::Asterisk);
+		});
 
-	MQ2Argument clas(commands, "class", "anonymize by class attributes",
-		[](auto name) { if (name) AddAnonymization(name.Get(), Anonymization::Class); },
-		MQ2AddArg<args::Positional<std::string>>("name", "the name to anonymize"));
+	args::Command clas(commands, "class", "anonymize by class attributes",
+		[](args::Subparser& parser)
+		{
+			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::Positional<std::string> name(arguments, "name", "the name to anonymize");
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+			if (name) AddAnonymization(name.Get(), Anonymization::Class);
+		});
 
-	MQ2Argument custom(commands, "custom", "anonymize with custom string",
-		[](auto name, auto replacers) { if (name && replacers) AddAnonymization(name.Get(), Anonymization::Custom, join(replacers.Get(), " "));  },
-		MQ2AddArg<args::Positional<std::string>>("name", "the name to anonymize"),
-		MQ2AddArg<args::PositionalList<std::string>>("replacers", "the text to anonymize with"));
+	args::Command custom(commands, "custom", "anonymize with custom string",
+		[](args::Subparser& parser)
+		{
+			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::Positional<std::string> name(arguments, "name", "the name to anonymize");
+			args::PositionalList<std::string> replacers(arguments, "replacers", "the text to anonymize with");
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+			if (name && replacers) AddAnonymization(name.Get(), Anonymization::Custom, join(replacers.Get(), " "));
+		});
 
-	MQ2Argument drop(commands, "drop", "drops anonymization name from list of filtered names",
-		[](auto name) { if (name) DropAnonymization(name.Get()); },
-		MQ2AddArg<args::Positional<std::string>>("name", "the name to de-anonymize"));
+	args::Command drop(commands, "drop", "drops anonymization name from list of filtered names",
+		[](args::Subparser& parser)
+		{
+			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::Positional<std::string> name(arguments, "name", "the name to de-anonymize");
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+			if (name) DropAnonymization(name.Get());
+		});
 
-	MQ2Argument alias(commands, "alias", "adds an alias for a name in the list of filtered names",
-		[](auto name, auto alias) { if (name && alias) AddAlternate(name.Get(), alias.Get()); },
-		MQ2AddArg<args::Positional<std::string>>("[name]", "the name entry to unalias"),
-		MQ2AddArg<args::Positional<std::string>>("alias", "the alias to also stop searching for when replacing the name"));
+	args::Command alias(commands, "alias", "adds an alias for a name in the list of filtered names",
+		[](args::Subparser& parser)
+		{
+			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::Positional<std::string> name(arguments, "[name]", "the name entry to unalias");
+			args::Positional<std::string> alias(arguments, "alias", "the alias to also stop searching for when replacing the name");
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+			if (name && alias) AddAlternate(name.Get(), alias.Get());
+		});
 
-	MQ2Argument unalias(commands, "unalias", "drops an alias for a name in the list of filtered names",
-		[](auto name, auto alias) { if (name && alias) DropAlternate(name.Get(), alias.Get()); else if (name) DropAlternate(name.Get()); },
-		MQ2AddArg<args::Positional<std::string>>("[name]", "the name entry to unalias"),
-		MQ2AddArg<args::Positional<std::string>>("alias", "the alias to also stop searching for when replacing the name"));
+	args::Command unalias(commands, "unalias", "drops an alias for a name in the list of filtered names",
+		[](args::Subparser& parser)
+		{
+			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::Positional<std::string> name(arguments, "[name]", "the name entry to unalias");
+			args::Positional<std::string> alias(arguments, "alias", "the alias to also stop searching for when replacing the name");
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+			if (name && alias) DropAlternate(name.Get(), alias.Get()); else if (name) DropAlternate(name.Get());
+		});
 
-	MQ2Argument group(commands, "group", "sets group anonymization",
-		[](auto anon_type) { if (anon_type) SetAnonymization(AnonymizationClasses::Group, anon_type.Get()); },
-		MQ2AddArg<args::MapPositional<std::string_view, Anonymization>>("anon_type", "Anonymization type", anonymization_map));
+	args::Command group(commands, "group", "sets group anonymization",
+		[](args::Subparser& parser)
+		{
+			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+			if (anon_type) SetAnonymization(AnonymizationClasses::Group, anon_type.Get());
+		});
 
-	MQ2Argument fellowship(commands, "fellowship", "sets fellowship anonymization",
-		[](auto anon_type) { if (anon_type) SetAnonymization(AnonymizationClasses::Fellowship, anon_type.Get()); },
-		MQ2AddArg<args::MapPositional<std::string_view, Anonymization>>("anon_type", "Anonymization type", anonymization_map));
+	args::Command fellowship(commands, "fellowship", "sets fellowship anonymization",
+		[](args::Subparser& parser)
+		{
+			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+			if (anon_type) SetAnonymization(AnonymizationClasses::Fellowship, anon_type.Get());
+		});
 
-	MQ2Argument guild(commands, "guild", "sets guild anonymization",
-		[](auto anon_type) { if (anon_type) SetAnonymization(AnonymizationClasses::Guild, anon_type.Get()); },
-		MQ2AddArg<args::MapPositional<std::string_view, Anonymization>>("anon_type", "Anonymization type", anonymization_map));
+	args::Command guild(commands, "guild", "sets guild anonymization",
+		[](args::Subparser& parser)
+		{
+			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+			if (anon_type) SetAnonymization(AnonymizationClasses::Guild, anon_type.Get());
+		});
 
-	MQ2Argument raid(commands, "raid", "sets raid anonymization",
-		[](auto anon_type) { if (anon_type) SetAnonymization(AnonymizationClasses::Raid, anon_type.Get()); },
-		MQ2AddArg<args::MapPositional<std::string_view, Anonymization>>("anon_type", "Anonymization type", anonymization_map));
+	args::Command raid(commands, "raid", "sets raid anonymization",
+		[](args::Subparser& parser) {
+			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+			if (anon_type) SetAnonymization(AnonymizationClasses::Raid, anon_type.Get());
+		});
 
-	MQ2Argument me(commands, "me", "sets me anonymization",
-		[](auto anon_type) { if (anon_type) SetAnonymization(AnonymizationClasses::Self, anon_type.Get()); else SetAnonymization(AnonymizationClasses::Self, Anonymization::Me); },
-		MQ2AddArg<args::MapPositional<std::string_view, Anonymization>>("anon_type", "Anonymization type", anonymization_map));
+	args::Command me(commands, "me", "sets me anonymization",
+		[](args::Subparser& parser)
+		{
+			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+			if (anon_type) SetAnonymization(AnonymizationClasses::Self, anon_type.Get()); else SetAnonymization(AnonymizationClasses::Self, Anonymization::Me);
+		});
 	me.RequireCommand(false);
 
-	MQ2Argument save(commands, "save", "saves the configuration to file, completely rewriting data",
-		[]() { Serialize(); });
+	args::Command save(commands, "save", "saves the configuration to file, completely rewriting data",
+		[](args::Subparser& parser)
+		{
+			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+			Serialize();
+		});
 
-	MQ2Argument load(commands, "load", "loads the configuration from file, overwriting and current settings or data",
-		[]() { Deserialize(); });
+	args::Command load(commands, "load", "loads the configuration from file, overwriting and current settings or data",
+		[](args::Subparser& parser)
+		{
+			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+			Deserialize();
+		});
 
-	MQ2Argument on(commands, "on", "turns anonymization on",
-		[]() { SetAnon(true); });
+	args::Command on(commands, "on", "turns anonymization on",
+		[](args::Subparser& parser)
+		{
+			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+			SetAnon(true);
+		});
 
-	MQ2Argument off(commands, "off", "turns anonymization off",
-		[]() { SetAnon(false); });
+	args::Command off(commands, "off", "turns anonymization off",
+		[](args::Subparser& parser)
+		{
+			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+			SetAnon(false);
+		});
 
 	MQ2HelpArgument h(commands);
 
