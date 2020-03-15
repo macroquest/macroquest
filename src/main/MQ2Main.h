@@ -687,4 +687,21 @@ MQLIB_OBJECT CXStr Anonymize(const CXStr& Text);
 // this is only made available for things that need c-linkage (are grabbing this function out of a DLL)
 MQLIB_API CXStr& PluginAnonymize(CXStr& Text);
 
+/* MQ2STRINGDB */
+// EQ sends us tokenized text that's been serialized into a stream of bytes. This struct holds that
+// data and parses the stream.
+struct TokenTextParam
+{
+	bool World;
+	int StringID;
+	int Color;
+	std::vector<std::string> Tokens;
+	TokenTextParam(const char Data[], DWORD Length);
+};
+
+void InitializeStringDB();
+void ShutdownStringDB();
+int AddTokenMessageCmd(int StringID, fMQTokenMessageCmd Command);
+void RemoveTokenMessageCmd(int StringID, int CallbackID);
+
 } // namespace mq

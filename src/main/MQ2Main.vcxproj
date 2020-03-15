@@ -435,6 +435,7 @@
     <ClCompile Include="MQ2Pulse.cpp" />
     <ClCompile Include="MQ2Spawns.cpp" />
     <ClCompile Include="MQ2Spells.cpp" />
+    <ClCompile Include="MQ2StringDB.cpp" />
     <ClCompile Include="MQ2Utilities.cpp" />
     <ClCompile Include="MQ2Windows.cpp" />
     <ClCompile Include="pch.cpp">
