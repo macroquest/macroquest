@@ -411,8 +411,7 @@ struct [[offsetcomments]] TARGETRING
 };
 using PTARGETRING = TARGETRING*;
 
-#pragma pack(push)
-#pragma pack(1)
+#pragma pack(push, 1)
 struct [[offsetcomments]] EQSuccessfulHit
 {
 /*0x00*/ uint16_t      DamagedID;                // Spawn that was hit

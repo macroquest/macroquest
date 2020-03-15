@@ -157,7 +157,7 @@ DWORD CALLBACK InitializeMQ2SpellDb(void* pData)
 		Sleep(10);
 	}
 
-	while (pSpellMgr && (!pSpellMgr->Spells || (pSpellMgr->Spells && !pSpellMgr->Spells[TOTAL_SPELL_COUNT - 1])))
+	while (pSpellMgr && (!pSpellMgr->Spells || pSpellMgr->SpellStackingFileCRC == 0 || (pSpellMgr->Spells && !pSpellMgr->Spells[TOTAL_SPELL_COUNT - 1])))
 	{
 		Sleep(10);
 	}
