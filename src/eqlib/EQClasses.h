@@ -429,7 +429,7 @@ struct [[offsetcomments]] EQSuccessfulHit
 #pragma pack(pop)
 using pEQSuccessfulHit = EQSuccessfulHit*;
 
-struct EQSuccessfulHeal
+struct [[offsetcomments]] EQSuccessfulHeal
 {
 /*0x00*/ WORD   HealedID; // Spawn that was healed
 /*0x02*/ WORD   HealerID; // Spawn who did the healing
