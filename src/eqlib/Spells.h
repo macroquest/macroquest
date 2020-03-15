@@ -776,7 +776,7 @@ enum eEQSPELLCAT
     SPELLCAT_MELEE_DAMAGE = 176
 };
 
-// bot category and subcategory can take the same enumeration, so this allows us to separate the types
+// both category and subcategory can take the same enumeration, so this allows us to separate the types
 struct SpellCategory
 {
 	eEQSPELLCAT Value;

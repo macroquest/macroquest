@@ -246,7 +246,7 @@ DWORD mq::GetCachedBuffCount(SPAWNINFO* pSpawn)
 		}
 	}
 
-	return 0UL;
+	return 0U;
 }
 
 void mq::ClearCachedBuffsSpawn(SPAWNINFO* pSpawn)
