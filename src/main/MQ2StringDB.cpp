@@ -52,7 +52,7 @@ void mq::RemoveTokenMessageCmd(int StringID, int CallbackID)
 }
 
 // no need to copy the whole stream, just sweep a pointer over it and copy the individual elements.
-mq::TokenTextParam::TokenTextParam(const char Data[], DWORD Length)
+mq::TokenTextParam::TokenTextParam(const char* Data, DWORD Length)
 {
 	char const* DataBuffer = Data;
 	DataBuffer += 4; // 4 bytes of padding
@@ -76,8 +76,8 @@ mq::TokenTextParam::TokenTextParam(const char Data[], DWORD Length)
 	}
 }
 
-void msgTokenTextParam__Trampoline(const char[], DWORD);
-void msgTokenTextParam__Detour(const char Data[], DWORD Length)
+void msgTokenTextParam__Trampoline(const char*, DWORD);
+void msgTokenTextParam__Detour(const char* Data, DWORD Length)
 {
 	if (Data)
 	{
@@ -95,7 +95,7 @@ void msgTokenTextParam__Detour(const char Data[], DWORD Length)
 
 	msgTokenTextParam__Trampoline(Data, Length);
 }
-DETOUR_TRAMPOLINE_EMPTY(void msgTokenTextParam__Trampoline(const char[], DWORD))
+DETOUR_TRAMPOLINE_EMPTY(void msgTokenTextParam__Trampoline(const char*, DWORD))
 
 void mq::InitializeStringDB()
 {

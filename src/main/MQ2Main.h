@@ -696,7 +696,7 @@ struct TokenTextParam
 	int StringID;
 	int Color;
 	std::vector<std::string> Tokens;
-	TokenTextParam(const char Data[], DWORD Length);
+	TokenTextParam(const char* Data, DWORD Length);
 };
 
 void InitializeStringDB();
