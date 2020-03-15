@@ -411,23 +411,36 @@ struct [[offsetcomments]] TARGETRING
 };
 using PTARGETRING = TARGETRING*;
 
+#pragma pack(push)
+#pragma pack(1)
 struct [[offsetcomments]] EQSuccessfulHit
 {
 /*0x00*/ uint16_t      DamagedID;                // Spawn that was hit
-/*0x02*/ uint16_t      AttackerID;               // spawn who did the hit
+/*0x02*/ uint16_t      AttackerID;               // Spawn who did the hit
 /*0x04*/ uint8_t       Skill;                    // 1 HS etc...
-/*0x05*/ uint8_t       Filler0x5[0x3];
-/*0x08*/ int           SpellID;
-/*0x0c*/ int           DamageCaused;
-/*0x10*/ float         Force;
-/*0x14*/ float         HitHeading;
-/*0x18*/ float         HitPitch;
-/*0x1c*/ bool          bSecondary;
-/*0x1d*/ uint8_t       Filler0x1d[0x3];
-/*0x20*/ int           SpecialCase;              // origin of damage? need to investigate further
-/*0x24*/
+/*0x05*/ int           SpellID;
+/*0x09*/ int           DamageCaused;
+/*0x0D*/ float         Force;
+/*0x11*/ float         HitHeading;
+/*0x15*/ float         HitPitch;
+/*0x19*/ bool          bSecondary;
+/*0x1A*/ uint8_t       Unknown0x1A[6];
+/*0x20*/
 };
+#pragma pack(pop)
 using pEQSuccessfulHit = EQSuccessfulHit*;
+
+struct EQSuccessfulHeal
+{
+/*0x00*/ WORD   HealedID; // Spawn that was healed
+/*0x02*/ WORD   HealerID; // Spawn who did the healing
+/*0x04*/ int    SpellID;
+/*0x08*/ int    ActualHeal; // Amount that was actually healed 
+/*0x0c*/ int    TotalHeal; // Amount that would have been healed if it didn't go over max HP
+/*0x10*/ DWORD  EffectBitmask;
+/*0x14*/ 
+};
+using pEQSuccessfulHeal = EQSuccessfulHeal*;
 
 struct LfgGroupStatus;
 struct LfgGroupQuery;
@@ -570,7 +583,8 @@ public:
 	EQLIB_OBJECT void procMouse(int);
 	EQLIB_OBJECT void RemoveCharacterOptionFile(char*);
 	EQLIB_OBJECT void ReportDeath(EQPlayerDeath*);
-	EQLIB_OBJECT void ReportSuccessfulHit(EQSuccessfulHit*pHit, unsigned char bOutputText, int ActualHeal);
+	EQLIB_OBJECT int CEverQuest::ReportSuccessfulHeal(EQSuccessfulHeal*);
+	EQLIB_OBJECT bool ReportSuccessfulHit(EQSuccessfulHit*, bool, int);
 	EQLIB_OBJECT void reqChannel();
 	EQLIB_OBJECT void ResetVisionRGBs();
 	EQLIB_OBJECT void RightClickedOnPlayer(PlayerClient*, int);

@@ -519,6 +519,7 @@ EQLIB_VAR DWORD CEverQuest__IssuePetCommand;
 EQLIB_VAR DWORD CEverQuest__LeftClickedOnPlayer;
 EQLIB_VAR DWORD CEverQuest__LMouseUp;
 EQLIB_VAR DWORD CEverQuest__OutputTextToLog;
+EQLIB_VAR DWORD CEverQuest__ReportSuccessfulHeal;
 EQLIB_VAR DWORD CEverQuest__ReportSuccessfulHit;
 EQLIB_VAR DWORD CEverQuest__RightClickedOnPlayer;
 EQLIB_VAR DWORD CEverQuest__RMouseUp;
