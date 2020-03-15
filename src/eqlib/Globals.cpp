@@ -494,6 +494,7 @@ INITIALIZE_EQGAME_OFFSET(CEverQuest__IssuePetCommand);
 INITIALIZE_EQGAME_OFFSET(CEverQuest__LeftClickedOnPlayer);
 INITIALIZE_EQGAME_OFFSET(CEverQuest__LMouseUp);
 INITIALIZE_EQGAME_OFFSET(CEverQuest__OutputTextToLog);
+INITIALIZE_EQGAME_OFFSET(CEverQuest__ReportSuccessfulHeal);
 INITIALIZE_EQGAME_OFFSET(CEverQuest__ReportSuccessfulHit);
 INITIALIZE_EQGAME_OFFSET(CEverQuest__RightClickedOnPlayer);
 INITIALIZE_EQGAME_OFFSET(CEverQuest__RMouseUp);

@@ -563,6 +563,7 @@
 #define CEverQuest__SetGameState_x                                 0x5F2AC0
 #define CEverQuest__UPCNotificationFlush_x                         0x6172F0
 #define CEverQuest__IssuePetCommand_x                              0x612EE0
+#define CEverQuest__ReportSuccessfulHeal_x                         0x60D140
 #define CEverQuest__ReportSuccessfulHit_x                          0x60D770
 
 // CGaugeWnd
