@@ -221,7 +221,6 @@ const char* szEQMappableCommands[nEQMappableCommands];
 decltype(ItemSlotMap) ItemSlotMap;
 
 char DataTypeTemp[MAX_STRING] = { 0 };
-TargetBuff TargetBuffTemp = { 0 };
 
 std::map<std::string, SPAWNINFO*> SpawnByName;
 MQRank EQP_DistArray[3000];

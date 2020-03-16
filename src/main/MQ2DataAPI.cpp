@@ -372,9 +372,9 @@ bool dataType(const char* szIndex, MQTypeVar& Ret)
 
 void InitializeMQ2Data()
 {
-	AddMQ2Data("Spawn", dataSpawn);
-	AddMQ2Data("Target", dataTarget);
-	AddMQ2Data("Me", dataCharacter);
+	AddMQ2Data("Spawn", datatypes::MQ2SpawnType::dataSpawn);
+	AddMQ2Data("Target", datatypes::MQ2TargetType::dataTarget);
+	AddMQ2Data("Me", datatypes::MQ2CharacterType::dataCharacter);
 	AddMQ2Data("Spell", datatypes::MQ2SpellType::dataSpell);
 	AddMQ2Data("Switch", dataSwitch);
 	AddMQ2Data("Ground", dataGroundItem);
@@ -397,7 +397,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("Corpse", dataCorpse);
 	AddMQ2Data("If", dataIf);
 	AddMQ2Data("Cursor", dataCursor);
-	AddMQ2Data("NearestSpawn", dataNearestSpawn);
+	AddMQ2Data("NearestSpawn", datatypes::MQ2SpawnType::dataNearestSpawn);
 	AddMQ2Data("Type", dataType);
 	AddMQ2Data("Time", dataTime);
 	AddMQ2Data("GameTime", dataGameTime);
@@ -405,7 +405,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("Heading", dataHeading);
 	AddMQ2Data("Defined", dataDefined);
 	AddMQ2Data("SubDefined", dataSubDefined);
-	AddMQ2Data("LastSpawn", dataLastSpawn);
+	AddMQ2Data("LastSpawn", datatypes::MQ2SpawnType::dataLastSpawn);
 	AddMQ2Data("FindItem", dataFindItem);
 	AddMQ2Data("FindItemBank", dataFindItemBank);
 	AddMQ2Data("InvSlot", dataInvSlot);
@@ -415,12 +415,12 @@ void InitializeMQ2Data()
 	AddMQ2Data("Skill", dataSkill);
 	AddMQ2Data("AltAbility", dataAltAbility);
 	AddMQ2Data("Raid", dataRaid);
-	AddMQ2Data("SpawnCount", dataSpawnCount);
+	AddMQ2Data("SpawnCount", datatypes::MQ2SpawnType::dataSpawnCount);
 	AddMQ2Data("LineOfSight", dataLineOfSight);
 	AddMQ2Data("Plugin", dataPlugin);
 	AddMQ2Data("Select", dataSelect);
-	AddMQ2Data("DoorTarget", dataDoorTarget);
-	AddMQ2Data("ItemTarget", dataItemTarget);
+	AddMQ2Data("DoorTarget", datatypes::MQ2SpawnType::dataDoorTarget);
+	AddMQ2Data("ItemTarget", datatypes::MQ2SpawnType::dataItemTarget);
 	AddMQ2Data("DynamicZone", dataDynamicZone);
 	AddMQ2Data("Friends", dataFriends);
 	AddMQ2Data("Task", datatypes::MQ2TaskType::dataTask);

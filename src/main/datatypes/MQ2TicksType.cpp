@@ -18,6 +18,30 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class TicksMembers
+{
+	Hours,
+	Minutes,
+	Seconds,
+	Time,
+	TotalMinutes,
+	TotalSeconds,
+	Ticks,
+	TimeHMS,
+};
+
+MQ2TicksType::MQ2TicksType() : MQ2Type("ticks")
+{
+	ScopedTypeMember(TicksMembers, Hours);
+	ScopedTypeMember(TicksMembers, Minutes);
+	ScopedTypeMember(TicksMembers, Seconds);
+	ScopedTypeMember(TicksMembers, Time);
+	ScopedTypeMember(TicksMembers, TotalMinutes);
+	ScopedTypeMember(TicksMembers, TotalSeconds);
+	ScopedTypeMember(TicksMembers, Ticks);
+	ScopedTypeMember(TicksMembers, TimeHMS);
+}
+
 bool MQ2TicksType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
 	uint32_t nTicks = VarPtr.DWord;
@@ -28,22 +52,22 @@ bool MQ2TicksType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 
 	switch (static_cast<TicksMembers>(pMember->ID))
 	{
-	case Hours:
+	case TicksMembers::Hours:
 		Dest.DWord = nTicks / 600;
 		Dest.Type = pIntType;
 		return true;
 
-	case Minutes:
+	case TicksMembers::Minutes:
 		Dest.DWord = (nTicks / 10) % 60;
 		Dest.Type = pIntType;
 		return true;
 
-	case Seconds:
+	case TicksMembers::Seconds:
 		Dest.DWord = (nTicks * 6) % 60;
 		Dest.Type = pIntType;
 		return true;
 
-	case TimeHMS: {
+	case TicksMembers::TimeHMS: {
 		Dest.Type = pStringType;
 		int Secs = nTicks * 6;
 		int Mins = (Secs / 60) % 60;
@@ -59,7 +83,7 @@ bool MQ2TicksType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		return true;
 	}
 
-	case Time: {
+	case TicksMembers::Time: {
 		Dest.Type = pStringType;
 		int Secs = nTicks * 6;
 		int Mins = (Secs / 60);
@@ -72,17 +96,17 @@ bool MQ2TicksType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		return true;
 	}
 
-	case TotalMinutes:
+	case TicksMembers::TotalMinutes:
 		Dest.DWord = nTicks / 10;
 		Dest.Type = pIntType;
 		return true;
 
-	case TotalSeconds:
+	case TicksMembers::TotalSeconds:
 		Dest.DWord = nTicks * 6;
 		Dest.Type = pIntType;
 		return true;
 
-	case Ticks:
+	case TicksMembers::Ticks:
 		Dest.DWord = nTicks;
 		Dest.Type = pIntType;
 		return true;
@@ -91,87 +115,19 @@ bool MQ2TicksType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 	return false;
 }
 
-bool MQ2TimeStampType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2TicksType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	uint64_t nTimeStamp = VarPtr.UInt64;
-
-	MQTypeMember* pMember = FindMember(Member);
-	if (!pMember)
-		return false;
-
-	switch (static_cast<TimeStampMembers>(pMember->ID))
-	{
-	case Hours:
-		Dest.UInt64 = (nTimeStamp / 1000) / 3600;
-		Dest.Type = pInt64Type;
-		return true;
-
-	case Minutes:
-		Dest.UInt64 = ((nTimeStamp / 1000) / 60) % 60;
-		Dest.Type = pInt64Type;
-		return true;
-
-	case Seconds:
-		Dest.UInt64 = (nTimeStamp / 1000) % 60;
-		Dest.Type = pInt64Type;
-		return true;
-
-	case TimeHMS: {
-		Dest.Type = pStringType;
-		uint64_t Secs = nTimeStamp / 1000;
-		uint64_t Mins = (Secs / 60) % 60;
-		uint64_t Hrs = (Secs / 3600);
-
-		Secs = Secs % 60;
-		if (Secs < 0)
-			sprintf_s(DataTypeTemp, "Perm");
-		else if (Hrs)
-			sprintf_s(DataTypeTemp, "%d:%02u:%02u", (unsigned int)Hrs, (unsigned int)Mins, (unsigned int)Secs);
-		else
-			sprintf_s(DataTypeTemp, "%d:%02u", (unsigned int)Mins, (unsigned int)Secs);
-		Dest.Ptr = &DataTypeTemp[0];
-		return true;
-	}
-
-	case Time: {
-		Dest.Type = pStringType;
-		uint64_t Secs = nTimeStamp / 1000;
-		uint64_t Mins = Secs / 60;
-		Secs = Secs % 60;
-		if (Secs < 0)
-			sprintf_s(DataTypeTemp, "Perm");
-		else
-			sprintf_s(DataTypeTemp, "%d:%02u", (unsigned int)Mins, (unsigned int)Secs);
-		Dest.Ptr = &DataTypeTemp[0];
-		return true;
-	}
-
-	case TotalMinutes:
-		Dest.UInt64 = (nTimeStamp / 1000) / 60;
-		Dest.Type = pInt64Type;
-		return true;
-
-	case TotalSeconds:
-		Dest.UInt64 = nTimeStamp / 1000;
-		Dest.Type = pInt64Type;
-		return true;
-
-	case Raw:
-		Dest.UInt64 = nTimeStamp;
-		Dest.Type = pInt64Type;
-		return true;
-
-	case Float:
-		Dest.Float = (float)nTimeStamp / 1000;
-		Dest.Type = pFloatType;
-		return true;
-
-	case Ticks:
-		Dest.UInt64 = ((nTimeStamp / 1000) + 5) / 6;
-		Dest.Type = pInt64Type;
-		return true;
-	}
-
-	return false;
+	_itoa_s(VarPtr.DWord, Destination, MAX_STRING, 10);
+	return true;
+}
+bool MQ2TicksType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	VarPtr.DWord = Source.DWord;
+	return true;
+}
+bool MQ2TicksType::FromString(MQVarPtr& VarPtr, char* Source)
+{
+	VarPtr.DWord = GetIntFromString(Source, 0);
+	return true;
 }
 
