@@ -3021,6 +3021,9 @@ FUNCTION_AT_ADDRESS(class CXStr *CTargetWnd::GetBuffCaster(int),CTargetWnd__GetB
 #ifdef CTaskWnd__UpdateTaskTimers_x
 FUNCTION_AT_ADDRESS(int CTaskWnd::UpdateTaskTimers(unsigned long),CTaskWnd__UpdateTaskTimers);
 #endif
+#ifdef CTaskWnd__ConfirmAbandonTask_x
+FUNCTION_AT_ADDRESS(void CTaskWnd::ConfirmAbandonTask(int),CTaskWnd__ConfirmAbandonTask);
+#endif
 #ifdef CTaskManager__GetEntry_x
 FUNCTION_AT_ADDRESS(CTaskEntry *CTaskManager::GetEntry(int Index, int System, bool bCheckEmpty), CTaskManager__GetEntry);
 #endif

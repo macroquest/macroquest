@@ -370,6 +370,7 @@ namespace MQ2Globals
 	EQLIB_VAR fEQCommand			cmdCast;
 	EQLIB_VAR fEQCommand			cmdUseItem;
 	EQLIB_VAR fEQCommand			cmdHotbutton;
+	EQLIB_VAR fEQCommand			cmdTaskQuit;
 	EQLIB_VAR fEQCommand			cmdPet;
 	EQLIB_VAR fEQCommand			cmdMercSwitch;
 	EQLIB_VAR fEQCommand			cmdAdvLoot;
@@ -1764,6 +1765,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CTargetWnd__GetBuffCaster;
 	EQLIB_VAR DWORD CTargetWnd__WndNotification;
 	EQLIB_VAR DWORD CTaskWnd__UpdateTaskTimers;
+	EQLIB_VAR DWORD CTaskWnd__ConfirmAbandonTask;
 	EQLIB_VAR DWORD CTaskManager__GetEntry;
 	EQLIB_VAR DWORD CTaskManager__GetTaskStatus;
 	EQLIB_VAR DWORD CTaskManager__GetElementDescription;

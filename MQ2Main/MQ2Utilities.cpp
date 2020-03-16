@@ -11203,7 +11203,9 @@ BOOL IsActiveAA(PCHAR pSpellName)
 	}
 	for (DWORD nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
 		if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level)) {
-			if (!_stricmp(pSpellName, pCDBStr->GetString(pAbility->nName, 1, NULL))) {
+			PCHAR pName = pCDBStr->GetString(pAbility->nName, 1, NULL);
+			//WriteChatf("%s", pName);
+			if (!_stricmp(pSpellName, pName)) {
 				if (pAbility->SpellID <= 0) {
 					return TRUE;
 				}

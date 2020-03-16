@@ -1,3 +1,16 @@
+Mar 16 2020
+- Extended the /taskquit command. It now takes an optional argument, "Name of Task" so we can use it to remove solo tasks as well. -Feature Cred: drwhomphd
+   /taskquit without any argument works like before, i.e it removes the shared task if there is one.
+- Usage /taskquit "Basic Training"
+-
+Mar 15 2020
+- Fixed a bug with ${Macro.CurSub} it will now correctly return the sub its used in.
+- Fixed a bug where tells you would not be detected in all languages. Thanks Kaen01 for report.
+- 
+Mar 14 2020 by Sic
+- Added ParcelStatus to the character TLO.
+  Usage: /echo ${Me.ParcelStatus}
+-
 Mar 11 2020
 - Updated for LIVE
 - Fixed the Lucy Button on itemdisplay for the internal browser. (you can still right click to launch externally)

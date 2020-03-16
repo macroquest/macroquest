@@ -1058,6 +1058,7 @@ GNU General Public License for more details.
 
 //CTaskWnd
 #define CTaskWnd__UpdateTaskTimers_x                               0x831990
+#define CTaskWnd__ConfirmAbandonTask_x                             0x8345D0
 
 //CTaskManager
 #define CTaskManager__GetEntry_x                                   0x53D540

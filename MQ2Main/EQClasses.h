@@ -6784,6 +6784,7 @@ class CTaskWnd : public CSidlScreenWnd
 public:
 EQLIB_OBJECT CTaskWnd::CTaskWnd(class CXWnd *);
 EQLIB_OBJECT int CTaskWnd::UpdateTaskTimers(unsigned long fasttime);
+EQLIB_OBJECT void CTaskWnd::ConfirmAbandonTask(int TaskID);
 // virtual
 EQLIB_OBJECT CTaskWnd::~CTaskWnd(void);
 };

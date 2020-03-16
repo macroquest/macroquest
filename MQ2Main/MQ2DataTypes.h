@@ -1255,6 +1255,7 @@ public:
 		EntwinedDjinnCoins = 306,
 		CrystallizedLuck = 307,
 		Spell = 308,
+		ParcelStatus = 309,
 	};
 	enum CharacterMethods
 	{
@@ -1723,9 +1724,9 @@ public:
 		TypeMember(SpellType);//16,
 		TypeMember(TargetType);//17,
 		TypeMember(ResistType);//18,
-		TypeMember(CastOnYou);//19, 
-		TypeMember(CastOnAnother);//20, 
-		TypeMember(WearOff);//21, 
+		TypeMember(CastOnYou);//19,
+		TypeMember(CastOnAnother);//20,
+		TypeMember(WearOff);//21,
 		TypeMember(CounterType);//22,
 		TypeMember(CounterNumber);//23,
 		TypeMember(Stacks);//24,
@@ -2034,7 +2035,7 @@ public:
 	};
 	MQ2ItemSpellType() :MQ2Type("itemspell")
 	{
-		TypeMember(SpellID); 
+		TypeMember(SpellID);
 		TypeMember(RequiredLevel);
 		TypeMember(EffectType);
 		TypeMember(EffectiveCasterLevel);
@@ -2805,7 +2806,7 @@ public:
 		TypeMember(Full);
 		TypeMember(ItemsReceived);
 		TypeMember(SelectedItem);
-		
+
 		TypeMethod(SelectItem);
 		TypeMethod(Buy);
 		TypeMethod(Sell);
@@ -3279,7 +3280,7 @@ public:
 		TypeMember(GetCurSel);
 		TypeMember(Address);
 		TypeMember(Size);
-		
+
 		TypeMethod(LeftMouseDown);
 		TypeMethod(LeftMouseUp);
 		TypeMethod(LeftMouseHeld);
@@ -3366,7 +3367,7 @@ public:
 		TypeMember(Name);
 		TypeMember(NumItems);
 		TypeMember(Items);
-		
+
 		TypeMethod(Select);
 	}
 
@@ -3448,7 +3449,7 @@ public:
 		TypeMember(IsTLO);
 		TypeMember(IsOuterVariable);
 		TypeMember(CurSub);
-		
+
 		TypeMethod(Undeclared);
 	}
 

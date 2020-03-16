@@ -304,7 +304,7 @@ bool MQ2Int64Type::GETMEMBER()
 	}
 	return false;
 }
- 
+
 bool MQ2StringType::GETMEMBER()
 {
 	if (!VarPtr.Ptr)
@@ -887,7 +887,7 @@ bool MQ2MacroType::GETMEMBER()
 					for (std::map<std::string, int>::iterator i = gUndeclaredVars.begin(); i != gUndeclaredVars.end(); i++)
 					{
 						MACROLINE ml = gMacroBlock->Line[i->second];
-						WriteChatf("[%d] %s see: %d@%s: %s", count++, i->first.c_str(),ml.LineNumber,ml.SourceFile.c_str(),ml.Command.c_str());
+						WriteChatf("[%d] %s see: %d@%s: %s", count++, i->first.c_str(), ml.LineNumber, ml.SourceFile.c_str(), ml.Command.c_str());
 					}
 				}
 				else {
@@ -899,7 +899,7 @@ bool MQ2MacroType::GETMEMBER()
 				return false;
 		}
 	}
-		
+
 	PMQ2TYPEMEMBER pMember = MQ2MacroType::FindMember(Member);
 	if (!pMember)
 		return false;
@@ -980,11 +980,14 @@ bool MQ2MacroType::GETMEMBER()
 		break;
 	case CurSub:
         if (gMacroBlock) {
-            GetSubFromLine(gMacroBlock->Line[gMacroBlock->CurrIndex].LineNumber, DataTypeTemp, MAX_STRING);
-            Dest.Ptr = DataTypeTemp;
-            Dest.Type = pStringType;
-            return true;
-        }
+			if (PMACROSTACK pMS = gMacroStack)
+			{
+				GetSubFromLine(pMS->LocationIndex, DataTypeTemp, MAX_STRING);
+				Dest.Ptr = DataTypeTemp;
+				Dest.Type = pStringType;
+				return true;
+			}
+		}
         return false;
 	case CurCommand:
 		Dest.Type = pStringType;
@@ -2259,7 +2262,7 @@ bool MQ2SpawnType::GETMEMBER()
 		bool bBySlot = false;
 		bool bByIndex = false;
 		bool bByKeyword = false;
-		
+
 		PCHAR pIndex = GETFIRST();
 		if (pIndex[0])
 		{
@@ -2573,7 +2576,7 @@ bool MQ2BuffType::GETMEMBER()
 	{
 		if (PSPELL pSpell = GetSpellByID(pBuff->SpellID))
 		{
-#ifndef ISXEQ 
+#ifndef ISXEQ
 			return pSpellType->GetMember(*(MQ2VARPTR*)&pSpell, Member, Index, Dest);
 #else
 			return pSpellType->GetMember(*(LSVARPTR*)&pSpell, Member, argc, argv, Dest);
@@ -2767,7 +2770,7 @@ bool MQ2TargetBuffType::GETMEMBER()
 	{
 		if (PSPELL pSpell = GetSpellByID(buffid))
 		{
-#ifndef ISXEQ 
+#ifndef ISXEQ
 			return pSpellType->GetMember(*(MQ2VARPTR*)&pSpell, Member, Index, Dest);
 #else
 			return pSpellType->GetMember(*(LSVARPTR*)&pSpell, Member, argc, argv, Dest);
@@ -2807,7 +2810,7 @@ bool MQ2CachedBuffType::GETMEMBER()
 	{
 		if (PSPELL pSpell = GetSpellByID(buffid))
 		{
-#ifndef ISXEQ 
+#ifndef ISXEQ
 			return pSpellType->GetMember(*(MQ2VARPTR*)&pSpell, Member, Index, Dest);
 #else
 			return pSpellType->GetMember(*(LSVARPTR*)&pSpell, Member, argc, argv, Dest);
@@ -3766,7 +3769,7 @@ bool MQ2CharacterType::GETMEMBER()
 		{
 			if (ISNUMBER())
 			{
-				// number 
+				// number
 				int nCombatAbility = GETNUMBER() - 1;
 				if (nCombatAbility < 0)
 					return false;
@@ -3801,7 +3804,7 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 			else
 			{
-				// by name 
+				// by name
 				for (unsigned long nCombatAbility = 0; nCombatAbility < NUM_COMBAT_ABILITIES; nCombatAbility++)
 				{
 					if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(nCombatAbility)) {
@@ -3873,7 +3876,7 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 			else
 			{
-				// by name 
+				// by name
 				for (unsigned long nCombatAbility = 0; nCombatAbility < NUM_COMBAT_ABILITIES; nCombatAbility++)
 				{
 					if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(nCombatAbility)) {
@@ -4159,7 +4162,7 @@ bool MQ2CharacterType::GETMEMBER()
 		if (ISINDEX())
 		{
 			if (ISNUMBER())
-			{	
+			{
 				// numeric
 				if (unsigned long nSkill = GETNUMBER())
 				{
@@ -4222,7 +4225,7 @@ bool MQ2CharacterType::GETMEMBER()
 			else
 			{
 				// name
-				
+
 				for (int i = 0; i < NUM_SKILLS; i++) {
 					DWORD nToken = pCSkillMgr->GetNameToken(i);
 					if (char *thename = pStringTable->getString(nToken, 0)) {
@@ -4441,7 +4444,7 @@ bool MQ2CharacterType::GETMEMBER()
 
 			if (ISNUMBER())
 			{
-				// numeric 
+				// numeric
 				int nGem = GETNUMBER() - 1;
 				if (nGem < 0 || nGem > NUM_SPELL_GEMS)
 					return false;
@@ -4782,8 +4785,8 @@ bool MQ2CharacterType::GETMEMBER()
 						if (n > pAura->NumAuras)
 							return false;
 						n--;
-						Dest.Ptr = &pAuras->Aura[n]; 
-						Dest.HighPart = n; 
+						Dest.Ptr = &pAuras->Aura[n];
+						Dest.HighPart = n;
 						return true;
 					}
 					else
@@ -4792,18 +4795,18 @@ bool MQ2CharacterType::GETMEMBER()
 						{
 							if (!_strnicmp(GETFIRST(), pAuras->Aura[n].Name, strlen(GETFIRST())))
 							{
-								Dest.Ptr = &pAuras->Aura[n]; 
-								Dest.HighPart = n; 
-								return true; 
+								Dest.Ptr = &pAuras->Aura[n];
+								Dest.HighPart = n;
+								return true;
 							}
 						}
 					}
 				}
 				else
 				{
-					Dest.Ptr = &pAuras->Aura[0]; 
-					Dest.HighPart = 0; 
-					return true; 
+					Dest.Ptr = &pAuras->Aura[0];
+					Dest.HighPart = 0;
+					return true;
 				}
 			}
 		}
@@ -5741,7 +5744,7 @@ bool MQ2CharacterType::GETMEMBER()
 						Dest.Ptr = &pChar2->Buff[nBuff];
 						return true;
 					}
-				}		
+				}
 			}
 		}
 		return false;
@@ -6348,7 +6351,7 @@ bool MQ2CharacterType::GETMEMBER()
 		if (PCHARINFO2 pChar2 = GetCharInfo2())
 		{
 			if (ISNUMBER()) {
-			
+
 				int index = GETNUMBER();
 				index--;
 				if (index < 0)
@@ -6540,6 +6543,10 @@ bool MQ2CharacterType::GETMEMBER()
 		return true;
 	case CrystallizedLuck://307
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_CRYSTALLIZEDLUCK);
+		Dest.Type = pIntType;
+		return true;
+	case ParcelStatus://309
+		Dest.DWord = pChar->ParcelStatus;
 		Dest.Type = pIntType;
 		return true;
 
@@ -6808,7 +6815,7 @@ bool MQ2SpellType::GETMEMBER()
 	case Stacks:
 	case NewStacks://stacks on self
 	{
-		unsigned long buffduration;
+		//unsigned long buffduration;
 		unsigned long duration = 99999;
 		if (ISNUMBER())
 			duration = GETNUMBER();
@@ -8049,17 +8056,17 @@ bool MQ2ItemType::GETMEMBER()
 		return false;
 	case EffectType:
 		Dest.Type = pStringType;
-		//0 Proc 
-		//1 Clickable from inventory (any class) 
-		//2 Worn effect (haste, cleave) 
-		//3 Unknown 
-		//4 Clickable must be worn 
-		//5 Clickable from inventory (class restricted) 
-		//6 Focus effect 
-		//7 Memmable spell scroll 
-		// This used to return an int type with a case statment, items could have 
-		// only one effect. For backwards compatibility we return based on a hierarchy. 
-		// A zero in any field indicates no effect (others will also be zero) 
+		//0 Proc
+		//1 Clickable from inventory (any class)
+		//2 Worn effect (haste, cleave)
+		//3 Unknown
+		//4 Clickable must be worn
+		//5 Clickable from inventory (class restricted)
+		//6 Focus effect
+		//7 Memmable spell scroll
+		// This used to return an int type with a case statment, items could have
+		// only one effect. For backwards compatibility we return based on a hierarchy.
+		// A zero in any field indicates no effect (others will also be zero)
 		if (!GetItemFromContents(pItem)->Clicky.SpellID)
 		{
 			return false;
@@ -8070,7 +8077,7 @@ bool MQ2ItemType::GETMEMBER()
 		}
 		else if (GetItemFromContents(pItem)->Clicky.SpellID != -1)
 		{
-			// code to detect must-be-worn etc here 
+			// code to detect must-be-worn etc here
 			switch (GetItemFromContents(pItem)->Clicky.EffectType)
 			{
 			case 4:
@@ -10186,7 +10193,7 @@ bool MQ2GroundType::GETMEMBER()
 {
 	if (!VarPtr.Ptr)
 		return false;
-	
+
 	PGROUNDOBJECT pGroundObject = (PGROUNDOBJECT)VarPtr.Ptr;
 	if(pGroundObject->Type==GO_None)
 		return false;
@@ -10266,7 +10273,7 @@ bool MQ2GroundType::GETMEMBER()
 					tSpawn.mActorClient.Race = Placed->RealEstateItemID;
 					GroundObject.Type = GO_ObjectType;
 					GroundObject.ObjPtr = (void*)Placed;
-					
+
 					GroundObject.GroundItem.DropID = Placed->RealEstateItemID;
 					GroundObject.GroundItem.DropSubID = Placed->RealEstateID;
 					GroundObject.GroundItem.Expires = 0;
@@ -10648,7 +10655,7 @@ bool MQ2MacroQuestType::GETMEMBER()
 		CHAR szBuffer[MAX_STRING];
 		sprintf_s(szBuffer, "%s\\MQ2Main.dll", gszINIPath);
 		hFile = FindFirstFile(szBuffer, &FileData);
-		// Convert the creation time time to local time. 
+		// Convert the creation time time to local time.
 		FileTimeToSystemTime(&FileData.ftLastWriteTime, &st);
 		FindClose(hFile);
 		sprintf_s(DataTypeTemp, "%04d%02d%02d", st.wYear, st.wMonth, st.wDay);
@@ -10760,7 +10767,7 @@ bool MQ2MacroQuestType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	}
-		
+
 	}
 	return false;
 }
@@ -11267,7 +11274,7 @@ bool MQ2CorpseType::GETMEMBER()
 	switch ((CorpseMembers)pMember->ID)
 	{
 	case Open:
-		Dest.DWord = 1; // obviously, since we're this far 
+		Dest.DWord = 1; // obviously, since we're this far
 		Dest.Type = pBoolType;
 		return true;
 	case Item:
@@ -11750,7 +11757,7 @@ bool MQ2PointMerchantType::GETMEMBER()
 	}
 	return false;
 }
-#else 
+#else
 bool MQ2PointMerchantItemType::GETMEMBER()
 {
 	PointMerchantWnd *pPointWnd = (PointMerchantWnd *)pPointMerchantWnd;
@@ -11904,7 +11911,7 @@ bool MQ2MercenaryType::GETMEMBER()
 				strcpy_s(DataTypeTemp, "ACTIVE");
 			}
 			else {
-				strcpy_s(DataTypeTemp, "NOMERC");	
+				strcpy_s(DataTypeTemp, "NOMERC");
 			}
 			break;
 		}
@@ -12720,12 +12727,12 @@ bool MQ2SkillType::GETMEMBER()
 		{
 			if (ISNUMBER())
 			{
-				// class by number 
+				// class by number
 				nIndex = GETNUMBER();
 			}
 			else
 			{
-				// class by name or shortname 
+				// class by name or shortname
 				for (int N = 1; N < 17; N++)
 				{
 					if (
@@ -15980,7 +15987,7 @@ bool MQ2AdvLootType::GETMEMBER()
 #endif
 // /echo ${Alert[a].List[b].bGM}
 // /echo ${Alert[a].Size}
-// /echo ${Alert} 
+// /echo ${Alert}
 bool MQ2AlertType::GETMEMBER()
 {
 	try {
@@ -16367,7 +16374,7 @@ bool MQ2WorldLocationType::GETMEMBER()
 		switch ((WorldLocationTypeMembers)pMember->ID)
 		{
 			case ID:
-			{	
+			{
 				int zindex = pChar2->BoundLocations[index].ZoneBoundID;
 				Dest.DWord = zindex;
 				Dest.Type = pIntType;
@@ -16446,7 +16453,7 @@ bool MQ2SolventType::GETMEMBER()
 				{
 					if (PITEMINFO pItem = GetItemFromContents(pCont))
 					{
-						Dest.DWord = FindItemCountByName(pItem->Name);		
+						Dest.DWord = FindItemCountByName(pItem->Name);
 					}
 				}
 				return true;

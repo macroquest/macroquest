@@ -1690,7 +1690,7 @@ TLO(dataTask)
 					{
 						if (bExact)
 						{
-							if (!_stricmp(szOut, pName))
+							if (!_stricmp(entry->TaskTitle, pName))
 							{
 								Ret.DWord = (int)MAKELPARAM(TST_SoloQuest, i);
 								return true;

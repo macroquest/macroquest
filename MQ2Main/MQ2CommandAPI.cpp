@@ -609,6 +609,8 @@ void InitializeMQ2Commands()
             cmdHotbutton = (fEQCommand)pCmdListOrig[i].fAddress;
         } else if (!strcmp(pCmdListOrig[i].szName,"/useitem")) {
             cmdUseItem = (fEQCommand)pCmdListOrig[i].fAddress;
+        } else if (!strcmp(pCmdListOrig[i].szName,"/taskquit")) {
+            cmdTaskQuit = (fEQCommand)pCmdListOrig[i].fAddress;
         } else if (!strcmp(pCmdListOrig[i].szName,"/pet")) {
             cmdPet = (fEQCommand)pCmdListOrig[i].fAddress;
         } else if (!strcmp(pCmdListOrig[i].szName,"/mercswitch")) {
@@ -699,8 +701,9 @@ void InitializeMQ2Commands()
         {"/hud",        HudCmd,1,0},
         {"/caption",    CaptionCmd,0,0},
         {"/captioncolor",CaptionColorCmd,1,0},
-        {"/hotbutton",    DoHotbutton,1,1},
         {"/useitem",    UseItemCmd,1,1},
+        {"/hotbutton",    DoHotbutton,1,1},
+        {"/taskquit",    TaskQuitCmd,1,1},
 		{"/spellslotinfo",SpellSlotInfo,1,1},
 		{"/getwintitle",GetWinTitle,1,0},
 		{"/setwintitle",SetWinTitle,1,0},

@@ -504,6 +504,7 @@ namespace MQ2Globals
 	fEQCommand        cmdCast = NULL;
 	fEQCommand        cmdUseItem = NULL;
 	fEQCommand        cmdHotbutton = NULL;
+	fEQCommand        cmdTaskQuit = NULL;	
 	fEQCommand        cmdPet = NULL;
 	fEQCommand        cmdMercSwitch = NULL;
 	fEQCommand        cmdAdvLoot = NULL;
@@ -2310,6 +2311,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CTargetWnd__GetBuffCaster);
 	INITIALIZE_EQGAME_OFFSET(CTargetWnd__WndNotification);
 	INITIALIZE_EQGAME_OFFSET(CTaskWnd__UpdateTaskTimers);
+	INITIALIZE_EQGAME_OFFSET(CTaskWnd__ConfirmAbandonTask);
 	INITIALIZE_EQGAME_OFFSET(CTaskManager__GetEntry);
 	INITIALIZE_EQGAME_OFFSET(CTaskManager__GetTaskStatus);
 	INITIALIZE_EQGAME_OFFSET(CTaskManager__GetElementDescription);

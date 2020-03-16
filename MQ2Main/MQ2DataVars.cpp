@@ -636,10 +636,10 @@ void TellCheck(char *szClean)
 	if(gbFlashOnTells || gbBeepOnTells) {
 		CHAR name[2048] = { 0 };
 		bool itsatell = false;
-		if (char *pDest = strstr(szClean," tells you, '")) {
+		if (char *pDest = strstr(szClean," tells you, ")) {
 			strncpy_s(name,szClean,(DWORD)(pDest -szClean));
 			itsatell = true;
-		} else if (pDest = strstr(szClean," told you, '")) {
+		} else if (pDest = strstr(szClean," told you, ")) {
 			strncpy_s(name,szClean,(DWORD)(pDest -szClean));
 			itsatell = true;
 		}
@@ -758,12 +758,12 @@ VOID CheckChatForEvent(PCHAR szMsg)
 				strcpy_s(Arg2, pDest +19);
 				Arg2[strlen(Arg2)-1]=0; 
 				AddEvent(EVENT_CHAT,"group",Arg1,Arg2,NULL); 
-			} else if ((CHATEVENT(CHAT_TELL)) && (pDest = strstr(szClean," tells you, '"))) {
+			} else if ((CHATEVENT(CHAT_TELL)) && (pDest = strstr(szClean," tells you, "))) {
 				strncpy_s(Arg1,szClean,(DWORD)(pDest -szClean));
 				strcpy_s(Arg2, pDest +13);
 				Arg2[strlen(Arg2)-1]=0; 
 				AddEvent(EVENT_CHAT,"tell",Arg1,Arg2,NULL); 
-			} else if ((CHATEVENT(CHAT_TELL)) && (pDest = strstr(szClean," told you, '"))) {
+			} else if ((CHATEVENT(CHAT_TELL)) && (pDest = strstr(szClean," told you, "))) {
 				strncpy_s(Arg1,szClean,(DWORD)(pDest -szClean));
 				strcpy_s(Arg2, pDest +12);
 				Arg2[strlen(Arg2)-1]=0; 
