@@ -73,7 +73,6 @@ enum class SpellMembers
 	Target,
 	Description,
 	StacksWith,
-	Caster,
 	Rank,
 	RankName,
 	SpellGroup,
@@ -163,7 +162,6 @@ MQ2SpellType::MQ2SpellType() : MQ2Type("spell")
 	ScopedTypeMember(SpellMembers, Target);
 	ScopedTypeMember(SpellMembers, Description);
 	ScopedTypeMember(SpellMembers, StacksWith);
-	ScopedTypeMember(SpellMembers, Caster);
 	ScopedTypeMember(SpellMembers, Rank);
 	ScopedTypeMember(SpellMembers, RankName);
 	ScopedTypeMember(SpellMembers, SpellGroup);
@@ -647,57 +645,32 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 
 	case SpellMembers::StacksSpawn:
 	{
-		Dest.DWord = true;
-		Dest.Type = pBoolType;
-
-		if (!Index[0] || !pLocalPlayer || CachedBuffsMap.empty())
+		if (!Index[0])
 			return false;
 
 		int spawnID = GetIntFromString(Index, -1);
-		PlayerClient* pSpawn = spawnID >= 0 ? GetSpawnByID(spawnID) : GetSpawnByName(Index);
-
+		auto pSpawn = reinterpret_cast<SPAWNINFO*>(spawnID >= 0 ? GetSpawnByID(spawnID) : GetSpawnByName(Index));
 		if (!pSpawn)
 			return false;
 
-		auto buff_it = CachedBuffsMap.find(pSpawn->SpawnID);
-		if (buff_it == CachedBuffsMap.end())
-			return true; // no buffs*, but target exists
-
-		for (auto& it : buff_it->second)
-		{
-			auto pBuff = GetSpellByID(it.first);
-			if (!pBuff)
-				continue;
-
-			if (!WillStackWith(pSpell, pBuff))
-			{
-				Dest.DWord = false;
-				return true;
-			}
-		}
+		Dest.Type = pBoolType;
+		Dest.DWord = GetCachedBuff(pSpawn, [&pSpell](CachedBuff buff) -> bool {
+			auto pBuff = GetSpellByID(buff.spellId);
+			return pBuff && !WillStackWith(pSpell, pBuff);
+		}) < 0;
 
 		return true;
 	}
 
 	case SpellMembers::StacksTarget:
-		Dest.DWord = true;
-		Dest.Type = pBoolType;
-
-		if (!pTargetWnd || !pLocalPlayer)
+		if (!pTarget)
 			return false;
 
-		for (auto buffID : pTargetWnd->BuffSpellID)
-		{
-			auto pBuff = GetSpellByID(buffID);
-			if (!pBuff)
-				continue;
-
-			if (!WillStackWith(pSpell, pBuff))
-			{
-				Dest.DWord = false;
-				return true;
-			}
-		}
+		Dest.Type = pBoolType;
+		Dest.DWord = GetCachedBuff(pTarget, [&pSpell](CachedBuff buff) -> bool {
+			auto pBuff = GetSpellByID(buff.spellId);
+			return pBuff && !WillStackWith(pSpell, pBuff);
+		}) < 0;
 
 		return true;
 
@@ -986,21 +959,6 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		}
 		return false;
 
-	case SpellMembers::Caster:
-	{
-		Dest.Type = pStringType;
-
-		auto iter = targetBuffSlotToCasterMap.find(VarPtr.HighPart);
-		if (iter != targetBuffSlotToCasterMap.end())
-		{
-			strcpy_s(DataTypeTemp, iter->second.c_str());
-			Dest.Ptr = &DataTypeTemp[0];
-			return true;
-		}
-
-		return false;
-	}
-
 	case SpellMembers::BaseName:
 	{
 		strcpy_s(DataTypeTemp, pSpell->Name);
@@ -1271,7 +1229,6 @@ void MQ2SpellType::InitVariable(MQVarPtr& VarPtr)
 {
 	// FIXME: Do not allocate a SPELL
 	VarPtr.Ptr = new SPELL();
-	VarPtr.HighPart = 0;
 }
 
 void MQ2SpellType::FreeVariable(MQVarPtr& VarPtr)

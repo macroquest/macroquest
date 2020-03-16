@@ -2641,7 +2641,7 @@ FUNCTION_AT_ADDRESS(void CSpellGemWnd::SetCheck(bool), CSpellGemWnd__SetCheck);
 //============================================================================
 
 #ifdef CTargetWnd__RefreshTargetBuffs_x
-FUNCTION_AT_ADDRESS(void CTargetWnd::RefreshTargetBuffs(BYTE*), CTargetWnd__RefreshTargetBuffs);
+FUNCTION_AT_ADDRESS(void CTargetWnd::RefreshTargetBuffs(CUnSerializeBuffer&), CTargetWnd__RefreshTargetBuffs);
 #endif
 #ifdef CTargetWnd__HandleBuffRemoveRequest_x
 FUNCTION_AT_ADDRESS(void CTargetWnd::HandleBuffRemoveRequest(CXWnd*), CTargetWnd__HandleBuffRemoveRequest);

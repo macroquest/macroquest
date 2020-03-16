@@ -347,9 +347,6 @@
     <ClCompile Include="datatypes\MQ2CachedBuffType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
-    <ClCompile Include="datatypes\MQ2TargetBuffType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
     <ClCompile Include="datatypes\MQ2BuffType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
@@ -385,6 +382,12 @@
     </ClCompile>
     <ClCompile Include="CrashHandler.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MQ2CachedBuffs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2TimeStampType.cpp">
+      <Filter>Source Files\datatypes</Filter>
     </ClCompile>
     <ClCompile Include="MQ2StringDB.cpp">
       <Filter>Source Files</Filter>
@@ -504,6 +507,9 @@
     </ClInclude>
     <ClInclude Include="CrashHandler.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\MiscUtils.h">
+      <Filter>Header Files\common</Filter>
     </ClInclude>
     <ClInclude Include="MQ2Args.h">
       <Filter>Header Files</Filter>

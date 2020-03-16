@@ -753,80 +753,9 @@ public:
 
 		gItemsReceived = true;
 	}
-
-	void CTargetWnd__RefreshTargetBuffs_Trampoline(BYTE*);
-	void CTargetWnd__RefreshTargetBuffs_Detour(BYTE* buffer)
-	{
-		// ok so we can cache songs as well here, they are not displayed in the client for some reason...
-		gTargetbuffs = false;
-
-		int count = 0;
-
-		CTargetWnd__RefreshTargetBuffs_Trampoline(buffer);
-		CTargetWnd* pTW = (CTargetWnd*)this;
-
-		for (int i : pTW->BuffSpellID)
-		{
-			if (i > 0)
-				count++;
-		}
-		targetBuffSlotToCasterMap.clear();
-
-		CUnSerializeBuffer* packet = (CUnSerializeBuffer*)buffer;
-		packet->Reset();
-
-		struct TargetHeader
-		{
-			int m_id;
-			int m_timeNext;
-			bool m_bComplete;
-			short m_count;
-		};
-		TargetHeader header;
-
-		packet->Read(header.m_id);
-		packet->Read(header.m_timeNext);
-		packet->Read(header.m_bComplete);
-		packet->Read(header.m_count);
-		TargetBuff curBuff;
-
-		int id = pTarget->SpawnID;
-		CachedBuffsMap[id].clear();
-
-		for (int i = 0; i < header.m_count; i++)
-		{
-			ZeroMemory(&curBuff, sizeof(TargetBuff));
-			packet->Read(curBuff.slot);
-			packet->Read(curBuff.spellId);
-			packet->Read(curBuff.duration);
-			packet->Read(curBuff.count);
-			packet->ReadpChar(curBuff.casterName);
-
-			if (pTarget)
-			{
-				curBuff.timeStamp = EQGetTime();
-				CachedBuffsMap[pTarget->SpawnID][curBuff.spellId] = curBuff;
-
-				if ((curBuff.slot >= 42 && (pTarget->Type == SPAWN_PLAYER || pTarget->Mercenary)) || (curBuff.slot >= 55) || (curBuff.slot < 0))
-				{
-					continue;
-				}
-
-				targetBuffSlotToCasterMap[curBuff.slot] = curBuff.casterName;
-			}
-		}
-
-		if (gbAssistComplete == AS_AssistSent)
-		{
-			gbAssistComplete = AS_AssistReceived;
-		}
-
-		gTargetbuffs = true;
-	}
 };
 
 DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::SetGameState_Trampoline(DWORD));
-DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline(BYTE*));
 DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline());
 
 void InitializeMQ2Pulse()
@@ -838,7 +767,6 @@ void InitializeMQ2Pulse()
 	//EzDetour(__GameLoop, GameLoop_Detour, GameLoop_Tramp);
 	EzDetour(ProcessGameEvents, Detour_ProcessGameEvents, Trampoline_ProcessGameEvents);
 	EzDetour(CEverQuest__SetGameState, &CEverQuestHook::SetGameState_Detour, &CEverQuestHook::SetGameState_Trampoline);
-	EzDetour(CTargetWnd__RefreshTargetBuffs, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Detour, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline);
 	EzDetour(CMerchantWnd__PurchasePageHandler__UpdateList, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Detour, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline);
 
 	if (HMODULE EQWhMod = GetModuleHandle("eqw.dll"))
@@ -854,7 +782,6 @@ void ShutdownMQ2Pulse()
 	RemoveDetour((DWORD)ProcessGameEvents);
 	RemoveDetour(CEverQuest__SetGameState);
 	RemoveDetour(CMerchantWnd__PurchasePageHandler__UpdateList);
-	RemoveDetour(CTargetWnd__RefreshTargetBuffs);
 }
 
 } // namespace mq

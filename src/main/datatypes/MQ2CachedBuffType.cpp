@@ -18,20 +18,39 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class CachedBuffMembers
+{
+	CasterName,
+	Count,
+	Slot,
+	SpellID,
+	OriginalDuration,
+	Duration,
+	Staleness
+};
+
+MQ2CachedBuffType::MQ2CachedBuffType() : MQ2Type("cachedbuff")
+{
+	ScopedTypeMember(CachedBuffMembers, CasterName);
+	ScopedTypeMember(CachedBuffMembers, Count);
+	ScopedTypeMember(CachedBuffMembers, Slot);
+	ScopedTypeMember(CachedBuffMembers, SpellID);
+	ScopedTypeMember(CachedBuffMembers, OriginalDuration);
+	ScopedTypeMember(CachedBuffMembers, Duration);
+	ScopedTypeMember(CachedBuffMembers, Staleness);
+}
+
 bool MQ2CachedBuffType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
-	TargetBuff* pcTB = (TargetBuff*)VarPtr.Ptr;
-	if (!pcTB)
-		return false;
-
-	int buffid = pcTB->spellId;
-	if (buffid <= 0)
+	auto pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
+	auto buff = GetCachedBuffAtSlot(pSpawn, VarPtr.HighPart);
+	if (!buff || buff->spellId <= 0)
 		return false;
 
 	MQTypeMember* pMember = MQ2CachedBuffType::FindMember(Member);
 	if (!pMember)
 	{
-		if (SPELL* pSpell = GetSpellByID(buffid))
+		if (SPELL* pSpell = GetSpellByID(buff->spellId))
 		{
 			return pSpellType->GetMember(*(MQVarPtr*)& pSpell, Member, Index, Dest);
 		}
@@ -40,36 +59,69 @@ bool MQ2CachedBuffType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 
 	switch (static_cast<CachedBuffMembers>(pMember->ID))
 	{
-	case CasterName:
-		strcpy_s(DataTypeTemp, pcTB->casterName);
+	case CachedBuffMembers::CasterName:
+		strcpy_s(DataTypeTemp, buff->casterName);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case Count:
-		Dest.Int = pcTB->count;
+	case CachedBuffMembers::Count:
+		Dest.Int = buff->count;
 		Dest.Type = pIntType;
 		return true;
 
-	case Slot:
-		Dest.Int = pcTB->slot;
+	case CachedBuffMembers::Slot:
+		Dest.Int = buff->slot + 1;
 		Dest.Type = pIntType;
 		return true;
 
-	case SpellID:
-		Dest.Int = pcTB->spellId;
+	case CachedBuffMembers::SpellID:
+		Dest.Int = buff->spellId;
 		Dest.Type = pIntType;
 		return true;
 
-	case Duration:
-		int calcedduration = (pcTB->timeStamp + (pcTB->duration * 6000)) - EQGetTime();
-		if (calcedduration < 0)
-			calcedduration = 0;
-		Dest.Int = calcedduration;
+	case CachedBuffMembers::OriginalDuration:
+		Dest.UInt64 = buff->duration;
 		Dest.Type = pTimeStampType;
+		return true;
 
+	case CachedBuffMembers::Duration:
+		Dest.UInt64 = buff->Duration();
+		Dest.Type = pTimeStampType;
+		return true;
+
+	case CachedBuffMembers::Staleness:
+		if (pSpawn == pTarget)
+			Dest.Int = 0;
+		else
+			Dest.Int = buff->Staleness();
+		Dest.Type = pTimeStampType;
+		return true;
+
+	default:
+		return false;
+	}
+}
+
+bool MQ2CachedBuffType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	auto pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
+	auto buff = GetCachedBuffAtSlot(pSpawn, VarPtr.HighPart);
+	if (!buff || buff->spellId <= 0)
+		return false;
+
+	if (PSPELL pSpell = GetSpellByID(buff->spellId))
+	{
+		strcpy_s(Destination, MAX_STRING, pSpell->Name);
 		return true;
 	}
 	return false;
+}
+
+bool MQ2CachedBuffType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	VarPtr.Ptr = Source.Ptr;
+	VarPtr.HighPart = Source.HighPart;
+	return true;
 }
 

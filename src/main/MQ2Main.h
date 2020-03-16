@@ -491,8 +491,6 @@ MQLIB_API void CustomPopup(char* szPopText, bool bPopOutput);
 
 MQLIB_API bool IsBardSong(EQ_Spell* pSpell);
 MQLIB_API bool IsSPAEffect(EQ_Spell* pSpell, int EffectID);
-MQLIB_API bool GetShortBuffID(SPELLBUFF* pBuff, int& nID);
-MQLIB_API bool GetBuffID(SPELLBUFF* pBuff, int& nID);
 MQLIB_API const char* GetLDoNTheme(int LDTheme);
 MQLIB_API bool TriggeringEffectSpell(SPELL* aSpell, int i);
 MQLIB_API bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects = false, bool bTriggeredEffectCheck = false);
@@ -587,23 +585,107 @@ MQLIB_API bool        DropItem2(const ItemGlobalIndex& index);
 MQLIB_API bool        ItemOnCursor();
 MQLIB_API bool        OpenContainer(CONTENTS* pItem, bool hidden, bool flag = false);
 MQLIB_API bool        CloseContainer(CONTENTS* pItem);
-MQLIB_API int         GetTargetBuffByCategory(int category, unsigned int classmask = 0, int startslot = 0);
-MQLIB_API int         GetTargetBuffBySubCat(const char* subcat, unsigned int classmask = 0, int startslot = 0);
-MQLIB_API int         GetTargetBuffBySPA(int spa, bool bIncrease, int startslot = 0);
-MQLIB_API bool        HasCachedTargetBuffSubCat(const char* subcat, SPAWNINFO* pSpawn, TargetBuff* pcTargetBuff, unsigned int classmask = 0);
-MQLIB_API bool        HasCachedTargetBuffSPA(int spa, bool bIncrease, SPAWNINFO* pSpawn, TargetBuff* pcTargetBuff);
-MQLIB_API int         GetSelfBuffByCategory(int category, unsigned int classmask = 0, int startslot = 0);
-MQLIB_API int         GetSelfBuffBySubCat(const char* subcat, unsigned int classmask = 0, int startslot = 0);
-MQLIB_API int         GetSelfBuffBySPA(int spa, bool bIncrease, int startslot = 0);
-MQLIB_API int         GetSelfShortBuffBySPA(int spa, bool bIncrease, int startslot = 0);
-MQLIB_API bool        IsSpellUsableForClass(SPELL* pSpell, unsigned int classmask = 0);
-MQLIB_API bool        IsAegoSpell(SPELL* pSpell);
-MQLIB_API int         GetSpellCategory(SPELL* pSpell);
-MQLIB_API int         GetSpellSubcategory(SPELL* pSpell);
+
+/* BUFF PREDICATES */
+#define SPELLPREDICATE(Type, Code) \
+template <typename... Args> \
+auto AllBuffs(Type value, Args... args) \
+{ \
+    return [value = std::forward<Type>(value), args = std::make_tuple(std::forward<Args>(args)...)](auto... buff) -> bool \
+    { \
+        return Code && \
+               std::apply([](auto &&... args) { return AllBuffs(std::forward<decltype(args)>(args)...); }, std::move(args))(buff...); \
+    }; \
+} \
+template <typename... Args> \
+auto AnyBuffs(Type value, Args... args) \
+{ \
+    return [value = std::forward<Type>(value), args = std::make_tuple(std::forward<Args>(args)...)](auto... buff) -> bool \
+    { \
+        return Code || \
+               std::apply([](auto &&... args) { return AnyBuffs(std::forward<decltype(args)>(args)...); }, std::move(args))(buff...); \
+    }; \
+}
+
+auto AllBuffs() { return [](auto...) { return true; }; }
+auto AnyBuffs() { return [](auto...) { return false; }; }
+
+template <typename Pred, typename... Args>
+auto AllBuffs(Pred value, Args... args)
+{
+    return [value = std::forward<Pred>(value), args = std::make_tuple(std::forward<Args>(args)...)](auto... buff) -> bool {
+        return value(buff...) &&
+               std::apply([](auto &&... args) { return AllBuffs(std::forward<decltype(args)>(args)...); }, std::move(args))(buff...);
+    };
+}
+
+template <typename Pred, typename... Args>
+auto AnyBuffs(Pred value, Args... args)
+{
+    return [value = std::forward<Pred>(value), args = std::make_tuple(std::forward<Args>(args)...)](auto... buff) -> bool {
+        return value(buff...) ||
+               std::apply([](auto &&... args) { return AnyBuffs(std::forward<decltype(args)>(args)...); }, std::move(args))(buff...);
+    };
+}
+
+SPELLPREDICATE(SpellAffect, (HasSPA(buff..., value, value.Increase)));
+SPELLPREDICATE(SpellCategory, (GetSpellCategory(buff...) == value));
+SPELLPREDICATE(SpellSubCat, (GetSpellSubcategory(buff...) == value));
+SPELLPREDICATE(SpellClassMask, (IsSpellUsableForClass(buff..., value)));
+
+/* MQ2CACHEDBUFFS */
+class CachedBuff : public TargetBuff
+{
+public:
+	DWORD timeStamp;
+
+	DWORD Duration() const
+	{
+		auto end = timeStamp + (duration * 6000);
+		auto now = EQGetTime();
+
+		if (end > now)
+			return end - now;
+		
+		return 0UL;
+	}
+
+	DWORD Staleness() const
+	{
+		return EQGetTime() - timeStamp;
+	}
+};
+
+void InitializeCachedBuffs();
+void ShutdownCachedBuffs();
+MQLIB_OBJECT int GetCachedBuff(SPAWNINFO* pSpawn, const std::function<bool(CachedBuff)>& predicate);
+MQLIB_OBJECT int GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index);
+MQLIB_OBJECT int GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index, const std::function<bool(CachedBuff)>& predicate);
+MQLIB_OBJECT std::optional<CachedBuff> GetCachedBuffAtSlot(SPAWNINFO* pSpawn, int slot);
+MQLIB_OBJECT std::vector<CachedBuff> FilterCachedBuffs(SPAWNINFO* pSpawn, const std::function<bool(CachedBuff)>& predicate);
+MQLIB_OBJECT DWORD GetCachedBuffCount(SPAWNINFO* pSpawn);
+MQLIB_OBJECT DWORD GetCachedBuffCount(SPAWNINFO* pSpawn, const std::function<bool(CachedBuff)>& predicate);
+MQLIB_API void ClearCachedBuffsSpawn(SPAWNINFO* pSpawn);
+MQLIB_API void ClearCachedBuffs();
+
+MQLIB_API    int      GetSelfBuff(const std::function<bool(EQ_Spell*)>& fPredicate);
+
+MQLIB_API    bool     HasSPA(EQ_Spell* pSpell, eEQSPA eSPA, bool bIncrease = false);
+MQLIB_OBJECT bool     HasSPA(SPELLBUFF buff, eEQSPA eSPA, bool bIncrease = false);
+MQLIB_OBJECT bool     HasSPA(CachedBuff buff, eEQSPA eSPA, bool bIncrease = false);
+MQLIB_API    bool     IsSpellUsableForClass(SPELL* pSpell, unsigned int classmask = 0);
+MQLIB_OBJECT bool     IsSpellUsableForClass(SPELLBUFF buff, unsigned int classmask = 0);
+MQLIB_OBJECT bool     IsSpellUsableForClass(CachedBuff buff, unsigned int classmask = 0);
+MQLIB_API    int      GetSpellCategory(SPELL* pSpell);
+MQLIB_OBJECT int      GetSpellCategory(SPELLBUFF buff);
+MQLIB_OBJECT int      GetSpellCategory(CachedBuff buff);
+MQLIB_API    int      GetSpellSubcategory(SPELL* pSpell);
+MQLIB_OBJECT int      GetSpellSubcategory(SPELLBUFF buff);
+MQLIB_OBJECT int      GetSpellSubcategory(CachedBuff buff);
 MQLIB_API SPELL*      GetSpellParent(int id);
-MQLIB_API int         GetSpellCounters(eEQSPA spa, const SPELLBUFF* buff); // Get spell counters of given spa for the given buff.
+MQLIB_API int         GetSpellCounters(eEQSPA spa, const SPELLBUFF& buff); // Get spell counters of given spa for the given buff.
 MQLIB_API int         GetMySpellCounters(eEQSPA spa);                      // Get spell counters of given spa on my character.
-MQLIB_API int         GetTotalSpellCounters(const SPELLBUFF* buff);        // Get total count of spell counters for the given buff.
+MQLIB_API int         GetTotalSpellCounters(const SPELLBUFF& buff);        // Get total count of spell counters for the given buff.
 MQLIB_API int         GetMyTotalSpellCounters();                           // Get total count of spell counters for my character.
 MQLIB_API int         GetMeleeSpeedPctFromSpell(EQ_Spell* pSpell, bool increase);
 MQLIB_API EQ_Spell*   GetHighestLearnedSpellByGroupID(int dwSpellGroupID);
