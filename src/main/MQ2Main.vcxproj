@@ -354,10 +354,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="datatypes\MQ2TargetBuffType.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="datatypes\MQ2TargetType.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -379,6 +375,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2TimerType.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2TimeStampType.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
@@ -414,6 +414,7 @@
     <ClCompile Include="MQ2Auth.cpp" />
     <ClCompile Include="MQ2AutoInventory.cpp" />
     <ClCompile Include="MQ2Benchmarks.cpp" />
+    <ClCompile Include="MQ2CachedBuffs.cpp" />
     <ClCompile Include="MQ2ChatHook.cpp" />
     <ClCompile Include="MQ2CleanUI.cpp" />
     <ClCompile Include="MQ2CommandAPI.cpp" />
@@ -470,6 +471,7 @@
     <ClInclude Include="..\common\Common.h" />
     <ClInclude Include="..\common\ConfigUtils.h" />
     <ClInclude Include="..\common\NamedPipes.h" />
+    <ClInclude Include="..\common\MiscUtils.h" />
     <ClInclude Include="..\common\StringUtils.h" />
     <ClInclude Include="datatypes\DataTypeList.h" />
     <ClInclude Include="datatypes\MQ2DataTypes.h" />

@@ -24,6 +24,10 @@ namespace mq::datatypes {
 #include "DataTypeList.h"
 #undef DATATYPE
 
+// Datatype deprecations
+using MQ2TargetBuffType DEPRECATE("Use MQ2CachedBuffType instead") = MQ2CachedBuffType;
+MQ2CachedBuffType* pTargetBuffType DEPRECATE("Use pCachedBuffType instead.") = pCachedBuffType;
+
 //----------------------------------------------------------------------------
 // DataType Initializations
 void InitializeMQ2DataTypes()
@@ -309,13 +313,13 @@ bool CDataArray::GetElement(char* Index, MQTypeVar& Dest)
 #include "MQ2SpellType.cpp"
 #include "MQ2StringType.cpp"
 #include "MQ2SwitchType.cpp"
-#include "MQ2TargetBuffType.cpp"
 #include "MQ2TargetType.cpp"
 #include "MQ2TaskMemberType.cpp"
 #include "MQ2TaskObjectiveType.cpp"
 #include "MQ2TaskType.cpp"
 #include "MQ2TicksType.cpp"
 #include "MQ2TimerType.cpp"
+#include "MQ2TimeStampType.cpp"
 #include "MQ2TimeType.cpp"
 #include "MQ2Type.cpp"
 #include "MQ2TypeType.cpp"

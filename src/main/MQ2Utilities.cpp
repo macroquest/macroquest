@@ -4725,33 +4725,6 @@ void WriteFilterNames()
 	}
 }
 
-bool GetShortBuffID(SPELLBUFF* pBuff, int& nID)
-{
-	PcProfile* pProfile = GetPcProfile();
-
-	int index = (pBuff - &pProfile->ShortBuff[0]);
-	if (index < NUM_SHORT_BUFFS)
-	{
-		nID = index + 1;
-		return true;
-	}
-
-	return false;
-}
-
-bool GetBuffID(SPELLBUFF* pBuff, int& nID)
-{
-	PcProfile* pProfile = GetPcProfile();
-
-	int index = (pBuff - &pProfile->Buff[0]);
-	if (index < NUM_LONG_BUFFS)
-	{
-		nID = index + 1;
-		return true;
-	}
-	return false;
-}
-
 #define IS_SET(flag, bit)   ((flag) & (bit))
 
 const char* GetLDoNTheme(int LDTheme)
@@ -6753,478 +6726,64 @@ bool DropItem(ItemContainerInstance type, short ToInvSlot, short ToBagSlot)
 	return false;
 }
 
-int GetTargetBuffByCategory(int category, unsigned int classmask, int startslot)
-{
-	if (pTargetWnd->Type <= 0)
-		return false;
-
-	int buffID = 0;
-	for (int i = startslot; i < NUM_BUFF_SLOTS; i++)
-	{
-		buffID = pTargetWnd->BuffSpellID[i];
-		if (buffID > 0)
-		{
-			if (SPELL* pSpell = GetSpellByID(buffID))
-			{
-				if (GetSpellCategory(pSpell) == category && IsSpellUsableForClass(pSpell, classmask))
-				{
-					return i;
-				}
-			}
-		}
-	}
-	return -1;
-}
-
-int GetTargetBuffBySubCat(const char* subcat, unsigned int classmask, int startslot)
-{
-	if (pTargetWnd->Type <= 0)
-		return -1;
-
-	for (int i = startslot; i < NUM_BUFF_SLOTS; i++)
-	{
-		int buffID = pTargetWnd->BuffSpellID[i];
-		if (buffID > 0)
-		{
-			SPELL* pSpell = GetSpellByID(buffID);
-			if (!pSpell) continue;
-
-			int cat = GetSpellSubcategory(pSpell);
-			if (!cat) continue;
-
-			const char* ptr = pCDBStr->GetString(cat, eSpellCategory);
-			if (!ptr) continue;
-
-			if (!_stricmp(ptr, subcat))
-			{
-				if (classmask == Unknown)
-				{
-					return i;
-				}
-
-				for (int N = 0; N < TotalPlayerClasses; N++)
-				{
-					if (classmask & (1 << N))
-					{
-						return i;
-					}
-				}
-			}
-		}
-	}
-
-	return -1;
-}
-
-bool HasCachedTargetBuffSubCat(const char* subcat, SPAWNINFO* pSpawn, TargetBuff* pcTargetBuff, unsigned int classmask)
-{
-	if (CachedBuffsMap.empty())
-		return false;
-
-	auto i = CachedBuffsMap.find(pSpawn->SpawnID);
-	if (i == CachedBuffsMap.end())
-		return false;
-
-	for (auto& iter : i->second)
-	{
-		int buffID = iter.first;
-		if (SPELL* pSpell = GetSpellByID(buffID))
-		{
-			if (int cat = GetSpellSubcategory(pSpell))
-			{
-				if (const char* ptr = pCDBStr->GetString(cat, eSpellCategory))
-				{
-					if (!_stricmp(ptr, subcat))
-					{
-						if (classmask == Unknown)
-							return true;
-
-						for (int N = 0; N < 16; N++)
-						{
-							if (classmask & (1 << N))
-							{
-								return true;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	return false;
-}
-
-bool HasCachedTargetBuffSPA(int spa, bool bIncrease, SPAWNINFO* pSpawn, TargetBuff* pcTargetBuff)
-{
-	auto i = CachedBuffsMap.find(pSpawn->SpawnID);
-	if (i == CachedBuffsMap.end())
-		return false;
-
-	for (auto& iter : i->second)
-	{
-		int buffID = iter.first;
-
-		if (SPELL* pSpell = GetSpellByID(buffID))
-		{
-			if (int base = ((EQ_Spell*)pSpell)->SpellAffectBase(spa))
-			{
-				strcpy_s(pcTargetBuff->casterName, iter.second.casterName);
-				pcTargetBuff->count = iter.second.count;
-				pcTargetBuff->duration = iter.second.duration;
-				pcTargetBuff->slot = iter.second.slot;
-				pcTargetBuff->spellId = iter.second.spellId;
-				pcTargetBuff->timeStamp = iter.second.timeStamp;
-
-				switch (spa)
-				{
-				case SPA_MOVEMENT_RATE: // Movement Rate
-					if (!bIncrease && base < 0)
-					{
-						// below 0 means its a snare above its runspeed increase...
-						return true;
-					}
-
-					if (bIncrease && base > 0)
-					{
-						return true;
-					}
-					break;
-
-				case SPA_HASTE: // Melee Speed
-					if (!bIncrease && base < 100)
-					{
-						// below 100 means its a slow above its haste...
-						return true;
-					}
-
-					if (bIncrease && base > 100)
-					{
-						return true;
-					}
-					break;
-
-				case SPA_DAMAGE_SHIELD: // Damage Shield
-					if (!bIncrease && base > 0)
-					{
-						// decreased DS
-						return true;
-					}
-
-					if (bIncrease && base < 0)
-					{
-						// increased DS
-						return true;
-					}
-					break;
-
-				case SPA_IRONMAIDEN: // Reverse Damage Shield
-					if (!bIncrease && base > 0)
-					{
-						// decreased DS
-						return true;
-					}
-
-					if (bIncrease && base < 0)
-					{
-						// increased DS
-						return true;
-					}
-					break;
-
-				default:
-					return true;
-				}
-			}
-		}
-	}
-
-	return false;
-}
-
 //Usage: The spa is the spellaffect id, for example 11 for Melee Speed
 //       the bIncrease tells the function if we want spells that increase or decrease the SPA
-int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot)
+bool HasSPA(EQ_Spell* pSpell, eEQSPA eSPA, bool bIncrease)
 {
-	if (pTargetWnd->Type <= 0)
+	if (!pSpell)
 		return false;
 
-	int buffID = 0;
-	for (int i = startslot; i < NUM_BUFF_SLOTS; i++)
+	// in general, if we have a base, then we have found the SPA and it exists on this spell
+	// however, we need to do a few other checks for things that might be an increase or decrease
+	int base = pSpell->SpellAffectBase(eSPA);
+	if (base == 0)
+		return false;
+
+	switch (eSPA)
 	{
-		buffID = pTargetWnd->BuffSpellID[i];
-		if (buffID > 0 && buffID != -1)
-		{
-			if (SPELL* pSpell = GetSpellByID(buffID))
-			{
-				if (int base = ((EQ_Spell*)pSpell)->SpellAffectBase(spa))
-				{
-					switch (spa)
-					{
-					case SPA_MOVEMENT_RATE: // Movement Rate
-						if (!bIncrease && base < 0)
-						{
-							// below 0 means its a snare above its runspeed increase...
-							return i;
-						}
+	case SPA_MOVEMENT_RATE: // Movement Rate
+		// below 0 means its a snare above its runspeed increase...
+		return (!bIncrease && base < 0) || (bIncrease && base > 0);
 
-						if (bIncrease && base > 0)
-						{
-							return i;
-						}
-						break;
+	case SPA_HASTE: // Melee Speed
+		// below 100 means its a slow above its haste...
+		return (!bIncrease && base < 100) || (bIncrease && base > 100);
 
-					case SPA_HASTE: // Melee Speed
-						if (!bIncrease && base < 100)
-						{
-							// below 100 means its a slow above its haste...
-							return i;
-						}
+	case SPA_DAMAGE_SHIELD: // Damage Shield
+		// decreased DS
+		return (!bIncrease && base > 0) || (bIncrease && base < 0);
 
-						if (bIncrease && base > 100)
-						{
-							return i;
-						}
-						break;
+	case SPA_IRONMAIDEN: // Reverse Damage Shield
+		// decreased DS
+		return (!bIncrease && base > 0) || (bIncrease && base < 0);
 
-					case SPA_DAMAGE_SHIELD: // Damage Shield
-						if (!bIncrease && base > 0)
-						{
-							// decreased DS
-							return i;
-						}
-
-						if (bIncrease && base < 0)
-						{
-							// increased DS
-							return i;
-						}
-						break;
-
-					case SPA_IRONMAIDEN: // Reverse Damage Shield
-						if (!bIncrease && base > 0)
-						{
-							// decreased DS
-							return i;
-						}
-
-						if (bIncrease && base < 0)
-						{
-							// increased DS
-							return i;
-						}
-						break;
-
-					default:
-						return i;
-					}
-				}
-			}
-		}
+	default:
+		// has the SPA
+		return true;
 	}
-	return -1;
 }
+bool HasSPA(SPELLBUFF buff, eEQSPA eSPA, bool bIncrease) { return HasSPA(GetSpellByID(buff.SpellID), eSPA, bIncrease); }
+bool HasSPA(CachedBuff buff, eEQSPA eSPA, bool bIncrease) { return HasSPA(GetSpellByID(buff.spellId), eSPA, bIncrease); }
 
-int GetSelfBuffByCategory(int category, unsigned int classmask, int startslot)
+int GetSelfBuff(const std::function<bool(EQ_Spell*)>& fPredicate)
 {
 	PcProfile* pProfile = GetPcProfile();
 	if (!pProfile)
 		return -1;
 
-	for (int i = startslot; i < NUM_BUFF_SLOTS; i++)
+	auto predicate = [&fPredicate](const SPELLBUFF& buff)
 	{
-		if (SPELL* pSpell = GetSpellByID(pProfile->Buff[i].SpellID))
-		{
-			if (GetSpellCategory(pSpell) == category && IsSpellUsableForClass(pSpell, classmask))
-			{
-				return i;
-			}
-		}
-	}
+		auto spell = GetSpellByID(buff.SpellID);
+		return spell && fPredicate(spell);
+	};
 
-	return -1;
-}
+	auto buff_it = std::find_if(std::cbegin(pProfile->Buff), std::cend(pProfile->Buff), predicate);
+	if (buff_it != std::cend(pProfile->Buff))
+		return std::distance(std::cbegin(pProfile->Buff), buff_it);
 
-int GetSelfBuffBySubCat(const char* subcat, unsigned int classmask, int startslot)
-{
-	PcProfile* pProfile = GetPcProfile();
-	if (!pProfile)
-		return -1;
-
-	for (int i = startslot; i < NUM_LONG_BUFFS; i++)
-	{
-		if (SPELL* pSpell = GetSpellByID(pProfile->Buff[i].SpellID))
-		{
-			if (DWORD cat = GetSpellSubcategory(pSpell))
-			{
-				if (const char* ptr = pCDBStr->GetString(cat, eSpellCategory))
-				{
-					if (!_stricmp(ptr, subcat) && IsSpellUsableForClass(pSpell, classmask))
-					{
-						return i;
-					}
-				}
-			}
-		}
-	}
-
-	return -1;
-}
-
-int GetSelfBuffBySPA(int spa, bool bIncrease, int startslot)
-{
-	PcProfile* pProfile = GetPcProfile();
-	if (!pProfile)
-		return -1;
-
-	for (int i = startslot; i < NUM_LONG_BUFFS; i++)
-	{
-		// TODO: De-duplicate this from GetTargetBuffBySPA and the cached buff version...
-		if (SPELL* pSpell = GetSpellByID(pProfile->Buff[i].SpellID))
-		{
-			if (int base = ((EQ_Spell*)pSpell)->SpellAffectBase(spa))
-			{
-				switch (spa)
-				{
-				case SPA_MOVEMENT_RATE: // Movement Rate
-					if (!bIncrease && base < 0)
-					{
-						// below 0 means its a snare above its runspeed increase...
-						return i;
-					}
-
-					if (bIncrease && base > 0)
-					{
-						return i;
-					}
-					break;
-
-				case SPA_HASTE: // Melee Speed
-					if (!bIncrease && base < 100)
-					{
-						// below 100 means its a slow above its haste...
-						return i;
-					}
-
-					if (bIncrease && base > 100)
-					{
-						return i;
-					}
-					break;
-
-				case SPA_DAMAGE_SHIELD: // Damage Shield
-					if (!bIncrease && base > 0)
-					{
-						// decreased DS
-						return i;
-					}
-
-					if (bIncrease && base < 0)
-					{
-						// increased DS
-						return i;
-					}
-					break;
-
-				case SPA_IRONMAIDEN: // Reverse Damage Shield
-					if (!bIncrease && base > 0)
-					{
-						// decreased DS
-						return i;
-					}
-
-					if (bIncrease && base < 0)
-					{
-						// increased DS
-						return i;
-					}
-					break;
-
-				default:
-					return i;
-				}
-			}
-		}
-	}
-
-	return -1;
-}
-
-int GetSelfShortBuffBySPA(int spa, bool bIncrease, int startslot)
-{
-	PcProfile* pProfile = GetPcProfile();
-	if (!pProfile)
-		return -1;
-
-	for (int i = startslot; i < NUM_SHORT_BUFFS; i++)
-	{
-		// TODO: De-duplicate this from GetTargetBuffBySPA and the cached buff version... etc...
-		if (SPELL* pSpell = GetSpellByID(pProfile->ShortBuff[i].SpellID))
-		{
-			if (int base = ((EQ_Spell*)pSpell)->SpellAffectBase(spa))
-			{
-				switch (spa)
-				{
-				case SPA_MOVEMENT_RATE: // Movement Rate
-					if (!bIncrease && base < 0)
-					{
-						// below 0 means its a snare above its runspeed increase...
-						return i;
-					}
-
-					if (bIncrease && base > 0)
-					{
-						return i;
-					}
-					break;
-
-				case SPA_HASTE: // Melee Speed
-					if (!bIncrease && base < 100)
-					{
-						// below 100 means its a slow above its haste...
-						return i;
-					}
-
-					if (bIncrease && base > 100)
-					{
-						return i;
-					}
-					break;
-
-				case SPA_DAMAGE_SHIELD: // Damage Shield
-					if (!bIncrease && base > 0)
-					{
-						// decreased DS
-						return i;
-					}
-
-					if (bIncrease && base < 0)
-					{
-						// increased DS
-						return i;
-					}
-					break;
-
-				case SPA_IRONMAIDEN: // Reverse Damage Shield
-					if (!bIncrease && base > 0)
-					{
-						// decreased DS
-						return i;
-					}
-
-					if (bIncrease && base < 0)
-					{
-						// increased DS
-						return i;
-					}
-					break;
-
-				default:
-					return i;
-				}
-			}
-		}
-	}
+	buff_it = std::find_if(std::cbegin(pProfile->ShortBuff), std::cend(pProfile->ShortBuff), predicate);
+	if (buff_it != std::cend(pProfile->ShortBuff))
+		return std::distance(std::cbegin(pProfile->ShortBuff), buff_it) + NUM_LONG_BUFFS;
 
 	return -1;
 }
@@ -7248,6 +6807,8 @@ int GetSpellCategory(SPELL* pSpell)
 
 	return 0;
 }
+int GetSpellCategory(SPELLBUFF buff) { return GetSpellCategory(GetSpellByID(buff.SpellID)); }
+int GetSpellCategory(CachedBuff buff) { return GetSpellCategory(GetSpellByID(buff.spellId)); }
 
 int GetSpellSubcategory(SPELL* pSpell)
 {
@@ -7268,40 +6829,14 @@ int GetSpellSubcategory(SPELL* pSpell)
 
 	return 0;
 }
-
-bool IsAegoSpell(SPELL* pSpell)
-{
-	if (pSpell->CannotBeScribed)
-	{
-		if (SPELL* pTrigger = GetSpellParent(pSpell->ID))
-		{
-			if ((pTrigger->Subcategory == 1) || (pTrigger->Subcategory == 112))
-			{
-				int base = ((EQ_Spell*)pSpell)->SpellAffectBase(SPA_AC); // check if it has ac?
-				if (base)
-				{
-					return true;
-				}
-			}
-		}
-	}
-	else
-	{
-		if ((pSpell->Subcategory == 1) || (pSpell->Subcategory == 112))
-		{
-			int base = ((EQ_Spell*)pSpell)->SpellAffectBase(SPA_AC);
-			if (base)
-			{
-				return true;
-			}
-		}
-	}
-
-	return false;
-}
+int GetSpellSubcategory(SPELLBUFF buff) { return GetSpellSubcategory(GetSpellByID(buff.SpellID)); }
+int GetSpellSubcategory(CachedBuff buff) { return GetSpellSubcategory(GetSpellByID(buff.spellId)); }
 
 bool IsSpellUsableForClass(SPELL* pSpell, unsigned int classmask)
 {
+	if (!pSpell)
+		return false;
+
 	if (classmask != Unknown)
 	{
 		for (int N = 0; N < 16; N++)
@@ -7316,6 +6851,8 @@ bool IsSpellUsableForClass(SPELL* pSpell, unsigned int classmask)
 	}
 	return true;
 }
+bool IsSpellUsableForClass(SPELLBUFF buff, unsigned int classmask) { return IsSpellUsableForClass(GetSpellByID(buff.SpellID), classmask); }
+bool IsSpellUsableForClass(CachedBuff buff, unsigned int classmask) { return IsSpellUsableForClass(GetSpellByID(buff.spellId), classmask); }
 
 int GetSpellRankByName(const char* SpellName)
 {
@@ -7402,73 +6939,51 @@ void TruncateSpellRankName(char* SpellName)
 
 void RemoveBuff(SPAWNINFO* pChar, char* szLine)
 {
-	bool bPet = false;
-	bool bAll = false;
 	char szCmd[MAX_STRING] = { 0 };
 	GetArg(szCmd, szLine, 1);
 
 	if (!_stricmp(szCmd, "-pet"))
 	{
-		bPet = true;
 		GetArg(szCmd, szLine, 2);
+		RemovePetBuff(pChar, szCmd);
+		return;
 	}
-	else if (!_stricmp(szCmd, "-both"))
+
+	if (!_stricmp(szCmd, "-both"))
 	{
-		bAll = true;
 		GetArg(szCmd, szLine, 2);
+		RemovePetBuff(pChar, szCmd);
 	}
 
 	if (szCmd && szCmd[0] != '\0')
 	{
-		if (bPet || bAll)
+		auto pProfile = GetPcProfile();
+		if (!pProfile)
+			return;
+
+		for (int nBuff = 0; nBuff < NUM_LONG_BUFFS; ++nBuff)
 		{
-			if (pPetInfoWnd && szLine && szLine[0] != 0)
+			if (pProfile->Buff[nBuff].SpellID == 0 || pProfile->Buff[nBuff].SpellID == -1)
+				continue;
+
+			auto pBuffSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID);
+			if (pBuffSpell && !_strnicmp(pBuffSpell->Name, szCmd, strlen(szCmd)))
 			{
-				for (int nBuff = 0; nBuff < NUM_BUFF_SLOTS; nBuff++)
-				{
-					if (SPELL* pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
-					{
-						if (!_strnicmp(pBuffSpell->Name, szCmd, strlen(szCmd)))
-						{
-							((PcZoneClient*)pPCData)->RemovePetEffect(nBuff);
-							break;
-						}
-					}
-				}
+				pPCData->RemoveBuffEffect(nBuff, pLocalPlayer->SpawnID);
+				return;
 			}
-			if (bPet) return;
 		}
 
-		if (PcProfile* pProfile = GetPcProfile())
+		for (int nBuff = 0; nBuff < NUM_SHORT_BUFFS; ++nBuff)
 		{
-			for (int nBuff = 0; nBuff < NUM_LONG_BUFFS; nBuff++)
-			{
-				if (pProfile->Buff[nBuff].SpellID == 0 || pProfile->Buff[nBuff].SpellID == -1)
-					continue;
+			if (pProfile->ShortBuff[nBuff].SpellID == 0 || pProfile->ShortBuff[nBuff].SpellID == -1)
+				continue;
 
-				if (SPELL* pBuffSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
-				{
-					if (!_strnicmp(pBuffSpell->Name, szCmd, strlen(szCmd)))
-					{
-						((PcZoneClient*)pPCData)->RemoveBuffEffect(nBuff, ((SPAWNINFO*)pLocalPlayer)->SpawnID);
-						return;
-					}
-				}
-			}
-
-			for (int nBuff = 0; nBuff < NUM_SHORT_BUFFS; nBuff++)
+			auto pBuffSpell = GetSpellByID(pProfile->ShortBuff[nBuff].SpellID);
+			if (pBuffSpell && !_strnicmp(pBuffSpell->Name, szCmd, strlen(szCmd)))
 			{
-				if (pProfile->ShortBuff[nBuff].SpellID == 0 || pProfile->ShortBuff[nBuff].SpellID == -1)
-					continue;
-				if (SPELL* pBuffSpell = GetSpellByID(pProfile->ShortBuff[nBuff].SpellID))
-				{
-					if (!_strnicmp(pBuffSpell->Name, szCmd, strlen(szCmd)))
-					{
-						((PcZoneClient*)pPCData)->RemoveBuffEffect(nBuff + NUM_LONG_BUFFS, ((SPAWNINFO*)pLocalPlayer)->SpawnID);
-						//pPCData->RemoveMyAffect(nBuff + NUM_LONG_BUFFS);
-						return;
-					}
-				}
+				pPCData->RemoveBuffEffect(nBuff + NUM_LONG_BUFFS, pLocalPlayer->SpawnID);
+				return;
 			}
 		}
 	}
@@ -7476,18 +6991,16 @@ void RemoveBuff(SPAWNINFO* pChar, char* szLine)
 
 void RemovePetBuff(SPAWNINFO* pChar, char* szLine)
 {
-	if (pPetInfoWnd && szLine && szLine[0] != '\0')
+	if (!pPetInfoWnd || !szLine || szLine[0] == '\0')
+		return;
+
+	for (int nBuff = 0; nBuff < NUM_BUFF_SLOTS; ++nBuff)
 	{
-		for (int nBuff = 0; nBuff < NUM_BUFF_SLOTS; nBuff++)
+		auto pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
+		if (pBuffSpell && !_strnicmp(pBuffSpell->Name, szLine, strlen(szLine)))
 		{
-			if (SPELL* pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
-			{
-				if (!_strnicmp(pBuffSpell->Name, szLine, strlen(szLine)))
-				{
-					((PcZoneClient*)pPCData)->RemovePetEffect(nBuff);
-					return;
-				}
-			}
+			pPCData->RemovePetEffect(nBuff);
+			return;
 		}
 	}
 }

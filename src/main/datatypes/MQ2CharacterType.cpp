@@ -18,6 +18,623 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class CharacterMembers
+{
+	CountSongs,
+	MaxBuffSlots,
+	Exp,
+	Spawn,
+	Dar,
+	AAExp,
+	AAPoints,
+	CurrentHPs,
+	MaxHPs,
+	HPRegen,
+	PctHPs,
+	CurrentMana,
+	MaxMana,
+	ManaRegen,
+	PctMana,
+	Buff,
+	Song,
+	Book,
+	Skill,
+	Ability,
+	Cash,
+	CashBank,
+	PlatinumShared,
+	Grouped,
+	HPBonus,
+	ManaBonus,
+	GukEarned,
+	MMEarned,
+	RujEarned,
+	TakEarned,
+	MirEarned,
+	LDoNPoints,
+	CurrentFavor,
+	CareerFavor,
+	Endurance,
+	Inventory,
+	Bank,
+	Combat,
+	FreeInventory,
+	Gem,
+	SpellReady,
+	Drunk,
+	STR,
+	STA,
+	CHA,
+	DEX,
+	INT,
+	AGI,
+	WIS,
+	svMagic,
+	svFire,
+	svCold,
+	svPoison,
+	svDisease,
+	Hunger,
+	Thirst,
+	BaseSTR,
+	BaseSTA,
+	BaseCHA,
+	BaseDEX,
+	BaseINT,
+	BaseAGI,
+	BaseWIS,
+	PracticePoints,
+	PctExp,
+	PctAAExp,
+	Moving,
+	AbilityReady,
+	PetBuff,
+	Platinum,
+	Gold,
+	Silver,
+	Copper,
+	PlatinumBank,
+	GoldBank,
+	SilverBank,
+	CopperBank,
+	Stunned,
+	RangedReady,
+	AltTimerReady,
+	MaxEndurance,
+	PctEndurance,
+	AltAbility,
+	AltAbilityReady,
+	AltAbilityTimer,
+	CombatAbility,
+	CombatAbilityTimer,
+	LargestFreeInventory,
+	TargetOfTarget,
+	RaidAssistTarget,
+	GroupAssistTarget,
+	RaidMarkNPC,
+	GroupMarkNPC,
+	CountBuffs,
+	LanguageSkill,
+	EnduranceBonus,
+	CombatEffectsBonus,
+	ShieldingBonus,
+	SpellShieldBonus,
+	AvoidanceBonus,
+	AccuracyBonus,
+	StunResistBonus,
+	StrikeThroughBonus,
+	AttackBonus,
+	HPRegenBonus,
+	ManaRegenBonus,
+	DamageShieldBonus,
+	DoTShieldBonus,
+	AttackSpeed,
+	GroupList,
+	AmIGroupLeader,
+	CurrentEndurance,
+	EnduranceRegen,
+	FreeBuffSlots,
+	CurrentWeight,
+	AAPointsSpent,
+	AAPointsTotal,
+	TributeActive,
+	CombatAbilityReady,
+	Running,
+	GroupSize,
+	TributeTimer,
+	RadiantCrystals,
+	EbonCrystals,
+	Shrouded,
+	AutoFire,
+	Language,
+	Aura,
+	LAMarkNPC,
+	LANPCHealth,
+	LADelegateMA,
+	LADelegateMarkNPC,
+	LAInspectBuffs,
+	LASpellAwareness,
+	LAOffenseEnhancement,
+	LAManaEnhancement,
+	LAHealthEnhancement,
+	LAHealthRegen,
+	LAFindPathPC,
+	LAHoTT,
+	ActiveFavorCost,
+	CombatState,
+	svCorruption,
+	svPrismatic,
+	svChromatic,
+	Doubloons,
+	Orux,
+	Phosphenes,
+	Phosphites,
+	Fellowship,
+	Downtime,
+	DamageShieldMitigationBonus,
+	HeroicSTRBonus,
+	HeroicINTBonus,
+	HeroicWISBonus,
+	HeroicAGIBonus,
+	HeroicDEXBonus,
+	HeroicSTABonus,
+	HeroicCHABonus,
+	HealAmountBonus,
+	SpellDamageBonus,
+	ClairvoyanceBonus,
+	EnduranceRegenBonus,
+	TotalCounters,
+	Faycites,
+	Chronobines,
+	Mercenary,
+	XTarget,
+	Haste,
+	MercenaryStance,
+	SkillCap,
+	GemTimer,
+	HaveExpansion,
+	PctAggro,
+	SecondaryPctAggro,
+	SecondaryAggroPlayer,
+	AggroLock,
+	ZoneBound,
+	ZoneBoundX,
+	ZoneBoundY,
+	ZoneBoundZ,
+	PctMercAAExp,
+	MercAAExp,
+	Subscription,
+	AAPointsAssigned,
+	AltCurrency,
+	ActiveDisc,
+	Commemoratives,
+	Nobles,
+	Zoning,
+	InInstance,
+	Instance,
+	MercListInfo,
+	UseAdvancedLooting,
+	Fists,
+	EnergyCrystals,
+	PiecesofEight,
+	SpellInCooldown,
+	Slowed,
+	Rooted,
+	Mezzed,
+	Crippled,
+	Maloed,
+	Tashed,
+	Snared,
+	Hasted,
+	Aego,
+	Skin,
+	Focus,
+	Regen,
+	Symbol,
+	Clarity,
+	Pred,
+	Strength,
+	Brells,
+	SV,
+	SE,
+	HybridHP,
+	Growth,
+	Shining,
+	Beneficial,
+	DSed,
+	RevDSed,
+	Charmed,
+	CursorPlatinum,
+	CursorGold,
+	CursorSilver,
+	CursorCopper,
+	Diseased,
+	Poisoned,
+	Cursed,
+	Corrupted,
+	Krono,
+	XTargetSlots,
+	AssistComplete,
+	ItemReady,
+	NumGems,
+	Vitality,
+	PctVitality,
+	AAVitality,
+	PctAAVitality,
+	GuildID,
+	ExpansionFlags,
+	SPA,
+	BoundLocation,
+	SkillBase,
+	Name,
+	AutoSkill,
+	CursorKrono,
+	BardSongPlaying,
+	XTAggroCount,
+	MercAAPoints,
+	MercAAPointsSpent,
+	PctExpToAA,
+	XTHaterCount,
+	CountersDisease,
+	CountersPoison,
+	CountersCurse,
+	CountersCorruption,
+	Bandolier,
+	LCK,
+	Feared,
+	Silenced,
+	Invulnerable,
+	Dotted,
+	BlockedBuff,
+	BlockedPetBuff,
+	LastZoned,
+	Origin,
+	SubscriptionDays,
+	SilverTokens,
+	GoldTokens,
+	McKenzie,
+	Bayle,
+	Reclamation,
+	Brellium,
+	Motes,
+	RebellionChits,
+	DiamondCoins,
+	BronzeFiats,
+	Voucher,
+	VeliumShards,
+	CrystallizedFear,
+	ShadowStones,
+	DreadStones,
+	MarksOfValor,
+	MedalsOfHeroism,
+	RemnantOfTranquility,
+	BifurcatedCoin,
+	AdoptiveCoin,
+	SathirsTradeGems,
+	AncientSebilisianCoins,
+	BathezidTradeGems,
+	AncientDraconicCoin,
+	FetterredIfritCoins,
+	EntwinedDjinnCoins,
+	CrystallizedLuck,
+	Spell,
+};
+
+enum class CharacterMethods
+{
+	Stand,
+	Sit,
+	Dismount,
+	StopCast,
+};
+
+MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
+{
+	ScopedTypeMember(CharacterMembers, Exp);
+	ScopedTypeMember(CharacterMembers, Spawn);
+	ScopedTypeMember(CharacterMembers, Dar);
+	ScopedTypeMember(CharacterMembers, AAExp);
+	ScopedTypeMember(CharacterMembers, AAPoints);
+	ScopedTypeMember(CharacterMembers, CurrentHPs);
+	ScopedTypeMember(CharacterMembers, MaxHPs);
+	ScopedTypeMember(CharacterMembers, HPRegen);
+	ScopedTypeMember(CharacterMembers, PctHPs);
+	ScopedTypeMember(CharacterMembers, CurrentMana);
+	ScopedTypeMember(CharacterMembers, MaxMana);
+	ScopedTypeMember(CharacterMembers, ManaRegen);
+	ScopedTypeMember(CharacterMembers, PctMana);
+	ScopedTypeMember(CharacterMembers, Buff);
+	ScopedTypeMember(CharacterMembers, Song);
+	ScopedTypeMember(CharacterMembers, Book);
+	ScopedTypeMember(CharacterMembers, Skill);
+	ScopedTypeMember(CharacterMembers, Ability);
+	ScopedTypeMember(CharacterMembers, Cash);
+	ScopedTypeMember(CharacterMembers, CashBank);
+	ScopedTypeMember(CharacterMembers, PlatinumShared);
+	ScopedTypeMember(CharacterMembers, Grouped);
+	ScopedTypeMember(CharacterMembers, HPBonus);
+	ScopedTypeMember(CharacterMembers, ManaBonus);
+	ScopedTypeMember(CharacterMembers, GukEarned);
+	ScopedTypeMember(CharacterMembers, MMEarned);
+	ScopedTypeMember(CharacterMembers, RujEarned);
+	ScopedTypeMember(CharacterMembers, TakEarned);
+	ScopedTypeMember(CharacterMembers, MirEarned);
+	ScopedTypeMember(CharacterMembers, LDoNPoints);
+	ScopedTypeMember(CharacterMembers, CurrentFavor);
+	ScopedTypeMember(CharacterMembers, CareerFavor);
+	ScopedTypeMember(CharacterMembers, Endurance);
+	ScopedTypeMember(CharacterMembers, Inventory);
+	ScopedTypeMember(CharacterMembers, Bank);
+	ScopedTypeMember(CharacterMembers, Combat);
+	ScopedTypeMember(CharacterMembers, FreeInventory);
+	ScopedTypeMember(CharacterMembers, Gem);
+	ScopedTypeMember(CharacterMembers, SpellReady);
+	ScopedTypeMember(CharacterMembers, Drunk);
+	ScopedTypeMember(CharacterMembers, STR);
+	ScopedTypeMember(CharacterMembers, STA);
+	ScopedTypeMember(CharacterMembers, CHA);
+	ScopedTypeMember(CharacterMembers, DEX);
+	ScopedTypeMember(CharacterMembers, INT);
+	ScopedTypeMember(CharacterMembers, AGI);
+	ScopedTypeMember(CharacterMembers, WIS);
+	ScopedTypeMember(CharacterMembers, svMagic);
+	ScopedTypeMember(CharacterMembers, svFire);
+	ScopedTypeMember(CharacterMembers, svCold);
+	ScopedTypeMember(CharacterMembers, svPoison);
+	ScopedTypeMember(CharacterMembers, svDisease);
+	ScopedTypeMember(CharacterMembers, Hunger);
+	ScopedTypeMember(CharacterMembers, Thirst);
+	ScopedTypeMember(CharacterMembers, BaseSTR);
+	ScopedTypeMember(CharacterMembers, BaseSTA);
+	ScopedTypeMember(CharacterMembers, BaseCHA);
+	ScopedTypeMember(CharacterMembers, BaseDEX);
+	ScopedTypeMember(CharacterMembers, BaseINT);
+	ScopedTypeMember(CharacterMembers, BaseAGI);
+	ScopedTypeMember(CharacterMembers, BaseWIS);
+	ScopedTypeMember(CharacterMembers, PracticePoints);
+	ScopedTypeMember(CharacterMembers, PctExp);
+	ScopedTypeMember(CharacterMembers, PctAAExp);
+	ScopedTypeMember(CharacterMembers, Moving);
+	ScopedTypeMember(CharacterMembers, AbilityReady);
+	ScopedTypeMember(CharacterMembers, PetBuff);
+	ScopedTypeMember(CharacterMembers, Platinum);
+	ScopedTypeMember(CharacterMembers, Gold);
+	ScopedTypeMember(CharacterMembers, Silver);
+	ScopedTypeMember(CharacterMembers, Copper);
+	ScopedTypeMember(CharacterMembers, PlatinumBank);
+	ScopedTypeMember(CharacterMembers, GoldBank);
+	ScopedTypeMember(CharacterMembers, SilverBank);
+	ScopedTypeMember(CharacterMembers, CopperBank);
+	ScopedTypeMember(CharacterMembers, Stunned);
+	ScopedTypeMember(CharacterMembers, RangedReady);
+	ScopedTypeMember(CharacterMembers, AltTimerReady);
+	ScopedTypeMember(CharacterMembers, MaxEndurance);
+	ScopedTypeMember(CharacterMembers, PctEndurance);
+	ScopedTypeMember(CharacterMembers, AltAbility);
+	ScopedTypeMember(CharacterMembers, AltAbilityReady);
+	ScopedTypeMember(CharacterMembers, AltAbilityTimer);
+	ScopedTypeMember(CharacterMembers, CombatAbility);
+	ScopedTypeMember(CharacterMembers, CombatAbilityTimer);
+	ScopedTypeMember(CharacterMembers, LargestFreeInventory);
+	ScopedTypeMember(CharacterMembers, TargetOfTarget);
+	ScopedTypeMember(CharacterMembers, RaidAssistTarget);
+	ScopedTypeMember(CharacterMembers, GroupAssistTarget);
+	ScopedTypeMember(CharacterMembers, RaidMarkNPC);
+	ScopedTypeMember(CharacterMembers, GroupMarkNPC);
+	ScopedTypeMember(CharacterMembers, CountBuffs);
+	ScopedTypeMember(CharacterMembers, LanguageSkill);
+	ScopedTypeMember(CharacterMembers, EnduranceBonus);
+	ScopedTypeMember(CharacterMembers, CombatEffectsBonus);
+	ScopedTypeMember(CharacterMembers, ShieldingBonus);
+	ScopedTypeMember(CharacterMembers, SpellShieldBonus);
+	ScopedTypeMember(CharacterMembers, AvoidanceBonus);
+	ScopedTypeMember(CharacterMembers, AccuracyBonus);
+	ScopedTypeMember(CharacterMembers, StunResistBonus);
+	ScopedTypeMember(CharacterMembers, StrikeThroughBonus);
+	ScopedTypeMember(CharacterMembers, AttackBonus);
+	ScopedTypeMember(CharacterMembers, HPRegenBonus);
+	ScopedTypeMember(CharacterMembers, ManaRegenBonus);
+	ScopedTypeMember(CharacterMembers, DamageShieldBonus);
+	ScopedTypeMember(CharacterMembers, DoTShieldBonus);
+	ScopedTypeMember(CharacterMembers, AttackSpeed);
+	ScopedTypeMember(CharacterMembers, GroupList);
+	ScopedTypeMember(CharacterMembers, AmIGroupLeader);
+	ScopedTypeMember(CharacterMembers, CurrentEndurance);
+	ScopedTypeMember(CharacterMembers, EnduranceRegen);
+	ScopedTypeMember(CharacterMembers, FreeBuffSlots);
+	ScopedTypeMember(CharacterMembers, CurrentWeight);
+	ScopedTypeMember(CharacterMembers, AAPointsSpent);
+	ScopedTypeMember(CharacterMembers, AAPointsTotal);
+	ScopedTypeMember(CharacterMembers, TributeActive);
+	ScopedTypeMember(CharacterMembers, CombatAbilityReady);
+	ScopedTypeMember(CharacterMembers, Running);
+	ScopedTypeMember(CharacterMembers, GroupSize);
+	ScopedTypeMember(CharacterMembers, TributeTimer);
+	ScopedTypeMember(CharacterMembers, RadiantCrystals);
+	ScopedTypeMember(CharacterMembers, EbonCrystals);
+	ScopedTypeMember(CharacterMembers, Shrouded);
+	ScopedTypeMember(CharacterMembers, AutoFire);
+	ScopedTypeMember(CharacterMembers, Language);
+	ScopedTypeMember(CharacterMembers, Aura);
+	ScopedTypeMember(CharacterMembers, LAMarkNPC);
+	ScopedTypeMember(CharacterMembers, LANPCHealth);
+	ScopedTypeMember(CharacterMembers, LADelegateMA);
+	ScopedTypeMember(CharacterMembers, LADelegateMarkNPC);
+	ScopedTypeMember(CharacterMembers, LAInspectBuffs);
+	ScopedTypeMember(CharacterMembers, LASpellAwareness);
+	ScopedTypeMember(CharacterMembers, LAOffenseEnhancement);
+	ScopedTypeMember(CharacterMembers, LAManaEnhancement);
+	ScopedTypeMember(CharacterMembers, LAHealthEnhancement);
+	ScopedTypeMember(CharacterMembers, LAHealthRegen);
+	ScopedTypeMember(CharacterMembers, LAFindPathPC);
+	ScopedTypeMember(CharacterMembers, LAHoTT);
+	ScopedTypeMember(CharacterMembers, ActiveFavorCost);
+	ScopedTypeMember(CharacterMembers, CombatState);
+	ScopedTypeMember(CharacterMembers, svCorruption);
+	ScopedTypeMember(CharacterMembers, svPrismatic);
+	ScopedTypeMember(CharacterMembers, svChromatic);
+	ScopedTypeMember(CharacterMembers, Doubloons);
+	ScopedTypeMember(CharacterMembers, Orux);
+	ScopedTypeMember(CharacterMembers, Phosphenes);
+	ScopedTypeMember(CharacterMembers, Phosphites);
+	ScopedTypeMember(CharacterMembers, Fellowship);
+	ScopedTypeMember(CharacterMembers, Downtime);
+	ScopedTypeMember(CharacterMembers, DamageShieldMitigationBonus);
+	ScopedTypeMember(CharacterMembers, HeroicSTRBonus);
+	ScopedTypeMember(CharacterMembers, HeroicINTBonus);
+	ScopedTypeMember(CharacterMembers, HeroicWISBonus);
+	ScopedTypeMember(CharacterMembers, HeroicAGIBonus);
+	ScopedTypeMember(CharacterMembers, HeroicDEXBonus);
+	ScopedTypeMember(CharacterMembers, HeroicSTABonus);
+	ScopedTypeMember(CharacterMembers, HeroicCHABonus);
+	ScopedTypeMember(CharacterMembers, HealAmountBonus);
+	ScopedTypeMember(CharacterMembers, SpellDamageBonus);
+	ScopedTypeMember(CharacterMembers, ClairvoyanceBonus);
+	ScopedTypeMember(CharacterMembers, EnduranceRegenBonus);
+	ScopedTypeMember(CharacterMembers, TotalCounters);
+	ScopedTypeMember(CharacterMembers, Faycites);
+	ScopedTypeMember(CharacterMembers, Chronobines);
+	ScopedTypeMember(CharacterMembers, Mercenary);
+	ScopedTypeMember(CharacterMembers, XTarget);
+	ScopedTypeMember(CharacterMembers, Haste);
+	ScopedTypeMember(CharacterMembers, MercenaryStance);
+	ScopedTypeMember(CharacterMembers, SkillCap);
+	ScopedTypeMember(CharacterMembers, GemTimer);
+	ScopedTypeMember(CharacterMembers, HaveExpansion);
+	ScopedTypeMember(CharacterMembers, PctAggro);
+	ScopedTypeMember(CharacterMembers, SecondaryPctAggro);
+	ScopedTypeMember(CharacterMembers, SecondaryAggroPlayer);
+	ScopedTypeMember(CharacterMembers, AggroLock);
+	ScopedTypeMember(CharacterMembers, ZoneBound);
+	ScopedTypeMember(CharacterMembers, ZoneBoundX);
+	ScopedTypeMember(CharacterMembers, ZoneBoundY);
+	ScopedTypeMember(CharacterMembers, ZoneBoundZ);
+	ScopedTypeMember(CharacterMembers, PctMercAAExp);
+	ScopedTypeMember(CharacterMembers, MercAAExp);
+	ScopedTypeMember(CharacterMembers, Subscription);
+	ScopedTypeMember(CharacterMembers, AAPointsAssigned);
+	ScopedTypeMember(CharacterMembers, AltCurrency);
+	ScopedTypeMember(CharacterMembers, ActiveDisc);
+	ScopedTypeMember(CharacterMembers, CountSongs);
+	ScopedTypeMember(CharacterMembers, MaxBuffSlots);
+	ScopedTypeMember(CharacterMembers, Commemoratives);
+	ScopedTypeMember(CharacterMembers, Nobles);
+	ScopedTypeMember(CharacterMembers, Zoning);
+	ScopedTypeMember(CharacterMembers, InInstance);
+	ScopedTypeMember(CharacterMembers, Instance);
+	ScopedTypeMember(CharacterMembers, MercListInfo);
+	ScopedTypeMember(CharacterMembers, UseAdvancedLooting);
+	ScopedTypeMember(CharacterMembers, Fists);
+	ScopedTypeMember(CharacterMembers, EnergyCrystals);
+	ScopedTypeMember(CharacterMembers, PiecesofEight);
+	ScopedTypeMember(CharacterMembers, SilverTokens);
+	ScopedTypeMember(CharacterMembers, GoldTokens);
+	ScopedTypeMember(CharacterMembers, McKenzie);
+	ScopedTypeMember(CharacterMembers, Bayle);
+	ScopedTypeMember(CharacterMembers, Reclamation);
+	ScopedTypeMember(CharacterMembers, Brellium);
+	ScopedTypeMember(CharacterMembers, Motes);
+	ScopedTypeMember(CharacterMembers, RebellionChits);
+	ScopedTypeMember(CharacterMembers, DiamondCoins);
+	ScopedTypeMember(CharacterMembers, BronzeFiats);
+	ScopedTypeMember(CharacterMembers, Voucher);
+	ScopedTypeMember(CharacterMembers, VeliumShards);
+	ScopedTypeMember(CharacterMembers, CrystallizedFear);
+	ScopedTypeMember(CharacterMembers, ShadowStones);
+	ScopedTypeMember(CharacterMembers, DreadStones);
+	ScopedTypeMember(CharacterMembers, MarksOfValor);
+	ScopedTypeMember(CharacterMembers, MedalsOfHeroism);
+	ScopedTypeMember(CharacterMembers, RemnantOfTranquility);
+	ScopedTypeMember(CharacterMembers, BifurcatedCoin);
+	ScopedTypeMember(CharacterMembers, AdoptiveCoin);
+	ScopedTypeMember(CharacterMembers, SathirsTradeGems);
+	ScopedTypeMember(CharacterMembers, AncientSebilisianCoins);
+	ScopedTypeMember(CharacterMembers, BathezidTradeGems);
+	ScopedTypeMember(CharacterMembers, AncientDraconicCoin);
+	ScopedTypeMember(CharacterMembers, FetterredIfritCoins);
+	ScopedTypeMember(CharacterMembers, EntwinedDjinnCoins);
+	ScopedTypeMember(CharacterMembers, CrystallizedLuck);
+	ScopedTypeMember(CharacterMembers, SpellInCooldown);
+	ScopedTypeMember(CharacterMembers, Slowed);
+	ScopedTypeMember(CharacterMembers, Rooted);
+	ScopedTypeMember(CharacterMembers, Mezzed);
+	ScopedTypeMember(CharacterMembers, Crippled);
+	ScopedTypeMember(CharacterMembers, Maloed);
+	ScopedTypeMember(CharacterMembers, Tashed);
+	ScopedTypeMember(CharacterMembers, Snared);
+	ScopedTypeMember(CharacterMembers, Hasted);
+	ScopedTypeMember(CharacterMembers, Aego);
+	ScopedTypeMember(CharacterMembers, Skin);
+	ScopedTypeMember(CharacterMembers, Focus);
+	ScopedTypeMember(CharacterMembers, Regen);
+	ScopedTypeMember(CharacterMembers, Symbol);
+	ScopedTypeMember(CharacterMembers, Clarity);
+	ScopedTypeMember(CharacterMembers, Pred);
+	ScopedTypeMember(CharacterMembers, Strength);
+	ScopedTypeMember(CharacterMembers, Brells);
+	ScopedTypeMember(CharacterMembers, SV);
+	ScopedTypeMember(CharacterMembers, SE);
+	ScopedTypeMember(CharacterMembers, HybridHP);
+	ScopedTypeMember(CharacterMembers, Growth);
+	ScopedTypeMember(CharacterMembers, Shining);
+	ScopedTypeMember(CharacterMembers, Beneficial);
+	ScopedTypeMember(CharacterMembers, DSed);
+	ScopedTypeMember(CharacterMembers, RevDSed);
+	ScopedTypeMember(CharacterMembers, Charmed);
+	ScopedTypeMember(CharacterMembers, CursorPlatinum);
+	ScopedTypeMember(CharacterMembers, CursorGold);
+	ScopedTypeMember(CharacterMembers, CursorSilver);
+	ScopedTypeMember(CharacterMembers, CursorCopper);
+	ScopedTypeMember(CharacterMembers, Diseased);
+	ScopedTypeMember(CharacterMembers, Poisoned);
+	ScopedTypeMember(CharacterMembers, Cursed);
+	ScopedTypeMember(CharacterMembers, Corrupted);
+	ScopedTypeMember(CharacterMembers, Krono);
+	ScopedTypeMember(CharacterMembers, XTargetSlots);
+	ScopedTypeMember(CharacterMembers, AssistComplete);
+	ScopedTypeMember(CharacterMembers, ItemReady);
+	ScopedTypeMember(CharacterMembers, NumGems);
+	ScopedTypeMember(CharacterMembers, Vitality);
+	ScopedTypeMember(CharacterMembers, PctVitality);
+	ScopedTypeMember(CharacterMembers, AAVitality);
+	ScopedTypeMember(CharacterMembers, PctAAVitality);
+	ScopedTypeMember(CharacterMembers, GuildID);
+	ScopedTypeMember(CharacterMembers, ExpansionFlags);
+	ScopedTypeMember(CharacterMembers, SPA);
+	ScopedTypeMember(CharacterMembers, BoundLocation);
+	ScopedTypeMember(CharacterMembers, SkillBase);
+	ScopedTypeMember(CharacterMembers, Name);
+	ScopedTypeMember(CharacterMembers, AutoSkill);
+	ScopedTypeMember(CharacterMembers, CursorKrono);
+	ScopedTypeMember(CharacterMembers, BardSongPlaying);
+	ScopedTypeMember(CharacterMembers, XTAggroCount);
+	ScopedTypeMember(CharacterMembers, MercAAPoints);
+	ScopedTypeMember(CharacterMembers, MercAAPointsSpent);
+	ScopedTypeMember(CharacterMembers, PctExpToAA);
+	ScopedTypeMember(CharacterMembers, XTHaterCount);
+	ScopedTypeMember(CharacterMembers, CountersDisease);
+	ScopedTypeMember(CharacterMembers, CountersPoison);
+	ScopedTypeMember(CharacterMembers, CountersCurse);
+	ScopedTypeMember(CharacterMembers, CountersCorruption);
+	ScopedTypeMember(CharacterMembers, Bandolier);
+	ScopedTypeMember(CharacterMembers, LCK);
+	ScopedTypeMember(CharacterMembers, Feared);
+	ScopedTypeMember(CharacterMembers, Silenced);
+	ScopedTypeMember(CharacterMembers, Invulnerable);
+	ScopedTypeMember(CharacterMembers, Dotted);
+	ScopedTypeMember(CharacterMembers, BlockedBuff);
+	ScopedTypeMember(CharacterMembers, BlockedPetBuff);
+	ScopedTypeMember(CharacterMembers, LastZoned);
+	ScopedTypeMember(CharacterMembers, Origin);
+	ScopedTypeMember(CharacterMembers, SubscriptionDays);
+	ScopedTypeMember(CharacterMembers, Spell);
+
+	ScopedTypeMethod(CharacterMethods, Stand);
+	ScopedTypeMethod(CharacterMethods, Sit);
+	ScopedTypeMethod(CharacterMethods, Dismount);
+	ScopedTypeMethod(CharacterMethods, StopCast);
+}
+
 bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
 	CHARINFO* pChar = static_cast<CHARINFO*>(VarPtr.Ptr);
@@ -37,19 +654,19 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 	{
 		switch (static_cast<CharacterMethods>(pMethod->ID))
 		{
-		case Stand:
+		case CharacterMethods::Stand:
 			pEverQuest->InterpretCmd(pPlayerClient, "/stand on");
 			return true;
 
-		case Sit:
+		case CharacterMethods::Sit:
 			pEverQuest->InterpretCmd(pPlayerClient, "/sit on");
 			return true;
 
-		case Dismount:
+		case CharacterMethods::Dismount:
 			pEverQuest->InterpretCmd(pPlayerClient, "/dismount");
 			return true;
 
-		case StopCast:
+		case CharacterMethods::StopCast:
 			pEverQuest->InterpretCmd(pPlayerClient, "/stopcast");
 			return true;
 
@@ -71,13 +688,13 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	switch (static_cast<CharacterMembers>(pMember->ID))
 	{
-	case Name:
+	case CharacterMembers::Name:
 		strcpy_s(DataTypeTemp, ((SPAWNINFO*)pLocalPlayer)->Name);
 		Dest.Type = pStringType;
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 
-	case Origin:
+	case CharacterMembers::Origin:
 		Dest.Type = pZoneType;
 		if (pChar->StartingCity > 0 && pChar->StartingCity < MAX_ZONES)
 		{
@@ -86,37 +703,37 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case SubscriptionDays:
+	case CharacterMembers::SubscriptionDays:
 		Dest.Int = pChar->SubscriptionDays;
 		Dest.Type = pIntType;
 		return true;
 
-	case Exp:
+	case CharacterMembers::Exp:
 		Dest.Int64 = pChar->Exp;
 		Dest.Type = pInt64Type;
 		return true;
 
-	case PctExp:
+	case CharacterMembers::PctExp:
 		Dest.Float = (float)pChar->Exp / 1000.0f;
 		Dest.Type = pFloatType;
 		return true;
 
-	case PctExpToAA:
+	case CharacterMembers::PctExpToAA:
 		Dest.Int = (int)pChar->PercentEXPtoAA;
 		Dest.Type = pIntType;
 		return true;
 
-	case PctAAExp:
+	case CharacterMembers::PctAAExp:
 		Dest.Float = (float)pChar->AAExp / 1000.0f;
 		Dest.Type = pFloatType;
 		return true;
 
-	case Vitality:
+	case CharacterMembers::Vitality:
 		Dest.Int64 = pChar->Vitality;
 		Dest.Type = pInt64Type;
 		return true;
 
-	case PctVitality: {
+	case CharacterMembers::PctVitality: {
 		Dest.Float = 0;
 		Dest.Type = pFloatType;
 		int64_t vitality = pChar->Vitality;
@@ -128,12 +745,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 	}
 
-	case AAVitality:
+	case CharacterMembers::AAVitality:
 		Dest.Int = pChar->AAVitality;
 		Dest.Type = pIntType;
 		return true;
 
-	case PctAAVitality: {
+	case CharacterMembers::PctAAVitality: {
 		Dest.Float = 0;
 		Dest.Type = pFloatType;
 		int aavitality = pChar->AAVitality;
@@ -145,38 +762,37 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 	}
 
-	case Spawn:
+	case CharacterMembers::Spawn:
 		Dest.Ptr = pLocalPlayer;
 		Dest.Type = pSpawnType;
 		return true;
 
-	case CurrentHPs:
+	case CharacterMembers::CurrentHPs:
 		Dest.DWord = GetCurHPS();
 		Dest.Type = pIntType;
 		return true;
 
-	case MaxHPs:
+	case CharacterMembers::MaxHPs:
 		Dest.Type = pIntType;
 		Dest.Int = GetMaxHPS();
 		return true;
 
-	case PctHPs: {
+	case CharacterMembers::PctHPs:
 		Dest.Type = pIntType;
 		Dest.Int = GetMaxHPS() == 0 ? 0 : GetCurHPS() * 100 / GetMaxHPS();
 		return true;
-	}
 
-	case CurrentMana:
+	case CharacterMembers::CurrentMana:
 		Dest.DWord = pProfile->Mana;
 		Dest.Type = pIntType;
 		return true;
 
-	case MaxMana:
+	case CharacterMembers::MaxMana:
 		Dest.DWord = GetMaxMana();
 		Dest.Type = pIntType;
 		return true;
 
-	case PctMana:
+	case CharacterMembers::PctMana:
 		if (int maxMana = GetMaxMana())
 			Dest.DWord = pProfile->Mana * 100 / maxMana;
 		else
@@ -184,7 +800,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Type = pIntType;
 		return true;
 
-	case CountBuffs:
+	case CharacterMembers::CountBuffs:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -197,7 +813,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return true;
 
-	case CountSongs:
+	case CharacterMembers::CountSongs:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -210,9 +826,8 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return true;
 
-	case BlockedPetBuff:
-		// Fall through to BlockedBuff
-	case BlockedBuff:
+	case CharacterMembers::BlockedPetBuff:
+	case CharacterMembers::BlockedBuff:
 		Dest.Type = pSpellType;
 		if (!Index[0])
 			return false;
@@ -220,7 +835,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		// TODO:  Move this into a function for both BlockedPetBuff and BlockedBuff
 		if (CHARINFONEW* pCharnew = reinterpret_cast<CHARINFONEW*>(GetCharInfo()))
 		{
-			int iMaxBlockedSpells = (static_cast<CharacterMembers>(pMember->ID) == BlockedBuff ? MAX_BLOCKED_SPELLS : MAX_BLOCKED_SPELLS_PET);
+			int iMaxBlockedSpells = (static_cast<CharacterMembers>(pMember->ID) == CharacterMembers::BlockedBuff ? MAX_BLOCKED_SPELLS : MAX_BLOCKED_SPELLS_PET);
 			if (IsNumber(Index))
 			{
 				int nBuff = GetIntFromString(Index, iMaxBlockedSpells + 2) - 1;
@@ -229,7 +844,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 				if (nBuff > iMaxBlockedSpells)
 					return false;
 
-				if (int spellId = (static_cast<CharacterMembers>(pMember->ID) == BlockedBuff) ? pCharnew->BlockedSpell[nBuff] : pCharnew->BlockedPetSpell[nBuff])
+				if (int spellId = (static_cast<CharacterMembers>(pMember->ID) == CharacterMembers::BlockedBuff) ? pCharnew->BlockedSpell[nBuff] : pCharnew->BlockedPetSpell[nBuff])
 				{
 					if (SPELL* pSpell = GetSpellByID(spellId))
 					{
@@ -242,7 +857,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 			{
 				for (auto i = 0; i < iMaxBlockedSpells; ++i)
 				{
-					if (int spellId = (static_cast<CharacterMembers>(pMember->ID) == BlockedBuff) ? pCharnew->BlockedSpell[i] : pCharnew->BlockedPetSpell[i])
+					if (int spellId = (static_cast<CharacterMembers>(pMember->ID) == CharacterMembers::BlockedBuff) ? pCharnew->BlockedSpell[i] : pCharnew->BlockedPetSpell[i])
 					{
 						if (SPELL* pSpell = GetSpellByID(spellId))
 						{
@@ -259,7 +874,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	// TODO:  Move this to a function for both Buff and Song since code is identical except for Short vs Long Buff.
-	case Buff:
+	case CharacterMembers::Buff:
 		Dest.Type = pBuffType;
 		if (!Index[0])
 			return false;
@@ -274,8 +889,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 			if (pProfile->Buff[nBuff].SpellID <= 0)
 				return false;
 
-			Dest.Ptr = (SPELLBUFF*)&pProfile->Buff[nBuff];
-			Dest.HighPart = nBuff;
+			Dest.Int = nBuff;
 			return true;
 		}
 
@@ -285,15 +899,14 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 			{
 				if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
 				{
-					Dest.Ptr = (SPELLBUFF*)&pProfile->Buff[nBuff];
-					Dest.HighPart = nBuff;
+					Dest.Int = nBuff;
 					return true;
 				}
 			}
 		}
 		return false;
 
-	case Song:
+	case CharacterMembers::Song:
 		Dest.Type = pBuffType;
 		if (!Index[0])
 			return false;
@@ -308,8 +921,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 			if (pProfile->ShortBuff[nBuff].SpellID <= 0)
 				return false;
 
-			Dest.Ptr = (SPELLBUFF*)&pProfile->ShortBuff[nBuff];
-			Dest.HighPart = nBuff;
+			Dest.Int = nBuff;
 			return true;
 		}
 
@@ -319,186 +931,185 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 			{
 				if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
 				{
-					Dest.Ptr = (SPELLBUFF*)&pProfile->ShortBuff[nBuff];
-					Dest.HighPart = nBuff;
+					Dest.Int = nBuff;
 					return true;
 				}
 			}
 		}
 		return false;
 
-	case HPBonus:
+	case CharacterMembers::HPBonus:
 		Dest.DWord = pChar->HPBonus;
 		Dest.Type = pIntType;
 		return true;
 
-	case ManaBonus:
+	case CharacterMembers::ManaBonus:
 		Dest.DWord = pChar->ManaBonus;
 		Dest.Type = pIntType;
 		return true;
 
-	case EnduranceBonus:
+	case CharacterMembers::EnduranceBonus:
 		Dest.DWord = pChar->EnduranceBonus;
 		Dest.Type = pIntType;
 		return true;
 
-	case CombatEffectsBonus: {
+	case CharacterMembers::CombatEffectsBonus: {
 		int CombatEffectsCap = GetModCap(HEROIC_MOD_COMBAT_EFFECTS);
 		Dest.DWord = (pChar->CombatEffectsBonus > CombatEffectsCap ? CombatEffectsCap : pChar->CombatEffectsBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 
-	case ShieldingBonus: {
+	case CharacterMembers::ShieldingBonus: {
 		int ShieldingCap = GetModCap(HEROIC_MOD_MELEE_SHIELDING);
 		Dest.DWord = (pChar->ShieldingBonus > ShieldingCap ? ShieldingCap : pChar->ShieldingBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 
-	case SpellShieldBonus: {
+	case CharacterMembers::SpellShieldBonus: {
 		int SpellShieldCap = GetModCap(HEROIC_MOD_SPELL_SHIELDING);
 		Dest.DWord = (pChar->SpellShieldBonus > SpellShieldCap ? SpellShieldCap : pChar->SpellShieldBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 
-	case AvoidanceBonus: {
+	case CharacterMembers::AvoidanceBonus: {
 		int AvoidanceCap = GetModCap(HEROIC_MOD_AVOIDANCE);
 		Dest.DWord = (pChar->AvoidanceBonus > AvoidanceCap ? AvoidanceCap : pChar->AvoidanceBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 
-	case AccuracyBonus: {
+	case CharacterMembers::AccuracyBonus: {
 		int AccuracyCap = GetModCap(HEROIC_MOD_ACCURACY);
 		Dest.DWord = (pChar->AccuracyBonus > AccuracyCap ? AccuracyCap : pChar->AccuracyBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 
-	case StunResistBonus: {
+	case CharacterMembers::StunResistBonus: {
 		int StunResistCap = GetModCap(HEROIC_MOD_STUN_RESIST);
 		Dest.DWord = (pChar->StunResistBonus > StunResistCap ? StunResistCap : pChar->StunResistBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 
-	case StrikeThroughBonus: {
+	case CharacterMembers::StrikeThroughBonus: {
 		int StrikeThroughCap = GetModCap(HEROIC_MOD_STRIKETHROUGH);
 		Dest.DWord = (pChar->StrikeThroughBonus > StrikeThroughCap ? StrikeThroughCap : pChar->StrikeThroughBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 
-	case DoTShieldBonus: {
+	case CharacterMembers::DoTShieldBonus: {
 		int DoTShieldCap = GetModCap(HEROIC_MOD_DOT_SHIELDING);
 		Dest.DWord = (pChar->DoTShieldBonus > DoTShieldCap ? DoTShieldCap : pChar->DoTShieldBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 
-	case AttackBonus:
+	case CharacterMembers::AttackBonus:
 		Dest.DWord = pChar->AttackBonus;
 		Dest.Type = pIntType;
 		return true;
 
-	case HPRegenBonus:
+	case CharacterMembers::HPRegenBonus:
 		Dest.DWord = pChar->HPRegenBonus;
 		Dest.Type = pIntType;
 		return true;
 
-	case ManaRegenBonus:
+	case CharacterMembers::ManaRegenBonus:
 		Dest.DWord = pChar->ManaRegenBonus;
 		Dest.Type = pIntType;
 		return true;
 
-	case DamageShieldBonus: {
+	case CharacterMembers::DamageShieldBonus: {
 		int DamageShieldCap = GetModCap(HEROIC_MOD_DAMAGE_SHIELDING);
 		Dest.DWord = (pChar->DamageShieldBonus > DamageShieldCap ? DamageShieldCap : pChar->DamageShieldBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 
-	case DamageShieldMitigationBonus: {
+	case CharacterMembers::DamageShieldMitigationBonus: {
 		int DamageShieldMitigationCap = GetModCap(HEROIC_MOD_DAMAGE_SHIELD_MITIG);
 		Dest.DWord = (pChar->DamageShieldMitigationBonus > DamageShieldMitigationCap ? DamageShieldMitigationCap : pChar->DamageShieldMitigationBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 
-	case HeroicSTRBonus:
+	case CharacterMembers::HeroicSTRBonus:
 		Dest.DWord = pChar->HeroicSTRBonus;
 		Dest.Type = pIntType;
 		return true;
 
-	case HeroicINTBonus:
+	case CharacterMembers::HeroicINTBonus:
 		Dest.DWord = pChar->HeroicINTBonus;
 		Dest.Type = pIntType;
 		return true;
 
-	case HeroicWISBonus:
+	case CharacterMembers::HeroicWISBonus:
 		Dest.DWord = pChar->HeroicWISBonus;
 		Dest.Type = pIntType;
 		return true;
 
-	case HeroicAGIBonus:
+	case CharacterMembers::HeroicAGIBonus:
 		Dest.DWord = pChar->HeroicAGIBonus;
 		Dest.Type = pIntType;
 		return true;
 
-	case HeroicDEXBonus:
+	case CharacterMembers::HeroicDEXBonus:
 		Dest.DWord = pChar->HeroicDEXBonus;
 		Dest.Type = pIntType;
 		return true;
 
-	case HeroicSTABonus:
+	case CharacterMembers::HeroicSTABonus:
 		Dest.DWord = pChar->HeroicSTABonus;
 		Dest.Type = pIntType;
 		return true;
 
-	case HeroicCHABonus:
+	case CharacterMembers::HeroicCHABonus:
 		Dest.DWord = pChar->HeroicCHABonus;
 		Dest.Type = pIntType;
 		return true;
 
-	case HealAmountBonus:
+	case CharacterMembers::HealAmountBonus:
 		Dest.DWord = pChar->HealAmountBonus;
 		Dest.Type = pIntType;
 		return true;
 
-	case SpellDamageBonus:
+	case CharacterMembers::SpellDamageBonus:
 		Dest.DWord = pChar->SpellDamageBonus;
 		Dest.Type = pIntType;
 		return true;
 
-	case ClairvoyanceBonus:
+	case CharacterMembers::ClairvoyanceBonus:
 		Dest.DWord = pChar->ClairvoyanceBonus;
 		Dest.Type = pIntType;
 		return true;
 
-	case EnduranceRegenBonus:
+	case CharacterMembers::EnduranceRegenBonus:
 		Dest.DWord = pChar->EnduranceRegenBonus;
 		Dest.Type = pIntType;
 		return true;
 
-	case AttackSpeed:
+	case CharacterMembers::AttackSpeed:
 		Dest.DWord = pChar->AttackSpeed;
 		Dest.Type = pIntType;
 		return true;
 
-	case Endurance: // Backwards compat, CurrentEndurance should be used instead.
-	case CurrentEndurance:
+	case CharacterMembers::Endurance: // Backwards compat, CurrentEndurance should be used instead.
+	case CharacterMembers::CurrentEndurance:
 		Dest.DWord = pProfile->Endurance;
 		Dest.Type = pIntType;
 		return true;
 
-	case MaxEndurance:
+	case CharacterMembers::MaxEndurance:
 		Dest.DWord = GetMaxEndurance();
 		Dest.Type = pIntType;
 		return true;
 
-	case PctEndurance:
+	case CharacterMembers::PctEndurance:
 		if (int maxEndurance = GetMaxEndurance())
 			Dest.DWord = pProfile->Endurance * 100 / maxEndurance;
 		else
@@ -506,7 +1117,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Type = pIntType;
 		return true;
 
-	case GukEarned:
+	case CharacterMembers::GukEarned:
 		Dest.DWord = 0;
 		if (CHARINFONEW* pCharnew = (CHARINFONEW*)GetCharInfo())
 		{
@@ -515,7 +1126,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Type = pIntType;
 		return true;
 
-	case MMEarned:
+	case CharacterMembers::MMEarned:
 		Dest.DWord = 0;
 		if (CHARINFONEW* pCharnew = (CHARINFONEW*)GetCharInfo())
 		{
@@ -524,7 +1135,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Type = pIntType;
 		return true;
 
-	case RujEarned:
+	case CharacterMembers::RujEarned:
 		Dest.DWord = 0;
 		if (CHARINFONEW* pCharnew = (CHARINFONEW*)GetCharInfo())
 		{
@@ -533,7 +1144,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Type = pIntType;
 		return true;
 
-	case TakEarned:
+	case CharacterMembers::TakEarned:
 		Dest.DWord = 0;
 		if (CHARINFONEW* pCharnew = (CHARINFONEW*)GetCharInfo())
 		{
@@ -542,7 +1153,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Type = pIntType;
 		return true;
 
-	case MirEarned:
+	case CharacterMembers::MirEarned:
 		Dest.DWord = 0;
 		if (CHARINFONEW* pCharnew = (CHARINFONEW*)GetCharInfo())
 		{
@@ -551,7 +1162,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Type = pIntType;
 		return true;
 
-	case LDoNPoints:
+	case CharacterMembers::LDoNPoints:
 		Dest.DWord = 0;
 		if (CHARINFONEW* pCharnew = (CHARINFONEW*)GetCharInfo())
 		{
@@ -560,17 +1171,17 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Type = pIntType;
 		return true;
 
-	case CurrentFavor:
+	case CharacterMembers::CurrentFavor:
 		Dest.Int64 = pChar->CurrFavor;
 		Dest.Type = pInt64Type;
 		return true;
 
-	case CareerFavor:
+	case CharacterMembers::CareerFavor:
 		Dest.Int64 = pChar->CareerFavor;
 		Dest.Type = pInt64Type;
 		return true;
 
-	case Inventory:
+	case CharacterMembers::Inventory:
 		Dest.Type = pItemType;
 		if (Index[0])
 		{
@@ -601,7 +1212,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case Bank:
+	case CharacterMembers::Bank:
 		Dest.Type = pItemType;
 		if (Index[0])
 		{
@@ -639,112 +1250,112 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case PlatinumShared:
+	case CharacterMembers::PlatinumShared:
 		Dest.DWord = pChar->BankSharedPlat;
 		Dest.Type = pIntType;
 		return true;
 
-	case Cash:
+	case CharacterMembers::Cash:
 		Dest.Int64 = static_cast<uint64_t>(pProfile->Plat) * 1000 + static_cast<uint64_t>(pProfile->Gold) * 100 + static_cast<uint64_t>(pProfile->Silver) * 10 + pProfile->Copper;
 		Dest.Type = pInt64Type;
 		return true;
 
-	case Platinum:
+	case CharacterMembers::Platinum:
 		Dest.DWord = pProfile->Plat;
 		Dest.Type = pIntType;
 		return true;
 
-	case CursorPlatinum:
+	case CharacterMembers::CursorPlatinum:
 		Dest.DWord = pProfile->CursorPlat;
 		Dest.Type = pIntType;
 		return true;
 
-	case Gold:
+	case CharacterMembers::Gold:
 		Dest.DWord = pProfile->Gold;
 		Dest.Type = pIntType;
 		return true;
 
-	case CursorGold:
+	case CharacterMembers::CursorGold:
 		Dest.DWord = pProfile->CursorGold;
 		Dest.Type = pIntType;
 		return true;
 
-	case Silver:
+	case CharacterMembers::Silver:
 		Dest.DWord = pProfile->Silver;
 		Dest.Type = pIntType;
 		return true;
 
-	case CursorSilver:
+	case CharacterMembers::CursorSilver:
 		Dest.DWord = pProfile->CursorSilver;
 		Dest.Type = pIntType;
 		return true;
 
-	case Copper:
+	case CharacterMembers::Copper:
 		Dest.DWord = pProfile->Copper;
 		Dest.Type = pIntType;
 		return true;
 
-	case CursorCopper:
+	case CharacterMembers::CursorCopper:
 		Dest.DWord = pProfile->CursorCopper;
 		Dest.Type = pIntType;
 		return true;
 
-	case CashBank:
+	case CharacterMembers::CashBank:
 		Dest.Int64 = static_cast<uint64_t>(pProfile->Plat) * 1000 + static_cast<uint64_t>(pProfile->Gold) * 100 + static_cast<uint64_t>(pProfile->Silver) * 10 + pProfile->Copper;
 		Dest.Type = pInt64Type;
 		return true;
 
-	case PlatinumBank:
+	case CharacterMembers::PlatinumBank:
 		Dest.DWord = pChar->BankPlat;
 		Dest.Type = pIntType;
 		return true;
 
-	case GoldBank:
+	case CharacterMembers::GoldBank:
 		Dest.DWord = pChar->BankGold;
 		Dest.Type = pIntType;
 		return true;
 
-	case SilverBank:
+	case CharacterMembers::SilverBank:
 		Dest.DWord = pChar->BankSilver;
 		Dest.Type = pIntType;
 		return true;
 
-	case CopperBank:
+	case CharacterMembers::CopperBank:
 		Dest.DWord = pChar->BankCopper;
 		Dest.Type = pIntType;
 		return true;
 
-	case AAExp:
+	case CharacterMembers::AAExp:
 		Dest.DWord = pChar->AAExp;
 		Dest.Type = pIntType;
 		return true;
 
-	case AAPoints:
+	case CharacterMembers::AAPoints:
 		Dest.DWord = pProfile->AAPoints;
 		Dest.Type = pIntType;
 		return true;
 
-	case Combat:
+	case CharacterMembers::Combat:
 		Dest.DWord = *EQADDR_ATTACK;
 		Dest.Type = pBoolType;
 		return true;
 
-	case HPRegen:
+	case CharacterMembers::HPRegen:
 		Dest.DWord = GetHPRegen();
 		Dest.Type = pIntType;
 		return true;
 
-	case ManaRegen:
+	case CharacterMembers::ManaRegen:
 		Dest.DWord = GetManaRegen();
 		Dest.Type = pIntType;
 		return true;
 
-	case EnduranceRegen:
+	case CharacterMembers::EnduranceRegen:
 		Dest.DWord = GetEnduranceRegen();
 		Dest.Type = pIntType;
 		return true;
 
-	case Grouped:
+	case CharacterMembers::Grouped:
 		Dest.Type = pBoolType;
 		if (!pChar->pGroupInfo)
 			return false;
@@ -756,7 +1367,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 			|| pChar->pGroupInfo->pMember[5];
 		return true;
 
-	case GroupList: { // This isn't really working as intended just yet
+	case CharacterMembers::GroupList: { // This isn't really working as intended just yet
 		Dest.Type = pStringType;
 		if (!pChar->pGroupInfo)
 			return false;
@@ -773,7 +1384,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 	}
 
-	case AmIGroupLeader:
+	case CharacterMembers::AmIGroupLeader:
 		Dest.Type = pStringType;
 		if (!pChar->pGroupInfo) return false;
 		if (!pChar->pGroupInfo->pLeader) return false;
@@ -785,12 +1396,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 
-	case MaxBuffSlots:
+	case CharacterMembers::MaxBuffSlots:
 		Dest.DWord = GetCharMaxBuffSlots();
 		Dest.Type = pIntType;
 		return true;
 
-	case FreeBuffSlots:
+	case CharacterMembers::FreeBuffSlots:
 		Dest.DWord = GetCharMaxBuffSlots();
 		Dest.Type = pIntType;
 
@@ -801,7 +1412,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return true;
 
-	case Gem:
+	case CharacterMembers::Gem:
 		Dest.Type = pSpellType;
 		if (!Index[0])
 			return false;
@@ -840,7 +1451,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case LanguageSkill: {
+	case CharacterMembers::LanguageSkill: {
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		int nLang = 0;
@@ -864,7 +1475,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 	}
 
-	case CombatAbility:
+	case CharacterMembers::CombatAbility:
 		Dest.Type = pSpellType;
 		if (!Index[0])
 			return false;
@@ -909,7 +1520,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case CombatAbilityTimer:
+	case CharacterMembers::CombatAbilityTimer:
 		Dest.Int = 0;
 		Dest.Type = pTicksType;
 
@@ -967,7 +1578,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case CombatAbilityReady:
+	case CharacterMembers::CombatAbilityReady:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
 
@@ -1025,7 +1636,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return true;
 
-	case ActiveDisc:
+	case CharacterMembers::ActiveDisc:
 		Dest.Type = pSpellType;
 
 		if (pCombatAbilityWnd)
@@ -1044,7 +1655,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case Moving:
+	case CharacterMembers::Moving:
 		Dest.DWord = false;
 		if (pCharSpawn && pChar && pChar->pSpawn)
 		{
@@ -1057,17 +1668,17 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Type = pBoolType;
 		return true;
 
-	case Hunger:
+	case CharacterMembers::Hunger:
 		Dest.DWord = pProfile->hungerlevel;
 		Dest.Type = pIntType;
 		return true;
 
-	case Thirst:
+	case CharacterMembers::Thirst:
 		Dest.DWord = pProfile->thirstlevel;
 		Dest.Type = pIntType;
 		return true;
 
-	case AltAbilityTimer:
+	case CharacterMembers::AltAbilityTimer:
 		Dest.UInt64 = 0;
 		Dest.Type = pTimeStampType;
 
@@ -1128,7 +1739,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case AltAbilityReady:
+	case CharacterMembers::AltAbilityReady:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
 
@@ -1180,7 +1791,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return true;
 
-	case AltAbility:
+	case CharacterMembers::AltAbility:
 		Dest.Type = pAltAbilityType;
 		if (Index[0])
 
@@ -1227,7 +1838,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case Skill:
+	case CharacterMembers::Skill:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -1263,7 +1874,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case SkillBase:
+	case CharacterMembers::SkillBase:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -1299,7 +1910,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case SkillCap:
+	case CharacterMembers::SkillCap:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -1335,7 +1946,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case Ability:
+	case CharacterMembers::Ability:
 		Dest.Type = pStringType;
 		if (Index[0])
 		{
@@ -1383,7 +1994,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case AbilityReady:
+	case CharacterMembers::AbilityReady:
 		Dest.DWord = false;
 		Dest.Type = pBoolType;
 
@@ -1423,17 +2034,17 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 		return true;
 
-	case RangedReady:
+	case CharacterMembers::RangedReady:
 		Dest.DWord = gbRangedAttackReady;
 		Dest.Type = pBoolType;
 		return true;
 
-	case AltTimerReady:
+	case CharacterMembers::AltTimerReady:
 		Dest.DWord = 1; // this is broken and should be fixed or removed.
 		Dest.Type = pBoolType;
 		return true;
 
-	case Book:
+	case CharacterMembers::Book:
 		Dest.Type = pSpellType;
 
 		if (Index[0])
@@ -1473,7 +2084,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case Spell:
+	case CharacterMembers::Spell:
 	{
 		if (Index[0])
 		{
@@ -1534,7 +2145,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 	}
 
-	case ItemReady: {
+	case CharacterMembers::ItemReady: {
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
 		CONTENTS* pCont = nullptr;
@@ -1580,7 +2191,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 	}
 
-	case BardSongPlaying:
+	case CharacterMembers::BardSongPlaying:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
 		if (pCastSpellWnd && pCastSpellWnd->IsBardSongPlaying())
@@ -1589,7 +2200,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return true;
 
-	case SpellReady:
+	case CharacterMembers::SpellReady:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
 		if (pCastingWnd && pCastingWnd->IsVisible())
@@ -1645,7 +2256,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return true;
 
-	case PetBuff:
+	case CharacterMembers::PetBuff:
 		Dest.Type = pSpellType;
 		if (!Index[0] || !pPetInfoWnd)
 			return false;
@@ -1684,12 +2295,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case Stunned:
+	case CharacterMembers::Stunned:
 		Dest.DWord = (pChar->Stunned == 1);
 		Dest.Type = pBoolType;
 		return true;
 
-	case LargestFreeInventory:
+	case CharacterMembers::LargestFreeInventory:
 	{
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
@@ -1723,7 +2334,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 	}
 
-	case FreeInventory:
+	case CharacterMembers::FreeInventory:
 	{
 		int nSize = 0;
 		if (Index[0])
@@ -1738,12 +2349,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 	}
 
-	case Drunk:
+	case CharacterMembers::Drunk:
 		Dest.DWord = pProfile->Drunkenness;
 		Dest.Type = pIntType;
 		return true;
 
-	case TargetOfTarget:
+	case CharacterMembers::TargetOfTarget:
 		Dest.Type = pSpawnType;
 		if (gGameState == GAMESTATE_INGAME && pLocalPlayer && pChar->pSpawn)
 		{
@@ -1754,7 +2365,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case RaidAssistTarget:
+	case CharacterMembers::RaidAssistTarget:
 		Dest.Type = pSpawnType;
 		if (gGameState == GAMESTATE_INGAME && pLocalPlayer)
 		{
@@ -1774,7 +2385,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case GroupAssistTarget:
+	case CharacterMembers::GroupAssistTarget:
 		Dest.Type = pSpawnType;
 		if (gGameState == GAMESTATE_INGAME && GetCharInfo()->pSpawn)
 		{
@@ -1785,7 +2396,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case RaidMarkNPC:
+	case CharacterMembers::RaidMarkNPC:
 		Dest.Type = pSpawnType;
 		if (gGameState == GAMESTATE_INGAME && pChar->pSpawn)
 		{
@@ -1804,7 +2415,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case GroupMarkNPC:
+	case CharacterMembers::GroupMarkNPC:
 		Dest.Type = pSpawnType;
 		if (gGameState == GAMESTATE_INGAME && pChar->pSpawn)
 		{
@@ -1824,102 +2435,102 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case STR:
+	case CharacterMembers::STR:
 		Dest.DWord = pChar->STR;
 		Dest.Type = pIntType;
 		return true;
 
-	case STA:
+	case CharacterMembers::STA:
 		Dest.DWord = pChar->STA;
 		Dest.Type = pIntType;
 		return true;
 
-	case AGI:
+	case CharacterMembers::AGI:
 		Dest.DWord = pChar->AGI;
 		Dest.Type = pIntType;
 		return true;
 
-	case DEX:
+	case CharacterMembers::DEX:
 		Dest.DWord = pChar->DEX;
 		Dest.Type = pIntType;
 		return true;
 
-	case WIS:
+	case CharacterMembers::WIS:
 		Dest.DWord = pChar->WIS;
 		Dest.Type = pIntType;
 		return true;
 
-	case INT:
+	case CharacterMembers::INT:
 		Dest.DWord = pChar->INT;
 		Dest.Type = pIntType;
 		return true;
 
-	case CHA:
+	case CharacterMembers::CHA:
 		Dest.DWord = pChar->CHA;
 		Dest.Type = pIntType;
 		return true;
 
-	case LCK:
+	case CharacterMembers::LCK:
 		Dest.DWord = pChar->LCK;
 		Dest.Type = pIntType;
 		return true;
 
-	case svMagic:
+	case CharacterMembers::svMagic:
 		Dest.DWord = pChar->SaveMagic;
 		Dest.Type = pIntType;
 		return true;
 
-	case svFire:
+	case CharacterMembers::svFire:
 		Dest.DWord = pChar->SaveFire;
 		Dest.Type = pIntType;
 		return true;
 
-	case svCold:
+	case CharacterMembers::svCold:
 		Dest.DWord = pChar->SaveCold;
 		Dest.Type = pIntType;
 		return true;
 
-	case svPoison:
+	case CharacterMembers::svPoison:
 		Dest.DWord = pChar->SavePoison;
 		Dest.Type = pIntType;
 		return true;
 
-	case svDisease:
+	case CharacterMembers::svDisease:
 		Dest.DWord = pChar->SaveDisease;
 		Dest.Type = pIntType;
 		return true;
 
-	case CurrentWeight:
+	case CharacterMembers::CurrentWeight:
 		Dest.DWord = pChar->CurrWeight;
 		Dest.Type = pIntType;
 		return true;
 
-	case AAPointsSpent:
+	case CharacterMembers::AAPointsSpent:
 		Dest.DWord = pProfile->AAPointsSpent;
 		Dest.Type = pIntType;
 		return true;
 
-	case AAPointsTotal:
+	case CharacterMembers::AAPointsTotal:
 		Dest.DWord = pProfile->AAPointsSpent + pProfile->AAPoints;
 		Dest.Type = pIntType;
 		return true;
 
-	case AAPointsAssigned:
+	case CharacterMembers::AAPointsAssigned:
 		Dest.DWord = pProfile->AAPointsAssigned[0];
 		Dest.Type = pIntType;
 		return true;
 
-	case TributeActive:
+	case CharacterMembers::TributeActive:
 		Dest.DWord = *pTributeActive;
 		Dest.Type = pBoolType;
 		return true;
 
-	case Running:
+	case CharacterMembers::Running:
 		Dest.DWord = (*EQADDR_RUNWALKSTATE);
 		Dest.Type = pBoolType;
 		return true;
 
-	case GroupSize:
+	case CharacterMembers::GroupSize:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (!pChar->pGroupInfo)
@@ -1936,32 +2547,32 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 			Dest.DWord++;
 		return true;
 
-	case TributeTimer:
+	case CharacterMembers::TributeTimer:
 		Dest.DWord = pChar->TributeTimer / 60 / 100;
 		Dest.Type = pTicksType;
 		return true;
 
-	case RadiantCrystals:
+	case CharacterMembers::RadiantCrystals:
 		Dest.DWord = pChar->RadiantCrystals;
 		Dest.Type = pIntType;
 		return true;
 
-	case EbonCrystals:
+	case CharacterMembers::EbonCrystals:
 		Dest.DWord = pChar->EbonCrystals;
 		Dest.Type = pIntType;
 		return true;
 
-	case Shrouded:
+	case CharacterMembers::Shrouded:
 		Dest.DWord = pProfile->Shrouded;
 		Dest.Type = pBoolType;
 		return true;
 
-	case AutoFire:
+	case CharacterMembers::AutoFire:
 		Dest.DWord = gAutoFire;
 		Dest.Type = pBoolType;
 		return true;
 
-	case Language: {
+	case CharacterMembers::Language: {
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -1990,7 +2601,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 	}
 
-	case Aura:
+	case CharacterMembers::Aura:
 		Dest.Type = pAuraType;
 
 		if (!pAuraMgr)
@@ -2030,67 +2641,67 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case LAMarkNPC:
+	case CharacterMembers::LAMarkNPC:
 		Dest.DWord = 3;
 		Dest.Type = pIntType;
 		return true;
 
-	case LANPCHealth:
+	case CharacterMembers::LANPCHealth:
 		Dest.DWord = 1;
 		Dest.Type = pIntType;
 		return true;
 
-	case LADelegateMA:
+	case CharacterMembers::LADelegateMA:
 		Dest.DWord = 1;
 		Dest.Type = pIntType;
 		return true;
 
-	case LADelegateMarkNPC:
+	case CharacterMembers::LADelegateMarkNPC:
 		Dest.DWord = 1;
 		Dest.Type = pIntType;
 		return true;
 
-	case LAInspectBuffs:
+	case CharacterMembers::LAInspectBuffs:
 		Dest.DWord = 2;
 		Dest.Type = pIntType;
 		return true;
 
-	case LASpellAwareness:
+	case CharacterMembers::LASpellAwareness:
 		Dest.DWord = 1;
 		Dest.Type = pIntType;
 		return true;
 
-	case LAOffenseEnhancement:
+	case CharacterMembers::LAOffenseEnhancement:
 		Dest.DWord = 5;
 		Dest.Type = pIntType;
 		return true;
 
-	case LAManaEnhancement:
+	case CharacterMembers::LAManaEnhancement:
 		Dest.DWord = 3;
 		Dest.Type = pIntType;
 		return true;
 
-	case LAHealthEnhancement:
+	case CharacterMembers::LAHealthEnhancement:
 		Dest.DWord = 3;
 		Dest.Type = pIntType;
 		return true;
 
-	case LAHealthRegen:
+	case CharacterMembers::LAHealthRegen:
 		Dest.DWord = 3;
 		Dest.Type = pIntType;
 		return true;
 
-	case LAFindPathPC:
+	case CharacterMembers::LAFindPathPC:
 		Dest.DWord = 1;
 		Dest.Type = pIntType;
 		return true;
 
-	case LAHoTT:
+	case CharacterMembers::LAHoTT:
 		Dest.DWord = 1;
 		Dest.Type = pIntType;
 		return true;
 
-	case ActiveFavorCost:
+	case CharacterMembers::ActiveFavorCost:
 		Dest.Int = 0;
 		Dest.Type = pIntType;
 		if (*pTributeActive)
@@ -2100,7 +2711,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case CombatState:
+	case CharacterMembers::CombatState:
 		Dest.Type = pStringType;
 		if (!pPlayerWnd)
 			return false;
@@ -2141,17 +2752,17 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Type = pStringType;
 		return true;
 
-	case svCorruption:
+	case CharacterMembers::svCorruption:
 		Dest.DWord = pChar->SaveCorruption;
 		Dest.Type = pIntType;
 		return true;
 
-	case svPrismatic:
+	case CharacterMembers::svPrismatic:
 		Dest.DWord = (pChar->SaveMagic + pChar->SaveFire + pChar->SaveCold + pChar->SavePoison + pChar->SaveDisease) / 5;
 		Dest.Type = pIntType;
 		return true;
 
-	case svChromatic: {
+	case CharacterMembers::svChromatic: {
 		int lowSave;
 		lowSave = pChar->SaveMagic;
 		if (lowSave > pChar->SaveFire)
@@ -2168,197 +2779,197 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 	}
 
-	case Doubloons:
+	case CharacterMembers::Doubloons:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_DOUBLOONS);
 		Dest.Type = pIntType;
 		return true;
 
-	case Orux:
+	case CharacterMembers::Orux:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_ORUX);
 		Dest.Type = pIntType;
 		return true;
 
-	case Phosphenes:
+	case CharacterMembers::Phosphenes:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_PHOSPHENES);
 		Dest.Type = pIntType;
 		return true;
 
-	case Phosphites:
+	case CharacterMembers::Phosphites:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_PHOSPHITES);
 		Dest.Type = pIntType;
 		return true;
 
-	case Faycites:
+	case CharacterMembers::Faycites:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_FAYCITES);
 		Dest.Type = pIntType;
 		return true;
 
-	case Chronobines:
+	case CharacterMembers::Chronobines:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_CHRONOBINES);
 		Dest.Type = pIntType;
 		return true;
 
-	case Commemoratives:
+	case CharacterMembers::Commemoratives:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_COMMEMORATIVE_COINS);
 		Dest.Type = pIntType;
 		return true;
 
-	case Nobles:
+	case CharacterMembers::Nobles:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_NOBLES);
 		Dest.Type = pIntType;
 		return true;
 
-	case Fists:
+	case CharacterMembers::Fists:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_FISTSOFBAYLE);
 		Dest.Type = pIntType;
 		return true;
 
-	case EnergyCrystals:
+	case CharacterMembers::EnergyCrystals:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_ENERGYCRYSTALS);
 		Dest.Type = pIntType;
 		return true;
 
-	case PiecesofEight:
+	case CharacterMembers::PiecesofEight:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_PIECESOFEIGHT);
 		Dest.Type = pIntType;
 		return true;
 
-	case SilverTokens:
+	case CharacterMembers::SilverTokens:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_SILVERTOKENS);
 		Dest.Type = pIntType;
 		return true;
 
-	case GoldTokens:
+	case CharacterMembers::GoldTokens:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_GOLDTOKENS);
 		Dest.Type = pIntType;
 		return true;
 
-	case McKenzie:
+	case CharacterMembers::McKenzie:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_MCKENZIE);
 		Dest.Type = pIntType;
 		return true;
 
-	case Bayle:
+	case CharacterMembers::Bayle:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_BAYLE);
 		Dest.Type = pIntType;
 		return true;
 
-	case Reclamation:
+	case CharacterMembers::Reclamation:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_RECLAMATION);
 		Dest.Type = pIntType;
 		return true;
 
-	case Brellium:
+	case CharacterMembers::Brellium:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_BRELLIUM);
 		Dest.Type = pIntType;
 		return true;
 
-	case Motes:
+	case CharacterMembers::Motes:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_MOTES);
 		Dest.Type = pIntType;
 		return true;
 
-	case RebellionChits:
+	case CharacterMembers::RebellionChits:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_REBELLIONCHITS);
 		Dest.Type = pIntType;
 		return true;
 
-	case DiamondCoins:
+	case CharacterMembers::DiamondCoins:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_DIAMONDCOINS);
 		Dest.Type = pIntType;
 		return true;
 
-	case BronzeFiats:
+	case CharacterMembers::BronzeFiats:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_BRONZEFIATS);
 		Dest.Type = pIntType;
 		return true;
 
-	case Voucher:
+	case CharacterMembers::Voucher:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_VOUCHER);
 		Dest.Type = pIntType;
 		return true;
 
-	case VeliumShards:
+	case CharacterMembers::VeliumShards:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_VELIUMSHARDS);
 		Dest.Type = pIntType;
 		return true;
 
-	case CrystallizedFear:
+	case CharacterMembers::CrystallizedFear:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_CRYSTALLIZEDFEAR);
 		Dest.Type = pIntType;
 		return true;
 
-	case ShadowStones:
+	case CharacterMembers::ShadowStones:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_SHADOWSTONES);
 		Dest.Type = pIntType;
 		return true;
 
-	case DreadStones:
+	case CharacterMembers::DreadStones:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_DREADSTONES);
 		Dest.Type = pIntType;
 		return true;
 
-	case MarksOfValor:
+	case CharacterMembers::MarksOfValor:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_MARKSOFVALOR);
 		Dest.Type = pIntType;
 		return true;
 
-	case MedalsOfHeroism:
+	case CharacterMembers::MedalsOfHeroism:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_MEDALSOFHEROISM);
 		Dest.Type = pIntType;
 		return true;
 
-	case RemnantOfTranquility:
+	case CharacterMembers::RemnantOfTranquility:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_REMNANTSOFTRANQUILITY);
 		Dest.Type = pIntType;
 		return true;
 
-	case BifurcatedCoin:
+	case CharacterMembers::BifurcatedCoin:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_BIFURCATEDCOIN);
 		Dest.Type = pIntType;
 		return true;
 
-	case AdoptiveCoin:
+	case CharacterMembers::AdoptiveCoin:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_ADOPTIVE);
 		Dest.Type = pIntType;
 		return true;
 
-	case SathirsTradeGems:
+	case CharacterMembers::SathirsTradeGems:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_SATHIRSTRADEGEMS);
 		Dest.Type = pIntType;
 		return true;
 
-	case AncientSebilisianCoins:
+	case CharacterMembers::AncientSebilisianCoins:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_ANCIENTSEBILISIANCOINS);
 		Dest.Type = pIntType;
 		return true;
 
-	case BathezidTradeGems:
+	case CharacterMembers::BathezidTradeGems:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_BATHEZIDTRADEGEMS);
 		Dest.Type = pIntType;
 		return true;
 
-	case AncientDraconicCoin:
+	case CharacterMembers::AncientDraconicCoin:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_ANCIENTDRACONICCOIN);
 		Dest.Type = pIntType;
 		return true;
 
-	case FetterredIfritCoins:
+	case CharacterMembers::FetterredIfritCoins:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_FETTERREDIFRITCOINS);
 		Dest.Type = pIntType;
 		return true;
 
-	case EntwinedDjinnCoins:
+	case CharacterMembers::EntwinedDjinnCoins:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_ENTWINEDDJINNCOINS);
 		Dest.Type = pIntType;
 		return true;
 
-	case CrystallizedLuck:
+	case CharacterMembers::CrystallizedLuck:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_CRYSTALLIZEDLUCK);
 		Dest.Type = pIntType;
 		return true;
 
-	case Fellowship:
+	case CharacterMembers::Fellowship:
 		Dest.Type = pFellowshipType;
 		if (pChar->pSpawn)
 		{
@@ -2367,7 +2978,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case Downtime:
+	case CharacterMembers::Downtime:
 		Dest.DWord = 0;
 		Dest.Type = pTicksType;
 		if (pChar->DowntimeStamp)
@@ -2376,7 +2987,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 		// returns combined number of spell and damage "absorbment"
 		// should probably split these into spell vs melee
-	case Dar:
+	case CharacterMembers::Dar:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -2410,32 +3021,32 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 		// this case adds all resist Counters and returns that, why is this useful?
 		// should we split these into 4? one for each debuff?
-	case TotalCounters:
+	case CharacterMembers::TotalCounters:
 		Dest.DWord = GetMyTotalSpellCounters();
 		Dest.Type = pIntType;
 		return true;
 
-	case CountersDisease:
+	case CharacterMembers::CountersDisease:
 		Dest.DWord += GetMySpellCounters(SPA_DISEASE);
 		Dest.Type = pIntType;
 		return true;
 
-	case CountersPoison:
+	case CharacterMembers::CountersPoison:
 		Dest.DWord = GetMySpellCounters(SPA_POISON);
 		Dest.Type = pIntType;
 		return true;
 
-	case CountersCurse:
+	case CharacterMembers::CountersCurse:
 		Dest.DWord = GetMySpellCounters(SPA_CURSE);
 		Dest.Type = pIntType;
 		return true;
 
-	case CountersCorruption:
+	case CharacterMembers::CountersCorruption:
 		Dest.DWord = GetMySpellCounters(SPA_CORRUPTION);
 		Dest.Type = pIntType;
 		return true;
 
-	case Mercenary:
+	case CharacterMembers::Mercenary:
 		Dest.Type = pMercenaryType;
 		if (pMercInfo && pMercInfo->MercSpawnId)
 		{
@@ -2486,7 +3097,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 		return false;
 
-	case XTargetSlots:
+	case CharacterMembers::XTargetSlots:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (ExtendedTargetList* xtm = pChar->pXTargetMgr)
@@ -2495,7 +3106,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return true;
 
-	case XTAggroCount:
+	case CharacterMembers::XTAggroCount:
 		Dest.DWord = 0;
 		if (ExtendedTargetList* xtm = pChar->pXTargetMgr)
 		{
@@ -2541,7 +3152,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Type = pIntType;
 		return true;
 
-	case XTHaterCount:
+	case CharacterMembers::XTHaterCount:
 		Dest.DWord = 0;
 		if (ExtendedTargetList* xtm = pChar->pXTargetMgr)
 		{
@@ -2572,7 +3183,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Type = pIntType;
 		return true;
 
-	case XTarget:
+	case CharacterMembers::XTarget:
 		Dest.DWord = 0;
 		Dest.Type = pXTargetType;
 
@@ -2627,7 +3238,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case Haste: {
+	case CharacterMembers::Haste: {
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -2641,7 +3252,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 	}
 
-	case SPA: {
+	case CharacterMembers::SPA: {
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (!Index[0])
@@ -2661,7 +3272,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 	}
 
-	case MercenaryStance:
+	case CharacterMembers::MercenaryStance:
 		strcpy_s(DataTypeTemp, "NULL");
 		if (pMercInfo->HaveMerc)
 		{
@@ -2678,7 +3289,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Type = pStringType;
 		return true;
 
-	case GemTimer:
+	case CharacterMembers::GemTimer:
 		Dest.UInt64 = 0;
 		Dest.Type = pTimeStampType;
 		if (!Index[0])
@@ -2717,7 +3328,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case HaveExpansion:
+	case CharacterMembers::HaveExpansion:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
 		if (!Index[0])
@@ -2743,7 +3354,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return true;
 
-	case PctAggro:
+	case CharacterMembers::PctAggro:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (pAggroInfo)
@@ -2753,7 +3364,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case SecondaryPctAggro:
+	case CharacterMembers::SecondaryPctAggro:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (pAggroInfo)
@@ -2763,7 +3374,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case SecondaryAggroPlayer:
+	case CharacterMembers::SecondaryAggroPlayer:
 		Dest.Type = pSpawnType;
 		if (pAggroInfo && pAggroInfo->AggroSecondaryID)
 		{
@@ -2772,7 +3383,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case AggroLock:
+	case CharacterMembers::AggroLock:
 		Dest.Type = pSpawnType;
 		if (pAggroInfo && pAggroInfo->AggroLockID)
 		{
@@ -2781,7 +3392,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case ZoneBound:
+	case CharacterMembers::ZoneBound:
 		Dest.Type = pZoneType;
 		if (pProfile->BoundLocations[0].ZoneBoundID)
 		{
@@ -2790,38 +3401,38 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case ZoneBoundX:
+	case CharacterMembers::ZoneBoundX:
 		Dest.Type = pFloatType;
 		Dest.Float = pProfile->BoundLocations[0].ZoneBoundX;
 		return true;
 
-	case ZoneBoundY:
+	case CharacterMembers::ZoneBoundY:
 		Dest.Type = pFloatType;
 		Dest.Float = pProfile->BoundLocations[0].ZoneBoundY;
 		return true;
 
-	case ZoneBoundZ:
+	case CharacterMembers::ZoneBoundZ:
 		Dest.Type = pFloatType;
 		Dest.Float = pProfile->BoundLocations[0].ZoneBoundZ;
 		return true;
 
-	case PctMercAAExp:
+	case CharacterMembers::PctMercAAExp:
 		// this is how it looks like the client is doing it in the disasm...
 		Dest.Float = (float)((pChar->MercAAExp + 5) / 10);
 		Dest.Type = pFloatType;
 		return true;
 
-	case MercAAExp:
+	case CharacterMembers::MercAAExp:
 		Dest.Int64 = pChar->MercAAExp;
 		Dest.Type = pInt64Type;
 		return true;
 
-	case Krono:
+	case CharacterMembers::Krono:
 		Dest.DWord = pChar->Krono;
 		Dest.Type = pIntType;
 		return true;
 
-	case Subscription:
+	case CharacterMembers::Subscription:
 		strcpy_s(DataTypeTemp, "UNKNOWN");
 
 		// TODO: Fix this. Its a struct not an int*
@@ -2850,7 +3461,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Type = pStringType;
 		return true;
 
-	case AltCurrency:
+	case CharacterMembers::AltCurrency:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -2872,108 +3483,52 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case Slowed:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(SPA_HASTE, false)) != -1) // Slowed
-			{
-				Dest.Type = pBuffType;
-				Dest.Ptr = &pProfile->Buff[nBuff];
-				return true;
-			}
-		}
-		return false;
+	case CharacterMembers::Slowed:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_HASTE, false)));
+		return Dest.Int >= 0;
 
-	case Rooted:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(SPA_ROOT, false)) != -1) // Root
-			{
-				Dest.Type = pBuffType;
-				Dest.Ptr = &pProfile->Buff[nBuff];
-				return true;
-			}
-		}
-		return false;
+	case CharacterMembers::Rooted:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_ROOT, false)));
+		return Dest.Int >= 0;
 
-	case Mezzed:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(SPA_ENTHRALL, false)) != -1)//Entrall
-			{
-				Dest.Type = pBuffType;
-				Dest.Ptr = &pProfile->Buff[nBuff];
-				return true;
-			}
-		}
-		return false;
+	case CharacterMembers::Mezzed:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_ENTHRALL, false)));
+		return Dest.Int >= 0;
 
-	case Crippled:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySubCat("Disempowering")) != -1)
-			{
-				Dest.Type = pBuffType;
-				Dest.Ptr = &pProfile->Buff[nBuff];
-				return true;
-			}
-		}
-		return false;
+	case CharacterMembers::Crippled:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(SpellSubCat(SPELLCAT_DISEMPOWERING)));
+		return Dest.Int >= 0;
 
-	case Maloed:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySubCat("Resist Debuffs", (1 << Shaman) + (1 << Mage))) != -1)
-			{
-				Dest.Type = pBuffType;
-				Dest.Ptr = &pProfile->Buff[nBuff];
-				return true;
-			}
-		}
-		return false;
+	case CharacterMembers::Maloed:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(SpellSubCat(SPELLCAT_RESIST_DEBUFFS), SpellClassMask(Shaman, Mage)));
+		return Dest.Int >= 0;
 
-	case Tashed:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySubCat("Resist Debuffs", 1 << Enchanter)) != -1)
-			{
-				Dest.Type = pBuffType;
-				Dest.Ptr = &pProfile->Buff[nBuff];
-				return true;
-			}
-		}
-		return false;
+	case CharacterMembers::Tashed:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(SpellSubCat(SPELLCAT_RESIST_DEBUFFS), SpellClassMask(Enchanter)));
+		return Dest.Int >= 0;
 
-	case Snared:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(SPA_MOVEMENT_RATE, false)) != -1) // Movement Rate
-			{
-				Dest.Type = pBuffType;
-				Dest.Ptr = &pProfile->Buff[nBuff];
-				return true;
-			}
-		}
-		return false;
+	case CharacterMembers::Snared:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_MOVEMENT_RATE, false)));
+		return Dest.Int >= 0;
 
-	case Hasted:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(SPA_HASTE, true)) != -1) // Haste
-			{
-				Dest.Type = pBuffType;
-				Dest.Ptr = &pProfile->Buff[nBuff];
-				return true;
-			}
-		}
-		return false;
+	case CharacterMembers::Hasted:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_HASTE, true)));
+		return Dest.Int >= 0;
 
-	case LastZoned:
+	case CharacterMembers::LastZoned:
 		Dest.UInt64 = LastEnteredZone;
 		Dest.Type = pTimeStampType;
 		return true;
 
-	case Zoning: {
+	case CharacterMembers::Zoning: {
 		if (LastEnteredZone == 0) // when people reload mq
 		{
 			LastEnteredZone = MQGetTickCount64();
@@ -2993,431 +3548,152 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 	}
 
-	case DSed:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(SPA_DAMAGE_SHIELD, true)) != -1) // Damage Shield
-			{
-				Dest.Type = pBuffType;
-				Dest.Ptr = &pProfile->Buff[nBuff];
-				return true;
-			}
-		}
-		return false;
+	case CharacterMembers::DSed:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_DAMAGE_SHIELD, true)));
+		return Dest.Int >= 0;
 
-	case RevDSed:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(SPA_IRONMAIDEN, true)) != -1) // Reverse Damage Shield
-			{
-				Dest.Type = pBuffType;
-				Dest.Ptr = &pProfile->Buff[nBuff];
-				return true;
-			}
-		}
-		return false;
+	case CharacterMembers::RevDSed:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_IRONMAIDEN, true)));
+		return Dest.Int >= 0;
 
-	case Charmed:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(SPA_CHARM, false)) != -1) // Charm
-			{
-				Dest.Type = pBuffType;
-				Dest.Ptr = &pProfile->Buff[nBuff];
-				return true;
-			}
-		}
-		return false;
+	case CharacterMembers::Charmed:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_CHARM, false)));
+		return Dest.Int >= 0;
 
-	case Aego:
-		{
-			for (int nBuff = 0; nBuff < NUM_BUFF_SLOTS; nBuff++)
-			{
-				if (SPELL* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
-				{
-					if (IsAegoSpell(pSpell))
-					{
-						Dest.Type = pBuffType;
-						Dest.Ptr = &pProfile->Buff[nBuff];
-						return true;
-					}
-				}
-			}
-		}
-		return false;
+	case CharacterMembers::Aego:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(
+			SpellAffect(SPA_AC, true),
+			SpellCategory(SPELLCAT_HP_BUFFS),
+			AnyBuffs(SpellSubCat(SPELLCAT_AEGOLISM), SpellSubCat(SPELLCAT_SYMBOL)),
+			SpellClassMask(Cleric)));
+		return Dest.Int >= 0;
 
-	case Skin:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffByCategory(45, 1 << Druid)) != -1)
-			{
-				while (nBuff < NUM_BUFF_SLOTS)
-				{
-					if (SPELL* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
-					{
-						if (GetSpellSubcategory(pSpell) == 46)
-						{
-							Dest.Type = pBuffType;
-							Dest.Ptr = &pProfile->Buff[nBuff];
-							return true;
-						}
-					}
+	case CharacterMembers::Skin:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(
+			SpellCategory(SPELLCAT_HP_BUFFS),
+			SpellSubCat(SPELLCAT_HP_TYPE_ONE),
+			SpellClassMask(Druid)));
+		return Dest.Int >= 0;
 
-					if ((nBuff = GetSelfBuffByCategory(45, 1 << Druid, ++nBuff)) == -1)
-					{
-						break;
-					}
-				}
-			}
-		}
-		return false;
+	case CharacterMembers::Focus:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(
+			SpellCategory(SPELLCAT_HP_BUFFS),
+			SpellSubCat(SPELLCAT_SHIELDING),
+			SpellClassMask(Shaman)));
+		return Dest.Int >= 0;
 
-	case Focus:
-		{
-			int nBuff = 0;
-			if ((nBuff = GetSelfBuffByCategory(45, 1 << Shaman)) != -1)
-			{
-				while (nBuff < NUM_BUFF_SLOTS)
-				{
-					if (SPELL* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
-					{
-						if (GetSpellSubcategory(pSpell) == 87)
-						{
-							Dest.Type = pBuffType;
-							Dest.Ptr = &pProfile->Buff[nBuff];
-							return true;
-						}
-					}
+	case CharacterMembers::Regen:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_HP, true), !SpellClassMask(Beastlord)));
+		return Dest.Int >= 0;
 
-					if ((nBuff = GetSelfBuffByCategory(45, 1 << Shaman, ++nBuff)) == -1)
-					{
-						break;
-					}
-				}
-			}
-		}
-		return false;
+	case CharacterMembers::Diseased:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_DISEASE, false)));
+		return Dest.Int >= 0;
 
-	case Regen:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(SPA_HP, true)) != -1) // HP Regen
-			{
-				while (nBuff < NUM_BUFF_SLOTS)
-				{
-					if (SPELL* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
-					{
-						if ((((EQ_Spell*)pSpell)->SpellAffectBase(SPA_HP) > 0) && (!IsSpellUsableForClass(pSpell, 1 << Beastlord)))
-						{
-							Dest.Type = pBuffType;
-							Dest.Ptr = &pProfile->Buff[nBuff];
-							return true;
-						}
-					}
+	case CharacterMembers::Poisoned:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_POISON, false)));
+		return Dest.Int >= 0;
 
-					if ((nBuff = GetSelfBuffBySPA(SPA_HP, true, ++nBuff)) == -1)
-					{
-						break;
-					}
-				}
-			}
-		}
-		return false;
+	case CharacterMembers::Cursed:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_CURSE, false)));
+		return Dest.Int >= 0;
 
-	case Diseased:
-	case Poisoned:
-	case Cursed:
-	case Corrupted:
-		{
-			int spa = 0;
-			switch (static_cast<CharacterMembers>(pMember->ID))
-			{
-			case Diseased: spa = SPA_DISEASE; break;
-			case Poisoned: spa = SPA_POISON; break;
-			case Cursed: spa = SPA_CURSE; break;
-			case Corrupted: spa = SPA_CORRUPTION; break;
-			}
+	case CharacterMembers::Corrupted:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_CORRUPTION, false)));
+		return Dest.Int >= 0;
 
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(spa, false)) != -1)
-			{
-				Dest.Type = pBuffType;
-				Dest.Ptr = &pProfile->Buff[nBuff];
-				return true;
-			}
-			if ((nBuff = GetSelfShortBuffBySPA(spa, false)) != -1)
-			{
-				Dest.Type = pBuffType;
-				Dest.Ptr = &pProfile->ShortBuff[nBuff];
-				return true;
-			}
-			return false;
-		}
+	case CharacterMembers::Symbol:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(
+			SpellCategory(SPELLCAT_HP_BUFFS),
+			SpellSubCat(SPELLCAT_SYMBOL),
+			SpellClassMask(Cleric)));
+		return Dest.Int >= 0;
 
-	case Symbol:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffByCategory(45, 1 << Cleric)) != -1)
-			{
-				while (nBuff < NUM_BUFF_SLOTS)
-				{
-					if (SPELL* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
-					{
-						if (GetSpellSubcategory(pSpell) == 112)
-						{
-							Dest.Type = pBuffType;
-							Dest.Ptr = &pProfile->Buff[nBuff];
-							return true;
-						}
-					}
+	case CharacterMembers::Clarity:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(
+			SpellAffect(SPA_MANA, true),
+			SpellClassMask(Enchanter)));
+		return Dest.Int >= 0;
 
-					if ((nBuff = GetSelfBuffByCategory(45, 1 << Cleric, ++nBuff)) == -1)
-					{
-						break;
-					}
-				}
-			}
-		}
-		return false;
+	case CharacterMembers::Pred:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(
+			SpellCategory(SPELLCAT_STATISTIC_BUFFS),
+			SpellSubCat(SPELLCAT_ATTACK),
+			SpellClassMask(Ranger)));
+		return Dest.Int >= 0;
 
-	case Clarity:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(SPA_MANA, true)) != -1) // Mana Regen
-			{
-				while (nBuff < NUM_BUFF_SLOTS)
-				{
-					if (SPELL* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
-					{
-						if ((((EQ_Spell*)pSpell)->SpellAffectBase(SPA_MANA) > 0) && (IsSpellUsableForClass(pSpell, 1 << Enchanter)))
-						{
-							Dest.Type = pBuffType;
-							Dest.Ptr = &pProfile->Buff[nBuff];
-							return true;
-						}
-					}
+	case CharacterMembers::Strength:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(
+			SpellCategory(SPELLCAT_HP_BUFFS),
+			SpellSubCat(SPELLCAT_HP_TYPE_TWO),
+			SpellClassMask(Ranger)));
+		return Dest.Int >= 0;
 
-					if ((nBuff = GetSelfBuffBySPA(SPA_MANA, true, ++nBuff)) == -1)
-					{
-						break;
-					}
-				}
-			}
-		}
-		return false;
+	case CharacterMembers::Brells:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(
+			SpellCategory(SPELLCAT_HP_BUFFS),
+			SpellSubCat(SPELLCAT_HP_TYPE_TWO),
+			SpellClassMask(Paladin)));
+		return Dest.Int >= 0;
 
-	case Pred:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffByCategory(95, 1 << Ranger)) != -1)
-			{
-				while (nBuff < NUM_BUFF_SLOTS)
-				{
-					if (SPELL* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
-					{
-						if (GetSpellSubcategory(pSpell) == 7)
-						{
-							Dest.Type = pBuffType;
-							Dest.Ptr = &pProfile->Buff[nBuff];
-							return true;
-						}
-					}
+	case CharacterMembers::SV:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(
+			SpellCategory(SPELLCAT_REGEN),
+			SpellSubCat(SPELLCAT_MANA),
+			SpellClassMask(Beastlord)));
+		return Dest.Int >= 0;
 
-					if ((Dest.Int = GetSelfBuffByCategory(95, 1 << Ranger, ++nBuff)) == -1)
-					{
-						break;
-					}
-				}
-			}
-		}
-		return false;
+	case CharacterMembers::SE:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(
+			SpellCategory(SPELLCAT_REGEN),
+			SpellSubCat(SPELLCAT_HEALTH_MANA),
+			SpellClassMask(Beastlord)));
+		return Dest.Int >= 0;
 
-	case Strength:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffByCategory(45, 1 << Ranger)) != -1)
-			{
-				while (nBuff < NUM_BUFF_SLOTS)
-				{
-					if (SPELL* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
-					{
-						if (GetSpellSubcategory(pSpell) == 47)
-						{
-							Dest.Type = pBuffType;
-							Dest.Ptr = &pProfile->Buff[nBuff];
-							return true;
-						}
-					}
+	case CharacterMembers::HybridHP:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(
+			SpellCategory(SPELLCAT_HP_BUFFS),
+			SpellSubCat(SPELLCAT_HP_TYPE_ONE),
+			SpellClassMask(Ranger)));
+		return Dest.Int >= 0;
 
-					if ((nBuff = GetSelfBuffByCategory(45, 1 << Ranger, ++nBuff)) == -1)
-					{
-						break;
-					}
-				}
-			}
-		}
-		return false;
+	case CharacterMembers::Growth:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(
+			SpellCategory(SPELLCAT_HP_BUFFS),
+			SpellSubCat(SPELLCAT_TEMPORARY),
+			SpellClassMask(Druid)));
+		return Dest.Int >= 0;
 
-	case Brells:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffByCategory(45, 1 << Paladin)) != -1)
-			{
-				while (nBuff < NUM_BUFF_SLOTS)
-				{
-					if (SPELL* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
-					{
-						if (GetSpellSubcategory(pSpell) == 47)
-						{
-							Dest.Type = pBuffType;
-							Dest.Ptr = &pProfile->Buff[nBuff];
-							return true;
-						}
-					}
+	case CharacterMembers::Shining:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(
+			SpellCategory(SPELLCAT_UTILITY_BENEFICIAL),
+			SpellSubCat(SPELLCAT_MELEE_GUARD),
+			SpellAffect(SPA_MELEE_GUARD, true),
+			SpellClassMask(Cleric)));
+		return Dest.Int >= 0;
 
-					if ((nBuff = GetSelfBuffByCategory(45, 1 << Paladin, ++nBuff)) == -1)
-					{
-						break;
-					}
-				}
-			}
-		}
-		return false;
-
-	case SV:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffByCategory(79, 1 << Beastlord)) != -1)
-			{
-				while (nBuff < NUM_BUFF_SLOTS)
-				{
-					if (SPELL* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
-					{
-						if (GetSpellSubcategory(pSpell) == 59)
-						{
-							Dest.Type = pBuffType;
-							Dest.Ptr = &pProfile->Buff[nBuff];
-							return true;
-						}
-					}
-
-					if ((nBuff = GetSelfBuffByCategory(79, 1 << Beastlord, ++nBuff)) == -1)
-					{
-						break;
-					}
-				}
-			}
-		}
-		return false;
-
-	case SE:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffByCategory(79, 1 << Beastlord)) != -1)
-			{
-				while (nBuff < NUM_BUFF_SLOTS)
-				{
-					if (SPELL* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
-					{
-						if (GetSpellSubcategory(pSpell) == 44)
-						{
-							Dest.Type = pBuffType;
-							Dest.Ptr = &pProfile->Buff[nBuff];
-							return true;
-						}
-					}
-
-					if ((nBuff = GetSelfBuffByCategory(79, 1 << Beastlord, ++nBuff)) == -1)
-					{
-						break;
-					}
-				}
-			}
-		}
-		return false;
-
-	case HybridHP:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffByCategory(45, 1 << Ranger)) != -1)
-			{
-				while (nBuff < NUM_BUFF_SLOTS)
-				{
-					if (SPELL* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
-					{
-						if (GetSpellSubcategory(pSpell) == 46)
-						{
-							Dest.Type = pBuffType;
-							Dest.Ptr = &pProfile->Buff[nBuff];
-							return true;
-						}
-					}
-
-					if ((nBuff = GetSelfBuffByCategory(45, 1 << Ranger, ++nBuff)) == -1)
-					{
-						break;
-					}
-				}
-			}
-		}
-		return false;
-
-	case Growth:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffByCategory(45, 1 << Druid)) != -1)
-			{
-				while (nBuff < NUM_BUFF_SLOTS)
-				{
-					if (SPELL* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
-					{
-						if (GetSpellSubcategory(pSpell) == 141)
-						{
-							Dest.Type = pBuffType;
-							Dest.Ptr = &pProfile->Buff[nBuff];
-							return true;
-						}
-					}
-
-					if ((nBuff = GetSelfBuffByCategory(45, 1 << Druid, ++nBuff)) == -1)
-					{
-						break;
-					}
-				}
-			}
-		}
-		return false;
-
-	case Shining:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffByCategory(125, 1 << Cleric)) != -1)
-			{
-				while (nBuff < NUM_BUFF_SLOTS)
-				{
-					if (SPELL* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
-					{
-						if (GetSpellSubcategory(pSpell) == 62)
-						{
-							if (((EQ_Spell*)pSpell)->SpellAffectBase(SPA_MELEE_GUARD))
-							{
-								Dest.Type = pBuffType;
-								Dest.Ptr = &pProfile->Buff[nBuff];
-								return true;
-							}
-						}
-					}
-
-					if ((nBuff = GetSelfBuffByCategory(125, 1 << Cleric, ++nBuff)) == -1)
-					{
-						break;
-					}
-				}
-			}
-		}
-		return false;
-
-	case InInstance:
+	case CharacterMembers::InInstance:
 		Dest.DWord = 0;
 		if (pChar->pSpawn)
 		{
@@ -3430,14 +3706,14 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Type = pBoolType;
 		return true;
 
-	case Instance:
+	case CharacterMembers::Instance:
 		Dest.DWord = 0;
 		if (pChar->pSpawn)
 			Dest.DWord = HIWORD(pChar->pSpawn->GetZoneID());
 		Dest.Type = pIntType;
 		return true;
 
-	case MercListInfo: {
+	case CharacterMembers::MercListInfo: {
 		Dest.Type = pStringType;
 		if (!Index[0])
 			return false;
@@ -3477,22 +3753,22 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 	}
 
-	case UseAdvancedLooting:
+	case CharacterMembers::UseAdvancedLooting:
 		Dest.DWord = pChar->UseAdvancedLooting;
 		Dest.Type = pBoolType;
 		return true;
 
-	case SpellInCooldown:
+	case CharacterMembers::SpellInCooldown:
 		Dest.DWord = (int)((CDISPLAY*)pDisplay)->TimeStamp <= ((SPAWNINFO*)pLocalPlayer)->GetSpellCooldownETA();
 		Dest.Type = pBoolType;
 		return true;
 
-	case AssistComplete:
+	case CharacterMembers::AssistComplete:
 		Dest.DWord = gbAssistComplete == AS_AssistReceived;
 		Dest.Type = pBoolType;
 		return true;
 
-	case NumGems:
+	case CharacterMembers::NumGems:
 		Dest.DWord = 8;
 		if (pCastSpellWnd)
 		{
@@ -3513,17 +3789,17 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Type = pIntType;
 		return true;
 
-	case GuildID:
+	case CharacterMembers::GuildID:
 		Dest.UInt64 = pChar->GuildID;
 		Dest.Type = pInt64Type;
 		return true;
 
-	case ExpansionFlags:
+	case CharacterMembers::ExpansionFlags:
 		Dest.DWord = pChar->ExpansionFlags;
 		Dest.Type = pIntType;
 		return true;
 
-	case BoundLocation:
+	case CharacterMembers::BoundLocation:
 		Dest.DWord = 0;
 		Dest.Type = pWorldLocationType;
 
@@ -3539,7 +3815,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case AutoSkill:
+	case CharacterMembers::AutoSkill:
 		Dest.Type = pSkillType;
 		if (IsNumber(Index))
 		{
@@ -3558,75 +3834,62 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case BaseSTR:
+	case CharacterMembers::BaseSTR:
 		Dest.Type = pIntType;
 		Dest.DWord = pProfile->BaseSTR;
 		return true;
 
-	case BaseSTA:
+	case CharacterMembers::BaseSTA:
 		Dest.Type = pIntType;
 		Dest.DWord = pProfile->BaseSTA;
 		return true;
 
-	case BaseAGI:
+	case CharacterMembers::BaseAGI:
 		Dest.Type = pIntType;
 		Dest.DWord = pProfile->BaseAGI;
 		return true;
 
-	case BaseDEX:
+	case CharacterMembers::BaseDEX:
 		Dest.Type = pIntType;
 		Dest.DWord = pProfile->BaseDEX;
 		return true;
 
-	case BaseWIS:
+	case CharacterMembers::BaseWIS:
 		Dest.Type = pIntType;
 		Dest.DWord = pProfile->BaseWIS;
 		return true;
 
-	case BaseINT:
+	case CharacterMembers::BaseINT:
 		Dest.Type = pIntType;
 		Dest.DWord = pProfile->BaseINT;
 		return true;
 
-	case BaseCHA:
+	case CharacterMembers::BaseCHA:
 		Dest.Type = pIntType;
 		Dest.DWord = pProfile->BaseCHA;
 		return true;
 
-	case Beneficial:
-		for (int i = 0; i < NUM_BUFF_SLOTS; i++)
-		{
-			if ((pProfile->Buff[i].SpellID == -1) || (pProfile->Buff[i].SpellID == 0))
-				continue;
+	case CharacterMembers::Beneficial:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs([](EQ_Spell* spell) { return spell->SpellType != 0; }));
+		return Dest.Int >= 0;
 
-			if (SPELL* pSpell = GetSpellByID(pProfile->Buff[i].SpellID))
-			{
-				if (pSpell->SpellType != 0)
-				{
-					Dest.Int = i;
-					Dest.Type = pTargetBuffType;
-					return true;
-				}
-			}
-		}
-		return false;
-
-	case CursorKrono:
+	case CharacterMembers::CursorKrono:
 		Dest.DWord = pChar->CursorKrono;
 		Dest.Type = pIntType;
 		return true;
 
-	case MercAAPoints:
+	case CharacterMembers::MercAAPoints:
 		Dest.DWord = pChar->MercAAPoints;
 		Dest.Type = pIntType;
 		return true;
 
-	case MercAAPointsSpent:
+	case CharacterMembers::MercAAPointsSpent:
 		Dest.DWord = pChar->MercAAPointsSpent;
 		Dest.Type = pIntType;
 		return true;
 
-	case Bandolier:
+	case CharacterMembers::Bandolier:
 		Dest.DWord = 0;
 		Dest.Type = pBandolierType;
 
@@ -3654,79 +3917,77 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		}
 		return false;
 
-	case Feared:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(SPA_FEAR, false)) != -1) // Feared
-			{
-				Dest.Type = pBuffType;
-				Dest.Ptr = &pProfile->Buff[nBuff];
-				return true;
-			}
-		}
+	case CharacterMembers::Feared:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_FEAR, true)));
+		return Dest.Int >= 0;
+
+	case CharacterMembers::Silenced:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_SILENCE, true)));
+		return Dest.Int >= 0;
+
+	case CharacterMembers::Invulnerable:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_INVULNERABILITY, true)));
+		return Dest.Int >= 0;
+
+	case CharacterMembers::Dotted:
+		Dest.Type = pBuffType;
+		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_HP, false),
+			[](EQ_Spell* spell) { return spell->IsDetrimentalSpell() && spell->IsDoTSpell(); }));
+		return Dest.Int >= 0;
+
+	default:
+		return false;
+	}
+}
+
+bool MQ2CharacterType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (!pLocalPlayer)
 		return false;
 
-	case Silenced:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(SPA_SILENCE, false)) != -1) // Silenced
-			{
-				Dest.Type = pBuffType;
-				Dest.Ptr = &pProfile->Buff[nBuff];
-				return true;
-			}
-		}
+	CHARINFO* pCharInfo = static_cast<CHARINFO*>(VarPtr.Ptr);
+	strcpy_s(Destination, MAX_STRING, pCharInfo->Name);
+	return true;
+}
+
+void MQ2CharacterType::InitVariable(MQVarPtr& VarPtr)
+{
+	// FIXME: Do not allocate a CHARINFO
+	VarPtr.Ptr = new CHARINFO();
+	VarPtr.HighPart = 0;
+
+	// FIXME: Do not ZeroMemory a CHARINFO
+	ZeroMemory(VarPtr.Ptr, sizeof(CHARINFO));
+}
+
+void MQ2CharacterType::FreeVariable(MQVarPtr& VarPtr)
+{
+	// FIXME: Remove need to allocate a CHARINFO
+	CHARINFO* pCharInfo = static_cast<CHARINFO*>(VarPtr.Ptr);
+	delete pCharInfo;
+}
+
+bool MQ2CharacterType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type != pCharacterType)
 		return false;
 
-	case Invulnerable:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(SPA_INVULNERABILITY, false)) != -1) // Invulnerable
-			{
-				Dest.Type = pBuffType;
-				Dest.Ptr = &pProfile->Buff[nBuff];
-				return true;
-			}
+	// TODO: Find way to remove this.
+	memcpy(VarPtr.Ptr, Source.Ptr, sizeof(CHARINFO));
+	return true;
+}
 
-			if ((nBuff = GetSelfShortBuffBySPA(SPA_INVULNERABILITY, false)) != -1) // Invulnerable
-			{
-				Dest.Type = pBuffType;
-				Dest.Ptr = &pProfile->ShortBuff[nBuff];
-				return true;
-			}
-		}
-		return false;
-
-	case Dotted:
-		{
-			int nBuff = -1;
-			if ((nBuff = GetSelfBuffBySPA(SPA_HP, false)) != -1) // HP Mod
-			{
-				int slotnum = nBuff;
-				while (slotnum < NUM_BUFF_SLOTS)
-				{
-					if (SPELL* pSpell = GetSpellByID(pTargetWnd->BuffSpellID[nBuff]))
-					{
-						if (((EQ_Spell*)pSpell)->IsDetrimentalSpell() && ((EQ_Spell*)pSpell)->IsDoTSpell())
-						{
-							Dest.Type = pBuffType;
-							Dest.Ptr = &pProfile->Buff[nBuff];
-							return true;
-						}
-					}
-
-					if ((nBuff = GetTargetBuffBySPA(SPA_HP, false, ++slotnum)) == -1)
-					{
-						break;
-					}
-				}
-			}
-		}
-		return false;
-
-		//end of MQ2CharacterType
+bool MQ2CharacterType::dataCharacter(const char* szIndex, MQTypeVar& Ret)
+{
+	if (pCharData)
+	{
+		Ret.Ptr = pCharData;
+		Ret.Type = pCharacterType;
+		return true;
 	}
 	return false;
 }
-
 

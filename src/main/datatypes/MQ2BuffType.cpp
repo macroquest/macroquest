@@ -18,12 +18,66 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class BuffMembers
+{
+	Address = 1,
+	ID,
+	Level,
+	Spell,
+	Mod,
+	Duration,
+	Dar,
+	TotalCounters,
+	HitCount,
+	CountersDisease,
+	CountersPoison,
+	CountersCurse,
+	CountersCorruption
+};
+
+enum class BuffMethods
+{
+	Remove = 1
+};
+
+MQ2BuffType::MQ2BuffType() : MQ2Type("buff")
+{
+	ScopedTypeMember(BuffMembers, Address);
+	ScopedTypeMember(BuffMembers, ID);
+	ScopedTypeMember(BuffMembers, Level);
+	ScopedTypeMember(BuffMembers, Spell);
+	ScopedTypeMember(BuffMembers, Mod);
+	ScopedTypeMember(BuffMembers, Duration);
+	ScopedTypeMember(BuffMembers, Dar);
+	ScopedTypeMember(BuffMembers, TotalCounters);
+	ScopedTypeMember(BuffMembers, HitCount);
+	ScopedTypeMember(BuffMembers, CountersDisease);
+	ScopedTypeMember(BuffMembers, CountersPoison);
+	ScopedTypeMember(BuffMembers, CountersCurse);
+	ScopedTypeMember(BuffMembers, CountersCorruption);
+
+	ScopedTypeMethod(BuffMethods, Remove);
+}
+
 bool MQ2BuffType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
-	SPELLBUFF* pBuff = static_cast<SPELLBUFF*>(VarPtr.Ptr);
-	if (!pBuff)
+	if (VarPtr.Int < 0)
 		return false;
-	if (pBuff->SpellID <= 0)
+
+	auto pPCProfile = GetPcProfile();
+	if (!pPCProfile)
+		return false;
+
+	SPELLBUFF buff;
+	if (VarPtr.Int < NUM_LONG_BUFFS)
+		buff = pPCProfile->Buff[VarPtr.Int];
+	else if (VarPtr.Int < NUM_LONG_BUFFS + NUM_SHORT_BUFFS)
+		buff = pPCProfile->ShortBuff[VarPtr.Int - NUM_LONG_BUFFS];
+	else
+		return false;
+
+	// this is how we tell if there is a buff in that slot
+	if (buff.SpellID <= 0)
 		return false;
 
 	//----------------------------------------------------------------------------
@@ -33,15 +87,18 @@ bool MQ2BuffType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 	{
 		switch (static_cast<BuffMethods>(pMethod->ID))
 		{
-		case Remove:
-			if (SPELL* pSpell = GetSpellByID(pBuff->SpellID))
+		case BuffMethods::Remove:
+			if (SPELL* pSpell = GetSpellByID(buff.SpellID))
 			{
-				RemoveBuff((SPAWNINFO*)pLocalPlayer, pSpell->Name);
+				RemoveBuff(pLocalPlayer, pSpell->Name);
 				return true;
 			}
-			break;
+
+			return false;
+
+		default:
+			return false;
 		}
-		return false;
 	}
 
 	//----------------------------------------------------------------------------
@@ -50,7 +107,7 @@ bool MQ2BuffType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 	MQTypeMember* pMember = MQ2BuffType::FindMember(Member);
 	if (!pMember)
 	{
-		if (SPELL* pSpell = GetSpellByID(pBuff->SpellID))
+		if (SPELL* pSpell = GetSpellByID(buff.SpellID))
 		{
 			MQVarPtr data;
 			data.Ptr = pSpell;
@@ -61,57 +118,51 @@ bool MQ2BuffType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		return false;
 	}
 
-	static char Temp[128];
 	switch (static_cast<BuffMembers>(pMember->ID))
 	{
-	case Address:
+	case BuffMembers::Address:
 		Dest.DWord = (DWORD)VarPtr.Ptr;
 		Dest.Type = pIntType;
 		return true;
 
-	case ID:
-		Dest.DWord = 0;
+	case BuffMembers::ID:
 		Dest.Type = pIntType;
+		Dest.Int = VarPtr.Int;
+		return true;
 
-		if (GetBuffID(pBuff, Dest.Int))
-			return true;
-		if (GetShortBuffID(pBuff, Dest.Int))
-			return true;
-
-		return false;
-
-	case Level:
-		Dest.DWord = pBuff->Level;
+	case BuffMembers::Level:
+		Dest.DWord = buff.Level;
 		Dest.Type = pIntType;
 		return true;
 
-	case Spell:
+	case BuffMembers::Spell:
+		Dest.DWord = 0;
 		Dest.Type = pSpellType;
-		if (Dest.Ptr = GetSpellByID(pBuff->SpellID))
-		{
+
+		if (Dest.Ptr = GetSpellByID(buff.SpellID))
 			return true;
-		}
+
 		return false;
 
-	case Mod:
-		Dest.Float = pBuff->Modifier;
+	case BuffMembers::Mod:
+		Dest.Float = buff.Modifier;
 		Dest.Type = pFloatType;
+
 		if (Dest.Float != 1.0f)
-		{
 			return true;
-		}
+
 		return false;
 
-	case Duration:
-		Dest.UInt64 = GetSpellBuffTimer(pBuff->SpellID);
+	case BuffMembers::Duration:
+		Dest.UInt64 = GetSpellBuffTimer(buff.SpellID);
 		Dest.Type = pTimeStampType;
 		return true;
 
-	case Dar:
+	case BuffMembers::Dar:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
-		if (SPELL* pSpell = GetSpellByID(pBuff->SpellID))
+		if (SPELL* pSpell = GetSpellByID(buff.SpellID))
 		{
 			if (pSpell->SpellType != 0)
 			{
@@ -119,10 +170,9 @@ bool MQ2BuffType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 				for (int i = 0; i < slots; i++)
 				{
 					int attrib = GetSpellAttrib(pSpell, i);
-
 					if (IsDamageAbsorbSPA(attrib))
 					{
-						for (auto& slotData : pBuff->SlotData)
+						for (auto& slotData : buff.SlotData)
 						{
 							if (slotData.Slot == i)
 							{
@@ -136,39 +186,73 @@ bool MQ2BuffType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case TotalCounters:
-		Dest.DWord = GetTotalSpellCounters(pBuff);
+	case BuffMembers::TotalCounters:
+		Dest.DWord = GetTotalSpellCounters(buff);
 		Dest.Type = pIntType;
 		return true;
 
-	case CountersDisease:
-		Dest.DWord = GetSpellCounters(SPA_DISEASE, pBuff);
+	case BuffMembers::CountersDisease:
+		Dest.DWord = GetSpellCounters(SPA_DISEASE, buff);
 		Dest.Type = pIntType;
 		return true;
 
-	case CountersPoison:
-		Dest.DWord = GetSpellCounters(SPA_POISON, pBuff);
+	case BuffMembers::CountersPoison:
+		Dest.DWord = GetSpellCounters(SPA_POISON, buff);
 		Dest.Type = pIntType;
 		return true;
 
-	case CountersCurse:
-		Dest.DWord = GetSpellCounters(SPA_CURSE, pBuff);
+	case BuffMembers::CountersCurse:
+		Dest.DWord = GetSpellCounters(SPA_CURSE, buff);
 		Dest.Type = pIntType;
 		return true;
 
-	case CountersCorruption:
-		Dest.DWord = GetSpellCounters(SPA_CURSE, pBuff);
+	case BuffMembers::CountersCorruption:
+		Dest.DWord = GetSpellCounters(SPA_CURSE, buff);
 		Dest.Type = pIntType;
 		return true;
 
-	case HitCount:
-		Dest.DWord = pBuff->HitCount;
+	case BuffMembers::HitCount:
+		Dest.DWord = buff.HitCount;
 		Dest.Type = pIntType;
 		return true;
 
-	default: break;
+	default:
+		return false;
+	}
+}
+
+bool MQ2BuffType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (VarPtr.Int < 0)
+		return false;
+
+	auto pPCProfile = GetPcProfile();
+	if (!pPCProfile)
+		return false;
+
+	SPELLBUFF buff;
+	if (VarPtr.Int < NUM_LONG_BUFFS)
+		buff = pPCProfile->Buff[VarPtr.Int];
+	else if (VarPtr.Int < NUM_LONG_BUFFS + NUM_SHORT_BUFFS)
+		buff = pPCProfile->ShortBuff[VarPtr.Int - NUM_LONG_BUFFS];
+	else
+		return false;
+
+	if (SPELL* pSpell = GetSpellByID(buff.SpellID))
+	{
+		strcpy_s(Destination, MAX_STRING, pSpell->Name);
+		return true;
 	}
 
 	return false;
+}
+
+bool MQ2BuffType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type != pBuffType)
+		return false;
+
+	VarPtr.Int = Source.Int;
+	return true;
 }
 
