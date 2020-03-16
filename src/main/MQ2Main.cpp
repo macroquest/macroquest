@@ -588,11 +588,14 @@ public:
 // Perform first time initialization on the main thread.
 void DoInitialization()
 {
-	InitializeAnonymizer();
 	gPipeClient.SetHandler(std::make_shared<PipeEventsHandler>());
 	gPipeClient.Start();
 	::atexit([]() { gPipeClient.Stop(); });
 
+	// this needs to be done before anything that would need to add a callback to string message parsing
+	InitializeStringDB();
+
+	InitializeAnonymizer();
 	InitializeMQ2Commands();
 	InitializeMQ2Windows();
 	InitializeMQ2AutoInventory();
@@ -802,6 +805,7 @@ void MQ2Shutdown()
 	DebugTry(ShutdownAnonymizer());
 	DebugTry(ShutdownMQ2Plugins());
 	DebugTry(ShutdownMQ2Overlay());
+	DebugTry(ShutdownStringDB());
 	DebugTry(DeInitializeMQ2IcExports());
 	DebugTry(ShutdownMQ2Detours());
 	DebugTry(ShutdownMQ2Benchmarks());
