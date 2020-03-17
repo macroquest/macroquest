@@ -3458,49 +3458,46 @@ void IniOutput(SPAWNINFO* pChar, char* szLine)
 	GetArg(szArg2, szLine, 2);
 
 	char szArg3[MAX_STRING] = { 0 };   // Key
-	GetArg(szArg3, szLine, 3, 1);
+	GetArg(szArg3, szLine, 3, true);
 
 	char szArg4[MAX_STRING] = { 0 };   // Data to write
-	GetArg(szArg4, szLine, 4, 1);
-
-	char szOutput[MAX_STRING] = { 0 };  //Success / Error Output
+	GetArg(szArg4, szLine, 4, true);
 
 	DebugSpew("/ini input -- %s %s %s %s", szArg1, szArg2, szArg3, szArg4);
-
-	if (!strstr(szArg1, "."))
-	{
-		strcat_s(szArg1, ".ini");
-	}
 
 	std::filesystem::path iniFile = szArg1;
 	if (iniFile.is_relative())
 	{
 		iniFile = mq::internal_paths::Config / iniFile;
 	}
-
-	std::string Arg3 = { szArg3 };
-	std::string Arg4 = { szArg4 };
+	if (!iniFile.has_extension())
+	{
+		iniFile += ".ini";
+	}
 
 	if (ci_equals(szArg3, "NULL"))
 	{
-		Arg3 = "";
+		szArg3[0] = '\0';
+	}
+	else
+	{
+		// Strip embedded quotes now that we know it's not NULL
+		GetArg(szArg3, szLine, 3);
 	}
 	if (ci_equals(szArg4, "NULL"))
 	{
-		Arg4 = "";
+		szArg4[0] = '\0';
+	}
+	else
+	{
+		// Strip embedded quotes now that we know it's not NULL
+		GetArg(szArg4, szLine, 4);
 	}
 
-	// Strip the double quotes
-	if (!Arg3.empty() && Arg3[0] == '"' && Arg3[Arg3.length() - 1] == '"')
-	{
-	    Arg3 = Arg3.substr(1, Arg3.length() - 2);
-	}
-	if (!Arg4.empty() && Arg4[0] == '"' && Arg4[Arg4.length() - 1] == '"')
-	{
-	    Arg4 = Arg4.substr(1, Arg4.length() - 2);
-	}
-
-	if (!WritePrivateProfileString(szArg2, Arg3, Arg4, iniFile.string()))
+	if (!WritePrivateProfileStringA(szArg2,
+	                                szArg3[0] == '\0' ? nullptr : szArg3,
+	                                szArg4[0] == '\0' ? nullptr : szArg4,
+	                                iniFile.string().c_str()))
 	{
 		DebugSpew("IniOutput ERROR -- during WritePrivateProfileString: %s", szLine);
 	}
