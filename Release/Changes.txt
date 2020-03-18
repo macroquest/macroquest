@@ -1,3 +1,7 @@
+Mar 17 2020
+- Updated for TEST
+- Fixed the SListWndCell struct
+-
 Mar 16 2020
 - Extended the /taskquit command. It now takes an optional argument, "Name of Task" so we can use it to remove solo tasks as well. -Feature Cred: drwhomphd
    /taskquit without any argument works like before, i.e it removes the shared task if there is one.

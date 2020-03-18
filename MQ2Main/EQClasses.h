@@ -4121,11 +4121,16 @@ struct SListWndCell
 };
 struct SListWndCell_RO
 {
-    CTextureAnimation *pTA;
-    struct _CXSTR *Text;
-    COLORREF Color;
-	bool bOnlyDrawTexture;
-	CXWnd *pWnd;
+/*0x00*/ CTextureAnimation *pTA;
+/*0x04*/ struct _CXSTR *Text;
+/*0x08*/ COLORREF Color;
+/*0x0c*/ bool bOnlyDrawTexture;
+/*0x10*/ CXWnd *pWnd;
+/*0x14*/
+#if !defined(ROF2EMU) && !defined(UFEMU)
+/*0x14*/ int Unknown0x14;
+/*0x18*/
+#endif
 };
 struct TreeData
 {
