@@ -576,6 +576,7 @@ enum MOUSE_DATA_TYPES {
 #define SPA_REAGENTCHANCE               131
 #define SPA_SPELLMANACOST               132
 #define SPA_STACKING_BLOCK              148
+#define SPA_REMOVE_DETRIMENTAL          154
 #define SPA_MIRROR   					156
 #define SPA_SPELL_GUARD					161
 #define SPA_MELEE_GUARD					162

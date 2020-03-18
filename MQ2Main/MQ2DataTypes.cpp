@@ -6549,7 +6549,6 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord = pChar->ParcelStatus;
 		Dest.Type = pIntType;
 		return true;
-
 	//end of MQ2CharacterType
 	}
 	return false;
