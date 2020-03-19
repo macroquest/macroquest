@@ -966,6 +966,12 @@ LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 	{
 		switch (msg)
 		{
+		case WM_ACTIVATE:
+			// Clear any delayed mouse inputs
+			for (int n = 0; n < IM_ARRAYSIZE(io.MouseDown); n++)
+				io.MouseDown[n] = false;
+			break;
+
 		case WM_LBUTTONDOWN: case WM_LBUTTONDBLCLK:
 		case WM_RBUTTONDOWN: case WM_RBUTTONDBLCLK:
 		case WM_MBUTTONDOWN: case WM_MBUTTONDBLCLK:
@@ -2374,10 +2380,14 @@ void ImGuiTreePanelWindow::Draw(bool* pOpen)
 		ImGui::BeginChild("TreeListView", ImVec2(m_leftPaneSize, ImGui::GetContentRegionAvail().y - 1), true);
 		ImGui::PopStyleVar();
 
-		for (const auto& node : m_treeRoot->children)
+		if (m_treeRoot)
 		{
-			DrawTreeNode(node.get());
+			for (const auto& node : m_treeRoot->children)
+			{
+				DrawTreeNode(node.get());
+			}
 		}
+
 
 		ImGui::EndChild();
 	}

@@ -2027,7 +2027,7 @@ static CascadeItemSubMenu* GetOrCreateSubMenuFromName(CascadeItemSubMenu* root, 
 		found = eqNew<CascadeItemSubMenu>();
 		found->SetText(CXStr{ head });
 		found->SetItems(eqNew<CascadeItemArray>());
-		
+
 		items->Add(found);
 	}
 
@@ -2121,6 +2121,148 @@ void RemoveCascadeMenuItems()
 	UpdateCascadeMenu();
 }
 
+//============================================================================
+
+const char* UITypeToString(UIType type)
+{
+	switch (type)
+	{
+	case UI_Unknown: return "Unknown";
+	case UI_Class: return "Class";
+	case UI_RGB: return "RGB";
+	case UI_RGBText: return "RGBText";
+	case UI_Point: return "Point";
+	case UI_Size: return "Size";
+	case UI_TextureInfo: return "TextureInfo";
+	case UI_Frame: return "Frame";
+	case UI_Ui2DAnimation: return "Ui2DAnimation";
+	case UI_ButtonDrawTemplate: return "ButtonDrawTemplate";
+	case UI_GaugeDrawTemplate: return "GaugeDrawTemplate";
+	case UI_SpellGemDrawTemplate: return "SpellGemDrawTemplate";
+	case UI_FrameTemplate: return "FrameTemplate";
+	case UI_ScrollbarDrawTemplate: return "ScrollbarDrawTemplate";
+	case UI_WindowDrawTemplate: return "WindowDrawTemplate";
+	case UI_SliderDrawTemplate: return "SliderDrawTemplate";
+	case UI_ScreenPiece: return "ScreenPiece";
+	case UI_StaticScreenPiece: return "StaticScreenPiece";
+	case UI_StaticAnimation: return "StaticAnimation";
+	case UI_StaticTintedBlendAnimation: return "StaticTintedBlendAnimation";
+	case UI_StaticText: return "StaticText";
+	case UI_StaticFrame: return "StaticFrame";
+	case UI_StaticHeader: return "StaticHeader";
+	case UI_LayoutStrategy: return "LayoutStrategy";
+	case UI_LayoutVertical: return "LayoutVertical";
+	case UI_LayoutHorizontal: return "LayoutHorizontal";
+	case UI_Control: return "Control";
+	case UI_TemplateAssoc: return "TemplateAssoc";
+	case UI_TemplateScreen: return "TemplateScreen";
+	case UI_ListboxColumn: return "ListboxColumn";
+	case UI_Listbox: return "Listbox";
+	case UI_Button: return "Button";
+	case UI_Gauge: return "Gauge";
+	case UI_SpellGem: return "SpellGem";
+	case UI_HtmlComponent: return "HtmlComponent";
+	case UI_InvSlot: return "InvSlot";
+	case UI_EditBox: return "EditBox";
+	case UI_Slider: return "Slider";
+	case UI_Label: return "Label";
+	case UI_STMLBox: return "STMLBox";
+	case UI_TreeView: return "TreeView";
+	case UI_Combobox: return "Combobox";
+	case UI_Page: return "Page";
+	case UI_TabBox: return "TabBox";
+	case UI_LayoutBox: return "LayoutBox";
+	case UI_HorizontalLayoutBox: return "HorizontalLayoutBox";
+	case UI_VerticalLayoutBox: return "VerticalLayoutBox";
+	case UI_FinderBox: return "FinderBox";
+	case UI_TileLayoutBox: return "TileLayoutBox";
+	case UI_NamedTemplatePiece: return "NamedTemplatePiece";
+	case UI_TemplateContainer: return "TemplateContainer";
+	case UI_Screen: return "Screen";
+	case UI_SuiteDefaults: return "SuiteDefaults";
+	case UI_Screens: return "Screens";
+	case UI_TopLevelWindowList: return "TopLevelWindowList";
+	case UI_HotButton: return "HotButton";
+	default: return "Unknown(new)";
+	}
+}
+
+static void DisplayWindowTreeNode(CXWnd* pWnd)
+{
+	if (pWnd->GetType() == UI_Unknown)
+		return;
+	ImGui::TableNextRow();
+	const bool has_children = pWnd->GetFirstChildWnd() != nullptr;
+
+	const CXStr* pName = pWnd->GetWindowName();
+	CXMLData* pXMLData = pWnd->GetXMLData();
+
+	const char* szTypeName = pXMLData ? pXMLData->TypeName.c_str() : UITypeToString(pWnd->GetType());
+	const char* szWindowName = pName ? pName->c_str() : "";
+	const char* szXmlName = pXMLData ? pXMLData->Name.c_str() : "";
+	const char* szXmlScreenID = pXMLData ? pXMLData->ScreenID.c_str() : "";
+	if (strlen(szWindowName) == 0)
+		szWindowName = szXmlName;
+
+	bool open = false;
+
+	if (has_children)
+	{
+		open = ImGui::TreeNodeEx(pWnd, ImGuiTreeNodeFlags_SpanFullWidth, "%s", szWindowName);
+	}
+	else
+	{
+		ImGui::TreeNodeEx(pWnd, ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_SpanFullWidth,
+			"%s", szWindowName);
+	}
+
+	ImGui::TableNextCell();
+	ImGui::Text("%s", szTypeName);
+	ImGui::TableNextCell();
+	ImGui::Text("%s", szXmlScreenID);
+	ImGui::TableNextCell();
+	ImGui::Text("%s", pWnd->GetWindowText().c_str());
+
+	if (open)
+	{
+		CXWnd* pChild = pWnd->GetFirstChildWnd();
+		while (pChild)
+		{
+			DisplayWindowTreeNode(pChild);
+			pChild = pChild->GetNextSiblingWnd();
+		}
+
+		ImGui::TreePop();
+	}
+}
+
+static void WindowsDebugPanel()
+{
+	ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollFreezeTopRow | ImGuiTableFlags_ScrollY | ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersHOuter | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg;
+
+	if (ImGui::BeginTable("##WindowTable", 4, tableFlags))
+	{
+		// The first column will use the default _WidthStretch when ScrollX is Off and _WidthFixed when ScrollX is On
+		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide);
+		ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize() * 6);
+		ImGui::TableSetupColumn("ScreenID", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize() * 12);
+		ImGui::TableSetupColumn("Text", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize() * 12);
+		ImGui::TableAutoHeaders();
+
+		if (pWndMgr)
+		{
+			for (CXWnd* pWnd : pWndMgr->ParentAndContextMenuWindows)
+			{
+				DisplayWindowTreeNode(pWnd);
+			}
+		}
+
+
+		ImGui::EndTable();
+	}
+}
+
+
 void InitializeMQ2Windows()
 {
 	DebugSpew("Initializing MQ2 Windows");
@@ -2176,6 +2318,8 @@ void InitializeMQ2Windows()
 
 	InitializeWindowList();
 	InstallCascadeMenuItems();
+
+	AddDebugPanel("Windows", WindowsDebugPanel);
 }
 
 void ShutdownMQ2Windows()
@@ -2196,6 +2340,8 @@ void ShutdownMQ2Windows()
 	RemoveDetour(__DoesFileExist);
 	RemoveDetour(CMemoryMappedFile__SetFile);
 	RemoveDetour(__eqgraphics_fopen);
+
+	RemoveDebugPanel("Windows");
 }
 
 void PulseMQ2Windows()

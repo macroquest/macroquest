@@ -466,6 +466,13 @@ public:
 		return m_length;
 	}
 
+	T* begin() { return m_array; }
+	const T* begin() const { return m_array; }
+	const T* cbegin() const { return m_array; }
+	T* end() { return m_array + m_length; }
+	const T* end() const { return m_array + m_length; }
+	const T* cend() const { return m_array + m_length; }
+
 private:
 	// this function will ensure that there is enough space allocated for the
 	// requested size. the underlying array is one contiguous block of memory.
