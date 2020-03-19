@@ -318,6 +318,8 @@ enum class CharacterMembers
 	EntwinedDjinnCoins,
 	CrystallizedLuck,
 	Spell,
+	ParcelStatus,
+
 };
 
 enum class CharacterMethods
@@ -628,6 +630,7 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, Origin);
 	ScopedTypeMember(CharacterMembers, SubscriptionDays);
 	ScopedTypeMember(CharacterMembers, Spell);
+	ScopedTypeMember(CharacterMembers, ParcelStatus);
 
 	ScopedTypeMethod(CharacterMethods, Stand);
 	ScopedTypeMethod(CharacterMethods, Sit);
@@ -2966,6 +2969,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	case CharacterMembers::CrystallizedLuck:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_CRYSTALLIZEDLUCK);
+		Dest.Type = pIntType;
+		return true;
+
+	case CharacterMembers::ParcelStatus:
+		Dest.DWord = pChar->ParcelStatus;
 		Dest.Type = pIntType;
 		return true;
 

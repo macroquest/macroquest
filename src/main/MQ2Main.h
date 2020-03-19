@@ -766,8 +766,7 @@ void InitializeAnonymizer();
 void ShutdownAnonymizer();
 MQLIB_API bool IsAnonymized();
 MQLIB_OBJECT CXStr Anonymize(const CXStr& Text);
-// this is only made available for things that need c-linkage (are grabbing this function out of a DLL)
-MQLIB_API CXStr& PluginAnonymize(CXStr& Text);
+MQLIB_OBJECT CXStr& PluginAnonymize(CXStr& Text);
 
 /* MQ2STRINGDB */
 // EQ sends us tokenized text that's been serialized into a stream of bytes. This struct holds that

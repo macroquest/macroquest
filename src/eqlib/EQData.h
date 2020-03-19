@@ -1897,7 +1897,7 @@ struct [[offsetcomments]] GROUPAGGRO
 using PGROUPAGGRO [[deprecated]] = GROUPAGGRO*;
 
 #define EQ_ASSIST_CALC                           0x020c0f19
-#define EQ_ASSIST_COMPLETE                       0x35Cf    // aMsgTimeStampRe
-#define EQ_ASSIST                                0x338B    // do_assist(PlayerClient *,char const *)+399 20160212 live (see 52C319)
+#define EQ_ASSIST_COMPLETE                       0x34ea    // aMsgTimeStampRe
+#define EQ_ASSIST                                0x761e    // do_assist(PlayerClient *,char const *)+399 20160212 live (see 52C319)
 
 } // namespace eqlib

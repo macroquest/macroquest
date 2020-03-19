@@ -274,6 +274,7 @@ MQLIB_VAR fEQCommand            cmdDoAbility;
 MQLIB_VAR fEQCommand            cmdCast;
 MQLIB_VAR fEQCommand            cmdUseItem;
 MQLIB_VAR fEQCommand            cmdHotbutton;
+MQLIB_VAR fEQCommand            cmdTaskQuit;
 MQLIB_VAR fEQCommand            cmdPet;
 MQLIB_VAR fEQCommand            cmdMercSwitch;
 MQLIB_VAR fEQCommand            cmdAdvLoot;

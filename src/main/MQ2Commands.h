@@ -112,6 +112,7 @@ MQLIB_API void PopupTextCustom                     (PSPAWNINFO pChar, char* szLi
 MQLIB_API void PopupTextEcho                       (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void UseItemCmd                          (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void DoHotButton                         (PSPAWNINFO pChar, char* szLine);
+MQLIB_API void TaskQuitCmd                         (PSPAWNINFO pChar, char* szLine);
 
 MQLIB_API void SpellSlotInfo                       (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void SetWinTitle                         (PSPAWNINFO pChar, char* szLine);

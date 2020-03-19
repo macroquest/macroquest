@@ -2658,6 +2658,9 @@ FUNCTION_AT_ADDRESS(CXStr* CTargetWnd::GetBuffCaster(int), CTargetWnd__GetBuffCa
 #ifdef CTaskWnd__UpdateTaskTimers_x
 FUNCTION_AT_ADDRESS(int CTaskWnd::UpdateTaskTimers(unsigned long), CTaskWnd__UpdateTaskTimers);
 #endif
+#ifdef CTaskWnd__ConfirmAbandonTask_x
+FUNCTION_AT_ADDRESS(void CTaskWnd::ConfirmAbandonTask(int), CTaskWnd__ConfirmAbandonTask);
+#endif
 
 //============================================================================
 // CTextEntryWnd

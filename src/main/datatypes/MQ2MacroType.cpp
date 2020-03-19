@@ -140,9 +140,9 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		break;
 
 	case CurSub:
-		if (gMacroBlock)
+		if (gMacroBlock && gMacroStack)
 		{
-			GetSubFromLine(gMacroBlock->Line.at(gMacroBlock->CurrIndex).LineNumber, DataTypeTemp, MAX_STRING);
+			GetSubFromLine(gMacroStack->LocationIndex, DataTypeTemp, MAX_STRING);
 			Dest.Ptr = DataTypeTemp;
 			Dest.Type = pStringType;
 			return true;

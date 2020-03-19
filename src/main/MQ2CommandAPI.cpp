@@ -786,6 +786,10 @@ void InitializeMQ2Commands()
 		{
 			cmdUseItem = (fEQCommand)pCmdListOrig[i].fAddress;
 		}
+		else if (!strcmp(pCmdListOrig[i].szName, "/taskquit"))
+		{
+			cmdTaskQuit = (fEQCommand)pCmdListOrig[i].fAddress;
+		}
 		else if (!strcmp(pCmdListOrig[i].szName, "/pet"))
 		{
 			cmdPet = (fEQCommand)pCmdListOrig[i].fAddress;
@@ -882,6 +886,7 @@ void InitializeMQ2Commands()
 		{ "/delay",             Delay,                      false, false }, // do not parse
 		{ "/hud",               HudCmd,                     true,  false },
 		{ "/hotbutton",         DoHotButton,                true,  true  },
+		{ "/taskquit",          TaskQuitCmd,                true,  true  },
 		{ "/useitem",           UseItemCmd,                 true,  true  },
 		{ "/spellslotinfo",     SpellSlotInfo,              true,  true  },
 		{ "/getwintitle",       GetWinTitle,                true,  false },

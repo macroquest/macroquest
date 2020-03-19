@@ -4253,6 +4253,73 @@ void DoHotButton(PSPAWNINFO pChar, char* pBuffer)
 	cmdHotbutton(pChar, pBuffer);
 }
 
+static bool AbandonTask(const char* taskName, int taskId)
+{
+	if (!pTaskWnd)
+		return false;
+	if (CListWnd* clist = (CListWnd*)pTaskWnd->GetChildItem("TASK_TaskList"))
+	{
+		for (int i = 0; i < clist->ItemsArray.Count; i++)
+		{
+			CXStr str = clist->GetItemText(i, 2);
+			if (ci_equals(str, taskName))
+			{
+				clist->SetCurSel(i);
+				pTaskWnd->ConfirmAbandonTask(taskId);
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+// ***************************************************************************
+// Function:    TaskQuitCmd
+// Description: our '/taskquit' command
+//              Extends the built in /taskquit command with support for solo tasks.
+// Usage:       /taskquit <Name>
+//
+//              Usage:
+//              /taskquit Name of task
+// ***************************************************************************
+void TaskQuitCmd(PSPAWNINFO pChar, char* pBuffer)
+{
+	char szName[MAX_STRING] = { 0 };
+	strcpy_s(szName, pBuffer);
+
+	CTaskManager* tm = pTaskManager;
+	if (!szName[0] || !tm)
+	{
+		cmdTaskQuit(pChar, pBuffer);
+		return;
+	}
+
+	for (const CTaskEntry& taskEntry : tm->SharedTaskEntries)
+	{
+		if (taskEntry.TaskID == 0)
+			continue;
+
+		if (MaybeExactCompare(taskEntry.TaskTitle, szName))
+		{
+			AbandonTask(taskEntry.TaskTitle, taskEntry.TaskID);
+			return;
+		}
+	}
+
+	for (const CTaskEntry& taskEntry : tm->QuestEntries)
+	{
+		if (taskEntry.TaskID == 0)
+			continue;
+
+		if (MaybeExactCompare(taskEntry.TaskTitle, szName))
+		{
+			AbandonTask(taskEntry.TaskTitle, taskEntry.TaskID);
+			return;
+		}
+	}
+}
+
 // /timed
 void DoTimedCmd(SPAWNINFO* pChar, char* szLine)
 {

@@ -741,6 +741,7 @@ INITIALIZE_EQGAME_OFFSET(CTargetWnd__WndNotification);
 INITIALIZE_EQGAME_OFFSET(CTaskManager__GetElementDescription);
 INITIALIZE_EQGAME_OFFSET(CTaskManager__GetEntry);
 INITIALIZE_EQGAME_OFFSET(CTaskManager__GetTaskStatus);
+INITIALIZE_EQGAME_OFFSET(CTaskWnd__ConfirmAbandonTask);
 INITIALIZE_EQGAME_OFFSET(CTaskWnd__UpdateTaskTimers);
 INITIALIZE_EQGAME_OFFSET(CTextOverlay__DisplayText);
 INITIALIZE_EQGAME_OFFSET(CTextureAnimation__SetCurCell);

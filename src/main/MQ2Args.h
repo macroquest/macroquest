@@ -19,8 +19,10 @@
 
 namespace mq {
 
+MQLIB_API void WriteChatf(const char* Format, ...);
+
 using Writer = void(*)(const char*, ...);
-template <Writer writer = &WriteChatf>
+template <Writer writer = &mq::WriteChatf>
 class MQ2Args : public args::ArgumentParser
 {
 public:

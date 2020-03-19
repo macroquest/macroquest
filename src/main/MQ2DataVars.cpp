@@ -672,12 +672,12 @@ static void TellCheck(const char* szClean)
 
 	char name[2048] = { 0 };
 	bool isTell = false;
-	if (const char* pDest = strstr(szClean, " tells you, '"))
+	if (const char* pDest = strstr(szClean, " tells you, "))
 	{
 		strncpy_s(name, szClean, (int)(pDest - szClean));
 		isTell = true;
 	}
-	else if (pDest = strstr(szClean, " told you, '"))
+	else if (pDest = strstr(szClean, " told you, "))
 	{
 		strncpy_s(name, szClean, (int)(pDest - szClean));
 		isTell = true;
@@ -795,14 +795,14 @@ void CheckChatForEvent(const char* szMsg)
 			Arg2[strlen(Arg2) - 1] = 0;
 			AddEvent(EVENT_CHAT, "group", Arg1, Arg2, NULL);
 		}
-		else if ((CHATEVENT(CHAT_TELL)) && (pDest = strstr(szClean, " tells you, '")))
+		else if ((CHATEVENT(CHAT_TELL)) && (pDest = strstr(szClean, " tells you, ")))
 		{
 			strncpy_s(Arg1, szClean, (DWORD)(pDest - szClean));
 			strcpy_s(Arg2, pDest + 13);
 			Arg2[strlen(Arg2) - 1] = 0;
 			AddEvent(EVENT_CHAT, "tell", Arg1, Arg2, NULL);
 		}
-		else if ((CHATEVENT(CHAT_TELL)) && (pDest = strstr(szClean, " told you, '")))
+		else if ((CHATEVENT(CHAT_TELL)) && (pDest = strstr(szClean, " told you, ")))
 		{
 			strncpy_s(Arg1, szClean, (DWORD)(pDest - szClean));
 			strcpy_s(Arg2, pDest + 12);

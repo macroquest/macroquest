@@ -416,11 +416,11 @@ struct [[offsetcomments]] EQSuccessfulHit
 /*0x04*/ uint8_t       Skill;                    // 1 HS etc...
 /*0x05*/ int           SpellID;
 /*0x09*/ int           DamageCaused;
-/*0x0D*/ float         Force;
+/*0x0d*/ float         Force;
 /*0x11*/ float         HitHeading;
 /*0x15*/ float         HitPitch;
 /*0x19*/ bool          bSecondary;
-/*0x1A*/ uint8_t       Unknown0x1A[6];
+/*0x1a*/ uint8_t       Unknown0x1A[6];
 /*0x20*/
 };
 #pragma pack(pop)
@@ -431,10 +431,10 @@ struct [[offsetcomments]] EQSuccessfulHeal
 /*0x00*/ WORD   HealedID; // Spawn that was healed
 /*0x02*/ WORD   HealerID; // Spawn who did the healing
 /*0x04*/ int    SpellID;
-/*0x08*/ int    ActualHeal; // Amount that was actually healed 
+/*0x08*/ int    ActualHeal; // Amount that was actually healed
 /*0x0c*/ int    TotalHeal; // Amount that would have been healed if it didn't go over max HP
 /*0x10*/ DWORD  EffectBitmask;
-/*0x14*/ 
+/*0x14*/
 };
 using pEQSuccessfulHeal = EQSuccessfulHeal*;
 
@@ -579,7 +579,7 @@ public:
 	EQLIB_OBJECT void procMouse(int);
 	EQLIB_OBJECT void RemoveCharacterOptionFile(char*);
 	EQLIB_OBJECT void ReportDeath(EQPlayerDeath*);
-	EQLIB_OBJECT int CEverQuest::ReportSuccessfulHeal(EQSuccessfulHeal*);
+	EQLIB_OBJECT int ReportSuccessfulHeal(EQSuccessfulHeal*);
 	EQLIB_OBJECT bool ReportSuccessfulHit(EQSuccessfulHit*, bool, int);
 	EQLIB_OBJECT void reqChannel();
 	EQLIB_OBJECT void ResetVisionRGBs();
