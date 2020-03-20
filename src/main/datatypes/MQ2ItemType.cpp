@@ -1381,23 +1381,17 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		return true;
 
 	case ItemMembers::AugSlot:
-		Dest.DWord = 0;
+	{
 		Dest.Type = pAugType;
-		if (IsNumber(Index))
+		int index = GetIntFromString(Index, -1);
+		if (index >= 0 && index <= 5 &&
+			GetItemFromContents(pItem)->Type == ITEMTYPE_NORMAL)
 		{
-			if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
-			{
-				Dest.DWord = 0;
-			}
-			else
-			{
-				int index = std::clamp(GetIntFromString(Index, 0), 0, 5);
-				Dest.DWord = index;
-				Dest.HighPart = (LONG)pItem;
-			}
+			Dest.Set(MQ2SlotInItem(pItem->GetGlobalIndex(), index));
 			return true;
 		}
 		return false;
+	}
 
 	case ItemMembers::AugSlot1:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)

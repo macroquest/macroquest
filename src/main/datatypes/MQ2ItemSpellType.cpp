@@ -18,6 +18,38 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class ItemSpellMembers
+{
+	SpellID,
+	RequiredLevel,
+	EffectType,
+	EffectiveCasterLevel,
+	MaxCharges,
+	CastTime,
+	TimerID,
+	RecastType,
+	ProcRate,
+	OtherName,
+	OtherID,
+	Spell,
+};
+
+MQ2ItemSpellType::MQ2ItemSpellType() : MQ2Type("itemspell")
+{
+	ScopedTypeMember(ItemSpellMembers, SpellID);
+	ScopedTypeMember(ItemSpellMembers, RequiredLevel);
+	ScopedTypeMember(ItemSpellMembers, EffectType);
+	ScopedTypeMember(ItemSpellMembers, EffectiveCasterLevel);
+	ScopedTypeMember(ItemSpellMembers, MaxCharges);
+	ScopedTypeMember(ItemSpellMembers, CastTime);
+	ScopedTypeMember(ItemSpellMembers, TimerID);
+	ScopedTypeMember(ItemSpellMembers, RecastType);
+	ScopedTypeMember(ItemSpellMembers, ProcRate);
+	ScopedTypeMember(ItemSpellMembers, OtherName);
+	ScopedTypeMember(ItemSpellMembers, OtherID);
+	ScopedTypeMember(ItemSpellMembers, Spell);
+};
+
 bool MQ2ItemSpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
 	ITEMSPELLS* pItemSpell = static_cast<ITEMSPELLS*>(VarPtr.Ptr);
@@ -30,68 +62,107 @@ bool MQ2ItemSpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	switch (static_cast<ItemSpellMembers>(pMember->ID))
 	{
-	case SpellID:
+	case ItemSpellMembers::SpellID:
 		Dest.DWord = pItemSpell->SpellID;
 		Dest.Type = pIntType;
 		return true;
 
-	case RequiredLevel:
+	case ItemSpellMembers::RequiredLevel:
 		Dest.DWord = pItemSpell->RequiredLevel;
 		Dest.Type = pIntType;
 		return true;
 
-	case EffectType:
+	case ItemSpellMembers::EffectType:
 		Dest.DWord = pItemSpell->EffectType;
 		Dest.Type = pIntType;
 		return true;
 
-	case EffectiveCasterLevel:
+	case ItemSpellMembers::EffectiveCasterLevel:
 		Dest.DWord = pItemSpell->EffectiveCasterLevel;
 		Dest.Type = pIntType;
 		return true;
 
-	case MaxCharges:
+	case ItemSpellMembers::MaxCharges:
 		Dest.DWord = pItemSpell->MaxCharges;
 		Dest.Type = pIntType;
 		return true;
 
-	case CastTime:
+	case ItemSpellMembers::CastTime:
 		Dest.DWord = pItemSpell->CastTime;
 		Dest.Type = pIntType;
 		return true;
 
-	case TimerID:
+	case ItemSpellMembers::TimerID:
 		Dest.DWord = pItemSpell->TimerID;
 		Dest.Type = pIntType;
 		return true;
 
-	case RecastType:
+	case ItemSpellMembers::RecastType:
 		Dest.DWord = pItemSpell->RecastType;
 		Dest.Type = pIntType;
 		return true;
 
-	case ProcRate:
+	case ItemSpellMembers::ProcRate:
 		Dest.DWord = pItemSpell->ProcRate;
 		Dest.Type = pIntType;
 		return true;
 
-	case OtherName:
+	case ItemSpellMembers::OtherName:
 		strcpy_s(DataTypeTemp, pItemSpell->OtherName);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case OtherID:
+	case ItemSpellMembers::OtherID:
 		Dest.DWord = pItemSpell->OtherID;
 		Dest.Type = pIntType;
 		return true;
 
-	case Spell:
+	case ItemSpellMembers::Spell:
 		Dest.Ptr = GetSpellByID(pItemSpell->SpellID);
 		Dest.Type = pSpellType;
 		return true;
 	}
 
 	return false;
+}
+
+bool MQ2ItemSpellType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (!VarPtr.Ptr)
+		return false;
+
+	ITEMSPELLS* pItemSpells = static_cast<ITEMSPELLS*>(VarPtr.Ptr);
+	if (int spellid = pItemSpells->SpellID)
+	{
+		if (SPELL* pSpell = GetSpellByID(spellid))
+		{
+			strcpy_s(Destination, MAX_STRING, pSpell->Name);
+			return true;
+		}
+	}
+	return false;
+}
+
+void MQ2ItemSpellType::InitVariable(MQVarPtr& VarPtr)
+{
+	// FIXME: Do not allocate an ITEMSPELLS
+	VarPtr.Ptr = new ITEMSPELLS();
+}
+
+void MQ2ItemSpellType::FreeVariable(MQVarPtr& VarPtr)
+{
+	// FIXME: Do not allocate an ITEMSPELLS
+	ITEMSPELLS* pItemSpells = static_cast<ITEMSPELLS*>(VarPtr.Ptr);
+	delete pItemSpells;
+}
+
+bool MQ2ItemSpellType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type != pItemSpellType)
+		return false;
+
+	memcpy(VarPtr.Ptr, Source.Ptr, sizeof(ITEMSPELLS));
+	return true;
 }
 

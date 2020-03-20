@@ -18,10 +18,16 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class TypeMembers
+{
+	Name = 1,
+	TypeMember = 2,
+};
+
 MQ2TypeType::MQ2TypeType() : MQ2Type("type")
 {
-	AddMember(xName, "Name");
-	AddMember(xTypeMember, "Member");
+	ScopedTypeMember(TypeMembers, Name);
+	ScopedTypeMember(TypeMembers, TypeMember);
 }
 
 bool MQ2TypeType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
@@ -37,13 +43,13 @@ bool MQ2TypeType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 
 	switch (static_cast<TypeMembers>(pMember->ID))
 	{
-	case xName:
+	case TypeMembers::Name:
 		strcpy_s(DataTypeTemp, pType->GetName());
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case xTypeMember:
+	case TypeMembers::TypeMember:
 		if (!Index[0])
 			return false;
 
@@ -59,9 +65,11 @@ bool MQ2TypeType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		else
 		{
 			// number by name
-			if (pType->GetMemberID(Index, (int&)Dest.DWord))
+			int memberID;
+			if (pType->GetMemberID(Index, memberID))
 			{
 				Dest.Type = pIntType;
+				Dest.Int = memberID;
 				return true;
 			}
 		}

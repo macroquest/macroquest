@@ -18,6 +18,48 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class StringMembers
+{
+	Arg,
+	Mid,
+	Left,
+	Right,
+	Find,
+	Length,
+	Upper,
+	Lower,
+	Compare,
+	CompareCS,
+	Equal,
+	NotEqual,
+	EqualCS,
+	NotEqualCS,
+	Count,
+	Token,
+	Replace
+};
+
+MQ2StringType::MQ2StringType() : MQ2Type("string")
+{
+	ScopedTypeMember(StringMembers, Arg);
+	ScopedTypeMember(StringMembers, Mid);
+	ScopedTypeMember(StringMembers, Left);
+	ScopedTypeMember(StringMembers, Right);
+	ScopedTypeMember(StringMembers, Find);
+	ScopedTypeMember(StringMembers, Length);
+	ScopedTypeMember(StringMembers, Upper);
+	ScopedTypeMember(StringMembers, Lower);
+	ScopedTypeMember(StringMembers, Compare);
+	ScopedTypeMember(StringMembers, CompareCS);
+	ScopedTypeMember(StringMembers, Equal);
+	ScopedTypeMember(StringMembers, NotEqual);
+	ScopedTypeMember(StringMembers, EqualCS);
+	ScopedTypeMember(StringMembers, NotEqualCS);
+	ScopedTypeMember(StringMembers, Count);
+	ScopedTypeMember(StringMembers, Token);
+	ScopedTypeMember(StringMembers, Replace);
+}
+
 bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
 	const char* szString = static_cast<const char*>(VarPtr.Ptr);
@@ -30,12 +72,12 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 
 	switch (static_cast<StringMembers>(pMember->ID))
 	{
-	case Length:
+	case StringMembers::Length:
 		Dest.DWord = strlen(szString);
 		Dest.Type = pIntType;
 		return true;
 
-	case Left:
+	case StringMembers::Left:
 		Dest.Type = pStringType;
 
 		if (!Index[0])
@@ -79,7 +121,7 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return true;
 
-	case Right:
+	case StringMembers::Right:
 		Dest.Type = pStringType;
 
 		if (!Index[0])
@@ -124,7 +166,7 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return true;
 
-	case Find: {
+	case StringMembers::Find: {
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -141,7 +183,7 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		return false;
 	}
 
-	case Replace: {
+	case StringMembers::Replace: {
 		Dest.Type = pStringType;
 
 		if (!Index[0])
@@ -171,6 +213,8 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 
 			strcpy_s(DataTypeTemp, subject.c_str());
 
+			void* x = Dest.Ptr = DataTypeTemp;
+
 			if (Dest.Ptr = DataTypeTemp)
 			{
 				return true;
@@ -180,21 +224,21 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		return false;
 	}
 
-	case Upper:
+	case StringMembers::Upper:
 		strcpy_s(DataTypeTemp, szString);
 		_strupr_s(DataTypeTemp);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case Lower:
+	case StringMembers::Lower:
 		strcpy_s(DataTypeTemp, szString);
 		_strlwr_s(DataTypeTemp);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case Compare:
+	case StringMembers::Compare:
 		Dest.Int = 0;
 		Dest.Type = pIntType;
 		if (Index[0])
@@ -204,7 +248,7 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return false;
 
-	case CompareCS:
+	case StringMembers::CompareCS:
 		Dest.Int = 0;
 		Dest.Type = pIntType;
 		if (Index[0])
@@ -214,7 +258,7 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return false;
 
-	case Mid:
+	case StringMembers::Mid:
 		Dest.Type = pStringType;
 		if (char* pComma = strchr(Index, ','))
 		{
@@ -252,7 +296,7 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return false;
 
-	case Equal:
+	case StringMembers::Equal:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
 		if (Index[0])
@@ -262,7 +306,7 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return false;
 
-	case NotEqual:
+	case StringMembers::NotEqual:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
 		if (Index[0])
@@ -272,7 +316,7 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return false;
 
-	case EqualCS:
+	case StringMembers::EqualCS:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
 		if (Index[0])
@@ -282,7 +326,7 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return false;
 
-	case NotEqualCS:
+	case StringMembers::NotEqualCS:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
 		if (Index[0])
@@ -292,7 +336,7 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return false;
 
-	case Count:
+	case StringMembers::Count:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (Index[0])
@@ -307,7 +351,7 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return false;
 
-	case Arg:
+	case StringMembers::Arg:
 		Dest.Type = pStringType;
 
 		if (IsNumberToComma(Index))
@@ -340,7 +384,7 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return false;
 
-	case Token:
+	case StringMembers::Token:
 		Dest.Type = pStringType;
 		if (IsNumberToComma(Index))
 		{
@@ -389,9 +433,39 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return false;
 
-	default: break;
+	default:
+		return false;
 	}
+}
 
-	return false;
+bool MQ2StringType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	strcpy_s(Destination, MAX_STRING, static_cast<const char*>(VarPtr.Ptr));
+	return true;
+}
+
+void MQ2StringType::InitVariable(MQVarPtr& VarPtr)
+{
+	VarPtr.Ptr = LocalAlloc(LPTR, MAX_STRING);
+}
+
+void MQ2StringType::FreeVariable(MQVarPtr& VarPtr)
+{
+	LocalFree(VarPtr.Ptr);
+}
+
+bool MQ2StringType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type != pStringType)
+		return false;
+
+	strcpy_s(static_cast<char*>(VarPtr.Ptr), MAX_STRING, static_cast<const char*>(Source.Ptr));
+	return true;
+}
+
+bool MQ2StringType::FromString(MQVarPtr& VarPtr, char* Source)
+{
+	strcpy_s(static_cast<char*>(VarPtr.Ptr), MAX_STRING, Source);
+	return true;
 }
 

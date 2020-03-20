@@ -65,7 +65,6 @@ public:
 	virtual void InitVariable(MQVarPtr& VarPtr)
 	{
 		VarPtr.Ptr = nullptr;
-		VarPtr.HighPart = 0;
 	}
 
 	virtual void FreeVariable(MQVarPtr& VarPtr) {}
@@ -236,81 +235,13 @@ public:
 class MQ2StringType : public MQ2Type
 {
 public:
-	enum StringMembers
-	{
-		Arg = 1,
-		Mid = 2,
-		Left = 3,
-		Right = 4,
-		Find = 5,
-		Length = 6,
-		Upper = 7,
-		Lower = 8,
-		Compare = 9,
-		CompareCS = 10,
-		Equal = 11,
-		NotEqual = 12,
-		EqualCS = 13,
-		NotEqualCS = 14,
-		Count = 15,
-		Token = 16,
-		Replace = 17
-	};
-
-	MQ2StringType() : MQ2Type("string")
-	{
-		TypeMember(Arg);
-		TypeMember(Mid);
-		TypeMember(Left);
-		TypeMember(Right);
-		TypeMember(Find);
-		TypeMember(Length);
-		TypeMember(Upper);
-		TypeMember(Lower);
-		TypeMember(Compare);
-		TypeMember(CompareCS);
-		TypeMember(Equal);
-		TypeMember(NotEqual);
-		TypeMember(EqualCS);
-		TypeMember(NotEqualCS);
-		TypeMember(Count);
-		TypeMember(Token);
-		TypeMember(Replace);
-	}
-
+	MQ2StringType();
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		strcpy_s(Destination, MAX_STRING, static_cast<const char*>(VarPtr.Ptr));
-		return true;
-	}
-
-	void InitVariable(MQVarPtr& VarPtr) override
-	{
-		VarPtr.Ptr = LocalAlloc(LPTR, MAX_STRING);
-		VarPtr.HighPart = 0;
-	}
-
-	void FreeVariable(MQVarPtr& VarPtr) override
-	{
-		LocalFree(VarPtr.Ptr);
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		if (Source.Type != pStringType)
-			return false;
-
-		strcpy_s(static_cast<char*>(VarPtr.Ptr), MAX_STRING, static_cast<const char*>(Source.Ptr));
-		return true;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source) override
-	{
-		strcpy_s(static_cast<char*>(VarPtr.Ptr), MAX_STRING, Source);
-		return true;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	void InitVariable(MQVarPtr& VarPtr) override;
+	void FreeVariable(MQVarPtr& VarPtr) override;
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromString(MQVarPtr& VarPtr, char* Source) override;
 };
 
 //============================================================================
@@ -518,79 +449,12 @@ public:
 class MQ2ItemSpellType : public MQ2Type
 {
 public:
-	enum ItemSpellMembers
-	{
-		SpellID = 1,
-		RequiredLevel = 2,
-		EffectType = 3,
-		EffectiveCasterLevel = 4,
-		MaxCharges = 5,
-		CastTime = 6,
-		TimerID = 7,
-		RecastType = 8,
-		ProcRate = 9,
-		OtherName = 10,
-		OtherID = 11,
-		Spell = 12,
-	};
-
-	MQ2ItemSpellType() : MQ2Type("itemspell")
-	{
-		TypeMember(SpellID);
-		TypeMember(RequiredLevel);
-		TypeMember(EffectType);
-		TypeMember(EffectiveCasterLevel);
-		TypeMember(MaxCharges);
-		TypeMember(CastTime);
-		TypeMember(TimerID);
-		TypeMember(RecastType);
-		TypeMember(ProcRate);
-		TypeMember(OtherName);
-		TypeMember(OtherID);
-		TypeMember(Spell);
-	};
-
+	MQ2ItemSpellType();
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		if (!VarPtr.Ptr)
-			return false;
-
-		ITEMSPELLS* pItemSpells = static_cast<ITEMSPELLS*>(VarPtr.Ptr);
-		if (int spellid = pItemSpells->SpellID)
-		{
-			if (SPELL* pSpell = GetSpellByID(spellid))
-			{
-				strcpy_s(Destination, MAX_STRING, pSpell->Name);
-				return true;
-			}
-		}
-		return false;
-	}
-
-	void InitVariable(MQVarPtr& VarPtr) override
-	{
-		// FIXME: Do not allocate an ITEMSPELLS
-		VarPtr.Ptr = new ITEMSPELLS();
-		VarPtr.HighPart = 0;
-	}
-
-	void FreeVariable(MQVarPtr& VarPtr) override
-	{
-		// FIXME: Do not allocate an ITEMSPELLS
-		ITEMSPELLS* pItemSpells = static_cast<ITEMSPELLS*>(VarPtr.Ptr);
-		delete pItemSpells;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		if (Source.Type != pItemSpellType)
-			return false;
-
-		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(ITEMSPELLS));
-		return true;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	void InitVariable(MQVarPtr& VarPtr) override;
+	void FreeVariable(MQVarPtr& VarPtr) override;
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
 };
 
 //============================================================================
@@ -613,93 +477,12 @@ public:
 class MQ2SwitchType : public MQ2Type
 {
 public:
-	enum SwitchMembers
-	{
-		ID = 1,
-		Distance = 2,
-		X = 3,
-		Y = 4,
-		Z = 5,
-		Heading = 6,
-		DefaultX = 7,
-		DefaultY = 8,
-		DefaultZ = 9,
-		DefaultHeading = 10,
-		Open = 11,
-		HeadingTo = 12,
-		Name = 13,
-		N = 14,
-		W = 15,
-		U = 16,
-		DefaultN = 17,
-		DefaultW = 18,
-		DefaultU = 19,
-		xLineOfSight = 20,
-		Address = 21,
-		Distance3D = 22,
-	};
-
-	enum SwitchMethods
-	{
-		Toggle = 1,
-	};
-
-	MQ2SwitchType() : MQ2Type("switch")
-	{
-		TypeMember(ID);
-		TypeMember(Distance);
-		TypeMember(X);
-		TypeMember(Y);
-		TypeMember(Z);
-		TypeMember(Heading);
-		TypeMember(DefaultX);
-		TypeMember(DefaultY);
-		TypeMember(DefaultZ);
-		TypeMember(DefaultHeading);
-		TypeMember(Open);
-		TypeMember(HeadingTo);
-		TypeMember(Name);
-		AddMember(xLineOfSight, "LineOfSight");
-		TypeMember(Address);
-		TypeMember(Distance3D);
-
-		TypeMethod(Toggle);
-	}
-
+	MQ2SwitchType();
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		if (!VarPtr.Ptr)
-			return false;
-
-		DOOR* pDoor = static_cast<DOOR*>(VarPtr.Ptr);
-		_itoa_s(pDoor->ID, Destination, MAX_STRING, 10);
-		return true;
-	}
-
-	void InitVariable(MQVarPtr& VarPtr) override
-	{
-		// FIXME: Do not allocate a DOOR
-		VarPtr.Ptr = new DOOR();
-		VarPtr.HighPart = 0;
-	}
-
-	void FreeVariable(MQVarPtr& VarPtr) override
-	{
-		// FIXME: Do not allocate a DOOR
-		DOOR* pDoor = static_cast<DOOR*>(VarPtr.Ptr);
-		delete pDoor;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		if (Source.Type != pSwitchType)
-			return false;
-
-		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(DOOR));
-		return true;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	void InitVariable(MQVarPtr& VarPtr) override;
+	void FreeVariable(MQVarPtr& VarPtr) override;
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
 };
 
 //============================================================================
@@ -708,90 +491,12 @@ public:
 class MQ2GroundType : public MQ2Type
 {
 public:
-	enum GroundMembers
-	{
-		ID = 1,
-		Distance = 2,
-		X = 3,
-		Y = 4,
-		Z = 5,
-		Heading = 6,
-		Name = 7,
-		HeadingTo = 8,
-		N = 9,
-		W = 10,
-		U = 11,
-		xLineOfSight = 12,
-		Address = 13,
-		DisplayName = 14,
-		Distance3D = 15,
-		SubID = 16,
-		ZoneID = 17,
-		First = 18,
-		Last = 19,
-		Next = 20,
-		Prev = 21,
-	};
-
-	enum GroundMethods
-	{
-		Grab = 1,
-		DoTarget = 2,
-		DoFace = 3,
-	};
-
-	MQ2GroundType() : MQ2Type("ground")
-	{
-		TypeMember(ID);
-		TypeMember(Distance);
-		TypeMember(X);
-		TypeMember(Y);
-		TypeMember(Z);
-		TypeMember(Heading);
-		TypeMember(Name);
-		TypeMember(HeadingTo);
-		AddMember(xLineOfSight, "LineOfSight");
-		TypeMember(Address);
-		TypeMember(DisplayName);
-		TypeMember(Distance3D);
-		TypeMember(SubID);
-		TypeMember(ZoneID);
-		TypeMember(First);
-		TypeMember(Last);
-		TypeMember(Next);
-		TypeMember(Prev);
-
-		// methods
-		TypeMethod(Grab);
-		TypeMethod(DoTarget);
-		TypeMethod(DoFace);
-	}
-
+	MQ2GroundType();
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-
-	void InitVariable(MQVarPtr& VarPtr) override
-	{
-		VarPtr.Ptr = new MQGroundObject();
-		VarPtr.HighPart = 0;
-	}
-
-	void FreeVariable(MQVarPtr& VarPtr) override
-	{
-		MQGroundObject* pGroundObject = static_cast<MQGroundObject*>(VarPtr.Ptr);
-		delete pGroundObject;
-	}
-
+	void InitVariable(MQVarPtr& VarPtr) override;
+	void FreeVariable(MQVarPtr& VarPtr) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		if (Source.Type != pGroundType)
-			return false;
-
-		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(MQGroundObject));
-		return true;
-	}
-
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, char* Source) override;
 };
 
@@ -993,84 +698,13 @@ public:
 class MQ2MercenaryType : public MQ2Type
 {
 public:
-	enum MercenaryMembers
-	{
-		AAPoints = 1,
-		Stance = 2,
-		State = 3,
-		StateID = 4,
-		xIndex = 5,
-	};
-
-	enum MercenaryMethods
-	{
-	};
-
-	MQ2MercenaryType() : MQ2Type("mercenary")
-	{
-		TypeMember(AAPoints);
-		TypeMember(Stance);
-		TypeMember(State);
-		TypeMember(StateID);
-		AddMember(xIndex, "Index");
-	}
-
+	MQ2MercenaryType();
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		if (!VarPtr.Ptr)
-			return false;
-
-		SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
-		strcpy_s(Destination, MAX_STRING, pSpawn->Name);
-		return true;
-	}
-
-	void InitVariable(MQVarPtr& VarPtr) override
-	{
-		// FIXME: Do not Allocate a SPAWNINFO
-		VarPtr.Ptr = new SPAWNINFO();
-		VarPtr.HighPart = 0;
-
-		// FIXME: Do not ZeroMemory a SPAWNINFO
-		ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
-	}
-
-	void FreeVariable(MQVarPtr& VarPtr) override
-	{
-		// FIXME: Do not Allocate a SPAWNINFO
-		SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
-		delete pSpawn;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		if (Source.Type == pSpawnType)
-		{
-			memcpy(VarPtr.Ptr, Source.Ptr, sizeof(SPAWNINFO));
-			return true;
-		}
-		else
-		{
-			if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(Source.DWord))
-			{
-				memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
-				return true;
-			}
-		}
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source) override
-	{
-		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(GetIntFromString(Source, 0)))
-		{
-			memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
-			return true;
-		}
-		return false;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	void InitVariable(MQVarPtr& VarPtr) override;
+	void FreeVariable(MQVarPtr& VarPtr) override;
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromString(MQVarPtr& VarPtr, char* Source) override;
 };
 
 //============================================================================
@@ -1079,94 +713,13 @@ public:
 class MQ2PetType : public MQ2Type
 {
 public:
-	enum PetMembers
-	{
-		Buff = 1,
-		Combat = 2,
-		GHold = 3,
-		Hold = 4,
-		ReGroup = 5,
-		Stance = 6,
-		Stop = 7,
-		Target = 8,
-		Taunt = 9,
-		BuffDuration = 10,
-	};
-
-	enum PetMethods
-	{
-	};
-
-	MQ2PetType() : MQ2Type("pet")
-	{
-		TypeMember(Buff);
-		TypeMember(Combat);
-		TypeMember(GHold);
-		TypeMember(Hold);
-		TypeMember(ReGroup);
-		TypeMember(Stance);
-		TypeMember(Stop);
-		TypeMember(Target);
-		TypeMember(Taunt);
-		TypeMember(BuffDuration);
-	}
-
+	MQ2PetType();
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		if (!VarPtr.Ptr)
-			return false;
-
-		SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
-		strcpy_s(Destination, MAX_STRING, pSpawn->Name);
-		return true;
-	}
-
-	void InitVariable(MQVarPtr& VarPtr) override
-	{
-		// FIXME: Do not allocate a SPAWNINFO
-		VarPtr.Ptr = new SPAWNINFO();
-		VarPtr.HighPart = 0;
-
-		// FIXME: Do not ZeroMemory a SPAWNINFO
-		ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
-	}
-
-	void FreeVariable(MQVarPtr& VarPtr) override
-	{
-		// FIXME: Do not allocate a SPAWNINFO
-		SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
-		delete pSpawn;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		if (Source.Type == pSpawnType)
-		{
-			memcpy(VarPtr.Ptr, Source.Ptr, sizeof(SPAWNINFO));
-			return true;
-		}
-		else
-		{
-			if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(Source.DWord))
-			{
-				memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
-				return true;
-			}
-		}
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source) override
-	{
-		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(GetIntFromString(Source, 0)))
-		{
-			memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
-			return true;
-		}
-		return false;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	void InitVariable(MQVarPtr& VarPtr) override;
+	void FreeVariable(MQVarPtr& VarPtr) override;
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromString(MQVarPtr& VarPtr, char* Source) override;
 };
 
 //============================================================================
@@ -1175,149 +728,22 @@ public:
 class MQ2WindowType : public MQ2Type
 {
 public:
-	enum WindowMembers
-	{
-		Open = 1,
-		Child = 2,
-		VScrollMax = 3,
-		VScrollPos = 4,
-		VScrollPct = 5,
-		HScrollMax = 6,
-		HScrollPos = 7,
-		HScrollPct = 8,
-		Children = 9,
-		Siblings = 10,
-		Parent = 11,
-		FirstChild = 12,
-		Next = 13,
-		Minimized = 14,
-		X = 15,
-		Y = 16,
-		Height = 17,
-		Width = 18,
-		MouseOver = 19,
-		BGColor = 20,
-		Text = 21,
-		Tooltip = 22,
-		List = 23,
-		Checked = 24,
-		Style = 25,
-		Enabled = 26,
-		Highlighted = 27,
-		Name = 28,
-		ScreenID = 29,
-		Type = 30,
-		Items = 31,
-		HisTradeReady = 32,
-		MyTradeReady = 33,
-		GetCurSel = 34,
-		Address = 35,
-		Size = 36,
-	};
-
-	enum WindowMethods
-	{
-		LeftMouseDown = 1,
-		LeftMouseUp = 2,
-		LeftMouseHeld = 3,
-		LeftMouseHeldUp = 4,
-		RightMouseDown = 5,
-		RightMouseUp = 6,
-		RightMouseHeld = 7,
-		RightMouseHeldUp = 8,
-		DoOpen = 9,
-		DoClose = 10,
-		Select = 11,
-	};
-
-	MQ2WindowType() : MQ2Type("window")
-	{
-		TypeMember(Open);
-		TypeMember(Child);
-		TypeMember(VScrollMax);
-		TypeMember(VScrollPos);
-		TypeMember(VScrollPct);
-		TypeMember(HScrollMax);
-		TypeMember(HScrollPos);
-		TypeMember(HScrollPct);
-		TypeMember(Children);
-		TypeMember(Parent);
-		TypeMember(Siblings);
-		TypeMember(FirstChild);
-		TypeMember(Next);
-		TypeMember(Minimized);
-		TypeMember(X);
-		TypeMember(Y);
-		TypeMember(Height);
-		TypeMember(Width);
-		TypeMember(MouseOver);
-		TypeMember(BGColor);
-		TypeMember(Text);
-		TypeMember(Tooltip);
-		TypeMember(List);
-		TypeMember(Checked);
-		TypeMember(Style);
-		TypeMember(Enabled);
-		TypeMember(Highlighted);
-		TypeMember(Name);
-		TypeMember(ScreenID);
-		TypeMember(Type);
-		TypeMember(Items);
-		TypeMember(HisTradeReady);
-		TypeMember(MyTradeReady);
-		TypeMember(GetCurSel);
-		TypeMember(Address);
-		TypeMember(Size);
-
-		TypeMethod(LeftMouseDown);
-		TypeMethod(LeftMouseUp);
-		TypeMethod(LeftMouseHeld);
-		TypeMethod(LeftMouseHeldUp);
-		TypeMethod(RightMouseDown);
-		TypeMethod(RightMouseUp);
-		TypeMethod(RightMouseHeld);
-		TypeMethod(RightMouseHeldUp);
-		TypeMethod(DoOpen);
-		TypeMethod(DoClose);
-		TypeMethod(Select);
-	}
-
+	MQ2WindowType();
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		CXWnd* pWnd = static_cast<CXWnd*>(VarPtr.Ptr);
-
-		if (pWnd)
-		{
-			if (VarPtr.HighPart == 24) // ???
-			{
-				if (CXMLData* pXMLData = pWnd->GetXMLData())
-				{
-					strcpy_s(Destination, MAX_STRING, pXMLData->Name.c_str());
-					return true;
-				}
-
-				return false;
-			}
-
-			if (pWnd->IsVisible())
-				strcpy_s(Destination, MAX_STRING, "TRUE");
-			else
-				strcpy_s(Destination, MAX_STRING, "FALSE");
-		}
-		return true;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		if (Source.Type != pWindowType)
-			return false;
-		VarPtr.Ptr = Source.Ptr;
-		return true;
-	}
-
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, char* Source) override;
+};
+
+//============================================================================
+// MQ2LastMouseOverType
+
+class MQ2LastMouseOverType : public MQ2Type
+{
+public:
+	MQ2LastMouseOverType();
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 };
 
 //============================================================================
@@ -1705,53 +1131,15 @@ public:
 	static bool dataMacroQuest(const char* szIndex, MQTypeVar& Ret);
 };
 
+//============================================================================
+// MQ2MathType
+
 class MQ2MathType : public MQ2Type
 {
 public:
-	enum MathMembers
-	{
-		Abs = 1,
-		Rand = 2,
-		Calc = 3,
-		Sin = 4,
-		Cos = 5,
-		Tan = 6,
-		Asin = 7,
-		Acos = 8,
-		Atan = 9,
-		Hex = 10,
-		Dec = 11,
-		Not = 12,
-		Distance = 13,
-		Sqrt = 14,
-		Clamp = 15,
-	};
-
-	MQ2MathType() : MQ2Type("math")
-	{
-		TypeMember(Abs);
-		TypeMember(Rand);
-		TypeMember(Calc);
-		TypeMember(Sin);
-		TypeMember(Cos);
-		TypeMember(Tan);
-		TypeMember(Asin);
-		TypeMember(Acos);
-		TypeMember(Atan);
-		TypeMember(Hex);
-		TypeMember(Dec);
-		TypeMember(Not);
-		TypeMember(Distance);
-		TypeMember(Sqrt);
-		TypeMember(Clamp);
-	}
-
+	MQ2MathType();
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		return false;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 };
 
 //============================================================================
@@ -1947,72 +1335,12 @@ public:
 class MQ2TimeType : public MQ2Type
 {
 public:
-	enum TimeMembers
-	{
-		Hour = 1,
-		Minute = 2,
-		Second = 3,
-		DayOfWeek = 4,
-		Day = 5,
-		Month = 6,
-		Year = 7,
-		Time12 = 8,
-		Time24 = 9,
-		Date = 10,
-		Night = 11,
-		SecondsSinceMidnight = 12,
-		Hour12 = 13,
-	};
-
-	MQ2TimeType() : MQ2Type("time")
-	{
-		TypeMember(Hour);
-		TypeMember(Minute);
-		TypeMember(Second);
-		TypeMember(DayOfWeek);
-		TypeMember(Day);
-		TypeMember(Month);
-		TypeMember(Year);
-		TypeMember(Time12);
-		TypeMember(Time24);
-		TypeMember(Date);
-		TypeMember(Night);
-		TypeMember(SecondsSinceMidnight);
-		TypeMember(Hour12);
-	}
-
+	MQ2TimeType();
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		tm* Now = static_cast<tm*>(VarPtr.Ptr);
-
-		sprintf_s(Destination, MAX_STRING, "%02d:%02d:%02d", Now->tm_hour, Now->tm_min, Now->tm_sec);
-		return true;
-	}
-
-	void InitVariable(MQVarPtr& VarPtr) override
-	{
-		VarPtr.Ptr = new tm();
-		VarPtr.HighPart = 0;
-
-		ZeroMemory(VarPtr.Ptr, sizeof(tm));
-	}
-
-	void FreeVariable(MQVarPtr& VarPtr) override
-	{
-		tm* Now = static_cast<tm*>(VarPtr.Ptr);
-		delete Now;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		if (Source.Type != pTimeType)
-			return false;
-
-		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(tm));
-		return true;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	void InitVariable(MQVarPtr& VarPtr) override;
+	void FreeVariable(MQVarPtr& VarPtr) override;
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
 };
 
 //============================================================================
@@ -2021,14 +1349,7 @@ public:
 class MQ2TypeType : public MQ2Type
 {
 public:
-	enum TypeMembers
-	{
-		xName = 1,
-		xTypeMember = 2,
-	};
-
 	MQ2TypeType();
-
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
@@ -2371,100 +1692,13 @@ public:
 class MQ2TimerType : public MQ2Type
 {
 public:
-	enum TimerMembers
-	{
-		Value = 1,
-		OriginalValue = 2,
-	};
-
-	enum TimerMethods
-	{
-		Reset = 1,
-		Expire = 2,
-		Set = 3,
-	};
-
-	MQ2TimerType() : MQ2Type("timer")
-	{
-		TypeMember(Value);
-		TypeMember(OriginalValue);
-
-		TypeMethod(Reset);
-		TypeMethod(Expire);
-		TypeMethod(Set);
-	}
-
+	MQ2TimerType();
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		MQTimer* pTimer = reinterpret_cast<MQTimer*>(VarPtr.Ptr);
-		_ultoa_s(pTimer->Current, Destination, MAX_STRING, 10);
-		return true;
-	}
-
-	void InitVariable(MQVarPtr& VarPtr) override
-	{
-		MQTimer* pVar = new MQTimer();
-		pVar->pNext = gTimer;
-
-		if (gTimer)
-			gTimer->pPrev = pVar;
-		gTimer = pVar;
-
-		VarPtr.Ptr = pVar;
-		VarPtr.HighPart = 0;
-	}
-
-	void FreeVariable(MQVarPtr& VarPtr) override
-	{
-		if (MQTimer* pVar = reinterpret_cast<MQTimer*>(VarPtr.Ptr))
-		{
-			if (pVar->pPrev)
-				pVar->pPrev->pNext = pVar->pNext;
-			else
-				gTimer = pVar->pNext;
-			if (pVar->pNext)
-				pVar->pNext->pPrev = pVar->pPrev;
-
-			delete pVar;
-		}
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		MQTimer* pTimer = reinterpret_cast<MQTimer*>(VarPtr.Ptr);
-		if (Source.Type == pFloatType)
-		{
-			pTimer->Current = (DWORD)Source.Float;
-			pTimer->Original = pTimer->Current;
-		}
-		else
-		{
-			pTimer->Current = Source.DWord;
-			pTimer->Original = pTimer->Current;
-		}
-		return true;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source) override
-	{
-		MQTimer* pTimer = reinterpret_cast<MQTimer*>(VarPtr.Ptr);
-
-		float VarValue = GetFloatFromString(Source, 0);
-		switch (Source[strlen(Source) - 1])
-		{
-		case 'm':
-		case 'M':
-			VarValue *= 60;
-		case 's':
-		case 'S':
-			VarValue *= 10;
-		}
-		pTimer->Current = (DWORD)VarValue;
-		pTimer->Original = pTimer->Current;
-		return true;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	void InitVariable(MQVarPtr& VarPtr) override;
+	void FreeVariable(MQVarPtr& VarPtr) override;
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromString(MQVarPtr& VarPtr, char* Source) override;
 };
 
 //============================================================================
@@ -3015,110 +2249,11 @@ public:
 class MQ2XTargetType : public MQ2Type
 {
 public:
-	enum xTargetMembers
-	{
-		xAddress = 1,
-		TargetType = 2,
-		ID = 3,
-		Name = 4,
-		PctAggro = 5,
-	};
-
-	MQ2XTargetType() : MQ2Type("xtarget")
-	{
-		TypeMember(xAddress);
-		TypeMember(TargetType);
-		TypeMember(ID);
-		TypeMember(Name);
-		TypeMember(PctAggro);
-	}
-
+	MQ2XTargetType();
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		int index = VarPtr.DWord;
-
-		if (CHARINFO* pChar = GetCharInfo())
-		{
-			if (index <= 23 && pChar->pXTargetMgr && pChar->pXTargetMgr->XTargetSlots.Count)
-			{
-				XTARGETSLOT xtd = GetCharInfo()->pXTargetMgr->XTargetSlots[index];
-				strcpy_s(Destination, MAX_STRING, xtd.Name);
-			}
-		}
-		else
-		{
-			strcpy_s(Destination, MAX_STRING, "NULL");
-		}
-
-		return true;
-	}
-
-	void InitVariable(MQVarPtr& VarPtr) override
-	{
-		// FIXME: Do not allocate a SPAWNINFO
-		VarPtr.Ptr = new SPAWNINFO();
-		VarPtr.HighPart = 0;
-
-		ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
-	}
-
-	void FreeVariable(MQVarPtr& VarPtr) override
-	{
-		// FIXME: Do not allocate a SPAWNINFO
-		SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
-		delete pSpawn;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		if (Source.Type == pSpawnType)
-		{
-			memcpy(VarPtr.Ptr, Source.Ptr, sizeof(SPAWNINFO));
-			return true;
-		}
-		else
-		{
-			int index = Source.DWord;
-
-			if (CHARINFO* pChar = GetCharInfo())
-			{
-				if (index <= 23 && pChar->pXTargetMgr && pChar->pXTargetMgr->XTargetSlots.Count)
-				{
-					XTARGETSLOT xtd = GetCharInfo()->pXTargetMgr->XTargetSlots[index];
-
-					if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(xtd.SpawnID))
-					{
-						memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
-						return true;
-					}
-				}
-			}
-		}
-
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source) override
-	{
-		int index = GetIntFromString(Source, 0);
-
-		if (CHARINFO* pChar = GetCharInfo())
-		{
-			if (index <= 23 && pChar->pXTargetMgr && pChar->pXTargetMgr->XTargetSlots.Count)
-			{
-				XTARGETSLOT xtd = GetCharInfo()->pXTargetMgr->XTargetSlots[index];
-
-				if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(xtd.SpawnID))
-				{
-					memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
-					return true;
-				}
-			}
-		}
-		return false;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromString(MQVarPtr& VarPtr, char* Source) override;
 };
 
 //============================================================================
@@ -3200,69 +2335,10 @@ public:
 class MQ2AdvLootItemType : public MQ2Type
 {
 public:
-	enum AdvLootItemMembers
-	{
-		Address = 1,
-		xIndex = 2,
-		Name = 3,
-		ID = 4,
-		StackSize = 5,
-		Corpse = 6,
-		AutoRoll = 7,
-		Need = 8,
-		Greed = 9,
-		No = 10,
-		AlwaysNeed = 11,
-		AlwaysGreed = 12,
-		Never = 13,
-		IconID = 14,
-		xNoDrop = 15,
-	};
-
-	enum MQ2AdvLootItemMethods
-	{
-	};
-
-	MQ2AdvLootItemType() : MQ2Type("advlootitem")
-	{
-		TypeMember(Address);
-		AddMember(xIndex, "Index");
-		TypeMember(Name);
-		TypeMember(ID);
-		TypeMember(StackSize);
-		TypeMember(Corpse);
-		TypeMember(AutoRoll);
-		TypeMember(Need);
-		TypeMember(Greed);
-		TypeMember(No);
-		TypeMember(AlwaysNeed);
-		TypeMember(AlwaysGreed);
-		TypeMember(Never);
-		TypeMember(IconID);
-		AddMember(xNoDrop, "NoDrop");
-	}
-
+	MQ2AdvLootItemType();
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		if (AdvancedLootItem* pitem = (AdvancedLootItem*)VarPtr.Ptr)
-		{
-			strcpy_s(Destination, 64, pitem->Name);
-			return true;
-		}
-
-		return false;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		if (Source.Type != pAdvLootItemType)
-			return false;
-
-		VarPtr.Ptr = Source.Ptr;
-		return true;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
 };
 
 //============================================================================
@@ -3271,30 +2347,7 @@ public:
 class MQ2AdvLootType : public MQ2Type
 {
 public:
-	enum AdvLootTypeMembers
-	{
-		PList = 1,
-		PCount = 2,
-		SList = 3,
-		SCount = 4,
-		PWantCount = 5,
-		SWantCount = 6,
-		xLootInProgress = 7,
-		Filter = 8,
-	};
-
-	MQ2AdvLootType() : MQ2Type("advloot")
-	{
-		TypeMember(PList);
-		TypeMember(PCount);
-		TypeMember(SList);
-		TypeMember(SCount);
-		TypeMember(PWantCount);
-		TypeMember(SWantCount);
-		AddMember(xLootInProgress, "LootInProgress");
-		TypeMember(Filter);
-	}
-
+	MQ2AdvLootType();
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override { return false; }
 };
@@ -3596,20 +2649,7 @@ public:
 class MQ2AugType : public MQ2Type
 {
 public:
-	enum AugTypeMembers
-	{
-		Slot = 1,
-		Type = 2,
-		Visible = 3,
-		Infusable = 4,
-		Empty = 5,
-		Name = 6,
-		Item = 7,
-		Solvent = 8,
-	};
-
 	MQ2AugType();
-
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 };

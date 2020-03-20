@@ -18,6 +18,44 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class MathMembers
+{
+	Abs,
+	Rand,
+	Calc,
+	Sin,
+	Cos,
+	Tan,
+	Asin,
+	Acos,
+	Atan,
+	Hex,
+	Dec,
+	Not,
+	Distance,
+	Sqrt,
+	Clamp
+};
+
+MQ2MathType::MQ2MathType() : MQ2Type("math")
+{
+	ScopedTypeMember(MathMembers, Abs);
+	ScopedTypeMember(MathMembers, Rand);
+	ScopedTypeMember(MathMembers, Calc);
+	ScopedTypeMember(MathMembers, Sin);
+	ScopedTypeMember(MathMembers, Cos);
+	ScopedTypeMember(MathMembers, Tan);
+	ScopedTypeMember(MathMembers, Asin);
+	ScopedTypeMember(MathMembers, Acos);
+	ScopedTypeMember(MathMembers, Atan);
+	ScopedTypeMember(MathMembers, Hex);
+	ScopedTypeMember(MathMembers, Dec);
+	ScopedTypeMember(MathMembers, Not);
+	ScopedTypeMember(MathMembers, Distance);
+	ScopedTypeMember(MathMembers, Sqrt);
+	ScopedTypeMember(MathMembers, Clamp);
+}
+
 bool MQ2MathType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQTypeMember* pMember = MQ2MathType::FindMember(Member);
@@ -31,7 +69,7 @@ bool MQ2MathType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 
 	switch (static_cast<MathMembers>(pMember->ID))
 	{
-	case Abs:
+	case MathMembers::Abs:
 		Dest.Float = 0.0;
 		Dest.Type = pFloatType;
 		if (Calculate(Index, CalcResult))
@@ -43,7 +81,7 @@ bool MQ2MathType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case Rand:
+	case MathMembers::Rand:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (char* Arg = Index)
@@ -73,7 +111,7 @@ bool MQ2MathType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case Sqrt:
+	case MathMembers::Sqrt:
 		Dest.Float = 0.0;
 		Dest.Type = pFloatType;
 		if (Calculate(Index, CalcResult))
@@ -83,7 +121,7 @@ bool MQ2MathType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case Calc:
+	case MathMembers::Calc:
 		Dest.Float = 0.0;
 		Dest.Type = pFloatType;
 		if (Calculate(Index, CalcResult))
@@ -93,7 +131,7 @@ bool MQ2MathType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case Sin:
+	case MathMembers::Sin:
 		Dest.Float = 0.0;
 		Dest.Type = pFloatType;
 		if (Calculate(Index, CalcResult))
@@ -103,7 +141,7 @@ bool MQ2MathType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case Cos:
+	case MathMembers::Cos:
 		Dest.Float = 0.0;
 		Dest.Type = pFloatType;
 		if (Calculate(Index, CalcResult))
@@ -113,7 +151,7 @@ bool MQ2MathType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case Tan:
+	case MathMembers::Tan:
 		Dest.Float = 0.0;
 		Dest.Type = pFloatType;
 		if (Calculate(Index, CalcResult))
@@ -123,7 +161,7 @@ bool MQ2MathType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case Asin:
+	case MathMembers::Asin:
 		Dest.Float = 0.0;
 		Dest.Type = pFloatType;
 		if (Calculate(Index, CalcResult))
@@ -133,7 +171,7 @@ bool MQ2MathType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case Acos:
+	case MathMembers::Acos:
 		Dest.Float = 0.0;
 		Dest.Type = pFloatType;
 		if (Calculate(Index, CalcResult))
@@ -143,7 +181,7 @@ bool MQ2MathType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case Atan:
+	case MathMembers::Atan:
 		Dest.Float = 0.0;
 		Dest.Type = pFloatType;
 		if (Calculate(Index, CalcResult))
@@ -153,26 +191,29 @@ bool MQ2MathType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case Not:
+	case MathMembers::Not:
 		Dest.DWord = ~GetIntFromString(Index, 0);
 		Dest.Type = pIntType;
 		return true;
 
-	case Hex:
+	case MathMembers::Hex:
 		sprintf_s(DataTypeTemp, "0x%X", GetIntFromString(Index, 0));
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case Dec:
-		Dest.DWord = 0;
+	case MathMembers::Dec:
+	{
 		Dest.Type = pIntType;
-		if (sscanf_s(Index, "%x", &Dest.DWord)) {
+		DWORD scan;
+		if (sscanf_s(Index, "%x", &scan)) {
+			Dest.DWord = scan;
 			return true;
 		}
 		return false;
+	}
 
-	case Clamp:
+	case MathMembers::Clamp:
 		Dest.Int = 0;
 		Dest.Type = pIntType;
 		if (char* Arg = Index)
@@ -195,7 +236,7 @@ bool MQ2MathType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		}
 		return false;
 
-	case Distance:
+	case MathMembers::Distance:
 		Dest.Float = 0.0;
 		Dest.Type = pFloatType;
 		// TODO: This code appears in LineOfSight function, possibly clean and combine
@@ -265,6 +306,11 @@ bool MQ2MathType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 	default: break;
 	}
 
+	return false;
+}
+
+bool MQ2MathType::ToString(MQVarPtr VarPtr, char* Destination)
+{
 	return false;
 }
 

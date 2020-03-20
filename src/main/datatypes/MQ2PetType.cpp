@@ -18,6 +18,34 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class PetMembers
+{
+	Buff,
+	Combat,
+	GHold,
+	Hold,
+	ReGroup,
+	Stance,
+	Stop,
+	Target,
+	Taunt,
+	BuffDuration
+};
+
+MQ2PetType::MQ2PetType() : MQ2Type("pet")
+{
+	ScopedTypeMember(PetMembers, Buff);
+	ScopedTypeMember(PetMembers, Combat);
+	ScopedTypeMember(PetMembers, GHold);
+	ScopedTypeMember(PetMembers, Hold);
+	ScopedTypeMember(PetMembers, ReGroup);
+	ScopedTypeMember(PetMembers, Stance);
+	ScopedTypeMember(PetMembers, Stop);
+	ScopedTypeMember(PetMembers, Target);
+	ScopedTypeMember(PetMembers, Taunt);
+	ScopedTypeMember(PetMembers, BuffDuration);
+}
+
 bool MQ2PetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
 	SPAWNINFO* pSpawn = reinterpret_cast<SPAWNINFO*>(VarPtr.Ptr);
@@ -38,7 +66,7 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar
 
 	switch (static_cast<PetMembers>(pMember->ID))
 	{
-	case Buff:
+	case PetMembers::Buff:
 		Dest.Type = pSpellType;
 		if (!Index[0])
 			return false;
@@ -78,7 +106,7 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar
 		}
 		return false;
 
-	case BuffDuration:
+	case PetMembers::BuffDuration:
 		Dest.UInt64 = 0;
 		Dest.Type = pTimeStampType;
 		if (!Index[0])
@@ -115,27 +143,27 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar
 		}
 		return false;
 
-	case Combat:
+	case PetMembers::Combat:
 		Dest.DWord = pSpawn->WhoFollowing != nullptr;
 		Dest.Type = pBoolType;
 		return true;
 
-	case GHold:
+	case PetMembers::GHold:
 		Dest.DWord = pPetInfoWnd->GHold;
 		Dest.Type = pBoolType;
 		return true;
 
-	case Hold:
+	case PetMembers::Hold:
 		Dest.DWord = pPetInfoWnd->Hold;
 		Dest.Type = pBoolType;
 		return true;
 
-	case ReGroup:
+	case PetMembers::ReGroup:
 		Dest.DWord = pPetInfoWnd->ReGroup;
 		Dest.Type = pBoolType;
 		return true;
 
-	case Stance:
+	case PetMembers::Stance:
 		if (pPetInfoWnd->Follow)
 			strcpy_s(DataTypeTemp, "FOLLOW");
 		else
@@ -144,12 +172,12 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar
 		Dest.Type = pStringType;
 		return true;
 
-	case Stop:
+	case PetMembers::Stop:
 		Dest.DWord = pPetInfoWnd->Stop;
 		Dest.Type = pBoolType;
 		return true;
 
-	case Target:
+	case PetMembers::Target:
 		Dest.Type = pSpawnType;
 		if (Dest.Ptr = pSpawn->WhoFollowing)
 		{
@@ -157,12 +185,66 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar
 		}
 		return false;
 
-	case Taunt:
+	case PetMembers::Taunt:
 		Dest.DWord = pPetInfoWnd->Taunt;
 		Dest.Type = pBoolType;
 		return true;
 	}
 
+	return false;
+}
+
+bool MQ2PetType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (!VarPtr.Ptr)
+		return false;
+
+	SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
+	strcpy_s(Destination, MAX_STRING, pSpawn->Name);
+	return true;
+}
+
+void MQ2PetType::InitVariable(MQVarPtr& VarPtr)
+{
+	// FIXME: Do not allocate a SPAWNINFO
+	VarPtr.Ptr = new SPAWNINFO();
+
+	// FIXME: Do not ZeroMemory a SPAWNINFO
+	ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
+}
+
+void MQ2PetType::FreeVariable(MQVarPtr& VarPtr)
+{
+	// FIXME: Do not allocate a SPAWNINFO
+	SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
+	delete pSpawn;
+}
+
+bool MQ2PetType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type == pSpawnType)
+	{
+		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(SPAWNINFO));
+		return true;
+	}
+	else
+	{
+		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(Source.DWord))
+		{
+			memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
+			return true;
+		}
+	}
+	return false;
+}
+
+bool MQ2PetType::FromString(MQVarPtr& VarPtr, char* Source)
+{
+	if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(GetIntFromString(Source, 0)))
+	{
+		memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
+		return true;
+	}
 	return false;
 }
 

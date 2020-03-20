@@ -392,6 +392,9 @@
     <ClCompile Include="MQ2StringDB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="datatypes\MQ2LastMouseOverType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
@@ -512,6 +515,9 @@
       <Filter>Header Files\common</Filter>
     </ClInclude>
     <ClInclude Include="MQ2Args.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MQ2DataContainers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

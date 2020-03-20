@@ -18,6 +18,30 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class AdvLootTypeMembers
+{
+	PList,
+	PCount,
+	SList,
+	SCount,
+	PWantCount,
+	SWantCount,
+	LootInProgress,
+	Filter
+};
+
+MQ2AdvLootType::MQ2AdvLootType() : MQ2Type("advloot")
+{
+	ScopedTypeMember(AdvLootTypeMembers, PList);
+	ScopedTypeMember(AdvLootTypeMembers, PCount);
+	ScopedTypeMember(AdvLootTypeMembers, SList);
+	ScopedTypeMember(AdvLootTypeMembers, SCount);
+	ScopedTypeMember(AdvLootTypeMembers, PWantCount);
+	ScopedTypeMember(AdvLootTypeMembers, SWantCount);
+	ScopedTypeMember(AdvLootTypeMembers, LootInProgress);
+	ScopedTypeMember(AdvLootTypeMembers, Filter);
+}
+
 bool MQ2AdvLootType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
 	if (!pAdvancedLootWnd)
@@ -29,12 +53,12 @@ bool MQ2AdvLootType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 
 	switch (static_cast<AdvLootTypeMembers>(pMember->ID))
 	{
-	case PCount:
+	case AdvLootTypeMembers::PCount:
 		Dest.Int = pAdvancedLootWnd->pPLootList->Items.GetSize();
 		Dest.Type = pIntType;
 		return true;
 
-	case PList:
+	case AdvLootTypeMembers::PList:
 		Dest.Type = pAdvLootItemType;
 		if (int index = GetIntFromString(Index, 0))
 		{
@@ -46,21 +70,19 @@ bool MQ2AdvLootType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 				int listindex = (int)clist->GetItemData(index);
 				if (pAdvancedLootWnd->pPLootList && listindex != -1)
 				{
-					AdvancedLootItem* pItem = &pAdvancedLootWnd->pPLootList->Items[listindex];
-					Dest.Ptr = pItem;
-					Dest.HighPart = listindex;
+					Dest.DWord = listindex;
 					return true;
 				}
 			}
 		}
 		return false;
 
-	case SCount:
+	case AdvLootTypeMembers::SCount:
 		Dest.Int = pAdvancedLootWnd->pCLootList->Items.GetSize();
 		Dest.Type = pIntType;
 		return true;
 
-	case SList:
+	case AdvLootTypeMembers::SList:
 		Dest.Type = pAdvLootItemType;
 		if (int index = GetIntFromString(Index, 0))
 		{
@@ -73,16 +95,14 @@ bool MQ2AdvLootType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 				int listindex = (int)clist->GetItemData(index);
 				if (pAdvancedLootWnd->pCLootList && listindex != -1)
 				{
-					AdvancedLootItem* pItem = &pAdvancedLootWnd->pCLootList->Items[listindex];
-					Dest.Ptr = pItem;
-					Dest.HighPart = listindex;
+					Dest.DWord = listindex;
 					return true;
 				}
 			}
 		}
 		return false;
 
-	case PWantCount:
+	case AdvLootTypeMembers::PWantCount:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -103,7 +123,7 @@ bool MQ2AdvLootType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 		}
 		return true;
 
-	case SWantCount:
+	case AdvLootTypeMembers::SWantCount:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -124,7 +144,7 @@ bool MQ2AdvLootType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 		}
 		return true;
 
-	case xLootInProgress:
+	case AdvLootTypeMembers::LootInProgress:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
 
@@ -138,7 +158,7 @@ bool MQ2AdvLootType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 		}
 		return true;
 
-	case Filter:
+	case AdvLootTypeMembers::Filter:
 		Dest.Type = pItemFilterDataType;
 		if (pLootFiltersManager)
 		{

@@ -18,64 +18,84 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class AugTypeMembers
+{
+	Slot,
+	Type,
+	Visible,
+	Infusable,
+	Empty,
+	Name,
+	Item,
+	Solvent
+};
+
 MQ2AugType::MQ2AugType() : MQ2Type("augtype")
 {
-	TypeMember(Slot);
-	TypeMember(Type);
-	TypeMember(Visible);
-	TypeMember(Infusable);
-	TypeMember(Empty);
-	TypeMember(Name);
-	TypeMember(Item);
-	TypeMember(Solvent);
+	ScopedTypeMember(AugTypeMembers, Slot);
+	ScopedTypeMember(AugTypeMembers, Type);
+	ScopedTypeMember(AugTypeMembers, Visible);
+	ScopedTypeMember(AugTypeMembers, Infusable);
+	ScopedTypeMember(AugTypeMembers, Empty);
+	ScopedTypeMember(AugTypeMembers, Name);
+	ScopedTypeMember(AugTypeMembers, Item);
+	ScopedTypeMember(AugTypeMembers, Solvent);
 }
 
 bool MQ2AugType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
-	CONTENTS* pCont = (CONTENTS*)VarPtr.HighPart;
+	if (!pCharData)
+		return false;
+
+	auto slotWithIdx = VarPtr.Get<MQ2SlotInItem>();
+	if (!slotWithIdx)
+		return false;
+
+	auto globalIdx = slotWithIdx->GlobalIndex;
+	auto pCont = pCharData->GetItemByGlobalIndex(globalIdx);
 	if (!pCont)
 		return false;
 
-	PITEMINFO pItem = GetItemFromContents(pCont);
+	auto pItem = pCont->GetItemDefinition();
 	if (!pItem)
 		return false;
+
+	int index = slotWithIdx->Slot;
 
 	MQTypeMember* pMember = MQ2AugType::FindMember(Member);
 	if (!pMember)
 		return false;
 
-	DWORD index = VarPtr.DWord;
-
 	switch (static_cast<AugTypeMembers>(pMember->ID))
 	{
-	case Slot:
+	case AugTypeMembers::Slot:
 		Dest.DWord = index + 1;
 		Dest.Type = pIntType;
 		return true;
 
-	case Type:
+	case AugTypeMembers::Type:
 		Dest.DWord = pItem->AugData.Sockets[index].Type;
 		Dest.Type = pIntType;
 		return true;
 
-	case Visible:
+	case AugTypeMembers::Visible:
 		Dest.DWord = pItem->AugData.Sockets[index].bVisible;
 		Dest.Type = pBoolType;
 		return true;
 
-	case Infusable:
+	case AugTypeMembers::Infusable:
 		Dest.DWord = pItem->AugData.Sockets[index].bInfusible;
 		Dest.Type = pBoolType;
 		return true;
 
-	case Empty:
+	case AugTypeMembers::Empty:
 		Dest.DWord = true;
 		Dest.Type = pBoolType;
 		if (CONTENTS* pCret = pCont->GetContent(index))
 			Dest.DWord = false;
 		return true;
 
-	case Name:
+	case AugTypeMembers::Name:
 		Dest.Type = pStringType;
 		if (CONTENTS* pCret = pCont->GetContent(index))
 		{
@@ -88,7 +108,7 @@ bool MQ2AugType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar
 		}
 		return false;
 
-	case Item:
+	case AugTypeMembers::Item:
 		Dest.Type = pItemType;
 		if (CONTENTS* pCret = pCont->GetContent(index))
 		{
@@ -97,7 +117,7 @@ bool MQ2AugType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar
 		}
 		return false;
 
-	case Solvent:
+	case AugTypeMembers::Solvent:
 		Dest.DWord = 0;
 		Dest.Type = pSolventType;
 		if (CONTENTS* pCret = pCont->GetContent(index))
@@ -110,25 +130,35 @@ bool MQ2AugType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar
 		}
 		return false;
 
-	default: break;
+	default:
+		return false;
 	};
-
-	return false;
 }
 
 bool MQ2AugType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	if (CONTENTS* pCont = (CONTENTS*)VarPtr.HighPart)
-	{
-		if (CONTENTS* pAug = pCont->GetContent(VarPtr.DWord))
-		{
-			if (ITEMINFO* pAugItem = GetItemFromContents(pAug))
-			{
-				strcpy_s(Destination, MAX_STRING, pAugItem->Name);
-				return true;
-			}
-		}
-	}
-	return false;
+	if (!pCharData)
+		return false;
+
+	auto slotWithIdx = VarPtr.Get<MQ2SlotInItem>();
+	if (!slotWithIdx)
+		return false;
+
+	auto globalIdx = slotWithIdx->GlobalIndex;
+	auto pCont = pCharData->GetItemByGlobalIndex(globalIdx);
+	if (!pCont)
+		return false;
+
+	int index = slotWithIdx->Slot;
+	auto pAugCont = pCont->GetContent(index);
+	if (!pAugCont)
+		return false;
+
+	auto pAug = pAugCont->GetItemDefinition();
+	if (!pAug)
+		return false;
+
+	strcpy_s(Destination, MAX_STRING, pAug->Name);
+	return true;
 }
 

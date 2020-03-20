@@ -18,6 +18,24 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class XTargetMembers
+{
+	Address,
+	TargetType,
+	ID,
+	Name,
+	PctAggro
+};
+
+MQ2XTargetType::MQ2XTargetType() : MQ2Type("xtarget")
+{
+	ScopedTypeMember(XTargetMembers, Address);
+	ScopedTypeMember(XTargetMembers, TargetType);
+	ScopedTypeMember(XTargetMembers, ID);
+	ScopedTypeMember(XTargetMembers, Name);
+	ScopedTypeMember(XTargetMembers, PctAggro);
+}
+
 bool MQ2XTargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
 	if (!GetCharInfo() || !GetCharInfo()->pXTargetMgr || VarPtr.DWord >= MAX_EXTENDED_TARGETS)
@@ -27,14 +45,14 @@ bool MQ2XTargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 	{
 		const XTARGETSLOT& xts = GetCharInfo()->pXTargetMgr->XTargetSlots[VarPtr.DWord];
 
-		switch (static_cast<xTargetMembers>(pMember->ID))
+		switch (static_cast<XTargetMembers>(pMember->ID))
 		{
-		case xAddress:
+		case XTargetMembers::Address:
 			Dest.DWord = (uint32_t)GetCharInfo()->pXTargetMgr;
 			Dest.Type = pIntType;
 			return true;
 
-		case TargetType:
+		case XTargetMembers::TargetType:
 			if (const char* ptr = GetXtargetType(xts.xTargetType))
 				strcpy_s(DataTypeTemp, ptr);
 			else
@@ -43,12 +61,12 @@ bool MQ2XTargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 			Dest.Type = pStringType;
 			return true;
 
-		case ID:
+		case XTargetMembers::ID:
 			Dest.DWord = xts.SpawnID;
 			Dest.Type = pIntType;
 			return true;
 
-		case Name:
+		case XTargetMembers::Name:
 			if (xts.Name[0] != 0)
 				strcpy_s(DataTypeTemp, xts.Name);
 			else
@@ -57,7 +75,7 @@ bool MQ2XTargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 			Dest.Type = pStringType;
 			return true;
 
-		case PctAggro:
+		case XTargetMembers::PctAggro:
 			Dest.DWord = 0;
 			Dest.Type = pIntType;
 			if (pAggroInfo)
@@ -91,4 +109,73 @@ bool MQ2XTargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 	}
 	return false;
 };
+
+bool MQ2XTargetType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	int index = VarPtr.DWord;
+
+	if (CHARINFO* pChar = GetCharInfo())
+	{
+		if (index <= 23 && pChar->pXTargetMgr && pChar->pXTargetMgr->XTargetSlots.Count)
+		{
+			XTARGETSLOT xtd = GetCharInfo()->pXTargetMgr->XTargetSlots[index];
+			strcpy_s(Destination, MAX_STRING, xtd.Name);
+		}
+	}
+	else
+	{
+		strcpy_s(Destination, MAX_STRING, "NULL");
+	}
+
+	return true;
+}
+
+bool MQ2XTargetType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type == pSpawnType)
+	{
+		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(SPAWNINFO));
+		return true;
+	}
+	else
+	{
+		int index = Source.DWord;
+
+		if (CHARINFO* pChar = GetCharInfo())
+		{
+			if (index <= 23 && pChar->pXTargetMgr && pChar->pXTargetMgr->XTargetSlots.Count)
+			{
+				XTARGETSLOT xtd = GetCharInfo()->pXTargetMgr->XTargetSlots[index];
+
+				if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(xtd.SpawnID))
+				{
+					memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+bool MQ2XTargetType::FromString(MQVarPtr& VarPtr, char* Source)
+{
+	int index = GetIntFromString(Source, 0);
+
+	if (CHARINFO* pChar = GetCharInfo())
+	{
+		if (index <= 23 && pChar->pXTargetMgr && pChar->pXTargetMgr->XTargetSlots.Count)
+		{
+			XTARGETSLOT xtd = GetCharInfo()->pXTargetMgr->XTargetSlots[index];
+
+			if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(xtd.SpawnID))
+			{
+				memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
+				return true;
+			}
+		}
+	}
+	return false;
+}
 

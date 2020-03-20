@@ -18,6 +18,40 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class TimeMembers
+{
+	Hour,
+	Minute,
+	Second,
+	DayOfWeek,
+	Day,
+	Month,
+	Year,
+	Time12,
+	Time24,
+	Date,
+	Night,
+	SecondsSinceMidnight,
+	Hour12,
+};
+
+MQ2TimeType::MQ2TimeType() : MQ2Type("time")
+{
+	ScopedTypeMember(TimeMembers, Hour);
+	ScopedTypeMember(TimeMembers, Minute);
+	ScopedTypeMember(TimeMembers, Second);
+	ScopedTypeMember(TimeMembers, DayOfWeek);
+	ScopedTypeMember(TimeMembers, Day);
+	ScopedTypeMember(TimeMembers, Month);
+	ScopedTypeMember(TimeMembers, Year);
+	ScopedTypeMember(TimeMembers, Time12);
+	ScopedTypeMember(TimeMembers, Time24);
+	ScopedTypeMember(TimeMembers, Date);
+	ScopedTypeMember(TimeMembers, Night);
+	ScopedTypeMember(TimeMembers, SecondsSinceMidnight);
+	ScopedTypeMember(TimeMembers, Hour12);
+}
+
 bool MQ2TimeType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
 	tm* pTime = reinterpret_cast<tm*>(VarPtr.Ptr);
@@ -30,12 +64,12 @@ bool MQ2TimeType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 
 	switch (static_cast<TimeMembers>(pMember->ID))
 	{
-	case Hour:
+	case TimeMembers::Hour:
 		Dest.DWord = pTime->tm_hour;
 		Dest.Type = pIntType;
 		return true;
 
-	case Hour12: {
+	case TimeMembers::Hour12: {
 		unsigned long Hour = pTime->tm_hour % 12;
 		if (!Hour)
 			Hour = 12;
@@ -45,37 +79,37 @@ bool MQ2TimeType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		return true;
 	}
 
-	case Minute:
+	case TimeMembers::Minute:
 		Dest.DWord = pTime->tm_min;
 		Dest.Type = pIntType;
 		return true;
 
-	case Second:
+	case TimeMembers::Second:
 		Dest.DWord = pTime->tm_sec;
 		Dest.Type = pIntType;
 		return true;
 
-	case DayOfWeek:
+	case TimeMembers::DayOfWeek:
 		Dest.DWord = pTime->tm_wday + 1;
 		Dest.Type = pIntType;
 		return true;
 
-	case Day:
+	case TimeMembers::Day:
 		Dest.DWord = pTime->tm_mday;
 		Dest.Type = pIntType;
 		return true;
 
-	case Month:
+	case TimeMembers::Month:
 		Dest.DWord = pTime->tm_mon + 1;
 		Dest.Type = pIntType;
 		return true;
 
-	case Year:
+	case TimeMembers::Year:
 		Dest.DWord = pTime->tm_year + 1900;
 		Dest.Type = pIntType;
 		return true;
 
-	case Time12: {
+	case TimeMembers::Time12: {
 		uint32_t Hour = pTime->tm_hour % 12;
 		if (!Hour)
 			Hour = 12;
@@ -85,24 +119,24 @@ bool MQ2TimeType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pStringType;
 		return true;
 	}
-	case Time24:
+	case TimeMembers::Time24:
 		sprintf_s(DataTypeTemp, "%02d:%02d:%02d", pTime->tm_hour, pTime->tm_min, pTime->tm_sec);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case Date:
+	case TimeMembers::Date:
 		sprintf_s(DataTypeTemp, "%02d/%02d/%04d", pTime->tm_mon + 1, pTime->tm_mday, pTime->tm_year + 1900);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case Night:
+	case TimeMembers::Night:
 		Dest.DWord = ((pTime->tm_hour < 7) || (pTime->tm_hour > 20));
 		Dest.Type = pBoolType;
 		return true;
 
-	case SecondsSinceMidnight:
+	case TimeMembers::SecondsSinceMidnight:
 		Dest.DWord = pTime->tm_hour * 3600 + pTime->tm_min * 60 + pTime->tm_sec;
 		Dest.Type = pIntType;
 		return true;
@@ -111,5 +145,34 @@ bool MQ2TimeType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 	}
 
 	return false;
+}
+
+bool MQ2TimeType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	tm* Now = static_cast<tm*>(VarPtr.Ptr);
+
+	sprintf_s(Destination, MAX_STRING, "%02d:%02d:%02d", Now->tm_hour, Now->tm_min, Now->tm_sec);
+	return true;
+}
+
+void MQ2TimeType::InitVariable(MQVarPtr& VarPtr)
+{
+	VarPtr.Ptr = new tm();
+	ZeroMemory(VarPtr.Ptr, sizeof(tm));
+}
+
+void MQ2TimeType::FreeVariable(MQVarPtr& VarPtr)
+{
+	tm* Now = static_cast<tm*>(VarPtr.Ptr);
+	delete Now;
+}
+
+bool MQ2TimeType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type != pTimeType)
+		return false;
+
+	memcpy(VarPtr.Ptr, Source.Ptr, sizeof(tm));
+	return true;
 }
 

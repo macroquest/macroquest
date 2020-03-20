@@ -18,6 +18,65 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class GroundMembers
+{
+	ID,
+	Distance,
+	X,
+	Y,
+	Z,
+	Heading,
+	Name,
+	HeadingTo,
+	N,
+	W,
+	U,
+	LineOfSight,
+	Address,
+	DisplayName,
+	Distance3D,
+	SubID,
+	ZoneID,
+	First,
+	Last,
+	Next,
+	Prev
+};
+
+enum class GroundMethods
+{
+	Grab,
+	DoTarget,
+	DoFace
+};
+
+MQ2GroundType::MQ2GroundType() : MQ2Type("ground")
+{
+	ScopedTypeMember(GroundMembers, ID);
+	ScopedTypeMember(GroundMembers, Distance);
+	ScopedTypeMember(GroundMembers, X);
+	ScopedTypeMember(GroundMembers, Y);
+	ScopedTypeMember(GroundMembers, Z);
+	ScopedTypeMember(GroundMembers, Heading);
+	ScopedTypeMember(GroundMembers, Name);
+	ScopedTypeMember(GroundMembers, HeadingTo);
+	ScopedTypeMember(GroundMembers, LineOfSight);
+	ScopedTypeMember(GroundMembers, Address);
+	ScopedTypeMember(GroundMembers, DisplayName);
+	ScopedTypeMember(GroundMembers, Distance3D);
+	ScopedTypeMember(GroundMembers, SubID);
+	ScopedTypeMember(GroundMembers, ZoneID);
+	ScopedTypeMember(GroundMembers, First);
+	ScopedTypeMember(GroundMembers, Last);
+	ScopedTypeMember(GroundMembers, Next);
+	ScopedTypeMember(GroundMembers, Prev);
+
+	// methods
+	ScopedTypeMethod(GroundMethods, Grab);
+	ScopedTypeMethod(GroundMethods, DoTarget);
+	ScopedTypeMethod(GroundMethods, DoFace);
+}
+
 bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQGroundObject* pGroundObject = static_cast<MQGroundObject*>(VarPtr.Ptr);
@@ -38,7 +97,7 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 	{
 		switch (static_cast<GroundMethods>(pMethod->ID))
 		{
-		case Grab: {
+		case GroundMethods::Grab: {
 			Dest.DWord = 0;
 			Dest.Type = pBoolType;
 
@@ -97,7 +156,7 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 			return true;
 		}
 
-		case DoTarget:
+		case GroundMethods::DoTarget:
 		{
 			char szName[256] = { 0 };
 
@@ -164,7 +223,7 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 			return true;
 		}
 
-		case DoFace: {
+		case GroundMethods::DoFace: {
 			float theDistance = 100000.0f;
 
 			if (pGroundObject->Type == GO_GroundType)
@@ -233,51 +292,51 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		GROUNDITEM* pGround = pGroundObject->pGroundItem;
 		switch (static_cast<GroundMembers>(pMember->ID))
 		{
-		case Address:
+		case GroundMembers::Address:
 			Dest.DWord = (DWORD)VarPtr.Ptr;
 			Dest.Type = pIntType;
 			return true;
 
-		case ID:
+		case GroundMembers::ID:
 			Dest.DWord = pGround->DropID;
 			Dest.Type = pIntType;
 			return true;
 
-		case SubID:
+		case GroundMembers::SubID:
 			Dest.DWord = pGround->DropSubID;
 			Dest.Type = pIntType;
 			return true;
 
-		case ZoneID:
+		case GroundMembers::ZoneID:
 			Dest.DWord = (pGround->ZoneID & 0x7FFF);
 			Dest.Type = pIntType;
 			return true;
 
-		case W:
-		case X:
+		case GroundMembers::W:
+		case GroundMembers::X:
 			Dest.Float = pGround->X;
 			Dest.Type = pFloatType;
 			return true;
 
-		case N:
-		case Y:
+		case GroundMembers::N:
+		case GroundMembers::Y:
 			Dest.Float = pGround->Y;
 			Dest.Type = pFloatType;
 			return true;
 
-		case U:
-		case Z:
+		case GroundMembers::U:
+		case GroundMembers::Z:
 			Dest.Float = pGround->Z;
 			Dest.Type = pFloatType;
 			return true;
 
-		case Name:
+		case GroundMembers::Name:
 			strcpy_s(DataTypeTemp, pGround->Name);
 			Dest.Ptr = &DataTypeTemp[0];
 			Dest.Type = pStringType;
 			return true;
 
-		case DisplayName: {
+		case GroundMembers::DisplayName: {
 			DataTypeTemp[0] = '\0';
 			GetFriendlyNameForGroundItem(pGround, DataTypeTemp, sizeof(DataTypeTemp));
 			Dest.Ptr = &DataTypeTemp[0];
@@ -285,16 +344,16 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 			return true;
 		}
 
-		case Heading:
+		case GroundMembers::Heading:
 			Dest.Float = pGround->Heading * 0.703125f;
 			Dest.Type = pHeadingType;
 			return true;
 
-		case Distance:
+		case GroundMembers::Distance:
 			Dest.Float = GetDistance(pGround->X, pGround->Y);
 			Dest.Type = pFloatType;
 			return true;
-		case Distance3D: {
+		case GroundMembers::Distance3D: {
 			float X = pControlledSpawn->X - pGround->X;
 			float Y = pControlledSpawn->Y - pGround->Y;
 			float Z = 0;
@@ -309,7 +368,7 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 			return true;
 		}
 
-		case HeadingTo:
+		case GroundMembers::HeadingTo:
 			Dest.Float = static_cast<float>(atan2f(
 				pControlledSpawn->Y - pGround->Y,
 				pGround->X - pControlledSpawn->X) * 180.0f / PI + 90.0f);
@@ -322,12 +381,12 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 			Dest.Type = pHeadingType;
 			return true;
 
-		case xLineOfSight:
+		case GroundMembers::LineOfSight:
 			Dest.DWord = CastRay(GetCharInfo()->pSpawn, pGround->Y, pGround->X, pGround->Z);
 			Dest.Type = pBoolType;
 			return true;
 
-		case First:
+		case GroundMembers::First:
 			Dest.Type = pGroundType;
 
 			if (GROUNDITEM* pItem = pGround)
@@ -344,7 +403,7 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 			}
 			return false;
 
-		case Last:
+		case GroundMembers::Last:
 			Dest.Type = pGroundType;
 
 			if (GROUNDITEM* pItem = pGround)
@@ -361,7 +420,7 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 			}
 			return false;
 
-		case Next:
+		case GroundMembers::Next:
 			Dest.Type = pGroundType;
 			if (pGround->pNext)
 			{
@@ -372,7 +431,7 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 			}
 			return false;
 
-		case Prev:
+		case GroundMembers::Prev:
 			Dest.Type = pGroundType;
 			if (pGround->pPrev)
 			{
@@ -396,51 +455,51 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 
 	switch (static_cast<GroundMembers>(pMember->ID))
 	{
-	case Address:
+	case GroundMembers::Address:
 		Dest.DWord = (DWORD)VarPtr.Ptr;
 		Dest.Type = pIntType;
 		return true;
 
-	case ID:
+	case GroundMembers::ID:
 		Dest.DWord = pGround->RealEstateItemID;
 		Dest.Type = pIntType;
 		return true;
 
-	case SubID:
+	case GroundMembers::SubID:
 		Dest.DWord = pGround->RealEstateID;
 		Dest.Type = pIntType;
 		return true;
 
-	case ZoneID:
+	case GroundMembers::ZoneID:
 		Dest.DWord = pMySpawn->GetZoneID() & 0x7FFF;
 		Dest.Type = pIntType;
 		return true;
 
-	case W:
-	case X:
+	case GroundMembers::W:
+	case GroundMembers::X:
 		Dest.Float = pGround->X;
 		Dest.Type = pFloatType;
 		return true;
 
-	case N:
-	case Y:
+	case GroundMembers::N:
+	case GroundMembers::Y:
 		Dest.Float = pGround->Y;
 		Dest.Type = pFloatType;
 		return true;
 
-	case U:
-	case Z:
+	case GroundMembers::U:
+	case GroundMembers::Z:
 		Dest.Float = pGround->Z;
 		Dest.Type = pFloatType;
 		return true;
 
-	case Name:
+	case GroundMembers::Name:
 		strcpy_s(DataTypeTemp, pGround->Name);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case DisplayName: {
+	case GroundMembers::DisplayName: {
 		Dest.Type = pStringType;
 
 		RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
@@ -460,17 +519,17 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		return false;
 	}
 
-	case Heading:
+	case GroundMembers::Heading:
 		Dest.Float = pGround->Heading * 0.703125f;
 		Dest.Type = pHeadingType;
 		return true;
 
-	case Distance:
+	case GroundMembers::Distance:
 		Dest.Float = GetDistance(pGround->X, pGround->Y);
 		Dest.Type = pFloatType;
 		return true;
 
-	case Distance3D: {
+	case GroundMembers::Distance3D: {
 		float X = pControlledSpawn->X - pGround->X;
 		float Y = pControlledSpawn->Y - pGround->Y;
 		float Z = pControlledSpawn->Z - pGround->Z;
@@ -478,7 +537,7 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Type = pFloatType;
 		return true;
 	}
-	case HeadingTo:
+	case GroundMembers::HeadingTo:
 		Dest.Float = static_cast<float>(atan2f(
 			pControlledSpawn->Y - pGround->Y,
 			pGround->X - pControlledSpawn->X) * 180.0f / PI + 90.0f);
@@ -491,12 +550,12 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Type = pHeadingType;
 		return true;
 
-	case xLineOfSight:
+	case GroundMembers::LineOfSight:
 		Dest.DWord = CastRay(GetCharInfo()->pSpawn, pGround->Y, pGround->X, pGround->Z);
 		Dest.Type = pBoolType;
 		return true;
 
-	case First:
+	case GroundMembers::First:
 		Dest.Type = pGroundType;
 		if (EQPlacedItem* pItem = pGround)
 		{
@@ -511,7 +570,7 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return false;
 
-	case Last:
+	case GroundMembers::Last:
 		Dest.Type = pGroundType;
 		if (EQPlacedItem* pItem = pGround)
 		{
@@ -526,7 +585,7 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return false;
 
-	case Next:
+	case GroundMembers::Next:
 		Dest.Type = pGroundType;
 		if (pGround->pNext)
 		{
@@ -537,7 +596,7 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return false;
 
-	case Prev:
+	case GroundMembers::Prev:
 		Dest.Type = pGroundType;
 		if (pGround->pPrev)
 		{
@@ -630,5 +689,25 @@ bool MQ2GroundType::FromString(MQVarPtr& VarPtr, char* Source)
 	}
 
 	return false;
+}
+
+void MQ2GroundType::InitVariable(MQVarPtr& VarPtr)
+{
+	VarPtr.Ptr = new MQGroundObject();
+}
+
+void MQ2GroundType::FreeVariable(MQVarPtr& VarPtr)
+{
+	MQGroundObject* pGroundObject = static_cast<MQGroundObject*>(VarPtr.Ptr);
+	delete pGroundObject;
+}
+
+bool MQ2GroundType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type != pGroundType)
+		return false;
+
+	memcpy(VarPtr.Ptr, Source.Ptr, sizeof(MQGroundObject));
+	return true;
 }
 
