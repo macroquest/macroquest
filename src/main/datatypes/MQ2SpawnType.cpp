@@ -641,7 +641,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 	case SpawnMembers::Type:
 		Dest.Type = pStringType;
 		strcpy_s(DataTypeTemp, GetTypeDesc(GetSpawnType(pSpawn)));
-		if (strncmp(DataTypeTemp, "Unk", 3))
+		if (!strncmp(DataTypeTemp, "Unk", 3))
 			return false;
 
 		Dest.Ptr = &DataTypeTemp[0];
