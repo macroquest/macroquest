@@ -38,7 +38,7 @@ bool MQ2BoolType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 
 bool MQ2BoolType::FromString(MQVarPtr& VarPtr, char* Source)
 {
-	VarPtr.DWord = !ci_equals(Source, "FALSE") && !ci_equals(Source, "NULL") && GetFloatFromString(Source, 1) != 0;
+	VarPtr.DWord = ci_equals(Source, "TRUE") || GetFloatFromString(Source, 0) != 0;
 	return true;
 }
 
