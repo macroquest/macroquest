@@ -1077,6 +1077,10 @@ GNU General Public License for more details.
 
 //CTextureAnimation
 #define CTextureAnimation__SetCurCell_x                            0x9649C0
+#define CTextureAnimation__Draw_x                                  0x964BC0
+
+//CTAFrameDraw
+#define CTAFrameDraw__Draw_x                                       0x960A50
 
 //CAltAbilityData
 #define CAltAbilityData__GetMercCurrentRank_x                      0x5692D0
@@ -1238,6 +1242,9 @@ GNU General Public License for more details.
 
 //CAAWnd
 #define CAAWnd__ShowAbility_x                                      0x6D73D0
+
+//CXRect
+#define CXRect__operator_and_x                                     0x739830
 
 //patterns
 //LoginController__GiveTime_x

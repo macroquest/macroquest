@@ -5027,7 +5027,9 @@ class CPageWnd : public CSidlScreenWnd
 {
 public:
 /*0x230*/ PCXSTR TabText;
+#if !defined(ROF2EMU) && !defined(UFEMU)
 /*0x234*/ PCXSTR OrgTabText;
+#endif
 /*0x238*/ COLORREF CRTabText;
 /*0x23c*/ COLORREF CRTabTextActive;
 /*0x240*/ CTextureAnimation *pTATabIcon;
@@ -6685,9 +6687,41 @@ EQLIB_OBJECT CTabBoxTemplate::~CTabBoxTemplate(void);
 //EQLIB_OBJECT void * CTabBoxTemplate::`vector deleting destructor'(unsigned int);
 };
 
-class CTabWnd : public CSidlScreenWnd
+class CXRect
 {
 public:
+EQLIB_OBJECT CXRect::CXRect(int nLeft,int nTop,int nRight,int nBottom)
+{
+    left=nLeft;
+    top=nTop;
+    right=nRight;
+    bottom=nBottom;
+}
+EQLIB_OBJECT CXRect::CXRect(void) {};
+EQLIB_OBJECT class CXPoint CXRect::CenterPoint(void)const;
+EQLIB_OBJECT class CXRect & CXRect::operator=(class CXRect const &);
+EQLIB_OBJECT CXRect operator &(const CXRect& OtherRect) const;
+//EQLIB_OBJECT class CXRect CXRect::operator&(class CXRect)const;
+EQLIB_OBJECT class CXRect CXRect::operator|(class CXRect)const;
+EQLIB_OBJECT int CXRect::Width(void)const;
+EQLIB_OBJECT void CXRect::Move(class CXPoint);
+EQLIB_OBJECT void CXRect::Normalize(void);
+DWORD left,top,right,bottom;
+};
+
+class CTabWnd// : public CXWnd
+{
+public:
+	CXW
+	CTAFrameDraw*	pTabBorder;
+	CTAFrameDraw*	pPageBorder;
+	ArrayClass_RO<CPageWnd *>PageArray;
+	int		CurTabIndex;
+	int		TabHeight;
+	CXRect	PageRect;
+	bool	bShowTabs;
+	int		TabStyle;
+	int		TabWidth;
 EQLIB_OBJECT CTabWnd::CTabWnd(CXWnd *pParent, UINT uId, RECT *rect, CTabBoxTemplate *pTabContents);
 EQLIB_OBJECT class CPageWnd * CTabWnd::GetCurrentPage(void)const;
 EQLIB_OBJECT class CXRect CTabWnd::GetPageClientRect(void)const;
@@ -6727,6 +6761,12 @@ EQLIB_OBJECT int CTabWnd::DrawTab(int)const;
 class CTAFrameDraw
 {
 public:
+    CXStr	Name;
+    CTextureAnimation*	pTA[13];
+    int		TopOverlap;
+    int		LeftOverlap;
+    int		BotomOverlap;
+    int		RightOverlap;
 EQLIB_OBJECT CTAFrameDraw::~CTAFrameDraw(void);
 EQLIB_OBJECT CTAFrameDraw::CTAFrameDraw(class CTAFrameDraw const &);
 EQLIB_OBJECT CTAFrameDraw::CTAFrameDraw(class CXStr);
@@ -6739,7 +6779,7 @@ EQLIB_OBJECT class CXRect CTAFrameDraw::GetInnerRect(class CXRect)const;
 EQLIB_OBJECT class CXRect CTAFrameDraw::GetPieceRect(class CXRect,int)const;
 EQLIB_OBJECT class CXSize CTAFrameDraw::GetFrameSize(void)const;
 EQLIB_OBJECT class CXStr CTAFrameDraw::GetName(void)const;
-EQLIB_OBJECT int CTAFrameDraw::Draw(class CXRect,class CXRect)const;
+EQLIB_OBJECT int CTAFrameDraw::Draw(const CXRect& Rect, const CXRect& ClipRect) const;
 EQLIB_OBJECT int CTAFrameDraw::Draw(class CXRect,class CXRect,int)const;
 EQLIB_OBJECT int CTAFrameDraw::GetExtent(void)const;
 EQLIB_OBJECT int CTAFrameDraw::GetMinLength(void)const;
@@ -6982,7 +7022,7 @@ EQLIB_OBJECT int CTextureAnimation::AddBlankFrame(unsigned __int32,class CXPoint
 EQLIB_OBJECT int CTextureAnimation::AddFrame(class CUITexturePiece,unsigned __int32,class CXPoint);
 EQLIB_OBJECT int CTextureAnimation::AddFrame(class CUITextureInfo const *,class CXRect,unsigned __int32,class CXPoint);
 EQLIB_OBJECT int CTextureAnimation::Draw(class CXPoint,class CXRect,unsigned long,unsigned long)const;
-EQLIB_OBJECT int CTextureAnimation::Draw(class CXRect,class CXRect,unsigned long,unsigned long)const;
+EQLIB_OBJECT int CTextureAnimation::Draw(const CXRect& Rect, const CXRect& ClipRect, COLORREF Color = 0xFFFFFFFF, COLORREF Color2 = 0xFF000000) const;
 EQLIB_OBJECT int CTextureAnimation::GetCurFrame(void)const;
 EQLIB_OBJECT int CTextureAnimation::Preload(void);
 EQLIB_OBJECT void CTextureAnimation::Reset(void);
@@ -7001,7 +7041,8 @@ class CTextureFont
 public:
 EQLIB_OBJECT class CXStr CTextureFont::GetName(void)const;
 EQLIB_OBJECT int CTextureFont::DrawWrappedText(class CXStr,class CXRect,class CXRect,unsigned long,unsigned short,int)const;
-EQLIB_OBJECT int CTextureFont::DrawWrappedText(CXStr *Str, int x, int y, int Width, CXRect *BoundRect, COLORREF Color, WORD Flags = 0, int StartX = 0)const;
+EQLIB_OBJECT int CTextureFont::DrawWrappedText(const CXStr& Str, int x, int y, int Width, const CXRect& BoundRect, COLORREF Color, WORD Flags = 0, int StartX = 0)const;
+//EQLIB_OBJECT int CTextureFont::DrawWrappedText(CXStr *Str, int x, int y, int Width, CXRect *BoundRect, COLORREF Color, WORD Flags = 0, int StartX = 0)const;
 EQLIB_OBJECT int CTextureFont::GetHeight(void)const;
 EQLIB_OBJECT int CTextureFont::GetKerning(unsigned short,unsigned short)const;
 EQLIB_OBJECT int CTextureFont::GetTextExtent(const CXStr& str);
@@ -7513,26 +7554,7 @@ EQLIB_OBJECT class CXPoint CXPoint::operator=(class CXPoint);
 DWORD X,Y;
 };
 
-class CXRect
-{
-public:
-EQLIB_OBJECT CXRect::CXRect(int nLeft,int nTop,int nRight,int nBottom)
-{
-    left=nLeft;
-    top=nTop;
-    right=nRight;
-    bottom=nBottom;
-}
-EQLIB_OBJECT CXRect::CXRect(void) {};
-EQLIB_OBJECT class CXPoint CXRect::CenterPoint(void)const;
-EQLIB_OBJECT class CXRect & CXRect::operator=(class CXRect const &);
-EQLIB_OBJECT class CXRect CXRect::operator&(class CXRect)const;
-EQLIB_OBJECT class CXRect CXRect::operator|(class CXRect)const;
-EQLIB_OBJECT int CXRect::Width(void)const;
-EQLIB_OBJECT void CXRect::Move(class CXPoint);
-EQLIB_OBJECT void CXRect::Normalize(void);
-DWORD left,top,right,bottom;
-};
+
 
 class CXStrSingleton
 {

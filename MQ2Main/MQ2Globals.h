@@ -1605,6 +1605,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQGroundItemListManager__Instance;
 	EQLIB_VAR DWORD EverQuestinfo__IsItemPending;
 	EQLIB_VAR DWORD CAAWnd__ShowAbility;
+	EQLIB_VAR DWORD CXRect__operator_and;
 	
 	EQLIB_VAR DWORD ProfileManager__GetCurrentProfile;
 
@@ -1777,6 +1778,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD ActorClient__GetPosition;
 	EQLIB_VAR DWORD ActorClient__GetPosition1;
 	EQLIB_VAR DWORD CTextureAnimation__SetCurCell;
+	EQLIB_VAR DWORD CTextureAnimation__Draw;
+	EQLIB_VAR DWORD CTAFrameDraw__Draw; 
 	EQLIB_VAR DWORD CSidlManager__FindAnimation1;
 	EQLIB_VAR DWORD msg_spell_worn_off;
 	EQLIB_VAR DWORD msg_new_text;

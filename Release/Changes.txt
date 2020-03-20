@@ -1,3 +1,19 @@
+Mar 19 2020
+- Updated for LIVE
+- Added CXRect__operator_and
+- Fixed CTextureFont::DrawWrappedText
+- Added CTextureAnimation::Draw
+- Added CTAFrameDraw::Draw
+- Fixed the CPageWnd class for EMU
+- Added members to the CTAFrameDraw class
+- Made the CTabWnd class a proper CXWnd class and added members to it.
+-
+Mar 19 2020 by brainiac
+- Made a couple additional changes to /taskquit from the update on Mar 16 2020:
+  - fix /taskquit <name> to search solo tasks when a shared task is present.
+  - fix /taskquit <name> to be exact match only
+  - change /taskquit <name> to no longer use quotes.
+-
 Mar 18 2020
 - Updated for LIVE
 -

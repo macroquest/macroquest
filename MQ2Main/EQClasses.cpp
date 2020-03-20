@@ -2432,7 +2432,8 @@ FUNCTION_AT_ADDRESS(void  MapViewMap::RemoveLabel(struct _mapviewlabel *),MapVie
 FUNCTION_AT_ADDRESS(void  CXRect::Normalize(void),CXRect__Normalize);
 #endif
 #ifdef CXRect__operator_and_x
-FUNCTION_AT_ADDRESS(class CXRect  CXRect::operator&(class CXRect)const ,CXRect__operator_and);
+FUNCTION_AT_ADDRESS(CXRect CXRect::operator &(const CXRect&) const ,CXRect__operator_and);
+//FUNCTION_AT_ADDRESS(class CXRect  CXRect::operator&(class CXRect)const ,CXRect__operator_and);
 #endif
 #ifdef MapViewMap__JoinLinesAtIntersect_x
 FUNCTION_AT_ADDRESS(void  MapViewMap::JoinLinesAtIntersect(bool),MapViewMap__JoinLinesAtIntersect);
@@ -9283,7 +9284,8 @@ FUNCTION_AT_ADDRESS(int CTextureFont::GetTextExtent(const CXStr& str),CTextureFo
 FUNCTION_AT_ADDRESS(class CXStr  CTextureFont::GetName(void)const ,CTextureFont__GetName);
 #endif
 #ifdef CTextureFont__DrawWrappedText_x
-FUNCTION_AT_ADDRESS(int  CTextureFont::DrawWrappedText(CXStr *, int, int, int, CXRect *, COLORREF, WORD, int)const ,CTextureFont__DrawWrappedText);
+FUNCTION_AT_ADDRESS(int  CTextureFont::DrawWrappedText(const CXStr&, int, int, int, const CXRect&, COLORREF, WORD, int) const ,CTextureFont__DrawWrappedText);
+//FUNCTION_AT_ADDRESS(int  CTextureFont::DrawWrappedText(CXStr *, int, int, int, CXRect *, COLORREF, WORD, int)const ,CTextureFont__DrawWrappedText);
 #endif
 #ifdef CTextureFont__DrawWrappedText1_x
 FUNCTION_AT_ADDRESS(int  CTextureFont::DrawWrappedText(class CXStr,class CXRect,class CXRect,unsigned long,unsigned short,int)const ,CTextureFont__DrawWrappedText1);
@@ -9325,7 +9327,7 @@ FUNCTION_AT_ADDRESS(void  CTextureAnimation::SetCurFrame(int),CTextureAnimation_
 FUNCTION_AT_ADDRESS(int  CTextureAnimation::GetCurFrame(void)const ,CTextureAnimation__GetCurFrame);
 #endif
 #ifdef CTextureAnimation__Draw_x
-FUNCTION_AT_ADDRESS(int  CTextureAnimation::Draw(class CXRect,class CXRect,unsigned long,unsigned long)const ,CTextureAnimation__Draw);
+FUNCTION_AT_ADDRESS(int CTextureAnimation::Draw(const CXRect&, const CXRect&, COLORREF, COLORREF) const ,CTextureAnimation__Draw);
 #endif
 #ifdef CTextureAnimation__Draw1_x
 FUNCTION_AT_ADDRESS(int  CTextureAnimation::Draw(class CXPoint,class CXRect,unsigned long,unsigned long)const ,CTextureAnimation__Draw1);
@@ -9533,7 +9535,7 @@ FUNCTION_AT_ADDRESS( CTAFrameDraw::CTAFrameDraw(class CXStr),CTAFrameDraw__CTAFr
 FUNCTION_AT_ADDRESS(void  CTAFrameDraw::Set(class CTextureAnimation * * const),CTAFrameDraw__Set);
 #endif
 #ifdef CTAFrameDraw__Draw_x
-FUNCTION_AT_ADDRESS(int  CTAFrameDraw::Draw(class CXRect,class CXRect)const ,CTAFrameDraw__Draw);
+FUNCTION_AT_ADDRESS(int CTAFrameDraw::Draw(const CXRect& Rect, const CXRect& ClipRect) const ,CTAFrameDraw__Draw);
 #endif
 #ifdef CTAFrameDraw__Draw1_x
 FUNCTION_AT_ADDRESS(int  CTAFrameDraw::Draw(class CXRect,class CXRect,int)const ,CTAFrameDraw__Draw1);

@@ -2163,6 +2163,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQGroundItemListManager__Instance);
 	INITIALIZE_EQGAME_OFFSET(EverQuestinfo__IsItemPending);
 	INITIALIZE_EQGAME_OFFSET(CAAWnd__ShowAbility);
+	INITIALIZE_EQGAME_OFFSET(CXRect__operator_and);
 	
 	INITIALIZE_EQGAME_OFFSET(ArrayClass__DeleteElement);
 	INITIALIZE_EQGAME_OFFSET(__GameLoop);
@@ -2321,6 +2322,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EqSoundManager__WaveInstancePlay);
 	INITIALIZE_EQGAME_OFFSET(CCombatSkillsSelectWnd__ShouldDisplayThisSkill);
 	INITIALIZE_EQGAME_OFFSET(CTextureAnimation__SetCurCell);
+	INITIALIZE_EQGAME_OFFSET(CTextureAnimation__Draw);
+	INITIALIZE_EQGAME_OFFSET(CTAFrameDraw__Draw);
 	INITIALIZE_EQGAME_OFFSET(CSidlManager__FindAnimation1);
 	//INITIALIZE_EQGAME_OFFSET(ActorClient__GetPosition);
 	//INITIALIZE_EQGAME_OFFSET(ActorClient__GetPosition1);

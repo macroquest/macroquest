@@ -4043,131 +4043,75 @@ VOID DoHotbutton(PSPAWNINFO pChar, PCHAR pBuffer)
 // Usage:       /taskquit <Name>
 //
 //				Usage:
-//				/taskquit "Name of task"
+//				/taskquit Name of task
 // ***************************************************************************
-VOID TaskQuitCmd(PSPAWNINFO pChar, PCHAR pBuffer)
+void TaskQuitCmd(PSPAWNINFO pChar, PCHAR pBuffer)
 {
 	CHAR szName[MAX_STRING] = { 0 };
-	GetArg(szName, pBuffer, 1);
+	strcpy_s(szName, pBuffer);
+
 	if (szName[0])
 	{
-		if (CTaskManager*tm = ppTaskManager)
+		if (CTaskManager* tm = ppTaskManager)
 		{
 			CHAR szOut[MAX_STRING] = { 0 };
-			CTaskEntry * sharedentry = (CTaskEntry *)&tm->SharedTaskEntries[0];
-			_strlwr_s(szName);
-			PCHAR pName = &szName[0];
-			bool bExact = false;
-			if (*pName == '=')
-			{
-				bExact = true;
-				pName++;
-			}
+			CTaskEntry* sharedentry = (CTaskEntry*)&tm->SharedTaskEntries[0];
+
 			if (sharedentry && sharedentry->TaskID)
 			{
-				if (bExact)
+				if (!_stricmp(sharedentry->TaskTitle, szName))
 				{
-					if (!_stricmp(sharedentry->TaskTitle, pName))
+					if (CListWnd* clist = (CListWnd*)pTaskWnd->GetChildItem("TASK_TaskList"))
 					{
-						if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
-							CXStr str;
-							for (int i = 0; i < clist->ItemsArray.Count; i++)
+						CXStr str;
+						for (int i = 0; i < clist->ItemsArray.Count; i++)
+						{
+							clist->GetItemText(&str, i, 2);
+							GetCXStr(str.Ptr, szOut);
+							if (!_stricmp(szName, szOut))
 							{
-								clist->GetItemText(&str, i, 2);
-								GetCXStr(str.Ptr, szOut);
-								if (!_stricmp(pName, szOut))
-								{
-									clist->SetCurSel(i);
-									pTaskWnd->ConfirmAbandonTask(sharedentry->TaskID);
-									break;
-								}
+								clist->SetCurSel(i);
+								pTaskWnd->ConfirmAbandonTask(sharedentry->TaskID);
+								break;
 							}
 						}
-						return;
 					}
-				}
-				else
-				{
-					strcpy_s(szOut, sharedentry->TaskTitle);
-					_strlwr_s(szOut);
-					if (strstr(szOut, pName))
-					{
-						if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
-							CXStr str;
-							for (int i = 0; i < clist->ItemsArray.Count; i++)
-							{
-								clist->GetItemText(&str, i, 2);
-								GetCXStr(str.Ptr, szOut);
-								if (!_stricmp(pName, szOut))
-								{
-									clist->SetCurSel(i);
-									pTaskWnd->ConfirmAbandonTask(sharedentry->TaskID);
-									break;
-								}
-							}
-						}
-						return;
-					}
+					return;
 				}
 			}
-			else
+
+			for (int i = 0; i < 29; i++)
 			{
-				for (int i = 0; i < 29; i++)
+				if (CTaskEntry* entry = &tm->QuestEntries[i])
 				{
-					if (CTaskEntry * entry = &tm->QuestEntries[i])
+					if (!_stricmp(entry->TaskTitle, szName))
 					{
-						if (bExact)
+						if (CListWnd* clist = (CListWnd*)pTaskWnd->GetChildItem("TASK_TaskList"))
 						{
-							if (!_stricmp( entry->TaskTitle, pName))
+							CXStr str;
+							for (int i = 0; i < clist->ItemsArray.Count; i++)
 							{
-								if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
-									CXStr str;
-									for (int i = 0; i < clist->ItemsArray.Count; i++)
-									{
-										clist->GetItemText(&str, i, 2);
-										GetCXStr(str.Ptr, szOut);
-										if (!_stricmp(pName, szOut))
-										{
-											clist->SetCurSel(i);
-											pTaskWnd->ConfirmAbandonTask(entry->TaskID);
-											break;
-										}
-									}
+								clist->GetItemText(&str, i, 2);
+								GetCXStr(str.Ptr, szOut);
+								if (!_stricmp(szName, szOut))
+								{
+									clist->SetCurSel(i);
+									pTaskWnd->ConfirmAbandonTask(entry->TaskID);
+									break;
 								}
-								return;
 							}
 						}
-						else
-						{
-							strcpy_s(szOut, entry->TaskTitle);
-							_strlwr_s(szOut);
-							if (strstr(szOut, pName)) {
-								if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
-									CXStr str;
-									for (int i = 0; i < clist->ItemsArray.Count; i++)
-									{
-										clist->GetItemText(&str, i, 2);
-										GetCXStr(str.Ptr, szOut);
-										if (!_stricmp(pName, szOut))
-										{
-											clist->SetCurSel(i);
-											pTaskWnd->ConfirmAbandonTask(entry->TaskID);
-											break;
-										}
-									}
-								}
-								return;
-							}
-						}
+						return;
 					}
 				}
 			}
 		}
 		return;
 	}
+
 	cmdTaskQuit(pChar, pBuffer);
-	return;
 }
+
 // /timed
 VOID DoTimedCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
