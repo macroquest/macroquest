@@ -28,5 +28,60 @@ public:
 		: GlobalIndex(GlobalIndex), Slot(Slot) {}
 };
 
+class MQ2EQObjectBase
+{
+public:
+	virtual void Invalidate() = 0;
+	virtual operator bool() const = 0;
+};
+
+template <typename T>
+class MQ2EQObject : public MQ2EQObjectBase
+{
+private:
+	T* m_object; // this is the actual raw pointer pointing to the memory space, we don't control its lifetime
+	bool m_invalidated; // let's track if this got invalidated to help troubleshooting things
+
+	void Validate()
+	{
+		if (m_invalidated)
+			throw std::runtime_error("Tried to dereference nullptr object after an invalidation event (gamestate change).");
+
+		if (m_object == nullptr)
+			throw std::runtime_error("Tried to dereference nullptr object.");
+	}
+
+public:
+	MQ2EQObject(T* Object) : m_object(Object), m_invalidated(false) {}
+
+	void Invalidate() override { m_object = nullptr; m_invalidated = true; }
+
+	T& operator*() const
+	{
+		Validate();
+		return *m_object;
+	}
+
+	T* operator->() const
+	{
+		Validate();
+		return m_object;
+	}
+
+	operator bool() const override { return m_object != nullptr && !m_invalidated; }
+
+	static std::shared_ptr<MQ2EQObject<T>> Get(const std::shared_ptr<MQ2EQObjectBase>& Base)
+	{
+		return std::static_pointer_cast<MQ2EQObject<T>>(Base);
+	}
+};
+
+template <typename T> static std::shared_ptr<MQ2EQObject<T>> ObserveEQObject(T* Object)
+{
+	auto ptr = std::make_shared<MQ2EQObject<T>>(Object);
+	AddObservedEQObject(ptr);
+	return ptr;
+}
+
 }
 

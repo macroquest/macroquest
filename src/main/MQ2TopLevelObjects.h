@@ -18,8 +18,6 @@ namespace mq {
 
 /* DATA ITEMS */
 MQLIB_API bool dataSwitch(const char* szIndex, MQTypeVar& Ret);
-MQLIB_API bool dataGroundItem(const char* szIndex, MQTypeVar& Ret);
-MQLIB_API bool dataGroundItemCount(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataMercenary(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataPet(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataMerchant(const char* szIndex, MQTypeVar& Ret);

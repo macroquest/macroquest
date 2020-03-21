@@ -498,6 +498,8 @@ public:
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, char* Source) override;
+	static bool dataGroundItem(const char* szIndex, MQTypeVar& Ret);
+	static bool dataGroundItemCount(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================

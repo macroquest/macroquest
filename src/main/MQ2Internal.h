@@ -622,6 +622,12 @@ struct MQVarPtr
 	}
 
 	template <typename T>
+	typename ReturnType<T>::type Set(std::shared_ptr<T> Object)
+	{
+		return std::static_pointer_cast<T>(std::get<std::shared_ptr<void>>(Data = Object));
+	}
+
+	template <typename T>
 	typename ReturnType<T>::type Get()
 	{
 		if (Data.index() != VariantIdx::ComplexObject)

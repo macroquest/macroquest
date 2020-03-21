@@ -20,7 +20,48 @@ namespace mq {
 std::unordered_map<std::string, MQ2Type*> MQ2DataTypeMap;
 std::unordered_map<std::string, std::vector<MQ2Type*>> MQ2DataExtensions;
 
+std::vector<std::weak_ptr<MQ2EQObjectBase>> s_objectMap;
+
 std::recursive_mutex s_variableMutex;
+std::mutex s_objectMapMutex;
+
+static void SetGameStateDataAPI(DWORD);
+
+static MQModule s_DataAPIModule = {
+	"DataAPI",                      // Name
+	false,                         // CanUnload
+	nullptr,
+	nullptr,
+	nullptr,
+	SetGameStateDataAPI
+};
+MQModule* GetDataAPIModule() { return &s_DataAPIModule; }
+
+static void SetGameStateDataAPI(DWORD)
+{
+	std::scoped_lock lock(s_objectMapMutex);
+
+	s_objectMap.erase(std::remove_if(
+		std::begin(s_objectMap),
+		std::end(s_objectMap),
+		[](const std::weak_ptr<MQ2EQObjectBase>& weak)
+		{
+			return weak.expired();
+		}),
+		std::end(s_objectMap));
+
+	for (auto weak : s_objectMap)
+	{
+		weak.lock()->Invalidate();
+	}
+}
+
+// don't need a dropper because it will remove itself once the shared_ptr destroys itself
+void AddObservedEQObject(const std::shared_ptr<MQ2EQObjectBase>& Object)
+{
+	std::scoped_lock lock(s_objectMapMutex);
+	s_objectMap.emplace_back(Object);
+}
 
 MQ2Type* FindMQ2DataType(const char* Name)
 {
@@ -377,8 +418,8 @@ void InitializeMQ2Data()
 	AddMQ2Data("Me", datatypes::MQ2CharacterType::dataCharacter);
 	AddMQ2Data("Spell", datatypes::MQ2SpellType::dataSpell);
 	AddMQ2Data("Switch", dataSwitch);
-	AddMQ2Data("Ground", dataGroundItem);
-	AddMQ2Data("GroundItemCount", dataGroundItemCount);
+	AddMQ2Data("Ground", datatypes::MQ2GroundType::dataGroundItem);
+	AddMQ2Data("GroundItemCount", datatypes::MQ2GroundType::dataGroundItemCount);
 	AddMQ2Data("Merchant", dataMerchant);
 	AddMQ2Data("PointMerchant", dataPointMerchant);
 	AddMQ2Data("Mercenary", dataMercenary);
