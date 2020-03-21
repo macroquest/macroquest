@@ -325,7 +325,10 @@ static void SetAnonymization(AnonymizationClasses AnonClass, Anonymization Strat
 		if (Strategy != anon_self)
 		{
 			anon_self = Strategy;
-			self_replacer->update_strategy(Strategy);
+			if (!self_replacer)
+				self_replacer = std::make_unique<anon_replacer>(pLocalPlayer, anon_self);
+			else
+				self_replacer->update_strategy(Strategy);
 		}
 		break;
 
