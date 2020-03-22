@@ -546,8 +546,8 @@ struct MQ2GroundSpawn
 	MQLIB_OBJECT float Distance(SPAWNINFO* pSpawn);
 	MQLIB_OBJECT float Distance3D(SPAWNINFO* pSpawn);
 	MQLIB_OBJECT CActorInterface* Actor();
-	MQLIB_OBJECT std::string Name();
-	MQLIB_OBJECT std::string DisplayName();
+	MQLIB_OBJECT CXStr Name();
+	MQLIB_OBJECT CXStr DisplayName();
 	MQLIB_OBJECT CVector3 Position();
 	MQLIB_OBJECT int ID();
 	MQLIB_OBJECT int SubID();
@@ -571,7 +571,7 @@ MQLIB_OBJECT std::shared_ptr<MQ2GroundSpawn> NextGroundSpawn();
 MQLIB_OBJECT std::shared_ptr<MQ2GroundSpawn> PrevGroundSpawn();
 MQLIB_OBJECT void SetGroundSpawn(SPAWNINFO* pSpawn, std::string_view Name);
 MQLIB_OBJECT void ClearGroundSpawn();
-MQLIB_OBJECT std::string GetFriendlyNameForGroundItem(EQGroundItem* pItem);
+MQLIB_OBJECT CXStr GetFriendlyNameForGroundItem(EQGroundItem* pItem);
 MQLIB_API char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, size_t BufferSize);
 
 MQLIB_API void ClearSearchSpawn(MQSpawnSearch* pSearchSpawn);

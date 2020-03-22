@@ -281,8 +281,9 @@ void AddGroundItem(PGROUNDITEM pGroundItem)
 {
 	SPAWNINFO* pFakeSpawn = new SPAWNINFO;
 	memset(pFakeSpawn, 0, sizeof(SPAWNINFO));
-	GetFriendlyNameForGroundItem(pGroundItem, pFakeSpawn->Name, sizeof(pFakeSpawn->Name));
-	strcpy_s(pFakeSpawn->DisplayedName, pFakeSpawn->Name);
+	auto name = GetFriendlyNameForGroundItem(pGroundItem);
+	strcpy_s(pFakeSpawn->Name, name.c_str());
+	strcpy_s(pFakeSpawn->DisplayedName, name.c_str());
 	pFakeSpawn->X = pGroundItem->X;
 	pFakeSpawn->Y = pGroundItem->Y;
 	pFakeSpawn->Z = pGroundItem->Z;

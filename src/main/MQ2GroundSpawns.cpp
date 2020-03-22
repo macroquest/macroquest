@@ -21,6 +21,8 @@ using namespace mq;
 // - pGroundTarget needs to be deprecated
 // - GroundObject needs to be deprecated
 // - EnviroTarget needs to be deprecated
+// - old GetFriendlyNameForGroundItem needs to be deprecated
+// - export shared_ptr properly (likely create an interface in a shared header)
 
 class GroundSpawnSearch;
 std::shared_ptr<GroundSpawnSearch> s_groundSpawnSearch;
@@ -317,7 +319,7 @@ CActorInterface* mq::MQ2GroundSpawn::Actor()
 	return nullptr;
 }
 
-std::string mq::MQ2GroundSpawn::Name()
+CXStr mq::MQ2GroundSpawn::Name()
 {
 	if (Type == MQ2GroundSpawnType::Ground)
 	{
@@ -335,7 +337,7 @@ std::string mq::MQ2GroundSpawn::Name()
 	return "";
 }
 
-std::string mq::MQ2GroundSpawn::DisplayName()
+CXStr mq::MQ2GroundSpawn::DisplayName()
 {
 	if (Type == MQ2GroundSpawnType::Ground)
 	{
@@ -397,7 +399,7 @@ void mq::ClearGroundSpawn()
 		s_groundSpawnSearch.reset();
 }
 
-std::string mq::GetFriendlyNameForGroundItem(EQGroundItem* pItem)
+CXStr mq::GetFriendlyNameForGroundItem(EQGroundItem* pItem)
 {
 	if (!pItem)
 		return "";
@@ -409,31 +411,13 @@ std::string mq::GetFriendlyNameForGroundItem(EQGroundItem* pItem)
 			return actor->Name;
 	}
 
-	// didn't find an actor def, so construct a name (this is why we can't return string_view)
-	return fmt::format("Drop{:05d}/{:d}", item_def, pItem->DropID);
+	// didn't find an actor def, so construct a name
+	return CXStr(fmt::format("Drop{:05d}/{:d}", item_def, pItem->DropID));
 }
 
 char* mq::GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, size_t BufferSize)
 {
-	szName[0] = 0;
-	if (!pItem)
-		return &szName[0];
-
-	int Item = GetIntFromString(&pItem->Name[2], 0);
-	ACTORDEFENTRY* ptr = ActorDefList;
-	while (ptr->Def)
-	{
-		if (ptr->Def == Item
-			&& (ptr->ZoneID && (ptr->ZoneID < 0 || ptr->ZoneID == (pItem->ZoneID & 0x7FFF))))
-		{
-			sprintf_s(szName, BufferSize, "%s", ptr->Name);
-			return &szName[0];
-		}
-		ptr++;
-
-	}
-
-	sprintf_s(szName, BufferSize, "Drop%05d/%d", Item, pItem->DropID);
+	strcpy_s(szName, BufferSize, GetFriendlyNameForGroundItem(pItem).c_str());
 	return szName;
 }
 

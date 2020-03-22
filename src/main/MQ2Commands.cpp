@@ -517,22 +517,20 @@ void Items(SPAWNINFO* pChar, char* szLine)
 
 	if (EQGroundItem* pItem = pItemList->Top)
 	{
-		char szName[MAX_STRING] = { 0 };
-
 		while (pItem)
 		{
-			GetFriendlyNameForGroundItem(pItem, szName, sizeof(szName));
+			auto name = GetFriendlyNameForGroundItem(pItem);
 
-			DebugSpew("   Item found - %d: DropID %d %s (%s)", pItem->pContents, pItem->DropID, szName, pItem->Name);
+			DebugSpew("   Item found - %d: DropID %d %s (%s)", pItem->pContents, pItem->DropID, name.c_str(), pItem->Name);
 
-			if (szLine[0] == 0 || ci_find_substr(szName, szLine) != -1)
+			if (szLine[0] == 0 || ci_find_substr(name, szLine) != -1)
 			{
 				float Distance = Get3DDistance(
 					pChar->X, pChar->Y, pChar->Z,
 					pItem->X, pItem->Y, pItem->Z);
 				int Angle = static_cast<int>((atan2f(pChar->X - pItem->X, pChar->Y - pItem->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
 
-				itemsMap.emplace(Distance, iteminfo{ szName, Angle });
+				itemsMap.emplace(Distance, iteminfo{ name.c_str(), Angle });
 			}
 
 			pItem = pItem->pNext;
