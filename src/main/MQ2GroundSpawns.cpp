@@ -25,7 +25,7 @@ using namespace mq;
 // - export shared_ptr properly (likely create an interface in a shared header)
 
 class GroundSpawnSearch;
-std::shared_ptr<GroundSpawnSearch> s_groundSpawnSearch;
+std::unique_ptr<GroundSpawnSearch> s_groundSpawnSearch;
 
 class GroundSpawnSearch : public MQ2Transient
 {
@@ -203,7 +203,7 @@ public:
 
 std::shared_ptr<MQ2GroundSpawn> mq::GetGroundSpawnByName(std::string_view Name)
 {
-	s_groundSpawnSearch = std::make_shared<GroundSpawnSearch>(); // create a new search (will GC the old one)
+	s_groundSpawnSearch = std::make_unique<GroundSpawnSearch>(); // create a new search (will GC the old one)
 	s_groundSpawnSearch->Filter(pCharSpawn, Name);
 	s_groundSpawnSearch->Sort(pCharSpawn);
 	return s_groundSpawnSearch->First();
@@ -211,7 +211,7 @@ std::shared_ptr<MQ2GroundSpawn> mq::GetGroundSpawnByName(std::string_view Name)
 
 std::shared_ptr<MQ2GroundSpawn> mq::GetGroundSpawnByID(int ID)
 {
-	s_groundSpawnSearch = std::make_shared<GroundSpawnSearch>(); // create a new search (will GC the old one)
+	s_groundSpawnSearch = std::make_unique<GroundSpawnSearch>(); // create a new search (will GC the old one)
 	s_groundSpawnSearch->Filter(pCharSpawn, ID);
 	s_groundSpawnSearch->Sort(pCharSpawn);
 	return s_groundSpawnSearch->First();
@@ -221,7 +221,7 @@ std::shared_ptr<MQ2GroundSpawn> mq::GetNthGroundSpawnFromMe(size_t N)
 {
 	if (!s_groundSpawnSearch)
 	{
-		s_groundSpawnSearch = std::make_shared<GroundSpawnSearch>();
+		s_groundSpawnSearch = std::make_unique<GroundSpawnSearch>();
 		s_groundSpawnSearch->Filter(pCharSpawn, "");
 		s_groundSpawnSearch->Sort(pCharSpawn);
 	}
@@ -233,7 +233,7 @@ int mq::GetGroundSpawnCount()
 {
 	if (!s_groundSpawnSearch)
 	{
-		s_groundSpawnSearch = std::make_shared<GroundSpawnSearch>();
+		s_groundSpawnSearch = std::make_unique<GroundSpawnSearch>();
 		s_groundSpawnSearch->Filter(pCharSpawn, "");
 		s_groundSpawnSearch->Sort(pCharSpawn);
 	}
@@ -245,7 +245,7 @@ std::shared_ptr<MQ2GroundSpawn> mq::CurrentGroundSpawn()
 {
 	if (!s_groundSpawnSearch)
 	{
-		s_groundSpawnSearch = std::make_shared<GroundSpawnSearch>();
+		s_groundSpawnSearch = std::make_unique<GroundSpawnSearch>();
 		s_groundSpawnSearch->Filter(pCharSpawn, "");
 		s_groundSpawnSearch->Sort(pCharSpawn);
 	}
@@ -257,7 +257,7 @@ std::shared_ptr<MQ2GroundSpawn> mq::FirstGroundSpawn()
 {
 	if (!s_groundSpawnSearch)
 	{
-		s_groundSpawnSearch = std::make_shared<GroundSpawnSearch>();
+		s_groundSpawnSearch = std::make_unique<GroundSpawnSearch>();
 		s_groundSpawnSearch->Filter(pCharSpawn, "");
 		s_groundSpawnSearch->Sort(pCharSpawn);
 	}
@@ -269,7 +269,7 @@ std::shared_ptr<MQ2GroundSpawn> mq::LastGroundSpawn()
 {
 	if (!s_groundSpawnSearch)
 	{
-		s_groundSpawnSearch = std::make_shared<GroundSpawnSearch>();
+		s_groundSpawnSearch = std::make_unique<GroundSpawnSearch>();
 		s_groundSpawnSearch->Filter(pCharSpawn, "");
 		s_groundSpawnSearch->Sort(pCharSpawn);
 	}
@@ -281,7 +281,7 @@ std::shared_ptr<MQ2GroundSpawn> mq::NextGroundSpawn()
 {
 	if (!s_groundSpawnSearch)
 	{
-		s_groundSpawnSearch = std::make_shared<GroundSpawnSearch>();
+		s_groundSpawnSearch = std::make_unique<GroundSpawnSearch>();
 		s_groundSpawnSearch->Filter(pCharSpawn, "");
 		s_groundSpawnSearch->Sort(pCharSpawn);
 	}
@@ -293,7 +293,7 @@ std::shared_ptr<MQ2GroundSpawn> mq::PrevGroundSpawn()
 {
 	if (!s_groundSpawnSearch)
 	{
-		s_groundSpawnSearch = std::make_shared<GroundSpawnSearch>();
+		s_groundSpawnSearch = std::make_unique<GroundSpawnSearch>();
 		s_groundSpawnSearch->Filter(pCharSpawn, "");
 		s_groundSpawnSearch->Sort(pCharSpawn);
 	}
@@ -388,7 +388,7 @@ CVector3 mq::MQ2GroundSpawn::Position()
 
 void mq::SetGroundSpawn(SPAWNINFO* pSpawn, std::string_view Name)
 {
-	s_groundSpawnSearch = std::make_shared<GroundSpawnSearch>(); // create a new search (will GC the old one)
+	s_groundSpawnSearch = std::make_unique<GroundSpawnSearch>(); // create a new search (will GC the old one)
 	s_groundSpawnSearch->Filter(pSpawn, Name);
 	s_groundSpawnSearch->Sort(pSpawn);
 }
