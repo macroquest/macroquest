@@ -395,6 +395,9 @@
     <ClCompile Include="datatypes\MQ2LastMouseOverType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
+    <ClCompile Include="MQ2GroundSpawns.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">

@@ -282,7 +282,7 @@ MQLIB_API void ShutdownMQ2Data();
 MQLIB_API bool ParseMacroData(char* szOriginal, size_t BufferSize);
 MQLIB_API bool AddMQ2Data(const char* szName, fMQData Function);
 MQLIB_API bool RemoveMQ2Data(const char* szName);
-MQLIB_API void AddObservedEQObject(const std::shared_ptr<MQ2EQObjectBase>& Object);
+MQLIB_API void AddObservedEQObject(const std::shared_ptr<MQ2Transient>& Object);
 MQLIB_API MQ2Type* FindMQ2DataType(const char* szName);
 MQLIB_API MQDataItem* FindMQ2Data(const char* szName);
 MQLIB_API MQDataVar* FindMQ2DataVariable(const char* szName);
@@ -305,6 +305,7 @@ MQLIB_API bool IsMouseWaitingForButton();
 MQLIB_API void MQ2MouseHooks(bool bFlag);
 MQLIB_API bool MoveMouse(int x, int y, bool bClick = false);
 MQLIB_API bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick = false);
+MQLIB_API bool ClickMouseItem(SPAWNINFO* pChar, const std::shared_ptr<MQ2GroundSpawn>& pGroundSpawn, bool left);
 
 /* KEY BINDS */
 MQLIB_API void InitializeMQ2KeyBinds();
@@ -412,6 +413,7 @@ MQLIB_API SPAWNINFO* GetGroupMember(int index);
 MQLIB_API uint32_t GetGroupMainAssistTargetID();
 MQLIB_API uint32_t GetRaidMainAssistTargetID(int index);
 MQLIB_API bool IsAssistNPC(SPAWNINFO* pSpawn);
+MQLIB_API void DoFace(SPAWNINFO* pChar, CVector3 Position);
 
 MQLIB_API CMQ2Alerts CAlerts;
 
@@ -521,7 +523,57 @@ MQLIB_API void DropTimers();
 /*                 */
 
 MQLIB_API bool LoadCfgFile(const char* Filename, bool Delayed = FromPlugin);
+
+/* MQ2GROUNDSPAWNS */
+	
+using AnyMQ2GroundItem = std::variant<MQ2EQObject<EQGroundItem>, MQ2EQObject<EQPlacedItem>>;
+enum class MQ2GroundSpawnType
+{ // this ordering needs to match the GroundSpawn::Object variant class ordering
+	Ground,
+	Placed,
+	None
+};
+
+struct MQ2GroundSpawn
+{
+	MQ2GroundSpawnType Type;
+	AnyMQ2GroundItem Object;
+
+	MQ2GroundSpawn(EQGroundItem* Object) : Type(MQ2GroundSpawnType::Ground), Object(MQ2EQObject(Object)) {}
+	MQ2GroundSpawn(EQPlacedItem* Object) : Type(MQ2GroundSpawnType::Placed), Object(MQ2EQObject(Object)) {}
+	MQ2GroundSpawn() : Type(MQ2GroundSpawnType::None), Object(MQ2EQObject<EQGroundItem>(nullptr)) {}
+
+	MQLIB_OBJECT float Distance(SPAWNINFO* pSpawn);
+	MQLIB_OBJECT float Distance3D(SPAWNINFO* pSpawn);
+	MQLIB_OBJECT CActorInterface* Actor();
+	MQLIB_OBJECT std::string Name();
+	MQLIB_OBJECT std::string DisplayName();
+	MQLIB_OBJECT CVector3 Position();
+	MQLIB_OBJECT int ID();
+	MQLIB_OBJECT int SubID();
+	MQLIB_OBJECT int ZoneID();
+	MQLIB_OBJECT float Heading();
+	MQLIB_OBJECT std::optional<SPAWNINFO> ToSpawn();
+
+	template <typename T> T* Get() const { static_assert(false, "Unsupported GroundSpawn Type."); }
+	template <> MQLIB_OBJECT EQGroundItem* Get<EQGroundItem>() const;
+	template <> MQLIB_OBJECT EQPlacedItem* Get<EQPlacedItem>() const;
+};
+
+MQLIB_OBJECT std::shared_ptr<MQ2GroundSpawn> GetGroundSpawnByName(std::string_view Name);
+MQLIB_OBJECT std::shared_ptr<MQ2GroundSpawn> GetGroundSpawnByID(int ID);
+MQLIB_OBJECT std::shared_ptr<MQ2GroundSpawn> GetNthGroundSpawnFromMe(size_t N);
+MQLIB_OBJECT int GetGroundSpawnCount();
+MQLIB_OBJECT std::shared_ptr<MQ2GroundSpawn> CurrentGroundSpawn();
+MQLIB_OBJECT std::shared_ptr<MQ2GroundSpawn> FirstGroundSpawn();
+MQLIB_OBJECT std::shared_ptr<MQ2GroundSpawn> LastGroundSpawn();
+MQLIB_OBJECT std::shared_ptr<MQ2GroundSpawn> NextGroundSpawn();
+MQLIB_OBJECT std::shared_ptr<MQ2GroundSpawn> PrevGroundSpawn();
+MQLIB_OBJECT void SetGroundSpawn(SPAWNINFO* pSpawn, std::string_view Name);
+MQLIB_OBJECT void ClearGroundSpawn();
+MQLIB_OBJECT std::string GetFriendlyNameForGroundItem(EQGroundItem* pItem);
 MQLIB_API char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, size_t BufferSize);
+
 MQLIB_API void ClearSearchSpawn(MQSpawnSearch* pSearchSpawn);
 MQLIB_API SPAWNINFO* NthNearestSpawn(MQSpawnSearch* pSearchSpawn, int Nth, SPAWNINFO* pOrigin, bool IncludeOrigin = false);
 MQLIB_API int CountMatchingSpawns(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pOrigin, bool IncludeOrigin = false);

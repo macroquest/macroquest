@@ -493,8 +493,6 @@ class MQ2GroundType : public MQ2Type
 public:
 	MQ2GroundType();
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-	void InitVariable(MQVarPtr& VarPtr) override;
-	void FreeVariable(MQVarPtr& VarPtr) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, char* Source) override;

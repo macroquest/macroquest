@@ -610,156 +610,12 @@ void ItemTarget(SPAWNINFO* pChar, char* szLine)
 	GetArg(Arg1, szLine, 1);
 	_strlwr_s(Arg1);
 
-	char Arg2[MAX_STRING] = { 0 };
-	GetArg(Arg2, szLine, 2);
+	SetGroundSpawn(pChar, Arg1);
 
-	ZeroMemory(&EnviroTarget, sizeof(EnviroTarget));
-	ZeroMemory(&GroundObject, sizeof(GroundObject));
-
-	pGroundTarget = nullptr;
-
-	if (EQGroundItem* pItem = pItemList->Top)
+	auto result = CurrentGroundSpawn();
+	if (result)
 	{
-		char szName[MAX_STRING] = { 0 };
-		float cDistance = 100000.0f;
-		SPAWNINFO tSpawn = { 0 };
-
-		while (pItem)
-		{
-			GetFriendlyNameForGroundItem(pItem, szName, sizeof(szName));
-			_strlwr_s(szName);
-
-			if (((szLine[0] == '\0') || (strstr(szName, Arg1))))
-			{
-				if (((gZFilter >= 10000.0f) || ((pItem->Z <= pChar->Z + gZFilter) && (pItem->Z >= pChar->Z - gZFilter))))
-				{
-					ZeroMemory(&tSpawn, sizeof(tSpawn));
-					strcpy_s(tSpawn.Name, szName);
-					strcpy_s(tSpawn.DisplayedName, szName);
-					tSpawn.Y = pItem->Y;
-					tSpawn.X = pItem->X;
-					tSpawn.Z = pItem->pSwitch->Z;
-					tSpawn.Type = SPAWN_NPC;
-					tSpawn.HPCurrent = 1;
-					tSpawn.HPMax = 1;
-					tSpawn.Heading = pItem->Heading;
-					tSpawn.mActorClient.Race = pItem->DropID;
-					tSpawn.StandState = STANDSTATE_STAND; //im using this for /clicked left item -eqmule
-					float Distance = Get3DDistance(pChar->X, pChar->Y, pChar->Z, tSpawn.X, tSpawn.Y, tSpawn.Z);
-					if (Distance < cDistance) {
-						CopyMemory(&EnviroTarget, &tSpawn, sizeof(EnviroTarget));
-						cDistance = Distance;
-						pGroundTarget = pItem;
-					}
-				}
-			}
-
-			pItem = pItem->pNext;
-		}
-	}
-
-	if (pGroundTarget)
-	{
-		GroundObject.Type = GO_GroundType;
-		GroundObject.pGroundItem = pGroundTarget;
-	}
-	else
-	{
-		float cDistance = 100000.0f;
-		SPAWNINFO tSpawn = { 0 };
-
-		RealEstateManagerClient& manager = RealEstateManagerClient::Instance();
-		if (&manager)
-		{
-			if (EQPlacedItemManager* pPIM = &EQPlacedItemManager::Instance())
-			{
-				char szName[MAX_STRING] = { 0 };
-				for (EQPlacedItem* pObj = pPIM->Top; pObj != nullptr; pObj = pObj->pNext)
-				{
-					const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
-					if (pRealEstateItem)
-					{
-						if (CONTENTS* pCont = pRealEstateItem->Object.pItemBase.get())
-						{
-							if (ITEMINFO* pItem = pCont->GetItemDefinition())
-							{
-								strcpy_s(szName, pItem->Name);
-								_strlwr_s(szName);
-
-								if (((szLine[0] == '\0') || (strstr(szName, Arg1)) || (strstr(szName, Arg1))))
-								{
-									if (((gZFilter >= 10000.0f) || ((pObj->Z <= pChar->Z + gZFilter) && (pObj->Z >= pChar->Z - gZFilter))))
-									{
-										ZeroMemory(&tSpawn, sizeof(tSpawn));
-										strcpy_s(tSpawn.Name, pItem->Name);
-										PEQSWITCH si = (PEQSWITCH)pObj->pActor;
-										strcpy_s(tSpawn.DisplayedName, pItem->Name);
-										tSpawn.Y = pObj->Y;
-										tSpawn.X = pObj->X;
-										tSpawn.Z = pObj->Z;
-										tSpawn.Type = SPAWN_NPC;
-										tSpawn.HPCurrent = 1;
-										tSpawn.HPMax = 1;
-										tSpawn.Heading = pObj->Heading;
-										tSpawn.mActorClient.Race = pObj->RealEstateItemID;
-										tSpawn.StandState = STANDSTATE_STAND; // im using this for /clicked left item -eqmule
-										float Distance = Get3DDistance(pChar->X, pChar->Y, pChar->Z, tSpawn.X, tSpawn.Y, tSpawn.Z);
-										if (Distance < cDistance)
-										{
-											CopyMemory(&EnviroTarget, &tSpawn, sizeof(EnviroTarget));
-											cDistance = Distance;
-											GroundObject.Type = GO_ObjectType;
-											GroundObject.ObjPtr = (void*)pObj;
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		if (GroundObject.Type == GO_ObjectType)
-		{
-			EQPlacedItem* ObjPtr = (EQPlacedItem*)GroundObject.ObjPtr;
-
-			// ok so its not actually a grounditem, we need to fake that for the tlo to be work
-			// we do this because I want people to be able to use ${Ground} in their macros and not worry about if its an object or not.
-			// also I want people to not have to update their macros.
-			// this should make older tradeskill macros for example work in guild halls... -eqmule
-
-			GroundObject.GroundItem.DropID = ObjPtr->RealEstateItemID;
-			GroundObject.GroundItem.DropSubID = ObjPtr->RealEstateID;
-			GroundObject.GroundItem.Expires = 0;
-			GroundObject.GroundItem.Heading = ObjPtr->Heading;
-			GroundObject.GroundItem.pContents = nullptr;
-			if (EnviroTarget.DisplayedName[0] != '\0')
-			{
-				strcpy_s(GroundObject.GroundItem.Name, EnviroTarget.DisplayedName);
-			}
-			else
-			{
-				strcpy_s(GroundObject.GroundItem.Name, ObjPtr->Name);
-			}
-			GroundObject.GroundItem.Pitch = ObjPtr->Angle;
-			GroundObject.GroundItem.pNext = 0;
-			GroundObject.GroundItem.pPrev = 0;
-			GroundObject.GroundItem.pSwitch = (PEQSWITCH)ObjPtr->pActor;
-			GroundObject.GroundItem.Roll = ObjPtr->Roll;
-			GroundObject.GroundItem.Scale = ObjPtr->Scale;
-			GroundObject.GroundItem.Weight = 0;
-			GroundObject.GroundItem.X = ObjPtr->X;
-			GroundObject.GroundItem.Y = ObjPtr->Y;
-			GroundObject.GroundItem.Z = ObjPtr->Z;
-			GroundObject.GroundItem.ZoneID = ((SPAWNINFO*)pLocalPlayer)->GetZoneID() & 0x7FFF;
-			pGroundTarget = &GroundObject.GroundItem;
-		}
-	}
-
-	if (EnviroTarget.DisplayedName[0] != 0)
-	{
-		WriteChatf("Item '%s' targeted.", EnviroTarget.DisplayedName);
+		WriteChatf("Item '%s' targeted.", result->DisplayName().c_str());
 	}
 	else
 	{
@@ -2563,13 +2419,25 @@ void Face(SPAWNINFO* pChar, char* szLine)
 		}
 		else if (!_stricmp(szArg, "item"))
 		{
-			if (EnviroTarget.Name[0] == 0)
+			// FIXME: refactor this function to not need to set the spawn in the higher scope
+			// reusing LocSpawn here because we don't need more stack explosion in this function
+			auto item = CurrentGroundSpawn();
+			if (item)
+			{
+				auto spawn = item->ToSpawn();
+				if (spawn)
+				{
+					LocSpawn = *spawn;
+				}
+			}
+
+			if (LocSpawn.Name[0] == 0)
 			{
 				MacroError("Face: item specified but no item targetted.");
 				return;
 			}
 
-			pSpawnClosest = &EnviroTarget;
+			pSpawnClosest = &LocSpawn;
 		}
 		else if (!_stricmp(szArg, "door"))
 		{
@@ -2700,7 +2568,7 @@ void Face(SPAWNINFO* pChar, char* szLine)
 		psTarget = (SPAWNINFO*)pTarget;
 	}
 
-	if (szMsg[0] && ((pSpawnClosest != &LocSpawn) && ((Away) || (pSpawnClosest != psTarget))))
+	if (szMsg[0] && ((pSpawnClosest != &LocSpawn || !ci_equals(LocSpawn.Name, "location")) && (Away || pSpawnClosest != psTarget)))
 		WriteChatColor(szMsg, USERCOLOR_WHO);
 
 	DebugSpew("Face - %s", szMsg);
@@ -3286,11 +3154,9 @@ void Target(SPAWNINFO* pChar, char* szLine)
 		{
 			pTarget = nullptr;
 			pDoorTarget = nullptr;
-			pGroundTarget = nullptr;
 
-			ZeroMemory(&GroundObject, sizeof(GroundObject));
-			ZeroMemory(&EnviroTarget, sizeof(EnviroTarget));
 			ZeroMemory(&DoorEnviroTarget, sizeof(DoorEnviroTarget));
+			ClearGroundSpawn();
 
 			if (pChar)
 				pChar->GroupMemberTargeted = 1;

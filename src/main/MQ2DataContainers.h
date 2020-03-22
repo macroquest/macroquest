@@ -28,19 +28,23 @@ public:
 		: GlobalIndex(GlobalIndex), Slot(Slot) {}
 };
 
-class MQ2EQObjectBase
+class MQ2Transient
 {
+protected:
+	bool m_invalidated; // let's track if this got invalidated to help troubleshooting things
+
 public:
 	virtual void Invalidate() = 0;
 	virtual operator bool() const = 0;
+
+	MQ2Transient() : m_invalidated(false) {}
 };
 
 template <typename T>
-class MQ2EQObject : public MQ2EQObjectBase
+class MQ2EQObject : public MQ2Transient
 {
 private:
 	T* m_object; // this is the actual raw pointer pointing to the memory space, we don't control its lifetime
-	bool m_invalidated; // let's track if this got invalidated to help troubleshooting things
 
 	void Validate()
 	{
@@ -52,17 +56,23 @@ private:
 	}
 
 public:
-	MQ2EQObject(T* Object) : m_object(Object), m_invalidated(false) {}
+	MQ2EQObject(T* Object) : m_object(Object) {}
 
 	void Invalidate() override { m_object = nullptr; m_invalidated = true; }
 
-	T& operator*() const
+	T& operator*()
 	{
 		Validate();
 		return *m_object;
 	}
 
-	T* operator->() const
+	T* operator->()
+	{
+		Validate();
+		return m_object;
+	}
+
+	T* Ptr()
 	{
 		Validate();
 		return m_object;
@@ -70,13 +80,13 @@ public:
 
 	operator bool() const override { return m_object != nullptr && !m_invalidated; }
 
-	static std::shared_ptr<MQ2EQObject<T>> Get(const std::shared_ptr<MQ2EQObjectBase>& Base)
+	static std::shared_ptr<MQ2EQObject<T>> Get(const std::shared_ptr<MQ2Transient>& Base)
 	{
 		return std::static_pointer_cast<MQ2EQObject<T>>(Base);
 	}
 };
 
-template <typename T> static std::shared_ptr<MQ2EQObject<T>> ObserveEQObject(T* Object)
+template <typename T> std::shared_ptr<MQ2EQObject<T>> ObserveEQObject(T* Object)
 {
 	auto ptr = std::make_shared<MQ2EQObject<T>>(Object);
 	AddObservedEQObject(ptr);

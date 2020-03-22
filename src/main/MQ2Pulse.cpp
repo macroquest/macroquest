@@ -315,9 +315,6 @@ static void Pulse()
 		LastX = pChar->X;
 		LastY = pChar->Y;
 		LastMoveTick = MQGetTickCount64();
-		EnviroTarget.Name[0] = 0;
-		pGroundTarget = nullptr;
-		ZeroMemory(&GroundObject, sizeof(GroundObject));
 		DoorEnviroTarget.Name[0] = 0;
 		DoorEnviroTarget.DisplayedName[0] = 0;
 		pDoorTarget = nullptr;

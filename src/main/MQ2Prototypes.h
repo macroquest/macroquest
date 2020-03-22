@@ -16,6 +16,8 @@
 
 namespace mq {
 
+struct MQ2GroundSpawn;
+
 using fEQGetMelee            = float  (*)(PlayerClient*, PlayerClient*);
 
 // MQ2 Callback types

@@ -22,10 +22,6 @@ static void MouseButtonUp(DWORD x, DWORD y, char* szButton);
 // ***************************************************************************
 // EqMule Mar 08 2014
 // Adding a detour here
-// All it does is check if EnviroTarget.StandState==STANDSTATE_STAND
-// if it is, we know the user issued a /click left item
-// so we force the return of the correct switch...
-// That will have the effect of actually "clicking" it...
 // ***************************************************************************
 class FakeCDisplay
 {
@@ -33,39 +29,15 @@ public:
 	CActorInterface* GetClickedActor_Tramp(int, int, bool, CVector3&, CVector3&);
 	CActorInterface* GetClickedActor_Detour(int X, int Y, bool bFlag, CVector3& Vector1, CVector3& Vector2)
 	{
-		if (GroundObject.Type == GO_ObjectType)
+		auto pGroundSpawn = CurrentGroundSpawn();
+		if (pGroundSpawn)
 		{
-			if (EQPlacedItem* pPlaced = (EQPlacedItem*)GroundObject.ObjPtr)
-			{
-				CActorInterface* ret = (CActorInterface*)pPlaced->pActor;
-				return ret;
-			}
-			else
-			{
-				CActorInterface* ret = (CActorInterface*)GetClickedActor_Tramp(X, Y, bFlag, Vector1, Vector2);
-				return ret;
-			}
+			auto pActor = pGroundSpawn->Actor();
+			if (pActor)
+				return pActor;
 		}
-		else if (pGroundTarget && EnviroTarget.Name[0] && (EnviroTarget.StandState == STANDSTATE_STAND || EnviroTarget.StandState == STANDSTATE_SIT))
-		{
-			// we do this to take both mousedown and mouseup into account
-			if (EnviroTarget.StandState == STANDSTATE_STAND)
-			{
-				EnviroTarget.StandState = STANDSTATE_SIT;
-			}
-			else if (EnviroTarget.StandState == STANDSTATE_SIT)
-			{
-				EnviroTarget.StandState = STANDSTATE_DEAD;
-			}
 
-			CActorInterface* ret = (CActorInterface*)pGroundTarget->pSwitch;
-			return ret;
-		}
-		else
-		{
-			CActorInterface* ret = GetClickedActor_Tramp(X, Y, bFlag, Vector1, Vector2);
-			return ret;
-		}
+		return GetClickedActor_Tramp(X, Y, bFlag, Vector1, Vector2);
 	}
 
 	HRESULT GetViewport(void* This, void* pViewport);
@@ -270,7 +242,6 @@ void MouseButtonUp(DWORD x, DWORD y, char* szButton)
 		if (((CDisplay*)pDisplay)->GetClickedActor(x, y, false, cv1, cv2))
 		{
 			gLClickedObject = true;
-			EnviroTarget.Name[0] = 0;
 		}
 	}
 }
@@ -309,6 +280,45 @@ void ClickMouseLoc(char* szMouseLoc, char* szButton)
 	{
 		MacroError("'%s' mouse click is either invalid or should be done using /notify", szMouseLoc);
 	}
+}
+
+bool ClickMouseItem(SPAWNINFO* pChar, const std::shared_ptr<MQ2GroundSpawn>& pGroundSpawn, bool left)
+{
+	if (!pChar || !pGroundSpawn)
+		return false;
+
+	auto distance = pGroundSpawn->Distance3D(pChar);
+	if (distance > 20.f)
+	{
+		WriteChatf("You are %.2f away from the %s, move within 20 feet of it to click it.", distance, pGroundSpawn->Name().c_str());
+		return false;
+	}
+
+	if (!left) // implied right click
+	{
+		*((DWORD*)__RMouseHeldTime) = ((CDISPLAY*)pDisplay)->TimeStamp - 0x45;
+
+		if (pWndMgr)
+		{
+			pEverQuest->RMouseUp(pWndMgr->MousePoint.x, pWndMgr->MousePoint.y);
+			return true;
+		}
+	}
+	else
+	{
+		*((DWORD*)__LMouseHeldTime) = ((CDISPLAY*)pDisplay)->TimeStamp - 0x45;
+
+		// we "click" at -10000,-10000 because we know the user doesnt have any windows there...
+		// if its possible, i would like to figure out a pixel
+		// on the users screen that isnt covered by a window...
+		// the click need to be issued on the main UI...
+		// but for now this will work -eqmule 8 mar 2014
+
+		pEverQuest->LMouseUp(-10000, -10000);
+		return true;
+	}
+
+	return false;
 }
 
 // ***************************************************************************
@@ -395,74 +405,11 @@ void Click(SPAWNINFO* pChar, char* szLine)
 		}
 		else if (!_strnicmp(szMouseLoc, "item", 4))
 		{
-			if (GroundObject.Type != GO_None)
-			{
-				if (!_strnicmp(szArg1, "right", 4))
-				{
-					if (EnviroTarget.Name[0] != 0)
-					{
-						if (Distance3DToSpawn(pChar, &EnviroTarget) <= 20.0f)
-						{
-							*((DWORD*)__RMouseHeldTime) = ((CDISPLAY*)pDisplay)->TimeStamp - 0x45;
-
-							if (pWndMgr)
-							{
-								pEverQuest->RMouseUp(pWndMgr->MousePoint.x, pWndMgr->MousePoint.y);
-							}
-
-							ZeroMemory(&EnviroTarget, sizeof(EnviroTarget));
-							ZeroMemory(&GroundObject, sizeof(GroundObject));
-							pGroundTarget = nullptr;
-						}
-						else
-						{
-							WriteChatf("You are to far away from the item, please move closer before issuing the /click right item command.");
-						}
-					}
-					else
-					{
-						WriteChatf("No item targeted, use /itemtarget <theid> before issuing a /click right item command.");
-					}
-				}
-				else if (!_strnicmp(szArg1, "left", 4))
-				{
-					if (EnviroTarget.Name[0] != 0)
-					{
-						if (Distance3DToSpawn(pChar, &EnviroTarget) <= 20.0f)
-						{
-							// do stuff
-							*((DWORD*)__LMouseHeldTime) = ((CDISPLAY*)pDisplay)->TimeStamp - 0x45;
-
-							// we "click" at -1000,-1000 because we know the user doesnt have any windows there...
-							// if its possible, i would like to figure out a pixel
-							// on the users screen that isnt covered by a window...
-							// the click need to be issued on the main UI...
-							// but for now this will work -eqmule 8 mar 2014
-
-							pEverQuest->LMouseUp(-10000, -10000);
-							pGroundTarget = nullptr;
-							ZeroMemory(&EnviroTarget, sizeof(EnviroTarget));
-							ZeroMemory(&GroundObject, sizeof(GroundObject));
-						}
-						else
-						{
-							WriteChatf("You are to far away from the item, please move closer before issuing the /click left item command.");
-						}
-					}
-					else
-					{
-						WriteChatf("No Item targeted, use /itemtarget <theid> before issuing a /click left item command.");
-					}
-				}
-				else
-				{
-					WriteChatf("Invalid click args, use \"/click left item\", aborting: %s", szMouseLoc);
-				}
-			}
+			auto pGroundSpawn = CurrentGroundSpawn();
+			if (pGroundSpawn)
+				ClickMouseItem(pChar, pGroundSpawn, !_strnicmp(szArg1, "left", 4));
 			else
-			{
 				WriteChatf("No Item targeted, use /itemtarget <theid> before issuing a /click left|right item command.");
-			}
 
 			return;
 		}

@@ -423,6 +423,17 @@ inline float Distance3DToSpawn(const T1& pSpawn1, const T2& pSpawn2)
 		((SPAWNINFO*)pSpawn2)->X, ((SPAWNINFO*)pSpawn2)->Y, ((SPAWNINFO*)pSpawn2)->Z);
 }
 
+template <typename Reference, typename T, typename Func>
+void DistanceSort(const Reference& Ref, std::vector<T>& Vector, Func Distance)
+{
+	// std::sort is guaranteed max complexity of O(nlogn)
+	std::sort(Vector.begin(), Vector.end(),
+		[&Ref, &Distance](const T& a, const T& b)
+		{
+			return Distance(Ref, a) < Distance(Ref, b);
+		});
+}
+
 inline bool _FileExists(const char* filename)
 {
 	return _access(filename, 0) != -1;
