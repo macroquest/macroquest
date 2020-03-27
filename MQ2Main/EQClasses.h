@@ -937,10 +937,11 @@ EQLIB_OBJECT void CAAWnd::ConfirmAASpend(void);
 EQLIB_OBJECT void CAAWnd::SendNewPercent(void);
 #if defined(ROF2EMU) || defined(UFEMU)
 EQLIB_OBJECT void CAAWnd::ShowAbility(int);
+EQLIB_OBJECT void CAAWnd::Update(void);
 #else
 EQLIB_OBJECT bool CAAWnd::ShowAbility(int);
+EQLIB_OBJECT void CAAWnd::Update(bool bSomething = true);
 #endif
-EQLIB_OBJECT void CAAWnd::Update(void);
 EQLIB_OBJECT void CAAWnd::UpdateTimer(void);
 // virtual
 EQLIB_OBJECT CAAWnd::~CAAWnd(void);

@@ -1,3 +1,16 @@
+Mar 26 2020
+- Updated for TEST
+- Added CAAWnd__UpdateSelected_x
+- Added CAAWnd__Update_x
+- Changed ShowSpellSlotInfo so it takes a custom linebreak.
+-
+Mar 25 2020 by ChatWithThisName
+- MQ2ChatWnd: Added ingame toggles for SaveByChar, Autoscroll, NoCharSelect to the /mqchat command
+  Available options are:
+    no parameter, will output what it's currently set to. Example: /mqchat SaveByChar
+    On - Turn on the option. Example: /mqchat autoscroll on
+    Off - Turn off the option. Example: /mqchat NoCharSelect off
+-
 Mar 19 2020
 - Updated for LIVE
 - Added CXRect__operator_and

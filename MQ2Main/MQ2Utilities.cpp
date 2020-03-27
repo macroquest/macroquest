@@ -4675,7 +4675,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 	return szBuffer;
 }
 
-PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer, SIZE_T BufferSize)
+PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer, SIZE_T BufferSize, PCHAR LineBreak)
 {
 	CHAR szTemp[MAX_STRING] = { 0 };
 	CHAR szBuff[MAX_STRING] = { 0 };
@@ -4687,7 +4687,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer, SIZE_T BufferSize)
 		size_t len = strlen(szBuff);
 		if (len > 0 && count + len < BufferSize) {
 			strcat_s(szBuffer,BufferSize, szBuff);
-			strcat_s(szBuffer,BufferSize, "<br>");
+			strcat_s(szBuffer, BufferSize, LineBreak);
 		}
 		count += len + 4;
 	}

@@ -254,10 +254,14 @@ FUNCTION_AT_VIRTUAL_ADDRESS( bool ClientSpellManager::GetSpellAffectEmpty(bool),
 FUNCTION_AT_ADDRESS( CAAWnd::CAAWnd(class CXWnd *),CAAWnd__CAAWnd);
 #endif
 #ifdef CAAWnd__Update_x
-FUNCTION_AT_ADDRESS(void  CAAWnd::Update(void),CAAWnd__Update);
+#if defined(ROF2EMU) || defined(UFEMU)
+FUNCTION_AT_ADDRESS(void CAAWnd::Update(void), CAAWnd__Update);
+#else
+FUNCTION_AT_ADDRESS(void CAAWnd::Update(bool),CAAWnd__Update);
+#endif
 #endif
 #ifdef CAAWnd__UpdateSelected_x
-FUNCTION_AT_ADDRESS(void  CAAWnd::UpdateSelected(void),CAAWnd__UpdateSelected);
+FUNCTION_AT_ADDRESS(void CAAWnd::UpdateSelected(void),CAAWnd__UpdateSelected);
 #endif
 #ifdef CAAWnd__UpdateTimer_x
 FUNCTION_AT_ADDRESS(void  CAAWnd::UpdateTimer(void),CAAWnd__UpdateTimer);

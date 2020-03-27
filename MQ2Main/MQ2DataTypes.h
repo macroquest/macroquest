@@ -1566,6 +1566,7 @@ public:
 		TypeMember(EntwinedDjinnCoins);//306,
 		TypeMember(CrystallizedLuck);//307
 		TypeMember(Spell);//308
+		TypeMember(ParcelStatus);//309
 
 		TypeMethod(Stand);
 		TypeMethod(Sit);

@@ -2163,6 +2163,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQGroundItemListManager__Instance);
 	INITIALIZE_EQGAME_OFFSET(EverQuestinfo__IsItemPending);
 	INITIALIZE_EQGAME_OFFSET(CAAWnd__ShowAbility);
+	INITIALIZE_EQGAME_OFFSET(CAAWnd__UpdateSelected);
+	INITIALIZE_EQGAME_OFFSET(CAAWnd__Update);
 	INITIALIZE_EQGAME_OFFSET(CXRect__operator_and);
 	
 	INITIALIZE_EQGAME_OFFSET(ArrayClass__DeleteElement);
