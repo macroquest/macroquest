@@ -408,6 +408,13 @@ typedef struct _AggroMeterListEntry
 	unsigned short AggroPct;
 } AggroMeterListEntry, *PAggroMeterListEntry;
 
+class CachedBuffs
+{
+public:
+EQLIB_OBJECT size_t GetCount(int SpawnID);
+EQLIB_OBJECT bool Get(int SpawnID, int index, cTargetBuff*out);
+};
+
 class AggroMeterManagerClient
 {
 public:
@@ -7683,37 +7690,37 @@ public:
 EQLIB_OBJECT void EQ_Affect::Reset(void);
 EQLIB_OBJECT int EQ_Affect::GetAffectData(int)const;
 #if !defined(ROF2EMU) && !defined(UFEMU)
-/*0x00*/	BYTE Type;
-/*0x01*/	BYTE CasterLevel;
-/*0x02*/	BYTE ChargesRemaining;
-/*0x03*/	BYTE Activatable;
-/*0x04*/	FLOAT BaseDmgMod;
-/*0x08*/	int ID;
-/*0x0c*/	int DurationTick;
-/*0x10*/	int MaxDuration;
-/*0x14*/	int Duration3;
-/*0x18*/	EqGuid CasterGuid;
-/*0x20*/	int HitCounter;
-/*0x24*/	FLOAT HitLocationY;
-/*0x28*/	FLOAT HitLocationX;
-/*0x2c*/	FLOAT HitLocationZ;
-/*0x30*/	UINT Flags;//twincast
-/*0x34*/	SlotData Data[NUM_SLOTDATA];
-/*0x64*/	DWORD Unknown0x64;
+/*0x00*/ EqGuid    CasterGuid;
+/*0x08*/ SlotData SlotData[NUM_SLOTDATA]; // used for book keeping of various effects (debuff counter, rune/vie damage remaining)
+/*0x38*/ DWORD     Flags;
+/*0x3C*/ LONG      SpellID;       // -1 or 0 for no spell..
+/*0x40*/ DWORD     Duration;
+/*0x44*/ DWORD     InitialDuration;
+/*0x48*/ DWORD     HitCount;
+/*0x4c*/ UINT      ViralTimer;		//not 100% sure this is correct
+/*0x50*/ FLOAT     Modifier;      // Bard song modifier, 1.0 is default BaseDmgMod
+/*0x54*/ FLOAT     Y;             // Referenced by SPA 441 (distance removal)
+/*0x58*/ FLOAT     X;
+/*0x5c*/ FLOAT     Z;
+/*0x60*/ BYTE      Type;
+/*0x61*/ BYTE      Level;//casterlevel
+/*0x62*/ BYTE      ChargesRemaining; //dont think this is used anymore.
+/*0x63*/ BYTE      Activatable;//dont think this is used anymore. We used to think this was DamageShield
+/*0x64*/ DWORD     Unknown0x64;//not 100% sure this is correct it could be ViralTimer
 /*0x68*/
 #else
 /*0x00*/	BYTE Type;
-/*0x01*/	BYTE CasterLevel;
+/*0x01*/	BYTE Level;
 /*0x02*/	BYTE ChargesRemaining;
 /*0x03*/	BYTE Activatable;
-/*0x04*/	FLOAT BaseDmgMod;
-/*0x08*/	int ID;
-/*0x0c*/	int DurationTick;
+/*0x04*/	FLOAT Modifier;
+/*0x08*/	int SpellID;
+/*0x0c*/	int Duration;
 /*0x10*/	int CasterID;
-/*0x14*/	int HitCounter;
-/*0x18*/	FLOAT HitLocationY;
-/*0x1c*/	FLOAT HitLocationX;
-/*0x20*/	FLOAT HitLocationZ;
+/*0x14*/	int HitCount;
+/*0x18*/	FLOAT Y;
+/*0x1c*/	FLOAT X;
+/*0x20*/	FLOAT Z;
 /*0x24*/	UINT Flags;//twincast
 /*0x28*/	SlotData Data[NUM_SLOTDATA];
 /*0x58*/

@@ -2983,6 +2983,7 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
 			if (pTarget)
 			{
 				int id = pTarget->Data.SpawnID;
+				lockit lk(ghCachedBuffsLock);
 				if (CachedBuffsMap.find(id) != CachedBuffsMap.end())
 				{
 					pTarget = NULL;
@@ -2998,6 +2999,7 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
 				pTarget = NULL;
 			}
 			WriteChatColor("Cached Buffs for ALL Targets cleared.", USERCOLOR_WHO);
+			lockit lk(ghCachedBuffsLock);
 			CachedBuffsMap.clear();
 			return;
 		}

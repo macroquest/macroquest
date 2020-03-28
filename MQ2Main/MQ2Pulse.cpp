@@ -813,6 +813,7 @@ public:
 		//should we clear it here?
 		//if (pTarget && header.m_bComplete) {
 			int id = pTarget->Data.SpawnID;
+			lockit lk(ghCachedBuffsLock);
 			CachedBuffsMap[id].clear();
 		//}
         for( int i = 0; i < header.m_count; i++ ) {

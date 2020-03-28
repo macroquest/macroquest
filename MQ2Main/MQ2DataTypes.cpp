@@ -171,6 +171,16 @@ bool MQ2FloatType::GETMEMBER()
 		Dest.Type = pIntType;
 		Dest.DWord = VarPtr.DWord;
 		return true;
+	case Prettify: {
+		int digits = 2;
+		if (ISNUMBER())
+			digits = GETNUMBER();
+		sprintf_s(DataTypeTemp, "%f", VarPtr.Float);
+		PrettifyNumber(DataTypeTemp, sizeof(DataTypeTemp), digits);
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
+	}
 	}
 	return false;
 }
@@ -212,6 +222,16 @@ bool MQ2DoubleType::GETMEMBER()
 			return true;
 		}
 		return false;
+	case Prettify: {
+		int digits = 2;
+		if (ISNUMBER())
+			digits = GETNUMBER();
+		sprintf_s(DataTypeTemp, "%f", VarPtr.Float);
+		PrettifyNumber(DataTypeTemp, sizeof(DataTypeTemp), digits);
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
+	}
 	}
 	return false;
 }
@@ -256,7 +276,18 @@ bool MQ2IntType::GETMEMBER()
 		Dest.DWord = HIWORD(VarPtr.DWord);
 		Dest.Type = pIntType;
 		return true;
+	case Prettify: {
+		int digits = 0;
+		if (ISNUMBER())
+			digits = GETNUMBER();
+		sprintf_s(DataTypeTemp, "%d", VarPtr.Int);
+		PrettifyNumber(DataTypeTemp, sizeof(DataTypeTemp), digits);
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
 	}
+	}
+
 	return false;
 }
 bool MQ2Int64Type::GETMEMBER()
@@ -301,6 +332,16 @@ bool MQ2Int64Type::GETMEMBER()
 		Dest.DWord = HIDWORD(VarPtr.UInt64);
 		Dest.Type = pIntType;
 		return true;
+	case Prettify: {
+		int digits = 0;
+		if (ISNUMBER())
+			digits = GETNUMBER();
+		sprintf_s(DataTypeTemp, "%lld", VarPtr.Int64);
+		PrettifyNumber(DataTypeTemp, sizeof(DataTypeTemp), digits);
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
+	}
 	}
 	return false;
 }
@@ -2256,6 +2297,7 @@ bool MQ2SpawnType::GETMEMBER()
 	case CachedBuff:
 	{
 		Dest.Type = pCachedBuffType;
+		lockit lk(ghCachedBuffsLock);
 		if (CachedBuffsMap.empty())
 			return false;
 		DWORD SpellID = 0;
@@ -2535,6 +2577,7 @@ bool MQ2SpawnType::GETMEMBER()
 	}
 	case CachedBuffCount:
 	{
+		lockit lk(ghCachedBuffsLock);
 		Dest.Type = pIntType;
 		Dest.DWord = -1;
 		std::map<int, std::map<int, cTargetBuff>>::iterator ps = CachedBuffsMap.find(pSpawn->SpawnID);
@@ -6845,26 +6888,9 @@ bool MQ2SpellType::GETMEMBER()
 			}
 		}
 		return true;
-
-		/*PSPELL thespell = pSpell;
-		Dest.DWord = 0;
-		Dest.Type = pBoolType;
-		if (pLocalPlayer)
-		{
-			CharacterZoneClient*pCZC = (CharacterZoneClient*)((PSPAWNINFO)pLocalPlayer)->GetCharacter();
-			if (pCZC)
-			{
-				int SlotIndex = -1;
-				EQ_Affect*ret = pCZC->FindAffectSlot(thespell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level, NULL, 0, true);
-				if (!ret || SlotIndex==-1)
-					Dest.DWord = false;
-				else
-					Dest.DWord = true;
-			}
-		}
-		return true;*/
 	}
 	case WillStack:
+	case StacksWith:
 	case NewStacksWith://if a spell stack with another spell
 	{
 		Dest.DWord = false;
@@ -6884,16 +6910,16 @@ bool MQ2SpellType::GETMEMBER()
 		{
 			if (CharacterZoneClient*pCZC = (CharacterZoneClient*)((PSPAWNINFO)pLocalPlayer)->GetCharacter())
 			{
-			EQ_Affect eff = { 0 };
-				eff.ID = tmpSpell->ID;
-				eff.CasterLevel = ((PSPAWNINFO)pLocalPlayer)->Level;
+				EQ_Affect eff = { 0 };
+				eff.SpellID = tmpSpell->ID;
+				eff.Level = ((PSPAWNINFO)pLocalPlayer)->Level;
 				eff.Type = 2;
-				eff.BaseDmgMod = 1.0;
+				eff.Modifier = 1.0;
 				int SlotIndex = -1;
 
 				EQ_Affect*ret = pCZC->FindAffectSlot(thespell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level, &eff, 1, false);
-				//call below is correct but it always seem to return false so i don't
-				//think its useful to clientside... also call above calls it...
+				//call below is correct but it always seem to return false when we feed it a &eff so i don't
+				//think its useful here... also the call above calls it for us...
 				//Dest.DWord = pCZC->IsStackBlocked((EQ_Spell*)thespell, (PSPAWNINFO)pLocalPlayer, &eff, 1);
 				if (!ret || SlotIndex==-1)
 					Dest.DWord = false;
@@ -6903,53 +6929,6 @@ bool MQ2SpellType::GETMEMBER()
 		}
 		return true;
 	}
-	/*case Stacks:
-	{
-		unsigned long buffduration;
-		unsigned long duration = 99999;
-		if (ISNUMBER())
-			duration = GETNUMBER();
-		unsigned long nBuff;
-		Dest.DWord = true;
-		Dest.Type = pBoolType;
-		// Check Buffs
-		if (PCHARINFO2 pChar2 = GetCharInfo2())
-		{
-			for (nBuff = 0; nBuff < NUM_LONG_BUFFS; nBuff++) {
-				if (pChar2->Buff[nBuff].SpellID > 0) {
-					if (PSPELL buffSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID)) {
-						buffduration = pChar2->Buff[nBuff].Duration;
-						if (GetSpellDuration(buffSpell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
-							buffduration = 99999 + 1;
-						}
-						if (buffSpell == pSpell) WriteChatf("Spell.Stacks(%d:%d,%d)", buffSpell->ID, duration, buffduration);
-						if (!BuffStackTest(pSpell, buffSpell, TRUE) || ((buffSpell == pSpell) && (buffduration > duration))) {
-							Dest.DWord = false;
-							return true;
-						}
-					}
-				}
-			}
-			// Check Songs
-			for (nBuff = 0; nBuff < NUM_SHORT_BUFFS; nBuff++) {
-				if (pChar2->ShortBuff[nBuff].SpellID > 0) {
-					if (PSPELL buffSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID)) {
-						buffduration = pChar2->ShortBuff[nBuff].Duration;
-						if (!IsBardSong(buffSpell) && !((IsSPAEffect(pSpell, SPA_CHANGE_FORM) && !pSpell->DurationWindow))) {		// Don't check against bard songs or buff window illusions
-							if (GetSpellDuration(buffSpell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
-								buffduration = 99999 + 1;
-							}
-							if (!BuffStackTest(pSpell, buffSpell, TRUE) || ((buffSpell == pSpell) && (buffduration > duration))) {
-								Dest.DWord = false;
-								return true;
-							}
-						}
-					}
-				}
-			}
-		}
-		return true;
-	}*/
 	case StacksSpawn:
 	{
 		Dest.DWord = false;
@@ -6957,6 +6936,7 @@ bool MQ2SpellType::GETMEMBER()
 
 		if (!ISINDEX())
 			return true;
+		lockit lk(ghCachedBuffsLock);
 		if (CachedBuffsMap.empty())
 			return true;
 		PSPAWNINFO pSpawn = 0;
@@ -6981,10 +6961,10 @@ bool MQ2SpellType::GETMEMBER()
 					{
 						if (PSPELL pBuff = GetSpellByID(k->first)) {
 							pAffects[j].Type = 2;
-							pAffects[j].ID = pBuff->ID;
+							pAffects[j].SpellID = pBuff->ID;
 							pAffects[j].Activatable = 0;// pBuff->Activated;
-							pAffects[j].CasterLevel = ((PSPAWNINFO)pLocalPlayer)->Level;
-							pAffects[j].BaseDmgMod = 1.0;
+							pAffects[j].Level = ((PSPAWNINFO)pLocalPlayer)->Level;
+							pAffects[j].Modifier = 1.0;
 							j++;
 						}
 					}
@@ -7001,6 +6981,7 @@ bool MQ2SpellType::GETMEMBER()
 	}
 	case StacksTarget:
 	{
+		lockit lk(ghCachedBuffsLock);
 		Dest.DWord = false;
 		Dest.Type = pBoolType;
 		if (pLocalPlayer)
@@ -7022,15 +7003,15 @@ bool MQ2SpellType::GETMEMBER()
 							{
 								if (PSPELL pBuff = GetSpellByID(k->first)) {
 									pAffects[j].Type = 2;
-									pAffects[j].ID = pBuff->ID;
+									pAffects[j].SpellID = pBuff->ID;
 									pAffects[j].Activatable = 0;// pBuff->Activated;
 #if !defined(ROF2EMU) && !defined(UFEMU)
 									pAffects[j].CasterGuid = pMe->Guid;
 #else
 									pAffects[j].CasterID = ((PSPAWNINFO)pLocalPlayer)->SpawnID;
 #endif
-									pAffects[j].CasterLevel = ((PSPAWNINFO)pLocalPlayer)->Level;
-									pAffects[j].BaseDmgMod = 1.0;
+									pAffects[j].Level = ((PSPAWNINFO)pLocalPlayer)->Level;
+									pAffects[j].Modifier = 1.0;
 									j++;
 								}
 							}
@@ -7039,23 +7020,23 @@ bool MQ2SpellType::GETMEMBER()
 						{
 
 							int buffID = 0;
-					for (int i = 0; i < NUM_BUFF_SLOTS; i++) {
-						if (buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i]) {
-							if (PSPELL pBuff = GetSpellByID((DWORD)buffID)) {
+							for (int i = 0; i < NUM_BUFF_SLOTS; i++) {
+								if (buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i]) {
+									if (PSPELL pBuff = GetSpellByID((DWORD)buffID)) {
 										pAffects[j].Type = 2;
-								pAffects[j].ID = pBuff->ID;
-								pAffects[j].Activatable = 0;// pBuff->Activated;
+										pAffects[j].SpellID = pBuff->ID;
+										pAffects[j].Activatable = 0;// pBuff->Activated;
 #if !defined(ROF2EMU) && !defined(UFEMU)
-								pAffects[j].CasterGuid = pMe->Guid;
+										pAffects[j].CasterGuid = pMe->Guid;
 #else
-								pAffects[j].CasterID = ((PSPAWNINFO)pLocalPlayer)->SpawnID;
+										pAffects[j].CasterID = ((PSPAWNINFO)pLocalPlayer)->SpawnID;
 #endif
-								pAffects[j].CasterLevel = ((PSPAWNINFO)pLocalPlayer)->Level;
-								pAffects[j].BaseDmgMod = 1.0;
-								j++;
+										pAffects[j].Level = ((PSPAWNINFO)pLocalPlayer)->Level;
+										pAffects[j].Modifier = 1.0;
+										j++;
+									}
+								}
 							}
-						}
-					}
 						}
 						int SlotIndex = -1;
 						EQ_Affect*ret = pCZC->FindAffectSlot(pSpell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level, pAffects, j, false);
@@ -7071,15 +7052,52 @@ bool MQ2SpellType::GETMEMBER()
 	}
 	case StacksPet:
 	{
-		unsigned long petbuffduration;
+		//unsigned long petbuffduration;
 		unsigned long duration = 99999;
 		if (ISNUMBER())
 			duration = GETNUMBER();
-		unsigned long nBuff;
-		Dest.DWord = true;
+		Dest.DWord = false;
 		Dest.Type = pBoolType;
-		PEQPETINFOWINDOW pPet = ((PEQPETINFOWINDOW)pPetInfoWnd);
-		for (nBuff = 0; nBuff < NUM_BUFF_SLOTS; nBuff++) {
+		if (pLocalPlayer)
+		{
+			if (CharacterZoneClient* pCZC = (CharacterZoneClient*)((PSPAWNINFO)pLocalPlayer)->GetCharacter())
+			{
+				if (PCHARINFO pMe = GetCharInfo())
+				{
+					if (PEQPETINFOWINDOW pPet = ((PEQPETINFOWINDOW)pPetInfoWnd))
+					{
+						EQ_Affect pAffects[NUM_BUFF_SLOTS] = { 0 };
+						int buffID = 0;
+						int j = 0;
+						for (int i = 0; i < NUM_BUFF_SLOTS; i++)
+						{
+							if (buffID = pPet->Buff[i]) {
+								if (PSPELL pBuff = GetSpellByID((DWORD)buffID)) {
+									pAffects[j].Type = 2;
+									pAffects[j].SpellID = pBuff->ID;
+									pAffects[j].Activatable = 0;// pBuff->Activated;
+#if !defined(ROF2EMU) && !defined(UFEMU)
+									pAffects[j].CasterGuid = pMe->Guid;
+#else
+									pAffects[j].CasterID = ((PSPAWNINFO)pLocalPlayer)->SpawnID;
+#endif
+									pAffects[j].Level = ((PSPAWNINFO)pLocalPlayer)->Level;
+									pAffects[j].Modifier = 1.0;
+									j++;
+								}
+							}
+						}
+						int SlotIndex = -1;
+						EQ_Affect*ret = pCZC->FindAffectSlot(pSpell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level, pAffects, j, false);
+						if (!ret || SlotIndex == -1)
+							Dest.DWord = false;
+						else
+							Dest.DWord = true;
+					}
+				}
+			}
+		}
+		/*for (nBuff = 0; nBuff < NUM_BUFF_SLOTS; nBuff++) {
 			if (pPet->Buff[nBuff] > 0 && !(pPet->Buff[nBuff] == 0xFFFFFFFF || pPet->Buff[nBuff] == 0)) {
 				if (PSPELL buffSpell = GetSpellByID(pPet->Buff[nBuff])) {
 					petbuffduration = ((pPet->PetBuffTimer[nBuff] + 5999) / 1000) / 6;
@@ -7092,44 +7110,9 @@ bool MQ2SpellType::GETMEMBER()
 					}
 				}
 			}
-		}
+		}*/
 		return true;
 	}
-	case StacksWith:
-	{
-		Dest.DWord = false;
-		Dest.Type = pBoolType;
-
-		if (!ISINDEX())
-			return true;
-		PSPELL tmpSpell = NULL;
-		if (ISNUMBER())
-			tmpSpell = GetSpellByID(GETNUMBER());
-		else
-			tmpSpell = GetSpellByName(GETFIRST());
-		if (!tmpSpell)
-			return true;
-		Dest.DWord = BuffStackTest(pSpell, tmpSpell, TRUE);
-		return true;
-	}
-	/*case WillStack:
-	{
-		Dest.DWord = false;
-		Dest.Type = pBoolType;
-
-		if (!ISINDEX())
-			return true;
-		PSPELL tmpSpell = NULL;
-		if (ISNUMBER())
-			tmpSpell = GetSpellByID(GETNUMBER());
-		else
-			tmpSpell = GetSpellByName(GETFIRST());
-		if (!tmpSpell)
-			return true;
-
-		Dest.DWord = BuffStackTest(pSpell, tmpSpell);
-		return true;
-	}*/
 	case MyRange:
 	{
 		VePointer<CONTENTS> n;
@@ -15419,13 +15402,10 @@ bool MQ2TaskType::GETMEMBER()
 			{
 				DWORD ft = GetFastTime();
 				int timer = 0;
-				CHAR szTime[256] = { 0 };
 				if (((DWORD)ts->MovingStartTime + (DWORD)entry->DurationSeconds) > ft)
 				{
 					timer = (ts->MovingStartTime + entry->DurationSeconds) - ft;
 				}
-				sprintf_s(szTime, "%02d:%02d:%02d", timer / 3600, (timer % 3600) / 60, timer % 60);
-				WriteChatf("%s", szTime);
 				Dest.UInt64 = timer * 1000;
 					return true;
 				}
