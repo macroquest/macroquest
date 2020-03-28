@@ -98,7 +98,7 @@ bool MQ2IntType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 
 bool MQ2IntType::FromString(MQVarPtr& VarPtr, char* Source)
 {
-	VarPtr.Int = GetIntFromString(Source, -1);
+	VarPtr.Int = GetIntFromString(Source, 0);
 	return true;
 }
 
