@@ -1050,8 +1050,6 @@ bool SendTabSelect(const char* WindowName, const char* ScreenID, int Value)
 
 bool SendWndNotification(const char* WindowName, const char* ScreenID, int Notification, void* Data)
 {
-	char szOut[MAX_STRING] = { 0 };
-
 	CXWnd* pWnd = FindMQ2Window(WindowName);
 	if (!pWnd)
 	{
@@ -1340,7 +1338,7 @@ const char* szWndNotification[] = {
 
 void WndNotify(PSPAWNINFO pChar, char* szLine)
 {
-	unsigned long Data = 0;
+	int Data = 0;
 
 	char szArg1[MAX_STRING] = { 0 };
 	char szArg2[MAX_STRING] = { 0 };
@@ -1351,9 +1349,9 @@ void WndNotify(PSPAWNINFO pChar, char* szLine)
 	GetArg(szArg3, szLine, 3);
 	GetArg(szArg4, szLine, 4);
 
-	if (!szArg3[0] && !IsNumber(szArg1) && _stricmp(szArg2, "menuselect"))
+	if (!szArg3[0] && !IsNumber(szArg1) && !ci_equals(szArg2, "menuselect"))
 	{
-		SyntaxError("Syntax: /notify <window|\"item\"> <control|0> <notification> [notification data]");
+		SyntaxError("Syntax: /notify <window|\"item\"> <control|menuselect|0> <notification> [notification data]");
 		return;
 	}
 
@@ -1362,34 +1360,25 @@ void WndNotify(PSPAWNINFO pChar, char* szLine)
 		Data = GetIntFromString(szArg4, Data);
 	}
 
-	if (!_stricmp(szArg2, "menuselect"))
+	if (ci_equals(szArg2, "menuselect"))
 	{
 		if (pContextMenuManager->NumVisibleMenus == 1)
 		{
-			int currMenu = pContextMenuManager->CurrMenu;
+			const int currMenu = pContextMenuManager->CurrMenu;
 
-			if (pContextMenuManager->CurrMenu < 8)
+			if (pContextMenuManager->CurrMenu < MAX_CONTEXT_MENU_DEPTH)
 			{
 				if (CContextMenu* menu = pContextMenuManager->pCurrMenus[currMenu])
 				{
-					CXStr Str;
-					_strlwr_s(szArg1);
-
-					for (int i = 0; i < menu->NumItems; i++)
+					for (int i = 0; i < menu->NumItems; ++i)
 					{
 						CXStr Str = menu->GetItemText(i, 1);
 
-						if (!Str.empty())
+						if (!Str.empty() && ci_equals(szArg1, Str))
 						{
-							// TODO: need a case insensntive search function
-							strcpy_s(szArg4, Str.c_str());
-							_strlwr_s(szArg4);
-							if (strstr(szArg4, szArg1))
-							{
-								WriteChatf("\ay[/notify] SUCCESS\ax: Clicking \"%s\" at position %d in the menu.", szArg4, i);
-								pContextMenuManager->WndNotification(menu, XWM_LMOUSEUP, (void*)i);
-								return;
-							}
+							WriteChatf("\ay[/notify] SUCCESS\ax: Clicking \"%s\" at position %d in the menu.", Str.c_str(), i);
+							pContextMenuManager->WndNotification(menu, XWM_LMOUSEUP, reinterpret_cast<void*>(i));
+							return;
 						}
 					}
 
@@ -1405,7 +1394,7 @@ void WndNotify(PSPAWNINFO pChar, char* szLine)
 		return;
 	}
 
-	if (!_stricmp(szArg3, "link"))
+	if (ci_equals(szArg3, "link"))
 	{
 		DebugSpewAlways("WndNotify: link found, Data = 1");
 		Data = 1;
@@ -1414,14 +1403,16 @@ void WndNotify(PSPAWNINFO pChar, char* szLine)
 	if (IsNumber(szArg1))
 	{
 		// we have a number. it means the user want us to click a window he has found the address for...
-		int addr = GetIntFromString(szArg1, 0);
-		if (!_stricmp(szArg2, "listselect"))
+		const int addr = GetIntFromString(szArg1, 0);
+		if (ci_equals(szArg2, "listselect"))
 		{
 			SendListSelect2(reinterpret_cast<CXWnd*>(addr), GetIntFromString(szArg3, 0));
-			return;
+		}
+		else
+		{
+			SendWndClick2(reinterpret_cast<CXWnd*>(addr), szArg2);
 		}
 
-		SendWndClick2(reinterpret_cast<CXWnd*>(addr), szArg2);
 		return;
 	}
 
@@ -1448,27 +1439,25 @@ void WndNotify(PSPAWNINFO pChar, char* szLine)
 		return;
 	}
 
-	for (int i = 0; i < sizeof(szWndNotification) / sizeof(szWndNotification[0]); i++)
+	for (int i = 0; i < sizeof(szWndNotification) / sizeof(szWndNotification[0]); ++i)
 	{
-		if (szWndNotification[i] && !_stricmp(szWndNotification[i], szArg3))
+		if (szWndNotification[i] && ci_equals(szWndNotification[i], szArg3))
 		{
 			if (i == XWM_LINK)
 			{
-				if (!SendWndNotification(szArg1, szArg2, i, (void*)szArg4))
+				if (!SendWndNotification(szArg1, szArg2, i, static_cast<void*>(szArg4)))
 				{
 					MacroError("Could not send notification to %s %s", szArg1, szArg2);
 				}
-				return;
 			}
-
-			if (szArg2[0] == '0')
+			else if (szArg2[0] == '0')
 			{
-				if (!SendWndNotification(szArg1, nullptr, i, (void*)Data))
+				if (!SendWndNotification(szArg1, nullptr, i, reinterpret_cast<void*>(Data)))
 				{
 					MacroError("Could not send notification to %s %s", szArg1, szArg2);
 				}
 			}
-			else if (!SendWndNotification(szArg1, szArg2, i, (void*)Data))
+			else if (!SendWndNotification(szArg1, szArg2, i, reinterpret_cast<void*>(Data)))
 			{
 				MacroError("Could not send notification to %s %s", szArg1, szArg2);
 			}

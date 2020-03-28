@@ -184,12 +184,12 @@ static CXWnd* RecurseAndFindName(CXMLDataManager* dataMgr, CXWnd* pWnd, const CX
 
 	if (CXMLData* pXMLData = pWnd->GetXMLData(dataMgr))
 	{
-		if (pXMLData->Name == Name)
+		if (mq::ci_equals(pXMLData->Name, Name))
 		{
 			return pWnd;
 		}
 
-		if (pXMLData->ScreenID == Name)
+		if (mq::ci_equals(pXMLData->ScreenID, Name))
 		{
 			return pWnd;
 		}
