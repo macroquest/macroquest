@@ -1374,7 +1374,7 @@ void WndNotify(PSPAWNINFO pChar, char* szLine)
 					{
 						CXStr Str = menu->GetItemText(i, 1);
 
-						if (!Str.empty() && ci_equals(szArg1, Str))
+						if (!Str.empty() && ci_find_substr(Str, szArg1) != -1)
 						{
 							WriteChatf("\ay[/notify] SUCCESS\ax: Clicking \"%s\" at position %d in the menu.", Str.c_str(), i);
 							pContextMenuManager->WndNotification(menu, XWM_LMOUSEUP, reinterpret_cast<void*>(i));
