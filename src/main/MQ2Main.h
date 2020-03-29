@@ -724,7 +724,7 @@ MQLIB_API bool Calculate(const char* szFormula, double& Dest);
 
 // Given a string that contains a number, make the number "pretty" by adding things like
 // comma separators, or decimals.
-EQLIB_API void PrettifyNumber(char* string, size_t bufferSize, int decimals = 0);
+MQLIB_API void PrettifyNumber(char* string, size_t bufferSize, int decimals = 0);
 
 constexpr int LIGHT_COUNT = 13;
 //#define MAX_COMBINES		61
