@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <limits>
 
 #include "../common/Common.h"
@@ -232,6 +233,27 @@ public:
 	bool operator!=(const CXRect& other)
 	{
 		return !(*this == other);
+	}
+
+	CXRect operator&(const CXRect& other)
+	{
+		CXRect newRect(-1, -1, -1, -1);
+
+		if (left > other.right)
+			return newRect;
+		if (top > other.bottom)
+			return newRect;
+		if (right < other.left)
+			return newRect;
+		if (bottom < other.top)
+			return newRect;
+		
+		newRect.left = std::max(left, other.left);
+		newRect.top = std::max(top, other.top);
+		newRect.right = std::min(right, other.right);
+		newRect.bottom = std::min(bottom, other.bottom);
+
+		return newRect;
 	}
 
 	int GetWidth() const { return right - left; }

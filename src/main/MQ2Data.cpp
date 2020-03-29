@@ -509,16 +509,6 @@ bool dataZone(const char* szIndex, MQTypeVar& Ret)
 	return false;
 }
 
-bool dataFloat(const char* szIndex, MQTypeVar& Ret)
-{
-	if (!szIndex[0])
-		return false;
-
-	Ret.Float = GetFloatFromString(szIndex, 0);
-	Ret.Type = pFloatType;
-	return true;
-}
-
 bool dataHeading(const char* szIndex, MQTypeVar& Ret)
 {
 	if (!szIndex[0])

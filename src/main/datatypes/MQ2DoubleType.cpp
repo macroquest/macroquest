@@ -15,8 +15,18 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq {
+namespace datatypes {
+
+MQ2DoubleType::MQ2DoubleType() : MQ2Type("double")
+{
+	ScopedTypeMember(DoubleMembers, Deci);
+	ScopedTypeMember(DoubleMembers, Centi);
+	ScopedTypeMember(DoubleMembers, Milli);
+	ScopedTypeMember(DoubleMembers, Int);
+	ScopedTypeMember(DoubleMembers, Precision);
+	ScopedTypeMember(DoubleMembers, Prettify);
+}
 
 bool MQ2DoubleType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -26,30 +36,30 @@ bool MQ2DoubleType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 
 	switch (static_cast<DoubleMembers>(pMember->ID))
 	{
-	case Deci:
+	case DoubleMembers::Deci:
 		sprintf_s(DataTypeTemp, "%.1f", VarPtr.Double);
 		Dest.Type = pStringType;
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 
-	case Centi:
+	case DoubleMembers::Centi:
 		sprintf_s(DataTypeTemp, "%.2f", VarPtr.Double);
 		Dest.Type = pStringType;
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 
-	case Milli:
+	case DoubleMembers::Milli:
 		sprintf_s(DataTypeTemp, "%.3f", VarPtr.Double);
 		Dest.Type = pStringType;
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 
-	case Int:
+	case DoubleMembers::Int:
 		Dest.Type = pIntType;
 		Dest.Int = (int)(VarPtr.Double);
 		return true;
 
-	case Precision:
+	case DoubleMembers::Precision:
 		Dest.Type = pStringType;
 		if (IsNumber(Index))
 		{
@@ -59,9 +69,38 @@ bool MQ2DoubleType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return false;
 
+	case DoubleMembers::Prettify:
+		sprintf_s(DataTypeTemp, "%lld", VarPtr.Int64);
+		PrettifyNumber(DataTypeTemp, sizeof(DataTypeTemp), IsNumber(Index) ? atoi(Index) : 2);
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
+
 	default: break;
 	}
 
 	return false;
 }
 
+bool MQ2DoubleType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	sprintf_s(Destination, MAX_STRING, "%.2f", VarPtr.Double);
+	return true;
+}
+
+bool MQ2DoubleType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type != pDoubleType && Source.Type != (MQ2Type*)pHeadingType)
+		VarPtr.Double = Source.Double;
+	else
+		VarPtr.Double = Source.Double;
+	return true;
+}
+
+bool MQ2DoubleType::FromString(MQVarPtr& VarPtr, char* Source)
+{
+	VarPtr.Double = GetDoubleFromString(Source, 0);
+	return true;
+}
+
+}} // namespace mq::datatypes

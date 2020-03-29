@@ -1238,7 +1238,7 @@ public:
 		Y = 0;
 		X = 0;
 		Z = 0;
-		Type = 0;
+		Type = 2;   // 2 indicates a buff type
 		Level = 0;
 		ChargesRemaining = 0;
 		Activatable = 0;

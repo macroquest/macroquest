@@ -5135,8 +5135,6 @@ bool WillStackWith(const EQ_Spell* testSpell, const EQ_Spell* existingSpell)
 	EQ_Affect buff;
 	buff.SpellID = existingSpell->ID;
 	buff.Level = pLocalPlayer->Level;
-	buff.Type = 2;
-	buff.Modifier = 1.f;
 	buff.CasterGuid = pPc->Guid;
 	buff.Duration = existingSpell->DurationCap;
 	buff.InitialDuration = existingSpell->DurationCap;
@@ -8514,6 +8512,38 @@ bool IsAssistNPC(SPAWNINFO* pSpawn)
 	}
 
 	return false;
+}
+
+void PrettifyNumber(char* string, size_t bufferSize, int decimals /* = 0 */)
+{
+	if (strlen(string) >= 64)
+		return;
+	char temp[64];
+	strcpy_s(temp, string);
+
+	static char decimalSep[] = ".";
+	static char thousandSep[] = ",";
+
+	if (decimals < 0)
+		decimals = 0;
+	else if (decimals > 9)
+		decimals = 9;
+
+	NUMBERFMTA fmt;
+	fmt.Grouping = 3;                    // group every 3 digits to the left of the decimal
+	fmt.NumDigits = decimals;            // display N digits after the decimal point
+	fmt.LeadingZero = decimals ? 1 : 0;  // display zeroes after the decimal point
+	fmt.lpDecimalSep = decimalSep;       // character to use for decimal separator.
+	fmt.lpThousandSep = thousandSep;     // use a comma for thousands separator
+	fmt.NegativeOrder = 1;               // Negative sign, number: -1.1
+
+	GetNumberFormatA(
+		LOCALE_INVARIANT,
+		0,
+		temp,
+		&fmt,
+		string,
+		bufferSize);
 }
 
 } // namespace mq

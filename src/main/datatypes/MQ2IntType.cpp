@@ -15,17 +15,8 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
-enum class IntMembers
-{
-	Float = 1,
-	Double,
-	Hex,
-	Reverse,
-	LowPart,
-	HighPart
-};
+namespace mq {
+namespace datatypes {
 
 MQ2IntType::MQ2IntType() : MQ2Type("int")
 {
@@ -35,6 +26,7 @@ MQ2IntType::MQ2IntType() : MQ2Type("int")
 	ScopedTypeMember(IntMembers, Reverse);
 	ScopedTypeMember(IntMembers, LowPart);
 	ScopedTypeMember(IntMembers, HighPart);
+	ScopedTypeMember(IntMembers, Prettify);
 }
 
 bool MQ2IntType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
@@ -79,6 +71,13 @@ bool MQ2IntType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar
 		Dest.Type = pIntType;
 		return true;
 
+	case IntMembers::Prettify:
+		sprintf_s(DataTypeTemp, "%lld", VarPtr.Int64);
+		PrettifyNumber(DataTypeTemp, sizeof(DataTypeTemp), IsNumber(Index) ? atoi(Index) : 0);
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
+
 	default:
 		return false;
 	}
@@ -112,3 +111,4 @@ bool MQ2IntType::dataInt(const char* szIndex, MQTypeVar& Ret)
 	return true;
 }
 
+}} // namespace mq::datatypes

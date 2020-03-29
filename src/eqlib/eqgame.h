@@ -392,6 +392,8 @@
 
 // CAAwnd
 #define CAAWnd__ShowAbility_x                                      0x6D74E0
+#define CAAWnd__Update_x                                           0x6D6800
+#define CAAWnd__UpdateSelected_x                                   0x6D3D50
 
 // CAdvancedLootWnd
 #define CAdvancedLootWnd__CAdvancedLootWnd_x                       0x490370
@@ -1103,6 +1105,7 @@
 #define CCombatSkillsSelectWnd__ShouldDisplayThisSkill_x           0x52E8F0
 
 // CTextureAnimation
+#define CTextureAnimation__Draw_x                                  0x9651B0
 #define CTextureAnimation__SetCurCell_x                            0x964FB0
 
 // CAltAbilityData

@@ -419,8 +419,111 @@ void MQChat(SPAWNINFO* pChar, char* Line)
 
 			CXRect rc = { 300, 10, 600, 210 };
 			MQChatWnd->Move(rc, false);
+
+			SaveChatToINI(MQChatWnd);
 		}
 	}
+
+	char Arg[MAX_STRING] = { 0 };
+	GetArg(Arg, Line, 1);
+
+	// user wants to adjust autoscroll
+	if (!_stricmp(Arg, "autoscroll"))
+	{
+		GetArg(Arg, Line, 2);
+
+		if (!strlen(Arg))
+		{
+			WriteChatf("Autoscroll is currently: %s", (bAutoScroll ? "\agOn" : "\arOff"));
+			return;
+		}
+
+		if (!_stricmp(Arg, "on"))
+		{
+			// turn it on.
+			bAutoScroll = true;
+			WriteChatf("Autoscroll is now: \agOn.");
+		}
+		else if (!_stricmp(Arg, "off"))
+		{
+			// turn it off.
+			bAutoScroll = false;
+			WriteChatf("Autoscroll is now: \arOff.");
+		}
+		else
+		{
+			WriteChatf("Usage: /mqchat autoscroll [on | off]\n IE: /mqchat autoscroll on");
+		}
+
+		WritePrivateProfileString("Settings", "AutoScroll", bAutoScroll ? "on" : "off", INIFileName);
+		return;
+	}
+
+	// user wants to adjust NoCharSelect
+	if (!_stricmp(Arg, "NoCharSelect"))
+	{
+		GetArg(Arg, Line, 2);
+
+		if (!strlen(Arg))
+		{
+			WriteChatf("NoCharSelect is currently: %s", (bNoCharSelect ? "\agOn" : "\arOff"));
+			return;
+		}
+
+		if (!_stricmp(Arg, "on"))
+		{
+			// turn it on.
+			bNoCharSelect = true;
+			WriteChatf("NoCharSelect is now: \agOn.");
+		}
+		else if (!_stricmp(Arg, "off"))
+		{
+			// turn it off.
+			bNoCharSelect = false;
+			WriteChatf("NoCharSelect is now: \arOff.");
+		}
+		else
+		{
+			WriteChatf("Usage: /mqchat NoCharSelect [on | off]\n IE: /mqchat NoCharSelect on");
+		}
+
+		WritePrivateProfileString("Settings", "NoCharSelect", bNoCharSelect ? "on" : "off", INIFileName);
+		return;
+	}
+
+	// user wants to adjust SaveByChar
+	if (!_stricmp(Arg, "SaveByChar"))
+	{
+		GetArg(Arg, Line, 2);
+
+		if (!strlen(Arg))
+		{
+			WriteChatf("SaveByChar is currently: %s", (bSaveByChar ? "\agOn" : "\arOff"));
+			return;
+		}
+
+		if (!_stricmp(Arg, "on"))
+		{
+			// turn it on.
+			bSaveByChar = true;
+			WriteChatf("SaveByChar is now: \agOn.");
+		}
+		else if (!_stricmp(Arg, "off"))
+		{
+			// turn it off.
+			bSaveByChar = false;
+			WriteChatf("SaveByChar is now: \arOff.");
+		}
+		else
+		{
+			WriteChatf("Usage: /mqchat SaveByChar [on | off]\n IE: /mqchat SaveByChar on");
+		}
+
+		WritePrivateProfileString("Settings", "SaveByChar", bSaveByChar ? "on" : "off", INIFileName);
+		return;
+	}
+
+	WriteChatf("%s was not a valid option. Valid options are: reset, autoscroll, nocharselect, and savebychar", Arg);
 }
 
 void SetChatTitle(SPAWNINFO* pChar, char* Line)

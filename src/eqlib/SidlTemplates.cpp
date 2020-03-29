@@ -644,8 +644,11 @@ CXPoint CTextureAnimation::GetHotspot() const
 	return {};
 }
 
-#if defined CTextureAnimation__SetCurCell_x
+#if defined(CTextureAnimation__SetCurCell_x)
 FUNCTION_AT_ADDRESS(void CTextureAnimation::SetCurCell(int), CTextureAnimation__SetCurCell)
+#endif
+#if defined(CTextureAnimation__Draw_x)
+FUNCTION_AT_ADDRESS(int CTextureAnimation::Draw(const CXRect& rect, const CXRect& clip, COLORREF color, COLORREF color2) const, CTextureAnimation__Draw)
 #endif
 
 //============================================================================

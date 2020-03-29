@@ -160,12 +160,25 @@ public:
 
 class MQ2IntType : public MQ2Type
 {
+	enum class IntMembers
+	{
+		Float = 1,
+		Double,
+		Hex,
+		Reverse,
+		LowPart,
+		HighPart,
+		Prettify,
+	};
+
 public:
 	MQ2IntType();
+
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, char* Source) override;
+
 	static bool dataInt(const char* szIndex, MQTypeVar& Ret);
 };
 
@@ -174,8 +187,20 @@ public:
 
 class MQ2Int64Type : public MQ2Type
 {
+	enum class Int64Members
+	{
+		Float = 1,
+		Double,
+		Hex,
+		Reverse,
+		LowPart,
+		HighPart,
+		Prettify,
+	};
+
 public:
 	MQ2Int64Type();
+
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
@@ -318,49 +343,26 @@ public:
 
 class MQ2FloatType : public MQ2Type
 {
-public:
-	enum FloatMembers
+	enum class FloatMembers
 	{
 		Deci = 1,
-		Centi = 2,
-		Milli = 3,
-		Int = 4,
-		Precision = 5,
-		Raw = 6,
+		Centi,
+		Milli,
+		Int,
+		Precision,
+		Raw,
+		Prettify,
 	};
 
-	MQ2FloatType() : MQ2Type("float")
-	{
-		TypeMember(Deci);
-		TypeMember(Centi);
-		TypeMember(Milli);
-		TypeMember(Int);
-		TypeMember(Precision);
-		TypeMember(Raw);
-	}
+public:
+	MQ2FloatType();
 
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromString(MQVarPtr& VarPtr, char* Source) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		sprintf_s(Destination, MAX_STRING, "%.2f", VarPtr.Float);
-		return true;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		if (Source.Type != pFloatType && Source.Type != (MQ2Type*)pHeadingType)
-			VarPtr.Float = (float)Source.DWord;
-		else
-			VarPtr.Float = Source.Float;
-		return true;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source) override
-	{
-		VarPtr.Float = GetFloatFromString(Source, 0);
-		return true;
-	}
+	static bool dataFloat(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -368,47 +370,23 @@ public:
 
 class MQ2DoubleType : public MQ2Type
 {
-public:
-	enum DoubleMembers
+	enum class DoubleMembers
 	{
 		Deci = 1,
-		Centi = 2,
-		Milli = 3,
-		Int = 4,
-		Precision = 5,
+		Centi,
+		Milli,
+		Int,
+		Precision,
+		Prettify,
 	};
 
-	MQ2DoubleType() : MQ2Type("double")
-	{
-		TypeMember(Deci);
-		TypeMember(Centi);
-		TypeMember(Milli);
-		TypeMember(Int);
-		TypeMember(Precision);
-	}
+public:
+	MQ2DoubleType();
 
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		sprintf_s(Destination, MAX_STRING, "%.2f", VarPtr.Double);
-		return true;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		if (Source.Type != pDoubleType && Source.Type != (MQ2Type*)pHeadingType)
-			VarPtr.Double = Source.Double;
-		else
-			VarPtr.Double = Source.Double;
-		return true;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, char* Source) override
-	{
-		VarPtr.Double = GetDoubleFromString(Source, 0);
-		return true;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromString(MQVarPtr& VarPtr, char* Source) override;
 };
 
 //============================================================================
