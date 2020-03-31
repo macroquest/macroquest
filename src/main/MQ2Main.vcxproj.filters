@@ -51,6 +51,12 @@
     <Filter Include="Source Files\common">
       <UniqueIdentifier>{351861e7-0a7f-486b-92a6-b3b61008ef7b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\imgui">
+      <UniqueIdentifier>{5717bd2a-3888-4ab0-9165-3864c45a5506}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\imgui">
+      <UniqueIdentifier>{e4836de8-68cf-4990-8218-ebd0dea053d9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MQ2Auth.cpp">
@@ -392,6 +398,12 @@
     <ClCompile Include="MQ2StringDB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MQ2ImGuiAPI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\ImGuiUtils.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
@@ -512,6 +524,15 @@
       <Filter>Header Files\common</Filter>
     </ClInclude>
     <ClInclude Include="MQ2Args.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\ImGuiTreePanelWindow.h">
+      <Filter>Header Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\ImGuiUtils.h">
+      <Filter>Header Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="MQ2MainBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

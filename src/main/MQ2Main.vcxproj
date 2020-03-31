@@ -410,6 +410,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="imgui\ImGuiUtils.cpp" />
     <ClCompile Include="MQ2Anonymize.cpp" />
     <ClCompile Include="MQ2Auth.cpp" />
     <ClCompile Include="MQ2AutoInventory.cpp" />
@@ -425,6 +426,7 @@
     <ClCompile Include="MQ2DataVars.cpp" />
     <ClCompile Include="MQ2DetourAPI.cpp" />
     <ClCompile Include="MQ2Globals.cpp" />
+    <ClCompile Include="MQ2ImGuiAPI.cpp" />
     <ClCompile Include="MQ2KeyBinds.cpp" />
     <ClCompile Include="MQ2LoginFrontend.cpp" />
     <ClCompile Include="MQ2MacroCommands.cpp" />
@@ -476,12 +478,15 @@
     <ClInclude Include="datatypes\DataTypeList.h" />
     <ClInclude Include="datatypes\MQ2DataTypes.h" />
     <ClInclude Include="CrashHandler.h" />
+    <ClInclude Include="imgui\ImGuiTreePanelWindow.h" />
+    <ClInclude Include="imgui\ImGuiUtils.h" />
     <ClInclude Include="MQ2Args.h" />
     <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQ2Globals.h" />
     <ClInclude Include="MQ2Inlines.h" />
     <ClInclude Include="MQ2Internal.h" />
     <ClInclude Include="MQ2Main.h" />
+    <ClInclude Include="MQ2MainBase.h" />
     <ClInclude Include="MQ2Prototypes.h" />
     <ClInclude Include="MQ2TopLevelObjects.h" />
     <ClInclude Include="pch.h" />

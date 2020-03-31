@@ -63,7 +63,6 @@ static bool gbInitializationFailed = false;
 static bool gbInitializedImGui = false;
 static int gLastGameState = GAMESTATE_PRECHARSELECT;
 
-
 // Mouse state, pointed to by EQADDR_DIMOUSECOPY
 struct MouseStateData
 {
@@ -2031,20 +2030,15 @@ void RemoveRenderCallbacks(uint32_t id)
 	}
 }
 
-static void DoToggleImGuiOverlay(const char* name, bool down)
-{
-	if (down)
-	{
-		imgui::g_bRenderImGui = !imgui::g_bRenderImGui;
-	}
-}
-
-void SetOverlayVisible(bool visible)
+void SetOverlayEnabled(bool visible)
 {
 	imgui::g_bRenderImGui = visible;
 }
 
-static void UpdateOverlayUI();
+bool IsOverlayEnabled()
+{
+	return imgui::g_bRenderImGui;
+}
 
 static bool RenderImGui()
 {
@@ -2064,9 +2058,6 @@ static bool RenderImGui()
 	ImGui_ImplDX9_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
-
-	// Update the ui state
-	UpdateOverlayUI();
 
 	for (const auto& pCallbacks : gRenderCallbacks)
 	{
@@ -2152,354 +2143,15 @@ static bool CreateDeviceObjects()
 
 //============================================================================
 
-#pragma region ImGuiTreePanelWindow
-void DrawSplitter(bool split_vertically, float thickness, float* size0, float* size1, float min_size0, float min_size1)
-{
-	ImVec2 backup_pos = ImGui::GetCursorPos();
-	if (split_vertically)
-		ImGui::SetCursorPosY(backup_pos.y + *size0);
-	else
-		ImGui::SetCursorPosX(backup_pos.x + *size0);
-
-	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));          // We don't draw while active/pressed because as we move the panes the splitter button will be 1 frame late
-	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.6f, 0.6f, 0.6f, 0.10f));
-	ImGui::Button("##Splitter", ImVec2(!split_vertically ? thickness : -1.0f, split_vertically ? thickness : -1.0f));
-	ImGui::PopStyleColor(3);
-
-	ImGui::SetItemAllowOverlap(); // This is to allow having other buttons OVER our splitter.
-
-	if (ImGui::IsItemActive())
-	{
-		float mouse_delta = split_vertically ? ImGui::GetIO().MouseDelta.y : ImGui::GetIO().MouseDelta.x;
-
-		// Minimum pane size
-		if (mouse_delta < min_size0 - *size0)
-			mouse_delta = min_size0 - *size0;
-		if (mouse_delta > * size1 - min_size1)
-			mouse_delta = *size1 - min_size1;
-
-		// Apply resize
-		*size0 += mouse_delta;
-		*size1 -= mouse_delta;
-	}
-	ImGui::SetCursorPos(backup_pos);
-}
-
-class ImGuiTreePanelWindow
-{
-public:
-	ImGuiTreePanelWindow(const char* title);
-	~ImGuiTreePanelWindow();
-
-	struct PanelDef
-	{
-		std::string name;
-
-		using Function = void(*)();
-		Function func = nullptr;
-	};
-
-	void Clear();
-
-	void Draw(bool* pOpen);
-
-	void AddPanel(std::string_view id, PanelDef::Function func);
-	void RemovePanel(std::string_view id);
-
-private:
-	void RegenerateTree();
-
-	struct PanelTreeNode
-	{
-		std::string_view displayName;
-		PanelDef* def = nullptr;
-
-		std::vector<std::unique_ptr<PanelTreeNode>> children;
-	};
-
-	static PanelTreeNode* GetNode(PanelTreeNode* node, std::string_view name);
-
-	void DrawTreeNode(PanelTreeNode* node);
-	void SortNodes(PanelTreeNode* node);
-
-private:
-	std::string m_title;
-	float m_leftPaneSize = 150.0f; // initial size of left column
-	float m_rightPaneSize = 0.0f;  // size of right column. Initial value calculated from left.
-	bool m_dirtyTree = false;
-	std::unique_ptr<PanelTreeNode> m_treeRoot;
-	std::vector<std::unique_ptr<PanelDef>> m_panels;
-	PanelDef* m_selectedPanel = nullptr;
-};
-
-ImGuiTreePanelWindow::ImGuiTreePanelWindow(const char* title)
-	: m_title(title)
-{
-}
-
-ImGuiTreePanelWindow::~ImGuiTreePanelWindow()
-{
-	Clear();
-}
-
-void ImGuiTreePanelWindow::Clear()
-{
-	m_treeRoot.reset();
-	m_panels.clear();
-	m_selectedPanel = nullptr;
-}
-
-ImGuiTreePanelWindow::PanelTreeNode* ImGuiTreePanelWindow::GetNode(
-	ImGuiTreePanelWindow::PanelTreeNode* node, std::string_view name)
-{
-	std::string_view tail, head;
-
-	// get the name of the next node.
-	size_t pos = name.find_first_of("/");
-	if (pos == std::string::npos)
-	{
-		// we're at the leaf.
-		head = name;
-	}
-	else
-	{
-		head = name.substr(0, pos);
-		tail = name.substr(pos + 1);
-	}
-
-	// find head.
-	auto iter = std::find_if(std::begin(node->children), std::end(node->children),
-		[&](const std::unique_ptr<PanelTreeNode>& node) { return ci_equals(node->displayName, head); });
-
-	PanelTreeNode* childNode = nullptr;
-
-	if (iter != std::end(node->children))
-	{
-		// already exists, return it.
-		childNode = iter->get();
-	}
-	else
-	{
-		// node doesn't exist. create it.
-		auto nodePtr = std::make_unique<PanelTreeNode>();
-		nodePtr->def = nullptr;
-		nodePtr->displayName = head;
-		childNode = nodePtr.get();
-
-		node->children.push_back(std::move(nodePtr));
-	}
-
-	if (!tail.empty())
-	{
-		return GetNode(childNode, tail);
-	}
-
-	return childNode;
-}
-
-void ImGuiTreePanelWindow::SortNodes(PanelTreeNode* node)
-{
-	// Sort our children
-	std::sort(std::begin(node->children), std::end(node->children),
-		[](const auto& ptrA, const auto& ptrB) { return ci_less()(ptrA->displayName, ptrB->displayName); });
-
-	for (const auto& ptr : node->children)
-	{
-		SortNodes(ptr.get());
-	}
-}
-
-void ImGuiTreePanelWindow::RegenerateTree()
-{
-	m_treeRoot.reset();
-
-	m_treeRoot = std::make_unique<PanelTreeNode>();
-	m_treeRoot->displayName = "";
-	m_treeRoot->def = nullptr;
-
-	for (const auto& def : m_panels)
-	{
-		std::string_view name = def->name;
-		PanelTreeNode* node = GetNode(m_treeRoot.get(), name);
-		node->def = def.get();
-	}
-
-	// Sort everything
-	SortNodes(m_treeRoot.get());
-}
-
-void ImGuiTreePanelWindow::AddPanel(std::string_view id, PanelDef::Function func)
-{
-	auto panelDef = std::make_unique<PanelDef>();
-	panelDef->func = func;
-	panelDef->name = id;
-
-	m_panels.push_back(std::move(panelDef));
-	m_dirtyTree = true;
-}
-
-void ImGuiTreePanelWindow::RemovePanel(std::string_view id)
-{
-	auto iter = std::find_if(std::begin(m_panels), std::end(m_panels),
-		[&id](const auto& panelDef) { return panelDef->name == id; });
-	if (iter == std::end(m_panels))
-		return;
-
-	PanelDef* panel = iter->get();
-	if (panel == m_selectedPanel)
-		m_selectedPanel = nullptr;
-	m_panels.erase(iter);
-	m_dirtyTree = true;
-}
-
-void ImGuiTreePanelWindow::Draw(bool* pOpen)
-{
-	ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
-	if (!ImGui::Begin(m_title.c_str(), pOpen))
-	{
-		ImGui::End();
-		return;
-	}
-
-	if (m_dirtyTree)
-	{
-		m_dirtyTree = false;
-		RegenerateTree();
-	}
-
-	ImVec2 availSize = ImGui::GetContentRegionAvail();
-	if (m_rightPaneSize == 0.0f)
-		m_rightPaneSize = availSize.x - m_leftPaneSize - 1;
-
-	DrawSplitter(false, 9.0f, &m_leftPaneSize, &m_rightPaneSize, 50, 250);
-
-	// Left Pane
-	{
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
-		ImGui::BeginChild("TreeListView", ImVec2(m_leftPaneSize, ImGui::GetContentRegionAvail().y - 1), true);
-		ImGui::PopStyleVar();
-
-		if (m_treeRoot)
-		{
-			for (const auto& node : m_treeRoot->children)
-			{
-				DrawTreeNode(node.get());
-			}
-		}
-
-
-		ImGui::EndChild();
-	}
-
-	ImGui::SameLine();
-
-	// Right Pane
-	{
-		ImVec2 rightPaneContentSize = ImGui::GetContentRegionAvail();
-		ImGui::BeginChild("ContentView", ImVec2(rightPaneContentSize.x, rightPaneContentSize.y - 1), true);
-
-		if (!m_selectedPanel)
-		{
-			ImGui::Text("Select a section on the left.");
-		}
-		else
-		{
-			if (m_selectedPanel->func)
-			{
-				m_selectedPanel->func();
-			}
-		}
-
-		ImGui::EndChild();
-	}
-
-	ImGui::End();
-}
-
-void ImGuiTreePanelWindow::DrawTreeNode(PanelTreeNode* node)
-{
-	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth;
-	bool isLeaf = node->children.empty();
-
-	if (m_selectedPanel == nullptr && node->def != nullptr)
-		m_selectedPanel = node->def;
-
-	if (isLeaf)
-		flags |= ImGuiTreeNodeFlags_Leaf;
-	if (node->def == m_selectedPanel)
-		flags |= ImGuiTreeNodeFlags_Selected;
-
-	bool nodeOpen = ImGui::TreeNodeEx((void*)node, flags, "%.*s", node->displayName.length(), node->displayName.data());
-
-	if (ImGui::IsItemClicked() && node->def != nullptr)
-		m_selectedPanel = node->def;
-
-	if (nodeOpen)
-	{
-		for (const auto& child : node->children)
-		{
-			DrawTreeNode(child.get());
-		}
-
-		ImGui::TreePop();
-	}
-}
-#pragma endregion
-
-ImGuiTreePanelWindow gSettingsWindow("MacroQuest Settings");
-static bool gbShowSettingsWindow = false;
-ImGuiTreePanelWindow gDebugWindow("MacroQuest Debug Tools");
-static bool gbShowDebugWindow = false;
-
-#pragma region Panel APIs
-
-void AddSettingsPanel(const char* name, fPanelDrawFunction drawFunction)
-{
-	gSettingsWindow.AddPanel(name, drawFunction);
-}
-
-void RemoveSettingsPanel(const char* name)
-{
-	gSettingsWindow.RemovePanel(name);
-}
-
-void AddDebugPanel(const char* name, fPanelDrawFunction drawFunction)
-{
-	gDebugWindow.AddPanel(name, drawFunction);
-}
-
-void RemoveDebugPanel(const char* name)
-{
-	gDebugWindow.RemovePanel(name);
-}
-
-#pragma endregion
-
-//============================================================================
-
-static bool gbShowDemoWindow = false;
-
-static void UpdateOverlayUI()
-{
-	if (gbShowDemoWindow)
-	{
-		ImGui::ShowDemoWindow(&gbShowDemoWindow);
-	}
-
-	if (gbShowSettingsWindow)
-	{
-		gSettingsWindow.Draw(&gbShowSettingsWindow);
-	}
-
-	if (gbShowDebugWindow)
-	{
-		gDebugWindow.Draw(&gbShowDebugWindow);
-	}
-}
-
 void InitializeMQ2Overlay()
 {
+	imgui::g_bRenderImGui = GetPrivateProfileBool("MacroQuest", "RenderImGui", imgui::g_bRenderImGui, mq::internal_paths::MQini);
+
+	if (gbWriteAllConfig)
+	{
+		WritePrivateProfileBool("MacroQuest", "RenderImGui", imgui::g_bRenderImGui, mq::internal_paths::MQini);
+	}
+
 	auto status = InitializeOverlayHooks();
 
 	if (status != eOverlayHookStatus::Success)
@@ -2508,24 +2160,6 @@ void InitializeMQ2Overlay()
 		gbInitializationFailed = (status == eOverlayHookStatus::Failed);
 		return;
 	}
-
-	// Init settings
-	imgui::g_bRenderImGui = GetPrivateProfileBool("MacroQuest", "RenderImGui", imgui::g_bRenderImGui, mq::internal_paths::MQini);
-	gbShowDemoWindow = GetPrivateProfileBool("MacroQuest", "ShowDemoWindow", gbShowDemoWindow, mq::internal_paths::MQini);
-	gbShowDebugWindow = GetPrivateProfileBool("MacroQuest", "ShowDebugWindow", gbShowDebugWindow, mq::internal_paths::MQini);
-
-	if (gbWriteAllConfig)
-	{
-		WritePrivateProfileBool("MacroQuest", "RenderImGui", imgui::g_bRenderImGui, mq::internal_paths::MQini);
-		WritePrivateProfileBool("MacroQuest", "ShowDemoWindow", gbShowDemoWindow, mq::internal_paths::MQini);
-		WritePrivateProfileBool("MacroQuest", "ShowDebugWindow", gbShowDebugWindow, mq::internal_paths::MQini);
-	}
-
-	AddMQ2KeyBind("TOGGLE_IMGUI_OVERLAY", DoToggleImGuiOverlay);
-
-	AddCascadeMenuItem("Settings", []() { gbShowSettingsWindow = true; }, 2);
-	AddCascadeMenuItem("Debug Window", []() { gbShowDebugWindow = true; });
-	AddCascadeMenuItem("ImGui Demo", []() { gbShowDemoWindow = true; });
 }
 
 void ShutdownMQ2Overlay()
@@ -2536,8 +2170,6 @@ void ShutdownMQ2Overlay()
 	RemoveDetours();
 	gbDeviceHooksInstalled = false;
 	gHooks.clear();
-
-	RemoveMQ2KeyBind("TOGGLE_IMGUI_OVERLAY");
 
 	imgui::ShutdownImGui();
 
@@ -2592,20 +2224,6 @@ void PulseMQ2Overlay()
 	{
 		gbRetryHooks = false;
 		InitializeMQ2Overlay();
-	}
-
-	static bool bShowDebugWindowLast = gbShowDebugWindow;
-	if (bShowDebugWindowLast != gbShowDebugWindow)
-	{
-		WritePrivateProfileBool("MacroQuest", "ShowDebugWindow", gbShowDebugWindow, mq::internal_paths::MQini);
-		bShowDebugWindowLast = gbShowDebugWindow;
-	}
-
-	static bool bShowDemoWindowLast = gbShowDemoWindow;
-	if (bShowDemoWindowLast != gbShowDemoWindow)
-	{
-		WritePrivateProfileBool("MacroQuest", "ShowDemoWindow", gbShowDemoWindow, mq::internal_paths::MQini);
-		bShowDemoWindowLast = gbShowDemoWindow;
 	}
 }
 
