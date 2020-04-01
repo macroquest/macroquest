@@ -5139,6 +5139,19 @@ bool WillStackWith(const EQ_Spell* testSpell, const EQ_Spell* existingSpell)
 	buff.Duration = existingSpell->DurationCap;
 	buff.InitialDuration = existingSpell->DurationCap;
 
+	for (int slot = 0; slot < existingSpell->NumEffects; ++slot)
+	{
+		auto affect = existingSpell->GetSpellAffectByIndex(slot); // this cannot be null if we are < NumEffects
+		buff.SlotData[slot].Slot = affect->Slot;
+		buff.SlotData[slot].Value = affect->Max;
+	}
+
+	for (int slot = existingSpell->NumEffects; slot < NUM_SLOTDATA; ++slot)
+	{
+		buff.SlotData[slot].Slot = -1;
+		buff.SlotData[slot].Value = 0;
+	}
+
 	int SlotIndex = -1;
 	EQ_Affect* ret = pPc->FindAffectSlot(testSpell->ID, pLocalPlayer, &SlotIndex, true, pLocalPlayer->Level, &buff, 1, false);
 
