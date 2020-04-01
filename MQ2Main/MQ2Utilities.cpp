@@ -3254,7 +3254,29 @@ LONG GetSpellCalc(PSPELL pSpell, int index)
 	return pSpell->Calc[index];
 #endif
 }
-
+void FIllSlotData(EQ_Affect* pAffect, PSPELL pSpell)
+{
+	LONG slots = GetSpellNumEffects(pSpell);
+	PSPELLCALCINFO pCalcInfo = 0;
+	if (ClientSpellManager *pSpellM = (ClientSpellManager *)pSpellMgr)
+	{
+		for (LONG sd = 0; sd < NUM_SLOTDATA; sd++) {
+			pAffect->SlotData[sd].Slot = -1;
+			pAffect->SlotData[sd].Value = 0;
+			if (sd < slots)
+			{
+				if (pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + sd))
+				{
+					if (pCalcInfo->Max)
+					{
+						pAffect->SlotData[sd].Slot = pCalcInfo->Slot;
+						pAffect->SlotData[sd].Value = pCalcInfo->Max;
+					}
+				}
+			}
+		}
+	}
+}
 PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, LONG level)
 {
 	CHAR szBuff[MAX_STRING] = { 0 };

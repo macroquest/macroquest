@@ -6911,6 +6911,7 @@ bool MQ2SpellType::GETMEMBER()
 			if (CharacterZoneClient*pCZC = (CharacterZoneClient*)((PSPAWNINFO)pLocalPlayer)->GetCharacter())
 			{
 				EQ_Affect eff = { 0 };
+				FIllSlotData(&eff, tmpSpell);
 				eff.SpellID = tmpSpell->ID;
 				eff.Level = ((PSPAWNINFO)pLocalPlayer)->Level;
 				eff.Type = 2;
@@ -6960,6 +6961,10 @@ bool MQ2SpellType::GETMEMBER()
 					for (std::map<int, cTargetBuff>::iterator k = i->second.begin(); k != i->second.end(); k++)
 					{
 						if (PSPELL pBuff = GetSpellByID(k->first)) {
+							FIllSlotData(&pAffects[j], pBuff);
+								
+							pAffects[j].Duration = k->second.duration;
+							pAffects[j].InitialDuration = k->second.duration;
 							pAffects[j].Type = 2;
 							pAffects[j].SpellID = pBuff->ID;
 							pAffects[j].Activatable = 0;// pBuff->Activated;
@@ -7002,6 +7007,10 @@ bool MQ2SpellType::GETMEMBER()
 							for (std::map<int, cTargetBuff>::iterator k = i->second.begin(); k != i->second.end(); k++)
 							{
 								if (PSPELL pBuff = GetSpellByID(k->first)) {
+									FIllSlotData(&pAffects[j], pBuff);
+								
+									pAffects[j].Duration = k->second.duration;
+									pAffects[j].InitialDuration = k->second.duration;
 									pAffects[j].Type = 2;
 									pAffects[j].SpellID = pBuff->ID;
 									pAffects[j].Activatable = 0;// pBuff->Activated;
@@ -7012,6 +7021,7 @@ bool MQ2SpellType::GETMEMBER()
 #endif
 									pAffects[j].Level = ((PSPAWNINFO)pLocalPlayer)->Level;
 									pAffects[j].Modifier = 1.0;
+									//pAffects[j].
 									j++;
 								}
 							}
@@ -7023,6 +7033,7 @@ bool MQ2SpellType::GETMEMBER()
 							for (int i = 0; i < NUM_BUFF_SLOTS; i++) {
 								if (buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i]) {
 									if (PSPELL pBuff = GetSpellByID((DWORD)buffID)) {
+										FIllSlotData(&pAffects[j], pBuff);
 										pAffects[j].Type = 2;
 										pAffects[j].SpellID = pBuff->ID;
 										pAffects[j].Activatable = 0;// pBuff->Activated;
@@ -7039,7 +7050,7 @@ bool MQ2SpellType::GETMEMBER()
 							}
 						}
 						int SlotIndex = -1;
-						EQ_Affect*ret = pCZC->FindAffectSlot(pSpell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level, pAffects, j, false);
+						EQ_Affect*ret = pCZC->FindAffectSlot(pSpell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level, pAffects, j, true);
 						if (!ret || SlotIndex == -1)
 							Dest.DWord = false;
 						else
@@ -7073,6 +7084,7 @@ bool MQ2SpellType::GETMEMBER()
 						{
 							if (buffID = pPet->Buff[i]) {
 								if (PSPELL pBuff = GetSpellByID((DWORD)buffID)) {
+									FIllSlotData(&pAffects[j], pBuff);
 									pAffects[j].Type = 2;
 									pAffects[j].SpellID = pBuff->ID;
 									pAffects[j].Activatable = 0;// pBuff->Activated;

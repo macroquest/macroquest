@@ -1,3 +1,6 @@
+Mar 31 2020
+- Fixed all Spell Stack checks. (yes again, hopefully for good this time.)
+-
 Mar 28 2020
 - Fixed all Spell Stack checks.
 - Stacks, WillStack, StacksWith, StacksSpawn
