@@ -536,7 +536,7 @@ enum class MQ2GroundSpawnType
 	Placed
 };
 
-//inline DWORD EQObjectID(EQGroundItem* Object) { return Object->DropID; }
+inline DWORD EQObjectID(EQGroundItem* Object) { return Object->DropID; }
 inline int EQObjectID(EQPlacedItem* Object) { return Object->RealEstateItemID; }
 
 struct MQ2GroundSpawn
