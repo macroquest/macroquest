@@ -64,14 +64,6 @@ private:
 	MQ2EQObject(T* Object) : m_object(Object) {}
 
 public:
-	static std::shared_ptr<MQ2EQObject<T>> Observe(T* Object)
-	{
-		auto ptr = std::shared_ptr<MQ2EQObject<T>>(new MQ2EQObject<T>(Object),
-			[](MQ2EQObject<T>* ptr) { delete ptr; });
-		AddObservedEQObject(ptr);
-		return ptr;
-	}
-
 	void Invalidate() override { m_object = nullptr; m_invalidated = true; }
 
 	operator bool() const override { return m_object != nullptr && !m_invalidated; }
@@ -95,7 +87,18 @@ public:
 		Validate();
 		return m_object;
 	}
+
+	template <typename U>
+	friend std::shared_ptr<MQ2EQObject<U>> ObserveEQObject(U*);
 };
 
+template <typename U>
+std::shared_ptr<MQ2EQObject<U>> ObserveEQObject(U* Object)
+{
+	auto ptr = std::shared_ptr<MQ2EQObject<U>>(new MQ2EQObject<U>(Object),
+		[](MQ2EQObject<U>* ptr) { delete ptr; });
+	AddObservedEQObject(ptr);
+	return ptr;
+}
 }
 

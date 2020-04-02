@@ -541,8 +541,8 @@ struct MQ2GroundSpawn
 	MQ2GroundSpawnType Type;
 	AnyMQ2GroundItem Object;
 
-	MQ2GroundSpawn(EQGroundItem* Object) : Type(MQ2GroundSpawnType::Ground), Object(MQ2EQObject<EQGroundItem>::Observe(Object)) {}
-	MQ2GroundSpawn(EQPlacedItem* Object) : Type(MQ2GroundSpawnType::Placed), Object(MQ2EQObject<EQPlacedItem>::Observe(Object)) {}
+	MQ2GroundSpawn(EQGroundItem* Object) : Type(MQ2GroundSpawnType::Ground), Object(ObserveEQObject(Object)) {}
+	MQ2GroundSpawn(EQPlacedItem* Object) : Type(MQ2GroundSpawnType::Placed), Object(ObserveEQObject(Object)) {}
 	MQ2GroundSpawn() : Type(MQ2GroundSpawnType::None), Object() {}
 
 	MQLIB_OBJECT float Distance(SPAWNINFO* pSpawn) const;
@@ -555,7 +555,7 @@ struct MQ2GroundSpawn
 	MQLIB_OBJECT int SubID() const;
 	MQLIB_OBJECT int ZoneID() const;
 	MQLIB_OBJECT float Heading() const;
-	MQLIB_OBJECT const SPAWNINFO& ToSpawn() const;
+	MQLIB_OBJECT SPAWNINFO ToSpawn() const;
 
 	template <typename T> T* Get() const { static_assert(false, "Unsupported GroundSpawn Type."); }
 	template <> MQLIB_OBJECT EQGroundItem* Get<EQGroundItem>() const;

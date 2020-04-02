@@ -524,7 +524,7 @@ float mq::MQ2GroundSpawn::Heading() const
 	return std::numeric_limits<float>::max();
 }
 
-const SPAWNINFO& mq::MQ2GroundSpawn::ToSpawn() const
+SPAWNINFO mq::MQ2GroundSpawn::ToSpawn() const
 {
 	SPAWNINFO ret;
 
