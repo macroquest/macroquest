@@ -6592,6 +6592,34 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord = pChar->ParcelStatus;
 		Dest.Type = pIntType;
 		return true;
+	case CanMount://310
+		Dest.DWord = 0;
+		Dest.Type = pBoolType;
+		if (PlayerZoneClient*pzc = (PlayerZoneClient*)pLocalPlayer)
+		{
+			int zid = ((PSPAWNINFO)pLocalPlayer)->GetZoneID() & 0x7FFF;
+			if (zid < MAX_ZONES)
+			{
+				if (PZONELIST pZList = ((PWORLDDATA)pWorldData)->ZoneArray[zid])
+				{
+					if (pZList->ZoneFlags & 0x200)
+					{
+						return true;
+					}
+				}
+			}
+			if (((PSPAWNINFO)pLocalPlayer)->HeadWet != 0 || ((PSPAWNINFO)pLocalPlayer)->Vehicle != NULL)
+			{
+				return true;
+			}
+			int race = ((PSPAWNINFO)pLocalPlayer)->mActorClient.Race;
+			if((!pzc->LegalPlayerRace(-1)) && (race != EQR_SKELETON) && (race != EQR_SKELETON_NEW) && (race != EQR_OEQ_SKELETON) && (race != EQR_SOL_SKELETON))
+			{
+				return true;
+			}
+			Dest.DWord = 1;
+		}
+		return true;
 	//end of MQ2CharacterType
 	}
 	return false;
@@ -9844,8 +9872,8 @@ bool MQ2ZoneType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case ZoneFlags:
-		Dest.Int = pZone->ZoneFlags;
-		Dest.Type = pIntType;
+		Dest.UInt64 = pZone->ZoneFlags;
+		Dest.Type = pInt64Type;
 		return true;
 	}
 	return false;

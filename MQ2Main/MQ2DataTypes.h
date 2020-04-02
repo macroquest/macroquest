@@ -1270,6 +1270,7 @@ public:
 		CrystallizedLuck = 307,
 		Spell = 308,
 		ParcelStatus = 309,
+		CanMount = 310,
 	};
 	enum CharacterMethods
 	{
@@ -1581,6 +1582,7 @@ public:
 		TypeMember(CrystallizedLuck);//307
 		TypeMember(Spell);//308
 		TypeMember(ParcelStatus);//309
+		TypeMember(CanMount);//310
 
 		TypeMethod(Stand);
 		TypeMethod(Sit);
@@ -1802,7 +1804,7 @@ public:
 		TypeMember(SpellIcon);
 		TypeMember(GemIcon);
 		TypeMember(SlowPct);
-		TypeMember(HastePct);
+		TypeMember(HastePct);	
 	}
 
 	~MQ2SpellType()

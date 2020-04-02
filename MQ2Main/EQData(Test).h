@@ -4146,25 +4146,28 @@ extern    PCHAR szZoneExpansionName[];     //defined in LibEQ_Utilities.cpp
 
 //Size 0x1D8 see 867D39 in eqgame.exe live 21 apr 2016 - eqmule
 typedef struct _ZONELIST { 
-/*0x000*/   DWORD   Header; 
-/*0x004*/   DWORD   Unknown0x4;         //pointer to something? 
-/*0x008*/   DWORD   EQExpansion;          // szZoneExpansionName[] 
-/*0x00c*/   DWORD   Id;  //EQZoneIndex
-/*0x010*/   CHAR    ShortName[0x80];
-/*0x090*/   BYTE    Unknown0x090;
-/*0x091*/   CHAR    LongName[0x100]; 
-/*0x191*/   DWORD   Unknown0x191; 
-/*0x192*/   DWORD   Unknown0x192[0x6];  
-/*0x198*/   DWORD   ZoneFlags;              // 0x800000 = gmzone? 0x8000 water/mountainzone? 0x4 = ? 0x1 = MultiInstanceZone 0x10000000 bazaarzone 0x2000000 = barterzone 0x100000 = HasMinLevel, 0x1000000 = tutorialzone 0x4000 = no air, 0x2 newbie zone, 0x20 no bind, 0x400000 lostestingdisabled, 0x80000000 guildhallzone
-/*0x19c*/   DWORD   Unknown0x19c; 
-/*0x1a0*/   DWORD   eqstrID;                // can call pStringTable->getString to get this string
-/*0x1a4*/   DWORD   PoPValue;           // This has something to do with PoP zones. 
-/*0x1a8*/   DWORD   MinLevel;           // Minimum level to access is this used?
-/*0x1ac*/   BYTE    Unknown0x1ac[0x8];             
-/*0x1b4*/   BYTE    Unknown0x1b4;//something 
-/*0x1b5*/   BYTE    Unknown0x1b5[0x3]; 
-/*0x1b8*/   BYTE    Unknown0x1b8[0x20];
-/*0x1D8      next zone in list*/ 
+/*0x000*/   DWORD  vfTable;
+/*0x004*/   int  Unknown0x004;
+/*0x008*/	int  EQExpansion;
+/*0x00c*/	int  Id;  //EQZoneIndex
+/*0x010*/	CHAR ShortName[0x81];
+/*0x091*/	CHAR LongName[0x101];
+/*0x198*/	unsigned __int64  ZoneFlags;// 0x800000 = gmzone? 0x8000 water/mountainzone? 0x4 = ? 0x1 = MultiInstanceZone 0x10000000 bazaarzone 0x2000000 = barterzone 0x100000 = HasMinLevel, 0x1000000 = tutorialzone 0x4000 = no air, 0x2 newbie zone, 0x20 no bind, 0x400000 lostestingdisabled, 0x80000000 guildhallzone
+/*0x1a0*/	int eqstrID;
+/*0x1a4*/	int	AccessLevel;
+/*0x1a8*/	int MinLevel;
+/*0x1ac*/	int CurPlayerCount;
+/*0x1B0*/	int MaxPlayerCount;
+/*0x1b4*/	USHORT NextInstanceID;
+/*0x1b8*/	int Cpu1;
+/*0x1bc*/	int Cpu2;
+/*0x1c0*/	int Memory;
+/*0x1c4*/	int MemLoad;
+/*0x1c8*/	int VirtMemLoad;
+/*0x1cc*/	int ActiveMercenaries;
+/*0x1D0*/	int SuspendedMercenaries;
+/*0x1D4*/	int  Unknown0x1D4;
+/*0x1D8     next zone in list*/ 
 } ZONELIST, *PZONELIST;
 
 //EQWorldData__EQWorldData_x

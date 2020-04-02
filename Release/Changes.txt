@@ -1,3 +1,9 @@
+Apr 01 2020
+- Fixed ZoneFlags
+- Fixed the _ZONELIST struct
+- Added .CanMount to the Character TLO it's a bool it returns true if u can mount in the zone u are in and if it won't collide with an illusion u have on. 
+- Added .ToiletPaper to the Character TLO it returns true if you need to go out and get more.
+-
 Mar 31 2020
 - Fixed all Spell Stack checks. (yes again, hopefully for good this time.)
 -
