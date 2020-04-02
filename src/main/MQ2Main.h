@@ -283,6 +283,7 @@ MQLIB_API bool ParseMacroData(char* szOriginal, size_t BufferSize);
 MQLIB_API bool AddMQ2Data(const char* szName, fMQData Function);
 MQLIB_API bool RemoveMQ2Data(const char* szName);
 MQLIB_API void AddObservedEQObject(const std::shared_ptr<MQ2Transient>& Object);
+MQLIB_API void InvalidateObservedEQObject(void* Object);
 MQLIB_API MQ2Type* FindMQ2DataType(const char* szName);
 MQLIB_API MQDataItem* FindMQ2Data(const char* szName);
 MQLIB_API MQDataVar* FindMQ2DataVariable(const char* szName);

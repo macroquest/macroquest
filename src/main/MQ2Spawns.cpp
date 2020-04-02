@@ -366,6 +366,8 @@ public:
 	void dEQPlayer_Trampoline();
 	void dEQPlayer_Detour()
 	{
+		InvalidateObservedEQObject(this);
+
 		void (EQPlayerHook::*tmp)() = &EQPlayerHook::dEQPlayer_Trampoline;
 
 		__asm {
@@ -686,6 +688,8 @@ static void AddGroundItem()
 
 static void RemoveGroundItem(EQGroundItem* pGroundItem)
 {
+	InvalidateObservedEQObject(pGroundItem);
+
 	if (pPendingGrounds)
 	{
 		std::scoped_lock lock(s_groundsMutex);

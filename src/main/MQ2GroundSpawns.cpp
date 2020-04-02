@@ -45,10 +45,12 @@ public:
 		s_groundSpawnSearch.reset();
 	}
 
-	virtual operator bool() const override
+	operator bool() const override
 	{
 		return !m_searchResults.empty() && !m_invalidated;
 	}
+	
+	bool operator==(void* rhs) const override { return false; }
 
 	template <typename GroundPred, typename PlacedPred>
 	void Filter(SPAWNINFO* pSpawn, GroundPred GroundPredicate, PlacedPred PlacedPredicate)

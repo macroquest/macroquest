@@ -42,6 +42,7 @@ protected:
 public:
 	virtual void Invalidate() = 0;
 	virtual operator bool() const = 0;
+	virtual bool operator==(void*) const = 0;
 
 	MQ2Transient() : m_invalidated(false) {}
 };
@@ -103,7 +104,15 @@ private:
 public:
 	void Invalidate() override { m_object = nullptr; m_invalidated = true; }
 
-	operator bool() const override { return m_object != nullptr && !m_invalidated && EQObjectID(m_object) == m_ID; }
+	operator bool() const override
+	{
+		return m_object != nullptr && !m_invalidated && EQObjectID(m_object) == m_ID;
+	}
+
+	bool operator==(void* rhs) const override
+	{
+		return static_cast<void*>(m_object) == rhs;
+	}
 
 	std::shared_ptr<MQ2EQObject<EQType>> Get() { return SharedFromBase<MQ2EQObject<EQType>>(); }
 

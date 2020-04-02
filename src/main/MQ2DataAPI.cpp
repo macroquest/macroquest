@@ -37,7 +37,8 @@ static MQModule s_DataAPIModule = {
 };
 MQModule* GetDataAPIModule() { return &s_DataAPIModule; }
 
-static void SetGameStateDataAPI(DWORD)
+// This guarantees the validity of all weak pointers inside the map, while keeping the size from growing without bound as we add pointers
+static void PruneObservedEQObjects()
 {
 	std::scoped_lock lock(s_objectMapMutex);
 
@@ -49,6 +50,13 @@ static void SetGameStateDataAPI(DWORD)
 			return weak.expired();
 		}),
 		std::end(s_objectMap));
+}
+
+static void SetGameStateDataAPI(DWORD)
+{
+	PruneObservedEQObjects();
+
+	std::scoped_lock lock(s_objectMapMutex);
 
 	for (auto weak : s_objectMap)
 	{
@@ -59,8 +67,25 @@ static void SetGameStateDataAPI(DWORD)
 // don't need a dropper because it will remove itself once the shared_ptr destroys itself
 void AddObservedEQObject(const std::shared_ptr<MQ2Transient>& Object)
 {
+	PruneObservedEQObjects();
+
 	std::scoped_lock lock(s_objectMapMutex);
+
 	s_objectMap.emplace_back(Object);
+}
+
+// but we do need an invalidation method, which takes a void pointer because all we need to care about is the address of the object being invalidated
+void InvalidateObservedEQObject(void* Object)
+{
+	PruneObservedEQObjects();
+
+	std::scoped_lock lock(s_objectMapMutex);
+
+	for (auto weak : s_objectMap)
+	{
+		if (*weak.lock() == Object)
+			weak.lock()->Invalidate();
+	}
 }
 
 MQ2Type* FindMQ2DataType(const char* Name)
