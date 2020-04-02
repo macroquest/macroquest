@@ -135,7 +135,7 @@ public:
 	inline int GetHeight() const { return Size.cy; }
 
 	// todo
-	EQLIB_OBJECT int Draw(const CXRect& rect, const CXRect& clip, uint32_t color = 0xffffffff, uint32_t color2 = 0xff000000) { return 0; }
+	EQLIB_OBJECT int Draw(const CXRect& rect, const CXRect& clip, COLORREF color = 0xffffffff, COLORREF color2 = 0xff000000) const;
 	//EQLIB_OBJECT int Draw(const CXPoint&, const CXRect&, unsigned long, unsigned long) const;
 	//EQLIB_OBJECT int Draw(const CXRect&, const CXRect&, unsigned long, unsigned long) const;
 	//EQLIB_OBJECT int Preload();
@@ -217,7 +217,7 @@ public:
 private:
 /*0x00*/ CXStr              m_name;
 /*0x04*/ CTextureAnimation* m_pta[FrameDraw_Max];
-/*0x38*/ int                Unknown0x38 = -1;
+/*0x38*/ int                Unknown0x38 = -1;                 // FIXME: Check this
 /*0x3c*/ int                m_nOverlapTop = 0;
 /*0x40*/ int                m_nOverlapLeft = 0;
 /*0x44*/ int                m_nOverlapBottom = 0;

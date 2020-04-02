@@ -1319,7 +1319,16 @@ public:
 	//----------------------------------------------------------------------------
 	// data members
 
-	// todo: map this out
+/*0x1e8*/ CTAFrameDraw*           pTabBorder;
+/*0x1ec*/ CTAFrameDraw*           pPageBorder;
+/*0x1f0*/ ArrayClass<CPageWnd*>   PageArray;
+/*0x200*/ int                     CurTabIndex;
+/*0x204*/ int                     TabHeight;
+/*0x208*/ CXRect                  PageRect;
+/*0x218*/ bool                    bShowTabs;
+/*0x21c*/ int                     TabStyle;
+/*0x220*/ int                     TabWidth;
+/*0x224*/
 };
 
 //============================================================================
@@ -1355,7 +1364,7 @@ public:
 	EQLIB_OBJECT void ConfirmAASpend();
 	EQLIB_OBJECT void SendNewPercent();
 	EQLIB_OBJECT bool ShowAbility(int);
-	EQLIB_OBJECT void Update();
+	EQLIB_OBJECT void Update(bool);
 	EQLIB_OBJECT void UpdateTimer();
 
 	// private

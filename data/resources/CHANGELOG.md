@@ -1,3 +1,39 @@
+Mar 28 2020
+- Removed a WriteChatf from Task.Timer
+- Added a function which can be used by plugins to format numbers:
+    EQLIB_API void PrettifyNumber(char* string, size_t bufferSize, int decimals = 0);
+  If the given string is a number, it will add commas and set the desired number of decimals.
+  For integers, leave decimals as 0. For floats, a value of 2 is recommended. Min is 0, max is 9.
+- Added .Prettify to Int, Int64, Float and Double types. 
+    Example: ${Me.MaxHPs.Prettify} => 30,103
+    Example: ${Target.Distance.Prettify} => 1,151.24
+  Prettify takes a number of decimals of precision as a parameter:
+    Example: ${Target.Distance.Prettify[4]} => 1,151.2395
+
+Mar 26 2020
+- Added CAAWnd__UpdateSelected_x
+- Added CAAWnd__Update_x
+- Changed ShowSpellSlotInfo so it takes a custom linebreak.
+
+Mar 25 2020 by ChatWithThisName
+- MQ2ChatWnd: Added ingame toggles for SaveByChar, Autoscroll, NoCharSelect to the /mqchat command
+  Available options are:
+    no parameter, will output what it's currently set to. Example: /mqchat SaveByChar
+    On - Turn on the option. Example: /mqchat autoscroll on
+    Off - Turn off the option. Example: /mqchat NoCharSelect off
+
+Mar 19 2020
+- Added CXRect__operator_and
+- Fixed CTextureFont::DrawWrappedText
+- Added CTextureAnimation::Draw
+- Added CTAFrameDraw::Draw
+
+Mar 19 2020 by brainiac
+- Made a couple additional changes to /taskquit from the update on Mar 16 2020:
+    fix /taskquit <name> to search solo tasks when a shared task is present.
+    fix /taskquit <name> to be exact match only
+    change /taskquit <name> to no longer use quotes.
+
 Mar 16 2020
 - Extended the /taskquit command. It now takes an optional argument, "Name of Task" so we can use it to remove solo tasks as well. -Feature Cred: drwhomphd
    /taskquit without any argument works like before, i.e it removes the shared task if there is one.

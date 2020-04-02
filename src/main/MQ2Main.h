@@ -471,7 +471,7 @@ inline bool ItemHasStat(CONTENTS* pCont, int* num, const char* buffer)
 MQLIB_API const char* GetLoginName();
 MQLIB_API float DistanceToPoint(SPAWNINFO* pSpawn, float xLoc, float yLoc);
 MQLIB_API float Distance3DToPoint(SPAWNINFO* pSpawn, float xLoc, float yLoc, float zLoc);
-MQLIB_API char* ShowSpellSlotInfo(EQ_Spell* pSpell, char* szBuffer, size_t BufferSize);
+MQLIB_API char* ShowSpellSlotInfo(EQ_Spell* pSpell, char* szBuffer, size_t BufferSize, const char* lineBreak = "<br>");
 MQLIB_API char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSize, int level = 100);
 
 MQLIB_API int GetSpellAttrib(EQ_Spell* pSpell, int index);
@@ -775,6 +775,10 @@ std::string ModifyMacroString(std::string_view strOriginal, bool bParseOnce = fa
 	ModifyMacroMode iOperation = ModifyMacroMode::Default);
 
 MQLIB_API bool Calculate(const char* szFormula, double& Dest);
+
+// Given a string that contains a number, make the number "pretty" by adding things like
+// comma separators, or decimals.
+MQLIB_API void PrettifyNumber(char* string, size_t bufferSize, int decimals = 0);
 
 constexpr int LIGHT_COUNT = 13;
 //#define MAX_COMBINES		61

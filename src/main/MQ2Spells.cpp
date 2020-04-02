@@ -2827,7 +2827,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 	return szBuffer;
 }
 
-char* ShowSpellSlotInfo(EQ_Spell* pSpell, char* szBuffer, size_t BufferSize)
+char* ShowSpellSlotInfo(EQ_Spell* pSpell, char* szBuffer, size_t BufferSize, const char* lineBreak)
 {
 	char szTemp[MAX_STRING] = { 0 };
 	char szBuff[MAX_STRING] = { 0 };
@@ -2839,7 +2839,7 @@ char* ShowSpellSlotInfo(EQ_Spell* pSpell, char* szBuffer, size_t BufferSize)
 		size_t len = strlen(szBuff);
 		if (len > 0 && count + len < BufferSize) {
 			strcat_s(szBuffer, BufferSize, szBuff);
-			strcat_s(szBuffer, BufferSize, "<br>");
+			strcat_s(szBuffer, BufferSize, lineBreak);
 		}
 		count += len + 4;
 	}
