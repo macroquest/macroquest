@@ -94,7 +94,7 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		switch (static_cast<GroundMethods>(pMethod->ID))
 		{
 		case GroundMethods::Grab:
-			Dest.DWord = ClickMouseItem(pCharSpawn, pGroundSpawn, true);
+			Dest.DWord = ClickMouseItem(pCharSpawn, *pGroundSpawn, true);
 			Dest.Type = pBoolType;
 			return true;
 

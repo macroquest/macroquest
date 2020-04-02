@@ -305,7 +305,7 @@ MQLIB_API bool IsMouseWaitingForButton();
 MQLIB_API void MQ2MouseHooks(bool bFlag);
 MQLIB_API bool MoveMouse(int x, int y, bool bClick = false);
 MQLIB_API bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick = false);
-MQLIB_API bool ClickMouseItem(SPAWNINFO* pChar, const std::shared_ptr<MQ2GroundSpawn>& pGroundSpawn, bool left);
+MQLIB_API bool ClickMouseItem(SPAWNINFO* pChar, const MQ2GroundSpawn& pGroundSpawn, bool left);
 
 /* KEY BINDS */
 MQLIB_API void InitializeMQ2KeyBinds();
@@ -525,13 +525,15 @@ MQLIB_API void DropTimers();
 MQLIB_API bool LoadCfgFile(const char* Filename, bool Delayed = FromPlugin);
 
 /* MQ2GROUNDSPAWNS */
-	
-using AnyMQ2GroundItem = std::variant<MQ2EQObject<EQGroundItem>, MQ2EQObject<EQPlacedItem>>;
+
+using EQGroundItemPtr = std::shared_ptr<MQ2EQObject<EQGroundItem>>;
+using EQPlacedItemPtr = std::shared_ptr<MQ2EQObject<EQPlacedItem>>;
+using AnyMQ2GroundItem = std::variant<std::monostate, EQGroundItemPtr, EQPlacedItemPtr>;
 enum class MQ2GroundSpawnType
 { // this ordering needs to match the GroundSpawn::Object variant class ordering
+	None,
 	Ground,
-	Placed,
-	None
+	Placed
 };
 
 struct MQ2GroundSpawn
@@ -539,36 +541,38 @@ struct MQ2GroundSpawn
 	MQ2GroundSpawnType Type;
 	AnyMQ2GroundItem Object;
 
-	MQ2GroundSpawn(EQGroundItem* Object) : Type(MQ2GroundSpawnType::Ground), Object(MQ2EQObject(Object)) {}
-	MQ2GroundSpawn(EQPlacedItem* Object) : Type(MQ2GroundSpawnType::Placed), Object(MQ2EQObject(Object)) {}
-	MQ2GroundSpawn() : Type(MQ2GroundSpawnType::None), Object(MQ2EQObject<EQGroundItem>(nullptr)) {}
+	MQ2GroundSpawn(EQGroundItem* Object) : Type(MQ2GroundSpawnType::Ground), Object(MQ2EQObject<EQGroundItem>::Observe(Object)) {}
+	MQ2GroundSpawn(EQPlacedItem* Object) : Type(MQ2GroundSpawnType::Placed), Object(MQ2EQObject<EQPlacedItem>::Observe(Object)) {}
+	MQ2GroundSpawn() : Type(MQ2GroundSpawnType::None), Object() {}
 
-	MQLIB_OBJECT float Distance(SPAWNINFO* pSpawn);
-	MQLIB_OBJECT float Distance3D(SPAWNINFO* pSpawn);
-	MQLIB_OBJECT CActorInterface* Actor();
-	MQLIB_OBJECT CXStr Name();
-	MQLIB_OBJECT CXStr DisplayName();
-	MQLIB_OBJECT CVector3 Position();
-	MQLIB_OBJECT int ID();
-	MQLIB_OBJECT int SubID();
-	MQLIB_OBJECT int ZoneID();
-	MQLIB_OBJECT float Heading();
-	MQLIB_OBJECT std::optional<SPAWNINFO> ToSpawn();
+	MQLIB_OBJECT float Distance(SPAWNINFO* pSpawn) const;
+	MQLIB_OBJECT float Distance3D(SPAWNINFO* pSpawn) const;
+	MQLIB_OBJECT CActorInterface* Actor() const;
+	MQLIB_OBJECT CXStr Name() const;
+	MQLIB_OBJECT CXStr DisplayName() const;
+	MQLIB_OBJECT CVector3 Position() const;
+	MQLIB_OBJECT int ID() const;
+	MQLIB_OBJECT int SubID() const;
+	MQLIB_OBJECT int ZoneID() const;
+	MQLIB_OBJECT float Heading() const;
+	MQLIB_OBJECT const SPAWNINFO& ToSpawn() const;
 
 	template <typename T> T* Get() const { static_assert(false, "Unsupported GroundSpawn Type."); }
 	template <> MQLIB_OBJECT EQGroundItem* Get<EQGroundItem>() const;
 	template <> MQLIB_OBJECT EQPlacedItem* Get<EQPlacedItem>() const;
+
+	operator bool() const { return Type != MQ2GroundSpawnType::None; }
 };
 
-MQLIB_OBJECT std::shared_ptr<MQ2GroundSpawn> GetGroundSpawnByName(std::string_view Name);
-MQLIB_OBJECT std::shared_ptr<MQ2GroundSpawn> GetGroundSpawnByID(int ID);
-MQLIB_OBJECT std::shared_ptr<MQ2GroundSpawn> GetNthGroundSpawnFromMe(size_t N);
+MQLIB_OBJECT MQ2GroundSpawn GetGroundSpawnByName(std::string_view Name);
+MQLIB_OBJECT MQ2GroundSpawn GetGroundSpawnByID(int ID);
+MQLIB_OBJECT MQ2GroundSpawn GetNthGroundSpawnFromMe(size_t N);
 MQLIB_OBJECT int GetGroundSpawnCount();
-MQLIB_OBJECT std::shared_ptr<MQ2GroundSpawn> CurrentGroundSpawn();
-MQLIB_OBJECT std::shared_ptr<MQ2GroundSpawn> FirstGroundSpawn();
-MQLIB_OBJECT std::shared_ptr<MQ2GroundSpawn> LastGroundSpawn();
-MQLIB_OBJECT std::shared_ptr<MQ2GroundSpawn> NextGroundSpawn();
-MQLIB_OBJECT std::shared_ptr<MQ2GroundSpawn> PrevGroundSpawn();
+MQLIB_OBJECT MQ2GroundSpawn CurrentGroundSpawn();
+MQLIB_OBJECT MQ2GroundSpawn FirstGroundSpawn();
+MQLIB_OBJECT MQ2GroundSpawn LastGroundSpawn();
+MQLIB_OBJECT MQ2GroundSpawn NextGroundSpawn();
+MQLIB_OBJECT MQ2GroundSpawn PrevGroundSpawn();
 MQLIB_OBJECT void SetGroundSpawn(SPAWNINFO* pSpawn, std::string_view Name);
 MQLIB_OBJECT void ClearGroundSpawn();
 MQLIB_OBJECT CXStr GetFriendlyNameForGroundItem(EQGroundItem* pItem);

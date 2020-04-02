@@ -32,7 +32,7 @@ public:
 		auto pGroundSpawn = CurrentGroundSpawn();
 		if (pGroundSpawn)
 		{
-			auto pActor = pGroundSpawn->Actor();
+			auto pActor = pGroundSpawn.Actor();
 			if (pActor)
 				return pActor;
 		}
@@ -282,15 +282,15 @@ void ClickMouseLoc(char* szMouseLoc, char* szButton)
 	}
 }
 
-bool ClickMouseItem(SPAWNINFO* pChar, const std::shared_ptr<MQ2GroundSpawn>& pGroundSpawn, bool left)
+bool ClickMouseItem(SPAWNINFO* pChar, const MQ2GroundSpawn& GroundSpawn, bool left)
 {
-	if (!pChar || !pGroundSpawn)
+	if (!pChar || !GroundSpawn)
 		return false;
 
-	auto distance = pGroundSpawn->Distance3D(pChar);
+	auto distance = GroundSpawn.Distance3D(pChar);
 	if (distance > 20.f)
 	{
-		WriteChatf("You are %.2f away from the %s, move within 20 feet of it to click it.", distance, pGroundSpawn->Name().c_str());
+		WriteChatf("You are %.2f away from the %s, move within 20 feet of it to click it.", distance, GroundSpawn.Name().c_str());
 		return false;
 	}
 
@@ -405,9 +405,9 @@ void Click(SPAWNINFO* pChar, char* szLine)
 		}
 		else if (!_strnicmp(szMouseLoc, "item", 4))
 		{
-			auto pGroundSpawn = CurrentGroundSpawn();
-			if (pGroundSpawn)
-				ClickMouseItem(pChar, pGroundSpawn, !_strnicmp(szArg1, "left", 4));
+			auto GroundSpawn = CurrentGroundSpawn();
+			if (GroundSpawn)
+				ClickMouseItem(pChar, GroundSpawn, !_strnicmp(szArg1, "left", 4));
 			else
 				WriteChatf("No Item targeted, use /itemtarget <theid> before issuing a /click left|right item command.");
 

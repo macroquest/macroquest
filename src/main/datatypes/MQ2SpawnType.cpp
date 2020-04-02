@@ -1739,14 +1739,10 @@ bool MQ2SpawnType::dataItemTarget(const char* szIndex, MQTypeVar& Ret)
 	auto ground = CurrentGroundSpawn();
 	if (ground)
 	{
-		auto spawn = ground->ToSpawn();
-		if (spawn)
-		{
-			EnviroTarget = *spawn;
-			Ret.Ptr = &EnviroTarget;
-			Ret.Type = pSpawnType;
-			return true;
-		}
+		EnviroTarget = ground.ToSpawn();
+		Ret.Ptr = &EnviroTarget;
+		Ret.Type = pSpawnType;
+		return true;
 	}
 
 	return false;

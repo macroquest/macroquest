@@ -28,10 +28,16 @@ public:
 		: GlobalIndex(GlobalIndex), Slot(Slot) {}
 };
 
-class MQ2Transient
+class MQ2Transient : public std::enable_shared_from_this<MQ2Transient>
 {
 protected:
 	bool m_invalidated; // let's track if this got invalidated to help troubleshooting things
+
+	template <typename T>
+	std::shared_ptr<T> SharedFromBase()
+	{
+		return std::static_pointer_cast<T>(shared_from_this());
+	}
 
 public:
 	virtual void Invalidate() = 0;
@@ -55,10 +61,22 @@ private:
 			throw std::runtime_error("Tried to dereference nullptr object.");
 	}
 
-public:
 	MQ2EQObject(T* Object) : m_object(Object) {}
 
+public:
+	static std::shared_ptr<MQ2EQObject<T>> Observe(T* Object)
+	{
+		auto ptr = std::shared_ptr<MQ2EQObject<T>>(new MQ2EQObject<T>(Object),
+			[](MQ2EQObject<T>* ptr) { delete ptr; });
+		AddObservedEQObject(ptr);
+		return ptr;
+	}
+
 	void Invalidate() override { m_object = nullptr; m_invalidated = true; }
+
+	operator bool() const override { return m_object != nullptr && !m_invalidated; }
+
+	std::shared_ptr<MQ2EQObject<T>> Get() { return SharedFromBase<MQ2EQObject<T>>(); }
 
 	T& operator*()
 	{
@@ -77,21 +95,7 @@ public:
 		Validate();
 		return m_object;
 	}
-
-	operator bool() const override { return m_object != nullptr && !m_invalidated; }
-
-	static std::shared_ptr<MQ2EQObject<T>> Get(const std::shared_ptr<MQ2Transient>& Base)
-	{
-		return std::static_pointer_cast<MQ2EQObject<T>>(Base);
-	}
 };
-
-template <typename T> std::shared_ptr<MQ2EQObject<T>> ObserveEQObject(T* Object)
-{
-	auto ptr = std::make_shared<MQ2EQObject<T>>(Object);
-	AddObservedEQObject(ptr);
-	return ptr;
-}
 
 }
 

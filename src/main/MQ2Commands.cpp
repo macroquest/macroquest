@@ -613,7 +613,7 @@ void ItemTarget(SPAWNINFO* pChar, char* szLine)
 	auto result = CurrentGroundSpawn();
 	if (result)
 	{
-		WriteChatf("Item '%s' targeted.", result->DisplayName().c_str());
+		WriteChatf("Item '%s' targeted.", result.DisplayName().c_str());
 	}
 	else
 	{
@@ -2418,15 +2418,11 @@ void Face(SPAWNINFO* pChar, char* szLine)
 		else if (!_stricmp(szArg, "item"))
 		{
 			// FIXME: refactor this function to not need to set the spawn in the higher scope
-			// reusing LocSpawn here because we don't need more stack explosion in this function
+			// -- reusing LocSpawn here for now because we don't need more stack explosion in this function
 			auto item = CurrentGroundSpawn();
 			if (item)
 			{
-				auto spawn = item->ToSpawn();
-				if (spawn)
-				{
-					LocSpawn = *spawn;
-				}
+				LocSpawn = item.ToSpawn();
 			}
 
 			if (LocSpawn.Name[0] == 0)
