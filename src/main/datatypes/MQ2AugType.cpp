@@ -18,16 +18,28 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class AugTypeMembers
+{
+	Slot,
+	Type,
+	Visible,
+	Infusable,
+	Empty,
+	Name,
+	Item,
+	Solvent
+};
+
 MQ2AugType::MQ2AugType() : MQ2Type("augtype")
 {
-	TypeMember(Slot);
-	TypeMember(Type);
-	TypeMember(Visible);
-	TypeMember(Infusable);
-	TypeMember(Empty);
-	TypeMember(Name);
-	TypeMember(Item);
-	TypeMember(Solvent);
+	ScopedTypeMember(AugTypeMembers, Slot);
+	ScopedTypeMember(AugTypeMembers, Type);
+	ScopedTypeMember(AugTypeMembers, Visible);
+	ScopedTypeMember(AugTypeMembers, Infusable);
+	ScopedTypeMember(AugTypeMembers, Empty);
+	ScopedTypeMember(AugTypeMembers, Name);
+	ScopedTypeMember(AugTypeMembers, Item);
+	ScopedTypeMember(AugTypeMembers, Solvent);
 }
 
 bool MQ2AugType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
@@ -48,34 +60,34 @@ bool MQ2AugType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar
 
 	switch (static_cast<AugTypeMembers>(pMember->ID))
 	{
-	case Slot:
+	case AugTypeMembers::Slot:
 		Dest.DWord = index + 1;
 		Dest.Type = pIntType;
 		return true;
 
-	case Type:
+	case AugTypeMembers::Type:
 		Dest.DWord = pItem->AugData.Sockets[index].Type;
 		Dest.Type = pIntType;
 		return true;
 
-	case Visible:
+	case AugTypeMembers::Visible:
 		Dest.DWord = pItem->AugData.Sockets[index].bVisible;
 		Dest.Type = pBoolType;
 		return true;
 
-	case Infusable:
+	case AugTypeMembers::Infusable:
 		Dest.DWord = pItem->AugData.Sockets[index].bInfusible;
 		Dest.Type = pBoolType;
 		return true;
 
-	case Empty:
+	case AugTypeMembers::Empty:
 		Dest.DWord = true;
 		Dest.Type = pBoolType;
 		if (CONTENTS* pCret = pCont->GetContent(index))
 			Dest.DWord = false;
 		return true;
 
-	case Name:
+	case AugTypeMembers::Name:
 		Dest.Type = pStringType;
 		if (CONTENTS* pCret = pCont->GetContent(index))
 		{
@@ -88,7 +100,7 @@ bool MQ2AugType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar
 		}
 		return false;
 
-	case Item:
+	case AugTypeMembers::Item:
 		Dest.Type = pItemType;
 		if (CONTENTS* pCret = pCont->GetContent(index))
 		{
@@ -97,7 +109,7 @@ bool MQ2AugType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar
 		}
 		return false;
 
-	case Solvent:
+	case AugTypeMembers::Solvent:
 		Dest.DWord = 0;
 		Dest.Type = pSolventType;
 		if (CONTENTS* pCret = pCont->GetContent(index))

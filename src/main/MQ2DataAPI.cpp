@@ -391,8 +391,8 @@ void InitializeMQ2Data()
 	AddMQ2Data("Float", datatypes::MQ2FloatType::dataFloat);
 	AddMQ2Data("Friends", dataFriends);
 	AddMQ2Data("GameTime", dataGameTime);
-	AddMQ2Data("Ground", dataGroundItem);
-	AddMQ2Data("GroundItemCount", dataGroundItemCount);
+	AddMQ2Data("Ground", datatypes::MQ2GroundType::dataGroundItem);
+	AddMQ2Data("GroundItemCount", datatypes::MQ2GroundType::dataGroundItemCount);
 	AddMQ2Data("Group", dataGroup);
 	AddMQ2Data("Heading", dataHeading);
 	AddMQ2Data("If", dataIf);

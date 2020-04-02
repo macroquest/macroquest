@@ -18,6 +18,113 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class WindowMembers
+{
+	Open,
+	Child,
+	VScrollMax,
+	VScrollPos,
+	VScrollPct,
+	HScrollMax,
+	HScrollPos,
+	HScrollPct,
+	Children,
+	Siblings,
+	Parent,
+	FirstChild,
+	Next,
+	Minimized,
+	X,
+	Y,
+	Height,
+	Width,
+	MouseOver,
+	BGColor,
+	Text,
+	Tooltip,
+	List,
+	Checked,
+	Style,
+	Enabled,
+	Highlighted,
+	Name,
+	ScreenID,
+	Type,
+	Items,
+	HisTradeReady,
+	MyTradeReady,
+	GetCurSel,
+	Address,
+	Size
+};
+
+enum class WindowMethods
+{
+	LeftMouseDown,
+	LeftMouseUp,
+	LeftMouseHeld,
+	LeftMouseHeldUp,
+	RightMouseDown,
+	RightMouseUp,
+	RightMouseHeld,
+	RightMouseHeldUp,
+	DoOpen,
+	DoClose,
+	Select
+};
+
+MQ2WindowType::MQ2WindowType() : MQ2Type("window")
+{
+	ScopedTypeMember(WindowMembers, Open);
+	ScopedTypeMember(WindowMembers, Child);
+	ScopedTypeMember(WindowMembers, VScrollMax);
+	ScopedTypeMember(WindowMembers, VScrollPos);
+	ScopedTypeMember(WindowMembers, VScrollPct);
+	ScopedTypeMember(WindowMembers, HScrollMax);
+	ScopedTypeMember(WindowMembers, HScrollPos);
+	ScopedTypeMember(WindowMembers, HScrollPct);
+	ScopedTypeMember(WindowMembers, Children);
+	ScopedTypeMember(WindowMembers, Parent);
+	ScopedTypeMember(WindowMembers, Siblings);
+	ScopedTypeMember(WindowMembers, FirstChild);
+	ScopedTypeMember(WindowMembers, Next);
+	ScopedTypeMember(WindowMembers, Minimized);
+	ScopedTypeMember(WindowMembers, X);
+	ScopedTypeMember(WindowMembers, Y);
+	ScopedTypeMember(WindowMembers, Height);
+	ScopedTypeMember(WindowMembers, Width);
+	ScopedTypeMember(WindowMembers, MouseOver);
+	ScopedTypeMember(WindowMembers, BGColor);
+	ScopedTypeMember(WindowMembers, Text);
+	ScopedTypeMember(WindowMembers, Tooltip);
+	ScopedTypeMember(WindowMembers, List);
+	ScopedTypeMember(WindowMembers, Checked);
+	ScopedTypeMember(WindowMembers, Style);
+	ScopedTypeMember(WindowMembers, Enabled);
+	ScopedTypeMember(WindowMembers, Highlighted);
+	ScopedTypeMember(WindowMembers, Name);
+	ScopedTypeMember(WindowMembers, ScreenID);
+	ScopedTypeMember(WindowMembers, Type);
+	ScopedTypeMember(WindowMembers, Items);
+	ScopedTypeMember(WindowMembers, HisTradeReady);
+	ScopedTypeMember(WindowMembers, MyTradeReady);
+	ScopedTypeMember(WindowMembers, GetCurSel);
+	ScopedTypeMember(WindowMembers, Address);
+	ScopedTypeMember(WindowMembers, Size);
+
+	ScopedTypeMethod(WindowMethods, LeftMouseDown);
+	ScopedTypeMethod(WindowMethods, LeftMouseUp);
+	ScopedTypeMethod(WindowMethods, LeftMouseHeld);
+	ScopedTypeMethod(WindowMethods, LeftMouseHeldUp);
+	ScopedTypeMethod(WindowMethods, RightMouseDown);
+	ScopedTypeMethod(WindowMethods, RightMouseUp);
+	ScopedTypeMethod(WindowMethods, RightMouseHeld);
+	ScopedTypeMethod(WindowMethods, RightMouseHeldUp);
+	ScopedTypeMethod(WindowMethods, DoOpen);
+	ScopedTypeMethod(WindowMethods, DoClose);
+	ScopedTypeMethod(WindowMethods, Select);
+}
+
 bool MQ2WindowType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
 	CXWnd* pWnd = static_cast<CXWnd*>(VarPtr.Ptr);
@@ -32,47 +139,47 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 	{
 		switch (static_cast<WindowMethods>(pMethod->ID))
 		{
-		case LeftMouseDown:
+		case WindowMethods::LeftMouseDown:
 			SendWndClick2(pWnd, "leftmousedown");
 			return true;
 
-		case LeftMouseUp:
+		case WindowMethods::LeftMouseUp:
 			SendWndClick2(pWnd, "leftmouseup");
 			return true;
 
-		case LeftMouseHeld:
+		case WindowMethods::LeftMouseHeld:
 			SendWndClick2(pWnd, "leftmouseheld");
 			return true;
 
-		case LeftMouseHeldUp:
+		case WindowMethods::LeftMouseHeldUp:
 			SendWndClick2(pWnd, "leftmouseheldup");
 			return true;
 
-		case RightMouseDown:
+		case WindowMethods::RightMouseDown:
 			SendWndClick2(pWnd, "rightmousedown");
 			return true;
 
-		case RightMouseUp:
+		case WindowMethods::RightMouseUp:
 			SendWndClick2(pWnd, "rightmouseup");
 			return true;
 
-		case RightMouseHeld:
+		case WindowMethods::RightMouseHeld:
 			SendWndClick2(pWnd, "rightmouseheld");
 			return true;
 
-		case RightMouseHeldUp:
+		case WindowMethods::RightMouseHeldUp:
 			SendWndClick2(pWnd, "rightmouseheldup");
 			return true;
 
-		case DoOpen:
+		case WindowMethods::DoOpen:
 			pWnd->Show(true, true);
 			return true;
 
-		case DoClose:
+		case WindowMethods::DoClose:
 			pWnd->Show(false, true);
 			return true;
 
-		case Select: {
+		case WindowMethods::Select: {
 			int ListIndex = GetIntFromString(Index, 0) - 1;
 			if (ListIndex < 0)
 				ListIndex = 0;
@@ -135,17 +242,17 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 
 	switch (static_cast<WindowMembers>(pMember->ID))
 	{
-	case Address:
+	case WindowMembers::Address:
 		Dest.DWord = reinterpret_cast<uint32_t>(pWnd);
 		Dest.Type = pIntType;
 		return true;
 
-	case Open:
+	case WindowMembers::Open:
 		Dest.DWord = pWnd->IsVisible();
 		Dest.Type = pBoolType;
 		return true;
 
-	case Child:
+	case WindowMembers::Child:
 		if (Dest.Ptr = pWnd->GetChildItem(Index))
 		{
 			Dest.Type = pWindowType;
@@ -155,7 +262,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Type = pIntType;
 		return true;
 
-	case Parent:
+	case WindowMembers::Parent:
 		if (Dest.Ptr = pWnd->GetParentWindow())
 		{
 			Dest.Type = pWindowType;
@@ -165,7 +272,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Type = pIntType;
 		return true;
 
-	case FirstChild:
+	case WindowMembers::FirstChild:
 		if (Dest.Ptr = pWnd->GetFirstChildWnd())
 		{
 			Dest.Type = pWindowType;
@@ -175,7 +282,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Type = pIntType;
 		return true;
 
-	case Next:
+	case WindowMembers::Next:
 		if (Dest.Ptr = pWnd->GetNextSiblingWnd())
 		{
 			Dest.Type = pWindowType;
@@ -185,89 +292,89 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Type = pIntType;
 		return true;
 
-	case VScrollMax:
+	case WindowMembers::VScrollMax:
 		Dest.DWord = pWnd->GetVScrollMax();
 		Dest.Type = pIntType;
 		return true;
 
-	case VScrollPos:
+	case WindowMembers::VScrollPos:
 		Dest.DWord = pWnd->GetVScrollPos();
 		Dest.Type = pIntType;
 		return true;
 
-	case VScrollPct:
+	case WindowMembers::VScrollPct:
 		Dest.DWord = (pWnd->GetVScrollPos() * 100) / pWnd->GetVScrollMax();
 		Dest.Type = pIntType;
 		return true;
 
-	case HScrollMax:
+	case WindowMembers::HScrollMax:
 		Dest.DWord = pWnd->GetHScrollMax();
 		Dest.Type = pIntType;
 		return true;
 
-	case HScrollPos:
+	case WindowMembers::HScrollPos:
 		Dest.DWord = pWnd->GetHScrollPos();
 		Dest.Type = pIntType;
 		return true;
 
-	case HScrollPct:
+	case WindowMembers::HScrollPct:
 		Dest.DWord = (pWnd->GetHScrollPos() * 100) / pWnd->GetHScrollMax();
 		Dest.Type = pIntType;
 		return true;
 
-	case Children:
+	case WindowMembers::Children:
 		Dest.DWord = pWnd->GetFirstChildWnd() != nullptr;
 		Dest.Type = pBoolType;
 		return true;
 
-	case Siblings:
+	case WindowMembers::Siblings:
 		Dest.DWord = pWnd->GetNextSiblingWnd() != nullptr;
 		Dest.Type = pBoolType;
 		return true;
 
-	case Minimized:
+	case WindowMembers::Minimized:
 		Dest.DWord = pWnd->IsMinimized();
 		Dest.Type = pBoolType;
 		return true;
 
-	case MouseOver:
+	case WindowMembers::MouseOver:
 		Dest.DWord = pWnd->IsMouseOver();
 		Dest.Type = pBoolType;
 		return true;
 
-	case X:
+	case WindowMembers::X:
 		Dest.DWord = pWnd->GetLocation().left;
 		Dest.Type = pIntType;
 		return true;
 
-	case Y:
+	case WindowMembers::Y:
 		Dest.DWord = pWnd->GetLocation().top;
 		Dest.Type = pIntType;
 		return true;
 
-	case Size:
+	case WindowMembers::Size:
 		sprintf_s(DataTypeTemp, "%d,%d", pWnd->GetLocation().bottom - pWnd->GetLocation().top,
 			pWnd->GetLocation().right - pWnd->GetLocation().left);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case Width:
+	case WindowMembers::Width:
 		Dest.DWord = pWnd->GetLocation().right - pWnd->GetLocation().left;
 		Dest.Type = pIntType;
 		return true;
 
-	case Height:
+	case WindowMembers::Height:
 		Dest.DWord = pWnd->GetLocation().bottom - pWnd->GetLocation().top;
 		Dest.Type = pIntType;
 		return true;
 
-	case BGColor:
+	case WindowMembers::BGColor:
 		Dest.DWord = pWnd->GetBGColor();
 		Dest.Type = pArgbType;
 		return true;
 
-	case Text:
+	case WindowMembers::Text:
 		if (pWnd->GetType() == UI_STMLBox)
 		{
 			CStmlWnd* cstmlwnd = static_cast<CStmlWnd*>(pWnd);
@@ -282,18 +389,18 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Type = pStringType;
 		return true;
 
-	case Tooltip:
+	case WindowMembers::Tooltip:
 		strcpy_s(DataTypeTemp, pWnd->GetTooltip().c_str());
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case Checked:
+	case WindowMembers::Checked:
 		Dest.Int = ((CButtonWnd*)pWnd)->bChecked;
 		Dest.Type = pBoolType;
 		return true;
 
-	case Highlighted: // if the window in question has focus...
+	case WindowMembers::Highlighted: // if the window in question has focus...
 		Dest.Int = false;
 		Dest.Type = pBoolType;
 		if (pWndMgr)
@@ -303,17 +410,17 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return true;
 
-	case Enabled:
+	case WindowMembers::Enabled:
 		Dest.Int = pWnd->IsEnabled();
 		Dest.Type = pBoolType;
 		return true;
 
-	case Style:
+	case WindowMembers::Style:
 		Dest.DWord = pWnd->GetWindowStyle();
 		Dest.Type = pIntType;
 		return true;
 
-	case List: {
+	case WindowMembers::List: {
 		Dest.Type = pStringType;
 		CListWnd* pListWnd = nullptr;
 
@@ -398,7 +505,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		return false;
 	}
 
-	case Name:
+	case WindowMembers::Name:
 		Dest.Type = pStringType;
 		if (CXMLData* pXMLData = pWnd->GetXMLData())
 		{
@@ -411,7 +518,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return false;
 
-	case ScreenID:
+	case WindowMembers::ScreenID:
 		Dest.Type = pStringType;
 		if (CXMLData* pXMLData = pWnd->GetXMLData())
 		{
@@ -424,7 +531,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return false;
 
-	case Type:
+	case WindowMembers::Type:
 		Dest.Type = pStringType;
 		if (CXMLData* pXMLData = pWnd->GetXMLData())
 		{
@@ -437,7 +544,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return false;
 
-	case Items:
+	case WindowMembers::Items:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -456,7 +563,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return true;
 
-	case HisTradeReady:
+	case WindowMembers::HisTradeReady:
 		Dest.Int = 0;
 		Dest.Type = pBoolType;
 		if (pTradeWnd)
@@ -465,7 +572,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return true;
 
-	case MyTradeReady:
+	case WindowMembers::MyTradeReady:
 		Dest.Int = 0;
 		Dest.Type = pBoolType;
 		if (pTradeWnd)
@@ -474,7 +581,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		return true;
 
-	case GetCurSel: {
+	case WindowMembers::GetCurSel: {
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -501,6 +608,28 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 	}
 
 	return false;
+}
+
+bool MQ2WindowType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	CXWnd* pWnd = static_cast<CXWnd*>(VarPtr.Ptr);
+
+	if (pWnd)
+	{
+		if (pWnd->IsVisible())
+			strcpy_s(Destination, MAX_STRING, "TRUE");
+		else
+			strcpy_s(Destination, MAX_STRING, "FALSE");
+	}
+	return true;
+}
+
+bool MQ2WindowType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type != pWindowType)
+		return false;
+	VarPtr.Ptr = Source.Ptr;
+	return true;
 }
 
 bool MQ2WindowType::FromString(MQVarPtr& VarPtr, char* Source)

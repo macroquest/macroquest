@@ -310,7 +310,6 @@ public:
 	void InitVariable(MQVarPtr& VarPtr)
 	{
 		VarPtr.Ptr = malloc(sizeof(BazaarSearchResponsePacket));
-		VarPtr.HighPart = 0;
 		ZeroMemory(VarPtr.Ptr, sizeof(BazaarSearchResponsePacket));
 	}
 

@@ -258,11 +258,10 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 
 	case LastMouseOver:
-		Dest.Type = pWindowType;
+		Dest.Type = pLastMouseOverType;
 		if (pWndMgr)
 		{
 			Dest.Ptr = pWndMgr->LastMouseOver;
-			Dest.HighPart = 24; // ??
 			return true;
 		}
 		return false;

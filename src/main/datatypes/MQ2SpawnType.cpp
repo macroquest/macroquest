@@ -1535,7 +1535,6 @@ void MQ2SpawnType::InitVariable(MQVarPtr& VarPtr)
 {
 	// FIXME: Do not Allocate a SPAWNINFO
 	VarPtr.Ptr = new SPAWNINFO();
-	VarPtr.HighPart = 0;
 
 	// FIXME: Do not ZeroMemory a SPAWNINFO
 	ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));

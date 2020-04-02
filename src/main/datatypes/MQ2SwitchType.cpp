@@ -18,6 +18,59 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class SwitchMembers
+{
+	ID,
+	Distance,
+	X,
+	Y,
+	Z,
+	Heading,
+	DefaultX,
+	DefaultY,
+	DefaultZ,
+	DefaultHeading,
+	Open,
+	HeadingTo,
+	Name,
+	N,
+	W,
+	U,
+	DefaultN,
+	DefaultW,
+	DefaultU,
+	LineOfSight,
+	Address,
+	Distance3D
+};
+
+enum class SwitchMethods
+{
+	Toggle
+};
+
+MQ2SwitchType::MQ2SwitchType() : MQ2Type("switch")
+{
+	ScopedTypeMember(SwitchMembers, ID);
+	ScopedTypeMember(SwitchMembers, Distance);
+	ScopedTypeMember(SwitchMembers, X);
+	ScopedTypeMember(SwitchMembers, Y);
+	ScopedTypeMember(SwitchMembers, Z);
+	ScopedTypeMember(SwitchMembers, Heading);
+	ScopedTypeMember(SwitchMembers, DefaultX);
+	ScopedTypeMember(SwitchMembers, DefaultY);
+	ScopedTypeMember(SwitchMembers, DefaultZ);
+	ScopedTypeMember(SwitchMembers, DefaultHeading);
+	ScopedTypeMember(SwitchMembers, Open);
+	ScopedTypeMember(SwitchMembers, HeadingTo);
+	ScopedTypeMember(SwitchMembers, Name);
+	ScopedTypeMember(SwitchMembers, LineOfSight);
+	ScopedTypeMember(SwitchMembers, Address);
+	ScopedTypeMember(SwitchMembers, Distance3D);
+
+	ScopedTypeMethod(SwitchMethods, Toggle);
+}
+
 bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
 	DOOR* pTheSwitch = static_cast<DOOR*>(VarPtr.Ptr);
@@ -32,7 +85,7 @@ bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 	{
 		switch (static_cast<SwitchMethods>(pMethod->ID))
 		{
-		case Toggle: {
+		case SwitchMethods::Toggle: {
 			int KeyID = 0;
 			int Skill = 0;
 
@@ -83,68 +136,68 @@ bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 
 	switch (static_cast<SwitchMembers>(pMember->ID))
 	{
-	case Address:
+	case SwitchMembers::Address:
 		Dest.DWord = (uint32_t)VarPtr.Ptr;
 		Dest.Type = pIntType;
 		return true;
 
-	case ID:
+	case SwitchMembers::ID:
 		Dest.DWord = pTheSwitch->ID;
 		Dest.Type = pIntType;
 		return true;
 
-	case W:
-	case X:
+	case SwitchMembers::W:
+	case SwitchMembers::X:
 		Dest.Float = pTheSwitch->X;
 		Dest.Type = pFloatType;
 		return true;
 
-	case N:
-	case Y:
+	case SwitchMembers::N:
+	case SwitchMembers::Y:
 		Dest.Float = pTheSwitch->Y;
 		Dest.Type = pFloatType;
 		return true;
 
-	case U:
-	case Z:
+	case SwitchMembers::U:
+	case SwitchMembers::Z:
 		Dest.Float = pTheSwitch->Z;
 		Dest.Type = pFloatType;
 		return true;
 
-	case DefaultW:
-	case DefaultX:
+	case SwitchMembers::DefaultW:
+	case SwitchMembers::DefaultX:
 		Dest.Float = pTheSwitch->DefaultX;
 		Dest.Type = pFloatType;
 		return true;
 
-	case DefaultN:
-	case DefaultY:
+	case SwitchMembers::DefaultN:
+	case SwitchMembers::DefaultY:
 		Dest.Float = pTheSwitch->DefaultY;
 		Dest.Type = pFloatType;
 		return true;
 
-	case DefaultU:
-	case DefaultZ:
+	case SwitchMembers::DefaultU:
+	case SwitchMembers::DefaultZ:
 		Dest.Float = pTheSwitch->DefaultZ;
 		Dest.Type = pFloatType;
 		return true;
 
-	case Heading:
+	case SwitchMembers::Heading:
 		Dest.Float = pTheSwitch->Heading * 0.703125f;
 		Dest.Type = pHeadingType;
 		return true;
 
-	case DefaultHeading:
+	case SwitchMembers::DefaultHeading:
 		Dest.Float = pTheSwitch->DefaultHeading * 0.703125f;
 		Dest.Type = pHeadingType;
 		return true;
 
-	case Open:
+	case SwitchMembers::Open:
 		Dest.DWord = (pTheSwitch->State == 1);
 		Dest.Type = pBoolType;
 		return true;
 
-	case HeadingTo:
+	case SwitchMembers::HeadingTo:
 		Dest.Float = (float)(atan2f(((SPAWNINFO*)pCharSpawn)->Y - pTheSwitch->Y, pTheSwitch->X - ((SPAWNINFO*)pCharSpawn)->X) * 180.0f / PI + 90.0f);
 		if (Dest.Float < 0.0f)
 			Dest.Float += 360.0f;
@@ -153,12 +206,12 @@ bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Type = pHeadingType;
 		return true;
 
-	case Name:
+	case SwitchMembers::Name:
 		Dest.Ptr = &pTheSwitch->Name[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case Distance: {
+	case SwitchMembers::Distance: {
 		float BoundingRadius = 0;
 		if (ActorBase* pBase = (ActorBase*)pTheSwitch->pSwitch)
 		{
@@ -184,7 +237,7 @@ bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		return true;
 	}
 
-	case Distance3D: {
+	case SwitchMembers::Distance3D: {
 		float X = ((SPAWNINFO*)pCharSpawn)->X - pTheSwitch->X;
 		float Y = ((SPAWNINFO*)pCharSpawn)->Y - pTheSwitch->Y;
 		float Z = ((SPAWNINFO*)pCharSpawn)->Z - pTheSwitch->Z;
@@ -216,7 +269,7 @@ bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		return true;
 	}
 
-	case xLineOfSight:
+	case SwitchMembers::LineOfSight:
 		Dest.DWord = CastRay(GetCharInfo()->pSpawn, pTheSwitch->Y, pTheSwitch->X, pTheSwitch->Z);
 		Dest.Type = pBoolType;
 		return true;
@@ -225,5 +278,38 @@ bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 	}
 
 	return false;
+}
+
+bool MQ2SwitchType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (!VarPtr.Ptr)
+		return false;
+
+	DOOR* pDoor = static_cast<DOOR*>(VarPtr.Ptr);
+	_itoa_s(pDoor->ID, Destination, MAX_STRING, 10);
+	return true;
+}
+
+
+void MQ2SwitchType::InitVariable(MQVarPtr& VarPtr)
+{
+	// FIXME: Do not allocate a DOOR
+	VarPtr.Ptr = new DOOR();
+}
+
+void MQ2SwitchType::FreeVariable(MQVarPtr& VarPtr)
+{
+	// FIXME: Do not allocate a DOOR
+	DOOR* pDoor = static_cast<DOOR*>(VarPtr.Ptr);
+	delete pDoor;
+}
+
+bool MQ2SwitchType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type != pSwitchType)
+		return false;
+
+	memcpy(VarPtr.Ptr, Source.Ptr, sizeof(DOOR));
+	return true;
 }
 

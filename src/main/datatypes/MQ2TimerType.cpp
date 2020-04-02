@@ -18,7 +18,30 @@
 using namespace mq;
 using namespace mq::datatypes;
 
-bool MQ2TimerType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar & Dest)
+enum class TimerMembers
+{
+	Value,
+	OriginalValue
+};
+
+enum class TimerMethods
+{
+	Reset,
+	Expire,
+	Set
+};
+
+MQ2TimerType::MQ2TimerType() : MQ2Type("timer")
+{
+	ScopedTypeMember(TimerMembers, Value);
+	ScopedTypeMember(TimerMembers, OriginalValue);
+
+	ScopedTypeMethod(TimerMethods, Reset);
+	ScopedTypeMethod(TimerMethods, Expire);
+	ScopedTypeMethod(TimerMethods, Set);
+}
+
+bool MQ2TimerType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQTimer* pTimer = static_cast<MQTimer*>(VarPtr.Ptr);
 	if (!pTimer)
@@ -32,15 +55,15 @@ bool MQ2TimerType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 	{
 		switch (static_cast<TimerMethods>(pMethod->ID))
 		{
-		case Expire:
+		case TimerMethods::Expire:
 			pTimer->Current = 0;
 			return true;
 
-		case Reset:
+		case TimerMethods::Reset:
 			pTimer->Current = pTimer->Original;
 			return true;
 
-		case Set:
+		case TimerMethods::Set:
 			FromString(VarPtr, Index);
 			return true;
 
@@ -58,12 +81,12 @@ bool MQ2TimerType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 
 	switch (static_cast<TimerMembers>(pMember->ID))
 	{
-	case Value:
+	case TimerMembers::Value:
 		Dest.DWord = pTimer->Current;
 		Dest.Type = pIntType;
 		return true;
 
-	case OriginalValue:
+	case TimerMembers::OriginalValue:
 		Dest.DWord = pTimer->Original;
 		Dest.Type = pIntType;
 		return true;
@@ -72,5 +95,74 @@ bool MQ2TimerType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 	}
 
 	return false;
+}
+
+bool MQ2TimerType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	MQTimer* pTimer = reinterpret_cast<MQTimer*>(VarPtr.Ptr);
+	_ultoa_s(pTimer->Current, Destination, MAX_STRING, 10);
+	return true;
+}
+
+void MQ2TimerType::InitVariable(MQVarPtr& VarPtr)
+{
+	MQTimer* pVar = new MQTimer();
+	pVar->pNext = gTimer;
+
+	if (gTimer)
+		gTimer->pPrev = pVar;
+	gTimer = pVar;
+
+	VarPtr.Ptr = pVar;
+}
+
+void MQ2TimerType::FreeVariable(MQVarPtr& VarPtr)
+{
+	if (MQTimer* pVar = reinterpret_cast<MQTimer*>(VarPtr.Ptr))
+	{
+		if (pVar->pPrev)
+			pVar->pPrev->pNext = pVar->pNext;
+		else
+			gTimer = pVar->pNext;
+		if (pVar->pNext)
+			pVar->pNext->pPrev = pVar->pPrev;
+
+		delete pVar;
+	}
+}
+
+bool MQ2TimerType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	MQTimer* pTimer = reinterpret_cast<MQTimer*>(VarPtr.Ptr);
+	if (Source.Type == pFloatType)
+	{
+		pTimer->Current = (DWORD)Source.Float;
+		pTimer->Original = pTimer->Current;
+	}
+	else
+	{
+		pTimer->Current = Source.DWord;
+		pTimer->Original = pTimer->Current;
+	}
+	return true;
+}
+
+bool MQ2TimerType::FromString(MQVarPtr& VarPtr, char* Source)
+{
+	MQTimer* pTimer = reinterpret_cast<MQTimer*>(VarPtr.Ptr);
+
+	float VarValue = GetFloatFromString(Source, 0);
+	switch (Source[strlen(Source) - 1])
+	{
+	case 'm':
+	case 'M':
+		VarValue *= 60;
+	case 's':
+	case 'S':
+		VarValue *= 10;
+	}
+	pTimer->Current = (DWORD)VarValue;
+	pTimer->Original = pTimer->Current;
+	return true;
 }
 

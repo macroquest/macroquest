@@ -54,10 +54,7 @@ bool MQ2IntType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar
 		return true;
 
 	case IntMembers::Reverse:
-		Dest.Array[0] = VarPtr.Array[3];
-		Dest.Array[1] = VarPtr.Array[2];
-		Dest.Array[2] = VarPtr.Array[1];
-		Dest.Array[3] = VarPtr.Array[0];
+		Dest.Int = _byteswap_ulong(VarPtr.Int);
 		Dest.Type = pIntType;
 		return true;
 

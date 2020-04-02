@@ -87,6 +87,13 @@ bool MQ2ArgbType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 
 bool MQ2ArgbType::FromString(MQVarPtr& VarPtr, char* Source)
 {
-	return sscanf_s(Source, "%x", &VarPtr.Int);
+	ARGBCOLOR input;
+	if (sscanf_s(Source, "%x", &input.ARGB))
+	{
+		VarPtr.Argb = input;
+		return true;
+	}
+
+	return false;
 }
 

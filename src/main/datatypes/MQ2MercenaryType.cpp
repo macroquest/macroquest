@@ -18,6 +18,24 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class MercenaryMembers
+{
+	AAPoints,
+	Stance,
+	State,
+	StateID,
+	Index
+};
+
+MQ2MercenaryType::MQ2MercenaryType() : MQ2Type("mercenary")
+{
+	ScopedTypeMember(MercenaryMembers, AAPoints);
+	ScopedTypeMember(MercenaryMembers, Stance);
+	ScopedTypeMember(MercenaryMembers, State);
+	ScopedTypeMember(MercenaryMembers, StateID);
+	ScopedTypeMember(MercenaryMembers, Index);
+}
+
 bool MQ2MercenaryType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
 	SPAWNINFO* pSpawn = reinterpret_cast<SPAWNINFO*>(VarPtr.Ptr);
@@ -35,12 +53,12 @@ bool MQ2MercenaryType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	switch (static_cast<MercenaryMembers>(pMember->ID))
 	{
-	case AAPoints:
+	case MercenaryMembers::AAPoints:
 		Dest.DWord = GetCharInfo()->MercAAPoints;
 		Dest.Type = pIntType;
 		return true;
 
-	case Stance:
+	case MercenaryMembers::Stance:
 		strcpy_s(DataTypeTemp, "NULL");
 		if (pMercInfo->HaveMerc)
 		{
@@ -57,7 +75,7 @@ bool MQ2MercenaryType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Type = pStringType;
 		return true;
 
-	case State:
+	case MercenaryMembers::State:
 		switch (pMercInfo->MercState)
 		{
 		case 0:
@@ -85,12 +103,12 @@ bool MQ2MercenaryType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Type = pStringType;
 		return true;
 
-	case StateID:
+	case MercenaryMembers::StateID:
 		Dest.DWord = pMercInfo->MercState;
 		Dest.Type = pIntType;
 		return true;
 
-	case xIndex:
+	case MercenaryMembers::Index:
 		Dest.DWord = pMercInfo->CurrentMercIndex + 1;
 		Dest.Type = pIntType;
 		return true;
@@ -98,6 +116,60 @@ bool MQ2MercenaryType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 	default: break;
 	}
 
+	return false;
+}
+
+bool MQ2MercenaryType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (!VarPtr.Ptr)
+		return false;
+
+	SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
+	strcpy_s(Destination, MAX_STRING, pSpawn->Name);
+	return true;
+}
+
+void MQ2MercenaryType::InitVariable(MQVarPtr& VarPtr)
+{
+	// FIXME: Do not Allocate a SPAWNINFO
+	VarPtr.Ptr = new SPAWNINFO();
+
+	// FIXME: Do not ZeroMemory a SPAWNINFO
+	ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
+}
+
+void MQ2MercenaryType::FreeVariable(MQVarPtr& VarPtr)
+{
+	// FIXME: Do not Allocate a SPAWNINFO
+	SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
+	delete pSpawn;
+}
+
+bool MQ2MercenaryType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type == pSpawnType)
+	{
+		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(SPAWNINFO));
+		return true;
+	}
+	else
+	{
+		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(Source.DWord))
+		{
+			memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
+			return true;
+		}
+	}
+	return false;
+}
+
+bool MQ2MercenaryType::FromString(MQVarPtr& VarPtr, char* Source)
+{
+	if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(GetIntFromString(Source, 0)))
+	{
+		memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
+		return true;
+	}
 	return false;
 }
 

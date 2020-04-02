@@ -295,6 +295,7 @@ bool CDataArray::GetElement(char* Index, MQTypeVar& Dest)
 #include "MQ2ItemSpellType.cpp"
 #include "MQ2ItemType.cpp"
 #include "MQ2KeyRingType.cpp"
+#include "MQ2LastMouseOverType.cpp"
 #include "MQ2MacroQuestType.cpp"
 #include "MQ2MacroType.cpp"
 #include "MQ2MathType.cpp"

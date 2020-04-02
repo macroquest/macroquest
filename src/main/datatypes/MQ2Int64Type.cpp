@@ -54,24 +54,17 @@ bool MQ2Int64Type::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		return true;
 
 	case Int64Members::Reverse:
-		Dest.FullArray[0] = VarPtr.FullArray[7];
-		Dest.FullArray[1] = VarPtr.FullArray[6];
-		Dest.FullArray[2] = VarPtr.FullArray[5];
-		Dest.FullArray[3] = VarPtr.FullArray[4];
-		Dest.FullArray[4] = VarPtr.FullArray[3];
-		Dest.FullArray[5] = VarPtr.FullArray[2];
-		Dest.FullArray[6] = VarPtr.FullArray[1];
-		Dest.FullArray[7] = VarPtr.FullArray[0];
+		Dest.Int64 = _byteswap_uint64(VarPtr.Int64);
 		Dest.Type = pInt64Type;
 		return true;
 
 	case Int64Members::LowPart:
-		Dest.DWord = LODWORD(VarPtr.UInt64);
+		Dest.DWord = VarPtr.LowPart;
 		Dest.Type = pIntType;
 		return true;
 
 	case Int64Members::HighPart:
-		Dest.DWord = HIDWORD(VarPtr.UInt64);
+		Dest.DWord = VarPtr.HighPart;
 		Dest.Type = pIntType;
 		return true;
 
