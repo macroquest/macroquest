@@ -618,13 +618,17 @@ struct MQVarPtr
 	template <typename T>
 	typename ReturnType<T>::type Set(T Object)
 	{
-		return std::static_pointer_cast<T>(std::get<std::shared_ptr<void>>(Data = std::make_shared<T>(Object)));
+		return std::static_pointer_cast<T>(std::get<std::shared_ptr<void>>(Data = std::shared_ptr<T>(new T(Object),
+			[](T* ptr) { if constexpr (std::is_array_v<T>) delete[] ptr; else delete ptr; })));
 	}
 
 	template <typename T>
 	typename ReturnType<T>::type Set(std::shared_ptr<T> Object)
 	{
-		return std::static_pointer_cast<T>(std::get<std::shared_ptr<void>>(Data = Object));
+		if (Object)
+			return Set<T>(Object);
+
+		return std::static_pointer_cast<T>(std::get<std::shared_ptr<void>>(Data = std::shared_ptr<T>()));
 	}
 
 	template <typename T>
