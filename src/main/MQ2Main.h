@@ -580,6 +580,7 @@ MQLIB_OBJECT MQ2GroundSpawn PrevGroundSpawn();
 MQLIB_OBJECT void SetGroundSpawn(SPAWNINFO* pSpawn, std::string_view Name);
 MQLIB_OBJECT void ClearGroundSpawn();
 MQLIB_OBJECT CXStr GetFriendlyNameForGroundItem(EQGroundItem* pItem);
+MQLIB_OBJECT CXStr GetFriendlyNameForPlacedItem(EQPlacedItem* pItem);
 MQLIB_API char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, size_t BufferSize);
 
 MQLIB_API void ClearSearchSpawn(MQSpawnSearch* pSearchSpawn);

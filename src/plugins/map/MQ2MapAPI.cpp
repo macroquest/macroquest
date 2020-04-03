@@ -853,7 +853,17 @@ bool MapSelectTarget()
 		{
 			// this member of spawn is set to DropID when we create the fake item spawn
 			GetGroundSpawnByID(pMapSpawn->pSpawn->mActorClient.Race);
-			// don't need to do anything else here, this will set our target for us
+
+			// don't need to do anything else here, this will set our target for us, but give some feedback
+			auto result = CurrentGroundSpawn();
+			if (result)
+			{
+				WriteChatf("Item '%s' targeted.", result.DisplayName().c_str());
+			}
+			else
+			{
+				MacroError("Couldn't target item from map click.");
+			}
 		}
 	}
 	else

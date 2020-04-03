@@ -21,7 +21,6 @@ using namespace mq;
 // - pGroundTarget needs to be deprecated
 // - GroundObject needs to be deprecated
 // - EnviroTarget needs to be deprecated
-// - old GetFriendlyNameForGroundItem needs to be deprecated
 
 class GroundSpawnSearch;
 std::unique_ptr<GroundSpawnSearch> s_groundSpawnSearch;
@@ -102,11 +101,11 @@ public:
 		Filter(pSpawn,
 			[&Name](EQGroundItem* ground)
 			{
-				return Name.empty() || ci_find_substr(GetFriendlyNameForGroundItem(ground), Name);
+				return Name.empty() || ci_find_substr(GetFriendlyNameForGroundItem(ground), Name) >= 0;
 			},
 			[&Name](EQPlacedItem* placed)
 			{
-				return Name.empty() || ci_find_substr(placed->Name, Name);
+				return Name.empty() || ci_find_substr(GetFriendlyNameForPlacedItem(placed), Name) >= 0;
 			});
 	}
 
@@ -348,16 +347,7 @@ CXStr mq::MQ2GroundSpawn::DisplayName() const
 	{
 		auto placed = Get<EQPlacedItem>();
 		if (placed)
-		{
-			auto real_estate = RealEstateManagerClient::Instance();
-			auto pRealEstateItem = real_estate.GetItemByRealEstateAndItemIds(placed->RealEstateID, placed->RealEstateItemID);
-			if (pRealEstateItem && pRealEstateItem->Object.pItemBase)
-			{
-				auto pItem = pRealEstateItem->Object.pItemBase->GetItemDefinition();
-				if (pItem)
-					return pItem->Name;
-			}
-		}
+			return GetFriendlyNameForPlacedItem(placed);
 	}
 
 	return "";
@@ -406,12 +396,37 @@ CXStr mq::GetFriendlyNameForGroundItem(EQGroundItem* pItem)
 	int item_def = GetIntFromString(&pItem->Name[2], 0);
 	for (auto actor = ActorDefList; actor->Def; ++actor)
 	{
-		if (actor->Def == item_def && ((actor->ZoneID < 0 || actor->ZoneID == (pItem->ZoneID & 0x7FFF))))
+		if (actor->Def == item_def && (actor->ZoneID < 0 || actor->ZoneID == (pItem->ZoneID & 0x7FFF)))
 			return actor->Name;
 	}
 
 	// didn't find an actor def, so construct a name
 	return CXStr(fmt::format("Drop{:05d}/{:d}", item_def, pItem->DropID));
+}
+
+CXStr mq::GetFriendlyNameForPlacedItem(EQPlacedItem* pItem)
+{
+	if (!pItem)
+		return "";
+
+	int item_def = GetIntFromString(&pItem->Name[2], 0);
+	for (auto actor = ActorDefList; actor->Def; ++actor)
+	{
+		if (actor->Def == item_def)
+			Sleep(0);
+	}
+
+	auto real_estate = RealEstateManagerClient::Instance();
+	auto pRealEstateItem = real_estate.GetItemByRealEstateAndItemIds(pItem->RealEstateID, pItem->RealEstateItemID);
+	if (pRealEstateItem && pRealEstateItem->Object.pItemBase)
+	{
+		auto placed = pRealEstateItem->Object.pItemBase->GetItemDefinition();
+		if (placed)
+			return placed->Name;
+	}
+
+	// didn't find a real estate item, so construct a name
+	return CXStr(fmt::format("Placed{:05d}/{:d}", pItem->RealEstateID, pItem->RealEstateItemID));
 }
 
 char* mq::GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, size_t BufferSize)

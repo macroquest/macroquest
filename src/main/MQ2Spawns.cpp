@@ -366,8 +366,6 @@ public:
 	void dEQPlayer_Trampoline();
 	void dEQPlayer_Detour()
 	{
-		InvalidateObservedEQObject(this);
-
 		void (EQPlayerHook::*tmp)() = &EQPlayerHook::dEQPlayer_Trampoline;
 
 		__asm {

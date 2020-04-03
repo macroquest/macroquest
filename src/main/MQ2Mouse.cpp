@@ -19,6 +19,16 @@ namespace mq {
 
 static void MouseButtonUp(DWORD x, DWORD y, char* szButton);
 
+// if we don't track item clicks like this, then _any_ click will result in a ground item click attempt
+enum class ItemClickStatus
+{
+	MouseDown,
+	MouseUp,
+	None
+};
+
+ItemClickStatus itemClickStatus = ItemClickStatus::None;
+
 // ***************************************************************************
 // EqMule Mar 08 2014
 // Adding a detour here
@@ -29,12 +39,20 @@ public:
 	CActorInterface* GetClickedActor_Tramp(int, int, bool, CVector3&, CVector3&);
 	CActorInterface* GetClickedActor_Detour(int X, int Y, bool bFlag, CVector3& Vector1, CVector3& Vector2)
 	{
-		auto pGroundSpawn = CurrentGroundSpawn();
-		if (pGroundSpawn)
+		if (itemClickStatus != ItemClickStatus::None)
 		{
-			auto pActor = pGroundSpawn.Actor();
-			if (pActor)
-				return pActor;
+			if (itemClickStatus == ItemClickStatus::MouseDown)
+				itemClickStatus = ItemClickStatus::MouseUp;
+			else
+				itemClickStatus = ItemClickStatus::None;
+
+			auto pGroundSpawn = CurrentGroundSpawn();
+			if (pGroundSpawn)
+			{
+				auto pActor = pGroundSpawn.Actor();
+				if (pActor)
+					return pActor;
+			}
 		}
 
 		return GetClickedActor_Tramp(X, Y, bFlag, Vector1, Vector2);
@@ -300,6 +318,7 @@ bool ClickMouseItem(SPAWNINFO* pChar, const MQ2GroundSpawn& GroundSpawn, bool le
 
 		if (pWndMgr)
 		{
+			itemClickStatus = ItemClickStatus::MouseDown;
 			pEverQuest->RMouseUp(pWndMgr->MousePoint.x, pWndMgr->MousePoint.y);
 			return true;
 		}
@@ -314,6 +333,7 @@ bool ClickMouseItem(SPAWNINFO* pChar, const MQ2GroundSpawn& GroundSpawn, bool le
 		// the click need to be issued on the main UI...
 		// but for now this will work -eqmule 8 mar 2014
 
+		itemClickStatus = ItemClickStatus::MouseDown;
 		pEverQuest->LMouseUp(-10000, -10000);
 		return true;
 	}
