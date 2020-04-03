@@ -472,6 +472,7 @@
     <ClInclude Include="..\..\contrib\imgui\imstb_truetype.h" />
     <ClInclude Include="..\..\contrib\imgui\misc\cpp\imgui_stdlib.h" />
     <ClInclude Include="..\..\contrib\mini-yaml\yaml\Yaml.hpp" />
+    <ClInclude Include="..\..\contrib\tinyfsm\include\tinyfsm.hpp" />
     <ClInclude Include="..\common\Common.h" />
     <ClInclude Include="..\common\ConfigUtils.h" />
     <ClInclude Include="..\common\NamedPipes.h" />

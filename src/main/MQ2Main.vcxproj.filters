@@ -51,6 +51,9 @@
     <Filter Include="Source Files\common">
       <UniqueIdentifier>{351861e7-0a7f-486b-92a6-b3b61008ef7b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\contrib\tinyfsm">
+      <UniqueIdentifier>{e72b7f70-7103-411e-9e70-b6cfa6189c5c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MQ2Auth.cpp">
@@ -516,6 +519,9 @@
     </ClInclude>
     <ClInclude Include="MQ2Args.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\tinyfsm\include\tinyfsm.hpp">
+      <Filter>Header Files\contrib\tinyfsm</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
