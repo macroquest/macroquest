@@ -18,7 +18,6 @@
 using namespace mq;
 
 // TODO:
-// - pGroundTarget needs to be deprecated
 // - GroundObject needs to be deprecated
 // - EnviroTarget needs to be deprecated
 

@@ -178,7 +178,22 @@ SPAWNINFO MercenarySpawn = { 0 };
 SPAWNINFO PetSpawn = { 0 };
 SPAWNINFO EnviroTarget = { 0 };
 MQGroundObject GroundObject;
-GROUNDITEM* pGroundTarget = nullptr;
+Property<GROUNDITEM*> pGroundTarget = Property<GROUNDITEM*>(
+	[]() -> GROUNDITEM*
+	{
+		auto ground = CurrentGroundSpawn();
+		if (ground.Type == MQ2GroundSpawnType::Ground)
+			return ground.Get<EQGroundItem>();
+
+		return nullptr;
+	},
+	[](GROUNDITEM* other) -> GROUNDITEM*
+	{
+		if (!other)
+			return nullptr;
+
+		return GetGroundSpawnByID(other->DropID).Get<EQGroundItem>();
+	});
 SPAWNINFO DoorEnviroTarget = { 0 };
 DOOR* pDoorTarget = nullptr;
 ITEMDB* gItemDB = nullptr;

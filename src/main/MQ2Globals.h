@@ -216,7 +216,7 @@ MQLIB_VAR SPAWNINFO EnviroTarget;
 MQLIB_VAR SPAWNINFO PetSpawn;
 MQLIB_VAR SPAWNINFO MercenarySpawn;
 MQLIB_VAR MQGroundObject GroundObject;
-MQLIB_VAR GROUNDITEM* pGroundTarget;
+MQLIB_VAR Property<GROUNDITEM*> pGroundTarget DEPRECATE("Use CurrentGroundSpawn() and the various GetGroundSpawnByX() functions instead");
 MQLIB_VAR SPAWNINFO DoorEnviroTarget;
 MQLIB_VAR PDOOR pDoorTarget;
 MQLIB_VAR ITEMDB* gItemDB;

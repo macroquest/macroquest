@@ -934,4 +934,67 @@ struct MQGroundObject
 
 int GetTriggerSPA(SPELL* pSpell);
 
+// this is a helper class to help us deprecate global variables
+template <typename T>
+class Property
+{
+private:
+	T(*Getter)();
+	T(*Setter)(T);
+
+public:
+	Property(T(*Getter)(), T(*Setter)(T)) : Getter(Getter), Setter(Setter) {}
+
+	operator T() const
+	{
+		return Getter();
+	}
+
+	T operator=(const T& other)
+	{
+		return Setter(other);
+	}
+
+	bool operator==(const T& other) const
+	{
+		return Getter() == other;
+	}
+};
+
+// need to specialize to pointers for special handling of them
+template <typename T>
+class Property<T*>
+{
+private:
+	T*(*Getter)();
+	T*(*Setter)(T*);
+
+public:
+	Property(T*(*Getter)(), T*(*Setter)(T*)) : Getter(Getter), Setter(Setter) {}
+
+	operator T*() const
+	{
+		return Getter();
+	}
+
+	T* operator=(T* other)
+	{
+		return Setter(other);
+	}
+
+	bool operator==(T* other) const
+	{
+		return Getter() == other;
+	}
+
+	T& operator*()
+	{
+		return *Getter();
+	}
+
+	T* operator->()
+	{
+		return Getter();
+	}
+};
 } // namespace mq
