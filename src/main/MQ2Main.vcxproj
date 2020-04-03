@@ -410,6 +410,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="imgui\ImGuiColorTextEdit.cpp" />
     <ClCompile Include="imgui\ImGuiUtils.cpp" />
     <ClCompile Include="MQ2Anonymize.cpp" />
     <ClCompile Include="MQ2Auth.cpp" />
@@ -478,6 +479,7 @@
     <ClInclude Include="datatypes\DataTypeList.h" />
     <ClInclude Include="datatypes\MQ2DataTypes.h" />
     <ClInclude Include="CrashHandler.h" />
+    <ClInclude Include="imgui\ImGuiColorTextEdit.h" />
     <ClInclude Include="imgui\ImGuiTreePanelWindow.h" />
     <ClInclude Include="imgui\ImGuiUtils.h" />
     <ClInclude Include="MQ2Args.h" />
