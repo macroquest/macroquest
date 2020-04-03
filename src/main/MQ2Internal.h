@@ -940,10 +940,10 @@ class Property
 {
 private:
 	T(*Getter)();
-	T(*Setter)(T);
+	T(*Setter)(const T&);
 
 public:
-	Property(T(*Getter)(), T(*Setter)(T)) : Getter(Getter), Setter(Setter) {}
+	Property(T(*Getter)(), T(*Setter)(const T&)) : Getter(Getter), Setter(Setter) {}
 
 	operator T() const
 	{

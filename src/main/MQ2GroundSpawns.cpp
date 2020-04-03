@@ -18,7 +18,6 @@
 using namespace mq;
 
 // TODO:
-// - GroundObject needs to be deprecated
 // - EnviroTarget needs to be deprecated
 
 class GroundSpawnSearch;
