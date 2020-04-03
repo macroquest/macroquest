@@ -70,7 +70,7 @@ public:
 			}
 		}
 
-		auto placed_item_mgr = EQPlacedItemManager::Instance();
+		const auto& placed_item_mgr = EQPlacedItemManager::Instance();
 		for (auto pPlaced = placed_item_mgr.Top; pPlaced; pPlaced = pPlaced->pNext)
 		{
 			if (gZFilter < 10000.f && (pPlaced->Z > pSpawn->Z + gZFilter || pPlaced->Z < pSpawn->Z - gZFilter))
@@ -409,14 +409,7 @@ CXStr mq::GetFriendlyNameForPlacedItem(EQPlacedItem* pItem)
 	if (!pItem)
 		return "";
 
-	int item_def = GetIntFromString(&pItem->Name[2], 0);
-	for (auto actor = ActorDefList; actor->Def; ++actor)
-	{
-		if (actor->Def == item_def)
-			Sleep(0);
-	}
-
-	auto real_estate = RealEstateManagerClient::Instance();
+	const auto& real_estate = RealEstateManagerClient::Instance();
 	auto pRealEstateItem = real_estate.GetItemByRealEstateAndItemIds(pItem->RealEstateID, pItem->RealEstateItemID);
 	if (pRealEstateItem && pRealEstateItem->Object.pItemBase)
 	{
@@ -424,6 +417,9 @@ CXStr mq::GetFriendlyNameForPlacedItem(EQPlacedItem* pItem)
 		if (placed)
 			return placed->Name;
 	}
+
+	if (pItem->Name[0] != '\0')
+		return pItem->Name;
 
 	// didn't find a real estate item, so construct a name
 	return CXStr(fmt::format("Placed{:05d}/{:d}", pItem->RealEstateID, pItem->RealEstateItemID));
