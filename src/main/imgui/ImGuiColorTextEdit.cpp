@@ -67,6 +67,8 @@ TextEditor::TextEditor()
 	, mShowWhitespaces(true)
 	, mShowShortTabGlyphs(false)
 	, mStartTime(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count())
+	, mRenderCursor(true)
+	, mRenderLineNumbers(true)
 {
 	SetPalette(GetDarkPalette());
 	SetLanguageDefinition(LanguageDefinition::HLSL());
@@ -656,7 +658,7 @@ void TextEditor::RemoveLine(int aIndex)
 
 TextEditor::Line& TextEditor::InsertLine(int aIndex)
 {
-	assert(!mReadOnly);
+	//assert(!mReadOnly);
 
 	auto& result = *mLines.insert(mLines.begin() + aIndex, Line());
 
@@ -917,9 +919,22 @@ void TextEditor::Render()
 	auto lineMax = std::max(0, std::min((int)mLines.size() - 1, lineNo + (int)floor((scrollY + contentSize.y) / mCharAdvance.y)));
 
 	// Deduce mTextStart by evaluating mLines size (global lineMax) plus two spaces as text width
+	float lineNoWidth = 0.0f;
 	char buf[16];
-	snprintf(buf, 16, " %d ", globalLineMax);
-	mTextStart = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, buf, nullptr, nullptr).x + mLeftMargin;
+
+	if (mRenderLineNumbers)
+	{
+		snprintf(buf, 16, " %d ", globalLineMax);
+
+		lineNoWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, buf, nullptr, nullptr).x;
+		mLeftMargin = 10;
+	}
+	else
+	{
+		mLeftMargin = 5;
+	}
+
+	mTextStart = lineNoWidth + mLeftMargin;
 
 	if (!mLines.empty())
 	{
@@ -987,12 +1002,15 @@ void TextEditor::Render()
 			}
 
 			// Draw line number (right aligned)
-			snprintf(buf, 16, "%d  ", lineNo + 1);
+			if (mRenderLineNumbers)
+			{
+				snprintf(buf, 16, "%d  ", lineNo + 1);
 
-			auto lineNoWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, buf, nullptr, nullptr).x;
-			drawList->AddText(ImVec2(lineStartScreenPos.x + mTextStart - lineNoWidth, lineStartScreenPos.y), mPalette[(int)PaletteIndex::LineNumber], buf);
+				auto lineNoWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, buf, nullptr, nullptr).x;
+				drawList->AddText(ImVec2(lineStartScreenPos.x + mTextStart - lineNoWidth, lineStartScreenPos.y), mPalette[(int)PaletteIndex::LineNumber], buf);
+			}
 
-			if (mState.mCursorPosition.mLine == lineNo)
+			if (mState.mCursorPosition.mLine == lineNo && mRenderCursor)
 			{
 				auto focused = ImGui::IsWindowFocused();
 
@@ -2064,6 +2082,14 @@ void TextEditor::Redo(int aSteps)
 {
 	while (CanRedo() && aSteps-- > 0)
 		mUndoBuffer[mUndoIndex++].Redo(this);
+}
+
+void TextEditor::AppendLine(const char* line)
+{
+	mq::imgui::TextEditor::Coordinates coords = GetCursorPosition();
+	InsertTextAt(coords, line);
+	InsertText("\n");
+	SetCursorPosition(coords);
 }
 
 const TextEditor::Palette& TextEditor::GetDarkPalette()

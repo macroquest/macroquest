@@ -29,6 +29,7 @@
 #include <d3d9.h>
 #include <fenv.h>
 
+#include <spdlog/spdlog.h>
 #include <fmt/format.h>
 #include <atomic>
 #include <vector>
@@ -415,6 +416,8 @@ static bool ImGui_ImplDX9_Init(IDirect3DDevice9* device)
 
 	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		ImGui_ImplDX9_InitPlatformInterface();
+
+	io.ConfigDockingWithShift = true;
 
 	return true;
 }
@@ -1981,7 +1984,13 @@ static eOverlayHookStatus InitializeOverlayHooks()
 
 //============================================================================
 
-static std::vector<std::unique_ptr<MQRenderCallbacks>> gRenderCallbacks;
+struct MQRenderCallbackRecord
+{
+	MQRenderCallbacks callbacks;
+	int id;
+};
+
+static std::vector<std::unique_ptr<MQRenderCallbackRecord>> gRenderCallbacks;
 
 int AddRenderCallbacks(const MQRenderCallbacks& callbacks)
 {
@@ -2002,14 +2011,15 @@ int AddRenderCallbacks(const MQRenderCallbacks& callbacks)
 		index = gRenderCallbacks.size() - 1;
 	}
 
-	auto pCallbacks = std::make_unique<MQRenderCallbacks>();
-	*pCallbacks = callbacks;
+	auto pCallbacks = std::make_unique<MQRenderCallbackRecord>();
+	pCallbacks->callbacks = callbacks;
+	pCallbacks->id = index;
 
 	// Make sure that we initialize if we're already acquired by
 	// calling CreateDeviceObjects.
-	if (gbDeviceAcquired && pCallbacks->CreateDeviceObjects)
+	if (gbDeviceAcquired && pCallbacks->callbacks.CreateDeviceObjects)
 	{
-		pCallbacks->CreateDeviceObjects();
+		pCallbacks->callbacks.CreateDeviceObjects();
 	}
 
 	gRenderCallbacks[index] = std::move(pCallbacks);
@@ -2021,9 +2031,9 @@ void RemoveRenderCallbacks(uint32_t id)
 	if (id >= 0 && id < gRenderCallbacks.size())
 	{
 		// not sure if we should do this here or in the calling plugin...
-		if (gRenderCallbacks[id] && gRenderCallbacks[id]->InvalidateDeviceObjects)
+		if (gRenderCallbacks[id] && gRenderCallbacks[id]->callbacks.InvalidateDeviceObjects)
 		{
-			gRenderCallbacks[id]->InvalidateDeviceObjects();
+			gRenderCallbacks[id]->callbacks.InvalidateDeviceObjects();
 		}
 
 		gRenderCallbacks[id].reset();
@@ -2061,9 +2071,9 @@ static bool RenderImGui()
 
 	for (const auto& pCallbacks : gRenderCallbacks)
 	{
-		if (pCallbacks && pCallbacks->ImGuiRender)
+		if (pCallbacks && pCallbacks->callbacks.ImGuiRender)
 		{
-			pCallbacks->ImGuiRender();
+			pCallbacks->callbacks.ImGuiRender();
 		}
 	}
 
@@ -2100,9 +2110,9 @@ static void UpdateGraphicsScene()
 
 	for (const auto& pCallbacks : gRenderCallbacks)
 	{
-		if (pCallbacks && pCallbacks->GraphicsSceneRender)
+		if (pCallbacks && pCallbacks->callbacks.GraphicsSceneRender)
 		{
-			pCallbacks->GraphicsSceneRender();
+			pCallbacks->callbacks.GraphicsSceneRender();
 		}
 	}
 
@@ -2117,9 +2127,9 @@ static void InvalidateDeviceObjects()
 
 	for (const auto& pCallbacks : gRenderCallbacks)
 	{
-		if (pCallbacks && pCallbacks->InvalidateDeviceObjects)
+		if (pCallbacks && pCallbacks->callbacks.InvalidateDeviceObjects)
 		{
-			pCallbacks->InvalidateDeviceObjects();
+			pCallbacks->callbacks.InvalidateDeviceObjects();
 		}
 	}
 }
@@ -2130,9 +2140,9 @@ static bool CreateDeviceObjects()
 
 	for (const auto& pCallbacks : gRenderCallbacks)
 	{
-		if (pCallbacks && pCallbacks->CreateDeviceObjects)
+		if (pCallbacks && pCallbacks->callbacks.CreateDeviceObjects)
 		{
-			pCallbacks->CreateDeviceObjects();
+			pCallbacks->callbacks.CreateDeviceObjects();
 		}
 	}
 

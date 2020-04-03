@@ -229,8 +229,15 @@ public:
 	bool IsTextChanged() const { return mTextChanged; }
 	bool IsCursorPositionChanged() const { return mCursorPositionChanged; }
 
+	void SetRenderCursor(bool bRender) { mRenderCursor = bRender; }
+	void SetRenderLineNumbers(bool bRender) { mRenderLineNumbers = bRender; }
+
 	bool IsColorizerEnabled() const { return mColorizerEnabled; }
 	void SetColorizerEnable(bool aValue);
+
+	Coordinates GetEnd() const {
+		return Coordinates((int)mLines.size() - 1, 0);
+	}
 
 	Coordinates GetCursorPosition() const { return GetActualCursorCoordinates(); }
 	void SetCursorPosition(const Coordinates& aPosition);
@@ -281,6 +288,8 @@ public:
 	bool CanRedo() const;
 	void Undo(int aSteps = 1);
 	void Redo(int aSteps = 1);
+
+	void AppendLine(const char* line);
 
 	static const Palette& GetDarkPalette();
 	static const Palette& GetLightPalette();
@@ -392,6 +401,8 @@ private:
 	bool mIgnoreImGuiChild;
 	bool mShowWhitespaces;
 	bool mShowShortTabGlyphs;
+	bool mRenderCursor;
+	bool mRenderLineNumbers;
 
 	Palette mPaletteBase;
 	Palette mPalette;
