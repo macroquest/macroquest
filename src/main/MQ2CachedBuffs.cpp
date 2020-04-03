@@ -29,8 +29,10 @@ public:
 
 	void Audit()
 	{
-		cachedBuffs.erase(std::remove_if(std::begin(cachedBuffs), std::end(cachedBuffs),
-			[](const CachedBuff& buff) { return buff.duration != -1 && buff.Duration() == 0U; }), std::end(cachedBuffs));
+		auto pCurrentZone = reinterpret_cast<ZONEINFO*>(pZoneInfo);
+		if (!pCurrentZone || !pCurrentZone->bNoBuffExpiration)
+			cachedBuffs.erase(std::remove_if(std::begin(cachedBuffs), std::end(cachedBuffs),
+				[](const CachedBuff& buff) { return buff.duration >= 0 && buff.Duration() == 0U; }), std::end(cachedBuffs));
 	}
 
 	void Emplace(const CachedBuff& buff)
@@ -109,28 +111,36 @@ public:
 			short m_count;
 		} header;
 
-		buffer.Read(header.m_id); // TODO: double check that this is spawn ID!
+		buffer.Read(header.m_id); // This is spawn ID
 		buffer.Read(header.m_timeNext); // TODO: see if this can be used for freshness!
-		buffer.Read(header.m_bComplete);
-		buffer.Read(header.m_count);
+		buffer.Read(header.m_bComplete); // is this a complete buff message?
+		buffer.Read(header.m_count); // buffs being sent in this message (only full buff count if bComplete is true)
 
-		auto [it, result] = cachedBuffMap.try_emplace(header.m_id, std::make_unique<SpawnBuffs>());
-		it->second->Clear();
-
-		for (int i = 0; i < header.m_count; i++)
+		// this boolean indicates if we are getting a full buff message;
+		// apparently we often get single buffs sent down (especially for
+		// shaman buffs), which aren't helpful to store (and will give
+		// incorrect "BuffsPopulated" and "BuffCount" values). Only parse
+		// full buff messages.
+		if (header.m_bComplete) 
 		{
-			CachedBuff curBuff;
-			buffer.Read(curBuff.slot);
-			buffer.Read(curBuff.spellId);
-			buffer.Read(curBuff.duration);
-			buffer.Read(curBuff.count);
-			buffer.ReadpChar(curBuff.casterName);
-			curBuff.timeStamp = EQGetTime();
+			auto [it, result] = cachedBuffMap.try_emplace(header.m_id, std::make_unique<SpawnBuffs>());
+			it->second->Clear();
 
-			it->second->Emplace(curBuff);
+			for (int i = 0; i < header.m_count; i++)
+			{
+				CachedBuff curBuff;
+				buffer.Read(curBuff.slot);
+				buffer.Read(curBuff.spellId);
+				buffer.Read(curBuff.duration);
+				buffer.Read(curBuff.count);
+				buffer.ReadpChar(curBuff.casterName);
+				curBuff.timeStamp = EQGetTime();
+
+				it->second->Emplace(curBuff);
+			}
+
+			gTargetbuffs = true;
 		}
-
-		gTargetbuffs = true;
 
 		if (gbAssistComplete == AS_AssistSent)
 			gbAssistComplete = AS_AssistReceived;
