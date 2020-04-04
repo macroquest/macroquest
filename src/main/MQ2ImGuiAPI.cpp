@@ -54,6 +54,9 @@ MQModule* GetImGuiAPIModule() { return &gImGuiModule; }
 //----------------------------------------------------------------------------
 
 static const ImU32 s_defaultColor = IM_COL32(255, 255, 255, 255);
+static ImGuiID s_dockspaceId = 0;
+static bool s_dockspaceVisible = true;
+static bool s_resetDockspace = false;
 
 const mq::imgui::TextEditor::Palette& GetColorPalette()
 {
@@ -103,9 +106,6 @@ public:
 	ImGuiTextFilter          m_filter;
 	bool                     m_autoScroll;
 	bool                     m_scrollToBottom;
-	bool                     m_visible = true;
-	ImGuiID                  m_dockspaceId = 0;
-	bool                     m_reset = false;
 	mq::imgui::TextEditor    m_editor;
 
 	ImGuiConsole()
@@ -151,111 +151,11 @@ public:
 		AddLog(s_defaultColor, std::move(fmt), args...);
 	}
 
-	void DrawDockSpace()
+	void Draw(bool* pOpen)
 	{
-		// when using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
-		// and handle the pass-thru hole, so we ask Begin() to not render a background.
-		ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_None
-			| ImGuiDockNodeFlags_PassthruCentralNode
-			| ImGuiDockNodeFlags_NoDockingInCentralNode
-			//| ImGuiDockNodeFlags_AutoHideTabBar
-			;
-
-		// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
-		// because it would be confusing to have two docking targets within each other.
-		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoDocking
-			| ImGuiWindowFlags_NoTitleBar
-			| ImGuiWindowFlags_NoCollapse
-			| ImGuiWindowFlags_NoResize
-			| ImGuiWindowFlags_NoMove
-			| ImGuiWindowFlags_NoBringToFrontOnFocus
-			| ImGuiWindowFlags_NoNavFocus
-			| ImGuiWindowFlags_NoBackground;
-
-		//if (m_visible)
-		//	windowFlags |= ImGuiWindowFlags_MenuBar;
-
-		if (!m_visible)
-			dockspaceFlags |= ImGuiDockNodeFlags_KeepAliveOnly;
-
-		ImGuiViewport* viewport = ImGui::GetMainViewport();
-		ImGui::SetNextWindowPos(viewport->Pos);
-		ImGui::SetNextWindowSize(viewport->Size);
-		ImGui::SetNextWindowViewport(viewport->ID);
-
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-
-		// Important: note that we proceed even if Begin() returns false (a.k.a. window is collapsed).
-		// This is because we want to keep our DockSpace() active. If DockSpace() is inactive,
-		// all active windows docked to it will lose their parent and become undocked.
-
-		// We cannot preserve the docking relationship between an active window and an inactive docking,
-		// otherwise any change of dockspace/setings would leat to windows being stuck in limbo and never
-		// being visible.
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-
-		bool display = ImGui::Begin("Overlay DockSpace Window", &m_visible, windowFlags);
-		ImGui::PopStyleVar(3);
-
-		// DockSpace
-		ImGuiIO& op = ImGui::GetIO();
-		m_dockspaceId = ImGui::GetID("Overlay DockSpace");
-
-		ImGui::DockSpace(m_dockspaceId, ImVec2(0.0f, 0.0f), dockspaceFlags);
-
-		if (ImGui::DockBuilderGetNode(m_dockspaceId) == nullptr || m_reset)
-		{
-			m_reset = false;
-
-			ImGuiViewport* viewport = ImGui::GetMainViewport();
-			// Reset layout
-			ImGui::DockBuilderRemoveNode(m_dockspaceId);
-			ImGui::DockBuilderAddNode(m_dockspaceId, ImGuiDockNodeFlags_DockSpace);
-			ImGui::DockBuilderSetNodeSize(m_dockspaceId, viewport->Size);
-
-			// This variable will track the document node, however we are not using it
-			// here as we aren't docking anything into it.
-			ImGuiID dock_main_id = m_dockspaceId;
-
-			ImGuiID dock_id_console = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Up, 0.25f, nullptr, &dock_main_id);
-			ImGui::DockBuilderDockWindow("MacroQuest Console", dock_id_console);
-
-			ImGui::DockBuilderFinish(m_dockspaceId);
-		}
-
-		ImGui::End(); // end DockSpace()
-	}
-
-	void ResetPosition()
-	{
-		m_reset = true;
-	}
-
-	void ToggleVisibility()
-	{
-		m_visible = !m_visible;
-	}
-
-	void Draw()
-	{
-		DrawDockSpace();
-
-		if (ImGui::Begin("Debug"))
-		{
-			if (ImGui::Button("Toggle"))
-				ToggleVisibility();
-			if (ImGui::Button("Reset"))
-				ResetPosition();
-		}
-		ImGui::End();
-
-		if (!m_visible)
-			return;
-
 		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar;
 
-		if (!ImGui::Begin("MacroQuest Console", &m_visible, windowFlags))
+		if (!ImGui::Begin("MacroQuest Console", pOpen, windowFlags))
 		{
 			ImGui::End();
 			return;
@@ -273,9 +173,9 @@ public:
 				ImGui::Separator();
 
 				if (ImGui::MenuItem("Close Console"))
-					m_visible = false;
+					*pOpen = false;
 				if (ImGui::MenuItem("Reset Position"))
-					ResetPosition();
+					s_resetDockspace = true;
 
 				ImGui::Separator();
 
@@ -532,6 +432,77 @@ ImGuiConsole gImGuiConsole;
 
 //----------------------------------------------------------------------------
 
+void DrawDockSpace()
+{
+	// when using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
+	// and handle the pass-thru hole, so we ask Begin() to not render a background.
+	ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_None
+		| ImGuiDockNodeFlags_PassthruCentralNode
+		| ImGuiDockNodeFlags_NoDockingInCentralNode;
+
+	// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
+	// because it would be confusing to have two docking targets within each other.
+	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoDocking
+		| ImGuiWindowFlags_NoTitleBar
+		| ImGuiWindowFlags_NoCollapse
+		| ImGuiWindowFlags_NoResize
+		| ImGuiWindowFlags_NoMove
+		| ImGuiWindowFlags_NoBringToFrontOnFocus
+		| ImGuiWindowFlags_NoNavFocus
+		| ImGuiWindowFlags_NoBackground;
+
+	if (!s_dockspaceVisible)
+		dockspaceFlags |= ImGuiDockNodeFlags_KeepAliveOnly;
+
+	ImGuiViewport* viewport = ImGui::GetMainViewport();
+	ImGui::SetNextWindowPos(viewport->Pos);
+	ImGui::SetNextWindowSize(viewport->Size);
+	ImGui::SetNextWindowViewport(viewport->ID);
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+
+	// Important: note that we proceed even if Begin() returns false (a.k.a. window is collapsed).
+	// This is because we want to keep our DockSpace() active. If DockSpace() is inactive,
+	// all active windows docked to it will lose their parent and become undocked.
+
+	// We cannot preserve the docking relationship between an active window and an inactive docking,
+	// otherwise any change of dockspace/setings would leat to windows being stuck in limbo and never
+	// being visible.
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
+	bool display = ImGui::Begin("Overlay DockSpace Window", &s_dockspaceVisible, windowFlags);
+	ImGui::PopStyleVar(3);
+
+	// DockSpace
+	ImGuiIO& op = ImGui::GetIO();
+	s_dockspaceId = ImGui::GetID("Overlay DockSpace");
+
+	ImGui::DockSpace(s_dockspaceId, ImVec2(0.0f, 0.0f), dockspaceFlags);
+
+	if (ImGui::DockBuilderGetNode(s_dockspaceId) == nullptr || s_resetDockspace)
+	{
+		s_resetDockspace = false;
+
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
+		// Reset layout
+		ImGui::DockBuilderRemoveNode(s_dockspaceId);
+		ImGui::DockBuilderAddNode(s_dockspaceId, ImGuiDockNodeFlags_DockSpace);
+		ImGui::DockBuilderSetNodeSize(s_dockspaceId, viewport->Size);
+
+		// This variable will track the document node, however we are not using it
+		// here as we aren't docking anything into it.
+		ImGuiID dock_main_id = s_dockspaceId;
+
+		ImGuiID dock_id_console = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Up, 0.25f, nullptr, &dock_main_id);
+		ImGui::DockBuilderDockWindow("MacroQuest Console", dock_id_console);
+
+		ImGui::DockBuilderFinish(s_dockspaceId);
+	}
+
+	ImGui::End(); // end DockSpace()
+}
+
 void AddSettingsPanel(const char* name, fPanelDrawFunction drawFunction)
 {
 	gSettingsWindow.AddPanel(name, drawFunction);
@@ -562,7 +533,22 @@ static void DoToggleImGuiOverlay(const char* name, bool down)
 
 static void UpdateOverlayUI()
 {
-	gImGuiConsole.Draw();
+	// Initialize dockspace first so other windows can utilize it.
+	DrawDockSpace();
+
+	if (ImGui::Begin("Debug"))
+	{
+		if (ImGui::Button("Toggle"))
+			s_dockspaceVisible = !s_dockspaceVisible;
+		if (ImGui::Button("Reset"))
+			s_resetDockspace = true;
+	}
+	ImGui::End();
+
+	if (s_dockspaceVisible)
+	{
+		gImGuiConsole.Draw(&s_dockspaceVisible);
+	}
 
 	if (gbShowDemoWindow)
 	{
