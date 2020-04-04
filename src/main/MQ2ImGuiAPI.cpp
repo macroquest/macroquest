@@ -19,6 +19,8 @@
 #include "imgui/ImGuiColorTextEdit.h"
 #include <imgui/imgui_internal.h>
 
+#include <fmt/format.h>
+
 namespace mq {
 
 static bool gbShowDemoWindow = false;
@@ -51,6 +53,38 @@ MQModule* GetImGuiAPIModule() { return &gImGuiModule; }
 
 //----------------------------------------------------------------------------
 
+static const ImU32 s_defaultColor = IM_COL32(255, 255, 255, 255);
+
+const mq::imgui::TextEditor::Palette& GetColorPalette()
+{
+	const static mq::imgui::TextEditor::Palette p = { {
+			0xffffffff, // Default
+			0xffffffff, // Keyword
+			0xffffffff, // Number
+			0xffffffff, // String
+			0xffffffff, // Char literal
+			0xffffffff, // Punctuation
+			0xffffffff, // Preprocessor
+			0xffffffff, // Identifier
+			0xffffffff, // Known identifier
+			0xffffffff, // Preproc identifier
+			0xffffffff, // Comment (single line)
+			0xffffffff, // Comment (multi line)
+			0xff101010, // Background
+			0xffe0e0e0, // Cursor
+			0x80a06020, // Selection
+			0x800020ff, // ErrorMarker
+			0x40f08000, // Breakpoint
+			0xff707000, // Line number
+			0x40000000, // Current line fill
+			0x40808080, // Current line fill (inactive)
+			0x40a0a0a0, // Current line edge
+		} };
+	return p;
+}
+
+//----------------------------------------------------------------------------
+
 static void Strtrim(char* str)
 {
 	char* str_end = str + strlen(str);
@@ -62,61 +96,59 @@ static void Strtrim(char* str)
 class ImGuiConsole
 {
 public:
-	char                  InputBuf[2048];
-	ImVector<char*>       Items;
-	ImVector<const char*> Commands;
-	ImVector<char*>       History;
-	int                   HistoryPos;          // -1: new line, 0..History.Size-1 browsing history.
-	ImGuiTextFilter       Filter;
-	bool                  AutoScroll;
-	bool                  ScrollToBottom;
-	bool                  m_visible = true;
-	ImGuiID               m_dockspaceId = 0;
-	bool                  m_reset = false;
-	mq::imgui::TextEditor m_editor;
+	char                     m_inputBuffer[2048];
+	ImVector<const char*>    m_commands;
+	std::vector<std::string> m_history;
+	int                      m_historyPos;          // -1: new line, 0..History.Size-1 browsing history.
+	ImGuiTextFilter          m_filter;
+	bool                     m_autoScroll;
+	bool                     m_scrollToBottom;
+	bool                     m_visible = true;
+	ImGuiID                  m_dockspaceId = 0;
+	bool                     m_reset = false;
+	mq::imgui::TextEditor    m_editor;
 
 	ImGuiConsole()
-		: HistoryPos(-1)
-		, AutoScroll(true)
-		, ScrollToBottom(true)
+		: m_historyPos(-1)
+		, m_autoScroll(true)
+		, m_scrollToBottom(true)
 	{
-		ZeroMemory(InputBuf, lengthof(InputBuf));
+		ZeroMemory(m_inputBuffer, lengthof(m_inputBuffer));
 
+		m_editor.SetPalette(GetColorPalette());
 		m_editor.SetReadOnly(true);
-		m_editor.SetPalette(mq::imgui::TextEditor::GetDarkPalette());
 		m_editor.SetRenderCursor(false);
-		m_editor.SetShowWhitespaces(false);
+		m_editor.SetShowWhitespace(false);
 		m_editor.SetRenderLineNumbers(false);
+		m_editor.SetRawColorMode(true);
 	}
 
 	~ImGuiConsole()
 	{
 		ClearLog();
-
-		for (int i = 0; i < History.Size; i++)
-			free(History[i]);
 	}
 
 	void ClearLog()
 	{
-		for (int i = 0; i < Items.Size; i++)
-			free(Items[i]);
-		Items.clear();
+		m_editor.SetText("");
 	}
 
-	void AddLog(const char* fmt, ...) IM_FMTARGS(2)
+	template <typename... Args>
+	void AddLog(ImU32 color, std::string_view fmt, const Args&... args)
 	{
-		char buf[MAX_STRING];
-		va_list args;
-		va_start(args, fmt);
-		vsnprintf(buf, IM_ARRAYSIZE(buf), fmt, args);
-		buf[IM_ARRAYSIZE(buf) - 1] = 0;
-		va_end(args);
+		fmt::basic_memory_buffer<char> buf;
+		fmt::format_to(buf, fmt, args...);
 
-		//Items.push_back(strdup(buf));
 		m_editor.MoveBottom();
 		m_editor.MoveEnd();
-		m_editor.AppendLine(buf);
+		m_editor.InsertText(std::string(buf.data(), buf.size()));
+		m_editor.InsertText("\n");
+	}
+
+	template <typename... Args>
+	void AddLog(std::string_view fmt, const Args&... args)
+	{
+		AddLog(s_defaultColor, std::move(fmt), args...);
 	}
 
 	void DrawDockSpace()
@@ -221,17 +253,9 @@ public:
 		if (!m_visible)
 			return;
 
-		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_None
-			| ImGuiWindowFlags_MenuBar;
+		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar;
 
-		//ImGui::PushStyleColor(ImGuiCol_ResizeGrip, 0);
-		//ImGui::SetNextWindowDockID(m_dockspaceId, ImGuiCond_Once);
-
-		bool bBegin = ImGui::Begin("MacroQuest Console", &m_visible, windowFlags);
-
-		//ImGui::PopStyleColor();
-
-		if (!bBegin)
+		if (!ImGui::Begin("MacroQuest Console", &m_visible, windowFlags))
 		{
 			ImGui::End();
 			return;
@@ -244,7 +268,7 @@ public:
 		{
 			if (ImGui::BeginMenu("Options"))
 			{
-				ImGui::MenuItem("Auto-scroll", nullptr, &AutoScroll);
+				ImGui::MenuItem("Auto-scroll", nullptr, &m_autoScroll);
 
 				ImGui::Separator();
 
@@ -266,7 +290,7 @@ public:
 
 		if (ImGui::SmallButton("Add Dummy Text"))
 		{
-			AddLog("%d some text", Items.Size);
+			AddLog("{0} some text", m_editor.GetTotalLines());
 			AddLog("some more text");
 			AddLog("display very important message here!");
 		}
@@ -283,7 +307,7 @@ public:
 		ImGui::Separator();
 
 		ImGui::SameLine();
-		Filter.Draw("Filter (\"incl,-excl\") (\"error\")", 180);
+		m_filter.Draw("Filter (\"incl,-excl\") (\"error\")", 180);
 		ImGui::Separator();
 
 		const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing(); // 1 separator, 1 input text
@@ -307,29 +331,13 @@ public:
 		// If your items are of variable size you may want to implement code similar to what ImGuiListClipper does. Or split your data into fixed height items to allow random-seeking into your list.
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1)); // Tighten spacing
 
-#if 0
-		for (int i = 0; i < Items.Size; i++)
-		{
-			const char* item = Items[i];
-			if (!Filter.PassFilter(item))
-				continue;
-
-			// Normally you would store more information in your item (e.g. make Items[] an array of structure, store color/type etc.)
-			bool pop_color = false;
-			if (strstr(item, "[error]")) { ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.4f, 0.4f, 1.0f)); pop_color = true; }
-			else if (strncmp(item, "# ", 2) == 0) { ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.6f, 1.0f)); pop_color = true; }
-			ImGui::TextUnformatted(item);
-			if (pop_color)
-				ImGui::PopStyleColor();
-		}ad
-#endif
 		ImGui::PushAllowKeyboardFocus(false);
 		m_editor.Render("TextEditor");
 		ImGui::PopAllowKeyboardFocus();
 
-		if (ScrollToBottom || (AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY()))
+		if (m_scrollToBottom || (m_autoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY()))
 			ImGui::SetScrollHereY(1.0f);
-		ScrollToBottom = false;
+		m_scrollToBottom = false;
 
 		ImGui::PopStyleVar();
 		ImGui::EndChild();
@@ -342,17 +350,17 @@ public:
 			| ImGuiInputTextFlags_CallbackCompletion
 			| ImGuiInputTextFlags_CallbackHistory;
 
-		bool bTextEdit = ImGui::InputText("Input", InputBuf, IM_ARRAYSIZE(InputBuf), textFlags,
+		bool bTextEdit = ImGui::InputText("Input", m_inputBuffer, IM_ARRAYSIZE(m_inputBuffer), textFlags,
 			[](ImGuiInputTextCallbackData* data)
 			{ return static_cast<ImGuiConsole*>(data->UserData)->TextEditCallback(data); }, this);
 
 		if (bTextEdit)
 		{
-			char* s = InputBuf;
+			char* s = m_inputBuffer;
 			Strtrim(s);
 			if (s[0])
 				ExecCommand(s);
-			strcpy(s, "");
+			strcpy_s(s, MAX_STRING, "");
 			reclaim_focus = true;
 		}
 
@@ -364,56 +372,54 @@ public:
 		ImGui::End();
 	}
 
-	void ExecCommand(const char* command_line)
+	void ExecCommand(const char* commandLine)
 	{
-		AddLog("# %s\n", command_line);
+		AddLog("# {0}\n", commandLine);
 
 		// Inhsert into history. First find match and delete it so i can be pushed to the back. This isn't
 		// trying to be smart or optimal.
-		HistoryPos = -1;
+		m_historyPos = -1;
 
-		for (int i = History.Size - 1; i >= 0; i--)
+		for (int i = (int)m_history.size() - 1; i >= 0; --i)
 		{
-			if (ci_equals(History[i], command_line))
+			if (ci_equals(m_history[i], commandLine))
 			{
-				free(History[i]);
-				History.erase(History.begin() + i);
+				m_history.erase(m_history.begin() + i);
 				break;
 			}
 		}
-
-		History.push_back(strdup(command_line));
+		m_history.emplace_back(commandLine);
 
 		// Process command
-		if (ci_equals(command_line, "CLEAR"))
+		if (ci_equals(commandLine, "clear"))
 		{
 			ClearLog();
 		}
-		else if (ci_equals(command_line, "HELP"))
+		else if (ci_equals(commandLine, "help"))
 		{
 			AddLog("Commands:");
 
-			for (int i = 0; i < Commands.Size; i++)
-				AddLog("- %s", Commands[i]);
+			for (int i = 0; i < m_commands.Size; i++)
+				AddLog("- {0}", m_commands[i]);
 		}
-		else if (ci_equals(command_line, "HISTORY"))
+		else if (ci_equals(commandLine, "history"))
 		{
-			int first = History.Size - 10;
+			int first = m_history.size() - 10;
 
-			for (int i = first > 0 ? first : 0; i < History.Size; i++)
-				AddLog("%3d: %s\n", i, History[i]);
+			for (size_t i = first > 0 ? first : 0; i < m_history.size(); i++)
+				AddLog("{0:3d}: {1}\n", i, m_history[i].c_str());
 		}
-		else if (strlen(command_line) > 1 && command_line[0] == '/')
+		else if (strlen(commandLine) > 1 && commandLine[0] == '/')
 		{
-			mq::EzCommand(command_line);
+			mq::EzCommand(commandLine);
 		}
 		else
 		{
-			AddLog("Unknown command: '%s'\n", command_line);
+			AddLog("Unknown command: '{0}'\n", commandLine);
 		}
 
 		// On command input, we scroll to bottom even if AutoScroll == false
-		ScrollToBottom = true;
+		m_scrollToBottom = true;
 	}
 
 	int TextEditCallback(ImGuiInputTextCallbackData* data)
@@ -438,17 +444,18 @@ public:
 
 				// Build a list of candidates
 				ImVector<const char*> candidates;
+				std::string_view word{ word_start, (size_t)(word_end - word_start) };
 
-				for (int i = 0; i < Commands.Size; i++)
+				for (int i = 0; i < m_commands.Size; i++)
 				{
-					if (strnicmp(Commands[i], word_start, (int)(word_end - word_start)) == 0)
-						candidates.push_back(Commands[i]);
+					if (ci_starts_with(m_commands[i], word))
+						candidates.push_back(m_commands[i]);
 				}
 
 				if (candidates.Size == 0)
 				{
 					// No match
-					AddLog("No match for \"%.*s\"!\n", (int)(word_end - word_start), word_start);
+					AddLog("No match for \"{0}\"!\n", word);
 				}
 				else if (candidates.size() == 1)
 				{
@@ -484,7 +491,7 @@ public:
 					// List matches
 					AddLog("Possible matches:\n");
 					for (int i = 0; i < candidates.Size; i++)
-						AddLog("- %s\n", candidates[i]);
+						AddLog("- {0}\n", candidates[i]);
 				}
 
 				break;
@@ -493,25 +500,25 @@ public:
 		case ImGuiInputTextFlags_CallbackHistory:
 			{
 				// Example of HISTORY
-				const int prev_history_pos = HistoryPos;
+				const int prev_history_pos = m_historyPos;
 				if (data->EventKey == ImGuiKey_UpArrow)
 				{
-					if (HistoryPos == -1)
-						HistoryPos = History.Size - 1;
-					else if (HistoryPos > 0)
-						HistoryPos--;
+					if (m_historyPos == -1)
+						m_historyPos = m_history.size() - 1;
+					else if (m_historyPos > 0)
+						m_historyPos--;
 				}
 				else if (data->EventKey == ImGuiKey_DownArrow)
 				{
-					if (HistoryPos != -1)
-						if (++HistoryPos >= History.Size)
-							HistoryPos = -1;
+					if (m_historyPos != -1)
+						if (++m_historyPos >= (int)m_history.size())
+							m_historyPos = -1;
 				}
 
 				// A better implementation would preserve the data on the current input line along with cursor position.
-				if (prev_history_pos != HistoryPos)
+				if (prev_history_pos != m_historyPos)
 				{
-					const char* history_str = (HistoryPos >= 0) ? History[HistoryPos] : "";
+					const char* history_str = (m_historyPos >= 0) ? m_history[m_historyPos].c_str() : "";
 					data->DeleteChars(0, data->BufTextLen);
 					data->InsertChars(0, history_str);
 				}
@@ -575,7 +582,9 @@ static void UpdateOverlayUI()
 
 static DWORD WriteChatColorImGuiAPI(const char* line, DWORD color, DWORD filter)
 {
-	gImGuiConsole.AddLog("%s", line);
+	// TODO: Translate color to RGBA
+
+	gImGuiConsole.AddLog("{0}", line);
 
 	return 0;
 }

@@ -1119,7 +1119,8 @@ void Help(SPAWNINFO* pChar, char* szLine)
 
 	if (_stricmp("macro", szArg))
 	{
-		cmdHelp(pChar, szArg);
+		if (gGameState == GAMESTATE_INGAME)
+			cmdHelp(pChar, szArg);
 		return;
 	}
 
