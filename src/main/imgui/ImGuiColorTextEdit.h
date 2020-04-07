@@ -17,6 +17,7 @@
 
 #include <array>
 #include <chrono>
+#include <deque>
 #include <map>
 #include <memory>
 #include <regex>
@@ -169,7 +170,7 @@ public:
 	};
 
 	using Line = std::vector<Glyph>;
-	using Lines = std::vector<Line>;
+	using Lines = std::deque<Line>;
 
 	struct LanguageDefinition
 	{
@@ -215,7 +216,9 @@ public:
 
 	void Render(const char* aTitle, const ImVec2& aSize = ImVec2(), bool aBorder = false);
 
-	void SetText(const std::string& aText);
+	void SetText(std::string_view text, ImU32 color);
+	void SetText(std::string_view aText);
+
 	std::string GetText() const;
 
 	void SetTextLines(const std::vector<std::string>& aLines);
@@ -237,8 +240,6 @@ public:
 
 	bool IsColorizerEnabled() const { return m_colorizerEnabled; }
 	void SetColorizerEnable(bool aValue);
-
-	void SetRawColorMode(bool bMode) { m_rawColorMode = bMode; }
 
 	Coordinates GetEnd() const {
 		return Coordinates((int)m_lines.size() - 1, 0);
@@ -265,8 +266,8 @@ public:
 	void SetTabSize(int aValue);
 	inline int GetTabSize() const { return m_tabSize; }
 
-	void InsertText(const std::string& aValue);
-	void InsertText(const char* aValue);
+	void InsertText(std::string_view aValue, ImU32 color);
+	void InsertText(std::string_view aValue);
 
 	void MoveUp(int aAmount = 1, bool aSelect = false);
 	void MoveDown(int aAmount = 1, bool aSelect = false);
@@ -355,7 +356,8 @@ private:
 	Coordinates SanitizeCoordinates(const Coordinates& aValue) const;
 	void Advance(Coordinates& aCoordinates) const;
 	void DeleteRange(const Coordinates& aStart, const Coordinates& aEnd);
-	int InsertTextAt(Coordinates& aWhere, const char* aValue);
+	int InsertTextAt(Coordinates& aWhere, std::string_view aValue);
+	int InsertTextAt(Coordinates& aWhere, std::string_view aValue, ImU32 aColor);
 	void AddUndo(UndoRecord& aValue);
 	Coordinates ScreenPosToCoordinates(const ImVec2& aPosition, bool aInsertionMode = false) const;
 	Coordinates FindWordStart(const Coordinates& aFrom) const;
@@ -408,7 +410,6 @@ private:
 	bool m_showShortTabGlyphs = false;
 	bool m_renderCursor = true;
 	bool m_renderLineNumbers = true;
-	bool m_rawColorMode = false;
 	float m_lastClick = -1.0f;
 
 	Palette m_paletteBase;

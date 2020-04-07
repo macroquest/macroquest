@@ -21,6 +21,8 @@
 
 #include <fmt/format.h>
 
+using namespace std::chrono_literals;
+
 namespace mq {
 
 static bool gbShowDemoWindow = false;
@@ -53,7 +55,7 @@ MQModule* GetImGuiAPIModule() { return &gImGuiModule; }
 
 //----------------------------------------------------------------------------
 
-static const ImU32 s_defaultColor = IM_COL32(255, 255, 255, 255);
+static const ImU32 s_defaultColor = IM_COL32(0xf0, 0xf0, 0xf0, 255);
 static ImGuiID s_dockspaceId = 0;
 static bool s_dockspaceVisible = true;
 static bool s_resetDockspace = false;
@@ -96,6 +98,32 @@ static void Strtrim(char* str)
 	*str_end = 0;
 }
 
+unsigned int str_to_hex(char const* p, char const* e) noexcept
+{
+	unsigned int result = 0;
+	while (p != e)
+	{
+		result *= 16;
+		if ('0' <= *p && *p <= '9') { result += *p - '0'; p++; continue; }
+		if ('A' <= *p && *p <= 'F') { result += *p + 10 - 'A'; p++; continue; }
+		if ('a' <= *p && *p <= 'f') { result += *p + 10 - 'a'; p++; continue; }
+		return -1;
+	}
+
+	return result;
+}
+
+ImU32 str_to_col(std::string_view str)
+{
+	if (str.length() != 7 || str[0] != '#') { return 0; }
+
+	auto r = str_to_hex(str.data() + 1, str.data() + 3);
+	auto g = str_to_hex(str.data() + 3, str.data() + 5);
+	auto b = str_to_hex(str.data() + 5, str.data() + 7);
+
+	return IM_COL32(r, g, b, 255);
+}
+
 class ImGuiConsole
 {
 public:
@@ -103,7 +131,6 @@ public:
 	ImVector<const char*>    m_commands;
 	std::vector<std::string> m_history;
 	int                      m_historyPos;          // -1: new line, 0..History.Size-1 browsing history.
-	ImGuiTextFilter          m_filter;
 	bool                     m_autoScroll;
 	bool                     m_scrollToBottom;
 	mq::imgui::TextEditor    m_editor;
@@ -119,8 +146,8 @@ public:
 		m_editor.SetReadOnly(true);
 		m_editor.SetRenderCursor(false);
 		m_editor.SetShowWhitespace(false);
-		m_editor.SetRenderLineNumbers(false);
-		m_editor.SetRawColorMode(true);
+		//m_editor.SetRenderLineNumbers(false);
+		//m_editor.SetImGuiChildIgnored(true);
 	}
 
 	~ImGuiConsole()
@@ -141,14 +168,163 @@ public:
 
 		m_editor.MoveBottom();
 		m_editor.MoveEnd();
-		m_editor.InsertText(std::string(buf.data(), buf.size()));
-		m_editor.InsertText("\n");
+		m_editor.InsertText(std::string_view(buf.data(), buf.size()), color);
 	}
 
 	template <typename... Args>
 	void AddLog(std::string_view fmt, const Args&... args)
 	{
 		AddLog(s_defaultColor, std::move(fmt), args...);
+	}
+
+	static std::pair<std::string_view, ImU32> ParseColor(std::string_view line, ImU32 color)
+	{
+		size_t length = line.length();
+		const char* pos = line.data();
+		const char* end = line.data() + length;
+
+		// skip over the \a
+		if (*(pos++) != '\a')
+			return { {}, color };
+
+		if (pos == end) return { {}, color };
+
+		bool dark = false;
+
+		// clear
+		if (*pos == 'x')
+		{
+			pos++;
+			return { std::string_view{ pos, (size_t)(end - pos) }, s_defaultColor };
+		}
+
+		// custom color
+		if (*pos == '#')
+		{
+			// we need 7 to do anything (6 for hex code and 1 for #)
+			if (end - pos < 7) return { {}, color };
+			std::string_view colorCode{ pos, 7 };
+
+			// convert hex to color
+			color = str_to_col(colorCode);
+
+			pos += 7;
+			return { std::string_view{ pos, (size_t)(end - pos) }, color };
+		}
+
+		// darken
+		if (*pos == '-')
+		{
+			dark = true;
+			pos++;
+
+			if (pos == end) return { {}, color };
+		}
+
+		switch (*pos)
+		{
+		case 'y': // yellow (green/red)
+			if (dark)
+				color = 0xff009999;
+			else
+				color = 0xff00ffff;
+			break;
+		case 'o': // orange (green/red)
+			if (dark)
+				color = 0xff006699;
+			else
+				color = 0xff0099ff;
+			break;
+		case 'g': // green   (green)
+			if (dark)
+				color = 0xff009900;
+			else
+				color = 0xff00ff00;
+			break;
+		case 'u': // blue   (blue)
+			if (dark)
+				color = 0xff990000;
+			else
+				color = 0xffff0000;
+			break;
+		case 'r': // red     (red)
+			if (dark)
+				color = 0xff000099;
+			else
+				color = 0xff0000ff;
+			break;
+		case 't': // teal (blue/green)
+			if (dark)
+				color = 0xff999900;
+			else
+				color = 0xffffff00;
+			break;
+		case 'b': // black   (none)
+			color = 0xff000000;
+			break;
+		case 'm': // magenta (blue/red)
+			if (dark)
+				color = 0xff990099;
+			else
+				color = 0xffff00ff;
+			break;
+		case 'p': // purple (blue/red)
+			if (dark)
+				color = 0xff990066;
+			else
+				color = 0xffff0099;
+			break;
+		case 'w': // white   (all)
+			if (dark)
+				color = 0xff999999;
+			else
+				color = 0xffffffff;
+			break;
+		}
+		pos++;
+
+		return { { pos, (size_t)(end - pos) }, color };
+	}
+
+	void AddWriteChatColorLog(const char* line, ImU32 defaultColor = s_defaultColor, bool newline = false)
+	{
+		m_editor.MoveBottom();
+		m_editor.MoveEnd();
+
+		std::string_view lineView{ line };
+		ImU32 currentColor = defaultColor;
+
+		while (!lineView.empty())
+		{
+			auto colorPos = lineView.find("\a");
+
+			// this is everything before the color code.
+			auto beforeColor = lineView.substr(0, colorPos);
+			if (!beforeColor.empty())
+			{
+				// no color codes, write out with current color
+				m_editor.InsertText(beforeColor, currentColor);
+			}
+
+			// did we find a color?
+			if (colorPos == std::string_view::npos)
+				break;
+
+			lineView = lineView.substr(colorPos);
+
+			auto& [nextSegment, nextColor] = ParseColor(lineView, defaultColor);
+			// Parse the color and get the next segment. We pass in the
+			// default color to handle \ax properly
+
+			if (nextSegment.empty())
+				break;
+
+			currentColor = nextColor;
+			lineView = nextSegment;
+		}
+
+		if (newline)
+			m_editor.InsertText("\n");
 	}
 
 	void Draw(bool* pOpen)
@@ -188,28 +364,6 @@ public:
 			ImGui::EndMenuBar();
 		}
 
-		if (ImGui::SmallButton("Add Dummy Text"))
-		{
-			AddLog("{0} some text", m_editor.GetTotalLines());
-			AddLog("some more text");
-			AddLog("display very important message here!");
-		}
-		ImGui::SameLine();
-
-		if (ImGui::SmallButton("Add Dummy Error"))
-		{
-			AddLog("[error] something went wrong");
-		}
-		ImGui::SameLine();
-
-		bool copy_to_clipboard = ImGui::SmallButton("Copy");
-
-		ImGui::Separator();
-
-		ImGui::SameLine();
-		m_filter.Draw("Filter (\"incl,-excl\") (\"error\")", 180);
-		ImGui::Separator();
-
 		const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing(); // 1 separator, 1 input text
 		ImGui::BeginChild("ScrollingRegion", ImVec2(0, -footer_height_to_reserve), false, ImGuiWindowFlags_HorizontalScrollbar); // Leave room for 1 separator + 1 InputText
 		if (ImGui::BeginPopupContextWindow())
@@ -218,27 +372,13 @@ public:
 			ImGui::EndPopup();
 		}
 
-		// Display every line as a separate entry so we can change their color or add custom widgets. If you only want raw text you can use ImGui::TextUnformatted(log.begin(), log.end());
-		// NB- if you have thousands of entries this approach may be too inefficient and may require user-side clipping to only process visible items.
-		// You can seek and display only the lines that are visible using the ImGuiListClipper helper, if your elements are evenly spaced and you have cheap random access to the elements.
-		// To use the clipper we could replace the 'for (int i = 0; i < Items.Size; i++)' loop with:
-		//     ImGuiListClipper clipper(Items.Size);
-		//     while (clipper.Step())
-		//         for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
-		// However, note that you can not use this code as is if a filter is active because it breaks the 'cheap random-access' property. We would need random-access on the post-filtered list.
-		// A typical application wanting coarse clipping and filtering may want to pre-compute an array of indices that passed the filtering test, recomputing this array when user changes the filter,
-		// and appending newly elements as they are inserted. This is left as a task to the user until we can manage to improve this example code!
-		// If your items are of variable size you may want to implement code similar to what ImGuiListClipper does. Or split your data into fixed height items to allow random-seeking into your list.
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1)); // Tighten spacing
-
 		ImGui::PushAllowKeyboardFocus(false);
 		m_editor.Render("TextEditor");
 		ImGui::PopAllowKeyboardFocus();
-
 		if (m_scrollToBottom || (m_autoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY()))
 			ImGui::SetScrollHereY(1.0f);
 		m_scrollToBottom = false;
-
 		ImGui::PopStyleVar();
 		ImGui::EndChild();
 		ImGui::Separator();
@@ -250,10 +390,12 @@ public:
 			| ImGuiInputTextFlags_CallbackCompletion
 			| ImGuiInputTextFlags_CallbackHistory;
 
-		bool bTextEdit = ImGui::InputText("Input", m_inputBuffer, IM_ARRAYSIZE(m_inputBuffer), textFlags,
+		ImGui::PushItemWidth(-1);
+		bool bTextEdit = ImGui::InputText("##Input", m_inputBuffer, IM_ARRAYSIZE(m_inputBuffer), textFlags,
 			[](ImGuiInputTextCallbackData* data)
 			{ return static_cast<ImGuiConsole*>(data->UserData)->TextEditCallback(data); }, this);
 
+		ImGui::PopItemWidth();
 		if (bTextEdit)
 		{
 			char* s = m_inputBuffer;
@@ -274,7 +416,7 @@ public:
 
 	void ExecCommand(const char* commandLine)
 	{
-		AddLog("# {0}\n", commandLine);
+		AddLog(IM_COL32(0x80, 0x80, 0x80, 255), "> {0}\n", commandLine);
 
 		// Inhsert into history. First find match and delete it so i can be pushed to the back. This isn't
 		// trying to be smart or optimal.
@@ -297,10 +439,10 @@ public:
 		}
 		else if (ci_equals(commandLine, "help"))
 		{
-			AddLog("Commands:");
+			AddLog("Commands:\n");
 
 			for (int i = 0; i < m_commands.Size; i++)
-				AddLog("- {0}", m_commands[i]);
+				AddLog("- {0}\n", m_commands[i]);
 		}
 		else if (ci_equals(commandLine, "history"))
 		{
@@ -315,7 +457,7 @@ public:
 		}
 		else
 		{
-			AddLog("Unknown command: '{0}'\n", commandLine);
+			AddLog(IM_COL32(255, 0, 0, 255), "Unknown command: '{0}'\n", commandLine);
 		}
 
 		// On command input, we scroll to bottom even if AutoScroll == false
@@ -531,9 +673,28 @@ static void DoToggleImGuiOverlay(const char* name, bool down)
 	}
 }
 
-static void UpdateOverlayUI()
+static void MakeColorGradient(float frequency1, float frequency2, float frequency3,
+	float phase1, float phase2, float phase3,
+	float center = 128, float width = 127, int length = 50)
 {
-	// Initialize dockspace first so other windows can utilize it.
+	for (int i = 1; i < length + 1; ++i)
+	{
+		ImU32 color = ImGui::ColorConvertFloat4ToU32(ImVec4(
+			(sin(frequency1 * i + phase1) * width + center) / 255,
+			(sin(frequency2 * i + phase2) * width + center) / 255,
+			(sin(frequency3 * i + phase3) * width + center) / 255, 1.0));
+
+		std::string test = fmt::format("\a#{:06x}|", (color & 0xffffff));
+		gImGuiConsole.AddWriteChatColorLog(test.c_str());
+
+		if (i % 50 == 0)
+			gImGuiConsole.AddLog("\n");
+	}
+}
+
+void UpdateOverlayUI()
+{
+	// Initialize dockspace first so other windows can utilize it.+
 	DrawDockSpace();
 
 	if (ImGui::Begin("Debug"))
@@ -542,6 +703,21 @@ static void UpdateOverlayUI()
 			s_dockspaceVisible = !s_dockspaceVisible;
 		if (ImGui::Button("Reset"))
 			s_resetDockspace = true;
+		if (ImGui::Button("Color Test"))
+		{
+			gImGuiConsole.AddWriteChatColorLog("\ayYELLOW    \a-yDARK YELLOW\n");
+			gImGuiConsole.AddWriteChatColorLog("\aoORANGE    \a-oDARK ORANGE\n");
+			gImGuiConsole.AddWriteChatColorLog("\agGREEN     \a-gDARK GREEN\n");
+			gImGuiConsole.AddWriteChatColorLog("\auBLUE      \a-uDARK BLUE\n");
+			gImGuiConsole.AddWriteChatColorLog("\arRED       \a-rDARK RED\n");
+			gImGuiConsole.AddWriteChatColorLog("\atTEAL      \a-tDARK TEAL\n");
+			gImGuiConsole.AddWriteChatColorLog("\abBLACK\n");
+			gImGuiConsole.AddWriteChatColorLog("\amMAGENTA   \a-mDARK MAGENTA\n");
+			gImGuiConsole.AddWriteChatColorLog("\apPURPLE    \a-pDARK PURPLE\n");
+			gImGuiConsole.AddWriteChatColorLog("\awWHITE     \a-wGREY\n");
+
+			MakeColorGradient(.3f, .3f, .3f, 0, 2, 4, 200, 50, 500);
+		}
 	}
 	ImGui::End();
 
@@ -566,12 +742,176 @@ static void UpdateOverlayUI()
 	}
 }
 
+static ImU32 userColors[] = {
+	IM_COL32(255, 255, 255, 255), //  1
+	IM_COL32(190, 40,  190, 255), //  2
+	IM_COL32(0,   255, 255, 255), //  3
+	IM_COL32(40,  240, 40,  255), //  4
+	IM_COL32(0,   128, 0,   255), //  5
+	IM_COL32(0,   128, 0,   255), //  6
+	IM_COL32(255, 0,   0,   255), //  7
+	IM_COL32(90,  90,  255, 255), //  8
+	IM_COL32(90,  90,  255, 255), //  9
+	IM_COL32(255, 255, 255, 255), // 10
+	IM_COL32(255, 0,   0,   255), // 11
+	IM_COL32(255, 255, 255, 255), // 12
+	IM_COL32(255, 255, 255, 255), // 13
+	IM_COL32(255, 255, 0,   255), // 14
+	IM_COL32(90,  90,  255, 255), // 15
+	IM_COL32(255, 255, 255, 255), // 16
+	IM_COL32(255, 255, 255, 255), // 17
+	IM_COL32(255, 255, 255, 255), // 18
+	IM_COL32(255, 255, 255, 255), // 19
+	IM_COL32(240, 240, 0,   255), // 20
+	IM_COL32(240, 240, 0,   255), // 21
+	IM_COL32(255, 255, 255, 255), // 22
+	IM_COL32(255, 255, 255, 255), // 23
+	IM_COL32(255, 255, 255, 255), // 24
+	IM_COL32(255, 255, 255, 255), // 25
+	IM_COL32(128, 0,   128, 255), // 26
+	IM_COL32(255, 255, 255, 255), // 27
+	IM_COL32(90,  90,  255, 255), // 28
+	IM_COL32(240, 240, 0,   255), // 29
+	IM_COL32(0,   140, 0,   255), // 30
+	IM_COL32(90,  90,  255, 255), // 31
+	IM_COL32(255, 0,   0,   255), // 32
+	IM_COL32(90,  90,  255, 255), // 33
+	IM_COL32(255, 0,   0,   255), // 34
+	IM_COL32(215, 154, 66,  255), // 35
+	IM_COL32(110, 143, 176, 255), // 36
+	IM_COL32(110, 143, 176, 255), // 37
+	IM_COL32(110, 143, 176, 255), // 38
+	IM_COL32(110, 143, 176, 255), // 39
+	IM_COL32(110, 143, 176, 255), // 40
+	IM_COL32(110, 143, 176, 255), // 41
+	IM_COL32(110, 143, 176, 255), // 42
+	IM_COL32(110, 143, 176, 255), // 43
+	IM_COL32(110, 143, 176, 255), // 44
+	IM_COL32(110, 143, 176, 255), // 45
+	IM_COL32(255, 255, 255, 255), // 46
+	IM_COL32(255, 255, 255, 255), // 47
+	IM_COL32(255, 0,   0,   255), // 48
+	IM_COL32(255, 0,   0,   255), // 49
+	IM_COL32(255, 0,   0,   255), // 50
+	IM_COL32(255, 0,   0,   255), // 51
+	IM_COL32(255, 255, 255, 255), // 52
+	IM_COL32(255, 255, 255, 255), // 53
+	IM_COL32(255, 255, 255, 255), // 54
+	IM_COL32(255, 255, 255, 255), // 55
+	IM_COL32(255, 255, 255, 255), // 56
+	IM_COL32(255, 255, 255, 255), // 57
+	IM_COL32(255, 255, 255, 255), // 58
+	IM_COL32(255, 255, 255, 255), // 59
+	IM_COL32(215, 154, 66,  255), // 60
+	IM_COL32(215, 154, 66,  255), // 61
+	IM_COL32(215, 154, 66,  255), // 62
+	IM_COL32(215, 154, 66,  255), // 63
+	IM_COL32(215, 154, 66,  255), // 64
+	IM_COL32(215, 154, 66,  255), // 65
+	IM_COL32(215, 154, 66,  255), // 66
+	IM_COL32(215, 154, 66,  255), // 67
+	IM_COL32(215, 154, 66,  255), // 68
+	IM_COL32(215, 154, 66,  255), // 69
+	IM_COL32(255, 255, 0,   255), // 70
+	IM_COL32(255, 0,   255, 255), // 71
+	IM_COL32(0,   200, 200, 255), // 72
+	IM_COL32(255, 255, 255, 255), // 73
+	IM_COL32(255, 255, 255, 255), // 74
+	IM_COL32(0,   255, 255, 255), // 75
+	IM_COL32(255, 0,   0,   255), // 76
+	IM_COL32(255, 255, 255, 255), // 77
+	IM_COL32(90,  90,  255, 255), // 79
+	IM_COL32(255, 255, 0,   255), // 70
+	IM_COL32(255, 255, 0,   255), // 80
+	IM_COL32(255, 255, 255, 255), // 81
+	IM_COL32(255, 255, 255, 255), // 82
+	IM_COL32(255, 255, 255, 255), // 83
+	IM_COL32(255, 255, 255, 255), // 84
+	IM_COL32(255, 255, 255, 255), // 85
+	IM_COL32(255, 155, 155, 255), // 86
+	IM_COL32(90,  90,  255, 255), // 87
+	IM_COL32(255, 255, 255, 255), // 88
+	IM_COL32(255, 255, 255, 255), // 89
+	IM_COL32(255, 255, 255, 255), // 90
+	IM_COL32(255, 255, 255, 255), // 91
+	IM_COL32(255, 127, 0,   255), // 92
+	IM_COL32(255, 255, 255, 255), // 93
+	IM_COL32(255, 255, 255, 255), // 94
+	IM_COL32(255, 255, 255, 255), // 95
+	IM_COL32(192, 0,   0,   255), // 96
+	IM_COL32(0,   255, 0,   255), // 97
+	IM_COL32(255, 255, 0,   255), // 98
+	IM_COL32(255, 0,   0,   255), // 99
+	IM_COL32(24,  224, 255, 255), // 100
+	IM_COL32(255, 255, 255, 255), // 101
+	IM_COL32(255, 255, 255, 255), // 102
+	IM_COL32(255, 255, 255, 255), // 103
+	IM_COL32(255, 0,   0,   255), // 104
+	IM_COL32(255, 0,   0,   255), // 105
+};
+
+static ImU32 GetColorForChatColor(DWORD chatColor)
+{
+	if (chatColor > 255)
+	{
+		chatColor -= 256;
+		if (chatColor >= lengthof(userColors))
+			return 0;
+
+		return userColors[chatColor];
+	}
+
+	switch (chatColor)
+	{
+	case COLOR_DEFAULT:       // 0
+		return IM_COL32(0xf0, 0xf0, 0xf0, 255);
+
+	case COLOR_DARKGREEN:     // 2 - CONCOLOR_GREEN
+		return IM_COL32(0x00, 0x80, 0x00, 255);
+
+	case CONCOLOR_BLUE:       // 4
+		return IM_COL32(0x00, 0x40, 0xff, 255);
+	case COLOR_PURPLE:        // 5
+		return IM_COL32(0xf0, 0x00, 0xf0, 255);
+	case COLOR_LIGHTGREY:     // 6 - CONCOLOR_GREY
+		return IM_COL32(0x80, 0x80, 0x80, 255);
+	case 7: // light gray
+		return IM_COL32(0xe0, 0xe0, 0xe0, 255);
+
+	case CONCOLOR_WHITE:      // 10
+		return IM_COL32(0xf0, 0xf0, 0xf0, 255);
+
+	case 12: // light gray
+		return IM_COL32(0xa0, 0xa0, 0xa0, 255);
+	case CONCOLOR_RED:        // 13
+		return IM_COL32(0xf0, 0x00, 0x00, 255);
+	case 14: // light green
+		return IM_COL32(0x00, 0xf0, 0x00, 255);
+	case CONCOLOR_YELLOW:     // 15
+		return IM_COL32(0xf0, 0xf0, 0x00, 255);
+	case 16: // blue
+		return IM_COL32(0x00, 0x00, 0xf0, 255);
+	case 17: // dark blue
+		return IM_COL32(0x00, 0x00, 0xaf, 255);
+	case CONCOLOR_LIGHTBLUE:  // 18
+		return IM_COL32(0x00, 0xf0, 0xf0, 255);
+
+	case CONCOLOR_BLACK:      // 20
+		return IM_COL32(0, 0, 0, 255);
+	case 21: // orange
+		return IM_COL32(0xf0, 0xa0, 0x00, 255);
+	case 22: // brown
+		return IM_COL32(0x80, 0x60, 0x20, 255);
+
+	default:
+		return IM_COL32(0x60, 0x60, 0x60, 0xff);
+	}
+}
+
 static DWORD WriteChatColorImGuiAPI(const char* line, DWORD color, DWORD filter)
 {
-	// TODO: Translate color to RGBA
-
-	gImGuiConsole.AddLog("{0}", line);
-
+	ImU32 col = GetColorForChatColor(color);
+	gImGuiConsole.AddWriteChatColorLog(line, col, true);
 	return 0;
 }
 

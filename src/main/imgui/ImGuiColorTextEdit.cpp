@@ -256,22 +256,23 @@ void TextEditor::DeleteRange(const Coordinates& aStart, const Coordinates& aEnd)
 	m_textChanged = true;
 }
 
-int TextEditor::InsertTextAt(Coordinates& /* inout */ aWhere, const char* aValue)
+int TextEditor::InsertTextAt(Coordinates& /* inout */ aWhere, std::string_view aValue)
 {
 	//assert(!mReadOnly);
 
 	int cindex = GetCharacterIndex(aWhere);
 	int totalLines = 0;
-	while (*aValue != '\0')
+	size_t i = 0;
+	while (i < aValue.length())
 	{
 		assert(!m_lines.empty());
 
-		if (*aValue == '\r')
+		if (aValue[i] == '\r')
 		{
 			// skip
-			++aValue;
+			++i;
 		}
-		else if (*aValue == '\n')
+		else if (aValue[i] == '\n')
 		{
 			if (cindex < (int)m_lines[aWhere.mLine].size())
 			{
@@ -288,15 +289,69 @@ int TextEditor::InsertTextAt(Coordinates& /* inout */ aWhere, const char* aValue
 			aWhere.mColumn = 0;
 			cindex = 0;
 			++totalLines;
-			++aValue;
+			++i;
 		}
 		else
 		{
 			auto& line = m_lines[aWhere.mLine];
-			auto d = UTF8CharLength(*aValue);
-			while (d-- > 0 && *aValue != '\0')
+			auto d = UTF8CharLength(aValue[i]);
+
+			while (d-- > 0 && i < aValue.length())
 			{
-				line.emplace(line.begin() + cindex++, *aValue++, PaletteIndex::Default);
+				line.emplace(line.begin() + cindex++, aValue[i++], PaletteIndex::Default);
+			}
+			aWhere.mColumn = GetCharacterColumn(aWhere.mLine, cindex);
+		}
+
+		m_textChanged = true;
+	}
+
+	return totalLines;
+}
+
+int TextEditor::InsertTextAt(Coordinates& /* inout */ aWhere, std::string_view aValue, ImU32 aColor)
+{
+	//assert(!mReadOnly);
+
+	int cindex = GetCharacterIndex(aWhere);
+	int totalLines = 0;
+	size_t i = 0;
+	while (i < aValue.length())
+	{
+		assert(!m_lines.empty());
+
+		if (aValue[i] == '\r')
+		{
+			// skip
+			++i;
+		}
+		else if (aValue[i] == '\n')
+		{
+			if (cindex < (int)m_lines[aWhere.mLine].size())
+			{
+				auto& newLine = InsertLine(aWhere.mLine + 1);
+				auto& line = m_lines[aWhere.mLine];
+				newLine.insert(newLine.begin(), line.begin() + cindex, line.end());
+				line.erase(line.begin() + cindex, line.end());
+			}
+			else
+			{
+				InsertLine(aWhere.mLine + 1);
+			}
+			++aWhere.mLine;
+			aWhere.mColumn = 0;
+			cindex = 0;
+			++totalLines;
+			++i;
+		}
+		else
+		{
+			auto& line = m_lines[aWhere.mLine];
+			auto d = UTF8CharLength(aValue[i]);
+
+			while (d-- > 0 && i < aValue.length())
+			{
+				line.emplace(line.begin() + cindex++, aValue[i++], aColor);
 			}
 			aWhere.mColumn = GetCharacterColumn(aWhere.mLine, cindex);
 		}
@@ -1212,7 +1267,37 @@ void TextEditor::Render(const char* aTitle, const ImVec2& aSize, bool aBorder)
 	m_withinRender = false;
 }
 
-void TextEditor::SetText(const std::string& aText)
+void TextEditor::SetText(std::string_view aText, ImU32 color)
+{
+	m_lines.clear();
+	m_lines.emplace_back();
+
+	for (auto chr : aText)
+	{
+		if (chr == '\r')
+		{
+			// ignore the carriage return character
+		}
+		else if (chr == '\n')
+		{
+			m_lines.emplace_back();
+		}
+		else
+		{
+			m_lines.back().emplace_back(chr, color);
+		}
+	}
+
+	m_textChanged = true;
+	m_scrollToTop = true;
+
+	m_undoBuffer.clear();
+	m_undoIndex = 0;
+
+	Colorize();
+}
+
+void TextEditor::SetText(std::string_view aText)
 {
 	m_lines.clear();
 	m_lines.emplace_back();
@@ -1529,14 +1614,9 @@ void TextEditor::SetTabSize(int aValue)
 	m_tabSize = std::max(0, std::min(32, aValue));
 }
 
-void TextEditor::InsertText(const std::string& aValue)
+void TextEditor::InsertText(std::string_view aValue)
 {
-	InsertText(aValue.c_str());
-}
-
-void TextEditor::InsertText(const char* aValue)
-{
-	if (aValue == nullptr)
+	if (aValue.empty())
 		return;
 
 	auto pos = GetActualCursorCoordinates();
@@ -1544,6 +1624,22 @@ void TextEditor::InsertText(const char* aValue)
 	int totalLines = pos.mLine - start.mLine;
 
 	totalLines += InsertTextAt(pos, aValue);
+
+	SetSelection(pos, pos);
+	SetCursorPosition(pos);
+	Colorize(start.mLine - 1, totalLines + 2);
+}
+
+void TextEditor::InsertText(std::string_view aValue, ImU32 color)
+{
+	if (aValue.empty())
+		return;
+
+	auto pos = GetActualCursorCoordinates();
+	auto start = std::min(pos, m_state.mSelectionStart);
+	int totalLines = pos.mLine - start.mLine;
+
+	totalLines += InsertTextAt(pos, aValue, color);
 
 	SetSelection(pos, pos);
 	SetCursorPosition(pos);
@@ -2315,16 +2411,8 @@ void TextEditor::ColorizeRange(int aFromLine, int aToLine)
 				{
 					Glyph& g = line[(token_begin - bufferBegin) + j];
 
-					if (m_rawColorMode)
-					{
-						g.mARGBColor = m_palette[(int)token_color];
-						g.mRawColor = true;
-					}
-					else
-					{
-						g.mColorIndex = token_color;
-						g.mRawColor = false;
-					}
+					g.mColorIndex = token_color;
+					g.mRawColor = false;
 				}
 
 				first = token_end;

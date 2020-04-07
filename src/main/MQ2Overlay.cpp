@@ -972,6 +972,9 @@ LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 			// Clear any delayed mouse inputs
 			for (int n = 0; n < IM_ARRAYSIZE(io.MouseDown); n++)
 				io.MouseDown[n] = false;
+			// Clear any delayed keyboard inputs
+			for (int n = 0; n < IM_ARRAYSIZE(io.KeysDown); n++)
+				io.KeysDown[n] = false;
 			break;
 
 		case WM_LBUTTONDOWN: case WM_LBUTTONDBLCLK:
