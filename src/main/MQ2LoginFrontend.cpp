@@ -38,6 +38,45 @@ static bool gbDetoursInstalled = false;
 static bool gbWaitingForFrontend = false;
 static bool gbInFrontend = false;
 
+//----------------------------------------------------------------------------
+// Login Pulse detour
+
+// Dynamic trampoline allocated for the login pulse. We create this on the process heap, and then
+// intentionally leak it. This allows us to exit mq2 from the login pulse. Basically, we end up
+// leaving this detour trampoline behind so that the call can unwind after we leave.
+void* pLoginController_GiveTime_Trampoline = nullptr;
+
+// 0x20 bytes to create the trampoline. These are the same bytes created by a
+// DETOUR_WITH_EMPTY_TRAMPOLINE macro
+static uint8_t TrampolineData[] = {
+	0x90, 0x90, 0x33, 0xc0, 0x8b, 0x00, 0xc3, 0x90,  0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
+	0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,  0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
+};
+
+// A helper to turn a pointer-to-member into a pointer-to-void.
+template <typename T>
+T CoerceImpl(int dummy, ...)
+{
+	va_list marker;
+	va_start(marker, dummy);
+
+	void* ptr = va_arg(marker, void*);
+	va_end(marker);
+	return ptr;
+}
+
+template <typename T, typename U>
+T Coerce(U thing) { return CoerceImpl<T>(0, thing); }
+
+static __declspec(naked) void GiveTime_JumpToTrampoline(void* LoginController_Hook)
+{
+	__asm {
+		mov ecx, [esp+4]
+		mov eax, [pLoginController_GiveTime_Trampoline]
+		jmp eax
+	}
+}
+
 class LoginController_Hook
 {
 public:
@@ -78,10 +117,13 @@ public:
 			}
 		}
 
-		GiveTime_Trampoline();
+		GiveTime_JumpToTrampoline(this);
 	}
 };
 DETOUR_TRAMPOLINE_EMPTY(void LoginController_Hook::GiveTime_Trampoline());
+
+// End Login pulse detour
+//----------------------------------------------------------------------------
 
 // Forwards events to ImGui. If ImGui consumes the event, we won't pass it to the game.
 DETOUR_TRAMPOLINE_EMPTY(LRESULT WINAPI EQMain__WndProc_Trampoline(HWND, UINT, WPARAM, LPARAM));
@@ -118,7 +160,27 @@ void InitializeLoginDetours()
 
 	DebugSpewAlways("Initializing Login Detours");
 
-	EzDetour(LoginController__GiveTime, &LoginController_Hook::GiveTime_Detour, &LoginController_Hook::GiveTime_Trampoline);
+	// Create this trampoline on the process heap so that we can abandon it after we exit.
+	// If for whatever reason we can't allocate on the heap, just use the old trampoline. It'll
+	// crash if we unload but at least we can get further along (and maybe the user won't try to
+	// unload...)
+	if (!pLoginController_GiveTime_Trampoline)
+	{
+		HANDLE hProcessHeap = GetProcessHeap();
+		pLoginController_GiveTime_Trampoline = HeapAlloc(hProcessHeap, 0, lengthof(TrampolineData));
+
+		if (!pLoginController_GiveTime_Trampoline)
+		{
+			pLoginController_GiveTime_Trampoline = Coerce<void*>(&LoginController_Hook::GiveTime_Trampoline);
+		}
+		else
+		{
+			// Initialize the trampoline with the expected payload.
+			memcpy(pLoginController_GiveTime_Trampoline, TrampolineData, lengthof(TrampolineData));
+		}
+	}
+
+	EzDetour(LoginController__GiveTime, &LoginController_Hook::GiveTime_Detour, pLoginController_GiveTime_Trampoline);
 	EzDetour(EQMain__WndProc, EQMain__WndProc_Detour, EQMain__WndProc_Trampoline);
 
 	if (EQMain__CXWndManager__GetCursorToDisplay)
