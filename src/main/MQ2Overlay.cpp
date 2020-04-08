@@ -16,6 +16,8 @@
 #include "MQ2Main.h"
 #include "CrashHandler.h"
 
+#include "common/HotKeys.h"
+
 #include <imgui.h>
 #include <imgui_stdlib.h>
 
@@ -51,6 +53,9 @@ bool gbDeviceAcquired = false;
 // Indicates that the graphics device hooks are installed
 bool gbDeviceHooksInstalled = false;
 
+// Indicates that there has been a request to toggle the console.
+bool gbToggleConsoleRequested = false;
+
 //----------------------------------------------------------------------------
 // statics
 
@@ -63,6 +68,10 @@ static bool gbRetryHooks = false;
 static bool gbInitializationFailed = false;
 static bool gbInitializedImGui = false;
 static int gLastGameState = GAMESTATE_PRECHARSELECT;
+
+static mq::PlatformHotkey gToggleConsoleHotkey;
+static const char gToggleConsoleDefaultBind[] = "ctrl+`";
+static uint32_t gToggleConsoleHotkeyId = 0;
 
 // Mouse state, pointed to by EQADDR_DIMOUSECOPY
 struct MouseStateData
@@ -1494,7 +1503,7 @@ void InitializeImGui(IDirect3DDevice9* device)
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
 	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
 
-	fmt::format_to(ImGuiSettingsFile, "{}/MacroQuest_Overlay.ini", mq::internal_paths::Config.c_str());
+	fmt::format_to(ImGuiSettingsFile, "{}/MacroQuest_Overlay.ini", mq::internal_paths::Config);
 	io.IniFilename = &ImGuiSettingsFile[0];
 
 	// Retrieve window handle from device
@@ -1515,6 +1524,16 @@ void InitializeImGui(IDirect3DDevice9* device)
 		style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 	}
 
+	// Install the hotkey.
+	if (gToggleConsoleHotkeyId != 0)
+	{
+		if (!::RegisterHotKey(g_hWnd, gToggleConsoleHotkeyId, gToggleConsoleHotkey.modifiers, gToggleConsoleHotkey.virtualKey))
+		{
+			SPDLOG_ERROR("{}",
+				fmt::windows_error(GetLastError(), "Failed to register hotkey for toggle console keybind").what());
+		}
+	}
+
 	gbInitializedImGui = true;
 }
 
@@ -1522,6 +1541,11 @@ void ShutdownImGui()
 {
 	if (!gbInitializedImGui)
 		return;
+
+	if (gToggleConsoleHotkeyId != 0)
+	{
+		::UnregisterHotKey(g_hWnd, gToggleConsoleHotkeyId);
+	}
 
 	ImGui_ImplDX9_Shutdown();
 	ImGui_ImplWin32_Shutdown();
@@ -1801,6 +1825,12 @@ uint32_t ProcessKeyboardEvents_Detour()
 
 bool OverlayWndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, bool fromLogin)
 {
+	if (msg == WM_HOTKEY)
+	{
+		if (wParam == gToggleConsoleHotkeyId)
+			gbToggleConsoleRequested = true;
+	}
+
 	if (imgui::g_pImguiDevice)
 	{
 		if (imgui::ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam, fromLogin))
@@ -1926,8 +1956,8 @@ static bool InstallD3D9Hooks()
 
 		if (d3d9ex)
 		{
-		d3d9ex->Release();
-	}
+			d3d9ex->Release();
+		}
 	}
 
 	return success;
@@ -2160,6 +2190,22 @@ void InitializeMQ2Overlay()
 {
 	imgui::g_bRenderImGui = GetPrivateProfileBool("MacroQuest", "RenderImGui", imgui::g_bRenderImGui, mq::internal_paths::MQini);
 
+	// TODO: application-wide keybinds could use an encapsulated interface. For now I'm just dumping his here since we need it to
+	// connect to the win32 hook and control the imgui console.
+	::GetPrivateProfileStringA("MacroQuest", "ToggleConsoleKey", gToggleConsoleDefaultBind,
+		gToggleConsoleHotkey.keybind, lengthof(gToggleConsoleHotkey.keybind), mq::internal_paths::MQini.c_str());
+	if (mq::ConvertStringToModifiersAndVirtualKey(gToggleConsoleHotkey.keybind,
+		gToggleConsoleHotkey.modifiers, gToggleConsoleHotkey.virtualKey))
+	{
+		SPDLOG_INFO("Toggle console keybind: {0}", gToggleConsoleHotkey.keybind);
+		gToggleConsoleHotkeyId = GlobalAddAtom("MQ2ToggleKeybindAtom");
+	}
+	else if (strlen(gToggleConsoleHotkey.keybind) > 0)
+	{
+		SPDLOG_WARN("Unable to parse toggle console keybind: {0}", gToggleConsoleHotkey.keybind);
+		strcpy_s(gToggleConsoleHotkey.keybind, "");
+	}
+
 	if (gbWriteAllConfig)
 	{
 		WritePrivateProfileBool("MacroQuest", "RenderImGui", imgui::g_bRenderImGui, mq::internal_paths::MQini);
@@ -2185,6 +2231,12 @@ void ShutdownMQ2Overlay()
 	gHooks.clear();
 
 	imgui::ShutdownImGui();
+
+	if (gToggleConsoleHotkeyId != 0)
+	{
+		GlobalDeleteAtom(gToggleConsoleHotkeyId);
+		gToggleConsoleHotkeyId = 0;
+	}
 
 	if (gpD3D9Device)
 	{

@@ -407,6 +407,9 @@
     <ClCompile Include="imgui\ImGuiColorTextEdit.cpp">
       <Filter>Source Files\imgui</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\HotKeys.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
@@ -540,6 +543,9 @@
     </ClInclude>
     <ClInclude Include="imgui\ImGuiColorTextEdit.h">
       <Filter>Header Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\HotKeys.h">
+      <Filter>Header Files\common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

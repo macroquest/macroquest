@@ -31,6 +31,8 @@ static bool gbShowDebugWindow = false;
 static bool gbShowConsoleWindow = true;
 static int gRenderCallbacksId = 0;
 
+extern bool gbToggleConsoleRequested;
+
 imgui::ImGuiTreePanelWindow gSettingsWindow("MacroQuest Settings");
 imgui::ImGuiTreePanelWindow gDebugWindow("MacroQuest Debug Tools");
 
@@ -57,8 +59,9 @@ MQModule* GetImGuiAPIModule() { return &gImGuiModule; }
 
 static const ImU32 s_defaultColor = IM_COL32(0xf0, 0xf0, 0xf0, 255);
 static ImGuiID s_dockspaceId = 0;
-static bool s_dockspaceVisible = true;
+static bool s_dockspaceVisible = false;
 static bool s_resetDockspace = false;
+static bool s_setFocus = false;
 
 const mq::imgui::TextEditor::Palette& GetColorPalette()
 {
@@ -124,6 +127,10 @@ ImU32 str_to_col(std::string_view str)
 	return IM_COL32(r, g, b, 255);
 }
 
+static void MakeColorGradient(float frequency1, float frequency2, float frequency3,
+	float phase1, float phase2, float phase3,
+	float center = 128, float width = 127, int length = 50);
+
 class ImGuiConsole
 {
 public:
@@ -146,7 +153,7 @@ public:
 		m_editor.SetReadOnly(true);
 		m_editor.SetRenderCursor(false);
 		m_editor.SetShowWhitespace(false);
-		//m_editor.SetRenderLineNumbers(false);
+		m_editor.SetRenderLineNumbers(false);
 		//m_editor.SetImGuiChildIgnored(true);
 	}
 
@@ -358,9 +365,27 @@ public:
 				if (ImGui::MenuItem("Clear Console"))
 					ClearLog();
 
+				if (ImGui::BeginMenu("Extras"))
+				{
+					if (ImGui::MenuItem("Color Test"))
+					{
+						AddWriteChatColorLog("\ayYELLOW    \a-yDARK YELLOW\n");
+						AddWriteChatColorLog("\aoORANGE    \a-oDARK ORANGE\n");
+						AddWriteChatColorLog("\agGREEN     \a-gDARK GREEN\n");
+						AddWriteChatColorLog("\auBLUE      \a-uDARK BLUE\n");
+						AddWriteChatColorLog("\arRED       \a-rDARK RED\n");
+						AddWriteChatColorLog("\atTEAL      \a-tDARK TEAL\n");
+						AddWriteChatColorLog("\abBLACK\n");
+						AddWriteChatColorLog("\amMAGENTA   \a-mDARK MAGENTA\n");
+						AddWriteChatColorLog("\apPURPLE    \a-pDARK PURPLE\n");
+						AddWriteChatColorLog("\awWHITE     \a-wGREY\n");
+
+						MakeColorGradient(.3f, .3f, .3f, 0, 2, 4);
+					}
+					ImGui::EndMenu();
+				}
 				ImGui::EndMenu();
 			}
-
 			ImGui::EndMenuBar();
 		}
 
@@ -372,30 +397,30 @@ public:
 			ImGui::EndPopup();
 		}
 
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1)); // Tighten spacing
 		ImGui::PushAllowKeyboardFocus(false);
 		m_editor.Render("TextEditor");
 		ImGui::PopAllowKeyboardFocus();
 		if (m_scrollToBottom || (m_autoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY()))
 			ImGui::SetScrollHereY(1.0f);
 		m_scrollToBottom = false;
-		ImGui::PopStyleVar();
 		ImGui::EndChild();
 		ImGui::Separator();
 
 		// Command-line
-		bool reclaim_focus = false;
 
 		int textFlags = ImGuiInputTextFlags_EnterReturnsTrue
 			| ImGuiInputTextFlags_CallbackCompletion
 			| ImGuiInputTextFlags_CallbackHistory;
 
-		ImGui::PushItemWidth(-1);
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() - 4);
+		ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth() + 4);
+
 		bool bTextEdit = ImGui::InputText("##Input", m_inputBuffer, IM_ARRAYSIZE(m_inputBuffer), textFlags,
 			[](ImGuiInputTextCallbackData* data)
 			{ return static_cast<ImGuiConsole*>(data->UserData)->TextEditCallback(data); }, this);
 
 		ImGui::PopItemWidth();
+
 		if (bTextEdit)
 		{
 			char* s = m_inputBuffer;
@@ -403,13 +428,16 @@ public:
 			if (s[0])
 				ExecCommand(s);
 			strcpy_s(s, MAX_STRING, "");
-			reclaim_focus = true;
+			s_setFocus = true;
 		}
 
 		// Auto-focus on window apparition
 		ImGui::SetItemDefaultFocus();
-		if (reclaim_focus)
+		if (s_setFocus)
+		{
+			s_setFocus = false;
 			ImGui::SetKeyboardFocusHere(-1); // Auto focus previous widget
+		}
 
 		ImGui::End();
 	}
@@ -574,6 +602,41 @@ ImGuiConsole gImGuiConsole;
 
 //----------------------------------------------------------------------------
 
+ImGuiID MyDockSpaceOverViewport(ImGuiViewport* viewport, ImGuiDockNodeFlags dockspace_flags, const ImGuiWindowClass* window_class = 0)
+{
+	using namespace ImGui;
+
+	if (viewport == NULL)
+		viewport = GetMainViewport();
+
+	SetNextWindowPos(viewport->Pos);
+	SetNextWindowSize(viewport->Size);
+	SetNextWindowViewport(viewport->ID);
+
+	ImGuiWindowFlags host_window_flags = 0;
+	host_window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDocking;
+	host_window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+	if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+		host_window_flags |= ImGuiWindowFlags_NoBackground;
+	//if (dockspace_flags & ImGuiDockNodeFlags_KeepAliveOnly)
+		host_window_flags |= ImGuiWindowFlags_NoInputs;
+
+	char label[32];
+	ImFormatString(label, IM_ARRAYSIZE(label), "DockSpaceViewport_%08X", viewport->ID);
+
+	PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+	PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+	PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+	Begin(label, NULL, host_window_flags);
+	PopStyleVar(3);
+
+	ImGuiID dockspace_id = GetID("DockSpace");
+	DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags, window_class);
+	End();
+
+	return dockspace_id;
+}
+
 void DrawDockSpace()
 {
 	// when using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
@@ -582,45 +645,10 @@ void DrawDockSpace()
 		| ImGuiDockNodeFlags_PassthruCentralNode
 		| ImGuiDockNodeFlags_NoDockingInCentralNode;
 
-	// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
-	// because it would be confusing to have two docking targets within each other.
-	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoDocking
-		| ImGuiWindowFlags_NoTitleBar
-		| ImGuiWindowFlags_NoCollapse
-		| ImGuiWindowFlags_NoResize
-		| ImGuiWindowFlags_NoMove
-		| ImGuiWindowFlags_NoBringToFrontOnFocus
-		| ImGuiWindowFlags_NoNavFocus
-		| ImGuiWindowFlags_NoBackground;
-
 	if (!s_dockspaceVisible)
 		dockspaceFlags |= ImGuiDockNodeFlags_KeepAliveOnly;
 
-	ImGuiViewport* viewport = ImGui::GetMainViewport();
-	ImGui::SetNextWindowPos(viewport->Pos);
-	ImGui::SetNextWindowSize(viewport->Size);
-	ImGui::SetNextWindowViewport(viewport->ID);
-
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-
-	// Important: note that we proceed even if Begin() returns false (a.k.a. window is collapsed).
-	// This is because we want to keep our DockSpace() active. If DockSpace() is inactive,
-	// all active windows docked to it will lose their parent and become undocked.
-
-	// We cannot preserve the docking relationship between an active window and an inactive docking,
-	// otherwise any change of dockspace/setings would leat to windows being stuck in limbo and never
-	// being visible.
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-
-	bool display = ImGui::Begin("Overlay DockSpace Window", &s_dockspaceVisible, windowFlags);
-	ImGui::PopStyleVar(3);
-
-	// DockSpace
-	ImGuiIO& op = ImGui::GetIO();
-	s_dockspaceId = ImGui::GetID("Overlay DockSpace");
-
-	ImGui::DockSpace(s_dockspaceId, ImVec2(0.0f, 0.0f), dockspaceFlags);
+	s_dockspaceId = MyDockSpaceOverViewport(nullptr, dockspaceFlags);
 
 	if (ImGui::DockBuilderGetNode(s_dockspaceId) == nullptr || s_resetDockspace)
 	{
@@ -641,8 +669,6 @@ void DrawDockSpace()
 
 		ImGui::DockBuilderFinish(s_dockspaceId);
 	}
-
-	ImGui::End(); // end DockSpace()
 }
 
 void AddSettingsPanel(const char* name, fPanelDrawFunction drawFunction)
@@ -675,7 +701,7 @@ static void DoToggleImGuiOverlay(const char* name, bool down)
 
 static void MakeColorGradient(float frequency1, float frequency2, float frequency3,
 	float phase1, float phase2, float phase3,
-	float center = 128, float width = 127, int length = 50)
+	float center, float width, int length)
 {
 	for (int i = 1; i < length + 1; ++i)
 	{
@@ -684,7 +710,7 @@ static void MakeColorGradient(float frequency1, float frequency2, float frequenc
 			(sin(frequency2 * i + phase2) * width + center) / 255,
 			(sin(frequency3 * i + phase3) * width + center) / 255, 1.0));
 
-		std::string test = fmt::format("\a#{:06x}|", (color & 0xffffff));
+		std::string test = fmt::format("\a#{:06x}x", (color & 0xffffff));
 		gImGuiConsole.AddWriteChatColorLog(test.c_str());
 
 		if (i % 50 == 0)
@@ -697,29 +723,13 @@ void UpdateOverlayUI()
 	// Initialize dockspace first so other windows can utilize it.+
 	DrawDockSpace();
 
-	if (ImGui::Begin("Debug"))
+	if (gbToggleConsoleRequested)
 	{
-		if (ImGui::Button("Toggle"))
-			s_dockspaceVisible = !s_dockspaceVisible;
-		if (ImGui::Button("Reset"))
-			s_resetDockspace = true;
-		if (ImGui::Button("Color Test"))
-		{
-			gImGuiConsole.AddWriteChatColorLog("\ayYELLOW    \a-yDARK YELLOW\n");
-			gImGuiConsole.AddWriteChatColorLog("\aoORANGE    \a-oDARK ORANGE\n");
-			gImGuiConsole.AddWriteChatColorLog("\agGREEN     \a-gDARK GREEN\n");
-			gImGuiConsole.AddWriteChatColorLog("\auBLUE      \a-uDARK BLUE\n");
-			gImGuiConsole.AddWriteChatColorLog("\arRED       \a-rDARK RED\n");
-			gImGuiConsole.AddWriteChatColorLog("\atTEAL      \a-tDARK TEAL\n");
-			gImGuiConsole.AddWriteChatColorLog("\abBLACK\n");
-			gImGuiConsole.AddWriteChatColorLog("\amMAGENTA   \a-mDARK MAGENTA\n");
-			gImGuiConsole.AddWriteChatColorLog("\apPURPLE    \a-pDARK PURPLE\n");
-			gImGuiConsole.AddWriteChatColorLog("\awWHITE     \a-wGREY\n");
-
-			MakeColorGradient(.3f, .3f, .3f, 0, 2, 4, 200, 50, 500);
-		}
+		gbToggleConsoleRequested = false;
+		s_dockspaceVisible = !s_dockspaceVisible;
+		if (s_dockspaceVisible)
+			s_setFocus = true;
 	}
-	ImGui::End();
 
 	if (s_dockspaceVisible)
 	{
