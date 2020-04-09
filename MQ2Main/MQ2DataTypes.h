@@ -1717,6 +1717,7 @@ public:
 		GemIcon = 80,
 		SlowPct = 81,
 		HastePct = 82,
+		MyDuration = 83,
 	};
 	enum SpellMethods
 	{
@@ -1805,6 +1806,7 @@ public:
 		TypeMember(GemIcon);
 		TypeMember(SlowPct);
 		TypeMember(HastePct);	
+		TypeMember(MyDuration);	
 	}
 
 	~MQ2SpellType()
@@ -5940,8 +5942,12 @@ public:
 		Spawn = 55,
 		bFellowship = 56,
 		bBanker = 57,
+		bSeeInvis = 58,
+		bSeeSOS = 59,
+		bSeeIVU = 60,
 	};
-	MQ2AlertListType() :MQ2Type("alertlist")
+
+	MQ2AlertListType() : MQ2Type("alertlist")
 	{
 		TypeMember(MinLevel);
 		TypeMember(MaxLevel);
@@ -6000,10 +6006,14 @@ public:
 		TypeMember(Spawn);
 		TypeMember(bFellowship);
 		TypeMember(bBanker);
+		TypeMember(bSeeInvis);
+		TypeMember(bSeeSOS);
+		TypeMember(bSeeIVU);
 	}
 	~MQ2AlertListType()
 	{
 	}
+
 	bool GETMEMBER();
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{

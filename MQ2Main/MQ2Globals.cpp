@@ -2147,6 +2147,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__TotalEffect);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetPCSpellAffect);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__SpellDuration);
+#ifdef EQ_Character__MySpellDuration_x
+	INITIALIZE_EQGAME_OFFSET(EQ_Character__MySpellDuration);
+#endif
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__FindItemByGuid);
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__FindItemByRecord);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetAdjustedSkill);

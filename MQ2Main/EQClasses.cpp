@@ -4757,7 +4757,10 @@ FUNCTION_AT_ADDRESS(bool EQ_Spell::IsDegeneratingLevelMod(int) ,EQ_Spell__IsDege
 FUNCTION_AT_ADDRESS(void  EQ_Character::EQSPA_Feign_Death(int),EQ_Character__EQSPA_Feign_Death);
 #endif
 #ifdef EQ_Character__SpellDuration_x
-FUNCTION_AT_ADDRESS(int  EQ_Character::SpellDuration(class EQ_Spell const *,unsigned char,unsigned char),EQ_Character__SpellDuration);
+FUNCTION_AT_ADDRESS(int EQ_Character::SpellDuration(class EQ_Spell const *,unsigned char,unsigned char),EQ_Character__SpellDuration);
+#endif
+#ifdef EQ_Character__MySpellDuration_x
+FUNCTION_AT_ADDRESS(int EQ_Character::MySpellDuration(PSPELL pSpell, PCONTENTS *pItemOut, PSPAWNINFO pCaster, int OrgDuration, int *pOut1, int *pOut2),EQ_Character__MySpellDuration);
 #endif
 #ifdef EQ_Character__eqspa_change_form_x
 FUNCTION_AT_ADDRESS(int  EQ_Character::eqspa_change_form(class EQ_Spell *,int,int,class EQ_Affect *),EQ_Character__eqspa_change_form);

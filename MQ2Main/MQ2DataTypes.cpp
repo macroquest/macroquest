@@ -6797,8 +6797,21 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.DWord = GetSpellDuration(pSpell, (PSPAWNINFO)pLocalPlayer);
 		Dest.Type = pTicksType;
 		return true;
+	case MyDuration:
+	{
+		int OrgDuration = EQGetSpellDuration(pSpell, ((PSPAWNINFO)pLocalPlayer)->Level, false);
+		int Out1 = 0, Out2 = 0;
+		PCONTENTS pContOut = 0;
+		int mydur = 0;//todo: see if we can get this working for emu as well.
+		#if !defined(ROF2EMU) && !defined(UFEMU)
+		mydur = EQGetMySpellDuration(pSpell, &pContOut, (PSPAWNINFO)pLocalPlayer, OrgDuration, &Out1, &Out2);
+		#endif
+		Dest.DWord = mydur + OrgDuration;
+		Dest.Type = pTicksType;
+		return true;
+	}
 	case EQSpellDuration:
-		Dest.DWord = EQGetSpellDuration(pSpell, ((PSPAWNINFO)pLocalPlayer)->Level, true);
+		Dest.DWord = EQGetSpellDuration(pSpell, ((PSPAWNINFO)pLocalPlayer)->Level, false);
 		Dest.Type = pTicksType;
 		return true;
 	case CastByMe:
@@ -16046,40 +16059,7 @@ bool MQ2AlertType::GETMEMBER()
 	}
 	return false;
 }
-/*
-case xIndex:
-{
-int theitem = atoi(GETFIRST());
-std::list<SEARCHSPAWN>ss;
-if (CAlerts.GetAlert(VarPtr.DWord,ss)) {
-list<SEARCHSPAWN>::iterator i = ss.begin();
-if(ss.size()>theitem) {
-std::advance(i, theitem);
-if((*i).bSpawnID) {
-DWORD spawnid = (*i).SpawnID;
-if(PSPAWNINFO psp = (PSPAWNINFO)GetSpawnByID(spawnid)) {
-Dest.Ptr = psp;
-Dest.Type = pSpawnType;
-return true;
-}
-}
-} else {
-MacroError("Alert.List[%d].Index[%d] not found",VarPtr.DWord,theitem);
-}
-}
-break;
-}
-case Size:
-{
-Dest.DWord = 0;
-Dest.Type = pIntType;
-std::list<SEARCHSPAWN>ss;
-if (CAlerts.GetAlert(VarPtr.DWord,ss)) {
-Dest.DWord = ss.size();
-}
-return true;
-}
-*/
+
 bool MQ2AlertListType::GETMEMBER()
 {
 	try {
@@ -16369,6 +16349,18 @@ bool MQ2AlertListType::GETMEMBER()
 						}
 					}
 					return false;
+				case bSeeInvis:
+					Dest.DWord = (*si).bSeeInvis;
+					Dest.Type = pBoolType;
+					return true;
+				case bSeeSOS:
+					Dest.DWord = (*si).bSeeSOS;
+					Dest.Type = pBoolType;
+					return true;
+				case bSeeIVU:
+					Dest.DWord = (*si).bSeeIVU;
+					Dest.Type = pBoolType;
+					return true;
 				}
 			}
 		}

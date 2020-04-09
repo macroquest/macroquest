@@ -1,3 +1,18 @@
+Apr 09 2020
+- Updated for TEST
+- Fixed the ITEMINFO struct.
+-
+Apr 08 2020
+- Updated for TEST
+- Todo: go over the newcharinfo struct there are 0x104 bytes of stuff left to check.
+-
+Apr 06 2020
+- Added .MyDuration to the Spell TLO. It returns a ticktype of YOUR duration for the spell in question.
+- Caption redrawing has been optimized to use less cpu cycles.
+-
+Apr 02 2020
+- Add bSeeInvis, bSeeSOS and bSeeIVU to SpawnSearch - CTWN
+-
 Apr 01 2020
 - Fixed ZoneFlags
 - Fixed the _ZONELIST struct

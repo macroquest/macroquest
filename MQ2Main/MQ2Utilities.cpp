@@ -6233,6 +6233,12 @@ BOOL SearchSpawnMatchesSearchSpawn(PSEARCHSPAWN pSearchSpawn1, PSEARCHSPAWN pSea
 		return false;
 	if (pSearchSpawn1->bXTarHater != pSearchSpawn2->bXTarHater)
 		return false;
+	if (pSearchSpawn1->bSeeInvis != pSearchSpawn2->bSeeInvis)
+		return false;
+	if (pSearchSpawn1->bSeeSOS != pSearchSpawn2->bSeeSOS)
+		return false;
+	if (pSearchSpawn1->bSeeIVU != pSearchSpawn2->bSeeIVU)
+		return false;
 	return true;
 }
 BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO pSpawn)
@@ -6439,6 +6445,12 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		if (pSearchSpawn->bExactName && _stricmp(CleanupName(szName, sizeof(szName), FALSE, !gbExactSearchCleanNames), pSearchSpawn->szName))
 			return FALSE;
 	}
+	if (pSearchSpawn->bSeeSOS && pSpawn->SeeInvis[0] != 2)
+		return FALSE;
+	if (pSearchSpawn->bSeeInvis && pSpawn->SeeInvis[0] != 2 && pSpawn->SeeInvis[0] != 1)
+		return FALSE;
+	if (pSearchSpawn->bSeeIVU && pSpawn->SeeInvis[0] != 3000)
+		return FALSE;
 	return TRUE;
 }
 #endif
@@ -6712,6 +6724,15 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 			GetArg(szArg, szRest, 1);
 			pSearchSpawn->PlayerState |= atoi(szArg); // This allows us to pass multiple playerstate args
 			szRest = GetNextArg(szRest, 1);
+		}
+		else if (!_stricmp(szArg, "seeinvis")) {
+			pSearchSpawn->bSeeInvis = TRUE;
+		}
+		else if (!_stricmp(szArg, "seesos")) {
+			pSearchSpawn->bSeeSOS = TRUE;
+		}
+		else if (!_stricmp(szArg, "seeivu")) {
+			pSearchSpawn->bSeeIVU = TRUE;
 		}
 		else if (IsNumber(szArg)) {
 			pSearchSpawn->MinLevel = atoi(szArg);

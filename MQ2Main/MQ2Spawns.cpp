@@ -773,7 +773,7 @@ VOID UpdateMQ2SpawnSort()
 			}
 			LastTarget = 0;
 		}
-		if (nCaptions > 7)
+		if (nCaptions > 20)
 		{
 			nCaptions = 0;
 			Benchmark(bmUpdateSpawnCaptions, UpdateSpawnCaptions());

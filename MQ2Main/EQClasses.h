@@ -7841,6 +7841,7 @@ EQLIB_OBJECT int EQ_Character::save_poison(void);
 EQLIB_OBJECT int EQ_Character::SetLocalVar(char *,int);
 EQLIB_OBJECT int EQ_Character::Skill(int);
 EQLIB_OBJECT int EQ_Character::SpellDuration(class EQ_Spell const *,unsigned char,unsigned char);
+EQLIB_OBJECT int EQ_Character::MySpellDuration(PSPELL pSpell, PCONTENTS *pItemOut, PSPAWNINFO pCaster, int OrgDuration, int *pOut1, int *pOut2);
 EQLIB_OBJECT int EQ_Character::Sta(void);
 EQLIB_OBJECT int EQ_Character::Str(void);
 EQLIB_OBJECT int EQ_Character::TakeFallDamage(float);

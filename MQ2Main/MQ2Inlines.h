@@ -829,6 +829,21 @@ inline LONG EQGetSpellDuration(PSPELL pSpell, unsigned char casterlevel, bool is
 	}
 	return 0;
 }
+inline int EQGetMySpellDuration(PSPELL pSpell, PCONTENTS *pContOut, PSPAWNINFO pCaster, int OrgDuration, int *pOut1, int *pOut2)
+{
+	if (PCHARINFO pCharInfo = GetCharInfo()) {
+#ifdef NEWCHARINFO
+		if (pCharInfo->PcClient_CharacterZoneClient_vfTable) {
+#else
+		if (pCharInfo->vtable2) {
+#endif
+			if (EQ_Character *cb = (EQ_Character *)pCharData1) {
+				return cb->MySpellDuration(pSpell, pContOut, pCaster, OrgDuration, pOut1,pOut2);
+			}
+		}
+	}
+	return 0;
+}
 /*
 need to figure out why this fails in xp and the above doesn't - eqmule
 static inline ULONGLONG GetTickCount64(void)

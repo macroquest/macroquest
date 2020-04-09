@@ -1589,6 +1589,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQ_Character__TotalEffect;
 	EQLIB_VAR DWORD EQ_Character__GetPCSpellAffect;
 	EQLIB_VAR DWORD EQ_Character__SpellDuration;
+	EQLIB_VAR DWORD EQ_Character__MySpellDuration;
 	EQLIB_VAR DWORD CharacterZoneClient__FindItemByGuid;
 	EQLIB_VAR DWORD CharacterZoneClient__FindItemByRecord;
 	EQLIB_VAR DWORD EQ_Character__GetAdjustedSkill;
