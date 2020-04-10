@@ -184,11 +184,14 @@ public:
 		AddLog(s_defaultColor, std::move(fmt), args...);
 	}
 
-	static std::pair<std::string_view, ImU32> ParseColor(std::string_view line, ImU32 color)
+	static std::pair<std::string_view, ImU32> ParseColor(std::string_view line, std::vector<ImU32>& colorStack,
+		ImU32 defaultColor)
 	{
 		size_t length = line.length();
 		const char* pos = line.data();
 		const char* end = line.data() + length;
+
+		ImU32 color = defaultColor;
 
 		// skip over the \a
 		if (*(pos++) != '\a')
@@ -202,7 +205,22 @@ public:
 		if (*pos == 'x')
 		{
 			pos++;
-			return { std::string_view{ pos, (size_t)(end - pos) }, s_defaultColor };
+
+			if (!colorStack.empty())
+			{
+				colorStack.pop_back();
+			}
+
+			if (!colorStack.empty())
+			{
+				color = colorStack.back();
+			}
+			else
+			{
+				color = s_defaultColor;
+			}
+
+			return { std::string_view{ pos, (size_t)(end - pos) }, color };
 		}
 
 		// custom color
@@ -214,6 +232,7 @@ public:
 
 			// convert hex to color
 			color = str_to_col(colorCode);
+			colorStack.push_back(color);
 
 			pos += 7;
 			return { std::string_view{ pos, (size_t)(end - pos) }, color };
@@ -289,6 +308,7 @@ public:
 			break;
 		}
 		pos++;
+		colorStack.push_back(color);
 
 		return { { pos, (size_t)(end - pos) }, color };
 	}
@@ -300,6 +320,8 @@ public:
 
 		std::string_view lineView{ line };
 		ImU32 currentColor = defaultColor;
+
+		std::vector<ImU32> colorStack;
 
 		while (!lineView.empty())
 		{
@@ -319,7 +341,7 @@ public:
 
 			lineView = lineView.substr(colorPos);
 
-			auto& [nextSegment, nextColor] = ParseColor(lineView, defaultColor);
+			auto& [nextSegment, nextColor] = ParseColor(lineView, colorStack, defaultColor);
 			// Parse the color and get the next segment. We pass in the
 			// default color to handle \ax properly
 
