@@ -1227,7 +1227,8 @@ void TextEditor::Render()
 	if (m_scrollToCursor)
 	{
 		EnsureCursorVisible();
-		ImGui::SetWindowFocus();
+		if (!m_readOnly)
+			ImGui::SetWindowFocus();
 		m_scrollToCursor = false;
 	}
 }
