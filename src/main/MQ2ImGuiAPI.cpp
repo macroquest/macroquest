@@ -641,10 +641,9 @@ ImGuiID MyDockSpaceOverViewport(ImGuiViewport* viewport, ImGuiDockNodeFlags dock
 	if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
 		host_window_flags |= ImGuiWindowFlags_NoBackground;
 	//if (dockspace_flags & ImGuiDockNodeFlags_KeepAliveOnly)
-		host_window_flags |= ImGuiWindowFlags_NoInputs;
+	host_window_flags |= ImGuiWindowFlags_NoInputs;
 
-	char label[32];
-	ImFormatString(label, IM_ARRAYSIZE(label), "DockSpaceViewport_%08X", viewport->ID);
+	char label[32] = "MainDockSpace";
 
 	PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 	PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
@@ -668,13 +667,23 @@ void DrawDockSpace()
 		| ImGuiDockNodeFlags_NoDockingInCentralNode;
 
 	if (!s_dockspaceVisible)
+	{
 		dockspaceFlags |= ImGuiDockNodeFlags_KeepAliveOnly;
+	}
 
 	s_dockspaceId = MyDockSpaceOverViewport(nullptr, dockspaceFlags);
 
-	if (ImGui::DockBuilderGetNode(s_dockspaceId) == nullptr || s_resetDockspace)
+	ImGuiDockNode* node = ImGui::DockBuilderGetNode(s_dockspaceId);
+	if (node == nullptr || s_resetDockspace || (!node->Windows.empty() && node->ChildNodes[0] == nullptr && node->ChildNodes[1] == nullptr))
 	{
 		s_resetDockspace = false;
+
+		// Preserve the windows
+		ImVector<ImGuiWindow*> Windows;
+		if (node)
+		{
+			Windows = node->Windows;
+		}
 
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
 		// Reset layout
@@ -688,6 +697,8 @@ void DrawDockSpace()
 
 		ImGuiID dock_id_console = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Up, 0.25f, nullptr, &dock_main_id);
 		ImGui::DockBuilderDockWindow("MacroQuest Console", dock_id_console);
+		for (ImGuiWindow* window : Windows)
+			ImGui::DockBuilderDockWindow(window->Name, dock_id_console);
 
 		ImGui::DockBuilderFinish(s_dockspaceId);
 	}
@@ -755,6 +766,7 @@ void UpdateOverlayUI()
 
 	if (s_dockspaceVisible)
 	{
+		ImGui::SetNextWindowDockID(s_dockspaceId, ImGuiCond_FirstUseEver);
 		gImGuiConsole.Draw(&s_dockspaceVisible);
 	}
 
