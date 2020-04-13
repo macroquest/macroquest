@@ -1521,7 +1521,7 @@ void InitializeImGui(IDirect3DDevice9* device)
 	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 	{
 		style.WindowRounding = 0.0f;
-		style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+		//style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 	}
 
 	// Install the hotkey.

@@ -360,9 +360,13 @@ public:
 	{
 		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar;
 
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 4));
+
 		if (!ImGui::Begin("MacroQuest Console", pOpen, windowFlags))
 		{
 			ImGui::End();
+
+			ImGui::PopStyleVar();
 			return;
 		}
 
@@ -445,14 +449,15 @@ public:
 			| ImGuiInputTextFlags_CallbackCompletion
 			| ImGuiInputTextFlags_CallbackHistory;
 
-		ImGui::SetCursorPosX(ImGui::GetCursorPosX() - 4);
-		ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth() + 4);
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 4);
+		ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.00f, 0.00f, 0.00f));
 
 		bool bTextEdit = ImGui::InputText("##Input", m_inputBuffer, IM_ARRAYSIZE(m_inputBuffer), textFlags,
 			[](ImGuiInputTextCallbackData* data)
 			{ return static_cast<ImGuiConsole*>(data->UserData)->TextEditCallback(data); }, this);
 
-		ImGui::PopItemWidth();
+		ImGui::PopStyleColor();
 
 		if (bTextEdit)
 		{
@@ -473,6 +478,8 @@ public:
 		}
 
 		ImGui::End();
+
+		ImGui::PopStyleVar();
 	}
 
 	void ExecCommand(const char* commandLine)
@@ -651,19 +658,22 @@ ImGuiID MyDockSpaceOverViewport(ImGuiViewport* viewport, ImGuiDockNodeFlags dock
 	host_window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 	if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
 		host_window_flags |= ImGuiWindowFlags_NoBackground;
-	//if (dockspace_flags & ImGuiDockNodeFlags_KeepAliveOnly)
 	host_window_flags |= ImGuiWindowFlags_NoInputs;
 
-	char label[32] = "MainDockSpace";
+	char label[32];
+	ImFormatString(label, IM_ARRAYSIZE(label), "DockSpaceViewport_%08X", viewport->ID);
 
 	PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 	PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 	PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+	PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.9f));
 	Begin(label, NULL, host_window_flags);
-	PopStyleVar(3);
 
 	ImGuiID dockspace_id = GetID("DockSpace");
 	DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags, window_class);
+
+	PopStyleVar(3);
+	PopStyleColor();
 	End();
 
 	return dockspace_id;
