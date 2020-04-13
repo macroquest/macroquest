@@ -848,43 +848,45 @@ bool MQ2GroundType::dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 		Ret.Type = pGroundType;
 		return true;
 	}
-
-	// well they didn't specify a name and they have not done /itemtarget
-	// so we just return first closest entry found
-	float groundDist = 100000.0f;
-	float objectDist = 100000.0f;
-
-	if (EQGroundItem* pItem = pItemList->Top)
+	else
 	{
-		float X = pSpawn->X - pItem->X;
-		float Y = pSpawn->Y - pItem->Y;
-		float Z = pSpawn->Z - (pItem->pSwitch ? pItem->pSwitch->Z : pItem->Z);
+		// well they didn't specify a name and they have not done /itemtarget
+		// so we just return first closest entry found
+		float groundDist = 100000.0f;
+		float objectDist = 100000.0f;
 
-		groundDist = sqrtf(X * X + Y * Y + Z * Z);
-		GroundObject.pGroundItem = pItem;
-		GroundObject.Type = GO_GroundType;
-	}
+		if (EQGroundItem* pItem = pItemList->Top)
+		{
+			float X = pSpawn->X - pItem->X;
+			float Y = pSpawn->Y - pItem->Y;
+			float Z = pSpawn->Z - (pItem->pSwitch ? pItem->pSwitch->Z : pItem->Z);
 
-	EQPlacedItemManager& pPIM = EQPlacedItemManager::Instance();
+			groundDist = sqrtf(X * X + Y * Y + Z * Z);
+			GroundObject.pGroundItem = pItem;
+			GroundObject.Type = GO_GroundType;
+		}
 
-	if (EQPlacedItem* top = pPIM.Top)
-	{
-		float X = pSpawn->X - top->X;
-		float Y = pSpawn->Y - top->Y;
-		float Z = pSpawn->Z - top->Z;
+		EQPlacedItemManager& pPIM = EQPlacedItemManager::Instance();
 
-		objectDist = sqrtf(X * X + Y * Y + Z * Z);
-		GroundObject.ObjPtr = (void*)top;
-		GroundObject.Type = GO_ObjectType;
-	}
+		if (EQPlacedItem* top = pPIM.Top)
+		{
+			float X = pSpawn->X - top->X;
+			float Y = pSpawn->Y - top->Y;
+			float Z = pSpawn->Z - top->Z;
 
-	if (GroundObject.Type != GO_None)
-	{
-		GroundObject.Type = objectDist > groundDist ? GO_GroundType : GO_ObjectType;
+			objectDist = sqrtf(X * X + Y * Y + Z * Z);
+			GroundObject.ObjPtr = (void*)top;
+			GroundObject.Type = GO_ObjectType;
+		}
 
-		Ret.Ptr = &GroundObject;
-		Ret.Type = pGroundType;
-		return true;
+		if (GroundObject.Type != GO_None)
+		{
+			GroundObject.Type = objectDist > groundDist ? GO_GroundType : GO_ObjectType;
+
+			Ret.Ptr = &GroundObject;
+			Ret.Type = pGroundType;
+			return true;
+		}
 	}
 
 	return false;
