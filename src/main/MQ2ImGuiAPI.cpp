@@ -78,7 +78,7 @@ const mq::imgui::TextEditor::Palette& GetColorPalette()
 			0xffffffff, // Preproc identifier
 			0xffffffff, // Comment (single line)
 			0xffffffff, // Comment (multi line)
-			0xff101010, // Background
+			0x00000000, // Background
 			0xffe0e0e0, // Cursor
 			0x80a06020, // Selection
 			0x800020ff, // ErrorMarker
@@ -406,6 +406,17 @@ public:
 					}
 					ImGui::EndMenu();
 				}
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("Windows"))
+			{
+				ImGui::MenuItem("Settings", nullptr, &gbShowSettingsWindow);
+				ImGui::MenuItem("Debug Tools", nullptr, &gbShowDebugWindow);
+
+				ImGui::Separator();
+				ImGui::MenuItem("ImGui Demo", nullptr, &gbShowDemoWindow);
+
 				ImGui::EndMenu();
 			}
 			ImGui::EndMenuBar();
