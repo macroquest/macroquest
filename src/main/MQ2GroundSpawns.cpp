@@ -27,8 +27,8 @@ class GroundSpawnSearch : public MQ2Transient
 {
 private:
 	// make this private because _all access_ to ground spawns should be through the list
-	std::vector<std::shared_ptr<MQ2GroundSpawn>> m_searchResults;
-	std::vector<std::shared_ptr<MQ2GroundSpawn>>::iterator m_currentResult;
+	std::vector<MQ2GroundSpawn> m_searchResults;
+	std::vector<MQ2GroundSpawn>::iterator m_currentResult;
 	std::mutex s_resultMutex;
 
 public:
@@ -38,7 +38,7 @@ public:
 		m_searchResults.clear();
 		m_currentResult = m_searchResults.end();
 		m_invalidated = true;
-		// we can't revalidate this, just drop it (which we do by releasing the shared_ptr that owns this)
+		// we can't revalidate this, just drop it (which we do by releasing the unique_ptr that owns this)
 		s_groundSpawnSearch.reset();
 	}
 
@@ -64,7 +64,7 @@ public:
 					continue;
 
 				if (GroundPredicate(pGround))
-					m_searchResults.emplace_back(std::make_shared<MQ2GroundSpawn>(pGround));
+					m_searchResults.emplace_back(pGround);
 			}
 		}
 
@@ -75,7 +75,7 @@ public:
 				continue;
 
 			if (PlacedPredicate(pPlaced))
-				m_searchResults.emplace_back(std::make_shared<MQ2GroundSpawn>(pPlaced));
+				m_searchResults.emplace_back(pPlaced);
 		}
 
 		m_currentResult = m_searchResults.begin();
@@ -112,19 +112,19 @@ public:
 		std::scoped_lock lock(s_resultMutex);
 
 		DistanceSort(pSpawn, m_searchResults,
-			[](SPAWNINFO* pSpawn, const std::shared_ptr<MQ2GroundSpawn>& ground)
+			[](SPAWNINFO* pSpawn, const MQ2GroundSpawn& ground)
 			{
 				if (ground)
 				{
-					if (ground->Type == MQ2GroundSpawnType::Ground)
+					if (ground.Type == MQ2GroundSpawnType::Ground)
 					{
-						auto pGround = *std::get<EQGroundItemPtr>(ground->Object);
+						auto pGround = *std::get<EQGroundItemPtr>(ground.Object);
 						if (pGround)
 							return Get3DDistance(pSpawn->X, pSpawn->Y, pSpawn->Z, pGround->X, pGround->Y, pGround->pSwitch->Z);
 					}
-					else if (ground->Type == MQ2GroundSpawnType::Placed)
+					else if (ground.Type == MQ2GroundSpawnType::Placed)
 					{
-						auto pPlaced = *std::get<EQPlacedItemPtr>(ground->Object);
+						auto pPlaced = *std::get<EQPlacedItemPtr>(ground.Object);
 						if (pPlaced)
 							return Get3DDistance(pSpawn->X, pSpawn->Y, pSpawn->Z, pPlaced->X, pPlaced->Y, pPlaced->Z);
 					}
@@ -143,8 +143,8 @@ public:
 	{
 		std::scoped_lock lock(s_resultMutex);
 
-		if (m_currentResult != m_searchResults.end() && *m_currentResult)
-			return **m_currentResult;
+		if (m_currentResult != m_searchResults.end())
+			return *m_currentResult;
 
 		return MQ2GroundSpawn();
 	}
@@ -188,7 +188,7 @@ public:
 		if (Idx >= m_searchResults.size())
 			return MQ2GroundSpawn();
 
-		return *m_searchResults.at(Idx);
+		return m_searchResults.at(Idx);
 	}
 
 	int Count()
