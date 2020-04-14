@@ -784,28 +784,28 @@ void CheckChatForEvent(const char* szMsg)
 		if ((CHATEVENT(CHAT_GUILD)) && (pDest = strstr(szClean, " tells the guild, ")))
 		{
 			strncpy_s(Arg1, szClean, (DWORD)(pDest - szClean));
-			strcpy_s(Arg2, pDest + 19);
+			strcpy_s(Arg2, pDest + 18);
 			Arg2[strlen(Arg2) - 1] = 0;
 			AddEvent(EVENT_CHAT, "guild", Arg1, Arg2, NULL);
 		}
 		else if ((CHATEVENT(CHAT_GROUP)) && (pDest = strstr(szClean, " tells the group, ")))
 		{
 			strncpy_s(Arg1, szClean, (DWORD)(pDest - szClean));
-			strcpy_s(Arg2, pDest + 19);
+			strcpy_s(Arg2, pDest + 18);
 			Arg2[strlen(Arg2) - 1] = 0;
 			AddEvent(EVENT_CHAT, "group", Arg1, Arg2, NULL);
 		}
 		else if ((CHATEVENT(CHAT_TELL)) && (pDest = strstr(szClean, " tells you, ")))
 		{
 			strncpy_s(Arg1, szClean, (DWORD)(pDest - szClean));
-			strcpy_s(Arg2, pDest + 13);
+			strcpy_s(Arg2, pDest + 12);
 			Arg2[strlen(Arg2) - 1] = 0;
 			AddEvent(EVENT_CHAT, "tell", Arg1, Arg2, NULL);
 		}
 		else if ((CHATEVENT(CHAT_TELL)) && (pDest = strstr(szClean, " told you, ")))
 		{
 			strncpy_s(Arg1, szClean, (DWORD)(pDest - szClean));
-			strcpy_s(Arg2, pDest + 12);
+			strcpy_s(Arg2, pDest + 11);
 			Arg2[strlen(Arg2) - 1] = 0;
 			AddEvent(EVENT_CHAT, "tell", Arg1, Arg2, NULL);
 		}
@@ -819,14 +819,14 @@ void CheckChatForEvent(const char* szMsg)
 		else if ((CHATEVENT(CHAT_SHOUT)) && (pDest = strstr(szClean, " shouts, ")))
 		{
 			strncpy_s(Arg1, szClean, (DWORD)(pDest - szClean));
-			strcpy_s(Arg2, pDest + 10);
+			strcpy_s(Arg2, pDest + 9);
 			Arg2[strlen(Arg2) - 1] = 0;
 			AddEvent(EVENT_CHAT, "shout", Arg1, Arg2, NULL);
 		}
 		else if ((CHATEVENT(CHAT_AUC)) && (pDest = strstr(szClean, " auctions, ")))
 		{
 			strncpy_s(Arg1, szClean, (DWORD)(pDest - szClean));
-			strcpy_s(Arg2, pDest + 12);
+			strcpy_s(Arg2, pDest + 11);
 			Arg2[strlen(Arg2) - 1] = 0;
 			AddEvent(EVENT_CHAT, "auc", Arg1, Arg2, NULL);
 		}
@@ -840,7 +840,7 @@ void CheckChatForEvent(const char* szMsg)
 		else if ((CHATEVENT(CHAT_SAY)) && (pDest = strstr(szClean, " says, ")))
 		{
 			strncpy_s(Arg1, szClean, (DWORD)(pDest - szClean));
-			strcpy_s(Arg2, pDest + 8);
+			strcpy_s(Arg2, pDest + 7);
 			Arg2[strlen(Arg2) - 1] = 0;
 			AddEvent(EVENT_CHAT, "say", Arg1, Arg2, NULL);
 		}

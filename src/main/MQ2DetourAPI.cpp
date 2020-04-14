@@ -187,17 +187,6 @@ void RemoveDetour(DWORD address)
 					DebugSpewAlways("DetourRemove %s (%s [0x%08X])", detour->Name, szFilename, address - myaddress + 0x10000000);
 
 				DetourRemove(detour->pfTrampoline, detour->pfDetour);
-
-				// sometimes its useful to add and then remove a detour and then add it again... and so on...
-				// the following 2 lines fixes a detours "bug"
-				// I don't know if this was MS intention, but if we don't set these to nop
-				// we cant detour the same function more than once... so dont remove these.
-
-				DWORD oldperm = 0, tmp;
-				VirtualProtectEx(GetCurrentProcess(), (void*)detour->pfTrampoline, 2, PAGE_EXECUTE_READWRITE, &oldperm);
-				detour->pfTrampoline[0] = 0x90;
-				detour->pfTrampoline[1] = 0x90;
-				VirtualProtectEx(GetCurrentProcess(), (void*)detour->pfTrampoline, 2, oldperm, &tmp);
 			}
 
 			if (detour->pLast)

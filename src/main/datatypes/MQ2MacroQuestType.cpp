@@ -50,7 +50,7 @@ bool MQ2MacroQuestType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 {
 	MQTypeMember* pMember = MQ2MacroQuestType::FindMember(Member);
 	if (!pMember)
-		return pEverQuestType->GetMember(*static_cast<MQVarPtr*>(VarPtr.Ptr), Member, Index, Dest);
+		return pEverQuestType->GetMember(VarPtr, Member, Index, Dest);
 
 	switch (static_cast<MacroQuestMembers>(pMember->ID))
 	{

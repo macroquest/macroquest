@@ -296,6 +296,8 @@ bool MQ2GroundType::dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 				return true;
 			}
 		}
+		
+		return false;
 	}
 	else if (auto ground = CurrentGroundSpawn()) // they already did /itemtarget so return that.
 	{
