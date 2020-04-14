@@ -3221,7 +3221,6 @@ static void SpellsDebugPanel()
 	if (!pcProfile)
 	{
 		ImGui::TextColored(ImColor(255, 0, 0), "You must be in game to use this");
-		ImGui::End();
 		return;
 	}
 

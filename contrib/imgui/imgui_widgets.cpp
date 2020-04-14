@@ -1,4 +1,4 @@
-// dear imgui, v1.75 WIP
+// dear imgui, v1.76 WIP
 // (widgets code)
 
 /*
@@ -34,6 +34,8 @@ Index of this file:
 #endif
 
 #include "imgui.h"
+#ifndef IMGUI_DISABLE
+
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
@@ -48,8 +50,11 @@ Index of this file:
 
 // Visual Studio warnings
 #ifdef _MSC_VER
-#pragma warning (disable: 4127) // condition expression is constant
-#pragma warning (disable: 4996) // 'This function or variable may be unsafe': strcpy, strdup, sprintf, vsnprintf, sscanf, fopen
+#pragma warning (disable: 4127)     // condition expression is constant
+#pragma warning (disable: 4996)     // 'This function or variable may be unsafe': strcpy, strdup, sprintf, vsnprintf, sscanf, fopen
+#if defined(_MSC_VER) && _MSC_VER >= 1922 // MSVC 2019 16.2 or later
+#pragma warning (disable: 5054)     // operator '|': deprecated between enumerations of different types
+#endif
 #endif
 
 // Clang/GCC warnings with -Weverything
@@ -63,6 +68,9 @@ Index of this file:
 #endif
 #if __has_warning("-Wdouble-promotion")
 #pragma clang diagnostic ignored "-Wdouble-promotion"       // warning: implicit conversion from 'float' to 'double' when passing argument to function  // using printf() is a misery with this as C++ va_arg ellipsis changes float to double.
+#endif
+#if __has_warning("-Wdeprecated-enum-enum-conversion")
+#pragma clang diagnostic ignored "-Wdeprecated-enum-enum-conversion" // warning: bitwise operation between different enumeration types ('XXXFlags_' and 'XXXFlagsPrivate_') is deprecated
 #endif
 #elif defined(__GNUC__)
 #pragma GCC diagnostic ignored "-Wpragmas"                  // warning: unknown option after '#pragma GCC diagnostic' kind
@@ -462,9 +470,13 @@ bool ImGui::ButtonBehavior(const ImRect& bb, ImGuiID id, bool* out_hovered, bool
         return false;
     }
 
-    // Default behavior requires click+release on same spot
+    // Default only reacts to left mouse button
+    if ((flags & ImGuiButtonFlags_MouseButtonMask_) == 0)
+        flags |= ImGuiButtonFlags_MouseButtonDefault_;
+
+    // Default behavior requires click + release inside bounding box
     if ((flags & ImGuiButtonFlags_PressedOnMask_) == 0)
-        flags |= ImGuiButtonFlags_PressedOnClickRelease;
+        flags |= ImGuiButtonFlags_PressedOnDefault_;
 
     ImGuiWindow* backup_hovered_window = g.HoveredWindow;
     const bool flatten_hovered_children = (flags & ImGuiButtonFlags_FlattenChildren) && g.HoveredRootWindow == window->RootWindow;
@@ -503,38 +515,55 @@ bool ImGui::ButtonBehavior(const ImRect& bb, ImGuiID id, bool* out_hovered, bool
     if (hovered && (flags & ImGuiButtonFlags_AllowItemOverlap) && (g.HoveredIdPreviousFrame != id && g.HoveredIdPreviousFrame != 0))
         hovered = false;
 
-    // Mouse
+    // Mouse handling
     if (hovered)
     {
         if (!(flags & ImGuiButtonFlags_NoKeyModifiers) || (!g.IO.KeyCtrl && !g.IO.KeyShift && !g.IO.KeyAlt))
         {
-            if ((flags & (ImGuiButtonFlags_PressedOnClickRelease | ImGuiButtonFlags_PressedOnClickReleaseAnywhere)) && g.IO.MouseClicked[0])
+            // Poll buttons
+            int mouse_button_clicked = -1;
+            int mouse_button_released = -1;
+            if ((flags & ImGuiButtonFlags_MouseButtonLeft) && g.IO.MouseClicked[0])         { mouse_button_clicked = 0; }
+            else if ((flags & ImGuiButtonFlags_MouseButtonRight) && g.IO.MouseClicked[1])   { mouse_button_clicked = 1; }
+            else if ((flags & ImGuiButtonFlags_MouseButtonMiddle) && g.IO.MouseClicked[2])  { mouse_button_clicked = 2; }
+            if ((flags & ImGuiButtonFlags_MouseButtonLeft) && g.IO.MouseReleased[0])        { mouse_button_released = 0; }
+            else if ((flags & ImGuiButtonFlags_MouseButtonRight) && g.IO.MouseReleased[1])  { mouse_button_released = 1; }
+            else if ((flags & ImGuiButtonFlags_MouseButtonMiddle) && g.IO.MouseReleased[2]) { mouse_button_released = 2; }
+
+            if (mouse_button_clicked != -1 && g.ActiveId != id)
             {
-                SetActiveID(id, window);
-                if (!(flags & ImGuiButtonFlags_NoNavFocus))
-                    SetFocusID(id, window);
-                FocusWindow(window);
+                if (flags & (ImGuiButtonFlags_PressedOnClickRelease | ImGuiButtonFlags_PressedOnClickReleaseAnywhere))
+                {
+                    SetActiveID(id, window);
+                    g.ActiveIdMouseButton = mouse_button_clicked;
+                    if (!(flags & ImGuiButtonFlags_NoNavFocus))
+                        SetFocusID(id, window);
+                    FocusWindow(window);
+                }
+                if ((flags & ImGuiButtonFlags_PressedOnClick) || ((flags & ImGuiButtonFlags_PressedOnDoubleClick) && g.IO.MouseDoubleClicked[mouse_button_clicked]))
+                {
+                    pressed = true;
+                    if (flags & ImGuiButtonFlags_NoHoldingActiveId)
+                        ClearActiveID();
+                    else
+                        SetActiveID(id, window); // Hold on ID
+                    g.ActiveIdMouseButton = mouse_button_clicked;
+                    FocusWindow(window);
+                }
             }
-            if (((flags & ImGuiButtonFlags_PressedOnClick) && g.IO.MouseClicked[0]) || ((flags & ImGuiButtonFlags_PressedOnDoubleClick) && g.IO.MouseDoubleClicked[0]))
+            if ((flags & ImGuiButtonFlags_PressedOnRelease) && mouse_button_released != -1)
             {
-                pressed = true;
-                if (flags & ImGuiButtonFlags_NoHoldingActiveID)
-                    ClearActiveID();
-                else
-                    SetActiveID(id, window); // Hold on ID
-                FocusWindow(window);
-            }
-            if ((flags & ImGuiButtonFlags_PressedOnRelease) && g.IO.MouseReleased[0])
-            {
-                if (!((flags & ImGuiButtonFlags_Repeat) && g.IO.MouseDownDurationPrev[0] >= g.IO.KeyRepeatDelay))  // Repeat mode trumps <on release>
+                // Repeat mode trumps on release behavior
+                if (!((flags & ImGuiButtonFlags_Repeat) && g.IO.MouseDownDurationPrev[mouse_button_released] >= g.IO.KeyRepeatDelay))
                     pressed = true;
                 ClearActiveID();
             }
 
             // 'Repeat' mode acts when held regardless of _PressedOn flags (see table above).
             // Relies on repeat logic of IsMouseClicked() but we may as well do it ourselves if we end up exposing finer RepeatDelay/RepeatRate settings.
-            if ((flags & ImGuiButtonFlags_Repeat) && g.ActiveId == id && g.IO.MouseDownDuration[0] > 0.0f && IsMouseClicked(0, true))
-                pressed = true;
+            if (g.ActiveId == id && (flags & ImGuiButtonFlags_Repeat))
+                if (g.IO.MouseDownDuration[g.ActiveIdMouseButton] > 0.0f && IsMouseClicked(g.ActiveIdMouseButton, true))
+                    pressed = true;
         }
 
         if (pressed)
@@ -544,9 +573,8 @@ bool ImGui::ButtonBehavior(const ImRect& bb, ImGuiID id, bool* out_hovered, bool
     // Gamepad/Keyboard navigation
     // We report navigated item as hovered but we don't set g.HoveredId to not interfere with mouse.
     if (g.NavId == id && !g.NavDisableHighlight && g.NavDisableMouseHover && (g.ActiveId == 0 || g.ActiveId == id || g.ActiveId == window->MoveId))
-        if (!(flags & ImGuiButtonFlags_NoHoveredOnNav))
+        if (!(flags & ImGuiButtonFlags_NoHoveredOnFocus))
             hovered = true;
-
     if (g.NavActivateDownId == id)
     {
         bool nav_activated_by_code = (g.NavActivateId == id);
@@ -566,24 +594,25 @@ bool ImGui::ButtonBehavior(const ImRect& bb, ImGuiID id, bool* out_hovered, bool
     bool held = false;
     if (g.ActiveId == id)
     {
-        if (pressed)
-            g.ActiveIdHasBeenPressedBefore = true;
         if (g.ActiveIdSource == ImGuiInputSource_Mouse)
         {
             if (g.ActiveIdIsJustActivated)
                 g.ActiveIdClickOffset = g.IO.MousePos - bb.Min;
-            if (g.IO.MouseDown[0])
+
+            const int mouse_button = g.ActiveIdMouseButton;
+            IM_ASSERT(mouse_button >= 0 && mouse_button < ImGuiMouseButton_COUNT);
+            if (g.IO.MouseDown[mouse_button])
             {
                 held = true;
             }
             else
             {
-                const bool release_in = hovered && (flags & ImGuiButtonFlags_PressedOnClickRelease) != 0;
-                const bool release_anywhere = (flags & ImGuiButtonFlags_PressedOnClickReleaseAnywhere) != 0;
+                bool release_in = hovered && (flags & ImGuiButtonFlags_PressedOnClickRelease) != 0;
+                bool release_anywhere = (flags & ImGuiButtonFlags_PressedOnClickReleaseAnywhere) != 0;
                 if ((release_in || release_anywhere) && !g.DragDropActive)
                 {
-                    bool is_double_click_release = (flags & ImGuiButtonFlags_PressedOnDoubleClick) && g.IO.MouseDownWasDoubleClick[0];
-                    bool is_repeating_already = (flags & ImGuiButtonFlags_Repeat) && g.IO.MouseDownDurationPrev[0] >= g.IO.KeyRepeatDelay; // Repeat mode trumps <on release>
+                    bool is_double_click_release = (flags & ImGuiButtonFlags_PressedOnDoubleClick) && g.IO.MouseDownWasDoubleClick[mouse_button];
+                    bool is_repeating_already = (flags & ImGuiButtonFlags_Repeat) && g.IO.MouseDownDurationPrev[mouse_button] >= g.IO.KeyRepeatDelay; // Repeat mode trumps <on release>
                     if (!is_double_click_release && !is_repeating_already)
                         pressed = true;
                 }
@@ -597,6 +626,8 @@ bool ImGui::ButtonBehavior(const ImRect& bb, ImGuiID id, bool* out_hovered, bool
             if (g.NavActivateDownId != id)
                 ClearActiveID();
         }
+        if (pressed)
+            g.ActiveIdHasBeenPressedBefore = true;
     }
 
     if (out_hovered) *out_hovered = hovered;
@@ -718,7 +749,7 @@ bool ImGui::ArrowButtonEx(const char* str_id, ImGuiDir dir, ImVec2 size, ImGuiBu
 bool ImGui::ArrowButton(const char* str_id, ImGuiDir dir)
 {
     float sz = GetFrameHeight();
-    return ArrowButtonEx(str_id, dir, ImVec2(sz, sz), 0);
+    return ArrowButtonEx(str_id, dir, ImVec2(sz, sz), ImGuiButtonFlags_None);
 }
 
 // Button to close a window
@@ -1021,7 +1052,7 @@ bool ImGui::Checkbox(const char* label, bool* v)
     else if (*v)
     {
         const float pad = ImMax(1.0f, IM_FLOOR(square_sz / 6.0f));
-        RenderCheckMark(check_bb.Min + ImVec2(pad, pad), check_col, square_sz - pad*2.0f);
+        RenderCheckMark(window->DrawList, check_bb.Min + ImVec2(pad, pad), check_col, square_sz - pad*2.0f);
     }
 
     if (g.LogEnabled)
@@ -2089,7 +2120,7 @@ bool ImGui::DragScalar(const char* label, ImGuiDataType data_type, void* p_data,
 
     // Tabbing or CTRL-clicking on Drag turns it into an input box
     const bool hovered = ItemHoverable(frame_bb, id);
-    bool temp_input_is_active = TempInputTextIsActive(id);
+    bool temp_input_is_active = TempInputIsActive(id);
     bool temp_input_start = false;
     if (!temp_input_is_active)
     {
@@ -2110,7 +2141,7 @@ bool ImGui::DragScalar(const char* label, ImGuiDataType data_type, void* p_data,
         }
     }
     if (temp_input_is_active || temp_input_start)
-        return TempInputTextScalar(frame_bb, id, label, data_type, p_data, format);
+        return TempInputScalar(frame_bb, id, label, data_type, p_data, format);
 
     // Draw frame
     const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : g.HoveredId == id ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
@@ -2541,7 +2572,7 @@ bool ImGui::SliderScalar(const char* label, ImGuiDataType data_type, void* p_dat
 
     // Tabbing or CTRL-clicking on Slider turns it into an input box
     const bool hovered = ItemHoverable(frame_bb, id);
-    bool temp_input_is_active = TempInputTextIsActive(id);
+    bool temp_input_is_active = TempInputIsActive(id);
     bool temp_input_start = false;
     if (!temp_input_is_active)
     {
@@ -2561,7 +2592,7 @@ bool ImGui::SliderScalar(const char* label, ImGuiDataType data_type, void* p_dat
         }
     }
     if (temp_input_is_active || temp_input_start)
-        return TempInputTextScalar(frame_bb, id, label, data_type, p_data, format);
+        return TempInputScalar(frame_bb, id, label, data_type, p_data, format);
 
     // Draw frame
     const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : g.HoveredId == id ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
@@ -2840,15 +2871,29 @@ int ImParseFormatPrecision(const char* fmt, int default_precision)
 
 // Create text input in place of another active widget (e.g. used when doing a CTRL+Click on drag/slider widgets)
 // FIXME: Facilitate using this in variety of other situations.
-bool ImGui::TempInputTextScalar(const ImRect& bb, ImGuiID id, const char* label, ImGuiDataType data_type, void* p_data, const char* format)
+bool ImGui::TempInputText(const ImRect& bb, ImGuiID id, const char* label, char* buf, int buf_size, ImGuiInputTextFlags flags)
 {
-    ImGuiContext& g = *GImGui;
-
     // On the first frame, g.TempInputTextId == 0, then on subsequent frames it becomes == id.
     // We clear ActiveID on the first frame to allow the InputText() taking it back.
-    const bool init = (g.TempInputTextId != id);
+    ImGuiContext& g = *GImGui;
+    const bool init = (g.TempInputId != id);
     if (init)
         ClearActiveID();
+
+    g.CurrentWindow->DC.CursorPos = bb.Min;
+    bool value_changed = InputTextEx(label, NULL, buf, buf_size, bb.GetSize(), flags);
+    if (init)
+    {
+        // First frame we started displaying the InputText widget, we expect it to take the active id.
+        IM_ASSERT(g.ActiveId == id);
+        g.TempInputId = g.ActiveId;
+    }
+    return value_changed;
+}
+
+bool ImGui::TempInputScalar(const ImRect& bb, ImGuiID id, const char* label, ImGuiDataType data_type, void* p_data, const char* format)
+{
+    ImGuiContext& g = *GImGui;
 
     char fmt_buf[32];
     char data_buf[32];
@@ -2856,16 +2901,9 @@ bool ImGui::TempInputTextScalar(const ImRect& bb, ImGuiID id, const char* label,
     DataTypeFormatString(data_buf, IM_ARRAYSIZE(data_buf), data_type, p_data, format);
     ImStrTrimBlanks(data_buf);
 
-    g.CurrentWindow->DC.CursorPos = bb.Min;
     ImGuiInputTextFlags flags = ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_NoMarkEdited;
     flags |= ((data_type == ImGuiDataType_Float || data_type == ImGuiDataType_Double) ? ImGuiInputTextFlags_CharsScientific : ImGuiInputTextFlags_CharsDecimal);
-    bool value_changed = InputTextEx(label, NULL, data_buf, IM_ARRAYSIZE(data_buf), bb.GetSize(), flags);
-    if (init)
-    {
-        // First frame we started displaying the InputText widget, we expect it to take the active id.
-        IM_ASSERT(g.ActiveId == id);
-        g.TempInputTextId = g.ActiveId;
-    }
+    bool value_changed = TempInputText(bb, id, label, data_buf, IM_ARRAYSIZE(data_buf), flags);
     if (value_changed)
     {
         value_changed = DataTypeApplyOpFromText(data_buf, g.InputTextState.InitialTextA.Data, data_type, p_data, NULL);
@@ -3253,7 +3291,24 @@ static bool STB_TEXTEDIT_INSERTCHARS(STB_TEXTEDIT_STRING* obj, int pos, const Im
 #define STB_TEXTEDIT_IMPLEMENTATION
 #include "imstb_textedit.h"
 
+// stb_textedit internally allows for a single undo record to do addition and deletion, but somehow, calling
+// the stb_textedit_paste() function creates two separate records, so we perform it manually. (FIXME: Report to nothings/stb?)
+static void stb_textedit_replace(STB_TEXTEDIT_STRING* str, STB_TexteditState* state, const STB_TEXTEDIT_CHARTYPE* text, int text_len)
+{
+    stb_text_makeundo_replace(str, state, 0, str->CurLenW, text_len);
+    ImStb::STB_TEXTEDIT_DELETECHARS(str, 0, str->CurLenW);
+    if (text_len <= 0)
+        return;
+    if (ImStb::STB_TEXTEDIT_INSERTCHARS(str, 0, text, text_len))
+    {
+        state->cursor = text_len;
+        state->has_preferred_x = 0;
+        return;
+    }
+    IM_ASSERT(0); // Failed to insert character, normally shouldn't happen because of how we currently use stb_textedit_replace()
 }
+
+} // namespace ImStb
 
 void ImGuiInputTextState::OnKeyPressed(int key)
 {
@@ -3440,14 +3495,23 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
             EndGroup();
             return false;
         }
-        if (!BeginChildFrame(id, frame_bb.GetSize()))
+
+        // We reproduce the contents of BeginChildFrame() in order to provide 'label' so our window internal data are easier to read/debug.
+        PushStyleColor(ImGuiCol_ChildBg, style.Colors[ImGuiCol_FrameBg]);
+        PushStyleVar(ImGuiStyleVar_ChildRounding, style.FrameRounding);
+        PushStyleVar(ImGuiStyleVar_ChildBorderSize, style.FrameBorderSize);
+        PushStyleVar(ImGuiStyleVar_WindowPadding, style.FramePadding);
+        bool child_visible = BeginChildEx(label, id, frame_bb.GetSize(), true, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysUseWindowPadding);
+        PopStyleVar(3);
+        PopStyleColor();
+        if (!child_visible)
         {
-            EndChildFrame();
+            EndChild();
             EndGroup();
             return false;
         }
         draw_window = g.CurrentWindow; // Child window
-        draw_window->DC.NavLayerActiveMaskNext |= draw_window->DC.NavLayerCurrentMask; // This is to ensure that EndChild() will display a navigation highlight
+        draw_window->DC.NavLayerActiveMaskNext |= draw_window->DC.NavLayerCurrentMask; // This is to ensure that EndChild() will display a navigation highlight so we can "enter" into it.
         inner_size.x -= draw_window->ScrollbarSizes.x;
     }
     else
@@ -3460,13 +3524,11 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
     if (hovered)
         g.MouseCursor = ImGuiMouseCursor_TextInput;
 
-    // NB: we are only allowed to access 'edit_state' if we are the active widget.
-    ImGuiInputTextState* state = NULL;
-    if (g.InputTextState.ID == id)
-        state = &g.InputTextState;
+    // We are only allowed to access the state if we are already the active widget.
+    ImGuiInputTextState* state = GetInputTextState(id);
 
     const bool focus_requested = FocusableItemRegister(window, id);
-    const bool focus_requested_by_code = focus_requested && (g.FocusRequestCurrWindow == window && g.FocusRequestCurrCounterAll == window->DC.FocusCounterAll);
+    const bool focus_requested_by_code = focus_requested && (g.FocusRequestCurrWindow == window && g.FocusRequestCurrCounterRegular == window->DC.FocusCounterRegular);
     const bool focus_requested_by_tab = focus_requested && !focus_requested_by_code;
 
     const bool user_clicked = hovered && io.MouseClicked[0];
@@ -3674,14 +3736,16 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
     if (g.ActiveId == id && !g.ActiveIdIsJustActivated && !clear_active_id)
     {
         IM_ASSERT(state != NULL);
+        IM_ASSERT(io.KeyMods == GetMergedKeyModFlags() && "Mismatching io.KeyCtrl/io.KeyShift/io.KeyAlt/io.KeySuper vs io.KeyMods"); // We rarely do this check, but if anything let's do it here.
+
         const int k_mask = (io.KeyShift ? STB_TEXTEDIT_K_SHIFT : 0);
         const bool is_osx = io.ConfigMacOSXBehaviors;
-        const bool is_shortcut_key = (is_osx ? (io.KeySuper && !io.KeyCtrl) : (io.KeyCtrl && !io.KeySuper)) && !io.KeyAlt && !io.KeyShift; // OS X style: Shortcuts using Cmd/Super instead of Ctrl
-        const bool is_osx_shift_shortcut = is_osx && io.KeySuper && io.KeyShift && !io.KeyCtrl && !io.KeyAlt;
+        const bool is_osx_shift_shortcut = is_osx && (io.KeyMods == (ImGuiKeyModFlags_Super | ImGuiKeyModFlags_Shift));
         const bool is_wordmove_key_down = is_osx ? io.KeyAlt : io.KeyCtrl;                     // OS X style: Text editing cursor movement using Alt instead of Ctrl
         const bool is_startend_key_down = is_osx && io.KeySuper && !io.KeyCtrl && !io.KeyAlt;  // OS X style: Line/Text Start and End using Cmd+Arrows instead of Home/End
-        const bool is_ctrl_key_only = io.KeyCtrl && !io.KeyShift && !io.KeyAlt && !io.KeySuper;
-        const bool is_shift_key_only = io.KeyShift && !io.KeyCtrl && !io.KeyAlt && !io.KeySuper;
+        const bool is_ctrl_key_only = (io.KeyMods == ImGuiKeyModFlags_Ctrl);
+        const bool is_shift_key_only = (io.KeyMods == ImGuiKeyModFlags_Shift);
+        const bool is_shortcut_key = g.IO.ConfigMacOSXBehaviors ? (io.KeyMods == ImGuiKeyModFlags_Super) : (io.KeyMods == ImGuiKeyModFlags_Ctrl);
 
         const bool is_cut   = ((is_shortcut_key && IsKeyPressedMap(ImGuiKey_X)) || (is_shift_key_only && IsKeyPressedMap(ImGuiKey_Delete))) && !is_readonly && !is_password && (!is_multiline || state->HasSelection());
         const bool is_copy  = ((is_shortcut_key && IsKeyPressedMap(ImGuiKey_C)) || (is_ctrl_key_only  && IsKeyPressedMap(ImGuiKey_Insert))) && !is_password && (!is_multiline || state->HasSelection());
@@ -3799,13 +3863,22 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
             // Restore initial value. Only return true if restoring to the initial value changes the current buffer contents.
             if (!is_readonly && strcmp(buf, state->InitialTextA.Data) != 0)
             {
+                // Push records into the undo stack so we can CTRL+Z the revert operation itself
                 apply_new_text = state->InitialTextA.Data;
                 apply_new_text_length = state->InitialTextA.Size - 1;
+                ImVector<ImWchar> w_text;
+                if (apply_new_text_length > 0)
+                {
+                    w_text.resize(ImTextCountCharsFromUtf8(apply_new_text, apply_new_text + apply_new_text_length) + 1);
+                    ImTextStrFromUtf8(w_text.Data, w_text.Size, apply_new_text, apply_new_text + apply_new_text_length);
+                }
+                stb_textedit_replace(state, &state->Stb, w_text.Data, (apply_new_text_length > 0) ? (w_text.Size - 1) : 0);
             }
         }
 
         // When using 'ImGuiInputTextFlags_EnterReturnsTrue' as a special case we reapply the live buffer back to the input buffer before clearing ActiveId, even though strictly speaking it wasn't modified on this frame.
-        // If we didn't do that, code like InputInt() with ImGuiInputTextFlags_EnterReturnsTrue would fail. Also this allows the user to use InputText() with ImGuiInputTextFlags_EnterReturnsTrue without maintaining any user-side storage.
+        // If we didn't do that, code like InputInt() with ImGuiInputTextFlags_EnterReturnsTrue would fail.
+        // This also allows the user to use InputText() with ImGuiInputTextFlags_EnterReturnsTrue without maintaining any user-side storage (please note that if you use this property along ImGuiInputTextFlags_CallbackResize you can end up with your temporary string object unnecessarily allocating once a frame, either store your string data, either if you don't then don't use ImGuiInputTextFlags_CallbackResize).
         bool apply_edit_back_to_user_buffer = !cancel_edit || (enter_pressed && (flags & ImGuiInputTextFlags_EnterReturnsTrue) != 0);
         if (apply_edit_back_to_user_buffer)
         {
@@ -3899,8 +3972,11 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
         // Copy result to user buffer
         if (apply_new_text)
         {
+            // We cannot test for 'backup_current_text_length != apply_new_text_length' here because we have no guarantee that the size
+            // of our owned buffer matches the size of the string object held by the user, and by design we allow InputText() to be used
+            // without any storage on user's side.
             IM_ASSERT(apply_new_text_length >= 0);
-            if (backup_current_text_length != apply_new_text_length && is_resizable)
+            if (is_resizable)
             {
                 ImGuiInputTextCallbackData callback_data;
                 callback_data.EventFlag = ImGuiInputTextFlags_CallbackResize;
@@ -3915,6 +3991,7 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
                 apply_new_text_length = ImMin(callback_data.BufTextLen, buf_size - 1);
                 IM_ASSERT(apply_new_text_length <= buf_size);
             }
+            //IMGUI_DEBUG_LOG("InputText(\"%s\"): apply_new_text length %d\n", label, apply_new_text_length);
 
             // If the underlying buffer resize was denied or not carried to the next frame, apply_new_text_length+1 may be >= buf_size.
             ImStrncpy(buf, apply_new_text, ImMin(apply_new_text_length + 1, buf_size));
@@ -4136,7 +4213,7 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
     if (is_multiline)
     {
         Dummy(text_size + ImVec2(0.0f, g.FontSize)); // Always add room to scroll an extra line
-        EndChildFrame();
+        EndChild();
         EndGroup();
     }
 
@@ -4427,52 +4504,6 @@ bool ImGui::ColorPicker3(const char* label, float col[3], ImGuiColorEditFlags fl
         return false;
     col[0] = col4[0]; col[1] = col4[1]; col[2] = col4[2];
     return true;
-}
-
-static inline ImU32 ImAlphaBlendColor(ImU32 col_a, ImU32 col_b)
-{
-    float t = ((col_b >> IM_COL32_A_SHIFT) & 0xFF) / 255.f;
-    int r = ImLerp((int)(col_a >> IM_COL32_R_SHIFT) & 0xFF, (int)(col_b >> IM_COL32_R_SHIFT) & 0xFF, t);
-    int g = ImLerp((int)(col_a >> IM_COL32_G_SHIFT) & 0xFF, (int)(col_b >> IM_COL32_G_SHIFT) & 0xFF, t);
-    int b = ImLerp((int)(col_a >> IM_COL32_B_SHIFT) & 0xFF, (int)(col_b >> IM_COL32_B_SHIFT) & 0xFF, t);
-    return IM_COL32(r, g, b, 0xFF);
-}
-
-// Helper for ColorPicker4()
-// NB: This is rather brittle and will show artifact when rounding this enabled if rounded corners overlap multiple cells. Caller currently responsible for avoiding that.
-// I spent a non reasonable amount of time trying to getting this right for ColorButton with rounding+anti-aliasing+ImGuiColorEditFlags_HalfAlphaPreview flag + various grid sizes and offsets, and eventually gave up... probably more reasonable to disable rounding alltogether.
-void ImGui::RenderColorRectWithAlphaCheckerboard(ImVec2 p_min, ImVec2 p_max, ImU32 col, float grid_step, ImVec2 grid_off, float rounding, int rounding_corners_flags)
-{
-    ImGuiWindow* window = GetCurrentWindow();
-    if (((col & IM_COL32_A_MASK) >> IM_COL32_A_SHIFT) < 0xFF)
-    {
-        ImU32 col_bg1 = GetColorU32(ImAlphaBlendColor(IM_COL32(204,204,204,255), col));
-        ImU32 col_bg2 = GetColorU32(ImAlphaBlendColor(IM_COL32(128,128,128,255), col));
-        window->DrawList->AddRectFilled(p_min, p_max, col_bg1, rounding, rounding_corners_flags);
-
-        int yi = 0;
-        for (float y = p_min.y + grid_off.y; y < p_max.y; y += grid_step, yi++)
-        {
-            float y1 = ImClamp(y, p_min.y, p_max.y), y2 = ImMin(y + grid_step, p_max.y);
-            if (y2 <= y1)
-                continue;
-            for (float x = p_min.x + grid_off.x + (yi & 1) * grid_step; x < p_max.x; x += grid_step * 2.0f)
-            {
-                float x1 = ImClamp(x, p_min.x, p_max.x), x2 = ImMin(x + grid_step, p_max.x);
-                if (x2 <= x1)
-                    continue;
-                int rounding_corners_flags_cell = 0;
-                if (y1 <= p_min.y) { if (x1 <= p_min.x) rounding_corners_flags_cell |= ImDrawCornerFlags_TopLeft; if (x2 >= p_max.x) rounding_corners_flags_cell |= ImDrawCornerFlags_TopRight; }
-                if (y2 >= p_max.y) { if (x1 <= p_min.x) rounding_corners_flags_cell |= ImDrawCornerFlags_BotLeft; if (x2 >= p_max.x) rounding_corners_flags_cell |= ImDrawCornerFlags_BotRight; }
-                rounding_corners_flags_cell &= rounding_corners_flags;
-                window->DrawList->AddRectFilled(ImVec2(x1,y1), ImVec2(x2,y2), col_bg2, rounding_corners_flags_cell ? rounding : 0.0f, rounding_corners_flags_cell);
-            }
-        }
-    }
-    else
-    {
-        window->DrawList->AddRectFilled(p_min, p_max, col, rounding, rounding_corners_flags);
-    }
 }
 
 // Helper for ColorPicker4()
@@ -4845,7 +4876,7 @@ bool ImGui::ColorPicker4(const char* label, float col[4], ImGuiColorEditFlags fl
     {
         float alpha = ImSaturate(col[3]);
         ImRect bar1_bb(bar1_pos_x, picker_pos.y, bar1_pos_x + bars_width, picker_pos.y + sv_picker_size);
-        RenderColorRectWithAlphaCheckerboard(bar1_bb.Min, bar1_bb.Max, 0, bar1_bb.GetWidth() / 2.0f, ImVec2(0.0f, 0.0f));
+        RenderColorRectWithAlphaCheckerboard(draw_list, bar1_bb.Min, bar1_bb.Max, 0, bar1_bb.GetWidth() / 2.0f, ImVec2(0.0f, 0.0f));
         draw_list->AddRectFilledMultiColor(bar1_bb.Min, bar1_bb.Max, user_col32_striped_of_alpha, user_col32_striped_of_alpha, user_col32_striped_of_alpha & ~IM_COL32_A_MASK, user_col32_striped_of_alpha & ~IM_COL32_A_MASK);
         float bar1_line_y = IM_ROUND(picker_pos.y + (1.0f - alpha) * sv_picker_size);
         RenderFrameBorder(bar1_bb.Min, bar1_bb.Max, 0.0f);
@@ -4900,12 +4931,16 @@ bool ImGui::ColorButton(const char* desc_id, const ImVec4& col, ImGuiColorEditFl
     float grid_step = ImMin(size.x, size.y) / 2.99f;
     float rounding = ImMin(g.Style.FrameRounding, grid_step * 0.5f);
     ImRect bb_inner = bb;
-    float off = -0.75f; // The border (using Col_FrameBg) tends to look off when color is near-opaque and rounding is enabled. This offset seemed like a good middle ground to reduce those artifacts.
-    bb_inner.Expand(off);
+    float off = 0.0f;
+    if ((flags & ImGuiColorEditFlags_NoBorder) == 0)
+    {
+        off = -0.75f; // The border (using Col_FrameBg) tends to look off when color is near-opaque and rounding is enabled. This offset seemed like a good middle ground to reduce those artifacts.
+        bb_inner.Expand(off);
+    }
     if ((flags & ImGuiColorEditFlags_AlphaPreviewHalf) && col_rgb.w < 1.0f)
     {
         float mid_x = IM_ROUND((bb_inner.Min.x + bb_inner.Max.x) * 0.5f);
-        RenderColorRectWithAlphaCheckerboard(ImVec2(bb_inner.Min.x + grid_step, bb_inner.Min.y), bb_inner.Max, GetColorU32(col_rgb), grid_step, ImVec2(-grid_step + off, off), rounding, ImDrawCornerFlags_TopRight| ImDrawCornerFlags_BotRight);
+        RenderColorRectWithAlphaCheckerboard(window->DrawList, ImVec2(bb_inner.Min.x + grid_step, bb_inner.Min.y), bb_inner.Max, GetColorU32(col_rgb), grid_step, ImVec2(-grid_step + off, off), rounding, ImDrawCornerFlags_TopRight| ImDrawCornerFlags_BotRight);
         window->DrawList->AddRectFilled(bb_inner.Min, ImVec2(mid_x, bb_inner.Max.y), GetColorU32(col_rgb_without_alpha), rounding, ImDrawCornerFlags_TopLeft|ImDrawCornerFlags_BotLeft);
     }
     else
@@ -4913,15 +4948,18 @@ bool ImGui::ColorButton(const char* desc_id, const ImVec4& col, ImGuiColorEditFl
         // Because GetColorU32() multiplies by the global style Alpha and we don't want to display a checkerboard if the source code had no alpha
         ImVec4 col_source = (flags & ImGuiColorEditFlags_AlphaPreview) ? col_rgb : col_rgb_without_alpha;
         if (col_source.w < 1.0f)
-            RenderColorRectWithAlphaCheckerboard(bb_inner.Min, bb_inner.Max, GetColorU32(col_source), grid_step, ImVec2(off, off), rounding);
+            RenderColorRectWithAlphaCheckerboard(window->DrawList, bb_inner.Min, bb_inner.Max, GetColorU32(col_source), grid_step, ImVec2(off, off), rounding);
         else
             window->DrawList->AddRectFilled(bb_inner.Min, bb_inner.Max, GetColorU32(col_source), rounding, ImDrawCornerFlags_All);
     }
     RenderNavHighlight(bb, id);
-    if (g.Style.FrameBorderSize > 0.0f)
-        RenderFrameBorder(bb.Min, bb.Max, rounding);
-    else
-        window->DrawList->AddRect(bb.Min, bb.Max, GetColorU32(ImGuiCol_FrameBg), rounding); // Color button are often in need of some sort of border
+    if ((flags & ImGuiColorEditFlags_NoBorder) == 0)
+    {
+        if (g.Style.FrameBorderSize > 0.0f)
+            RenderFrameBorder(bb.Min, bb.Max, rounding);
+        else
+            window->DrawList->AddRect(bb.Min, bb.Max, GetColorU32(ImGuiCol_FrameBg), rounding); // Color button are often in need of some sort of border
+    }
 
     // Drag and Drop Source
     // NB: The ActiveId test is merely an optional micro-optimization, BeginDragDropSource() does the same test.
@@ -4968,7 +5006,7 @@ void ImGui::ColorTooltip(const char* text, const float* col, ImGuiColorEditFlags
 {
     ImGuiContext& g = *GImGui;
 
-    BeginTooltipEx(0, true);
+    BeginTooltipEx(0, ImGuiTooltipFlags_OverridePreviousTooltip);
     const char* text_end = text ? FindRenderedTextEnd(text, NULL) : text;
     if (text_end > text)
     {
@@ -5033,12 +5071,15 @@ void ImGui::ColorEditOptionsPopup(const float* col, ImGuiColorEditFlags flags)
         ImFormatString(buf, IM_ARRAYSIZE(buf), "(%d,%d,%d,%d)", cr, cg, cb, ca);
         if (Selectable(buf))
             SetClipboardText(buf);
-        if (flags & ImGuiColorEditFlags_NoAlpha)
-            ImFormatString(buf, IM_ARRAYSIZE(buf), "0x%02X%02X%02X", cr, cg, cb);
-        else
-            ImFormatString(buf, IM_ARRAYSIZE(buf), "0x%02X%02X%02X%02X", cr, cg, cb, ca);
+        ImFormatString(buf, IM_ARRAYSIZE(buf), "#%02X%02X%02X", cr, cg, cb);
         if (Selectable(buf))
             SetClipboardText(buf);
+        if (!(flags & ImGuiColorEditFlags_NoAlpha))
+        {
+            ImFormatString(buf, IM_ARRAYSIZE(buf), "#%02X%02X%02X%02X", cr, cg, cb, ca);
+            if (Selectable(buf))
+                SetClipboardText(buf);
+        }
         EndPopup();
     }
 
@@ -5277,7 +5318,7 @@ bool ImGui::TreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* l
     const bool is_leaf = (flags & ImGuiTreeNodeFlags_Leaf) != 0;
     bool is_open = TreeNodeBehaviorIsOpen(id, flags);
     if (is_open && !g.NavIdIsAlive && (flags & ImGuiTreeNodeFlags_NavLeftJumpsBackHere) && !(flags & ImGuiTreeNodeFlags_NoTreePushOnOpen))
-        window->DC.TreeMayJumpToParentOnPopMask |= (1 << window->DC.TreeDepth);
+        window->DC.TreeJumpToParentOnPopMask |= (1 << window->DC.TreeDepth);
 
     bool item_add = ItemAdd(interact_bb, id);
     window->DC.LastItemStatusFlags |= ImGuiItemStatusFlags_HasDisplayRect;
@@ -5291,44 +5332,53 @@ bool ImGui::TreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* l
         return is_open;
     }
 
-    // Flags that affects opening behavior:
-    // - 0 (default) .................... single-click anywhere to open
-    // - OpenOnDoubleClick .............. double-click anywhere to open
-    // - OpenOnArrow .................... single-click on arrow to open
-    // - OpenOnDoubleClick|OpenOnArrow .. single-click on arrow or double-click anywhere to open
-    ImGuiButtonFlags button_flags = 0;
+    ImGuiButtonFlags button_flags = ImGuiTreeNodeFlags_None;
     if (flags & ImGuiTreeNodeFlags_AllowItemOverlap)
         button_flags |= ImGuiButtonFlags_AllowItemOverlap;
-    if (flags & ImGuiTreeNodeFlags_OpenOnDoubleClick)
-        button_flags |= ImGuiButtonFlags_PressedOnDoubleClick | ((flags & ImGuiTreeNodeFlags_OpenOnArrow) ? ImGuiButtonFlags_PressedOnClickRelease : 0);
-    else
-        button_flags |= ImGuiButtonFlags_PressedOnClickRelease;
     if (!is_leaf)
         button_flags |= ImGuiButtonFlags_PressedOnDragDropHold;
 
     // We allow clicking on the arrow section with keyboard modifiers held, in order to easily
     // allow browsing a tree while preserving selection with code implementing multi-selection patterns.
     // When clicking on the rest of the tree node we always disallow keyboard modifiers.
-    const float hit_padding_x = style.TouchExtraPadding.x;
-    const float arrow_hit_x1 = (text_pos.x - text_offset_x) - hit_padding_x;
-    const float arrow_hit_x2 = (text_pos.x - text_offset_x) + (g.FontSize + padding.x * 2.0f) + hit_padding_x;
-    if (window != g.HoveredWindow || !(g.IO.MousePos.x >= arrow_hit_x1 && g.IO.MousePos.x < arrow_hit_x2))
+    const float arrow_hit_x1 = (text_pos.x - text_offset_x) - style.TouchExtraPadding.x;
+    const float arrow_hit_x2 = (text_pos.x - text_offset_x) + (g.FontSize + padding.x * 2.0f) + style.TouchExtraPadding.x;
+    const bool is_mouse_x_over_arrow = (g.IO.MousePos.x >= arrow_hit_x1 && g.IO.MousePos.x < arrow_hit_x2);
+    if (window != g.HoveredWindow || !is_mouse_x_over_arrow)
         button_flags |= ImGuiButtonFlags_NoKeyModifiers;
+
+    // Open behaviors can be altered with the _OpenOnArrow and _OnOnDoubleClick flags.
+    // Some alteration have subtle effects (e.g. toggle on MouseUp vs MouseDown events) due to requirements for multi-selection and drag and drop support.
+    // - Single-click on label = Toggle on MouseUp (default)
+    // - Single-click on arrow = Toggle on MouseUp (when _OpenOnArrow=0)
+    // - Single-click on arrow = Toggle on MouseDown (when _OpenOnArrow=1)
+    // - Double-click on label = Toggle on MouseDoubleClick (when _OpenOnDoubleClick=1)
+    // - Double-click on arrow = Toggle on MouseDoubleClick (when _OpenOnDoubleClick=1 and _OpenOnArrow=0)
+    // This makes _OpenOnArrow have a subtle effect on _OpenOnDoubleClick: arrow click reacts on Down rather than Up.
+    // It is rather standard that arrow click react on Down rather than Up and we'd be tempted to make it the default
+    // (by removing the _OpenOnArrow test below), however this would have a perhaps surprising effect on CollapsingHeader()?
+    // So right now we are making this optional. May evolve later.
+    if (is_mouse_x_over_arrow && (flags & ImGuiTreeNodeFlags_OpenOnArrow))
+        button_flags |= ImGuiButtonFlags_PressedOnClick;
+    else if (flags & ImGuiTreeNodeFlags_OpenOnDoubleClick)
+        button_flags |= ImGuiButtonFlags_PressedOnDoubleClick;
+    else
+        button_flags |= ImGuiButtonFlags_PressedOnClickRelease;
 
     bool selected = (flags & ImGuiTreeNodeFlags_Selected) != 0;
     const bool was_selected = selected;
 
     bool hovered, held;
     bool pressed = ButtonBehavior(interact_bb, id, &hovered, &held, button_flags);
+    bool toggled = false;
     if (!is_leaf)
     {
-        bool toggled = false;
         if (pressed)
         {
             if ((flags & (ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick)) == 0 || (g.NavActivateId == id))
                 toggled = true;
             if (flags & ImGuiTreeNodeFlags_OpenOnArrow)
-                toggled |= (g.IO.MousePos.x >= arrow_hit_x1 && g.IO.MousePos.x < arrow_hit_x2) && (!g.NavDisableMouseHover); // Lightweight equivalent of IsMouseHoveringRect() since ButtonBehavior() already did the job
+                toggled |= is_mouse_x_over_arrow && !g.NavDisableMouseHover; // Lightweight equivalent of IsMouseHoveringRect() since ButtonBehavior() already did the job
             if ((flags & ImGuiTreeNodeFlags_OpenOnDoubleClick) && g.IO.MouseDoubleClicked[0])
                 toggled = true;
             if (g.DragDropActive && is_open) // When using Drag and Drop "hold to open" we keep the node highlighted after opening, but never close it again.
@@ -5450,12 +5500,12 @@ void ImGui::TreePop()
 
     // Handle Left arrow to move to parent tree node (when ImGuiTreeNodeFlags_NavLeftJumpsBackHere is enabled)
     if (g.NavMoveDir == ImGuiDir_Left && g.NavWindow == window && NavMoveRequestButNoResultYet())
-        if (g.NavIdIsAlive && (window->DC.TreeMayJumpToParentOnPopMask & tree_depth_mask))
+        if (g.NavIdIsAlive && (window->DC.TreeJumpToParentOnPopMask & tree_depth_mask))
         {
-            SetNavID(window->IDStack.back(), g.NavLayer);
+            SetNavID(window->IDStack.back(), g.NavLayer, 0);
             NavMoveRequestCancel();
         }
-    window->DC.TreeMayJumpToParentOnPopMask &= tree_depth_mask - 1;
+    window->DC.TreeJumpToParentOnPopMask &= tree_depth_mask - 1;
 
     IM_ASSERT(window->IDStack.Size > 1); // There should always be 1 element in the IDStack (pushed during window creation). If this triggers you called TreePop/PopID too much.
     PopID();
@@ -5500,7 +5550,9 @@ bool ImGui::CollapsingHeader(const char* label, bool* p_open, ImGuiTreeNodeFlags
         return false;
 
     ImGuiID id = window->GetID(label);
-    flags |= ImGuiTreeNodeFlags_CollapsingHeader | (p_open ? ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_ClipLabelForTrailingButton : 0);
+    flags |= ImGuiTreeNodeFlags_CollapsingHeader;
+    if (p_open)
+        flags |= ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_ClipLabelForTrailingButton;
     bool is_open = TreeNodeBehavior(id, flags, label);
     if (p_open)
     {
@@ -5528,6 +5580,8 @@ bool ImGui::CollapsingHeader(const char* label, bool* p_open, ImGuiTreeNodeFlags
 
 // Tip: pass a non-visible label (e.g. "##dummy") then you can use the space to draw other text or image.
 // But you need to make sure the ID is unique, e.g. enclose calls in PushID/PopID or use ##unique_id.
+// With this scheme, ImGuiSelectableFlags_SpanAllColumns and ImGuiSelectableFlags_AllowItemOverlap are also frequently used flags.
+// FIXME: Selectable() with (size.x == 0.0f) and (SelectableTextAlign.x > 0.0f) followed by SameLine() is currently not supported.
 bool ImGui::Selectable(const char* label, bool selected, ImGuiSelectableFlags flags, const ImVec2& size_arg)
 {
     ImGuiWindow* window = GetCurrentWindow();
@@ -5542,45 +5596,49 @@ bool ImGui::Selectable(const char* label, bool selected, ImGuiSelectableFlags fl
     else if ((flags & ImGuiSelectableFlags_SpanAllColumns) && g.CurrentTable) // FIXME-TABLE: Make it possible to colorize a whole line
         PushTableBackground();
 
+    // Submit label or explicit size to ItemSize(), whereas ItemAdd() will submit a larger/spanning rectangle.
     ImGuiID id = window->GetID(label);
     ImVec2 label_size = CalcTextSize(label, NULL, true);
     ImVec2 size(size_arg.x != 0.0f ? size_arg.x : label_size.x, size_arg.y != 0.0f ? size_arg.y : label_size.y);
     ImVec2 pos = window->DC.CursorPos;
     pos.y += window->DC.CurrLineTextBaseOffset;
-    ImRect bb_inner(pos, pos + size);
     ItemSize(size, 0.0f);
 
-    // Fill horizontal space.
+    // Fill horizontal space
     // FIXME-TABLE: Span row min
-    ImVec2 window_padding = window->WindowPadding;
-    float max_x = (flags & ImGuiSelectableFlags_SpanAllColumns) ? GetWindowContentRegionMax().x : GetContentRegionMax().x; // FIXME-TABLE
-    float w_draw = ImMax(label_size.x, window->Pos.x + max_x - window_padding.x - pos.x);
-    ImVec2 size_draw((size_arg.x != 0 && !(flags & ImGuiSelectableFlags_DrawFillAvailWidth)) ? size_arg.x : w_draw, size_arg.y != 0.0f ? size_arg.y : size.y);
-    ImRect bb(pos, pos + size_draw);
-    if (size_arg.x == 0.0f || (flags & ImGuiSelectableFlags_DrawFillAvailWidth))
-        bb.Max.x += window_padding.x;
+    const float min_x = (flags & ImGuiSelectableFlags_SpanAllColumns) ? window->ContentRegionRect.Min.x : pos.x;
+    const float max_x = (flags & ImGuiSelectableFlags_SpanAllColumns) ? window->ContentRegionRect.Max.x : GetContentRegionMaxAbs().x;
+    if (size_arg.x == 0.0f || (flags & ImGuiSelectableFlags_SpanAvailWidth))
+        size.x = ImMax(label_size.x, max_x - min_x);
 
-    // Selectables are tightly packed together so we extend the box to cover spacing between selectable.
+    // Text stays at the submission position, but bounding box may be extended on both sides
+    const ImVec2 text_min = pos;
+    const ImVec2 text_max(min_x + size.x, pos.y + size.y);
+
+    // Selectables are meant to be tightly packed together with no click-gap, so we extend their box to cover spacing between selectable.
+    ImRect bb_enlarged(min_x, pos.y, text_max.x, text_max.y);
     const float spacing_x = style.ItemSpacing.x;
     const float spacing_y = style.ItemSpacing.y;
     const float spacing_L = IM_FLOOR(spacing_x * 0.50f);
     const float spacing_U = IM_FLOOR(spacing_y * 0.50f);
-    bb.Min.x -= spacing_L;
-    bb.Min.y -= spacing_U;
-    bb.Max.x += (spacing_x - spacing_L);
-    bb.Max.y += (spacing_y - spacing_U);
+    bb_enlarged.Min.x -= spacing_L;
+    bb_enlarged.Min.y -= spacing_U;
+    bb_enlarged.Max.x += (spacing_x - spacing_L);
+    bb_enlarged.Max.y += (spacing_y - spacing_U);
+    //if (g.IO.KeyCtrl) { GetForegroundDrawList()->AddRect(bb_align.Min, bb_align.Max, IM_COL32(255, 0, 0, 255)); }
+    //if (g.IO.KeyCtrl) { GetForegroundDrawList()->AddRect(bb_enlarged.Min, bb_enlarged.Max, IM_COL32(0, 255, 0, 255)); }
 
     bool item_add;
     if (flags & ImGuiSelectableFlags_Disabled)
     {
         ImGuiItemFlags backup_item_flags = window->DC.ItemFlags;
         window->DC.ItemFlags |= ImGuiItemFlags_Disabled | ImGuiItemFlags_NoNavDefaultFocus;
-        item_add = ItemAdd(bb, id);
+        item_add = ItemAdd(bb_enlarged, id);
         window->DC.ItemFlags = backup_item_flags;
     }
     else
     {
-        item_add = ItemAdd(bb, id);
+        item_add = ItemAdd(bb_enlarged, id);
     }
     if (!item_add)
     {
@@ -5593,9 +5651,9 @@ bool ImGui::Selectable(const char* label, bool selected, ImGuiSelectableFlags fl
 
     // We use NoHoldingActiveID on menus so user can click and _hold_ on a menu then drag to browse child entries
     ImGuiButtonFlags button_flags = 0;
-    if (flags & ImGuiSelectableFlags_NoHoldingActiveID) { button_flags |= ImGuiButtonFlags_NoHoldingActiveID; }
-    if (flags & ImGuiSelectableFlags_PressedOnClick)    { button_flags |= ImGuiButtonFlags_PressedOnClick; }
-    if (flags & ImGuiSelectableFlags_PressedOnRelease)  { button_flags |= ImGuiButtonFlags_PressedOnRelease; }
+    if (flags & ImGuiSelectableFlags_NoHoldingActiveID) { button_flags |= ImGuiButtonFlags_NoHoldingActiveId; }
+    if (flags & ImGuiSelectableFlags_SelectOnClick)     { button_flags |= ImGuiButtonFlags_PressedOnClick; }
+    if (flags & ImGuiSelectableFlags_SelectOnRelease)   { button_flags |= ImGuiButtonFlags_PressedOnRelease; }
     if (flags & ImGuiSelectableFlags_Disabled)          { button_flags |= ImGuiButtonFlags_Disabled; }
     if (flags & ImGuiSelectableFlags_AllowDoubleClick)  { button_flags |= ImGuiButtonFlags_PressedOnClickRelease | ImGuiButtonFlags_PressedOnDoubleClick; }
     if (flags & ImGuiSelectableFlags_AllowItemOverlap)  { button_flags |= ImGuiButtonFlags_AllowItemOverlap; }
@@ -5605,7 +5663,7 @@ bool ImGui::Selectable(const char* label, bool selected, ImGuiSelectableFlags fl
 
     const bool was_selected = selected;
     bool hovered, held;
-    bool pressed = ButtonBehavior(bb, id, &hovered, &held, button_flags);
+    bool pressed = ButtonBehavior(bb_enlarged, id, &hovered, &held, button_flags);
 
     // Update NavId when clicking or when Hovering (this doesn't happen on most widgets), so navigation can be resumed with gamepad/keyboard
     if (pressed || (hovered && (flags & ImGuiSelectableFlags_SetNavIdOnHover)))
@@ -5613,7 +5671,7 @@ bool ImGui::Selectable(const char* label, bool selected, ImGuiSelectableFlags fl
         if (!g.NavDisableMouseHover && g.NavWindow == window && g.NavLayer == window->DC.NavLayerCurrent)
         {
             g.NavDisableHighlight = true;
-            SetNavID(id, window->DC.NavLayerCurrent);
+            SetNavID(id, window->DC.NavLayerCurrent, window->DC.NavFocusScopeIdCurrent);
         }
     }
     if (pressed)
@@ -5632,23 +5690,17 @@ bool ImGui::Selectable(const char* label, bool selected, ImGuiSelectableFlags fl
     if (hovered || selected)
     {
         const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_HeaderActive : hovered ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
-        RenderFrame(bb.Min, bb.Max, col, false, 0.0f);
-        RenderNavHighlight(bb, id, ImGuiNavHighlightFlags_TypeThin | ImGuiNavHighlightFlags_NoRounding);
+        RenderFrame(bb_enlarged.Min, bb_enlarged.Max, col, false, 0.0f);
+        RenderNavHighlight(bb_enlarged, id, ImGuiNavHighlightFlags_TypeThin | ImGuiNavHighlightFlags_NoRounding);
     }
 
     if ((flags & ImGuiSelectableFlags_SpanAllColumns) && window->DC.CurrentColumns)
-    {
         PopColumnsBackground();
-        bb.Max.x -= (GetContentRegionMax().x - max_x);
-    }
     else if ((flags & ImGuiSelectableFlags_SpanAllColumns) && g.CurrentTable)
-    {
         PopTableBackground();
-        bb.Max.x -= (GetContentRegionMax().x - max_x);
-    }
 
     if (flags & ImGuiSelectableFlags_Disabled) PushStyleColor(ImGuiCol_Text, style.Colors[ImGuiCol_TextDisabled]);
-    RenderTextClipped(bb_inner.Min, bb_inner.Max, label, NULL, &label_size, style.SelectableTextAlign, &bb);
+    RenderTextClipped(text_min, text_max, label, NULL, &label_size, style.SelectableTextAlign, &bb_enlarged);
     if (flags & ImGuiSelectableFlags_Disabled) PopStyleColor();
 
     // Automatically close popups
@@ -5801,13 +5853,13 @@ bool ImGui::ListBox(const char* label, int* current_item, bool (*items_getter)(v
 // - PlotHistogram()
 //-------------------------------------------------------------------------
 
-void ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size)
+int ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size)
 {
+    ImGuiContext& g = *GImGui;
     ImGuiWindow* window = GetCurrentWindow();
     if (window->SkipItems)
-        return;
+        return -1;
 
-    ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
     const ImGuiID id = window->GetID(label);
 
@@ -5822,7 +5874,7 @@ void ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_ge
     const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0));
     ItemSize(total_bb, style.FramePadding.y);
     if (!ItemAdd(total_bb, 0, &frame_bb))
-        return;
+        return -1;
     const bool hovered = ItemHoverable(frame_bb, id);
 
     // Determine scale from values if not specified
@@ -5847,13 +5899,13 @@ void ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_ge
     RenderFrame(frame_bb.Min, frame_bb.Max, GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
 
     const int values_count_min = (plot_type == ImGuiPlotType_Lines) ? 2 : 1;
+    int idx_hovered = -1;
     if (values_count >= values_count_min)
     {
         int res_w = ImMin((int)frame_size.x, values_count) + ((plot_type == ImGuiPlotType_Lines) ? -1 : 0);
         int item_count = values_count + ((plot_type == ImGuiPlotType_Lines) ? -1 : 0);
 
         // Tooltip on hover
-        int v_hovered = -1;
         if (hovered && inner_bb.Contains(g.IO.MousePos))
         {
             const float t = ImClamp((g.IO.MousePos.x - inner_bb.Min.x) / (inner_bb.Max.x - inner_bb.Min.x), 0.0f, 0.9999f);
@@ -5866,7 +5918,7 @@ void ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_ge
                 SetTooltip("%d: %8.4g\n%d: %8.4g", v_idx, v0, v_idx+1, v1);
             else if (plot_type == ImGuiPlotType_Histogram)
                 SetTooltip("%d: %8.4g", v_idx, v0);
-            v_hovered = v_idx;
+            idx_hovered = v_idx;
         }
 
         const float t_step = 1.0f / (float)res_w;
@@ -5893,13 +5945,13 @@ void ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_ge
             ImVec2 pos1 = ImLerp(inner_bb.Min, inner_bb.Max, (plot_type == ImGuiPlotType_Lines) ? tp1 : ImVec2(tp1.x, histogram_zero_line_t));
             if (plot_type == ImGuiPlotType_Lines)
             {
-                window->DrawList->AddLine(pos0, pos1, v_hovered == v1_idx ? col_hovered : col_base);
+                window->DrawList->AddLine(pos0, pos1, idx_hovered == v1_idx ? col_hovered : col_base);
             }
             else if (plot_type == ImGuiPlotType_Histogram)
             {
                 if (pos1.x >= pos0.x + 2.0f)
                     pos1.x -= 1.0f;
-                window->DrawList->AddRectFilled(pos0, pos1, v_hovered == v1_idx ? col_hovered : col_base);
+                window->DrawList->AddRectFilled(pos0, pos1, idx_hovered == v1_idx ? col_hovered : col_base);
             }
 
             t0 = t1;
@@ -5913,6 +5965,10 @@ void ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_ge
 
     if (label_size.x > 0.0f)
         RenderText(ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x, inner_bb.Min.y), label);
+
+    // Return hovered index or -1 if none are hovered.
+    // This is currently not exposed in the public API because we need a larger redesign of the whole thing, but in the short-term we are making it available in PlotEx().
+    return idx_hovered;
 }
 
 struct ImGuiPlotArrayGetterData
@@ -6095,7 +6151,7 @@ void ImGui::EndMenuBar()
             const ImGuiNavLayer layer = ImGuiNavLayer_Menu;
             IM_ASSERT(window->DC.NavLayerActiveMaskNext & (1 << layer)); // Sanity check
             FocusWindow(window);
-            SetNavIDWithRectRel(window->NavLastIds[layer], layer, window->NavRectRel[layer]);
+            SetNavIDWithRectRel(window->NavLastIds[layer], layer, 0, window->NavRectRel[layer]);
             g.NavLayer = layer;
             g.NavDisableHighlight = true; // Hide highlight for the current frame so we don't see the intermediary selection.
             g.NavMoveRequestForward = ImGuiNavForward_ForwardQueued;
@@ -6116,20 +6172,39 @@ void ImGui::EndMenuBar()
     window->DC.MenuBarAppending = false;
 }
 
-// For the main menu bar, which cannot be moved, we honor g.Style.DisplaySafeAreaPadding to ensure text can be visible on a TV set.
 bool ImGui::BeginMainMenuBar()
 {
     ImGuiContext& g = *GImGui;
-    ImGuiViewport* viewport = g.Viewports[0];
+    ImGuiViewportP* viewport = g.Viewports[0];
+    ImGuiWindow* menu_bar_window = FindWindowByName("##MainMenuBar");
+
+    // For the main menu bar, which cannot be moved, we honor g.Style.DisplaySafeAreaPadding to ensure text can be visible on a TV set.
     g.NextWindowData.MenuBarOffsetMinVal = ImVec2(g.Style.DisplaySafeAreaPadding.x, ImMax(g.Style.DisplaySafeAreaPadding.y - g.Style.FramePadding.y, 0.0f));
-    SetNextWindowPos(viewport->Pos);
-    SetNextWindowSize(ImVec2(viewport->Size.x, g.NextWindowData.MenuBarOffsetMinVal.y + g.FontBaseSize + g.Style.FramePadding.y));
-    SetNextWindowViewport(viewport->ID); // Enforce viewport so we don't create our onw viewport when ImGuiConfigFlags_ViewportsNoMerge is set.
+
+    // Get our rectangle at the top of the work area
+    if (menu_bar_window == NULL || menu_bar_window->BeginCount == 0)
+    {
+        // Set window position
+        // We don't attempt to calculate our height ahead, as it depends on the per-viewport font size. However menu-bar will affect the minimum window size so we'll get the right height.
+        ImVec2 menu_bar_pos = viewport->Pos + viewport->CurrWorkOffsetMin;
+        ImVec2 menu_bar_size = ImVec2(viewport->Size.x - viewport->CurrWorkOffsetMin.x + viewport->CurrWorkOffsetMax.x, 1.0f);
+        SetNextWindowPos(menu_bar_pos);
+        SetNextWindowSize(menu_bar_size);
+    }
+
+    // Create window
+    SetNextWindowViewport(viewport->ID); // Enforce viewport so we don't create our own viewport when ImGuiConfigFlags_ViewportsNoMerge is set.
     PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-    PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));
+    PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));    // Lift normal size constraint, however the presence of a menu-bar will give us the minimum height we want.
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
     bool is_open = Begin("##MainMenuBar", NULL, window_flags) && BeginMenuBar();
     PopStyleVar(2);
+
+    // Report our size into work area (for next frame) using actual window size
+    menu_bar_window = GetCurrentWindow();
+    if (menu_bar_window->BeginCount == 1)
+        viewport->CurrWorkOffsetMin.y += menu_bar_window->Size.y;
+
     g.NextWindowData.MenuBarOffsetMinVal = ImVec2(0.0f, 0.0f);
     if (!is_open)
     {
@@ -6146,7 +6221,7 @@ void ImGui::EndMainMenuBar()
     // When the user has left the menu layer (typically: closed menus through activation of an item), we restore focus to the previous window
     // FIXME: With this strategy we won't be able to restore a NULL focus.
     ImGuiContext& g = *GImGui;
-    if (g.CurrentWindow == g.NavWindow && g.NavLayer == 0 && !g.NavAnyRequest)
+    if (g.CurrentWindow == g.NavWindow && g.NavLayer == ImGuiNavLayer_Main && !g.NavAnyRequest)
         FocusTopMostWindowUnderOne(g.NavWindow, NULL);
 
     End();
@@ -6161,11 +6236,30 @@ bool ImGui::BeginMenu(const char* label, bool enabled)
     ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
     const ImGuiID id = window->GetID(label);
+    bool menu_is_open = IsPopupOpen(id);
+
+    // Sub-menus are ChildWindow so that mouse can be hovering across them (otherwise top-most popup menu would steal focus and not allow hovering on parent menu)
+    ImGuiWindowFlags flags = ImGuiWindowFlags_ChildMenu | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoNavFocus;
+    if (window->Flags & (ImGuiWindowFlags_Popup | ImGuiWindowFlags_ChildMenu))
+        flags |= ImGuiWindowFlags_ChildWindow;
+
+    // If a menu with same the ID was already submitted, we will append to it, matching the behavior of Begin().
+    // We are relying on a O(N) search - so O(N log N) over the frame - which seems like the most efficient for the expected small amount of BeginMenu() calls per frame.
+    // If somehow this is ever becoming a problem we can switch to use e.g. a ImGuiStorager mapping key to last frame used.
+    if (g.MenusIdSubmittedThisFrame.contains(id))
+    {
+        if (menu_is_open)
+            menu_is_open = BeginPopupEx(id, flags); // menu_is_open can be 'false' when the popup is completely clipped (e.g. zero size display)
+        else
+            g.NextWindowData.ClearFlags();          // we behave like Begin() and need to consume those values
+        return menu_is_open;
+    }
+
+    // Tag menu as used. Next time BeginMenu() with same ID is called it will append to existing menu
+    g.MenusIdSubmittedThisFrame.push_back(id);
 
     ImVec2 label_size = CalcTextSize(label, NULL, true);
-
     bool pressed;
-    bool menu_is_open = IsPopupOpen(id);
     bool menuset_is_open = !(window->Flags & ImGuiWindowFlags_Popup) && (g.OpenPopupStack.Size > g.BeginPopupStack.Size && g.OpenPopupStack[g.BeginPopupStack.Size].OpenParentId == window->IDStack.back());
     ImGuiWindow* backed_nav_window = g.NavWindow;
     if (menuset_is_open)
@@ -6184,19 +6278,21 @@ bool ImGui::BeginMenu(const char* label, bool enabled)
         window->DC.CursorPos.x += IM_FLOOR(style.ItemSpacing.x * 0.5f);
         PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(style.ItemSpacing.x * 2.0f, style.ItemSpacing.y));
         float w = label_size.x;
-        pressed = Selectable(label, menu_is_open, ImGuiSelectableFlags_NoHoldingActiveID | ImGuiSelectableFlags_PressedOnClick | ImGuiSelectableFlags_DontClosePopups | (!enabled ? ImGuiSelectableFlags_Disabled : 0), ImVec2(w, 0.0f));
+        pressed = Selectable(label, menu_is_open, ImGuiSelectableFlags_NoHoldingActiveID | ImGuiSelectableFlags_SelectOnClick | ImGuiSelectableFlags_DontClosePopups | (!enabled ? ImGuiSelectableFlags_Disabled : 0), ImVec2(w, 0.0f));
         PopStyleVar();
         window->DC.CursorPos.x += IM_FLOOR(style.ItemSpacing.x * (-1.0f + 0.5f)); // -1 spacing to compensate the spacing added when Selectable() did a SameLine(). It would also work to call SameLine() ourselves after the PopStyleVar().
     }
     else
     {
         // Menu inside a menu
+        // (In a typical menu window where all items are BeginMenu() or MenuItem() calls, extra_w will always be 0.0f.
+        //  Only when they are other items sticking out we're going to add spacing, yet only register minimum width into the layout system.
         popup_pos = ImVec2(pos.x, pos.y - style.WindowPadding.y);
-        float w = window->MenuColumns.DeclColumns(label_size.x, 0.0f, IM_FLOOR(g.FontSize * 1.20f)); // Feedback to next frame
-        float extra_w = ImMax(0.0f, GetContentRegionAvail().x - w);
-        pressed = Selectable(label, menu_is_open, ImGuiSelectableFlags_NoHoldingActiveID | ImGuiSelectableFlags_PressedOnClick | ImGuiSelectableFlags_DontClosePopups | ImGuiSelectableFlags_DrawFillAvailWidth | (!enabled ? ImGuiSelectableFlags_Disabled : 0), ImVec2(w, 0.0f));
+        float min_w = window->DC.MenuColumns.DeclColumns(label_size.x, 0.0f, IM_FLOOR(g.FontSize * 1.20f)); // Feedback to next frame
+        float extra_w = ImMax(0.0f, GetContentRegionAvail().x - min_w);
+        pressed = Selectable(label, menu_is_open, ImGuiSelectableFlags_NoHoldingActiveID | ImGuiSelectableFlags_SelectOnClick | ImGuiSelectableFlags_DontClosePopups | ImGuiSelectableFlags_SpanAvailWidth | (!enabled ? ImGuiSelectableFlags_Disabled : 0), ImVec2(min_w, 0.0f));
         ImU32 text_col = GetColorU32(enabled ? ImGuiCol_Text : ImGuiCol_TextDisabled);
-        RenderArrow(window->DrawList, pos + ImVec2(window->MenuColumns.Pos[2] + extra_w + g.FontSize * 0.30f, 0.0f), text_col, ImGuiDir_Right);
+        RenderArrow(window->DrawList, pos + ImVec2(window->DC.MenuColumns.Pos[2] + extra_w + g.FontSize * 0.30f, 0.0f), text_col, ImGuiDir_Right);
     }
 
     const bool hovered = enabled && ItemHoverable(window->DC.LastItemRect, id);
@@ -6284,12 +6380,12 @@ bool ImGui::BeginMenu(const char* label, bool enabled)
 
     if (menu_is_open)
     {
-        // Sub-menus are ChildWindow so that mouse can be hovering across them (otherwise top-most popup menu would steal focus and not allow hovering on parent menu)
         SetNextWindowPos(popup_pos, ImGuiCond_Always);
-        ImGuiWindowFlags flags = ImGuiWindowFlags_ChildMenu | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoNavFocus;
-        if (window->Flags & (ImGuiWindowFlags_Popup|ImGuiWindowFlags_ChildMenu))
-            flags |= ImGuiWindowFlags_ChildWindow;
         menu_is_open = BeginPopupEx(id, flags); // menu_is_open can be 'false' when the popup is completely clipped (e.g. zero size display)
+    }
+    else
+    {
+        g.NextWindowData.ClearFlags(); // We behave like Begin() and need to consume those values
     }
 
     return menu_is_open;
@@ -6324,7 +6420,7 @@ bool ImGui::MenuItem(const char* label, const char* shortcut, bool selected, boo
 
     // We've been using the equivalent of ImGuiSelectableFlags_SetNavIdOnHover on all Selectable() since early Nav system days (commit 43ee5d73),
     // but I am unsure whether this should be kept at all. For now moved it to be an opt-in feature used by menus only.
-    ImGuiSelectableFlags flags = ImGuiSelectableFlags_PressedOnRelease | ImGuiSelectableFlags_SetNavIdOnHover | (enabled ? 0 : ImGuiSelectableFlags_Disabled);
+    ImGuiSelectableFlags flags = ImGuiSelectableFlags_SelectOnRelease | ImGuiSelectableFlags_SetNavIdOnHover | (enabled ? 0 : ImGuiSelectableFlags_Disabled);
     bool pressed;
     if (window->DC.LayoutType == ImGuiLayoutType_Horizontal)
     {
@@ -6339,18 +6435,21 @@ bool ImGui::MenuItem(const char* label, const char* shortcut, bool selected, boo
     }
     else
     {
-        ImVec2 shortcut_size = shortcut ? CalcTextSize(shortcut, NULL) : ImVec2(0.0f, 0.0f);
-        float w = window->MenuColumns.DeclColumns(label_size.x, shortcut_size.x, IM_FLOOR(g.FontSize * 1.20f)); // Feedback for next frame
-        float extra_w = ImMax(0.0f, GetContentRegionAvail().x - w);
-        pressed = Selectable(label, false, flags | ImGuiSelectableFlags_DrawFillAvailWidth, ImVec2(w, 0.0f));
-        if (shortcut_size.x > 0.0f)
+        // Menu item inside a vertical menu
+        // (In a typical menu window where all items are BeginMenu() or MenuItem() calls, extra_w will always be 0.0f.
+        //  Only when they are other items sticking out we're going to add spacing, yet only register minimum width into the layout system.
+        float shortcut_w = shortcut ? CalcTextSize(shortcut, NULL).x : 0.0f;
+        float min_w = window->DC.MenuColumns.DeclColumns(label_size.x, shortcut_w, IM_FLOOR(g.FontSize * 1.20f)); // Feedback for next frame
+        float extra_w = ImMax(0.0f, GetContentRegionAvail().x - min_w);
+        pressed = Selectable(label, false, flags | ImGuiSelectableFlags_SpanAvailWidth, ImVec2(min_w, 0.0f));
+        if (shortcut_w > 0.0f)
         {
             PushStyleColor(ImGuiCol_Text, g.Style.Colors[ImGuiCol_TextDisabled]);
-            RenderText(pos + ImVec2(window->MenuColumns.Pos[1] + extra_w, 0.0f), shortcut, NULL, false);
+            RenderText(pos + ImVec2(window->DC.MenuColumns.Pos[1] + extra_w, 0.0f), shortcut, NULL, false);
             PopStyleColor();
         }
         if (selected)
-            RenderCheckMark(pos + ImVec2(window->MenuColumns.Pos[2] + extra_w + g.FontSize * 0.40f, g.FontSize * 0.134f * 0.5f), GetColorU32(enabled ? ImGuiCol_Text : ImGuiCol_TextDisabled), g.FontSize  * 0.866f);
+            RenderCheckMark(window->DrawList, pos + ImVec2(window->DC.MenuColumns.Pos[2] + extra_w + g.FontSize * 0.40f, g.FontSize * 0.134f * 0.5f), GetColorU32(enabled ? ImGuiCol_Text : ImGuiCol_TextDisabled), g.FontSize  * 0.866f);
     }
 
     IMGUI_TEST_ENGINE_ITEM_INFO(window->DC.LastItemId, label, window->DC.ItemFlags | ImGuiItemStatusFlags_Checkable | (selected ? ImGuiItemStatusFlags_Checked : 0));
@@ -6370,8 +6469,6 @@ bool ImGui::MenuItem(const char* label, const char* shortcut, bool* p_selected, 
 
 //-------------------------------------------------------------------------
 // [SECTION] Widgets: BeginTabBar, EndTabBar, etc.
-//-------------------------------------------------------------------------
-// [BETA API] API may evolve!
 //-------------------------------------------------------------------------
 // - BeginTabBar()
 // - BeginTabBarEx() [Internal]
@@ -6766,7 +6863,7 @@ void ImGui::TabBarAddTab(ImGuiTabBar* tab_bar, ImGuiTabItemFlags tab_flags, ImGu
 {
     ImGuiContext& g = *GImGui;
     IM_ASSERT(TabBarFindTabByID(tab_bar, window->ID) == NULL);
-    IM_ASSERT(g.CurrentTabBar == NULL);                     // Can't work while the tab bar is active as our tab doesn't have an X offset yet
+    IM_ASSERT(g.CurrentTabBar != tab_bar);  // Can't work while the tab bar is active as our tab doesn't have an X offset yet, in theory we could/should test something like (tab_bar->CurrFrameVisible < g.FrameCount) but we'd need to solve why triggers the commented early-out assert in BeginTabBarEx() (probably dock node going from implicit to explicit in same frame)
 
     ImGuiTabItem new_tab;
     new_tab.ID = window->ID;
@@ -6930,8 +7027,6 @@ static ImGuiTabItem* ImGui::TabBarTabListPopupButton(ImGuiTabBar* tab_bar)
 
 //-------------------------------------------------------------------------
 // [SECTION] Widgets: BeginTabItem, EndTabItem, etc.
-//-------------------------------------------------------------------------
-// [BETA API] API may evolve!
 //-------------------------------------------------------------------------
 // - BeginTabItem()
 // - EndTabItem()
@@ -7505,7 +7600,7 @@ void ImGui::PushColumnsBackground()
     ImGuiColumns* columns = window->DC.CurrentColumns;
     if (columns->Count == 1)
         return;
-    window->DrawList->ChannelsSetCurrent(0);
+    columns->Splitter.SetCurrentChannel(window->DrawList, 0);
     int cmd_size = window->DrawList->CmdBuffer.Size;
     PushClipRect(columns->HostClipRect.Min, columns->HostClipRect.Max, false);
     IM_UNUSED(cmd_size);
@@ -7518,7 +7613,7 @@ void ImGui::PopColumnsBackground()
     ImGuiColumns* columns = window->DC.CurrentColumns;
     if (columns->Count == 1)
         return;
-    window->DrawList->ChannelsSetCurrent(columns->Current + 1);
+    columns->Splitter.SetCurrentChannel(window->DrawList, columns->Current + 1);
     PopClipRect();
 }
 
@@ -7553,8 +7648,8 @@ void ImGui::BeginColumns(const char* str_id, int columns_count, ImGuiColumnsFlag
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = GetCurrentWindow();
 
-    IM_ASSERT(columns_count >= 1 && columns_count <= 64);   // Maximum 64 columns
-    IM_ASSERT(window->DC.CurrentColumns == NULL);           // Nested columns are currently not supported
+    IM_ASSERT(columns_count >= 1);
+    IM_ASSERT(window->DC.CurrentColumns == NULL);   // Nested columns are currently not supported
 
     // Acquire storage for the columns set
     ImGuiID id = GetColumnsID(str_id, columns_count);
@@ -7609,8 +7704,8 @@ void ImGui::BeginColumns(const char* str_id, int columns_count, ImGuiColumnsFlag
 
     if (columns->Count > 1)
     {
-        window->DrawList->ChannelsSplit(1 + columns->Count);
-        window->DrawList->ChannelsSetCurrent(1);
+        columns->Splitter.Split(window->DrawList, 1 + columns->Count);
+        columns->Splitter.SetCurrentChannel(window->DrawList, 1);
         PushColumnClipRect(0);
     }
 
@@ -7649,14 +7744,14 @@ void ImGui::NextColumn()
         // Columns 1+ ignore IndentX (by canceling it out)
         // FIXME-COLUMNS: Unnecessary, could be locked?
         window->DC.ColumnsOffset.x = GetColumnOffset(columns->Current) - window->DC.Indent.x + column_padding;
-        window->DrawList->ChannelsSetCurrent(columns->Current + 1);
+        columns->Splitter.SetCurrentChannel(window->DrawList, columns->Current + 1);
     }
     else
     {
         // New row/line
         // Column 0 honor IndentX
         window->DC.ColumnsOffset.x = ImMax(column_padding - window->WindowPadding.x, 0.0f);
-        window->DrawList->ChannelsSetCurrent(1);
+        columns->Splitter.SetCurrentChannel(window->DrawList, 1);
         columns->Current = 0;
         columns->LineMinY = columns->LineMaxY;
     }
@@ -7686,7 +7781,7 @@ void ImGui::EndColumns()
     if (columns->Count > 1)
     {
         PopClipRect();
-        window->DrawList->ChannelsMerge();
+        columns->Splitter.Merge(window->DrawList);
     }
 
     const ImGuiColumnsFlags flags = columns->Flags;
@@ -7876,7 +7971,7 @@ bool    ImGui::BeginTableEx(const char* name, ImGuiID id, int columns_count, ImG
         return false;
 
     // Sanity checks
-    IM_ASSERT(columns_count > 0 && columns_count < IMGUI_TABLE_MAX_COLUMNS && "Only 0..63 columns allowed!");
+    IM_ASSERT(columns_count > 0 && columns_count <= IMGUI_TABLE_MAX_COLUMNS && "Only 1..64 columns allowed!");
     if (flags & ImGuiTableFlags_ScrollX)
         IM_ASSERT(inner_width >= 0.0f);
 
@@ -7899,7 +7994,7 @@ bool    ImGui::BeginTableEx(const char* name, ImGuiID id, int columns_count, ImG
     // Acquire storage for the table
     ImGuiTable* table = g.Tables.GetOrAddByKey(id);
     const ImGuiTableFlags table_last_flags = table->Flags;
-    const int instance_no = (table->LastFrameActive != g.FrameCount) ? 0 : table->InstanceNo + 1;
+    const int instance_no = (table->LastFrameActive != g.FrameCount) ? 0 : table->InstanceCurrent + 1;
     const ImGuiID instance_id = id + instance_no;
     if (instance_no > 0)
         IM_ASSERT(table->ColumnsCount == columns_count && "BeginTable(): Cannot change columns count mid-frame while preserving same ID");
@@ -7907,7 +8002,7 @@ bool    ImGui::BeginTableEx(const char* name, ImGuiID id, int columns_count, ImG
     // Initialize
     table->ID = id;
     table->Flags = flags;
-    table->InstanceNo = (ImS16)instance_no;
+    table->InstanceCurrent = (ImS16)instance_no;
     table->LastFrameActive = g.FrameCount;
     table->OuterWindow = table->InnerWindow = outer_window;
     table->ColumnsCount = columns_count;
@@ -8001,26 +8096,27 @@ bool    ImGui::BeginTableEx(const char* name, ImGuiID id, int columns_count, ImG
     if ((table_last_flags & ImGuiTableFlags_Reorderable) && !(flags & ImGuiTableFlags_Reorderable))
         table->IsResetDisplayOrderRequest = true;
 
-    // Clear data if columns count changed
-    if (table->Columns.Size != 0 && table->Columns.Size != columns_count)
+    // Setup default columns state. Clear data if columns count changed
+    const int stored_size = table->Columns.size();
+    if (stored_size != 0 && stored_size != columns_count)
+        table->RawData.resize(0);
+    if (table->RawData.Size == 0)
     {
-        table->Columns.resize(0);
-        table->DisplayOrder.resize(0);
-    }
+        // Allocate single buffer for our arrays
+        ImSpanAllocator<2> span_allocator;
+        span_allocator.ReserveBytes(0, columns_count * sizeof(ImGuiTableColumn));
+        span_allocator.ReserveBytes(1, columns_count * sizeof(ImS8));
+        table->RawData.resize(span_allocator.GetArenaSizeInBytes());
+        span_allocator.SetArenaBasePtr(table->RawData.Data);
+        span_allocator.GetSpan(0, &table->Columns);
+        span_allocator.GetSpan(1, &table->DisplayOrderToIndex);
 
-    // Setup default columns state
-    if (table->Columns.Size == 0)
-    {
-        table->IsInitializing = table->IsSettingsRequestLoad = table->IsSortSpecsDirty = true;
-        table->Columns.reserve(columns_count);
-        table->DisplayOrder.reserve(columns_count);
         for (int n = 0; n < columns_count; n++)
         {
-            ImGuiTableColumn column;
-            column.IndexDisplayOrder = (ImS8)n;
-            table->Columns.push_back(column);
-            table->DisplayOrder.push_back(column.IndexDisplayOrder);
+            table->Columns[n] = ImGuiTableColumn();
+            table->Columns[n].DisplayOrder = table->DisplayOrderToIndex[n] = (ImS8)n;
         }
+        table->IsInitializing = table->IsSettingsRequestLoad = table->IsSortSpecsDirty = true;
     }
 
     // Load settings
@@ -8044,7 +8140,7 @@ void ImGui::TableBeginUpdateColumns(ImGuiTable* table)
     // (We process this at the first TableBegin of the frame)
     // FIXME-TABLE: Preserve contents width _while resizing down_ until releasing.
     // FIXME-TABLE: Contains columns if our work area doesn't allow for scrolling.
-    if (table->InstanceNo == 0)
+    if (table->InstanceCurrent == 0)
     {
         if (table->ResizedColumn != -1 && table->ResizedColumnNextWidth != FLT_MAX)
             TableSetColumnWidth(table, &table->Columns[table->ResizedColumn], table->ResizedColumnNextWidth);
@@ -8055,7 +8151,7 @@ void ImGui::TableBeginUpdateColumns(ImGuiTable* table)
 
     // Handle reordering request
     // Note: we don't clear ReorderColumn after handling the request.
-    if (table->InstanceNo == 0)
+    if (table->InstanceCurrent == 0)
     {
         if (table->HeldHeaderColumn == -1 && table->ReorderColumn != -1)
             table->ReorderColumn = -1;
@@ -8072,16 +8168,16 @@ void ImGui::TableBeginUpdateColumns(ImGuiTable* table)
             ImGuiTableColumn* src_column = &table->Columns[table->ReorderColumn];
             ImGuiTableColumn* dst_column = &table->Columns[(reorder_dir == -1) ? src_column->PrevActiveColumn : src_column->NextActiveColumn];
             IM_UNUSED(dst_column);
-            const int src_order = src_column->IndexDisplayOrder;
-            const int dst_order = dst_column->IndexDisplayOrder;
-            src_column->IndexDisplayOrder = (ImS8)dst_order;
+            const int src_order = src_column->DisplayOrder;
+            const int dst_order = dst_column->DisplayOrder;
+            src_column->DisplayOrder = (ImS8)dst_order;
             for (int order_n = src_order + reorder_dir; order_n != dst_order + reorder_dir; order_n += reorder_dir)
-                table->Columns[table->DisplayOrder[order_n]].IndexDisplayOrder -= (ImS8)reorder_dir;
-            IM_ASSERT(dst_column->IndexDisplayOrder == dst_order - reorder_dir);
+                table->Columns[table->DisplayOrderToIndex[order_n]].DisplayOrder -= (ImS8)reorder_dir;
+            IM_ASSERT(dst_column->DisplayOrder == dst_order - reorder_dir);
 
             // Display order is stored in both columns->IndexDisplayOrder and table->DisplayOrder[], rebuild the later from the former.
             for (int column_n = 0; column_n < table->ColumnsCount; column_n++)
-                table->DisplayOrder[table->Columns[column_n].IndexDisplayOrder] = (ImS8)column_n;
+                table->DisplayOrderToIndex[table->Columns[column_n].DisplayOrder] = (ImS8)column_n;
             table->ReorderColumnDir = 0;
             table->IsSettingsDirty = true;
         }
@@ -8091,7 +8187,7 @@ void ImGui::TableBeginUpdateColumns(ImGuiTable* table)
     if (table->IsResetDisplayOrderRequest)
     {
         for (int n = 0; n < table->ColumnsCount; n++)
-            table->DisplayOrder[n] = table->Columns[n].IndexDisplayOrder = (ImU8)n;
+            table->DisplayOrderToIndex[n] = table->Columns[n].DisplayOrder = (ImS8)n;
         table->IsResetDisplayOrderRequest = false;
         table->IsSettingsDirty = true;
     }
@@ -8103,16 +8199,16 @@ void ImGui::TableBeginUpdateColumns(ImGuiTable* table)
     bool want_column_auto_fit = false;
     for (int order_n = 0; order_n < table->ColumnsCount; order_n++)
     {
-        const int column_n = table->DisplayOrder[order_n];
+        const int column_n = table->DisplayOrderToIndex[order_n];
         if (column_n != order_n)
             table->IsDefaultDisplayOrder = false;
         ImGuiTableColumn* column = &table->Columns[column_n];
         column->NameOffset = -1;
         if (!(table->Flags & ImGuiTableFlags_Hideable) || (column->Flags & ImGuiTableColumnFlags_NoHide))
-            column->NextIsActive = true;
-        if (column->IsActive != column->NextIsActive)
+            column->IsActiveNextFrame = true;
+        if (column->IsActive != column->IsActiveNextFrame)
         {
-            column->IsActive = column->NextIsActive;
+            column->IsActive = column->IsActiveNextFrame;
             table->IsSettingsDirty = true;
             if (!column->IsActive && column->SortOrder != -1)
                 table->IsSortSpecsDirty = true;
@@ -8123,7 +8219,7 @@ void ImGui::TableBeginUpdateColumns(ImGuiTable* table)
             want_column_auto_fit = true;
 
         ImU64 index_mask = (ImU64)1 << column_n;
-        ImU64 display_order_mask = (ImU64)1 << column->IndexDisplayOrder;
+        ImU64 display_order_mask = (ImU64)1 << column->DisplayOrder;
         if (column->IsActive)
         {
             column->PrevActiveColumn = column->NextActiveColumn = -1;
@@ -8144,7 +8240,7 @@ void ImGui::TableBeginUpdateColumns(ImGuiTable* table)
             table->ActiveMaskByIndex &= ~index_mask;
             table->ActiveMaskByDisplayOrder &= ~display_order_mask;
         }
-        IM_ASSERT(column->IndexWithinActiveSet <= column->IndexDisplayOrder);
+        IM_ASSERT(column->IndexWithinActiveSet <= column->DisplayOrder);
     }
     table->VisibleMaskByIndex = table->ActiveMaskByIndex; // Columns will be masked out by TableUpdateLayout() when Clipped
     table->RightMostActiveColumn = (ImS8)(last_active_column ? table->Columns.index_from_ptr(last_active_column) : -1);
@@ -8158,9 +8254,9 @@ void ImGui::TableBeginUpdateColumns(ImGuiTable* table)
 void ImGui::TableUpdateDrawChannels(ImGuiTable* table)
 {
     // Allocate draw channels.
-    // - We allocate them following the storage order instead of the display order so reordering won't needlessly increase overall dormant memory cost
+    // - We allocate them following the storage order instead of the display order so reordering columns won't needlessly increase overall dormant memory cost.
     // - We isolate headers draw commands in their own channels instead of just altering clip rects. This is in order to facilitate merging of draw commands.
-    // - After crossing FreezeRowsCount, all columns see their current draw channel increased.
+    // - After crossing FreezeRowsCount, all columns see their current draw channel changed to a second set of draw channels.
     // - We only use the dummy draw channel so we can push a null clipping rectangle into it without affecting other channels, while simplifying per-row/per-cell overhead. It will be empty and discarded when merged.
     // Draw channel allocation (before merging):
     // - NoClip                       --> 1+1 channels: background + foreground (same clip rect == 1 draw call)
@@ -8200,6 +8296,7 @@ static ImGuiTableColumnFlags TableFixColumnFlags(ImGuiTable* table, ImGuiTableCo
     // Sizing Policy
     if ((flags & ImGuiTableColumnFlags_WidthMask_) == 0)
     {
+        // FIXME-TABLE: Inconsistent to promote columns to WidthAlwaysAutoResize
         if (table->Flags & ImGuiTableFlags_SizingPolicyFixedX)
             flags |= ((table->Flags & ImGuiTableFlags_Resizable) && !(flags & ImGuiTableColumnFlags_NoResize)) ? ImGuiTableColumnFlags_WidthFixed : ImGuiTableColumnFlags_WidthAlwaysAutoResize;
         else
@@ -8249,7 +8346,7 @@ void    ImGui::TableUpdateLayout(ImGuiTable* table)
 
     // Compute offset, clip rect for the frame
     const ImRect work_rect = table->WorkRect;
-    const float padding_auto_x = table->CellPaddingX1; // Can't make auto padding larger than what WorkRect knows about so right-alignment matches.
+    const float padding_auto_x = table->CellPaddingX2; // Can't make auto padding larger than what WorkRect knows about so right-alignment matches.
     const float min_column_width = TableGetMinColumnWidth();
 
     int count_fixed = 0;
@@ -8260,7 +8357,7 @@ void    ImGui::TableUpdateLayout(ImGuiTable* table)
     {
         if (!(table->ActiveMaskByDisplayOrder & ((ImU64)1 << order_n)))
             continue;
-        const int column_n = table->DisplayOrder[order_n];
+        const int column_n = table->DisplayOrderToIndex[order_n];
         ImGuiTableColumn* column = &table->Columns[column_n];
 
         // Adjust flags: default width mode + weighted columns are not allowed when auto extending
@@ -8303,17 +8400,18 @@ void    ImGui::TableUpdateLayout(ImGuiTable* table)
                 column->ResizeWeight = 1.0f;
             total_weights += column->ResizeWeight;
             if (table->LeftMostStretchedColumnDisplayOrder == -1)
-                table->LeftMostStretchedColumnDisplayOrder = (ImS8)column->IndexDisplayOrder;
+                table->LeftMostStretchedColumnDisplayOrder = (ImS8)column->DisplayOrder;
         }
     }
 
     // Layout
+    // Remove -1.0f to cancel out the +1.0f we are doing in EndTable() to make last column line visible
     const float width_spacings = table->CellSpacingX * (table->ColumnsActiveCount - 1);
     float width_avail;
     if ((table->Flags & ImGuiTableFlags_ScrollX) && (table->InnerWidth == 0.0f))
         width_avail = table->InnerClipRect.GetWidth() - width_spacings - 1.0f;
     else
-        width_avail = work_rect.GetWidth() - width_spacings - 1.0f; // Remove -1.0f to cancel out the +1.0f we are doing in EndTable() to make last column line visible
+        width_avail = work_rect.GetWidth() - width_spacings - 1.0f;
     const float width_avail_for_stretched_columns = width_avail - width_fixed;
     float width_remaining_for_stretched_columns = width_avail_for_stretched_columns;
 
@@ -8325,7 +8423,7 @@ void    ImGui::TableUpdateLayout(ImGuiTable* table)
     {
         if (!(table->ActiveMaskByDisplayOrder & ((ImU64)1 << order_n)))
             continue;
-        ImGuiTableColumn* column = &table->Columns[table->DisplayOrder[order_n]];
+        ImGuiTableColumn* column = &table->Columns[table->DisplayOrderToIndex[order_n]];
 
         // Allocate width for stretched/weighted columns
         if (column->Flags & ImGuiTableColumnFlags_WidthStretch)
@@ -8388,7 +8486,7 @@ void    ImGui::TableUpdateLayout(ImGuiTable* table)
         {
             if (!(table->ActiveMaskByDisplayOrder & ((ImU64)1 << order_n)))
                 continue;
-            ImGuiTableColumn* column = &table->Columns[table->DisplayOrder[order_n]];
+            ImGuiTableColumn* column = &table->Columns[table->DisplayOrderToIndex[order_n]];
             if (!(column->Flags & ImGuiTableColumnFlags_WidthStretch))
                 continue;
             column->WidthRequested += 1.0f;
@@ -8402,7 +8500,7 @@ void    ImGui::TableUpdateLayout(ImGuiTable* table)
     ImRect host_clip_rect = table->InnerClipRect;
     for (int order_n = 0; order_n < table->ColumnsCount; order_n++)
     {
-        const int column_n = table->DisplayOrder[order_n];
+        const int column_n = table->DisplayOrderToIndex[order_n];
         ImGuiTableColumn* column = &table->Columns[column_n];
 
         if (table->FreezeColumnsCount > 0 && table->FreezeColumnsCount == active_n)
@@ -8435,7 +8533,8 @@ void    ImGui::TableUpdateLayout(ImGuiTable* table)
         {
             // If horizontal scrolling if disabled, we apply a final lossless shrinking of columns in order to make sure they are all visible.
             // Because of this we also know that all of the columns will always fit in table->WorkRect and therefore in table->InnerRect (because ScrollX is off)
-            max_x = table->WorkRect.Max.x - (table->ColumnsActiveCount - (column->IndexWithinActiveSet + 1)) * min_column_width;
+            if (!(table->Flags & ImGuiTableFlags_NoKeepColumnsVisible))
+                max_x = table->WorkRect.Max.x - (table->ColumnsActiveCount - (column->IndexWithinActiveSet + 1)) * min_column_width;
         }
         if (offset_x + column->WidthGiven > max_x)
             column->WidthGiven = ImMax(max_x - offset_x, min_column_width);
@@ -8508,7 +8607,7 @@ void    ImGui::TableUpdateLayout(ImGuiTable* table)
     table->IsUsingHeaders = false;
 
     // Context menu
-    if (table->IsContextPopupOpen && table->InstanceNo == table->InstanceInteracted)
+    if (table->IsContextPopupOpen && table->InstanceCurrent == table->InstanceInteracted)
     {
         if (BeginPopup("##TableContextMenu"))
         {
@@ -8553,7 +8652,7 @@ void    ImGui::TableUpdateBorders(ImGuiTable* table)
         if (!(table->ActiveMaskByDisplayOrder & ((ImU64)1 << order_n)))
             continue;
 
-        const int column_n = table->DisplayOrder[order_n];
+        const int column_n = table->DisplayOrderToIndex[order_n];
         ImGuiTableColumn* column = &table->Columns[column_n];
 
         // Detect hovered column:
@@ -8565,7 +8664,7 @@ void    ImGui::TableUpdateBorders(ImGuiTable* table)
         if (column->Flags & (ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_NoDirectResize_))
             continue;
 
-        ImGuiID column_id = table->ID + (table->InstanceNo * table->ColumnsCount) + column_n;
+        ImGuiID column_id = TableGetColumnResizeID(table, column_n, table->InstanceCurrent);
         ImRect hit_rect(column->MaxX - hit_half_width, hit_y1, column->MaxX + hit_half_width, hit_y2);
         //GetForegroundDrawList()->AddRect(hit_rect.Min, hit_rect.Max, IM_COL32(255, 0, 0, 100));
         KeepAliveID(column_id);
@@ -8582,7 +8681,7 @@ void    ImGui::TableUpdateBorders(ImGuiTable* table)
         if (held)
         {
             table->ResizedColumn = (ImS8)column_n;
-            table->InstanceInteracted = table->InstanceNo;
+            table->InstanceInteracted = table->InstanceCurrent;
         }
         if ((hovered && g.HoveredIdTimer > TABLE_RESIZE_SEPARATOR_FEEDBACK_TIMER) || held)
         {
@@ -8596,7 +8695,7 @@ void    ImGui::EndTable()
 {
     ImGuiContext& g = *GImGui;
     ImGuiTable* table = g.CurrentTable;
-    IM_ASSERT(table != NULL && "Only call EndTable() is BeginTable() returns true!");
+    IM_ASSERT(table != NULL && "Only call EndTable() if BeginTable() returns true!");
 
     // This assert would be very useful to catch a common error... unfortunately it would probably trigger in some cases,
     // and for consistency user may sometimes output empty tables (and still benefit from e.g. outer border)
@@ -8672,7 +8771,7 @@ void    ImGui::EndTable()
     {
         inner_window->Scroll.x = 0.0f;
     }
-    else if (table->LastResizedColumn != -1 && table->ResizedColumn == -1 && inner_window->ScrollbarX && table->InstanceInteracted == table->InstanceNo)
+    else if (table->LastResizedColumn != -1 && table->ResizedColumn == -1 && inner_window->ScrollbarX && table->InstanceInteracted == table->InstanceCurrent)
     {
         ImGuiTableColumn* column = &table->Columns[table->LastResizedColumn];
         if (column->MaxX < table->InnerClipRect.Min.x)
@@ -8758,10 +8857,10 @@ void ImGui::TableDrawBorders(ImGuiTable* table)
             if (!(table->ActiveMaskByDisplayOrder & ((ImU64)1 << order_n)))
                 continue;
 
-            const int column_n = table->DisplayOrder[order_n];
+            const int column_n = table->DisplayOrderToIndex[order_n];
             ImGuiTableColumn* column = &table->Columns[column_n];
             const bool is_hovered = (table->HoveredColumnBorder == column_n);
-            const bool is_resized = (table->ResizedColumn == column_n) && (table->InstanceInteracted == table->InstanceNo);
+            const bool is_resized = (table->ResizedColumn == column_n) && (table->InstanceInteracted == table->InstanceCurrent);
             const bool is_resizable = (column->Flags & (ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_NoDirectResize_)) == 0;
             bool draw_right_border = (column->MaxX <= table->InnerClipRect.Max.x) || (is_resized || is_hovered);
             if (column->NextActiveColumn == -1 && !is_resizable)
@@ -8844,6 +8943,18 @@ static void TableUpdateColumnsWeightFromWidth(ImGuiTable* table)
     }
 }
 
+// Public wrapper
+void ImGui::TableSetColumnWidth(int column_n, float width)
+{
+    ImGuiContext& g = *GImGui;
+    ImGuiTable* table = g.CurrentTable;
+    IM_ASSERT(table != NULL);
+    IM_ASSERT(table->IsLayoutLocked == false);
+    IM_ASSERT(column_n >= 0 && column_n < table->ColumnsCount);
+    TableSetColumnWidth(table, &table->Columns[column_n], width);
+}
+
+// [Internal]
 void ImGui::TableSetColumnWidth(ImGuiTable* table, ImGuiTableColumn* column_0, float column_0_width)
 {
     // Constraints
@@ -8887,7 +8998,7 @@ void ImGui::TableSetColumnWidth(ImGuiTable* table, ImGuiTableColumn* column_0, f
         // [Resize Rule 3] If we are are followed by a fixed column and we have a Stretch column before, we need to
         // ensure that our left border won't move, which we can do by making sure column_a/column_b resizes cancels each others.
         if (column_1 && (column_1->Flags & ImGuiTableColumnFlags_WidthFixed))
-            if (table->LeftMostStretchedColumnDisplayOrder != -1 && table->LeftMostStretchedColumnDisplayOrder < column_0->IndexDisplayOrder)
+            if (table->LeftMostStretchedColumnDisplayOrder != -1 && table->LeftMostStretchedColumnDisplayOrder < column_0->DisplayOrder)
             {
                 // (old_a + old_b == new_a + new_b) --> (new_a == old_a + old_b - new_b)
                 float column_1_width = ImMax(column_1->WidthRequested - (column_0_width - column_0->WidthRequested), min_width);
@@ -8930,13 +9041,13 @@ void ImGui::TableSetColumnWidth(ImGuiTable* table, ImGuiTableColumn* column_0, f
 //
 // Each column itself can use 1 channel (row freeze disabled) or 2 channels (row freeze enabled).
 // When the contents of a column didn't stray off its limit, we move its channels into the corresponding group
-// based on its position (within frozen rows/columns set or not).
+// based on its position (within frozen rows/columns groups or not).
 // At the end of the operation our 1-4 groups will each have a ImDrawCmd using the same ClipRect, and they will be merged by the DrawSplitter.Merge() call.
 //
 // Column channels will not be merged into one of the 1-4 groups in the following cases:
 // - The contents stray off its clipping rectangle (we only compare the MaxX value, not the MinX value).
-//   Direct ImDrawList calls won't be noticed so if you use them make sure the ImGui:: bounds matches, by e.g. calling SetCursorScreenPos().
-// - The channel uses more than one draw command itself (we drop all our merging stuff here.. we could do better but it's going to be rare)
+//   Direct ImDrawList calls won't be taken into account by default, if you use them make sure the ImGui:: bounds matches, by e.g. calling SetCursorScreenPos().
+// - The channel uses more than one draw command itself. We drop all our merging stuff here.. we could do better but it's going to be rare.
 //
 // This function is particularly tricky to understand.. take a breath.
 void    ImGui::TableDrawMergeChannels(ImGuiTable* table)
@@ -8946,53 +9057,60 @@ void    ImGui::TableDrawMergeChannels(ImGuiTable* table)
     const bool is_frozen_v = (table->FreezeRowsCount > 0);
     const bool is_frozen_h = (table->FreezeColumnsCount > 0);
 
-    int merge_set_mask = 0;
-    int merge_set_channels_count[4] = { 0 };
-    ImU64 merge_set_channels_mask[4] = { 0 };
-    ImRect merge_set_clip_rect[4];
-    for (int n = 0; n < IM_ARRAYSIZE(merge_set_clip_rect); n++)
-        merge_set_clip_rect[n] = ImVec4(+FLT_MAX, +FLT_MAX, -FLT_MAX, -FLT_MAX);
-    bool merge_set_all_fit_within_inner_rect = (table->Flags & ImGuiTableFlags_NoHostExtendY) == 0;
+    // Track which groups we are going to attempt to merge, and which channels goes into each group.
+    struct MergeGroup
+    {
+        ImRect  ClipRect;
+        int     ChannelsCount;
+        ImBitArray<IMGUI_TABLE_MAX_DRAW_CHANNELS> ChannelsMask;
+    };
+    int merge_group_mask = 0x00;
+    MergeGroup merge_groups[4];
+    memset(merge_groups, 0, sizeof(merge_groups));
+    bool merge_groups_all_fit_within_inner_rect = (table->Flags & ImGuiTableFlags_NoHostExtendY) == 0;
 
-    // 1. Scan channels and take note of those who can be merged
+    // 1. Scan channels and take note of those which can be merged
     for (int order_n = 0; order_n < table->ColumnsCount; order_n++)
     {
         if (!(table->ActiveMaskByDisplayOrder & ((ImU64)1 << order_n)))
             continue;
-        const int column_n = table->DisplayOrder[order_n];
+        const int column_n = table->DisplayOrderToIndex[order_n];
         ImGuiTableColumn* column = &table->Columns[column_n];
 
-        const int merge_set_sub_count = is_frozen_v ? 2 : 1;
-        for (int merge_set_sub_n = 0; merge_set_sub_n < merge_set_sub_count; merge_set_sub_n++)
+        const int merge_group_sub_count = is_frozen_v ? 2 : 1;
+        for (int merge_group_sub_n = 0; merge_group_sub_n < merge_group_sub_count; merge_group_sub_n++)
         {
-            const int channel_no = (merge_set_sub_n == 0) ? column->DrawChannelRowsBeforeFreeze : column->DrawChannelRowsAfterFreeze;
+            const int channel_no = (merge_group_sub_n == 0) ? column->DrawChannelRowsBeforeFreeze : column->DrawChannelRowsAfterFreeze;
 
-            // Don't attempt to merge if there are multiple calls within the column
+            // Don't attempt to merge if there are multiple draw calls within the column
             ImDrawChannel* src_channel = &splitter->_Channels[channel_no];
             if (src_channel->_CmdBuffer.Size > 0 && src_channel->_CmdBuffer.back().ElemCount == 0)
                 src_channel->_CmdBuffer.pop_back();
             if (src_channel->_CmdBuffer.Size != 1)
                 continue;
 
-            // Find out the width of this merge set and check if it will fit in our column.
+            // Find out the width of this merge group and check if it will fit in our column.
             float width_contents;
-            if (merge_set_sub_count == 1)   // No row freeze (same as testing !is_frozen_v)
+            if (merge_group_sub_count == 1)     // No row freeze (same as testing !is_frozen_v)
                 width_contents = ImMax(column->ContentWidthRowsUnfrozen, column->ContentWidthHeadersUsed);
-            else if (merge_set_sub_n == 0)  // Row freeze: use width before freeze
+            else if (merge_group_sub_n == 0)    // Row freeze: use width before freeze
                 width_contents = ImMax(column->ContentWidthRowsFrozen, column->ContentWidthHeadersUsed);
-            else                            // Row freeze: use width after freeze
+            else                                // Row freeze: use width after freeze
                 width_contents = column->ContentWidthRowsUnfrozen;
             if (width_contents > column->WidthGiven && !(column->Flags & ImGuiTableColumnFlags_NoClipX))
                 continue;
 
-            const int dst_merge_set_n = (is_frozen_h && column_n < table->FreezeColumnsCount ? 0 : 2) + (is_frozen_v ? merge_set_sub_n : 1);
-            IM_ASSERT(merge_set_channels_count[dst_merge_set_n] < (int)sizeof(merge_set_channels_mask[dst_merge_set_n]) * 8);
-            merge_set_mask |= (1 << dst_merge_set_n);
-            merge_set_channels_mask[dst_merge_set_n] |= (ImU64)1 << channel_no;
-            merge_set_channels_count[dst_merge_set_n]++;
-            merge_set_clip_rect[dst_merge_set_n].Add(src_channel->_CmdBuffer[0].ClipRect);
+            const int merge_group_dst_n = (is_frozen_h && column_n < table->FreezeColumnsCount ? 0 : 2) + (is_frozen_v ? merge_group_sub_n : 1);
+            IM_ASSERT(channel_no < IMGUI_TABLE_MAX_DRAW_CHANNELS);
+            MergeGroup* merge_group = &merge_groups[merge_group_dst_n];
+            if (merge_group->ChannelsCount == 0)
+                merge_group->ClipRect = ImRect(+FLT_MAX, +FLT_MAX, -FLT_MAX, -FLT_MAX);
+            merge_group->ChannelsMask.SetBit(channel_no);
+            merge_group->ChannelsCount++;
+            merge_group->ClipRect.Add(src_channel->_CmdBuffer[0].ClipRect);
+            merge_group_mask |= (1 << merge_group_dst_n);
 
-            // If we end with a single set and hosted by the outer window, we'll attempt to merge our draw command with
+            // If we end with a single group and hosted by the outer window, we'll attempt to merge our draw command with
             // the existing outer window command. But we can only do so if our columns all fit within the expected clip rect,
             // otherwise clipping will be incorrect when ScrollX is disabled.
             // FIXME-TABLE FIXME-WORKRECT: We are wasting a merge opportunity on tables without scrolling if column don't fit within host clip rect, solely because of the half-padding difference between window->WorkRect and window->InnerClipRect
@@ -9002,7 +9120,7 @@ void    ImGui::TableDrawMergeChannels(ImGuiTable* table)
             // 2019/10/22: (2) Clamping code in TableUpdateLayout() seemingly made this not necessary...
 #if 0
             if (column->MinX < table->InnerClipRect.Min.x || column->MaxX > table->InnerClipRect.Max.x)
-                merge_set_all_fit_within_inner_rect = false;
+                merge_groups_all_fit_within_inner_rect = false;
 #endif
         }
 
@@ -9011,50 +9129,55 @@ void    ImGui::TableDrawMergeChannels(ImGuiTable* table)
     }
 
     // 2. Rewrite channel list in our preferred order
-    if (merge_set_mask != 0)
+    if (merge_group_mask != 0)
     {
         // Use shared temporary storage so the allocation gets amortized
         g.DrawChannelsTempMergeBuffer.resize(splitter->_Count - 1);
         ImDrawChannel* dst_tmp = g.DrawChannelsTempMergeBuffer.Data;
-        ImU64 remaining_mask = ((splitter->_Count < 64) ? ((ImU64)1 << splitter->_Count) - 1 : ~(ImU64)0) & ~1;
-        const bool may_extend_clip_rect_to_host_rect = ImIsPowerOfTwo(merge_set_mask);
-        for (int merge_set_n = 0; merge_set_n < 4; merge_set_n++)
-            if (merge_set_channels_count[merge_set_n])
+        ImBitArray<IMGUI_TABLE_MAX_DRAW_CHANNELS> remaining_mask;
+        remaining_mask.ClearBits();
+        remaining_mask.SetBitRange(1, splitter->_Count - 1); // Background channel 0 not part of the merge (see channel allocation in TableUpdateDrawChannels)
+        int remaining_count = splitter->_Count - 1;
+        const bool may_extend_clip_rect_to_host_rect = ImIsPowerOfTwo(merge_group_mask);
+        for (int merge_group_n = 0; merge_group_n < 4; merge_group_n++)
+            if (int merge_channels_count = merge_groups[merge_group_n].ChannelsCount)
             {
-                ImU64 merge_channels_mask = merge_set_channels_mask[merge_set_n];
-                ImRect merge_clip_rect = merge_set_clip_rect[merge_set_n];
+                MergeGroup* merge_group = &merge_groups[merge_group_n];
+                ImRect merge_clip_rect = merge_groups[merge_group_n].ClipRect;
                 if (may_extend_clip_rect_to_host_rect)
                 {
                     //GetOverlayDrawList()->AddRect(table->HostClipRect.Min, table->HostClipRect.Max, IM_COL32(255, 0, 0, 200), 0.0f, ~0, 3.0f);
                     //GetOverlayDrawList()->AddRect(table->InnerClipRect.Min, table->InnerClipRect.Max, IM_COL32(0, 255, 0, 200), 0.0f, ~0, 1.0f);
                     //GetOverlayDrawList()->AddRect(merge_clip_rect.Min, merge_clip_rect.Max, IM_COL32(255, 0, 0, 200), 0.0f, ~0, 2.0f);
-                    merge_clip_rect.Add(merge_set_all_fit_within_inner_rect ? table->HostClipRect : table->InnerClipRect);
+                    merge_clip_rect.Add(merge_groups_all_fit_within_inner_rect ? table->HostClipRect : table->InnerClipRect);
                     //GetOverlayDrawList()->AddRect(merge_clip_rect.Min, merge_clip_rect.Max, IM_COL32(0, 255, 0, 200));
                 }
-                remaining_mask &= ~merge_channels_mask;
-                for (int n = 0; n < splitter->_Count && merge_channels_mask != 0; n++)
+                remaining_count -= merge_group->ChannelsCount;
+                for (int n = 0; n < IM_ARRAYSIZE(remaining_mask.Storage); n++)
+                    remaining_mask.Storage[n] &= ~merge_group->ChannelsMask.Storage[n];
+                for (int n = 0; n < splitter->_Count && merge_channels_count != 0; n++)
                 {
                     // Copy + overwrite new clip rect
-                    const ImU64 n_mask = (ImU64)1 << n;
-                    if ((merge_channels_mask & n_mask) == 0)
+                    if (!merge_group->ChannelsMask.TestBit(n))
                         continue;
+                    merge_group->ChannelsMask.ClearBit(n);
+                    merge_channels_count--;
+
                     ImDrawChannel* channel = &splitter->_Channels[n];
                     IM_ASSERT(channel->_CmdBuffer.Size == 1 && merge_clip_rect.Contains(ImRect(channel->_CmdBuffer[0].ClipRect)));
-                    channel->_CmdBuffer[0].ClipRect = *(ImVec4*)&merge_clip_rect;
+                    channel->_CmdBuffer[0].ClipRect = merge_clip_rect.ToVec4();
                     memcpy(dst_tmp++, channel, sizeof(ImDrawChannel));
-                    merge_channels_mask &= ~n_mask;
                 }
             }
 
-        // Append channels that we didn't reorder at the end of the list
-        for (int n = 0; n < splitter->_Count && remaining_mask != 0; n++)
+        // Append unmergeable channels that we didn't reorder at the end of the list
+        for (int n = 0; n < splitter->_Count && remaining_count != 0; n++)
         {
-            const ImU64 n_mask = (ImU64)1 << n;
-            if ((remaining_mask & n_mask) == 0)
+            if (!remaining_mask.TestBit(n))
                 continue;
             ImDrawChannel* channel = &splitter->_Channels[n];
             memcpy(dst_tmp++, channel, sizeof(ImDrawChannel));
-            remaining_mask &= ~n_mask;
+            remaining_count--;
         }
         IM_ASSERT(dst_tmp == g.DrawChannelsTempMergeBuffer.Data + g.DrawChannelsTempMergeBuffer.Size);
         memcpy(splitter->_Channels.Data + 1, g.DrawChannelsTempMergeBuffer.Data, (splitter->_Count - 1) * sizeof(ImDrawChannel));
@@ -9117,9 +9240,12 @@ void    ImGui::TableSetupColumn(const char* label, ImGuiTableColumnFlags flags, 
     {
         // Init default visibility/sort state
         if (flags & ImGuiTableColumnFlags_DefaultHide)
-            column->IsActive = column->NextIsActive = false;
+            column->IsActive = column->IsActiveNextFrame = false;
         if (flags & ImGuiTableColumnFlags_DefaultSort)
+        {
             column->SortOrder = 0; // Multiple columns using _DefaultSort will be reordered when building the sort specs.
+            column->SortDirection = (column->Flags & ImGuiTableColumnFlags_PreferSortDescending) ? (ImS8)ImGuiSortDirection_Descending : (ImU8)(ImGuiSortDirection_Ascending);
+        }
     }
 
     // Store name (append with zero-terminator in contiguous buffer)
@@ -9132,7 +9258,7 @@ void    ImGui::TableSetupColumn(const char* label, ImGuiTableColumnFlags flags, 
 }
 
 // Starts into the first cell of a new row
-void    ImGui::TableNextRow(ImGuiTableRowFlags row_flags, float min_row_height)
+void    ImGui::TableNextRow(ImGuiTableRowFlags row_flags, float row_min_height)
 {
     ImGuiContext& g = *GImGui;
     ImGuiTable* table = g.CurrentTable;
@@ -9144,12 +9270,13 @@ void    ImGui::TableNextRow(ImGuiTableRowFlags row_flags, float min_row_height)
 
     table->LastRowFlags = table->RowFlags;
     table->RowFlags = row_flags;
+    table->RowMinHeight = row_min_height;
     TableBeginRow(table);
 
     // We honor min_row_height requested by user, but cannot guarantee per-row maximum height,
     // because that would essentially require a unique clipping rectangle per-cell.
     table->RowPosY2 += table->CellPaddingY * 2.0f;
-    table->RowPosY2 = ImMax(table->RowPosY2, table->RowPosY1 + min_row_height);
+    table->RowPosY2 = ImMax(table->RowPosY2, table->RowPosY1 + row_min_height);
 
     TableBeginCell(table, 0);
 }
@@ -9173,6 +9300,7 @@ void    ImGui::TableBeginRow(ImGuiTable* table)
 
     table->RowPosY1 = table->RowPosY2 = next_y1;
     table->RowTextBaseline = 0.0f;
+    table->RowIndentOffsetX = window->DC.Indent.x - table->HostIndentX; // Lock indent
     window->DC.PrevLineTextBaseOffset = 0.0f;
     window->DC.CursorMaxPos.y = next_y1;
 
@@ -9292,25 +9420,26 @@ void    ImGui::TableEndRow(ImGuiTable* table)
     table->IsInsideRow = false;
 }
 
-// [Internal] Called by TableNextRow()TableNextCell()!
-// This is called a lot, so we need to be mindful of unnecessary overhead.
+// [Internal] Called by TableNextCell()!
+// This is called very frequently, so we need to be mindful of unnecessary overhead.
 // FIXME-TABLE FIXME-OPT: Could probably shortcut some things for non-active or clipped columns.
-void    ImGui::TableBeginCell(ImGuiTable* table, int column_no)
+void    ImGui::TableBeginCell(ImGuiTable* table, int column_n)
 {
-    table->CurrentColumn = column_no;
-    ImGuiTableColumn* column = &table->Columns[column_no];
+    table->CurrentColumn = column_n;
+    ImGuiTableColumn* column = &table->Columns[column_n];
     ImGuiWindow* window = table->InnerWindow;
 
+    // Start position is roughly ~~ CellRect.Min + CellPadding + Indent
     float start_x = (table->RowFlags & ImGuiTableRowFlags_Headers) ? column->StartXHeaders : column->StartXRows;
     if (column->Flags & ImGuiTableColumnFlags_IndentEnable)
-        start_x += window->DC.Indent.x - table->HostIndentX;
+        start_x += table->RowIndentOffsetX; // ~~ += window.DC.Indent.x - table->HostIndentX, except we locked it for the row.
 
-    window->DC.LastItemId = 0;
     window->DC.CursorPos.x = start_x;
     window->DC.CursorPos.y = table->RowPosY1 + table->CellPaddingY;
     window->DC.CursorMaxPos.x = window->DC.CursorPos.x;
     window->DC.ColumnsOffset.x = start_x - window->Pos.x - window->DC.Indent.x; // FIXME-WORKRECT
     window->DC.CurrLineTextBaseOffset = table->RowTextBaseline;
+    window->DC.LastItemId = 0;
 
     window->WorkRect.Min.y = window->DC.CursorPos.y;
     window->WorkRect.Min.x = column->MinX + table->CellPaddingX1;
@@ -9334,7 +9463,7 @@ void    ImGui::TableBeginCell(ImGuiTable* table, int column_no)
         //window->DrawList->UpdateClipRect();
         window->DrawList->PopClipRect();
         window->DrawList->PushClipRect(column->ClipRect.Min, column->ClipRect.Max, false);
-        //IMGUI_DEBUG_LOG("%d (%.0f,%.0f)(%.0f,%.0f)\n", column_no, column->ClipRect.Min.x, column->ClipRect.Min.y, column->ClipRect.Max.x, column->ClipRect.Max.y);
+        //IMGUI_DEBUG_LOG("%d (%.0f,%.0f)(%.0f,%.0f)\n", column_n, column->ClipRect.Min.x, column->ClipRect.Min.y, column->ClipRect.Max.x, column->ClipRect.Max.y);
         window->ClipRect = window->DrawList->_ClipRectStack.back();
     }
 }
@@ -9440,19 +9569,27 @@ ImRect  ImGui::TableGetCellRect()
     return ImRect(column->MinX, table->RowPosY1, column->MaxX, table->RowPosY2);
 }
 
-const char* ImGui::TableGetColumnName(ImGuiTable* table, int column_no)
+const char* ImGui::TableGetColumnName(ImGuiTable* table, int column_n)
 {
-    ImGuiTableColumn* column = &table->Columns[column_no];
+    ImGuiTableColumn* column = &table->Columns[column_n];
     if (column->NameOffset == -1)
         return NULL;
     return &table->ColumnsNames.Buf[column->NameOffset];
 }
 
-void    ImGui::TableSetColumnAutofit(ImGuiTable* table, int column_no)
+// Return the resizing ID for the right-side of the given column.
+ImGuiID ImGui::TableGetColumnResizeID(ImGuiTable* table, int column_n, int instance_no)
+{
+    IM_ASSERT(column_n < table->ColumnsCount);
+    ImGuiID id = table->ID + (instance_no * table->ColumnsCount) + column_n;
+    return id;
+}
+
+void    ImGui::TableSetColumnAutofit(ImGuiTable* table, int column_n)
 {
     // Disable clipping then auto-fit, will take 2 frames
     // (we don't take a shortcut for unclipped columns to reduce inconsistencies when e.g. resizing multiple columns)
-    ImGuiTableColumn* column = &table->Columns[column_no];
+    ImGuiTableColumn* column = &table->Columns[column_n];
     column->CannotSkipItemsQueue = (1 << 0);
     column->AutoFitQueue = (1 << 1);
 }
@@ -9538,7 +9675,7 @@ void    ImGui::TableDrawContextMenu(ImGuiTable* table, int selected_column_n)
             if (column->IsActive && table->ColumnsActiveCount <= 1)
                 menu_item_active = false;
             if (MenuItem(name, NULL, column->IsActive, menu_item_active))
-                column->NextIsActive = !column->IsActive;
+                column->IsActiveNextFrame = !column->IsActive;
         }
         PopItemFlag();
     }
@@ -9596,7 +9733,7 @@ void    ImGui::TableAutoHeaders()
         //if (g.IO.KeyCtrl) { static char buf[32]; name = buf; ImGuiTableColumn* c = &table->Columns[column_n]; if (c->Flags & ImGuiTableColumnFlags_WidthStretch) ImFormatString(buf, 32, "%.3f>%.1f", c->ResizeWeight, c->WidthGiven); else ImFormatString(buf, 32, "%.1f", c->WidthGiven); }
 
         // Push an id to allow unnamed labels (generally accidental, but let's behave nicely with them)
-        PushID(table->InstanceNo * table->ColumnsCount + column_n);
+        PushID(table->InstanceCurrent * table->ColumnsCount + column_n);
         TableHeader(name);
         PopID();
 
@@ -9643,13 +9780,14 @@ void    ImGui::TableAutoHeaders()
         {
             table->IsContextPopupOpen = true;
             table->ContextPopupColumn = (ImS8)open_context_popup;
-            table->InstanceInteracted = table->InstanceNo;
+            table->InstanceInteracted = table->InstanceCurrent;
             OpenPopup("##TableContextMenu");
         }
 }
 
 // Emit a column header (text + optional sort order)
 // We cpu-clip text here so that all columns headers can be merged into a same draw call.
+// Note that because of how we cpu-clip and display sorting indicators, you _cannot_ use SameLine() after a TableHeader()
 // FIXME-TABLE: Should hold a selection state.
 // FIXME-TABLE: Style confusion between CellPadding.y and FramePadding.y
 void    ImGui::TableHeader(const char* label)
@@ -9674,7 +9812,7 @@ void    ImGui::TableHeader(const char* label)
 
     // If we already got a row height, there's use that.
     ImRect cell_r = TableGetCellRect();
-    float label_height = ImMax(label_size.y, cell_r.GetHeight() - g.Style.CellPadding.y * 2.0f);
+    float label_height = ImMax(label_size.y, table->RowMinHeight - g.Style.CellPadding.y * 2.0f);
 
     //GetForegroundDrawList()->AddRect(cell_r.Min, cell_r.Max, IM_COL32(255, 0, 0, 255)); // [DEBUG]
     ImRect work_r = cell_r;
@@ -9689,26 +9827,32 @@ void    ImGui::TableHeader(const char* label)
     //window->DC.CursorPos.x = column->MinX + table->CellPadding.x;
 
     // Keep header highlighted when context menu is open. (FIXME-TABLE: however we cannot assume the ID of said popup if it has been created by the user...)
-    const bool selected = (table->IsContextPopupOpen && table->ContextPopupColumn == column_n && table->InstanceInteracted == table->InstanceNo);
-    const bool pressed = Selectable("", selected, ImGuiSelectableFlags_DrawHoveredWhenHeld, ImVec2(0.0f, label_height));
+    const bool selected = (table->IsContextPopupOpen && table->ContextPopupColumn == column_n && table->InstanceInteracted == table->InstanceCurrent);
+    const bool pressed = Selectable("", selected, ImGuiSelectableFlags_DrawHoveredWhenHeld | ImGuiSelectableFlags_DontClosePopups, ImVec2(0.0f, label_height));
     const bool held = IsItemActive();
     if (held)
         table->HeldHeaderColumn = (ImS8)column_n;
     window->DC.CursorPos.y -= g.Style.ItemSpacing.y * 0.5f;
 
-    // Drag and drop: re-order columns. Frozen columns are not reorderable.
+    // Drag and drop to re-order columns.
     // FIXME-TABLE: Scroll request while reordering a column and it lands out of the scrolling zone.
     if (held && (table->Flags & ImGuiTableFlags_Reorderable) && IsMouseDragging(0) && !g.DragDropActive)
     {
         // While moving a column it will jump on the other side of the mouse, so we also test for MouseDelta.x
         table->ReorderColumn = (ImS8)column_n;
-        table->InstanceInteracted = table->InstanceNo;
+        table->InstanceInteracted = table->InstanceCurrent;
+
+        // We don't reorder: through the frozen<>unfrozen line, or through a column that is marked with ImGuiTableColumnFlags_NoReorder.
         if (g.IO.MouseDelta.x < 0.0f && g.IO.MousePos.x < cell_r.Min.x)
-            if (column->PrevActiveColumn != -1 && (column->IndexWithinActiveSet < table->FreezeColumnsRequest) == (table->Columns[column->PrevActiveColumn].IndexWithinActiveSet < table->FreezeColumnsRequest))
-                table->ReorderColumnDir = -1;
+            if (ImGuiTableColumn* prev_column = (column->PrevActiveColumn != -1) ? &table->Columns[column->PrevActiveColumn] : NULL)
+                if (!((column->Flags | prev_column->Flags) & ImGuiTableColumnFlags_NoReorder))
+                    if ((column->IndexWithinActiveSet < table->FreezeColumnsRequest) == (prev_column->IndexWithinActiveSet < table->FreezeColumnsRequest))
+                        table->ReorderColumnDir = -1;
         if (g.IO.MouseDelta.x > 0.0f && g.IO.MousePos.x > cell_r.Max.x)
-            if (column->NextActiveColumn != -1 && (column->IndexWithinActiveSet < table->FreezeColumnsRequest) == (table->Columns[column->NextActiveColumn].IndexWithinActiveSet < table->FreezeColumnsRequest))
-                table->ReorderColumnDir = +1;
+            if (ImGuiTableColumn* next_column = (column->NextActiveColumn != -1) ? &table->Columns[column->NextActiveColumn] : NULL)
+                if (!((column->Flags | next_column->Flags) & ImGuiTableColumnFlags_NoReorder))
+                    if ((column->IndexWithinActiveSet < table->FreezeColumnsRequest) == (next_column->IndexWithinActiveSet < table->FreezeColumnsRequest))
+                        table->ReorderColumnDir = +1;
     }
 
     // Sort order arrow
@@ -9716,7 +9860,7 @@ void    ImGui::TableHeader(const char* label)
     float w_sort_text = 0.0f;
     if ((table->Flags & ImGuiTableFlags_Sortable) && !(column->Flags & ImGuiTableColumnFlags_NoSort))
     {
-        const float ARROW_SCALE = 0.75f;
+        const float ARROW_SCALE = 0.65f;
         w_arrow = ImFloor(g.FontSize * ARROW_SCALE + g.Style.FramePadding.x);// table->CellPadding.x);
         if (column->SortOrder != -1)
         {
@@ -9741,7 +9885,7 @@ void    ImGui::TableHeader(const char* label)
                 PopStyleColor();
                 x += w_sort_text;
             }
-            RenderArrow(window->DrawList, ImVec2(x, y), col, column->SortDirection == ImGuiSortDirection_Ascending ? ImGuiDir_Down : ImGuiDir_Up, ARROW_SCALE);
+            RenderArrow(window->DrawList, ImVec2(x, y), col, column->SortDirection == ImGuiSortDirection_Ascending ? ImGuiDir_Up : ImGuiDir_Down, ARROW_SCALE);
         }
 
         // Handle clicking on column header to adjust Sort Order
@@ -9801,7 +9945,7 @@ void ImGui::TableSortSpecsClickColumn(ImGuiTable* table, ImGuiTableColumn* click
     table->IsSortSpecsDirty = true;
 }
 
-// Return NULL if no sort specs.
+// Return NULL if no sort specs (most often when ImGuiTableFlags_Sortable is not set) 
 // You can sort your data again when 'SpecsChanged == true'. It will be true with sorting specs have changed since last call, or the first time.
 // Lifetime: don't hold on this pointer over multiple frames or past any subsequent call to BeginTable()!
 const ImGuiTableSortSpecs* ImGui::TableGetSortSpecs()
@@ -9831,7 +9975,6 @@ const ImGuiTableSortSpecs* ImGui::TableGetSortSpecs()
             sort_spec->ColumnUserID = column->UserID;
             sort_spec->ColumnIndex = (ImU8)column_n;
             sort_spec->SortOrder = (ImU8)column->SortOrder;
-            sort_spec->SortSign = (column->SortDirection == ImGuiSortDirection_Ascending) ? +1 : -1;
             sort_spec->SortDirection = column->SortDirection;
             table->SortSpecs.ColumnsMask |= (ImU64)1 << column_n;
         }
@@ -9995,15 +10138,15 @@ void ImGui::TableSaveSettings(ImGuiTable* table)
     {
         //column_settings->WidthOrWeight = column->WidthRequested; // FIXME-WIP
         column_settings->Index = (ImS8)n;
-        column_settings->DisplayOrder = column->IndexDisplayOrder;
+        column_settings->DisplayOrder = column->DisplayOrder;
         column_settings->SortOrder = column->SortOrder;
         column_settings->SortDirection = column->SortDirection;
         column_settings->Visible = column->IsActive;
 
         // We skip saving some data in the .ini file when they are unnecessary to restore our state
         // FIXME-TABLE: We don't have logic to easily compare SortOrder to DefaultSortOrder yet.
-        if (column->IndexDisplayOrder != n)
-            settings->SaveFlags |= ImGuiTableFlags_Reorderable;;
+        if (column->DisplayOrder != n)
+            settings->SaveFlags |= ImGuiTableFlags_Reorderable;
         if (column_settings->SortOrder != -1)
             settings->SaveFlags |= ImGuiTableFlags_Sortable;
         if (column_settings->Visible != ((column->Flags & ImGuiTableColumnFlags_DefaultHide) == 0))
@@ -10047,18 +10190,18 @@ void ImGui::TableLoadSettings(ImGuiTable* table)
         ImGuiTableColumn* column = &table->Columns[column_n];
         //column->WidthRequested = column_settings->WidthOrWeight; // FIXME-WIP
         if (column_settings->DisplayOrder != -1)
-            column->IndexDisplayOrder = column_settings->DisplayOrder;
+            column->DisplayOrder = column_settings->DisplayOrder;
         if (column_settings->SortOrder != -1)
         {
             column->SortOrder = column_settings->SortOrder;
             column->SortDirection = column_settings->SortDirection;
         }
-        column->IsActive = column->NextIsActive = column_settings->Visible;
+        column->IsActive = column->IsActiveNextFrame = column_settings->Visible;
     }
 
     // FIXME-TABLE: Need to validate .ini data
     for (int column_n = 0; column_n < table->ColumnsCount; column_n++)
-        table->DisplayOrder[table->Columns[column_n].IndexDisplayOrder] = (ImU8)column_n;
+        table->DisplayOrderToIndex[table->Columns[column_n].DisplayOrder] = (ImS8)column_n;
 }
 
 void*   ImGui::TableSettingsHandler_ReadOpen(ImGuiContext*, ImGuiSettingsHandler*, const char* name)
@@ -10126,3 +10269,5 @@ void    ImGui::TableSettingsHandler_WriteAll(ImGuiContext* ctx, ImGuiSettingsHan
 }
 
 //-------------------------------------------------------------------------
+
+#endif // #ifndef IMGUI_DISABLE

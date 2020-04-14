@@ -21,6 +21,9 @@
 #include <cctype>
 #include <locale>
 
+// for _access
+#include <io.h>
+
 // For Conversions
 #include <charconv>
 

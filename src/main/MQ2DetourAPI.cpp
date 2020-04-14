@@ -161,7 +161,6 @@ void RemoveDetour(DWORD address)
 	HMODULE hModule = nullptr;
 	DWORD myaddress = 0;
 
-	_strlwr_s(szFilename);
 	while (detour)
 	{
 		if (detour->addr == address)
@@ -173,6 +172,7 @@ void RemoveDetour(DWORD address)
 					GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)address, &hModule);
 					myaddress = (DWORD)hModule;
 					GetModuleFileName(hModule, szFilename, MAX_STRING);
+					_strlwr_s(szFilename);
 
 					if (char* pDest = strrchr(szFilename, '\\'))
 					{

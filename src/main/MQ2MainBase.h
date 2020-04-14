@@ -1,0 +1,54 @@
+/*
+ * MacroQuest2: The extension platform for EverQuest
+ * Copyright (C) 2002-2019 MacroQuest Authors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+#pragma once
+
+#include "../common/Common.h"
+
+#include <functional>
+
+#ifdef MQ2MAIN_EXPORTS
+#define MQLIB_API extern "C" __declspec(dllexport)
+#define MQLIB_VAR extern "C" __declspec(dllexport)
+#define MQLIB_OBJECT __declspec(dllexport)
+#else
+#define MQLIB_API extern "C" __declspec(dllimport)
+#define MQLIB_VAR extern "C" __declspec(dllimport)
+#define MQLIB_OBJECT __declspec(dllimport)
+#endif
+
+#ifdef MQ2PLUGIN
+#define FromPlugin true
+#else
+#define FromPlugin false
+#endif
+
+#define STRINGIFY_IMPL(x) #x
+#define STRINGIFY(x) STRINGIFY_IMPL(x)
+
+#define IsNaN(x) (x != x)
+
+#define LODWORD(_qw)          ((uint32_t)(_qw))
+#define HIDWORD(_qw)          ((uint32_t)(((_qw) >> 32) & 0xffffffff))
+
+namespace mq {
+
+/* THREADING */
+MQLIB_API DWORD GetMainThreadId();
+MQLIB_API bool IsMainThread();
+
+// Queue a function to be called on the main thread on the next pulse
+MQLIB_OBJECT void PostToMainThread(std::function<void()>&& callback);
+
+} // namespace mq

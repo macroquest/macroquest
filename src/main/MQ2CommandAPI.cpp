@@ -1108,7 +1108,8 @@ void Help(SPAWNINFO* pChar, char* szLine)
 	GetArg(szArg, szLine, 1);
 	if (szArg[0] == 0)
 	{
-		cmdHelp(pChar, szArg);
+		if (gGameState == GAMESTATE_INGAME)
+			cmdHelp(pChar, szArg);
 
 		if (gFilterMacro != FILTERMACRO_NONE)
 			WriteChatColor("Macro will display a list of MacroQuest commands.", USERCOLOR_DEFAULT);
@@ -1118,7 +1119,8 @@ void Help(SPAWNINFO* pChar, char* szLine)
 
 	if (_stricmp("macro", szArg))
 	{
-		cmdHelp(pChar, szArg);
+		if (gGameState == GAMESTATE_INGAME)
+			cmdHelp(pChar, szArg);
 		return;
 	}
 
