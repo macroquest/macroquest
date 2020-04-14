@@ -296,8 +296,6 @@ bool MQ2GroundType::dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 				return true;
 			}
 		}
-		
-		return false;
 	}
 	else if (auto ground = CurrentGroundSpawn()) // they already did /itemtarget so return that.
 	{
@@ -305,12 +303,10 @@ bool MQ2GroundType::dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 		Ret.Type = pGroundType;
 		return true;
 	}
-
-	// they didn't specify a name and they have not done /itemtarget
-	// so we just return first closest entry found
-	auto ground = GetGroundSpawnByName("");
-	if (ground)
+	else if (auto ground = GetGroundSpawnByName(""))
 	{
+		// they didn't specify a name and they have not done /itemtarget
+		// so we just return first closest entry found
 		Ret.Set(ground);
 		Ret.Type = pGroundType;
 		return true;
