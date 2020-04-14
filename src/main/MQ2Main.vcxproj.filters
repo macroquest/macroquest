@@ -54,6 +54,12 @@
     <Filter Include="Header Files\contrib\tinyfsm">
       <UniqueIdentifier>{e72b7f70-7103-411e-9e70-b6cfa6189c5c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\imgui">
+      <UniqueIdentifier>{5717bd2a-3888-4ab0-9165-3864c45a5506}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\imgui">
+      <UniqueIdentifier>{e4836de8-68cf-4990-8218-ebd0dea053d9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MQ2Auth.cpp">
@@ -398,6 +404,18 @@
     <ClCompile Include="datatypes\MQ2LastMouseOverType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
+    <ClCompile Include="MQ2ImGuiAPI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\ImGuiUtils.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\ImGuiColorTextEdit.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\HotKeys.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
     <ClCompile Include="MQ2GroundSpawns.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -528,6 +546,21 @@
     </ClInclude>
     <ClInclude Include="..\..\contrib\tinyfsm\include\tinyfsm.hpp">
       <Filter>Header Files\contrib\tinyfsm</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\ImGuiTreePanelWindow.h">
+      <Filter>Header Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\ImGuiUtils.h">
+      <Filter>Header Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="MQ2MainBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\ImGuiColorTextEdit.h">
+      <Filter>Header Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\HotKeys.h">
+      <Filter>Header Files\common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

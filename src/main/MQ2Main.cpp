@@ -58,13 +58,9 @@ void ShutdownLoginFrontend();
 // From MQ2PluginHandler.cpp
 void ShutdownInternalModules();
 
-// From MQ2Spells.cpp
 MQModule* GetSpellsModule();
-
-// From MQ2DataAPI.cpp
+MQModule* GetImGuiAPIModule();
 MQModule* GetDataAPIModule();
-
-// From MQ2GroundSpawns.cpp
 MQModule* GetGroundSpawnsModule();
 
 DWORD WINAPI MQ2Start(void* lpParameter);
@@ -782,6 +778,7 @@ bool MQ2Initialize()
 	InitializeMQ2Pulse();
 	InitializeLoginFrontend();
 	AddInternalModule(GetSpellsModule());
+	AddInternalModule(GetImGuiAPIModule());
 	AddInternalModule(GetDataAPIModule());
 	AddInternalModule(GetGroundSpawnsModule());
 

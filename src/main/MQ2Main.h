@@ -15,9 +15,9 @@
 #pragma once
 
 #include "pch.h"
+#include "MQ2MainBase.h"
 
 #include "blech\Blech.h"
-
 #include "../eqlib/eqlib.h"
 using namespace eqlib;
 
@@ -45,25 +45,6 @@ using namespace eqlib;
 // the new interfaces
 #define MQNEXT
 
-#ifdef MQ2MAIN_EXPORTS
-#define MQLIB_API extern "C" __declspec(dllexport)
-#define MQLIB_VAR extern "C" __declspec(dllexport)
-#define MQLIB_OBJECT __declspec(dllexport)
-#else
-#define MQLIB_API extern "C" __declspec(dllimport)
-#define MQLIB_VAR extern "C" __declspec(dllimport)
-#define MQLIB_OBJECT __declspec(dllimport)
-#endif
-
-#ifdef MQ2PLUGIN
-#define FromPlugin true
-#else
-#define FromPlugin false
-#endif
-
-#define STRINGIFY_IMPL(x) #x
-#define STRINGIFY(x) STRINGIFY_IMPL(x)
-
 #define EzDetour(offset, detour, trampoline) AddDetourf((DWORD)offset, detour, trampoline, STRINGIFY(offset))
 #define EzDetourwName(offset, detour, trampoline, name) AddDetourf((DWORD)offset, detour, trampoline, name)
 
@@ -75,11 +56,6 @@ using namespace eqlib;
 
 #define MAX_VARNAME           64
 
-#define IsNaN(x) (x != x)
-
-#define LODWORD(_qw)          ((uint32_t)(_qw))
-#define HIDWORD(_qw)          ((uint32_t)(((_qw) >> 32) & 0xffffffff))
-
 #include "../common/Common.h"
 #include "MQ2Prototypes.h"
 #include "MQ2Internal.h"
@@ -89,19 +65,11 @@ using namespace eqlib;
 #include "MQ2Commands.h"
 #include "MQ2Args.h"
 #include "MQ2DataContainers.h"
-
 #include "datatypes/MQ2DataTypes.h"
 
 #include <imgui/imgui.h>
 
 namespace mq {
-
-/* THREADING */
-MQLIB_API DWORD GetMainThreadId();
-MQLIB_API bool IsMainThread();
-
-// Queue a function to be called on the main thread on the next pulse
-MQLIB_OBJECT void PostToMainThread(std::function<void()>&& callback);
 
 /* BENCHMARKING */
 #ifdef DISABLE_BENCHMARKS
@@ -129,7 +97,8 @@ MQLIB_API bool AreNameSpritesCustomized();
 MQLIB_API void InitializeMQ2Overlay();
 MQLIB_API void ShutdownMQ2Overlay();
 MQLIB_API void PulseMQ2Overlay();
-MQLIB_API void SetOverlayVisible(bool visible);
+MQLIB_API void SetOverlayEnabled(bool visible);
+MQLIB_API bool IsOverlayEnabled();
 
 struct MQRenderCallbacks
 {

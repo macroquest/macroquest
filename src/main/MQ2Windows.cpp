@@ -2201,7 +2201,7 @@ static void DisplayWindowTreeNode(CXWnd* pWnd)
 	}
 	else
 	{
-		ImGui::TreeNodeEx(pWnd, ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_SpanFullWidth,
+		ImGui::TreeNodeEx(pWnd, ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_SpanFullWidth,
 			"%s", szWindowName);
 	}
 
