@@ -606,8 +606,6 @@ void ItemTarget(SPAWNINFO* pChar, char* szLine)
 
 	char Arg1[MAX_STRING] = { 0 };
 	GetArg(Arg1, szLine, 1);
-	_strlwr_s(Arg1);
-
 	SetGroundSpawn(pChar, Arg1);
 
 	auto result = CurrentGroundSpawn();
