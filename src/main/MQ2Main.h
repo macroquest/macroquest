@@ -545,6 +545,7 @@ struct MQ2GroundSpawn
 	MQ2GroundSpawnType Type;
 	AnyMQ2GroundItem Object;
 
+	// These ctors will automatically register the Object in the invalidation mapper for zoning
 	MQ2GroundSpawn(EQGroundItem* Object) : Type(MQ2GroundSpawnType::Ground), Object(ObserveEQObject(Object)) {}
 	MQ2GroundSpawn(EQPlacedItem* Object) : Type(MQ2GroundSpawnType::Placed), Object(ObserveEQObject(Object)) {}
 	MQ2GroundSpawn() : Type(MQ2GroundSpawnType::None), Object() {}
@@ -570,6 +571,7 @@ struct MQ2GroundSpawn
 
 MQLIB_OBJECT MQ2GroundSpawn GetGroundSpawnByName(std::string_view Name);
 MQLIB_OBJECT MQ2GroundSpawn GetGroundSpawnByID(int ID);
+MQLIB_OBJECT MQ2GroundSpawn GetNearestGroundSpawn();
 MQLIB_OBJECT MQ2GroundSpawn GetNthGroundSpawnFromMe(size_t N);
 MQLIB_OBJECT int GetGroundSpawnCount();
 MQLIB_OBJECT MQ2GroundSpawn CurrentGroundSpawn();

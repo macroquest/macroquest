@@ -377,6 +377,13 @@ inline float GetDistance(float X1, float Y1, float X2, float Y2)
 	return sqrtf(dX * dX + dY * dY);
 }
 
+inline float GetDistance2(float X1, float Y1, float X2, float Y2)
+{
+	float dX = X1 - X2;
+	float dY = Y1 - Y2;
+	return dX * dX + dY * dY;
+}
+
 inline float GetDistance3D(float X1, float Y1, float Z1, float X2, float Y2, float Z2)
 {
 	float dX = X1 - X2;
@@ -409,6 +416,14 @@ inline float Get3DDistance(float X1, float Y1, float Z1, float X2, float Y2, flo
 	float dY = Y1 - Y2;
 	float dZ = Z1 - Z2;
 	return sqrtf(dX * dX + dY * dY + dZ * dZ);
+}
+
+inline float Get3DDistance2(float X1, float Y1, float Z1, float X2, float Y2, float Z2)
+{
+	float dX = X1 - X2;
+	float dY = Y1 - Y2;
+	float dZ = Z1 - Z2;
+	return dX * dX + dY * dY + dZ * dZ;
 }
 
 inline float DistanceToSpawn(SPAWNINFO* pChar, SPAWNINFO* pSpawn)

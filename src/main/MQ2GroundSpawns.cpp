@@ -15,44 +15,83 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
-using namespace mq;
+namespace mq {
 
-// TODO:
-// - EnviroTarget needs to be deprecated
+static void SetGameStateGroundSpawns(DWORD);
 
-class GroundSpawnSearch;
-std::unique_ptr<GroundSpawnSearch> s_groundSpawnSearch;
+static MQModule s_GroundSpawnsModule = {
+	"GroundSpawns",                // Name
+	false,                         // CanUnload
+	nullptr,                       // Initialize
+	nullptr,                       // Shutdown
+	nullptr,                       // Pulse
+	SetGameStateGroundSpawns       // SetGameState
+};
+MQModule* GetGroundSpawnsModule() { return &s_GroundSpawnsModule; }
 
-class GroundSpawnSearch : public MQ2Transient
+class GroundSpawnSearch
 {
 private:
 	// make this private because _all access_ to ground spawns should be through the list
 	std::vector<MQ2GroundSpawn> m_searchResults;
 	std::vector<MQ2GroundSpawn>::iterator m_currentResult;
-	std::mutex s_resultMutex;
+	bool m_valid;
+
+	GroundSpawnSearch() : m_searchResults(), m_currentResult(m_searchResults.end()), m_valid(false) {}
 
 public:
-	// Inherited via MQ2Transient
-	virtual void Invalidate() override
+	GroundSpawnSearch(const GroundSpawnSearch&) = delete;
+	GroundSpawnSearch& operator=(const GroundSpawnSearch&) = delete;
+
+	static GroundSpawnSearch& Instance()
 	{
-		m_searchResults.clear();
-		m_currentResult = m_searchResults.end();
-		m_invalidated = true;
-		// we can't revalidate this, just drop it (which we do by releasing the unique_ptr that owns this)
-		s_groundSpawnSearch.reset();
+		static GroundSpawnSearch instance;
+		return instance;
 	}
 
-	operator bool() const override
+	static void Reset()
 	{
-		return !m_searchResults.empty() && !m_invalidated;
+		Instance().m_searchResults.clear();
+		Instance().m_currentResult = Instance().m_searchResults.end();
+		Instance().m_valid = false;
 	}
-	
-	bool operator==(void* rhs) const override { return false; }
+
+	static GroundSpawnSearch& Search(SPAWNINFO* pSpawn)
+	{
+		if (!Instance().m_valid)
+		{
+			Instance().Filter(pSpawn);
+			Instance().Sort(pSpawn);
+		}
+
+		return Instance();
+	}
+
+	static GroundSpawnSearch& Search(SPAWNINFO* pSpawn, std::string_view Name)
+	{
+		if (!Instance().m_valid)
+		{
+			Instance().Filter(pSpawn, Name);
+			Instance().Sort(pSpawn);
+		}
+
+		return Instance();
+	}
+
+	static GroundSpawnSearch& Search(SPAWNINFO* pSpawn, int ID)
+	{
+		if (!Instance().m_valid)
+		{
+			Instance().Filter(pSpawn, ID);
+			Instance().Sort(pSpawn);
+		}
+
+		return Instance();
+	}
 
 	template <typename GroundPred, typename PlacedPred>
 	void Filter(SPAWNINFO* pSpawn, GroundPred GroundPredicate, PlacedPred PlacedPredicate)
 	{
-		std::scoped_lock lock(s_resultMutex);
 		m_searchResults.clear();
 
 		if (pItemList)
@@ -79,6 +118,7 @@ public:
 		}
 
 		m_currentResult = m_searchResults.begin();
+		m_valid = true;
 	}
 
 	void Filter(SPAWNINFO* pSpawn, int ID)
@@ -96,21 +136,31 @@ public:
 
 	void Filter(SPAWNINFO* pSpawn, std::string_view Name)
 	{
-		Filter(pSpawn,
-			[&Name](EQGroundItem* ground)
-			{
-				return Name.empty() || ci_find_substr(GetFriendlyNameForGroundItem(ground), Name) >= 0;
-			},
-			[&Name](EQPlacedItem* placed)
-			{
-				return Name.empty() || ci_find_substr(GetFriendlyNameForPlacedItem(placed), Name) >= 0;
-			});
+		if (Name.empty())
+		{
+			Filter(pSpawn);
+		}
+		else
+		{
+			Filter(pSpawn,
+				[&Name](EQGroundItem* ground)
+				{
+					return ci_find_substr(GetFriendlyNameForGroundItem(ground), Name) >= 0;
+				},
+				[&Name](EQPlacedItem* placed)
+				{
+					return ci_find_substr(GetFriendlyNameForPlacedItem(placed), Name) >= 0;
+				});
+		}
+	}
+
+	void Filter(SPAWNINFO* pSpawn)
+	{
+		Filter(pSpawn, [](EQGroundItem*) { return true; }, [](EQPlacedItem*) { return true; });
 	}
 
 	void Sort(SPAWNINFO* pSpawn)
 	{
-		std::scoped_lock lock(s_resultMutex);
-
 		DistanceSort(pSpawn, m_searchResults,
 			[](SPAWNINFO* pSpawn, const MQ2GroundSpawn& ground)
 			{
@@ -118,15 +168,15 @@ public:
 				{
 					if (ground.Type == MQ2GroundSpawnType::Ground)
 					{
-						auto pGround = *std::get<EQGroundItemPtr>(ground.Object);
+						auto& pGround = *std::get<EQGroundItemPtr>(ground.Object);
 						if (pGround)
-							return Get3DDistance(pSpawn->X, pSpawn->Y, pSpawn->Z, pGround->X, pGround->Y, pGround->pSwitch->Z);
+							return Get3DDistance2(pSpawn->X, pSpawn->Y, pSpawn->Z, pGround->X, pGround->Y, pGround->pSwitch->Z);
 					}
 					else if (ground.Type == MQ2GroundSpawnType::Placed)
 					{
-						auto pPlaced = *std::get<EQPlacedItemPtr>(ground.Object);
+						auto& pPlaced = *std::get<EQPlacedItemPtr>(ground.Object);
 						if (pPlaced)
-							return Get3DDistance(pSpawn->X, pSpawn->Y, pSpawn->Z, pPlaced->X, pPlaced->Y, pPlaced->Z);
+							return Get3DDistance2(pSpawn->X, pSpawn->Y, pSpawn->Z, pPlaced->X, pPlaced->Y, pPlaced->Z);
 					}
 				}
 
@@ -141,8 +191,6 @@ public:
 
 	MQ2GroundSpawn Current()
 	{
-		std::scoped_lock lock(s_resultMutex);
-
 		if (m_currentResult != m_searchResults.end())
 			return *m_currentResult;
 
@@ -168,7 +216,7 @@ public:
 	MQ2GroundSpawn Next()
 	{
 		if (m_currentResult == m_searchResults.end())
-			return {};
+			return MQ2GroundSpawn();
 
 		++m_currentResult;
 		return Current();
@@ -197,107 +245,65 @@ public:
 	}
 };
 
-MQ2GroundSpawn mq::GetGroundSpawnByName(std::string_view Name)
+static void SetGameStateGroundSpawns(DWORD)
 {
-	s_groundSpawnSearch = std::make_unique<GroundSpawnSearch>(); // create a new search (will GC the old one)
-	s_groundSpawnSearch->Filter(pCharSpawn, Name);
-	s_groundSpawnSearch->Sort(pCharSpawn);
-	return s_groundSpawnSearch->First();
+	GroundSpawnSearch::Reset();
 }
 
-MQ2GroundSpawn mq::GetGroundSpawnByID(int ID)
+MQ2GroundSpawn GetGroundSpawnByName(std::string_view Name)
 {
-	s_groundSpawnSearch = std::make_unique<GroundSpawnSearch>(); // create a new search (will GC the old one)
-	s_groundSpawnSearch->Filter(pCharSpawn, ID);
-	s_groundSpawnSearch->Sort(pCharSpawn);
-	return s_groundSpawnSearch->First();
+	GroundSpawnSearch::Reset();
+	return GroundSpawnSearch::Search(pCharSpawn, Name).First();
 }
 
-MQ2GroundSpawn mq::GetNthGroundSpawnFromMe(size_t N)
+MQ2GroundSpawn GetGroundSpawnByID(int ID)
 {
-	if (!s_groundSpawnSearch)
-	{
-		s_groundSpawnSearch = std::make_unique<GroundSpawnSearch>();
-		s_groundSpawnSearch->Filter(pCharSpawn, "");
-		s_groundSpawnSearch->Sort(pCharSpawn);
-	}
-
-	return s_groundSpawnSearch->At(N); // this does size checking for us
+	GroundSpawnSearch::Reset();
+	return GroundSpawnSearch::Search(pCharSpawn, ID).First();
 }
 
-int mq::GetGroundSpawnCount()
+MQ2GroundSpawn GetNearestGroundSpawn()
 {
-	if (!s_groundSpawnSearch)
-	{
-		s_groundSpawnSearch = std::make_unique<GroundSpawnSearch>();
-		s_groundSpawnSearch->Filter(pCharSpawn, "");
-		s_groundSpawnSearch->Sort(pCharSpawn);
-	}
-
-	return s_groundSpawnSearch->Count();
+	GroundSpawnSearch::Reset();
+	return GroundSpawnSearch::Search(pCharSpawn).First();
 }
 
-MQ2GroundSpawn mq::CurrentGroundSpawn()
+MQ2GroundSpawn GetNthGroundSpawnFromMe(size_t N)
 {
-	if (!s_groundSpawnSearch)
-	{
-		s_groundSpawnSearch = std::make_unique<GroundSpawnSearch>();
-		s_groundSpawnSearch->Filter(pCharSpawn, "");
-		s_groundSpawnSearch->Sort(pCharSpawn);
-	}
-
-	return s_groundSpawnSearch->Current();
+	return GroundSpawnSearch::Search(pCharSpawn).At(N);
 }
 
-MQ2GroundSpawn mq::FirstGroundSpawn()
+int GetGroundSpawnCount()
 {
-	if (!s_groundSpawnSearch)
-	{
-		s_groundSpawnSearch = std::make_unique<GroundSpawnSearch>();
-		s_groundSpawnSearch->Filter(pCharSpawn, "");
-		s_groundSpawnSearch->Sort(pCharSpawn);
-	}
-
-	return s_groundSpawnSearch->First();
+	return GroundSpawnSearch::Search(pCharSpawn).Count();
 }
 
-MQ2GroundSpawn mq::LastGroundSpawn()
+MQ2GroundSpawn CurrentGroundSpawn()
 {
-	if (!s_groundSpawnSearch)
-	{
-		s_groundSpawnSearch = std::make_unique<GroundSpawnSearch>();
-		s_groundSpawnSearch->Filter(pCharSpawn, "");
-		s_groundSpawnSearch->Sort(pCharSpawn);
-	}
-
-	return s_groundSpawnSearch->Last();
+	return GroundSpawnSearch::Search(pCharSpawn).Current();
 }
 
-MQ2GroundSpawn mq::NextGroundSpawn()
+MQ2GroundSpawn FirstGroundSpawn()
 {
-	if (!s_groundSpawnSearch)
-	{
-		s_groundSpawnSearch = std::make_unique<GroundSpawnSearch>();
-		s_groundSpawnSearch->Filter(pCharSpawn, "");
-		s_groundSpawnSearch->Sort(pCharSpawn);
-	}
-
-	return s_groundSpawnSearch->Next();
+	return GroundSpawnSearch::Search(pCharSpawn).First();
 }
 
-MQ2GroundSpawn mq::PrevGroundSpawn()
+MQ2GroundSpawn LastGroundSpawn()
 {
-	if (!s_groundSpawnSearch)
-	{
-		s_groundSpawnSearch = std::make_unique<GroundSpawnSearch>();
-		s_groundSpawnSearch->Filter(pCharSpawn, "");
-		s_groundSpawnSearch->Sort(pCharSpawn);
-	}
-
-	return s_groundSpawnSearch->Prev();
+	return GroundSpawnSearch::Search(pCharSpawn).Last();
 }
 
-CActorInterface* mq::MQ2GroundSpawn::Actor() const
+MQ2GroundSpawn NextGroundSpawn()
+{
+	return GroundSpawnSearch::Search(pCharSpawn).Next();
+}
+
+MQ2GroundSpawn PrevGroundSpawn()
+{
+	return GroundSpawnSearch::Search(pCharSpawn).Prev();
+}
+
+CActorInterface* MQ2GroundSpawn::Actor() const
 {
 	if (Type == MQ2GroundSpawnType::Ground)
 	{
@@ -315,7 +321,7 @@ CActorInterface* mq::MQ2GroundSpawn::Actor() const
 	return nullptr;
 }
 
-CXStr mq::MQ2GroundSpawn::Name() const
+CXStr MQ2GroundSpawn::Name() const
 {
 	if (Type == MQ2GroundSpawnType::Ground)
 	{
@@ -330,10 +336,10 @@ CXStr mq::MQ2GroundSpawn::Name() const
 			return placed->Name;
 	}
 
-	return "";
+	return CXStr();
 }
 
-CXStr mq::MQ2GroundSpawn::DisplayName() const
+CXStr MQ2GroundSpawn::DisplayName() const
 {
 	if (Type == MQ2GroundSpawnType::Ground)
 	{
@@ -348,10 +354,10 @@ CXStr mq::MQ2GroundSpawn::DisplayName() const
 			return GetFriendlyNameForPlacedItem(placed);
 	}
 
-	return "";
+	return CXStr();
 }
 
-CVector3 mq::MQ2GroundSpawn::Position() const
+CVector3 MQ2GroundSpawn::Position() const
 {
 	if (Type == MQ2GroundSpawnType::Ground)
 	{
@@ -370,26 +376,24 @@ CVector3 mq::MQ2GroundSpawn::Position() const
 		std::numeric_limits<float>::max(),
 		std::numeric_limits<float>::max(),
 		std::numeric_limits<float>::max()
-	);
+		);
 }
 
-void mq::SetGroundSpawn(SPAWNINFO* pSpawn, std::string_view Name)
+void SetGroundSpawn(SPAWNINFO* pSpawn, std::string_view Name)
 {
-	s_groundSpawnSearch = std::make_unique<GroundSpawnSearch>(); // create a new search (will GC the old one)
-	s_groundSpawnSearch->Filter(pSpawn, Name);
-	s_groundSpawnSearch->Sort(pSpawn);
+	GroundSpawnSearch::Reset();
+	GroundSpawnSearch::Search(pSpawn, Name);
 }
 
-void mq::ClearGroundSpawn()
+void ClearGroundSpawn()
 {
-	if (s_groundSpawnSearch)
-		s_groundSpawnSearch.reset();
+	GroundSpawnSearch::Reset();
 }
 
-CXStr mq::GetFriendlyNameForGroundItem(EQGroundItem* pItem)
+CXStr GetFriendlyNameForGroundItem(EQGroundItem* pItem)
 {
 	if (!pItem)
-		return "";
+		return CXStr();
 
 	int item_def = GetIntFromString(&pItem->Name[2], 0);
 	for (auto actor = ActorDefList; actor->Def; ++actor)
@@ -402,10 +406,10 @@ CXStr mq::GetFriendlyNameForGroundItem(EQGroundItem* pItem)
 	return CXStr(fmt::format("Drop{:05d}/{:d}", item_def, pItem->DropID));
 }
 
-CXStr mq::GetFriendlyNameForPlacedItem(EQPlacedItem* pItem)
+CXStr GetFriendlyNameForPlacedItem(EQPlacedItem* pItem)
 {
 	if (!pItem)
-		return "";
+		return CXStr();
 
 	const auto& real_estate = RealEstateManagerClient::Instance();
 	auto pRealEstateItem = real_estate.GetItemByRealEstateAndItemIds(pItem->RealEstateID, pItem->RealEstateItemID);
@@ -423,13 +427,13 @@ CXStr mq::GetFriendlyNameForPlacedItem(EQPlacedItem* pItem)
 	return CXStr(fmt::format("Placed{:05d}/{:d}", pItem->RealEstateID, pItem->RealEstateItemID));
 }
 
-char* mq::GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, size_t BufferSize)
+char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, size_t BufferSize)
 {
 	strcpy_s(szName, BufferSize, GetFriendlyNameForGroundItem(pItem).c_str());
 	return szName;
 }
 
-float mq::MQ2GroundSpawn::Distance(SPAWNINFO* pSpawn) const
+float MQ2GroundSpawn::Distance(SPAWNINFO* pSpawn) const
 {
 	if (Type == MQ2GroundSpawnType::Ground)
 	{
@@ -447,7 +451,7 @@ float mq::MQ2GroundSpawn::Distance(SPAWNINFO* pSpawn) const
 	return std::numeric_limits<float>::max();
 }
 
-float mq::MQ2GroundSpawn::Distance3D(SPAWNINFO* pSpawn) const
+float MQ2GroundSpawn::Distance3D(SPAWNINFO* pSpawn) const
 {
 	if (Type == MQ2GroundSpawnType::Ground)
 	{
@@ -465,7 +469,7 @@ float mq::MQ2GroundSpawn::Distance3D(SPAWNINFO* pSpawn) const
 	return std::numeric_limits<float>::max();
 }
 
-int mq::MQ2GroundSpawn::ID() const
+int MQ2GroundSpawn::ID() const
 {
 	if (Type == MQ2GroundSpawnType::Ground)
 	{
@@ -483,7 +487,7 @@ int mq::MQ2GroundSpawn::ID() const
 	return -1;
 }
 
-int mq::MQ2GroundSpawn::SubID() const
+int MQ2GroundSpawn::SubID() const
 {
 	if (Type == MQ2GroundSpawnType::Ground)
 	{
@@ -501,7 +505,7 @@ int mq::MQ2GroundSpawn::SubID() const
 	return -1;
 }
 
-int mq::MQ2GroundSpawn::ZoneID() const
+int MQ2GroundSpawn::ZoneID() const
 {
 	if (Type == MQ2GroundSpawnType::Ground)
 	{
@@ -517,7 +521,7 @@ int mq::MQ2GroundSpawn::ZoneID() const
 	return -1;
 }
 
-float mq::MQ2GroundSpawn::Heading() const
+float MQ2GroundSpawn::Heading() const
 {
 	if (Type == MQ2GroundSpawnType::Ground)
 	{
@@ -535,7 +539,7 @@ float mq::MQ2GroundSpawn::Heading() const
 	return std::numeric_limits<float>::max();
 }
 
-SPAWNINFO mq::MQ2GroundSpawn::ToSpawn() const
+SPAWNINFO MQ2GroundSpawn::ToSpawn() const
 {
 	SPAWNINFO ret;
 
@@ -555,7 +559,7 @@ SPAWNINFO mq::MQ2GroundSpawn::ToSpawn() const
 	return ret;
 }
 
-template <> EQGroundItem* mq::MQ2GroundSpawn::Get<EQGroundItem>() const
+template <> EQGroundItem* MQ2GroundSpawn::Get<EQGroundItem>() const
 {
 	if (Type == MQ2GroundSpawnType::Ground)
 	{
@@ -567,7 +571,7 @@ template <> EQGroundItem* mq::MQ2GroundSpawn::Get<EQGroundItem>() const
 	return nullptr;
 }
 
-template <> EQPlacedItem* mq::MQ2GroundSpawn::Get<EQPlacedItem>() const
+template <> EQPlacedItem* MQ2GroundSpawn::Get<EQPlacedItem>() const
 {
 	if (Type == MQ2GroundSpawnType::Placed)
 	{
@@ -577,4 +581,5 @@ template <> EQPlacedItem* mq::MQ2GroundSpawn::Get<EQPlacedItem>() const
 	}
 
 	return nullptr;
+}
 }
