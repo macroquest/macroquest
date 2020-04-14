@@ -170,13 +170,13 @@ public:
 					{
 						auto& pGround = *std::get<EQGroundItemPtr>(ground.Object);
 						if (pGround)
-							return Get3DDistance2(pSpawn->X, pSpawn->Y, pSpawn->Z, pGround->X, pGround->Y, pGround->pSwitch->Z);
+							return Get3DDistanceSquared(pSpawn->X, pSpawn->Y, pSpawn->Z, pGround->X, pGround->Y, pGround->pSwitch->Z);
 					}
 					else if (ground.Type == MQ2GroundSpawnType::Placed)
 					{
 						auto& pPlaced = *std::get<EQPlacedItemPtr>(ground.Object);
 						if (pPlaced)
-							return Get3DDistance2(pSpawn->X, pSpawn->Y, pSpawn->Z, pPlaced->X, pPlaced->Y, pPlaced->Z);
+							return Get3DDistanceSquared(pSpawn->X, pSpawn->Y, pSpawn->Z, pPlaced->X, pPlaced->Y, pPlaced->Z);
 					}
 				}
 
