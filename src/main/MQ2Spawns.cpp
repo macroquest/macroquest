@@ -27,6 +27,8 @@ static SPAWNINFO* pNamingSpawn = nullptr;
 static int gMaxSpawnCaptions = 35;
 static bool gMQCaptions = true;
 
+static constexpr int CAPTION_UPDATE_FRAMES = 20; // number of frames between caption updates
+
 static char gszSpawnPlayerName[8][MAX_STRING] = {
 	/* 0 */ "",
 	/* 1 */ "${If[${NamingSpawn.Mark},${NamingSpawn.Mark} - ,]}${If[${NamingSpawn.Trader},Trader ,]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.AFK}, AFK,]}${If[${NamingSpawn.Linkdead}, LD,]}${If[${NamingSpawn.LFG}, LFG,]}${If[${NamingSpawn.GroupLeader}, LDR,]}",
@@ -810,11 +812,11 @@ static void UpdateMQ2SpawnSort()
 				SetNameSpriteState(pSpawnTarget, false);
 			}
 		}
-		
+
 		LastTarget = 0;
 	}
 
-	if (nCaptions > 7)
+	if (nCaptions > CAPTION_UPDATE_FRAMES)
 	{
 		nCaptions = 0;
 		Benchmark(bmUpdateSpawnCaptions, UpdateSpawnCaptions());
