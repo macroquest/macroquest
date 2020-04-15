@@ -16,6 +16,8 @@
 #include "MQ2Main.h"
 #include "CrashHandler.h"
 
+#include "imgui/ImGuiUtils.h"
+
 #include <algorithm>
 #include <string>
 #include <unordered_map>
@@ -2112,145 +2114,174 @@ void RemoveCascadeMenuItems()
 
 //============================================================================
 
-const char* UITypeToString(UIType type)
+struct ImGuiWindowDebugPanel
 {
-	switch (type)
+	CXWnd* m_pSelectedWnd = nullptr;
+	CXWnd* m_pHoveredWnd = nullptr;
+
+	// Never dereference this. the window might be deleted. We just use it to track
+	// what is selected.
+	CXWnd* m_pLastSelected = nullptr;
+	bool m_foundSelected = false;
+
+	float m_topPaneSize = -1.0f;
+	float m_bottomPaneSize = -1.0f;
+
+	void Draw()
 	{
-	case UI_Unknown: return "Unknown";
-	case UI_Class: return "Class";
-	case UI_RGB: return "RGB";
-	case UI_RGBText: return "RGBText";
-	case UI_Point: return "Point";
-	case UI_Size: return "Size";
-	case UI_TextureInfo: return "TextureInfo";
-	case UI_Frame: return "Frame";
-	case UI_Ui2DAnimation: return "Ui2DAnimation";
-	case UI_ButtonDrawTemplate: return "ButtonDrawTemplate";
-	case UI_GaugeDrawTemplate: return "GaugeDrawTemplate";
-	case UI_SpellGemDrawTemplate: return "SpellGemDrawTemplate";
-	case UI_FrameTemplate: return "FrameTemplate";
-	case UI_ScrollbarDrawTemplate: return "ScrollbarDrawTemplate";
-	case UI_WindowDrawTemplate: return "WindowDrawTemplate";
-	case UI_SliderDrawTemplate: return "SliderDrawTemplate";
-	case UI_ScreenPiece: return "ScreenPiece";
-	case UI_StaticScreenPiece: return "StaticScreenPiece";
-	case UI_StaticAnimation: return "StaticAnimation";
-	case UI_StaticTintedBlendAnimation: return "StaticTintedBlendAnimation";
-	case UI_StaticText: return "StaticText";
-	case UI_StaticFrame: return "StaticFrame";
-	case UI_StaticHeader: return "StaticHeader";
-	case UI_LayoutStrategy: return "LayoutStrategy";
-	case UI_LayoutVertical: return "LayoutVertical";
-	case UI_LayoutHorizontal: return "LayoutHorizontal";
-	case UI_Control: return "Control";
-	case UI_TemplateAssoc: return "TemplateAssoc";
-	case UI_TemplateScreen: return "TemplateScreen";
-	case UI_ListboxColumn: return "ListboxColumn";
-	case UI_Listbox: return "Listbox";
-	case UI_Button: return "Button";
-	case UI_Gauge: return "Gauge";
-	case UI_SpellGem: return "SpellGem";
-	case UI_HtmlComponent: return "HtmlComponent";
-	case UI_InvSlot: return "InvSlot";
-	case UI_EditBox: return "EditBox";
-	case UI_Slider: return "Slider";
-	case UI_Label: return "Label";
-	case UI_STMLBox: return "STMLBox";
-	case UI_TreeView: return "TreeView";
-	case UI_Combobox: return "Combobox";
-	case UI_Page: return "Page";
-	case UI_TabBox: return "TabBox";
-	case UI_LayoutBox: return "LayoutBox";
-	case UI_HorizontalLayoutBox: return "HorizontalLayoutBox";
-	case UI_VerticalLayoutBox: return "VerticalLayoutBox";
-	case UI_FinderBox: return "FinderBox";
-	case UI_TileLayoutBox: return "TileLayoutBox";
-	case UI_NamedTemplatePiece: return "NamedTemplatePiece";
-	case UI_TemplateContainer: return "TemplateContainer";
-	case UI_Screen: return "Screen";
-	case UI_SuiteDefaults: return "SuiteDefaults";
-	case UI_Screens: return "Screens";
-	case UI_TopLevelWindowList: return "TopLevelWindowList";
-	case UI_HotButton: return "HotButton";
-	default: return "Unknown(new)";
-	}
-}
+		ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollFreezeTopRow | ImGuiTableFlags_ScrollY | ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersHOuter | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg;
 
-static void DisplayWindowTreeNode(CXWnd* pWnd)
-{
-	if (pWnd->GetType() == UI_Unknown)
-		return;
-	ImGui::TableNextRow();
-	const bool has_children = pWnd->GetFirstChildWnd() != nullptr;
+		// This is so we can reset the selected window if it is not found.
+		m_foundSelected = false;
+		m_pHoveredWnd = nullptr;
 
-	const CXStr* pName = pWnd->GetWindowName();
-	CXMLData* pXMLData = pWnd->GetXMLData();
+		ImVec2 availSize = ImGui::GetContentRegionAvail();
+		if (m_topPaneSize == -1.0f)
+			m_topPaneSize = availSize.y * .75f;
+		if (m_bottomPaneSize == -1.0f)
+			m_bottomPaneSize = availSize.y - m_topPaneSize - 1;
 
-	const char* szTypeName = pXMLData ? pXMLData->TypeName.c_str() : UITypeToString(pWnd->GetType());
-	const char* szWindowName = pName ? pName->c_str() : "";
-	const char* szXmlName = pXMLData ? pXMLData->Name.c_str() : "";
-	const char* szXmlScreenID = pXMLData ? pXMLData->ScreenID.c_str() : "";
-	if (strlen(szWindowName) == 0)
-		szWindowName = szXmlName;
+		imgui::DrawSplitter(true, 9.0f, &m_topPaneSize, &m_bottomPaneSize, 50, 50);
 
-	bool open = false;
-
-	if (has_children)
-	{
-		open = ImGui::TreeNodeEx(pWnd, ImGuiTreeNodeFlags_SpanFullWidth, "%s", szWindowName);
-	}
-	else
-	{
-		ImGui::TreeNodeEx(pWnd, ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_SpanFullWidth,
-			"%s", szWindowName);
-	}
-
-	ImGui::TableNextCell();
-	ImGui::Text("%s", szTypeName);
-	ImGui::TableNextCell();
-	ImGui::Text("%s", szXmlScreenID);
-	ImGui::TableNextCell();
-	ImGui::Text("%s", pWnd->GetWindowText().c_str());
-
-	if (open)
-	{
-		CXWnd* pChild = pWnd->GetFirstChildWnd();
-		while (pChild)
+		if (ImGui::BeginTable("##WindowTable", 2, tableFlags, ImVec2(0, m_topPaneSize)))
 		{
-			DisplayWindowTreeNode(pChild);
-			pChild = pChild->GetNextSiblingWnd();
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupColumn("Type");
+			ImGui::TableAutoHeaders();
+
+			if (pWndMgr)
+			{
+				for (CXWnd* pWnd : pWndMgr->ParentAndContextMenuWindows)
+				{
+					DisplayWindowTreeNode(pWnd);
+				}
+			}
+
+			ImGui::EndTable();
 		}
 
-		ImGui::TreePop();
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 9);
+
+		// if the selected window was not found, then clear it. This might mess up if we didn't
+		// draw the table node. FIXME
+		if (!m_foundSelected)
+		{
+			m_pSelectedWnd = nullptr;
+		}
+
+		if (m_pSelectedWnd)
+		{
+			ImGui::Text("Selected Window: %s", m_pSelectedWnd->GetXMLName().c_str());
+
+			ImGuiViewport* viewport = ImGui::GetMainViewport();
+			ImDrawList* drawList = ImGui::GetBackgroundDrawList(viewport);
+
+			//CXRect clientRect = m_pSelectedWnd->GetClientRect();
+			//drawList->AddRect(
+			//	ImVec2(clientRect.left + viewport->Pos.x, clientRect.top + viewport->Pos.y),
+			//	ImVec2(clientRect.right + viewport->Pos.x, clientRect.bottom + viewport->Pos.y),
+			//	m_pSelectedWnd->IsReallyVisible() ? IM_COL32(255, 255, 50, 255) : IM_COL32(255, 200, 200, 255));
+		}
+		else
+		{
+			ImGui::Text("Selected Window: None");
+		}
+
+		if (m_pHoveredWnd)
+		{
+			ImGui::Text("Hovered Window: %s", m_pHoveredWnd->GetXMLName().c_str());
+
+			ImGuiViewport* viewport = ImGui::GetMainViewport();
+			ImDrawList* drawList = ImGui::GetBackgroundDrawList(viewport);
+
+			CXRect clientRect = m_pHoveredWnd->GetClientRect();
+			drawList->AddRect(
+				ImVec2(clientRect.left + viewport->Pos.x, clientRect.top + viewport->Pos.y),
+				ImVec2(clientRect.right + viewport->Pos.x, clientRect.bottom + viewport->Pos.y),
+				m_pHoveredWnd->IsReallyVisible() ? IM_COL32(50, 255, 50, 255) : IM_COL32(255, 50, 50, 255));
+		}
+		else
+		{
+			ImGui::Text("Hovered Window: None");
+		}
+
+		// update last selected to remember selection for next iteration
+		m_pLastSelected = m_pSelectedWnd;
 	}
-}
+
+	void DisplayWindowTreeNode(CXWnd* pWnd)
+	{
+		if (pWnd->GetType() == UI_Unknown)
+			return;
+		ImGui::TableNextRow();
+		const bool hasChildren = pWnd->GetFirstChildWnd() != nullptr;
+
+		CXStr pName = pWnd->GetXMLName();
+		CXMLData* pXMLData = pWnd->GetXMLData();
+		CXStr typeName = pWnd->GetTypeName();
+		//const char* szWindowName = pName ? pName->c_str() : "";
+		//const char* szXmlName = pXMLData ? pXMLData->Name.c_str() : "";
+		//const char* szXmlScreenID = pXMLData ? pXMLData->ScreenID.c_str() : "";
+		//if (strlen(szWindowName) == 0)
+		//	szWindowName = szXmlName;
+
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth;
+		bool open = false;
+		bool selected = (m_pLastSelected == pWnd);
+
+		if (selected)
+		{
+			flags |= ImGuiTreeNodeFlags_Selected;
+			m_foundSelected = true;
+		}
+
+		if (!hasChildren)
+		{
+			flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+		}
+
+		if (hasChildren)
+		{
+			open = ImGui::TreeNodeEx(pWnd, flags, "%s", pName.c_str());
+		}
+		else
+		{
+			ImGui::TreeNodeEx(pWnd, flags, "%s", pName.c_str());
+		}
+
+		if (ImGui::IsItemHovered())
+		{
+			m_pHoveredWnd = pWnd;
+		}
+		if (ImGui::IsItemClicked())
+		{
+			m_pSelectedWnd = pWnd;
+			m_foundSelected = true;
+		}
+
+		ImGui::TableNextCell();
+		ImGui::Text("%s", typeName.c_str());
+
+		if (open)
+		{
+			CXWnd* pChild = pWnd->GetFirstChildWnd();
+			while (pChild)
+			{
+				DisplayWindowTreeNode(pChild);
+				pChild = pChild->GetNextSiblingWnd();
+			}
+
+			ImGui::TreePop();
+		}
+	}
+};
+
+static ImGuiWindowDebugPanel s_windowDebugPanel;
 
 static void WindowsDebugPanel()
 {
-	ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollFreezeTopRow | ImGuiTableFlags_ScrollY | ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersHOuter | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg;
-
-	if (ImGui::BeginTable("##WindowTable", 4, tableFlags))
-	{
-		// The first column will use the default _WidthStretch when ScrollX is Off and _WidthFixed when ScrollX is On
-		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide);
-		ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize() * 6);
-		ImGui::TableSetupColumn("ScreenID", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize() * 12);
-		ImGui::TableSetupColumn("Text", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize() * 12);
-		ImGui::TableAutoHeaders();
-
-		if (pWndMgr)
-		{
-			for (CXWnd* pWnd : pWndMgr->ParentAndContextMenuWindows)
-			{
-				DisplayWindowTreeNode(pWnd);
-			}
-		}
-
-
-		ImGui::EndTable();
-	}
+	s_windowDebugPanel.Draw();
 }
-
 
 void InitializeMQ2Windows()
 {

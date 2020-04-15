@@ -173,6 +173,7 @@ enum UIType
 	UI_TopLevelWindowList                        = 53,
 	UI_HotButton                                 = 54,
 };
+EQLIB_VAR const char* UITypeToString(UIType type);
 
 enum EScrollCode
 {
@@ -595,6 +596,9 @@ public:
 
 	EQLIB_OBJECT bool GetNeedsSaving() const { return bNeedsSaving; }
 	EQLIB_OBJECT int GetParentAndContextMenuArrayIndex() const { return ParentAndContextMenuArrayIndex; }
+
+	EQLIB_OBJECT CXStr GetXMLName() const;
+	EQLIB_OBJECT CXStr GetTypeName() const;
 
 	struct [[offsetcomments]] VirtualFunctionTable
 	{
