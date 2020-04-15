@@ -2062,7 +2062,7 @@ public:
 
 	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
-		if (VarPtr.Ptr && ((FELLOWSHIPINFO*)VarPtr.Ptr)->FellowshipID)
+		if (VarPtr.Ptr && ((FELLOWSHIPINFO*)VarPtr.Ptr)->FellowshipGUID.GUID)
 			strcpy_s(Destination, MAX_STRING, "TRUE");
 		else
 			strcpy_s(Destination, MAX_STRING, "FALSE");

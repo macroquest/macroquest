@@ -580,6 +580,20 @@ enum KeyRingType
 	//eHerosForge = 3, // Not yet supported
 };
 
+union EqGuid
+{
+	uint64_t GUID;
+
+	struct
+	{
+		uint32_t UniqueEntityID;
+		uint16_t WorldUniqueID;
+		uint16_t Reserved;
+	};
+
+	EqGuid() : GUID(0) {}
+};
+
 #if defined (_DEBUG)
 #define FORCE_SYMBOLS __declspec(dllexport) const void* __force_symbol_generation__() const { return this; }
 #else

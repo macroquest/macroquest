@@ -1967,17 +1967,17 @@ class [[offsetcomments]] EQZoneInfo
 	virtual ~EQZoneInfo();
 
 public:
-/*0x004*/ int                Unknown0x004;
-/*0x008*/ EQExpansion        EQExpansion;
-/*0x00c*/ EQZoneIndex        Id;
-/*0x010*/ char               ShortName[MAX_ZONE_SHORTNAME + 1];
-/*0x091*/ char               LongName[MAX_ZONE_LONGNAME + 1];
+/*0x008*/ int                Unknown0x004;
+/*0x00c*/ EQExpansion        EQExpansion;
+/*0x010*/ EQZoneIndex        Id;
+/*0x014*/ char               ShortName[MAX_ZONE_SHORTNAME + 1];
+/*0x095*/ char               LongName[MAX_ZONE_LONGNAME + 1];
 /*0x198*/ uint64_t           ZoneFlags;
 /*0x1a0*/ int                eqstrID;
 /*0x1a4*/ uint8_t            AccessLevel;
 /*0x1a8*/ int                MinLevel;
 /*0x1ac*/ int                CurPlayerCount;
-/*0x1B0*/ int                MaxPlayerCount;
+/*0x1b0*/ int                MaxPlayerCount;
 /*0x1b4*/ uint16_t           NextInstanceID;
 /*0x1b8*/ int                Cpu1;
 /*0x1bc*/ int                Cpu2;
@@ -1985,9 +1985,9 @@ public:
 /*0x1c4*/ int                MemLoad;
 /*0x1c8*/ int                VirtMemLoad;
 /*0x1cc*/ int                ActiveMercenaries;
-/*0x1D0*/ int                SuspendedMercenaries;
-/*0x1D4*/ int                Unknown0x1D4;
-/*0x1D8*/
+/*0x1d0*/ int                SuspendedMercenaries;
+/*0x1d4*/ int                Unknown0x1D4;
+/*0x1d8*/
 };
 using ZONELIST DEPRECATE("Use EQZoneInfo instead") = EQZoneInfo;
 using PZONELIST DEPRECATE("Use EQZoneInfo* instead") = EQZoneInfo*;

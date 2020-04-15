@@ -33,12 +33,16 @@ bool MQ2FellowshipType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 	switch (static_cast<FellowshipTypeMembers>(pMember->ID))
 	{
 	case ID:
-		Dest.DWord = pFellowship->FellowshipID;
+		Dest.DWord = pFellowship->FellowshipGUID.UniqueEntityID;
 		Dest.Type = pIntType;
 		return true;
 
 	case Leader:
-		strcpy_s(DataTypeTemp, pFellowship->Leader);
+		DataTypeTemp[0] = 0;
+		if (pFellowship->Members)
+		{
+			strcpy_s(DataTypeTemp, pFellowship->FellowshipMember[0].Name);
+		}
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
