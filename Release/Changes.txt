@@ -1,3 +1,7 @@
+Apr 15 2020
+- Updated for LIVE
+- Fixed ${Me.CanMount} for some indoor zones that where not flagged as nomount and added bazaar, nexus to zones where its ok to mount.
+-
 Apr 14 2020
 - Updated the FellowShip struct for TEST
 - Updated the FellowShip struct for LIVE

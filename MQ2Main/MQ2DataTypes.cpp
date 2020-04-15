@@ -6593,11 +6593,23 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case CanMount://310
+	{
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
+		int zid = ((PSPAWNINFO)pLocalPlayer)->GetZoneID() & 0x7FFF;
+		if (PZONEINFO pthezone = (PZONEINFO)pZoneInfo)
+		{
+			if (zid == 151 /*bazaar*/ || zid == 152 /*nexus*/)
+			{
+				Dest.DWord = 1;
+				return true;
+			}
+			if (pthezone->OutDoor == IndoorDungeon || pthezone->OutDoor == IndoorCity ||
+				pthezone->OutDoor == DungeonCity)
+				return true;
+		}
 		if (PlayerZoneClient*pzc = (PlayerZoneClient*)pLocalPlayer)
 		{
-			int zid = ((PSPAWNINFO)pLocalPlayer)->GetZoneID() & 0x7FFF;
 			if (zid < MAX_ZONES)
 			{
 				if (PZONELIST pZList = ((PWORLDDATA)pWorldData)->ZoneArray[zid])
@@ -6613,13 +6625,14 @@ bool MQ2CharacterType::GETMEMBER()
 				return true;
 			}
 			int race = ((PSPAWNINFO)pLocalPlayer)->mActorClient.Race;
-			if((!pzc->LegalPlayerRace(-1)) && (race != EQR_SKELETON) && (race != EQR_SKELETON_NEW) && (race != EQR_OEQ_SKELETON) && (race != EQR_SOL_SKELETON))
+			if ((!pzc->LegalPlayerRace(-1)) && (race != EQR_SKELETON) && (race != EQR_SKELETON_NEW) && (race != EQR_OEQ_SKELETON) && (race != EQR_SOL_SKELETON))
 			{
 				return true;
 			}
 			Dest.DWord = 1;
 		}
 		return true;
+	}
 	//end of MQ2CharacterType
 	}
 	return false;

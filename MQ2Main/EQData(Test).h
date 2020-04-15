@@ -3618,7 +3618,7 @@ public:
 
 //this is the size of EQPlayer__EQPlayer_x
 //aka PlayerClient__PlayerClient_x
-// SpawnInfoSize 0x1E98 in Apr 13 2020 Live (see 6748D0) - eqmule
+// SpawnInfoSize 0x1E98 in Apr 13 2020 Test (see 6748D0) - eqmule
 typedef struct _SPAWNINFO {
 	SPAWNINFOHEADER
 /* ******************** PlayerBase Starts Here ***************** */
