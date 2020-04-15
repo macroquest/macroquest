@@ -1912,9 +1912,10 @@ public:
 	EQLIB_OBJECT int GetCurrentMod(int index); // CalculateHeroicModAmount
 	/* virtual */ EQLIB_OBJECT int GetBaseSkill(int);
 	EQLIB_OBJECT int GetEnduranceRegen(bool bIncItemsAndBuffs = true, bool bCombat = true);
-	EQLIB_OBJECT const int GetCastingTimeModifier(const EQ_Spell* pSpell); // used to get aa modifiers
-	EQLIB_OBJECT const int GetFocusCastingTimeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut, bool bEvalOnly = false);
-	EQLIB_OBJECT const int GetFocusRangeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut);
+	EQLIB_OBJECT int GetCastingTimeModifier(const EQ_Spell* pSpell); // used to get aa modifiers
+	EQLIB_OBJECT int GetFocusCastingTimeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut, bool bEvalOnly = false);
+	EQLIB_OBJECT int GetFocusDurationMod(const EQ_Spell* spell, VePointer<CONTENTS>& pItemOut, PlayerZoneClient* pCaster, int originalDuration, int* pOut1, int* pOut2);
+	EQLIB_OBJECT int GetFocusRangeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut);
 	EQLIB_OBJECT int GetHPRegen(bool bIncItemsAndBuffs = true, bool* pOutIsBleeding = nullptr, bool bCombat = false);
 	EQLIB_OBJECT int GetManaRegen(bool bIncItemsAndBuffs = true, bool bCombat = true);
 	EQLIB_OBJECT int GetModCap(int index, bool bToggle = false);

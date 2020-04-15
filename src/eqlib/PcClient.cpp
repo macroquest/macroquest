@@ -475,13 +475,16 @@ FUNCTION_AT_ADDRESS(int CharacterZoneClient::SetLocalVar(char*, int), CharacterZ
 FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetIndexSkillMinDamageMod(int), CharacterZoneClient__GetIndexSkillMinDamageMod);
 #endif
 #ifdef CharacterZoneClient__GetFocusConserveRegChance_x
-FUNCTION_AT_ADDRESS(int const CharacterZoneClient::GetFocusConserveRegChance(EQ_Spell const*, EQ_Equipment**), CharacterZoneClient__GetFocusConserveRegChance);
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetFocusConserveRegChance(EQ_Spell const*, EQ_Equipment**), CharacterZoneClient__GetFocusConserveRegChance);
 #endif
 #ifdef CharacterZoneClient__GetFocusCastingTimeModifier_x
-FUNCTION_AT_ADDRESS(const int CharacterZoneClient::GetFocusCastingTimeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut, bool bEvalOnly), CharacterZoneClient__GetFocusCastingTimeModifier);
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetFocusCastingTimeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut, bool bEvalOnly), CharacterZoneClient__GetFocusCastingTimeModifier);
+#endif
+#ifdef CharacterZoneClient__GetFocusDurationMod_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetFocusDurationMod(const EQ_Spell* spell, VePointer<CONTENTS>& pItemOut, PlayerZoneClient* pCaster, int originalDuration, int* pOut1, int* pOut2), CharacterZoneClient__GetFocusDurationMod);
 #endif
 #ifdef CharacterZoneClient__GetFocusRangeModifier_x
-FUNCTION_AT_ADDRESS(const int CharacterZoneClient::GetFocusRangeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut), CharacterZoneClient__GetFocusRangeModifier);
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetFocusRangeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut), CharacterZoneClient__GetFocusRangeModifier);
 #endif
 #ifdef CharacterZoneClient__GetFocusItem_x
 FUNCTION_AT_ADDRESS(EQ_Equipment* CharacterZoneClient::GetFocusItem(EQ_Spell const*, int), CharacterZoneClient__GetFocusItem);
@@ -511,7 +514,7 @@ FUNCTION_AT_ADDRESS(int CharacterZoneClient::CalculateBardSongMod(int), Characte
 FUNCTION_AT_ADDRESS(unsigned char CharacterZoneClient::CastingRequirementsMet(int), CharacterZoneClient__CastingRequirementsMet);
 #endif
 #ifdef CharacterZoneClient__GetCastingTimeModifier_x
-FUNCTION_AT_ADDRESS(const int CharacterZoneClient::GetCastingTimeModifier(const EQ_Spell*), CharacterZoneClient__GetCastingTimeModifier);
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetCastingTimeModifier(const EQ_Spell*), CharacterZoneClient__GetCastingTimeModifier);
 #endif
 #ifdef CharacterZoneClient__IsValidAffect_x
 FUNCTION_AT_ADDRESS(bool CharacterZoneClient::IsValidAffect(int), CharacterZoneClient__IsValidAffect);

@@ -422,6 +422,7 @@
 #define CharacterZoneClient__GetCursorItemCount_x                  0x4D8EC0
 #define CharacterZoneClient__GetEffect_x                           0x4BAB10
 #define CharacterZoneClient__GetFirstEffectSlot_x                  0x4C3DC0
+#define CharacterZoneClient__GetFocusDurationMod_x                 0x4B0FA0
 #define CharacterZoneClient__GetFocusReuseMod_x                    0x4B2A30
 #define CharacterZoneClient__GetItemCountInInventory_x             0x4D8DE0
 #define CharacterZoneClient__GetItemCountWorn_x                    0x4D8D00
