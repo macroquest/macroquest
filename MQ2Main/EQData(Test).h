@@ -1907,46 +1907,35 @@ struct RaidData
 /*0xdc*/
 };
 
-// Mar 09 2020 -eqmule
+// Apr 13 2020 Test -eqmule
 typedef struct _FELLOWSHIPMEMBER {
-/*0x00*/  DWORD   LastOn;    // FastTime() timestamp
-/*0x04*/  DWORD   Unknown0x04;
-/*0x08*/  DWORD   Unknown0x08;
-/*0x0c*/  DWORD   Unknown0x0c;//yes i know this is a eqguid, todo: fix
-/*0x10*/  DWORD   WorldID;
-/*0x14*/  CHAR    Name[0x40];
-/*0x54*/  DWORD   ZoneID;
-/*0x58*/  DWORD   Level;
-/*0x5c*/  DWORD   Class;
-/*0x60*/
+/*0x00*/ EqGuid	UniqueEntityID;
+/*0x08*/ CHAR		Name[0x40];
+/*0x48*/ int		ZoneID;
+/*0x4c*/ int		Level;
+/*0x50*/ int		Class;
+/*0x54*/ int		LastOn;    // FastTime() timestamp
+/*0x58*/
 } FELLOWSHIPMEMBER, *PFELLOWSHIPMEMBER;
 
-struct FSDATA
+// 20121128 - ieatacid 0x9e4
+// Dec 13 2016 - eqmule 0x9e8 see 5C3F9F
+// Apr 13 2020 Test - eqmule 0x860 see 58FA66
+typedef struct _FELLOWSHIPINFO
 {
-	CHAR Strings[0x20];//need to check what these are...
-};
-// 20121128 - ieatacid  0x9e4
-// Dec 13 2016 - eqmule  0x9e8 see 5C3F9F
-
-typedef struct _FELLOWSHIPINFO {
-	
-/*0x000*/  DWORD  Version;
-/*0x004*/  DWORD  Version2;//just place holders for now, ill fix these later
-/*0x008*/  DWORD  Version3;
-/*0x00c*/  DWORD  Version4;
-/*0x010*/  DWORD  FellowshipID;
-/*0x014*/  DWORD  FellowshipID2;//guild does this to, need to figure out why
-/*0x018*/  CHAR   Leader[0x40];
-/*0x058*/  CHAR   MotD[0x400];
-/*0x458*/  DWORD  Members;
-/*0x45c*/  struct _FELLOWSHIPMEMBER  FellowshipMember[0xc];//size 0xc * 0x60 = 0x480
-/*0x8dc*/  DWORD  Unknown0x8dc;
-/*0x8e0*/  DWORD  Sync;
-/*0x8E4*/  FSDATA Somedata[0xc];//size 0x180
-/*0xa64*/  bool bExpSharingEnabled[0xc];
-/*0xa70*/  bool bSharedExpCapped[0xc];
-/*0xa7c*/  int Unknown0xa7c;
-/*0xa80*/
+/*0x000*/ int		Version;//just place holders for now, ill fix these later
+/*0x004*/ int		Version2;
+/*0x008*/ int		Version3;
+/*0x00c*/ int		Version4;
+/*0x010*/ EqGuid	FellowshipGUID;
+/*0x018*/ CHAR		MotD[0x400];
+/*0x418*/ int		Members;
+/*0x420*/ struct _FELLOWSHIPMEMBER FellowshipMember[0xc];//yes this does start at 0x420 because the first member of _FELLOWSHIPMEMBER is a __int64 and its 8 aligned... size 0xc * 0x58 = 0x420
+/*0x840*/ int		Sync;
+/*0x844*/ bool		bExpSharingEnabled[0xc];
+/*0x850*/ bool		bSharedExpCapped[0xc];
+/*0x85c*/ int		Unknown0x85c;
+/*0x860*/
 } FELLOWSHIPINFO, *PFELLOWSHIPINFO;
 
 enum ItemSpellTypes
@@ -3628,8 +3617,8 @@ public:
 };
 
 //this is the size of EQPlayer__EQPlayer_x
-//aka "PlayerClient"
-// actual size 0x2020 in Feb 20 2016 Live (see 64B6A0) - eqmule
+//aka PlayerClient__PlayerClient_x
+// SpawnInfoSize 0x1E98 in Apr 13 2020 Live (see 6748D0) - eqmule
 typedef struct _SPAWNINFO {
 	SPAWNINFOHEADER
 /* ******************** PlayerBase Starts Here ***************** */
@@ -3733,12 +3722,12 @@ typedef struct _SPAWNINFO {
 /* ********************** PlayerClient Starts Here ******************** */
 /*0x11a4*/ BYTE		Filler0x11a4[0x4];
 /*0x11a8*/ int		Animation; /* Current Animation Playing. see 5671F1 in feb 14 2019 test */
-/*0x11b4*/ int		NextAnim;
-/*0x11b8*/ int		CurrLowerBodyAnim;
-/*0x11bc*/ int		NextLowerBodyAnim;
-/*0x11c0*/ int		CurrLowerAnimVariation;
-/*0x11c4*/ int		CurrAnimVariation;
-/*0x11c8*/ int		CurrAnimRndVariation;
+/*0x11ac*/ int		NextAnim;
+/*0x11b0*/ int		CurrLowerBodyAnim;
+/*0x11b4*/ int		NextLowerBodyAnim;
+/*0x11b8*/ int		CurrLowerAnimVariation;
+/*0x11bc*/ int		CurrAnimVariation;
+/*0x11c0*/ int		CurrAnimRndVariation;
 /* ********************sound ID's BEGIN ******************* */
 /*0x11c4*/ int		Loop3d_SoundID;//see 567254 in feb 14 2019 test
 /*0x11c8*/ int		Step_SoundID;;
@@ -3749,7 +3738,6 @@ typedef struct _SPAWNINFO {
 /*0x11dc*/ int		Hit1_SoundID;
 /*0x11e0*/ int		Hit2_SoundID;
 /*0x11e4*/ int		Hit3_SoundID;
-
 /*0x11e8*/ int		Hit4_SoundID;
 /*0x11ec*/ int		Gasp1_SoundID;
 /*0x11f0*/ int		Gasp2_SoundID;
@@ -3758,7 +3746,6 @@ typedef struct _SPAWNINFO {
 /*0x11fc*/ int		Attk1_SoundID;
 /*0x1200*/ int		Attk2_SoundID;
 /*0x1204*/ int		Attk3_SoundID;
-
 /*0x1208*/ int		Walk_SoundID;
 /*0x120c*/ int		Run_SoundID;
 /*0x1210*/ int		Crouch_SoundID;
@@ -3767,7 +3754,6 @@ typedef struct _SPAWNINFO {
 /*0x121c*/ int		Climb_SoundID;
 /*0x1220*/ int		Sit_SoundID;
 /*0x1224*/ int		Kick_SoundID;
-
 /*0x1228*/ int		Bash_SoundID;
 /*0x122c*/ int		FireBow_SoundID;
 /*0x1230*/ int		MonkAttack1_SoundID;
@@ -3776,7 +3762,6 @@ typedef struct _SPAWNINFO {
 /*0x123c*/ int		PrimaryBlunt_SoundID;
 /*0x1240*/ int		PrimarySlash_SoundID;
 /*0x1244*/ int		PrimaryStab_SoundID;
-
 /*0x1248*/ int		Punch_SoundID;
 /*0x124c*/ int		Roundhouse_SoundID;
 /*0x1250*/ int		SecondaryBlunt_SoundID;
@@ -3785,7 +3770,6 @@ typedef struct _SPAWNINFO {
 /*0x125c*/ int		SwimAttack_SoundID;
 /*0x1260*/ int		TwoHandedBlunt_SoundID;
 /*0x1264*/ int		TwoHandedSlash_SoundID;
-
 /*0x1268*/ int		TwoHandedStab_SoundID;
 /*0x126c*/ int		SecondaryPunch_SoundID;
 /*0x1270*/ int		JumpAcross_SoundID;
@@ -3825,44 +3809,43 @@ typedef struct _SPAWNINFO {
 /*0x1323*/ BYTE		InteractiveObjectModelName[0x80];
 /*0x13a3*/ BYTE		InteractiveObjectOtherName[0x80];
 /*0x1423*/ BYTE		InteractiveObjectName[0x40];
-/*0x1463*/
 /*0x1464*/ CPhysicsInfo PhysicsBeforeLastPort;//size IS /*0x30*/ see 5E617B in feb 14 2019 test
-/*0x1494*/ DWORD notsure;//could be part of CPhysicsInfo?
+/*0x1494*/ DWORD	Filler0x1494;
 /*0x1498*/ struct _FELLOWSHIPINFO	Fellowship; // IT IS AT 0x1498 see 63BEDD in feb 14 2019 test // size 0x9e8
-/*0x1E80*/ FLOAT	CampfireY;
-/*0x1e84*/ FLOAT	CampfireX;
-/*0x1e88*/ FLOAT	CampfireZ;
-/*0x1e8c*/ int		CampfireZoneID;         // zone ID where campfire is
-/*0x1e90*/ int		CampfireTimestamp;      // CampfireTimestamp-FastTime()=time left on campfire
-/*0x1e94*/ int		CampfireTimestamp2;
-/*0x1e98*/ int		FellowShipID;
-/*0x1e9c*/ int		FellowShipID2;
-/*0x1eA0*/ int		CampType;
-/*0x1eA4*/ bool		Campfire;
-/*0x1eA8*/ TSafeArrayStatic<int,3> SeeInvis;//for sure see 63E23F or 63BD35 in feb 14 2019 test
-/*0x1EB4*/ struct _EQUIPMENT	Equipment;// size 0xb4 see 63BF44 in feb 14 2019 test
-/*0x1F68*/ bool		bIsPlacingItem;//for sure see 543626 in feb 14 2019 test
-/*0x1f69*/ bool		bGMCreatedNPC;
-/*0x1f6c*/ int		ObjectAnimationID;
-/*0x1f70*/ bool		bInteractiveObjectCollidable;
-/*0x1f74*/ int		InteractiveObjectType;
-/*0x1f78*/ int		SoundIDs[0xa];//0x28 bytes for sure see 648AB2 in feb 14 2019 test
-/*0x1fA0*/ UINT		LastHistorySentTime;//for sure see 648E7E in feb 14 2019 test
-/*0x1fA4*/ ArrayClass2_RO<UINT>	BardTwistSpells;//size 0x18
-/*0x1fBC*/ int		CurrentBardTwistIndex;
-/*0x1fC0*/ int		CurrentBardTwistIndex2;
-/*0x1fC4*/ PlayerPhysicsClient mPlayerPhysicsClient;//size 0x28
-/*0x1FEC*/ int		SpawnStatus[6];//todo: look closer at these i think they can show like status of mobs slowed, mezzed etc, but not sure
-/*0x2004*/ int		BannerIndex0;//guild banners
-/*0x2008*/ int		BannerIndex1;
-/*0x200C*/ ARGBCOLOR BannerTint0;
-/*0x2010*/ ARGBCOLOR BannerTint1;
-/*0x2014*/ int		MountAnimationRelated;
-/*0x2018*/ bool		bGuildShowAnim;//or sprite? need to check
-/*0x2019*/ bool		bWaitingForPort;//for sure see 5C5445 in feb 14 2019 test
-/*0x201C*/ int		Unknown0x201C;
+/*0x1CF8*/ FLOAT	CampfireY;
+/*0x1CFC*/ FLOAT	CampfireX;
+/*0x1D00*/ FLOAT	CampfireZ;
+/*0x1D04*/ int		CampfireZoneID;         // zone ID where campfire is
+/*0x1D08*/ int		CampfireTimestamp;      // CampfireTimestamp-FastTime()=time left on campfire
+/*0x1D0C*/ int		CampfireTimestamp2;
+/*0x1D10*/ int		FellowShipID;
+/*0x1D14*/ int		FellowShipID2;
+/*0x1D18*/ int		CampType;
+/*0x1D1C*/ bool		Campfire;
+/*0x1D20*/ TSafeArrayStatic<int,3> SeeInvis;//size 0xc for sure see 63E23F or 63BD35 in feb 14 2019 test
+/*0x1D2C*/ struct _EQUIPMENT	Equipment;// size 0xb4 see 63BF44 in feb 14 2019 test
+/*0x1DE0*/ bool		bIsPlacingItem;//for sure see 543626 in feb 14 2019 test
+/*0x1DE1*/ bool		bGMCreatedNPC;
+/*0x1DE4*/ int		ObjectAnimationID;
+/*0x1DE8*/ bool		bInteractiveObjectCollidable;
+/*0x1DEC*/ int		InteractiveObjectType;
+/*0x1DF0*/ int		SoundIDs[0xa];//0x28 bytes for sure see 648AB2 in feb 14 2019 test
+/*0x1E18*/ UINT		LastHistorySentTime;//for sure see 648E7E in feb 14 2019 test
+/*0x1E1C*/ ArrayClass2_RO<UINT>	BardTwistSpells;//size 0x18
+/*0x1E34*/ int		CurrentBardTwistIndex;
+/*0x1E38*/ int		CurrentBardTwistIndex2;
+/*0x1E3C*/ PlayerPhysicsClient mPlayerPhysicsClient;//size 0x28
+/*0x1E64*/ int		SpawnStatus[6];//todo: look closer at these i think they can show like status of mobs slowed, mezzed etc, but not sure
+/*0x1E7C*/ int		BannerIndex0;//guild banners
+/*0x1E80*/ int		BannerIndex1;
+/*0x1E84*/ ARGBCOLOR BannerTint0;
+/*0x1E88*/ ARGBCOLOR BannerTint1;
+/*0x1E8C*/ int		MountAnimationRelated;
+/*0x1E90*/ bool		bGuildShowAnim;//or sprite? need to check
+/*0x1E91*/ bool		bWaitingForPort;//for sure see 5C5445 in feb 14 2019 test
+/*0x1E94*/ int		Unknown0x1E94;
 /* ********************** PlayerClient Ends Here ******************** */
-/*0x2028*/ //see SpawnInfoSize
+/*0x1E98*/ //see SpawnInfoSize
 	inline signed int GetClass()
 	{
 		return mActorClient.Class;

@@ -599,7 +599,7 @@ inline int IsFellowshipMember(const char* SpawnName)
 	if (PFELLOWSHIPINFO pFellowship = &pSpawn->Fellowship)
 	{
 
-		for (DWORD i = 0; i < pFellowship->Members; i++)
+		for (int i = 0; i < pFellowship->Members; i++)
 		{
 			if (!_stricmp(SpawnName, pFellowship->FellowshipMember[i].Name))
 				return 1;

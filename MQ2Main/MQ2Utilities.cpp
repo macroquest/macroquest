@@ -5757,7 +5757,7 @@ BOOL IsInFellowship(PSPAWNINFO pSpawn, BOOL bCorpse)
 		if (!pChar->pSpawn)
 			return FALSE;
 		FELLOWSHIPINFO Fellowship = (FELLOWSHIPINFO)pChar->pSpawn->Fellowship;
-		for (DWORD i = 0; i < Fellowship.Members; i++)
+		for (int i = 0; i < Fellowship.Members; i++)
 		{
 			if (!bCorpse) {
 				if (!_stricmp(Fellowship.FellowshipMember[i].Name, pSpawn->Name))
