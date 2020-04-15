@@ -1142,15 +1142,11 @@ const char* GetFullZone(int ZoneID)
 {
 	ZoneID &= 0x7FFF;
 
-	if (!pWorldData)
-		return nullptr;
-
-	if (ZoneID >= MAX_ZONES)
-		return "UNKNOWN_ZONE";
-
-	ZONELIST* pZone = ((WORLDDATA*)pWorldData)->ZoneArray[ZoneID];
-	if (pZone)
-		return pZone->LongName;
+	if (pWorldData && ZoneID < MAX_ZONES)
+	{
+		if (EQZoneInfo* pZone = pWorldData->ZoneArray[ZoneID])
+			return pZone->LongName;
+	}
 
 	return "UNKNOWN_ZONE";
 }
@@ -1163,15 +1159,11 @@ const char* GetShortZone(int ZoneID)
 {
 	ZoneID &= 0x7FFF;
 
-	if (!pWorldData)
-		return nullptr;
-
-	if (ZoneID >= MAX_ZONES)
-		return "UNKNOWN_ZONE";
-
-	ZONELIST* pZone = ((WORLDDATA*)pWorldData)->ZoneArray[ZoneID];
-	if (pZone)
-		return pZone->ShortName;
+	if (pWorldData && ZoneID < MAX_ZONES)
+	{
+		if (EQZoneInfo* pZone = pWorldData->ZoneArray[ZoneID])
+			return pZone->ShortName;
+	}
 
 	return "UNKNOWN_ZONE";
 }
@@ -1187,7 +1179,7 @@ int GetZoneID(const char* ZoneShortName)
 
 	for (int nIndex = 0; nIndex < MAX_ZONES; nIndex++)
 	{
-		ZONELIST* pZone = ((WORLDDATA*)pWorldData)->ZoneArray[nIndex];
+		EQZoneInfo* pZone = pWorldData->ZoneArray[nIndex];
 		if (pZone)
 		{
 			if (!_stricmp(pZone->ShortName, ZoneShortName))
@@ -1213,8 +1205,8 @@ void GetGameTime(int* Hour, int* Minute, int* Night)
 	if (!pWorldData)
 		return;
 
-	int eqHour = ((PWORLDDATA)pWorldData)->Hour - 1; // Midnight = 1 in EQ time
-	int eqMinute = ((PWORLDDATA)pWorldData)->Minute;
+	int eqHour = pWorldData->Hour - 1; // Midnight = 1 in EQ time
+	int eqMinute = pWorldData->Minute;
 
 	if (Hour)
 		*Hour = eqHour;
@@ -1234,11 +1226,11 @@ void GetGameDate(int* Month, int* Day, int* Year)
 		return;
 
 	if (Month)
-		*Month = ((PWORLDDATA)pWorldData)->Month;
+		*Month = pWorldData->Month;
 	if (Day)
-		*Day = ((PWORLDDATA)pWorldData)->Day;
+		*Day = pWorldData->Day;
 	if (Year)
-		*Year = ((PWORLDDATA)pWorldData)->Year;
+		*Year = pWorldData->Year;
 }
 
 // TOOD: Convert to data table

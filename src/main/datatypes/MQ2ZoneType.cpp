@@ -15,12 +15,21 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq {
+namespace datatypes {
+
+MQ2ZoneType::MQ2ZoneType() : MQ2Type("zone")
+{
+	ScopedTypeMember(ZoneMembers, Name);
+	ScopedTypeMember(ZoneMembers, ShortName);
+	ScopedTypeMember(ZoneMembers, ID);
+	ScopedTypeMember(ZoneMembers, Address);
+	ScopedTypeMember(ZoneMembers, ZoneFlags);
+}
 
 bool MQ2ZoneType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
-	ZONELIST* pZone = static_cast<ZONELIST*>(VarPtr.Ptr);
+	EQZoneInfo* pZone = static_cast<EQZoneInfo*>(VarPtr.Ptr);
 	if (!VarPtr.Ptr)
 		return false;
 
@@ -30,31 +39,31 @@ bool MQ2ZoneType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 
 	switch (static_cast<ZoneMembers>(pMember->ID))
 	{
-	case Address:
+	case ZoneMembers::Address:
 		Dest.DWord = (DWORD)VarPtr.Ptr;
 		Dest.Type = pIntType;
 		return true;
 
-	case Name:
+	case ZoneMembers::Name:
 		strcpy_s(DataTypeTemp, pZone->LongName);
 		Dest.Ptr = &DataTypeTemp;
 		Dest.Type = pStringType;
 		return true;
 
-	case ShortName:
+	case ZoneMembers::ShortName:
 		strcpy_s(DataTypeTemp, pZone->ShortName);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case ID:
+	case ZoneMembers::ID:
 		Dest.Int = pZone->Id & 0x7FFF;
 		Dest.Type = pIntType;
 		return true;
 
-	case ZoneFlags:
-		Dest.Int = pZone->ZoneFlags;
-		Dest.Type = pIntType;
+	case ZoneMembers::ZoneFlags:
+		Dest.Int64 = (int64_t)pZone->ZoneFlags;
+		Dest.Type = pInt64Type;
 		return true;
 
 	default: break;
@@ -63,3 +72,36 @@ bool MQ2ZoneType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 	return false;
 }
 
+bool MQ2ZoneType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	EQZoneInfo* pZoneInfo = static_cast<EQZoneInfo*>(VarPtr.Ptr);
+
+	strcpy_s(Destination, MAX_STRING, pZoneInfo->LongName);
+	return true;
+}
+
+bool MQ2ZoneType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type == pZoneType)
+	{
+		VarPtr.Ptr = Source.Ptr;
+		return true;
+	}
+
+	if (Source.Type == (MQ2Type*)pCurrentZoneType)
+	{
+		if (CHARINFO* pChar = GetCharInfo())
+		{
+			int zoneid = (pChar->zoneId & 0x7FFF);
+			if (zoneid <= MAX_ZONES)
+			{
+				VarPtr.Ptr = &pWorldData->ZoneArray[zoneid];
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+}} // namespace mq::datatypes

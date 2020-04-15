@@ -39,7 +39,7 @@ struct TargetBuff
 	int count;
 	char casterName[64];
 };
-using PTargetBuff [[deprecated("Use TargetBuff* Instead")]] = TargetBuff*;
+using PTargetBuff DEPRECATE("Use TargetBuff* Instead") = TargetBuff*;
 
 struct AggroMeterListEntry
 {
@@ -1939,34 +1939,57 @@ public:
 	EQLIB_OBJECT static char* FormatCharName(char*, char*, int);
 };
 
-constexpr int MAX_ZONES = 1000; // 0x3e8
+extern char* szZoneExpansionName[];
 
-extern char* szZoneExpansionName[];              // defined in LibEQ_Utilities.cpp
+constexpr int MAX_ZONES = 1000; // 0x3e8
+constexpr int MAX_ZONE_SHORTNAME = 128;
+constexpr int MAX_ZONE_LONGNAME = 256;
+
+// Flags for EQZoneInfo
+// 0x1 = MultiInstanceZone?
+// 0x2 newbie zone
+// 0x4 = ?
+// 0x20 no bind
+// 0x4000 = no air
+// 0x8000 water/mountainzone?
+// 0x100000 = HasMinLevel
+// 0x400000 lostestingdisabled
+// 0x800000 = gmzone?
+// 0x1000000 = tutorialzone
+// 0x2000000 = barterzone?
+// 0x10000000 bazaarzone?
+// 0x80000000 guildhallzone
 
 // Size 0x1D8 see 867D39 in eqgame.exe live 21 apr 2016 - eqmule
-struct [[offsetcomments]] ZONELIST
+class [[offsetcomments]] EQZoneInfo
 {
-/*0x000*/ DWORD              Header;
-/*0x004*/ DWORD              Unknown0x4;         // pointer to something?
-/*0x008*/ DWORD              EQExpansion;        // szZoneExpansionName[]
-/*0x00c*/ DWORD              Id;                 // EQZoneIndex
-/*0x010*/ char               ShortName[0x80];
-/*0x090*/ BYTE               Unknown0x090;
-/*0x091*/ char               LongName[0x100];
-/*0x194*/ DWORD              Unknown0x191;
-/*0x198*/ DWORD              Unknown0x192[0x6];
-/*0x1b0*/ DWORD              ZoneFlags;          // 0x800000 = gmzone? 0x8000 water/mountainzone? 0x4 = ? 0x1 = MultiInstanceZone 0x10000000 bazaarzone 0x2000000 = barterzone 0x100000 = HasMinLevel, 0x1000000 = tutorialzone 0x4000 = no air, 0x2 newbie zone, 0x20 no bind, 0x400000 lostestingdisabled, 0x80000000 guildhallzone
-/*0x1b4*/ DWORD              Unknown0x19c;
-/*0x1b8*/ DWORD              eqstrID;            // can call pStringTable->getString to get this string
-/*0x1bc*/ DWORD              PoPValue;           // This has something to do with PoP zones.
-/*0x1c0*/ DWORD              MinLevel;           // Minimum level to access is this used?
-/*0x1c4*/ BYTE               Unknown0x1ac[0x8];
-/*0x1cc*/ BYTE               Unknown0x1b4;
-/*0x1cd*/ BYTE               Unknown0x1b5[0x3];
-/*0x1d0*/ BYTE               Unknown0x1b8[0x20];
-/*0x1f0*/
+	virtual ~EQZoneInfo();
+
+public:
+/*0x004*/ int                Unknown0x004;
+/*0x008*/ EQExpansion        EQExpansion;
+/*0x00c*/ EQZoneIndex        Id;
+/*0x010*/ char               ShortName[MAX_ZONE_SHORTNAME + 1];
+/*0x091*/ char               LongName[MAX_ZONE_LONGNAME + 1];
+/*0x198*/ uint64_t           ZoneFlags;
+/*0x1a0*/ int                eqstrID;
+/*0x1a4*/ uint8_t            AccessLevel;
+/*0x1a8*/ int                MinLevel;
+/*0x1ac*/ int                CurPlayerCount;
+/*0x1B0*/ int                MaxPlayerCount;
+/*0x1b4*/ uint16_t           NextInstanceID;
+/*0x1b8*/ int                Cpu1;
+/*0x1bc*/ int                Cpu2;
+/*0x1c0*/ int                Memory;
+/*0x1c4*/ int                MemLoad;
+/*0x1c8*/ int                VirtMemLoad;
+/*0x1cc*/ int                ActiveMercenaries;
+/*0x1D0*/ int                SuspendedMercenaries;
+/*0x1D4*/ int                Unknown0x1D4;
+/*0x1D8*/
 };
-using PZONELIST = ZONELIST*;
+using ZONELIST DEPRECATE("Use EQZoneInfo instead") = EQZoneInfo;
+using PZONELIST DEPRECATE("Use EQZoneInfo* instead") = EQZoneInfo*;
 
 // EQWorldData__EQWorldData_x
 // Size 0xFC0 see 5721F1 in eqgame.exe live 21 apr 2016 - eqmule
@@ -1989,24 +2012,24 @@ public:
 	EQLIB_OBJECT void CurrentGameTime(char*);
 	EQLIB_OBJECT void GetFullZoneName(EQZoneIndex, char*);
 
-/*0x004*/ BYTE         Hour;
-/*0x005*/ BYTE         Minute;
-/*0x006*/ BYTE         Day;
-/*0x007*/ BYTE         Month;
+/*0x004*/ uint8_t      Hour;
+/*0x005*/ uint8_t      Minute;
+/*0x006*/ uint8_t      Day;
+/*0x007*/ uint8_t      Month;
 /*0x008*/ int          Year;
-/*0x00c*/ BYTE         LastHour;
-/*0x00d*/ BYTE         LastMinute;
-/*0x00e*/ BYTE         LastDay;
-/*0x00f*/ BYTE         LastMonth;
+/*0x00c*/ uint8_t      LastHour;
+/*0x00d*/ uint8_t      LastMinute;
+/*0x00e*/ uint8_t      LastDay;
+/*0x00f*/ uint8_t      LastMonth;
 /*0x010*/ int          LastYear;
-/*0x014*/ UINT         LastAdvance;
-/*0x018*/ UINT         LastTime;
-/*0x01c*/ UINT         Unknown0x01C;
-/*0x020*/ ZONELIST*    ZoneArray[MAX_ZONES];     // see 867D1B in eqgame.exe live 21 apr 2016
+/*0x014*/ uint32_t     LastAdvance;
+/*0x018*/ uint32_t     LastTime;
+/*0x01c*/ uint32_t     NextMercenaryId;
+/*0x020*/ EQZoneInfo*  ZoneArray[MAX_ZONES];     // see 867D1B in eqgame.exe live 21 apr 2016
 /*0xfc0*/
 };
-using WORLDDATA = EQWorldData;
-using PWORLDDATA = EQWorldData*;
+using WORLDDATA DEPRECATE("Use EQWorldData instead") = EQWorldData;
+using PWORLDDATA DEPRECATE("Use EQWorldData* instead") = EQWorldData*;
 
 enum EOutDoor : BYTE
 {
@@ -2023,16 +2046,6 @@ enum EPlace
 	CannotPlace,
 	CanOnlyPlace,
 	CanPlaceAndGoto,
-};
-
-// TODO: Map this out.
-class EQZoneInfo
-{
-public:
-	EQLIB_OBJECT EQZoneInfo(EQExpansion, EQZoneIndex, const char*, const char*, int, uint64_t flags, int, int);
-
-	// virtual
-	EQLIB_OBJECT ~EQZoneInfo();
 };
 
 // this is zoneHeader
@@ -2854,7 +2867,7 @@ class DatabaseStringTable
 public:
 	EQLIB_OBJECT const char* GetString(int id, eDatabaseStringType type, bool* found = nullptr);
 
-	[[deprecated("Use eDatabaseStringType enum")]] const char* GetString(int id, int type)
+	DEPRECATE("Use eDatabaseStringType enum") const char* GetString(int id, int type)
 	{
 		return GetString(id, static_cast<eDatabaseStringType>(type), nullptr);
 	}

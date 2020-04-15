@@ -698,10 +698,10 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 
 	case CharacterMembers::Origin:
-		Dest.Type = pZoneType;
 		if (pChar->StartingCity > 0 && pChar->StartingCity < MAX_ZONES)
 		{
-			Dest.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[pChar->StartingCity];
+			Dest.Type = pZoneType;
+			Dest.Ptr = pWorldData->ZoneArray[pChar->StartingCity];
 			return true;
 		}
 		return false;
@@ -3383,28 +3383,28 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return false;
 
 	case CharacterMembers::SecondaryAggroPlayer:
-		Dest.Type = pSpawnType;
 		if (pAggroInfo && pAggroInfo->AggroSecondaryID)
 		{
+			Dest.Type = pSpawnType;
 			Dest.Ptr = GetSpawnByID(pAggroInfo->AggroSecondaryID);
 			return true;
 		}
 		return false;
 
 	case CharacterMembers::AggroLock:
-		Dest.Type = pSpawnType;
 		if (pAggroInfo && pAggroInfo->AggroLockID)
 		{
+			Dest.Type = pSpawnType;
 			Dest.Ptr = GetSpawnByID(pAggroInfo->AggroLockID);
 			return true;
 		}
 		return false;
 
 	case CharacterMembers::ZoneBound:
-		Dest.Type = pZoneType;
 		if (pProfile->BoundLocations[0].ZoneBoundID)
 		{
-			Dest.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[pProfile->BoundLocations[0].ZoneBoundID];
+			Dest.Type = pZoneType;
+			Dest.Ptr = pWorldData->ZoneArray[pProfile->BoundLocations[0].ZoneBoundID];
 			return true;
 		}
 		return false;

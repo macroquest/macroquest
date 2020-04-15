@@ -28,7 +28,7 @@ bool MQ2CurrentZoneType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, M
 		int zid = pCurrentZone->ZoneID & 0x7FFF;
 		if (zid < MAX_ZONES)
 		{
-			if (ZONELIST* pZList = ((PWORLDDATA)pWorldData)->ZoneArray[zid])
+			if (EQZoneInfo* pZList = pWorldData->ZoneArray[zid])
 			{
 				MQVarPtr data;
 				data.Ptr = &pZList;

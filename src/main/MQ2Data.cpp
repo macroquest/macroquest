@@ -225,7 +225,7 @@ bool dataZone(const char* szIndex, MQTypeVar& Ret)
 	}
 	if (IsNumber(szIndex))
 	{
-		PZONELIST pZone = nullptr;
+		EQZoneInfo* pZone = nullptr;
 
 		if (int nIndex = (GetIntFromString(szIndex, 0) & 0x7FFF))
 		{
@@ -237,7 +237,7 @@ bool dataZone(const char* szIndex, MQTypeVar& Ret)
 				}
 				else if (nIndex < MAX_ZONES)
 				{
-					Ret.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[nIndex];
+					Ret.Ptr = pWorldData->ZoneArray[nIndex];
 					Ret.Type = pZoneType;
 				}
 
@@ -263,7 +263,7 @@ bool dataZone(const char* szIndex, MQTypeVar& Ret)
 			}
 			else if (nIndex < MAX_ZONES)
 			{
-				Ret.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[nIndex];
+				Ret.Ptr = pWorldData->ZoneArray[nIndex];
 				Ret.Type = pZoneType;
 			}
 
@@ -427,12 +427,12 @@ bool dataGameTime(const char* szIndex, MQTypeVar& Ret)
 	struct tm* pTime = (struct tm*) & DataTypeTemp[0];
 	ZeroMemory(pTime, sizeof(struct tm));
 	pTime->tm_sec = 0;
-	pTime->tm_min = ((PWORLDDATA)pWorldData)->Minute;
-	pTime->tm_hour = ((PWORLDDATA)pWorldData)->Hour - 1;
-	pTime->tm_mday = ((PWORLDDATA)pWorldData)->Day;
-	pTime->tm_mon = ((PWORLDDATA)pWorldData)->Month - 1;
-	pTime->tm_year = ((PWORLDDATA)pWorldData)->Year - 1900;
-	pTime->tm_wday = (((PWORLDDATA)pWorldData)->Day - 1) % 7;
+	pTime->tm_min = pWorldData->Minute;
+	pTime->tm_hour = pWorldData->Hour - 1;
+	pTime->tm_mday = pWorldData->Day;
+	pTime->tm_mon = pWorldData->Month - 1;
+	pTime->tm_year = pWorldData->Year - 1900;
+	pTime->tm_wday = (pWorldData->Day - 1) % 7;
 	pTime->tm_isdst = 0;
 
 	Ret.Ptr = pTime;

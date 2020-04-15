@@ -111,7 +111,7 @@ bool MQ2FellowshipType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 		{
 			if (zoneID < MAX_ZONES && pWorldData)
 			{
-				Dest.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[zoneID];
+				Dest.Ptr = pWorldData->ZoneArray[zoneID];
 				return true;
 			}
 		}
