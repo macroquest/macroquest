@@ -217,6 +217,33 @@ enum class CharacterMembers
 	Fists,
 	EnergyCrystals,
 	PiecesofEight,
+	SilverTokens,
+	GoldTokens,
+	McKenzie,
+	Bayle,
+	Reclamation,
+	Brellium,
+	Motes,
+	RebellionChits,
+	DiamondCoins,
+	BronzeFiats,
+	Voucher,
+	VeliumShards,
+	CrystallizedFear,
+	ShadowStones,
+	DreadStones,
+	MarksOfValor,
+	MedalsOfHeroism,
+	RemnantOfTranquility,
+	BifurcatedCoin,
+	AdoptiveCoin,
+	SathirsTradeGems,
+	AncientSebilisianCoins,
+	BathezidTradeGems,
+	AncientDraconicCoin,
+	FetterredIfritCoins,
+	EntwinedDjinnCoins,
+	CrystallizedLuck,
 	SpellInCooldown,
 	Slowed,
 	Rooted,
@@ -290,36 +317,9 @@ enum class CharacterMembers
 	LastZoned,
 	Origin,
 	SubscriptionDays,
-	SilverTokens,
-	GoldTokens,
-	McKenzie,
-	Bayle,
-	Reclamation,
-	Brellium,
-	Motes,
-	RebellionChits,
-	DiamondCoins,
-	BronzeFiats,
-	Voucher,
-	VeliumShards,
-	CrystallizedFear,
-	ShadowStones,
-	DreadStones,
-	MarksOfValor,
-	MedalsOfHeroism,
-	RemnantOfTranquility,
-	BifurcatedCoin,
-	AdoptiveCoin,
-	SathirsTradeGems,
-	AncientSebilisianCoins,
-	BathezidTradeGems,
-	AncientDraconicCoin,
-	FetterredIfritCoins,
-	EntwinedDjinnCoins,
-	CrystallizedLuck,
 	Spell,
 	ParcelStatus,
-
+	CanMount,
 };
 
 enum class CharacterMethods
@@ -631,6 +631,7 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, SubscriptionDays);
 	ScopedTypeMember(CharacterMembers, Spell);
 	ScopedTypeMember(CharacterMembers, ParcelStatus);
+	ScopedTypeMember(CharacterMembers, CanMount);
 
 	ScopedTypeMethod(CharacterMethods, Stand);
 	ScopedTypeMethod(CharacterMethods, Sit);
@@ -2972,11 +2973,6 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Type = pIntType;
 		return true;
 
-	case CharacterMembers::ParcelStatus:
-		Dest.DWord = pChar->ParcelStatus;
-		Dest.Type = pIntType;
-		return true;
-
 	case CharacterMembers::Fellowship:
 		Dest.Type = pFellowshipType;
 		if (pChar->pSpawn)
@@ -3945,6 +3941,42 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_HP, false),
 			[](EQ_Spell* spell) { return spell->IsDetrimentalSpell() && spell->IsDoTSpell(); }));
 		return Dest.Int >= 0;
+
+	case CharacterMembers::ParcelStatus:
+		Dest.DWord = pChar->ParcelStatus;
+		Dest.Type = pIntType;
+		return true;
+
+	case CharacterMembers::CanMount:
+		Dest.DWord = 0;
+		Dest.Type = pBoolType;
+
+		if (PlayerClient* pPlayer = pLocalPlayer)
+		{
+			if (pWorldData->IsFlagSet(pPlayer->GetZoneID(), EQZoneFlag_NoMount))
+				return true;
+
+			if (pPlayer->HeadWet != 0 || pPlayer->Vehicle != nullptr)
+				return true;
+
+			int race = pPlayer->mActorClient.Race;
+
+			// These non-player races can mount.
+			if (race != EQR_SKELETON
+				|| race != EQR_SKELETON_NEW
+				|| race != EQR_OEQ_SKELETON
+				|| race != EQR_SOL_SKELETON)
+			{
+				// FIXME: we can calculate this, don't need to look it up.
+				// The -1 means "use the current race of the player"
+				if (!pPlayer->LegalPlayerRace(-1))
+					return true;
+			}
+
+			// If we made it this far, we can mount.
+			Dest.DWord = 1;
+		}
+		return true;
 
 	default:
 		return false;

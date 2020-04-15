@@ -19,7 +19,7 @@
 namespace eqlib {
 
 // Enumerations...
-using EQZoneIndex = uint32_t;
+using EQZoneIndex = int32_t;
 using EQLocalizeLanguage = uint32_t;
 enum EWndRuntimeType;
 

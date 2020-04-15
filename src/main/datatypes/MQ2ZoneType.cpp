@@ -62,7 +62,7 @@ bool MQ2ZoneType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		return true;
 
 	case ZoneMembers::ZoneFlags:
-		Dest.Int64 = (int64_t)pZone->ZoneFlags;
+		Dest.UInt64 = pZone->ZoneFlags;
 		Dest.Type = pInt64Type;
 		return true;
 

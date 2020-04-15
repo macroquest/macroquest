@@ -1950,6 +1950,7 @@ constexpr int MAX_ZONE_LONGNAME = 256;
 // 0x2 newbie zone
 // 0x4 = ?
 // 0x20 no bind
+constexpr uint64_t EQZoneFlag_NoMount        = 0x00000200;
 // 0x4000 = no air
 // 0x8000 water/mountainzone?
 // 0x100000 = HasMinLevel
@@ -1996,11 +1997,32 @@ using PZONELIST DEPRECATE("Use EQZoneInfo* instead") = EQZoneInfo*;
 class EQWorldData
 {
 public:
-	EQLIB_OBJECT EQWorldData();
+	EQWorldData();
 	virtual ~EQWorldData();
 
+	inline EQZoneInfo* GetZone(EQZoneIndex zoneId) const
+	{
+		zoneId = GetZoneBaseId(zoneId);
+
+		if (zoneId >= 0 && zoneId < MAX_ZONES)
+			return ZoneArray[zoneId];
+
+		return nullptr;
+	}
+
+	// Dynamic zones share the lower 0x7fff bits with the base zone. This is also
+	// called the geometry id but we'll just refer to it as the base zone id.
+	inline EQZoneIndex GetZoneBaseId(EQZoneIndex zoneId) const
+	{
+		if (zoneId < MAX_ZONES)
+			return zoneId;
+
+		return zoneId & 0x7fff;
+	}
+
+	EQLIB_OBJECT bool IsFlagSet(EQZoneIndex, uint64_t flag) const;
+
 	EQLIB_OBJECT bool GetGeometryNameFromIndex(EQZoneIndex, char*) const;
-	EQLIB_OBJECT bool IsFlagSet(EQZoneIndex, unsigned long) const;
 	EQLIB_OBJECT bool IsNewbieZone(EQZoneIndex) const;
 	EQLIB_OBJECT bool IsNoAirZone(EQZoneIndex) const;
 	EQLIB_OBJECT bool IsNoBindZone(EQZoneIndex) const;
