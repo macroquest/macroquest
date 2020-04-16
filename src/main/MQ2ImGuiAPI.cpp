@@ -370,6 +370,9 @@ public:
 			return;
 		}
 
+		// Need to unpop this for the menu.
+		ImGui::PopStyleVar();
+
 		// As a specific feature guaranteed by the library, after calling Begin() the last Item
 		// represent the title bar. So e.g. IsItemHovered() will return true when hovering the title bar.
 		// Here we create a context menu only available from the title bar.
@@ -425,6 +428,9 @@ public:
 			}
 			ImGui::EndMenuBar();
 		}
+
+		// And put it back ...
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 4));
 
 		const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing(); // 1 separator, 1 input text
 		ImGui::BeginChild("ScrollingRegion", ImVec2(0, -footer_height_to_reserve), false, ImGuiWindowFlags_HorizontalScrollbar); // Leave room for 1 separator + 1 InputText

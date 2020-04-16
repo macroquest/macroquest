@@ -569,6 +569,7 @@ EQLIB_VAR DWORD CharacterZoneClient__GetEffect;
 EQLIB_VAR DWORD CharacterZoneClient__GetEnduranceRegen;
 EQLIB_VAR DWORD CharacterZoneClient__GetFirstEffectSlot;
 EQLIB_VAR DWORD CharacterZoneClient__GetFocusCastingTimeModifier;
+EQLIB_VAR DWORD CharacterZoneClient__GetFocusDurationMod;
 EQLIB_VAR DWORD CharacterZoneClient__GetFocusRangeModifier;
 EQLIB_VAR DWORD CharacterZoneClient__GetFocusReuseMod;
 EQLIB_VAR DWORD CharacterZoneClient__GetHPRegen;

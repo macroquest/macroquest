@@ -222,6 +222,90 @@ CXWnd* CXWnd::GetChildItem(CXMLDataManager* dataMgr, const CXStr& Name)
 	return RecurseAndFindName(dataMgr, this, Name);
 }
 
+CXStr CXWnd::GetXMLName() const
+{
+	if (CXMLData* pXMLData = GetXMLData())
+	{
+		return pXMLData->Name;
+	}
+
+	return CXStr();
+}
+
+CXStr CXWnd::GetTypeName() const
+{
+	if (CXMLData* pXMLData = GetXMLData())
+	{
+		return pXMLData->TypeName;
+	}
+
+	return UITypeToString(GetType());
+}
+
+
+const char* UITypeToString(UIType type)
+{
+	switch (type)
+	{
+	case UI_Unknown: return "Unknown";
+	case UI_Class: return "Class";
+	case UI_RGB: return "RGB";
+	case UI_RGBText: return "RGBText";
+	case UI_Point: return "Point";
+	case UI_Size: return "Size";
+	case UI_TextureInfo: return "TextureInfo";
+	case UI_Frame: return "Frame";
+	case UI_Ui2DAnimation: return "Ui2DAnimation";
+	case UI_ButtonDrawTemplate: return "ButtonDrawTemplate";
+	case UI_GaugeDrawTemplate: return "GaugeDrawTemplate";
+	case UI_SpellGemDrawTemplate: return "SpellGemDrawTemplate";
+	case UI_FrameTemplate: return "FrameTemplate";
+	case UI_ScrollbarDrawTemplate: return "ScrollbarDrawTemplate";
+	case UI_WindowDrawTemplate: return "WindowDrawTemplate";
+	case UI_SliderDrawTemplate: return "SliderDrawTemplate";
+	case UI_ScreenPiece: return "ScreenPiece";
+	case UI_StaticScreenPiece: return "StaticScreenPiece";
+	case UI_StaticAnimation: return "StaticAnimation";
+	case UI_StaticTintedBlendAnimation: return "StaticTintedBlendAnimation";
+	case UI_StaticText: return "StaticText";
+	case UI_StaticFrame: return "StaticFrame";
+	case UI_StaticHeader: return "StaticHeader";
+	case UI_LayoutStrategy: return "LayoutStrategy";
+	case UI_LayoutVertical: return "LayoutVertical";
+	case UI_LayoutHorizontal: return "LayoutHorizontal";
+	case UI_Control: return "Control";
+	case UI_TemplateAssoc: return "TemplateAssoc";
+	case UI_TemplateScreen: return "TemplateScreen";
+	case UI_ListboxColumn: return "ListboxColumn";
+	case UI_Listbox: return "Listbox";
+	case UI_Button: return "Button";
+	case UI_Gauge: return "Gauge";
+	case UI_SpellGem: return "SpellGem";
+	case UI_HtmlComponent: return "HtmlComponent";
+	case UI_InvSlot: return "InvSlot";
+	case UI_EditBox: return "EditBox";
+	case UI_Slider: return "Slider";
+	case UI_Label: return "Label";
+	case UI_STMLBox: return "STMLBox";
+	case UI_TreeView: return "TreeView";
+	case UI_Combobox: return "Combobox";
+	case UI_Page: return "Page";
+	case UI_TabBox: return "TabBox";
+	case UI_LayoutBox: return "LayoutBox";
+	case UI_HorizontalLayoutBox: return "HorizontalLayoutBox";
+	case UI_VerticalLayoutBox: return "VerticalLayoutBox";
+	case UI_FinderBox: return "FinderBox";
+	case UI_TileLayoutBox: return "TileLayoutBox";
+	case UI_NamedTemplatePiece: return "NamedTemplatePiece";
+	case UI_TemplateContainer: return "TemplateContainer";
+	case UI_Screen: return "Screen";
+	case UI_SuiteDefaults: return "SuiteDefaults";
+	case UI_Screens: return "Screens";
+	case UI_TopLevelWindowList: return "TopLevelWindowList";
+	case UI_HotButton: return "HotButton";
+	default: return "Unknown(new)";
+	}
+}
 
 #ifdef CXWnd__IsType_x
 FUNCTION_AT_ADDRESS(bool CXWnd::IsType(enum EWndRuntimeType) const, CXWnd__IsType);

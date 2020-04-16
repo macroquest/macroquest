@@ -587,14 +587,35 @@ inline int GetMemorizedSpell(int index)
 	return -1;
 }
 
-inline int EQGetSpellDuration(SPELL* pSpell, unsigned char casterLevel, bool isItemEffect)
+inline int EQGetSpellDuration(EQ_Spell* pSpell, unsigned char casterLevel, bool isItemEffect)
 {
 	if (pCharData)
 	{
-		return pCharData->SpellDuration((EQ_Spell*)pSpell, casterLevel, isItemEffect);
+		return pCharData->SpellDuration(pSpell, casterLevel, isItemEffect);
 	}
 
 	return 0;
+}
+
+inline int EQGetMySpellDuration(EQ_Spell* pSpell)
+{
+	if (!pLocalPlayer)
+		return 0;
+	if (!pCharData)
+		return 0;
+	if (!pSpell)
+		return 0;
+
+	SPAWNINFO* pSpawnInfo = pLocalPlayer.get_as<SPAWNINFO>();
+
+	int origDuration = EQGetSpellDuration(pSpell, pSpawnInfo->Level, false);
+
+	int out1 = 0, out2 = 0;
+	VePointer<CONTENTS> pContents;
+
+	int durationMod = pCharData->GetFocusDurationMod(pSpell, pContents, pLocalPlayer, origDuration, &out1, &out2);
+
+	return origDuration + durationMod;
 }
 
 inline int GetSpellNumEffects(SPELL* pSpell)

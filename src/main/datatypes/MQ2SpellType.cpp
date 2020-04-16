@@ -100,7 +100,8 @@ enum class SpellMembers
 	SpellIcon,
 	GemIcon,
 	SlowPct,
-	HastePct
+	HastePct,
+	MyDuration,
 };
 
 enum class SpellMethods
@@ -190,6 +191,7 @@ MQ2SpellType::MQ2SpellType() : MQ2Type("spell")
 	ScopedTypeMember(SpellMembers, GemIcon);
 	ScopedTypeMember(SpellMembers, SlowPct);
 	ScopedTypeMember(SpellMembers, HastePct);
+	ScopedTypeMember(SpellMembers, MyDuration);
 }
 
 bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
@@ -484,6 +486,11 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 
 	case SpellMembers::Duration:
 		Dest.DWord = GetSpellDuration(pSpell, pLocalPlayer);
+		Dest.Type = pTicksType;
+		return true;
+
+	case SpellMembers::MyDuration:
+		Dest.DWord = EQGetMySpellDuration(pSpell);
 		Dest.Type = pTicksType;
 		return true;
 

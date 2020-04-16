@@ -852,8 +852,7 @@ public:
 
 class MQ2ZoneType : public MQ2Type
 {
-public:
-	enum ZoneMembers
+	enum class ZoneMembers
 	{
 		Name = 1,
 		ShortName = 2,
@@ -862,44 +861,12 @@ public:
 		ZoneFlags = 5,
 	};
 
-	MQ2ZoneType() : MQ2Type("zone")
-	{
-		TypeMember(Name);
-		TypeMember(ShortName);
-		TypeMember(ID);
-		TypeMember(Address);
-		TypeMember(ZoneFlags);
-	}
+public:
+	MQ2ZoneType();
 
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		strcpy_s(Destination, MAX_STRING, &((PZONELIST)VarPtr.Int)->LongName[0]);
-		return true;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		if (Source.Type == pZoneType)
-		{
-			VarPtr.Ptr = Source.Ptr;
-			return true;
-		}
-		if (Source.Type == (MQ2Type*)pCurrentZoneType)
-		{
-			if (CHARINFO* pChar = GetCharInfo())
-			{
-				int zoneid = (pChar->zoneId & 0x7FFF);
-				if (zoneid <= MAX_ZONES)
-				{
-					VarPtr.Ptr = &((PWORLDDATA)pWorldData)->ZoneArray[zoneid];
-					return true;
-				}
-			}
-		}
-		return false;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
 };
 
 //============================================================================
@@ -2060,47 +2027,26 @@ public:
 
 class MQ2FellowshipType : public MQ2Type
 {
-public:
-	enum FellowshipTypeMembers
+	enum class FellowshipTypeMembers
 	{
 		ID = 1,
-		Leader = 2,
-		MotD = 3,
-		Members = 4,
-		xMember = 5,
-		CampfireDuration = 6,
-		CampfireY = 7,
-		CampfireX = 8,
-		CampfireZ = 9,
-		CampfireZone = 10,
-		Campfire = 11,
+		Leader,
+		MotD,
+		Members,
+		Member,
+		CampfireDuration,
+		CampfireY,
+		CampfireX,
+		CampfireZ,
+		CampfireZone,
+		Campfire,
 	};
 
-	MQ2FellowshipType() : MQ2Type("fellowship")
-	{
-		TypeMember(ID);
-		TypeMember(Leader);
-		TypeMember(MotD);
-		TypeMember(Members);
-		AddMember(xMember, "Member");
-		TypeMember(CampfireDuration);
-		TypeMember(CampfireY);
-		TypeMember(CampfireX);
-		TypeMember(CampfireZ);
-		TypeMember(CampfireZone);
-		TypeMember(Campfire);
-	}
+public:
+	MQ2FellowshipType();
 
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		if (VarPtr.Ptr && ((FELLOWSHIPINFO*)VarPtr.Ptr)->FellowshipID)
-			strcpy_s(Destination, MAX_STRING, "TRUE");
-		else
-			strcpy_s(Destination, MAX_STRING, "FALSE");
-		return true;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 };
 
 //============================================================================
@@ -2524,7 +2470,7 @@ public:
 			int zindex = pProfile->BoundLocations[index].ZoneBoundID & 0x7FFF;
 			if (zindex < MAX_ZONES)
 			{
-				if (ZONELIST* pList = ((WORLDDATA*)pWorldData)->ZoneArray[zindex])
+				if (EQZoneInfo* pList = pWorldData->ZoneArray[zindex])
 				{
 					strcpy_s(Destination, MAX_STRING, pList->ShortName);
 					return true;

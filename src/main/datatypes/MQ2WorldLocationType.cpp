@@ -45,7 +45,7 @@ bool MQ2WorldLocationType::GetMember(MQVarPtr VarPtr, char* Member, char* Index,
 		int zindex = pProfile->BoundLocations[index].ZoneBoundID & 0x7FFF;
 		if (zindex < MAX_ZONES)
 		{
-			Dest.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[zindex];
+			Dest.Ptr = pWorldData->ZoneArray[zindex];
 		}
 
 		if (!Dest.Ptr)

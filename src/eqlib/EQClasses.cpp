@@ -2144,6 +2144,17 @@ FUNCTION_AT_ADDRESS(void EQWorldData::AdvanceTime(unsigned int), EQWorldData__Ad
 FUNCTION_AT_ADDRESS(void EQWorldData::CurrentGameTime(char*), EQWorldData__CurrentGameTime);
 #endif
 
+bool EQWorldData::IsFlagSet(EQZoneIndex zoneId, uint64_t flag) const
+{
+	EQZoneInfo* zoneInfo = GetZone(zoneId);
+
+	if (!zoneInfo)
+		return false;
+
+	return (zoneInfo->ZoneFlags & flag) != 0;;
+}
+
+
 //============================================================================
 // FactionManagerClient
 //============================================================================
