@@ -2127,6 +2127,9 @@ struct ImGuiWindowDebugPanel
 	float m_topPaneSize = -1.0f;
 	float m_bottomPaneSize = -1.0f;
 
+	bool m_picking = false;
+	CXWnd* m_pPickingWnd = nullptr;
+
 	void Draw()
 	{
 		ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollFreezeTopRow | ImGuiTableFlags_ScrollY | ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersHOuter | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg;
@@ -2134,12 +2137,20 @@ struct ImGuiWindowDebugPanel
 		// This is so we can reset the selected window if it is not found.
 		m_foundSelected = false;
 		m_pHoveredWnd = nullptr;
+		m_pPickingWnd = nullptr;
 
 		ImVec2 availSize = ImGui::GetContentRegionAvail();
 		if (m_topPaneSize == -1.0f)
 			m_topPaneSize = availSize.y * .75f;
 		if (m_bottomPaneSize == -1.0f)
 			m_bottomPaneSize = availSize.y - m_topPaneSize - 1;
+
+		if (m_picking)
+		{
+			ImGui::Text("Picking...");
+
+			m_pPickingWnd = pWndMgr->LastMouseOver;
+		}
 
 		imgui::DrawSplitter(true, 9.0f, &m_topPaneSize, &m_bottomPaneSize, 50, 50);
 
@@ -2187,6 +2198,16 @@ struct ImGuiWindowDebugPanel
 			ImGui::Text("Selected Window: None");
 		}
 
+		if (ImGui::Button("Pick"))
+		{
+			m_picking = !m_picking;
+		}
+
+		if (m_pPickingWnd)
+		{
+			m_pHoveredWnd = m_pPickingWnd;
+		}
+
 		if (m_pHoveredWnd)
 		{
 			ImGui::Text("Hovered Window: %s", m_pHoveredWnd->GetXMLName().c_str());
@@ -2228,6 +2249,16 @@ struct ImGuiWindowDebugPanel
 		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth;
 		bool open = false;
 		bool selected = (m_pLastSelected == pWnd);
+		bool selectPicking = false;
+
+		if (m_picking)
+		{
+			if (m_pPickingWnd == pWnd)
+			{
+				selected = true;
+				selectPicking = true;
+			}
+		}
 
 		if (selected)
 		{
@@ -2242,11 +2273,22 @@ struct ImGuiWindowDebugPanel
 
 		if (hasChildren)
 		{
+			if (m_pPickingWnd)
+			{
+				if (m_pPickingWnd->IsDescendantOf(pWnd))
+					flags |= ImGuiTreeNodeFlags_DefaultOpen;
+			}
+
 			open = ImGui::TreeNodeEx(pWnd, flags, "%s", pName.c_str());
 		}
 		else
 		{
 			ImGui::TreeNodeEx(pWnd, flags, "%s", pName.c_str());
+		}
+
+		if (selectPicking)
+		{
+			ImGui::SetScrollHere();
 		}
 
 		if (ImGui::IsItemHovered())
