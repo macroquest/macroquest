@@ -15,8 +15,24 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq {
+namespace datatypes {
+
+MQ2FellowshipType::MQ2FellowshipType()
+	: MQ2Type("fellowship")
+{
+	ScopedTypeMember(FellowshipTypeMembers, ID);
+	ScopedTypeMember(FellowshipTypeMembers, Leader);
+	ScopedTypeMember(FellowshipTypeMembers, MotD);
+	ScopedTypeMember(FellowshipTypeMembers, Members);
+	ScopedTypeMember(FellowshipTypeMembers, Member);
+	ScopedTypeMember(FellowshipTypeMembers, CampfireDuration);
+	ScopedTypeMember(FellowshipTypeMembers, CampfireY);
+	ScopedTypeMember(FellowshipTypeMembers, CampfireX);
+	ScopedTypeMember(FellowshipTypeMembers, CampfireZ);
+	ScopedTypeMember(FellowshipTypeMembers, CampfireZone);
+	ScopedTypeMember(FellowshipTypeMembers, Campfire);
+}
 
 bool MQ2FellowshipType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -32,33 +48,29 @@ bool MQ2FellowshipType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 
 	switch (static_cast<FellowshipTypeMembers>(pMember->ID))
 	{
-	case ID:
-		Dest.DWord = pFellowship->FellowshipGUID.UniqueEntityID;
+	case FellowshipTypeMembers::ID:
+		Dest.DWord = pFellowship->FellowshipID;
 		Dest.Type = pIntType;
 		return true;
 
-	case Leader:
-		DataTypeTemp[0] = 0;
-		if (pFellowship->Members)
-		{
-			strcpy_s(DataTypeTemp, pFellowship->FellowshipMember[0].Name);
-		}
+	case FellowshipTypeMembers::Leader:
+		strcpy_s(DataTypeTemp, pFellowship->Leader);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case MotD:
+	case FellowshipTypeMembers::MotD:
 		strcpy_s(DataTypeTemp, pFellowship->MotD);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case Members:
+	case FellowshipTypeMembers::Members:
 		Dest.DWord = pFellowship->Members;
 		Dest.Type = pIntType;
 		return true;
 
-	case xMember:
+	case FellowshipTypeMembers::Member:
 		Dest.Type = pFellowshipMemberType;
 		if (Index[0])
 		{
@@ -85,7 +97,7 @@ bool MQ2FellowshipType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 		}
 		return false;
 
-	case CampfireDuration:
+	case FellowshipTypeMembers::CampfireDuration:
 		Dest.DWord = 0;
 		Dest.Type = pTicksType;
 		if (pMySpawn->CampfireTimestamp)
@@ -95,21 +107,21 @@ bool MQ2FellowshipType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 		}
 		return false;
 
-	case CampfireY:
+	case FellowshipTypeMembers::CampfireY:
 		Dest.Float = pMySpawn->CampfireY;
 		Dest.Type = pFloatType;
 		return true;
-	case CampfireX:
+	case FellowshipTypeMembers::CampfireX:
 		Dest.Float = pMySpawn->CampfireX;
 		Dest.Type = pFloatType;
 		return true;
 
-	case CampfireZ:
+	case FellowshipTypeMembers::CampfireZ:
 		Dest.Float = pMySpawn->CampfireZ;
 		Dest.Type = pFloatType;
 		return true;
 
-	case CampfireZone:
+	case FellowshipTypeMembers::CampfireZone:
 		Dest.Type = pZoneType;
 		if (int zoneID = (pMySpawn->CampfireZoneID & 0x7FFF))
 		{
@@ -121,7 +133,7 @@ bool MQ2FellowshipType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 		}
 		return false;
 
-	case Campfire:
+	case FellowshipTypeMembers::Campfire:
 		Dest.Int = pMySpawn->Campfire;
 		Dest.Type = pBoolType;
 		return true;
@@ -132,3 +144,13 @@ bool MQ2FellowshipType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 	return false;
 }
 
+bool MQ2FellowshipType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (VarPtr.Ptr && static_cast<FELLOWSHIPINFO*>(VarPtr.Ptr)->FellowshipID != 0)
+		strcpy_s(Destination, MAX_STRING, "TRUE");
+	else
+		strcpy_s(Destination, MAX_STRING, "FALSE");
+	return true;
+}
+
+}} // namespace mq::datatypes

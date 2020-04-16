@@ -342,7 +342,7 @@ constexpr int MAX_FELLOWSHIP_MOTD = 1024;
 struct [[offsetcomments]] FELLOWSHIPINFO
 {
 /*0x000*/ unsigned int     Version;
-/*0x004*/ unsigned int     Version2;                       // just place holders for now, ill fix these later
+/*0x004*/ unsigned int     Version2;
 /*0x008*/ unsigned int     Version3;
 /*0x00c*/ unsigned int     Version4;
 /*0x010*/ EqGuid           FellowshipGUID;
@@ -354,6 +354,12 @@ struct [[offsetcomments]] FELLOWSHIPINFO
 /*0x850*/ bool             bSharedExpCapped[MAX_FELLOWSHIP_MEMBERS];
 /*0x85c*/ int              Unknown0x85C;
 /*0x860*/
+
+	inline const char* get_Leader() { return Members > 0 ? FellowshipMember[0].Name : ""; }
+	__declspec(property(get = get_Leader)) const char* Leader;
+
+	inline uint32_t get_FellowshipID() { return FellowshipGUID.UniqueEntityID; }
+	__declspec(property(get = get_FellowshipID)) uint32_t FellowshipID;
 };
 using PFELLOWSHIPINFO [[deprecated]] = FELLOWSHIPINFO *;
 

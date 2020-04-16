@@ -2027,47 +2027,26 @@ public:
 
 class MQ2FellowshipType : public MQ2Type
 {
-public:
-	enum FellowshipTypeMembers
+	enum class FellowshipTypeMembers
 	{
 		ID = 1,
-		Leader = 2,
-		MotD = 3,
-		Members = 4,
-		xMember = 5,
-		CampfireDuration = 6,
-		CampfireY = 7,
-		CampfireX = 8,
-		CampfireZ = 9,
-		CampfireZone = 10,
-		Campfire = 11,
+		Leader,
+		MotD,
+		Members,
+		Member,
+		CampfireDuration,
+		CampfireY,
+		CampfireX,
+		CampfireZ,
+		CampfireZone,
+		Campfire,
 	};
 
-	MQ2FellowshipType() : MQ2Type("fellowship")
-	{
-		TypeMember(ID);
-		TypeMember(Leader);
-		TypeMember(MotD);
-		TypeMember(Members);
-		AddMember(xMember, "Member");
-		TypeMember(CampfireDuration);
-		TypeMember(CampfireY);
-		TypeMember(CampfireX);
-		TypeMember(CampfireZ);
-		TypeMember(CampfireZone);
-		TypeMember(Campfire);
-	}
+public:
+	MQ2FellowshipType();
 
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		if (VarPtr.Ptr && ((FELLOWSHIPINFO*)VarPtr.Ptr)->FellowshipGUID.GUID)
-			strcpy_s(Destination, MAX_STRING, "TRUE");
-		else
-			strcpy_s(Destination, MAX_STRING, "FALSE");
-		return true;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 };
 
 //============================================================================
