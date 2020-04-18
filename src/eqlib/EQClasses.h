@@ -1967,11 +1967,10 @@ class [[offsetcomments]] EQZoneInfo
 	virtual ~EQZoneInfo();
 
 public:
-/*0x008*/ int                Unknown0x004;
-/*0x00c*/ EQExpansion        EQExpansion;
-/*0x010*/ EQZoneIndex        Id;
-/*0x014*/ char               ShortName[MAX_ZONE_SHORTNAME + 1];
-/*0x095*/ char               LongName[MAX_ZONE_LONGNAME + 1];
+/*0x008*/ EQExpansion        EQExpansion;
+/*0x00c*/ EQZoneIndex        Id;
+/*0x010*/ char               ShortName[MAX_ZONE_SHORTNAME + 1];
+/*0x091*/ char               LongName[MAX_ZONE_LONGNAME + 1];
 /*0x198*/ uint64_t           ZoneFlags;
 /*0x1a0*/ int                eqstrID;
 /*0x1a4*/ uint8_t            AccessLevel;
