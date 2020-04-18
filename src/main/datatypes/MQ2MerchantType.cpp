@@ -189,7 +189,7 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTy
 					if (nIndex < 0)
 						return false;
 
-					if (nIndex < page->MaxItems)
+					if (nIndex < page->ItemContainer.GetSize())
 					{
 						if (Dest.Ptr = page->ItemContainer[nIndex].pCont)
 						{
@@ -200,7 +200,7 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTy
 				else
 				{
 					// by name
-					for (int nIndex = 0; nIndex < page->MaxItems; nIndex++)
+					for (int nIndex = 0; nIndex < page->ItemContainer.GetSize(); nIndex++)
 					{
 						if (CONTENTS* pContents = page->ItemContainer[nIndex].pCont)
 						{
@@ -223,7 +223,7 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTy
 		Dest.Type = pIntType;
 		if (pMerchantWnd)
 		{
-			Dest.DWord = pMerchantWnd->PageHandlers[RegularMerchantPage]->MaxItems;
+			Dest.DWord = pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer.GetSize();
 		}
 		return true;
 
@@ -242,30 +242,13 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTy
 	}
 
 	case Full:
-		Dest.DWord = 0;
 		Dest.Type = pBoolType;
 
 		if (pMerchantWnd)
 		{
 			VePointer<MerchantPageHandler>& page = pMerchantWnd->PageHandlers[RegularMerchantPage];
-			Dest.DWord = 1;
 
-			// is it possible to hit this? max is 200 i think?
-			if (page->MaxItems < 128)
-			{
-				Dest.DWord = 0;
-				return true;
-			}
-
-			for (int index = 0; index < page->MaxItems; index++)
-			{
-				if (!page->ItemContainer[index].pCont)
-				{
-					Dest.DWord = 0;
-					break;
-				}
-			}
-
+			Dest.DWord = page->ItemContainer.GetSize() >= page->MaxItems;
 			return true;
 		}
 		return false;
