@@ -5078,11 +5078,7 @@ public:
 	bool GETMEMBER();
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		#if defined(ROF2EMU) || defined(UFEMU)
 		if (VarPtr.Ptr && ((PFELLOWSHIPINFO)VarPtr.Ptr)->FellowshipID)
-		#else
-		if (VarPtr.Ptr && ((PFELLOWSHIPINFO)VarPtr.Ptr)->FellowshipGUID.GUID)
-		#endif
 		{
 			strcpy_s(Destination, MAX_STRING, "TRUE");
 		}

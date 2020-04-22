@@ -14035,24 +14035,11 @@ bool MQ2FellowshipType::GETMEMBER()
 	switch ((FellowshipTypeMembers)pMember->ID)
 	{
 	case ID:
-		#if defined(ROF2EMU) || defined(UFEMU)
 		Dest.DWord = pFellowship->FellowshipID;
-		#else
-		Dest.DWord = pFellowship->FellowshipGUID.UniqueEntityID;
-		#endif
 		Dest.Type = pIntType;
 		return true;
 	case Leader:
-		DataTypeTemp[0] = '\0';
-		if (pFellowship->Members)
-		{
-			//from eqgame dated Mar 09 2020 and onward, Leader is ALWAYS at index 0 -eqmule
-			#if defined(ROF2EMU) || defined(UFEMU)
-			strcpy_s(DataTypeTemp, pFellowship->Leader);
-			#else
-			strcpy_s(DataTypeTemp, pFellowship->FellowshipMember[0].Name);
-			#endif
-		}
+		strcpy_s(DataTypeTemp, pFellowship->Leader);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;

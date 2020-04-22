@@ -1,3 +1,10 @@
+Apr 21 2020
+- Updated for TEST
+-
+Apr 15 2020
+- Add back Leader and FellowshipID to FELLOWSHIP struct
+- Undo all your plugin changes, you don't need them anymore.
+=
 Apr 15 2020
 - Updated for LIVE
 - Fixed ${Me.CanMount} for some indoor zones that where not flagged as nomount and added bazaar, nexus to zones where its ok to mount.
