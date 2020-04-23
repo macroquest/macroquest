@@ -18,6 +18,7 @@
 #include <optional>
 
 namespace mq {
+
 template <typename... Predicates>
 auto All(Predicates&&... predicates)
 {
@@ -45,4 +46,17 @@ auto Any(Predicates&&... predicates)
         );
     };
 }
+
+template <typename T, typename U>
+bool test_and_set(T& target, U&& value)
+{
+	if (target != value)
+	{
+		target = std::forward<U>(value);
+		return true;
+	}
+
+	return false;
 }
+
+} // namespace mq

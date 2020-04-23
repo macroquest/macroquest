@@ -161,6 +161,35 @@ static void RemoveDetours()
 	}
 }
 
+bool MQ2Windows_PickerClick();
+
+// Returns true if this event should be "erased" from eq.
+static bool HandleMouseEvent(int mouseButton, bool pressed)
+{
+	ImGuiIO& io = ImGui::GetIO();
+	bool consume = false;
+
+	if (test_and_set(io.MouseDown[mouseButton], pressed))
+	{
+	}
+
+	if (mouseButton == 0 && pressed && !io.WantCaptureMouse)
+	{
+		if (MQ2Windows_PickerClick())
+			consume = true;
+	}
+
+	if (consume)
+	{
+		// Update EQ to act like we already handled this click
+		EQADDR_MOUSECLICK->Confirm[mouseButton] = pressed;
+		EQADDR_MOUSECLICK->Click[mouseButton] = pressed;
+	}
+
+	return consume;
+}
+
+
 #pragma region ImGui Integration
 
 namespace imgui {
@@ -670,7 +699,6 @@ static void ImGui_ImplDX9_InvalidateDeviceObjectsForPlatformWindows()
 }
 
 #pragma endregion
-
 #pragma endregion
 
 #pragma region ImGui: Platform Binding for Windows
@@ -970,7 +998,6 @@ LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 		return 0;
 
 	ImGuiIO& io = ImGui::GetIO();
-
 	fromLogin = true;
 
 	if (fromLogin)
@@ -978,12 +1005,12 @@ LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 		switch (msg)
 		{
 		case WM_ACTIVATE:
-			// Clear any delayed mouse inputs
-			for (int n = 0; n < IM_ARRAYSIZE(io.MouseDown); n++)
-				io.MouseDown[n] = false;
+			// Clear any delayed mouse inputs. Don't use HandleMouseEvent to avoid triggering
+			for (bool& n : io.MouseDown)
+				HandleMouseEvent(n, false);
 			// Clear any delayed keyboard inputs
-			for (int n = 0; n < IM_ARRAYSIZE(io.KeysDown); n++)
-				io.KeysDown[n] = false;
+			for (bool& n : io.KeysDown)
+				n = false;
 			break;
 
 		case WM_LBUTTONDOWN: case WM_LBUTTONDBLCLK:
@@ -998,8 +1025,10 @@ LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 			if (msg == WM_XBUTTONDOWN || msg == WM_XBUTTONDBLCLK) { button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? 3 : 4; }
 			if (!ImGui::IsAnyMouseDown() && ::GetCapture() == nullptr)
 				::SetCapture(hWnd);
-			io.MouseDown[button] = true;
-			return 0;
+			if (HandleMouseEvent(button, true))
+				return 1;
+
+			return io.WantCaptureMouse ? 1 : 0;
 		}
 		case WM_LBUTTONUP:
 		case WM_RBUTTONUP:
@@ -1011,17 +1040,20 @@ LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 			if (msg == WM_RBUTTONUP) { button = 1; }
 			if (msg == WM_MBUTTONUP) { button = 2; }
 			if (msg == WM_XBUTTONUP) { button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? 3 : 4; }
-			io.MouseDown[button] = false;
+			bool capture = HandleMouseEvent(button, false);
+
 			if (!ImGui::IsAnyMouseDown() && ::GetCapture() == hWnd)
 				::ReleaseCapture();
-			return 0;
+
+			return (capture || io.WantCaptureMouse) ? 1 : 0;
 		}
 		case WM_MOUSEWHEEL:
 			io.MouseWheel += (float)GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA;
-			return 0;
+			return io.WantCaptureMouse ? 1 : 0;
+
 		case WM_MOUSEHWHEEL:
 			io.MouseWheelH += (float)GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA;
-			return 0;
+			return io.WantCaptureMouse ? 1 : 0;
 		}
 	}
 
@@ -1708,25 +1740,16 @@ DETOUR_TRAMPOLINE_EMPTY(void CParticleSystemHook::Render_Trampoline());
 DETOUR_TRAMPOLINE_EMPTY(void ProcessMouseEvents_Trampoline());
 void ProcessMouseEvents_Detour()
 {
-	// Only process the mouse events if we are the foreground window.
-#if 0
-	if (!gbInForeground)
-	{
-		ProcessMouseEvents_Trampoline();
-		return;
-	}
-#endif
-
 	if (ImGui::GetCurrentContext() != nullptr)
 	{
 		ImGuiIO& io = ImGui::GetIO();
+		bool consumeMouse = io.WantCaptureMouse;
 
 		// Read mouse state from direct input
 		DIDEVICEOBJECTDATA data[128];
 		DWORD num = 128;
 
-		HRESULT hr = (*EQADDR_DIMOUSE)->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), data, &num,
-			io.WantCaptureMouse ? 0 : DIGDD_PEEK);
+		HRESULT hr = (*EQADDR_DIMOUSE)->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), data, &num, DIGDD_PEEK);
 
 		if (SUCCEEDED(hr))
 		{
@@ -1741,7 +1764,8 @@ void ProcessMouseEvents_Detour()
 				case DIMOFS_BUTTON2:
 				case DIMOFS_BUTTON3:
 				case DIMOFS_BUTTON4:
-					io.MouseDown[d.dwOfs - DIMOFS_BUTTON0] = (d.dwData & 0x80) != 0;
+					if (HandleMouseEvent(d.dwOfs - DIMOFS_BUTTON0, (d.dwData & 0x80) != 0))
+						consumeMouse = true;
 					break;
 
 				default:
@@ -1754,10 +1778,13 @@ void ProcessMouseEvents_Detour()
 			}
 		}
 
-		if (io.WantCaptureMouse)
+		if (consumeMouse)
 		{
 			(*gMouseState)->InWindow = 0;
 			gbFlushNextMouse = true;
+
+			// Consume the mouse state. This won't be very effective for sustained mouse clicks though.
+			(*EQADDR_DIMOUSE)->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), data, &num, 0);
 
 			return;
 		}
