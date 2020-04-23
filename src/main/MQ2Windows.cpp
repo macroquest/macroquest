@@ -22,6 +22,8 @@
 #include <string>
 #include <unordered_map>
 
+#include <spdlog/spdlog.h>
+
 namespace mq {
 
 char* szClickNotification[] = {
@@ -2114,7 +2116,7 @@ void RemoveCascadeMenuItems()
 
 //============================================================================
 
-struct ImGuiWindowDebugPanel
+class ImGuiWindowDebugPanel
 {
 	CXWnd* m_pSelectedWnd = nullptr;
 	CXWnd* m_pHoveredWnd = nullptr;
@@ -2123,12 +2125,17 @@ struct ImGuiWindowDebugPanel
 	// what is selected.
 	CXWnd* m_pLastSelected = nullptr;
 	bool m_foundSelected = false;
+	bool m_selectionChanged = false;
 
 	float m_topPaneSize = -1.0f;
 	float m_bottomPaneSize = -1.0f;
 
 	bool m_picking = false;
+	bool m_selectPicking = false;
 	CXWnd* m_pPickingWnd = nullptr;
+
+public:
+	ImGuiWindowDebugPanel() = default;
 
 	void Draw()
 	{
@@ -2147,17 +2154,20 @@ struct ImGuiWindowDebugPanel
 
 		if (m_picking)
 		{
-			ImGui::Text("Picking...");
-
 			m_pPickingWnd = pWndMgr->LastMouseOver;
 		}
 
 		imgui::DrawSplitter(true, 9.0f, &m_topPaneSize, &m_bottomPaneSize, 50, 50);
 
+		if (ImGui::Button("Pick"))
+		{
+			m_picking = !m_picking;
+		}
+
 		if (ImGui::BeginTable("##WindowTable", 2, tableFlags, ImVec2(0, m_topPaneSize)))
 		{
 			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
-			ImGui::TableSetupColumn("Type");
+			ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 100);
 			ImGui::TableAutoHeaders();
 
 			if (pWndMgr)
@@ -2173,8 +2183,7 @@ struct ImGuiWindowDebugPanel
 
 		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 9);
 
-		// if the selected window was not found, then clear it. This might mess up if we didn't
-		// draw the table node. FIXME
+		// if the selected window was not found, then clear it.
 		if (!m_foundSelected)
 		{
 			m_pSelectedWnd = nullptr;
@@ -2187,25 +2196,29 @@ struct ImGuiWindowDebugPanel
 			ImGuiViewport* viewport = ImGui::GetMainViewport();
 			ImDrawList* drawList = ImGui::GetBackgroundDrawList(viewport);
 
-			//CXRect clientRect = m_pSelectedWnd->GetClientRect();
-			//drawList->AddRect(
-			//	ImVec2(clientRect.left + viewport->Pos.x, clientRect.top + viewport->Pos.y),
-			//	ImVec2(clientRect.right + viewport->Pos.x, clientRect.bottom + viewport->Pos.y),
-			//	m_pSelectedWnd->IsReallyVisible() ? IM_COL32(255, 255, 50, 255) : IM_COL32(255, 200, 200, 255));
+			CXRect clientRect = m_pSelectedWnd->GetClientRect();
+			drawList->AddRect(
+				ImVec2(clientRect.left + viewport->Pos.x, clientRect.top + viewport->Pos.y),
+				ImVec2(clientRect.right + viewport->Pos.x, clientRect.bottom + viewport->Pos.y),
+				IM_COL32(124, 252, 0, 200));
 		}
 		else
 		{
 			ImGui::Text("Selected Window: None");
 		}
 
-		if (ImGui::Button("Pick"))
-		{
-			m_picking = !m_picking;
-		}
-
 		if (m_pPickingWnd)
 		{
-			m_pHoveredWnd = m_pPickingWnd;
+			CXWnd* wnd = m_pPickingWnd ? m_pPickingWnd : m_pSelectedWnd;
+
+			ImGuiViewport* viewport = ImGui::GetMainViewport();
+			ImDrawList* drawList = ImGui::GetBackgroundDrawList(viewport);
+
+			CXRect clientRect = wnd->GetClientRect();
+			drawList->AddRectFilled(
+				ImVec2(clientRect.left + viewport->Pos.x, clientRect.top + viewport->Pos.y),
+				ImVec2(clientRect.right + viewport->Pos.x, clientRect.bottom + viewport->Pos.y),
+				IM_COL32(138, 179, 191, 128));
 		}
 
 		if (m_pHoveredWnd)
@@ -2219,15 +2232,30 @@ struct ImGuiWindowDebugPanel
 			drawList->AddRect(
 				ImVec2(clientRect.left + viewport->Pos.x, clientRect.top + viewport->Pos.y),
 				ImVec2(clientRect.right + viewport->Pos.x, clientRect.bottom + viewport->Pos.y),
-				m_pHoveredWnd->IsReallyVisible() ? IM_COL32(50, 255, 50, 255) : IM_COL32(255, 50, 50, 255));
+				m_pHoveredWnd->IsReallyVisible() ? IM_COL32(255, 215, 0, 200) : IM_COL32(200, 20, 60, 200));
 		}
 		else
 		{
 			ImGui::Text("Hovered Window: None");
 		}
 
+		if (m_pPickingWnd)
+		{
+			ImGui::Text("Picking: %s", m_pPickingWnd->GetXMLName().c_str());
+		}
+		else if (m_picking)
+		{
+			ImGui::Text("Picking...");
+		}
+
 		// update last selected to remember selection for next iteration
-		m_pLastSelected = m_pSelectedWnd;
+		m_selectionChanged = test_and_set(m_pLastSelected, m_pSelectedWnd);
+
+		if (m_picking && m_selectPicking)
+		{
+			m_selectPicking = false;
+			m_picking = false;
+		}
 	}
 
 	void DisplayWindowTreeNode(CXWnd* pWnd)
@@ -2278,6 +2306,13 @@ struct ImGuiWindowDebugPanel
 				if (m_pPickingWnd->IsDescendantOf(pWnd))
 					flags |= ImGuiTreeNodeFlags_DefaultOpen;
 			}
+			else if (m_pSelectedWnd && m_selectionChanged)
+			{
+				if (m_pSelectedWnd->IsDescendantOf(pWnd))
+				{
+					ImGui::SetNextItemOpen(true);
+				}
+			}
 
 			open = ImGui::TreeNodeEx(pWnd, flags, "%s", pName.c_str());
 		}
@@ -2295,7 +2330,7 @@ struct ImGuiWindowDebugPanel
 		{
 			m_pHoveredWnd = pWnd;
 		}
-		if (ImGui::IsItemClicked())
+		if (ImGui::IsItemClicked() || (selectPicking && m_selectPicking))
 		{
 			m_pSelectedWnd = pWnd;
 			m_foundSelected = true;
@@ -2313,8 +2348,37 @@ struct ImGuiWindowDebugPanel
 				pChild = pChild->GetNextSiblingWnd();
 			}
 
+			// If this is a list box, then also traverse its child list windows.
+			if (pWnd->GetType() == UI_Listbox)
+			{
+				CListWnd* listWnd = static_cast<CListWnd*>(pWnd);
+
+				for (SListWndLine& line : listWnd->ItemsArray)
+				{
+					// TODO: Expand into columns/rows but for now just list the children.
+					for (SListWndCell& cell : line.Cells)
+					{
+						// The children of the list are stored in wrapper windows. They show up
+						// as Unknown types. We just skip past them.
+						if (cell.pWnd && cell.pWnd->GetFirstChildWnd())
+						{
+							DisplayWindowTreeNode(cell.pWnd->GetFirstChildWnd());
+						}
+					}
+				}
+			}
+
 			ImGui::TreePop();
 		}
+	}
+
+	bool IsPicking() const { return m_picking; }
+
+	void Pick()
+	{
+		SPDLOG_INFO("Pick: {0}, {1:x}", m_picking, (void*)m_pPickingWnd);
+		if (m_picking)
+			m_selectPicking = true;
 	}
 };
 
@@ -2323,6 +2387,16 @@ static ImGuiWindowDebugPanel s_windowDebugPanel;
 static void WindowsDebugPanel()
 {
 	s_windowDebugPanel.Draw();
+}
+
+bool MQ2Windows_PickerClick()
+{
+	// If the picker is active, tell it that we clicked. Returns true (to consume the click) if this happens.
+	if (!s_windowDebugPanel.IsPicking())
+		return false;
+
+	s_windowDebugPanel.Pick();
+	return true;
 }
 
 void InitializeMQ2Windows()
