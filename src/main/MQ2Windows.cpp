@@ -2348,6 +2348,26 @@ public:
 				pChild = pChild->GetNextSiblingWnd();
 			}
 
+			// If this is a list box, then also traverse its child list windows.
+			if (pWnd->GetType() == UI_Listbox)
+			{
+				CListWnd* listWnd = static_cast<CListWnd*>(pWnd);
+
+				for (SListWndLine& line : listWnd->ItemsArray)
+				{
+					// TODO: Expand into columns/rows but for now just list the children.
+					for (SListWndCell& cell : line.Cells)
+					{
+						// The children of the list are stored in wrapper windows. They show up
+						// as Unknown types. We just skip past them.
+						if (cell.pWnd && cell.pWnd->GetFirstChildWnd())
+						{
+							DisplayWindowTreeNode(cell.pWnd->GetFirstChildWnd());
+						}
+					}
+				}
+			}
+
 			ImGui::TreePop();
 		}
 	}
