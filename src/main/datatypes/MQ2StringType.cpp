@@ -461,7 +461,7 @@ bool MQ2StringType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 		return false;
 
 	strcpy_s(DataTypeTemp, static_cast<const char*>(Source.Ptr));
-	VarPtr.Ptr;
+	VarPtr.Ptr = &DataTypeTemp[0];
 	return true;
 }
 
