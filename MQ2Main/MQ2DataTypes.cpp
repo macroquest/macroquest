@@ -1913,7 +1913,7 @@ bool MQ2SpawnType::GETMEMBER()
 	case Assist:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (gGameState == GAMESTATE_INGAME && GetCharInfo()->pSpawn && pSpawn)
+		if (gGameState == GAMESTATE_INGAME && pSpawn)
 		{
 			if (DWORD AssistID = GetGroupMainAssistTargetID()) {
 				if (AssistID == pSpawn->SpawnID) {
@@ -1934,12 +1934,12 @@ bool MQ2SpawnType::GETMEMBER()
 	case Mark:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (gGameState == GAMESTATE_INGAME && GetCharInfo()->pSpawn && pSpawn)
+		if (gGameState == GAMESTATE_INGAME && pLocalPlayer && pSpawn)
 		{
 			DWORD nMark;
 			for (nMark = 0; nMark < 3; nMark++)
 			{
-				if (GetCharInfo()->pSpawn->RaidMarkNPC[nMark] == pSpawn->SpawnID)
+				if (((PSPAWNINFO)pLocalPlayer)->RaidMarkNPC[nMark] == pSpawn->SpawnID)
 				{
 					Dest.DWord = nMark + 1;
 					return true;
@@ -1947,7 +1947,7 @@ bool MQ2SpawnType::GETMEMBER()
 			}
 			for (nMark = 0; nMark < 3; nMark++)
 			{
-				if (GetCharInfo()->pSpawn->GroupMarkNPC[nMark] == pSpawn->SpawnID)
+				if (((PSPAWNINFO)pLocalPlayer)->GroupMarkNPC[nMark] == pSpawn->SpawnID)
 				{
 					Dest.DWord = nMark + 1;
 					return true;

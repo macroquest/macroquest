@@ -899,22 +899,11 @@ static inline DWORD GetGroupMainAssistTargetID()
 static inline DWORD GetRaidMainAssistTargetID(int index)
 {
 	if (PSPAWNINFO pSpawn = (PSPAWNINFO)pLocalPlayer) {
-		if (pRaid) {
-			bool bMainAssist = false;
-			for (int i = 0; i < 72; i++)
-			{
-				if (pRaid->RaidMemberUsed[i] && pRaid->RaidMember[i].RaidMainAssist)
-				{
-					bMainAssist = true;
-					break;
-				}
-			}
-			if (bMainAssist) {
-				if (index < 0 || index > 3)
-					index = 0;
-				return pSpawn->RaidAssistNPC[index];
-			}
-		}
+		if (index < 0)
+			index = 0;
+		if (index > 2)
+			index = 2;
+		return pSpawn->RaidAssistNPC[index];
 	}
 	return 0;
 }
