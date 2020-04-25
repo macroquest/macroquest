@@ -33,17 +33,10 @@ static std::atomic_bool s_pluginsInitialized = false;
 static uint32_t s_mq2mainstamp = 0;
 static std::recursive_mutex s_pluginsMutex;
 MQPlugin* pPlugins = nullptr;
+std::vector<MQModule*> s_internalModules;
 
-std::vector<MQModule*> gInternalModules;
-
-// Defined in MQ2Utilities.cpp
-DWORD CALLBACK InitializeMQ2SpellDb(void* pData);
-
-// Defined in MQ2LoginFrontend.cpp
-void RemoveLoginFrontendHooks();
 
 static ModuleInitializer* s_moduleInitializerList = nullptr;
-
 void InitializeInternalModules()
 {
 	ModuleInitializer* initializer = s_moduleInitializerList;
@@ -65,7 +58,7 @@ void AddInternalModule(MQModule* module)
 {
 	SPDLOG_DEBUG("Initializing module: {0}", module->name);
 
-	gInternalModules.push_back(module);
+	s_internalModules.push_back(module);
 
 	if (module->Initialize)
 		module->Initialize();
@@ -77,12 +70,12 @@ void AddInternalModule(MQModule* module)
 
 void RemoveInternalModule(MQModule* module)
 {
-	auto iter = std::find(std::begin(gInternalModules),
-		std::end(gInternalModules), module);
-	if (iter == std::end(gInternalModules))
+	auto iter = std::find(std::begin(s_internalModules),
+		std::end(s_internalModules), module);
+	if (iter == std::end(s_internalModules))
 		return;
 
-	gInternalModules.erase(iter);
+	s_internalModules.erase(iter);
 
 	if (module->loaded && module->Shutdown)
 	{
@@ -93,9 +86,9 @@ void RemoveInternalModule(MQModule* module)
 
 void ShutdownInternalModules()
 {
-	while (!gInternalModules.empty())
+	while (!s_internalModules.empty())
 	{
-		RemoveInternalModule(gInternalModules.back());
+		RemoveInternalModule(s_internalModules.back());
 	}
 }
 
@@ -402,7 +395,7 @@ void PluginsWriteChatColor(const char* Line, int Color, int Filter)
 		DebugSpew("WriteChatColor(%s)", Line);
 	}
 
-	for (const MQModule* module : gInternalModules)
+	for (const MQModule* module : s_internalModules)
 	{
 		if (module->WriteChatColor)
 		{
@@ -458,7 +451,7 @@ void PulsePlugins()
 
 	PluginDebug("PulsePlugins()");
 
-	for (const MQModule* module : gInternalModules)
+	for (const MQModule* module : s_internalModules)
 	{
 		if (module->Pulse)
 		{
@@ -486,7 +479,7 @@ void PluginsZoned()
 
 	PluginDebug("PluginsZoned()");
 
-	for (const MQModule* module : gInternalModules)
+	for (const MQModule* module : s_internalModules)
 	{
 		if (module->Zoned)
 		{
@@ -573,19 +566,9 @@ void PluginsSetGameState(DWORD GameState)
 	DrawHUDParams[0] = 0;
 	gGameState = GameState;
 
-	if (GameState != GAMESTATE_INGAME && GameState != GAMESTATE_LOGGINGIN)
-	{
-		gbSpelldbLoaded = false;
-		ghInitializeSpellDbThread = nullptr;
-	}
 
 	if (GameState == GAMESTATE_INGAME)
 	{
-		if (!gbSpelldbLoaded && ghInitializeSpellDbThread == nullptr)
-		{
-			ghInitializeSpellDbThread = CreateThread(nullptr, 0, InitializeMQ2SpellDb, (void*)1, 0, nullptr);
-		}
-
 		gZoning = false;
 		gbDoAutoRun = true;
 
@@ -635,7 +618,7 @@ void PluginsSetGameState(DWORD GameState)
 		LoadCfgFile("CharSelect", false);
 	}
 
-	for (const MQModule* module : gInternalModules)
+	for (const MQModule* module : s_internalModules)
 	{
 		if (module->SetGameState)
 		{
@@ -832,7 +815,7 @@ void PluginsUpdateImGui()
 
 	PluginDebug("PluginsUpdateImGui");
 
-	for (const MQModule* module : gInternalModules)
+	for (const MQModule* module : s_internalModules)
 	{
 		if (module->UpdateImGui)
 		{

@@ -15,25 +15,147 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
-namespace mq {
+#include <chrono>
+#include <thread>
 
-ci_unordered::multimap<EQ_Spell*> s_spellNameMap;
-std::map<int, int> s_triggeredSpells;
-std::recursive_mutex s_initializeSpellsMutex;
+using namespace std::chrono_literals;
+
+namespace mq {
 
 static void Spells_Initialize();
 static void Spells_Shutdown();
 static void Spells_Pulse();
+static void Spells_SetGameState(DWORD gameState);
 
 static MQModule s_spellsModule = {
 	"Spells",                      // Name
 	false,                         // CanUnload
 	Spells_Initialize,
 	Spells_Shutdown,
-	Spells_Pulse
+	nullptr,
+	Spells_SetGameState,
 };
 DECLARE_MODULE_INITIALIZER(s_spellsModule);
 
+//----------------------------------------------------------------------------
+
+static ci_unordered::multimap<EQ_Spell*> s_spellNameMap;
+static std::map<int, int> s_triggeredSpells;
+static std::recursive_mutex s_initializeSpellsMutex;
+static std::thread s_spellDBThread;
+static std::atomic_bool s_spellDBThreadStarted = false;               // indicates that we started to load.
+static std::atomic_bool s_spellDBThreadFinished = false;              // indicates that we finished the load.
+
+//----------------------------------------------------------------------------
+
+static bool IsRecursiveEffect(int spa)
+{
+	switch (spa)
+	{
+	case SPA_CHANCE_SPELL:
+	case SPA_CHANCE_BEST_IN_SPELL_GROUP:
+	case SPA_TRIGGER_SPELL:
+	case SPA_TRIGGER_SPELL_NON_ITEM:
+	case SPA_TRIGGER_BEST_IN_SPELL_GROUP:
+		return true;
+	}
+
+	return false;
+}
+
+static void PopulateTriggeredMap(EQ_Spell* pSpell)
+{
+	if (!pSpell || pSpell->CannotBeScribed)
+		return;
+
+	for (int i = 0; i < pSpell->NumEffects; i++)
+	{
+		if (!IsRecursiveEffect(GetSpellAttrib(pSpell, i)))
+			continue;
+
+		int triggeredSpellID = GetSpellBase2(pSpell, i);
+		if (i > 0)
+			s_triggeredSpells[triggeredSpellID] = pSpell->ID;
+	}
+}
+
+static void PopulateSpellMap()
+{
+	std::scoped_lock lock(s_initializeSpellsMutex);
+
+	s_spellDBThreadFinished = false;
+
+	s_triggeredSpells.clear();
+	s_spellNameMap.clear();
+
+	for (auto pSpell : pSpellMgr->Spells)
+	{
+		if (!pSpell || !pSpell->Name[0])
+			continue;
+
+		PopulateTriggeredMap(pSpell);
+
+		s_spellNameMap.emplace(pSpell->Name, pSpell);
+	}
+
+	s_spellDBThreadFinished = true;
+}
+
+static void InitializeSpellDb()
+{
+	while (gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME)
+	{
+		std::this_thread::sleep_for(100ms);
+	}
+
+	while (pSpellMgr && (!pSpellMgr->Spells || pSpellMgr->SpellStackingFileCRC == 0 || (pSpellMgr->Spells && !pSpellMgr->Spells[TOTAL_SPELL_COUNT - 1])))
+	{
+		std::this_thread::sleep_for(100ms);
+	}
+
+	// ok everything checks out lets fill our own map with spells
+	Benchmark(bmSpellLoad, PopulateSpellMap());
+}
+
+static void StartAsyncSpellLoad()
+{
+	if (s_spellDBThreadStarted)
+	{
+		return;
+	}
+
+	s_spellDBThreadStarted = true;
+	s_spellDBThreadFinished = false;
+
+	s_spellDBThread = std::thread(InitializeSpellDb);
+}
+
+static bool EnsureSpellsLoaded()
+{
+	if (!s_spellDBThreadStarted)
+	{
+		StartAsyncSpellLoad();
+	}
+
+	if (!s_spellDBThreadFinished)
+	{
+		if (s_spellDBThread.joinable())
+			s_spellDBThread.join();
+	}
+
+	return s_spellDBThreadFinished;
+}
+
+static void ResetSpellDB()
+{
+	if (s_spellDBThread.joinable())
+		s_spellDBThread.join();
+
+	s_spellDBThreadStarted = false;
+	s_spellDBThreadFinished = false;
+}
+
+//----------------------------------------------------------------------------
 
 EQ_Spell* GetHighestLearnedSpellByGroupID(int dwSpellGroupID)
 {
@@ -76,37 +198,6 @@ const char* GetSpellNameByID(int dwSpellID)
 	return "Unknown Spell";
 }
 
-static bool IsRecursiveEffect(int spa)
-{
-	switch (spa)
-	{
-	case SPA_CHANCE_SPELL:
-	case SPA_CHANCE_BEST_IN_SPELL_GROUP:
-	case SPA_TRIGGER_SPELL:
-	case SPA_TRIGGER_SPELL_NON_ITEM:
-	case SPA_TRIGGER_BEST_IN_SPELL_GROUP:
-		return true;
-	}
-
-	return false;
-}
-
-static void PopulateTriggeredmap(EQ_Spell* pSpell)
-{
-	if (!pSpell || pSpell->CannotBeScribed)
-		return;
-
-	for (int i = 0; i < pSpell->NumEffects; i++)
-	{
-		if (!IsRecursiveEffect(GetSpellAttrib(pSpell, i)))
-			continue;
-		
-		int triggeredSpellID = GetSpellBase2(pSpell, i);
-		if (i > 0)
-			s_triggeredSpells[triggeredSpellID] = pSpell->ID;
-	}
-}
-
 EQ_Spell* GetSpellParent(int id)
 {
 	auto iter = s_triggeredSpells.find(id);
@@ -114,66 +205,6 @@ EQ_Spell* GetSpellParent(int id)
 		return GetSpellByID(iter->second);
 
 	return nullptr;
-}
-
-void PopulateSpellMap()
-{
-	std::scoped_lock lock(s_initializeSpellsMutex);
-
-	gbSpelldbLoaded = false;
-
-	s_triggeredSpells.clear();
-	s_spellNameMap.clear();
-
-	for (auto pSpell : pSpellMgr->Spells)
-	{
-		if (!pSpell || !pSpell->Name[0])
-			continue;
-
-		PopulateTriggeredmap(pSpell);
-
-		s_spellNameMap.emplace(pSpell->Name, pSpell);
-	}
-
-	gbSpelldbLoaded = true;
-}
-
-DWORD CALLBACK InitializeMQ2SpellDb(void* pData)
-{
-	int state = reinterpret_cast<int>(pData);
-
-	bmSpellLoad = AddMQ2Benchmark("SpellLoad");
-	bmSpellAccess = AddMQ2Benchmark("SpellAccess");
-
-	switch (state)
-	{
-	case 1: WriteChatf("Initializing SpellMap from SetGameState."); break;
-	case 2: WriteChatf("Initializing SpellMap from GetSpellByName."); break;
-	default: WriteChatf("Initializing SpellMap. (%d)", state); break;
-	}
-
-	while (gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME)
-	{
-		Sleep(10);
-	}
-
-	while (pSpellMgr && (!pSpellMgr->Spells || pSpellMgr->SpellStackingFileCRC == 0 || (pSpellMgr->Spells && !pSpellMgr->Spells[TOTAL_SPELL_COUNT - 1])))
-	{
-		Sleep(10);
-	}
-
-	// ok everything checks out lets fill our own map with spells
-	Benchmark(bmSpellLoad, PopulateSpellMap());
-
-	switch (state)
-	{
-	case 1: WriteChatf("SpellMap Initialized from SetGameState."); break;
-	case 2: WriteChatf("SpellMap Initialized from GetSpellByName."); break;
-	default: WriteChatf("SpellMap Initialized. (%d)", state); break;
-	}
-
-	ghInitializeSpellDbThread = nullptr;
-	return 0;
 }
 
 bool IsSpellClassUsable(EQ_Spell* pSpell)
@@ -239,15 +270,8 @@ EQ_Spell* GetSpellByName(std::string_view name)
 	if (spellID >= 0)
 		return GetSpellByID(spellID);
 
-	if (gbSpelldbLoaded == false)
-	{
-		InitializeMQ2SpellDb((void*)2);
-
-		if (gbSpelldbLoaded == false)
-		{
-			return nullptr;
-		}
-	}
+	if (!EnsureSpellsLoaded())
+		return nullptr;
 
 	std::scoped_lock lock(s_initializeSpellsMutex);
 	if (s_spellNameMap.empty())
@@ -3341,15 +3365,31 @@ static void SpellsDebugPanel()
 static void Spells_Initialize()
 {
 	AddDebugPanel("Spells/Buffs", SpellsDebugPanel);
+
+	bmSpellLoad = AddMQ2Benchmark("SpellLoad");
+	bmSpellAccess = AddMQ2Benchmark("SpellAccess");
 }
 
 static void Spells_Shutdown()
 {
 	RemoveDebugPanel("Spells/Buffs");
+
+	RemoveMQ2Benchmark(bmSpellLoad);
+	RemoveMQ2Benchmark(bmSpellAccess);
 }
 
-static void Spells_Pulse()
+static void Spells_SetGameState(DWORD gameState)
 {
+	if (gameState != GAMESTATE_INGAME && gameState != GAMESTATE_LOGGINGIN)
+	{
+		ResetSpellDB();
+	}
+
+	if (gameState == GAMESTATE_INGAME)
+	{
+		StartAsyncSpellLoad();
+	}
 }
+
 
 } // namespace mq

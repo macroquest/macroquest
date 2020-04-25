@@ -26,9 +26,6 @@ bool InitOffsets()
 	return true;
 }
 
-/* PickZone */
-HANDLE ghInitializeSpellDbThread = nullptr;
-
 /* BENCHMARKS */
 DWORD bmWriteChatColor = 0;
 DWORD bmPluginsIncomingChat = 0;
@@ -89,7 +86,6 @@ UCHAR gLastFind = 0;
 double gZFilter = 10000.0f;
 double gFaceAngle = 10000.0f;
 double gLookAngle = 10000.0f;
-bool gbSpelldbLoaded = false;
 char gszEQPath[MAX_STRING] = { 0 }; // Deprecate
 char gszMacroPath[MAX_STRING] = { 0 }; // Deprecate
 char gszLogPath[MAX_STRING] = { 0 }; // Deprecate

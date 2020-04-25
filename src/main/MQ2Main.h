@@ -120,8 +120,6 @@ MQLIB_OBJECT void RemoveCascadeMenuItem(const char* name);
 /* WINDOWS */
 MQLIB_API HWND GetEQWindowHandle();
 MQLIB_API void InitializeMQ2Windows();
-MQLIB_API void ShutdownMQ2Windows();
-MQLIB_API void PulseMQ2Windows();
 MQLIB_API void RemoveXMLFile(const char* filename);
 MQLIB_API void AddXMLFile(const char* filename);
 MQLIB_API bool IsXMLFilePresent(const char* filename);
@@ -747,11 +745,11 @@ struct TokenTextParam
 	int StringID;
 	int Color;
 	std::vector<std::string> Tokens;
+
 	TokenTextParam(const char* Data, DWORD Length);
 };
 
-void InitializeStringDB();
-void ShutdownStringDB();
+void StringDB_Shutdown();
 int AddTokenMessageCmd(int StringID, fMQTokenMessageCmd Command);
 void RemoveTokenMessageCmd(int StringID, int CallbackID);
 

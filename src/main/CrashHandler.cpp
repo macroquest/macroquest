@@ -46,6 +46,17 @@ namespace fs = std::filesystem;
 
 namespace mq {
 
+static void CrashHandler_Initialize();
+static void CrashHandler_Shutdown();
+
+static MQModule s_crashHandlerModule = {
+	"CrashHandler",                // Name
+	true,                          // CanUnload
+	CrashHandler_Initialize,
+	CrashHandler_Shutdown,
+};
+DECLARE_MODULE_INITIALIZER(s_crashHandlerModule);
+
 // CrashHandler TODO:
 // - Provide a means to retrieve the client UUID so that a user can inform developers of which
 //   crash reports are theirs.
@@ -492,12 +503,12 @@ void DoCrash(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-void InitializeMQ2CrashHandler()
+static void CrashHandler_Initialize()
 {
 	AddCommand("/crash", DoCrash);
 }
 
-void ShutdownMQ2CrashHandler()
+static void CrashHandler_Shutdown()
 {
 	RemoveCommand("/crash");
 }

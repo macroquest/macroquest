@@ -16,7 +16,20 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
-using namespace mq;
+namespace mq {
+
+static void StringDB_Initialize();
+static void StringDB_Shutdown();
+
+static MQModule s_stringDBModule = {
+	"StringDB",                    // Name
+	true,                          // CanUnload
+	StringDB_Initialize,
+	StringDB_Shutdown,
+};
+DECLARE_MODULE_INITIALIZER(s_stringDBModule);
+
+//----------------------------------------------------------------------------
 
 class TokenCallbackEntry
 {
@@ -24,23 +37,27 @@ public:
 	int StringID;
 	int CallbackID;
 	fMQTokenMessageCmd Callback;
-	TokenCallbackEntry(int StringID, int CallbackID, fMQTokenMessageCmd Callback) :
-		StringID(StringID), CallbackID(CallbackID), Callback(Callback) {}
+
+	TokenCallbackEntry(int StringID, int CallbackID, fMQTokenMessageCmd Callback)
+		: StringID(StringID)
+		, CallbackID(CallbackID)
+		, Callback(Callback)
+	{}
 };
 
-std::map<int, std::vector<std::unique_ptr<TokenCallbackEntry>>> callback_map;
+std::map<int, std::vector<std::unique_ptr<TokenCallbackEntry>>> s_callbackMap;
+static int s_uniqueId = 0;
 
-int mq::AddTokenMessageCmd(int StringID, fMQTokenMessageCmd Command)
+int AddTokenMessageCmd(int StringID, fMQTokenMessageCmd Command)
 {
-	static int unique_id = 0;
-	callback_map[StringID].emplace_back(std::make_unique<TokenCallbackEntry>(StringID, ++unique_id, Command));
-	return unique_id;
+	s_callbackMap[StringID].push_back(std::make_unique<TokenCallbackEntry>(StringID, ++s_uniqueId, Command));
+	return s_uniqueId;
 }
 
-void mq::RemoveTokenMessageCmd(int StringID, int CallbackID)
+void RemoveTokenMessageCmd(int StringID, int CallbackID)
 {
-	auto entry = callback_map.find(StringID);
-	if (entry != std::end(callback_map))
+	auto entry = s_callbackMap.find(StringID);
+	if (entry != std::end(s_callbackMap))
 	{
 		entry->second.erase(std::remove_if(std::begin(entry->second), std::end(entry->second),
 			[CallbackID](const std::unique_ptr<TokenCallbackEntry>& ptr)
@@ -52,7 +69,7 @@ void mq::RemoveTokenMessageCmd(int StringID, int CallbackID)
 }
 
 // no need to copy the whole stream, just sweep a pointer over it and copy the individual elements.
-mq::TokenTextParam::TokenTextParam(const char* Data, DWORD Length)
+TokenTextParam::TokenTextParam(const char* Data, DWORD Length)
 {
 	char const* DataBuffer = Data;
 	DataBuffer += 4; // 4 bytes of padding
@@ -81,8 +98,8 @@ void msgTokenTextParam__Detour(const char* Data, DWORD Length)
 {
 	if (Data)
 	{
-		auto entry = callback_map.find(*(int*)(Data + 5));
-		if (entry != std::end(callback_map))
+		auto entry = s_callbackMap.find(*(int*)(Data + 5));
+		if (entry != std::end(s_callbackMap))
 		{
 			mq::TokenTextParam param(Data, Length);
 			for (const auto& cmd : entry->second)
@@ -97,12 +114,14 @@ void msgTokenTextParam__Detour(const char* Data, DWORD Length)
 }
 DETOUR_TRAMPOLINE_EMPTY(void msgTokenTextParam__Trampoline(const char*, DWORD))
 
-void mq::InitializeStringDB()
+static void StringDB_Initialize()
 {
 	EzDetour(__msgTokenTextParam, msgTokenTextParam__Detour, msgTokenTextParam__Trampoline);
 }
 
-void mq::ShutdownStringDB()
+static void StringDB_Shutdown()
 {
 	RemoveDetour(__msgTokenTextParam);
 }
+
+} // namespace mq

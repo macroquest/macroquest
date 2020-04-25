@@ -117,16 +117,20 @@ MQLIB_API void DebugSpewNoFile(const char* szFormat, ...)
 // Implemented in MQ2PluginHandler.cpp
 void PluginsWriteChatColor(const char* Line, int Color, int Filter);
 
-static void WriteChatColorMaybeDeferred(std::unique_ptr<char[]> Ptr, int Color, int Filter)
+static void WriteChatColor(std::shared_ptr<char[]> Ptr, int Color = USERCOLOR_DEFAULT, int Filter = 0)
 {
+	// If we're alreadyon the main thread, avoid copying anything and just call
+	// straight to PluginsWriteChatColor
+
 	if (IsMainThread())
 	{
 		PluginsWriteChatColor(Ptr.get(), Color, Filter);
+		return;
 	}
 
 	// Queue it up to run on the main thread
 	PostToMainThread(
-		[Ptr = std::shared_ptr<char[]>{ std::move(Ptr) }, Color, Filter]()
+		[Ptr, Color, Filter]()
 	{
 		PluginsWriteChatColor(Ptr.get(), Color, Filter);
 	});
@@ -134,9 +138,6 @@ static void WriteChatColorMaybeDeferred(std::unique_ptr<char[]> Ptr, int Color, 
 
 void WriteChatColor(const char* Line, int Color /* = USERCOLOR_DEFAULT */, int Filter /* = 0 */)
 {
-	// If we're alreadyon the main thread, avoid copying anything and just call
-	// straight to PluginsWriteChatColor
-
 	if (IsMainThread())
 	{
 		PluginsWriteChatColor(Line, Color, Filter);
@@ -149,12 +150,7 @@ void WriteChatColor(const char* Line, int Color /* = USERCOLOR_DEFAULT */, int F
 	std::shared_ptr<char[]> Ptr{ new char[length] };
 	strcpy_s(Ptr.get(), length, Line);
 
-	// Queue it up to run on the main thread
-	PostToMainThread(
-		[Ptr, Color, Filter]()
-	{
-		PluginsWriteChatColor(Ptr.get(), Color, Filter);
-	});
+	WriteChatColor(Ptr, Color, Filter);
 }
 
 void WriteChatf(const char* szFormat, ...)
@@ -165,11 +161,11 @@ void WriteChatf(const char* szFormat, ...)
 	// _vscprintf doesn't count // terminating '\0'
 	int len = _vscprintf(szFormat, vaList) + 1;
 
-	auto out = std::make_unique<char[]>(len);
+	std::shared_ptr<char[]> out{ new char[len] };
 	char* szOutput = out.get();
-
 	vsprintf_s(szOutput, len, szFormat, vaList);
-	WriteChatColor(szOutput);
+
+	WriteChatColor(out);
 }
 
 void WriteChatfSafe(const char* szFormat, ...)
@@ -180,26 +176,26 @@ void WriteChatfSafe(const char* szFormat, ...)
 	// _vscprintf doesn't count // terminating '\0'
 	int len = _vscprintf(szFormat, vaList) + 1;
 
-	auto out = std::make_unique<char[]>(len);
+	std::shared_ptr<char[]> out{ new char[len] };
 	char* szOutput = out.get();
-
 	vsprintf_s(szOutput, len, szFormat, vaList);
-	WriteChatColor(szOutput);
+
+	WriteChatColor(out);
 }
 
 void WriteChatColorf(const char* szFormat, int color, ...)
 {
 	va_list vaList;
-	va_start(vaList, color);
+	va_start(vaList, szFormat);
 
 	// _vscprintf doesn't count // terminating '\0'
 	int len = _vscprintf(szFormat, vaList) + 1;
 
-	auto out = std::make_unique<char[]>(len);
+	std::shared_ptr<char[]> out{ new char[len] };
 	char* szOutput = out.get();
-
 	vsprintf_s(szOutput, len, szFormat, vaList);
-	WriteChatColor(szOutput, color);
+
+	WriteChatColor(out, color);
 }
 
 //============================================================================

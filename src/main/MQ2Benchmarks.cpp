@@ -48,7 +48,7 @@ void RemoveMQ2Benchmark(uint32_t BMHandle)
 {
 	DebugSpewAlways("RemoveMQ2Benchmark()");
 
-	if (BMHandle && s_benchmarks[BMHandle])
+	if (BMHandle && BMHandle < s_benchmarks.size())
 	{
 		s_benchmarks[BMHandle].reset();
 	}
@@ -60,7 +60,7 @@ void RemoveMQ2Benchmark(uint32_t BMHandle)
 
 void EnterMQ2Benchmark(uint32_t BMHandle)
 {
-	if (s_benchmarks[BMHandle])
+	if (BMHandle < s_benchmarks.size() && s_benchmarks[BMHandle])
 	{
 		s_benchmarks[BMHandle]->Entry = MQGetTickCount64();
 	}
@@ -68,7 +68,7 @@ void EnterMQ2Benchmark(uint32_t BMHandle)
 
 void ExitMQ2Benchmark(uint32_t BMHandle)
 {
-	if (s_benchmarks[BMHandle])
+	if (BMHandle < s_benchmarks.size() && s_benchmarks[BMHandle])
 	{
 		MQBenchmark& benchmark = *s_benchmarks[BMHandle];
 
@@ -90,7 +90,7 @@ void ExitMQ2Benchmark(uint32_t BMHandle)
 
 bool GetMQ2Benchmark(uint32_t BMHandle, MQBenchmark& Dest)
 {
-	if (s_benchmarks[BMHandle])
+	if (BMHandle < s_benchmarks.size() && s_benchmarks[BMHandle])
 	{
 		Dest = *s_benchmarks[BMHandle]; // give them a copy of the data.
 		return true;

@@ -589,14 +589,9 @@ void DoInitialization()
 	gPipeClient.Start();
 	::atexit([]() { gPipeClient.Stop(); });
 
-	// this needs to be done before anything that would need to add a callback to string message parsing
-	InitializeStringDB();
-
 	InitializeAnonymizer();
 	InitializeMQ2Commands();
-	InitializeMQ2Windows();
 	InitializeMQ2AutoInventory();
-	InitializeMQ2CrashHandler();
 
 	MQ2MouseHooks(true);
 	Sleep(100);
@@ -783,24 +778,21 @@ void MQ2Shutdown()
 {
 	OutputDebugString("MQ2Shutdown Called");
 
+	DebugTry(ShutdownMQ2Plugins());
 	DebugTry(ShutdownCachedBuffs());
-	DebugTry(ShutdownInternalModules());
 	DebugTry(ShutdownMQ2KeyBinds());
 	DebugTry(ShutdownDisplayHook());
 	DebugTry(ShutdownMQ2DInput());
 	DebugTry(ShutdownChatHook());
 	DebugTry(ShutdownMQ2Pulse());
 	DebugTry(ShutdownLoginFrontend());
-	DebugTry(ShutdownMQ2Windows());
 	DebugTry(ShutdownMQ2AutoInventory());
 	DebugTry(MQ2MouseHooks(false));
-	DebugTry(ShutdownMQ2CrashHandler());
 	DebugTry(ShutdownParser());
 	DebugTry(ShutdownMQ2Commands());
 	DebugTry(ShutdownAnonymizer());
-	DebugTry(ShutdownMQ2Plugins());
 	DebugTry(ShutdownMQ2Overlay());
-	DebugTry(ShutdownStringDB());
+	DebugTry(ShutdownInternalModules());
 	DebugTry(DeInitializeMQ2IcExports());
 	DebugTry(ShutdownMQ2Detours());
 	DebugTry(ShutdownMQ2Benchmarks());

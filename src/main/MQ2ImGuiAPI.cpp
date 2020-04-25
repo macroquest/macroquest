@@ -42,7 +42,7 @@ static void ImGuiAPI_Pulse();
 static void ImGuiAPI_UpdateImGui();
 static DWORD ImGuiAPI_WriteChatColor(const char* line, DWORD color, DWORD filter);
 
-static MQModule s_developerToolsModule = {
+static MQModule s_imguiAPIModule = {
 	"ImGuiAPI",                   // Name
 	false,                        // CanUnload
 	ImGuiAPI_Initialize,          // Initialize
@@ -53,7 +53,7 @@ static MQModule s_developerToolsModule = {
 	nullptr,                      // Zoned
 	ImGuiAPI_WriteChatColor,      // WriteChatColor
 };
-DECLARE_MODULE_INITIALIZER(s_developerToolsModule);
+DECLARE_MODULE_INITIALIZER(s_imguiAPIModule);
 
 //----------------------------------------------------------------------------
 

@@ -117,8 +117,4 @@ void InitializeCrashHandler();
 bool InitializeCrashpad();
 void InitializeCrashpadPipe(const std::string& pipeName);
 
-// Init/Shutdown CrashHandler extra modules
-void InitializeMQ2CrashHandler();
-void ShutdownMQ2CrashHandler();
-
 } // namespace mq

@@ -26,6 +26,21 @@
 
 namespace mq {
 
+static void Windows_Initialize();
+static void Windows_Shutdown();
+static void Windows_Pulse();
+
+static MQModule s_windowsModule = {
+	"Windows",                     // Name
+	false,                         // CanUnload
+	Windows_Initialize,
+	Windows_Shutdown,
+	Windows_Pulse
+};
+DECLARE_MODULE_INITIALIZER(s_windowsModule);
+
+//----------------------------------------------------------------------------
+
 char* szClickNotification[] = {
 	"leftmouse",        // 0
 	"leftmouseup",      // 1
@@ -2116,7 +2131,7 @@ void RemoveCascadeMenuItems()
 
 //============================================================================
 
-void InitializeMQ2Windows()
+static void Windows_Initialize()
 {
 	DebugSpew("Initializing MQ2 Windows");
 
@@ -2173,7 +2188,7 @@ void InitializeMQ2Windows()
 	InstallCascadeMenuItems();
 }
 
-void ShutdownMQ2Windows()
+static void Windows_Shutdown()
 {
 	DebugSpew("Shutting down MQ2 Windows");
 	RemoveCascadeMenuItems();
@@ -2193,7 +2208,7 @@ void ShutdownMQ2Windows()
 	RemoveDetour(__eqgraphics_fopen);
 }
 
-void PulseMQ2Windows()
+static void Windows_Pulse()
 {
 	if (gbCascadeMenuNeedsUpdate)
 	{

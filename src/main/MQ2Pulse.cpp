@@ -24,13 +24,13 @@
 
 namespace mq {
 
+extern NamedPipeClient gPipeClient;
+
 bool TurnNotDone = false;
 static std::recursive_mutex s_pulseMutex;
 
 std::map<int, std::string> targetBuffSlotToCasterMap;
 std::map<int, std::map<int, TargetBuff>> CachedBuffsMap;
-
-extern NamedPipeClient gPipeClient;
 
 //----------------------------------------------------------------------------
 
@@ -541,7 +541,6 @@ static HeartbeatState Heartbeat()
 	gPipeClient.Process();
 
 	DebugTry(DrawHUD());
-	DebugTry(PulseMQ2Windows());
 	DebugTry(PulseMQ2AutoInventory());
 
 	bRunNextCommand = true;

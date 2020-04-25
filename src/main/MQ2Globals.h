@@ -75,7 +75,6 @@ MQLIB_API int gBuild;
 MQLIB_API bool g_bDoingModuleChecks;
 
 MQLIB_API ePVPServer PVPServer;
-MQLIB_API HANDLE ghInitializeSpellDbThread;
 
 MQLIB_VAR bool g_Loaded;
 MQLIB_VAR DWORD ThreadID;
@@ -104,7 +103,6 @@ MQLIB_VAR UCHAR gLastFind;
 MQLIB_VAR double gZFilter;
 MQLIB_VAR double gFaceAngle;
 MQLIB_VAR double gLookAngle;
-MQLIB_VAR bool gbSpelldbLoaded;
 MQLIB_VAR char gszEQPath[MAX_STRING] DEPRECATE("Your relative path from the working directory is already the EQ Path.");
 MQLIB_VAR char gszMacroPath[MAX_STRING] DEPRECATE("Use internal_paths::Macros in Core or gPathMacros in Plugins");
 MQLIB_VAR char gszLogPath[MAX_STRING] DEPRECATE("Use internal_paths::Logs in Core or gPathLogs in Plugins");
