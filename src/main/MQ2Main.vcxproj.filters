@@ -416,6 +416,9 @@
     <ClCompile Include="..\common\HotKeys.cpp">
       <Filter>Source Files\common</Filter>
     </ClCompile>
+    <ClCompile Include="MQ2DeveloperTools.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
@@ -555,6 +558,9 @@
     </ClInclude>
     <ClInclude Include="..\common\HotKeys.h">
       <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="MQ2DeveloperTools.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

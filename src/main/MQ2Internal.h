@@ -417,8 +417,28 @@ struct MQModule
 
 	bool                 loaded = false;
 };
+
+void InitializeInternalModules();
 void AddInternalModule(MQModule* module);
 void RemoveInternalModule(MQModule* module);
+
+struct ModuleInitializer;
+void AddStaticInitializationModule(ModuleInitializer* module);
+
+struct ModuleInitializer
+{
+	ModuleInitializer(MQModule* thisModule)
+		: module(thisModule)
+	{
+		AddStaticInitializationModule(this);
+	}
+
+	ModuleInitializer* next = nullptr;
+	MQModule* module = nullptr;
+};
+
+#define DECLARE_MODULE_INITIALIZER(moduleRecord) \
+	static ModuleInitializer s_moduleInitializer{ &moduleRecord };
 
 //============================================================================
 

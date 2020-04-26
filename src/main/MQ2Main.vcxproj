@@ -429,6 +429,7 @@
     <ClCompile Include="MQ2CleanUI.cpp" />
     <ClCompile Include="MQ2CommandAPI.cpp" />
     <ClCompile Include="MQ2Commands.cpp" />
+    <ClCompile Include="MQ2DeveloperTools.cpp" />
     <ClCompile Include="MQ2DInput.cpp" />
     <ClCompile Include="MQ2Data.cpp" />
     <ClCompile Include="MQ2DataAPI.cpp" />
@@ -494,6 +495,7 @@
     <ClInclude Include="imgui\ImGuiUtils.h" />
     <ClInclude Include="MQ2Args.h" />
     <ClInclude Include="MQ2Commands.h" />
+    <ClInclude Include="MQ2DeveloperTools.h" />
     <ClInclude Include="MQ2Globals.h" />
     <ClInclude Include="MQ2Inlines.h" />
     <ClInclude Include="MQ2Internal.h" />

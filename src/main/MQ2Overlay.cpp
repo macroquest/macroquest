@@ -14,6 +14,7 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
+#include "MQ2DeveloperTools.h"
 #include "CrashHandler.h"
 
 #include "common/HotKeys.h"
@@ -161,8 +162,6 @@ static void RemoveDetours()
 	}
 }
 
-bool MQ2Windows_PickerClick();
-
 // Returns true if this event should be "erased" from eq.
 static bool HandleMouseEvent(int mouseButton, bool pressed)
 {
@@ -171,12 +170,11 @@ static bool HandleMouseEvent(int mouseButton, bool pressed)
 
 	if (test_and_set(io.MouseDown[mouseButton], pressed))
 	{
-	}
-
-	if (mouseButton == 0 && pressed && !io.WantCaptureMouse)
-	{
-		if (MQ2Windows_PickerClick())
-			consume = true;
+		if (!io.WantCaptureMouse)
+		{
+			if (DeveloperTools_HandleClick(mouseButton, pressed))
+				consume = true;
+		}
 	}
 
 	if (consume)

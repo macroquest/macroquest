@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+#include <spdlog/spdlog.h>
+
 //#define DEBUG_PLUGINS
 
 namespace mq {
@@ -40,20 +42,29 @@ DWORD CALLBACK InitializeMQ2SpellDb(void* pData);
 // Defined in MQ2LoginFrontend.cpp
 void RemoveLoginFrontendHooks();
 
-static uint32_t checkme(char* module)
+static ModuleInitializer* s_moduleInitializerList = nullptr;
+
+void InitializeInternalModules()
 {
-	PIMAGE_DOS_HEADER pd = (PIMAGE_DOS_HEADER)module;
-	PIMAGE_FILE_HEADER pf;
+	ModuleInitializer* initializer = s_moduleInitializerList;
 
-	uint8_t* p = reinterpret_cast<uint8_t*>(module) + pd->e_lfanew;
-	p += 4;  // skip sig
+	while (initializer)
+	{
+		AddInternalModule(initializer->module);
+		initializer = initializer->next;
+	}
+}
 
-	pf = reinterpret_cast<PIMAGE_FILE_HEADER>(p);
-	return pf->TimeDateStamp;
+void AddStaticInitializationModule(ModuleInitializer* module)
+{
+	module->next = s_moduleInitializerList;
+	s_moduleInitializerList = module;
 }
 
 void AddInternalModule(MQModule* module)
 {
+	SPDLOG_DEBUG("Initializing module: {0}", module->name);
+
 	gInternalModules.push_back(module);
 
 	if (module->Initialize)
@@ -86,6 +97,18 @@ void ShutdownInternalModules()
 	{
 		RemoveInternalModule(gInternalModules.back());
 	}
+}
+
+static uint32_t checkme(char* module)
+{
+	PIMAGE_DOS_HEADER pd = (PIMAGE_DOS_HEADER)module;
+	PIMAGE_FILE_HEADER pf;
+
+	uint8_t* p = reinterpret_cast<uint8_t*>(module) + pd->e_lfanew;
+	p += 4;  // skip sig
+
+	pf = reinterpret_cast<PIMAGE_FILE_HEADER>(p);
+	return pf->TimeDateStamp;
 }
 
 int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
