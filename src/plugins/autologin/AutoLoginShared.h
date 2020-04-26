@@ -25,8 +25,12 @@ bool DecryptData(DATA_BLOB* DataIn, DATA_BLOB* DataOut);
 
 struct ProfileRecord
 {
+	std::string profileName;
+
 	std::string accountName;
 	std::string accountPassword;
+
+	std::string serverName;
 	std::string characterName;
 
 	std::string hotkey;
@@ -34,4 +38,5 @@ struct ProfileRecord
 	int characterLevel = 0;
 };
 
+// TODO: add a version 2 of this parser that will also fill in the server name (and move this into the record itself as a constructor)
 bool ParseBlob(const std::string& blob, ProfileRecord& record);

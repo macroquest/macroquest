@@ -21,9 +21,15 @@
     <ClCompile Include="AutoLoginShared.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="StateMachine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AutoLoginShared.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MQ2AutoLogin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
