@@ -133,6 +133,7 @@ MQLIB_API bool SendWndNotification(const char* WindowName, const char* ScreenID,
 MQLIB_API void AddWindow(char *WindowName, CXWnd **ppWindow);
 MQLIB_API void RemoveWindow(char* WindowName);
 MQLIB_API CXWnd* FindMQ2Window(const char* Name);
+MQLIB_API CXWnd* FindEQMainWindow(const char* Name);
 MQLIB_API CXWnd* GetParentWnd(CXWnd* pWnd);
 
 MQLIB_API bool SendComboSelect(const char* WindowName, const char* ScreenID, int Value);

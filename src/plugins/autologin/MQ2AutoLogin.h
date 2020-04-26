@@ -50,6 +50,9 @@ const ci_unordered::map<int> ServerData = {
 template <typename T = CXWnd>
 inline T* GetWindow(const std::string& name)
 {
+	if (GetGameState() == GAMESTATE_PRECHARSELECT)
+		return static_cast<T*>(FindEQMainWindow(name.c_str()));
+
 	return static_cast<T*>(FindMQ2Window(name.c_str()));
 }
 

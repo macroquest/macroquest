@@ -20,9 +20,9 @@
 #include <TlHelp32.h>
 
 // TODO:
-// - Crashes when going back sometimes due to CXWnd lookups, tighten this up some
 // - Figure out how to tie this into the backend
 // - Injecting while running doesn't load the config
+// - END does not actually stop the login wait at character select -- likely need to handle it in a react in the charselectwait state
 
 static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 {

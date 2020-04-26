@@ -32,12 +32,28 @@ void DoLoginPulse();
 // From MQ2Overlay.cpp
 bool OverlayWndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, bool fromLogin);
 
-void InitializeLoginDetours();
-
 static uintptr_t __FreeLibrary = 0;
 static bool gbDetoursInstalled = false;
+static bool gbWindowsMapped = false;
 static bool gbWaitingForFrontend = false;
 static bool gbInFrontend = false;
+
+static std::unordered_map<std::string, CXWnd*> gEQMainWindowMap;
+void InitializeLoginWindows();
+
+//----------------------------------------------------------------------------
+// Exposed functions
+
+CXWnd* FindEQMainWindow(const char* Name)
+{
+	const auto& pWnd = gEQMainWindowMap.find(Name);
+	if (pWnd != gEQMainWindowMap.cend())
+	{
+		return pWnd->second;
+	}
+
+	return nullptr;
+}
 
 //----------------------------------------------------------------------------
 // Login Pulse detour
@@ -99,10 +115,12 @@ public:
 			pWndMgr = EQMain__CXWndManager;
 			pSidlMgr = EQMain__CSidlManager;
 
+			// Since we have ensured that we have window and sidl managers, load the pre-charselect windows
+			InitializeLoginWindows();
+
 			// Signal to others that we are loaded properly.
 			// Note: this is not really the proper way to do this since this isn't a game state, but autologin
 			// is the only one listening for it.
-			PluginsSetGameState(GAMESTATE_POSTFRONTLOAD);
 		}
 
 		DoLoginPulse();
@@ -220,7 +238,45 @@ void RemoveLoginDetours()
 	gbDetoursInstalled = false;
 }
 
-void TryInitializeLoginDetours()
+void RemoveLoginWindows()
+{
+	if (!gbWindowsMapped)
+		return;
+
+	gEQMainWindowMap.clear();
+
+	gbWindowsMapped = false;
+}
+
+void InitializeLoginWindows()
+{
+	if (gbWindowsMapped)
+		return;
+
+	// ensure that sidl and wnd managers are the frontend ones and exist
+	if (!gbDetoursInstalled || !gbInFrontend || pSidlMgr == nullptr || pWndMgr == nullptr)
+	{
+		RemoveLoginWindows();
+		return;
+	}
+
+	gEQMainWindowMap.clear();
+
+	auto xmlDataManager = pSidlMgr->GetParamManager();
+	for (auto pWnd : pWndMgr->pWindows)
+	{
+		if (!pWnd)
+			continue;
+
+		auto pXMLData = pWnd->GetXMLData(xmlDataManager);
+		if (pXMLData && !pXMLData->Name.empty())
+			gEQMainWindowMap[pXMLData->Name.c_str()] = pWnd;
+	}
+
+	gbWindowsMapped = true;
+}
+
+void TryInitializeLogin()
 {
 	// leave if the dll isn't loaded
 	if (!*ghEQMainInstance)
@@ -252,7 +308,7 @@ void TryInitializeLoginDetours()
 	}
 }
 
-void TryRemoveLoginDetours()
+void TryRemoveLogin()
 {
 	if (gbInFrontend)
 	{
@@ -264,6 +320,7 @@ void TryRemoveLoginDetours()
 		DeveloperTools_CloseLoginFrontend();
 
 		RemoveLoginDetours();
+		RemoveLoginWindows();
 		CleanupEQMainOffsets();
 	}
 }
@@ -281,7 +338,7 @@ int LoadFrontEnd_Detour()
 	int ret = LoadFrontEnd_Trampoline();
 	if (ret)
 	{
-		TryInitializeLoginDetours();
+		TryInitializeLogin();
 	}
 
 	return ret;
@@ -292,7 +349,7 @@ int LoadFrontEnd_Detour()
 DETOUR_TRAMPOLINE_EMPTY(int FlushDxKeyboard_Trampoline());
 int FlushDxKeyboard_Detour()
 {
-	TryRemoveLoginDetours();
+	TryRemoveLogin();
 	return FlushDxKeyboard_Trampoline();
 }
 
@@ -305,7 +362,7 @@ void InitializeLoginFrontend()
 
 	// Try to initialize login detours. This will succeed is eqmain.dll is already loaded. If it isn't,
 	// well try again in LoadFrontend_Detour(), which is called when eqmain.dll is actually loaded.
-	TryInitializeLoginDetours();
+	TryInitializeLogin();
 }
 
 void ShutdownLoginFrontend()
