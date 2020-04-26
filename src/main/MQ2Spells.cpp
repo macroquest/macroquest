@@ -21,18 +21,18 @@ ci_unordered::multimap<EQ_Spell*> s_spellNameMap;
 std::map<int, int> s_triggeredSpells;
 std::recursive_mutex s_initializeSpellsMutex;
 
-static void InitializeSpells();
-static void ShutdownSpells();
-static void PulseSpells();
+static void Spells_Initialize();
+static void Spells_Shutdown();
+static void Spells_Pulse();
 
-static MQModule gSpellsModule = {
+static MQModule s_spellsModule = {
 	"Spells",                      // Name
 	false,                         // CanUnload
-	InitializeSpells,
-	ShutdownSpells,
-	PulseSpells
+	Spells_Initialize,
+	Spells_Shutdown,
+	Spells_Pulse
 };
-MQModule* GetSpellsModule() { return &gSpellsModule; }
+DECLARE_MODULE_INITIALIZER(s_spellsModule);
 
 
 EQ_Spell* GetHighestLearnedSpellByGroupID(int dwSpellGroupID)
@@ -3338,17 +3338,17 @@ static void SpellsDebugPanel()
 
 //============================================================================
 
-static void InitializeSpells()
+static void Spells_Initialize()
 {
 	AddDebugPanel("Spells/Buffs", SpellsDebugPanel);
 }
 
-static void ShutdownSpells()
+static void Spells_Shutdown()
 {
 	RemoveDebugPanel("Spells/Buffs");
 }
 
-static void PulseSpells()
+static void Spells_Pulse()
 {
 }
 

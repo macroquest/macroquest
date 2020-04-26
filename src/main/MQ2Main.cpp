@@ -58,9 +58,6 @@ void ShutdownLoginFrontend();
 // From MQ2PluginHandler.cpp
 void ShutdownInternalModules();
 
-MQModule* GetSpellsModule();
-MQModule* GetImGuiAPIModule();
-
 DWORD WINAPI MQ2Start(void* lpParameter);
 HANDLE hMQ2StartThread = nullptr;
 DWORD dwMainThreadId = 0;
@@ -764,19 +761,17 @@ bool MQ2Initialize()
 
 	// from now on MQ2Ic is not optional.
 	LoadMQ2Plugin("mq2ic");
-
 	if (ghmq2ic = GetModuleHandle("mq2ic.dll"))
 		InitializeMQ2IcExports();
 
-	InitializeMQ2Benchmarks();
-	InitializeParser();
 	InitializeDisplayHook();
 	InitializeChatHook();
-	InitializeMQ2Spawns();
-	InitializeMQ2Pulse();
 	InitializeLoginFrontend();
-	AddInternalModule(GetSpellsModule());
-	AddInternalModule(GetImGuiAPIModule());
+	InitializeMQ2Pulse();
+	InitializeInternalModules();
+
+	InitializeParser();
+	InitializeMQ2Benchmarks();
 
 	// We will wait for pulse from the game to init on main thread.
 	g_hLoadComplete.wait();
@@ -791,7 +786,6 @@ void MQ2Shutdown()
 	DebugTry(ShutdownCachedBuffs());
 	DebugTry(ShutdownInternalModules());
 	DebugTry(ShutdownMQ2KeyBinds());
-	DebugTry(ShutdownMQ2Spawns());
 	DebugTry(ShutdownDisplayHook());
 	DebugTry(ShutdownMQ2DInput());
 	DebugTry(ShutdownChatHook());

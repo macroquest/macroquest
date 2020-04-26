@@ -36,24 +36,24 @@ extern bool gbToggleConsoleRequested;
 imgui::ImGuiTreePanelWindow gSettingsWindow("MacroQuest Settings");
 imgui::ImGuiTreePanelWindow gDebugWindow("MacroQuest Debug Tools");
 
-static void InitializeMQ2ImGuiAPI();
-static void ShutdownMQ2ImGuiAPI();
-static void PulseMQ2ImGuiAPI();
-static void UpdateOverlayUI();
-static DWORD WriteChatColorImGuiAPI(const char* line, DWORD color, DWORD filter);
+static void ImGuiAPI_Initialize();
+static void ImGuiAPI_Shutdown();
+static void ImGuiAPI_Pulse();
+static void ImGuiAPI_UpdateImGui();
+static DWORD ImGuiAPI_WriteChatColor(const char* line, DWORD color, DWORD filter);
 
-static MQModule gImGuiModule = {
+static MQModule s_developerToolsModule = {
 	"ImGuiAPI",                   // Name
 	false,                        // CanUnload
-	InitializeMQ2ImGuiAPI,        // Initialize
-	ShutdownMQ2ImGuiAPI,          // Shutdown
-	PulseMQ2ImGuiAPI,             // Pulse
+	ImGuiAPI_Initialize,          // Initialize
+	ImGuiAPI_Shutdown,            // Shutdown
+	ImGuiAPI_Pulse,               // Pulse
 	nullptr,                      // SetGameState
-	UpdateOverlayUI,              // UpdateImGui
+	ImGuiAPI_UpdateImGui,         // UpdateImGui
 	nullptr,                      // Zoned
-	WriteChatColorImGuiAPI,       // WriteChatColor
+	ImGuiAPI_WriteChatColor,      // WriteChatColor
 };
-MQModule* GetImGuiAPIModule() { return &gImGuiModule; }
+DECLARE_MODULE_INITIALIZER(s_developerToolsModule);
 
 //----------------------------------------------------------------------------
 
@@ -778,7 +778,7 @@ static void MakeColorGradient(float frequency1, float frequency2, float frequenc
 	}
 }
 
-void UpdateOverlayUI()
+void ImGuiAPI_UpdateImGui()
 {
 	// Initialize dockspace first so other windows can utilize it.+
 	DrawDockSpace();
@@ -979,14 +979,14 @@ static ImU32 GetColorForChatColor(DWORD chatColor)
 	}
 }
 
-static DWORD WriteChatColorImGuiAPI(const char* line, DWORD color, DWORD filter)
+static DWORD ImGuiAPI_WriteChatColor(const char* line, DWORD color, DWORD filter)
 {
 	ImU32 col = GetColorForChatColor(color);
 	gImGuiConsole.AddWriteChatColorLog(line, col, true);
 	return 0;
 }
 
-static void InitializeMQ2ImGuiAPI()
+static void ImGuiAPI_Initialize()
 {
 	// Init settings
 	gbShowDemoWindow = GetPrivateProfileBool("MacroQuest", "ShowDemoWindow", gbShowDemoWindow, mq::internal_paths::MQini);
@@ -1006,7 +1006,7 @@ static void InitializeMQ2ImGuiAPI()
 	AddCascadeMenuItem("ImGui Demo", []() { gbShowDemoWindow = true; });
 }
 
-static void ShutdownMQ2ImGuiAPI()
+static void ImGuiAPI_Shutdown()
 {
 	RemoveMQ2KeyBind("TOGGLE_IMGUI_OVERLAY");
 
@@ -1014,7 +1014,7 @@ static void ShutdownMQ2ImGuiAPI()
 	RemoveRenderCallbacks(gRenderCallbacksId);
 }
 
-static void PulseMQ2ImGuiAPI()
+static void ImGuiAPI_Pulse()
 {
 	static bool bShowDebugWindowLast = gbShowDebugWindow;
 	if (bShowDebugWindowLast != gbShowDebugWindow)

@@ -17,12 +17,25 @@
 
 namespace mq {
 
+static void Spawns_Initialize();
+static void Spawns_Shutdown();
+static void Spawns_Pulse();
+
+static MQModule s_spawnsModule = {
+	"Spawns",                       // Name
+	false,                          // CanUnload
+	Spawns_Initialize,              // Initialize
+	Spawns_Shutdown,                // Shutdown
+	Spawns_Pulse,                   // Pulse
+};
+DECLARE_MODULE_INITIALIZER(s_spawnsModule);
+
 #pragma region Caption Colors
 //----------------------------------------------------------------------------
 // caption color code
 //----------------------------------------------------------------------------
 
-static SPAWNINFO* pNamingSpawn = nullptr;
+	static SPAWNINFO* pNamingSpawn = nullptr;
 
 static int gMaxSpawnCaptions = 35;
 static bool gMQCaptions = true;
@@ -54,8 +67,6 @@ static bool dataNamingSpawn(const char* szIndex, MQTypeVar& Ret)
 	}
 	return false;
 }
-
-
 enum eCaptionColor
 {
 	CC_PC = 0,
@@ -781,6 +792,16 @@ static void ProcessPendingGroundItems()
 
 #pragma endregion
 
+bool IsTargetable(SPAWNINFO* pSpawn)
+{
+	return pSpawn && ((PlayerBase*)pSpawn)->IsTargetable();
+}
+
+bool AreNameSpritesCustomized()
+{
+	return gMQCaptions;
+}
+
 static void UpdateMQ2SpawnSort()
 {
 	EnterMQ2Benchmark(bmUpdateSpawnSort);
@@ -830,7 +851,9 @@ static void UpdateMQ2SpawnSort()
 	}
 }
 
-void InitializeMQ2Spawns()
+//----------------------------------------------------------------------------
+
+static void Spawns_Initialize()
 {
 	DebugSpew("Initializing Spawn-related Hooks");
 
@@ -897,7 +920,7 @@ void InitializeMQ2Spawns()
 	AddCommand("/captioncolor", CaptionColorCmd, true, false);
 }
 
-void ShutdownMQ2Spawns()
+static void Spawns_Shutdown()
 {
 	DebugSpew("Shutting Down Spawn-related Hooks");
 
@@ -934,24 +957,13 @@ void ShutdownMQ2Spawns()
 	RemoveMQ2Benchmark(bmUpdateSpawnCaptions);
 }
 
-void PulseMQ2Spawns()
+static void Spawns_Pulse()
 {
 	if (gGameState != GAMESTATE_INGAME)
 		return;
 
 	UpdateMQ2SpawnSort();
 	ProcessPendingGroundItems();
-
-}
-
-bool IsTargetable(SPAWNINFO* pSpawn)
-{
-	return pSpawn && ((PlayerBase*)pSpawn)->IsTargetable();
-}
-
-bool AreNameSpritesCustomized()
-{
-	return gMQCaptions;
 }
 
 } // namespace mq

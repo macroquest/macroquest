@@ -85,9 +85,6 @@ MQLIB_API void RemoveMQ2Benchmark(uint32_t BMHandle);
 MQLIB_API uint32_t AddMQ2Benchmark(const char* Name);
 
 /* SPAWN HANDLING */
-MQLIB_API void InitializeMQ2Spawns();
-MQLIB_API void ShutdownMQ2Spawns();
-MQLIB_API void PulseMQ2Spawns();
 MQLIB_API bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show);
 MQLIB_API bool IsTargetable(SPAWNINFO* pSpawn);
 MQLIB_API bool AreNameSpritesCustomized();
