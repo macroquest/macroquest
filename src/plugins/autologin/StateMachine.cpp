@@ -19,190 +19,6 @@
 #include <regex>
 #include <TlHelp32.h>
 
-#pragma region client_data
-
-struct DateStruct
-{
-/*0x18*/ char      Hours;
-/*0x19*/ char      Minutes;
-/*0x1a*/ char      Seconds;
-/*0x1b*/ char      Month;
-/*0x1c*/ char      Day;
-/*0x1e*/ WORD      Year;
-/*0x20*/ CXStr     Unknown0x08;
-/*0x24*/ CXStr     Unknown0x0c;
-/*0x28*/ CXStr     Unknown0x10;
-/*0x30*/ int64_t   TimeStamp;
-/*0x38*/
-};
-
-enum eServerStatus : uint32_t
-{
-	eServerStatus_Down = 1,
-	eServerStatus_Locked = 4
-};
-
-// EQClientServerData
-struct SERVERINFO
-{
-/*0x00*/ int           ID;
-/*0x04*/ CXStr         ServerName;
-/*0x08*/ CXStr         HostName;
-/*0x0C*/ CXStr         ServerIP;
-/*0x10*/ int           ExternalPort;
-/*0x14*/ int           InternalPort;
-/*0x18*/ DateStruct    DateCreated;
-/*0x38*/ int           Flags;
-/*0x3C*/ int           ServerType;
-/*0x40*/ CXStr         LanguageCode;
-/*0x44*/ CXStr         CountryCode;
-/*0x48*/ eServerStatus StatusFlags;
-/*0x4C*/ int           PopulationRanking;
-/*0x50*/
-};
-
-struct SERVERLIST
-{
-/*0x00*/ SERVERINFO* Info;
-/*0x04*/ SERVERLIST* Prev;
-/*0x08*/ SERVERLIST* Next;
-/*0x0C*/ DWORD     Unknown0x0C;
-/*0x10*/ DWORD     Unknown0x10;
-/*0x14*/ DWORD     Unknown0x14;
-/*0x18*/
-};
-
-// LoginClient
-struct SERVERSTUFF
-{
-/*0x000*/ BYTE     Unknown0x000[0x8];
-/*0x008*/ void*    GFXENGINE;
-/*0x00C*/ BYTE     Unknown0x00C[0x9C];
-/*0x0A8*/ DWORD    CurrentServerID;
-/*0x0AC*/ DWORD    Unknown0x0AC;
-/*0x0B0*/ CXStr    LoginName;
-/*0x0B4*/ CXStr    Password;
-/*0x0B8*/ CXStr    LoginNameCopy;
-/*0x0BC*/ CXStr    PasswordCopy;
-/*0x0C0*/ CXStr    AccountKey;
-/*0x0C4*/ BYTE     Unknown0x0C4[0x14];
-/*0x0D8*/ SERVERINFO** FirstServer;
-/*0x0DC*/ SERVERINFO** LastServer;
-/*0x0E0*/ BYTE     Unknown0x0E0[0x8];
-/*0x0E8*/ SERVERLIST* pServerList;
-/*0x0EC*/ DWORD    ServerListSize;
-/*0x0F0*/ BYTE     Unknown0x0F0[0x8];
-/*0x0F8*/ DWORD    QuickConnectServerID;
-/*0x0FC*/ CXStr    QuickConnectServerName;
-/*0x100*/ CXStr    QuickConnectIPAddress;
-/*0x104*/
-};
-
-struct HOST
-{
-	CXStr* Name;
-	int Port;
-};
-
-struct EQDEVICE
-{
-	char Name[0x40];
-};
-
-struct EQLOGIN
-{
-	EQDEVICE  Devices[0x10];
-	int       NumDevices;
-	HWND      hEQWnd;
-	int       ReturnCode; // -1 = failed login
-	char      Login[0x80];
-	char      PW[0x80];
-	char      PW2[0x80];
-	char      ServerLong[0x80];
-	int       ServerPort;
-	char      AccountKey[0x80];
-	int       ActiveDeviceIndex;
-	char      LastZoneEntered[0x20];
-	char      StationName[0x20];
-	char      ExeName[0x20];
-	char      CommandLine[0x1c0];
-	char      ServerShort[0x80];
-	char      Session[0x40];
-	char      Character[0x40];
-	// more below I don't need atm
-};
-
-// work in progress to get short servername... -eqmule
-class LoginClient// : public A_Callback?, public ChannelServerHandler?
-{
-public:
-	void*     A_Callback_vfTable;
-	void*     ChannelServerHandler_vfTable;
-	EQLOGIN*  pLoginData;
-	DoublyLinkedList<HOST*> Hosts;
-	HOST*     pHost;
-	bool      bRetryConnect;
-	// more below don't need right now
-};
-
-DWORD dwSendLMouseClickAddr = 0;
-DWORD dwEnterGameAddr = 0;
-
-class CLoginViewManager
-{
-public:
-	int SendLMouseClick(CXPoint&);
-};
-FUNCTION_AT_VARIABLE_ADDRESS(int CLoginViewManager::SendLMouseClick(CXPoint&), dwSendLMouseClickAddr);
-
-class LoginServerAPI
-{
-public:
-	//see 100129F0 in eqmain.dll dated jul 13 2017 - eqmule
-	unsigned int JoinServer(int serverID, void* userdata = 0, int timoutseconds = 10);
-};
-FUNCTION_AT_VARIABLE_ADDRESS(unsigned int LoginServerAPI::JoinServer(int, void*, int), dwEnterGameAddr);
-
-CLoginViewManager* pLoginViewManager = nullptr;
-ForeignPointer<SERVERSTUFF> pServerInfo;
-ForeignPointer<LoginServerAPI> pLoginServerAPI;
-
-//----------------------------------------------------------------------------
-// eqmain.dll
-
-// A3 ? ? ? ? E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 8B 96 ? ? ? ? 52 57 8B C8 E8 ? ? ? ? EB ?
-// Feb 16 2018 Test
-// A3 ? ? ? ? E8 ? ? ? ? 83 C4 04 85 C0
-// LoginViewManager* pLoginViewManager
-PBYTE lvmPattern = (PBYTE)"\xA3\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x83\xC4\x04\x85\xC0";
-char lvmMask[] = "x????x????xxxxx";
-
-// 55 8B EC 6A ? 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC ? 53 56 57 A1 ? ? ? ? 33 C5 50 8D 45 ? 64 A3 ? ? ? ? 8B F1 83 7E ? ?
-// Feb 16 2018 Test
-// 55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 08 53 56 57 A1 ? ? ? ? 33 C5 50 8D 45 F4 64 A3 ? ? ? ? 8B F1 83 7E 14 00 74 5D 51 8B CC 89 65 F0 68 ? ? ? ? E8 ? ? ? ? 51 8B CC 89 65 EC 68 ? ? ? ? C7 45 ? ? ? ? ? E8 ? ? ? ? 8B 4E 14 C6 45 FC 01 E8 ? ? ? ? 8B F8 51 8B DC 8B 0F 85 C9 74 09 51 E8 ? ? ? ? 83 C4 04 8B 07 8B CE 89 03 C7 45 ? ? ? ? ? E8 ? ? ? ? 84 C0 75 17 8B 4E 1C 8B 7D 08 85 C9 74 26 8B 01 57 FF 90 ? ? ? ? 85 C0 74 29 B8 ? ? ? ? 8B 4D F4 64 89 0D ? ? ? ? 59 5F 5E 5B 8B E5 5D C2 04 00 8B 4E 14 85 C9 74 09 8B 01 57 FF 90 ? ? ? ? 8B 0D ? ? ? ? 57 E8 ? ? ? ? 8B 4D F4 64 89 0D ? ? ? ? 59 5F 5E 5B 8B E5 5D C2 04 00
-PBYTE lmousePattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x08\x53\x56\x57\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xF1\x83\x7E\x14\x00\x74\x5D\x51\x8B\xCC\x89\x65\xF0\x68\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x51\x8B\xCC\x89\x65\xEC\x68\x00\x00\x00\x00\xC7\x45\x00\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x8B\x4E\x14\xC6\x45\xFC\x01\xE8\x00\x00\x00\x00\x8B\xF8\x51\x8B\xDC\x8B\x0F\x85\xC9\x74\x09\x51\xE8\x00\x00\x00\x00\x83\xC4\x04\x8B\x07\x8B\xCE\x89\x03\xC7\x45\x00\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x84\xC0\x75\x17\x8B\x4E\x1C\x8B\x7D\x08\x85\xC9\x74\x26\x8B\x01\x57\xFF\x90\x00\x00\x00\x00\x85\xC0\x74\x29\xB8\x00\x00\x00\x00\x8B\x4D\xF4\x64\x89\x0D\x00\x00\x00\x00\x59\x5F\x5E\x5B\x8B\xE5\x5D\xC2\x04\x00\x8B\x4E\x14\x85\xC9\x74\x09\x8B\x01\x57\xFF\x90\x00\x00\x00\x00\x8B\x0D\x00\x00\x00\x00\x57\xE8\x00\x00\x00\x00\x8B\x4D\xF4\x64\x89\x0D\x00\x00\x00\x00\x59\x5F\x5E\x5B\x8B\xE5\x5D\xC2\x04\x00";
-char lmouseMask[] = "xxxxxx????xx????xxxxxxxx????xxxxxxxx????xxxxxxxxxxxxxxx????x????xxxxxxx????xx?????x????xxxxxxxx????xxxxxxxxxxxxx????xxxxxxxxxxx?????x????xxxxxxxxxxxxxxxxxxx????xxxxx????xxxxxx????xxxxxxxxxxxxxxxxxxxxxx????xx????xx????xxxxxx????xxxxxxxxxx";
-
-// A3 ? ? ? ? 8B 56 ? 8B 4A ? 6A ? 51 52 8B C8 C7 45 ? ? ? ? ? E8 ? ? ? ?
-// Feb 16 2018 Test
-// IDA Style Sig: 89 0D ? ? ? ? 8B 46 2C
-// LoginServerAPI
-const uint8_t* LoginServerAPI_Pattern = (PBYTE)"\x89\x0D\x00\x00\x00\x00\x8B\x46\x2C";
-const char LoginServerAPI_Mask[] = "xx????xxx";
-
-// 55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 34 53 56 A1 ? ? ? ? 33 C5 50 8D 45 F4 64 A3 ? ? ? ? 8B F1 33 DB C7 45 ? ? ? ? ? C7 45 ? ? ? ? ? 89 5D EC 89 5D E8 8D 45 E0 50 89 5D FC E8 ? ? ? ? 8D 4D F0 51 E8 ? ? ? ? 83 C4 08 8D 4D C0 E8 ? ? ? ? 8B 45 E4 8B 55 08 50 8D 4D D8 C6 45 FC 01 89 55 D4 E8 ? ? ? ? 8B 4D F0 8B 55 10 8B 45 0C 52 89 4D DC 50 8D 4D C0 51 8B CE E8 ? ? ? ? 8D 4D C0 8B F0 88 5D FC E8 ? ? ? ? C7 45 ? ? ? ? ? C7 45 ? ? ? ? ? 39 5D EC 7E 20 8B 45 E4 83 C0 FC 8B D0 83 C9 FF F0 0F C1 0A 49 85 C9 7F 0C 8B 55 E0 50 8B 42 08 8D 4D E0 FF D0 8B C6 8B 4D F4 64 89 0D ? ? ? ? 59 5E 5B 8B E5 5D C2 0C ?
-//55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 34 53 56 A1
-//Feb 16 2018 Test
-//IDA Style Sig: 55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 34 56
-// 0x55 0x8B 0xEC 0x6A 0xFF 0x68 ? ? ? ? 0x64 0xA1 ? ? ? ? 0x50 0x83 0xEC 0x34 0x56
-// 55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 ?? ?? ?? ?? 50 83 EC 3C 56
-PBYTE lcEGPattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x3C\x56";
-char lcEGMask[] = "xxxxxx????xx????xxxxx";
-
-//----------------------------------------------------------------------------
-
-#pragma endregion
-
 // TODO:
 // - Crashes when going back sometimes due to CXWnd lookups, tighten this up some
 // - Figure out how to tie this into the backend
@@ -364,7 +180,6 @@ static std::optional<ProfileRecord> UseSessions(CEditWnd* pEditWnd)
 }
 
 class Wait;
-class LoadOffsets;
 class SplashScreen;
 class Connect;
 class ConnectConfirm;
@@ -387,20 +202,18 @@ public:
 
 	void react(LoginStateSensor const& e) override
 	{
-		if (!m_offsetsLoaded && GetModuleHandle("eqmain.dll"))
+		if (GetGameState() == GAMESTATE_PRECHARSELECT && !g_pServerInfo)
 		{
-			transit<LoadOffsets>();
+			// do nothing at precharselect if we don't have offsets
+			transit<Wait>();
 		}
-		else if (m_offsetsLoaded && !m_paused && (e.State != m_lastState || m_delayTime < MQGetTickCount64()))
+		else if (!m_paused && (e.State != m_lastState || m_delayTime < MQGetTickCount64()))
 		{
 			// we only want to actually delay in this state if there is no transition
 			m_currentWindow = e.Window;
 
 			switch (e.State)
 			{
-			case LoginState::LoadOffsets:
-				transit<LoadOffsets>();
-				break;
 			case LoginState::SplashScreen:
 				transit<SplashScreen>();
 				break;
@@ -464,55 +277,12 @@ public:
 	}
 };
 
-class LoadOffsets : public Login
-{
-public:
-	void entry() override
-	{
-		DWORD eqmain_base = *(DWORD*)__heqmain;
-		if (!eqmain_base)
-		{
-			m_paused = true;
-		}
-		else
-		{
-			uint32_t login_client = FindPattern(eqmain_base, 0x100000, LoginServerAPI_Pattern, LoginServerAPI_Mask);
-			uint32_t enter_game = FindPattern(eqmain_base, 0x200000, lcEGPattern, lcEGMask);
-			uint32_t mouse_click = FindPattern(eqmain_base, 0x100000, lmousePattern, lmouseMask);
-			uint32_t login_manager = FindPattern(eqmain_base, 0x200000, lvmPattern, lvmMask);
-
-			if (login_client != 0 && enter_game != 0 && mouse_click != 0 && login_manager != 0)
-			{
-				pLoginServerAPI = GetDWordAt(login_client, 2);
-				dwEnterGameAddr = enter_game;
-				dwSendLMouseClickAddr = mouse_click;
-				login_manager = GetDWordAt(login_manager, 1);
-				pServerInfo = login_manager - 4;
-				pLoginViewManager = reinterpret_cast<CLoginViewManager*>(*(DWORD*)login_manager);
-				m_offsetsLoaded = true;
-			}
-			else
-			{
-				AutoLoginDebug(fmt::format("Could not find {}{}{}{}from pattern(s)",
-					login_client == 0 ? "login_client " : "",
-					enter_game == 0 ? "enter_game " : "",
-					mouse_click == 0 ? "mouse_click " : "",
-					login_manager == 0 ? "login_manager " : ""));
-
-				m_paused = true;
-			}
-		}
-
-		transit<Wait>();
-	}
-};
-
 class SplashScreen : public Login
 {
 public:
 	void entry() override
 	{
-		pLoginViewManager->SendLMouseClick(CXPoint(1, 1));
+		g_pLoginViewManager->SendLMouseClick(CXPoint(1, 1));
 		transit<Wait>();
 	}
 };
@@ -627,9 +397,9 @@ public:
 			return nullptr;
 
 		auto server_list = GetChildWindow<CListWnd>("serverselect", "SERVERSELECT_ServerList");
-		if (server_list && !server_list->ItemsArray.IsEmpty() && pServerInfo && pServerInfo->pServerList && pServerInfo->pServerList->Info)
+		if (server_list && !server_list->ItemsArray.IsEmpty() && g_pServerInfo && g_pServerInfo->pServerList && g_pServerInfo->pServerList->Info)
 		{
-			auto pList = pServerInfo->pServerList;
+			auto pList = g_pServerInfo->pServerList;
 			while (pList)
 			{
 				if (predicate(pList))
@@ -678,7 +448,7 @@ public:
 			{
 				action();
 				// join server (both server and Info are already guaranteed to be non-null)
-				pLoginServerAPI->JoinServer(server->Info->ID);
+				g_pLoginServerAPI->EnterGame(server->Info->ID);
 				return false;
 			}
 		}
@@ -911,7 +681,7 @@ CXWnd* Login::m_currentWindow = nullptr;
 bool Login::m_paused = false;
 bool Login::m_offsetsLoaded = false;
 uint64_t Login::m_delayTime = 0;
-LoginState Login::m_lastState = LoginState::LoadOffsets;
+LoginState Login::m_lastState = LoginState::InGame;
 
 FSM_INITIAL_STATE(Login, Wait)
 

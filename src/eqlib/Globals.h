@@ -1250,8 +1250,16 @@ EQLIB_VAR DWORD LoginController__GiveTime;
 EQLIB_VAR DWORD LoginController__ProcessKeyboardEvents;
 EQLIB_VAR DWORD LoginController__ProcessMouseEvents;
 EQLIB_VAR DWORD pinstLoginController;
+EQLIB_VAR DWORD EQMain__LoginServerAPI;
+EQLIB_VAR DWORD LoginServerAPI__EnterGame;
+EQLIB_VAR DWORD EQMain__CLoginViewManager;
+EQLIB_VAR DWORD CLoginViewManager__SendLMouseClick;
+EQLIB_VAR DWORD pinstServerInfo;
 
 EQLIB_VAR ForeignPointer<LoginController> g_pLoginController;
+EQLIB_VAR ForeignPointer<LoginServerAPI> g_pLoginServerAPI;
+EQLIB_VAR ForeignPointer<CLoginViewManager> g_pLoginViewManager;
+EQLIB_VAR ForeignPointer<SERVERSTUFF> g_pServerInfo;
 
 //----------------------------------------------------------------------------
 // Global Functions

@@ -1475,6 +1475,37 @@ DWORD           EQMain__CEQSuiteTextureLoader__GetTexture = 0;
 DWORD           pinstLoginController = 0;
 ForeignPointer<LoginController> g_pLoginController;
 
+// LoginServerAPI
+// IDA Style Sig: 89 0D ? ? ? ? 8B 46 2C
+static uint8_t* EQMain__LoginServerAPI_pattern = (PBYTE)"\x89\x0D\x00\x00\x00\x00\x8B\x46\x2C";
+static char     EQMain__LoginServerAPI_mask[] = "xx????xxx";
+DWORD           EQMain__LoginServerAPI = 0;
+ForeignPointer<LoginServerAPI> g_pLoginServerAPI;
+
+// LoginServerAPI::EnterGame
+// 55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 ?? ?? ?? ?? 50 83 EC 3C 56
+static uint8_t* LoginServerAPI__EnterGame_pattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x3C\x56";
+static char     LoginServerAPI__EnterGame_mask[] = "xxxxxx????xx????xxxxx";
+DWORD           LoginServerAPI__EnterGame = 0;
+FUNCTION_AT_VARIABLE_ADDRESS(unsigned int LoginServerAPI::EnterGame(int, void*, int), LoginServerAPI__EnterGame);
+
+// CLoginViewManager
+// A3 ? ? ? ? E8 ? ? ? ? 83 C4 04 85 C0
+static uint8_t* EQMain__CLoginViewManager_pattern = (PBYTE)"\xA3\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x83\xC4\x04\x85\xC0";
+static char     EQMain__CLoginViewManager_mask[] = "x????x????xxxxx";
+DWORD           EQMain__CLoginViewManager = 0;
+ForeignPointer<CLoginViewManager> g_pLoginViewManager;
+
+// CLoginViewManager::SendLMouseClick
+// 55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 08 53 56 57 A1 ? ? ? ? 33 C5 50 8D 45 F4 64 A3 ? ? ? ? 8B F1 83 7E 14 00 74 5D 51 8B CC 89 65 F0 68 ? ? ? ? E8 ? ? ? ? 51 8B CC 89 65 EC 68 ? ? ? ? C7 45 ? ? ? ? ? E8 ? ? ? ? 8B 4E 14 C6 45 FC 01 E8 ? ? ? ? 8B F8 51 8B DC 8B 0F 85 C9 74 09 51 E8 ? ? ? ? 83 C4 04 8B 07 8B CE 89 03 C7 45 ? ? ? ? ? E8 ? ? ? ? 84 C0 75 17 8B 4E 1C 8B 7D 08 85 C9 74 26 8B 01 57 FF 90 ? ? ? ? 85 C0 74 29 B8 ? ? ? ? 8B 4D F4 64 89 0D ? ? ? ? 59 5F 5E 5B 8B E5 5D C2 04 00 8B 4E 14 85 C9 74 09 8B 01 57 FF 90 ? ? ? ? 8B 0D ? ? ? ? 57 E8 ? ? ? ? 8B 4D F4 64 89 0D ? ? ? ? 59 5F 5E 5B 8B E5 5D C2 04 00
+static uint8_t* CLoginViewManager__SendLMouseClick_pattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x08\x53\x56\x57\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xF1\x83\x7E\x14\x00\x74\x5D\x51\x8B\xCC\x89\x65\xF0\x68\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x51\x8B\xCC\x89\x65\xEC\x68\x00\x00\x00\x00\xC7\x45\x00\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x8B\x4E\x14\xC6\x45\xFC\x01\xE8\x00\x00\x00\x00\x8B\xF8\x51\x8B\xDC\x8B\x0F\x85\xC9\x74\x09\x51\xE8\x00\x00\x00\x00\x83\xC4\x04\x8B\x07\x8B\xCE\x89\x03\xC7\x45\x00\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x84\xC0\x75\x17\x8B\x4E\x1C\x8B\x7D\x08\x85\xC9\x74\x26\x8B\x01\x57\xFF\x90\x00\x00\x00\x00\x85\xC0\x74\x29\xB8\x00\x00\x00\x00\x8B\x4D\xF4\x64\x89\x0D\x00\x00\x00\x00\x59\x5F\x5E\x5B\x8B\xE5\x5D\xC2\x04\x00\x8B\x4E\x14\x85\xC9\x74\x09\x8B\x01\x57\xFF\x90\x00\x00\x00\x00\x8B\x0D\x00\x00\x00\x00\x57\xE8\x00\x00\x00\x00\x8B\x4D\xF4\x64\x89\x0D\x00\x00\x00\x00\x59\x5F\x5E\x5B\x8B\xE5\x5D\xC2\x04\x00";
+static char     CLoginViewManager__SendLMouseClick_mask[] = "xxxxxx????xx????xxxxxxxx????xxxxxxxx????xxxxxxxxxxxxxxx????x????xxxxxxx????xx?????x????xxxxxxxx????xxxxxxxxxxxxx????xxxxxxxxxxx?????x????xxxxxxxxxxxxxxxxxxx????xxxxx????xxxxxx????xxxxxxxxxxxxxxxxxxxxxx????xx????xx????xxxxxx????xxxxxxxxxx";
+DWORD           CLoginViewManager__SendLMouseClick = 0;
+FUNCTION_AT_VARIABLE_ADDRESS(int CLoginViewManager::SendLMouseClick(CXPoint&), CLoginViewManager__SendLMouseClick);
+
+// We use CLoginViewManager to find the ServerInfo instance
+DWORD           pinstServerInfo = 0;
+ForeignPointer<SERVERSTUFF> g_pServerInfo;
 
 bool InitializeEQMainOffsets()
 {
@@ -1545,6 +1576,31 @@ bool InitializeEQMainOffsets()
 			pinstLoginController = GetDWordAt(LoginController__SwapScreenMode, 3);
 			g_pLoginController = pinstLoginController;
 		}
+
+		EQMain__LoginServerAPI = FindPattern(EQMainBaseAddress, 0x100000,
+			EQMain__LoginServerAPI_pattern, EQMain__LoginServerAPI_mask);
+
+		if (EQMain__LoginServerAPI)
+		{
+			g_pLoginServerAPI = GetDWordAt(EQMain__LoginServerAPI, 2);
+		}
+
+		LoginServerAPI__EnterGame = FindPattern(EQMainBaseAddress, 0x200000,
+			LoginServerAPI__EnterGame_pattern, LoginServerAPI__EnterGame_mask);
+
+		EQMain__CLoginViewManager = FindPattern(EQMainBaseAddress, 0x200000,
+			EQMain__CLoginViewManager_pattern, EQMain__CLoginViewManager_mask);
+
+		if (EQMain__CLoginViewManager)
+		{
+			EQMain__CLoginViewManager = GetDWordAt(EQMain__CLoginViewManager, 1);
+			pinstServerInfo = EQMain__CLoginViewManager - 4;
+			g_pLoginViewManager = EQMain__CLoginViewManager;
+			g_pServerInfo = pinstServerInfo;
+		}
+
+		CLoginViewManager__SendLMouseClick = FindPattern(EQMainBaseAddress, 0x100000,
+			CLoginViewManager__SendLMouseClick_pattern, CLoginViewManager__SendLMouseClick_mask);
 
 		return true;
 	}

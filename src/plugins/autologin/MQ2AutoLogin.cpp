@@ -314,7 +314,6 @@ PLUGIN_API void InitializePlugin()
 
 	Login::set_initial_state();
 	ReadINI();
-	Login::dispatch(LoginStateSensor(LoginState::LoadOffsets, nullptr));
 
 	AddCommand("/switchserver", Cmd_SwitchServer);
 	AddCommand("/switchcharacter", Cmd_SwitchCharacter);
@@ -528,7 +527,6 @@ static void ShowAutoLoginOverlay(bool* p_open)
 			ImGui::Text("Last State: "); ImGui::SameLine();
 			switch (Login::last_state())
 			{
-				case LoginState::LoadOffsets: ImGui::Text("LoadOffsets"); break;
 				case LoginState::SplashScreen: ImGui::Text("SplashScreen"); break;
 				case LoginState::Connect: ImGui::Text("Connect"); break;
 				case LoginState::ConnectConfirm: ImGui::Text("ConnectConfirm"); break;

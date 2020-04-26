@@ -110,7 +110,6 @@ inline T* GetActiveChildWindow(const std::string& parent, const std::string& chi
 
 enum class LoginState
 {
-	LoadOffsets,
 	SplashScreen,
 	Connect,
 	ConnectConfirm,

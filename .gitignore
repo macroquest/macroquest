@@ -36,6 +36,7 @@ ipch/
 
 .cvsignore
 .vscode/
+.ionide/
 
 # ignore ida files
 *.id?

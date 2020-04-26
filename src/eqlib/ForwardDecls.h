@@ -402,6 +402,9 @@ namespace SoeUtil
 
 // Login frontend types
 class LoginController;
+class CLoginViewManager;
+class LoginServerAPI;
+struct SERVERSTUFF;
 
 // End forward class declarations
 
