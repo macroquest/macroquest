@@ -22,44 +22,59 @@
 
 namespace mq {
 
+static void AutoInventory_Initialize();
+static void AutoInventory_Shutdown();
+static void AutoInventory_Pulse();
+
+static MQModule s_autoInventoryModule = {
+	"AutoInventory",               // Name
+	true,                          // CanUnload
+	AutoInventory_Initialize,
+	AutoInventory_Shutdown,
+	AutoInventory_Pulse,
+};
+DECLARE_MODULE_INITIALIZER(s_autoInventoryModule);
+
+
+//----------------------------------------------------------------------------
+
 static std::list<ItemGlobalIndex> gSellList;
 static std::list<ItemGlobalIndex> gDeleteList;
 static std::list<ItemGlobalIndex> gAutoBankList;
 static std::list<ItemGlobalIndex> gAutoInventoryList;
-bool gbStartAutoBanking = false;
-bool gbStartDeleting = false;
-bool gbStartSelling = false;
-bool gbAutoBankInProgress = false;
-bool gbAutoInventoryInProgress = false;
-bool gbAutoBankTradeSkillItems = false;
-bool gbCheckBoxFeatureEnabled = true;
-bool gbColorsFeatureEnabled = true;
-bool gbAutoBankCollectibleItems = false;
-bool gbAutoBankQuestItems = false;
-bool gbAutoInventoryItems = false;
-CContextMenu* AutoBankMenu = nullptr;
-CContextMenu* CheckBoxMenu = nullptr;
-int CoolCheckBoxoptionID = 0;
-int CoolColorsoptionID = 0;
-int tradeskilloptionID = 0;
-int collectibleoptionID = 0;
-int questoptionID = 0;
-int separatoroptionID = 0;
-int autoinventoryoptionID = 0;
-int OurCheckBoxMenuIndex = 0;
-int OurDefaultMenuIndex = 0;
-int OurDefaultBGItem = 0;
-int OurDefaultHelpItem = 0;
-int OurDefaultLockItem = 0;
-int OurDefaultEscapeItem = 0;
-int OurDefaultMinItem = 0;
-int OurDefaultCloseItem = 0;
-
-CTextureAnimation* pChecked = nullptr;
-CTextureAnimation* pUnChecked = nullptr;
-CButtonWnd* gAutoBankButton = nullptr;
-CButtonWnd* pNLMarkedButton = nullptr;
-CLabelWnd* pCountLabel = nullptr;
+static bool gbStartAutoBanking = false;
+static bool gbStartDeleting = false;
+static bool gbStartSelling = false;
+static bool gbAutoBankInProgress = false;
+static bool gbAutoInventoryInProgress = false;
+static bool gbAutoBankTradeSkillItems = false;
+static bool gbCheckBoxFeatureEnabled = true;
+static bool gbColorsFeatureEnabled = true;
+static bool gbAutoBankCollectibleItems = false;
+static bool gbAutoBankQuestItems = false;
+static bool gbAutoInventoryItems = false;
+static CContextMenu* AutoBankMenu = nullptr;
+static CContextMenu* CheckBoxMenu = nullptr;
+static int CoolCheckBoxoptionID = 0;
+static int CoolColorsoptionID = 0;
+static int tradeskilloptionID = 0;
+static int collectibleoptionID = 0;
+static int questoptionID = 0;
+static int separatoroptionID = 0;
+static int autoinventoryoptionID = 0;
+static int OurCheckBoxMenuIndex = 0;
+static int OurDefaultMenuIndex = 0;
+static int OurDefaultBGItem = 0;
+static int OurDefaultHelpItem = 0;
+static int OurDefaultLockItem = 0;
+static int OurDefaultEscapeItem = 0;
+static int OurDefaultMinItem = 0;
+static int OurDefaultCloseItem = 0;
+static CTextureAnimation* pChecked = nullptr;
+static CTextureAnimation* pUnChecked = nullptr;
+static CButtonWnd* gAutoBankButton = nullptr;
+static CButtonWnd* pNLMarkedButton = nullptr;
+static CLabelWnd* pCountLabel = nullptr;
 
 // BankWnd context menu items
 constexpr int ContextMenu_TradeskillItemsId = 50;
@@ -77,15 +92,16 @@ constexpr int Column_Value = 7;
 
 // TODO: We should really be using these instead of the constants above. These have the
 // dynamically assigned column ids when the columns are added.
-int MarkCol = 0;
-int ValueCol = 0;
+static int MarkCol = 0;
+static int ValueCol = 0;
+static int lastsel = -1;
+static CCheckBoxWnd* pCheck = nullptr;
+static bool bChangedNL = false;
+static ULONGLONG SellTimer = 0;
 
-int lastsel = -1;
-CCheckBoxWnd* pCheck = nullptr;
-bool bChangedNL = false;
-ULONGLONG SellTimer = 0;
+//----------------------------------------------------------------------------
 
-bool PickupItemNew(CONTENTS* pCont)
+static bool PickupItemNew(CONTENTS* pCont)
 {
 	if (pCharData && pInvSlotMgr && pCursorAttachment && pCursorAttachment->Type == eCursorAttachment_None)
 	{
@@ -1549,10 +1565,11 @@ static void AutoBankPulse()
 		gbStartAutoBanking = false;
 		WriteChatf("\ay[AutoBank Finished.]\ax");
 	}
-	}
+}
 
+//----------------------------------------------------------------------------
 
-void InitializeMQ2AutoInventory()
+static void AutoInventory_Initialize()
 {
 	EzDetour(CBankWnd__WndNotification,
 		&AutoInventory_BankWnd_Hook::WndNotification_Detour,
@@ -1565,7 +1582,7 @@ void InitializeMQ2AutoInventory()
 		&AutoInventory_FindItemWnd_Hook::Update_Trampoline);
 }
 
-void ShutdownMQ2AutoInventory()
+void AutoInventory_Shutdown()
 {
 	RemoveDetour(CFindItemWnd__WndNotification);
 	RemoveDetour(CFindItemWnd__Update);
@@ -1573,7 +1590,7 @@ void ShutdownMQ2AutoInventory()
 	RemoveAutoBankMenu();
 }
 
-void PulseMQ2AutoInventory()
+void AutoInventory_Pulse()
 {
 	if (gGameState != GAMESTATE_INGAME)
 		return;

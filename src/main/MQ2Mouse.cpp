@@ -17,6 +17,19 @@
 
 namespace mq {
 
+static void MouseHook_Initialize();
+static void MouseHook_Shutdown();
+
+static MQModule s_mouseHookModule = {
+	"MouseHook",                   // Name
+	true,                          // CanUnload
+	MouseHook_Initialize,
+	MouseHook_Shutdown,
+};
+DECLARE_MODULE_INITIALIZER(s_mouseHookModule);
+
+//----------------------------------------------------------------------------
+
 static void MouseButtonUp(DWORD x, DWORD y, char* szButton);
 
 // ***************************************************************************
@@ -78,18 +91,6 @@ public:
 };
 
 DETOUR_TRAMPOLINE_EMPTY(CActorInterface* FakeCDisplay::GetClickedActor_Tramp(int X, int Y, bool bFlag, CVector3& Vector1, CVector3& Vector2));
-
-void MQ2MouseHooks(bool bFlag)
-{
-	if (bFlag)
-	{
-		EzDetour(CDisplay__GetClickedActor, &FakeCDisplay::GetClickedActor_Detour, &FakeCDisplay::GetClickedActor_Tramp);
-	}
-	else
-	{
-		RemoveDetour(CDisplay__GetClickedActor);
-	}
-}
 
 // ***************************************************************************
 // Function: ParseMouseLoc
@@ -741,6 +742,18 @@ bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick)
 	}
 
 	return false;
+}
+
+//----------------------------------------------------------------------------
+
+static void MouseHook_Initialize()
+{
+	EzDetour(CDisplay__GetClickedActor, &FakeCDisplay::GetClickedActor_Detour, &FakeCDisplay::GetClickedActor_Tramp);
+}
+
+static void MouseHook_Shutdown()
+{
+	RemoveDetour(CDisplay__GetClickedActor);
 }
 
 } // namespace mq

@@ -17,7 +17,21 @@
 
 namespace mq {
 
+static void DisplayHook_Initialize();
+static void DisplayHook_Shutdown();
+
+static MQModule s_displayHookModule = {
+	"DisplayHook",                 // Name
+	true,                          // CanUnload
+	DisplayHook_Initialize,
+	DisplayHook_Shutdown,
+};
+DECLARE_MODULE_INITIALIZER(s_displayHookModule);
+
+//----------------------------------------------------------------------------
+
 const char* g_customCaption = "MQ2: Think of it as evolution in action.";
+static std::vector<std::string> s_oldStrings;
 
 class CDisplayHook
 {
@@ -140,9 +154,9 @@ static void Cmd_NetStatusYPos(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-static std::vector<std::string> s_oldStrings;
+//----------------------------------------------------------------------------
 
-void InitializeDisplayHook()
+static void DisplayHook_Initialize()
 {
 	DebugSpew("Initializing Display Hooks");
 
@@ -169,7 +183,7 @@ void InitializeDisplayHook()
 	AddCommand("/netstatusypos", Cmd_NetStatusYPos);
 }
 
-void ShutdownDisplayHook()
+void DisplayHook_Shutdown()
 {
 	DebugSpew("Shutting down Display Hooks");
 

@@ -139,8 +139,6 @@ MQLIB_API void CreateMQ2NewsWindow();
 MQLIB_API void DeleteMQ2NewsWindow();
 
 /* CHAT HOOK */
-MQLIB_API void InitializeChatHook();
-MQLIB_API void ShutdownChatHook();
 MQLIB_API void dsp_chat_no_events(const char* Text, int Color, bool EqLog = true, bool dopercentsubst = true);
 
 /* DETOURING API */
@@ -192,18 +190,10 @@ MQLIB_API void* GetPluginProc(const char* plugin, const char* proc);
 MQLIB_API MQPlugin* GetPlugin(std::string_view PluginName);
 MQLIB_API bool IsPluginLoaded(std::string_view PluginName);
 
-/* DIRECT INPUT */
-MQLIB_API void InitializeMQ2DInput();
-MQLIB_API void ShutdownMQ2DInput();
-
 /* CLEAN UI */
-MQLIB_API void InitializeDisplayHook();
-MQLIB_API void ShutdownDisplayHook();
 MQLIB_API void DrawHUD();
 
 /* COMMAND HANDLING */
-MQLIB_API void InitializeMQ2Commands();
-MQLIB_API void ShutdownMQ2Commands();
 MQLIB_API void AddCommand(const char* Command, fEQCommand Function, bool EQ = false, bool Parse = true, bool InGame = false);
 MQLIB_API void AddAlias(const char* ShortCommand, const char* LongCommand);
 MQLIB_API bool RemoveAlias(const char* ShortCommand);
@@ -232,16 +222,7 @@ inline char* ParseMacroParameter(SPAWNINFO* pChar, char(&szOriginal)[_Size])
 }
 
 MQLIB_API void FailIf(SPAWNINFO* pChar, const char* szCommand, int pStartLine, bool All = false);
-MQLIB_API void InitializeParser();
-MQLIB_API void ShutdownParser();
 
-namespace datatypes {
-MQLIB_API void InitializeMQ2DataTypes();
-MQLIB_API void ShutdownMQ2DataTypes();
-}
-
-MQLIB_API void InitializeMQ2Data();
-MQLIB_API void ShutdownMQ2Data();
 MQLIB_API bool ParseMacroData(char* szOriginal, size_t BufferSize);
 MQLIB_API bool AddMQ2Data(const char* szName, fMQData Function);
 MQLIB_API bool RemoveMQ2Data(const char* szName);
@@ -264,13 +245,10 @@ inline bool AddMQ2Data(const char* szName, fMQDataOld Function)
 /* MOUSE */
 MQLIB_API bool IsMouseWaiting();
 MQLIB_API bool IsMouseWaitingForButton();
-MQLIB_API void MQ2MouseHooks(bool bFlag);
 MQLIB_API bool MoveMouse(int x, int y, bool bClick = false);
 MQLIB_API bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick = false);
 
 /* KEY BINDS */
-MQLIB_API void InitializeMQ2KeyBinds();
-MQLIB_API void ShutdownMQ2KeyBinds();
 MQLIB_API bool PressMQ2KeyBind(const char* name, bool Hold);
 MQLIB_API bool SetMQ2KeyBind(const char* name, bool Alternate, KeyCombo& Combo);
 MQLIB_API bool AddMQ2KeyBind(const char* name, fMQExecuteCmd Function);
@@ -280,10 +258,6 @@ MQLIB_API bool DumpBinds(const char* Filename);
 MQLIB_API bool MQ2HandleKeyDown(const KeyCombo& Combo);
 MQLIB_API bool MQ2HandleKeyUp(const KeyCombo& Combo);
 MQLIB_API int FindMappableCommand(const char* name);
-
-/* PULSING */
-MQLIB_API void InitializeMQ2Pulse();
-MQLIB_API void ShutdownMQ2Pulse();
 
 /* UTILITIES */
 MQLIB_API void ConvertCR(char* Text, size_t LineLen);
@@ -620,8 +594,6 @@ public:
 	}
 };
 
-void InitializeCachedBuffs();
-void ShutdownCachedBuffs();
 MQLIB_OBJECT int GetCachedBuff(SPAWNINFO* pSpawn, const std::function<bool(CachedBuff)>& predicate);
 MQLIB_OBJECT int GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index);
 MQLIB_OBJECT int GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index, const std::function<bool(CachedBuff)>& predicate);
@@ -659,10 +631,6 @@ MQLIB_API DWORD CALLBACK MQ2End(void* lpParameter);
 MQLIB_API DWORD CALLBACK GetlocalPlayerOffset();
 MQLIB_API void MQ2Shutdown();
 MQLIB_API HANDLE hUnloadComplete;
-
-MQLIB_API void InitializeMQ2AutoInventory();
-MQLIB_API void ShutdownMQ2AutoInventory();
-MQLIB_API void PulseMQ2AutoInventory();
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //
@@ -710,18 +678,10 @@ constexpr int GAMESTATE_POSTFRONTLOAD  = 500;
 #define XKF_LALT                4
 #define XKF_RALT                8
 
-#define CHATMENU_NEW			42
-#define CHATMENU_ALWAYS_CHAT_HERE	43
-#define CHATMENU_RENAME			44
-#define CHATMENU_SCROLLBAR		45
-
-// DO NOT CHANGE these user message id's.
-// They must be identical between MQ2 and the
-// injector process (macroquest2.exe).
-//#define WM_USER_REGISTER_HK		(WM_USER + 1000)
-//#define WM_USER_UNREGISTER_HK	(WM_USER + 1001)
-//#define WM_USER_RESETLOADED		(WM_USER + 1002)
-//#define WM_USER_SETLOADED		(WM_USER + 1003)
+#define CHATMENU_NEW                  42
+#define CHATMENU_ALWAYS_CHAT_HERE     43
+#define CHATMENU_RENAME               44
+#define CHATMENU_SCROLLBAR            45
 
 MQLIB_API void memchecks_tramp(char*, DWORD, void*, DWORD, bool);
 MQLIB_API void memchecks(char*, DWORD, void*, DWORD, bool);
@@ -730,8 +690,6 @@ MQLIB_API bool WillFitInBank(CONTENTS* pContent);
 MQLIB_API bool WillFitInInventory(CONTENTS* pContent);
 
 /* MQ2ANONYMIZE */
-void InitializeAnonymizer();
-void ShutdownAnonymizer();
 MQLIB_API bool IsAnonymized();
 MQLIB_OBJECT CXStr Anonymize(const CXStr& Text);
 MQLIB_OBJECT CXStr& PluginAnonymize(CXStr& Text);

@@ -42,7 +42,7 @@ DECLARE_MODULE_INITIALIZER(s_spellsModule);
 static ci_unordered::multimap<EQ_Spell*> s_spellNameMap;
 static std::map<int, int> s_triggeredSpells;
 static std::recursive_mutex s_initializeSpellsMutex;
-static std::thread s_spellDBThread;
+static std::thread* s_spellDBThread = nullptr;
 static std::atomic_bool s_spellDBThreadStarted = false;               // indicates that we started to load.
 static std::atomic_bool s_spellDBThreadFinished = false;              // indicates that we finished the load.
 
@@ -127,7 +127,7 @@ static void StartAsyncSpellLoad()
 	s_spellDBThreadStarted = true;
 	s_spellDBThreadFinished = false;
 
-	s_spellDBThread = std::thread(InitializeSpellDb);
+	s_spellDBThread = new std::thread(InitializeSpellDb);
 }
 
 static bool EnsureSpellsLoaded()
@@ -139,8 +139,8 @@ static bool EnsureSpellsLoaded()
 
 	if (!s_spellDBThreadFinished)
 	{
-		if (s_spellDBThread.joinable())
-			s_spellDBThread.join();
+		if (s_spellDBThread->joinable())
+			s_spellDBThread->join();
 	}
 
 	return s_spellDBThreadFinished;
@@ -148,8 +148,13 @@ static bool EnsureSpellsLoaded()
 
 static void ResetSpellDB()
 {
-	if (s_spellDBThread.joinable())
-		s_spellDBThread.join();
+	if (s_spellDBThreadStarted)
+	{
+		if (s_spellDBThread->joinable())
+			s_spellDBThread->join();
+
+		delete s_spellDBThread;
+	}
 
 	s_spellDBThreadStarted = false;
 	s_spellDBThreadFinished = false;
@@ -3376,6 +3381,8 @@ static void Spells_Shutdown()
 
 	RemoveMQ2Benchmark(bmSpellLoad);
 	RemoveMQ2Benchmark(bmSpellAccess);
+
+	ResetSpellDB();
 }
 
 static void Spells_SetGameState(DWORD gameState)

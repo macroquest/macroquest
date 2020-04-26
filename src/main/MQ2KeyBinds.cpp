@@ -19,8 +19,18 @@
 
 namespace mq {
 
-//void InjectMQ2Binds(COptionsWnd* pWnd);
-//void EjectMQ2Binds(COptionsWnd* pWnd);
+static void KeyBinds_Initialize();
+static void KeyBinds_Shutdown();
+
+static MQModule s_keyBindsModule = {
+	"KeyBinds",                    // Name
+	true,                          // CanUnload
+	KeyBinds_Initialize,
+	KeyBinds_Shutdown,
+};
+DECLARE_MODULE_INITIALIZER(s_keyBindsModule);
+
+//----------------------------------------------------------------------------
 
 struct MQKeyBind
 {
@@ -177,27 +187,6 @@ public:
 DETOUR_TRAMPOLINE_EMPTY(void KeypressHandlerHook::ClearCommandStateArray_Trampoline());
 DETOUR_TRAMPOLINE_EMPTY(bool KeypressHandlerHook::HandleKeyDown_Trampoline(const KeyCombo&));
 DETOUR_TRAMPOLINE_EMPTY(bool KeypressHandlerHook::HandleKeyUp_Trampoline(const KeyCombo&));
-
-static void DoRangedBind(const char* Name, bool Down);
-
-void InitializeMQ2KeyBinds()
-{
-	AddMQ2KeyBind("RANGED", DoRangedBind);
-
-	EzDetour(KeypressHandler__ClearCommandStateArray, &KeypressHandlerHook::ClearCommandStateArray_Hook, &KeypressHandlerHook::ClearCommandStateArray_Trampoline);
-	EzDetour(KeypressHandler__HandleKeyDown, &KeypressHandlerHook::HandleKeyDown_Hook, &KeypressHandlerHook::HandleKeyDown_Trampoline);
-	EzDetour(KeypressHandler__HandleKeyUp, &KeypressHandlerHook::HandleKeyUp_Hook, &KeypressHandlerHook::HandleKeyUp_Trampoline);
-}
-
-void ShutdownMQ2KeyBinds()
-{
-	s_keybinds.clear();
-	s_keybindMap.clear();
-
-	RemoveDetour(KeypressHandler__ClearCommandStateArray);
-	RemoveDetour(KeypressHandler__HandleKeyDown);
-	RemoveDetour(KeypressHandler__HandleKeyUp);
-}
 
 bool AddMQ2KeyBind(const char* name, fMQExecuteCmd function)
 {
@@ -529,6 +518,24 @@ bool DumpBinds(const char* Filename)
 
 	fclose(file);
 	return true;
+}
+
+static void KeyBinds_Initialize()
+{
+	AddMQ2KeyBind("RANGED", DoRangedBind);
+
+	EzDetour(KeypressHandler__ClearCommandStateArray, &KeypressHandlerHook::ClearCommandStateArray_Hook, &KeypressHandlerHook::ClearCommandStateArray_Trampoline);
+	EzDetour(KeypressHandler__HandleKeyDown, &KeypressHandlerHook::HandleKeyDown_Hook, &KeypressHandlerHook::HandleKeyDown_Trampoline);
+	EzDetour(KeypressHandler__HandleKeyUp, &KeypressHandlerHook::HandleKeyUp_Hook, &KeypressHandlerHook::HandleKeyUp_Trampoline);
+}
+
+static void KeyBinds_Shutdown()
+{
+	RemoveMQ2KeyBind("RANGED");
+
+	RemoveDetour(KeypressHandler__ClearCommandStateArray);
+	RemoveDetour(KeypressHandler__HandleKeyDown);
+	RemoveDetour(KeypressHandler__HandleKeyUp);
 }
 
 } // namespace mq

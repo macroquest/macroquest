@@ -113,9 +113,6 @@
     <ClCompile Include="MQ2Mouse.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2ParseAPI.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MQ2PluginHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

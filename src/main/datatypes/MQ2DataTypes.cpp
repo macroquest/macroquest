@@ -30,7 +30,7 @@ MQ2CachedBuffType* pTargetBuffType DEPRECATE("Use pCachedBuffType instead.") = p
 
 //----------------------------------------------------------------------------
 // DataType Initializations
-void InitializeMQ2DataTypes()
+void InitializeDataTypes()
 {
 #define DATATYPE(Class, Var, Inherits, PersistentClass)              \
 	Var = new Class();                                               \
@@ -43,7 +43,7 @@ void InitializeMQ2DataTypes()
 
 //----------------------------------------------------------------------------
 // DataType Shutdown
-void ShutdownMQ2DataTypes()
+void ShutdownDataTypes()
 {
 #define DATATYPE(Class, Var, Inherits, PersistentClass)              \
 	delete Var;

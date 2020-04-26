@@ -1163,7 +1163,6 @@ ForeignPointer<CZoneGuideWnd>                    pZoneGuideWnd;
 ForeignPointer<DWORD>                            g_pDrawHandler;
 
 fEQNewUIINI            NewUIINI                  = nullptr;
-fEQProcGameEvts        ProcessGameEvents         = nullptr;
 fGetLabelFromEQ        GetLabelFromEQ            = nullptr;
 
 void InitializeEQGameOffsets()
@@ -1368,7 +1367,6 @@ void InitializeEQGameOffsets()
 	g_pDrawHandler                  = __DrawHandler;
 
 	NewUIINI                        = (fEQNewUIINI)__NewUIINI;
-	ProcessGameEvents               = (fEQProcGameEvts)__ProcessGameEvents;
 	GetLabelFromEQ                  = (fGetLabelFromEQ)__GetLabelFromEQ;
 }
 

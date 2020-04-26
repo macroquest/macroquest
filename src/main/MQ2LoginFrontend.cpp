@@ -23,7 +23,18 @@
 
 namespace mq {
 
-//============================================================================
+static void LoginFrontend_Initialize();
+static void LoginFrontend_Shutdown();
+
+static MQModule s_loginFrontendModule = {
+	"LoginFrontend",                  // Name
+	false,                          // CanUnload
+	LoginFrontend_Initialize,
+	LoginFrontend_Shutdown,
+};
+DECLARE_MODULE_INITIALIZER(s_loginFrontendModule);
+
+//----------------------------------------------------------------------------
 
 // From MQ2Pulse.cpp
 void DoLoginPulse();
@@ -293,7 +304,9 @@ int FlushDxKeyboard_Detour()
 	return FlushDxKeyboard_Trampoline();
 }
 
-void InitializeLoginFrontend()
+//----------------------------------------------------------------------------
+
+static void LoginFrontend_Initialize()
 {
 	EzDetour(__LoadFrontEnd, LoadFrontEnd_Detour, LoadFrontEnd_Trampoline);
 	EzDetour(__FlushDxKeyboard, FlushDxKeyboard_Detour, FlushDxKeyboard_Trampoline);
@@ -305,7 +318,7 @@ void InitializeLoginFrontend()
 	TryInitializeLoginDetours();
 }
 
-void ShutdownLoginFrontend()
+void LoginFrontend_Shutdown()
 {
 	RemoveDetour(__LoadFrontEnd);
 	RemoveDetour(__FlushDxKeyboard);

@@ -17,6 +17,23 @@
 
 namespace mq {
 
+static void DataAPI_Initialize();
+static void DataAPI_Shutdown();
+
+static MQModule s_dataAPIModule = {
+	"DataAPI",                     // Name
+	true,                          // CanUnload
+	DataAPI_Initialize,
+	DataAPI_Shutdown,
+};
+DECLARE_MODULE_INITIALIZER(s_dataAPIModule);
+
+namespace datatypes {
+	void InitializeDataTypes();
+	void ShutdownDataTypes();
+}
+//----------------------------------------------------------------------------
+
 std::unordered_map<std::string, MQ2Type*> MQ2DataTypeMap;
 std::unordered_map<std::string, std::vector<MQ2Type*>> MQ2DataExtensions;
 
@@ -368,76 +385,6 @@ bool dataType(const char* szIndex, MQTypeVar& Ret)
 	}
 
 	return false;
-}
-
-void InitializeMQ2Data()
-{
-	AddMQ2Data("AdvLoot", dataAdvLoot);
-	AddMQ2Data("Alert", dataAlert);
-	AddMQ2Data("Alias", dataAlias);
-	AddMQ2Data("AltAbility", dataAltAbility);
-	AddMQ2Data("Bool", datatypes::MQ2BoolType::dataBool);
-	AddMQ2Data("Corpse", dataCorpse);
-	AddMQ2Data("Cursor", dataCursor);
-	AddMQ2Data("Defined", dataDefined);
-	AddMQ2Data("DoorTarget", datatypes::MQ2SpawnType::dataDoorTarget);
-	AddMQ2Data("DynamicZone", dataDynamicZone);
-	AddMQ2Data("EverQuest", dataEverQuest);
-	AddMQ2Data("Familiar", dataFamiliar);
-	AddMQ2Data("FindItem", dataFindItem);
-	AddMQ2Data("FindItemBank", dataFindItemBank);
-	AddMQ2Data("FindItemBankCount", dataFindItemBankCount);
-	AddMQ2Data("FindItemCount", dataFindItemCount);
-	AddMQ2Data("Float", datatypes::MQ2FloatType::dataFloat);
-	AddMQ2Data("Friends", dataFriends);
-	AddMQ2Data("GameTime", dataGameTime);
-	AddMQ2Data("Ground", datatypes::MQ2GroundType::dataGroundItem);
-	AddMQ2Data("GroundItemCount", datatypes::MQ2GroundType::dataGroundItemCount);
-	AddMQ2Data("Group", dataGroup);
-	AddMQ2Data("Heading", dataHeading);
-	AddMQ2Data("If", dataIf);
-	AddMQ2Data("Illusion", dataIllusion);
-	AddMQ2Data("Ini", dataIni);
-	AddMQ2Data("Int", datatypes::MQ2IntType::dataInt);
-	AddMQ2Data("InvSlot", dataInvSlot);
-	AddMQ2Data("ItemTarget", datatypes::MQ2SpawnType::dataItemTarget);
-	AddMQ2Data("LastSpawn", datatypes::MQ2SpawnType::dataLastSpawn);
-	AddMQ2Data("LineOfSight", dataLineOfSight);
-	AddMQ2Data("Macro", dataMacro);
-	AddMQ2Data("MacroQuest", datatypes::MQ2MacroQuestType::dataMacroQuest);
-	AddMQ2Data("Math", dataMath);
-	AddMQ2Data("Me", datatypes::MQ2CharacterType::dataCharacter);
-	AddMQ2Data("Menu", dataMenu);
-	AddMQ2Data("Mercenary", dataMercenary);
-	AddMQ2Data("Merchant", dataMerchant);
-	AddMQ2Data("Mount", dataMount);
-	AddMQ2Data("NearestSpawn", datatypes::MQ2SpawnType::dataNearestSpawn);
-	AddMQ2Data("Pet", dataPet);
-	AddMQ2Data("Plugin", dataPlugin);
-	AddMQ2Data("PointMerchant", dataPointMerchant);
-	AddMQ2Data("Raid", dataRaid);
-	AddMQ2Data("Range", dataRange);
-	AddMQ2Data("Select", dataSelect);
-	AddMQ2Data("SelectedItem", dataSelectedItem);
-	AddMQ2Data("Skill", dataSkill);
-	AddMQ2Data("Spawn", datatypes::MQ2SpawnType::dataSpawn);
-	AddMQ2Data("SpawnCount", datatypes::MQ2SpawnType::dataSpawnCount);
-	AddMQ2Data("Spell", datatypes::MQ2SpellType::dataSpell);
-	AddMQ2Data("SubDefined", dataSubDefined);
-	AddMQ2Data("Switch", dataSwitch);
-	AddMQ2Data("Target", datatypes::MQ2TargetType::dataTarget);
-	AddMQ2Data("Task", datatypes::MQ2TaskType::dataTask);
-	AddMQ2Data("Time", dataTime);
-	AddMQ2Data("Type", dataType);
-	AddMQ2Data("Window", dataWindow);
-	AddMQ2Data("Zone", dataZone);
-}
-
-void ShutdownMQ2Data()
-{
-	std::scoped_lock lock(s_variableMutex);
-
-	MQ2DataMap.clear();
 }
 
 bool ParseMQ2DataPortion(char* szOriginal, MQTypeVar& Result)
@@ -1393,6 +1340,99 @@ bool ParseMacroData(char* szOriginal, size_t BufferSize)
 	}
 
 	return Changed;
+}
+
+char* ParseMacroParameter(PSPAWNINFO pChar, char* szOriginal, size_t BufferSize)
+{
+	CHARINFO* pCharInfo = GetCharInfo();
+	if (!pCharInfo)
+		return szOriginal;
+
+	EnterMQ2Benchmark(bmParseMacroParameter);
+
+	ParseMacroData(szOriginal, BufferSize);
+
+	ExitMQ2Benchmark(bmParseMacroParameter);
+	return (szOriginal);
+}
+
+//----------------------------------------------------------------------------
+
+void DataAPI_Initialize()
+{
+	bmParseMacroParameter = AddMQ2Benchmark("ParseMacroParameter");
+	datatypes::InitializeDataTypes();
+
+	AddMQ2Data("AdvLoot", dataAdvLoot);
+	AddMQ2Data("Alert", dataAlert);
+	AddMQ2Data("Alias", dataAlias);
+	AddMQ2Data("AltAbility", dataAltAbility);
+	AddMQ2Data("Bool", datatypes::MQ2BoolType::dataBool);
+	AddMQ2Data("Corpse", dataCorpse);
+	AddMQ2Data("Cursor", dataCursor);
+	AddMQ2Data("Defined", dataDefined);
+	AddMQ2Data("DoorTarget", datatypes::MQ2SpawnType::dataDoorTarget);
+	AddMQ2Data("DynamicZone", dataDynamicZone);
+	AddMQ2Data("EverQuest", dataEverQuest);
+	AddMQ2Data("Familiar", dataFamiliar);
+	AddMQ2Data("FindItem", dataFindItem);
+	AddMQ2Data("FindItemBank", dataFindItemBank);
+	AddMQ2Data("FindItemBankCount", dataFindItemBankCount);
+	AddMQ2Data("FindItemCount", dataFindItemCount);
+	AddMQ2Data("Float", datatypes::MQ2FloatType::dataFloat);
+	AddMQ2Data("Friends", dataFriends);
+	AddMQ2Data("GameTime", dataGameTime);
+	AddMQ2Data("Ground", datatypes::MQ2GroundType::dataGroundItem);
+	AddMQ2Data("GroundItemCount", datatypes::MQ2GroundType::dataGroundItemCount);
+	AddMQ2Data("Group", dataGroup);
+	AddMQ2Data("Heading", dataHeading);
+	AddMQ2Data("If", dataIf);
+	AddMQ2Data("Illusion", dataIllusion);
+	AddMQ2Data("Ini", dataIni);
+	AddMQ2Data("Int", datatypes::MQ2IntType::dataInt);
+	AddMQ2Data("InvSlot", dataInvSlot);
+	AddMQ2Data("ItemTarget", datatypes::MQ2SpawnType::dataItemTarget);
+	AddMQ2Data("LastSpawn", datatypes::MQ2SpawnType::dataLastSpawn);
+	AddMQ2Data("LineOfSight", dataLineOfSight);
+	AddMQ2Data("Macro", dataMacro);
+	AddMQ2Data("MacroQuest", datatypes::MQ2MacroQuestType::dataMacroQuest);
+	AddMQ2Data("Math", dataMath);
+	AddMQ2Data("Me", datatypes::MQ2CharacterType::dataCharacter);
+	AddMQ2Data("Menu", dataMenu);
+	AddMQ2Data("Mercenary", dataMercenary);
+	AddMQ2Data("Merchant", dataMerchant);
+	AddMQ2Data("Mount", dataMount);
+	AddMQ2Data("NearestSpawn", datatypes::MQ2SpawnType::dataNearestSpawn);
+	AddMQ2Data("Pet", dataPet);
+	AddMQ2Data("Plugin", dataPlugin);
+	AddMQ2Data("PointMerchant", dataPointMerchant);
+	AddMQ2Data("Raid", dataRaid);
+	AddMQ2Data("Range", dataRange);
+	AddMQ2Data("Select", dataSelect);
+	AddMQ2Data("SelectedItem", dataSelectedItem);
+	AddMQ2Data("Skill", dataSkill);
+	AddMQ2Data("Spawn", datatypes::MQ2SpawnType::dataSpawn);
+	AddMQ2Data("SpawnCount", datatypes::MQ2SpawnType::dataSpawnCount);
+	AddMQ2Data("Spell", datatypes::MQ2SpellType::dataSpell);
+	AddMQ2Data("SubDefined", dataSubDefined);
+	AddMQ2Data("Switch", dataSwitch);
+	AddMQ2Data("Target", datatypes::MQ2TargetType::dataTarget);
+	AddMQ2Data("Task", datatypes::MQ2TaskType::dataTask);
+	AddMQ2Data("Time", dataTime);
+	AddMQ2Data("Type", dataType);
+	AddMQ2Data("Window", dataWindow);
+	AddMQ2Data("Zone", dataZone);
+}
+
+void DataAPI_Shutdown()
+{
+	{
+		std::scoped_lock lock(s_variableMutex);
+		MQ2DataMap.clear();
+	}
+
+	datatypes::ShutdownDataTypes();
+	RemoveMQ2Benchmark(bmParseMacroParameter);
 }
 
 } // namespace mq

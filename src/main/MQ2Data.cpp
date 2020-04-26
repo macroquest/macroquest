@@ -193,7 +193,7 @@ bool dataMacro(const char* szIndex, MQTypeVar& Ret)
 {
 	if (gRunning)
 	{
-		Ret.Ptr = 0;
+		Ret.Ptr = nullptr;
 		Ret.Type = pMacroType;
 		return true;
 	}
@@ -203,14 +203,14 @@ bool dataMacro(const char* szIndex, MQTypeVar& Ret)
 
 bool dataEverQuest(const char* szIndex, MQTypeVar& Ret)
 {
-	Ret.Ptr = 0;
+	Ret.Ptr = nullptr;
 	Ret.Type = pEverQuestType;
 	return true;
 }
 
 bool dataMath(const char* szIndex, MQTypeVar& Ret)
 {
-	Ret.Ptr = 0;
+	Ret.Ptr = nullptr;
 	Ret.Type = pMathType;
 	return true;
 }
@@ -592,7 +592,7 @@ bool dataDefined(const char* szIndex, MQTypeVar& Ret)
 {
 	if (!szIndex[0])
 		return false;
-	Ret.DWord = (FindMQ2DataVariable(szIndex) != 0);
+	Ret.DWord = (FindMQ2DataVariable(szIndex) != nullptr);
 	Ret.Type = pBoolType;
 	return true;
 }

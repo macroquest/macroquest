@@ -24,13 +24,23 @@
 
 namespace mq {
 
+static void Pulse_Initialize();
+static void Pulse_Shutdown();
+
+static MQModule s_pulseModule = {
+	"Pulse",                       // Name
+	false,                         // CanUnload
+	Pulse_Initialize,
+	Pulse_Shutdown,
+};
+DECLARE_MODULE_INITIALIZER(s_pulseModule);
+
+//----------------------------------------------------------------------------
+
 extern NamedPipeClient gPipeClient;
 
 bool TurnNotDone = false;
 static std::recursive_mutex s_pulseMutex;
-
-std::map<int, std::string> targetBuffSlotToCasterMap;
-std::map<int, std::map<int, TargetBuff>> CachedBuffsMap;
 
 //----------------------------------------------------------------------------
 
@@ -541,9 +551,9 @@ static HeartbeatState Heartbeat()
 	gPipeClient.Process();
 
 	DebugTry(DrawHUD());
-	DebugTry(PulseMQ2AutoInventory());
 
 	bRunNextCommand = true;
+
 	DebugTry(Pulse());
 	DebugTry(Benchmark(bmPluginsPulse, DebugTry(PulsePlugins())));
 
@@ -756,14 +766,15 @@ public:
 DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::SetGameState_Trampoline(DWORD));
 DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline());
 
-void InitializeMQ2Pulse()
+//----------------------------------------------------------------------------
+
+void Pulse_Initialize()
 {
 	DebugSpew("Initializing Pulse");
 
 	std::scoped_lock lock(s_pulseMutex);
 
-	//EzDetour(__GameLoop, GameLoop_Detour, GameLoop_Tramp);
-	EzDetour(ProcessGameEvents, Detour_ProcessGameEvents, Trampoline_ProcessGameEvents);
+	EzDetour(__ProcessGameEvents, Detour_ProcessGameEvents, Trampoline_ProcessGameEvents);
 	EzDetour(CEverQuest__SetGameState, &CEverQuestHook::SetGameState_Detour, &CEverQuestHook::SetGameState_Trampoline);
 	EzDetour(CMerchantWnd__PurchasePageHandler__UpdateList, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Detour, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline);
 
@@ -773,11 +784,11 @@ void InitializeMQ2Pulse()
 	}
 }
 
-void ShutdownMQ2Pulse()
+void Pulse_Shutdown()
 {
 	std::scoped_lock lock(s_pulseMutex);
 
-	RemoveDetour((DWORD)ProcessGameEvents);
+	RemoveDetour(__ProcessGameEvents);
 	RemoveDetour(CEverQuest__SetGameState);
 	RemoveDetour(CMerchantWnd__PurchasePageHandler__UpdateList);
 }

@@ -20,6 +20,19 @@
 
 namespace mq {
 
+static void DInput_Initialize();
+static void DInput_Shutdown();
+
+static MQModule s_dInputModule = {
+	"DInput",                 // Name
+	true,                          // CanUnload
+	DInput_Initialize,
+	DInput_Shutdown,
+};
+DECLARE_MODULE_INITIALIZER(s_dInputModule);
+
+//----------------------------------------------------------------------------
+
 static bool gbInDState = false;
 static bool gbInDAcquire = false;
 static bool gbInDInput = false;
@@ -209,11 +222,11 @@ HRESULT CALLBACK DInputAcquireDetour(IDirectInputDevice8A* This)
 	return hResult;
 }
 
-DWORD GetDeviceData = 0;
-DWORD GetDeviceState = 0;
-DWORD Acquire = 0;
+static DWORD GetDeviceData = 0;
+static DWORD GetDeviceState = 0;
+static DWORD Acquire = 0;
 
-void InitializeMQ2DInput()
+static void DInput_Initialize()
 {
 	DebugSpew("Initializing DInput");
 
@@ -257,7 +270,7 @@ void InitializeMQ2DInput()
 	}
 }
 
-void ShutdownMQ2DInput()
+static void DInput_Shutdown()
 {
 	if (DInputDataTrampoline && DetourRemove((BYTE*)DInputDataTrampoline, (BYTE*)DInputDataDetour))
 	{

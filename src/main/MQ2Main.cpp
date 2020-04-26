@@ -51,10 +51,6 @@ namespace mq {
 
 //============================================================================
 
-// From MQ2LoginFrontend.cpp
-void InitializeLoginFrontend();
-void ShutdownLoginFrontend();
-
 // From MQ2PluginHandler.cpp
 void ShutdownInternalModules();
 
@@ -589,17 +585,10 @@ void DoInitialization()
 	gPipeClient.Start();
 	::atexit([]() { gPipeClient.Stop(); });
 
-	InitializeAnonymizer();
-	InitializeMQ2Commands();
-	InitializeMQ2AutoInventory();
-
-	MQ2MouseHooks(true);
 	Sleep(100);
 
-	InitializeMQ2KeyBinds();
 	InitializeMQ2Overlay();
 	InitializeMQ2Plugins();
-	InitializeCachedBuffs();
 }
 
 // Perform injection-time initialization. This occurs on the injection thread.
@@ -759,13 +748,8 @@ bool MQ2Initialize()
 	if (ghmq2ic = GetModuleHandle("mq2ic.dll"))
 		InitializeMQ2IcExports();
 
-	InitializeDisplayHook();
-	InitializeChatHook();
-	InitializeLoginFrontend();
-	InitializeMQ2Pulse();
 	InitializeInternalModules();
 
-	InitializeParser();
 	InitializeMQ2Benchmarks();
 
 	// We will wait for pulse from the game to init on main thread.
@@ -779,21 +763,10 @@ void MQ2Shutdown()
 	OutputDebugString("MQ2Shutdown Called");
 
 	DebugTry(ShutdownMQ2Plugins());
-	DebugTry(ShutdownCachedBuffs());
-	DebugTry(ShutdownMQ2KeyBinds());
-	DebugTry(ShutdownDisplayHook());
-	DebugTry(ShutdownMQ2DInput());
-	DebugTry(ShutdownChatHook());
-	DebugTry(ShutdownMQ2Pulse());
-	DebugTry(ShutdownLoginFrontend());
-	DebugTry(ShutdownMQ2AutoInventory());
-	DebugTry(MQ2MouseHooks(false));
-	DebugTry(ShutdownParser());
-	DebugTry(ShutdownMQ2Commands());
-	DebugTry(ShutdownAnonymizer());
-	DebugTry(ShutdownMQ2Overlay());
 	DebugTry(ShutdownInternalModules());
+
 	DebugTry(DeInitializeMQ2IcExports());
+	DebugTry(ShutdownMQ2Overlay());
 	DebugTry(ShutdownMQ2Detours());
 	DebugTry(ShutdownMQ2Benchmarks());
 
@@ -897,8 +870,6 @@ DWORD WINAPI MQ2Start(void* lpParameter)
 
 		Sleep(500);
 	}
-
-	InitializeMQ2DInput();
 
 	DebugSpewAlways("%s", LoadedString);
 

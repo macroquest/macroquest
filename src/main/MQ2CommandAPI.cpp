@@ -17,6 +17,19 @@
 
 namespace mq {
 
+static void CommandAPI_Initialize();
+static void CommandAPI_Shutdown();
+
+static MQModule s_commandAPIModule = {
+	"CommandAPI",                 // Name
+	true,                          // CanUnload
+	CommandAPI_Initialize,
+	CommandAPI_Shutdown,
+};
+DECLARE_MODULE_INITIALIZER(s_commandAPIModule);
+
+//----------------------------------------------------------------------------
+
 static std::recursive_mutex s_commandMutex;
 
 struct MQTimedCommand
@@ -728,9 +741,244 @@ void RewriteSubstitutions()
 }
 
 //============================================================================
+
+void TimedCommand(const char* Command, int msDelay)
+{
+	std::scoped_lock lock(s_commandMutex);
+
+	MQTimedCommand* pNew = new MQTimedCommand;
+
+	pNew->Time = msDelay + MQGetTickCount64();
+	strcpy_s(pNew->Command, Command);
+
+	// insert into list
+	if (!s_pTimedCommands || s_pTimedCommands->Time >= pNew->Time)
+	{
+		pNew->pNext = s_pTimedCommands;
+		pNew->pLast = nullptr;
+		s_pTimedCommands = pNew;
+		return;
+	}
+
+	MQTimedCommand* pLast = s_pTimedCommands;
+	MQTimedCommand* pNode = s_pTimedCommands->pNext;
+
+	while (pNode)
+	{
+		if (pNew->Time <= pNode->Time)
+		{
+			break;
+		}
+
+		pLast = pNode;
+		pNode = pNode->pNext;
+	}
+
+	pLast->pNext = pNew;
+	pNew->pLast = pLast;
+	pNew->pNext = pNode;
+}
+
+//============================================================================
+// Commands
 //============================================================================
 
-void InitializeMQ2Commands()
+// ***************************************************************************
+// Function:    Help
+// Description: Our '/help' command
+//              Adds our help type (7) to the built-in help command
+// Usage:       /help macro
+// ***************************************************************************
+void Help(SPAWNINFO* pChar, char* szLine)
+{
+	char szCmd[MAX_STRING] = { 0 };
+	char szArg[MAX_STRING] = { 0 };
+
+	MQCommand* pCmd = s_pCommands;
+
+	GetArg(szArg, szLine, 1);
+	if (szArg[0] == 0)
+	{
+		if (gGameState == GAMESTATE_INGAME)
+			cmdHelp(pChar, szArg);
+
+		if (gFilterMacro != FILTERMACRO_NONE)
+			WriteChatColor("Macro will display a list of MacroQuest commands.", USERCOLOR_DEFAULT);
+
+		return;
+	}
+
+	if (_stricmp("macro", szArg))
+	{
+		if (gGameState == GAMESTATE_INGAME)
+			cmdHelp(pChar, szArg);
+		return;
+	}
+
+	DebugSpew("Help - Displaying MacroQuest help");
+	sprintf_s(szCmd, "MacroQuest - %s", gszVersion);
+	WriteChatColor(" ", USERCOLOR_DEFAULT);
+	WriteChatColor(szCmd, USERCOLOR_DEFAULT);
+	WriteChatColor("List of commands", USERCOLOR_DEFAULT);
+	WriteChatColor("------------------------------------------", USERCOLOR_DEFAULT);
+
+	while (pCmd)
+	{
+		if (pCmd->EQ == 0)
+		{
+			WriteChatf("  %s", pCmd->Command);
+		}
+		pCmd = pCmd->pNext;
+	}
+}
+
+// ***************************************************************************
+// Function:    Substitute
+// Description: Our '/substitute' command
+//              Add substitutions
+// Usage:       /substitution <original> <new>
+//              /substitution list
+//              /substitition <original> delete
+// ***************************************************************************
+void Substitute(SPAWNINFO* pChar, char* szLine)
+{
+	char szBuffer[MAX_STRING] = { 0 };
+
+	char szName[MAX_STRING] = { 0 };
+	GetArg(szName, szLine, 1);
+	char* szCommand = GetNextArg(szLine);
+
+	if (!_stricmp(szName, "list"))
+	{
+		MQSubstitution* pLoop = s_pSubstitutions;
+
+		int Count = 0;
+		WriteChatColor("Substitutions", USERCOLOR_WHO);
+		WriteChatColor("--------------------------", USERCOLOR_WHO);
+
+		while (pLoop)
+		{
+			sprintf_s(szName, "%s\t----\t%s", pLoop->szOrig, pLoop->szSub);
+			WriteChatColor(szName, USERCOLOR_WHO);
+			Count++;
+
+			pLoop = pLoop->pNext;
+		}
+
+		if (Count == 0)
+		{
+			WriteChatColor("No Substitutions defined.", USERCOLOR_WHO);
+		}
+		else
+		{
+			sprintf_s(szName, "%d substitution%s displayed.", Count, (Count == 1) ? "" : "s");
+			WriteChatColor(szName, USERCOLOR_WHO);
+		}
+
+		return;
+	}
+
+	if ((szName[0] == 0) || (szCommand[0] == 0))
+	{
+		SyntaxError("Usage: /substitute <orig> <new>, /substitute <orig> delete, or /substitute list");
+		return;
+	}
+
+	if (!_stricmp(szCommand, "delete"))
+	{
+		if (RemoveSubstitute(szName))
+		{
+			RewriteSubstitutions();
+
+			WriteChatf("Substitution for '%s' deleted.", szName);
+		}
+		else
+		{
+			WriteChatf("Substitution for '%s' not found.", szName);
+		}
+	}
+	else
+	{
+		bool New = !RemoveSubstitute(szName);
+
+		AddSubstitute(szName, szCommand);
+
+		WriteChatf("Substitution for '%s' %s.", szName, New ? "added" : "updated");
+		RewriteSubstitutions();
+	}
+}
+
+// ***************************************************************************
+// Function:    Alias
+// Description: Our '/alias' command
+//              Add command aliases
+// Usage:       /alias name [delete|command]
+// ***************************************************************************
+
+void Alias(SPAWNINFO* pChar, char* szLine)
+{
+	char szName[MAX_STRING] = { 0 };
+	GetArg(szName, szLine, 1);
+
+	char szBuffer[MAX_STRING] = { 0 };
+
+	char* szCommand = GetNextArg(szLine);
+	if (!_stricmp(szName, "list"))
+	{
+		int Count = 0;
+
+		WriteChatColor("Aliases", USERCOLOR_WHO);
+		WriteChatColor("--------------------------", USERCOLOR_WHO);
+
+		for (const auto& [key, value] : mAliases)
+		{
+			sprintf_s(szName, "%s: %s", key.c_str(), value.c_str());
+			WriteChatColor(szName, USERCOLOR_WHO);
+		}
+
+		if (mAliases.empty())
+		{
+			WriteChatColor("No aliases defined.", USERCOLOR_WHO);
+		}
+		else
+		{
+			sprintf_s(szName, "%d alias%s displayed.", mAliases.size(), (mAliases.size() == 1) ? "" : "es");
+			WriteChatColor(szName, USERCOLOR_WHO);
+		}
+
+		return;
+	}
+
+	if ((szName[0] == 0) || (szCommand[0] == 0))
+	{
+		SyntaxError("Usage: /alias name [delete|command], or /alias list");
+		return;
+	}
+
+	if (!_stricmp(szCommand, "delete"))
+	{
+		if (RemoveAlias(szName))
+		{
+			WriteChatf("Alias '%s' deleted.", szName);
+		}
+		else
+		{
+			WriteChatf("Alias '%s' not found.", szName);
+		}
+	}
+	else
+	{
+		bool New = !RemoveAlias(szName);
+		AddAlias(szName, szCommand);
+		WriteAliasToIni(szName, szCommand);
+
+		WriteChatf("Alias '%s' %s.", szName, (New) ? "added" : "updated");
+	}
+}
+
+//============================================================================
+
+void CommandAPI_Initialize()
 {
 	DebugSpew("Initializing Commands");
 
@@ -991,7 +1239,7 @@ void InitializeMQ2Commands()
 	}
 }
 
-void ShutdownMQ2Commands()
+void CommandAPI_Shutdown()
 {
 	std::scoped_lock lock(s_commandMutex);
 
@@ -1048,240 +1296,6 @@ void PulseCommands()
 
 		delete s_pTimedCommands;
 		s_pTimedCommands = pNext;
-	}
-}
-
-void TimedCommand(const char* Command, int msDelay)
-{
-	std::scoped_lock lock(s_commandMutex);
-
-	MQTimedCommand* pNew = new MQTimedCommand;
-
-	pNew->Time = msDelay + MQGetTickCount64();
-	strcpy_s(pNew->Command, Command);
-
-	// insert into list
-	if (!s_pTimedCommands || s_pTimedCommands->Time >= pNew->Time)
-	{
-		pNew->pNext = s_pTimedCommands;
-		pNew->pLast = nullptr;
-		s_pTimedCommands = pNew;
-		return;
-	}
-
-	MQTimedCommand* pLast = s_pTimedCommands;
-	MQTimedCommand* pNode = s_pTimedCommands->pNext;
-
-	while (pNode)
-	{
-		if (pNew->Time <= pNode->Time)
-		{
-			break;
-		}
-
-		pLast = pNode;
-		pNode = pNode->pNext;
-	}
-
-	pLast->pNext = pNew;
-	pNew->pLast = pLast;
-	pNew->pNext = pNode;
-}
-
-//============================================================================
-// Commands
-//============================================================================
-
-// ***************************************************************************
-// Function:    Help
-// Description: Our '/help' command
-//              Adds our help type (7) to the built-in help command
-// Usage:       /help macro
-// ***************************************************************************
-void Help(SPAWNINFO* pChar, char* szLine)
-{
-	char szCmd[MAX_STRING] = { 0 };
-	char szArg[MAX_STRING] = { 0 };
-
-	MQCommand* pCmd = s_pCommands;
-
-	GetArg(szArg, szLine, 1);
-	if (szArg[0] == 0)
-	{
-		if (gGameState == GAMESTATE_INGAME)
-			cmdHelp(pChar, szArg);
-
-		if (gFilterMacro != FILTERMACRO_NONE)
-			WriteChatColor("Macro will display a list of MacroQuest commands.", USERCOLOR_DEFAULT);
-
-		return;
-	}
-
-	if (_stricmp("macro", szArg))
-	{
-		if (gGameState == GAMESTATE_INGAME)
-			cmdHelp(pChar, szArg);
-		return;
-	}
-
-	DebugSpew("Help - Displaying MacroQuest help");
-	sprintf_s(szCmd, "MacroQuest - %s", gszVersion);
-	WriteChatColor(" ", USERCOLOR_DEFAULT);
-	WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-	WriteChatColor("List of commands", USERCOLOR_DEFAULT);
-	WriteChatColor("------------------------------------------", USERCOLOR_DEFAULT);
-
-	while (pCmd)
-	{
-		if (pCmd->EQ == 0)
-		{
-			WriteChatf("  %s", pCmd->Command);
-		}
-		pCmd = pCmd->pNext;
-	}
-}
-
-// ***************************************************************************
-// Function:    Substitute
-// Description: Our '/substitute' command
-//              Add substitutions
-// Usage:       /substitution <original> <new>
-//              /substitution list
-//              /substitition <original> delete
-// ***************************************************************************
-void Substitute(SPAWNINFO* pChar, char* szLine)
-{
-	char szBuffer[MAX_STRING] = { 0 };
-
-	char szName[MAX_STRING] = { 0 };
-	GetArg(szName, szLine, 1);
-	char* szCommand = GetNextArg(szLine);
-
-	if (!_stricmp(szName, "list"))
-	{
-		MQSubstitution* pLoop = s_pSubstitutions;
-
-		int Count = 0;
-		WriteChatColor("Substitutions", USERCOLOR_WHO);
-		WriteChatColor("--------------------------", USERCOLOR_WHO);
-
-		while (pLoop)
-		{
-			sprintf_s(szName, "%s\t----\t%s", pLoop->szOrig, pLoop->szSub);
-			WriteChatColor(szName, USERCOLOR_WHO);
-			Count++;
-
-			pLoop = pLoop->pNext;
-		}
-
-		if (Count == 0)
-		{
-			WriteChatColor("No Substitutions defined.", USERCOLOR_WHO);
-		}
-		else
-		{
-			sprintf_s(szName, "%d substitution%s displayed.", Count, (Count == 1) ? "" : "s");
-			WriteChatColor(szName, USERCOLOR_WHO);
-		}
-
-		return;
-	}
-
-	if ((szName[0] == 0) || (szCommand[0] == 0))
-	{
-		SyntaxError("Usage: /substitute <orig> <new>, /substitute <orig> delete, or /substitute list");
-		return;
-	}
-
-	if (!_stricmp(szCommand, "delete"))
-	{
-		if (RemoveSubstitute(szName))
-		{
-			RewriteSubstitutions();
-
-			WriteChatf("Substitution for '%s' deleted.", szName);
-		}
-		else
-		{
-			WriteChatf("Substitution for '%s' not found.", szName);
-		}
-	}
-	else
-	{
-		bool New = !RemoveSubstitute(szName);
-
-		AddSubstitute(szName, szCommand);
-
-		WriteChatf("Substitution for '%s' %s.", szName, New ? "added" : "updated");
-		RewriteSubstitutions();
-	}
-}
-
-// ***************************************************************************
-// Function:    Alias
-// Description: Our '/alias' command
-//              Add command aliases
-// Usage:       /alias name [delete|command]
-// ***************************************************************************
-
-void Alias(SPAWNINFO* pChar, char* szLine)
-{
-	char szName[MAX_STRING] = { 0 };
-	GetArg(szName, szLine, 1);
-
-	char szBuffer[MAX_STRING] = { 0 };
-
-	char* szCommand = GetNextArg(szLine);
-	if (!_stricmp(szName, "list"))
-	{
-		int Count = 0;
-
-		WriteChatColor("Aliases", USERCOLOR_WHO);
-		WriteChatColor("--------------------------", USERCOLOR_WHO);
-
-		for (const auto& [key, value] : mAliases)
-		{
-			sprintf_s(szName, "%s: %s", key.c_str(), value.c_str());
-			WriteChatColor(szName, USERCOLOR_WHO);
-		}
-
-		if (mAliases.empty())
-		{
-			WriteChatColor("No aliases defined.", USERCOLOR_WHO);
-		}
-		else
-		{
-			sprintf_s(szName, "%d alias%s displayed.", mAliases.size(), (mAliases.size() == 1) ? "" : "es");
-			WriteChatColor(szName, USERCOLOR_WHO);
-		}
-
-		return;
-	}
-
-	if ((szName[0] == 0) || (szCommand[0] == 0))
-	{
-		SyntaxError("Usage: /alias name [delete|command], or /alias list");
-		return;
-	}
-
-	if (!_stricmp(szCommand, "delete"))
-	{
-		if (RemoveAlias(szName))
-		{
-			WriteChatf("Alias '%s' deleted.", szName);
-		}
-		else
-		{
-			WriteChatf("Alias '%s' not found.", szName);
-		}
-	}
-	else
-	{
-		bool New = !RemoveAlias(szName);
-		AddAlias(szName, szCommand);
-		WriteAliasToIni(szName, szCommand);
-
-		WriteChatf("Alias '%s' %s.", szName, (New) ? "added" : "updated");
 	}
 }
 

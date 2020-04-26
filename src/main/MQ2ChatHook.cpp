@@ -17,6 +17,19 @@
 
 namespace mq {
 
+static void ChatHook_Initialize();
+static void ChatHook_Shutdown();
+
+static MQModule s_chatHookModule = {
+	"ChatHook",                    // Name
+	true,                          // CanUnload
+	ChatHook_Initialize,
+	ChatHook_Shutdown,
+};
+DECLARE_MODULE_INITIALIZER(s_chatHookModule);
+
+//----------------------------------------------------------------------------
+
 class CChatHook
 {
 public:
@@ -205,7 +218,9 @@ void BeepOnTells(SPAWNINFO* pChar, char* szLine)
 	WritePrivateProfileBool("MacroQuest", "BeepOnTells", gbBeepOnTells, mq::internal_paths::MQini);
 }
 
-void InitializeChatHook()
+//----------------------------------------------------------------------------
+
+static void ChatHook_Initialize()
 {
 	// initialize Blech
 	pEventBlech = new Blech('#', '|', MQ2DataVariableLookup);
@@ -218,7 +233,7 @@ void InitializeChatHook()
 	AddCommand("/flashontells", FlashOnTells);
 }
 
-void ShutdownChatHook()
+static void ChatHook_Shutdown()
 {
 	RemoveCommand("/flashontells");
 	RemoveCommand("/beepontells");
@@ -229,6 +244,7 @@ void ShutdownChatHook()
 
 	delete pEventBlech;
 	pEventBlech = nullptr;
+
 	delete pMQ2Blech;
 	pMQ2Blech = nullptr;
 }

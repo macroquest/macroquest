@@ -23,6 +23,19 @@
 
 namespace mq {
 
+static void Anonymizer_Initialize();
+static void Anonymizer_Shutdown();
+
+static MQModule s_anonymizeModule = {
+	"Anonymizer",                  // Name
+	false,                         // CanUnload
+	Anonymizer_Initialize,
+	Anonymizer_Shutdown,
+};
+DECLARE_MODULE_INITIALIZER(s_anonymizeModule);
+
+//----------------------------------------------------------------------------
+
 // Variables (most of it is wrapped up in the yaml node)
 static std::string anon_config_path;
 static Yaml::Node anon_config;
@@ -255,14 +268,14 @@ public:
 	{
 		Yaml::Node node;
 
-        node["name"] = name;
+		node["name"] = name;
 		node["strategy"] = GetStringFromAnonymization(strategy).data();
 		if (strategy == Anonymization::Custom)
 			node["target"] = target;
-        for (auto alt : alternates)
-            node["alternates"].PushBack() = alt;
-        
-        return node;
+		for (auto alt : alternates)
+			node["alternates"].PushBack() = alt;
+
+		return node;
 	}
 };
 
@@ -884,7 +897,7 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-void InitializeAnonymizer()
+static void Anonymizer_Initialize()
 {
 	EzDetour(__GetGaugeValueFromEQ, &GetGaugeValueFromEQ_Detour, &GetGaugeValueFromEQ_Trampoline);
 	EzDetour(CTextureFont__DrawWrappedText, &CTextureFontHook::DrawWrappedText_Detour, &CTextureFontHook::DrawWrappedText_Trampoline);
@@ -899,7 +912,7 @@ void InitializeAnonymizer()
 	AddCommand("/mqanon", MQAnon, false, false, false);
 }
 
-void ShutdownAnonymizer()
+static void Anonymizer_Shutdown()
 {
 	RemoveCommand("/mqanon");
 
