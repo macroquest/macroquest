@@ -212,6 +212,8 @@ public:
 
 	EQLIB_OBJECT void Set(CTextureAnimation* pta[FrameDraw_Max]);
 
+	EQLIB_OBJECT static const char* FrameDrawPieceToString(EFrameDrawPiece);
+
 	//----------------------------------------------------------------------------
 	// data members
 private:
@@ -334,6 +336,18 @@ public:
 // CXWndDrawTemplate
 //============================================================================
 
+enum XWndBackgroundDrawType
+{
+	eDrawTile = 0,
+	eDrawNormal,
+	eDrawStretch,
+	eDrawCentered,
+	eDrawCenteredVertical,
+	eDrawCenteredHorizontal,
+};
+
+EQLIB_OBJECT const char* XWndBackgroundDrawTypeToString(XWndBackgroundDrawType);
+
 class [[offsetcomments]] CXWndDrawTemplate
 {
 	FORCE_SYMBOLS;
@@ -342,7 +356,7 @@ public:
 /*0x000*/ CXStr                       strName;
 
 /*0x004*/ CUITextureInfo              tiBackground;
-/*0x01c*/ int                         nBackgroundDrawType = 0;
+/*0x01c*/ int                         nBackgroundDrawType = eDrawTile;
 /*0x020*/ CScrollbarTemplate          sbtVScroll;
 /*0x0f4*/ CScrollbarTemplate          sbtHScroll;
 /*0x1c8*/ CButtonDrawTemplate         bdtCloseBox;

@@ -82,6 +82,31 @@ void CTAFrameDraw::Set(CTextureAnimation* pta[FrameDraw_Max])
 		m_pta[i] = pta[i];
 }
 
+const char* CTAFrameDraw::FrameDrawPieceToString(EFrameDrawPiece piece)
+{
+	switch (piece)
+	{
+	case FrameDraw_TopLeft: return "Top Left";
+	case FrameDraw_Top: return "Top";
+	case FrameDraw_TopRight: return "Top Right";
+
+	case FrameDraw_RightTop: return "Right Top";
+	case FrameDraw_Right: return "Right";
+	case FrameDraw_RightBottom: return "Right Bottom";
+
+	case FrameDraw_BottomRight: return "Bottom Right";
+	case FrameDraw_Bottom: return "Bottom";
+	case FrameDraw_BottomLeft: return "Bottom Left";
+
+	case FrameDraw_LeftTop: return "Left Top";
+	case FrameDraw_Left: return "Left";
+	case FrameDraw_LeftBottom: return "Left Bottom";
+	case FrameDraw_Middle: return "Middle";
+
+	default: return "Unknown";
+	}
+}
+
 int CTAFrameDraw::Draw(const CXRect& rect, const CXRect& clip) const
 {
 	for (int i = 0; i < FrameDraw_Max; ++i)
@@ -774,6 +799,21 @@ bool CScreenPieceTemplate::IsType(uint32_t type) const
 
 	return false;
 }
+
+const char* XWndBackgroundDrawTypeToString(XWndBackgroundDrawType type)
+{
+	switch (type)
+	{
+	case eDrawTile: return "Tile";
+	case eDrawNormal: return "Normal";
+	case eDrawStretch: return "Stretch";
+	case eDrawCentered: return "Centered";
+	case eDrawCenteredVertical: return "Centered Vertically";
+	case eDrawCenteredHorizontal: return "Centered Horizontally";
+	default: return "Unknown";
+	}
+}
+
 //============================================================================
 
 } // namespace eqlib

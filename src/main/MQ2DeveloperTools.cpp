@@ -36,7 +36,328 @@ static MQModule s_developerToolsModule = {
 };
 DECLARE_MODULE_INITIALIZER(s_developerToolsModule);
 
-class ImGuiWindowDebugPanel
+//----------------------------------------------------------------------------
+
+#pragma region Common Tools
+
+static bool InputCXRect(const char* label, CXRect& rect)
+{
+	return ImGui::InputInt4(label, (int*)&rect);
+}
+
+inline bool InputCXSize(const char* label, CXSize& size)
+{
+	return ImGui::InputInt2(label, (int*)&size);
+}
+
+inline bool InputCXPoint(const char* label, CXPoint& point)
+{
+	return ImGui::InputInt2(label, (int*)&point);
+}
+
+inline bool InputColorRef(const char* label, COLORREF& color)
+{
+	ImColor colors{ color };
+
+	if (ImGui::ColorEdit4(label, (float*)&colors))
+	{
+		color = colors;
+		return true;
+	}
+
+	return false;
+}
+
+inline void DisplayCXSize(const char* label, const CXSize& size)
+{
+	ImGui::LabelText(label, "w=%d, h=%d", size.cx, size.cy);
+}
+
+inline void DisplayCXRect(const char* label, const CXRect& rect)
+{
+	ImGui::LabelText(label, "x=%d, y=%d, w=%d, h=%d", rect.left, rect.top, rect.GetWidth(), rect.GetHeight());
+}
+
+inline void DisplayCXPoint(const char* label, const CXPoint& point)
+{
+	ImGui::LabelText(label, "x=%d, y=%d", point.x, point.y);
+}
+
+inline void DisplayColor(const char* label, const COLORREF& color)
+{
+	//ImGui::ColorButton(id, ImGui::ColorConvertU32ToFloat4(color), 
+	//ColorButton(const char* desc_id, const ImVec4& col, ImGuiColorEditFlags flags = 0, ImVec2 size = ImVec2(0, 0));
+
+	ImColor colors{ color };
+
+	ImGui::ColorEdit4(label, (float*)&colors, ImGuiColorEditFlags_NoInputs);
+}
+
+//----------------------------------------------------------------------------
+
+inline const char* UIDirectoryToString(enDir dir)
+{
+	switch (dir)
+	{
+	case cUIDirectory: return "UI Directory";
+	case cUIDirectoryAtlas: return "Altas Directory";
+	case cUIDirectoryTexture: return "Texture Directory";
+	case cUIDirectoryMaps: return "Maps Directory";
+	default: return "Unknown Directory";
+	}
+}
+
+bool RenderUITextureInfoTexture(const CUITextureInfo& textureInfo, const CXRect& rect = CXRect(0, 0, -1, -1))
+{
+	if (textureInfo.TextureId == -1)
+		return false;
+
+	// Try to extract texture info from the texture manager, if it exists already.
+	// This won't work at login until we map the texture loader to the login instance.
+
+	if (!pEQSuiteTextureLoader)
+		return false;
+
+	BMI* bitmap = pEQSuiteTextureLoader->GetTexture(textureInfo);
+	if (!bitmap)
+		return false;
+
+	CEQGBitmap* pEQGBitmap = bitmap->pBmp;
+	if (!pEQGBitmap)
+		return false;
+
+	if (pEQGBitmap->pD3DTexture == nullptr)
+		return false;
+
+	ImVec2 minUV = ImVec2(0, 0);
+	ImVec2 maxUV = ImVec2(1, 1);
+	ImVec2 textureSize = ImVec2((float)textureInfo.TextureSize.cx, (float)textureInfo.TextureSize.cy);
+
+	if (!rect.IsAbnormal())
+	{
+		minUV.x = rect.left / textureSize.x;
+		minUV.y = rect.top / textureSize.y;
+
+		maxUV.x = rect.right / textureSize.x;
+		maxUV.y = rect.bottom / textureSize.y;
+
+		textureSize.x = (float)rect.GetWidth();
+		textureSize.y = (float)rect.GetHeight();
+	}
+
+	ImGui::Image((ImTextureID)pEQGBitmap->pD3DTexture, textureSize, minUV, maxUV, ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 0.5f));
+	return true;
+}
+
+void DisplayUITextureInfo(const char* label, const CUITextureInfo& textureInfo)
+{
+	if (ImGui::TreeNode((const void*)&textureInfo, "%s: %s", label, textureInfo.Name.c_str()))
+	{
+		ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
+			ImGui::LabelText("Name", "%s", textureInfo.Name.empty() ? "(UITextureInfo)" : textureInfo.Name.c_str());
+			ImGui::LabelText("Valid", textureInfo.bValid ? "true" : "false");
+			ImGui::LabelText("Directory", "%s", UIDirectoryToString(textureInfo.Directory));
+			DisplayCXSize("Texture Size", textureInfo.TextureSize);
+			ImGui::LabelText("Texture Id", "%d", textureInfo.TextureId);
+			RenderUITextureInfoTexture(textureInfo);
+		ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
+
+		ImGui::TreePop();
+	}
+}
+
+void DisplayUITexturePiece(const char* label, const CUITexturePiece& texturePiece)
+{
+	const char* name = texturePiece.GetTextureInfo().Name.empty() ? "(UITexturePiece)" : texturePiece.GetTextureInfo().Name.c_str();
+
+	if (ImGui::TreeNode((const void*)&texturePiece, "%s: %s", label, name))
+	{
+		ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
+			ImGui::LabelText("Name", "%s", name);
+		ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
+
+		DisplayUITextureInfo("TextureInfo", texturePiece.GetTextureInfo());
+
+		ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
+			DisplayCXRect("Rect", texturePiece.GetRect());
+			DisplayCXSize("Size", texturePiece.GetSize());
+			RenderUITextureInfoTexture(texturePiece.GetTextureInfo(), texturePiece.GetRect());
+		ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
+
+		ImGui::TreePop();
+	}
+}
+
+void DisplayTextureAnimation(const char* label, const CTextureAnimation* textureAnim)
+{
+	const char* name = textureAnim ? textureAnim->Name.empty() ? "(TextureAnimation)" : textureAnim->Name.c_str() : "(null)";
+
+	if (ImGui::TreeNode((const void*)textureAnim, "%s: %s", label, name))
+	{
+		if (textureAnim)
+		{
+			ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
+				ImGui::LabelText("Name", "%s", name);
+			ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
+
+			if (ImGui::TreeNode((const void*)&textureAnim->Frames, "Frames (%d)", textureAnim->Frames.GetLength()))
+			{
+				for (int i = 0; i < textureAnim->Frames.GetLength(); ++i)
+				{
+					const STextureAnimationFrame& frame = textureAnim->Frames[i];
+
+					if (ImGui::TreeNode((const void*)&frame, "Frame %d", i + 1))
+					{
+						DisplayUITexturePiece("TexturePiece", frame.Piece);
+
+						ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
+							ImGui::LabelText("Ticks", "%d", frame.Ticks);
+							DisplayCXPoint("Hotspot", frame.Hotspot);
+						ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
+
+						ImGui::TreePop();
+					}
+				}
+
+				ImGui::TreePop();
+			}
+
+			ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
+				DisplayCXSize("Size", textureAnim->Size);
+				ImGui::LabelText("Paused", textureAnim->bPaused ? "true" : "false");
+				ImGui::LabelText("Vertical", textureAnim->bVertical ? "true" : "false");
+				ImGui::LabelText("Grid", textureAnim->bGrid ? "true" : "false");
+
+				if (textureAnim->bGrid)
+				{
+					DisplayCXSize("Cell size", CXSize(textureAnim->CellWidth, textureAnim->CellHeight));
+					DisplayCXRect("Cell rect", textureAnim->CellRect);
+					ImGui::LabelText("Current cell", "%d", textureAnim->CurCell);
+				}
+
+				if (textureAnim->ZeroFrame != 0)
+				{
+					ImGui::LabelText("Zero frame", "%d", textureAnim->ZeroFrame);
+				}
+
+				ImGui::LabelText("Cycle animation", textureAnim->bCycle ? "true" : "false");
+				ImGui::LabelText("Total ticks", "%d", textureAnim->TotalTicks);
+				ImGui::LabelText("Start ticks", "%d", textureAnim->StartTicks);
+			ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
+		}
+
+		ImGui::TreePop();
+	}
+}
+
+void DisplayTAFrameDraw(const char* label, const CTAFrameDraw& frameDraw)
+{
+	const char* name = frameDraw.GetName().empty() ? "(TAFrameDraw)" : frameDraw.GetName().c_str();
+
+	if (ImGui::TreeNode((const void*)&frameDraw, "%s: %s", label, name))
+	{
+		ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
+			ImGui::LabelText("Name", "%s", name);
+			DisplayCXSize("Frame size", frameDraw.GetFrameSize());
+		ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
+
+		for (int i = 0; i < CTAFrameDraw::FrameDraw_Max; ++i)
+		{
+			DisplayTextureAnimation(
+				CTAFrameDraw::FrameDrawPieceToString(static_cast<CTAFrameDraw::EFrameDrawPiece>(i)),
+				frameDraw.GetAnimation(static_cast<CTAFrameDraw::EFrameDrawPiece>(i)));
+		}
+
+		ImGui::TreePop();
+	}
+}
+
+void DisplayDrawTemplate(const char* label, const CButtonDrawTemplate& drawTemplate)
+{
+	const char* name = drawTemplate.strName.empty() ? "(ButtonDrawTemplate)" : drawTemplate.strName.c_str();
+
+	if (ImGui::TreeNode((const void*)&drawTemplate, "%s: %s", label, name))
+	{
+		ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
+			ImGui::LabelText("Name", "%s", name);
+		ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
+
+		DisplayTextureAnimation("Normal", drawTemplate.ptaNormal);
+		DisplayTextureAnimation("Pressed", drawTemplate.ptaPressed);
+		DisplayTextureAnimation("Hover", drawTemplate.ptaFlyby);
+		DisplayTextureAnimation("Disabled", drawTemplate.ptaDisabled);
+		DisplayTextureAnimation("Pressed hover", drawTemplate.ptaPressedFlyby);
+		DisplayTextureAnimation("Pressed disabled", drawTemplate.ptaPressedDisabled);
+		DisplayTextureAnimation("Normal decal", drawTemplate.ptaNormalDecal);
+		DisplayTextureAnimation("Pressed decal", drawTemplate.ptaPressedDecal);
+		DisplayTextureAnimation("Hover decal", drawTemplate.ptaFlybyDecal);
+		DisplayTextureAnimation("Disabled decal", drawTemplate.ptaDisabledDecal);
+		DisplayTextureAnimation("Pressed hover decal", drawTemplate.ptaPressedFlybyDecal);
+		DisplayTextureAnimation("Pressed disabled decal", drawTemplate.ptaPressedDisabledDecal);
+
+		ImGui::TreePop();
+	}
+}
+
+void DisplayDrawTemplate(const char* label, const CScrollbarTemplate& drawTemplate)
+{
+	const char* name = drawTemplate.strName.empty() ? "(ScrollbarTemplate)" : drawTemplate.strName.c_str();
+
+	if (ImGui::TreeNode((const void*)&drawTemplate, "%s: %s", label, name))
+	{
+		ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
+			ImGui::LabelText("Name", "%s", name);
+		ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
+
+		DisplayDrawTemplate("Up Button", drawTemplate.bdtUp);
+		DisplayDrawTemplate("Down Button", drawTemplate.bdtDown);
+		DisplayTAFrameDraw("Thumb", drawTemplate.frameThumb);
+		DisplayUITextureInfo("Middle", drawTemplate.tiMiddle);
+
+		ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
+			DisplayColor("Middle tint", drawTemplate.colorMiddleTint);
+		ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
+
+		ImGui::TreePop();
+	}
+}
+
+void DisplayDrawTemplate(const char* label, const CXWndDrawTemplate& drawTemplate)
+{
+	const char* name = drawTemplate.strName.empty() ? "(XWndDrawTemplate)" : drawTemplate.strName.c_str();
+
+	if (ImGui::TreeNode((const void*)&drawTemplate, "%s: %s", label, name))
+	{
+		ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
+			ImGui::LabelText("Name", "%s", name);
+		ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
+
+		DisplayUITextureInfo("Background texture", drawTemplate.tiBackground);
+
+		ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
+			ImGui::LabelText("Background draw type", "%s",
+				XWndBackgroundDrawTypeToString(static_cast<XWndBackgroundDrawType>(drawTemplate.nBackgroundDrawType)));
+		ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
+
+		DisplayDrawTemplate("Vertical scroll bar", drawTemplate.sbtVScroll);
+		DisplayDrawTemplate("Horizontal scroll bar", drawTemplate.sbtHScroll);
+		DisplayDrawTemplate("Close box", drawTemplate.bdtCloseBox);
+		DisplayDrawTemplate("Help box", drawTemplate.bdtQMarkBox);
+		DisplayDrawTemplate("Minimize box", drawTemplate.bdtMinimizeBox);
+		DisplayDrawTemplate("Maximize box", drawTemplate.bdtMaximizeBox);
+		DisplayDrawTemplate("Tile box", drawTemplate.bdtTileBox);
+		DisplayTAFrameDraw("Border", drawTemplate.frameBorder);
+		DisplayTAFrameDraw("Title bar", drawTemplate.frameTitlebar);
+
+		ImGui::TreePop();
+	}
+}
+
+#pragma endregion
+
+#pragma region Windows Developer Tool
+
+class ImGuiWindowsDeveloperTool
 {
 	CXWnd* m_pSelectedWnd = nullptr;
 	CXWnd* m_pHoveredWnd = nullptr;
@@ -55,7 +376,7 @@ class ImGuiWindowDebugPanel
 	CXWnd* m_pPickingWnd = nullptr;
 
 public:
-	ImGuiWindowDebugPanel() = default;
+	ImGuiWindowsDeveloperTool() = default;
 
 	void Draw()
 	{
@@ -77,32 +398,32 @@ public:
 			m_pPickingWnd = pWndMgr->LastMouseOver;
 		}
 
-
-		//ImGui::BeginChild("1");
+		if (ImGui::Button("Pick"))
 		{
-			if (ImGui::Button("Pick"))
-			{
-				m_picking = !m_picking;
-			}
-
-			if (ImGui::BeginTable("##WindowTable", 2, tableFlags, ImVec2(0, m_topPaneSize)))
-			{
-				ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
-				ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 100);
-				ImGui::TableAutoHeaders();
-
-				if (pWndMgr)
-				{
-					for (CXWnd* pWnd : pWndMgr->ParentAndContextMenuWindows)
-					{
-						DisplayWindowTreeNode(pWnd);
-					}
-				}
-
-				ImGui::EndTable();
-			}
+			m_picking = !m_picking;
 		}
-		//ImGui::EndChild();
+
+		imgui::DrawSplitter(true, 9.0f, &m_topPaneSize, &m_bottomPaneSize, 50, 50);
+
+		if (ImGui::BeginTable("##WindowTable", 2, tableFlags, ImVec2(0, m_topPaneSize)))
+		{
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 100);
+			ImGui::TableAutoHeaders();
+
+			if (pWndMgr)
+			{
+				for (CXWnd* pWnd : pWndMgr->ParentAndContextMenuWindows)
+				{
+					if (pWnd->ParentWindow == nullptr)
+						DisplayWindowTreeNode(pWnd);
+					else
+						__noop;
+				}
+			}
+
+			ImGui::EndTable();
+		}
 
 		// if the selected window was not found, then clear it.
 		if (!m_foundSelected)
@@ -110,10 +431,7 @@ public:
 			m_pSelectedWnd = nullptr;
 		}
 
-		imgui::DrawSplitter(true, 9.0f, &m_topPaneSize, &m_bottomPaneSize, 50, 50);
-
-
-		//ImGui::BeginChild("2");
+		if (ImGui::BeginChild("2"))
 		{
 			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 9);
 
@@ -180,7 +498,7 @@ public:
 
 			DisplayDetailsPanel();
 		}
-		//ImGui::EndChild();
+		ImGui::EndChild();
 
 		// update last selected to remember selection for next iteration
 		m_selectionChanged = test_and_set(m_pLastSelected, m_pSelectedWnd);
@@ -325,6 +643,10 @@ public:
 			DisplayDetailsSection(static_cast<CSidlScreenWnd*>(m_pSelectedWnd));
 			break;
 
+		case UI_Button:
+			DisplayDetailsSection(static_cast<CButtonWnd*>(m_pSelectedWnd));
+			break;
+
 		default:
 			DisplayDetailsSection(m_pSelectedWnd);
 			break;
@@ -381,6 +703,15 @@ public:
 				ImGui::CheckboxFlags("Transparent Control", &pWnd->WindowStyle, CWS_TRANSPARENTCONTROL);
 				ImGui::TreePop();
 			}
+
+			if (pWnd->DrawTemplate)
+			{
+				DisplayDrawTemplate("Template", *pWnd->DrawTemplate);
+			}
+			else
+			{
+				ImGui::LabelText("Template", "(none)");
+			}
 		}
 	}
 
@@ -390,14 +721,21 @@ public:
 
 		// Add CSidlScreenWnd specific details here
 	}
+
+	void DisplayDetailsSection(CButtonWnd* pWnd)
+	{
+		DisplayDetailsSection(static_cast<CXWnd*>(pWnd));
+
+		if (ImGui::CollapsingHeader("CButtonWnd Properties", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			DisplayDrawTemplate("Template", pWnd->DrawTemplate);
+		}
+	}
 };
 
-static ImGuiWindowDebugPanel s_windowDebugPanel;
+#pragma endregion
 
-static void WindowsDebugPanel()
-{
-	s_windowDebugPanel.Draw();
-}
+static ImGuiWindowsDeveloperTool s_windowDebugPanel;
 
 bool DeveloperTools_HandleClick(int mouseButton, bool clicked)
 {
@@ -415,7 +753,7 @@ bool DeveloperTools_HandleClick(int mouseButton, bool clicked)
 
 void DeveloperTools_Initialize()
 {
-	AddDebugPanel("Windows", WindowsDebugPanel);
+	AddDebugPanel("Windows", []() { s_windowDebugPanel.Draw(); });
 }
 
 void DeveloperTools_Shutdown()

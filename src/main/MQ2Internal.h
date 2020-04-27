@@ -437,8 +437,11 @@ struct ModuleInitializer
 	MQModule* module = nullptr;
 };
 
+#define FORCE_UNDEFINED_SYMBOL(x) __pragma(comment (linker, "/export:_" #x))
+
 #define DECLARE_MODULE_INITIALIZER(moduleRecord) \
-	static ModuleInitializer s_moduleInitializer{ &moduleRecord };
+		extern "C" ModuleInitializer s_moduleInitializer ## moduleRecord { &moduleRecord } \
+		FORCE_UNDEFINED_SYMBOL(s_moduleInitializer ## moduleRecord);
 
 //============================================================================
 
