@@ -709,7 +709,6 @@ constexpr int GAMESTATE_SOMETHING      = 4;
 constexpr int GAMESTATE_INGAME         = 5;
 constexpr int GAMESTATE_LOGGINGIN      = 253;
 constexpr int GAMESTATE_UNLOADING      = 255;
-constexpr int GAMESTATE_POSTFRONTLOAD  = 500;
 
 #define XKF_SHIFT               1
 #define XKF_CTRL                2

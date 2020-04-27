@@ -22,7 +22,6 @@
 // TODO:
 // - Figure out how to tie this into the backend
 // - Injecting while running doesn't load the config
-// - END does not actually stop the login wait at character select -- likely need to handle it in a react in the charselectwait state
 
 static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 {
@@ -193,6 +192,14 @@ class InGame;
 
 class Wait : public Login 
 {
+protected:
+	bool transit_condition(LoginStateSensor const& e)
+	{
+		return !m_paused &&
+			(GetGameState() != GAMESTATE_PRECHARSELECT || g_pServerInfo) &&	// do nothing at precharselect if we don't have offsets
+			(e.State != m_lastState || m_delayTime < MQGetTickCount64());
+	}
+
 public:
 	void entry() override
 	{
@@ -202,12 +209,7 @@ public:
 
 	void react(LoginStateSensor const& e) override
 	{
-		if (GetGameState() == GAMESTATE_PRECHARSELECT && !g_pServerInfo)
-		{
-			// do nothing at precharselect if we don't have offsets
-			transit<Wait>();
-		}
-		else if (!m_paused && (e.State != m_lastState || m_delayTime < MQGetTickCount64()))
+		if (transit_condition(e))
 		{
 			// we only want to actually delay in this state if there is no transition
 			m_currentWindow = e.Window;
@@ -354,7 +356,7 @@ public:
 				|| str.find("This login requires that the account be activated.  Please make sure your account is active in order to login.") != CXStr::npos)
 			{
 				AutoLoginDebug(fmt::format("ConnectConfirm: {}", str));
-				m_paused = true; // we can't recover from these, so pause autologin
+				dispatch(PauseLogin()); // we can't recover from these, so pause autologin
 			}
 			else if (str.find("You have a character logged into a world server as an OFFLINE TRADER from this account") != CXStr::npos)
 			{
@@ -418,7 +420,7 @@ public:
 		if (m_serverName.empty())
 		{
 			AutoLoginDebug(fmt::format("ServerSelect: server name is empty"));
-			m_paused = true; // no server to select, pause
+			dispatch(PauseLogin()); // no server to select, pause
 			return false;
 		}
 		else
@@ -516,7 +518,7 @@ public:
 					s_loginSettings.KickActiveCharacter ? "YESNO_YesButton" : "YESNO_NoButton");
 
 				if (!pButton || !s_loginSettings.KickActiveCharacter)
-					m_paused = true;
+					dispatch(PauseLogin());
 
 				if (pButton)
 					pButton->WndNotification(pButton, XWM_LCLICK);
@@ -527,7 +529,7 @@ public:
 				if (pButton)
 					pButton->WndNotification(pButton, XWM_LCLICK);
 				else
-					m_paused = true;
+					dispatch(PauseLogin());
 			}
 		}
 
@@ -543,7 +545,7 @@ public:
 	void react(LoginStateSensor const& e) override
 	{
 		// we only want to actually delay in this state if there is no transition
-		if (e.State != m_lastState || m_delayTime < MQGetTickCount64())
+		if (transit_condition(e))
 		{
 			m_lastState = e.State;
 			m_currentWindow = e.Window;
@@ -611,7 +613,7 @@ public:
 
 				if (index < 0)
 				{
-					m_paused = true;
+					dispatch(PauseLogin());
 					transit<Wait>();
 				}
 				else
@@ -634,10 +636,23 @@ public:
 class CharacterSelectWait : public Wait
 {
 public:
+	void react(UnpauseLogin const& e) override
+	{
+		if (m_paused)
+		{
+			// we need to restart the login timer here
+			m_delayTime = MQGetTickCount64() + 3000;
+			WriteChatf(fmt::format("Re-Enabling login and selecting \ag{}\ax in 3 seconds. Please Wait... or press the END key to abort", m_characterName).c_str());
+		}
+
+		// and set the correct pause value, don't call the base because we don't want to repeat messaging
+		m_paused = false;
+	}
+
 	void react(LoginStateSensor const& e) override
 	{
 		// we only want to actually delay in this state if there is no transition
-		if (e.State != m_lastState || m_delayTime < MQGetTickCount64())
+		if (transit_condition(e))
 		{
 			m_lastState = e.State;
 			m_currentWindow = e.Window;
@@ -654,7 +669,7 @@ public:
 							pCharacterListWnd->EnterWorld();
 
 						if (s_loginSettings.EndAfterSelect)
-							m_paused = true;
+							dispatch(PauseLogin());
 					}
 				}
 
@@ -671,8 +686,8 @@ class InGame : public Wait
 {
 public:
 	// override these events to do nothing in game
-	void react(HomePressed const&) override {}
-	void react(EndPressed const&) override {}
+	void react(UnpauseLogin const&) override {}
+	void react(PauseLogin const&) override {}
 };
 
 std::string Login::m_characterName = "";

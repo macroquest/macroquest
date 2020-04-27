@@ -50,9 +50,6 @@ const ci_unordered::map<int> ServerData = {
 template <typename T = CXWnd>
 inline T* GetWindow(const std::string& name)
 {
-	if (GetGameState() == GAMESTATE_PRECHARSELECT)
-		return static_cast<T*>(FindEQMainWindow(name.c_str()));
-
 	return static_cast<T*>(FindMQ2Window(name.c_str()));
 }
 
@@ -163,8 +160,8 @@ struct LoginStateSensor : tinyfsm::Event
 	LoginStateSensor(const LoginStateSensor&) = delete;
 };
 
-struct HomePressed : tinyfsm::Event {};
-struct EndPressed : tinyfsm::Event {};
+struct UnpauseLogin : tinyfsm::Event {};
+struct PauseLogin : tinyfsm::Event {};
 
 class Login : public tinyfsm::Fsm<Login>
 {
@@ -187,7 +184,7 @@ public:
 		if (!e.Server.empty()) m_serverName = e.Server;
 	}
 
-	virtual void react(HomePressed const&)
+	virtual void react(UnpauseLogin const&)
 	{
 		if (m_paused)
 			WriteChatf("\agHOME key pressed. AutoLogin Re-Enabled.");
@@ -195,7 +192,7 @@ public:
 
 	}
 
-	virtual void react(EndPressed const&)
+	virtual void react(PauseLogin const&)
 	{
 		if (!m_paused)
 			WriteChatf(fmt::format("END key pressed. Login of {} aborted.", m_characterName).c_str());
