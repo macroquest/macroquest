@@ -373,7 +373,7 @@ PLUGIN_API void OnPulse()
 		if (CXWnd* pWnd = GetWindow("CLW_CharactersScreen"))
 			Login::dispatch(LoginStateSensor(LoginState::CharacterSelect, pWnd));
 	}
-	else if (GetGameState() == GAMESTATE_PRECHARSELECT && MQGetTickCount64() > ReenableTime)
+	else if (GetGameState() == GAMESTATE_PRECHARSELECT && g_pServerInfo && MQGetTickCount64() > ReenableTime)
 	{
 		// pair of WindowNames / ButtonNames
 		std::vector<std::pair<const char*, const char*>> PromptWindows = {
