@@ -131,8 +131,8 @@ static struct LoginSettings
 
 	enum class ServerUpNotification {
 		None = 0,
-		Email = 1,
-		Beeps = 2
+		Beeps = 1,
+		Email = 2
 	} NotifyOnServerUp;
 
 	enum class Type {
@@ -169,8 +169,7 @@ struct PauseLogin : tinyfsm::Event {};
 class Login : public tinyfsm::Fsm<Login>
 {
 protected:
-	static std::string m_characterName;
-	static std::string m_serverName;
+	static std::optional<ProfileRecord> m_record;
 	static CXWnd* m_currentWindow; // the current in focus window
 	static bool m_paused;
 	static bool m_offsetsLoaded;
@@ -183,8 +182,11 @@ public:
 
 	virtual void react(SetLoginInformation const& e)
 	{
-		m_characterName = e.Character;
-		if (!e.Server.empty()) m_serverName = e.Server;
+		if (m_record)
+		{
+			m_record->characterName = e.Character;
+			if (!e.Server.empty()) m_record->serverName = e.Server;
+		}
 	}
 
 	virtual void react(UnpauseLogin const&)
@@ -198,7 +200,7 @@ public:
 	virtual void react(PauseLogin const&)
 	{
 		if (!m_paused)
-			WriteChatf(fmt::format("END key pressed. Login of {} aborted.", m_characterName).c_str());
+			WriteChatf(fmt::format("END key pressed. Login of {} aborted.", m_record ? m_record->characterName : "").c_str());
 		m_paused = true;
 	}
 
@@ -206,8 +208,8 @@ public:
 	virtual void exit() {}
 
 	// these are just some getters for ImGui
-	static const std::string& character() { return m_characterName; }
-	static const std::string& server() { return m_serverName; }
+	static std::string_view character() { return m_record ? m_record->characterName.c_str() : "\0"; }
+	static std::string_view server() { return m_record ? m_record->serverName.c_str() : "\0"; }
 	static const CXWnd* current_window() { return m_currentWindow; }
 	static const bool paused() { return m_paused; }
 	static const bool offsets_loaded() { return m_offsetsLoaded; }

@@ -72,13 +72,13 @@ void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
 
 	if (GetGameState() == GAMESTATE_INGAME)
 	{
-		if (pChar && ci_equals(EQADDR_SERVERNAME, szServer) && ci_equals(pChar->DisplayedName, szCharacter))
+		if (pChar && ci_equals(EQADDR_SERVERNAME, szServer) && ci_equals(pChar != nullptr ? pChar->DisplayedName : "", szCharacter))
 		{
 			WriteChatf("\ayYou're already logged into '%s' on '%s'\ax", szCharacter, szServer);
 		}
 		else
 		{
-			if (pChar && pChar->StandState == STANDSTATE_FEIGN)
+			if (pChar != nullptr && pChar->StandState == STANDSTATE_FEIGN)
 			{
 				// using DoMappable here doesn't create enough of a delay for camp to work
 				EzCommand("/stand");
@@ -113,7 +113,7 @@ void Cmd_SwitchCharacter(SPAWNINFO* pChar, char* szLine)
 		}
 		else
 		{
-			if (pChar->StandState == STANDSTATE_FEIGN)
+			if (pChar != nullptr && pChar->StandState == STANDSTATE_FEIGN)
 			{
 				// using DoMappable here doesn't create enough of a delay for camp to work
 				EzCommand("/stand");
@@ -165,13 +165,17 @@ void Cmd_Relog(SPAWNINFO* pChar, char* szLine)
 
 	Login::dispatch(SetLoginInformation(EQADDR_SERVERNAME, pChar != nullptr ? pChar->DisplayedName : ""));
 
-	if (pChar->StandState == STANDSTATE_FEIGN)
+	if (pChar != nullptr && pChar->StandState == STANDSTATE_FEIGN)
 	{
 		// using DoMappable here doesn't create enough of a delay for camp to work
 		EzCommand("/stand");
 	}
 
 	EzCommand("/camp");
+}
+
+void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
+{
 }
 
 DETOUR_TRAMPOLINE_EMPTY(DWORD WINAPI GetPrivateProfileStringA_Trampoline(LPCSTR, LPCSTR, LPCSTR, LPSTR, DWORD, LPCSTR));
@@ -318,6 +322,7 @@ PLUGIN_API void InitializePlugin()
 	AddCommand("/switchserver", Cmd_SwitchServer);
 	AddCommand("/switchcharacter", Cmd_SwitchCharacter);
 	AddCommand("/relog", Cmd_Relog);
+	AddCommand("/loginchar", Cmd_Loginchar);
 
 	if (GetPrivateProfileBool("Settings", "EnableCustomClientIni", false, INIFileName))
 	{
@@ -342,6 +347,7 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveCommand("/switchserver");
 	RemoveCommand("/switchcharacter");
 	RemoveCommand("/relog");
+	RemoveCommand("/loginchar");
 
 	DWORD pfnGetPrivateProfileIntA = (DWORD) & ::GetPrivateProfileIntA;
 	RemoveDetour(pfnGetPrivateProfileIntA);
@@ -469,8 +475,8 @@ static void ShowAutoLoginOverlay(bool* p_open)
 			ImGui::Separator();
 
 			ImGui::Text("Current Status:");
-			ImGui::Text("Server: %s", Login::server().c_str());
-			ImGui::Text("Character: %s", Login::character().c_str());
+			ImGui::Text("Server: %s", Login::server().data());
+			ImGui::Text("Character: %s", Login::character().data());
 		}
 
 		if (bShowOverlayDebugInfo)

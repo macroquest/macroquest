@@ -21,7 +21,9 @@
 
 // TODO:
 // - Figure out how to tie this into the backend
+// - Re-do the UI (can I pull alynel's work?, if not maybe ImGui? -- but that means I'll have to pull it into tools)
 // - Injecting while running doesn't load the config
+// - fix /relog -- it currently just camps
 
 static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 {
@@ -298,32 +300,41 @@ public:
 		if (auto pEditWnd = GetChildWindow<CEditWnd>(m_currentWindow, "LOGIN_UsernameEdit"))
 		{
 			std::optional<ProfileRecord> record = std::nullopt;
-			switch (s_loginSettings.LoginType)
+			if (m_record)
 			{
-			case LoginSettings::Type::MQ2Login:
-				record = UseMQ2Login(pEditWnd);
-				break;
-			case LoginSettings::Type::StationNames:
-				record = UseStationNames(pEditWnd);
-				break;
-			case LoginSettings::Type::Sessions:
-				record = UseSessions(pEditWnd);
-				break;
-			default:
-				break;
+				// this only matters during connect. Once we have connected, the client
+				// will exit rather than go back to the connection screen, and that is the
+				// only place where we can enter account/pass
+				record = m_record;
+			}
+			else
+			{
+				switch (s_loginSettings.LoginType)
+				{
+				case LoginSettings::Type::MQ2Login:
+					record = UseMQ2Login(pEditWnd);
+					break;
+				case LoginSettings::Type::StationNames:
+					record = UseStationNames(pEditWnd);
+					break;
+				case LoginSettings::Type::Sessions:
+					record = UseSessions(pEditWnd);
+					break;
+				default:
+					break;
+				}
 			}
 
 			if (record)
 			{
-				m_serverName = record->serverName;
-				m_characterName = record->characterName;
+				m_record = record;
 
 				DWORD oldscreenmode = std::exchange(ScreenMode, 3);
-				pEditWnd->InputText = record->accountName;
+				pEditWnd->InputText = m_record->accountName;
 
 				if (CEditWnd* pPasswordEdit = GetChildWindow<CEditWnd>(m_currentWindow, "LOGIN_PasswordEdit"))
 				{
-					pPasswordEdit->InputText = record->accountPassword;
+					pPasswordEdit->InputText = m_record->accountPassword;
 					if (CButtonWnd* pConnectButton = GetChildWindow<CButtonWnd>(m_currentWindow, "LOGIN_ConnectButton"))
 						pConnectButton->WndNotification(pConnectButton, XWM_LCLICK);
 				}
@@ -417,7 +428,7 @@ public:
 	template <typename Action>
 	static bool CheckServerDown(Action action)
 	{
-		if (m_serverName.empty())
+		if (!m_record || m_record->serverName.empty())
 		{
 			AutoLoginDebug(fmt::format("ServerSelect: server name is empty"));
 			dispatch(PauseLogin()); // no server to select, pause
@@ -426,8 +437,8 @@ public:
 		else
 		{
 			// get server
-			const auto& live_server = ServerData.find(m_serverName);
-			const auto& server_name = live_server == std::cend(ServerData) ? GetServerLongName(m_serverName) : std::string(live_server->first);
+			const auto& live_server = ServerData.find(m_record->serverName);
+			const auto& server_name = live_server == std::cend(ServerData) ? GetServerLongName(m_record->serverName) : std::string(live_server->first);
 			int server_id = live_server == std::cend(ServerData) ? -1 : live_server->second;
 
 			// note that this predicate ensures that a server has a non-null Info member
@@ -439,7 +450,7 @@ public:
 			if (!server)
 			{
 				// no server found, wait
-				AutoLoginDebug(fmt::format("ServerSelect: Could not find server {}", m_serverName));
+				AutoLoginDebug(fmt::format("ServerSelect: Could not find server {}", m_record ? m_record->serverName : ""));
 				return false;
 			}
 			else if (server->Info->StatusFlags & (eServerStatus_Down | eServerStatus_Locked))
@@ -589,7 +600,7 @@ public:
 	{
 		if (auto pCharList = GetChildWindow<CListWnd>(m_currentWindow, "Character_List"))
 		{
-			if (!EQADDR_SERVERNAME || !ci_equals(EQADDR_SERVERNAME, m_serverName))
+			if (!EQADDR_SERVERNAME || !m_record || !ci_equals(EQADDR_SERVERNAME, m_record->serverName))
 			{
 				// wrong server, need to quit character select to get to the server select window
 				if (pCharacterListWnd)
@@ -604,7 +615,7 @@ public:
 				{
 					for (int i = 0; i < pCharList->ItemsArray.Count; ++i)
 					{
-						if (ci_equals(m_characterName, pCharList->GetItemText(i, 2)))
+						if (m_record && ci_equals(m_record->characterName, pCharList->GetItemText(i, 2)))
 							return i;
 					}
 
@@ -642,7 +653,7 @@ public:
 		{
 			// we need to restart the login timer here
 			m_delayTime = MQGetTickCount64() + 3000;
-			WriteChatf(fmt::format("Re-Enabling login and selecting \ag{}\ax in 3 seconds. Please Wait... or press the END key to abort", m_characterName).c_str());
+			WriteChatf(fmt::format("Re-Enabling login and selecting \ag{}\ax in 3 seconds. Please Wait... or press the END key to abort", m_record ? m_record->characterName : "").c_str());
 		}
 
 		// and set the correct pause value, don't call the base because we don't want to repeat messaging
@@ -662,7 +673,7 @@ public:
 			case LoginState::CharacterSelect:
 				if (auto pCharList = GetChildWindow<CListWnd>(m_currentWindow, "Character_List"))
 				{
-					if (ci_equals(m_characterName, pCharList->GetItemText(pCharList->GetCurSel(), 2)))
+					if (m_record && ci_equals(m_record->characterName, pCharList->GetItemText(pCharList->GetCurSel(), 2)))
 					{
 						// we've waited our 3 seconds, so enter world
 						if (pCharacterListWnd != nullptr)
@@ -690,8 +701,7 @@ public:
 	void react(PauseLogin const&) override {}
 };
 
-std::string Login::m_characterName = "";
-std::string Login::m_serverName = "";
+std::optional<ProfileRecord> Login::m_record = std::nullopt;
 CXWnd* Login::m_currentWindow = nullptr;
 bool Login::m_paused = false;
 bool Login::m_offsetsLoaded = false;
