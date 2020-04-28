@@ -1,11 +1,12 @@
 Apr 28 2020
 - Optimized the GetGroupMainAssistTargetID inline.
 - Fixed /foreground to respect maximizzed window pos - bug reported by Kaen01
-- Added .SpellRankCap to the character TLO. It returns an in representing your characters spell rank cap.
+- Added .SpellRankCap to the character TLO. It returns an int representing your characters spell rank cap.
   if it returns:
   1 = you CAN cast Rk. I spells
   2 = you CAN cast Rk. II spells
   3 = you CAN cast Rk. III spells
+- Fixed a crash in ${Zone.blah} when in Guild Halls - bug reported by Shin Noir.
 -
 Apr 24 2020
 - Optimized the GetRaidMainAssistTargetID inline.

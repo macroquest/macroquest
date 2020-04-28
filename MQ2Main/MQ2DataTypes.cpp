@@ -9797,6 +9797,7 @@ bool MQ2CurrentZoneType::GETMEMBER()
 #endif
 			}
 		}
+		return false;
 	}
 	switch ((CurrentZoneMembers)pMember->ID)
 	{
