@@ -954,7 +954,10 @@ public:
 	{
 		DisplayDetailsSection(static_cast<CXWnd*>(pWnd));
 
-		if (ImGui::CollapsingHeader("CButtonWnd Properties", ImGuiTreeNodeFlags_DefaultOpen))
+		bool show = ImGui::CollapsingHeader("CButtonWnd Properties", ImGuiTreeNodeFlags_DefaultOpen);
+		ImGui::TableNextRow();
+
+		if (show)
 		{
 			DisplayDrawTemplate("Template", pWnd->DrawTemplate);
 		}
