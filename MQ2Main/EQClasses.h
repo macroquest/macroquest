@@ -9119,6 +9119,7 @@ public:
 	EQLIB_OBJECT VePointer<CONTENTS> CharacterBase::GetItemByGlobalIndex(const ItemGlobalIndex& GlobalIndex) const;
 	EQLIB_OBJECT VePointer<CONTENTS> CharacterBase::GetItemByGlobalIndex(const ItemGlobalIndex& GlobalIndex, GILocationOption Option) const;
 	EQLIB_OBJECT VePointer<CONTENTS> CharacterBase::GetItemPossession(const ItemIndex &lIndex) const;
+	EQLIB_OBJECT int CharacterBase::GetGameFeature(int index);
 };
 
 EQLIB_OBJECT char * build_token_string_PARAM(char *pBuffer, int token, const char *param0=NULL, const char *param1=NULL,

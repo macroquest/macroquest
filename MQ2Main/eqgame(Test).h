@@ -903,6 +903,7 @@ GNU General Public License for more details.
 #define PlayerClient__GetPcClient_x                                0x66EBD0
 
 //PcClient
+#define PcClient__vftable_x                                        0xB14D9C
 #define PcClient__PcClient_x                                       0x64E6C0
 
 //CCharacterListWnd

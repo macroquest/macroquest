@@ -2246,6 +2246,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(PlayerZoneClient__LegalPlayerRace);
 #endif
 	INITIALIZE_EQGAME_OFFSET(PlayerClient__GetPcClient);
+	INITIALIZE_EQGAME_OFFSET(PcClient__vftable);
 	INITIALIZE_EQGAME_OFFSET(PcClient__PcClient);
 	
 	INITIALIZE_EQGAME_OFFSET(EQPlayerManager__GetSpawnByID);

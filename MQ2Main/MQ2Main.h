@@ -204,6 +204,14 @@ extern DWORD CountFrees;
     __asm{mov eax, [eax]};\
     __asm{jmp eax};\
 }
+#define FUNCTION_AT_VIRTUAL_TABLE_ADDRESS(function,address,virtualoffset) __declspec(naked) function\
+{\
+    __asm{mov edx, virtualoffset};\
+    __asm{mov eax, [address]};\
+    __asm{lea eax, [eax + edx * 4]};\
+    __asm{mov eax, [eax]};\
+    __asm{jmp eax};\
+}
 #endif
 
 #define PreserveRegisters(code) \

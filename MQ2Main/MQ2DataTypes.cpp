@@ -6631,6 +6631,21 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 			return true;
 		}
+	case SpellRankCap://311
+		Dest.DWord = 1;
+		Dest.Type = pIntType;
+		if (PCHARINFO pChar = GetCharInfo())
+		{
+			if (CharacterBase *cb = (CharacterBase *)&pChar->CharacterBase_vftable)
+			{
+				int ret = cb->GetGameFeature(3);
+				if (ret == -1 || ret >= 10)
+					Dest.DWord = 3;
+				else if (ret >= 5)
+					Dest.DWord = 2;
+			}
+		}
+		return true;
 	//end of MQ2CharacterType
 	}
 	return false;

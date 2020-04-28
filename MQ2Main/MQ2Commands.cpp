@@ -5362,7 +5362,13 @@ void SetForegroundWindowInternal(HWND hWnd)
 	}
 
 	SetForegroundWindow(hWnd);
-	ShowWindow(hWnd, SW_SHOWNORMAL);
+	if (IsIconic(hWnd))
+	{
+		ShowWindow(hWnd, SW_RESTORE);
+	}
+	else {
+		ShowWindow(hWnd, SW_SHOW);
+	}
 
 	if (GetKeyboardState((LPBYTE)&keyState))
 	{

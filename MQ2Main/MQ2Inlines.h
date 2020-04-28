@@ -877,33 +877,23 @@ static inline LONG GetSpellNumEffects(PSPELL pSpell)
 static inline DWORD GetGroupMainAssistTargetID()
 {
 	if (PCHARINFO pChar = GetCharInfo()) {
-		bool bMainAssist = false;
-		if (PGROUPINFO pGroup = pChar->pGroupInfo) {
-			if (PGROUPMEMBER pMember = pGroup->pMember[0]) {
-				for (int i = 0; i < 6; i++) {
-					if (pGroup->pMember[i]) {
-						if (pGroup->pMember[i]->MainAssist) {
-							bMainAssist = true;
-							break;
-						}
-					}
-				}
-			}
-		}
-		if (bMainAssist && pChar->pSpawn) {
-			return pChar->pSpawn->GroupAssistNPC[0];
+		if (pChar->pGroupInfo && pLocalPlayer) {
+			return ((PSPAWNINFO)pLocalPlayer)->GroupAssistNPC[0];
 		}
 	}
 	return 0;
 }
 static inline DWORD GetRaidMainAssistTargetID(int index)
 {
-	if (PSPAWNINFO pSpawn = (PSPAWNINFO)pLocalPlayer) {
-		if (index < 0)
-			index = 0;
-		if (index > 2)
-			index = 2;
-		return pSpawn->RaidAssistNPC[index];
+	if (pRaid)
+	{
+		if (PSPAWNINFO pSpawn = (PSPAWNINFO)pLocalPlayer) {
+			if (index < 0)
+				index = 0;
+			if (index > 2)
+				index = 2;
+			return pSpawn->RaidAssistNPC[index];
+		}
 	}
 	return 0;
 }

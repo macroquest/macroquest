@@ -3391,6 +3391,9 @@ FUNCTION_AT_ADDRESS(VePointer<CONTENTS> CharacterBase::GetItemPossession(const I
 #ifdef BaseProfile__GetItemPossession_x
 FUNCTION_AT_ADDRESS(VePointer<CONTENTS> BaseProfile::GetItemPossession(const ItemIndex &lIndex) const,BaseProfile__GetItemPossession);
 #endif
+#ifdef PcClient__vftable_x
+FUNCTION_AT_VIRTUAL_TABLE_ADDRESS(int CharacterBase::GetGameFeature(int index), PcClient__vftable, 0x0);
+#endif
 #ifdef AggroMeterManagerClient__Instance_x
 FUNCTION_AT_ADDRESS(AggroMeterManagerClient &AggroMeterManagerClient::Instance(), AggroMeterManagerClient__Instance);
 #endif

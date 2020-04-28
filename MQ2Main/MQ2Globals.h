@@ -1689,6 +1689,7 @@ namespace MQ2Globals
 	
 	
 	EQLIB_VAR DWORD PlayerClient__GetPcClient;
+	EQLIB_VAR DWORD PcClient__vftable;
 	EQLIB_VAR DWORD PcClient__PcClient;
 	
 	EQLIB_VAR DWORD EQPlayerManager__GetSpawnByID;

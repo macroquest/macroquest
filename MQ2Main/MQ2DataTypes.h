@@ -1271,6 +1271,7 @@ public:
 		Spell = 308,
 		ParcelStatus = 309,
 		CanMount = 310,
+		SpellRankCap = 311,
 	};
 	enum CharacterMethods
 	{
@@ -1583,7 +1584,8 @@ public:
 		TypeMember(Spell);//308
 		TypeMember(ParcelStatus);//309
 		TypeMember(CanMount);//310
-
+		TypeMember(SpellRankCap);//311
+		
 		TypeMethod(Stand);
 		TypeMethod(Sit);
 		TypeMethod(Dismount);
