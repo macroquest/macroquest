@@ -176,6 +176,72 @@ void Cmd_Relog(SPAWNINFO* pChar, char* szLine)
 
 void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 {
+	if (!szLine[0])
+	{
+		WriteChatf("\ayUsage:\ax /loginchar [profile_server:character|server:character|server^login^character^password|server^login^password]");
+		return;
+	}
+
+	auto record = ProfileRecord::FromString(szLine);
+	if (!record.profileName.empty() && !record.serverName.empty() && !record.characterName.empty())
+	{
+		record = ProfileRecord::FromINI(
+			record.profileName,
+			fmt::format("{}:{}_Blob", record.serverName, record.characterName),
+			INIFileName);
+
+		pipeclient::LoginProfile(
+			record.profileName.c_str(),
+			record.serverName.c_str(),
+			record.characterName.c_str());
+	}
+	else if (!record.serverName.empty() && !record.accountName.empty() && !record.accountPassword.empty())
+	{
+		if (record.characterName.empty())
+			pipeclient::LoginServer(
+				record.accountName.c_str(),
+				record.accountPassword.c_str(),
+				record.serverName.c_str());
+		else
+			pipeclient::LoginCharacter(
+				record.accountName.c_str(),
+				record.accountPassword.c_str(),
+				record.serverName.c_str(),
+				record.characterName.c_str());
+	}
+	else if (!record.serverName.empty() && !record.characterName.empty())
+	{
+		// we have a server and a character, we need to find the first entry in the ini where these match (regardless of profile)
+		char buff[MAX_STRING] = { 0 };
+		int buff_size = GetPrivateProfileSectionNames(buff, MAX_STRING, INIFileName);
+		std::string buff_str = std::string(buff, buff_size);
+
+		auto sections = split(buff_str, '\0');
+
+		for (auto section : sections)
+		{
+			auto blobKey = fmt::format("{}:{}_Blob", record.serverName, record.characterName);
+			std::string blob = GetPrivateProfileString(section.c_str(), blobKey, "", INIFileName);
+
+			if (!blob.empty())
+			{
+				record = ProfileRecord::FromINI(section.c_str(), blobKey, INIFileName);
+				break;
+			}
+		}
+
+		if (!record.profileName.empty())
+			pipeclient::LoginProfile(
+				record.profileName.c_str(),
+				record.serverName.c_str(),
+				record.characterName.c_str());
+		else
+			WriteChatf("Could not find %s:%s in your autologin ini", record.serverName.c_str(), record.characterName.c_str());
+	}
+	else
+	{
+		WriteChatf("\ayUsage:\ax /loginchar [profile_server:character|server:character|server^login^character^password|server^login^password]");
+	}
 }
 
 DETOUR_TRAMPOLINE_EMPTY(DWORD WINAPI GetPrivateProfileStringA_Trampoline(LPCSTR, LPCSTR, LPCSTR, LPSTR, DWORD, LPCSTR));
@@ -292,18 +358,18 @@ void ReadINI()
 	AUTOLOGIN_DBG = GetPrivateProfileBool("Settings", "Debug", AUTOLOGIN_DBG, INIFileName);
 	AutoLoginDebug("MQ2AutoLogin: InitializePlugin()");
 
-	s_loginSettings.NotifyOnServerUp = static_cast<LoginSettings::ServerUpNotification>(GetPrivateProfileInt("Settings", "NotifyOnServerUp", 0, INIFileName));
-	s_loginSettings.KickActiveCharacter = GetPrivateProfileBool("Settings", "KickActiveCharacter", true, INIFileName);
-	s_loginSettings.EndAfterSelect = GetPrivateProfileBool("Settings", "EndAfterCharSelect", false, INIFileName);
+	Login::m_settings.NotifyOnServerUp = static_cast<Login::Settings::ServerUpNotification>(GetPrivateProfileInt("Settings", "NotifyOnServerUp", 0, INIFileName));
+	Login::m_settings.KickActiveCharacter = GetPrivateProfileBool("Settings", "KickActiveCharacter", true, INIFileName);
+	Login::m_settings.EndAfterSelect = GetPrivateProfileBool("Settings", "EndAfterCharSelect", false, INIFileName);
 
 	bool bUseMQ2Login = GetPrivateProfileBool("Settings", "UseMQ2Login", false, INIFileName);
 	bool bUseStationNamesInsteadOfSessions = GetPrivateProfileBool("Settings", "UseStationNamesInsteadOfSessions", false, INIFileName);
 	if (bUseMQ2Login)
-		s_loginSettings.LoginType = LoginSettings::Type::MQ2Login;
+		Login::m_settings.LoginType = Login::Settings::Type::MQ2Login;
 	else if (bUseStationNamesInsteadOfSessions)
-		s_loginSettings.LoginType = LoginSettings::Type::StationNames;
+		Login::m_settings.LoginType = Login::Settings::Type::StationNames;
 	else
-		s_loginSettings.LoginType = LoginSettings::Type::Sessions;
+		Login::m_settings.LoginType = Login::Settings::Type::Sessions;
 }
 
 void LoginReset()
@@ -326,7 +392,7 @@ PLUGIN_API void InitializePlugin()
 
 	if (GetPrivateProfileBool("Settings", "EnableCustomClientIni", false, INIFileName))
 	{
-		if (s_loginSettings.LoginType == LoginSettings::Type::StationNames)
+		if (Login::m_settings.LoginType == Login::Settings::Type::StationNames)
 		{
 			SetupCustomIni();
 		}
@@ -363,7 +429,7 @@ PLUGIN_API void ShutdownPlugin()
 
 PLUGIN_API void SetGameState(DWORD GameState)
 {
-	s_loginSettings.EndAfterSelect = GetPrivateProfileInt("Settings", "EndAfterCharSelect", 0, INIFileName) == 1;
+	Login::m_settings.EndAfterSelect = GetPrivateProfileInt("Settings", "EndAfterCharSelect", 0, INIFileName) == 1;
 }
 
 PLUGIN_API void OnPulse()
@@ -457,9 +523,9 @@ static void ShowAutoLoginOverlay(bool* p_open)
 	if (ImGui::Begin("MQ2AutoLogin Status", p_open, (corner != -1 ? ImGuiWindowFlags_NoMove : 0) | ImGuiWindowFlags_NoBringToFrontOnFocus  | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav))
 	{
 		ImGui::Text("MQ2AutoLogin Method:");
-		RadioButton("MQ2Login", &s_loginSettings.LoginType, LoginSettings::Type::MQ2Login); ImGui::SameLine();
-		RadioButton("StationNames", &s_loginSettings.LoginType, LoginSettings::Type::StationNames); ImGui::SameLine();
-		RadioButton("Sessions", &s_loginSettings.LoginType, LoginSettings::Type::Sessions);
+		RadioButton("MQ2Login", &Login::m_settings.LoginType, Login::Settings::Type::MQ2Login); ImGui::SameLine();
+		RadioButton("StationNames", &Login::m_settings.LoginType, Login::Settings::Type::StationNames); ImGui::SameLine();
+		RadioButton("Sessions", &Login::m_settings.LoginType, Login::Settings::Type::Sessions);
 
 		ImGui::Text("(right-click to hide)");
 		ImGui::Separator();
@@ -484,14 +550,14 @@ static void ShowAutoLoginOverlay(bool* p_open)
 			ImGui::Separator();
 
 			ImGui::Text("Settings:");
-			ImGui::Checkbox("Kick Active Character", &s_loginSettings.KickActiveCharacter);
-			ImGui::Checkbox("End After Select", &s_loginSettings.EndAfterSelect);
+			ImGui::Checkbox("Kick Active Character", &Login::m_settings.KickActiveCharacter);
+			ImGui::Checkbox("End After Select", &Login::m_settings.EndAfterSelect);
 
 			ImGui::Separator();
 			ImGui::Text("Server Up Notification:");
-			RadioButton("None", &s_loginSettings.NotifyOnServerUp, LoginSettings::ServerUpNotification::None); ImGui::SameLine();
-			RadioButton("Email", &s_loginSettings.NotifyOnServerUp, LoginSettings::ServerUpNotification::Email); ImGui::SameLine();
-			RadioButton("Beeps", &s_loginSettings.NotifyOnServerUp, LoginSettings::ServerUpNotification::Beeps);
+			RadioButton("None", &Login::m_settings.NotifyOnServerUp, Login::Settings::ServerUpNotification::None); ImGui::SameLine();
+			RadioButton("Email", &Login::m_settings.NotifyOnServerUp, Login::Settings::ServerUpNotification::Email); ImGui::SameLine();
+			RadioButton("Beeps", &Login::m_settings.NotifyOnServerUp, Login::Settings::ServerUpNotification::Beeps);
 
 			ImGui::Separator();
 			ImGui::Text("State Variables:");

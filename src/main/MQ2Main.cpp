@@ -16,8 +16,6 @@
 #include "MQ2Main.h"
 #include "CrashHandler.h"
 
-#include "common/NamedPipes.h"
-
 #include <date/date.h>
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
@@ -67,7 +65,6 @@ DWORD dwMainThreadId = 0;
 
 wil::unique_event g_hLoadComplete;
 HANDLE hUnloadComplete = nullptr;
-NamedPipeClient gPipeClient{ mq::MQ2_PIPE_SERVER_PATH };
 
 void InitializeLogging()
 {
@@ -560,37 +557,10 @@ void SetMainThreadId()
 		dwMainThreadId = ::GetCurrentThreadId();
 }
 
-class PipeEventsHandler : public NamedPipeEvents
-{
-public:
-	virtual void OnIncomingMessage(std::shared_ptr<PipeMessage> message) override
-	{
-		if (message->GetMessageId() == MQMessageId::MSG_MAIN_CRASHPAD_CONFIG)
-		{
-			// Message needs to at least have some substance...
-			if (message->size() > 0)
-			{
-				std::string pipeName{ message->get<const char>() };
-
-				if (pipeName.empty())
-				{
-					InitializeCrashpad();
-				}
-				else
-				{
-					InitializeCrashpadPipe(message->get<const char>());
-				}
-			}
-		}
-	}
-};
-
 // Perform first time initialization on the main thread.
 void DoInitialization()
 {
-	gPipeClient.SetHandler(std::make_shared<PipeEventsHandler>());
-	gPipeClient.Start();
-	::atexit([]() { gPipeClient.Stop(); });
+	InitializeMQ2PipeClient();
 
 	// this needs to be done before anything that would need to add a callback to string message parsing
 	InitializeStringDB();
@@ -812,8 +782,7 @@ void MQ2Shutdown()
 	DebugTry(DeInitializeMQ2IcExports());
 	DebugTry(ShutdownMQ2Detours());
 	DebugTry(ShutdownMQ2Benchmarks());
-
-	gPipeClient.Stop();
+	DebugTry(ShutdownMQ2PipeClient());
 }
 
 HMODULE GetCurrentModule()

@@ -35,95 +35,16 @@ static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 		std::string input(pEditWnd->InputText);
 		AutoLoginDebug(fmt::format("UseMQ2Login() input({})", input));
 
-		// we can use regex here because this is not a time-critical process, and makes the
-		// code easier to read
-
-		// store our matches in here
-		std::smatch matches;
-
-		// the first method of username format is underscores
-		// we expect here a format of `<profile>_<server>:<user>`
-		std::regex blob_regex("(\\S+)_(\\w+):(\\S+)"); // TODO: do we need one of these for just server?
-		std::regex plain_regex("(\\S+)\\^(\\S+)\\^(\\S+)\\^(\\S+)");
-		std::regex plain2_regex("(\\S+)\\^(\\S+)\\^(\\S+)");
-		std::regex special_regex("(\\S+);(\\S+):(\\S+);");
-
-		if (std::regex_match(input, matches, blob_regex))
+		auto record = ProfileRecord::FromString(input);
+		if (!record.profileName.empty() && !record.serverName.empty() && !record.characterName.empty())
 		{
-			// <profile>_<server>:<character>
-			auto profile = matches[1].str();
-			auto server = matches[2].str();
-			auto character = matches[3].str();
-
-			auto blobKey = fmt::format("{}:{}_Blob", server, character);
-			AutoLoginDebug(fmt::format("UseMQ2Login() blobKey({})", blobKey));
-
-			std::string blob = GetPrivateProfileString(profile, blobKey, "", INIFileName);
-			if (!blob.empty())
-			{
-				blob = split(blob, '=').at(0); // remove the "checked" status
-				AutoLoginDebug(fmt::format("UseMQ2Login() blob({})", blob));
-
-				ProfileRecord record;
-				if (ParseBlob(blob, record))
-				{
-					record.profileName = profile;
-					record.serverName = server;
-					return record;
-				}
-			}
+			record = ProfileRecord::FromINI(
+				record.profileName,
+				fmt::format("{}:{}_Blob", record.serverName, record.characterName),
+				INIFileName);
 		}
-		else if (std::regex_match(input, matches, plain_regex))
-		{
 
-			// <server>^<stationname>^<charname>^<pass>
-			ProfileRecord record;
-			record.profileName = "";
-			record.serverName = matches[1].str();
-			record.accountName = matches[2].str();
-			record.characterName = matches[3].str();
-			record.accountPassword = matches[4].str();
-
-			return record;
-		}
-		else if (std::regex_match(input, matches, plain2_regex))
-		{
-
-			// <server>^<stationname>^<pass>
-			ProfileRecord record;
-			record.profileName = "";
-			record.serverName = matches[1].str();
-			record.accountName = matches[2].str();
-			record.accountPassword = matches[3].str();
-
-			return record;
-		}
-		else if (std::regex_match(input, matches, special_regex))
-		{
-			// unsure why we need this option when the first option is exactly equivalent
-			// <server>;<profile>:<character>;
-			auto server = matches[1].str();
-			auto profile = matches[2].str();
-			auto character = matches[3].str();
-
-			auto blobKey = fmt::format("{}:{}_Blob", server, character);
-			AutoLoginDebug(fmt::format("UseMQ2Login() blobKey({})", blobKey));
-
-			std::string blob = GetPrivateProfileString(profile, blobKey, "", INIFileName);
-			if (!blob.empty())
-			{
-				blob = split(blob, '=').at(0); // remove the "checked" status
-				AutoLoginDebug(fmt::format("UseMQ2Login() blob({})", blob));
-
-				ProfileRecord record;
-				if (ParseBlob(blob, record))
-				{
-					record.profileName = profile;
-					record.serverName = server;
-					return record;
-				}
-			}
-		}
+		return record;
 	}
 
 	return std::nullopt;
@@ -309,15 +230,15 @@ public:
 			}
 			else
 			{
-				switch (s_loginSettings.LoginType)
+				switch (m_settings.LoginType)
 				{
-				case LoginSettings::Type::MQ2Login:
+				case Settings::Type::MQ2Login:
 					record = UseMQ2Login(pEditWnd);
 					break;
-				case LoginSettings::Type::StationNames:
+				case Settings::Type::StationNames:
 					record = UseStationNames(pEditWnd);
 					break;
-				case LoginSettings::Type::Sessions:
+				case Settings::Type::Sessions:
 					record = UseSessions(pEditWnd);
 					break;
 				default:
@@ -526,9 +447,9 @@ public:
 			if (str.find("You already have a character logged into a world server from this account.") != CXStr::npos)
 			{
 				auto pButton = GetChildWindow<CButtonWnd>(m_currentWindow,
-					s_loginSettings.KickActiveCharacter ? "YESNO_YesButton" : "YESNO_NoButton");
+					m_settings.KickActiveCharacter ? "YESNO_YesButton" : "YESNO_NoButton");
 
-				if (!pButton || !s_loginSettings.KickActiveCharacter)
+				if (!m_settings.KickActiveCharacter)
 					dispatch(PauseLogin());
 
 				if (pButton)
@@ -566,13 +487,13 @@ public:
 			case LoginState::ServerSelect:
 				if (ServerSelect::CheckServerDown([]()
 					{
-						switch (s_loginSettings.NotifyOnServerUp)
+						switch (m_settings.NotifyOnServerUp)
 						{
-						case LoginSettings::ServerUpNotification::Email:
+						case Settings::ServerUpNotification::Email:
 							if (IsCommand("/gmail"))
 								DoCommand(nullptr, R"(/gmail "Server is up" "Time to login!")");
 							break;
-						case LoginSettings::ServerUpNotification::Beeps:
+						case Settings::ServerUpNotification::Beeps:
 							Beep(1000, 1000);
 							Beep(500, 2000);
 							Beep(1000, 1000);
@@ -679,7 +600,7 @@ public:
 						if (pCharacterListWnd != nullptr)
 							pCharacterListWnd->EnterWorld();
 
-						if (s_loginSettings.EndAfterSelect)
+						if (m_settings.EndAfterSelect)
 							dispatch(PauseLogin());
 					}
 				}
@@ -707,6 +628,7 @@ bool Login::m_paused = false;
 bool Login::m_offsetsLoaded = false;
 uint64_t Login::m_delayTime = 0;
 LoginState Login::m_lastState = LoginState::InGame;
+struct Login::Settings Login::m_settings;
 
 FSM_INITIAL_STATE(Login, Wait)
 

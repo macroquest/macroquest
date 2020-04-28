@@ -21,6 +21,33 @@
 #include <Windows.h>
 #include <wincrypt.h>
 
+// This is a constant set of live server shortnames
+const mq::ci_unordered::map<int> ServerData = {
+	{ "lockjaw",     160 },
+	{ "ragefire",    159 },
+	{ "vox",         158 },
+	{ "trakanon",    155 },
+	{ "fippy",       156 },
+	{ "vulak",       157 },
+	{ "mayong",      163 },
+	{ "antonius",    100 },
+	{ "brekt",       162 },
+	{ "bertox",      102 },
+	{ "bristle",     104 },
+	{ "cazic",       105 },
+	{ "drinal",      106 },
+	{ "erollisi",    109 },
+	{ "firiona",     111 },
+	{ "luclin",      116 },
+	{ "povar",       123 },
+	{ "rathe",       127 },
+	{ "tunare",      140 },
+	{ "xegony",      144 },
+	{ "zek",         147 },
+	{ "beta",        2   },
+	{ "test",        1   }
+};
+
 bool DecryptData(DATA_BLOB* DataIn, DATA_BLOB* DataOut);
 
 struct ProfileRecord
@@ -36,7 +63,8 @@ struct ProfileRecord
 	std::string hotkey;
 	std::string characterClass;
 	int characterLevel = 0;
-};
 
-// TODO: add a version 2 of this parser that will also fill in the server name (and move this into the record itself as a constructor)
-bool ParseBlob(const std::string& blob, ProfileRecord& record);
+	static ProfileRecord FromString(const std::string& input);
+	static ProfileRecord FromBlob(const std::string& blob);
+	static ProfileRecord FromINI(const std::string& profile, const std::string& blobKey, const std::string& iniFile);
+};

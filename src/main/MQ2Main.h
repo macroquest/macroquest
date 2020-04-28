@@ -638,6 +638,19 @@ MQLIB_OBJECT DWORD GetCachedBuffCount(SPAWNINFO* pSpawn, const std::function<boo
 MQLIB_API void ClearCachedBuffsSpawn(SPAWNINFO* pSpawn);
 MQLIB_API void ClearCachedBuffs();
 
+/* MQ2PIPECLIENT */
+void InitializeMQ2PipeClient();
+void ShutdownMQ2PipeClient();
+
+namespace pipeclient {
+MQLIB_API void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character);
+MQLIB_API void NotifyCharacterUnload(const char* Profile, const char* Account, const char* Server, const char* Character);
+MQLIB_API void NotifyCharacterUpdate(const char* Class, const char* Level);
+MQLIB_API void LoginServer(const char* Login, const char* Pass, const char* Server);
+MQLIB_API void LoginCharacter(const char* Login, const char* Pass, const char* Server, const char* Character);
+MQLIB_API void LoginProfile(const char* Profile, const char* Server, const char* Character);
+}
+
 MQLIB_API    int      GetSelfBuff(const std::function<bool(EQ_Spell*)>& fPredicate);
 
 MQLIB_API    bool     HasSPA(EQ_Spell* pSpell, eEQSPA eSPA, bool bIncrease = false);

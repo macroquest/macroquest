@@ -20,33 +20,6 @@
 
 static bool AUTOLOGIN_DBG = false;
 
-// This is a constant set of live server shortnames
-const ci_unordered::map<int> ServerData = {
-	{ "lockjaw",     160 },
-	{ "ragefire",    159 },
-	{ "vox",         158 },
-	{ "trakanon",    155 },
-	{ "fippy",       156 },
-	{ "vulak",       157 },
-	{ "mayong",      163 },
-	{ "antonius",    100 },
-	{ "brekt",       162 },
-	{ "bertox",      102 },
-	{ "bristle",     104 },
-	{ "cazic",       105 },
-	{ "drinal",      106 },
-	{ "erollisi",    109 },
-	{ "firiona",     111 },
-	{ "luclin",      116 },
-	{ "povar",       123 },
-	{ "rathe",       127 },
-	{ "tunare",      140 },
-	{ "xegony",      144 },
-	{ "zek",         147 },
-	{ "beta",        2   },
-	{ "test",        1   }
-};
-
 template <typename T = CXWnd>
 inline T* GetWindow(const std::string& name)
 {
@@ -124,24 +97,6 @@ enum class LoginState
 	InGame
 };
 
-static struct LoginSettings
-{
-	bool KickActiveCharacter;
-	bool EndAfterSelect;
-
-	enum class ServerUpNotification {
-		None = 0,
-		Beeps = 1,
-		Email = 2
-	} NotifyOnServerUp;
-
-	enum class Type {
-		MQ2Login,
-		StationNames,
-		Sessions
-	} LoginType;
-} s_loginSettings;
-
 // this event will notify states to change the server and character, as well as do any transitions that will be needed
 struct SetLoginInformation : tinyfsm::Event
 {
@@ -215,6 +170,24 @@ public:
 	static const bool offsets_loaded() { return m_offsetsLoaded; }
 	static const uint64_t delay_time() { return m_delayTime; }
 	static const LoginState last_state() { return m_lastState; }
+
+	static struct Settings
+	{
+		bool KickActiveCharacter;
+		bool EndAfterSelect;
+
+		enum class ServerUpNotification {
+			None = 0,
+			Beeps = 1,
+			Email = 2
+		} NotifyOnServerUp;
+
+		enum class Type {
+			MQ2Login,
+			StationNames,
+			Sessions
+		} LoginType;
+	} m_settings;
 };
 
 void AutoLoginDebug(std::string_view svLogMessage, bool bDebugOn = AUTOLOGIN_DBG);
