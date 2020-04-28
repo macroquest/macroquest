@@ -1458,6 +1458,19 @@ static uint8_t* LoginController__SwapScreenMode_pattern = (uint8_t*)"\x56\x8B\x3
 static char     LoginController__SwapScreenMode_mask[] = "xxx????xxxxxxxxxxxxxxxxxxxxxxxx?????xx????";
 DWORD           LoginController__SwapScreenMode = 0;
 
+// CEQSuiteTextureLoader::g_SuiteTextureLoader
+// 56 8B 74 24 08 85 F6 74 1C 83 7E 14 FF 75 0B 56 B9 ? ? ? ? E8 ? ? ? ? 56
+static uint8_t* EQMain__CEQSuiteTextureLoader__instance_pattern = (uint8_t*)"\x56\x8B\x74\x24\x08\x85\xF6\x74\x1C\x83\x7E\x14\xFF\x75\x0B\x56\xB9\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x56";
+static char     EQMain__CEQSuiteTextureLoader__instance_mask[] = "xxxxxxxxxxxxxxxxx????x????x";
+DWORD           EQMain__CEQSuiteTextureLoader__offset = 17;
+DWORD           EQMain__CEQSuiteTextureLoader__instance = 0;
+
+// CEQSuiteTextureLoader::GetTexture
+// 55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 64 89 25 ? ? ? ? 83 EC 10 8B 55 08 53 56 57 8B 7A 14 8D
+static uint8_t* EQMain__CEQSuiteTextureLoader__GetTexture_pattern = (uint8_t*)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x64\x89\x25\x00\x00\x00\x00\x83\xEC\x10\x8B\x55\x08\x53\x56\x57\x8B\x7A\x14\x8D\x59\x04\x33\xF6";
+static char     EQMain__CEQSuiteTextureLoader__GetTexture_mask[] = "xxxxxx????xx????xxxx????xxxxxxxxxxxxxxxxx";
+DWORD           EQMain__CEQSuiteTextureLoader__GetTexture = 0;
+
 // We use SwapScreenMode to find the LoginController instance
 DWORD           pinstLoginController = 0;
 ForeignPointer<LoginController> g_pLoginController;
@@ -1489,6 +1502,24 @@ bool InitializeEQMainOffsets()
 
 		EQMain__CXWndManager__GetCursorToDisplay = FindPattern(EQMainBaseAddress, 0x100000,
 			EQMain__CXWndManager__GetCursorToDisplay_pattern, EQMain__CXWndManager__GetCursorToDisplay_mask);
+
+		if (uint32_t addr = FindPattern(EQMainBaseAddress, 0x100000,
+			EQMain__CEQSuiteTextureLoader__instance_pattern, EQMain__CEQSuiteTextureLoader__instance_mask))
+		{
+			EQMain__CEQSuiteTextureLoader__instance = GetDWordAt(addr, EQMain__CEQSuiteTextureLoader__offset);
+			if (EQMain__CEQSuiteTextureLoader__instance)
+			{
+				pEQSuiteTextureLoader = (CEQSuiteTextureLoader*)EQMain__CEQSuiteTextureLoader__instance;
+			}
+		}
+
+		EQMain__CEQSuiteTextureLoader__GetTexture = FindPattern(EQMainBaseAddress, 0x100000,
+			EQMain__CEQSuiteTextureLoader__GetTexture_pattern, EQMain__CEQSuiteTextureLoader__GetTexture_mask);
+		if (EQMain__CEQSuiteTextureLoader__GetTexture)
+		{
+			CEQSuiteTextureLoader__GetTexture = EQMain__CEQSuiteTextureLoader__GetTexture;
+		}
+
 
 		if (LoginController__GiveTime)
 		{
@@ -1529,6 +1560,8 @@ void CleanupEQMainOffsets()
 	EQMain__CXWndManager = 0;
 	EQMain__CSidlManager = 0;
 	EQMain__CXWndManager__GetCursorToDisplay = 0;
+	EQMain__CEQSuiteTextureLoader__instance = 0;
+	EQMain__CEQSuiteTextureLoader__GetTexture = 0;
 	LoginController__ProcessKeyboardEvents = 0;
 	LoginController__ProcessMouseEvents = 0;
 	LoginController__FlushDxKeyboard = 0;
@@ -1539,6 +1572,8 @@ void CleanupEQMainOffsets()
 	// re-initialize offsets that were overwritten by eqmain
 	pWndMgr = pinstCXWndManager;
 	pSidlMgr = pinstCSidlManager;
+	pEQSuiteTextureLoader = (CEQSuiteTextureLoader*)pinstEQSuiteTextureLoader;
+	CEQSuiteTextureLoader__GetTexture = FixEQGameOffset(CEQSuiteTextureLoader__GetTexture_x);
 }
 
 #pragma endregion
