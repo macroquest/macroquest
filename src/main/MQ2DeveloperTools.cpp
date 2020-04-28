@@ -27,12 +27,15 @@ namespace mq {
 
 static void DeveloperTools_Initialize();
 static void DeveloperTools_Shutdown();
+static void DeveloperTools_SetGameState(DWORD gameState);
 
 static MQModule s_developerToolsModule = {
 	"DeveloperTools",              // Name
 	true,                          // CanUnload
 	DeveloperTools_Initialize,
 	DeveloperTools_Shutdown,
+	nullptr,
+	DeveloperTools_SetGameState,
 };
 DECLARE_MODULE_INITIALIZER(s_developerToolsModule);
 
@@ -500,299 +503,46 @@ void DisplayDrawTemplate(const char* label, const CXWndDrawTemplate& drawTemplat
 
 #pragma endregion
 
-#pragma region Windows Developer Tool
+#pragma region Property Viewer
 
-class ImGuiWindowsDeveloperTool
+class ImGuiWindowPropertyViewer
 {
-	CXWnd* m_pSelectedWnd = nullptr;
-	CXWnd* m_pHoveredWnd = nullptr;
+	CXWnd* m_window = nullptr;
 
-	// Never dereference this. the window might be deleted. We just use it to track
-	// what is selected.
-	CXWnd* m_pLastSelected = nullptr;
-	bool m_foundSelected = false;
-	bool m_selectionChanged = false;
-
-	float m_topPaneSize = -1.0f;
-	float m_bottomPaneSize = -1.0f;
-
-	bool m_picking = false;
-	bool m_selectPicking = false;
-	CXWnd* m_pPickingWnd = nullptr;
-	int m_lastWindowCount = 0;
+	inline static ImU32 s_propertyColors[] = {
+		(ImU32)ImColor(4, 32, 39, 120),
+	};
 
 public:
-	ImGuiWindowsDeveloperTool() = default;
+	ImGuiWindowPropertyViewer() = default;
+
+	void SetWindow(CXWnd* pWindow)
+	{
+		m_window = pWindow;
+	}
+
+	CXWnd* GetWindow() const { return m_window; }
 
 	void Draw()
 	{
-		// This is so we can reset the selected window if it is not found.
-		m_foundSelected = false;
-		m_pHoveredWnd = nullptr;
-		m_pPickingWnd = nullptr;
-
-		ImVec2 availSize = ImGui::GetContentRegionAvail();
-		if (m_topPaneSize == -1.0f)
-			m_topPaneSize = std::min(250.f, availSize.y * .55f);
-		if (m_bottomPaneSize == -1.0f)
-			m_bottomPaneSize = availSize.y - m_topPaneSize - 1;
-
-		if (m_picking)
+		if (m_window)
 		{
-			m_pPickingWnd = pWndMgr->LastMouseOver;
-		}
-
-		if (ImGui::Button("Pick"))
-		{
-			m_picking = !m_picking;
-		}
-
-		if (m_lastWindowCount != 0)
-		{
-			ImGui::PushItemWidth(-1);
-			ImGui::Text("%d Windows", m_lastWindowCount);
-		}
-
-		imgui::DrawSplitter(true, 9.0f, &m_topPaneSize, &m_bottomPaneSize, 100, 100);
-
-		DisplayWindowTree();
-
-		// if the selected window was not found, then clear it.
-		if (!m_foundSelected)
-		{
-			m_pSelectedWnd = nullptr;
-		}
-
-		if (ImGui::BeginChild("##InspectPanel"))
-		{
-			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 9);
-
-			if (m_pSelectedWnd)
-			{
-				ImGui::Text("Selected Window: %s", m_pSelectedWnd->GetXMLName().c_str());
-
-				ImGuiViewport* viewport = ImGui::GetMainViewport();
-				ImDrawList* drawList = ImGui::GetBackgroundDrawList(viewport);
-
-				CXRect clientRect = m_pSelectedWnd->GetClientRect();
-				drawList->AddRect(
-					ImVec2(clientRect.left + viewport->Pos.x, clientRect.top + viewport->Pos.y),
-					ImVec2(clientRect.right + viewport->Pos.x, clientRect.bottom + viewport->Pos.y),
-					IM_COL32(124, 252, 0, 200));
-			}
-			else
-			{
-				ImGui::Text("Selected Window: None");
-			}
-
-			if (m_pPickingWnd)
-			{
-				CXWnd* wnd = m_pPickingWnd ? m_pPickingWnd : m_pSelectedWnd;
-
-				ImGuiViewport* viewport = ImGui::GetMainViewport();
-				ImDrawList* drawList = ImGui::GetBackgroundDrawList(viewport);
-
-				CXRect clientRect = wnd->GetClientRect();
-				drawList->AddRectFilled(
-					ImVec2(clientRect.left + viewport->Pos.x, clientRect.top + viewport->Pos.y),
-					ImVec2(clientRect.right + viewport->Pos.x, clientRect.bottom + viewport->Pos.y),
-					IM_COL32(138, 179, 191, 128));
-			}
-
-			if (m_pHoveredWnd)
-			{
-				ImGui::Text("Hovered Window: %s", m_pHoveredWnd->GetXMLName().c_str());
-
-				ImGuiViewport* viewport = ImGui::GetMainViewport();
-				ImDrawList* drawList = ImGui::GetBackgroundDrawList(viewport);
-
-				CXRect clientRect = m_pHoveredWnd->GetClientRect();
-				drawList->AddRect(
-					ImVec2(clientRect.left + viewport->Pos.x, clientRect.top + viewport->Pos.y),
-					ImVec2(clientRect.right + viewport->Pos.x, clientRect.bottom + viewport->Pos.y),
-					m_pHoveredWnd->IsReallyVisible() ? IM_COL32(255, 215, 0, 200) : IM_COL32(200, 20, 60, 200));
-			}
-			else
-			{
-				ImGui::Text("Hovered Window: None");
-			}
-
-			if (m_pPickingWnd)
-			{
-				ImGui::Text("Picking: %s", m_pPickingWnd->GetXMLName().c_str());
-			}
-			else if (m_picking)
-			{
-				ImGui::Text("Picking...");
-			}
-
-			ImGui::Separator();
-
-			DisplayPropertiesPanel();
-		}
-		ImGui::EndChild();
-
-		// update last selected to remember selection for next iteration
-		m_selectionChanged = test_and_set(m_pLastSelected, m_pSelectedWnd);
-
-		if (m_picking && m_selectPicking)
-		{
-			m_selectPicking = false;
-			m_picking = false;
-		}
-	}
-
-	void DisplayWindowTree()
-	{
-		ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollFreezeTopRow | ImGuiTableFlags_ScrollY | ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersHOuter | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg;
-
-		if (ImGui::BeginTable("##WindowTable", 2, tableFlags, ImVec2(0, m_topPaneSize)))
-		{
-			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
-			ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 100);
-			ImGui::TableAutoHeaders();
-
-			m_lastWindowCount = 0;
-			if (pWndMgr)
-			{
-				for (CXWnd* pWnd : pWndMgr->ParentAndContextMenuWindows)
-				{
-					if (pWnd->ParentWindow == nullptr)
-					{
-						DisplayWindowTreeNode(pWnd);
-						++m_lastWindowCount;
-					}
-					else
-						__noop;
-				}
-			}
-
-			ImGui::EndTable();
-		}
-	}
-
-	void DisplayWindowTreeNode(CXWnd* pWnd)
-	{
-		if (pWnd->GetType() == UI_Unknown)
-			return;
-		ImGui::TableNextRow();
-		const bool hasChildren = pWnd->GetFirstChildWnd() != nullptr;
-
-		CXStr pName = pWnd->GetXMLName();
-		CXMLData* pXMLData = pWnd->GetXMLData();
-		CXStr typeName = pWnd->GetTypeName();
-
-		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_SpanAvailWidth;
-		bool open = false;
-		bool selected = (m_pLastSelected == pWnd);
-		bool selectPicking = false;
-
-		if (m_picking)
-		{
-			if (m_pPickingWnd == pWnd)
-			{
-				selected = true;
-				selectPicking = true;
-			}
-		}
-
-		if (selected)
-		{
-			flags |= ImGuiTreeNodeFlags_Selected;
-			m_foundSelected = true;
-		}
-
-		if (!hasChildren)
-		{
-			flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
-		}
-
-		if (hasChildren)
-		{
-			if (m_pPickingWnd)
-			{
-				if (m_pPickingWnd->IsDescendantOf(pWnd))
-					flags |= ImGuiTreeNodeFlags_DefaultOpen;
-			}
-			else if (m_pSelectedWnd && m_selectionChanged)
-			{
-				if (m_pSelectedWnd->IsDescendantOf(pWnd))
-				{
-					ImGui::SetNextItemOpen(true);
-				}
-			}
-
-			open = ImGui::TreeNodeEx(pWnd, flags, "%s", pName.c_str());
+			ImGui::Text("Selected Window: %s", m_window->GetXMLName().c_str());
 		}
 		else
 		{
-			ImGui::TreeNodeEx(pWnd, flags, "%s", pName.c_str());
+			ImGui::Text("Select a window to see details");
 		}
 
-		if (selectPicking)
-		{
-			ImGui::SetScrollHere();
-		}
+		ImGui::Separator();
 
-		if (ImGui::IsItemHovered())
-		{
-			m_pHoveredWnd = pWnd;
-		}
-		if (ImGui::IsItemClicked() || (selectPicking && m_selectPicking))
-		{
-			m_pSelectedWnd = pWnd;
-			m_foundSelected = true;
-		}
-
-		ImGui::TableNextCell();
-		ImGui::Text("%s", typeName.c_str());
-
-		if (open)
-		{
-			CXWnd* pChild = pWnd->GetFirstChildWnd();
-			while (pChild)
-			{
-				DisplayWindowTreeNode(pChild);
-				pChild = pChild->GetNextSiblingWnd();
-			}
-
-			// If this is a list box, then also traverse its child list windows.
-			if (pWnd->GetType() == UI_Listbox)
-			{
-				CListWnd* listWnd = static_cast<CListWnd*>(pWnd);
-
-				for (SListWndLine& line : listWnd->ItemsArray)
-				{
-					// TODO: Expand into columns/rows but for now just list the children.
-					for (SListWndCell& cell : line.Cells)
-					{
-						// The children of the list are stored in wrapper windows. They show up
-						// as Unknown types. We just skip past them.
-						if (cell.pWnd && cell.pWnd->GetFirstChildWnd())
-						{
-							DisplayWindowTreeNode(cell.pWnd->GetFirstChildWnd());
-						}
-					}
-				}
-			}
-
-			ImGui::TreePop();
-		}
-	}
-
-	bool IsPicking() const { return m_picking; }
-
-	void Pick()
-	{
-		if (m_picking)
-			m_selectPicking = true;
+		DisplayPropertiesPanel();
 	}
 
 	void DisplayPropertiesPanel()
 	{
-		if (!m_pSelectedWnd)
+		if (!m_window)
 		{
-			ImGui::Text("Select a window to see details");
 			return;
 		}
 
@@ -822,18 +572,18 @@ public:
 
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4);
 
-		switch (m_pSelectedWnd->GetType())
+		switch (m_window->GetType())
 		{
 		case UI_Screen:
-			DisplayDetailsSection(static_cast<CSidlScreenWnd*>(m_pSelectedWnd));
+			DisplayDetailsSection(static_cast<CSidlScreenWnd*>(m_window));
 			break;
 
 		case UI_Button:
-			DisplayDetailsSection(static_cast<CButtonWnd*>(m_pSelectedWnd));
+			DisplayDetailsSection(static_cast<CButtonWnd*>(m_window));
 			break;
 
 		default:
-			DisplayDetailsSection(m_pSelectedWnd);
+			DisplayDetailsSection(m_window);
 			break;
 		}
 
@@ -966,6 +716,316 @@ public:
 
 #pragma endregion
 
+#pragma region Windows Developer Tool
+
+class ImGuiWindowsDeveloperTool
+{
+	CXWnd* m_pSelectedWnd = nullptr;
+	CXWnd* m_pHoveredWnd = nullptr;
+	CXWnd* m_pLastSelected = nullptr;
+	bool m_selectionChanged = false;
+	float m_topPaneSize = -1.0f;
+	float m_bottomPaneSize = -1.0f;
+	bool m_picking = false;
+	bool m_selectPicking = false;
+	CXWnd* m_pPickingWnd = nullptr;
+	int m_lastWindowCount = 0;
+
+	ImGuiWindowPropertyViewer m_propertyViewer;
+
+public:
+	ImGuiWindowsDeveloperTool() = default;
+
+	void OnWindowRemoved(CXWnd* pWnd)
+	{
+		// Clear the property viewer if its using this window.
+		if (m_propertyViewer.GetWindow() == pWnd)
+		{
+			m_propertyViewer.SetWindow(nullptr);
+		}
+
+		// Clear any matching selections in the window.
+		if (m_pSelectedWnd == pWnd)
+			m_pSelectedWnd = nullptr;
+		if (m_pHoveredWnd == pWnd)
+			m_pHoveredWnd = nullptr;
+		if (m_pPickingWnd == pWnd)
+			m_pPickingWnd = nullptr;
+		if (m_pLastSelected == pWnd)
+			m_pLastSelected = nullptr;
+	}
+
+	void Reset()
+	{
+		m_propertyViewer.SetWindow(nullptr);
+		m_pSelectedWnd = nullptr;
+		m_pHoveredWnd = nullptr;
+		m_pPickingWnd = nullptr;
+		m_pLastSelected = nullptr;
+		m_picking = false;
+		m_selectPicking = false;
+	}
+
+	void Draw()
+	{
+		m_pHoveredWnd = nullptr;
+		m_pPickingWnd = nullptr;
+
+		ImVec2 availSize = ImGui::GetContentRegionAvail();
+		if (m_topPaneSize == -1.0f)
+			m_topPaneSize = std::min(250.f, availSize.y * .55f);
+		if (m_bottomPaneSize == -1.0f)
+			m_bottomPaneSize = availSize.y - m_topPaneSize - 1;
+
+		if (m_picking)
+		{
+			m_pPickingWnd = pWndMgr->LastMouseOver;
+		}
+
+		if (ImGui::Button("Pick"))
+		{
+			m_picking = !m_picking;
+		}
+
+		if (m_picking)
+		{
+			ImGui::SameLine();
+			ImGui::Text("Pick: ");
+			ImGui::SameLine();
+
+			if (m_pPickingWnd)
+			{
+				ImGui::TextColored(ImColor(0.f, 1.0f, 0.0f, 1.0f), "%s", m_pPickingWnd->GetXMLName().c_str());
+			}
+			else
+			{
+				ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, 0.5f), "(none)");
+			}
+		}
+
+		if (m_lastWindowCount != 0)
+		{
+			ImGui::SameLine();
+			ImGui::PushItemWidth(-1);
+			ImGui::Text("%d Windows", m_lastWindowCount);
+		}
+
+		imgui::DrawSplitter(true, 9.0f, &m_topPaneSize, &m_bottomPaneSize, 100, 100);
+
+		DisplayWindowTree();
+
+		// update last selected to remember selection for next iteration
+		m_selectionChanged = test_and_set(m_pLastSelected, m_pSelectedWnd);
+
+		if (m_picking && m_selectPicking)
+		{
+			m_selectPicking = false;
+			m_picking = false;
+		}
+
+		if (ImGui::BeginChild("##InspectPanel"))
+		{
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 9);
+
+			m_propertyViewer.SetWindow(m_pSelectedWnd);
+			m_propertyViewer.Draw();
+		}
+
+		ImGui::EndChild();
+
+		// Update background overlay showing whats currently highlighted or selected
+		DrawBackgroundWindowHighlights();
+	}
+
+	void DrawBackgroundWindowHighlights()
+	{
+		if (m_pSelectedWnd)
+		{
+			ImGuiViewport* viewport = ImGui::GetMainViewport();
+			ImDrawList* drawList = ImGui::GetBackgroundDrawList(viewport);
+
+			CXRect clientRect = m_pSelectedWnd->GetClientRect();
+			drawList->AddRect(
+				ImVec2(clientRect.left + viewport->Pos.x, clientRect.top + viewport->Pos.y),
+				ImVec2(clientRect.right + viewport->Pos.x, clientRect.bottom + viewport->Pos.y),
+				IM_COL32(124, 252, 0, 200));
+		}
+
+		if (m_pPickingWnd)
+		{
+			CXWnd* wnd = m_pPickingWnd ? m_pPickingWnd : m_pSelectedWnd;
+
+			ImGuiViewport* viewport = ImGui::GetMainViewport();
+			ImDrawList* drawList = ImGui::GetBackgroundDrawList(viewport);
+
+			CXRect clientRect = wnd->GetClientRect();
+			drawList->AddRectFilled(
+				ImVec2(clientRect.left + viewport->Pos.x, clientRect.top + viewport->Pos.y),
+				ImVec2(clientRect.right + viewport->Pos.x, clientRect.bottom + viewport->Pos.y),
+				IM_COL32(138, 179, 191, 128));
+		}
+
+		if (m_pHoveredWnd)
+		{
+			ImGuiViewport* viewport = ImGui::GetMainViewport();
+			ImDrawList* drawList = ImGui::GetBackgroundDrawList(viewport);
+
+			CXRect clientRect = m_pHoveredWnd->GetClientRect();
+			drawList->AddRect(
+				ImVec2(clientRect.left + viewport->Pos.x, clientRect.top + viewport->Pos.y),
+				ImVec2(clientRect.right + viewport->Pos.x, clientRect.bottom + viewport->Pos.y),
+				m_pHoveredWnd->IsReallyVisible() ? IM_COL32(255, 215, 0, 200) : IM_COL32(200, 20, 60, 200));
+		}
+	}
+
+	void DisplayWindowTree()
+	{
+		ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollFreezeTopRow | ImGuiTableFlags_ScrollY | ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersHOuter | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg;
+
+		if (ImGui::BeginTable("##WindowTable", 2, tableFlags, ImVec2(0, m_topPaneSize)))
+		{
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 100);
+			ImGui::TableAutoHeaders();
+
+			m_lastWindowCount = 0;
+			if (pWndMgr)
+			{
+				for (CXWnd* pWnd : pWndMgr->ParentAndContextMenuWindows)
+				{
+					if (pWnd->ParentWindow == nullptr)
+					{
+						DisplayWindowTreeNode(pWnd);
+						++m_lastWindowCount;
+					}
+					else
+						__noop;
+				}
+			}
+
+			ImGui::EndTable();
+		}
+	}
+
+	void DisplayWindowTreeNode(CXWnd* pWnd)
+	{
+		if (pWnd->GetType() == UI_Unknown)
+			return;
+		ImGui::TableNextRow();
+		const bool hasChildren = pWnd->GetFirstChildWnd() != nullptr;
+
+		CXStr pName = pWnd->GetXMLName();
+		CXMLData* pXMLData = pWnd->GetXMLData();
+		CXStr typeName = pWnd->GetTypeName();
+
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_SpanAvailWidth;
+		bool open = false;
+		bool selected = (m_pLastSelected == pWnd);
+		bool selectPicking = false;
+
+		if (m_picking)
+		{
+			if (m_pPickingWnd == pWnd)
+			{
+				selected = true;
+				selectPicking = true;
+			}
+		}
+
+		if (selected)
+		{
+			flags |= ImGuiTreeNodeFlags_Selected;
+		}
+
+		if (!hasChildren)
+		{
+			flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+		}
+
+		if (hasChildren)
+		{
+			if (m_pPickingWnd)
+			{
+				if (m_pPickingWnd->IsDescendantOf(pWnd))
+					flags |= ImGuiTreeNodeFlags_DefaultOpen;
+			}
+			else if (m_pSelectedWnd && m_selectionChanged)
+			{
+				if (m_pSelectedWnd->IsDescendantOf(pWnd))
+				{
+					ImGui::SetNextItemOpen(true);
+				}
+			}
+
+			open = ImGui::TreeNodeEx(pWnd, flags, "%s", pName.c_str());
+		}
+		else
+		{
+			ImGui::TreeNodeEx(pWnd, flags, "%s", pName.c_str());
+		}
+
+		if (selectPicking)
+		{
+			ImGui::SetScrollHere();
+		}
+
+		if (ImGui::IsItemHovered())
+		{
+			m_pHoveredWnd = pWnd;
+		}
+
+		if (ImGui::IsItemClicked() || (selectPicking && m_selectPicking))
+		{
+			m_pSelectedWnd = pWnd;
+		}
+
+		ImGui::TableNextCell();
+		ImGui::Text("%s", typeName.c_str());
+
+		if (open)
+		{
+			CXWnd* pChild = pWnd->GetFirstChildWnd();
+			while (pChild)
+			{
+				DisplayWindowTreeNode(pChild);
+				pChild = pChild->GetNextSiblingWnd();
+			}
+
+			// If this is a list box, then also traverse its child list windows.
+			if (pWnd->GetType() == UI_Listbox)
+			{
+				CListWnd* listWnd = static_cast<CListWnd*>(pWnd);
+
+				for (SListWndLine& line : listWnd->ItemsArray)
+				{
+					// TODO: Expand into columns/rows but for now just list the children.
+					for (SListWndCell& cell : line.Cells)
+					{
+						// The children of the list are stored in wrapper windows. They show up
+						// as Unknown types. We just skip past them.
+						if (cell.pWnd && cell.pWnd->GetFirstChildWnd())
+						{
+							DisplayWindowTreeNode(cell.pWnd->GetFirstChildWnd());
+						}
+					}
+				}
+			}
+
+			ImGui::TreePop();
+		}
+	}
+
+	bool IsPicking() const { return m_picking; }
+
+	void Pick()
+	{
+		if (m_picking)
+			m_selectPicking = true;
+	}
+};
+
+#pragma endregion
+
 static ImGuiWindowsDeveloperTool s_windowDebugPanel;
 
 bool DeveloperTools_HandleClick(int mouseButton, bool clicked)
@@ -980,6 +1040,16 @@ bool DeveloperTools_HandleClick(int mouseButton, bool clicked)
 	return false;
 }
 
+void DeveloperTools_RemoveWindow(CXWnd* pWnd)
+{
+	s_windowDebugPanel.OnWindowRemoved(pWnd);
+}
+
+void DeveloperTools_CloseLoginFrontend()
+{
+	s_windowDebugPanel.Reset();
+}
+
 //============================================================================
 
 void DeveloperTools_Initialize()
@@ -992,5 +1062,9 @@ void DeveloperTools_Shutdown()
 	RemoveDebugPanel("Windows");
 }
 
+void DeveloperTools_SetGameState(DWORD gameState)
+{
+	s_windowDebugPanel.Reset();
+}
 
 } // namespace mq

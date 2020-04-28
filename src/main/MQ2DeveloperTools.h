@@ -20,5 +20,9 @@ namespace mq {
 
 bool DeveloperTools_HandleClick(int mouseButton, bool clicked);
 
+void DeveloperTools_RemoveWindow(CXWnd* pWnd);
+
+void DeveloperTools_CloseLoginFrontend();
+
 } // namespace mq
 

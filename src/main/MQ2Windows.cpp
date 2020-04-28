@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "MQ2Main.h"
 #include "CrashHandler.h"
+#include "MQ2DeveloperTools.h"
 
 #include "imgui/ImGuiUtils.h"
 
@@ -133,6 +134,8 @@ DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CTargetWnd__WndNotification_Tramp(CXW
 class CXWndManagerHook
 {
 public:
+	// This serves as the effective destructor of the window. Every CXWnd will call this in its
+	// destructor, so this means we do not need to detour the destructor, too.
 	int RemoveWnd_Trampoline(CXWnd*);
 	int RemoveWnd_Detour(CXWnd* pWnd)
 	{
@@ -152,6 +155,8 @@ public:
 
 				WindowList.erase(windowListIter);
 			}
+
+			DeveloperTools_RemoveWindow(pWnd);
 		}
 
 		return RemoveWnd_Trampoline(pWnd);
@@ -2097,23 +2102,6 @@ void UpdateCascadeMenu()
 	gbCascadeMenuNeedsUpdate = false;
 }
 
-void InstallCascadeMenuItems()
-{
-	EzDetour(__CreateCascadeMenuItems, CreateCascadeMenuItems_Detour, CreateCascadeMenuItems_Trampoline);
-
-	UpdateCascadeMenu();
-}
-
-void RemoveCascadeMenuItems()
-{
-	RemoveDetour(__CreateCascadeMenuItems);
-	RemoveCascadeMenuItem("Toggle Overlay UI");
-
-	gCascadeItemData.clear();
-
-	UpdateCascadeMenu();
-}
-
 //============================================================================
 
 void InitializeMQ2Windows()
@@ -2162,6 +2150,7 @@ void InitializeMQ2Windows()
 		&DoesFileExist,
 		&DoesFileExist_Trampoline);
 	EzDetour(__eqgraphics_fopen, fopen_eqgraphics_detour, fopen_eqgraphics_trampoline);
+	EzDetour(__CreateCascadeMenuItems, CreateCascadeMenuItems_Detour, CreateCascadeMenuItems_Trampoline);
 
 	AddCommand("/windows", ListWindows);
 	AddCommand("/notify", WndNotify);
@@ -2170,13 +2159,18 @@ void InitializeMQ2Windows()
 	AddCommand("/reloadui", ReloadUI);
 
 	InitializeWindowList();
-	InstallCascadeMenuItems();
+
+	UpdateCascadeMenu();
 }
 
 void ShutdownMQ2Windows()
 {
 	DebugSpew("Shutting down MQ2 Windows");
-	RemoveCascadeMenuItems();
+
+	RemoveCascadeMenuItem("Toggle Overlay UI");
+
+	gCascadeItemData.clear();
+	UpdateCascadeMenu();
 
 	RemoveCommand("/windows");
 	RemoveCommand("/notify");
@@ -2191,6 +2185,7 @@ void ShutdownMQ2Windows()
 	RemoveDetour(__DoesFileExist);
 	RemoveDetour(CMemoryMappedFile__SetFile);
 	RemoveDetour(__eqgraphics_fopen);
+	RemoveDetour(__CreateCascadeMenuItems);
 }
 
 void PulseMQ2Windows()
