@@ -336,6 +336,13 @@ public:
 // CXWndDrawTemplate
 //============================================================================
 
+enum XWndBackgroundType
+{
+	eNormal = 1,
+	eNoTexture = 2
+};
+EQLIB_OBJECT const char* XWndBackgroundTypeToString(XWndBackgroundType);
+
 enum XWndBackgroundDrawType
 {
 	eDrawTile = 0,
@@ -554,11 +561,13 @@ public:
 	EQLIB_OBJECT CPageTemplate(CParamPage*);
 };
 
-class CScreenTemplate
+class [[offsetcomments]] CScreenTemplate : public CControlTemplate
 {
 public:
 	EQLIB_OBJECT CScreenTemplate(CParamScreen*);
-};
+
+	/*0x98*/ ArrayClass<CScreenPieceTemplate*> Pieces;
+/*0xa8*/ };
 
 class CSliderTemplate
 {
