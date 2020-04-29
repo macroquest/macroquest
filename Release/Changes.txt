@@ -1,3 +1,10 @@
+Apr 29 2020
+- .CachedBuff now accepts = for exact match and if not specified it will do partial match
+  Example 1: Lets say you have United Surety Rk. II on.
+  /echo ${Target.CachedBuff[United Surety]} will work and return United Surety Rk. II
+  /echo ${Target.CachedBuff[=United Surety]} will return NULL since the buff on you is actually United Surety Rk. II
+- Misc Cleanup of CachedBuffs stuff
+-
 Apr 28 2020
 - Optimized the GetGroupMainAssistTargetID inline.
 - Fixed /foreground to respect maximizzed window pos - bug reported by Kaen01
@@ -7,7 +14,7 @@ Apr 28 2020
   2 = you CAN cast Rk. II spells
   3 = you CAN cast Rk. III spells
 - Fixed a crash in ${Zone.blah} when in Guild Halls - bug reported by Shin Noir.
--
+
 Apr 24 2020
 - Optimized the GetRaidMainAssistTargetID inline.
 -

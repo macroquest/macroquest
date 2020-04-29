@@ -628,6 +628,10 @@ VOID PluginsRemoveSpawn(PSPAWNINFO pSpawn)
         return;
     CAutoLock Lock(&gPluginCS);
     PMQPLUGIN pPlugin=pPlugins;
+	if (pSpawn->Type != SPAWN_NPC)
+	{
+		ClearCachedBuffs(pSpawn->SpawnID);
+	}
     while(pPlugin)
     {
         if (pPlugin->RemoveSpawn)

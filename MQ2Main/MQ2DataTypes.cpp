@@ -2301,6 +2301,8 @@ bool MQ2SpawnType::GETMEMBER()
 		if (CachedBuffsMap.empty())
 			return false;
 		DWORD SpellID = 0;
+		BOOL bExact = false;
+		bool bByName = false;
 		bool bBySlot = false;
 		bool bByIndex = false;
 		bool bByKeyword = false;
@@ -2315,7 +2317,10 @@ bool MQ2SpawnType::GETMEMBER()
 			}
 			else
 			{
-				BOOL bExact = false;
+				if (*pIndex == '=') {
+					bExact = true;
+					pIndex++;
+				}
 				if (*pIndex == '#') {
 					//by buff slot
 					bBySlot = true;
@@ -2333,21 +2338,49 @@ bool MQ2SpawnType::GETMEMBER()
 				}
 				else
 				{
-					//by spell name
-					if (PSPELL pSpell = GetSpellByName(pIndex))
+					bByName = true;
+					if (bExact)
 					{
-						SpellID = pSpell->ID;
+						//by exact spell name
+						if (PSPELL pSpell = GetSpellByName(pIndex))
+						{
+							SpellID = pSpell->ID;
+						}
+					}
+					else
+					{
+						TruncateSpellRankName(pIndex);
 					}
 				}
 			}
-			if (SpellID)
+			if (bByName)
 			{
+				//CHAR szTemp[MAX_STRING];
 				std::map<int, std::map<int, cTargetBuff>>::iterator ps = CachedBuffsMap.find(pSpawn->SpawnID);
 				if (ps != CachedBuffsMap.end())
 				{
+					bool bFound = false;
 					for (std::map<int, cTargetBuff>::iterator i = ps->second.begin(); i != ps->second.end(); i++)
 					{
-						if (i->first == SpellID)
+						if (bExact)
+						{
+							if (i->first == SpellID)
+							{
+								bFound = true;
+							}
+						}
+						else
+						{
+							if (PSPELL pSpell = GetSpellByID(i->first))
+							{
+								//strcpy_s(szTemp, pSpell->Name);
+								if (!_strnicmp(pSpell->Name, pIndex, strlen(pIndex)))
+								{
+									bFound = true;
+								}
+							}
+						}
+						if (bFound)
 						{
 							strcpy_s(TargetBuffTemp.casterName, i->second.casterName);
 							TargetBuffTemp.count = i->second.count;

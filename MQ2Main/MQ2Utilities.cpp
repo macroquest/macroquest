@@ -10442,12 +10442,7 @@ bool CachedBuffs::Get(int SpawnID, int index, cTargetBuff*out)
 	}
 	return false;
 }
-//forget this, exporting a map is doomed to fail... work in progress. -eqmule
-void GetCachedBuffs(std::map<int, std::map<int,cTargetBuff>>& CBMap)
-{
-	lockit lk(ghCachedBuffsLock);
-	CBMap = CachedBuffsMap;
-}
+
 bool IsEvolvingItem(PCONTENTS pCont)
 {
 #if defined(ROF2EMU) || defined(UFEMU)
@@ -10823,6 +10818,14 @@ VOID TruncateSpellRankName(PCHAR SpellName)
 	}
 }
 
+void ClearCachedBuffs(int ID)
+{
+	lockit lk(ghCachedBuffsLock);
+	if (CachedBuffsMap.find(ID) != CachedBuffsMap.end())
+	{
+		CachedBuffsMap.erase(ID);
+	}
+}
 VOID RemoveBuff(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bool bPet = false;
@@ -10845,6 +10848,7 @@ VOID RemoveBuff(PSPAWNINFO pChar, PCHAR szLine)
 						if (PSPELL pBuffSpell = GetSpellByID(pPetInfoWindow->Buff[nBuff])) {
 							if (!_strnicmp(pBuffSpell->Name, szCmd, strlen(szCmd))) {
 								((PcZoneClient*)pPCData)->RemovePetEffect(nBuff);
+								ClearCachedBuffs(((PSPAWNINFO)pLocalPlayer)->PetID);
 								break;
 							}
 						}
@@ -10862,6 +10866,7 @@ VOID RemoveBuff(PSPAWNINFO pChar, PCHAR szLine)
 				if (PSPELL pBuffSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID)) {
 					if (!_strnicmp(pBuffSpell->Name, szCmd, strlen(szCmd))) {
 						((PcZoneClient*)pPCData)->RemoveBuffEffect(nBuff, ((PSPAWNINFO)pLocalPlayer)->SpawnID);
+						ClearCachedBuffs(((PSPAWNINFO)pLocalPlayer)->SpawnID);
 						return;
 					}
 				}
@@ -10873,7 +10878,7 @@ VOID RemoveBuff(PSPAWNINFO pChar, PCHAR szLine)
 				if (PSPELL pBuffSpell = GetSpellByID(pChar2->ShortBuff[nBuff].SpellID)) {
 					if (!_strnicmp(pBuffSpell->Name, szCmd, strlen(szCmd))) {
 						((PcZoneClient*)pPCData)->RemoveBuffEffect(nBuff + NUM_LONG_BUFFS, ((PSPAWNINFO)pLocalPlayer)->SpawnID);
-						//pPCData->RemoveMyAffect(nBuff + NUM_LONG_BUFFS);
+						ClearCachedBuffs(((PSPAWNINFO)pLocalPlayer)->SpawnID);
 						return;
 					}
 				}
