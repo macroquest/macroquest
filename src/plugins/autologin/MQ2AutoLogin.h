@@ -42,12 +42,7 @@ inline T* GetChildWindow(CXWnd* parentWnd, const std::string& child)
 template <typename T = CXWnd>
 inline T* GetChildWindow(const std::string& parent, const std::string& child)
 {
-	CXMLDataManager* pXmlMgr = pSidlMgr->GetParamManager();
-	CXWnd* parentWnd = GetWindow<CXWnd>(parent);
-	if (pXmlMgr && parentWnd)
-		return static_cast<T*>(parentWnd->GetChildItem(pXmlMgr, CXStr{ child }));
-
-	return nullptr;
+	return GetChildWindow<T>(GetWindow<CXWnd>(parent), child);
 }
 
 inline bool IsWindowActive(const std::string& name)
@@ -69,19 +64,24 @@ inline T* GetActiveWindow(const std::string& name)
 
 // Combine IsWindowActive and GetChildWindow
 template <typename T = CXWnd>
-inline T* GetActiveChildWindow(const std::string& parent, const std::string& child)
+inline T* GetActiveChildWindow(CXWnd* parentWnd, const std::string& child)
 {
 	CXMLDataManager* pXmlMgr = pSidlMgr->GetParamManager();
-	CXWnd* pParent = GetActiveWindow(parent);
-	if (pXmlMgr && pParent)
+	if (pXmlMgr && parentWnd)
 	{
-		T* pChild = static_cast<T*>(pParent->GetChildItem(pXmlMgr, CXStr{ child }));
+		T* pChild = static_cast<T*>(parentWnd->GetChildItem(pXmlMgr, CXStr{ child }));
 
 		if (pChild && pChild->IsVisible() && pChild->IsEnabled())
 			return pChild;
 	}
 
 	return nullptr;
+}
+
+template <typename T = CXWnd>
+inline T* GetActiveChildWindow(const std::string& parent, const std::string& child)
+{
+	return GetActiveChildWindow<T>(GetActiveWindow<CXWnd>(parent), child);
 }
 
 enum class LoginState

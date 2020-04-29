@@ -23,7 +23,7 @@
 // - Figure out how to tie this into the backend
 // - Re-do the UI (can I pull alynel's work?, if not maybe ImGui? -- but that means I'll have to pull it into tools)
 // - Injecting while running doesn't load the config
-// - fix /relog -- it currently just camps
+// - fix /relog -- it seems to timeout just as it tries to log back in?
 
 static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 {
@@ -424,7 +424,7 @@ public:
 			//	"A timeout occurred"
 			//};
 
-			if (CXWnd* pButton = GetChildWindow(m_currentWindow, "OK_OKButton"))
+			if (auto pButton = GetActiveChildWindow<CButtonWnd>(m_currentWindow, "OK_OKButton"))
 				pButton->WndNotification(pButton, XWM_LCLICK);
 		}
 
@@ -446,7 +446,7 @@ public:
 
 			if (str.find("You already have a character logged into a world server from this account.") != CXStr::npos)
 			{
-				auto pButton = GetChildWindow<CButtonWnd>(m_currentWindow,
+				auto pButton = GetActiveChildWindow<CButtonWnd>(m_currentWindow,
 					m_settings.KickActiveCharacter ? "YESNO_YesButton" : "YESNO_NoButton");
 
 				if (!m_settings.KickActiveCharacter)
