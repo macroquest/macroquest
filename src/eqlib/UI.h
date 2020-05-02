@@ -621,6 +621,7 @@ public:
 /*0x21c*/ int          LastFrameTarget;
 /*0x220*/ CXStr        GaugeTooltip;
 /*0x224*/ int          TooltipVal;
+/*0x228*/ int          Unknown0x228;
 /*0x228*/ CGaugeDrawTemplate DrawTemplate;
 /*0x244*/ CTextObjectInterface* pTextObject;
 /*0x248*/ CXStr        NextDrawStr;

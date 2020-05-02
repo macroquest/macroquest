@@ -218,6 +218,7 @@ class CStaticFrameTemplate;
 class CStaticHeaderTemplate;
 class CStaticScreenPieceTemplate;
 class CStaticTextTemplate;
+class CStaticTintedBlendAnimationTemplate;
 class CSTMLboxTemplate;
 class CStmlReport;
 class CStmlWnd;

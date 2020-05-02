@@ -43,9 +43,17 @@ DECLARE_MODULE_INITIALIZER(s_developerToolsModule);
 
 #pragma region Common Tools
 
+bool IsEmptyValue(const char* val)
+{
+	return val[0] == '('
+		&& (strcmp(val, "(empty)")
+			|| strcmp(val, "(null)")
+			|| strcmp(val, "(none)"));
+}
+
 static void ColumnValue(const char* fmt, va_list args)
 {
-	if (fmt[0] == '(' && (strcmp(fmt, "(empty)") == 0 || strcmp(fmt, "(null)") == 0))
+	if (IsEmptyValue(fmt))
 	{
 		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "%s", fmt);
 	}
@@ -53,7 +61,7 @@ static void ColumnValue(const char* fmt, va_list args)
 	{
 		const char* str = va_arg(args, const char*);
 
-		if (strcmp(str, "(empty)") == 0 || strcmp(str, "(null)") == 0)
+		if (IsEmptyValue(str))
 			ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), str);
 		else
 			ImGui::Text("%s", str);
@@ -367,11 +375,11 @@ void DisplayTextureAnimation(const char* Label, const CTextureAnimation* texture
 	if (!textureAnim)
 	{
 		if (doEmpty)
-			ColumnTextType(Label, "CTextureAnimation", "(null)");
+			ColumnTextType(Label, "CTextureAnimation*", "(null)");
 		return;
 	}
 
-	bool show = ColumnTreeNodeType(Label, "CTextureAnimation", "%s", textureAnim->Name.c_str());
+	bool show = ColumnTreeNodeType(Label, "CTextureAnimation*", "%s", textureAnim->Name.c_str());
 	if (show)
 	{
 		ColumnCXStr("Name", textureAnim->Name);
@@ -504,11 +512,11 @@ void DisplayDrawTemplate(const char* label, const CXWndDrawTemplate* drawTemplat
 {
 	if (!drawTemplate)
 	{
-		ColumnTextType(label, "CXWndDrawTemplate", "(none)");
+		ColumnTextType(label, "CXWndDrawTemplate*", "(null)");
 		return;
 	}
 
-	bool show = ColumnTreeNodeType2((const void*)drawTemplate, label, "CXWndDrawTemplate", "%s", drawTemplate->strName.c_str());
+	bool show = ColumnTreeNodeType2(drawTemplate, label, "CXWndDrawTemplate*", "%s", drawTemplate->strName.c_str());
 	if (show)
 	{
 		ColumnCXStr("Name", drawTemplate->strName);
@@ -533,15 +541,34 @@ void DisplayScreenTemplate(const char* label, const CScreenTemplate* pTemplate)
 {
 	if (!pTemplate)
 	{
-		ColumnTextType(label, "CScreenTemplate", "(none)");
+		ColumnTextType(label, "CScreenTemplate*", "(null)");
 		return;
 	}
 
-	if (ColumnTreeNodeType2((const void*)pTemplate, label, "CScreenTemplate", "%s", pTemplate->strName.c_str()))
+	if (ColumnTreeNodeType2(pTemplate, label, "CScreenTemplate*", "%s", pTemplate->strName.c_str()))
 	{
 		ColumnCXStr("Name", pTemplate->strName);
 
 		// TODO: fill me in.
+
+		ImGui::TreePop();
+	}
+}
+
+void DisplayTextObject(const char* label, CTextObjectInterface* pTextObjectInterface)
+{
+	if (!pTextObjectInterface)
+	{
+		ColumnTextType(label, "CTextObject*", "(null)");
+		return;
+	}
+
+	CTextObjectBase* pTextObject = static_cast<CTextObjectBase*>(pTextObjectInterface);
+
+	if (ColumnTreeNodeType2(pTextObject, label, "CTextObject*", "%s", pTextObject->GetText().c_str()))
+	{
+		ColumnCXStr("Text", pTextObject->GetText());
+		ColumnColor("Color", pTextObject->GetColor());
 
 		ImGui::TreePop();
 	}
@@ -639,6 +666,62 @@ public:
 		case UI_SpellGem:
 			DisplayDetailsSection(static_cast<CSpellGemWnd*>(m_window));
 			break;
+
+		case UI_Label:
+			// All labels with UI_Label were created by XML. they are CLabels.
+			// Any other label with the WRT_LABEL type are only CLabelWnds.
+			// Unless we are in login, then its all CLabelWnd
+			if (gGameState == GAMESTATE_PRECHARSELECT)
+				DisplayDetailsSection(static_cast<CLabelWnd*>(m_window));
+			else
+				DisplayDetailsSection(static_cast<CLabel*>(m_window));
+			break;
+
+		case UI_Gauge:
+			DisplayDetailsSection(static_cast<CGaugeWnd*>(m_window));
+			break;
+
+		case UI_Unknown:
+			if (m_window->IsType(WRT_SIDLSCREENWND))
+			{
+				DisplayDetailsSection(static_cast<CSidlScreenWnd*>(m_window));
+				break;
+			}
+
+			// Dynamic types have no XML type. So we use dynamic type to figure out what they are. Do these
+			// in the correct order so we don't lose data!
+			if (m_window->IsType(WRT_BUTTON))
+			{
+				DisplayDetailsSection(static_cast<CButtonWnd*>(m_window));
+				break;
+			}
+
+			if (m_window->IsType(WRT_LABEL))
+			{
+				DisplayDetailsSection(static_cast<CLabelWnd*>(m_window));
+				break;
+			}
+
+			//WRT_WND
+			//WRT_LISTWND,
+			//WRT_EDITWND,
+			//WRT_TREEWND,
+			//WRT_PAGEWND,
+			//WRT_TABWND,
+			//WRT_HTMLWND,
+			//WRT_HOTKEYWND,
+			//WRT_EDITHOTKEYWND,
+			//WRT_RANGESLIDERWND,
+			//WRT_STMLWND,
+			//WRT_BROWSERWND,
+			//WRT_MODALMESSAGEWND,
+			//WRT_CHECKBOXWND,
+			//WRT_SLIDERWND,
+			//WRT_LABEL,
+			//WRT_GAUGE,
+			//WRT_COMBOBOX,
+			//WRT_CHATWND,
+			//WRT_HELPWND,
 
 		default:
 			DisplayDetailsSection(m_window);
@@ -745,6 +828,8 @@ public:
 			}
 
 			DisplayDrawTemplate("Template", pWnd->DrawTemplate);
+			DisplayTextObject("Text object", pWnd->pTextObject);
+			DisplayTextObject("Tooltip text object", pWnd->pTipTextObject);
 
 			DisplayTextureAnimation("Icon", static_cast<CTextureAnimation*>(pWnd->IconTextureAnim));
 			ColumnCXRect("Icon rect", pWnd->IconRect);
@@ -925,6 +1010,7 @@ public:
 
 			ColumnCXStr("Indicator", pWnd->Indicator);
 			ColumnText("Indicator value", "%d", pWnd->IndicatorVal);
+			DisplayTextObject("Indicator", pWnd->pIndicatorTextObject);
 
 			// pIndicatorTextObject
 			// bAllowButtonClickThrough
@@ -942,12 +1028,72 @@ public:
 	{
 		DisplayDetailsSection(static_cast<CButtonWnd*>(pWnd), false);
 
-		if (BeginColorSection("CSpellGemWnd Properties", true))
+		if (BeginColorSection("CSpellGemWnd Properties", open))
 		{
 			DisplayDrawTemplate("Template", pWnd->DrawTemplate);
 
 			DisplayTextureAnimation("Spell icon texture", pWnd->SpellIconTexture);
 			DisplayTextureAnimation("Custom icon texture", pWnd->CustomIconTexture);
+
+			EndColorSection();
+		}
+	}
+
+	void DisplayDetailsSection(CLabelWnd* pWnd, bool open = true)
+	{
+		DisplayDetailsSection(static_cast<CXWnd*>(pWnd), false);
+
+		if (BeginColorSection("CLabelWnd Properties", open))
+		{
+			ColumnCXStr("Text", pWnd->Text);
+			ColumnCheckBox("No wrap", &pWnd->bNoWrap);
+			ColumnCheckBox("Right align", &pWnd->bAlignRight);
+			ColumnCheckBox("Center align", &pWnd->bAlignCenter);
+			ColumnText("Offset", "%d", pWnd->xOffset);
+			ColumnCheckBox("Resize height to text", &pWnd->bResizeHeightToText);
+
+			EndColorSection();
+		}
+	}
+
+	void DisplayDetailsSection(CLabel* pWnd, bool open = true)
+	{
+		DisplayDetailsSection(static_cast<CLabelWnd*>(pWnd), open);
+
+		if (BeginColorSection("CLabel Properties", open))
+		{
+			ColumnText("EQ Type", "%d", pWnd->EQType);
+
+			EndColorSection();
+		}
+	}
+
+	void DisplayDetailsSection(CGaugeWnd* pWnd, bool open = true)
+	{
+		DisplayDetailsSection(static_cast<CXWnd*>(pWnd), false);
+
+		if (BeginColorSection("CGaugeWnd Properties", open))
+		{
+			ColumnText("EQ Type", "%d", pWnd->EQType);
+			ColumnColor("Fill tint", pWnd->FillTint);
+			ColumnColor("Lines tint", pWnd->LinesFillTint);
+			ColumnCheckBox("Draw lines fill", &pWnd->bDrawLinesFill);
+			ColumnCXPoint("Text offset", CXPoint(pWnd->TextOffsetX, pWnd->TextOffsetY));
+			ColumnCXSize("Gauge offset", CXSize(pWnd->GaugeOffsetX, pWnd->GaugeOffsetY));
+			ColumnText("Last frame value", "%.2f", pWnd->LastFrameVal);
+			ColumnCXStr("Last frame label", pWnd->LastFrameName);
+			ColumnText("Last frame time", "%d", pWnd->LastFrameTime);
+			ColumnText("Last frame target", "%d", pWnd->LastFrameTarget);
+			ColumnCXStr("Gauge tooltip", pWnd->GaugeTooltip);
+			ColumnText("Tooltip value", "%d", pWnd->TooltipVal);
+
+			// DrawTemplate
+			DisplayTextObject("Text object", pWnd->pTextObject);
+
+			ColumnCXStr("Next draw string", pWnd->NextDrawStr);
+			ColumnCheckBox("Smooth", &pWnd->bSmooth);
+			ColumnText("Target value", "%d", pWnd->TargetVal);
+			ColumnCheckBox("Use target value", &pWnd->bUseTargetVal);
 
 			EndColorSection();
 		}
@@ -1153,14 +1299,32 @@ public:
 
 	void DisplayWindowTreeNode(CXWnd* pWnd)
 	{
-		if (pWnd->GetType() == UI_Unknown)
-			return;
+		//if (pWnd->GetType() == UI_Unknown)
+		//	return;
+
 		ImGui::TableNextRow();
 		const bool hasChildren = pWnd->GetFirstChildWnd() != nullptr;
 
-		CXStr pName = pWnd->GetXMLName();
-		CXMLData* pXMLData = pWnd->GetXMLData();
+		CXStr name = pWnd->GetXMLName();
 		CXStr typeName = pWnd->GetTypeName();
+
+		if (name.empty())
+		{
+			// Try to find something to display
+			if (!pWnd->WindowText.empty())
+			{
+				name = pWnd->WindowText;
+			}
+			else if (pWnd->pTextObject)
+			{
+				name = pWnd->pTextObject->GetText();
+			}
+
+			if (name.empty())
+			{
+				name = "(no name)";
+			}
+		}
 
 		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_SpanAvailWidth;
 		bool open = false;
@@ -1201,11 +1365,11 @@ public:
 				}
 			}
 
-			open = ImGui::TreeNodeEx(pWnd, flags, "%s", pName.c_str());
+			open = ImGui::TreeNodeEx(pWnd, flags, "%s", name.c_str());
 		}
 		else
 		{
-			ImGui::TreeNodeEx(pWnd, flags, "%s", pName.c_str());
+			ImGui::TreeNodeEx(pWnd, flags, "%s", name.c_str());
 		}
 
 		if (selectPicking)

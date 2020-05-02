@@ -62,6 +62,69 @@ public:
 // ... much more
 };
 
+//----------------------------------------------------------------------------
+
+// text flags used for rendering text. Used between the text object interface and DrawWrappedText.
+enum DrawTextFlags
+{
+	DrawText_NoWrap       = 0x01,
+	DrawText_CalcOnly     = 0x02,
+	DrawText_Elide        = 0x04,
+	DrawText_RightJustify = 0x08,
+	DrawText_HCenter      = 0x10,
+	DrawText_VCenter      = 0x20,
+};
+
+class CTextObjectInterface
+{
+public:
+	virtual void SetText(const char* szText) = 0;
+	virtual CXStr& GetText() = 0;
+
+	virtual void SetParameters(int fontStyle, const CXRect& rect, const CXRect& clipRect, COLORREF color, uint16_t flags, int offset) = 0;
+	virtual void SetParameters(int fontStyle, int x, int y, int width, int height, const CXRect& clipRect, COLORREF color, uint16_t flags, int offset) = 0;
+};
+
+class [[offsetcomments]] CTextObjectBase : public CTextObjectInterface
+{
+public:
+	CXStr& GetText() override { return m_text; }
+	void SetText(const char* szText) override
+	{
+		if (m_text != szText)
+		{
+			m_text = szText;
+			m_dirty = true;
+		}
+	}
+
+	COLORREF GetColor() const { return m_color;  }
+	const CXRect& GetRect() const { return m_rect; }
+
+public:
+	CXStr                    m_text;
+	int                      m_font;
+	CXRect                   m_rect;
+	COLORREF                 m_color;
+	CTextObjectBase*         m_pNext;
+	CTextObjectBase*         m_pPrev;
+	IDirect3DVertexBuffer9*  m_pVertexBuffer;
+	bool                     m_dirty;
+	bool                     m_render;
+	int                      m_maxLength;
+};
+
+class [[offsetcomments]] CTextObject : public CTextObjectBase
+{
+public:
+	const CXRect& GetClipRect() const { return m_clipRect; }
+	uint16_t GetFlags() const { return m_flags; }
+
+private:
+	CXRect                   m_clipRect;
+	uint16_t                 m_flags;
+	int                      m_offset;
+};
 
 } // namespace eqlib
 
