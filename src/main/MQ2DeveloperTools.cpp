@@ -1444,6 +1444,7 @@ public:
 
 		m_pHoveredWnd = nullptr;
 		m_pPickingWnd = nullptr;
+		m_selectionChanged = false;
 		bool clearPicking = true;
 
 		if (m_open)
@@ -1517,7 +1518,7 @@ public:
 		}
 
 		// update last selected to remember selection for next iteration
-		m_selectionChanged = test_and_set(m_pLastSelected, m_pSelectedWnd);
+		m_selectionChanged |= test_and_set(m_pLastSelected, m_pSelectedWnd);
 
 		//----------------------------------------------------------------------------
 		// Bottom part: show the dock area of property windows
@@ -1545,6 +1546,7 @@ public:
 			}
 
 			m_selectedViewer->SetWindow(pWnd);
+			m_selectedViewer->SetNeedFocus(true);
 			m_open = true;
 		}
 		else if (pWnd)
@@ -1558,6 +1560,10 @@ public:
 					std::piecewise_construct,
 					std::forward_as_tuple(pWnd),
 					std::forward_as_tuple(nextInstanceId++, pWnd));
+			}
+			else
+			{
+				iter->second.SetNeedFocus(true);
 			}
 		}
 	}
@@ -1759,7 +1765,10 @@ public:
 			if (ImGui::GetIO().KeyCtrl)
 				DeveloperTools_ShowWindowInspector(pWnd);
 			else
+			{
 				m_pSelectedWnd = pWnd;
+				m_selectionChanged = true;
+			}
 		}
 
 		ImGui::TableNextCell();
