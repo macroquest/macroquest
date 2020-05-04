@@ -18,16 +18,20 @@
 #include "imgui/ImGuiUtils.h"
 
 #include <algorithm>
+#include <memory>
 #include <string>
 #include <unordered_map>
 
+#include <fmt/format.h>
 #include <spdlog/spdlog.h>
+#include <imgui_internal.h>
 
 namespace mq {
 
 static void DeveloperTools_Initialize();
 static void DeveloperTools_Shutdown();
 static void DeveloperTools_SetGameState(DWORD gameState);
+static void DeveloperTools_UpdateImGui();
 
 static MQModule s_developerToolsModule = {
 	"DeveloperTools",              // Name
@@ -36,10 +40,185 @@ static MQModule s_developerToolsModule = {
 	DeveloperTools_Shutdown,
 	nullptr,
 	DeveloperTools_SetGameState,
+	DeveloperTools_UpdateImGui,
 };
 DECLARE_MODULE_INITIALIZER(s_developerToolsModule);
 
 //----------------------------------------------------------------------------
+
+struct PersistedBool
+{
+	PersistedBool(const std::string& Section, const std::string& Key, bool init = false)
+		: m_section(Section)
+		, m_key(Key)
+		, m_defaultValue(init)
+		, m_value(init)
+	{
+		Load();
+	}
+
+	bool& operator=(bool value)
+	{
+		if (mq::test_and_set(m_value, value))
+		{
+			m_lastValue = value;
+			Save();
+		}
+
+		return m_value;
+	}
+
+	operator bool& ()
+	{
+		if (!m_isLoaded)
+			Load();
+		return m_value;
+	}
+
+	operator bool() const
+	{
+		// lazy load if we haven't done it yet
+		if (!m_isLoaded)
+			const_cast<PersistedBool*>(this)->Load();
+		return m_value;
+	}
+
+	bool* get_ptr()
+	{
+		if (!m_isLoaded)
+			Load();
+		return &m_value;
+	}
+
+	void Save()
+	{
+		mq::WritePrivateProfileBool(m_section, m_key, m_value, mq::internal_paths::MQini);
+		m_isLoaded = true;
+	}
+
+	void Load()
+	{
+		if (!mq::internal_paths::MQini.empty())
+		{
+			m_value = mq::GetPrivateProfileBool(m_section, m_key, m_defaultValue, mq::internal_paths::MQini);
+			m_isLoaded = true;
+		}
+	}
+
+	void Update()
+	{
+		if (mq::test_and_set(m_lastValue, m_value))
+			Save();
+	}
+
+private:
+	bool m_value;
+	bool m_lastValue;
+	bool m_isLoaded = false;
+	const bool m_defaultValue;
+	std::string m_section;
+	std::string m_key;
+};
+
+// TODO: Use TList/TLinkNode
+class ImGuiWindowBase;
+ImGuiWindowBase* s_imguiBaseWindows = nullptr;
+ImGuiWindowBase* s_lastImguiBaseWindow = nullptr;
+
+class ImGuiWindowBase
+{
+public:
+	ImGuiWindowBase(const std::string& windowId, const std::string& windowTitle = {})
+		: m_open("Developer Tools", windowId.c_str())
+		, m_windowId(windowId)
+	{
+		SetWindowTitle(windowTitle);
+
+		if (!s_lastImguiBaseWindow)
+		{
+			s_imguiBaseWindows = s_lastImguiBaseWindow = this;
+		}
+		else
+		{
+			m_prev = s_lastImguiBaseWindow;
+			m_prev->m_next = this;
+			s_lastImguiBaseWindow = this;
+		}
+	}
+
+	virtual ~ImGuiWindowBase()
+	{
+		// Unlink from the chain
+		if (m_next)
+			m_next->m_prev = m_prev;
+		if (m_prev)
+			m_prev->m_next = m_next;
+	}
+
+	bool IsOpen() const { return m_open; }
+
+	void Show()
+	{
+		m_open = true;
+	}
+
+	void Close()
+	{
+		m_open = false;
+	}
+
+	void Toggle()
+	{
+		m_open = !m_open;
+	}
+
+	ImGuiWindowBase* GetNext() { return m_next; }
+
+	virtual void Update()
+	{
+		if (m_open)
+		{
+			if (Begin())
+			{
+				Draw();
+			}
+			ImGui::End();
+		}
+
+		m_open.Update();
+	}
+
+	void SetWindowTitle(std::string_view windowTitle)
+	{
+		m_windowTitle = fmt::format("{}###{}", windowTitle, m_windowId);
+	}
+
+	void SetDefaultSize(const ImVec2& size)
+	{
+		m_defaultSize = size;
+	}
+
+protected:
+	// Override this to set some properties before the window is drawn. If this returns false
+	// the update is aborted.
+	virtual bool Begin()
+	{
+		ImGui::SetNextWindowSize(m_defaultSize, ImGuiCond_FirstUseEver);
+		return ImGui::Begin(m_windowId.c_str(), m_open.get_ptr());
+	}
+
+	virtual void Draw() {}
+
+	//----------------------------------------------------------------------------
+	std::string m_windowId;                      //
+	std::string m_windowTitle;                   // WindowTitle###WindowId
+	PersistedBool m_open;
+
+private:
+	ImGuiWindowBase* m_next = nullptr;
+	ImGuiWindowBase* m_prev = nullptr;
+	ImVec2 m_defaultSize;
+};
 
 #pragma region Common Tools
 
@@ -574,14 +753,35 @@ void DisplayTextObject(const char* label, CTextObjectInterface* pTextObjectInter
 	}
 }
 
+void ColumnWindow(const char* Label, CXWnd* window)
+{
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextCell();
+
+	if (!window)
+		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(null)");
+	else
+	{
+		if (ImGui::Button("view"))
+		{
+			DeveloperTools_ShowWindowInspector(window);
+		}
+		ImGui::SameLine();
+
+		// TODO: function for deciding on a name.
+		ImGui::Text("%s", window->GetXMLName().c_str());
+	}
+	ImGui::TableNextCell();
+
+	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "CXWnd");
+	ImGui::TableNextRow();
+}
+
 #pragma endregion
 
 #pragma region Property Viewer
 
-class ImGuiWindowPropertyViewer
+struct WindowPropertiesTable
 {
-	CXWnd* m_window = nullptr;
-
 	inline static ImU32 s_propertyColors[] = {
 		(ImU32)ImColor(4, 32, 39, 120),
 		(ImU32)ImColor(39, 32, 4, 120),
@@ -590,43 +790,19 @@ class ImGuiWindowPropertyViewer
 		(ImU32)ImColor(66, 68, 20, 80),
 		(ImU32)ImColor(68, 20, 67, 80),
 	};
+
 	int m_currentColor = 0;
+	bool m_started = false;
 
 public:
-	ImGuiWindowPropertyViewer() = default;
-
-	void SetWindow(CXWnd* pWindow)
-	{
-		m_window = pWindow;
-	}
-
-	CXWnd* GetWindow() const { return m_window; }
-
-	void Draw()
+	void Reset()
 	{
 		m_currentColor = 0;
-
-		if (m_window)
-		{
-			ImGui::Text("Selected Window: %s", m_window->GetXMLName().c_str());
-		}
-		else
-		{
-			ImGui::Text("Select a window to see details");
-		}
-
-		ImGui::Separator();
-
-		DisplayPropertiesPanel();
+		m_started = false;
 	}
 
-	void DisplayPropertiesPanel()
+	bool Begin()
 	{
-		if (!m_window)
-		{
-			return;
-		}
-
 		ImGuiTableFlags tableFlags =
 			ImGuiTableFlags_ScrollFreezeTopRow
 			| ImGuiTableFlags_ScrollY
@@ -637,21 +813,152 @@ public:
 			| ImGuiTableFlags_RowBg
 			;
 
-
 		// Set up a table with three columns: Name, Value, Type
-		if (!ImGui::BeginTable("##WindowDetailsTable", 3, tableFlags))
+		if (!ImGui::BeginTable("##WindowDetailsTable", 3, tableFlags) && !m_started)
+			return false;
+
+		if (!m_started)
 		{
-			ImGui::EndTable();
-			return;
+			ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 75);
+			ImGui::TableAutoHeaders();
 		}
 
-		ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
-		ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
-		ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 150);
-		ImGui::TableAutoHeaders();
+		m_started = true;
 		ImGui::TableNextRow();
 
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4);
+		return true;
+	}
+
+	void End()
+	{
+		if (m_currentColor != 0)
+			ImGui::PopStyleColor(2);
+
+		ImGui::PopStyleVar();
+		ImGui::EndTable();
+	}
+
+	bool StartNewSection(const char* sectionName, bool open)
+	{
+		if (m_currentColor != 0)
+			ImGui::PopStyleColor(2);
+
+		// black background for heading.
+		ImU32 black = IM_COL32_BLACK;
+		ImGui::PushStyleColor(ImGuiCol_TableRowBg, (ImU32)black);
+		ImGui::PushStyleColor(ImGuiCol_TableRowBgAlt, (ImU32)black);
+
+		bool expand = ImGui::CollapsingHeader(sectionName, open ? ImGuiTreeNodeFlags_DefaultOpen : 0);
+		ImGui::PopStyleColor(2);
+		ImGui::TableNextRow();
+
+		ImColor rowColor = s_propertyColors[m_currentColor++];
+		if (m_currentColor >= (int)lengthof(s_propertyColors))
+			m_currentColor = 0;
+
+		ImGui::PushStyleColor(ImGuiCol_TableRowBg, (ImU32)rowColor);
+		ImGui::PushStyleColor(ImGuiCol_TableRowBgAlt, (ImU32)rowColor);
+
+		return expand;
+	}
+};
+
+class ImGuiWindowPropertyViewer
+{
+	CXWnd* m_window = nullptr;
+	std::string m_windowDisplayName;
+	std::string m_viewerTitle;
+
+	WindowPropertiesTable m_table;
+	int m_instanceId = 0;
+	bool m_needDock = true;
+	bool m_needFocus = false;
+
+public:
+	ImGuiWindowPropertyViewer(int instanceId, CXWnd* pWnd = nullptr)
+		: m_instanceId(instanceId)
+	{
+		SetWindow(pWnd);
+	}
+
+	void SetNeedDock(bool need) { m_needDock = need; }
+	bool GetNeedDock() const { return m_needDock; }
+
+	void SetNeedFocus(bool need) { m_needFocus = need; }
+
+	int GetInstanceId() const { return m_instanceId; }
+	const char* GetWindowId() { return m_viewerTitle.c_str(); }
+
+	void SetWindow(CXWnd* pWindow)
+	{
+		if (!test_and_set(m_window, pWindow))
+			return;
+
+		m_needFocus = true;
+
+		if (m_window)
+		{
+			m_windowDisplayName = m_window->GetXMLName();
+
+			// TODO: Might be empty string for dynamic windows.
+		}
+		else
+		{
+			m_windowDisplayName = "(none)";
+		}
+
+		if (m_instanceId == 1)
+		{
+			m_viewerTitle = fmt::format("Selected: {}###WindowPropertyViewer{}", m_windowDisplayName, m_instanceId);
+		}
+		else
+		{
+			m_viewerTitle = fmt::format("Wnd: {}###WindowPropertyViewer{}", m_windowDisplayName, m_instanceId);
+		}
+	}
+
+	CXWnd* GetWindow() const { return m_window; }
+	const char* GetWindowName() const { return m_windowDisplayName.c_str(); }
+
+	bool Draw()
+	{
+		if (m_needFocus)
+		{
+			ImGui::SetNextWindowFocus();
+			m_needFocus = false;
+		}
+
+		bool open = true;
+
+		ImGui::SetNextWindowSize(ImVec2(480, 640), ImGuiCond_FirstUseEver);
+		if (ImGui::Begin(m_viewerTitle.c_str(), &open))
+		{
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 9);
+
+			if (!m_window)
+			{
+				ImGui::Text("Select a window to see details");
+				return open;
+			}
+
+			DisplayPropertiesPanel();
+		}
+
+		ImGui::End(); // Begin properties
+		return open;
+	}
+
+	void DisplayPropertiesPanel()
+	{
+		if (!m_window)
+			return;
+
+		m_table.Reset();
+		if (!m_table.Begin())
+			return;
 
 		switch (m_window->GetType())
 		{
@@ -728,39 +1035,12 @@ public:
 			break;
 		}
 
-		ImGui::PopStyleVar();
-
-		ImGui::EndTable();
+		m_table.End();
 	}
 
 	bool BeginColorSection(const char* properties, bool open)
 	{
-		int color = m_currentColor++;
-		if (m_currentColor >= (int)lengthof(s_propertyColors))
-			m_currentColor = 0;
-
-		ImColor bgColor(0, 0, 0, 0);
-		ImGui::PushStyleColor(ImGuiCol_TableRowBg, (ImU32)bgColor);
-		ImGui::PushStyleColor(ImGuiCol_TableRowBgAlt, (ImU32)bgColor);
-
-		bool show = ImGui::CollapsingHeader(properties, open ? ImGuiTreeNodeFlags_DefaultOpen : 0);
-		ImGui::TableNextRow();
-
-		ImGui::PopStyleColor(2);
-
-		if (show)
-		{
-			ImColor rowColor = s_propertyColors[color];
-			ImGui::PushStyleColor(ImGuiCol_TableRowBg, (ImU32)rowColor);
-			ImGui::PushStyleColor(ImGuiCol_TableRowBgAlt, (ImU32)rowColor);
-		}
-
-		return show;
-	}
-
-	void EndColorSection()
-	{
-		ImGui::PopStyleColor(2);
+		return m_table.StartNewSection(properties, open);
 	}
 
 	void DisplayDetailsSection(CXMLData* pXMLData, bool open = true)
@@ -777,8 +1057,6 @@ public:
 
 			// ScreenID
 			ColumnText("Screen ID", "%s", pXMLData->ScreenID.c_str());
-
-			EndColorSection();
 		}
 	}
 
@@ -789,6 +1067,8 @@ public:
 		// Add CXWnd specific details here
 		if (BeginColorSection("CXWnd Properties", open))
 		{
+			ColumnWindow("Parent", pWnd->ParentWindow);
+
 			ColumnCXStr("Text", pWnd->WindowText);
 			ColumnCXStr("Tooltip", pWnd->Tooltip);
 
@@ -951,8 +1231,6 @@ public:
 			// LayoutStrategy
 			// TitlePiece
 			//ColumnCXRect("Clip client rect", pWnd->ClipRectClient);
-
-			EndColorSection();
 		}
 	}
 
@@ -973,8 +1251,6 @@ public:
 			//ColumnText("Last resolution fullscreen", pWnd->bLastResFullscreen ? "true" : "false");
 			//ColumnText("Context menu id", "%d", pWnd->ContextMenuID);
 			//ColumnText("Context menu tip id", "%d", pWnd->ContextMenuTipID);
-
-			EndColorSection();
 		}
 	}
 
@@ -1019,8 +1295,6 @@ public:
 			//ColumnText("Button style", "0x%08x", pWnd->ButtonStyle);
 
 			// CLabel
-
-			EndColorSection();
 		}
 	}
 
@@ -1034,8 +1308,6 @@ public:
 
 			DisplayTextureAnimation("Spell icon texture", pWnd->SpellIconTexture);
 			DisplayTextureAnimation("Custom icon texture", pWnd->CustomIconTexture);
-
-			EndColorSection();
 		}
 	}
 
@@ -1051,8 +1323,6 @@ public:
 			ColumnCheckBox("Center align", &pWnd->bAlignCenter);
 			ColumnText("Offset", "%d", pWnd->xOffset);
 			ColumnCheckBox("Resize height to text", &pWnd->bResizeHeightToText);
-
-			EndColorSection();
 		}
 	}
 
@@ -1063,8 +1333,6 @@ public:
 		if (BeginColorSection("CLabel Properties", open))
 		{
 			ColumnText("EQ Type", "%d", pWnd->EQType);
-
-			EndColorSection();
 		}
 	}
 
@@ -1094,8 +1362,6 @@ public:
 			ColumnCheckBox("Smooth", &pWnd->bSmooth);
 			ColumnText("Target value", "%d", pWnd->TargetVal);
 			ColumnCheckBox("Use target value", &pWnd->bUseTargetVal);
-
-			EndColorSection();
 		}
 	}
 };
@@ -1107,46 +1373,34 @@ public:
 
 #pragma region Windows Developer Tool
 
-class ImGuiWindowsDeveloperTool
+class ImGuiWindowsDeveloperTool : public ImGuiWindowBase
 {
 	CXWnd* m_pSelectedWnd = nullptr;
 	CXWnd* m_pHoveredWnd = nullptr;
 	CXWnd* m_pLastSelected = nullptr;
 	bool m_selectionChanged = false;
-	float m_topPaneSize = -1.0f;
-	float m_bottomPaneSize = -1.0f;
 	bool m_picking = false;
 	bool m_selectPicking = false;
 	CXWnd* m_pPickingWnd = nullptr;
 	int m_lastWindowCount = 0;
 
-	ImGuiWindowPropertyViewer m_propertyViewer;
+	// this is a pointer because we want to lazy init it
+	std::unique_ptr<ImGuiWindowPropertyViewer> m_selectedViewer;
+	std::map<CXWnd*, ImGuiWindowPropertyViewer> m_propertyViewers;
+	ImGuiID m_topNode = 0;
+	ImGuiID m_bottomNode = 0;
+	bool m_firstTime = true;
+	ImGuiID m_mainDockId = 0;
 
 public:
-	ImGuiWindowsDeveloperTool() = default;
-
-	void OnWindowRemoved(CXWnd* pWnd)
+	ImGuiWindowsDeveloperTool()
+		: ImGuiWindowBase("Window Inspector")
 	{
-		// Clear the property viewer if its using this window.
-		if (m_propertyViewer.GetWindow() == pWnd)
-		{
-			m_propertyViewer.SetWindow(nullptr);
-		}
-
-		// Clear any matching selections in the window.
-		if (m_pSelectedWnd == pWnd)
-			m_pSelectedWnd = nullptr;
-		if (m_pHoveredWnd == pWnd)
-			m_pHoveredWnd = nullptr;
-		if (m_pPickingWnd == pWnd)
-			m_pPickingWnd = nullptr;
-		if (m_pLastSelected == pWnd)
-			m_pLastSelected = nullptr;
 	}
 
 	void Reset()
 	{
-		m_propertyViewer.SetWindow(nullptr);
+		m_selectedViewer.reset();
 		m_pSelectedWnd = nullptr;
 		m_pHoveredWnd = nullptr;
 		m_pPickingWnd = nullptr;
@@ -1155,78 +1409,198 @@ public:
 		m_selectPicking = false;
 	}
 
-	void Draw()
+	void Update() override
 	{
-		m_pHoveredWnd = nullptr;
-		m_pPickingWnd = nullptr;
-
-		ImVec2 availSize = ImGui::GetContentRegionAvail();
-		if (m_topPaneSize == -1.0f)
-			m_topPaneSize = std::min(250.f, availSize.y * .55f);
-		if (m_bottomPaneSize == -1.0f)
-			m_bottomPaneSize = availSize.y - m_topPaneSize - 1;
-
-		if (m_picking)
+		m_mainDockId = ImGui::GetID("WindowDeveloperTool");
+		ImGuiDockNode* node = ImGui::DockBuilderGetNode(m_mainDockId);
+		if (!node || m_bottomNode == 0)
 		{
-			m_pPickingWnd = pWndMgr->LastMouseOver;
-		}
-
-		if (m_picking && m_selectPicking)
-		{
-			m_selectPicking = false;
-			m_picking = false;
-
-			m_pSelectedWnd = m_pPickingWnd;
-			m_pPickingWnd = nullptr;
-		}
-
-		if (ImGui::Button("Pick"))
-		{
-			m_picking = !m_picking;
-		}
-
-		if (m_picking)
-		{
-			ImGui::SameLine();
-			ImGui::Text("Pick:");
-			ImGui::SameLine();
-
-			if (m_pPickingWnd)
+			if (node)
 			{
-				ImGui::TextColored(ImColor(0.f, 1.0f, 0.0f, 1.0f), "%s", m_pPickingWnd->GetXMLName().c_str());
+				ImGui::DockBuilderRemoveNodeChildNodes(m_mainDockId);
 			}
 			else
 			{
-				ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, 0.5f), "(none)");
+				ImGui::DockBuilderRemoveNode(m_mainDockId);
+				ImGui::DockBuilderAddNode(m_mainDockId, ImGuiDockNodeFlags_None);
+				ImGui::DockBuilderSetNodeSize(m_mainDockId, ImVec2(480, 640));
+
+				ImGuiViewport* viewport = ImGui::GetMainViewport();
+				ImGui::DockBuilderSetNodePos(m_mainDockId, ImVec2(viewport->Pos.x + 100, viewport->Pos.y + 100));
 			}
+
+			ImGui::DockBuilderSplitNode(m_mainDockId, ImGuiDir_Up, 0.5f, &m_topNode, &m_bottomNode);
+
+			ImGuiDockNode* topNode = ImGui::DockBuilderGetNode(m_topNode);
+			topNode->LocalFlags |= ImGuiDockNodeFlags_NoWindowMenuButton;
+
+			ImGui::DockBuilderDockWindow("Window Inspector", m_topNode);
+			ImGui::DockBuilderDockWindow("###WindowPropertyViewer1", m_bottomNode);
+			ImGui::DockBuilderFinish(m_mainDockId);
 		}
 
-		if (m_lastWindowCount != 0)
+		//----------------------------------------------------------------------------
+		// Top Part: Show the window tree
+
+		m_pHoveredWnd = nullptr;
+		m_pPickingWnd = nullptr;
+		bool clearPicking = true;
+
+		if (m_open)
 		{
-			ImGui::SameLine();
-			ImGui::PushItemWidth(-1);
-			ImGui::Text("%d Windows", m_lastWindowCount);
+			bool doShow = ImGui::Begin("Window Inspector", m_open.get_ptr());
+			m_open.Update();
+			if (doShow)
+			{
+				if (m_picking)
+				{
+					m_pPickingWnd = pWndMgr->LastMouseOver;
+				}
+
+				if (m_picking && m_selectPicking)
+				{
+					m_selectPicking = false;
+					m_picking = false;
+
+					m_pSelectedWnd = m_pPickingWnd;
+					m_pPickingWnd = nullptr;
+				}
+
+				if (ImGui::Button("Pick"))
+				{
+					m_picking = !m_picking;
+
+					if (m_picking)
+					{
+						// activate main viewport
+						ImGuiViewport* mainViewport = ImGui::GetMainViewport();
+
+						if (ImGui::GetCurrentWindow()->Viewport->ID != mainViewport->ID)
+						{
+							// Activate the main viewport window.
+							::SetActiveWindow((HWND)mainViewport->PlatformHandle);
+						}
+					}
+				}
+
+				if (m_picking)
+				{
+					ImGui::SameLine();
+					ImGui::Text("Pick:");
+					ImGui::SameLine();
+
+					if (m_pPickingWnd)
+					{
+						ImGui::TextColored(ImColor(0.f, 1.0f, 0.0f, 1.0f), "%s", m_pPickingWnd->GetXMLName().c_str());
+					}
+					else
+					{
+						ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, 0.5f), "(none)");
+					}
+				}
+
+				if (m_lastWindowCount != 0)
+				{
+					ImGui::SameLine();
+					ImGui::PushItemWidth(-1);
+					ImGui::Text("%d Windows", m_lastWindowCount);
+				}
+
+				DisplayWindowTree();
+			}
+			ImGui::End();
 		}
 
-		imgui::DrawSplitter(true, 9.0f, &m_topPaneSize, &m_bottomPaneSize, 100, 100);
-
-		DisplayWindowTree();
+		if (!m_open)
+		{
+			m_picking = false; // can't pick if not showing picker
+		}
 
 		// update last selected to remember selection for next iteration
 		m_selectionChanged = test_and_set(m_pLastSelected, m_pSelectedWnd);
 
-		if (ImGui::BeginChild("##InspectPanel"))
-		{
-			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 9);
+		//----------------------------------------------------------------------------
+		// Bottom part: show the dock area of property windows
 
-			m_propertyViewer.SetWindow(m_pSelectedWnd);
-			m_propertyViewer.Draw();
+		// Update the targeted window inspector
+		if (m_selectionChanged)
+		{
+			ShowWindowInspector(m_pSelectedWnd, true);
 		}
 
-		ImGui::EndChild();
+		// Draw all the window inspectors
+		DrawPropertyViewers();
 
 		// Update background overlay showing whats currently highlighted or selected
 		DrawBackgroundWindowHighlights();
+	}
+
+	void ShowWindowInspector(CXWnd* pWnd, bool isSelected = false)
+	{
+		if (isSelected)
+		{
+			if (!m_selectedViewer)
+			{
+				m_selectedViewer = std::make_unique<ImGuiWindowPropertyViewer>(1);
+			}
+
+			m_selectedViewer->SetWindow(pWnd);
+			m_open = true;
+		}
+		else if (pWnd)
+		{
+			// find pWnd.
+			auto iter = m_propertyViewers.find(pWnd);
+			if (iter == m_propertyViewers.end())
+			{
+				static int nextInstanceId = 2; // 1 = target viewer. start at 2.
+				auto [iter, _] = m_propertyViewers.emplace(
+					std::piecewise_construct,
+					std::forward_as_tuple(pWnd),
+					std::forward_as_tuple(nextInstanceId++, pWnd));
+			}
+		}
+	}
+
+	void RemoveWindowInspector(CXWnd* pWnd)
+	{
+		if (pWnd == m_pSelectedWnd)
+		{
+			m_selectedViewer.reset();
+			m_pSelectedWnd = nullptr;
+		}
+		m_propertyViewers.erase(pWnd);
+	}
+
+	void DrawPropertyViewers()
+	{
+		if (m_pSelectedWnd && m_selectedViewer)
+		{
+			if (!m_selectedViewer->Draw())
+			{
+				m_selectedViewer.reset();
+				m_pSelectedWnd = nullptr;
+			}
+		}
+
+		// Iterate over each property viewer and show it. If its closed then remove it from the map
+		for (auto iter = m_propertyViewers.begin(); iter != m_propertyViewers.end();)
+		{
+			if (iter->second.GetNeedDock())
+			{
+				ImGui::DockBuilderDockWindow(iter->second.GetWindowId(), m_bottomNode);
+				iter->second.SetNeedDock(false);
+			}
+
+			if (!iter->second.Draw())
+			{
+				iter = m_propertyViewers.erase(iter);
+			}
+			else
+			{
+				++iter;
+			}
+		}
 	}
 
 	void DrawBackgroundWindowHighlights()
@@ -1274,7 +1648,7 @@ public:
 	{
 		ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollFreezeTopRow | ImGuiTableFlags_ScrollY | ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersHOuter | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg;
 
-		if (ImGui::BeginTable("##WindowTable", 2, tableFlags, ImVec2(0, m_topPaneSize)))
+		if (ImGui::BeginTable("##WindowTable", 2, tableFlags))
 		{
 			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
 			ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 100);
@@ -1299,9 +1673,6 @@ public:
 
 	void DisplayWindowTreeNode(CXWnd* pWnd)
 	{
-		//if (pWnd->GetType() == UI_Unknown)
-		//	return;
-
 		ImGui::TableNextRow();
 		const bool hasChildren = pWnd->GetFirstChildWnd() != nullptr;
 
@@ -1423,6 +1794,27 @@ public:
 		}
 	}
 
+	void OnWindowRemoved(CXWnd* pWnd)
+	{
+		// Clear the property viewer if its using this window.
+		if (m_selectedViewer && m_selectedViewer->GetWindow() == pWnd)
+		{
+			m_selectedViewer.reset();
+		}
+
+		// Clear any matching selections in the window.
+		if (m_pSelectedWnd == pWnd)
+			m_pSelectedWnd = nullptr;
+		if (m_pHoveredWnd == pWnd)
+			m_pHoveredWnd = nullptr;
+		if (m_pPickingWnd == pWnd)
+			m_pPickingWnd = nullptr;
+		if (m_pLastSelected == pWnd)
+			m_pLastSelected = nullptr;
+
+		RemoveWindowInspector(pWnd);
+	}
+
 	bool IsPicking() const { return m_picking; }
 
 	void Pick()
@@ -1453,26 +1845,47 @@ void DeveloperTools_RemoveWindow(CXWnd* pWnd)
 	s_windowDebugPanel.OnWindowRemoved(pWnd);
 }
 
+void DeveloperTools_ShowWindowInspector(CXWnd* pWnd)
+{
+	s_windowDebugPanel.ShowWindowInspector(pWnd);
+}
+
 void DeveloperTools_CloseLoginFrontend()
 {
 	s_windowDebugPanel.Reset();
 }
 
+void DeveloperTools_DrawMenu()
+{
+	if (ImGui::MenuItem("Window Inspector", nullptr, s_windowDebugPanel.IsOpen()))
+		s_windowDebugPanel.Toggle();
+}
+
 //============================================================================
 
-void DeveloperTools_Initialize()
+static void DeveloperTools_Initialize()
 {
-	AddDebugPanel("Windows", []() { s_windowDebugPanel.Draw(); });
 }
 
-void DeveloperTools_Shutdown()
+static void DeveloperTools_Shutdown()
 {
-	RemoveDebugPanel("Windows");
 }
 
-void DeveloperTools_SetGameState(DWORD gameState)
+static void DeveloperTools_SetGameState(DWORD gameState)
 {
 	s_windowDebugPanel.Reset();
+}
+
+static void DeveloperTools_UpdateImGui()
+{
+	ImGuiWindowBase* baseWindow = s_imguiBaseWindows;
+	while (baseWindow)
+	{
+		baseWindow->Update();
+		baseWindow = baseWindow->GetNext();
+	}
+
+	//s_windowDebugPanel.Draw();
 }
 
 } // namespace mq
