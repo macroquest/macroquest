@@ -1755,7 +1755,11 @@ public:
 
 		if (ImGui::IsItemClicked())
 		{
-			m_pSelectedWnd = pWnd;
+			// If ctrl key is pressed, create a secondary inspector instead
+			if (ImGui::GetIO().KeyCtrl)
+				DeveloperTools_ShowWindowInspector(pWnd);
+			else
+				m_pSelectedWnd = pWnd;
 		}
 
 		ImGui::TableNextCell();
