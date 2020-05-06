@@ -27,6 +27,7 @@ void DeveloperTools_DrawMenu();
 // Developer Tools - Window Inspector panel
 void DeveloperTools_ShowWindowInspector(CXWnd* pWnd);
 void DeveloperTools_RemoveWindow(CXWnd* pWnd);
+void DeveloperTools_SetSelectedWindow(CXWnd* pWnd);
 
 } // namespace mq
 
