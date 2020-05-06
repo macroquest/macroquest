@@ -1246,7 +1246,7 @@ public:
 	const T* GetLastNode() const { return m_pLastNode; }
 
 	// count the number of nodes in the list
-	uint32_t GetCount() const
+	uint32_t GetNodeCount() const
 	{
 		uint32_t count = 0;
 		T* pNode = m_pFirstNode;

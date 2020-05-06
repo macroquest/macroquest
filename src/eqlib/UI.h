@@ -943,7 +943,7 @@ public:
 	EQLIB_OBJECT void SetColumnsSizable(bool bColumnsSizable);
 	EQLIB_OBJECT void GetWndPosition(CXWnd* pWnd, int& ItemID, int& SubItemID) const;
 	EQLIB_OBJECT void SetItemWnd(int Index, int SubItem, CXWnd* pWnd);
-	EQLIB_OBJECT CXWnd* GetItemWnd(int Index, int SubItem) const;
+	EQLIB_OBJECT CXWnd* GetItemWnd(int Index, int SubItem = 0) const;
 	EQLIB_OBJECT void SetItemIcon(int Index, int SubItem, const CTextureAnimation* pTA);
 	EQLIB_OBJECT void CalculateCustomWindowPositions();
 

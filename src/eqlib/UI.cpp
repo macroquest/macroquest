@@ -590,6 +590,24 @@ bool CListWnd::Contains(const std::function<bool(const CXStr)>& predicate)
 	return IndexOf(0, predicate) != -1;
 }
 
+#if 0 // apparently we already have this as an import
+CXWnd* CListWnd::GetItemWnd(int Index, int SubItem) const
+{
+	if (Index < 0 || Index >= ItemsArray.GetLength())
+		return nullptr;
+
+	const SListWndLine& line = ItemsArray[Index];
+
+	if (SubItem < 0 || SubItem >= line.Cells.GetLength())
+		return nullptr;
+
+	if (line.Cells[SubItem].pWnd != nullptr)
+		return line.Cells[SubItem].pWnd->GetFirstChildWnd();
+
+	return nullptr;
+}
+#endif
+
 //============================================================================
 // CPageWnd
 //============================================================================
