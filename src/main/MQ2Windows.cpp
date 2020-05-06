@@ -42,18 +42,16 @@ struct WindowInfo
 {
 	std::string Name;
 	CXWnd* pWnd = nullptr;
-	CXWnd** ppWnd = nullptr;
 
-	WindowInfo(std::string Name, CXWnd* pWnd, CXWnd** ppWnd)
+	WindowInfo(std::string Name, CXWnd* pWnd)
 		: Name(std::move(Name))
 		, pWnd(pWnd)
-		, ppWnd(ppWnd)
 	{}
 	WindowInfo() = default;
 };
 
+std::map<std::string, CXWnd*, ci_less> WindowMap;
 std::unordered_map<CXWnd*, WindowInfo> WindowList;
-std::unordered_map<std::string, CXWnd*> WindowMap;
 std::vector<std::string> XmlFiles;
 
 int WinCount = 0;
@@ -61,30 +59,27 @@ int WinCount = 0;
 bool GenerateMQUI();
 void DestroyMQUI();
 
-inline void AddWindowToList(const CXStr& Name, CXWnd* pWnd, bool log)
+inline void AddWindowToList(const CXStr& WindowName, CXWnd* pWnd, bool log)
 {
-	std::string WindowName{ Name };
-	MakeLower(WindowName);
-
 	auto iter = WindowMap.find(WindowName);
 	if (iter != WindowMap.end())
 	{
-		WindowList[pWnd] = { std::move(WindowName), pWnd, nullptr };
+		WindowList[pWnd] = { std::string(WindowName), pWnd };
 
 		if (log)
 		{
-			DebugSpew("Updating WndNotification target '%s'", Name.c_str());
+			DebugSpew("Updating WndNotification target '%s'", WindowName.c_str());
 		}
 	}
 	else
 	{
-		WindowList[pWnd] = { WindowName, pWnd, nullptr };
-		WindowMap.emplace(std::move(WindowName), pWnd);
+		WindowList[pWnd] = { std::string(WindowName), pWnd };
+		WindowMap.emplace(std::string(WindowName), pWnd);
 
 		if (log)
 		{
-			if (!Name.empty())
-				DebugSpew("Adding WndNotification target '%s'", Name.c_str());
+			if (!WindowName.empty())
+				DebugSpew("Adding WndNotification target '%s'", WindowName.c_str());
 			else
 				DebugSpew("Adding WndNotification target FAILED");
 		}
@@ -144,10 +139,7 @@ public:
 			auto windowListIter = WindowList.find(pWnd);
 			if (windowListIter != WindowList.end())
 			{
-				std::string Name{ windowListIter->second.Name };
-				MakeLower(Name);
-
-				auto windowMapIter = WindowMap.find(Name);
+				auto windowMapIter = WindowMap.find(windowListIter->second.Name);
 				if (windowMapIter != WindowMap.end())
 				{
 					WindowMap.erase(windowMapIter);
@@ -499,22 +491,48 @@ void RemoveXMLFile(const char* filename)
 		std::end(XmlFiles));
 }
 
-CXWnd* FindMQ2Window(const char* WindowName)
+CXWnd* FindMQ2WindowPath(const char* WindowName)
 {
+	char nameBuffer[256];
+	strcpy_s(nameBuffer, WindowName);
+
+	char* head = nameBuffer;
+	char* context = nullptr;
+
+	head = strtok_s(head, "/", &context);
+
+	CXWnd* pWindow = FindMQ2Window(head);
+	if (!pWindow) return nullptr;
+
+	while (head = strtok_s(nullptr, "/", &context))
+	{
+		pWindow = pWindow->GetChildItem(head);
+		if (!pWindow) break;
+	}
+
+	return pWindow;
+}
+
+CXWnd* FindMQ2Window(const char* Name)
+{
+	if (strchr(Name, '/'))
+	{
+		return FindMQ2WindowPath(Name);
+	}
+
 	WindowInfo Info;
-	std::string Name = WindowName;
-	MakeLower(Name);
+	std::string_view WindowName{ Name };
 
 	// check toplevel windows first
-	if (WindowMap.find(Name) != WindowMap.end())
+	auto iter = WindowMap.find(WindowName);
+	if (iter != WindowMap.end())
 	{
-		//found it no need to look further...
-		return WindowMap[Name];
+		return iter->second;
 	}
 
 	// didnt find one, is it a container?
 	CONTENTS* pPack = nullptr;
-	if (!_strnicmp(WindowName, "bank", 4))
+	if (ci_starts_with(WindowName, "bank"))
 	{
 		unsigned long nPack = GetIntFromString(&WindowName[4], 0);
 		if (nPack && nPack <= NUM_BANK_SLOTS)
@@ -532,7 +550,7 @@ CXWnd* FindMQ2Window(const char* WindowName)
 #endif
 		}
 	}
-	else if (!_strnicmp(WindowName, "pack", 4))
+	else if (ci_starts_with(WindowName, "pack"))
 	{
 		unsigned long nPack = GetIntFromString(&WindowName[4], 0);
 		if (nPack && nPack <= 10)
@@ -546,7 +564,7 @@ CXWnd* FindMQ2Window(const char* WindowName)
 			}
 		}
 	}
-	else if (!_stricmp(WindowName, "enviro"))
+	else if (ci_equals(WindowName, "enviro"))
 	{
 		pPack = pContainerMgr->pWorldContainer.get();
 	}
@@ -558,35 +576,30 @@ CXWnd* FindMQ2Window(const char* WindowName)
 
 	// didnt find a toplevel window, is it a child then?
 	bool namefound = false;
-	for (auto& N : WindowList)
+	for (auto& [_, windowInfo] : WindowList)
 	{
-		if (N.second.Name == Name)
+		if (ci_equals(windowInfo.Name, WindowName))
 		{
 			namefound = true;
-			Info = N.second;
+			Info = windowInfo;
 			break;
 		}
 	}
 
-	if (!namefound)
+	if (namefound)
 	{
-		WindowMap.erase(Name);
-		return nullptr;
+		if (Info.pWnd)
+		{
+			return Info.pWnd;
+		}
+
+		WindowList.erase(Info.pWnd);
 	}
 
-	if (Info.pWnd)
-	{
-		return Info.pWnd;
-	}
-
-	if (Info.ppWnd)
-	{
-		return *Info.ppWnd;
-	}
-
-
-	WindowMap.erase(Name);
-	WindowList.erase(Info.pWnd);
+	// This uses find to take advantage of heterogeneous iterators
+	auto windowIter = WindowMap.find(WindowName);
+	if (windowIter != WindowMap.end())
+		WindowMap.erase(windowIter);
 	return nullptr;
 }
 
@@ -595,7 +608,7 @@ bool SendWndClick2(CXWnd* pWnd, const char* ClickNotification)
 	if (!pWnd)
 		return false;
 
-	for (unsigned long i = 0; i < 8; i++)
+	for (size_t i = 0; i < lengthof(szClickNotification); i++)
 	{
 		if (!_stricmp(szClickNotification[i], ClickNotification))
 		{
@@ -1088,58 +1101,6 @@ bool SendWndNotification(const char* WindowName, const char* ScreenID, int Notif
 	return true;
 }
 
-void AddWindow(char* WindowName, CXWnd** ppWindow)
-{
-	std::string Name = WindowName;
-	MakeLower(Name);
-
-	if (WindowMap.find(Name) != WindowMap.end())
-	{
-		WindowInfo pWnd;
-
-		for (auto& N : WindowList)
-		{
-			if (N.second.Name == Name)
-			{
-				pWnd = N.second;
-				break;
-			}
-		}
-
-		pWnd.pWnd = nullptr;
-		pWnd.ppWnd = ppWindow;
-	}
-	else
-	{
-		WindowInfo pWnd;
-		pWnd.Name = Name;
-		pWnd.pWnd = nullptr;
-		pWnd.ppWnd = ppWindow;
-
-		WindowList[*ppWindow] = pWnd;
-		WindowMap[Name] = *ppWindow;
-	}
-}
-
-void RemoveWindow(char* WindowName)
-{
-	std::string Name = WindowName;
-	MakeLower(Name);
-
-	if (WindowMap.find(Name) != WindowMap.end())
-	{
-		WindowMap.erase(Name);
-		for (auto N = WindowList.begin(); N != WindowList.end(); N++)
-		{
-			if (N->second.Name == Name)
-			{
-				WindowList.erase(N);
-				break;
-			}
-		}
-	}
-}
-
 int RecurseAndListWindows(CXWnd* pWnd)
 {
 	int Count = 0;
@@ -1276,10 +1237,8 @@ void ListWindows(PSPAWNINFO pChar, char* szLine)
 	else
 	{
 		// list children of..
-		std::string WindowName = szLine;
-		MakeLower(WindowName);
-
-		if (WindowMap.find(WindowName) == WindowMap.end())
+		auto iter = WindowMap.find(szLine);
+		if (iter == WindowMap.end())
 		{
 			if (CXWnd* pWnd = FindMQ2Window(szLine))
 			{
@@ -1289,18 +1248,16 @@ void ListWindows(PSPAWNINFO pChar, char* szLine)
 				return;
 			}
 
-			WriteChatf("Window '%s' not available", WindowName.c_str());
+			WriteChatf("Window '%s' not available", szLine);
 			return;
 		}
 
-		WriteChatf("Listing child windows of '%s'", WindowName.c_str());
+		WriteChatf("Listing child windows of '%s'", szLine);
 		WriteChatColor("-------------------------");
 
-		for (auto& N : WindowList)
+		for (auto& [_, Info] : WindowList)
 		{
-			WindowInfo& Info = N.second;
-
-			if (Info.Name == WindowName && Info.pWnd)
+			if (ci_equals(Info.Name, szLine) && Info.pWnd)
 			{
 				if (CXWnd* pWnd = Info.pWnd->GetFirstChildWnd())
 				{

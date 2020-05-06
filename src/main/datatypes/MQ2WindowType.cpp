@@ -634,7 +634,7 @@ bool MQ2WindowType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 
 bool MQ2WindowType::FromString(MQVarPtr& VarPtr, char* Source)
 {
-	if (VarPtr.Ptr = FindMQ2Window(Source))
+	if (VarPtr.Ptr = FindMQ2WindowPath(Source))
 		return true;
 
 	return false;

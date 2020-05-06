@@ -217,20 +217,20 @@ inline std::string unescape_args(std::string_view str) {
 template<char escape = '\\'>
 inline std::string unescape(std::string_view str, std::string_view quotes)
 {
-    if (str.empty())
-        return std::string();
+	if (str.empty())
+		return std::string();
 
-    static std::vector<std::pair<std::string_view, std::string_view>> to_replace = {
-        {std::string({escape, escape}), std::string({escape})},
-        {std::string({escape, ' '}), std::string({' '})}
-    };
+	static std::vector<std::pair<std::string_view, std::string_view>> to_replace = {
+		{std::string({escape, escape}), std::string({escape})},
+		{std::string({escape, ' '}), std::string({' '})}
+	};
 
-    if (str.back() != str.front() || str.find_first_of(quotes) != 0)
-        return replace(str, to_replace);
+	if (str.back() != str.front() || str.find_first_of(quotes) != 0)
+		return replace(str, to_replace);
 
-    auto augmented_replace = to_replace;
-    augmented_replace.emplace_back(std::make_pair(std::string({escape, str[0]}), std::string({str[0]})));
-    return replace(std::string_view(&str[1], str.length() - 2), augmented_replace);
+	auto augmented_replace = to_replace;
+	augmented_replace.emplace_back(std::make_pair(std::string({ escape, str[0] }), std::string({ str[0] })));
+	return replace(std::string_view(&str[1], str.length() - 2), augmented_replace);
 }
 
 struct ci_less
@@ -322,7 +322,10 @@ struct ci_unordered
 private:
 	struct ci_comparer
 	{
-		bool operator () (std::string_view a, std::string_view b) const
+		using is_transparent = void;
+
+		template <typename T>
+		bool operator()(const T& a, const T& b) const
 		{
 			return ci_equals(a, b);
 		}
@@ -330,7 +333,10 @@ private:
 
 	struct ci_hasher
 	{
-		unsigned long operator () (std::string_view a) const
+		using is_transparent = void;
+
+		template <typename T>
+		size_t operator()(const T& a) const
 		{
 			// this is a re-implementation of the fnv1a hash that MSVC uses, but with tolower
 			unsigned long hash = 2166136261U;
@@ -344,15 +350,17 @@ private:
 	};
 
 public:
-	template <typename T>
-	using map = std::unordered_map<std::string_view, T, ci_hasher, ci_comparer>;
+	template <typename StringType, typename T>
+	using map = std::unordered_map<StringType, T, ci_hasher, ci_comparer>;
 
-	template <typename T>
-	using multimap = std::unordered_multimap<std::string_view, T, ci_hasher, ci_comparer>;
+	template <typename StringType, typename T>
+	using multimap = std::unordered_multimap<StringType, T, ci_hasher, ci_comparer>;
 
-	using set = std::unordered_set<std::string_view, ci_hasher, ci_comparer>;
+	template <typename StringType>
+	using set = std::unordered_set<StringType, ci_hasher, ci_comparer>;
 
-	using multiset = std::unordered_multiset<std::string_view, ci_hasher, ci_comparer>;
+	template <typename StringType>
+	using multiset = std::unordered_multiset<StringType, ci_hasher, ci_comparer>;
 };
 
 /**
