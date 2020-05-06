@@ -39,8 +39,8 @@ PreSetup("MQ2ItemDisplay");
 constexpr int LINK_LEN = 90;
 constexpr int MAX_ITEMDISPLAY_WINDOWS = 6;
 
-char ConvertFrom[2048] = { 0 };
-char ConvertTo[2048] = { 0 };
+char ConvertFrom[MAX_STRING] = { 0 };
+char ConvertTo[MAX_STRING] = { 0 };
 bool bDisabledComparetip = false;
 bool gCompareTip = false;
 bool gLootButton = true;

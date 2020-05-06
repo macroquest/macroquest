@@ -55,7 +55,7 @@ enum class WindowMembers
 	MyTradeReady,
 	GetCurSel,
 	Address,
-	Size
+	Size,
 };
 
 enum class WindowMethods
@@ -438,11 +438,13 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 			return false;
 		}
 
-		int n = 0;
+		int nColumn = 0;
 		if (char* pComma = strchr(Index, ','))
 		{
-			n = GetIntFromString(&pComma[1], n) - 1;
-			if (n < 0) n = 0;
+			nColumn = GetIntFromString(&pComma[1], nColumn) - 1;
+			if (nColumn < 0) nColumn = 0;
+			if (nColumn >= pListWnd->Columns.GetCount())
+				return false;
 			*pComma = '\0';
 		}
 
@@ -451,8 +453,25 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 			int nIndex = GetIntFromString(Index, 0);
 			if (!nIndex)
 				return false;
+			nIndex = nIndex - 1;
+			if (nIndex < 0 || nIndex >= pListWnd->ItemsArray.GetCount())
+				return false;
 
-			CXStr Str = pListWnd->GetItemText(nIndex - 1, n);
+			const SListWndLine& line = pListWnd->ItemsArray[nIndex];
+			if (nColumn < 0 || nColumn >= line.Cells.GetLength())
+				return false;
+
+			const SListWndCell& cell = line.Cells[nColumn];
+
+			// If this holds a window then return a window
+			if (cell.pWnd != nullptr)
+			{
+				Dest.Ptr = cell.pWnd->GetFirstChildWnd();
+				Dest.Type = pWindowType;
+				return true;
+			}
+
+			CXStr Str = pListWnd->GetItemText(nIndex - 1, nColumn);
 			strcpy_s(DataTypeTemp, Str.c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			Dest.Type = pStringType;
@@ -460,46 +479,33 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		}
 		else
 		{
-			// name
-			bool bEqual = false;
-			std::string_view sv;
-
-			if (Index[0] == '=')
+			// by name/label
+			for (int nIndex = 0; nIndex < pListWnd->ItemsArray.GetCount(); ++nIndex)
 			{
-				bEqual = true;
-				sv = &Index[1];
-			}
-			else
-			{
-				sv = Index;
-			}
-
-			int nIndex = 0;
-			while (true)
-			{
-				CXStr Str = pListWnd->GetItemText(nIndex, n);
-				if (Str.empty())
+				const SListWndLine& line = pListWnd->ItemsArray[nIndex];
+				if (nColumn < 0 || nColumn >= line.Cells.GetLength())
 					return false;
 
-				if (bEqual)
+				const SListWndCell& cell = line.Cells[nColumn];
+
+				// If this holds a window then compare against the window text
+				if (cell.pWnd != nullptr)
 				{
-					if (ci_equals(Str, sv))
+					if (MaybeExactCompare(cell.pWnd->GetFirstChildWnd()->GetWindowText(), Index))
 					{
 						Dest.DWord = nIndex + 1;
 						Dest.Type = pIntType;
 						return true;
 					}
 				}
-				else
+
+				CXStr Str = pListWnd->GetItemText(nIndex, nColumn);
+				if (MaybeExactCompare(Str, Index))
 				{
-					if (ci_find_substr(Str, sv) != -1)
-					{
-						Dest.DWord = nIndex + 1;
-						Dest.Type = pIntType;
-						return true;
-					}
+					Dest.DWord = nIndex + 1;
+					Dest.Type = pIntType;
+					return true;
 				}
-				nIndex++;
 			}
 		}
 		return false;
@@ -634,7 +640,7 @@ bool MQ2WindowType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 
 bool MQ2WindowType::FromString(MQVarPtr& VarPtr, char* Source)
 {
-	if (VarPtr.Ptr = FindMQ2Window(Source))
+	if (VarPtr.Ptr = FindMQ2WindowPath(Source))
 		return true;
 
 	return false;

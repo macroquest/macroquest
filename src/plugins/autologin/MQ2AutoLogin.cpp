@@ -602,7 +602,7 @@ PLUGIN_API void OnUpdateImGui()
 	int gameState = GetGameState();
 
 	// Only show autologin overlay during character select or login
-	//if (gameState == GAMESTATE_CHARSELECT || gameState == GAMESTATE_PRECHARSELECT)
+	if (gameState == GAMESTATE_CHARSELECT || gameState == GAMESTATE_PRECHARSELECT)
 	{
 		ShowAutoLoginOverlay(&bShowAutoLoginOverlay);
 	}

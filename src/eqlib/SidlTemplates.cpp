@@ -800,6 +800,16 @@ bool CScreenPieceTemplate::IsType(uint32_t type) const
 	return false;
 }
 
+const char* XWndBackgroundTypeToString(XWndBackgroundType type)
+{
+	switch (type)
+	{
+	case eNormal: return "Normal";
+	case eNoTexture: return "NoTexture";
+	default: return "Unknown";
+	}
+}
+
 const char* XWndBackgroundDrawTypeToString(XWndBackgroundDrawType type)
 {
 	switch (type)

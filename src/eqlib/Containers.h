@@ -1198,16 +1198,12 @@ template <typename T>
 class TListNode
 {
 	// pointers to previous and next node
-	T* m_pPrev;
-	T* m_pNext;
-	TList<T>* m_pList;        // pointer to the list this node belongs to
+	T* m_pPrev = nullptr;
+	T* m_pNext = nullptr;
+	TList<T>* m_pList = nullptr;  // pointer to the list this node belongs to
 
 public:
-	TListNode()
-		: m_pPrev(nullptr)
-		, m_pNext(nullptr)
-		, m_list(nullptr)
-	{}
+	TListNode() {}
 
 	TListNode(const TListNode&) = delete;
 	TListNode& operator=(const TListNode&) = delete;
@@ -1250,7 +1246,7 @@ public:
 	const T* GetLastNode() const { return m_pLastNode; }
 
 	// count the number of nodes in the list
-	uint32_t GetCount() const
+	uint32_t GetNodeCount() const
 	{
 		uint32_t count = 0;
 		T* pNode = m_pFirstNode;
@@ -1295,6 +1291,7 @@ public:
 
 		return pNode;
 	}
+
 };
 
 #pragma endregion

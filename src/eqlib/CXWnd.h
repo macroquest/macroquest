@@ -472,7 +472,7 @@ public:
 
 	EQLIB_OBJECT void SetMaximizable(bool bValue) { bMaximizable = bValue; }
 
-	EQLIB_OBJECT void* GetFont() const { return pFont; }
+	EQLIB_OBJECT CTextureFont* GetFont() const { return pFont; }
 
 	EQLIB_OBJECT void SetEscapable(bool bValue) { CloseOnESC = bValue; }
 	EQLIB_OBJECT void SetEscapableLocked(bool bValue) { bEscapableLocked = bValue; }
@@ -709,7 +709,7 @@ public:
 // @start: CXWnd Members
 /*0x020*/ int64_t     Data;
 /*0x028*/ CXStr       DataStr;
-/*0x02c*/ mutable CXRect ClipRectScreen;
+/*0x02c*/ CXRect      ClipRectScreen;
 /*0x03c*/ bool        ValidCXWnd;                          // IsValid has this one
 /*0x040*/ int         HScrollMax;
 /*0x044*/ int         ZLayer;                              // found in CXWndManager__DrawWindows_x
@@ -721,7 +721,7 @@ public:
 /*0x054*/ int         HScrollPos;
 /*0x058*/ bool        bMaximized;
 /*0x05c*/ int         managerArrayIndex;
-/*0x060*/ mutable bool bClientRectChanged;
+/*0x060*/ bool        bClientRectChanged;
 /*0x064*/ uint32_t    FadeDuration;
 /*0x068*/ bool        bUseInLayoutVertical;
 /*0x06c*/ CXRect      IconRect;
@@ -737,9 +737,9 @@ public:
 /*0x092*/ bool        bBottomAnchoredToTop;
 /*0x094*/ uint32_t    TransitionDuration;
 /*0x098*/ uint32_t    TransitionStartTick;
-/*0x09c*/ void*       pTextObject;
+/*0x09c*/ CTextObjectInterface* pTextObject;
 /*0x0a0*/ bool        CloseOnESC;                          // found in CSidlScreenWnd__StoreIniInfo_x, close when ESC is pressed
-/*0x0a4*/ void*       TitlePiece2;
+/*0x0a4*/ CStaticTintedBlendAnimationTemplate* TitlePiece2;
 /*0x0a8*/ uint32_t    BlinkFadeFreq;
 /*0x0ac*/ int         TopOffset;
 /*0x0b0*/ CXSize      MinClientSize;
@@ -753,17 +753,17 @@ public:
 /*0x0dc*/ uint8_t     bResizableMask;
 /*0x0dd*/ bool        Fades;
 /*0x0e0*/ int         DeleteCount;
-/*0x0e4*/ ArrayClass2_RO<unsigned int> RuntimeTypes;       // Size 0x1c
-/*0x0fc*/ mutable CXRect ClientRect;
+/*0x0e4*/ ArrayClass2<unsigned int> RuntimeTypes;       // Size 0x1c
+/*0x0fc*/ CXRect      ClientRect;
 /*0x10c*/ uint32_t    LastBlinkFadeRefreshTime;
-/*0x110*/ mutable CXRect ClipRectClient;
+/*0x110*/ CXRect      ClipRectClient;
 /*0x120*/ uint32_t    BlinkFadeDuration;
-/*0x124*/ mutable bool bClientClipRectChanged;
+/*0x124*/ bool        bClientClipRectChanged;
 /*0x125*/ bool        bBorder2;
 /*0x128*/ int         RightOffset;
 /*0x12c*/ CXWnd*      ParentWindow;                        // CXWnd__IsDescendantOf_x has this one, If this is NULL, coordinates are absolute...
-/*0x130*/ void*       pTipTextObject;
-/*0x134*/ mutable bool bScreenClipRectChanged;
+/*0x130*/ CTextObjectInterface* pTipTextObject;
+/*0x134*/ bool        bScreenClipRectChanged;
 /*0x138*/ COLORREF    DisabledBackground;
 /*0x13c*/ bool        bEscapableLocked;
 /*0x140*/ int         LeftOffset;
@@ -782,9 +782,9 @@ public:
 /*0x165*/ bool        Enabled;
 /*0x166*/ bool        bFullyScreenClipped;
 /*0x168*/ uint32_t    LastTimeMouseOver;
-/*0x16c*/ void*       IconTextureAnim;
+/*0x16c*/ CTextureAnimation* IconTextureAnim;
 /*0x170*/ COLORREF    CRNormal;                            // found in OnProcessFrame
-/*0x174*/ void*       pFont;
+/*0x174*/ CTextureFont* pFont;
 /*0x178*/ bool        bRightAnchoredToLeft;
 /*0x17c*/ int         BlinkState;
 /*0x180*/ int         BlinkStartTimer;
@@ -807,7 +807,7 @@ public:
 /*0x1c8*/ uint32_t    FadeDelay;
 /*0x1cc*/ uint32_t    BGType;                              // found in CSidlScreenWnd__StoreIniInfo_x
 /*0x1d0*/ uint8_t     TargetAlpha;
-/*0x1d4*/ void*       TitlePiece;
+/*0x1d4*/ CStaticTintedBlendAnimationTemplate* TitlePiece;
 /*0x1d8*/ int         BottomOffset;
 /*0x1dc*/ CXSize      MaxClientSize;
 /*0x1e4*/ int         VScrollMax;

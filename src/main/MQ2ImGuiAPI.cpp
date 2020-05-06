@@ -14,6 +14,7 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
+#include "MQ2DeveloperTools.h"
 
 #include "imgui/ImGuiTreePanelWindow.h"
 #include "imgui/ImGuiColorTextEdit.h"
@@ -426,6 +427,13 @@ public:
 
 				ImGui::EndMenu();
 			}
+
+			if (ImGui::BeginMenu("Developer Tools"))
+			{
+				DeveloperTools_DrawMenu();
+				ImGui::EndMenu();
+			}
+
 			ImGui::EndMenuBar();
 		}
 

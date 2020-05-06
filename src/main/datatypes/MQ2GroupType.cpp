@@ -24,7 +24,7 @@ bool MQ2GroupType::ToString(MQVarPtr VarPtr, char* Destination)
 	if (!pChar || !pChar->pGroupInfo) return false;
 
 	int nMembers = 0;
-	for (int index = 1; index < 6; index++)
+	for (int index = 1; index < MAX_GROUP_SIZE; index++)
 	{
 		if (pChar->pGroupInfo->pMember[index])
 			nMembers++;
@@ -60,43 +60,40 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 			Dest.DWord = GetIntFromString(Index, 0);
 			return true;
 		}
-		else
+
+		// by name
+		if (pChar->pSpawn)
 		{
-			// by name
-			if (pChar->pSpawn)
+			Dest.DWord = 0;
+			if (ci_equals(pChar->pSpawn->Name, Index))
 			{
 				Dest.DWord = 0;
-				if (ci_equals(pChar->pSpawn->Name, Index))
-				{
-					Dest.DWord = 0;
-					return true;
-				}
+				return true;
+			}
 
-				for (int i = 1; i < 6; i++)
+			for (int i = 1; i < MAX_GROUP_SIZE; i++)
+			{
+				if (pChar->pGroupInfo->pMember[i])
 				{
-					if (pChar->pGroupInfo->pMember[i])
+					Dest.DWord++;
+					char Name[MAX_STRING] = { 0 };
+					strcpy_s(Name, pChar->pGroupInfo->pMember[i]->Name.c_str());
+
+					CleanupName(Name, sizeof(Name), false, false); // we do this to fix the mercenaryname bug
+
+					if (Index[0] != 0 && ci_equals(Name, Index))
 					{
-						Dest.DWord++;
-						char Name[MAX_STRING] = { 0 };
-						strcpy_s(Name, pChar->pGroupInfo->pMember[i]->Name.c_str());
-
-						CleanupName(Name, sizeof(Name), false, false); // we do this to fix the mercenaryname bug
-
-						if (Index[0] != 0 && ci_equals(Name, Index))
-						{
-							return true;
-						}
+						return true;
 					}
 				}
 			}
-			return false;
 		}
 		return false;
 
 	case Members:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		for (int i = 1; i < 6; i++)
+		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
 			if (pChar->pGroupInfo->pMember[i])
 				Dest.DWord++;
@@ -114,7 +111,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 			return true;
 		}
 
-		for (int i = 1; i < 6; i++)
+		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
 			if (pChar->pGroupInfo->pMember[i])
 			{
@@ -139,7 +136,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
-		for (int i = 1; i < 6; i++)
+		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
 			if (pChar->pGroupInfo->pMember[i])
 				Dest.DWord++;
@@ -158,7 +155,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 			return true;
 		}
 
-		for (int i = 1; i < 6; i++)
+		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
 			if (pChar->pGroupInfo->pMember[i])
 			{
@@ -180,7 +177,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 			return true;
 		}
 
-		for (int i = 1; i < 6; i++)
+		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
 			if (pChar->pGroupInfo->pMember[i])
 			{
@@ -202,7 +199,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 			return true;
 		}
 
-		for (int i = 1; i < 6; i++)
+		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
 			if (pChar->pGroupInfo->pMember[i])
 			{
@@ -224,7 +221,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 			return true;
 		}
 
-		for (int i = 1; i < 6; i++)
+		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
 			if (pChar->pGroupInfo->pMember[i])
 			{
@@ -246,7 +243,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 			return true;
 		}
 
-		for (int i = 1; i < 6; i++)
+		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
 			if (pChar->pGroupInfo->pMember[i])
 			{
@@ -263,7 +260,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
 
-		for (int i = 1; i < 6; i++)
+		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
 			if (pChar->pGroupInfo->pMember[i]
 				&& (pChar->pGroupInfo->pMember[i]->Offline
@@ -282,7 +279,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
-		for (int i = 1; i < 6; i++)
+		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
 			if (pChar->pGroupInfo->pMember[i]
 				&& pChar->pGroupInfo->pMember[i]->pSpawn
@@ -331,7 +328,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 			hps = (pChar->pSpawn->HPCurrent / pChar->pSpawn->HPMax) * 100;
 		}
 
-		for (int i = 1; i < 6; i++)
+		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
 			if (pChar->pGroupInfo->pMember[i]
 				&& pChar->pGroupInfo->pMember[i]->pSpawn
@@ -356,7 +353,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		if (int threshold = GetIntFromString(Index, 0))
 		{
 			int64_t hps = 0;
-			for (int i = 0; i < 6; i++)
+			for (int i = 0; i < MAX_GROUP_SIZE; i++)
 			{
 				if (pChar->pGroupInfo->pMember[i]
 					&& pChar->pGroupInfo->pMember[i]->pSpawn

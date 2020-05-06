@@ -247,7 +247,7 @@ const char* UITypeToString(UIType type)
 {
 	switch (type)
 	{
-	case UI_Unknown: return "Unknown";
+	case UI_Unknown: return "CXWnd";           // a dynamically created CXWnd can have this type
 	case UI_Class: return "Class";
 	case UI_RGB: return "RGB";
 	case UI_RGBText: return "RGBText";

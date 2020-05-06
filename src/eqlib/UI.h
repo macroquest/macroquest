@@ -307,13 +307,13 @@ public:
 /*0x23c*/ CXStr        Indicator;
 /*0x240*/ unsigned int IndicatorVal;
 /*0x244*/ CTextObjectInterface* pIndicatorTextObject;
-/*0x248*/ CButtonDrawTemplate DrawTemplate;
-/*0x27c*/ bool         bAllowButtonClickThrough;
-/*0x27d*/ bool         bCoolDownDoDelayedStart;
-/*0x27e*/ bool         bIsCheckbox;
-/*0x27f*/ bool         bIsDrawLasso;
-/*0x280*/ uint32_t     ButtonStyle;              // tbd
-/*0x284*/ CLabel*      pButtonLabel;
+/*0x248*/ unsigned int Unknown0x248;
+/*0x24c*/ CButtonDrawTemplate DrawTemplate;
+/*0x280*/ bool         bAllowButtonClickThrough;
+/*0x281*/ bool         bCoolDownDoDelayedStart;
+/*0x282*/ bool         bIsCheckbox;
+/*0x283*/ bool         bIsDrawLasso;
+/*0x284*/ uint32_t     ButtonStyle;              // tbd
 /*0x288*/
 
 	struct VirtualFunctionTable : public CXWnd::VirtualFunctionTable
@@ -362,8 +362,8 @@ public:
 	EQLIB_OBJECT void SetRadioLook();
 
 	// protected
-/*0x288*/ bool bOrgState;
-/*0x28c*/
+/*0x290*/ bool bOrgState;
+/*0x294*/
 };
 
 //============================================================================
@@ -621,6 +621,7 @@ public:
 /*0x21c*/ int          LastFrameTarget;
 /*0x220*/ CXStr        GaugeTooltip;
 /*0x224*/ int          TooltipVal;
+/*0x228*/ int          Unknown0x228;
 /*0x228*/ CGaugeDrawTemplate DrawTemplate;
 /*0x244*/ CTextObjectInterface* pTextObject;
 /*0x248*/ CXStr        NextDrawStr;
@@ -942,7 +943,7 @@ public:
 	EQLIB_OBJECT void SetColumnsSizable(bool bColumnsSizable);
 	EQLIB_OBJECT void GetWndPosition(CXWnd* pWnd, int& ItemID, int& SubItemID) const;
 	EQLIB_OBJECT void SetItemWnd(int Index, int SubItem, CXWnd* pWnd);
-	EQLIB_OBJECT CXWnd* GetItemWnd(int Index, int SubItem) const;
+	EQLIB_OBJECT CXWnd* GetItemWnd(int Index, int SubItem = 0) const;
 	EQLIB_OBJECT void SetItemIcon(int Index, int SubItem, const CTextureAnimation* pTA);
 	EQLIB_OBJECT void CalculateCustomWindowPositions();
 
@@ -4831,7 +4832,7 @@ public:
 /*0x288*/ int                MouseButtonState;
 /*0x28c*/ bool               bChecked;
 /*0x290*/ unsigned int       LastRefresh;
-/*0x294*/ D3DCOLOR           SpellGemTintArray[11];    // I dont understand why there are only 11 of these when we have 13 gems noaways, probably a bug or unused?
+/*0x294*/ D3DCOLOR           SpellGemTintArray[11];
 /*0x2c0*/ int                SpellGemAlphaArray[11];
 /*0x2ec*/ int                Unknown0x02f4;
 /*0x2f0*/ int                Unknown0x02f8;

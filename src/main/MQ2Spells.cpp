@@ -17,7 +17,7 @@
 
 namespace mq {
 
-ci_unordered::multimap<EQ_Spell*> s_spellNameMap;
+ci_unordered::multimap<std::string_view, EQ_Spell*> s_spellNameMap;
 std::map<int, int> s_triggeredSpells;
 std::recursive_mutex s_initializeSpellsMutex;
 

@@ -60,7 +60,7 @@ void PopMacroLoop();
 
 void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 {
-	std::scoped_lock lock(s_commandMutex);
+	std::unique_lock lock(s_commandMutex);
 
 	if (delayed)
 	{
@@ -176,6 +176,8 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 
 		if (Pos == 0)
 		{
+			lock.unlock();
+
 			// the parser version is 2 or It's not version 2 and we're allowing command parses
 			if (pCommand->Parse && (gParserVersion == 2 || (gParserVersion != 2 && bAllowCommandParse)))
 			{
