@@ -18,6 +18,7 @@
 #include "CrashHandler.h"
 
 #include "common/HotKeys.h"
+#include "imgui/ImGuiUtils.h"
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
@@ -1588,13 +1589,8 @@ void InitializeImGui(IDirect3DDevice9* device)
 
 	ImGui::StyleColorsDark();
 
-	// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
-	ImGuiStyle& style = ImGui::GetStyle();
-	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-	{
-		style.WindowRounding = 0.0f;
-		//style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-	}
+	mq::imgui::ConfigureStyle();
+	mq::imgui::ConfigureFonts();
 
 	// Install the hotkey.
 	if (gToggleConsoleHotkeyId != 0)

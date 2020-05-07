@@ -2,20 +2,20 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="UserMacros">
     <MQ2SolutionDirectory>$(MSBuildThisFileDirectory)</MQ2SolutionDirectory>
-    <MQ2BinaryDirName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">debug</MQ2BinaryDirName>
-    <MQ2BinaryDirName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">release</MQ2BinaryDirName>
+    <MQ2BinaryDirName Condition="'$(Configuration)'=='Debug'">debug</MQ2BinaryDirName>
+    <MQ2BinaryDirName Condition="'$(Configuration)'=='Release'">release</MQ2BinaryDirName>
     <MQ2Root>$(MQ2SolutionDirectory)..\</MQ2Root>
     <MQ2BuildDirectory>$(MQ2Root)build\</MQ2BuildDirectory>
   </PropertyGroup>
   <PropertyGroup>
     <IntDir>$(MQ2BuildDirectory)obj\$(MQ2BinaryDirName)\$(ProjectName)\</IntDir>
     <OutDir>$(MQ2BuildDirectory)bin\$(MQ2BinaryDirName)\</OutDir>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)'=='Debug'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)'=='Release'">false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <!-- Debug only compiler settings props-->
-    <ClCompile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile Condition="'$(Configuration)'=='Debug'">
       <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -24,7 +24,7 @@
       <FunctionLevelLinking>false</FunctionLevelLinking>
     </ClCompile>
     <!-- Release only compiler settings -->
-    <ClCompile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile Condition="'$(Configuration)'=='Release'">
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StringPooling>true</StringPooling>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -32,7 +32,7 @@
     </ClCompile>
     <!-- Shared compiler settings -->
     <ClCompile>
-      <AdditionalIncludeDirectories>$(MQ2Root)include;$(MQ2Root)contrib;$(MQ2Root)contrib\date\include;$(MQ2Root)contrib\fmt\include;$(MQ2Root)contrib\wil\include;$(MQ2Root)contrib\spdlog\include;$(MQ2Root)contrib\imgui;$(MQ2Root)contrib\imgui\misc\cpp;$(MQ2Root)contrib\mini-yaml\yaml;$(MQ2Root)contrib\tinyfsm\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MQ2Root)include;$(MQ2Root)src;$(MQ2Root)contrib;$(MQ2Root)contrib\date\include;$(MQ2Root)contrib\fmt\include;$(MQ2Root)contrib\wil\include;$(MQ2Root)contrib\spdlog\include;$(MQ2Root)contrib\imgui;$(MQ2Root)contrib\imgui\misc\cpp;$(MQ2Root)contrib\mini-yaml\yaml;$(MQ2Root)contrib\tinyfsm\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <WarningLevel>Level3</WarningLevel>
       <CompileAs>CompileAsCpp</CompileAs>
@@ -47,7 +47,7 @@
     <Link Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     </Link>
     <!-- Shared linker settings -->
-    <Link>
+    <Link Condition="'$(Platform)'=='Win32'">
       <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(MQ2Root)contrib\detours\lib;$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
