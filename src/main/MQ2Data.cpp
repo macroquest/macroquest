@@ -501,16 +501,23 @@ bool dataIni(const char* szIndex, MQTypeVar& Ret)
 	if (IniFile.empty())
 		return false;
 
-	if (IniFile.find('.') == std::string::npos)
-	{
-		IniFile.append(".ini");
-	}
-
 	std::filesystem::path pathIniFile = IniFile;
+	if (!pathIniFile.has_extension())
+	{
+		pathIniFile += ".ini";
+	}
 
 	if (pathIniFile.is_relative())
 	{
-		pathIniFile = mq::internal_paths::Config / pathIniFile;
+		// Config is the primary path, but fall back to the old path if needed
+		if (!exists(internal_paths::Config / pathIniFile) && exists(internal_paths::Macros / pathIniFile))
+		{
+			pathIniFile = internal_paths::Macros / pathIniFile;
+		}
+		else
+		{
+			pathIniFile = mq::internal_paths::Config / pathIniFile;
+		}
 	}
 
 	if (std::filesystem::exists(pathIniFile))

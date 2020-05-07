@@ -3466,13 +3466,22 @@ void IniOutput(SPAWNINFO* pChar, char* szLine)
 	DebugSpew("/ini input -- %s %s %s %s", szArg1, szArg2, szArg3, szArg4);
 
 	std::filesystem::path iniFile = szArg1;
-	if (iniFile.is_relative())
-	{
-		iniFile = mq::internal_paths::Config / iniFile;
-	}
 	if (!iniFile.has_extension())
 	{
 		iniFile += ".ini";
+	}
+
+	if (iniFile.is_relative())
+	{
+		// Config is the primary path, but fall back to the old path if needed
+		if (!exists(internal_paths::Config / iniFile) && exists(internal_paths::Macros / iniFile))
+		{
+			iniFile = internal_paths::Macros / iniFile;
+		}
+		else
+		{
+			iniFile = mq::internal_paths::Config / iniFile;
+		}
 	}
 
 	if (ci_equals(szArg3, "NULL"))
