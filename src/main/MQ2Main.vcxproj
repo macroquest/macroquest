@@ -89,26 +89,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\contrib\imgui\imgui.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\imgui\imgui_demo.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\imgui\imgui_draw.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\imgui\imgui_widgets.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\imgui\misc\cpp\imgui_stdlib.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\..\contrib\mini-yaml\yaml\Yaml.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -418,8 +398,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="imgui\ImGuiColorTextEdit.cpp" />
-    <ClCompile Include="imgui\ImGuiUtils.cpp" />
     <ClCompile Include="MQ2Anonymize.cpp" />
     <ClCompile Include="MQ2Auth.cpp" />
     <ClCompile Include="MQ2AutoInventory.cpp" />
@@ -473,13 +451,6 @@
     <ClInclude Include="..\..\contrib\fmt\include\fmt\printf.h" />
     <ClInclude Include="..\..\contrib\fmt\include\fmt\ranges.h" />
     <ClInclude Include="..\..\contrib\fmt\include\fmt\safe-duration-cast.h" />
-    <ClInclude Include="..\..\contrib\imgui\imconfig.h" />
-    <ClInclude Include="..\..\contrib\imgui\imgui.h" />
-    <ClInclude Include="..\..\contrib\imgui\imgui_internal.h" />
-    <ClInclude Include="..\..\contrib\imgui\imstb_rectpack.h" />
-    <ClInclude Include="..\..\contrib\imgui\imstb_textedit.h" />
-    <ClInclude Include="..\..\contrib\imgui\imstb_truetype.h" />
-    <ClInclude Include="..\..\contrib\imgui\misc\cpp\imgui_stdlib.h" />
     <ClInclude Include="..\..\contrib\mini-yaml\yaml\Yaml.hpp" />
     <ClInclude Include="..\..\contrib\tinyfsm\include\tinyfsm.hpp" />
     <ClInclude Include="..\common\Common.h" />
@@ -491,9 +462,6 @@
     <ClInclude Include="datatypes\DataTypeList.h" />
     <ClInclude Include="datatypes\MQ2DataTypes.h" />
     <ClInclude Include="CrashHandler.h" />
-    <ClInclude Include="imgui\ImGuiColorTextEdit.h" />
-    <ClInclude Include="imgui\ImGuiTreePanelWindow.h" />
-    <ClInclude Include="imgui\ImGuiUtils.h" />
     <ClInclude Include="MQ2Args.h" />
     <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQ2DeveloperTools.h" />
@@ -517,6 +485,9 @@
   <ItemGroup>
     <ProjectReference Include="..\eqlib\eqlib.vcxproj">
       <Project>{7cc5690f-593c-4938-922d-73a0ac84537a}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\imgui\imgui.vcxproj">
+      <Project>{1777e251-0f50-496a-b8c5-ec7f41a0b186}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

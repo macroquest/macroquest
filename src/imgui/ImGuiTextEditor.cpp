@@ -13,7 +13,8 @@
  */
 
 #include "pch.h"
-#include "ImGuiColorTextEdit.h"
+#include "ImGuiTextEditor.h"
+#include "ImGuiUtils.h"
 
 #include <algorithm>
 #include <chrono>
@@ -1239,6 +1240,7 @@ void TextEditor::Render(const char* aTitle, const ImVec2& aSize, bool aBorder)
 	m_textChanged = false;
 	m_cursorPositionChanged = false;
 
+	ImGui::PushFont(mq::imgui::ConsoleFont);
 	ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::ColorConvertU32ToFloat4(m_palette[(int)PaletteIndex::Background]));
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
 	if (!m_ignoreImGuiChild)
@@ -1264,6 +1266,7 @@ void TextEditor::Render(const char* aTitle, const ImVec2& aSize, bool aBorder)
 
 	ImGui::PopStyleVar();
 	ImGui::PopStyleColor();
+	ImGui::PopFont();
 
 	m_withinRender = false;
 }

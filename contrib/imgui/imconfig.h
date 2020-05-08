@@ -22,11 +22,13 @@
 // Using dear imgui via a shared library is not recommended, because of function call overhead and because we don't guarantee backward nor forward ABI compatibility.
 //#define IMGUI_API __declspec( dllexport )
 //#define IMGUI_API __declspec( dllimport )
-#ifdef MQ2MAIN_EXPORTS
+#ifdef IMGUI_EXPORTS
 #define IMGUI_API __declspec(dllexport)
 #else
 #define IMGUI_API __declspec(dllimport)
 #endif
+
+#define IMGUI_IMPL_API
 
 //---- Don't define obsolete functions/enums/behaviors. Consider enabling from time to time after updating to avoid using soon-to-be obsolete function/names.
 //#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS

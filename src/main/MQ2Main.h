@@ -17,7 +17,7 @@
 #include "pch.h"
 #include "MQ2MainBase.h"
 
-#include "blech\Blech.h"
+#include "blech/Blech.h"
 #include "../eqlib/eqlib.h"
 using namespace eqlib;
 
@@ -66,7 +66,9 @@ using namespace eqlib;
 #include "MQ2Args.h"
 #include "datatypes/MQ2DataTypes.h"
 
+// Link up ImGui
 #include <imgui/imgui.h>
+#pragma comment(lib, "imgui.lib")
 
 namespace mq {
 

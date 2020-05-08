@@ -24,12 +24,6 @@
     <Filter Include="Source Files\Contrib\fmt">
       <UniqueIdentifier>{ae7f2c4e-8df7-487e-96e0-7725daa2921e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Contrib\imgui">
-      <UniqueIdentifier>{bc72df53-5d06-4b30-9bea-5265828ea358}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\contrib\imgui">
-      <UniqueIdentifier>{c9b8caa5-c7a6-4c28-86dc-65f7c261bc1c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\common">
       <UniqueIdentifier>{e98c76df-4e31-446f-a6ab-5ea6d565f09c}</UniqueIdentifier>
     </Filter>
@@ -53,12 +47,6 @@
     </Filter>
     <Filter Include="Header Files\contrib\tinyfsm">
       <UniqueIdentifier>{e72b7f70-7103-411e-9e70-b6cfa6189c5c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\imgui">
-      <UniqueIdentifier>{5717bd2a-3888-4ab0-9165-3864c45a5506}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\imgui">
-      <UniqueIdentifier>{e4836de8-68cf-4990-8218-ebd0dea053d9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -143,23 +131,8 @@
     <ClCompile Include="..\..\contrib\fmt\src\format.cc">
       <Filter>Source Files\Contrib\fmt</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\contrib\imgui\imgui_widgets.cpp">
-      <Filter>Source Files\Contrib\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\imgui\imgui.cpp">
-      <Filter>Source Files\Contrib\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\imgui\imgui_demo.cpp">
-      <Filter>Source Files\Contrib\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\imgui\imgui_draw.cpp">
-      <Filter>Source Files\Contrib\imgui</Filter>
-    </ClCompile>
     <ClCompile Include="MQ2LoginFrontend.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\imgui\misc\cpp\imgui_stdlib.cpp">
-      <Filter>Source Files\Contrib\imgui</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2Type.cpp">
       <Filter>Source Files\datatypes</Filter>
@@ -407,12 +380,6 @@
     <ClCompile Include="MQ2ImGuiAPI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="imgui\ImGuiUtils.cpp">
-      <Filter>Source Files\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui\ImGuiColorTextEdit.cpp">
-      <Filter>Source Files\imgui</Filter>
-    </ClCompile>
     <ClCompile Include="..\common\HotKeys.cpp">
       <Filter>Source Files\common</Filter>
     </ClCompile>
@@ -487,24 +454,6 @@
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\contrib\imgui\imconfig.h">
-      <Filter>Header Files\contrib\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\imgui\imgui.h">
-      <Filter>Header Files\contrib\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\imgui\imgui_internal.h">
-      <Filter>Header Files\contrib\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\imgui\imstb_rectpack.h">
-      <Filter>Header Files\contrib\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\imgui\imstb_textedit.h">
-      <Filter>Header Files\contrib\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\imgui\imstb_truetype.h">
-      <Filter>Header Files\contrib\imgui</Filter>
-    </ClInclude>
     <ClInclude Include="..\common\Common.h">
       <Filter>Header Files\common</Filter>
     </ClInclude>
@@ -516,9 +465,6 @@
     </ClInclude>
     <ClInclude Include="..\..\contrib\Blech\Blech.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\imgui\misc\cpp\imgui_stdlib.h">
-      <Filter>Header Files\contrib\imgui</Filter>
     </ClInclude>
     <ClInclude Include="datatypes\DataTypeList.h">
       <Filter>Header Files\datatypes</Filter>
@@ -547,17 +493,8 @@
     <ClInclude Include="..\..\contrib\tinyfsm\include\tinyfsm.hpp">
       <Filter>Header Files\contrib\tinyfsm</Filter>
     </ClInclude>
-    <ClInclude Include="imgui\ImGuiTreePanelWindow.h">
-      <Filter>Header Files\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui\ImGuiUtils.h">
-      <Filter>Header Files\imgui</Filter>
-    </ClInclude>
     <ClInclude Include="MQ2MainBase.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui\ImGuiColorTextEdit.h">
-      <Filter>Header Files\imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\common\HotKeys.h">
       <Filter>Header Files\common</Filter>

@@ -14,13 +14,9 @@
 
 #pragma once
 
-#include "../MQ2MainBase.h"
+#if !defined(WIN32_LEAN_AND_MEAN)
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#endif
 
-namespace mq {
-namespace imgui {
-
-// Creates a splitter that can be used to resize two panels.
-MQLIB_OBJECT void DrawSplitter(bool split_vertically, float thickness, float* size0, float* size1,
-	float min_size0, float min_size1);
-
-}} // namespace mq::imgui
+// Windows Header Files
+#include <windows.h>

@@ -17,7 +17,7 @@
 #include "MQ2DeveloperTools.h"
 
 #include "imgui/ImGuiTreePanelWindow.h"
-#include "imgui/ImGuiColorTextEdit.h"
+#include "imgui/ImGuiTextEditor.h"
 #include <imgui/imgui_internal.h>
 
 #include <fmt/format.h>
@@ -466,11 +466,13 @@ public:
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 4);
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.00f, 0.00f, 0.00f));
+		ImGui::PushFont(mq::imgui::ConsoleFont);
 
 		bool bTextEdit = ImGui::InputText("##Input", m_inputBuffer, IM_ARRAYSIZE(m_inputBuffer), textFlags,
 			[](ImGuiInputTextCallbackData* data)
 			{ return static_cast<ImGuiConsole*>(data->UserData)->TextEditCallback(data); }, this);
 
+		ImGui::PopFont();
 		ImGui::PopStyleColor();
 
 		if (bTextEdit)

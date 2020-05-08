@@ -14,9 +14,13 @@
 
 #pragma once
 
-#include "imgui/ImGuiUtils.h"
+#include "ImGuiUtils.h"
 
 #include <imgui.h>
+
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace mq {
 namespace imgui {
