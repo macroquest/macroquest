@@ -671,7 +671,7 @@ ImGuiID MyDockSpaceOverViewport(ImGuiViewport* viewport, ImGuiDockNodeFlags dock
 
 	ImGuiWindowFlags host_window_flags = 0;
 	host_window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDocking;
-	host_window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+	host_window_flags |= ImGuiWindowFlags_NoNavFocus;
 	if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
 		host_window_flags |= ImGuiWindowFlags_NoBackground;
 	host_window_flags |= ImGuiWindowFlags_NoInputs;
@@ -708,6 +708,10 @@ void DrawDockSpace()
 		dockspaceFlags |= ImGuiDockNodeFlags_KeepAliveOnly;
 	}
 
+	if (s_setFocus)
+	{
+		ImGui::SetNextWindowFocus();
+	}
 	s_dockspaceId = MyDockSpaceOverViewport(nullptr, dockspaceFlags);
 
 	ImGuiDockNode* node = ImGui::DockBuilderGetNode(s_dockspaceId);
@@ -790,16 +794,28 @@ static void MakeColorGradient(float frequency1, float frequency2, float frequenc
 
 void UpdateOverlayUI()
 {
-	// Initialize dockspace first so other windows can utilize it.+
-	DrawDockSpace();
-
 	if (gbToggleConsoleRequested)
 	{
 		gbToggleConsoleRequested = false;
+
 		s_dockspaceVisible = !s_dockspaceVisible;
 		if (s_dockspaceVisible)
+		{
 			s_setFocus = true;
+
+			// activate main viewport
+			ImGuiViewport* mainViewport = ImGui::GetMainViewport();
+
+			if (ImGui::GetCurrentWindow()->Viewport->ID != mainViewport->ID)
+			{
+				// Activate the main viewport window.
+				::SetActiveWindow((HWND)mainViewport->PlatformHandle);
+			}
+		}
 	}
+
+	// Initialize dockspace first so other windows can utilize it.+
+	DrawDockSpace();
 
 	if (s_dockspaceVisible)
 	{

@@ -1517,6 +1517,7 @@ class ImGuiWindowsDeveloperTool : public ImGuiWindowBase
 	bool m_selectionChanged = false;
 	bool m_picking = false;
 	bool m_selectPicking = false;
+	bool m_pickWindowChanged = false;
 	CXWnd* m_pPickingWnd = nullptr;
 	int m_lastWindowCount = 0;
 
@@ -1580,6 +1581,7 @@ public:
 
 		m_pHoveredWnd = nullptr;
 		m_pPickingWnd = nullptr;
+		m_pickWindowChanged = false;
 		bool clearPicking = true;
 
 		if (m_open)
@@ -1590,7 +1592,7 @@ public:
 			{
 				if (m_picking)
 				{
-					m_pPickingWnd = pWndMgr->LastMouseOver;
+					m_pickWindowChanged = test_and_set(m_pPickingWnd, pWndMgr->LastMouseOver);
 				}
 
 				if (m_picking && m_selectPicking)
@@ -1893,7 +1895,7 @@ public:
 
 		if (m_picking)
 		{
-			if (m_pPickingWnd == pWnd)
+			if (m_pPickingWnd == pWnd && m_pickWindowChanged)
 			{
 				selected = true;
 				selectPicking = true;
