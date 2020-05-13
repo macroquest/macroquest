@@ -26,16 +26,12 @@ using namespace std::chrono_literals;
 
 namespace mq {
 
-static bool gbShowDemoWindow = false;
 static bool gbShowSettingsWindow = false;
-static bool gbShowDebugWindow = false;
-static bool gbShowConsoleWindow = true;
 static int gRenderCallbacksId = 0;
 
 extern bool gbToggleConsoleRequested;
 
 imgui::ImGuiTreePanelWindow gSettingsWindow("MacroQuest Settings");
-imgui::ImGuiTreePanelWindow gDebugWindow("MacroQuest Debug Tools");
 
 static void InitializeMQ2ImGuiAPI();
 static void ShutdownMQ2ImGuiAPI();
@@ -420,10 +416,6 @@ public:
 			if (ImGui::BeginMenu("Windows"))
 			{
 				ImGui::MenuItem("Settings", nullptr, &gbShowSettingsWindow);
-				ImGui::MenuItem("Debug Tools", nullptr, &gbShowDebugWindow);
-
-				ImGui::Separator();
-				ImGui::MenuItem("ImGui Demo", nullptr, &gbShowDemoWindow);
 
 				ImGui::EndMenu();
 			}
@@ -755,16 +747,6 @@ void RemoveSettingsPanel(const char* name)
 	gSettingsWindow.RemovePanel(name);
 }
 
-void AddDebugPanel(const char* name, fPanelDrawFunction drawFunction)
-{
-	gDebugWindow.AddPanel(name, drawFunction);
-}
-
-void RemoveDebugPanel(const char* name)
-{
-	gDebugWindow.RemovePanel(name);
-}
-
 static void DoToggleImGuiOverlay(const char* name, bool down)
 {
 	if (down)
@@ -823,19 +805,9 @@ void UpdateOverlayUI()
 		gImGuiConsole.Draw(&s_dockspaceVisible);
 	}
 
-	if (gbShowDemoWindow)
-	{
-		ImGui::ShowDemoWindow(&gbShowDemoWindow);
-	}
-
 	if (gbShowSettingsWindow)
 	{
 		gSettingsWindow.Draw(&gbShowSettingsWindow);
-	}
-
-	if (gbShowDebugWindow)
-	{
-		gDebugWindow.Draw(&gbShowDebugWindow);
 	}
 }
 
@@ -1014,22 +986,10 @@ static DWORD WriteChatColorImGuiAPI(const char* line, DWORD color, DWORD filter)
 
 static void InitializeMQ2ImGuiAPI()
 {
-	// Init settings
-	gbShowDemoWindow = GetPrivateProfileBool("MacroQuest", "ShowDemoWindow", gbShowDemoWindow, mq::internal_paths::MQini);
-	gbShowDebugWindow = GetPrivateProfileBool("MacroQuest", "ShowDebugWindow", gbShowDebugWindow, mq::internal_paths::MQini);
-
-	if (gbWriteAllConfig)
-	{
-		WritePrivateProfileBool("MacroQuest", "ShowDemoWindow", gbShowDemoWindow, mq::internal_paths::MQini);
-		WritePrivateProfileBool("MacroQuest", "ShowDebugWindow", gbShowDebugWindow, mq::internal_paths::MQini);
-	}
-
 	// Add keybind to toggle imgui
 	AddMQ2KeyBind("TOGGLE_IMGUI_OVERLAY", DoToggleImGuiOverlay);
 
 	AddCascadeMenuItem("Settings", []() { gbShowSettingsWindow = true; }, 2);
-	AddCascadeMenuItem("Debug Window", []() { gbShowDebugWindow = true; });
-	AddCascadeMenuItem("ImGui Demo", []() { gbShowDemoWindow = true; });
 }
 
 static void ShutdownMQ2ImGuiAPI()
@@ -1042,19 +1002,6 @@ static void ShutdownMQ2ImGuiAPI()
 
 static void PulseMQ2ImGuiAPI()
 {
-	static bool bShowDebugWindowLast = gbShowDebugWindow;
-	if (bShowDebugWindowLast != gbShowDebugWindow)
-	{
-		WritePrivateProfileBool("MacroQuest", "ShowDebugWindow", gbShowDebugWindow, mq::internal_paths::MQini);
-		bShowDebugWindowLast = gbShowDebugWindow;
-	}
-
-	static bool bShowDemoWindowLast = gbShowDemoWindow;
-	if (bShowDemoWindowLast != gbShowDemoWindow)
-	{
-		WritePrivateProfileBool("MacroQuest", "ShowDemoWindow", gbShowDemoWindow, mq::internal_paths::MQini);
-		bShowDemoWindowLast = gbShowDemoWindow;
-	}
 }
 
 } // namespace mq

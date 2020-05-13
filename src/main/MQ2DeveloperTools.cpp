@@ -155,7 +155,8 @@ public:
 			m_prev->m_next = m_next;
 	}
 
-	bool IsOpen() const { return m_open; }
+	bool IsOpen() const { return m_open && IsEnabled(); }
+	virtual bool IsEnabled() const { return true; }
 
 	void Show()
 	{
@@ -176,6 +177,9 @@ public:
 
 	virtual void Update()
 	{
+		if (!IsEnabled())
+			return;
+
 		if (m_open)
 		{
 			if (Begin())
@@ -1486,6 +1490,20 @@ public:
 				ImGui::TreePop();
 			}
 
+			// Style
+			if (ColumnTreeNode("List Style", "0x%08x", pWnd->ListWndStyle))
+			{
+				// TODO: Extract constants to eqlib
+				ColumnCheckBoxFlags("Selectable", &pWnd->ListWndStyle,      0x10000);
+				ColumnCheckBoxFlags("Multiselect", &pWnd->ListWndStyle,     0x20000);
+				ColumnCheckBoxFlags("Autosort", &pWnd->ListWndStyle,        0x40000);
+				ColumnCheckBoxFlags("Combobox", &pWnd->ListWndStyle,       0x100000);
+				ColumnCheckBoxFlags("Header", &pWnd->ListWndStyle,         0x200000);
+				ColumnCheckBoxFlags("HeaderSort", &pWnd->ListWndStyle,     0x400000);
+
+				ImGui::TreePop();
+			}
+
 			if (ColumnTreeNode("List Details", ""))
 			{
 				ColumnColor("Header text color", pWnd->HeaderText);
@@ -2028,10 +2046,341 @@ public:
 		m_pSelectedWnd = pWnd;
 	}
 };
+static ImGuiWindowsDeveloperTool s_windowDebugPanel;
 
 #pragma endregion
 
-static ImGuiWindowsDeveloperTool s_windowDebugPanel;
+#pragma region ImGui Demo Container
+
+class ImGuiDemoWindow : public ImGuiWindowBase
+{
+public:
+	ImGuiDemoWindow() : ImGuiWindowBase("ImGuiDemoWindow") {}
+
+	virtual void Update() override
+	{
+		if (m_open)
+		{
+			ImGui::ShowDemoWindow(m_open.get_ptr());
+			m_open.Update();
+		}
+	}
+};
+static ImGuiDemoWindow s_demoWindow;
+
+#pragma endregion
+
+#pragma region Spells Developer Tool
+
+class SpellsDeveloperTool : public ImGuiWindowBase
+{
+public:
+	SpellsDeveloperTool() : ImGuiWindowBase("Spells Developer Tools") {}
+
+	void DoSpellBuffTableHeaders()
+	{
+		ImGui::TableSetupColumn("Index");
+		ImGui::TableSetupColumn("Name");
+		ImGui::TableSetupColumn("ID");
+		ImGui::TableSetupColumn("Level");
+		ImGui::TableSetupColumn("Duration");
+		ImGui::TableSetupColumn("InitialDuration");
+		ImGui::TableSetupColumn("HitCount");
+		ImGui::TableSetupColumn("Type");
+		ImGui::TableSetupColumn("ChargesRemaining");
+		ImGui::TableSetupColumn("ViralTimer");
+		ImGui::TableSetupColumn("Flags");
+		ImGui::TableSetupColumn("Modifier");
+		ImGui::TableSetupColumn("Activatable");
+
+		for (int i = 0; i < NUM_SLOTDATA; ++i)
+		{
+			char temp[20];
+			sprintf_s(temp, "Slot%d", i);
+			ImGui::TableSetupColumn(temp, ImGuiTableColumnFlags_WidthAlwaysAutoResize);
+		}
+
+		ImGui::TableSetupColumn("Y");
+		ImGui::TableSetupColumn("X");
+		ImGui::TableSetupColumn("Z");
+
+		ImGui::TableAutoHeaders();
+	}
+
+	void DoSpellBuffTableRow(int index, SPELLBUFF& buff)
+	{
+		SPELL* spell = GetSpellByID(buff.SpellID);
+
+		ImGui::TableNextRow();
+
+		// Index
+		ImGui::Text("%d", index);
+
+		// Name
+		ImGui::TableNextCell();
+		if (spell)
+		{
+			ImGui::Text("%s", spell->Name);
+		}
+		else
+		{
+			ImGui::Text("null");
+		}
+
+		// ID
+		ImGui::TableNextCell();
+		ImGui::Text("%d", buff.SpellID);
+
+		// Level
+		ImGui::TableNextCell();
+		ImGui::Text("%d", buff.Level);
+
+		// Duration
+		ImGui::TableNextCell();
+		ImGui::Text("%d", buff.Duration);
+
+		// InitialDuration
+		ImGui::TableNextCell();
+		ImGui::Text("%d", buff.InitialDuration);
+
+		// HitCount
+		ImGui::TableNextCell();
+		ImGui::Text("%d", buff.HitCount);
+
+		// Type
+		ImGui::TableNextCell();
+		ImGui::Text("%d", buff.Type);
+
+		// ChargesRemaining
+		ImGui::TableNextCell();
+		ImGui::Text("%d", buff.ChargesRemaining);
+
+		// ViralTimer
+		ImGui::TableNextCell();
+		ImGui::Text("%d", buff.ViralTimer);
+
+		// Flags
+		ImGui::TableNextCell();
+		ImGui::Text("%x", buff.Flags);
+
+		// Modifier
+		ImGui::TableNextCell();
+		ImGui::Text("%.2f", buff.Modifier);
+
+		// Activatable
+		ImGui::TableNextCell();
+		ImGui::Text("%d", buff.Activatable);
+
+		// SlotData[0]
+		for (auto& slotData : buff.SlotData)
+		{
+			ImGui::TableNextCell();
+
+			int Slot = slotData.Slot;
+			int Value = slotData.Value;
+
+			if (Slot != -1)
+				ImGui::Text("%d: %d", Slot, Value);
+		}
+
+		// Y
+		ImGui::TableNextCell();
+		ImGui::Text("%.2f", buff.Y);
+
+		// X
+		ImGui::TableNextCell();
+		ImGui::Text("%.2f", buff.X);
+
+		// Z
+		ImGui::TableNextCell();
+		ImGui::Text("%.2f", buff.Z);
+	}
+
+	int DoSpellAffectTable(const char* name, EQ_Affect* affect, int numAffects, bool showEmpty = false)
+	{
+		ImGuiTableFlags tableFlags = 0
+			| ImGuiTableFlags_SizingPolicyFixedX
+			| ImGuiTableFlags_Scroll
+			| ImGuiTableFlags_ScrollFreezeTopRow
+			| ImGuiTableFlags_ScrollFreeze2Columns
+			| ImGuiTableFlags_NoHostExtendY
+			| ImGuiTableFlags_RowBg
+			| ImGuiTableFlags_Borders
+			| ImGuiTableFlags_Resizable
+			| ImGuiTableFlags_Reorderable;
+
+		int count = 2; // start with space for header and possible scroll bar
+
+		// calculate the size
+		for (int i = 0; i < numAffects; ++i)
+		{
+			EQ_Affect& buff = affect[i];
+			if (buff.SpellID == 0 && !showEmpty)
+				continue;
+
+			count++;
+		}
+		ImVec2 size = ImVec2(0, ImGui::GetTextLineHeightWithSpacing() * count);
+		count = 0;
+
+		if (ImGui::BeginTable(name, 16 + NUM_SLOTDATA, tableFlags, size))
+		{
+			DoSpellBuffTableHeaders();
+
+			for (int i = 0; i < numAffects; ++i)
+			{
+				EQ_Affect& buff = affect[i];
+
+				if (buff.SpellID == 0 && !showEmpty)
+					continue;
+
+				DoSpellBuffTableRow(count + 1, buff);
+				count++;
+			}
+
+			ImGui::EndTable();
+		}
+		return count;
+	}
+
+	virtual bool IsEnabled() const override
+	{
+		PcProfile* pcProfile = GetPcProfile();
+		if (!pcProfile)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	virtual void Draw() override
+	{
+		PcProfile* pcProfile = GetPcProfile();
+		if (!pcProfile)
+		{
+			ImGui::TextColored(ImColor(255, 0, 0), "You must be in game to use this");
+			return;
+		}
+
+		if (ImGui::CollapsingHeader("Spell Buffs"))
+		{
+			int count = DoSpellAffectTable("SpellAffectBuffsTable", pcProfile->Buff, lengthof(pcProfile->Buff));
+			ImGui::Text("%d Buff(s)", count);
+		}
+
+		if (ImGui::CollapsingHeader("Short Buffs"))
+		{
+			int count = DoSpellAffectTable("SpellAffectShortBuffsTable", pcProfile->ShortBuff, lengthof(pcProfile->ShortBuff));
+			ImGui::Text("%d Short Buff(s)", count);
+		}
+
+		if (ImGui::CollapsingHeader("Stacks Test"))
+		{
+			static bool bCheckSpellBuffs = true;
+			ImGui::Checkbox("Check buff stacking against active buffs", &bCheckSpellBuffs);
+
+			if (bCheckSpellBuffs)
+			{
+				ImGui::Text("Enter the name of a spell to test buff stacking:");
+			}
+			else
+			{
+				ImGui::TextWrapped("Enter the name of two spells to test buff stacking. The test will check the second spell against the first.");
+			}
+
+			static char searchText[256] = { 0 };
+			static char searchText2[256] = { 0 };
+
+			if (bCheckSpellBuffs)
+			{
+				ImGui::InputText("Spell Name", searchText2, 256);
+			}
+			else
+			{
+				ImGui::InputText("Spell 1", searchText, 256);
+				ImGui::InputText("Spell 2", searchText2, 256);
+			}
+
+			SPELL* pSpell = nullptr;
+			SPELL* pSpell2 = nullptr;
+
+			if (searchText[0])
+			{
+				pSpell = GetSpellByName(searchText);
+				if (!pSpell)
+				{
+					ImGui::TextColored(ImColor(255, 0, 0), "No spell named '%s' found", searchText);
+				}
+			}
+
+			if (searchText2[0])
+			{
+				pSpell2 = GetSpellByName(searchText2);
+				if (!pSpell2)
+				{
+					ImGui::TextColored(ImColor(255, 0, 0), "No spell named '%s' found", searchText2);
+				}
+			}
+
+			if (!bCheckSpellBuffs && ImGui::Button("Swap"))
+			{
+				char temp[256];
+				strcpy_s(temp, searchText);
+				strcpy_s(searchText, searchText2);
+				strcpy_s(searchText2, temp);
+			}
+
+			if (pSpell2)
+			{
+				SPAWNINFO* pPlayer = pLocalPlayer;
+				PcClient* pPcClient = pPlayer->GetPcClient();
+
+				EQ_Affect affect;
+				affect.Type = 2;
+				EQ_Affect* affectToPass = nullptr;
+				if (pSpell)
+				{
+					affect.SpellID = pSpell->ID;
+					affectToPass = &affect;
+				}
+				int slotIndex = -1;
+
+				EQ_Affect* ret = pPcClient->FindAffectSlot(pSpell2->ID, pPlayer, &slotIndex,
+					true, -1, affectToPass ? affectToPass : nullptr, affectToPass ? 1 : 0, false);
+
+				if (ret)
+				{
+					if (pSpell)
+					{
+						ImGui::TextColored(ImColor(0, 255, 0), "%s stacks with %s", pSpell2->Name, pSpell->Name);
+					}
+					else
+					{
+						ImGui::TextColored(ImColor(0, 255, 0), "%s stacks", pSpell2->Name);
+					}
+				}
+				else
+				{
+					if (pSpell)
+					{
+						ImGui::TextColored(ImColor(255, 0, 0), "%s doesn't stack with %s", pSpell2->Name, pSpell->Name);
+					}
+					else
+					{
+						ImGui::TextColored(ImColor(255, 0, 0), "%s doesn't stack", pSpell2->Name);
+					}
+				}
+			}
+		}
+	}
+};
+static SpellsDeveloperTool s_spellsTool;
+
+#pragma endregion
+
+//============================================================================
+//============================================================================
 
 bool DeveloperTools_HandleClick(int mouseButton, bool clicked)
 {
@@ -2069,6 +2418,14 @@ void DeveloperTools_DrawMenu()
 {
 	if (ImGui::MenuItem("Window Inspector", nullptr, s_windowDebugPanel.IsOpen()))
 		s_windowDebugPanel.Toggle();
+
+	if (ImGui::MenuItem("Spells Inspector", nullptr, s_spellsTool.IsOpen(), s_spellsTool.IsEnabled()))
+		s_spellsTool.Toggle();
+
+	ImGui::Separator();
+
+	if (ImGui::MenuItem("ImGui Demo", nullptr, s_demoWindow.IsOpen()))
+		s_demoWindow.Toggle();
 }
 
 //============================================================================
