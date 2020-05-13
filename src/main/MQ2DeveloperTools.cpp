@@ -16,6 +16,7 @@
 #include "MQ2DeveloperTools.h"
 
 #include "imgui/ImGuiUtils.h"
+#include "imgui/fonts/IconsFontAwesome.h"
 
 #include <algorithm>
 #include <memory>
@@ -1522,9 +1523,6 @@ public:
 
 #pragma endregion
 
-//============================================================================
-//============================================================================
-
 #pragma region Windows Developer Tool
 
 class ImGuiWindowsDeveloperTool : public ImGuiWindowBase
@@ -1622,7 +1620,34 @@ public:
 					m_pPickingWnd = nullptr;
 				}
 
-				if (ImGui::Button("Pick"))
+				bool clicked = false;
+
+				if (m_picking)
+				{
+					ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.13f, 0.6f, 0.6f));
+					ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.13f, 0.7f, 0.7f));
+					ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(0.13f, 0.8f, 0.8f));
+				}
+
+				clicked = ImGui::Button(ICON_MD_LOCATION_SEARCHING);
+
+				if (m_picking)
+				{
+					ImGui::PopStyleColor(3);
+				}
+
+				if (ImGui::IsItemHovered())
+				{
+					if (!m_picking)
+					{
+						ImGui::SetTooltip("Click to start picking\n"
+							"\n"
+							"While picking is enabled, hover over UI components to highlight and identify them in the tree.\n"
+							"Click a UI component to select it in the tree.");
+					}
+				}
+
+				if (clicked)
 				{
 					m_picking = !m_picking;
 

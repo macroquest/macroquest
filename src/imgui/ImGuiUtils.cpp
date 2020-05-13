@@ -15,10 +15,7 @@
 #include "pch.h"
 #include "ImGuiUtils.h"
 
-#include "fonts/font_roboto_regular_ttf.h"
-#include "fonts/font_fontawesome_ttf.h"
-#include "fonts/font_materialicons_ttf.h"
-
+#include "fonts/embedded_fonts.h"
 #include "fonts/IconsFontAwesome.h"
 #include "fonts/IconsMaterialDesign.h"
 
@@ -36,48 +33,92 @@ ImFont* ConsoleFont = nullptr;
 ImFont* LargeIconFont = nullptr;
 ImFont* LargeTextFont = nullptr;
 
-void ConfigureFonts()
+void ConfigureDefaultFont()
 {
 	ImGuiIO& io = ImGui::GetIO();
 
 	// font: Roboto Regular @ 16px
-	DefaultFont = io.Fonts->AddFontFromMemoryCompressedTTF(GetRobotoRegularCompressedData(),
-		GetRobotoRegularCompressedSize(), 16.0);
+	ImFontConfig rrConfig;
+	strcpy_s(rrConfig.Name, "RobotoRegular");
+	rrConfig.OversampleH = rrConfig.OversampleV = 3;
+	DefaultFont = io.Fonts->AddFontFromMemoryCompressedTTF(GetRobotoRegularCompressedData(), GetRobotoRegularCompressedSize(), 16.0, &rrConfig);
 
 	// font: FontAwesome
 	ImFontConfig faConfig;
+	faConfig.DstFont = DefaultFont;
 	faConfig.MergeMode = true;
-	faConfig.GlyphMinAdvanceX = 14.0f;
+	strcpy_s(faConfig.Name, "FontAwesome");
+	faConfig.GlyphMinAdvanceX = 13.0f;
+	faConfig.GlyphOffset.x = 0.0f;
 	static const ImWchar icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
-	io.Fonts->AddFontFromMemoryCompressedTTF(GetFontAwesomeCompressedData(),
-		GetFontAwesomeCompressedSize(), 13.0f, &faConfig, icon_ranges);
+	io.Fonts->AddFontFromMemoryCompressedTTF(GetFontAwesomeCompressedData(), GetFontAwesomeCompressedSize(), 14.0f, &faConfig, icon_ranges);
 
 	// font: Material Design Icons
 	ImFontConfig mdConfig;
+	mdConfig.DstFont = DefaultFont;
 	mdConfig.MergeMode = true;
-	mdConfig.GlyphMinAdvanceX = 13.0f;
+	mdConfig.GlyphMinAdvanceX = 16.0f;
+	mdConfig.GlyphOffset.y = 3.f;
+	strcpy_s(mdConfig.Name, "MaterialDesignIcons");
 	static const ImWchar md_icon_ranges[] = { ICON_MIN_MD, ICON_MAX_MD, 0 };
-	io.Fonts->AddFontFromMemoryCompressedTTF(GetMaterialIconsCompressedData(),
-		GetMaterialIconsCompressedSize(), 13.0f, &mdConfig, md_icon_ranges);
+	io.Fonts->AddFontFromMemoryCompressedTTF(GetMaterialIconsCompressedData(), GetMaterialIconsCompressedSize(), 16.0f, &mdConfig, md_icon_ranges);
 
-	// font: Material Design Icons (Large)
-	ImFontConfig mdConfig2;
-	mdConfig2.GlyphMinAdvanceX = 16.0f;
-	LargeIconFont = io.Fonts->AddFontFromMemoryCompressedTTF(GetMaterialIconsCompressedData(),
-		GetMaterialIconsCompressedSize(), 16.0f, &mdConfig2, md_icon_ranges);
+	// console font: Lucida Console @ 13px
+	ImFontConfig consoleFontConfig;
+	consoleFontConfig.OversampleH = consoleFontConfig.OversampleV = 3;
+	ConsoleFont = io.Fonts->AddFontFromFileTTF(R"(c:\windows\fonts\lucon.ttf)", 13.0f, &consoleFontConfig);
 
-	mdConfig2.DstFont = LargeIconFont;
-	mdConfig2.MergeMode = true;
+	// TODO: Provide some options
+#if 0
+	if (!ConsoleFont)
+	{
+		// console font: Roboto Mono Regular @ 16px
+		ImFontConfig rmConfig;
+		rmConfig.OversampleH = rmConfig.OversampleV = 3;
+		strcpy_s(rmConfig.Name, "RobotoMono Regular");
+		ConsoleFont = io.Fonts->AddFontFromMemoryCompressedTTF(GetRobotoMonoRegularCompressedData(), GetRobotoMonoRegularCompressedSize(), 16.0, &rmConfig);
+	}
 
-	io.Fonts->AddFontFromMemoryCompressedTTF(GetRobotoRegularCompressedData(),
-		GetRobotoRegularCompressedSize(), 16.0, &mdConfig2);
+	// console font: Proggy Clean @ 13px
+	//ConsoleFont = io.Fonts->AddFontDefault();
+#endif
+}
 
-	// add default proggy clean font as a secondary font
-	ConsoleFont = io.Fonts->AddFontDefault();
+void ConfigureLargeFont()
+{
+	ImGuiIO& io = ImGui::GetIO();
 
-	// a large text font for headings.
-	LargeTextFont = io.Fonts->AddFontFromMemoryCompressedTTF(GetRobotoRegularCompressedData(),
-		GetRobotoRegularCompressedSize(), 22);
+	// font: Roboto Regular @ 22px
+	ImFontConfig rrConfig;
+	strcpy_s(rrConfig.Name, "RobotoRegular (Large)");
+	LargeTextFont = io.Fonts->AddFontFromMemoryCompressedTTF(GetRobotoRegularCompressedData(), GetRobotoRegularCompressedSize(), 22.0, &rrConfig);
+
+	// font: FontAwesome @ 22px
+	ImFontConfig faConfig;
+	faConfig.DstFont = LargeTextFont;
+	faConfig.MergeMode = true;
+	strcpy_s(faConfig.Name, "FontAwesome (Large)");
+	faConfig.GlyphOffset.x = 1.0f;
+	static const ImWchar icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+	io.Fonts->AddFontFromMemoryCompressedTTF(GetFontAwesomeCompressedData(), GetFontAwesomeCompressedSize(), 20.0f, &faConfig, icon_ranges);
+
+	// font: Material Design Icons @ 22px
+	ImFontConfig mdConfig;
+	mdConfig.DstFont = LargeTextFont;
+	mdConfig.MergeMode = true;
+	mdConfig.GlyphMinAdvanceX = 22.0f;
+	mdConfig.GlyphOffset.y = 4.f;
+	strcpy_s(mdConfig.Name, "MaterialDesignIcons (Large)");
+	static const ImWchar md_icon_ranges[] = { ICON_MIN_MD, ICON_MAX_MD, 0 };
+	io.Fonts->AddFontFromMemoryCompressedTTF(GetMaterialIconsCompressedData(), GetMaterialIconsCompressedSize(), 22.0f, &mdConfig, md_icon_ranges);
+
+	LargeIconFont = LargeTextFont;
+}
+
+void ConfigureFonts()
+{
+	ConfigureDefaultFont();
+	ConfigureLargeFont();
 }
 
 void ConfigureStyle()
