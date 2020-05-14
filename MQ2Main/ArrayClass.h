@@ -1025,12 +1025,12 @@ public:
 	/*0x04*/ int DynSize;
 	/*0x08*/ int MaxDynSize;
 	/*0x0c*/ int Count;
-	/*0x10*/
-	union
+	/*0x10*/ union
 	{
 		Node *Table[TheSize];
 		Node **DynTable;
 	};
+	/*0x14*/
 };
 
 template <typename T, int _Size, int _Cnt = -1>

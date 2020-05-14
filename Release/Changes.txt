@@ -1,3 +1,21 @@
+May 14 2020
+- Updated for TEST
+- Filled in th CGuild class
+-
+Apr 30 2020
+- Me.Invis now takes an optional index or a name to return invis vs undead and animals
+  Example 1: /echo ${Me.Invis} just return the normal one like before, are u invis of any kind.
+  Example 2: /echo ${Me.Invis[ANY]} or just ${Me.Invis[0]} returns true if you are invis of any kind, same as just doing ${Me.Invis}
+  Example 3: /echo ${Me.Invis[NORMAL]} or just ${Me.Invis[1]} returns true if you are normal invis.
+  Example 4: /echo ${Me.Invis[UNDEAD]} or just ${Me.Invis[2]} returns true if you are invis vs undead
+  Example 5: /echo ${Me.Invis[ANIMAL]} or just ${Me.Invis[3]} returns true if you are invis vs animal
+  Example 6: /echo ${Me.Invis[SOS]} or just ${Me.Invis[4]} returns true IF you are a ROG AND in fact hidden AND have a skill of at least 100 in HIDE AND have the AA for SoS
+-
+Apr 29 2020
+- Added ms to /delay
+  Usage: /delay 1500ms
+  will delay 1.5 seconds...
+-
 Apr 29 2020
 - .CachedBuff now accepts = for exact match and if not specified it will do partial match
   Example 1: Lets say you have United Surety Rk. II on.

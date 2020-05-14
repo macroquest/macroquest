@@ -1470,8 +1470,12 @@ PCHAR GetGuildByID(DWORD GuildID)
 	{
 		if (GuildID == 0 || GuildID == -1)
 			return 0;
-
+	#if defined(TEST)
+		ServerGuildName sa = { 0 };
+		if (PCHAR thename = pGuild->GetGuildName(GuildID,sa,0,1)) {
+	#else
 		if (PCHAR thename = pGuild->GetGuildName(GuildID)) {
+	#endif
 			if (!_stricmp(thename, "Unknown Guild"))
 				return 0;
 			return thename;
@@ -3256,6 +3260,38 @@ LONG GetSpellCalc(PSPELL pSpell, int index)
 }
 void FIllSlotData(EQ_Affect* pAffect, PSPELL pSpell)
 {
+#if defined(ROF2EMU) || defined(UFEMU)
+	LONG slots = GetSpellNumEffects(pSpell);
+	PSPELLCALCINFO pCalcInfo = 0;
+	for (int j = 0; j < slots; ++j)
+	{
+		int slot = pSpell->Attrib[j];
+		//pCalcInfo = ((EQ_Spell*)pSpell)->GetSpellAffectBySlot(slot);
+
+	}
+	if (ClientSpellManager *pSpellM = (ClientSpellManager *)pSpellMgr)
+	{
+		Sleep(0);
+		return;
+		for (LONG sd = 0; sd < NUM_SLOTDATA; sd++)
+		{
+			pAffect->SlotData[sd].Slot = -1;
+			pAffect->SlotData[sd].Value = 0;
+			if (sd < slots)
+			{
+				/*if (pCalcInfo = pSpellM->GetSpellAffect(sd))
+				{
+					if (pCalcInfo->Max)
+					{
+						pAffect->SlotData[sd].Slot = pCalcInfo->Slot;
+						pAffect->SlotData[sd].Value = pCalcInfo->Max;
+					}
+				}*/
+				pCalcInfo = ((EQ_Spell*)pSpell)->GetSpellAffectBySlot(sd);
+			}
+		}
+	}
+#else
 	LONG slots = GetSpellNumEffects(pSpell);
 	PSPELLCALCINFO pCalcInfo = 0;
 	if (ClientSpellManager *pSpellM = (ClientSpellManager *)pSpellMgr)
@@ -3276,6 +3312,7 @@ void FIllSlotData(EQ_Affect* pAffect, PSPELL pSpell)
 			}
 		}
 	}
+#endif
 }
 PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, LONG level)
 {
@@ -6445,12 +6482,14 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		if (pSearchSpawn->bExactName && _stricmp(CleanupName(szName, sizeof(szName), FALSE, !gbExactSearchCleanNames), pSearchSpawn->szName))
 			return FALSE;
 	}
+#if !defined(ROF2EMU) && !defined(UFEMU)
 	if (pSearchSpawn->bSeeSOS && pSpawn->SeeInvis[0] != 2)
 		return FALSE;
 	if (pSearchSpawn->bSeeInvis && pSpawn->SeeInvis[0] != 2 && pSpawn->SeeInvis[0] != 1)
 		return FALSE;
 	if (pSearchSpawn->bSeeIVU && pSpawn->SeeInvis[0] != 3000)
 		return FALSE;
+#endif
 	return TRUE;
 }
 #endif

@@ -1463,8 +1463,75 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type = pBoolType;
 		return true;
 	case Invis:
-		Dest.DWord = pSpawn->HideMode;
+		Dest.DWord = 0;
 		Dest.Type = pBoolType;
+		if (ISINDEX() && pCharData1)
+		{
+			if (ISNUMBER())
+			{
+				int type = GETNUMBER();
+				switch (type)
+				{
+				case 0://any
+					Dest.DWord = pSpawn->HideMode;
+					break;
+				case 1://regular/normal
+					Dest.DWord = ((CharacterZoneClient*)pCharData1)->CalculateInvisLevel(eAll);
+					break;
+				case 2://undead
+					Dest.DWord = ((CharacterZoneClient*)pCharData1)->CalculateInvisLevel(eUndead);
+					break;
+				case 3://animal
+					Dest.DWord = ((CharacterZoneClient*)pCharData1)->CalculateInvisLevel(eAnimal);
+					break;
+				case 4://sos
+					if (PCHARINFO2 pChar2 = GetCharInfo2())
+					{
+						int skill = pCharData1->GetAdjustedSkill(29);//HIDE
+						int hide = pChar2->bHide;
+						if ((hide + pCharData1->TotalEffect(SPA_SHROUD_OF_STEALTH) >= 2) && skill>=100)
+						{
+							Dest.DWord = 1;
+						}
+					}
+					break;
+				};
+			}
+			else {
+				if (!_stricmp(GETFIRST(), "ANY"))
+				{
+					Dest.DWord = pSpawn->HideMode;
+				}
+				else if (!_stricmp(GETFIRST(), "NORMAL"))
+				{
+					Dest.DWord = ((CharacterZoneClient*)pCharData1)->CalculateInvisLevel(eAll);
+				}
+				else if (!_stricmp(GETFIRST(), "UNDEAD"))
+				{
+					Dest.DWord = ((CharacterZoneClient*)pCharData1)->CalculateInvisLevel(eUndead);
+				}
+				else if (!_stricmp(GETFIRST(), "ANIMAL"))
+				{
+					Dest.DWord = ((CharacterZoneClient*)pCharData1)->CalculateInvisLevel(eAnimal);
+				}
+				else if (!_stricmp(GETFIRST(), "SOS"))
+				{
+					if (PCHARINFO2 pChar2 = GetCharInfo2())
+					{
+						int skill = pCharData1->GetAdjustedSkill(29);//HIDE
+						int hide = pChar2->bHide;
+						if ((hide + pCharData1->TotalEffect(SPA_SHROUD_OF_STEALTH) >= 2) && skill>=100)
+						{
+							Dest.DWord = 1;
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			Dest.DWord = pSpawn->HideMode;
+		}
 		return true;
 	case Height:
 		Dest.Float = pSpawn->AvatarHeight;
@@ -7064,7 +7131,9 @@ bool MQ2SpellType::GETMEMBER()
 							FIllSlotData(&pAffects[j], pBuff);
 								
 							pAffects[j].Duration = k->second.duration;
+							#if !defined(ROF2EMU) && !defined(UFEMU)
 							pAffects[j].InitialDuration = k->second.duration;
+							#endif
 							pAffects[j].Type = 2;
 							pAffects[j].SpellID = pBuff->ID;
 							pAffects[j].Activatable = 0;// pBuff->Activated;
@@ -7110,11 +7179,11 @@ bool MQ2SpellType::GETMEMBER()
 									FIllSlotData(&pAffects[j], pBuff);
 								
 									pAffects[j].Duration = k->second.duration;
-									pAffects[j].InitialDuration = k->second.duration;
 									pAffects[j].Type = 2;
 									pAffects[j].SpellID = pBuff->ID;
 									pAffects[j].Activatable = 0;// pBuff->Activated;
 #if !defined(ROF2EMU) && !defined(UFEMU)
+									pAffects[j].InitialDuration = k->second.duration;
 									pAffects[j].CasterGuid = pMe->Guid;
 #else
 									pAffects[j].CasterID = ((PSPAWNINFO)pLocalPlayer)->SpawnID;

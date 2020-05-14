@@ -3330,16 +3330,203 @@ EQLIB_OBJECT void CGroupWnd::UpdateDisplay(int Index, PSPAWNINFO groupmember, CO
 // private
 EQLIB_OBJECT void CGroupWnd::Init(void);
 };
-
-class CGuild
+class GuildMember
 {
 public:
+EQLIB_OBJECT GuildMember::GuildMember(void);
+};
+struct GuildNameEntry
+{
+/*0x00*/ EqGuid Guild_Guid;
+/*0x08*/ CHAR Name[0x40];
+/*0x48*/ EqGuid Guild_Guid_Copy;
+/*0x50*/ GuildNameEntry *pNext;
+/*0x54*/ GuildNameEntry *pPrev;
+/*0x58*/ GuildNameEntry *pNode1;
+/*0x5C*/ GuildNameEntry *pANode2;
+/*0x60*/ 
+};
+
+struct GuildBanner
+{
+/*0x00*/ int 		Type;
+/*0x04*/ int 		PrimaryFlagPattern;
+/*0x08*/ int 		SecondaryFlagPattern;
+/*0x0C*/ ARGBCOLOR	PrimaryTint;
+/*0x10*/ ARGBCOLOR	SecondaryTint;
+/*0x14*/ int		TimeRemaining;
+/*0x18*/ int		ZoneID;
+/*0x1c*/ CVector3	Loc;
+/*0x28*/ int		Heading;
+/*0x2C*/ int		GracePeriodRemaining;
+/*0x30*/ int		ModificationCount;
+/*0x34*/ int		TeleportPlantRestriction;
+/*0x38*/ __time32_t	ModifyDate;
+/*0x3c*/ 
+};
+enum GuildRankType
+{
+	GRT_None,
+	GRT_Leader,
+	GRT_SeniorOfficer,
+	GRT_Officer,
+	GRT_SeniorMember,
+	GRT_Member,
+	GRT_JuniorMember,
+	GRT_Initiate,
+	GRT_Recruit,
+};
+
+class GuildRank
+{
+public:
+	GuildRankType  Type;
+	PCXSTR Name;
+};
+template<typename AccessGroupType>
+class AccessGroupList
+{
+public:
+};
+template<typename Group>
+class GuildRankPermissions : public AccessGroupList<Group>
+{
+public:
+
+};
+
+enum GuildPermissionType
+{
+	GPT_None,
+	GPT_BannerChange,
+	GPT_BannerPlant,
+	GPT_BannerRemove,
+	GPT_DisplayGuildName,
+	GPT_ChangePermissions,
+	GPT_ChangeRankNames,					
+	GPT_InviteMember,
+	GPT_PromoteMember,
+	GPT_DemoteMember,
+	GPT_RemoveMember,
+	GPT_EditRecruitingSettings,
+	GPT_EditPublicNotes,					
+	GPT_BankDeposit,
+	GPT_BankWithdraw,
+	GPT_BankView,
+	GPT_BankPromote,
+	GPT_BankChangeItemPermission,
+	GPT_ChangeMOTD,
+	GPT_SeeGuildChat,
+	GPT_SpeakGuildChat,
+	GPT_SendGuildEMail,
+	GPT_TributeChangeSettingsForOthers,
+	GPT_TributeChangeActiveBenefit,
+	GPT_TrophyTributeChangeSettingsForOthers,
+	GPT_TrophyTributeChangeActiveBenefit,
+	GPT_ChangeAltFlagForOthers,
+	GPT_GuildPlotBuy,
+	GPT_GuildPlotSell,
+	GPT_ModifyTrophies,
+	GPT_DemoteSelf,
+};
+template<int NumBits> class BitField
+{
+public:
+	enum {
+		ElementBits = sizeof(UINT) * 8
+	};
+	enum {
+		ElementCount = (NumBits / ElementBits) + 1
+	};
+	UINT Bits[ElementCount];
+};
+template<typename Groups, int NumGroups, int EveryoneGroup, typename Caps, int Count>
+class AccessGroup
+{
+public:
+	Groups Grp;
+	BitField<Count> Capabilities;
+};
+
+class GuildBase
+{
+public:
+/*0x000*/ int				vfTable;
+/*0x004*/ int				Unknown0x004;
+/*0x008*/ int				NumGuildMembers;
+/*0x00C*/ GuildMember		*pFirstGuildMember;
+/*0x010*/ EqGuid			GuildGuid;
+/*0x018*/ CHAR				Name[0x40];
+/*0x058*/ int				CreationDate;
+/*0x05c*/ int				Active;
+/*0x060*/ __int64			GuildID;
+/*0x068*/ bool				bHasChanged;
+/*0x069*/ CHAR				GuildMOTD[0x200];
+/*0x269*/ BYTE				Filler0x269[3];
+/*0x26C*/ IString2			MOTD_Author;
+/*0x27C*/ int				TributePoints;
+/*0x280*/ BenefitSelection	ActiveTributeBenefits[2];
+/*0x290*/ bool				bTributeBenefitsActive;
+/*0x291*/ BYTE				Filler0x291[3];
+/*0x294*/ BenefitSelection	ActiveTrophyTributeBenefits[4];
+/*0x2B4*/ bool				bTrophyTributeBenefitsActive;
+/*0x2B5*/ bool				bRenameFlag;//not sure
+/*0x2B6*/ BYTE				Filler0x2B6[2];
+/*0x2B8*/ GuildBanner		Banner;
+/*0x2f4*/ TSafeArrayStatic<unsigned char, 0x320> BitFlags;
+/*0x614*/ TSafeArrayStatic<unsigned char, 0x320> PrevBitFlags;
+/*0x934*/ CHAR				GuildURL[0x200];
+/*0xB34*/ CHAR				GuildChannel[0x80];
+/*0xBB4*/ ArrayClass_RO<GuildRank*> Ranks;
+/*0xBC4*/ GuildRankPermissions<AccessGroup<GuildRankType, 9, 0, GuildPermissionType, 31>>* RankPermissions;
+/*0xBC8*/ 
+};
+typedef struct _ServerGuildName
+{
+/*0x00*/ int Unknown0x00;
+/*0x04*/ int Unknown0x04;
+/*0x08*/ int Unknown0x08;
+/*0x0c*/ int Unknown0x0c;
+/*0x10*/ int Unknown0x10;
+/*0x14*/ int Unknown0x14;
+/*0x18*/ int Unknown0x18;
+/*0x1c*/ int Unknown0x1c;
+/*0x20*/ int Unknown0x20;
+/*0x24*/ int Unknown0x24;
+/*0x28*/ 
+} ServerGuildName, *PServerGuildName;
+class CGuild : public GuildBase
+{
+public:
+/*0xBC8*/ __time32_t		LastGuildNameRequest;
+/*0xBCC*/ HashListSet<GuildNameEntry*, 0xFA> GuildNamesTable;//this is not correct container for sure, todo: figure out what is
+//0xFC4 - 0xBCC = 0x3F8 and we learn from 4B0A5C in Apr 13 2020 exe that is the size... push 3F8h
+#if defined(TEST)
+/*0xFC4*/ int				Unknown0xFC4[3];
+#endif
+/*0xFC4*/ int				OnlineCount;//definately correct see 4AF50F in apr 13 2020 - eqmule
+/*0xFC8*/ bool				bOnlineOutofSync;
+/*0xFCC*/ int				TributeTimer;
+/*0xFD0*/ int				TributeCost;
+/*0xFD4*/ bool				bTributeCostDirty;
+/*0xFD5*/ bool				bTributeActive;
+/*0xFD6*/ bool				bTributeBenefitsLocked;
+/*0xFD8*/ __time32_t		TrophyTributeTimer;
+/*0xFDC*/ int				TrophyTributeCost;
+/*0xFE0*/ bool				bTrophyTributeCostOutofSync;
+/*0xFE1*/ bool				bTrophyTributeActive;
+/*0xFE2*/ bool				bTrophyBenefitsLocked;
+/*0xFE4*/
 EQLIB_OBJECT CGuild::CGuild(void);
 EQLIB_OBJECT bool CGuild::ValidGuildName(int);
 EQLIB_OBJECT char * CGuild::GetGuildMotd(void);
 EQLIB_OBJECT char * CGuild::GetGuildMotdAuthor(void);
 #if !defined(ROF2EMU) && !defined(UFEMU)
+#if defined(TEST)
+EQLIB_OBJECT char * CGuild::GetGuildName(__int64, ServerGuildName, int, bool);
+#else
 EQLIB_OBJECT char * CGuild::GetGuildName(__int64);
+#endif
 EQLIB_OBJECT __int64 CGuild::GetGuildIndex(char *);
 #else
 EQLIB_OBJECT char * CGuild::GetGuildName(DWORD);
@@ -4148,7 +4335,7 @@ struct TreeData
 };
 struct TreeData_RO
 {
-/*0x00*/ int		Depth;
+/*0x00*/ int	Depth;
 /*0x04*/ bool	bIsExpandable;
 /*0x08*/
 };
@@ -4166,18 +4353,31 @@ struct SListWndLine
 	TreeData Treedata;
 	CHAR	TooltipText[256];
 	bool	bVisible;
+	#if !defined(ROF2EMU) && !defined(UFEMU)
+	int Filler0x12C;
+	#endif
 	SListWndLine() : Data(0), Height(-1), bSelected(false), bEnabled(true), bVisible(true) {
 	}
 };
+#if defined(ROF2EMU) || defined(UFEMU)
+struct SListWndLine_RO
+{
+/*0x000*/ ArrayClass_RO<SListWndCell> Cells;
+/*0x010*/ UINT	Data;
+/*0x014*/ int	Height;
+/*0x018*/ bool	bSelected;
+/*0x019*/ bool	bEnabled;
+/*0x01c*/ TreeData_RO Treedata;
+/*0x024*/ CHAR	TooltipText[0x100];
+/*0x124*/ bool	bVisible;
+/*0x128*/
+};
+#else
 struct SListWndLine_RO
 {
 /*0x00*/ ArrayClass_RO<SListWndCell_RO> Cells;
-#if defined(ROF2EMU) || defined(UFEMU)
-/*0x10*/ UINT	Data;
-#else
-/*0x10*/ unsigned __int64	Data;
-#endif
-/*0x18*/ int		Height;
+/*0x10*/ unsigned __int64 Data;
+/*0x18*/ int	Height;
 /*0x1c*/ bool	bSelected;
 /*0x1d*/ bool	bEnabled;
 /*0x20*/ TreeData_RO Treedata;
@@ -4186,6 +4386,7 @@ struct SListWndLine_RO
 /*0x12C*/ int Filler0x12C;
 /*0x130*/
 };
+#endif
 struct SListWndColumn
 {
 /*0x00*/	int	Width;
@@ -7680,10 +7881,7 @@ EQLIB_OBJECT unsigned long * engineInterface::ChangeDag(struct T3D_tagWORLD *,st
 EQLIB_OBJECT engineInterface::engineInterface(void);
 EQLIB_OBJECT static class engineInterface * engineInterface::mSelf;
 };
-typedef struct _SlotData {
-	LONG Slot;
-	DWORD Value;
-} SlotData;
+
 class EQ_Affect
 {
 public:
@@ -7722,7 +7920,7 @@ EQLIB_OBJECT int EQ_Affect::GetAffectData(int)const;
 /*0x1c*/	FLOAT X;
 /*0x20*/	FLOAT Z;
 /*0x24*/	UINT Flags;//twincast
-/*0x28*/	SlotData Data[NUM_SLOTDATA];
+/*0x28*/	SlotData SlotData[NUM_SLOTDATA];
 /*0x58*/
 #endif
 };
@@ -9130,83 +9328,75 @@ class CharacterZoneClient : public SomeClass, virtual public CharacterBase
 {
 public:
 union {
-/*0x2424*/ PlayerClient *me;//just here for comparing the 2, todo: fix
-/*0x2424*/ PSPAWNINFO me2;
+/*0x2444*/ PlayerClient *me;//just here for comparing the 2, todo: fix
+/*0x2444*/ PSPAWNINFO me2;
 };
-/*0x242c*/ bool		bUpdateStuff;
-/*0x242d*/ bool     bZoningStatProcessing;
-/*0x2430*/ DWORD    ArmorClassBonus;//vtable2+10
-/*0x2434*/ DWORD    CurrWeight;//vtable2+14
-/*0x2438*/ int		LastHitPointSendPercent;
-/*0x243c*/ int		LastManaPointSendPercent;
-/*0x2440*/ int		LastEndurancePointSendPercent;
-/*0x2444*/ DWORD    HPBonus;//vtable2+24
-/*0x2448*/ DWORD    ManaBonus;//vtable2+28
-/*0x244c*/ DWORD    EnduranceBonus;//vtable2+2c
-/*0x2450*/ BYTE     Unknown0x2450[0x4];
-/*0x2454*/ DWORD    CombatEffectsBonus;//vtable2+34 Combat Effects in UI
-/*0x2458*/ DWORD    ShieldingBonus;//vtable2+38 Melee Shielding in UI
-/*0x245c*/ DWORD    SpellShieldBonus;//vtable2+3c Spell Shielding in UI
-/*0x2460*/ DWORD    AvoidanceBonus;//vtable2+40 Avoidance in UI
-/*0x2464*/ DWORD    AccuracyBonus;//vtable2+44 Accuracy in UI
-/*0x2468*/ DWORD    StunResistBonus;//vtable2+48 Stun Resist in UI
-/*0x246c*/ DWORD    StrikeThroughBonus;//vtable2+4c Strike Through in UI
-/*0x2470*/ DWORD    DoTShieldBonus;//vtable2+50 Dot Shielding in UI
-/*0x2474*/ DWORD    DamageShieldMitigationBonus;//vtable2+54 Damage Shield Mitig in UI
-/*0x2478*/ DWORD    DamageShieldBonus;//vtable2+58 Damage Shielding in UI
-/*0x247c*/ TSafeArrayStatic<int, 9> ItemSkillMinDamageMod;//size 0x24
-/*0x24a0*/ TSafeArrayStatic<int, 9> SkillMinDamageModBonus;//size 0x24
-/*0x24c4*/ DWORD    HeroicSTRBonus;//vtable2+a4
-/*0x24c8*/ DWORD    HeroicINTBonus;//vtable2+a8
-/*0x24cc*/ DWORD    HeroicWISBonus;//vtable2+ac
-/*0x24d0*/ DWORD    HeroicAGIBonus;//vtable2+b0
-/*0x24d4*/ DWORD    HeroicDEXBonus;//vtable2+b4
-/*0x24d8*/ DWORD    HeroicSTABonus;//vtable2+b8
-/*0x24dc*/ DWORD    HeroicCHABonus;//vtable2+bc
-/*0x24e0*/ DWORD    HeroicSvMagicBonus;//vtable2+c0
-/*0x24e4*/ DWORD    HeroicSvFireBonus;//vtable2+c4
-/*0x24e8*/ DWORD    HeroicSvColdBonus;//vtable2+c8
-/*0x24ec*/ DWORD    HeroicSvDiseaseBonus;//vtable2+cc
-/*0x24f0*/ DWORD    HeroicSvPoisonBonus;//vtable2+d0
-/*0x24f4*/ DWORD    HeroicSvCorruptionBonus;//vtable2+d4
-/*0x24f8*/ DWORD    HealAmountBonus;//vtable2+d8
-/*0x24fc*/ DWORD    SpellDamageBonus;//vtable2+dc
-/*0x2500*/ int		ItemHealAmountDotMod;
-/*0x2504*/ int		ItemSpellDamageDotMod;
-/*0x2508*/ DWORD    ClairvoyanceBonus;//vtable2+e8
-/*0x250c*/ DWORD    AttackBonus;//vtable2+ec
-/*0x2510*/ DWORD    HPRegenBonus;//vtable2+f0
-/*0x2514*/ DWORD    ManaRegenBonus;//vtable2+f4
-/*0x2518*/ DWORD    EnduranceRegenBonus;//vtable2+f8
-/*0x251c*/ DWORD    AttackSpeed;//vtable2+fc
-/*0x2520*/ //int	  ItemPotionBelt;
-/*0x2520*/ int		NoBuffItemHitpointAdjustment;
-/*0x2524*/ int		NoBuffItemManaAdjustment;
-/*0x2528*/ int		NoBuffItemEnduranceAdjustment;
-/*0x252c*/ int		NoBuffItemBaseChanceProc;
-/*0x2530*/ int		NoBuffItemMinDamageMod;
-/*0x2534*/ int		NoBuffItemInnateSpellRune;
-/*0x2538*/ int		NoBuffItemAvoidance;
-/*0x253c*/ int		NoBuffItemToHit;
-/*0x2540*/ int		NoBuffItemResistStunChance;
-/*0x2544*/ int		NoBuffItemDotShieldingEffect;
-/*0x2548*/ int		NoBuffItemStrikeThroughChance;
-/*0x254c*/ int		NoBuffItemAttack;
-/*0x2550*/ int		NoBuffItemHitPointRegen;
-/*0x2554*/ int		NoBuffItemManaRegen;
-/*0x2558*/ int		NoBuffItemEnduranceRegen;
-/*0x255c*/ int		NoBuffItemDamageShield;
-/*0x2560*/ int		NoBuffItemDamageShieldMitigation;
-/*0x2564*/ int		NoBuffItemHaste;
-/*0x256c*/ //int	  NoBuffItemPotionBelt;
-/*0x2568*/ TSafeArrayStatic<int, 9> NoBuffItemSkillMinDamageMod;//size 0x24
-/*0x258c*/ bool		bOutputHpRegen;
-/*0x258d*/ bool		bInvulnerable;
-/*0x258e*/ bool		bOnAVehicle;
-/*0x2590*/ EQData::SpellCache       spellCache;//size 0x58
-/*0x25e8*/ HashListSet<int, 0x80>   DoomEffectsBySlot;//size 0x10 + (0x80 * 4)
-/*0x27f8*/ UINT		LastHitEval;
-/*0x27fc*/
+/*0x244C*/ bool         bUpdateStuff;
+/*0x244D*/ bool         bZoningStatProcessing;
+/*0x2450*/ DWORD        ArmorClassBonus;//vtable2+10
+/*0x2454*/ DWORD        CurrWeight;//vtable2+14
+/*0x2458*/ int			astHitPointSendPercent;
+/*0x245C*/ int			LastManaPointSendPercent;
+/*0x2460*/ int			LastEndurancePointSendPercent;
+/*0x2464*/ DWORD        HPBonus;//vtable2+24
+/*0x2468*/ DWORD        ManaBonus;//vtable2+28
+/*0x246C*/ DWORD        EnduranceBonus;//vtable2+2c
+/*0x2470*/ int          EnduranceCostPerSecond;
+/*0x2474*/ DWORD        CombatEffectsBonus;//vtable2+34 Combat Effects in UI
+/*0x2478*/ DWORD        ShieldingBonus;//vtable2+38 Melee Shielding in UI
+/*0x247C*/ DWORD        SpellShieldBonus;//vtable2+3c Spell Shielding in UI
+/*0x2480*/ DWORD        AvoidanceBonus;//vtable2+40 Avoidance in UI
+/*0x2484*/ DWORD        AccuracyBonus;//vtable2+44 Accuracy in UI
+/*0x2488*/ DWORD        StunResistBonus;//vtable2+48 Stun Resist in UI
+/*0x248C*/ DWORD        StrikeThroughBonus;//vtable2+4c Strike Through in UI
+/*0x2490*/ DWORD        DoTShieldBonus;//vtable2+50 Dot Shielding in UI
+/*0x2494*/ DWORD        DamageShieldMitigationBonus;//vtable2+54 Damage Shield Mitig in UI
+/*0x2498*/ DWORD        DamageShieldBonus;//vtable2+58 Damage Shielding in UI
+/*0x249C*/ TSafeArrayStatic<int, 9> ItemSkillMinDamageMod;//size 0x24
+/*0x24C0*/ TSafeArrayStatic<int, 9> SkillMinDamageModBonus;//size 0x24
+/*0x24E4*/ DWORD        HeroicSTRBonus;//vtable2+a4
+/*0x24E8*/ DWORD        HeroicINTBonus;//vtable2+a8
+/*0x24EC*/ DWORD        HeroicWISBonus;//vtable2+ac
+/*0x24F0*/ DWORD        HeroicAGIBonus;//vtable2+b0
+/*0x24F4*/ DWORD        HeroicDEXBonus;//vtable2+b4
+/*0x24F8*/ DWORD        HeroicSTABonus;//vtable2+b8
+/*0x24FC*/ DWORD        HeroicCHABonus;//vtable2+bc
+/*0x2500*/ DWORD        HealAmountBonus;//vtable2+d8
+/*0x2504*/ DWORD        SpellDamageBonus;//vtable2+dc
+/*0x2508*/ int			ItemHealAmountDotMod;
+/*0x250C*/ int			ItemSpellDamageDotMod;
+/*0x2510*/ DWORD        ClairvoyanceBonus;//vtable2+e8
+/*0x2514*/ DWORD        AttackBonus;//vtable2+ec
+/*0x2518*/ DWORD        HPRegenBonus;//vtable2+f0
+/*0x251C*/ DWORD        ManaRegenBonus;//vtable2+f4
+/*0x2520*/ DWORD        EnduranceRegenBonus;//vtable2+f8
+/*0x2524*/ DWORD        AttackSpeed;//vtable2+fc
+/*0x2528*/ int          NoBuffItemHitpointAdjustment;
+/*0x252C*/ int          NoBuffItemManaAdjustment;
+/*0x2530*/ int          NoBuffItemEnduranceAdjustment;
+/*0x2534*/ int          NoBuffItemBaseChanceProc;
+/*0x2538*/ int          NoBuffItemMinDamageMod;
+/*0x253C*/ int          NoBuffItemInnateSpellRune;
+/*0x2540*/ int          NoBuffItemAvoidance;
+/*0x2544*/ int          NoBuffItemToHit;
+/*0x2548*/ int          NoBuffItemResistStunChance;
+/*0x254C*/ int          NoBuffItemDotShieldingEffect;
+/*0x2550*/ int          NoBuffItemStrikeThroughChance;
+/*0x2554*/ int          NoBuffItemAttack;
+/*0x2558*/ int          NoBuffItemHitPointRegen;
+/*0x255C*/ int          NoBuffItemManaRegen;
+/*0x2560*/ int          NoBuffItemEnduranceRegen;
+/*0x2564*/ int          NoBuffItemDamageShield;
+/*0x2568*/ int          NoBuffItemDamageShieldMitigation;
+/*0x256C*/ int          NoBuffItemHaste;
+/*0x2570*/ TSafeArrayStatic<int, 9>   NoBuffItemSkillMinDamageMod;//size 0x24
+/*0x2594*/ bool         bOutputHpRegen;
+/*0x2595*/ bool         bInvulnerable;
+/*0x2596*/ bool         bOnAVehicle;//0x2420 + 0x156 see 4D94E8 in jun 11 2018 test
+/*0x2598*/ EQData::SpellCache     spellCache;//size 0x58
+/*0x25F0*/ HashListSet<int, 0x80> DoomEffectsBySlot;//size 0x10 + (0x80 * 4)
+/*0x2800*/ UINT         LastHitEval;
+/*0x2804*/
 
 EQLIB_OBJECT CharacterZoneClient::CharacterZoneClient(void);
 EQLIB_OBJECT int CharacterZoneClient::CalcAffectChange(const EQ_Spell *spell, BYTE casterLevel, BYTE affextIndex, const EQ_Affect *theAffect, int EffectIndex = 0, PlayerZoneClient *pCaster = NULL,bool overrideChangeVal = false, int ChangeVal = -1,bool bCap = true);
@@ -9232,6 +9422,7 @@ EQLIB_OBJECT int CharacterZoneClient::GetLastEffectSlot(bool bIsShortBuff, bool 
 EQLIB_OBJECT const int CharacterZoneClient::GetFocusReuseMod(const EQ_Spell *pSpell, VePointer<CONTENTS>&pOutItem);
 EQLIB_OBJECT bool CharacterZoneClient::FindItemByGuid(const EqItemGuid& ItemGuid, int *pos_slot, int *con_slot);
 EQLIB_OBJECT BYTE CharacterZoneClient::FindItemByRecord(int ItemNumber /*recordnum*/, int *pos_slot, int *con_slot, bool bReverseLookup);
+EQLIB_OBJECT int CharacterZoneClient::CalculateInvisLevel(InvisibleTypes Type, bool bIncludeSos = true);
 };
 
 enum EAreaCorner
@@ -9729,11 +9920,6 @@ EQLIB_OBJECT void GrammarRulesClass::RuleFr1(char *,char *,char *,char *);
 EQLIB_OBJECT void GrammarRulesClass::RuleKo1(char *,char *,char *,char *);
 };
 
-class GuildMember
-{
-public:
-EQLIB_OBJECT GuildMember::GuildMember(void);
-};
 
 enum eIconCacheType
 {

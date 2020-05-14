@@ -105,7 +105,14 @@ VOID Delay(PSPAWNINFO pChar, PCHAR szLine)
 		VarValue *= 60;
 	case 's':
 	case 'S':
-		VarValue *= 10;
+		if (strlen(szVal) > 2 && szVal[strlen(szVal) - 2] == 'm' || szVal[strlen(szVal) - 2] == 'M')
+		{
+			VarValue /= 100;
+		}
+		else
+		{
+			VarValue *= 10;
+		}
 	}
 	gDelay = VarValue;
 	bRunNextCommand = false;

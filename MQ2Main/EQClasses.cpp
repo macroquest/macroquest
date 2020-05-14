@@ -3256,7 +3256,11 @@ FUNCTION_AT_ADDRESS( CGuild::CGuild(void),CGuild__CGuild);
 #endif
 #ifdef CGuild__GetGuildName_x
 #if !defined(ROF2EMU) && !defined(UFEMU)
+#if defined(TEST)
+FUNCTION_AT_ADDRESS(char * CGuild::GetGuildName(__int64, ServerGuildName, int, bool),CGuild__GetGuildName);
+#else
 FUNCTION_AT_ADDRESS(char * CGuild::GetGuildName(__int64),CGuild__GetGuildName);
+#endif
 #else
 FUNCTION_AT_ADDRESS(char * CGuild::GetGuildName(DWORD), CGuild__GetGuildName);
 #endif
@@ -4582,6 +4586,7 @@ FUNCTION_AT_ADDRESS(bool CharacterZoneClient::FindItemByGuid(const EqItemGuid& I
 #ifdef CharacterZoneClient__FindItemByRecord_x
 FUNCTION_AT_ADDRESS(BYTE CharacterZoneClient::FindItemByRecord(int ItemNumber /*recordnum*/, int *pos_slot, int *con_slot, bool bReverseLookup),CharacterZoneClient__FindItemByRecord);
 #endif
+FUNCTION_AT_VIRTUAL_ADDRESS(int CharacterZoneClient::CalculateInvisLevel(InvisibleTypes, bool bIncludeSos),0x20);
 #ifdef EQ_Character__FindItemQty_x
 FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::FindItemQty(int,int),EQ_Character__FindItemQty);
 #endif
