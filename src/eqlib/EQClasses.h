@@ -232,6 +232,7 @@ enum EnvironmentType
 class [[offsetcomments]] CDisplay
 {
 public:
+	// These are all wrong
 /*0x0000*/ bool        ErrorFlag;
 /*0x0001*/ BYTE        BFog;
 /*0x0002*/ BYTE        BMoveAnims;
@@ -249,12 +250,15 @@ public:
 /*0x0120*/ void*       WadFileLoadScreen;        // SWadFile
 /*0x0124*/ BYTE        NewPCModelsLoaded;
 /*0x0125*/ bool        bHorsesLoaded;
-/*0x0128*/ void*       pActorTagManager;
-/*0x012c*/ BYTE        Unknown0x130[0x24];
-/*0x0150*/ DWORD       TimeStamp;
-/*0x0154*/ BYTE        Unknown0x158[0x2c12];
-/*0x2d66*/ BYTE        NpcNames;                 // show npc names
-/*0x2d68*/
+/*0x0128*/ uint32_t    Unknown0x128;
+
+	// first known good offset, starts at 0x12c:
+/*0x012c*/ void*       pActorTagManager;
+/*0x0130*/ BYTE        Unknown0x130[0x24];
+/*0x0154*/ DWORD       TimeStamp;
+/*0x0158*/ BYTE        Unknown0x158[0x2c12];
+/*0x2d6a*/ BYTE        NpcNames;                 // show npc names
+/*0x2d6b*/
 
 	EQLIB_OBJECT ~CDisplay();
 	EQLIB_OBJECT CDisplay(HWND);
