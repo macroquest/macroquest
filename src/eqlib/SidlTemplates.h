@@ -566,8 +566,9 @@ class [[offsetcomments]] CScreenTemplate : public CControlTemplate
 public:
 	EQLIB_OBJECT CScreenTemplate(CParamScreen*);
 
-	/*0x98*/ ArrayClass<CScreenPieceTemplate*> Pieces;
-/*0xa8*/ };
+/*0x98*/ ArrayClass<CScreenPieceTemplate*> Pieces;
+/*0xa8*/
+};
 
 class CSliderTemplate
 {
@@ -581,10 +582,12 @@ public:
 	EQLIB_OBJECT CSpellGemTemplate(CParamSpellGem*);
 };
 
-class CStaticAnimationTemplate
+class [[offsetcomments]] CStaticAnimationTemplate : public CStaticScreenPieceTemplate
 {
 public:
 	EQLIB_OBJECT CStaticAnimationTemplate(CParamStaticAnimation*);
+
+	CTextureAnimation* ptaTextureAnimation;
 };
 
 class CStaticFrameTemplate
@@ -617,6 +620,23 @@ class CTabBoxTemplate
 {
 public:
 	EQLIB_OBJECT CTabBoxTemplate(CParamTabBox*);
+};
+
+class CLayoutBoxTemplate : public CControlTemplate
+{
+};
+
+class CStaticTintedBlendAnimationTemplate : public CStaticScreenPieceTemplate
+{
+public:
+	CTextureAnimation* ptaLayerOneTexture;
+	CTextureAnimation* ptaLayerTwoTexture;
+	D3DCOLOR colorLayerOneTint;
+	D3DCOLOR colorLayerTwoTint;
+	int nMaxLayerOneTextures;
+	int nMaxLayerTwoTextures;
+	int nLayerOneTextureIndex;
+	int nLayerTwoTextureIndex;
 };
 
 } // namespace eqlib
