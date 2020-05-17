@@ -3293,7 +3293,7 @@ void Target(SPAWNINFO* pChar, char* szLine)
 			ZeroMemory(&DoorEnviroTarget, sizeof(DoorEnviroTarget));
 
 			if (pChar)
-				pChar->GroupMemberTargeted = 1;
+				pChar->GroupMemberTargeted = -1;
 
 			DebugSpew("Target cleared.");
 			WriteChatColor("Target cleared.", USERCOLOR_WHO);
