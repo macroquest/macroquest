@@ -5130,15 +5130,23 @@ bool WillStackWith(const EQ_Spell* testSpell, const EQ_Spell* existingSpell)
 	buff.CasterGuid = pPc->Guid;
 	buff.Duration = existingSpell->DurationCap;
 	buff.InitialDuration = existingSpell->DurationCap;
+	int dataIndex = 0;
 
-	for (int slot = 0; slot < existingSpell->NumEffects; ++slot)
+	// We need to fill in the affect slot data fields. There is a max of NUM_SLOTDATA per buff.
+	// slot data contains things like the amount of absorb left on a rune or the number of counters
+	// remaining on a debuff.
+	for (int index = 0; index < existingSpell->NumEffects && dataIndex < NUM_SLOTDATA; ++index)
 	{
-		auto affect = existingSpell->GetSpellAffectByIndex(slot); // this cannot be null if we are < NumEffects
-		buff.SlotData[slot].Slot = affect->Slot;
-		buff.SlotData[slot].Value = affect->Max;
+		auto affect = existingSpell->GetSpellAffectByIndex(index); // this cannot be null if we are < NumEffects
+		if (affect->Max != 0)
+		{
+			buff.SlotData[dataIndex].Slot = affect->Slot;
+			buff.SlotData[dataIndex].Value = affect->Max;
+			dataIndex++;
+		}
 	}
 
-	for (int slot = existingSpell->NumEffects; slot < NUM_SLOTDATA; ++slot)
+	for (int slot = dataIndex; slot < NUM_SLOTDATA; ++slot)
 	{
 		buff.SlotData[slot].Slot = -1;
 		buff.SlotData[slot].Value = 0;
