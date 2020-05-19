@@ -18,6 +18,16 @@
 #include "Containers.h"
 #include "CXStr.h"
 
+#ifdef IsMinimized
+#undef IsMinimized
+#endif
+#ifdef IsMaximized
+#undef IsMaximized
+#endif
+#ifdef GetWindowText
+#undef GetWindowText
+#endif
+
 namespace eqlib {
 
 class CRadioGroup;

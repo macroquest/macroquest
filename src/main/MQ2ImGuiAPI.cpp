@@ -492,7 +492,7 @@ public:
 
 	void ExecCommand(const char* commandLine)
 	{
-		AddLog(IM_COL32(0x80, 0x80, 0x80, 255), "> {0}\n", commandLine);
+		AddLog(MQColor(128, 128, 128), "> {0}\n", commandLine);
 
 		// Inhsert into history. First find match and delete it so i can be pushed to the back. This isn't
 		// trying to be smart or optimal.
