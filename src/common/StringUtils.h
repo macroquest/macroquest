@@ -488,21 +488,28 @@ inline double GetDoubleFromString(const std::string_view svString, double dRetur
  *
  * @return int The converted integer or the "failure" value
  **/
-inline bool GetBoolFromString(const std::string_view svString, bool bReturnOnFail)
+inline bool GetBoolFromString(const std::string_view svString, const bool defaultValue)
 {
+	bool returnValue = defaultValue;
+
 	if (ci_equals(svString, "True"))
 	{
-		bReturnOnFail = true;
+		returnValue = true;
 	}
 	else if (ci_equals(svString, "False"))
 	{
-		bReturnOnFail = false;
+		returnValue = false;
+	}
+	else if (ci_equals(svString, "on"))
+	{
+		returnValue = true;
 	}
 	else
 	{
-		bReturnOnFail = static_cast<bool>(GetIntFromString(svString, static_cast<int>(bReturnOnFail)));
+		returnValue = static_cast<bool>(GetIntFromString(svString, static_cast<int>(defaultValue)));
 	}
-	return bReturnOnFail;
+
+	return returnValue;
 }
 
 
