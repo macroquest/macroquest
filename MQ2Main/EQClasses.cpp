@@ -429,6 +429,9 @@ FUNCTION_AT_ADDRESS(void  CBankWnd::UpdateMoneyDisplay(void),CBankWnd__UpdateMon
 #ifdef CBankWnd__GetNumBankSlots_x
 FUNCTION_AT_ADDRESS(int  CBankWnd::GetNumBankSlots(void)const ,CBankWnd__GetNumBankSlots);
 #endif
+#ifdef CBankWnd__AutoBank_x
+FUNCTION_AT_ADDRESS(void CBankWnd::AutoBank(bool bCanCombine),CBankWnd__AutoBank);
+#endif
 #ifdef CXRect__CenterPoint_x
 FUNCTION_AT_ADDRESS(class CXPoint  CXRect::CenterPoint(void)const ,CXRect__CenterPoint);
 #endif
@@ -7814,11 +7817,11 @@ FUNCTION_AT_ADDRESS(int  CXWnd::DrawHScrollbar(int,int,int)const ,CXWnd__DrawHSc
 FUNCTION_AT_ADDRESS(void  CXWnd::Refade(void),CXWnd__Refade);
 #endif
 #ifdef CXWnd__Move_x
-#if !defined(ROF2EMU) && !defined(UFEMU)
+//#if !defined(ROF2EMU) && !defined(UFEMU)
 FUNCTION_AT_ADDRESS(int  CXWnd::Move(class CXPoint const &), CXWnd__Move);
-#else
-FUNCTION_AT_ADDRESS(int  CXWnd::Move(class CXPoint),CXWnd__Move);
-#endif
+//#else
+//FUNCTION_AT_ADDRESS(int  CXWnd::Move(class CXPoint),CXWnd__Move);
+//#endif
 #endif
 #ifdef CXWnd__Move1_x
 FUNCTION_AT_ADDRESS(int CXWnd::Move(const CXRect &, bool, bool, bool, bool), CXWnd__Move1);

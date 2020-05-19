@@ -1,6 +1,9 @@
+May 18 2020
+- Misc updates and fixes for rof2 build
+- 
 May 14 2020
 - Updated for TEST
-- Filled in th CGuild class
+- Filled in the CGuild class
 -
 Apr 30 2020
 - Me.Invis now takes an optional index or a name to return invis vs undead and animals

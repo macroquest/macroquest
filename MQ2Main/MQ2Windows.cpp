@@ -194,7 +194,7 @@ public:
 		if (gUseTradeOnTarget)
 		{
 			if (uiMessage == XWM_LCLICK)
-	{
+			{
 				if (PCHARINFO2 pChar2 = GetCharInfo2())
 				{
 					if (pTarget && pLocalPlayer
@@ -1472,7 +1472,13 @@ void RemoveAutoBankMenu()
 #endif
 	}
 }
-
+#if defined(ROF2EMU) || defined(UFEMU)
+void Autobank(PSPAWNINFO pChar, PCHAR szLine)
+{
+	//.text:006288E0 public: void __thiscall CBankWnd::AutoBank(bool) proc near
+	pBankWnd->AutoBank();
+}
+#endif
 void InitializeMQ2Windows()
 {
     DebugSpew("Initializing MQ2 Windows");
@@ -1522,6 +1528,10 @@ void InitializeMQ2Windows()
 	AddCommand("/itemnotify", ItemNotify);
 	AddCommand("/itemslots", ListItemSlots);
 	AddCommand("/reloadui", ReloadUI);
+#if defined(ROF2EMU) || defined(UFEMU)
+	//neither of these have an actual /autobank command but they do have the autobank function... so we add it.
+	AddCommand("/autobank", Autobank);
+#endif
 #else
 	pISInterface->AddCommand("EQWindows", ListWindows);
 	pISInterface->AddCommand("EQNotify", WndNotify);
@@ -1587,6 +1597,8 @@ void ShutdownMQ2Windows()
 #if !defined(ROF2EMU) && !defined(UFEMU)
     RemoveDetour(CFindItemWnd__WndNotification);
     RemoveDetour(CFindItemWnd__Update);
+#else
+	RemoveCommand("/autobank");
 #endif
     RemoveDetour(CBankWnd__WndNotification);
 	RemoveAutoBankMenu();

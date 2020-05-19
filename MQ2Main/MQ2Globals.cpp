@@ -1720,7 +1720,10 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CFindItemWnd__Update);
 	INITIALIZE_EQGAME_OFFSET(CFindItemWnd__PickupSelectedItem);
 	INITIALIZE_EQGAME_OFFSET(CFindItemWnd__WndNotification);
+#else
+	INITIALIZE_EQGAME_OFFSET(CBankWnd__AutoBank);
 #endif
+
 	INITIALIZE_EQGAME_OFFSET(CBankWnd__WndNotification);
 	INITIALIZE_EQGAME_OFFSET(CBankWnd__GetNumBankSlots);
 	INITIALIZE_EQGAME_OFFSET(CBazaarSearchWnd__HandleBazaarMsg);

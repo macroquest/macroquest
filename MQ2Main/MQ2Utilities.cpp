@@ -3263,32 +3263,14 @@ void FIllSlotData(EQ_Affect* pAffect, PSPELL pSpell)
 #if defined(ROF2EMU) || defined(UFEMU)
 	LONG slots = GetSpellNumEffects(pSpell);
 	PSPELLCALCINFO pCalcInfo = 0;
-	for (int j = 0; j < slots; ++j)
+	for (int j = 0, slot = 0; j < slots; ++j)
 	{
-		int slot = pSpell->Attrib[j];
-		//pCalcInfo = ((EQ_Spell*)pSpell)->GetSpellAffectBySlot(slot);
-
-	}
-	if (ClientSpellManager *pSpellM = (ClientSpellManager *)pSpellMgr)
-	{
-		Sleep(0);
-		return;
-		for (LONG sd = 0; sd < NUM_SLOTDATA; sd++)
+		int max = pSpell->Max[j];
+		if (max && slot < NUM_SLOTDATA)
 		{
-			pAffect->SlotData[sd].Slot = -1;
-			pAffect->SlotData[sd].Value = 0;
-			if (sd < slots)
-			{
-				/*if (pCalcInfo = pSpellM->GetSpellAffect(sd))
-				{
-					if (pCalcInfo->Max)
-					{
-						pAffect->SlotData[sd].Slot = pCalcInfo->Slot;
-						pAffect->SlotData[sd].Value = pCalcInfo->Max;
-					}
-				}*/
-				pCalcInfo = ((EQ_Spell*)pSpell)->GetSpellAffectBySlot(sd);
-			}
+			pAffect->SlotData[slot].Slot = j;
+			pAffect->SlotData[slot].Value = max;
+			slot++;
 		}
 	}
 #else
@@ -10068,6 +10050,15 @@ BOOL PickupItem(ItemContainerInstance type, PCONTENTS pItem)
 			}
 		} else {
 			//just move it from the slot to the cursor
+			DWORD keybflag = pWndMgr->GetKeyboardFlags();
+			if (keybflag == 2 && pItem->StackCount > 1) {//ctrl was pressed and it is a stackable item
+				if (!pSlot->pInvSlotWnd || !SendWndClick2((CXWnd*)pSlot->pInvSlotWnd, "leftmouseup"))
+				{
+					WriteChatfSafe("Could not pickup %s", GetItemFromContents(pItem)->Name);
+				}
+				return TRUE;
+			}
+			//well i guess ctrl was not pressed pickup full stack then or whatever is in there...
 			ItemGlobalIndex From;
 			From.Location = (ItemContainerInstance)pItem->GetGlobalIndex().Location;
 			From.Index.Slot1 = pItem->GetGlobalIndex().Index.Slot1;
@@ -11696,6 +11687,11 @@ bool WillFitInBank(PCONTENTS pContent)
 #else
 		if (PCHARINFONEW pChar = (PCHARINFONEW)GetCharInfo()) {
 #endif
+			if (pChar->BankItems.Items.Size == 0)
+			{
+				//its empty of course we will fit.
+				return true;
+			}
 			for (DWORD slot = 0; slot < pChar->BankItems.Items.Size; slot++) {
 				if (PCONTENTS pCont = pChar->BankItems.Items[slot].pObject) {
 					if (PITEMINFO pItem = GetItemFromContents(pCont))

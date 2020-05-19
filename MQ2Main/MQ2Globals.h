@@ -1157,6 +1157,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CFindItemWnd__WndNotification;
 	EQLIB_VAR DWORD CFindItemWnd__Update;
 	EQLIB_VAR DWORD CFindItemWnd__PickupSelectedItem;
+	#else
+	EQLIB_VAR DWORD CBankWnd__AutoBank;
 	#endif
 	
 	EQLIB_VAR DWORD CBazaarSearchWnd__HandleBazaarMsg;
