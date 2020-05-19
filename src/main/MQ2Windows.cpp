@@ -2061,6 +2061,65 @@ void UpdateCascadeMenu()
 
 //============================================================================
 
+void CCustomWnd::SetDefaultLocation(int left, int top, int right, int bottom)
+{
+	m_defaultLocation = { left, top, right, bottom };
+}
+
+void CCustomWnd::SaveSettingsToINI(const char* sectionName, const char* fileName)
+{
+	// TOOD: We should save both the current size and the restore size...
+	CXRect rect = IsMinimized() ? GetOldLocation() : GetLocation();
+	WritePrivateProfileInt(sectionName, "Top", rect.top, fileName);
+	WritePrivateProfileInt(sectionName, "Left", rect.left, fileName);
+	WritePrivateProfileInt(sectionName, "Right", rect.right, fileName);
+	WritePrivateProfileInt(sectionName, "Bottom", rect.right, fileName);
+
+	WritePrivateProfileBool(sectionName, "Locked", IsLocked(), fileName);
+	WritePrivateProfileBool(sectionName, "Fades", GetFades(), fileName);
+	WritePrivateProfileInt(sectionName, "Delay", GetFadeDelay(), fileName);
+	WritePrivateProfileInt(sectionName, "Duration", GetFadeDuration(), fileName);
+	WritePrivateProfileInt(sectionName, "Alpha", GetAlpha(), fileName);
+	WritePrivateProfileInt(sectionName, "FadeToAlpha", GetFadeToAlpha(), fileName);
+	WritePrivateProfileInt(sectionName, "BGType", GetBGType(), fileName);
+
+	MQColor bgColor = GetBGColor();
+	WritePrivateProfileInt(sectionName, "BGTint.alpha", bgColor.Alpha, fileName);
+	WritePrivateProfileInt(sectionName, "BGTint.red", bgColor.Red, fileName);
+	WritePrivateProfileInt(sectionName, "BGTint.green", bgColor.Green, fileName);
+	WritePrivateProfileInt(sectionName, "BGTint.blue", bgColor.Blue, fileName);
+}
+
+void CCustomWnd::LoadSettingsFromINI(const char* sectionName, const char* fileName)
+{
+	// Load settings, using the current settings as defaults. If you want to change your
+	// default position, save the changes to the window prior to calling this function.
+	CXRect position{
+		GetPrivateProfileInt(sectionName, "Left", m_defaultLocation.left, fileName),
+		GetPrivateProfileInt(sectionName, "Top", m_defaultLocation.top, fileName),
+		GetPrivateProfileInt(sectionName, "Right", m_defaultLocation.right, fileName),
+		GetPrivateProfileInt(sectionName, "Bottom", m_defaultLocation.bottom, fileName),
+	};
+	SetLocation(position);
+
+	SetLocked(GetPrivateProfileBool(sectionName, "Locked", false, fileName));
+	SetFades(GetPrivateProfileBool(sectionName, "Fades", false, fileName));
+	SetFadeDelay(GetPrivateProfileInt(sectionName, "Delay", 2000, fileName));
+	SetFadeDuration(GetPrivateProfileInt(sectionName, "Duration", 500, fileName));
+	SetAlpha(static_cast<uint8_t>(GetPrivateProfileInt(sectionName, "Alpha", 255, fileName)));
+	SetFadeToAlpha(static_cast<uint8_t>(GetPrivateProfileInt(sectionName, "FadeToAlpha", 255, fileName)));
+	SetBGType(GetPrivateProfileInt(sectionName, "BGType", 1, fileName));
+
+	MQColor bgColor;
+	bgColor.Alpha = static_cast<uint8_t>(GetPrivateProfileInt(sectionName, "BGTint.alpha", 255, fileName));
+	bgColor.Red = static_cast<uint8_t>(GetPrivateProfileInt(sectionName, "BGTint.red", 0, fileName));
+	bgColor.Green = static_cast<uint8_t>(GetPrivateProfileInt(sectionName, "BGTint.green", 0, fileName));
+	bgColor.Blue = static_cast<uint8_t>(GetPrivateProfileInt(sectionName, "BGTint.blue", 0, fileName));
+	SetBGColor(bgColor.ARGB);
+}
+
+//============================================================================
+
 void InitializeMQ2Windows()
 {
 	DebugSpew("Initializing MQ2 Windows");

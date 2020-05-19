@@ -487,6 +487,19 @@ public:
 	{
 	}
 
+	MQLIB_OBJECT virtual void SaveSettingsToINI(const char* sectionName, const char* fileName);
+
+	// Load settings from the INI file using the specified section and filename. Uses the default
+	// location as specified by SetDefaultLocation (call it in your constructor).
+	MQLIB_OBJECT virtual void LoadSettingsFromINI(const char* sectionName, const char* fileName);
+
+	// Retrieve the default location that was previously defined.
+	MQLIB_OBJECT CXRect GetDefaultLocation() { return m_defaultLocation; }
+
+protected:
+	// Change the default position. This will be used when reading the settings.
+	MQLIB_OBJECT void SetDefaultLocation(int left, int top, int right, int bottom);
+
 private:
 	void Init()
 	{
@@ -496,6 +509,7 @@ private:
 		SetEscapable(false);
 	}
 
+	CXRect m_defaultLocation = { 10, 10, 110, 210 };
 };
 
 //============================================================================
