@@ -13,17 +13,10 @@
  */
 
 //
-// MQ2Bzsrch.cpp : Bazaar Search Plugin by DKAA
+// MQ2Bzsrch.cpp: Bazaar Search Plugin by DKAA
 //
-//
-// Original MQ2Data update by CyberCide... but it didn't work like the rest of
-//  MQ2Data so Lax redid it.
-// v2.0 - Eqmule 07-22-2016 - Added string safety.
-//
+
 #include <mq/Plugin.h>
-
-#include "netstream.h"
-
 #include <mutex>
 
 using namespace mq::datatypes;
@@ -33,40 +26,6 @@ PreSetup("MQ2Bzsrch");
 
 class MQ2BazaarType;
 class MQ2BazaarItemType;
-
-struct BazaarSearchRequestPacket
-{
-/*0x00*/ int     BSRCommand;     // should be 7               -7c
-/*0x04*/ int     BSRTraderID;    // default 0                 -78
-/*0x08*/ int     BSRClass;       // default -1                -74
-/*0x0c*/ int     BSRRace;        // default -1                -70
-/*0x10*/ int     BSRStat;        // default -1                -6c
-/*0x14*/ int     BSRSlot;        // default -1                -68
-/*0x18*/ int     BSRType;        // default -1                -64
-/*0x1c*/ char    BSRName[64];    // name                      -60
-/*0x5c*/ int     BSRPriceL;      // price floor, default 0    -20
-/*0x60*/ int     BSRPriceH;      // price ceiling, default 0  -1c
-/*0x64*/ int     BSRLevelL;      // level low,  default 1     -18
-/*0x68*/ int     BSRLevelH;      // level high, default 70    -14
-/*0x6c*/
-};
-
-// size is 0xa0 4/17/08
-
-struct BazaarSearchResponsePacket
-{
-/*0x00*/ int     BSSmsg;         // should be 7
-/*0x04*/ int     BSSTraderID;
-/*0x08*/ char    BSSTraderName[0x40];
-/*0x48*/ int     BSSQuantity;
-/*0x4c*/ int     BSSItemID;
-/*0x50*/ int     BSSUnknown10;
-/*0x54*/ int     BSSUnknown14;
-/*0x58*/ char    BSSName[0x40];
-/*0x98*/ int     BSSPrice;
-/*0x9c*/ int     BSSValue;
-/*0xa0*/
-};
 
 struct
 {
@@ -117,113 +76,84 @@ struct
 	"drakkin",          522,
 };
 
-int BzCount = 0;
-bool BzDone = false;
-BazaarSearchResponsePacket BzArray[200];
 ITEMINFO* pg_Item;                                // dependent on MQ2ItemDisplay
 std::recursive_mutex s_bzrMutex;
 
-void BzSrchMe(SPAWNINFO* pChar, char* szLine);
-void MQ2BzSrch(SPAWNINFO* pChar, char* szLine);
-void bzpc(SPAWNINFO* pChar, char* szLine);
-bool dataBazaar(const char* szName, MQTypeVar& Ret);
-
-// length is variable based on item name
-struct bzrItemData
+// Contains an item response from the bazaar search. Struct layout does not
+// matter because we are constructing it ourself via CUnSerializeBuffer.
+struct BazaarSearchItem
 {
-/*0x00*/ DWORD  nTrader;
-/*0x04*/ WORD   b;
-/*0x06*/ DWORD  c;  // float
-/*0x0a*/ DWORD  nItems;
-/*0x0e*/ DWORD  nTrader1;
-/*0x12*/ char   f[0x11];
-/*0x23*/ DWORD  price;
-/*0x27*/ DWORD  quantity;
-/*0x2b*/ DWORD  ItemID;
-/*0x2f*/ DWORD  icon;
-/*0x33*/ char   ItemName[0x40];
-/*0x73*/ DWORD  m;
-};
+	int32_t     TraderID = 0;
+	EqItemGuid  ItemGuid;
+	uint32_t    Price = 0;
+	int         Quantity = 0;
+	int         ItemID = 0;
+	uint32_t    IconID = 0;
+	char        ItemName[0x40];
+	int         StatValue = 0;
 
-struct bzrData
-{
-	void* pData; // ptr to bzrItemData
-	DWORD nSize; // size of bzrItemData
-	DWORD nPos;  // store position
-};
+	// This isn't part of the network response -- we read this from the UI
+	char        TraderName[0x40];
 
-struct traderData
-{
-	DWORD a;
-	DWORD b;
-	DWORD c;
-	char  name[0x40];
-};
+	BazaarSearchItem()
+	{
+		ItemName[0] = 0;
+		TraderName[0] = 0;
+	}
 
-class BzSrchHook
+	void UnSerialize(CUnSerializeBuffer& buffer)
+	{
+		buffer.Read(TraderID);
+		buffer.Read(ItemGuid);
+		buffer.Read(Price);
+		buffer.Read(Quantity);
+		buffer.Read(ItemID);
+		buffer.Read(IconID);
+		buffer.ReadString(ItemName, lengthof(ItemName));
+		buffer.Read(StatValue);
+	}
+};
+std::vector<BazaarSearchItem> BazaarItemsArray;
+bool BazaarSearchDone = false;
+
+class CBazaarSearchWnd_Hook
 {
 public:
-	void BzTrampoline(bzrData* bz);
-	void BzDetour(bzrData* bz)
+	void HandleSearchResults_Trampoline(CUnSerializeBuffer& buffer);
+	void HandleSearchResults_Detour(CUnSerializeBuffer& bufferIn)
 	{
-#define SetTraderName(trader) {                                                                   \
-	nTmp = trader % pBazaarSearchWnd->hashVal;                                                              \
-	if (pBazaarSearchWnd->ppTraderData[nTmp]) {                                                             \
-		strcpy_s(bzResponse.BSSTraderName, ((traderData*)pBazaarSearchWnd->ppTraderData[nTmp])->name);      \
-	}                                                                                             \
-}
+		// Make a copy of the CUnSerializeBuffer so we don't spoil eq's internal tracking.
+		CUnSerializeBuffer buffer(bufferIn);
 
-		BazaarSearchResponsePacket bzResponse = { 0 };
-		NetStream ns((BYTE*)bz->pData, bz->nSize);
+		int32_t spawnId = 0;
+		int16_t unk1;
+		float unk2;
+		int count = 0;
 
-		int nIndex = 0;
-		DWORD nTrader = ns.readUInt32();
-		DWORD wTmp = ns.readUInt16();
-		DWORD nTmp = ns.readUInt32();
-		BzCount = ns.readInt32();
-		DWORD nTrader1 = ns.readUInt32();
-		std::string sTmp = ns.readText();
-		bzResponse.BSSPrice = ns.readUInt32();
-		bzResponse.BSSQuantity = ns.readUInt32();
-		bzResponse.BSSItemID = ns.readUInt32();
-		DWORD nIcon = ns.readUInt32();
-		sTmp = ns.readText();
-		nTmp = ns.readUInt32();
+		buffer.Read(spawnId);
+		buffer.Read(unk1);
+		buffer.Read(unk2);
+		buffer.Read(count);
 
-		strcpy_s(bzResponse.BSSName, sTmp.c_str());
+		BazaarItemsArray.clear();
+		BazaarItemsArray.resize(count);
 
-		SetTraderName(nTrader1);
-
-		memcpy(&BzArray[nIndex++], &bzResponse, sizeof(BazaarSearchResponsePacket));
-
-		while (nIndex < BzCount)
+		for (int i = 0; i < count; ++i)
 		{
-			memset(&bzResponse, 0, sizeof(bzrItemData));
+			BazaarSearchItem& item = BazaarItemsArray[i];
+			buffer.Read(item);
 
-			nTrader = ns.readUInt32();
-			wTmp = ns.readUInt16();
-			nTmp = ns.readUInt32();
-			nTmp = ns.readUInt32();
-			nTrader1 = ns.readUInt32();
-			sTmp = ns.readText();
-			bzResponse.BSSPrice = ns.readUInt32();
-			bzResponse.BSSQuantity = ns.readUInt32();
-			bzResponse.BSSItemID = ns.readUInt32();
-			nIcon = ns.readUInt32();
-			sTmp = ns.readText();
-			nTmp = ns.readUInt32();
-
-			strcpy_s(bzResponse.BSSName, sTmp.c_str());
-
-			SetTraderName(nTrader);
-
-			memcpy(&BzArray[nIndex++], &bzResponse, sizeof(BazaarSearchResponsePacket));
+			if (BazaarTraderData* trader = pBazaarSearchWnd->Traders.FindFirst(item.TraderID))
+			{
+				strcpy_s(item.TraderName, trader->Name);
+			}
 		}
-		BzTrampoline(bz);
-		BzDone = true;
+
+		HandleSearchResults_Trampoline(bufferIn);
+		BazaarSearchDone = true;
 	};
 };
-DETOUR_TRAMPOLINE_EMPTY(void BzSrchHook::BzTrampoline(bzrData *));
+DETOUR_TRAMPOLINE_EMPTY(void CBazaarSearchWnd_Hook::HandleSearchResults_Trampoline(CUnSerializeBuffer&));
 
 MQ2BazaarType* pBazaarType = nullptr;
 MQ2BazaarItemType* pBazaarItemType = nullptr;
@@ -231,30 +161,30 @@ MQ2BazaarItemType* pBazaarItemType = nullptr;
 class MQ2BazaarItemType : public MQ2Type
 {
 public:
-	enum BazaarItemMembers
+	enum class BazaarItemMembers
 	{
-		Price = 1,
-		Quantity = 2,
-		ItemID = 3,
-		Trader = 4,
-		Name = 6,
+		Price,
+		Quantity,
+		ItemID,
+		Trader,
+		Name,
 	};
 
 	MQ2BazaarItemType() : MQ2Type("bazaaritem")
 	{
-		TypeMember(Price);
-		TypeMember(Quantity);
-		TypeMember(ItemID);
-		TypeMember(Trader);
-		TypeMember(Name);
+		ScopedTypeMember(BazaarItemMembers, Price);
+		ScopedTypeMember(BazaarItemMembers, Quantity);
+		ScopedTypeMember(BazaarItemMembers, ItemID);
+		ScopedTypeMember(BazaarItemMembers, Trader);
+		ScopedTypeMember(BazaarItemMembers, Name);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override
+	virtual bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override
 	{
-		if (!VarPtr.Ptr)
+		size_t index = VarPtr.DWord;
+		if (index >= BazaarItemsArray.size())
 			return false;
-
-		auto pBzrItem = (BazaarSearchResponsePacket*)VarPtr.Ptr;
+		BazaarSearchItem& item = BazaarItemsArray[index];
 
 		MQTypeMember* pMember = MQ2BazaarItemType::FindMember(Member);
 		if (!pMember)
@@ -262,29 +192,29 @@ public:
 
 		switch ((BazaarItemMembers)pMember->ID)
 		{
-		case Price:
-			Dest.DWord = pBzrItem->BSSPrice;
+		case BazaarItemMembers::Price:
+			Dest.DWord = item.Price;
 			Dest.Type = pIntType;
 			return true;
 
-		case Quantity:
-			Dest.DWord = pBzrItem->BSSQuantity;
+		case BazaarItemMembers::Quantity:
+			Dest.DWord = item.Quantity;
 			Dest.Type = pIntType;
 			return true;
 
-		case ItemID:
-			Dest.DWord = pBzrItem->BSSItemID;
+		case BazaarItemMembers::ItemID:
+			Dest.DWord = item.ItemID;
 			Dest.Type = pIntType;
 			return true;
 
-		case Trader:
-			strcpy_s(DataTypeTemp, &pBzrItem->BSSTraderName[0]);
+		case BazaarItemMembers::Trader:
+			strcpy_s(DataTypeTemp, item.TraderName);
 			Dest.Ptr = &DataTypeTemp[0];
 			Dest.Type = pStringType;
 			return true;
 
-		case Name:
-			strcpy_s(DataTypeTemp, &pBzrItem->BSSName[0]);
+		case BazaarItemMembers::Name:
+			strcpy_s(DataTypeTemp, item.ItemName);
 			if (char* pDest = strrchr(DataTypeTemp, '('))
 				*pDest = '\0';
 			Dest.Ptr = &DataTypeTemp[0];
@@ -295,62 +225,65 @@ public:
 		return false;
 	}
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	virtual bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
-		if (!VarPtr.Ptr)
+		size_t index = VarPtr.DWord;
+		if (index >= BazaarItemsArray.size())
 			return false;
+		BazaarSearchItem& item = BazaarItemsArray[index];
 
-		strcpy_s(Destination, MAX_STRING, ((BazaarSearchResponsePacket*)VarPtr.Ptr)->BSSName);
+		strcpy_s(Destination, MAX_STRING, item.ItemName);
 		if (char* pDest = strrchr(Destination, '('))
 			*pDest = '\0';
 
 		return true;
 	}
 
-	void InitVariable(MQVarPtr& VarPtr)
+	virtual void InitVariable(MQVarPtr& VarPtr) override
 	{
-		VarPtr.Ptr = malloc(sizeof(BazaarSearchResponsePacket));
-		ZeroMemory(VarPtr.Ptr, sizeof(BazaarSearchResponsePacket));
+		VarPtr.DWord = 0;
 	}
 
-	void FreeVariable(MQVarPtr& VarPtr)
+	virtual void FreeVariable(MQVarPtr& VarPtr) override
 	{
-		free(VarPtr.Ptr);
 	}
 
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+	virtual bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
 	{
 		if (Source.Type != pBazaarItemType)
 			return false;
-		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(BazaarSearchResponsePacket));
+
+		VarPtr.DWord = Source.DWord;
 		return true;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source)
+	virtual bool FromString(MQVarPtr& VarPtr, char* Source) override
 	{
 		return false;
 	}
 };
 
+//============================================================================
+
 class MQ2BazaarType : public MQ2Type
 {
 public:
-	enum BazaarMembers
+	enum class BazaarMembers
 	{
-		Count = 1,
-		Done = 2,
-		Item = 3,
-		Pricecheckdone = 4,
-		Pricecheck = 5
+		Count,
+		Done,
+		Item,
+		Pricecheckdone,
+		Pricecheck
 	};
 
 	MQ2BazaarType() : MQ2Type("bazaar")
 	{
-		TypeMember(Count);
-		TypeMember(Done);
-		TypeMember(Item);
-		TypeMember(Pricecheckdone);
-		TypeMember(Pricecheck);
+		ScopedTypeMember(BazaarMembers, Count);
+		ScopedTypeMember(BazaarMembers, Done);
+		ScopedTypeMember(BazaarMembers, Item);
+		ScopedTypeMember(BazaarMembers, Pricecheckdone);
+		ScopedTypeMember(BazaarMembers, Pricecheck);
 	}
 
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override
@@ -361,17 +294,17 @@ public:
 
 		switch ((BazaarMembers)pMember->ID)
 		{
-		case Count:
-			Dest.DWord = BzCount;
+		case BazaarMembers::Count:
+			Dest.DWord = BazaarItemsArray.size();
 			Dest.Type = pIntType;
 			return true;
 
-		case Done:
-			Dest.DWord = BzDone ? 1 : 0;
+		case BazaarMembers::Done:
+			Dest.DWord = BazaarSearchDone ? 1 : 0;
 			Dest.Type = pBoolType;
 			return true;
 
-		case Item:
+		case BazaarMembers::Item:
 			if (Index[0])
 			{
 				bool isNumber = true;
@@ -390,20 +323,23 @@ public:
 				if (isNumber)
 				{
 					int N = GetIntFromString(Index, 0) - 1;
-					if (N < 0 || N >= BzCount)
+					if (N < 0 || N >= (int)BazaarItemsArray.size())
 						return false;
-					Dest.Ptr = &BzArray[N];
+
+					Dest.DWord = N;
 					Dest.Type = pBazaarItemType;
 					return true;
 				}
 				else
 				{
-					for (int i = 0; i < BzCount; i++)
+					for (size_t i = 0; i < BazaarItemsArray.size(); i++)
 					{
-						int len = strrchr(&BzArray[i].BSSName[0], '(') - &BzArray[i].BSSName[0];
-						if (!strncmp(Index, &BzArray[i].BSSName[0], len))
+						BazaarSearchItem& item = BazaarItemsArray[i];
+
+						int len = strrchr(&item.ItemName[0], '(') - &item.ItemName[0];
+						if (!strncmp(Index, &item.ItemName[0], len))
 						{
-							Dest.Ptr = &BzArray[i];
+							Dest.DWord = i;
 							Dest.Type = pBazaarItemType;
 							return true;
 						}
@@ -412,7 +348,7 @@ public:
 			}
 			return false;
 
-		case Pricecheckdone:
+		case BazaarMembers::Pricecheckdone:
 			if (pg_Item && pg_Item->ItemNumber)
 				Dest.DWord = 1;
 			else
@@ -420,19 +356,20 @@ public:
 			Dest.Type = pBoolType;
 			return true;
 
-		case Pricecheck:
+		case BazaarMembers::Pricecheck:
 			if (!pg_Item)
 				return false;
 			Dest.DWord = pg_Item->Cost;
 			Dest.Type = pIntType;
 			return true;
 		}
+
 		return false;
 	}
 
 	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
-		if (BzDone)
+		if (BazaarSearchDone)
 			strcpy_s(Destination, MAX_STRING, "TRUE");
 		else
 			strcpy_s(Destination, MAX_STRING, "FALSE");
@@ -449,6 +386,13 @@ public:
 	{
 		return false;
 	}
+
+	static bool dataBazaar(const char* szName, MQTypeVar& Ret)
+	{
+		Ret.DWord = 1;
+		Ret.Type = pBazaarType;
+		return true;
+	}
 };
 
 void BZQuery(SPAWNINFO* pChar, char* szLine)
@@ -457,47 +401,6 @@ void BZQuery(SPAWNINFO* pChar, char* szLine)
 	{
 		SendWndClick2(pBazaarSearchWnd->pQueryButton, "leftmouseup");
 	}
-}
-
-// Called once, when the plugin is to initialize
-PLUGIN_API void InitializePlugin()
-{
-	LoadMQ2Plugin("MQ2ItemDisplay");
-
-	if (HMODULE h = GetModuleHandle("MQ2ItemDisplay.dll"))
-	{
-		pg_Item = (ITEMINFO*)GetProcAddress(h, "g_Item");
-	}
-	else
-	{
-		pg_Item = nullptr;
-	}
-
-	// Add commands, macro parameters, hooks, etc.
-	AddCommand("/bzquery", BZQuery);
-	AddCommand("/bzsrch", BzSrchMe);
-	AddCommand("/breset", BzSrchMe);
-	AddCommand("/mq2bzsrch", MQ2BzSrch);
-	AddMQ2Data("Bazaar", dataBazaar);              // cc - added, but not using TLO yet
-
-	EzDetourwName(CBazaarSearchWnd__HandleBazaarMsg, &BzSrchHook::BzDetour, &BzSrchHook::BzTrampoline, "CBazaarSearchWnd__HandleBazaarMsg");
-	pBazaarType = new MQ2BazaarType;
-	pBazaarItemType = new MQ2BazaarItemType;
-}
-
-// Called once, when the plugin is to shutdown
-PLUGIN_API void ShutdownPlugin()
-{
-	// Remove commands, macro parameters, hooks, etc.
-	RemoveDetour(CBazaarSearchWnd__HandleBazaarMsg);
-	RemoveMQ2Data("Bazaar");
-	RemoveCommand("/mq2bzsrch");
-	RemoveCommand("/breset");
-	RemoveCommand("/bzsrch");
-	RemoveCommand("/bzquery");
-
-	delete pBazaarType;
-	delete pBazaarItemType;
 }
 
 void MQ2BzSrch(SPAWNINFO* pChar, char* szLine)
@@ -575,11 +478,11 @@ void DoClass(char* szArg)
 		}
 		else
 		{
-			for (size_t i = 0; i < lengthof(classes); i++)
+			for (auto& c : classes)
 			{
-				if (classes[i].classn == index)
+				if (c.classn == index)
 				{
-					strcpy_s(szClass, classes[i].name);
+					strcpy_s(szClass, c.name);
 					break;
 				}
 			}
@@ -587,9 +490,9 @@ void DoClass(char* szArg)
 	}
 	else
 	{
-		for (size_t i = 0; i < lengthof(classes); i++)
+		for (auto& c : classes)
 		{
-			if (!_stricmp(szArg, classes[i].name))
+			if (!_stricmp(szArg, c.name))
 			{
 				strcpy_s(szClass, szArg);
 				break;
@@ -607,7 +510,7 @@ void DoClass(char* szArg)
 	{
 		strcpy_s(szClass, "Any Class");
 	}
-	
+
 	if (auto pCombo = pBazaarSearchWnd->pClassSlotCombobox)
 	{
 		SetComboSelection(pCombo, szClass);
@@ -633,11 +536,11 @@ void DoRace(char* szArg)
 		}
 		else
 		{
-			for (size_t i = 0; i < lengthof(races); i++)
+			for (auto& r : races)
 			{
-				if (races[i].race == index)
+				if (r.race == index)
 				{
-					strcpy_s(szRace, races[i].name);
+					strcpy_s(szRace, r.name);
 					break;
 				}
 			}
@@ -645,9 +548,9 @@ void DoRace(char* szArg)
 	}
 	else
 	{
-		for (size_t i = 0; i < lengthof(races); i++)
+		for (auto& r : races)
 		{
-			if (!_stricmp(szArg, races[i].name))
+			if (!_stricmp(szArg, r.name))
 			{
 				strcpy_s(szRace, szArg);
 				break;
@@ -734,7 +637,7 @@ DWORD __stdcall searchthread(void* pData)
 
 			startwait = MQGetTickCount64() + 2000;
 
-			while (pQueryButton && pQueryButton->IsEnabled() == 0 && !BzDone)
+			while (pQueryButton && pQueryButton->IsEnabled() == 0 && !BazaarSearchDone)
 			{
 				Sleep(0);
 
@@ -744,9 +647,9 @@ DWORD __stdcall searchthread(void* pData)
 				}
 			}
 
-			if (!BzDone)
+			if (!BazaarSearchDone)
 			{
-				BzDone = true;
+				BazaarSearchDone = true;
 			}
 		}
 		else
@@ -766,7 +669,7 @@ void BzSrchMe(SPAWNINFO* pChar, char* szLine)
 {
 	std::scoped_lock lock(s_bzrMutex);
 
-	BzDone = false;
+	BazaarSearchDone = false;
 	char szArg[MAX_STRING] = { 0 };
 	char szItem[MAX_STRING] = { 0 };
 	CHARINFO* pCharInfo = GetCharInfo();
@@ -794,7 +697,7 @@ void BzSrchMe(SPAWNINFO* pChar, char* szLine)
 		pList->DeleteAll();
 	}
 
-	BzCount = 0;
+	BazaarItemsArray.clear();
 
 	while (bArg)
 	{
@@ -910,7 +813,7 @@ void BzSrchMe(SPAWNINFO* pChar, char* szLine)
 	{
 		pEdit->SetWindowText(szItem);
 		DWORD nThreadID = 0;
-		CreateThread(NULL, NULL, searchthread, 0, 0, &nThreadID);
+		CreateThread(nullptr, 0, searchthread, nullptr, 0, &nThreadID);
 	}
 	else
 	{
@@ -918,9 +821,45 @@ void BzSrchMe(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-bool dataBazaar(const char* szName, MQTypeVar& Ret)
+
+// Called once, when the plugin is to initialize
+PLUGIN_API void InitializePlugin()
 {
-	Ret.DWord = 1;
-	Ret.Type = pBazaarType;
-	return true;
+	LoadMQ2Plugin("MQ2ItemDisplay");
+
+	if (HMODULE h = GetModuleHandle("MQ2ItemDisplay.dll"))
+	{
+		pg_Item = (ITEMINFO*)GetProcAddress(h, "g_Item");
+	}
+	else
+	{
+		pg_Item = nullptr;
+	}
+
+	// Add commands, macro parameters, hooks, etc.
+	AddCommand("/bzquery", BZQuery);
+	AddCommand("/bzsrch", BzSrchMe);
+	AddCommand("/breset", BzSrchMe);
+	AddCommand("/mq2bzsrch", MQ2BzSrch);
+	AddMQ2Data("Bazaar", MQ2BazaarType::dataBazaar);
+
+	EzDetourwName(CBazaarSearchWnd__HandleBazaarMsg, &CBazaarSearchWnd_Hook::HandleSearchResults_Detour, &CBazaarSearchWnd_Hook::HandleSearchResults_Trampoline, "CBazaarSearchWnd__HandleBazaarMsg");
+	pBazaarType = new MQ2BazaarType;
+	pBazaarItemType = new MQ2BazaarItemType;
 }
+
+// Called once, when the plugin is to shutdown
+PLUGIN_API void ShutdownPlugin()
+{
+	// Remove commands, macro parameters, hooks, etc.
+	RemoveDetour(CBazaarSearchWnd__HandleBazaarMsg);
+	RemoveMQ2Data("Bazaar");
+	RemoveCommand("/mq2bzsrch");
+	RemoveCommand("/breset");
+	RemoveCommand("/bzsrch");
+	RemoveCommand("/bzquery");
+
+	delete pBazaarType;
+	delete pBazaarItemType;
+}
+

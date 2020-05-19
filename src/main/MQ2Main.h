@@ -614,7 +614,7 @@ public:
 
 		if (end > now)
 			return end - now;
-		
+
 		return 0UL;
 	}
 
