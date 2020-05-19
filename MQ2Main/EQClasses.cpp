@@ -3259,11 +3259,7 @@ FUNCTION_AT_ADDRESS( CGuild::CGuild(void),CGuild__CGuild);
 #endif
 #ifdef CGuild__GetGuildName_x
 #if !defined(ROF2EMU) && !defined(UFEMU)
-#if defined(TEST)
 FUNCTION_AT_ADDRESS(char * CGuild::GetGuildName(__int64, ServerGuildName, int, bool),CGuild__GetGuildName);
-#else
-FUNCTION_AT_ADDRESS(char * CGuild::GetGuildName(__int64),CGuild__GetGuildName);
-#endif
 #else
 FUNCTION_AT_ADDRESS(char * CGuild::GetGuildName(DWORD), CGuild__GetGuildName);
 #endif

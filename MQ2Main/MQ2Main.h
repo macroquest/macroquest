@@ -938,14 +938,19 @@ EQLIB_API void PrettifyNumber(char* string, size_t bufferSize, int decimals = 0)
 //they are dynamiczone/raid/faction related
 //need to investigate further to know for sure -eqmule
 #else
-#define XWN_DIALOGRESPONSELINK  32
-#define XWM_FOCUS               33
-#define XWM_LOSTFOCUS           34
-#define XWM_TEXTENTRY_COMPLETE  40
+#define XWN_DIALOGRESPONSELINK		32
+#define XWM_FOCUS					33
+#define XWM_LOSTFOCUS				34
+#define XWM_TEXTENTRY_COMPLETE		40
 #define XWN_FILESELECTION_COMPLETE	41
-#define XWM_RSELITEM_DOWN       46
-#define XWN_OUTPUT_TEXT         48
-#define XWN_COMMANDLINK         49
+#define XWN_ICONSELECTION_COMPLETE	42
+#define XWN_RELOAD_INI				43
+#define XWN_THUMBTRACK				44
+#define XWN_SELITEM_DOWN			45
+#define XWN_FIRST_USER				46
+#define XWM_RSELITEM_DOWN			47
+#define XWN_OUTPUT_TEXT				48
+#define XWN_COMMANDLINK				49
 #endif
 
 #define XKF_SHIFT               1

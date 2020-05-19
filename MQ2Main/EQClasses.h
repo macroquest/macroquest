@@ -3502,9 +3502,7 @@ public:
 /*0xBC8*/ __time32_t		LastGuildNameRequest;
 /*0xBCC*/ HashListSet<GuildNameEntry*, 0xFA> GuildNamesTable;//this is not correct container for sure, todo: figure out what is
 //0xFC4 - 0xBCC = 0x3F8 and we learn from 4B0A5C in Apr 13 2020 exe that is the size... push 3F8h
-#if defined(TEST)
 /*0xFC4*/ int				Unknown0xFC4[3];
-#endif
 /*0xFC4*/ int				OnlineCount;//definately correct see 4AF50F in apr 13 2020 - eqmule
 /*0xFC8*/ bool				bOnlineOutofSync;
 /*0xFCC*/ int				TributeTimer;
@@ -3523,11 +3521,7 @@ EQLIB_OBJECT bool CGuild::ValidGuildName(int);
 EQLIB_OBJECT char * CGuild::GetGuildMotd(void);
 EQLIB_OBJECT char * CGuild::GetGuildMotdAuthor(void);
 #if !defined(ROF2EMU) && !defined(UFEMU)
-#if defined(TEST)
 EQLIB_OBJECT char * CGuild::GetGuildName(__int64, ServerGuildName, int, bool);
-#else
-EQLIB_OBJECT char * CGuild::GetGuildName(__int64);
-#endif
 EQLIB_OBJECT __int64 CGuild::GetGuildIndex(char *);
 #else
 EQLIB_OBJECT char * CGuild::GetGuildName(DWORD);
@@ -9254,9 +9248,9 @@ public:
 /*0x025e*/ bool			Corpse;
 /*0x025f*/ bool			ClientGmFlagSet;
 /*0x0260*/ int          BankSharedPlat;//31e4 CharBaseBegin+488
-/*0x0264*/ int          BankSharedGold;//CharBaseBegin+48c
-/*0x0268*/ int          BankSharedSilver;//CharBaseBegin+490
-/*0x026c*/ int          BankSharedCopper;//CharBaseBegin+494
+//*0x0264*/ int          BankSharedGold;//CharBaseBegin+48c
+//*0x0268*/ int          BankSharedSilver;//CharBaseBegin+490
+//*0x026c*/ int          BankSharedCopper;//CharBaseBegin+494
 /*0x0270*/ int          BankPlat;//CharBaseBegin+498
 /*0x0274*/ int          BankGold;//CharBaseBegin+49c
 /*0x0278*/ int          BankSilver;//CharBaseBegin+4a0

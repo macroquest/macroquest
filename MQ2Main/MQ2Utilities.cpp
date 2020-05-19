@@ -1470,12 +1470,8 @@ PCHAR GetGuildByID(DWORD GuildID)
 	{
 		if (GuildID == 0 || GuildID == -1)
 			return 0;
-	#if defined(TEST)
 		ServerGuildName sa = { 0 };
 		if (PCHAR thename = pGuild->GetGuildName(GuildID,sa,0,1)) {
-	#else
-		if (PCHAR thename = pGuild->GetGuildName(GuildID)) {
-	#endif
 			if (!_stricmp(thename, "Unknown Guild"))
 				return 0;
 			return thename;
