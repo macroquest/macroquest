@@ -626,13 +626,13 @@ public:
 
 void InitializeCachedBuffs();
 void ShutdownCachedBuffs();
-MQLIB_OBJECT int GetCachedBuff(SPAWNINFO* pSpawn, const std::function<bool(CachedBuff)>& predicate);
-MQLIB_OBJECT int GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index);
-MQLIB_OBJECT int GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index, const std::function<bool(CachedBuff)>& predicate);
-MQLIB_OBJECT std::optional<CachedBuff> GetCachedBuffAtSlot(SPAWNINFO* pSpawn, int slot);
-MQLIB_OBJECT std::vector<CachedBuff> FilterCachedBuffs(SPAWNINFO* pSpawn, const std::function<bool(CachedBuff)>& predicate);
-MQLIB_OBJECT DWORD GetCachedBuffCount(SPAWNINFO* pSpawn);
-MQLIB_OBJECT DWORD GetCachedBuffCount(SPAWNINFO* pSpawn, const std::function<bool(CachedBuff)>& predicate);
+int GetCachedBuff(SPAWNINFO* pSpawn, const std::function<bool(CachedBuff)>& predicate);
+int GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index, const std::function<bool(CachedBuff)>& predicate);
+std::optional<CachedBuff> GetCachedBuffAtSlot(SPAWNINFO* pSpawn, int slot);
+std::vector<CachedBuff> FilterCachedBuffs(SPAWNINFO* pSpawn, const std::function<bool(CachedBuff)>& predicate);
+DWORD GetCachedBuffCount(SPAWNINFO* pSpawn, const std::function<bool(CachedBuff)>& predicate);
+MQLIB_API int GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index);
+MQLIB_API DWORD GetCachedBuffCount(SPAWNINFO* pSpawn);
 MQLIB_API void ClearCachedBuffsSpawn(SPAWNINFO* pSpawn);
 MQLIB_API void ClearCachedBuffs();
 
