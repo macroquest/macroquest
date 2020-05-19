@@ -17,7 +17,6 @@
 //
 
 #include <mq/Plugin.h>
-#include <mutex>
 
 using namespace mq::datatypes;
 
@@ -77,7 +76,6 @@ struct
 };
 
 ITEMINFO* pg_Item;                                // dependent on MQ2ItemDisplay
-std::recursive_mutex s_bzrMutex;
 
 // Contains an item response from the bazaar search. Struct layout does not
 // matter because we are constructing it ourself via CUnSerializeBuffer.
@@ -115,6 +113,17 @@ struct BazaarSearchItem
 };
 std::vector<BazaarSearchItem> BazaarItemsArray;
 bool BazaarSearchDone = false;
+bool WaitingForSearch = false;
+uint64_t NextSearchCheck = 0;
+
+// attn: dannuic, I need a state machine
+enum class SearchCheckState
+{
+	None, // also used as the "Done" state.
+	WaitForQueryButton,
+	WaitForQueryComplete,
+};
+SearchCheckState SearchState = SearchCheckState::None;
 
 class CBazaarSearchWnd_Hook
 {
@@ -408,7 +417,7 @@ void MQ2BzSrch(SPAWNINFO* pChar, char* szLine)
 	WriteChatColor("Bazaar Search Plugin by DKAA", USERCOLOR_WHO);
 	WriteChatColor("", USERCOLOR_WHO);
 	WriteChatColor("usage: /bzsrch [params] [name]", USERCOLOR_WHO);
-	WriteChatColor("    params:", USERCOLOR_WHO);
+	WriteChatColor("params:", USERCOLOR_WHO);
 	WriteChatColor("    [trader any value you see in that box or an index, remember to enclose values with spaces in them with quotes like: \"some value\"]", USERCOLOR_WHO);
 	WriteChatColor("    [race any|barbarian|dark elf|dwarf|erudite|froglok|gnome|half elf|halfling|high elf|human|iksar|ogre|troll|vah shir|wood elf|drakkin]", USERCOLOR_WHO);
 	WriteChatColor("    [class any|bard|beastlord|berserkers|cleric|druid|enchanter|magician|monk|necromancer|paladin|ranger|rogue|shadow knight|shaman|warrior|wizard]", USERCOLOR_WHO);
@@ -419,13 +428,15 @@ void MQ2BzSrch(SPAWNINFO* pChar, char* szLine)
 	WriteChatColor("    [prestige any value you see in that box or an index, remember to enclose values with spaces in them with quotes like: \"some value\"]", USERCOLOR_WHO);
 	WriteChatColor("    [augment any value you see in that box or an index, remember to enclose values with spaces in them with quotes like: \"some value\"]", USERCOLOR_WHO);
 	WriteChatColor("", USERCOLOR_WHO);
-	WriteChatColor("values are returned in $bazaar variable", USERCOLOR_WHO);
-	WriteChatColor("$bazaar -- TRUE if there are search results", USERCOLOR_WHO);
-	WriteChatColor("$bazaar[count] -- number of search results", USERCOLOR_WHO);
-	WriteChatColor("$bazaar[n,name] -- name of the nth item", USERCOLOR_WHO);
-	WriteChatColor("$bazaar[n,price] -- price of the nth item", USERCOLOR_WHO);
-	WriteChatColor("$bazaar[n,id] -- id of the nth item", USERCOLOR_WHO);
-	WriteChatColor("$bazaar[n,trader] -- trader id of the nth item", USERCOLOR_WHO);
+	WriteChatColor("Results are available through the Bazaar TLO:", USERCOLOR_WHO);
+	WriteChatColor("    ${Bazaar} -- TRUE if there are search results", USERCOLOR_WHO);
+	WriteChatColor("    ${Bazaar.Count} -- number of search results", USERCOLOR_WHO);
+	WriteChatColor("    ${Bazaar.Done} -- TRUE if search is completed", USERCOLOR_WHO);
+	WriteChatColor("    ${Bazaar.Item[n].Name} -- name of the nth item", USERCOLOR_WHO);
+	WriteChatColor("    ${Bazaar.Item[n].Price} -- price of the nth item", USERCOLOR_WHO);
+	WriteChatColor("    ${Bazaar.Item[n].Quantity} -- quantity of the nth item", USERCOLOR_WHO);
+	WriteChatColor("    ${Bazaar.Item[n].ItemID} -- id of the nth item", USERCOLOR_WHO);
+	WriteChatColor("    ${Bazaar.Item[n].Trader} -- trader name of the nth item", USERCOLOR_WHO);
 }
 
 void SetComboSelection(CComboWnd* pCombo, DWORD index)
@@ -612,75 +623,29 @@ void DoCombo(CComboWnd* pCombo, const char* szArg, const char* key)
 	}
 }
 
-DWORD __stdcall searchthread(void* pData)
+void BzReset(SPAWNINFO* pChar, char* szLine)
 {
-	std::scoped_lock lock(s_bzrMutex);
-
-	if (auto pQueryButton = pBazaarSearchWnd->pQueryButton)
-	{
-		uint64_t startwait = MQGetTickCount64() + 7000;
-
-		while (pQueryButton->IsEnabled() == 0)
-		{
-			Sleep(0);
-
-			if (startwait < MQGetTickCount64())
-			{
-				WriteChatf("1. timed out in /bzsrch waiting for BZR_QueryButton to enable.");
-				break;
-			}
-		}
-
-		if (pQueryButton->IsEnabled())
-		{
-			HideDoCommand((SPAWNINFO*)pLocalPlayer, "/bzquery", true);
-
-			startwait = MQGetTickCount64() + 2000;
-
-			while (pQueryButton && pQueryButton->IsEnabled() == 0 && !BazaarSearchDone)
-			{
-				Sleep(0);
-
-				if (startwait < MQGetTickCount64())
-				{
-					break;
-				}
-			}
-
-			if (!BazaarSearchDone)
-			{
-				BazaarSearchDone = true;
-			}
-		}
-		else
-		{
-			WriteChatf("woah! hold your horses there bazaarmule... BZR_QueryButton is not enabled, I suggest you check that in your macro before you issue a /bzsrch command.");
-		}
-	}
-	else
-	{
-		WriteChatf("Whats wrong? couldnt find the BZR_QueryButton window.");
-	}
-
-	return 0;
+	BazaarSearchDone = false;
+	WaitingForSearch = false;
+	BazaarItemsArray.clear();
 }
 
 void BzSrchMe(SPAWNINFO* pChar, char* szLine)
 {
-	std::scoped_lock lock(s_bzrMutex);
+	CHARINFO* pCharInfo = GetCharInfo();
+	if (!pBazaarSearchWnd || !pCharInfo)
+		return;
 
 	BazaarSearchDone = false;
-	char szArg[MAX_STRING] = { 0 };
-	char szItem[MAX_STRING] = { 0 };
-	CHARINFO* pCharInfo = GetCharInfo();
-	bool bArg = true;
-	bool first = true;
+	WaitingForSearch = false;
+	BazaarItemsArray.clear();
 
+	// Reset to defaults
 	if (CButtonWnd* pDefaultButton = pBazaarSearchWnd->pDefaultButton)
 	{
 		if (pDefaultButton->IsEnabled())
 		{
-			SendWndClick2((CXWnd*)pDefaultButton, "leftmouseup");
+			SendWndClick2(pDefaultButton, "leftmouseup");
 		}
 		else
 		{
@@ -697,11 +662,18 @@ void BzSrchMe(SPAWNINFO* pChar, char* szLine)
 		pList->DeleteAll();
 	}
 
-	BazaarItemsArray.clear();
+	// NOTE: A lot of these member variables rely on the ui structure being correct. They're
+	// children defined in the XML. If there is ever trouble with keeping them updated, they
+	// should be switched to look up by name via GetChildItem.
+	bool first = true;
+	bool bArg = true;
+	char szItem[MAX_STRING] = { 0 };
 
 	while (bArg)
 	{
+		char szArg[MAX_STRING] = { 0 };
 		GetArg(szArg, szLine, 1);
+
 		szLine = GetNextArg(szLine, 1);
 
 		if (szArg[0] == 0)
@@ -812,8 +784,10 @@ void BzSrchMe(SPAWNINFO* pChar, char* szLine)
 	if (CEditWnd* pEdit = pBazaarSearchWnd->pItemNameInput)
 	{
 		pEdit->SetWindowText(szItem);
-		DWORD nThreadID = 0;
-		CreateThread(nullptr, 0, searchthread, nullptr, 0, &nThreadID);
+
+		SearchState = SearchCheckState::None;
+		WaitingForSearch = true;
+		NextSearchCheck = 0;
 	}
 	else
 	{
@@ -821,6 +795,66 @@ void BzSrchMe(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
+void DoWaitingForSearchChecks()
+{
+	if (!pBazaarSearchWnd)
+	{
+		WaitingForSearch = false;
+		return;
+	}
+
+	CButtonWnd* pQueryButton = pBazaarSearchWnd->pQueryButton;
+	if (!pQueryButton)
+	{
+		MacroError("Unable to perform search, we couldnt find the BZR_QueryButton window.");
+
+		WaitingForSearch = false;
+		return;
+	}
+
+	if (NextSearchCheck != 0 && MQGetTickCount64() > NextSearchCheck)
+	{
+		if (SearchState == SearchCheckState::WaitForQueryButton)
+			MacroError("Timed out waiting for BZR_QueryButton to be enabled to start the search. The query may not be valid.");
+		else
+			MacroError("Timed out waiting for /bzsrch to complete");
+
+		WaitingForSearch = false;
+		return;
+	}
+
+	switch (SearchState)
+	{
+	case SearchCheckState::None:
+		BazaarSearchDone = false;
+
+		if (!pQueryButton->IsEnabled())
+		{
+			SearchState = SearchCheckState::WaitForQueryButton;
+			NextSearchCheck = MQGetTickCount64() + 7000; // 7 seconds arbitrarily
+			break;
+		}
+		// fallthrough
+	case SearchCheckState::WaitForQueryButton:
+		if (pQueryButton->IsEnabled())
+		{
+			HideDoCommand((SPAWNINFO*)pLocalPlayer, "/bzquery", true);
+
+			SearchState = SearchCheckState::WaitForQueryComplete;
+			NextSearchCheck = MQGetTickCount64() + 2000; // 2 seconds arbitrarily
+		}
+		break;
+
+	case SearchCheckState::WaitForQueryComplete:
+		if (BazaarSearchDone)
+		{
+			WaitingForSearch = false;
+			SearchState = SearchCheckState::None;
+			NextSearchCheck = 0;
+		}
+		break;
+	}
+}
 
 // Called once, when the plugin is to initialize
 PLUGIN_API void InitializePlugin()
@@ -836,10 +870,9 @@ PLUGIN_API void InitializePlugin()
 		pg_Item = nullptr;
 	}
 
-	// Add commands, macro parameters, hooks, etc.
 	AddCommand("/bzquery", BZQuery);
 	AddCommand("/bzsrch", BzSrchMe);
-	AddCommand("/breset", BzSrchMe);
+	AddCommand("/breset", BzReset);
 	AddCommand("/mq2bzsrch", MQ2BzSrch);
 	AddMQ2Data("Bazaar", MQ2BazaarType::dataBazaar);
 
@@ -851,7 +884,6 @@ PLUGIN_API void InitializePlugin()
 // Called once, when the plugin is to shutdown
 PLUGIN_API void ShutdownPlugin()
 {
-	// Remove commands, macro parameters, hooks, etc.
 	RemoveDetour(CBazaarSearchWnd__HandleBazaarMsg);
 	RemoveMQ2Data("Bazaar");
 	RemoveCommand("/mq2bzsrch");
@@ -861,5 +893,22 @@ PLUGIN_API void ShutdownPlugin()
 
 	delete pBazaarType;
 	delete pBazaarItemType;
+}
+
+PLUGIN_API void SetGameState(DWORD gamestate)
+{
+	// When game state changes, just clear things.
+	WaitingForSearch = false;
+	BazaarSearchDone = false;
+	BazaarItemsArray.clear();
+	NextSearchCheck = 0;
+}
+
+PLUGIN_API void OnPulse()
+{
+	if (WaitingForSearch)
+	{
+		DoWaitingForSearchChecks();
+	}
 }
 
