@@ -559,20 +559,20 @@ MQLIB_API bool        CloseContainer(CONTENTS* pItem);
 template <typename... Args> \
 auto AllBuffs(Type value, Args... args) \
 { \
-    return [value = std::forward<Type>(value), args = std::make_tuple(std::forward<Args>(args)...)](auto... buff) -> bool \
-    { \
-        return Code && \
-               std::apply([](auto &&... args) { return AllBuffs(std::forward<decltype(args)>(args)...); }, std::move(args))(buff...); \
-    }; \
+	return [value = std::forward<Type>(value), args = std::make_tuple(std::forward<Args>(args)...)](auto... buff) -> bool \
+	{ \
+		return Code && \
+			std::apply([](auto &&... args) { return AllBuffs(std::forward<decltype(args)>(args)...); }, std::move(args))(buff...); \
+	}; \
 } \
 template <typename... Args> \
 auto AnyBuffs(Type value, Args... args) \
 { \
-    return [value = std::forward<Type>(value), args = std::make_tuple(std::forward<Args>(args)...)](auto... buff) -> bool \
-    { \
-        return Code || \
-               std::apply([](auto &&... args) { return AnyBuffs(std::forward<decltype(args)>(args)...); }, std::move(args))(buff...); \
-    }; \
+	return [value = std::forward<Type>(value), args = std::make_tuple(std::forward<Args>(args)...)](auto... buff) -> bool \
+	{ \
+		return Code || \
+			std::apply([](auto &&... args) { return AnyBuffs(std::forward<decltype(args)>(args)...); }, std::move(args))(buff...); \
+	}; \
 }
 
 auto AllBuffs() { return [](auto...) { return true; }; }
@@ -581,19 +581,19 @@ auto AnyBuffs() { return [](auto...) { return false; }; }
 template <typename Pred, typename... Args>
 auto AllBuffs(Pred value, Args... args)
 {
-    return [value = std::forward<Pred>(value), args = std::make_tuple(std::forward<Args>(args)...)](auto... buff) -> bool {
-        return value(buff...) &&
-               std::apply([](auto &&... args) { return AllBuffs(std::forward<decltype(args)>(args)...); }, std::move(args))(buff...);
-    };
+	return[value = std::forward<Pred>(value), args = std::make_tuple(std::forward<Args>(args)...)](auto... buff) -> bool {
+		return value(buff...) &&
+			std::apply([](auto&&... args) { return AllBuffs(std::forward<decltype(args)>(args)...); }, std::move(args))(buff...);
+	};
 }
 
 template <typename Pred, typename... Args>
 auto AnyBuffs(Pred value, Args... args)
 {
-    return [value = std::forward<Pred>(value), args = std::make_tuple(std::forward<Args>(args)...)](auto... buff) -> bool {
-        return value(buff...) ||
-               std::apply([](auto &&... args) { return AnyBuffs(std::forward<decltype(args)>(args)...); }, std::move(args))(buff...);
-    };
+	return[value = std::forward<Pred>(value), args = std::make_tuple(std::forward<Args>(args)...)](auto... buff) -> bool {
+		return value(buff...) ||
+			std::apply([](auto&&... args) { return AnyBuffs(std::forward<decltype(args)>(args)...); }, std::move(args))(buff...);
+	};
 }
 
 SPELLPREDICATE(SpellAffect, (HasSPA(buff..., value, value.Increase)));

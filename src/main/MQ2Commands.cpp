@@ -5572,7 +5572,7 @@ void SetForegroundWindowInternal(HWND hWnd)
 	}
 
 	SetForegroundWindow(hWnd);
-	ShowWindow(hWnd, SW_SHOWNORMAL);
+	ShowWindow(hWnd, ::IsIconic(hWnd) ? SW_RESTORE : SW_SHOWNORMAL);
 
 	if (GetKeyboardState((LPBYTE)& keyState))
 	{

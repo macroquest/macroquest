@@ -1,3 +1,32 @@
+May 14 2020
+- Filled in the CGuild class
+
+Apr 30 2020
+- Me.Invis now takes an optional index or a name to return invis vs undead and animals
+  Example 1: /echo ${Me.Invis} just return the normal one like before, are u invis of any kind.
+  Example 2: /echo ${Me.Invis[ANY]} or just ${Me.Invis[0]} returns true if you are invis of any kind, same as just doing ${Me.Invis}
+  Example 3: /echo ${Me.Invis[NORMAL]} or just ${Me.Invis[1]} returns true if you are normal invis.
+  Example 4: /echo ${Me.Invis[UNDEAD]} or just ${Me.Invis[2]} returns true if you are invis vs undead
+  Example 5: /echo ${Me.Invis[ANIMAL]} or just ${Me.Invis[3]} returns true if you are invis vs animal
+  Example 6: /echo ${Me.Invis[SOS]} or just ${Me.Invis[4]} returns true IF you are a ROG AND in fact hidden AND have a skill of at least 100 in HIDE AND have the AA for SoS
+
+Apr 29 2020
+- Added ms to /delay
+  Usage: /delay 1500ms
+  will delay 1.5 seconds...
+
+Apr 28 2020
+- Optimized the GetGroupMainAssistTargetID inline.
+- Fixed /foreground to respect maximizzed window pos - bug reported by Kaen01
+- Added .SpellRankCap to the character TLO. It returns an in representing your characters spell rank cap.
+  if it returns:
+  1 = you CAN cast Rk. I spells
+  2 = you CAN cast Rk. II spells
+  3 = you CAN cast Rk. III spells
+
+Apr 24 2020
+- Optimized GetRaidMainAssistTargetID.
+
 Apr 15 2020
 - Fixed ${Me.CanMount} for some indoor zones that where not flagged as nomount and added bazaar, nexus to zones where its ok to mount.
 

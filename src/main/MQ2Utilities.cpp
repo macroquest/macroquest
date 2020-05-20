@@ -7909,6 +7909,10 @@ bool WillFitInBank(CONTENTS* pContent)
 	if (!pChar)
 		return false;
 
+	// If bank is empty, then it will fit.
+	if (pChar->BankItems.Items.Size == 0)
+		return true;
+
 	for (size_t slot = 0; slot < pChar->BankItems.Items.Size; slot++)
 	{
 		CONTENTS* pCont = pChar->BankItems.Items[slot].get();
@@ -8441,85 +8445,40 @@ inline SPAWNINFO* GetGroupMember(int index)
 
 uint32_t GetGroupMainAssistTargetID()
 {
-	if (CHARINFO* pChar = GetCharInfo())
-	{
-		bool bMainAssist = false;
+	if (!pCharData || !pCharData->pGroupInfo) return 0;
+	if (!pLocalPlayer) return 0;
 
-		if (GROUPINFO* pGroup = pChar->pGroupInfo)
-		{
-			if (GROUPMEMBER* pMember = pGroup->pMember[0])
-			{
-				for (auto & member : pGroup->pMember)
-				{
-					if (member && member->MainAssist)
-					{
-						bMainAssist = true;
-						break;
-					}
-				}
-			}
-		}
-
-		if (bMainAssist && pChar->pSpawn)
-		{
-			return pChar->pSpawn->GroupAssistNPC[0];
-		}
-	}
-
-	return 0;
+	return pLocalPlayer->GroupAssistNPC[0];
 }
 
 uint32_t GetRaidMainAssistTargetID(int index)
 {
-	if (SPAWNINFO* pSpawn = (SPAWNINFO*)pLocalPlayer)
-	{
-		if (pRaid)
-		{
-			bool bMainAssist = false;
+	if (!pLocalPlayer || !pRaid) return 0;
 
-			for (int i = 0; i < MAX_RAID_SIZE; i++)
-			{
-				if (pRaid->RaidMemberUsed[i] && pRaid->RaidMember[i].RaidMainAssist)
-				{
-					bMainAssist = true;
-					break;
-				}
-			}
-
-			if (bMainAssist)
-			{
-				// FIXME: Constant for raid assists
-				if (index < 0 || index > 3)
-					index = 0;
-
-				return pSpawn->RaidAssistNPC[index];
-			}
-		}
-	}
-
-	return 0;
+	index = std::clamp(index, 0, MAX_RAID_ASSISTS - 1);
+	return pLocalPlayer->RaidAssistNPC[index];
 }
 
 bool IsAssistNPC(SPAWNINFO* pSpawn)
 {
-	if (pSpawn)
+	if (!pSpawn)
+		return false;
+
+	if (uint32_t AssistID = GetGroupMainAssistTargetID())
 	{
-		if (uint32_t AssistID = GetGroupMainAssistTargetID())
+		if (AssistID == pSpawn->SpawnID)
+		{
+			return true;
+		}
+	}
+
+	for (int nAssist = 0; nAssist < MAX_RAID_ASSISTS; nAssist++)
+	{
+		if (uint32_t AssistID = GetRaidMainAssistTargetID(nAssist))
 		{
 			if (AssistID == pSpawn->SpawnID)
 			{
 				return true;
-			}
-		}
-
-		for (int nAssist = 0; nAssist < 3; nAssist++)
-		{
-			if (uint32_t AssistID = GetRaidMainAssistTargetID(nAssist))
-			{
-				if (AssistID == pSpawn->SpawnID)
-				{
-					return true;
-				}
 			}
 		}
 	}

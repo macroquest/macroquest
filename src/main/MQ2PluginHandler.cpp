@@ -709,6 +709,7 @@ void PluginsRemoveSpawn(SPAWNINFO* pSpawn)
 	PluginDebug("PluginsRemoveSpawn(%s)", pSpawn->Name);
 
 	SpawnByName.erase(pSpawn->Name);
+	ClearCachedBuffsSpawn(pSpawn);
 
 	std::scoped_lock lock(s_pluginsMutex);
 	MQPlugin* pPlugin = pPlugins;

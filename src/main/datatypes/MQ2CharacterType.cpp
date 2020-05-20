@@ -320,6 +320,7 @@ enum class CharacterMembers
 	Spell,
 	ParcelStatus,
 	CanMount,
+	SpellRankCap,
 };
 
 enum class CharacterMethods
@@ -632,6 +633,7 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, Spell);
 	ScopedTypeMember(CharacterMembers, ParcelStatus);
 	ScopedTypeMember(CharacterMembers, CanMount);
+	ScopedTypeMember(CharacterMembers, SpellRankCap);
 
 	ScopedTypeMethod(CharacterMethods, Stand);
 	ScopedTypeMethod(CharacterMethods, Sit);
@@ -3948,11 +3950,28 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 
 	case CharacterMembers::CanMount:
-		Dest.DWord = 0;
-		Dest.Type = pBoolType;
-
 		if (PlayerClient* pPlayer = pLocalPlayer)
 		{
+			Dest.DWord = 0;
+			Dest.Type = pBoolType;
+
+			if (pPlayer->HeadWet != 0 || pPlayer->Vehicle != nullptr)
+				return true;
+
+			int race = pPlayer->mActorClient.Race;
+
+			// These non-player races can mount.
+			if (race != EQR_SKELETON
+				|| race != EQR_SKELETON_NEW
+				|| race != EQR_OEQ_SKELETON
+				|| race != EQR_SOL_SKELETON)
+			{
+				// FIXME: we can calculate this, don't need to look it up.
+				// The -1 means "use the current race of the player"
+				if (!pPlayer->LegalPlayerRace(-1))
+					return true;
+			}
+
 			// TODO: Check that these need to be set. Then update or remove this comment.
 			int zoneId = pWorldData->GetZoneBaseId(pPlayer->GetZoneID());
 			if (zoneId == 151 /* bazaar */
@@ -3975,25 +3994,22 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 			if (pWorldData->IsFlagSet(pPlayer->GetZoneID(), EQZoneFlag_NoMount))
 				return true;
 
-			if (pPlayer->HeadWet != 0 || pPlayer->Vehicle != nullptr)
-				return true;
-
-			int race = pPlayer->mActorClient.Race;
-
-			// These non-player races can mount.
-			if (race != EQR_SKELETON
-				|| race != EQR_SKELETON_NEW
-				|| race != EQR_OEQ_SKELETON
-				|| race != EQR_SOL_SKELETON)
-			{
-				// FIXME: we can calculate this, don't need to look it up.
-				// The -1 means "use the current race of the player"
-				if (!pPlayer->LegalPlayerRace(-1))
-					return true;
-			}
-
 			// If we made it this far, we can mount.
 			Dest.DWord = 1;
+			return true;
+		}
+		return false;
+
+	case CharacterMembers::SpellRankCap:
+		Dest.DWord = 1;
+		Dest.Type = pIntType;
+		if (pCharData)
+		{
+			int value = pCharData->GetGameFeature(eSpellRankFeature);
+			if (value == -1 || value >= 10)
+				Dest.DWord = 3;
+			else if (value >= 5)
+				Dest.DWord = 2;
 		}
 		return true;
 
