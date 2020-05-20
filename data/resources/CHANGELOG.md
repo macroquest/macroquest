@@ -1,3 +1,25 @@
+Apr 15 2020
+- Fixed ${Me.CanMount} for some indoor zones that where not flagged as nomount and added bazaar, nexus to zones where its ok to mount.
+
+Apr 14 2020
+- Updated the FellowShip struct for LIVE
+
+Apr 06 2020
+- Added .MyDuration to the Spell TLO. It returns a ticktype of YOUR duration for the spell in question.
+- Caption redrawing has been optimized to use less cpu cycles.
+
+Apr 02 2020
+- Add bSeeInvis, bSeeSOS and bSeeIVU to SpawnSearch - CTWN
+
+Apr 01 2020
+- Fixed ZoneFlags
+- Fixed the _ZONELIST struct
+- Added .CanMount to the Character TLO it's a bool it returns true if u can mount in the zone u are in and if it won't collide with an illusion u have on. 
+- Added .ToiletPaper to the Character TLO it returns true if you need to go out and get more.
+
+Mar 31 2020
+- Fixed all Spell Stack checks. (yes again, hopefully for good this time.)
+
 Mar 28 2020
 - Removed a WriteChatf from Task.Timer
 - Added a function which can be used by plugins to format numbers:

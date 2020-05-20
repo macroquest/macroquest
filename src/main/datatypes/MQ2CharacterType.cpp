@@ -3953,6 +3953,25 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 		if (PlayerClient* pPlayer = pLocalPlayer)
 		{
+			// TODO: Check that these need to be set. Then update or remove this comment.
+			int zoneId = pWorldData->GetZoneBaseId(pPlayer->GetZoneID());
+			if (zoneId == 151 /* bazaar */
+				|| zoneId == 152 /* nexus */)
+			{
+				Dest.DWord = 1;
+				return true;
+			}
+
+			// TODO: Check that these are correct. Then update or remove this comment.
+			switch (pZoneInfo->OutDoor)
+			{
+			case IndoorDungeon:
+			case IndoorCity:
+			case DungeonCity:
+				return true;
+			default: break;
+			}
+
 			if (pWorldData->IsFlagSet(pPlayer->GetZoneID(), EQZoneFlag_NoMount))
 				return true;
 

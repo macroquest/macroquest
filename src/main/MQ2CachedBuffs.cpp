@@ -29,10 +29,11 @@ public:
 
 	void Audit()
 	{
-		auto pCurrentZone = reinterpret_cast<ZONEINFO*>(pZoneInfo);
-		if (!pCurrentZone || !pCurrentZone->bNoBuffExpiration)
+		if (!pZoneInfo || !pZoneInfo->bNoBuffExpiration)
+		{
 			cachedBuffs.erase(std::remove_if(std::begin(cachedBuffs), std::end(cachedBuffs),
 				[](const CachedBuff& buff) { return buff.duration >= 0 && buff.Duration() == 0U; }), std::end(cachedBuffs));
+		}
 	}
 
 	void Emplace(const CachedBuff& buff)

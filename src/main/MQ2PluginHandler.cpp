@@ -507,13 +507,10 @@ void PluginsZoned()
 		pPlugin = pPlugin->pNext;
 	}
 
-	if (pZoneInfo)
-	{
-		char szTemp[128];
-		sprintf_s(szTemp, "You have entered %s.", ((PZONEINFO)pZoneInfo)->LongName);
+	char szTemp[128];
+	sprintf_s(szTemp, "You have entered %s.", pZoneInfo->LongName);
 
-		CheckChatForEvent(szTemp);
-	}
+	CheckChatForEvent(szTemp);
 }
 
 void PluginsCleanUI()
@@ -818,11 +815,7 @@ void PluginsEndZone()
 	}
 
 	LoadCfgFile("zoned", true);
-
-	if (PZONEINFO pthezone = (PZONEINFO)pZoneInfo)
-	{
-		LoadCfgFile(pthezone->ShortName, false);
-	}
+	LoadCfgFile(pZoneInfo->ShortName, false);
 }
 
 void PluginsUpdateImGui()

@@ -927,7 +927,7 @@ public:
 
 	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
-		strcpy_s(Destination, MAX_STRING, &((PZONEINFO)pZoneInfo)->LongName[0]);
+		strcpy_s(Destination, MAX_STRING, pZoneInfo->LongName);
 		return true;
 	}
 
