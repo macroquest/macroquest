@@ -3293,7 +3293,7 @@ void Target(SPAWNINFO* pChar, char* szLine)
 			ZeroMemory(&DoorEnviroTarget, sizeof(DoorEnviroTarget));
 
 			if (pChar)
-				pChar->GroupMemberTargeted = 1;
+				pChar->GroupMemberTargeted = -1;
 
 			DebugSpew("Target cleared.");
 			WriteChatColor("Target cleared.", USERCOLOR_WHO);
@@ -5572,7 +5572,7 @@ void SetForegroundWindowInternal(HWND hWnd)
 	}
 
 	SetForegroundWindow(hWnd);
-	ShowWindow(hWnd, SW_SHOWNORMAL);
+	ShowWindow(hWnd, ::IsIconic(hWnd) ? SW_RESTORE : SW_SHOWNORMAL);
 
 	if (GetKeyboardState((LPBYTE)& keyState))
 	{

@@ -41,10 +41,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="MQ2Bzsrch.cpp" />
-    <ClCompile Include="netstream.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="netstream.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\main\MQ2Main.vcxproj">

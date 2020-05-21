@@ -131,14 +131,17 @@ void Delay(SPAWNINFO* pChar, char* szLine)
 	strcpy_s(gDelayCondition, GetNextArg(szLine));
 
 	int VarValue = GetIntFromString(szVal, 0);
-	switch (szVal[strlen(szVal) - 1])
+	int len = strlen(szVal);
+
+	// Measured in deciseconds...
+	if (::tolower(szVal[len - 1]) == 'm')
+		VarValue *= 600;
+	else if (::tolower(szVal[len - 1]) == 's')
 	{
-	case 'm':
-	case 'M':
-		VarValue *= 60;
-	case 's':
-	case 'S':
-		VarValue *= 10;
+		if (len > 2 && ::tolower(szVal[len - 2]) == 'm')
+			VarValue /= 100;
+		else
+			VarValue *= 10;
 	}
 
 	gDelay = VarValue;

@@ -1033,12 +1033,19 @@ void PulseCommands()
 
 	std::scoped_lock lock(s_commandMutex);
 
-	// handle delayed commands
-	for (const std::string& delayedCommand : s_delayedCommands)
 	{
-		DoCommand((SPAWNINFO*)pLocalPlayer, delayedCommand.c_str());
+		// Swap with empty container to get our delayed commands. Running DoCommand
+		// may add something to the container. We don't want to process that, so we
+		// work with it from a temporary instead.
+		decltype(s_delayedCommands) delayedCommands;
+		std::swap(delayedCommands, s_delayedCommands);
+
+		// handle delayed commands
+		for (const std::string& delayedCommand : delayedCommands)
+		{
+			DoCommand((SPAWNINFO*)pLocalPlayer, delayedCommand.c_str());
+		}
 	}
-	s_delayedCommands.clear();
 
 	// handle timed commands
 	uint64_t Now = MQGetTickCount64();

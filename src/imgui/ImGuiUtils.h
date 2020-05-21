@@ -57,9 +57,9 @@ IMGUI_API void ConfigureFonts();
 
 // Our fonts. You can push/pop fonts to change fonts.
 IMGUI_API extern ImFont* DefaultFont;
-IMGUI_API extern ImFont* LargeTextFont;
-IMGUI_API extern ImFont* LargeIconFont;
 IMGUI_API extern ImFont* ConsoleFont;
+IMGUI_API extern ImFont* LargeTextFont;
+IMGUI_API extern ImFont* LargeIconFont; // deprecated, duplicates LargeTextFont
 
 // Configure style. Only needs to be called when imgui is initialized
 IMGUI_API void ConfigureStyle();

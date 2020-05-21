@@ -213,12 +213,10 @@ public:
 		CVector3 points = { (float)pos.x, (float)pos.y, 0.f };
 		GetWorldCoordinates(points); // this writes the world X & Y coords into points
 
-		ZONEINFO* pZone = reinterpret_cast<ZONEINFO*>(pZoneInfo);
-
 		std::vector<float> z_hits;
 
 		float curr_z = 0.0f;
-		for (float f = pZone->Ceiling; f > pZone->Floor; f -= 2.0f)
+		for (float f = pZoneInfo->Ceiling; f > pZoneInfo->Floor; f -= 2.0f)
 		{
 			curr_z = pDisplay->GetFloorHeight(points.X, points.Y, f);
 			if (curr_z != INVALID_FLOOR)
@@ -231,7 +229,7 @@ public:
 		{
 			z_hits.push_back(curr_z);
 			curr_z = pDisplay->GetFloorHeight(points.X, points.Y, curr_z - 2.f);
-		} while (curr_z >= pZone->Floor - 1.f);
+		} while (curr_z >= pZoneInfo->Floor - 1.f);
 
 		MapClickLocation(points.X, points.Y, z_hits);
 

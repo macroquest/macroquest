@@ -29,10 +29,11 @@ public:
 
 	void Audit()
 	{
-		auto pCurrentZone = reinterpret_cast<ZONEINFO*>(pZoneInfo);
-		if (!pCurrentZone || !pCurrentZone->bNoBuffExpiration)
+		if (!pZoneInfo || !pZoneInfo->bNoBuffExpiration)
+		{
 			cachedBuffs.erase(std::remove_if(std::begin(cachedBuffs), std::end(cachedBuffs),
 				[](const CachedBuff& buff) { return buff.duration >= 0 && buff.Duration() == 0U; }), std::end(cachedBuffs));
+		}
 	}
 
 	void Emplace(const CachedBuff& buff)
@@ -121,7 +122,7 @@ public:
 		// shaman buffs), which aren't helpful to store (and will give
 		// incorrect "BuffsPopulated" and "BuffCount" values). Only parse
 		// full buff messages.
-		if (header.m_bComplete) 
+		if (header.m_bComplete)
 		{
 			auto [it, result] = cachedBuffMap.try_emplace(header.m_id, std::make_unique<SpawnBuffs>());
 			it->second->Clear();
@@ -133,7 +134,7 @@ public:
 				buffer.Read(curBuff.spellId);
 				buffer.Read(curBuff.duration);
 				buffer.Read(curBuff.count);
-				buffer.ReadpChar(curBuff.casterName);
+				buffer.ReadString(curBuff.casterName, lengthof(curBuff.casterName));
 				curBuff.timeStamp = EQGetTime();
 
 				it->second->Emplace(curBuff);

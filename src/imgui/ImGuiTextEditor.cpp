@@ -392,16 +392,14 @@ TextEditor::Coordinates TextEditor::ScreenPosToCoordinates(const ImVec2& aPositi
 	{
 		auto& line = m_lines.at(lineNo);
 
-		int columnIndex = 0;
-		std::string cumulatedString = "";
-		float columnWidth = 0.0f;
 		float columnX = 0.0f;
-		int delta = 0;
 
 		// First we find the hovered column coord.
-		while (m_textStart + columnX - (aInsertionMode ? 0.5f : 0.0f) * columnWidth < local.x && (size_t)columnIndex < line.size())
+		for (size_t columnIndex = 0; columnIndex < line.size(); ++columnIndex)
 		{
-			columnCoord += delta;
+			float columnWidth = 0.0f;
+			int delta = 0;
+
 			if (line[columnIndex].mChar == '\t')
 			{
 				float oldX = columnX;
@@ -421,7 +419,11 @@ TextEditor::Coordinates TextEditor::ScreenPosToCoordinates(const ImVec2& aPositi
 				columnX += columnWidth;
 				delta = 1;
 			}
-			++columnIndex;
+
+			if (m_textStart + columnX - (aInsertionMode ? 0.5f : 0.0f) * columnWidth < local.x)
+				columnCoord += delta;
+			else
+				break;
 		}
 
 		// Then we reduce by 1 column coord if cursor is on the left side of the hovered column.

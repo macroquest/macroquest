@@ -114,8 +114,6 @@ MQLIB_API void RemoveRenderCallbacks(uint32_t id);
 using fPanelDrawFunction = void(*)();
 MQLIB_API void AddSettingsPanel(const char* name, fPanelDrawFunction drawFunction);
 MQLIB_API void RemoveSettingsPanel(const char* name);
-MQLIB_API void AddDebugPanel(const char* name, fPanelDrawFunction drawFunction);
-MQLIB_API void RemoveDebugPanel(const char* name);
 
 /* EQ Menu */
 MQLIB_OBJECT void AddCascadeMenuItem(const char* name, const char* keyBind, int icon = -1);
@@ -561,20 +559,20 @@ MQLIB_API bool        CloseContainer(CONTENTS* pItem);
 template <typename... Args> \
 auto AllBuffs(Type value, Args... args) \
 { \
-    return [value = std::forward<Type>(value), args = std::make_tuple(std::forward<Args>(args)...)](auto... buff) -> bool \
-    { \
-        return Code && \
-               std::apply([](auto &&... args) { return AllBuffs(std::forward<decltype(args)>(args)...); }, std::move(args))(buff...); \
-    }; \
+	return [value = std::forward<Type>(value), args = std::make_tuple(std::forward<Args>(args)...)](auto... buff) -> bool \
+	{ \
+		return Code && \
+			std::apply([](auto &&... args) { return AllBuffs(std::forward<decltype(args)>(args)...); }, std::move(args))(buff...); \
+	}; \
 } \
 template <typename... Args> \
 auto AnyBuffs(Type value, Args... args) \
 { \
-    return [value = std::forward<Type>(value), args = std::make_tuple(std::forward<Args>(args)...)](auto... buff) -> bool \
-    { \
-        return Code || \
-               std::apply([](auto &&... args) { return AnyBuffs(std::forward<decltype(args)>(args)...); }, std::move(args))(buff...); \
-    }; \
+	return [value = std::forward<Type>(value), args = std::make_tuple(std::forward<Args>(args)...)](auto... buff) -> bool \
+	{ \
+		return Code || \
+			std::apply([](auto &&... args) { return AnyBuffs(std::forward<decltype(args)>(args)...); }, std::move(args))(buff...); \
+	}; \
 }
 
 auto AllBuffs() { return [](auto...) { return true; }; }
@@ -583,19 +581,19 @@ auto AnyBuffs() { return [](auto...) { return false; }; }
 template <typename Pred, typename... Args>
 auto AllBuffs(Pred value, Args... args)
 {
-    return [value = std::forward<Pred>(value), args = std::make_tuple(std::forward<Args>(args)...)](auto... buff) -> bool {
-        return value(buff...) &&
-               std::apply([](auto &&... args) { return AllBuffs(std::forward<decltype(args)>(args)...); }, std::move(args))(buff...);
-    };
+	return[value = std::forward<Pred>(value), args = std::make_tuple(std::forward<Args>(args)...)](auto... buff) -> bool {
+		return value(buff...) &&
+			std::apply([](auto&&... args) { return AllBuffs(std::forward<decltype(args)>(args)...); }, std::move(args))(buff...);
+	};
 }
 
 template <typename Pred, typename... Args>
 auto AnyBuffs(Pred value, Args... args)
 {
-    return [value = std::forward<Pred>(value), args = std::make_tuple(std::forward<Args>(args)...)](auto... buff) -> bool {
-        return value(buff...) ||
-               std::apply([](auto &&... args) { return AnyBuffs(std::forward<decltype(args)>(args)...); }, std::move(args))(buff...);
-    };
+	return[value = std::forward<Pred>(value), args = std::make_tuple(std::forward<Args>(args)...)](auto... buff) -> bool {
+		return value(buff...) ||
+			std::apply([](auto&&... args) { return AnyBuffs(std::forward<decltype(args)>(args)...); }, std::move(args))(buff...);
+	};
 }
 
 SPELLPREDICATE(SpellAffect, (HasSPA(buff..., value, value.Increase)));
@@ -616,7 +614,7 @@ public:
 
 		if (end > now)
 			return end - now;
-		
+
 		return 0UL;
 	}
 
@@ -628,13 +626,13 @@ public:
 
 void InitializeCachedBuffs();
 void ShutdownCachedBuffs();
-MQLIB_OBJECT int GetCachedBuff(SPAWNINFO* pSpawn, const std::function<bool(CachedBuff)>& predicate);
-MQLIB_OBJECT int GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index);
-MQLIB_OBJECT int GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index, const std::function<bool(CachedBuff)>& predicate);
-MQLIB_OBJECT std::optional<CachedBuff> GetCachedBuffAtSlot(SPAWNINFO* pSpawn, int slot);
-MQLIB_OBJECT std::vector<CachedBuff> FilterCachedBuffs(SPAWNINFO* pSpawn, const std::function<bool(CachedBuff)>& predicate);
-MQLIB_OBJECT DWORD GetCachedBuffCount(SPAWNINFO* pSpawn);
-MQLIB_OBJECT DWORD GetCachedBuffCount(SPAWNINFO* pSpawn, const std::function<bool(CachedBuff)>& predicate);
+int GetCachedBuff(SPAWNINFO* pSpawn, const std::function<bool(CachedBuff)>& predicate);
+int GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index, const std::function<bool(CachedBuff)>& predicate);
+std::optional<CachedBuff> GetCachedBuffAtSlot(SPAWNINFO* pSpawn, int slot);
+std::vector<CachedBuff> FilterCachedBuffs(SPAWNINFO* pSpawn, const std::function<bool(CachedBuff)>& predicate);
+DWORD GetCachedBuffCount(SPAWNINFO* pSpawn, const std::function<bool(CachedBuff)>& predicate);
+MQLIB_API int GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index);
+MQLIB_API DWORD GetCachedBuffCount(SPAWNINFO* pSpawn);
 MQLIB_API void ClearCachedBuffsSpawn(SPAWNINFO* pSpawn);
 MQLIB_API void ClearCachedBuffs();
 

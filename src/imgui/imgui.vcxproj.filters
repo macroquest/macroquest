@@ -63,15 +63,6 @@
     <ClInclude Include="ImGuiTextEditor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="fonts\font_fontawesome_ttf.h">
-      <Filter>Header Files\fonts</Filter>
-    </ClInclude>
-    <ClInclude Include="fonts\font_materialicons_ttf.h">
-      <Filter>Header Files\fonts</Filter>
-    </ClInclude>
-    <ClInclude Include="fonts\font_roboto_regular_ttf.h">
-      <Filter>Header Files\fonts</Filter>
-    </ClInclude>
     <ClInclude Include="fonts\IconsFontAwesome.h">
       <Filter>Header Files\fonts</Filter>
     </ClInclude>
@@ -107,13 +98,13 @@
     <ClCompile Include="ImGuiTextEditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="fonts\font_fontawesome_ttf.cpp">
-      <Filter>Source Files\fonts</Filter>
-    </ClCompile>
     <ClCompile Include="fonts\font_materialicons_ttf.cpp">
       <Filter>Source Files\fonts</Filter>
     </ClCompile>
     <ClCompile Include="fonts\font_roboto_regular_ttf.cpp">
+      <Filter>Source Files\fonts</Filter>
+    </ClCompile>
+    <ClCompile Include="fonts\font_fontawesome_ttf.cpp">
       <Filter>Source Files\fonts</Filter>
     </ClCompile>
   </ItemGroup>

@@ -347,6 +347,9 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 	SPAWNINFO* pControlledSpawn = pCharSpawn;
 	PlayerClient* pPlayerClient = reinterpret_cast<PlayerClient*>(pSpawn);
 
+	if (!pMySpawn)
+		return false;
+
 	//----------------------------------------------------------------------------
 	// methods
 
@@ -594,10 +597,73 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		Dest.Type = pBoolType;
 		return true;
 
-	case SpawnMembers::Invis:
-		Dest.DWord = pSpawn->HideMode;
+	case SpawnMembers::Invis: {
 		Dest.Type = pBoolType;
+		Dest.DWord = 0;
+
+		if (!Index[0])
+		{
+			Dest.DWord = pSpawn->HideMode;
+			return true;
+		}
+
+		enum class InvisModes {
+			Any = 0,
+			Regular = 1,
+			Undead = 2,
+			Animal = 3,
+			SoS = 4
+		};
+		InvisModes mode = InvisModes::Any;
+
+		if (IsNumber(Index))
+		{
+			mode = static_cast<InvisModes>(GetIntFromString(Index, -1));
+			if (mode < InvisModes::Any || mode > InvisModes::SoS)
+				return true;
+		}
+		else
+		{
+			if (ci_equals(Index, "ANY"))
+				mode = InvisModes::Any;
+			else if (ci_equals(Index, "NORMAL"))
+				mode = InvisModes::Regular;
+			else if (ci_equals(Index, "UNDEAD"))
+				mode = InvisModes::Undead;
+			else if (ci_equals(Index, "ANIMAL"))
+				mode = InvisModes::Animal;
+			else if (ci_equals(Index, "SOS"))
+				mode = InvisModes::SoS;
+			else
+				return true;
+		}
+
+		switch (mode)
+		{
+		case InvisModes::Any:
+			Dest.DWord = pSpawn->HideMode;
+			break;
+		case InvisModes::Regular:
+			Dest.DWord = pCharData->CalculateInvisLevel(eAll) ? 1 : 0;
+			break;
+		case InvisModes::Undead:
+			Dest.DWord = pCharData->CalculateInvisLevel(eUndead) ? 1 : 0;
+			break;
+		case InvisModes::Animal:
+			Dest.DWord = pCharData->CalculateInvisLevel(eAnimal) ? 1 : 0;
+			break;
+		case InvisModes::SoS:
+			if (PcProfile* pProfile = GetPcProfile())
+			{
+				int skill = pCharData->GetAdjustedSkill(EQSKILL_HIDE);
+				if ((pProfile->bHide + pCharData->TotalEffect(SPA_SHROUD_OF_STEALTH) >= 2) && skill >= 100)
+					Dest.DWord = 1;
+			}
+			break;
+		}
+
 		return true;
+	}
 
 	case SpawnMembers::Height:
 		Dest.Float = pSpawn->AvatarHeight;
@@ -1012,7 +1078,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
 
-		if (gGameState == GAMESTATE_INGAME && GetCharInfo()->pSpawn && pSpawn)
+		if (gGameState == GAMESTATE_INGAME)
 		{
 			if (DWORD AssistID = GetGroupMainAssistTargetID())
 			{
@@ -1040,11 +1106,11 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
-		if (gGameState == GAMESTATE_INGAME && GetCharInfo()->pSpawn && pSpawn)
+		if (gGameState == GAMESTATE_INGAME)
 		{
 			for (int nMark = 0; nMark < 3; nMark++)
 			{
-				if (GetCharInfo()->pSpawn->RaidMarkNPC[nMark] == pSpawn->SpawnID)
+				if (pLocalPlayer->RaidMarkNPC[nMark] == pSpawn->SpawnID)
 				{
 					Dest.DWord = nMark + 1;
 					return true;
@@ -1053,7 +1119,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 
 			for (int nMark = 0; nMark < 3; nMark++)
 			{
-				if (GetCharInfo()->pSpawn->GroupMarkNPC[nMark] == pSpawn->SpawnID)
+				if (pLocalPlayer->GroupMarkNPC[nMark] == pSpawn->SpawnID)
 				{
 					Dest.DWord = nMark + 1;
 					return true;
@@ -1495,17 +1561,21 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 					else if (ci_equals(&Index[1], "snared"))
 						Dest.HighPart = GetCachedBuff(pSpawn, AllBuffs(SpellAffect(SPA_MOVEMENT_RATE, false)));
 					else if (ci_equals(&Index[1], "beneficial"))
+					{
 						Dest.HighPart = GetCachedBuff(pSpawn, [](CachedBuff buff) -> bool
 							{
 								auto pSpell = GetSpellByID(buff.spellId);
 								return pSpell && pSpell->SpellType != 0;
 							});
+					}
 				}
 				else
-					 Dest.HighPart = GetCachedBuff(pSpawn, [&Index](CachedBuff buff)
+				{
+					Dest.HighPart = GetCachedBuff(pSpawn, [&Index](CachedBuff buff)
 						{
 							return MaybeExactCompare(GetSpellNameByID(buff.spellId), Index);
 						});
+				}
 			}
 		}
 

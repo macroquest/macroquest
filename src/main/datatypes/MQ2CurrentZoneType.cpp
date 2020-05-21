@@ -20,7 +20,7 @@ using namespace mq::datatypes;
 
 bool MQ2CurrentZoneType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
-	ZONEINFO* pCurrentZone = reinterpret_cast<ZONEINFO*>(pZoneInfo);
+	ZONEINFO* pCurrentZone = pZoneInfo;
 
 	MQTypeMember* pMember = MQ2CurrentZoneType::FindMember(Member);
 	if (!pMember)

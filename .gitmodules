@@ -1,3 +1,6 @@
 [submodule "data/macros/TestSuite"]
 	path = data/macros/TestSuite
 	url = https://gitlab.com/macroquest/TestSuite.git
+[submodule "src/eqlib"]
+	path = src/eqlib
+	url = https://gitlab.com/macroquest/next/eqlib.git

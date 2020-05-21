@@ -82,7 +82,7 @@ static int gLastGameState = GAMESTATE_PRECHARSELECT;
 
 static mq::PlatformHotkey gToggleConsoleHotkey;
 static const char gToggleConsoleDefaultBind[] = "ctrl+`";
-static uint32_t gToggleConsoleHotkeyId = 0;
+static bool gbToggleConsoleHotkeyReady = false;
 
 // Mouse state, pointed to by EQADDR_DIMOUSECOPY
 struct MouseStateData
@@ -830,6 +830,9 @@ static bool ImGui_ImplWin32_UpdateMouseCursor()
 {
 	ImGuiIO& io = ImGui::GetIO();
 	if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)
+		return false;
+
+	if (!io.WantCaptureMouse)
 		return false;
 
 	bool useWin32Cursor = false;
@@ -1592,16 +1595,6 @@ void InitializeImGui(IDirect3DDevice9* device)
 	mq::imgui::ConfigureStyle();
 	mq::imgui::ConfigureFonts();
 
-	// Install the hotkey.
-	if (gToggleConsoleHotkeyId != 0)
-	{
-		if (!::RegisterHotKey(g_hWnd, gToggleConsoleHotkeyId, gToggleConsoleHotkey.modifiers, gToggleConsoleHotkey.virtualKey))
-		{
-			SPDLOG_ERROR("{}",
-				fmt::windows_error(GetLastError(), "Failed to register hotkey for toggle console keybind").what());
-		}
-	}
-
 	gbInitializedImGui = true;
 }
 
@@ -1609,11 +1602,6 @@ void ShutdownImGui()
 {
 	if (!gbInitializedImGui)
 		return;
-
-	if (gToggleConsoleHotkeyId != 0)
-	{
-		::UnregisterHotKey(g_hWnd, gToggleConsoleHotkeyId);
-	}
 
 	ImGui_ImplDX9_Shutdown();
 	ImGui_ImplWin32_Shutdown();
@@ -1905,10 +1893,19 @@ uint32_t ProcessKeyboardEvents_Detour()
 
 bool OverlayWndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, bool fromLogin)
 {
-	if (msg == WM_HOTKEY)
+	if (msg == WM_KEYDOWN
+		&& gbToggleConsoleHotkeyReady)
 	{
-		if (wParam == gToggleConsoleHotkeyId)
-			gbToggleConsoleRequested = true;
+		// Match the vkey and modifiers
+		if (wParam == gToggleConsoleHotkey.virtualKey)
+		{
+			// Check the modifiers, don't allow repeats.
+			if ((HIWORD(lParam) & KF_REPEAT) == 0
+				&& mq::IsHotKeyModifiersPressed(gToggleConsoleHotkey))
+			{
+				gbToggleConsoleRequested = true;
+			}
+		}
 	}
 
 	if (imgui::g_pImguiDevice)
@@ -2277,16 +2274,22 @@ void InitializeMQ2Overlay()
 	// connect to the win32 hook and control the imgui console.
 	::GetPrivateProfileStringA("MacroQuest", "ToggleConsoleKey", gToggleConsoleDefaultBind,
 		gToggleConsoleHotkey.keybind, lengthof(gToggleConsoleHotkey.keybind), mq::internal_paths::MQini.c_str());
-	if (mq::ConvertStringToModifiersAndVirtualKey(gToggleConsoleHotkey.keybind,
-		gToggleConsoleHotkey.modifiers, gToggleConsoleHotkey.virtualKey))
+
+	if (!gbToggleConsoleHotkeyReady)
 	{
-		SPDLOG_INFO("Toggle console keybind: {0}", gToggleConsoleHotkey.keybind);
-		gToggleConsoleHotkeyId = GlobalAddAtom("MQ2ToggleKeybindAtom");
-	}
-	else if (strlen(gToggleConsoleHotkey.keybind) > 0)
-	{
-		SPDLOG_WARN("Unable to parse toggle console keybind: {0}", gToggleConsoleHotkey.keybind);
-		strcpy_s(gToggleConsoleHotkey.keybind, "");
+		if (mq::ConvertStringToModifiersAndVirtualKey(gToggleConsoleHotkey.keybind,
+			gToggleConsoleHotkey.modifiers, gToggleConsoleHotkey.virtualKey))
+		{
+			SPDLOG_INFO("Toggle console keybind: {0}", gToggleConsoleHotkey.keybind);
+			gbToggleConsoleHotkeyReady = true;
+		}
+		else if (strlen(gToggleConsoleHotkey.keybind) > 0)
+		{
+			SPDLOG_WARN("Unable to parse toggle console keybind: {0}", gToggleConsoleHotkey.keybind);
+			strcpy_s(gToggleConsoleHotkey.keybind, "");
+
+			gbToggleConsoleHotkeyReady = false;
+		}
 	}
 
 	if (gbWriteAllConfig)
@@ -2314,12 +2317,6 @@ void ShutdownMQ2Overlay()
 	gHooks.clear();
 
 	imgui::ShutdownImGui();
-
-	if (gToggleConsoleHotkeyId != 0)
-	{
-		GlobalDeleteAtom(gToggleConsoleHotkeyId);
-		gToggleConsoleHotkeyId = 0;
-	}
 
 	if (gpD3D9Device)
 	{

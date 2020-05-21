@@ -16,6 +16,7 @@
 #include "MQ2DeveloperTools.h"
 
 #include "imgui/ImGuiUtils.h"
+#include "imgui/fonts/IconsFontAwesome.h"
 
 #include <algorithm>
 #include <memory>
@@ -155,7 +156,8 @@ public:
 			m_prev->m_next = m_next;
 	}
 
-	bool IsOpen() const { return m_open; }
+	bool IsOpen() const { return m_open && IsEnabled(); }
+	virtual bool IsEnabled() const { return true; }
 
 	void Show()
 	{
@@ -176,6 +178,9 @@ public:
 
 	virtual void Update()
 	{
+		if (!IsEnabled())
+			return;
+
 		if (m_open)
 		{
 			if (Begin())
@@ -282,6 +287,18 @@ static bool ColumnCheckBox(const char* Label, bool* value)
 	bool result = false;
 	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextCell();
 	ImGui::PushID(Label); result = ImGui::Checkbox("", value); ImGui::PopID();
+	ImGui::TableNextRow();
+	return result;
+}
+
+static bool ColumnCheckBox(const char* Label, bool value)
+{
+	bool result = false;
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextCell();
+	bool value2 = value;
+	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.6f);
+	ImGui::PushID(Label); result = ImGui::Checkbox("", &value2); ImGui::PopID();
+	ImGui::PopStyleVar();
 	ImGui::TableNextRow();
 	return result;
 }
@@ -490,6 +507,63 @@ bool RenderUITextureInfoTexture(const CUITextureInfo& textureInfo, const CXRect&
 	return true;
 }
 
+bool RenderTexturePiece(const CUITexturePiece& texturePiece, const CXRect& srcRect)
+{
+	return RenderUITextureInfoTexture(texturePiece.GetTextureInfo(), srcRect);
+}
+
+bool RenderTexturePiece(const CUITexturePiece& texturePiece)
+{
+	return RenderTexturePiece(texturePiece, texturePiece.GetRect());
+}
+
+// TODO: Move to a helper for CTextureAnimation that can draw with imgui.
+bool RenderTextureAnimation(const CTextureAnimation* pAnim)
+{
+	if (pAnim->Frames.IsEmpty())
+	{
+		// TODO: Draw box with the current size.
+		return false;
+	}
+
+	int frameNum = pAnim->GetCurFrame();
+	if (frameNum < 0 || frameNum >= pAnim->Frames.GetLength())
+		return false;
+
+	const STextureAnimationFrame& frame = pAnim->Frames[frameNum];
+
+	if (pAnim->bGrid)
+	{
+		if (pAnim->CurCell != -1)
+		{
+			return RenderTexturePiece(frame.Piece, pAnim->CellRect);
+		}
+	}
+	else
+	{
+		return RenderTexturePiece(frame.Piece);
+	}
+
+	return false;
+}
+
+void ColumnTextureAnimationPreview(const char* Label, const CTextureAnimation* pAnim)
+{
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextCell();
+
+	if (!pAnim)
+		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(null)");
+	else
+	{
+		if (!RenderTextureAnimation(pAnim))
+		{
+			ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(empty)");
+		}
+	}
+
+	ImGui::TableNextRow();
+}
+
 bool ColumnTextureInfoPreview(const char* Label, const CUITextureInfo& textureInfo, const CXRect& rect = CXRect(0, 0, -1, -1))
 {
 	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextCell();
@@ -504,12 +578,12 @@ void DisplayUITextureInfo(const char* Label, const CUITextureInfo& textureInfo)
 	bool show = ColumnTreeNodeType2((const void*)&textureInfo, Label, "CUITextureInfo", "%s", textureInfo.Name.c_str());
 	if (show)
 	{
-		ColumnCXStr("Name", textureInfo.Name);
+		//ColumnCXStr("Name", textureInfo.Name);
+		ColumnTextureInfoPreview("Texture", textureInfo);
+		ColumnCXSize("Size", textureInfo.TextureSize);
+		ColumnText("Texture Id", "%d", textureInfo.TextureId);
 		ColumnText("Valid", "%s", textureInfo.bValid ? "true" : "false");
 		ColumnText("Directory", "%s", UIDirectoryToString(textureInfo.Directory));
-		ColumnCXSize("Texture Size", textureInfo.TextureSize);
-		ColumnText("Texture Id", "%d", textureInfo.TextureId);
-		ColumnTextureInfoPreview("Texture", textureInfo);
 
 		ImGui::TreePop();
 	}
@@ -561,50 +635,57 @@ void DisplayTextureAnimation(const char* Label, const CTextureAnimation* texture
 	bool show = ColumnTreeNodeType(Label, "CTextureAnimation*", "%s", textureAnim->Name.c_str());
 	if (show)
 	{
-		ColumnCXStr("Name", textureAnim->Name);
+		ColumnTextureAnimationPreview("Texture", textureAnim);
+		ColumnCXSize("Size", textureAnim->bGrid ? textureAnim->CellRect.GetSize() : textureAnim->Size);
 
-		if (textureAnim->Frames.GetLength() > 1)
+		if (ColumnTreeNode("Details", ""))
 		{
-			bool showFrames = ColumnTreeNodeType("Frames", "STextureAnimationFrame[]", "%d", textureAnim->Frames.GetLength());
-			if (showFrames)
+			ColumnCXStr("Name", textureAnim->Name);
+
+			if (textureAnim->Frames.GetLength() > 1)
 			{
-				for (int i = 0; i < textureAnim->Frames.GetLength(); ++i)
+				bool showFrames = ColumnTreeNodeType("Frames", "STextureAnimationFrame[]", "%d", textureAnim->Frames.GetLength());
+				if (showFrames)
 				{
-					const STextureAnimationFrame& frame = textureAnim->Frames[i];
+					for (int i = 0; i < textureAnim->Frames.GetLength(); ++i)
+					{
+						const STextureAnimationFrame& frame = textureAnim->Frames[i];
 
-					DisplaySTextureAnimationFrame(i, frame, true);
+						DisplaySTextureAnimationFrame(i, frame, true);
+					}
+
+					ImGui::TreePop();
 				}
-
-				ImGui::TreePop();
 			}
+			else
+			{
+				const STextureAnimationFrame& frame = textureAnim->Frames[0];
+
+				DisplaySTextureAnimationFrame(0, frame, false);
+			}
+
+			ColumnText("Paused", textureAnim->bPaused ? "true" : "false");
+			ColumnText("Vertical", textureAnim->bVertical ? "true" : "false");
+			ColumnText("Grid", textureAnim->bGrid ? "true" : "false");
+
+			if (textureAnim->bGrid)
+			{
+				ColumnCXSize("Cell size", CXSize(textureAnim->CellWidth, textureAnim->CellHeight));
+				ColumnCXRect("Cell rect", textureAnim->CellRect);
+				ColumnText("Current cell", "%d", textureAnim->CurCell);
+			}
+
+			if (textureAnim->ZeroFrame != 0)
+			{
+				ColumnText("Zero frame", "%d", textureAnim->ZeroFrame);
+			}
+
+			ColumnText("Cycle animation", textureAnim->bCycle ? "true" : "false");
+			ColumnText("Total ticks", "%d", textureAnim->TotalTicks);
+			ColumnText("Start ticks", "%d", textureAnim->StartTicks);
+
+			ImGui::TreePop();
 		}
-		else
-		{
-			const STextureAnimationFrame& frame = textureAnim->Frames[0];
-
-			DisplaySTextureAnimationFrame(0, frame, false);
-		}
-
-		ColumnCXSize("Size", textureAnim->Size);
-		ColumnText("Paused", textureAnim->bPaused ? "true" : "false");
-		ColumnText("Vertical", textureAnim->bVertical ? "true" : "false");
-		ColumnText("Grid", textureAnim->bGrid ? "true" : "false");
-
-		if (textureAnim->bGrid)
-		{
-			ColumnCXSize("Cell size", CXSize(textureAnim->CellWidth, textureAnim->CellHeight));
-			ColumnCXRect("Cell rect", textureAnim->CellRect);
-			ColumnText("Current cell", "%d", textureAnim->CurCell);
-		}
-
-		if (textureAnim->ZeroFrame != 0)
-		{
-			ColumnText("Zero frame", "%d", textureAnim->ZeroFrame);
-		}
-
-		ColumnText("Cycle animation", textureAnim->bCycle ? "true" : "false");
-		ColumnText("Total ticks", "%d", textureAnim->TotalTicks);
-		ColumnText("Start ticks", "%d", textureAnim->StartTicks);
 
 		ImGui::TreePop();
 	}
@@ -716,24 +797,6 @@ void DisplayDrawTemplate(const char* label, const CXWndDrawTemplate* drawTemplat
 	}
 }
 
-void DisplayScreenTemplate(const char* label, const CScreenTemplate* pTemplate)
-{
-	if (!pTemplate)
-	{
-		ColumnTextType(label, "CScreenTemplate*", "(null)");
-		return;
-	}
-
-	if (ColumnTreeNodeType2(pTemplate, label, "CScreenTemplate*", "%s", pTemplate->strName.c_str()))
-	{
-		ColumnCXStr("Name", pTemplate->strName);
-
-		// TODO: fill me in.
-
-		ImGui::TreePop();
-	}
-}
-
 void DisplayTextObject(const char* label, CTextObjectInterface* pTextObjectInterface)
 {
 	if (!pTextObjectInterface)
@@ -775,6 +838,285 @@ void ColumnWindow(const char* Label, CXWnd* window)
 	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "CXWnd");
 	ImGui::TableNextRow();
 }
+
+//----------------------------------------------------------------------------
+
+void DisplayDynamicTemplateExpand(const char* label, const CScreenPieceTemplate* pTemplate);
+
+void DisplayLayoutStrategyTemplate(const CLayoutStrategyTemplate* pTemplate)
+{
+	ColumnCXStr("Name", pTemplate->strName);
+	ColumnText("Padding", "%d", pTemplate->nPadding);
+	ColumnText("Type", "%d", pTemplate->nType);
+	ColumnCheckBox("Resize Horizontal", pTemplate->bResizeHorizontal);
+	ColumnCheckBox("Resize Vertical", pTemplate->bResizeVertical);
+}
+
+void DisplayListboxColumnTemplate(const CListboxColumnTemplate* pTemplate)
+{
+}
+
+void DisplayScreenPieceTemplate(const CScreenPieceTemplate* pTemplate)
+{
+	uint32_t uParamObjectId = pTemplate->uParamObjectId;
+
+	if (CXMLData* pXMLData = pSidlMgr->GetParamManager()->GetXMLData(uParamObjectId))
+	{
+		// Type
+		ColumnText("Type", "%s (%d)", pXMLData->TypeName.c_str(), pXMLData->Type);
+	}
+
+	ColumnCXStr("Name", pTemplate->strName);
+	ColumnText("Object Id", "%d", pTemplate->uParamObjectId);
+	ColumnCXStr("Screen ID", pTemplate->strScreenId);
+	// TODO: RuntimeTypes
+	// TODO: Font
+	// TODO: RelativePosition
+	// TODO: AutoStretchVertical
+	// TODO: AutoStretchHorizontal
+	// TODO: TopAnchorToTop
+	// TODO: BottomAnchorToTop
+	// TODO: LeftAnchorToLeft
+	// TODO: RightAnchorToRight
+	// TODO: TopOffset
+	// TODO: BottomOffset
+	// TODO: LeftOffset
+	// TODO: RightOffset
+	// TODO: MinVSize
+	// TODO: MinHSize
+	// TODO: MaxVSize
+	// TODO: MaxHSize
+	// TODO: UseInLayoutHorizontal
+	// TODO: UseInLayoutVertical
+
+	if (ColumnTreeNode("Colors", ""))
+	{
+		ColumnCXRect("Rect", pTemplate->rect);
+		ColumnCXStr("Text", pTemplate->strText);
+		ColumnColor("Text Color", pTemplate->colorText);
+		ColumnColor("Disabled Color", pTemplate->colorDisabled);
+		ColumnColor("Enabled Color", pTemplate->colorEnabled);
+		ColumnColor("Background Texture Tint", pTemplate->colorBackgroundTextureTint);
+		ColumnColor("Disabled Background Texture Tint", pTemplate->colorDisabledBackgroundTextureTint);
+
+		ImGui::TreePop();
+	}
+}
+
+void DisplayStaticAnimationTemplate(const CStaticAnimationTemplate* pTemplate)
+{
+	DisplayScreenPieceTemplate(pTemplate);
+	DisplayTextureAnimation("Texture", pTemplate->ptaTextureAnimation, true);
+}
+
+void DisplayStaticScreenPieceTemplate(const CStaticScreenPieceTemplate* pTemplate)
+{
+	DisplayScreenPieceTemplate(pTemplate);
+	ColumnCheckBox("Auto Draw", pTemplate->bAutoDraw);
+}
+
+void DisplayStaticTintedBlendAnimationTemplate(const CStaticTintedBlendAnimationTemplate* pTemplate)
+{
+	DisplayStaticScreenPieceTemplate(pTemplate);
+
+	DisplayTextureAnimation("Layer 1", pTemplate->ptaLayerOneTexture);
+	DisplayTextureAnimation("Layer 2", pTemplate->ptaLayerTwoTexture);
+	ColumnColor("Layer 1 Tint", pTemplate->colorLayerOneTint);
+	ColumnColor("Layer 2 Tint", pTemplate->colorLayerTwoTint);
+}
+
+void DisplayControlTemplate(const CControlTemplate* pTemplate)
+{
+	DisplayScreenPieceTemplate(pTemplate);
+
+	// TODO: StyleBits
+	// TODO: SizableMask
+	ColumnCheckBox("Escapable", pTemplate->bEscapable);
+	ColumnCXStr("Tooltip", pTemplate->strTooltip);
+	DisplayDrawTemplate("Draw Template", pTemplate->pDrawTemplate);
+	ColumnCXStr("Controller", pTemplate->strController);
+
+	if (pTemplate->pLayoutStrategyTemplate)
+	{
+		if (ColumnTreeNodeType("Layout Strategy", "CLayoutStrategyTemplate*", "%s",
+			pTemplate->pLayoutStrategyTemplate->strName.c_str()))
+		{
+			DisplayLayoutStrategyTemplate(pTemplate->pLayoutStrategyTemplate);
+
+			ImGui::TreePop();
+		}
+	}
+	else
+	{
+		ColumnTextType("Layout Strategy", "CLayoutStrategyTemplate*", "(null)");
+	}
+}
+
+void DisplayLayoutBoxTemplate(const CLayoutBoxTemplate* pTemplate)
+{
+	DisplayControlTemplate(pTemplate);
+}
+
+const char* UITypeToScreenPieceTemplateType(UIType type)
+{
+	switch (type)
+	{
+	case UI_LayoutStrategy: return "CLayoutStrategyTemplate*";
+	case UI_LayoutVertical: return "CLayoutVerticalTemplate*";
+	case UI_LayoutHorizontal: return "CLayoutHorizontalTemplate*";
+	case UI_StaticScreenPiece: return "CStaticScreenPieceTemplate*";
+	case UI_StaticAnimation: return "CStaticAnimationTemplate*";
+	case UI_StaticText: return "CStaticTextTemplate*";
+	case UI_StaticFrame: return "CStaticFrameTemplate*";
+	case UI_StaticHeader: return "CStaticHeaderTemplate*";
+	case UI_StaticTintedBlendAnimation: return "CStaticTintedBlendAnimationTemplate*";
+	case UI_Control: return "CControlTemplate*";
+	case UI_ListboxColumn: return "CListboxColumnTemplate*";
+	case UI_Listbox: return "CListboxTemplate*";
+	case UI_EditBox: return "CEditboxTemplate*";
+	case UI_Slider: return "CSliderTemplate*";
+	case UI_Label: return "CLabelTemplate*";
+	case UI_STMLBox: return "CSTMLboxTemplate*";
+	case UI_TreeView: return "CTreeViewTemplate*";
+	case UI_Combobox: return "CComboboxTemplate*";
+	case UI_Button: return "CButtonTemplate*";
+	case UI_Gauge: return "CGaugeTemplate*";
+	case UI_SpellGem: return "CSpellGemTemplate*";
+	case UI_InvSlot: return "CInvSlotTemplate*";
+	case UI_Page: return "CPageTemplate*";
+	case UI_TabBox: return "CTabBoxTemplate*";
+	case UI_LayoutBox: return "CLayoutBoxTemplate*";
+	case UI_HorizontalLayoutBox: return "CHorizontalLayoutBoxTemplate*";
+	case UI_VerticalLayoutBox: return "CVerticalLayoutBoxTemplate*";
+	case UI_TileLayoutBox: return "CTileLayoutBoxTemplate*";
+	case UI_Screen: return "CScreenTemplate*";
+	case UI_HtmlComponent: return "CHtmlComponentTemplate*";
+	case UI_TemplateContainer: return "CTemplateContainerTemplate*";
+	case UI_HotButton: return "CHotButtonTemplate*";
+	default:
+		return "(other template)";
+	}
+}
+
+void DisplayScreenTemplate(const CScreenTemplate* pTemplate);
+
+// Looks up the type and casts it to the appropriate template type.
+void DisplayDynamicTemplate(CXMLData* pXMLData, const CScreenPieceTemplate* pTemplate)
+{
+	switch (pXMLData->Type)
+	{
+	case UI_Screen:
+		DisplayScreenTemplate(static_cast<const CScreenTemplate*>(pTemplate));
+		break;
+
+	case UI_Control:
+	case UI_HotButton:
+	case UI_Listbox:
+	case UI_EditBox:
+	case UI_Slider:
+	case UI_Label:
+	case UI_STMLBox:
+	case UI_TreeView:
+	case UI_Combobox:
+	case UI_Button:
+	case UI_Gauge:
+	case UI_SpellGem:
+	case UI_InvSlot:
+	case UI_Page:
+	case UI_TabBox:
+	case UI_LayoutBox:
+	case UI_HorizontalLayoutBox:
+	case UI_VerticalLayoutBox:
+	case UI_TileLayoutBox:
+	case UI_HtmlComponent:
+	case UI_TemplateContainer:
+		DisplayControlTemplate(static_cast<const CControlTemplate*>(pTemplate));
+		break;
+
+	case UI_ListboxColumn:
+		break; // not a screen piece
+
+	case UI_StaticAnimation:
+		DisplayStaticAnimationTemplate(static_cast<const CStaticAnimationTemplate*>(pTemplate));
+		break;
+
+	case UI_StaticScreenPiece:
+		DisplayStaticScreenPieceTemplate(static_cast<const CStaticScreenPieceTemplate*>(pTemplate));
+		break;
+
+	case UI_StaticTintedBlendAnimation:
+		DisplayStaticTintedBlendAnimationTemplate(static_cast<const CStaticTintedBlendAnimationTemplate*>(pTemplate));
+		break;
+
+	case UI_StaticText:
+	case UI_StaticFrame:
+	case UI_StaticHeader:
+	default:
+		DisplayScreenPieceTemplate(pTemplate);
+	}
+}
+
+void DisplayDynamicTemplateExpand(const char* label, const CScreenPieceTemplate* pTemplate)
+{
+	if (!pTemplate)
+	{
+		ColumnTextType(label, "CScreenPieceTemplate*", "(null)");
+		return;
+	}
+
+	uint32_t uParamObjectId = pTemplate->uParamObjectId;
+	if (CXMLData* pXMLData = pSidlMgr->GetParamManager()->GetXMLData(uParamObjectId))
+	{
+		if (ColumnTreeNodeType(label, UITypeToScreenPieceTemplateType(pXMLData->Type), "%s", pTemplate->strName.c_str()))
+		{
+			DisplayDynamicTemplate(pXMLData, pTemplate);
+
+			ImGui::TreePop();
+		}
+	}
+	else
+	{
+		if (ColumnTreeNodeType(label, "CScreenPieceTemplate*", "%s", pTemplate->strName.c_str()))
+		{
+			DisplayScreenPieceTemplate(pTemplate);
+
+			ImGui::TreePop();
+		}
+	}
+}
+
+void DisplayScreenTemplate(const CScreenTemplate* pTemplate)
+{
+	DisplayControlTemplate(pTemplate);
+
+	// TODO: Pieces
+	int index = 0;
+	for (CScreenPieceTemplate* pChildTemplate : pTemplate->Pieces)
+	{
+		char text[32];
+		sprintf_s(text, "Piece[%d]", index++);
+
+		DisplayDynamicTemplateExpand(text, pChildTemplate);
+	}
+}
+
+template <typename T>
+void DisplayTemplate(const char* label, const char* type, const T* pTemplate)
+{
+	if (!pTemplate)
+	{
+		ColumnTextType(label, type, "(null)");
+		return;
+	}
+
+	if (ColumnTreeNodeType2(pTemplate, label, type, "%s", pTemplate->strName.c_str()))
+	{
+		DisplayScreenTemplate(pTemplate);
+
+		ImGui::TreePop();
+	}
+}
+
 
 #pragma endregion
 
@@ -1057,8 +1399,9 @@ public:
 		return m_table.StartNewSection(properties, open);
 	}
 
-	void DisplayCXMLDataProperties(CXMLData* pXMLData, bool open = true)
+	void DisplayCXMLDataProperties(CXWnd* pWnd,bool open = true)
 	{
+		CXMLData* pXMLData = pWnd->GetXMLData();
 		if (!pXMLData) return;
 
 		if (BeginColorSection("XML Properties", open))
@@ -1066,29 +1409,41 @@ public:
 			// Type
 			ColumnText("Type", "%s (%d)", pXMLData->TypeName.c_str(), pXMLData->Type);
 
-			// Name
-			ColumnText("Name", "%s", pXMLData->Name.c_str());
+			if (!pXMLData->ScreenID.empty())
+			{
+				// ScreenID
+				ColumnText("Screen ID", "%s", pXMLData->ScreenID.c_str());
+			}
 
-			// ScreenID
-			ColumnText("Screen ID", "%s", pXMLData->ScreenID.c_str());
+			if (!pXMLData->Name.empty() && pXMLData->Name != pXMLData->ScreenID)
+			{
+				// Name
+				ColumnText("Name", "%s", pXMLData->Name.c_str());
+			}
+
+			if (pSidlMgr)
+			{
+				if (CScreenPieceTemplate* pTemplate = pSidlMgr->FindScreenPieceTemplate(pWnd->GetXMLIndex()))
+				{
+					DisplayDynamicTemplateExpand("Template", pTemplate);
+				}
+			}
 		}
 	}
 
 	void DisplayCXWndProperties(CXWnd* pWnd, bool open = true)
 	{
-		DisplayCXMLDataProperties(pWnd->GetXMLData(), open);
+		DisplayCXMLDataProperties(pWnd, open);
 
 		// Add CXWnd specific details here
 		if (BeginColorSection("CXWnd Properties", open))
 		{
-			ColumnCXStr("Text", pWnd->WindowText);
+			DisplayDrawTemplate("Template", pWnd->DrawTemplate);
 			ColumnCXRect("Position", pWnd->Location);
 			ColumnCXRect("Client rect", pWnd->ClientRect);
-			DisplayDrawTemplate("Template", pWnd->DrawTemplate);
-			ColumnWindow("Parent", pWnd->ParentWindow);
+			ColumnCXStr("Text", pWnd->WindowText);
 			ColumnCXStr("Tooltip", pWnd->Tooltip);
-
-			ColumnText("Z layer", "%d", pWnd->ZLayer);
+			ColumnWindow("Parent", pWnd->ParentWindow);
 
 			// Style
 			if (ColumnTreeNode("Style", "0x%08x", pWnd->WindowStyle))
@@ -1126,8 +1481,11 @@ public:
 
 			if (ColumnTreeNode("Details", ""))
 			{
+				DisplayDynamicTemplateExpand("TitlePiece 1", pWnd->TitlePiece);
+				DisplayDynamicTemplateExpand("TitlePiece 2", pWnd->TitlePiece2);
 				DisplayTextObject("Text object", pWnd->pTextObject);
 				DisplayTextObject("Tooltip text object", pWnd->pTipTextObject);
+				ColumnText("Z layer", "%d", pWnd->ZLayer);
 
 				DisplayTextureAnimation("Icon", static_cast<CTextureAnimation*>(pWnd->IconTextureAnim));
 				ColumnCXRect("Icon rect", pWnd->IconRect);
@@ -1260,12 +1618,26 @@ public:
 		// Add CSidlScreenWnd specific details here
 		if (BeginColorSection("CSidlScreenWnd Properties", open))
 		{
-			ColumnCXStr("Sidl screen name", pWnd->SidlText);
-			DisplayScreenTemplate("Screen template", pWnd->SidlPiece);
+			DisplayTemplate("SIDL Template", "CScreenTemplate*", pWnd->SidlPiece);
+
+			if (ColumnTreeNode("INI Settings", ""))
+			{
+				ColumnText("Flags", pWnd->IniFlags == eIniFlag_All ? "(all)" : pWnd->IniFlags ? "0x%08x" : "(none)", pWnd->IniFlags);
+				ColumnCXStr("INI Settings Group", pWnd->IniStorageName);
+				ColumnText("INI Settings Version", "%d", pWnd->IniVersion);
+				ColumnCheckBoxFlags("Position", (unsigned int*)&pWnd->IniFlags, eIniFlag_Position);
+				ColumnCheckBoxFlags("Size", (unsigned int*)&pWnd->IniFlags, eIniFlag_Size);
+				ColumnCheckBoxFlags("Font", (unsigned int*)&pWnd->IniFlags, eIniFlag_Font);
+				ColumnCheckBoxFlags("Alpha", (unsigned int*)&pWnd->IniFlags, eIniFlag_Alpha);
+				ColumnCheckBoxFlags("Color", (unsigned int*)&pWnd->IniFlags, eIniFlag_Color);
+				ColumnCheckBoxFlags("Visibility", (unsigned int*)&pWnd->IniFlags, eIniFlag_Visibility);
+				ColumnCheckBoxFlags("First Time Visibility", (unsigned int*)&pWnd->IniFlags, eIniFlag_FirstTimeVisibility);
+				ColumnCheckBoxFlags("Min/Max State", (unsigned int*)&pWnd->IniFlags, eIniFlag_MinMaxState);
+
+				ImGui::TreePop();
+			}
+
 			// TODO: RadioGroup
-			ColumnText("Ini flags", "0x%08x", pWnd->IniFlags);
-			ColumnCXStr("Ini settings name", pWnd->IniStorageName);
-			ColumnText("Ini version", "%d", pWnd->IniVersion);
 			//ColumnText("Last resolution pos", "{ x=%d, y=%d }", pWnd->LastResX, pWnd->LastResY);
 			//ColumnText("Last resolution fullscreen", pWnd->bLastResFullscreen ? "true" : "false");
 			//ColumnText("Context menu id", "%d", pWnd->ContextMenuID);
@@ -1486,6 +1858,20 @@ public:
 				ImGui::TreePop();
 			}
 
+			// Style
+			if (ColumnTreeNode("List Style", "0x%08x", pWnd->ListWndStyle))
+			{
+				// TODO: Extract constants to eqlib
+				ColumnCheckBoxFlags("Selectable", &pWnd->ListWndStyle,      0x10000);
+				ColumnCheckBoxFlags("Multiselect", &pWnd->ListWndStyle,     0x20000);
+				ColumnCheckBoxFlags("Autosort", &pWnd->ListWndStyle,        0x40000);
+				ColumnCheckBoxFlags("Combobox", &pWnd->ListWndStyle,       0x100000);
+				ColumnCheckBoxFlags("Header", &pWnd->ListWndStyle,         0x200000);
+				ColumnCheckBoxFlags("HeaderSort", &pWnd->ListWndStyle,     0x400000);
+
+				ImGui::TreePop();
+			}
+
 			if (ColumnTreeNode("List Details", ""))
 			{
 				ColumnColor("Header text color", pWnd->HeaderText);
@@ -1504,9 +1890,6 @@ public:
 
 #pragma endregion
 
-//============================================================================
-//============================================================================
-
 #pragma region Windows Developer Tool
 
 class ImGuiWindowsDeveloperTool : public ImGuiWindowBase
@@ -1517,6 +1900,7 @@ class ImGuiWindowsDeveloperTool : public ImGuiWindowBase
 	bool m_selectionChanged = false;
 	bool m_picking = false;
 	bool m_selectPicking = false;
+	bool m_pickWindowChanged = false;
 	CXWnd* m_pPickingWnd = nullptr;
 	int m_lastWindowCount = 0;
 
@@ -1580,6 +1964,7 @@ public:
 
 		m_pHoveredWnd = nullptr;
 		m_pPickingWnd = nullptr;
+		m_pickWindowChanged = false;
 		bool clearPicking = true;
 
 		if (m_open)
@@ -1590,7 +1975,14 @@ public:
 			{
 				if (m_picking)
 				{
-					m_pPickingWnd = pWndMgr->LastMouseOver;
+					// Don't pick anything if the mouse is out of the viewport. This check
+					// clears the pick window when we leave the window because LastMouseOver doesn't
+					// get cleared if the mouse isn't hovering the window.
+					CXWnd* lastMouseOver = nullptr;
+					ImGuiViewport* viewPort = ImGui::GetMainViewport();
+					if (viewPort == ImGui::GetCurrentContext()->MouseViewport)
+						lastMouseOver = pWndMgr->LastMouseOver;
+					m_pickWindowChanged = test_and_set(m_pPickingWnd, lastMouseOver);
 				}
 
 				if (m_picking && m_selectPicking)
@@ -1602,7 +1994,34 @@ public:
 					m_pPickingWnd = nullptr;
 				}
 
-				if (ImGui::Button("Pick"))
+				bool clicked = false;
+
+				if (m_picking)
+				{
+					ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.13f, 0.6f, 0.6f));
+					ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.13f, 0.7f, 0.7f));
+					ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(0.13f, 0.8f, 0.8f));
+				}
+
+				clicked = ImGui::Button(ICON_MD_LOCATION_SEARCHING);
+
+				if (m_picking)
+				{
+					ImGui::PopStyleColor(3);
+				}
+
+				if (ImGui::IsItemHovered())
+				{
+					if (!m_picking)
+					{
+						ImGui::SetTooltip("Click to start picking\n"
+							"\n"
+							"While picking is enabled, hover over UI components to highlight and identify them in the tree.\n"
+							"Click a UI component to select it in the tree.");
+					}
+				}
+
+				if (clicked)
 				{
 					m_picking = !m_picking;
 
@@ -1893,7 +2312,7 @@ public:
 
 		if (m_picking)
 		{
-			if (m_pPickingWnd == pWnd)
+			if (m_pPickingWnd == pWnd && m_pickWindowChanged)
 			{
 				selected = true;
 				selectPicking = true;
@@ -2026,10 +2445,341 @@ public:
 		m_pSelectedWnd = pWnd;
 	}
 };
+static ImGuiWindowsDeveloperTool s_windowDebugPanel;
 
 #pragma endregion
 
-static ImGuiWindowsDeveloperTool s_windowDebugPanel;
+#pragma region ImGui Demo Container
+
+class ImGuiDemoWindow : public ImGuiWindowBase
+{
+public:
+	ImGuiDemoWindow() : ImGuiWindowBase("ImGuiDemoWindow") {}
+
+	virtual void Update() override
+	{
+		if (m_open)
+		{
+			ImGui::ShowDemoWindow(m_open.get_ptr());
+			m_open.Update();
+		}
+	}
+};
+static ImGuiDemoWindow s_demoWindow;
+
+#pragma endregion
+
+#pragma region Spells Developer Tool
+
+class SpellsDeveloperTool : public ImGuiWindowBase
+{
+public:
+	SpellsDeveloperTool() : ImGuiWindowBase("Spells Developer Tools") {}
+
+	void DoSpellBuffTableHeaders()
+	{
+		ImGui::TableSetupColumn("Index");
+		ImGui::TableSetupColumn("Name");
+		ImGui::TableSetupColumn("ID");
+		ImGui::TableSetupColumn("Level");
+		ImGui::TableSetupColumn("Duration");
+		ImGui::TableSetupColumn("InitialDuration");
+		ImGui::TableSetupColumn("HitCount");
+		ImGui::TableSetupColumn("Type");
+		ImGui::TableSetupColumn("ChargesRemaining");
+		ImGui::TableSetupColumn("ViralTimer");
+		ImGui::TableSetupColumn("Flags");
+		ImGui::TableSetupColumn("Modifier");
+		ImGui::TableSetupColumn("Activatable");
+
+		for (int i = 0; i < NUM_SLOTDATA; ++i)
+		{
+			char temp[20];
+			sprintf_s(temp, "Slot%d", i);
+			ImGui::TableSetupColumn(temp, ImGuiTableColumnFlags_WidthAlwaysAutoResize);
+		}
+
+		ImGui::TableSetupColumn("Y");
+		ImGui::TableSetupColumn("X");
+		ImGui::TableSetupColumn("Z");
+
+		ImGui::TableAutoHeaders();
+	}
+
+	void DoSpellBuffTableRow(int index, SPELLBUFF& buff)
+	{
+		SPELL* spell = GetSpellByID(buff.SpellID);
+
+		ImGui::TableNextRow();
+
+		// Index
+		ImGui::Text("%d", index);
+
+		// Name
+		ImGui::TableNextCell();
+		if (spell)
+		{
+			ImGui::Text("%s", spell->Name);
+		}
+		else
+		{
+			ImGui::Text("null");
+		}
+
+		// ID
+		ImGui::TableNextCell();
+		ImGui::Text("%d", buff.SpellID);
+
+		// Level
+		ImGui::TableNextCell();
+		ImGui::Text("%d", buff.Level);
+
+		// Duration
+		ImGui::TableNextCell();
+		ImGui::Text("%d", buff.Duration);
+
+		// InitialDuration
+		ImGui::TableNextCell();
+		ImGui::Text("%d", buff.InitialDuration);
+
+		// HitCount
+		ImGui::TableNextCell();
+		ImGui::Text("%d", buff.HitCount);
+
+		// Type
+		ImGui::TableNextCell();
+		ImGui::Text("%d", buff.Type);
+
+		// ChargesRemaining
+		ImGui::TableNextCell();
+		ImGui::Text("%d", buff.ChargesRemaining);
+
+		// ViralTimer
+		ImGui::TableNextCell();
+		ImGui::Text("%d", buff.ViralTimer);
+
+		// Flags
+		ImGui::TableNextCell();
+		ImGui::Text("%x", buff.Flags);
+
+		// Modifier
+		ImGui::TableNextCell();
+		ImGui::Text("%.2f", buff.Modifier);
+
+		// Activatable
+		ImGui::TableNextCell();
+		ImGui::Text("%d", buff.Activatable);
+
+		// SlotData[0]
+		for (auto& slotData : buff.SlotData)
+		{
+			ImGui::TableNextCell();
+
+			int Slot = slotData.Slot;
+			int Value = slotData.Value;
+
+			if (Slot != -1)
+				ImGui::Text("%d: %d", Slot, Value);
+		}
+
+		// Y
+		ImGui::TableNextCell();
+		ImGui::Text("%.2f", buff.Y);
+
+		// X
+		ImGui::TableNextCell();
+		ImGui::Text("%.2f", buff.X);
+
+		// Z
+		ImGui::TableNextCell();
+		ImGui::Text("%.2f", buff.Z);
+	}
+
+	int DoSpellAffectTable(const char* name, EQ_Affect* affect, int numAffects, bool showEmpty = false)
+	{
+		ImGuiTableFlags tableFlags = 0
+			| ImGuiTableFlags_SizingPolicyFixedX
+			| ImGuiTableFlags_Scroll
+			| ImGuiTableFlags_ScrollFreezeTopRow
+			| ImGuiTableFlags_ScrollFreeze2Columns
+			| ImGuiTableFlags_NoHostExtendY
+			| ImGuiTableFlags_RowBg
+			| ImGuiTableFlags_Borders
+			| ImGuiTableFlags_Resizable
+			| ImGuiTableFlags_Reorderable;
+
+		int count = 2; // start with space for header and possible scroll bar
+
+		// calculate the size
+		for (int i = 0; i < numAffects; ++i)
+		{
+			EQ_Affect& buff = affect[i];
+			if (buff.SpellID == 0 && !showEmpty)
+				continue;
+
+			count++;
+		}
+		ImVec2 size = ImVec2(0, ImGui::GetTextLineHeightWithSpacing() * count);
+		count = 0;
+
+		if (ImGui::BeginTable(name, 16 + NUM_SLOTDATA, tableFlags, size))
+		{
+			DoSpellBuffTableHeaders();
+
+			for (int i = 0; i < numAffects; ++i)
+			{
+				EQ_Affect& buff = affect[i];
+
+				if (buff.SpellID == 0 && !showEmpty)
+					continue;
+
+				DoSpellBuffTableRow(count + 1, buff);
+				count++;
+			}
+
+			ImGui::EndTable();
+		}
+		return count;
+	}
+
+	virtual bool IsEnabled() const override
+	{
+		PcProfile* pcProfile = GetPcProfile();
+		if (!pcProfile)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	virtual void Draw() override
+	{
+		PcProfile* pcProfile = GetPcProfile();
+		if (!pcProfile)
+		{
+			ImGui::TextColored(ImColor(255, 0, 0), "You must be in game to use this");
+			return;
+		}
+
+		if (ImGui::CollapsingHeader("Spell Buffs"))
+		{
+			int count = DoSpellAffectTable("SpellAffectBuffsTable", pcProfile->Buff, lengthof(pcProfile->Buff));
+			ImGui::Text("%d Buff(s)", count);
+		}
+
+		if (ImGui::CollapsingHeader("Short Buffs"))
+		{
+			int count = DoSpellAffectTable("SpellAffectShortBuffsTable", pcProfile->ShortBuff, lengthof(pcProfile->ShortBuff));
+			ImGui::Text("%d Short Buff(s)", count);
+		}
+
+		if (ImGui::CollapsingHeader("Stacks Test"))
+		{
+			static bool bCheckSpellBuffs = true;
+			ImGui::Checkbox("Check buff stacking against active buffs", &bCheckSpellBuffs);
+
+			if (bCheckSpellBuffs)
+			{
+				ImGui::Text("Enter the name of a spell to test buff stacking:");
+			}
+			else
+			{
+				ImGui::TextWrapped("Enter the name of two spells to test buff stacking. The test will check the second spell against the first.");
+			}
+
+			static char searchText[256] = { 0 };
+			static char searchText2[256] = { 0 };
+
+			if (bCheckSpellBuffs)
+			{
+				ImGui::InputText("Spell Name", searchText2, 256);
+			}
+			else
+			{
+				ImGui::InputText("Spell 1", searchText, 256);
+				ImGui::InputText("Spell 2", searchText2, 256);
+			}
+
+			SPELL* pSpell = nullptr;
+			SPELL* pSpell2 = nullptr;
+
+			if (searchText[0])
+			{
+				pSpell = GetSpellByName(searchText);
+				if (!pSpell)
+				{
+					ImGui::TextColored(ImColor(255, 0, 0), "No spell named '%s' found", searchText);
+				}
+			}
+
+			if (searchText2[0])
+			{
+				pSpell2 = GetSpellByName(searchText2);
+				if (!pSpell2)
+				{
+					ImGui::TextColored(ImColor(255, 0, 0), "No spell named '%s' found", searchText2);
+				}
+			}
+
+			if (!bCheckSpellBuffs && ImGui::Button("Swap"))
+			{
+				char temp[256];
+				strcpy_s(temp, searchText);
+				strcpy_s(searchText, searchText2);
+				strcpy_s(searchText2, temp);
+			}
+
+			if (pSpell2)
+			{
+				SPAWNINFO* pPlayer = pLocalPlayer;
+				PcClient* pPcClient = pPlayer->GetPcClient();
+
+				EQ_Affect affect;
+				affect.Type = 2;
+				EQ_Affect* affectToPass = nullptr;
+				if (pSpell)
+				{
+					affect.SpellID = pSpell->ID;
+					affectToPass = &affect;
+				}
+				int slotIndex = -1;
+
+				EQ_Affect* ret = pPcClient->FindAffectSlot(pSpell2->ID, pPlayer, &slotIndex,
+					true, -1, affectToPass ? affectToPass : nullptr, affectToPass ? 1 : 0, false);
+
+				if (ret)
+				{
+					if (pSpell)
+					{
+						ImGui::TextColored(ImColor(0, 255, 0), "%s stacks with %s", pSpell2->Name, pSpell->Name);
+					}
+					else
+					{
+						ImGui::TextColored(ImColor(0, 255, 0), "%s stacks", pSpell2->Name);
+					}
+				}
+				else
+				{
+					if (pSpell)
+					{
+						ImGui::TextColored(ImColor(255, 0, 0), "%s doesn't stack with %s", pSpell2->Name, pSpell->Name);
+					}
+					else
+					{
+						ImGui::TextColored(ImColor(255, 0, 0), "%s doesn't stack", pSpell2->Name);
+					}
+				}
+			}
+		}
+	}
+};
+static SpellsDeveloperTool s_spellsTool;
+
+#pragma endregion
+
+//============================================================================
+//============================================================================
 
 bool DeveloperTools_HandleClick(int mouseButton, bool clicked)
 {
@@ -2067,6 +2817,14 @@ void DeveloperTools_DrawMenu()
 {
 	if (ImGui::MenuItem("Window Inspector", nullptr, s_windowDebugPanel.IsOpen()))
 		s_windowDebugPanel.Toggle();
+
+	if (ImGui::MenuItem("Spells Inspector", nullptr, s_spellsTool.IsOpen(), s_spellsTool.IsEnabled()))
+		s_spellsTool.Toggle();
+
+	ImGui::Separator();
+
+	if (ImGui::MenuItem("ImGui Demo", nullptr, s_demoWindow.IsOpen()))
+		s_demoWindow.Toggle();
 }
 
 //============================================================================
