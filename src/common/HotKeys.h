@@ -21,13 +21,20 @@ namespace mq {
 
 struct PlatformHotkey
 {
+	enum modifier { Alt = 1, Ctrl = 2, Shift = 4, Win = 8 };
+
 	uint16_t modifiers;
 	uint16_t virtualKey;
 
 	char keybind[32];
 };
 
+// Parse a string into the parameters for a PlatformHotKey.
 bool ConvertStringToModifiersAndVirtualKey(const std::string& str, uint16_t& modkey, uint16_t& virtualKey);
+
+// Returns if the modifiers used by the specified hotkey are pressed. If no modifiers are specified then this
+// function returns true.
+bool IsHotKeyModifiersPressed(const PlatformHotkey& hotkey);
 
 // Get the name of the key by virtual key using our own code
 const char* GetKeyNameFromVirtualKey(uint16_t virtualKey);

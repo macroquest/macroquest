@@ -72,4 +72,5 @@
 #include <time.h>
 #include <winsock.h>
 
-#include <detours\inc\detours.h>
+#include <detours/inc/detours.h>
+#include <spdlog/spdlog.h>

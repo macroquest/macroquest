@@ -14,9 +14,10 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
+#include "MQ2DeveloperTools.h"
 
 #include "imgui/ImGuiTreePanelWindow.h"
-#include "imgui/ImGuiColorTextEdit.h"
+#include "imgui/ImGuiTextEditor.h"
 #include <imgui/imgui_internal.h>
 
 #include <fmt/format.h>
@@ -25,16 +26,12 @@ using namespace std::chrono_literals;
 
 namespace mq {
 
-static bool gbShowDemoWindow = false;
 static bool gbShowSettingsWindow = false;
-static bool gbShowDebugWindow = false;
-static bool gbShowConsoleWindow = true;
 static int gRenderCallbacksId = 0;
 
 extern bool gbToggleConsoleRequested;
 
 imgui::ImGuiTreePanelWindow gSettingsWindow("MacroQuest Settings");
-imgui::ImGuiTreePanelWindow gDebugWindow("MacroQuest Debug Tools");
 
 static void InitializeMQ2ImGuiAPI();
 static void ShutdownMQ2ImGuiAPI();
@@ -419,13 +416,16 @@ public:
 			if (ImGui::BeginMenu("Windows"))
 			{
 				ImGui::MenuItem("Settings", nullptr, &gbShowSettingsWindow);
-				ImGui::MenuItem("Debug Tools", nullptr, &gbShowDebugWindow);
-
-				ImGui::Separator();
-				ImGui::MenuItem("ImGui Demo", nullptr, &gbShowDemoWindow);
 
 				ImGui::EndMenu();
 			}
+
+			if (ImGui::BeginMenu("Developer Tools"))
+			{
+				DeveloperTools_DrawMenu();
+				ImGui::EndMenu();
+			}
+
 			ImGui::EndMenuBar();
 		}
 
@@ -458,11 +458,13 @@ public:
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 4);
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.00f, 0.00f, 0.00f));
+		ImGui::PushFont(mq::imgui::ConsoleFont);
 
 		bool bTextEdit = ImGui::InputText("##Input", m_inputBuffer, IM_ARRAYSIZE(m_inputBuffer), textFlags,
 			[](ImGuiInputTextCallbackData* data)
 			{ return static_cast<ImGuiConsole*>(data->UserData)->TextEditCallback(data); }, this);
 
+		ImGui::PopFont();
 		ImGui::PopStyleColor();
 
 		if (bTextEdit)
@@ -490,7 +492,7 @@ public:
 
 	void ExecCommand(const char* commandLine)
 	{
-		AddLog(IM_COL32(0x80, 0x80, 0x80, 255), "> {0}\n", commandLine);
+		AddLog(MQColor(128, 128, 128), "> {0}\n", commandLine);
 
 		// Inhsert into history. First find match and delete it so i can be pushed to the back. This isn't
 		// trying to be smart or optimal.
@@ -661,7 +663,7 @@ ImGuiID MyDockSpaceOverViewport(ImGuiViewport* viewport, ImGuiDockNodeFlags dock
 
 	ImGuiWindowFlags host_window_flags = 0;
 	host_window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDocking;
-	host_window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+	host_window_flags |= ImGuiWindowFlags_NoNavFocus;
 	if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
 		host_window_flags |= ImGuiWindowFlags_NoBackground;
 	host_window_flags |= ImGuiWindowFlags_NoInputs;
@@ -698,6 +700,10 @@ void DrawDockSpace()
 		dockspaceFlags |= ImGuiDockNodeFlags_KeepAliveOnly;
 	}
 
+	if (s_setFocus)
+	{
+		ImGui::SetNextWindowFocus();
+	}
 	s_dockspaceId = MyDockSpaceOverViewport(nullptr, dockspaceFlags);
 
 	ImGuiDockNode* node = ImGui::DockBuilderGetNode(s_dockspaceId);
@@ -741,16 +747,6 @@ void RemoveSettingsPanel(const char* name)
 	gSettingsWindow.RemovePanel(name);
 }
 
-void AddDebugPanel(const char* name, fPanelDrawFunction drawFunction)
-{
-	gDebugWindow.AddPanel(name, drawFunction);
-}
-
-void RemoveDebugPanel(const char* name)
-{
-	gDebugWindow.RemovePanel(name);
-}
-
 static void DoToggleImGuiOverlay(const char* name, bool down)
 {
 	if (down)
@@ -780,16 +776,28 @@ static void MakeColorGradient(float frequency1, float frequency2, float frequenc
 
 void UpdateOverlayUI()
 {
-	// Initialize dockspace first so other windows can utilize it.+
-	DrawDockSpace();
-
 	if (gbToggleConsoleRequested)
 	{
 		gbToggleConsoleRequested = false;
+
 		s_dockspaceVisible = !s_dockspaceVisible;
 		if (s_dockspaceVisible)
+		{
 			s_setFocus = true;
+
+			// activate main viewport
+			ImGuiViewport* mainViewport = ImGui::GetMainViewport();
+
+			if (ImGui::GetCurrentWindow()->Viewport->ID != mainViewport->ID)
+			{
+				// Activate the main viewport window.
+				::SetActiveWindow((HWND)mainViewport->PlatformHandle);
+			}
+		}
 	}
+
+	// Initialize dockspace first so other windows can utilize it.+
+	DrawDockSpace();
 
 	if (s_dockspaceVisible)
 	{
@@ -797,19 +805,9 @@ void UpdateOverlayUI()
 		gImGuiConsole.Draw(&s_dockspaceVisible);
 	}
 
-	if (gbShowDemoWindow)
-	{
-		ImGui::ShowDemoWindow(&gbShowDemoWindow);
-	}
-
 	if (gbShowSettingsWindow)
 	{
 		gSettingsWindow.Draw(&gbShowSettingsWindow);
-	}
-
-	if (gbShowDebugWindow)
-	{
-		gDebugWindow.Draw(&gbShowDebugWindow);
 	}
 }
 
@@ -988,22 +986,10 @@ static DWORD WriteChatColorImGuiAPI(const char* line, DWORD color, DWORD filter)
 
 static void InitializeMQ2ImGuiAPI()
 {
-	// Init settings
-	gbShowDemoWindow = GetPrivateProfileBool("MacroQuest", "ShowDemoWindow", gbShowDemoWindow, mq::internal_paths::MQini);
-	gbShowDebugWindow = GetPrivateProfileBool("MacroQuest", "ShowDebugWindow", gbShowDebugWindow, mq::internal_paths::MQini);
-
-	if (gbWriteAllConfig)
-	{
-		WritePrivateProfileBool("MacroQuest", "ShowDemoWindow", gbShowDemoWindow, mq::internal_paths::MQini);
-		WritePrivateProfileBool("MacroQuest", "ShowDebugWindow", gbShowDebugWindow, mq::internal_paths::MQini);
-	}
-
 	// Add keybind to toggle imgui
 	AddMQ2KeyBind("TOGGLE_IMGUI_OVERLAY", DoToggleImGuiOverlay);
 
 	AddCascadeMenuItem("Settings", []() { gbShowSettingsWindow = true; }, 2);
-	AddCascadeMenuItem("Debug Window", []() { gbShowDebugWindow = true; });
-	AddCascadeMenuItem("ImGui Demo", []() { gbShowDemoWindow = true; });
 }
 
 static void ShutdownMQ2ImGuiAPI()
@@ -1016,19 +1002,6 @@ static void ShutdownMQ2ImGuiAPI()
 
 static void PulseMQ2ImGuiAPI()
 {
-	static bool bShowDebugWindowLast = gbShowDebugWindow;
-	if (bShowDebugWindowLast != gbShowDebugWindow)
-	{
-		WritePrivateProfileBool("MacroQuest", "ShowDebugWindow", gbShowDebugWindow, mq::internal_paths::MQini);
-		bShowDebugWindowLast = gbShowDebugWindow;
-	}
-
-	static bool bShowDemoWindowLast = gbShowDemoWindow;
-	if (bShowDemoWindowLast != gbShowDemoWindow)
-	{
-		WritePrivateProfileBool("MacroQuest", "ShowDemoWindow", gbShowDemoWindow, mq::internal_paths::MQini);
-		bShowDemoWindowLast = gbShowDemoWindow;
-	}
 }
 
 } // namespace mq

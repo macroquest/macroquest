@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "MQ2Main.h"
 #include "CrashHandler.h"
+#include "MQ2DeveloperTools.h"
 
 #include "imgui/ImGuiUtils.h"
 
@@ -41,18 +42,16 @@ struct WindowInfo
 {
 	std::string Name;
 	CXWnd* pWnd = nullptr;
-	CXWnd** ppWnd = nullptr;
 
-	WindowInfo(std::string Name, CXWnd* pWnd, CXWnd** ppWnd)
+	WindowInfo(std::string Name, CXWnd* pWnd)
 		: Name(std::move(Name))
 		, pWnd(pWnd)
-		, ppWnd(ppWnd)
 	{}
 	WindowInfo() = default;
 };
 
+std::map<std::string, CXWnd*, ci_less> WindowMap;
 std::unordered_map<CXWnd*, WindowInfo> WindowList;
-std::unordered_map<std::string, CXWnd*> WindowMap;
 std::vector<std::string> XmlFiles;
 
 int WinCount = 0;
@@ -60,30 +59,27 @@ int WinCount = 0;
 bool GenerateMQUI();
 void DestroyMQUI();
 
-inline void AddWindowToList(const CXStr& Name, CXWnd* pWnd, bool log)
+inline void AddWindowToList(const CXStr& WindowName, CXWnd* pWnd, bool log)
 {
-	std::string WindowName{ Name };
-	MakeLower(WindowName);
-
 	auto iter = WindowMap.find(WindowName);
 	if (iter != WindowMap.end())
 	{
-		WindowList[pWnd] = { std::move(WindowName), pWnd, nullptr };
+		WindowList[pWnd] = { std::string(WindowName), pWnd };
 
 		if (log)
 		{
-			DebugSpew("Updating WndNotification target '%s'", Name.c_str());
+			DebugSpew("Updating WndNotification target '%s'", WindowName.c_str());
 		}
 	}
 	else
 	{
-		WindowList[pWnd] = { WindowName, pWnd, nullptr };
-		WindowMap.emplace(std::move(WindowName), pWnd);
+		WindowList[pWnd] = { std::string(WindowName), pWnd };
+		WindowMap.emplace(std::string(WindowName), pWnd);
 
 		if (log)
 		{
-			if (!Name.empty())
-				DebugSpew("Adding WndNotification target '%s'", Name.c_str());
+			if (!WindowName.empty())
+				DebugSpew("Adding WndNotification target '%s'", WindowName.c_str());
 			else
 				DebugSpew("Adding WndNotification target FAILED");
 		}
@@ -133,6 +129,8 @@ DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CTargetWnd__WndNotification_Tramp(CXW
 class CXWndManagerHook
 {
 public:
+	// This serves as the effective destructor of the window. Every CXWnd will call this in its
+	// destructor, so this means we do not need to detour the destructor, too.
 	int RemoveWnd_Trampoline(CXWnd*);
 	int RemoveWnd_Detour(CXWnd* pWnd)
 	{
@@ -141,10 +139,7 @@ public:
 			auto windowListIter = WindowList.find(pWnd);
 			if (windowListIter != WindowList.end())
 			{
-				std::string Name{ windowListIter->second.Name };
-				MakeLower(Name);
-
-				auto windowMapIter = WindowMap.find(Name);
+				auto windowMapIter = WindowMap.find(windowListIter->second.Name);
 				if (windowMapIter != WindowMap.end())
 				{
 					WindowMap.erase(windowMapIter);
@@ -152,6 +147,8 @@ public:
 
 				WindowList.erase(windowListIter);
 			}
+
+			DeveloperTools_RemoveWindow(pWnd);
 		}
 
 		return RemoveWnd_Trampoline(pWnd);
@@ -494,22 +491,48 @@ void RemoveXMLFile(const char* filename)
 		std::end(XmlFiles));
 }
 
-CXWnd* FindMQ2Window(const char* WindowName)
+CXWnd* FindMQ2WindowPath(const char* WindowName)
 {
+	char nameBuffer[256];
+	strcpy_s(nameBuffer, WindowName);
+
+	char* head = nameBuffer;
+	char* context = nullptr;
+
+	head = strtok_s(head, "/", &context);
+
+	CXWnd* pWindow = FindMQ2Window(head);
+	if (!pWindow) return nullptr;
+
+	while (head = strtok_s(nullptr, "/", &context))
+	{
+		pWindow = pWindow->GetChildItem(head);
+		if (!pWindow) break;
+	}
+
+	return pWindow;
+}
+
+CXWnd* FindMQ2Window(const char* Name)
+{
+	if (strchr(Name, '/'))
+	{
+		return FindMQ2WindowPath(Name);
+	}
+
 	WindowInfo Info;
-	std::string Name = WindowName;
-	MakeLower(Name);
+	std::string_view WindowName{ Name };
 
 	// check toplevel windows first
-	if (WindowMap.find(Name) != WindowMap.end())
+	auto iter = WindowMap.find(WindowName);
+	if (iter != WindowMap.end())
 	{
-		//found it no need to look further...
-		return WindowMap[Name];
+		return iter->second;
 	}
 
 	// didnt find one, is it a container?
 	CONTENTS* pPack = nullptr;
-	if (!_strnicmp(WindowName, "bank", 4))
+	if (ci_starts_with(WindowName, "bank"))
 	{
 		unsigned long nPack = GetIntFromString(&WindowName[4], 0);
 		if (nPack && nPack <= NUM_BANK_SLOTS)
@@ -527,7 +550,7 @@ CXWnd* FindMQ2Window(const char* WindowName)
 #endif
 		}
 	}
-	else if (!_strnicmp(WindowName, "pack", 4))
+	else if (ci_starts_with(WindowName, "pack"))
 	{
 		unsigned long nPack = GetIntFromString(&WindowName[4], 0);
 		if (nPack && nPack <= 10)
@@ -541,7 +564,7 @@ CXWnd* FindMQ2Window(const char* WindowName)
 			}
 		}
 	}
-	else if (!_stricmp(WindowName, "enviro"))
+	else if (ci_equals(WindowName, "enviro"))
 	{
 		pPack = pContainerMgr->pWorldContainer.get();
 	}
@@ -553,35 +576,30 @@ CXWnd* FindMQ2Window(const char* WindowName)
 
 	// didnt find a toplevel window, is it a child then?
 	bool namefound = false;
-	for (auto& N : WindowList)
+	for (auto& [_, windowInfo] : WindowList)
 	{
-		if (N.second.Name == Name)
+		if (ci_equals(windowInfo.Name, WindowName))
 		{
 			namefound = true;
-			Info = N.second;
+			Info = windowInfo;
 			break;
 		}
 	}
 
-	if (!namefound)
+	if (namefound)
 	{
-		WindowMap.erase(Name);
-		return nullptr;
+		if (Info.pWnd)
+		{
+			return Info.pWnd;
+		}
+
+		WindowList.erase(Info.pWnd);
 	}
 
-	if (Info.pWnd)
-	{
-		return Info.pWnd;
-	}
-
-	if (Info.ppWnd)
-	{
-		return *Info.ppWnd;
-	}
-
-
-	WindowMap.erase(Name);
-	WindowList.erase(Info.pWnd);
+	// This uses find to take advantage of heterogeneous iterators
+	auto windowIter = WindowMap.find(WindowName);
+	if (windowIter != WindowMap.end())
+		WindowMap.erase(windowIter);
 	return nullptr;
 }
 
@@ -590,7 +608,7 @@ bool SendWndClick2(CXWnd* pWnd, const char* ClickNotification)
 	if (!pWnd)
 		return false;
 
-	for (unsigned long i = 0; i < 8; i++)
+	for (size_t i = 0; i < lengthof(szClickNotification); i++)
 	{
 		if (!_stricmp(szClickNotification[i], ClickNotification))
 		{
@@ -1083,58 +1101,6 @@ bool SendWndNotification(const char* WindowName, const char* ScreenID, int Notif
 	return true;
 }
 
-void AddWindow(char* WindowName, CXWnd** ppWindow)
-{
-	std::string Name = WindowName;
-	MakeLower(Name);
-
-	if (WindowMap.find(Name) != WindowMap.end())
-	{
-		WindowInfo pWnd;
-
-		for (auto& N : WindowList)
-		{
-			if (N.second.Name == Name)
-			{
-				pWnd = N.second;
-				break;
-			}
-		}
-
-		pWnd.pWnd = nullptr;
-		pWnd.ppWnd = ppWindow;
-	}
-	else
-	{
-		WindowInfo pWnd;
-		pWnd.Name = Name;
-		pWnd.pWnd = nullptr;
-		pWnd.ppWnd = ppWindow;
-
-		WindowList[*ppWindow] = pWnd;
-		WindowMap[Name] = *ppWindow;
-	}
-}
-
-void RemoveWindow(char* WindowName)
-{
-	std::string Name = WindowName;
-	MakeLower(Name);
-
-	if (WindowMap.find(Name) != WindowMap.end())
-	{
-		WindowMap.erase(Name);
-		for (auto N = WindowList.begin(); N != WindowList.end(); N++)
-		{
-			if (N->second.Name == Name)
-			{
-				WindowList.erase(N);
-				break;
-			}
-		}
-	}
-}
-
 int RecurseAndListWindows(CXWnd* pWnd)
 {
 	int Count = 0;
@@ -1271,10 +1237,8 @@ void ListWindows(PSPAWNINFO pChar, char* szLine)
 	else
 	{
 		// list children of..
-		std::string WindowName = szLine;
-		MakeLower(WindowName);
-
-		if (WindowMap.find(WindowName) == WindowMap.end())
+		auto iter = WindowMap.find(szLine);
+		if (iter == WindowMap.end())
 		{
 			if (CXWnd* pWnd = FindMQ2Window(szLine))
 			{
@@ -1284,18 +1248,16 @@ void ListWindows(PSPAWNINFO pChar, char* szLine)
 				return;
 			}
 
-			WriteChatf("Window '%s' not available", WindowName.c_str());
+			WriteChatf("Window '%s' not available", szLine);
 			return;
 		}
 
-		WriteChatf("Listing child windows of '%s'", WindowName.c_str());
+		WriteChatf("Listing child windows of '%s'", szLine);
 		WriteChatColor("-------------------------");
 
-		for (auto& N : WindowList)
+		for (auto& [_, Info] : WindowList)
 		{
-			WindowInfo& Info = N.second;
-
-			if (Info.Name == WindowName && Info.pWnd)
+			if (ci_equals(Info.Name, szLine) && Info.pWnd)
 			{
 				if (CXWnd* pWnd = Info.pWnd->GetFirstChildWnd())
 				{
@@ -2097,307 +2059,7 @@ void UpdateCascadeMenu()
 	gbCascadeMenuNeedsUpdate = false;
 }
 
-void InstallCascadeMenuItems()
-{
-	EzDetour(__CreateCascadeMenuItems, CreateCascadeMenuItems_Detour, CreateCascadeMenuItems_Trampoline);
-
-	UpdateCascadeMenu();
-}
-
-void RemoveCascadeMenuItems()
-{
-	RemoveDetour(__CreateCascadeMenuItems);
-	RemoveCascadeMenuItem("Toggle Overlay UI");
-
-	gCascadeItemData.clear();
-
-	UpdateCascadeMenu();
-}
-
 //============================================================================
-
-class ImGuiWindowDebugPanel
-{
-	CXWnd* m_pSelectedWnd = nullptr;
-	CXWnd* m_pHoveredWnd = nullptr;
-
-	// Never dereference this. the window might be deleted. We just use it to track
-	// what is selected.
-	CXWnd* m_pLastSelected = nullptr;
-	bool m_foundSelected = false;
-	bool m_selectionChanged = false;
-
-	float m_topPaneSize = -1.0f;
-	float m_bottomPaneSize = -1.0f;
-
-	bool m_picking = false;
-	bool m_selectPicking = false;
-	CXWnd* m_pPickingWnd = nullptr;
-
-public:
-	ImGuiWindowDebugPanel() = default;
-
-	void Draw()
-	{
-		ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollFreezeTopRow | ImGuiTableFlags_ScrollY | ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersHOuter | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg;
-
-		// This is so we can reset the selected window if it is not found.
-		m_foundSelected = false;
-		m_pHoveredWnd = nullptr;
-		m_pPickingWnd = nullptr;
-
-		ImVec2 availSize = ImGui::GetContentRegionAvail();
-		if (m_topPaneSize == -1.0f)
-			m_topPaneSize = availSize.y * .75f;
-		if (m_bottomPaneSize == -1.0f)
-			m_bottomPaneSize = availSize.y - m_topPaneSize - 1;
-
-		if (m_picking)
-		{
-			m_pPickingWnd = pWndMgr->LastMouseOver;
-		}
-
-		imgui::DrawSplitter(true, 9.0f, &m_topPaneSize, &m_bottomPaneSize, 50, 50);
-
-		if (ImGui::Button("Pick"))
-		{
-			m_picking = !m_picking;
-		}
-
-		if (ImGui::BeginTable("##WindowTable", 2, tableFlags, ImVec2(0, m_topPaneSize)))
-		{
-			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
-			ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 100);
-			ImGui::TableAutoHeaders();
-
-			if (pWndMgr)
-			{
-				for (CXWnd* pWnd : pWndMgr->ParentAndContextMenuWindows)
-				{
-					DisplayWindowTreeNode(pWnd);
-				}
-			}
-
-			ImGui::EndTable();
-		}
-
-		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 9);
-
-		// if the selected window was not found, then clear it.
-		if (!m_foundSelected)
-		{
-			m_pSelectedWnd = nullptr;
-		}
-
-		if (m_pSelectedWnd)
-		{
-			ImGui::Text("Selected Window: %s", m_pSelectedWnd->GetXMLName().c_str());
-
-			ImGuiViewport* viewport = ImGui::GetMainViewport();
-			ImDrawList* drawList = ImGui::GetBackgroundDrawList(viewport);
-
-			CXRect clientRect = m_pSelectedWnd->GetClientRect();
-			drawList->AddRect(
-				ImVec2(clientRect.left + viewport->Pos.x, clientRect.top + viewport->Pos.y),
-				ImVec2(clientRect.right + viewport->Pos.x, clientRect.bottom + viewport->Pos.y),
-				IM_COL32(124, 252, 0, 200));
-		}
-		else
-		{
-			ImGui::Text("Selected Window: None");
-		}
-
-		if (m_pPickingWnd)
-		{
-			CXWnd* wnd = m_pPickingWnd ? m_pPickingWnd : m_pSelectedWnd;
-
-			ImGuiViewport* viewport = ImGui::GetMainViewport();
-			ImDrawList* drawList = ImGui::GetBackgroundDrawList(viewport);
-
-			CXRect clientRect = wnd->GetClientRect();
-			drawList->AddRectFilled(
-				ImVec2(clientRect.left + viewport->Pos.x, clientRect.top + viewport->Pos.y),
-				ImVec2(clientRect.right + viewport->Pos.x, clientRect.bottom + viewport->Pos.y),
-				IM_COL32(138, 179, 191, 128));
-		}
-
-		if (m_pHoveredWnd)
-		{
-			ImGui::Text("Hovered Window: %s", m_pHoveredWnd->GetXMLName().c_str());
-
-			ImGuiViewport* viewport = ImGui::GetMainViewport();
-			ImDrawList* drawList = ImGui::GetBackgroundDrawList(viewport);
-
-			CXRect clientRect = m_pHoveredWnd->GetClientRect();
-			drawList->AddRect(
-				ImVec2(clientRect.left + viewport->Pos.x, clientRect.top + viewport->Pos.y),
-				ImVec2(clientRect.right + viewport->Pos.x, clientRect.bottom + viewport->Pos.y),
-				m_pHoveredWnd->IsReallyVisible() ? IM_COL32(255, 215, 0, 200) : IM_COL32(200, 20, 60, 200));
-		}
-		else
-		{
-			ImGui::Text("Hovered Window: None");
-		}
-
-		if (m_pPickingWnd)
-		{
-			ImGui::Text("Picking: %s", m_pPickingWnd->GetXMLName().c_str());
-		}
-		else if (m_picking)
-		{
-			ImGui::Text("Picking...");
-		}
-
-		// update last selected to remember selection for next iteration
-		m_selectionChanged = test_and_set(m_pLastSelected, m_pSelectedWnd);
-
-		if (m_picking && m_selectPicking)
-		{
-			m_selectPicking = false;
-			m_picking = false;
-		}
-	}
-
-	void DisplayWindowTreeNode(CXWnd* pWnd)
-	{
-		if (pWnd->GetType() == UI_Unknown)
-			return;
-		ImGui::TableNextRow();
-		const bool hasChildren = pWnd->GetFirstChildWnd() != nullptr;
-
-		CXStr pName = pWnd->GetXMLName();
-		CXMLData* pXMLData = pWnd->GetXMLData();
-		CXStr typeName = pWnd->GetTypeName();
-		//const char* szWindowName = pName ? pName->c_str() : "";
-		//const char* szXmlName = pXMLData ? pXMLData->Name.c_str() : "";
-		//const char* szXmlScreenID = pXMLData ? pXMLData->ScreenID.c_str() : "";
-		//if (strlen(szWindowName) == 0)
-		//	szWindowName = szXmlName;
-
-		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth;
-		bool open = false;
-		bool selected = (m_pLastSelected == pWnd);
-		bool selectPicking = false;
-
-		if (m_picking)
-		{
-			if (m_pPickingWnd == pWnd)
-			{
-				selected = true;
-				selectPicking = true;
-			}
-		}
-
-		if (selected)
-		{
-			flags |= ImGuiTreeNodeFlags_Selected;
-			m_foundSelected = true;
-		}
-
-		if (!hasChildren)
-		{
-			flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
-		}
-
-		if (hasChildren)
-		{
-			if (m_pPickingWnd)
-			{
-				if (m_pPickingWnd->IsDescendantOf(pWnd))
-					flags |= ImGuiTreeNodeFlags_DefaultOpen;
-			}
-			else if (m_pSelectedWnd && m_selectionChanged)
-			{
-				if (m_pSelectedWnd->IsDescendantOf(pWnd))
-				{
-					ImGui::SetNextItemOpen(true);
-				}
-			}
-
-			open = ImGui::TreeNodeEx(pWnd, flags, "%s", pName.c_str());
-		}
-		else
-		{
-			ImGui::TreeNodeEx(pWnd, flags, "%s", pName.c_str());
-		}
-
-		if (selectPicking)
-		{
-			ImGui::SetScrollHere();
-		}
-
-		if (ImGui::IsItemHovered())
-		{
-			m_pHoveredWnd = pWnd;
-		}
-		if (ImGui::IsItemClicked() || (selectPicking && m_selectPicking))
-		{
-			m_pSelectedWnd = pWnd;
-			m_foundSelected = true;
-		}
-
-		ImGui::TableNextCell();
-		ImGui::Text("%s", typeName.c_str());
-
-		if (open)
-		{
-			CXWnd* pChild = pWnd->GetFirstChildWnd();
-			while (pChild)
-			{
-				DisplayWindowTreeNode(pChild);
-				pChild = pChild->GetNextSiblingWnd();
-			}
-
-			// If this is a list box, then also traverse its child list windows.
-			if (pWnd->GetType() == UI_Listbox)
-			{
-				CListWnd* listWnd = static_cast<CListWnd*>(pWnd);
-
-				for (SListWndLine& line : listWnd->ItemsArray)
-				{
-					// TODO: Expand into columns/rows but for now just list the children.
-					for (SListWndCell& cell : line.Cells)
-					{
-						// The children of the list are stored in wrapper windows. They show up
-						// as Unknown types. We just skip past them.
-						if (cell.pWnd && cell.pWnd->GetFirstChildWnd())
-						{
-							DisplayWindowTreeNode(cell.pWnd->GetFirstChildWnd());
-						}
-					}
-				}
-			}
-
-			ImGui::TreePop();
-		}
-	}
-
-	bool IsPicking() const { return m_picking; }
-
-	void Pick()
-	{
-		SPDLOG_INFO("Pick: {0}, {1:x}", m_picking, (void*)m_pPickingWnd);
-		if (m_picking)
-			m_selectPicking = true;
-	}
-};
-
-static ImGuiWindowDebugPanel s_windowDebugPanel;
-
-static void WindowsDebugPanel()
-{
-	s_windowDebugPanel.Draw();
-}
-
-bool MQ2Windows_PickerClick()
-{
-	// If the picker is active, tell it that we clicked. Returns true (to consume the click) if this happens.
-	if (!s_windowDebugPanel.IsPicking())
-		return false;
-
-	s_windowDebugPanel.Pick();
-	return true;
-}
 
 void InitializeMQ2Windows()
 {
@@ -2445,6 +2107,7 @@ void InitializeMQ2Windows()
 		&DoesFileExist,
 		&DoesFileExist_Trampoline);
 	EzDetour(__eqgraphics_fopen, fopen_eqgraphics_detour, fopen_eqgraphics_trampoline);
+	EzDetour(__CreateCascadeMenuItems, CreateCascadeMenuItems_Detour, CreateCascadeMenuItems_Trampoline);
 
 	AddCommand("/windows", ListWindows);
 	AddCommand("/notify", WndNotify);
@@ -2453,15 +2116,18 @@ void InitializeMQ2Windows()
 	AddCommand("/reloadui", ReloadUI);
 
 	InitializeWindowList();
-	InstallCascadeMenuItems();
 
-	AddDebugPanel("Windows", WindowsDebugPanel);
+	UpdateCascadeMenu();
 }
 
 void ShutdownMQ2Windows()
 {
 	DebugSpew("Shutting down MQ2 Windows");
-	RemoveCascadeMenuItems();
+
+	RemoveCascadeMenuItem("Toggle Overlay UI");
+
+	gCascadeItemData.clear();
+	UpdateCascadeMenu();
 
 	RemoveCommand("/windows");
 	RemoveCommand("/notify");
@@ -2476,8 +2142,7 @@ void ShutdownMQ2Windows()
 	RemoveDetour(__DoesFileExist);
 	RemoveDetour(CMemoryMappedFile__SetFile);
 	RemoveDetour(__eqgraphics_fopen);
-
-	RemoveDebugPanel("Windows");
+	RemoveDetour(__CreateCascadeMenuItems);
 }
 
 void PulseMQ2Windows()

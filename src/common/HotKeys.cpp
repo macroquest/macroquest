@@ -35,28 +35,28 @@ bool ConvertStringToModifiersAndVirtualKey(const std::string& str, uint16_t& mod
 	pos = input.find("ALT+");
 	if (pos != std::string::npos)
 	{
-		modkey |= 1;
+		modkey |= PlatformHotkey::Alt;
 		input.replace(pos, 4, "");
 	}
 
 	pos = input.find("CTRL+");
 	if (pos != std::string::npos)
 	{
-		modkey |= 2;
+		modkey |= PlatformHotkey::Ctrl;
 		input.replace(pos, 5, "");
 	}
 
 	pos = input.find("SHIFT+");
 	if (pos != std::string::npos)
 	{
-		modkey |= 4;
+		modkey |= PlatformHotkey::Shift;
 		input.replace(pos, 6, "");
 	}
 
 	pos = input.find("WIN+");
 	if (pos != std::string::npos)
 	{
-		modkey |= 8;
+		modkey |= PlatformHotkey::Win;
 		input.replace(pos, 4, "");
 	}
 
@@ -250,6 +250,44 @@ bool ConvertStringToModifiersAndVirtualKey(const std::string& str, uint16_t& mod
 	}
 
 	return virtualKey != 0;
+}
+
+inline bool IsKeyPressed(int vKey)
+{
+	return (::GetKeyState(vKey) & 0x8000) != 0;
+}
+
+bool IsHotKeyModifiersPressed(const PlatformHotkey& hotkey)
+{
+	bool pressed = true;
+
+	if (hotkey.modifiers & PlatformHotkey::Alt)
+	{
+		if (!IsKeyPressed(VK_MENU))
+			return false;
+	}
+
+	if (hotkey.modifiers & PlatformHotkey::Ctrl)
+	{
+		if (!IsKeyPressed(VK_CONTROL))
+			return false;
+	}
+
+	if (hotkey.modifiers & PlatformHotkey::Shift)
+	{
+		if (!IsKeyPressed(VK_SHIFT))
+			return false;
+	}
+
+	if (hotkey.modifiers & PlatformHotkey::Win)
+	{
+		if (!IsKeyPressed(VK_LWIN) && !IsKeyPressed(VK_RWIN))
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
 // Get the name of the key by virtual key using our own code

@@ -14,9 +14,11 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
+#include "MQ2DeveloperTools.h"
 #include "CrashHandler.h"
 
 #include "common/HotKeys.h"
+#include "imgui/ImGuiUtils.h"
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
@@ -56,6 +58,15 @@ bool gbDeviceHooksInstalled = false;
 // Indicates that there has been a request to toggle the console.
 bool gbToggleConsoleRequested = false;
 
+// Indicates that we need to reset the overlay next frame
+bool gbNeedResetOverlay = false;
+
+// Last known full screen state
+bool gbLastFullScreenState = false;
+
+// Number of frames to wait before initializing
+int gReInitFrameDelay = 0;
+
 //----------------------------------------------------------------------------
 // statics
 
@@ -71,7 +82,7 @@ static int gLastGameState = GAMESTATE_PRECHARSELECT;
 
 static mq::PlatformHotkey gToggleConsoleHotkey;
 static const char gToggleConsoleDefaultBind[] = "ctrl+`";
-static uint32_t gToggleConsoleHotkeyId = 0;
+static bool gbToggleConsoleHotkeyReady = false;
 
 // Mouse state, pointed to by EQADDR_DIMOUSECOPY
 struct MouseStateData
@@ -161,8 +172,6 @@ static void RemoveDetours()
 	}
 }
 
-bool MQ2Windows_PickerClick();
-
 // Returns true if this event should be "erased" from eq.
 static bool HandleMouseEvent(int mouseButton, bool pressed)
 {
@@ -171,12 +180,11 @@ static bool HandleMouseEvent(int mouseButton, bool pressed)
 
 	if (test_and_set(io.MouseDown[mouseButton], pressed))
 	{
-	}
-
-	if (mouseButton == 0 && pressed && !io.WantCaptureMouse)
-	{
-		if (MQ2Windows_PickerClick())
-			consume = true;
+		if (!io.WantCaptureMouse)
+		{
+			if (DeveloperTools_HandleClick(mouseButton, pressed))
+				consume = true;
+		}
 	}
 
 	if (consume)
@@ -189,6 +197,26 @@ static bool HandleMouseEvent(int mouseButton, bool pressed)
 	return consume;
 }
 
+static bool IsFullScreen(IDirect3DDevice9* device)
+{
+	if (!device)
+		return false;
+
+	// Detect full screen and disable viewports if we're in full screen mode.
+	bool fullscreen = true;
+	IDirect3DSwapChain9* pSwapChain = nullptr;
+	if (SUCCEEDED(gpD3D9Device->GetSwapChain(0, &pSwapChain)) && pSwapChain)
+	{
+		D3DPRESENT_PARAMETERS params;
+		pSwapChain->GetPresentParameters(&params);
+
+		fullscreen = !params.Windowed;
+
+		pSwapChain->Release();
+	}
+
+	return fullscreen;
+}
 
 #pragma region ImGui Integration
 
@@ -452,8 +480,7 @@ static bool ImGui_ImplDX9_Init(IDirect3DDevice9* device)
 	g_pImguiDevice = device;
 	g_pImguiDevice->AddRef();
 
-	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		ImGui_ImplDX9_InitPlatformInterface();
+	ImGui_ImplDX9_InitPlatformInterface();
 
 	io.ConfigDockingWithShift = true;
 
@@ -765,9 +792,7 @@ static bool ImGui_ImplWin32_Init(HWND hWnd)
 	g_hWnd = (HWND)hWnd;
 	ImGuiViewport* mainViewport = ImGui::GetMainViewport();
 	mainViewport->PlatformHandle = mainViewport->PlatformHandleRaw = (void*)g_hWnd;
-	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		ImGui_ImplWin32_InitPlatformInterface();
-
+	ImGui_ImplWin32_InitPlatformInterface();
 
 	// Keyboard mapping. ImGui will use those indices to peek into the io.KeysDown[] array that we will update during the application lifetime.
 	io.KeyMap[ImGuiKey_Tab] = VK_TAB;
@@ -805,6 +830,9 @@ static bool ImGui_ImplWin32_UpdateMouseCursor()
 {
 	ImGuiIO& io = ImGui::GetIO();
 	if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)
+		return false;
+
+	if (!io.WantCaptureMouse)
 		return false;
 
 	bool useWin32Cursor = false;
@@ -1517,6 +1545,20 @@ static void ImGui_ImplWin32_ShutdownPlatformInterface()
 {
 	::UnregisterClass("ImGui Platform", ::GetModuleHandle(nullptr));
 }
+
+static void ImGui_EnableViewports(bool enable)
+{
+	ImGuiIO& io = ImGui::GetIO();
+
+	if (!enable)
+	{
+		io.ConfigFlags &= ~ImGuiConfigFlags_ViewportsEnable;
+	}
+	else
+	{
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+	}
+}
 #pragma endregion
 
 #pragma endregion
@@ -1532,8 +1574,10 @@ void InitializeImGui(IDirect3DDevice9* device)
 
 	ImGuiIO& io = ImGui::GetIO();
 	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;             // Enable Docking
+
+	gbLastFullScreenState = IsFullScreen(device);
+	ImGui_EnableViewports(!gbLastFullScreenState);                // Enable Multi-Viewport / Platform Windows
 
 	fmt::format_to(ImGuiSettingsFile, "{}/MacroQuest_Overlay.ini", mq::internal_paths::Config);
 	io.IniFilename = &ImGuiSettingsFile[0];
@@ -1548,23 +1592,8 @@ void InitializeImGui(IDirect3DDevice9* device)
 
 	ImGui::StyleColorsDark();
 
-	// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
-	ImGuiStyle& style = ImGui::GetStyle();
-	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-	{
-		style.WindowRounding = 0.0f;
-		//style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-	}
-
-	// Install the hotkey.
-	if (gToggleConsoleHotkeyId != 0)
-	{
-		if (!::RegisterHotKey(g_hWnd, gToggleConsoleHotkeyId, gToggleConsoleHotkey.modifiers, gToggleConsoleHotkey.virtualKey))
-		{
-			SPDLOG_ERROR("{}",
-				fmt::windows_error(GetLastError(), "Failed to register hotkey for toggle console keybind").what());
-		}
-	}
+	mq::imgui::ConfigureStyle();
+	mq::imgui::ConfigureFonts();
 
 	gbInitializedImGui = true;
 }
@@ -1573,11 +1602,6 @@ void ShutdownImGui()
 {
 	if (!gbInitializedImGui)
 		return;
-
-	if (gToggleConsoleHotkeyId != 0)
-	{
-		::UnregisterHotKey(g_hWnd, gToggleConsoleHotkeyId);
-	}
 
 	ImGui_ImplDX9_Shutdown();
 	ImGui_ImplWin32_Shutdown();
@@ -1680,24 +1704,41 @@ public:
 			return EndScene_Trampoline();
 		}
 
+		// Check if a full screen mode change occurred before this frame.
+		// If it did, we should not render, and instead re-initialize imgui.
+		if (test_and_set(gbLastFullScreenState, IsFullScreen(gpD3D9Device)))
+		{
+			// For some reason, maybe due to a bug, toggling viewports off and
+			// then calling CreateDeviceObjects will cause it to still create
+			// the additional swap chains, which causes errors. So instead of
+			// disabling viewports, we are simply rebooting imgui.
+			gbNeedResetOverlay = true;
+		}
 		// When TestCooperativeLevel returns all good, then we can reinitialize.
 		// This will let the renderer control our flow instead of having to
 		// poll for the state ourselves.
-		if (!gbDeviceAcquired)
+		else if (!gbDeviceAcquired)
 		{
-			HRESULT result = GetThisDevice()->TestCooperativeLevel();
-
-			if (result == D3D_OK)
+			if (gReInitFrameDelay == 0)
 			{
-				imgui::InitializeImGui(gpD3D9Device);
-				gbDeviceAcquired = true;
+				HRESULT result = GetThisDevice()->TestCooperativeLevel();
 
-				if (DetectResetDeviceHook())
+				if (result == D3D_OK)
 				{
-					DebugTryEx(InvalidateDeviceObjects());
-				}
+					imgui::InitializeImGui(gpD3D9Device);
+					gbDeviceAcquired = true;
 
-				DebugTryEx(CreateDeviceObjects());
+					if (DetectResetDeviceHook())
+					{
+						DebugTryEx(InvalidateDeviceObjects());
+					}
+
+					DebugTryEx(CreateDeviceObjects());
+				}
+			}
+			else
+			{
+				--gReInitFrameDelay;
 			}
 		}
 
@@ -1852,10 +1893,19 @@ uint32_t ProcessKeyboardEvents_Detour()
 
 bool OverlayWndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, bool fromLogin)
 {
-	if (msg == WM_HOTKEY)
+	if (msg == WM_KEYDOWN
+		&& gbToggleConsoleHotkeyReady)
 	{
-		if (wParam == gToggleConsoleHotkeyId)
-			gbToggleConsoleRequested = true;
+		// Match the vkey and modifiers
+		if (wParam == gToggleConsoleHotkey.virtualKey)
+		{
+			// Check the modifiers, don't allow repeats.
+			if ((HIWORD(lParam) & KF_REPEAT) == 0
+				&& mq::IsHotKeyModifiersPressed(gToggleConsoleHotkey))
+			{
+				gbToggleConsoleRequested = true;
+			}
+		}
 	}
 
 	if (imgui::g_pImguiDevice)
@@ -2124,6 +2174,9 @@ static bool RenderImGui()
 	if (gGameState == GAMESTATE_LOGGINGIN)
 		return false;
 
+	if (gbNeedResetOverlay)
+		return false;
+
 	// Begin a new frame
 	ImGui_ImplDX9_NewFrame();
 	ImGui_ImplWin32_NewFrame();
@@ -2146,12 +2199,12 @@ static bool RenderImGui()
 	ImGui::Render();
 	ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
 
+	ImGui::UpdatePlatformWindows();
 	ImGuiIO& io = ImGui::GetIO();
 
 	// Update and Render additional Platform Windows
 	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 	{
-		ImGui::UpdatePlatformWindows();
 		ImGui::RenderPlatformWindowsDefault();
 	}
 
@@ -2221,16 +2274,22 @@ void InitializeMQ2Overlay()
 	// connect to the win32 hook and control the imgui console.
 	::GetPrivateProfileStringA("MacroQuest", "ToggleConsoleKey", gToggleConsoleDefaultBind,
 		gToggleConsoleHotkey.keybind, lengthof(gToggleConsoleHotkey.keybind), mq::internal_paths::MQini.c_str());
-	if (mq::ConvertStringToModifiersAndVirtualKey(gToggleConsoleHotkey.keybind,
-		gToggleConsoleHotkey.modifiers, gToggleConsoleHotkey.virtualKey))
+
+	if (!gbToggleConsoleHotkeyReady)
 	{
-		SPDLOG_INFO("Toggle console keybind: {0}", gToggleConsoleHotkey.keybind);
-		gToggleConsoleHotkeyId = GlobalAddAtom("MQ2ToggleKeybindAtom");
-	}
-	else if (strlen(gToggleConsoleHotkey.keybind) > 0)
-	{
-		SPDLOG_WARN("Unable to parse toggle console keybind: {0}", gToggleConsoleHotkey.keybind);
-		strcpy_s(gToggleConsoleHotkey.keybind, "");
+		if (mq::ConvertStringToModifiersAndVirtualKey(gToggleConsoleHotkey.keybind,
+			gToggleConsoleHotkey.modifiers, gToggleConsoleHotkey.virtualKey))
+		{
+			SPDLOG_INFO("Toggle console keybind: {0}", gToggleConsoleHotkey.keybind);
+			gbToggleConsoleHotkeyReady = true;
+		}
+		else if (strlen(gToggleConsoleHotkey.keybind) > 0)
+		{
+			SPDLOG_WARN("Unable to parse toggle console keybind: {0}", gToggleConsoleHotkey.keybind);
+			strcpy_s(gToggleConsoleHotkey.keybind, "");
+
+			gbToggleConsoleHotkeyReady = false;
+		}
 	}
 
 	if (gbWriteAllConfig)
@@ -2258,12 +2317,6 @@ void ShutdownMQ2Overlay()
 	gHooks.clear();
 
 	imgui::ShutdownImGui();
-
-	if (gToggleConsoleHotkeyId != 0)
-	{
-		GlobalDeleteAtom(gToggleConsoleHotkeyId);
-		gToggleConsoleHotkeyId = 0;
-	}
 
 	if (gpD3D9Device)
 	{
@@ -2310,6 +2363,13 @@ void PulseMQ2Overlay()
 
 		gLastGameState = gGameState;
 		ResetOverlay();
+	}
+	else if (gbNeedResetOverlay)
+	{
+		ResetOverlay();
+
+		gbNeedResetOverlay = false;
+		gReInitFrameDelay = 1;
 	}
 
 	if (gbRetryHooks)

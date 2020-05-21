@@ -777,6 +777,8 @@ bool MQ2Initialize()
 	InitializeMQ2Spawns();
 	InitializeMQ2Pulse();
 	InitializeLoginFrontend();
+
+	InitializeInternalModules();
 	AddInternalModule(GetSpellsModule());
 	AddInternalModule(GetImGuiAPIModule());
 	AddInternalModule(GetDataAPIModule());

@@ -1,4 +1,4 @@
-// dear imgui, v1.76 WIP
+// dear imgui, v1.77 WIP
 // (internal structures/api)
 
 // You may use this file to debug, understand or extend ImGui features but we don't provide any guarantee of forward compatibility!
@@ -162,9 +162,12 @@ extern IMGUI_API ImGuiContext* GImGui;  // Current implicit context pointer
 #endif
 
 // Debug Logging for selected systems. Remove the '((void)0) //' to enable.
-#define IMGUI_DEBUG_LOG_POPUP(...)      ((void)0) // IMGUI_DEBUG_LOG(__VA_ARGS__)
-#define IMGUI_DEBUG_LOG_VIEWPORT(...)   ((void)0) // IMGUI_DEBUG_LOG(__VA_ARGS__)
-#define IMGUI_DEBUG_LOG_DOCKING(...)    ((void)0) // IMGUI_DEBUG_LOG(__VA_ARGS__)
+//#define IMGUI_DEBUG_LOG_POPUP         IMGUI_DEBUG_LOG // Enable log
+//#define IMGUI_DEBUG_LOG_VIEWPORT      IMGUI_DEBUG_LOG // Enable log
+//#define IMGUI_DEBUG_LOG_DOCKING       IMGUI_DEBUG_LOG // Enable log
+#define IMGUI_DEBUG_LOG_POPUP(...)      ((void)0)       // Disable log
+#define IMGUI_DEBUG_LOG_VIEWPORT(...)   ((void)0)       // Disable log
+#define IMGUI_DEBUG_LOG_DOCKING(...)    ((void)0)       // Disable log
 
 // Static Asserts
 #if (__cplusplus >= 201100)
@@ -459,7 +462,7 @@ struct ImSpanAllocator
     inline void  SetArenaBasePtr(void* base_ptr)    { BasePtr = (char*)base_ptr; }
     inline void* GetSpanPtrBegin(int n)             { IM_ASSERT(n >= 0 && n < CHUNKS && CurrSpan == CHUNKS); return (void*)(BasePtr + Offsets[n]); }
     inline void* GetSpanPtrEnd(int n)               { IM_ASSERT(n >= 0 && n < CHUNKS && CurrSpan == CHUNKS); return (n + 1 < CHUNKS) ? BasePtr + Offsets[n + 1] : (void*)(BasePtr + TotalSize); }
-    template<typename T> 
+    template<typename T>
     inline void  GetSpan(int n, ImSpan<T>* span)    { span->set((T*)GetSpanPtrBegin(n), (T*)GetSpanPtrEnd(n)); }
 };
 
@@ -805,6 +808,14 @@ struct ImGuiDataTypeInfo
     const char* ScanFmt;        // Default scanf format for the type
 };
 
+// Extend ImGuiDataType_
+enum ImGuiDataTypePrivate_
+{
+    ImGuiDataType_String = ImGuiDataType_COUNT + 1,
+    ImGuiDataType_Pointer,
+    ImGuiDataType_ID
+};
+
 // Stacked color modifier, backup of modified data so we can restore it
 struct ImGuiColorMod
 {
@@ -1067,9 +1078,10 @@ enum ImGuiNextWindowDataFlags_
     ImGuiNextWindowDataFlags_HasSizeConstraint  = 1 << 4,
     ImGuiNextWindowDataFlags_HasFocus           = 1 << 5,
     ImGuiNextWindowDataFlags_HasBgAlpha         = 1 << 6,
-    ImGuiNextWindowDataFlags_HasViewport        = 1 << 7,
-    ImGuiNextWindowDataFlags_HasDock            = 1 << 8,
-    ImGuiNextWindowDataFlags_HasWindowClass     = 1 << 9
+    ImGuiNextWindowDataFlags_HasScroll          = 1 << 7,
+    ImGuiNextWindowDataFlags_HasViewport        = 1 << 8,
+    ImGuiNextWindowDataFlags_HasDock            = 1 << 9,
+    ImGuiNextWindowDataFlags_HasWindowClass     = 1 << 10
 };
 
 // Storage for SetNexWindow** functions
@@ -1084,6 +1096,7 @@ struct ImGuiNextWindowData
     ImVec2                      PosPivotVal;
     ImVec2                      SizeVal;
     ImVec2                      ContentSizeVal;
+    ImVec2                      ScrollVal;
     bool                        PosUndock;
     bool                        CollapsedVal;
     ImRect                      SizeConstraintRect;
@@ -1256,6 +1269,9 @@ struct ImGuiContext
     bool                    WithinFrameScope;                   // Set by NewFrame(), cleared by EndFrame()
     bool                    WithinFrameScopeWithImplicitWindow; // Set by NewFrame(), cleared by EndFrame() when the implicit debug window has been pushed
     bool                    WithinEndChild;                     // Set within EndChild()
+    bool                    TestEngineHookItems;                // Will call test engine hooks: ImGuiTestEngineHook_ItemAdd(), ImGuiTestEngineHook_ItemInfo(), ImGuiTestEngineHook_Log()
+    ImGuiID                 TestEngineHookIdInfo;               // Will call test engine hooks: ImGuiTestEngineHook_IdInfo() from GetID()
+    void*                   TestEngine;                         // Test engine user data
 
     // Windows state
     ImVector<ImGuiWindow*>  Windows;                            // Windows, sorted in display order, back to front
@@ -1395,6 +1411,7 @@ struct ImGuiContext
     ImGuiID                 DragDropAcceptIdCurr;               // Target item id (set at the time of accepting the payload)
     ImGuiID                 DragDropAcceptIdPrev;               // Target item id from previous frame (we need to store this to allow for overlapping drag and drop targets)
     int                     DragDropAcceptFrameCount;           // Last time a target expressed a desire to accept the source
+    ImGuiID                 DragDropHoldJustPressedId;          // Set when holding a payload just made ButtonBehavior() return a press.
     ImVector<unsigned char> DragDropPayloadBufHeap;             // We don't expose the ImVector<> directly, ImGuiPayload only holds pointer+size
     unsigned char           DragDropPayloadBufLocal[16];        // Local buffer for small payloads
 
@@ -1425,7 +1442,7 @@ struct ImGuiContext
     float                   DragSpeedDefaultRatio;              // If speed == 0.0f, uses (max-min) * DragSpeedDefaultRatio
     float                   ScrollbarClickDeltaToGrabCenter;    // Distance between mouse and center of grab box, normalized in parent space. Use storage?
     int                     TooltipOverrideCount;
-    ImVector<char>          PrivateClipboard;                   // If no custom clipboard handler is defined
+    ImVector<char>          ClipboardHandlerData;               // If no custom clipboard handler is defined
     ImVector<ImGuiID>       MenusIdSubmittedThisFrame;          // A list of menu IDs that were rendered at least once
 
     // Platform support
@@ -1473,14 +1490,17 @@ struct ImGuiContext
     {
         Initialized = false;
         ConfigFlagsCurrFrame = ConfigFlagsLastFrame = ImGuiConfigFlags_None;
+        FontAtlasOwnedByContext = shared_font_atlas ? false : true;
         Font = NULL;
         FontSize = FontBaseSize = 0.0f;
-        FontAtlasOwnedByContext = shared_font_atlas ? false : true;
         IO.Fonts = shared_font_atlas ? shared_font_atlas : IM_NEW(ImFontAtlas)();
         Time = 0.0f;
         FrameCount = 0;
         FrameCountEnded = FrameCountPlatformEnded = FrameCountRendered = -1;
         WithinFrameScope = WithinFrameScopeWithImplicitWindow = WithinEndChild = false;
+        TestEngineHookItems = false;
+        TestEngineHookIdInfo = 0;
+        TestEngine = NULL;
 
         WindowsActiveCount = 0;
         CurrentWindow = NULL;
@@ -1568,6 +1588,7 @@ struct ImGuiContext
         DragDropAcceptIdCurrRectSurface = 0.0f;
         DragDropAcceptIdPrev = DragDropAcceptIdCurr = 0;
         DragDropAcceptFrameCount = -1;
+        DragDropHoldJustPressedId = 0;
         memset(DragDropPayloadBufLocal, 0, sizeof(DragDropPayloadBufLocal));
 
         CurrentTable = NULL;
@@ -1736,7 +1757,7 @@ struct IMGUI_API ImGuiWindow
     ImVec2                  ScrollMax;
     ImVec2                  ScrollTarget;                       // target scroll position. stored as cursor position with scrolling canceled out, so the highest point is always 0.0f. (FLT_MAX for no change)
     ImVec2                  ScrollTargetCenterRatio;            // 0.0f = scroll so that target position is at top, 0.5f = scroll so that target position is centered
-    ImVec2                  ScrollbarSizes;                     // Size taken by scrollbars on each axis
+    ImVec2                  ScrollbarSizes;                     // Size taken by each scrollbars on their smaller axis. Pay attention! ScrollbarSizes.x == width of the vertical scrollbar, ScrollbarSizes.y = height of the horizontal scrollbar.
     bool                    ScrollbarX, ScrollbarY;             // Are scrollbars visible?
     bool                    ViewportOwned;
     bool                    Active;                             // Set to true on Begin(), unless Collapsed
@@ -1813,7 +1834,7 @@ struct IMGUI_API ImGuiWindow
     ImGuiItemStatusFlags    DockTabItemStatusFlags;
     ImRect                  DockTabItemRect;
     short                   DockOrder;                          // Order of the last time the window was visible within its DockNode. This is used to reorder windows that are reappearing on the same frame. Same value between windows that were active and windows that were none are possible.
-    bool                    DockIsActive        :1;             // When docking artifacts are actually visible. When this is set, DockNode is guaranteed to be != NULL. ~~ (DockNode != NULL) && (DockNode->Windows.Size > 1). 
+    bool                    DockIsActive        :1;             // When docking artifacts are actually visible. When this is set, DockNode is guaranteed to be != NULL. ~~ (DockNode != NULL) && (DockNode->Windows.Size > 1).
     bool                    DockTabIsVisible    :1;             // Is our window visible this frame? ~~ is the corresponding tab selected?
     bool                    DockTabWantClose    :1;
 
@@ -1989,6 +2010,7 @@ namespace ImGui
     IMGUI_API ImGuiSettingsHandler* FindSettingsHandler(const char* type_name);
 
     // Scrolling
+    IMGUI_API void          SetNextWindowScroll(const ImVec2& scroll); // Use -1.0f on one axis to leave as-is
     IMGUI_API void          SetScrollX(ImGuiWindow* window, float new_scroll_x);
     IMGUI_API void          SetScrollY(ImGuiWindow* window, float new_scroll_y);
     IMGUI_API void          SetScrollFromPosX(ImGuiWindow* window, float local_x, float center_x_ratio = 0.5f);
@@ -2151,7 +2173,7 @@ struct ImGuiTableColumn
     float                   WidthRequested;                 // Master width data when !(Flags & _WidthStretch)
     float                   WidthGiven;                     // == (MaxX - MinX). FIXME-TABLE: Store all persistent width in multiple of FontSize?
     float                   StartXRows;                     // Start position for the frame, currently ~(MinX + CellPaddingX)
-    float                   StartXHeaders;                  
+    float                   StartXHeaders;
     float                   ContentMaxPosRowsFrozen;        // Submitted contents absolute maximum position, from which we can infer width.
     float                   ContentMaxPosRowsUnfrozen;      // (kept as float because we need to manipulate those between each cell change)
     float                   ContentMaxPosHeadersUsed;
@@ -2253,7 +2275,7 @@ struct ImGuiTable
     ImS8                        HoveredColumnBorder;        // Index of column whose right-border is being hovered (for resizing).
     ImS8                        ResizedColumn;              // Index of column being resized. Reset when InstanceCurrent==0.
     ImS8                        LastResizedColumn;          // Index of column being resized from previous frame.
-    ImS8                        HeldHeaderColumn;           // Index of column header being held. 
+    ImS8                        HeldHeaderColumn;           // Index of column header being held.
     ImS8                        ReorderColumn;              // Index of column being reordered. (not cleared)
     ImS8                        ReorderColumnDir;           // -1 or +1
     ImS8                        RightMostActiveColumn;      // Index of right-most non-hidden column.
@@ -2327,6 +2349,7 @@ struct ImGuiTableSettings
 namespace ImGui
 {
     // [Internal]
+    IMGUI_API ImGuiTable*   FindTableByID(ImGuiID id);
     IMGUI_API bool          BeginTableEx(const char* name, ImGuiID id, int columns_count, ImGuiTableFlags flags = 0, const ImVec2& outer_size = ImVec2(0, 0), float inner_width = 0.0f);
     IMGUI_API void          TableBeginUpdateColumns(ImGuiTable* table);
     IMGUI_API void          TableUpdateDrawChannels(ImGuiTable* table);
@@ -2408,6 +2431,7 @@ namespace ImGui
     IMGUI_API bool          ArrowButtonEx(const char* str_id, ImGuiDir dir, ImVec2 size_arg, ImGuiButtonFlags flags = 0);
     IMGUI_API void          Scrollbar(ImGuiAxis axis);
     IMGUI_API bool          ScrollbarEx(const ImRect& bb, ImGuiID id, ImGuiAxis axis, float* p_scroll_v, float avail_v, float contents_v, ImDrawCornerFlags rounding_corners);
+    IMGUI_API ImRect        GetWindowScrollbarRect(ImGuiWindow* window, ImGuiAxis axis);
     IMGUI_API ImGuiID       GetWindowScrollbarID(ImGuiWindow* window, ImGuiAxis axis);
     IMGUI_API ImGuiID       GetWindowResizeID(ImGuiWindow* window, int n); // 0..3: corners, 4..7: borders
     IMGUI_API void          SeparatorEx(ImGuiSeparatorFlags flags);
@@ -2492,14 +2516,20 @@ extern void                 ImGuiTestEngineHook_PreNewFrame(ImGuiContext* ctx);
 extern void                 ImGuiTestEngineHook_PostNewFrame(ImGuiContext* ctx);
 extern void                 ImGuiTestEngineHook_ItemAdd(ImGuiContext* ctx, const ImRect& bb, ImGuiID id);
 extern void                 ImGuiTestEngineHook_ItemInfo(ImGuiContext* ctx, ImGuiID id, const char* label, ImGuiItemStatusFlags flags);
+extern void                 ImGuiTestEngineHook_IdInfo(ImGuiContext* ctx, ImGuiDataType data_type, ImGuiID id, const void* data_id);
+extern void                 ImGuiTestEngineHook_IdInfo(ImGuiContext* ctx, ImGuiDataType data_type, ImGuiID id, const void* data_id, const void* data_id_end);
 extern void                 ImGuiTestEngineHook_Log(ImGuiContext* ctx, const char* fmt, ...);
-#define IMGUI_TEST_ENGINE_ITEM_ADD(_BB, _ID)                ImGuiTestEngineHook_ItemAdd(&g, _BB, _ID)               // Register item bounding box
-#define IMGUI_TEST_ENGINE_ITEM_INFO(_ID, _LABEL, _FLAGS)    ImGuiTestEngineHook_ItemInfo(&g, _ID, _LABEL, _FLAGS)   // Register item label and status flags (optional)
-#define IMGUI_TEST_ENGINE_LOG(_FMT, ...)                    ImGuiTestEngineHook_Log(&g, _FMT, __VA_ARGS__)          // Custom log entry from user land into test log
+#define IMGUI_TEST_ENGINE_ITEM_ADD(_BB,_ID)                 if (g.TestEngineHookItems) ImGuiTestEngineHook_ItemAdd(&g, _BB, _ID)               // Register item bounding box
+#define IMGUI_TEST_ENGINE_ITEM_INFO(_ID,_LABEL,_FLAGS)      if (g.TestEngineHookItems) ImGuiTestEngineHook_ItemInfo(&g, _ID, _LABEL, _FLAGS)   // Register item label and status flags (optional)
+#define IMGUI_TEST_ENGINE_LOG(_FMT,...)                     if (g.TestEngineHookItems) ImGuiTestEngineHook_Log(&g, _FMT, __VA_ARGS__)          // Custom log entry from user land into test log
+#define IMGUI_TEST_ENGINE_ID_INFO(_ID,_TYPE,_DATA)          if (g.TestEngineHookIdInfo == id) ImGuiTestEngineHook_IdInfo(&g, _TYPE, _ID, (const void*)(_DATA));
+#define IMGUI_TEST_ENGINE_ID_INFO2(_ID,_TYPE,_DATA,_DATA2)  if (g.TestEngineHookIdInfo == id) ImGuiTestEngineHook_IdInfo(&g, _TYPE, _ID, (const void*)(_DATA), (const void*)(_DATA2));
 #else
-#define IMGUI_TEST_ENGINE_ITEM_ADD(_BB, _ID)                do { } while (0)
-#define IMGUI_TEST_ENGINE_ITEM_INFO(_ID, _LABEL, _FLAGS)    do { } while (0)
-#define IMGUI_TEST_ENGINE_LOG(_FMT, ...)                    do { } while (0)
+#define IMGUI_TEST_ENGINE_ITEM_ADD(_BB,_ID)                 do { } while (0)
+#define IMGUI_TEST_ENGINE_ITEM_INFO(_ID,_LABEL,_FLAGS)      do { } while (0)
+#define IMGUI_TEST_ENGINE_LOG(_FMT,...)                     do { } while (0)
+#define IMGUI_TEST_ENGINE_ID_INFO(_ID,_TYPE,_DATA)          do { } while (0)
+#define IMGUI_TEST_ENGINE_ID_INFO2(_ID,_TYPE,_DATA,_DATA2)  do { } while (0)
 #endif
 
 #if defined(__clang__)

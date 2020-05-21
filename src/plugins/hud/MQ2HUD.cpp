@@ -222,9 +222,9 @@ void LoadElements()
 			}
 		}
 
-		if (bZoneHUD && (pZoneInfo))
+		if (bZoneHUD)
 		{
-			strcpy_s(ZoneName, ((ZONEINFO*)pZoneInfo)->LongName);
+			strcpy_s(ZoneName, pZoneInfo->LongName);
 			GetPrivateProfileString(ZoneName, nullptr, "", ElementList, MAX_STRING * 10, INIFileName);
 
 			char* pElementList = ElementList;

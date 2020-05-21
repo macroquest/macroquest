@@ -114,8 +114,8 @@ bool MQ2FloatType::dataFloat(const char* szIndex, MQTypeVar& Ret)
 	if (!szIndex[0])
 		return false;
 
-	Ret.DWord = GetIntFromString(szIndex, 0);
-	Ret.Type = pIntType;
+	Ret.Float = GetFloatFromString(szIndex, 0);
+	Ret.Type = pFloatType;
 	return true;
 }
 

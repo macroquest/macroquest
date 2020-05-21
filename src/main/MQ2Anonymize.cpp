@@ -255,31 +255,31 @@ public:
 	{
 		Yaml::Node node;
 
-        node["name"] = name;
+		node["name"] = name;
 		node["strategy"] = GetStringFromAnonymization(strategy).data();
 		if (strategy == Anonymization::Custom)
 			node["target"] = target;
-        for (auto alt : alternates)
-            node["alternates"].PushBack() = alt;
-        
-        return node;
+		for (auto alt : alternates)
+			node["alternates"].PushBack() = alt;
+
+		return node;
 	}
 };
 
 // the source string_view is checked _after_ string parsing
 // the target string is parsed before replacement
-static std::vector<std::unique_ptr<anon_replacer> > replacers;
-static ci_unordered::map<std::unique_ptr<anon_replacer> > group_memoization;
-static ci_unordered::map<std::unique_ptr<anon_replacer> > fellowship_memoization;
-static ci_unordered::map<std::unique_ptr<anon_replacer> > guild_memoization;
-static ci_unordered::map<std::unique_ptr<anon_replacer> > raid_memoization;
+static std::vector<std::unique_ptr<anon_replacer>> replacers;
+static ci_unordered::map<std::string_view, std::unique_ptr<anon_replacer>> group_memoization;
+static ci_unordered::map<std::string_view, std::unique_ptr<anon_replacer>> fellowship_memoization;
+static ci_unordered::map<std::string_view, std::unique_ptr<anon_replacer>> guild_memoization;
+static ci_unordered::map<std::string_view, std::unique_ptr<anon_replacer>> raid_memoization;
 static std::unique_ptr<anon_replacer> self_replacer;
 
 // the source string_view here will be used to index
 // creating a regex that looks like `(source|all|the|alternates)`
 
 // helper function to find a replacer by name
-static std::vector<std::unique_ptr<anon_replacer> >::iterator FindReplacer(std::string_view Name)
+static std::vector<std::unique_ptr<anon_replacer>>::iterator FindReplacer(std::string_view Name)
 {
 	return std::find_if(std::begin(replacers), std::end(replacers),
 		[&Name](const std::unique_ptr<anon_replacer>& r) { return r && ci_equals(Name, r->name); });

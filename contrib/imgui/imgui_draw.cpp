@@ -1,4 +1,4 @@
-// dear imgui, v1.76 WIP
+// dear imgui, v1.77 WIP
 // (drawing and font code)
 
 /*
@@ -1564,7 +1564,6 @@ ImFontConfig::ImFontConfig()
 // The white texels on the top left are the ones we'll use everywhere in Dear ImGui to render filled shapes.
 const int FONT_ATLAS_DEFAULT_TEX_DATA_W_HALF = 108;
 const int FONT_ATLAS_DEFAULT_TEX_DATA_H      = 27;
-const unsigned int FONT_ATLAS_DEFAULT_TEX_DATA_ID = 0x80000000;
 static const char FONT_ATLAS_DEFAULT_TEX_DATA_PIXELS[FONT_ATLAS_DEFAULT_TEX_DATA_W_HALF * FONT_ATLAS_DEFAULT_TEX_DATA_H + 1] =
 {
     "..-         -XXXXXXX-    X    -           X           -XXXXXXX          -          XXXXXXX-     XX          "
@@ -1797,7 +1796,7 @@ ImFont* ImFontAtlas::AddFontFromFileTTF(const char* filename, float size_pixels,
     void* data = ImFileLoadToMemory(filename, "rb", &data_size, 0);
     if (!data)
     {
-        IM_ASSERT_USER_ERROR(0, "Could not load font file!");
+        //IM_ASSERT_USER_ERROR(0, "Could not load font file!");
         return NULL;
     }
     ImFontConfig font_cfg = font_cfg_template ? *font_cfg_template : ImFontConfig();
@@ -1847,14 +1846,11 @@ ImFont* ImFontAtlas::AddFontFromMemoryCompressedBase85TTF(const char* compressed
     return font;
 }
 
-int ImFontAtlas::AddCustomRectRegular(unsigned int id, int width, int height)
+int ImFontAtlas::AddCustomRectRegular(int width, int height)
 {
-    // Breaking change on 2019/11/21 (1.74): ImFontAtlas::AddCustomRectRegular() now requires an ID >= 0x110000 (instead of >= 0x10000)
-    IM_ASSERT(id >= 0x110000);
     IM_ASSERT(width > 0 && width <= 0xFFFF);
     IM_ASSERT(height > 0 && height <= 0xFFFF);
     ImFontAtlasCustomRect r;
-    r.ID = id;
     r.Width = (unsigned short)width;
     r.Height = (unsigned short)height;
     CustomRects.push_back(r);
@@ -1863,13 +1859,16 @@ int ImFontAtlas::AddCustomRectRegular(unsigned int id, int width, int height)
 
 int ImFontAtlas::AddCustomRectFontGlyph(ImFont* font, ImWchar id, int width, int height, float advance_x, const ImVec2& offset)
 {
+#ifdef IMGUI_USE_WCHAR32
+    IM_ASSERT(id <= IM_UNICODE_CODEPOINT_MAX);
+#endif
     IM_ASSERT(font != NULL);
     IM_ASSERT(width > 0 && width <= 0xFFFF);
     IM_ASSERT(height > 0 && height <= 0xFFFF);
     ImFontAtlasCustomRect r;
-    r.ID = id;
     r.Width = (unsigned short)width;
     r.Height = (unsigned short)height;
+    r.GlyphID = id;
     r.GlyphAdvanceX = advance_x;
     r.GlyphOffset = offset;
     r.Font = font;
@@ -1894,7 +1893,6 @@ bool ImFontAtlas::GetMouseCursorTexData(ImGuiMouseCursor cursor_type, ImVec2* ou
 
     IM_ASSERT(CustomRectIds[0] != -1);
     ImFontAtlasCustomRect& r = CustomRects[CustomRectIds[0]];
-    IM_ASSERT(r.ID == FONT_ATLAS_DEFAULT_TEX_DATA_ID);
     ImVec2 pos = FONT_ATLAS_DEFAULT_TEX_CURSOR_DATA[cursor_type][0] + ImVec2((float)r.X, (float)r.Y);
     ImVec2 size = FONT_ATLAS_DEFAULT_TEX_CURSOR_DATA[cursor_type][1];
     *out_size = size;
@@ -2229,9 +2227,9 @@ void ImFontAtlasBuildInit(ImFontAtlas* atlas)
     if (atlas->CustomRectIds[0] >= 0)
         return;
     if (!(atlas->Flags & ImFontAtlasFlags_NoMouseCursors))
-        atlas->CustomRectIds[0] = atlas->AddCustomRectRegular(FONT_ATLAS_DEFAULT_TEX_DATA_ID, FONT_ATLAS_DEFAULT_TEX_DATA_W_HALF*2+1, FONT_ATLAS_DEFAULT_TEX_DATA_H);
+        atlas->CustomRectIds[0] = atlas->AddCustomRectRegular(FONT_ATLAS_DEFAULT_TEX_DATA_W_HALF*2+1, FONT_ATLAS_DEFAULT_TEX_DATA_H);
     else
-        atlas->CustomRectIds[0] = atlas->AddCustomRectRegular(FONT_ATLAS_DEFAULT_TEX_DATA_ID, 2, 2);
+        atlas->CustomRectIds[0] = atlas->AddCustomRectRegular(2, 2);
 }
 
 void ImFontAtlasBuildSetupFont(ImFontAtlas* atlas, ImFont* font, ImFontConfig* font_config, float ascent, float descent)
@@ -2280,7 +2278,6 @@ static void ImFontAtlasBuildRenderDefaultTexData(ImFontAtlas* atlas)
     IM_ASSERT(atlas->CustomRectIds[0] >= 0);
     IM_ASSERT(atlas->TexPixelsAlpha8 != NULL);
     ImFontAtlasCustomRect& r = atlas->CustomRects[atlas->CustomRectIds[0]];
-    IM_ASSERT(r.ID == FONT_ATLAS_DEFAULT_TEX_DATA_ID);
     IM_ASSERT(r.IsPacked());
 
     const int w = atlas->TexWidth;
@@ -2315,13 +2312,13 @@ void ImFontAtlasBuildFinish(ImFontAtlas* atlas)
     for (int i = 0; i < atlas->CustomRects.Size; i++)
     {
         const ImFontAtlasCustomRect& r = atlas->CustomRects[i];
-        if (r.Font == NULL || r.ID >= 0x110000)
+        if (r.Font == NULL || r.GlyphID == 0)
             continue;
 
         IM_ASSERT(r.Font->ContainerAtlas == atlas);
         ImVec2 uv0, uv1;
         atlas->CalcCustomRectUV(&r, &uv0, &uv1);
-        r.Font->AddGlyph((ImWchar)r.ID, r.GlyphOffset.x, r.GlyphOffset.y, r.GlyphOffset.x + r.Width, r.GlyphOffset.y + r.Height, uv0.x, uv0.y, uv1.x, uv1.y, r.GlyphAdvanceX);
+        r.Font->AddGlyph((ImWchar)r.GlyphID, r.GlyphOffset.x, r.GlyphOffset.y, r.GlyphOffset.x + r.Width, r.GlyphOffset.y + r.Height, uv0.x, uv0.y, uv1.x, uv1.y, r.GlyphAdvanceX);
     }
 
     // Build all fonts lookup tables

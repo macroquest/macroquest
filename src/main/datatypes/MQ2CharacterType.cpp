@@ -320,6 +320,7 @@ enum class CharacterMembers
 	Spell,
 	ParcelStatus,
 	CanMount,
+	SpellRankCap,
 };
 
 enum class CharacterMethods
@@ -632,6 +633,7 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, Spell);
 	ScopedTypeMember(CharacterMembers, ParcelStatus);
 	ScopedTypeMember(CharacterMembers, CanMount);
+	ScopedTypeMember(CharacterMembers, SpellRankCap);
 
 	ScopedTypeMethod(CharacterMethods, Stand);
 	ScopedTypeMethod(CharacterMethods, Sit);
@@ -3948,13 +3950,10 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		return true;
 
 	case CharacterMembers::CanMount:
-		Dest.DWord = 0;
-		Dest.Type = pBoolType;
-
 		if (PlayerClient* pPlayer = pLocalPlayer)
 		{
-			if (pWorldData->IsFlagSet(pPlayer->GetZoneID(), EQZoneFlag_NoMount))
-				return true;
+			Dest.DWord = 0;
+			Dest.Type = pBoolType;
 
 			if (pPlayer->HeadWet != 0 || pPlayer->Vehicle != nullptr)
 				return true;
@@ -3973,8 +3972,44 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 					return true;
 			}
 
+			// TODO: Check that these need to be set. Then update or remove this comment.
+			int zoneId = pWorldData->GetZoneBaseId(pPlayer->GetZoneID());
+			if (zoneId == 151 /* bazaar */
+				|| zoneId == 152 /* nexus */)
+			{
+				Dest.DWord = 1;
+				return true;
+			}
+
+			// TODO: Check that these are correct. Then update or remove this comment.
+			switch (pZoneInfo->OutDoor)
+			{
+			case IndoorDungeon:
+			case IndoorCity:
+			case DungeonCity:
+				return true;
+			default: break;
+			}
+
+			if (pWorldData->IsFlagSet(pPlayer->GetZoneID(), EQZoneFlag_NoMount))
+				return true;
+
 			// If we made it this far, we can mount.
 			Dest.DWord = 1;
+			return true;
+		}
+		return false;
+
+	case CharacterMembers::SpellRankCap:
+		Dest.DWord = 1;
+		Dest.Type = pIntType;
+		if (pCharData)
+		{
+			int value = pCharData->GetGameFeature(eSpellRankFeature);
+			if (value == -1 || value >= 10)
+				Dest.DWord = 3;
+			else if (value >= 5)
+				Dest.DWord = 2;
 		}
 		return true;
 

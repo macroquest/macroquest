@@ -418,8 +418,31 @@ struct MQModule
 
 	bool                 loaded = false;
 };
+
+void InitializeInternalModules();
 void AddInternalModule(MQModule* module);
 void RemoveInternalModule(MQModule* module);
+
+struct ModuleInitializer;
+void AddStaticInitializationModule(ModuleInitializer* module);
+
+struct ModuleInitializer
+{
+	ModuleInitializer(MQModule* thisModule)
+		: module(thisModule)
+	{
+		AddStaticInitializationModule(this);
+	}
+
+	ModuleInitializer* next = nullptr;
+	MQModule* module = nullptr;
+};
+
+#define FORCE_UNDEFINED_SYMBOL(x) __pragma(comment (linker, "/export:_" #x))
+
+#define DECLARE_MODULE_INITIALIZER(moduleRecord) \
+		extern "C" ModuleInitializer s_moduleInitializer ## moduleRecord { &moduleRecord } \
+		FORCE_UNDEFINED_SYMBOL(s_moduleInitializer ## moduleRecord);
 
 //============================================================================
 
@@ -446,32 +469,39 @@ private:
 
 //============================================================================
 
+// TODO: Move to MQ2Windows.h (doesn't exist yet)
 class CCustomWnd : public CSidlScreenWnd
 {
 public:
-	CCustomWnd(const CXStr& screenpiece) : CSidlScreenWnd(0, screenpiece, eIniFlag_All)
+	CCustomWnd(const CXStr& screenpiece)
+		: CSidlScreenWnd(0, screenpiece, eIniFlag_All)
 	{
-		CreateChildrenFromSidl();
-		Show(true);
-
-		SetEscapable(false);
+		Init();
 	}
 
 	CCustomWnd(const char* screenpiece) : CSidlScreenWnd(0, screenpiece, eIniFlag_All)
 	{
-		CreateChildrenFromSidl();
-		Show(true);
-
-		SetEscapable(false);
+		Init();
 	}
 
 	~CCustomWnd()
 	{
 	}
+
+private:
+	void Init()
+	{
+		CreateChildrenFromSidl();
+		Show(true);
+
+		SetEscapable(false);
+	}
+
 };
 
 //============================================================================
 
+// TODO: Move to MQ2Windows.h (doesn't exist yet)
 class CCustomMenu : public CContextMenu
 {
 public:
@@ -482,6 +512,61 @@ public:
 	~CCustomMenu()
 	{
 	}
+};
+
+//============================================================================
+
+struct MQColor
+{
+	// default is opaque black
+	MQLIB_OBJECT constexpr MQColor()
+		: Red(0)
+		, Green(0)
+		, Blue(0)
+		, Alpha(255)
+	{}
+
+	MQLIB_OBJECT constexpr MQColor(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255)
+		: Blue(blue)
+		, Green(green)
+		, Red(red)
+		, Alpha(alpha)
+	{}
+
+	MQLIB_OBJECT constexpr MQColor(uint32_t argbcolor)
+		: ARGB(argbcolor)
+	{}
+
+	MQLIB_OBJECT constexpr operator ARGBCOLOR() const
+	{
+		ARGBCOLOR color = { 0 };
+		color.ARGB = ARGB;
+		return color;
+	}
+
+	MQLIB_OBJECT constexpr operator COLORREF() const
+	{
+		return ARGB;
+	}
+
+	MQLIB_OBJECT constexpr operator uint32_t() const
+	{
+		return ARGB;
+	}
+
+	// Layout matches ARGBCOLOR
+	union
+	{
+		struct
+		{
+			uint8_t Blue;
+			uint8_t Green;
+			uint8_t Red;
+			uint8_t Alpha;
+		};
+
+		uint32_t ARGB = 0;
+	};
 };
 
 //============================================================================

@@ -18,13 +18,5 @@
     <ClCompile Include="MQ2Bzsrch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="netstream.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="netstream.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

@@ -46,6 +46,14 @@ inline bool GetPrivateProfileBool(const std::string& Section, const std::string&
 	return GetBoolFromString(Return, DefaultValue);
 }
 
+inline bool GetPrivateProfileBool(const char* Section, const char* Key, const bool DefaultValue, const std::string& iniFileName)
+{
+	const size_t Size = 10;
+	char Return[Size] = { 0 };
+	::GetPrivateProfileStringA(Section, Key, DefaultValue ? "true" : "false", Return, Size, iniFileName.c_str());
+	return GetBoolFromString(Return, DefaultValue);
+}
+
 inline int GetPrivateProfileInt(const std::string& Section, const std::string& Key, const int DefaultValue, const std::string& iniFileName)
 {
 	return ::GetPrivateProfileIntA(Section.c_str(), Key.c_str(), DefaultValue, iniFileName.c_str());
@@ -107,7 +115,7 @@ inline bool WritePrivateProfileSection(const std::string& Section, const std::st
 	return ::WritePrivateProfileSectionA(Section.c_str(), KeysAndValues.c_str(), iniFileName.c_str());
 }
 
-inline bool WritePrivateProfileSection(char* Section, char* KeysAndValues, char* iniFileName)
+inline bool WritePrivateProfileSection(const char* Section, const char* KeysAndValues, const char* iniFileName)
 {
 	return ::WritePrivateProfileSectionA(Section, KeysAndValues, iniFileName);
 }
@@ -117,7 +125,7 @@ inline bool WritePrivateProfileString(const std::string& Section, const std::str
 	return ::WritePrivateProfileStringA(Section.c_str(), Key.c_str(), Value.c_str(), iniFileName.c_str());
 }
 
-inline bool WritePrivateProfileString(char* Section, char* Key, char* Value, char* iniFileName)
+inline bool WritePrivateProfileString(const char* Section, const char* Key, const char* Value, const char* iniFileName)
 {
 	return ::WritePrivateProfileStringA(Section, Key, Value, iniFileName);
 }
@@ -127,7 +135,7 @@ inline bool WritePrivateProfileBool(const std::string& Section, const std::strin
 	return ::WritePrivateProfileStringA(Section.c_str(), Key.c_str(), Value ? "1" : "0", iniFileName.c_str());
 }
 
-inline bool WritePrivateProfileBool(char* Section, char* Key, bool Value, char* iniFileName)
+inline bool WritePrivateProfileBool(const char* Section, const char* Key, bool Value, const char* iniFileName)
 {
 	return ::WritePrivateProfileStringA(Section, Key, Value ? "1" : "0", iniFileName);
 }
@@ -138,7 +146,7 @@ inline bool WritePrivateProfileInt(const std::string& Section, const std::string
 	return ::WritePrivateProfileStringA(Section.c_str(), Key.c_str(), ValueString.c_str(), iniFileName.c_str());
 }
 
-inline bool WritePrivateProfileInt(char* Section, char* Key, int Value, char* iniFileName)
+inline bool WritePrivateProfileInt(const char* Section, const char* Key, int Value, const char* iniFileName)
 {
 	std::string ValueString = std::to_string(Value);
 	return ::WritePrivateProfileStringA(Section, Key, ValueString.c_str(), iniFileName);
@@ -150,7 +158,7 @@ inline bool WritePrivateProfileFloat(const std::string& Section, const std::stri
 	return ::WritePrivateProfileStringA(Section.c_str(), Key.c_str(), ValueString.c_str(), iniFileName.c_str());
 }
 
-inline bool WritePrivateProfileFloat(char* Section, char* Key, float Value, char* iniFileName)
+inline bool WritePrivateProfileFloat(const char* Section, const char* Key, float Value, const char* iniFileName)
 {
 	std::string ValueString = std::to_string(Value);
 	return ::WritePrivateProfileStringA(Section, Key, ValueString.c_str(), iniFileName);

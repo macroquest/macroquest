@@ -21,13 +21,13 @@ using namespace mq::datatypes;
 enum class TypeMembers
 {
 	Name = 1,
-	TypeMember = 2,
+	Member = 2,
 };
 
 MQ2TypeType::MQ2TypeType() : MQ2Type("type")
 {
 	ScopedTypeMember(TypeMembers, Name);
-	ScopedTypeMember(TypeMembers, TypeMember);
+	ScopedTypeMember(TypeMembers, Member);
 }
 
 bool MQ2TypeType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
@@ -49,7 +49,7 @@ bool MQ2TypeType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.Type = pStringType;
 		return true;
 
-	case TypeMembers::TypeMember:
+	case TypeMembers::Member:
 		if (!Index[0])
 			return false;
 
