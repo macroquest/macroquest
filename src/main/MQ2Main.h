@@ -223,6 +223,7 @@ MQLIB_API bool IsAlias(const char* alias);
 MQLIB_API void DumpStack(SPAWNINFO*, char*);
 MQLIB_API void EndMacro(SPAWNINFO*, char*);
 MQLIB_API void Echo(SPAWNINFO*, char*);
+MQLIB_API void EchoColor(SPAWNINFO*, char*);
 
 /* MACRO PARSING */
 void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValues);

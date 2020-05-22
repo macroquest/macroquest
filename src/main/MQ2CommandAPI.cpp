@@ -845,6 +845,7 @@ void InitializeMQ2Commands()
 		{ "/loadspells",        LoadSpells,                 true,  true  },
 		{ "/loginname",         DisplayLoginName,           true,  false },
 		{ "/echo",              Echo,                       true,  false },
+		{ "/cecho",             EchoColor,                  true,  false },
 		{ "/msgbox",            MQMsgBox,                   true,  false },
 		{ "/lootall",           LootAll,                    true,  false },
 		{ "/alert",             Alert,                      true,  true  },

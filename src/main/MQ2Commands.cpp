@@ -4617,6 +4617,8 @@ void AltAbility(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
+static const int DebugHeaderLen = strlen(DebugHeader);
+
 // ***************************************************************************
 // Function:    Echo
 // Description: Our '/echo' command
@@ -4625,12 +4627,25 @@ void AltAbility(SPAWNINFO* pChar, char* szLine)
 // ***************************************************************************
 void Echo(SPAWNINFO* pChar, char* szLine)
 {
+	DebugSpewNoFile("Echo: %s", szLine);
+
+	char szEcho[MAX_STRING] = { 0 };
+	strcpy_s(szEcho, DebugHeader);
+	strcat_s(szEcho, " ");
+	strncat_s(szEcho, szLine, MAX_STRING - (DebugHeaderLen + 2));
+	WriteChatColor(szEcho, USERCOLOR_CHAT_CHANNEL);
+
+	bRunNextCommand = true;
+}
+
+void EchoColor(SPAWNINFO* pChar, char* szLine)
+{
 	bRunNextCommand = true;
 
 	char szEcho[MAX_STRING] = { 0 };
 	strcpy_s(szEcho, DebugHeader);
 	strcat_s(szEcho, " ");
-	int NewPos = strlen(DebugHeader) + 1, OldPos = 0;
+	int NewPos = DebugHeaderLen + 1, OldPos = 0;
 
 	if (szLine)
 	{
