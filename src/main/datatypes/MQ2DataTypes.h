@@ -376,8 +376,6 @@ public:
 	MQ2CharacterType();
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	void InitVariable(MQVarPtr& VarPtr) override;
-	void FreeVariable(MQVarPtr& VarPtr) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
 	static bool dataCharacter(const char* szIndex, MQTypeVar& Ret);
 };

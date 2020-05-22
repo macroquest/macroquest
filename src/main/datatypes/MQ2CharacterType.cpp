@@ -643,7 +643,7 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 
 bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
-	CHARINFO* pChar = static_cast<CHARINFO*>(VarPtr.Ptr);
+	CHARINFO* pChar = static_cast<CHARINFO*>(pCharData);
 	if (!pChar)
 		return false;
 
@@ -685,7 +685,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 	MQTypeMember* pMember = MQ2CharacterType::FindMember(Member);
 	if (!pMember)
 	{
-		// call into parent
+		// call into spawn type using our own spawn
 		MQVarPtr data;
 		data.Ptr = pLocalPlayer;
 
@@ -4020,29 +4020,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 bool MQ2CharacterType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	if (!pLocalPlayer)
+	if (!pCharData)
 		return false;
 
-	CHARINFO* pCharInfo = static_cast<CHARINFO*>(VarPtr.Ptr);
+	CHARINFO* pCharInfo = static_cast<CHARINFO*>(pCharData);
 	strcpy_s(Destination, MAX_STRING, pCharInfo->Name);
 	return true;
-}
-
-void MQ2CharacterType::InitVariable(MQVarPtr& VarPtr)
-{
-	// FIXME: Do not allocate a CHARINFO
-	VarPtr.Ptr = new CHARINFO();
-	VarPtr.HighPart = 0;
-
-	// FIXME: Do not ZeroMemory a CHARINFO
-	ZeroMemory(VarPtr.Ptr, sizeof(CHARINFO));
-}
-
-void MQ2CharacterType::FreeVariable(MQVarPtr& VarPtr)
-{
-	// FIXME: Remove need to allocate a CHARINFO
-	CHARINFO* pCharInfo = static_cast<CHARINFO*>(VarPtr.Ptr);
-	delete pCharInfo;
 }
 
 bool MQ2CharacterType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
@@ -4050,8 +4033,9 @@ bool MQ2CharacterType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	if (Source.Type != pCharacterType)
 		return false;
 
-	// TODO: Find way to remove this.
-	memcpy(VarPtr.Ptr, Source.Ptr, sizeof(CHARINFO));
+	// there is only ever one Character pointer, and we don't own it, so
+	// there is no point to storing it.
+	VarPtr.Ptr = nullptr;
 	return true;
 }
 
@@ -4059,7 +4043,7 @@ bool MQ2CharacterType::dataCharacter(const char* szIndex, MQTypeVar& Ret)
 {
 	if (pCharData)
 	{
-		Ret.Ptr = pCharData;
+		Ret.Ptr = nullptr;
 		Ret.Type = pCharacterType;
 		return true;
 	}
