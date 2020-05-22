@@ -2794,29 +2794,14 @@ void DoAbility(SPAWNINFO* pChar, char* szLine)
 {
 	if (!szLine[0] || !cmdDoAbility)
 		return;
+	if (IsNumber(szLine) || !EQADDR_DOABILITYLIST)
+	{
+		cmdDoAbility(pChar, szLine);
+		return;
+	}
 
 	char szBuffer[MAX_STRING] = { 0 };
 	GetArg(szBuffer, szLine, 1);
-
-	int abil = GetIntFromString(szBuffer, 0);
-	if (abil && abil > 5 && abil < NUM_SKILLS) // user wants us to activate a ability by its REAL ID...
-	{
-		if (int nToken = pSkillMgr->GetNameToken(abil))
-		{
-			if (const char* thename = pStringTable->getString(nToken))
-			{
-				strcpy_s(szBuffer, thename);
-			}
-		}
-	}
-	else
-	{
-		if (abil || !EQADDR_DOABILITYLIST)
-		{
-			cmdDoAbility(pChar, szLine);
-			return;
-		}
-	}
 
 	PcProfile* pProfile = GetPcProfile();
 	if (!pProfile)
