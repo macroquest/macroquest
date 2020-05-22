@@ -52,7 +52,10 @@ bool MQ2CachedBuffType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 	{
 		if (SPELL* pSpell = GetSpellByID(buff->spellId))
 		{
-			return pSpellType->GetMember(*(MQVarPtr*)& pSpell, Member, Index, Dest);
+			MQVarPtr spellVar;
+			spellVar.Ptr = pSpell;
+
+			return pSpellType->GetMember(spellVar, Member, Index, Dest);
 		}
 		return false;
 	}

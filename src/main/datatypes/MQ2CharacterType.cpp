@@ -927,7 +927,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 			if (pProfile->ShortBuff[nBuff].SpellID <= 0)
 				return false;
 
-			Dest.Int = nBuff;
+			Dest.Int = nBuff + NUM_LONG_BUFFS;
 			return true;
 		}
 
@@ -937,7 +937,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 			{
 				if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
 				{
-					Dest.Int = nBuff;
+					Dest.Int = nBuff + NUM_LONG_BUFFS;
 					return true;
 				}
 			}

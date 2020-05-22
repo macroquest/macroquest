@@ -127,7 +127,13 @@ bool MQ2BuffType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 
 	case BuffMembers::ID:
 		Dest.Type = pIntType;
-		Dest.Int = VarPtr.Int;
+		Dest.Int = 0;
+		if (VarPtr.Int < NUM_LONG_BUFFS)
+			Dest.Int = VarPtr.Int + 1;
+		else if (VarPtr.Int < NUM_LONG_BUFFS + NUM_SHORT_BUFFS)
+			Dest.Int = VarPtr.Int - NUM_LONG_BUFFS + 1;
+		else
+			return false;
 		return true;
 
 	case BuffMembers::Level:
