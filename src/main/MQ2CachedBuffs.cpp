@@ -174,7 +174,7 @@ std::optional<CachedBuff> mq::GetCachedBuffAtSlot(SPAWNINFO* pSpawn, int slot)
 	return std::nullopt;
 }
 
-int mq::GetCachedBuff(SPAWNINFO* pSpawn, const std::function<bool(CachedBuff)>& predicate)
+int mq::GetCachedBuff(SPAWNINFO* pSpawn, const std::function<bool(const CachedBuff&)>& predicate)
 {
 	if (pSpawn)
 	{
@@ -204,7 +204,7 @@ int mq::GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index)
 	return -1;
 }
 
-int mq::GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index, const std::function<bool(CachedBuff)>& predicate)
+int mq::GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index, const std::function<bool(const CachedBuff&)>& predicate)
 {
 	if (pSpawn)
 	{
@@ -216,7 +216,7 @@ int mq::GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index, const std::function<boo
 	return -1;
 }
 
-std::vector<CachedBuff> mq::FilterCachedBuffs(SPAWNINFO* pSpawn, const std::function<bool(CachedBuff)>& predicate)
+std::vector<CachedBuff> mq::FilterCachedBuffs(SPAWNINFO* pSpawn, const std::function<bool(const CachedBuff&)>& predicate)
 {
 	if (pSpawn)
 	{
@@ -230,7 +230,7 @@ std::vector<CachedBuff> mq::FilterCachedBuffs(SPAWNINFO* pSpawn, const std::func
 	return {};
 }
 
-DWORD mq::GetCachedBuffCount(SPAWNINFO* pSpawn, const std::function<bool(CachedBuff)>& predicate)
+DWORD mq::GetCachedBuffCount(SPAWNINFO* pSpawn, const std::function<bool(const CachedBuff&)>& predicate)
 {
 	if (pSpawn)
 	{

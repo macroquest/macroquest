@@ -901,7 +901,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 		for (int nBuff = 0; nBuff < NUM_LONG_BUFFS; ++nBuff)
 		{
-			if (SPELL* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
+			if (EQ_Spell* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
 			{
 				if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
 				{
@@ -933,7 +933,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 		for (int nBuff = 0; nBuff < NUM_SHORT_BUFFS; nBuff++)
 		{
-			if (SPELL* pSpell = GetSpellByID(pProfile->ShortBuff[nBuff].SpellID))
+			if (EQ_Spell* pSpell = GetSpellByID(pProfile->ShortBuff[nBuff].SpellID))
 			{
 				if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
 				{
@@ -1735,7 +1735,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 									reusetimer = 0;
 								}
 
-								Dest.UInt64 = reusetimer * 1000;
+								Dest.UInt64 = static_cast<uint64_t>(reusetimer) * 1000;
 								return true;
 							}
 						}

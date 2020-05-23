@@ -129,7 +129,7 @@ MQLIB_API void RemoveXMLFile(const char* filename);
 MQLIB_API void AddXMLFile(const char* filename);
 MQLIB_API bool IsXMLFilePresent(const char* filename);
 MQLIB_API bool SendWndClick(const char* WindowName, const char* ScreenID, const char* ClickNotification);
-MQLIB_API bool SendWndNotification(const char* WindowName, const char* ScreenID, int Notification, void* Data = 0);
+MQLIB_API bool SendWndNotification(const char* WindowName, const char* ScreenID, int Notification, void* Data = nullptr);
 MQLIB_API CXWnd* FindMQ2Window(const char* Name);
 MQLIB_API CXWnd* FindMQ2WindowPath(const char* Name);
 MQLIB_API CXWnd* GetParentWnd(CXWnd* pWnd);
@@ -151,7 +151,7 @@ MQLIB_API void dsp_chat_no_events(const char* Text, int Color, bool EqLog = true
 MQLIB_API void InitializeMQ2Detours();
 MQLIB_API void ShutdownMQ2Detours();
 
-MQLIB_API bool AddDetour(DWORD address, BYTE* pfDetour = 0, BYTE* pfTrampoline = 0, DWORD Count = 20, const char* Name = nullptr);
+MQLIB_API bool AddDetour(DWORD address, BYTE* pfDetour = nullptr, BYTE* pfTrampoline = nullptr, DWORD Count = 20, const char* Name = nullptr);
 MQLIB_API void AddDetourf(DWORD address, ...);
 MQLIB_API void RemoveDetour(DWORD address);
 MQLIB_API void DeleteDetour(DWORD address);
@@ -627,11 +627,11 @@ public:
 
 void InitializeCachedBuffs();
 void ShutdownCachedBuffs();
-int GetCachedBuff(SPAWNINFO* pSpawn, const std::function<bool(CachedBuff)>& predicate);
-int GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index, const std::function<bool(CachedBuff)>& predicate);
+int GetCachedBuff(SPAWNINFO* pSpawn, const std::function<bool(const CachedBuff&)>& predicate);
+int GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index, const std::function<bool(const CachedBuff&)>& predicate);
 std::optional<CachedBuff> GetCachedBuffAtSlot(SPAWNINFO* pSpawn, int slot);
-std::vector<CachedBuff> FilterCachedBuffs(SPAWNINFO* pSpawn, const std::function<bool(CachedBuff)>& predicate);
-DWORD GetCachedBuffCount(SPAWNINFO* pSpawn, const std::function<bool(CachedBuff)>& predicate);
+std::vector<CachedBuff> FilterCachedBuffs(SPAWNINFO* pSpawn, const std::function<bool(const CachedBuff&)>& predicate);
+DWORD GetCachedBuffCount(SPAWNINFO* pSpawn, const std::function<bool(const CachedBuff&)>& predicate);
 MQLIB_API int GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index);
 MQLIB_API DWORD GetCachedBuffCount(SPAWNINFO* pSpawn);
 MQLIB_API void ClearCachedBuffsSpawn(SPAWNINFO* pSpawn);
@@ -640,8 +640,8 @@ MQLIB_API void ClearCachedBuffs();
 MQLIB_API    int      GetSelfBuff(const std::function<bool(EQ_Spell*)>& fPredicate);
 
 MQLIB_API    bool     HasSPA(EQ_Spell* pSpell, eEQSPA eSPA, bool bIncrease = false);
-MQLIB_OBJECT bool     HasSPA(SPELLBUFF buff, eEQSPA eSPA, bool bIncrease = false);
-MQLIB_OBJECT bool     HasSPA(CachedBuff buff, eEQSPA eSPA, bool bIncrease = false);
+MQLIB_OBJECT bool     HasSPA(const EQ_Affect& buff, eEQSPA eSPA, bool bIncrease = false);
+MQLIB_OBJECT bool     HasSPA(const CachedBuff& buff, eEQSPA eSPA, bool bIncrease = false);
 MQLIB_API    bool     IsSpellUsableForClass(SPELL* pSpell, unsigned int classmask = 0);
 MQLIB_OBJECT bool     IsSpellUsableForClass(SPELLBUFF buff, unsigned int classmask = 0);
 MQLIB_OBJECT bool     IsSpellUsableForClass(CachedBuff buff, unsigned int classmask = 0);

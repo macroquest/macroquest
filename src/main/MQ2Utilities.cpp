@@ -6773,8 +6773,8 @@ bool HasSPA(EQ_Spell* pSpell, eEQSPA eSPA, bool bIncrease)
 		return true;
 	}
 }
-bool HasSPA(SPELLBUFF buff, eEQSPA eSPA, bool bIncrease) { return HasSPA(GetSpellByID(buff.SpellID), eSPA, bIncrease); }
-bool HasSPA(CachedBuff buff, eEQSPA eSPA, bool bIncrease) { return HasSPA(GetSpellByID(buff.spellId), eSPA, bIncrease); }
+bool HasSPA(const EQ_Affect& buff, eEQSPA eSPA, bool bIncrease) { return HasSPA(GetSpellByID(buff.SpellID), eSPA, bIncrease); }
+bool HasSPA(const CachedBuff& buff, eEQSPA eSPA, bool bIncrease) { return HasSPA(GetSpellByID(buff.spellId), eSPA, bIncrease); }
 
 int GetSelfBuff(const std::function<bool(EQ_Spell*)>& fPredicate)
 {
