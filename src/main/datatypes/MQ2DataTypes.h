@@ -699,6 +699,18 @@ public:
 };
 
 //============================================================================
+// MQ2PetBuffType
+
+class MQ2PetBuffType : public MQ2Type
+{
+public:
+	MQ2PetBuffType();
+
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+};
+
+//============================================================================
 // MQ2WindowType
 
 class MQ2WindowType : public MQ2Type

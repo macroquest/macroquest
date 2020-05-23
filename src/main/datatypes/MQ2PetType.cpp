@@ -15,8 +15,84 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq {
+namespace datatypes {
+
+enum class PetBuffMembers
+{
+	Caster,
+	Duration,
+};
+
+MQ2PetBuffType::MQ2PetBuffType() : MQ2Type("petbuff")
+{
+	ScopedTypeMember(PetBuffMembers, Caster);
+	ScopedTypeMember(PetBuffMembers, Duration);
+}
+
+bool MQ2PetBuffType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+{
+	EQ_Spell* pSpell = static_cast<EQ_Spell*>(VarPtr.Ptr);
+	if (!pSpell)
+		return false;
+
+	if (!pPetInfoWnd)
+		return false;
+
+	MQTypeMember* pMember = FindMember(Member);
+	if (!pMember)
+	{
+		MQVarPtr spellVar;
+		spellVar.Ptr = VarPtr.Ptr;
+
+		return pSpellType->GetMember(spellVar, Member, Index, Dest);
+	}
+
+	switch (static_cast<PetBuffMembers>(pMember->ID))
+	{
+	case PetBuffMembers::Caster:
+		if (CXStr* pWhoCast = pPetInfoWnd->WhoCast.FindFirst(pSpell->ID))
+		{
+			strcpy_s(DataTypeTemp, pWhoCast->c_str());
+			Dest.Type = pStringType;
+			Dest.Ptr = &DataTypeTemp[0];
+			return true;
+		}
+		return false;
+
+	case PetBuffMembers::Duration: {
+		// Find the index of this spell id.
+		int buffIndex = -1;
+		for (int index = 0; index < NUM_BUFF_SLOTS; ++index)
+		{
+			if (pPetInfoWnd->Buff[index] == pSpell->ID)
+			{
+				buffIndex = index;
+				break;
+			}
+		}
+		if (buffIndex == -1)
+			return false;
+		Dest.UInt64 = pPetInfoWnd->PetBuffTimer[buffIndex];
+		Dest.Type = pTimeStampType;
+		return true;
+	}
+
+	default: break;
+	}
+
+	return false;
+}
+
+bool MQ2PetBuffType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	MQVarPtr spellVar;
+	spellVar.Ptr = VarPtr.Ptr;
+
+	return pSpellType->ToString(spellVar, Destination);
+}
+
+//----------------------------------------------------------------------------
 
 enum class PetMembers
 {
@@ -85,7 +161,7 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar
 
 			if (Dest.Ptr = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
 			{
-				Dest.Type = pSpellType;
+				Dest.Type = pPetBuffType;
 				return true;
 			}
 		}
@@ -247,4 +323,6 @@ bool MQ2PetType::FromString(MQVarPtr& VarPtr, char* Source)
 	}
 	return false;
 }
+
+}} // namespace mq::datatypes
 
