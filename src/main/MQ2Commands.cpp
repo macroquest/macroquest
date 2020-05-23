@@ -3284,20 +3284,6 @@ void Target(SPAWNINFO* pChar, char* szLine)
 			WriteChatColor("Target cleared.", USERCOLOR_WHO);
 			return;
 		}
-		else if (!strcmp(szArg, "ccb"))
-		{
-			ClearCachedBuffsSpawn(pTarget);
-			WriteChatColor("Cached Buffs for Target cleared.", USERCOLOR_WHO);
-			return;
-		}
-		else if (!strcmp(szArg, "cacb"))
-		{
-			pTarget = nullptr;
-
-			WriteChatColor("Cached Buffs for ALL Targets cleared.", USERCOLOR_WHO);
-			ClearCachedBuffs();
-			return;
-		}
 		else
 		{
 			szFilter = ParseSearchSpawnArgs(szArg, szFilter, &SearchSpawn);

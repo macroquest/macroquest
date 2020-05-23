@@ -17,7 +17,7 @@
 
 #include <optional>
 
-using namespace mq;
+namespace mq {
 
 class SpawnBuffs
 {
@@ -89,7 +89,7 @@ public:
 };
 
 // spawnID -> spawn buffs
-std::map<int, std::unique_ptr<SpawnBuffs>> cachedBuffMap;
+static std::map<int, std::unique_ptr<SpawnBuffs>> gCachedBuffMap;
 
 class CEverQuestHook
 {
@@ -124,7 +124,7 @@ public:
 		// full buff messages.
 		if (header.m_bComplete)
 		{
-			auto [it, result] = cachedBuffMap.try_emplace(header.m_id, std::make_unique<SpawnBuffs>());
+			auto [it, result] = gCachedBuffMap.try_emplace(header.m_id, std::make_unique<SpawnBuffs>());
 			it->second->Clear();
 
 			for (int i = 0; i < header.m_count; i++)
@@ -150,36 +150,26 @@ public:
 
 DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline(CUnSerializeBuffer&));
 
-void mq::InitializeCachedBuffs()
-{
-	EzDetour(CTargetWnd__RefreshTargetBuffs, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Detour, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline);
-}
-
-void mq::ShutdownCachedBuffs()
-{
-	RemoveDetour(CTargetWnd__RefreshTargetBuffs);
-}
-
-std::optional<CachedBuff> mq::GetCachedBuffAtSlot(SPAWNINFO* pSpawn, int slot)
+std::optional<CachedBuff> GetCachedBuffAtSlot(SPAWNINFO* pSpawn, int slot)
 {
 	if (pSpawn)
 	{
-		auto buffs = cachedBuffMap.find(pSpawn->SpawnID);
-		if (buffs != std::end(cachedBuffMap))
+		auto buffs = gCachedBuffMap.find(pSpawn->SpawnID);
+		if (buffs != std::end(gCachedBuffMap))
 		{
-			return buffs->second->Get([&slot](CachedBuff buff) { return buff.slot == slot; });
+			return buffs->second->Get([&slot](const CachedBuff& buff) { return buff.slot == slot; });
 		}
 	}
 
 	return std::nullopt;
 }
 
-int mq::GetCachedBuff(SPAWNINFO* pSpawn, const std::function<bool(const CachedBuff&)>& predicate)
+int GetCachedBuff(SPAWNINFO* pSpawn, const std::function<bool(const CachedBuff&)>& predicate)
 {
 	if (pSpawn)
 	{
-		auto buffs = cachedBuffMap.find(pSpawn->SpawnID);
-		if (buffs != std::end(cachedBuffMap))
+		auto buffs = gCachedBuffMap.find(pSpawn->SpawnID);
+		if (buffs != std::end(gCachedBuffMap))
 		{
 			auto buff = buffs->second->Get(predicate);
 			if (buff) return buff->slot;
@@ -189,12 +179,12 @@ int mq::GetCachedBuff(SPAWNINFO* pSpawn, const std::function<bool(const CachedBu
 	return -1;
 }
 
-int mq::GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index)
+int GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index)
 {
 	if (pSpawn)
 	{
-		auto buffs = cachedBuffMap.find(pSpawn->SpawnID);
-		if (buffs != std::end(cachedBuffMap))
+		auto buffs = gCachedBuffMap.find(pSpawn->SpawnID);
+		if (buffs != std::end(gCachedBuffMap))
 		{
 			auto buff = buffs->second->Get(index);
 			if (buff) return buff->slot;
@@ -204,7 +194,7 @@ int mq::GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index)
 	return -1;
 }
 
-int mq::GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index, const std::function<bool(const CachedBuff&)>& predicate)
+int GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index, const std::function<bool(const CachedBuff&)>& predicate)
 {
 	if (pSpawn)
 	{
@@ -216,12 +206,12 @@ int mq::GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index, const std::function<boo
 	return -1;
 }
 
-std::vector<CachedBuff> mq::FilterCachedBuffs(SPAWNINFO* pSpawn, const std::function<bool(const CachedBuff&)>& predicate)
+std::vector<CachedBuff> FilterCachedBuffs(SPAWNINFO* pSpawn, const std::function<bool(const CachedBuff&)>& predicate)
 {
 	if (pSpawn)
 	{
-		auto buffs = cachedBuffMap.find(pSpawn->SpawnID);
-		if (buffs != std::end(cachedBuffMap))
+		auto buffs = gCachedBuffMap.find(pSpawn->SpawnID);
+		if (buffs != std::end(gCachedBuffMap))
 		{
 			return buffs->second->Filter(predicate);
 		}
@@ -230,12 +220,12 @@ std::vector<CachedBuff> mq::FilterCachedBuffs(SPAWNINFO* pSpawn, const std::func
 	return {};
 }
 
-DWORD mq::GetCachedBuffCount(SPAWNINFO* pSpawn, const std::function<bool(const CachedBuff&)>& predicate)
+DWORD GetCachedBuffCount(SPAWNINFO* pSpawn, const std::function<bool(const CachedBuff&)>& predicate)
 {
 	if (pSpawn)
 	{
-		auto buffs = cachedBuffMap.find(pSpawn->SpawnID);
-		if (buffs != std::end(cachedBuffMap))
+		auto buffs = gCachedBuffMap.find(pSpawn->SpawnID);
+		if (buffs != std::end(gCachedBuffMap))
 		{
 			buffs->second->Audit();
 			return std::count_if(std::begin(buffs->second->cachedBuffs), std::end(buffs->second->cachedBuffs), predicate);
@@ -245,12 +235,12 @@ DWORD mq::GetCachedBuffCount(SPAWNINFO* pSpawn, const std::function<bool(const C
 	return 0U;
 }
 
-DWORD mq::GetCachedBuffCount(SPAWNINFO* pSpawn)
+DWORD GetCachedBuffCount(SPAWNINFO* pSpawn)
 {
 	if (pSpawn)
 	{
-		auto buffs = cachedBuffMap.find(pSpawn->SpawnID);
-		if (buffs != std::end(cachedBuffMap))
+		auto buffs = gCachedBuffMap.find(pSpawn->SpawnID);
+		if (buffs != std::end(gCachedBuffMap))
 		{
 			buffs->second->Audit();
 			return buffs->second->cachedBuffs.size();
@@ -260,17 +250,56 @@ DWORD mq::GetCachedBuffCount(SPAWNINFO* pSpawn)
 	return 0U;
 }
 
-void mq::ClearCachedBuffsSpawn(SPAWNINFO* pSpawn)
+void ClearCachedBuffsSpawn(SPAWNINFO* pSpawn)
 {
 	if (pSpawn)
 	{
-		auto buffs = cachedBuffMap.find(pSpawn->SpawnID);
-		if (buffs != std::end(cachedBuffMap))
+		auto buffs = gCachedBuffMap.find(pSpawn->SpawnID);
+		if (buffs != std::end(gCachedBuffMap))
 			buffs->second->Clear();
 	}
 }
 
-void mq::ClearCachedBuffs()
+void ClearCachedBuffs()
 {
-	cachedBuffMap.clear();
+	gCachedBuffMap.clear();
 }
+
+void CachedBuffsCommand(SPAWNINFO* pChar, char* szLine)
+{
+	if (!strcmp(szLine, "cleartarget"))
+	{
+		if (!pTarget)
+		{
+			WriteChatf("Select a target before using /cachedbuffs cleartarget");
+			return;
+		}
+
+		ClearCachedBuffsSpawn(pTarget);
+		WriteChatf("Cached Buffs for Target cleared.");
+		return;
+	}
+
+	if (!strcmp(szLine, "reset"))
+	{
+		pTarget = nullptr;
+
+		ClearCachedBuffs();
+		WriteChatf("Cached Buffs for ALL Targets cleared.");
+		return;
+	}
+
+	WriteChatf("\ayUsage: /cachedbuffs [cleartarget | reset]");
+}
+
+void InitializeCachedBuffs()
+{
+	EzDetour(CTargetWnd__RefreshTargetBuffs, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Detour, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline);
+}
+
+void ShutdownCachedBuffs()
+{
+	RemoveDetour(CTargetWnd__RefreshTargetBuffs);
+}
+
+} // namespace mq
