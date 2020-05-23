@@ -4821,13 +4821,17 @@ void AdvLootCmd(SPAWNINFO* pChar, char* szLine)
 	char szAction[MAX_STRING] = { 0 };
 	GetArg(szAction, szLine, 3);
 
-	if (!szLine[0] || !szAction[0])
+	if (szAction[0] == 0)
 	{
-		WriteChatColor(R"(Usage: /advloot personal #(listid) item,loot,leave,an,ag,never,name)");
-		WriteChatColor(R"(Or:    /advloot shared <#(listid) or \"item name\"> item,status,action,manage,autoroll,nd,gd,no,an,ag,nv,name)");
-		WriteChatColor(R"(Or:    you can "Give To:" /advloot shared <#(listid) or "Item Name"> giveto <name> <qty>)");
-		WriteChatColor(R"(Or:    you can "Leave on Corpse" /advloot shared <#(listid) or "Item Name"> leave)");
-		WriteChatColor(R"(Or:    /advloot shared set "name from the shared set to all combo box, can be player name or any of the other names that exist in that box...")");
+		if (szLine[0] != '\0')
+		{
+			WriteChatColor(R"(Usage: /advloot personal #(listid) item,loot,leave,an,ag,never,name)");
+			WriteChatColor(R"(       /advloot shared <#(listid) or \"item name\"> item,status,action,manage,autoroll,nd,gd,no,an,ag,nv,name)");
+			WriteChatColor(R"(           you can "Give To:" /advloot shared <#(listid) or "Item Name"> giveto <name> <qty>)");
+			WriteChatColor(R"(           you can "Leave on Corpse" /advloot shared <#(listid) or "Item Name"> leave)");
+			WriteChatColor(R"(       /advloot shared set "Option from the 'Set all to:` combo box")");
+			WriteChatColor(R"(           this can be a player name or any of the other names that exist in that combo box")");
+		}
 		cmdAdvLoot(pChar, szLine);
 		return;
 	}
@@ -4845,7 +4849,7 @@ void AdvLootCmd(SPAWNINFO* pChar, char* szLine)
 		// we dont know if we have a user that checks if loot is in progress in his macro, so we do that for him here
 		if (LootInProgress(pAdvancedLootWnd, pPersonalList, pSharedList))
 		{
-			MacroError("Woah! hold your horses there little filly... You better add a !${AdvLoot.LootInProgress} check in your macro to make sure loot is not in progress.");
+			MacroError("Cannot use /advloot while loot is in progress.");
 			return;
 		}
 
