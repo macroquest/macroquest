@@ -20,9 +20,11 @@ using namespace mq::datatypes;
 
 enum class CachedBuffMembers
 {
-	CasterName,
+	CasterName, // deprecated
+	Caster,
 	Count,
 	Slot,
+	Spell,
 	SpellID,
 	OriginalDuration,
 	Duration,
@@ -32,8 +34,10 @@ enum class CachedBuffMembers
 MQ2CachedBuffType::MQ2CachedBuffType() : MQ2Type("cachedbuff")
 {
 	ScopedTypeMember(CachedBuffMembers, CasterName);
+	ScopedTypeMember(CachedBuffMembers, Caster);
 	ScopedTypeMember(CachedBuffMembers, Count);
 	ScopedTypeMember(CachedBuffMembers, Slot);
+	ScopedTypeMember(CachedBuffMembers, Spell);
 	ScopedTypeMember(CachedBuffMembers, SpellID);
 	ScopedTypeMember(CachedBuffMembers, OriginalDuration);
 	ScopedTypeMember(CachedBuffMembers, Duration);
@@ -63,6 +67,7 @@ bool MQ2CachedBuffType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 	switch (static_cast<CachedBuffMembers>(pMember->ID))
 	{
 	case CachedBuffMembers::CasterName:
+	case CachedBuffMembers::Caster:
 		strcpy_s(DataTypeTemp, buff->casterName);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
@@ -77,6 +82,15 @@ bool MQ2CachedBuffType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQ
 		Dest.Int = buff->slot + 1;
 		Dest.Type = pIntType;
 		return true;
+
+	case CachedBuffMembers::Spell:
+		Dest.DWord = 0;
+		Dest.Type = pSpellType;
+
+		if (Dest.Ptr = GetSpellByID(buff->spellId))
+			return true;
+
+		return false;
 
 	case CachedBuffMembers::SpellID:
 		Dest.Int = buff->spellId;

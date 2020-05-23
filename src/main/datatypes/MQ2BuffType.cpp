@@ -32,7 +32,8 @@ enum class BuffMembers
 	CountersDisease,
 	CountersPoison,
 	CountersCurse,
-	CountersCorruption
+	CountersCorruption,
+	Caster,
 };
 
 enum class BuffMethods
@@ -55,6 +56,7 @@ MQ2BuffType::MQ2BuffType() : MQ2Type("buff")
 	ScopedTypeMember(BuffMembers, CountersPoison);
 	ScopedTypeMember(BuffMembers, CountersCurse);
 	ScopedTypeMember(BuffMembers, CountersCorruption);
+	ScopedTypeMember(BuffMembers, Caster);
 
 	ScopedTypeMethod(BuffMethods, Remove);
 }
@@ -219,6 +221,19 @@ bool MQ2BuffType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		Dest.DWord = buff->HitCount;
 		Dest.Type = pIntType;
 		return true;
+
+	case BuffMembers::Caster:
+		Dest.Type = pStringType;
+		if (VarPtr.HighPart == SpellDisplayType_BuffWnd && pBuffWnd)
+		{
+			if (CXStr* pName = pBuffWnd->WhoCast.FindFirst(buff->SpellID))
+			{
+				strcpy_s(DataTypeTemp, pName->c_str());
+				Dest.Ptr = &DataTypeTemp[0];
+				return true;
+			}
+		}
+		return false;
 
 	default:
 		return false;
