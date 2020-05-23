@@ -167,7 +167,14 @@ enum class SpawnMembers
 	TargetOfTarget,
 	ActorDef,
 	CachedBuff,
-	CachedBuffCount
+	CachedBuffCount,
+	Buff,
+	BuffCount,
+	BuffDuration,
+	BuffsPopulated,
+	MyBuff,
+	MyBuffCount,
+	MyBuffDuration,
 };
 
 enum class SpawnMethods
@@ -329,6 +336,13 @@ enum class SpawnMethods
 		ScopedTypeMember(SpawnMembers, ActorDef);
 		ScopedTypeMember(SpawnMembers, CachedBuff);
 		ScopedTypeMember(SpawnMembers, CachedBuffCount);
+		ScopedTypeMember(SpawnMembers, Buff);
+		ScopedTypeMember(SpawnMembers, BuffCount);
+		ScopedTypeMember(SpawnMembers, BuffDuration);
+		ScopedTypeMember(SpawnMembers, BuffsPopulated);
+		ScopedTypeMember(SpawnMembers, MyBuff);
+		ScopedTypeMember(SpawnMembers, MyBuffCount);
+		ScopedTypeMember(SpawnMembers, MyBuffDuration);
 
 		ScopedTypeMethod(SpawnMethods, DoTarget);
 		ScopedTypeMethod(SpawnMethods, DoFace);
@@ -1537,11 +1551,14 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		if (Index[0])
 		{
 			if (IsNumber(Index))
-				Dest.HighPart = GetCachedBuff(pSpawn, AllBuffs([&Index](CachedBuff buff) { return GetIntFromString(Index, 0) == buff.spellId; }));
+			{
+				Dest.HighPart = GetCachedBuff(pSpawn,
+					AllBuffs([&Index](const CachedBuff& buff) { return GetIntFromString(Index, 0) == buff.spellId; }));
+			}
 			else
 			{
 				if (Index[0] == '#') // by buff slot
-					Dest.HighPart = GetCachedBuff(pSpawn, AllBuffs([&Index](CachedBuff buff) { return GetIntFromString(&Index[1], 0) - 1 == buff.slot; }));
+					Dest.HighPart = GetCachedBuff(pSpawn, AllBuffs([&Index](const CachedBuff& buff) { return GetIntFromString(&Index[1], 0) - 1 == buff.slot; }));
 				else if (Index[0] == '*') // by buff index
 					Dest.HighPart = GetCachedBuffAt(pSpawn, GetIntFromString(&Index[1], 0) - 1);
 				else if (Index[0] == '^') // by keyword
@@ -1562,7 +1579,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 						Dest.HighPart = GetCachedBuff(pSpawn, AllBuffs(SpellAffect(SPA_MOVEMENT_RATE, false)));
 					else if (ci_equals(&Index[1], "beneficial"))
 					{
-						Dest.HighPart = GetCachedBuff(pSpawn, [](CachedBuff buff) -> bool
+						Dest.HighPart = GetCachedBuff(pSpawn, [](const CachedBuff& buff) -> bool
 							{
 								auto pSpell = GetSpellByID(buff.spellId);
 								return pSpell && pSpell->SpellType != 0;
@@ -1571,7 +1588,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 				}
 				else
 				{
-					Dest.HighPart = GetCachedBuff(pSpawn, [&Index](CachedBuff buff)
+					Dest.HighPart = GetCachedBuff(pSpawn, [&Index](const CachedBuff& buff)
 						{
 							return MaybeExactCompare(GetSpellNameByID(buff.spellId), Index);
 						});
@@ -1585,6 +1602,136 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeV
 		Dest.Type = pIntType;
 		Dest.DWord =  GetCachedBuffCount(pSpawn);
 		return true;
+
+	case SpawnMembers::BuffsPopulated:
+		Dest.DWord = gTargetbuffs && pTarget != nullptr;
+		Dest.Type = pBoolType;
+		return true;
+
+	case SpawnMembers::Buff:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+
+		if (!Index[0] || (Index[0] && IsNumber(Index)))
+		{
+			Dest.HighPart = GetCachedBuffAt(pTarget, Index[0] ? GetIntFromString(Index, 0) - 1 : 0);
+		}
+		else
+		{
+			Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(
+				[&Index](const CachedBuff& buff)
+				{
+					return ci_starts_with(GetSpellNameByID(buff.spellId), Index);
+				}));
+		}
+
+		return Dest.HighPart >= 0;
+
+	case SpawnMembers::MyBuff:
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pTarget;
+
+		if (!Index[0] || (Index[0] && IsNumber(Index)))
+		{
+			Dest.HighPart = GetCachedBuffAt(pTarget, Index[0] ? GetIntFromString(Index, 0) - 1 : 0,
+				[](const CachedBuff& buff) { return GetCharInfo() && ci_equals(GetCharInfo()->Name, buff.casterName); });
+		}
+		else
+		{
+			Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(
+				[&Index](const CachedBuff& buff)
+				{
+					return GetCharInfo()
+						&& ci_equals(GetCharInfo()->Name, buff.casterName)
+						&& ci_starts_with(GetSpellNameByID(buff.spellId), Index);
+				}));
+		}
+
+		return Dest.HighPart >= 0;
+
+	case SpawnMembers::BuffCount:
+		Dest.Type = pIntType;
+		Dest.DWord = GetCachedBuffCount(pTarget);
+		return true;
+
+	case SpawnMembers::MyBuffCount:
+		Dest.Type = pIntType;
+		Dest.DWord = GetCachedBuffCount(pTarget, [](const CachedBuff& buff)
+			{
+				return GetCharInfo() && ci_equals(GetCharInfo()->Name, buff.casterName);
+			});
+		return true;
+
+	case SpawnMembers::BuffDuration:
+		Dest.Type = pTimeStampType;
+		if (!Index[0] || (Index[0] && IsNumber(Index)))
+		{
+			auto slot = GetCachedBuffAt(pTarget, Index[0] ? GetIntFromString(Index, 0) - 1 : 0);
+			if (slot < 0)
+				return false;
+
+			auto buff = GetCachedBuffAtSlot(pTarget, slot);
+			if (!buff)
+				return false;
+
+			Dest.UInt64 = buff->Duration();
+			return true;
+		}
+		else
+		{
+			auto buffs = FilterCachedBuffs(pTarget, AllBuffs(
+				[&Index](const CachedBuff& buff)
+				{
+					return ci_starts_with(GetSpellNameByID(buff.spellId), Index);
+				}));
+
+			auto buff_it = std::max_element(std::cbegin(buffs), std::cend(buffs),
+				[](const CachedBuff& a, const CachedBuff& b) { return a.Duration() < b.Duration(); });
+			if (buff_it != std::cend(buffs))
+			{
+				Dest.UInt64 = buff_it->Duration();
+				return true;
+			}
+		}
+
+		return false;
+
+	case SpawnMembers::MyBuffDuration:
+		Dest.Type = pTimeStampType;
+		if (!Index[0] || (Index[0] && IsNumber(Index)))
+		{
+			auto slot = GetCachedBuffAt(pTarget, Index[0] ? GetIntFromString(Index, 0) - 1 : 0,
+				[](const CachedBuff& buff) { return GetCharInfo() && ci_equals(GetCharInfo()->Name, buff.casterName); });
+
+			if (slot < 0)
+				return false;
+
+			auto buff = GetCachedBuffAtSlot(pTarget, slot);
+			if (!buff)
+				return false;
+
+			Dest.UInt64 = buff->Duration();
+			return true;
+		}
+		else
+		{
+			auto buffs = FilterCachedBuffs(pTarget, AllBuffs(
+				[&Index](const CachedBuff& buff)
+				{
+					return GetCharInfo()
+						&& ci_equals(GetCharInfo()->Name, buff.casterName)
+						&& ci_starts_with(GetSpellNameByID(buff.spellId), Index);
+				}));
+
+			auto buff_it = std::max_element(std::cbegin(buffs), std::cend(buffs),
+				[](const CachedBuff& a, const CachedBuff& b) { return a.Duration() < b.Duration(); });
+			if (buff_it != std::cend(buffs))
+			{
+				Dest.UInt64 = buff_it->Duration();
+				return true;
+			}
+		}
+		return false;
 
 	default:
 		return false;
