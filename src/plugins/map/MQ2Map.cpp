@@ -67,10 +67,10 @@ char MapLeftClickString[MAX_CLICK_STRINGS][MAX_STRING] =
 	"",                      //  unused, will always target
 	"",                      // SHIFT
 	"",                      // CTRL
-	"",                      // CTRL|SHIFT
-	"/nav locxyz %x %y %z",  // LALT
-	"/nav locxyz %x %y %u",  // LALT|SHIFT
-	"/nav locxyz %x %y %d",  // LALT|CTRL
+	"/nav locxy %x %y",      // CTRL|SHIFT
+	"",                      // LALT
+	"",                      // LALT|SHIFT
+	"",                      // LALT|CTRL
 	"",                      // LALT|SHIFT|CTRL
 	"",                      // RALT
 	"",                      // RALT|SHIFT

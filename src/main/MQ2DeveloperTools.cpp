@@ -468,7 +468,17 @@ inline const char* UIDirectoryToString(enDir dir)
 bool RenderUITextureInfoTexture(const CUITextureInfo& textureInfo, const CXRect& rect = CXRect(0, 0, -1, -1))
 {
 	if (textureInfo.TextureId == -1)
-		return false;
+	{
+		if (pEQSuiteTextureLoader)
+		{
+			// break the rules to lazy init the texture id.
+			const_cast<CUITextureInfo&>(textureInfo).TextureId = pEQSuiteTextureLoader->CreateTexture(textureInfo);
+		}
+
+		// if the texture is still missing then stop
+		if (textureInfo.TextureId == -1)
+			return false;
+	}
 
 	// Try to extract texture info from the texture manager, if it exists already.
 	// This won't work at login until we map the texture loader to the login instance.
@@ -2473,12 +2483,23 @@ static ImGuiDemoWindow s_demoWindow;
 
 class SpellsDeveloperTool : public ImGuiWindowBase
 {
+	CTextureAnimation* m_pTASpellIcon = nullptr;
 public:
 	SpellsDeveloperTool() : ImGuiWindowBase("Spells Developer Tools") {}
+
+	~SpellsDeveloperTool()
+	{
+		if (m_pTASpellIcon)
+		{
+			delete m_pTASpellIcon;
+			m_pTASpellIcon = nullptr;
+		}
+	}
 
 	void DoSpellBuffTableHeaders()
 	{
 		ImGui::TableSetupColumn("Index");
+		ImGui::TableSetupColumn("Icon");
 		ImGui::TableSetupColumn("Name");
 		ImGui::TableSetupColumn("ID");
 		ImGui::TableSetupColumn("Level");
@@ -2506,14 +2527,32 @@ public:
 		ImGui::TableAutoHeaders();
 	}
 
-	void DoSpellBuffTableRow(int index, SPELLBUFF& buff)
+	void DoSpellBuffTableRow(int index, EQ_Affect& buff)
 	{
-		SPELL* spell = GetSpellByID(buff.SpellID);
+		EQ_Spell* spell = GetSpellByID(buff.SpellID);
+		if (!spell)
+			return;
+
+		if (!m_pTASpellIcon)
+		{
+			m_pTASpellIcon = new CTextureAnimation();
+			if (CTextureAnimation* temp = pSidlMgr->FindAnimation("A_SpellGems"))
+				*m_pTASpellIcon = *temp;
+		}
 
 		ImGui::TableNextRow();
 
 		// Index
 		ImGui::Text("%d", index);
+
+		// Icon
+		ImGui::TableNextCell();
+		m_pTASpellIcon->SetCurCell(spell->SpellIcon);
+		RenderTextureAnimation(m_pTASpellIcon);
+		//m_pTASpellIcon->SetCurCell(spell->GemIcon);
+		//RenderTextureAnimation(m_pTASpellIcon);
+		//m_pTASpellIcon->SetCurCell(spell->BookIcon);
+		//RenderTextureAnimation(m_pTASpellIcon);
 
 		// Name
 		ImGui::TableNextCell();
@@ -2622,7 +2661,7 @@ public:
 		ImVec2 size = ImVec2(0, ImGui::GetTextLineHeightWithSpacing() * count);
 		count = 0;
 
-		if (ImGui::BeginTable(name, 16 + NUM_SLOTDATA, tableFlags, size))
+		if (ImGui::BeginTable(name, 17 + NUM_SLOTDATA, tableFlags, size))
 		{
 			DoSpellBuffTableHeaders();
 

@@ -77,6 +77,7 @@ DATATYPE(MQ2MerchantType, pMerchantType, nullptr, 0);
 DATATYPE(MQ2PointMerchantType, pPointMerchantType, nullptr, 0);
 DATATYPE(MQ2PointMerchantItemType, pPointMerchantItemType, nullptr, 0);
 DATATYPE(MQ2PetType, pPetType, pSpawnType, 0);
+DATATYPE(MQ2PetBuffType, pPetBuffType, pSpellType, 0);
 DATATYPE(MQ2RaceType, pRaceType, nullptr, 0);
 DATATYPE(MQ2RaidMemberType, pRaidMemberType, pSpawnType, 0);
 DATATYPE(MQ2RaidType, pRaidType, nullptr, 0);

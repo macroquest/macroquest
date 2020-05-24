@@ -886,7 +886,7 @@ bool MapSelectTarget()
 	return false;
 }
 
-void MapClickLocation(float world_point_x, float world_point_y, const std::vector<float>& z_hits)
+void MapClickLocation(float world_point_y, float world_point_x, const std::vector<float>& z_hits)
 {
 	CHARINFO* pCharInfo = GetCharInfo();
 

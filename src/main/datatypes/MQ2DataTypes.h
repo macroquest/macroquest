@@ -376,8 +376,6 @@ public:
 	MQ2CharacterType();
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	void InitVariable(MQVarPtr& VarPtr) override;
-	void FreeVariable(MQVarPtr& VarPtr) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
 	static bool dataCharacter(const char* szIndex, MQTypeVar& Ret);
 };
@@ -698,6 +696,18 @@ public:
 	void FreeVariable(MQVarPtr& VarPtr) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, char* Source) override;
+};
+
+//============================================================================
+// MQ2PetBuffType
+
+class MQ2PetBuffType : public MQ2Type
+{
+public:
+	MQ2PetBuffType();
+
+	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 };
 
 //============================================================================
