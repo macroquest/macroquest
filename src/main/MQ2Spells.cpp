@@ -199,9 +199,13 @@ static EQ_Spell* GetSpellFromMap(std::string_view name)
 
 	auto range = s_spellNameMap.equal_range(name);
 
+	// If there is only a single hit by name, just return that spell.
+	if (std::distance(range.first, range.second) == 1)
+		return range.first->second;
+
 	if (IsPlayerClass(profile->Class))
 	{
-		auto compare = [profile](int level, std::pair<std::string_view, EQ_Spell*> spell) -> bool {
+		auto compare = [profile](int level, const std::pair<std::string_view, EQ_Spell*>& spell) -> bool {
 			return level < spell.second->ClassLevel[profile->Class];
 		};
 
@@ -214,7 +218,7 @@ static EQ_Spell* GetSpellFromMap(std::string_view name)
 
 	// if we got here, the spell the user is after isnt one his character can cast, so
 	// we will have to roll through it again and see if its usable by any other class
-	auto is_usable = [](std::pair<std::string_view, EQ_Spell*> spell) -> bool {
+	auto is_usable = [](const std::pair<std::string_view, EQ_Spell*>& spell) -> bool {
 		return IsSpellClassUsable(spell.second);
 	};
 
