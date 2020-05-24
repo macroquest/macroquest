@@ -643,7 +643,7 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 
 bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
-	CHARINFO* pChar = static_cast<CHARINFO*>(VarPtr.Ptr);
+	CHARINFO* pChar = static_cast<CHARINFO*>(pCharData);
 	if (!pChar)
 		return false;
 
@@ -685,7 +685,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 	MQTypeMember* pMember = MQ2CharacterType::FindMember(Member);
 	if (!pMember)
 	{
-		// call into parent
+		// call into spawn type using our own spawn
 		MQVarPtr data;
 		data.Ptr = pLocalPlayer;
 
@@ -882,6 +882,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 	// TODO:  Move this to a function for both Buff and Song since code is identical except for Short vs Long Buff.
 	case CharacterMembers::Buff:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_BuffWnd;
 		if (!Index[0])
 			return false;
 
@@ -901,7 +902,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 		for (int nBuff = 0; nBuff < NUM_LONG_BUFFS; ++nBuff)
 		{
-			if (SPELL* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
+			if (EQ_Spell* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
 			{
 				if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
 				{
@@ -914,6 +915,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	case CharacterMembers::Song:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		if (!Index[0])
 			return false;
 
@@ -927,17 +929,17 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 			if (pProfile->ShortBuff[nBuff].SpellID <= 0)
 				return false;
 
-			Dest.Int = nBuff;
+			Dest.Int = nBuff + NUM_LONG_BUFFS;
 			return true;
 		}
 
 		for (int nBuff = 0; nBuff < NUM_SHORT_BUFFS; nBuff++)
 		{
-			if (SPELL* pSpell = GetSpellByID(pProfile->ShortBuff[nBuff].SpellID))
+			if (EQ_Spell* pSpell = GetSpellByID(pProfile->ShortBuff[nBuff].SpellID))
 			{
 				if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
 				{
-					Dest.Int = nBuff;
+					Dest.Int = nBuff + NUM_LONG_BUFFS;
 					return true;
 				}
 			}
@@ -1735,7 +1737,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 									reusetimer = 0;
 								}
 
-								Dest.UInt64 = reusetimer * 1000;
+								Dest.UInt64 = static_cast<uint64_t>(reusetimer) * 1000;
 								return true;
 							}
 						}
@@ -3491,41 +3493,49 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	case CharacterMembers::Slowed:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_HASTE, false)));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Rooted:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_ROOT, false)));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Mezzed:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_ENTHRALL, false)));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Crippled:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(SpellSubCat(SPELLCAT_DISEMPOWERING)));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Maloed:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(SpellSubCat(SPELLCAT_RESIST_DEBUFFS), SpellClassMask(Shaman, Mage)));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Tashed:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(SpellSubCat(SPELLCAT_RESIST_DEBUFFS), SpellClassMask(Enchanter)));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Snared:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_MOVEMENT_RATE, false)));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Hasted:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_HASTE, true)));
 		return Dest.Int >= 0;
 
@@ -3556,21 +3566,25 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	case CharacterMembers::DSed:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_DAMAGE_SHIELD, true)));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::RevDSed:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_IRONMAIDEN, true)));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Charmed:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_CHARM, false)));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Aego:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(
 			SpellAffect(SPA_AC, true),
 			SpellCategory(SPELLCAT_HP_BUFFS),
@@ -3580,6 +3594,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	case CharacterMembers::Skin:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(
 			SpellCategory(SPELLCAT_HP_BUFFS),
 			SpellSubCat(SPELLCAT_HP_TYPE_ONE),
@@ -3588,6 +3603,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	case CharacterMembers::Focus:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(
 			SpellCategory(SPELLCAT_HP_BUFFS),
 			SpellSubCat(SPELLCAT_SHIELDING),
@@ -3596,31 +3612,37 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	case CharacterMembers::Regen:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_HP, true), !SpellClassMask(Beastlord)));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Diseased:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_DISEASE, false)));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Poisoned:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_POISON, false)));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Cursed:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_CURSE, false)));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Corrupted:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_CORRUPTION, false)));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Symbol:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(
 			SpellCategory(SPELLCAT_HP_BUFFS),
 			SpellSubCat(SPELLCAT_SYMBOL),
@@ -3629,6 +3651,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	case CharacterMembers::Clarity:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(
 			SpellAffect(SPA_MANA, true),
 			SpellClassMask(Enchanter)));
@@ -3636,6 +3659,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	case CharacterMembers::Pred:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(
 			SpellCategory(SPELLCAT_STATISTIC_BUFFS),
 			SpellSubCat(SPELLCAT_ATTACK),
@@ -3644,6 +3668,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	case CharacterMembers::Strength:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(
 			SpellCategory(SPELLCAT_HP_BUFFS),
 			SpellSubCat(SPELLCAT_HP_TYPE_TWO),
@@ -3652,6 +3677,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	case CharacterMembers::Brells:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(
 			SpellCategory(SPELLCAT_HP_BUFFS),
 			SpellSubCat(SPELLCAT_HP_TYPE_TWO),
@@ -3660,6 +3686,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	case CharacterMembers::SV:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(
 			SpellCategory(SPELLCAT_REGEN),
 			SpellSubCat(SPELLCAT_MANA),
@@ -3668,6 +3695,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	case CharacterMembers::SE:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(
 			SpellCategory(SPELLCAT_REGEN),
 			SpellSubCat(SPELLCAT_HEALTH_MANA),
@@ -3676,6 +3704,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	case CharacterMembers::HybridHP:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(
 			SpellCategory(SPELLCAT_HP_BUFFS),
 			SpellSubCat(SPELLCAT_HP_TYPE_ONE),
@@ -3684,6 +3713,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	case CharacterMembers::Growth:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(
 			SpellCategory(SPELLCAT_HP_BUFFS),
 			SpellSubCat(SPELLCAT_TEMPORARY),
@@ -3692,6 +3722,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	case CharacterMembers::Shining:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(
 			SpellCategory(SPELLCAT_UTILITY_BENEFICIAL),
 			SpellSubCat(SPELLCAT_MELEE_GUARD),
@@ -3877,6 +3908,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	case CharacterMembers::Beneficial:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs([](EQ_Spell* spell) { return spell->SpellType != 0; }));
 		return Dest.Int >= 0;
 
@@ -3925,21 +3957,25 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 	case CharacterMembers::Feared:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_FEAR, true)));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Silenced:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_SILENCE, true)));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Invulnerable:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_INVULNERABILITY, true)));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Dotted:
 		Dest.Type = pBuffType;
+		Dest.HighPart = SpellDisplayType_None;
 		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_HP, false),
 			[](EQ_Spell* spell) { return spell->IsDetrimentalSpell() && spell->IsDoTSpell(); }));
 		return Dest.Int >= 0;
@@ -4020,29 +4056,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 
 bool MQ2CharacterType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	if (!pLocalPlayer)
+	if (!pCharData)
 		return false;
 
-	CHARINFO* pCharInfo = static_cast<CHARINFO*>(VarPtr.Ptr);
+	CHARINFO* pCharInfo = static_cast<CHARINFO*>(pCharData);
 	strcpy_s(Destination, MAX_STRING, pCharInfo->Name);
 	return true;
-}
-
-void MQ2CharacterType::InitVariable(MQVarPtr& VarPtr)
-{
-	// FIXME: Do not allocate a CHARINFO
-	VarPtr.Ptr = new CHARINFO();
-	VarPtr.HighPart = 0;
-
-	// FIXME: Do not ZeroMemory a CHARINFO
-	ZeroMemory(VarPtr.Ptr, sizeof(CHARINFO));
-}
-
-void MQ2CharacterType::FreeVariable(MQVarPtr& VarPtr)
-{
-	// FIXME: Remove need to allocate a CHARINFO
-	CHARINFO* pCharInfo = static_cast<CHARINFO*>(VarPtr.Ptr);
-	delete pCharInfo;
 }
 
 bool MQ2CharacterType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
@@ -4050,8 +4069,9 @@ bool MQ2CharacterType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	if (Source.Type != pCharacterType)
 		return false;
 
-	// TODO: Find way to remove this.
-	memcpy(VarPtr.Ptr, Source.Ptr, sizeof(CHARINFO));
+	// there is only ever one Character pointer, and we don't own it, so
+	// there is no point to storing it.
+	VarPtr.Ptr = nullptr;
 	return true;
 }
 
@@ -4059,7 +4079,7 @@ bool MQ2CharacterType::dataCharacter(const char* szIndex, MQTypeVar& Ret)
 {
 	if (pCharData)
 	{
-		Ret.Ptr = pCharData;
+		Ret.Ptr = nullptr;
 		Ret.Type = pCharacterType;
 		return true;
 	}

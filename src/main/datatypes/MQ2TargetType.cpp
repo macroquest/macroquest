@@ -20,9 +20,6 @@ using namespace mq::datatypes;
 
 enum class TargetMembers
 {
-	Buff,
-	BuffCount,
-	BuffDuration,
 	PctAggro,
 	SecondaryPctAggro,
 	SecondaryAggroPlayer,
@@ -57,10 +54,6 @@ enum class TargetMembers
 	Poisoned,
 	Cursed,
 	Corrupted,
-	BuffsPopulated,
-	MyBuff,
-	MyBuffCount,
-	MyBuffDuration,
 	Feared,
 	Silenced,
 	Invulnerable,
@@ -70,9 +63,6 @@ enum class TargetMembers
 
 MQ2TargetType::MQ2TargetType() : MQ2Type("target")
 {
-	ScopedTypeMember(TargetMembers, Buff);
-	ScopedTypeMember(TargetMembers, BuffCount);
-	ScopedTypeMember(TargetMembers, BuffDuration);
 	ScopedTypeMember(TargetMembers, PctAggro);
 	ScopedTypeMember(TargetMembers, SecondaryPctAggro);
 	ScopedTypeMember(TargetMembers, SecondaryAggroPlayer);
@@ -107,10 +97,6 @@ MQ2TargetType::MQ2TargetType() : MQ2Type("target")
 	ScopedTypeMember(TargetMembers, Poisoned);
 	ScopedTypeMember(TargetMembers, Cursed);
 	ScopedTypeMember(TargetMembers, Corrupted);
-	ScopedTypeMember(TargetMembers, BuffsPopulated);
-	ScopedTypeMember(TargetMembers, MyBuff);
-	ScopedTypeMember(TargetMembers, MyBuffCount);
-	ScopedTypeMember(TargetMembers, MyBuffDuration);
 	ScopedTypeMember(TargetMembers, Feared);
 	ScopedTypeMember(TargetMembers, Silenced);
 	ScopedTypeMember(TargetMembers, Invulnerable);
@@ -134,123 +120,6 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 
 	switch (static_cast<TargetMembers>(pMember->ID))
 	{
-	case TargetMembers::BuffsPopulated:
-		Dest.DWord = gTargetbuffs && pTarget != nullptr;
-		Dest.Type = pBoolType;
-		return true;
-
-	case TargetMembers::Buff:
-		Dest.Type = pCachedBuffType;
-		Dest.Ptr = pTarget;
-
-		if (!Index[0] || (Index[0] && IsNumber(Index)))
-			Dest.HighPart = GetCachedBuffAt(pTarget, Index[0] ? GetIntFromString(Index, 0) - 1 : 0);
-		else
-			Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(
-				[&Index](CachedBuff buff)
-				{
-					return ci_starts_with(GetSpellNameByID(buff.spellId), Index);
-				}));
-
-		return Dest.HighPart >= 0;
-
-	case TargetMembers::MyBuff:
-		Dest.Type = pCachedBuffType;
-		Dest.Ptr = pTarget;
-
-		if (!Index[0] || (Index[0] && IsNumber(Index)))
-			Dest.HighPart = GetCachedBuffAt(pTarget, Index[0] ? GetIntFromString(Index, 0) - 1 : 0,
-				[](CachedBuff buff) { return GetCharInfo() && ci_equals(GetCharInfo()->Name, buff.casterName); });
-		else
-			Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(
-				[&Index](CachedBuff buff)
-				{
-					return GetCharInfo() && ci_equals(GetCharInfo()->Name, buff.casterName) && ci_starts_with(GetSpellNameByID(buff.spellId), Index);
-				}));
-
-		return Dest.HighPart >= 0;
-
-	case TargetMembers::BuffCount:
-		Dest.Type = pIntType;
-		Dest.DWord = GetCachedBuffCount(pTarget);
-		return true;
-
-	case TargetMembers::MyBuffCount:
-		Dest.Type = pIntType;
-		Dest.DWord = GetCachedBuffCount(pTarget, [](CachedBuff buff)
-			{
-				return GetCharInfo() && ci_equals(GetCharInfo()->Name, buff.casterName);
-			});
-		return true;
-
-	case TargetMembers::BuffDuration:
-		Dest.Type = pTimeStampType;
-		if (!Index[0] || (Index[0] && IsNumber(Index)))
-		{
-			auto slot = GetCachedBuffAt(pTarget, Index[0] ? GetIntFromString(Index, 0) - 1 : 0);
-			if (slot < 0)
-				return false;
-
-			auto buff = GetCachedBuffAtSlot(pTarget, slot);
-			if (!buff)
-				return false;
-
-			Dest.UInt64 = buff->Duration();
-			return true;
-		}
-		else
-		{
-			auto buffs = FilterCachedBuffs(pTarget, AllBuffs(
-				[&Index](CachedBuff buff)
-				{
-					return ci_starts_with(GetSpellNameByID(buff.spellId), Index);
-				}));
-
-			auto buff_it = std::max_element(std::cbegin(buffs), std::cend(buffs), [](CachedBuff a, CachedBuff b) { return a.Duration() < b.Duration(); });
-			if (buff_it != std::cend(buffs))
-			{
-				Dest.UInt64 = buff_it->Duration();
-				return true;
-			}
-		}
-
-		return false;
-
-	case TargetMembers::MyBuffDuration:
-		Dest.Type = pTimeStampType;
-		if (!Index[0] || (Index[0] && IsNumber(Index)))
-		{
-			auto slot = GetCachedBuffAt(pTarget, Index[0] ? GetIntFromString(Index, 0) - 1 : 0,
-				[](CachedBuff buff) { return GetCharInfo() && ci_equals(GetCharInfo()->Name, buff.casterName); });
-
-			if (slot < 0)
-				return false;
-
-			auto buff = GetCachedBuffAtSlot(pTarget, slot);
-			if (!buff)
-				return false;
-
-			Dest.UInt64 = buff->Duration();
-			return true;
-		}
-		else
-		{
-			auto buffs = FilterCachedBuffs(pTarget, AllBuffs(
-				[&Index](CachedBuff buff)
-				{
-					return GetCharInfo() && ci_equals(GetCharInfo()->Name, buff.casterName) && ci_starts_with(GetSpellNameByID(buff.spellId), Index);
-				}));
-
-			auto buff_it = std::max_element(std::cbegin(buffs), std::cend(buffs), [](CachedBuff a, CachedBuff b) { return a.Duration() < b.Duration(); });
-			if (buff_it != std::cend(buffs))
-			{
-				Dest.UInt64 = buff_it->Duration();
-				return true;
-			}
-		}
-
-		return false;
-
 	case TargetMembers::PctAggro:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;

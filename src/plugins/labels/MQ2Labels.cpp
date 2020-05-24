@@ -56,7 +56,7 @@ struct {
 	{2008,   "${Target.Z}"},
 	{2009,   "${Target.Heading}"},
 	{2010,   "${Target.Speed}"},
-	{2011,  "${Target.ID}"},
+	{2011,   "${Target.ID}"},
 
 	// 3000-3999: misc
 	{3000,   "${Zone}"},
@@ -88,7 +88,7 @@ public:
 	CLabel* CreateLabel_Trampoline(CXWnd*, CControlTemplate*);
 	CLabel* CreateLabel_Detour(CXWnd* CWin, CControlTemplate* CControl)
 	{
-		auto pLabel = CreateLabel_Trampoline(CWin, CControl);
+		CLabel* pLabel = CreateLabel_Trampoline(CWin, CControl);
 		pLabel->EQType = GetIntFromString(CControl->strController, pLabel->EQType);
 		return pLabel;
 	}
@@ -98,69 +98,63 @@ DETOUR_TRAMPOLINE_EMPTY(CLabel* CSidlManagerHook::CreateLabel_Trampoline(CXWnd*,
 class CLabelHook
 {
 public:
-	void Draw_Trampoline();
-	void Draw_Detour()
+	void UpdateText_Trampoline();
+	void UpdateText_Detour()
 	{
-		CLabel* pThisLabel = (CLabel*)this;
-		bool Found = false;
-		DWORD index;
+		UpdateText_Trampoline();
+		CLabel* pThis = (CLabel*)this;
 
-		CXStr buffer;
-
-		Draw_Trampoline();
-
-		if (pThisLabel->EQType == 9999)
+		if (pThis->EQType == 9999)
 		{
-			auto tooltip = pThisLabel->GetXMLTooltip();
+			auto tooltip = pThis->GetXMLTooltip();
+			char buffer[MAX_STRING] = { 0 };
 
 			if (!tooltip.empty())
 			{
-				buffer.reserve(tooltip.length());
-				STMLToPlainText(tooltip.mutable_data(), buffer.mutable_data());
+				STMLToPlainText(tooltip.mutable_data(), buffer);
 
-				buffer.reserve(MAX_STRING);
-				ParseMacroParameter(((CHARINFO*)pCharData)->pSpawn, buffer.mutable_data(), MAX_STRING);
-				if (buffer == "NULL")
-					buffer = "";
-				Found = true;
+				ParseMacroParameter(((CHARINFO*)pCharData)->pSpawn, buffer, MAX_STRING);
+				if (strcmp(buffer, "NULL") == 0)
+					buffer[0] = 0;
 			}
 			else
 			{
-				buffer = "BadCustom";
-				Found = true;
+				strcpy_s(buffer, "BadCustom");
 			}
-		}
-		else if (pThisLabel->EQType == 1000)
-		{
-			for (index = 0; Id_PMP[index].ID > 0 && !Found; index++)
-			{
-				if (Id_PMP[index].ID == pThisLabel->EQType)
-				{
-					buffer = Id_PMP[index].PMP;
-					buffer.reserve(MAX_STRING);
 
-					ParseMacroParameter(((CHARINFO*)pCharData)->pSpawn, buffer.mutable_data(), MAX_STRING);
-					if (buffer == "NULL")
-						buffer = "";
-					Found = true;
+			pThis->SetWindowText(buffer);
+			return;
+		}
+
+		if (pThis->EQType == 1000)
+		{
+			for (int index = 0; Id_PMP[index].ID > 0; index++)
+			{
+				if (Id_PMP[index].ID == pThis->EQType)
+				{
+					char buffer[MAX_STRING] = { 0 };
+					strcpy_s(buffer, Id_PMP[index].PMP);
+
+					ParseMacroParameter(((CHARINFO*)pCharData)->pSpawn, buffer, MAX_STRING);
+					if (strcmp(buffer, "NULL") == 0)
+						buffer[0] = 0;
+
+					pThis->SetWindowText(buffer);
+					return;
 				}
 			}
+			return;
 		}
-		if (Found)
-			pThisLabel->SetWindowText(buffer);
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(void CLabelHook::Draw_Trampoline());
-
-bool StealNextGauge = false;
-DWORD NextGauge = 0;
+DETOUR_TRAMPOLINE_EMPTY(void CLabelHook::UpdateText_Trampoline());
 
 // Called once, when the plugin is to initialize
 PLUGIN_API void InitializePlugin()
 {
 	// Add commands, macro parameters, hooks, etc.
-	EzDetourwName(CLabel__Draw, &CLabelHook::Draw_Detour, &CLabelHook::Draw_Trampoline, "CLabel__Draw");
-	EzDetourwName(CSidlManagerBase__CreateLabel, &CSidlManagerHook::CreateLabel_Detour, &CSidlManagerHook::CreateLabel_Trampoline, "CSidlManager__CreateLabel");
+	EzDetour(CLabel__Draw, &CLabelHook::UpdateText_Detour, &CLabelHook::UpdateText_Trampoline);
+	EzDetour(CSidlManagerBase__CreateLabel, &CSidlManagerHook::CreateLabel_Detour, &CSidlManagerHook::CreateLabel_Trampoline);
 }
 
 // Called once, when the plugin is to shutdown
