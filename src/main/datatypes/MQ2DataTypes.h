@@ -724,17 +724,6 @@ public:
 };
 
 //============================================================================
-// MQ2LastMouseOverType
-
-class MQ2LastMouseOverType : public MQ2Type
-{
-public:
-	MQ2LastMouseOverType();
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
-	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-};
-
-//============================================================================
 // MQ2MenuType
 
 class MQ2MenuType : public MQ2Type
