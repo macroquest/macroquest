@@ -2752,7 +2752,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 			break;
 
 		default:
-			strcpy_s(DataTypeTemp, "UNKNOWN");
+			sprintf_s(DataTypeTemp, "UNKNOWN(%d)", pPlayerWnd->CombatState);
 			break;
 		}
 
