@@ -2259,9 +2259,15 @@ class MQ2AdvLootItemType : public MQ2Type
 {
 public:
 	MQ2AdvLootItemType();
+
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	enum {
+		CList = 1,
+		PList = 2,
+	};
 };
 
 //============================================================================

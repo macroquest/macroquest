@@ -15,8 +15,7 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
 
 enum class AdvLootTypeMembers
 {
@@ -59,7 +58,6 @@ bool MQ2AdvLootType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 		return true;
 
 	case AdvLootTypeMembers::PList:
-		Dest.Type = pAdvLootItemType;
 		if (int index = GetIntFromString(Index, 0))
 		{
 			index--;
@@ -70,7 +68,9 @@ bool MQ2AdvLootType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 				int listindex = (int)clist->GetItemData(index);
 				if (pAdvancedLootWnd->pPLootList && listindex != -1)
 				{
+					Dest.Type = pAdvLootItemType;
 					Dest.DWord = listindex;
+					Dest.HighPart = MQ2AdvLootItemType::PList;
 					return true;
 				}
 			}
@@ -83,7 +83,6 @@ bool MQ2AdvLootType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 		return true;
 
 	case AdvLootTypeMembers::SList:
-		Dest.Type = pAdvLootItemType;
 		if (int index = GetIntFromString(Index, 0))
 		{
 			index--;
@@ -95,7 +94,9 @@ bool MQ2AdvLootType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 				int listindex = (int)clist->GetItemData(index);
 				if (pAdvancedLootWnd->pCLootList && listindex != -1)
 				{
+					Dest.Type = pAdvLootItemType;
 					Dest.DWord = listindex;
+					Dest.HighPart = MQ2AdvLootItemType::CList;
 					return true;
 				}
 			}
@@ -108,13 +109,14 @@ bool MQ2AdvLootType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 
 		if (CListWnd* clist = (CListWnd*)pAdvancedLootWnd->GetChildItem("ADLW_PLLList"))
 		{
+			// Access items in the order they appear in the list.
 			for (int i = 0; i < clist->ItemsArray.Count; i++)
 			{
 				int listindex = (int)clist->GetItemData(i);
 				if (pAdvancedLootWnd->pPLootList && listindex != -1)
 				{
-					AdvancedLootItem& pItem = pAdvancedLootWnd->pPLootList->Items[listindex];
-					if (pItem.AlwaysNeed || pItem.AlwaysGreed || pItem.Need || pItem.Greed)
+					const AdvancedLootItem& item = pAdvancedLootWnd->pPLootList->Items[listindex];
+					if (item.AlwaysNeed || item.AlwaysGreed || item.Need || item.Greed)
 					{
 						Dest.DWord++;
 					}
@@ -134,8 +136,8 @@ bool MQ2AdvLootType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 				int listindex = (int)clist->GetItemData(i);
 				if (pAdvancedLootWnd->pCLootList && listindex != -1)
 				{
-					AdvancedLootItem& pItem = pAdvancedLootWnd->pCLootList->Items[listindex];
-					if (pItem.AlwaysNeed || pItem.AlwaysGreed || pItem.Need || pItem.Greed)
+					const AdvancedLootItem& item = pAdvancedLootWnd->pCLootList->Items[listindex];
+					if (item.AlwaysNeed || item.AlwaysGreed || item.Need || item.Greed)
 					{
 						Dest.DWord++;
 					}
@@ -179,3 +181,4 @@ bool MQ2AdvLootType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 	return false;
 }
 
+} // namespace mq::datatypes
