@@ -79,7 +79,7 @@ CButtonWnd* MimicMeButton = nullptr;
 CHotButton* GroupHotButton[3] = { nullptr, nullptr, nullptr };
 
 bool gbFollowme = false;
-bool gbMimicme = false;
+bool gbMimicMe = false;
 
 CSidlScreenWnd* Target_BuffWindow = nullptr;
 CLabelWnd* Target_AggroPctPlayerLabel = nullptr;
@@ -104,19 +104,12 @@ int dLeftOffsetOld = 0;
 int CanSeeBottomOffset = 47 + 14;
 int TargetInfoWindowStyle = 0;
 
-CGaugeWnd* GW_Gauge1 = nullptr;
-CGaugeWnd* GW_Gauge2 = nullptr;
-CGaugeWnd* GW_Gauge3 = nullptr;
-CGaugeWnd* GW_Gauge4 = nullptr;
-CGaugeWnd* GW_Gauge5 = nullptr;
-CLabelWnd* GroupDistLabel1 = nullptr;
-CLabelWnd* GroupDistLabel2 = nullptr;
-CLabelWnd* GroupDistLabel3 = nullptr;
-CLabelWnd* GroupDistLabel4 = nullptr;
-CLabelWnd* GroupDistLabel5 = nullptr;
+constexpr size_t NUM_GROUPWND_CONTROLS = 5;
+CGaugeWnd* GW_Gauges[NUM_GROUPWND_CONTROLS] = { nullptr };
+CLabelWnd* GroupDistLabels[NUM_GROUPWND_CONTROLS] = { nullptr };
 
-CGaugeWnd* ETW_Gauge[23] = { nullptr };
-CLabelWnd* ETW_DistLabel[23] = { nullptr };
+CGaugeWnd* ETW_Gauge[MAX_EXTENDED_TARGET_SIZE] = { nullptr };
+CLabelWnd* ETW_DistLabel[MAX_EXTENDED_TARGET_SIZE] = { nullptr };
 
 bool gBUsePerCharSettings = false;
 bool gBShowMimicMeButton = true;
@@ -128,24 +121,13 @@ bool gBShowExtDistance = true;
 
 int rightclickindex = -1;
 
-#define WSF_AUTOSTRETCHH	0x00400000
-#define WSF_CLIENTMOVABLE	0x00200000
-#define WSF_NOHITTEST		0x00008000
-#define WSF_USEMYALPHA		0x00000800
-#define WSF_TRANSPARENT		0x00000400
-#define WSF_SIZABLE			0x00000200
-#define WSF_AUTOSTRETCHV	0x00000100
-#define WSF_RELATIVERECT	0x00000080
-#define WSF_BORDER			0x00000040
-#define WSF_TITLEBAR		0x00000004
-
 DWORD orgwstyle = 0;
 DWORD orgTargetWindStyle = 0;
 DWORD orgExtTargetWindStyle = 0;
 
 int mmlmenuid = 0;
 int navmenuid = 0;
-int separatorid = 0;
+int separatorId = 0;
 int separatorid2 = 0;
 int groundmenuid = 0;
 int doormenuid = 0;
@@ -161,15 +143,15 @@ int distanceoptionmenuid = 0;
 
 std::map<DWORD, bool> FollowMeMap;
 
-struct phinfo
+struct PHInfo
 {
 	std::string Expansion;
 	std::string Zone;
 	std::string Named;
 	std::string Link;
 };
-std::map<std::string, phinfo> phmap;
-bool GetPhMap(SPAWNINFO* pSpawn, phinfo* pinf);
+std::map<std::string, PHInfo> gPHMap;
+bool GetPhMap(SPAWNINFO* pSpawn, PHInfo* pinf);
 
 void CleanUp(bool bUnload);
 
@@ -183,7 +165,7 @@ void ResetIni()
 	{
 		if (HGLOBAL bin = LoadResource(hMe, hRes))
 		{
-			bool bResult = 0;
+			bool bResult = false;
 			if (pMyBinaryData = LockResource(bin))
 			{
 				//save it...
@@ -217,7 +199,7 @@ public:
 		{
 			if (pTarget)
 			{
-				phinfo pinf;
+				PHInfo pinf;
 				if (GetPhMap((SPAWNINFO*)pTarget, &pinf))
 				{
 					std::string url = "https://webproxy.to/browse.php?b=4&u=";
@@ -240,7 +222,7 @@ void LoadPHs(char* szMyName)
 {
 	// well we have it, lets fill in the map...
 	// Chief Librarian Lars^a shissar arbiter, a shissar defiler^tds^kattacastrumdeluge^https://tds.eqresource.com/chieflibrarianlars.php
-	phinfo phinf;
+	PHInfo phinf;
 	std::string phs;
 	int commapos = 0;
 	char szBuffer[MAX_STRING] = { 0 };
@@ -248,7 +230,7 @@ void LoadPHs(char* szMyName)
 	errno_t err = fopen_s(&fp, szMyName, "rb");
 	if (!err)
 	{
-		while (fgets(szBuffer, MAX_STRING, fp) != 0)
+		while (fgets(szBuffer, MAX_STRING, fp) != nullptr)
 		{
 			if (char* pDest = strchr(szBuffer, '^'))
 			{
@@ -299,88 +281,78 @@ void LoadPHs(char* szMyName)
 					// more than one...
 					std::string temp = phs.substr(commapos + 2, -1);
 					phs.erase(commapos, -1);
-					phmap[temp] = phinf;
+					gPHMap[temp] = phinf;
 				}
-				phmap[phs] = phinf;
+				gPHMap[phs] = phinf;
 			}
 			else
 			{
-				phmap[phs] = phinf;
+				gPHMap[phs] = phinf;
 			}
 		}
 		fclose(fp);
 	}
 }
 
-bool CreateDistLabel(CGroupWnd* pGwnd, CControlTemplate* DistLabelTemplate, CLabelWnd** labelwnd, char* label,
+CLabelWnd* CreateDistLabel(CXWnd* parent, CControlTemplate* DistLabelTemplate, const CXStr& label,
 	int font, const CXRect& rect, bool bAlignRight, bool bShow)
 {
-	DistLabelTemplate->strName = label;
-	DistLabelTemplate->strScreenId = label;
-
-	int oldfont = DistLabelTemplate->nFont;
-	DWORD oldstyle = DistLabelTemplate->uStyleBits;
-
-	bool bRelativePositionOld = DistLabelTemplate->bRelativePosition;
-	bool bAutoStretchVerticalOld = DistLabelTemplate->bAutoStretchVertical;
-	bool bAutoStretchHorizontalOld = DistLabelTemplate->bAutoStretchHorizontal;
-	bool bRightAnchorToLeftOld = DistLabelTemplate->bRightAnchorToLeft;
+	uint32_t oldfont = DistLabelTemplate->nFont;
+	uint32_t oldstyle = DistLabelTemplate->uStyleBits;
+	CXStr oldName = DistLabelTemplate->strName;
+	CXStr oldScreenId = DistLabelTemplate->strScreenId;
 
 	DistLabelTemplate->nFont = font;
 	DistLabelTemplate->uStyleBits = WSF_AUTOSTRETCHH | WSF_AUTOSTRETCHV | WSF_RELATIVERECT;
+	DistLabelTemplate->strName = label;
+	DistLabelTemplate->strScreenId = label;
 
-	if (*labelwnd = (CLabelWnd*)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pGwnd, DistLabelTemplate))
+	CLabelWnd* pLabel = (CLabelWnd*)pSidlMgr->CreateXWndFromTemplate(parent, DistLabelTemplate);
+	if (pLabel)
 	{
-		CLabelWnd* pLabel = *labelwnd;
-
 		pLabel->SetTopOffset(rect.top);
 		pLabel->SetBottomOffset(rect.bottom);
 		pLabel->SetLeftOffset(rect.left);
 		pLabel->SetRightOffset(rect.right);
-		pLabel->SetCRNormal(0xFF00FF00); // green
-		pLabel->SetBGColor(0xFFFFFFFF);
+		pLabel->SetCRNormal(MQColor(0, 255, 0)); // green
+		pLabel->SetBGColor(MQColor(255, 255, 255));
 		pLabel->SetTooltip(szGroupDistance);
 		pLabel->SetVisible(bShow);
 		pLabel->bNoWrap = true;
 		pLabel->SetLeftAnchoredToLeft(true);
-
-		DistLabelTemplate->bRightAnchorToLeft = bRightAnchorToLeftOld;
-		DistLabelTemplate->bRelativePosition = bRelativePositionOld;
-		DistLabelTemplate->bAutoStretchVertical = bAutoStretchVerticalOld;
-		DistLabelTemplate->bAutoStretchHorizontal = bAutoStretchHorizontalOld;
 		pLabel->bAlignRight = bAlignRight;
 		pLabel->bAlignCenter = false;
-		DistLabelTemplate->nFont = oldfont;
-		DistLabelTemplate->uStyleBits = oldstyle;
-		return true;
 	}
 
-	DistLabelTemplate->bRelativePosition = bRelativePositionOld;
-	DistLabelTemplate->bAutoStretchVertical = bAutoStretchVerticalOld;
-	DistLabelTemplate->bAutoStretchHorizontal = bAutoStretchHorizontalOld;
 	DistLabelTemplate->uStyleBits = oldstyle;
 	DistLabelTemplate->nFont = oldfont;
-	return false;
+	DistLabelTemplate->strName = oldName;
+	DistLabelTemplate->strScreenId = oldScreenId;
+
+	return pLabel;
 }
 
-bool CreateDistLabel(CGroupWnd* pGwnd, CControlTemplate* DistLabelTemplate, CLabelWnd** labelwnd, char* label,
+CLabelWnd* CreateDistLabel(CXWnd* pGwnd, CControlTemplate* DistLabelTemplate, const CXStr& label,
 	int font, int top, int bottom, int left, int right, bool bAlignRight, bool bShow)
 {
-	return CreateDistLabel(pGwnd, DistLabelTemplate, labelwnd, label, font, CXRect(left, top, right, bottom), bAlignRight, bShow);
+	return CreateDistLabel(pGwnd, DistLabelTemplate, label, font, CXRect(left, top, right, bottom), bAlignRight, bShow);
 }
 
-void CreateAButton(CGroupWnd* pGwnd, CControlTemplate* Template, CButtonWnd** button,
-	char* label, char* labelscreen, int fontsize, const CXRect& rect,
-	COLORREF color, COLORREF bgcolor, char* tooltip, char* text, bool bShow)
+CButtonWnd* CreateAButton(CGroupWnd* pGwnd, CControlTemplate* Template,
+	const char* label, const char* labelscreen, int fontsize, const CXRect& rect,
+	COLORREF color, COLORREF bgcolor, const char* tooltip, const char* text, bool bShow)
 {
+	uint32_t oldFont = Template->nFont;
+	CXStr oldName = Template->strName;
+	CXStr oldScreenID = Template->strScreenId;
+
 	Template->nFont = 1;
 	Template->strName = label;
 	Template->strScreenId = labelscreen;
 
-	if (*button = (CButtonWnd*)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pGwnd, Template))
+	CButtonWnd* pButton = (CButtonWnd*)pSidlMgr->CreateXWndFromTemplate(pGwnd, Template);
+	if (pButton)
 	{
-		CButtonWnd* pButton = *button;
-
 		pButton->SetVisible(true);
 		pButton->SetTopOffset(rect.top);
 		pButton->SetBottomOffset(rect.bottom);
@@ -392,24 +364,34 @@ void CreateAButton(CGroupWnd* pGwnd, CControlTemplate* Template, CButtonWnd** bu
 		pButton->SetTooltip(tooltip);
 		pButton->SetVisible(bShow);
 	}
+
+	Template->nFont = oldFont;
+	Template->strName = oldName;
+	Template->strScreenId = oldScreenID;
+
+	return pButton;
 }
 
-void CreateAButton(CGroupWnd* pGwnd, CControlTemplate* Template, CButtonWnd** button,
-	char* label, char* labelscreen, int fontsize, int top, int bottom, int left, int right,
-	COLORREF color, COLORREF bgcolor, char* tooltip, char* text, bool bShow)
+CButtonWnd* CreateAButton(CGroupWnd* pGwnd, CControlTemplate* Template,
+	const char* label, const char* labelscreen, int fontsize, int top, int bottom, int left, int right,
+	COLORREF color, COLORREF bgcolor, const char* tooltip, const char* text, bool bShow)
 {
-	return CreateAButton(pGwnd, Template, button, label, labelscreen, fontsize, CXRect(left, top, right, bottom),
+	return CreateAButton(pGwnd, Template, label, labelscreen, fontsize, CXRect(left, top, right, bottom),
 		color, bgcolor, tooltip, text, bShow);
 }
 
-void CreateGroupHotButton(CGroupWnd* pGwnd, CControlTemplate* Template, CHotButton** button,
-	const CXRect& rect, int buttonindex)
+CHotButton* CreateGroupHotButton(CGroupWnd* pGwnd, CControlTemplate* Template, const CXStr& name,
+	const CXRect& rect, int buttonIndex)
 {
-	*button = (CHotButton*)pSidlMgr->CreateHotButtonWnd((CXWnd*)pGwnd, Template);
-	CHotButton* pButton = *button;
+	CXStr oldName = Template->strName;
+	CXStr oldScreenId = Template->strScreenId;
 
+	Template->strName = name;
+	Template->strScreenId = name;
+
+	CHotButton* pButton = (CHotButton*)pSidlMgr->CreateHotButtonWnd(pGwnd, Template);
 	pButton->BarIndex = 9;
-	pButton->ButtonIndex = buttonindex;
+	pButton->ButtonIndex = buttonIndex;
 	pButton->SetButtonSize(100, true);
 	pButton->SetUseInLayoutVertical(true);
 
@@ -426,15 +408,20 @@ void CreateGroupHotButton(CGroupWnd* pGwnd, CControlTemplate* Template, CHotButt
 	pButton->SetLeftOffset(rect.left);
 	pButton->SetRightOffset(rect.right);
 
-	pButton->SetCRNormal(0xFF00FFFF);
-	pButton->SetBGColor(0xFFFFFFFF);
+	pButton->SetCRNormal(MQColor(0, 255, 255));
+	pButton->SetBGColor(MQColor(255, 255, 255));
 	pButton->SetVisible(gBShowHotButtons);
+
+	Template->strName = oldName;
+	Template->strScreenId = oldScreenId;
+
+	return pButton;
 }
 
-void CreateGroupHotButton(CGroupWnd* pGwnd, CControlTemplate* Template, CHotButton** button,
+CHotButton* CreateGroupHotButton(CGroupWnd* pGwnd, CControlTemplate* Template, const CXStr& name,
 	int top, int bottom, int left, int right, int buttonindex)
 {
-	CreateGroupHotButton(pGwnd, Template, button, CXRect(left, top, bottom, right), buttonindex);
+	return CreateGroupHotButton(pGwnd, Template, name, CXRect(left, top, bottom, right), buttonindex);
 }
 
 void RemoveOurMenu(CGroupWnd* pGwnd)
@@ -471,7 +458,7 @@ void RemoveOurMenu(CGroupWnd* pGwnd)
 			separatorid2 = 0;
 		}
 
-		if (separatorid)
+		if (separatorId)
 		{
 			pGwnd->GroupContextMenu->RemoveMenuItem(distanceoptionmenuid);
 			pGwnd->GroupContextMenu->RemoveMenuItem(hotoptionmenuid);
@@ -479,14 +466,14 @@ void RemoveOurMenu(CGroupWnd* pGwnd)
 			pGwnd->GroupContextMenu->RemoveMenuItem(mimicmeoptionmenuid);
 			pGwnd->GroupContextMenu->RemoveMenuItem(cometomeoptionmenuid);
 
-			pGwnd->GroupContextMenu->RemoveMenuItem(separatorid);
+			pGwnd->GroupContextMenu->RemoveMenuItem(separatorId);
 
 			distanceoptionmenuid = 0;
 			hotoptionmenuid = 0;
 			followmeoptionmenuid = 0;
 			mimicmeoptionmenuid = 0;
 			cometomeoptionmenuid = 0;
-			separatorid = 0;
+			separatorId = 0;
 		}
 	}
 }
@@ -496,7 +483,7 @@ void AddOurMenu(CGroupWnd* pGwnd, bool bMemberClicked, int index)
 	if (pGwnd->GroupContextMenu)
 	{
 		RemoveOurMenu(pGwnd);
-		separatorid = pGwnd->GroupContextMenu->AddSeparator();
+		separatorId = pGwnd->GroupContextMenu->AddSeparator();
 		cometomeoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Come to Me Button", TIMC_ComeToMeButton, gBShowComeToMeButton);
 		mimicmeoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Mimic Me Button", TIMC_MimicMeButton, gBShowMimicMeButton);
 		followmeoptionmenuid = pGwnd->GroupContextMenu->AddMenuItem("Show Follow Button", TIMC_FollowMeButton, gBShowFollowMeButton);
@@ -552,7 +539,7 @@ bool CheckNavCommand()
 		if (!bConnectedtoEqBCs)
 		{
 			WriteChatf("%s only works if mq2eqbc is loaded and eqbcs is started, Please run /plugin mq2eqbc and then /bccmd connect", szNavCommand);
-			return 1;
+			return false;
 		}
 	}
 	else if (strstr(szNavCommand, "/dg"))
@@ -561,10 +548,11 @@ bool CheckNavCommand()
 		if (!GetModuleHandle("mq2dannet"))
 		{
 			WriteChatf("%s only works if mq2dannet is loaded, Please run /plugin mq2dannet", szNavCommand);
-			return 1;
+			return false;
 		}
 	}
-	return 0;
+
+	return true;
 }
 
 void WriteSetting(const char* Key, const char* value)
@@ -957,11 +945,13 @@ void Initialize()
 			}
 
 			// AddOurMenu(pGwnd);
-			GW_Gauge1 = (CGaugeWnd*)pGroupWnd->GetChildItem("Gauge1");
-			GW_Gauge2 = (CGaugeWnd*)pGroupWnd->GetChildItem("Gauge2");
-			GW_Gauge3 = (CGaugeWnd*)pGroupWnd->GetChildItem("Gauge3");
-			GW_Gauge4 = (CGaugeWnd*)pGroupWnd->GetChildItem("Gauge4");
-			GW_Gauge5 = (CGaugeWnd*)pGroupWnd->GetChildItem("Gauge5");
+			for (size_t i = 0; i < NUM_GROUPWND_CONTROLS; ++i)
+			{
+				char szName[32] = { 0 };
+				sprintf_s(szName, "Gauge%d", i + 1);
+
+				GW_Gauges[i] = (CGaugeWnd*)pGroupWnd->GetChildItem(szName);
+			}
 
 			CControlTemplate* DistLabelTemplateOrg = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("SL_DestNameLabel");
 			CControlTemplate* DistLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate(OldName1);
@@ -970,7 +960,7 @@ void Initialize()
 			CControlTemplate* HBButtonTemplate2 = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("HB_Button2");
 			CControlTemplate* HBButtonTemplate3 = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("HB_Button3");
 
-			if (GW_Gauge1 && DistLabelTemplate)
+			if (GW_Gauges[0] && DistLabelTemplate)
 			{
 				strcpy_s(OldName1, DistLabelTemplate->strName.c_str());
 				strcpy_s(OldScreenName1, DistLabelTemplate->strScreenId.c_str());
@@ -1008,69 +998,53 @@ void Initialize()
 				int tbottom = GetIntFromString(szLocs[1], 0);
 				int tleft = GetIntFromString(szLocs[2], 0);
 				int tright = GetIntFromString(szLocs[3], 0);
+				CXRect tPos{ tleft, ttop, tright, tbottom };
 
 				if (UseLayoutBox) // they have a weird UI like sars that uses a layout box these UI's dont have any locations we can read
 				{
 					ReadUIStringSetting("GroupDistanceOffset", "0", szOutLoc);
 					int GroupDistanceOffset = GetIntFromString(szOutLoc, 0);
+					tPos.top += GroupDistanceOffset;
 
 					ReadUIStringSetting("GroupDistanceElementPrefix", "GW_Gauge", szOutLoc);
-					sprintf_s(szLoc, "%s1", szOutLoc);
-					if (CXWnd* wnd = pGroupWnd->GetChildItem(szLoc))
-					{
-						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel1, "Group_DistLabel1", GroupDistanceFontSize,
-							wnd->GetLocation().top + ttop + GroupDistanceOffset, wnd->GetLocation().bottom + tbottom, wnd->GetLocation().left + tleft, wnd->GetLocation().right + tright, true, gBShowDistance);
-					}
 
-					sprintf_s(szLoc, "%s2", szOutLoc);
-					GroupDistanceOffset += GroupDistanceOffset;
-					if (CXWnd* wnd = pGroupWnd->GetChildItem(szLoc))
+					for (size_t i = 0; i < NUM_GROUPWND_CONTROLS; ++i)
 					{
-						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel2, "Group_DistLabel2", GroupDistanceFontSize,
-							wnd->GetLocation().top + ttop + GroupDistanceOffset, wnd->GetLocation().bottom + tbottom, wnd->GetLocation().left + tleft, wnd->GetLocation().right + tright, true, gBShowDistance);
-					}
+						sprintf_s(szLoc, "%s%d", szOutLoc, i + 1);
+						if (CXWnd* wnd = pGroupWnd->GetChildItem(szLoc))
+						{
+							char labelName[20] = { 0 };
+							sprintf_s(labelName, "Group_DistLabel%d", i + 1);
 
-					sprintf_s(szLoc, "%s3", szOutLoc);
-					GroupDistanceOffset += GroupDistanceOffset;
-					if (CXWnd* wnd = pGroupWnd->GetChildItem(szLoc))
-					{
-						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel3, "Group_DistLabel3", GroupDistanceFontSize,
-							wnd->GetLocation().top + ttop + GroupDistanceOffset, wnd->GetLocation().bottom + tbottom, wnd->GetLocation().left + tleft, wnd->GetLocation().right + tright, true, gBShowDistance);
-					}
-
-					sprintf_s(szLoc, "%s4", szOutLoc);
-					GroupDistanceOffset += GroupDistanceOffset;
-					if (CXWnd* wnd = pGroupWnd->GetChildItem(szLoc))
-					{
-						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel4, "Group_DistLabel4", GroupDistanceFontSize,
-							wnd->GetLocation().top + ttop + GroupDistanceOffset, wnd->GetLocation().bottom + tbottom, wnd->GetLocation().left + tleft, wnd->GetLocation().right + tright, true, gBShowDistance);
-					}
-
-					sprintf_s(szLoc, "%s5", szOutLoc);
-					GroupDistanceOffset += GroupDistanceOffset;
-					if (CXWnd* wnd = pGroupWnd->GetChildItem(szLoc))
-					{
-						CreateDistLabel((CGroupWnd*)wnd, DistLabelTemplate, &GroupDistLabel5, "Group_DistLabel5", GroupDistanceFontSize,
-							wnd->GetLocation().top + ttop + GroupDistanceOffset, wnd->GetLocation().bottom + tbottom, wnd->GetLocation().left + tleft, wnd->GetLocation().right + tright, true, gBShowDistance);
+							GroupDistLabels[i] = CreateDistLabel(wnd, DistLabelTemplate, labelName, GroupDistanceFontSize,
+								wnd->GetLocation() + tPos, true, gBShowDistance);
+						}
 					}
 				}
 				else
 				{
 					if (isDynamic)
 					{
-						CreateDistLabel(pGroupWnd, DistLabelTemplate, &GroupDistLabel1, "Group_DistLabel1", GroupDistanceFontSize, GW_Gauge1->GetTopOffset() + ttop, GW_Gauge1->GetBottomOffset() + tbottom, GW_Gauge1->GetLeftOffset() + tleft, GW_Gauge1->GetRightOffset() + tright, true, gBShowDistance);
-						CreateDistLabel(pGroupWnd, DistLabelTemplate, &GroupDistLabel2, "Group_DistLabel2", GroupDistanceFontSize, GW_Gauge2->GetTopOffset() + ttop, GW_Gauge2->GetBottomOffset() + tbottom, GW_Gauge2->GetLeftOffset() + tleft, GW_Gauge2->GetRightOffset() + tright, true, gBShowDistance);
-						CreateDistLabel(pGroupWnd, DistLabelTemplate, &GroupDistLabel3, "Group_DistLabel3", GroupDistanceFontSize, GW_Gauge3->GetTopOffset() + ttop, GW_Gauge3->GetBottomOffset() + tbottom, GW_Gauge3->GetLeftOffset() + tleft, GW_Gauge3->GetRightOffset() + tright, true, gBShowDistance);
-						CreateDistLabel(pGroupWnd, DistLabelTemplate, &GroupDistLabel4, "Group_DistLabel4", GroupDistanceFontSize, GW_Gauge4->GetTopOffset() + ttop, GW_Gauge4->GetBottomOffset() + tbottom, GW_Gauge4->GetLeftOffset() + tleft, GW_Gauge4->GetRightOffset() + tright, true, gBShowDistance);
-						CreateDistLabel(pGroupWnd, DistLabelTemplate, &GroupDistLabel5, "Group_DistLabel5", GroupDistanceFontSize, GW_Gauge5->GetTopOffset() + ttop, GW_Gauge5->GetBottomOffset() + tbottom, GW_Gauge5->GetLeftOffset() + tleft, GW_Gauge5->GetRightOffset() + tright, true, gBShowDistance);
+						for (size_t i = 0; i < NUM_GROUPWND_CONTROLS; ++i)
+						{
+							char labelName[20] = { 0 };
+							sprintf_s(labelName, "Group_DistLabel%d", i + 1);
+
+							CXRect rect(GW_Gauges[i]->GetLeftOffset(), GW_Gauges[i]->GetTopOffset(), GW_Gauges[i]->GetRightOffset(), GW_Gauges[i]->GetBottomOffset());
+
+							GroupDistLabels[i] = CreateDistLabel(pGroupWnd, DistLabelTemplate, "Group_DistLabel1", GroupDistanceFontSize, rect + tPos, true, gBShowDistance);
+						}
 					}
 					else
 					{
-						CreateDistLabel(pGroupWnd, DistLabelTemplate, &GroupDistLabel1, "Group_DistLabel1", GroupDistanceFontSize, GW_Gauge1->GetLocation().top + ttop, GW_Gauge1->GetLocation().bottom + tbottom, GW_Gauge1->GetLocation().left + tleft, GW_Gauge1->GetLocation().right + tright, true, gBShowDistance);
-						CreateDistLabel(pGroupWnd, DistLabelTemplate, &GroupDistLabel2, "Group_DistLabel2", GroupDistanceFontSize, GW_Gauge2->GetLocation().top + ttop, GW_Gauge2->GetLocation().bottom + tbottom, GW_Gauge2->GetLocation().left + tleft, GW_Gauge2->GetLocation().right + tright, true, gBShowDistance);
-						CreateDistLabel(pGroupWnd, DistLabelTemplate, &GroupDistLabel3, "Group_DistLabel3", GroupDistanceFontSize, GW_Gauge3->GetLocation().top + ttop, GW_Gauge3->GetLocation().bottom + tbottom, GW_Gauge3->GetLocation().left + tleft, GW_Gauge3->GetLocation().right + tright, true, gBShowDistance);
-						CreateDistLabel(pGroupWnd, DistLabelTemplate, &GroupDistLabel4, "Group_DistLabel4", GroupDistanceFontSize, GW_Gauge4->GetLocation().top + ttop, GW_Gauge4->GetLocation().bottom + tbottom, GW_Gauge4->GetLocation().left + tleft, GW_Gauge4->GetLocation().right + tright, true, gBShowDistance);
-						CreateDistLabel(pGroupWnd, DistLabelTemplate, &GroupDistLabel5, "Group_DistLabel5", GroupDistanceFontSize, GW_Gauge5->GetLocation().top + ttop, GW_Gauge5->GetLocation().bottom + tbottom, GW_Gauge5->GetLocation().left + tleft, GW_Gauge5->GetLocation().right + tright, true, gBShowDistance);
+						for (size_t i = 0; i < NUM_GROUPWND_CONTROLS; ++i)
+						{
+							char labelName[20] = { 0 };
+							sprintf_s(labelName, "Group_DistLabel%d", i + 1);
+
+							CXRect rect = GW_Gauges[i]->GetLocation() + tPos;
+							GroupDistLabels[i] = CreateDistLabel(pGroupWnd, DistLabelTemplate, "Group_DistLabel1", GroupDistanceFontSize, rect, true, gBShowDistance);
+						}
 					}
 				}
 
@@ -1107,7 +1081,7 @@ void Initialize()
 
 					CXRect rc;
 					ReadUILocSetting("ComeToMeLoc", 61, 27, 6, 46, rc);
-					CreateAButton(pGroupWnd, NavButtonTemplate, &NavButton, "GW_NavButton", "NavButton", 1, rc, 0xFF00FFFF, 0xFFFFFFFF, szNavToolTip, szNav, gBShowComeToMeButton);
+					NavButton = CreateAButton(pGroupWnd, NavButtonTemplate, "GW_NavButton", "NavButton", 1, rc, 0xFF00FFFF, 0xFFFFFFFF, szNavToolTip, szNav, gBShowComeToMeButton);
 
 					// Follow Me button
 					ReadStringSetting("FollowMeText", "Follow Me", szFollowMe);
@@ -1115,25 +1089,26 @@ void Initialize()
 					ReadStringSetting("FollowMeeToolTip", szFollowMeCommand, szFollowMeToolTip);
 
 					ReadUILocSetting("FollowMeLoc", 61, 27, 48, 88, rc);
-					CreateAButton(pGroupWnd, NavButtonTemplate, &FollowMeButton, "GW_FollowMeButton", "FollowMeButton", 1, rc, 0xFF00FFFF, 0xFFFFFFFF, szFollowMeToolTip, szFollowMe, gBShowFollowMeButton);
+					FollowMeButton = CreateAButton(pGroupWnd, NavButtonTemplate, "GW_FollowMeButton", "FollowMeButton", 1, rc, 0xFF00FFFF, 0xFFFFFFFF, szFollowMeToolTip, szFollowMe, gBShowFollowMeButton);
 
 					// Mimic Me button
 					ReadUILocSetting("MimicMeLoc", 61, 27, 90, 130, rc);
-					CreateAButton(pGroupWnd, NavButtonTemplate, &MimicMeButton, "GW_MimicMeButton", "MimicMeButton", 1, rc, 0xFF00FFFF, 0xFFFFFFFF, szMimicMeToolTip, szMimicMe, gBShowMimicMeButton);
+					MimicMeButton = CreateAButton(pGroupWnd, NavButtonTemplate, "GW_MimicMeButton", "MimicMeButton", 1, rc, 0xFF00FFFF, 0xFFFFFFFF, szMimicMeToolTip, szMimicMe, gBShowMimicMeButton);
+
 					ReadStringSetting("MimicMeSayCommand", "/bcg //say", szMimicMeSayCommand);
 					ReadStringSetting("MimicMeHailCommand", "/bcg //keypress HAIL", szMimicMeHailCommand);
 
 					// Hotbutton0
 					ReadUILocSetting("HotButton0Loc", 97, 64, 6, 46, rc);
-					CreateGroupHotButton(pGroupWnd, HBButtonTemplate1, &GroupHotButton[0], rc, 0);
+					GroupHotButton[0] = CreateGroupHotButton(pGroupWnd, HBButtonTemplate1, "GW_HotButton1", rc, 0);
 
 					// Hotbutton1
 					ReadUILocSetting("HotButton1Loc", 97, 64, 49, 89, rc);
-					CreateGroupHotButton(pGroupWnd, HBButtonTemplate2, &GroupHotButton[1], rc, 1);
+					GroupHotButton[1] = CreateGroupHotButton(pGroupWnd, HBButtonTemplate2, "GW_HotButton2", rc, 1);
 
 					// Hotbutton2
 					ReadUILocSetting("HotButton2Loc", 97, 64, 92, 132, rc);
-					CreateGroupHotButton(pGroupWnd, HBButtonTemplate3, &GroupHotButton[2], rc, 2);
+					GroupHotButton[2] = CreateGroupHotButton(pGroupWnd, HBButtonTemplate3, "GW_HotButton3", rc, 2);
 
 					// now set the template values back
 					NavButtonTemplate->strName = "GW_InviteButton";
@@ -1157,7 +1132,7 @@ void Initialize()
 			else
 {
 				bDisablePluginDueToBadUI = true;
-				WriteChatf("MQ2TargetInfo has been disabled due to an incompatible UI, let eqmule know.");
+				WriteChatf("MQ2TargetInfo has been disabled due to an incompatible UI, let a developer know.");
 				return;
 			}
 		}
@@ -1291,15 +1266,12 @@ void Initialize()
 					InfoLabel->SetLeftOffset(GetIntFromString(szLocs[2], 0));
 					InfoLabel->SetRightOffset(GetIntFromString(szLocs[3], 0));
 
-					InfoLabel->SetCRNormal(0xFF00FF00);//green
-					InfoLabel->SetBGColor(0xFFFFFFFF);
+					InfoLabel->SetCRNormal(MQColor(0, 255, 0));//green
+					InfoLabel->SetBGColor(MQColor(255, 255, 255));
 					InfoLabel->SetTooltip(szTargetInfo);
 				}
 
 				// create the distance label
-				DistLabelTemplate->strName = "Target_DistLabel";
-				DistLabelTemplate->strScreenId = "Target_DistLabel";
-
 				char szLoc[MAX_STRING] = { 0 };
 				char szOutLoc[MAX_STRING] = { 0 };
 				sprintf_s(szLoc, "%d,%d,%d,%d", 34, 48, 90, 0);
@@ -1323,7 +1295,7 @@ void Initialize()
 				int tbottom = GetIntFromString(szLocs[1], 0);
 				int tleft = GetIntFromString(szLocs[2], 0);
 				int tright = GetIntFromString(szLocs[3], 0);
-				CreateDistLabel(pGroupWnd, DistLabelTemplate, &DistanceLabel, "Target_DistLabel", 2, ttop, tbottom, tleft, tright, true, gBShowExtDistance);
+				DistanceLabel = CreateDistLabel(pTargetWnd, DistLabelTemplate,"Target_DistLabel", 2, ttop, tbottom, tleft, tright, true, gBShowExtDistance);
 
 				//create can see label
 				int oldfont2 = CanSeeLabelTemplate->nFont;
@@ -1389,7 +1361,7 @@ void Initialize()
 			else
 			{
 				bDisablePluginDueToBadUI = true;
-				WriteChatf("MQ2TargetInfo has been disabled due to an incompatible UI, let eqmule know.");
+				WriteChatf("MQ2TargetInfo has been disabled due to an incompatible UI, let a developer know.");
 				return;
 			}
 		}
@@ -1445,7 +1417,7 @@ void Initialize()
 				int tbottom = GetIntFromString(szLocs[1], 0);
 				int tleft = GetIntFromString(szLocs[2], 0);
 				int tright = GetIntFromString(szLocs[3], 0);
-				for (int i = 0; i < 13; i++)
+				for (int i = 0; i < MAX_EXTENDED_TARGET_SIZE; i++)
 				{
 					sprintf_s(szTemp, "ETW_Gauge%d", i);
 
@@ -1467,11 +1439,11 @@ void Initialize()
 
 						if (UseExtLayoutBox)
 						{
-							CreateDistLabel((CGroupWnd*)ETW_Gauge[i], DistLabelTemplate, &ETW_DistLabel[i], szTemp, 2, top + ttop, bottom + tbottom, left + tleft, right + tright, true, gBShowExtDistance);
+							ETW_DistLabel[i] = CreateDistLabel(ETW_Gauge[i], DistLabelTemplate, szTemp, 2, top + ttop, bottom + tbottom, left + tleft, right + tright, true, gBShowExtDistance);
 						}
 						else
 						{
-							CreateDistLabel((CGroupWnd*)pExtWnd, DistLabelTemplate, &ETW_DistLabel[i], szTemp, 2, top + ttop, bottom + tbottom, left + tleft, right + tright, true, gBShowExtDistance);
+							ETW_DistLabel[i] = CreateDistLabel(pExtWnd, DistLabelTemplate, szTemp, 2, top + ttop, bottom + tbottom, left + tleft, right + tright, true, gBShowExtDistance);
 						}
 					}
 				}
@@ -1484,7 +1456,7 @@ void Initialize()
 			else
 			{
 				bDisablePluginDueToBadUI = true;
-				WriteChatf("MQ2TargetInfo has been disabled due to an incompatible UI, let eqmule know.");
+				WriteChatf("MQ2TargetInfo has been disabled due to an incompatible UI, let a developer know.");
 				return;
 			}
 		}
@@ -1675,16 +1647,14 @@ public:
 
 			if (pWnd == MimicMeButton)
 			{
-				gbMimicme = !gbMimicme;
-				MimicMeButton->bChecked = gbMimicme;
+				gbMimicMe = !gbMimicMe;
+				MimicMeButton->bChecked = gbMimicMe;
 				return 1;
 			}
 			else if (pWnd == NavButton)
 			{
-				if (CheckNavCommand())
-				{
+				if (!CheckNavCommand())
 					return 1;
-				}
 
 				StopMovement();
 
@@ -1696,10 +1666,8 @@ public:
 			}
 			else if (pWnd == FollowMeButton)
 			{
-				if (CheckNavCommand())
-				{
+				if (!CheckNavCommand())
 					return 1;
-				}
 
 				if (!FollowMeButton->bChecked)
 					StopMovement(false);
@@ -1967,11 +1935,8 @@ public:
 				gBShowDistance = !gBShowDistance;
 				pContextMenu->CheckMenuItem(iItemID, gBShowDistance);
 
-				GroupDistLabel1->SetVisible(gBShowDistance);
-				GroupDistLabel2->SetVisible(gBShowDistance);
-				GroupDistLabel3->SetVisible(gBShowDistance);
-				GroupDistLabel4->SetVisible(gBShowDistance);
-				GroupDistLabel5->SetVisible(gBShowDistance);
+				for (auto& GroupDistLabel : GroupDistLabels)
+					GroupDistLabel->SetVisible(gBShowDistance);
 
 				if (gBShowDistance)
 					WriteSetting("ShowDistance", "1");
@@ -2007,7 +1972,7 @@ void CMD_GroupInfo(SPAWNINFO* pPlayer, char* szLine)
 	{
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide mimicme\ax\am(it's currently set to: %s)\ax.", MimicMeButton->IsVisible() ? "\aoON" : "\agOFF");
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide extdistance\ax\am(it's currently set to: %s)\ax.", gBShowExtDistance ? "\aoON" : "\agOFF");
-		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide distance\ax\am(it's currently set to: %s)\ax.", GroupDistLabel1->IsVisible() ? "\aoON" : "\agOFF");
+		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide distance\ax\am(it's currently set to: %s)\ax.", GroupDistLabels[0]->IsVisible() ? "\aoON" : "\agOFF");
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide hot\ax\am(it's currently set to: %s)\ax.", gBShowHotButtons ? "\aoON" : "\agOFF");
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide followme\ax\am(it's currently set to: %s)\ax.", FollowMeButton->IsVisible() ? "\aoON" : "\agOFF");
 		WriteChatf("\ayMQ2TargetInfo\ax Usage: \ag/groupinfo show/hide cometome\ax\am(it's currently set to: %s)\ax.", NavButton->IsVisible() ? "\aoON" : "\agOFF");
@@ -2045,19 +2010,15 @@ void CMD_GroupInfo(SPAWNINFO* pPlayer, char* szLine)
 		else if (!_stricmp(szArg2, "distance"))
 		{
 			gBShowDistance = true;
-			GroupDistLabel1->SetVisible(true);
-			GroupDistLabel2->SetVisible(true);
-			GroupDistLabel3->SetVisible(true);
-			GroupDistLabel4->SetVisible(true);
-			GroupDistLabel5->SetVisible(true);
+			for (auto& GroupDistLabel : GroupDistLabels)
+				GroupDistLabel->SetVisible(true);
 			WriteSetting("ShowDistance", "1");
 		}
 		else if (!_stricmp(szArg2, "hot"))
 		{
 			gBShowHotButtons = true;
-			GroupHotButton[0]->SetVisible(true);
-			GroupHotButton[1]->SetVisible(true);
-			GroupHotButton[2]->SetVisible(true);
+			for (auto& button : GroupHotButton)
+				button->SetVisible(true);
 			WriteSetting("ShowHotButtons", "1");
 		}
 		else if (!_stricmp(szArg2, "followme"))
@@ -2086,31 +2047,24 @@ void CMD_GroupInfo(SPAWNINFO* pPlayer, char* szLine)
 		else if (!_stricmp(szArg2, "extdistance"))
 		{
 			gBShowExtDistance = false;
-			for (int i = 0; i < 23; i++)
+			for (auto& label : ETW_DistLabel)
 			{
-				if (ETW_DistLabel[i])
-				{
-					ETW_DistLabel[i]->SetVisible(false);
-				}
+				if (label) label->SetVisible(false);
 			}
 			WriteSetting("ShowExtDistance", "0");
 		}
 		else if (!_stricmp(szArg2, "distance"))
 		{
 			gBShowDistance = false;
-			GroupDistLabel1->SetVisible(false);
-			GroupDistLabel2->SetVisible(false);
-			GroupDistLabel3->SetVisible(false);
-			GroupDistLabel4->SetVisible(false);
-			GroupDistLabel5->SetVisible(false);
+			for (auto& GroupDistLabel : GroupDistLabels)
+				GroupDistLabel->SetVisible(false);
 			WriteSetting("ShowDistance", "0");
 		}
 		else if (!_stricmp(szArg2, "hot"))
 		{
 			gBShowHotButtons = false;
-			GroupHotButton[0]->SetVisible(false);
-			GroupHotButton[1]->SetVisible(false);
-			GroupHotButton[2]->SetVisible(false);
+			for (auto& button : GroupHotButton)
+				button->SetVisible(false);
 			WriteSetting("ShowHotButtons", "0");
 		}
 		else if (!_stricmp(szArg2, "followme"))
@@ -2130,22 +2084,15 @@ void CMD_GroupInfo(SPAWNINFO* pPlayer, char* szLine)
 	{
 		char szArg2[MAX_STRING] = { 0 };
 		GetArg(szArg2, szLine, 2);
-		if (!_stricmp(szArg2, "off"))
-		{
-			gbMimicme = false;
-			MimicMeButton->bChecked = false;
-		}
-		else {
-			gbMimicme = true;
-			MimicMeButton->bChecked = true;
-		}
+
+		bool show = _stricmp(szArg2, "off");
+		gbMimicMe = show;
+		MimicMeButton->bChecked = show;
 	}
 	else if (!_stricmp(szArg1, "followme"))
 	{
-		if (CheckNavCommand())
-		{
+		if (!CheckNavCommand())
 			return;
-		}
 
 		char szArg2[MAX_STRING] = { 0 };
 		GetArg(szArg2, szLine, 2);
@@ -2201,10 +2148,8 @@ void CMD_GroupInfo(SPAWNINFO* pPlayer, char* szLine)
 	}
 	else if (!_stricmp(szArg1, "cometome"))
 	{
-		if (CheckNavCommand())
-		{
+		if (!CheckNavCommand())
 			return;
-		}
 
 		StopMovement();
 		char szMe[MAX_STRING] = { 0 };
@@ -2217,28 +2162,33 @@ void CMD_GroupInfo(SPAWNINFO* pPlayer, char* szLine)
 PLUGIN_API void InitializePlugin()
 {
 	AddCommand("/groupinfo", CMD_GroupInfo);
-	EzDetourwName(CSidlManager__CreateHotButtonWnd, &CGroupWnd2::CSidlManager_CreateHotButtonWnd_Detour, &CGroupWnd2::CSidlManager_CreateHotButtonWnd_Tramp, "CHB");
-	EzDetourwName(CGroupWnd__UpdateDisplay, &CGroupWnd2::UpdateDisplay_Detour, &CGroupWnd2::UpdateDisplay_Tramp, "GUD");
-	EzDetourwName(CGroupWnd__WndNotification, &CGroupWnd2::WndNotification_Detour, &CGroupWnd2::WndNotification_Trampoline, "GWW");
+	EzDetour(CSidlManager__CreateHotButtonWnd, &CGroupWnd2::CSidlManager_CreateHotButtonWnd_Detour, &CGroupWnd2::CSidlManager_CreateHotButtonWnd_Tramp);
+	EzDetour(CGroupWnd__UpdateDisplay, &CGroupWnd2::UpdateDisplay_Detour, &CGroupWnd2::UpdateDisplay_Tramp);
+	EzDetour(CGroupWnd__WndNotification, &CGroupWnd2::WndNotification_Detour, &CGroupWnd2::WndNotification_Trampoline);
 
 	std::filesystem::path curFilepath = gPathResources;
 	curFilepath /= "MQ2TargetInfoPHs.txt";
 
 	if (!std::filesystem::exists(curFilepath))
 	{
-		HMODULE hMe = 0;
+		HMODULE hMe = nullptr;
 		GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)InitializePlugin, &hMe);
-		void* pMyBinaryData = 0;
+		void* pMyBinaryData = nullptr;
+
 		// need to unpack our resource.
-		if (HRSRC hRes = FindResource(hMe, MAKEINTRESOURCE(IDR_DB1), "DB")) {
-			if (HGLOBAL bin = LoadResource(hMe, hRes)) {
-				bool bResult = 0;
-				if (pMyBinaryData = LockResource(bin)) {
-					//save it...
+		if (HRSRC hRes = FindResource(hMe, MAKEINTRESOURCE(IDR_DB1), "DB"))
+		{
+			if (HGLOBAL bin = LoadResource(hMe, hRes))
+			{
+				bool bResult = false;
+				if (pMyBinaryData = LockResource(bin))
+				{
+					// save it...
 					DWORD ressize = SizeofResource(hMe, hRes);
-					FILE* File = 0;
+					FILE* File = nullptr;
 					errno_t err = fopen_s(&File, curFilepath.string().c_str(), "wb");
-					if (!err) {
+					if (!err)
+					{
 						fwrite(pMyBinaryData, ressize, 1, File);
 						fclose(File);
 					}
@@ -2257,7 +2207,7 @@ PLUGIN_API void InitializePlugin()
 		ResetIni();
 	}
 
-	EzDetourwName(CTargetWnd__HandleBuffRemoveRequest, &MyCTargetWnd::HandleBuffRemoveRequest_Detour, &MyCTargetWnd::HandleBuffRemoveRequest_Tramp, "CTargetWnd__HandleBuffRemoveRequest");
+	EzDetour(CTargetWnd__HandleBuffRemoveRequest, &MyCTargetWnd::HandleBuffRemoveRequest_Detour, &MyCTargetWnd::HandleBuffRemoveRequest_Tramp);
 	Initialize();
 }
 
@@ -2270,7 +2220,7 @@ void CleanUp(bool bUnload)
 			orgwstyle = 0;
 		}
 
-		if (pGroupWnd->GroupContextMenu && separatorid)
+		if (pGroupWnd->GroupContextMenu && separatorId)
 		{
 			RemoveOurMenu(pGroupWnd);
 		}
@@ -2297,43 +2247,22 @@ void CleanUp(bool bUnload)
 		}
 	}
 
-	for (size_t i = 0; i < lengthof(ETW_DistLabel); i++)
+	for (auto& label : ETW_DistLabel)
 	{
-		if (ETW_DistLabel[i])
+		if (label)
 		{
-			ETW_DistLabel[i]->Destroy();
-			ETW_DistLabel[i] = nullptr;
+			label->Destroy();
+			label = nullptr;
 		}
 	}
 
-	if (GroupDistLabel1)
+	for (auto& label : GroupDistLabels)
 	{
-		GroupDistLabel1->Destroy();
-		GroupDistLabel1 = nullptr;
-	}
-
-	if (GroupDistLabel2)
-	{
-		GroupDistLabel2->Destroy();
-		GroupDistLabel2 = nullptr;
-	}
-
-	if (GroupDistLabel3)
-	{
-		GroupDistLabel3->Destroy();
-		GroupDistLabel3 = nullptr;
-	}
-
-	if (GroupDistLabel4)
-	{
-		GroupDistLabel4->Destroy();
-		GroupDistLabel4 = nullptr;
-	}
-
-	if (GroupDistLabel5)
-	{
-		GroupDistLabel5->Destroy();
-		GroupDistLabel5 = nullptr;
+		if (label)
+		{
+			label->Destroy();
+			label = nullptr;
+		}
 	}
 
 	if (InfoLabel)
@@ -2378,12 +2307,12 @@ void CleanUp(bool bUnload)
 		MimicMeButton = nullptr;
 	}
 
-	for (size_t i = 0; i < lengthof(GroupHotButton); ++i)
+	for (auto& button : GroupHotButton)
 	{
-		if (GroupHotButton[i])
+		if (button)
 		{
-			GroupHotButton[i]->Destroy();
-			GroupHotButton[i] = nullptr;
+			button->Destroy();
+			button = nullptr;
 		}
 	}
 
@@ -2391,29 +2320,43 @@ void CleanUp(bool bUnload)
 	{
 		if (bUnload)
 		{
-			if (!IsBadReadPtr(Target_BuffWindow, 4))
+			// Check that our controls still exist.
+			CSidlScreenWnd* pBuffWindow = (CSidlScreenWnd*)pTargetWnd->GetChildItem("Target_BuffWindow");
+			if (Target_BuffWindow && Target_BuffWindow == Target_BuffWindow)
 			{
 				Target_BuffWindow->SetTopOffset(Target_BuffWindow_TopOffsetOld);
 			}
+			Target_BuffWindow = nullptr;
 
-			if (!IsBadReadPtr(Target_AggroPctPlayerLabel, 4))
+			CLabelWnd* pAggroPctPlayerLabel = (CLabelWnd*)pTargetWnd->GetChildItem("Target_AggroPctPlayerLabel");
+			if (Target_AggroPctPlayerLabel && pAggroPctPlayerLabel == Target_AggroPctPlayerLabel)
 			{
 				Target_AggroPctPlayerLabel->SetTopOffset(Target_AggroPctPlayerLabel_TopOffsetOrg);
 				Target_AggroPctPlayerLabel->SetBottomOffset(Target_AggroPctPlayerLabel_BottomOffsetOrg);
 			}
+			Target_AggroPctPlayerLabel = nullptr;
 
-			if (!IsBadReadPtr(Target_AggroNameSecondaryLabel, 4))
+			CLabelWnd* pAggroNameSecondaryLabel = (CLabelWnd*)pTargetWnd->GetChildItem("Target_AggroNameSecondaryLabel");
+			if (Target_AggroNameSecondaryLabel && pAggroNameSecondaryLabel == Target_AggroNameSecondaryLabel)
 			{
 				Target_AggroNameSecondaryLabel->SetTopOffset(Target_AggroNameSecondaryLabel_TopOffsetOrg);
 				Target_AggroNameSecondaryLabel->SetBottomOffset(Target_AggroNameSecondaryLabel_BottomOffsetOrg);
 			}
+			Target_AggroNameSecondaryLabel = nullptr;
 
-			if (!IsBadReadPtr(Target_AggroPctSecondaryLabel, 4))
+			CLabelWnd* pAggroPctSecondaryLabel = (CLabelWnd*)pTargetWnd->GetChildItem("Target_AggroPctSecondaryLabel");
+			if (Target_AggroPctSecondaryLabel && pAggroPctSecondaryLabel == Target_AggroPctSecondaryLabel)
 			{
 				Target_AggroPctSecondaryLabel->SetTopOffset(Target_AggroPctSecondaryLabel_TopOffsetOrg);
 				Target_AggroPctSecondaryLabel->SetBottomOffset(Target_AggroPctSecondaryLabel_BottomOffsetOrg);
 			}
+			Target_AggroPctSecondaryLabel = nullptr;
 		}
+	}
+
+	if (pTargetWnd)
+	{
+		pTargetWnd->UpdateLayout();
 	}
 }
 
@@ -2434,7 +2377,7 @@ PLUGIN_API void ShutdownPlugin()
 // Called after entering a new zone
 PLUGIN_API void OnZoned()
 {
-	gbMimicme = false;
+	gbMimicMe = false;
 
 	if (MimicMeButton)
 		MimicMeButton->bChecked = false;
@@ -2457,7 +2400,7 @@ bool IsPlaceHolder(SPAWNINFO* pSpawn)
 {
 	std::scoped_lock lock(s_mutex); // is this even needed?
 
-	if (pSpawn && phmap.find(pSpawn->DisplayedName) != phmap.end())
+	if (pSpawn && gPHMap.find(pSpawn->DisplayedName) != gPHMap.end())
 	{
 		return true;
 	}
@@ -2465,47 +2408,28 @@ bool IsPlaceHolder(SPAWNINFO* pSpawn)
 	return false;
 }
 
-bool GetPhMap(SPAWNINFO* pSpawn, phinfo* pinf)
+bool GetPhMap(SPAWNINFO* pSpawn, PHInfo* pinf)
 {
 	std::scoped_lock lock(s_mutex); // is this even needed?
 
-	if (pSpawn && phmap.find(pSpawn->DisplayedName) != phmap.end())
+	if (pSpawn && gPHMap.find(pSpawn->DisplayedName) != gPHMap.end())
 	{
-		*pinf = phmap[pSpawn->DisplayedName];
+		*pinf = gPHMap[pSpawn->DisplayedName];
 		return true;
 	}
 	return false;
 }
 
 // This is called every time MQ pulses
-char szTargetDist[64] = { 0 };
-int looper = 0;
+static char szTargetDist[64] = { 0 };
 SPAWNINFO* oldspawn = nullptr;
 
 void UpdateGroupDist(CHARINFO* pChar, int index)
 {
-	CLabelWnd* pWnd = nullptr;
+	if (index < 1 || index > NUM_GROUPWND_CONTROLS)
+		return;
 
-	switch (index)
-	{
-	case 1:
-		pWnd = GroupDistLabel1;
-		break;
-	case 2:
-		pWnd = GroupDistLabel2;
-		break;
-	case 3:
-		pWnd = GroupDistLabel3;
-		break;
-	case 4:
-		pWnd = GroupDistLabel4;
-		break;
-	case 5:
-		pWnd = GroupDistLabel5;
-		break;
-	};
-
-	if (pWnd)
+	if (CLabelWnd* pWnd = GroupDistLabels[index - 1])
 	{
 		if (pChar->pGroupInfo->pMember[index] && pChar->pGroupInfo->pMember[index]->pSpawn)
 		{
@@ -2514,11 +2438,11 @@ void UpdateGroupDist(CHARINFO* pChar, int index)
 
 			if (dist < 250)
 			{
-				pWnd->SetCRNormal(0xFF00FF00); // green
+				pWnd->SetCRNormal(MQColor(0, 255, 0)); // green
 			}
 			else
 			{
-				pWnd->SetCRNormal(0xFFFF0000); // red
+				pWnd->SetCRNormal(MQColor(255, 0, 0)); // red
 			}
 
 			pWnd->SetWindowText(szTargetDist);
@@ -2533,54 +2457,49 @@ void UpdateGroupDist(CHARINFO* pChar, int index)
 
 void UpdatedExtDistance()
 {
-	if (CHARINFO* pChar = GetCharInfo())
+	CHARINFO* pChar = GetCharInfo();
+	if (!pChar)
+		return;
+
+	ExtendedTargetList* xtm = pChar->pXTargetMgr;
+	if (!xtm)
+		return;
+
+	for (int i = 0; i < xtm->XTargetSlots.Count; i++)
 	{
-		CLabelWnd* pWnd = nullptr;
-
-		if (ExtendedTargetList* xtm = pChar->pXTargetMgr)
+		if (CLabelWnd* pWnd = ETW_DistLabel[i])
 		{
-			for (int i = 0; i < xtm->XTargetSlots.Count; i++)
+			const XTARGETSLOT& xts = xtm->XTargetSlots[i];
+			uint32_t spID = xts.SpawnID;
+
+			if (spID)
 			{
-				if (pWnd = ETW_DistLabel[i])
+				if (SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByID(spID))
 				{
-					XTARGETSLOT xts = xtm->XTargetSlots[i];
-					DWORD spID = xts.SpawnID;
+					float dist = Distance3DToSpawn(pLocalPlayer, pSpawn);
+					sprintf_s(szTargetDist, "%.2f", dist);
 
-					if (spID)
+					if (dist < 250)
 					{
-						if (SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByID(spID))
-						{
-							float dist = Distance3DToSpawn(pLocalPlayer, pSpawn);
-							sprintf_s(szTargetDist, "%.2f", dist);
-
-							if (dist < 250)
-							{
-								pWnd->SetCRNormal(0xFF00FF00); // green
-							}
-							else
-							{
-								pWnd->SetCRNormal(0xFFFF0000); // red
-							}
-
-							pWnd->SetWindowText(szTargetDist);
-							pWnd->SetVisible(true);
-						}
-						else
-						{
-							pWnd->SetVisible(false);
-						}
+						pWnd->SetCRNormal(MQColor(0, 255, 0)); // green
 					}
 					else
 					{
-						pWnd->SetVisible(false);
+						pWnd->SetCRNormal(MQColor(255, 0, 0)); // red
 					}
+
+					pWnd->SetWindowText(szTargetDist);
+					pWnd->SetVisible(true);
+					continue;
 				}
 			}
+
+			pWnd->SetVisible(false);
 		}
 	}
 }
 
-DWORD LastTargetID = 0;
+static DWORD LastTargetID = 0;
 
 void DidTargetChange()
 {
@@ -2609,7 +2528,7 @@ void MimicMeFunc()
 
 PLUGIN_API DWORD OnIncomingChat(char* Line, DWORD Color)
 {
-	if (gbMimicme)
+	if (gbMimicMe)
 	{
 		int linelen = strlen(Line);
 		char* szLine = (char*)LocalAlloc(LPTR, linelen + 32);
@@ -2638,9 +2557,10 @@ PLUGIN_API DWORD OnIncomingChat(char* Line, DWORD Color)
 	}
 	return 0;
 }
+
 PLUGIN_API DWORD OnWriteChatColor(char* Line, DWORD Color, DWORD Filter)
 {
-	if (gbMimicme)
+	if (gbMimicMe)
 	{
 		//MQ2EasyFind: Going to (Group) -> Annera
 		int linelen = strlen(Line);
@@ -2679,15 +2599,18 @@ PLUGIN_API DWORD OnWriteChatColor(char* Line, DWORD Color, DWORD Filter)
 
 PLUGIN_API void OnPulse()
 {
-	looper++;
-	if (looper > 40)
+	static uint64_t lastPulseUpdate = MQGetTickCount64();
+	uint64_t currentTime = MQGetTickCount64();
+
+	if (currentTime - lastPulseUpdate > 500) // 500ms
 	{
-		looper = 0;
+		lastPulseUpdate = currentTime;
+
 		if (GetGameState() == GAMESTATE_INGAME)
 		{
 			Initialize();
 
-			if (gbMimicme)
+			if (gbMimicMe)
 			{
 				MimicMeFunc();
 			}
@@ -2705,7 +2628,7 @@ PLUGIN_API void OnPulse()
 
 			if (pGroupWnd)
 			{
-				if (pContextMenuManager->NumVisibleMenus == 0 && separatorid)
+				if (pContextMenuManager->NumVisibleMenus == 0 && separatorId)
 				{
 					RemoveOurMenu(pGroupWnd);
 				}
@@ -2714,13 +2637,10 @@ PLUGIN_API void OnPulse()
 				{
 					if (pChar->pGroupInfo)
 					{
-						if (gBShowDistance && GroupDistLabel1 && GroupDistLabel2 && GroupDistLabel3 && GroupDistLabel4 && GroupDistLabel5)
+						if (gBShowDistance)
 						{
-							UpdateGroupDist(pChar, 1);
-							UpdateGroupDist(pChar, 2);
-							UpdateGroupDist(pChar, 3);
-							UpdateGroupDist(pChar, 4);
-							UpdateGroupDist(pChar, 5);
+							for (int i = 0; i < NUM_GROUPWND_CONTROLS; ++i)
+								UpdateGroupDist(pChar, i + 1);
 						}
 
 						if (!gBShowMimicMeButton && MimicMeButton && MimicMeButton->IsVisible())
@@ -2732,13 +2652,12 @@ PLUGIN_API void OnPulse()
 					}
 					else
 					{
-						if (GroupDistLabel1 && GroupDistLabel2 && GroupDistLabel3 && GroupDistLabel4 && GroupDistLabel5 && GroupDistLabel1->IsVisible())
+						if (GroupDistLabels[0] && GroupDistLabels[0]->IsVisible())
 						{
-							GroupDistLabel1->SetVisible(false);
-							GroupDistLabel2->SetVisible(false);
-							GroupDistLabel3->SetVisible(false);
-							GroupDistLabel4->SetVisible(false);
-							GroupDistLabel5->SetVisible(false);
+							for (auto& label : GroupDistLabels)
+							{
+								if (label) label->SetVisible(false);
+							}
 						}
 						if (MimicMeButton && MimicMeButton->IsVisible())
 							MimicMeButton->SetVisible(false);
@@ -2756,14 +2675,14 @@ PLUGIN_API void OnPulse()
 				{
 					if (pTarget && pCharSpawn)
 					{
-						if (oldspawn != (SPAWNINFO*)pTarget)
+						if (oldspawn != pTarget)
 						{
-							oldspawn = (SPAWNINFO*)pTarget;
+							oldspawn = pTarget;
 
-							phinfo pinf;
-							if (GetPhMap((SPAWNINFO*)pTarget, &pinf))
+							PHInfo pinf;
+							if (GetPhMap(pTarget, &pinf))
 							{
-								PHButton->SetTooltip((char*)pinf.Named.c_str());
+								PHButton->SetTooltip(CXStr{ pinf.Named });
 								PHButton->SetVisible(true);
 							}
 							else
@@ -2805,11 +2724,11 @@ PLUGIN_API void OnPulse()
 
 						if (dist < 250)
 						{
-							DistanceLabel->SetCRNormal(0xFF00FF00); // green
+							DistanceLabel->SetCRNormal(MQColor(0, 255, 0)); // green
 						}
 						else
 						{
-							DistanceLabel->SetCRNormal(0xFFFF0000); // red
+							DistanceLabel->SetCRNormal(MQColor(255, 0, 0)); // red
 						}
 
 						DistanceLabel->SetWindowText(szTargetDist);
@@ -2820,20 +2739,20 @@ PLUGIN_API void OnPulse()
 
 						if (cansee)
 						{
-							CanSeeLabel->SetCRNormal(0xFF00FF00); // green
+							CanSeeLabel->SetCRNormal(MQColor(0, 255, 0)); // green
 						}
 						else
 						{
-							CanSeeLabel->SetCRNormal(0xFFFF0000); // red
+							CanSeeLabel->SetCRNormal(MQColor(255, 0, 0)); // red
 						}
 
 						CanSeeLabel->SetWindowText(szTargetDist);
 					}
 					else
 					{
-						InfoLabel->SetWindowText("");
-						DistanceLabel->SetWindowText("");
-						CanSeeLabel->SetWindowText("");
+						InfoLabel->SetWindowText(CXStr());
+						DistanceLabel->SetWindowText(CXStr());
+						CanSeeLabel->SetWindowText(CXStr());
 						PHButton->SetVisible(false);
 					}
 				}
