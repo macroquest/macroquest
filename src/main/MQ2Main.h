@@ -530,18 +530,46 @@ struct MQGroundSpawn
 	MQLIB_OBJECT int ZoneID() const;
 	MQLIB_OBJECT float Heading() const;
 	MQLIB_OBJECT SPAWNINFO ToSpawn() const;
+	MQLIB_OBJECT void Reset();
 
 	template <typename T> T* Get() const { static_assert(false, "Unsupported GroundSpawn Type."); }
 	template <> MQLIB_OBJECT EQGroundItem* Get<EQGroundItem>() const;
 	template <> MQLIB_OBJECT EQPlacedItem* Get<EQPlacedItem>() const;
 
-	operator bool() const { return Type != MQ2GroundSpawnType::None; }
+	inline explicit operator bool() const { return Type != MQGroundSpawnType::None; }
 };
 
-MQLIB_OBJECT MQ2GroundSpawn GetGroundSpawnByName(std::string_view Name);
-MQLIB_OBJECT MQ2GroundSpawn GetGroundSpawnByID(int ID);
-MQLIB_OBJECT MQ2GroundSpawn GetNearestGroundSpawn();
-MQLIB_OBJECT MQ2GroundSpawn GetNthGroundSpawnFromMe(size_t N);
+inline bool operator==(const MQGroundSpawn& groundItem, EQGroundItem* other)
+{
+	if (groundItem.Type != MQGroundSpawnType::Ground)
+		return false;
+
+	return groundItem.Get<EQGroundItem>() == other;
+}
+
+inline bool operator==(EQGroundItem* other, const MQGroundSpawn& groundItem)
+{
+	return groundItem == other;
+}
+
+inline bool operator==(const MQGroundSpawn& groundItem, EQPlacedItem* other)
+{
+	if (groundItem.Type != MQGroundSpawnType::Placed)
+		return false;
+
+	return groundItem.Get<EQPlacedItem>() == other;
+}
+
+inline bool operator==(EQPlacedItem* other, const MQGroundSpawn& groundItem)
+{
+	return groundItem == other;
+}
+
+inline bool operator==(const MQGroundSpawn& groundItemA, const MQGroundSpawn& groundItemB)
+{
+	return groundItemA.Type == groundItemB.Type
+		&& groundItemA.Object == groundItemB.Object;
+}
 
 MQLIB_OBJECT MQGroundSpawn GetGroundSpawnByName(std::string_view Name);
 MQLIB_OBJECT MQGroundSpawn GetGroundSpawnByID(int ID);
@@ -553,7 +581,8 @@ MQLIB_OBJECT MQGroundSpawn FirstGroundSpawn();
 MQLIB_OBJECT MQGroundSpawn LastGroundSpawn();
 MQLIB_OBJECT MQGroundSpawn NextGroundSpawn();
 MQLIB_OBJECT MQGroundSpawn PrevGroundSpawn();
-MQLIB_OBJECT void SetGroundSpawn(SPAWNINFO* pSpawn, std::string_view Name);
+MQLIB_OBJECT void SetGroundSpawn(std::string_view Name);
+MQLIB_OBJECT void SetGroundSpawn(const MQGroundSpawn& groundSpawn);
 MQLIB_OBJECT void ClearGroundSpawn();
 MQLIB_OBJECT CXStr GetFriendlyNameForGroundItem(EQGroundItem* pItem);
 MQLIB_OBJECT CXStr GetFriendlyNameForPlacedItem(EQPlacedItem* pItem);

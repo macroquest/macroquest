@@ -89,6 +89,17 @@ public:
 		return Instance();
 	}
 
+	static GroundSpawnSearch& Search(SPAWNINFO* pSpawn, const MQGroundSpawn& groundSpawn)
+	{
+		if (!Instance().m_valid)
+		{
+			Instance().Filter(pSpawn, groundSpawn);
+			Instance().Sort(pSpawn);
+		}
+
+		return Instance();
+	}
+
 	template <typename GroundPred, typename PlacedPred>
 	void Filter(SPAWNINFO* pSpawn, GroundPred GroundPredicate, PlacedPred PlacedPredicate)
 	{
@@ -152,6 +163,19 @@ public:
 					return ci_find_substr(GetFriendlyNameForPlacedItem(placed), Name) >= 0;
 				});
 		}
+	}
+
+	void Filter(SPAWNINFO* pSpawn, const MQGroundSpawn& groundSpawn)
+	{
+		Filter(pSpawn,
+			[&groundSpawn](EQGroundItem* ground)
+			{
+				return ground == groundSpawn;
+			},
+			[&groundSpawn](EQPlacedItem* placed)
+			{
+				return placed == groundSpawn;
+			});
 	}
 
 	void Filter(SPAWNINFO* pSpawn)
@@ -379,10 +403,16 @@ CVector3 MQGroundSpawn::Position() const
 		);
 }
 
-void SetGroundSpawn(SPAWNINFO* pSpawn, std::string_view Name)
+void SetGroundSpawn(std::string_view Name)
 {
 	GroundSpawnSearch::Reset();
-	GroundSpawnSearch::Search(pSpawn, Name);
+	GroundSpawnSearch::Search(pCharSpawn, Name);
+}
+
+void SetGroundSpawn(const MQGroundSpawn& groundSpawn)
+{
+	GroundSpawnSearch::Reset();
+	GroundSpawnSearch::Search(pCharSpawn, groundSpawn);
 }
 
 void ClearGroundSpawn()
@@ -582,4 +612,11 @@ template <> EQPlacedItem* MQGroundSpawn::Get<EQPlacedItem>() const
 
 	return nullptr;
 }
+
+void MQGroundSpawn::Reset()
+{
+	Type = MQGroundSpawnType::None;
+	Object = {};
 }
+
+} // namespace mq
