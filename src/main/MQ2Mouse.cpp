@@ -300,7 +300,7 @@ void ClickMouseLoc(char* szMouseLoc, char* szButton)
 	}
 }
 
-bool ClickMouseItem(SPAWNINFO* pChar, const MQ2GroundSpawn& GroundSpawn, bool left)
+bool ClickMouseItem(SPAWNINFO* pChar, const MQGroundSpawn& GroundSpawn, bool left)
 {
 	if (!pChar || !GroundSpawn)
 		return false;

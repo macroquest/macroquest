@@ -78,11 +78,11 @@ MQ2GroundType::MQ2GroundType() : MQ2Type("ground")
 
 bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
-	auto pGroundSpawn = VarPtr.Get<MQ2GroundSpawn>();
+	auto pGroundSpawn = VarPtr.Get<MQGroundSpawn>();
 	if (!pGroundSpawn)
 		return false;
 
-	if (pGroundSpawn->Type == MQ2GroundSpawnType::None)
+	if (pGroundSpawn->Type == MQGroundSpawnType::None)
 		return false;
 
 	//----------------------------------------------------------------------------
@@ -99,7 +99,7 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 			return true;
 
 		case GroundMethods::DoTarget:
-			SetGroundSpawn(pCharSpawn, pGroundSpawn->Name());
+			SetGroundSpawn(pGroundSpawn->Name());
 			Dest.Set(CurrentGroundSpawn());
 			Dest.Type = pGroundType;
 			return true;
@@ -233,11 +233,11 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 
 bool MQ2GroundType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	auto pGroundSpawn = VarPtr.Get<MQ2GroundSpawn>();
+	auto pGroundSpawn = VarPtr.Get<MQGroundSpawn>();
 	if (!pGroundSpawn)
 		return false;
 
-	if (pGroundSpawn->Type == MQ2GroundSpawnType::None)
+	if (pGroundSpawn->Type == MQGroundSpawnType::None)
 		return false;
 
 	strcpy_s(Destination, MAX_STRING, pGroundSpawn->DisplayName().c_str());
@@ -261,7 +261,7 @@ bool MQ2GroundType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	if (Source.Type != pGroundType)
 		return false;
 
-	VarPtr.Set(Source.Get<MQ2GroundSpawn>());
+	VarPtr.Set(Source.Get<MQGroundSpawn>());
 	return true;
 }
 

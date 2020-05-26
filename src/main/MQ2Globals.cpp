@@ -189,16 +189,16 @@ Property<SPAWNINFO> EnviroTarget = Property<SPAWNINFO>(
 		return GetGroundSpawnByID(other.mActorClient.Race).ToSpawn();
 	});
 
-static MQGroundObject FromGroundSpawn(const MQ2GroundSpawn& ground)
+static MQGroundObject FromGroundSpawn(const MQGroundSpawn& ground)
 {
 	MQGroundObject ret;
 
-	if (ground.Type == MQ2GroundSpawnType::Ground)
+	if (ground.Type == MQGroundSpawnType::Ground)
 	{
 		ret.Type = GO_GroundType;
 		ret.GroundItem = *ground.Get<EQGroundItem>();
 	}
-	else if (ground.Type == MQ2GroundSpawnType::Placed)
+	else if (ground.Type == MQGroundSpawnType::Placed)
 	{
 		auto placed = ground.Get<EQPlacedItem>();
 		ret.Type = GO_ObjectType;
@@ -243,7 +243,7 @@ Property<GROUNDITEM*> pGroundTarget = Property<GROUNDITEM*>(
 	[]() -> GROUNDITEM*
 	{
 		auto ground = CurrentGroundSpawn();
-		if (ground.Type == MQ2GroundSpawnType::Ground)
+		if (ground.Type == MQGroundSpawnType::Ground)
 			return ground.Get<EQGroundItem>();
 
 		return nullptr;

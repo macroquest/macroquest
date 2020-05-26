@@ -19,16 +19,16 @@
 
 namespace mq {
 
-class MQ2SlotInItem
+class MQSlotInItem
 {
 public:
 	ItemGlobalIndex GlobalIndex;
 	int Slot;
-	MQ2SlotInItem(const ItemGlobalIndex& GlobalIndex, int Slot)
+	MQSlotInItem(const ItemGlobalIndex& GlobalIndex, int Slot)
 		: GlobalIndex(GlobalIndex), Slot(Slot) {}
 };
 
-class MQ2Transient : public std::enable_shared_from_this<MQ2Transient>
+class MQTransient : public std::enable_shared_from_this<MQTransient>
 {
 protected:
 	bool m_invalidated; // let's track if this got invalidated to help troubleshooting things
@@ -44,7 +44,7 @@ public:
 	virtual operator bool() const = 0;
 	virtual bool operator==(void*) const = 0;
 
-	MQ2Transient() : m_invalidated(false) {}
+	MQTransient() : m_invalidated(false) {}
 };
 
 template <typename EQType>
@@ -77,7 +77,7 @@ auto EQObjectID(EQType* Object)
 }
 
 template <typename EQType>
-class MQ2EQObject : public MQ2Transient
+class MQEQObject : public MQTransient
 {
 private:
 	EQType* m_object; // this is the actual raw pointer pointing to the memory space, we don't control its lifetime
@@ -99,7 +99,7 @@ private:
 				std::string("The underlying object has changed (likely deleted). Type: ") + typeid(EQType).name());
 	}
 
-	MQ2EQObject(EQType* Object) : m_object(Object), m_ID(EQObjectID(Object)) {}
+	MQEQObject(EQType* Object) : m_object(Object), m_ID(EQObjectID(Object)) {}
 
 public:
 	void Invalidate() override { m_object = nullptr; m_invalidated = true; }
@@ -114,7 +114,7 @@ public:
 		return static_cast<void*>(m_object) == rhs;
 	}
 
-	std::shared_ptr<MQ2EQObject<EQType>> Get() { return SharedFromBase<MQ2EQObject<EQType>>(); }
+	std::shared_ptr<MQEQObject<EQType>> Get() { return SharedFromBase<MQEQObject<EQType>>(); }
 
 	EQType& operator*()
 	{
@@ -135,14 +135,14 @@ public:
 	}
 
 	template <typename U>
-	friend std::shared_ptr<MQ2EQObject<U>> ObserveEQObject(U*);
+	friend std::shared_ptr<MQEQObject<U>> ObserveEQObject(U*);
 };
 
 template <typename U>
-std::shared_ptr<MQ2EQObject<U>> ObserveEQObject(U* Object)
+std::shared_ptr<MQEQObject<U>> ObserveEQObject(U* Object)
 {
-	auto ptr = std::shared_ptr<MQ2EQObject<U>>(new MQ2EQObject<U>(Object),
-		[](MQ2EQObject<U>* ptr) { delete ptr; });
+	auto ptr = std::shared_ptr<MQEQObject<U>>(new MQEQObject<U>(Object),
+		[](MQEQObject<U>* ptr) { delete ptr; });
 	AddObservedEQObject(ptr);
 	return ptr;
 }

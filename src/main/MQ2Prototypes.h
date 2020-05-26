@@ -16,7 +16,7 @@
 
 namespace mq {
 
-struct MQ2GroundSpawn;
+struct MQGroundSpawn;
 
 using fEQGetMelee            = float  (*)(PlayerClient*, PlayerClient*);
 
