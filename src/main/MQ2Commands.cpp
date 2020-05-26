@@ -4710,8 +4710,6 @@ void AdvLootCmd(SPAWNINFO* pChar, char* szLine)
 			cmdtype = 3;
 		}
 
-		AdvancedLootItem* pitem = nullptr;
-
 		if (cmdtype == 2)
 		{
 			char szID[MAX_STRING] = { 0 };
@@ -4737,7 +4735,6 @@ void AdvLootCmd(SPAWNINFO* pChar, char* szLine)
 							if (listindex != -1)
 							{
 								AdvancedLootItem& item = pAdvancedLootWnd->pPLootList->Items[listindex];
-
 								if (!_stricmp(item.Name, szID))
 								{
 									index = k;
@@ -4884,13 +4881,14 @@ void AdvLootCmd(SPAWNINFO* pChar, char* szLine)
 					if (listindex != -1)
 					{
 						AdvancedLootItem& item = pAdvancedLootWnd->pCLootList->Items[listindex];
+
 						if (!_stricmp(szAction, "leave"))
 						{
 							if (CHARINFO * pchar = GetCharInfo())
 							{
-								if (GetGameState() == GAMESTATE_INGAME && pitem && pitem->LootDetails.GetSize())
+								if (GetGameState() == GAMESTATE_INGAME && item.LootDetails.GetSize())
 								{
-									pAdvancedLootWnd->DoSharedAdvLootAction(pitem, pchar->Name, true, pitem->LootDetails[0].StackCount);
+									pAdvancedLootWnd->DoSharedAdvLootAction(item, pchar->Name, true, item.LootDetails[0].StackCount);
 								}
 							}
 						}
@@ -4944,18 +4942,18 @@ void AdvLootCmd(SPAWNINFO* pChar, char* szLine)
 									{
 										// TODO: Check array usage
 										int qty = GetIntFromString(szQty, 0);
-										if (pitem && !pitem->LootDetails.IsEmpty())
+										if (!item.LootDetails.IsEmpty())
 										{
-											if (qty == 0 || qty > pitem->LootDetails[0].StackCount)
+											if (qty == 0 || qty > item.LootDetails[0].StackCount)
 											{
-												qty = pitem->LootDetails[0].StackCount;
+												qty = item.LootDetails[0].StackCount;
 												if (qty == 0)
 												{
 													qty = 1;
 												}
 											}
 
-											pAdvancedLootWnd->DoSharedAdvLootAction(pitem, out, 0, qty);
+											pAdvancedLootWnd->DoSharedAdvLootAction(item, out, 0, qty);
 											return;
 										}
 									}
