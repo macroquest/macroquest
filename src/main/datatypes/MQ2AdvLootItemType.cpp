@@ -15,8 +15,7 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
 
 enum class AdvLootItemMembers
 {
@@ -58,12 +57,23 @@ MQ2AdvLootItemType::MQ2AdvLootItemType() : MQ2Type("advlootitem")
 
 bool MQ2AdvLootItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
-	if (!pAdvancedLootWnd || !pAdvancedLootWnd->pCLootList)
+	if (!pAdvancedLootWnd)
+		return false;
+	if (VarPtr.HighPart != CList && VarPtr.HighPart != PList)
 		return false;
 
-	AdvancedLootItem* pItem = &pAdvancedLootWnd->pCLootList->Items[VarPtr.DWord];
-	if (!pItem)
+	AdvancedLootItemList* itemList = nullptr;
+	if (VarPtr.HighPart == CList)
+		itemList = pAdvancedLootWnd->pCLootList;
+	else if (VarPtr.HighPart == PList)
+		itemList = pAdvancedLootWnd->pPLootList;
+	if (itemList == nullptr)
 		return false;
+
+	int lootIndex = VarPtr.DWord;
+	if (lootIndex >= itemList->Items.GetSize())
+		return false;
+	const AdvancedLootItem& item = itemList->Items[lootIndex];
 
 	MQTypeMember* pMember = MQ2AdvLootItemType::FindMember(Member);
 	if (!pMember)
@@ -71,28 +81,23 @@ bool MQ2AdvLootItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, M
 
 	switch (static_cast<AdvLootItemMembers>(pMember->ID))
 	{
-	case AdvLootItemMembers::Address:
-		Dest.DWord = (DWORD)pItem;
-		Dest.Type = pIntType;
-		return true;
-
 	case AdvLootItemMembers::Index:
-		Dest.DWord = VarPtr.DWord;
+		Dest.DWord = lootIndex;
 		Dest.Type = pIntType;
 		return true;
 
 	case AdvLootItemMembers::Name:
 		Dest.Type = pStringType;
-		if (pItem && pItem->Name[0])
+		if (item.Name[0])
 		{
-			strcpy_s(DataTypeTemp, pItem->Name);
+			strcpy_s(DataTypeTemp, item.Name);
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 		}
 		return false;
 
 	case AdvLootItemMembers::ID:
-		Dest.Int64 = pItem->ItemID;
+		Dest.Int64 = item.ItemID;
 		Dest.Type = pInt64Type;
 		return true;
 
@@ -100,17 +105,17 @@ bool MQ2AdvLootItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, M
 		Dest.DWord = 1;
 		Dest.Type = pIntType;
 
-		if (pItem && pItem->LootDetails.GetSize() && pItem->LootDetails[0].StackCount >= 1)
+		if (!item.LootDetails.IsEmpty() && item.LootDetails[0].StackCount >= 1)
 		{
-			Dest.DWord = pItem->LootDetails[0].StackCount;
+			Dest.DWord = item.LootDetails[0].StackCount;
 		}
 		return true;
 
 	case AdvLootItemMembers::Corpse:
 		Dest.Type = pSpawnType;
-		if (pItem && pItem->LootDetails.GetSize())
+		if (!item.LootDetails.IsEmpty())
 		{
-			if (SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByID(pItem->LootDetails[0].CorpseID))
+			if (SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByID(item.LootDetails[0].CorpseID))
 			{
 				Dest.Ptr = pSpawn;
 				return true;
@@ -119,109 +124,76 @@ bool MQ2AdvLootItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, M
 		return false;
 
 	case AdvLootItemMembers::AutoRoll:
-		Dest.DWord = 0;
+		Dest.DWord = item.AutoRoll;
 		Dest.Type = pBoolType;
-
-		if (pItem)
-		{
-			Dest.DWord = pItem->AutoRoll;
-		}
 		return true;
 
 	case AdvLootItemMembers::Need:
-		Dest.DWord = 0;
+		Dest.DWord = item.Need;
 		Dest.Type = pBoolType;
-
-		if (pItem)
-		{
-			Dest.DWord = pItem->Need;
-		}
 		return true;
 
 	case AdvLootItemMembers::Greed:
-		Dest.DWord = 0;
+		Dest.DWord = item.Greed;
 		Dest.Type = pBoolType;
-
-		if (pItem)
-		{
-			Dest.DWord = pItem->Greed;
-		}
 		return true;
 
 	case AdvLootItemMembers::No:
-		Dest.DWord = 0;
+		Dest.DWord = Dest.DWord = item.No;
 		Dest.Type = pBoolType;
-
-		if (pItem)
-		{
-			Dest.DWord = pItem->No;
-		}
 		return true;
 
 	case AdvLootItemMembers::AlwaysNeed:
-		Dest.DWord = 0;
+		Dest.DWord = item.AlwaysNeed;
 		Dest.Type = pBoolType;
-
-		if (pItem)
-		{
-			Dest.DWord = pItem->AlwaysNeed;
-		}
 		return true;
 
 	case AdvLootItemMembers::AlwaysGreed:
-		Dest.DWord = 0;
+		Dest.DWord = item.AlwaysGreed;
 		Dest.Type = pBoolType;
-		if (pItem)
-		{
-			Dest.DWord = pItem->AlwaysGreed;
-		}
 		return true;
 
 	case AdvLootItemMembers::Never:
-		Dest.DWord = 0;
+		Dest.DWord = item.Never;
 		Dest.Type = pBoolType;
-
-		if (pItem)
-		{
-			Dest.DWord = pItem->Never;
-		}
 		return true;
 
 	case AdvLootItemMembers::IconID:
-		Dest.DWord = 0;
+		Dest.DWord = item.IconID;
 		Dest.Type = pIntType;
-
-		if (pItem)
-		{
-			Dest.DWord = pItem->IconID;
-			return true;
-		}
-		return false;
+		return true;
 
 	case AdvLootItemMembers::NoDrop:
-		Dest.DWord = 0;
+		Dest.DWord = item.NoDrop;
 		Dest.Type = pBoolType;
-
-		if (pItem)
-		{
-			Dest.DWord = pItem->NoDrop;
-		}
 		return true;
 
 	default: break;
 	}
+
 	return false;
 }
 
 bool MQ2AdvLootItemType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	if (AdvancedLootItem* pitem = &pAdvancedLootWnd->pCLootList->Items[VarPtr.DWord])
-	{
-		strcpy_s(Destination, 64, pitem->Name);
-		return true;
-	}
+	if (VarPtr.HighPart != CList && VarPtr.HighPart != PList)
+		return false;
 
-	return false;
+	AdvancedLootItemList* itemList = nullptr;
+	if (VarPtr.HighPart == CList)
+		itemList = pAdvancedLootWnd->pCLootList;
+	else if (VarPtr.HighPart == PList)
+		itemList = pAdvancedLootWnd->pPLootList;
+	if (itemList == nullptr)
+		return false;
+
+	int lootIndex = VarPtr.DWord;
+	if (lootIndex >= itemList->Items.GetSize())
+		return false;
+
+	const AdvancedLootItem& item = itemList->Items[lootIndex];
+	strcpy_s(Destination, 64, item.Name);
+	return true;
 }
 
 bool MQ2AdvLootItemType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
@@ -230,6 +202,8 @@ bool MQ2AdvLootItemType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 		return false;
 
 	VarPtr.DWord = Source.DWord;
+	VarPtr.HighPart = Source.HighPart;
 	return true;
 }
 
+} // namespace mq::datatypes

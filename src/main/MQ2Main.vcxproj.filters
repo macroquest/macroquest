@@ -374,9 +374,6 @@
     <ClCompile Include="MQ2StringDB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="datatypes\MQ2LastMouseOverType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
     <ClCompile Include="MQ2ImGuiAPI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

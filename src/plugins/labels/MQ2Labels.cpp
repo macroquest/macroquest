@@ -12,7 +12,6 @@
  * GNU General Public License for more details.
  */
 
- // 2.0 - May 14 2016 - Added code to allow anonymizing labels, for streaming/video recording. - eqmule
  // MQ2 Custom Labels
 
 #include <mq/Plugin.h>
