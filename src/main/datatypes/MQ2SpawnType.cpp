@@ -1956,8 +1956,11 @@ bool MQ2SpawnType::dataItemTarget(const char* szIndex, MQTypeVar& Ret)
 	auto ground = CurrentGroundSpawn();
 	if (ground)
 	{
+#pragma warning(push)
+#pragma warning(disable: 4996) // temporarily disable deprecation warnings.
 		EnviroTarget = ground.ToSpawn();
 		Ret.Ptr = &EnviroTarget;
+#pragma warning(pop)
 		Ret.Type = pSpawnType;
 		return true;
 	}

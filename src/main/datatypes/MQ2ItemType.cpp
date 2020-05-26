@@ -1387,7 +1387,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 		if (index >= 0 && index <= 5 &&
 			GetItemFromContents(pItem)->Type == ITEMTYPE_NORMAL)
 		{
-			Dest.Set(MQ2SlotInItem(pItem->GetGlobalIndex(), index));
+			Dest.Set(MQSlotInItem(pItem->GetGlobalIndex(), index));
 			return true;
 		}
 		return false;

@@ -251,7 +251,7 @@ MQLIB_API void ShutdownMQ2Data();
 MQLIB_API bool ParseMacroData(char* szOriginal, size_t BufferSize);
 MQLIB_API bool AddMQ2Data(const char* szName, fMQData Function);
 MQLIB_API bool RemoveMQ2Data(const char* szName);
-MQLIB_API void AddObservedEQObject(const std::shared_ptr<MQ2Transient>& Object);
+MQLIB_API void AddObservedEQObject(const std::shared_ptr<MQTransient>& Object);
 MQLIB_API void InvalidateObservedEQObject(void* Object);
 MQLIB_API MQ2Type* FindMQ2DataType(const char* szName);
 MQLIB_API MQDataItem* FindMQ2Data(const char* szName);
@@ -275,7 +275,7 @@ MQLIB_API bool IsMouseWaitingForButton();
 MQLIB_API void MQ2MouseHooks(bool bFlag);
 MQLIB_API bool MoveMouse(int x, int y, bool bClick = false);
 MQLIB_API bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick = false);
-MQLIB_API bool ClickMouseItem(SPAWNINFO* pChar, const MQ2GroundSpawn& pGroundSpawn, bool left);
+MQLIB_API bool ClickMouseItem(SPAWNINFO* pChar, const MQGroundSpawn& pGroundSpawn, bool left);
 
 /* KEY BINDS */
 MQLIB_API void InitializeMQ2KeyBinds();
@@ -496,10 +496,10 @@ MQLIB_API bool LoadCfgFile(const char* Filename, bool Delayed = FromPlugin);
 
 /* MQ2GROUNDSPAWNS */
 
-using EQGroundItemPtr = std::shared_ptr<MQ2EQObject<EQGroundItem>>;
-using EQPlacedItemPtr = std::shared_ptr<MQ2EQObject<EQPlacedItem>>;
-using AnyMQ2GroundItem = std::variant<std::monostate, EQGroundItemPtr, EQPlacedItemPtr>;
-enum class MQ2GroundSpawnType
+using EQGroundItemPtr = std::shared_ptr<MQEQObject<EQGroundItem>>;
+using EQPlacedItemPtr = std::shared_ptr<MQEQObject<EQPlacedItem>>;
+using AnyMQGroundItem = std::variant<std::monostate, EQGroundItemPtr, EQPlacedItemPtr>;
+enum class MQGroundSpawnType
 { // this ordering needs to match the GroundSpawn::Object variant class ordering
 	None,
 	Ground,
@@ -509,15 +509,15 @@ enum class MQ2GroundSpawnType
 inline DWORD EQObjectID(EQGroundItem* Object) { return Object->DropID; }
 inline int EQObjectID(EQPlacedItem* Object) { return Object->RealEstateItemID; }
 
-struct MQ2GroundSpawn
+struct MQGroundSpawn
 {
-	MQ2GroundSpawnType Type;
-	AnyMQ2GroundItem Object;
+	MQGroundSpawnType Type;
+	AnyMQGroundItem Object;
 
 	// These ctors will automatically register the Object in the invalidation mapper for zoning
-	MQ2GroundSpawn(EQGroundItem* Object) : Type(MQ2GroundSpawnType::Ground), Object(ObserveEQObject(Object)) {}
-	MQ2GroundSpawn(EQPlacedItem* Object) : Type(MQ2GroundSpawnType::Placed), Object(ObserveEQObject(Object)) {}
-	MQ2GroundSpawn() : Type(MQ2GroundSpawnType::None), Object() {}
+	MQLIB_OBJECT MQGroundSpawn(EQGroundItem* Object) : Type(MQGroundSpawnType::Ground), Object(ObserveEQObject(Object)) {}
+	MQLIB_OBJECT MQGroundSpawn(EQPlacedItem* Object) : Type(MQGroundSpawnType::Placed), Object(ObserveEQObject(Object)) {}
+	MQLIB_OBJECT MQGroundSpawn() : Type(MQGroundSpawnType::None), Object() {}
 
 	MQLIB_OBJECT float Distance(SPAWNINFO* pSpawn) const;
 	MQLIB_OBJECT float Distance3D(SPAWNINFO* pSpawn) const;
@@ -542,12 +542,17 @@ MQLIB_OBJECT MQ2GroundSpawn GetGroundSpawnByName(std::string_view Name);
 MQLIB_OBJECT MQ2GroundSpawn GetGroundSpawnByID(int ID);
 MQLIB_OBJECT MQ2GroundSpawn GetNearestGroundSpawn();
 MQLIB_OBJECT MQ2GroundSpawn GetNthGroundSpawnFromMe(size_t N);
+
+MQLIB_OBJECT MQGroundSpawn GetGroundSpawnByName(std::string_view Name);
+MQLIB_OBJECT MQGroundSpawn GetGroundSpawnByID(int ID);
+MQLIB_OBJECT MQGroundSpawn GetNearestGroundSpawn();
+MQLIB_OBJECT MQGroundSpawn GetNthGroundSpawnFromMe(size_t N);
 MQLIB_OBJECT int GetGroundSpawnCount();
-MQLIB_OBJECT MQ2GroundSpawn CurrentGroundSpawn();
-MQLIB_OBJECT MQ2GroundSpawn FirstGroundSpawn();
-MQLIB_OBJECT MQ2GroundSpawn LastGroundSpawn();
-MQLIB_OBJECT MQ2GroundSpawn NextGroundSpawn();
-MQLIB_OBJECT MQ2GroundSpawn PrevGroundSpawn();
+MQLIB_OBJECT MQGroundSpawn CurrentGroundSpawn();
+MQLIB_OBJECT MQGroundSpawn FirstGroundSpawn();
+MQLIB_OBJECT MQGroundSpawn LastGroundSpawn();
+MQLIB_OBJECT MQGroundSpawn NextGroundSpawn();
+MQLIB_OBJECT MQGroundSpawn PrevGroundSpawn();
 MQLIB_OBJECT void SetGroundSpawn(SPAWNINFO* pSpawn, std::string_view Name);
 MQLIB_OBJECT void ClearGroundSpawn();
 MQLIB_OBJECT CXStr GetFriendlyNameForGroundItem(EQGroundItem* pItem);

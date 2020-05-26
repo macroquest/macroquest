@@ -47,7 +47,7 @@ bool MQ2AugType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar
 	if (!pCharData)
 		return false;
 
-	auto slotWithIdx = VarPtr.Get<MQ2SlotInItem>();
+	auto slotWithIdx = VarPtr.Get<MQSlotInItem>();
 	if (!slotWithIdx)
 		return false;
 
@@ -140,7 +140,7 @@ bool MQ2AugType::ToString(MQVarPtr VarPtr, char* Destination)
 	if (!pCharData)
 		return false;
 
-	auto slotWithIdx = VarPtr.Get<MQ2SlotInItem>();
+	auto slotWithIdx = VarPtr.Get<MQSlotInItem>();
 	if (!slotWithIdx)
 		return false;
 

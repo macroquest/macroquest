@@ -20,7 +20,7 @@ namespace mq {
 std::unordered_map<std::string, MQ2Type*> MQ2DataTypeMap;
 std::unordered_map<std::string, std::vector<MQ2Type*>> MQ2DataExtensions;
 
-std::vector<std::weak_ptr<MQ2Transient>> s_objectMap;
+std::vector<std::weak_ptr<MQTransient>> s_objectMap;
 
 std::recursive_mutex s_variableMutex;
 std::mutex s_objectMapMutex;
@@ -45,7 +45,7 @@ static void PruneObservedEQObjects()
 	s_objectMap.erase(std::remove_if(
 		std::begin(s_objectMap),
 		std::end(s_objectMap),
-		[](const std::weak_ptr<MQ2Transient>& weak)
+		[](const std::weak_ptr<MQTransient>& weak)
 		{
 			return weak.expired();
 		}),
@@ -65,7 +65,7 @@ static void SetGameStateDataAPI(DWORD)
 }
 
 // don't need a dropper because it will remove itself once the shared_ptr destroys itself
-void AddObservedEQObject(const std::shared_ptr<MQ2Transient>& Object)
+void AddObservedEQObject(const std::shared_ptr<MQTransient>& Object)
 {
 	PruneObservedEQObjects();
 
