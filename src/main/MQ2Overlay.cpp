@@ -771,6 +771,7 @@ static bool                     g_WantUpdateMonitors = true;
 //============================================================================
 
 static void ImGui_ImplWin32_InitPlatformInterface();
+static void ImGui_ImplWin32_ShutdownPlatformInterface();
 static void ImGui_ImplWin32_UpdateMonitors();
 
 static bool ImGui_ImplWin32_Init(HWND hWnd)
@@ -823,6 +824,7 @@ static bool ImGui_ImplWin32_Init(HWND hWnd)
 
 static void ImGui_ImplWin32_Shutdown()
 {
+	ImGui_ImplWin32_ShutdownPlatformInterface();
 	g_hWnd = nullptr;
 }
 
@@ -1543,7 +1545,7 @@ static void ImGui_ImplWin32_InitPlatformInterface()
 
 static void ImGui_ImplWin32_ShutdownPlatformInterface()
 {
-	::UnregisterClass("ImGui Platform", ::GetModuleHandle(nullptr));
+	::UnregisterClass("ImGui Platform", ghInstance);
 }
 
 static void ImGui_EnableViewports(bool enable)
