@@ -1,4 +1,4 @@
-May 26 2020
+May 27 2020
 - Updated for TEST
 - Added a /mqcopylayout command
   Usage: /mqcopylayout <charname> <server> opt: res:XxY (not specifying a res, will default to "Windowed") | nohot | noload | nosoc | none
