@@ -987,6 +987,9 @@ FUNCTION_AT_ADDRESS(float get_bearing(float x1, float y1, float x2, float y2),__
 #ifdef Util__FastTime_x
 FUNCTION_AT_ADDRESS(unsigned long  GetFastTime(void),Util__FastTime);
 #endif
+#ifdef __CopyLayout_x
+FUNCTION_AT_ADDRESS(bool CopyLayout(const CXStr& currlayout, const CXStr& newlayout, bool bHotbuttons, bool bLoadouts, bool bSocials, CXStr& ErrorOut, bool bForceReload),__CopyLayout);
+#endif
 #ifdef __GetXTargetType_x
 FUNCTION_AT_ADDRESS(char * __stdcall GetXtargetType(DWORD type), __GetXTargetType);
 #endif

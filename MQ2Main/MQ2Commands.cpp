@@ -5455,4 +5455,91 @@ void RemoveLev(PSPAWNINFO pChar, PCHAR szLine) {
 		}
 	}
 }
+
+void MQCopyLayoutTemp(PSPAWNINFO pChar, PCHAR szLine)
+{
+	if (pLocalPlayer)
+	{
+		CHAR szCurrIni[MAX_STRING] = { 0 };
+		CHAR szLayoutIni[MAX_STRING] = { 0 };
+		CHAR szChar[MAX_STRING] = { 0 };
+		CHAR szServer[MAX_STRING] = { 0 };
+		CHAR szArg1[MAX_STRING] = { 0 };
+
+		GetArg(szChar, szLine, 1);
+		GetArg(szServer, szLine, 2);
+		if (szChar[0] && szServer[0])
+		{
+			CHAR szRes[MAX_STRING] = { "Windowed" };
+			bool bHot = true;
+			bool bLoad = true;
+			bool bSoc = true;
+			GetArg(szArg1, szLine, 3);
+			if (szArg1[0])
+			{
+				CHAR szTemp[MAX_STRING] = { 0 };
+				int len = strlen(szChar) + strlen(szServer);
+				strcpy_s(szTemp, &szLine[len+1]);
+				_strlwr_s(szTemp);
+				if (strstr(szTemp, " none"))
+				{
+					bHot = false;
+					bLoad = false;
+					bSoc = false;
+				}
+				if (strstr(szTemp, " nohot"))
+				{
+					bHot = false;
+				}
+				if (strstr(szTemp, " noload"))
+				{
+					bLoad = false;
+				}
+				if (strstr(szTemp, " nosoc"))
+				{
+					bSoc = false;
+				}
+				if (char *pDest = strstr(szTemp, " res:"))
+				{
+					strcpy_s(szRes, &pDest[5]);
+					if (pDest = strchr(szRes, ' '))
+					{
+						pDest[0] = '\0';
+					}
+				}
+			}
+			sprintf_s(szLayoutIni, "UI_%s_%s.ini", szChar, szServer);
+			CHAR MQCopyLayoutError[MAX_STRING] = { 0 };
+			CXStr Error = MQCopyLayoutError;
+			bool bRet = CopyLayout(szLayoutIni, szRes, bHot, bLoad, bSoc, Error);
+			if (!bRet)
+			{
+				sprintf_s(MQCopyLayoutError, "%s", (const char*)Error);
+			}
+			else
+			{
+				strcpy_s(MQCopyLayoutError, "Layout Copied Successfully.");
+			}
+			WriteChatfSafe("%s", MQCopyLayoutError);
+		}
+		else {
+			WriteChatf("Usage: /mqcopylayout <charname> <server> opt: res:XxY | nohot | noload | nosoc | none");
+			WriteChatf("Example: \"/mqcopylayout eqmule vox\" This is the default, it will copy everything from the layout including hotbuttons, loadouts and socials from the layout using the windowed resolution.");
+			WriteChatf("Example: \"/mqcopylayout eqmule vox nohot\" Will copy everything from the layout excluding hotbuttons from the layout using the windowed resolution.");
+			WriteChatf("Example: \"/mqcopylayout eqmule vox nohot noload\" Will copy everything from the layout excluding hotbuttons and loadouts from the layout using the windowed resolution.");
+			WriteChatf("Example: \"/mqcopylayout eqmule vox nohot noload nosoc\" Will copy everything from the layout excluding hotbuttons, loadouts and socials from the layout using the windowed resolution.");
+			WriteChatf("Example: \"/mqcopylayout eqmule vox none\" Same as the example above. no hotbuttons, no loadouts,no socials");
+			WriteChatf("Example: \"/mqcopylayout eqmule vox res:1600x900\" will copy the layout from the UI_eqmule_vox.ini for the specific 1600x900 resolution (if that resolution actually exist in the UI ini.");
+		}
+	}
+	RemoveCommand("/tempcopylayout");
+}
+void MQCopyLayout(PSPAWNINFO pChar, PCHAR szLine)
+{
+	//yes this is stupid, but if we don't let it pulse once at least we crash.
+	AddCommand("/tempcopylayout", MQCopyLayoutTemp, 0, 1, 0);
+	CHAR szTemp[MAX_STRING] = { 0 };
+	sprintf_s(szTemp, "/tempcopylayout %s", szLine);
+	HideDoCommand((PSPAWNINFO)pLocalPlayer, szTemp, true);
+}
 #endif

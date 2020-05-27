@@ -1,3 +1,22 @@
+May 26 2020
+- Updated for TEST
+- Added a /mqcopylayout command
+  Usage: /mqcopylayout <charname> <server> opt: res:XxY (not specifying a res, will default to "Windowed") | nohot | noload | nosoc | none
+- Example: /mqcopylayout eqmule test
+  Will Copy the layout from UI_eqmule_test.ini setting including hotbuttons loadouts and socials to your UI.
+  Ok, so the default behaviour is to copy everything.
+  Now if you wish to exclude stuff:
+- Example: /mqcopylayout eqmule test nohot
+  Will Copy the layout from UI_eqmule_test.ini setting including loadouts and socials to your UI but NOT hotbuttons.
+- Example: /mqcopylayout eqmule test nohot noload
+  Will Copy the layout from UI_eqmule_test.ini setting including socials to your UI but NOT hotbuttons and NOT loadouts.
+- Example: /mqcopylayout eqmule test nohot noload nosoc
+  Will Copy the layout from UI_eqmule_test.ini setting excluding hotbuttons loadouts and socials to your UI.
+- Example: /mqcopylayout eqmule test none
+  Will Copy the layout from UI_eqmule_test.ini setting excluding hotbuttons loadouts and socials to your UI.
+- Example: /mqcopylayout eqmule test res:1600x900
+  Will Copy the layout from UI_eqmule_test.ini setting including hotbuttons loadouts and socials to your 1600x900 UI (if that resolution actually exist in your UI ini).
+-
 May 21 2020
 - Updated for TEST
 -

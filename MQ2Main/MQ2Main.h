@@ -502,6 +502,7 @@ EQLIB_API float HeadingDiff(float h1, float h2, float *DiffOut);
 EQLIB_API float FixHeading(float Heading);
 EQLIB_API float get_bearing(float x1, float y1, float x2, float y2);
 EQLIB_API unsigned long GetFastTime(void);
+EQLIB_API bool CopyLayout(const CXStr& currlayout, const CXStr& newlayout, bool bHotbuttons, bool bLoadouts, bool bSocials, CXStr& ErrorOut, bool bForceReload = false);
 EQLIB_API char * __stdcall GetXtargetType(DWORD type);
 EQLIB_API DWORD EQGetTime();
 EQLIB_API CXStr *__cdecl STMLToText(CXStr *Out, CXStr const &In, bool bFlag);

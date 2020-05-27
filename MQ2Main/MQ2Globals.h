@@ -1115,6 +1115,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD Teleport_Table;
 	EQLIB_VAR DWORD Teleport_Table_Size;
 	EQLIB_VAR DWORD Util__FastTime;
+	EQLIB_VAR DWORD __CopyLayout;
+	
 	EQLIB_VAR DWORD wwsCrashReportCheckForUploader;
 	EQLIB_VAR DWORD wwsCrashReportPlatformLaunchUploader;
 	
