@@ -44,19 +44,27 @@ MQ2AugType::MQ2AugType() : MQ2Type("augtype")
 
 bool MQ2AugType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
-	CONTENTS* pCont = (CONTENTS*)VarPtr.HighPart;
+	if (!pCharData)
+		return false;
+
+	auto slotWithIdx = VarPtr.Get<MQSlotInItem>();
+	if (!slotWithIdx)
+		return false;
+
+	auto globalIdx = slotWithIdx->GlobalIndex;
+	auto pCont = pCharData->GetItemByGlobalIndex(globalIdx);
 	if (!pCont)
 		return false;
 
-	PITEMINFO pItem = GetItemFromContents(pCont);
+	auto pItem = pCont->GetItemDefinition();
 	if (!pItem)
 		return false;
+
+	int index = slotWithIdx->Slot;
 
 	MQTypeMember* pMember = MQ2AugType::FindMember(Member);
 	if (!pMember)
 		return false;
-
-	DWORD index = VarPtr.DWord;
 
 	switch (static_cast<AugTypeMembers>(pMember->ID))
 	{
@@ -122,25 +130,35 @@ bool MQ2AugType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar
 		}
 		return false;
 
-	default: break;
+	default:
+		return false;
 	};
-
-	return false;
 }
 
 bool MQ2AugType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	if (CONTENTS* pCont = (CONTENTS*)VarPtr.HighPart)
-	{
-		if (CONTENTS* pAug = pCont->GetContent(VarPtr.DWord))
-		{
-			if (ITEMINFO* pAugItem = GetItemFromContents(pAug))
-			{
-				strcpy_s(Destination, MAX_STRING, pAugItem->Name);
-				return true;
-			}
-		}
-	}
-	return false;
+	if (!pCharData)
+		return false;
+
+	auto slotWithIdx = VarPtr.Get<MQSlotInItem>();
+	if (!slotWithIdx)
+		return false;
+
+	auto globalIdx = slotWithIdx->GlobalIndex;
+	auto pCont = pCharData->GetItemByGlobalIndex(globalIdx);
+	if (!pCont)
+		return false;
+
+	int index = slotWithIdx->Slot;
+	auto pAugCont = pCont->GetContent(index);
+	if (!pAugCont)
+		return false;
+
+	auto pAug = pAugCont->GetItemDefinition();
+	if (!pAug)
+		return false;
+
+	strcpy_s(Destination, MAX_STRING, pAug->Name);
+	return true;
 }
 

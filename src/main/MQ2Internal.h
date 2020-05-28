@@ -18,6 +18,7 @@
 #include <memory>
 #include <mutex>
 #include <vector>
+#include <variant>
 
 namespace mq {
 
@@ -672,82 +673,222 @@ private:
 
 //============================================================================
 
+union MQPrimitiveData
+{
+	void* Ptr;
+	float Float;
+	DWORD DWord;
+	ARGBCOLOR Argb;
+	int32_t Int;
+	double Double;
+	int64_t Int64;
+	uint64_t UInt64;
+	ULARGE_INTEGER LargeUInt;
+};
+
 struct MQVarPtr
 {
-	union {
-		struct {
-			void* Ptr;
-		};
-		struct {
-			float Float;
-		};
-		struct {
-			DWORD DWord;
-		};
-		struct {
-			int32_t LowPart;
-			int32_t HighPart;
-		};
-		struct {
-			ARGBCOLOR Argb;
-		};
-		struct {
-			int32_t Int;
-		};
-		struct {
-			uint8_t Array[4];
-		};
-		struct {
-			uint8_t FullArray[8];
-		};
+	std::variant<MQPrimitiveData, std::shared_ptr<void>, CXStr> Data;
 
-		double   Double;
-		int64_t  Int64;
-		uint64_t UInt64;
+	enum VariantIdx
+	{
+		PlainData = 0,
+		ComplexObject,
+		String
 	};
+
+	template <typename T>
+	struct ReturnType { using type = std::shared_ptr<T>; };
+
+	template <typename T>
+	typename ReturnType<T>::type Set(T Object)
+	{
+		return std::static_pointer_cast<T>(std::get<std::shared_ptr<void>>(Data = std::shared_ptr<T>(new T(Object),
+			[](T* ptr) { if constexpr (std::is_array_v<T>) delete[] ptr; else delete ptr; })));
+	}
+
+	template <typename T>
+	typename ReturnType<T>::type Set(std::shared_ptr<T> Object)
+	{
+		if (Object)
+			return Set<T>(Object);
+
+		return std::static_pointer_cast<T>(std::get<std::shared_ptr<void>>(Data = std::shared_ptr<T>()));
+	}
+
+	template <typename T>
+	typename ReturnType<T>::type Get()
+	{
+		if (Data.index() != VariantIdx::ComplexObject)
+			return std::shared_ptr<T>();
+
+		return std::static_pointer_cast<T>(std::get<std::shared_ptr<void>>(Data));
+	}
+
+	template <> struct ReturnType<CXStr> { using type = CXStr; };
+	template <>
+	CXStr Set<CXStr>(CXStr String)
+	{
+		return std::get<CXStr>(Data = String);
+	}
+
+	template <>
+	CXStr Get<CXStr>()
+	{
+		if (Data.index() != VariantIdx::String)
+			return CXStr();
+
+		return std::get<CXStr>(Data);
+	}
+
+	MQPrimitiveData get_POD() const
+	{
+		if (Data.index() != VariantIdx::PlainData)
+		{
+			MQPrimitiveData u;
+			u.UInt64 = 0;
+			return u;
+		}
+
+		return std::get<MQPrimitiveData>(Data);
+	}
+
+	MQPrimitiveData set_POD(MQPrimitiveData POD)
+	{
+		return std::get<MQPrimitiveData>(Data = POD);
+	}
+
+	void* get_Ptr() const { return get_POD().Ptr; }
+	void* set_Ptr(void* Ptr) {
+		auto u = get_POD();
+		u.Ptr = Ptr;
+		return set_POD(u).Ptr;
+	}
+	__declspec(property(get = get_Ptr, put = set_Ptr)) void* Ptr;
+	template <> struct ReturnType<void*> { using type = void*; };
+	template <> void* Set<void*>(void* Ptr) { return set_Ptr(Ptr); }
+	template <> void* Get<void*>() { return get_POD().Ptr; }
+
+	float get_Float() const { return get_POD().Float; }
+	float set_Float(float Float)
+	{
+		auto u = get_POD();
+		u.Float = Float;
+		return set_POD(u).Float;
+	}
+	__declspec(property(get = get_Float, put = set_Float)) float Float;
+	template <> struct ReturnType<float> { using type = float; };
+	template <> float Set<float>(float Float) { return set_Float(Float); }
+	template <> float Get<float>() { return get_POD().Float; }
+
+	DWORD get_DWord() const { return get_POD().DWord; }
+	DWORD set_DWord(DWORD DWord)
+	{
+		auto u = get_POD();
+		u.DWord = DWord;
+		return set_POD(u).DWord;
+	}
+	__declspec(property(get = get_DWord, put = set_DWord)) DWORD DWord;
+	template <> struct ReturnType<DWORD> { using type = DWORD; };
+	template <> DWORD Set<DWORD>(DWORD DWord) { return set_DWord(DWord); }
+	template <> DWORD Get<DWORD>() { return get_POD().DWord; }
+
+	ARGBCOLOR get_Argb() const { return get_POD().Argb; }
+	ARGBCOLOR set_Argb(ARGBCOLOR Argb)
+	{
+		auto u = get_POD();
+		u.Argb = Argb;
+		return set_POD(u).Argb;
+	}
+	__declspec(property(get = get_Argb, put = set_Argb)) ARGBCOLOR Argb;
+	template <> struct ReturnType<ARGBCOLOR> { using type = ARGBCOLOR; };
+	template <> ARGBCOLOR Set<ARGBCOLOR>(ARGBCOLOR Argb) { return set_Argb(Argb); }
+	template <> ARGBCOLOR Get<ARGBCOLOR>() { return get_POD().Argb; }
+
+	int32_t get_Int() const { return get_POD().Int; }
+	int32_t set_Int(int32_t Int)
+	{
+		auto u = get_POD();
+		u.Int = Int;
+		return set_POD(u).Int;
+	}
+	__declspec(property(get = get_Int, put = set_Int)) int32_t Int;
+	template <> struct ReturnType<int32_t> { using type = int32_t; };
+	template <> int32_t Set<int32_t>(int32_t Int) { return set_Int(Int); }
+	template <> int32_t Get<int32_t>() { return get_POD().Int; }
+
+	double get_Double() const { return get_POD().Double; }
+	double set_Double(double Double)
+	{
+		auto u = get_POD();
+		u.Double = Double;
+		return set_POD(u).Double;
+	}
+	__declspec(property(get = get_Double, put = set_Double)) double Double;
+	template <> struct ReturnType<double> { using type = double; };
+	template <> double Set<double>(double Double) { return set_Double(Double); }
+	template <> double Get<double>() { return get_POD().Double; }
+
+	int64_t get_Int64() const { return get_POD().Int64; }
+	int64_t set_Int64(int64_t Int64)
+	{
+		auto u = get_POD();
+		u.Int64 = Int64;
+		return set_POD(u).Int64;
+	}
+	__declspec(property(get = get_Int64, put = set_Int64)) int64_t Int64;
+	template <> struct ReturnType<int64_t> { using type = int64_t; };
+	template <> int64_t Set<int64_t>(int64_t Int64) { return set_Int64(Int64); }
+	template <> int64_t Get<int64_t>() { return get_POD().Int64; }
+
+	uint64_t get_UInt64() const { return get_POD().UInt64; }
+	uint64_t set_UInt64(uint64_t UInt64)
+	{
+		auto u = get_POD();
+		u.UInt64 = UInt64;
+		return set_POD(u).UInt64;
+	}
+	__declspec(property(get = get_UInt64, put = set_UInt64)) uint64_t UInt64;
+	template <> struct ReturnType<uint64_t> { using type = uint64_t; };
+	template <> uint64_t Set<uint64_t>(uint64_t UInt64) { return set_UInt64(UInt64); }
+	template <> uint64_t Get<uint64_t>() { return get_POD().UInt64; }
+
+	DWORD get_LowPart() const { return get_POD().LargeUInt.LowPart; }
+	DWORD set_LowPart(DWORD LowPart)
+	{
+		auto u = get_POD();
+		u.LargeUInt.LowPart = LowPart;
+		return set_POD(u).LargeUInt.LowPart;
+	}
+	__declspec(property(get = get_LowPart, put = set_LowPart)) DWORD LowPart;
+
+	DWORD get_HighPart() const { return get_POD().LargeUInt.HighPart; }
+	DWORD set_HighPart(DWORD HighPart)
+	{
+		auto u = get_POD();
+		u.LargeUInt.HighPart = HighPart;
+		return set_POD(u).LargeUInt.HighPart;
+	}
+	__declspec(property(get = get_HighPart, put = set_HighPart)) DWORD HighPart;
+	template <> struct ReturnType<ULARGE_INTEGER> { using type = ULARGE_INTEGER; };
+	template <> ULARGE_INTEGER Set<ULARGE_INTEGER>(ULARGE_INTEGER LargeUInt)
+	{
+		auto u = get_POD();
+		u.LargeUInt = LargeUInt;
+		return set_POD(u).LargeUInt;
+	}
+	template <> ULARGE_INTEGER Get<ULARGE_INTEGER>() { return get_POD().LargeUInt; }
 };
 using MQ2VARPTR [[deprecated("Use MQVarPtr instead")]] = MQVarPtr;
 using PMQ2VARPTR [[deprecated("Use MQVarPtr* instead")]] = MQVarPtr*;
 
-struct MQTypeVar
+struct MQTypeVar : public MQVarPtr
 {
 	MQ2Type* Type = nullptr;
 
-	union {
-		MQVarPtr VarPtr;
-
-		struct {
-			void*   Ptr;
-		};
-		struct {
-			int32_t LowPart;
-			int32_t HighPart;
-		};
-		struct {
-			float   Float;
-		};
-		struct {
-			uint32_t DWord;
-		};
-		struct {
-			ARGBCOLOR Argb;
-		};
-		struct {
-			int   Int;
-		};
-		struct {
-			uint8_t Array[4];
-		};
-		struct {
-			uint8_t FullArray[8];
-		};
-		double   Double;
-		int64_t  Int64;
-		uint64_t UInt64;
-	};
-
-	// Initialization that covers the full range of data
-	MQTypeVar() { Int64 = 0; }
+	MQVarPtr GetVarPtr() const { return static_cast<MQVarPtr>(*this); }
+	MQVarPtr SetVarPtr(const MQVarPtr& VarPtr) { Data = VarPtr.Data; return static_cast<MQVarPtr>(*this); }
+	__declspec(property(get = GetVarPtr, put = SetVarPtr)) MQVarPtr VarPtr;
 };
 using MQ2TYPEVAR [[deprecated("Use MQTypeVar instead")]] = MQTypeVar;
 using PMQ2TYPEVAR [[deprecated("Use MQTypeVar* instead")]] = MQTypeVar;
@@ -878,4 +1019,67 @@ struct MQGroundObject
 
 int GetTriggerSPA(SPELL* pSpell);
 
+// this is a helper class to help us deprecate global variables
+template <typename T>
+class Property
+{
+private:
+	T(*Getter)();
+	T(*Setter)(const T&);
+
+public:
+	Property(T(*Getter)(), T(*Setter)(const T&)) : Getter(Getter), Setter(Setter) {}
+
+	operator T() const
+	{
+		return Getter();
+	}
+
+	T operator=(const T& other)
+	{
+		return Setter(other);
+	}
+
+	bool operator==(const T& other) const
+	{
+		return Getter() == other;
+	}
+};
+
+// need to specialize to pointers for special handling of them
+template <typename T>
+class Property<T*>
+{
+private:
+	T*(*Getter)();
+	T*(*Setter)(T*);
+
+public:
+	Property(T*(*Getter)(), T*(*Setter)(T*)) : Getter(Getter), Setter(Setter) {}
+
+	operator T*() const
+	{
+		return Getter();
+	}
+
+	T* operator=(T* other)
+	{
+		return Setter(other);
+	}
+
+	bool operator==(T* other) const
+	{
+		return Getter() == other;
+	}
+
+	T& operator*()
+	{
+		return *Getter();
+	}
+
+	T* operator->()
+	{
+		return Getter();
+	}
+};
 } // namespace mq

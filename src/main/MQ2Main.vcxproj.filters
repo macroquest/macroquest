@@ -380,6 +380,9 @@
     <ClCompile Include="..\common\HotKeys.cpp">
       <Filter>Source Files\common</Filter>
     </ClCompile>
+    <ClCompile Include="MQ2GroundSpawns.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="MQ2DeveloperTools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -482,6 +485,9 @@
       <Filter>Header Files\common</Filter>
     </ClInclude>
     <ClInclude Include="MQ2Args.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MQ2DataContainers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\contrib\tinyfsm\include\tinyfsm.hpp">

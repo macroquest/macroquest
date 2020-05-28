@@ -176,9 +176,86 @@ std::map<DWORD, std::list<MQSpawnSearch>> gAlertMap;
 
 SPAWNINFO MercenarySpawn = { 0 };
 SPAWNINFO PetSpawn = { 0 };
-SPAWNINFO EnviroTarget = { 0 };
-MQGroundObject GroundObject;
-GROUNDITEM* pGroundTarget = nullptr;
+Property<SPAWNINFO> EnviroTarget = Property<SPAWNINFO>(
+	[]() -> SPAWNINFO
+	{
+		auto ground = CurrentGroundSpawn();
+		if (ground)
+			return ground.ToSpawn();
+
+		return { 0 };
+	},
+	[](const SPAWNINFO& other) -> SPAWNINFO {
+		return GetGroundSpawnByID(other.mActorClient.Race).ToSpawn();
+	});
+
+static MQGroundObject FromGroundSpawn(const MQGroundSpawn& ground)
+{
+	MQGroundObject ret;
+
+	if (ground.Type == MQGroundSpawnType::Ground)
+	{
+		ret.Type = GO_GroundType;
+		ret.GroundItem = *ground.Get<EQGroundItem>();
+	}
+	else if (ground.Type == MQGroundSpawnType::Placed)
+	{
+		auto placed = ground.Get<EQPlacedItem>();
+		ret.Type = GO_ObjectType;
+		ret.ObjPtr = (void*)placed;
+		ret.GroundItem.DropID = placed->RealEstateItemID;
+		ret.GroundItem.DropSubID = placed->RealEstateID;
+		ret.GroundItem.Expires = 0;
+		ret.GroundItem.Heading = placed->Heading;
+		ret.GroundItem.pContents = nullptr;
+		strcpy_s(ret.GroundItem.Name, GetFriendlyNameForPlacedItem(placed).c_str());
+		ret.GroundItem.Pitch = placed->Angle;
+		ret.GroundItem.pNext = nullptr;
+		ret.GroundItem.pPrev = nullptr;
+		ret.GroundItem.pSwitch = (PEQSWITCH)placed->pActor;
+		ret.GroundItem.Roll = placed->Roll;
+		ret.GroundItem.Scale = placed->Scale;
+		ret.GroundItem.Weight = 0;
+		ret.GroundItem.X = placed->X;
+		ret.GroundItem.Y = placed->Y;
+		ret.GroundItem.Z = placed->Z;
+		ret.GroundItem.ZoneID = pLocalPlayer->GetZoneID() & 0x7FFF;
+	}
+	else
+	{
+		ret.Type = GO_None;
+	}
+
+	return ret;
+}
+
+Property<MQGroundObject> GroundObject = Property<MQGroundObject>(
+	[]() -> MQGroundObject
+	{
+		return FromGroundSpawn(CurrentGroundSpawn());
+	},
+	[](const MQGroundObject& other) -> MQGroundObject
+	{
+		return FromGroundSpawn(GetGroundSpawnByID(other.GroundItem.DropID));
+	});
+
+Property<GROUNDITEM*> pGroundTarget = Property<GROUNDITEM*>(
+	[]() -> GROUNDITEM*
+	{
+		auto ground = CurrentGroundSpawn();
+		if (ground.Type == MQGroundSpawnType::Ground)
+			return ground.Get<EQGroundItem>();
+
+		return nullptr;
+	},
+	[](GROUNDITEM* other) -> GROUNDITEM*
+	{
+		if (!other)
+			return nullptr;
+
+		return GetGroundSpawnByID(other->DropID).Get<EQGroundItem>();
+	});
+
 SPAWNINFO DoorEnviroTarget = { 0 };
 DOOR* pDoorTarget = nullptr;
 ITEMDB* gItemDB = nullptr;

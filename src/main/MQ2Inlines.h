@@ -380,6 +380,13 @@ inline float GetDistance(float X1, float Y1, float X2, float Y2)
 	return sqrtf(dX * dX + dY * dY);
 }
 
+inline float GetDistanceSquared(float X1, float Y1, float X2, float Y2)
+{
+	float dX = X1 - X2;
+	float dY = Y1 - Y2;
+	return dX * dX + dY * dY;
+}
+
 inline float GetDistance3D(float X1, float Y1, float Z1, float X2, float Y2, float Z2)
 {
 	float dX = X1 - X2;
@@ -414,6 +421,14 @@ inline float Get3DDistance(float X1, float Y1, float Z1, float X2, float Y2, flo
 	return sqrtf(dX * dX + dY * dY + dZ * dZ);
 }
 
+inline float Get3DDistanceSquared(float X1, float Y1, float Z1, float X2, float Y2, float Z2)
+{
+	float dX = X1 - X2;
+	float dY = Y1 - Y2;
+	float dZ = Z1 - Z2;
+	return dX * dX + dY * dY + dZ * dZ;
+}
+
 inline float DistanceToSpawn(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
 {
 	return GetDistance(pChar, pSpawn);
@@ -424,6 +439,17 @@ inline float Distance3DToSpawn(const T1& pSpawn1, const T2& pSpawn2)
 {
 	return Get3DDistance(((SPAWNINFO*)pSpawn1)->X, ((SPAWNINFO*)pSpawn1)->Y, ((SPAWNINFO*)pSpawn1)->Z,
 		((SPAWNINFO*)pSpawn2)->X, ((SPAWNINFO*)pSpawn2)->Y, ((SPAWNINFO*)pSpawn2)->Z);
+}
+
+template <typename Reference, typename T, typename Func>
+void DistanceSort(const Reference& Ref, std::vector<T>& Vector, Func Distance)
+{
+	// std::sort is guaranteed max complexity of O(nlogn)
+	std::sort(Vector.begin(), Vector.end(),
+		[&Ref, &Distance](const T& a, const T& b)
+		{
+			return Distance(Ref, a) < Distance(Ref, b);
+		});
 }
 
 inline bool _FileExists(const char* filename)

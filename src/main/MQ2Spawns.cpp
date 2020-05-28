@@ -688,6 +688,8 @@ static void AddGroundItem()
 
 static void RemoveGroundItem(EQGroundItem* pGroundItem)
 {
+	InvalidateObservedEQObject(pGroundItem);
+
 	if (pPendingGrounds)
 	{
 		std::scoped_lock lock(s_groundsMutex);

@@ -411,6 +411,7 @@
     <ClCompile Include="MQ2DetourAPI.cpp" />
     <ClCompile Include="MQ2Globals.cpp" />
     <ClCompile Include="MQ2ImGuiAPI.cpp" />
+    <ClCompile Include="MQ2GroundSpawns.cpp" />
     <ClCompile Include="MQ2KeyBinds.cpp" />
     <ClCompile Include="MQ2LoginFrontend.cpp" />
     <ClCompile Include="MQ2MacroCommands.cpp" />
@@ -459,6 +460,7 @@
     <ClInclude Include="CrashHandler.h" />
     <ClInclude Include="MQ2Args.h" />
     <ClInclude Include="MQ2Commands.h" />
+    <ClInclude Include="MQ2DataContainers.h" />
     <ClInclude Include="MQ2DeveloperTools.h" />
     <ClInclude Include="MQ2Globals.h" />
     <ClInclude Include="MQ2Inlines.h" />

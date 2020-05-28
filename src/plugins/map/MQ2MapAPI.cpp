@@ -281,8 +281,9 @@ void AddGroundItem(PGROUNDITEM pGroundItem)
 {
 	SPAWNINFO* pFakeSpawn = new SPAWNINFO;
 	memset(pFakeSpawn, 0, sizeof(SPAWNINFO));
-	GetFriendlyNameForGroundItem(pGroundItem, pFakeSpawn->Name, sizeof(pFakeSpawn->Name));
-	strcpy_s(pFakeSpawn->DisplayedName, pFakeSpawn->Name);
+	auto name = GetFriendlyNameForGroundItem(pGroundItem);
+	strcpy_s(pFakeSpawn->Name, name.c_str());
+	strcpy_s(pFakeSpawn->DisplayedName, name.c_str());
 	pFakeSpawn->X = pGroundItem->X;
 	pFakeSpawn->Y = pGroundItem->Y;
 	pFakeSpawn->Z = pGroundItem->Z;
@@ -464,7 +465,7 @@ void MapUpdate()
 	pOldLastTarget = pLastTarget;
 	if (pLastTarget && pLastTarget->pSpawn != (SPAWNINFO*)pTarget)
 	{
-		if (pLastTarget->pSpawn == &EnviroTarget || !CanDisplaySpawn(pLastTarget->SpawnType, pLastTarget->pSpawn))
+		if (!CanDisplaySpawn(pLastTarget->SpawnType, pLastTarget->pSpawn))
 		{
 			RemoveSpawn(pLastTarget);
 		}
@@ -848,8 +849,22 @@ bool MapSelectTarget()
 
 	if (pMapSpawn->SpawnType == ITEM)
 	{
-		EnviroTarget = *pMapSpawn->pSpawn;
-		EnviroTarget.Type = SPAWN_NPC;
+		if (pMapSpawn->pSpawn)
+		{
+			// this member of spawn is set to DropID when we create the fake item spawn
+			GetGroundSpawnByID(pMapSpawn->pSpawn->mActorClient.Race);
+
+			// don't need to do anything else here, this will set our target for us, but give some feedback
+			auto result = CurrentGroundSpawn();
+			if (result)
+			{
+				WriteChatf("Item '%s' targeted.", result.DisplayName().c_str());
+			}
+			else
+			{
+				MacroError("Couldn't target item from map click.");
+			}
+		}
 	}
 	else
 	{
@@ -1010,68 +1025,6 @@ char* GenerateSpawnName(SPAWNINFO* pSpawn, char* NameString)
 #define AddString(str) {sOutput.append( str );}
 #define AddInt(yourint) {sOutput.append( std::to_string( yourint ) );}
 #define AddFloat10th(yourfloat) {sOutput.append( std::to_string( yourfloat ) );}
-
-	auto FormatAnonymizedName = [&](SPAWNINFO* pSpawn, const char* defaultName)
-	{
-		switch (pSpawn->Type)
-		{
-		case SPAWN_CORPSE:
-			if (pSpawn->Deity)
-			{
-				AddString(GetClassDesc(pSpawn->GetClass()));
-			}
-			else
-			{
-				AddString(pSpawn->DisplayedName);
-			}
-			break;
-
-		case SPAWN_NPC:
-			if (pSpawn->MasterID || pSpawn->Rider)
-			{
-				bool isPlayers = false;
-
-				if (SPAWNINFO * petOwner = (SPAWNINFO*)GetSpawnByID(pSpawn->MasterID))
-				{
-					if (petOwner->Type == SPAWN_PLAYER || petOwner->Type == SPAWN_CORPSE)
-					{
-						isPlayers = true;
-					}
-				}
-
-				if (pSpawn->Rider)
-				{
-					if (SPAWNINFO * rider = (SPAWNINFO*)GetSpawnByID(pSpawn->Rider->SpawnID))
-					{
-						if (rider->Type == SPAWN_PLAYER)
-							isPlayers = true;
-					}
-				}
-
-				if (isPlayers)
-				{
-					AddString(GetClassDesc(pSpawn->GetClass()));
-				}
-				else
-				{
-					AddString(defaultName);
-				}
-			}
-			else
-			{
-				AddString(defaultName);
-			}
-			break;
-
-		case SPAWN_PLAYER:
-			AddString(GetClassDesc(pSpawn->GetClass()));
-			break;
-
-		default:
-			AddString(defaultName);
-			break;
-		}
-	};
 
 	for (unsigned long N = 0; NameString[N]; N++)
 	{

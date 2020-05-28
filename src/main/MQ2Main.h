@@ -64,6 +64,7 @@ using namespace eqlib;
 #include "MQ2TopLevelObjects.h"
 #include "MQ2Commands.h"
 #include "MQ2Args.h"
+#include "MQ2DataContainers.h"
 #include "datatypes/MQ2DataTypes.h"
 
 // Link up ImGui
@@ -250,6 +251,8 @@ MQLIB_API void ShutdownMQ2Data();
 MQLIB_API bool ParseMacroData(char* szOriginal, size_t BufferSize);
 MQLIB_API bool AddMQ2Data(const char* szName, fMQData Function);
 MQLIB_API bool RemoveMQ2Data(const char* szName);
+MQLIB_API void AddObservedEQObject(const std::shared_ptr<MQTransient>& Object);
+MQLIB_API void InvalidateObservedEQObject(void* Object);
 MQLIB_API MQ2Type* FindMQ2DataType(const char* szName);
 MQLIB_API MQDataItem* FindMQ2Data(const char* szName);
 MQLIB_API MQDataVar* FindMQ2DataVariable(const char* szName);
@@ -272,6 +275,7 @@ MQLIB_API bool IsMouseWaitingForButton();
 MQLIB_API void MQ2MouseHooks(bool bFlag);
 MQLIB_API bool MoveMouse(int x, int y, bool bClick = false);
 MQLIB_API bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick = false);
+MQLIB_API bool ClickMouseItem(SPAWNINFO* pChar, const MQGroundSpawn& pGroundSpawn, bool left);
 
 /* KEY BINDS */
 MQLIB_API void InitializeMQ2KeyBinds();
@@ -379,6 +383,7 @@ MQLIB_API SPAWNINFO* GetGroupMember(int index);
 MQLIB_API uint32_t GetGroupMainAssistTargetID();
 MQLIB_API uint32_t GetRaidMainAssistTargetID(int index);
 MQLIB_API bool IsAssistNPC(SPAWNINFO* pSpawn);
+MQLIB_API void DoFace(SPAWNINFO* pChar, CVector3 Position);
 
 MQLIB_API CMQ2Alerts CAlerts;
 
@@ -488,7 +493,101 @@ MQLIB_API void DropTimers();
 /*                 */
 
 MQLIB_API bool LoadCfgFile(const char* Filename, bool Delayed = FromPlugin);
+
+/* MQ2GROUNDSPAWNS */
+
+using EQGroundItemPtr = std::shared_ptr<MQEQObject<EQGroundItem>>;
+using EQPlacedItemPtr = std::shared_ptr<MQEQObject<EQPlacedItem>>;
+using AnyMQGroundItem = std::variant<std::monostate, EQGroundItemPtr, EQPlacedItemPtr>;
+enum class MQGroundSpawnType
+{ // this ordering needs to match the GroundSpawn::Object variant class ordering
+	None,
+	Ground,
+	Placed
+};
+
+inline DWORD EQObjectID(EQGroundItem* Object) { return Object->DropID; }
+inline int EQObjectID(EQPlacedItem* Object) { return Object->RealEstateItemID; }
+
+struct MQGroundSpawn
+{
+	MQGroundSpawnType Type;
+	AnyMQGroundItem Object;
+
+	// These ctors will automatically register the Object in the invalidation mapper for zoning
+	MQLIB_OBJECT MQGroundSpawn(EQGroundItem* Object) : Type(MQGroundSpawnType::Ground), Object(ObserveEQObject(Object)) {}
+	MQLIB_OBJECT MQGroundSpawn(EQPlacedItem* Object) : Type(MQGroundSpawnType::Placed), Object(ObserveEQObject(Object)) {}
+	MQLIB_OBJECT MQGroundSpawn() : Type(MQGroundSpawnType::None), Object() {}
+
+	MQLIB_OBJECT float Distance(SPAWNINFO* pSpawn) const;
+	MQLIB_OBJECT float Distance3D(SPAWNINFO* pSpawn) const;
+	MQLIB_OBJECT CActorInterface* Actor() const;
+	MQLIB_OBJECT CXStr Name() const;
+	MQLIB_OBJECT CXStr DisplayName() const;
+	MQLIB_OBJECT CVector3 Position() const;
+	MQLIB_OBJECT int ID() const;
+	MQLIB_OBJECT int SubID() const;
+	MQLIB_OBJECT int ZoneID() const;
+	MQLIB_OBJECT float Heading() const;
+	MQLIB_OBJECT SPAWNINFO ToSpawn() const;
+	MQLIB_OBJECT void Reset();
+
+	template <typename T> T* Get() const { static_assert(false, "Unsupported GroundSpawn Type."); }
+	template <> MQLIB_OBJECT EQGroundItem* Get<EQGroundItem>() const;
+	template <> MQLIB_OBJECT EQPlacedItem* Get<EQPlacedItem>() const;
+
+	inline explicit operator bool() const { return Type != MQGroundSpawnType::None; }
+};
+
+inline bool operator==(const MQGroundSpawn& groundItem, EQGroundItem* other)
+{
+	if (groundItem.Type != MQGroundSpawnType::Ground)
+		return false;
+
+	return groundItem.Get<EQGroundItem>() == other;
+}
+
+inline bool operator==(EQGroundItem* other, const MQGroundSpawn& groundItem)
+{
+	return groundItem == other;
+}
+
+inline bool operator==(const MQGroundSpawn& groundItem, EQPlacedItem* other)
+{
+	if (groundItem.Type != MQGroundSpawnType::Placed)
+		return false;
+
+	return groundItem.Get<EQPlacedItem>() == other;
+}
+
+inline bool operator==(EQPlacedItem* other, const MQGroundSpawn& groundItem)
+{
+	return groundItem == other;
+}
+
+inline bool operator==(const MQGroundSpawn& groundItemA, const MQGroundSpawn& groundItemB)
+{
+	return groundItemA.Type == groundItemB.Type
+		&& groundItemA.Object == groundItemB.Object;
+}
+
+MQLIB_OBJECT MQGroundSpawn GetGroundSpawnByName(std::string_view Name);
+MQLIB_OBJECT MQGroundSpawn GetGroundSpawnByID(int ID);
+MQLIB_OBJECT MQGroundSpawn GetNearestGroundSpawn();
+MQLIB_OBJECT MQGroundSpawn GetNthGroundSpawnFromMe(size_t N);
+MQLIB_OBJECT int GetGroundSpawnCount();
+MQLIB_OBJECT MQGroundSpawn CurrentGroundSpawn();
+MQLIB_OBJECT MQGroundSpawn FirstGroundSpawn();
+MQLIB_OBJECT MQGroundSpawn LastGroundSpawn();
+MQLIB_OBJECT MQGroundSpawn NextGroundSpawn();
+MQLIB_OBJECT MQGroundSpawn PrevGroundSpawn();
+MQLIB_OBJECT void SetGroundSpawn(std::string_view Name);
+MQLIB_OBJECT void SetGroundSpawn(const MQGroundSpawn& groundSpawn);
+MQLIB_OBJECT void ClearGroundSpawn();
+MQLIB_OBJECT CXStr GetFriendlyNameForGroundItem(EQGroundItem* pItem);
+MQLIB_OBJECT CXStr GetFriendlyNameForPlacedItem(EQPlacedItem* pItem);
 MQLIB_API char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, size_t BufferSize);
+
 MQLIB_API void ClearSearchSpawn(MQSpawnSearch* pSearchSpawn);
 MQLIB_API SPAWNINFO* NthNearestSpawn(MQSpawnSearch* pSearchSpawn, int Nth, SPAWNINFO* pOrigin, bool IncludeOrigin = false);
 MQLIB_API int CountMatchingSpawns(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pOrigin, bool IncludeOrigin = false);

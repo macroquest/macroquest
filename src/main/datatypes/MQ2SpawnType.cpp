@@ -1952,11 +1952,19 @@ bool MQ2SpawnType::dataDoorTarget(const char* szIndex, MQTypeVar& Ret)
 
 bool MQ2SpawnType::dataItemTarget(const char* szIndex, MQTypeVar& Ret)
 {
-	if (Ret.Ptr = &EnviroTarget)
+	// FIXME: We don't want to use a global here, change SpawnType to use the shared pointer functionality of VarPtr to remove dependency on EnviroTarget
+	auto ground = CurrentGroundSpawn();
+	if (ground)
 	{
+#pragma warning(push)
+#pragma warning(disable: 4996) // temporarily disable deprecation warnings.
+		EnviroTarget = ground.ToSpawn();
+		Ret.Ptr = &EnviroTarget;
+#pragma warning(pop)
 		Ret.Type = pSpawnType;
 		return true;
 	}
+
 	return false;
 }
 

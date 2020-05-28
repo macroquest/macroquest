@@ -4674,30 +4674,6 @@ int FindSpellListByName(const char* szName)
 	return -1;
 }
 
-char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, size_t BufferSize)
-{
-	szName[0] = 0;
-	if (!pItem)
-		return &szName[0];
-
-	int Item = GetIntFromString(&pItem->Name[2], 0);
-	ACTORDEFENTRY* ptr = ActorDefList;
-	while (ptr->Def)
-	{
-		if (ptr->Def == Item
-			&& (ptr->ZoneID && (ptr->ZoneID < 0 || ptr->ZoneID == (pItem->ZoneID & 0x7FFF))))
-		{
-			sprintf_s(szName, BufferSize, "%s", ptr->Name);
-			return &szName[0];
-		}
-		ptr++;
-
-	}
-
-	sprintf_s(szName, BufferSize, "Drop%05d/%d", Item, pItem->DropID);
-	return szName;
-}
-
 void WriteFilterNames()
 {
 	char szBuffer[MAX_STRING] = { 0 };
@@ -8484,6 +8460,20 @@ bool IsAssistNPC(SPAWNINFO* pSpawn)
 	}
 
 	return false;
+}
+
+void DoFace(SPAWNINFO* pChar, CVector3 Position)
+{
+	gFaceAngle = atan2(Position.X - pChar->X, Position.Y - pChar->Y) * 256.f / PI;
+
+	gLookAngle = atan2(
+		Position.Z - pChar->Z - pChar->AvatarHeight * StateHeightMultiplier(pChar->StandState),
+		Distance3DToPoint(pChar, Position.X, Position.Y, Position.Z)) * 256.f / PI;
+
+	if (gFaceAngle >= 512.0f)
+		gFaceAngle -= 512.0f;
+	if (gFaceAngle < 0.0f)
+		gFaceAngle += 512.0f;
 }
 
 void PrettifyNumber(char* string, size_t bufferSize, int decimals /* = 0 */)

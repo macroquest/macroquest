@@ -703,6 +703,8 @@ void PluginsAddSpawn(SPAWNINFO* pNewSpawn)
 
 void PluginsRemoveSpawn(SPAWNINFO* pSpawn)
 {
+	InvalidateObservedEQObject(pSpawn);
+
 	if (!s_pluginsInitialized)
 		return;
 
