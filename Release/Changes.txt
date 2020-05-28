@@ -1,3 +1,6 @@
+May 28 2020
+- Updated MQ2AutoLogin to support rizlona logins.
+-
 May 27 2020
 - Updated for TEST
 - Added a /mqcopylayout command

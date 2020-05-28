@@ -1822,7 +1822,7 @@ void RemoveXMLFile(const char* filename)
 		std::end(XmlFiles));
 }
 
-CXWnd* FindMQ2Window(PCHAR WindowName)
+CXWnd* FindMQ2Window(PCHAR WindowName, bool bVisibleOnly /*false*/)
 {
 	WindowInfo Info;
 	std::string Name = WindowName;
@@ -1831,8 +1831,18 @@ CXWnd* FindMQ2Window(PCHAR WindowName)
 	// check toplevel windows first
 	if (WindowMap.find(Name) != WindowMap.end())
 	{
-		//found it no need to look further...
-		return WindowMap[Name];
+		if (bVisibleOnly)
+		{
+			if (WindowMap[Name]->IsVisible())
+			{
+				return WindowMap[Name];
+			}
+		}
+		else
+		{
+			//found it no need to look further...
+			return WindowMap[Name];
+		}
 	}
 
 	// didnt find one, is it a container?
@@ -1884,10 +1894,22 @@ CXWnd* FindMQ2Window(PCHAR WindowName)
 	for (auto& N : WindowList)
 	{
 		if (N.second.Name == Name)
-	{
-			namefound = true;
-			Info = N.second;
-			break;
+		{
+			if (bVisibleOnly)
+			{
+				if (N.second.pWnd->IsVisible())
+				{
+					namefound = true;
+					Info = N.second;
+					break;
+				}
+			}
+			else
+			{
+				namefound = true;
+				Info = N.second;
+				break;
+			}
 		}
 	}
 

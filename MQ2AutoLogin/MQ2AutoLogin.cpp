@@ -13,6 +13,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 Change log:
+# Version: 2.9 - EqMule 05-28-2029 - Added more support for confirmation dialogs
 # Version: 2.8 - SwiftyMUSE 03-11-2018 - Added global hotkey processing
 # Version: 2.7 - EqMule 10-04-2016 - Added a new flag to make sure we have tried to get credentials. and some other stuff
 # Version: 2.6 - Derple 08-21-2016 - Added a new flag which disables autologin after the first successful login.  It can re-enabled by pressing HOME.
@@ -348,7 +349,7 @@ bool SetOffsets();
 bool SetOffsetsUI();
 void HandleWindows();
 void LoginReset();
-void SwitchCharacter(PCHAR szName);
+bool SwitchCharacter(PCHAR szName);
 void SelectCharacter(PCHAR szName );
 DWORD GetProcessCount(PCHAR exeName);
 void DebugLog(PCHAR szFormat, ...);
@@ -1404,30 +1405,57 @@ PLUGIN_API VOID OnPulse(VOID)
 		BugTimer++;
 		if (BugTimer > 100 && retrylogincounter==0) {
 			BugTimer = 0;
-			if (CSidlScreenWnd *pWnd = (CSidlScreenWnd *)FindMQ2Window("ConfirmationDialogBox")) {
-				if (pWnd->IsVisible() == 1) {
-					if (CStmlWnd *Child = (CStmlWnd*)pWnd->GetChildItem("cd_textoutput")) {
-						CHAR InputCXStr[MAX_STRING] = { 0 };
-						GetCXStr(Child->STMLText, InputCXStr, MAX_STRING);
-						if (strstr(InputCXStr, "Loading Characters")) {
-							if (DWORD pCharSelect = *(DWORD*)pinstCCharacterListWnd) {
-								retrylogincounter = 1;
-								bLogin = true;
-								if (szServerName && szServerName[0] == '\0') {
-									GetServerName(szServerName);
-								}
-								if (szNewChar && szNewChar[0] == '\0') {
-									CurrentCharacter(szNewChar);
-								}
-								switchTime = MQGetTickCount64() + 3000;
-								Beep(1000, 100);
-								((CCharacterListWnd *)pCharSelect)->Quit();
-								AutoLoginDebug("Quit() called due to charselect list being empty");
+			if (CSidlScreenWnd *pWnd = (CSidlScreenWnd *)FindMQ2Window("ConfirmationDialogBox", true)) {
+				if (CStmlWnd *Child = (CStmlWnd*)pWnd->GetChildItem("cd_textoutput")) {
+					CHAR InputCXStr[MAX_STRING] = { 0 };
+					GetCXStr(Child->STMLText, InputCXStr, MAX_STRING);
+					if (strstr(InputCXStr, "you agree to abide by the server specific rules")) {
+						if (CButtonWnd *pButton = (CButtonWnd*)pWnd->GetChildItem("cd_yes_button")) {
+							pButton->WndNotification(pButton, XWM_LCLICK, 0);
+						}
+						retrylogincounter = 1;
+						bLogin = true;
+						if (szServerName && szServerName[0] == '\0') {
+							GetServerName(szServerName);
+						}
+						if (szNewChar && szNewChar[0] == '\0') {
+							CurrentCharacter(szNewChar);
+						}
+						switchTime = MQGetTickCount64() + 3000;
+						return;
+					}
+					if (strstr(InputCXStr, "Loading Characters")) {
+						if (DWORD pCharSelect = *(DWORD*)pinstCCharacterListWnd) {
+							retrylogincounter = 1;
+							bLogin = true;
+							if (szServerName && szServerName[0] == '\0') {
+								GetServerName(szServerName);
 							}
+							if (szNewChar && szNewChar[0] == '\0') {
+								CurrentCharacter(szNewChar);
+							}
+							switchTime = MQGetTickCount64() + 3000;
+							Beep(1000, 100);
+							((CCharacterListWnd *)pCharSelect)->Quit();
+							AutoLoginDebug("Quit() called due to charselect list being empty");
 						}
 					}
 				}
 			}
+			/*else
+			{
+				if (bLogin)
+				{
+					//well we are bugged somehow...
+					switchTime = 1;
+					if (szServerName && szServerName[0] == '\0') {
+						GetServerName(szServerName);
+					}
+					if (szNewChar && szNewChar[0] == '\0') {
+						CurrentCharacter(szNewChar);
+					}
+				}
+			}*/
 		}
 		if(dwTime && szNewChar[0] && GetAsyncKeyState(VK_END) & 1)
         {
@@ -1483,8 +1511,10 @@ PLUGIN_API VOID OnPulse(VOID)
         }
 		if (szNewChar[0] != '\0' && dwTime && dwTime <= MQGetTickCount64())
 		{
-			SwitchCharacter(szNewChar);
-			szNewChar[0] = 0;
+			if (SwitchCharacter(szNewChar))
+			{
+				szNewChar[0] = 0;
+			}
 			dwTime = 0;
 		}
         if( !szNewChar || szNewChar[0] == '\0' && bEndAfterCharSelect && bLogin )
@@ -1500,7 +1530,7 @@ PLUGIN_API VOID OnPulse(VOID)
 	}
 }
 
-void SwitchCharacter(PCHAR szName)
+bool SwitchCharacter(PCHAR szName)
 {
 	if (szName && szName[0] != '\0') {
 		if (CXWnd*pWnd = FindMQ2Window("CLW_CharactersScreen")) {
@@ -1524,7 +1554,7 @@ void SwitchCharacter(PCHAR szName)
 									bLogin = false;
 								}
 
-								return;
+								return true;
 							}
 						}
 					}
@@ -1537,6 +1567,7 @@ void SwitchCharacter(PCHAR szName)
         AutoLoginDebug("SwitchCharacter failed");
         WriteChatf("\arUsage\ax /switchcharacter \ay<name>\ax");
 	}
+	return false;
 }
 
 void SelectCharacter(PCHAR szName )
@@ -1996,14 +2027,14 @@ void HandleWindows()
 					pWnd = WindowMap["okdialog"]->_GetChildItem("OK_OKButton");
                     if(pWnd)
                         pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
-					ullerrorwait = MQGetTickCount64() + 185000;
+					ullerrorwait = MQGetTickCount64() + 20000;
 				}
 				else if (szTemp[0] && strstr(szTemp, "The world server is currently at maximum capacity. You are still in the login queue for this server"))
 				{
 					pWnd = WindowMap["okdialog"]->_GetChildItem("OK_OKButton");
                     if(pWnd)
                         pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
-					ullerrorwait = MQGetTickCount64() + 185000;//3 mins 5 seconds... no need to click login again and again when this message has been shown...
+					ullerrorwait = MQGetTickCount64() + 20000;//20 seconds... no need to click login again and again when this message has been shown...
 				}
 				else if (szTemp[0] && strstr(szTemp, "The world server is currently at maximum capacity and not allowing further logins until the number of players online decreases.  Please try again later."))
                 {
