@@ -100,6 +100,17 @@
 		</Expand>
 	</Type>
 
+	<Type Name="eqlib::DoublyLinkedList&lt;*&gt;">
+		<DisplayString>{{Size={m_numObjects}}}</DisplayString>
+		<Expand>
+			<LinkedListItems>
+				<HeadPointer>m_pHead</HeadPointer>
+				<NextPointer>m_pNext</NextPointer>
+				<ValueNode>m_object</ValueNode>
+			</LinkedListItems>
+		</Expand>
+	</Type>
+
 	<Type Name="eqlib::VePointer&lt;*&gt;">
 		<DisplayString Condition="m_pObject == 0">empty</DisplayString>
 		<DisplayString Condition="m_pObject != 0">VePointer {*m_pObject}</DisplayString>

@@ -71,9 +71,11 @@ auto EQObjectID(EQType* Object)
 		where EQType here is EQMyType, as noted by the EQType=eqlib::EQMyType 
 	*/
 
+#if !defined(COMMENT_UPDATER)
 	static_assert(false,
 		"No function found to provide a unique identifier for an EQ type. "
 		"Please provide a function named EQObjectID that returns a unique identifier for this object type.")
+#endif
 }
 
 template <typename EQType>
@@ -146,5 +148,5 @@ std::shared_ptr<MQEQObject<U>> ObserveEQObject(U* Object)
 	AddObservedEQObject(ptr);
 	return ptr;
 }
-}
 
+} // namespace mq

@@ -22,7 +22,8 @@
 #include <wincrypt.h>
 
 // This is a constant set of live server shortnames
-const mq::ci_unordered::map<int> ServerData = {
+const mq::ci_unordered::map<std::string_view, int> ServerData = {
+	{ "rizlona",     169 },
 	{ "lockjaw",     160 },
 	{ "ragefire",    159 },
 	{ "vox",         158 },

@@ -112,8 +112,8 @@ public:
 
 			// Redirect CXWndManager and CSidlManager to the login instances now that we know that the
 			// frontend is actually running now.
-			pWndMgr = EQMain__CXWndManager;
-			pSidlMgr = EQMain__CSidlManager;
+			pWndMgr = EQMain__pinstCXWndManager;
+			pSidlMgr = EQMain__pinstCSidlManager;
 
 			// Since we have ensured that we have window and sidl managers, load the pre-charselect windows
 			InitializeLoginWindows();
@@ -199,7 +199,7 @@ void InitializeLoginDetours()
 		}
 	}
 
-	EzDetour(LoginController__GiveTime, &LoginController_Hook::GiveTime_Detour, pLoginController_GiveTime_Trampoline);
+	EzDetour(EQMain__LoginController__GiveTime, &LoginController_Hook::GiveTime_Detour, pLoginController_GiveTime_Trampoline);
 	EzDetour(EQMain__WndProc, EQMain__WndProc_Detour, EQMain__WndProc_Trampoline);
 
 	if (EQMain__CXWndManager__GetCursorToDisplay)
@@ -219,7 +219,7 @@ void RemoveLoginDetours()
 	DebugSpewAlways("Removing Login Detours");
 
 	DWORD detours[] = {
-		LoginController__GiveTime,
+		EQMain__LoginController__GiveTime,
 		EQMain__WndProc,
 		EQMain__CXWndManager__GetCursorToDisplay
 	};
@@ -285,9 +285,9 @@ void TryInitializeLogin()
 	if (InitializeEQMainOffsets())
 	{
 		// these are the offsets that we need to move forward.
-		bool pulseSuccess = LoginController__GiveTime != 0
-			&& EQMain__CXWndManager != 0
-			&& EQMain__CSidlManager != 0;
+		bool pulseSuccess = EQMain__LoginController__GiveTime != 0
+			&& EQMain__pinstCXWndManager != 0
+			&& EQMain__pinstCSidlManager != 0;
 
 		if (pulseSuccess)
 		{
@@ -295,9 +295,9 @@ void TryInitializeLogin()
 		}
 
 		bool overlaySuccess = EQMain__WndProc != 0
-			&& LoginController__ProcessKeyboardEvents
-			&& LoginController__ProcessMouseEvents
-			&& LoginController__FlushDxKeyboard;
+			&& EQMain__LoginController__ProcessKeyboardEvents
+			&& EQMain__LoginController__ProcessMouseEvents
+			&& EQMain__LoginController__FlushDxKeyboard;
 
 		// We'll continue in the first iteration of LoginPulse. This is important
 		// because it means the frontend is actually running.

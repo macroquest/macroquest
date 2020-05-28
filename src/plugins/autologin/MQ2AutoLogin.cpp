@@ -332,13 +332,13 @@ void AutoLoginDebug(std::string_view svLogMessage, const bool bDebugOn /* = AUTO
 			GetLocalTime(&t);
 
 			const std::string strLogMessage = fmt::format("[{Year:0=4d}-{Month:0=2d}-{Day:0=2d} {Hour:0=2d}:{Minute:0=2d}:{Second:0=2d}] {LogMessage}",
-			                            fmt::arg("Year", t.wYear),
-			                                  fmt::arg("Month", t.wMonth),
-			                                  fmt::arg("Day", t.wDay),
-			                                  fmt::arg("Hour", t.wHour),
-			                                  fmt::arg("Minute", t.wMinute),
-			                                  fmt::arg("Second", t.wSecond),
-			                                  fmt::arg("LogMessage", svLogMessage));
+				fmt::arg("Year", t.wYear),
+				fmt::arg("Month", t.wMonth),
+				fmt::arg("Day", t.wDay),
+				fmt::arg("Hour", t.wHour),
+				fmt::arg("Minute", t.wMinute),
+				fmt::arg("Second", t.wSecond),
+				fmt::arg("LogMessage", svLogMessage));
 
 			DebugSpewAlways(strLogMessage.c_str());
 			fprintf(fLog, "%s\n", strLogMessage.c_str());
@@ -445,16 +445,16 @@ PLUGIN_API void OnPulse()
 		if (CXWnd* pWnd = GetWindow("CLW_CharactersScreen"))
 			Login::dispatch(LoginStateSensor(LoginState::CharacterSelect, pWnd));
 	}
-	else if (GetGameState() == GAMESTATE_PRECHARSELECT && g_pServerInfo && MQGetTickCount64() > ReenableTime)
+	else if (GetGameState() == GAMESTATE_PRECHARSELECT && g_pLoginClient && MQGetTickCount64() > ReenableTime)
 	{
 		// pair of WindowNames / ButtonNames
-		std::vector<std::pair<const char*, const char*>> PromptWindows = {
-			{ "OrderWindow", "Order_DeclineButton" },
-			{ "EulaWindow", "EULA_AcceptButton" },
-			{ "seizurewarning", "HELP_OKButton"},
+		static const std::vector<std::pair<const char*, const char*>> PromptWindows = {
+			{ "OrderWindow",          "Order_DeclineButton" },
+			{ "EulaWindow",           "EULA_AcceptButton" },
+			{ "seizurewarning",       "HELP_OKButton"},
 			{ "OrderExpansionWindow", "OrderExp_DeclineButton" },
-			{ "main", "MAIN_ConnectButton" },
-			{ "news", "NEWS_OKButton"}
+			{ "main",                 "MAIN_ConnectButton" },
+			{ "news",                 "NEWS_OKButton"}
 		};
 
 		// Click through any dialogs, don't need a whole state for this
@@ -496,10 +496,10 @@ static bool bShowOverlayDebugInfo = false;
 template <typename T>
 static bool RadioButton(const char* label, T* v, T v_button)
 {
-    const bool pressed = ImGui::RadioButton(label, *v == v_button);
-    if (pressed)
-        *v = v_button;
-    return pressed;
+	const bool pressed = ImGui::RadioButton(label, *v == v_button);
+	if (pressed)
+		*v = v_button;
+	return pressed;
 }
 
 // Demonstrate creating a simple static window with no decoration + a context-menu to choose which corner of the screen to use.

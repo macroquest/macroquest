@@ -113,13 +113,13 @@ class CharacterSelect;
 class CharacterSelectWait;
 class InGame;
 
-class Wait : public Login 
+class Wait : public Login
 {
 protected:
 	bool transit_condition(LoginStateSensor const& e)
 	{
 		return !m_paused &&
-			(GetGameState() != GAMESTATE_PRECHARSELECT || g_pServerInfo) &&	// do nothing at precharselect if we don't have offsets
+			(GetGameState() != GAMESTATE_PRECHARSELECT || g_pLoginClient) && // do nothing at precharselect if we don't have offsets
 			(e.State != m_lastState || m_delayTime < MQGetTickCount64());
 	}
 
@@ -207,7 +207,7 @@ class SplashScreen : public Login
 public:
 	void entry() override
 	{
-		g_pLoginViewManager->SendLMouseClick(CXPoint(1, 1));
+		g_pLoginViewManager->HandleLButtonUp(CXPoint(1, 1));
 		transit<Wait>();
 	}
 };
@@ -324,22 +324,19 @@ public:
 class ServerSelect : public Login
 {
 public:
-	template<typename Predicate>
-	static SERVERLIST* GetServer(Predicate predicate)
+	template <typename Predicate>
+	static EQLS::EQClientServerData* GetServer(Predicate predicate)
 	{
 		if (GetGameState() != GAMESTATE_PRECHARSELECT)
 			return nullptr;
 
 		auto server_list = GetChildWindow<CListWnd>("serverselect", "SERVERSELECT_ServerList");
-		if (server_list && !server_list->ItemsArray.IsEmpty() && g_pServerInfo && g_pServerInfo->pServerList && g_pServerInfo->pServerList->Info)
+		if (server_list && !server_list->ItemsArray.IsEmpty() && g_pLoginClient)
 		{
-			auto pList = g_pServerInfo->pServerList;
-			while (pList)
+			for (EQLS::EQClientServerData* pServer : g_pLoginClient->ServerList)
 			{
-				if (predicate(pList))
-					return pList;
-
-				pList = pList->Next;
+				if (predicate(pServer))
+					return pServer;
 			}
 		}
 
@@ -351,21 +348,20 @@ public:
 	{
 		if (!m_record || m_record->serverName.empty())
 		{
-			AutoLoginDebug(fmt::format("ServerSelect: server name is empty"));
+			AutoLoginDebug("ServerSelect: server name is empty");
 			dispatch(PauseLogin()); // no server to select, pause
 			return false;
 		}
 		else
 		{
 			// get server
-			const auto& live_server = ServerData.find(m_record->serverName);
-			const auto& server_name = live_server == std::cend(ServerData) ? GetServerLongName(m_record->serverName) : std::string(live_server->first);
-			int server_id = live_server == std::cend(ServerData) ? -1 : live_server->second;
+			auto liveServerIter = ServerData.find(m_record->serverName);
+			std::string serverName = liveServerIter == std::cend(ServerData) ? GetServerLongName(m_record->serverName) : std::string(liveServerIter->first);
+			int server_id = liveServerIter == std::cend(ServerData) ? -1 : liveServerIter->second;
 
-			// note that this predicate ensures that a server has a non-null Info member
-			auto server = GetServer([&server_name, &server_id](SERVERLIST* s)
+			auto server = GetServer([&serverName, &server_id](EQLS::EQClientServerData* s)
 				{
-					return s->Info && (s->Info->ID == server_id || ci_equals(s->Info->ServerName, server_name));
+					return s->ID == server_id || ci_equals(s->ServerName, serverName);
 				});
 
 			if (!server)
@@ -374,7 +370,7 @@ public:
 				AutoLoginDebug(fmt::format("ServerSelect: Could not find server {}", m_record ? m_record->serverName : ""));
 				return false;
 			}
-			else if (server->Info->StatusFlags & (eServerStatus_Down | eServerStatus_Locked))
+			else if (server->StatusFlags & (EQLS::eServerStatus_Down | EQLS::eServerStatus_Locked))
 			{
 				return true;
 			}
@@ -382,7 +378,7 @@ public:
 			{
 				action();
 				// join server (both server and Info are already guaranteed to be non-null)
-				g_pLoginServerAPI->EnterGame(server->Info->ID);
+				g_pLoginServerAPI->JoinServer(server->ID);
 				return false;
 			}
 		}
@@ -404,10 +400,7 @@ public:
 	{
 		if (CXWnd* pWnd = GetChildWindow(m_currentWindow, "OK_Display"))
 		{
-			CXMLDataManager* pXmlMgr = pSidlMgr->GetParamManager();
-			CXStr str = pXmlMgr->GetWindowType(pWnd) == UI_STMLBox ?
-				static_cast<CStmlWnd*>(pWnd)->STMLText :
-				pWnd->GetWindowText();
+			CXStr str = pWnd->GetType() == UI_STMLBox ? static_cast<CStmlWnd*>(pWnd)->STMLText : pWnd->GetWindowText();
 
 			if (str.find("The world server is currently at maximum capacity") != CXStr::npos)
 			{
@@ -439,10 +432,7 @@ public:
 	{
 		if (CXWnd* pWnd = GetChildWindow(m_currentWindow, "YESNO_Display"))
 		{
-			CXMLDataManager* pXmlMgr = pSidlMgr->GetParamManager();
-			CXStr str = pXmlMgr->GetWindowType(pWnd) == UI_STMLBox ?
-				static_cast<CStmlWnd*>(pWnd)->STMLText :
-				pWnd->GetWindowText();
+			CXStr str = pWnd->GetType() == UI_STMLBox ? static_cast<CStmlWnd*>(pWnd)->STMLText : pWnd->GetWindowText();
 
 			if (str.find("You already have a character logged into a world server from this account.") != CXStr::npos)
 			{
