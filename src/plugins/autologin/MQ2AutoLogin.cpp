@@ -17,9 +17,11 @@
 #include <mq/Plugin.h>
 
 #include "AutoLoginShared.h"
+#include "MQ2AutoLogin.h"
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
+#include <imgui_internal.h>
 
 #include <map>
 #include <tlhelp32.h>
@@ -29,483 +31,13 @@
 
 namespace fs = std::filesystem;
 
-PLUGIN_VERSION(3.0);
+PLUGIN_VERSION(4.0);
 
 PreSetup("MQ2AutoLogin");
 
-bool AUTOLOGIN_DBG = false;
-
-struct {
-	const char* Name;
-	int ID;
-} ServerData[] = {
-	{"lockjaw",     160},
-	{"ragefire",    159},
-	{"vox",         158},
-	{"trakanon",    155},
-	{"fippy",       156},
-	{"vulak",       157},
-	{"mayong",      163},
-	{"antonius",    100},
-	{"beta",        2},
-	{"brekt",       162},
-	{"bertox",      102},
-	{"bristle",     104},
-	{"cazic",       105},
-	{"drinal",      106},
-	{"erollisi",    109},
-	{"firiona",     111},
-	{"luclin",      116},
-	{"povar",       123},
-	{"rathe",       127},
-	{"tunare",      140},
-	{"xegony",      144},
-	{"zek",         147},
-	{"test",        1},
-	{0, 0},
-};
-
-struct DateStruct
-{
-/*0x18*/ char      Hours;
-/*0x19*/ char      Minutes;
-/*0x1a*/ char      Seconds;
-/*0x1b*/ char      Month;
-/*0x1c*/ char      Day;
-/*0x1e*/ WORD      Year;
-/*0x20*/ CXStr     Unknown0x08;
-/*0x24*/ CXStr     Unknown0x0c;
-/*0x28*/ CXStr     Unknown0x10;
-/*0x30*/ int64_t   TimeStamp;
-/*0x38*/
-};
-
-enum eServerStatus : uint32_t
-{
-	eServerStatus_Down = 1,
-	eServerStatus_Locked = 4
-};
-
-// EQClientServerData
-struct SERVERINFO
-{
-/*0x00*/ int           ID;
-/*0x04*/ CXStr         ServerName;
-/*0x08*/ CXStr         HostName;
-/*0x0C*/ CXStr         ServerIP;
-/*0x10*/ int           ExternalPort;
-/*0x14*/ int           InternalPort;
-/*0x18*/ DateStruct    DateCreated;
-/*0x38*/ int           Flags;
-/*0x3C*/ int           ServerType;
-/*0x40*/ CXStr         LanguageCode;
-/*0x44*/ CXStr         CountryCode;
-/*0x48*/ eServerStatus StatusFlags;
-/*0x4C*/ int           PopulationRanking;
-/*0x50*/
-};
-
-struct SERVERLIST
-{
-/*0x00*/ SERVERINFO* Info;
-/*0x04*/ SERVERLIST* Prev;
-/*0x08*/ SERVERLIST* Next;
-/*0x0C*/ DWORD     Unknown0x0C;
-/*0x10*/ DWORD     Unknown0x10;
-/*0x14*/ DWORD     Unknown0x14;
-/*0x18*/
-};
-
-// LoginClient
-struct SERVERSTUFF
-{
-/*0x000*/ BYTE     Unknown0x000[0x8];
-/*0x008*/ void*    GFXENGINE;
-/*0x00C*/ BYTE     Unknown0x00C[0x9C];
-/*0x0A8*/ DWORD    CurrentServerID;
-/*0x0AC*/ DWORD    Unknown0x0AC;
-/*0x0B0*/ CXStr    LoginName;
-/*0x0B4*/ CXStr    Password;
-/*0x0B8*/ CXStr    LoginNameCopy;
-/*0x0BC*/ CXStr    PasswordCopy;
-/*0x0C0*/ CXStr    AccountKey;
-/*0x0C4*/ BYTE     Unknown0x0C4[0x14];
-/*0x0D8*/ SERVERINFO** FirstServer;
-/*0x0DC*/ SERVERINFO** LastServer;
-/*0x0E0*/ BYTE     Unknown0x0E0[0x8];
-/*0x0E8*/ SERVERLIST* pServerList;
-/*0x0EC*/ DWORD    ServerListSize;
-/*0x0F0*/ BYTE     Unknown0x0F0[0x8];
-/*0x0F8*/ DWORD    QuickConnectServerID;
-/*0x0FC*/ CXStr    QuickConnectServerName;
-/*0x100*/ CXStr    QuickConnectIPAddress;
-/*0x104*/
-};
-
-struct HOST
-{
-	CXStr* Name;
-	int Port;
-};
-
-struct EQDEVICE
-{
-	char Name[0x40];
-};
-
-struct EQLOGIN
-{
-	EQDEVICE  Devices[0x10];
-	int       NumDevices;
-	HWND      hEQWnd;
-	int       ReturnCode; // -1 = failed login
-	char      Login[0x80];
-	char      PW[0x80];
-	char      PW2[0x80];
-	char      ServerLong[0x80];
-	int       ServerPort;
-	char      AccountKey[0x80];
-	int       ActiveDeviceIndex;
-	char      LastZoneEntered[0x20];
-	char      StationName[0x20];
-	char      ExeName[0x20];
-	char      CommandLine[0x1c0];
-	char      ServerShort[0x80];
-	char      Session[0x40];
-	char      Character[0x40];
-	// more below I don't need atm
-};
-
-// work in progress to get short servername... -eqmule
-class LoginClient// : public A_Callback?, public ChannelServerHandler?
-{
-public:
-	void*     A_Callback_vfTable;
-	void*     ChannelServerHandler_vfTable;
-	EQLOGIN*  pLoginData;
-	DoublyLinkedList<HOST*> Hosts;
-	HOST*     pHost;
-	bool      bRetryConnect;
-	// more below don't need right now
-};
-
-bool bWait = false;
-bool bServerWait = false;
-
-class LoginServerAPI;
-class CLoginViewManager;
-
-bool bWeAreDown = false;
-int NotifyOnServerUp = 0;
-bool bLoginCheckDone = false;
-bool bGotOffsets = false;
-ULONGLONG ullerrorwait = 0;
-ForeignPointer<SERVERSTUFF> pServerInfo;
-CLoginViewManager* pLoginViewManager = nullptr;
-DWORD dwEQMainBase = 0;
-DWORD dwSendLMouseClickAddr = 0;
-DWORD dwEnterGameAddr = 0;
-DWORD dwServerID = 0;
-bool bKickActiveChar = true;
-bool bUseMQ2Login = false;
-bool bUseStationNamesInsteadOfSessions = false;
-bool bReLoggin = false;
-bool bEndAfterCharSelect = false;
-bool bLogin = true;
-bool bEnd = false;
-bool bInGame = false;
-bool bSwitchServer = false;
-bool bSwitchChar = false;
-bool bSwitchTime = false;
-bool bInjectorUpdate = false;
-char szCustomIni[64] = { 0 };
-bool gbConsumedCommandLineArguments = false;
-int BugTimer = 0;
-int retrylogincounter = 0;
-
-std::string gCurrentProfile;
-std::string gCurrentAccountName;
-std::string gCurrentPassword;
-std::string gCurrentServerName;
-std::string gCurrentCharacterName;
-std::string gCurrentCharacterClass;
-int         gCurrentCharacterLevel;
-
-std::string gCurrentSelectCharacter;
-std::string gNextCharacterName;
-
-std::string gCommandLineArgs;
-
-ULONGLONG dwTime = 0;
-ULONGLONG switchTime = 0;
-std::map<std::string, CXWnd*> WindowMap;
-
-// this changes frequently so it needs to be done this way
-ForeignPointer<LoginServerAPI> pLoginServerAPI;
-
-void HandleWindows();
-void LoginReset();
-void SelectCharacter(const std::string& characterName, bool enterWorld);
-DWORD GetProcessCount(char* exeName);
-void AutoLoginDebug(std::string_view svLogMessage, bool bDebugOn = AUTOLOGIN_DBG);
-
-//----------------------------------------------------------------------------
-// eqmain.dll
-
-// A3 ? ? ? ? E8 ? ? ? ? 83 C4 ? 85 C0 74 ? 8B 96 ? ? ? ? 52 57 8B C8 E8 ? ? ? ? EB ?
-// Feb 16 2018 Test
-// A3 ? ? ? ? E8 ? ? ? ? 83 C4 04 85 C0
-// LoginViewManager* pLoginViewManager
-PBYTE lvmPattern = (PBYTE)"\xA3\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x83\xC4\x04\x85\xC0";
-char lvmMask[] = "x????x????xxxxx";
-
-// 55 8B EC 6A ? 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC ? 53 56 57 A1 ? ? ? ? 33 C5 50 8D 45 ? 64 A3 ? ? ? ? 8B F1 83 7E ? ?
-// Feb 16 2018 Test
-// 55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 08 53 56 57 A1 ? ? ? ? 33 C5 50 8D 45 F4 64 A3 ? ? ? ? 8B F1 83 7E 14 00 74 5D 51 8B CC 89 65 F0 68 ? ? ? ? E8 ? ? ? ? 51 8B CC 89 65 EC 68 ? ? ? ? C7 45 ? ? ? ? ? E8 ? ? ? ? 8B 4E 14 C6 45 FC 01 E8 ? ? ? ? 8B F8 51 8B DC 8B 0F 85 C9 74 09 51 E8 ? ? ? ? 83 C4 04 8B 07 8B CE 89 03 C7 45 ? ? ? ? ? E8 ? ? ? ? 84 C0 75 17 8B 4E 1C 8B 7D 08 85 C9 74 26 8B 01 57 FF 90 ? ? ? ? 85 C0 74 29 B8 ? ? ? ? 8B 4D F4 64 89 0D ? ? ? ? 59 5F 5E 5B 8B E5 5D C2 04 00 8B 4E 14 85 C9 74 09 8B 01 57 FF 90 ? ? ? ? 8B 0D ? ? ? ? 57 E8 ? ? ? ? 8B 4D F4 64 89 0D ? ? ? ? 59 5F 5E 5B 8B E5 5D C2 04 00
-PBYTE lmousePattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x08\x53\x56\x57\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xF1\x83\x7E\x14\x00\x74\x5D\x51\x8B\xCC\x89\x65\xF0\x68\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x51\x8B\xCC\x89\x65\xEC\x68\x00\x00\x00\x00\xC7\x45\x00\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x8B\x4E\x14\xC6\x45\xFC\x01\xE8\x00\x00\x00\x00\x8B\xF8\x51\x8B\xDC\x8B\x0F\x85\xC9\x74\x09\x51\xE8\x00\x00\x00\x00\x83\xC4\x04\x8B\x07\x8B\xCE\x89\x03\xC7\x45\x00\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x84\xC0\x75\x17\x8B\x4E\x1C\x8B\x7D\x08\x85\xC9\x74\x26\x8B\x01\x57\xFF\x90\x00\x00\x00\x00\x85\xC0\x74\x29\xB8\x00\x00\x00\x00\x8B\x4D\xF4\x64\x89\x0D\x00\x00\x00\x00\x59\x5F\x5E\x5B\x8B\xE5\x5D\xC2\x04\x00\x8B\x4E\x14\x85\xC9\x74\x09\x8B\x01\x57\xFF\x90\x00\x00\x00\x00\x8B\x0D\x00\x00\x00\x00\x57\xE8\x00\x00\x00\x00\x8B\x4D\xF4\x64\x89\x0D\x00\x00\x00\x00\x59\x5F\x5E\x5B\x8B\xE5\x5D\xC2\x04\x00";
-char lmouseMask[] = "xxxxxx????xx????xxxxxxxx????xxxxxxxx????xxxxxxxxxxxxxxx????x????xxxxxxx????xx?????x????xxxxxxxx????xxxxxxxxxxxxx????xxxxxxxxxxx?????x????xxxxxxxxxxxxxxxxxxx????xxxxx????xxxxxx????xxxxxxxxxxxxxxxxxxxxxx????xx????xx????xxxxxx????xxxxxxxxxx";
-
-// A3 ? ? ? ? 8B 56 ? 8B 4A ? 6A ? 51 52 8B C8 C7 45 ? ? ? ? ? E8 ? ? ? ?
-// Feb 16 2018 Test
-// IDA Style Sig: 89 0D ? ? ? ? 8B 46 2C
-// LoginServerAPI
-const uint8_t* LoginServerAPI_Pattern = (PBYTE)"\x89\x0D\x00\x00\x00\x00\x8B\x46\x2C";
-const char LoginServerAPI_Mask[] = "xx????xxx";
-
-// 55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 34 53 56 A1 ? ? ? ? 33 C5 50 8D 45 F4 64 A3 ? ? ? ? 8B F1 33 DB C7 45 ? ? ? ? ? C7 45 ? ? ? ? ? 89 5D EC 89 5D E8 8D 45 E0 50 89 5D FC E8 ? ? ? ? 8D 4D F0 51 E8 ? ? ? ? 83 C4 08 8D 4D C0 E8 ? ? ? ? 8B 45 E4 8B 55 08 50 8D 4D D8 C6 45 FC 01 89 55 D4 E8 ? ? ? ? 8B 4D F0 8B 55 10 8B 45 0C 52 89 4D DC 50 8D 4D C0 51 8B CE E8 ? ? ? ? 8D 4D C0 8B F0 88 5D FC E8 ? ? ? ? C7 45 ? ? ? ? ? C7 45 ? ? ? ? ? 39 5D EC 7E 20 8B 45 E4 83 C0 FC 8B D0 83 C9 FF F0 0F C1 0A 49 85 C9 7F 0C 8B 55 E0 50 8B 42 08 8D 4D E0 FF D0 8B C6 8B 4D F4 64 89 0D ? ? ? ? 59 5E 5B 8B E5 5D C2 0C ?
-//55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 34 53 56 A1
-//Feb 16 2018 Test
-//IDA Style Sig: 55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 34 56
-// 0x55 0x8B 0xEC 0x6A 0xFF 0x68 ? ? ? ? 0x64 0xA1 ? ? ? ? 0x50 0x83 0xEC 0x34 0x56
-// 55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 ?? ?? ?? ?? 50 83 EC 3C 56
-PBYTE lcEGPattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x3C\x56";
-char lcEGMask[] = "xxxxxx????xx????xxxxx";
-
-//----------------------------------------------------------------------------
-
-class CLoginViewManager
-{
-public:
-	int SendLMouseClick(CXPoint&);
-};
-FUNCTION_AT_VARIABLE_ADDRESS(int CLoginViewManager::SendLMouseClick(CXPoint&), dwSendLMouseClickAddr);
-
-class LoginServerAPI
-{
-public:
-	//see 100129F0 in eqmain.dll dated jul 13 2017 - eqmule
-	unsigned int JoinServer(int serverID, void* userdata = 0, int timoutseconds = 10);
-};
-FUNCTION_AT_VARIABLE_ADDRESS(unsigned int LoginServerAPI::JoinServer(int, void*, int), dwEnterGameAddr);
-
-template <typename T = CXWnd>
-T* GetWindow(const std::string& name)
-{
-	auto iter = WindowMap.find(name);
-	if (iter == WindowMap.end())
-		return nullptr;
-
-	return static_cast<T*>(iter->second);
-}
-
-template <typename T = CXWnd>
-T* GetChildWindow(CXWnd* parentWnd, const std::string& child)
-{
-	CXMLDataManager* pXmlMgr = pSidlMgr->GetParamManager();
-	if (!pXmlMgr)
-		return nullptr;
-
-	if (parentWnd)
-	{
-		return static_cast<T*>(parentWnd->GetChildItem(pXmlMgr, CXStr{ child }));
-	}
-
-	return nullptr;
-}
-
-template <typename T = CXWnd>
-T* GetChildWindow(const std::string& parent, const std::string& child)
-{
-	CXMLDataManager* pXmlMgr = pSidlMgr->GetParamManager();
-	if (!pXmlMgr)
-		return nullptr;
-
-	if (CXWnd* parentWnd = GetWindow<CXWnd>(parent))
-	{
-		return static_cast<T*>(parentWnd->GetChildItem(pXmlMgr, CXStr{ child }));
-	}
-
-	return nullptr;
-}
-
-bool IsWindowActive(const std::string& name)
-{
-	// FIXME: do we need this check?
-	if (!dwEQMainBase)
-		return false;
-
-	if (CXWnd* pWnd = GetWindow(name))
-	{
-		return pWnd->IsVisible() && pWnd->IsEnabled();
-	}
-
-	return false;
-}
-
-// Combine IsWindowActive and GetWindow into a single call
-template <typename T = CXWnd>
-T* GetActiveWindow(const std::string& name)
-{
-	auto iter = WindowMap.find(name);
-	if (iter == WindowMap.end())
-		return nullptr;
-
-	T* pWindow = static_cast<T*>(iter->second);
-	if (pWindow && pWindow->IsVisible() && pWindow->IsEnabled())
-	{
-		return pWindow;
-	}
-
-	return nullptr;
-}
-
-// Combine IsWindowActive and GetChildWindow
-template <typename T = CXWnd>
-T* GetActiveChildWindow(const std::string& parent, const std::string& child)
-{
-	CXMLDataManager* pXmlMgr = pSidlMgr->GetParamManager();
-	if (!pXmlMgr)
-		return nullptr;
-
-	if (CXWnd* pParent = GetActiveWindow(parent))
-	{
-		T* pChild = static_cast<T*>(pParent->GetChildItem(pXmlMgr, CXStr{ child }));
-
-		if (pChild && pChild->IsVisible() && pChild->IsEnabled())
-		{
-			return pChild;
-		}
-	}
-
-	return nullptr;
-}
-
-std::string GetPassword()
-{
-	if (pServerInfo)
-	{
-		return std::string{ pServerInfo->Password };
-	}
-
-	return {};
-}
-
-std::string GetServerName()
-{
-	if (EQADDR_SERVERNAME)
-	{
-		return EQADDR_SERVERNAME;
-	}
-
-	return {};
-}
-
-bool CheckServerUp(int ID)
-{
-	if (CListWnd* serverList = GetWindow<CListWnd>("SERVERSELECT_ServerList"))
-	{
-		if (!serverList->ItemsArray.IsEmpty() && pServerInfo)
-		{
-			if (pServerInfo->pServerList && pServerInfo->pServerList->Info)
-			{
-				SERVERLIST* pList = pServerInfo->pServerList;
-				while (pList)
-				{
-					if (pList->Info->ID == ID)
-					{
-						if (pList->Info->StatusFlags & eServerStatus_Locked || pList->Info->StatusFlags & eServerStatus_Down)
-						{
-							bWeAreDown = true;
-							return false;
-						}
-
-						return true;
-					}
-					pList = pList->Next;
-				}
-			}
-		}
-	}
-
-	return false;
-}
-
-// Look up the long name for a server name stored in the configuration
-std::string GetServerLongName(const std::string& serverName)
-{
-	return GetPrivateProfileString("Servers", serverName, "", INIFileName);
-}
-
-// Look at CheckServerUp and factor out common parts
-int GetServerIdFromName(const std::string& serverName)
-{
-	// We can only select server name while in this game state
-	if (GetGameState() != GAMESTATE_PRECHARSELECT)
-	{
-		bGotOffsets = false;
-		return 0;
-	}
-
-	std::string longName = GetServerLongName(serverName);
-	if (longName.empty())
-		return 0;
-
-	if (CListWnd* serverList = GetWindow<CListWnd>("SERVERSELECT_ServerList"))
-	{
-		if (serverList->ItemsArray.Count && pServerInfo)
-		{
-			if (pServerInfo->pServerList && pServerInfo->pServerList->Info)
-			{
-				SERVERLIST* pList = pServerInfo->pServerList;
-				while (pList)
-				{
-					if (pList->Info)
-					{
-						if (ci_equals(pList->Info->ServerName, longName))
-						{
-							return pList->Info->ID;
-						}
-					}
-					pList = pList->Next;
-				}
-			}
-			else
-			{
-				bGotOffsets = false;
-			}
-		}
-	}
-
-	return 0;
-}
-
-int GetServerID(const std::string& serverName)
-{
-	for (int n = 0; ServerData[n].ID; n++)
-	{
-		if (ci_equals(serverName, ServerData[n].Name))
-		{
-			return ServerData[n].ID;
-		}
-	}
-
-	if (int id = GetServerIdFromName(serverName))
-	{
-		return id;
-	}
-
-	return 0;
-}
+// this needs to be a char* to interact with the windows ini system
+char CustomIni[64] = { 0 };
+uint64_t ReenableTime = 0;
 
 void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
 {
@@ -521,49 +53,42 @@ void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	bool okToMoveOn = false;
-
-	// check that we know what this server name is.
-	if (!GetServerID(szServer))
+	// this is just a validity check, that's the only reason we have that set of server names
+	if (ServerData.find(szServer) == std::cend(ServerData) && GetPrivateProfileString("Servers", szServer, "", INIFileName).empty())
 	{
-		// I guess we're just checking if we know the name because
-		// maybe we'll need it later?
-		std::string longName = GetServerLongName(szServer);
-		if (longName.empty())
+		WriteChatf("Invalid server name \ag%s\ax.  Valid server names are:", szServer);
+
+		std::vector<std::string_view> server_names;
+		std::transform(ServerData.cbegin(), ServerData.cend(), server_names.end(), [](const auto& e) { return e.first; });
+		std::vector<std::string> custom_server_names = GetPrivateProfileKeys("Servers", INIFileName);
+
+		server_names.insert(server_names.end(), custom_server_names.cbegin(), custom_server_names.cend());
+		WriteChatColor(join(server_names, ", ").c_str());
+
+		return;
+	}
+
+	Login::dispatch(SetLoginInformation(szServer, szCharacter));
+
+	if (GetGameState() == GAMESTATE_INGAME)
+	{
+		if (pChar && ci_equals(EQADDR_SERVERNAME, szServer) && ci_equals(pChar != nullptr ? pChar->DisplayedName : "", szCharacter))
 		{
-			std::string serversMessage;
-
-			WriteChatf("Invalid server name \ag%s\ax.  Valid server names are:", szServer);
-
-			for (int n = 0; ServerData[n].ID; n++)
+			WriteChatf("\ayYou're already logged into '%s' on '%s'\ax", szCharacter, szServer);
+		}
+		else
+		{
+			if (pChar != nullptr && pChar->StandState == STANDSTATE_FEIGN)
 			{
-				if (n > 0)
-					serversMessage.append(", ");
-
-				serversMessage.append(ServerData[n].Name);
+				// using DoMappable here doesn't create enough of a delay for camp to work
+				EzCommand("/stand");
 			}
 
-			serversMessage.append(" as well as any server you have defined in your MQ2AutoLogin.ini under the [Servers] section.");
-			WriteChatColor(serversMessage.c_str());
-			return;
+			EzCommand("/camp");
 		}
 	}
 
-	dwServerID = -1;
-	gCurrentServerName = szServer;
-	gCurrentCharacterName = szCharacter;
-	bSwitchServer = true;
-
-	if (pChar->StandState == STANDSTATE_FEIGN)
-	{
-		// using DoMappable here doesn't create enough of a delay for camp to work
-		EzCommand("/stand");
-	}
-
-	EzCommand("/camp");
-	bInGame = false;
-	bInjectorUpdate = true;
-	WriteChatf("Switching to \ag%s\ax on server \ag%s\ax", gCurrentCharacterName.c_str(), szServer);
+	WriteChatf("Switching to \ag%s\ax on server \ag%s\ax", szCharacter, szServer);
 }
 
 void Cmd_SwitchCharacter(SPAWNINFO* pChar, char* szLine)
@@ -578,33 +103,27 @@ void Cmd_SwitchCharacter(SPAWNINFO* pChar, char* szLine)
 
 	GetArg(szArg1, szLine, 1);
 
+	Login::dispatch(SetLoginInformation(szArg1));
+
 	if (GetGameState() == GAMESTATE_INGAME)
 	{
-		if (_stricmp(szArg1, pChar->DisplayedName))
+		if (pChar && ci_equals(pChar->DisplayedName, szArg1))
 		{
-			gNextCharacterName = szArg1;
-
-			if (pChar->StandState == STANDSTATE_FEIGN)
+			WriteChatf("\ayYou're already logged onto '%s'\ax", szArg1);
+		}
+		else
+		{
+			if (pChar != nullptr && pChar->StandState == STANDSTATE_FEIGN)
 			{
 				// using DoMappable here doesn't create enough of a delay for camp to work
 				EzCommand("/stand");
 			}
 
 			EzCommand("/camp");
-			bSwitchChar = true;
-			bInjectorUpdate = true;
-			WriteChatf("Switch to \ag%s\ax is now active and will commence at character select.", gNextCharacterName.c_str());
-		}
-		else
-		{
-			WriteChatf("\ayYou're already logged onto '%s'\ax", szArg1);
 		}
 	}
-	else if (GetGameState() == GAMESTATE_CHARSELECT)
-	{
-		gNextCharacterName = szArg1;
-		bSwitchChar = true;
-	}
+
+	WriteChatf("Switch to \ag%s\ax is now active and will commence at character select.", szArg1);
 }
 
 void Cmd_Relog(SPAWNINFO* pChar, char* szLine)
@@ -638,162 +157,90 @@ void Cmd_Relog(SPAWNINFO* pChar, char* szLine)
 
 	if (n)
 	{
-		dwTime = MQGetTickCount64() + n;
+		ReenableTime = MQGetTickCount64() + n;
 	}
 
-	gNextCharacterName = pChar->DisplayedName;
+	if (ReenableTime)
+		ReenableTime += 30000; // add 30 seconds for camp time
 
-	if (dwTime)
-		dwTime += 30000; // add 30 seconds for camp time
+	Login::dispatch(SetLoginInformation(EQADDR_SERVERNAME, pChar != nullptr ? pChar->DisplayedName : ""));
 
-	if (pChar->StandState == STANDSTATE_FEIGN)
+	if (pChar != nullptr && pChar->StandState == STANDSTATE_FEIGN)
 	{
 		// using DoMappable here doesn't create enough of a delay for camp to work
 		EzCommand("/stand");
 	}
 
 	EzCommand("/camp");
-	bInGame = false;
-	bInjectorUpdate = true;
 }
 
-bool GetAllOffsets()
+void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 {
-	if (!dwEQMainBase)
-		return false;
-
-	if (uint32_t dwLoginClient = FindPattern(dwEQMainBase, 0x100000, LoginServerAPI_Pattern, LoginServerAPI_Mask))
+	if (!szLine[0])
 	{
-		pLoginServerAPI = GetDWordAt(dwLoginClient, 2);
-	}
-	else
-	{
-		AutoLoginDebug("Error: Could not find pLoginServerAPI");
-		return false;
+		WriteChatf("\ayUsage:\ax /loginchar [profile_server:character|server:character|server^login^character^password|server^login^password]");
+		return;
 	}
 
-	if (!(dwEnterGameAddr = FindPattern(dwEQMainBase, 0x200000, lcEGPattern, lcEGMask)))
+	auto record = ProfileRecord::FromString(szLine);
+	if (!record.profileName.empty() && !record.serverName.empty() && !record.characterName.empty())
 	{
-		AutoLoginDebug("Error: !dwEnterGame");
-		return false;
+		record = ProfileRecord::FromINI(
+			record.profileName,
+			fmt::format("{}:{}_Blob", record.serverName, record.characterName),
+			INIFileName);
+
+		pipeclient::LoginProfile(
+			record.profileName.c_str(),
+			record.serverName.c_str(),
+			record.characterName.c_str());
 	}
-
-	DWORD dwSidlMgr = 0, dwWndMgr = 0, dwLoginMgr = 0;
-
-	if (!(dwSendLMouseClickAddr = FindPattern(dwEQMainBase, 0x100000, lmousePattern, lmouseMask)))
+	else if (!record.serverName.empty() && !record.accountName.empty() && !record.accountPassword.empty())
 	{
-		AutoLoginDebug("Error: !dwSendLMouseClickAddr");
-		return false;
-	}
-
-	if (dwLoginMgr = FindPattern(dwEQMainBase, 0x200000, lvmPattern, lvmMask))
-	{
-		dwLoginMgr = GetDWordAt(dwLoginMgr, 1);
-		pServerInfo = dwLoginMgr - 4;
-	}
-	else
-	{
-		AutoLoginDebug("Error: !dwLoginMgr");
-		return false;
-	}
-
-	pLoginViewManager = (CLoginViewManager*)*(DWORD*)dwLoginMgr;
-
-	WindowMap.clear();
-	char Name[MAX_STRING] = { 0 };
-
-	CXMLDataManager* xmlDataManager = pSidlMgr->GetParamManager();
-
-	for (int i = 0; i < pWndMgr->pWindows.Count; i++)
-	{
-		if (CXWnd* pWnd = pWndMgr->pWindows[i])
-		{
-			if (CXMLData* pXMLData = pWnd->GetXMLData(xmlDataManager))
-			{
-				if (!pXMLData->Name.empty())
-				{
-					AutoLoginDebug("bLogin loop: adding window '" + pXMLData->Name + "'");
-					WindowMap[pXMLData->Name.c_str()] = pWnd;
-				}
-			}
-		}
-	}
-
-	bGotOffsets = true;
-	return true;
-}
-
-void LoginPulse()
-{
-	if (ullerrorwait)
-	{
-		if (ullerrorwait > MQGetTickCount64())
-		{
-			Sleep(0);
-			return;
-		}
+		if (record.characterName.empty())
+			pipeclient::LoginServer(
+				record.accountName.c_str(),
+				record.accountPassword.c_str(),
+				record.serverName.c_str());
 		else
+			pipeclient::LoginCharacter(
+				record.accountName.c_str(),
+				record.accountPassword.c_str(),
+				record.serverName.c_str(),
+				record.characterName.c_str());
+	}
+	else if (!record.serverName.empty() && !record.characterName.empty())
+	{
+		// we have a server and a character, we need to find the first entry in the ini where these match (regardless of profile)
+		char buff[MAX_STRING] = { 0 };
+		int buff_size = GetPrivateProfileSectionNames(buff, MAX_STRING, INIFileName);
+		std::string buff_str = std::string(buff, buff_size);
+
+		auto sections = split(buff_str, '\0');
+
+		for (auto section : sections)
 		{
-			ullerrorwait = 0;
+			auto blobKey = fmt::format("{}:{}_Blob", record.serverName, record.characterName);
+			std::string blob = GetPrivateProfileString(section.c_str(), blobKey, "", INIFileName);
+
+			if (!blob.empty())
+			{
+				record = ProfileRecord::FromINI(section.c_str(), blobKey, INIFileName);
+				break;
+			}
 		}
-	}
 
-	if (GetAsyncKeyState(VK_END) & 1)
-	{
-		bEnd = true;
-		return;
-	}
-
-	if (GetAsyncKeyState(VK_HOME) & 1)
-	{
-		bLogin = true;
-		bEnd = false;
-		return;
-	}
-
-	if (!bGotOffsets)
-	{
-		GetAllOffsets();
+		if (!record.profileName.empty())
+			pipeclient::LoginProfile(
+				record.profileName.c_str(),
+				record.serverName.c_str(),
+				record.characterName.c_str());
+		else
+			WriteChatf("Could not find %s:%s in your autologin ini", record.serverName.c_str(), record.characterName.c_str());
 	}
 	else
 	{
-		if (!bEnd)
-			HandleWindows();
-	}
-}
-
-void AddOurPulse()
-{
-	if (*(DWORD*)__heqmain)
-	{
-		bEnd = false;
-		if (dwEQMainBase = *(DWORD*)__heqmain)
-		{
-			if (LoginController__GiveTime)
-			{
-				bGotOffsets = false;
-			}
-		}
-
-		if (!bInGame && !bSwitchServer && !dwTime)
-		{
-			if (bUseMQ2Login)
-			{
-				// then we don't need anything else
-			}
-			else if (!bUseStationNamesInsteadOfSessions)
-			{
-				DWORD nProcs = GetProcessCount("eqgame.exe");
-				std::string sessionName = fmt::format("Session{}", nProcs);
-				AutoLoginDebug(sessionName);
-
-				gCurrentCharacterName = GetPrivateProfileString(sessionName, "StationName", "", INIFileName);
-				gCurrentPassword = GetPrivateProfileString(sessionName, "Password", "", INIFileName);
-				gCurrentServerName = GetPrivateProfileString(sessionName, "Server", "", INIFileName);
-				gCurrentCharacterName = GetPrivateProfileString(sessionName, "Character", "", INIFileName);
-				gCurrentSelectCharacter = GetPrivateProfileString(sessionName, "SelectCharacter", "", INIFileName);
-			}
-		}
+		WriteChatf("\ayUsage:\ax /loginchar [profile_server:character|server:character|server^login^character^password|server^login^password]");
 	}
 }
 
@@ -801,13 +248,12 @@ DETOUR_TRAMPOLINE_EMPTY(DWORD WINAPI GetPrivateProfileStringA_Trampoline(LPCSTR,
 
 void SetupCustomIni()
 {
-	if (szCustomIni && szCustomIni[0] != '\0')
+	if (CustomIni && CustomIni[0] != '\0')
 		return;
 
 	if (const char* pLogin = GetLoginName())
 	{
-		gCurrentAccountName = pLogin;
-		GetPrivateProfileStringA_Trampoline(gCurrentAccountName.c_str(), "CustomClientIni", 0, szCustomIni, 64, INIFileName);
+		GetPrivateProfileStringA_Trampoline(pLogin, "CustomClientIni", 0, CustomIni, 64, INIFileName);
 	}
 }
 
@@ -817,9 +263,9 @@ DWORD WINAPI GetPrivateProfileStringA_Detour(LPCSTR lpAppName, LPCSTR lpKeyName,
 	{
 		SetupCustomIni();
 
-		if (szCustomIni[0] != 0 && ci_find_substr(lpFileName, "eqclient.ini") != -1)
+		if (CustomIni[0] != 0 && ci_find_substr(lpFileName, "eqclient.ini") != -1)
 		{
-			fs::path path = fs::path{ lpFileName } / szCustomIni;
+			fs::path path = fs::path{ lpFileName } / CustomIni;
 
 			return GetPrivateProfileStringA_Trampoline(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, path.string().c_str());
 		}
@@ -835,9 +281,9 @@ BOOL WINAPI WritePrivateProfileStringA_Detour(LPCSTR lpAppName, LPCSTR lpKeyName
 	{
 		SetupCustomIni();
 
-		if (szCustomIni[0] != 0 && ci_find_substr(lpFileName, "eqclient.ini") != -1)
+		if (CustomIni[0] != 0 && ci_find_substr(lpFileName, "eqclient.ini") != -1)
 		{
-			fs::path path = fs::path{ lpFileName } / szCustomIni;
+			fs::path path = fs::path{ lpFileName } / CustomIni;
 
 			return WritePrivateProfileStringA_Trampoline(lpAppName, lpKeyName, lpString, path.string().c_str());
 		}
@@ -854,9 +300,9 @@ UINT WINAPI GetPrivateProfileIntA_Detour(LPCSTR lpAppName, LPCSTR lpKeyName, INT
 	{
 		SetupCustomIni();
 
-		if (szCustomIni[0] != '\0' && ci_find_substr(lpFileName, "eqclient.ini") != -1)
+		if (CustomIni[0] != '\0' && ci_find_substr(lpFileName, "eqclient.ini") != -1)
 		{
-			fs::path path = fs::path{ lpFileName } / szCustomIni;
+			fs::path path = fs::path{ lpFileName } / CustomIni;
 
 			return GetPrivateProfileIntA_Tramp(lpAppName, lpKeyName, nDefault, path.string().c_str());
 		}
@@ -865,666 +311,6 @@ UINT WINAPI GetPrivateProfileIntA_Detour(LPCSTR lpAppName, LPCSTR lpKeyName, INT
 	return GetPrivateProfileIntA_Tramp(lpAppName, lpKeyName, nDefault, lpFileName);
 }
 DETOUR_TRAMPOLINE_EMPTY(UINT WINAPI GetPrivateProfileIntA_Tramp(LPCSTR, LPCSTR, INT, LPCSTR));
-
-void RemovePulse()
-{
-	if (dwEQMainBase)
-		dwEQMainBase = 0;
-	if (bGotOffsets)
-		bGotOffsets = false;
-}
-
-std::string CurrentCharacter()
-{
-	if (CListWnd* pCharList = GetChildWindow<CListWnd>("CLW_CharactersScreen", "Character_List"))
-	{
-		if (pCharList->ItemsArray.Count)
-		{
-			CXStr str = pCharList->GetItemText(pCharList->CurSel, 2);
-
-			if (!str.empty())
-			{
-				return std::string{ str };
-			}
-		}
-	}
-
-	return {};
-}
-
-void SelectCharacter(const std::string& characterName, bool enterWorld)
-{
-	if (characterName.empty())
-	{
-		AutoLoginDebug("SwitchCharacter failed");
-
-		// should this even be here?
-		WriteChatf("\arUsage\ax /switchcharacter \ay<name>\ax");
-		return;
-	}
-
-	if (CXWnd* pWnd = FindMQ2Window("CLW_CharactersScreen"))
-	{
-		if (CListWnd* pCharList = (CListWnd*)pWnd->GetChildItem("Character_List"))
-		{
-			for (int i = 0; i < pCharList->ItemsArray.Count; i++)
-			{
-				if (ci_equals(characterName, pCharList->GetItemText(i, 2)))
-				{
-					if (pCharacterListWnd)
-					{
-						pCharacterListWnd->SelectCharacter(i);
-
-						if (enterWorld)
-						{
-							pCharacterListWnd->EnterWorld();
-						}
-					}
-
-					return;
-				}
-			}
-		}
-	}
-}
-
-void HandleWindows()
-{
-	CXMLDataManager* pXmlMgr = pSidlMgr->GetParamManager();
-
-	if (!bLogin)
-	{
-		// we have to check this even when bLogin is false because we could be stuck at charselect in a timeout...
-		if (IsWindowActive("serverselect"))
-		{
-			if (CXWnd* pWnd = GetActiveChildWindow("okdialog", "OK_Display"))
-			{
-				CXStr str;
-
-				if (pXmlMgr->GetWindowType(pWnd) == UI_STMLBox)
-				{
-					CStmlWnd* cstm = (CStmlWnd*)pWnd;
-					str = cstm->STMLText;
-				}
-				else
-				{
-					CSidlScreenWnd* cwnd = (CSidlScreenWnd*)pWnd;
-					str = cwnd->GetWindowText();
-				}
-
-				if (ci_find_substr(str, "A timeout occurred") != -1)
-				{
-					bLogin = true;
-				}
-			}
-		}
-
-		return;
-	}
-
-	// pair of WindowNames / ButtonNames
-	std::vector<std::pair<const char*, const char*>> PromptWindows = {
-		{ "OrderWindow", "Order_DeclineButton" },
-		{ "EulaWindow", "EULA_AcceptButton" },
-		{ "seizurewarning", "HELP_OKButton"},
-		{ "OrderExpansionWindow", "OrderExp_DeclineButton" }
-	};
-
-	// Click through any dialogs
-	for (const auto& [windowName, buttonName] : PromptWindows)
-	{
-		if (CButtonWnd* pButton = GetActiveChildWindow<CButtonWnd>(windowName, buttonName))
-		{
-			pButton->WndNotification(pButton, XWM_LCLICK);
-			return;
-		}
-	}
-
-	// click through the splash screen
-	if (IsWindowActive("dbgsplash"))
-	{
-		pLoginViewManager->SendLMouseClick(CXPoint{ 1, 1 }); // WndNotification doesn't work on this
-		return;
-	}
-
-	if (CButtonWnd* pButton = GetActiveChildWindow<CButtonWnd>("main", "MAIN_ConnectButton"))
-	{
-		// this clicks the Login Button on the main page so we get the username and password page
-		pButton->WndNotification(pButton, XWM_LCLICK);
-		return;
-	}
-
-	if (CXWnd* pConnectWnd = GetActiveWindow("connect"))
-	{
-		if (CXWnd* pOkDialog = GetActiveWindow("okdialog"))
-		{
-			bServerWait = false;
-			if (CXWnd* pWnd = GetChildWindow(pOkDialog, "OK_Display"))
-			{
-				CXStr str;
-
-				if (pXmlMgr->GetWindowType(pWnd) == UI_STMLBox)
-				{
-					CStmlWnd* pStmlWnd = (CStmlWnd*)pWnd;
-					str = pStmlWnd->STMLText;
-				}
-				else
-				{
-					str = pWnd->GetWindowText();
-				}
-
-				if (str.find("Logging in to the server.  Please wait....") != CXStr::npos)
-				{
-					return;
-				}
-
-				bGotOffsets = false;
-				ullerrorwait = MQGetTickCount64() + 2000; // we give the server 5 seconds to catch its breath...
-
-				std::vector<const char*> ErrorMessages = {
-					"The server requires that you logout and log back in before proceeding.  Please do so.",
-					"failed login attempts on your account since the last time you logged in",
-					"The Login Server is currently unavailable.  Please try again later.",
-					"Cannot login to the EverQuest server",
-					"This login requires a valid",
-					"A timeout occurred",
-					"A connection to the server could not be reached.",
-					"An unknown login error occurred",
-					"Invalid Session"
-				};
-
-				for (const char* msg : ErrorMessages)
-				{
-					if (str.find(msg) != CXStr::npos)
-					{
-						if (CXWnd* pButton = GetChildWindow(pOkDialog, "OK_OKButton"))
-							pButton->WndNotification(pButton, XWM_LCLICK);
-
-						return;
-					}
-				}
-
-				if (str.find("password were not valid") != CXStr::npos
-					|| str.find("This login requires that the account be activated.  Please make sure your account is active in order to login.") != CXStr::npos)
-				{
-					AutoLoginDebug(str);
-					bLogin = false;
-					return;
-				}
-
-				if (str.find("You have a character logged into a world server as an OFFLINE TRADER from this account") != CXStr::npos)
-				{
-					if (CXWnd* pButton = GetChildWindow(pOkDialog, "YESNO_YesButton"))
-						pButton->WndNotification(pWnd, XWM_LCLICK);
-
-					return;
-				}
-			}
-
-			return;
-		}
-
-		if (CEditWnd* pEditWnd = GetChildWindow<CEditWnd>(pConnectWnd, "LOGIN_PasswordEdit"))
-		{
-			if (pEditWnd->InputText.empty())
-				bWait = false;
-		}
-
-		if (bWait)
-			return;
-
-		if (CEditWnd* pEditWnd = GetChildWindow<CEditWnd>(pConnectWnd, "LOGIN_UsernameEdit"))
-		{
-			if (bUseMQ2Login)
-			{
-				AutoLoginDebug("HandleWindows(): Using MQ2Login Method");
-
-				if (!pEditWnd->InputText.empty())
-				{
-					std::string userName{ pEditWnd->InputText };
-					gCurrentProfile = userName;
-					AutoLoginDebug(fmt::format("HandleWindows() userName({})", userName));
-
-					size_t pos = gCurrentProfile.find("_");
-					if (pos != std::string::npos)
-					{
-						std::string blobKey = fmt::format("{}_Blob", gCurrentProfile.substr(pos + 1));
-						gCurrentProfile = gCurrentProfile.substr(0, pos);
-						std::string characterName = blobKey;
-
-						AutoLoginDebug(fmt::format("HandleWindows() gCurrentProfile({}), characterName({})", gCurrentProfile, characterName));
-
-						size_t colPos = characterName.find(":");
-						if (colPos != std::string::npos)
-						{
-							gCurrentServerName = characterName.substr(0, colPos);
-						}
-						else
-						{
-							gCurrentServerName = userName;
-						}
-
-						AutoLoginDebug(fmt::format("HandleWindows() gCurrentProfile({}), blobKey({}), gCurrentServerName({})",
-							gCurrentProfile, blobKey, gCurrentServerName));
-
-						// now that we have the server and the charname, we can figure out the stationname and password from the blob
-						std::string blob = GetPrivateProfileString(gCurrentProfile, blobKey, "", INIFileName);
-						if (!blob.empty())
-						{
-							size_t stripPos = blob.rfind("=");
-							if (stripPos != std::string::npos)
-							{
-								blob = blob.substr(0, stripPos);
-							}
-
-							AutoLoginDebug(fmt::format("HandleWindows() szBlob({})", blob));
-
-							ProfileRecord record;
-
-							if (ParseBlob(blob, record))
-							{
-								gCurrentAccountName = record.accountName;
-								gCurrentPassword = record.accountPassword;
-								gCurrentCharacterName = record.characterName;
-								gCurrentCharacterClass = record.characterClass;
-								gCurrentCharacterLevel = record.characterLevel;
-
-								IC_LoaderSetLoaded(gCurrentProfile.c_str(), gCurrentAccountName.c_str(),
-									gCurrentServerName.c_str(), gCurrentCharacterName.c_str(), GetCurrentProcessId());
-							}
-						}
-
-						DWORD oldscreenmode = std::exchange(ScreenMode, 3);
-						ScreenMode = 3;
-
-						pEditWnd->InputText.clear(); // ???
-						pEditWnd->InputText = gCurrentAccountName;
-
-						ScreenMode = oldscreenmode;
-					}
-					else if (userName.find("^") != std::string::npos)
-					{
-						// special login no profile just plaintext login
-
-						// server^stationname^charname^pass
-						// if charname is empty we just stop at charselect.
-
-						std::vector<std::string> parts = split(userName, '^');
-
-						switch (parts.size())
-						{
-						case 4:
-							gCurrentPassword = parts[3];
-							gCurrentCharacterName = parts[2];
-							gCurrentAccountName = parts[1];
-							gCurrentServerName = parts[0];
-							break;
-
-						case 3:
-							gCurrentPassword = parts[2];
-							gCurrentAccountName = parts[1];
-							gCurrentServerName = parts[0];
-							break;
-						}
-
-						// FIXME: Error handling
-
-						DWORD oldscreenmode = std::exchange(ScreenMode, 3);
-
-						pEditWnd->InputText.clear();
-						pEditWnd->InputText = gCurrentAccountName;
-
-						ScreenMode = oldscreenmode;
-					}
-					else if (userName.find(";") != std::string::npos)
-					{
-						// special login:
-						// basically this allows for a piped login where password, server, and name
-						// are sent directly. Should not be used under normal circumstances but its
-						// handy when u want a quick way to login a char(s) that is not a regular
-						// from your profile(s).
-						// format is: Server;Profile:Character;
-
-						// FIXME: this code makes no sense. It needs some fixing.
-						std::size_t pos = userName.find(';');
-
-						gCurrentServerName = userName.substr(0, pos);
-						gCurrentCharacterName = userName.substr(pos + 1);
-						gCurrentProfile = gCurrentCharacterName;
-
-						pos = gCurrentProfile.find(":");
-						if (pos != std::string::npos)
-						{
-							gCurrentServerName = gCurrentProfile.substr(0, pos);
-						}
-
-						// now that we have the server and the charname, we can figure out the stationname and password from the blob
-						std::string blob = GetPrivateProfileString(gCurrentServerName, gCurrentCharacterName, "", INIFileName);
-
-						if (!blob.empty())
-						{
-							size_t stripPos = blob.rfind("=");
-							if (stripPos != std::string::npos)
-							{
-								blob = blob.substr(0, stripPos);
-							}
-
-							ProfileRecord record;
-
-							if (ParseBlob(blob, record))
-							{
-								gCurrentAccountName = record.accountName;
-								gCurrentPassword = record.accountPassword;
-								gCurrentCharacterName = record.characterName;
-								gCurrentCharacterClass = record.characterClass;
-								gCurrentCharacterLevel = record.characterLevel;
-
-								IC_LoaderSetLoaded(gCurrentProfile.c_str(), gCurrentAccountName.c_str(),
-									gCurrentServerName.c_str(), gCurrentCharacterName.c_str(), GetCurrentProcessId());
-							}
-						}
-
-						DWORD oldscreenmode = std::exchange(ScreenMode, 3);
-
-						pEditWnd->InputText.clear();
-						pEditWnd->InputText = gCurrentAccountName;
-
-						ScreenMode = oldscreenmode;
-					}
-				}
-			}
-			else if (bUseStationNamesInsteadOfSessions)
-			{
-				AutoLoginDebug("HandleWindows(): Using station name instead of session number");
-				bLoginCheckDone = true;
-
-				// If the user used /login then we already have a login name and it may not yet be set
-				if (!pEditWnd->InputText.empty() && gCurrentAccountName.empty())
-				{
-					gCurrentAccountName = pEditWnd->InputText;
-				}
-
-				pEditWnd->InputText = gCurrentAccountName;
-
-				if (!gCurrentAccountName.empty())
-				{
-					gCurrentPassword =GetPrivateProfileString(gCurrentAccountName, "Password", "", INIFileName);
-					gCurrentServerName = GetPrivateProfileString(gCurrentAccountName, "Server", "", INIFileName);
-					gCurrentCharacterName = GetPrivateProfileString(gCurrentAccountName, "Character", "", INIFileName);
-					gCurrentSelectCharacter = GetPrivateProfileString(gCurrentAccountName, "SelectCharacter", "", INIFileName);
-				}
-				else
-				{
-					AutoLoginDebug("HandleWindows(): No station name found in LOGIN_UsernameEdit");
-					bLogin = false;
-					return;
-				}
-			}
-
-			if (gCurrentAccountName.empty() || gCurrentPassword.empty() || gCurrentServerName.empty())
-			{
-				AutoLoginDebug("*** Login data couldn't be retrieved.  Please check your ini file.");
-				bLogin = false;
-				return;
-			}
-
-			if (bUseMQ2Login)
-			{
-				// dont need to do anything, we already done this.
-			}
-			else if (!bUseStationNamesInsteadOfSessions)
-			{
-				pEditWnd->InputText.clear();
-				pEditWnd->InputText = gCurrentAccountName;
-			}
-
-			if (CEditWnd* pPasswordEdit = GetChildWindow<CEditWnd>(pConnectWnd, "LOGIN_PasswordEdit"))
-			{
-				pPasswordEdit->InputText = gCurrentPassword;
-
-				if (CButtonWnd* pConnectButton = GetChildWindow<CButtonWnd>(pConnectWnd, "LOGIN_ConnectButton"))
-				{
-					DWORD oldscreenmode = std::exchange(ScreenMode, 3);
-
-					pConnectButton->WndNotification(pConnectButton, XWM_LCLICK);
-
-					ScreenMode = oldscreenmode;
-					bWait = true;
-					return;
-				}
-			}
-		}
-
-		return;
-	}
-
-	if (IsWindowActive("serverselect"))
-	{
-		if (bInGame)
-			return;
-
-		bWait = false;
-
-		if (gCurrentPassword.empty())
-		{
-			gCurrentPassword = GetPassword();
-		}
-
-		if (IsWindowActive("okdialog"))
-		{
-			CXWnd* pOkDialog = WindowMap["okdialog"];
-			if (CXWnd* pWnd = pOkDialog->GetChildItem(pXmlMgr, "OK_Display"))
-			{
-				CXStr str;
-
-				if (pXmlMgr->GetWindowType(pWnd) == UI_STMLBox)
-				{
-					CStmlWnd* pStmlWnd = (CStmlWnd*)pWnd;
-					str = pStmlWnd->STMLText;
-				}
-				else
-				{
-					str = pWnd->GetWindowText();
-				}
-
-				bGotOffsets = false;
-				ullerrorwait = MQGetTickCount64() + 2000; // we give the server 5 seconds to catch its breath...
-
-				CButtonWnd* pOkButton = (CButtonWnd*)pOkDialog->GetChildItem(pXmlMgr, "OK_OKButton");
-
-				if (strstr(str.c_str(), "The world server is currently at maximum capacity. You are still in the login queue for this server")
-					|| strstr(str.c_str(), "The world server is currently at maximum capacity. You have been added to the login queue for this server"))
-				{
-					if (pOkButton)
-						pOkButton->WndNotification(pOkButton, XWM_LCLICK);
-
-					// 3 mins 5 seconds... no need to click login again and again when this message has been shown...
-					ullerrorwait = MQGetTickCount64() + 185000;
-					bServerWait = false;
-					return;
-				}
-
-				std::vector<const char*> ErrorMessages = {
-					"The world server is currently at maximum capacity and not allowing further logins until the number of players online decreases.  Please try again later.",
-					"That server is currently unavailable",
-					"An unknown error occurred while trying to join the server.",
-					"The connection has been terminated by the server.  Most likely you have been inactive",
-					"A timeout occurred"
-				};
-
-				for (const char* msg : ErrorMessages)
-				{
-					if (strstr(str.c_str(), msg))
-					{
-						if (pOkButton)
-							pOkButton->WndNotification(pOkButton, XWM_LCLICK);
-					}
-				}
-			}
-
-			bServerWait = false;
-			return;
-		}
-
-		if (IsWindowActive("yesnodialog"))
-		{
-			CXWnd* pDialog = WindowMap["yesnodialog"];
-
-			if (CXWnd* pWnd = pDialog->GetChildItem(pXmlMgr, "YESNO_Display"))
-			{
-				CXStr str;
-
-				if (pXmlMgr->GetWindowType(pWnd) == UI_STMLBox)
-				{
-					CStmlWnd* pStmlWnd = (CStmlWnd*)pWnd;
-					str = pStmlWnd->STMLText;
-				}
-				else
-				{
-					str = pWnd->GetWindowText();
-				}
-
-				// kick active character?
-				if (strstr(str.c_str(), "You already have a character logged into a world server from this account."))
-				{
-					CButtonWnd* pButton = (CButtonWnd*)pDialog->GetChildItem(pXmlMgr,
-						bKickActiveChar ? "YESNO_YesButton" : "YESNO_NoButton");
-
-					if (pButton)
-					{
-						pButton->WndNotification(pButton, XWM_LCLICK);
-					}
-
-					bLogin = false;
-				}
-				else if (strstr(str.c_str(), "You have a character logged into a world server as an OFFLINE TRADER from this account."))
-				{
-					if (CButtonWnd* pButton = (CButtonWnd*)pDialog->GetChildItem(pXmlMgr, "YESNO_YesButton"))
-					{
-						pButton->WndNotification(pButton, XWM_LCLICK);
-					}
-
-					bLogin = false;
-				}
-			}
-
-			bWait = false;
-			bServerWait = false;
-			return;
-		}
-
-		if (gCurrentServerName.empty())
-		{
-			AutoLoginDebug("HandleWindows(): szServerName is empty at serverselect. Ending Login");
-
-			bLogin = false;
-			bEnd = true;
-			return;
-		}
-
-		if (bServerWait)
-			return;
-
-		if (dwServerID = GetServerID(gCurrentServerName))
-		{
-			if (CheckServerUp(dwServerID))
-			{
-				if (bWeAreDown)
-				{
-					bWeAreDown = false;
-
-					if (NotifyOnServerUp == 2)
-					{
-						if (IsCommand("/gmail"))
-						{
-							DoCommand(nullptr, R"(/gmail "Server is up" "Time to login!")");
-						}
-
-						NotifyOnServerUp = 0;
-					}
-					else if (NotifyOnServerUp == 1)
-					{
-						Beep(1000, 1000);
-						Beep(500, 2000);
-						Beep(1000, 1000);
-						NotifyOnServerUp = 0;
-					}
-				}
-
-				pLoginServerAPI->JoinServer(dwServerID);
-				bSwitchServer = false;
-				bServerWait = true;
-			}
-			else
-			{
-				ullerrorwait = MQGetTickCount64() + 2000;
-			}
-		}
-		else
-		{
-			AutoLoginDebug(fmt::format("HandleWindows(): GetServerId({}) returned 0 at serverselect", gCurrentServerName));
-		}
-		return;
-	}
-
-	if (CXWnd* pNewsWnd = GetActiveWindow("news"))
-	{
-		if (CXWnd* pWnd = pNewsWnd->GetChildItem(pXmlMgr, "NEWS_WndLabel"))
-		{
-			CXStr str;
-
-			if (pXmlMgr->GetWindowType(pWnd) == UI_STMLBox)
-			{
-				CStmlWnd* pStmlWnd = (CStmlWnd*)pWnd;
-				str = pStmlWnd->STMLText;
-			}
-			else
-			{
-				str = pWnd->GetWindowText();
-			}
-
-			// click OK button if news window is open
-			if (ci_find_substr(str, "NEWS") == 0)
-			{
-				if (CXWnd* pButton = pNewsWnd->GetChildItem(pXmlMgr, "NEWS_OKButton"))
-				{
-					pButton->WndNotification(pButton, XWM_LCLICK);
-				}
-			}
-		}
-	}
-}
-
-DWORD GetProcessCount(char* exeName)
-{
-	HANDLE hnd = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-	PROCESSENTRY32 proc;
-	proc.dwSize = sizeof(PROCESSENTRY32);
-	DWORD n = 0;
-
-	if (Process32First(hnd, &proc))
-	{
-		do
-		{
-			if (!_stricmp(proc.szExeFile, exeName))
-				n++;
-		} while (Process32Next(hnd, &proc));
-	}
-
-	CloseHandle(hnd);
-
-	return n;
-}
-
-void LoginReset()
-{
-	AutoLoginDebug("LoginReset()");
-
-	bLogin = false;
-	bInGame = true;
-	pLoginViewManager = nullptr;
-	WindowMap.clear();
-}
 
 void AutoLoginDebug(std::string_view svLogMessage, const bool bDebugOn /* = AUTOLOGIN_DBG */)
 {
@@ -1561,27 +347,8 @@ void AutoLoginDebug(std::string_view svLogMessage, const bool bDebugOn /* = AUTO
 	}
 }
 
-PLUGIN_API void InitializePlugin()
+void ReadINI()
 {
-	DebugSpewAlways("MQ2AutoLogin: InitializePlugin()");
-
-	// Check the command line for a /login parameter
-	std::string commandLineArgs = ::GetCommandLineA();
-
-	// Capture /login:<stuff> into gCommandLineArgs
-	size_t loginPos = gCommandLineArgs.find("/login:");
-	if (loginPos != std::string::npos)
-	{
-		gCommandLineArgs = commandLineArgs.substr(loginPos + 7);
-
-		// trim stuff off the right
-		loginPos = gCommandLineArgs.find(" ");
-		if (loginPos != std::string::npos)
-		{
-			gCommandLineArgs = gCommandLineArgs.substr(0, loginPos);
-		}
-	}
-
 	std::string path = GetPrivateProfileString("Settings", "IniLocation", "", INIFileName);
 	if (!path.empty())
 	{
@@ -1591,27 +358,41 @@ PLUGIN_API void InitializePlugin()
 	AUTOLOGIN_DBG = GetPrivateProfileBool("Settings", "Debug", AUTOLOGIN_DBG, INIFileName);
 	AutoLoginDebug("MQ2AutoLogin: InitializePlugin()");
 
-	NotifyOnServerUp = GetPrivateProfileInt("Settings", "NotifyOnServerUp", -1, INIFileName);
-	if (NotifyOnServerUp == -1)
-	{
-		WritePrivateProfileString("Settings", "NotifyOnServerUp", "0", INIFileName);
-		NotifyOnServerUp = 0;
-	}
+	Login::m_settings.NotifyOnServerUp = static_cast<Login::Settings::ServerUpNotification>(GetPrivateProfileInt("Settings", "NotifyOnServerUp", 0, INIFileName));
+	Login::m_settings.KickActiveCharacter = GetPrivateProfileBool("Settings", "KickActiveCharacter", true, INIFileName);
+	Login::m_settings.EndAfterSelect = GetPrivateProfileBool("Settings", "EndAfterCharSelect", false, INIFileName);
 
-	bKickActiveChar = GetPrivateProfileBool("Settings", "KickActiveCharacter", true, INIFileName);
-	bUseMQ2Login = GetPrivateProfileBool("Settings", "UseMQ2Login", false, INIFileName);
-	bUseStationNamesInsteadOfSessions = GetPrivateProfileBool("Settings", "UseStationNamesInsteadOfSessions", false, INIFileName);
-	bReLoggin = GetPrivateProfileBool("Settings", "LoginOnReLoadAtCharSelect", false, INIFileName);
-	bEndAfterCharSelect = GetPrivateProfileBool("Settings", "EndAfterCharSelect", false, INIFileName);
-	bool bUseCustomClientIni = GetPrivateProfileBool("Settings", "EnableCustomClientIni", false, INIFileName);
+	bool bUseMQ2Login = GetPrivateProfileBool("Settings", "UseMQ2Login", false, INIFileName);
+	bool bUseStationNamesInsteadOfSessions = GetPrivateProfileBool("Settings", "UseStationNamesInsteadOfSessions", false, INIFileName);
+	if (bUseMQ2Login)
+		Login::m_settings.LoginType = Login::Settings::Type::MQ2Login;
+	else if (bUseStationNamesInsteadOfSessions)
+		Login::m_settings.LoginType = Login::Settings::Type::StationNames;
+	else
+		Login::m_settings.LoginType = Login::Settings::Type::Sessions;
+}
+
+void LoginReset()
+{
+	AutoLoginDebug("LoginReset()");
+	ReadINI();
+}
+
+PLUGIN_API void InitializePlugin()
+{
+	DebugSpewAlways("MQ2AutoLogin: InitializePlugin()");
+
+	Login::set_initial_state();
+	ReadINI();
 
 	AddCommand("/switchserver", Cmd_SwitchServer);
 	AddCommand("/switchcharacter", Cmd_SwitchCharacter);
 	AddCommand("/relog", Cmd_Relog);
+	AddCommand("/loginchar", Cmd_Loginchar);
 
-	if (bUseCustomClientIni)
+	if (GetPrivateProfileBool("Settings", "EnableCustomClientIni", false, INIFileName))
 	{
-		if (bUseStationNamesInsteadOfSessions && !bUseMQ2Login)
+		if (Login::m_settings.LoginType == Login::Settings::Type::StationNames)
 		{
 			SetupCustomIni();
 		}
@@ -1625,70 +406,6 @@ PLUGIN_API void InitializePlugin()
 		DWORD pfnWritePrivateProfileStringA = (DWORD) & ::WritePrivateProfileStringA;
 		EzDetour(pfnWritePrivateProfileStringA, WritePrivateProfileStringA_Detour, WritePrivateProfileStringA_Trampoline);
 	}
-
-	// is eqmain.dll loaded
-	if (GetModuleHandle("eqmain.dll"))
-	{
-		// if the eqmain.dll is loaded, we're in the login portion of the client and we missed
-		// any events which told us it was loading. Start pulsing from the login frontend.
-		AddOurPulse();
-	}
-
-
-	// force a check if user loads us at charselect
-	if (GetGameState() == GAMESTATE_CHARSELECT && bReLoggin)
-	{
-		DWORD nProcs = GetProcessCount("eqgame.exe");
-		if (bUseMQ2Login)
-		{
-			// i dont think we need to load anything here
-		}
-		else if (!bUseStationNamesInsteadOfSessions)
-		{
-			std::string sessionName = fmt::format("Session{}", nProcs);
-			AutoLoginDebug(sessionName);
-
-			gCurrentAccountName = GetPrivateProfileString(sessionName, "StationName", "", INIFileName);
-			gCurrentPassword = GetPrivateProfileString(sessionName, "Password", "", INIFileName);
-			gCurrentServerName = GetPrivateProfileString(sessionName, "Server", "", INIFileName);
-			gCurrentCharacterName = GetPrivateProfileString(sessionName, "Character", "", INIFileName);
-			gCurrentSelectCharacter = GetPrivateProfileString(sessionName, "SelectCharacter", "", INIFileName);
-		}
-		else if (const char* pLogin = GetLoginName())
-		{
-			gCurrentAccountName = pLogin;
-			gCurrentPassword = GetPrivateProfileString(gCurrentAccountName, "Password", "", INIFileName);
-			gCurrentServerName = GetPrivateProfileString(gCurrentAccountName, "Server", "", INIFileName);
-			gCurrentCharacterName = GetPrivateProfileString(gCurrentAccountName, "Character", "", INIFileName);
-			gCurrentSelectCharacter = GetPrivateProfileString(gCurrentAccountName, "SelectCharacter", "", INIFileName);
-		}
-
-		if (!dwServerID || dwServerID == -1 && EQADDR_SERVERNAME[0])
-		{
-			char szServTemp[MAX_STRING] = { 0 };
-			strcpy_s(szServTemp, EQADDR_SERVERNAME);
-			DWORD lserver = 0;
-			dwServerID = GetServerID(szServTemp);
-
-			if (!gCurrentServerName.empty())
-			{
-				lserver = GetServerID(gCurrentServerName);
-			}
-
-			if (lserver != dwServerID)
-			{
-				dwServerID = lserver;
-				bSwitchServer = true;
-			}
-
-			SPAWNINFO* pSpawnInfo = (SPAWNINFO*)pCharSpawn;
-
-			if (gCurrentCharacterName.empty() && pSpawnInfo && pSpawnInfo->Name[0])
-			{
-				gCurrentCharacterName = pSpawnInfo->Name;
-			}
-		}
-	}
 }
 
 PLUGIN_API void ShutdownPlugin()
@@ -1696,6 +413,7 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveCommand("/switchserver");
 	RemoveCommand("/switchcharacter");
 	RemoveCommand("/relog");
+	RemoveCommand("/loginchar");
 
 	DWORD pfnGetPrivateProfileIntA = (DWORD) & ::GetPrivateProfileIntA;
 	RemoveDetour(pfnGetPrivateProfileIntA);
@@ -1711,194 +429,78 @@ PLUGIN_API void ShutdownPlugin()
 
 PLUGIN_API void SetGameState(DWORD GameState)
 {
-	bEndAfterCharSelect = GetPrivateProfileInt("Settings", "EndAfterCharSelect", 0, INIFileName) == 1;
-
-	if (GameState == GAMESTATE_PRECHARSELECT)
-	{
-		if (GetModuleHandle("eqmain.dll"))
-		{
-			// well well well... what do u know... it's loaded...
-			// ok fine that means we wont get any frontload notification, so lets fake it
-			if (!LoginController__GiveTime)
-				AddOurPulse();
-		}
-	}
-	else if (GameState == GAMESTATE_POSTFRONTLOAD)
-	{
-		// we know eqmain.dll is loaded now...
-		if (!LoginController__GiveTime)
-			AddOurPulse();
-	}
-	else if (GameState == GAMESTATE_CHARSELECT)
-	{
-		RemovePulse();
-
-		if (dwServerID)
-		{
-			dwServerID = 0;
-			if (!bSwitchChar)
-			{
-				gNextCharacterName = gCurrentCharacterName;
-				bSwitchChar = true;
-			}
-		}
-	}
-	else if (GameState == GAMESTATE_INGAME)
-	{
-		bInGame = true;
-	}
+	Login::m_settings.EndAfterSelect = GetPrivateProfileInt("Settings", "EndAfterCharSelect", 0, INIFileName) == 1;
 }
 
 PLUGIN_API void OnPulse()
 {
-	// since in game pulse starts at charselect we can use that for charswitching and serverswithcing as well as relog...
-	if (!bLogin && GetAsyncKeyState(VK_HOME) & 1)
+	if (GetAsyncKeyState(VK_HOME) & 1)
+		Login::dispatch(UnpauseLogin());
+	else if (GetAsyncKeyState(VK_END) & 1)
+		Login::dispatch(PauseLogin());
+	else if (GetGameState() == GAMESTATE_INGAME && MQGetTickCount64() > ReenableTime)
+		Login::dispatch(LoginStateSensor(LoginState::InGame, nullptr));
+	else if (GetGameState() == GAMESTATE_CHARSELECT && MQGetTickCount64() > ReenableTime)
 	{
-		WriteChatf("\agHOME key pressed. AutoLogin Re-Enabled.");
-		bEndAfterCharSelect = false;
-		bLogin = true;
-		return;
+		if (CXWnd* pWnd = GetWindow("CLW_CharactersScreen"))
+			Login::dispatch(LoginStateSensor(LoginState::CharacterSelect, pWnd));
 	}
-
-	if (GetGameState() == GAMESTATE_INGAME)
+	else if (GetGameState() == GAMESTATE_PRECHARSELECT && g_pServerInfo && MQGetTickCount64() > ReenableTime)
 	{
-		if (retrylogincounter)
-			retrylogincounter = 0;
-	}
+		// pair of WindowNames / ButtonNames
+		std::vector<std::pair<const char*, const char*>> PromptWindows = {
+			{ "OrderWindow", "Order_DeclineButton" },
+			{ "EulaWindow", "EULA_AcceptButton" },
+			{ "seizurewarning", "HELP_OKButton"},
+			{ "OrderExpansionWindow", "OrderExp_DeclineButton" },
+			{ "main", "MAIN_ConnectButton" },
+			{ "news", "NEWS_OKButton"}
+		};
 
-	else if (GetGameState() == GAMESTATE_CHARSELECT)
-	{
-		// fix for the stuck at char select "Loading Characters" bug.
-		BugTimer++;
-		if (BugTimer > 100 && retrylogincounter == 0)
+		// Click through any dialogs, don't need a whole state for this
+		for (const auto& [windowName, buttonName] : PromptWindows)
 		{
-			BugTimer = 0;
-
-			if (CSidlScreenWnd* pWnd = (CSidlScreenWnd*)FindMQ2Window("ConfirmationDialogBox"))
+			if (CButtonWnd* pButton = GetActiveChildWindow<CButtonWnd>(windowName, buttonName))
 			{
-				if (pWnd->IsVisible() == 1)
-				{
-					if (CStmlWnd* Child = (CStmlWnd*)pWnd->GetChildItem("cd_textoutput"))
-					{
-						if (strstr(Child->STMLText.c_str(), "Loading Characters"))
-						{
-							// TODO: FIXME
-							if (CCharacterListWnd* pCharSelect = *(CCharacterListWnd**)pinstCCharacterListWnd)
-							{
-								retrylogincounter = 1;
-								bLogin = true;
-
-								if (gCurrentServerName.empty())
-								{
-									gCurrentServerName = GetServerName();
-								}
-
-								if (gNextCharacterName.empty())
-								{
-									gNextCharacterName = CurrentCharacter();
-								}
-								switchTime = MQGetTickCount64() + 3000;
-
-								pCharSelect->Quit();
-								AutoLoginDebug("Quit() called due to charselect list being empty");
-							}
-						}
-					}
-				}
+				pButton->WndNotification(pButton, XWM_LCLICK);
+				return;
 			}
 		}
 
-		if (dwTime && !gNextCharacterName.empty() && GetAsyncKeyState(VK_END) & 1)
+		if (IsWindowActive("dbgsplash"))
 		{
-			WriteChatf("END key pressed. Login of %s aborted.", gNextCharacterName.c_str());
-			gNextCharacterName.clear();
-			dwTime = 0;
-			switchTime = 0;
-			return;
+			Login::dispatch(LoginStateSensor(LoginState::SplashScreen, nullptr));
 		}
-
-		if (bSwitchServer)
+		else if (CXWnd* pConnectWnd = GetActiveWindow("connect"))
 		{
-			// world -> char select
-			AutoLoginDebug("SetGameState(GAMESTATE_CHARSELECT): bSwitchServer = true");
-
-			ForeignPointer<CCharacterListWnd> pCharSelect = pinstCCharacterListWnd;
-			if (pCharSelect)
-			{
-				pCharSelect->Quit();
-			}
-
-			if (bInjectorUpdate)
-			{
-				IC_LoaderClearLoaded(gCurrentProfile.c_str(), gCurrentAccountName.c_str(),
-					gCurrentServerName.c_str(), gCurrentCharacterName.c_str(), GetCurrentProcessId());
-			}
-			bInjectorUpdate = false;
-			return;
+			if (CXWnd* pOkDialog = GetActiveWindow("okdialog"))
+				Login::dispatch(LoginStateSensor(LoginState::ConnectConfirm, pOkDialog));
+			else
+				Login::dispatch(LoginStateSensor(LoginState::Connect, pConnectWnd));
 		}
-
-		if (bSwitchChar)
+		else if (CXWnd* pServerWnd = GetActiveWindow("serverselect"))
 		{
-			// we have to give the chatwindow time to show up at char select... so we wait a couple seconds...
-			switchTime = MQGetTickCount64() + 2000;
-			bSwitchChar = false;
-
-			if (bInjectorUpdate)
-			{
-				IC_LoaderClearLoaded(gCurrentProfile.c_str(), gCurrentAccountName.c_str(),
-					gCurrentServerName.c_str(), gCurrentCharacterName.c_str(), GetCurrentProcessId());
-			}
-			bInjectorUpdate = false;
-			return;
+			if (CXWnd* pOkDialog = GetActiveWindow("okdialog"))
+				Login::dispatch(LoginStateSensor(LoginState::ServerSelectConfirm, pOkDialog));
+			else if (CXWnd* pYesNoDialog = GetActiveWindow("yesnodialog"))
+				Login::dispatch(LoginStateSensor(LoginState::ServerSelectKick, pYesNoDialog));
+			else
+				Login::dispatch(LoginStateSensor(LoginState::ServerSelect, pServerWnd));
 		}
-
-		if (switchTime && switchTime <= MQGetTickCount64() && !gNextCharacterName.empty())
-		{
-			// at this point the user has 3 seconds to read the message and abort.
-			WriteChatf("Selecting \ag%s\ax in 3 seconds. Please wait... or press the END key to abort", gNextCharacterName.c_str());
-			switchTime = 0;
-			dwTime = MQGetTickCount64() + 3000;
-			SelectCharacter(gNextCharacterName, false);
-
-			IC_LoaderSetLoaded(gCurrentProfile.c_str(), gCurrentAccountName.c_str(),
-				gCurrentServerName.c_str(), gNextCharacterName.c_str(), GetCurrentProcessId());
-			return;
-		}
-
-		if (switchTime && switchTime <= MQGetTickCount64() && !gCurrentSelectCharacter.empty())
-		{
-			// at this point the user has 3 seconds to read the message and abort.
-			WriteChatf("Selecting \ag%s\ax in 3 seconds. Please Wait... or press the END key to abort", gCurrentSelectCharacter.c_str());
-			switchTime = 0;
-			SelectCharacter(gCurrentSelectCharacter, false);
-
-			IC_LoaderSetLoaded(gCurrentProfile.c_str(), gCurrentAccountName.c_str(),
-				gCurrentServerName.c_str(), gCurrentCharacterName.c_str(), GetCurrentProcessId());
-			return;
-		}
-
-		if (!gNextCharacterName.empty() && dwTime && dwTime <= MQGetTickCount64())
-		{
-			SelectCharacter(gNextCharacterName, true);
-			gNextCharacterName.clear();
-			dwTime = 0;
-		}
-
-		if (gNextCharacterName.empty() && bEndAfterCharSelect && bLogin)
-		{
-			bLogin = false;
-			WriteChatf("\ayAutologin now ended... press HOME to Re-Enable.");
-		}
-	}
-	else if (GetGameState() == GAMESTATE_PRECHARSELECT)
-	{
-		dwEQMainBase = *(DWORD*)__heqmain;
-		LoginPulse();
 	}
 }
 
 static bool bShowAutoLoginOverlay = true;
 static bool bShowOverlayDebugInfo = false;
+
+template <typename T>
+static bool RadioButton(const char* label, T* v, T v_button)
+{
+    const bool pressed = ImGui::RadioButton(label, *v == v_button);
+    if (pressed)
+        *v = v_button;
+    return pressed;
+}
 
 // Demonstrate creating a simple static window with no decoration + a context-menu to choose which corner of the screen to use.
 static void ShowAutoLoginOverlay(bool* p_open)
@@ -1920,72 +522,67 @@ static void ShowAutoLoginOverlay(bool* p_open)
 	ImGui::SetNextWindowBgAlpha(gameState == GAMESTATE_CHARSELECT ? .85f : .35f); // Transparent background
 	if (ImGui::Begin("MQ2AutoLogin Status", p_open, (corner != -1 ? ImGuiWindowFlags_NoMove : 0) | ImGuiWindowFlags_NoBringToFrontOnFocus  | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav))
 	{
-		ImGui::Text("MQ2AutoLogin is:");
-		ImGui::SameLine();
-		ImGui::TextColored(bUseMQ2Login ? ImColor(0, 255, 0) : ImColor(255, 0, 0), bUseMQ2Login ? "Enabled" : "Disabled");
+		ImGui::Text("MQ2AutoLogin Method:");
+		RadioButton("MQ2Login", &Login::m_settings.LoginType, Login::Settings::Type::MQ2Login); ImGui::SameLine();
+		RadioButton("StationNames", &Login::m_settings.LoginType, Login::Settings::Type::StationNames); ImGui::SameLine();
+		RadioButton("Sessions", &Login::m_settings.LoginType, Login::Settings::Type::Sessions);
 
 		ImGui::Text("(right-click to hide)");
 		ImGui::Separator();
-		ImGui::Checkbox("Enable Auto Login", &bUseMQ2Login);
 
-		if (bLogin)
+		bool bUseMQ2Login = !Login::paused();
+		if (ImGui::Checkbox("Enable Auto Login", &bUseMQ2Login))
+		{
+			bUseMQ2Login ? Login::dispatch(UnpauseLogin()) : Login::dispatch(PauseLogin());
+		}
+
+		if (bUseMQ2Login)
 		{
 			ImGui::Separator();
 
 			ImGui::Text("Current Status:");
-			ImGui::Text("Server: %s", gCurrentServerName.c_str());
-			ImGui::Text("Character: %s", gCurrentCharacterName.c_str());
+			ImGui::Text("Server: %s", Login::server().data());
+			ImGui::Text("Character: %s", Login::character().data());
 		}
 
 		if (bShowOverlayDebugInfo)
 		{
 			ImGui::Separator();
 
-			ImGui::Checkbox("bLogin", &bLogin);
-			ImGui::Checkbox("bWait", &bWait);
-			ImGui::Checkbox("bServerWait", &bServerWait);
-			ImGui::Checkbox("bWeAreDown", &bWeAreDown);
-			ImGui::Checkbox("bLoginCheckDone", &bLoginCheckDone);
-			ImGui::Checkbox("bKickActiveChar", &bKickActiveChar);
-			ImGui::Checkbox("bUseStationNamesInsteadOfSessions", &bUseStationNamesInsteadOfSessions);
-			ImGui::Checkbox("bReLoggin", &bReLoggin);
-			ImGui::Checkbox("bEndAfterCharSelect", &bEndAfterCharSelect);
-			ImGui::Checkbox("bEnd", &bEnd);
-			ImGui::Checkbox("bInGame", &bInGame);
-			ImGui::Checkbox("bSwitchServer", &bSwitchServer);
-			ImGui::Checkbox("bSwitchChar", &bSwitchChar);
-			ImGui::Checkbox("bSwitchTime", &bSwitchTime);
-			ImGui::Checkbox("bInjectorUpdate", &bInjectorUpdate);
+			ImGui::Text("Settings:");
+			ImGui::Checkbox("Kick Active Character", &Login::m_settings.KickActiveCharacter);
+			ImGui::Checkbox("End After Select", &Login::m_settings.EndAfterSelect);
 
 			ImGui::Separator();
-			ImGui::InputScalar("dwTime", ImGuiDataType_U64, &dwTime);
-			ImGui::InputScalar("switchTime", ImGuiDataType_U64, &switchTime);
-			ImGui::InputInt("BugTimer", &BugTimer);
-			ImGui::InputInt("retrylogincounter", &retrylogincounter);
-			ImGui::InputScalar("ullerrorwait", ImGuiDataType_U64, &ullerrorwait);
+			ImGui::Text("Server Up Notification:");
+			RadioButton("None", &Login::m_settings.NotifyOnServerUp, Login::Settings::ServerUpNotification::None); ImGui::SameLine();
+			RadioButton("Email", &Login::m_settings.NotifyOnServerUp, Login::Settings::ServerUpNotification::Email); ImGui::SameLine();
+			RadioButton("Beeps", &Login::m_settings.NotifyOnServerUp, Login::Settings::ServerUpNotification::Beeps);
 
 			ImGui::Separator();
-			ImGui::InputText("Current Profile", &gCurrentProfile);
-			ImGui::InputText("Current Account Name", &gCurrentAccountName);
-			ImGui::InputText("Current Password", &gCurrentPassword);
-			ImGui::InputText("Current Server Name", &gCurrentServerName);
-			ImGui::InputText("Current Character Name", &gCurrentCharacterName);
-			ImGui::InputText("Current Character Class", &gCurrentCharacterClass);
-			ImGui::InputInt("Current Character Level", &gCurrentCharacterLevel);
-			ImGui::InputText("gCurrentSelectCharacter", &gCurrentSelectCharacter);
-			ImGui::InputText("gNextCharacterName", &gNextCharacterName);
-			ImGui::InputText("gCommandLineArgs", &gCommandLineArgs);
-
-			if (ImGui::ListBoxHeader("Windows"))
+			ImGui::Text("State Variables:");
+			ImGui::RadioButton("Offsets Loaded", Login::offsets_loaded());
+			ImGui::Text("Delay Time: %llu", Login::delay_time() > MQGetTickCount64() ? Login::delay_time() - MQGetTickCount64() : 0ULL);
+			ImGui::Text("Last State: "); ImGui::SameLine();
+			switch (Login::last_state())
 			{
-				for (const auto& pv : WindowMap)
-				{
-					ImGui::Text("%s", pv.first.c_str());
-				}
-				ImGui::ListBoxFooter();
+				case LoginState::SplashScreen: ImGui::Text("SplashScreen"); break;
+				case LoginState::Connect: ImGui::Text("Connect"); break;
+				case LoginState::ConnectConfirm: ImGui::Text("ConnectConfirm"); break;
+				case LoginState::ServerSelect: ImGui::Text("ServerSelect"); break;
+				case LoginState::ServerSelectConfirm: ImGui::Text("ServerSelectConfirm"); break;
+				case LoginState::ServerSelectKick: ImGui::Text("ServerSelectKick"); break;
+				case LoginState::ServerSelectDown: ImGui::Text("ServerSelectDown"); break;
+				case LoginState::CharacterSelect: ImGui::Text("CharacterSelect"); break;
+				case LoginState::InGame: ImGui::Text("InGame"); break;
+				default: ImGui::Text(""); break;
 			}
+			if (Login::current_window() != nullptr && Login::current_window()->GetXMLData() != nullptr)
+			{
+				ImGui::Text("Current Window: %s", Login::current_window()->GetXMLData()->Name.c_str());
+			}
+
 			ImGui::Separator();
-			// Debug stuff
 			ImGui::Checkbox("Enable Debug Logging", &AUTOLOGIN_DBG);
 		}
 

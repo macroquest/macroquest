@@ -32,7 +32,7 @@
     </ClCompile>
     <!-- Shared compiler settings -->
     <ClCompile>
-      <AdditionalIncludeDirectories>$(MQ2Root)include;$(MQ2Root)src;$(MQ2Root)contrib;$(MQ2Root)contrib\date\include;$(MQ2Root)contrib\fmt\include;$(MQ2Root)contrib\wil\include;$(MQ2Root)contrib\spdlog\include;$(MQ2Root)contrib\imgui;$(MQ2Root)contrib\imgui\misc\cpp;$(MQ2Root)contrib\mini-yaml\yaml;$(MQ2Root)contrib\tinyfsm\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MQ2Root)include;$(MQ2Root)contrib;$(MQ2Root)contrib\date\include;$(MQ2Root)contrib\fmt\include;$(MQ2Root)contrib\wil\include;$(MQ2Root)contrib\spdlog\include;$(MQ2Root)contrib\imgui;$(MQ2Root)contrib\imgui\misc\cpp;$(MQ2Root)contrib\mini-yaml\yaml;$(MQ2Root)contrib\tinyfsm\include;$(MQ2Root)src;$(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <WarningLevel>Level3</WarningLevel>
       <CompileAs>CompileAsCpp</CompileAs>
