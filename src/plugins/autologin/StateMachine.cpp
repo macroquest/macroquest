@@ -118,7 +118,7 @@ class Wait : public Login
 protected:
 	bool transit_condition(const LoginStateSensor& e)
 	{
-		return !m_paused && m_record.has_value()
+		return !m_paused && (m_record.has_value() || e.State == LoginState::Connect) // the Connect state will set m_record, so it's valid to transit
 			&& (GetGameState() != GAMESTATE_PRECHARSELECT || g_pLoginClient) && // do nothing at precharselect if we don't have offsets
 			(e.State != m_lastState || m_delayTime < MQGetTickCount64());
 	}
