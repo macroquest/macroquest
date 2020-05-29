@@ -62,9 +62,15 @@ MQ2StringType::MQ2StringType() : MQ2Type("string")
 
 bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
-	const char* szString = static_cast<const char*>(VarPtr.Ptr);
-	if (!szString)
-		return false;
+	CXStr string;
+	if (VarPtr.Ptr != nullptr)
+	{
+		string = static_cast<const char*>(VarPtr.Ptr);
+	}
+	else
+	{
+		string = VarPtr.Get<CXStr>();
+	}
 
 	MQTypeMember* pMember = MQ2StringType::FindMember(Member);
 	if (!pMember)
@@ -73,107 +79,77 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 	switch (static_cast<StringMembers>(pMember->ID))
 	{
 	case StringMembers::Length:
-		Dest.DWord = strlen(szString);
+		Dest.DWord = string.length();
 		Dest.Type = pIntType;
 		return true;
 
 	case StringMembers::Left:
 		Dest.Type = pStringType;
 
-		if (!Index[0])
-			return false;
-
+		if (Index[0] != 0)
 		{
-			size_t StrLen = strlen(szString);
-
 			int Len = GetIntFromString(Index, 0);
 			if (Len == 0)
 				return false;
 
-			if (Len > MAX_STRING - 1)
-				Len = MAX_STRING - 1;
-
 			if (Len > 0)
 			{
-				if (static_cast<size_t>(Len) > StrLen)
-					Len = StrLen;
-
-				memmove(DataTypeTemp, szString, Len);
-
-				DataTypeTemp[Len] = 0;
-				Dest.Ptr = &DataTypeTemp[0];
+				Dest.SetString(string.substr(0, Len).c_str());
 			}
-			else
+			else // Len < 0
 			{
-				Len = -Len;
-
-				if (static_cast<size_t>(Len) > StrLen)
+				Len = string.length() + Len;
+				if (Len <= 0)
 				{
-					strcpy_s(DataTypeTemp, "");
-					Dest.Ptr = &DataTypeTemp[0];
-					return true;
+					Dest.SetString("");
 				}
-
-				memmove(DataTypeTemp, szString, StrLen - Len);
-				DataTypeTemp[StrLen - Len] = 0;
-				Dest.Ptr = &DataTypeTemp[0];
+				else
+				{
+					Dest.SetString(string.substr(0, Len).c_str());
+				}
 			}
+
+			return true;
 		}
-		return true;
+
+		return false;
 
 	case StringMembers::Right:
 		Dest.Type = pStringType;
 
-		if (!Index[0])
-			return false;
-
+		if (Index[0] != 0)
 		{
-			size_t StrLen = strlen(szString);
-			const char* pStart = szString;
-
 			int Len = GetIntFromString(Index, 0);
 
 			if (Len == 0)
 				return false;
 
-			if (Len < 0)
+			if (static_cast<size_t>(abs(Len)) > string.length())
 			{
-				Len = -Len;
-
-				if (static_cast<size_t>(Len) >= StrLen)
-				{
-					strcpy_s(DataTypeTemp, "");
-					Dest.Ptr = &DataTypeTemp[0];
-					return true;
-				}
-
-				pStart = &pStart[Len];
-				Len = StrLen - Len;
-
-				memmove(DataTypeTemp, pStart, Len + 1);
-				Dest.Ptr = &DataTypeTemp[0];
+				Dest.SetString("");
 			}
-			else
+			else if (Len < 0)
 			{
-				pStart = &pStart[strlen(pStart) - Len];
-
-				if (pStart < szString)
-					pStart = szString;
-
-				memmove(DataTypeTemp, pStart, Len + 1);
-				Dest.Ptr = &DataTypeTemp[0];
+				Dest.SetString(string.substr(-Len));
 			}
+			else // Len > 0
+			{
+				Dest.SetString(string.substr(string.length() - Len));
+			}
+
+			return true;
 		}
-		return true;
 
-	case StringMembers::Find: {
-		Dest.DWord = 0;
+		return false;
+
+	case StringMembers::Find:
+	{
 		Dest.Type = pIntType;
 
 		if (!Index[0])
 			return false;
 
-		int pos = ci_find_substr(szString, Index);
+		int pos = ci_find_substr(string, Index);
 		if (pos != -1)
 		{
 			Dest.DWord = pos + 1;
@@ -183,7 +159,7 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		return false;
 	}
 
-	case StringMembers::Replace: {
+	case StringMembers::Replace:
 		Dest.Type = pStringType;
 
 		if (!Index[0])
@@ -191,161 +167,126 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 
 		if (char* pComma = strchr(Index, ','))
 		{
-			// TODO: This could be optimized to reduce copies and side effects
-			std::string subject = szString;
+			std::string_view search_for(Index, std::distance(Index, pComma));
+			std::string_view replace_with(&pComma[1]);
 
-			*pComma = 0;
-			const std::string search = (char*)Index;
-			*pComma = ',';
-
-			const std::string replace = (char*)&pComma[1];
-
-			if (subject.empty() || search.empty())
-				return false;
-
-			size_t pos = 0;
-
-			while ((pos = subject.find(search, pos)) != std::string::npos)
-			{
-				subject.replace(pos, search.length(), replace);
-				pos += replace.length();
-			}
-
-			strcpy_s(DataTypeTemp, subject.c_str());
-
-			void* x = Dest.Ptr = DataTypeTemp;
-
-			if (Dest.Ptr = DataTypeTemp)
-			{
-				return true;
-			}
+			Dest.SetString(replace(string, { std::make_pair(search_for, replace_with) }));
+			return true;
 		}
 
 		return false;
-	}
 
 	case StringMembers::Upper:
-		strcpy_s(DataTypeTemp, szString);
-		_strupr_s(DataTypeTemp);
-		Dest.Ptr = &DataTypeTemp[0];
+	{
+		std::string upper(string);
+		MakeUpper(upper);
+		Dest.SetString(upper);
 		Dest.Type = pStringType;
 		return true;
+	}
 
 	case StringMembers::Lower:
-		strcpy_s(DataTypeTemp, szString);
-		_strlwr_s(DataTypeTemp);
-		Dest.Ptr = &DataTypeTemp[0];
+	{
+		std::string lower(string);
+		MakeLower(lower);
+		Dest.SetString(lower);
 		Dest.Type = pStringType;
 		return true;
+	}
 
 	case StringMembers::Compare:
 		Dest.Int = 0;
 		Dest.Type = pIntType;
-		if (Index[0])
+		if (Index[0] != 0)
 		{
-			Dest.Int = _stricmp(szString, Index);
+			Dest.Int = _stricmp(string.c_str(), Index);
 			return true;
 		}
 		return false;
 
 	case StringMembers::CompareCS:
-		Dest.Int = 0;
 		Dest.Type = pIntType;
-		if (Index[0])
+		if (Index[0] != 0)
 		{
-			Dest.Int = strcmp(szString, Index);
+			Dest.Int = string.compare(Index);
 			return true;
 		}
 		return false;
 
 	case StringMembers::Mid:
 		Dest.Type = pStringType;
+
+		if (Index[0] == 0)
+			return false;
+
 		if (char* pComma = strchr(Index, ','))
 		{
-			*pComma = 0;
-			pComma++;
+			int start = GetIntFromString(std::string_view(Index, std::distance(Index, pComma)), 0) - 1;
+			if (start < 0)
+				return false;
 
-			const char* pStr = szString;
-			int nStart = GetIntFromString(Index, 0) - 1;
-			if (nStart < 0)
+			int length = GetIntFromString(&pComma[1], 0) - 1;
+			if (length < 0)
+				return false;
+
+			if (start > length || (start > 0 && static_cast<size_t>(start) > string.length()))
 			{
-				nStart = 0;
+				Dest.SetString("");
+			}
+			else
+			{
+				Dest.SetString(string.substr(start, length));
 			}
 
-			int StrLen = strlen(pStr);
-			int Len = GetIntFromString(pComma, StrLen);
-
-			if (nStart >= StrLen)
-			{
-				strcpy_s(DataTypeTemp, "");
-				Dest.Ptr = &DataTypeTemp[0];
-				return true;
-			}
-
-			pStr += nStart;
-
-			if (Len > StrLen || Len < 0)
-			{
-				Len = StrLen;
-			}
-
-			memmove(DataTypeTemp, pStr, Len);
-			DataTypeTemp[Len] = '\0';
-			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 		}
+
 		return false;
 
 	case StringMembers::Equal:
-		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (Index[0])
+		if (Index[0] != 0)
 		{
-			Dest.DWord = _stricmp(szString, Index) == 0;
+			Dest.DWord = ci_equals(string, Index);
 			return true;
 		}
 		return false;
 
 	case StringMembers::NotEqual:
-		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (Index[0])
+		if (Index[0] != 0)
 		{
-			Dest.DWord = _stricmp(szString, Index) != 0;
+			Dest.DWord = !ci_equals(string, Index);
 			return true;
 		}
 		return false;
 
 	case StringMembers::EqualCS:
-		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (Index[0])
+		if (Index[0] != 0)
 		{
-			Dest.DWord = strcmp(szString, Index) == 0;
+			Dest.DWord = string_equals(string, Index);
 			return true;
 		}
 		return false;
 
 	case StringMembers::NotEqualCS:
-		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (Index[0])
+		if (Index[0] != 0)
 		{
-			Dest.DWord = strcmp(szString, Index) != 0;
+			Dest.DWord = !string_equals(string, Index);
 			return true;
 		}
 		return false;
 
 	case StringMembers::Count:
-		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (Index[0])
+		if (Index[0] != 0)
 		{
-			Dest.DWord = 0;
-			const char* pLast = szString - 1;
-
-			while (pLast = strchr(&pLast[1], Index[0]))
-				Dest.DWord++;
+			Dest.DWord = std::count_if(string.begin(), string.end(), [&Index](const char c)
+				{
+					return c == Index[0];
+				});
 
 			return true;
 		}
@@ -353,84 +294,47 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 
 	case StringMembers::Arg:
 		Dest.Type = pStringType;
+		if (!IsNumberToComma(Index))
+			return false;
 
-		if (IsNumberToComma(Index))
+		if (char* pComma = strchr(Index, ','))
 		{
-			char Temp[MAX_STRING] = { 0 };
-			strcpy_s(Temp, szString);
+			int index = GetIntFromString(std::string_view(Index, std::distance(Index, pComma)), 0);
+			if (index <= 0)
+				return false;
 
-			if (char* pComma = strchr(Index, ','))
-			{
-				*pComma = 0;
-				GetArg(DataTypeTemp, Temp, GetIntFromString(Index, 0), false, false, false, pComma[1]);
-				*pComma = ',';
+			auto vec = split_view(string, pComma[1]);
+			vec.erase(std::remove_if(vec.begin(), vec.end(),
+				[](std::string_view s) { return s.empty(); }));
 
-				if (DataTypeTemp[0])
-				{
-					Dest.Ptr = &DataTypeTemp[0];
-					return true;
-				}
-			}
-			else
-			{
-				GetArg(DataTypeTemp, Temp, GetIntFromString(Index, 0));
+			if (vec.size() < static_cast<size_t>(index))
+				return false;
 
-				if (DataTypeTemp[0])
-				{
-					Dest.Ptr = &DataTypeTemp[0];
-					return true;
-				}
-			}
+			Dest.SetString(vec.at(index - 1));
+			return true;
 		}
+
 		return false;
 
 	case StringMembers::Token:
 		Dest.Type = pStringType;
-		if (IsNumberToComma(Index))
+		if (!IsNumberToComma(Index))
+			return false;
+
+		if (char* pComma = strchr(Index, ','))
 		{
-			size_t index = GetIntFromString(Index, 0);
-			if (!index)
+			int index = GetIntFromString(std::string_view(Index, std::distance(Index, pComma)), 0);
+			if (index <= 0)
 				return false;
 
-			if (char* pComma = strchr(Index, ','))
-			{
-				const char* pPos = szString;
-				*pComma = 0;
-				index--;
+			auto vec = split_view(string, pComma[1]);
+			if (vec.size() < static_cast<size_t>(index))
+				return false;
 
-				while (index && pPos)
-				{
-					pPos = strchr(&pPos[1], pComma[1]);
-					index--;
-				}
-
-				*pComma = ',';
-
-				if (pPos)
-				{
-					if (pPos != (char*)VarPtr.Ptr)
-						pPos++;
-
-					const char* pEnd = strchr(&pPos[0], pComma[1]);
-
-					if (pEnd)
-					{
-						if (pEnd != pPos)
-						{
-							strncpy_s(DataTypeTemp, pPos, pEnd - pPos);
-							DataTypeTemp[pEnd - pPos] = 0;
-						}
-						else
-							DataTypeTemp[0] = 0;
-					}
-					else
-						strcpy_s(DataTypeTemp, pPos);
-
-					Dest.Ptr = &DataTypeTemp[0];
-					return true;
-				}
-			}
+			Dest.SetString(vec.at(index - 1));
+			return true;
 		}
+
 		return false;
 
 	default:
@@ -440,36 +344,39 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 
 bool MQ2StringType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	strcpy_s(Destination, MAX_STRING, static_cast<const char*>(VarPtr.Ptr));
+	if (VarPtr.Ptr != nullptr)
+	{
+		strcpy_s(Destination, MAX_STRING, static_cast<const char*>(VarPtr.Ptr));
+	}
+	else
+	{
+		strcpy_s(Destination, MAX_STRING, VarPtr.Get<CXStr>().c_str());
+	}
+
 	return true;
 }
 
-void MQ2StringType::InitVariable(MQVarPtr& VarPtr)
-{
-	VarPtr.Ptr = LocalAlloc(LPTR, MAX_STRING);
-}
-
-void MQ2StringType::FreeVariable(MQVarPtr& VarPtr)
-{
-	LocalFree(VarPtr.Ptr);
-}
-
-// TODO: This should be using the CXStr underlying type of VarPtr, but that is a very large change
 bool MQ2StringType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 {
 	if (Source.Type != pStringType)
 		return false;
 
-	strcpy_s(DataTypeTemp, static_cast<const char*>(Source.Ptr));
-	VarPtr.Ptr = &DataTypeTemp[0];
+	if (Source.Ptr != nullptr)
+	{
+		// assume the source is in a raw char string
+		VarPtr.SetString(static_cast<const char*>(Source.Ptr));
+	}
+	else
+	{
+		VarPtr.Set(Source.Get<CXStr>());
+	}
+
 	return true;
 }
 
-// TODO: This should be using the CXStr underlying type of VarPtr, but that is a very large change
 bool MQ2StringType::FromString(MQVarPtr& VarPtr, char* Source)
 {
-	strcpy_s(DataTypeTemp, Source);
-	VarPtr.Ptr = &DataTypeTemp[0];
+	VarPtr.SetString(static_cast<const char*>(Source));
 	return true;
 }
 
