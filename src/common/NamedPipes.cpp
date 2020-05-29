@@ -937,6 +937,23 @@ std::shared_ptr<PipeConnection> NamedPipeServer::GetConnection(int connectionId)
 	return *iter;
 }
 
+std::vector<int> NamedPipeServer::GetConnectionIds() const
+{
+	std::vector<int> connIds;
+
+	{
+		std::scoped_lock<std::mutex> lock(m_mutex);
+		connIds.reserve(m_connections.size());
+
+		for (const auto& conn : m_connections)
+		{
+			connIds.push_back(conn->GetConnectionId());
+		}
+	}
+
+	return connIds;
+}
+
 void NamedPipeServer::PostToMainThread(std::function<void()> callback)
 {
 	NamedPipeEndpointBase::PostToMainThread(std::move(callback));
@@ -959,6 +976,20 @@ void NamedPipeServer::SendMessage(int connectionId, std::shared_ptr<PipeMessage>
 	{
 		SPDLOG_WARN("Tried to send message on closed connection: connectionId={} sequenceId={}",
 			connectionId, message->GetSequenceId());
+	}
+}
+
+void NamedPipeServer::SendMessage(int connectionId, MQMessageId messageId, const void* data, size_t dataLength)
+{
+	auto connection = GetConnection(connectionId);
+
+	if (connection)
+	{
+		connection->SendMessage(messageId, data, dataLength);
+	}
+	else
+	{
+		SPDLOG_WARN("Tried to send message on closed connection: connectionId={} messageId={}", connectionId, messageId);
 	}
 }
 

@@ -33,6 +33,7 @@ enum class MQMessageId : uint16_t
 	MSG_MAIN_PROCESS_LOADED                = 1000,  // from mq: process has successfully injected
 	MSG_MAIN_PROCESS_UNLOADED              = 1001,  // from mq: process is about to unload mq
 	MSG_MAIN_CRASHPAD_CONFIG               = 1002,  // to mq: sends named pipe used for crashpad.
+	MSG_MAIN_REQ_UNLOAD                    = 1003,  // to mq: ask mq to nicely unload.
 
 	MSG_AUTOLOGIN_PROFILE_LOADED           = 2000,  // profile has been loaded
 	MSG_AUTOLOGIN_PROFILE_UNLOADED         = 2001,  // profile has been uploaded

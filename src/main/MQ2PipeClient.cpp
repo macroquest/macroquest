@@ -28,8 +28,9 @@ class PipeEventsHandler : public NamedPipeEvents
 public:
 	virtual void OnIncomingMessage(std::shared_ptr<PipeMessage> message) override
 	{
-		if (message->GetMessageId() == MQMessageId::MSG_MAIN_CRASHPAD_CONFIG)
+		switch (message->GetMessageId())
 		{
+		case MQMessageId::MSG_MAIN_CRASHPAD_CONFIG:
 			// Message needs to at least have some substance...
 			if (message->size() > 0)
 			{
@@ -44,6 +45,11 @@ public:
 					InitializeCrashpadPipe(message->get<const char>());
 				}
 			}
+			break;
+
+		case MQMessageId::MSG_MAIN_REQ_UNLOAD:
+			EzCommand("/unload");
+			break;
 		}
 	}
 };

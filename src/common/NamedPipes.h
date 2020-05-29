@@ -299,11 +299,12 @@ public:
 	~NamedPipeServer();
 
 	std::shared_ptr<PipeConnection> GetConnection(int connectionId) const;
+	std::vector<int> GetConnectionIds() const;
 
 	virtual void PostToMainThread(std::function<void()> callback) override;
 
-	void SendMessage(int connectionId, std::shared_ptr<PipeMessage> reply);
-
+	void SendMessage(int connectionId, std::shared_ptr<PipeMessage> message);
+	void SendMessage(int connectionId, MQMessageId messageId, const void* data, size_t dataLength);
 private:
 	void NamedPipeThread() override;
 
