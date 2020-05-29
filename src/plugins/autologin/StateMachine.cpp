@@ -116,10 +116,10 @@ class InGame;
 class Wait : public Login
 {
 protected:
-	bool transit_condition(LoginStateSensor const& e)
+	bool transit_condition(const LoginStateSensor& e)
 	{
-		return !m_paused &&
-			(GetGameState() != GAMESTATE_PRECHARSELECT || g_pLoginClient) && // do nothing at precharselect if we don't have offsets
+		return !m_paused && m_record.has_value()
+			&& (GetGameState() != GAMESTATE_PRECHARSELECT || g_pLoginClient) && // do nothing at precharselect if we don't have offsets
 			(e.State != m_lastState || m_delayTime < MQGetTickCount64());
 	}
 
@@ -130,12 +130,13 @@ public:
 		m_delayTime = new_delay > m_delayTime ? new_delay : m_delayTime; // this allows us to specify longer waits if we need them
 	}
 
-	void react(LoginStateSensor const& e) override
+	void react(const LoginStateSensor& e) override
 	{
+		m_currentWindow = e.Window;
+
 		if (transit_condition(e))
 		{
 			// we only want to actually delay in this state if there is no transition
-			m_currentWindow = e.Window;
 
 			switch (e.State)
 			{
@@ -176,7 +177,7 @@ public:
 				{
 					// fix for the stuck at char select "Loading Characters" bug
 					// need to quit and re-enter the character select screen if we've already waited once
-					// if the connection is slow, then the shrot wait time should be extended past 2 seconds
+					// if the connection is slow, then the short wait time should be extended past 2 seconds
 					if (pCharacterListWnd && m_lastState == e.State)
 						pCharacterListWnd->Quit();
 
@@ -191,7 +192,8 @@ public:
 			}
 			case LoginState::InGame:
 				// check this here because InGame will be the longest waiting state, don't do transits into self because they aren't useful
-				if (m_lastState != LoginState::InGame) transit<InGame>();
+				if (m_lastState != LoginState::InGame)
+					transit<InGame>();
 				break;
 			default:
 				break;
@@ -218,7 +220,7 @@ public:
 	void entry() override
 	{
 		// enter the username into the field
-		if (auto pEditWnd = GetChildWindow<CEditWnd>(m_currentWindow, "LOGIN_UsernameEdit"))
+		if (auto pUsernameEditWnd = GetChildWindow<CEditWnd>(m_currentWindow, "LOGIN_UsernameEdit"))
 		{
 			std::optional<ProfileRecord> record = std::nullopt;
 			if (m_record)
@@ -233,13 +235,13 @@ public:
 				switch (m_settings.LoginType)
 				{
 				case Settings::Type::MQ2Login:
-					record = UseMQ2Login(pEditWnd);
+					record = UseMQ2Login(pUsernameEditWnd);
 					break;
 				case Settings::Type::StationNames:
-					record = UseStationNames(pEditWnd);
+					record = UseStationNames(pUsernameEditWnd);
 					break;
 				case Settings::Type::Sessions:
-					record = UseSessions(pEditWnd);
+					record = UseSessions(pUsernameEditWnd);
 					break;
 				default:
 					break;
@@ -251,11 +253,12 @@ public:
 				m_record = record;
 
 				DWORD oldscreenmode = std::exchange(ScreenMode, 3);
-				pEditWnd->InputText = m_record->accountName;
+				pUsernameEditWnd->InputText = m_record->accountName;
 
-				if (CEditWnd* pPasswordEdit = GetChildWindow<CEditWnd>(m_currentWindow, "LOGIN_PasswordEdit"))
+				if (CEditWnd* pPasswordEditWnd = GetChildWindow<CEditWnd>(m_currentWindow, "LOGIN_PasswordEdit"))
 				{
-					pPasswordEdit->InputText = m_record->accountPassword;
+					pPasswordEditWnd->InputText = m_record->accountPassword;
+
 					if (CButtonWnd* pConnectButton = GetChildWindow<CButtonWnd>(m_currentWindow, "LOGIN_ConnectButton"))
 						pConnectButton->WndNotification(pConnectButton, XWM_LCLICK);
 				}
@@ -285,10 +288,11 @@ public:
 				// successful log in, transit
 			}
 			else if (str.find("password were not valid") != CXStr::npos
-				|| str.find("This login requires that the account be activated.  Please make sure your account is active in order to login.") != CXStr::npos)
+				|| str.find("This login requires that the account be activated.  Please make sure your account is active in order to login.") != CXStr::npos
+				|| str.find("You need to enter a username and password to login.") != CXStr::npos)
 			{
 				AutoLoginDebug(fmt::format("ConnectConfirm: {}", str));
-				dispatch(PauseLogin()); // we can't recover from these, so pause autologin
+				dispatch(StopLogin()); // we can't recover from these, so stop autologin
 			}
 			else if (str.find("You have a character logged into a world server as an OFFLINE TRADER from this account") != CXStr::npos)
 			{
@@ -349,7 +353,7 @@ public:
 		if (!m_record || m_record->serverName.empty())
 		{
 			AutoLoginDebug("ServerSelect: server name is empty");
-			dispatch(PauseLogin()); // no server to select, pause
+			dispatch(StopLogin()); // no server to select, pause
 			return false;
 		}
 		else
@@ -440,7 +444,7 @@ public:
 					m_settings.KickActiveCharacter ? "YESNO_YesButton" : "YESNO_NoButton");
 
 				if (!m_settings.KickActiveCharacter)
-					dispatch(PauseLogin());
+					dispatch(StopLogin());
 
 				if (pButton)
 					pButton->WndNotification(pButton, XWM_LCLICK);
@@ -451,7 +455,7 @@ public:
 				if (pButton)
 					pButton->WndNotification(pButton, XWM_LCLICK);
 				else
-					dispatch(PauseLogin());
+					dispatch(StopLogin());
 			}
 		}
 
@@ -464,7 +468,7 @@ public:
 class ServerSelectDown : public Wait
 {
 public:
-	void react(LoginStateSensor const& e) override
+	void react(const LoginStateSensor& e) override
 	{
 		// we only want to actually delay in this state if there is no transition
 		if (transit_condition(e))
@@ -535,7 +539,9 @@ public:
 
 				if (index < 0)
 				{
-					dispatch(PauseLogin());
+					WriteChatf("No character named \"%s\" found, stopping...", m_record->characterName.c_str());
+
+					dispatch(StopLogin());
 					transit<Wait>();
 				}
 				else
@@ -558,7 +564,7 @@ public:
 class CharacterSelectWait : public Wait
 {
 public:
-	void react(UnpauseLogin const& e) override
+	void react(const UnpauseLogin& e) override
 	{
 		if (m_paused)
 		{
@@ -571,7 +577,7 @@ public:
 		m_paused = false;
 	}
 
-	void react(LoginStateSensor const& e) override
+	void react(const LoginStateSensor& e) override
 	{
 		// we only want to actually delay in this state if there is no transition
 		if (transit_condition(e))
@@ -591,7 +597,7 @@ public:
 							pCharacterListWnd->EnterWorld();
 
 						if (m_settings.EndAfterSelect)
-							dispatch(PauseLogin());
+							dispatch(StopLogin());
 					}
 				}
 
@@ -607,18 +613,22 @@ public:
 class InGame : public Wait
 {
 public:
+	void entry() override
+	{
+		dispatch(StopLogin());
+	}
+
 	// override these events to do nothing in game
-	void react(UnpauseLogin const&) override {}
-	void react(PauseLogin const&) override {}
+	void react(const PauseLogin&) override {}
+	void react(const UnpauseLogin&) override {}
 };
 
 std::optional<ProfileRecord> Login::m_record = std::nullopt;
+std::vector<ProfileGroup> Login::m_profiles;
 CXWnd* Login::m_currentWindow = nullptr;
 bool Login::m_paused = false;
-bool Login::m_offsetsLoaded = false;
 uint64_t Login::m_delayTime = 0;
 LoginState Login::m_lastState = LoginState::InGame;
 struct Login::Settings Login::m_settings;
 
 FSM_INITIAL_STATE(Login, Wait)
-

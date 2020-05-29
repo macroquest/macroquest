@@ -54,18 +54,26 @@ bool DecryptData(DATA_BLOB* DataIn, DATA_BLOB* DataOut);
 struct ProfileRecord
 {
 	std::string profileName;
+	std::string serverName;
 
 	std::string accountName;
 	std::string accountPassword;
-
-	std::string serverName;
 	std::string characterName;
 
 	std::string hotkey;
 	std::string characterClass;
 	int characterLevel = 0;
+	bool checked = false;
 
 	static ProfileRecord FromString(const std::string& input);
 	static ProfileRecord FromBlob(const std::string& blob);
 	static ProfileRecord FromINI(const std::string& profile, const std::string& blobKey, const std::string& iniFile);
 };
+
+struct ProfileGroup
+{
+	std::string profileName;
+	std::vector<ProfileRecord> records;
+};
+
+std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& szIniFileName);

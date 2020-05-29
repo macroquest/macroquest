@@ -68,8 +68,6 @@ void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	Login::dispatch(SetLoginInformation(szServer, szCharacter));
-
 	if (GetGameState() == GAMESTATE_INGAME)
 	{
 		if (pChar && ci_equals(EQADDR_SERVERNAME, szServer) && ci_equals(pChar != nullptr ? pChar->DisplayedName : "", szCharacter))
@@ -78,6 +76,10 @@ void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
 		}
 		else
 		{
+			Login::dispatch(SetLoginInformation(szServer, szCharacter));
+
+			WriteChatf("Switching to \ag%s\ax on server \ag%s\ax", szCharacter, szServer);
+
 			if (pChar != nullptr && pChar->StandState == STANDSTATE_FEIGN)
 			{
 				// using DoMappable here doesn't create enough of a delay for camp to work
@@ -87,8 +89,6 @@ void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
 			EzCommand("/camp");
 		}
 	}
-
-	WriteChatf("Switching to \ag%s\ax on server \ag%s\ax", szCharacter, szServer);
 }
 
 void Cmd_SwitchCharacter(SPAWNINFO* pChar, char* szLine)
@@ -218,7 +218,7 @@ void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 
 		auto sections = split(buff_str, '\0');
 
-		for (auto section : sections)
+		for (const auto& section : sections)
 		{
 			auto blobKey = fmt::format("{}:{}_Blob", record.serverName, record.characterName);
 			std::string blob = GetPrivateProfileString(section.c_str(), blobKey, "", INIFileName);
@@ -434,10 +434,10 @@ PLUGIN_API void SetGameState(DWORD GameState)
 
 PLUGIN_API void OnPulse()
 {
-	if (GetAsyncKeyState(VK_HOME) & 1)
-		Login::dispatch(UnpauseLogin());
-	else if (GetAsyncKeyState(VK_END) & 1)
-		Login::dispatch(PauseLogin());
+	if (gbInForeground && GetAsyncKeyState(VK_HOME) & 1)
+		Login::dispatch(UnpauseLogin(true));
+	else if (gbInForeground && GetAsyncKeyState(VK_END) & 1)
+		Login::dispatch(PauseLogin(true));
 	else if (GetGameState() == GAMESTATE_INGAME && MQGetTickCount64() > ReenableTime)
 		Login::dispatch(LoginStateSensor(LoginState::InGame, nullptr));
 	else if (GetGameState() == GAMESTATE_CHARSELECT && MQGetTickCount64() > ReenableTime)
@@ -502,7 +502,6 @@ static bool RadioButton(const char* label, T* v, T v_button)
 	return pressed;
 }
 
-// Demonstrate creating a simple static window with no decoration + a context-menu to choose which corner of the screen to use.
 static void ShowAutoLoginOverlay(bool* p_open)
 {
 	const float DISTANCE = 10.0f;
@@ -530,26 +529,80 @@ static void ShowAutoLoginOverlay(bool* p_open)
 		ImGui::Text("(right-click to hide)");
 		ImGui::Separator();
 
-		bool bUseMQ2Login = !Login::paused();
-		if (ImGui::Checkbox("Enable Auto Login", &bUseMQ2Login))
+		bool bAutoLoginEnabled = !Login::paused();
+		if (ImGui::Checkbox("Auto Login Enabled", &bAutoLoginEnabled))
 		{
-			bUseMQ2Login ? Login::dispatch(UnpauseLogin()) : Login::dispatch(PauseLogin());
+			bAutoLoginEnabled ? Login::dispatch(UnpauseLogin()) : Login::dispatch(PauseLogin());
 		}
 
-		if (bUseMQ2Login)
-		{
-			ImGui::Separator();
+		ImGui::Separator();
+		ImGui::Text("Current Destination:");
 
-			ImGui::Text("Current Status:");
+		if (!Login::server().empty() && !Login::character().empty())
+		{
 			ImGui::Text("Server: %s", Login::server().data());
 			ImGui::Text("Character: %s", Login::character().data());
 		}
-
-		if (bShowOverlayDebugInfo)
+		else
 		{
-			ImGui::Separator();
+			if (ImGui::Button("Click to Select"))
+			{
+				Login::profiles() = LoadAutoLoginProfiles(INIFileName);
+				ImGui::OpenPopup("ProfileSelector");
+			}
 
-			ImGui::Text("Settings:");
+			if (ImGui::BeginPopup("ProfileSelector"))
+			{
+				if (ImGui::MenuItem("Manual Login..."))
+				{
+					// TODO: Display a prompt to enter the info directly.
+				}
+
+				if (ImGui::MenuItem("Create New Profile..."))
+				{
+					// TODO: Display a prompt to create a new profile
+				}
+
+				ImGui::Separator();
+
+				if (Login::profiles().empty())
+				{
+					ImGui::MenuItem("No Profiles (go create one!)", nullptr, false, false);
+				}
+				else
+				{
+					for (const ProfileGroup& pg : Login::profiles())
+					{
+						if (ImGui::BeginMenu(pg.profileName.c_str()))
+						{
+							for (const ProfileRecord& record : pg.records)
+							{
+								char buffer[256] = { 0 };
+								if (!record.characterClass.empty())
+									fmt::format_to(buffer, "[{}] {}->{} [{:d} {}]", record.accountName, record.serverName,
+										record.characterName, record.characterLevel, record.characterClass);
+								else
+									fmt::format_to(buffer, "[{}] {}->{}", record.accountName, record.serverName, record.characterName);
+
+								if (ImGui::MenuItem(buffer))
+								{
+									Login::dispatch(SetLoginProfile(record));
+								}
+							}
+
+							ImGui::EndMenu();
+						}
+					}
+				}
+
+
+				ImGui::EndPopup();
+			}
+		}
+
+		ImGui::Spacing();
+		if (ImGui::CollapsingHeader("Settings"))
+		{
 			ImGui::Checkbox("Kick Active Character", &Login::m_settings.KickActiveCharacter);
 			ImGui::Checkbox("End After Select", &Login::m_settings.EndAfterSelect);
 
@@ -561,9 +614,8 @@ static void ShowAutoLoginOverlay(bool* p_open)
 
 			ImGui::Separator();
 			ImGui::Text("State Variables:");
-			ImGui::RadioButton("Offsets Loaded", Login::offsets_loaded());
 			ImGui::Text("Delay Time: %llu", Login::delay_time() > MQGetTickCount64() ? Login::delay_time() - MQGetTickCount64() : 0ULL);
-			ImGui::Text("Last State: "); ImGui::SameLine();
+			ImGui::Text("Last State:"); ImGui::SameLine();
 			switch (Login::last_state())
 			{
 				case LoginState::SplashScreen: ImGui::Text("SplashScreen"); break;

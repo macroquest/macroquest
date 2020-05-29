@@ -29,7 +29,7 @@
 #include <fmt/format.h>
 
 using namespace mq;
-
+namespace fs = std::filesystem;
 
 bool DecryptData(DATA_BLOB* DataIn, DATA_BLOB* DataOut)
 {
@@ -87,15 +87,15 @@ ProfileRecord ProfileRecord::FromString(const std::string& input)
 
 	// the first method of username format is underscores
 	// we expect here a format of `<profile>_<server>:<character>`
-	std::regex blob_regex("(\\S+)_(\\w+):(\\S+)"); // TODO: do we need one of these for just server?
+	static std::regex blob_regex("(\\S+)_(\\w+):(\\S+)"); // TODO: do we need one of these for just server?
 	// <server>^<account>^<character>^<password>
-	std::regex plain_regex("(\\S+)\\^(\\S+)\\^(\\S+)\\^(\\S+)");
+	static std::regex plain_regex("(\\S+)\\^(\\S+)\\^(\\S+)\\^(\\S+)");
 	// <server>^<account>^<password>
-	std::regex plain2_regex("(\\S+)\\^(\\S+)\\^(\\S+)");
+	static std::regex plain2_regex("(\\S+)\\^(\\S+)\\^(\\S+)");
 	// <server>;<profile>:<character>
-	std::regex special_regex("(\\S+);(\\S+):(\\S+);");
+	static std::regex special_regex("(\\S+);(\\S+):(\\S+);");
 	// <server>:<character>
-	std::regex blob2_regex("(\\w+):(\\S+)");
+	static std::regex blob2_regex("(\\w+):(\\S+)");
 
 	ProfileRecord record;
 
@@ -188,4 +188,68 @@ ProfileRecord ProfileRecord::FromINI(const std::string& profile, const std::stri
 	record.serverName = split(blobKey, ':').at(0); // <server>:<character>_Blob
 
 	return record;
+}
+
+std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& szIniFileName)
+{
+	std::error_code ec;
+
+	if (!fs::exists(szIniFileName, ec))
+		return {};
+
+	int NumProfiles = GetPrivateProfileInt("Profiles", "NumProfiles", 0, szIniFileName);
+	if (NumProfiles <= 0)
+		return {};
+
+	std::vector<ProfileGroup> profiles;
+
+	for (int i = 0; i < NumProfiles; i++)
+	{
+		std::string sectionName = GetPrivateProfileString("Profiles", fmt::format("Profile{:d}", i + 1), "", szIniFileName);
+		if (sectionName.empty())
+			continue;
+
+		ProfileGroup profileGroup;
+		profileGroup.profileName = sectionName;
+
+		// Get list of keys for this profile
+		std::vector<std::string> keyNames = GetPrivateProfileKeys(sectionName, szIniFileName);
+		for (const auto& section : keyNames)
+		{
+			// FIXME: Use RawProfileRecord & ReadBlob
+			if (section.find("_Blob") == std::string::npos)
+				continue;
+
+			std::string blob = GetPrivateProfileString(sectionName, section, "", szIniFileName);
+			if (blob.empty())
+				continue;
+
+			// the blob has an =0 or =1 appended at the end.
+			bool checked = true;
+			size_t pos = blob.find("=");
+			if (pos != std::string::npos)
+			{
+				checked = blob.substr(pos + 1) != "0";
+				blob = blob.substr(0, pos);
+			}
+
+			ProfileRecord record = ProfileRecord::FromBlob(blob);
+			record.profileName = sectionName;
+			record.checked = checked;
+
+			// the key name is split into server:character_Blob
+			size_t pos2 = section.find(":");
+			if (pos2 != std::string::npos)
+			{
+				record.serverName = section.substr(0, pos2);
+			}
+
+			profileGroup.records.push_back(std::move(record));
+		}
+
+		if (!profileGroup.records.empty())
+			profiles.push_back(std::move(profileGroup));
+	}
+
+	return profiles;
 }
