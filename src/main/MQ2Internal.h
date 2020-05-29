@@ -711,7 +711,7 @@ struct MQVarPtr
 	typename ReturnType<T>::type Set(std::shared_ptr<T> Object)
 	{
 		if (Object)
-			return Set<T>(Object);
+			return Set<T>(*Object);
 
 		return std::static_pointer_cast<T>(std::get<std::shared_ptr<void>>(Data = std::shared_ptr<T>()));
 	}
