@@ -460,16 +460,14 @@ bool MQ2StringType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	if (Source.Type != pStringType)
 		return false;
 
-	strcpy_s(DataTypeTemp, static_cast<const char*>(Source.Ptr));
-	VarPtr.Ptr = &DataTypeTemp[0];
+	strcpy_s(static_cast<char*>(VarPtr.Ptr), MAX_STRING, static_cast<const char*>(Source.Ptr));
 	return true;
 }
 
 // TODO: This should be using the CXStr underlying type of VarPtr, but that is a very large change
 bool MQ2StringType::FromString(MQVarPtr& VarPtr, char* Source)
 {
-	strcpy_s(DataTypeTemp, Source);
-	VarPtr.Ptr = &DataTypeTemp[0];
+	strcpy_s(static_cast<char*>(VarPtr.Ptr), MAX_STRING, Source);
 	return true;
 }
 
