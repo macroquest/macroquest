@@ -732,6 +732,12 @@ struct MQVarPtr
 		return std::get<CXStr>(Data = String);
 	}
 
+	// this function is special to allow us to set a CXStr from a string_view without needing extra allocations
+	CXStr SetString(std::string_view String)
+	{
+		return std::get<CXStr>(Data = CXStr(String));
+	}
+
 	template <>
 	CXStr Get<CXStr>()
 	{

@@ -45,6 +45,11 @@ inline void MakeLower(std::string& str)
 	std::transform(str.begin(), str.end(), str.begin(), ::tolower);
 }
 
+inline void MakeUpper(std::string& str)
+{
+	std::transform(str.begin(), str.end(), str.begin(), ::toupper);
+}
+
 // trim from start (in place)
 inline void ltrim(std::string& s)
 {
@@ -97,6 +102,24 @@ inline std::vector<std::string> split(const std::string& s, char delim)
 	while (std::getline(ss, item, delim))
 	{
 		elems.push_back(std::move(item));
+	}
+
+	return elems;
+}
+
+inline std::vector<std::string_view> split_view(std::string_view s, char delim)
+{
+	std::vector<std::string_view> elems;
+
+	size_t start_idx = 0;
+
+	for (size_t i = 0; i < s.size(); ++i)
+	{
+		if (s[i] == delim)
+		{
+			elems.emplace_back(s.data() + start_idx, i - start_idx);
+			start_idx = i + 1;
+		}
 	}
 
 	return elems;
