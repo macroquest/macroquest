@@ -1,0 +1,10 @@
+stages:
+  - build
+
+exec_build_script:
+  stage: build
+
+  variables:
+    SCENARIO: "*** SCENARIO: Run PowerShell build script for next"
+
+  script: /Development/build_next.ps1
