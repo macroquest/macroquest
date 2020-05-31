@@ -61,6 +61,7 @@ MQModule* GetImGuiAPIModule();
 MQModule* GetDataAPIModule();
 MQModule* GetGroundSpawnsModule();
 MQModule* GetSpawnsModule();
+MQModule* GetItemsModule();
 
 DWORD WINAPI MQ2Start(void* lpParameter);
 HANDLE hMQ2StartThread = nullptr;
@@ -754,6 +755,7 @@ bool MQ2Initialize()
 	AddInternalModule(GetDataAPIModule());
 	AddInternalModule(GetGroundSpawnsModule());
 	AddInternalModule(GetSpawnsModule());
+	AddInternalModule(GetItemsModule());
 
 	// We will wait for pulse from the game to init on main thread.
 	g_hLoadComplete.wait();

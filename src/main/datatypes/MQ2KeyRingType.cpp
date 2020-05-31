@@ -21,12 +21,14 @@ enum class KeyRingTypeMembers
 {
 	Index = 1,
 	Name = 2,
+	Item = 3,
 };
 
 MQ2KeyRingType::MQ2KeyRingType() : MQ2Type("keyring")
 {
 	ScopedTypeMember(KeyRingTypeMembers, Index);
 	ScopedTypeMember(KeyRingTypeMembers, Name);
+	ScopedTypeMember(KeyRingTypeMembers, Item);
 }
 
 bool MQ2KeyRingType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
@@ -38,9 +40,30 @@ bool MQ2KeyRingType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 	switch (static_cast<KeyRingTypeMembers>(pMember->ID))
 	{
 	case KeyRingTypeMembers::Index:
-		Dest.DWord = LOWORD(VarPtr.DWord) + 1;
+		// We want the index of the item that is in the UI list, so we need to map back from the item
+		// to the UI index.
 		Dest.Type = pIntType;
-		return true;
+		if (pCharData && pKeyRingWnd)
+		{
+			int16_t n = LOWORD(VarPtr.DWord);
+			KeyRingType type = static_cast<KeyRingType>(HIWORD(VarPtr.DWord));
+
+			RefreshKeyRingWindow();
+
+			if (CListWnd* pListWnd = pKeyRingWnd->GetKeyRingList(type))
+			{
+				for (int i = 0; i < pListWnd->ItemsArray.GetCount(); ++i)
+				{
+					int slotNum = (int)pListWnd->GetItemData(i);
+					if (slotNum == n)
+					{
+						Dest.DWord = i + 1;
+						return true;
+					}
+				}
+			}
+		}
+		return false;
 
 	case KeyRingTypeMembers::Name:
 		Dest.Type = pStringType;
@@ -54,6 +77,22 @@ bool MQ2KeyRingType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 			{
 				strcpy_s(DataTypeTemp, item->GetItemDefinition()->Name);
 				Dest.Ptr = &DataTypeTemp[0];
+				return true;
+			}
+		}
+		return false;
+
+	case KeyRingTypeMembers::Item:
+		Dest.Type = pItemType;
+		if (pCharData)
+		{
+			int16_t n = LOWORD(VarPtr.DWord);
+			KeyRingType type = static_cast<KeyRingType>(HIWORD(VarPtr.DWord));
+
+			VePointer<CONTENTS> item = pCharData->GetKeyRingItems(type).GetItem(n);
+			if (item)
+			{
+				Dest.Ptr = item.get();
 				return true;
 			}
 		}
@@ -95,12 +134,21 @@ static bool dataGetKeyRing(KeyRingType keyRingType, const char* szIndex, MQTypeV
 		if (n < 0)
 			return false;
 
-		VePointer<CONTENTS> pItem = pCharData->GetKeyRingItems(keyRingType).GetItem(n);
-		if (pItem)
+		if (!pKeyRingWnd)
+			return false;
+
+		// We want to use order given by the keyrings window.
+		RefreshKeyRingWindow();
+
+		if (CListWnd* pListWnd = pKeyRingWnd->GetKeyRingList(keyRingType))
 		{
-			Ret.DWord = MAKELPARAM(n, keyRingType);
-			Ret.Type = pKeyRingType;
-			return true;
+			int itemIndex = (int)pListWnd->GetItemData(n);
+			if (itemIndex >= 0)
+			{
+				Ret.DWord = MAKELPARAM((int)itemIndex, keyRingType);
+				Ret.Type = pKeyRingType;
+				return true;
+			}
 		}
 
 		return false;

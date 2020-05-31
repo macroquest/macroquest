@@ -1089,4 +1089,6 @@ public:
 	}
 };
 
+void RefreshKeyRingWindow();
+
 } // namespace mq

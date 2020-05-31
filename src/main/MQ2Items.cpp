@@ -62,6 +62,45 @@ int GetIllusionCount() { return GetKeyRingCount(eIllusion); }
 int GetFamiliarCount() { return GetKeyRingCount(eFamiliar); }
 int GetHeroForgeCount() { return GetKeyRingCount(eHeroForge); }
 
+static bool gbDidUpdateKeyRing = false;
+static uint64_t gLastKeyRingUpdate = 0;
+
+void RefreshKeyRingWindow()
+{
+	if (gbDidUpdateKeyRing) // only need to update keyring every so often.
+		return;
+	if (!pKeyRingWnd)
+		return;
+
+	bool isVisible = pKeyRingWnd->IsVisible();
+	auto currentPage = pKeyRingWnd->CurrentPage;
+	int lastUpdateTime = pKeyRingWnd->LastUpdateTime;
+
+	// We can update the keyring window simply by flagging it as visible,
+	// resetting the timer, and calling OnProcessFrame. When we're done we
+	// reset the state back to how we found it.
+
+	if (!isVisible)
+		pKeyRingWnd->Show(true);
+
+	for (int type = CKeyRingWnd::ePageFirst; type <= CKeyRingWnd::ePageLast; ++type)
+	{
+		pKeyRingWnd->CurrentPage = (CKeyRingWnd::KeyRingPages)type;
+		pKeyRingWnd->LastUpdateTime = 0;
+		pKeyRingWnd->OnProcessFrame();
+	}
+
+	// Reset the state back to what it was.
+	if (!isVisible)
+		pKeyRingWnd->Show(false);
+	else
+		pKeyRingWnd->CurrentPage = currentPage;
+	pKeyRingWnd->LastUpdateTime = lastUpdateTime;
+
+	gbDidUpdateKeyRing = true;
+	gLastKeyRingUpdate = MQGetTickCount64();
+}
+
 //----------------------------------------------------------------------------
 
 static void Items_Initialize()
@@ -74,10 +113,21 @@ static void Items_Shutdown()
 
 static void Items_Pulse()
 {
+	// This may not be necessary if the data cannot be manipulated without the UI.
+	// This resets the check for gbDidUpdateKeyRing 5 seconds after it is set.
+	if (gbDidUpdateKeyRing)
+	{
+		if (gLastKeyRingUpdate + 5000 < MQGetTickCount64())
+		{
+			gbDidUpdateKeyRing = false;
+		}
+	}
 }
 
 static void Items_SetGameState(DWORD gameState)
 {
+	if (gameState == GAMESTATE_INGAME)
+		gbDidUpdateKeyRing = false;
 }
 
 } // namespace mq
