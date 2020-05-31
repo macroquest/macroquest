@@ -1088,4 +1088,5 @@ public:
 		return Getter();
 	}
 };
+
 } // namespace mq

@@ -354,7 +354,7 @@ static void Pulse()
 	if (gbDoAutoRun && pChar && pCharInfo)
 	{
 		gbDoAutoRun = false;
-		InitKeyRings();
+
 		char szAutoRun[MAX_STRING] = { 0 };
 		char* pAutoRun = szAutoRun;
 
@@ -537,7 +537,6 @@ static HeartbeatState Heartbeat()
 
 	gPipeClient.Process();
 
-	DebugTry(PulseMQ2Spawns());
 	DebugTry(DrawHUD());
 	DebugTry(PulseMQ2Windows());
 	DebugTry(PulseMQ2AutoInventory());

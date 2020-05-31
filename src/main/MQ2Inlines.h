@@ -670,7 +670,10 @@ inline bool MaybeExactCompare(std::string_view haystack, std::string_view needle
 	bool exact = false;
 
 	if (needle[0] == '=')
+	{
 		needle = needle.substr(1);
+		exact = true;
+	}
 
 	return ci_equals(haystack, needle, exact);
 }

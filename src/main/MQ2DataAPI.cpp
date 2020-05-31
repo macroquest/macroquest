@@ -449,7 +449,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("DoorTarget", datatypes::MQ2SpawnType::dataDoorTarget);
 	AddMQ2Data("DynamicZone", dataDynamicZone);
 	AddMQ2Data("EverQuest", dataEverQuest);
-	AddMQ2Data("Familiar", dataFamiliar);
+	AddMQ2Data("Familiar", datatypes::MQ2KeyRingType::dataFamiliar);
 	AddMQ2Data("FindItem", dataFindItem);
 	AddMQ2Data("FindItemBank", dataFindItemBank);
 	AddMQ2Data("FindItemBankCount", dataFindItemBankCount);
@@ -462,7 +462,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("Group", dataGroup);
 	AddMQ2Data("Heading", dataHeading);
 	AddMQ2Data("If", dataIf);
-	AddMQ2Data("Illusion", dataIllusion);
+	AddMQ2Data("Illusion", datatypes::MQ2KeyRingType::dataIllusion);
 	AddMQ2Data("Ini", dataIni);
 	AddMQ2Data("Int", datatypes::MQ2IntType::dataInt);
 	AddMQ2Data("InvSlot", dataInvSlot);
@@ -476,7 +476,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("Menu", dataMenu);
 	AddMQ2Data("Mercenary", dataMercenary);
 	AddMQ2Data("Merchant", dataMerchant);
-	AddMQ2Data("Mount", dataMount);
+	AddMQ2Data("Mount", datatypes::MQ2KeyRingType::dataMount);
 	AddMQ2Data("NearestSpawn", datatypes::MQ2SpawnType::dataNearestSpawn);
 	AddMQ2Data("Pet", dataPet);
 	AddMQ2Data("Plugin", dataPlugin);

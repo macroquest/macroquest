@@ -88,9 +88,6 @@ MQLIB_API void RemoveMQ2Benchmark(uint32_t BMHandle);
 MQLIB_API uint32_t AddMQ2Benchmark(const char* Name);
 
 /* SPAWN HANDLING */
-MQLIB_API void InitializeMQ2Spawns();
-MQLIB_API void ShutdownMQ2Spawns();
-MQLIB_API void PulseMQ2Spawns();
 MQLIB_API bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show);
 MQLIB_API bool IsTargetable(SPAWNINFO* pSpawn);
 MQLIB_API bool AreNameSpritesCustomized();
@@ -351,12 +348,12 @@ MQLIB_API bool StripQuotes(char* str);
 MQLIB_API void MakeMeVisible(SPAWNINFO* pChar, char* szLine);
 MQLIB_API void RemoveAura(SPAWNINFO* pChar, char* szLine);
 MQLIB_API bool GetAllMercDesc(std::map<int, MercDesc>& minfo);
-MQLIB_API int GetKeyRingIndex(KeyRingType KeyRing, const char* szItemName, bool bExact = true, bool usecmd = false);
+MQLIB_API int GetKeyRingCount(KeyRingType keyRingType);
 MQLIB_API int GetMountCount();
 MQLIB_API int GetIllusionCount();
 MQLIB_API int GetFamiliarCount();
-MQLIB_API void RefreshKeyRings(void* kr);
-MQLIB_API void InitKeyRings();
+MQLIB_API int GetHeroForgeCount();
+
 MQLIB_API bool IsActiveAA(const char* pSpellName);
 MQLIB_API CXWnd* GetAdvLootPersonalListItem(DWORD ListIndex, DWORD type);
 MQLIB_API CXWnd* GetAdvLootSharedListItem(DWORD ListIndex, DWORD type);
@@ -635,7 +632,8 @@ MQLIB_API uint32_t    GetSpellBuffTimer(int SpellID);
 MQLIB_API bool        HasExpansion(int nExpansion);
 MQLIB_API void        ListMercAltAbilities();
 MQLIB_API CONTENTS*   FindItemBySlot(short InvSlot, short BagSlot = -1, ItemContainerInstance location = eItemContainerPossessions);
-MQLIB_API CONTENTS*   FindItemBySlot2(const ItemGlobalIndex& idx);
+MQLIB_API CONTENTS*   FindItemByGlobalIndex(const ItemGlobalIndex& idx);
+   inline CONTENTS*   FindItemBySlot2(const ItemGlobalIndex& idx) { return FindItemByGlobalIndex(idx); }
 MQLIB_API CONTENTS*   FindItemByName(const char* pName, bool bExact = false);
 MQLIB_API CONTENTS*   FindItemByID(int ItemID);
 MQLIB_API int         FindItemCountByName(const char* pName, bool bExact = false);

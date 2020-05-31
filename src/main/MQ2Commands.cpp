@@ -3779,6 +3779,7 @@ void NoModKeyCmd(SPAWNINFO* pChar, char* szLine)
 //              Activates an item that has a clicky effect.
 // Usage:       /useitem 1 0 or /useitem "item name" or /useitem item name
 // ***************************************************************************
+
 void UseItemCmd(SPAWNINFO* pChar, char* szLine)
 {
 	char szCmd[MAX_STRING] = { 0 };
@@ -3791,76 +3792,48 @@ void UseItemCmd(SPAWNINFO* pChar, char* szLine)
 		cmdUseItem(pChar, szCmd);
 		return;
 	}
-	else
+
+	char szSlot1[MAX_STRING] = { 0 };
+	GetArg(szSlot1, szCmd, 1);
+
+	bool stripped = StripQuotes(szCmd);
+	if (IsNumber(szSlot1))
 	{
-		char szSlot1[MAX_STRING] = { 0 };
-		GetArg(szSlot1, szCmd, 1);
-
-		bool stripped = StripQuotes(szCmd);
-		if (IsNumber(szSlot1))
-		{
-			cmdUseItem(pChar, szCmd);
-		}
-		else
-		{
-			if (CONTENTS* pItem = FindItemByName(szCmd, stripped))
-			{
-				bool bKeyring = false;
-
-				if (CHARINFO* pCharInfo = GetCharInfo())
-				{
-					ItemGlobalIndex location;
-					location.Location = pItem->GlobalIndex.Location;
-
-					bKeyring = location.IsKeyRingLocation();
-				}
-
-				if (!bKeyring)
-				{
-					char szTemp[32] = { 0 };
-					sprintf_s(szTemp, "%d %d", pItem->GetGlobalIndex().GetTopSlot(), pItem->GetGlobalIndex().GetIndex().GetSlot(1));
-					cmdUseItem(pChar, szTemp);
-					return;
-				}
-
-				auto checkKeyRing = [&](KeyRingType keyringType, const char* windowList) -> bool
-				{
-					if (!((EQ_Item*)pItem)->IsKeyRingItem(keyringType))
-						return false;
-
-					if (int index = GetKeyRingIndex(keyringType, szCmd, stripped, true))
-					{
-						if (CXWnd* krWnd = FindMQ2Window(KeyRingWindowParent))
-						{
-							if (CListWnd* pListWnd = (CListWnd*)krWnd->GetChildItem(windowList))
-							{
-								int numItems = pListWnd->ItemsArray.Count;
-								if (numItems > 0)
-								{
-									SendListSelect(KeyRingWindowParent, windowList, index - 1);
-									int listData = static_cast<int>(pListWnd->GetItemData(index - 1));
-
-									VePointer<CONTENTS> pContents{ pItem };
-									CKeyRingWnd::ExecuteRightClick(keyringType, pContents, listData);
-								}
-							}
-						}
-					}
-
-					return true;
-				};
-
-				// TODO: Further refactor this to clean it up
-				if (!checkKeyRing(eMount, MountWindowList))
-				{
-					if (!checkKeyRing(eIllusion, IllusionWindowList))
-					{
-						checkKeyRing(eFamiliar, FamiliarWindowList);
-					}
-				}
-			}
-		}
+		cmdUseItem(pChar, szCmd);
+		return;
 	}
+
+	CONTENTS* pItem = FindItemByName(szCmd, stripped);
+	if (!pItem)
+		return;
+
+	CHARINFO* pCharInfo = GetCharInfo();
+	if (!pCharInfo)
+		return;
+
+	if (!pItem->GlobalIndex.IsKeyRingLocation())
+	{
+		char szTemp[32] = { 0 };
+		sprintf_s(szTemp, "%d %d", pItem->GetGlobalIndex().GetTopSlot(), pItem->GetGlobalIndex().GetIndex().GetSlot(1));
+
+		cmdUseItem(pChar, szTemp);
+		return;
+	}
+
+	// Check if this item qualifies to be on a keyring
+	KeyRingType keyRingType;
+	switch (pItem->GetItemDefinition()->ItemType)
+	{
+	case eItemClass_Mount: keyRingType = eMount; break;
+	case eItemClass_Illusion: keyRingType = eIllusion; break;
+	case eItemClass_Familiar: keyRingType = eFamiliar; break;
+		break;
+
+	default: return;
+	}
+
+	VePointer<CONTENTS> pContents{ pItem };
+	CKeyRingWnd::ExecuteRightClick(keyRingType, pContents, pItem->GlobalIndex.GetTopSlot());
 }
 
 // ***************************************************************************

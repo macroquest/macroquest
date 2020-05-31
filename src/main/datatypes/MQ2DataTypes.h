@@ -2185,16 +2185,14 @@ public:
 class MQ2KeyRingType : public MQ2Type
 {
 public:
-	enum KeyRingTypeMembers
-	{
-		xIndex = 1,
-		xName = 2,
-	};
-
 	MQ2KeyRingType();
 
 	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
+	static bool dataMount(const char* szIndex, MQTypeVar& Ret);
+	static bool dataIllusion(const char* szIndex, MQTypeVar& Ret);
+	static bool dataFamiliar(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================

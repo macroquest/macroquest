@@ -15,13 +15,18 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class KeyRingTypeMembers
+{
+	Index = 1,
+	Name = 2,
+};
 
 MQ2KeyRingType::MQ2KeyRingType() : MQ2Type("keyring")
 {
-	AddMember(xIndex, "Index");
-	AddMember(xName, "Name");
+	ScopedTypeMember(KeyRingTypeMembers, Index);
+	ScopedTypeMember(KeyRingTypeMembers, Name);
 }
 
 bool MQ2KeyRingType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
@@ -32,68 +37,103 @@ bool MQ2KeyRingType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTyp
 
 	switch (static_cast<KeyRingTypeMembers>(pMember->ID))
 	{
-	case xIndex:
+	case KeyRingTypeMembers::Index:
 		Dest.DWord = LOWORD(VarPtr.DWord) + 1;
 		Dest.Type = pIntType;
 		return true;
 
-	case xName:
+	case KeyRingTypeMembers::Name:
 		Dest.Type = pStringType;
-		if (CXWnd* krwnd = FindMQ2Window(KeyRingWindowParent))
+		if (pCharData)
 		{
-			CListWnd* clist = nullptr;
 			int16_t n = LOWORD(VarPtr.DWord);
-			int16_t type = HIWORD(VarPtr.DWord);
+			KeyRingType type = static_cast<KeyRingType>(HIWORD(VarPtr.DWord));
 
-			if (type == 2)
-				clist = (CListWnd*)krwnd->GetChildItem(FamiliarWindowList);
-			else if (type == 1)
-				clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList);
-			else
-				clist = (CListWnd*)krwnd->GetChildItem(MountWindowList);
-
-			if (clist)
+			VePointer<CONTENTS> item = pCharData->GetKeyRingItems(type).GetItem(n);
+			if (item)
 			{
-				CXStr Str = clist->GetItemText(n, 2);
-				if (!Str.empty())
-				{
-					strcpy_s(DataTypeTemp, Str.c_str());
-					Dest.Ptr = &DataTypeTemp[0];
-					return true;
-				}
+				strcpy_s(DataTypeTemp, item->GetItemDefinition()->Name);
+				Dest.Ptr = &DataTypeTemp[0];
+				return true;
 			}
 		}
 		return false;
 	}
+
 	return false;
 }
 
 bool MQ2KeyRingType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	if (CXWnd* krwnd = FindMQ2Window(KeyRingWindowParent))
+	if (!pCharData)
+		return false;
+
+	KeyRingType type = static_cast<KeyRingType>(HIWORD(VarPtr.DWord));
+	int16_t n = LOWORD(VarPtr.DWord);
+
+	VePointer<CONTENTS> item = pCharData->GetKeyRingItems(type).GetItem(n);
+	if (item)
 	{
-		CListWnd* clist = nullptr;
-
-		WORD n = LOWORD(VarPtr.DWord);
-		WORD type = HIWORD(VarPtr.DWord);
-
-		if (type == 2)
-			clist = (CListWnd*)krwnd->GetChildItem(FamiliarWindowList);
-		else if (type == 1)
-			clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList);
-		else
-			clist = (CListWnd*)krwnd->GetChildItem(MountWindowList);
-
-		if (clist)
-		{
-			CXStr Str = clist->GetItemText(n, 2);
-			if (!Str.empty())
-			{
-				strcpy_s(Destination, MAX_STRING, Str.c_str());
-				return true;
-			}
-		}
+		strcpy_s(Destination, MAX_STRING, item->GetItemDefinition()->Name);
+		return true;
 	}
+
 	return false;
 }
 
+static bool dataGetKeyRing(KeyRingType keyRingType, const char* szIndex, MQTypeVar& Ret)
+{
+	if (!szIndex[0])
+		return false;
+
+	if (!pCharData)
+		return false;
+
+	if (IsNumber(szIndex))
+	{
+		int n = GetIntFromString(szIndex, 0) - 1;
+		if (n < 0)
+			return false;
+
+		VePointer<CONTENTS> pItem = pCharData->GetKeyRingItems(keyRingType).GetItem(n);
+		if (pItem)
+		{
+			Ret.DWord = MAKELPARAM(n, keyRingType);
+			Ret.Type = pKeyRingType;
+			return true;
+		}
+
+		return false;
+	}
+
+	// handle string.
+	const char* pName = szIndex;
+	bool exact = pName[0] == '=' && pName++;
+
+	ItemIndex index = pCharData->GetKeyRingItems(keyRingType).FindItem(FindItemByNamePred(pName, exact));
+	if (index.IsValid())
+	{
+		Ret.DWord = MAKELPARAM(index.GetTopSlot(), keyRingType);
+		Ret.Type = pKeyRingType;
+		return true;
+	}
+
+	return false;
+}
+
+bool MQ2KeyRingType::dataMount(const char* szIndex, MQTypeVar& Ret)
+{
+	return dataGetKeyRing(eMount, szIndex, Ret);
+}
+
+bool MQ2KeyRingType::dataIllusion(const char* szIndex, MQTypeVar& Ret)
+{
+	return dataGetKeyRing(eIllusion, szIndex, Ret);
+}
+
+bool MQ2KeyRingType::dataFamiliar(const char* szIndex, MQTypeVar& Ret)
+{
+	return dataGetKeyRing(eFamiliar, szIndex, Ret);
+}
+
+} // namespace mq::datatypes

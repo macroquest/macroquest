@@ -17,6 +17,19 @@
 
 namespace mq {
 
+static void Spawns_Initialize();
+static void Spawns_Shutdown();
+static void Spawns_Pulse();
+
+static MQModule gSpawnsModule = {
+	"Spawns"  ,                   // Name
+	false,                        // CanUnload
+	Spawns_Initialize,            // Initialize
+	Spawns_Shutdown,              // Shutdown
+	Spawns_Pulse,                 // Pulse
+};
+MQModule* GetSpawnsModule() { return &gSpawnsModule; }
+
 #pragma region Caption Colors
 //----------------------------------------------------------------------------
 // caption color code
@@ -54,7 +67,6 @@ static bool dataNamingSpawn(const char* szIndex, MQTypeVar& Ret)
 	}
 	return false;
 }
-
 
 enum eCaptionColor
 {
@@ -832,7 +844,17 @@ static void UpdateMQ2SpawnSort()
 	}
 }
 
-void InitializeMQ2Spawns()
+bool IsTargetable(SPAWNINFO* pSpawn)
+{
+	return pSpawn && ((PlayerBase*)pSpawn)->IsTargetable();
+}
+
+bool AreNameSpritesCustomized()
+{
+	return gMQCaptions;
+}
+
+static void Spawns_Initialize()
 {
 	DebugSpew("Initializing Spawn-related Hooks");
 
@@ -899,7 +921,7 @@ void InitializeMQ2Spawns()
 	AddCommand("/captioncolor", CaptionColorCmd, true, false);
 }
 
-void ShutdownMQ2Spawns()
+static void Spawns_Shutdown()
 {
 	DebugSpew("Shutting Down Spawn-related Hooks");
 
@@ -936,24 +958,14 @@ void ShutdownMQ2Spawns()
 	RemoveMQ2Benchmark(bmUpdateSpawnCaptions);
 }
 
-void PulseMQ2Spawns()
+static void Spawns_Pulse()
 {
 	if (gGameState != GAMESTATE_INGAME)
 		return;
 
 	UpdateMQ2SpawnSort();
 	ProcessPendingGroundItems();
-
 }
 
-bool IsTargetable(SPAWNINFO* pSpawn)
-{
-	return pSpawn && ((PlayerBase*)pSpawn)->IsTargetable();
-}
-
-bool AreNameSpritesCustomized()
-{
-	return gMQCaptions;
-}
 
 } // namespace mq
