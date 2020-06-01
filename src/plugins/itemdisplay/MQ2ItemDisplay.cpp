@@ -2047,7 +2047,7 @@ static void UpdateCompareWindow(PCONTENTS pCont, PCONTENTS pEquipped)
 	CXPoint pt;
 	pt.x = EQADDR_MOUSE->X + 5;
 	pt.y = EQADDR_MOUSE->Y + 5;
-	((CXWnd*)pCompareTipWnd)->Move(pt);
+	pCompareTipWnd->Move(pt);
 
 	// Set the layer of the window to display
 	pCompareTipWnd->SetZLayer(105);        // Bags are z-index 100

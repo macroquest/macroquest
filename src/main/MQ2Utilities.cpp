@@ -7188,25 +7188,25 @@ CXWnd* GetAdvLootPersonalListItem(DWORD ListIndex, DWORD type)
 			switch (type)
 			{
 			case 0:
-				ptr = (CXWnd*)pPAdvLoot.NPC_Name;
+				ptr = pPAdvLoot.NPC_Name;
 				break;
 			case 1:
-				ptr = (CXWnd*)pPAdvLoot.Item;
+				ptr = pPAdvLoot.Item;
 				break;
 			case 2:
-				ptr = (CXWnd*)pPAdvLoot.Loot;
+				ptr = pPAdvLoot.Loot;
 				break;
 			case 3:
-				ptr = (CXWnd*)pPAdvLoot.Leave;
+				ptr = pPAdvLoot.Leave;
 				break;
 			case 4:
-				ptr = (CXWnd*)pPAdvLoot.Never;
+				ptr = pPAdvLoot.Never;
 				break;
 			case 5:
-				ptr = (CXWnd*)pPAdvLoot.AN;
+				ptr = pPAdvLoot.AN;
 				break;
 			case 6:
-				ptr = (CXWnd*)pPAdvLoot.AG;
+				ptr = pPAdvLoot.AG;
 				break;
 			}
 
@@ -7290,43 +7290,43 @@ CXWnd* GetAdvLootSharedListItem(DWORD ListIndex, DWORD type)
 			switch (type)
 			{
 			case 0:
-				ptr = (CXWnd*)pSAdvLoot.NPC_Name;
+				ptr = pSAdvLoot.NPC_Name;
 				break;
 			case 1:
-				ptr = (CXWnd*)pSAdvLoot.Item;
+				ptr = pSAdvLoot.Item;
 				break;
 			case 2:
-				ptr = (CXWnd*)pSAdvLoot.Status;
+				ptr = pSAdvLoot.Status;
 				break;
 			case 3:
-				ptr = (CXWnd*)pSAdvLoot.Action;
+				ptr = pSAdvLoot.Action;
 				break;
 			case 4:
-				ptr = (CXWnd*)pSAdvLoot.Manage;
+				ptr = pSAdvLoot.Manage;
 				break;
 			case 5:
-				ptr = (CXWnd*)pSAdvLoot.AN;
+				ptr = pSAdvLoot.AN;
 				break;
 			case 6:
-				ptr = (CXWnd*)pSAdvLoot.AG;
+				ptr = pSAdvLoot.AG;
 				break;
 			case 7:
-				ptr = (CXWnd*)pSAdvLoot.AutoRoll;
+				ptr = pSAdvLoot.AutoRoll;
 				break;
 			case 8:
-				ptr = (CXWnd*)pSAdvLoot.NV;
+				ptr = pSAdvLoot.NV;
 				break;
 			case 9:
-				ptr = (CXWnd*)pSAdvLoot.ND;
+				ptr = pSAdvLoot.ND;
 				break;
 			case 10:
-				ptr = (CXWnd*)pSAdvLoot.GD;
+				ptr = pSAdvLoot.GD;
 				break;
 			case 11:
-				ptr = (CXWnd*)pSAdvLoot.NO;
+				ptr = pSAdvLoot.NO;
 				break;
-			case 12://root
-				ptr = (CXWnd*)pSAdvLoot.Item;
+			case 12: // root
+				ptr = pSAdvLoot.Item;
 				break;
 			}
 

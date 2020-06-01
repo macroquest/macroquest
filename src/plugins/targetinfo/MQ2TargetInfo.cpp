@@ -81,7 +81,7 @@ CHotButton* GroupHotButton[3] = { nullptr, nullptr, nullptr };
 bool gbFollowme = false;
 bool gbMimicMe = false;
 
-CSidlScreenWnd* Target_BuffWindow = nullptr;
+CXWnd* Target_BuffWindow = nullptr;
 CLabelWnd* Target_AggroPctPlayerLabel = nullptr;
 CLabelWnd* Target_AggroNameSecondaryLabel = nullptr;
 CLabelWnd* Target_AggroPctSecondaryLabel = nullptr;
@@ -1186,7 +1186,7 @@ void Initialize()
 				Target_AggroPctSecondaryLabel->SetBottomOffset(dBottomOffset);
 			}
 
-			if (Target_BuffWindow = (CSidlScreenWnd*)pTargetWnd->GetChildItem("Target_BuffWindow"))
+			if (Target_BuffWindow = pTargetWnd->GetChildItem("Target_BuffWindow"))
 			{
 				Target_BuffWindow->SetBGColor(0xFF000000);
 				Target_BuffWindow_TopOffsetOld = Target_BuffWindow->GetTopOffset();
@@ -1610,12 +1610,12 @@ public:
 				pWnd->GetParentWindow() == GroupHotButton[0]
 				|| pWnd->GetParentWindow() == GroupHotButton[1]
 				|| pWnd->GetParentWindow() == GroupHotButton[2]
-				|| pWnd == (CXWnd*)GroupHotButton[0]
-				|| pWnd == (CXWnd*)GroupHotButton[1]
-				|| pWnd == (CXWnd*)GroupHotButton[2]
-				|| pWnd == (CXWnd*)NavButton
-				|| pWnd == (CXWnd*)MimicMeButton
-				|| pWnd == (CXWnd*)FollowMeButton))
+				|| pWnd == GroupHotButton[0]
+				|| pWnd == GroupHotButton[1]
+				|| pWnd == GroupHotButton[2]
+				|| pWnd == NavButton
+				|| pWnd == MimicMeButton
+				|| pWnd == FollowMeButton))
 			{
 				// we dont want to show the menu here.
 				pContextMenuManager->Flush();
@@ -1626,12 +1626,12 @@ public:
 			if (pWnd && (pWnd->GetParentWindow() == GroupHotButton[0]
 				|| pWnd->GetParentWindow() == GroupHotButton[1]
 				|| pWnd->GetParentWindow() == GroupHotButton[2]
-				|| pWnd == (CXWnd*)GroupHotButton[0]
-				|| pWnd == (CXWnd*)GroupHotButton[1]
-				|| pWnd == (CXWnd*)GroupHotButton[2]
-				|| pWnd == (CXWnd*)NavButton
-				|| pWnd == (CXWnd*)MimicMeButton
-				|| pWnd == (CXWnd*)FollowMeButton))
+				|| pWnd == GroupHotButton[0]
+				|| pWnd == GroupHotButton[1]
+				|| pWnd == GroupHotButton[2]
+				|| pWnd == NavButton
+				|| pWnd == MimicMeButton
+				|| pWnd == FollowMeButton))
 			{
 				// we dont want to show the menu here.
 				pContextMenuManager->Flush();
@@ -1955,7 +1955,7 @@ public:
 	CXWnd* CSidlManager_CreateHotButtonWnd_Detour(CXWnd* pwndParent, CControlTemplate* pControl)
 	{
 		CHotButton* ret = (CHotButton*)CSidlManager_CreateHotButtonWnd_Tramp(pwndParent, pControl);
-		return (CXWnd*)ret;
+		return ret;
 	}
 };
 
@@ -2321,7 +2321,7 @@ void CleanUp(bool bUnload)
 		if (bUnload)
 		{
 			// Check that our controls still exist.
-			CSidlScreenWnd* pBuffWindow = (CSidlScreenWnd*)pTargetWnd->GetChildItem("Target_BuffWindow");
+			CXWnd* pBuffWindow = pTargetWnd->GetChildItem("Target_BuffWindow");
 			if (Target_BuffWindow && Target_BuffWindow == Target_BuffWindow)
 			{
 				Target_BuffWindow->SetTopOffset(Target_BuffWindow_TopOffsetOld);

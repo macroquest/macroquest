@@ -571,7 +571,7 @@ CXWnd* FindMQ2Window(const char* Name)
 
 	if (pPack)
 	{
-		return (CXWnd*)FindContainerForContents(pPack);
+		return FindContainerForContents(pPack);
 	}
 
 	// didnt find a toplevel window, is it a child then?

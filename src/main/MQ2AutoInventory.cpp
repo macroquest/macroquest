@@ -177,8 +177,8 @@ public:
 				pCountLabel->SetWindowText(szTemp);
 
 				// we really need the list to fit to the window so people can actually see this new feature.
-				CXRect rectmain = ((CXWnd*)pFIWnd)->GetClientRect();
-				CXRect rect = ((CXWnd*)list)->GetClientRect();
+				CXRect rectmain = pFIWnd->GetClientRect();
+				CXRect rect = list->GetClientRect();
 				int TotalWidth = 0;
 
 				for (int i = 0; i < list->Columns.Count; i++)
@@ -219,7 +219,7 @@ public:
 						pDisableConnectionTemplate->strName = szTemp2;
 						pDisableConnectionTemplate->strScreenId = szTemp2;
 
-						if (pCheck = (CCheckBoxWnd*)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pFIWnd, pDisableConnectionTemplate))
+						if (pCheck = (CCheckBoxWnd*)pSidlMgr->CreateXWndFromTemplate(pFIWnd, pDisableConnectionTemplate))
 						{
 							pCheck->SetEnabled(true);
 							pCheck->SetCheck(false);
@@ -324,7 +324,7 @@ public:
 
 		if (uiMessage == XWM_SORTREQUEST)
 		{
-			if (pWnd == (CXWnd*)pThis->FIW_ItemList)
+			if (pWnd == pThis->FIW_ItemList)
 			{
 				if (SListWndSortInfo* pSI = (SListWndSortInfo*)pData)
 				{
@@ -368,7 +368,7 @@ public:
 					if (pCountLabel)
 						pCountLabel->SetVisible(false);
 
-					if (CListWnd* list = (CListWnd*)((CXWnd*)this)->GetChildItem("FIW_ItemList"))
+					if (CListWnd* list = (CListWnd*)pThis->GetChildItem("FIW_ItemList"))
 					{
 						list->Selected = 0xFF004040;
 					}
@@ -382,7 +382,7 @@ public:
 					if (pCountLabel)
 						pCountLabel->SetVisible(true);
 
-					if (CListWnd* list = (CListWnd*)((CXWnd*)this)->GetChildItem("FIW_ItemList"))
+					if (CListWnd* list = (CListWnd*)pThis->GetChildItem("FIW_ItemList"))
 					{
 						if (list->Columns.Count > Column_CheckBox)
 						{
@@ -411,7 +411,7 @@ public:
 		}
 		else if (uiMessage == XWM_RCLICK)
 		{
-			if (CButtonWnd* FIW_DestroyItem = (CButtonWnd*)((CXWnd*)this)->GetChildItem("FIW_DestroyItem"))
+			if (CButtonWnd* FIW_DestroyItem = (CButtonWnd*)pThis->GetChildItem("FIW_DestroyItem"))
 			{
 				if ((CButtonWnd*)pWnd == FIW_DestroyItem || (CButtonWnd*)pWnd == pNLMarkedButton || (CLabelWnd*)pWnd == pCountLabel)
 				{
@@ -641,7 +641,7 @@ public:
 				{
 					if (list->Columns.Count > Column_CheckBox)
 					{
-						if (FIW_DestroyItem && (CXWnd*)FIW_DestroyItem == pWnd)
+						if (FIW_DestroyItem && FIW_DestroyItem == pWnd)
 						{
 							if (!gDeleteList.empty())
 								return 0;
@@ -682,7 +682,7 @@ public:
 								}
 							}
 						}
-						else if ((CXWnd*)pNLMarkedButton == pWnd)
+						else if (pNLMarkedButton == pWnd)
 						{
 							if (pMerchantWnd && pMerchantWnd->IsVisible())
 							{
@@ -970,7 +970,7 @@ static void AddAutoBankMenu()
 				// we need to add a couple controls, Checked count label and Never Loot Button
 				if (CControlTemplate* pCountLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("FIW_ItemNameLabel"))
 				{
-					if (pCountLabel = (CLabelWnd*)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pFIWnd, pCountLabelTemplate))
+					if (pCountLabel = (CLabelWnd*)pSidlMgr->CreateXWndFromTemplate(pFIWnd, pCountLabelTemplate))
 					{
 						pCountLabel->SetBottomAnchoredToTop(false);
 						pCountLabel->SetLeftAnchoredToLeft(false);
@@ -990,7 +990,7 @@ static void AddAutoBankMenu()
 
 				if (CControlTemplate* pRequestPreviewButtonTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("FIW_DestroyItem"))
 				{
-					if (pNLMarkedButton = (CButtonWnd*)pSidlMgr->CreateXWndFromTemplate((CXWnd*)pFIWnd, pRequestPreviewButtonTemplate))
+					if (pNLMarkedButton = (CButtonWnd*)pSidlMgr->CreateXWndFromTemplate(pFIWnd, pRequestPreviewButtonTemplate))
 					{
 						pNLMarkedButton->SetLeftOffset(157);
 						pNLMarkedButton->SetRightOffset(87);
@@ -1097,7 +1097,7 @@ void RemoveAutoBankMenu()
 
 			if (pCountLabel)
 			{
-				((CXWnd*)pCountLabel)->Destroy();
+				pCountLabel->Destroy();
 				pCountLabel = nullptr;
 			}
 

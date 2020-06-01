@@ -93,7 +93,7 @@ public:
 
 	virtual int WndNotification(CXWnd* pWnd, unsigned int Message, void* data) override
 	{
-		if (pWnd == (CXWnd*)InputBox)
+		if (pWnd == InputBox)
 		{
 			if (Message == XWM_HITENTER)
 			{
