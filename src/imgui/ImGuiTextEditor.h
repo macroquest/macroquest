@@ -192,6 +192,7 @@ public:
 		TokenizeCallback mTokenize = nullptr;
 		TokenRegexStrings mTokenRegexStrings;
 		bool mCaseSensitive = true;
+		bool mEnabled = true;
 
 		IMGUI_API LanguageDefinition() = default;
 
@@ -202,6 +203,7 @@ public:
 		IMGUI_API static const LanguageDefinition& SQL();
 		IMGUI_API static const LanguageDefinition& AngelScript();
 		IMGUI_API static const LanguageDefinition& Lua();
+		IMGUI_API static const LanguageDefinition& PlainText();
 	};
 
 	IMGUI_API TextEditor();

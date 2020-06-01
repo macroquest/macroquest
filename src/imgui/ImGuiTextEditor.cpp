@@ -1198,9 +1198,9 @@ void TextEditor::Render()
 			if (local.x >= m_textStart)
 			{
 				auto pos = ScreenPosToCoordinates(mpos);
-				printf("Coord(%d, %d)\n", pos.mLine, pos.mColumn);
+
 				auto id = GetWordAt(pos);
-				if (!id.empty())
+				if (!id.empty() && m_languageDefinition.mEnabled)
 				{
 					auto it = m_languageDefinition.mIdentifiers.find(id);
 					if (it != m_languageDefinition.mIdentifiers.end())
@@ -2432,7 +2432,7 @@ void TextEditor::ColorizeInternal()
 	if (m_lines.empty() || !m_colorizerEnabled)
 		return;
 
-	if (m_checkComments)
+	if (m_checkComments && m_languageDefinition.mEnabled)
 	{
 		auto endLine = (int)m_lines.size();
 		auto endIndex = 0;
@@ -3525,6 +3525,24 @@ const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::Lua()
 
 		inited = true;
 	}
+	return langDef;
+}
+
+const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::PlainText()
+{
+	static bool inited = false;
+	static LanguageDefinition langDef;
+
+	if (!inited)
+	{
+		langDef.mName = "PlainText";
+		langDef.mEnabled = false;
+		langDef.mAutoIndentation = false;
+		langDef.mCaseSensitive = false;
+
+		inited = true;
+	}
+
 	return langDef;
 }
 
