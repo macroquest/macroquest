@@ -199,6 +199,10 @@ static EQ_Spell* GetSpellFromMap(std::string_view name)
 
 	auto range = s_spellNameMap.equal_range(name);
 
+	// no hits
+	if (range.first == range.second)
+		return nullptr;
+
 	// If there is only a single hit by name, just return that spell.
 	if (std::distance(range.first, range.second) == 1)
 		return range.first->second;
@@ -226,7 +230,8 @@ static EQ_Spell* GetSpellFromMap(std::string_view name)
 	if (it != range.second)
 		return it->second;
 
-	return nullptr;
+	// couldn't find a good match, return the first spell that came back.
+	return range.first->second;
 }
 
 EQ_Spell* GetSpellByName(std::string_view name)
