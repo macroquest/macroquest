@@ -31,12 +31,15 @@
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 #include <d3d9.h>
-#include <fenv.h>
+#include <cfenv>
 
 #include <spdlog/spdlog.h>
 #include <fmt/format.h>
 #include <atomic>
+#include <chrono>
 #include <vector>
+
+using namespace std::chrono_literals;
 
 namespace mq {
 
@@ -103,6 +106,7 @@ static void UpdateGraphicsScene();
 static void InvalidateDeviceObjects();
 static bool CreateDeviceObjects();
 static bool RenderImGui();
+static bool RenderScene_Hook();
 
 // Some of our hooks are determined dynamically. Rather than have a variable
 // for each one, we store them in a collection of these HookInfo objects.
@@ -1805,11 +1809,22 @@ public:
 };
 DETOUR_TRAMPOLINE_EMPTY(void CParticleSystemHook::Render_Trampoline());
 
-// This hooks the ResetDevice function which is called when we want to reset the device. Hooking this function
-// ensures that even if our hook of the Direct3D device fails, we can still release our objects.
 class CRenderHook
 {
 public:
+	// This hooks the main render function. We can use it to toggle rendering of the main game scene.
+	// If we disable rendering, we should still draw imgui.
+	void RenderScene_Trampoline();
+	void RenderScene_Detour()
+	{
+		if (RenderScene_Hook())
+			return;
+
+		RenderScene_Trampoline();
+	}
+
+	// This hooks the ResetDevice function which is called when we want to reset the device. Hooking
+	// this function ensures that even if our hook of the Direct3D device fails, we can still release our objects.
 	bool ResetDevice_Trampoline(bool);
 	bool ResetDevice_Detour(bool a)
 	{
@@ -1829,6 +1844,7 @@ public:
 		return success;
 	}
 };
+DETOUR_TRAMPOLINE_EMPTY(void CRenderHook::RenderScene_Trampoline());
 DETOUR_TRAMPOLINE_EMPTY(bool CRenderHook::ResetDevice_Trampoline(bool));
 
 // Mouse hook prevents mouse events from reaching EQ when imgui captures
@@ -2125,24 +2141,6 @@ static eOverlayHookStatus InitializeOverlayHooks()
 		return eOverlayHookStatus::Failed;
 	}
 
-	// Intercept mouse events
-	InstallDetour(__ProcessMouseEvents, ProcessMouseEvents_Detour, ProcessMouseEvents_Trampoline, "__ProcessMouseEvents");
-
-	// Intercept mouse wheel events
-	InstallDetour(__HandleMouseWheel, HandleMouseWheel_Detour, HandleMouseWheel_Trampoline, "__HandleMouseWheel");
-
-	// Intercept keyboard events
-	InstallDetour(__ProcessKeyboardEvents, ProcessKeyboardEvents_Detour, ProcessKeyboardEvents_Trampoline, "__ProcessKeyboardEvents");
-
-	// Hook the main window proc.
-	InstallDetour(__WndProc, WndProc_Detour, WndProc_Trampoline, "__WndProc");
-
-	// Hook render function
-	InstallDetour(CParticleSystem__Render, &CParticleSystemHook::Render_Detour, &CParticleSystemHook::Render_Trampoline, "CParticleSystem__Render");
-
-	// Hook the reset device function
-	InstallDetour(CRender__ResetDevice, &CRenderHook::ResetDevice_Detour, &CRenderHook::ResetDevice_Trampoline, "CRenderHook__ResetDevice");
-
 	gbDeviceHooksInstalled = true;
 	gLastGameState = gGameState;
 
@@ -2274,6 +2272,9 @@ static bool RenderImGui()
 
 static void UpdateGraphicsScene()
 {
+	if (gRenderCallbacks.empty())
+		return;
+
 	// Perform the render within a stateblock so we don't upset the rest
 	// of the rendering pipeline
 	IDirect3DStateBlock9* stateBlock = nullptr;
@@ -2330,6 +2331,366 @@ static bool CreateDeviceObjects()
 
 //============================================================================
 
+#pragma region Helpers
+
+class FrameThrottler
+{
+public:
+	FrameThrottler() = default;
+
+	void SetMinDuration(std::chrono::microseconds duration)
+	{
+		m_minDuration = duration;
+		m_previous = std::chrono::steady_clock::now();
+	}
+
+	void Prepare()
+	{
+		m_previous = std::chrono::steady_clock::now() - m_minDuration;
+	}
+
+	bool ThrottleFrame()
+	{
+		auto now = std::chrono::steady_clock::now();
+		std::chrono::microseconds delta = std::chrono::duration_cast<std::chrono::microseconds>(now - m_previous);
+
+		if (delta < 0ms)
+			m_previous = now;
+		else if (delta < m_minDuration)
+			return true;
+
+		m_previous += m_minDuration;
+		return false;
+	}
+
+private:
+	std::chrono::steady_clock::time_point m_previous;
+	std::chrono::microseconds m_minDuration;
+};
+
+class FrameCounter
+{
+public:
+	static const int SampleCount = 32;
+
+	FrameCounter()
+	{
+		memset(m_samples, 0, sizeof(m_samples));
+	}
+
+	void AddSample(int64_t sample)
+	{
+		m_sum -= m_samples[m_index];
+		m_sum += sample;
+		m_samples[m_index++] = sample;
+
+		if (m_index == SampleCount)
+			m_index = 0;
+	}
+
+	void AddRelativeSample(int64_t relativeSample)
+	{
+		if (m_isFirstSample)
+		{
+			m_isFirstSample = false;
+			m_prevSample = relativeSample;
+			return;
+		}
+
+		int64_t sample = relativeSample - m_prevSample;
+		m_prevSample = relativeSample;
+
+		AddSample(sample);
+	}
+
+	double Average() const { return m_sum == 0 ? 0.0 : ((double)m_sum / SampleCount);  }
+
+private:
+	int64_t m_samples[SampleCount];
+	int64_t m_sum = 0;
+	int64_t m_prevSample = 0;
+	int m_index = 0;
+	bool m_isFirstSample = true;
+};
+
+class CpuUsage
+{
+	ULARGE_INTEGER lastCPU, lastSysCPU, lastUserCPU;
+	int numProcessors;
+	HANDLE self;
+
+public:
+	CpuUsage()
+	{
+		SYSTEM_INFO sysInfo;
+		FILETIME ftime, fsys, fuser;
+
+		GetSystemInfo(&sysInfo);
+		numProcessors = sysInfo.dwNumberOfProcessors;
+
+		GetSystemTimeAsFileTime(&ftime);
+		memcpy(&lastCPU, &ftime, sizeof(FILETIME));
+
+		self = GetCurrentProcess();
+		GetProcessTimes(self, &ftime, &ftime, &fsys, &fuser);
+		memcpy(&lastSysCPU, &fsys, sizeof(FILETIME));
+		memcpy(&lastUserCPU, &fuser, sizeof(FILETIME));
+	}
+
+	double GetCurrentValue()
+	{
+		FILETIME ftime, fsys, fuser;
+		ULARGE_INTEGER now, sys, user;
+		double percent;
+
+		GetSystemTimeAsFileTime(&ftime);
+		memcpy(&now, &ftime, sizeof(FILETIME));
+
+		GetProcessTimes(self, &ftime, &ftime, &fsys, &fuser);
+		memcpy(&sys, &fsys, sizeof(FILETIME));
+		memcpy(&user, &fuser, sizeof(FILETIME));
+		percent = (double)(sys.QuadPart - lastSysCPU.QuadPart) + (user.QuadPart - lastUserCPU.QuadPart);
+		percent /= (now.QuadPart - lastCPU.QuadPart);
+		percent /= numProcessors;
+		lastCPU = now;
+		lastUserCPU = user;
+		lastSysCPU = sys;
+
+		return percent * 100;
+	}
+};
+
+#pragma endregion
+
+#pragma region MQ2Overlay Frame Limiter
+
+// Global bool controlling this whole feature.
+bool gbFrameLimiterEnabled = false;
+
+class FrameLimiter
+{
+public:
+	FrameLimiter()
+	{
+		UpdateThrottler();
+
+		m_startTime = std::chrono::steady_clock::now();
+	}
+
+	bool IsEnabled() const { return gbFrameLimiterEnabled; }
+
+	bool DoRenderSceneHook()
+	{
+		EnterMQ2Benchmark(bmRenderScene);
+
+		bool shouldSkipRender = DoRenderSceneHookImpl();
+
+		ExitMQ2Benchmark(bmRenderScene);
+
+		if (!shouldSkipRender)
+		{
+			m_renderFPS.AddRelativeSample(
+				std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - m_startTime).count());
+		}
+
+		return shouldSkipRender;
+	}
+
+	void OnPulse()
+	{
+		bool updateForeground = mq::test_and_set(m_lastInForeground, gbInForeground);
+
+		m_cpuUsage.AddSample(static_cast<int64_t>(m_cpuUsageCalc.GetCurrentValue() * 1000));
+
+		if (m_resetOnNextPulse)
+		{
+			m_resetOnNextPulse = false;
+
+			if (gpD3D9Device)
+			{
+				IDirect3DSwapChain9* pSwapChain = nullptr;
+				if (SUCCEEDED(gpD3D9Device->GetSwapChain(0, &pSwapChain)) && pSwapChain)
+				{
+					D3DPRESENT_PARAMETERS params;
+					pSwapChain->GetPresentParameters(&params);
+					pSwapChain->Release();
+
+					gpD3D9Device->Reset(&params);
+				}
+			}
+		}
+
+		// beyond this point we only handle frame limiting active.
+		if (!gbFrameLimiterEnabled)
+			return;
+
+		if (updateForeground)
+		{
+			UpdateForegroundState();
+		}
+	}
+
+	void UpdateForegroundState()
+	{
+		m_frameThrottler.Prepare();
+
+		UpdateThrottler();
+	}
+
+	void UpdateThrottler()
+	{
+		m_frameThrottler.SetMinDuration(std::chrono::microseconds(
+			static_cast<int64_t>(1000000 / (m_lastInForeground ? m_foregroundFPS : m_backgroundFPS))));
+	}
+
+	void UpdateSettingsPanel()
+	{
+		ImGui::Text("Status: ");
+		ImGui::SameLine();
+		if (gbInForeground)
+			ImGui::TextColored(ImColor(0, 255, 0), "Foreground");
+		else
+			ImGui::TextColored(ImColor(255, 0, 0), "Background");
+
+		ImGui::Text("Cpu Usage: %.2f", m_cpuUsage.Average() / 1000.f);
+		ImGui::Text("FPS: %.2f", 1000000 / m_renderFPS.Average());
+
+		ImGui::Separator();
+		ImGui::Checkbox("Enable frame limiting", &gbFrameLimiterEnabled);
+
+		ImGui::Indent();
+			// Background options
+			ImGui::Text("When in the "); ImGui::SameLine(0, 0); ImGui::TextColored(ImColor(255, 0, 0), "background"); ImGui::SameLine(0, 0); ImGui::Text(":");
+			ImGui::PushID("Background"); ImGui::Indent();
+				ImGui::Checkbox("Draw game scene", &m_renderInBackground);
+				ImGui::Checkbox("Hide the interface", &m_hideInterfaceInBackground);
+				if (ImGui::SliderFloat("Target FPS", &m_backgroundFPS, 0.001f, 120.0f))
+					UpdateThrottler();
+			ImGui::Unindent(); ImGui::PopID();
+
+			ImGui::Spacing();
+
+			// Foreground options
+			ImGui::Text("When in the "); ImGui::SameLine(0, 0); ImGui::TextColored(ImColor(0, 255, 0), "foreground"); ImGui::SameLine(0, 0); ImGui::Text(":");
+			ImGui::PushID("Foreground"); ImGui::Indent();
+				ImGui::Checkbox("Draw game scene", &m_renderInForeground);
+				if (ImGui::SliderFloat("Target FPS", &m_foregroundFPS, 0.001f, 120.0f))
+					UpdateThrottler();
+			ImGui::Unindent(); ImGui::PopID();
+
+			ImGui::Spacing();
+
+			ImGui::Checkbox("Clear screen when not rendering", &m_clearScreen);
+			ImGui::Checkbox("Draw last frame", &m_captureFrames);
+
+		ImGui::Unindent();
+
+		ImGui::Separator();
+
+		if (ImGui::Button("Force Reset"))
+		{
+			m_resetOnNextPulse = true;
+		}
+	}
+
+private:
+	void RenderImGuiScene()
+	{
+		// This is pretty simple. We just begin/end scene with error checking as appropriate.
+		if (!gpD3D9Device)
+			return; // ???
+
+		HRESULT hResult = gpD3D9Device->TestCooperativeLevel();
+		if (FAILED(hResult))
+		{
+			return; // Nope!
+		}
+
+		if (m_clearScreen)
+		{
+			gpD3D9Device->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0, 1.0f, 0);
+		}
+
+		hResult = gpD3D9Device->BeginScene();
+		if (FAILED(hResult))
+		{
+			return; // Goodbye!
+		}
+
+		// Draw Hud
+		gpD3D9Device->EndScene();
+	}
+
+
+	// if frame limiting is disabled, bail out early.
+	bool DoRenderSceneHookImpl()
+	{
+		if (!IsEnabled())
+			return false;
+
+		bool inBackground = !gbInForeground;
+
+		// Decide if we should render the game.
+		bool doRender = false;
+
+		if (inBackground)
+		{
+			doRender = m_renderInBackground;
+		}
+		else
+		{
+			// Always render in foreground.
+			doRender = m_renderInForeground;
+		}
+
+		if (doRender)
+			doRender = !m_frameThrottler.ThrottleFrame();
+
+		if (doRender)
+			return false;
+
+		RenderImGuiScene();
+		return true;
+	}
+
+private:
+	bool m_lastInForeground = true;
+	bool m_resetOnNextPulse = false;
+	FrameCounter m_renderFPS;
+	CpuUsage m_cpuUsageCalc;
+	FrameCounter m_cpuUsage;
+	FrameThrottler m_frameThrottler;
+	std::chrono::steady_clock::time_point m_startTime;
+
+	// Settings
+	bool m_renderInBackground = false;
+	bool m_hideInterfaceInBackground = false;
+	bool m_renderInForeground = true;
+	bool m_clearScreen = true;
+	bool m_captureFrames = true;
+	float m_backgroundFPS = 1;
+	float m_foregroundFPS = 60;
+};
+static FrameLimiter s_frameLimiter;
+
+// Our hook for the main render function. Returns true to skip rendering.
+static bool RenderScene_Hook()
+{
+	return s_frameLimiter.DoRenderSceneHook();
+}
+
+static void FrameLimiterSettings()
+{
+	s_frameLimiter.UpdateSettingsPanel();
+}
+
+#pragma endregion
+
+//============================================================================
+
+static void InitializeOverlayInternal();
+static void ShutdownOverlayInternal();
+
 void InitializeMQ2Overlay()
 {
 	imgui::g_bRenderImGui = GetPrivateProfileBool("MacroQuest", "RenderImGui", imgui::g_bRenderImGui, mq::internal_paths::MQini);
@@ -2361,17 +2722,62 @@ void InitializeMQ2Overlay()
 		WritePrivateProfileBool("MacroQuest", "RenderImGui", imgui::g_bRenderImGui, mq::internal_paths::MQini);
 	}
 
+	AddSettingsPanel("FPS Limiter", FrameLimiterSettings);
+
+	bmRenderScene = AddMQ2Benchmark("RenderScene");
+
+	// Intercept mouse events
+	EzDetour(__ProcessMouseEvents, ProcessMouseEvents_Detour, ProcessMouseEvents_Trampoline);
+
+	// Intercept mouse wheel events
+	EzDetour(__HandleMouseWheel, HandleMouseWheel_Detour, HandleMouseWheel_Trampoline);
+
+	// Intercept keyboard events
+	EzDetour(__ProcessKeyboardEvents, ProcessKeyboardEvents_Detour, ProcessKeyboardEvents_Trampoline);
+
+	// Hook the main window proc.
+	EzDetour(__WndProc, WndProc_Detour, WndProc_Trampoline);
+
+	// Hook particle render function
+	EzDetour(CParticleSystem__Render, &CParticleSystemHook::Render_Detour, &CParticleSystemHook::Render_Trampoline);
+
+	// Hook main render function
+	EzDetour(CRender__RenderScene, &CRenderHook::RenderScene_Detour, &CRenderHook::RenderScene_Trampoline);
+
+	// Hook the reset device function
+	EzDetour(CRender__ResetDevice, &CRenderHook::ResetDevice_Detour, &CRenderHook::ResetDevice_Trampoline);
+
+	InitializeOverlayInternal();
+}
+
+void InitializeOverlayInternal()
+{
 	auto status = InitializeOverlayHooks();
 
 	if (status != eOverlayHookStatus::Success)
 	{
 		gbRetryHooks = (status == eOverlayHookStatus::MissingDevice);
 		gbInitializationFailed = (status == eOverlayHookStatus::Failed);
-		return;
 	}
 }
 
 void ShutdownMQ2Overlay()
+{
+	RemoveSettingsPanel("FPS Limiter");
+
+	RemoveDetour(__ProcessMouseEvents);
+	RemoveDetour(__HandleMouseWheel);
+	RemoveDetour(__ProcessKeyboardEvents);
+	RemoveDetour(__WndProc);
+	RemoveDetour(CParticleSystem__Render);
+	RemoveDetour(CRender__RenderScene);
+
+	RemoveMQ2Benchmark(bmRenderScene);
+
+	ShutdownOverlayInternal();
+}
+
+void ShutdownOverlayInternal()
 {
 	if (!gbDeviceHooksInstalled)
 		return;
@@ -2441,8 +2847,10 @@ void PulseMQ2Overlay()
 	if (gbRetryHooks)
 	{
 		gbRetryHooks = false;
-		InitializeMQ2Overlay();
+		InitializeOverlayInternal();
 	}
+
+	s_frameLimiter.OnPulse();
 }
 
 } // namespace mq

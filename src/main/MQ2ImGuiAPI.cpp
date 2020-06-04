@@ -920,61 +920,62 @@ static ImU32 userColors[] = {
 	IM_COL32(255, 0,   0,   255), // 105
 };
 
-static ImU32 GetColorForChatColor(DWORD chatColor)
+static MQColor GetColorForChatColor(DWORD chatColor)
 {
 	if (chatColor > 255)
 	{
 		chatColor -= 256;
-		if (chatColor >= lengthof(userColors))
-			return 0;
 
-		return userColors[chatColor];
+		// Ensure that alpha is set to fully opaque
+		MQColor color = CDisplay::GetUserDefinedColor(chatColor);
+		color.Alpha = 255;
+		return color;
 	}
 
 	switch (chatColor)
 	{
 	case COLOR_DEFAULT:       // 0
-		return IM_COL32(0xf0, 0xf0, 0xf0, 255);
+		return MQColor(0xf0, 0xf0, 0xf0);
 
 	case COLOR_DARKGREEN:     // 2 - CONCOLOR_GREEN
-		return IM_COL32(0x00, 0x80, 0x00, 255);
+		return MQColor(0x00, 0x80, 0x00);
 
 	case CONCOLOR_BLUE:       // 4
-		return IM_COL32(0x00, 0x40, 0xff, 255);
+		return MQColor(0x00, 0x40, 0xff);
 	case COLOR_PURPLE:        // 5
-		return IM_COL32(0xf0, 0x00, 0xf0, 255);
+		return MQColor(0xf0, 0x00, 0xf0);
 	case COLOR_LIGHTGREY:     // 6 - CONCOLOR_GREY
-		return IM_COL32(0x80, 0x80, 0x80, 255);
+		return MQColor(0x80, 0x80, 0x80);
 	case 7: // light gray
-		return IM_COL32(0xe0, 0xe0, 0xe0, 255);
+		return MQColor(0xe0, 0xe0, 0xe0);
 
 	case CONCOLOR_WHITE:      // 10
-		return IM_COL32(0xf0, 0xf0, 0xf0, 255);
+		return MQColor(0xf0, 0xf0, 0xf0);
 
 	case 12: // light gray
-		return IM_COL32(0xa0, 0xa0, 0xa0, 255);
+		return MQColor(0xa0, 0xa0, 0xa0);
 	case CONCOLOR_RED:        // 13
-		return IM_COL32(0xf0, 0x00, 0x00, 255);
+		return MQColor(0xf0, 0x00, 0x00);
 	case 14: // light green
-		return IM_COL32(0x00, 0xf0, 0x00, 255);
+		return MQColor(0x00, 0xf0, 0x00);
 	case CONCOLOR_YELLOW:     // 15
-		return IM_COL32(0xf0, 0xf0, 0x00, 255);
+		return MQColor(0xf0, 0xf0, 0x00);
 	case 16: // blue
-		return IM_COL32(0x00, 0x00, 0xf0, 255);
+		return MQColor(0x00, 0x00, 0xf0);
 	case 17: // dark blue
-		return IM_COL32(0x00, 0x00, 0xaf, 255);
+		return MQColor(0x00, 0x00, 0xaf);
 	case CONCOLOR_LIGHTBLUE:  // 18
-		return IM_COL32(0x00, 0xf0, 0xf0, 255);
+		return MQColor(0x00, 0xf0, 0xf0);
 
 	case CONCOLOR_BLACK:      // 20
-		return IM_COL32(0, 0, 0, 255);
+		return MQColor(0, 0, 0);
 	case 21: // orange
-		return IM_COL32(0xf0, 0xa0, 0x00, 255);
+		return MQColor(0xf0, 0xa0, 0x00);
 	case 22: // brown
-		return IM_COL32(0x80, 0x60, 0x20, 255);
+		return MQColor(0x80, 0x60, 0x20);
 
 	default:
-		return IM_COL32(0x60, 0x60, 0x60, 0xff);
+		return MQColor(0x60, 0x60, 0x60);
 	}
 }
 

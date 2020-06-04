@@ -56,6 +56,7 @@ MQLIB_API DWORD bmCalculate;
 MQLIB_API DWORD bmBeginZone;
 MQLIB_API DWORD bmEndZone;
 MQLIB_API DWORD bmPluginsUpdateImGui;
+MQLIB_API DWORD bmRenderScene;
 MQLIB_API DWORD bmSpellLoad;
 MQLIB_API DWORD bmSpellAccess;
 MQLIB_API DWORD bmAnonymizer;
