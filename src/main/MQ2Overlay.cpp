@@ -1661,8 +1661,9 @@ public:
 		{
 			if (gResetDeviceAddress != 0)
 			{
-				DebugSpewAlways("Detected a change in the rendering device. Attempting to recover.");
+				SPDLOG_DEBUG("Detected a change in the rendering device. Attempting to recover.");
 			}
+
 			gResetDeviceAddress = resetDevice;
 
 			InstallDetour(d3dDevice_vftable[0x10], &RenderHooks::Reset_Detour,
@@ -1679,8 +1680,11 @@ public:
 	{
 		if (gpD3D9Device != GetThisDevice())
 		{
+			SPDLOG_INFO("IDirect3DDevice9::Reset hook: instance does not match acquired device, skipping.");
 			return Reset_Trampoline(pPresentationParameters);
 		}
+
+		SPDLOG_INFO("IDirect3DDevice9::Reset hook: device instance is the acquired device.");
 
 		gbDeviceAcquired = false;
 		DebugTryEx(InvalidateDeviceObjects());
@@ -1727,6 +1731,8 @@ public:
 
 				if (result == D3D_OK)
 				{
+					SPDLOG_INFO("IDirect3DDevice9::EndScene: TestCooperativeLevel was successful, reacquiring device.");
+
 					imgui::InitializeImGui(gpD3D9Device);
 					gbDeviceAcquired = true;
 
@@ -2237,6 +2243,8 @@ static void UpdateGraphicsScene()
 
 static void InvalidateDeviceObjects()
 {
+	SPDLOG_DEBUG("MQ2Overlay: InvalidateDeviceObjects");
+
 	imgui::ImGui_ImplDX9_InvalidateDeviceObjects();
 	imgui::g_bImGuiReady = false;
 
@@ -2251,6 +2259,8 @@ static void InvalidateDeviceObjects()
 
 static bool CreateDeviceObjects()
 {
+	SPDLOG_DEBUG("MQ2Overlay: CreateDeviceObjects");
+
 	imgui::g_bImGuiReady = imgui::ImGui_ImplDX9_CreateDeviceObjects();
 
 	for (const auto& pCallbacks : gRenderCallbacks)
@@ -2338,6 +2348,8 @@ void ResetOverlay()
 {
 	if (!gbDeviceHooksInstalled)
 		return;
+
+	SPDLOG_INFO("MQ2Overlay: Resetting overlay");
 
 	if (gbDeviceAcquired)
 	{
