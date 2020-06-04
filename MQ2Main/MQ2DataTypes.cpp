@@ -4300,6 +4300,52 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 		}
 		return false;
+	case AbilityTimer:
+		Dest.Type = pTimeStampType;
+		Dest.Int64 = 0;
+		if (ISINDEX())
+		{
+			if (ISNUMBER())
+			{
+				// numeric
+				if (unsigned long nSkill = GETNUMBER())
+				{
+					if (bool bActivated = pCSkillMgr->IsActivatedSkill(nSkill))
+					{
+						int calcedduration = pSkillMgr->SkillTimerDuration[nSkill] - (EQGetTime() - pSkillMgr->SkillLastUsed[nSkill]);
+						if (calcedduration < 0)
+							calcedduration = 0;
+						Dest.Int64 = calcedduration;
+						return true;
+					}
+				}
+				return false;
+			}
+			else
+			{
+				// name
+				for (int nSkill = 0; nSkill < NUM_SKILLS; nSkill++)
+				{
+					DWORD nToken = pCSkillMgr->GetNameToken(nSkill);
+					if (char *thename = pStringTable->getString(nToken, 0)) {
+						if (!_stricmp(GETFIRST(), thename))
+						{
+							//bool bAvail = pCSkillMgr->IsAvailable(i);
+							if (bool bActivated = pCSkillMgr->IsActivatedSkill(nSkill))
+							{
+								int calcedduration = pSkillMgr->SkillTimerDuration[nSkill] - (EQGetTime() - pSkillMgr->SkillLastUsed[nSkill]);
+								if (calcedduration < 0)
+									calcedduration = 0;
+								Dest.Int64 = calcedduration;
+								return true;
+							}
+							break;;
+						}
+					}
+				}
+			}
+		}
+		return false;
 	case Ability:
 		Dest.Type = pStringType;
 		if (ISINDEX())

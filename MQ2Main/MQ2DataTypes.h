@@ -1272,6 +1272,7 @@ public:
 		ParcelStatus = 309,
 		CanMount = 310,
 		SpellRankCap = 311,
+		AbilityTimer = 312,
 	};
 	enum CharacterMethods
 	{
@@ -1585,6 +1586,7 @@ public:
 		TypeMember(ParcelStatus);//309
 		TypeMember(CanMount);//310
 		TypeMember(SpellRankCap);//311
+		TypeMember(AbilityTimer);//312
 		
 		TypeMethod(Stand);
 		TypeMethod(Sit);
@@ -4092,9 +4094,12 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		struct tm *Now = (struct tm*)VarPtr.Ptr;
-		sprintf_s(Destination, MAX_STRING, "%02d:%02d:%02d", Now->tm_hour, Now->tm_min, Now->tm_sec);
-		return true;
+		if (struct tm *Now = (struct tm*)VarPtr.Ptr)
+		{
+			sprintf_s(Destination, MAX_STRING, "%02d:%02d:%02d", Now->tm_hour, Now->tm_min, Now->tm_sec);
+			return true;
+		}
+		return false;
 	}
 	void InitVariable(MQ2VARPTR &VarPtr)
 	{

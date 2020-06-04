@@ -1,3 +1,8 @@
+Jun 03 2020
+- Added ${Me.AbilityTimer[x]} where x is a bility ad or the name, it returns a pTimeStampType of the timer left on a Ability
+  Example: /echo ${Me.AbilityTimer[Hide].TimeHMS}
+  returns 0:06 (or whatever it's at)
+-
 May 28 2020
 - Updated MQ2AutoLogin to support rizlona logins.
 -
