@@ -1685,8 +1685,6 @@ public:
 		}
 
 		SPDLOG_INFO("IDirect3DDevice9::Reset hook: device instance is the acquired device.");
-
-		gbDeviceAcquired = false;
 		DebugTryEx(InvalidateDeviceObjects());
 
 		return Reset_Trampoline(pPresentationParameters);
@@ -1734,7 +1732,6 @@ public:
 					SPDLOG_INFO("IDirect3DDevice9::EndScene: TestCooperativeLevel was successful, reacquiring device.");
 
 					imgui::InitializeImGui(gpD3D9Device);
-					gbDeviceAcquired = true;
 
 					if (DetectResetDeviceHook())
 					{
@@ -1767,7 +1764,7 @@ DETOUR_TRAMPOLINE_EMPTY(HRESULT RenderHooks::BeginScene_Trampoline());
 DETOUR_TRAMPOLINE_EMPTY(HRESULT RenderHooks::EndScene_Trampoline());
 
 // This hooks into an area of the rendering pipeline that is suitable to perform
-// our own rendering before the scene is completed.
+// our own 3d rendering before the scene is completed.
 class CParticleSystemHook
 {
 public:
@@ -1783,6 +1780,32 @@ public:
 	}
 };
 DETOUR_TRAMPOLINE_EMPTY(void CParticleSystemHook::Render_Trampoline());
+
+// This hooks the ResetDevice function which is called when we want to reset the device. Hooking this function
+// ensures that even if our hook of the Direct3D device fails, we can still release our objects.
+class CRenderHook
+{
+public:
+	bool ResetDevice_Trampoline(bool);
+	bool ResetDevice_Detour(bool a)
+	{
+		SPDLOG_DEBUG("CRender::ResetDevice: Resetting device");
+
+		bool success = ResetDevice_Trampoline(a);
+
+		if (!success)
+		{
+			SPDLOG_DEBUG("CRender::ResetDevice: Reset failed, invalidating device objects and trying again.");
+			DebugTryEx(InvalidateDeviceObjects());
+
+			success = ResetDevice_Trampoline(a);
+		}
+
+		SPDLOG_DEBUG("CRender::ResetDevice: result={}", success);
+		return success;
+	}
+};
+DETOUR_TRAMPOLINE_EMPTY(bool CRenderHook::ResetDevice_Trampoline(bool));
 
 // Mouse hook prevents mouse events from reaching EQ when imgui captures
 // the mouse. Needed because ImGui uses win32 events but EQ uses direct input.
@@ -2093,6 +2116,9 @@ static eOverlayHookStatus InitializeOverlayHooks()
 	// Hook render function
 	InstallDetour(CParticleSystem__Render, &CParticleSystemHook::Render_Detour, &CParticleSystemHook::Render_Trampoline, "CParticleSystem__Render");
 
+	// Hook the reset device function
+	InstallDetour(CRender__ResetDevice, &CRenderHook::ResetDevice_Detour, &CRenderHook::ResetDevice_Trampoline, "CRenderHook__ResetDevice");
+
 	gbDeviceHooksInstalled = true;
 	gLastGameState = gGameState;
 
@@ -2245,6 +2271,7 @@ static void InvalidateDeviceObjects()
 {
 	SPDLOG_DEBUG("MQ2Overlay: InvalidateDeviceObjects");
 
+	gbDeviceAcquired = false;
 	imgui::ImGui_ImplDX9_InvalidateDeviceObjects();
 	imgui::g_bImGuiReady = false;
 
@@ -2262,6 +2289,7 @@ static bool CreateDeviceObjects()
 	SPDLOG_DEBUG("MQ2Overlay: CreateDeviceObjects");
 
 	imgui::g_bImGuiReady = imgui::ImGui_ImplDX9_CreateDeviceObjects();
+	gbDeviceAcquired = true;
 
 	for (const auto& pCallbacks : gRenderCallbacks)
 	{
