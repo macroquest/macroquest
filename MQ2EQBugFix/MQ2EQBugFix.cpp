@@ -132,6 +132,38 @@ public:
 };
 DETOUR_TRAMPOLINE_EMPTY(int BugFix::EQ_PC__GetCombatAbilityTimer_Trampoline(int));
 
+// This class implementation is specifically for the bug fix.
+class CUnSerializeBuffer_BugFix
+{
+	const char* m_buffer = nullptr;
+	size_t      m_length = 0;
+	size_t      m_offset = 0;
+
+public:
+	bool GetString_Trampoline(char* dest, unsigned int destSize);
+	bool GetString_Detour(char* dest, unsigned int destSize)
+	{
+		// Use our own implementation which does not have the bug.
+		size_t size = strnlen(m_buffer + m_offset, m_length - m_offset) + 1;
+#ifdef min
+#undef min
+#endif
+		size_t readAmount = std::min(destSize - 1, size);
+
+		if (m_offset + readAmount > m_length)
+		{
+			*dest = 0;
+			return false;
+		}
+
+		memcpy(dest, m_buffer + m_offset, readAmount);
+		dest[readAmount] = 0;
+		m_offset += size;
+		return true;
+	}
+};
+DETOUR_TRAMPOLINE_EMPTY(bool CUnSerializeBuffer_BugFix::GetString_Trampoline(char*, unsigned int));
+
 DWORD __UpdateDisplay = 0;
 DWORD __Reset = 0;
 PLUGIN_API VOID InitializePlugin(VOID)
@@ -176,12 +208,23 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	#if defined(ROF2EMU) || defined(UFEMU)
     EzDetourwName(EQ_PC__GetCombatAbilityTimer, &BugFix::EQ_PC__GetCombatAbilityTimer_Detour, &BugFix::EQ_PC__GetCombatAbilityTimer_Trampoline,"EQ_PC__GetCombatAbilityTimer");
 	#endif
+	
+
+	// Avoid a buffer over-read in CUnSerializeBuffer::GetString. This function will call strlen on
+	// a network message that may already have been read to the end, resulting in a buffer over-read.
+	// In some cases this will read past the end of the page boundary. If this happens, and the next
+	// page isn't allocated, this will result in a crash. The fix is to use strnlen instead, so that
+	// the strlen call is properly bounds checked.
+	// As of the 5/21/2020 live patch, this happens occasionally when receiving guild names, regardless
+	// of if MQ2 is loaded.
+	EzDetour(CUnSerializeBuffer__GetString, &CUnSerializeBuffer_BugFix::GetString_Detour, &CUnSerializeBuffer_BugFix::GetString_Trampoline);
 }
 
 PLUGIN_API VOID ShutdownPlugin(VOID)
 {
     DebugSpewAlways("Shutting down MQ2EQBugFix");
 	RemoveDetour(CDisplay__is3dON);
+	RemoveDetour(CUnSerializeBuffer__GetString);
 	#if defined(ROF2EMU) || defined(UFEMU)
     RemoveDetour(EQ_PC__GetCombatAbilityTimer);
 	#endif

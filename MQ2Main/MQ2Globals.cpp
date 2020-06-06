@@ -2174,6 +2174,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CAAWnd__UpdateSelected);
 	INITIALIZE_EQGAME_OFFSET(CAAWnd__Update);
 	INITIALIZE_EQGAME_OFFSET(CXRect__operator_and);
+	INITIALIZE_EQGAME_OFFSET(CUnSerializeBuffer__GetString);
 	
 	INITIALIZE_EQGAME_OFFSET(ArrayClass__DeleteElement);
 	INITIALIZE_EQGAME_OFFSET(__GameLoop);

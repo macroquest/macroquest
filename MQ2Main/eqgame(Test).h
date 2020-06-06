@@ -1251,6 +1251,9 @@ GNU General Public License for more details.
 //CXRect
 #define CXRect__operator_and_x                                     0x73C160
 
+//CUnSerializeBuffer
+#define CUnSerializeBuffer__GetString_x                            0x483020
+
 //patterns
 //LoginController__GiveTime_x
 // 56 8B F1 E8 ? FD FF FF 8B CE 5E E9 ? ? FF FF C7 01

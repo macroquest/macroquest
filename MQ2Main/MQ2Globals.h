@@ -1614,6 +1614,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CAAWnd__UpdateSelected;
 	EQLIB_VAR DWORD CAAWnd__Update;
 	EQLIB_VAR DWORD CXRect__operator_and;
+	EQLIB_VAR DWORD CUnSerializeBuffer__GetString;
 	
 	EQLIB_VAR DWORD ProfileManager__GetCurrentProfile;
 
