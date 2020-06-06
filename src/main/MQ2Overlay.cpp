@@ -2288,8 +2288,8 @@ static bool CreateDeviceObjects()
 {
 	SPDLOG_DEBUG("MQ2Overlay: CreateDeviceObjects");
 
-	imgui::g_bImGuiReady = imgui::ImGui_ImplDX9_CreateDeviceObjects();
 	gbDeviceAcquired = true;
+	imgui::g_bImGuiReady = imgui::ImGui_ImplDX9_CreateDeviceObjects();
 
 	for (const auto& pCallbacks : gRenderCallbacks)
 	{
