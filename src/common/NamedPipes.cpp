@@ -24,6 +24,7 @@
 #include <tchar.h>
 #include <strsafe.h>
 #include <time.h>
+#include <fmt/os.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/bin_to_hex.h>
 #include <wil/resource.h>

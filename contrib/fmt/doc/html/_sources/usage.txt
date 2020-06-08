@@ -103,7 +103,33 @@ the previous section. Then compile the ``doc`` target/project, for example::
   make doc
 
 This will generate the HTML documentation in ``doc/html``.
-  
+
+Conda
+=====
+
+fmt can be installed on Linux, macOS and Windows with
+`Conda <https://docs.conda.io/en/latest/>`__, using its
+`conda-forge <https://conda-forge.org>`__
+`package <https://github.com/conda-forge/fmt-feedstock>`__, as follows::
+
+  conda install -c conda-forge fmt
+
+Vcpkg
+=====
+
+You can download and install fmt using the `vcpkg
+<https://github.com/Microsoft/vcpkg>`__ dependency manager::
+
+  git clone https://github.com/Microsoft/vcpkg.git
+  cd vcpkg
+  ./bootstrap-vcpkg.sh
+  ./vcpkg integrate install
+  ./vcpkg install fmt
+
+The fmt port in vcpkg is kept up to date by Microsoft team members and community
+contributors. If the version is out of date, please `create an issue or pull
+request <https://github.com/Microsoft/vcpkg>`__ on the vcpkg repository.
+
 Android NDK
 ===========
 

@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
     
-    <title>Format String Syntax &mdash; fmt 6.0.0 documentation</title>
+    <title>Format String Syntax &mdash; fmt 6.2.1 documentation</title>
     
     <link rel="stylesheet" href="_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '6.0.0',
+        VERSION:     '6.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -66,15 +66,15 @@
           <ul class="nav navbar-nav">
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown"
-                 role="button" aria-expanded="false">6.0.0
+                 role="button" aria-expanded="false">6.2.1
                 <span class="caret"></span></a>
               <ul class="dropdown-menu" role="menu">
                 
-                <li><a href="https://fmt.dev/6.0.0">6.0.0</a></li>
+                <li><a href="https://fmt.dev/6.2.1">6.2.1</a></li>
                 
-                <li><a href="https://fmt.dev/5.3.0">5.3.0</a></li>
+                <li><a href="https://fmt.dev/6.2.0">6.2.0</a></li>
                 
-                <li><a href="https://fmt.dev/5.2.1">5.2.1</a></li>
+                <li><a href="https://fmt.dev/6.1.2">6.1.2</a></li>
                 
               </ul>
             </li>
@@ -181,19 +181,19 @@ although some of the formatting options are only supported by the numeric types.
 <p>The general form of a <em>standard format specifier</em> is:</p>
 <pre>
 <strong id="grammar-token-format_spec">format_spec</strong> ::=  [[<a class="reference internal" href="#grammar-token-fill"><code class="xref docutils literal"><span class="pre">fill</span></code></a>]<a class="reference internal" href="#grammar-token-align"><code class="xref docutils literal"><span class="pre">align</span></code></a>][<a class="reference internal" href="#grammar-token-sign"><code class="xref docutils literal"><span class="pre">sign</span></code></a>][&quot;#&quot;][&quot;0&quot;][<a class="reference internal" href="#grammar-token-width"><code class="xref docutils literal"><span class="pre">width</span></code></a>][&quot;.&quot; <a class="reference internal" href="#grammar-token-precision"><code class="xref docutils literal"><span class="pre">precision</span></code></a>][<a class="reference internal" href="#grammar-token-type"><code class="xref docutils literal"><span class="pre">type</span></code></a>]
-<strong id="grammar-token-fill">fill       </strong> ::=  &lt;a character other than '{', '}' or '\0'&gt;
-<strong id="grammar-token-align">align      </strong> ::=  &quot;&lt;&quot; | &quot;&gt;&quot; | &quot;=&quot; | &quot;^&quot;
+<strong id="grammar-token-fill">fill       </strong> ::=  &lt;a character other than '{' or '}'&gt;
+<strong id="grammar-token-align">align      </strong> ::=  &quot;&lt;&quot; | &quot;&gt;&quot; | &quot;^&quot;
 <strong id="grammar-token-sign">sign       </strong> ::=  &quot;+&quot; | &quot;-&quot; | &quot; &quot;
 <strong id="grammar-token-width">width      </strong> ::=  <a class="reference internal" href="#grammar-token-integer"><code class="xref docutils literal"><span class="pre">integer</span></code></a> | &quot;{&quot; <a class="reference internal" href="#grammar-token-arg_id"><code class="xref docutils literal"><span class="pre">arg_id</span></code></a> &quot;}&quot;
 <strong id="grammar-token-precision">precision  </strong> ::=  <a class="reference internal" href="#grammar-token-integer"><code class="xref docutils literal"><span class="pre">integer</span></code></a> | &quot;{&quot; <a class="reference internal" href="#grammar-token-arg_id"><code class="xref docutils literal"><span class="pre">arg_id</span></code></a> &quot;}&quot;
-<strong id="grammar-token-type">type       </strong> ::=  <a class="reference internal" href="#grammar-token-int_type"><code class="xref docutils literal"><span class="pre">int_type</span></code></a> | &quot;a&quot; | &quot;A&quot; | &quot;c&quot; | &quot;e&quot; | &quot;E&quot; | &quot;f&quot; | &quot;F&quot; | &quot;g&quot; | &quot;G&quot; | &quot;p&quot; | &quot;s&quot;
-<strong id="grammar-token-int_type">int_type   </strong> ::=  &quot;b&quot; | &quot;B&quot; | &quot;d&quot; | &quot;n&quot; | &quot;o&quot; | &quot;x&quot; | &quot;X&quot;
+<strong id="grammar-token-type">type       </strong> ::=  <a class="reference internal" href="#grammar-token-int_type"><code class="xref docutils literal"><span class="pre">int_type</span></code></a> | &quot;a&quot; | &quot;A&quot; | &quot;c&quot; | &quot;e&quot; | &quot;E&quot; | &quot;f&quot; | &quot;F&quot; | &quot;g&quot; | &quot;G&quot; | &quot;L&quot; | &quot;p&quot; | &quot;s&quot;
+<strong id="grammar-token-int_type">int_type   </strong> ::=  &quot;b&quot; | &quot;B&quot; | &quot;d&quot; | &quot;o&quot; | &quot;x&quot; | &quot;X&quot;
 </pre>
-<p>The <em>fill</em> character can be any character other than &#8216;{&#8216;, &#8216;}&#8217; or &#8216;\0&#8217;. The
-presence of a fill character is signaled by the character following it, which
-must be one of the alignment options.  If the second character of <em>format_spec</em>
-is not a valid alignment option, then it is assumed that both the fill character
-and the alignment option are absent.</p>
+<p>The <em>fill</em> character can be any Unicode code point other than <code class="docutils literal"><span class="pre">'{'</span></code> or
+<code class="docutils literal"><span class="pre">'}'</span></code>. The presence of a fill character is signaled by the character following
+it, which must be one of the alignment options. If the second character of
+<em>format_spec</em> is not a valid alignment option, then it is assumed that both the
+fill character and the alignment option are absent.</p>
 <p>The meaning of the various alignment options is as follows:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -214,13 +214,7 @@ space (this is the default for most objects).</td>
 <td>Forces the field to be right-aligned within the
 available space (this is the default for numbers).</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">'='</span></code></td>
-<td>Forces the padding to be placed after the sign (if any)
-but before the digits.  This is used for printing fields
-in the form &#8216;+000000120&#8217;. This alignment option is only
-valid for numeric types.</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">'^'</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">'^'</span></code></td>
 <td>Forces the field to be centered within the available
 space.</td>
 </tr>
@@ -272,9 +266,11 @@ only if a digit follows it. In addition, for <code class="docutils literal"><spa
 conversions, trailing zeros are not removed from the result.</p>
 <p><em>width</em> is a decimal integer defining the minimum field width.  If not
 specified, then the field width will be determined by the content.</p>
-<p>Preceding the <em>width</em> field by a zero (<code class="docutils literal"><span class="pre">'0'</span></code>) character enables
-sign-aware zero-padding for numeric types.  This is equivalent to a <em>fill</em>
-character of <code class="docutils literal"><span class="pre">'0'</span></code> with an <em>alignment</em> type of <code class="docutils literal"><span class="pre">'='</span></code>.</p>
+<p>Preceding the <em>width</em> field by a zero (<code class="docutils literal"><span class="pre">'0'</span></code>) character enables sign-aware
+zero-padding for numeric types. It forces the padding to be placed after the
+sign or base (if any) but before the digits. This is used for printing fields in
+the form &#8216;+000000120&#8217;. This option is only valid for numeric types and it has no
+effect on formatting of infinity and NaN.</p>
 <p>The <em>precision</em> is a decimal number indicating how many digits should be
 displayed after the decimal point for a floating-point value formatted with
 <code class="docutils literal"><span class="pre">'f'</span></code> and <code class="docutils literal"><span class="pre">'F'</span></code>, or before and after the decimal point for a floating-point
@@ -365,10 +361,10 @@ upper-case letters for the digits above 9. Using the
 <code class="docutils literal"><span class="pre">'#'</span></code> option with this type adds the prefix <code class="docutils literal"><span class="pre">&quot;0X&quot;</span></code>
 to the output value.</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">'n'</span></code></td>
-<td>Number. This is the same as <code class="docutils literal"><span class="pre">'d'</span></code>, except that it uses
-the current locale setting to insert the appropriate
-number separator characters.</td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">'L'</span></code></td>
+<td>Locale-specific format. This is the same as <code class="docutils literal"><span class="pre">'d'</span></code>,
+except that it uses the current locale setting to insert
+the appropriate number separator characters.</td>
 </tr>
 <tr class="row-odd"><td>none</td>
 <td>The same as <code class="docutils literal"><span class="pre">'d'</span></code>.</td>
@@ -429,10 +425,10 @@ precision of <code class="docutils literal"><span class="pre">1</span></code>.</
 <code class="docutils literal"><span class="pre">'E'</span></code> if the number gets too large. The
 representations of infinity and NaN are uppercased, too.</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">'%'</span></code></td>
-<td>Fixed point as a percentage. This is similar to <code class="docutils literal"><span class="pre">'f'</span></code>,
-but the argument is multiplied by 100 and a percent sign
-<code class="docutils literal"><span class="pre">%</span></code> is appended.</td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">'L'</span></code></td>
+<td>Locale-specific format. This is the same as <code class="docutils literal"><span class="pre">'g'</span></code>,
+except that it uses the current locale setting to insert
+the appropriate number separator characters.</td>
 </tr>
 <tr class="row-odd"><td>none</td>
 <td>Similar to <code class="docutils literal"><span class="pre">'g'</span></code>, except that fixed-point notation,
@@ -474,64 +470,91 @@ For example, <code class="docutils literal"><span class="pre">&quot;%03.2f&quot;
 <p>The new format syntax also supports new and different options, shown in the
 following examples.</p>
 <p>Accessing arguments by position:</p>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{0}, {1}, {2}&quot;</span><span class="p">,</span> <span class="sc">&#39;a&#39;</span><span class="p">,</span> <span class="sc">&#39;b&#39;</span><span class="p">,</span> <span class="sc">&#39;c&#39;</span><span class="p">);</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{0}, {1}, {2}&quot;</span><span class="p">,</span> <span class="sc">&#39;a&#39;</span><span class="p">,</span> <span class="sc">&#39;b&#39;</span><span class="p">,</span> <span class="sc">&#39;c&#39;</span><span class="p">);</span>
 <span class="c1">// Result: &quot;a, b, c&quot;</span>
-<span class="n">format</span><span class="p">(</span><span class="s">&quot;{}, {}, {}&quot;</span><span class="p">,</span> <span class="sc">&#39;a&#39;</span><span class="p">,</span> <span class="sc">&#39;b&#39;</span><span class="p">,</span> <span class="sc">&#39;c&#39;</span><span class="p">);</span>
+<span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{}, {}, {}&quot;</span><span class="p">,</span> <span class="sc">&#39;a&#39;</span><span class="p">,</span> <span class="sc">&#39;b&#39;</span><span class="p">,</span> <span class="sc">&#39;c&#39;</span><span class="p">);</span>
 <span class="c1">// Result: &quot;a, b, c&quot;</span>
-<span class="n">format</span><span class="p">(</span><span class="s">&quot;{2}, {1}, {0}&quot;</span><span class="p">,</span> <span class="sc">&#39;a&#39;</span><span class="p">,</span> <span class="sc">&#39;b&#39;</span><span class="p">,</span> <span class="sc">&#39;c&#39;</span><span class="p">);</span>
+<span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{2}, {1}, {0}&quot;</span><span class="p">,</span> <span class="sc">&#39;a&#39;</span><span class="p">,</span> <span class="sc">&#39;b&#39;</span><span class="p">,</span> <span class="sc">&#39;c&#39;</span><span class="p">);</span>
 <span class="c1">// Result: &quot;c, b, a&quot;</span>
-<span class="n">format</span><span class="p">(</span><span class="s">&quot;{0}{1}{0}&quot;</span><span class="p">,</span> <span class="s">&quot;abra&quot;</span><span class="p">,</span> <span class="s">&quot;cad&quot;</span><span class="p">);</span>  <span class="c1">// arguments&#39; indices can be repeated</span>
+<span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{0}{1}{0}&quot;</span><span class="p">,</span> <span class="s">&quot;abra&quot;</span><span class="p">,</span> <span class="s">&quot;cad&quot;</span><span class="p">);</span>  <span class="c1">// arguments&#39; indices can be repeated</span>
 <span class="c1">// Result: &quot;abracadabra&quot;</span>
 </pre></div>
 </div>
 <p>Aligning the text and specifying a width:</p>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{:&lt;30}&quot;</span><span class="p">,</span> <span class="s">&quot;left aligned&quot;</span><span class="p">);</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{:&lt;30}&quot;</span><span class="p">,</span> <span class="s">&quot;left aligned&quot;</span><span class="p">);</span>
 <span class="c1">// Result: &quot;left aligned                  &quot;</span>
-<span class="n">format</span><span class="p">(</span><span class="s">&quot;{:&gt;30}&quot;</span><span class="p">,</span> <span class="s">&quot;right aligned&quot;</span><span class="p">);</span>
+<span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{:&gt;30}&quot;</span><span class="p">,</span> <span class="s">&quot;right aligned&quot;</span><span class="p">);</span>
 <span class="c1">// Result: &quot;                 right aligned&quot;</span>
-<span class="n">format</span><span class="p">(</span><span class="s">&quot;{:^30}&quot;</span><span class="p">,</span> <span class="s">&quot;centered&quot;</span><span class="p">);</span>
+<span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{:^30}&quot;</span><span class="p">,</span> <span class="s">&quot;centered&quot;</span><span class="p">);</span>
 <span class="c1">// Result: &quot;           centered           &quot;</span>
-<span class="n">format</span><span class="p">(</span><span class="s">&quot;{:*^30}&quot;</span><span class="p">,</span> <span class="s">&quot;centered&quot;</span><span class="p">);</span>  <span class="c1">// use &#39;*&#39; as a fill char</span>
+<span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{:*^30}&quot;</span><span class="p">,</span> <span class="s">&quot;centered&quot;</span><span class="p">);</span>  <span class="c1">// use &#39;*&#39; as a fill char</span>
 <span class="c1">// Result: &quot;***********centered***********&quot;</span>
 </pre></div>
 </div>
 <p>Dynamic width:</p>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{:&lt;{}}&quot;</span><span class="p">,</span> <span class="s">&quot;left aligned&quot;</span><span class="p">,</span> <span class="mi">30</span><span class="p">);</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{:&lt;{}}&quot;</span><span class="p">,</span> <span class="s">&quot;left aligned&quot;</span><span class="p">,</span> <span class="mi">30</span><span class="p">);</span>
 <span class="c1">// Result: &quot;left aligned                  &quot;</span>
 </pre></div>
 </div>
 <p>Dynamic precision:</p>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{:.{}f}&quot;</span><span class="p">,</span> <span class="mf">3.14</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{:.{}f}&quot;</span><span class="p">,</span> <span class="mf">3.14</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
 <span class="c1">// Result: &quot;3.1&quot;</span>
 </pre></div>
 </div>
 <p>Replacing <code class="docutils literal"><span class="pre">%+f</span></code>, <code class="docutils literal"><span class="pre">%-f</span></code>, and <code class="docutils literal"><span class="pre">%</span> <span class="pre">f</span></code> and specifying a sign:</p>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{:+f}; {:+f}&quot;</span><span class="p">,</span> <span class="mf">3.14</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.14</span><span class="p">);</span>  <span class="c1">// show it always</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{:+f}; {:+f}&quot;</span><span class="p">,</span> <span class="mf">3.14</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.14</span><span class="p">);</span>  <span class="c1">// show it always</span>
 <span class="c1">// Result: &quot;+3.140000; -3.140000&quot;</span>
-<span class="n">format</span><span class="p">(</span><span class="s">&quot;{: f}; {: f}&quot;</span><span class="p">,</span> <span class="mf">3.14</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.14</span><span class="p">);</span>  <span class="c1">// show a space for positive numbers</span>
+<span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{: f}; {: f}&quot;</span><span class="p">,</span> <span class="mf">3.14</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.14</span><span class="p">);</span>  <span class="c1">// show a space for positive numbers</span>
 <span class="c1">// Result: &quot; 3.140000; -3.140000&quot;</span>
-<span class="n">format</span><span class="p">(</span><span class="s">&quot;{:-f}; {:-f}&quot;</span><span class="p">,</span> <span class="mf">3.14</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.14</span><span class="p">);</span>  <span class="c1">// show only the minus -- same as &#39;{:f}; {:f}&#39;</span>
+<span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{:-f}; {:-f}&quot;</span><span class="p">,</span> <span class="mf">3.14</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.14</span><span class="p">);</span>  <span class="c1">// show only the minus -- same as &#39;{:f}; {:f}&#39;</span>
 <span class="c1">// Result: &quot;3.140000; -3.140000&quot;</span>
 </pre></div>
 </div>
-<p>As a percentage:</p>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{0:f} or {0:%}&quot;</span><span class="p">,</span> <span class="mf">.635</span><span class="p">);</span>
-<span class="c1">// Result: &quot;0.635000 or 63.500000%&quot;</span>
-<span class="n">format</span><span class="p">(</span><span class="s">&quot;{:*^{}.{}%}&quot;</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span> <span class="c1">// With fill, dynamic width and dynamic precision.</span>
-<span class="c1">// Result: &quot;****100.00%****&quot;</span>
-</pre></div>
-</div>
 <p>Replacing <code class="docutils literal"><span class="pre">%x</span></code> and <code class="docutils literal"><span class="pre">%o</span></code> and converting the value to different bases:</p>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">format</span><span class="p">(</span><span class="s">&quot;int: {0:d};  hex: {0:x};  oct: {0:o}; bin: {0:b}&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">);</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;int: {0:d};  hex: {0:x};  oct: {0:o}; bin: {0:b}&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">);</span>
 <span class="c1">// Result: &quot;int: 42;  hex: 2a;  oct: 52; bin: 101010&quot;</span>
 <span class="c1">// with 0x or 0 or 0b as prefix:</span>
-<span class="n">format</span><span class="p">(</span><span class="s">&quot;int: {0:d};  hex: {0:#x};  oct: {0:#o};  bin: {0:#b}&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">);</span>
+<span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;int: {0:d};  hex: {0:#x};  oct: {0:#o};  bin: {0:#b}&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">);</span>
 <span class="c1">// Result: &quot;int: 42;  hex: 0x2a;  oct: 052;  bin: 0b101010&quot;</span>
 </pre></div>
 </div>
 <p>Padded hex byte with prefix and always prints both hex characters:</p>
-<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{:#04x}&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{:#04x}&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
 <span class="c1">// Result: &quot;0x00&quot;</span>
+</pre></div>
+</div>
+<p>Box drawing using Unicode fill:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">fmt</span><span class="o">::</span><span class="n">print</span><span class="p">(</span>
+  <span class="s">&quot;┌{0:─^{2}}┐</span><span class="se">\n</span><span class="s">&quot;</span>
+  <span class="s">&quot;│{1: ^{2}}│</span><span class="se">\n</span><span class="s">&quot;</span>
+  <span class="s">&quot;└{0:─^{2}}┘</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="s">&quot;Hello, world!&quot;</span><span class="p">,</span> <span class="mi">20</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>prints:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span>┌────────────────────┐
+│   Hello, world!    │
+└────────────────────┘
+</pre></div>
+</div>
+<p>Using type-specific formatting:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;fmt/chrono.h&gt;</span><span class="cp"></span>
+
+<span class="k">auto</span> <span class="n">t</span> <span class="o">=</span> <span class="n">tm</span><span class="p">();</span>
+<span class="n">t</span><span class="p">.</span><span class="n">tm_year</span> <span class="o">=</span> <span class="mi">2010</span> <span class="o">-</span> <span class="mi">1900</span><span class="p">;</span>
+<span class="n">t</span><span class="p">.</span><span class="n">tm_mon</span> <span class="o">=</span> <span class="mi">6</span><span class="p">;</span>
+<span class="n">t</span><span class="p">.</span><span class="n">tm_mday</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+<span class="n">t</span><span class="p">.</span><span class="n">tm_hour</span> <span class="o">=</span> <span class="mi">12</span><span class="p">;</span>
+<span class="n">t</span><span class="p">.</span><span class="n">tm_min</span> <span class="o">=</span> <span class="mi">15</span><span class="p">;</span>
+<span class="n">t</span><span class="p">.</span><span class="n">tm_sec</span> <span class="o">=</span> <span class="mi">58</span><span class="p">;</span>
+<span class="n">fmt</span><span class="o">::</span><span class="n">print</span><span class="p">(</span><span class="s">&quot;{:%Y-%m-%d %H:%M:%S}&quot;</span><span class="p">,</span> <span class="n">t</span><span class="p">);</span>
+<span class="c1">// Prints: 2010-08-04 12:15:58</span>
+</pre></div>
+</div>
+<p>Using the comma as a thousands separator:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;fmt/locale.h&gt;</span><span class="cp"></span>
+
+<span class="k">auto</span> <span class="n">s</span> <span class="o">=</span> <span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">locale</span><span class="p">(</span><span class="s">&quot;en_US.UTF-8&quot;</span><span class="p">),</span> <span class="s">&quot;{:L}&quot;</span><span class="p">,</span> <span class="mi">1234567890</span><span class="p">);</span>
+<span class="c1">// s == &quot;1,234,567,890&quot;</span>
 </pre></div>
 </div>
 </div>

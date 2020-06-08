@@ -392,6 +392,9 @@
     <ClCompile Include="MQ2Items.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\contrib\fmt\src\os.cc">
+      <Filter>Source Files\Contrib\fmt</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
