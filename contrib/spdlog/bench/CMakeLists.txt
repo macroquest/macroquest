@@ -1,12 +1,11 @@
-# Copyright(c) 2019 spdlog authors
-# Distributed under the MIT License (http://opensource.org/licenses/MIT)
+# Copyright(c) 2019 spdlog authors Distributed under the MIT License (http://opensource.org/licenses/MIT)
 
 cmake_minimum_required(VERSION 3.1)
 project(spdlog_bench CXX)
 
 if(NOT TARGET spdlog)
-  # Stand-alone build
-  find_package(spdlog CONFIG REQUIRED)
+    # Stand-alone build
+    find_package(spdlog CONFIG REQUIRED)
 endif()
 
 find_package(Threads REQUIRED)
@@ -24,5 +23,3 @@ target_link_libraries(latency PRIVATE benchmark::benchmark spdlog::spdlog)
 
 add_executable(formatter-bench formatter-bench.cpp)
 target_link_libraries(formatter-bench PRIVATE benchmark::benchmark spdlog::spdlog)
-
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/logs")

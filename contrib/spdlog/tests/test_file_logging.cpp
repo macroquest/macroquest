@@ -6,7 +6,7 @@
 TEST_CASE("simple_file_logger", "[simple_logger]]")
 {
     prepare_logdir();
-    std::string filename = "logs/simple_log";
+    std::string filename = "test_logs/simple_log";
 
     auto logger = spdlog::create<spdlog::sinks::basic_file_sink_mt>("logger", filename);
     logger->set_pattern("%v");
@@ -15,14 +15,15 @@ TEST_CASE("simple_file_logger", "[simple_logger]]")
     logger->info("Test message {}", 2);
 
     logger->flush();
-    REQUIRE(file_contents(filename) == std::string("Test message 1\nTest message 2\n"));
-    REQUIRE(count_lines(filename) == 2);
+    require_message_count(filename, 2);
+    using spdlog::details::os::default_eol;
+    REQUIRE(file_contents(filename) == fmt::format("Test message 1{}Test message 2{}", default_eol, default_eol));
 }
 
 TEST_CASE("flush_on", "[flush_on]]")
 {
     prepare_logdir();
-    std::string filename = "logs/simple_log";
+    std::string filename = "test_logs/simple_log";
 
     auto logger = spdlog::create<spdlog::sinks::basic_file_sink_mt>("logger", filename);
     logger->set_pattern("%v");
@@ -34,15 +35,17 @@ TEST_CASE("flush_on", "[flush_on]]")
     logger->info("Test message {}", 1);
     logger->info("Test message {}", 2);
 
-    REQUIRE(file_contents(filename) == std::string("Should not be flushed\nTest message 1\nTest message 2\n"));
-    REQUIRE(count_lines(filename) == 3);
+    require_message_count(filename, 3);
+    using spdlog::details::os::default_eol;
+    REQUIRE(file_contents(filename) ==
+            fmt::format("Should not be flushed{}Test message 1{}Test message 2{}", default_eol, default_eol, default_eol));
 }
 
 TEST_CASE("rotating_file_logger1", "[rotating_logger]]")
 {
     prepare_logdir();
     size_t max_size = 1024 * 10;
-    std::string basename = "logs/rotating_log";
+    std::string basename = "test_logs/rotating_log";
     auto logger = spdlog::rotating_logger_mt("logger", basename, max_size, 0);
 
     for (int i = 0; i < 10; ++i)
@@ -51,15 +54,14 @@ TEST_CASE("rotating_file_logger1", "[rotating_logger]]")
     }
 
     logger->flush();
-    auto filename = basename;
-    REQUIRE(count_lines(filename) == 10);
+    require_message_count(basename, 10);
 }
 
 TEST_CASE("rotating_file_logger2", "[rotating_logger]]")
 {
     prepare_logdir();
     size_t max_size = 1024 * 10;
-    std::string basename = "logs/rotating_log";
+    std::string basename = "test_logs/rotating_log";
 
     {
         // make an initial logger to create the first output file
@@ -80,8 +82,9 @@ TEST_CASE("rotating_file_logger2", "[rotating_logger]]")
     }
 
     logger->flush();
-    auto filename = basename;
-    REQUIRE(count_lines(filename) == 10);
+
+    require_message_count(basename, 10);
+
     for (int i = 0; i < 1000; i++)
     {
 
@@ -89,7 +92,7 @@ TEST_CASE("rotating_file_logger2", "[rotating_logger]]")
     }
 
     logger->flush();
-    REQUIRE(get_filesize(filename) <= max_size);
+    REQUIRE(get_filesize(basename) <= max_size);
     auto filename1 = basename + ".1";
     REQUIRE(get_filesize(filename1) <= max_size);
 }

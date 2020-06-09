@@ -19,21 +19,17 @@
 #include <string>
 #include <thread>
 
-using namespace std;
-using namespace std::chrono;
-using namespace spdlog;
-using namespace spdlog::sinks;
-using namespace utils;
-
 void bench(int howmany, std::shared_ptr<spdlog::logger> log);
-void bench_mt(int howmany, std::shared_ptr<spdlog::logger> log, int thread_count);
-void bench_default_api(int howmany, std::shared_ptr<spdlog::logger> log);
-void bench_c_string(int howmany, std::shared_ptr<spdlog::logger> log);
+void bench_mt(int howmany, std::shared_ptr<spdlog::logger> log, size_t thread_count);
 
-static size_t file_size = 30 * 1024 * 1024;
-static size_t rotating_files = 5;
+// void bench_default_api(int howmany, std::shared_ptr<spdlog::logger> log);
+// void bench_c_string(int howmany, std::shared_ptr<spdlog::logger> log);
 
-void bench_threaded_logging(int threads, int iters)
+static const size_t file_size = 30 * 1024 * 1024;
+static const size_t rotating_files = 5;
+static const int max_threads = 1000;
+
+void bench_threaded_logging(size_t threads, int iters)
 {
     spdlog::info("**************************************************************");
     spdlog::info("Multi threaded: {:n} threads, {:n} messages", threads, iters);
@@ -111,14 +107,23 @@ int main(int argc, char *argv[])
     spdlog::set_automatic_registration(false);
     spdlog::default_logger()->set_pattern("[%^%l%$] %v");
     int iters = 250000;
-    int threads = 4;
+    size_t threads = 4;
     try
     {
 
         if (argc > 1)
-            iters = atoi(argv[1]);
+        {
+            iters = std::stoi(argv[1]);
+        }
         if (argc > 2)
-            threads = atoi(argv[2]);
+        {
+            threads = std::stoul(argv[2]);
+        }
+
+        if (threads > max_threads)
+        {
+            throw std::runtime_error(fmt::format("Number of threads exceeds maximum({}})", max_threads));
+        }
 
         bench_single_threaded(iters);
         bench_threaded_logging(1, iters);
@@ -134,7 +139,10 @@ int main(int argc, char *argv[])
 
 void bench(int howmany, std::shared_ptr<spdlog::logger> log)
 {
+    using std::chrono::duration;
+    using std::chrono::duration_cast;
     using std::chrono::high_resolution_clock;
+
     auto start = high_resolution_clock::now();
     for (auto i = 0; i < howmany; ++i)
     {
@@ -148,19 +156,23 @@ void bench(int howmany, std::shared_ptr<spdlog::logger> log)
     spdlog::drop(log->name());
 }
 
-void bench_mt(int howmany, std::shared_ptr<spdlog::logger> log, int thread_count)
+void bench_mt(int howmany, std::shared_ptr<spdlog::logger> log, size_t thread_count)
 {
+    using std::chrono::duration;
+    using std::chrono::duration_cast;
     using std::chrono::high_resolution_clock;
-    vector<thread> threads;
+
+    std::vector<std::thread> threads;
+    threads.reserve(thread_count);
     auto start = high_resolution_clock::now();
-    for (int t = 0; t < thread_count; ++t)
+    for (size_t t = 0; t < thread_count; ++t)
     {
-        threads.push_back(std::thread([&]() {
-            for (int j = 0; j < howmany / thread_count; j++)
+        threads.emplace_back([&]() {
+            for (int j = 0; j < howmany / static_cast<int>(thread_count); j++)
             {
                 log->info("Hello logger: msg number {}", j);
             }
-        }));
+        });
     }
 
     for (auto &t : threads)
@@ -174,9 +186,13 @@ void bench_mt(int howmany, std::shared_ptr<spdlog::logger> log, int thread_count
     spdlog::drop(log->name());
 }
 
+/*
 void bench_default_api(int howmany, std::shared_ptr<spdlog::logger> log)
 {
     using std::chrono::high_resolution_clock;
+    using std::chrono::duration;
+    using std::chrono::duration_cast;
+
     auto orig_default = spdlog::default_logger();
     spdlog::set_default_logger(log);
     auto start = high_resolution_clock::now();
@@ -194,18 +210,22 @@ void bench_default_api(int howmany, std::shared_ptr<spdlog::logger> log)
 
 void bench_c_string(int howmany, std::shared_ptr<spdlog::logger> log)
 {
+    using std::chrono::high_resolution_clock;
+    using std::chrono::duration;
+    using std::chrono::duration_cast;
+
     const char *msg = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum pharetra metus cursus "
                       "lacus placerat congue. Nulla egestas, mauris a tincidunt tempus, enim lectus volutpat mi, eu consequat sem "
                       "libero nec massa. In dapibus ipsum a diam rhoncus gravida. Etiam non dapibus eros. Donec fringilla dui sed "
                       "augue pretium, nec scelerisque est maximus. Nullam convallis, sem nec blandit maximus, nisi turpis ornare "
                       "nisl, sit amet volutpat neque massa eu odio. Maecenas malesuada quam ex, posuere congue nibh turpis duis.";
-    using std::chrono::high_resolution_clock;
+
     auto orig_default = spdlog::default_logger();
     spdlog::set_default_logger(log);
     auto start = high_resolution_clock::now();
     for (auto i = 0; i < howmany; ++i)
     {
-        spdlog::log(level::info, msg);
+        spdlog::log(spdlog::level::info, msg);
     }
 
     auto delta = high_resolution_clock::now() - start;
@@ -214,3 +234,5 @@ void bench_c_string(int howmany, std::shared_ptr<spdlog::logger> log)
     spdlog::set_default_logger(std::move(orig_default));
     spdlog::info("{:<30} Elapsed: {:0.2f} secs {:>16n}/sec", log->name(), delta_d, int(howmany / delta_d));
 }
+
+*/
