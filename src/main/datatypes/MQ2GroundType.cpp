@@ -47,7 +47,8 @@ enum class GroundMethods
 {
 	Grab,
 	DoTarget,
-	DoFace
+	DoFace,
+	Reset
 };
 
 MQ2GroundType::MQ2GroundType() : MQ2Type("ground")
@@ -74,6 +75,7 @@ MQ2GroundType::MQ2GroundType() : MQ2Type("ground")
 	ScopedTypeMethod(GroundMethods, Grab);
 	ScopedTypeMethod(GroundMethods, DoTarget);
 	ScopedTypeMethod(GroundMethods, DoFace);
+	ScopedTypeMethod(GroundMethods, Reset);
 }
 
 bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
@@ -109,6 +111,11 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 			Dest.Set(pGroundSpawn);
 			Dest.Type = pGroundType;
 			return true;
+
+		case GroundMethods::Reset:
+			ClearGroundSpawn();
+			return true;
+
 		default:
 			return false;
 		}
@@ -162,12 +169,11 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Type = pStringType;
 		return true;
 
-	case GroundMembers::DisplayName: {
+	case GroundMembers::DisplayName:
 		strcpy_s(DataTypeTemp, pGroundSpawn->DisplayName().c_str());
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
-	}
 
 	case GroundMembers::Heading:
 		Dest.Set(pGroundSpawn->Heading());
@@ -179,11 +185,10 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Type = pFloatType;
 		return true;
 
-	case GroundMembers::Distance3D: {
+	case GroundMembers::Distance3D:
 		Dest.Set(pGroundSpawn->Distance3D(pCharSpawn));
 		Dest.Type = pFloatType;
 		return true;
-	}
 
 	case GroundMembers::HeadingTo:
 	{
@@ -296,23 +301,24 @@ bool MQ2GroundType::dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 				return true;
 			}
 		}
+
+		return false;
 	}
-	else if (auto ground = CurrentGroundSpawn()) // they already did /itemtarget so return that.
+	else if (HasCurrentGroundSpawn()) // they already did /itemtarget so return that (this can potentially be NULL).
 	{
-		Ret.Set(ground);
+		Ret.Set(CurrentGroundSpawn());
 		Ret.Type = pGroundType;
-		return true;
 	}
-	else if (auto ground = GetNearestGroundSpawn())
+	else
 	{
+		// this importantly resets the search as a side effect
 		// they didn't specify a name and they have not done /itemtarget
 		// so we just return first closest entry found
-		Ret.Set(ground);
+		Ret.Set(GetNearestGroundSpawn());
 		Ret.Type = pGroundType;
-		return true;
 	}
 
-	return false;
+	return true;
 }
 
 bool MQ2GroundType::dataGroundItemCount(const char* szIndex, MQTypeVar& Ret)

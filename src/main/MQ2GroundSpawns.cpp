@@ -56,6 +56,11 @@ public:
 		Instance().m_valid = false;
 	}
 
+	static bool IsValid()
+	{
+		return Instance().m_valid;
+	}
+
 	static GroundSpawnSearch& Search(SPAWNINFO* pSpawn)
 	{
 		if (!Instance().m_valid)
@@ -239,7 +244,7 @@ public:
 
 	MQGroundSpawn Next()
 	{
-		if (m_currentResult == m_searchResults.end())
+		if (m_searchResults.empty() || m_currentResult == std::prev(m_searchResults.end()))
 			return MQGroundSpawn();
 
 		++m_currentResult;
@@ -248,6 +253,7 @@ public:
 
 	MQGroundSpawn Prev()
 	{
+		// begin == end for an empty vector by definition
 		if (m_currentResult == m_searchResults.begin())
 			return MQGroundSpawn();
 
@@ -316,22 +322,30 @@ MQGroundSpawn CurrentGroundSpawn()
 
 MQGroundSpawn FirstGroundSpawn()
 {
+	GroundSpawnSearch::Reset();
 	return GroundSpawnSearch::Search(pCharSpawn).First();
 }
 
 MQGroundSpawn LastGroundSpawn()
 {
+	GroundSpawnSearch::Reset();
 	return GroundSpawnSearch::Search(pCharSpawn).Last();
 }
 
 MQGroundSpawn NextGroundSpawn()
 {
-	return GroundSpawnSearch::Search(pCharSpawn).Next();
+	if (GroundSpawnSearch::IsValid())
+		return GroundSpawnSearch::Search(pCharSpawn).Next();
+
+	return FirstGroundSpawn();
 }
 
 MQGroundSpawn PrevGroundSpawn()
 {
-	return GroundSpawnSearch::Search(pCharSpawn).Prev();
+	if (GroundSpawnSearch::IsValid())
+		return GroundSpawnSearch::Search(pCharSpawn).Prev();
+
+	return LastGroundSpawn();
 }
 
 CActorInterface* MQGroundSpawn::Actor() const
@@ -425,6 +439,11 @@ void SetGroundSpawn(const MQGroundSpawn& groundSpawn)
 void ClearGroundSpawn()
 {
 	GroundSpawnSearch::Reset();
+}
+
+bool HasCurrentGroundSpawn()
+{
+	return GroundSpawnSearch::IsValid();
 }
 
 CXStr GetFriendlyNameForGroundItem(EQGroundItem* pItem)

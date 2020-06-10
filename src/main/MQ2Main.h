@@ -583,6 +583,7 @@ MQLIB_OBJECT MQGroundSpawn PrevGroundSpawn();
 MQLIB_OBJECT void SetGroundSpawn(std::string_view Name);
 MQLIB_OBJECT void SetGroundSpawn(const MQGroundSpawn& groundSpawn);
 MQLIB_OBJECT void ClearGroundSpawn();
+MQLIB_OBJECT bool HasCurrentGroundSpawn();
 MQLIB_OBJECT CXStr GetFriendlyNameForGroundItem(EQGroundItem* pItem);
 MQLIB_OBJECT CXStr GetFriendlyNameForPlacedItem(EQPlacedItem* pItem);
 MQLIB_API char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, size_t BufferSize);
