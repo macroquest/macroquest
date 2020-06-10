@@ -1,8 +1,17 @@
+June 10 2020
+- Updated for TEST
+-
+June 09 2020 by Sic
+- Added ToV and Overseer currency
+	Example: /echo ${Me.FroststoneDucat}
+	Example: /echo ${Me.OverseerTetradrachm}
+	Example: /echo ${Me.WarlordsSymbol}
+-
 Jun 06 2020
 - Fixed a crash in CUnSerializeBuffer::GetString (the one where the address ends in 22) -Brainiac
 -
 Jun 03 2020
-- Added ${Me.AbilityTimer[x]} where x is a bility ad or the name, it returns a pTimeStampType of the timer left on a Ability
+- Added ${Me.AbilityTimer[x]} where x is a ability id or the name, it returns a pTimeStampType of the timer left on a Ability
   Example: /echo ${Me.AbilityTimer[Hide].TimeHMS}
   returns 0:06 (or whatever it's at)
 -

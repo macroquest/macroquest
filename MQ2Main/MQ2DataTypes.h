@@ -1273,6 +1273,9 @@ public:
 		CanMount = 310,
 		SpellRankCap = 311,
 		AbilityTimer = 312,
+		FroststoneDucat = 313,
+		WarlordsSymbol = 314,
+		OverseerTetradrachm = 315,
 	};
 	enum CharacterMethods
 	{
@@ -1587,7 +1590,10 @@ public:
 		TypeMember(CanMount);//310
 		TypeMember(SpellRankCap);//311
 		TypeMember(AbilityTimer);//312
-		
+		TypeMember(FroststoneDucat);//313
+		TypeMember(WarlordsSymbol);//314
+		TypeMember(OverseerTetradrachm);//315
+
 		TypeMethod(Stand);
 		TypeMethod(Sit);
 		TypeMethod(Dismount);
@@ -1809,8 +1815,8 @@ public:
 		TypeMember(SpellIcon);
 		TypeMember(GemIcon);
 		TypeMember(SlowPct);
-		TypeMember(HastePct);	
-		TypeMember(MyDuration);	
+		TypeMember(HastePct);
+		TypeMember(MyDuration);
 	}
 
 	~MQ2SpellType()

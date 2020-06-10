@@ -6792,8 +6792,22 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 		}
 		return true;
-	//end of MQ2CharacterType
+	case FroststoneDucat://313
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_FROSTSTONEDUCAT);
+		Dest.Type = pIntType;
+		return true;
+	case WarlordsSymbol://314
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_WARLORDSSYMBOL);
+		Dest.Type = pIntType;
+		return true;
+	case OverseerTetradrachm://315
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_OVERSEERTETRADRACHM);
+		Dest.Type = pIntType;
+		return true;
 	}
+
+
+	//end of MQ2CharacterType
 	return false;
 //#undef pChar
 }
@@ -7175,7 +7189,7 @@ bool MQ2SpellType::GETMEMBER()
 					{
 						if (PSPELL pBuff = GetSpellByID(k->first)) {
 							FIllSlotData(&pAffects[j], pBuff);
-								
+
 							pAffects[j].Duration = k->second.duration;
 							#if !defined(ROF2EMU) && !defined(UFEMU)
 							pAffects[j].InitialDuration = k->second.duration;
@@ -7223,7 +7237,7 @@ bool MQ2SpellType::GETMEMBER()
 							{
 								if (PSPELL pBuff = GetSpellByID(k->first)) {
 									FIllSlotData(&pAffects[j], pBuff);
-								
+
 									pAffects[j].Duration = k->second.duration;
 									pAffects[j].Type = 2;
 									pAffects[j].SpellID = pBuff->ID;
