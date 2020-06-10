@@ -317,7 +317,15 @@ bool MQ2GroundType::dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 
 bool MQ2GroundType::dataGroundItemCount(const char* szIndex, MQTypeVar& Ret)
 {
-	Ret.Set(GetGroundSpawnCount());
+	if (szIndex[0] == 0)
+	{
+		Ret.Set(GetGroundSpawnCount());
+	}
+	else
+	{
+		Ret.Set(GetGroundSpawnCountByName(szIndex));
+	}
+
 	Ret.Type = pIntType;
 	return true;
 }

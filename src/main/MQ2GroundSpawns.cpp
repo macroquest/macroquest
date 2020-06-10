@@ -302,6 +302,12 @@ int GetGroundSpawnCount()
 	return GroundSpawnSearch::Search(pCharSpawn).Count();
 }
 
+int GetGroundSpawnCountByName(std::string_view Name)
+{
+	GroundSpawnSearch::Reset();
+	return GroundSpawnSearch::Search(pCharSpawn, Name).Count();
+}
+
 MQGroundSpawn CurrentGroundSpawn()
 {
 	return GroundSpawnSearch::Search(pCharSpawn).Current();

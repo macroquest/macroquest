@@ -574,6 +574,7 @@ MQLIB_OBJECT MQGroundSpawn GetGroundSpawnByID(int ID);
 MQLIB_OBJECT MQGroundSpawn GetNearestGroundSpawn();
 MQLIB_OBJECT MQGroundSpawn GetNthGroundSpawnFromMe(size_t N);
 MQLIB_OBJECT int GetGroundSpawnCount();
+MQLIB_OBJECT int GetGroundSpawnCountByName(std::string_view Name);
 MQLIB_OBJECT MQGroundSpawn CurrentGroundSpawn();
 MQLIB_OBJECT MQGroundSpawn FirstGroundSpawn();
 MQLIB_OBJECT MQGroundSpawn LastGroundSpawn();
