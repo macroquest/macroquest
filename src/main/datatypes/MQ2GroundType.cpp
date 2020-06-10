@@ -252,7 +252,7 @@ bool MQ2GroundType::ToString(MQVarPtr VarPtr, char* Destination)
 bool MQ2GroundType::FromString(MQVarPtr& VarPtr, char* Source)
 {
 	MQGroundSpawn ground;
-	if (strnlen_s(Source, MAX_STRING) == 0)
+	if (Source == nullptr || Source[0] == 0)
 	{
 		ground = CurrentGroundSpawn();
 	}
