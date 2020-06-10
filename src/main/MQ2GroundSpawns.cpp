@@ -299,6 +299,7 @@ MQGroundSpawn GetNthGroundSpawnFromMe(size_t N)
 
 int GetGroundSpawnCount()
 {
+	GroundSpawnSearch::Reset();
 	return GroundSpawnSearch::Search(pCharSpawn).Count();
 }
 
