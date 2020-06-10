@@ -322,13 +322,11 @@ MQGroundSpawn CurrentGroundSpawn()
 
 MQGroundSpawn FirstGroundSpawn()
 {
-	GroundSpawnSearch::Reset();
 	return GroundSpawnSearch::Search(pCharSpawn).First();
 }
 
 MQGroundSpawn LastGroundSpawn()
 {
-	GroundSpawnSearch::Reset();
 	return GroundSpawnSearch::Search(pCharSpawn).Last();
 }
 

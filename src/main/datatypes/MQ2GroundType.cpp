@@ -251,7 +251,20 @@ bool MQ2GroundType::ToString(MQVarPtr VarPtr, char* Destination)
 
 bool MQ2GroundType::FromString(MQVarPtr& VarPtr, char* Source)
 {
-	auto ground = GetGroundSpawnByID(GetIntFromString(Source, 0));
+	MQGroundSpawn ground;
+	if (strnlen_s(Source, MAX_STRING) == 0)
+	{
+		ground = CurrentGroundSpawn();
+	}
+	else if (IsNumber(Source))
+	{
+		ground = GetGroundSpawnByID(GetIntFromString(Source, 0));
+	}
+	else
+	{
+		ground = GetGroundSpawnByName(Source);
+	}
+
 	if (ground)
 	{
 		VarPtr.Set(ground);
