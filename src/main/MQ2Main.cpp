@@ -230,18 +230,19 @@ bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& str
 
 		if (std::filesystem::exists(pathMQini))
 		{
-			// Check to see if there a different config folder we should be looking at?
-			char szTempPath[MAX_PATH] = { 0 };
-			GetPrivateProfileString("MacroQuest", "ConfigPath", strConfig, szTempPath, MAX_PATH , pathMQini.string());
-			strConfig = szTempPath;
-
-			// Change the ini file to the one in the new config folder
-			pathMQini = std::filesystem::path(strConfig) / "MacroQuest.ini";
+			// Check to see if there is a different MacroQuest.ini we should be looking at
+			pathMQini = std::filesystem::path(GetPrivateProfileString("MacroQuest", "MQIniPath", strMQini, pathMQini.string()));
 
 			// If it's relative, make it absolute relative to MQ2
 			if (pathMQini.is_relative())
 			{
 				pathMQini = std::filesystem::absolute(pathMQRoot / pathMQini);
+			}
+
+			// If it's a folder append MacroQuest.ini
+			if (is_directory(pathMQini))
+			{
+				pathMQini = pathMQini / "MacroQuest.ini";
 			}
 		}
 
@@ -249,6 +250,12 @@ bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& str
 		strMQini = pathMQini.string();
 
 		gbWriteAllConfig = GetPrivateProfileBool("MacroQuest", "WriteAllConfig", false, strMQini);
+		// Write the MQIniPath if we're writing all config.  This will be the full path and in the redirected ini
+		// (not the original ini) but since WriteAllConfig is meant to write a full config, that's okay.
+		if (gbWriteAllConfig)
+		{
+			WritePrivateProfileString("MacroQuest", "MQIniPath", strMQini, strMQini);
+		}
 
 		// Init the Config directory based on the ini we found.
 		if (InitDirectory(strConfig, "ConfigPath", strMQini, strMQRoot))
