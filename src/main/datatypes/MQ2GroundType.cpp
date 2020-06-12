@@ -83,11 +83,6 @@ MQ2GroundType::MQ2GroundType() : MQ2Type("ground")
 bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
 {
 	auto pGroundSpawn = VarPtr.Get<MQGroundSpawn>();
-	if (!pGroundSpawn)
-		return false;
-
-	if (pGroundSpawn->Type == MQGroundSpawnType::None)
-		return false;
 
 	//----------------------------------------------------------------------------
 	// methods
@@ -95,6 +90,9 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 	MQTypeMember* pMethod = MQ2GroundType::FindMethod(Member);
 	if (pMethod)
 	{
+		if (pGroundSpawn == nullptr || pGroundSpawn->Type == MQGroundSpawnType::None)
+			return false;
+
 		switch (static_cast<GroundMethods>(pMethod->ID))
 		{
 		case GroundMethods::Grab:
@@ -129,137 +127,150 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 	// member
 
 	MQTypeMember* pMember = MQ2GroundType::FindMember(Member);
-	if (!pMember)
-		return false;
-
-	switch (static_cast<GroundMembers>(pMember->ID))
+	if (pMember)
 	{
-	case GroundMembers::ID:
-		Dest.Set(pGroundSpawn->ID());
-		Dest.Type = pIntType;
-		return true;
+		GroundMembers id = static_cast<GroundMembers>(pMember->ID);
+		if (
+			(pGroundSpawn == nullptr || pGroundSpawn->Type == MQGroundSpawnType::None) &&
+			id != GroundMembers::First &&
+			id != GroundMembers::Last &&
+			id != GroundMembers::Next &&
+			id != GroundMembers::Prev &&
+			id != GroundMembers::Search
+		)
+			return false;
 
-	case GroundMembers::SubID:
-		Dest.Set(pGroundSpawn->SubID());
-		Dest.Type = pIntType;
-		return true;
-
-	case GroundMembers::ZoneID:
-		Dest.Set(pGroundSpawn->ZoneID());
-		Dest.Type = pIntType;
-		return true;
-
-	case GroundMembers::W:
-	case GroundMembers::X:
-		Dest.Set(pGroundSpawn->Position().X);
-		Dest.Type = pFloatType;
-		return true;
-
-	case GroundMembers::N:
-	case GroundMembers::Y:
-		Dest.Set(pGroundSpawn->Position().Y);
-		Dest.Type = pFloatType;
-		return true;
-
-	case GroundMembers::U:
-	case GroundMembers::Z:
-		Dest.Set(pGroundSpawn->Position().Z);
-		Dest.Type = pFloatType;
-		return true;
-
-	case GroundMembers::Name:
-		strcpy_s(DataTypeTemp, pGroundSpawn->Name().c_str());
-		Dest.Ptr = &DataTypeTemp[0];
-		Dest.Type = pStringType;
-		return true;
-
-	case GroundMembers::DisplayName:
-		strcpy_s(DataTypeTemp, pGroundSpawn->DisplayName().c_str());
-		Dest.Ptr = &DataTypeTemp[0];
-		Dest.Type = pStringType;
-		return true;
-
-	case GroundMembers::Heading:
-		Dest.Set(pGroundSpawn->Heading());
-		Dest.Type = pHeadingType;
-		return true;
-
-	case GroundMembers::Distance:
-		Dest.Set(pGroundSpawn->Distance(pCharSpawn));
-		Dest.Type = pFloatType;
-		return true;
-
-	case GroundMembers::Distance3D:
-		Dest.Set(pGroundSpawn->Distance3D(pCharSpawn));
-		Dest.Type = pFloatType;
-		return true;
-
-	case GroundMembers::HeadingTo:
-	{
-		auto pos = pGroundSpawn->Position();
-		auto heading = atan2(pCharSpawn->Y - pos.Y, pos.X - pCharSpawn->X) * 180.f / PI + 90.f;
-		if (heading < 0.f)
-			heading += 360.f;
-		else if (heading >= 360.f)
-			heading -= 360.f;
-		Dest.Set(heading);
-		Dest.Type = pHeadingType;
-		return true;
-	}
-
-	case GroundMembers::LineOfSight:
-	{
-		auto pos = pGroundSpawn->Position();
-		Dest.Set(CastRay(pCharSpawn, pos.Y, pos.X, pos.Z));
-		Dest.Type = pBoolType;
-		return true;
-	}
-
-	case GroundMembers::First:
-		Dest.Set(FirstGroundSpawn());
-		Dest.Type = pGroundType;
-		return true;
-
-	case GroundMembers::Last:
-		Dest.Set(LastGroundSpawn());
-		Dest.Type = pGroundType;
-		return true;
-
-	case GroundMembers::Next:
-		Dest.Set(NextGroundSpawn());
-		Dest.Type = pGroundType;
-		return true;
-
-	case GroundMembers::Prev:
-		Dest.Set(PrevGroundSpawn());
-		Dest.Type = pGroundType;
-		return true;
-
-	case GroundMembers::Search:
-		Dest.Type = pGroundType;
-
-		if (Index[0])
+		switch (id)
 		{
-			auto id = GetIntFromString(Index, -1);
-			if (id >= 0)
+		case GroundMembers::ID:
+			Dest.Set(pGroundSpawn->ID());
+			Dest.Type = pIntType;
+			return true;
+
+		case GroundMembers::SubID:
+			Dest.Set(pGroundSpawn->SubID());
+			Dest.Type = pIntType;
+			return true;
+
+		case GroundMembers::ZoneID:
+			Dest.Set(pGroundSpawn->ZoneID());
+			Dest.Type = pIntType;
+			return true;
+
+		case GroundMembers::W:
+		case GroundMembers::X:
+			Dest.Set(pGroundSpawn->Position().X);
+			Dest.Type = pFloatType;
+			return true;
+
+		case GroundMembers::N:
+		case GroundMembers::Y:
+			Dest.Set(pGroundSpawn->Position().Y);
+			Dest.Type = pFloatType;
+			return true;
+
+		case GroundMembers::U:
+		case GroundMembers::Z:
+			Dest.Set(pGroundSpawn->Position().Z);
+			Dest.Type = pFloatType;
+			return true;
+
+		case GroundMembers::Name:
+			strcpy_s(DataTypeTemp, pGroundSpawn->Name().c_str());
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = pStringType;
+			return true;
+
+		case GroundMembers::DisplayName:
+			strcpy_s(DataTypeTemp, pGroundSpawn->DisplayName().c_str());
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = pStringType;
+			return true;
+
+		case GroundMembers::Heading:
+			Dest.Set(pGroundSpawn->Heading());
+			Dest.Type = pHeadingType;
+			return true;
+
+		case GroundMembers::Distance:
+			Dest.Set(pGroundSpawn->Distance(pCharSpawn));
+			Dest.Type = pFloatType;
+			return true;
+
+		case GroundMembers::Distance3D:
+			Dest.Set(pGroundSpawn->Distance3D(pCharSpawn));
+			Dest.Type = pFloatType;
+			return true;
+
+		case GroundMembers::HeadingTo:
+		{
+			auto pos = pGroundSpawn->Position();
+			auto heading = atan2(pCharSpawn->Y - pos.Y, pos.X - pCharSpawn->X) * 180.f / PI + 90.f;
+			if (heading < 0.f)
+				heading += 360.f;
+			else if (heading >= 360.f)
+				heading -= 360.f;
+			Dest.Set(heading);
+			Dest.Type = pHeadingType;
+			return true;
+		}
+
+		case GroundMembers::LineOfSight:
+		{
+			auto pos = pGroundSpawn->Position();
+			Dest.Set(CastRay(pCharSpawn, pos.Y, pos.X, pos.Z));
+			Dest.Type = pBoolType;
+			return true;
+		}
+
+		case GroundMembers::First:
+			Dest.Set(FirstGroundSpawn());
+			Dest.Type = pGroundType;
+			return true;
+
+		case GroundMembers::Last:
+			Dest.Set(LastGroundSpawn());
+			Dest.Type = pGroundType;
+			return true;
+
+		case GroundMembers::Next:
+			Dest.Set(NextGroundSpawn());
+			Dest.Type = pGroundType;
+			return true;
+
+		case GroundMembers::Prev:
+			Dest.Set(PrevGroundSpawn());
+			Dest.Type = pGroundType;
+			return true;
+
+		case GroundMembers::Search:
+			Dest.Type = pGroundType;
+
+			if (Index[0])
 			{
-				Dest.Set(GetGroundSpawnByID(id));
+				auto id = GetIntFromString(Index, -1);
+				if (id >= 0)
+				{
+					Dest.Set(GetGroundSpawnByID(id));
+				}
+				else
+				{
+					Dest.Set(GetGroundSpawnByName(Index));
+				}
 			}
 			else
 			{
-				Dest.Set(GetGroundSpawnByName(Index));
+				Dest.Set(GetNearestGroundSpawn());
 			}
-		}
-		else
-		{
-			Dest.Set(GetNearestGroundSpawn());
-		}
 
-		return true;
+			return true;
 
-	default:
-		return false;
+		default:
+			return false;
+		}
 	}
+
+	return false;
 }
 
 bool MQ2GroundType::ToString(MQVarPtr VarPtr, char* Destination)
