@@ -848,6 +848,7 @@ void Macro(PSPAWNINFO pChar, char* szLine)
 
 	DebugSpew("Macro - Starting macro with '/call %s'", szTemp);
 	PluginsMacroStart(szLine);
+	gbGroundDeprecateCount = 0;
 	Call(pChar, szTemp);
 
 	if (!gMacroBlock)
@@ -1243,6 +1244,7 @@ void EndMacro(PSPAWNINFO pChar, char* szLine)
 		WriteChatColor("The current macro has ended.", USERCOLOR_DEFAULT);
 		
 	PluginsMacroStop(MacroName);
+	gbGroundDeprecateCount = -1;
 }
 
 static int GetNumArgsFromSub(const std::string& Sub)

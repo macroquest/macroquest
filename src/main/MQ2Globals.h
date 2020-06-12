@@ -330,4 +330,7 @@ MQLIB_VAR IDirect3DDevice9* gpD3D9Device;
 MQLIB_VAR bool gbDeviceAcquired;
 MQLIB_VAR bool gbDeviceHooksInstalled;
 
+/* DEPRECATION GLOBALS */
+MQLIB_VAR int gbGroundDeprecateCount;
+
 } // namespace mq

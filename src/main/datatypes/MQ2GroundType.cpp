@@ -40,7 +40,8 @@ enum class GroundMembers
 	First,
 	Last,
 	Next,
-	Prev
+	Prev,
+	Search
 };
 
 enum class GroundMethods
@@ -70,6 +71,7 @@ MQ2GroundType::MQ2GroundType() : MQ2Type("ground")
 	ScopedTypeMember(GroundMembers, Last);
 	ScopedTypeMember(GroundMembers, Next);
 	ScopedTypeMember(GroundMembers, Prev);
+	ScopedTypeMember(GroundMembers, Search);
 
 	// methods
 	ScopedTypeMethod(GroundMethods, Grab);
@@ -114,6 +116,8 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 
 		case GroundMethods::Reset:
 			ClearGroundSpawn();
+			Dest.Set(MQGroundSpawn());
+			Dest.Type = pGroundType;
 			return true;
 
 		default:
@@ -231,6 +235,28 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQType
 		Dest.Type = pGroundType;
 		return true;
 
+	case GroundMembers::Search:
+		Dest.Type = pGroundType;
+
+		if (Index[0])
+		{
+			auto id = GetIntFromString(Index, -1);
+			if (id >= 0)
+			{
+				Dest.Set(GetGroundSpawnByID(id));
+			}
+			else
+			{
+				Dest.Set(GetGroundSpawnByName(Index));
+			}
+		}
+		else
+		{
+			Dest.Set(GetNearestGroundSpawn());
+		}
+
+		return true;
+
 	default:
 		return false;
 	}
@@ -286,51 +312,39 @@ bool MQ2GroundType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 bool MQ2GroundType::dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 {
 	SPAWNINFO* pSpawn = (SPAWNINFO*)pCharSpawn;
-
-	// if they did ${Ground[name]}
-	if (szIndex[0])
-	{
-		if (IsNumber(szIndex))
+	if (szIndex[0]) {
+		auto idx = GetIntFromString(szIndex, 0) - 1;
+		if (idx >= 0)
 		{
-			int index = GetIntFromString(szIndex, 0) - 1;
-			if (index >= 0)
-			{
-				auto ground = GetNthGroundSpawnFromMe(index);
-				if (ground)
-				{
-					Ret.Set(ground);
-					Ret.Type = pGroundType;
-					return true;
-				}
-			}
+			Ret.Set(GetNthGroundSpawnFromMe(idx));
 		}
 		else
 		{
-			auto ground = GetGroundSpawnByName(szIndex);
-			if (ground)
-			{
-				Ret.Set(ground);
-				Ret.Type = pGroundType;
-				return true;
-			}
-		}
+			// this is deprecated -- we don't want to be implicitly searching as a side effect of accessing `${Ground}`
+			if (gbGroundDeprecateCount < 1)
+				WriteChatf("\ay[\agMQ2GroundType\ay] Searching directly from the Ground TLO is deprecated and will be removed in a future version. Use \ag${Ground.Search[%s]}\ay.\ax", szIndex);
+			if (gbGroundDeprecateCount == 0)
+				++gbGroundDeprecateCount;
 
-		return false;
+			Ret.Set(GetGroundSpawnByName(szIndex));
+		}
 	}
-	else if (HasCurrentGroundSpawn()) // they already did /itemtarget so return that (this can potentially be NULL).
+	else if (HasCurrentGroundSpawn())
 	{
 		Ret.Set(CurrentGroundSpawn());
-		Ret.Type = pGroundType;
 	}
 	else
 	{
-		// this importantly resets the search as a side effect
-		// they didn't specify a name and they have not done /itemtarget
-		// so we just return first closest entry found
+		// this is deprecated -- we don't want to be implicitly searching as a side effect of accessing `${Ground}`
+		if (gbGroundDeprecateCount < 1)
+			WriteChatf("\ay[\agMQ2GroundType\ay] Searching directly from the Ground TLO is deprecated and will be removed in a future version. Use \ag${Ground.Search}\ay.\ax", szIndex);
+		if (gbGroundDeprecateCount == 0)
+			++gbGroundDeprecateCount;
+
 		Ret.Set(GetNearestGroundSpawn());
-		Ret.Type = pGroundType;
 	}
 
+	Ret.Type = pGroundType;
 	return true;
 }
 

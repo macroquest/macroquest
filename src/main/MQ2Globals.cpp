@@ -762,4 +762,6 @@ bool ExecuteCmd(unsigned int command, bool keyDown, void* data)
 	return eqlib::EQExecuteCmd(command, keyDown, data, nullptr);
 }
 
+int gbGroundDeprecateCount = -1;
+
 } // namespace mq
