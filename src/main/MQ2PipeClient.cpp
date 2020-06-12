@@ -67,24 +67,14 @@ namespace pipeclient {
 // profile:account:server:char:pid
 void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character)
 {
-	std::string data = std::string(Profile) + ":" +
-		Account + ":" +
-		Server + ":" +
-		Character + ":" +
-		std::to_string(GetCurrentProcessId());
-
+	auto data = fmt::format("{}:{}:{}:{}:{}", Profile, Account, Server, Character, GetCurrentProcessId());
 	gPipeClient.SendMessage(MQMessageId::MSG_AUTOLOGIN_PROFILE_LOADED, data.c_str(), data.length());
 }
 
 // profile:account:server:char:pid
 void NotifyCharacterUnload(const char* Profile, const char* Account, const char* Server, const char* Character)
 {
-	std::string data = std::string(Profile) + ":" +
-		Account + ":" +
-		Server + ":" +
-		Character + ":" +
-		std::to_string(GetCurrentProcessId());
-
+	auto data = fmt::format("{}:{}:{}:{}:{}", Profile, Account, Server, Character, GetCurrentProcessId());
 	gPipeClient.SendMessage(MQMessageId::MSG_AUTOLOGIN_PROFILE_UNLOADED, data.c_str(), data.length());
 }
 
@@ -93,42 +83,26 @@ void NotifyCharacterUpdate(const char* Class, const char* Level)
 {
 	if (pLocalPlayer) // this should not be null, but if we are potentially zoning or otherwise unloading when this is called, then we can't update the character
 	{
-		std::string data = std::to_string(GetCurrentProcessId()) + ":" +
-			std::to_string(pLocalPlayer->GetClass()) + ":" +
-			std::to_string(pLocalPlayer->Level);
-
+		auto data = fmt::format("{}:{}:{}", GetCurrentProcessId(), pLocalPlayer->GetClass(), pLocalPlayer->Level);
 		gPipeClient.SendMessage(MQMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO, data.c_str(), data.length());
 	}
 }
 
 void LoginServer(const char* Login, const char* Pass, const char* Server)
 {
-	std::string data = std::string("s") + ":" +
-		Login + ":" +
-		Pass + ":" +
-		Server;
-
+	auto data = fmt::format("s:{}:{}:{}", Login, Pass, Server);
 	gPipeClient.SendMessage(MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data.c_str(), data.length());
 }
 
 void LoginCharacter(const char* Login, const char* Pass, const char* Server, const char* Character)
 {
-	std::string data = std::string("c") + ":" +
-		Login + ":" +
-		Pass + ":" +
-		Server + ":" +
-		Character;
-
+	auto data = fmt::format("c:{}:{}:{}:{}", Login, Pass, Server, Character);
 	gPipeClient.SendMessage(MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data.c_str(), data.length());
 }
 
 void LoginProfile(const char* Profile, const char* Server, const char* Character)
 {
-	std::string data = std::string("p") + ":" +
-		Profile + ":" +
-		Server + ":" +
-		Character;
-
+	auto data = fmt::format("p:{}:{}:{}", Profile, Server, Character);
 	gPipeClient.SendMessage(MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data.c_str(), data.length());
 }
 }

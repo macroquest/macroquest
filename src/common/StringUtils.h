@@ -120,6 +120,11 @@ inline std::vector<std::string_view> split_view(std::string_view s, char delim)
 			elems.emplace_back(s.data() + start_idx, i - start_idx);
 			start_idx = i + 1;
 		}
+		else if (i == s.size() - 1)
+		{
+			// get the last element, which needs to include the ith character since it's not a delimiter
+			elems.emplace_back(s.data() + start_idx, s.size() - start_idx);
+		}
 	}
 
 	return elems;

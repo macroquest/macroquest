@@ -212,6 +212,8 @@ public:
 	// these are just some getters for ImGui
 	static std::string_view character() { return m_record ? m_record->characterName.c_str() : ""; }
 	static std::string_view server() { return m_record ? m_record->serverName.c_str() : ""; }
+	static std::string_view profile() { return m_record ? m_record->profileName.c_str() : ""; }
+	static std::string_view account() { return m_record ? m_record->accountName.c_str() : ""; }
 	static const CXWnd* current_window() { return m_currentWindow; }
 	static const bool paused() { return m_paused; }
 	static const uint64_t delay_time() { return m_delayTime; }

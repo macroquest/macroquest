@@ -76,6 +76,13 @@ void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
 		}
 		else
 		{
+			pipeclient::NotifyCharacterUnload(
+				std::string(Login::profile()).c_str(),
+				std::string(Login::account()).c_str(),
+				std::string(Login::server()).c_str(),
+				std::string(Login::character()).c_str()
+			);
+
 			Login::dispatch(SetLoginInformation(szServer, szCharacter));
 
 			WriteChatf("Switching to \ag%s\ax on server \ag%s\ax", szCharacter, szServer);
@@ -87,6 +94,13 @@ void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
 			}
 
 			EzCommand("/camp");
+
+			pipeclient::NotifyCharacterLoad(
+				std::string(Login::profile()).c_str(),
+				std::string(Login::account()).c_str(),
+				std::string(Login::server()).c_str(),
+				std::string(Login::character()).c_str()
+			);
 		}
 	}
 }
@@ -100,6 +114,13 @@ void Cmd_SwitchCharacter(SPAWNINFO* pChar, char* szLine)
 		WriteChatf("\ayUsage:\ax /switchchar <name>");
 		return;
 	}
+
+	pipeclient::NotifyCharacterUnload(
+		std::string(Login::profile()).c_str(),
+		std::string(Login::account()).c_str(),
+		std::string(Login::server()).c_str(),
+		std::string(Login::character()).c_str()
+	);
 
 	GetArg(szArg1, szLine, 1);
 
@@ -122,6 +143,13 @@ void Cmd_SwitchCharacter(SPAWNINFO* pChar, char* szLine)
 			EzCommand("/camp");
 		}
 	}
+
+	pipeclient::NotifyCharacterLoad(
+		std::string(Login::profile()).c_str(),
+		std::string(Login::account()).c_str(),
+		std::string(Login::server()).c_str(),
+		std::string(Login::character()).c_str()
+	);
 
 	WriteChatf("Switch to \ag%s\ax is now active and will commence at character select.", szArg1);
 }
@@ -410,6 +438,13 @@ PLUGIN_API void InitializePlugin()
 
 PLUGIN_API void ShutdownPlugin()
 {
+	pipeclient::NotifyCharacterUnload(
+		std::string(Login::profile()).c_str(),
+		std::string(Login::account()).c_str(),
+		std::string(Login::server()).c_str(),
+		std::string(Login::character()).c_str()
+	);
+
 	RemoveCommand("/switchserver");
 	RemoveCommand("/switchcharacter");
 	RemoveCommand("/relog");

@@ -252,6 +252,13 @@ public:
 			{
 				m_record = record;
 
+				pipeclient::NotifyCharacterLoad(
+					record->profileName.c_str(),
+					record->accountName.c_str(),
+					record->serverName.c_str(),
+					record->characterName.c_str()
+				);
+
 				DWORD oldscreenmode = std::exchange(ScreenMode, 3);
 				pUsernameEditWnd->InputText = m_record->accountName;
 
