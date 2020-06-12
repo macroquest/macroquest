@@ -16,11 +16,9 @@
 #include "MQ2AutoLogin.h"
 
 #include <optional>
-#include <regex>
 #include <TlHelp32.h>
 
 // TODO:
-// - Figure out how to tie this into the backend
 // - Re-do the UI (can I pull alynel's work?, if not maybe ImGui? -- but that means I'll have to pull it into tools)
 // - Injecting while running doesn't load the config
 // - fix /relog -- it seems to timeout just as it tries to log back in?

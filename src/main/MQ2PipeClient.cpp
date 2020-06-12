@@ -81,11 +81,8 @@ void NotifyCharacterUnload(const char* Profile, const char* Account, const char*
 // pid:class:level
 void NotifyCharacterUpdate(const char* Class, const char* Level)
 {
-	if (pLocalPlayer) // this should not be null, but if we are potentially zoning or otherwise unloading when this is called, then we can't update the character
-	{
-		auto data = fmt::format("{}:{}:{}", GetCurrentProcessId(), pLocalPlayer->GetClass(), pLocalPlayer->Level);
-		gPipeClient.SendMessage(MQMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO, data.c_str(), data.length());
-	}
+	auto data = fmt::format("{}:{}:{}", GetCurrentProcessId(), Class, Level);
+	gPipeClient.SendMessage(MQMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO, data.c_str(), data.length());
 }
 
 void LoginServer(const char* Login, const char* Pass, const char* Server)

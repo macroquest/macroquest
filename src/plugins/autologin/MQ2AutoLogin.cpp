@@ -39,6 +39,10 @@ PreSetup("MQ2AutoLogin");
 char CustomIni[64] = { 0 };
 uint64_t ReenableTime = 0;
 
+// save off class and level so we know when to push updates
+int Level = -1;
+int Class = -1;
+
 void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
 {
 	char szServer[MAX_STRING] = { 0 };
@@ -469,6 +473,13 @@ PLUGIN_API void SetGameState(DWORD GameState)
 
 PLUGIN_API void OnPulse()
 {
+	if (pLocalPlayer && (pLocalPlayer->GetClass() != Class || pLocalPlayer->Level != Level))
+	{
+		Class = pLocalPlayer->GetClass();
+		Level = pLocalPlayer->Level;
+		pipeclient::NotifyCharacterUpdate(std::to_string(Class).c_str(), std::to_string(Level).c_str());
+	}
+
 	if (gbInForeground && GetAsyncKeyState(VK_HOME) & 1)
 		Login::dispatch(UnpauseLogin(true));
 	else if (gbInForeground && GetAsyncKeyState(VK_END) & 1)
