@@ -23,14 +23,36 @@
 // - Injecting while running doesn't load the config
 // - fix /relog -- it seems to timeout just as it tries to log back in?
 
+// State Class forward declarations
+class Wait;
+class SplashScreen;
+class Connect;
+class ConnectConfirm;
+class ServerSelect;
+class ServerSelectConfirm;
+class ServerSelectKick;
+class ServerSelectDown;
+class CharacterSelect;
+class CharacterSelectWait;
+class InGame;
+
 static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 {
 	AutoLoginDebug("UseMQ2Login(): Using MQ2Login Method");
 
-	// we expect this to be populated because we feed eqgame.exe with a `/login:` parameter
-	if (pEditWnd && !pEditWnd->InputText.empty())
+	if (Login::is_in_state<Connect>() || Login::is_in_state<ConnectConfirm>())
 	{
-		std::string input(pEditWnd->InputText);
+		// we expect this to be populated because we feed eqgame.exe with a `/login:` parameter
+		// the reason to do it this way is because the autopopulation of the login field is limited to 31 characters by eqgame
+		std::string cmdline(::GetCommandLineA());
+		auto startpos = cmdline.find("/login:") + 7;
+		auto endpos = cmdline.find_first_of(' ', startpos);
+		auto input = cmdline.substr(startpos, endpos);
+
+		// fallback method, the only case where we would hit this is if we manually entered the login string after eqgame started.
+		if (input.empty() && pEditWnd && !pEditWnd->InputText.empty())
+			input = pEditWnd->InputText;
+
 		AutoLoginDebug(fmt::format("UseMQ2Login() input({})", input));
 
 		auto record = ProfileRecord::FromString(input);
@@ -51,7 +73,7 @@ static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 static std::optional<ProfileRecord> UseStationNames(CEditWnd* pEditWnd, std::string_view AccountName = "")
 {
 	std::string account(AccountName);
-	if (pEditWnd && !pEditWnd->InputText.empty() && account.empty())
+	if (account.empty() && pEditWnd && !pEditWnd->InputText.empty())
 		account = pEditWnd->InputText;
 
 	if (!account.empty())
@@ -98,18 +120,6 @@ static std::optional<ProfileRecord> UseSessions(CEditWnd* pEditWnd)
 
 	return record;
 }
-
-class Wait;
-class SplashScreen;
-class Connect;
-class ConnectConfirm;
-class ServerSelect;
-class ServerSelectConfirm;
-class ServerSelectKick;
-class ServerSelectDown;
-class CharacterSelect;
-class CharacterSelectWait;
-class InGame;
 
 class Wait : public Login
 {
