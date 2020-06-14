@@ -35,8 +35,7 @@ PLUGIN_VERSION(4.0);
 
 PreSetup("MQ2AutoLogin");
 
-// this needs to be a char* to interact with the windows ini system
-char CustomIni[64] = { 0 };
+fs::path CustomIni;
 uint64_t ReenableTime = 0;
 
 // save off class and level so we know when to push updates
@@ -280,12 +279,18 @@ DETOUR_TRAMPOLINE_EMPTY(DWORD WINAPI GetPrivateProfileStringA_Trampoline(LPCSTR,
 
 void SetupCustomIni()
 {
-	if (CustomIni && CustomIni[0] != '\0')
+	if (!CustomIni.empty())
 		return;
 
 	if (const char* pLogin = GetLoginName())
 	{
-		GetPrivateProfileStringA_Trampoline(pLogin, "CustomClientIni", 0, CustomIni, 64, INIFileName);
+		char CustomPath[MAX_STRING] = { 0 };
+		GetPrivateProfileStringA_Trampoline(pLogin, "CustomClientIni", 0, CustomPath, MAX_STRING, INIFileName);
+
+		// If a relative path is specified, need to prepend it with current path, which is the EQ directory
+		CustomIni = fs::path{ CustomPath };
+		if (CustomIni.is_relative())
+			CustomIni = fs::current_path() / CustomIni;
 	}
 }
 
@@ -295,11 +300,9 @@ DWORD WINAPI GetPrivateProfileStringA_Detour(LPCSTR lpAppName, LPCSTR lpKeyName,
 	{
 		SetupCustomIni();
 
-		if (CustomIni[0] != 0 && ci_find_substr(lpFileName, "eqclient.ini") != -1)
+		if (!CustomIni.empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
 		{
-			fs::path path = fs::path{ lpFileName } / CustomIni;
-
-			return GetPrivateProfileStringA_Trampoline(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, path.string().c_str());
+			return GetPrivateProfileStringA_Trampoline(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, CustomIni.string().c_str());
 		}
 	}
 
@@ -313,11 +316,9 @@ BOOL WINAPI WritePrivateProfileStringA_Detour(LPCSTR lpAppName, LPCSTR lpKeyName
 	{
 		SetupCustomIni();
 
-		if (CustomIni[0] != 0 && ci_find_substr(lpFileName, "eqclient.ini") != -1)
+		if (!CustomIni.empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
 		{
-			fs::path path = fs::path{ lpFileName } / CustomIni;
-
-			return WritePrivateProfileStringA_Trampoline(lpAppName, lpKeyName, lpString, path.string().c_str());
+			return WritePrivateProfileStringA_Trampoline(lpAppName, lpKeyName, lpString, CustomIni.string().c_str());
 		}
 	}
 
@@ -332,11 +333,9 @@ UINT WINAPI GetPrivateProfileIntA_Detour(LPCSTR lpAppName, LPCSTR lpKeyName, INT
 	{
 		SetupCustomIni();
 
-		if (CustomIni[0] != '\0' && ci_find_substr(lpFileName, "eqclient.ini") != -1)
+		if (!CustomIni.empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
 		{
-			fs::path path = fs::path{ lpFileName } / CustomIni;
-
-			return GetPrivateProfileIntA_Tramp(lpAppName, lpKeyName, nDefault, path.string().c_str());
+			return GetPrivateProfileIntA_Tramp(lpAppName, lpKeyName, nDefault, CustomIni.string().c_str());
 		}
 	}
 
@@ -424,11 +423,6 @@ PLUGIN_API void InitializePlugin()
 
 	if (GetPrivateProfileBool("Settings", "EnableCustomClientIni", false, INIFileName))
 	{
-		if (Login::m_settings.LoginType == Login::Settings::Type::StationNames)
-		{
-			SetupCustomIni();
-		}
-
 		DWORD pfnGetPrivateProfileIntA = (DWORD) & ::GetPrivateProfileIntA;
 		EzDetour(pfnGetPrivateProfileIntA, GetPrivateProfileIntA_Detour, GetPrivateProfileIntA_Tramp);
 
@@ -437,6 +431,11 @@ PLUGIN_API void InitializePlugin()
 
 		DWORD pfnWritePrivateProfileStringA = (DWORD) & ::WritePrivateProfileStringA;
 		EzDetour(pfnWritePrivateProfileStringA, WritePrivateProfileStringA_Detour, WritePrivateProfileStringA_Trampoline);
+
+		if (Login::m_settings.LoginType == Login::Settings::Type::StationNames)
+		{
+			SetupCustomIni();
+		}
 	}
 }
 
