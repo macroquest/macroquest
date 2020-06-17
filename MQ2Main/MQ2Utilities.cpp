@@ -6112,7 +6112,7 @@ PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
 	{
 		pFromSpawn = (PSPAWNINFO)GetSpawnByID(pSearchSpawn->FromSpawnID);
 		if (!pFromSpawn) return NULL;
-		for (int N = 0; N < 3000; N++)
+		for (int N = 0; N < 4000; N++)
 		{
 			if (EQP_DistArray[N].VarPtr.Ptr == pFromSpawn)
 			{
@@ -6129,7 +6129,7 @@ PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
 				else
 				{
 					N++;
-					for (N; N < 3000; N++)
+					for (N; N < 4000; N++)
 					{
 						if (EQP_DistArray[N].VarPtr.Ptr &&
 							SpawnMatchesSearch(pSearchSpawn, pFromSpawn, (PSPAWNINFO)EQP_DistArray[N].VarPtr.Ptr))

@@ -434,7 +434,7 @@ namespace MQ2Globals
 
 	EQLIB_VAR std::map<std::string, PSPAWNINFO> SpawnByName;
 	//EQLIB_VAR EQPlayer **ppEQP_IDArray;
-	EQLIB_VAR MQRANK EQP_DistArray[3000];
+	EQLIB_VAR MQRANK EQP_DistArray[4000];
 	EQLIB_VAR DWORD gSpawnCount;
 	//#define ppEQP_IDArray (*pppEQP_IDArray)
 
@@ -1092,6 +1092,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD __EQGetTime;
 	EQLIB_VAR DWORD __ExecuteCmd;
 	EQLIB_VAR DWORD __FixHeading;
+	EQLIB_VAR DWORD __FlushDxKeyboard;
 	EQLIB_VAR DWORD __get_bearing;
 	EQLIB_VAR DWORD __get_melee_range;
 	EQLIB_VAR DWORD __GetAnimationCache;
@@ -1105,6 +1106,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD __NewUIINI;
 	EQLIB_VAR DWORD __pCrashHandler;
 	EQLIB_VAR DWORD __ProcessGameEvents;
+	EQLIB_VAR DWORD __ProcessMouseEvent;
 	EQLIB_VAR DWORD __SaveColors;
 	EQLIB_VAR DWORD __STMLToText;
 	EQLIB_VAR DWORD __ToggleKeyRingItem;
@@ -1116,6 +1118,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD Teleport_Table_Size;
 	EQLIB_VAR DWORD Util__FastTime;
 	EQLIB_VAR DWORD __CopyLayout;
+	EQLIB_VAR DWORD __WndProc;
+	EQLIB_VAR DWORD __ProcessKeyboardEvent;
 	
 	EQLIB_VAR DWORD wwsCrashReportCheckForUploader;
 	EQLIB_VAR DWORD wwsCrashReportPlatformLaunchUploader;

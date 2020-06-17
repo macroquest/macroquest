@@ -752,9 +752,16 @@ VOID UpdateMQ2SpawnSort()
 		PSPAWNINFO pSpawn = (PSPAWNINFO)pSpawnList;
 		while (pSpawn)
 		{
-			EQP_DistArray[gSpawnCount].VarPtr.Ptr = pSpawn;
-			EQP_DistArray[gSpawnCount].Value.Float = GetDistance(pSpawn->X, pSpawn->Y);
-			gSpawnCount++;
+			if (gSpawnCount < 4000) {
+				EQP_DistArray[gSpawnCount].VarPtr.Ptr = pSpawn;
+				EQP_DistArray[gSpawnCount].Value.Float = GetDistance(pSpawn->X, pSpawn->Y);
+				gSpawnCount++;
+			}
+			else {
+				//whups... well we might as well exit out of the while now...
+				//this CAN happen in a zone with lots of mobs players and corpses
+				break;
+			}
 			pSpawn = pSpawn->pNext;
 		}
 		std::sort(EQP_DistArray, EQP_DistArray + gSpawnCount, MQRankFloatCompare);

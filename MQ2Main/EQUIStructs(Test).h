@@ -1592,7 +1592,7 @@ enum eAdvLootState
 	eAdvLootFixedAskCompleted,
 	eAdvLootRemoved
 };
-//size is 0x88 see 0x48AB44 in Dec 10 2018 live -eqmule
+//size is 0x90 see 0x49BA29 in Jun 09 2020 test -eqmule
 typedef struct _LOOTITEM
 {
 /*0x00*/ __int64	ItemID;
@@ -1601,27 +1601,28 @@ typedef struct _LOOTITEM
 /*0x4C*/ bool   bStackable;
 /*0x50*/ DWORD  MaxStack;
 /*0x54*/ BYTE   NoDrop;
-/*0x55*/ BYTE   Unknown0x55[0x3];
 /*0x58*/ DWORD  ComboID;
 /*0x5c*/ DWORD  LootID;
 /*0x60*/ eAdvLootState State;
-/*0x64*/ BYTE	bAutoRoll;
-/*0x65*/ BYTE	ActivelyManaged; // User has the manage Window up
-/*0x66*/ BYTE	ContextMenu;     // item has a context menu
-/*0x67*/ BYTE	AskRandomMode; //item is in AskRandom mode
-/*0x68*/ BYTE   CLootInProgress;
-/*0x69*/ BYTE   PLootInProgress;
-/*0x6c*/ EQArray<LOOTDETAILS>LootDetails;
-/*0x7c*/ DWORD	AskTimer;
-/*0x80*/ BYTE	AutoRoll;
-/*0x81*/ BYTE	FG;
-/*0x82*/ BYTE	Need;
-/*0x83*/ BYTE	Greed;
-/*0x84*/ BYTE	No;
-/*0x85*/ BYTE	AlwaysNeed;
-/*0x86*/ BYTE	AlwaysGreed;
-/*0x87*/ BYTE	Never;
-/*0x88*/
+/*0x64*/ int	Unknown0x64;//how many are interested in a roll? -eqmule
+/*0x68*/ BYTE	bAutoRoll;
+/*0x69*/ BYTE	ActivelyManaged; // User has the manage Window up
+/*0x6a*/ BYTE	ContextMenu;     // item has a context menu
+/*0x6b*/ BYTE	AskRandomMode; //item is in AskRandom mode
+/*0x6c*/ BYTE   CLootInProgress;
+/*0x6d*/ BYTE   PLootInProgress;
+/*0x70*/ EQArray<LOOTDETAILS>LootDetails;
+/*0x80*/ DWORD	AskTimer;
+/*0x84*/ BYTE	AutoRoll;
+/*0x85*/ BYTE	FG;
+/*0x86*/ BYTE	Need;
+/*0x87*/ BYTE	Greed;
+/*0x88*/ BYTE	No;
+/*0x89*/ BYTE	AlwaysNeed;
+/*0x8a*/ BYTE	AlwaysGreed;
+/*0x8b*/ BYTE	Never;
+/*0x8c*/ int	Unknown0x8c;//probably just a filler.
+/*0x90*/
 } LOOTITEM,*PLOOTITEM;
 
 typedef struct _LOOTLIST {

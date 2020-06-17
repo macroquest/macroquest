@@ -11357,6 +11357,37 @@ bool MQ2EverQuestType::GETMEMBER()
 		Dest.Type = pBoolType;
 		return true;
 	}
+	case FloorAtLoc://usage /echo ${EverQuest.FloorAtLoc[123 456]} returns 789
+	{
+		CHAR *szLoc = new CHAR[MAX_STRING];
+		GetArg(szLoc, Index, 1);
+		float X = (float)atof(szLoc);
+		GetArg(szLoc, Index, 2);
+		float Y = (float)atof(szLoc);
+		delete szLoc;
+		float Z = 0;
+		PZONEINFO pZone = reinterpret_cast<PZONEINFO>(pZoneInfo);
+        CDisplay *pDsp = reinterpret_cast<CDisplay*>(pDisplay);
+		if (pZone && pDsp) {
+			FLOAT curr_z = 0.0f;
+			for (float f = pZone->Ceiling; f > pZone->Floor; f -= 1.0f)
+			{
+				curr_z = pDsp->GetFloorHeight(X, Y, f);
+				if (curr_z != ((float)-1.0e27))
+				{
+					Z = curr_z;
+					break;
+				}
+			}
+			if (Z)
+			{
+				Dest.Float = Z;
+				Dest.Type = pFloatType;
+				return true;
+			}
+		}
+		return false;
+	}
 	}
 	return false;
 }

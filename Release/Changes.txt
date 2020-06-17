@@ -1,3 +1,11 @@
+June 17 2020
+- Updated for LIVE
+- Fixed the PLOOTITEM struct for TEST
+- Added ${EverQuest.FloorAtLoc[y x]} it returns z
+  Example: /echo ${EverQuest.FloorAtLoc[123 456]} returns 789
+- Added all eqgame offsets that mq2nav uses to eqgame.h and exported them.
+- Fixed a crash in MQ2Spawns when there where more than 3000 corpses player and npcs in a zone.
+-
 June 10 2020
 - Updated for TEST
 -

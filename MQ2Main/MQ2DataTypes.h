@@ -3716,6 +3716,7 @@ public:
 		xHWND = 28,
 		Foreground = 29,
 		ValidLoc = 30,
+		FloorAtLoc = 31
 	};
 	enum EverQuestMethods
 	{
@@ -3752,6 +3753,7 @@ public:
 		AddMember(xHWND, "HWND");
 		TypeMember(Foreground);
 		TypeMember(ValidLoc);
+		TypeMember(FloorAtLoc);	
 	}
 
 	~MQ2EverQuestType()

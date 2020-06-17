@@ -520,7 +520,7 @@ namespace MQ2Globals
 	cTargetBuff TargetBuffTemp = { 0 };
 
 	decltype(SpawnByName) SpawnByName;
-	MQRANK EQP_DistArray[3000];
+	MQRANK EQP_DistArray[4000];
 	DWORD gSpawnCount = 0;
 
 	// Motd and Pulse's mouse variables
@@ -1646,6 +1646,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(__CastRay2);
 	INITIALIZE_EQGAME_OFFSET(__HeadingDiff);
 	INITIALIZE_EQGAME_OFFSET(__FixHeading);
+	INITIALIZE_EQGAME_OFFSET(__FlushDxKeyboard);
 	INITIALIZE_EQGAME_OFFSET(__get_bearing);
 	
 	INITIALIZE_EQGAME_OFFSET(__ConvertItemTags);
@@ -1664,6 +1665,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(__LoadFrontEnd);
 	INITIALIZE_EQGAME_OFFSET(__NewUIINI);
 	INITIALIZE_EQGAME_OFFSET(__ProcessGameEvents);
+	INITIALIZE_EQGAME_OFFSET(__ProcessMouseEvent);
 	INITIALIZE_EQGAME_OFFSET(CrashDetected);
 	INITIALIZE_EQGAME_OFFSET(__SaveColors);
 	INITIALIZE_EQGAME_OFFSET(__HandleMouseWheel);
@@ -1678,7 +1680,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(Teleport_Table_Size);
 	INITIALIZE_EQGAME_OFFSET(__DoesFileExist);
 	INITIALIZE_EQGAME_OFFSET(CMemoryMappedFile__SetFile);
-
+	INITIALIZE_EQGAME_OFFSET(__WndProc);
+	INITIALIZE_EQGAME_OFFSET(__ProcessKeyboardEvent);
+	
 #if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__CAdvancedLootWnd);
 	INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__DoAdvLootAction);

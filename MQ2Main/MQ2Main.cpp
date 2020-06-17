@@ -981,6 +981,9 @@ FUNCTION_AT_ADDRESS(float HeadingDiff(float h1, float h2, float *DiffOut),__Head
 #ifdef __FixHeading_x
 FUNCTION_AT_ADDRESS(float FixHeading(float Heading),__FixHeading);
 #endif
+#ifdef __FlushDxKeyboard_x
+FUNCTION_AT_ADDRESS(int FlushDxKeyboard(), __FlushDxKeyboard);
+#endif
 #ifdef __get_bearing_x
 FUNCTION_AT_ADDRESS(float get_bearing(float x1, float y1, float x2, float y2),__get_bearing)
 #endif
