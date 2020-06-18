@@ -604,8 +604,10 @@ static void UpdateSpawnCaptions()
 		return;
 
 	int count = 0;
-	for (auto d : EQP_DistArray)
+	for (int i = 0; i < gSpawnCount; ++i)
 	{
+		auto& d = EQP_DistArray[i];
+
 		auto pSpawn = static_cast<SPAWNINFO*>(d.VarPtr.Ptr);
 		if (!pSpawn || pSpawn == pTarget)
 			continue;
