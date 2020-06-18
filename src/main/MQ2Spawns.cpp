@@ -548,7 +548,8 @@ bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
 		return reinterpret_cast<EQPlayerHook*>(pSpawn)->SetNameSpriteState_Trampoline(Show) != 0;
 	}
 
-	if (!pSpawn->mActorClient.pcactorex || !static_cast<CActorEx*>(pSpawn->mActorClient.pcactorex)->CanSetName(0))
+	// FIXME:  Crash on CanSetName
+	if (!pSpawn->mActorClient.pcactorex) //|| !static_cast<CActorEx*>(pSpawn->mActorClient.pcactorex)->CanSetName(0))
 	{
 		return true;
 	}
