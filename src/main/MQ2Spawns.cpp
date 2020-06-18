@@ -517,6 +517,7 @@ static void SetNameSpriteTint(SPAWNINFO* pSpawn)
 		return;
 	}
 
+	return; // FIXME:  Crash on SetNameColor
 	if (pSpawn->mActorClient.pcactorex)
 		DebugTry(((CActorEx*)pSpawn->mActorClient.pcactorex)->SetNameColor(NewColor));
 	else
