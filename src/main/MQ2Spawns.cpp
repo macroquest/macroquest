@@ -517,7 +517,6 @@ static void SetNameSpriteTint(SPAWNINFO* pSpawn)
 		return;
 	}
 
-	return; // FIXME:  Crash on SetNameColor
 	if (pSpawn->mActorClient.pcactorex)
 		DebugTry(((CActorEx*)pSpawn->mActorClient.pcactorex)->SetNameColor(NewColor));
 	else
@@ -549,8 +548,7 @@ bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
 		return reinterpret_cast<EQPlayerHook*>(pSpawn)->SetNameSpriteState_Trampoline(Show) != 0;
 	}
 
-	// FIXME:  Crash on CanSetName
-	if (!pSpawn->mActorClient.pcactorex) //|| !static_cast<CActorEx*>(pSpawn->mActorClient.pcactorex)->CanSetName(0))
+	if (!pSpawn->mActorClient.pcactorex || !static_cast<CActorEx*>(pSpawn->mActorClient.pcactorex)->CanSetName(0))
 	{
 		return true;
 	}
