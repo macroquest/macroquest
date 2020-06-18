@@ -2735,7 +2735,7 @@ namespace Yaml
 
     bool ShouldBeCited(const std::string & key)
     {
-        return key.find_first_of("\":{}[],&*#?|-<>=!%@") != std::string::npos;
+        return key.find_first_of("\":{}[],&*#?|-<>=!%@'") != std::string::npos;
     }
 
     void AddEscapeTokens(std::string & input, const std::string & tokens)
