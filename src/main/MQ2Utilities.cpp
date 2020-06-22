@@ -1397,12 +1397,17 @@ int64_t GetGuildIDByName(char* szGuild)
 
 const char* GetLightForSpawn(SPAWNINFO* pSpawn)
 {
-	uint8_t Light = pSpawn->Light;
+	if (pSpawn != nullptr)
+	{
+		uint8_t Light = pSpawn->Light;
 
-	if (Light > LIGHT_COUNT)
-		Light = 0;
+		if (Light > LIGHT_COUNT)
+			Light = 0;
 
-	return szLights[Light];
+		return szLights[Light];
+	}
+
+	return nullptr;
 }
 
 // ***************************************************************************
@@ -1411,10 +1416,15 @@ const char* GetLightForSpawn(SPAWNINFO* pSpawn)
 // ***************************************************************************
 float DistanceToSpawn3D(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
 {
-	float X = pChar->X - pSpawn->X;
-	float Y = pChar->Y - pSpawn->Y;
-	float Z = pChar->Z - pSpawn->Z;
-	return sqrtf(X * X + Y * Y + Z * Z);
+	if (pSpawn != nullptr)
+	{
+		float X = pChar->X - pSpawn->X;
+		float Y = pChar->Y - pSpawn->Y;
+		float Z = pChar->Z - pSpawn->Z;
+		return sqrtf(X * X + Y * Y + Z * Z);
+	}
+
+	return 0;
 }
 
 // ***************************************************************************
@@ -1423,10 +1433,15 @@ float DistanceToSpawn3D(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
 // ***************************************************************************
 float EstimatedDistanceToSpawn(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
 {
-	float RDistance = DistanceToSpawn(pChar, pSpawn);
-	float X = pChar->X - (pSpawn->X + pSpawn->SpeedX * RDistance);
-	float Y = pChar->Y - (pSpawn->Y + pSpawn->SpeedY * RDistance);
-	return sqrtf(X * X + Y * Y);
+	if (pSpawn != nullptr)
+	{
+		float RDistance = DistanceToSpawn(pChar, pSpawn);
+		float X = pChar->X - (pSpawn->X + pSpawn->SpeedX * RDistance);
+		float Y = pChar->Y - (pSpawn->Y + pSpawn->SpeedY * RDistance);
+		return sqrtf(X * X + Y * Y);
+	}
+
+	return 0;
 }
 
 // ***************************************************************************
@@ -1497,8 +1512,7 @@ float FindSpeed(SPAWNINFO* pSpawn)
 	pMount = FindMount(pSpawn);
 
 	if (pMount)
-		if (!fRunSpeed)
-			fRunSpeed = pMount->SpeedRun * 10000 / 70;
+		fRunSpeed = pMount->SpeedRun * 10000 / 70;
 
 	return fRunSpeed;
 }
@@ -1739,9 +1753,14 @@ void ClearSearchSpawn(MQSpawnSearch* pSearchSpawn)
 // ***************************************************************************
 float DistanceToPoint(SPAWNINFO* pSpawn, float xLoc, float yLoc)
 {
-	float X = pSpawn->X - xLoc;
-	float Y = pSpawn->Y - yLoc;
-	return sqrtf(X * X + Y * Y);
+	if (pSpawn != nullptr)
+	{
+		float X = pSpawn->X - xLoc;
+		float Y = pSpawn->Y - yLoc;
+		return sqrtf(X * X + Y * Y);
+	}
+
+	return 0;
 }
 
 // ***************************************************************************
@@ -1750,10 +1769,15 @@ float DistanceToPoint(SPAWNINFO* pSpawn, float xLoc, float yLoc)
 // ***************************************************************************
 float Distance3DToPoint(SPAWNINFO* pSpawn, float xLoc, float yLoc, float zLoc)
 {
-	float dX = pSpawn->X - xLoc;
-	float dY = pSpawn->Y - yLoc;
-	float dZ = pSpawn->Z - zLoc;
-	return sqrtf(dX * dX + dY * dY + dZ * dZ);
+	if (pSpawn != nullptr)
+	{
+		float dX = pSpawn->X - xLoc;
+		float dY = pSpawn->Y - yLoc;
+		float dZ = pSpawn->Z - zLoc;
+		return sqrtf(dX * dX + dY * dY + dZ * dZ);
+	}
+
+	return 0;
 }
 
 void DisplayOverlayText(const char* szText, int dwColor, uint32_t dwTransparency, uint32_t msFadeIn, uint32_t msFadeOut, uint32_t msHold)
@@ -2743,6 +2767,9 @@ bool IsPCNear(SPAWNINFO* pSpawn, float Radius)
 
 bool IsInGroup(SPAWNINFO* pSpawn, bool bCorpse)
 {
+	if (pSpawn == nullptr)
+		return false;
+
 	CHARINFO* pChar = GetCharInfo();
 	if (!pChar->pGroupInfo)
 		return false;
@@ -2781,6 +2808,8 @@ bool IsInGroup(SPAWNINFO* pSpawn, bool bCorpse)
 
 bool IsInRaid(SPAWNINFO* pSpawn, bool bCorpse)
 {
+	if (pSpawn == nullptr)
+		return false;
 
 	if (pSpawn == GetCharInfo()->pSpawn)
 		return true;
@@ -2817,6 +2846,9 @@ bool IsInRaid(SPAWNINFO* pSpawn, bool bCorpse)
 
 bool IsInFellowship(SPAWNINFO* pSpawn, bool bCorpse)
 {
+	if (pSpawn == nullptr)
+		return false;
+
 	if (CHARINFO* pChar = GetCharInfo())
 	{
 		if (!pChar->pSpawn)
@@ -3353,19 +3385,25 @@ bool SearchSpawnMatchesSearchSpawn(MQSpawnSearch* pSearchSpawn1, MQSpawnSearch* 
 
 bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO* pSpawn)
 {
+	if (pSearchSpawn == nullptr || pChar == nullptr || pSpawn == nullptr)
+		return false;
+
 	eSpawnType SpawnType = GetSpawnType(pSpawn);
 
 	if (SpawnType == PET && (pSearchSpawn->SpawnType == PCPET || pSearchSpawn->SpawnType == NPCPET))
 	{
 		if (SPAWNINFO* pTheMaster = (SPAWNINFO*)GetSpawnByID(pSpawn->MasterID))
 		{
-			if (pTheMaster->Type == SPAWN_NPC)
+			if (pTheMaster != nullptr)
 			{
-				SpawnType = NPCPET;
-			}
-			else if (pTheMaster->Type == SPAWN_PLAYER)
-			{
-				SpawnType = PCPET;
+				if (pTheMaster->Type == SPAWN_NPC)
+				{
+					SpawnType = NPCPET;
+				}
+				else if (pTheMaster->Type == SPAWN_PLAYER)
+				{
+					SpawnType = PCPET;
+				}
 			}
 		}
 	}
@@ -4080,7 +4118,8 @@ bool GetClosestAlert(SPAWNINFO* pChar, uint32_t id)
 
 bool IsAlert(SPAWNINFO* pChar, SPAWNINFO* pSpawn, uint32_t id)
 {
-	char szName[MAX_STRING] = { 0 };
+	if (pSpawn == nullptr)
+		return false;
 
 	MQSpawnSearch SearchSpawn;
 
@@ -4240,6 +4279,9 @@ char* CleanupName(char* szName, size_t BufferSize, bool Article, bool ForWhoList
 // ***************************************************************************
 void SuperWhoDisplay(SPAWNINFO* pSpawn, DWORD Color)
 {
+	if (pSpawn == nullptr)
+		return;
+
 	char szName[MAX_STRING] = { 0 };
 	char szMsg[MAX_STRING] = { 0 };
 	char szMsgL[MAX_STRING] = { 0 };
@@ -7788,22 +7830,25 @@ int GetCharMaxBuffSlots()
 
 int GetBodyType(SPAWNINFO* pSpawn)
 {
-	for (int i = 0; i < 104; i++)
+	if (pSpawn != nullptr)
 	{
-		PlayerClient* pc = (PlayerClient*)pSpawn;
-
-		if (pc->HasProperty(i, 0, 0))
+		for (int i = 0; i < 104; i++)
 		{
-			if (i == 100)
+			PlayerClient* pc = (PlayerClient*)pSpawn;
+
+			if (pc != nullptr && pc->HasProperty(i, 0, 0))
 			{
-				if (pc->HasProperty(i, 101, 0))
-					return 101;
-				if (pc->HasProperty(i, 102, 0))
-					return 102;
-				if (pc->HasProperty(i, 103, 0))
-					return 103;
+				if (i == 100)
+				{
+					if (pc->HasProperty(i, 101, 0))
+						return 101;
+					if (pc->HasProperty(i, 102, 0))
+						return 102;
+					if (pc->HasProperty(i, 103, 0))
+						return 103;
+				}
+				return i;
 			}
-			return i;
 		}
 	}
 
@@ -7812,6 +7857,9 @@ int GetBodyType(SPAWNINFO* pSpawn)
 
 eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 {
+	if (pSpawn == nullptr)
+		return NONE;
+
 	switch (pSpawn->Type)
 	{
 	case SPAWN_PLAYER:
@@ -7936,10 +7984,13 @@ int GetRaidMemberIndex(const char* SpawnName)
 
 bool IsRaidMember(SPAWNINFO* pSpawn)
 {
-	for (int index = 0; index < MAX_RAID_SIZE; index++)
+	if (pSpawn != nullptr && pRaid != nullptr)
 	{
-		if (pRaid->RaidMemberUsed[index] && !_stricmp(pSpawn->Name, pRaid->RaidMember[index].Name))
-			return true;
+		for (int index = 0; index < MAX_RAID_SIZE; index++)
+		{
+			if (pRaid->RaidMemberUsed[index] && !_stricmp(pSpawn->Name, pRaid->RaidMember[index].Name))
+				return true;
+		}
 	}
 
 	return false;
@@ -7947,10 +7998,13 @@ bool IsRaidMember(SPAWNINFO* pSpawn)
 
 int GetRaidMemberIndex(SPAWNINFO* pSpawn)
 {
-	for (int index = 0; index < MAX_RAID_SIZE; index++)
+	if (pSpawn != nullptr && pRaid != nullptr)
 	{
-		if (pRaid->RaidMemberUsed[index] && !_stricmp(pSpawn->Name, pRaid->RaidMember[index].Name))
-			return index;
+		for (int index = 0; index < MAX_RAID_SIZE; index++)
+		{
+			if (pRaid->RaidMemberUsed[index] && !_stricmp(pSpawn->Name, pRaid->RaidMember[index].Name))
+				return index;
+		}
 	}
 
 	return -1;
