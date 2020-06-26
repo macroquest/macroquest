@@ -166,6 +166,7 @@ public:
 				transit<ConnectConfirm>();
 				break;
 			case LoginState::ServerSelect:
+				m_retries = 0;
 				transit<ServerSelect>();
 				break;
 			case LoginState::ServerSelectConfirm:
@@ -315,6 +316,11 @@ public:
 				if (CXWnd* pButton = GetChildWindow(m_currentWindow, "YESNO_YesButton"))
 					pButton->WndNotification(pWnd, XWM_LCLICK);
 			}
+			else if (m_settings.ConnectRetries > 0 && m_retries > m_settings.ConnectRetries)
+			{
+				AutoLoginDebug(fmt::format("Retried {} times, stopping.", m_retries - 1));
+				dispatch(StopLogin());
+			}
 			else
 			{
 				// potential error messages, just click through if we find an ok button
@@ -332,6 +338,8 @@ public:
 
 				if (CXWnd* pButton = GetChildWindow(m_currentWindow, "OK_OKButton"))
 					pButton->WndNotification(pButton, XWM_LCLICK);
+
+				++m_retries;
 
 			}
 		}
@@ -644,6 +652,7 @@ CXWnd* Login::m_currentWindow = nullptr;
 bool Login::m_paused = false;
 uint64_t Login::m_delayTime = 0;
 LoginState Login::m_lastState = LoginState::InGame;
+unsigned char Login::m_retries = 0;
 struct Login::Settings Login::m_settings;
 
 FSM_INITIAL_STATE(Login, Wait)

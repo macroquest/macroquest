@@ -166,6 +166,7 @@ protected:
 	static bool m_paused;
 	static uint64_t m_delayTime;
 	static LoginState m_lastState;
+	static unsigned char m_retries;
 
 public:
 	// This must be defined in the implementation where the state classes are defined
@@ -191,6 +192,7 @@ public:
 		if (m_paused && ev.ShowMessage)
 			WriteChatf("\agHOME key pressed. AutoLogin Re-Enabled.");
 		m_paused = false;
+		m_retries = 0;
 	}
 
 	virtual void react(const PauseLogin& ev)
@@ -218,12 +220,14 @@ public:
 	static const bool paused() { return m_paused; }
 	static const uint64_t delay_time() { return m_delayTime; }
 	static const LoginState last_state() { return m_lastState; }
+	static const unsigned char retries() { return m_retries; }
 	static std::vector<ProfileGroup>& profiles() { return m_profiles; }
 
 	struct Settings
 	{
 		bool KickActiveCharacter;
 		bool EndAfterSelect;
+		unsigned char ConnectRetries;
 
 		enum class ServerUpNotification {
 			None = 0,

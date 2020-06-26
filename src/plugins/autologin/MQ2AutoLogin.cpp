@@ -392,6 +392,7 @@ void ReadINI()
 	Login::m_settings.NotifyOnServerUp = static_cast<Login::Settings::ServerUpNotification>(GetPrivateProfileInt("Settings", "NotifyOnServerUp", 0, INIFileName));
 	Login::m_settings.KickActiveCharacter = GetPrivateProfileBool("Settings", "KickActiveCharacter", true, INIFileName);
 	Login::m_settings.EndAfterSelect = GetPrivateProfileBool("Settings", "EndAfterCharSelect", false, INIFileName);
+	Login::m_settings.ConnectRetries = GetPrivateProfileInt("Settings", "ConnectRetries", 0, INIFileName);
 
 	bool bUseMQ2Login = GetPrivateProfileBool("Settings", "UseMQ2Login", false, INIFileName);
 	bool bUseStationNamesInsteadOfSessions = GetPrivateProfileBool("Settings", "UseStationNamesInsteadOfSessions", false, INIFileName);
@@ -547,6 +548,12 @@ static bool RadioButton(const char* label, T* v, T v_button)
 	return pressed;
 }
 
+static bool InputUChar(const char* label, unsigned char* v, int step = 1, int step_fast = 10, ImGuiInputTextFlags flags = 0)
+{
+    return ImGui::InputScalar(label, ImGuiDataType_U8, (void*)v, (void*)(step>0 ? &step : NULL), (void*)(step_fast>0 ? &step_fast : NULL), "%d", flags);
+}
+
+
 static void ShowAutoLoginOverlay(bool* p_open)
 {
 	const float DISTANCE = 10.0f;
@@ -578,6 +585,11 @@ static void ShowAutoLoginOverlay(bool* p_open)
 		if (ImGui::Checkbox("Auto Login Enabled", &bAutoLoginEnabled))
 		{
 			bAutoLoginEnabled ? Login::dispatch(UnpauseLogin()) : Login::dispatch(PauseLogin());
+		}
+
+		if (Login::m_settings.ConnectRetries > 0)
+		{
+			ImGui::Text("Retries: %d/%d", Login::retries(), Login::m_settings.ConnectRetries);
 		}
 
 		ImGui::Separator();
@@ -650,6 +662,7 @@ static void ShowAutoLoginOverlay(bool* p_open)
 		{
 			ImGui::Checkbox("Kick Active Character", &Login::m_settings.KickActiveCharacter);
 			ImGui::Checkbox("End After Select", &Login::m_settings.EndAfterSelect);
+			InputUChar("Connect Retries", &Login::m_settings.ConnectRetries);
 
 			ImGui::Separator();
 			ImGui::Text("Server Up Notification:");
