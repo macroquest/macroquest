@@ -42,12 +42,19 @@ static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 
 	if (Login::is_in_state<Connect>() || Login::is_in_state<ConnectConfirm>())
 	{
+		// initialize input to empty, we will try to populate it from the command line first
+		std::string input;
+
 		// we expect this to be populated because we feed eqgame.exe with a `/login:` parameter
 		// the reason to do it this way is because the autopopulation of the login field is limited to 31 characters by eqgame
 		std::string cmdline(::GetCommandLineA());
-		auto startpos = cmdline.find("/login:") + 7;
-		auto endpos = cmdline.find_first_of(' ', startpos);
-		auto input = cmdline.substr(startpos, endpos);
+
+		// find the login argument if it exists, otherwise input will remain empty
+		auto startpos = cmdline.find("/login:");
+		if (startpos != std::string::npos)
+		{
+			input = cmdline.substr(startpos + 7, cmdline.find_first_of(' ', startpos + 7));
+		}
 
 		// fallback method, the only case where we would hit this is if we manually entered the login string after eqgame started.
 		if (input.empty() && pEditWnd && !pEditWnd->InputText.empty())
