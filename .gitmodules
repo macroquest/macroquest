@@ -6,4 +6,4 @@
     url = https://gitlab.com/macroquest/next/eqlib.git
 [submodule "contrib/vcpkg"]
 	path = contrib/vcpkg
-	url = https://github.com/microsoft/vcpkg.git
+	url = https://gitlab.com/macroquest/next/vcpkg.git
