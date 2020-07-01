@@ -734,7 +734,7 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	args::Command custom(commands, "custom", "anonymize with custom string",
 		[](args::Subparser& parser)
 		{
-			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::Group arguments(parser, "", args::Group::Validators::AllChildGroups);
 			args::Positional<std::string> name(arguments, "name", "the name to anonymize");
 			args::PositionalList<std::string> replacers(arguments, "replacers", "the text to anonymize with");
 			MQ2HelpArgument h(arguments);
