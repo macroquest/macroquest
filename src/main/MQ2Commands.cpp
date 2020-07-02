@@ -3338,6 +3338,7 @@ void IniOutput(SPAWNINFO* pChar, char* szLine)
 	                                iniFile.string().c_str()))
 	{
 		DebugSpew("IniOutput ERROR -- during WritePrivateProfileString: %s", szLine);
+		WriteChatf("Failed to write to INI: %s", iniFile.string().c_str());
 	}
 	else
 	{
