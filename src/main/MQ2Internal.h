@@ -935,20 +935,68 @@ using DATAVAR [[deprecated("Use MQDataVar instead")]] = MQDataVar;
 
 struct MQRank
 {
-	MQVarPtr VarPtr;
-	MQVarPtr Value;
+	MQRank(SPAWNINFO* pSpawn, float distanceSquared)
+		: VarPtr(pSpawn)
+		, Value(distanceSquared)
+	{}
+
+	struct MQRankSpawnPtr
+	{
+		MQRankSpawnPtr(SPAWNINFO* pSpawn) : Ptr(pSpawn) {}
+
+		SPAWNINFO* Ptr = nullptr;
+	};
+	MQRankSpawnPtr VarPtr;
+
+	struct MQRankValue
+	{
+		MQRankValue(float value) : DistSq(value) {}
+
+		float DistSq = 0.0f;
+
+		float get_Distance() const
+		{
+			if (floatValue != 0.0f)
+				return floatValue;
+
+			if (DistSq == 0.0f)
+				return 0.0;
+			floatValue = sqrt(DistSq);
+			return floatValue;
+		}
+		__declspec(property(get = get_Distance)) float Float;
+
+	private:
+		mutable float floatValue = 0.0f; // holds the actual distance, is zero until accessed.
+	};
+	MQRankValue Value;
 };
-using MQRANK [[deprecated("Use MQRank instead")]] = MQRank;
+using MQRANK DEPRECATE("Use MQRank instead") = MQRank;
 
 static bool pMQRankFloatCompare(const MQRank* A, const MQRank* B)
 {
-	return A->Value.Float < B->Value.Float;
+	return A->Value.DistSq < B->Value.DistSq;
 }
 
 static bool MQRankFloatCompare(const MQRank& A, const MQRank& B)
 {
-	return A.Value.Float < B.Value.Float;
+	return A.Value.DistSq < B.Value.DistSq;
 }
+
+// This replaces MQRank. We keep the MQRank part of this for backwards
+// compatability until the deprecated parts are removed.
+struct MQSpawnArrayItem : public MQRank
+{
+	MQSpawnArrayItem(SPAWNINFO* pSpawn, float DistanceSquared)
+		: MQRank(pSpawn, DistanceSquared)
+	{
+	}
+
+	float GetDistanceSquared() const { return Value.DistSq; }
+	float GetDistance() const { return Value.get_Distance(); }
+
+	SPAWNINFO* GetSpawn() const { return VarPtr.Ptr; }
+};
 
 struct MQLoop
 {

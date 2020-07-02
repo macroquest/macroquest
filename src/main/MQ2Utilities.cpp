@@ -3152,28 +3152,27 @@ char* FormatSearchSpawn(char* Buffer, size_t BufferSize, MQSpawnSearch* pSearchS
 
 SPAWNINFO* NthNearestSpawn(MQSpawnSearch* pSearchSpawn, int Nth, SPAWNINFO* pOrigin, bool IncludeOrigin)
 {
-	if (!pSearchSpawn || !Nth || !pOrigin)
+	if (!pSearchSpawn || Nth == 0 || !pOrigin)
 		return nullptr;
 
-	std::vector<std::unique_ptr<MQRank>> spawnSet;
-	SPAWNINFO* pSpawn = (SPAWNINFO*)pSpawnList;
+	std::vector<MQSpawnArrayItem> spawnSet;
+	spawnSet.reserve(gSpawnsArray.size());
 
-	while (pSpawn)
+	for (const MQSpawnArrayItem& item : gSpawnsArray)
 	{
-		if (IncludeOrigin || pSpawn != pOrigin)
+		SPAWNINFO* pSpawn = item.GetSpawn();
+
+		if (!IncludeOrigin && pSpawn == pOrigin)
+			continue;
+
+		if (SpawnMatchesSearch(pSearchSpawn, pOrigin, pSpawn))
 		{
-			if (SpawnMatchesSearch(pSearchSpawn, pOrigin, pSpawn))
-			{
-				// matches search, add to our set
-				auto pNewRank = std::make_unique<MQRank>();
-				pNewRank->VarPtr.Ptr = pSpawn;
-				pNewRank->Value.Float = GetDistance3D(pOrigin->X, pOrigin->Y, pOrigin->Z, pSpawn->X, pSpawn->Y, pSpawn->Z);
+			float distSq = Get3DDistanceSquared(pOrigin->X, pOrigin->Y, pOrigin->Z,
+				pSpawn->X, pSpawn->Y, pSpawn->Z);
 
-				spawnSet.push_back(std::move(pNewRank));
-			}
+			// Spawn matches our search, add it to our set.
+			spawnSet.emplace_back(pSpawn, distSq);
 		}
-
-		pSpawn = pSpawn->pNext;
 	}
 
 	if (Nth > static_cast<int>(spawnSet.size()))
@@ -3182,11 +3181,10 @@ SPAWNINFO* NthNearestSpawn(MQSpawnSearch* pSearchSpawn, int Nth, SPAWNINFO* pOri
 	}
 
 	// sort our list
-	std::sort(std::begin(spawnSet), std::end(spawnSet),
-		[](const auto& a, const auto& b) { return a->Value.Float < b->Value.Float; });
+	std::sort(std::begin(spawnSet), std::end(spawnSet), MQRankFloatCompare);
 
 	// get our Nth nearest
-	return (SPAWNINFO*)spawnSet[Nth - 1]->VarPtr.Ptr;
+	return spawnSet[Nth - 1].GetSpawn();
 }
 
 int CountMatchingSpawns(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pOrigin, bool IncludeOrigin)
@@ -3231,31 +3229,37 @@ SPAWNINFO* SearchThroughSpawns(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar)
 	{
 		pFromSpawn = (SPAWNINFO*)GetSpawnByID(pSearchSpawn->FromSpawnID);
 		if (!pFromSpawn) return nullptr;
-		for (int index = 0; index < 3000; index++)
+		for (int index = 0; index < (int)gSpawnsArray.size(); index++)
 		{
-			if (EQP_DistArray[index].VarPtr.Ptr == pFromSpawn)
+			const MQSpawnArrayItem& item = gSpawnsArray[index];
+
+			if (item.GetSpawn() == pFromSpawn)
 			{
 				if (pSearchSpawn->bTargPrev)
 				{
 					index--;
 					for (; index >= 0; index--)
 					{
-						if (EQP_DistArray[index].VarPtr.Ptr
-							&& SpawnMatchesSearch(pSearchSpawn, pFromSpawn, (SPAWNINFO*)EQP_DistArray[index].VarPtr.Ptr))
+						SPAWNINFO* pPrevSpawn = gSpawnsArray[index].GetSpawn();
+
+						if (pPrevSpawn
+							&& SpawnMatchesSearch(pSearchSpawn, pFromSpawn, pPrevSpawn))
 						{
-							return (SPAWNINFO*)EQP_DistArray[index].VarPtr.Ptr;
+							return pPrevSpawn;
 						}
 					}
 				}
 				else
 				{
 					index++;
-					for (; index < 3000; index++)
+					for (; index < (int)gSpawnsArray.size(); index++)
 					{
-						if (EQP_DistArray[index].VarPtr.Ptr
-							&& SpawnMatchesSearch(pSearchSpawn, pFromSpawn, (SPAWNINFO*)EQP_DistArray[index].VarPtr.Ptr))
+						SPAWNINFO* pNextSpawn = gSpawnsArray[index].GetSpawn();
+
+						if (pNextSpawn
+							&& SpawnMatchesSearch(pSearchSpawn, pFromSpawn, pNextSpawn))
 						{
-							return (SPAWNINFO*)EQP_DistArray[index].VarPtr.Ptr;
+							return pNextSpawn;
 						}
 					}
 				}

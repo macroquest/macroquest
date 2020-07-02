@@ -1829,7 +1829,7 @@ bool MQ2SpawnType::dataSpawnCount(const char* szIndex, MQTypeVar& Ret)
 		MQSpawnSearch ssSpawn;
 		ClearSearchSpawn(&ssSpawn);
 		ParseSearchSpawn(szIndex, &ssSpawn);
-		Ret.DWord = CountMatchingSpawns(&ssSpawn, GetCharInfo()->pSpawn, TRUE);
+		Ret.DWord = CountMatchingSpawns(&ssSpawn, GetCharInfo()->pSpawn, true);
 		Ret.Type = pIntType;
 		return true;
 	}
@@ -1884,13 +1884,15 @@ bool MQ2SpawnType::dataLastSpawn(const char* szIndex, MQTypeVar& Ret)
 	return false;
 }
 
+constexpr float MAX_SEARCH_RADIUS = 999999.0f;
+
 bool MQ2SpawnType::dataNearestSpawn(const char* szIndex, MQTypeVar& Ret)
 {
 	if (szIndex[0])
 	{
 		MQSpawnSearch ssSpawn;
 		ClearSearchSpawn(&ssSpawn);
-		ssSpawn.FRadius = 999999.0f;
+		ssSpawn.FRadius = MAX_SEARCH_RADIUS;
 
 		int nth = 0;
 
@@ -1919,16 +1921,26 @@ bool MQ2SpawnType::dataNearestSpawn(const char* szIndex, MQTypeVar& Ret)
 			}
 		}
 
-		for (int index = 0; index < gSpawnCount; index++)
+		float FRadiusSq = 0.0f;
+		bool checkDistance = ssSpawn.FRadius != MAX_SEARCH_RADIUS;
+		if (checkDistance)
 		{
-			if (EQP_DistArray[index].Value.Float > ssSpawn.FRadius && !ssSpawn.bKnownLocation)
-				return false;
+			FRadiusSq = ssSpawn.FRadius * ssSpawn.FRadius;
+		}
 
-			if (SpawnMatchesSearch(&ssSpawn, (SPAWNINFO*)pCharSpawn, (SPAWNINFO*)EQP_DistArray[index].VarPtr.Ptr))
+		for (const MQSpawnArrayItem& spawnItem : gSpawnsArray)
+		{
+			if (checkDistance && spawnItem.GetDistanceSquared() > FRadiusSq)
+			{
+				if (!ssSpawn.bKnownLocation)
+					return false;
+			}
+
+			if (SpawnMatchesSearch(&ssSpawn, (SPAWNINFO*)pCharSpawn, spawnItem.GetSpawn()))
 			{
 				if (--nth == 0)
 				{
-					Ret.Ptr = EQP_DistArray[index].VarPtr.Ptr;
+					Ret.Ptr = spawnItem.GetSpawn();
 					Ret.Type = pSpawnType;
 					return true;
 				}

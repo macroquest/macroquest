@@ -30,6 +30,10 @@ static MQModule gSpawnsModule = {
 };
 MQModule* GetSpawnsModule() { return &gSpawnsModule; }
 
+// Global spawn array, sorted by distance.
+std::vector<MQSpawnArrayItem> gSpawnsArray;
+
+
 #pragma region Caption Colors
 //----------------------------------------------------------------------------
 // caption color code
@@ -602,11 +606,10 @@ static void UpdateSpawnCaptions()
 		return;
 
 	int count = 0;
-	for (int i = 0; i < gSpawnCount; ++i)
+	for (const MQSpawnArrayItem& item : gSpawnsArray)
 	{
-		auto& d = EQP_DistArray[i];
+		SPAWNINFO* pSpawn = item.GetSpawn();
 
-		auto pSpawn = static_cast<SPAWNINFO*>(d.VarPtr.Ptr);
 		if (!pSpawn || pSpawn == pTarget)
 			continue;
 
@@ -797,53 +800,36 @@ static void ProcessPendingGroundItems()
 
 #pragma endregion
 
-static void UpdateMQ2SpawnSort()
+void UpdateMQ2SpawnSort()
 {
 	EnterMQ2Benchmark(bmUpdateSpawnSort);
-	ZeroMemory(EQP_DistArray, sizeof(EQP_DistArray));
+
+	EQP_DistArray = nullptr;
 	gSpawnCount = 0;
+	gSpawnsArray.clear();
+
+	float myX = 0, myY = 0;
+	if (pCharSpawn)
+	{
+		myX = pCharSpawn->X;
+		myY = pCharSpawn->Y;
+	}
 
 	SPAWNINFO* pSpawn = pSpawnList;
 	while (pSpawn)
 	{
-		EQP_DistArray[gSpawnCount].VarPtr.Ptr = pSpawn;
-		EQP_DistArray[gSpawnCount].Value.Float = GetDistance(pSpawn->X, pSpawn->Y);
-		gSpawnCount++;
+		float distSq = GetDistanceSquared(myX, myY, pSpawn->X, pSpawn->Y);
+
+		gSpawnsArray.emplace_back(pSpawn, distSq);
 		pSpawn = pSpawn->pNext;
 	}
 
-	std::sort(EQP_DistArray, EQP_DistArray + gSpawnCount, MQRankFloatCompare);
+	std::sort(std::begin(gSpawnsArray), std::end(gSpawnsArray), MQRankFloatCompare);
+
+	gSpawnCount = gSpawnsArray.size();
+	EQP_DistArray = gSpawnCount > 0 ? &gSpawnsArray[0] : nullptr;
+
 	ExitMQ2Benchmark(bmUpdateSpawnSort);
-
-	static unsigned long nCaptions = 100;
-	static unsigned long LastTarget = 0;
-	++nCaptions;
-
-	if (LastTarget)
-	{
-		if (auto pSpawnTarget = reinterpret_cast<SPAWNINFO*>(GetSpawnByID(LastTarget)))
-		{
-			if (pSpawnTarget != pTarget)
-			{
-				SetNameSpriteState(pSpawnTarget, false);
-			}
-		}
-
-		LastTarget = 0;
-	}
-
-	if (nCaptions > CAPTION_UPDATE_FRAMES)
-	{
-		nCaptions = 0;
-		Benchmark(bmUpdateSpawnCaptions, UpdateSpawnCaptions());
-	}
-
-	if (pTarget)
-	{
-		LastTarget = pTarget->SpawnID;
-		pTarget.get_as<EQPlayerHook>()->SetNameSpriteTint_Trampoline();
-		SetNameSpriteState(pTarget, true);
-	}
 }
 
 bool IsTargetable(SPAWNINFO* pSpawn)
@@ -875,8 +861,10 @@ static void Spawns_Initialize()
 	LoadCaptionSettings();
 
 	ProcessPending = true;
-	ZeroMemory(&EQP_DistArray, sizeof(EQP_DistArray));
+
+	EQP_DistArray = nullptr;
 	gSpawnCount = 0;
+	gSpawnsArray.reserve(4096);
 
 	char Temp[MAX_STRING] = { 0 };
 	char Name[MAX_STRING] = { 0 };
@@ -953,8 +941,9 @@ static void Spawns_Shutdown()
 		}
 	}
 
-	ZeroMemory(EQP_DistArray, sizeof(EQP_DistArray));
+	EQP_DistArray = nullptr;
 	gSpawnCount = 0;
+	gSpawnsArray.clear();
 
 	RemoveMQ2Benchmark(bmUpdateSpawnSort);
 	RemoveMQ2Benchmark(bmUpdateSpawnCaptions);
@@ -965,7 +954,37 @@ static void Spawns_Pulse()
 	if (gGameState != GAMESTATE_INGAME)
 		return;
 
-	UpdateMQ2SpawnSort();
+	// update captions
+	static unsigned long nCaptions = 100;
+	static unsigned long LastTarget = 0;
+	++nCaptions;
+
+	if (LastTarget)
+	{
+		if (auto pSpawnTarget = reinterpret_cast<SPAWNINFO*>(GetSpawnByID(LastTarget)))
+		{
+			if (pSpawnTarget != pTarget)
+			{
+				SetNameSpriteState(pSpawnTarget, false);
+			}
+		}
+
+		LastTarget = 0;
+	}
+
+	if (nCaptions > CAPTION_UPDATE_FRAMES)
+	{
+		nCaptions = 0;
+		Benchmark(bmUpdateSpawnCaptions, UpdateSpawnCaptions());
+	}
+
+	if (pTarget)
+	{
+		LastTarget = pTarget->SpawnID;
+		pTarget.get_as<EQPlayerHook>()->SetNameSpriteTint_Trampoline();
+		SetNameSpriteState(pTarget, true);
+	}
+
 	ProcessPendingGroundItems();
 }
 

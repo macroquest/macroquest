@@ -301,7 +301,7 @@ decltype(ItemSlotMap) ItemSlotMap;
 char DataTypeTemp[MAX_STRING] = { 0 };
 
 std::map<std::string, SPAWNINFO*> SpawnByName;
-MQRank EQP_DistArray[3000];
+MQRank* EQP_DistArray = nullptr;
 int gSpawnCount = 0;
 
 // Motd and Pulse's mouse variables

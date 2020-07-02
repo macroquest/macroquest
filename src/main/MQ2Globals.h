@@ -308,8 +308,12 @@ MQLIB_VAR MQPlugin* pPlugins;
 
 MQLIB_VAR std::map<std::string, SPAWNINFO*> SpawnByName;
 
-MQLIB_VAR MQRank EQP_DistArray[3000];
+// Prefer using gSpawnArray over these for internal usage
+MQLIB_VAR MQRank* EQP_DistArray;
 MQLIB_VAR int gSpawnCount;
+
+// internal to mq2 only
+extern std::vector<MQSpawnArrayItem> gSpawnsArray;
 
 MQLIB_VAR size_t g_eqgameimagesize;
 

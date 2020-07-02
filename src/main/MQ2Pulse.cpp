@@ -32,6 +32,8 @@ std::map<int, std::map<int, TargetBuff>> CachedBuffsMap;
 
 extern NamedPipeClient gPipeClient;
 
+void UpdateMQ2SpawnSort();
+
 //----------------------------------------------------------------------------
 
 std::vector<std::function<void()>> s_queuedEvents;
@@ -536,6 +538,8 @@ static HeartbeatState Heartbeat()
 	}
 
 	gPipeClient.Process();
+
+	UpdateMQ2SpawnSort();
 
 	DebugTry(DrawHUD());
 	DebugTry(PulseMQ2Windows());
