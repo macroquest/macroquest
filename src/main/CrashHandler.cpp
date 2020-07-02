@@ -130,6 +130,11 @@ bool InitializeCrashpad()
 		database->GetSettings()->GetClientID(&uuid);
 		SPDLOG_INFO("Crash report guid: {}", uuid.ToString());
 	}
+	else
+	{
+		database->GetSettings()->SetUploadsEnabled(false);
+		SPDLOG_INFO("Crash report submission is: disabled");
+	}
 
 	gCrashpadClient = new crashpad::CrashpadClient();
 
