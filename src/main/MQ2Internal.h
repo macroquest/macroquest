@@ -356,9 +356,9 @@ using PFILTER [[deprecated("use MQFilter* instead")]] = MQFilter*;
 struct MQBenchmark
 {
 	std::string Name;
-	uint64_t Entry = 0;
-	uint64_t LastTime = 0;
-	uint64_t TotalTime = 0;
+	std::chrono::steady_clock::time_point Entry;
+	std::chrono::microseconds LastTime = std::chrono::microseconds::zero();
+	std::chrono::microseconds TotalTime = std::chrono::microseconds::zero();
 	uint64_t Count = 0;
 
 	MQBenchmark(const std::string& name) : Name(name) {}

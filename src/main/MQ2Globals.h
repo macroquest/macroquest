@@ -314,6 +314,7 @@ MQLIB_VAR int gSpawnCount;
 
 // internal to mq2 only
 extern std::vector<MQSpawnArrayItem> gSpawnsArray;
+extern std::vector<std::unique_ptr<MQBenchmark>> gBenchmarks;
 
 MQLIB_VAR size_t g_eqgameimagesize;
 

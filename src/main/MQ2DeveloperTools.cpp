@@ -28,6 +28,8 @@
 #include <spdlog/spdlog.h>
 #include <imgui_internal.h>
 
+using namespace std::chrono_literals;
+
 namespace mq {
 
 static void DeveloperTools_Initialize();
@@ -160,19 +162,22 @@ public:
 	bool IsOpen() const { return m_open && IsEnabled(); }
 	virtual bool IsEnabled() const { return true; }
 
-	void Show()
+	virtual void Show()
 	{
 		m_open = true;
 	}
 
-	void Close()
+	virtual void Close()
 	{
 		m_open = false;
 	}
 
 	void Toggle()
 	{
-		m_open = !m_open;
+		if (m_open)
+			Close();
+		else
+			Show();
 	}
 
 	ImGuiWindowBase* GetNext() { return m_next; }
@@ -2478,6 +2483,10 @@ public:
 };
 static ImGuiDemoWindow s_demoWindow;
 
+#pragma endregion
+
+#pragma region ImPlot Demo Container
+
 class ImPlotDemoWindow : public ImGuiWindowBase
 {
 public:
@@ -2834,6 +2843,218 @@ static SpellsDeveloperTool s_spellsTool;
 
 #pragma endregion
 
+#pragma region Benchmarks Developer Tool
+
+struct ScrollingData
+{
+	int MaxSize = 4096;
+	int Offset = 0;
+	ImVector<ImVec2> Data;
+	std::string Name;
+	bool Updated = false;
+
+	ScrollingData()
+	{
+		Data.reserve(MaxSize);
+	}
+
+	void AddPoint(float x, float y)
+	{
+		if (Data.size() < MaxSize)
+			Data.push_back(ImVec2(x, y));
+		else
+		{
+			Data[Offset] = ImVec2(x, y);
+			Offset = (Offset + 1) % MaxSize;
+		}
+	}
+	void Erase()
+	{
+		if (!Data.empty())
+		{
+			Data.shrink(0);
+			Offset = 0;
+		}
+	}
+};
+
+class BenchmarksDeveloperTool : public ImGuiWindowBase
+{
+public:
+	BenchmarksDeveloperTool() : ImGuiWindowBase("Benchmarks")
+	{
+	}
+
+	void ResetLastTimes()
+	{
+		// Reset last times
+		for (auto& bm : gBenchmarks)
+		{
+			if (bm != nullptr)
+				bm->LastTime = std::chrono::microseconds::zero();
+		}
+	}
+
+	virtual void Show() override
+	{
+		m_resetNext = true;
+		ImGuiWindowBase::Show();
+	}
+
+	virtual void Draw() override
+	{
+		if (m_resetNext)
+		{
+			ResetLastTimes();
+			m_resetNext = false;
+		}
+		//ImGui::SetNextTreeNodeOpen(true, ImGuiCond_Once);
+		//if (ImGui::CollapsingHeader("Benchmark Plot"))
+		{
+			DrawPlot();
+		}
+
+		//if (ImGui::CollapsingHeader("Benchmark Table"))
+		//{
+		//	DrawTable();
+		//}
+
+		ResetLastTimes();
+	}
+
+	void DrawPlot()
+	{
+		ImGui::SliderFloat("History", &m_history, 10.0f, 120.0f, "%.1f s");
+
+		ImGui::SameLine();
+		if (ImGui::Button("Clear"))
+		{
+			m_data.clear();
+			m_fpsData.Erase();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button(m_paused ? "Resume" : "Pause"))
+			m_paused = !m_paused;
+
+		if (!m_paused)
+		{
+			m_time += ImGui::GetIO().DeltaTime;
+
+			// mark everything fresh
+			for (const auto& p : m_data)
+				p.second->Updated = false;
+
+			for (const auto& bm : gBenchmarks)
+			{
+				if (bm == nullptr)
+					continue;
+
+				ScrollingData* data = nullptr;
+
+				auto iter = m_data.find(bm->Name);
+				if (iter == m_data.end())
+				{
+					auto pData = std::make_unique<ScrollingData>();
+					pData->Name = bm->Name;
+					data = pData.get();
+
+					m_data.emplace(bm->Name, std::move(pData));
+				}
+				else
+				{
+					data = iter->second.get();
+				}
+
+				data->AddPoint(m_time, static_cast<float>(bm->LastTime.count()) / 1000.f);
+				data->Updated = true;
+			}
+
+			// erase everything not updated
+			for (auto iter = m_data.begin(); iter != m_data.end();)
+			{
+				if (iter->second->Updated)
+					++iter;
+				else
+					iter = m_data.erase(iter);
+			}
+			auto now = std::chrono::steady_clock::now();
+			if (now - m_lastUpdate > 200ms)
+			{
+				m_fpsData.AddPoint(m_time, ImGui::GetIO().Framerate);
+
+				m_lastUpdate = now;
+			}
+		}
+
+		ImPlot::SetNextPlotLimitsX(static_cast<double>(m_time) - m_history, m_time, ImGuiCond_Always);
+		ImPlot::SetNextPlotLimitsY(0, 20, ImGuiCond_Once, 0);
+		ImPlot::SetNextPlotLimitsY(0, 100, ImGuiCond_Always, 1);
+
+		static int rt_axis = ImPlotAxisFlags_Default;
+
+		if (ImPlot::BeginPlot("##Benchmarks", "Time", "Milliseconds", ImVec2(-1, -1), ImPlotFlags_Default | ImPlotFlags_YAxis2,
+			rt_axis, rt_axis | ImPlotAxisFlags_LockMin, ImPlotAxisFlags_LockMin | ImPlotAxisFlags_TickLabels))
+		{
+			ImPlot::SetPlotYAxis(0);
+
+			for (const auto& p : m_data)
+			{
+				auto& data = p.second;
+
+				ImPlot::PlotLine(data->Name.c_str(), &data->Data[0], data->Data.size(), data->Offset);
+			}
+
+			if (!m_fpsData.Data.empty())
+			{
+				ImPlot::SetPlotYAxis(1);
+				ImPlot::PushStyleColor(ImPlotCol_Line, IM_COL32(127, 255, 0, 255));
+				ImPlot::PushStyleVar(ImPlotStyleVar_LineWeight, 2);
+				ImPlot::PlotLine("Frame Rate", &m_fpsData.Data[0], m_fpsData.Data.size(), m_fpsData.Offset);
+				ImPlot::PopStyleVar();
+				ImPlot::PopStyleColor();
+			}
+			ImPlot::EndPlot();
+		}
+	}
+
+	void DrawTable()
+	{
+		if (ImGui::BeginTable("##BenchmarksTable", 4))
+		{
+			ImGui::TableSetupColumn("Name");
+			ImGui::TableSetupColumn("Count");
+			ImGui::TableSetupColumn("Total");
+			ImGui::TableSetupColumn("Last");
+			ImGui::TableAutoHeaders();
+
+			for (const auto& bm : gBenchmarks)
+			{
+				ImGui::TableNextRow();
+
+				ImGui::Text(bm->Name.c_str()); ImGui::TableNextCell();
+				ImGui::Text("%d", bm->Count); ImGui::TableNextCell();
+				ImGui::Text("%.3f ms", static_cast<float>(bm->TotalTime.count() / 1000.f)); ImGui::TableNextCell();
+				ImGui::Text("%.3f ms", static_cast<float>(bm->LastTime.count() / 1000.f));
+			}
+
+			ImGui::EndTable();
+		}
+	}
+
+private:
+	std::map<std::string, std::unique_ptr<ScrollingData>> m_data;
+	float m_history = 30.0f; // 30 seconds
+	float m_time = 0.0f;
+	std::chrono::steady_clock::time_point m_lastUpdate;
+	bool m_paused = false;
+	bool m_resetNext = true;
+
+	ScrollingData m_fpsData;
+};
+static BenchmarksDeveloperTool s_benchmarksTool;
+
+#pragma endregion
+
 //============================================================================
 //============================================================================
 
@@ -2871,6 +3092,9 @@ void DeveloperTools_CloseLoginFrontend()
 
 void DeveloperTools_DrawMenu()
 {
+	if (ImGui::MenuItem("Benchmarks", nullptr, s_benchmarksTool.IsOpen()))
+		s_benchmarksTool.Toggle();
+
 	if (ImGui::MenuItem("Window Inspector", nullptr, s_windowDebugPanel.IsOpen()))
 		s_windowDebugPanel.Toggle();
 
