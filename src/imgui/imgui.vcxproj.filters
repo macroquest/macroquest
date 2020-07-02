@@ -25,6 +25,12 @@
     <Filter Include="Source Files\fonts">
       <UniqueIdentifier>{968cc030-b5ff-4675-8dd5-aee80697ec4f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\implot">
+      <UniqueIdentifier>{7bf0fdf3-3693-4988-afdb-63819093b671}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\implot">
+      <UniqueIdentifier>{c1258b57-8581-49f2-a54e-58af8b5e511c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -69,6 +75,9 @@
     <ClInclude Include="fonts\IconsMaterialDesign.h">
       <Filter>Header Files\fonts</Filter>
     </ClInclude>
+    <ClInclude Include="implot\implot.h">
+      <Filter>Header Files\implot</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -106,6 +115,12 @@
     </ClCompile>
     <ClCompile Include="fonts\font_fontawesome_ttf.cpp">
       <Filter>Source Files\fonts</Filter>
+    </ClCompile>
+    <ClCompile Include="implot\implot_demo.cpp">
+      <Filter>Source Files\implot</Filter>
+    </ClCompile>
+    <ClCompile Include="implot\implot.cpp">
+      <Filter>Source Files\implot</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

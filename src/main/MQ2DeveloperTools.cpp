@@ -17,6 +17,7 @@
 
 #include "imgui/ImGuiUtils.h"
 #include "imgui/fonts/IconsFontAwesome.h"
+#include "imgui/implot/implot.h"
 
 #include <algorithm>
 #include <memory>
@@ -2477,6 +2478,22 @@ public:
 };
 static ImGuiDemoWindow s_demoWindow;
 
+class ImPlotDemoWindow : public ImGuiWindowBase
+{
+public:
+	ImPlotDemoWindow() : ImGuiWindowBase("ImPlotDemoWindow") {}
+
+	virtual void Update() override
+	{
+		if (m_open)
+		{
+			ImPlot::ShowDemoWindow(m_open.get_ptr());
+			m_open.Update();
+		}
+	}
+};
+static ImPlotDemoWindow s_imPlotDemoWindow;
+
 #pragma endregion
 
 #pragma region Spells Developer Tool
@@ -2864,6 +2881,8 @@ void DeveloperTools_DrawMenu()
 
 	if (ImGui::MenuItem("ImGui Demo", nullptr, s_demoWindow.IsOpen()))
 		s_demoWindow.Toggle();
+	if (ImGui::MenuItem("ImPlot Demo", nullptr, s_imPlotDemoWindow.IsOpen()))
+		s_imPlotDemoWindow.Toggle();
 }
 
 //============================================================================
