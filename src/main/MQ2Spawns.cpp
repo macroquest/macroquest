@@ -815,13 +815,17 @@ void UpdateMQ2SpawnSort()
 		myY = pCharSpawn->Y;
 	}
 
-	SPAWNINFO* pSpawn = pSpawnList;
-	while (pSpawn)
+	// we need to make sure the spawn manager is valid here because this can get called from login pulse before the spawn manager is valid
+	if (pSpawnManager)
 	{
-		float distSq = GetDistanceSquared(myX, myY, pSpawn->X, pSpawn->Y);
+		SPAWNINFO* pSpawn = pSpawnList;
+		while (pSpawn)
+		{
+			float distSq = GetDistanceSquared(myX, myY, pSpawn->X, pSpawn->Y);
 
-		gSpawnsArray.emplace_back(pSpawn, distSq);
-		pSpawn = pSpawn->pNext;
+			gSpawnsArray.emplace_back(pSpawn, distSq);
+			pSpawn = pSpawn->pNext;
+		}
 	}
 
 	std::sort(std::begin(gSpawnsArray), std::end(gSpawnsArray), MQRankFloatCompare);
