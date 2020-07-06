@@ -1708,6 +1708,15 @@ public:
 			return EndScene_Trampoline();
 		}
 
+		// Prevent re-entrancy. This was happening due to the mumble overlay.
+		static bool sbInEndSceneDetour = false;
+		if (sbInEndSceneDetour)
+		{
+			return EndScene_Trampoline();
+		}
+
+		sbInEndSceneDetour = true;
+
 		// Check if a full screen mode change occurred before this frame.
 		// If it did, we should not render, and instead re-initialize imgui.
 		if (test_and_set(gbLastFullScreenState, IsFullScreen(gpD3D9Device)))
@@ -1755,6 +1764,7 @@ public:
 		}
 
 		HRESULT result = EndScene_Trampoline();
+		sbInEndSceneDetour = false;
 
 		return result;
 	}
