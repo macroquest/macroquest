@@ -702,7 +702,7 @@ static void TellCheck(const char* szClean)
 
 	// only react to player tells
 	SPAWNINFO* pNpc = (SPAWNINFO*)GetSpawnByPartialName(name);
-	if (!pNpc)
+	if (!pNpc && pCharSpawn != nullptr)
 	{
 		// try to use spawn search to find it.
 		char szSearch[256] = { 0 };
