@@ -5568,7 +5568,9 @@ FUNCTION_AT_ADDRESS(void  EQPlayer::FeetEnvironmentChange(unsigned char),EQPlaye
 FUNCTION_AT_ADDRESS(void  EQPlayer::HeadEnvironmentChange(unsigned char),EQPlayer__HeadEnvironmentChange);
 #endif
 #ifdef PlayerZoneClient__LegalPlayerRace_x
-FUNCTION_AT_ADDRESS(int PlayerZoneClient::LegalPlayerRace(int),PlayerZoneClient__LegalPlayerRace);
+#if defined(TEST)
+FUNCTION_AT_ADDRESS(bool PlayerZoneClient::LegalPlayerRace(),PlayerZoneClient__LegalPlayerRace);
+#endif
 #endif
 #ifdef EQPlayer__DeleteMyMissiles_x
 FUNCTION_AT_ADDRESS(void  EQPlayer::DeleteMyMissiles(void),EQPlayer__DeleteMyMissiles);

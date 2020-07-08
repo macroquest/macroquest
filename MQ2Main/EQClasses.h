@@ -8993,10 +8993,9 @@ public:
 /*0x1174*/ CCapsule	StaticCollision;//size 0x1c
 /*0x1190*/ ArrayClass_RO<PhysicsEffect> mPhysicsEffects;//size is 0x10
 /*0x11a0*/ ArrayClass_RO<bool> PhysicsEffectsUpdated;//size is 0x10
-#if !defined(UFEMU)
-EQLIB_OBJECT int PlayerZoneClient::LegalPlayerRace(int race);
-#else
-//this function doesnt exist in the emu build, so well... im adding it i guess...
+//this function was changed in test exe dated july 7 2020 and I need it to take race as a parameter.
+//so here it is instead.
+EQLIB_OBJECT bool PlayerZoneClient::LegalPlayerRace();
 EQLIB_OBJECT int PlayerZoneClient::LegalPlayerRace(int race)
 {
 	if (race == -1)
@@ -9009,7 +9008,6 @@ EQLIB_OBJECT int PlayerZoneClient::LegalPlayerRace(int race)
 	}
 	return 0;
 }
-#endif
 
 };
 //this is what we call EQPlayer maybe i should just rename that one but too late now?
