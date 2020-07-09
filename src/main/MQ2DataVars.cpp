@@ -683,7 +683,7 @@ static void TellCheck(const char* szClean)
 		isTell = true;
 	}
 
-	if (!isTell)
+	if (!isTell || strlen(name) >= 64)
 		return;
 
 	// don't perform action if its us doing the tell
