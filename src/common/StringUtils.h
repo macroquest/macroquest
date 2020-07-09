@@ -92,6 +92,25 @@ inline std::string trim_copy(std::string s)
 	return s;
 }
 
+[[nodiscard]]
+inline std::string_view ltrim(std::string_view s)
+{
+	s.remove_prefix(std::min(s.find_first_not_of(" \t\n"), s.size()));
+	return s;
+}
+
+[[nodiscard]]
+inline std::string_view rtrim(std::string_view s)
+{
+	s.remove_suffix(std::min(s.size() - s.find_last_not_of(" \t\n") - 1, s.size()));
+	return s;
+}
+
+[[nodiscard]]
+inline std::string_view trim(std::string_view s)
+{
+	return rtrim(ltrim(s));
+}
 
 inline std::vector<std::string> split(const std::string& s, char delim)
 {
@@ -413,7 +432,8 @@ public:
  **/
 inline int GetIntFromString(const std::string_view svString, int iReturnOnFail)
 {
-	auto result = std::from_chars(svString.data(), svString.data() + svString.size(), iReturnOnFail);
+	auto trimmed = trim(svString);
+	auto result = std::from_chars(trimmed.data(), trimmed.data() + trimmed.size(), iReturnOnFail);
 	// Could error check here, but failures don't modify the value and we're not returning meaningful errors.
 	return iReturnOnFail;
 }
@@ -440,7 +460,8 @@ inline int GetIntFromString(const std::string_view svString, int iReturnOnFail)
  **/
 inline int64_t GetInt64FromString(const std::string_view svString, int64_t lReturnOnFail)
 {
-	auto result = std::from_chars(svString.data(), svString.data() + svString.size(), lReturnOnFail);
+	auto trimmed = trim(svString);
+	auto result = std::from_chars(trimmed.data(), trimmed.data() + trimmed.size(), lReturnOnFail);
 	// Could error check here, but failures don't modify the value and we're not returning meaningful errors.
 	return lReturnOnFail;
 }
@@ -467,7 +488,8 @@ inline int64_t GetInt64FromString(const std::string_view svString, int64_t lRetu
  **/
 inline float GetFloatFromString(const std::string_view svString, float fReturnOnFail)
 {
-	auto result = std::from_chars(svString.data(), svString.data() + svString.size(), fReturnOnFail);
+	auto trimmed = trim(svString);
+	auto result = std::from_chars(trimmed.data(), trimmed.data() + trimmed.size(), fReturnOnFail);
 	// Could error check here, but failures don't modify the value and we're not returning meaningful errors.
 	return fReturnOnFail;
 }
@@ -494,7 +516,8 @@ inline float GetFloatFromString(const std::string_view svString, float fReturnOn
  **/
 inline double GetDoubleFromString(const std::string_view svString, double dReturnOnFail)
 {
-	auto result = std::from_chars(svString.data(), svString.data() + svString.size(), dReturnOnFail);
+	auto trimmed = trim(svString);
+	auto result = std::from_chars(trimmed.data(), trimmed.data() + trimmed.size(), dReturnOnFail);
 	// Could error check here, but failures don't modify the value and we're not returning meaningful errors.
 	return dReturnOnFail;
 }
@@ -519,22 +542,23 @@ inline double GetDoubleFromString(const std::string_view svString, double dRetur
 inline bool GetBoolFromString(const std::string_view svString, const bool defaultValue)
 {
 	bool returnValue = defaultValue;
+	auto trimmed = trim(svString);
 
-	if (ci_equals(svString, "True"))
+	if (ci_equals(trimmed, "True"))
 	{
 		returnValue = true;
 	}
-	else if (ci_equals(svString, "False"))
+	else if (ci_equals(trimmed, "False"))
 	{
 		returnValue = false;
 	}
-	else if (ci_equals(svString, "on"))
+	else if (ci_equals(trimmed, "on"))
 	{
 		returnValue = true;
 	}
 	else
 	{
-		returnValue = static_cast<bool>(GetIntFromString(svString, static_cast<int>(defaultValue)));
+		returnValue = static_cast<bool>(GetIntFromString(trimmed, static_cast<int>(defaultValue)));
 	}
 
 	return returnValue;
