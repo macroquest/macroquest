@@ -3055,6 +3055,69 @@ static BenchmarksDeveloperTool s_benchmarksTool;
 
 #pragma endregion
 
+#pragma region CXStrDeveloperTool
+
+class CXStrDeveloperTool : public ImGuiWindowBase
+{
+public:
+	CXStrDeveloperTool() : ImGuiWindowBase("CXStr")
+	{
+	}
+
+	~CXStrDeveloperTool()
+	{
+	}
+
+protected:
+	void Draw() override
+	{
+		ImGui::Text("CXStr FreeLists:");
+
+		eqlib::internal::LockCXStrMutex();
+		CXFreeList* freeList = eqlib::internal::GetCXFreeList();
+		if (freeList)
+		{
+			if (ImGui::BeginTable("##CXFreeListTable", 2))
+			{
+				ImGui::TableSetupColumn("Block Size");
+				ImGui::TableSetupColumn("Count");
+				ImGui::TableAutoHeaders();
+
+				ImGui::TableNextRow();
+
+				while (freeList->blockSize > 0)
+				{
+					ImGui::Text("%d", freeList->blockSize); ImGui::TableNextCell();
+
+					size_t count = 0;
+					CStrRep* rep = freeList->repList;
+					while (rep)
+					{
+						++count;
+						rep = rep->next;
+					}
+
+					ImGui::Text("%d", count);
+
+					ImGui::TableNextRow();
+					++freeList;
+				}
+
+				ImGui::EndTable();
+			}
+		}
+		else
+		{
+			ImGui::Text("<no freelist>");
+		}
+
+		eqlib::internal::UnlockCXStrMutex();
+	}
+};
+static CXStrDeveloperTool s_cxstrTool;
+
+#pragma endregion
+
 //============================================================================
 //============================================================================
 
@@ -3094,6 +3157,14 @@ void DeveloperTools_DrawMenu()
 {
 	if (ImGui::MenuItem("Benchmarks", nullptr, s_benchmarksTool.IsOpen()))
 		s_benchmarksTool.Toggle();
+
+	if (ImGui::BeginMenu("Data Inspectors"))
+	{
+		if (ImGui::MenuItem("CXStr Inspector"))
+			s_cxstrTool.Toggle();
+
+		ImGui::EndMenu();
+	}
 
 	if (ImGui::MenuItem("Window Inspector", nullptr, s_windowDebugPanel.IsOpen()))
 		s_windowDebugPanel.Toggle();
