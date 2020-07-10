@@ -1925,7 +1925,7 @@ bool MQ2SpawnType::dataNearestSpawn(const char* szIndex, MQTypeVar& Ret)
 		bool checkDistance = ssSpawn.FRadius != MAX_SEARCH_RADIUS;
 		if (checkDistance)
 		{
-			FRadiusSq = ssSpawn.FRadius * ssSpawn.FRadius;
+			FRadiusSq = static_cast<float>(ssSpawn.FRadius * ssSpawn.FRadius);
 		}
 
 		for (const MQSpawnArrayItem& spawnItem : gSpawnsArray)

@@ -58,8 +58,6 @@
 #include <string>
 #include <unordered_map>
 
-#include <fmt/format.h>
-
 // Windows Header Files:
 #include <windows.h>
 #include <direct.h>
@@ -69,8 +67,10 @@
 #include <Shellapi.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <time.h>
+#include <ctime>
 #include <winsock.h>
 
 #include <detours/inc/detours.h>
 #include <spdlog/spdlog.h>
+#include <fmt/format.h>
+
