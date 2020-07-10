@@ -14,6 +14,7 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
+#include "MQ2Args.h"
 
 #include <locale>
 #include <codecvt>
