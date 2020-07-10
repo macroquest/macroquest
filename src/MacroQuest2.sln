@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29209.62
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "plugins", "plugins", "{A648B03F-7642-4857-A62A-AFABC7CAB451}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "core plugins", "core plugins", "{A648B03F-7642-4857-A62A-AFABC7CAB451}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2AutoLogin", "plugins\autologin\MQ2AutoLogin.vcxproj", "{BC2C195E-87B3-4974-A398-0E1FA51FBB8E}"
 EndProject
