@@ -640,16 +640,25 @@ static void ImGui_ImplDX9_DestroyWindow(ImGuiViewport* viewport)
 
 static void ImGui_ImplDX9_SetWindowSize(ImGuiViewport* viewport, ImVec2 size)
 {
+
 	ImGuiViewportDataDx9* data = (ImGuiViewportDataDx9*)viewport->RendererUserData;
 	if (data->SwapChain)
 	{
-		data->SwapChain->Release();
-		data->SwapChain = nullptr;
-		data->d3dpp.BackBufferWidth = (UINT)size.x;
-		data->d3dpp.BackBufferHeight = (UINT)size.y;
-
-		HRESULT hr = g_pImguiDevice->CreateAdditionalSwapChain(&data->d3dpp, &data->SwapChain); IM_UNUSED(hr);
+		ImGuiViewportDataDx9 newData;
+		newData.SwapChain = nullptr;
+		newData.d3dpp = data->d3dpp;
+		newData.d3dpp.BackBufferWidth = (UINT)size.x;
+		newData.d3dpp.BackBufferHeight = (UINT)size.y;
+		HRESULT hr = g_pImguiDevice->CreateAdditionalSwapChain(&newData.d3dpp, &newData.SwapChain);
 		IM_ASSERT(hr == D3D_OK);
+
+		if (hr == D3D_OK)
+		{
+			data->SwapChain->Release();
+			data->SwapChain = newData.SwapChain;
+			data->d3dpp = newData.d3dpp;
+			return;
+		}
 	}
 }
 
