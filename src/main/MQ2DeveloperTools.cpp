@@ -3060,7 +3060,7 @@ static BenchmarksDeveloperTool s_benchmarksTool;
 class CXStrDeveloperTool : public ImGuiWindowBase
 {
 public:
-	CXStrDeveloperTool() : ImGuiWindowBase("CXStr")
+	CXStrDeveloperTool() : ImGuiWindowBase("CXStr Metrics")
 	{
 	}
 
@@ -3071,6 +3071,9 @@ public:
 protected:
 	void Draw() override
 	{
+		ImGui::LabelText("StrRep Allocations", "%d", eqlib::internal::gStrRepAllocations);
+		ImGui::LabelText("StrRep Live Objects", "%d", eqlib::internal::gStrRepLiveObjects);
+
 		ImGui::Text("CXStr FreeLists:");
 
 		eqlib::internal::LockCXStrMutex();
@@ -3160,7 +3163,7 @@ void DeveloperTools_DrawMenu()
 
 	if (ImGui::BeginMenu("Data Inspectors"))
 	{
-		if (ImGui::MenuItem("CXStr Inspector"))
+		if (ImGui::MenuItem("CXStr Metrics"))
 			s_cxstrTool.Toggle();
 
 		ImGui::EndMenu();
