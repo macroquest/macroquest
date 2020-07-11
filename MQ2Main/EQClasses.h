@@ -9000,7 +9000,7 @@ EQLIB_OBJECT int PlayerZoneClient::LegalPlayerRace(int race)
 {
 	if (race == -1)
 	{
-		race = this->mActorClient.Race;
+		race = ((PSPAWNINFO)this)->GetClass();
 	}
 	if((race <= EQR_GNOME) || (race == EQR_IKSAR) || (race == EQR_VAHSHIR) || (race == EQR_FROGLOCK) || (race == EQR_DRAKKIN))
 	{
