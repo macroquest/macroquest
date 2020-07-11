@@ -3867,6 +3867,10 @@ typedef struct _SPAWNINFO {
 	{
 		return mActorClient.Class;
 	}
+	inline signed int GetRace()
+	{
+		return mActorClient.Race;
+	}
 	inline BYTE GetCharacterType()
 	{
 		return Type;
