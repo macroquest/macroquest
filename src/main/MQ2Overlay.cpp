@@ -640,7 +640,6 @@ static void ImGui_ImplDX9_DestroyWindow(ImGuiViewport* viewport)
 
 static void ImGui_ImplDX9_SetWindowSize(ImGuiViewport* viewport, ImVec2 size)
 {
-
 	ImGuiViewportDataDx9* data = (ImGuiViewportDataDx9*)viewport->RendererUserData;
 	if (data->SwapChain)
 	{
@@ -696,7 +695,13 @@ static void ImGui_ImplDX9_SwapBuffers(ImGuiViewport* viewport, void*)
 {
 	ImGuiViewportDataDx9* data = (ImGuiViewportDataDx9*)viewport->RendererUserData;
 	HRESULT hr = data->SwapChain->Present(nullptr, nullptr, data->d3dpp.hDeviceWindow, nullptr, 0);
-	IM_ASSERT(hr == D3D_OK);
+	if (hr != D3D_OK)
+	{
+		if (::IsDebuggerPresent())
+			__debugbreak();
+
+		SPDLOG_ERROR("Overlay Error: failed to call Present() viewport={} hr={}", viewport->ID, hr);
+	}
 }
 
 static void ImGui_ImplDX9_InitPlatformInterface()
