@@ -131,5 +131,6 @@ MQLIB_API void QuitCmd                             (PSPAWNINFO pChar, char* szLi
 MQLIB_API void RemoveLevCmd                        (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void EngineCommand                       (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void CachedBuffsCommand                  (PSPAWNINFO pChar, char* szLine);
+MQLIB_API void MQCopyLayout                        (PSPAWNINFO pChar, char* szLine);
 
 } // namespace mq

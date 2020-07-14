@@ -910,7 +910,8 @@ void InitializeMQ2Commands()
 		{ "/quit",              QuitCmd,                    true,  false },
 		{ "/removelev",         RemoveLevCmd,               true,  false },
 		{ "/engine",            EngineCommand,              true,  false },
-		{ "/cachedbuffs",       CachedBuffsCommand,         true, true },
+		{ "/cachedbuffs",       CachedBuffsCommand,         true,  true  },
+		{ "/mqcopylayout",      MQCopyLayout,               true,  false },
 
 		{ nullptr,              nullptr,                    false, true  },
 	};

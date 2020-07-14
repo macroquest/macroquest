@@ -5490,4 +5490,104 @@ void RemoveLevCmd(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
+void MQCopyLayoutImpl(const std::string& charName, const std::string& serverName, const std::string& arguments)
+{
+	if (!pLocalPlayer)
+		return;
+
+	std::string resolution = "Windowed";
+	bool bCopyHotbuttons = true;
+	bool bCopyLoadout = true;
+	bool bCopySocials = true;
+
+	if (!arguments.empty())
+	{
+		const char* szRest = arguments.c_str();
+
+		char szTemp[MAX_STRING];
+
+		while (szRest[0])
+		{
+			GetArg(szTemp, szRest, 1);
+			szRest = GetNextArg(szRest, 1);
+
+			if (ci_equals(szTemp, "none"))
+			{
+				bCopyHotbuttons = false;
+				bCopyLoadout = false;
+				bCopySocials = false;
+			}
+			else if (ci_equals(szTemp, "nohot"))
+			{
+				bCopyHotbuttons = false;
+			}
+			else if (ci_equals(szTemp, "noload"))
+			{
+				bCopyLoadout = false;
+			}
+			else if (ci_equals(szTemp, "nosoc"))
+			{
+				bCopySocials = false;
+			}
+			else if (ci_starts_with(szTemp, "res:"))
+			{
+				resolution = std::string_view(szTemp).substr(4);
+			}
+		}
+	}
+
+	std::string layoutIni = fmt::format("UI_{}_{}.ini", charName, serverName);
+
+	CXStr error;
+	if (!CopyLayout(CXStr{ layoutIni }, CXStr{ resolution }, bCopyHotbuttons, bCopyLoadout, bCopySocials, error))
+	{
+		WriteChatf("%s", error.c_str());
+	}
+	else
+	{
+		WriteChatf("%s", "Layout copied successfully.");
+	}
+}
+
+void MQCopyLayout(SPAWNINFO* pChar, char* szLine)
+{
+	const char* szRest = szLine;
+
+	char szChar[MAX_STRING] = { 0 };
+	GetArg(szChar, szRest, 1);
+	szRest = GetNextArg(szRest, 1);
+
+	char szServer[MAX_STRING] = { 0 };
+	GetArg(szServer, szLine, 1);
+	szRest = GetNextArg(szRest, 1);
+
+	if (szChar[0] && szServer[0])
+	{
+		std::string arguments{ szRest };
+		std::string charName{ szChar };
+		std::string serverName{ szServer };
+
+		// We need to do this while we're not inside the command handler, or we're crash.
+		// TODO: Explain why we'll crash.
+		PostToMainThread(
+			[arguments = std::move(arguments),
+			charName = std::move(charName),
+			serverName = std::move(serverName)]()
+		{
+			MQCopyLayoutImpl(charName, serverName, arguments);
+		});
+	}
+	else
+	{
+		WriteChatf("Usage: /mqcopylayout <charname> <server> [res:WxH] [nohot] [noload] [nosoc] [none]");
+		WriteChatf("Examples:");
+		WriteChatf("    \ag\"/mqcopylayout character vox\"\ax                    This is the minimum arguments required, it will copy everything from the layout including hotbuttons, loadouts and socials from the layout using the windowed resolution.");
+		WriteChatf("    \ag\"/mqcopylayout character vox nohot\"\ax              Will copy everything from the layout excluding hotbuttons from the layout using the windowed resolution.");
+		WriteChatf("    \ag\"/mqcopylayout character vox nohot noload\"\ax       Will copy everything from the layout excluding hotbuttons and loadouts from the layout using the windowed resolution.");
+		WriteChatf("    \ag\"/mqcopylayout character vox nohot noload nosoc\"\ax Will copy everything from the layout excluding hotbuttons, loadouts and socials from the layout using the windowed resolution.");
+		WriteChatf("    \ag\"/mqcopylayout character vox none\"\ax               Same as the example above: no hotbuttons, no loadouts, no socials");
+		WriteChatf("    \ag\"/mqcopylayout character vox res:1600x900\"\ax       Will copy the layout from the UI_character_vox.ini for the specific 1600x900 resolution (if that resolution actually exists in the UI ini.");
+	}
+}
+
 } // namespace mq
