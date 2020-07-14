@@ -295,14 +295,26 @@ MQLIB_API void ShutdownMQ2Pulse();
 MQLIB_API void ConvertCR(char* Text, size_t LineLen);
 MQLIB_API void DrawHUDText(const char* Text, int X, int Y, unsigned int Argb, int Font);
 
+//----------------------------------------------------------------------------
 // Logging utilities
 MQLIB_API void DebugSpew(const char* szFormat, ...);
 MQLIB_API void DebugSpewAlways(const char* szFormat, ...);
 MQLIB_API void DebugSpewAlwaysFile(const char* szFormat, ...);
 MQLIB_API void DebugSpewNoFile(const char* szFormat, ...);
 
-MQLIB_API char* GetNextArg(char* szLine, int dwNumber = 1, bool CSV = false, char Separator = 0);
-MQLIB_API char* GetArg(char* szDest, char* szSrc, int dwNumber, bool LeaveQuotes = false, bool ToParen = false, bool CSV = false, char Separator = 0, bool AnyNonAlphaNum = false);
+//----------------------------------------------------------------------------
+// Argument string parsing
+
+MQLIB_API const char* GetNextArg(const char* szLine, int dwNumber = 1, bool CSV = false, char Separator = 0);
+MQLIB_API const char* GetArg(char* szDest, const char* szSrc, int dwNumber, bool LeaveQuotes = false, bool ToParen = false, bool CSV = false, char Separator = 0, bool AnyNonAlphaNum = false);
+
+// GetNextArg that takes a non-const szLine and returns non-const. always prefer to use the const version.
+inline char* GetNextArg(char* szLine, int dwNumber = 1, bool CSV = false, char Separator = 0)
+{
+	return (char*)GetNextArg((const char*)szLine, dwNumber, CSV, Separator);
+}
+
+//----------------------------------------------------------------------------
 
 MQLIB_API DEPRECATE("The EQ Path is the working directory.")
 char* GetEQPath(char* szBuffer, size_t len);
@@ -593,7 +605,7 @@ MQLIB_API int CountMatchingSpawns(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pOrigi
 MQLIB_API SPAWNINFO* SearchThroughSpawns(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar);
 MQLIB_API bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO* pSpawn);
 MQLIB_API bool SearchSpawnMatchesSearchSpawn(MQSpawnSearch* pSearchSpawn1, MQSpawnSearch* pSearchSpawn2);
-MQLIB_API char* ParseSearchSpawnArgs(char* szArg, char* szRest, MQSpawnSearch* pSearchSpawn);
+MQLIB_API const char* ParseSearchSpawnArgs(char* szArg, const char* szRest, MQSpawnSearch* pSearchSpawn);
 MQLIB_API void ParseSearchSpawn(const char* Buffer, MQSpawnSearch* pSearchSpawn);
 MQLIB_API char* FormatSearchSpawn(char* Buffer, size_t BufferSize, MQSpawnSearch* pSearchSpawn);
 MQLIB_API bool IsPCNear(SPAWNINFO* pSpawn, float Radius);

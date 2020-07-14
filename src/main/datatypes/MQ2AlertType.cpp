@@ -27,7 +27,7 @@ MQ2AlertType::MQ2AlertType() : MQ2Type("alert")
 // /echo ${Alert[a].List[b].bGM}
 // /echo ${Alert[a].Size}
 // /echo ${Alert}
-bool MQ2AlertType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2AlertType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	if (!CAlerts.AlertExist(VarPtr.DWord))
 		return false;

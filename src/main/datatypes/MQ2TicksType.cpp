@@ -42,7 +42,7 @@ MQ2TicksType::MQ2TicksType() : MQ2Type("ticks")
 	ScopedTypeMember(TicksMembers, TimeHMS);
 }
 
-bool MQ2TicksType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2TicksType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	uint32_t nTicks = VarPtr.DWord;
 
@@ -125,7 +125,7 @@ bool MQ2TicksType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	VarPtr.DWord = Source.DWord;
 	return true;
 }
-bool MQ2TicksType::FromString(MQVarPtr& VarPtr, char* Source)
+bool MQ2TicksType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
 	VarPtr.DWord = GetIntFromString(Source, 0);
 	return true;

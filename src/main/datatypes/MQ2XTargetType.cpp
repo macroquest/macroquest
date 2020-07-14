@@ -36,7 +36,7 @@ MQ2XTargetType::MQ2XTargetType() : MQ2Type("xtarget")
 	ScopedTypeMember(XTargetMembers, PctAggro);
 }
 
-bool MQ2XTargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2XTargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	if (!GetCharInfo() || !GetCharInfo()->pXTargetMgr || VarPtr.DWord >= MAX_EXTENDED_TARGETS)
 		return false;
@@ -159,7 +159,7 @@ bool MQ2XTargetType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	return false;
 }
 
-bool MQ2XTargetType::FromString(MQVarPtr& VarPtr, char* Source)
+bool MQ2XTargetType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
 	int index = GetIntFromString(Source, 0);
 

@@ -80,7 +80,7 @@ MQ2GroundType::MQ2GroundType() : MQ2Type("ground")
 	ScopedTypeMethod(GroundMethods, Reset);
 }
 
-bool MQ2GroundType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2GroundType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	auto pGroundSpawn = VarPtr.Get<MQGroundSpawn>();
 
@@ -286,7 +286,7 @@ bool MQ2GroundType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2GroundType::FromString(MQVarPtr& VarPtr, char* Source)
+bool MQ2GroundType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
 	MQGroundSpawn ground;
 	if (Source == nullptr || Source[0] == 0)

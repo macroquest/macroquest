@@ -31,7 +31,7 @@ MQ2KeyRingType::MQ2KeyRingType() : MQ2Type("keyring")
 	ScopedTypeMember(KeyRingTypeMembers, Item);
 }
 
-bool MQ2KeyRingType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2KeyRingType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQTypeMember* pMember = MQ2KeyRingType::FindMember(Member);
 	if (!pMember)

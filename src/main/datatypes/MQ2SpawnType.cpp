@@ -351,7 +351,7 @@ enum class SpawnMethods
 		ScopedTypeMethod(SpawnMethods, RightClick);
 	}
 
-bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -1782,7 +1782,7 @@ bool MQ2SpawnType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	return false;
 }
 
-bool MQ2SpawnType::FromString(MQVarPtr& VarPtr, char* Source)
+bool MQ2SpawnType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
 	if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(GetIntFromString(Source, 0)))
 	{

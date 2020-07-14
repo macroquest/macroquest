@@ -27,7 +27,7 @@ using namespace mq::datatypes;
 // 6000-6080 merchant window
 // 7000-7080 bazaar window
 // 8000-8031 inspect window
-bool MQ2InvSlotType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2InvSlotType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQTypeMember* pMember = MQ2InvSlotType::FindMember(Member);
 	if (!pMember)

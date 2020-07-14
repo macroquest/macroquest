@@ -34,7 +34,7 @@ bool MQ2GroupType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2GroupType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar & Dest)
+bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQTypeMember* pMember = MQ2GroupType::FindMember(Member);
 	CHARINFO* pChar = GetCharInfo();

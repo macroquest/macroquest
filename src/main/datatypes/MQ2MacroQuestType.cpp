@@ -46,7 +46,7 @@ MQ2MacroQuestType::MQ2MacroQuestType() : MQ2Type("macroquest")
 	ScopedTypeMember(MacroQuestMembers, Anonymize);
 }
 
-bool MQ2MacroQuestType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2MacroQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQTypeMember* pMember = MQ2MacroQuestType::FindMember(Member);
 	if (!pMember)

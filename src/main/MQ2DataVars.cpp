@@ -108,7 +108,7 @@ static bool AddMQ2DataEventVariable(const char* Name, char* Index, MQ2Type* pTyp
 		pType->InitVariable(pVar->Var.VarPtr);
 
 		// FIXME: This should be const char*
-		pType->FromString(pVar->Var.VarPtr, (char*)Default);
+		pType->FromString(pVar->Var.VarPtr, Default);
 	}
 
 	if (pVar->ppHead == &pMacroVariables || pVar->ppHead == &pGlobalVariables)
@@ -157,7 +157,7 @@ static bool AddMQ2DataVariableBy(const char* Name, const char* Index, MQ2Type* p
 		if (ByData)
 			pType->FromData(pVar->Var.VarPtr, *(MQTypeVar*)Default);
 		else
-			pType->FromString(pVar->Var.VarPtr, (char*)Default);
+			pType->FromString(pVar->Var.VarPtr, Default);
 	}
 
 	if (!(gMacroStack && (ppHead == &gMacroStack->LocalVariables || ppHead == &gMacroStack->Parameters)))
@@ -233,7 +233,7 @@ void NewDeclareVar(SPAWNINFO* pChar, char* szLine)
 	GetArg(szName, szLine, 1);
 	char Arg[MAX_STRING] = { 0 };
 	GetArg(Arg, szLine, 2);
-	char* pDefault = nullptr;
+	const char* pDefault = nullptr;
 
 	if (pScope = FindVariableScope(Arg))
 	{
@@ -342,7 +342,7 @@ void NewVarset(SPAWNINFO* pChar, char* szLine)
 	char szName[MAX_STRING] = { 0 };
 	GetArg(szName, szLine, 1);
 
-	char* szRest = GetNextArg(szLine);
+	const char* szRest = GetNextArg(szLine);
 	char szIndex[MAX_STRING] = { 0 };
 	if (char* pBracket = strchr(szName, '['))
 	{
@@ -397,7 +397,7 @@ void NewVarcalc(SPAWNINFO* pChar, char* szLine)
 
 	char szName[MAX_STRING] = { 0 };
 	GetArg(szName, szLine, 1);
-	char* pRest = GetNextArg(szLine);
+	const char* pRest = GetNextArg(szLine);
 	if (!pRest || !pRest[0])
 	{
 		SyntaxError("Usage: /varcalc <varname> <formula>");
@@ -471,6 +471,7 @@ void NewVardata(SPAWNINFO* pChar, char* szLine)
 	char szName[MAX_STRING] = { 0 };
 	GetArg(szName, szLine, 1);
 
+	// FIXME: This is a mutable pointer to szLine. We modify it in ParseMQ2DataPortion below.
 	char* szRest = GetNextArg(szLine);
 	if (!szRest || !szRest[0])
 	{

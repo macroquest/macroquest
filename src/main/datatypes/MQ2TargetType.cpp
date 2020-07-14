@@ -104,7 +104,7 @@ MQ2TargetType::MQ2TargetType() : MQ2Type("target")
 	ScopedTypeMember(TargetMembers, MaxMeleeTo);
 }
 
-bool MQ2TargetType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	if (!VarPtr.Ptr)
 		return false;
@@ -505,7 +505,7 @@ bool MQ2TargetType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	return false;
 }
 
-bool MQ2TargetType::FromString(MQVarPtr& VarPtr, char* Source)
+bool MQ2TargetType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
 	if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(GetIntFromString(Source, 0)))
 	{

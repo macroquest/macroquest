@@ -322,9 +322,9 @@ void MQ2DataError(char* szFormat, ...)
 // Function:    GetNextArg
 // Description: Returns a pointer to the next argument
 // ***************************************************************************
-char* GetNextArg(char* szLine, int dwNumber, bool CSV /* = false */, char Separator /* = 0 */)
+const char* GetNextArg(const char* szLine, int dwNumber, bool CSV /* = false */, char Separator /* = 0 */)
 {
-	char* szNext = szLine;
+	const char* szNext = szLine;
 	bool InQuotes = false;
 	bool CustomSep = Separator != 0;
 
@@ -375,7 +375,7 @@ char* GetNextArg(char* szLine, int dwNumber, bool CSV /* = false */, char Separa
 // Function:    GetArg
 // Description: Returns a pointer to the current argument in szDest
 // ***************************************************************************
-char* GetArg(char* szDest, char* szSrc, int dwNumber, bool LeaveQuotes, bool ToParen, bool CSV, char Separator, bool AnyNonAlphaNum)
+const char* GetArg(char* szDest, const char* szSrc, int dwNumber, bool LeaveQuotes, bool ToParen, bool CSV, char Separator, bool AnyNonAlphaNum)
 {
 	if (!szSrc)
 		return nullptr;
@@ -383,8 +383,7 @@ char* GetArg(char* szDest, char* szSrc, int dwNumber, bool LeaveQuotes, bool ToP
 	bool CustomSep = false;
 	bool InQuotes = false;
 
-	char* szTemp = szSrc;
-	ZeroMemory(szDest, MAX_STRING);
+	const char* szTemp = szSrc;
 
 	if (Separator != 0) CustomSep = true;
 
@@ -407,6 +406,8 @@ char* GetArg(char* szDest, char* szSrc, int dwNumber, bool LeaveQuotes, bool ToP
 	{
 		if (szTemp[i] == 0 && InQuotes)
 		{
+			szDest[j] = 0;
+
 			DebugSpew("GetArg - No matching quote, returning entire string");
 			DebugSpew("Source = %s", szSrc);
 			DebugSpew("Dest = %s", szDest);
@@ -431,7 +432,9 @@ char* GetArg(char* szDest, char* szSrc, int dwNumber, bool LeaveQuotes, bool ToP
 	}
 
 	if (ToParen && szTemp[i] == ')')
-		szDest[j] = ')';
+		szDest[j++] = ')';
+
+	szDest[j] = 0; // null terminate
 
 	return szDest;
 }
@@ -3688,7 +3691,7 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 	return true;
 }
 
-char* ParseSearchSpawnArgs(char* szArg, char* szRest, MQSpawnSearch* pSearchSpawn)
+const char* ParseSearchSpawnArgs(char* szArg, const char* szRest, MQSpawnSearch* pSearchSpawn)
 {
 	if (szArg && pSearchSpawn)
 	{
@@ -4072,7 +4075,7 @@ void ParseSearchSpawn(const char* Buffer, MQSpawnSearch* pSearchSpawn)
 	char szLLine[MAX_STRING] = { 0 };
 	strcpy_s(szLLine, Buffer);
 	_strlwr_s(szLLine);
-	char* szFilter = szLLine;
+	const char* szFilter = szLLine;
 
 	char szArg[MAX_STRING] = { 0 };
 

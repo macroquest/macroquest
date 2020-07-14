@@ -34,7 +34,7 @@ MQ2FellowshipType::MQ2FellowshipType()
 	ScopedTypeMember(FellowshipTypeMembers, Campfire);
 }
 
-bool MQ2FellowshipType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2FellowshipType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	FELLOWSHIPINFO* pFellowship = reinterpret_cast<FELLOWSHIPINFO*>(VarPtr.Ptr);
 	if (!VarPtr.Ptr)

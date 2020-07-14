@@ -194,7 +194,7 @@ MQ2SpellType::MQ2SpellType() : MQ2Type("spell")
 	ScopedTypeMember(SpellMembers, MyDuration);
 }
 
-bool MQ2SpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	auto pSpell = static_cast<EQ_Spell*>(VarPtr.Ptr);
 	if (!pSpell)

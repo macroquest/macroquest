@@ -336,7 +336,7 @@ void MQ2KeyBindCommand(SPAWNINFO* pChar, char* szLine)
 
 	char szArg1[MAX_STRING] = { 0 };
 	GetArg(szArg1, szLine, 1);
-	char* szRest = GetNextArg(szLine);
+	const char* szRest = GetNextArg(szLine);
 	char* szArg = &szArg1[0];
 
 	bool altKey = false;

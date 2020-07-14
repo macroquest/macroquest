@@ -36,7 +36,7 @@ MQ2ArgbType::MQ2ArgbType() : MQ2Type("argb")
 	ScopedTypeMember(ArgbMembers, Int);
 }
 
-bool MQ2ArgbType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2ArgbType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQTypeMember* pMember = FindMember(Member);
 	if (!pMember)
@@ -85,7 +85,7 @@ bool MQ2ArgbType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	return true;
 }
 
-bool MQ2ArgbType::FromString(MQVarPtr& VarPtr, char* Source)
+bool MQ2ArgbType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
 	ARGBCOLOR input;
 	if (sscanf_s(Source, "%x", &input.ARGB))

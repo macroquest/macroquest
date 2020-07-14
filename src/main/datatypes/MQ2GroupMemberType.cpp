@@ -55,7 +55,7 @@ bool MQ2GroupMemberType::ToString(MQVarPtr VarPtr, char* Destination)
 	return false;
 }
 
-bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	CHARINFO* pChar = GetCharInfo();
 	if (!pChar || !pChar->pGroupInfo)
@@ -265,7 +265,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, M
 	return false;
 }
 
-bool MQ2RaidType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar & Dest)
+bool MQ2RaidType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	if (!pRaid)
 		return false;
@@ -431,7 +431,7 @@ bool MQ2RaidType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVa
 	return false;
 }
 
-bool MQ2RaidMemberType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2RaidMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	int nRaidMember = VarPtr.Int - 1;
 	if (nRaidMember < 0 || nRaidMember >= MAX_RAID_SIZE)

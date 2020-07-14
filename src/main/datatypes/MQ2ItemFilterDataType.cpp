@@ -18,7 +18,7 @@
 using namespace mq;
 using namespace mq::datatypes;
 
-bool MQ2ItemFilterDataType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2ItemFilterDataType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	ItemFilterData* pItem = (ItemFilterData*)VarPtr.Ptr;
 	if (!pItem)

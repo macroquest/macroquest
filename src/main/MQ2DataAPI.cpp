@@ -209,7 +209,7 @@ bool RemoveMQ2TypeExtension(const char* szName, MQ2Type* extension)
 }
 
 // -1 = no exists, 0 = fail, 1 = success
-int FindMacroDataMember(MQ2Type* type, MQTypeVar& Result, char* pStart, char* pIndex,
+int FindMacroDataMember(MQ2Type* type, MQTypeVar& Result, const char* pStart, char* pIndex,
 	bool checkFirst = false)
 {
 	// search for extensions on this type
@@ -352,7 +352,7 @@ static bool CallFunction(const char* name, const char* args)
 	return false;
 }
 
-bool EvaluateDataExpression(MQTypeVar& Result, char* pStart, char* pIndex, bool function_allowed = false)
+bool EvaluateDataExpression(MQTypeVar& Result, const char* pStart, char* pIndex, bool function_allowed = false)
 {
 	if (!Result.Type)
 	{

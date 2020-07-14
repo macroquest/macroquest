@@ -29,7 +29,7 @@ MQ2IntType::MQ2IntType() : MQ2Type("int")
 	ScopedTypeMember(IntMembers, Prettify);
 }
 
-bool MQ2IntType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2IntType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQTypeMember* pMember = MQ2IntType::FindMember(Member);
 	if (!pMember)
@@ -92,7 +92,7 @@ bool MQ2IntType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	return true;
 }
 
-bool MQ2IntType::FromString(MQVarPtr& VarPtr, char* Source)
+bool MQ2IntType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
 	VarPtr.Int = GetIntFromString(Source, 0);
 	return true;

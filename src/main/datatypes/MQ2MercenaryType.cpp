@@ -36,7 +36,7 @@ MQ2MercenaryType::MQ2MercenaryType() : MQ2Type("mercenary")
 	ScopedTypeMember(MercenaryMembers, Index);
 }
 
-bool MQ2MercenaryType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2MercenaryType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	SPAWNINFO* pSpawn = reinterpret_cast<SPAWNINFO*>(VarPtr.Ptr);
 	if (!pSpawn)
@@ -163,7 +163,7 @@ bool MQ2MercenaryType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	return false;
 }
 
-bool MQ2MercenaryType::FromString(MQVarPtr& VarPtr, char* Source)
+bool MQ2MercenaryType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
 	if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(GetIntFromString(Source, 0)))
 	{

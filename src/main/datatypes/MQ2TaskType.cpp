@@ -88,7 +88,7 @@ MQ2TaskType::MQ2TaskType() : MQ2Type("task")
 }
 
 
-bool MQ2TaskType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2TaskType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	auto pTask = static_cast<CTaskEntry*>(VarPtr.Ptr);
 	if (!pTask)

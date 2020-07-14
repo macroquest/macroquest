@@ -125,7 +125,7 @@ MQ2WindowType::MQ2WindowType() : MQ2Type("window")
 	ScopedTypeMethod(WindowMethods, Select);
 }
 
-bool MQ2WindowType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	CXWnd* pWnd = static_cast<CXWnd*>(VarPtr.Ptr);
 	if (!VarPtr.Ptr)
@@ -638,7 +638,7 @@ bool MQ2WindowType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	return true;
 }
 
-bool MQ2WindowType::FromString(MQVarPtr& VarPtr, char* Source)
+bool MQ2WindowType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
 	if (VarPtr.Ptr = FindMQ2WindowPath(Source))
 		return true;

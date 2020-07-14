@@ -1166,7 +1166,7 @@ void Substitute(SPAWNINFO* pChar, char* szLine)
 
 	char szName[MAX_STRING] = { 0 };
 	GetArg(szName, szLine, 1);
-	char* szCommand = GetNextArg(szLine);
+	const char* szCommand = GetNextArg(szLine);
 
 	if (!_stricmp(szName, "list"))
 	{
@@ -1242,7 +1242,7 @@ void Alias(SPAWNINFO* pChar, char* szLine)
 
 	char szBuffer[MAX_STRING] = { 0 };
 
-	char* szCommand = GetNextArg(szLine);
+	const char* szCommand = GetNextArg(szLine);
 	if (!_stricmp(szName, "list"))
 	{
 		int Count = 0;

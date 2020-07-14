@@ -19,7 +19,7 @@ using namespace mq;
 using namespace mq::datatypes;
 
 // pure type, no members
-bool MQ2BoolType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2BoolType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	return false;
 }
@@ -36,7 +36,7 @@ bool MQ2BoolType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	return true;
 }
 
-bool MQ2BoolType::FromString(MQVarPtr& VarPtr, char* Source)
+bool MQ2BoolType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
 	VarPtr.DWord = ci_equals(Source, "TRUE") || GetFloatFromString(Source, 0) != 0;
 	return true;

@@ -360,7 +360,7 @@ MQ2ItemType::MQ2ItemType() : MQ2Type("item")
 	ScopedTypeMember(ItemMembers, MaxLuck);
 }
 
-bool MQ2ItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	CONTENTS* pItem = static_cast<CONTENTS*>(VarPtr.Ptr);
 	if (!pItem)

@@ -90,7 +90,7 @@ MQ2TaskObjectiveType::MQ2TaskObjectiveType() : MQ2Type("taskobjectivemember")
 	ScopedTypeMember(TaskObjectiveTypeMembers, CurrentCount);
 }
 
-bool MQ2TaskObjectiveType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2TaskObjectiveType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	auto pTaskObjective = static_cast<CTaskElement*>(VarPtr.Ptr);
 	if (!pTaskObjective)

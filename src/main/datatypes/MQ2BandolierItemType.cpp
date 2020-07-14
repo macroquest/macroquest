@@ -18,7 +18,7 @@
 using namespace mq;
 using namespace mq::datatypes;
 
-bool MQ2BandolierItemType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2BandolierItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	if (BandolierItemInfo* ptr = (BandolierItemInfo*)VarPtr.Ptr)
 	{

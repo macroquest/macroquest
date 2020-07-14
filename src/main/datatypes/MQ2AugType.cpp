@@ -42,7 +42,7 @@ MQ2AugType::MQ2AugType() : MQ2Type("augtype")
 	ScopedTypeMember(AugTypeMembers, Solvent);
 }
 
-bool MQ2AugType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2AugType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	if (!pCharData)
 		return false;

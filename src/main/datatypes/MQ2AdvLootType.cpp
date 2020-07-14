@@ -41,7 +41,7 @@ MQ2AdvLootType::MQ2AdvLootType() : MQ2Type("advloot")
 	ScopedTypeMember(AdvLootTypeMembers, Filter);
 }
 
-bool MQ2AdvLootType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2AdvLootType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	if (!pAdvancedLootWnd)
 		return false;

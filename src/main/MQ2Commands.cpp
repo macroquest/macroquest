@@ -160,7 +160,7 @@ void SuperWho(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	char* szRest = szLLine;
+	const char* szRest = szLLine;
 
 	while (Parsing)
 	{
@@ -389,7 +389,7 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 	char szName[MAX_STRING] = { 0 };
 
 	GetArg(szName, szLine, 1);
-	char* szCommand = GetNextArg(szLine);
+	const char* szCommand = GetNextArg(szLine);
 
 	if (!_stricmp(szName, "list"))
 	{
@@ -1179,7 +1179,7 @@ void Filter(SPAWNINFO* pChar, char* szLine)
 
 	char szArg[MAX_STRING] = { 0 };
 
-	char* szRest = szLine;
+	const char* szRest = szLine;
 	GetArg(szArg, szRest, 1);
 	szRest = GetNextArg(szRest, 1);
 
@@ -2032,7 +2032,7 @@ void Alert(SPAWNINFO* pChar, char* szLine)
 
 	strcpy_s(szLLine, szLine);
 	_strlwr_s(szLLine);
-	char* szRest = szLLine;
+	const char* szRest = szLLine;
 
 	while (Parsing)
 	{
@@ -2352,7 +2352,7 @@ void Face(SPAWNINFO* pChar, char* szLine)
 	char szLLine[MAX_STRING] = { 0 };
 	strcpy_s(szLLine, szLine);
 	_strlwr_s(szLLine);
-	char* szFilter = szLLine;
+	const char* szFilter = szLLine;
 
 	while (bArg)
 	{
@@ -2607,7 +2607,7 @@ void Where(SPAWNINFO* pChar, char* szLine)
 	char szLLine[MAX_STRING] = { 0 };
 	strcpy_s(szLLine, szLine);
 	_strlwr_s(szLLine);
-	char* szFilter = szLLine;
+	const char* szFilter = szLLine;
 
 	char szArg[MAX_STRING] = { 0 };
 	while (true)
@@ -3097,7 +3097,7 @@ void Target(SPAWNINFO* pChar, char* szLine)
 	char szLLine[MAX_STRING] = { 0 };
 	strcpy_s(szLLine, szLine);
 	_strlwr_s(szLLine);
-	char* szFilter = szLLine;
+	const char* szFilter = szLLine;
 
 	char szArg[MAX_STRING] = { 0 };
 
@@ -3123,8 +3123,10 @@ void Target(SPAWNINFO* pChar, char* szLine)
 		{
 			if (((CHARINFO*)pCharData)->pSpawn)
 			{
-				sprintf_s(szFilter, MAX_STRING, "%s's Corpse", ((SPAWNINFO*)pLocalPlayer)->Name);
-				_strlwr_s(szFilter, MAX_STRING);
+				sprintf_s(szLLine, MAX_STRING, "%s's Corpse", ((SPAWNINFO*)pLocalPlayer)->Name);
+				_strlwr_s(szLLine, MAX_STRING);
+
+				szFilter = szLLine;
 			}
 		}
 		else if (!strcmp(szArg, "clear"))
@@ -3615,7 +3617,7 @@ void MultilineCommand(SPAWNINFO* pChar, char* szLine)
 	char szArg[MAX_STRING] = { 0 }; // delimiter(s)
 	GetArg(szArg, szLine, 1);
 
-	char* szRest = GetNextArg(szLine);
+	const char* szRest = GetNextArg(szLine);
 	if (!szRest[0])
 		return;
 
@@ -4144,7 +4146,7 @@ void DoTimedCmd(SPAWNINFO* pChar, char* szLine)
 	char szArg[MAX_STRING] = { 0 }; // delay
 	GetArg(szArg, szLine, 1);
 
-	char* szRest = GetNextArg(szLine);
+	const char* szRest = GetNextArg(szLine);
 	if (!szRest[0])
 		return;
 
@@ -4257,7 +4259,7 @@ void AltAbility(SPAWNINFO* pChar, char* szLine)
 {
 	char szCommand[MAX_STRING] = { 0 };
 	GetArg(szCommand, szLine, 1);
-	char* szName = GetNextArg(szLine);
+	const char* szName = GetNextArg(szLine);
 
 	if (szName[0] == 0 || szCommand[0] == 0)
 	{

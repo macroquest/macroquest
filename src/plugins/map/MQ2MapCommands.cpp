@@ -28,7 +28,7 @@
 //              Sets map filters
 // Usage:       /mapfilter [options|help]
 // ***************************************************************************
-void MapFilterSetting(SPAWNINFO* pChar, DWORD nMapFilter, char* szValue)
+void MapFilterSetting(SPAWNINFO* pChar, DWORD nMapFilter, const char* szValue)
 {
 	if (!pChar) return;
 
@@ -172,7 +172,7 @@ void MapFilters(SPAWNINFO* pChar, char* szLine)
 
 	char szArg[MAX_STRING] = { 0 };
 	GetArg(szArg, szLine, 1);
-	char* szRest = GetNextArg(szLine);
+	const char* szRest = GetNextArg(szLine);
 
 	if (szArg[0] == 0) // Display Settings
 	{
@@ -873,7 +873,7 @@ void MapNames(SPAWNINFO* pChar, char* szLine)
 
 	char szArg[MAX_STRING] = { 0 };
 	GetArg(szArg, szLine, 1);
-	char* szRest = GetNextArg(szLine);
+	const char* szRest = GetNextArg(szLine);
 
 	if (!_stricmp(szArg, "target"))
 	{
@@ -996,7 +996,7 @@ void MapClickCommand(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	auto f = [](char szArg[MAX_STRING], char* szRest, char(&command_array)[16][MAX_STRING], const char* szSection)
+	auto f = [](char szArg[MAX_STRING], const char* szRest, char(&command_array)[16][MAX_STRING], const char* szSection)
 	{
 		char szBuffer[MAX_STRING] = { 0 };
 
@@ -1046,7 +1046,7 @@ void MapClickCommand(SPAWNINFO* pChar, char* szLine)
 
 	char szArg[MAX_STRING] = { 0 };
 	GetArg(szArg, szLine, 1);
-	char* szRest = GetNextArg(szLine);
+	const char* szRest = GetNextArg(szLine);
 
 	if (!_stricmp(szArg, "left"))
 	{
@@ -1070,7 +1070,7 @@ char* szMarkType[] =
 	"Ring",
 };
 
-char* FormatMarker(char* szLine, char* szDest, size_t BufferSize)
+char* FormatMarker(const char* szLine, char* szDest, size_t BufferSize)
 {
 	ZeroMemory(szDest, BufferSize);
 

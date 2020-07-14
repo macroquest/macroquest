@@ -52,7 +52,7 @@ MQ2TimeType::MQ2TimeType() : MQ2Type("time")
 	ScopedTypeMember(TimeMembers, Hour12);
 }
 
-bool MQ2TimeType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2TimeType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	tm* pTime = reinterpret_cast<tm*>(VarPtr.Ptr);
 	if (!pTime)

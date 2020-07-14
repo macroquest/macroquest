@@ -188,7 +188,7 @@ public:
 		ScopedTypeMember(BazaarItemMembers, Name);
 	}
 
-	virtual bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override
+	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
 	{
 		size_t index = VarPtr.DWord;
 		if (index >= BazaarItemsArray.size())
@@ -266,7 +266,7 @@ public:
 		return true;
 	}
 
-	virtual bool FromString(MQVarPtr& VarPtr, char* Source) override
+	virtual bool FromString(MQVarPtr& VarPtr, const char* Source) override
 	{
 		return false;
 	}
@@ -295,7 +295,7 @@ public:
 		ScopedTypeMember(BazaarMembers, Pricecheck);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
 	{
 		MQTypeMember* pMember = MQ2BazaarType::FindMember(Member);
 		if (!pMember)
@@ -391,7 +391,7 @@ public:
 		return false;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source) override
+	bool FromString(MQVarPtr& VarPtr, const char* Source) override
 	{
 		return false;
 	}

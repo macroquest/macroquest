@@ -27,7 +27,7 @@ MQ2ZoneType::MQ2ZoneType() : MQ2Type("zone")
 	ScopedTypeMember(ZoneMembers, ZoneFlags);
 }
 
-bool MQ2ZoneType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2ZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	EQZoneInfo* pZone = static_cast<EQZoneInfo*>(VarPtr.Ptr);
 	if (!VarPtr.Ptr)

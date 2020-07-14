@@ -46,7 +46,7 @@ MQ2TimeStampType::MQ2TimeStampType() : MQ2Type("timestamp")
 	ScopedTypeMember(TimeStampMembers, Float);
 }
 
-bool MQ2TimeStampType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2TimeStampType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	uint64_t nTimeStamp = VarPtr.UInt64;
 
@@ -142,7 +142,7 @@ bool MQ2TimeStampType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	return true;
 }
 
-bool MQ2TimeStampType::FromString(MQVarPtr& VarPtr, char* Source)
+bool MQ2TimeStampType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
 	VarPtr.UInt64 = _atoi64(Source);
 	return true;

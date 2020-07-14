@@ -144,7 +144,7 @@ extern bool repeatMaphide;
 
 /* COMMANDS */
 void MapFilters(SPAWNINFO* pChar, char* szLine);
-void MapFilterSetting(SPAWNINFO* pChar, DWORD nMapFilter, char* szValue = NULL);
+void MapFilterSetting(SPAWNINFO* pChar, DWORD nMapFilter, const char* szValue = nullptr);
 void MapHighlightCmd(SPAWNINFO* pChar, char* szLine);
 void PulseReset();
 void MapHideCmd(SPAWNINFO* pChar, char* szLine);
@@ -153,7 +153,7 @@ void MapNames(SPAWNINFO* pChar, char* szLine);
 void MapClickCommand(SPAWNINFO* pChar, char* szLine);
 void MapActiveLayerCmd(SPAWNINFO* pChar, char* szLine);
 void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine);
-char* FormatMarker(char* szLine, char* szDest, size_t BufferSize);
+char* FormatMarker(const char* szLine, char* szDest, size_t BufferSize);
 DWORD TypeToMapfilter(SPAWNINFO* pChar);
 void MapRemoveLocation(SPAWNINFO* pChar, char* szLine);
 bool IsFloat(const std::string& in);

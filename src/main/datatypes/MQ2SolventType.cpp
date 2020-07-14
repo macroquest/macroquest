@@ -18,7 +18,7 @@
 using namespace mq;
 using namespace mq::datatypes;
 
-bool MQ2SolventType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2SolventType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	int itemid = VarPtr.DWord;
 	if (itemid == -1)

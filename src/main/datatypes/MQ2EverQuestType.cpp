@@ -18,7 +18,7 @@
 using namespace mq;
 using namespace mq::datatypes;
 
-bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQTypeMember* pMember = MQ2EverQuestType::FindMember(Member);
 	if (!pMember)

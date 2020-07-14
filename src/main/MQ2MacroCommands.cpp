@@ -722,7 +722,6 @@ void Macro(PSPAWNINFO pChar, char* szLine)
 	gWarning = false;
 	bRunNextCommand = true;
 
-	char* Params = nullptr;
 	char* szNext = nullptr;
 	bool InBlockComment = false;
 
@@ -759,7 +758,7 @@ void Macro(PSPAWNINFO pChar, char* szLine)
 
 	char szTemp[MAX_STRING] = { 0 };
 	GetArg(szTemp, szLine, 1);
-	Params = GetNextArg(szLine);
+	const char* Params = GetNextArg(szLine);
 
 	strcpy_s(gszMacroName, szTemp);
 
@@ -1280,7 +1279,7 @@ void Call(PSPAWNINFO pChar, char* szLine)
 
 	char SubName[MAX_STRING];
 	GetArg(SubName, szLine, 1);
-	char* SubParam = GetNextArg(szLine);
+	const char* SubParam = GetNextArg(szLine);
 
 	// Sub in Map?
 	auto iter = gMacroSubLookupMap.find(SubName);

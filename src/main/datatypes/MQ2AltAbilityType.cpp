@@ -28,7 +28,7 @@ bool MQ2AltAbilityType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar & Dest)
+bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar & Dest)
 {
 	ALTABILITY* pAbility = static_cast<ALTABILITY*>(VarPtr.Ptr);
 	if (!pAbility)

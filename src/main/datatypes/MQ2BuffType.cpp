@@ -61,7 +61,7 @@ MQ2BuffType::MQ2BuffType() : MQ2Type("buff")
 	ScopedTypeMethod(BuffMethods, Remove);
 }
 
-bool MQ2BuffType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2BuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	if (VarPtr.Int < 0)
 		return false;

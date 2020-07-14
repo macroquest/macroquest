@@ -29,7 +29,7 @@ MQ2Int64Type::MQ2Int64Type() : MQ2Type("int64")
 	ScopedTypeMember(Int64Members, Prettify);
 }
 
-bool MQ2Int64Type::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2Int64Type::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQTypeMember* pMember = MQ2Int64Type::FindMember(Member);
 	if (!pMember)
@@ -92,7 +92,7 @@ bool MQ2Int64Type::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	return true;
 }
 
-bool MQ2Int64Type::FromString(MQVarPtr& VarPtr, char* Source)
+bool MQ2Int64Type::FromString(MQVarPtr& VarPtr, const char* Source)
 {
 	VarPtr.Int64 = GetInt64FromString(Source, -1);
 	return true;

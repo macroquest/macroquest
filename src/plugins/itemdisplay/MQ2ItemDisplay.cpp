@@ -124,7 +124,7 @@ public:
 		TypeMethod(AddLootFilter);
 	}
 
-	bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
 	{
 		const int index = std::clamp<int>(VarPtr.DWord, 0, MAX_ITEMDISPLAY_WINDOWS - 1);
 		VePointer<CONTENTS> pContents = gContents[index];
@@ -242,7 +242,7 @@ public:
 		return false;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source) override
+	bool FromString(MQVarPtr& VarPtr, const char* Source) override
 	{
 		return false;
 	}
@@ -3192,7 +3192,7 @@ public:
 		TypeMember(UpgradeSlot);
 	}
 
-	bool MQ2GearScoreType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) override
+	bool MQ2GearScoreType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
 	{
 		MQTypeMember* pMember = MQ2GearScoreType::FindMember(Member);
 
@@ -3235,7 +3235,7 @@ public:
 		return false;
 	}
 
-	bool FromString(MQVarPtr& VarPtr, char* Source) override
+	bool FromString(MQVarPtr& VarPtr, const char* Source) override
 	{
 		return false;
 	}

@@ -196,7 +196,7 @@ void CustomBindCmd(SPAWNINFO* pChar, char* szLine)
 	char szArg2[MAX_STRING] = { 0 };
 	GetArg(szArg, szLine, 1);
 	GetArg(szArg2, szLine, 2);
-	char* szRest = GetNextArg(szLine, 2);
+	const char* szRest = GetNextArg(szLine, 2);
 
 	if (!_stricmp(szArg, "list"))
 	{

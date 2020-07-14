@@ -29,7 +29,7 @@ MQ2FloatType::MQ2FloatType() : MQ2Type("float")
 	ScopedTypeMember(FloatMembers, Prettify);
 }
 
-bool MQ2FloatType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2FloatType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQTypeMember* pMember = MQ2FloatType::FindMember(Member);
 	if (!pMember)
@@ -103,7 +103,7 @@ bool MQ2FloatType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	return true;
 }
 
-bool MQ2FloatType::FromString(MQVarPtr& VarPtr, char* Source)
+bool MQ2FloatType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
 	VarPtr.Float = GetFloatFromString(Source, 0);
 	return true;

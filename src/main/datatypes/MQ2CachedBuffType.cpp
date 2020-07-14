@@ -44,7 +44,7 @@ MQ2CachedBuffType::MQ2CachedBuffType() : MQ2Type("cachedbuff")
 	ScopedTypeMember(CachedBuffMembers, Staleness);
 }
 
-bool MQ2CachedBuffType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2CachedBuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	auto pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
 	auto buff = GetCachedBuffAtSlot(pSpawn, VarPtr.HighPart);

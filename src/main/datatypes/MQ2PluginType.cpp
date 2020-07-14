@@ -18,7 +18,7 @@
 using namespace mq;
 using namespace mq::datatypes;
 
-bool MQ2PluginType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2PluginType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQPlugin* pPlugin = reinterpret_cast<MQPlugin*>(VarPtr.Ptr);
 	if (!pPlugin)

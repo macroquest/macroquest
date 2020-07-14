@@ -32,7 +32,7 @@ MQ2TaskMemberType::MQ2TaskMemberType() : MQ2Type("taskmember")
 	ScopedTypeMember(TaskMemberTypeMembers, Index);
 }
 
-bool MQ2TaskMemberType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2TaskMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	auto pTaskMemberData = static_cast<SharedTaskPlayerInfo*>(VarPtr.Ptr);
 	if (!pTaskMemberData)

@@ -71,7 +71,7 @@ MQ2SwitchType::MQ2SwitchType() : MQ2Type("switch")
 	ScopedTypeMethod(SwitchMethods, Toggle);
 }
 
-bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	DOOR* pTheSwitch = static_cast<DOOR*>(VarPtr.Ptr);
 	if (!VarPtr.Ptr)

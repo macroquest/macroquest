@@ -50,7 +50,7 @@ MQ2ItemSpellType::MQ2ItemSpellType() : MQ2Type("itemspell")
 	ScopedTypeMember(ItemSpellMembers, Spell);
 };
 
-bool MQ2ItemSpellType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2ItemSpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	ITEMSPELLS* pItemSpell = static_cast<ITEMSPELLS*>(VarPtr.Ptr);
 	if (!VarPtr.Ptr)

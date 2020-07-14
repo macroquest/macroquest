@@ -98,7 +98,7 @@ CDataArray::CDataArray(MQ2Type* Type, char* Index, const char* Default, bool ByD
 			if (ByData)
 				m_pType->FromData(m_pData[index], *(MQTypeVar*)Default);
 			else
-				m_pType->FromString(m_pData[index], (char*)Default);
+				m_pType->FromString(m_pData[index], Default);
 		}
 	}
 }

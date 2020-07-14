@@ -56,7 +56,7 @@ MQ2MathType::MQ2MathType() : MQ2Type("math")
 	ScopedTypeMember(MathMembers, Clamp);
 }
 
-bool MQ2MathType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2MathType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQTypeMember* pMember = MQ2MathType::FindMember(Member);
 	if (!pMember)

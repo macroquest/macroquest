@@ -60,7 +60,7 @@ MQ2StringType::MQ2StringType() : MQ2Type("string")
 	ScopedTypeMember(StringMembers, Replace);
 }
 
-bool MQ2StringType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2StringType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	const char* szString = static_cast<const char*>(VarPtr.Ptr);
 	if (!szString)
@@ -465,7 +465,7 @@ bool MQ2StringType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 }
 
 // TODO: This should be using the CXStr underlying type of VarPtr, but that is a very large change
-bool MQ2StringType::FromString(MQVarPtr& VarPtr, char* Source)
+bool MQ2StringType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
 	strcpy_s(static_cast<char*>(VarPtr.Ptr), MAX_STRING, Source);
 	return true;

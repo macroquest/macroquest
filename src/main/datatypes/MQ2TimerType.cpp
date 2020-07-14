@@ -41,7 +41,7 @@ MQ2TimerType::MQ2TimerType() : MQ2Type("timer")
 	ScopedTypeMethod(TimerMethods, Set);
 }
 
-bool MQ2TimerType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2TimerType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQTimer* pTimer = static_cast<MQTimer*>(VarPtr.Ptr);
 	if (!pTimer)
@@ -147,7 +147,7 @@ bool MQ2TimerType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	return true;
 }
 
-bool MQ2TimerType::FromString(MQVarPtr& VarPtr, char* Source)
+bool MQ2TimerType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
 	MQTimer* pTimer = reinterpret_cast<MQTimer*>(VarPtr.Ptr);
 

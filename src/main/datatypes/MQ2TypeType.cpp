@@ -30,7 +30,7 @@ MQ2TypeType::MQ2TypeType() : MQ2Type("type")
 	ScopedTypeMember(TypeMembers, Member);
 }
 
-bool MQ2TypeType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2TypeType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQ2Type* pType = static_cast<MQ2Type*>(VarPtr.Ptr);
 	if (!pType)
@@ -93,7 +93,7 @@ bool MQ2TypeType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	return true;
 }
 
-bool MQ2TypeType::FromString(MQVarPtr& VarPtr, char* Source)
+bool MQ2TypeType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
 	if (VarPtr.Ptr = FindMQ2DataType(Source))
 		return true;

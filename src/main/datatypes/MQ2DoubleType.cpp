@@ -28,7 +28,7 @@ MQ2DoubleType::MQ2DoubleType() : MQ2Type("double")
 	ScopedTypeMember(DoubleMembers, Prettify);
 }
 
-bool MQ2DoubleType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2DoubleType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQTypeMember* pMember = MQ2DoubleType::FindMember(Member);
 	if (!pMember)
@@ -97,7 +97,7 @@ bool MQ2DoubleType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	return true;
 }
 
-bool MQ2DoubleType::FromString(MQVarPtr& VarPtr, char* Source)
+bool MQ2DoubleType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
 	VarPtr.Double = GetDoubleFromString(Source, 0);
 	return true;
