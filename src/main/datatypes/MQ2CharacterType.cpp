@@ -3967,7 +3967,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 		else
 		{
-			for (int index = 0; index < 20; index++)
+			for (int index = 0; index < MAX_BANDOLIER_ITEMS; index++)
 			{
 				if (!_stricmp(Index, pProfile->Bandolier[index].Name))
 				{

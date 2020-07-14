@@ -255,7 +255,7 @@ MQLIB_API MQDataItem* FindMQ2Data(const char* szName);
 MQLIB_API MQDataVar* FindMQ2DataVariable(const char* szName);
 MQLIB_API bool AddMQ2Type(MQ2Type& type);
 MQLIB_API bool RemoveMQ2Type(MQ2Type& type);
-MQLIB_API bool ParseMQ2DataPortion(char* szOriginal, MQTypeVar &Result);
+MQLIB_API bool ParseMQ2DataPortion(char* szOriginal, MQTypeVar& Result);
 MQLIB_API bool AddMQ2TypeExtension(const char* typeName, MQ2Type* extension);
 MQLIB_API bool RemoveMQ2TypeExtension(const char* typeName, MQ2Type* extension);
 

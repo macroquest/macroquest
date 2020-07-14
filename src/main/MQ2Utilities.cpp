@@ -134,7 +134,7 @@ static void WriteChatColorMaybeDeferred(std::unique_ptr<char[]> Ptr, int Color, 
 
 void WriteChatColor(const char* Line, int Color /* = USERCOLOR_DEFAULT */, int Filter /* = 0 */)
 {
-	// If we're alreadyon the main thread, avoid copying anything and just call
+	// If we're already on the main thread, avoid copying anything and just call
 	// straight to PluginsWriteChatColor
 
 	if (IsMainThread())
@@ -3799,15 +3799,15 @@ const char* ParseSearchSpawnArgs(char* szArg, const char* szRest, MQSpawnSearch*
 			pSearchSpawn->bTargPrev = true;
 		}
 		else if (!_stricmp(szArg, "lfg"))
-{
+		{
 			pSearchSpawn->bLFG = true;
 		}
 		else if (!_stricmp(szArg, "gm"))
-{
+		{
 			pSearchSpawn->bGM = true;
 		}
 		else if (!_stricmp(szArg, "group"))
-{
+		{
 			pSearchSpawn->bGroup = true;
 		}
 		else if (!_stricmp(szArg, "fellowship"))

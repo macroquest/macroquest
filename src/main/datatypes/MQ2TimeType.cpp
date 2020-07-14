@@ -150,6 +150,8 @@ bool MQ2TimeType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 bool MQ2TimeType::ToString(MQVarPtr VarPtr, char* Destination)
 {
 	tm* Now = static_cast<tm*>(VarPtr.Ptr);
+	if (!Now)
+		return false;
 
 	sprintf_s(Destination, MAX_STRING, "%02d:%02d:%02d", Now->tm_hour, Now->tm_min, Now->tm_sec);
 	return true;
