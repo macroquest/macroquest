@@ -864,6 +864,13 @@ MQLIB_API bool IsAnonymized();
 MQLIB_OBJECT CXStr Anonymize(const CXStr& Text);
 MQLIB_OBJECT CXStr& PluginAnonymize(CXStr& Text);
 
+// Can take a std::string_view, std::string, or CXStr to check if we think we *might* run anonymize
+template <typename T>
+inline bool MaybeAnonymize(T& text)
+{
+	return IsAnonymized() && GetGameState() == GAMESTATE_INGAME && !text.empty();
+}
+
 /* MQ2STRINGDB */
 // EQ sends us tokenized text that's been serialized into a stream of bytes. This struct holds that
 // data and parses the stream.

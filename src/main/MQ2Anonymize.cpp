@@ -27,7 +27,7 @@ namespace mq {
 // Variables (most of it is wrapped up in the yaml node)
 static std::string anon_config_path;
 static Yaml::Node anon_config;
-static bool anon_enabled;
+static bool anon_enabled = false;
 
 enum class Anonymization
 {
@@ -432,9 +432,19 @@ static void DropAlternate(std::string_view Alternate)
 		WriteChatf("Could not find a filter that contains \ay%s\ax, no alias removed!", Alternate.data());
 }
 
+static void InstallAnonDetours();
+static void RemoveAnonDetours();
+
 static void SetAnon(bool anon_state)
 {
-	anon_enabled = anon_state;
+	if (test_and_set(anon_enabled, anon_state))
+	{
+		if (anon_enabled)
+			InstallAnonDetours();
+		else
+			RemoveAnonDetours();
+	}
+
 	WriteChatf("MQ2Anonymize is now %s\ax.", anon_enabled ? "\agOn" : "\arOff");
 	if (anon_enabled && !AreNameSpritesCustomized())
 	{
@@ -519,10 +529,11 @@ bool IsAnonymized()
 	return anon_enabled;
 }
 
+
 // process string to anonymize
 CXStr& PluginAnonymize(CXStr& Text)
 {
-	if (IsAnonymized() && GetGameState() == GAMESTATE_INGAME && !Text.empty())
+	if (MaybeAnonymize(Text))
 		Text = Anonymize(Text);
 
 	return Text;
@@ -530,169 +541,173 @@ CXStr& PluginAnonymize(CXStr& Text)
 
 CXStr Anonymize(const CXStr& Text)
 {
-	if (IsAnonymized() && GetGameState() == GAMESTATE_INGAME && !Text.empty())
+	if (!MaybeAnonymize(Text))
+		return Text;
+
+	EnterMQ2Benchmark(bmAnonymizer);
+
+	auto new_text = std::accumulate(std::cbegin(replacers), std::cend(replacers), std::string(Text),
+		[](std::string& text, const std::unique_ptr<anon_replacer>& r) -> std::string {
+			return r ? r->replace_text(text) : text;
+		});
+
+	auto pChar = GetCharInfo();
+
+	if (anon_self != Anonymization::None && pLocalPlayer)
 	{
-		EnterMQ2Benchmark(bmAnonymizer);
+		if (!self_replacer || ci_find_substr(self_replacer->name, pLocalPlayer->Name) != 0)
+			self_replacer = std::make_unique<anon_replacer>(pLocalPlayer, anon_self);
 
-		auto new_text = std::accumulate(std::cbegin(replacers), std::cend(replacers), std::string(Text),
-			[](std::string& text, const std::unique_ptr<anon_replacer>& r) -> std::string {
-				return r ? r->replace_text(text) : text;
-			});
-
-		auto pChar = GetCharInfo();
-
-		if (anon_self != Anonymization::None && pLocalPlayer)
-		{
-			if (!self_replacer || ci_find_substr(self_replacer->name, pLocalPlayer->Name) != 0)
-				self_replacer = std::make_unique<anon_replacer>(pLocalPlayer, anon_self);
-
-			new_text = self_replacer->replace_text(new_text);
-		}
-
-		if (anon_group != Anonymization::None && pChar && pChar->pGroupInfo)
-		{
-			new_text = std::accumulate(
-				std::cbegin(pChar->pGroupInfo->pMember),
-				std::cend(pChar->pGroupInfo->pMember),
-				new_text,
-				[](std::string& text, const GROUPMEMBER* g) -> std::string
-				{
-					if (g && g->Name[0] != '\0' && ci_equals(text, g->Name, false))
-					{
-						auto memoized = group_memoization.find(g->Name);
-						if (memoized == group_memoization.end())
-							memoized = group_memoization.emplace(
-								g->Name,
-								std::make_unique<anon_replacer>(g->Name, anon_group)
-							).first;
-
-						return memoized->second->replace_text(text);
-					}
-
-					return text;
-				}
-			);
-		}
-
-		if (anon_fellowship != Anonymization::None && pChar && pChar->pSpawn)
-		{
-			auto fellowship = pChar->pSpawn->Fellowship;
-			new_text = std::accumulate(
-				std::cbegin(fellowship.FellowshipMember),
-				std::cend(fellowship.FellowshipMember),
-				new_text,
-				[](std::string& text, const FELLOWSHIPMEMBER& f) -> std::string
-				{
-					if (f.Name[0] != '\0' && ci_equals(text, f.Name, false))
-					{
-						auto memoized = fellowship_memoization.find(f.Name);
-						if (memoized == fellowship_memoization.end())
-							memoized = fellowship_memoization.emplace(
-								f.Name,
-								std::make_unique<anon_replacer>(f.Name, anon_fellowship)
-							).first;
-
-						return memoized->second->replace_text(text);
-					}
-
-					return text;
-				}
-			);
-		}
-
-		if (anon_guild != Anonymization::None && pGuildList)
-		{
-			if (pGuild && pChar)
-			{
-				auto guild_name = pGuild->GetGuildName(pChar->GuildID);
-				if (guild_name[0] != '\0' && ci_equals(new_text, guild_name, false))
-				{
-					auto memoized = guild_memoization.find(guild_name);
-					if (memoized == guild_memoization.end())
-						memoized = guild_memoization.emplace(
-							guild_name,
-							std::make_unique<anon_replacer>(guild_name, Anonymization::Asterisk)
-						).first;
-
-					new_text = memoized->second->replace_text(new_text);
-				}
-			}
-
-			// pGuildList is just "current guild"
-			for (auto pMember = pGuildList->pMember; pMember; pMember = pMember->pNext)
-			{
-				if (pMember->Name[0] != '\0' && ci_equals(new_text, pMember->Name, false))
-				{
-					auto memoized = guild_memoization.find(pMember->Name);
-					if (memoized == guild_memoization.end())
-						memoized = guild_memoization.emplace(
-							pMember->Name,
-							std::make_unique<anon_replacer>(pMember->Name, anon_guild)
-						).first;
-
-					new_text = memoized->second->replace_text(new_text);
-				}
-			}
-		}
-
-		if (anon_raid != Anonymization::None && pChar && pRaid)
-		{
-			for (auto pMember : pRaid->RaidMember)
-			{
-				if (pMember.Name[0] != '\0' && ci_equals(new_text, pMember.Name, false))
-				{
-					auto memoized = raid_memoization.find(pMember.Name);
-					if (memoized == raid_memoization.end())
-						memoized = raid_memoization.emplace(
-							pMember.Name,
-							std::make_unique<anon_replacer>(pMember.Name, anon_raid)
-						).first;
-
-					new_text = memoized->second->replace_text(new_text);
-				}
-			}
-		}
-
-		return CXStr(new_text);
-
-		ExitMQ2Benchmark(bmAnonymizer);
+		new_text = self_replacer->replace_text(new_text);
 	}
 
-	return Text;
+	if (anon_group != Anonymization::None && pChar && pChar->pGroupInfo)
+	{
+		new_text = std::accumulate(
+			std::cbegin(pChar->pGroupInfo->pMember),
+			std::cend(pChar->pGroupInfo->pMember),
+			new_text,
+			[](std::string& text, const GROUPMEMBER* g) -> std::string
+			{
+				if (g && g->Name[0] != '\0' && ci_equals(text, g->Name, false))
+				{
+					auto memoized = group_memoization.find(g->Name);
+					if (memoized == group_memoization.end())
+						memoized = group_memoization.emplace(
+							g->Name,
+							std::make_unique<anon_replacer>(g->Name, anon_group)
+						).first;
+
+					return memoized->second->replace_text(text);
+				}
+
+				return text;
+			}
+		);
+	}
+
+	if (anon_fellowship != Anonymization::None && pChar && pChar->pSpawn)
+	{
+		auto fellowship = pChar->pSpawn->Fellowship;
+		new_text = std::accumulate(
+			std::cbegin(fellowship.FellowshipMember),
+			std::cend(fellowship.FellowshipMember),
+			new_text,
+			[](std::string& text, const FELLOWSHIPMEMBER& f) -> std::string
+			{
+				if (f.Name[0] != '\0' && ci_equals(text, f.Name, false))
+				{
+					auto memoized = fellowship_memoization.find(f.Name);
+					if (memoized == fellowship_memoization.end())
+						memoized = fellowship_memoization.emplace(
+							f.Name,
+							std::make_unique<anon_replacer>(f.Name, anon_fellowship)
+						).first;
+
+					return memoized->second->replace_text(text);
+				}
+
+				return text;
+			}
+		);
+	}
+
+	if (anon_guild != Anonymization::None && pGuildList)
+	{
+		if (pGuild && pChar)
+		{
+			auto guild_name = pGuild->GetGuildName(pChar->GuildID);
+			if (guild_name[0] != '\0' && ci_equals(new_text, guild_name, false))
+			{
+				auto memoized = guild_memoization.find(guild_name);
+				if (memoized == guild_memoization.end())
+					memoized = guild_memoization.emplace(
+						guild_name,
+						std::make_unique<anon_replacer>(guild_name, Anonymization::Asterisk)
+					).first;
+
+				new_text = memoized->second->replace_text(new_text);
+			}
+		}
+
+		// pGuildList is just "current guild"
+		for (auto pMember = pGuildList->pMember; pMember; pMember = pMember->pNext)
+		{
+			if (pMember->Name[0] != '\0' && ci_equals(new_text, pMember->Name, false))
+			{
+				auto memoized = guild_memoization.find(pMember->Name);
+				if (memoized == guild_memoization.end())
+					memoized = guild_memoization.emplace(
+						pMember->Name,
+						std::make_unique<anon_replacer>(pMember->Name, anon_guild)
+					).first;
+
+				new_text = memoized->second->replace_text(new_text);
+			}
+		}
+	}
+
+	if (anon_raid != Anonymization::None && pChar && pRaid)
+	{
+		for (auto pMember : pRaid->RaidMember)
+		{
+			if (pMember.Name[0] != '\0' && ci_equals(new_text, pMember.Name, false))
+			{
+				auto memoized = raid_memoization.find(pMember.Name);
+				if (memoized == raid_memoization.end())
+					memoized = raid_memoization.emplace(
+						pMember.Name,
+						std::make_unique<anon_replacer>(pMember.Name, anon_raid)
+					).first;
+
+				new_text = memoized->second->replace_text(new_text);
+			}
+		}
+	}
+
+	ExitMQ2Benchmark(bmAnonymizer);
+
+	return CXStr(new_text);
 }
 
 int GetGaugeValueFromEQ_Trampoline(int, CXStr&, bool*, unsigned long*);
 int GetGaugeValueFromEQ_Detour(int EQType, CXStr& Str, bool* arg3, unsigned long* Color)
 {
 	int ret = GetGaugeValueFromEQ_Trampoline(EQType, Str, arg3, Color);
-	Str = Anonymize(Str);
+	if (MaybeAnonymize(Str))
+	{
+		Str = Anonymize(Str);
+	}
 	return ret;
 }
 
 class CTextureFontHook
 {
 public:
-	int DrawWrappedText_Trampoline(const CXStr&, int, int, int, const CXRect&, COLORREF, uint16_t, int) const;
-	int DrawWrappedText_Detour(const CXStr& Str, int x, int y, int Width, const CXRect& BoundRect, COLORREF Color, uint16_t Flags = 0, int StartX = 0) const
-	{
-		return DrawWrappedText_Trampoline(Anonymize(Str), x, y, Width, BoundRect, Color, Flags, StartX);
-	}
-
 	int DrawWrappedText1_Trampoline(const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const;
 	int DrawWrappedText1_Detour(const CXStr& Str, const CXRect& Rect, const CXRect& BoundRect, COLORREF Color, uint16_t Flags = 0, int StartX = 0) const
 	{
-		return DrawWrappedText1_Trampoline(Anonymize(Str), Rect, BoundRect, Color, Flags, StartX);
+		if (MaybeAnonymize(Str))
+		{
+			return DrawWrappedText1_Trampoline(Anonymize(Str), Rect, BoundRect, Color, Flags, StartX);
+		}
+
+		return DrawWrappedText1_Trampoline(Str, Rect, BoundRect, Color, Flags, StartX);
 	}
 
 	int DrawWrappedText2_Trampoline(CTextObjectInterface*, const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const;
 	int DrawWrappedText2_Detour(CTextObjectInterface* Interface, const CXStr& Str, const CXRect& Rect, const CXRect& BoundRect, COLORREF Color, uint16_t Flags = 0, int StartX = 0) const
 	{
-		return DrawWrappedText2_Trampoline(Interface, Anonymize(Str), Rect, BoundRect, Color, Flags, StartX);
+		if (MaybeAnonymize(Str))
+		{
+			return DrawWrappedText2_Trampoline(Interface, Anonymize(Str), Rect, BoundRect, Color, Flags, StartX);
+		}
+
+		return DrawWrappedText2_Trampoline(Interface, Str, Rect, BoundRect, Color, Flags, StartX);
 	}
 };
 
 DETOUR_TRAMPOLINE_EMPTY(int GetGaugeValueFromEQ_Trampoline(int, CXStr&, bool*, unsigned long*));
-DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText_Trampoline(const CXStr&, int, int, int, const CXRect&, COLORREF, uint16_t, int) const);
 DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText1_Trampoline(const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const);
 DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText2_Trampoline(CTextObjectInterface*, const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const);
 
@@ -885,30 +900,45 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-void InitializeAnonymizer()
+static void InstallAnonDetours()
 {
 	EzDetour(__GetGaugeValueFromEQ, &GetGaugeValueFromEQ_Detour, &GetGaugeValueFromEQ_Trampoline);
-	EzDetour(CTextureFont__DrawWrappedText, &CTextureFontHook::DrawWrappedText_Detour, &CTextureFontHook::DrawWrappedText_Trampoline);
 	EzDetour(CTextureFont__DrawWrappedText1, &CTextureFontHook::DrawWrappedText1_Detour, &CTextureFontHook::DrawWrappedText1_Trampoline);
 	EzDetour(CTextureFont__DrawWrappedText2, &CTextureFontHook::DrawWrappedText2_Detour, &CTextureFontHook::DrawWrappedText2_Trampoline);
+}
 
+static void RemoveAnonDetours()
+{
+	RemoveDetour(__GetGaugeValueFromEQ);
+	RemoveDetour(CTextureFont__DrawWrappedText1);
+	RemoveDetour(CTextureFont__DrawWrappedText2);
+}
+
+void InitializeAnonymizer()
+{
 	bmAnonymizer = AddMQ2Benchmark("Anonymizer");
 
 	anon_config_path = mq::internal_paths::Config + "\\MQ2Anonymize.yaml";
 	Deserialize(); // always load on initialization
 
 	AddCommand("/mqanon", MQAnon, false, false, false);
+
+	if (anon_enabled)
+	{
+		InstallAnonDetours();
+	}
 }
 
 void ShutdownAnonymizer()
 {
+	if (anon_enabled)
+	{
+		RemoveAnonDetours();
+	}
+
 	RemoveCommand("/mqanon");
 
 	RemoveMQ2Benchmark(bmAnonymizer);
+}
 
-	RemoveDetour(__GetGaugeValueFromEQ);
-	RemoveDetour(CTextureFont__DrawWrappedText);
-	RemoveDetour(CTextureFont__DrawWrappedText1);
-	RemoveDetour(CTextureFont__DrawWrappedText2);
-}
-}
+} // namespace mq
