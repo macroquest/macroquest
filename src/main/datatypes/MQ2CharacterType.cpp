@@ -244,6 +244,9 @@ enum class CharacterMembers
 	FetterredIfritCoins,
 	EntwinedDjinnCoins,
 	CrystallizedLuck,
+	FroststoneDucat,
+	WarlordsSymbol,
+	OverseerTetradrachm,
 	SpellInCooldown,
 	Slowed,
 	Rooted,
@@ -321,6 +324,7 @@ enum class CharacterMembers
 	ParcelStatus,
 	CanMount,
 	SpellRankCap,
+	AbilityTimer,
 };
 
 enum class CharacterMethods
@@ -557,6 +561,9 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, FetterredIfritCoins);
 	ScopedTypeMember(CharacterMembers, EntwinedDjinnCoins);
 	ScopedTypeMember(CharacterMembers, CrystallizedLuck);
+	ScopedTypeMember(CharacterMembers, FroststoneDucat);
+	ScopedTypeMember(CharacterMembers, WarlordsSymbol);
+	ScopedTypeMember(CharacterMembers, OverseerTetradrachm);
 	ScopedTypeMember(CharacterMembers, SpellInCooldown);
 	ScopedTypeMember(CharacterMembers, Slowed);
 	ScopedTypeMember(CharacterMembers, Rooted);
@@ -634,6 +641,7 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, ParcelStatus);
 	ScopedTypeMember(CharacterMembers, CanMount);
 	ScopedTypeMember(CharacterMembers, SpellRankCap);
+	ScopedTypeMember(CharacterMembers, AbilityTimer);
 
 	ScopedTypeMethod(CharacterMethods, Stand);
 	ScopedTypeMethod(CharacterMethods, Sit);
@@ -641,7 +649,7 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMethod(CharacterMethods, StopCast);
 }
 
-bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	CHARINFO* pChar = static_cast<CHARINFO*>(pCharData);
 	if (!pChar)
@@ -2977,6 +2985,21 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 		Dest.Type = pIntType;
 		return true;
 
+	case CharacterMembers::FroststoneDucat:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_FROSTSTONEDUCAT);
+		Dest.Type = pIntType;
+		return true;
+
+	case CharacterMembers::WarlordsSymbol:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_WARLORDSSYMBOL);
+		Dest.Type = pIntType;
+		return true;
+
+	case CharacterMembers::OverseerTetradrachm:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_OVERSEERTETRADRACHM);
+		Dest.Type = pIntType;
+		return true;
+
 	case CharacterMembers::Fellowship:
 		Dest.Type = pFellowshipType;
 		if (pChar->pSpawn)
@@ -4048,6 +4071,55 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQT
 				Dest.DWord = 2;
 		}
 		return true;
+
+	case CharacterMembers::AbilityTimer:
+		Dest.Type = pTimeStampType;
+		Dest.Int64 = 0;
+
+		if (Index[0])
+		{
+			if (IsNumber(Index))
+			{
+				// numeric
+				if (int nSkill = GetIntFromString(Index, 0))
+				{
+					if (bool bActivated = pCSkillMgr->IsActivatedSkill(nSkill))
+					{
+						int calcedduration = pSkillMgr->SkillTimerDuration[nSkill] - (EQGetTime() - pSkillMgr->SkillLastUsed[nSkill]);
+						if (calcedduration < 0)
+							calcedduration = 0;
+
+						Dest.Int64 = calcedduration;
+						return true;
+					}
+				}
+				return false;
+			}
+
+			// name
+			for (int nSkill = 0; nSkill < NUM_SKILLS; nSkill++)
+			{
+				int nToken = pCSkillMgr->GetNameToken(nSkill);
+				const char* thename = pStringTable->getString(nToken);
+
+				if (!thename || _stricmp(Index, thename) != 0)
+					continue;
+
+				// TODO: DRY - refactor duplicated code from above.
+				if (bool bActivated = pCSkillMgr->IsActivatedSkill(nSkill))
+				{
+					int calcedduration = pSkillMgr->SkillTimerDuration[nSkill] - (EQGetTime() - pSkillMgr->SkillLastUsed[nSkill]);
+					if (calcedduration < 0)
+						calcedduration = 0;
+
+					Dest.Int64 = calcedduration;
+					return true;
+				}
+
+				return false;
+			}
+		}
+		return false;
 
 	default:
 		return false;

@@ -1309,6 +1309,9 @@ int GetCurrencyIDByName(char* szName)
 	if (!_stricmp(szName, "Fetterred Ifrit Coins")) return ALTCURRENCY_FETTERREDIFRITCOINS;
 	if (!_stricmp(szName, "Entwined Djinn Coins")) return ALTCURRENCY_ENTWINEDDJINNCOINS;
 	if (!_stricmp(szName, "Crystallized Luck")) return ALTCURRENCY_CRYSTALLIZEDLUCK;
+	if (!_stricmp(szName, "Froststone Ducat")) return ALTCURRENCY_FROSTSTONEDUCAT;
+	if (!_stricmp(szName, "Warlord's Symbol")) return ALTCURRENCY_WARLORDSSYMBOL;
+	if (!_stricmp(szName, "Overseer Tetradrachm")) return ALTCURRENCY_OVERSEERTETRADRACHM;
 	return -1;
 }
 
