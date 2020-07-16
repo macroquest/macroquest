@@ -290,7 +290,7 @@ BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber,
 			CHAR Filename[MAX_STRING] = { 0 };
 			szLine += 8;
 			while (szLine[0] == ' ') szLine++;
-
+			ParseMacroData(szLine, sizeof(szLine));
 			if (!strstr(szLine, "."))
 				strcat_s(szLine, Linelen, ".mac");
 			sprintf_s(Filename, "%s\\%s", gszMacroPath, szLine);

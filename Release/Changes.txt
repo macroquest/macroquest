@@ -1,3 +1,6 @@
+July 15 2020
+- Updated for LIVE
+-
 July 10 2020
 - Fixed a bug in EQClasses.h in the LegalPlayerRace function.
 - Reverted mq2nav offsets to support patterns again. - @redbot
