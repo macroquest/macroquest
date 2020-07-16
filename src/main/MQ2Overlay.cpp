@@ -654,7 +654,7 @@ static void ImGui_ImplDX9_SetWindowSize(ImGuiViewport* viewport, ImVec2 size)
 		if (hr == D3D_OK)
 		{
 			data->SwapChain->Release();
-			data->SwapChain = newData.SwapChain;
+			data->SwapChain = std::exchange(newData.SwapChain, nullptr);
 			data->d3dpp = newData.d3dpp;
 			return;
 		}
