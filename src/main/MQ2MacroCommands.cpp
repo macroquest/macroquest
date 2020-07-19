@@ -363,6 +363,7 @@ bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineN
 		{
 			szLine += 8;
 			while (szLine[0] == ' ') szLine++;
+			ParseMacroData(szLine, Linelen);
 
 			if (!strstr(szLine, "."))
 				strcat_s(szLine, Linelen, ".mac");
