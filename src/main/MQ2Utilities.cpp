@@ -6976,6 +6976,20 @@ void TruncateSpellRankName(char* SpellName)
 	}
 }
 
+int FindBuffID(std::string_view Name)
+{
+	if (Name.empty())
+		return -1;
+
+	return GetSelfBuff(AllBuffs([&Name](EQ_Spell* spell) { return MaybeExactCompare(spell->Name, Name); }));
+}
+
+void RemoveBuffAt(int BuffID)
+{
+	if (BuffID >= 0 && pLocalPlayer)
+		pPCData->RemoveBuffEffect(BuffID, pLocalPlayer->SpawnID);
+}
+
 void RemoveBuff(SPAWNINFO* pChar, char* szLine)
 {
 	char szCmd[MAX_STRING] = { 0 };
@@ -6994,40 +7008,11 @@ void RemoveBuff(SPAWNINFO* pChar, char* szLine)
 		RemovePetBuff(pChar, szCmd);
 	}
 
-	if (szCmd && szCmd[0] != '\0')
-	{
-		auto pProfile = GetPcProfile();
-		if (!pProfile)
-			return;
-
-		for (int nBuff = 0; nBuff < NUM_LONG_BUFFS; ++nBuff)
-		{
-			if (pProfile->Buff[nBuff].SpellID == 0 || pProfile->Buff[nBuff].SpellID == -1)
-				continue;
-
-			auto pBuffSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID);
-			if (pBuffSpell && !_strnicmp(pBuffSpell->Name, szCmd, strlen(szCmd)))
-			{
-				pPCData->RemoveBuffEffect(nBuff, pLocalPlayer->SpawnID);
-				return;
-			}
-		}
-
-		for (int nBuff = 0; nBuff < NUM_SHORT_BUFFS; ++nBuff)
-		{
-			if (pProfile->ShortBuff[nBuff].SpellID == 0 || pProfile->ShortBuff[nBuff].SpellID == -1)
-				continue;
-
-			auto pBuffSpell = GetSpellByID(pProfile->ShortBuff[nBuff].SpellID);
-			if (pBuffSpell && !_strnicmp(pBuffSpell->Name, szCmd, strlen(szCmd)))
-			{
-				pPCData->RemoveBuffEffect(nBuff + NUM_LONG_BUFFS, pLocalPlayer->SpawnID);
-				return;
-			}
-		}
-	}
+	if (szCmd != nullptr)
+		RemoveBuffAt(FindBuffID(szCmd));
 }
 
+// TODO: can we just use cached buffs for pet buffs here? We should be getting the buffs packet from the server for them...
 void RemovePetBuff(SPAWNINFO* pChar, char* szLine)
 {
 	if (!pPetInfoWnd || !szLine || szLine[0] == '\0')
@@ -7036,7 +7021,7 @@ void RemovePetBuff(SPAWNINFO* pChar, char* szLine)
 	for (int nBuff = 0; nBuff < NUM_BUFF_SLOTS; ++nBuff)
 	{
 		auto pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
-		if (pBuffSpell && !_strnicmp(pBuffSpell->Name, szLine, strlen(szLine)))
+		if (pBuffSpell && MaybeExactCompare(pBuffSpell->Name, szLine))
 		{
 			pPCData->RemovePetEffect(nBuff);
 			return;

@@ -63,7 +63,7 @@ MQ2BuffType::MQ2BuffType() : MQ2Type("buff")
 
 bool MQ2BuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	if (VarPtr.Int < 0)
+	if (VarPtr.Int < 0 || VarPtr.Int >= NUM_LONG_BUFFS + NUM_SHORT_BUFFS)
 		return false;
 
 	auto pPCProfile = GetPcProfile();
@@ -77,7 +77,7 @@ bool MQ2BuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		buff = &pPCProfile->ShortBuff[VarPtr.Int - NUM_LONG_BUFFS];
 
 	// this is how we tell if there is a buff in that slot
-	if (!buff || buff->SpellID <= 0)
+	if (buff == nullptr || buff->SpellID <= 0)
 		return false;
 
 	//----------------------------------------------------------------------------
@@ -88,13 +88,8 @@ bool MQ2BuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		switch (static_cast<BuffMethods>(pMethod->ID))
 		{
 		case BuffMethods::Remove:
-			if (SPELL* pSpell = GetSpellByID(buff->SpellID))
-			{
-				RemoveBuff(pLocalPlayer, pSpell->Name);
-				return true;
-			}
-
-			return false;
+			RemoveBuffAt(VarPtr.Int);
+			return true;
 
 		default:
 			return false;

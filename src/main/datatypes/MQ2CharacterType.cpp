@@ -897,28 +897,22 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		if (IsNumber(Index))
 		{
 			int nBuff = GetIntFromString(Index, 0) - 1;
-			if (nBuff < 0)
-				return false;
-			if (nBuff >= NUM_LONG_BUFFS)
-				return false;
-			if (pProfile->Buff[nBuff].SpellID <= 0)
+			if (nBuff < 0 || nBuff > NUM_LONG_BUFFS || pProfile->Buff[nBuff].SpellID <= 0)
 				return false;
 
 			Dest.Int = nBuff;
 			return true;
 		}
 
-		for (int nBuff = 0; nBuff < NUM_LONG_BUFFS; ++nBuff)
 		{
-			if (EQ_Spell* pSpell = GetSpellByID(pProfile->Buff[nBuff].SpellID))
+			int buffID = FindBuffID(Index);
+			if (buffID >= 0 && buffID < NUM_LONG_BUFFS)
 			{
-				if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
-				{
-					Dest.Int = nBuff;
-					return true;
-				}
+				Dest.Int = buffID;
+				return true;
 			}
 		}
+
 		return false;
 
 	case CharacterMembers::Song:
@@ -930,28 +924,22 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		if (IsNumber(Index))
 		{
 			int nBuff = GetIntFromString(Index, 0) - 1;
-			if (nBuff < 0)
-				return false;
-			if (nBuff >= NUM_SHORT_BUFFS)
-				return false;
-			if (pProfile->ShortBuff[nBuff].SpellID <= 0)
+			if (nBuff < 0 || nBuff >= NUM_SHORT_BUFFS || pProfile->ShortBuff[nBuff].SpellID <= 0)
 				return false;
 
 			Dest.Int = nBuff + NUM_LONG_BUFFS;
 			return true;
 		}
 
-		for (int nBuff = 0; nBuff < NUM_SHORT_BUFFS; nBuff++)
 		{
-			if (EQ_Spell* pSpell = GetSpellByID(pProfile->ShortBuff[nBuff].SpellID))
+			int buffID = FindBuffID(Index);
+			if (buffID >= NUM_LONG_BUFFS && buffID < NUM_LONG_BUFFS + NUM_SHORT_BUFFS)
 			{
-				if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
-				{
-					Dest.Int = nBuff + NUM_LONG_BUFFS;
-					return true;
-				}
+				Dest.Int = buffID;
+				return true;
 			}
 		}
+
 		return false;
 
 	case CharacterMembers::HPBonus:
