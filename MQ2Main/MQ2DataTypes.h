@@ -1276,6 +1276,7 @@ public:
 		FroststoneDucat = 313,
 		WarlordsSymbol = 314,
 		OverseerTetradrachm = 315,
+		CastTimeLeft = 316
 	};
 	enum CharacterMethods
 	{
@@ -1593,6 +1594,7 @@ public:
 		TypeMember(FroststoneDucat);//313
 		TypeMember(WarlordsSymbol);//314
 		TypeMember(OverseerTetradrachm);//315
+		TypeMember(CastTimeLeft);//316
 
 		TypeMethod(Stand);
 		TypeMethod(Sit);
@@ -3753,7 +3755,7 @@ public:
 		AddMember(xHWND, "HWND");
 		TypeMember(Foreground);
 		TypeMember(ValidLoc);
-		TypeMember(FloorAtLoc);	
+		TypeMember(FloorAtLoc);
 	}
 
 	~MQ2EverQuestType()

@@ -1,3 +1,8 @@
+July 22 2020
+- Updated for TEST
+- Added ${Me.CastTimeLeft} - Kaen01
+  It returns the cast time left as a timestamp of currently casting spell.
+-
 July 15 2020
 - Updated for LIVE
 -

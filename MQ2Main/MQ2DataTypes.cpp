@@ -6804,6 +6804,18 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_OVERSEERTETRADRACHM);
 		Dest.Type = pIntType;
 		return true;
+	case CastTimeLeft:
+	{
+		Dest.Int64 = 0;
+		Dest.Type = pTimeStampType;
+		int spelleta = ((PSPAWNINFO)pLocalPlayer)->CastingData.SpellETA;
+		if (spelleta > 0) {
+			Dest.Int64 = ((PSPAWNINFO)pLocalPlayer)->CastingData.SpellETA - ((PSPAWNINFO)pLocalPlayer)->TimeStamp;
+			if (Dest.Int64 < 0)
+				Dest.Int64 = 0;
+		}
+		return true;
+	}
 	}
 
 
