@@ -5578,202 +5578,16 @@ template <typename T>
 CONTENTS* FindItem(T&& callback)
 {
 	PcProfile* pProfile = GetPcProfile();
-	CHARINFO* pChar = GetCharInfo();
-
-	if (!pProfile || !pChar)
+	if (!pProfile)
 		return nullptr;
 
-	// check cursor
-	if (pProfile->pInventoryArray && pProfile->pInventoryArray->Inventory.Cursor)
+	ItemIndex index = pProfile->InventoryContainer.FindItem([&callback](const ItemContainer::ItemPointer& itemPointer, const ItemIndex&)
 	{
-		if (CONTENTS* pPack = pProfile->pInventoryArray->Inventory.Cursor)
-		{
-			ITEMINFO* pPackInfo = GetItemFromContents(pPack);
+		return callback(itemPointer.get(), itemPointer->GetItemDefinition());
+	});
 
-			if (callback(pPack, pPackInfo))
-				return pPack;
-
-			if (pPackInfo->Type != ITEMTYPE_PACK)
-			{
-				// it's not a pack we should check for augs
-				if (pPack->Contents.ContainedItems.pItems && pPack->Contents.ContainedItems.Size)
-				{
-					for (size_t nAug = 0; nAug < pPack->Contents.ContainedItems.Size; nAug++)
-					{
-						if (CONTENTS* pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug])
-						{
-							ITEMINFO* pAugItemInfo = GetItemFromContents(pAugItem);
-
-							if (pAugItemInfo->Type == ITEMTYPE_NORMAL && pAugItemInfo->AugType)
-							{
-								if (callback(pAugItem, pAugItemInfo))
-									return pAugItem;
-							}
-						}
-					}
-				}
-			}
-			else if (pPack->Contents.ContainedItems.pItems)
-			{
-				// Found a pack, check the items inside.
-				for (int nItem = 0; nItem < pPackInfo->Slots; nItem++)
-				{
-					if (CONTENTS* pItem = pPack->GetContent(nItem))
-					{
-						ITEMINFO* pItemInfo = GetItemFromContents(pItem);
-
-						if (callback(pItem, pItemInfo))
-							return pItem;
-
-						// Check for augs next
-						if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size)
-						{
-							for (size_t nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++)
-							{
-								if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug])
-								{
-									ITEMINFO* pAugItemInfo = GetItemFromContents(pAugItem);
-
-									if (pAugItemInfo->Type == ITEMTYPE_NORMAL && pAugItemInfo->AugType)
-									{
-										if (callback(pAugItem, pAugItemInfo))
-											return pAugItem;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	// check toplevel slots
-	if (pProfile->pInventoryArray && pProfile->pInventoryArray->InventoryArray)
-	{
-		for (CONTENTS* pItem : pProfile->pInventoryArray->InventoryArray)
-		{
-			if (!pItem)
-				continue;
-
-			ITEMINFO* pItemInfo = GetItemFromContents(pItem);
-
-			if (pItemInfo && callback(pItem, pItemInfo))
-				return pItem;
-
-			// Check for augs next
-			if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size)
-			{
-				for (size_t nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++)
-				{
-					if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug])
-					{
-						if (!pAugItem)
-							continue;
-
-						ITEMINFO* pAugItemInfo = GetItemFromContents(pAugItem);
-
-						if (pAugItemInfo
-							&& pAugItemInfo->Type == ITEMTYPE_NORMAL
-							&& pAugItemInfo->AugType
-							&& callback(pAugItem, pAugItemInfo))
-						{
-							return pAugItem;
-						}
-					}
-				}
-			}
-		}
-	}
-
-	// check the bags
-	if (pProfile->pInventoryArray)
-	{
-		for (int nPack = 0; nPack < NUM_BAG_SLOTS; nPack++)
-		{
-			if (CONTENTS* pPack = pProfile->pInventoryArray->Inventory.Pack[nPack])
-			{
-				ITEMINFO* pPackInfo = GetItemFromContents(pPack);
-
-				if (pPackInfo->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
-				{
-					for (int nItem = 0; nItem < pPackInfo->Slots; nItem++)
-					{
-						if (CONTENTS* pItem = pPack->GetContent(nItem))
-						{
-							ITEMINFO* pItemInfo = GetItemFromContents(pItem);
-
-							if (callback(pItem, pItemInfo))
-								return pItem;
-
-							// We should check for augs next
-							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size)
-							{
-								for (size_t nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++)
-								{
-									if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug])
-									{
-										ITEMINFO* pAugItemInfo = GetItemFromContents(pAugItem);
-
-										if (pAugItemInfo->Type == ITEMTYPE_NORMAL && pAugItemInfo->AugType)
-										{
-											if (callback(pAugItem, pAugItemInfo))
-												return pAugItem;
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	// check mount keyring
-	if (pChar->pMountsArray && pChar->pMountsArray->Mounts)
-	{
-		for (CONTENTS* pItem : pChar->pMountsArray->Mounts)
-		{
-			if (pItem)
-			{
-				ITEMINFO* pItemInfo = GetItemFromContents(pItem);
-
-				if (callback(pItem, pItemInfo))
-					return pItem;
-			}
-		}
-	}
-
-	// check illusions keyring
-	if (pChar->pIllusionsArray && pChar->pIllusionsArray->Illusions)
-	{
-		for (CONTENTS* pItem : pChar->pIllusionsArray->Illusions)
-		{
-			if (pItem)
-			{
-				ITEMINFO* pItemInfo = GetItemFromContents(pItem);
-
-				if (callback(pItem, pItemInfo))
-					return pItem;
-			}
-		}
-	}
-
-	// check familiars keyring
-	if (pChar->pFamiliarArray && pChar->pFamiliarArray->Familiars)
-	{
-		for (CONTENTS* pItem : pChar->pFamiliarArray->Familiars)
-		{
-			if (pItem)
-			{
-				ITEMINFO* pItemInfo = GetItemFromContents(pItem);
-
-				if (callback(pItem, pItemInfo))
-					return pItem;
-			}
-		}
-	}
+	if (index.IsValid())
+		return pProfile->GetItemPossession(index).get();
 
 	return nullptr;
 }
@@ -5801,205 +5615,46 @@ int GetItemCount(CONTENTS* pItem)
 template <typename T>
 int CountItems(T&& checkItem)
 {
+	struct PredicatedCountVisitor
+	{
+		PredicatedCountVisitor(const T& predicate) : m_predicate(predicate) {}
+		void operator() (const ItemContainer::ItemPointer& itemPointer, const ItemIndex&)
+		{
+			if (m_predicate(itemPointer.get()))
+			{
+				if (itemPointer && ((EQ_Item*)itemPointer.get())->IsStackable())
+					m_count += itemPointer->StackCount;
+				else
+					++m_count;
+			}
+		}
+		uint32_t GetCount() const { return m_count; }
+
+	private:
+		uint32_t m_count = 0;
+		T m_predicate;
+	} visitor(checkItem);
+
 	PcProfile* pProfile = GetPcProfile();
-	CHARINFO* pChar = GetCharInfo();
-
-	if (!pProfile || !pChar)
-		return 0;
-
-	int Count = 0;
-
-	// check cursor
-	if (pProfile->pInventoryArray && pProfile->pInventoryArray->Inventory.Cursor)
+	if (pProfile)
 	{
-		if (CONTENTS* pPack = pProfile->pInventoryArray->Inventory.Cursor)
-		{
-			if (checkItem(pPack))
-			{
-				Count += GetItemCount(pPack);
-			}
-
-			if (GetItemFromContents(pPack)->Type != ITEMTYPE_PACK)
-			{
-				// should check for augs
-				if (pPack->Contents.ContainedItems.pItems && pPack->Contents.ContainedItems.Size)
-				{
-					for (size_t nAug = 0; nAug < pPack->Contents.ContainedItems.Size; nAug++)
-					{
-						if (CONTENTS* pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug])
-						{
-							ITEMINFO* pAugItemInfo = GetItemFromContents(pAugItem);
-
-							if (pAugItemInfo->Type == ITEMTYPE_NORMAL && pAugItemInfo->AugType)
-							{
-								if (checkItem(pAugItem))
-								{
-									Count += 1;
-								}
-							}
-						}
-					}
-				}
-			}
-			else if (pPack->Contents.ContainedItems.pItems)
-			{
-				// it was a pack, if it has items in it lets check them
-				for (int nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
-				{
-					if (CONTENTS* pItem = pPack->GetContent(nItem))
-					{
-						if (checkItem(pItem))
-						{
-							Count += GetItemCount(pItem);
-						}
-
-						// Check for augs next
-						if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size)
-						{
-							for (size_t nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++)
-							{
-								if (CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug])
-								{
-									ITEMINFO* pAugItemInfo = GetItemFromContents(pAugItem);
-
-									if (pAugItemInfo->Type == ITEMTYPE_NORMAL && pAugItemInfo->AugType)
-									{
-										if (checkItem(pAugItem))
-										{
-											Count += 1;
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+		pProfile->InventoryContainer.VisitItems<PredicatedCountVisitor&>(visitor);
 	}
 
-	// check toplevel slots
-	if (pProfile->pInventoryArray && pProfile->pInventoryArray->InventoryArray)
+	if (pCharData)
 	{
-		for (CONTENTS* pItem : pProfile->pInventoryArray->InventoryArray)
-		{
-			if (!pItem)
-				continue;
-
-			if (checkItem(pItem))
-			{
-				Count += GetItemCount(pItem);
-			}
-
-			// Check for augs next
-			if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size)
-			{
-				for (size_t nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++)
-				{
-					CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug];
-					if (!pAugItem)
-						continue;
-
-					ITEMINFO* pAugItemInfo = GetItemFromContents(pAugItem);
-
-					if (pAugItemInfo->Type == ITEMTYPE_NORMAL
-						&& pAugItemInfo->AugType
-						&& checkItem(pAugItem))
-					{
-						Count += 1;
-					}
-				}
-			}
-		}
+		pCharData->GetKeyRingItems(eMount).VisitItems<PredicatedCountVisitor&>(visitor);
+		pCharData->GetKeyRingItems(eIllusion).VisitItems<PredicatedCountVisitor&>(visitor);
+		pCharData->GetKeyRingItems(eFamiliar).VisitItems<PredicatedCountVisitor&>(visitor);
 	}
 
-	// check the bags
-	if (pProfile->pInventoryArray)
-	{
-		for (CONTENTS* pPack : pProfile->pInventoryArray->Inventory.Pack)
-		{
-			if (pPack
-				&& GetItemFromContents(pPack)->Type == ITEMTYPE_PACK
-				&& pPack->Contents.ContainedItems.pItems)
-			{
-				for (int nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
-				{
-					CONTENTS* pItem = pPack->GetContent(nItem);
-					if (!pItem)
-						continue;
-
-					if (checkItem(pItem))
-					{
-						Count += GetItemCount(pItem);
-					}
-
-					// We should check for augs next
-					if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size)
-					{
-						for (size_t nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++)
-						{
-							CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug];
-							if (!pAugItem)
-								continue;
-
-							ITEMINFO* pAugItemInfo = GetItemFromContents(pAugItem);
-
-							if (pAugItemInfo->Type == ITEMTYPE_NORMAL
-								&& pAugItemInfo->AugType
-								&& checkItem(pAugItem))
-							{
-								Count += 1;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	// check mount keyring
-	if (pChar->pMountsArray && pChar->pMountsArray->Mounts)
-	{
-		for (CONTENTS* pItem : pChar->pMountsArray->Mounts)
-		{
-			if (pItem && checkItem(pItem))
-			{
-				Count += (GetItemFromContents(pItem)->StackSize > 1 ? pItem->StackCount : 1);
-			}
-		}
-	}
-
-	// check illusions keyring
-	if (pChar && pChar->pIllusionsArray && pChar->pIllusionsArray->Illusions)
-	{
-		for (CONTENTS* pItem : pChar->pIllusionsArray->Illusions)
-		{
-			if (pItem && checkItem(pItem))
-			{
-				Count += (GetItemFromContents(pItem)->StackSize > 1 ? pItem->StackCount : 1);
-			}
-		}
-	}
-
-	// check familiars keyring
-	if (pChar && pChar->pFamiliarArray && pChar->pFamiliarArray->Familiars)
-	{
-		for (CONTENTS* pItem : pChar->pFamiliarArray->Familiars)
-		{
-			if (pItem && checkItem(pItem))
-			{
-				Count += (GetItemFromContents(pItem)->StackSize > 1 ? pItem->StackCount : 1);
-			}
-		}
-	}
-
-	return Count;
+	return visitor.GetCount();
 }
 
-int FindItemCountByName(const char* pName, bool bExact)
+int FindItemCountByName(const char* pName)
 {
-	return CountItems([pName, bExact](CONTENTS* pItem)
-		{ return ci_equals(GetItemFromContents(pItem)->Name, pName, bExact); });
+	return CountItems([pName](CONTENTS* pItem)
+		{ return MaybeExactCompare(GetItemFromContents(pItem)->Name, pName); });
 }
 
 int FindItemCountByID(int ItemID)
