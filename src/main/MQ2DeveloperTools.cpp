@@ -2878,6 +2878,9 @@ struct ScrollingData
 	}
 };
 
+extern float gCurrentFPS;
+extern float gCurrentCPU;
+
 class BenchmarksDeveloperTool : public ImGuiWindowBase
 {
 public:
@@ -2931,6 +2934,7 @@ public:
 		{
 			m_data.clear();
 			m_fpsData.Erase();
+			m_cpuData.Erase();
 		}
 		ImGui::SameLine();
 		if (ImGui::Button(m_paused ? "Resume" : "Pause"))
@@ -2978,9 +2982,10 @@ public:
 					iter = m_data.erase(iter);
 			}
 			auto now = std::chrono::steady_clock::now();
-			if (now - m_lastUpdate > 200ms)
+			if (now - m_lastUpdate > 50ms)
 			{
-				m_fpsData.AddPoint(m_time, ImGui::GetIO().Framerate);
+				m_fpsData.AddPoint(m_time, gCurrentFPS);
+				m_cpuData.AddPoint(m_time, gCurrentCPU);
 
 				m_lastUpdate = now;
 			}
@@ -3013,6 +3018,17 @@ public:
 				ImPlot::PopStyleVar();
 				ImPlot::PopStyleColor();
 			}
+
+			if (!m_cpuData.Data.empty())
+			{
+				ImPlot::SetPlotYAxis(1);
+				ImPlot::PushStyleColor(ImPlotCol_Line, IM_COL32(127, 127, 255, 255));
+				ImPlot::PushStyleVar(ImPlotStyleVar_LineWeight, 2);
+				ImPlot::PlotLine("CPU Usage %", &m_cpuData.Data[0], m_cpuData.Data.size(), m_cpuData.Offset);
+				ImPlot::PopStyleVar();
+				ImPlot::PopStyleColor();
+			}
+
 			ImPlot::EndPlot();
 		}
 	}
@@ -3050,6 +3066,7 @@ private:
 	bool m_resetNext = true;
 
 	ScrollingData m_fpsData;
+	ScrollingData m_cpuData;
 };
 static BenchmarksDeveloperTool s_benchmarksTool;
 

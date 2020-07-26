@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "MQ2Main.h"
 #include "MQ2DeveloperTools.h"
+#include "MQ2Overlay.h"
 #include "CrashHandler.h"
 
 #include "common/HotKeys.h"
@@ -86,6 +87,9 @@ static int gLastGameState = GAMESTATE_PRECHARSELECT;
 static mq::PlatformHotkey gToggleConsoleHotkey;
 static const char gToggleConsoleDefaultBind[] = "ctrl+`";
 static bool gbToggleConsoleHotkeyReady = false;
+
+static DWORD bmRealRenderWorld = 0;
+static DWORD bmThrottleTime = 0;
 
 // Mouse state, pointed to by EQADDR_DIMOUSECOPY
 struct MouseStateData
@@ -1818,9 +1822,10 @@ public:
 	void RenderScene_Detour()
 	{
 		if (RenderScene_Hook())
-			return;
-
-		RenderScene_Trampoline();
+		{
+			MQScopedBenchmark bm(bmRenderScene);
+			RenderScene_Trampoline();
+		}
 	}
 
 	// This hooks the ResetDevice function which is called when we want to reset the device. Hooking
@@ -2333,86 +2338,6 @@ static bool CreateDeviceObjects()
 
 #pragma region Helpers
 
-class FrameThrottler
-{
-public:
-	FrameThrottler() = default;
-
-	void SetMinDuration(std::chrono::microseconds duration)
-	{
-		m_minDuration = duration;
-		m_previous = std::chrono::steady_clock::now();
-	}
-
-	void Prepare()
-	{
-		m_previous = std::chrono::steady_clock::now() - m_minDuration;
-	}
-
-	bool ThrottleFrame()
-	{
-		auto now = std::chrono::steady_clock::now();
-		std::chrono::microseconds delta = std::chrono::duration_cast<std::chrono::microseconds>(now - m_previous);
-
-		if (delta < 0ms)
-			m_previous = now;
-		else if (delta < m_minDuration)
-			return true;
-
-		m_previous += m_minDuration;
-		return false;
-	}
-
-private:
-	std::chrono::steady_clock::time_point m_previous;
-	std::chrono::microseconds m_minDuration;
-};
-
-class FrameCounter
-{
-public:
-	static const int SampleCount = 32;
-
-	FrameCounter()
-	{
-		memset(m_samples, 0, sizeof(m_samples));
-	}
-
-	void AddSample(int64_t sample)
-	{
-		m_sum -= m_samples[m_index];
-		m_sum += sample;
-		m_samples[m_index++] = sample;
-
-		if (m_index == SampleCount)
-			m_index = 0;
-	}
-
-	void AddRelativeSample(int64_t relativeSample)
-	{
-		if (m_isFirstSample)
-		{
-			m_isFirstSample = false;
-			m_prevSample = relativeSample;
-			return;
-		}
-
-		int64_t sample = relativeSample - m_prevSample;
-		m_prevSample = relativeSample;
-
-		AddSample(sample);
-	}
-
-	double Average() const { return m_sum == 0 ? 0.0 : ((double)m_sum / SampleCount);  }
-
-private:
-	int64_t m_samples[SampleCount];
-	int64_t m_sum = 0;
-	int64_t m_prevSample = 0;
-	int m_index = 0;
-	bool m_isFirstSample = true;
-};
-
 class CpuUsage
 {
 	ULARGE_INTEGER lastCPU, lastSysCPU, lastUserCPU;
@@ -2464,11 +2389,57 @@ public:
 
 #pragma region MQ2Overlay Frame Limiter
 
+// TODO: Could be installed as a module
+
+static bool ShouldDoRealRenderWorld();
+
+class CDisplayHook
+{
+public:
+	// This hooks the main world update function. We will never skip running it, but we change
+	// when it is called based on our frame limiting scheme.
+	void RealRender_World_Trampoline();
+	void RealRender_World_Detour()
+	{
+		if (ShouldDoRealRenderWorld())
+		{
+			MQScopedBenchmark bm(bmRealRenderWorld);
+			RealRender_World_Trampoline();
+		}
+	}
+};
+DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::RealRender_World_Trampoline());
+
 // Global bool controlling this whole feature.
 bool gbFrameLimiterEnabled = false;
+float gCurrentFPS = 0.0f;
+float gCurrentCPU = 0.0f;
 
 class FrameLimiter
 {
+	bool m_lastInForeground = true;
+	bool m_resetOnNextPulse = false;
+	FrameCounter m_renderFPS;
+	FrameCounter m_gameFPS;
+	CpuUsage m_cpuUsageCalc;
+	FrameCounter m_cpuUsage;
+	FrameThrottler m_frameThrottler;          // throttler for framerate
+	FrameThrottler m_gameThrottler;           // throttler for game
+	std::chrono::steady_clock::time_point m_startTime;
+	uint32_t m_lastGameState = 0;
+	bool m_needWaitRender = true;     // wait for RenderReal_World function to be called
+	bool m_didTryRender = false;      // real render function was called
+	bool m_doRender = false;          // if set to false, we won't render (per frame).
+
+	// Settings
+	bool m_renderInBackground = false;
+	bool m_hideInterfaceInBackground = false;
+	bool m_renderInForeground = true;
+	bool m_clearScreen = true;
+	bool m_captureFrames = true;
+	float m_backgroundFPS = 1;
+	float m_foregroundFPS = 60;
+
 public:
 	FrameLimiter()
 	{
@@ -2477,30 +2448,141 @@ public:
 		m_startTime = std::chrono::steady_clock::now();
 	}
 
+	//
+	// Main loop looks something like this pseudocode:
+	//
+	// while (true)
+	// {
+	//     // .. update ui state
+	//     RealRender_World()
+	//         // .. game state update
+	//         RenderScene()
+	//
+	//     ThrottleFrameRate();
+	// }
+	//
+	// this implementation moves RealRender_World into ThrottleFrameRate
+	// where we can determine how long to wait in order to manage both the
+	// render rate and the game update rate.
+	//
+	// The framerate will be set such that we maintain a minimum of 30 fps
+	// for the game simulation rate. If the render rate is set below that, then
+	// we will skip frames while maintaining a 30 fps game simulation.
+
 	bool IsEnabled() const { return gbFrameLimiterEnabled; }
 
-	bool DoRenderSceneHook()
+	bool DoRealRenderWorld()
 	{
-		EnterMQ2Benchmark(bmRenderScene);
+		if (!IsEnabled())
+			return true;
 
-		bool shouldSkipRender = DoRenderSceneHookImpl();
+		// The render function was called, don't need to wait anymore.
+		m_needWaitRender = false;
+		m_didTryRender = true;
 
-		ExitMQ2Benchmark(bmRenderScene);
+		// If frame limiting is enabled, we always render from the throttle function as
+		// it gives is better control over the render rate.
+		return false;
+	}
 
-		if (!shouldSkipRender)
+	bool DoThrottleFrameRate()
+	{
+		// If we didn't get a call to DoRealRenderWorld, then we don't do anything. This is because sometimes
+		// the game won't call it right after starting up the engine.
+		if (!IsEnabled() || m_needWaitRender)
 		{
-			m_renderFPS.AddRelativeSample(
-				std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - m_startTime).count());
+			RecordSimulationSample();
+			return true;
 		}
 
-		return shouldSkipRender;
+		// Figure out how much time we need to wait before rendering.
+		bool inBackground = !gbInForeground;
+
+		// Decide if we should render the game.
+		bool doRender = false;
+
+		if (inBackground)
+		{
+			doRender = m_renderInBackground;
+		}
+		else
+		{
+			// Always render in foreground.
+			doRender = m_renderInForeground;
+		}
+
+		auto now1 = std::chrono::steady_clock::now();
+
+		// Make sure we're calling throttle frame each time to update the time accounting
+		auto frameRemaining = m_frameThrottler.ThrottleFrame(now1);
+
+		if (doRender)
+		{
+			doRender = frameRemaining == std::chrono::microseconds(0);
+		}
+
+		m_doRender = doRender;
+
+		// Call into RealRender_World always.
+		{
+			// Measure how long it takes to do a realrender
+			MQScopedBenchmark bm(bmRealRenderWorld);
+			RecordSimulationSample();
+
+			pDisplay.get_as<CDisplayHook>()->RealRender_World_Trampoline();
+		}
+
+		auto now2 = std::chrono::steady_clock::now();
+		std::chrono::microseconds delta = std::chrono::duration_cast<std::chrono::microseconds>(now1 - now2);
+
+		frameRemaining = frameRemaining - delta;
+
+		auto gameRemaining = m_gameThrottler.ThrottleFrame(now2);
+		if (gameRemaining == 0us)
+		{
+			gameRemaining = m_gameThrottler.GetMinDuration() - delta;
+		}
+
+		// A minimum of 1ms to match EQ's logic
+
+		auto waitTime = std::min(frameRemaining, gameRemaining);
+		waitTime = std::max(1us, waitTime);
+
+		MQScopedBenchmark bm(bmThrottleTime);
+		//DebugSpewAlways("Sleep for: %d -- gameRemaining: %d -- frameRemaining: %d", (int)waitTime.count(),
+		//	(int)gameRemaining.count(), (int)frameRemaining.count());
+		std::this_thread::sleep_for(waitTime);
+
+		return false;
+	}
+
+	// this function performs the actual graphics render. If we don't want to do it then
+	// return true.
+	bool DoRenderSceneHook()
+	{
+		bool doRender = !IsEnabled() || m_doRender;
+
+		if (doRender)
+		{
+			RecordRenderSample();
+		}
+		//else
+		//{
+		//	RenderImGuiScene();
+		//}
+
+		return doRender;
 	}
 
 	void OnPulse()
 	{
+		m_needWaitRender = mq::test_and_set(m_lastGameState, gGameState);
 		bool updateForeground = mq::test_and_set(m_lastInForeground, gbInForeground);
 
 		m_cpuUsage.AddSample(static_cast<int64_t>(m_cpuUsageCalc.GetCurrentValue() * 1000));
+
+		gCurrentFPS = static_cast<float>(1000000 / m_renderFPS.Average());
+		gCurrentCPU = static_cast<float>(m_cpuUsage.Average() / 1000.f);
 
 		if (m_resetOnNextPulse)
 		{
@@ -2533,27 +2615,32 @@ public:
 	void UpdateForegroundState()
 	{
 		m_frameThrottler.Prepare();
+		m_gameThrottler.Prepare();
 
 		UpdateThrottler();
 	}
 
 	void UpdateThrottler()
 	{
-		m_frameThrottler.SetMinDuration(std::chrono::microseconds(
-			static_cast<int64_t>(1000000 / (m_lastInForeground ? m_foregroundFPS : m_backgroundFPS))));
+		float desiredRenderRate = m_lastInForeground ? m_foregroundFPS : m_backgroundFPS;
+		m_frameThrottler.SetMinDuration(std::chrono::microseconds(static_cast<int64_t>(1000000 / desiredRenderRate)));
+
+		// Cap the main loop at a minimum of 30 fps.
+		float desiredGameRate = std::max(30.0f, desiredRenderRate);
+		m_gameThrottler.SetMinDuration(std::chrono::microseconds(static_cast<int64_t>(1000000 / desiredGameRate)));
 	}
 
 	void UpdateSettingsPanel()
 	{
-		ImGui::Text("Status: ");
-		ImGui::SameLine();
+		ImGui::Text("Status: "); ImGui::SameLine(0, 0);
 		if (gbInForeground)
 			ImGui::TextColored(ImColor(0, 255, 0), "Foreground");
 		else
 			ImGui::TextColored(ImColor(255, 0, 0), "Background");
 
-		ImGui::Text("Cpu Usage: %.2f", m_cpuUsage.Average() / 1000.f);
-		ImGui::Text("FPS: %.2f", 1000000 / m_renderFPS.Average());
+		ImGui::Text("Cpu Usage: %.2f%%", m_cpuUsage.Average() / 1000.f);
+		ImGui::Text("Render FPS: %.2f", 1000000 / m_renderFPS.Average());
+		ImGui::Text("Simulation FPS: %.2f", 1000000 / m_gameFPS.Average());
 
 		ImGui::Separator();
 		ImGui::Checkbox("Enable frame limiting", &gbFrameLimiterEnabled);
@@ -2594,6 +2681,18 @@ public:
 	}
 
 private:
+	void RecordRenderSample()
+	{
+		m_renderFPS.AddRelativeSample(
+			std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - m_startTime).count());
+	}
+
+	void RecordSimulationSample()
+	{
+		m_gameFPS.AddRelativeSample(
+			std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - m_startTime).count());
+	}
+
 	void RenderImGuiScene()
 	{
 		// This is pretty simple. We just begin/end scene with error checking as appropriate.
@@ -2620,60 +2719,10 @@ private:
 		// Draw Hud
 		gpD3D9Device->EndScene();
 	}
-
-
-	// if frame limiting is disabled, bail out early.
-	bool DoRenderSceneHookImpl()
-	{
-		if (!IsEnabled())
-			return false;
-
-		bool inBackground = !gbInForeground;
-
-		// Decide if we should render the game.
-		bool doRender = false;
-
-		if (inBackground)
-		{
-			doRender = m_renderInBackground;
-		}
-		else
-		{
-			// Always render in foreground.
-			doRender = m_renderInForeground;
-		}
-
-		if (doRender)
-			doRender = !m_frameThrottler.ThrottleFrame();
-
-		if (doRender)
-			return false;
-
-		RenderImGuiScene();
-		return true;
-	}
-
-private:
-	bool m_lastInForeground = true;
-	bool m_resetOnNextPulse = false;
-	FrameCounter m_renderFPS;
-	CpuUsage m_cpuUsageCalc;
-	FrameCounter m_cpuUsage;
-	FrameThrottler m_frameThrottler;
-	std::chrono::steady_clock::time_point m_startTime;
-
-	// Settings
-	bool m_renderInBackground = false;
-	bool m_hideInterfaceInBackground = false;
-	bool m_renderInForeground = true;
-	bool m_clearScreen = true;
-	bool m_captureFrames = true;
-	float m_backgroundFPS = 1;
-	float m_foregroundFPS = 60;
 };
 static FrameLimiter s_frameLimiter;
 
-// Our hook for the main render function. Returns true to skip rendering.
+// Our hook for the main render function. Returns true to call the trampoline and render.
 static bool RenderScene_Hook()
 {
 	return s_frameLimiter.DoRenderSceneHook();
@@ -2682,6 +2731,18 @@ static bool RenderScene_Hook()
 static void FrameLimiterSettings()
 {
 	s_frameLimiter.UpdateSettingsPanel();
+}
+
+DETOUR_TRAMPOLINE_EMPTY(static void Throttler_Trampoline());
+static void Throttler_Detour()
+{
+	if (s_frameLimiter.DoThrottleFrameRate())
+		Throttler_Trampoline();
+}
+
+static bool ShouldDoRealRenderWorld()
+{
+	return s_frameLimiter.DoRealRenderWorld();
 }
 
 #pragma endregion
@@ -2724,7 +2785,9 @@ void InitializeMQ2Overlay()
 
 	AddSettingsPanel("FPS Limiter", FrameLimiterSettings);
 
-	bmRenderScene = AddMQ2Benchmark("RenderScene");
+	bmRenderScene = AddMQ2Benchmark("Render_Scene");
+	bmRealRenderWorld = AddMQ2Benchmark("Render_Simulation");
+	bmThrottleTime = AddMQ2Benchmark("Render_Throttle");
 
 	// Intercept mouse events
 	EzDetour(__ProcessMouseEvents, ProcessMouseEvents_Detour, ProcessMouseEvents_Trampoline);
@@ -2746,6 +2809,12 @@ void InitializeMQ2Overlay()
 
 	// Hook the reset device function
 	EzDetour(CRender__ResetDevice, &CRenderHook::ResetDevice_Detour, &CRenderHook::ResetDevice_Trampoline);
+
+	// Hook the main loop throttle function
+	EzDetour(__ThrottleFrameRate, &Throttler_Detour, &Throttler_Trampoline);
+
+	// Hook CDisplay::RealRender_World to control render loop
+	EzDetour(CDisplay__RealRender_World, &CDisplayHook::RealRender_World_Detour, &CDisplayHook::RealRender_World_Trampoline);
 
 	InitializeOverlayInternal();
 }
@@ -2771,8 +2840,12 @@ void ShutdownMQ2Overlay()
 	RemoveDetour(__WndProc);
 	RemoveDetour(CParticleSystem__Render);
 	RemoveDetour(CRender__RenderScene);
+	RemoveDetour(__ThrottleFrameRate);
+	RemoveDetour(CDisplay__RealRender_World);
 
 	RemoveMQ2Benchmark(bmRenderScene);
+	RemoveMQ2Benchmark(bmRealRenderWorld);
+	RemoveMQ2Benchmark(bmThrottleTime);
 
 	ShutdownOverlayInternal();
 }

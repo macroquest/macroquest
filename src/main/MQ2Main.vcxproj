@@ -473,6 +473,7 @@
     <ClInclude Include="MQ2Internal.h" />
     <ClInclude Include="MQ2Main.h" />
     <ClInclude Include="MQ2MainBase.h" />
+    <ClInclude Include="MQ2Overlay.h" />
     <ClInclude Include="MQ2Prototypes.h" />
     <ClInclude Include="MQ2TopLevelObjects.h" />
     <ClInclude Include="pch.h" />

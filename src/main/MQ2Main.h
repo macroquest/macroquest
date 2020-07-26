@@ -86,6 +86,16 @@ MQLIB_API void EnterMQ2Benchmark(uint32_t BMHandle);
 MQLIB_API void RemoveMQ2Benchmark(uint32_t BMHandle);
 MQLIB_API uint32_t AddMQ2Benchmark(const char* Name);
 
+struct MQScopedBenchmark
+{
+	MQScopedBenchmark(uint32_t bmId) : m_benchmark(bmId) { EnterMQ2Benchmark(m_benchmark); }
+	~MQScopedBenchmark() { ExitMQ2Benchmark(m_benchmark); }
+
+private:
+	uint32_t m_benchmark;
+};
+
+
 /* SPAWN HANDLING */
 MQLIB_API bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show);
 MQLIB_API bool IsTargetable(SPAWNINFO* pSpawn);
