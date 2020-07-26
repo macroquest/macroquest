@@ -2533,7 +2533,7 @@ public:
 		}
 
 		auto now2 = std::chrono::steady_clock::now();
-		std::chrono::microseconds delta = std::chrono::duration_cast<std::chrono::microseconds>(now1 - now2);
+		std::chrono::microseconds delta = std::chrono::duration_cast<std::chrono::microseconds>(now2 - now1);
 
 		frameRemaining = frameRemaining - delta;
 
@@ -2545,8 +2545,7 @@ public:
 
 		// A minimum of 1ms to match EQ's logic
 
-		auto waitTime = std::min(frameRemaining, gameRemaining);
-		waitTime = std::max(1us, waitTime);
+		auto waitTime = std::max(1000us, gameRemaining);
 
 		MQScopedBenchmark bm(bmThrottleTime);
 		//DebugSpewAlways("Sleep for: %d -- gameRemaining: %d -- frameRemaining: %d", (int)waitTime.count(),

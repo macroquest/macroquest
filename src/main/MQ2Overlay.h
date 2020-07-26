@@ -50,13 +50,13 @@ public:
 
 		auto delta = std::chrono::duration_cast<std::chrono::microseconds>(now - m_previous);
 
-		if (delta < 0ms)
+		if (delta < 0us)
 			m_previous = now;
 		else if (delta < m_minDuration)
 			return std::chrono::duration_cast<std::chrono::microseconds>(m_minDuration - delta);
 
-		m_previous += m_minDuration;
-		return 0ms;
+		m_previous += delta;
+		return 0us;
 	}
 
 private:
