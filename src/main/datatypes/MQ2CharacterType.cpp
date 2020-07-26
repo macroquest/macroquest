@@ -325,6 +325,7 @@ enum class CharacterMembers
 	CanMount,
 	SpellRankCap,
 	AbilityTimer,
+	CastTimeLeft,
 };
 
 enum class CharacterMethods
@@ -642,6 +643,7 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, CanMount);
 	ScopedTypeMember(CharacterMembers, SpellRankCap);
 	ScopedTypeMember(CharacterMembers, AbilityTimer);
+	ScopedTypeMember(CharacterMembers, CastTimeLeft);
 
 	ScopedTypeMethod(CharacterMethods, Stand);
 	ScopedTypeMethod(CharacterMethods, Sit);
@@ -4108,6 +4110,19 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			}
 		}
 		return false;
+
+	case CharacterMembers::CastTimeLeft:
+		Dest.Int64 = 0;
+		Dest.Type = pTimeStampType;
+		if (pLocalPlayer->CastingData.SpellETA)
+		{
+			int64_t delta = pLocalPlayer->CastingData.SpellETA - pLocalPlayer->TimeStamp;
+			if (delta > 0)
+			{
+				Dest.Int64 = delta;
+			}
+		}
+		return true;
 
 	default:
 		return false;
