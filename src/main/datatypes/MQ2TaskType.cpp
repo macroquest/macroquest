@@ -289,17 +289,18 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 			if (index >= MAX_TASK_ELEMENTS) // avoid array out of bounds, but a number was passed
 				return false;
 
+			// TODO:  Confirm this element exists before returning it
 			Dest.Ptr = &pTask->Elements[index];
 			return true;
 		}
 
 		char szOut[MAX_STRING] = { 0 };
-		for (int i = 0; i < MAX_TASK_ELEMENTS; ++i)
+		for (auto& Element : pTask->Elements)
 		{
-			pTaskManager->GetElementDescription(&pTask->Elements[i], szOut);
-			if (ci_find_substr(szOut, Index))
+			pTaskManager->GetElementDescription(&Element, szOut);
+			if (MaybeExactCompare(szOut, Index))
 			{
-				Dest.Ptr = &pTask->Elements[i];
+				Dest.Ptr = &Element;
 				return true;
 			}
 		}
@@ -378,7 +379,7 @@ bool MQ2TaskType::dataTask(const char* szIndex, MQTypeVar& Ret)
 	if (!pTaskManager || !szIndex[0])
 		return false;
 
-	int taskIndex = GetIntFromString(szIndex, 1) - 1; // this is 1-indexed in the TLO
+	int taskIndex = GetIntFromString(szIndex, 0) - 1; // this is 1-indexed in the TLO
 	if (taskIndex >= 0) {
 		unsigned char offset = 0;
 
@@ -416,9 +417,9 @@ bool MQ2TaskType::dataTask(const char* szIndex, MQTypeVar& Ret)
 
 	// look up the task by name -- we loop by index here because it's the easiest way to 
 	// loop by address of the task arrays
-	for (int i = 0; i < MAX_SHARED_TASK_ENTRIES; ++i)
+	for (auto& SharedTaskEntry : pTaskManager->SharedTaskEntries)
 	{
-		auto sharedEntry = &pTaskManager->SharedTaskEntries[i];
+		auto* sharedEntry = &SharedTaskEntry;
 		if (sharedEntry && sharedEntry->TaskID && MaybeExactCompare(sharedEntry->TaskTitle, szIndex))
 		{
 			Ret.Ptr = sharedEntry;
@@ -426,9 +427,9 @@ bool MQ2TaskType::dataTask(const char* szIndex, MQTypeVar& Ret)
 		}
 	}
 
-	for (int i = 0; i < MAX_QUEST_ENTRIES; ++i)
+	for (auto& QuestEntry : pTaskManager->QuestEntries)
 	{
-		auto questEntry = &pTaskManager->QuestEntries[i];
+		auto* questEntry = &QuestEntry;
 		if (questEntry && questEntry->TaskID && MaybeExactCompare(questEntry->TaskTitle, szIndex))
 		{
 			Ret.Ptr = questEntry;
