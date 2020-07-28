@@ -651,7 +651,7 @@ MQLIB_API CONTENTS*   FindItemByGlobalIndex(const ItemGlobalIndex& idx);
    inline CONTENTS*   FindItemBySlot2(const ItemGlobalIndex& idx) { return FindItemByGlobalIndex(idx); }
 MQLIB_API CONTENTS*   FindItemByName(const char* pName, bool bExact = false);
 MQLIB_API CONTENTS*   FindItemByID(int ItemID);
-MQLIB_API int         FindItemCountByName(const char* pName, bool bExact = false);
+MQLIB_API int         FindItemCountByName(const char* pName);
 MQLIB_API int         FindItemCountByID(int ItemID);
 MQLIB_API CONTENTS*   FindBankItemByName(const char* pName, bool bExact);
 MQLIB_API CONTENTS*   FindBankItemByID(int ItemID);

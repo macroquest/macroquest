@@ -713,20 +713,12 @@ bool dataFindItemCount(const char* szIndex, MQTypeVar& Ret)
 	if (IsNumber(szIndex))
 	{
 		Ret.DWord = FindItemCountByID(GetIntFromString(szIndex, 0));
-		Ret.Type = pIntType;
-		return true;
 	}
-
-	const char* pName = szIndex;
-	bool bExact = false;
-
-	if (*pName == '=')
+	else
 	{
-		bExact = true;
-		pName++;
+		Ret.DWord = FindItemCountByName(szIndex);
 	}
 
-	Ret.DWord = FindItemCountByName(pName, bExact);
 	Ret.Type = pIntType;
 	return true;
 }
