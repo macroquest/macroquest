@@ -286,10 +286,10 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		int index = GetIntFromString(Index, 0) - 1;
 		if (index >= 0)
 		{
-			if (index >= MAX_TASK_ELEMENTS) // avoid array out of bounds, but a number was passed
+			// avoid array out of bounds and elements that don't exist
+			if (index >= MAX_TASK_ELEMENTS || pTask->Elements[index].Type <= 0)
 				return false;
 
-			// TODO:  Confirm this element exists before returning it
 			Dest.Ptr = &pTask->Elements[index];
 			return true;
 		}
