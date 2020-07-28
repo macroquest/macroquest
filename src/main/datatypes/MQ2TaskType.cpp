@@ -43,7 +43,7 @@ int FindTaskIndex(CTaskEntry* task)
 {
 	if (!task || !pTaskManager)
 		return -1;
-	
+
 	switch (task->TaskSystem)
 	{
 	case TaskSystemType::cTaskSystemTypeSharedQuest:
@@ -53,7 +53,7 @@ int FindTaskIndex(CTaskEntry* task)
 				return i;
 		}
 		break;
-		
+
 	case TaskSystemType::cTaskSystemTypeSoloQuest:
 		for (int i = 0; i < MAX_QUEST_ENTRIES; ++i)
 		{
@@ -283,7 +283,7 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 		Dest.Type = pTaskObjectiveType;
 
-		int index = GetIntFromString(Index, 1) - 1;
+		int index = GetIntFromString(Index, 0) - 1;
 		if (index >= 0)
 		{
 			if (index >= MAX_TASK_ELEMENTS) // avoid array out of bounds, but a number was passed
