@@ -7482,7 +7482,7 @@ int GetBodyType(SPAWNINFO* pSpawn)
 {
 	if (pSpawn != nullptr)
 	{
-		for (int i = 0; i < 104; i++)
+		for (int i = 1; i < 104; i++)
 		{
 			PlayerClient* pc = (PlayerClient*)pSpawn;
 
