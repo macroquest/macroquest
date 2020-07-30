@@ -359,23 +359,50 @@ bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineN
 	}
 	else
 	{
-		if (!_strnicmp(szLine, "#include ", 9))
+		if (!_strnicmp(szLine, "#include ", 9) || !_strnicmp(szLine, "#include_optional ", 18))
 		{
+			bool optional = false;
 			szLine += 8;
+			// account for include_optional
+			if (szLine[0] == '_')
+			{
+				szLine += 9;
+				optional = true;
+			}
+
 			while (szLine[0] == ' ') szLine++;
 			ParseMacroData(szLine, Linelen);
 
-			if (!strstr(szLine, "."))
-				strcat_s(szLine, Linelen, ".mac");
-
 			std::filesystem::path incFilePath = szLine;
-
 			if (incFilePath.is_relative())
 			{
 				incFilePath = mq::internal_paths::Macros / incFilePath;
 			}
 
-			return Include(incFilePath.string().c_str(), LineNumber);
+			std::error_code ec_exists;
+			// If the file exists, use it, but if not try inc, then mac, then settle on inc
+			if (!incFilePath.has_extension() && !exists(incFilePath))
+			{
+				if (!exists(incFilePath.replace_extension("inc"), ec_exists))
+				{
+					if (!exists(incFilePath.replace_extension("mac"), ec_exists))
+					{
+						incFilePath.replace_extension("inc");
+					}
+				}
+			}
+
+			if (!optional)
+			{
+				// Include() contains the error messages, so let it error if it doesn't exist
+				return Include(incFilePath.string().c_str(), LineNumber);
+			}
+
+			// if we're here, it was optional so only include if it exists
+			if (exists(incFilePath, ec_exists))
+			{
+				return Include(incFilePath.string().c_str(), LineNumber);
+			}
 		}
 		else if (!_strnicmp(szLine, "#warning", 8))
 		{
@@ -463,30 +490,17 @@ bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineN
 				MacroError("Bad #event: %s", szLine);
 			}
 		}
-		else if (!_strnicmp(szLine, "#bind ", 6))
+		else if (!_strnicmp(szLine, "#bind ", 6) || !_strnicmp(szLine, "#bind_noparse ", 14))
 		{
-			char szArg1[MAX_STRING] = { 0 };
-			char szArg2[MAX_STRING] = { 0 };
-			GetArg(szArg1, szLine, 2);
-			GetArg(szArg2, szLine, 3);
+			bool parse = true;
+			if (szLine[5] == '_')
+				parse = false;
 
-			if ((szArg1[0] != 0) && (szArg2[0] != 0))
+			if (gParserVersion != 2 && parse == false)
 			{
-				MQBindList* pBind = new MQBindList();
-
-				sprintf_s(pBind->szFuncName, "Bind_%s", szArg1);
-				strcpy_s(pBind->szName, szArg2);
-				pBind->pNext = pBindList;
-				pBindList = pBind;
+				MacroError("#bind_noparse requires enabling Parser Version 2.");
 			}
 			else
-			{
-				MacroError("Bad #bind: %s", szLine);
-			}
-		}
-		else if (!_strnicmp(szLine, "#bind_noparse ", 14))
-		{
-			if (gParserVersion == 2)
 			{
 				char szArg1[MAX_STRING] = { 0 };
 				char szArg2[MAX_STRING] = { 0 };
@@ -496,21 +510,17 @@ bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineN
 				if ((szArg1[0] != 0) && (szArg2[0] != 0))
 				{
 					MQBindList* pBind = new MQBindList();
-
-					sprintf_s(pBind->szFuncName, "Bind_NoParse_%s", szArg1);
+					// TODO:  Deprecate this so that NoParse_ isn't needed on the sub name
+					sprintf_s(pBind->szFuncName, "Bind_%s%s", parse ? "" : "NoParse_", szArg1);
 					strcpy_s(pBind->szName, szArg2);
-					pBind->Parse = false;
+					pBind->Parse = parse;
 					pBind->pNext = pBindList;
 					pBindList = pBind;
 				}
 				else
 				{
-					MacroError("Bad #bind_noparse: %s", szLine);
+					MacroError("Bad #bind%s: %s", parse ? "" : "_noparse", szLine);
 				}
-			}
-			else
-			{
-				MacroError("#bind_noparse requires enabling Parser Version 2.");
 			}
 		}
 		else if (!_strnicmp(szLine, "#engine ", 8))
