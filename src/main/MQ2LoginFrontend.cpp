@@ -322,6 +322,10 @@ void TryRemoveLogin()
 		RemoveLoginDetours();
 		RemoveLoginWindows();
 		CleanupEQMainOffsets();
+
+		// we also need to make sure to reset the manager pointers
+		pWndMgr = pinstCXWndManager;
+		pSidlMgr = pinstCSidlManager;
 	}
 }
 
