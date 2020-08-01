@@ -7480,7 +7480,7 @@ int GetCharMaxBuffSlots()
 
 int GetBodyType(SPAWNINFO* pSpawn)
 {
-	if (pSpawn != nullptr)
+	if (pSpawn != nullptr && pSpawn->BodyType != nullptr)
 	{
 		for (int i = 1; i < 104; i++)
 		{
