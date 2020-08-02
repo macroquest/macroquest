@@ -188,6 +188,14 @@ static void InitializeWindowList()
 	}
 }
 
+void ReinitializeWindowList()
+{
+	WindowList.clear();
+	WindowMap.clear();
+
+	InitializeWindowList();
+}
+
 class CXMLSOMDocumentBaseHook
 {
 public:

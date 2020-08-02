@@ -34,26 +34,8 @@ bool OverlayWndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, bo
 
 static uintptr_t __FreeLibrary = 0;
 static bool gbDetoursInstalled = false;
-static bool gbWindowsMapped = false;
 static bool gbWaitingForFrontend = false;
 static bool gbInFrontend = false;
-
-static std::unordered_map<std::string, CXWnd*> gEQMainWindowMap;
-void InitializeLoginWindows();
-
-//----------------------------------------------------------------------------
-// Exposed functions
-
-CXWnd* FindEQMainWindow(const char* Name)
-{
-	const auto& pWnd = gEQMainWindowMap.find(Name);
-	if (pWnd != gEQMainWindowMap.cend())
-	{
-		return pWnd->second;
-	}
-
-	return nullptr;
-}
 
 //----------------------------------------------------------------------------
 // Login Pulse detour
@@ -116,7 +98,7 @@ public:
 			pSidlMgr = EQMain__pinstCSidlManager;
 
 			// Since we have ensured that we have window and sidl managers, load the pre-charselect windows
-			InitializeLoginWindows();
+			ReinitializeWindowList();
 
 			// Signal to others that we are loaded properly.
 			// Note: this is not really the proper way to do this since this isn't a game state, but autologin
@@ -238,44 +220,6 @@ void RemoveLoginDetours()
 	gbDetoursInstalled = false;
 }
 
-void RemoveLoginWindows()
-{
-	if (!gbWindowsMapped)
-		return;
-
-	gEQMainWindowMap.clear();
-
-	gbWindowsMapped = false;
-}
-
-void InitializeLoginWindows()
-{
-	if (gbWindowsMapped)
-		return;
-
-	// ensure that sidl and wnd managers are the frontend ones and exist
-	if (!gbDetoursInstalled || !gbInFrontend || pSidlMgr == nullptr || pWndMgr == nullptr)
-	{
-		RemoveLoginWindows();
-		return;
-	}
-
-	gEQMainWindowMap.clear();
-
-	auto xmlDataManager = pSidlMgr->GetParamManager();
-	for (auto pWnd : pWndMgr->pWindows)
-	{
-		if (!pWnd)
-			continue;
-
-		auto pXMLData = pWnd->GetXMLData(xmlDataManager);
-		if (pXMLData && !pXMLData->Name.empty())
-			gEQMainWindowMap[pXMLData->Name.c_str()] = pWnd;
-	}
-
-	gbWindowsMapped = true;
-}
-
 void TryInitializeLogin()
 {
 	// leave if the dll isn't loaded
@@ -320,12 +264,12 @@ void TryRemoveLogin()
 		DeveloperTools_CloseLoginFrontend();
 
 		RemoveLoginDetours();
-		RemoveLoginWindows();
 		CleanupEQMainOffsets();
 
-		// we also need to make sure to reset the manager pointers
+		// we also need to make sure to reset the manager pointers and reset the window list we are tracking with them
 		pWndMgr = pinstCXWndManager;
 		pSidlMgr = pinstCSidlManager;
+		ReinitializeWindowList();
 	}
 }
 
