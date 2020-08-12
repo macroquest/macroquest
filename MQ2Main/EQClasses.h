@@ -2188,9 +2188,9 @@ EQLIB_OBJECT float GetDistanceSquared(const CVector3& vec)const
 	CVector3 Delta = *this - vec;
 	return Delta.GetLengthSquared();
 }
-	float X;
-	float Y;
-	float Z;
+	float X = 0;
+	float Y = 0;
+	float Z = 0;
 };
 class CDisplay
 {
@@ -3292,7 +3292,9 @@ public:
 	CButtonWnd	*GroupTankButton[6];
 	CButtonWnd	*GroupAssistButton[6];
 	CButtonWnd	*GroupPullerButton[6];
-    CButtonWnd	*GroupMarkNPCButton[6];
+	#if !defined(ROF2EMU) && !defined(UFEMU)
+	CButtonWnd	*GroupMarkNPCButton[6];
+	#endif
 	CLabel		*AggroPercLabel[6];
 	long		Timer;
 	CContextMenu *GroupContextMenu;
@@ -3999,6 +4001,7 @@ enum ItemDisplayFlags
 class CItemDisplayWnd : public CSidlScreenWnd
 {
 public:
+#if !defined(ROF2EMU) && !defined(UFEMU)
 /*0x0230*/ CStmlWnd *pDescription;
 /*0x0234*/ CStmlWnd *pName;
 /*0x0238*/ CButtonWnd *pIconButton;
@@ -4044,7 +4047,7 @@ public:
 /*0x031c*/ bool bClickedTwink;
 /*0x0320*/ int HeroicCount;
 /*0x0324*/ int ItemInfoCount;
-/*0x0328*/ CLabel *pItemInfoLabel[13];//for sure at 0x330
+/*0x0328*/ CLabel *pItemInfoLabel[0xd];//for sure at 0x330
 /*0x035c*/ CLabel *pStatLabel[0x1a][3];//size 0x138
 /*0x0494*/ CLabel *pValueLabel[0x1a][3];//size 0x138
 /*0x05cc*/ CLabel *pHeroicLabel[0xd];
@@ -4052,7 +4055,59 @@ public:
 /*0x0604*/ int RightClickMenuSocketSlot;
 /*0x0608*/ int WindowID;
 /*0x060c*/
-
+#else
+/*0x0220*/ CStmlWnd *pDescription;
+/*0x0224*/ CStmlWnd *pName;
+/*0x0228*/ CButtonWnd *pIconButton;
+/*0x022c*/ CStmlWnd *pLore;
+/*0x0230*/ CTabWnd *pItemDescriptionTab;
+/*0x0234*/ CPageWnd *pDescriptionPage;
+/*0x0238*/ CPageWnd *pLorePage;
+/*0x023c*/ CSidlScreenWnd *pAppearanceSocketScreen;
+/*0x0240*/ CButtonWnd *pAppearanceSocketItem;
+/*0x0244*/ CButtonWnd *pAppearanceSocketBuyButton;
+/*0x0248*/ CStmlWnd *pAppearanceSocketDescription;
+/*0x024c*/ CSidlScreenWnd *pItemSocketScreen[6];
+/*0x0264*/ CButtonWnd *pItemSocketItemButton[6];
+/*0x027c*/ CStmlWnd *pItemSocketDescription[6];
+/*0x0294*/ PCXSTR ItemInfo;
+/*0x0298*/ PCXSTR MoreText;
+/*0x029c*/ PCXSTR LoreText;
+/*0x02a0*/ PCXSTR CreatorName;
+/*0x02a4*/ PCXSTR BackupTabTitle;
+/*0x02a8*/ PCXSTR SolventText;
+/*0x02ac*/ PCXSTR InformationText;
+/*0x02b0*/ PCONTENTS pCurrentItem;
+/*0x02b4*/ bool bActiveItem;
+/*0x02b5*/ bool bItemTextSet;
+/*0x02b8*/ CTextureAnimation* pTABuffIcons;
+/*0x02bc*/ CTextureAnimation* pTADragIcons;
+/*0x02c0*/ bool bTaggable;
+/*0x02c1*/ bool bFailed;
+/*0x02c4*/ UINT TabCount;
+/*0x02c8*/ CLabel *pModButtonLabel;
+/*0x02cc*/ CLabel *IDW_ClassTitle1;
+/*0x02d0*/ CLabel *IDW_ClassTitle2;
+/*0x02d4*/ CLabel *IDW_RaceTitle1;//IDW_RaceTitle2 it's a bug in this client i think
+/*0x02d8*/ CLabel *IDW_RaceTitle2;
+/*0x02dc*/ CLabel *IDW_DeityTitle;
+/*0x02e0*/ CLabel *pMadeByLabel;
+/*0x02e4*/ int Row;
+/*0x02e8*/ bool bAntiTwink;
+/*0x02ec*/ CButtonWnd *pModButton;
+/*0x02f0*/ int Group[6];
+/*0x0308*/ bool bClickedTwink;
+/*0x030c*/ int HeroicCount;
+/*0x0310*/ int ItemInfoCount;
+/*0x0314*/ CLabel *pItemInfoLabel[0xC];//for sure at 0x314 in rof2
+/*0x0344*/ CLabel *pStatLabel[0x1a][3];//size 0x138
+/*0x047c*/ CLabel *pValueLabel[0x1a][3];//size 0x138
+/*0x05b4*/ CLabel *pHeroicLabel[0xd];//its 5b4 in rof2
+/*0x05e8*/ int RightClickMenuID;
+/*0x05ec*/ int RightClickMenuSocketSlot;
+/*0x05f0*/ int WindowID;
+/*0x05f4*/
+#endif
 EQLIB_OBJECT CItemDisplayWnd::CItemDisplayWnd(CXWnd *);
 EQLIB_OBJECT class CXStr CItemDisplayWnd::CreateEquipmentStatusString(class EQ_Item *);
 EQLIB_OBJECT void CItemDisplayWnd::SetItem(PCONTENTS *pCont, int flags);
@@ -5247,10 +5302,12 @@ public:
 /*0x258*/
 #endif
 EQLIB_OBJECT CPageWnd::CPageWnd(class CXWnd *,unsigned __int32,class CXRect,class CXStr,class CPageTemplate *);
-EQLIB_OBJECT CXStr CPageWnd::GetTabText(bool bSomething = false) const;
 EQLIB_OBJECT void CPageWnd::SetTabText(CXStr &)const;
 #if !defined(ROF2EMU) && !defined(UFEMU)
+EQLIB_OBJECT CXStr CPageWnd::GetTabText(bool bSomething = false) const;
 EQLIB_OBJECT void CPageWnd::FlashTab(bool bFlash, int mstime) const;
+#else
+EQLIB_OBJECT CXStr CPageWnd::GetTabText() const;
 #endif
 // virtual
 EQLIB_OBJECT CPageWnd::~CPageWnd(void);
@@ -8826,12 +8883,14 @@ class CGroupMemberBase
 	//has a vftable
 public:
 	/*0x00*/ void   *vftable;
-	PCXSTR	Name;
-	short	Type;
-	PCXSTR	OwnerName;
-	int		Level;
-	bool	bIsOffline;
+	/*0x04*/ PCXSTR	Name;
+	/*0x08*/ short	Type;
+	/*0x0C*/ PCXSTR	OwnerName;
+	/*0x10*/ int		Level;
+	/*0x14*/ bool	bIsOffline;
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 	UINT UniquePlayerID;
+	#endif
 	bool bRoleStates[6];
 	UINT CurrentRoleBits;
 	UINT OnlineTimestamp;

@@ -35,12 +35,37 @@ MQ2Type *FindMQ2DataType(PCHAR Name)
 
 	return iter->second;
 }
-void GetMQ2DataTypeMap(std::unordered_map<std::string, MQ2Type*>*map)
+int FindMQ2DataTypeMemberSize(PCHAR Name)
 {
 	lockit lk(ghVariableLock);
-	*map = MQ2DataTypeMap;
-}
+	auto iter = MQ2DataTypeMap.find(Name);
+	if (iter == MQ2DataTypeMap.end())
+		return 0;
 
+	return iter->second->GetMemberMapSize();
+}
+bool FindMQ2DataTypeMemberName(PCHAR Name, DWORD index, PCHAR Out, size_t OutSize)
+{
+	lockit lk(ghVariableLock);
+	auto iter = MQ2DataTypeMap.find(Name);
+	if (iter == MQ2DataTypeMap.end())
+		return false;
+
+	if (iter->second->GetMemberMapName(index, Out, OutSize))
+	{
+		return true;
+	}
+	return false;
+}
+DWORD FindMQ2DataTypeMemberID(PCHAR Name, DWORD index)
+{
+	lockit lk(ghVariableLock);
+	auto iter = MQ2DataTypeMap.find(Name);
+	if (iter == MQ2DataTypeMap.end())
+		return NULL;
+
+	return iter->second->GetMemberMapID(index);
+}
 BOOL MQ2Internal::AddMQ2Type(MQ2Type &Type)
 {
 	lockit lk(ghVariableLock);

@@ -133,14 +133,14 @@ public:
 									strcat_s(firsthalf, MAX_STRING, word);//concatinate the word to the first half
 									strcat_s(firsthalf, MAX_STRING, secondhalf);//concatinate the second half to the end of the firsthalf+word.
 									strcpy_s(szAnonMsg, MAX_STRING, firsthalf);//store the newly built string as the szAnonMsg to output.
-									delete firsthalf;
-									delete secondhalf;
+									delete[] firsthalf;
+									delete[] secondhalf;
 							}
 						}
 					}
 						pSpawn = pSpawn->pNext;
 					}
-					delete word;
+					delete[] word;
 					switch (dwColor) {
 
 					case 13://Color: 13 - Attack is on/off - Other invites to raid.
@@ -250,7 +250,7 @@ public:
 						}
 #endif
 					}
-					delete szAnonMsg;
+					delete[] szAnonMsg;
 				}
 				else
 				{

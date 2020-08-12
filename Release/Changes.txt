@@ -1,3 +1,16 @@
+Aug 12 2020
+- Updated for TEST
+-
+Aug 10 2020
+- Fixed a bunch of misc stuff maily cleaning up after new by using delete[] instead of delete.
+- Moved some function buffer allocations to the heap.
+- Added #include_optional by knightly/drwhomphd
+- Fixed CPageWnd::GetTabText() for emu
+- Fixed uninitialized class and struct members here and there.
+-
+July 23 2020 by SwiftyMUSE
+- Updated .ItemLink to include an optional parameter "[CLICKABLE]" to return the clickable item link.
+-
 July 22 2020
 - Updated for TEST
 - Added ${Me.CastTimeLeft} - Kaen01
@@ -1590,7 +1603,7 @@ Oct 19 2018 by eqmule
 	Usage: (assuming you have a bandoiler saved as "1HB")
 	| check if its active:
 	[code]
-	/if (!${Me.Bandolier[${Bandolier[1HB].Active}) {
+	/if (!${Me.Bandolier[1HB].Active}) {
 		/echo [${Time}] player want us to activate Bandolier: 1HB.
 		/invoke ${Me.Bandolier[1HB].Activate}
 	}

@@ -140,8 +140,8 @@ VOID DrawHUDText(PCHAR Text, DWORD X, DWORD Y, DWORD Argb, DWORD Font)
 							strcat_s(firsthalf, MAX_STRING, word);//concatinate the word to the first half
 							strcat_s(firsthalf, MAX_STRING, secondhalf);//concatinate the second half to the end of the firsthalf+word.
 							strcpy_s(Text, MAX_STRING, firsthalf);//store the newly built string as the Text to output.
-							delete firsthalf;
-							delete secondhalf;
+							delete[] firsthalf;
+							delete[] secondhalf;
 						}
 					}
 				}

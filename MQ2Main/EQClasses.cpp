@@ -8701,7 +8701,11 @@ FUNCTION_AT_ADDRESS(int  CTabWnd::DrawTab(int)const ,CTabWnd__DrawTab);
 FUNCTION_AT_ADDRESS(int  CTabWnd::DrawCurrentPage(void)const ,CTabWnd__DrawCurrentPage);
 #endif
 #ifdef CPageWnd__GetTabText_x
-	FUNCTION_AT_ADDRESS(CXStr CPageWnd::GetTabText(bool) const ,CPageWnd__GetTabText);
+#if !defined(ROF2EMU) && !defined(UFEMU)
+FUNCTION_AT_ADDRESS(CXStr CPageWnd::GetTabText(bool) const ,CPageWnd__GetTabText);
+#else
+FUNCTION_AT_ADDRESS(CXStr CPageWnd::GetTabText() const ,CPageWnd__GetTabText);
+#endif
 #endif
 #ifdef CPageWnd__SetTabText_x
 FUNCTION_AT_ADDRESS(void CPageWnd::SetTabText(CXStr &)const,CPageWnd__SetTabText);

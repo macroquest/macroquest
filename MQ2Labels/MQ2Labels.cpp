@@ -114,7 +114,7 @@ int __cdecl GetGaugeValueFromEQ_Detour(int EQType, class CXStr *out, bool *arg3,
 			if (Anonymize(szOut,MAX_STRING)) {
 				SetCXStr(&out->Ptr, szOut);
 			}
-			delete szOut;
+			delete[] szOut;
 		}
 	}
 	return ret;
@@ -130,7 +130,7 @@ int __cdecl GetLabelFromEQ_Detour(int EQType, class CXStr *out, bool *arg3, unsi
 			if (Anonymize(szOut,MAX_STRING)) {
 				SetCXStr(&out->Ptr, szOut);
 			}
-			delete szOut;
+			delete[] szOut;
 		}
 	}
 	return ret;
@@ -159,7 +159,7 @@ public:
 					//WriteChatf("CListWnd__AddString_Detour %s", szStr);
 				}
 				int ret = CListWnd__AddString_Trampoline(szStr,Color,Data,pTa,TooltipStr);
-				delete szStr;
+				delete[] szStr;
 				return ret;
 			}
 			return CListWnd__AddString_Trampoline(Str,Color,Data,pTa,TooltipStr);
@@ -188,7 +188,7 @@ public:
 					strcpy_s(szTemp, MAX_STRING, str.c_str());
 					SetCXStr(&ret.Ptr, szTemp);
 				}
-				delete szTemp;
+				delete[] szTemp;
 			}
 		}
 		return ret;
@@ -318,7 +318,7 @@ public:
 
 			   GetCXStr(Str, szBuf);
 			   STMLToPlainText(szBuf, szBuffer);
-			   delete szBuf;
+			   delete[] szBuf;
 			   ParseMacroParameter(((PCHARINFO)pCharData)->pSpawn, szBuffer,MAX_STRING);
 			   if (!strcmp(szBuffer, "NULL"))
 				   szBuffer[0] = 0;
@@ -344,7 +344,7 @@ public:
 			pThisLabel->CSetWindowText(szBuffer);
 			//SetCXStr(&(pThisLabel->WindowText), Buffer);
 		}
-		delete szBuffer;
+		delete[] szBuffer;
     }
 }; 
 

@@ -1496,7 +1496,9 @@ public:
 						|| pWnd == ((CGroupWnd*)this)->GroupTankButton[i]
 						|| pWnd == ((CGroupWnd*)this)->GroupAssistButton[i]
 						|| pWnd == ((CGroupWnd*)this)->GroupPullerButton[i]
+						#if !defined(ROF2EMU) && !defined(UFEMU)
 						|| pWnd == ((CGroupWnd*)this)->GroupMarkNPCButton[i]
+						#endif
 						|| lab == ((CGroupWnd*)this)->AggroPercLabel[i]
 						)
 					{

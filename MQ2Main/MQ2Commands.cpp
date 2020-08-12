@@ -63,7 +63,8 @@ VOID ListMacros(PSPAWNINFO pChar, PCHAR szLine)
 
 	DWORD Count = 0, a, b;
 	CHAR szFilename[MAX_STRING] = { 0 };
-	CHAR szName[100][MAX_STRING] = { 0 };
+	//CHAR szName[100][MAX_STRING] = { 0 };
+	char *szName = new CHAR[100*MAX_STRING];
 	if (szLine[0] != 0) {
 		sprintf_s(szFilename, "%s\\*%s*.*", gszMacroPath, szLine);
 	}
@@ -84,7 +85,7 @@ VOID ListMacros(PSPAWNINFO pChar, PCHAR szLine)
 
 	while (!fFinished)
 	{
-		strcat_s(szName[Count], FileData.cFileName);
+		strcat_s(&szName[Count],MAX_STRING, FileData.cFileName);
 		Count++;
 		if (Count>99) fFinished = TRUE;
 
@@ -97,9 +98,9 @@ VOID ListMacros(PSPAWNINFO pChar, PCHAR szLine)
 	for (a = Count - 1; a>0; a--) {
 		for (b = 0; b<a; b++) {
 			if (szName[b]>szName[b + 1]) {
-				strcat_s(szFilename, szName[b]);
-				strcat_s(szName[b], szName[b + 1]);
-				strcat_s(szName[b + 1], szFilename);
+				strcat_s(szFilename, &szName[b]);
+				strcat_s(&szName[b], MAX_STRING, &szName[b + 1]);
+				strcat_s(&szName[b + 1], MAX_STRING, szFilename);
 			}
 		}
 	}
@@ -107,8 +108,9 @@ VOID ListMacros(PSPAWNINFO pChar, PCHAR szLine)
 	WriteChatColor("Macro list", USERCOLOR_WHO);
 	WriteChatColor("----------------", USERCOLOR_WHO);
 	for (a = 0; a<Count; a++) {
-		WriteChatColor(szName[a], USERCOLOR_WHO);
+		WriteChatColor(&szName[a], USERCOLOR_WHO);
 	}
+	delete[] szName;
 }
 // ***************************************************************************
 // Function:    SetError
@@ -3413,7 +3415,7 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
 			break;
 		}
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-		delete szBuffer;
+		delete[] szBuffer;
 		return;
 	}
 	SyntaxError("Usage: /windowstate <window> [open|close]");

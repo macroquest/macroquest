@@ -215,9 +215,10 @@ VOID CleanMacroLine(PCHAR szLine)
 // ***************************************************************************
 // Function:    Include
 // Description: Includes another macro file
-// Usage:       #include <filename>
+// Usage:       #include <filename>					(Sets bIgnoreFileCheck 0)
+// Usage:		#include_optional <filename>		(Sets bIgnoreFileCheck 1)
 // ***************************************************************************
-DWORD Include(PCHAR szFile, int *LineNumber)
+DWORD Include(PCHAR szFile, int *LineNumber, bool bIgnoreFileCheck)
 {
 	CHAR szTemp[MAX_STRING] = { 0 };
 	FILE *fMacro = 0;
@@ -225,8 +226,14 @@ DWORD Include(PCHAR szFile, int *LineNumber)
 	BOOL InBlockComment = FALSE;
 	char *tmp;
 	if (err) {
-		FatalError("Couldn't open include file: %s", szFile);
-		return 0;
+		if (bIgnoreFileCheck) {
+			// Optional include. Return 1 so we don't end macro.
+			return 1;
+		}
+		else {
+			FatalError("Couldn't open include file: %s", szFile);
+			return 0;
+		}
 	}
 	int LocalLine = 0;
 	PCHAR Macroname = GetFilenameFromFullPath(szFile);
@@ -290,13 +297,24 @@ BOOL AddMacroLine(PCHAR FileName, PCHAR szLine, size_t Linelen, int *LineNumber,
 			CHAR Filename[MAX_STRING] = { 0 };
 			szLine += 8;
 			while (szLine[0] == ' ') szLine++;
-			ParseMacroData(szLine, sizeof(szLine));
+			ParseMacroData(szLine, Linelen);
 			if (!strstr(szLine, "."))
 				strcat_s(szLine, Linelen, ".mac");
 			sprintf_s(Filename, "%s\\%s", gszMacroPath, szLine);
 
 			//DebugSpewNoFile("AddMacroLine - Including file: %s",Filename);
-			return (BOOL)Include(Filename, LineNumber);
+			return (BOOL)Include(Filename, LineNumber, 0);
+		} else if (!_strnicmp(szLine, "#include_optional ", 18)) {
+			CHAR Filename[MAX_STRING] = { 0 };
+			szLine += 18;
+			while (szLine[0] == ' ') szLine++;
+			ParseMacroData(szLine, Linelen);
+			if (!strstr(szLine, "."))
+				strcat_s(szLine, Linelen, ".mac");
+			sprintf_s(Filename, "%s\\%s", gszMacroPath, szLine);
+
+			//DebugSpewNoFile("AddMacroLine - Including file: %s",Filename);
+			return (BOOL)Include(Filename, LineNumber, 1);
 		}
 		else if (!_strnicmp(szLine, "#warning", 8)) {
 			gWarning = TRUE;

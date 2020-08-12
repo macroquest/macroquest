@@ -646,7 +646,7 @@ public:
 		return true;
 	}
 
-	char Version[32];
+	char Version[32] = { 0 };
 
 private:
 	inline void FreeExecution(PBLECHEXECUTE pExecute)

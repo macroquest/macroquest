@@ -346,6 +346,7 @@ EQLIB_API bool SendComboSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value);
 EQLIB_API bool SendListSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value);
 EQLIB_API bool SendListSelect2(CXWnd *pList, LONG ListIndex);
 EQLIB_API bool SendWndClick2(CXWnd *pWnd, PCHAR ClickNotification);
+EQLIB_API bool SendTabSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value);    // added by hytiek 8.11.2020
 
 EQLIB_API VOID CreateMQ2NewsWindow();
 EQLIB_API VOID DeleteMQ2NewsWindow();
@@ -458,7 +459,9 @@ LEGACY_API BOOL ParseMacroData(PCHAR szOriginal, SIZE_T BufferSize);
 LEGACY_API BOOL AddMQ2Data(PCHAR szName, fMQData Function);
 LEGACY_API BOOL RemoveMQ2Data(PCHAR szName);
 LEGACY_API MQ2Type *FindMQ2DataType(PCHAR szName);
-LEGACY_API void GetMQ2DataTypeMap(std::unordered_map<std::string, MQ2Type*>*map);
+LEGACY_API int FindMQ2DataTypeMemberSize(PCHAR Name);
+LEGACY_API bool FindMQ2DataTypeMemberName(PCHAR Name, DWORD index, PCHAR Out, size_t OutSize);
+LEGACY_API DWORD FindMQ2DataTypeMemberID(PCHAR Name, DWORD index);
 LEGACY_API PMQ2DATAITEM FindMQ2Data(PCHAR szName);
 LEGACY_API PDATAVAR FindMQ2DataVariable(PCHAR szName);
 LEGACY_API BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result);
@@ -946,7 +949,7 @@ EQLIB_API void PrettifyNumber(char* string, size_t bufferSize, int decimals = 0)
 #define XWM_FOCUS					33
 #define XWM_LOSTFOCUS				34
 #define XWM_TEXTENTRY_COMPLETE		40
-#define XWN_FILESELECTION_COMPLETE	41
+#define XWN_FILESELECTION_COMPLETE	39//check the rest
 #define XWN_ICONSELECTION_COMPLETE	42
 #define XWN_RELOAD_INI				43
 #define XWN_THUMBTRACK				44

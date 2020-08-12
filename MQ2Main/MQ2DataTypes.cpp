@@ -9355,6 +9355,14 @@ bool MQ2ItemType::GETMEMBER()
 		return true;
 	case ItemLink:
 		Dest.Type = pStringType;
+		if (ISINDEX()) {
+			if (!_stricmp(GETFIRST(), "CLICKABLE")) {
+				if (GetItemLink(pItem, DataTypeTemp)) {
+					Dest.Ptr = &DataTypeTemp[0];
+					return true;
+				}
+			}
+		}
 		if (GetItemLink(pItem, DataTypeTemp, FALSE)) {
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
@@ -15835,7 +15843,9 @@ bool MQ2TaskType::GETMEMBER()
 
 bool MQ2XTargetType::GETMEMBER()
 {
-	if (!GetCharInfo() || !GetCharInfo()->pXTargetMgr || VarPtr.DWord>23)
+	if (!GetCharInfo() || !GetCharInfo()->pXTargetMgr || VarPtr.DWord > 23)
+		return false;
+	if (VarPtr.DWord > (DWORD)GetCharInfo()->pXTargetMgr->XTargetSlots.Count)
 		return false;
 	if (PMQ2TYPEMEMBER pMember = MQ2XTargetType::FindMember(Member))
 	{

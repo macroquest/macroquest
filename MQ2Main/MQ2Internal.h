@@ -810,10 +810,39 @@ namespace MQ2Internal {
     class MQ2Type
     {
     public:
-		void GetMemberMap(std::map<std::string, DWORD>*map)
+		int  GetMemberMapSize()
 		{
 			lockit lk(ghMemberMapLock, __FUNCTION__);
-			*map = MemberMap;
+			return MemberMap.size();
+		}
+		bool GetMemberMapName(int index, PCHAR pBuffer, size_t Size)
+		{
+			lockit lk(ghMemberMapLock, __FUNCTION__);
+			if (index < (int)MemberMap.size())
+			{
+				std::map<std::string, DWORD>::iterator it = MemberMap.begin();
+				std::advance(it, index);
+				if (it != MemberMap.end())
+				{
+					strcpy_s(pBuffer, Size, it->first.c_str());
+					return true;
+				}
+			}
+			return false;
+		}
+		DWORD GetMemberMapID(int index)
+		{
+			lockit lk(ghMemberMapLock, __FUNCTION__);
+			if (index < (int)MemberMap.size())
+			{
+				std::map<std::string, DWORD>::iterator it = MemberMap.begin();
+				std::advance(it, index);
+				if (it != MemberMap.end())
+				{
+					return it->second;
+				}
+			}
+			return NULL;
 		}
         inline MQ2Type(PCHAR NewName)
         {
@@ -982,8 +1011,8 @@ namespace MQ2Internal {
             delete pMethod;
             Methods[N]=0;
         }
-        CHAR TypeName[32];
-        BOOL Official;
+		CHAR TypeName[32] = { 0 };
+        BOOL Official = 0;
         CIndex<PMQ2TYPEMEMBER> Members;
         CIndex<PMQ2TYPEMEMBER> Methods;
         std::map<std::string,DWORD> MemberMap;
