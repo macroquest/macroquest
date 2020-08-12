@@ -43,7 +43,7 @@ int FindTaskIndex(CTaskEntry* task)
 {
 	if (!task || !pTaskManager)
 		return -1;
-	
+
 	switch (task->TaskSystem)
 	{
 	case TaskSystemType::cTaskSystemTypeSharedQuest:
@@ -53,7 +53,7 @@ int FindTaskIndex(CTaskEntry* task)
 				return i;
 		}
 		break;
-		
+
 	case TaskSystemType::cTaskSystemTypeSoloQuest:
 		for (int i = 0; i < MAX_QUEST_ENTRIES; ++i)
 		{
@@ -283,10 +283,11 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 		Dest.Type = pTaskObjectiveType;
 
-		int index = GetIntFromString(Index, 1) - 1;
+		int index = GetIntFromString(Index, 0) - 1;
 		if (index >= 0)
 		{
-			if (index >= MAX_TASK_ELEMENTS) // avoid array out of bounds, but a number was passed
+			// avoid array out of bounds and elements that don't exist
+			if (index >= MAX_TASK_ELEMENTS || pTask->Elements[index].Type <= 0)
 				return false;
 
 			Dest.Ptr = &pTask->Elements[index];
@@ -294,12 +295,12 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		}
 
 		char szOut[MAX_STRING] = { 0 };
-		for (int i = 0; i < MAX_TASK_ELEMENTS; ++i)
+		for (auto& Element : pTask->Elements)
 		{
-			pTaskManager->GetElementDescription(&pTask->Elements[i], szOut);
-			if (ci_find_substr(szOut, Index))
+			pTaskManager->GetElementDescription(&Element, szOut);
+			if (MaybeExactCompare(szOut, Index))
 			{
-				Dest.Ptr = &pTask->Elements[i];
+				Dest.Ptr = &Element;
 				return true;
 			}
 		}
@@ -378,7 +379,7 @@ bool MQ2TaskType::dataTask(const char* szIndex, MQTypeVar& Ret)
 	if (!pTaskManager || !szIndex[0])
 		return false;
 
-	int taskIndex = GetIntFromString(szIndex, 1) - 1; // this is 1-indexed in the TLO
+	int taskIndex = GetIntFromString(szIndex, 0) - 1; // this is 1-indexed in the TLO
 	if (taskIndex >= 0) {
 		unsigned char offset = 0;
 
@@ -416,9 +417,9 @@ bool MQ2TaskType::dataTask(const char* szIndex, MQTypeVar& Ret)
 
 	// look up the task by name -- we loop by index here because it's the easiest way to 
 	// loop by address of the task arrays
-	for (int i = 0; i < MAX_SHARED_TASK_ENTRIES; ++i)
+	for (auto& SharedTaskEntry : pTaskManager->SharedTaskEntries)
 	{
-		auto sharedEntry = &pTaskManager->SharedTaskEntries[i];
+		auto* sharedEntry = &SharedTaskEntry;
 		if (sharedEntry && sharedEntry->TaskID && MaybeExactCompare(sharedEntry->TaskTitle, szIndex))
 		{
 			Ret.Ptr = sharedEntry;
@@ -426,9 +427,9 @@ bool MQ2TaskType::dataTask(const char* szIndex, MQTypeVar& Ret)
 		}
 	}
 
-	for (int i = 0; i < MAX_QUEST_ENTRIES; ++i)
+	for (auto& QuestEntry : pTaskManager->QuestEntries)
 	{
-		auto questEntry = &pTaskManager->QuestEntries[i];
+		auto* questEntry = &QuestEntry;
 		if (questEntry && questEntry->TaskID && MaybeExactCompare(questEntry->TaskTitle, szIndex))
 		{
 			Ret.Ptr = questEntry;

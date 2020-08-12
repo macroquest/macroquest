@@ -38,20 +38,8 @@ char* szClickNotification[] = {
 	"rightmouseheldup", // 7
 };
 
-struct WindowInfo
-{
-	std::string Name;
-	CXWnd* pWnd = nullptr;
-
-	WindowInfo(std::string Name, CXWnd* pWnd)
-		: Name(std::move(Name))
-		, pWnd(pWnd)
-	{}
-	WindowInfo() = default;
-};
-
-std::map<std::string, CXWnd*, ci_less> WindowMap;
-std::unordered_map<CXWnd*, WindowInfo> WindowList;
+ci_unordered::multimap<std::string_view, CXWnd*> WindowMap;
+std::unordered_map<CXWnd*, CXStr> WindowList;
 std::vector<std::string> XmlFiles;
 
 int WinCount = 0;
@@ -59,30 +47,57 @@ int WinCount = 0;
 bool GenerateMQUI();
 void DestroyMQUI();
 
+static void DropWindowFromMap(std::string_view Name, CXWnd* pWnd)
+{
+	auto range = WindowMap.equal_range(Name);
+	for (auto it = range.first; it != range.second;)
+	{
+		if (pWnd == it->second)
+		{
+			it = WindowMap.erase(it);
+		}
+		else
+		{
+			++it;
+		}
+	}
+}
+
 inline void AddWindowToList(const CXStr& WindowName, CXWnd* pWnd, bool log)
 {
-	auto iter = WindowMap.find(WindowName);
-	if (iter != WindowMap.end())
+	// if the window changes names, then we will be changing the entry in WindowList, so deal with that before setting the WindowList entry
+	auto listIt = WindowList.find(pWnd);
+	if (listIt != WindowList.end())
 	{
-		WindowList[pWnd] = { std::string(WindowName), pWnd };
-
-		if (log)
+		if (!ci_equals(WindowName, listIt->second))
 		{
-			DebugSpew("Updating WndNotification target '%s'", WindowName.c_str());
+			// we only want to do this operation if the window names are different
+			DropWindowFromMap(listIt->second, pWnd);
+			listIt->second = WindowName;
 		}
 	}
 	else
 	{
-		WindowList[pWnd] = { std::string(WindowName), pWnd };
-		WindowMap.emplace(std::string(WindowName), pWnd);
+		listIt = WindowList.emplace(std::make_pair(pWnd, WindowName)).first;
+	}
 
-		if (log)
-		{
-			if (!WindowName.empty())
-				DebugSpew("Adding WndNotification target '%s'", WindowName.c_str());
-			else
-				DebugSpew("Adding WndNotification target FAILED");
-		}
+	auto range = WindowMap.equal_range(WindowName);
+
+	// it won't matter if the range is empty here, this will detect if the window is in the map already
+	auto it = std::find_if(range.first, range.second, [pWnd](const auto& window)
+	{
+		return pWnd == window.second;
+	});
+
+	if (it == range.second)
+	{
+		// not found in the multimap, we can add it
+		WindowMap.emplace(listIt->second, pWnd);
+		if (log) DebugSpew("Adding WndNotification target '%s'", WindowName.c_str());
+	}
+	else if (log)
+	{
+		DebugSpew("Updating WndNotification target '%s'", WindowName.c_str());
 	}
 }
 
@@ -139,12 +154,7 @@ public:
 			auto windowListIter = WindowList.find(pWnd);
 			if (windowListIter != WindowList.end())
 			{
-				auto windowMapIter = WindowMap.find(windowListIter->second.Name);
-				if (windowMapIter != WindowMap.end())
-				{
-					WindowMap.erase(windowMapIter);
-				}
-
+				DropWindowFromMap(windowListIter->second, pWnd);
 				WindowList.erase(windowListIter);
 			}
 
@@ -176,6 +186,14 @@ static void InitializeWindowList()
 			AddWindowToList(pXMLData->Name, pWnd, false);
 		}
 	}
+}
+
+void ReinitializeWindowList()
+{
+	WindowList.clear();
+	WindowMap.clear();
+
+	InitializeWindowList();
 }
 
 class CXMLSOMDocumentBaseHook
@@ -520,14 +538,22 @@ CXWnd* FindMQ2Window(const char* Name)
 		return FindMQ2WindowPath(Name);
 	}
 
-	WindowInfo Info;
 	std::string_view WindowName{ Name };
 
 	// check toplevel windows first
-	auto iter = WindowMap.find(WindowName);
-	if (iter != WindowMap.end())
+	auto range = WindowMap.equal_range(WindowName);
+	if (range.first != range.second)
 	{
-		return iter->second;
+		// TODO: add predicates here
+		auto iter = std::find_if(range.first, range.second, [](const auto& window)
+		{
+			return window.second && window.second->IsVisible();
+		});
+
+		if (iter != range.second)
+			return iter->second;
+		else
+			return range.first->second;
 	}
 
 	// didnt find one, is it a container?
@@ -535,25 +561,15 @@ CXWnd* FindMQ2Window(const char* Name)
 	if (ci_starts_with(WindowName, "bank"))
 	{
 		unsigned long nPack = GetIntFromString(&WindowName[4], 0);
-		if (nPack && nPack <= NUM_BANK_SLOTS)
+		if (nPack > 0 && nPack <= NUM_BANK_SLOTS && pPCData && pPCData->BankItems.Items.Size > nPack - 1)
 		{
-#ifdef NEWCHARINFO
-			if (pCharData && ((CHARINFO*)pCharData)->BankItems.Items.Size > nPack - 1)
-			{
-				pPack = ((CHARINFO*)pCharData)->BankItems.Items[nPack - 1].get();
-			}
-#else
-			if (pCharData && ((CHARINFO*)pCharData)->pBankArray)
-			{
-				pPack = ((CHARINFO*)pCharData)->pBankArray->Bank[nPack - 1];
-			}
-#endif
+			pPack = pPCData->BankItems.Items[nPack - 1].get();
 		}
 	}
 	else if (ci_starts_with(WindowName, "pack"))
 	{
 		unsigned long nPack = GetIntFromString(&WindowName[4], 0);
-		if (nPack && nPack <= 10)
+		if (nPack > 0 && nPack <= 10)
 		{
 			if (PcProfile* pProfile = GetPcProfile())
 			{
@@ -574,32 +590,6 @@ CXWnd* FindMQ2Window(const char* Name)
 		return FindContainerForContents(pPack);
 	}
 
-	// didnt find a toplevel window, is it a child then?
-	bool namefound = false;
-	for (auto& [_, windowInfo] : WindowList)
-	{
-		if (ci_equals(windowInfo.Name, WindowName))
-		{
-			namefound = true;
-			Info = windowInfo;
-			break;
-		}
-	}
-
-	if (namefound)
-	{
-		if (Info.pWnd)
-		{
-			return Info.pWnd;
-		}
-
-		WindowList.erase(Info.pWnd);
-	}
-
-	// This uses find to take advantage of heterogeneous iterators
-	auto windowIter = WindowMap.find(WindowName);
-	if (windowIter != WindowMap.end())
-		WindowMap.erase(windowIter);
 	return nullptr;
 }
 
@@ -1190,25 +1180,24 @@ void ListWindows(PSPAWNINFO pChar, char* szLine)
 			WriteChatColor("List of available windows");
 		WriteChatColor("-------------------------");
 
-		for (auto& N : WindowList)
+		for (auto& [pWnd, Name] : WindowList)
 		{
-			WindowInfo Info = N.second;
 			if (bOpen)
 			{
-				if (Info.pWnd && Info.pWnd->IsVisible() && Info.pWnd->GetParentWindow() == nullptr)
+				if (pWnd && pWnd->IsVisible() && pWnd->GetParentWindow() == nullptr)
 				{
 					if (bPartial)
 					{
-						if (Info.Name.find(szArg2) != Info.Name.npos)
+						if (Name.find(szArg2) != Name.npos)
 						{
-							WriteChatf("[PARTIAL MATCH][OPEN] %s", Info.Name.c_str());
-							RecurseAndListWindows(Info.pWnd);
+							WriteChatf("[PARTIAL MATCH][OPEN] %s", Name.c_str());
+							RecurseAndListWindows(pWnd);
 							Count++;
 						}
 					}
 					else
 					{
-						WriteChatf("[OPEN] %s", Info.Name.c_str());
+						WriteChatf("[OPEN] %s", Name.c_str());
 						Count++;
 					}
 				}
@@ -1217,16 +1206,16 @@ void ListWindows(PSPAWNINFO pChar, char* szLine)
 			{
 				if (bPartial)
 				{
-					if (Info.Name.find(szArg2) != Info.Name.npos)
+					if (Name.find(szArg2) != Name.npos)
 					{
-						WriteChatf("[PARTIAL MATCH] %s", Info.Name.c_str());
-						RecurseAndListWindows(Info.pWnd);
+						WriteChatf("[PARTIAL MATCH] %s", Name.c_str());
+						RecurseAndListWindows(pWnd);
 						Count++;
 					}
 				}
 				else
 				{
-					WriteChatf("%s", Info.Name.c_str());
+					WriteChatf("%s", Name.c_str());
 					Count++;
 				}
 			}
@@ -1237,17 +1226,9 @@ void ListWindows(PSPAWNINFO pChar, char* szLine)
 	else
 	{
 		// list children of..
-		auto iter = WindowMap.find(szLine);
-		if (iter == WindowMap.end())
+		CXWnd* pWnd = FindMQ2Window(szLine);
+		if (pWnd == nullptr)
 		{
-			if (CXWnd* pWnd = FindMQ2Window(szLine))
-			{
-				Count = RecurseAndListWindows(pWnd);
-
-				WriteChatf("%d child windows", Count);
-				return;
-			}
-
 			WriteChatf("Window '%s' not available", szLine);
 			return;
 		}
@@ -1255,17 +1236,13 @@ void ListWindows(PSPAWNINFO pChar, char* szLine)
 		WriteChatf("Listing child windows of '%s'", szLine);
 		WriteChatColor("-------------------------");
 
-		for (auto& [_, Info] : WindowList)
+		pWnd = pWnd->GetFirstChildWnd();
+		if (pWnd != nullptr)
 		{
-			if (ci_equals(Info.Name, szLine) && Info.pWnd)
-			{
-				if (CXWnd* pWnd = Info.pWnd->GetFirstChildWnd())
-				{
-					Count = RecurseAndListWindows(pWnd);
-				}
-				WriteChatf("%d child windows", Count);
-			}
+			Count = RecurseAndListWindows(pWnd);
 		}
+
+		WriteChatf("%d child windows", Count);
 	}
 }
 
