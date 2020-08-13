@@ -168,9 +168,14 @@ public:
 		auto delta = std::chrono::duration_cast<std::chrono::microseconds>(now - m_previous);
 
 		if (delta < 0us)
+		{
 			m_previous = now;
+			return 0us;
+		}
 		else if (delta < m_minDuration)
+		{
 			return std::chrono::duration_cast<std::chrono::microseconds>(m_minDuration - delta);
+		}
 
 		m_previous += m_minDuration;
 		return 0us;
@@ -279,8 +284,9 @@ class FrameLimiter
 	CpuUsage m_cpuUsageCalc;
 	FrameCounter m_cpuUsage;
 	FrameThrottler m_frameThrottler;          // throttler for framerate
-	FrameThrottler m_gameThrottler;           // throttler for game
 	std::chrono::steady_clock::time_point m_startTime;
+	std::chrono::steady_clock::time_point m_prevFrame;
+	std::chrono::microseconds m_gameLoopDuration = 0us;
 	uint32_t m_lastGameState = 0;
 	uint32_t m_lastScreenMode = 0;
 	bool m_needWaitRender = true;     // wait for RenderReal_World function to be called
@@ -293,6 +299,7 @@ class FrameLimiter
 	bool m_clearScreen = true;
 	float m_backgroundFPS = 1;
 	float m_foregroundFPS = 60;
+	float m_minSimulationFPS = 30;
 
 public:
 	FrameLimiter()
@@ -300,6 +307,7 @@ public:
 		UpdateThrottler();
 
 		m_startTime = std::chrono::steady_clock::now();
+		m_prevFrame = m_startTime;
 	}
 
 	//
@@ -319,9 +327,9 @@ public:
 	// where we can determine how long to wait in order to manage both the
 	// render rate and the game update rate.
 	//
-	// The framerate will be set such that we maintain a minimum of 30 fps
+	// The framerate will be set such that we maintain a minimum of m_minSimulationFPS
 	// for the game simulation rate. If the render rate is set below that, then
-	// we will skip frames while maintaining a 30 fps game simulation.
+	// we will skip frames while maintaining a m_minSimulationFPS game simulation.
 
 	bool IsEnabled() const { return gbFrameLimiterEnabled; }
 
@@ -362,9 +370,8 @@ public:
 
 		m_doRender = doRender;
 
-		auto gameRemaining = m_gameThrottler.ThrottleFrame();
-
-		if (gameRemaining == 0us) {
+		// always perform the real world update, the limiting here happens in the sleep later in this function
+		{
 			// Measure how long it takes to do a realrender
 			MQScopedBenchmark bm(bmRealRenderWorld);
 			RecordSimulationSample();
@@ -372,13 +379,14 @@ public:
 			pDisplay.get_as<CDisplayHook>()->RealRender_World_Trampoline();
 		}
 
-		// A minimum of 1ms to match EQ's logic
-		auto waitTime = std::max(1000us, gameRemaining);
-
 		MQScopedBenchmark bm(bmThrottleTime);
+		//auto gameRemaining = std::chrono::duration_cast<std::chrono::microseconds>(
+		//	m_prevFrame + m_gameThrottler.GetMinDuration() - std::chrono::steady_clock::now());
 		//DebugSpewAlways("Sleep for: %d -- gameRemaining: %d -- frameRemaining: %d", (int)waitTime.count(),
 		//	(int)gameRemaining.count(), (int)frameRemaining.count());
-		std::this_thread::sleep_for(waitTime);
+		//std::this_thread::sleep_for(waitTime);
+		std::this_thread::sleep_until(m_prevFrame + m_gameLoopDuration);
+		m_prevFrame += m_gameLoopDuration;
 
 		return false;
 	}
@@ -447,10 +455,10 @@ public:
 
 	void UpdateForegroundState()
 	{
-		m_frameThrottler.Prepare();
-		m_gameThrottler.Prepare();
-
 		UpdateThrottler();
+
+		m_frameThrottler.Prepare();
+		m_prevFrame = std::chrono::steady_clock::now() - m_gameLoopDuration;
 	}
 
 	void UpdateThrottler()
@@ -458,9 +466,9 @@ public:
 		float desiredRenderRate = m_lastInForeground ? m_foregroundFPS : m_backgroundFPS;
 		m_frameThrottler.SetMinDuration(std::chrono::microseconds(static_cast<int64_t>(1000000 / desiredRenderRate)));
 
-		// Cap the main loop at a minimum of 30 fps.
-		float desiredGameRate = std::max(30.0f, desiredRenderRate);
-		m_gameThrottler.SetMinDuration(std::chrono::microseconds(static_cast<int64_t>(1000000 / desiredGameRate)));
+		// Cap the main loop at a minimum of m_minSimulationFPS.
+		float desiredGameRate = std::max(m_minSimulationFPS, desiredRenderRate);
+		m_gameLoopDuration = std::chrono::microseconds(static_cast<int64_t>(1000000 / desiredGameRate));
 	}
 
 	void UpdateSettingsPanel()
@@ -497,6 +505,12 @@ public:
 		if (ImGui::SliderFloat("Target FPS", &m_foregroundFPS, 5.0f, 120.0f))
 			UpdateThrottler();
 		ImGui::Unindent(); ImGui::PopID();
+
+		ImGui::Spacing();
+
+		ImGui::Text("Minimum Universal Simulation Rate:");
+		if (ImGui::SliderFloat("Min FPS", &m_minSimulationFPS, 5.0f, 120.0f))
+			UpdateThrottler();
 
 		ImGui::Spacing();
 
