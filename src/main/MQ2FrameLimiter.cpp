@@ -239,6 +239,7 @@ public:
 	{
 		if (UpdateDisplay_Hook())
 		{
+			DebugSpewAlways("UpdateDisplay");
 			UpdateDisplay_Trampoline();
 		}
 	}
@@ -296,7 +297,8 @@ class FrameLimiter
 	// Settings
 	bool m_renderInBackground = false;
 	bool m_renderInForeground = true;
-	bool m_clearScreen = true;
+	bool m_tieImGuiToSimulation = false;
+	bool m_clearScreen = false;
 	float m_backgroundFPS = 1;
 	float m_foregroundFPS = 60;
 	float m_minSimulationFPS = 30;
@@ -358,7 +360,7 @@ public:
 		}
 
 		// Decide if we should render the game.
-		bool doRender = gbInForeground ? m_renderInForeground : m_renderInBackground;
+		bool doRender = IsRendering();
 
 		// Make sure we're calling throttle frame each time to update the time accounting
 		auto frameRemaining = m_frameThrottler.ThrottleFrame();
@@ -401,10 +403,10 @@ public:
 		{
 			RecordRenderSample();
 		}
-		//else
-		//{
-		//	RenderImGuiScene();
-		//}
+		else if (m_tieImGuiToSimulation)
+		{
+			RenderImGuiScene();
+		}
 
 		return doRender;
 	}
@@ -418,7 +420,7 @@ public:
 	void OnPulse()
 	{
 		m_needWaitRender = mq::test_and_set(m_lastGameState, gGameState);
-		bool updateForeground = mq::test_and_set(m_lastInForeground, gbInForeground);
+		bool updateForeground = mq::test_and_set(m_lastInForeground, gbInForeground || IsImGuiForeground());
 
 		m_cpuUsage.AddSample(static_cast<int64_t>(m_cpuUsageCalc.GetCurrentValue() * 1000));
 
@@ -459,6 +461,8 @@ public:
 
 		m_frameThrottler.Prepare();
 		m_prevFrame = std::chrono::steady_clock::now() - m_gameLoopDuration;
+
+		RenderImGuiScene();
 	}
 
 	void UpdateThrottler()
@@ -474,13 +478,13 @@ public:
 	void UpdateSettingsPanel()
 	{
 		ImGui::Text("Status: "); ImGui::SameLine(0, 0);
-		if (gbInForeground)
+		if (m_lastInForeground)
 			ImGui::TextColored(ImColor(0, 255, 0), "Foreground");
 		else
 			ImGui::TextColored(ImColor(255, 0, 0), "Background");
 
-		ImGui::Text("Cpu Usage: %.2f%%", m_cpuUsage.Average() / 1000.f);
-		ImGui::Text("Render FPS: %.2f", 1000000 / m_renderFPS.Average());
+		ImGui::Text("CPU Usage: %.2f%%", m_cpuUsage.Average() / 1000.f);
+		ImGui::Text("Render FPS: %.2f", (!IsEnabled() || IsRendering()) ? 1000000 / m_renderFPS.Average() : 0.f);
 		ImGui::Text("Simulation FPS: %.2f", 1000000 / m_gameFPS.Average());
 
 		ImGui::Separator();
@@ -501,7 +505,8 @@ public:
 		// Foreground options
 		ImGui::Text("When in the "); ImGui::SameLine(0, 0); ImGui::TextColored(ImColor(0, 255, 0), "foreground"); ImGui::SameLine(0, 0); ImGui::Text(":");
 		ImGui::PushID("Foreground"); ImGui::Indent();
-		ImGui::Checkbox("Draw game scene", &m_renderInForeground);
+		if (ImGui::Checkbox("Draw game scene", &m_renderInForeground) && !m_renderInForeground)
+			mq::test_and_set(m_tieImGuiToSimulation, true);
 		if (ImGui::SliderFloat("Target FPS", &m_foregroundFPS, 5.0f, 120.0f))
 			UpdateThrottler();
 		ImGui::Unindent(); ImGui::PopID();
@@ -515,6 +520,8 @@ public:
 		ImGui::Spacing();
 
 		ImGui::Checkbox("Clear screen when not rendering", &m_clearScreen);
+		if (ImGui::Checkbox("Render ImGui at simulation rate", &m_tieImGuiToSimulation) && !m_renderInForeground)
+			m_tieImGuiToSimulation = true; // force this to true if we aren't rendering in the foreground
 
 		ImGui::Unindent();
 
@@ -527,6 +534,11 @@ public:
 	}
 
 private:
+	bool IsRendering()
+	{
+		return m_lastInForeground ? m_renderInForeground : m_renderInBackground;
+	}
+
 	void RecordRenderSample()
 	{
 		m_renderFPS.AddRelativeSample(
@@ -551,7 +563,7 @@ private:
 			return; // Nope!
 		}
 
-		if (m_clearScreen)
+		if (m_clearScreen && !IsRendering())
 		{
 			gpD3D9Device->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0, 1.0f, 0);
 		}
@@ -564,6 +576,7 @@ private:
 
 		// Draw Hud
 		gpD3D9Device->EndScene();
+		gpD3D9Device->Present(nullptr, nullptr, nullptr, nullptr);
 	}
 };
 static FrameLimiter s_frameLimiter;

@@ -102,6 +102,7 @@ MQLIB_API bool IsTargetable(SPAWNINFO* pSpawn);
 MQLIB_API bool AreNameSpritesCustomized();
 
 /* OVERLAY */
+MQLIB_API bool IsImGuiForeground();
 MQLIB_API void InitializeMQ2Overlay();
 MQLIB_API void ShutdownMQ2Overlay();
 MQLIB_API void PulseMQ2Overlay();

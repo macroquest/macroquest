@@ -2318,6 +2318,23 @@ static bool CreateDeviceObjects()
 static void InitializeOverlayInternal();
 static void ShutdownOverlayInternal();
 
+bool IsImGuiForeground()
+{
+	const auto& platform_io = ImGui::GetPlatformIO();
+
+	auto hWnd = GetForegroundWindow();
+	for (const auto& v : platform_io.Viewports)
+	{
+		if (v != nullptr)
+		{
+			auto userdata = static_cast<imgui::ImGuiViewportDataDx9*>(v->RendererUserData);
+			if (userdata != nullptr && userdata->d3dpp.hDeviceWindow == hWnd) return true;
+		}
+	}
+
+	return false;
+}
+
 void InitializeMQ2Overlay()
 {
 	imgui::g_bRenderImGui = GetPrivateProfileBool("MacroQuest", "RenderImGui", imgui::g_bRenderImGui, mq::internal_paths::MQini);
