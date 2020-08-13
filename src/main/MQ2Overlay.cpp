@@ -1813,6 +1813,23 @@ public:
 };
 DETOUR_TRAMPOLINE_EMPTY(void CParticleSystemHook::Render_Trampoline());
 
+static bool RenderUI_Hook();
+
+class CXWndManagerHook
+{
+public:
+	// This hooks the UI draw function
+	void DrawWindows_Trampoline();
+	void DrawWindows_Detour()
+	{
+		if (RenderUI_Hook())
+		{
+			DrawWindows_Trampoline();
+		}
+	}
+};
+DETOUR_TRAMPOLINE_EMPTY(void CXWndManagerHook::DrawWindows_Trampoline());
+
 class CRenderHook
 {
 public:
@@ -1824,6 +1841,7 @@ public:
 		if (RenderScene_Hook())
 		{
 			MQScopedBenchmark bm(bmRenderScene);
+			pWndMgr->DrawWindows(); // force the UI draw here to tie the UI update to the scene update
 			RenderScene_Trampoline();
 		}
 	}
@@ -2427,16 +2445,15 @@ class FrameLimiter
 	FrameThrottler m_gameThrottler;           // throttler for game
 	std::chrono::steady_clock::time_point m_startTime;
 	uint32_t m_lastGameState = 0;
+	uint32_t m_lastScreenMode = 0;
 	bool m_needWaitRender = true;     // wait for RenderReal_World function to be called
 	bool m_didTryRender = false;      // real render function was called
 	bool m_doRender = false;          // if set to false, we won't render (per frame).
 
 	// Settings
 	bool m_renderInBackground = false;
-	bool m_hideInterfaceInBackground = false;
 	bool m_renderInForeground = true;
 	bool m_clearScreen = true;
-	bool m_captureFrames = true;
 	float m_backgroundFPS = 1;
 	float m_foregroundFPS = 60;
 
@@ -2453,7 +2470,7 @@ public:
 	//
 	// while (true)
 	// {
-	//     // .. update ui state
+	//     DrawWindows()
 	//     RealRender_World()
 	//         // .. game state update
 	//         RenderScene()
@@ -2573,6 +2590,12 @@ public:
 		return doRender;
 	}
 
+	// this function performs the UI render. This is tied directly to the scene render, they should always match
+	bool DoRenderUIHook()
+	{
+		return !IsEnabled() || m_doRender;
+	}
+
 	void OnPulse()
 	{
 		m_needWaitRender = mq::test_and_set(m_lastGameState, gGameState);
@@ -2649,7 +2672,6 @@ public:
 			ImGui::Text("When in the "); ImGui::SameLine(0, 0); ImGui::TextColored(ImColor(255, 0, 0), "background"); ImGui::SameLine(0, 0); ImGui::Text(":");
 			ImGui::PushID("Background"); ImGui::Indent();
 				ImGui::Checkbox("Draw game scene", &m_renderInBackground);
-				ImGui::Checkbox("Hide the interface", &m_hideInterfaceInBackground);
 				if (ImGui::SliderFloat("Target FPS", &m_backgroundFPS, 0.001f, 120.0f))
 					UpdateThrottler();
 			ImGui::Unindent(); ImGui::PopID();
@@ -2667,7 +2689,6 @@ public:
 			ImGui::Spacing();
 
 			ImGui::Checkbox("Clear screen when not rendering", &m_clearScreen);
-			ImGui::Checkbox("Draw last frame", &m_captureFrames);
 
 		ImGui::Unindent();
 
@@ -2725,6 +2746,11 @@ static FrameLimiter s_frameLimiter;
 static bool RenderScene_Hook()
 {
 	return s_frameLimiter.DoRenderSceneHook();
+}
+
+static bool RenderUI_Hook()
+{
+	return s_frameLimiter.DoRenderUIHook();
 }
 
 static void FrameLimiterSettings()
@@ -2803,6 +2829,9 @@ void InitializeMQ2Overlay()
 	// Hook particle render function
 	EzDetour(CParticleSystem__Render, &CParticleSystemHook::Render_Detour, &CParticleSystemHook::Render_Trampoline);
 
+	// Hook UI render function
+	EzDetour(CXWndManager__DrawWindows, &CXWndManagerHook::DrawWindows_Detour, &CXWndManagerHook::DrawWindows_Trampoline);
+
 	// Hook main render function
 	EzDetour(CRender__RenderScene, &CRenderHook::RenderScene_Detour, &CRenderHook::RenderScene_Trampoline);
 
@@ -2841,6 +2870,7 @@ void ShutdownMQ2Overlay()
 	RemoveDetour(CRender__RenderScene);
 	RemoveDetour(__ThrottleFrameRate);
 	RemoveDetour(CDisplay__RealRender_World);
+	RemoveDetour(CXWndManager__DrawWindows);
 
 	RemoveMQ2Benchmark(bmRenderScene);
 	RemoveMQ2Benchmark(bmRealRenderWorld);
