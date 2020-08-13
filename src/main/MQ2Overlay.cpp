@@ -1841,8 +1841,17 @@ public:
 		if (RenderScene_Hook())
 		{
 			MQScopedBenchmark bm(bmRenderScene);
-			pWndMgr->DrawWindows(); // force the UI draw here to tie the UI update to the scene update
+			//pWndMgr->DrawWindows(); // force the UI draw here to tie the UI update to the scene update
 			RenderScene_Trampoline();
+		}
+	}
+
+	void UpdateDisplay_Trampoline();
+	void UpdateDisplay_Detour()
+	{
+		if (RenderUI_Hook())
+		{
+			UpdateDisplay_Trampoline();
 		}
 	}
 
@@ -1868,6 +1877,7 @@ public:
 	}
 };
 DETOUR_TRAMPOLINE_EMPTY(void CRenderHook::RenderScene_Trampoline());
+DETOUR_TRAMPOLINE_EMPTY(void CRenderHook::UpdateDisplay_Trampoline());
 DETOUR_TRAMPOLINE_EMPTY(bool CRenderHook::ResetDevice_Trampoline(bool));
 
 // Mouse hook prevents mouse events from reaching EQ when imgui captures
@@ -2682,7 +2692,7 @@ public:
 			ImGui::Text("When in the "); ImGui::SameLine(0, 0); ImGui::TextColored(ImColor(0, 255, 0), "foreground"); ImGui::SameLine(0, 0); ImGui::Text(":");
 			ImGui::PushID("Foreground"); ImGui::Indent();
 				ImGui::Checkbox("Draw game scene", &m_renderInForeground);
-				if (ImGui::SliderFloat("Target FPS", &m_foregroundFPS, 0.001f, 120.0f))
+				if (ImGui::SliderFloat("Target FPS", &m_foregroundFPS, 5.0f, 120.0f))
 					UpdateThrottler();
 			ImGui::Unindent(); ImGui::PopID();
 
@@ -2835,6 +2845,8 @@ void InitializeMQ2Overlay()
 	// Hook main render function
 	EzDetour(CRender__RenderScene, &CRenderHook::RenderScene_Detour, &CRenderHook::RenderScene_Trampoline);
 
+	EzDetour(CRender__UpdateDisplay, &CRenderHook::UpdateDisplay_Detour, &CRenderHook::UpdateDisplay_Trampoline);
+
 	// Hook the reset device function
 	EzDetour(CRender__ResetDevice, &CRenderHook::ResetDevice_Detour, &CRenderHook::ResetDevice_Trampoline);
 
@@ -2867,10 +2879,11 @@ void ShutdownMQ2Overlay()
 	RemoveDetour(__ProcessKeyboardEvents);
 	RemoveDetour(__WndProc);
 	RemoveDetour(CParticleSystem__Render);
+	RemoveDetour(CXWndManager__DrawWindows);
 	RemoveDetour(CRender__RenderScene);
+	RemoveDetour(CRender__UpdateDisplay);
 	RemoveDetour(__ThrottleFrameRate);
 	RemoveDetour(CDisplay__RealRender_World);
-	RemoveDetour(CXWndManager__DrawWindows);
 
 	RemoveMQ2Benchmark(bmRenderScene);
 	RemoveMQ2Benchmark(bmRealRenderWorld);
