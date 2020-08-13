@@ -395,6 +395,9 @@
     <ClCompile Include="..\..\contrib\fmt\src\os.cc">
       <Filter>Source Files\Contrib\fmt</Filter>
     </ClCompile>
+    <ClCompile Include="MQ2FrameLimiter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
@@ -509,9 +512,6 @@
       <Filter>Header Files\common</Filter>
     </ClInclude>
     <ClInclude Include="MQ2DeveloperTools.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MQ2Overlay.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -413,6 +413,7 @@
     <ClCompile Include="MQ2DataAPI.cpp" />
     <ClCompile Include="MQ2DataVars.cpp" />
     <ClCompile Include="MQ2DetourAPI.cpp" />
+    <ClCompile Include="MQ2FrameLimiter.cpp" />
     <ClCompile Include="MQ2Globals.cpp" />
     <ClCompile Include="MQ2ImGuiAPI.cpp" />
     <ClCompile Include="MQ2GroundSpawns.cpp" />
@@ -473,7 +474,6 @@
     <ClInclude Include="MQ2Internal.h" />
     <ClInclude Include="MQ2Main.h" />
     <ClInclude Include="MQ2MainBase.h" />
-    <ClInclude Include="MQ2Overlay.h" />
     <ClInclude Include="MQ2Prototypes.h" />
     <ClInclude Include="MQ2TopLevelObjects.h" />
     <ClInclude Include="pch.h" />
