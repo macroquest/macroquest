@@ -165,8 +165,6 @@ public:
 
 	std::chrono::microseconds ThrottleFrame(std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now())
 	{
-		using namespace std::chrono_literals;
-
 		auto delta = std::chrono::duration_cast<std::chrono::microseconds>(now - m_previous);
 
 		if (delta < 0us)
@@ -174,7 +172,7 @@ public:
 		else if (delta < m_minDuration)
 			return std::chrono::duration_cast<std::chrono::microseconds>(m_minDuration - delta);
 
-		m_previous += delta;
+		m_previous += m_minDuration;
 		return 0us;
 	}
 
@@ -189,13 +187,16 @@ private:
 
 static bool RenderScene_Hook();
 static bool RenderUI_Hook();
+static bool UpdateDisplay_Hook();
 static bool ShouldDoRealRenderWorld();
 static bool ShouldDoThrottle();
 
 class CXWndManagerHook
 {
 public:
-	// This hooks the UI draw function
+	// This hooks the UI draw function. Completely disable the UI draw if we have limiting enabled because
+	// we are going to want to tie the UI draw to the render scene, otherwise it will potentially draw out
+	// of order since the DrawWindows call happens outside of and before the RealRender_World call
 	void DrawWindows_Trampoline();
 	void DrawWindows_Detour()
 	{
@@ -218,14 +219,20 @@ public:
 		if (RenderScene_Hook())
 		{
 			MQScopedBenchmark bm(bmRenderScene);
+			// call the UI DrawWindows function here to explicitly tie the framerates
+			if (pWndMgr) pWndMgr.get_as<CXWndManagerHook>()->DrawWindows_Trampoline();
 			RenderScene_Trampoline();
 		}
 	}
 
+	// This hooks the update display function, which is called during 2D surface render outside of
+	// RenderScene. If RenderScene didn't call BeginScene, this will, and since our simulation update
+	// is explicitly different than the draw update and the simulation update calls this at various
+	// points, we need to explicitly throttle this as well if we have enabled the frame limiter
 	void UpdateDisplay_Trampoline();
 	void UpdateDisplay_Detour()
 	{
-		if (RenderUI_Hook())
+		if (UpdateDisplay_Hook())
 		{
 			UpdateDisplay_Trampoline();
 		}
@@ -242,6 +249,7 @@ public:
 	void RealRender_World_Trampoline();
 	void RealRender_World_Detour()
 	{
+		// This will only be true if we the frame limiter is disabled, but there are side effects to do the simulation step later
 		if (ShouldDoRealRenderWorld())
 		{
 			MQScopedBenchmark bm(bmRealRenderWorld);
@@ -341,26 +349,11 @@ public:
 			return true;
 		}
 
-		// Figure out how much time we need to wait before rendering.
-		bool inBackground = !gbInForeground;
-
 		// Decide if we should render the game.
-		bool doRender = false;
-
-		if (inBackground)
-		{
-			doRender = m_renderInBackground;
-		}
-		else
-		{
-			// Always render in foreground.
-			doRender = m_renderInForeground;
-		}
-
-		auto now1 = std::chrono::steady_clock::now();
+		bool doRender = gbInForeground ? m_renderInForeground : m_renderInBackground;
 
 		// Make sure we're calling throttle frame each time to update the time accounting
-		auto frameRemaining = m_frameThrottler.ThrottleFrame(now1);
+		auto frameRemaining = m_frameThrottler.ThrottleFrame();
 
 		if (doRender)
 		{
@@ -369,8 +362,9 @@ public:
 
 		m_doRender = doRender;
 
-		// Call into RealRender_World always.
-		{
+		auto gameRemaining = m_gameThrottler.ThrottleFrame();
+
+		if (gameRemaining == 0us) {
 			// Measure how long it takes to do a realrender
 			MQScopedBenchmark bm(bmRealRenderWorld);
 			RecordSimulationSample();
@@ -378,19 +372,7 @@ public:
 			pDisplay.get_as<CDisplayHook>()->RealRender_World_Trampoline();
 		}
 
-		auto now2 = std::chrono::steady_clock::now();
-		std::chrono::microseconds delta = std::chrono::duration_cast<std::chrono::microseconds>(now2 - now1);
-
-		frameRemaining = frameRemaining - delta;
-
-		auto gameRemaining = m_gameThrottler.ThrottleFrame(now2);
-		if (gameRemaining == 0us)
-		{
-			gameRemaining = m_gameThrottler.GetMinDuration() - delta;
-		}
-
 		// A minimum of 1ms to match EQ's logic
-
 		auto waitTime = std::max(1000us, gameRemaining);
 
 		MQScopedBenchmark bm(bmThrottleTime);
@@ -420,7 +402,7 @@ public:
 	}
 
 	// this function performs the UI render. This is tied directly to the scene render, they should always match
-	bool DoRenderUIHook()
+	bool DoUpdateDisplayHook()
 	{
 		return !IsEnabled() || m_doRender;
 	}
@@ -494,7 +476,8 @@ public:
 		ImGui::Text("Simulation FPS: %.2f", 1000000 / m_gameFPS.Average());
 
 		ImGui::Separator();
-		ImGui::Checkbox("Enable frame limiting", &gbFrameLimiterEnabled);
+		if (ImGui::Checkbox("Enable frame limiting", &gbFrameLimiterEnabled))
+			UpdateThrottler();
 
 		ImGui::Indent();
 		// Background options
@@ -581,7 +564,12 @@ static bool RenderScene_Hook()
 
 static bool RenderUI_Hook()
 {
-	return s_frameLimiter.DoRenderUIHook();
+	return !s_frameLimiter.IsEnabled();
+}
+
+static bool UpdateDisplay_Hook()
+{
+	return s_frameLimiter.DoUpdateDisplayHook();
 }
 
 static bool ShouldDoRealRenderWorld()
