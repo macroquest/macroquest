@@ -239,7 +239,6 @@ public:
 	{
 		if (UpdateDisplay_Hook())
 		{
-			DebugSpewAlways("UpdateDisplay");
 			UpdateDisplay_Trampoline();
 		}
 	}
