@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include <chrono>
+#include <utility>
 
 using namespace std::chrono_literals;
 
@@ -132,7 +133,6 @@ private:
 
 #pragma region globals
 // Global bool controlling this whole feature.
-bool gbFrameLimiterEnabled = false;
 float gCurrentFPS = 0.0f;
 float gCurrentCPU = 0.0f;
 
@@ -295,21 +295,34 @@ class FrameLimiter
 	bool m_doRender = false;          // if set to false, we won't render (per frame).
 
 	// Settings
-	bool m_renderInBackground = false;
-	bool m_renderInForeground = true;
-	bool m_tieImGuiToSimulation = false;
-	bool m_clearScreen = false;
-	float m_backgroundFPS = 1;
-	float m_foregroundFPS = 60;
-	float m_minSimulationFPS = 30;
+	bool m_enabled;
+	bool m_renderInBackground;
+	bool m_renderInForeground;
+	bool m_tieImGuiToSimulation;
+	bool m_clearScreen;
+	float m_backgroundFPS;
+	float m_foregroundFPS;
+	float m_minSimulationFPS;
 
 public:
-	FrameLimiter()
+	FrameLimiter() : 
+		m_startTime(std::chrono::steady_clock::now()),
+		m_prevFrame(m_startTime)
 	{
+		ReadSettings();
 		UpdateThrottler();
+	}
 
-		m_startTime = std::chrono::steady_clock::now();
-		m_prevFrame = m_startTime;
+	void ReadSettings()
+	{
+		m_enabled = GetSetting<bool, LimiterSetting::Enable>();
+		m_renderInBackground = GetSetting<bool, LimiterSetting::RenderInBackground>();
+		m_renderInForeground = GetSetting<bool, LimiterSetting::RenderInForeground>();
+		m_tieImGuiToSimulation = GetSetting<bool, LimiterSetting::TieImGuiToSimulation>();
+		m_clearScreen = GetSetting<bool, LimiterSetting::ClearScreen>();
+		m_backgroundFPS = GetSetting<float, LimiterSetting::BackgroundFPS>();
+		m_foregroundFPS = GetSetting<float, LimiterSetting::ForegroundFPS>();
+		m_minSimulationFPS = GetSetting<float, LimiterSetting::MinSimulationFPS>();
 	}
 
 	//
@@ -333,7 +346,7 @@ public:
 	// for the game simulation rate. If the render rate is set below that, then
 	// we will skip frames while maintaining a m_minSimulationFPS game simulation.
 
-	bool IsEnabled() const { return gbFrameLimiterEnabled; }
+	bool IsEnabled() const { return m_enabled; }
 
 	bool IsForeground() const { return m_lastInForeground; }
 
@@ -466,7 +479,7 @@ public:
 		}
 
 		// beyond this point we only handle frame limiting active.
-		if (!gbFrameLimiterEnabled)
+		if (!m_enabled)
 			return;
 
 		if (updateForeground)
@@ -508,16 +521,25 @@ public:
 		ImGui::Text("Simulation FPS: %.2f", SimulationFPS());
 
 		ImGui::Separator();
-		if (ImGui::Checkbox("Enable frame limiting", &gbFrameLimiterEnabled))
+		if (ImGui::Checkbox("Enable frame limiting", &m_enabled))
+		{
+			WriteSetting<LimiterSetting::Enable>(m_enabled);
 			UpdateThrottler();
+		}
 
 		ImGui::Indent();
 		// Background options
 		ImGui::Text("When in the "); ImGui::SameLine(0, 0); ImGui::TextColored(ImColor(255, 0, 0), "background"); ImGui::SameLine(0, 0); ImGui::Text(":");
 		ImGui::PushID("Background"); ImGui::Indent();
-		ImGui::Checkbox("Draw game scene", &m_renderInBackground);
+		if (ImGui::Checkbox("Draw game scene", &m_renderInBackground))
+		{
+			WriteSetting<LimiterSetting::RenderInBackground>(m_renderInBackground);
+		}
 		if (ImGui::SliderFloat("Target FPS", &m_backgroundFPS, 0.001f, 120.0f))
+		{
+			WriteSetting<LimiterSetting::BackgroundFPS>(m_backgroundFPS);
 			UpdateThrottler();
+		}
 		ImGui::Unindent(); ImGui::PopID();
 
 		ImGui::Spacing();
@@ -525,31 +547,56 @@ public:
 		// Foreground options
 		ImGui::Text("When in the "); ImGui::SameLine(0, 0); ImGui::TextColored(ImColor(0, 255, 0), "foreground"); ImGui::SameLine(0, 0); ImGui::Text(":");
 		ImGui::PushID("Foreground"); ImGui::Indent();
-		if (ImGui::Checkbox("Draw game scene", &m_renderInForeground) && !m_renderInForeground)
-			mq::test_and_set(m_tieImGuiToSimulation, true);
+		if (ImGui::Checkbox("Draw game scene", &m_renderInForeground))
+		{
+			WriteSetting<LimiterSetting::RenderInForeground>(m_renderInForeground);
+			if (!m_renderInForeground)
+			{
+				mq::test_and_set(m_tieImGuiToSimulation, true);
+				WriteSetting<LimiterSetting::TieImGuiToSimulation>(m_tieImGuiToSimulation);
+			}
+		}
 		if (ImGui::SliderFloat("Target FPS", &m_foregroundFPS, 5.0f, 120.0f))
+		{
+			WriteSetting<LimiterSetting::ForegroundFPS>(m_foregroundFPS);
 			UpdateThrottler();
+		}
 		ImGui::Unindent(); ImGui::PopID();
 
 		ImGui::Spacing();
 
 		ImGui::Text("Minimum Universal Simulation Rate:");
 		if (ImGui::SliderFloat("Min FPS", &m_minSimulationFPS, 5.0f, 120.0f))
+		{
+			WriteSetting<LimiterSetting::MinSimulationFPS>(m_minSimulationFPS);
 			UpdateThrottler();
+		}
 
 		ImGui::Spacing();
 
-		ImGui::Checkbox("Clear screen when not rendering", &m_clearScreen);
-		if (ImGui::Checkbox("Render ImGui at simulation rate", &m_tieImGuiToSimulation) && !m_renderInForeground)
-			m_tieImGuiToSimulation = true; // force this to true if we aren't rendering in the foreground
+		if (ImGui::Checkbox("Clear screen when not rendering", &m_clearScreen))
+		{
+			WriteSetting<LimiterSetting::ClearScreen>(m_clearScreen);
+		}
+		if (ImGui::Checkbox("Render ImGui at simulation rate", &m_tieImGuiToSimulation))
+		{
+			if (!m_renderInForeground)
+				m_tieImGuiToSimulation = true; // force this to true if we aren't rendering in the foreground
+			WriteSetting<LimiterSetting::TieImGuiToSimulation>(m_tieImGuiToSimulation);
+		}
 
 		ImGui::Unindent();
 
 		ImGui::Separator();
 
-		if (ImGui::Button("Force Reset"))
+		if (ImGui::Button("Reset Device"))
 		{
 			m_resetOnNextPulse = true;
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Reset Defaults"))
+		{
+			ResetDefaults();
 		}
 	}
 
@@ -592,6 +639,88 @@ private:
 		// Draw Hud
 		gpD3D9Device->EndScene();
 		gpD3D9Device->Present(nullptr, nullptr, nullptr, nullptr);
+	}
+
+	// settings
+	enum class LimiterSetting
+	{
+		Enable,
+		RenderInBackground,
+		RenderInForeground,
+		TieImGuiToSimulation,
+		ClearScreen,
+		BackgroundFPS,
+		ForegroundFPS,
+		MinSimulationFPS
+	};
+
+	template <LimiterSetting Value>
+	static constexpr const char* SettingName() { static_assert(false, "Unsupported SettingName in FrameLimiter"); }
+
+	template <> static constexpr const char* SettingName<LimiterSetting::Enable>() { return "Enable"; }
+	template <> static constexpr const char* SettingName<LimiterSetting::RenderInBackground>() { return "RenderInBackground"; }
+	template <> static constexpr const char* SettingName<LimiterSetting::RenderInForeground>() { return "RenderInForeground"; }
+	template <> static constexpr const char* SettingName<LimiterSetting::TieImGuiToSimulation>() { return "TieImGuiToSimulation"; }
+	template <> static constexpr const char* SettingName<LimiterSetting::ClearScreen>() { return "ClearScreen"; }
+	template <> static constexpr const char* SettingName<LimiterSetting::BackgroundFPS>() { return "BackgroundFPS"; }
+	template <> static constexpr const char* SettingName<LimiterSetting::ForegroundFPS>() { return "ForegroundFPS"; }
+	template <> static constexpr const char* SettingName<LimiterSetting::MinSimulationFPS>() { return "MinSimulationFPS"; }
+
+	template <typename T, LimiterSetting Value>
+	static constexpr T GetDefault() { static_assert(false, "Unsupported bool FrameLimiter setting type"); }
+
+	template <> static constexpr bool GetDefault<bool, LimiterSetting::Enable>() { return false; }
+	template <> static constexpr bool GetDefault<bool, LimiterSetting::RenderInBackground>() { return false; }
+	template <> static constexpr bool GetDefault<bool, LimiterSetting::RenderInForeground>() { return true; }
+	template <> static constexpr bool GetDefault<bool, LimiterSetting::TieImGuiToSimulation>() { return false; }
+	template <> static constexpr bool GetDefault<bool, LimiterSetting::ClearScreen>() { return false; }
+	template <> static constexpr float GetDefault<float, LimiterSetting::BackgroundFPS>() { return 1.f; }
+	template <> static constexpr float GetDefault<float, LimiterSetting::ForegroundFPS>() { return 60.f; }
+	template <> static constexpr float GetDefault<float, LimiterSetting::MinSimulationFPS>() { return 30.f; }
+
+	template <typename T, LimiterSetting Value>
+	static std::enable_if_t<std::is_same_v<T, bool>, bool> GetSetting()
+	{
+		return GetPrivateProfileBool("FrameLimiter", SettingName<Value>(), GetDefault<T, Value>(), internal_paths::MQini);
+	}
+
+	template <typename T, LimiterSetting Value>
+	static std::enable_if_t<std::is_same_v<T, float>, float> GetSetting()
+	{
+		return GetPrivateProfileFloat("FrameLimiter", SettingName<Value>(), GetDefault<T, Value>(), internal_paths::MQini);
+	}
+
+	template <LimiterSetting Value>
+	static bool WriteSetting(bool NewValue)
+	{
+		return WritePrivateProfileBool("FrameLimiter", SettingName<Value>(), NewValue, internal_paths::MQini);
+	}
+
+	template <LimiterSetting Value>
+	static float WriteSetting(float NewValue)
+	{
+		return WritePrivateProfileFloat("FrameLimiter", SettingName<Value>(), NewValue, internal_paths::MQini);
+	}
+
+	void ResetDefaults()
+	{
+		// could alternately delete all keys here, but it's more valuable to be able to write out all defaults
+		m_enabled = GetDefault<bool, LimiterSetting::Enable>();
+		WriteSetting<LimiterSetting::Enable>(m_enabled);
+		m_renderInBackground = GetDefault<bool, LimiterSetting::RenderInBackground>();
+		WriteSetting<LimiterSetting::RenderInBackground>(m_renderInBackground);
+		m_renderInForeground = GetDefault<bool, LimiterSetting::RenderInForeground>();
+		WriteSetting<LimiterSetting::RenderInForeground>(m_renderInForeground);
+		m_tieImGuiToSimulation = GetDefault<bool, LimiterSetting::TieImGuiToSimulation>();
+		WriteSetting<LimiterSetting::TieImGuiToSimulation>(m_tieImGuiToSimulation);
+		m_clearScreen = GetDefault<bool, LimiterSetting::ClearScreen>();
+		WriteSetting<LimiterSetting::ClearScreen>(m_clearScreen);
+		m_backgroundFPS = GetDefault<float, LimiterSetting::BackgroundFPS>();
+		WriteSetting<LimiterSetting::BackgroundFPS>(m_backgroundFPS);
+		m_foregroundFPS = GetDefault<float, LimiterSetting::ForegroundFPS>();
+		WriteSetting<LimiterSetting::ForegroundFPS>(m_foregroundFPS);
+		m_minSimulationFPS = GetDefault<float, LimiterSetting::MinSimulationFPS>();
+		WriteSetting<LimiterSetting::MinSimulationFPS>(m_minSimulationFPS);
 	}
 };
 static FrameLimiter s_frameLimiter;
@@ -657,6 +786,8 @@ static void InitializeFrameLimiter()
 
 	// Hook CDisplay::RealRender_World to control render loop
 	EzDetour(CDisplay__RealRender_World, &CDisplayHook::RealRender_World_Detour, &CDisplayHook::RealRender_World_Trampoline);
+
+	s_frameLimiter.ReadSettings();
 }
 
 static void ShutdownFrameLimiter()
