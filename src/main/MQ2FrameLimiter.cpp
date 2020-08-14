@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "MQ2Main.h"
 #include "MQ2DeveloperTools.h"
+#include "MQ2Args.h"
 
 #include <cstdint>
 #include <chrono>
@@ -642,6 +643,7 @@ private:
 	}
 
 	// settings
+public:
 	enum class LimiterSetting
 	{
 		Enable,
@@ -666,6 +668,7 @@ private:
 	template <> static constexpr const char* SettingName<LimiterSetting::ForegroundFPS>() { return "ForegroundFPS"; }
 	template <> static constexpr const char* SettingName<LimiterSetting::MinSimulationFPS>() { return "MinSimulationFPS"; }
 
+private:
 	template <typename T, LimiterSetting Value>
 	static constexpr T GetDefault() { static_assert(false, "Unsupported bool FrameLimiter setting type"); }
 
@@ -722,6 +725,44 @@ private:
 		m_minSimulationFPS = GetDefault<float, LimiterSetting::MinSimulationFPS>();
 		WriteSetting<LimiterSetting::MinSimulationFPS>(m_minSimulationFPS);
 	}
+
+	template <typename T, LimiterSetting Setting>
+	T InternalSet(T& Member, T Value)
+	{
+		Member = Value;
+		WriteSetting<Setting>(Member);
+		return Member;
+	}
+
+public:
+	template <LimiterSetting Setting>
+	bool Set(bool Value) { static_assert(false, "Attempting to set a bool setting that doesn't exist in FrameLimiter"); }
+
+	template<> bool Set<LimiterSetting::Enable>(bool Value) { return InternalSet<bool, LimiterSetting::Enable>(m_enabled, Value); }
+	template<> bool Set<LimiterSetting::RenderInBackground>(bool Value) { return InternalSet<bool, LimiterSetting::RenderInBackground>(m_renderInBackground, Value); }
+	template<> bool Set<LimiterSetting::ClearScreen>(bool Value) { return InternalSet<bool, LimiterSetting::ClearScreen>(m_clearScreen, Value); }
+
+	// force these next two settings to be linearly dependent (we _must_ have tieImGui of true if fgrender is false)
+	template<> bool Set<LimiterSetting::RenderInForeground>(bool Value)
+	{
+		if (!Value)
+			Set<LimiterSetting::TieImGuiToSimulation>(true);
+		return InternalSet<bool, LimiterSetting::RenderInForeground>(m_renderInForeground, Value);
+	}
+
+	template<> bool Set<LimiterSetting::TieImGuiToSimulation>(bool Value)
+	{
+		return InternalSet<bool, LimiterSetting::TieImGuiToSimulation>(m_tieImGuiToSimulation, m_renderInForeground ? Value : true);
+	}
+
+	template <LimiterSetting Setting>
+	bool Toggle() { return Set<Setting>(!GetSetting<bool, Setting>()); }
+
+	template <LimiterSetting Setting>
+	float Set(float Value) { static_assert(false, "Attempting to set a float setting that doesn't exist in FrameLimiter"); }
+	template<> float Set<LimiterSetting::BackgroundFPS>(float Value) { return InternalSet<float, LimiterSetting::BackgroundFPS>(m_backgroundFPS, Value); }
+	template<> float Set<LimiterSetting::ForegroundFPS>(float Value) { return InternalSet<float, LimiterSetting::ForegroundFPS>(m_foregroundFPS, Value); }
+	template<> float Set<LimiterSetting::MinSimulationFPS>(float Value) { return InternalSet<float, LimiterSetting::MinSimulationFPS>(m_minSimulationFPS, Value); }
 };
 static FrameLimiter s_frameLimiter;
 
@@ -762,6 +803,95 @@ static void FrameLimiterSettings()
 
 #pragma endregion
 
+#pragma region command
+
+template <FrameLimiter::LimiterSetting Setting>
+static void SetFrameLimiterBool(args::Subparser& parser)
+{
+	args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+	args::Positional<std::string> value(arguments, "value", "the value to set");
+	MQ2HelpArgument h(arguments);
+	parser.Parse();
+
+	auto result = value ?
+		s_frameLimiter.Set<Setting>(ci_starts_with(value.Get(), "true") || ci_starts_with(value.Get(), "on") || ci_equals(value.Get(), "1")) :
+		s_frameLimiter.Toggle<Setting>();
+
+	WriteChatf("FrameLimiter setting \at%s\ax has been set to \ay%s\ax.", FrameLimiter::SettingName<Setting>(), result ? "TRUE" : "FALSE");
+}
+
+template <FrameLimiter::LimiterSetting Setting>
+static void SetFrameLimiterFloat(args::Subparser& parser)
+{
+	args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+	args::Positional<float> value(arguments, "value", "the value to set");
+	MQ2HelpArgument h(arguments);
+	parser.Parse();
+	if (value)
+	{
+		auto result = s_frameLimiter.Set<Setting>(value.Get());
+
+		WriteChatf("FrameLimiter setting \at%s\ax has been set to \ay%.2f\ax.", FrameLimiter::SettingName<Setting>(), result);
+	}
+	else
+	{
+		WriteChatf("\at%s\ax requires an argument, use \ay-h\ax to determine the correct value.", FrameLimiter::SettingName<Setting>());
+	}
+}
+
+void FrameLimiterCommand(SPAWNINFO* pChar, char* szLine)
+{
+	MQ2Args arg_parser("Frame limiter tool: allows adjusting internal frame limiter settings.");
+	arg_parser.Prog("/framelimiter");
+	arg_parser.RequireCommand(false);
+	args::Group commands(arg_parser, "", args::Group::Validators::AtMostOne);
+
+	args::Command enable(commands, "enable", "set/toggle status of frame limiter", SetFrameLimiterBool<FrameLimiter::LimiterSetting::Enable>);
+	enable.RequireCommand(false);
+
+	args::Command bgrender(commands, "bgrender", "set/toggle rendering when client is in background", SetFrameLimiterBool<FrameLimiter::LimiterSetting::RenderInBackground>);
+	bgrender.RequireCommand(false);
+
+	args::Command fgrender(commands, "fgrender", "set/toggle rendering when client is in foreground", SetFrameLimiterBool<FrameLimiter::LimiterSetting::RenderInForeground>);
+	fgrender.RequireCommand(false);
+
+	args::Command imguirender(commands, "imguirender", "set/toggle rendering ImGui when rendering is otherwise disabled", SetFrameLimiterBool<FrameLimiter::LimiterSetting::TieImGuiToSimulation>);
+	imguirender.RequireCommand(false);
+
+	args::Command clearscreen(commands, "clearscreen", "set/toggle clearing (blanking) the screen when rendering is disabled", SetFrameLimiterBool<FrameLimiter::LimiterSetting::ClearScreen>);
+	clearscreen.RequireCommand(false);
+
+	args::Command bgfps(commands, "bgfps", "set the FPS rate for the background process", SetFrameLimiterFloat<FrameLimiter::LimiterSetting::BackgroundFPS>);
+
+	args::Command fgfps(commands, "fgfps", "set the FPS rate for the foreground process", SetFrameLimiterFloat<FrameLimiter::LimiterSetting::ForegroundFPS>);
+
+	args::Command simfps(commands, "simfps", "sets the minimum FPS the simulation will run", SetFrameLimiterFloat<FrameLimiter::LimiterSetting::MinSimulationFPS>);
+
+	MQ2HelpArgument h(commands);
+	auto args = allocate_args(szLine);
+
+	try
+	{
+		arg_parser.ParseArgs(args);
+	}
+	catch (const args::Help&)
+	{
+		arg_parser.Help();
+	}
+	catch (const args::Error& e)
+	{
+		WriteChatColor(e.what());
+	}
+
+	if (args.empty())
+	{
+		auto result = s_frameLimiter.Toggle<FrameLimiter::LimiterSetting::Enable>();
+		WriteChatf("Toggling frame limiter state to \at%s\ax, use \ay/framelimiter -h\ax for a list of commands.", result ? "TRUE" : "FALSE");
+	}
+}
+
+#pragma endregion
+
 #pragma region module
 
 static void InitializeFrameLimiter()
@@ -788,10 +918,14 @@ static void InitializeFrameLimiter()
 	EzDetour(CDisplay__RealRender_World, &CDisplayHook::RealRender_World_Detour, &CDisplayHook::RealRender_World_Trampoline);
 
 	s_frameLimiter.ReadSettings();
+
+	AddCommand("/framelimiter", FrameLimiterCommand, false, false, false);
 }
 
 static void ShutdownFrameLimiter()
 {
+	RemoveCommand("/framelimiter");
+
 	RemoveSettingsPanel("FPS Limiter");
 
 	RemoveDetour(CXWndManager__DrawWindows);
