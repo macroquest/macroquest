@@ -191,7 +191,7 @@ private:
 #pragma region Detours
 
 static bool RenderScene_Hook();
-static bool RenderUI_Hook();
+static bool UseEQRenderer();
 static bool UpdateDisplay_Hook();
 static bool ShouldDoRealRenderWorld();
 static bool ShouldDoThrottle();
@@ -205,8 +205,9 @@ public:
 	void DrawWindows_Trampoline();
 	void DrawWindows_Detour()
 	{
-		if (RenderUI_Hook())
+		if (UseEQRenderer())
 		{
+			// this is a pass through if we have the frame limiter off
 			DrawWindows_Trampoline();
 		}
 	}
@@ -224,8 +225,8 @@ public:
 		if (RenderScene_Hook())
 		{
 			MQScopedBenchmark bm(bmRenderScene);
-			// call the UI DrawWindows function here to explicitly tie the framerates
-			if (pWndMgr) pWndMgr.get_as<CXWndManagerHook>()->DrawWindows_Trampoline();
+			// call the UI DrawWindows function here to explicitly tie the framerates, but only do it if we have the limiter enabled
+			if (!UseEQRenderer() && pWndMgr) pWndMgr.get_as<CXWndManagerHook>()->DrawWindows_Trampoline();
 			RenderScene_Trampoline();
 		}
 	}
@@ -588,7 +589,7 @@ static bool RenderScene_Hook()
 	return s_frameLimiter.DoRenderSceneHook();
 }
 
-static bool RenderUI_Hook()
+static bool UseEQRenderer()
 {
 	return !s_frameLimiter.IsEnabled();
 }
