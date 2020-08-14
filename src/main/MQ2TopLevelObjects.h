@@ -61,5 +61,6 @@ MQLIB_API bool dataAlias(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataAdvLoot(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataAlert(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataRange(const char* szIndex, MQTypeVar& Ret);
+MQLIB_API bool dataFrameLimiter(const char* szIndex, MQTypeVar& Ret);
 
 } // namespace mq

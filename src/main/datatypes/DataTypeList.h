@@ -104,6 +104,7 @@ DATATYPE(MQ2RangeType, pRangeType, nullptr, 0);
 DATATYPE(MQ2AuraType, pAuraType, nullptr, 0);
 DATATYPE(MQ2BandolierItemType, pBandolierItemType, nullptr, 0);
 DATATYPE(MQ2BandolierType, pBandolierType, nullptr, 0);
+DATATYPE(MQ2FrameLimiterType, pFrameLimiterType, nullptr, 0);
 
 #pragma warning(pop)
 #undef DATATYPE // In case the includer forgets

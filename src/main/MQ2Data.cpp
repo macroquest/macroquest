@@ -1074,4 +1074,11 @@ bool dataPointMerchant(const char* szIndex, MQTypeVar& Ret)
 	return false;
 }
 
+bool dataFrameLimiter(const char* szIndex, MQTypeVar& Ret)
+{
+	Ret.Ptr = 0;
+	Ret.Type = pFrameLimiterType;
+	return true;
+}
+
 } // namespace mq

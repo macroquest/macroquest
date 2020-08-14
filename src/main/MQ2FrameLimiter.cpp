@@ -335,6 +335,26 @@ public:
 
 	bool IsEnabled() const { return gbFrameLimiterEnabled; }
 
+	bool IsForeground() const { return m_lastInForeground; }
+
+	bool IsRendering() const { return m_lastInForeground ? m_renderInForeground : m_renderInBackground; }
+
+	float CPUUsage() const { return static_cast<float>(m_cpuUsage.Average()) / 1000.f; }
+
+	float RenderFPS() const { return (!IsEnabled() || IsRendering()) ? 1000000 / static_cast<float>(m_renderFPS.Average()) : 0.f; }
+
+	float SimulationFPS() const { return 1000000 / static_cast<float>(m_gameFPS.Average()); }
+
+	float ForegroundFPS() const { return m_renderInForeground ? m_foregroundFPS : 0.f; }
+
+	float BackgroundFPS() const { return m_renderInBackground ? m_backgroundFPS : 0.f; }
+
+	float MinSimulationFPS() const { return m_minSimulationFPS; }
+
+	float MinImGuiFPS() const { return m_tieImGuiToSimulation ? m_minSimulationFPS : 0.f; }
+
+	bool DoClearScreen() const { return m_clearScreen; }
+
 	bool DoRealRenderWorld()
 	{
 		if (!IsEnabled())
@@ -483,9 +503,9 @@ public:
 		else
 			ImGui::TextColored(ImColor(255, 0, 0), "Background");
 
-		ImGui::Text("CPU Usage: %.2f%%", m_cpuUsage.Average() / 1000.f);
-		ImGui::Text("Render FPS: %.2f", (!IsEnabled() || IsRendering()) ? 1000000 / m_renderFPS.Average() : 0.f);
-		ImGui::Text("Simulation FPS: %.2f", 1000000 / m_gameFPS.Average());
+		ImGui::Text("CPU Usage: %.2f%%", CPUUsage());
+		ImGui::Text("Render FPS: %.2f", RenderFPS());
+		ImGui::Text("Simulation FPS: %.2f", SimulationFPS());
 
 		ImGui::Separator();
 		if (ImGui::Checkbox("Enable frame limiting", &gbFrameLimiterEnabled))
@@ -534,11 +554,6 @@ public:
 	}
 
 private:
-	bool IsRendering()
-	{
-		return m_lastInForeground ? m_renderInForeground : m_renderInBackground;
-	}
-
 	void RecordRenderSample()
 	{
 		m_renderFPS.AddRelativeSample(
@@ -583,6 +598,8 @@ static FrameLimiter s_frameLimiter;
 
 #pragma endregion
 
+#pragma region accessors
+
 // Our hook for the main render function. Returns true to call the trampoline and render.
 static bool RenderScene_Hook()
 {
@@ -613,6 +630,10 @@ static void FrameLimiterSettings()
 {
 	s_frameLimiter.UpdateSettingsPanel();
 }
+
+#pragma endregion
+
+#pragma region module
 
 static void InitializeFrameLimiter()
 {
@@ -670,5 +691,112 @@ static MQModule s_FrameLimiterModule = {
 	nullptr                        // WriteChatColor
 };
 DECLARE_MODULE_INITIALIZER(s_FrameLimiterModule);
+
+#pragma endregion
+
+#pragma region tlo
+
+namespace datatypes {
+enum class FrameLimiterTypeMembers
+{
+	Enabled,
+	Status,
+	CPU,
+	RenderFPS,
+	SimulationFPS,
+	BackgroundFPS,
+	ForegroundFPS,
+	MinSimulationFPS,
+	MinImGuiFPS,
+	ClearScreen
+};
+
+MQ2FrameLimiterType::MQ2FrameLimiterType() : MQ2Type("framelimiter")
+{
+	ScopedTypeMember(FrameLimiterTypeMembers, Enabled);
+	ScopedTypeMember(FrameLimiterTypeMembers, Status);
+	ScopedTypeMember(FrameLimiterTypeMembers, CPU);
+	ScopedTypeMember(FrameLimiterTypeMembers, RenderFPS);
+	ScopedTypeMember(FrameLimiterTypeMembers, SimulationFPS);
+	ScopedTypeMember(FrameLimiterTypeMembers, BackgroundFPS);
+	ScopedTypeMember(FrameLimiterTypeMembers, ForegroundFPS);
+	ScopedTypeMember(FrameLimiterTypeMembers, MinSimulationFPS);
+	ScopedTypeMember(FrameLimiterTypeMembers, MinImGuiFPS);
+	ScopedTypeMember(FrameLimiterTypeMembers, ClearScreen);
+}
+
+bool MQ2FrameLimiterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
+{
+	using FLTM = FrameLimiterTypeMembers;
+	auto pMember = MQ2FrameLimiterType::FindMember(Member);
+	if (pMember == nullptr)
+		return false;
+
+	switch (static_cast<FLTM>(pMember->ID))
+	{
+	case FLTM::Enabled:
+		Dest.Type = pBoolType;
+		Dest.Set(s_frameLimiter.IsEnabled());
+		return true;
+
+	case FLTM::Status:
+		Dest.Type = pStringType;
+		strcpy_s(DataTypeTemp, s_frameLimiter.IsForeground() ? "Foreground" : "Background");
+		Dest.Set(&DataTypeTemp[0]);
+		return true;
+
+	case FLTM::CPU:
+		Dest.Type = pFloatType;
+		Dest.Set(s_frameLimiter.CPUUsage());
+		return true;
+
+	case FLTM::RenderFPS:
+		Dest.Type = pFloatType;
+		Dest.Set(s_frameLimiter.RenderFPS());
+		return true;
+
+	case FLTM::SimulationFPS:
+		Dest.Type = pFloatType;
+		Dest.Set(s_frameLimiter.SimulationFPS());
+		return true;
+
+	case FLTM::BackgroundFPS:
+		Dest.Type = pFloatType;
+		Dest.Set(s_frameLimiter.BackgroundFPS());
+		return true;
+
+	case FLTM::ForegroundFPS:
+		Dest.Type = pFloatType;
+		Dest.Set(s_frameLimiter.ForegroundFPS());
+		return true;
+
+	case FLTM::MinSimulationFPS:
+		Dest.Type = pFloatType;
+		Dest.Set(s_frameLimiter.MinSimulationFPS());
+		return true;
+
+	case FLTM::MinImGuiFPS:
+		Dest.Type = pFloatType;
+		Dest.Set(s_frameLimiter.MinImGuiFPS());
+		return true;
+
+	case FLTM::ClearScreen:
+		Dest.Type = pBoolType;
+		Dest.Set(s_frameLimiter.DoClearScreen());
+		return true;
+
+	default:
+		return false;
+	}
+}
+
+bool MQ2FrameLimiterType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	strcpy_s(Destination, MAX_STRING, s_frameLimiter.IsEnabled() ? "TRUE" : "FALSE");
+	return true;
+}
+}
+
+#pragma endregion
 
 }

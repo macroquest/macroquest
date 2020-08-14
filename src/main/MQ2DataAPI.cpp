@@ -497,6 +497,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("Type", dataType);
 	AddMQ2Data("Window", dataWindow);
 	AddMQ2Data("Zone", dataZone);
+	AddMQ2Data("FrameLimiter", dataFrameLimiter);
 }
 
 void ShutdownMQ2Data()
