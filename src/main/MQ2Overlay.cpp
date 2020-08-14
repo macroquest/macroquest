@@ -2320,6 +2320,9 @@ static void ShutdownOverlayInternal();
 
 bool IsImGuiForeground()
 {
+	if (ImGui::GetCurrentContext() == NULL)
+		return false;
+
 	const auto& platform_io = ImGui::GetPlatformIO();
 
 	auto hWnd = GetForegroundWindow();
