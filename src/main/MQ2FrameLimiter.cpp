@@ -300,6 +300,7 @@ class FrameLimiter
 	bool m_renderInBackground;
 	bool m_renderInForeground;
 	bool m_tieImGuiToSimulation;
+	bool m_tieUiToSimulation;
 	bool m_clearScreen;
 	float m_backgroundFPS;
 	float m_foregroundFPS;
@@ -320,6 +321,7 @@ public:
 		m_renderInBackground = GetSetting<bool, LimiterSetting::RenderInBackground>();
 		m_renderInForeground = GetSetting<bool, LimiterSetting::RenderInForeground>();
 		m_tieImGuiToSimulation = GetSetting<bool, LimiterSetting::TieImGuiToSimulation>();
+		m_tieUiToSimulation = GetSetting<bool, LimiterSetting::TieUiToSimulation>();
 		m_clearScreen = GetSetting<bool, LimiterSetting::ClearScreen>();
 		m_backgroundFPS = GetSetting<float, LimiterSetting::BackgroundFPS>();
 		m_foregroundFPS = GetSetting<float, LimiterSetting::ForegroundFPS>();
@@ -367,6 +369,8 @@ public:
 
 	float MinImGuiFPS() const { return m_tieImGuiToSimulation ? m_minSimulationFPS : 0.f; }
 
+	float MinUiFPS() const { return m_tieUiToSimulation ? m_minSimulationFPS : 0.f; }
+
 	bool DoClearScreen() const { return m_clearScreen; }
 
 	bool DoRealRenderWorld()
@@ -413,6 +417,8 @@ public:
 			RecordSimulationSample();
 
 			pDisplay.get_as<CDisplayHook>()->RealRender_World_Trampoline();
+			if (!IsRendering() && m_tieUiToSimulation && pWndMgr)
+				pWndMgr.get_as<CXWndManagerHook>()->DrawWindows_Trampoline();
 		}
 
 		MQScopedBenchmark bm(bmThrottleTime);
@@ -445,10 +451,9 @@ public:
 		return doRender;
 	}
 
-	// this function performs the UI render. This is tied directly to the scene render, they should always match
 	bool DoUpdateDisplayHook()
 	{
-		return !IsEnabled() || m_doRender;
+		return !IsEnabled() || m_doRender || m_tieUiToSimulation;
 	}
 
 	void OnPulse()
@@ -581,9 +586,18 @@ public:
 		}
 		if (ImGui::Checkbox("Render ImGui at simulation rate", &m_tieImGuiToSimulation))
 		{
-			if (!m_renderInForeground)
-				m_tieImGuiToSimulation = true; // force this to true if we aren't rendering in the foreground
+			if (!m_renderInForeground || m_tieUiToSimulation)
+				m_tieImGuiToSimulation = true; // force this to true if we aren't rendering in the foreground or if we are rendering the UI
 			WriteSetting<LimiterSetting::TieImGuiToSimulation>(m_tieImGuiToSimulation);
+		}
+		if (ImGui::Checkbox("Render UI at simulation rate", &m_tieUiToSimulation))
+		{
+			WriteSetting<LimiterSetting::TieUiToSimulation>(m_tieUiToSimulation);
+			if (m_tieUiToSimulation)
+			{
+				mq::test_and_set(m_tieImGuiToSimulation, true);
+				WriteSetting<LimiterSetting::TieImGuiToSimulation>(m_tieImGuiToSimulation);
+			}
 		}
 
 		ImGui::Unindent();
@@ -650,6 +664,7 @@ public:
 		RenderInBackground,
 		RenderInForeground,
 		TieImGuiToSimulation,
+		TieUiToSimulation,
 		ClearScreen,
 		BackgroundFPS,
 		ForegroundFPS,
@@ -663,6 +678,7 @@ public:
 	template <> static constexpr const char* SettingName<LimiterSetting::RenderInBackground>() { return "RenderInBackground"; }
 	template <> static constexpr const char* SettingName<LimiterSetting::RenderInForeground>() { return "RenderInForeground"; }
 	template <> static constexpr const char* SettingName<LimiterSetting::TieImGuiToSimulation>() { return "TieImGuiToSimulation"; }
+	template <> static constexpr const char* SettingName<LimiterSetting::TieUiToSimulation>() { return "TieUiToSimulation"; }
 	template <> static constexpr const char* SettingName<LimiterSetting::ClearScreen>() { return "ClearScreen"; }
 	template <> static constexpr const char* SettingName<LimiterSetting::BackgroundFPS>() { return "BackgroundFPS"; }
 	template <> static constexpr const char* SettingName<LimiterSetting::ForegroundFPS>() { return "ForegroundFPS"; }
@@ -676,6 +692,7 @@ private:
 	template <> static constexpr bool GetDefault<bool, LimiterSetting::RenderInBackground>() { return false; }
 	template <> static constexpr bool GetDefault<bool, LimiterSetting::RenderInForeground>() { return true; }
 	template <> static constexpr bool GetDefault<bool, LimiterSetting::TieImGuiToSimulation>() { return false; }
+	template <> static constexpr bool GetDefault<bool, LimiterSetting::TieUiToSimulation>() { return false; }
 	template <> static constexpr bool GetDefault<bool, LimiterSetting::ClearScreen>() { return false; }
 	template <> static constexpr float GetDefault<float, LimiterSetting::BackgroundFPS>() { return 1.f; }
 	template <> static constexpr float GetDefault<float, LimiterSetting::ForegroundFPS>() { return 60.f; }
@@ -716,6 +733,8 @@ private:
 		WriteSetting<LimiterSetting::RenderInForeground>(m_renderInForeground);
 		m_tieImGuiToSimulation = GetDefault<bool, LimiterSetting::TieImGuiToSimulation>();
 		WriteSetting<LimiterSetting::TieImGuiToSimulation>(m_tieImGuiToSimulation);
+		m_tieUiToSimulation = GetDefault<bool, LimiterSetting::TieUiToSimulation>();
+		WriteSetting<LimiterSetting::TieUiToSimulation>(m_tieUiToSimulation);
 		m_clearScreen = GetDefault<bool, LimiterSetting::ClearScreen>();
 		WriteSetting<LimiterSetting::ClearScreen>(m_clearScreen);
 		m_backgroundFPS = GetDefault<float, LimiterSetting::BackgroundFPS>();
@@ -752,7 +771,14 @@ public:
 
 	template<> bool Set<LimiterSetting::TieImGuiToSimulation>(bool Value)
 	{
-		return InternalSet<bool, LimiterSetting::TieImGuiToSimulation>(m_tieImGuiToSimulation, m_renderInForeground ? Value : true);
+		return InternalSet<bool, LimiterSetting::TieImGuiToSimulation>(m_tieImGuiToSimulation, m_renderInForeground && !m_tieUiToSimulation? Value : true);
+	}
+
+	template<> bool Set<LimiterSetting::TieUiToSimulation>(bool Value)
+	{
+		if (Value)
+			Set<LimiterSetting::TieImGuiToSimulation>(true);
+		return InternalSet<bool, LimiterSetting::TieUiToSimulation>(m_tieUiToSimulation, Value);
 	}
 
 	template <LimiterSetting Setting>
@@ -857,6 +883,9 @@ void FrameLimiterCommand(SPAWNINFO* pChar, char* szLine)
 
 	args::Command imguirender(commands, "imguirender", "set/toggle rendering ImGui when rendering is otherwise disabled", SetFrameLimiterBool<FrameLimiter::LimiterSetting::TieImGuiToSimulation>);
 	imguirender.RequireCommand(false);
+
+	args::Command uirender(commands, "uirender", "set/toggle rendering the UI when rendering is otherwise disabled", SetFrameLimiterBool<FrameLimiter::LimiterSetting::TieUiToSimulation>);
+	uirender.RequireCommand(false);
 
 	args::Command clearscreen(commands, "clearscreen", "set/toggle clearing (blanking) the screen when rendering is disabled", SetFrameLimiterBool<FrameLimiter::LimiterSetting::ClearScreen>);
 	clearscreen.RequireCommand(false);
@@ -973,6 +1002,7 @@ enum class FrameLimiterTypeMembers
 	ForegroundFPS,
 	MinSimulationFPS,
 	MinImGuiFPS,
+	MinUiFPS,
 	ClearScreen
 };
 
@@ -987,6 +1017,7 @@ MQ2FrameLimiterType::MQ2FrameLimiterType() : MQ2Type("framelimiter")
 	ScopedTypeMember(FrameLimiterTypeMembers, ForegroundFPS);
 	ScopedTypeMember(FrameLimiterTypeMembers, MinSimulationFPS);
 	ScopedTypeMember(FrameLimiterTypeMembers, MinImGuiFPS);
+	ScopedTypeMember(FrameLimiterTypeMembers, MinUiFPS);
 	ScopedTypeMember(FrameLimiterTypeMembers, ClearScreen);
 }
 
@@ -1043,6 +1074,11 @@ bool MQ2FrameLimiterType::GetMember(MQVarPtr VarPtr, const char* Member, char* I
 	case FLTM::MinImGuiFPS:
 		Dest.Type = pFloatType;
 		Dest.Set(s_frameLimiter.MinImGuiFPS());
+		return true;
+
+	case FLTM::MinUiFPS:
+		Dest.Type = pFloatType;
+		Dest.Set(s_frameLimiter.MinUiFPS());
 		return true;
 
 	case FLTM::ClearScreen:
