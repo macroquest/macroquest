@@ -558,7 +558,7 @@ public:
 			WriteSetting<LimiterSetting::RenderInForeground>(m_renderInForeground);
 			if (!m_renderInForeground)
 			{
-				mq::test_and_set(m_tieImGuiToSimulation, true);
+				m_tieImGuiToSimulation = true;
 				WriteSetting<LimiterSetting::TieImGuiToSimulation>(m_tieImGuiToSimulation);
 			}
 		}
@@ -595,7 +595,7 @@ public:
 			WriteSetting<LimiterSetting::TieUiToSimulation>(m_tieUiToSimulation);
 			if (m_tieUiToSimulation)
 			{
-				mq::test_and_set(m_tieImGuiToSimulation, true);
+				m_tieImGuiToSimulation = true;
 				WriteSetting<LimiterSetting::TieImGuiToSimulation>(m_tieImGuiToSimulation);
 			}
 		}
