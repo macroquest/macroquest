@@ -488,7 +488,17 @@ PLUGIN_API void OnPulse()
 		Login::dispatch(LoginStateSensor(LoginState::InGame, nullptr));
 	else if (GetGameState() == GAMESTATE_CHARSELECT && MQGetTickCount64() > ReenableTime)
 	{
-		if (CXWnd* pWnd = GetWindow("CLW_CharactersScreen"))
+		auto pWnd = GetWindow<CSidlScreenWnd>("ConfirmationDialogBox");
+		if (pWnd != nullptr && pWnd->IsVisible() == 1)
+		{
+			auto pText = GetChildWindow<CStmlWnd>(pWnd, "cd_textoutput");
+			if (pText && pText->STMLText.find("Do you accept these rules?") != CXStr::npos)
+			{
+				if (auto pYes = GetChildWindow<CButtonWnd>(pWnd, "cd_yes_button"))
+					pYes->WndNotification(pYes, XWM_LCLICK);
+			}
+		}
+		else if (CXWnd* pWnd = GetWindow("CLW_CharactersScreen"))
 			Login::dispatch(LoginStateSensor(LoginState::CharacterSelect, pWnd));
 	}
 	else if (GetGameState() == GAMESTATE_PRECHARSELECT && g_pLoginClient && MQGetTickCount64() > ReenableTime)
