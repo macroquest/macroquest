@@ -2292,6 +2292,10 @@ void MacroLog(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
+	// Don't need to check errors since the log file write itself will error, but we don't want to throw
+	std::error_code ec;
+	create_directories(logFilePath.parent_path(), ec);
+
 	FILE* fOut = nullptr;
 	errno_t err = fopen_s(&fOut, logFilePath.string().c_str(), "at");
 	if (err || !fOut)
