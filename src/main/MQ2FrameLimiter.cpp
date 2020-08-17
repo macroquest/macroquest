@@ -831,6 +831,18 @@ static void FrameLimiterSettings()
 
 #pragma region command
 
+template <FrameLimiter::LimiterSetting Setting, bool Position>
+static void SetFrameLimiterBool(args::Subparser& parser)
+{
+	args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+	MQ2HelpArgument h(arguments);
+	parser.Parse();
+
+	auto result = s_frameLimiter.Set<Setting>(Position);
+
+	WriteChatf("FrameLimiter setting \at%s\ax has been set to \ay%s\ax.", FrameLimiter::SettingName<Setting>(), result ? "ENABLED" : "DISABLED");
+}
+
 template <FrameLimiter::LimiterSetting Setting>
 static void SetFrameLimiterBool(args::Subparser& parser)
 {
@@ -843,7 +855,7 @@ static void SetFrameLimiterBool(args::Subparser& parser)
 		s_frameLimiter.Set<Setting>(ci_starts_with(value.Get(), "true") || ci_starts_with(value.Get(), "on") || ci_equals(value.Get(), "1")) :
 		s_frameLimiter.Toggle<Setting>();
 
-	WriteChatf("FrameLimiter setting \at%s\ax has been set to \ay%s\ax.", FrameLimiter::SettingName<Setting>(), result ? "TRUE" : "FALSE");
+	WriteChatf("FrameLimiter setting \at%s\ax has been set to \ay%s\ax.", FrameLimiter::SettingName<Setting>(), result ? "ENABLED" : "DISABLED");
 }
 
 template <FrameLimiter::LimiterSetting Setting>
@@ -872,23 +884,23 @@ void FrameLimiterCommand(SPAWNINFO* pChar, char* szLine)
 	arg_parser.RequireCommand(false);
 	args::Group commands(arg_parser, "", args::Group::Validators::AtMostOne);
 
-	args::Command enable(commands, "enable", "set/toggle status of frame limiter", SetFrameLimiterBool<FrameLimiter::LimiterSetting::Enable>);
-	enable.RequireCommand(false);
+	args::Command enable(commands, "enable", "turn the rendering client on", SetFrameLimiterBool<FrameLimiter::LimiterSetting::Enable, true>);
+	args::Command on(commands, "on", "turn the rendering client on", SetFrameLimiterBool<FrameLimiter::LimiterSetting::Enable, true>);
+
+	args::Command disable(commands, "disable", "turn the rendering client off", SetFrameLimiterBool<FrameLimiter::LimiterSetting::Enable, false>);
+	args::Command off(commands, "off", "turn the rendering client off", SetFrameLimiterBool<FrameLimiter::LimiterSetting::Enable, false>);
+
+	args::Command toggle(commands, "toggle", "set/toggle the framelimiter functionality", SetFrameLimiterBool<FrameLimiter::LimiterSetting::Enable>);
 
 	args::Command bgrender(commands, "bgrender", "set/toggle rendering when client is in background", SetFrameLimiterBool<FrameLimiter::LimiterSetting::RenderInBackground>);
-	bgrender.RequireCommand(false);
 
 	args::Command fgrender(commands, "fgrender", "set/toggle rendering when client is in foreground", SetFrameLimiterBool<FrameLimiter::LimiterSetting::RenderInForeground>);
-	fgrender.RequireCommand(false);
 
 	args::Command imguirender(commands, "imguirender", "set/toggle rendering ImGui when rendering is otherwise disabled", SetFrameLimiterBool<FrameLimiter::LimiterSetting::TieImGuiToSimulation>);
-	imguirender.RequireCommand(false);
 
 	args::Command uirender(commands, "uirender", "set/toggle rendering the UI when rendering is otherwise disabled", SetFrameLimiterBool<FrameLimiter::LimiterSetting::TieUiToSimulation>);
-	uirender.RequireCommand(false);
 
 	args::Command clearscreen(commands, "clearscreen", "set/toggle clearing (blanking) the screen when rendering is disabled", SetFrameLimiterBool<FrameLimiter::LimiterSetting::ClearScreen>);
-	clearscreen.RequireCommand(false);
 
 	args::Command bgfps(commands, "bgfps", "set the FPS rate for the background process", SetFrameLimiterFloat<FrameLimiter::LimiterSetting::BackgroundFPS>);
 
@@ -910,12 +922,13 @@ void FrameLimiterCommand(SPAWNINFO* pChar, char* szLine)
 	catch (const args::Error& e)
 	{
 		WriteChatColor(e.what());
+		arg_parser.Help();
 	}
 
 	if (args.empty())
 	{
 		auto result = s_frameLimiter.Toggle<FrameLimiter::LimiterSetting::Enable>();
-		WriteChatf("Toggling frame limiter state to \at%s\ax, use \ay/framelimiter -h\ax for a list of commands.", result ? "TRUE" : "FALSE");
+		WriteChatf("Toggling frame limiter state to \at%s\ax, use \ay%s -h\ax for a list of commands.", result ? "ENABLED" : "DISABLED", arg_parser.Prog().c_str());
 	}
 }
 
