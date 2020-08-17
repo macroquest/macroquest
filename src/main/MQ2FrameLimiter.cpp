@@ -349,7 +349,7 @@ public:
 	// for the game simulation rate. If the render rate is set below that, then
 	// we will skip frames while maintaining a m_minSimulationFPS game simulation.
 
-	bool IsEnabled() const { return m_enabled; }
+	bool IsEnabled() const { return m_enabled && gbInZone; }
 
 	bool IsForeground() const { return m_lastInForeground; }
 
@@ -485,7 +485,7 @@ public:
 		}
 
 		// beyond this point we only handle frame limiting active.
-		if (!m_enabled)
+		if (!IsEnabled())
 			return;
 
 		if (updateForeground)
