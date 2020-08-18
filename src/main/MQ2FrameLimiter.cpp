@@ -294,6 +294,7 @@ class FrameLimiter
 	bool m_needWaitRender = true;     // wait for RenderReal_World function to be called
 	bool m_didTryRender = false;      // real render function was called
 	bool m_doRender = false;          // if set to false, we won't render (per frame).
+	bool m_pauseForZone = true;
 
 	// Settings
 	bool m_enabled;
@@ -349,7 +350,7 @@ public:
 	// for the game simulation rate. If the render rate is set below that, then
 	// we will skip frames while maintaining a m_minSimulationFPS game simulation.
 
-	bool IsEnabled() const { return m_enabled && gbInZone; }
+	bool IsEnabled() const { return !m_pauseForZone && m_enabled && gbInZone; }
 
 	bool IsForeground() const { return m_lastInForeground; }
 
@@ -394,6 +395,7 @@ public:
 		if (!IsEnabled() || m_needWaitRender)
 		{
 			RecordSimulationSample();
+			m_pauseForZone = false;
 			return true;
 		}
 
@@ -454,6 +456,11 @@ public:
 	bool DoUpdateDisplayHook()
 	{
 		return !IsEnabled() || m_doRender || m_tieUiToSimulation;
+	}
+
+	void PauseForZone()
+	{
+		m_pauseForZone = true;
 	}
 
 	void OnPulse()
@@ -986,13 +993,18 @@ static void PulseFrameLimiter()
 	s_frameLimiter.OnPulse();
 }
 
+static void SetGameStateFrameLimiter(DWORD GameState)
+{
+	s_frameLimiter.PauseForZone();
+}
+
 static MQModule s_FrameLimiterModule = {
 	"FrameLimiter",                // Name
 	false,                         // CanUnload
 	InitializeFrameLimiter,        // Initialize
 	ShutdownFrameLimiter,          // Shutdown
 	PulseFrameLimiter,             // Pulse
-	nullptr,                       // SetGameState
+	SetGameStateFrameLimiter,      // SetGameState
 	nullptr,                       // UpdateImGui
 	nullptr,                       // Zoned
 	nullptr                        // WriteChatColor

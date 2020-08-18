@@ -898,7 +898,7 @@ struct TokenTextParam
 
 void InitializeStringDB();
 void ShutdownStringDB();
-int AddTokenMessageCmd(int StringID, fMQTokenMessageCmd Command);
-void RemoveTokenMessageCmd(int StringID, int CallbackID);
+MQLIB_OBJECT int AddTokenMessageCmd(int StringID, fMQTokenMessageCmd Command);
+MQLIB_OBJECT void RemoveTokenMessageCmd(int StringID, int CallbackID);
 
 } // namespace mq
