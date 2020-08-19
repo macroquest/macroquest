@@ -1,8 +1,15 @@
+Aug 19 2020
+- Updated for LIVE
+- Fixed Me.CombatState for TEST
+- Fixed CButtonWnd::SetCheck
+- Added CHotButton::SetCheck
+- Possibly Fixed Target.MyBuff, somone who has a target with more than 55 spells going on it, will have to check.
+-
 Aug 12 2020
 - Updated for TEST
 -
 Aug 10 2020
-- Fixed a bunch of misc stuff maily cleaning up after new by using delete[] instead of delete.
+- Fixed a bunch of misc stuff mainly cleaning up after new by using delete[] instead of delete.
 - Moved some function buffer allocations to the heap.
 - Added #include_optional by knightly/drwhomphd
 - Fixed CPageWnd::GetTabText() for emu

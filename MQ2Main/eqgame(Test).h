@@ -439,7 +439,7 @@ GNU General Public License for more details.
 #define CBazaarSearchWnd__HandleBazaarMsg_x                        0x6E34E0
 
 // CButtonWnd 
-#define CButtonWnd__SetCheck_x                                     0x62F700
+#define CButtonWnd__SetCheck_x                                     0x927AF0
 #define CButtonWnd__CButtonWnd_x                                   0x9266F0
 
 // CChatManager 
@@ -579,6 +579,7 @@ GNU General Public License for more details.
 #define CHotButtonWnd__DoHotButton_x                               0x7382E0
 
 //CHotButton
+#define CHotButton__SetCheck_x                                     0x62F700
 #define CHotButton__SetButtonSize_x                                0x62FAC0
 
 // CInvSlotMgr 

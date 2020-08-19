@@ -826,7 +826,8 @@ public:
 			if (pTarget) {
 				curBuff.timeStamp = EQGetTime();
 				CachedBuffsMap[pTarget->Data.SpawnID][curBuff.spellId] = curBuff;
-				if ((curBuff.slot >= 42 && (pTarget->Data.Type == SPAWN_PLAYER || pTarget->Data.Mercenary)) || (curBuff.slot >= 55) || (curBuff.slot < 0)) {
+				//if ((curBuff.slot >= 42 && (pTarget->Data.Type == SPAWN_PLAYER || pTarget->Data.Mercenary)) || (curBuff.slot >= 55) || (curBuff.slot < 0)) {
+				if ((curBuff.slot > NUM_BUFF_SLOTS && (pTarget->Data.Type == SPAWN_PLAYER || pTarget->Data.Mercenary)) || curBuff.slot < 0) {
 					continue;
 				}
 				targetBuffSlotToCasterMap[curBuff.slot] = curBuff.casterName;

@@ -1325,7 +1325,8 @@ namespace MQ2Globals
 	
 	EQLIB_VAR DWORD CHotButtonWnd__DoHotButton;
 	EQLIB_VAR DWORD CHotButton__SetButtonSize;
-
+	EQLIB_VAR DWORD CHotButton__SetCheck;
+	
 	EQLIB_VAR DWORD CInvSlotMgr__FindInvSlot;
 	EQLIB_VAR DWORD CInvSlotMgr__MoveItem;
 	EQLIB_VAR DWORD CInvSlotMgr__SelectSlot;

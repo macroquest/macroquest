@@ -1362,7 +1362,7 @@ public:
 /*0x27c*/   unsigned __int32	ButtonStyle;
 /*0x280*/
 EQLIB_OBJECT CButtonWnd::CButtonWnd(class CXWnd *,unsigned __int32,class CXRect,class CXPoint,class CXSize,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *);
-EQLIB_OBJECT void CButtonWnd::SetCheck(bool);
+EQLIB_OBJECT void CButtonWnd::SetCheck(bool bCheck, bool bNoSound = false);
 // virtual
 //EQLIB_OBJECT CButtonWnd::CButtonWnd() {};
 EQLIB_OBJECT CButtonWnd::~CButtonWnd(void);
@@ -3685,6 +3685,7 @@ public:
 /*0x264*/ int					Unknown0x264;
 /*0x268*/
 EQLIB_OBJECT void CHotButton::SetButtonSize(int percent, bool bUpdateParent = true);
+EQLIB_OBJECT void CHotButton::SetCheck(bool bCheck);
 };
 class CHotButtonWnd : public CSidlScreenWnd
 {

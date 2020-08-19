@@ -9025,7 +9025,10 @@ FUNCTION_AT_ADDRESS(bool  KeyCombo::GetPrintableLetterFromVirtualKey(unsigned in
 FUNCTION_AT_ADDRESS(bool  CXWnd::IsEnabled(void)const ,CXWnd__IsEnabled);
 #endif
 #ifdef CButtonWnd__SetCheck_x
-FUNCTION_AT_ADDRESS(void  CButtonWnd::SetCheck(bool),CButtonWnd__SetCheck);
+FUNCTION_AT_ADDRESS(void CButtonWnd::SetCheck(bool,bool),CButtonWnd__SetCheck);
+#endif
+#ifdef CHotButton__SetCheck_x
+FUNCTION_AT_ADDRESS(void CHotButton::SetCheck(bool),CHotButton__SetCheck);
 #endif
 #ifdef CComboWnd__CComboWnd_x
 //FUNCTION_AT_ADDRESS( CComboWnd::CComboWnd(class CXWnd *,unsigned __int32,class CXRect,int,class CButtonDrawTemplate,class CListWnd *),CComboWnd__CComboWnd);

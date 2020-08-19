@@ -1876,6 +1876,7 @@ namespace MQ2Globals
 #endif
 	INITIALIZE_EQGAME_OFFSET(CHotButtonWnd__DoHotButton);
 	INITIALIZE_EQGAME_OFFSET(CHotButton__SetButtonSize);
+	INITIALIZE_EQGAME_OFFSET(CHotButton__SetCheck);
 	
 	INITIALIZE_EQGAME_OFFSET(CInvSlotMgr__FindInvSlot);
 	INITIALIZE_EQGAME_OFFSET(CInvSlotMgr__MoveItem);

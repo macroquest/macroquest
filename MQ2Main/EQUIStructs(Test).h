@@ -1767,12 +1767,13 @@ typedef struct _BAZAARSEARCHWND {
 } BAZAARSEARCHWND, *PBAZAARSEARCHWND;
 
 //CPlayerWindow__CPlayerWindow aPlayerwindow
-//Note to self: cant actually find CombatState in it, so no point in looking through IDA for it, but it IS the last dword... so... until that changes, im just gonna accept it...
+//aAPwcsincombat
 // CPlayerWindow_size: 0x2f0 (see 557DCE) in Aug 11 2020 Test - eqmule
 typedef struct _CPLAYERWND {
 /*0x0000*/ struct _CSIDLWND     Wnd;
-/*0x0238*/ BYTE         Unknown0x0238[0xb4];
-/*0x02ec*/ DWORD        CombatState;   // 1=debuffed, 2=combat cooldown, 3=stand, 4=sit
+/*0x0238*/ BYTE         Unknown0x0238[0xb0];
+/*0x02e8*/ DWORD        CombatState;   // 0=combat 1=debuffed, 2=combat cooldown timer, 3=standing, 4=sit/medding regaining
+/*0x02ec*/ DWORD		Unknown0x02ec;// added aug 11 2020 Test - eqmule
 /*0x02f0*/
 } CPLAYERWND, *PCPLAYERWND;
 
