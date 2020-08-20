@@ -1,3 +1,9 @@
+Aug 20 2020
+- Updated for LIVE
+- Updated for TEST
+- Fixed the CMerchantWnd class
+- Fixed the findwindow feature
+-
 Aug 19 2020
 - Updated for LIVE
 - Fixed Me.CombatState for TEST
