@@ -200,7 +200,7 @@ public:
 				}
 
 				// lets borrow a checkbox...
-				CControlTemplate* pDisableConnectionTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("OMP_EnablePushToTalkCheckbox");
+				CControlTemplate* pDisableConnectionTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("ATW_Checkbox");
 				if (pDisableConnectionTemplate)
 				{
 					CXRect OldRect = pDisableConnectionTemplate->rect;
