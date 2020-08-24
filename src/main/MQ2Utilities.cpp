@@ -7167,10 +7167,7 @@ int GetFreeStack(CONTENTS* pContents)
 		return 0;
 
 	ITEMINFO* pItem = GetItemFromContents(pContents);
-	if (!pItem)
-		return 0;
-
-	if (!((EQ_Item*)pItem)->IsStackable())
+	if (!pItem || pItem->StackSize == 0) // pContents->IsStackable() is equivalent to pContents->GetItemDefinition()->StackSize != 0
 		return 0;
 
 	int freeStack = 0;
