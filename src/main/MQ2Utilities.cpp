@@ -5577,17 +5577,40 @@ CONTENTS* FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 template <typename T>
 CONTENTS* FindItem(T&& callback)
 {
-	PcProfile* pProfile = GetPcProfile();
-	if (!pProfile)
-		return nullptr;
-
-	ItemIndex index = pProfile->InventoryContainer.FindItem([&callback](const ItemContainer::ItemPointer& itemPointer, const ItemIndex&)
+	struct ItemSetterVisitor
 	{
-		return callback(itemPointer.get(), itemPointer->GetItemDefinition());
-	});
+	public:
+		ItemSetterVisitor(const T& predicate) : m_predicate(predicate) {}
+		void operator() (const ItemContainer::ItemPointer& itemPointer, const ItemIndex&)
+		{
+			if (itemPointer && m_predicate(itemPointer.get(), itemPointer->GetItemDefinition()))
+			{
+				m_item = itemPointer;
+			}
+		}
 
-	if (index.IsValid())
-		return pProfile->GetItemPossession(index).get();
+		explicit operator bool() const { return !!m_item; }
+
+		ItemContainer::ItemPointer GetItem() const { return m_item; }
+
+	private:
+		ItemContainer::ItemPointer m_item = nullptr;
+		T m_predicate;
+	} visitor(callback);
+
+	if (auto pProfile = GetPcProfile())
+	{
+		if (pProfile->InventoryContainer.VisitItems<ItemSetterVisitor&>(visitor))
+			return visitor.GetItem().get();
+	}
+
+	for (auto keyRingType = eKeyRingTypeFirst;
+		pCharData != nullptr && keyRingType <= eKeyRingTypeLast;
+		keyRingType = static_cast<KeyRingType>(keyRingType + 1))
+	{
+		if (pCharData->GetKeyRingItems(keyRingType).VisitItems<ItemSetterVisitor&>(visitor))
+			return visitor.GetItem().get();
+	}
 
 	return nullptr;
 }
@@ -5641,11 +5664,11 @@ int CountItems(T&& checkItem)
 		pProfile->InventoryContainer.VisitItems<PredicatedCountVisitor&>(visitor);
 	}
 
-	if (pCharData)
+	for (auto keyRingType = eKeyRingTypeFirst;
+		pCharData != nullptr && keyRingType <= eKeyRingTypeLast;
+		keyRingType = static_cast<KeyRingType>(keyRingType + 1))
 	{
-		pCharData->GetKeyRingItems(eMount).VisitItems<PredicatedCountVisitor&>(visitor);
-		pCharData->GetKeyRingItems(eIllusion).VisitItems<PredicatedCountVisitor&>(visitor);
-		pCharData->GetKeyRingItems(eFamiliar).VisitItems<PredicatedCountVisitor&>(visitor);
+		pCharData->GetKeyRingItems(keyRingType).VisitItems<PredicatedCountVisitor&>(visitor);
 	}
 
 	return visitor.GetCount();
