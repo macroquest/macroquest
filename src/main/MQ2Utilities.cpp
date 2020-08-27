@@ -5589,8 +5589,6 @@ CONTENTS* FindItem(T&& callback)
 			}
 		}
 
-		explicit operator bool() const { return !!m_item; }
-
 		ItemContainer::ItemPointer GetItem() const { return m_item; }
 
 	private:
@@ -5600,16 +5598,18 @@ CONTENTS* FindItem(T&& callback)
 
 	if (auto pProfile = GetPcProfile())
 	{
-		if (pProfile->InventoryContainer.VisitItems<ItemSetterVisitor&>(visitor))
-			return visitor.GetItem().get();
+		auto item = pProfile->InventoryContainer.VisitItems(visitor).GetItem();
+		if (item)
+			return item.get();
 	}
 
 	for (auto keyRingType = eKeyRingTypeFirst;
 		pCharData != nullptr && keyRingType <= eKeyRingTypeLast;
 		keyRingType = static_cast<KeyRingType>(keyRingType + 1))
 	{
-		if (pCharData->GetKeyRingItems(keyRingType).VisitItems<ItemSetterVisitor&>(visitor))
-			return visitor.GetItem().get();
+		auto item = pCharData->GetKeyRingItems(keyRingType).VisitItems(visitor).GetItem();
+		if (item)
+			return item.get();
 	}
 
 	return nullptr;
