@@ -7109,7 +7109,7 @@ bool MQ2SpellType::GETMEMBER()
 			if (pCZC)
 			{
 				int SlotIndex = -1;
-				EQ_Affect*ret = pCZC->FindAffectSlot(thespell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level, NULL, 0, true);
+				EQ_Affect*ret = pCZC->FindAffectSlot(thespell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level, NULL, 0);
 				if (!ret || SlotIndex==-1)
 					Dest.DWord = false;
 				else
@@ -7156,8 +7156,11 @@ bool MQ2SpellType::GETMEMBER()
 				eff.Type = 2;
 				eff.Modifier = 1.0;
 				int SlotIndex = -1;
-
+				#if defined(TEST)
+				EQ_Affect*ret = pCZC->FindAffectSlot(thespell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level, &eff, 1);
+				#else
 				EQ_Affect*ret = pCZC->FindAffectSlot(thespell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level, &eff, 1, false);
+				#endif
 				//call below is correct but it always seem to return false when we feed it a &eff so i don't
 				//think its useful here... also the call above calls it for us...
 				//Dest.DWord = pCZC->IsStackBlocked((EQ_Spell*)thespell, (PSPAWNINFO)pLocalPlayer, &eff, 1);
@@ -7216,7 +7219,11 @@ bool MQ2SpellType::GETMEMBER()
 					}
 				}
 				int SlotIndex = -1;
+				#if defined(TEST)
+				EQ_Affect*ret = pCZC->FindAffectSlot(pSpell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level, pAffects, j);
+				#else
 				EQ_Affect*ret = pCZC->FindAffectSlot(pSpell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level, pAffects, j, false);
+				#endif
 				if (!ret || SlotIndex == -1)
 					Dest.DWord = false;
 				else
@@ -7291,7 +7298,7 @@ bool MQ2SpellType::GETMEMBER()
 							}
 						}
 						int SlotIndex = -1;
-						EQ_Affect*ret = pCZC->FindAffectSlot(pSpell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level, pAffects, j, true);
+						EQ_Affect*ret = pCZC->FindAffectSlot(pSpell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level, pAffects, j);
 						if (!ret || SlotIndex == -1)
 							Dest.DWord = false;
 						else
@@ -7341,7 +7348,11 @@ bool MQ2SpellType::GETMEMBER()
 							}
 						}
 						int SlotIndex = -1;
+						#if defined(TEST)
+						EQ_Affect*ret = pCZC->FindAffectSlot(pSpell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level, pAffects, j);
+						#else
 						EQ_Affect*ret = pCZC->FindAffectSlot(pSpell->ID, (PSPAWNINFO)pLocalPlayer, &SlotIndex, true, ((PSPAWNINFO)pLocalPlayer)->Level, pAffects, j, false);
+						#endif
 						if (!ret || SlotIndex == -1)
 							Dest.DWord = false;
 						else
