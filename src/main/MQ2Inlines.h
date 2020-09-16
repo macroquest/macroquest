@@ -497,10 +497,10 @@ inline bool IsNumber(std::string_view String)
 	if (String.empty())
 		return false;
 
-	int test_int;
-	auto result = std::from_chars(String.data(), String.data() + String.size(), test_int);
+	double test_var;
+	const auto result = std::from_chars(String.data(), String.data() + String.size(), test_var, std::chars_format::fixed);
 
-	return result.ec != std::errc::invalid_argument;
+	return result.ec != std::errc::invalid_argument && result.ptr[0] == '\0';
 }
 
 inline bool IsNumberToComma(const char* String)
