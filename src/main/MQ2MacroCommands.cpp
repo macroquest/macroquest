@@ -161,6 +161,7 @@ void Delay(SPAWNINFO* pChar, char* szLine)
 			return;
 		}
 
+		// TODO:  Determine the bounds on what "0" should be here since this is a double.
 		if (Result != 0)
 		{
 			gDelay = 0;
@@ -550,7 +551,7 @@ bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineN
 			// ignore.
 		}
 		else
-{
+		{
 			MacroError("Unknown # command: %s", szLine);
 			return false;
 		}
@@ -1519,7 +1520,6 @@ static void MarkWhile(const char* szCommand, MQLoop& loop)
 		// feel free to enlighten me.
 		// so we loop to same line over and over i guess...
 		FatalError("You have a /while block that's not enclosed in {}");
-		return;
 	}
 }
 

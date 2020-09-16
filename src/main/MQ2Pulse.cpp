@@ -144,8 +144,7 @@ static bool DoNextCommand(MQMacroBlockPtr pBlock)
 					auto iter = pCurrentBlock->Line.find(pCurrentBlock->CurrIndex);
 					if (iter != pCurrentBlock->Line.end())
 					{
-						iter++;
-						if (iter != pCurrentBlock->Line.end())
+						if (++iter != pCurrentBlock->Line.end())
 						{
 							pCurrentBlock->BindStackIndex = iter->first;
 						}
@@ -167,7 +166,7 @@ static bool DoNextCommand(MQMacroBlockPtr pBlock)
 			pCurrentBlock->Line[ThisMacroBlock].ExecutionTime += AfterCommand.QuadPart - BeforeCommand.QuadPart;
 #endif
 
-			int lastindex = pCurrentBlock->Line.rbegin()->first;
+			const int lastindex = pCurrentBlock->Line.rbegin()->first;
 			if (pCurrentBlock->CurrIndex > lastindex)
 			{
 				FatalError("Reached end of macro.");
@@ -177,8 +176,7 @@ static bool DoNextCommand(MQMacroBlockPtr pBlock)
 				auto iter = pCurrentBlock->Line.find(pCurrentBlock->CurrIndex);
 				if (iter != pCurrentBlock->Line.end())
 				{
-					iter++;
-					if (iter != pCurrentBlock->Line.end())
+					if (++iter != pCurrentBlock->Line.end())
 					{
 						pCurrentBlock->CurrIndex = iter->first;
 					}

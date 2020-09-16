@@ -117,7 +117,7 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 		if (strstr(szTheCmd, "{"))
 		{
 			GetArg(szArg1, szTheCmd, 2);
-			if (_stricmp(szArg1, "else"))
+			if (_stricmp(szArg1, "else") != 0)
 			{
 				FatalError("} and { seen on the same line without an else present");
 			}
