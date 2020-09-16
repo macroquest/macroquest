@@ -302,7 +302,8 @@ static bool CallFunction(const char* name, const char* args)
 		csvColumn.push_back(str);
 	}
 
-	const auto saved_block = gMacroBlock->CurrIndex;
+	MQMacroBlockPtr saved_block = GetCurrentMacroBlock();
+	const auto saved_block_line = gMacroBlock->CurrIndex;
 	const auto pChar = (PSPAWNINFO)pCharSpawn;
 
 	char subLine[MAX_STRING];
@@ -316,34 +317,47 @@ static bool CallFunction(const char* name, const char* args)
 			strcat_s(subLine, (*i).c_str());
 			strcat_s(subLine, "\"");
 			auto j = i;
-			j++;
-			if (j != csvColumn.end())
+			if (++j != csvColumn.end())
 				strcat_s(subLine, " ");
 		}
 	}
 
 	Call(pChar, subLine);
+	// In case we're calling from an else, we need to adjust where we are expecting to return to.
+	gMacroStack->pNext->LocationIndex = saved_block_line;
 
 	auto subBlock = gMacroBlock->Line.find(gMacroBlock->CurrIndex);
-	subBlock++;
+	++subBlock;
 
 	gMacroBlock->CurrIndex = subBlock->first;
 	while (gMacroBlock && subBlock != gMacroBlock->Line.end())
 	{
 		gMacroStack->LocationIndex = gMacroBlock->CurrIndex;
 
-		// we are in a while loop here, if they do stuff like /mpq or /delay those get thrown out the window.
+		// TODO:  This is where delays are ignored.  I'm assuming it was coded that way initially because of the while loop,
+		//         but a callback system might be better.  For now, just dropping in a warning.  This will throw
+		//         false positives for /echo /timed and such, but better than the previous no output otherwise.
+		if (ci_starts_with(subBlock->second.Command, "/delay") || ci_find_substr(subBlock->second.Command, "/timed") != -1)
+		{
+			if (MQMacroBlockPtr pBlock = GetCurrentMacroBlock())
+			{
+				MQMacroLine& ml = pBlock->Line.at(gMacroBlock->CurrIndex);
+				MQMacroLine& ml_saved = saved_block->Line.at(saved_block_line);
+				WriteChatf("\ayWARNING: Delays in subs called with variable syntax are ignored: (\ao%s\ay) Line \ao%i\ay called (\ao%s\ay) from (\a-o%s\ay) Line \a-o%i\ay (\a-o%s\ay) ", ml.SourceFile.c_str(), ml.LineNumber, ml.Command.c_str(), ml_saved.SourceFile.c_str(), ml_saved.LineNumber, ml_saved.Command.c_str());
+			}
+		}
 		DoCommand(pChar, &subBlock->second.Command[0]);
 
-		// it doesnt matter, this is for quick evaluations, if they are using it in any other way its wrong.
 		if (!gMacroBlock)
 			break;
 
-		if (gMacroBlock->CurrIndex == saved_block)
+		if (gMacroBlock->CurrIndex == saved_block_line)
+		{
 			return true; // /return happened
+		}
 
 		subBlock = gMacroBlock->Line.find(gMacroBlock->CurrIndex);
-		subBlock++;
+		++subBlock;
 
 		gMacroBlock->CurrIndex = subBlock->first;
 	}
