@@ -243,7 +243,30 @@ void Pulse()
 	}
 
 	if ((unsigned int)GetCharInfo()->charinfo_info & 0x80000000) return;
-
+	if (pCharInfo->pXTargetMgr && ((PSPAWNINFO)pLocalPlayer)->AssistName[0]) {
+		if (PSPAWNINFO pAss = (PSPAWNINFO)GetSpawnByName(((PSPAWNINFO)pLocalPlayer)->AssistName))
+		{
+			bool bFound = false;
+			for (int n = 0; n < pCharInfo->pXTargetMgr->XTargetSlots.Count; n++)
+			{
+				XTARGETSLOT xts = pCharInfo->pXTargetMgr->XTargetSlots[n];
+				if (xts.xTargetType && xts.XTargetSlotStatus && xts.SpawnID == pAss->SpawnID)
+				{
+					bFound = true;
+				}
+			}
+			if (!bFound)
+			{
+				//we clear it because the player is not currently fighting that spawn.
+				//client does not clear this by itself so we have to.
+				((PSPAWNINFO)pLocalPlayer)->AssistName[0] = '\0';
+			}
+		}
+		else
+		{
+			((PSPAWNINFO)pLocalPlayer)->AssistName[0] = '\0';
+		}
+	}
 	if (pChar != pCharOld && WereWeZoning)
 	{
 		WereWeZoning = FALSE;

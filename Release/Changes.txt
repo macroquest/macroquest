@@ -1,3 +1,6 @@
+Sep 16 2020
+- Updated for LIVE
+-
 Sep 10 2020
 - Fixed a crash on TEST in the tlos that call FindAffectSlot (.Stacks etc) last argument has been removed
 - MQ2Main (drwhomphd) Made sure the other chat events in DataVars follow the same fix that eqmule put in for Tells in order to work on FV or different languages. 

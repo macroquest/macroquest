@@ -4707,11 +4707,7 @@ FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::SpellFizzled(unsigned char,clas
 FUNCTION_AT_ADDRESS(int  EQ_Character::ProcessAffects(void),EQ_Character__ProcessAffects);
 #endif
 #ifdef CharacterZoneClient__FindAffectSlot_x
-#if defined(TEST)
 FUNCTION_AT_ADDRESS(EQ_Affect *CharacterZoneClient::FindAffectSlot(int, PSPAWNINFO, int *, bool, int, EQ_Affect*, int),CharacterZoneClient__FindAffectSlot);
-#else
-FUNCTION_AT_ADDRESS(EQ_Affect *CharacterZoneClient::FindAffectSlot(int, PSPAWNINFO, int *, bool, int, EQ_Affect*, int, bool),CharacterZoneClient__FindAffectSlot);
-#endif
 #endif
 #ifdef EQ_Character__GetOpenEffectSlot_x
 FUNCTION_AT_ADDRESS(int  EQ_Character::GetOpenEffectSlot(bool,int),EQ_Character__GetOpenEffectSlot);
