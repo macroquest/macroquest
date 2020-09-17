@@ -2811,7 +2811,7 @@ public:
 				int slotIndex = -1;
 
 				EQ_Affect* ret = pPcClient->FindAffectSlot(pSpell2->ID, pPlayer, &slotIndex,
-					true, -1, affectToPass ? affectToPass : nullptr, affectToPass ? 1 : 0, false);
+					true, -1, affectToPass ? affectToPass : nullptr, affectToPass ? 1 : 0);
 
 				if (ret)
 				{

@@ -5181,7 +5181,7 @@ bool WillStackWith(const EQ_Spell* testSpell, const EQ_Spell* existingSpell)
 	}
 
 	int SlotIndex = -1;
-	EQ_Affect* ret = pPc->FindAffectSlot(testSpell->ID, pLocalPlayer, &SlotIndex, true, pLocalPlayer->Level, &buff, 1, false);
+	EQ_Affect* ret = pPc->FindAffectSlot(testSpell->ID, pLocalPlayer, &SlotIndex, true, pLocalPlayer->Level, &buff, 1);
 
 	return ret && SlotIndex != -1;
 }
