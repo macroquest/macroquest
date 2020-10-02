@@ -2222,8 +2222,6 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 		if (pDisplay && pLocalPlayer && Index[0])
 		{
-			CDISPLAY* pDisp = pDisplay;
-
 			if (IsNumber(Index))
 			{
 				// numeric
@@ -2233,8 +2231,8 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 				if (GetSpellByID(GetMemorizedSpell(nGem)))
 				{
-					if (pDisp->TimeStamp > pChar->pSpawn->SpellGemETA[nGem]
-						&& (int)pDisp->TimeStamp > pChar->pSpawn->GetSpellCooldownETA())
+					if (pDisplay->TimeStamp > pChar->pSpawn->SpellGemETA[nGem]
+						&& pDisplay->TimeStamp > pChar->pSpawn->GetSpellCooldownETA())
 					{
 						Dest.DWord = 1;
 					}
@@ -2249,8 +2247,8 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 					{
 						if (!_stricmp(Index, pSpell->Name))
 						{
-							if (pDisp->TimeStamp > pChar->pSpawn->SpellGemETA[nGem]
-								&& (int)pDisp->TimeStamp > pChar->pSpawn->GetSpellCooldownETA())
+							if (pDisplay->TimeStamp > pChar->pSpawn->SpellGemETA[nGem]
+								&& pDisplay->TimeStamp > pChar->pSpawn->GetSpellCooldownETA())
 							{
 								Dest.DWord = 1;
 							}
@@ -3809,7 +3807,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::SpellInCooldown:
-		Dest.DWord = (int)((CDISPLAY*)pDisplay)->TimeStamp <= ((SPAWNINFO*)pLocalPlayer)->GetSpellCooldownETA();
+		Dest.DWord = pDisplay->TimeStamp <= ((SPAWNINFO*)pLocalPlayer)->GetSpellCooldownETA();
 		Dest.Type = pBoolType;
 		return true;
 

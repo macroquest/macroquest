@@ -4864,7 +4864,7 @@ CXWnd* GetParentWnd(CXWnd* pWnd)
 bool LoH_HT_Ready()
 {
 	unsigned int i = ((SPAWNINFO*)pLocalPlayer)->SpellGemETA[InnateETA];
-	unsigned int j = i - ((CDISPLAY*)pDisplay)->TimeStamp;
+	unsigned int j = i - pDisplay->TimeStamp;
 	return i < j;
 }
 
@@ -5239,7 +5239,7 @@ uint32_t GetSpellGemTimer2(int nGem)
 			unsigned int RecastDuration = 0;
 			unsigned int LinkedDuration = 0;
 			unsigned int gemeta = ((SPAWNINFO*)pLocalPlayer)->SpellGemETA[nGem];
-			DWORD now = ((CDISPLAY*)pDisplay)->TimeStamp;
+			DWORD now = pDisplay->TimeStamp;
 			if (gemeta > now)
 			{
 				RecastDuration = gemeta - now;

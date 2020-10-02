@@ -37,19 +37,6 @@ inline CHARINFO* GetCharInfo()
 	return (CHARINFO*)pCharData;
 }
 
-[[deprecated("Use GetPcProfile instead")]]
-inline CHARINFO2* GetCharInfo2()
-{
-	if (CHARINFO* pChar = (CHARINFO*)pCharData)
-	{
-		if (pChar->ProfileManager.pFirst)
-		{
-			return (CHARINFO2*)pChar->ProfileManager.GetCurrentProfile();
-		}
-	}
-
-	return nullptr;
-}
 
 inline PcProfile* GetPcProfile()
 {
@@ -59,6 +46,13 @@ inline PcProfile* GetPcProfile()
 	}
 
 	return nullptr;
+}
+
+
+[[deprecated("Use GetPcProfile instead")]]
+inline PcProfile* GetCharInfo2()
+{
+	return GetPcProfile();
 }
 
 inline PlayerClient* GetSpawnByID(DWORD dwSpawnID)

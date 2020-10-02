@@ -254,10 +254,10 @@ void MouseButtonUp(DWORD x, DWORD y, char* szButton)
 	if (!_strnicmp(szButton, "left", 4))
 	{
 		// click will fail if this isn't set to a time less than TimeStamp minus 750ms
-		*((DWORD*)__LMouseHeldTime) = ((CDISPLAY*)pDisplay)->TimeStamp - 0x45;
+		*((DWORD*)__LMouseHeldTime) = pDisplay->TimeStamp - 0x45;
 		pEverQuest->LMouseUp(x, y);
 
-		if (((CDisplay*)pDisplay)->GetClickedActor(x, y, false, cv1, cv2))
+		if (pDisplay->GetClickedActor(x, y, false, cv1, cv2))
 		{
 			gLClickedObject = true;
 		}
@@ -314,7 +314,7 @@ bool ClickMouseItem(SPAWNINFO* pChar, const MQGroundSpawn& GroundSpawn, bool lef
 
 	if (!left) // implied right click
 	{
-		*((DWORD*)__RMouseHeldTime) = ((CDISPLAY*)pDisplay)->TimeStamp - 0x45;
+		*((DWORD*)__RMouseHeldTime) = pDisplay->TimeStamp - 0x45;
 
 		if (pWndMgr)
 		{
@@ -325,7 +325,7 @@ bool ClickMouseItem(SPAWNINFO* pChar, const MQGroundSpawn& GroundSpawn, bool lef
 	}
 	else
 	{
-		*((DWORD*)__LMouseHeldTime) = ((CDISPLAY*)pDisplay)->TimeStamp - 0x45;
+		*((DWORD*)__LMouseHeldTime) = pDisplay->TimeStamp - 0x45;
 
 		// we "click" at -10000,-10000 because we know the user doesnt have any windows there...
 		// if its possible, i would like to figure out a pixel

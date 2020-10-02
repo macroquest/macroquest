@@ -402,6 +402,8 @@ struct MQPlugin
 	MQPlugin* pLast = nullptr;
 	MQPlugin* pNext = nullptr;
 };
+using PMQPLUGIN [[deprecated("Use MQPlugin* instead")]] = MQPlugin*;
+using MQPLUGIN [[deprecated("Use MQPlugin instead")]] = MQPlugin;
 
 // Like lightweight plugins, but these are internal to mq2main
 struct MQModule
@@ -452,15 +454,15 @@ public:
 	CMQ2Alerts() = default;
 	~CMQ2Alerts() = default;
 
-	bool AddNewAlertList(uint32_t id, MQSpawnSearch* pSearchSpawn);
-	bool RemoveAlertFromList(uint32_t id, MQSpawnSearch* pSearchSpawn);
+	MQLIB_OBJECT bool AddNewAlertList(uint32_t id, MQSpawnSearch* pSearchSpawn);
+	MQLIB_OBJECT bool RemoveAlertFromList(uint32_t id, MQSpawnSearch* pSearchSpawn);
 
-	bool GetAlert(uint32_t id, std::vector<MQSpawnSearch>& ss);
-	size_t GetCount(uint32_t id) const;
-	bool AlertExist(uint32_t id);
+	MQLIB_OBJECT bool GetAlert(uint32_t id, std::vector<MQSpawnSearch>& ss);
+	MQLIB_OBJECT size_t GetCount(uint32_t id) const;
+	MQLIB_OBJECT bool AlertExist(uint32_t id);
 
-	bool ListAlerts(char* szOut, size_t max);
-	void FreeAlerts(uint32_t id);
+	MQLIB_OBJECT bool ListAlerts(char* szOut, size_t max);
+	MQLIB_OBJECT void FreeAlerts(uint32_t id);
 
 private:
 	mutable std::mutex m_mutex;
