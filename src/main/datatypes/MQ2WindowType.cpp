@@ -471,7 +471,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 				return true;
 			}
 
-			CXStr Str = pListWnd->GetItemText(nIndex - 1, nColumn);
+			CXStr Str = pListWnd->GetItemText(nIndex, nColumn);
 			strcpy_s(DataTypeTemp, Str.c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			Dest.Type = pStringType;
