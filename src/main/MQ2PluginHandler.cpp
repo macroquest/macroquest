@@ -140,9 +140,10 @@ int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
 	pathToPlugin /= strFileNameWithDll;
 
 	HMODULE hmod = LoadLibrary(pathToPlugin.string().c_str());
-	if (!hmod)
+	if (hmod == nullptr)
 	{
-		DebugSpew("LoadMQ2Plugin(%s) Failed", strFileName.c_str());
+		const auto err = GetLastError();
+		DebugSpew("LoadMQ2Plugin(%s) Failed: %i", strFileName.c_str(), err);
 		return 0;
 	}
 
