@@ -986,7 +986,7 @@ typedef struct _ItemEvolutionData
 /*0x18*/
 } ItemEvolutionData, *PItemEvolutionData;
 
-//Actual Size: 0x108 (see 0x63748C in eqgame.exe Test dated Oct 13 2020) - eqmule
+//Actual Size: 0x108 (see 0x6374EC in eqgame.exe Test dated Oct 14 2020) - eqmule
 typedef struct _CONTENTS {
 /*0x0000*/ void*	vtable;
 /*0x0004*/ mutable int	RefCount;
