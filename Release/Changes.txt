@@ -1,3 +1,7 @@
+Oct 13 2020
+- Updated for TEST
+- Added a fix for stopping movement in mq2targetinfo by Freezerburn26
+-
 Sep 23 2020
 - Updated for TEST
 -

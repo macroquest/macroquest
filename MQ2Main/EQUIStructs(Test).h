@@ -238,7 +238,7 @@ static inline VOID SetCCXStr(PCXSTR *cxstr, PCHAR text)
 // actual size 0x1E8 in May 26 2020 Test (see 0x960DED) - eqmule
 // actual size 0x1F8 in Jul  7 2020 Test (see 0x96220D) - eqmule
 // actual size 0x1E0 in Jul 10 2020 Test (see 0x961FFD) - eqmule
-// actual size 0x1F0 in Sep 22 2020 Test (see 0x93BDDD) - eqmule
+// actual size 0x1F0 in Oct 13 2020 Test (see 0x93C49D) - eqmule
 #define CXW_NO_VTABLE \
 private: \
 CXW_NO_VTABLE_BEGIN \
@@ -1756,7 +1756,7 @@ typedef struct _INVENTORYWND {
 //everything below it is 100% checked -eqmule
 
 //CBazaarSearchWnd__CBazaarSearchWnd_x aBazaarsearchwn
-// CBazaarSearchWnd_size: 0x92d8 (see 5586FE) in Sep 22 2020 Test - eqmule
+// CBazaarSearchWnd_size: 0x92d8 (see 55891E) in Oct 13 2020 Test - eqmule
 typedef struct _BAZAARSEARCHWND {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0238*/ BYTE         Unknown0x0238[0x8ff8];
@@ -1768,7 +1768,7 @@ typedef struct _BAZAARSEARCHWND {
 
 //CPlayerWindow__CPlayerWindow aPlayerwindow
 //aAPwcsincombat
-// CPlayerWindow_size: 0x2f0 (see 557FEE) in Sep 22 2020 Test - eqmule
+// CPlayerWindow_size: 0x2f0 (see 55820E) in Oct 13 2020 Test - eqmule
 typedef struct _CPLAYERWND {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0238*/ BYTE         Unknown0x0238[0xb0];
@@ -1778,7 +1778,7 @@ typedef struct _CPLAYERWND {
 } CPLAYERWND, *PCPLAYERWND;
 
 // CTargetWindow__CTargetWindow aTargetwindow
-// CTargetWindow_size: 0x8d0 (see 557E85) in Sep 22 2020 Test - eqmule
+// CTargetWindow_size: 0x8d0 (see 5580A5) in Oct 13 2020 Test - eqmule
 typedef struct _CTARGETWND {
 /*0x0000*/ struct _CSIDLWND    Wnd;
 /*0x0238*/ BYTE         Unknown0x0238[0x198];
@@ -1798,7 +1798,7 @@ typedef struct _CTARGETWND {
 
 // CBuffWindow__CBuffWindow aBuffwindow
 // this is used for both long and shortbuffs...
-// CBuffWindow_size: 0x720 (see 557D29) in Sep 22 2020 Test - eqmule
+// CBuffWindow_size: 0x720 (see 557F49) in Oct 13 2020 Test - eqmule
 typedef struct _EQBUFFWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0238*/ BYTE         Unknown0x0238[0xbc];
@@ -1815,7 +1815,7 @@ typedef struct _EQBUFFWINDOW {
 
 // CSpellGemWnd__CSpellGemWnd
 // Individual Gems 
-// CSpellGemWnd_size: 0x328 (see 7F95DB) in Sep 22 2020 Test - eqmule
+// CSpellGemWnd_size: 0x328 (see 7FA06B) in Oct 13 2020 Test - eqmule
 typedef struct _EQCASTSPELLGEM {
 /*0x0000*/ struct _CBUTTONWND        Wnd;
 /*0x0288*/ int			MouseButtonState;//correct
@@ -1843,7 +1843,7 @@ typedef struct _EQCASTSPELLGEM {
 
 //pinstCCastSpellWnd_x
 // CCastSpellWnd__CCastSpellWnd aCastspellwnd
-// CCastSpellWnd_size: 0x2d8 (see 5580E7) in Sep 22 2020 Test - eqmule
+// CCastSpellWnd_size: 0x2d8 (see 558307) in Oct 13 2020 Test - eqmule
 typedef struct _EQCASTSPELLWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0238*/ BYTE         Unknown0x0238[0x14];
@@ -1853,7 +1853,7 @@ typedef struct _EQCASTSPELLWINDOW {
 } EQCASTSPELLWINDOW, *PEQCASTSPELLWINDOW;
 
 //note that Invslot needs to be a short or pickupitem wont work
-// CInvSlotWnd_size: 0x2d8 (see 7F96EC) in Sep 22 2020 Test - eqmule
+// CInvSlotWnd_size: 0x2d8 (see 7FA17C) in Oct 13 2020 Test - eqmule
 typedef struct _EQINVSLOTWND {
 /*0x0000*/ struct _CBUTTONWND	ButtonWnd;
 /*0x0288*/ void*				pTABackground;//CTextureAnimation
@@ -1890,7 +1890,7 @@ typedef struct _EQINVSLOTWND {
 } EQINVSLOTWND, *PEQINVSLOTWND;
 
 // CItemDisplayWindow__CItemDisplayWindow aItemdisplaywin
-// CItemDisplayWindow_size: 0x630 (see 75C3D2) in Sep 22 2020 Test - eqmule
+// CItemDisplayWindow_size: 0x630 (see 75CDA2) in Oct 13 2020 Test - eqmule
 typedef struct _EQITEMWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0238*/ struct _CSIDLWND *Description;
@@ -1953,7 +1953,7 @@ typedef struct _EQITEMWINDOW {
 } EQITEMWINDOW, *PEQITEMWINDOW;
 
 //CLootWnd__CLootWnd aLootwnd
-// CLootWnd_size: 0x3a0 (see 558456) in Sep 22 2020 Test - eqmule
+// CLootWnd_size: 0x3a0 (see 558676) in Oct 13 2020 Test - eqmule
 typedef struct _EQLOOTWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0238*/ void*        vftable; // for CLootWnd::DialogResponse handler
@@ -1980,7 +1980,7 @@ typedef struct _EQLOOTWINDOW {
 
 // pLines address = 0x254 + 0x035c = 0x05b0 (address of pMapViewMapVfTable)
 // CMapViewWnd__CMapViewWnd_x
-// CMapViewWnd_size: 0x658 (see 557B8A) in Sep 22 2020 Test - eqmule
+// CMapViewWnd_size: 0x658 (see 557DAA) in Oct 13 2020 Test - eqmule
 typedef struct _EQMAPWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0238*/ BYTE         Unknown0x0238[0x40];
@@ -2016,7 +2016,7 @@ void *other;
 void *other2;
 };
 //CMerchantWnd__CMerchantWnd_x (aMerchantwnd)
-// CMerchantWnd_size: 0x450 (see 5585B2) in Sep 22 2020 Test - eqmule
+// CMerchantWnd_size: 0x450 (see 5587D2) in Oct 13 2020 Test - eqmule
 typedef struct _EQMERCHWINDOW {
 /*0x0000*/ struct _CSIDLWND Wnd;
 /*0x0238*/ BYTE         Unknown0x0238[0x10];
@@ -2030,7 +2030,7 @@ typedef struct _EQMERCHWINDOW {
 } EQMERCHWINDOW, *PEQMERCHWINDOW;
 
 //CPetInfoWindow__CPetInfoWindow aPetinfowindow
-// CPetInfoWindow_size: 0x8d0 (see 5575E1) in Sep 22 2020 Test - eqmule
+// CPetInfoWindow_size: 0x8d0 (see 557801) in Oct 13 2020 Test - eqmule
 typedef struct _EQPETINFOWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0238*/ DWORD PetSpawnID;//The pets SpawnID
@@ -2064,7 +2064,7 @@ typedef struct _EQPETINFOWINDOW {
 
 //CRaidWindow__CRaidWindow
 //aClasscolorD
-// CRaidWindow_size: 0x3a8 (see 5578D2) in Sep 22 2020 Test - eqmule
+// CRaidWindow_size: 0x3a8 (see 557AF2) in Oct 13 2020 Test - eqmule
 typedef struct _EQRAIDWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0238*/ BYTE         Unknown0x0238[0xb0];
@@ -2074,7 +2074,7 @@ typedef struct _EQRAIDWINDOW {
 } EQRAIDWINDOW, *PEQRAIDWINDOW;
 
 //CTradeWnd__CTradeWnd aTradewnd
-// CTradeWnd__size: 0x2f8 (see 558658) in Sep 22 2020 Test - eqmule
+// CTradeWnd__size: 0x2f8 (see 558878) in Oct 13 2020 Test - eqmule
 typedef struct _EQTRADEWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0238*/ BYTE         Unknown0x0238[0xb8];
@@ -2086,7 +2086,7 @@ typedef struct _EQTRADEWINDOW {
 } EQTRADEWINDOW, *PEQTRADEWINDOW;
 
 //CFactionWnd__CFactionWnd_x aFactionwnd
-// CFactionWnd__size: 0x280 (see 5587A4) in Sep 22 2020 Test - eqmule
+// CFactionWnd__size: 0x280 (see 5589C4) in Oct 13 2020 Test - eqmule
 typedef struct _EQFACTIONWINDOW {
 /*0x0000*/ struct _CSIDLWND Wnd;
 /*0x0238*/ int			Unknown0x0238;
