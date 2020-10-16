@@ -520,7 +520,8 @@ bool dataIni(const char* szIndex, MQTypeVar& Ret)
 		}
 	}
 
-	if (std::filesystem::exists(pathIniFile))
+	std::error_code ec_exists;
+	if (std::filesystem::exists(pathIniFile, ec_exists))
 	{
 		const int nSize = GetPrivateProfileString(Section, Key, Default, DataTypeTemp, MAX_STRING, pathIniFile.string());
 

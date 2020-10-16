@@ -231,12 +231,13 @@ DETOUR_TRAMPOLINE_EMPTY(bool CXMLSOMDocumentBaseHook::XMLRead_Trampoline(const C
 
 bool DoesFileExist(const char* filename)
 {
-	std::filesystem::path localfile = filename;
+	const std::filesystem::path localfile = filename;
+	std::error_code ec_exists;
 
-	if (std::filesystem::exists(mq::internal_paths::Resources / localfile))
+	if (std::filesystem::exists(mq::internal_paths::Resources / localfile, ec_exists))
 		return true;
 
-	return std::filesystem::exists(localfile);
+	return std::filesystem::exists(localfile, ec_exists);
 }
 DETOUR_TRAMPOLINE_EMPTY(bool DoesFileExist_Trampoline(const char*));
 
@@ -246,8 +247,9 @@ public:
 	bool SetFile_Detour(const char* filename, bool unk8, unsigned int unkC)
 	{
 		std::filesystem::path localfile = filename;
+		std::error_code ec_exists;
 
-		if (std::filesystem::exists(mq::internal_paths::Resources / localfile))
+		if (std::filesystem::exists(mq::internal_paths::Resources / localfile, ec_exists))
 		{
 			localfile = mq::internal_paths::Resources / localfile;
 			return SetFile_Trampoline(localfile.string().c_str(), unk8, unkC);
@@ -268,10 +270,11 @@ FILE* fopen_eqgraphics_detour(const char* filename, const char* mode)
 	if (strstr(mode, "r"))
 	{
 		std::filesystem::path localfile = filename;
+		std::error_code ec_exists;
 
 		// Find the file in our local filesystem.
 		std::filesystem::path overridePath = mq::internal_paths::Resources / localfile;
-		if (overridePath != localfile && std::filesystem::exists(overridePath))
+		if (overridePath != localfile && std::filesystem::exists(overridePath, ec_exists))
 		{
 			auto overrideString = overridePath.string();
 

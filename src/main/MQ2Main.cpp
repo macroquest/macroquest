@@ -165,8 +165,9 @@ bool InitDirectory(std::string& strPathToInit,
 
 	// Either way, update the string
 	strPathToInit = pathToInit.string();
+	std::error_code ec_fs;
 
-	if (std::filesystem::exists(pathToInit) || std::filesystem::create_directories(pathToInit))
+	if (std::filesystem::exists(pathToInit, ec_fs) || std::filesystem::create_directories(pathToInit, ec_fs))
 	{
 		DebugSpewAlways("Directory Init of %s successful at: %s", strIniKey.c_str(), strPathToInit.c_str());
 		return true;
@@ -200,9 +201,10 @@ bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& str
 	}
 	// Set strMQRoot to the path we found.
 	strMQRoot = pathMQRoot.string();
+	std::error_code ec_exists;
 
 	// If the path to MQ2 doesn't exist none of our relative paths are going to work
-	if (std::filesystem::exists(pathMQRoot))
+	if (std::filesystem::exists(pathMQRoot, ec_exists))
 	{
 		std::filesystem::path pathMQini = strMQini;
 
@@ -212,14 +214,14 @@ bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& str
 			pathMQini = pathMQRoot / pathMQini;
 		}
 
-		if (!std::filesystem::exists(pathMQini))
+		if (!std::filesystem::exists(pathMQini, ec_exists))
 		{
 			// Check if the ini file exists in the same directory as MQ2
-			if (std::filesystem::exists(pathMQRoot / "MacroQuest.ini"))
+			if (std::filesystem::exists(pathMQRoot / "MacroQuest.ini", ec_exists))
 			{
 				pathMQini = pathMQRoot / "MacroQuest.ini";
 			}
-			else if (std::filesystem::exists(pathMQRoot / strConfig / "MacroQuest_default.ini"))
+			else if (std::filesystem::exists(pathMQRoot / strConfig / "MacroQuest_default.ini", ec_exists))
 			{
 				// copy into the config directory and work from there.
 				std::filesystem::copy_file(
@@ -228,7 +230,7 @@ bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& str
 			}
 		}
 
-		if (std::filesystem::exists(pathMQini))
+		if (std::filesystem::exists(pathMQini, ec_exists))
 		{
 			// Check to see if there is a different MacroQuest.ini we should be looking at
 			pathMQini = std::filesystem::path(GetPrivateProfileString("MacroQuest", "MQIniPath", strMQini, pathMQini.string()));
@@ -492,7 +494,8 @@ bool ParseINIFile(const std::string& iniFile)
 	}
 
 	const std::filesystem::path itemDBPath = std::filesystem::path(mq::internal_paths::Resources) / "ItemDB.txt";
-	if (std::filesystem::exists(itemDBPath))
+	std::error_code ec_exists;
+	if (std::filesystem::exists(itemDBPath, ec_exists))
 	{
 #pragma warning(push)
 #pragma warning(disable: 4996) // temporarily disable deprecation warnings.
@@ -1043,8 +1046,9 @@ void InsertMQ2News(const std::filesystem::path& pathChangeLog)
 void CreateMQ2NewsWindow()
 {
 	const std::filesystem::path pathChangeLog = std::filesystem::path(mq::internal_paths::MQRoot) / "CHANGELOG.md";
+	std::error_code ec_exists;
 
-	if (!pNewsWindow && std::filesystem::exists(pathChangeLog))
+	if (!pNewsWindow && std::filesystem::exists(pathChangeLog, ec_exists))
 	{
 		pNewsWindow = new CMQNewsWnd();
 	}

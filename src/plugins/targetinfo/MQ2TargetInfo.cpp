@@ -2169,7 +2169,9 @@ PLUGIN_API void InitializePlugin()
 	std::filesystem::path curFilepath = gPathResources;
 	curFilepath /= "MQ2TargetInfoPHs.txt";
 
-	if (!std::filesystem::exists(curFilepath))
+	std::error_code ec_exists;
+
+	if (!std::filesystem::exists(curFilepath, ec_exists))
 	{
 		HMODULE hMe = nullptr;
 		GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)InitializePlugin, &hMe);
@@ -2202,7 +2204,7 @@ PLUGIN_API void InitializePlugin()
 	LoadPHs(curFilepath.string().data());
 
 	curFilepath = INIFileName;
-	if (!std::filesystem::exists(curFilepath))
+	if (!std::filesystem::exists(curFilepath, ec_exists))
 	{
 		ResetIni();
 	}

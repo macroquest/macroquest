@@ -1967,15 +1967,17 @@ bool LoadCfgFile(const char* Filename, bool Delayed)
 	if (!strchr(Filename, '.'))
 		pathFilename = std::string(Filename) + ".cfg";
 
+	std::error_code ec_exists;
+
 	if (pathFilename.is_relative())
 	{
-		if (std::filesystem::exists(mq::internal_paths::Config / pathFilename))
+		if (std::filesystem::exists(mq::internal_paths::Config / pathFilename, ec_exists))
 		{
 			pathFilename = mq::internal_paths::Config / pathFilename;
 		}
 	}
 
-	if (std::filesystem::exists(pathFilename))
+	if (std::filesystem::exists(pathFilename, ec_exists))
 	{
 		FILE* file = nullptr;
 		errno_t err = 0;

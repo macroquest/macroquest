@@ -3721,10 +3721,11 @@ PLUGIN_API void InitializePlugin()
 				{
 					std::filesystem::path pathUI = gPathResources;
 					pathUI = pathUI / "uifiles" / "default";
+					std::error_code ec_fs;
 
-					if (!std::filesystem::exists(pathUI))
+					if (!std::filesystem::exists(pathUI, ec_fs))
 					{
-						std::filesystem::create_directories(pathUI);
+						std::filesystem::create_directories(pathUI, ec_fs);
 					}
 
 					pathUI /= TipWndXML;
