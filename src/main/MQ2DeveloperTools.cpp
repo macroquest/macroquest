@@ -264,7 +264,7 @@ static void ColumnValue(const char* fmt, va_list args)
 
 static void ColumnText(const char* Label, const char* fmt, ...)
 {
-	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextCell();
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
 
 	va_list args;
 	va_start(args, fmt);
@@ -276,13 +276,13 @@ static void ColumnText(const char* Label, const char* fmt, ...)
 
 static void ColumnTextType(const char* Label, const char* Type, const char* fmt, ...)
 {
-	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextCell();
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
 
 	va_list args;
 	va_start(args, fmt);
 	ColumnValue(fmt, args);
 	va_end(args);
-	ImGui::TableNextCell();
+	ImGui::TableNextColumn();
 
 	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), Type);
 	ImGui::TableNextRow();
@@ -291,7 +291,7 @@ static void ColumnTextType(const char* Label, const char* Type, const char* fmt,
 static bool ColumnCheckBox(const char* Label, bool* value)
 {
 	bool result = false;
-	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextCell();
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
 	ImGui::PushID(Label); result = ImGui::Checkbox("", value); ImGui::PopID();
 	ImGui::TableNextRow();
 	return result;
@@ -300,7 +300,7 @@ static bool ColumnCheckBox(const char* Label, bool* value)
 static bool ColumnCheckBox(const char* Label, bool value)
 {
 	bool result = false;
-	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextCell();
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
 	bool value2 = value;
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.6f);
 	ImGui::PushID(Label); result = ImGui::Checkbox("", &value2); ImGui::PopID();
@@ -312,7 +312,7 @@ static bool ColumnCheckBox(const char* Label, bool value)
 static bool ColumnCheckBoxFlags(const char* Label, unsigned int* flags, unsigned int flags_value)
 {
 	bool result = false;
-	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextCell();
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
 	ImGui::PushID(Label); result = ImGui::CheckboxFlags("", flags, flags_value); ImGui::PopID();
 	ImGui::TableNextRow();
 	return result;
@@ -320,7 +320,7 @@ static bool ColumnCheckBoxFlags(const char* Label, unsigned int* flags, unsigned
 
 static bool ColumnTreeNode(const char* Label, const char* fmt, ...)
 {
-	bool result = ImGui::TreeNode(Label); ImGui::TableNextCell();
+	bool result = ImGui::TreeNode(Label); ImGui::TableNextColumn();
 
 	va_list args;
 	va_start(args, fmt);
@@ -333,13 +333,13 @@ static bool ColumnTreeNode(const char* Label, const char* fmt, ...)
 
 static bool ColumnTreeNodeType(const char* Label, const char* Type, const char* fmt, ...)
 {
-	bool result = ImGui::TreeNode(Label); ImGui::TableNextCell();
+	bool result = ImGui::TreeNode(Label); ImGui::TableNextColumn();
 
 	va_list args;
 	va_start(args, fmt);
 	ColumnValue(fmt, args);
 	va_end(args);
-	ImGui::TableNextCell();
+	ImGui::TableNextColumn();
 
 	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), Type);
 	ImGui::TableNextRow();
@@ -348,13 +348,13 @@ static bool ColumnTreeNodeType(const char* Label, const char* Type, const char* 
 
 static bool ColumnTreeNodeType2(const void* Id, const char* Label, const char* Type, const char* fmt, ...)
 {
-	bool result = ImGui::TreeNode(Id, Label); ImGui::TableNextCell();
+	bool result = ImGui::TreeNode(Id, Label); ImGui::TableNextColumn();
 
 	va_list args;
 	va_start(args, fmt);
 	ColumnValue(fmt, args);
 	va_end(args);
-	ImGui::TableNextCell();
+	ImGui::TableNextColumn();
 
 	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), Type);
 	ImGui::TableNextRow();
@@ -391,13 +391,13 @@ inline bool InputColorRef(const char* label, COLORREF& color)
 
 inline void ColumnCXStr(const char* Label, const CXStr& str)
 {
-	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextCell();
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
 
 	if (str.empty())
 		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(empty)");
 	else
 		ImGui::Text("%s", str.c_str());
-	ImGui::TableNextCell();
+	ImGui::TableNextColumn();
 
 	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "CXStr");
 	ImGui::TableNextRow();
@@ -405,9 +405,9 @@ inline void ColumnCXStr(const char* Label, const CXStr& str)
 
 inline void ColumnCXSize(const char* Label, const CXSize& size)
 {
-	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextCell();
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
 
-	ImGui::Text("{ w=%d, h=%d }", size.cx, size.cy); ImGui::TableNextCell();
+	ImGui::Text("{ w=%d, h=%d }", size.cx, size.cy); ImGui::TableNextColumn();
 
 	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "CXSize");
 	ImGui::TableNextRow();
@@ -415,9 +415,9 @@ inline void ColumnCXSize(const char* Label, const CXSize& size)
 
 inline void ColumnCXRect(const char* Label, const CXRect& rect)
 {
-	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextCell();
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
 
-	ImGui::Text("{ x=%d, y=%d, w=%d, h=%d }", rect.left, rect.top, rect.GetWidth(), rect.GetHeight()); ImGui::TableNextCell();
+	ImGui::Text("{ x=%d, y=%d, w=%d, h=%d }", rect.left, rect.top, rect.GetWidth(), rect.GetHeight()); ImGui::TableNextColumn();
 
 	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "CXRect");
 	ImGui::TableNextRow();
@@ -425,9 +425,9 @@ inline void ColumnCXRect(const char* Label, const CXRect& rect)
 
 inline void ColumnCXPoint(const char* Label, const CXPoint& point)
 {
-	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextCell();
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
 
-	ImGui::Text("{ x=%d, y=%d }", point.x, point.y); ImGui::TableNextCell();
+	ImGui::Text("{ x=%d, y=%d }", point.x, point.y); ImGui::TableNextColumn();
 
 	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "CXPoint");
 	ImGui::TableNextRow();
@@ -435,7 +435,7 @@ inline void ColumnCXPoint(const char* Label, const CXPoint& point)
 
 inline void ColumnColor(const char* Label, const COLORREF& color)
 {
-	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextCell();
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
 
 	//ImGui::ColorButton(id, ImGui::ColorConvertU32ToFloat4(color),
 	//ColorButton(const char* desc_id, const ImVec4& col, ImGuiColorEditFlags flags = 0, ImVec2 size = ImVec2(0, 0));
@@ -450,7 +450,7 @@ inline void ColumnColor(const char* Label, const COLORREF& color)
 		(int)((color >> 24) & 0xff)
 	);
 
-	ImGui::ColorEdit4("", (float*)&colors, ImGuiColorEditFlags_NoInputs); ImGui::TableNextCell();
+	ImGui::ColorEdit4("", (float*)&colors, ImGuiColorEditFlags_NoInputs); ImGui::TableNextColumn();
 	ImGui::PopID();
 
 	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "Color");
@@ -565,7 +565,7 @@ bool RenderTextureAnimation(const CTextureAnimation* pAnim)
 
 void ColumnTextureAnimationPreview(const char* Label, const CTextureAnimation* pAnim)
 {
-	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextCell();
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
 
 	if (!pAnim)
 		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(null)");
@@ -582,7 +582,7 @@ void ColumnTextureAnimationPreview(const char* Label, const CTextureAnimation* p
 
 bool ColumnTextureInfoPreview(const char* Label, const CUITextureInfo& textureInfo, const CXRect& rect = CXRect(0, 0, -1, -1))
 {
-	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextCell();
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
 
 	bool result = RenderUITextureInfoTexture(textureInfo, rect);
 	ImGui::TableNextRow();
@@ -834,7 +834,7 @@ void DisplayTextObject(const char* label, CTextObjectInterface* pTextObjectInter
 
 void ColumnWindow(const char* Label, CXWnd* window)
 {
-	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextCell();
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
 
 	if (!window)
 		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(null)");
@@ -849,7 +849,7 @@ void ColumnWindow(const char* Label, CXWnd* window)
 		// TODO: function for deciding on a name.
 		ImGui::Text("%s", window->GetXMLName().c_str());
 	}
-	ImGui::TableNextCell();
+	ImGui::TableNextColumn();
 
 	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "CXWnd");
 	ImGui::TableNextRow();
@@ -1161,12 +1161,9 @@ public:
 
 	bool Begin()
 	{
-		ImGuiTableFlags tableFlags =
-			ImGuiTableFlags_ScrollFreezeTopRow
-			| ImGuiTableFlags_ScrollY
+		ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollY
 			| ImGuiTableFlags_BordersV
-			| ImGuiTableFlags_BordersHOuter
-			| ImGuiTableFlags_BordersHInner
+			| ImGuiTableFlags_BordersH
 			| ImGuiTableFlags_Resizable
 			| ImGuiTableFlags_RowBg
 			;
@@ -1177,10 +1174,11 @@ public:
 
 		if (!m_started)
 		{
+			ImGui::TableSetupScrollFreeze(0, 1);
 			ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
 			ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
 			ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 75);
-			ImGui::TableAutoHeaders();
+			ImGui::TableHeadersRow();
 		}
 
 		m_started = true;
@@ -2253,13 +2251,18 @@ public:
 
 	void DisplayWindowTree()
 	{
-		ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollFreezeTopRow | ImGuiTableFlags_ScrollY | ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersHOuter | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg;
+		ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollY
+			| ImGuiTableFlags_BordersV
+			| ImGuiTableFlags_BordersOuterH
+			| ImGuiTableFlags_Resizable
+			| ImGuiTableFlags_RowBg;
 
 		if (ImGui::BeginTable("##WindowTable", 2, tableFlags))
 		{
+			ImGui::TableSetupScrollFreeze(0, 1);
 			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
 			ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 100);
-			ImGui::TableAutoHeaders();
+			ImGui::TableHeadersRow();
 
 			m_windows.reserve(m_lastWindowCount);
 			m_lastWindowCount = 0;
@@ -2389,7 +2392,7 @@ public:
 			}
 		}
 
-		ImGui::TableNextCell();
+		ImGui::TableNextColumn();
 		ImGui::Text("%s", typeName.c_str());
 
 		if (open)
@@ -2550,7 +2553,7 @@ public:
 		ImGui::TableSetupColumn("X");
 		ImGui::TableSetupColumn("Z");
 
-		ImGui::TableAutoHeaders();
+		ImGui::TableHeadersRow();
 	}
 
 	void DoSpellBuffTableRow(int index, EQ_Affect& buff)
@@ -2572,7 +2575,7 @@ public:
 		ImGui::Text("%d", index);
 
 		// Icon
-		ImGui::TableNextCell();
+		ImGui::TableNextColumn();
 		m_pTASpellIcon->SetCurCell(spell->SpellIcon);
 		RenderTextureAnimation(m_pTASpellIcon);
 		//m_pTASpellIcon->SetCurCell(spell->GemIcon);
@@ -2581,7 +2584,7 @@ public:
 		//RenderTextureAnimation(m_pTASpellIcon);
 
 		// Name
-		ImGui::TableNextCell();
+		ImGui::TableNextColumn();
 		if (spell)
 		{
 			ImGui::Text("%s", spell->Name);
@@ -2592,53 +2595,53 @@ public:
 		}
 
 		// ID
-		ImGui::TableNextCell();
+		ImGui::TableNextColumn();
 		ImGui::Text("%d", buff.SpellID);
 
 		// Level
-		ImGui::TableNextCell();
+		ImGui::TableNextColumn();
 		ImGui::Text("%d", buff.Level);
 
 		// Duration
-		ImGui::TableNextCell();
+		ImGui::TableNextColumn();
 		ImGui::Text("%d", buff.Duration);
 
 		// InitialDuration
-		ImGui::TableNextCell();
+		ImGui::TableNextColumn();
 		ImGui::Text("%d", buff.InitialDuration);
 
 		// HitCount
-		ImGui::TableNextCell();
+		ImGui::TableNextColumn();
 		ImGui::Text("%d", buff.HitCount);
 
 		// Type
-		ImGui::TableNextCell();
+		ImGui::TableNextColumn();
 		ImGui::Text("%d", buff.Type);
 
 		// ChargesRemaining
-		ImGui::TableNextCell();
+		ImGui::TableNextColumn();
 		ImGui::Text("%d", buff.ChargesRemaining);
 
 		// ViralTimer
-		ImGui::TableNextCell();
+		ImGui::TableNextColumn();
 		ImGui::Text("%d", buff.ViralTimer);
 
 		// Flags
-		ImGui::TableNextCell();
+		ImGui::TableNextColumn();
 		ImGui::Text("%x", buff.Flags);
 
 		// Modifier
-		ImGui::TableNextCell();
+		ImGui::TableNextColumn();
 		ImGui::Text("%.2f", buff.Modifier);
 
 		// Activatable
-		ImGui::TableNextCell();
+		ImGui::TableNextColumn();
 		ImGui::Text("%d", buff.Activatable);
 
 		// SlotData[0]
 		for (auto& slotData : buff.SlotData)
 		{
-			ImGui::TableNextCell();
+			ImGui::TableNextColumn();
 
 			int Slot = slotData.Slot;
 			int Value = slotData.Value;
@@ -2648,15 +2651,15 @@ public:
 		}
 
 		// Y
-		ImGui::TableNextCell();
+		ImGui::TableNextColumn();
 		ImGui::Text("%.2f", buff.Y);
 
 		// X
-		ImGui::TableNextCell();
+		ImGui::TableNextColumn();
 		ImGui::Text("%.2f", buff.X);
 
 		// Z
-		ImGui::TableNextCell();
+		ImGui::TableNextColumn();
 		ImGui::Text("%.2f", buff.Z);
 	}
 
@@ -2665,8 +2668,6 @@ public:
 		ImGuiTableFlags tableFlags = 0
 			| ImGuiTableFlags_SizingPolicyFixedX
 			| ImGuiTableFlags_Scroll
-			| ImGuiTableFlags_ScrollFreezeTopRow
-			| ImGuiTableFlags_ScrollFreeze2Columns
 			| ImGuiTableFlags_NoHostExtendY
 			| ImGuiTableFlags_RowBg
 			| ImGuiTableFlags_Borders
@@ -2689,6 +2690,7 @@ public:
 
 		if (ImGui::BeginTable(name, 17 + NUM_SLOTDATA, tableFlags, size))
 		{
+			ImGui::TableSetupScrollFreeze(2, 1);
 			DoSpellBuffTableHeaders();
 
 			for (int i = 0; i < numAffects; ++i)
@@ -3041,15 +3043,15 @@ public:
 			ImGui::TableSetupColumn("Count");
 			ImGui::TableSetupColumn("Total");
 			ImGui::TableSetupColumn("Last");
-			ImGui::TableAutoHeaders();
+			ImGui::TableHeadersRow();
 
 			for (const auto& bm : gBenchmarks)
 			{
 				ImGui::TableNextRow();
 
-				ImGui::Text(bm->Name.c_str()); ImGui::TableNextCell();
-				ImGui::Text("%d", bm->Count); ImGui::TableNextCell();
-				ImGui::Text("%.3f ms", static_cast<float>(bm->TotalTime.count() / 1000.f)); ImGui::TableNextCell();
+				ImGui::Text(bm->Name.c_str()); ImGui::TableNextColumn();
+				ImGui::Text("%d", bm->Count); ImGui::TableNextColumn();
+				ImGui::Text("%.3f ms", static_cast<float>(bm->TotalTime.count() / 1000.f)); ImGui::TableNextColumn();
 				ImGui::Text("%.3f ms", static_cast<float>(bm->LastTime.count() / 1000.f));
 			}
 
@@ -3101,13 +3103,13 @@ protected:
 			{
 				ImGui::TableSetupColumn("Block Size");
 				ImGui::TableSetupColumn("Count");
-				ImGui::TableAutoHeaders();
+				ImGui::TableHeadersRow();
 
 				ImGui::TableNextRow();
 
 				while (freeList->blockSize > 0)
 				{
-					ImGui::Text("%d", freeList->blockSize); ImGui::TableNextCell();
+					ImGui::Text("%d", freeList->blockSize); ImGui::TableNextColumn();
 
 					size_t count = 0;
 					CStrRep* rep = freeList->repList;
