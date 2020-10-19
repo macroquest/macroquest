@@ -556,6 +556,14 @@ struct MQColor
 		return ARGB;
 	}
 
+	MQLIB_OBJECT constexpr uint32_t ToRGBA8() const
+	{
+		return (((uint32_t)(Alpha) << 24)
+			| ((uint32_t)(Blue) << 16)
+			| ((uint32_t)(Green) << 8)
+			| ((uint32_t)(Red) << 0));
+	}
+
 	// Layout matches ARGBCOLOR
 	union
 	{
