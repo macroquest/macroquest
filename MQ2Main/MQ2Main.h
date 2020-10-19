@@ -107,7 +107,7 @@ extern CRITICAL_SECTION gPluginCS;
 //#define NEWCHARINFO
 #elif defined(EQBETA)
 #include "eqgame(beta).h"
-#define NEWCHARINFO
+//#define NEWCHARINFO
 #elif defined(ROF2EMU)
 #include "eqgame(emu).h"
 //#define NEWCHARINFO
