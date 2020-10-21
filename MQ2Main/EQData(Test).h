@@ -399,7 +399,8 @@ typedef struct _BodyInfo
 #define CHAT_AUC                        16
 #define CHAT_GUILD                      32
 #define CHAT_GROUP                      64
-#define CHAT_CHAT                       128
+#define CHAT_RAID                       128
+#define CHAT_CHAT                       256
 #define CHATEVENT(x)                    (gEventChat & x)
 
 #define FILTERSKILL_ALL                 0

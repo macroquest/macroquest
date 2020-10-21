@@ -758,6 +758,11 @@ VOID CheckChatForEvent(PCHAR szMsg)
 				strcpy_s(Arg2, pDest+18);
 				Arg2[strlen(Arg2)-1]=0; 
 				AddEvent(EVENT_CHAT,"group",Arg1,Arg2,NULL); 
+			} else if ((CHATEVENT(CHAT_RAID)) && (pDest = strstr(szClean," tells the raid, "))) {
+				strncpy_s(Arg1,szClean,(DWORD)(pDest -szClean));
+				strcpy_s(Arg2, pDest+18);
+				Arg2[strlen(Arg2)-1]=0; 
+				AddEvent(EVENT_CHAT,"raid",Arg1,Arg2,NULL); 
 			} else if ((CHATEVENT(CHAT_TELL)) && (pDest = strstr(szClean," tells you, "))) {
 				strncpy_s(Arg1,szClean,(DWORD)(pDest -szClean));
 				strcpy_s(Arg2, pDest+12);
