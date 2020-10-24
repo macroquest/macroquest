@@ -18,6 +18,75 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+enum class EverQuestMembers
+{
+	GameState,
+	LoginName,
+	Server,
+	LastCommand,
+	LastTell,
+	Running,
+	MouseX,
+	MouseY,
+	Ping,
+	LClickedObject,
+	WinTitle,
+	PID,
+	PPriority,
+	ChatChannels,
+	ChatChannel,
+	ViewportX,
+	ViewportY,
+	ViewportXMax,
+	ViewportYMax,
+	ViewportXCenter,
+	ViewportYCenter,
+	xScreenMode,
+	LayoutCopyInProgress,
+	LastMouseOver,
+	CharSelectList,
+	CurrentUI,
+	IsDefaultUILoaded,
+	HWND,
+	Foreground,
+	ValidLoc
+};
+
+MQ2EverQuestType::MQ2EverQuestType() : MQ2Type("everquest")
+{
+	ScopedTypeMember(EverQuestMembers, GameState);
+	ScopedTypeMember(EverQuestMembers, LoginName);
+	ScopedTypeMember(EverQuestMembers, Server);
+	ScopedTypeMember(EverQuestMembers, LastCommand);
+	ScopedTypeMember(EverQuestMembers, LastTell);
+	ScopedTypeMember(EverQuestMembers, Running);
+	ScopedTypeMember(EverQuestMembers, MouseX);
+	ScopedTypeMember(EverQuestMembers, MouseY);
+	ScopedTypeMember(EverQuestMembers, Ping);
+	ScopedTypeMember(EverQuestMembers, ChatChannels);
+	ScopedTypeMember(EverQuestMembers, ChatChannel);
+	ScopedTypeMember(EverQuestMembers, ViewportX);
+	ScopedTypeMember(EverQuestMembers, ViewportY);
+	ScopedTypeMember(EverQuestMembers, ViewportXMax);
+	ScopedTypeMember(EverQuestMembers, ViewportYMax);
+	ScopedTypeMember(EverQuestMembers, ViewportXCenter);
+	ScopedTypeMember(EverQuestMembers, ViewportYCenter);
+	ScopedTypeMember(EverQuestMembers, LClickedObject);
+	ScopedTypeMember(EverQuestMembers, WinTitle);
+	ScopedTypeMember(EverQuestMembers, PID);
+	ScopedTypeMember(EverQuestMembers, PPriority);
+	AddMember(static_cast<int>(EverQuestMembers::xScreenMode), "ScreenMode");
+	ScopedTypeMember(EverQuestMembers, LayoutCopyInProgress);
+	ScopedTypeMember(EverQuestMembers, LastMouseOver);
+	ScopedTypeMember(EverQuestMembers, CharSelectList);
+	ScopedTypeMember(EverQuestMembers, CurrentUI);
+	ScopedTypeMember(EverQuestMembers, IsDefaultUILoaded);
+	ScopedTypeMember(EverQuestMembers, HWND);
+	ScopedTypeMember(EverQuestMembers, Foreground);
+	ScopedTypeMember(EverQuestMembers, ValidLoc);
+	ScopedTypeMember(EverQuestMembers, Path);
+}
+
 bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQTypeMember* pMember = MQ2EverQuestType::FindMember(Member);
@@ -28,7 +97,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	switch (static_cast<EverQuestMembers>(pMember->ID))
 	{
-	case xHWND:
+	case EverQuestMembers::HWND:
 		if (EQW_GetDisplayWindow)
 			Dest.DWord = (DWORD)EQW_GetDisplayWindow();
 		else
@@ -36,7 +105,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.Type = pIntType;
 		return true;
 
-	case GameState:
+	case EverQuestMembers::GameState:
 		if (gGameState == GAMESTATE_CHARSELECT)
 			strcpy_s(DataTypeTemp, "CHARSELECT");
 		else if (gGameState == GAMESTATE_INGAME)
@@ -50,7 +119,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.Type = pStringType;
 		return true;
 
-	case LoginName:
+	case EverQuestMembers::LoginName:
 		Dest.Type = pStringType;
 		if (const char* pTemp = GetLoginName())
 		{
@@ -60,7 +129,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 		return false;
 
-	case Server:
+	case EverQuestMembers::Server:
 		Dest.Type = pStringType;
 		if (EQADDR_SERVERNAME[0])
 		{
@@ -70,7 +139,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 		return false;
 
-	case LastCommand:
+	case EverQuestMembers::LastCommand:
 		Dest.Type = pStringType;
 		if (szLastCommand[0])
 		{
@@ -79,7 +148,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 		return false;
 
-	case LastTell:
+	case EverQuestMembers::LastTell:
 		Dest.Type = pStringType;
 		if (EQADDR_LASTTELL[0])
 		{
@@ -89,27 +158,27 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 		return false;
 
-	case Running:
+	case EverQuestMembers::Running:
 		Dest.DWord = (DWORD)clock();
 		Dest.Type = pIntType;
 		return true;
 
-	case MouseX:
+	case EverQuestMembers::MouseX:
 		Dest.DWord = EQADDR_MOUSE->X;
 		Dest.Type = pIntType;
 		return true;
 
-	case MouseY:
+	case EverQuestMembers::MouseY:
 		Dest.DWord = EQADDR_MOUSE->Y;
 		Dest.Type = pIntType;
 		return true;
 
-	case Ping:
+	case EverQuestMembers::Ping:
 		Dest.DWord = pConnection->Last;
 		Dest.Type = pIntType;
 		return true;
 
-	case ChatChannels:
+	case EverQuestMembers::ChatChannels:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (pEQ->ChatService)
@@ -119,7 +188,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 		return false;
 
-	case ChatChannel:
+	case EverQuestMembers::ChatChannel:
 		Dest.Type = pStringType;
 		if (pEQ->ChatService)
 		{
@@ -153,42 +222,42 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 		return false;
 
-	case ViewportX:
+	case EverQuestMembers::ViewportX:
 		Dest.DWord = ScreenX;
 		Dest.Type = pIntType;
 		return true;
 
-	case ViewportY:
+	case EverQuestMembers::ViewportY:
 		Dest.DWord = ScreenY;
 		Dest.Type = pIntType;
 		return true;
 
-	case ViewportXMax:
+	case EverQuestMembers::ViewportXMax:
 		Dest.DWord = ScreenXMax;
 		Dest.Type = pIntType;
 		return true;
 
-	case ViewportYMax:
+	case EverQuestMembers::ViewportYMax:
 		Dest.DWord = ScreenYMax;
 		Dest.Type = pIntType;
 		return true;
 
-	case ViewportXCenter:
+	case EverQuestMembers::ViewportXCenter:
 		Dest.DWord = ScreenXMax / 2;
 		Dest.Type = pIntType;
 		return true;
 
-	case ViewportYCenter:
+	case EverQuestMembers::ViewportYCenter:
 		Dest.DWord = ScreenYMax / 2;
 		Dest.Type = pIntType;
 		return true;
 
-	case LClickedObject:
+	case EverQuestMembers::LClickedObject:
 		Dest.DWord = gLClickedObject;
 		Dest.Type = pBoolType;
 		return true;
 
-	case WinTitle: {
+	case EverQuestMembers::WinTitle: {
 		HWND hEQWnd = GetEQWindowHandle();
 		if (hEQWnd)
 		{
@@ -204,17 +273,17 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return false;
 	}
 
-	case PID:
+	case EverQuestMembers::PID:
 		Dest.DWord = GetCurrentProcessId();
 		Dest.Type = pIntType;
 		return true;
 
-	case xScreenMode:
+	case EverQuestMembers::xScreenMode:
 		Dest.DWord = ScreenMode;
 		Dest.Type = pIntType;
 		return true;
 
-	case PPriority:
+	case EverQuestMembers::PPriority:
 		strcpy_s(DataTypeTemp, "NORMAL");
 
 		if (HANDLE heqg = OpenProcess(PROCESS_QUERY_INFORMATION, false, GetCurrentProcessId()))
@@ -252,12 +321,12 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.Type = pStringType;
 		return true;
 
-	case LayoutCopyInProgress:
+	case EverQuestMembers::LayoutCopyInProgress:
 		Dest.DWord = *(BYTE*)CSidlScreenWnd__m_layoutCopy;
 		Dest.Type = pBoolType;
 		return true;
 
-	case LastMouseOver:
+	case EverQuestMembers::LastMouseOver:
 		Dest.Type = pWindowType;
 		if (pWndMgr)
 		{
@@ -266,7 +335,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 		return false;
 
-	case CharSelectList:
+	case EverQuestMembers::CharSelectList:
 		Dest.DWord = 0;
 		Dest.Type = pCharSelectListType;
 
@@ -306,7 +375,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 		return false;
 
-	case CurrentUI:
+	case EverQuestMembers::CurrentUI:
 		Dest.Type = pStringType;
 		if (CHARINFO* pCharInfo = GetCharInfo())
 		{
@@ -318,7 +387,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 		return false;
 
-	case IsDefaultUILoaded:
+	case EverQuestMembers::IsDefaultUILoaded:
 		Dest.DWord = 1;
 		Dest.Type = pBoolType;
 
@@ -335,12 +404,12 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 		return true;
 
-	case Foreground:
+	case EverQuestMembers::Foreground:
 		Dest.DWord = gbInForeground;
 		Dest.Type = pBoolType;
 		return true;
 
-	case ValidLoc: {
+	case EverQuestMembers::ValidLoc: {
 		//usage /echo ${EverQuest.ValidLoc[123 456 789]}
 
 		auto szLoc = std::make_unique<char[]>(MAX_STRING);
@@ -362,3 +431,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	return false;
 }
 
+bool MQ2EverQuestType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	return false;
+}

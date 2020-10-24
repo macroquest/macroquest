@@ -996,84 +996,9 @@ public:
 class MQ2EverQuestType : public MQ2Type
 {
 public:
-	enum EverQuestMembers
-	{
-		GameState = 1,
-		LoginName = 2,
-		Server = 3,
-		LastCommand = 4,
-		LastTell = 5,
-		Running = 6,
-		MouseX = 7,
-		MouseY = 8,
-		Ping = 9,
-		LClickedObject = 10,
-		WinTitle = 11,
-		PID = 12,
-		PPriority = 13,
-		ChatChannels = 14,
-		ChatChannel = 15,
-		ViewportX = 16,
-		ViewportY = 17,
-		ViewportXMax = 18,
-		ViewportYMax = 19,
-		ViewportXCenter = 20,
-		ViewportYCenter = 21,
-		xScreenMode = 22,
-		LayoutCopyInProgress = 23,
-		LastMouseOver = 24,
-		CharSelectList = 25,
-		CurrentUI = 26,
-		IsDefaultUILoaded = 27,
-		xHWND = 28,
-		Foreground = 29,
-		ValidLoc = 30,
-	};
-
-	enum EverQuestMethods
-	{
-	};
-
-	MQ2EverQuestType() : MQ2Type("everquest")
-	{
-		TypeMember(GameState);
-		TypeMember(LoginName);
-		TypeMember(Server);
-		TypeMember(LastCommand);
-		TypeMember(LastTell);
-		TypeMember(Running);
-		TypeMember(MouseX);
-		TypeMember(MouseY);
-		TypeMember(Ping);
-		TypeMember(ChatChannels);
-		TypeMember(ChatChannel);
-		TypeMember(ViewportX);
-		TypeMember(ViewportY);
-		TypeMember(ViewportXMax);
-		TypeMember(ViewportYMax);
-		TypeMember(ViewportXCenter);
-		TypeMember(ViewportYCenter);
-		TypeMember(LClickedObject);
-		TypeMember(WinTitle);
-		TypeMember(PID);
-		TypeMember(PPriority);
-		AddMember(xScreenMode, "ScreenMode");
-		TypeMember(LayoutCopyInProgress);
-		TypeMember(LastMouseOver);
-		TypeMember(CharSelectList);
-		TypeMember(CurrentUI);
-		TypeMember(IsDefaultUILoaded);
-		AddMember(xHWND, "HWND");
-		TypeMember(Foreground);
-		TypeMember(ValidLoc);
-	}
-
+	MQ2EverQuestType();
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		return false;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 };
 
 //============================================================================
