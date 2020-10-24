@@ -285,7 +285,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case EverQuestMembers::PPriority:
-		strcpy_s(DataTypeTemp, "NORMAL");
+		strcpy_s(DataTypeTemp, "UNKNOWN");
 
 		if (HANDLE heqg = OpenProcess(PROCESS_QUERY_INFORMATION, false, GetCurrentProcessId()))
 		{
