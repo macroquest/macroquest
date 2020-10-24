@@ -49,7 +49,8 @@ enum class EverQuestMembers
 	IsDefaultUILoaded,
 	HWND,
 	Foreground,
-	ValidLoc
+	ValidLoc,
+	Path
 };
 
 MQ2EverQuestType::MQ2EverQuestType() : MQ2Type("everquest")
@@ -422,6 +423,14 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 		Dest.DWord = pLocalPlayer->IsValidTeleport(Y, X, Z, 0, 0);
 		Dest.Type = pBoolType;
+		return true;
+	}
+
+	case EverQuestMembers::Path: {
+		Dest.Type = pStringType;
+		std::error_code ec;
+		strcpy_s(DataTypeTemp, std::filesystem::current_path(ec).string().c_str());
+		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 	}
 
