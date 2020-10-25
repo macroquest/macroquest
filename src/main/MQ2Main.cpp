@@ -547,21 +547,12 @@ bool ParseINIFile(const std::string& iniFile)
 
 void InitializeMQ2IcExports()
 {
-	IC_GetHashData = (fICGetHashData)GetProcAddress(ghmq2ic, "IC_GetHashData");
-	IC_SetHashData = (fICSetHashData)GetProcAddress(ghmq2ic, "IC_SetHashData");
-	IC_LoaderSetLoaded = (fLoaderSetLoaded)GetProcAddress(ghmq2ic, "IC_LoaderSetLoaded");
-	IC_LoaderClearLoaded = (fLoaderClearLoaded)GetProcAddress(ghmq2ic, "IC_LoaderClearLoaded");
 	IC_MQ2Unload = (fMQ2Unload)GetProcAddress(ghmq2ic, "IC_MQ2Unload");
-	IC_ClassLvl = (fClassLvl)GetProcAddress(ghmq2ic, "IC_ClassLvl");
 }
 
 void DeInitializeMQ2IcExports()
 {
-	IC_GetHashData = nullptr;
-	IC_SetHashData = nullptr;
-	IC_LoaderSetLoaded = nullptr;
 	IC_MQ2Unload = nullptr;
-	IC_ClassLvl = nullptr;
 }
 
 void SetMainThreadId()

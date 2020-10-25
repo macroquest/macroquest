@@ -751,12 +751,7 @@ int  gOldCameraType = -1;
 fEQGetMelee get_melee_range = GetMeleeRange;
 fEQW_GetDisplayWindow EQW_GetDisplayWindow = nullptr;
 
-fICGetHashData IC_GetHashData = nullptr;
-fICSetHashData IC_SetHashData = nullptr;
-fLoaderSetLoaded IC_LoaderSetLoaded = nullptr;
-fLoaderClearLoaded IC_LoaderClearLoaded = nullptr;
 fMQ2Unload IC_MQ2Unload = nullptr;
-fClassLvl IC_ClassLvl = nullptr;
 
 bool ExecuteCmd(unsigned int command, bool keyDown, void* data)
 {

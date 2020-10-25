@@ -285,12 +285,7 @@ MQLIB_VAR fEQCommand            cmdQuit;
 
 MQLIB_VAR fEQGetMelee           get_melee_range;
 
-MQLIB_VAR fICGetHashData        IC_GetHashData;
-MQLIB_VAR fICSetHashData        IC_SetHashData;
-MQLIB_VAR fLoaderSetLoaded      IC_LoaderSetLoaded;
-MQLIB_VAR fLoaderClearLoaded    IC_LoaderClearLoaded;
 MQLIB_VAR fMQ2Unload            IC_MQ2Unload;
-MQLIB_VAR fClassLvl             IC_ClassLvl;
 
 MQLIB_VAR fEQW_GetDisplayWindow EQW_GetDisplayWindow;
 

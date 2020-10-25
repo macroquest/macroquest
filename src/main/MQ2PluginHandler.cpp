@@ -614,11 +614,6 @@ void PluginsSetGameState(DWORD GameState)
 
 				sprintf_s(szBuffer, "%s", GetClassDesc(pProfile->Class));
 				LoadCfgFile(szBuffer, false);
-
-				if (IC_ClassLvl)
-				{
-					IC_ClassLvl(pProfile->Class, pProfile->Level, GetCurrentProcessId());
-				}
 			}
 		}
 	}
