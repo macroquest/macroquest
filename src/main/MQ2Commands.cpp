@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+#include "MQ2Utilities.h"
+
 namespace mq {
 
 CMQ2Alerts CAlerts;
@@ -4610,15 +4612,16 @@ void MercSwitchCmd(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	std::map<int, MercDesc> descmap;
-	GetAllMercDesc(descmap);
+	std::vector<MercDesc> descs = GetAllMercDesc();
 
-	for (auto& n : descmap)
+	for (size_t index = 0; index < descs.size(); ++index)
 	{
-		if (ci_equals(n.second.Type, szLine))
+		auto& desc = descs[index];
+
+		if (ci_equals(desc.Type, szLine))
 		{
 			char szTemp[256] = { 0 };
-			sprintf_s(szTemp, "%d", n.first + 1);
+			sprintf_s(szTemp, "%d", index + 1);
 
 			cmdMercSwitch(pChar, szTemp);
 			return;

@@ -1050,14 +1050,6 @@ struct MQEventQueue
 using EVENTQUEUE [[deprecated("Use MQEventQueue instead")]] = MQEventQueue;
 using PEVENTQUEUE [[deprecated("Use MQEventQueue* instead")]] = MQEventQueue *;
 
-struct MercDesc
-{
-	std::string Race;
-	std::string Type;
-	std::string Confidence;
-	std::string Proficiency;
-};
-
 //----------------------------------------------------------------------------
 
 enum eGroundObjectType

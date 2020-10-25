@@ -371,7 +371,6 @@ MQLIB_API void RemovePetBuff(SPAWNINFO* pChar, char* szLine);
 MQLIB_API bool StripQuotes(char* str);
 MQLIB_API void MakeMeVisible(SPAWNINFO* pChar, char* szLine);
 MQLIB_API void RemoveAura(SPAWNINFO* pChar, char* szLine);
-MQLIB_API bool GetAllMercDesc(std::map<int, MercDesc>& minfo);
 MQLIB_API int GetKeyRingCount(KeyRingType keyRingType);
 MQLIB_API int GetMountCount();
 MQLIB_API int GetIllusionCount();

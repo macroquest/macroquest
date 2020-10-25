@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+#include "MQ2Utilities.h"
+
 #include <DbgHelp.h>
 
 #ifdef _DEBUG
@@ -6764,60 +6766,61 @@ void RemoveAura(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-bool GetAllMercDesc(std::map<int, MercDesc> & minfo)
+std::vector<MercDesc> GetAllMercDesc()
 {
-	if (!pMercInfo)
-		return false;
+	MERCSLIST* pmlist = pMercInfo ? pMercInfo->pMercsList : nullptr;
+	if (!pmlist)
+		return {};
 
-	if (MERCSLIST* pmlist = pMercInfo->pMercsList)
+	std::vector<MercDesc> mercInfo;
+	mercInfo.resize(pMercInfo->MercenaryCount);
+
+	for (int i = 0; i < pMercInfo->MercenaryCount; i++)
 	{
-		for (int i = 0; i < pMercInfo->MercenaryCount; i++)
+		MercDesc& outDesc = mercInfo[i];
+
+		int descIdx = pmlist->mercinfo[i].nMercDesc;
+		std::string_view subcatDesc = pCDBStr->GetString(descIdx, eMercenarySubCategoryDescription);
+		size_t pos = 0;
+
+		if ((pos = subcatDesc.find("Race: ")) != std::string::npos)
 		{
-			MercDesc& outDesc = minfo[i];
-
-			int mdesc = pmlist->mercinfo[i].nMercDesc;
-			std::string smdesc = pCDBStr->GetString(mdesc, eMercenarySubCategoryDescription);
-			size_t pos = 0;
-
-			if ((pos = smdesc.find("Race: ")) != std::string::npos)
+			outDesc.Race = subcatDesc.substr(pos + 6);
+			if ((pos = outDesc.Race.find("<br>")) != std::string::npos)
 			{
-				outDesc.Race = smdesc.substr(pos + 6);
-				if ((pos = outDesc.Race.find("<br>")) != std::string::npos)
-				{
-					outDesc.Race.erase(pos);
-				}
+				outDesc.Race.erase(pos);
 			}
+		}
 
-			if ((pos = smdesc.find("Type: ")) != std::string::npos)
+		if ((pos = subcatDesc.find("Type: ")) != std::string::npos)
+		{
+			outDesc.Type = subcatDesc.substr(pos + 6);
+			if ((pos = outDesc.Type.find("<br>")) != std::string::npos)
 			{
-				outDesc.Type = smdesc.substr(pos + 6);
-				if ((pos = outDesc.Type.find("<br>")) != std::string::npos)
-				{
-					outDesc.Type.erase(pos);
-				}
+				outDesc.Type.erase(pos);
 			}
+		}
 
-			if ((pos = smdesc.find("Confidence: ")) != std::string::npos)
+		if ((pos = subcatDesc.find("Confidence: ")) != std::string::npos)
+		{
+			outDesc.Confidence = subcatDesc.substr(pos + 12);
+			if ((pos = outDesc.Confidence.find("<br>")) != std::string::npos)
 			{
-				outDesc.Confidence = smdesc.substr(pos + 12);
-				if ((pos = outDesc.Confidence.find("<br>")) != std::string::npos)
-				{
-					outDesc.Confidence.erase(pos);
-				}
+				outDesc.Confidence.erase(pos);
 			}
+		}
 
-			if ((pos = smdesc.find("Proficiency: ")) != std::string::npos)
+		if ((pos = subcatDesc.find("Proficiency: ")) != std::string::npos)
+		{
+			outDesc.Proficiency = subcatDesc.substr(pos + 13);
+			if ((pos = outDesc.Proficiency.find("<br>")) != std::string::npos)
 			{
-				outDesc.Proficiency = smdesc.substr(pos + 13);
-				if ((pos = outDesc.Proficiency.find("<br>")) != std::string::npos)
-				{
-					outDesc.Proficiency.erase(pos);
-				}
+				outDesc.Proficiency.erase(pos);
 			}
 		}
 	}
 
-	return true;
+	return mercInfo;
 }
 
 bool IsActiveAA(const char* pSpellName)

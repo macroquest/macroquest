@@ -476,6 +476,7 @@
     <ClInclude Include="MQ2MainBase.h" />
     <ClInclude Include="MQ2Prototypes.h" />
     <ClInclude Include="MQ2TopLevelObjects.h" />
+    <ClInclude Include="MQ2Utilities.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>

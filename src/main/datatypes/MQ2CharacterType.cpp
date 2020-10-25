@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
+#include "MQ2Utilities.h"
+
 using namespace mq;
 using namespace mq::datatypes;
 
@@ -3768,16 +3770,14 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 		if (IsNumber(Index))
 		{
-			int nIndex = GetIntFromString(Index, pMercInfo->MercenaryCount + 1);
-			if (nIndex > pMercInfo->MercenaryCount)
+			int nIndex = GetIntFromString(Index, 0) - 1;
+			if (nIndex >= pMercInfo->MercenaryCount || nIndex < 0)
 				return false;
 
-			std::map<int, MercDesc> mercDescMap;
-			GetAllMercDesc(mercDescMap);
-
-			if (mercDescMap.find(nIndex - 1) != mercDescMap.end())
+			std::vector<MercDesc> descs = GetAllMercDesc();
+			if (nIndex < static_cast<int>(descs.size()))
 			{
-				strcpy_s(DataTypeTemp, mercDescMap[nIndex - 1].Type.c_str());
+				strcpy_s(DataTypeTemp, descs[nIndex].Type.c_str());
 				Dest.Ptr = &DataTypeTemp[0];
 				Dest.Type = pStringType;
 				return true;
@@ -3785,12 +3785,13 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 		else
 		{
-			std::map<int, MercDesc> descmap;
-			GetAllMercDesc(descmap);
+			std::vector<MercDesc> descs = GetAllMercDesc();
 
-			for (auto& [index, desc] : descmap)
+			for (size_t index = 0; index < descs.size(); ++index)
 			{
-				if (!_stricmp(Index, desc.Type.c_str()))
+				auto& desc = descs[index];
+
+				if (ci_equals(Index, desc.Type))
 				{
 					Dest.DWord = index + 1;
 					Dest.Type = pIntType;
