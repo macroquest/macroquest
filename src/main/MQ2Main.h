@@ -64,11 +64,16 @@ using namespace eqlib;
 #include "MQ2TopLevelObjects.h"
 #include "MQ2Commands.h"
 #include "MQ2DataContainers.h"
+#include "MQ2Utilities.h"
 #include "datatypes/MQ2DataTypes.h"
 
 // Link up ImGui
 #include <imgui/imgui.h>
 #pragma comment(lib, "imgui.lib")
+
+// TODO: Move these to mq/Plugin.h so that they are not globally included -- include them
+// only where they are needed.
+#include <mq/utils/Keybinds.h>
 
 namespace mq {
 
@@ -285,19 +290,6 @@ MQLIB_API bool MoveMouse(int x, int y, bool bClick = false);
 MQLIB_API bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick = false);
 MQLIB_API bool ClickMouseItem(SPAWNINFO* pChar, const MQGroundSpawn& pGroundSpawn, bool left);
 
-/* KEY BINDS */
-MQLIB_API void InitializeMQ2KeyBinds();
-MQLIB_API void ShutdownMQ2KeyBinds();
-MQLIB_API bool PressMQ2KeyBind(const char* name, bool Hold);
-MQLIB_API bool SetMQ2KeyBind(const char* name, bool Alternate, KeyCombo& Combo);
-MQLIB_API bool AddMQ2KeyBind(const char* name, fMQExecuteCmd Function);
-MQLIB_API bool RemoveMQ2KeyBind(const char* name);
-MQLIB_API bool GetMQ2KeyBind(const char* name, bool Alt, KeyCombo& Combo);
-MQLIB_API bool DumpBinds(const char* Filename);
-MQLIB_API bool MQ2HandleKeyDown(const KeyCombo& Combo);
-MQLIB_API bool MQ2HandleKeyUp(const KeyCombo& Combo);
-MQLIB_API int FindMappableCommand(const char* name);
-
 /* PULSING */
 MQLIB_API void InitializeMQ2Pulse();
 MQLIB_API void ShutdownMQ2Pulse();
@@ -350,8 +342,6 @@ MQLIB_API void DefaultFilters();
 MQLIB_API char* ConvertHotkeyNameToKeyName(char* szName);
 MQLIB_API void CheckChatForEvent(const char* szMsg);
 MQLIB_API void ConvertItemTags(CXStr& cxstr, bool Tag = true);
-MQLIB_API bool ParseKeyCombo(const char* text, KeyCombo& Dest);
-MQLIB_API char* DescribeKeyCombo(KeyCombo& Combo, char* szDest, size_t BufferSize);
 MQLIB_API int FindInvSlotForContents(CONTENTS* pContents);
 MQLIB_API int FindInvSlot(const char* Name, bool Exact);
 MQLIB_API int FindNextInvSlot(const char* Name, bool Exact);

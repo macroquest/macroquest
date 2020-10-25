@@ -13,52 +13,30 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
+
 #include "MQ2DeveloperTools.h"
+#include "MQ2ImGuiTools.h"
+#include "MQ2Utilities.h"
 
 #include "imgui/ImGuiTreePanelWindow.h"
 #include "imgui/ImGuiTextEditor.h"
 #include <imgui/imgui_internal.h>
 
-#include <fmt/format.h>
-
-using namespace std::chrono_literals;
-
 namespace mq {
-
-static bool gbShowSettingsWindow = false;
-static int gRenderCallbacksId = 0;
-
-extern bool gbToggleConsoleRequested;
-
-imgui::ImGuiTreePanelWindow gSettingsWindow("MacroQuest Settings");
-
-static void InitializeMQ2ImGuiAPI();
-static void ShutdownMQ2ImGuiAPI();
-static void PulseMQ2ImGuiAPI();
-static void UpdateOverlayUI();
-static DWORD WriteChatColorImGuiAPI(const char* line, DWORD color, DWORD filter);
-
-static MQModule gImGuiModule = {
-	"ImGuiAPI",                   // Name
-	false,                        // CanUnload
-	InitializeMQ2ImGuiAPI,        // Initialize
-	ShutdownMQ2ImGuiAPI,          // Shutdown
-	PulseMQ2ImGuiAPI,             // Pulse
-	nullptr,                      // SetGameState
-	UpdateOverlayUI,              // UpdateImGui
-	nullptr,                      // Zoned
-	WriteChatColorImGuiAPI,       // WriteChatColor
-};
-MQModule* GetImGuiAPIModule() { return &gImGuiModule; }
 
 //----------------------------------------------------------------------------
 
+extern bool gbToggleConsoleRequested;
+
 static const ImU32 s_defaultColor = IM_COL32(0xf0, 0xf0, 0xf0, 255);
 static ImGuiID s_dockspaceId = 0;
+
 static bool s_dockspaceVisible = false;
 static bool s_resetDockspace = false;
 static bool s_setFocus = false;
+
+class ImGuiConsole;
+ImGuiConsole* gImGuiConsole = nullptr;
 
 const mq::imgui::TextEditor::Palette& GetColorPalette()
 {
@@ -87,8 +65,6 @@ const mq::imgui::TextEditor::Palette& GetColorPalette()
 		} };
 	return p;
 }
-
-//----------------------------------------------------------------------------
 
 static void Strtrim(char* str)
 {
@@ -416,8 +392,7 @@ public:
 
 			if (ImGui::BeginMenu("Windows"))
 			{
-				ImGui::MenuItem("Settings", nullptr, &gbShowSettingsWindow);
-
+				ImGuiTools_DrawWindowsMenu();
 				ImGui::EndMenu();
 			}
 
@@ -463,7 +438,7 @@ public:
 
 		bool bTextEdit = ImGui::InputText("##Input", m_inputBuffer, IM_ARRAYSIZE(m_inputBuffer), textFlags,
 			[](ImGuiInputTextCallbackData* data)
-			{ return static_cast<ImGuiConsole*>(data->UserData)->TextEditCallback(data); }, this);
+		{ return static_cast<ImGuiConsole*>(data->UserData)->TextEditCallback(data); }, this);
 
 		ImGui::PopFont();
 		ImGui::PopStyleColor();
@@ -546,116 +521,115 @@ public:
 		switch (data->EventFlag)
 		{
 		case ImGuiInputTextFlags_CallbackCompletion:
+		{
+			// Example of TEXT COMPLETION
+
+			// Locate beginning of current word
+			const char* word_end = data->Buf + data->CursorPos;
+			const char* word_start = word_end;
+			while (word_start > data->Buf)
 			{
-				// Example of TEXT COMPLETION
+				const char c = word_start[-1];
+				if (c == ' ' || c == '\t' || c == ',' || c == ';')
+					break;
 
-				// Locate beginning of current word
-				const char* word_end = data->Buf + data->CursorPos;
-				const char* word_start = word_end;
-				while (word_start > data->Buf)
-				{
-					const char c = word_start[-1];
-					if (c == ' ' || c == '\t' || c == ',' || c == ';')
-						break;
-
-					word_start--;
-				}
-
-				// Build a list of candidates
-				ImVector<const char*> candidates;
-				std::string_view word{ word_start, (size_t)(word_end - word_start) };
-
-				for (int i = 0; i < m_commands.Size; i++)
-				{
-					if (ci_starts_with(m_commands[i], word))
-						candidates.push_back(m_commands[i]);
-				}
-
-				if (candidates.Size == 0)
-				{
-					// No match
-					AddLog("No match for \"{0}\"!\n", word);
-				}
-				else if (candidates.size() == 1)
-				{
-					// Single match. Delete the beginning of the word and replace it entirely so we've got nice casing
-					data->DeleteChars((int)(word_start - data->Buf), (int)(word_end - word_start));
-					data->InsertChars(data->CursorPos, candidates[0]);
-					data->InsertChars(data->CursorPos, " ");
-				}
-				else
-				{
-					// Multiple matches. Complete as much as we can, so inputing "C" will complete to "CL" and display "CLEAR" and "CLASSIFY"
-					int match_len = (int)(word_end - word_start);
-					for (;;)
-					{
-						int c = 0;
-						bool all_candidates_matches = true;
-						for (int i = 0; i < candidates.Size && all_candidates_matches; i++)
-							if (i == 0)
-								c = toupper(candidates[i][match_len]);
-							else if (c == 0 || c != toupper(candidates[i][match_len]))
-								all_candidates_matches = false;
-						if (!all_candidates_matches)
-							break;
-						match_len++;
-					}
-
-					if (match_len > 0)
-					{
-						data->DeleteChars((int)(word_start - data->Buf), (int)(word_end - word_start));
-						data->InsertChars(data->CursorPos, candidates[0], candidates[0] + match_len);
-					}
-
-					// List matches
-					AddLog("Possible matches:\n");
-					for (int i = 0; i < candidates.Size; i++)
-						AddLog("- {0}\n", candidates[i]);
-				}
-
-				break;
+				word_start--;
 			}
+
+			// Build a list of candidates
+			ImVector<const char*> candidates;
+			std::string_view word{ word_start, (size_t)(word_end - word_start) };
+
+			for (int i = 0; i < m_commands.Size; i++)
+			{
+				if (ci_starts_with(m_commands[i], word))
+					candidates.push_back(m_commands[i]);
+			}
+
+			if (candidates.Size == 0)
+			{
+				// No match
+				AddLog("No match for \"{0}\"!\n", word);
+			}
+			else if (candidates.size() == 1)
+			{
+				// Single match. Delete the beginning of the word and replace it entirely so we've got nice casing
+				data->DeleteChars((int)(word_start - data->Buf), (int)(word_end - word_start));
+				data->InsertChars(data->CursorPos, candidates[0]);
+				data->InsertChars(data->CursorPos, " ");
+			}
+			else
+			{
+				// Multiple matches. Complete as much as we can, so inputing "C" will complete to "CL" and display "CLEAR" and "CLASSIFY"
+				int match_len = (int)(word_end - word_start);
+				for (;;)
+				{
+					int c = 0;
+					bool all_candidates_matches = true;
+					for (int i = 0; i < candidates.Size && all_candidates_matches; i++)
+						if (i == 0)
+							c = toupper(candidates[i][match_len]);
+						else if (c == 0 || c != toupper(candidates[i][match_len]))
+							all_candidates_matches = false;
+					if (!all_candidates_matches)
+						break;
+					match_len++;
+				}
+
+				if (match_len > 0)
+				{
+					data->DeleteChars((int)(word_start - data->Buf), (int)(word_end - word_start));
+					data->InsertChars(data->CursorPos, candidates[0], candidates[0] + match_len);
+				}
+
+				// List matches
+				AddLog("Possible matches:\n");
+				for (int i = 0; i < candidates.Size; i++)
+					AddLog("- {0}\n", candidates[i]);
+			}
+
+			break;
+		}
 
 		case ImGuiInputTextFlags_CallbackHistory:
+		{
+			// Example of HISTORY
+			const int prev_history_pos = m_historyPos;
+			if (data->EventKey == ImGuiKey_UpArrow)
 			{
-				// Example of HISTORY
-				const int prev_history_pos = m_historyPos;
-				if (data->EventKey == ImGuiKey_UpArrow)
-				{
-					if (m_historyPos == -1)
-						m_historyPos = m_history.size() - 1;
-					else if (m_historyPos > 0)
-						m_historyPos--;
-				}
-				else if (data->EventKey == ImGuiKey_DownArrow)
-				{
-					if (m_historyPos != -1)
-						if (++m_historyPos >= (int)m_history.size())
-							m_historyPos = -1;
-				}
-
-				// A better implementation would preserve the data on the current input line along with cursor position.
-				if (prev_history_pos != m_historyPos)
-				{
-					const char* history_str = (m_historyPos >= 0) ? m_history[m_historyPos].c_str() : "";
-					data->DeleteChars(0, data->BufTextLen);
-					data->InsertChars(0, history_str);
-				}
+				if (m_historyPos == -1)
+					m_historyPos = m_history.size() - 1;
+				else if (m_historyPos > 0)
+					m_historyPos--;
 			}
+			else if (data->EventKey == ImGuiKey_DownArrow)
+			{
+				if (m_historyPos != -1)
+					if (++m_historyPos >= (int)m_history.size())
+						m_historyPos = -1;
+			}
+
+			// A better implementation would preserve the data on the current input line along with cursor position.
+			if (prev_history_pos != m_historyPos)
+			{
+				const char* history_str = (m_historyPos >= 0) ? m_history[m_historyPos].c_str() : "";
+				data->DeleteChars(0, data->BufTextLen);
+				data->InsertChars(0, history_str);
+			}
+		}
 		}
 		return 0;
 	}
 };
 
-ImGuiConsole gImGuiConsole;
-
 //----------------------------------------------------------------------------
 
-ImGuiID MyDockSpaceOverViewport(ImGuiViewport* viewport, ImGuiDockNodeFlags dockspace_flags, const ImGuiWindowClass* window_class = 0)
+
+ImGuiID MyDockSpaceOverViewport(ImGuiViewport* viewport, ImGuiDockNodeFlags dockspace_flags, const ImGuiWindowClass* window_class = nullptr)
 {
 	using namespace ImGui;
 
-	if (viewport == NULL)
+	if (viewport == nullptr)
 		viewport = GetMainViewport();
 
 	SetNextWindowPos(viewport->Pos);
@@ -676,7 +650,7 @@ ImGuiID MyDockSpaceOverViewport(ImGuiViewport* viewport, ImGuiDockNodeFlags dock
 	PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 	PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 	PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.9f));
-	Begin(label, NULL, host_window_flags);
+	Begin(label, nullptr, host_window_flags);
 
 	ImGuiID dockspace_id = GetID("DockSpace");
 	DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags, window_class);
@@ -738,28 +712,13 @@ void DrawDockSpace()
 	}
 }
 
-void AddSettingsPanel(const char* name, fPanelDrawFunction drawFunction)
-{
-	gSettingsWindow.AddPanel(name, drawFunction);
-}
-
-void RemoveSettingsPanel(const char* name)
-{
-	gSettingsWindow.RemovePanel(name);
-}
-
-static void DoToggleImGuiOverlay(const char* name, bool down)
-{
-	if (down)
-	{
-		SetOverlayEnabled(!IsOverlayEnabled());
-	}
-}
-
 static void MakeColorGradient(float frequency1, float frequency2, float frequency3,
 	float phase1, float phase2, float phase3,
 	float center, float width, int length)
 {
+	if (!gImGuiConsole)
+		return;
+
 	for (int i = 1; i < length + 1; ++i)
 	{
 		ImU32 color = ImGui::ColorConvertFloat4ToU32(ImVec4(
@@ -768,14 +727,16 @@ static void MakeColorGradient(float frequency1, float frequency2, float frequenc
 			(sin(frequency3 * i + phase3) * width + center) / 255, 1.0));
 
 		std::string test = fmt::format("\a#{:06x}x", (color & 0xffffff));
-		gImGuiConsole.AddWriteChatColorLog(test.c_str());
+		gImGuiConsole->AddWriteChatColorLog(test.c_str());
 
 		if (i % 50 == 0)
-			gImGuiConsole.AddLog("\n");
+			gImGuiConsole->AddLog("\n");
 	}
 }
 
-void UpdateOverlayUI()
+//----------------------------------------------------------------------------
+
+void UpdateImGuiConsole()
 {
 	if (gbToggleConsoleRequested)
 	{
@@ -803,211 +764,32 @@ void UpdateOverlayUI()
 	if (s_dockspaceVisible)
 	{
 		ImGui::SetNextWindowDockID(s_dockspaceId, ImGuiCond_FirstUseEver);
-		gImGuiConsole.Draw(&s_dockspaceVisible);
-	}
-
-	if (gbShowSettingsWindow)
-	{
-		gSettingsWindow.Draw(&gbShowSettingsWindow);
+		gImGuiConsole->Draw(&s_dockspaceVisible);
 	}
 }
 
-static MQColor userColors[] = {
-	MQColor(255, 255, 255), //  1
-	MQColor(190, 40,  190), //  2
-	MQColor(0,   255, 255), //  3
-	MQColor(40,  240, 40),  //  4
-	MQColor(0,   128, 0),   //  5
-	MQColor(0,   128, 0),   //  6
-	MQColor(255, 0,   0),   //  7
-	MQColor(90,  90,  255), //  8
-	MQColor(90,  90,  255), //  9
-	MQColor(255, 255, 255), // 10
-	MQColor(255, 0,   0),   // 11
-	MQColor(255, 255, 255), // 12
-	MQColor(255, 255, 255), // 13
-	MQColor(255, 255, 0),   // 14
-	MQColor(90,  90,  255), // 15
-	MQColor(255, 255, 255), // 16
-	MQColor(255, 255, 255), // 17
-	MQColor(255, 255, 255), // 18
-	MQColor(255, 255, 255), // 19
-	MQColor(240, 240, 0),   // 20
-	MQColor(240, 240, 0),   // 21
-	MQColor(255, 255, 255), // 22
-	MQColor(255, 255, 255), // 23
-	MQColor(255, 255, 255), // 24
-	MQColor(255, 255, 255), // 25
-	MQColor(128, 0,   128), // 26
-	MQColor(255, 255, 255), // 27
-	MQColor(90,  90,  255), // 28
-	MQColor(240, 240, 0),   // 29
-	MQColor(0,   140, 0),   // 30
-	MQColor(90,  90,  255), // 31
-	MQColor(255, 0,   0),   // 32
-	MQColor(90,  90,  255), // 33
-	MQColor(255, 0,   0),   // 34
-	MQColor(215, 154, 66),  // 35
-	MQColor(110, 143, 176), // 36
-	MQColor(110, 143, 176), // 37
-	MQColor(110, 143, 176), // 38
-	MQColor(110, 143, 176), // 39
-	MQColor(110, 143, 176), // 40
-	MQColor(110, 143, 176), // 41
-	MQColor(110, 143, 176), // 42
-	MQColor(110, 143, 176), // 43
-	MQColor(110, 143, 176), // 44
-	MQColor(110, 143, 176), // 45
-	MQColor(255, 255, 255), // 46
-	MQColor(255, 255, 255), // 47
-	MQColor(255, 0,   0),   // 48
-	MQColor(255, 0,   0),   // 49
-	MQColor(255, 0,   0),   // 50
-	MQColor(255, 0,   0),   // 51
-	MQColor(255, 255, 255), // 52
-	MQColor(255, 255, 255), // 53
-	MQColor(255, 255, 255), // 54
-	MQColor(255, 255, 255), // 55
-	MQColor(255, 255, 255), // 56
-	MQColor(255, 255, 255), // 57
-	MQColor(255, 255, 255), // 58
-	MQColor(255, 255, 255), // 59
-	MQColor(215, 154, 66),  // 60
-	MQColor(215, 154, 66),  // 61
-	MQColor(215, 154, 66),  // 62
-	MQColor(215, 154, 66),  // 63
-	MQColor(215, 154, 66),  // 64
-	MQColor(215, 154, 66),  // 65
-	MQColor(215, 154, 66),  // 66
-	MQColor(215, 154, 66),  // 67
-	MQColor(215, 154, 66),  // 68
-	MQColor(215, 154, 66),  // 69
-	MQColor(255, 255, 0),   // 70
-	MQColor(255, 0,   255), // 71
-	MQColor(0,   200, 200), // 72
-	MQColor(255, 255, 255), // 73
-	MQColor(255, 255, 255), // 74
-	MQColor(0,   255, 255), // 75
-	MQColor(255, 0,   0),   // 76
-	MQColor(255, 255, 255), // 77
-	MQColor(90,  90,  255), // 79
-	MQColor(255, 255, 0),   // 70
-	MQColor(255, 255, 0),   // 80
-	MQColor(255, 255, 255), // 81
-	MQColor(255, 255, 255), // 82
-	MQColor(255, 255, 255), // 83
-	MQColor(255, 255, 255), // 84
-	MQColor(255, 255, 255), // 85
-	MQColor(255, 155, 155), // 86
-	MQColor(90,  90,  255), // 87
-	MQColor(255, 255, 255), // 88
-	MQColor(255, 255, 255), // 89
-	MQColor(255, 255, 255), // 90
-	MQColor(255, 255, 255), // 91
-	MQColor(255, 127, 0),   // 92
-	MQColor(255, 255, 255), // 93
-	MQColor(255, 255, 255), // 94
-	MQColor(255, 255, 255), // 95
-	MQColor(192, 0,   0),   // 96
-	MQColor(0,   255, 0),   // 97
-	MQColor(255, 255, 0),   // 98
-	MQColor(255, 0,   0),   // 99
-	MQColor(24,  224, 255), // 100
-	MQColor(255, 255, 255), // 101
-	MQColor(255, 255, 255), // 102
-	MQColor(255, 255, 255), // 103
-	MQColor(255, 0,   0),   // 104
-	MQColor(255, 0,   0),   // 105
-};
+//============================================================================
 
-static MQColor GetColorForChatColor(DWORD chatColor)
+void InitializeImGuiConsole()
 {
-	if (chatColor > 255)
-	{
-		chatColor -= 256;
-
-		// Ensure that alpha is set to fully opaque
-		MQColor color = CDisplay::GetUserDefinedColor(chatColor);
-		if (color.ARGB == 0) {
-			// Hasn't been set yet. Use defaults.
-			color = userColors[chatColor];
-		}
-		color.Alpha = 255;
-		return color;
-	}
-
-	switch (chatColor)
-	{
-	case COLOR_DEFAULT:       // 0
-		return MQColor(0xf0, 0xf0, 0xf0);
-
-	case COLOR_DARKGREEN:     // 2 - CONCOLOR_GREEN
-		return MQColor(0x00, 0x80, 0x00);
-
-	case CONCOLOR_BLUE:       // 4
-		return MQColor(0x00, 0x40, 0xff);
-	case COLOR_PURPLE:        // 5
-		return MQColor(0xf0, 0x00, 0xf0);
-	case COLOR_LIGHTGREY:     // 6 - CONCOLOR_GREY
-		return MQColor(0x80, 0x80, 0x80);
-	case 7: // light gray
-		return MQColor(0xe0, 0xe0, 0xe0);
-
-	case CONCOLOR_WHITE:      // 10
-		return MQColor(0xf0, 0xf0, 0xf0);
-
-	case 12: // light gray
-		return MQColor(0xa0, 0xa0, 0xa0);
-	case CONCOLOR_RED:        // 13
-		return MQColor(0xf0, 0x00, 0x00);
-	case 14: // light green
-		return MQColor(0x00, 0xf0, 0x00);
-	case CONCOLOR_YELLOW:     // 15
-		return MQColor(0xf0, 0xf0, 0x00);
-	case 16: // blue
-		return MQColor(0x00, 0x00, 0xf0);
-	case 17: // dark blue
-		return MQColor(0x00, 0x00, 0xaf);
-	case CONCOLOR_LIGHTBLUE:  // 18
-		return MQColor(0x00, 0xf0, 0xf0);
-
-	case CONCOLOR_BLACK:      // 20
-		return MQColor(0, 0, 0);
-	case 21: // orange
-		return MQColor(0xf0, 0xa0, 0x00);
-	case 22: // brown
-		return MQColor(0x80, 0x60, 0x20);
-
-	default:
-		return MQColor(0x60, 0x60, 0x60);
-	}
+	gImGuiConsole = new ImGuiConsole();
 }
 
-static DWORD WriteChatColorImGuiAPI(const char* line, DWORD color, DWORD filter)
+void ShutdownImGuiConsole()
 {
+	delete gImGuiConsole;
+	gImGuiConsole = nullptr;
+}
+
+DWORD ImGuiConsoleAddText(const char* line, DWORD color, DWORD filter)
+{
+	if (!gImGuiConsole)
+		return 0;
+
 	ImU32 col = GetColorForChatColor(color).ToRGBA8();
-	gImGuiConsole.AddWriteChatColorLog(line, col, true);
+	gImGuiConsole->AddWriteChatColorLog(line, col, true);
+
 	return 0;
-}
-
-static void InitializeMQ2ImGuiAPI()
-{
-	// Add keybind to toggle imgui
-	AddMQ2KeyBind("TOGGLE_IMGUI_OVERLAY", DoToggleImGuiOverlay);
-
-	AddCascadeMenuItem("Settings", []() { gbShowSettingsWindow = true; }, 2);
-}
-
-static void ShutdownMQ2ImGuiAPI()
-{
-	RemoveMQ2KeyBind("TOGGLE_IMGUI_OVERLAY");
-
-	// Remove the imgui render function
-	RemoveRenderCallbacks(gRenderCallbacksId);
-}
-
-static void PulseMQ2ImGuiAPI()
-{
 }
 
 } // namespace mq

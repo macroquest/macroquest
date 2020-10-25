@@ -15,7 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
-#include "MQ2Utilities.h"
+#include "MQ2KeyBinds.h"
+#include "MQ2Mercenaries.h"
 
 namespace mq {
 

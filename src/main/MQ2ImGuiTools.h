@@ -14,9 +14,23 @@
 
 #pragma once
 
-#include "../common/Common.h"
+#include "MQ2MainBase.h"
 
-#include <mq/base/Common.h>
-#include <mq/base/Threading.h>
+#include <imgui.h>
 
-#include <functional>
+namespace mq {
+
+// Toggles the ImGui overlay
+MQLIB_API void ToggleImGuiOverlay();
+
+//----------------------------------------------------------------------------
+
+void ImGuiTools_DrawWindowsMenu();
+
+void InitializeImGuiConsole();
+void ShutdownImGuiConsole();
+void UpdateImGuiConsole();
+
+DWORD ImGuiConsoleAddText(const char* line, DWORD color, DWORD filter);
+
+} // namespace mq

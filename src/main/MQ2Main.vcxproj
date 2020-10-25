@@ -415,8 +415,9 @@
     <ClCompile Include="MQ2DetourAPI.cpp" />
     <ClCompile Include="MQ2FrameLimiter.cpp" />
     <ClCompile Include="MQ2Globals.cpp" />
-    <ClCompile Include="MQ2ImGuiAPI.cpp" />
+    <ClCompile Include="MQ2ImGuiTools.cpp" />
     <ClCompile Include="MQ2GroundSpawns.cpp" />
+    <ClCompile Include="MQ2ImGuiConsole.cpp" />
     <ClCompile Include="MQ2Items.cpp" />
     <ClCompile Include="MQ2KeyBinds.cpp" />
     <ClCompile Include="MQ2LoginFrontend.cpp" />
@@ -456,6 +457,11 @@
     <ClInclude Include="..\..\contrib\fmt\include\fmt\safe-duration-cast.h" />
     <ClInclude Include="..\..\contrib\mini-yaml\yaml\Yaml.hpp" />
     <ClInclude Include="..\..\contrib\tinyfsm\include\tinyfsm.hpp" />
+    <ClInclude Include="..\..\include\mq\base\Common.h" />
+    <ClInclude Include="..\..\include\mq\base\Threading.h" />
+    <ClInclude Include="..\..\include\mq\imgui\ImGuiUtils.h" />
+    <ClInclude Include="..\..\include\mq\Plugin.h" />
+    <ClInclude Include="..\..\include\mq\utils\Keybinds.h" />
     <ClInclude Include="..\common\Common.h" />
     <ClInclude Include="..\common\ConfigUtils.h" />
     <ClInclude Include="..\common\HotKeys.h" />
@@ -470,10 +476,13 @@
     <ClInclude Include="MQ2DataContainers.h" />
     <ClInclude Include="MQ2DeveloperTools.h" />
     <ClInclude Include="MQ2Globals.h" />
+    <ClInclude Include="MQ2ImGuiTools.h" />
     <ClInclude Include="MQ2Inlines.h" />
     <ClInclude Include="MQ2Internal.h" />
+    <ClInclude Include="MQ2KeyBinds.h" />
     <ClInclude Include="MQ2Main.h" />
     <ClInclude Include="MQ2MainBase.h" />
+    <ClInclude Include="MQ2Mercenaries.h" />
     <ClInclude Include="MQ2Prototypes.h" />
     <ClInclude Include="MQ2TopLevelObjects.h" />
     <ClInclude Include="MQ2Utilities.h" />

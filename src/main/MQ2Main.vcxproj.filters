@@ -48,6 +48,18 @@
     <Filter Include="Header Files\contrib\tinyfsm">
       <UniqueIdentifier>{e72b7f70-7103-411e-9e70-b6cfa6189c5c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\mq">
+      <UniqueIdentifier>{21bc01b8-ec00-4199-a3d2-1dcdc859d8cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\mq\base">
+      <UniqueIdentifier>{2e7279f5-73c7-4649-84ef-99c31dbd381f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\mq\utils">
+      <UniqueIdentifier>{ddf9d015-26df-4c9d-bd38-b5b4fd3b498d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\mq\imgui">
+      <UniqueIdentifier>{8f31345f-2ba4-4984-aa8e-b458c3f5b577}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MQ2Auth.cpp">
@@ -374,9 +386,6 @@
     <ClCompile Include="MQ2StringDB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2ImGuiAPI.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\common\HotKeys.cpp">
       <Filter>Source Files\common</Filter>
     </ClCompile>
@@ -396,6 +405,12 @@
       <Filter>Source Files\Contrib\fmt</Filter>
     </ClCompile>
     <ClCompile Include="MQ2FrameLimiter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MQ2ImGuiConsole.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MQ2ImGuiTools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -515,6 +530,30 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MQ2Utilities.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MQ2ImGuiTools.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MQ2Mercenaries.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\Plugin.h">
+      <Filter>Header Files\mq</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\Threading.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\Common.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\utils\Keybinds.h">
+      <Filter>Header Files\mq\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\imgui\ImGuiUtils.h">
+      <Filter>Header Files\mq\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="MQ2KeyBinds.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

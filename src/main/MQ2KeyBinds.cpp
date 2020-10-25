@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+#include "MQ2KeyBinds.h"
+
 #include <fmt/format.h>
 
 namespace mq {
@@ -22,32 +24,35 @@ namespace mq {
 //void InjectMQ2Binds(COptionsWnd* pWnd);
 //void EjectMQ2Binds(COptionsWnd* pWnd);
 
-struct MQKeyBind
-{
-	std::string   Name;
-	KeyCombo      Normal;
-	KeyCombo      Alt;
-	fMQExecuteCmd Function;
-	bool          State = false;
-
-	MQKeyBind(std::string name, fMQExecuteCmd func)
-		: Name(std::move(name))
-		, Function(func)
-	{}
-};
-
 using KeybindMap = std::map<std::string, int, ci_less>;
 
-std::vector<std::unique_ptr<MQKeyBind>> s_keybinds;
-KeybindMap s_keybindMap;
+KeybindMap gKeybindMap;
+std::vector<std::unique_ptr<MQKeyBind>> gKeyBinds;
+
+void EnumerateKeyBinds(const std::function<void(const MQKeyBind& keyBind)>& func)
+{
+	for (const auto& [name, id] : gKeybindMap)
+	{
+		if (id >= 0 && id < static_cast<int>(gKeyBinds.size()))
+		{
+			auto& keyBind = gKeyBinds[id];
+			func(*keyBind);
+		}
+	}
+}
+
+int GetKeyBindsCount()
+{
+	return static_cast<int>(gKeybindMap.size());
+}
 
 static MQKeyBind* KeyBindByName(const char* name)
 {
-	auto iter = s_keybindMap.find(name);
-	if (iter == std::end(s_keybindMap))
+	auto iter = gKeybindMap.find(name);
+	if (iter == std::end(gKeybindMap))
 		return nullptr;
 
-	return s_keybinds[iter->second].get();
+	return gKeyBinds[iter->second].get();
 }
 
 static bool SetEQKeyBindByNumber(int index, bool alternate, KeyCombo& combo)
@@ -68,7 +73,7 @@ static bool SetEQKeyBindByNumber(int index, bool alternate, KeyCombo& combo)
 	return false;
 }
 
-static bool SetEQKeyBind(const char* name, bool alternate, KeyCombo& combo)
+bool SetEQKeyBind(const char* name, bool alternate, KeyCombo& combo)
 {
 	return SetEQKeyBindByNumber(FindMappableCommand(name), alternate, combo);
 }
@@ -89,7 +94,7 @@ bool MQ2HandleKeyDown(const KeyCombo& combo)
 		}
 	}
 
-	for (auto& pKeybind : s_keybinds)
+	for (auto& pKeybind : gKeyBinds)
 	{
 		if (pKeybind
 			&& pKeybind->State == 0
@@ -121,7 +126,7 @@ bool MQ2HandleKeyUp(const KeyCombo& combo)
 		}
 	}
 
-	for (auto& pKeybind : s_keybinds)
+	for (auto& pKeybind : gKeyBinds)
 	{
 		if (pKeybind
 			&& pKeybind->State == 1
@@ -142,7 +147,7 @@ class KeypressHandlerHook
 public:
 	void ClearCommandStateArray_Hook()
 	{
-		for (auto& pKeybind : s_keybinds)
+		for (auto& pKeybind : gKeyBinds)
 		{
 			if (pKeybind)
 			{
@@ -191,8 +196,8 @@ void InitializeMQ2KeyBinds()
 
 void ShutdownMQ2KeyBinds()
 {
-	s_keybinds.clear();
-	s_keybindMap.clear();
+	gKeyBinds.clear();
+	gKeybindMap.clear();
 
 	RemoveDetour(KeypressHandler__ClearCommandStateArray);
 	RemoveDetour(KeypressHandler__HandleKeyDown);
@@ -222,9 +227,9 @@ bool AddMQ2KeyBind(const char* name, fMQExecuteCmd function)
 
 	// Find an unused index.
 	int index = -1;
-	for (size_t i = 0; i < s_keybinds.size(); ++i)
+	for (size_t i = 0; i < gKeyBinds.size(); ++i)
 	{
-		if (s_keybinds[i] == nullptr)
+		if (gKeyBinds[i] == nullptr)
 		{
 			index = i;
 			break;
@@ -233,12 +238,13 @@ bool AddMQ2KeyBind(const char* name, fMQExecuteCmd function)
 
 	if (index == -1)
 	{
-		s_keybinds.emplace_back();
-		index = s_keybinds.size() - 1;
+		gKeyBinds.emplace_back();
+		index = gKeyBinds.size() - 1;
 	}
 
-	s_keybinds[index] = std::move(pKeybind);
-	s_keybindMap.insert_or_assign(name, index);
+	pKeybind->Id = index;
+	gKeyBinds[index] = std::move(pKeybind);
+	gKeybindMap.insert_or_assign(name, index);
 
 	return true;
 }
@@ -257,12 +263,12 @@ bool RemoveMQ2KeyBind(const char* name)
 {
 	DebugSpew("RemoveMQ2KeyBind(%s)", name);
 
-	auto iter = s_keybindMap.find(name);
-	if (iter == std::end(s_keybindMap))
+	auto iter = gKeybindMap.find(name);
+	if (iter == std::end(gKeybindMap))
 		return false;
 
-	s_keybinds[iter->second].reset();
-	s_keybindMap.erase(iter);
+	gKeyBinds[iter->second].reset();
+	gKeybindMap.erase(iter);
 
 	return true;
 }
@@ -355,7 +361,7 @@ void MQ2KeyBindCommand(SPAWNINFO* pChar, char* szLine)
 		WriteChatColor("MQ2 Binds");
 		WriteChatColor("--------------");
 
-		for (auto& pKeybind : s_keybinds)
+		for (auto& pKeybind : gKeyBinds)
 		{
 			if (pKeybind)
 			{
@@ -407,7 +413,7 @@ void MQ2KeyBindCommand(SPAWNINFO* pChar, char* szLine)
 		KeyCombo ClearCombo;
 
 		// mq2 binds
-		for (auto& pKeybind : s_keybinds)
+		for (auto& pKeybind : gKeyBinds)
 		{
 			if (pKeybind)
 			{
@@ -516,7 +522,7 @@ bool DumpBinds(const char* Filename)
 			DescribeKeyCombo(pKeypressHandler->AltKey[index], szBuffer, sizeof(szBuffer)));
 	}
 
-	for (auto& pKeybind : s_keybinds)
+	for (auto& pKeybind : gKeyBinds)
 	{
 		if (pKeybind)
 		{

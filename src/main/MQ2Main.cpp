@@ -16,6 +16,8 @@
 #include "MQ2Main.h"
 #include "CrashHandler.h"
 
+#include "MQ2KeyBinds.h"
+
 #include <date/date.h>
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
@@ -57,7 +59,7 @@ void ShutdownLoginFrontend();
 void ShutdownInternalModules();
 
 MQModule* GetSpellsModule();
-MQModule* GetImGuiAPIModule();
+MQModule* GetImGuiToolsModule();
 MQModule* GetDataAPIModule();
 MQModule* GetGroundSpawnsModule();
 MQModule* GetSpawnsModule();
@@ -750,9 +752,10 @@ bool MQ2Initialize()
 	InitializeMQ2Pulse();
 	InitializeLoginFrontend();
 
+	AddInternalModule(GetImGuiToolsModule());
+
 	InitializeInternalModules();
 	AddInternalModule(GetSpellsModule());
-	AddInternalModule(GetImGuiAPIModule());
 	AddInternalModule(GetDataAPIModule());
 	AddInternalModule(GetGroundSpawnsModule());
 	AddInternalModule(GetSpawnsModule());

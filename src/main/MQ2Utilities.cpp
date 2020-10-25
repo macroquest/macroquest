@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+#include "MQ2Mercenaries.h"
 #include "MQ2Utilities.h"
 
 #include <DbgHelp.h>
@@ -1910,7 +1911,7 @@ bool ParseKeyCombo(const char* text, KeyCombo& Dest)
 	return false;
 }
 
-char* DescribeKeyCombo(KeyCombo& Combo, char* szDest, size_t BufferSize)
+char* DescribeKeyCombo(const KeyCombo& Combo, char* szDest, size_t BufferSize)
 {
 	int pos = 0;
 	szDest[0] = 0;
@@ -7924,6 +7925,184 @@ void PrettifyNumber(char* string, size_t bufferSize, int decimals /* = 0 */)
 		&fmt,
 		string,
 		bufferSize);
+}
+
+//============================================================================
+
+static MQColor gUserColors[] = {
+	MQColor(255, 255, 255), //  1
+	MQColor(190, 40,  190), //  2
+	MQColor(0,   255, 255), //  3
+	MQColor(40,  240, 40),  //  4
+	MQColor(0,   128, 0),   //  5
+	MQColor(0,   128, 0),   //  6
+	MQColor(255, 0,   0),   //  7
+	MQColor(90,  90,  255), //  8
+	MQColor(90,  90,  255), //  9
+	MQColor(255, 255, 255), // 10
+	MQColor(255, 0,   0),   // 11
+	MQColor(255, 255, 255), // 12
+	MQColor(255, 255, 255), // 13
+	MQColor(255, 255, 0),   // 14
+	MQColor(90,  90,  255), // 15
+	MQColor(255, 255, 255), // 16
+	MQColor(255, 255, 255), // 17
+	MQColor(255, 255, 255), // 18
+	MQColor(255, 255, 255), // 19
+	MQColor(240, 240, 0),   // 20
+	MQColor(240, 240, 0),   // 21
+	MQColor(255, 255, 255), // 22
+	MQColor(255, 255, 255), // 23
+	MQColor(255, 255, 255), // 24
+	MQColor(255, 255, 255), // 25
+	MQColor(128, 0,   128), // 26
+	MQColor(255, 255, 255), // 27
+	MQColor(90,  90,  255), // 28
+	MQColor(240, 240, 0),   // 29
+	MQColor(0,   140, 0),   // 30
+	MQColor(90,  90,  255), // 31
+	MQColor(255, 0,   0),   // 32
+	MQColor(90,  90,  255), // 33
+	MQColor(255, 0,   0),   // 34
+	MQColor(215, 154, 66),  // 35
+	MQColor(110, 143, 176), // 36
+	MQColor(110, 143, 176), // 37
+	MQColor(110, 143, 176), // 38
+	MQColor(110, 143, 176), // 39
+	MQColor(110, 143, 176), // 40
+	MQColor(110, 143, 176), // 41
+	MQColor(110, 143, 176), // 42
+	MQColor(110, 143, 176), // 43
+	MQColor(110, 143, 176), // 44
+	MQColor(110, 143, 176), // 45
+	MQColor(255, 255, 255), // 46
+	MQColor(255, 255, 255), // 47
+	MQColor(255, 0,   0),   // 48
+	MQColor(255, 0,   0),   // 49
+	MQColor(255, 0,   0),   // 50
+	MQColor(255, 0,   0),   // 51
+	MQColor(255, 255, 255), // 52
+	MQColor(255, 255, 255), // 53
+	MQColor(255, 255, 255), // 54
+	MQColor(255, 255, 255), // 55
+	MQColor(255, 255, 255), // 56
+	MQColor(255, 255, 255), // 57
+	MQColor(255, 255, 255), // 58
+	MQColor(255, 255, 255), // 59
+	MQColor(215, 154, 66),  // 60
+	MQColor(215, 154, 66),  // 61
+	MQColor(215, 154, 66),  // 62
+	MQColor(215, 154, 66),  // 63
+	MQColor(215, 154, 66),  // 64
+	MQColor(215, 154, 66),  // 65
+	MQColor(215, 154, 66),  // 66
+	MQColor(215, 154, 66),  // 67
+	MQColor(215, 154, 66),  // 68
+	MQColor(215, 154, 66),  // 69
+	MQColor(255, 255, 0),   // 70
+	MQColor(255, 0,   255), // 71
+	MQColor(0,   200, 200), // 72
+	MQColor(255, 255, 255), // 73
+	MQColor(255, 255, 255), // 74
+	MQColor(0,   255, 255), // 75
+	MQColor(255, 0,   0),   // 76
+	MQColor(255, 255, 255), // 77
+	MQColor(90,  90,  255), // 79
+	MQColor(255, 255, 0),   // 70
+	MQColor(255, 255, 0),   // 80
+	MQColor(255, 255, 255), // 81
+	MQColor(255, 255, 255), // 82
+	MQColor(255, 255, 255), // 83
+	MQColor(255, 255, 255), // 84
+	MQColor(255, 255, 255), // 85
+	MQColor(255, 155, 155), // 86
+	MQColor(90,  90,  255), // 87
+	MQColor(255, 255, 255), // 88
+	MQColor(255, 255, 255), // 89
+	MQColor(255, 255, 255), // 90
+	MQColor(255, 255, 255), // 91
+	MQColor(255, 127, 0),   // 92
+	MQColor(255, 255, 255), // 93
+	MQColor(255, 255, 255), // 94
+	MQColor(255, 255, 255), // 95
+	MQColor(192, 0,   0),   // 96
+	MQColor(0,   255, 0),   // 97
+	MQColor(255, 255, 0),   // 98
+	MQColor(255, 0,   0),   // 99
+	MQColor(24,  224, 255), // 100
+	MQColor(255, 255, 255), // 101
+	MQColor(255, 255, 255), // 102
+	MQColor(255, 255, 255), // 103
+	MQColor(255, 0,   0),   // 104
+	MQColor(255, 0,   0),   // 105
+};
+
+MQColor GetColorForChatColor(uint32_t chatColor)
+{
+	if (chatColor > 255)
+	{
+		chatColor -= 256;
+
+		// Ensure that alpha is set to fully opaque
+		MQColor color = CDisplay::GetUserDefinedColor(chatColor);
+		if (color.ARGB == 0) {
+			// Hasn't been set yet. Use defaults.
+			color = gUserColors[chatColor];
+		}
+		color.Alpha = 255;
+		return color;
+	}
+
+	switch (chatColor)
+	{
+	case COLOR_DEFAULT:       // 0
+		return MQColor(0xf0, 0xf0, 0xf0);
+
+	case COLOR_DARKGREEN:     // 2 - CONCOLOR_GREEN
+		return MQColor(0x00, 0x80, 0x00);
+
+	case CONCOLOR_BLUE:       // 4
+		return MQColor(0x00, 0x40, 0xff);
+	case COLOR_PURPLE:        // 5
+		return MQColor(0xf0, 0x00, 0xf0);
+	case COLOR_LIGHTGREY:     // 6 - CONCOLOR_GREY
+		return MQColor(0x80, 0x80, 0x80);
+	case 7: // light gray
+		return MQColor(0xe0, 0xe0, 0xe0);
+
+	case CONCOLOR_WHITE:      // 10
+		return MQColor(0xf0, 0xf0, 0xf0);
+
+	case 12: // light gray
+		return MQColor(0xa0, 0xa0, 0xa0);
+	case CONCOLOR_RED:        // 13
+		return MQColor(0xf0, 0x00, 0x00);
+	case 14: // light green
+		return MQColor(0x00, 0xf0, 0x00);
+	case CONCOLOR_YELLOW:     // 15
+		return MQColor(0xf0, 0xf0, 0x00);
+	case 16: // blue
+		return MQColor(0x00, 0x00, 0xf0);
+	case 17: // dark blue
+		return MQColor(0x00, 0x00, 0xaf);
+	case CONCOLOR_LIGHTBLUE:  // 18
+		return MQColor(0x00, 0xf0, 0xf0);
+
+	case CONCOLOR_BLACK:      // 20
+		return MQColor(0, 0, 0);
+	case 21: // orange
+		return MQColor(0xf0, 0xa0, 0x00);
+	case 22: // brown
+		return MQColor(0x80, 0x60, 0x20);
+
+	default:
+		return MQColor(0x60, 0x60, 0x60);
+	}
+}
+
+uint32_t mqGetColorForChatColor(uint32_t chatColor)
+{
+	return GetColorForChatColor(chatColor).ARGB;
 }
 
 } // namespace mq

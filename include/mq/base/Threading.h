@@ -12,12 +12,16 @@
  * GNU General Public License for more details.
  */
 
-#include <imgui.h>
-
 #pragma once
+
+#include <mq/base/Common.h>
 
 namespace mq {
 
-// TODO: Put stuff here
+MQLIB_API DWORD GetMainThreadId();
+MQLIB_API bool IsMainThread();
+
+// Queue a function to be called on the main thread on the next pulse
+MQLIB_OBJECT void PostToMainThread(std::function<void()>&& callback);
 
 } // namespace mq
