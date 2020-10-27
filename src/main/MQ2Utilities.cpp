@@ -3509,7 +3509,8 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 	if (pSearchSpawn->bHealer && pSearchSpawn->SpawnType != NPC)
 	{
 		if (pSpawn->mActorClient.Class != Cleric
-			&& pSpawn->mActorClient.Class != Druid)
+			&& pSpawn->mActorClient.Class != Druid
+			&& pSpawn->mActorClient.Class != Shaman)
 		{
 			return false;
 		}
