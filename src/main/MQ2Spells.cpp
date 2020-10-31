@@ -1399,6 +1399,12 @@ int GetSpellCalc(EQ_Spell* pSpell, int index)
 	return 0;
 }
 
+template <typename T>
+inline int EQSpellHeading(T heading)
+{
+	return static_cast<int>(((512 - heading) % 512) / 32);
+}
+
 char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSize, int level)
 {
 	char szBuff[MAX_STRING] = { 0 };
@@ -1417,11 +1423,17 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 	int targettype = pSpell->TargetType;
 	int skill = pSpell->Skill;
 
-	if (spa == SPA_NOSPELL)
+	// Handle spell effects that have no display.
+	switch (spa)
+	{
+	case SPA_CHA:
+		if (base <= 1 || base > 255)
+			return szBuffer;
+		break;
+	case SPA_NOSPELL:           // Not a spell effect
+	case SPA_PORTAL_LOCATIONS:  // Portal locations are parameters to the teleport spell. We don't need to show them a second time.
 		return szBuffer;
-
-	if (spa == SPA_CHA && (base <= 1 || base > 255))
-		return szBuffer;
+	}
 
 	switch (spa)
 	{
@@ -1719,10 +1731,10 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		break;
 	case SPA_PORTAL: //zone portal spells
 		if (targettype == 6) {
-			sprintf_s(szTemp, " Self to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra.c_str())), szHeadingNormal[EQHeading(GetSpellBase(pSpell, 3))]);
+			sprintf_s(szTemp, " Self to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra.c_str())), szHeadingNormal[EQSpellHeading(GetSpellBase(pSpell, 3))]);
 		}
 		else {
-			sprintf_s(szTemp, " Group to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra.c_str())), szHeadingNormal[EQHeading(GetSpellBase(pSpell, 3))]);
+			sprintf_s(szTemp, " Group to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra.c_str())), szHeadingNormal[EQSpellHeading(GetSpellBase(pSpell, 3))]);
 		}
 		strcat_s(szBuff, FormatString(spelleffectname.c_str(), szTemp, szTemp2));
 		break;
@@ -1742,7 +1754,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatPercent(spelleffectname.c_str(), value, finish, szTemp2));
 		break;
 	case SPA_EVACUATE: //evac portal spells
-		sprintf_s(szTemp, " to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), extra.c_str(), szHeadingNormal[EQHeading(GetSpellBase(pSpell, 3))]);
+		sprintf_s(szTemp, " to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), extra.c_str(), szHeadingNormal[EQSpellHeading(GetSpellBase(pSpell, 3))]);
 		strcat_s(szBuff, FormatString(spelleffectname.c_str(), szTemp, szTemp2));
 		break;
 	case SPA_HEIGHT: //Player Size
@@ -1783,7 +1795,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		break;
 	case SPA_TRANSLOCATE: //zone translocate spells
 		if (!extra.empty() && !extra.rfind('0', 0))
-			sprintf_s(szTemp, " to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra.c_str())), szHeadingNormal[EQHeading(GetSpellBase(pSpell, 3))]);
+			sprintf_s(szTemp, " to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra.c_str())), szHeadingNormal[EQSpellHeading(GetSpellBase(pSpell, 3))]);
 		else
 			strcat_s(szTemp, " to Bind Point");
 		strcat_s(szBuff, FormatString(spelleffectname.c_str(), szTemp, szTemp2));
@@ -1908,7 +1920,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatSeconds(spelleffectname.c_str(), value / 1000.0f, szTemp2));
 		break;
 	case SPA_NPC_PORTAL_WARDER_BANISH: //Teleportv2
-		sprintf_s(szTemp, " to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra.c_str())), szHeadingNormal[EQHeading(GetSpellBase(pSpell, 3))]);
+		sprintf_s(szTemp, " to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra.c_str())), szHeadingNormal[EQSpellHeading(GetSpellBase(pSpell, 3))]);
 		strcat_s(szBuff, FormatString(spelleffectname.c_str(), szTemp, szTemp2));
 		break;
 	case SPA_PORTAL_LOCATIONS: //Resist Electricity

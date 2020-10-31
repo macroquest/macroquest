@@ -70,7 +70,7 @@ enum class SpellMembers
 	CanMGB,
 	Deletable,
 	BookIcon,
-	Target,
+	ActorTagId,
 	Description,
 	StacksWith,
 	Rank,
@@ -160,7 +160,7 @@ MQ2SpellType::MQ2SpellType() : MQ2Type("spell")
 	ScopedTypeMember(SpellMembers, CanMGB);
 	ScopedTypeMember(SpellMembers, Deletable);
 	ScopedTypeMember(SpellMembers, BookIcon);
-	ScopedTypeMember(SpellMembers, Target);
+	ScopedTypeMember(SpellMembers, ActorTagId);
 	ScopedTypeMember(SpellMembers, Description);
 	ScopedTypeMember(SpellMembers, StacksWith);
 	ScopedTypeMember(SpellMembers, Rank);
@@ -950,10 +950,9 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.Type = pIntType;
 		return true;
 
-	case SpellMembers::Target:
-		strcpy_s(DataTypeTemp, pSpell->Target);
-		Dest.Ptr = &DataTypeTemp[0];
-		Dest.Type = pStringType;
+	case SpellMembers::ActorTagId:
+		Dest.Int = pSpell->ActorTagId;
+		Dest.Type = pIntType;
 		return true;
 
 	case SpellMembers::Description:
