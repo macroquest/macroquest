@@ -1975,10 +1975,13 @@ typedef struct _VECTOR2
 	FLOAT Y;
 } VECTOR2, *PVECTOR2;
 
+#pragma pack(push)
+#pragma pack(1)
 // actual size: 0x22e Feb 16 2018 test see 5F68F6 - eqmule
 // actual size: 0x22d Apr 10 2018 test see 557362 - eqmule
 // actual size: 0x229 May 07 2018 test see 6628CA  - eqmule
 // actual size: 0x231 Oct 07 2019 test see 565BE2  - eqmule
+// actual size: 0x215 Oct 19 2020 see 58A482 - eqmule
 typedef struct _SPELL { //      1     |    0   | -30  |   0    | 103  | 125
 /*0x000*/   FLOAT   Range;
 /*0x004*/   FLOAT   AERange;
@@ -2101,26 +2104,26 @@ typedef struct _SPELL { //      1     |    0   | -30  |   0    | 103  | 125
 /*0x194*/   BYTE    CancelOnSit;
 /*0x195*/   bool    CountdownHeld;
 /*0x196*/   CHAR    Name[0x40];//for sure see 557AAA
-/*0x1d6*/   CHAR    Target[0x20];
-/*0x1f6*/   CHAR    Extra[0x20];    //This is 'Extra' from Lucy (portal shortnames etc) official = NPC_FILENAME
-/*0x216*/   BYTE    ShowWearOffMessage;
-/*0x217*/   BYTE    NPCChanceofKnowingSpell;//if this is 0 there is no way an npc can cast this spell...
-/*0x218*/   BYTE    SneakAttack;
-/*0x219*/   BYTE    NotFocusable; //ignores all(?) focus effects
-/*0x21a*/   BYTE    NoHate;
-/*0x21b*/   BYTE    StacksWithSelf;
-/*0x21c*/   BYTE    CannotBeScribed;//this is used by /outputfile missingspells see 7A57DF in Aug 10 2017 live
-/*0x21d*/   BYTE    NoBuffBlock;
-/*0x21e*/   int     Scribable;
-/*0x222*/   BYTE    NoStripOnDeath;
-/*0x223*/   BYTE    NoRemove; // spell can't be clicked off?
-/*0x224*/   int     NoOverwrite; //an enum 0 = Can Be overwritten 1 = Can Only be overwritten by itself 2 = Cannot be overwritten, not even by itself
-/*0x228*/   DWORD   SpellRecourseType;
-/*0x22C*/   BYTE    CRC32Marker;
-/*0x22D*/   FLOAT   DistanceMod; // set to (DistanceModEnd.Y- DistanceModEnd.X) / (DistanceModStart.Y - DistanceModStart.X).
-/*0x231*/
-
+/*0x1d6*/   int     ActorTagId;
+/*0x1da*/   CHAR    Extra[0x20];    //This is 'Extra' from Lucy (portal shortnames etc) official = NPC_FILENAME
+/*0x1fa*/   BYTE    ShowWearOffMessage;
+/*0x1fb*/   BYTE    NPCChanceofKnowingSpell;//if this is 0 there is no way an npc can cast this spell...
+/*0x1fc*/   BYTE    SneakAttack;
+/*0x1fd*/   BYTE    NotFocusable; //ignores all(?) focus effects
+/*0x1fe*/   BYTE    NoHate;
+/*0x1ff*/   BYTE    StacksWithSelf;
+/*0x200*/   BYTE    CannotBeScribed;//this is used by /outputfile missingspells see 7A57DF in Aug 10 2017 live
+/*0x201*/   BYTE    NoBuffBlock;
+/*0x202*/   int     Scribable;
+/*0x206*/   BYTE    NoStripOnDeath;
+/*0x207*/   BYTE    NoRemove; // spell can't be clicked off?
+/*0x208*/   int     NoOverwrite; //an enum 0 = Can Be overwritten 1 = Can Only be overwritten by itself 2 = Cannot be overwritten, not even by itself
+/*0x20c*/   DWORD   SpellRecourseType;
+/*0x210*/   BYTE    CRC32Marker;
+/*0x211*/   FLOAT   DistanceMod; // set to (DistanceModEnd.Y- DistanceModEnd.X) / (DistanceModStart.Y - DistanceModStart.X).
+/*0x215*/
 } SPELL, *PSPELL;
+#pragma pack(pop)
 
 struct FocusEffectData
 {
@@ -2857,57 +2860,54 @@ typedef struct _CHARINFONEW {
 /*0x2ADA*/ bool			Corpse;
 /*0x2ADB*/ bool			ClientGmFlagSet;
 /*0x2ADC*/ DWORD        BankSharedPlat;//31e4 CharBaseBegin+488
-//*0x2AE0*/ DWORD        BankSharedGold;//CharBaseBegin+48c
-//*0x2AE4*/ DWORD        BankSharedSilver;//CharBaseBegin+490
-//*0x2AE8*/ DWORD        BankSharedCopper;//CharBaseBegin+494
-/*0x2AEC*/ DWORD        BankPlat;//CharBaseBegin+498
-/*0x2AF0*/ DWORD        BankGold;//CharBaseBegin+49c
-/*0x2AF4*/ DWORD        BankSilver;//CharBaseBegin+4a0
-/*0x2AF8*/ DWORD        BankCopper;//CharBaseBegin+4a4
-/*0x2AFC*/ DWORD        STR;//CharBaseBegin+4a8
-/*0x2B00*/ DWORD        STA;//CharBaseBegin+4ac
-/*0x2B04*/ DWORD        CHA;//CharBaseBegin+4b0
-/*0x2B08*/ DWORD        DEX;//CharBaseBegin+4b4
-/*0x2B0C*/ DWORD        INT;//CharBaseBegin+4b8
-/*0x2B10*/ DWORD        AGI;//CharBaseBegin+4bc
-/*0x2B14*/ DWORD        WIS;//CharBaseBegin+4c0
-/*0x2B18*/ DWORD        LCK;//CharBaseBegin+4c4
-/*0x2B1C*/ DWORD        SavePoison;//CharBaseBegin+4c8
-/*0x2B20*/ DWORD        SaveMagic;//CharBaseBegin+4cc
-/*0x2B24*/ DWORD        SaveDisease;//CharBaseBegin+4d0
-/*0x2B28*/ DWORD        SaveCorruption;//CharBaseBegin+4d4
-/*0x2B2C*/ DWORD        SaveFire;//CharBaseBegin+4d8
-/*0x2B30*/ DWORD        SaveCold;//CharBaseBegin+4dc
-/*0x2B34*/ DWORD        SavePhysical;//CharBaseBegin+4e0
-/*0x2B38*/ int			UncappedStr;
-/*0x2B3C*/ int  		UncappedSta;
-/*0x2B40*/ int			UncappedCha;
-/*0x2B44*/ int			UncappedDex;
-/*0x2B48*/ int			UncappedInt;
-/*0x2B4C*/ int			UncappedAgi;
-/*0x2B50*/ int			UncappedWis;
-/*0x2B54*/ int			UncappedResistPoison;
-/*0x2B58*/ int			UncappedResistMagic;
-/*0x2B5C*/ int			UncappedResistDisease;
-/*0x2B60*/ int			UncappedResistCorruption;
-/*0x2B64*/ int			UncappedResistFire;
-/*0x2B68*/ int			UncappedResistCold;
-/*0x2B6C*/ int          UncappedResistPhysical;
-/*0x2B70*/ int			NoBuffStr;
-/*0x2B74*/ int			NoBuffSta;
-/*0x2B78*/ int			NoBuffCha;
-/*0x2B7C*/ int			NoBuffDex;
-/*0x2B80*/ int			NoBuffInt;
-/*0x2B84*/ int			NoBuffAgi;
-/*0x2B88*/ int			NoBuffWis;
-/*0x2B8C*/ int			NoBuffResistPoison;
-/*0x2B90*/ int			NoBuffResistMagic;
-/*0x2B94*/ int			NoBuffResistDisease;
-/*0x2B98*/ int			NoBuffResistCorruption;
-/*0x2B9C*/ int			NoBuffResistFire;
-/*0x2BA0*/ int			NoBuffResistCold;
-/*0x2BA4*/ int			NoBuffResistPhysical;
-/*0x2BA8*/
+/*0x2AE0*/ DWORD        BankPlat;//CharBaseBegin+498
+/*0x2AE4*/ DWORD        BankGold;//CharBaseBegin+49c
+/*0x2AE8*/ DWORD        BankSilver;//CharBaseBegin+4a0
+/*0x2AEC*/ DWORD        BankCopper;//CharBaseBegin+4a4
+/*0x2AF0*/ DWORD        STR;//CharBaseBegin+4a8
+/*0x2AF4*/ DWORD        STA;//CharBaseBegin+4ac
+/*0x2AF8*/ DWORD        CHA;//CharBaseBegin+4b0
+/*0x2AFC*/ DWORD        DEX;//CharBaseBegin+4b4
+/*0x2B00*/ DWORD        INT;//CharBaseBegin+4b8
+/*0x2B04*/ DWORD        AGI;//CharBaseBegin+4bc
+/*0x2B08*/ DWORD        WIS;//CharBaseBegin+4c0
+/*0x2B0C*/ DWORD        LCK;//CharBaseBegin+4c4
+/*0x2B10*/ DWORD        SavePoison;//CharBaseBegin+4c8
+/*0x2B14*/ DWORD        SaveMagic;//CharBaseBegin+4cc
+/*0x2B18*/ DWORD        SaveDisease;//CharBaseBegin+4d0
+/*0x2B1C*/ DWORD        SaveCorruption;//CharBaseBegin+4d4
+/*0x2B20*/ DWORD        SaveFire;//CharBaseBegin+4d8
+/*0x2B24*/ DWORD        SaveCold;//CharBaseBegin+4dc
+/*0x2B28*/ DWORD        SavePhysical;//CharBaseBegin+4e0
+/*0x2B2C*/ int			UncappedStr;
+/*0x2B30*/ int  		UncappedSta;
+/*0x2B34*/ int			UncappedCha;
+/*0x2B38*/ int			UncappedDex;
+/*0x2B3C*/ int			UncappedInt;
+/*0x2B40*/ int			UncappedAgi;
+/*0x2B44*/ int			UncappedWis;
+/*0x2B48*/ int			UncappedResistPoison;
+/*0x2B4C*/ int			UncappedResistMagic;
+/*0x2B50*/ int			UncappedResistDisease;
+/*0x2B54*/ int			UncappedResistCorruption;
+/*0x2B58*/ int			UncappedResistFire;
+/*0x2B5C*/ int			UncappedResistCold;
+/*0x2B60*/ int          UncappedResistPhysical;
+/*0x2B64*/ int			NoBuffStr;
+/*0x2B68*/ int			NoBuffSta;
+/*0x2B6C*/ int			NoBuffCha;
+/*0x2B70*/ int			NoBuffDex;
+/*0x2B74*/ int			NoBuffInt;
+/*0x2B78*/ int			NoBuffAgi;
+/*0x2B7C*/ int			NoBuffWis;
+/*0x2B80*/ int			NoBuffResistPoison;
+/*0x2B84*/ int			NoBuffResistMagic;
+/*0x2B88*/ int			NoBuffResistDisease;
+/*0x2B8C*/ int			NoBuffResistCorruption;
+/*0x2B90*/ int			NoBuffResistFire;
+/*0x2B94*/ int			NoBuffResistCold;
+/*0x2B98*/ int			NoBuffResistPhysical;
+/*0x2B9C*/
 #ifdef NEWCHARINFO
 } CHARINFO, *PCHARINFO;
 #else
@@ -4322,21 +4322,27 @@ typedef struct _SPELLCALCINFO
 } SPELLCALCINFO,*PSPELLCALCINFO;
 
 #define   TOTAL_SPELL_COUNT             0xF230     // # of spells allocated in memory (07/10/2019 test 4F1197) -eqmule
-#define   CalcInfoSize                  0x324B0    // 67777A in eqgame 2019 10 Jul test
+#define   CalcInfoSize                  0x38270    // 69EAAA in eqgame 2020 Oct 19
 //this is actually the size of the struct thats populated from aSpells_S_txt
 //SpellManager__SpellManager_x
 // size: 0x1966A8 2017-04-11 test (see 55DC54) - eqmule
 // size: 0x1AED40 2018-04-10 test (see 5D32E2) - eqmule
-// size: 0x1BC800 2019-07-10 test (see 5E36C2) - eqmule
+// size: 0x1BC800 2019-10-07 test (see 5E3A0C) - eqmule
+// size: 0x1D3F00 2020-10-19 (see 60976D) - eqmule
 typedef struct _SPELLMGR {
 /*0x000000*/ PVOID vfTable;//need this for some calls later
 /*0x000004*/ BYTE Unknown0x00004[0x3DAE0];
-/*0x03DAE4*/ struct _SPELL* Spells[TOTAL_SPELL_COUNT];//60000
+/*0x03DAE4*/ struct _SPELL* Spells[TOTAL_SPELL_COUNT];//62000
 /*0x07A3A4*/ struct _SPELL* PtrToUnknownSpell;//default bailout pointer...
-/*0x07A3A8*/ struct _SPELLCALCINFO* CalcInfo[CalcInfoSize];//200000
-/*0x143668*/ DWORD What1[0x6];
-/*0x143680*/ DWORD What2[0x1E460];//124000
-/*0x1BC800*/ //(1820672) 1.8 mill! large struct in memory for sure...
+/*0x07A3A8*/ struct _SPELLCALCINFO* CalcInfo[CalcInfoSize];//230000
+/*0x15AD68*/ struct _SPELLCALCINFO* PtrToUnknownSpellAffect;
+/*0x15AD6C*/ struct _SPELLCALCINFO* PtrToUnknownSpellAffectAC;
+/*0x15AD70*/ int UnknownSpellCRC;
+/*0x15AD74*/ int SpellFileCRC;
+/*0x15AD78*/ int SpellAssocFileCRC;
+/*0x15AD7C*/ int SpellStackingFileCRC;
+/*0x15AD80*/ DWORD What2[0x1E460];//124000
+/*0x1D3F00*/
 } SPELLMGR, *PSPELLMGR;
 
 // actual size: 0x148 10-25-2006  ieatacid

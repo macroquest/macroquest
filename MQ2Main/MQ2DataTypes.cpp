@@ -7582,7 +7582,13 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case Target:
+		//todo add at some point maybe
+		//GetActorTagFromID(DataTypeTemp,pSpell->ActorTagId);
+#if defined(ROF2EMU) || defined(UFEMU)
 		strcpy_s(DataTypeTemp, pSpell->Target);
+#else
+		_itoa_s(pSpell->ActorTagId, DataTypeTemp, 10);
+#endif
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
