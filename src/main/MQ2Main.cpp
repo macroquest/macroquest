@@ -203,10 +203,10 @@ bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& str
 	}
 	// Set strMQRoot to the path we found.
 	strMQRoot = pathMQRoot.string();
-	std::error_code ec_exists;
+	std::error_code ec;
 
 	// If the path to MQ2 doesn't exist none of our relative paths are going to work
-	if (std::filesystem::exists(pathMQRoot, ec_exists))
+	if (std::filesystem::exists(pathMQRoot, ec))
 	{
 		std::filesystem::path pathMQini = strMQini;
 
@@ -216,14 +216,14 @@ bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& str
 			pathMQini = pathMQRoot / pathMQini;
 		}
 
-		if (!std::filesystem::exists(pathMQini, ec_exists))
+		if (!std::filesystem::exists(pathMQini, ec))
 		{
 			// Check if the ini file exists in the same directory as MQ2
-			if (std::filesystem::exists(pathMQRoot / "MacroQuest.ini", ec_exists))
+			if (std::filesystem::exists(pathMQRoot / "MacroQuest.ini", ec))
 			{
 				pathMQini = pathMQRoot / "MacroQuest.ini";
 			}
-			else if (std::filesystem::exists(pathMQRoot / strConfig / "MacroQuest_default.ini", ec_exists))
+			else if (std::filesystem::exists(pathMQRoot / strConfig / "MacroQuest_default.ini", ec))
 			{
 				// copy into the config directory and work from there.
 				std::filesystem::copy_file(
@@ -232,7 +232,7 @@ bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& str
 			}
 		}
 
-		if (std::filesystem::exists(pathMQini, ec_exists))
+		if (std::filesystem::exists(pathMQini, ec))
 		{
 			// Check to see if there is a different MacroQuest.ini we should be looking at
 			pathMQini = std::filesystem::path(GetPrivateProfileString("MacroQuest", "MQIniPath", strMQini, pathMQini.string()));
@@ -244,7 +244,7 @@ bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& str
 			}
 
 			// If it's a folder append MacroQuest.ini
-			if (is_directory(pathMQini))
+			if (is_directory(pathMQini, ec))
 			{
 				pathMQini = pathMQini / "MacroQuest.ini";
 			}
