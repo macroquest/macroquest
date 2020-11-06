@@ -13925,12 +13925,48 @@ bool MQ2RaidType::GETMEMBER()
 	case MainAssist:
 		Dest.DWord = 0;
 		Dest.Type = pRaidMemberType;
-		for (i = 0; i < 72; i++)
+
+		if (ISINDEX())
 		{
-			if (pRaid->RaidMemberUsed[i] && pRaid->RaidMember[i].RaidMainAssist)
+			if (ISNUMBER())
 			{
-				Dest.DWord = i + 1;
-				return true;
+				DWORD Count = GETNUMBER();
+				if (!Count || Count > pRaid->RaidMemberCount)
+					return false;
+				for (DWORD nMember = 0; nMember < 72; nMember++)
+				{
+					if (pRaid->RaidMemberUsed[nMember] && pRaid->RaidMember[nMember].RaidMainAssist)
+					{
+						Count--;
+						if (!Count)
+						{
+							Dest.DWord = nMember + 1;
+							return true;
+						}
+					}
+				}
+			}
+			else
+			{
+				// by name
+				for (DWORD nMember = 0; nMember < 72; nMember++)
+				{
+					if (pRaid->RaidMemberUsed[nMember] && !_stricmp(pRaid->RaidMember[nMember].Name, GETFIRST()))
+					{
+						Dest.DWord = nMember + 1;
+						return true;
+					}
+				}
+			}
+		}
+		else {
+			for (i = 0; i < 72; i++)
+			{
+				if (pRaid->RaidMemberUsed[i] && pRaid->RaidMember[i].RaidMainAssist)
+				{
+					Dest.DWord = i + 1;
+					return true;
+				}
 			}
 		}
 		return false;
