@@ -1297,19 +1297,21 @@ std::string ModifyMacroString(std::string_view strOriginal, bool bParseOnce, Mod
  * code being passed to the parser doesn't have to be rewritten.
  *
  * It will perform the same function as the original (parsing the char*
- * and storing it in the original location) but it does so by converting
- * to a string and passing it to ModifyMacroString instead of doing the
- * parsing itself.
+ * and storing it in the original location) but, if Parser 2 is enabled
+ * it does so by converting to a string and passing it to ModifyMacroString
+ * instead of doing the parsing itself.
  *
  * The original ParseMacroData function would return false if there are
- * no braces left to Parse, but this function only returns "true" as an
- * indicator of success rather than an indicator of "continue to parse"
- * since that is all handled in the macro language itself now.
+ * no braces left to Parse, but if Parser 2 is enabled this function only
+ * returns "true" as an indicator of success rather than an indicator of
+ * "continue to parse" since that is all handled in the macro language
+ * itself now.
  *
  * @param szOriginal The char* to parse and store the output
- * @param BufferSize Not used, maintained for backwards compatibility
+ * @param BufferSize The size of szOriginal
  *
- * @return bool (MQ2) Success
+ * @return bool ParserV2: Success / ParserV1: Whether there are braces
+ *                                            left to parse
  */
 bool ParseMacroData(char* szOriginal, size_t BufferSize)
 {
@@ -1319,7 +1321,7 @@ bool ParseMacroData(char* szOriginal, size_t BufferSize)
 		std::string strReturn = ModifyMacroString(szOriginal);
 
 		// If the result is larger than MAX_STRING
-		if (strReturn.length() >= MAX_STRING)
+		if (strReturn.length() >= BufferSize)
 		{
 			// If we are currently in a macro block
 			if (MQMacroBlockPtr currblock = GetCurrentMacroBlock())
@@ -1327,15 +1329,16 @@ bool ParseMacroData(char* szOriginal, size_t BufferSize)
 				const MQMacroLine& line = currblock->Line.at(currblock->CurrIndex);
 
 				MacroError("Data Truncated in %s, Line: %d.  Expanded Length was greater than %d",
-					line.SourceFile.c_str(), line.LineNumber, MAX_STRING);
+					line.SourceFile.c_str(), line.LineNumber, BufferSize);
 			}
 
 			// Trim the result.
-			strReturn = strReturn.substr(0, MAX_STRING - 1);
+			strReturn = strReturn.substr(0, BufferSize - 1);
 		}
 
 		// Copy the parsed string into the original string
-		strcpy_s(szOriginal, strReturn.length() + 1, strReturn.c_str());
+		strcpy_s(szOriginal, BufferSize, strReturn.c_str());
+		// TODO: Change the behavior of the return for this to be more informative (consider backwards compatibility, however)
 		return true;
 	}
 
