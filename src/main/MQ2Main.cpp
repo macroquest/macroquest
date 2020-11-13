@@ -210,6 +210,11 @@ bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& str
 	{
 		std::filesystem::path pathMQini = strMQini;
 
+		/*
+		 *  ** NOTE ** This logic exists here and in MacroQuest2.cpp.  Changes should be applied in both
+		 *             until the code is shared.
+		 */
+
 		// If the ini path is relative, prepend the MQ2 path
 		if (pathMQini.is_relative())
 		{
@@ -228,14 +233,15 @@ bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& str
 				// copy into the config directory and work from there.
 				std::filesystem::copy_file(
 					pathMQRoot / strConfig / "MacroQuest_default.ini",
-					pathMQRoot / strConfig / "MacroQuest.ini");
+					pathMQRoot / strConfig / "MacroQuest.ini",
+					ec);
 			}
 		}
 
 		if (std::filesystem::exists(pathMQini, ec))
 		{
 			// Check to see if there is a different MacroQuest.ini we should be looking at
-			pathMQini = std::filesystem::path(GetPrivateProfileString("MacroQuest", "MQIniPath", strMQini, pathMQini.string()));
+			pathMQini = std::filesystem::path(GetPrivateProfileString("MacroQuest", "MQIniPath", pathMQini.string(), pathMQini.string()));
 
 			// If it's relative, make it absolute relative to MQ2
 			if (pathMQini.is_relative())
@@ -252,6 +258,9 @@ bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& str
 
 		// Set the ini to whatever we ended up with.
 		strMQini = pathMQini.string();
+		/*
+		 *  END SHARED LOGIC (See above note)
+		 */
 
 		gbWriteAllConfig = GetPrivateProfileBool("MacroQuest", "WriteAllConfig", false, strMQini);
 		// Write the MQIniPath if we're writing all config.  This will be the full path and in the redirected ini
