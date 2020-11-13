@@ -139,11 +139,11 @@ struct MQSpawnSearch
 	bool bKnownLocation = false;
 	bool bNoPet = false;
 	SearchSortBy SortBy = SearchSortBy::Level;
-	bool bNoGuild;
-	bool bLoS;
-	bool bExactName;
-	bool bTargetable;
-	uint32_t PlayerState;
+	bool bNoGuild = false;
+	bool bLoS = false;
+	bool bExactName = false;
+	bool bTargetable = false;
+	uint32_t PlayerState = 0;
 };
 using SEARCHSPAWN [[deprecated("Use MQSpawnSearch instead")]] = MQSpawnSearch;
 using PSEARCHSPAWN [[deprecated("Use MQSpawnSearch* instead")]] = MQSpawnSearch *;
