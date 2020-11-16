@@ -32,7 +32,10 @@ namespace mq {
 static std::atomic_bool s_pluginsInitialized = false;
 static uint32_t s_mq2mainstamp = 0;
 static std::recursive_mutex s_pluginsMutex;
+static const char EverQuestVersion[] = __ExpectedVersionDate "" __ExpectedVersionDate;
 MQPlugin* pPlugins = nullptr;
+
+char szPluginLoadFailure[MAX_STRING];
 
 std::vector<MQModule*> gInternalModules;
 
@@ -113,6 +116,9 @@ static uint32_t checkme(char* module)
 
 int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
 {
+	// Clear the load error message;
+	szPluginLoadFailure[0] = 0;
+
 	std::string strFileName = pszFilename;
 	const int Pos = ci_find_substr(strFileName, ".dll");
 	if (Pos != -1)
@@ -147,27 +153,43 @@ int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
 		return 0;
 	}
 
-	// im disabling this check in debug builds because i can't just make a minor change and rebuild just mq2main
-	// without having to actually rebuild ALL my plugins even though its technically not needed for them to work -eqmule sep 11 2016
-#if !defined(_DEBUG) && !defined(NO_TIMESTAMP_CHECK)
-	if (!s_mq2mainstamp)
+	// bypass version checks for mq2ic for reasons.
+	if (!ci_equals(strFileName, "mq2ic"))
 	{
-		s_mq2mainstamp = checkme((char*)GetCurrentModule());
-	}
+		// Perform MQNext version check
+		void* isBuildForNext = GetProcAddress(hmod, "IsBuiltForNext");
+		if (isBuildForNext == nullptr)
+		{
+			DebugSpew("LoadMQ2Plugin(%s) failed: Plugin was not built for this version of MacroQuest",
+				strFileName.c_str());
+			strcpy_s(szPluginLoadFailure, "Plugin was not built for this version of MacroQuest");
 
-	uint32_t timestamp = checkme((char*)hmod);
-	if (s_mq2mainstamp > timestamp)
-	{
-		char tmpbuff[MAX_PATH];
-		sprintf_s(tmpbuff, "Please recompile %s -- it is out of date with respect to mq2main (%d > %d)",
-			pathToPlugin.string().c_str(), s_mq2mainstamp, timestamp);
-		DebugSpew("%s", tmpbuff);
-		MessageBoxA(NULL, tmpbuff, "Plugin Load Failed", MB_OK);
+			FreeLibrary(hmod);
+			return 0;
+		}
 
-		FreeLibrary(hmod);
-		return 0;
+		// Perform EQ version check
+		const char* eqVersion = reinterpret_cast<const char*>(GetProcAddress(hmod, "EverQuestVersion"));
+		if (eqVersion == nullptr)
+		{
+			DebugSpew("LoadMQ2Plugin(%s) failed: Plugin was not built for this version of EverQuest",
+				strFileName.c_str());
+			strcpy_s(szPluginLoadFailure, "Plugin was not built for this version of EverQuest");
+
+			FreeLibrary(hmod);
+			return 0;
+		}
+		else if (strcmp(eqVersion, EverQuestVersion) != 0)
+		{
+			DebugSpew("LoadMQ2Plugin(%s) failed: Plugin was not built for this version of EverQuest (was built for %s)",
+				strFileName.c_str(), eqVersion);
+			sprintf_s(szPluginLoadFailure, "Plugin was not built for this version of EverQuest (was built for %s)",
+				eqVersion);
+
+			FreeLibrary(hmod);
+			return 0;
+		}
 	}
-#endif // !_DEBUG
 
 	MQPlugin* pPlugin = pPlugins;
 	while (pPlugin)
