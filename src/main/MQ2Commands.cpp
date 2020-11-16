@@ -386,6 +386,7 @@ void EngineCommand(SPAWNINFO* pChar, char* szLine)
 // Function:      PluginCommand
 // Description:   Our /plugin command.
 // ***************************************************************************
+extern char szPluginLoadFailure[MAX_STRING];
 void PluginCommand(SPAWNINFO* pChar, char* szLine)
 {
 	char szBuffer[MAX_STRING] = { 0 };
@@ -461,7 +462,10 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 		}
 		else
 		{
-			MacroError("Plugin '%s' could not be loaded.", szName);
+			if (szPluginLoadFailure[0] != 0)
+				MacroError("Plugin '%s' could not be loaded: %s", szName, szPluginLoadFailure);
+			else
+				MacroError("Plugin '%s' could not be loaded.", szName);
 		}
 	}
 }
