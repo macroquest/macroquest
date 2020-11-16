@@ -4438,23 +4438,10 @@ static const int DebugHeaderLen = strlen(DebugHeader);
 // ***************************************************************************
 // Function:    Echo
 // Description: Our '/echo' command
-//              Echos text to the chatbox
+//              Writes text to the MQ2 Chat channel
 // Usage:       /echo <text>
 // ***************************************************************************
 void Echo(SPAWNINFO* pChar, char* szLine)
-{
-	DebugSpewNoFile("Echo: %s", szLine);
-
-	char szEcho[MAX_STRING] = { 0 };
-	strcpy_s(szEcho, DebugHeader);
-	strcat_s(szEcho, " ");
-	strncat_s(szEcho, szLine, MAX_STRING - (DebugHeaderLen + 2));
-	WriteChatColor(szEcho, USERCOLOR_CHAT_CHANNEL);
-
-	bRunNextCommand = true;
-}
-
-void EchoColor(SPAWNINFO* pChar, char* szLine)
 {
 	bRunNextCommand = true;
 
@@ -4504,6 +4491,25 @@ void EchoColor(SPAWNINFO* pChar, char* szLine)
 	}
 
 	WriteChatColor(szEcho, USERCOLOR_CHAT_CHANNEL);
+}
+
+// ***************************************************************************
+// Function:    EchoClean
+// Description: '/cecho' command
+//              Writes text to the MQ2 Chat channel without color formatting
+// Usage:       /cecho <text>
+// ***************************************************************************
+void EchoClean(SPAWNINFO* pChar, char* szLine)
+{
+	DebugSpewNoFile("Echo: %s", szLine);
+
+	char szEcho[MAX_STRING] = { 0 };
+	strcpy_s(szEcho, DebugHeader);
+	strcat_s(szEcho, " ");
+	strncat_s(szEcho, szLine, MAX_STRING - (DebugHeaderLen + 2));
+	WriteChatColor(szEcho, USERCOLOR_CHAT_CHANNEL);
+
+	bRunNextCommand = true;
 }
 
 // ***************************************************************************
