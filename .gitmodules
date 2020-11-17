@@ -7,3 +7,4 @@
 [submodule "contrib/vcpkg"]
 	path = contrib/vcpkg
 	url = https://gitlab.com/macroquest/next/vcpkg.git
+	branch = macroquest
