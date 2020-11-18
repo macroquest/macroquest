@@ -274,14 +274,14 @@ GNU General Public License for more details.
 #define pinstCMailAddressBookWnd_x                                 0xDE7AFC
 #define pinstCMailCompositionWnd_x                                 0xDE7AB8
 #define pinstCMailIgnoreListWnd_x                                  0xDE7B00
-#define pinstCMailWnd_x                                            0xDE7AA4
+#define pinstCMailWnd_x                                            0xDE7AA0
 #define pinstCManageLootWnd_x                                      0xDE8E10
 #define pinstCMapToolbarWnd_x                                      0xDE7794
 #define pinstCMapViewWnd_x                                         0xDE7760
 #define pinstCMarketplaceWnd_x                                     0xDE77F4
 #define pinstCMerchantWnd_x                                        0xDE7AD4
 #define pinstCMIZoneSelectWnd_x                                    0xF58D68
-#define pinstCMusicPlayerWnd_x                                     0xDE7AA0
+#define pinstCMusicPlayerWnd_x                                     0xDE7870
 #define pinstCNameChangeMercWnd_x                                  0xDE7790
 #define pinstCNameChangePetWnd_x                                   0xDE7764
 #define pinstCNameChangeWnd_x                                      0xDE77A4

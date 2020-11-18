@@ -1,4 +1,5 @@
 Nov 18 2020
+- Updated for LIVE
 - Updated for BETA
 - Fixed a bug in mq2targetinfo that would reset the ini if the plugin version changed.
 -

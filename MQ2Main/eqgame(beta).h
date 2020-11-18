@@ -274,14 +274,14 @@ GNU General Public License for more details.
 #define pinstCMailAddressBookWnd_x                                 0xDE9F28
 #define pinstCMailCompositionWnd_x                                 0xDE9F04
 #define pinstCMailIgnoreListWnd_x                                  0xDE9F2C
-#define pinstCMailWnd_x                                            0xDE9F00
+#define pinstCMailWnd_x                                            0xDE9EEC
 #define pinstCManageLootWnd_x                                      0xDEB3A0
 #define pinstCMapToolbarWnd_x                                      0xDEA480
 #define pinstCMapViewWnd_x                                         0xDEA448
 #define pinstCMarketplaceWnd_x                                     0xDEA4DC
 #define pinstCMerchantWnd_x                                        0xDE9F20
 #define pinstCMIZoneSelectWnd_x                                    0xF5B410
-#define pinstCMusicPlayerWnd_x                                     0xDE9EEC
+#define pinstCMusicPlayerWnd_x                                     0xDE9EC0
 #define pinstCNameChangeMercWnd_x                                  0xDEA47C
 #define pinstCNameChangePetWnd_x                                   0xDEA44C
 #define pinstCNameChangeWnd_x                                      0xDEA48C
@@ -310,7 +310,7 @@ GNU General Public License for more details.
 #define pinstCRealEstatePlotSearchWnd_x                            0xDE9EF0
 #define pinstCRealEstatePurchaseWnd_x                              0xDE9F0C
 #define pinstCRespawnWnd_x                                         0xDEA4E4
-//#define pinstCRewardSelectionWnd_x                               0x10205B0
+#define pinstCRewardSelectionWnd_x                                 0xF5C5F8
 #define pinstCSelectorWnd_x                                        0xDEA410
 #define pinstCSendMoneyWnd_x                                       0xDEA488
 #define pinstCServerListWnd_x                                      0xDE9F18
