@@ -716,16 +716,6 @@ void ReadIniSettings()
 		sprintf_s(szTemp, "%.1f", MQ2Version);
 		WritePrivateProfileString("Default", "PluginVersion", szTemp, INIFileName);
 	}
-	else {
-		CHAR szTemp[MAX_STRING] = { 0 };
-		sprintf_s(szTemp, "%.1f", MQ2Version);
-		//they match do nothing
-		if (_stricmp(szTemp, szVersion))
-		{
-			//they dont match update ini.
-			ResetIni();
-		}
-	}
 	ret = GetPrivateProfileInt("Default", "UsePerCharSettings", -1, INIFileName);
 	gBUsePerCharSettings = (ret == 0 ? FALSE : TRUE);
 	if (ret == -1)
