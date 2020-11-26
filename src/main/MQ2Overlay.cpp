@@ -2217,6 +2217,10 @@ static bool RenderImGui()
 	if (gbNeedResetOverlay)
 		return false;
 
+	// we can't expect that the rounding mode is valid, and imgui respects the rounding mode so set it here and ensure that we reset it before the return
+	auto round = fegetround();
+	fesetround(FE_TONEAREST);
+
 	// Begin a new frame
 	ImGui_ImplDX9_NewFrame();
 	ImGui_ImplWin32_NewFrame();
@@ -2250,6 +2254,8 @@ static bool RenderImGui()
 
 	stateBlock->Apply();
 	stateBlock->Release();
+
+	fesetround(round);
 
 	return true;
 }
