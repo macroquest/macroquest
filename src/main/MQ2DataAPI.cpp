@@ -17,6 +17,11 @@
 
 namespace mq {
 
+// use shared_ptr here to guarantee that the callback exists. That means that the language writer needs to remove values from these maps or they will keep getting called.
+std::unordered_map<std::string, const datatypes::fRegType> s_typeRegisterMap;
+std::unordered_map<std::string, const datatypes::fRegMember> s_memberRegisterMap;
+std::unordered_map<std::string, const datatypes::fRegMember> s_methodRegisterMap;
+
 std::unordered_map<std::string, MQ2Type*> MQ2DataTypeMap;
 std::unordered_map<std::string, std::vector<MQ2Type*>> MQ2DataExtensions;
 
@@ -24,6 +29,7 @@ std::vector<std::weak_ptr<MQTransient>> s_objectMap;
 
 std::recursive_mutex s_variableMutex;
 std::mutex s_objectMapMutex;
+std::mutex s_apiMutex; // let's just share a mutex for all API callback events since they are going to be highly intertwined
 
 static void SetGameStateDataAPI(DWORD);
 
@@ -99,6 +105,114 @@ MQ2Type* FindMQ2DataType(const char* Name)
 	return iter->second;
 }
 
+bool datatypes::AddMQ2TypeCallback(const std::string& Language, const fRegType Callback)
+{
+	if (!Callback)
+		return false;
+
+	std::scoped_lock lock(s_apiMutex);
+
+	// first add it to the map
+	auto [_, result] = s_typeRegisterMap.emplace(Language, Callback);
+
+	if (result)
+	{
+		// then perform the callback on any already registered datatypes if it was successful
+		for (auto const& [name, type_ptr] : MQ2DataTypeMap)
+			(*Callback)(name, type_ptr, true); // always an addition at this point
+	}
+
+	return result;
+}
+
+int datatypes::DropMQ2TypeCallback(const std::string& Language)
+{
+	std::scoped_lock(s_apiMutex);
+
+	return s_typeRegisterMap.erase(Language);
+}
+
+void datatypes::DoMQ2TypeCallbacks(const std::string& Name, const MQ2Type* const Type, bool IsAddition)
+{
+	std::scoped_lock(s_apiMutex);
+
+	for (auto const& [_, type_ptr] : s_typeRegisterMap)
+	{
+		// the Type member here needs to be a pointer so we can dynamically deduce type in the callbacks
+		(*type_ptr)(Name, Type, IsAddition);
+	}
+}
+
+bool datatypes::AddMQ2MemberCallback(const std::string& Language, const fRegMember Callback)
+{
+	if (!Callback)
+		return false;
+
+	std::scoped_lock lock(s_apiMutex);
+
+	auto [_, result] = s_memberRegisterMap.emplace(Language, Callback);
+
+	if (result)
+	{
+		for (auto const& [_, type_ptr] : MQ2DataTypeMap)
+			type_ptr->RegisterMembers(Callback);
+	}
+
+	return result;
+}
+
+int datatypes::DropMQ2MemberCallback(const std::string& Language)
+{
+	std::scoped_lock(s_apiMutex);
+
+	return s_memberRegisterMap.erase(Language);
+}
+
+void datatypes::DoMQ2MemberCallbacks(const MQ2Type* const Type, const MQTypeMember* const Member, bool IsAddition)
+{
+	std::scoped_lock(s_apiMutex);
+
+	for (auto const& [_, member_ptr] : s_memberRegisterMap)
+	{
+		(*member_ptr)(Member->ID, Member->Name, Member->Type, Type, IsAddition);
+	}
+}
+
+bool datatypes::AddMQ2MethodCallback(const std::string& Language, const fRegMember Callback)
+{
+	if (!Callback)
+		return false;
+
+	std::scoped_lock lock(s_apiMutex);
+
+	auto [_, result] = s_methodRegisterMap.emplace(Language, Callback);
+
+	if (result)
+	{
+		for (auto const& [_, type_ptr] : MQ2DataTypeMap)
+			type_ptr->RegisterMethods(Callback);
+	}
+
+	return result;
+}
+
+int datatypes::DropMQ2MethodCallback(const std::string& Language)
+{
+	std::scoped_lock(s_apiMutex);
+
+	return s_methodRegisterMap.erase(Language);
+}
+
+void datatypes::DoMQ2MethodCallbacks(const MQ2Type* const Type, const MQTypeMember* const Method, bool IsAddition)
+{
+	std::scoped_lock(s_apiMutex);
+
+	for (auto const& [_, member_ptr] : s_methodRegisterMap)
+	{
+		(*member_ptr)(Method->ID, Method->Name, Method->Type, Type, IsAddition);
+	}
+}
+
 bool AddMQ2Type(MQ2Type& Type)
 {
 	std::scoped_lock lock(s_variableMutex);
@@ -106,8 +220,15 @@ bool AddMQ2Type(MQ2Type& Type)
 	// returns pair with iterator pointing to the constructed
 	// element, and a bool indicating if it was actually inserted.
 	// this will not replace existing elements.
-	auto result = MQ2DataTypeMap.emplace(Type.GetName(), &Type);
-	return result.second;
+	auto [_, result] = MQ2DataTypeMap.emplace(Type.GetName(), &Type);
+
+	if (result)
+	{
+		// only add the type to APIs if it was successfully mapped
+		DoMQ2TypeCallbacks(Type.GetName(), &Type, true);
+	}
+
+	return result;
 }
 
 bool RemoveMQ2Type(MQ2Type& Type)
@@ -126,6 +247,7 @@ bool RemoveMQ2Type(MQ2Type& Type)
 
 	// The type existed. Erase it.
 	MQ2DataTypeMap.erase(iter);
+	DoMQ2TypeCallbacks(thetypename, &Type, false);
 	return true;
 }
 

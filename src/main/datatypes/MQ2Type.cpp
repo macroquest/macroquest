@@ -97,6 +97,28 @@ mq::MQTypeMember* MQ2Type::FindMethod(const char* Name)
 	return Methods[index].get();
 }
 
+void mq::datatypes::MQ2Type::RegisterMembers(const fRegMember Callback)
+{
+	if (!Callback)
+		return;
+
+	for (auto const& member : Members)
+	{
+		(*Callback)(member->ID, member->Name, member->Type, this, true);
+	}
+}
+
+void mq::datatypes::MQ2Type::RegisterMethods(const fRegMember Callback)
+{
+	if (!Callback)
+		return;
+
+	for (auto const& method : Methods)
+	{
+		(*Callback)(method->ID, method->Name, method->Type, this, true);
+	}
+}
+
 bool MQ2Type::AddMember(int id, const char* Name)
 {
 	std::scoped_lock lock(m_mutex);
@@ -127,6 +149,8 @@ bool MQ2Type::AddMember(int id, const char* Name)
 	pMember->Type = 0;
 	Members[index] = std::move(pMember);
 	MemberMap[Name] = index;
+
+	DoMQ2MemberCallbacks(this, pMember.get(), true);
 	return true;
 }
 
@@ -143,6 +167,9 @@ bool MQ2Type::RemoveMember(const char* Name)
 
 	if (index < 0)
 		return false;
+
+	DoMQ2MemberCallbacks(this, Members[index].get(), false);
+
 	Members[index].reset();
 	return true;
 }
@@ -177,6 +204,8 @@ bool MQ2Type::AddMethod(int ID, const char* Name)
 	pMethod->Type = 1;
 	Methods[index] = std::move(pMethod);
 	MethodMap[Name] = index;
+
+	DoMQ2MethodCallbacks(this, pMethod.get(), true);
 	return true;
 }
 
@@ -193,6 +222,9 @@ bool MQ2Type::RemoveMethod(const char* Name)
 
 	if (index < 0)
 		return false;
+
+	DoMQ2MethodCallbacks(this, Methods[index].get(), false);
+
 	Methods[index].reset();
 	return true;
 }

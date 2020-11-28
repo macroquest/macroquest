@@ -65,4 +65,11 @@ using fMQInvalidateDeviceObjects = void(*)();
 using fMQImGuiRender         = void   (*)();
 using fMQGraphicsSceneRender = void   (*)();
 
+// DataType API types
+namespace datatypes {
+class MQ2Type;
+using fRegType = void(*)(const std::string& Name, const MQ2Type* const Type, bool IsAddition);
+using fRegMember = void(*)(int ID, const std::string& Name, uint32_t TypeID, const MQ2Type* const Type, bool IsAddition);
+}
+
 } // namespace mq

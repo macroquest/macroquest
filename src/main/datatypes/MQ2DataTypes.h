@@ -86,6 +86,9 @@ public:
 	MQLIB_OBJECT MQTypeMember* FindMember(const char* Name);
 	MQLIB_OBJECT MQTypeMember* FindMethod(const char* Name);
 
+	MQLIB_OBJECT void RegisterMembers(const fRegMember Callback);
+	MQLIB_OBJECT void RegisterMethods(const fRegMember Callback);
+
 	bool InheritedMember(const char* Name)
 	{
 		return pInherits && pInherits->FindMember(Name);

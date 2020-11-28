@@ -257,6 +257,15 @@ MQLIB_API void ShutdownParser();
 namespace datatypes {
 MQLIB_API void InitializeMQ2DataTypes();
 MQLIB_API void ShutdownMQ2DataTypes();
+MQLIB_API bool AddMQ2TypeCallback(const std::string& Language, const fRegType Callback);
+MQLIB_API int DropMQ2TypeCallback(const std::string& Language);
+MQLIB_API void DoMQ2TypeCallbacks(const std::string& Name, const MQ2Type* const Type, bool IsAddition);
+MQLIB_API bool AddMQ2MemberCallback(const std::string& Language, const fRegMember Callback);
+MQLIB_API int DropMQ2MemberCallback(const std::string& Language);
+MQLIB_API void DoMQ2MemberCallbacks(const MQ2Type* const Type, const MQTypeMember* const Member, bool IsAddition);
+MQLIB_API bool AddMQ2MethodCallback(const std::string& Language, const fRegMember Callback);
+MQLIB_API int DropMQ2MethodCallback(const std::string& Language);
+MQLIB_API void DoMQ2MethodCallbacks(const MQ2Type* const Type, const MQTypeMember* const Method, bool IsAddition);
 }
 
 MQLIB_API void InitializeMQ2Data();
