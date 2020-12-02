@@ -644,6 +644,26 @@ struct MQVarPtr
 		String
 	};
 
+	bool operator==(const MQVarPtr& other) const
+	{
+		if (Data.index() == other.Data.index())
+		{
+			switch (Data.index())
+			{
+			case VariantIdx::PlainData:
+				return std::get<MQPrimitiveData>(Data).UInt64 == std::get<MQPrimitiveData>(other.Data).UInt64;
+			case VariantIdx::ComplexObject:
+				return std::get<std::shared_ptr<void>>(Data) == std::get<std::shared_ptr<void>>(other.Data);
+			case VariantIdx::String:
+				return std::get<CXStr>(Data) == std::get<CXStr>(other.Data);
+			default:
+				return false;
+			}
+		}
+
+		return false;
+	}
+
 	template <typename T>
 	struct ReturnType { using type = std::shared_ptr<T>; };
 
@@ -838,6 +858,11 @@ using PMQ2VARPTR [[deprecated("Use MQVarPtr* instead")]] = MQVarPtr*;
 struct MQTypeVar : public MQVarPtr
 {
 	MQ2Type* Type = nullptr;
+	
+	bool operator==(const MQTypeVar& other) const
+	{
+		return Type == other.Type && this->MQVarPtr::operator==(other);
+	}
 
 	MQVarPtr& GetVarPtr() { return *this; }
 	MQVarPtr& SetVarPtr(const MQVarPtr& VarPtr) { Data = VarPtr.Data; return *this; }

@@ -18,53 +18,91 @@ PLUGIN_VERSION(0.1);
 using namespace mq;
 using namespace mq::datatypes;
 
-#define TEMPLATE_AUTO(x) decltype(x), x
+// TODO: Make this configureable (read it from the lua file?)
+#define TURBO_NUM 1000
 
+/**
+ * \brief a global lua state needed so that thread states don't go out of scope
+ */
 sol::state s_lua;
+std::filesystem::path s_luaDir = std::filesystem::path(gPathMQRoot) / "lua"; // TODO: can make this configurable
+
+ci_unordered::map<sol::state_view, sol::thread> s_instanceMap;
+std::vector<sol::thread> s_instances;
 
 struct lua_MQTypeVar
 {
-	MQTypeVar self;
-	std::string member;
+	MQTypeVar self_;
+	std::string member_;
 
 	lua_MQTypeVar(const std::string& str)
 	{
-		auto type = FindMQ2DataType(str.c_str());
+		auto* const type = FindMQ2DataType(str.c_str());
 		if (type != nullptr)
 		{
-			self.Type = type;
+			self_.Type = type;
 		}
 	}
 
-	lua_MQTypeVar(const MQTypeVar& self) : self(self) {}
+	/**
+	 * \brief wraps an MQ type var in a lua implementation
+	 * \param self the MQ type var data source to be represented in lua
+	 */
+	lua_MQTypeVar(MQTypeVar&& self) : self_(std::move(self)) {}
 
-	lua_MQTypeVar(lua_MQTypeVar& other)
+	lua_MQTypeVar(const lua_MQTypeVar& other) noexcept :
+		self_(other.self_), member_(other.member_)
 	{
-		if (other.self.Type != nullptr && !other.member.empty())
+		evaluate_member();
+	}
+
+	lua_MQTypeVar(lua_MQTypeVar&& other) noexcept :
+		self_(std::move(other.self_)), member_(std::move(other.member_))
+	{
+		evaluate_member();
+	}
+
+	~lua_MQTypeVar() = default;
+
+	lua_MQTypeVar& operator=(lua_MQTypeVar other) noexcept
+	{
+		swap(*this, other);
+		return *this;
+	}
+
+	friend void swap(lua_MQTypeVar& first, lua_MQTypeVar& second) noexcept
+	{
+		using std::swap;
+		swap(first.self_, second.self_);
+		swap(first.member_, second.member_);
+	}
+
+	bool operator==(const lua_MQTypeVar& right) const
+	{
+		return self_ == right.self_;
+	}
+
+	void evaluate_member()
+	{
+		if (self_.Type != nullptr && !member_.empty())
 		{
 			char index[1] = "";
 			MQTypeVar result;
-			other.self.Type->GetMember(other.self.VarPtr, &other.member[0], index, result);
+			self_.Type->GetMember(self_.VarPtr, &member_[0], index, result);
 
-			self = result;
-		}
-		else
-		{
-			self = other.self;
-			// don't copy member if type is null
+			self_ = result;
+			member_.clear();
 		}
 	}
 
-	~lua_MQTypeVar() {}
-
 	sol::object call(std::string index, sol::this_state L)
 	{
-		if (self.Type != nullptr && !member.empty())
+		if (self_.Type != nullptr && !member_.empty())
 		{
 			MQTypeVar result;
-			self.Type->GetMember(self.VarPtr, &member[0], &index[0], result);
+			self_.Type->GetMember(self_.VarPtr, &member_[0], &index[0], result);
 
-			return sol::object(L, sol::in_place, lua_MQTypeVar(result));
+			return sol::object(L, sol::in_place, lua_MQTypeVar(std::move(result)));
 		}
 
 		return sol::object(L, sol::in_place, sol::lua_nil);
@@ -77,13 +115,13 @@ struct lua_MQTypeVar
 
 	sol::object call_empty(sol::this_state L)
 	{
-		if (self.Type != nullptr && !member.empty())
+		if (self_.Type != nullptr && !member_.empty())
 		{
 			char index[1] = "";
 			MQTypeVar result;
-			self.Type->GetMember(self.VarPtr, &member[0], index, result);
+			self_.Type->GetMember(self_.VarPtr, &member_[0], index, result);
 
-			return sol::object(L, sol::in_place, lua_MQTypeVar(result));
+			return sol::object(L, sol::in_place, lua_MQTypeVar(std::move(result)));
 		}
 
 		return sol::object(L, sol::in_place, sol::lua_nil);
@@ -92,15 +130,15 @@ struct lua_MQTypeVar
 	sol::object get(sol::stack_object key, sol::this_state L)
 	{
 		auto maybe_key = key.as<std::optional<std::string_view>>();
-		if (maybe_key && self.Type != nullptr)
+		if (maybe_key && self_.Type != nullptr)
 		{
-			if (!member.empty())
+			if (!member_.empty())
 			{
 				char index[1] = "";
-				self.Type->GetMember(self.VarPtr, &member[0], index, self);
+				self_.Type->GetMember(self_.VarPtr, &member_[0], index, self_);
 			}
 
-			member = *maybe_key;
+			member_ = *maybe_key;
 			return sol::object(L, sol::in_place, *this);
 		}
 
@@ -108,54 +146,65 @@ struct lua_MQTypeVar
 	}
 };
 
+std::ostream& operator<<(std::ostream& os, lua_MQTypeVar& right)
+{
+	right.evaluate_member();
+
+	if (right.self_.Type != nullptr)
+	{
+		char buf[2048] = { 0 };
+		right.self_.Type->ToString(right.self_, buf);
+		os << buf;
+	}
+	return os;
+}
+
 struct lua_MQDataItem
 {
-	const MQDataItem* const self;
+	const MQDataItem* const self_;
 
 	// this will allow users an alternate way to get data items
-	lua_MQDataItem(const std::string& str) : self(FindMQ2Data(str.c_str())) {}
+	lua_MQDataItem(const std::string& str) : self_(FindMQ2Data(str.c_str())) {}
 
-	lua_MQDataItem(const MQDataItem* const self) : self(self) {}
+	lua_MQDataItem(const MQDataItem* const self) : self_(self) {}
 
-	lua_MQDataItem(lua_MQDataItem& other) : self(other.self) {}
-
-	sol::object call(const std::string& index, sol::this_state L)
+	[[nodiscard]] sol::object call(const std::string& index, sol::this_state L) const
 	{
-		if (self != nullptr)
+		if (self_ != nullptr)
 		{
 			MQTypeVar result;
-			if (self->Function(index.c_str(), result))
-				return sol::object(L, sol::in_place, lua_MQTypeVar(result));
+			if (self_->Function(index.c_str(), result))
+				return sol::object(L, sol::in_place, lua_MQTypeVar(std::move(result)));
 		}
 
 		return sol::object(L, sol::in_place, sol::lua_nil);
 	}
 
-	sol::object call_int(int index, sol::this_state L)
+	[[nodiscard]] sol::object call_int(int index, sol::this_state L) const
 	{
 		return call(std::to_string(index), L);
 	}
 
-	sol::object call_empty(sol::this_state L)
+	[[nodiscard]] sol::object call_empty(sol::this_state L) const
 	{
-		if (self != nullptr)
+		if (self_ != nullptr)
 		{
 			MQTypeVar result;
-			if (self->Function("", result))
-				return sol::object(L, sol::in_place, lua_MQTypeVar(result));
+			if (self_->Function("", result))
+				return sol::object(L, sol::in_place, lua_MQTypeVar(std::move(result)));
 		}
 
 		return sol::object(L, sol::in_place, sol::lua_nil);
 	}
 
-	sol::object get(sol::stack_object key, sol::this_state L)
+	[[nodiscard]] sol::object get(sol::stack_object key, sol::this_state L) const
 	{
-		if (self != nullptr)
+		if (self_ != nullptr)
 		{
 			MQTypeVar result;
-			if (self->Function("", result))
+			if (self_->Function("", result))
 			{
-				return lua_MQTypeVar(result).get(key, L);
+				return lua_MQTypeVar(std::move(result)).get(key, L);
 			}
 		}
 
@@ -163,17 +212,42 @@ struct lua_MQDataItem
 	}
 };
 
+struct lua_MQCommand
+{
+	std::string command_;
+
+	lua_MQCommand(std::string_view command) : command_(command) {}
+
+	void operator()(sol::variadic_args va)
+	{
+		std::stringstream cmd;
+		cmd << command_;
+		for (const auto& a : va)
+			cmd << " " << a.as<std::string_view>();
+
+		HideDoCommand(pLocalPlayer, cmd.str().c_str(), false);
+	}
+};
+
 struct lua_mq
 {
-	sol::object get(sol::stack_object key, sol::this_state L)
+	[[nodiscard]] sol::object get(sol::stack_object key, sol::this_state L) const
 	{
 		auto maybe_key = key.as<std::optional<std::string>>();
 		if (maybe_key)
 		{
-			MQDataItem* result;
-			result = FindMQ2Data(maybe_key->c_str());
-			if (result != nullptr)
-				return sol::object(L, sol::in_place, lua_MQDataItem(result));
+			{
+				MQDataItem* result = FindMQ2Data(maybe_key->c_str());
+				if (result != nullptr)
+					return sol::object(L, sol::in_place, lua_MQDataItem(result));
+			}
+
+			{
+				std::string maybe_command("/");
+				maybe_command += *maybe_key;
+				if (IsCommand(maybe_command.c_str()))
+					return sol::object(L, sol::in_place, lua_MQCommand(maybe_command));
+			}
 		}
 
 		return sol::object(L, sol::in_place, sol::lua_nil);
@@ -192,11 +266,41 @@ static void register_mq_type(sol::state& lua)
 		sol::meta_function::call, sol::overload(&lua_MQDataItem::call, &lua_MQDataItem::call_int, &lua_MQDataItem::call_empty),
 		sol::meta_function::index, &lua_MQDataItem::get);
 
-	lua.new_usertype<lua_mq>("mq",
+	lua.new_usertype<lua_MQCommand>("mqcommand",
+		sol::no_constructor);
+
+	lua.new_usertype<lua_mq>("mqbind",
 		sol::no_constructor,
 		sol::meta_function::index, &lua_mq::get);
 
-	lua["TLO"] = lua_mq();
+	lua["mq"] = lua_mq();
+}
+
+static void ForceYield(lua_State* L, lua_Debug* D)
+{
+	lua_yield(L, 0);
+}
+
+void LuaCommand(SPAWNINFO* pChar, char* Buffer)
+{
+	// TODO: change this to accept a path
+	// TODO: add a stop command that exploits hooks
+	// TODO: add a pause command that also exploits hooks (harder because we have to know to resume or not, store in paused vector)
+	auto x = sol::thread::create(s_lua);
+
+	s_instances.emplace_back(x);
+	sol::coroutine script = x.state().load(Buffer);
+
+	lua_sethook(x.state(), ForceYield, LUA_MASKCOUNT, TURBO_NUM);
+
+	try
+	{
+		auto result = script();
+	}
+	catch (sol::error& e)
+	{
+		MacroError("%s", e.what());
+	}
 }
 
 /**
@@ -209,16 +313,43 @@ PLUGIN_API void InitializePlugin()
 {
 	DebugSpewAlways("MQ2Lua::Initializing version %f", MQ2Version);
 
+	if (!std::filesystem::exists(s_luaDir) && !std::filesystem::create_directories(s_luaDir))
+	{
+		WriteChatf("Failed to open or create directory at %s. Scripts will not run.", s_luaDir.c_str());
+	}
+
 	s_lua.open_libraries(sol::lib::base);
 	register_mq_type(s_lua);
 
-	//s_lua.script("x = TLO.Me.PctHPs()\n"); // this is nil before a character is loaded, use to test nil handling
-	//s_lua.script("x = TLO.EverQuest.GameState\n");
-	s_lua.script("x = TLO.Int(20).Hex");
+	AddCommand("/lua", LuaCommand);
 
-	lua_MQTypeVar& x = s_lua["x"];
-	
-	WriteChatf("%s", (const char*)x.self.Ptr);
+	//	s_lua.safe_script("y = mq.Me.PctHPs\nx = (y == null)\n", sol::script_pass_on_error); // this is nil before a character is loaded, use to test nil handling
+	//	s_lua.script("x = mq.EverQuest.GameState\n");
+	//	s_lua.script("x = mq.Int(20).Hex\n");
+
+
+	// this will freeze the client!
+//	char cmd[] = R"(
+//function f ()
+//  x = 1
+//  while true
+//  do
+//    mq.echo(tostring(x))
+//    x = x + 1
+//  end
+//end
+//
+//co = coroutine.create(f)
+//
+//while true
+//do
+//  coroutine.resume(co)
+//end
+//)";
+
+	char cmd[] = "mq.echo(mq.EverQuest.GameState)\n";
+
+	LuaCommand(nullptr, cmd);// "y = mq.Int(20).Hex\nx = mq.EverQuest.GameState\n");
 
 	// Examples:
 	// AddCommand("/mycommand", MyCommand);
@@ -235,6 +366,8 @@ PLUGIN_API void InitializePlugin()
 PLUGIN_API void ShutdownPlugin()
 {
 	DebugSpewAlways("MQ2Lua::Shutting down");
+
+	RemoveCommand("/lua");
 
 	// Examples:
 	// RemoveCommand("/mycommand");
@@ -332,6 +465,26 @@ PLUGIN_API void SetGameState(int GameState)
  */
 PLUGIN_API void OnPulse()
 {
+	s_instances.erase(std::remove_if(
+		s_instances.begin(), s_instances.end(),
+		[](const sol::thread& thread) -> bool {
+			if (thread.status() == sol::thread_status::yielded)
+			{
+				try
+				{
+					lua_resume(thread.state(), nullptr, 0);
+					return false;
+				}
+				catch (sol::error& e)
+				{
+					MacroError("%s", e.what());
+					return true;
+				}
+			}
+
+			return true;
+		}),
+		s_instances.end());
 /*
 	static int PulseCount = 0;
 	// Skip ~500 pulses
