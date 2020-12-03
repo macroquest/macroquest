@@ -27,13 +27,16 @@ using namespace mq::datatypes;
 sol::state s_lua;
 std::filesystem::path s_luaDir = std::filesystem::path(gPathMQRoot) / "lua"; // TODO: can make this configurable
 
-ci_unordered::map<sol::state_view, sol::thread> s_instanceMap;
 std::vector<sol::thread> s_instances;
+std::vector<sol::thread> s_paused;
 
+struct lua_MQDataItem;
 struct lua_MQTypeVar
 {
 	MQTypeVar self_;
 	std::string member_;
+
+	lua_MQTypeVar() = default;
 
 	lua_MQTypeVar(const std::string& str)
 	{
@@ -50,134 +53,110 @@ struct lua_MQTypeVar
 	 */
 	lua_MQTypeVar(MQTypeVar&& self) : self_(std::move(self)) {}
 
-	lua_MQTypeVar(const lua_MQTypeVar& other) noexcept :
-		self_(other.self_), member_(other.member_)
-	{
-		evaluate_member();
-	}
-
-	lua_MQTypeVar(lua_MQTypeVar&& other) noexcept :
-		self_(std::move(other.self_)), member_(std::move(other.member_))
-	{
-		evaluate_member();
-	}
-
-	~lua_MQTypeVar() = default;
-
-	lua_MQTypeVar& operator=(lua_MQTypeVar other) noexcept
-	{
-		swap(*this, other);
-		return *this;
-	}
-
-	friend void swap(lua_MQTypeVar& first, lua_MQTypeVar& second) noexcept
-	{
-		using std::swap;
-		swap(first.self_, second.self_);
-		swap(first.member_, second.member_);
-	}
-
 	bool operator==(const lua_MQTypeVar& right) const
 	{
 		return self_ == right.self_;
 	}
 
-	void evaluate_member()
+	bool equal_data(const lua_MQDataItem& right) const;
+
+	lua_MQTypeVar evaluate_member(char* index = nullptr) const
 	{
-		if (self_.Type != nullptr && !member_.empty())
+		MQTypeVar result = self_;
+		if (result.Type != nullptr && !member_.empty())
 		{
-			char index[1] = "";
-			MQTypeVar result;
-			self_.Type->GetMember(self_.VarPtr, &member_[0], index, result);
+			if (result.Type->GetMember(result.VarPtr, &member_[0], index, result))
+				return lua_MQTypeVar(std::move(result));
 
-			self_ = result;
-			member_.clear();
-		}
-	}
-
-	sol::object call(std::string index, sol::this_state L)
-	{
-		if (self_.Type != nullptr && !member_.empty())
-		{
-			MQTypeVar result;
-			self_.Type->GetMember(self_.VarPtr, &member_[0], &index[0], result);
-
-			return sol::object(L, sol::in_place, lua_MQTypeVar(std::move(result)));
+			// can't guarantee result didn't get modified
+			return lua_MQTypeVar();
 		}
 
-		return sol::object(L, sol::in_place, sol::lua_nil);
+		return *this;
 	}
 
-	sol::object call_int(int index, sol::this_state L)
+	static std::string to_string(const lua_MQTypeVar& obj)
+	{
+		auto var = obj.evaluate_member();
+		if (var.self_.Type != nullptr)
+		{
+			char buf[2048] = { 0 };
+			var.self_.Type->ToString(var.self_, buf);
+			return std::string(std::move(buf));
+		}
+
+		return "null";
+	}
+
+	sol::object call(std::string index, sol::this_state L) const
+	{
+		return sol::object(L, sol::in_place, lua_MQTypeVar(evaluate_member(&index[0])));
+	}
+
+	sol::object call_int(int index, sol::this_state L) const
 	{
 		return call(std::to_string(index), L);
 	}
 
-	sol::object call_empty(sol::this_state L)
+	sol::object call_empty(sol::this_state L) const
 	{
-		if (self_.Type != nullptr && !member_.empty())
-		{
-			char index[1] = "";
-			MQTypeVar result;
-			self_.Type->GetMember(self_.VarPtr, &member_[0], index, result);
-
-			return sol::object(L, sol::in_place, lua_MQTypeVar(std::move(result)));
-		}
-
-		return sol::object(L, sol::in_place, sol::lua_nil);
+		return sol::object(L, sol::in_place, lua_MQTypeVar(evaluate_member()));
 	}
 
-	sol::object get(sol::stack_object key, sol::this_state L)
+	sol::object get(sol::stack_object key, sol::this_state L) const
 	{
+		auto var = lua_MQTypeVar(evaluate_member());
 		auto maybe_key = key.as<std::optional<std::string_view>>();
-		if (maybe_key && self_.Type != nullptr)
-		{
-			if (!member_.empty())
-			{
-				char index[1] = "";
-				self_.Type->GetMember(self_.VarPtr, &member_[0], index, self_);
-			}
 
-			member_ = *maybe_key;
-			return sol::object(L, sol::in_place, *this);
-		}
+		if (maybe_key)
+			var.member_ = *maybe_key;
 
-		return sol::object(L, sol::in_place, sol::lua_nil);
+		return sol::object(L, sol::in_place, var);
 	}
 };
-
-std::ostream& operator<<(std::ostream& os, lua_MQTypeVar& right)
-{
-	right.evaluate_member();
-
-	if (right.self_.Type != nullptr)
-	{
-		char buf[2048] = { 0 };
-		right.self_.Type->ToString(right.self_, buf);
-		os << buf;
-	}
-	return os;
-}
 
 struct lua_MQDataItem
 {
 	const MQDataItem* const self_;
+
+	lua_MQDataItem() : self_(nullptr) {}
 
 	// this will allow users an alternate way to get data items
 	lua_MQDataItem(const std::string& str) : self_(FindMQ2Data(str.c_str())) {}
 
 	lua_MQDataItem(const MQDataItem* const self) : self_(self) {}
 
+	lua_MQTypeVar evaluate_self() const
+	{
+		MQTypeVar result;
+		if (self_ != nullptr)
+			self_->Function("", result);
+
+		return lua_MQTypeVar(std::move(result));
+	}
+
+	bool operator==(const lua_MQDataItem& right) const
+	{
+		return evaluate_self().self_ == right.evaluate_self().self_;
+	}
+
+	bool equal_var(const lua_MQTypeVar& right) const
+	{
+		return evaluate_self().self_ == right.evaluate_member().self_;
+	}
+
+	static std::string to_string(const lua_MQDataItem& data)
+	{
+		return lua_MQTypeVar::to_string(data.evaluate_self());
+	}
+
 	[[nodiscard]] sol::object call(const std::string& index, sol::this_state L) const
 	{
-		if (self_ != nullptr)
-		{
-			MQTypeVar result;
-			if (self_->Function(index.c_str(), result))
-				return sol::object(L, sol::in_place, lua_MQTypeVar(std::move(result)));
-		}
+		MQTypeVar result;
+		if (self_ != nullptr && self_->Function(index.c_str(), result))
+			return sol::object(L, sol::in_place, lua_MQTypeVar(std::move(result)));
 
-		return sol::object(L, sol::in_place, sol::lua_nil);
+		return sol::object(L, sol::in_place, lua_MQTypeVar());
 	}
 
 	[[nodiscard]] sol::object call_int(int index, sol::this_state L) const
@@ -187,30 +166,100 @@ struct lua_MQDataItem
 
 	[[nodiscard]] sol::object call_empty(sol::this_state L) const
 	{
-		if (self_ != nullptr)
-		{
-			MQTypeVar result;
-			if (self_->Function("", result))
-				return sol::object(L, sol::in_place, lua_MQTypeVar(std::move(result)));
-		}
+		MQTypeVar result;
+		if (self_ != nullptr && self_->Function("", result))
+			return sol::object(L, sol::in_place, lua_MQTypeVar(std::move(result)));
 
-		return sol::object(L, sol::in_place, sol::lua_nil);
+		return sol::object(L, sol::in_place, lua_MQTypeVar());
 	}
 
 	[[nodiscard]] sol::object get(sol::stack_object key, sol::this_state L) const
 	{
-		if (self_ != nullptr)
-		{
-			MQTypeVar result;
-			if (self_->Function("", result))
-			{
-				return lua_MQTypeVar(std::move(result)).get(key, L);
-			}
-		}
+		MQTypeVar result;
+		if (self_ != nullptr && self_->Function("", result))
+			return lua_MQTypeVar(std::move(result)).get(key, L);
 
-		return sol::object(L, sol::in_place, sol::lua_nil);
+		return sol::object(L, sol::in_place, lua_MQTypeVar());
 	}
 };
+
+bool lua_MQTypeVar::equal_data(const lua_MQDataItem& right) const
+{
+	return evaluate_member().self_ == right.evaluate_self().self_;
+}
+
+template <typename Handler>
+bool sol_lua_check(sol::types<lua_MQTypeVar>, lua_State* L, int index, Handler&& handler, sol::stack::record& tracking)
+{
+	if (!sol::stack::check_usertype<lua_MQTypeVar>(L, index) &&
+		!sol::stack::check_usertype<lua_MQDataItem>(L, index) &&
+		!sol::stack::check<sol::lua_nil_t>(L, index))
+	{
+		handler(L, index, sol::type_of(L, index), sol::type::userdata, "Expected an MQ type");
+		return false;
+	}
+	tracking.use(1);
+	return true;
+}
+
+lua_MQTypeVar sol_lua_get(sol::types<lua_MQTypeVar>, lua_State* L, int index, sol::stack::record& tracking)
+{
+	if (sol::stack::check_usertype<lua_MQTypeVar>(L, index))
+	{
+		lua_MQTypeVar& var = sol::stack::get_usertype<lua_MQTypeVar>(L, index, tracking);
+		var.evaluate_member();
+		return var;
+	}
+
+	if (sol::stack::check_usertype<lua_MQDataItem>(L, index))
+	{
+		lua_MQDataItem& data = sol::stack::get_usertype<lua_MQDataItem>(L, index, tracking);
+		return data.evaluate_self();
+	}
+
+	return lua_MQTypeVar();
+}
+
+template <typename Handler>
+bool sol_lua_check(sol::types<lua_MQDataItem>, lua_State* L, int index, Handler&& handler, sol::stack::record& tracking)
+{
+	if (!sol::stack::check_usertype<lua_MQDataItem>(L, index) &&
+		!sol::stack::check<sol::lua_nil_t>(L, index))
+	{
+		handler(L, index, sol::type_of(L, index), sol::type::userdata, "Expected an MQ type");
+		return false;
+	}
+	tracking.use(1);
+	return true;
+}
+
+lua_MQDataItem sol_lua_get(sol::types<lua_MQDataItem>, lua_State* L, int index, sol::stack::record& tracking)
+{
+	if (sol::stack::check_usertype<lua_MQDataItem>(L, index))
+	{
+		lua_MQDataItem& data = sol::stack::get_usertype<lua_MQDataItem>(L, index, tracking);
+		return data;
+	}
+
+	return lua_MQDataItem();
+}
+
+// this doesn't do what I think it does...
+//int sol_lua_push(lua_State* L, const lua_MQTypeVar& var)
+//{
+//	if (!var.member_.empty())
+//		return sol::stack::push(L, var.evaluate_member());
+//	else
+//	{
+//		auto x = sol::userdata_value((void*)&var);
+//		return sol::stack::unqualified_pusher<sol::userdata_value>::push(L, x);
+//	}
+//}
+//
+//int sol_lua_push(lua_State* L, const lua_MQDataItem& data)
+//{
+//	return sol::stack::push(L, data.evaluate_self());
+//}
 
 struct lua_MQCommand
 {
@@ -223,7 +272,11 @@ struct lua_MQCommand
 		std::stringstream cmd;
 		cmd << command_;
 		for (const auto& a : va)
-			cmd << " " << a.as<std::string_view>();
+		{
+			auto value = luaL_tolstring(a.lua_state(), a.stack_index(), NULL);
+			if (value != nullptr && strlen(value) > 0)
+				cmd << " " << value;
+		}
 
 		HideDoCommand(pLocalPlayer, cmd.str().c_str(), false);
 	}
@@ -256,15 +309,21 @@ struct lua_mq
 
 static void register_mq_type(sol::state& lua)
 {
+	lua.open_libraries(sol::lib::base);
+
 	lua.new_usertype<lua_MQTypeVar>("mqtype",
-		sol::constructors<lua_MQTypeVar(const std::string&), lua_MQTypeVar(lua_MQTypeVar&)>(),
+		sol::constructors<lua_MQTypeVar(const std::string&)>(),
 		sol::meta_function::call, sol::overload(&lua_MQTypeVar::call, &lua_MQTypeVar::call_int, &lua_MQTypeVar::call_empty),
-		sol::meta_function::index, &lua_MQTypeVar::get);
+		sol::meta_function::index, &lua_MQTypeVar::get,
+		sol::meta_function::to_string, lua_MQTypeVar::to_string,
+		sol::meta_function::equal_to, sol::overload(&lua_MQTypeVar::operator==, &lua_MQTypeVar::equal_data));
 
 	lua.new_usertype<lua_MQDataItem>("mqdata",
-		sol::constructors<lua_MQDataItem(const std::string&), lua_MQDataItem(lua_MQDataItem&)>(),
+		sol::constructors<lua_MQDataItem(const std::string&)>(),
 		sol::meta_function::call, sol::overload(&lua_MQDataItem::call, &lua_MQDataItem::call_int, &lua_MQDataItem::call_empty),
-		sol::meta_function::index, &lua_MQDataItem::get);
+		sol::meta_function::index, &lua_MQDataItem::get,
+		sol::meta_function::to_string, lua_MQDataItem::to_string,
+		sol::meta_function::equal_to, sol::overload(&lua_MQDataItem::operator==, &lua_MQDataItem::equal_var));
 
 	lua.new_usertype<lua_MQCommand>("mqcommand",
 		sol::no_constructor);
@@ -274,6 +333,7 @@ static void register_mq_type(sol::state& lua)
 		sol::meta_function::index, &lua_mq::get);
 
 	lua["mq"] = lua_mq();
+	lua["null"] = lua_MQTypeVar();
 }
 
 static void ForceYield(lua_State* L, lua_Debug* D)
@@ -287,19 +347,20 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 	// TODO: add a stop command that exploits hooks
 	// TODO: add a pause command that also exploits hooks (harder because we have to know to resume or not, store in paused vector)
 	auto x = sol::thread::create(s_lua);
-
-	s_instances.emplace_back(x);
-	sol::coroutine script = x.state().load(Buffer);
-
-	lua_sethook(x.state(), ForceYield, LUA_MASKCOUNT, TURBO_NUM);
-
 	try
 	{
+		s_instances.emplace_back(x);
+		sol::coroutine script = x.state().load(Buffer);
+
+		lua_sethook(x.state(), ForceYield, LUA_MASKCOUNT, TURBO_NUM);
+
 		auto result = script();
 	}
 	catch (sol::error& e)
 	{
 		MacroError("%s", e.what());
+		if (s_instances.back() == x)
+			s_instances.pop_back();
 	}
 }
 
@@ -318,7 +379,6 @@ PLUGIN_API void InitializePlugin()
 		WriteChatf("Failed to open or create directory at %s. Scripts will not run.", s_luaDir.c_str());
 	}
 
-	s_lua.open_libraries(sol::lib::base);
 	register_mq_type(s_lua);
 
 	AddCommand("/lua", LuaCommand);
@@ -472,7 +532,8 @@ PLUGIN_API void OnPulse()
 			{
 				try
 				{
-					lua_resume(thread.state(), nullptr, 0);
+					int nresults;
+					lua_resume(thread.state(), nullptr, 0, &nresults);
 					return false;
 				}
 				catch (sol::error& e)
