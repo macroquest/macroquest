@@ -1,3 +1,6 @@
+Dec 04 2020
+- Updated for BETA
+-
 Dec 03 2020
 - Updated for BETA
 - Added WarforgedEmblem and RestlessMark Currencies - Sic
