@@ -240,116 +240,115 @@ static inline VOID SetCCXStr(PCXSTR *cxstr, PCHAR text)
 // actual size 0x1F8 in Nov 10 2020 Beta (see 0x93FAAD) - eqmule
 // actual size 0x1E8 in Nov 18 2020 Beta (see 0x93E53D) - eqmule
 // actual size 0x1F0 in Nov 19 2020 Beta (see 0x93F30D) - eqmule
-// actual size 0x1E0 in Nov 21 2020 Beta (see 0x9406CD) - eqmule
+// actual size 0x1E0 in Nov 22 2020 Beta (see 0x93F94D) - eqmule
 #define CXW_NO_VTABLE \
 private: \
 CXW_NO_VTABLE_BEGIN \
-/*0x001C*/ int		managerArrayIndex; \
-/*0x0020*/ int		BlinkDuration; \
-/*0x0024*/ DWORD	BGType;         /* found in CSidlScreenWnd__StoreIniInfo_x */ \
-/*0x0028*/ int		BlinkState; \
-/*0x002C*/ bool bClickThroughMenuItemStatus; /* on/off */ \
-/*0x0030*/ RECT		OldLocation; \
-/*0x0040*/ COLORREF DisabledBackground; \
-/*0x0044*/ int		HScrollPos; \
-/*0x0048*/ tagSIZE	MaxClientSize; \
-/*0x0050*/ int		HScrollMax; \
-/*0x0054*/ UINT		TransitionStartTick; \
-/*0x0058*/ int	Transition; \
-/*0x005C*/ bool		bBringToTopWhenClicked; \
-/*0x005D*/ bool		bActive; \
-/*0x005E*/ bool		bClipToParent; \
-/*0x0060*/ int		ZLayer; /* found in CXWndManager__DrawWindows_x */ \
-/*0x0064*/ int		LeftOffset; \
-/*0x0068*/ bool		bBottomAnchoredToTop; \
-/*0x006C*/ COLORREF	CRNormal; /* found in OnProcessFrame */ \
-/*0x0070*/ int		TopOffset; \
-/*0x0074*/ RECT		TransitionRect; \
-/*0x0084*/ bool		bUseInLayoutVertical; \
-/*0x0088*/ void	*DrawTemplate; \
-/*0x008C*/ LONG		BlinkStartTimer; \
-/*0x0090*/ void *pController; \
-/*0x0094*/ bool		bNeedsSaving; /* will be true if you move or resize the window */ \
-/*0x0098*/ int		VScrollPos; \
-/*0x009C*/ bool		bMaximizable; \
-/*0x009D*/ bool		bLeftAnchoredToLeft; \
-/*0x00A0*/ int		RightOffset; \
-/*0x00A4*/ RECT		ClipRectClient; \
-/*0x00B4*/ bool		Clickable;      /* found in CChatWindow__CChatWindow_x and the button handlers */ \
-/*0x00B5*/ bool		bScreenClipRectChanged; \
-/*0x00B8*/ struct _CXSTR*	DataStr; \
-/*0x00BC*/ bool		bClientRectChanged; \
-/*0x00BD*/ bool		bHCenterTooltip; \
-/*0x00BE*/ bool		bClientClipRectChanged; \
-/*0x00BF*/ bool bShowClickThroughMenuItem;	/*shows/hides the click through option on the window menu*/ \
-/*0x00C0*/ DWORD	XMLIndex; \
-/*0x00C4*/ BYTE		FadeAlpha; \
-/*0x00C5*/ bool		bRightAnchoredToLeft; \
-/*0x00C6*/ BYTE     bResizableMask; \
-/*0x00C8*/ void	    *pFont; \
-/*0x00CC*/ int		VScrollMax; \
-/*0x00D0*/ UINT		LastBlinkFadeRefreshTime; \
-/*0x00D4*/ RECT		ClientRect; \
-/*0x00E4*/ RECT		IconRect; \
-/*0x00F4*/ DWORD	FadeDelay; \
-/*0x00F8*/ RECT		Location; \
-/*0x0108*/ struct _CXSTR*	XMLToolTip; /* found in CSidlManager__CreateLabel_x */ \
-/*0x010C*/ void	*IconTextureAnim; \
-/*0x0110*/ bool		bUseInLayoutHorizontal; \
-/*0x0111*/ bool		bMaximized; \
-/*0x0112*/ bool		MouseOver; /* found in CXWnd__SetMouseOver_x */ \
-/*0x0118*/ __int64		Data; \
-/*0x0120*/ int		BottomOffset; \
-/*0x0124*/ UINT		BlinkFadeStartTime; \
-/*0x0128*/ bool		Minimized; \
-/*0x0129*/ bool bClickThrough; /* if true you can click through the window, well it doesnt work for our chatwindow (yet) so more work is needed to figure out why */ \
-/*0x012C*/ struct _CSIDLWND*		pParentWindow; /* CXWnd__IsDescendantOf_x has this one, If this is NULL, coordinates are absolute... */ \
-/*0x0130*/ RECT		ClipRectScreen; \
-/*0x0140*/ bool		ValidCXWnd; /* IsValid has this one */ \
-/*0x0141*/ bool		bEscapableLocked; \
-/*0x0144*/ ArrayClass2_RO<UINT> RuntimeTypes; /* Size 0x18 */ \
-/*0x015C*/ bool		bKeepOnScreen; \
-/*0x0160*/ void		*pLayoutStrategy; \
-/*0x0164*/ int		ParentAndContextMenuArrayIndex; \
-/*0x0168*/ DWORD	WindowStyle;    /* bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border */ \
-/*0x016C*/ bool		bAction; \
-/*0x016D*/ bool		Locked; /* found in CSidlScreenWnd__LoadIniInfo_x */ \
-/*0x016E*/ BYTE		StartAlpha; \
-/*0x0170*/ void* pTipTextObject; \
-/*0x0174*/ void*	pTextObject; \
-/*0x0178*/ bool		Fades; \
-/*0x017C*/ void   *TitlePiece2; \
-/*0x0180*/ BYTE		Alpha; \
-/*0x0181*/ bool		bMarkedForDelete; \
-/*0x0184*/ UINT		TransitionDuration; \
-/*0x0188*/ bool		Unlockable;     /* found in CSidlScreenWnd__LoadIniInfo_x related to Locked */ \
-/*0x018C*/ struct _CXSTR*	Tooltip; /* found in CSidlManager__CreateLabel_x */ \
-/*0x0190*/ bool		Faded; \
-/*0x0191*/ bool		CloseOnESC;     /* found in CSidlScreenWnd__StoreIniInfo_x, close when ESC is pressed */ \
-/*0x0192*/ bool		bBorder2; \
-/*0x0193*/ bool		bBorder; \
-/*0x0194*/ DWORD  BackgroundDrawType; \
-/*0x0198*/ BYTE		FadeToAlpha; /* found in CSidlScreenWnd__StoreIniInfo_x */ \
-/*0x019C*/ void   *TitlePiece; \
-/*0x01A0*/ bool		bCaptureTitle; \
-/*0x01A1*/ bool		bTopAnchoredToTop; \
-/*0x01A4*/ tagSIZE	MinClientSize; \
-/*0x01AC*/ UINT		BlinkFadeDuration; \
-/*0x01B0*/ bool		Enabled; \
-/*0x01B1*/ bool		dShow; \
-/*0x01B4*/ struct _CXSTR*	WindowText; /* CXWnd__GetWindowTextA_x has this one */ \
-/*0x01B8*/ COLORREF	BGColor; /* DO NOT CHNAGE THIS TO AN ARGBCOLOR, it will break the padding since its a union that has bytes in it. */ \
-/*0x01BC*/ UINT		FadeDuration; \
-/*0x01C0*/ bool		bTiled; \
-/*0x01C1*/ bool		bIsParentOrContextMenuWindow; \
-/*0x01C2*/ bool		bFullyScreenClipped; \
-/*0x01C4*/ UINT		BlinkFadeFreq; \
-/*0x01C8*/ DWORD	LastTimeMouseOver; \
-/*0x01CC*/ BYTE		TargetAlpha; \
-/*0x01D0*/ int		DeleteCount; \
-/*0x01D4*/ bool		bIsTransitioning; \
-/*0x01D8*/ struct _CSIDLWND* pWndFocusOther; \
-/*0x01DC*/ BYTE Filler0x01DC[0x4]; \
+/*0x001C*/ RECT		TransitionRect; \
+/*0x002C*/ COLORREF DisabledBackground; \
+/*0x0030*/ int		DeleteCount; \
+/*0x0034*/ bool		Enabled; \
+/*0x0035*/ bool		bFullyScreenClipped; \
+/*0x0038*/ DWORD	WindowStyle;    /* bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border */ \
+/*0x003C*/ bool		bBringToTopWhenClicked; \
+/*0x003D*/ bool		Locked; /* found in CSidlScreenWnd__LoadIniInfo_x */ \
+/*0x0040*/ UINT		FadeDuration; \
+/*0x0044*/ bool		bActive; \
+/*0x0048*/ ArrayClass2_RO<UINT> RuntimeTypes; /* Size 0x18 */ \
+/*0x0060*/ bool		ValidCXWnd; /* IsValid has this one */ \
+/*0x0061*/ BYTE		TargetAlpha; \
+/*0x0062*/ bool		bMaximizable; \
+/*0x0064*/ int		managerArrayIndex; \
+/*0x0068*/ bool		bScreenClipRectChanged; \
+/*0x006C*/ tagSIZE	MinClientSize; \
+/*0x0074*/ int	Transition; \
+/*0x0078*/ bool		Unlockable;     /* found in CSidlScreenWnd__LoadIniInfo_x related to Locked */ \
+/*0x007C*/ RECT		IconRect; \
+/*0x008C*/ void	*DrawTemplate; \
+/*0x0090*/ bool		bNeedsSaving; /* will be true if you move or resize the window */ \
+/*0x0091*/ bool		CloseOnESC;     /* found in CSidlScreenWnd__StoreIniInfo_x, close when ESC is pressed */ \
+/*0x0094*/ RECT		OldLocation; \
+/*0x00A4*/ tagSIZE	MaxClientSize; \
+/*0x00AC*/ bool		bBorder; \
+/*0x00B0*/ UINT		BlinkFadeDuration; \
+/*0x00B4*/ bool		bBottomAnchoredToTop; \
+/*0x00B8*/ int		HScrollMax; \
+/*0x00BC*/ int		ParentAndContextMenuArrayIndex; \
+/*0x00C0*/ BYTE		Alpha; \
+/*0x00C4*/ struct _CSIDLWND* pWndFocusOther; \
+/*0x00C8*/ DWORD	FadeDelay; \
+/*0x00CC*/ LONG		BlinkStartTimer; \
+/*0x00D0*/ struct _CSIDLWND*		pParentWindow; /* CXWnd__IsDescendantOf_x has this one, If this is NULL, coordinates are absolute... */ \
+/*0x00D4*/ bool		bEscapableLocked; \
+/*0x00D8*/ int		TopOffset; \
+/*0x00DC*/ struct _CXSTR*	XMLToolTip; /* found in CSidlManager__CreateLabel_x */ \
+/*0x00E0*/ void* pTipTextObject; \
+/*0x00E4*/ bool		bHCenterTooltip; \
+/*0x00E5*/ bool		bBorder2; \
+/*0x00E6*/ BYTE		StartAlpha; \
+/*0x00E7*/ bool		bClipToParent; \
+/*0x00E8*/ int		BlinkState; \
+/*0x00EC*/ int		HScrollPos; \
+/*0x00F0*/ UINT		BlinkFadeStartTime; \
+/*0x00F4*/ DWORD  BackgroundDrawType; \
+/*0x00F8*/ void   *TitlePiece; \
+/*0x00FC*/ UINT		LastBlinkFadeRefreshTime; \
+/*0x0100*/ struct _CXSTR*	DataStr; \
+/*0x0104*/ bool		Fades; \
+/*0x0108*/ DWORD	BGType;         /* found in CSidlScreenWnd__StoreIniInfo_x */ \
+/*0x010C*/ bool		bTopAnchoredToTop; \
+/*0x0110*/ UINT		TransitionDuration; \
+/*0x0114*/ BYTE		FadeToAlpha; /* found in CSidlScreenWnd__StoreIniInfo_x */ \
+/*0x0118*/ DWORD	XMLIndex; \
+/*0x011C*/ bool		Minimized; \
+/*0x0120*/ void   *TitlePiece2; \
+/*0x0124*/ struct _CXSTR*	Tooltip; /* found in CSidlManager__CreateLabel_x */ \
+/*0x0128*/ int		BottomOffset; \
+/*0x012C*/ void *pController; \
+/*0x0130*/ bool		bMaximized; \
+/*0x0131*/ bool		Faded; \
+/*0x0134*/ int		VScrollMax; \
+/*0x0138*/ int		RightOffset; \
+/*0x013C*/ struct _CXSTR*	WindowText; /* CXWnd__GetWindowTextA_x has this one */ \
+/*0x0140*/ RECT		ClipRectScreen; \
+/*0x0150*/ __int64		Data; \
+/*0x0158*/ bool		bClientRectChanged; \
+/*0x0159*/ bool		MouseOver; /* found in CXWnd__SetMouseOver_x */ \
+/*0x015C*/ COLORREF	BGColor; /* DO NOT CHNAGE THIS TO AN ARGBCOLOR, it will break the padding since its a union that has bytes in it. */ \
+/*0x0160*/ BYTE		FadeAlpha; \
+/*0x0161*/ bool		bIsTransitioning; \
+/*0x0164*/ RECT		ClipRectClient; \
+/*0x0174*/ void		*pLayoutStrategy; \
+/*0x0178*/ BYTE     bResizableMask; \
+/*0x017C*/ RECT		Location; \
+/*0x018C*/ bool		bAction; \
+/*0x0190*/ DWORD	LastTimeMouseOver; \
+/*0x0194*/ RECT		ClientRect; \
+/*0x01A4*/ COLORREF	CRNormal; /* found in OnProcessFrame */ \
+/*0x01A8*/ bool		bCaptureTitle; \
+/*0x01A9*/ bool		bUseInLayoutVertical; \
+/*0x01AC*/ int		VScrollPos; \
+/*0x01B0*/ int		ZLayer; /* found in CXWndManager__DrawWindows_x */ \
+/*0x01B4*/ int		BlinkDuration; \
+/*0x01B8*/ UINT		BlinkFadeFreq; \
+/*0x01BC*/ bool		bLeftAnchoredToLeft; \
+/*0x01BD*/ bool		dShow; \
+/*0x01BE*/ bool		bClientClipRectChanged; \
+/*0x01BF*/ bool bClickThrough; /* if true you can click through the window, well it doesnt work for our chatwindow (yet) so more work is needed to figure out why */ \
+/*0x01C0*/ void	    *pFont; \
+/*0x01C4*/ void	*IconTextureAnim; \
+/*0x01C8*/ int		LeftOffset; \
+/*0x01CC*/ bool bShowClickThroughMenuItem;	/*shows/hides the click through option on the window menu*/ \
+/*0x01CD*/ bool		bKeepOnScreen; \
+/*0x01D0*/ void*	pTextObject; \
+/*0x01D4*/ bool		bUseInLayoutHorizontal; \
+/*0x01D5*/ bool bClickThroughMenuItemStatus; /* on/off */ \
+/*0x01D6*/ bool		bMarkedForDelete; \
+/*0x01D7*/ bool		bRightAnchoredToLeft; \
+/*0x01D8*/ bool		bIsParentOrContextMenuWindow; \
+/*0x01D9*/ bool		Clickable;      /* found in CChatWindow__CChatWindow_x and the button handlers */ \
+/*0x01DA*/ bool		bTiled; \
+/*0x01DC*/ UINT		TransitionStartTick; \
 /*0x01E0*/ \
 public: \
 			bool IsVisible() \
@@ -1758,7 +1757,7 @@ typedef struct _INVENTORYWND {
 //everything below it is 100% checked -eqmule
 
 //CBazaarSearchWnd__CBazaarSearchWnd aBazaarsearchwn
-// CBazaarSearchWnd_size: 0x92c8 (see 55AC5E) in Nov 21 2020 Beta - eqmule
+// CBazaarSearchWnd_size: 0x92c8 (see 55B8CE) in Nov 22 2020 Beta - eqmule
 typedef struct _BAZAARSEARCHWND {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0228*/ BYTE         Unknown0x0228[0x8ff8];
@@ -1770,7 +1769,7 @@ typedef struct _BAZAARSEARCHWND {
 
 //CPlayerWindow__CPlayerWindow aPlayerwindow
 //Note to self: cant actually find CombatState in it, so no point in looking through IDA for it, but it IS the last dword... so... until that changes, im just gonna accept it...
-// CPlayerWindow_size: 0x2e0 (see 55A54E) in Nov 21 2020 Beta - eqmule
+// CPlayerWindow_size: 0x2e0 (see 55B1BE) in Nov 22 2020 Beta - eqmule
 typedef struct _CPLAYERWND {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0228*/ BYTE         Unknown0x0228[0xb0];
@@ -1780,7 +1779,7 @@ typedef struct _CPLAYERWND {
 } CPLAYERWND, *PCPLAYERWND;
 
 // CTargetWindow__CTargetWindow aTargetwindow
-// CTargetWindow_size: 0x8c0 (see 55A3E5) in Nov 21 2020 Beta - eqmule
+// CTargetWindow_size: 0x8c0 (see 55B055) in Nov 22 2020 Beta - eqmule
 typedef struct _CTARGETWND {
 /*0x0000*/ struct _CSIDLWND    Wnd;
 /*0x0228*/ BYTE         Unknown0x0228[0x198];
@@ -1800,7 +1799,7 @@ typedef struct _CTARGETWND {
 
 // CBuffWindow__CBuffWindow aBuffwindow
 // this is used for both long and shortbuffs...
-// CBuffWindow_size: 0x710 (see 55A289) in Nov 21 2020 Beta - eqmule
+// CBuffWindow_size: 0x710 (see 55AEF9) in Nov 22 2020 Beta - eqmule
 typedef struct _EQBUFFWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0228*/ BYTE         Unknown0x0228[0xbc];
@@ -1817,7 +1816,7 @@ typedef struct _EQBUFFWINDOW {
 
 // CSpellGemWnd__CSpellGemWnd
 // Individual Gems 
-// CSpellGemWnd_size: 0x318 (see 7FD37B) in Nov 21 2020 Beta - eqmule
+// CSpellGemWnd_size: 0x318 (see 7FBDBB) in Nov 22 2020 Beta - eqmule
 typedef struct _EQCASTSPELLGEM {
 /*0x0000*/ struct _CBUTTONWND        Wnd;
 /*0x0278*/ int			MouseButtonState;//correct
@@ -1845,7 +1844,7 @@ typedef struct _EQCASTSPELLGEM {
 
 //pinstCCastSpellWnd_x
 // CCastSpellWnd__CCastSpellWnd aCastspellwnd
-// CCastSpellWnd_size: 0x2c8 (see 55A647) in Nov 21 2020 Beta - eqmule
+// CCastSpellWnd_size: 0x2c8 (see 55B2B7) in Nov 22 2020 Beta - eqmule
 typedef struct _EQCASTSPELLWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0228*/ BYTE         Unknown0x0228[0x14];
@@ -1855,7 +1854,7 @@ typedef struct _EQCASTSPELLWINDOW {
 } EQCASTSPELLWINDOW, *PEQCASTSPELLWINDOW;
 
 //note that Invslot needs to be a short or pickupitem wont work
-// CInvSlotWnd_size: 0x2c8 (see 7FD48C) in Nov 21 2020 Beta - eqmule
+// CInvSlotWnd_size: 0x2c8 (see 7FBECC) in Nov 22 2020 Beta - eqmule
 typedef struct _EQINVSLOTWND {
 /*0x0000*/ struct _CBUTTONWND	ButtonWnd;
 /*0x0278*/ void*				pTABackground;//CTextureAnimation
@@ -1891,7 +1890,7 @@ typedef struct _EQINVSLOTWND {
 } EQINVSLOTWND, *PEQINVSLOTWND;
 
 // CItemDisplayWindow__CItemDisplayWindow aItemdisplaywin
-// CItemDisplayWindow_size: 0x620 (see 75FFA2) in Nov 21 2020 Beta - eqmule
+// CItemDisplayWindow_size: 0x620 (see 75EC32) in Nov 22 2020 Beta - eqmule
 typedef struct _EQITEMWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0228*/ struct _CSIDLWND *Description;
@@ -1954,7 +1953,7 @@ typedef struct _EQITEMWINDOW {
 } EQITEMWINDOW, *PEQITEMWINDOW;
 
 //CLootWnd__CLootWnd aLootwnd
-// CLootWnd_size: 0x390 (see 55A9B6) in Nov 21 2020 Beta - eqmule
+// CLootWnd_size: 0x390 (see 55B626) in Nov 22 2020 Beta - eqmule
 typedef struct _EQLOOTWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0228*/ void*        vftable; // for CLootWnd::DialogResponse handler
@@ -1981,7 +1980,7 @@ typedef struct _EQLOOTWINDOW {
 
 // pLines address = 0x254 + 0x035c = 0x05b0 (address of pMapViewMapVfTable)
 // CMapViewWnd__CMapViewWnd_x
-// CMapViewWnd_size: 0x638 (see 55A0EA) in Nov 21 2020 Beta - eqmule
+// CMapViewWnd_size: 0x638 (see 55AD5A) in Nov 22 2020 Beta - eqmule
 typedef struct _EQMAPWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0228*/ BYTE         Unknown0x0228[0x40];
@@ -2017,7 +2016,7 @@ void *other;
 void *other2;
 };
 //CMerchantWnd__CMerchantWnd_x (aMerchantwnd)
-// CMerchantWnd_size: 0x440 (see 55AB12) in Nov 21 2020 Beta - eqmule
+// CMerchantWnd_size: 0x440 (see 55B782) in Nov 22 2020 Beta - eqmule
 typedef struct _EQMERCHWINDOW {
 /*0x0000*/ struct _CSIDLWND Wnd;
 /*0x0228*/ BYTE         Unknown0x0228[0x10];
@@ -2031,7 +2030,7 @@ typedef struct _EQMERCHWINDOW {
 } EQMERCHWINDOW, *PEQMERCHWINDOW;
 
 //CPetInfoWindow__CPetInfoWindow aPetinfowindow
-// CPetInfoWindow_size: 0x8c0 (see 559B41) in Nov 21 2020 Beta - eqmule
+// CPetInfoWindow_size: 0x8c0 (see 55A7B1) in Nov 22 2020 Beta - eqmule
 typedef struct _EQPETINFOWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0228*/ DWORD PetSpawnID;//The pets SpawnID
@@ -2065,7 +2064,7 @@ typedef struct _EQPETINFOWINDOW {
 
 //CRaidWindow__CRaidWindow
 //aClasscolorD
-// CRaidWindow_size: 0x398 (see 559E32) in Nov 21 2020 Beta - eqmule
+// CRaidWindow_size: 0x398 (see 55AAA2) in Nov 22 2020 Beta - eqmule
 typedef struct _EQRAIDWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0228*/ BYTE         Unknown0x0228[0xb0];
@@ -2075,7 +2074,7 @@ typedef struct _EQRAIDWINDOW {
 } EQRAIDWINDOW, *PEQRAIDWINDOW;
 
 //CTradeWnd__CTradeWnd aTradewnd
-// CTradeWnd__size: 0x2e8 (see 55ABB8) in Nov 21 2020 Beta - eqmule
+// CTradeWnd__size: 0x2e8 (see 55B828) in Nov 22 2020 Beta - eqmule
 typedef struct _EQTRADEWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0228*/ BYTE         Unknown0x0228[0xb8];
@@ -2087,7 +2086,7 @@ typedef struct _EQTRADEWINDOW {
 } EQTRADEWINDOW, *PEQTRADEWINDOW;
 
 //CFactionWnd__CFactionWnd_x aFactionwnd
-// CFactionWnd__size: 0x270 (see 55AD04) in Nov 21 2020 Beta - eqmule
+// CFactionWnd__size: 0x270 (see 55B974) in Nov 22 2020 Beta - eqmule
 typedef struct _EQFACTIONWINDOW {
 /*0x0000*/ struct _CSIDLWND Wnd;
 /*0x0228*/ int			Unknown0x0228;
