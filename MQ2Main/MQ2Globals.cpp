@@ -159,7 +159,7 @@ namespace MQ2Globals
 		ppSocialEditWnd = (CSocialEditWnd**)pinstCSocialEditWnd;
 		ppContainerMgr = (CContainerMgr**)pinstCContainerMgr;
 		ppChatManager = (CChatManager**)pinstCChatWindowManager;
-		ppFacePick = (CFacePick**)pinstCFacePick;
+		ppPlayerCustomizationWnd = (CPlayerCustomizationWnd**)pinstCPlayerCustomizationWnd;
 #if !defined(ROF2EMU) && !defined(UFEMU)
 		ppFactionWnd = (CFactionWnd**)pinstCFactionWnd;
 		ppFindItemWnd = (CFindItemWnd**)pinstCFindItemWnd;
@@ -1235,7 +1235,7 @@ namespace MQ2Globals
 	CSocialEditWnd **ppSocialEditWnd = 0;
 	CContainerMgr **ppContainerMgr = 0;
 	CChatManager **ppChatManager = 0;
-	CFacePick **ppFacePick = 0;
+	CPlayerCustomizationWnd **ppPlayerCustomizationWnd = 0;
 	CFactionWnd **ppFactionWnd = 0;
 	CExtendedTargetWnd **ppExtendedTargetWnd = 0;
 #if !defined(ROF2EMU) && !defined(UFEMU)
@@ -1506,7 +1506,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCAchievementsWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCAudioTriggersWindow);
 	INITIALIZE_EQGAME_OFFSET(pinstCCharacterListWnd);
-	INITIALIZE_EQGAME_OFFSET(pinstCFacePick);
+	INITIALIZE_EQGAME_OFFSET(pinstCPlayerCustomizationWnd);
 #if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(pinstCFactionWnd);
 #endif

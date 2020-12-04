@@ -179,7 +179,7 @@ GNU General Public License for more details.
 #define pinstCAAWnd_x                                              0xDE7B04
 #define pinstCAchievementsWnd_x                                    0xDE775C
 #define pinstCActionsWnd_x                                         0xDE7F98
-#define pinstCAdvancedDisplayOptionsWnd_x                          0xDE781C
+#define pinstCAdvancedDisplayOptionsWindow_x                       0xDE781C
 #define pinstCAdvancedLootWnd_x                                    0xDE77B4
 #define pinstCAdventureLeaderboardWnd_x                            0xF52280
 #define pinstCAdventureRequestWnd_x                                0xF52330
@@ -229,7 +229,7 @@ GNU General Public License for more details.
 #define pinstCEQMainWnd_x                                          0xF54F08
 #define pinstCEventCalendarWnd_x                                   0xDE7B0C
 #define pinstCExtendedTargetWnd_x                                  0xDE77E8
-#define pinstCFacePick_x                                           0xDE7734
+#define pinstCPlayerCustomizationWnd_x                             0xDE7734
 #define pinstCFactionWnd_x                                         0xDE7754
 #define pinstCFellowshipWnd_x                                      0xF55108
 #define pinstCFileSelectionWnd_x                                   0xDE7AAC
@@ -241,7 +241,7 @@ GNU General Public License for more details.
 #define pinstCGroupSearchFiltersWnd_x                              0xDE7820
 #define pinstCGroupSearchWnd_x                                     0xF55658
 #define pinstCGroupWnd_x                                           0xF55708
-#define pinstCGuildBankWnd_x                                       0xEA27B8
+#define pinstCGuildBankWnd_x                                       0xF557B8
 #define pinstCGuildCreationWnd_x                                   0xF55868
 #define pinstCGuildMgmtWnd_x                                       0xF55918
 #define pinstCharacterCreation_x                                   0xDE773C
@@ -260,7 +260,7 @@ GNU General Public License for more details.
 #define pinstCItemExpTransferWnd_x                                 0xF58134
 #define pinstCItemOverflowWnd_x                                    0xDE7B10
 #define pinstCJournalCatWnd_x                                      0xDE7AC4
-//#define pinstCJournalNPCWnd_x                                    0xDA93B0
+#define pinstCJournalNPCWnd_x                                      0xDE7880
 #define pinstCJournalTextWnd_x                                     0xDE7880
 #define pinstCKeyRingWnd_x                                         0xDE7834
 #define pinstCLargeDialogWnd_x                                     0xF5A278
@@ -290,7 +290,6 @@ GNU General Public License for more details.
 #define pinstCOptionsWnd_x                                         0xDE777C
 #define pinstCPetInfoWnd_x                                         0xDE789C
 #define pinstCPetitionQWnd_x                                       0xDE772C
-//#define pinstCPlayerCustomizationWnd_x                           0xDA8E24
 #define pinstCPlayerNotesWnd_x                                     0xDE7FB0
 #define pinstCPlayerWnd_x                                          0xDE788C
 #define pinstCPopupWndManager_x                                    0xF595F8
@@ -310,7 +309,7 @@ GNU General Public License for more details.
 #define pinstCRealEstatePlotSearchWnd_x                            0xDE7AA8
 #define pinstCRealEstatePurchaseWnd_x                              0xDE7AC0
 #define pinstCRespawnWnd_x                                         0xDE77FC
-//#define pinstCRewardSelectionWnd_x                               0x10205B0
+#define pinstCRewardSelectionWnd_x                                 0xF59F50
 #define pinstCSelectorWnd_x                                        0xDE7728
 #define pinstCSendMoneyWnd_x                                       0xDE779C
 #define pinstCServerListWnd_x                                      0xDE7ACC

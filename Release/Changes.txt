@@ -1,3 +1,8 @@
+Nov 19 2020
+- Updated for BETA
+- All instances of CFacePick has been changed to CPlayerCustomizationWnd
+- Fixed some misc UI offsets
+-
 Nov 18 2020
 - Updated for LIVE
 - Updated for BETA

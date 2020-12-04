@@ -88,7 +88,7 @@ class CEditWnd;
 class CEQSuiteTextureLoader;
 class CEverQuest;
 class CExploreModeWnd;
-class CFacePick;
+class CPlayerCustomizationWnd;
 class CFactionWnd;
 class CExtendedTargetWnd;
 class CFindItemWnd;
@@ -2826,24 +2826,24 @@ class CFactionWnd : public CSidlScreenWnd
 public:
 	EQLIB_OBJECT CFactionWnd::CFactionWnd(class CXWnd *);
 };
-class CFacePick : public CSidlScreenWnd
+class CPlayerCustomizationWnd : public CSidlScreenWnd
 {
 public:
-EQLIB_OBJECT CFacePick::CFacePick(class CXWnd *);
-EQLIB_OBJECT void CFacePick::Activate(void);
-EQLIB_OBJECT void CFacePick::SetFaceSelectionsFromPlayer(void);
+EQLIB_OBJECT CPlayerCustomizationWnd::CPlayerCustomizationWnd(class CXWnd *);
+EQLIB_OBJECT void CPlayerCustomizationWnd::Activate(void);
+EQLIB_OBJECT void CPlayerCustomizationWnd::SetFaceSelectionsFromPlayer(void);
 // virtual
-EQLIB_OBJECT CFacePick::~CFacePick(void);
-EQLIB_OBJECT int CFacePick::Draw(void)const;
-EQLIB_OBJECT int CFacePick::OnProcessFrame(void);
-EQLIB_OBJECT int CFacePick::WndNotification(class CXWnd *,unsigned __int32,void *);
-//EQLIB_OBJECT void * CFacePick::`scalar deleting destructor'(unsigned int);
-//EQLIB_OBJECT void * CFacePick::`vector deleting destructor'(unsigned int);
-EQLIB_OBJECT void CFacePick::Deactivate(void);
+EQLIB_OBJECT CPlayerCustomizationWnd::~CPlayerCustomizationWnd(void);
+EQLIB_OBJECT int CPlayerCustomizationWnd::Draw(void)const;
+EQLIB_OBJECT int CPlayerCustomizationWnd::OnProcessFrame(void);
+EQLIB_OBJECT int CPlayerCustomizationWnd::WndNotification(class CXWnd *,unsigned __int32,void *);
+//EQLIB_OBJECT void * CPlayerCustomizationWnd::`scalar deleting destructor'(unsigned int);
+//EQLIB_OBJECT void * CPlayerCustomizationWnd::`vector deleting destructor'(unsigned int);
+EQLIB_OBJECT void CPlayerCustomizationWnd::Deactivate(void);
 // private
-EQLIB_OBJECT void CFacePick::CycleThroughFHEB(int,int);
-EQLIB_OBJECT void CFacePick::Init(void);
-EQLIB_OBJECT void CFacePick::ShowButtonGroup(int,bool);
+EQLIB_OBJECT void CPlayerCustomizationWnd::CycleThroughFHEB(int,int);
+EQLIB_OBJECT void CPlayerCustomizationWnd::Init(void);
+EQLIB_OBJECT void CPlayerCustomizationWnd::ShowButtonGroup(int,bool);
 };
 class CFindItemWnd : public CSidlScreenWnd//, public WndEventHandler but we just add the member LastCheckTime
 {

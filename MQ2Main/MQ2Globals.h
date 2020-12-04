@@ -585,7 +585,7 @@ namespace MQ2Globals
 	EQLIB_VAR CChatManager **ppChatManager;
 	EQLIB_VAR CConfirmationDialog **ppConfirmationDialog;
 
-	EQLIB_VAR CFacePick **ppFacePick;
+	EQLIB_VAR CPlayerCustomizationWnd **ppPlayerCustomizationWnd;
 	EQLIB_VAR CFactionWnd **ppFactionWnd;
 	EQLIB_VAR CExtendedTargetWnd **ppExtendedTargetWnd;
 
@@ -701,7 +701,7 @@ namespace MQ2Globals
 #define pContainerMgr (*ppContainerMgr)
 #define pChatManager (*ppChatManager)
 #define pEQSuiteTextureLoader (ppEQSuiteTextureLoader)
-#define pFacePick (*ppFacePick)
+#define pPlayerCustomizationWnd (*ppPlayerCustomizationWnd)
 #define pFactionWnd (*ppFactionWnd)
 #define pExtendedTargetWnd (*ppExtendedTargetWnd)
 #if !defined(ROF2EMU) && !defined(UFEMU)
@@ -956,7 +956,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstCAudioTriggersWindow;
 	EQLIB_VAR DWORD pinstCCharacterListWnd;
 	EQLIB_VAR DWORD pinstCExtendedTargetWnd;
-	EQLIB_VAR DWORD pinstCFacePick;
+	EQLIB_VAR DWORD pinstCPlayerCustomizationWnd;
 	EQLIB_VAR DWORD pinstCFactionWnd;
 	EQLIB_VAR DWORD pinstCFindItemWnd;
 	EQLIB_VAR DWORD pinstCNoteWnd;

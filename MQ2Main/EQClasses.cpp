@@ -1380,23 +1380,23 @@ FUNCTION_AT_ADDRESS( CExploreModeWnd::CExploreModeWnd(class CXWnd *),CExploreMod
 #ifdef CExploreModeWnd__Activate_x
 FUNCTION_AT_ADDRESS(void  CExploreModeWnd::Activate(void),CExploreModeWnd__Activate);
 #endif
-#ifdef CFacePick__CFacePick_x
-FUNCTION_AT_ADDRESS( CFacePick::CFacePick(class CXWnd *),CFacePick__CFacePick);
+#ifdef CPlayerCustomizationWnd__CPlayerCustomizationWnd_x
+FUNCTION_AT_ADDRESS( CPlayerCustomizationWnd::CPlayerCustomizationWnd(class CXWnd *),CPlayerCustomizationWnd__CPlayerCustomizationWnd);
 #endif
-#ifdef CFacePick__Init_x
-FUNCTION_AT_ADDRESS(void  CFacePick::Init(void),CFacePick__Init);
+#ifdef CPlayerCustomizationWnd__Init_x
+FUNCTION_AT_ADDRESS(void  CPlayerCustomizationWnd::Init(void),CPlayerCustomizationWnd__Init);
 #endif
-#ifdef CFacePick__ShowButtonGroup_x
-FUNCTION_AT_ADDRESS(void  CFacePick::ShowButtonGroup(int,bool),CFacePick__ShowButtonGroup);
+#ifdef CPlayerCustomizationWnd__ShowButtonGroup_x
+FUNCTION_AT_ADDRESS(void  CPlayerCustomizationWnd::ShowButtonGroup(int,bool),CPlayerCustomizationWnd__ShowButtonGroup);
 #endif
-#ifdef CFacePick__Activate_x
-FUNCTION_AT_ADDRESS(void  CFacePick::Activate(void),CFacePick__Activate);
+#ifdef CPlayerCustomizationWnd__Activate_x
+FUNCTION_AT_ADDRESS(void  CPlayerCustomizationWnd::Activate(void),CPlayerCustomizationWnd__Activate);
 #endif
-#ifdef CFacePick__SetFaceSelectionsFromPlayer_x
-FUNCTION_AT_ADDRESS(void  CFacePick::SetFaceSelectionsFromPlayer(void),CFacePick__SetFaceSelectionsFromPlayer);
+#ifdef CPlayerCustomizationWnd__SetFaceSelectionsFromPlayer_x
+FUNCTION_AT_ADDRESS(void  CPlayerCustomizationWnd::SetFaceSelectionsFromPlayer(void),CPlayerCustomizationWnd__SetFaceSelectionsFromPlayer);
 #endif
-#ifdef CFacePick__CycleThroughFHEB_x
-FUNCTION_AT_ADDRESS(void  CFacePick::CycleThroughFHEB(int,int),CFacePick__CycleThroughFHEB);
+#ifdef CPlayerCustomizationWnd__CycleThroughFHEB_x
+FUNCTION_AT_ADDRESS(void  CPlayerCustomizationWnd::CycleThroughFHEB(int,int),CPlayerCustomizationWnd__CycleThroughFHEB);
 #endif
 #ifdef CFactionWnd__CFactionWnd1_x
 FUNCTION_AT_ADDRESS( CFactionWnd::CFactionWnd(class CXWnd *),CFactionWnd__CFactionWnd);
