@@ -1041,6 +1041,25 @@ bool MQ2MacroType::GETMEMBER()
 			return true;
 		}
 		break;
+	case FindVariable:
+		if (!ISINDEX())
+			return false;
+		if (PCHAR pIndex = GETFIRST())
+		{
+			bool bExact = false;
+			if (*pIndex == '=') {
+				bExact = true;
+				pIndex++;
+			}
+			Dest.Type = pStringType;
+			if (PDATAVAR DataVar = FindMQ2DataVariable(pIndex, bExact))
+			{
+				strcpy_s(DataTypeTemp, DataVar->szName);
+				Dest.Ptr = &DataTypeTemp[0];
+				return true;
+			}
+		}
+		break;
 	case MemUse:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
@@ -6802,6 +6821,14 @@ bool MQ2CharacterType::GETMEMBER()
 		return true;
 	case OverseerTetradrachm://315
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_OVERSEERTETRADRACHM);
+		Dest.Type = pIntType;
+		return true;
+	case WarforgedEmblem://314
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_WARFORGEDEMBLEM);
+		Dest.Type = pIntType;
+		return true;
+	case RestlessMark://315
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_RESTLESSMARK);
 		Dest.Type = pIntType;
 		return true;
 	case CastTimeLeft:
@@ -14454,6 +14481,23 @@ bool MQ2FellowshipType::GETMEMBER()
 		Dest.Int = ((PSPAWNINFO)pLocalPlayer)->Campfire;
 		Dest.Type = pBoolType;
 		return true;
+	case Sharing:
+		if (ISINDEX())
+		{
+			if (ISNUMBER())
+			{
+				int i = GETNUMBER();
+				i--;
+				if (i < 0)
+					i = 0;
+				if (i > pFellowship->Members)
+					return false;
+				Dest.DWord = pFellowship->bExpSharingEnabled[i];
+				Dest.Type = pBoolType;
+				return true;
+			}
+		}
+		return false;
 	}
 	return false;
 }

@@ -36,31 +36,77 @@ inline VOID DeleteMQ2DataVariable(PDATAVAR pVar)
     delete pVar;
 }
 
-inline PDATAVAR FindMQ2DataVariable(PCHAR Name)
+inline PDATAVAR FindMQ2DataVariable(PCHAR Name, bool bExact)
 {
 	lockit lk(ghVariableLock);
 	PDATAVAR pFind = 0;
-	auto it = VariableMap.find(Name); 
-	if (it != VariableMap.end())
-	  pFind = it->second;
-
+	if (bExact)
+	{
+		auto it = VariableMap.find(Name);
+		if (it != VariableMap.end())
+			pFind = it->second;
+	}
+	else
+	{
+		CHAR szVariable[MAX_STRING] = { 0 };
+		CHAR szFind[MAX_STRING] = { 0 };
+		strcpy_s(szFind, Name);
+		_strlwr_s(szFind);
+		for (std::map<std::string, PDATAVAR>::iterator i = VariableMap.begin(); i != VariableMap.end(); i++)
+		{
+			strcpy_s(szVariable, i->first.c_str());
+			_strlwr_s(szVariable);
+			if (strstr(szVariable, szFind))
+			{
+				pFind = i->second;
+				break;
+			}
+		}
+	}
     if (pFind)
         return pFind;
     // local?
     if (gMacroStack)
     {
+		CHAR szVariable[MAX_STRING] = { 0 };
+		CHAR szFind[MAX_STRING] = { 0 };
+		if (!bExact)
+		{
+			strcpy_s(szFind, Name);
+			_strlwr_s(szFind);
+		}
         PDATAVAR pVar=gMacroStack->Parameters;
         while(pVar)
         {
-            if (!strcmp(pVar->szName,Name))
-                return pVar;
+			if (bExact)
+			{
+				if (!strcmp(pVar->szName, Name))
+					return pVar;
+			}
+			else
+			{
+				strcpy_s(szVariable, pVar->szName);
+				_strlwr_s(szVariable);
+				if (strstr(szVariable, szFind))
+					return pVar;
+			}
             pVar=pVar->pNext;
         }
         pVar=gMacroStack->LocalVariables;
         while(pVar)
         {
-            if (!strcmp(pVar->szName,Name))
-                return pVar;
+			if (bExact)
+			{
+				if (!strcmp(pVar->szName, Name))
+					return pVar;
+			}
+			else
+			{
+				strcpy_s(szVariable, pVar->szName);
+				_strlwr_s(szVariable);
+				if (strstr(szVariable, szFind))
+					return pVar;
+			}
             pVar=pVar->pNext;
         }
     }

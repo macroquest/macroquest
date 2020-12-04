@@ -1276,7 +1276,10 @@ public:
 		FroststoneDucat = 313,
 		WarlordsSymbol = 314,
 		OverseerTetradrachm = 315,
-		CastTimeLeft = 316
+		CastTimeLeft = 316,
+		RestlessMark = 317,
+		WarforgedEmblem = 318,
+
 	};
 	enum CharacterMethods
 	{
@@ -1595,6 +1598,8 @@ public:
 		TypeMember(WarlordsSymbol);//314
 		TypeMember(OverseerTetradrachm);//315
 		TypeMember(CastTimeLeft);//316
+		TypeMember(RestlessMark);
+		TypeMember(WarforgedEmblem);
 
 		TypeMethod(Stand);
 		TypeMethod(Sit);
@@ -3459,6 +3464,7 @@ public:
 		IsTLO = 11,
 		IsOuterVariable = 12,
 		CurSub = 13,
+		FindVariable = 14,
 	};
 	enum MacroMethods
 	{
@@ -3480,7 +3486,8 @@ public:
 		TypeMember(IsTLO);
 		TypeMember(IsOuterVariable);
 		TypeMember(CurSub);
-
+		TypeMember(FindVariable);
+		
 		TypeMethod(Undeclared);
 	}
 
@@ -4833,7 +4840,7 @@ public:
 		Invited = 11,
 		MainAssist = 12,
 		MasterLooter = 13,
-		MarkNPC,
+		MarkNPC = 14,
 	};
 	enum RaidMethods
 	{
@@ -5076,6 +5083,7 @@ public:
 		CampfireZ = 9,
 		CampfireZone = 10,
 		Campfire = 11,
+		Sharing = 12,
 	};
 	MQ2FellowshipType() :MQ2Type("fellowship")
 	{
@@ -5090,6 +5098,7 @@ public:
 		TypeMember(CampfireZ);
 		TypeMember(CampfireZone);
 		TypeMember(Campfire);
+		TypeMember(Sharing);
 	}
 	~MQ2FellowshipType()
 	{
@@ -5127,6 +5136,7 @@ public:
 		Class = 3,
 		LastOn = 4,
 		Name = 5,
+		Sharing = 6,
 	};
 	MQ2FellowshipMemberType() :MQ2Type("fellowshipmember")
 	{
@@ -5135,6 +5145,7 @@ public:
 		TypeMember(Class);
 		TypeMember(LastOn);
 		TypeMember(Name);
+		TypeMember(Sharing);
 	}
 	~MQ2FellowshipMemberType()
 	{

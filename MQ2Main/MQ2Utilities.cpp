@@ -1126,6 +1126,10 @@ int GetCurrencyIDByName(PCHAR szName)
 		return ALTCURRENCY_WARLORDSSYMBOL;
 	if (!_stricmp(szName, "Overseer Tetradrachm")) // 50 - Overseer
 		return ALTCURRENCY_OVERSEERTETRADRACHM;
+	if (!_stricmp(szName, "Restless Mark")) // COV
+		return ALTCURRENCY_RESTLESSMARK;
+	if (!_stricmp(szName, "Warforged Emblem")) // COV
+		return ALTCURRENCY_WARFORGEDEMBLEM;
 
 	return -1;
 }

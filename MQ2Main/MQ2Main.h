@@ -463,7 +463,6 @@ LEGACY_API int FindMQ2DataTypeMemberSize(PCHAR Name);
 LEGACY_API bool FindMQ2DataTypeMemberName(PCHAR Name, DWORD index, PCHAR Out, size_t OutSize);
 LEGACY_API DWORD FindMQ2DataTypeMemberID(PCHAR Name, DWORD index);
 LEGACY_API PMQ2DATAITEM FindMQ2Data(PCHAR szName);
-LEGACY_API PDATAVAR FindMQ2DataVariable(PCHAR szName);
 LEGACY_API BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result);
 LEGACY_API bool AddMQ2TypeExtension(const char* typeName, MQ2Type* extension);
 LEGACY_API bool RemoveMQ2TypeExtension(const char* typeName, MQ2Type* extension);
@@ -710,7 +709,7 @@ EQLIB_API bool LoH_HT_Ready();
 #ifndef ISXEQ
 LEGACY_API PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, size_t ParamNameLen, PCHAR szParamType, size_t ParamTypeLen);
 //LEGACY_API PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, PCHAR szParamType);
-LEGACY_API PDATAVAR FindMQ2DataVariable(PCHAR Name);
+LEGACY_API PDATAVAR FindMQ2DataVariable(PCHAR Name, bool bExact = true);
 LEGACY_API BOOL AddMQ2DataVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, PCHAR Default);
 LEGACY_API BOOL AddMQ2DataVariableFromData(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, MQ2TYPEVAR Default);
 LEGACY_API PDATAVAR *FindVariableScope(PCHAR Name);

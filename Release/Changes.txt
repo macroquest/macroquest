@@ -1,3 +1,14 @@
+Dec 03 2020
+- Updated for BETA
+- Added WarforgedEmblem and RestlessMark Currencies - Sic
+- Added .Sharing to the fellowship tlo it returns true of false if exp sharing is on for the member - Sic
+	Usage: /echo ${Me.Fellowship.Sharing[x]} where x is fellowship member 1-12
+- Added .FindVariable to the Macro TLO it returns a string of the full variable name if it exist - requested by ctaylor22
+	Usage: /echo Macro.FindVariable[=Myvar]} for EXACT variable name
+	Return: Myvar
+	Usage: /echo Macro.FindVariable[Myvar]} for partial variable name
+	Return: Myvar01 (because it's partial and it found one named Myvar01)
+-
 Dec 02 2020
 - Updated for TEST
 - Updated for BETA
