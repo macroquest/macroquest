@@ -4833,6 +4833,7 @@ public:
 		Invited = 11,
 		MainAssist = 12,
 		MasterLooter = 13,
+		MarkNPC,
 	};
 	enum RaidMethods
 	{
@@ -4852,6 +4853,7 @@ public:
 		TypeMember(Invited);
 		TypeMember(MainAssist);
 		TypeMember(MasterLooter);
+		TypeMember(MarkNPC);
 	}
 
 	~MQ2RaidType()

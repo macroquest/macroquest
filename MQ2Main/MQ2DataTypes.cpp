@@ -13923,22 +13923,40 @@ bool MQ2RaidType::GETMEMBER()
 		}
 		return false;
 	case MainAssist:
+	{
 		Dest.DWord = 0;
 		Dest.Type = pRaidMemberType;
+
+		PCHARINFO pCharInfo = GetCharInfo();
+		if (!pCharInfo)
+			return false;
+
+		CharacterBase* cb = (CharacterBase*)&pCharInfo->CharacterBase_vftable;
+		if (!cb)
+			return false;
+
+		RaidData* rd = &cb->raidData;
+		if (!rd)
+			return false;
 
 		if (ISINDEX())
 		{
 			if (ISNUMBER())
 			{
 				DWORD Count = GETNUMBER();
-				if (!Count || Count > pRaid->RaidMemberCount)
+				if (Count < 1 || Count > 3)
 					return false;
-				for (DWORD nMember = 0; nMember < 72; nMember++)
+
+				//This matches what EQ says the RA at this index is.
+				char* RAName = rd->MainAssistNames[Count - 1];
+				if (!strlen(RAName))
+					return false;
+
+				for (int nMember = 0; nMember < 72; nMember++)
 				{
 					if (pRaid->RaidMemberUsed[nMember] && pRaid->RaidMember[nMember].RaidMainAssist)
 					{
-						Count--;
-						if (!Count)
+						if (!strcmp(pRaid->RaidMember[nMember].Name, RAName))
 						{
 							Dest.DWord = nMember + 1;
 							return true;
@@ -13951,15 +13969,18 @@ bool MQ2RaidType::GETMEMBER()
 				// by name
 				for (DWORD nMember = 0; nMember < 72; nMember++)
 				{
-					if (pRaid->RaidMemberUsed[nMember] && !_stricmp(pRaid->RaidMember[nMember].Name, GETFIRST()))
+					if (pRaid->RaidMemberUsed[nMember] && pRaid->RaidMember[nMember].RaidMainAssist)
 					{
-						Dest.DWord = nMember + 1;
-						return true;
+						if (!_stricmp(pRaid->RaidMember[nMember].Name, GETFIRST()))
+						{
+							Dest.DWord = nMember + 1;
+							return true;
+						}
 					}
 				}
 			}
 		}
-		else {
+		else {//no index provided. return first RA found.
 			for (i = 0; i < 72; i++)
 			{
 				if (pRaid->RaidMemberUsed[i] && pRaid->RaidMember[i].RaidMainAssist)
@@ -13970,6 +13991,7 @@ bool MQ2RaidType::GETMEMBER()
 			}
 		}
 		return false;
+	}
 #if !defined(ROF2EMU) && !defined(UFEMU)
 	case MasterLooter:
 		Dest.DWord = 0;
@@ -13980,6 +14002,58 @@ bool MQ2RaidType::GETMEMBER()
 			{
 				Dest.DWord = i + 1;
 				return true;
+			}
+		}
+		return false;
+	case MarkNPC:
+		Dest.DWord = 0;
+		Dest.Type = pRaidMemberType;
+
+		if (ISINDEX())
+		{
+			if (ISNUMBER())
+			{
+				DWORD Count = GETNUMBER();
+				if (Count < 1 || Count > 3)
+					return false;
+
+				for (int nMember = 0; nMember < 72; nMember++)
+				{
+					if (pRaid->RaidMemberUsed[nMember] && pRaid->RaidMember[nMember].RaidMarker)
+					{
+						Count--;
+						if (Count)
+							continue;
+
+						Dest.DWord = nMember + 1;
+						return true;
+					}
+				}
+			}
+			else
+			{
+				// by name
+				for (DWORD nMember = 0; nMember < 72; nMember++)
+				{
+					if (pRaid->RaidMemberUsed[nMember] && pRaid->RaidMember[nMember].RaidMarker)
+					{
+						if (!_stricmp(pRaid->RaidMember[nMember].Name, GETFIRST()))
+						{
+							Dest.DWord = nMember + 1;
+							return true;
+						}
+					}
+				}
+			}
+		}
+		else {//no index provided. return first RA found.
+			for (i = 0; i < 72; i++)
+			{
+				if (pRaid->RaidMemberUsed[i] && pRaid->RaidMember[i].RaidMarker)
+				{
+					Dest.DWord = i + 1;
+					return true;
+				}
 			}
 		}
 		return false;
