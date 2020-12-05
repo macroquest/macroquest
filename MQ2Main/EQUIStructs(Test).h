@@ -777,7 +777,16 @@ public: \
 				return (int)ParentAndContextMenuArrayIndex; /*ParentAndContextMenuArrayIndex*/ \
 				/*return GetClassMember(this,58); /*ParentAndContextMenuArrayIndex*/ \
 			} \
-
+			bool GetKeepOnScreen() \
+			{ \
+				return bKeepOnScreen; /*bKeepOnScreen*/ \
+				/*return GetClassMember(this,59); /*bKeepOnScreen*/ \
+			} \
+			void SetKeepOnScreen(bool bValue) \
+			{ \
+				bKeepOnScreen = bValue; /*bKeepOnScreen*/ \
+				/*SetClassMember(this,60,bValue); /*bKeepOnScreen*/ \
+			} \
 
 #define CXW \
 /*0x000*/   struct  _CXWNDVFTABLE   *pvfTable; \

@@ -17,7 +17,7 @@ list<string> sPendingChat;
 const unsigned int CMD_HIST_MAX=50;
 DWORD ulOldVScrollPos=0;
 DWORD bmStripFirstStmlLines=0;
-CHAR szChatINISection[MAX_STRING]={0};
+
 bool bAutoScroll=true;
 bool bNoCharSelect=false;
 bool bSaveByChar=true;
@@ -27,15 +27,15 @@ CMQChatWnd *MQChatWnd=0;
 class CMQChatWnd : public CCustomWnd
 {
 public:
-    CMQChatWnd(char *Template):CCustomWnd(Template)
-    {
-        DebugSpew("CMQChatWnd()");
-        SetWndNotification(CMQChatWnd);
-		SetWindowStyle(CWS_CLIENTMOVABLE |CWS_USEMYALPHA | CWS_RESIZEALL | CWS_BORDER | CWS_MINIMIZE | CWS_TITLE);
+	CMQChatWnd(char *Template) :CCustomWnd(Template)
+	{
+		DebugSpew("CMQChatWnd()");
+		SetWndNotification(CMQChatWnd);
+		SetWindowStyle(CWS_CLIENTMOVABLE | CWS_USEMYALPHA | CWS_RESIZEALL | CWS_BORDER | CWS_MINIMIZE | CWS_TITLE);
 		//SetWindowStyle(CWS_AUTOVSCROLL | CWS_AUTOHSCROLL | CWS_TITLE | CWS_MINIMIZE | CWS_RELATIVERECT | CWS_BORDER | CWS_RESIZEALL);
 		RemoveStyle(CWS_TRANSPARENT | CWS_CLOSE);
 		SetBGColor(0xFF000000);//black background
-        InputBox=(CTextEntryWnd*)GetChildItem("CW_ChatInput");
+		InputBox = (CTextEntryWnd*)GetChildItem("CW_ChatInput");
 		InputBox->AddStyle(CWS_AUTOVSCROLL | CWS_RELATIVERECT | CWS_BORDER);// 0x800C0;
 		this->SetFaded(false);
 		this->SetEscapable(false);
@@ -44,17 +44,19 @@ public:
 		this->SetBGType(1);
 		this->ContextMenuID = 3;
 		InputBox->SetCRNormal(0xFFFFFFFF);//we want a white cursor
-        InputBox->SetMaxChars(512);
-        OutputBox=(CStmlWnd*)GetChildItem("CW_ChatOutput");
+		InputBox->SetMaxChars(512);
+		OutputBox = (CStmlWnd*)GetChildItem("CW_ChatOutput");
 		OutputBox->SetParentWindow((_CSIDLWND *)this);
 		InputBox->SetParentWindow((_CSIDLWND *)this);
-        OutBoxLines=0;
+		OutBoxLines = 0;
 		OutputBox->MaxLines = 0x190;
-        OutputBox->SetClickable(true);
+		OutputBox->SetClickable(true);
 		OutputBox->AddStyle(CWS_CLIENTMOVABLE);
-        iCurrentCmd=-1;
+		iCurrentCmd = -1;
 		SetZLayer(1); // Make this the topmost window (we will leave it as such for charselect, and allow it to move to background ingame)
-    }
+		this->SetNeedsSaving(0);
+		//this->SetKeepOnScreen(1);
+	}
     ~CMQChatWnd()
     {
     }
@@ -240,13 +242,17 @@ VOID LoadChatSettings()
 
 VOID LoadChatFromINI(PCSIDLWND pWindow)
 {
+	if (!pLocalPlayer)
+		return;
     CHAR szTemp[MAX_STRING]={0};
-
+	CHAR szChatINISection[MAX_STRING]={0};
     LoadChatSettings();
-
-    sprintf_s(szChatINISection,"%s.%s",EQADDR_SERVERNAME,((PSPAWNINFO)pLocalPlayer)->Name);
-    if (!bSaveByChar)
-		sprintf_s(szChatINISection,"Default");
+	sprintf_s(szChatINISection, "%s.%s", EQADDR_SERVERNAME, ((PSPAWNINFO)pLocalPlayer)->Name);
+	if (!bSaveByChar)
+		sprintf_s(szChatINISection, "Default");
+	if (GetGameState() == GAMESTATE_CHARSELECT) {
+		strcat_s(szChatINISection, "_charselect");
+	}
 	//left top right bottom
 	int left = GetPrivateProfileInt(szChatINISection, "ChatLeft", 10, INIFileName);
 	if (left == 2000)
@@ -275,7 +281,7 @@ VOID LoadChatFromINI(PCSIDLWND pWindow)
     MQChatWnd->SetChatFont(GetPrivateProfileInt(szChatINISection,"FontSize",4,INIFileName));
     GetPrivateProfileString(szChatINISection,"WindowTitle","MQ",szTemp,MAX_STRING,INIFileName);
 	pWindow->CSetWindowText(szTemp);
-	//SetCXStr(&pWindow->WindowText,szTemp);
+	pWindow->SetKeepOnScreen(GetPrivateProfileInt(szChatINISection,"KeepOnScreen",         0,INIFileName));
 }
 template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], int _Radix)
 {
@@ -287,8 +293,17 @@ template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], in
 }
 VOID SaveChatToINI(PCSIDLWND pWindow)
 {
-    CHAR szTemp[MAX_STRING]={0};
+ 	if (!pLocalPlayer)
+		return;
+	CHAR szTemp[MAX_STRING]={0};
+	CHAR szChatINISection[MAX_STRING]={0};
 
+	sprintf_s(szChatINISection, "%s.%s", EQADDR_SERVERNAME, ((PSPAWNINFO)pLocalPlayer)->Name);
+	if (!bSaveByChar)
+		sprintf_s(szChatINISection, "Default");
+	if (GetGameState() == GAMESTATE_CHARSELECT) {
+		strcat_s(szChatINISection, "_charselect");
+	}
     WritePrivateProfileString("Settings","AutoScroll",   bAutoScroll?"on":"off",INIFileName);
     WritePrivateProfileString("Settings","NoCharSelect", bNoCharSelect?"on":"off",INIFileName);
     WritePrivateProfileString("Settings","SaveByChar",   bSaveByChar?"on":"off",INIFileName);
@@ -298,30 +313,31 @@ VOID SaveChatToINI(PCSIDLWND pWindow)
         WritePrivateProfileString(szChatINISection,"ChatTop",    SafeItoa(pWindow->GetOldLocation().top,    szTemp,10),INIFileName);
         WritePrivateProfileString(szChatINISection,"ChatBottom", SafeItoa(pWindow->GetOldLocation().bottom, szTemp,10),INIFileName);
         WritePrivateProfileString(szChatINISection,"ChatLeft",   SafeItoa(pWindow->GetOldLocation().left,   szTemp,10),INIFileName);
-        WritePrivateProfileString(szChatINISection,"ChatRight",  SafeItoa(pWindow->GetOldLocation().right,  szTemp,10),INIFileName);
+        WritePrivateProfileString(szChatINISection,"ChatRight",  SafeItoa(pWindow->GetOldLocation().right,	szTemp,10),INIFileName);
     }
     else
     {
-        WritePrivateProfileString(szChatINISection,"ChatTop",    SafeItoa(pWindow->GetLocation().top,    szTemp,10),INIFileName);
-        WritePrivateProfileString(szChatINISection,"ChatBottom", SafeItoa(pWindow->GetLocation().bottom, szTemp,10),INIFileName);
-        WritePrivateProfileString(szChatINISection,"ChatLeft",   SafeItoa(pWindow->GetLocation().left,   szTemp,10),INIFileName);
-        WritePrivateProfileString(szChatINISection,"ChatRight",  SafeItoa(pWindow->GetLocation().right,  szTemp,10),INIFileName);
+        WritePrivateProfileString(szChatINISection,"ChatTop",    SafeItoa(pWindow->GetLocation().top,		szTemp,10),INIFileName);
+        WritePrivateProfileString(szChatINISection,"ChatBottom", SafeItoa(pWindow->GetLocation().bottom,	szTemp,10),INIFileName);
+        WritePrivateProfileString(szChatINISection,"ChatLeft",   SafeItoa(pWindow->GetLocation().left,		szTemp,10),INIFileName);
+        WritePrivateProfileString(szChatINISection,"ChatRight",  SafeItoa(pWindow->GetLocation().right,		szTemp,10),INIFileName);
     }
-    WritePrivateProfileString(szChatINISection,"Locked",         SafeItoa(pWindow->IsLocked(),          szTemp,10),INIFileName);
-    WritePrivateProfileString(szChatINISection,"Fades",          SafeItoa(pWindow->GetFades(),           szTemp,10),INIFileName);
-    WritePrivateProfileString(szChatINISection,"Delay",          SafeItoa(pWindow->GetFadeDelay(),       szTemp,10),INIFileName);
-    WritePrivateProfileString(szChatINISection,"Duration",       SafeItoa(pWindow->GetFadeDuration(),    szTemp,10),INIFileName);
-    WritePrivateProfileString(szChatINISection,"Alpha",          SafeItoa(pWindow->GetAlpha(),           szTemp,10),INIFileName);
-    WritePrivateProfileString(szChatINISection,"FadeToAlpha",    SafeItoa(pWindow->GetFadeToAlpha(),     szTemp,10),INIFileName);
+    WritePrivateProfileString(szChatINISection,"Locked",         SafeItoa(pWindow->IsLocked(),				szTemp,10),INIFileName);
+    WritePrivateProfileString(szChatINISection,"Fades",          SafeItoa(pWindow->GetFades(),				szTemp,10),INIFileName);
+    WritePrivateProfileString(szChatINISection,"Delay",          SafeItoa(pWindow->GetFadeDelay(),			szTemp,10),INIFileName);
+    WritePrivateProfileString(szChatINISection,"Duration",       SafeItoa(pWindow->GetFadeDuration(),		szTemp,10),INIFileName);
+    WritePrivateProfileString(szChatINISection,"Alpha",          SafeItoa(pWindow->GetAlpha(),				szTemp,10),INIFileName);
+    WritePrivateProfileString(szChatINISection,"FadeToAlpha",    SafeItoa(pWindow->GetFadeToAlpha(),		szTemp,10),INIFileName);
 	ARGBCOLOR col = { 0 };
 	col.ARGB = pWindow->GetBGColor();
-    WritePrivateProfileString(szChatINISection,"BGType",         SafeItoa(pWindow->GetBGType(),          szTemp,10),INIFileName);
-    WritePrivateProfileString(szChatINISection,"BGTint.alpha",   SafeItoa(col.A,       szTemp,10),INIFileName);
-    WritePrivateProfileString(szChatINISection,"BGTint.red",     SafeItoa(col.R,       szTemp,10),INIFileName);
-    WritePrivateProfileString(szChatINISection,"BGTint.green",   SafeItoa(col.G,       szTemp,10),INIFileName);
-    WritePrivateProfileString(szChatINISection,"BGTint.blue",    SafeItoa(col.B,       szTemp,10),INIFileName);
-    WritePrivateProfileString(szChatINISection,"FontSize",       SafeItoa(MQChatWnd->FontSize,      szTemp,10),INIFileName);
-
+    WritePrivateProfileString(szChatINISection,"BGType",         SafeItoa(pWindow->GetBGType(),				szTemp,10),INIFileName);
+    WritePrivateProfileString(szChatINISection,"BGTint.alpha",   SafeItoa(col.A,							szTemp,10),INIFileName);
+    WritePrivateProfileString(szChatINISection,"BGTint.red",     SafeItoa(col.R,							szTemp,10),INIFileName);
+    WritePrivateProfileString(szChatINISection,"BGTint.green",   SafeItoa(col.G,							szTemp,10),INIFileName);
+    WritePrivateProfileString(szChatINISection,"BGTint.blue",    SafeItoa(col.B,							szTemp,10),INIFileName);
+    WritePrivateProfileString(szChatINISection,"FontSize",       SafeItoa(MQChatWnd->FontSize,				szTemp,10),INIFileName);
+    WritePrivateProfileString(szChatINISection,"KeepOnScreen",	 SafeItoa(pWindow->GetKeepOnScreen(),		szTemp,10),INIFileName);
+	
 	GetCXStr(pWindow->CGetWindowText(),szTemp, MAX_STRING);
 	//GetCXStr(pWindow->WindowText,szTemp, MAX_STRING);
     WritePrivateProfileString(szChatINISection,"WindowTitle",szTemp,INIFileName);
@@ -711,18 +727,25 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 	delete szProcessed;
     return 0;
 }
-
+int savecounter = 0;
 PLUGIN_API VOID OnPulse()
 {
     if (gGameState==GAMESTATE_CHARSELECT && !MQChatWnd && !bNoCharSelect)
     {
         CreateChatWindow();
     }
-	//if (CXWnd *krwnd = FindMQ2Window("TaskOverlayWnd")) {
-	//	Sleep(0);
-	//}
     if (MQChatWnd)
     {
+		if (savecounter++ > 100)//we dont need to check this a million times per second...
+		{
+			if (MQChatWnd->GetNeedsSaving())
+			{
+				SaveChatToINI((PCSIDLWND)MQChatWnd);
+				MQChatWnd->SetNeedsSaving(0);
+				//WriteChatf("Saved ChatWindow Position");
+			}
+			savecounter = 0;
+		}
 		switch (gGameState)
 		{
 			case GAMESTATE_CHARSELECT:
