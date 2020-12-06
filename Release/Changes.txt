@@ -1,3 +1,6 @@
+Dec 06 2020
+- Updated for BETA
+-
 Dec 05 2020
 - Updated for BETA
 - Chatwindow at charselect now saves it's position independently from in game
