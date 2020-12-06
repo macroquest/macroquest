@@ -542,7 +542,7 @@ inline double GetDoubleFromString(const std::string_view svString, double dRetur
 inline bool GetBoolFromString(const std::string_view svString, const bool defaultValue)
 {
 	bool returnValue = defaultValue;
-	auto trimmed = trim(svString);
+	const auto trimmed = trim(svString);
 
 	if (ci_equals(trimmed, "True"))
 	{
