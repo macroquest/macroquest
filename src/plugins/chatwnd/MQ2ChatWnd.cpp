@@ -254,9 +254,6 @@ void LoadChatFromINI(CSidlScreenWnd* pWindow)
 
 	LoadChatSettings();
 
-	sprintf_s(szChatINISection, "%s.%s", EQADDR_SERVERNAME, ((SPAWNINFO*)pLocalPlayer)->Name);
-	if (!bSaveByChar) sprintf_s(szChatINISection, "Default");
-
 	// left top right bottom
 	pWindow->SetLocation({ (LONG)GetPrivateProfileInt(szChatINISection,"ChatLeft",      10,INIFileName),
 		(LONG)GetPrivateProfileInt(szChatINISection,"ChatTop",       10,INIFileName),
@@ -280,6 +277,7 @@ void LoadChatFromINI(CSidlScreenWnd* pWindow)
 	MQChatWnd->SetChatFont(GetPrivateProfileInt(szChatINISection, "FontSize", 4, INIFileName));
 	GetPrivateProfileString(szChatINISection, "WindowTitle", "MQ", szTemp, MAX_STRING, INIFileName);
 	pWindow->SetWindowText(szTemp);
+	pWindow->bKeepOnScreen = GetPrivateProfileBool(szChatINISection, "KeepOnScreen", true, INIFileName);
 }
 
 void SaveChatToINI(CSidlScreenWnd* pWindow)
@@ -318,6 +316,7 @@ void SaveChatToINI(CSidlScreenWnd* pWindow)
 	WritePrivateProfileString(szChatINISection, "BGTint.blue", std::to_string(col.B), INIFileName);
 	WritePrivateProfileString(szChatINISection, "FontSize", std::to_string(MQChatWnd->FontSize), INIFileName);
 	WritePrivateProfileString(szChatINISection, "WindowTitle", pWindow->GetWindowText().c_str(), INIFileName);
+	WritePrivateProfileBool(szChatINISection, "KeepOnScreen", pWindow->bKeepOnScreen, INIFileName);
 }
 
 void CreateChatWindow()
@@ -387,7 +386,7 @@ void MQChatFont(SPAWNINFO* pChar, char* Line)
 	if (MQChatWnd && Line[0])
 	{
 		const int size = GetIntFromString(Line, -1);
-		if (size < 0 || size>10)
+		if (size < 0 || size > 10)
 		{
 			WriteChatf("Usage: /mqfont 0-10");
 			return;
@@ -408,23 +407,28 @@ void MQChatMin(SPAWNINFO* pChar, char* Line)
 
 void MQChat(SPAWNINFO* pChar, char* Line)
 {
-	if (MQChatWnd)
+	char Arg[MAX_STRING] = { 0 };
+	GetArg(Arg, Line, 1);
+
+	if (!_stricmp(Arg, "reset"))
 	{
-		if (!_stricmp(Line, "reset"))
+		// TODO:  This should set the ini to the defaults instead of just the positioning.
+		if (MQChatWnd)
 		{
 			MQChatWnd->SetLocked(false);
 
 			CXRect rc = { 300, 10, 600, 210 };
 			MQChatWnd->Move(rc, false);
-
-			SaveChatToINI(MQChatWnd);
+			MQChatWnd->SetZLayer(1);
+			DestroyChatWnd();
+			CreateChatWindow();
+		}
+		else
+		{
+			WriteChatf("MQ2ChatWnd must be active in order to reset.");
 		}
 	}
-
-	char Arg[MAX_STRING] = { 0 };
-	GetArg(Arg, Line, 1);
-
-	if (!_stricmp(Arg, "autoscroll"))
+	else if (!_stricmp(Arg, "autoscroll"))
 	{
 		GetArg(Arg, Line, 2);
 		if (Arg[0] == '\0')
@@ -565,6 +569,7 @@ PLUGIN_API void SetGameState(int GameState)
 		}
 		else
 		{
+			strcpy_s(szChatINISection, "CharSelect");
 			AddMQ2KeyBind("MQ2CSCHAT", DoMQ2ChatBind);
 			KeyCombo Combo;
 			ParseKeyCombo("/", Combo);
@@ -573,6 +578,27 @@ PLUGIN_API void SetGameState(int GameState)
 	}
 	else
 	{
+		if (bSaveByChar && pLocalPlayer != nullptr)
+		{
+			std::string strChatINISection = EQADDR_SERVERNAME;
+			strChatINISection += ".";
+			strChatINISection += pLocalPlayer->Name;
+			// Only need to do anything at all if things have changed
+			if(!string_equals(szChatINISection, strChatINISection))
+			{
+				// Destroy the window which will save the settings under the old character
+				if(MQChatWnd != nullptr)
+				{
+					DestroyChatWnd();
+				}
+				// Set up for the new create below.
+				strcpy_s(szChatINISection, &strChatINISection[0]);
+			}
+		}
+		else
+		{
+			strcpy_s(szChatINISection, "Default");
+		}
 		if (GameState != GAMESTATE_CHARCREATE) RemoveMQ2KeyBind("MQ2CSCHAT");
 		if (GameState == GAMESTATE_INGAME && !MQChatWnd)
 		{
