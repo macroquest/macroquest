@@ -346,7 +346,7 @@ struct lua_MQCommand
 	}
 };
 
-struct lua_mq
+struct lua_MQTLO
 {
 	[[nodiscard]] sol::object get(sol::stack_object key, sol::this_state L) const
 	{
@@ -392,11 +392,11 @@ static void register_mq_type(sol::state& lua)
 	lua.new_usertype<lua_MQCommand>("mqcommand",
 		sol::no_constructor);
 
-	lua.new_usertype<lua_mq>("mqbind",
+	lua.new_usertype<lua_MQTLO>("mqtlo",
 		sol::no_constructor,
-		sol::meta_function::index, &lua_mq::get);
+		sol::meta_function::index, &lua_MQTLO::get);
 
-	lua["mq"] = lua_mq();
+	lua["TLO"] = lua_MQTLO();
 	lua["null"] = lua_MQTypeVar();
 }
 
