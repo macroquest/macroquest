@@ -30,6 +30,41 @@ std::filesystem::path s_luaDir = std::filesystem::path(gPathMQRoot) / "lua"; // 
 std::vector<sol::thread> s_instances;
 std::vector<sol::thread> s_paused;
 
+void stackTrace(lua_State* L)
+{
+	int i;
+	int top = lua_gettop(L);
+	DebugSpewAlways("---- Begin Stack ----");
+	DebugSpewAlways("Stack size: %i\n", top);
+	for (i = top; i >= 1; i--)
+	{
+		int t = lua_type(L, i);
+		switch (t)
+		{
+		case LUA_TSTRING:
+			DebugSpewAlways("%i -- (%i) ---- `%s'", i, i - (top + 1), lua_tostring(L, i));
+			break;
+
+		case LUA_TBOOLEAN:
+			DebugSpewAlways("%i -- (%i) ---- %s", i, i - (top + 1), lua_toboolean(L, i) ? "true" : "false");
+			break;
+
+		case LUA_TNUMBER:
+			DebugSpewAlways("%i -- (%i) ---- %g", i, i - (top + 1), lua_tonumber(L, i));
+			break;
+
+		case LUA_TUSERDATA:
+			DebugSpewAlways("%i -- (%i) ---- [%s]", i, i - (top + 1), luaL_tolstring(L, i, NULL));
+			break;
+
+		default:
+			DebugSpewAlways("%i -- (%i) ---- %s", i, i - (top + 1), lua_typename(L, t));
+			break;
+		}
+	}
+	DebugSpewAlways("---- End Stack ----\n");
+}
+
 struct lua_MQDataItem;
 struct lua_MQTypeVar
 {
@@ -65,10 +100,10 @@ struct lua_MQTypeVar
 		MQTypeVar result = self_;
 		if (result.Type != nullptr && !member_.empty())
 		{
-			if (result.Type->GetMember(result.VarPtr, &member_[0], index, result))
+			if (result.Type->GetMember(result.GetVarPtr(), &member_[0], index, result))
 				return lua_MQTypeVar(std::move(result));
 
-			// can't guarantee result didn't get modified
+			// can't guarantee result didn't get modified, but we want to return nil if GetMember was false
 			return lua_MQTypeVar();
 		}
 
@@ -100,7 +135,36 @@ struct lua_MQTypeVar
 
 	sol::object call_empty(sol::this_state L) const
 	{
-		return sol::object(L, sol::in_place, lua_MQTypeVar(evaluate_member()));
+		auto result = evaluate_member();
+
+		if (result.self_.Type == nullptr)
+			return sol::object(L, sol::in_place, sol::lua_nil);
+
+		// There are seven basic types in Lua: nil, number, string, function, CFunction, userdata, and table. 
+		// We only care about nil, number, and string, but multiple MQ types decay into the various types, so
+		// we need to capture that.
+		switch (result.self_.GetType())
+		{
+		case MQVarPtr::VariantIdx::Float:
+		case MQVarPtr::VariantIdx::Double:
+			// lua's number type is the same for integral and floating, but sol handles them each slightly differently
+			return sol::object(L, sol::in_place, result.self_.Get<double>());
+		case MQVarPtr::VariantIdx::Int32:
+		case MQVarPtr::VariantIdx::Int64:
+			return sol::object(L, sol::in_place, result.self_.Get<int64_t>());
+		case MQVarPtr::VariantIdx::UInt32:
+		case MQVarPtr::VariantIdx::UInt64:
+			return sol::object(L, sol::in_place, result.self_.Get<uint64_t>());
+		case MQVarPtr::VariantIdx::String:
+			// if we know it's a string, let's get a string explicitly
+			return sol::object(L, sol::in_place, result.self_.Get<CXStr>().c_str());
+		default:
+			// by default run it through the tostring conversion because we are assuming calling with empty parens means
+			// to actualize the data in the native lua space
+			char buf[MAX_STRING] = { 0 };
+			result.self_.Type->ToString(result.self_.GetVarPtr(), buf);
+			return sol::object(L, sol::in_place, buf);
+		}
 	}
 
 	sol::object get(sol::stack_object key, sol::this_state L) const
@@ -168,9 +232,9 @@ struct lua_MQDataItem
 	{
 		MQTypeVar result;
 		if (self_ != nullptr && self_->Function("", result))
-			return sol::object(L, sol::in_place, lua_MQTypeVar(std::move(result)));
+			return lua_MQTypeVar(std::move(result)).call_empty(L);
 
-		return sol::object(L, sol::in_place, lua_MQTypeVar());
+		return sol::object(L, sol::in_place, sol::lua_nil);
 	}
 
 	[[nodiscard]] sol::object get(sol::stack_object key, sol::this_state L) const
@@ -244,9 +308,9 @@ lua_MQDataItem sol_lua_get(sol::types<lua_MQDataItem>, lua_State* L, int index, 
 	return lua_MQDataItem();
 }
 
-// this doesn't do what I think it does...
 //int sol_lua_push(lua_State* L, const lua_MQTypeVar& var)
 //{
+//	stackTrace(L);
 //	if (!var.member_.empty())
 //		return sol::stack::push(L, var.evaluate_member());
 //	else

@@ -620,48 +620,69 @@ private:
 
 //============================================================================
 
-union MQPrimitiveData
-{
-	void* Ptr;
-	float Float;
-	DWORD DWord;
-	ARGBCOLOR Argb;
-	int32_t Int;
-	double Double;
-	int64_t Int64;
-	uint64_t UInt64;
-	ULARGE_INTEGER LargeUInt;
-};
-
 struct MQVarPtr
 {
-	std::variant<MQPrimitiveData, std::shared_ptr<void>, CXStr> Data;
+	using MQVariant = std::variant<
+		void*,
+		float,
+		int32_t,
+		uint32_t,
+		double,
+		int64_t,
+		uint64_t,
+		std::shared_ptr<void>,
+		CXStr
+	>;
+	
+	MQVariant Data;
 
-	enum VariantIdx
+	enum class VariantIdx
 	{
-		PlainData = 0,
+		Ptr = 0,
+		Float,
+		Int32,
+		UInt32,
+		Double,
+		Int64,
+		UInt64,
 		ComplexObject,
 		String
 	};
 
+	bool IsType(VariantIdx Index) { return Data.index() == static_cast<size_t>(Index); }
+	VariantIdx GetType() { return static_cast<VariantIdx>(Data.index()); }
+
 	bool operator==(const MQVarPtr& other) const
 	{
-		if (Data.index() == other.Data.index())
+		// this is a strict equals check, will be false if the underlying data type is not the same
+		// if you want to compare unlike types, you will need to first actualize the variant
+		return this->Data == other.Data;
+	}
+
+	template <typename T>
+	struct ConvertVisitor
+	{
+		mutable std::optional<T> value;
+
+		template <typename U>
+		void operator()(U&& val)
 		{
-			switch (Data.index())
-			{
-			case VariantIdx::PlainData:
-				return std::get<MQPrimitiveData>(Data).UInt64 == std::get<MQPrimitiveData>(other.Data).UInt64;
-			case VariantIdx::ComplexObject:
-				return std::get<std::shared_ptr<void>>(Data) == std::get<std::shared_ptr<void>>(other.Data);
-			case VariantIdx::String:
-				return std::get<CXStr>(Data) == std::get<CXStr>(other.Data);
-			default:
-				return false;
-			}
+			if constexpr (std::is_convertible_v<U, T>)
+				value = static_cast<T>(val);
 		}
 
-		return false;
+		ConvertVisitor() : value(std::nullopt) {}
+	};
+
+	template <typename T>
+	T Cast() const
+	{
+		auto visitor = ConvertVisitor<T>();
+		std::visit(visitor, Data);
+		if (visitor.value)
+			return *visitor.value;
+
+		return T();
 	}
 
 	template <typename T>
@@ -684,9 +705,9 @@ struct MQVarPtr
 	}
 
 	template <typename T>
-	typename ReturnType<T>::type Get()
+	typename ReturnType<T>::type Get() const
 	{
-		if (Data.index() != VariantIdx::ComplexObject)
+		if (Data.index() != static_cast<size_t>(VariantIdx::ComplexObject))
 			return std::shared_ptr<T>();
 
 		return std::static_pointer_cast<T>(std::get<std::shared_ptr<void>>(Data));
@@ -706,151 +727,130 @@ struct MQVarPtr
 	}
 
 	template <>
-	CXStr Get<CXStr>()
+	CXStr Get<CXStr>() const
 	{
-		if (Data.index() != VariantIdx::String)
+		if (Data.index() != static_cast<size_t>(VariantIdx::String))
 			return CXStr();
 
 		return std::get<CXStr>(Data);
 	}
 
-	MQPrimitiveData get_POD() const
+#define MQVARPTR_SPECIALIZE(Type) \
+template<> struct ReturnType<Type> { using type = Type; }; \
+template<> Type Set<Type>(Type Val) { return std::get<Type>(Data = Val); } \
+template<> Type Get<Type>() const { return Cast<Type>(); }
+
+	MQVARPTR_SPECIALIZE(void*);
+	MQVARPTR_SPECIALIZE(float);
+	MQVARPTR_SPECIALIZE(int32_t);
+	MQVARPTR_SPECIALIZE(uint32_t);
+	MQVARPTR_SPECIALIZE(double);
+	MQVARPTR_SPECIALIZE(int64_t);
+	MQVARPTR_SPECIALIZE(uint64_t);
+
+#define MQVARPTR_PROPERTIES(Type, Prop) \
+Type set_##Prop(Type Val) { return Set<Type>(Val); } \
+Type get_##Prop() const { return Get<Type>(); } \
+__declspec(property(get = get_##Prop, put = set_##Prop)) Type Prop;
+
+	MQVARPTR_PROPERTIES(void*, Ptr);
+	MQVARPTR_PROPERTIES(float, Float);
+	MQVARPTR_PROPERTIES(int32_t, Int);
+	MQVARPTR_PROPERTIES(uint32_t, DWord);
+	MQVARPTR_PROPERTIES(double, Double);
+	MQVARPTR_PROPERTIES(int64_t, Int64);
+	MQVARPTR_PROPERTIES(uint64_t, UInt64);
+
+	// TODO: Future work -- uncomment the deprecates and refactor all uses of high/low part
+	// these are here only to support deprecated functionality where some types rely on storing ints in low and high parts
+	//DEPRECATE("Use Get<uint32_t>() instead of LowPart. For data needing High and Low part, create a data structure instead.")
+	uint32_t get_LowPart() const { return Get<uint32_t>(); }
+
+	//DEPRECATE("Use Set<uint32_t>(v) instead of LowPart. For data needing High and Low part, create a data structure instead.")
+	uint32_t set_LowPart(uint32_t Val)
 	{
-		if (Data.index() != VariantIdx::PlainData)
+		// we can assume that if the user wanted to also set HighPart, they did it explicitly either before or after setting
+		// LowPart, which falls into 2 cases. Either the underlying data was set before the 64-bit, or it wasn't (either the
+		// the default or an explicit 32-bit/pointer value).
+
+		// first check if we have 64-bit Data -- we only need to worry about unsigned because this trick wouldn't work with signed
+		// data without some explicit or implicit casting to unsigned
+		if (Data.index() == static_cast<size_t>(VariantIdx::UInt64))
 		{
-			MQPrimitiveData u;
-			u.UInt64 = 0;
-			return u;
+			// if so, we need to save the HighPart off before setting the low part, then retain the data type in the variant
+			ULARGE_INTEGER i;
+			i.QuadPart = Get<uint64_t>();
+			i.LowPart = Val;
+			Set<uint64_t>(i.QuadPart);
+			return i.LowPart;
 		}
 
-		return std::get<MQPrimitiveData>(Data);
+		// if we get here, we don't have 64-bit data, so HighPart is either unset, or set in the convenience variable above
+		// we can just set the LowPart as uint32_t
+		return Set<uint32_t>(Val);
 	}
 
-	MQPrimitiveData set_POD(MQPrimitiveData POD)
+#pragma warning(disable: 4996)
+	__declspec(property(get = get_LowPart, put = set_LowPart)) uint32_t LowPart;
+#pragma warning(default: 4996)
+
+	// HighPart is slightly more complicated, but only just. We just save off the HighPart in this member variable unless
+	// the underlying data is uint64_t -- and we will prefer to store the uint32_t variant when setting
+	uint32_t HighPart_;
+
+	//DEPRECATE("For data needing High and Low part, create a data structure instead.")
+	uint32_t get_HighPart() const
 	{
-		return std::get<MQPrimitiveData>(Data = POD);
+		// this data is only stored in Data if the type of variant is UInt64
+		if (Data.index() == static_cast<size_t>(VariantIdx::UInt64))
+		{
+			ULARGE_INTEGER i;
+			i.QuadPart = Get<uint64_t>();
+			return i.HighPart;
+		}
+
+		// otherwise, just return the extra storage information
+		return HighPart_;
 	}
 
-	void* get_Ptr() const { return get_POD().Ptr; }
-	void* set_Ptr(void* Ptr) {
-		auto u = get_POD();
-		u.Ptr = Ptr;
-		return set_POD(u).Ptr;
-	}
-	__declspec(property(get = get_Ptr, put = set_Ptr)) void* Ptr;
-	template <> struct ReturnType<void*> { using type = void*; };
-	template <> void* Set<void*>(void* Ptr) { return set_Ptr(Ptr); }
-	template <> void* Get<void*>() { return get_POD().Ptr; }
-
-	float get_Float() const { return get_POD().Float; }
-	float set_Float(float Float)
+	//DEPRECATE("For data needing High and Low part, create a data structure instead.")
+	uint32_t set_HighPart(uint32_t Val)
 	{
-		auto u = get_POD();
-		u.Float = Float;
-		return set_POD(u).Float;
-	}
-	__declspec(property(get = get_Float, put = set_Float)) float Float;
-	template <> struct ReturnType<float> { using type = float; };
-	template <> float Set<float>(float Float) { return set_Float(Float); }
-	template <> float Get<float>() { return get_POD().Float; }
+		// again, check if we  have already set the underlying data type to uint64_t
+		if (Data.index() == static_cast<size_t>(VariantIdx::UInt64))
+		{
+			ULARGE_INTEGER i;
+			i.QuadPart = Get<uint64_t>();
+			i.HighPart = Val;
+			Set<uint64_t>(i.QuadPart);
+			return i.HighPart;
+		}
 
-	DWORD get_DWord() const { return get_POD().DWord; }
-	DWORD set_DWord(DWORD DWord)
-	{
-		auto u = get_POD();
-		u.DWord = DWord;
-		return set_POD(u).DWord;
+		// otherwise, just set the extra storage information and move on
+		HighPart_ = Val;
+		return HighPart_;
 	}
-	__declspec(property(get = get_DWord, put = set_DWord)) DWORD DWord;
-	template <> struct ReturnType<DWORD> { using type = DWORD; };
-	template <> DWORD Set<DWORD>(DWORD DWord) { return set_DWord(DWord); }
-	template <> DWORD Get<DWORD>() { return get_POD().DWord; }
 
-	ARGBCOLOR get_Argb() const { return get_POD().Argb; }
-	ARGBCOLOR set_Argb(ARGBCOLOR Argb)
+#pragma warning(disable: 4996)
+	__declspec(property(get = get_HighPart, put = set_HighPart)) uint32_t HighPart;
+#pragma warning(default: 4996)
+
+	ARGBCOLOR get_Argb() const
 	{
-		auto u = get_POD();
-		u.Argb = Argb;
-		return set_POD(u).Argb;
+		auto ptr = Get<ARGBCOLOR>();
+		if (ptr != nullptr)
+			return *ptr;
+
+		return { { 0, 0, 0, 0 } };
 	}
+
+	ARGBCOLOR set_Argb(ARGBCOLOR Val)
+	{
+		// this is a bit of a cowboy deref, but we are guaranteed that Set constructs a new shared pointer
+		return *Set<ARGBCOLOR>(Val);
+	}
+
 	__declspec(property(get = get_Argb, put = set_Argb)) ARGBCOLOR Argb;
-	template <> struct ReturnType<ARGBCOLOR> { using type = ARGBCOLOR; };
-	template <> ARGBCOLOR Set<ARGBCOLOR>(ARGBCOLOR Argb) { return set_Argb(Argb); }
-	template <> ARGBCOLOR Get<ARGBCOLOR>() { return get_POD().Argb; }
-
-	int32_t get_Int() const { return get_POD().Int; }
-	int32_t set_Int(int32_t Int)
-	{
-		auto u = get_POD();
-		u.Int = Int;
-		return set_POD(u).Int;
-	}
-	__declspec(property(get = get_Int, put = set_Int)) int32_t Int;
-	template <> struct ReturnType<int32_t> { using type = int32_t; };
-	template <> int32_t Set<int32_t>(int32_t Int) { return set_Int(Int); }
-	template <> int32_t Get<int32_t>() { return get_POD().Int; }
-
-	double get_Double() const { return get_POD().Double; }
-	double set_Double(double Double)
-	{
-		auto u = get_POD();
-		u.Double = Double;
-		return set_POD(u).Double;
-	}
-	__declspec(property(get = get_Double, put = set_Double)) double Double;
-	template <> struct ReturnType<double> { using type = double; };
-	template <> double Set<double>(double Double) { return set_Double(Double); }
-	template <> double Get<double>() { return get_POD().Double; }
-
-	int64_t get_Int64() const { return get_POD().Int64; }
-	int64_t set_Int64(int64_t Int64)
-	{
-		auto u = get_POD();
-		u.Int64 = Int64;
-		return set_POD(u).Int64;
-	}
-	__declspec(property(get = get_Int64, put = set_Int64)) int64_t Int64;
-	template <> struct ReturnType<int64_t> { using type = int64_t; };
-	template <> int64_t Set<int64_t>(int64_t Int64) { return set_Int64(Int64); }
-	template <> int64_t Get<int64_t>() { return get_POD().Int64; }
-
-	uint64_t get_UInt64() const { return get_POD().UInt64; }
-	uint64_t set_UInt64(uint64_t UInt64)
-	{
-		auto u = get_POD();
-		u.UInt64 = UInt64;
-		return set_POD(u).UInt64;
-	}
-	__declspec(property(get = get_UInt64, put = set_UInt64)) uint64_t UInt64;
-	template <> struct ReturnType<uint64_t> { using type = uint64_t; };
-	template <> uint64_t Set<uint64_t>(uint64_t UInt64) { return set_UInt64(UInt64); }
-	template <> uint64_t Get<uint64_t>() { return get_POD().UInt64; }
-
-	DWORD get_LowPart() const { return get_POD().LargeUInt.LowPart; }
-	DWORD set_LowPart(DWORD LowPart)
-	{
-		auto u = get_POD();
-		u.LargeUInt.LowPart = LowPart;
-		return set_POD(u).LargeUInt.LowPart;
-	}
-	__declspec(property(get = get_LowPart, put = set_LowPart)) DWORD LowPart;
-
-	DWORD get_HighPart() const { return get_POD().LargeUInt.HighPart; }
-	DWORD set_HighPart(DWORD HighPart)
-	{
-		auto u = get_POD();
-		u.LargeUInt.HighPart = HighPart;
-		return set_POD(u).LargeUInt.HighPart;
-	}
-	__declspec(property(get = get_HighPart, put = set_HighPart)) DWORD HighPart;
-	template <> struct ReturnType<ULARGE_INTEGER> { using type = ULARGE_INTEGER; };
-	template <> ULARGE_INTEGER Set<ULARGE_INTEGER>(ULARGE_INTEGER LargeUInt)
-	{
-		auto u = get_POD();
-		u.LargeUInt = LargeUInt;
-		return set_POD(u).LargeUInt;
-	}
-	template <> ULARGE_INTEGER Get<ULARGE_INTEGER>() { return get_POD().LargeUInt; }
 };
 using MQ2VARPTR [[deprecated("Use MQVarPtr instead")]] = MQVarPtr;
 using PMQ2VARPTR [[deprecated("Use MQVarPtr* instead")]] = MQVarPtr*;
