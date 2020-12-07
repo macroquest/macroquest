@@ -2605,7 +2605,6 @@ bool FastCalculate(char* szFormula, double& Result)
 			// unparsable
 			return false;
 		}
-		break;
 		}
 		WasParen = false;
 	}
@@ -7114,9 +7113,7 @@ int GetFreeInventory(int nSize)
 	{
 		for (int slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++)
 		{
-			if (pProfile->pInventoryArray
-				&& pProfile->pInventoryArray->InventoryArray
-				&& pProfile->pInventoryArray->InventoryArray[slot])
+			if (pProfile->pInventoryArray && pProfile->pInventoryArray->InventoryArray[slot])
 			{
 				CONTENTS* pItem = pProfile->pInventoryArray->InventoryArray[slot];
 
@@ -7154,9 +7151,7 @@ int GetFreeInventory(int nSize)
 				break;
 			}
 
-			if (pProfile->pInventoryArray
-				&& pProfile->pInventoryArray->InventoryArray
-				&& pProfile->pInventoryArray->InventoryArray[slot])
+			if (pProfile->pInventoryArray && pProfile->pInventoryArray->InventoryArray[slot])
 			{
 				CONTENTS* pItem = pProfile->pInventoryArray->InventoryArray[slot];
 
