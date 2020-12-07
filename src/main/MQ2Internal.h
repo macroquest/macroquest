@@ -219,14 +219,14 @@ using PSWHOFILTER [[deprecated("Use MQWhoFilter* instead")]] = MQWhoFilter*;
 
 struct MQWhoSort
 {
-	char szName[MAX_STRING];
-	char szLine[MAX_STRING];
+	char szName[MAX_STRING] = { 0 };
+	char szLine[MAX_STRING] = { 0 };
 	uint8_t Level = 0;
 	uint32_t SpawnID = 0;
 	float Distance = 0;
 	int Class = 0;
 	int Race = 0;
-	int64_t GuildID;
+	int64_t GuildID = 0;
 };
 using WHOSORT [[deprecated("Use MQWhoSort instead")]] = MQWhoSort;
 using PWHOSORT [[deprecated("Use MQWhoSort* instead")]] = MQWhoSort*;

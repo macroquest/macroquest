@@ -57,7 +57,7 @@ public:
 		SetBGType(1);
 
 		ContextMenuID = 3;
-		InputBox->SetCRNormal(0xFFFFFFFF); // we want a white cursor 
+		InputBox->SetCRNormal(0xFFFFFFFF); // we want a white cursor
 		InputBox->SetMaxChars(512);
 		OutputBox = (CStmlWnd*)GetChildItem("CW_ChatOutput");
 		OutputBox->SetParentWindow(this);
@@ -133,14 +133,14 @@ public:
 						if (sCmdHistory.size() > 0)
 						{
 							iCurrentCmd++;
-							if (iCurrentCmd < ((int)sCmdHistory.size()) && iCurrentCmd >= 0)
+							if (iCurrentCmd < (static_cast<int>(sCmdHistory.size())) && iCurrentCmd >= 0)
 							{
 								const std::string& s = sCmdHistory.at(iCurrentCmd);
 								InputBox->SetWindowText(s.c_str());
 							}
 							else
 							{
-								iCurrentCmd = ((int)sCmdHistory.size()) - 1;
+								iCurrentCmd = (static_cast<int>(sCmdHistory.size())) - 1;
 							}
 						}
 					}
@@ -183,7 +183,7 @@ public:
 		}
 		else
 		{
-			//DebugSpew("MQ2ChatWnd: 0x%X, Msg: 0x%X, value: %Xh",pWnd,Message,data); 
+			//DebugSpew("MQ2ChatWnd: 0x%X, Msg: 0x%X, value: %Xh",pWnd,Message,data);
 		}
 
 		return CSidlScreenWnd::WndNotification(pWnd, Message, data);
@@ -194,7 +194,7 @@ public:
 		// get fonts structure -- this offset can be found by looking at 
 		// SetChatfont which is called from the /chatfontsize function 
 
-		// check font array bounds and pointers 
+		// check font array bounds and pointers
 		if (size < 0 || size >= pWndMgr->FontsArray.GetCount())
 		{
 			return;
@@ -243,12 +243,9 @@ void LoadChatSettings()
 {
 	char szTemp[MAX_STRING] = { 0 };
 
-	GetPrivateProfileString("Settings", "AutoScroll", bAutoScroll ? "on" : "off", szTemp, MAX_STRING, INIFileName);
-	bAutoScroll = (!_strnicmp(szTemp, "on", 3));
-	GetPrivateProfileString("Settings", "NoCharSelect", bNoCharSelect ? "on" : "off", szTemp, MAX_STRING, INIFileName);
-	bNoCharSelect = (!_strnicmp(szTemp, "on", 3));
-	GetPrivateProfileString("Settings", "SaveByChar", bSaveByChar ? "on" : "off", szTemp, MAX_STRING, INIFileName);
-	bSaveByChar = (!_strnicmp(szTemp, "on", 3));
+	bAutoScroll = GetPrivateProfileBool("Settings", "AutoScroll", bAutoScroll, INIFileName);
+	bNoCharSelect = GetPrivateProfileBool("Settings", "NoCharSelect", bNoCharSelect, INIFileName);
+	bSaveByChar = GetPrivateProfileBool("Settings", "SaveByChar", bSaveByChar, INIFileName);
 }
 
 void LoadChatFromINI(CSidlScreenWnd* pWindow)
@@ -256,9 +253,6 @@ void LoadChatFromINI(CSidlScreenWnd* pWindow)
 	char szTemp[MAX_STRING] = { 0 };
 
 	LoadChatSettings();
-
-	sprintf_s(szChatINISection, "%s.%s", EQADDR_SERVERNAME, ((SPAWNINFO*)pLocalPlayer)->Name);
-	if (!bSaveByChar) sprintf_s(szChatINISection, "Default");
 
 	// left top right bottom
 	pWindow->SetLocation({ (LONG)GetPrivateProfileInt(szChatINISection,"ChatLeft",      10,INIFileName),
@@ -283,6 +277,7 @@ void LoadChatFromINI(CSidlScreenWnd* pWindow)
 	MQChatWnd->SetChatFont(GetPrivateProfileInt(szChatINISection, "FontSize", 4, INIFileName));
 	GetPrivateProfileString(szChatINISection, "WindowTitle", "MQ", szTemp, MAX_STRING, INIFileName);
 	pWindow->SetWindowText(szTemp);
+	pWindow->bKeepOnScreen = GetPrivateProfileBool(szChatINISection, "KeepOnScreen", true, INIFileName);
 }
 
 void SaveChatToINI(CSidlScreenWnd* pWindow)
@@ -321,6 +316,7 @@ void SaveChatToINI(CSidlScreenWnd* pWindow)
 	WritePrivateProfileString(szChatINISection, "BGTint.blue", std::to_string(col.B), INIFileName);
 	WritePrivateProfileString(szChatINISection, "FontSize", std::to_string(MQChatWnd->FontSize), INIFileName);
 	WritePrivateProfileString(szChatINISection, "WindowTitle", pWindow->GetWindowText().c_str(), INIFileName);
+	WritePrivateProfileBool(szChatINISection, "KeepOnScreen", pWindow->bKeepOnScreen, INIFileName);
 }
 
 void CreateChatWindow()
@@ -390,7 +386,7 @@ void MQChatFont(SPAWNINFO* pChar, char* Line)
 	if (MQChatWnd && Line[0])
 	{
 		const int size = GetIntFromString(Line, -1);
-		if (size < 0 || size>10)
+		if (size < 0 || size > 10)
 		{
 			WriteChatf("Usage: /mqfont 0-10");
 			return;
@@ -411,119 +407,111 @@ void MQChatMin(SPAWNINFO* pChar, char* Line)
 
 void MQChat(SPAWNINFO* pChar, char* Line)
 {
-	if (MQChatWnd)
+	char Arg[MAX_STRING] = { 0 };
+	GetArg(Arg, Line, 1);
+
+	if (!_stricmp(Arg, "reset"))
 	{
-		if (!_stricmp(Line, "reset"))
+		// TODO:  This should set the ini to the defaults instead of just the positioning.
+		if (MQChatWnd)
 		{
 			MQChatWnd->SetLocked(false);
 
 			CXRect rc = { 300, 10, 600, 210 };
 			MQChatWnd->Move(rc, false);
-
-			SaveChatToINI(MQChatWnd);
+			MQChatWnd->SetZLayer(1);
+			DestroyChatWnd();
+			CreateChatWindow();
+		}
+		else
+		{
+			WriteChatf("MQ2ChatWnd must be active in order to reset.");
 		}
 	}
-
-	char Arg[MAX_STRING] = { 0 };
-	GetArg(Arg, Line, 1);
-
-	// user wants to adjust autoscroll
-	if (!_stricmp(Arg, "autoscroll"))
+	else if (!_stricmp(Arg, "autoscroll"))
 	{
 		GetArg(Arg, Line, 2);
-
-		if (!strlen(Arg))
+		if (Arg[0] == '\0')
 		{
 			WriteChatf("Autoscroll is currently: %s", (bAutoScroll ? "\agOn" : "\arOff"));
-			return;
 		}
-
-		if (!_stricmp(Arg, "on"))
+		else if (!_stricmp(Arg, "on"))
 		{
 			// turn it on.
 			bAutoScroll = true;
 			WriteChatf("Autoscroll is now: \agOn.");
+			WritePrivateProfileString("Settings", "AutoScroll", "on", INIFileName);
 		}
 		else if (!_stricmp(Arg, "off"))
 		{
 			// turn it off.
 			bAutoScroll = false;
 			WriteChatf("Autoscroll is now: \arOff.");
+			WritePrivateProfileString("Settings", "AutoScroll", "off", INIFileName);
 		}
 		else
 		{
 			WriteChatf("Usage: /mqchat autoscroll [on | off]\n IE: /mqchat autoscroll on");
 		}
-
-		WritePrivateProfileString("Settings", "AutoScroll", bAutoScroll ? "on" : "off", INIFileName);
-		return;
 	}
-
-	// user wants to adjust NoCharSelect
-	if (!_stricmp(Arg, "NoCharSelect"))
+	else if (!_stricmp(Arg, "NoCharSelect"))
 	{
 		GetArg(Arg, Line, 2);
 
 		if (!strlen(Arg))
 		{
 			WriteChatf("NoCharSelect is currently: %s", (bNoCharSelect ? "\agOn" : "\arOff"));
-			return;
 		}
-
-		if (!_stricmp(Arg, "on"))
+		else if (!_stricmp(Arg, "on"))
 		{
 			// turn it on.
 			bNoCharSelect = true;
 			WriteChatf("NoCharSelect is now: \agOn.");
+			WritePrivateProfileString("Settings", "NoCharSelect", "on", INIFileName);
 		}
 		else if (!_stricmp(Arg, "off"))
 		{
 			// turn it off.
 			bNoCharSelect = false;
 			WriteChatf("NoCharSelect is now: \arOff.");
+			WritePrivateProfileString("Settings", "NoCharSelect", "off", INIFileName);
 		}
 		else
 		{
 			WriteChatf("Usage: /mqchat NoCharSelect [on | off]\n IE: /mqchat NoCharSelect on");
 		}
-
-		WritePrivateProfileString("Settings", "NoCharSelect", bNoCharSelect ? "on" : "off", INIFileName);
-		return;
 	}
-
-	// user wants to adjust SaveByChar
-	if (!_stricmp(Arg, "SaveByChar"))
+	else if (!_stricmp(Arg, "SaveByChar"))
 	{
 		GetArg(Arg, Line, 2);
 
-		if (!strlen(Arg))
+		if (Arg[0] == '\0')
 		{
 			WriteChatf("SaveByChar is currently: %s", (bSaveByChar ? "\agOn" : "\arOff"));
-			return;
 		}
-
-		if (!_stricmp(Arg, "on"))
+		else if (!_stricmp(Arg, "on"))
 		{
 			// turn it on.
 			bSaveByChar = true;
 			WriteChatf("SaveByChar is now: \agOn.");
+			WritePrivateProfileString("Settings", "SaveByChar", "on", INIFileName);
 		}
 		else if (!_stricmp(Arg, "off"))
 		{
 			// turn it off.
 			bSaveByChar = false;
 			WriteChatf("SaveByChar is now: \arOff.");
+			WritePrivateProfileString("Settings", "SaveByChar", "off", INIFileName);
 		}
 		else
 		{
 			WriteChatf("Usage: /mqchat SaveByChar [on | off]\n IE: /mqchat SaveByChar on");
 		}
-
-		WritePrivateProfileString("Settings", "SaveByChar", bSaveByChar ? "on" : "off", INIFileName);
-		return;
 	}
-
-	WriteChatf("%s was not a valid option. Valid options are: reset, autoscroll, nocharselect, and savebychar", Arg);
+	else
+	{
+		WriteChatf("%s was not a valid option. Valid options are: reset, autoscroll, nocharselect, and savebychar", Arg);
+	}
 }
 
 void SetChatTitle(SPAWNINFO* pChar, char* Line)
@@ -569,7 +557,7 @@ PLUGIN_API void OnCleanUI()
 	DestroyChatWnd();
 }
 
-PLUGIN_API void SetGameState(DWORD GameState)
+PLUGIN_API void SetGameState(int GameState)
 {
 	DebugSpew("MQ2ChatWnd::SetGameState()");
 	if (GameState == GAMESTATE_CHARSELECT)
@@ -581,6 +569,7 @@ PLUGIN_API void SetGameState(DWORD GameState)
 		}
 		else
 		{
+			strcpy_s(szChatINISection, "CharSelect");
 			AddMQ2KeyBind("MQ2CSCHAT", DoMQ2ChatBind);
 			KeyCombo Combo;
 			ParseKeyCombo("/", Combo);
@@ -589,6 +578,27 @@ PLUGIN_API void SetGameState(DWORD GameState)
 	}
 	else
 	{
+		if (bSaveByChar && pLocalPlayer != nullptr)
+		{
+			std::string strChatINISection = EQADDR_SERVERNAME;
+			strChatINISection += ".";
+			strChatINISection += pLocalPlayer->Name;
+			// Only need to do anything at all if things have changed
+			if(!string_equals(szChatINISection, strChatINISection))
+			{
+				// Destroy the window which will save the settings under the old character
+				if(MQChatWnd != nullptr)
+				{
+					DestroyChatWnd();
+				}
+				// Set up for the new create below.
+				strcpy_s(szChatINISection, &strChatINISection[0]);
+			}
+		}
+		else
+		{
+			strcpy_s(szChatINISection, "Default");
+		}
 		if (GameState != GAMESTATE_CHARCREATE) RemoveMQ2KeyBind("MQ2CSCHAT");
 		if (GameState == GAMESTATE_INGAME && !MQChatWnd)
 		{
@@ -648,7 +658,7 @@ PLUGIN_API DWORD OnWriteChatColor(char* Line, DWORD Color, DWORD Filter)
 
 PLUGIN_API void OnPulse()
 {
-	if (gGameState == GAMESTATE_CHARSELECT && !MQChatWnd && !bNoCharSelect)
+	if (GetGameState() == GAMESTATE_CHARSELECT && !MQChatWnd && !bNoCharSelect)
 	{
 		CreateChatWindow();
 	}
@@ -673,7 +683,7 @@ PLUGIN_API void OnPulse()
 		// TODO: move all this to OnProcessFrame()
 		if (!sPendingChat.empty())
 		{
-			// set 'old' to current 
+			// set 'old' to current
 			ulOldVScrollPos = MQChatWnd->OutputBox->GetVScrollPos();
 
 			// scroll down if autoscroll enabled, or current position is the bottom of chatwnd 
@@ -701,9 +711,9 @@ PLUGIN_API void OnPulse()
 			}
 			else
 			{
-				// autoscroll is disabled and current vscroll position was not at the bottom, retain position 
-				// note: if the window is full (VScrollMax value between 9793 and 9835), this will not adjust with 
-				// the flushing of buffer that keeps window a certain max size 
+				// autoscroll is disabled and current vscroll position was not at the bottom, retain position
+				// note: if the window is full (VScrollMax value between 9793 and 9835), this will not adjust with
+				// the flushing of buffer that keeps window a certain max size
 				MQChatWnd->OutputBox->SetVScrollPos(ulOldVScrollPos);
 			}
 		}
@@ -758,7 +768,7 @@ public:
 
 	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
-		Destination[0] = 0;
+		Destination[0] = '\0';
 
 		if (MQChatWnd)
 		{

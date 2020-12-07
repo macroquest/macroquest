@@ -492,7 +492,11 @@ bool ParseINIFile(const std::string& iniFile)
 	GetPrivateProfileString("Filter Names", "", "", FilterList, MAX_STRING * 10, iniFile);
 
 	char* pFilterList = FilterList;
-	while (pFilterList[0] != 0)
+	if (pFilterList[0] == '\0' && gbWriteAllConfig)
+	{
+		WritePrivateProfileString("Filter Names", "Example", "NOBODY", iniFile);
+	}
+	while (pFilterList[0] != '\0')
 	{
 		std::string filter = GetPrivateProfileString("Filter Names", pFilterList, "", iniFile);
 
