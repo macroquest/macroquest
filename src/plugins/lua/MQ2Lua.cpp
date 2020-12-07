@@ -68,6 +68,11 @@ void DebugStackTrace(lua_State* L)
 	DebugSpewAlways("---- End Stack ----\n");
 }
 
+// TODO: add variadic args to call for multi-parameter parsing
+// TODO: add concat support
+// TODO: add function that creates "args" with delim
+// TODO: add ini settings
+
 struct lua_MQDataItem;
 struct lua_MQTypeVar
 {
