@@ -339,18 +339,27 @@ struct lua_MQTLO
 		auto maybe_key = key.as<std::optional<std::string>>();
 		if (maybe_key)
 		{
-			{
-				MQDataItem* result = FindMQ2Data(maybe_key->c_str());
-				if (result != nullptr)
-					return sol::object(L, sol::in_place, lua_MQDataItem(result));
-			}
+			MQDataItem* result = FindMQ2Data(maybe_key->c_str());
+			if (result != nullptr)
+				return sol::object(L, sol::in_place, lua_MQDataItem(result));
+		}
 
-			{
-				std::string maybe_command("/");
-				maybe_command += *maybe_key;
-				if (IsCommand(maybe_command.c_str()))
-					return sol::object(L, sol::in_place, lua_MQCommand(maybe_command));
-			}
+		return sol::object(L, sol::in_place, sol::lua_nil);
+	}
+};
+
+struct lua_MQDoCommand
+{
+	// this is only used to provide a namespace for commands
+	[[nodiscard]] sol::object get(sol::stack_object key, sol::this_state L) const
+	{
+		auto maybe_key = key.as<std::optional<std::string>>();
+		if (maybe_key)
+		{
+			std::string cmd("/");
+			cmd += *maybe_key;
+			if (IsCommand(cmd.c_str()))
+				return sol::object(L, sol::in_place, lua_MQCommand(cmd));
 		}
 
 		return sol::object(L, sol::in_place, sol::lua_nil);
@@ -382,8 +391,17 @@ static void register_mq_type(sol::state& lua)
 		sol::no_constructor,
 		sol::meta_function::index, &lua_MQTLO::get);
 
+	lua.new_usertype<lua_MQDoCommand>("mqdocommand",
+		sol::no_constructor,
+		sol::meta_function::index, &lua_MQDoCommand::get);
+
 	lua["TLO"] = lua_MQTLO();
+	lua["cmd"] = lua_MQDoCommand();
 	lua["null"] = lua_MQTypeVar();
+
+	// TODO: need to implement a sleep command that doesn't use any macrostate
+	//       variables. delay can redirect to this sleep function. Also investigate
+	//       other macro commands that rely on macrostate variables (/dquery?)
 }
 
 static void ForceYield(lua_State* L, lua_Debug* D)
@@ -393,9 +411,12 @@ static void ForceYield(lua_State* L, lua_Debug* D)
 
 void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 {
-	// TODO: change this to accept a path
-	// TODO: add a stop command that exploits hooks
-	// TODO: add a pause command that also exploits hooks (harder because we have to know to resume or not, store in paused vector)
+	// TODO: redo this to accept arguments and instead generate a PID to map with.
+	//       this should be a simple call to another function that returns a PID
+	//       so it can be reused as a lua function call where you can simple store
+	//       PIDs of called scripts.
+	//       This also implies that we need to have a way to search PIDs (inside
+	//       the TLO, but also in lua)
 	MQ2Args arg_parser("MQ2Lua: A lua script binding plugin.");
 	arg_parser.Prog("/lua");
 	args::Group arguments(arg_parser, "");
@@ -439,7 +460,7 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 				s_running.emplace_back(entry, thread);
 				lua_sethook(thread.state(), ForceYield, LUA_MASKCOUNT, TURBO_NUM);
 
-				WriteChatf("Running lua script %s from path %s", entry.c_str(), script_path.c_str());
+				WriteChatf("Running lua script '%s' from path %s", entry.c_str(), script_path.c_str());
 
 				auto result = co();
 			}
@@ -452,7 +473,7 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 		}
 		else
 		{
-			MacroError("%s is already running!", entry.c_str());
+			MacroError("'%s' is already running!", entry.c_str());
 		}
 	}
 }
@@ -491,12 +512,150 @@ void EndLuaCommand(SPAWNINFO* pChar, char* Buffer)
 		{
 			// this will force the coroutine to yield, and removing this thread from the vector will cause it to gc
 			lua_sethook(thread_it->second.state(), ForceYield, LUA_MASKLINE, 0);
+			WriteChatf("Ending running lua script '%s'", thread_it->first.c_str());
 			s_running.erase(thread_it);
 		}
 		else
 		{
-			// didn't find a running thread, let's just kill any paused thread if it exists
-			s_paused.erase(name.Get());
+			// didn't find a running thread, let's just kill the paused thread if it exists
+			if (s_paused.erase(name.Get()) > 0)
+				WriteChatf("Ended paused lua script '%s'", name.Get().c_str());
+			else
+				WriteChatf("No lua script '%s' to end", name.Get().c_str());
+		}
+	}
+	else
+	{
+		// kill all scripts
+		for (const auto& kv : s_running)
+			lua_sethook(kv.second.state(), ForceYield, LUA_MASKLINE, 0);
+
+		s_running.clear();
+		s_paused.clear(); // don't need to stop these, they've already yielded
+
+		WriteChatf("Ending ALL lua scripts");
+	}
+}
+
+void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
+{
+	MQ2Args arg_parser("MQ2Lua: A lua script binding plugin.");
+	arg_parser.Prog("/luapause");
+	arg_parser.RequireCommand(false);
+	args::Group arguments(arg_parser, "");
+	args::Positional<std::string> name(arguments, "name", "optional parameter to specify a callback name of script to pause, if not specified will pause all running scripts.");
+
+	MQ2HelpArgument h(arguments);
+	auto args = allocate_args(Buffer);
+	try
+	{
+		arg_parser.ParseArgs(args);
+	}
+	catch (const args::Help&)
+	{
+		arg_parser.Help();
+	}
+	catch (const args::Error& e)
+	{
+		WriteChatColor(e.what());
+	}
+
+	if (name)
+	{
+		auto thread_it = std::find_if(s_running.begin(), s_running.end(), [&name](const std::pair<std::string, sol::thread>& kv) -> bool
+			{
+				return kv.first == name.Get();
+			});
+
+		if (thread_it != s_running.end())
+		{
+			// this will force the coroutine to yield, and removing this thread from the vector will cause it to gc
+			lua_sethook(thread_it->second.state(), ForceYield, LUA_MASKLINE, 0);
+			WriteChatf("Pausing running lua script '%s'", thread_it->first.c_str());
+			s_paused.emplace(*thread_it); // already got the pair, just put it in paused
+			s_running.erase(thread_it);
+		}
+		else
+		{
+			// didn't find a running thread, so restart a paused thread if it exists
+			auto thread_it = s_paused.find(name.Get());
+			if (thread_it != s_paused.end())
+			{
+				WriteChatf("Resuming paused lua script '%s'", name.Get().c_str());
+				s_running.emplace_back(*thread_it);
+				s_paused.erase(thread_it);
+			}
+			else
+				WriteChatf("No lua script '%s' to pause/resume", name.Get().c_str());
+		}
+	}
+	else
+	{
+		// try to get the user's intention here. If all scripts are running/paused, batch toggle state. If there are any running, assume we want to pause those only.
+		if (!s_running.empty())
+		{
+			for (const auto& kv : s_running)
+			{
+				lua_sethook(kv.second.state(), ForceYield, LUA_MASKLINE, 0);
+				s_paused.emplace(kv);
+			}
+
+			s_running.clear();
+
+			WriteChatf("Pausing ALL running lua scripts");
+		}
+		else if (!s_paused.empty())
+		{
+			// we have no running scripts, so restart all paused scripts
+			for (const auto& kv : s_paused)
+				s_running.emplace_back(kv);
+
+			s_paused.clear();
+
+			WriteChatf("Resuming ALL paused lua scripts");
+		}
+		else
+		{
+			// there are no scripts running or paused, just inform the user of that
+			WriteChatf("There are no running OR paused lua scripts to pause/resume");
+		}
+	}
+}
+
+void LuaStringCommand(SPAWNINFO* pChar, char* Buffer)
+{
+	// TODO: This needs to actually create a script with a PID in the s_running
+	//       map so things like sleep() will be respected.
+
+	MQ2Args arg_parser("MQ2Lua: A lua script binding plugin.");
+	arg_parser.Prog("/luastring");
+	args::Group arguments(arg_parser, "");
+	args::PositionalList<std::string> script(arguments, "script", "the text of the lua script to run");
+
+	MQ2HelpArgument h(arguments);
+	auto args = allocate_args(Buffer);
+	try
+	{
+		arg_parser.ParseArgs(args);
+	}
+	catch (const args::Help&)
+	{
+		arg_parser.Help();
+	}
+	catch (const args::Error& e)
+	{
+		WriteChatColor(e.what());
+	}
+
+	if (script)
+	{
+		try
+		{
+			s_lua.script(join(script.Get(), " "));
+		}
+		catch (sol::error& e)
+		{
+			MacroError("%s", e.what());
 		}
 	}
 }
@@ -516,10 +675,16 @@ PLUGIN_API void InitializePlugin()
 		WriteChatf("Failed to open or create directory at %s. Scripts will not run.", s_luaDir.c_str());
 	}
 
+	// TODO: Add the Lua TLO, which will include things like the lua script
+	//       directory, the "turbo" parameter (which also needs a command to
+	//       change at runtime), and current running lua scripts with PIDs
+	// TODO: Add the /luaturbo command to change the lua turbo setting
 	register_mq_type(s_lua);
 
 	AddCommand("/lua", LuaCommand);
 	AddCommand("/endlua", EndLuaCommand);
+	AddCommand("/luapause", LuaPauseCommand);
+	AddCommand("/luastring", LuaStringCommand);
 
 	//	s_lua.safe_script("y = mq.Me.PctHPs\nx = (y == null)\n", sol::script_pass_on_error); // this is nil before a character is loaded, use to test nil handling
 	//	s_lua.script("x = mq.EverQuest.GameState\n");
@@ -567,6 +732,8 @@ PLUGIN_API void ShutdownPlugin()
 
 	RemoveCommand("/lua");
 	RemoveCommand("/endlua");
+	RemoveCommand("/luapause");
+	RemoveCommand("/luastring");
 
 	// Examples:
 	// RemoveCommand("/mycommand");
