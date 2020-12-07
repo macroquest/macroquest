@@ -65,6 +65,7 @@ using namespace eqlib;
 #include "MQ2Commands.h"
 #include "MQ2DataContainers.h"
 #include "MQ2Utilities.h"
+#include "MQ2Args.h"
 #include "datatypes/MQ2DataTypes.h"
 
 // Link up ImGui
