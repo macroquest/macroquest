@@ -20,17 +20,20 @@ using namespace mq::datatypes;
 
 // TODO: Make this configureable (read it from the lua file?)
 #define TURBO_NUM 1000
+std::filesystem::path s_luaDir = std::filesystem::path(gPathMQRoot) / "lua"; // TODO: can make this configurable
 
 /**
  * \brief a global lua state needed so that thread states don't go out of scope
  */
 sol::state s_lua;
-std::filesystem::path s_luaDir = std::filesystem::path(gPathMQRoot) / "lua"; // TODO: can make this configurable
 
-std::vector<sol::thread> s_instances;
-std::vector<sol::thread> s_paused;
+// use a vector for s_running because we need to iterate it every pulse, and find only if a command is issued
+std::vector<std::pair<std::string, sol::thread>> s_running;
 
-void stackTrace(lua_State* L)
+// use a hashmap here because we never iterate this, only find
+ci_unordered::map<std::string, sol::thread> s_paused;
+
+void DebugStackTrace(lua_State* L)
 {
 	int i;
 	int top = lua_gettop(L);
@@ -308,23 +311,6 @@ lua_MQDataItem sol_lua_get(sol::types<lua_MQDataItem>, lua_State* L, int index, 
 	return lua_MQDataItem();
 }
 
-//int sol_lua_push(lua_State* L, const lua_MQTypeVar& var)
-//{
-//	stackTrace(L);
-//	if (!var.member_.empty())
-//		return sol::stack::push(L, var.evaluate_member());
-//	else
-//	{
-//		auto x = sol::userdata_value((void*)&var);
-//		return sol::stack::unqualified_pusher<sol::userdata_value>::push(L, x);
-//	}
-//}
-//
-//int sol_lua_push(lua_State* L, const lua_MQDataItem& data)
-//{
-//	return sol::stack::push(L, data.evaluate_self());
-//}
-
 struct lua_MQCommand
 {
 	std::string command_;
@@ -410,21 +396,108 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 	// TODO: change this to accept a path
 	// TODO: add a stop command that exploits hooks
 	// TODO: add a pause command that also exploits hooks (harder because we have to know to resume or not, store in paused vector)
-	auto x = sol::thread::create(s_lua);
+	MQ2Args arg_parser("MQ2Lua: A lua script binding plugin.");
+	arg_parser.Prog("/lua");
+	args::Group arguments(arg_parser, "");
+	args::Positional<std::string> script(arguments, "script", "the name of the lua script to run. will automatically append .lua extension if no extension specified.");
+	args::Positional<std::string> name(arguments, "name", "optional parameter to specify a callback name if different from the first parameter.");
+
+	MQ2HelpArgument h(arguments);
+	auto args = allocate_args(Buffer);
 	try
 	{
-		s_instances.emplace_back(x);
-		sol::coroutine script = x.state().load(Buffer);
-
-		lua_sethook(x.state(), ForceYield, LUA_MASKCOUNT, TURBO_NUM);
-
-		auto result = script();
+		arg_parser.ParseArgs(args);
 	}
-	catch (sol::error& e)
+	catch (const args::Help&)
 	{
-		MacroError("%s", e.what());
-		if (s_instances.back() == x)
-			s_instances.pop_back();
+		arg_parser.Help();
+	}
+	catch (const args::Error& e)
+	{
+		WriteChatColor(e.what());
+	}
+
+	if (script)
+	{
+		const std::string& entry = name.Matched() ? name.Get() : script.Get();
+
+		// don't do anything if we already have the same key
+		if (std::find_if(s_running.cbegin(), s_running.cend(), [&entry](const std::pair<std::string, sol::thread>& kv) -> bool
+			{
+				return kv.first == entry;
+			}) == s_running.cend() && s_paused.find(entry) == s_paused.cend())
+		{
+			auto script_path = std::filesystem::path(script.Get());
+			if (script_path.is_relative()) script_path = s_luaDir / script_path;
+			if (!script_path.has_extension()) script_path += ".lua";
+
+			auto thread = sol::thread::create(s_lua);
+			try
+			{
+				sol::coroutine co = thread.state().load_file(script_path.string());
+
+				s_running.emplace_back(entry, thread);
+				lua_sethook(thread.state(), ForceYield, LUA_MASKCOUNT, TURBO_NUM);
+
+				WriteChatf("Running lua script %s from path %s", entry.c_str(), script_path.c_str());
+
+				auto result = co();
+			}
+			catch (sol::error& e)
+			{
+				MacroError("%s", e.what());
+				if (s_running.back().first == entry)
+					s_running.pop_back();
+			}
+		}
+		else
+		{
+			MacroError("%s is already running!", entry.c_str());
+		}
+	}
+}
+
+void EndLuaCommand(SPAWNINFO* pChar, char* Buffer)
+{
+	MQ2Args arg_parser("MQ2Lua: A lua script binding plugin.");
+	arg_parser.Prog("/endlua");
+	arg_parser.RequireCommand(false);
+	args::Group arguments(arg_parser, "");
+	args::Positional<std::string> name(arguments, "name", "optional parameter to specify a callback name of script to stop, if not specified will stop all running scripts.");
+
+	MQ2HelpArgument h(arguments);
+	auto args = allocate_args(Buffer);
+	try
+	{
+		arg_parser.ParseArgs(args);
+	}
+	catch (const args::Help&)
+	{
+		arg_parser.Help();
+	}
+	catch (const args::Error& e)
+	{
+		WriteChatColor(e.what());
+	}
+
+	if (name)
+	{
+		auto thread_it = std::find_if(s_running.begin(), s_running.end(), [&name](const std::pair<std::string, sol::thread>& kv) -> bool
+			{
+				return kv.first == name.Get();
+			});
+
+		if (thread_it != s_running.end())
+		{
+			// this will force the coroutine to yield, and removing this thread from the vector will cause it to gc
+			lua_sethook(thread_it->second.state(), ForceYield, LUA_MASKLINE, 0);
+			s_running.erase(thread_it);
+		}
+		else
+		{
+			// didn't find a running thread, let's just kill any paused thread if it exists
+			s_paused.erase(name.Get());
+		}
 	}
 }
 
@@ -446,6 +519,7 @@ PLUGIN_API void InitializePlugin()
 	register_mq_type(s_lua);
 
 	AddCommand("/lua", LuaCommand);
+	AddCommand("/endlua", EndLuaCommand);
 
 	//	s_lua.safe_script("y = mq.Me.PctHPs\nx = (y == null)\n", sol::script_pass_on_error); // this is nil before a character is loaded, use to test nil handling
 	//	s_lua.script("x = mq.EverQuest.GameState\n");
@@ -471,9 +545,9 @@ PLUGIN_API void InitializePlugin()
 //end
 //)";
 
-	char cmd[] = "mq.echo(mq.EverQuest.GameState)\n";
+	//char cmd[] = "mq.echo(mq.EverQuest.GameState)\n";
 
-	LuaCommand(nullptr, cmd);// "y = mq.Int(20).Hex\nx = mq.EverQuest.GameState\n");
+	//LuaCommand(nullptr, cmd);// "y = mq.Int(20).Hex\nx = mq.EverQuest.GameState\n");
 
 	// Examples:
 	// AddCommand("/mycommand", MyCommand);
@@ -492,6 +566,7 @@ PLUGIN_API void ShutdownPlugin()
 	DebugSpewAlways("MQ2Lua::Shutting down");
 
 	RemoveCommand("/lua");
+	RemoveCommand("/endlua");
 
 	// Examples:
 	// RemoveCommand("/mycommand");
@@ -589,9 +664,10 @@ PLUGIN_API void SetGameState(int GameState)
  */
 PLUGIN_API void OnPulse()
 {
-	s_instances.erase(std::remove_if(
-		s_instances.begin(), s_instances.end(),
-		[](const sol::thread& thread) -> bool {
+	s_running.erase(std::remove_if(
+		s_running.begin(), s_running.end(),
+		[](const std::pair<const std::string, sol::thread>& kv) -> bool {
+			auto& [name, thread] = kv;
 			if (thread.status() == sol::thread_status::yielded)
 			{
 				try
@@ -603,13 +679,13 @@ PLUGIN_API void OnPulse()
 				catch (sol::error& e)
 				{
 					MacroError("%s", e.what());
-					return true;
 				}
 			}
 
+			WriteChatf("Ending lua script %s", name.c_str());
 			return true;
 		}),
-		s_instances.end());
+		s_running.end());
 /*
 	static int PulseCount = 0;
 	// Skip ~500 pulses
