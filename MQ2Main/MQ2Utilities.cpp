@@ -3369,9 +3369,9 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 	LONG value = CalcValue(calc, (spa == SPA_STACKING_BLOCK) ? max : base, max, 1, minspelllvl, minspelllvl);
 	LONG finish = CalcValue(calc, (spa == SPA_SPELLDAMAGETAKEN) ? base2 : base, max, ticks, minspelllvl, level);
 
-	BOOL usePercent = (spa == SPA_MOVEMENTRATE || spa == SPA_HASTE || spa == SPA_BARDOVERHASTE || spa == SPA_SPELLDAMAGE || spa == SPA_HEALING || spa == SPA_DOUBLEATTACK || spa == SPA_STUNRESIST || spa == SPA_PROCMOD ||
-		spa == SPA_DIVINEREZ || spa == SPA_METABOLISM || spa == SPA_TRIPLEBACKSTAB || spa == SPA_DOTCRIT || spa == SPA_HEALCRIT || spa == SPA_MENDCRIT || spa == SPA_FLURRY || spa == SPA_PETFLURRY ||
-		spa == SPA_SPELLCRITCHANCE || spa == SPA_SHIELDBLOCKCHANCE || spa == SPA_DAMAGECRITMOD || spa == SPA_SPELLDAMAGETAKEN);
+	BOOL usePercent = (spa == SPA_MOVEMENTRATE || spa == SPA_HASTE || spa == SPA_BARDOVERHASTE || spa == SPA_SPELLDAMAGE || spa == SPA_HEALING || spa == SPA_REMOVE_DETRIMENTAL || spa == SPA_DOUBLEATTACK ||
+		spa == SPA_STUNRESIST || spa == SPA_PROCMOD || spa == SPA_DIVINEREZ || spa == SPA_METABOLISM || spa == SPA_TRIPLEBACKSTAB || spa == SPA_DOTCRIT || spa == SPA_HEALCRIT || spa == SPA_MENDCRIT ||
+		spa == SPA_FLURRY || spa == SPA_PETFLURRY || spa == SPA_SPELLCRITCHANCE || spa == SPA_SHIELDBLOCKCHANCE || spa == SPA_DAMAGECRITMOD || spa == SPA_SPELLDAMAGETAKEN);
 	BOOL AEEffect = (targettype == TT_PBAE || targettype == TT_TARGETED_AE || targettype == TT_AE_PC_V2 || targettype == TT_DIRECTIONAL);
 
 	strcat_s(range, CalcValueRange(calc, base, max, ticks, minspelllvl, level, szTemp2,sizeof(szTemp2), usePercent ? szPercent : ""));
@@ -3826,7 +3826,8 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 		strcat_s(szBuff, FormatPenaltyChance(spelleffectname, value, szTemp2, szPercent, "Penalty"));
 		break;
 	case 154: //Remove Detrimental(c)
-		strcat_s(szBuff, FormatBase(spelleffectname, base, szTemp2));
+		strcat_s(szBuff, FormatPenaltyChance(spelleffectname, base/10, szTemp2, szPercent, "Chance"));
+		//strcat_s(szBuff, FormatBase(spelleffectname, base, szTemp2));
 		break;
 	case 155: //PoP Resurrect
 	case 156: //Illusion: Target
@@ -10329,16 +10330,8 @@ int GetTargetBuffBySubCat(PCHAR subcat, DWORD classmask, int startslot)
 					if (char *ptr = pCDBStr->GetString(cat, 5, NULL)) {
 						if (!_stricmp(ptr, subcat))
 						{
-							if (classmask != Unknown) {
-								for (int N = 0; N < 16; N++)
-								{
-									if (classmask & (1 << N)) {
-											return i;
-										}
-									}
-								}
-							else {
-								return i;//Dest.DWord = ((((PCTARGETWND)pTargetWnd)->BuffTimer[i] / 1000) + 6)/6;
+							if (IsSpellUsableForClass(pSpell, classmask)) {
+								return i;
 							}
 						}
 					}
@@ -10364,15 +10357,7 @@ bool HasCachedTargetBuffSubCat(const char*subcat, PSPAWNINFO pSpawn, PcTargetBuf
 					if (char *ptr = pCDBStr->GetString(cat, 5, NULL)) {
 						if (!_stricmp(ptr, subcat))
 						{
-							if (classmask != Unknown) {
-								for (int N = 0; N < 16; N++)
-								{
-									if (classmask & (1 << N)) {
-										return true;
-									}
-								}
-							}
-							else {
+							if (IsSpellUsableForClass(pSpell, classmask)) {
 								return true;
 							}
 						}

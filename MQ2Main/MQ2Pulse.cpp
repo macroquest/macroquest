@@ -413,7 +413,8 @@ int Heartbeat()
 #ifndef ISXEQ
 	while (TickDiff >= 100) {
 		TickDiff -= 100;
-		if (gDelay>0) gDelay--;
+		if (gDelay > 0)
+			gDelay--;
 		DropTimers();
 	}
 #endif

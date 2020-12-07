@@ -3580,8 +3580,13 @@ VOID MultilineCommand(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		if (token1 != NULL)
 		{
+			strcpy_s(szCmd, token1);
+			//strcpy_s(Copy, token1);
+			//_strlwr_s(Copy);
+			//if (strstr(Copy, "delay")
 			{
-				strcpy_s(szCmd, token1);
+				//add to our queue
+				//
 			}
 			DoCommand(pChar, szCmd);
 			token1 = strtok_s(NULL, szArg, &next_token1);

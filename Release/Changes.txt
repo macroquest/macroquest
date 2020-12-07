@@ -1,3 +1,7 @@
+Dec 07 2020
+- Updated for BETA
+- Fixed malo/tash detection problems - SwiftyMuse
+-
 Dec 06 2020
 - Updated for BETA
 -
