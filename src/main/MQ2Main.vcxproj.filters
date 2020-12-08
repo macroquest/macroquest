@@ -511,9 +511,6 @@
     <ClInclude Include="..\common\MiscUtils.h">
       <Filter>Header Files\common</Filter>
     </ClInclude>
-    <ClInclude Include="MQ2Args.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MQ2DataContainers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -555,6 +552,9 @@
     </ClInclude>
     <ClInclude Include="MQ2KeyBinds.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\utils\Args.h">
+      <Filter>Header Files\mq\utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
