@@ -70,7 +70,11 @@ enum class WindowMethods
 	RightMouseHeldUp,
 	DoOpen,
 	DoClose,
-	Select
+	Select,
+	Move,
+	SetBGColor,
+	SetAlpha,
+	SetFadeAlpha
 };
 
 MQ2WindowType::MQ2WindowType() : MQ2Type("window")
@@ -123,6 +127,10 @@ MQ2WindowType::MQ2WindowType() : MQ2Type("window")
 	ScopedTypeMethod(WindowMethods, DoOpen);
 	ScopedTypeMethod(WindowMethods, DoClose);
 	ScopedTypeMethod(WindowMethods, Select);
+	ScopedTypeMethod(WindowMethods, Move);
+	ScopedTypeMethod(WindowMethods, SetBGColor);
+	ScopedTypeMethod(WindowMethods, SetAlpha);
+	ScopedTypeMethod(WindowMethods, SetFadeAlpha);
 }
 
 bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -226,6 +234,73 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			}
 			return false;
 		}
+
+		case WindowMethods::Move: {
+			if (Index[0])
+			{
+				char szLeft[MAX_STRING] = { 0 };
+				char szTop[MAX_STRING] = { 0 };
+				char szWidth[MAX_STRING] = { 0 };
+				char szHeight[MAX_STRING] = { 0 };
+				GetArg(szLeft, Index, 1, false, false, false, ',');
+				GetArg(szTop, Index, 2, false, false, false, ',');
+				GetArg(szWidth, Index, 3, false, false, false, ',');
+				GetArg(szHeight, Index, 4, false, false, false, ',');
+
+				CXRect rc = pWnd->GetLocation();
+
+				if (szLeft[0])
+					rc.left = GetIntFromString(szLeft, rc.left);
+				if (szTop[0])
+					rc.top = GetIntFromString(szTop, rc.top);
+				if (szWidth[0])
+					rc.right = rc.left + GetIntFromString(szWidth, rc.right - rc.left);
+				if (szHeight[0])
+					rc.bottom = rc.top + GetIntFromString(szHeight, rc.bottom - rc.top);
+
+				pWnd->Move(rc, true, true, true, true);
+			}
+			return true;
+		}
+
+		case WindowMethods::SetBGColor:
+			if (Index[0])
+			{
+				try
+				{
+					uint32_t color = std::stoi(Index, nullptr, 16);
+					pWnd->SetBGColor(color);
+					pWnd->Refade();
+				}
+				catch (const std::exception&) {}
+			}
+			return true;
+
+		case WindowMethods::SetAlpha:
+			if (Index[0])
+			{
+				try
+				{
+					uint8_t alpha = static_cast<uint8_t>(std::stoi(Index, nullptr, 0));
+					pWnd->SetAlpha(alpha);
+					pWnd->Refade();
+				}
+				catch (const std::exception&) {}
+			}
+			return true;
+
+		case WindowMethods::SetFadeAlpha:
+			if (Index[0])
+			{
+				try
+				{
+					uint8_t alpha = static_cast<uint8_t>(std::stoi(Index, nullptr, 0));
+					pWnd->SetFadeToAlpha(alpha);
+					pWnd->Refade();
+				}
+				catch (const std::exception&) {}
+			}
+			return true;
 
 		default: break;
 		}
