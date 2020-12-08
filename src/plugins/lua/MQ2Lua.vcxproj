@@ -85,11 +85,6 @@ powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(Proje
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="sol\config.hpp" />
-    <ClInclude Include="sol\forward.hpp" />
-    <ClInclude Include="sol\sol.hpp" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="$(MQ2Root)src\main\MQ2Main.vcxproj">
       <Project>{2a0a06a4-e9c6-4229-82ee-bd2d4e0a7221}</Project>
     </ProjectReference>

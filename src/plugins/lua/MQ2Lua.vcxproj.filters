@@ -13,24 +13,10 @@
       <UniqueIdentifier>{5c7a0f0b-8d0c-4645-b3b1-76e09413d3f5}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
     </Filter>
-    <Filter Include="Header Files\sol">
-      <UniqueIdentifier>{6d3a9b2a-4347-4ab6-be9f-0cd968479ed0}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MQ2Lua.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="sol\config.hpp">
-      <Filter>Header Files\sol</Filter>
-    </ClInclude>
-    <ClInclude Include="sol\forward.hpp">
-      <Filter>Header Files\sol</Filter>
-    </ClInclude>
-    <ClInclude Include="sol\sol.hpp">
-      <Filter>Header Files\sol</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

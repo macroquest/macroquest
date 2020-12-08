@@ -6,6 +6,7 @@
 // and Shutdown for setup and cleanup.
 
 #include <mq/Plugin.h>
+#include <mq/utils/Args.h>
 
 #include <sol/sol.hpp>
 
@@ -17,6 +18,9 @@ PLUGIN_VERSION(0.1);
 
 using namespace mq;
 using namespace mq::datatypes;
+
+using MQ2Args = Args<&WriteChatf>;
+using MQ2HelpArgument = HelpArgument;
 
 // TODO: Make this configureable (read it from the lua file?)
 #define TURBO_NUM 1000

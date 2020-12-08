@@ -14,7 +14,8 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
-#include "MQ2Args.h"
+
+#include <mq/utils/Args.h>
 
 #include <locale>
 #include <codecvt>
@@ -28,6 +29,9 @@ namespace mq {
 static std::string anon_config_path;
 static Yaml::Node anon_config;
 static bool anon_enabled = false;
+
+using MQ2Args = Args<&WriteChatf>;
+using MQ2HelpArgument = HelpArgument;
 
 enum class Anonymization
 {

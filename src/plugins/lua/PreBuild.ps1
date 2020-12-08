@@ -3,4 +3,4 @@ Set-Location $VCPkgRoot
 if (!(Test-Path ".\vcpkg.exe")) {
     & ".\bootstrap-vcpkg.bat"
 }
-& ".\vcpkg.exe" install lua:x86-windows-static
+& ".\vcpkg.exe" install --triplet x86-windows-static lua sol2

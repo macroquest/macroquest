@@ -15,7 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 #include "MQ2DeveloperTools.h"
-#include "MQ2Args.h"
+
+#include <mq/utils/Args.h>
 
 #include <cstdint>
 #include <chrono>
@@ -27,6 +28,9 @@ namespace mq {
 
 extern float gCurrentFPS;
 extern float gCurrentCPU;
+
+using MQ2Args = Args<&WriteChatf>;
+using MQ2HelpArgument = HelpArgument;
 
 #pragma region analysis
 
