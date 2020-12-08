@@ -3273,6 +3273,10 @@ public:
 		DoOpen = 9,
 		DoClose = 10,
 		Select = 11,
+		Move = 12,
+		SetBGColor = 13,
+		SetAlpha = 14,
+		SetFadeAlpha = 15,
 	};
 #ifdef ISBOXER_COMPAT
 	MQ2WindowType() :MQ2Type("eqwindow")
@@ -3328,6 +3332,10 @@ public:
 		TypeMethod(DoOpen);
 		TypeMethod(DoClose);
 		TypeMethod(Select);
+		TypeMethod(Move);
+		TypeMethod(SetBGColor);
+		TypeMethod(SetAlpha);
+		TypeMethod(SetFadeAlpha);
 	}
 
 	~MQ2WindowType()

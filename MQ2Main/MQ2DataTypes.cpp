@@ -9520,7 +9520,60 @@ bool MQ2WindowType::GETMEMBER()
 					return true;
 				}
 			}
+			break;
 		}
+		case Move:
+			if (ISINDEX())
+			{
+				if (PCHAR Args = GETFIRST())
+				{
+					CHAR szLeft[MAX_STRING] = { 0 };
+					CHAR szTop[MAX_STRING] = { 0 };
+					CHAR szWidth[MAX_STRING] = { 0 };
+					CHAR szHeight[MAX_STRING] = { 0 };
+					GetArg(szLeft, Args, 1,0,0,0,',');
+					GetArg(szTop, Args, 2,0,0,0,',');
+					GetArg(szWidth, Args, 3,0,0,0,',');
+					GetArg(szHeight, Args, 4,0,0,0,',');
+					RECT OrgLoc = ((CXWnd*)thewindow)->GetLocation();
+					CXRect rc = { OrgLoc.left,OrgLoc.top,OrgLoc.right,OrgLoc.bottom };
+					if(szLeft[0])
+						rc.left = atoi(szLeft);
+					if(szTop[0])
+						rc.top = atoi(szTop);
+					if(szWidth[0])
+						rc.right = rc.left + atoi(szWidth);
+					if(szHeight[0])
+						rc.bottom = rc.top + atoi(szHeight);
+						
+					((CXWnd*)thewindow)->Move(rc, true, true, true, true);
+				}
+			}
+			return true;
+		case SetBGColor:
+			if (ISINDEX())
+			{
+				DWORD Color = _httoi_s(GETFIRST(), strlen(GETFIRST()));
+				((CXWnd*)thewindow)->SetBGColor(Color);
+				((CXWnd*)thewindow)->Refade();
+			}
+			return true;
+		case SetAlpha:
+			if (ISINDEX())
+			{
+				DWORD Alpha = _httoi_s(GETFIRST(), strlen(GETFIRST()));
+				((CXWnd*)thewindow)->SetAlpha((BYTE)Alpha);
+				((CXWnd*)thewindow)->Refade();
+			}
+			return true;
+		case SetFadeAlpha:
+			if (ISINDEX())
+			{
+				DWORD Alpha = _httoi_s(GETFIRST(), strlen(GETFIRST()));
+				((CXWnd*)thewindow)->SetFadeToAlpha((BYTE)Alpha);
+				((CXWnd*)thewindow)->Refade();
+			}
+			return true;
 		}
 		return false;
 	}
