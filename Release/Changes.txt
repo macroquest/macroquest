@@ -1,7 +1,8 @@
 Dec 08 2020
 - Updated for TEST
+- Updated for LIVE
 - Added .Move to the Window TLO Methods
-	Usage: /invoke ${Window[GroupWindow].Move[100,200,300,400]} ([x,y,width,height])
+	Usage: /invoke ${Window[GroupWindow].Move[100,200,300,400]} ([x,y,width,height]) width and height are optional.
 - Added .SetBGColor to the Window TLO Methods
 	Usage: /invoke ${Window[GroupWindow].SetBGColor[0xFF000000]} ([argb])
 - Added .SetAlpha to the Window TLO Methods
