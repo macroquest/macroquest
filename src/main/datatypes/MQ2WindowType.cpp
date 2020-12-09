@@ -56,6 +56,7 @@ enum class WindowMembers
 	GetCurSel,
 	Address,
 	Size,
+	Value,
 };
 
 enum class WindowMethods
@@ -115,6 +116,7 @@ MQ2WindowType::MQ2WindowType() : MQ2Type("window")
 	ScopedTypeMember(WindowMembers, GetCurSel);
 	ScopedTypeMember(WindowMembers, Address);
 	ScopedTypeMember(WindowMembers, Size);
+	ScopedTypeMember(WindowMembers, Value);
 
 	ScopedTypeMethod(WindowMethods, LeftMouseDown);
 	ScopedTypeMethod(WindowMethods, LeftMouseUp);
@@ -684,6 +686,18 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 
 		return false;
 	}
+
+	case WindowMembers::Value:
+		Dest.Type = pFloatType;
+
+		if (pWnd->GetType() == UI_Gauge)
+		{
+			auto pGauge = static_cast<CGaugeWnd*>(pWnd);
+			Dest.Float = pGauge->LastFrameVal;
+			return true;
+		}
+
+		return false;
 
 	default: break;
 	}
