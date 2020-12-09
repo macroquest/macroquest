@@ -1,3 +1,14 @@
+Dec 08 2020
+- Added .Move to the Window TLO Methods
+	Usage: /invoke ${Window[GroupWindow].Move[100,200,300,400]} ([x,y,width,height])
+	Omitting a parameter will use the existing value
+- Added .SetBGColor to the Window TLO Methods
+	Usage: /invoke ${Window[GroupWindow].SetBGColor[FF000000]} ([argb])
+- Added .SetAlpha to the Window TLO Methods
+	Usage: /invoke ${Window[GroupWindow].SetAlpha[255]} (0-255)
+- Added .SetFadeAlpha to the Window TLO Methods
+	Usage: /invoke ${Window[GroupWindow].SetFadeAlpha[255]} (0-255)
+
 May 14 2020
 - Filled in the CGuild class
 
