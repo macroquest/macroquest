@@ -491,8 +491,8 @@ enum ALT_Currency {
 	ALTCURRENCY_FROSTSTONEDUCAT,// 48 - ToV Group
 	ALTCURRENCY_WARLORDSSYMBOL,// 49 - ToV Raid
 	ALTCURRENCY_OVERSEERTETRADRACHM,// 50 - Overseer
-	ALTCURRENCY_WARFORGEDEMBLEM, // CoV
 	ALTCURRENCY_RESTLESSMARK, // CoV
+	ALTCURRENCY_WARFORGEDEMBLEM, // CoV
 };
 
 enum MOUSE_DATA_TYPES {
@@ -549,7 +549,8 @@ enum MOUSE_DATA_TYPES {
 #define EXPANSION_RoS                   EQ_EXPANSION(24)
 #define EXPANSION_TBL                   EQ_EXPANSION(25)
 #define EXPANSION_TOV                   EQ_EXPANSION(26)
-#define NUM_EXPANSIONS                  26
+#define EXPANSION_CoV					EQ_EXPANSION(27)
+#define NUM_EXPANSIONS                  27
 
 #if _MSC_VER < 1600
 #define nullptr                         NULL

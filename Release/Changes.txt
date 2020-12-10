@@ -1,3 +1,9 @@
+Dec 10 2020
+- Fixes to new alt currency - sic
+- Fixes for num expansions - CWTN
+- Fixed charselect save position of chatwindow (probably)
+- Fixed ZONE_COUNT, this should fix misc plugins that rely on it being correct.
+-
 Dec 08 2020
 - Updated for TEST
 - Updated for LIVE

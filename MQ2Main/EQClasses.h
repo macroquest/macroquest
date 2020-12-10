@@ -11217,29 +11217,31 @@ public:
 //see 8D35C1 in may 10 2018 -eqmule
 //see 8E87D1 in Apr 15 2019 -eqmule
 //see 8FD4C1 in Jan 06 2020 test -eqmule
+//see 8F1051 in Dec 05 2020 Live -eqmule
 #if defined(ROF2EMU)
 //see 7FEC8D in Rof2 -eqmule
 #define ZONE_COUNT 768
 #else
-#define ZONE_COUNT 837
+#define ZONE_COUNT 843
 #endif
+//Size of ZoneGuideManagerClient is 0x9144 see 6B6915 in Dec 05 2020 Live -eqmule
 class ZoneGuideManagerBase
 {
 public:
 #if defined(ROF2EMU)
 /*0x0000*/ PVOID vfTable;
-/*0x0004*/ ZoneGuideZone Zones[ZONE_COUNT];//0x2c * 0x300
+/*0x0004*/ ZoneGuideZone Zones[ZONE_COUNT];//0x2c * 768
 /*0x8404*/ ArrayClass_RO<ZoneGuideContinent> Continents;
 /*0x8414*/ ArrayClass_RO<ZoneGuideZoneType> ZoneTypes;
 /*0x8424*/ ArrayClass_RO<ZoneGuideTransferType> TransferTypes;
 /*0x8434*/ 
 #else
 /*0x0000*/ PVOID vfTable;
-/*0x0004*/ ZoneGuideZone Zones[ZONE_COUNT];//0x2c * 0x345
-/*0x8FE0*/ ArrayClass_RO<ZoneGuideContinent> Continents;
-/*0x8FF0*/ ArrayClass_RO<ZoneGuideZoneType> ZoneTypes;
-/*0x9000*/ ArrayClass_RO<ZoneGuideTransferType> TransferTypes;
-/*0x9010*/ 
+/*0x0004*/ ZoneGuideZone Zones[ZONE_COUNT];//0x2c * 843
+/*0x90E8*/ ArrayClass_RO<ZoneGuideContinent> Continents;
+/*0x90F8*/ ArrayClass_RO<ZoneGuideZoneType> ZoneTypes;
+/*0x9108*/ ArrayClass_RO<ZoneGuideTransferType> TransferTypes;
+/*0x9118*/ 
 #endif
 };
 typedef struct _ZonePathData

@@ -1277,9 +1277,8 @@ public:
 		WarlordsSymbol = 314,
 		OverseerTetradrachm = 315,
 		CastTimeLeft = 316,
-		RestlessMark = 317,
-		WarforgedEmblem = 318,
-
+		WarforgedEmblem = 317,
+		RestlessMark = 318,
 	};
 	enum CharacterMethods
 	{

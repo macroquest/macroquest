@@ -251,7 +251,7 @@ VOID LoadChatFromINI(PCSIDLWND pWindow)
 	if (!bSaveByChar)
 		sprintf_s(szChatINISection, "Default");
 	if (GetGameState() == GAMESTATE_CHARSELECT) {
-		strcat_s(szChatINISection, "_charselect");
+		strcpy_s(szChatINISection, "CharSelect");
 	}
 	//left top right bottom
 	int left = GetPrivateProfileInt(szChatINISection, "ChatLeft", 10, INIFileName);
@@ -302,7 +302,7 @@ VOID SaveChatToINI(PCSIDLWND pWindow)
 	if (!bSaveByChar)
 		sprintf_s(szChatINISection, "Default");
 	if (GetGameState() == GAMESTATE_CHARSELECT) {
-		strcat_s(szChatINISection, "_charselect");
+		strcpy_s(szChatINISection, "CharSelect");
 	}
     WritePrivateProfileString("Settings","AutoScroll",   bAutoScroll?"on":"off",INIFileName);
     WritePrivateProfileString("Settings","NoCharSelect", bNoCharSelect?"on":"off",INIFileName);

@@ -6823,12 +6823,12 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_OVERSEERTETRADRACHM);
 		Dest.Type = pIntType;
 		return true;
-	case RestlessMark://317
-		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_RESTLESSMARK);
+	case WarforgedEmblem://317
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_WARFORGEDEMBLEM);
 		Dest.Type = pIntType;
 		return true;
-	case WarforgedEmblem://318
-		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_WARFORGEDEMBLEM);
+	case RestlessMark://318
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_RESTLESSMARK);
 		Dest.Type = pIntType;
 		return true;
 	case CastTimeLeft:
