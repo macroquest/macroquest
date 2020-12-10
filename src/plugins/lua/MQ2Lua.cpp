@@ -31,11 +31,126 @@ std::filesystem::path s_luaDir = std::filesystem::path(gPathMQRoot) / "lua"; // 
  */
 sol::state s_lua;
 
+static void ForceYield(lua_State* L, lua_Debug* D)
+{
+	lua_yield(L, 0);
+}
+
+struct ThreadState;
+struct LuaThread
+{
+	sol::thread m_thread;
+	sol::environment m_env;
+	std::string m_name;
+	std::unique_ptr<ThreadState> m_state;
+	uint32_t m_PID;
+
+	static uint32_t next_id()
+	{
+		// no need to do anything special, this will be fine
+		static uint32_t next = 0;
+		return ++next;
+	}
+};
+
+struct ThreadState
+{
+	virtual bool should_run(const LuaThread& thread) = 0;
+	virtual bool is_paused() = 0;
+	virtual void set_delay(const LuaThread& thread, uint64_t time, std::optional<sol::function> condition = std::nullopt) = 0;
+	virtual void pause(LuaThread& thread) = 0;
+
+	static bool check_condition(const LuaThread& thread, std::optional<sol::function>& func)
+	{
+		if (func)
+		{
+			try
+			{
+				auto check = sol::function(s_lua, *func);
+				thread.m_env.set_on(check);
+				return check();
+			}
+			catch (sol::error& e)
+			{
+				MacroError("Failed to check delay condition check with error '%s'", e.what());
+				func = std::nullopt;
+			}
+		}
+
+		return false;
+	}
+};
+
+struct RunningState : public ThreadState
+{
+	RunningState() : m_delayTime(0L), m_delayCondition(std::nullopt) {}
+
+	bool should_run(const LuaThread& thread) override
+	{
+		// check delayed status here
+		bool delay_condition = check_condition(thread, m_delayCondition);
+
+		if (m_delayTime <= MQGetTickCount64() || delay_condition)
+		{
+			lua_sethook(thread.m_thread.state(), ForceYield, LUA_MASKCOUNT, TURBO_NUM);
+			m_delayTime = 0L;
+			m_delayCondition = std::nullopt;
+			return true;
+		}
+
+		return false;
+	}
+
+	bool is_paused() override { return false; }
+
+	void set_delay(const LuaThread& thread, uint64_t time, std::optional<sol::function> condition = std::nullopt) override
+	{
+		bool delay_condition = check_condition(thread, condition);
+
+		if (time > MQGetTickCount64() && !delay_condition)
+		{
+			lua_sethook(thread.m_thread.state(), ForceYield, LUA_MASKLINE, 0);
+			m_delayTime = time;
+			m_delayCondition = condition;
+		}
+	}
+
+	void pause(LuaThread&) override;
+
+private:
+	uint64_t m_delayTime;
+	std::optional<sol::function> m_delayCondition;
+};
+
+struct PausedState : public ThreadState
+{
+	bool should_run(const LuaThread&) override { return false; }
+	bool is_paused() override { return true; }
+	void set_delay(const LuaThread& thread, uint64_t time, std::optional<sol::function> condition = std::nullopt) override {}
+	void pause(LuaThread& thread) override
+	{
+		lua_sethook(thread.m_thread.state(), ForceYield, LUA_MASKCOUNT, TURBO_NUM);
+		WriteChatf("Resuming paused lua script '%s' with PID %d", thread.m_name.c_str(), thread.m_PID);
+		thread.m_state = std::make_unique<RunningState>();
+	}
+
+};
+
+void RunningState::pause(LuaThread& thread)
+{
+	// this will force the coroutine to yield, and removing this thread from the vector will cause it to gc
+	lua_sethook(thread.m_thread.state(), ForceYield, LUA_MASKLINE, 0);
+	WriteChatf("Pausing running lua script '%s' with PID %d", thread.m_name.c_str(), thread.m_PID);
+	thread.m_state = std::make_unique<PausedState>();
+}
+
+std::vector<LuaThread> s_running;
+
 // use a vector for s_running because we need to iterate it every pulse, and find only if a command is issued
-std::vector<std::pair<std::string, sol::thread>> s_running;
+//std::vector<std::pair<std::string, sol::thread>> s_running;
 
 // use a hashmap here because we never iterate this, only find
-ci_unordered::map<std::string, sol::thread> s_paused;
+//ci_unordered::map<std::string, sol::thread> s_paused;
 
 void DebugStackTrace(lua_State* L)
 {
@@ -375,9 +490,64 @@ struct lua_MQDoCommand
 	}
 };
 
+static void delay(sol::object delayObj, sol::object conditionObj, sol::this_state s)
+{
+	auto delay_int = delayObj.as<std::optional<int>>();
+	if (!delay_int)
+	{
+		auto delay_str = delayObj.as<std::optional<std::string_view>>();
+		if (delay_str)
+		{
+			if (delay_str->length() > 1 && delay_str->compare(delay_str->length() - 1, 1, "m") == 0)
+				delay_int.emplace(GetIntFromString(*delay_str, 0) * 600);
+			else if (delay_str->length() > 2 && delay_str->compare(delay_str->length() - 2, 2, "ms") == 0)
+				delay_int.emplace(GetIntFromString(*delay_str, 0) / 100);
+			else if (delay_str->length() > 1 && delay_str->compare(delay_str->length() - 1, 1, "s") == 0)
+				delay_int.emplace(GetIntFromString(*delay_str, 0) * 10);
+		}
+	}
+
+	if (delay_int)
+	{
+		auto it = std::find_if(s_running.begin(), s_running.end(), [&s](LuaThread& thread)
+			{
+				return thread.m_thread.thread_state() == s.lua_state();
+			});
+
+		if (it != s_running.end())
+		{
+			uint64_t delay_ms = std::max(0L, *delay_int * 100L);
+			auto condition = conditionObj.as<std::optional<sol::function>>();
+			if (!condition)
+			{
+				// let's accept a string too, and assume they want us to loadstring it
+				auto condition_str = conditionObj.as<std::optional<std::string_view>>();
+				if (condition_str)
+				{
+					// only allocate the string if we need to, but let's help the user and add the return to make this valid code
+					// the temporary string in the else case here only needs to live long enough for the load to happen, it's
+					// fine that it gets destroyed after the result here
+					auto result = it->m_thread.state().load(
+						condition_str->rfind("return ", 0) == 0 ?
+						*condition_str :
+						"return " + std::string(*condition_str));
+
+					if (result.valid())
+					{
+						sol::function f = result;
+						condition.emplace(f);
+					}
+				}
+			}
+
+			it->m_state->set_delay(*it, delay_ms + MQGetTickCount64(), condition);
+		}
+	}
+}
+
 static void register_mq_type(sol::state& lua)
 {
-	lua.open_libraries(sol::lib::base);
+	lua.open_libraries();
 
 	lua.new_usertype<lua_MQTypeVar>("mqtype",
 		sol::constructors<lua_MQTypeVar(const std::string&)>(),
@@ -407,30 +577,16 @@ static void register_mq_type(sol::state& lua)
 	lua["TLO"] = lua_MQTLO();
 	lua["cmd"] = lua_MQDoCommand();
 	lua["null"] = lua_MQTypeVar();
-
-	// TODO: need to implement a sleep command that doesn't use any macrostate
-	//       variables. delay can redirect to this sleep function. Also investigate
-	//       other macro commands that rely on macrostate variables (/dquery?)
-}
-
-static void ForceYield(lua_State* L, lua_Debug* D)
-{
-	lua_yield(L, 0);
+	lua["delay"] = delay;
 }
 
 void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 {
-	// TODO: redo this to accept arguments and instead generate a PID to map with.
-	//       this should be a simple call to another function that returns a PID
-	//       so it can be reused as a lua function call where you can simple store
-	//       PIDs of called scripts.
-	//       This also implies that we need to have a way to search PIDs (inside
-	//       the TLO, but also in lua)
 	MQ2Args arg_parser("MQ2Lua: A lua script binding plugin.");
 	arg_parser.Prog("/lua");
 	args::Group arguments(arg_parser, "");
 	args::Positional<std::string> script(arguments, "script", "the name of the lua script to run. will automatically append .lua extension if no extension specified.");
-	args::Positional<std::string> name(arguments, "name", "optional parameter to specify a callback name if different from the first parameter.");
+	args::PositionalList<std::string> script_args(arguments, "args", "optional arguments to pass to the lua script.");
 
 	MQ2HelpArgument h(arguments);
 	auto args = allocate_args(Buffer);
@@ -449,40 +605,38 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 
 	if (script)
 	{
-		const std::string& entry = name.Matched() ? name.Get() : script.Get();
+		auto script_path = std::filesystem::path(script.Get());
+		if (script_path.is_relative()) script_path = s_luaDir / script_path;
+		if (!script_path.has_extension()) script_path += ".lua";
 
-		// don't do anything if we already have the same key
-		if (std::find_if(s_running.cbegin(), s_running.cend(), [&entry](const std::pair<std::string, sol::thread>& kv) -> bool
-			{
-				return kv.first == entry;
-			}) == s_running.cend() && s_paused.find(entry) == s_paused.cend())
+		sol::environment env(s_lua, sol::create, s_lua.globals());
+		auto thread = sol::thread::create(s_lua);
+		env.set_on(thread);
+		auto entry = LuaThread{ thread, env, script.Get(), std::make_unique<RunningState>(), LuaThread::next_id() };
+		WriteChatf("Running lua script '%s' with PID %d", script.Get().c_str(), entry.m_PID);
+		s_running.emplace_back(std::move(entry));
+
+		try
 		{
-			auto script_path = std::filesystem::path(script.Get());
-			if (script_path.is_relative()) script_path = s_luaDir / script_path;
-			if (!script_path.has_extension()) script_path += ".lua";
+			sol::coroutine co = thread.state().load_file(script_path.string());
+			lua_sethook(thread.state(), ForceYield, LUA_MASKCOUNT, TURBO_NUM);
 
-			auto thread = sol::thread::create(s_lua);
-			try
-			{
-				sol::coroutine co = thread.state().load_file(script_path.string());
+			// this manually runs the script with the vector of arguments that the user specified.
+			// need to do it this way because we want to break up arguments and not pass a single
+			// vector 
+			co.push();
+			for (auto arg : script_args.Get())
+				sol::stack::push(thread.state(), arg);
+			
+			int nresults;
+			lua_resume(thread.state(), nullptr, script_args.Get().size(), &nresults);
 
-				s_running.emplace_back(entry, thread);
-				lua_sethook(thread.state(), ForceYield, LUA_MASKCOUNT, TURBO_NUM);
-
-				WriteChatf("Running lua script '%s' from path %s", entry.c_str(), script_path.c_str());
-
-				auto result = co();
-			}
-			catch (sol::error& e)
-			{
-				MacroError("%s", e.what());
-				if (s_running.back().first == entry)
-					s_running.pop_back();
-			}
+			//auto result = co(join(script_args.Get(), " "));
 		}
-		else
+		catch (sol::error& e)
 		{
-			MacroError("'%s' is already running!", entry.c_str());
+			MacroError("%s", e.what());
+			s_running.pop_back(); // guaranteed that we need to pop the back of the running vector
 		}
 	}
 }
@@ -493,7 +647,7 @@ void EndLuaCommand(SPAWNINFO* pChar, char* Buffer)
 	arg_parser.Prog("/endlua");
 	arg_parser.RequireCommand(false);
 	args::Group arguments(arg_parser, "");
-	args::Positional<std::string> name(arguments, "name", "optional parameter to specify a callback name of script to stop, if not specified will stop all running scripts.");
+	args::Positional<uint32_t> pid(arguments, "PID", "optional parameter to specify a PID of script to stop, if not specified will stop all running scripts.");
 
 	MQ2HelpArgument h(arguments);
 	auto args = allocate_args(Buffer);
@@ -510,37 +664,32 @@ void EndLuaCommand(SPAWNINFO* pChar, char* Buffer)
 		WriteChatColor(e.what());
 	}
 
-	if (name)
+	if (pid)
 	{
-		auto thread_it = std::find_if(s_running.begin(), s_running.end(), [&name](const std::pair<std::string, sol::thread>& kv) -> bool
+		auto thread_it = std::find_if(s_running.begin(), s_running.end(), [&pid](const LuaThread& thread) -> bool
 			{
-				return kv.first == name.Get();
+				return thread.m_PID == pid.Get();
 			});
 
 		if (thread_it != s_running.end())
 		{
 			// this will force the coroutine to yield, and removing this thread from the vector will cause it to gc
-			lua_sethook(thread_it->second.state(), ForceYield, LUA_MASKLINE, 0);
-			WriteChatf("Ending running lua script '%s'", thread_it->first.c_str());
+			lua_sethook(thread_it->m_thread.state(), ForceYield, LUA_MASKLINE, 0);
+			WriteChatf("Ending running lua script '%s' with PID %d", thread_it->m_name.c_str(), thread_it->m_PID);
 			s_running.erase(thread_it);
 		}
 		else
 		{
-			// didn't find a running thread, let's just kill the paused thread if it exists
-			if (s_paused.erase(name.Get()) > 0)
-				WriteChatf("Ended paused lua script '%s'", name.Get().c_str());
-			else
-				WriteChatf("No lua script '%s' to end", name.Get().c_str());
+			WriteChatf("No lua script with PID %d to end", pid.Get());
 		}
 	}
 	else
 	{
 		// kill all scripts
-		for (const auto& kv : s_running)
-			lua_sethook(kv.second.state(), ForceYield, LUA_MASKLINE, 0);
+		for (const auto& thread : s_running)
+			lua_sethook(thread.m_thread.state(), ForceYield, LUA_MASKLINE, 0);
 
 		s_running.clear();
-		s_paused.clear(); // don't need to stop these, they've already yielded
 
 		WriteChatf("Ending ALL lua scripts");
 	}
@@ -552,7 +701,7 @@ void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
 	arg_parser.Prog("/luapause");
 	arg_parser.RequireCommand(false);
 	args::Group arguments(arg_parser, "");
-	args::Positional<std::string> name(arguments, "name", "optional parameter to specify a callback name of script to pause, if not specified will pause all running scripts.");
+	args::Positional<uint32_t> pid(arguments, "PID", "optional parameter to specify a PID of script to pause, if not specified will pause all running scripts.");
 
 	MQ2HelpArgument h(arguments);
 	auto args = allocate_args(Buffer);
@@ -569,57 +718,40 @@ void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
 		WriteChatColor(e.what());
 	}
 
-	if (name)
+	if (pid)
 	{
-		auto thread_it = std::find_if(s_running.begin(), s_running.end(), [&name](const std::pair<std::string, sol::thread>& kv) -> bool
+		auto thread_it = std::find_if(s_running.begin(), s_running.end(), [&pid](const LuaThread& thread) -> bool
 			{
-				return kv.first == name.Get();
+				return thread.m_PID == pid.Get();
 			});
 
 		if (thread_it != s_running.end())
 		{
-			// this will force the coroutine to yield, and removing this thread from the vector will cause it to gc
-			lua_sethook(thread_it->second.state(), ForceYield, LUA_MASKLINE, 0);
-			WriteChatf("Pausing running lua script '%s'", thread_it->first.c_str());
-			s_paused.emplace(*thread_it); // already got the pair, just put it in paused
-			s_running.erase(thread_it);
+			thread_it->m_state->pause(*thread_it);
 		}
 		else
 		{
-			// didn't find a running thread, so restart a paused thread if it exists
-			auto thread_it = s_paused.find(name.Get());
-			if (thread_it != s_paused.end())
-			{
-				WriteChatf("Resuming paused lua script '%s'", name.Get().c_str());
-				s_running.emplace_back(*thread_it);
-				s_paused.erase(thread_it);
-			}
-			else
-				WriteChatf("No lua script '%s' to pause/resume", name.Get().c_str());
+			WriteChatf("No lua script with PID %d to pause/resume", pid.Get());
 		}
 	}
 	else
 	{
 		// try to get the user's intention here. If all scripts are running/paused, batch toggle state. If there are any running, assume we want to pause those only.
-		if (!s_running.empty())
+		if (std::find_if(s_running.cbegin(), s_running.cend(), [](const LuaThread& thread) -> bool {
+			return thread.m_state->is_paused();
+			}) != s_running.cend())
 		{
-			for (const auto& kv : s_running)
-			{
-				lua_sethook(kv.second.state(), ForceYield, LUA_MASKLINE, 0);
-				s_paused.emplace(kv);
-			}
-
-			s_running.clear();
+			// have at least one running script, so pause all running scripts
+			for (auto& thread : s_running)
+				thread.m_state->pause(thread);
 
 			WriteChatf("Pausing ALL running lua scripts");
 		}
-		else if (!s_paused.empty())
+		else if (!s_running.empty())
 		{
 			// we have no running scripts, so restart all paused scripts
-			for (const auto& kv : s_paused)
-				s_running.emplace_back(kv);
-
-			s_paused.clear();
+			for (auto& thread : s_running)
+				thread.m_state->pause(thread);
 
 			WriteChatf("Resuming ALL paused lua scripts");
 		}
@@ -633,9 +765,6 @@ void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
 
 void LuaStringCommand(SPAWNINFO* pChar, char* Buffer)
 {
-	// TODO: This needs to actually create a script with a PID in the s_running
-	//       map so things like sleep() will be respected.
-
 	MQ2Args arg_parser("MQ2Lua: A lua script binding plugin.");
 	arg_parser.Prog("/luastring");
 	args::Group arguments(arg_parser, "");
@@ -658,13 +787,24 @@ void LuaStringCommand(SPAWNINFO* pChar, char* Buffer)
 
 	if (script)
 	{
+		sol::environment env(s_lua, sol::create, s_lua.globals());
+		auto thread = sol::thread::create(s_lua);
+		env.set_on(thread);
+		auto entry = LuaThread{ thread, env, "/luastring", std::make_unique<RunningState>(), LuaThread::next_id() };
+		WriteChatf("Running lua string with PID %d", entry.m_PID);
+		s_running.emplace_back(std::move(entry));
+
 		try
 		{
-			s_lua.script(join(script.Get(), " "));
+			sol::coroutine co = thread.state().load(join(script.Get(), " "));
+			lua_sethook(thread.state(), ForceYield, LUA_MASKCOUNT, TURBO_NUM);
+
+			auto result = co();
 		}
 		catch (sol::error& e)
 		{
 			MacroError("%s", e.what());
+			s_running.pop_back(); // guaranteed that we need to pop the back of the running vector
 		}
 	}
 }
@@ -751,85 +891,6 @@ PLUGIN_API void ShutdownPlugin()
 }
 
 /**
- * @fn OnCleanUI
- *
- * This is called once just before the shutdown of the UI system and each time the
- * game requests that the UI be cleaned.  Most commonly this happens when a
- * /loadskin command is issued, but it also occurs when reaching the character
- * select screen and when first entering the game.
- *
- * One purpose of this function is to allow you to destroy any custom windows that
- * you have created and cleanup any UI items that need to be removed.
- */
-PLUGIN_API void OnCleanUI()
-{
-	// DebugSpewAlways("MQ2Lua::OnCleanUI()");
-}
-
-/**
- * @fn OnReloadUI
- *
- * This is called once just after the UI system is loaded. Most commonly this
- * happens when a /loadskin command is issued, but it also occurs when first
- * entering the game.
- *
- * One purpose of this function is to allow you to recreate any custom windows
- * that you have setup.
- */
-PLUGIN_API void OnReloadUI()
-{
-	// DebugSpewAlways("MQ2Lua::OnReloadUI()");
-}
-
-/**
- * @fn OnDrawHUD
- *
- * This is called each time the Heads Up Display (HUD) is drawn.  The HUD is
- * responsible for the net status and packet loss bar.
- *
- * Note that this is not called at all if the HUD is not shown (default F11 to
- * toggle).
- *
- * Because the net status is updated frequently, it is recommended to have a
- * timer or counter at the start of this call to limit the amount of times the
- * code in this section is executed.
- */
-PLUGIN_API void OnDrawHUD()
-{
-/*
-	static int DrawHUDCount = 0;
-	// Skip ~500 draws
-	if (++DrawHUDCount > 500)
-	{
-		DrawHUDCount = 0;
-		DebugSpewAlways("MQ2Lua::OnDrawHUD()");
-	}
-*/
-}
-
-/**
- * @fn SetGameState
- *
- * This is called when the GameState changes.  It is also called once after the
- * plugin is initialized.
- *
- * For a list of known GameState values, see the constants that begin with
- * GAMESTATE_.  The most commonly used of these is GAMESTATE_INGAME.
- *
- * When zoning, this is called once after @ref OnBeginZone @ref OnRemoveSpawn
- * and @ref OnRemoveGroundItem are all done and then called once again after
- * @ref OnEndZone and @ref OnAddSpawn are done but prior to @ref OnAddGroundItem
- * and @ref OnZoned
- *
- * @param GameState int - The value of GameState at the time of the call
- */
-PLUGIN_API void SetGameState(int GameState)
-{
-	// DebugSpewAlways("MQ2Lua::SetGameState(%d)", GameState);
-}
-
-
-/**
  * @fn OnPulse
  *
  * This is called each time MQ2 goes through its heartbeat (pulse) function.
@@ -842,273 +903,35 @@ PLUGIN_API void OnPulse()
 {
 	s_running.erase(std::remove_if(
 		s_running.begin(), s_running.end(),
-		[](const std::pair<const std::string, sol::thread>& kv) -> bool {
-			auto& [name, thread] = kv;
-			if (thread.status() == sol::thread_status::yielded)
+		[](LuaThread& thread) -> bool {
+			if (thread.m_thread.status() == sol::thread_status::yielded && thread.m_state->should_run(thread))
 			{
 				try
 				{
 					int nresults;
-					lua_resume(thread.state(), nullptr, 0, &nresults);
-					return false;
+					lua_resume(thread.m_thread.state(), nullptr, 0, &nresults);
 				}
 				catch (sol::error& e)
 				{
-					MacroError("%s", e.what());
+					MacroError("Ending lua script '%s' with PID %d and error %s", thread.m_name.c_str(), thread.m_PID, e.what());
+					return true;
 				}
 			}
 
-			WriteChatf("Ending lua script %s", name.c_str());
-			return true;
+			if (thread.m_thread.status() == sol::thread_status::runtime)
+			{
+				auto str = luaL_tolstring(thread.m_thread.state(), -1, NULL);
+				MacroError("Ending lua script %s with PID %d and error '%s'", thread.m_name.c_str(), thread.m_PID, str);
+				return true;
+			}
+
+			if (thread.m_thread.status() != sol::thread_status::ok && thread.m_thread.status() != sol::thread_status::yielded)
+			{
+				WriteChatf("Ending lua script %s with PID %d and status %d", thread.m_name.c_str(), thread.m_PID, static_cast<int>(thread.m_thread.status()));
+				return true;
+			}
+
+			return false;
 		}),
 		s_running.end());
-/*
-	static int PulseCount = 0;
-	// Skip ~500 pulses
-	if (++PulseCount > 500)
-	{
-		PulseCount = 0;
-		DebugSpewAlways("MQ2Lua::OnPulse()");
-	}
-*/
-}
-
-/**
- * @fn OnWriteChatColor
- *
- * This is called each time WriteChatColor is called (whether by MQ2Main or by any
- * plugin).  This can be considered the "when outputting text from MQ" callback.
- *
- * This ignores filters on display, so if they are needed either implement them in
- * this section or see @ref OnIncomingChat where filters are already handled.
- *
- * If CEverQuest::dsp_chat is not called, and events are required, they'll need to
- * be implemented here as well.  Otherwise, see @ref OnIncomingChat where that is
- * already handled.
- *
- * For a list of Color values, see the constants for USERCOLOR_.  The default is
- * USERCOLOR_DEFAULT.
- *
- * @param Line const char* - The line that was passed to WriteChatColor
- * @param Color int - The type of chat text this is to be sent as
- * @param Filter int - (default 0)
- */
-PLUGIN_API void OnWriteChatColor(const char* Line, int Color, int Filter)
-{
-	// DebugSpewAlways("MQ2Lua::OnWriteChatColor(%s, %d, %d)", Line, Color, Filter);
-}
-
-/**
- * @fn OnIncomingChat
- *
- * This is called each time a line of chat is shown.  It occurs after MQ filters
- * and chat events have been handled.  If you need to know when MQ2 has sent chat,
- * consider using @ref OnWriteChatColor instead.
- *
- * For a list of Color values, see the constants for USERCOLOR_. The default is
- * USERCOLOR_DEFAULT.
- *
- * @param Line const char* - The line of text that was shown
- * @param Color int - The type of chat text this was sent as
- *
- * @return bool - whether something was done based on the incoming chat
- */
-PLUGIN_API bool OnIncomingChat(const char* Line, DWORD Color)
-{
-	// DebugSpewAlways("MQ2Lua::OnIncomingChat(%s, %d)", Line, Color);
-	return false;
-}
-
-/**
- * @fn OnAddSpawn
- *
- * This is called each time a spawn is added to a zone (ie, something spawns). It is
- * also called for each existing spawn when a plugin first initializes.
- *
- * When zoning, this is called for all spawns in the zone after @ref OnEndZone is
- * called and before @ref OnZoned is called.
- *
- * @param pNewSpawn PSPAWNINFO - The spawn that was added
- */
-PLUGIN_API void OnAddSpawn(PSPAWNINFO pNewSpawn)
-{
-	// DebugSpewAlways("MQ2Lua::OnAddSpawn(%s)", pNewSpawn->Name);
-}
-
-/**
- * @fn OnRemoveSpawn
- *
- * This is called each time a spawn is removed from a zone (ie, something despawns
- * or is killed).  It is NOT called when a plugin shuts down.
- *
- * When zoning, this is called for all spawns in the zone after @ref OnBeginZone is
- * called.
- *
- * @param pSpawn PSPAWNINFO - The spawn that was removed
- */
-PLUGIN_API void OnRemoveSpawn(PSPAWNINFO pSpawn)
-{
-	// DebugSpewAlways("MQ2Lua::OnRemoveSpawn(%s)", pSpawn->Name);
-}
-
-/**
- * @fn OnAddGroundItem
- *
- * This is called each time a ground item is added to a zone (ie, something spawns).
- * It is also called for each existing ground item when a plugin first initializes.
- *
- * When zoning, this is called for all ground items in the zone after @ref OnEndZone
- * is called and before @ref OnZoned is called.
- *
- * @param pNewGroundItem PGROUNDITEM - The ground item that was added
- */
-PLUGIN_API void OnAddGroundItem(PGROUNDITEM pNewGroundItem)
-{
-	// DebugSpewAlways("MQ2Lua::OnAddGroundItem(%d)", pNewGroundItem->DropID);
-}
-
-/**
- * @fn OnRemoveGroundItem
- *
- * This is called each time a ground item is removed from a zone (ie, something
- * despawns or is picked up).  It is NOT called when a plugin shuts down.
- *
- * When zoning, this is called for all ground items in the zone after
- * @ref OnBeginZone is called.
- *
- * @param pGroundItem PGROUNDITEM - The ground item that was removed
- */
-PLUGIN_API void OnRemoveGroundItem(PGROUNDITEM pGroundItem)
-{
-	// DebugSpewAlways("MQ2Lua::OnRemoveGroundItem(%d)", pGroundItem->DropID);
-}
-
-/**
- * @fn OnBeginZone
- *
- * This is called just after entering a zone line and as the loading screen appears.
- */
-PLUGIN_API void OnBeginZone()
-{
-	// DebugSpewAlways("MQ2Lua::OnBeginZone()");
-}
-
-/**
- * @fn OnEndZone
- *
- * This is called just after the loading screen, but prior to the zone being fully
- * loaded.
- *
- * This should occur before @ref OnAddSpawn and @ref OnAddGroundItem are called. It
- * always occurs before @ref OnZoned is called.
- */
-PLUGIN_API void OnEndZone()
-{
-	// DebugSpewAlways("MQ2Lua::OnEndZone()");
-}
-
-/**
- * @fn OnZoned
- *
- * This is called after entering a new zone and the zone is considered "loaded."
- *
- * It occurs after @ref OnEndZone @ref OnAddSpawn and @ref OnAddGroundItem have
- * been called.
- */
-PLUGIN_API void OnZoned()
-{
-	// DebugSpewAlways("MQ2Lua::OnZoned()");
-}
-
-/**
- * @fn OnUpdateImGui
- *
- * This is called each time that the ImGui Overlay is rendered. Use this to render
- * and update plugin specific widgets.
- *
- * Because this happens extremely frequently, it is recommended to move any actual
- * work to a separate call and use this only for updating the display.
- */
-PLUGIN_API void OnUpdateImGui()
-{
-/*
-	static int UpdateCount = 0;
-	// Skip ~4000 updates for debug spew message
-	if (++UpdateCount > 4000)
-	{
-		UpdateCount = 0;
-		DebugSpewAlways("MQ2Lua::OnUpdateImGui()");
-	}
-
-	if (GetGameState() == GAMESTATE_INGAME)
-	{
-		static bool ShowMQ2LuaWindow = true;
-		ImGui::Begin("MQ2Lua", &ShowMQ2LuaWindow, ImGuiWindowFlags_MenuBar);
-		if (ImGui::BeginMenuBar())
-		{
-			ImGui::Text("MQ2Lua is loaded!");
-			ImGui::EndMenuBar();
-		}
-		ImGui::End();
-	}
-*/
-}
-
-/**
- * @fn OnMacroStart
- *
- * This is called each time a macro starts (ex: /mac somemacro.mac), prior to
- * launching the macro.
- *
- * @param Name const char* - The name of the macro that was launched
- */
-PLUGIN_API void OnMacroStart(const char* Name)
-{
-	// DebugSpewAlways("MQ2Lua::OnMacroStart(%s)", Name);
-}
-
-/**
- * @fn OnMacroStop
- *
- * This is called each time a macro stops (ex: /endmac), after the macro has ended.
- *
- * @param Name const char* - The name of the macro that was stopped.
- */
-PLUGIN_API void OnMacroStop(const char* Name)
-{
-	// DebugSpewAlways("MQ2Lua::OnMacroStop(%s)", Name);
-}
-
-/**
- * @fn OnLoadPlugin
- *
- * This is called each time a plugin is loaded (ex: /plugin someplugin), after the
- * plugin has been loaded and any associated -AutoExec.cfg file has been launched.
- * This means it will be executed after the plugin's @ref InitializePlugin callback.
- *
- * This is also called when THIS plugin is loaded, but initialization tasks should
- * still be done in @ref InitializePlugin.
- *
- * @param Name const char* - The name of the plugin that was loaded
- */
-PLUGIN_API void OnLoadPlugin(const char* Name)
-{
-	// DebugSpewAlways("MQ2Lua::OnLoadPlugin(%s)", Name);
-}
-
-/**
- * @fn OnUnloadPlugin
- *
- * This is called each time a plugin is unloaded (ex: /plugin someplugin unload),
- * just prior to the plugin unloading.  This means it will be executed prior to that
- * plugin's @ref ShutdownPlugin callback.
- *
- * This is also called when THIS plugin is unloaded, but shutdown tasks should still
- * be done in @ref ShutdownPlugin.
- *
- * @param Name const char* - The name of the plugin that is to be unloaded
- */
-PLUGIN_API void OnUnloadPlugin(const char* Name)
-{
-	// DebugSpewAlways("MQ2Lua::OnUnloadPlugin(%s)", Name);
 }
