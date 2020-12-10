@@ -79,6 +79,7 @@ powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(Proje
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\contrib\mini-yaml\yaml\Yaml.cpp" />
     <ClCompile Include="MQ2Lua.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -88,6 +89,9 @@ powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(Proje
     <ProjectReference Include="$(MQ2Root)src\main\MQ2Main.vcxproj">
       <Project>{2a0a06a4-e9c6-4229-82ee-bd2d4e0a7221}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\contrib\mini-yaml\yaml\Yaml.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="$(MQ2Root)contrib\vcpkg\scripts\buildsystems\msbuild\vcpkg.targets" Condition="exists('$(MQ2Root)contrib\vcpkg\scripts\buildsystems\msbuild\vcpkg.targets')" />

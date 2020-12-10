@@ -7,11 +7,11 @@
 
 #include <mq/Plugin.h>
 #include <mq/utils/Args.h>
+#include <Yaml.hpp>
 
 #include <sol/sol.hpp>
 
 #include <string>
-#include <unordered_map>
 
 PreSetup("MQ2Lua");
 PLUGIN_VERSION(0.1);
@@ -22,9 +22,12 @@ using namespace mq::datatypes;
 using MQ2Args = Args<&WriteChatf>;
 using MQ2HelpArgument = HelpArgument;
 
-// TODO: Make this configureable (read it from the lua file?)
-#define TURBO_NUM 1000
-std::filesystem::path s_luaDir = std::filesystem::path(gPathMQRoot) / "lua"; // TODO: can make this configurable
+uint32_t s_turboNum = 500;
+std::filesystem::path s_luaDir = std::filesystem::path(gPathMQRoot) / "lua";
+
+// this is static and will never change
+static std::filesystem::path s_configPath = std::filesystem::path(gPathConfig) / "MQ2Lua.yaml";
+static Yaml::Node s_configNode;
 
 /**
  * \brief a global lua state needed so that thread states don't go out of scope
@@ -92,7 +95,7 @@ struct RunningState : public ThreadState
 
 		if (m_delayTime <= MQGetTickCount64() || delay_condition)
 		{
-			lua_sethook(thread.m_thread.state(), ForceYield, LUA_MASKCOUNT, TURBO_NUM);
+			lua_sethook(thread.m_thread.state(), ForceYield, LUA_MASKCOUNT, s_turboNum);
 			m_delayTime = 0L;
 			m_delayCondition = std::nullopt;
 			return true;
@@ -129,7 +132,7 @@ struct PausedState : public ThreadState
 	void set_delay(const LuaThread& thread, uint64_t time, std::optional<sol::function> condition = std::nullopt) override {}
 	void pause(LuaThread& thread) override
 	{
-		lua_sethook(thread.m_thread.state(), ForceYield, LUA_MASKCOUNT, TURBO_NUM);
+		lua_sethook(thread.m_thread.state(), ForceYield, LUA_MASKCOUNT, s_turboNum);
 		WriteChatf("Resuming paused lua script '%s' with PID %d", thread.m_name.c_str(), thread.m_PID);
 		thread.m_state = std::make_unique<RunningState>();
 	}
@@ -144,13 +147,8 @@ void RunningState::pause(LuaThread& thread)
 	thread.m_state = std::make_unique<PausedState>();
 }
 
-std::vector<LuaThread> s_running;
-
 // use a vector for s_running because we need to iterate it every pulse, and find only if a command is issued
-//std::vector<std::pair<std::string, sol::thread>> s_running;
-
-// use a hashmap here because we never iterate this, only find
-//ci_unordered::map<std::string, sol::thread> s_paused;
+std::vector<LuaThread> s_running;
 
 void DebugStackTrace(lua_State* L)
 {
@@ -190,7 +188,6 @@ void DebugStackTrace(lua_State* L)
 // TODO: add variadic args to call for multi-parameter parsing
 // TODO: add concat support
 // TODO: add function that creates "args" with delim
-// TODO: add ini settings
 
 struct lua_MQDataItem;
 struct lua_MQTypeVar
@@ -619,7 +616,7 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 		try
 		{
 			sol::coroutine co = thread.state().load_file(script_path.string());
-			lua_sethook(thread.state(), ForceYield, LUA_MASKCOUNT, TURBO_NUM);
+			lua_sethook(thread.state(), ForceYield, LUA_MASKCOUNT, s_turboNum);
 
 			// this manually runs the script with the vector of arguments that the user specified.
 			// need to do it this way because we want to break up arguments and not pass a single
@@ -797,7 +794,7 @@ void LuaStringCommand(SPAWNINFO* pChar, char* Buffer)
 		try
 		{
 			sol::coroutine co = thread.state().load(join(script.Get(), " "));
-			lua_sethook(thread.state(), ForceYield, LUA_MASKCOUNT, TURBO_NUM);
+			lua_sethook(thread.state(), ForceYield, LUA_MASKCOUNT, s_turboNum);
 
 			auto result = co();
 		}
@@ -806,6 +803,72 @@ void LuaStringCommand(SPAWNINFO* pChar, char* Buffer)
 			MacroError("%s", e.what());
 			s_running.pop_back(); // guaranteed that we need to pop the back of the running vector
 		}
+	}
+}
+
+void WriteSettings()
+{
+	Yaml::Serialize(s_configNode, s_configPath.string().c_str());
+}
+
+void ReadSettings()
+{
+	try
+	{
+		Yaml::Parse(s_configNode, s_configPath.string().c_str());
+	}
+	catch (const Yaml::OperationException&)
+	{
+		// if we can't read the file, then try to write it with an empty config
+		Yaml::Serialize(s_configNode, s_configPath.string());
+	}
+
+	s_turboNum = s_configNode["turboNum"].As<uint32_t>(s_turboNum);
+	s_luaDir = s_configNode["luaDir"].As<std::string>(s_luaDir.string());
+}
+
+void LuaConfCommand(SPAWNINFO* pChar, char* Buffer)
+{
+	MQ2Args arg_parser("MQ2Lua: A lua script binding plugin.");
+	arg_parser.Prog("/luaconf");
+	arg_parser.RequireCommand(false);
+	args::Group arguments(arg_parser, "");
+	args::Positional<std::string> setting(arguments, "setting", "The setting to display/set");
+	args::Positional<std::string> value(arguments, "value", "An optional parameter to specify the value to set");
+
+	MQ2HelpArgument h(arguments);
+	auto args = allocate_args(Buffer);
+	try
+	{
+		arg_parser.ParseArgs(args);
+	}
+	catch (const args::Help&)
+	{
+		arg_parser.Help();
+	}
+	catch (const args::Error& e)
+	{
+		WriteChatColor(e.what());
+	}
+
+	if (setting)
+	{
+		if (value)
+		{
+			WriteChatf("Lua setting %s to %s and saving...", setting.Get().c_str(), value.Get().c_str());
+			s_configNode[setting.Get()] = value.Get();
+			WriteSettings();
+			ReadSettings();
+		}
+		else
+		{
+			WriteChatf("Lua setting %s is set to %s.", setting.Get().c_str(), s_configNode[setting.Get()].As<std::string>().c_str());
+		}
+	}
+	else
+	{
+		WriteChatf("Reloading lua config.");
+		ReadSettings();
 	}
 }
 
@@ -819,6 +882,8 @@ PLUGIN_API void InitializePlugin()
 {
 	DebugSpewAlways("MQ2Lua::Initializing version %f", MQ2Version);
 
+	ReadSettings();
+
 	if (!std::filesystem::exists(s_luaDir) && !std::filesystem::create_directories(s_luaDir))
 	{
 		WriteChatf("Failed to open or create directory at %s. Scripts will not run.", s_luaDir.c_str());
@@ -827,13 +892,13 @@ PLUGIN_API void InitializePlugin()
 	// TODO: Add the Lua TLO, which will include things like the lua script
 	//       directory, the "turbo" parameter (which also needs a command to
 	//       change at runtime), and current running lua scripts with PIDs
-	// TODO: Add the /luaturbo command to change the lua turbo setting
 	register_mq_type(s_lua);
 
 	AddCommand("/lua", LuaCommand);
 	AddCommand("/endlua", EndLuaCommand);
 	AddCommand("/luapause", LuaPauseCommand);
 	AddCommand("/luastring", LuaStringCommand);
+	AddCommand("/luaconf", LuaConfCommand);
 
 	//	s_lua.safe_script("y = mq.Me.PctHPs\nx = (y == null)\n", sol::script_pass_on_error); // this is nil before a character is loaded, use to test nil handling
 	//	s_lua.script("x = mq.EverQuest.GameState\n");
@@ -883,6 +948,7 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveCommand("/endlua");
 	RemoveCommand("/luapause");
 	RemoveCommand("/luastring");
+	RemoveCommand("/luaconf");
 
 	// Examples:
 	// RemoveCommand("/mycommand");
@@ -904,6 +970,7 @@ PLUGIN_API void OnPulse()
 	s_running.erase(std::remove_if(
 		s_running.begin(), s_running.end(),
 		[](LuaThread& thread) -> bool {
+			// should_run() will automatically re-set the count debug hook when appropriate so we can simply change the turboNum on the fly and it will be respected next pulse.
 			if (thread.m_thread.status() == sol::thread_status::yielded && thread.m_state->should_run(thread))
 			{
 				try

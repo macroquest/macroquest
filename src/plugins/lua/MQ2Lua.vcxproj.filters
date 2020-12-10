@@ -13,10 +13,30 @@
       <UniqueIdentifier>{5c7a0f0b-8d0c-4645-b3b1-76e09413d3f5}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
     </Filter>
+    <Filter Include="Source Files\contrib">
+      <UniqueIdentifier>{6c753c40-bc1c-4d55-8e09-b4a99a5c0bba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\contrib\mini-yaml">
+      <UniqueIdentifier>{8815afb3-57de-417d-8de9-58eb325b2f6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\contrib">
+      <UniqueIdentifier>{1c70697b-5432-4736-95c8-9dfff343477f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\contrib\mini-yaml">
+      <UniqueIdentifier>{f9875728-f245-46e5-b07d-464ce4e6c294}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MQ2Lua.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\contrib\mini-yaml\yaml\Yaml.cpp">
+      <Filter>Source Files\contrib\mini-yaml</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\contrib\mini-yaml\yaml\Yaml.hpp">
+      <Filter>Header Files\contrib\mini-yaml</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
