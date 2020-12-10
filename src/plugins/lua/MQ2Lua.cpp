@@ -189,11 +189,29 @@ void DebugStackTrace(lua_State* L)
 	DebugSpewAlways("---- End Stack ----\n");
 }
 
-// TODO: add variadic args to call for multi-parameter parsing
-// TODO: add concat support
-// TODO: add function that creates "args" with delim
-
 #pragma region Bindings
+
+static std::string join(sol::this_state L, std::string delim, sol::variadic_args va)
+{
+	if (va.size() > 0)
+	{
+		std::stringstream str;
+		const auto* del = "";
+		for (const auto& arg : va)
+		{
+			auto value = luaL_tolstring(arg.lua_state(), arg.stack_index(), NULL);
+			if (value != nullptr && strlen(value) > 0)
+			{
+				str << del << value;
+				del = delim.c_str();
+			}
+		}
+
+		return str.str();
+	}
+
+	return "";
+}
 
 struct lua_MQDataItem;
 struct lua_MQTypeVar
@@ -261,6 +279,11 @@ struct lua_MQTypeVar
 	sol::object call_int(int index, sol::this_state L) const
 	{
 		return call(std::to_string(index), L);
+	}
+
+	sol::object call_va(sol::this_state L, sol::variadic_args args) const
+	{
+		return call(join(L, ",", args), L);
 	}
 
 	sol::object call_empty(sol::this_state L) const
@@ -344,7 +367,7 @@ struct lua_MQDataItem
 		return lua_MQTypeVar::to_string(data.evaluate_self());
 	}
 
-	[[nodiscard]] sol::object call(const std::string& index, sol::this_state L) const
+	sol::object call(const std::string& index, sol::this_state L) const
 	{
 		MQTypeVar result;
 		if (self_ != nullptr && self_->Function(index.c_str(), result))
@@ -353,12 +376,17 @@ struct lua_MQDataItem
 		return sol::object(L, sol::in_place, lua_MQTypeVar());
 	}
 
-	[[nodiscard]] sol::object call_int(int index, sol::this_state L) const
+	sol::object call_int(int index, sol::this_state L) const
 	{
 		return call(std::to_string(index), L);
 	}
 
-	[[nodiscard]] sol::object call_empty(sol::this_state L) const
+	sol::object call_va(sol::this_state L, sol::variadic_args args) const
+	{
+		return call(join(L, ",", args), L);
+	}
+
+	sol::object call_empty(sol::this_state L) const
 	{
 		MQTypeVar result;
 		if (self_ != nullptr && self_->Function("", result))
@@ -367,7 +395,7 @@ struct lua_MQDataItem
 		return sol::object(L, sol::in_place, sol::lua_nil);
 	}
 
-	[[nodiscard]] sol::object get(sol::stack_object key, sol::this_state L) const
+	sol::object get(sol::stack_object key, sol::this_state L) const
 	{
 		MQTypeVar result;
 		if (self_ != nullptr && self_->Function("", result))
@@ -554,14 +582,14 @@ static void register_mq_type(sol::state& lua)
 
 	lua.new_usertype<lua_MQTypeVar>("mqtype",
 		sol::constructors<lua_MQTypeVar(const std::string&)>(),
-		sol::meta_function::call, sol::overload(&lua_MQTypeVar::call, &lua_MQTypeVar::call_int, &lua_MQTypeVar::call_empty),
+		sol::meta_function::call, sol::overload(&lua_MQTypeVar::call, &lua_MQTypeVar::call_int, &lua_MQTypeVar::call_empty, &lua_MQTypeVar::call_va),
 		sol::meta_function::index, &lua_MQTypeVar::get,
 		sol::meta_function::to_string, lua_MQTypeVar::to_string,
 		sol::meta_function::equal_to, sol::overload(&lua_MQTypeVar::operator==, &lua_MQTypeVar::equal_data));
 
 	lua.new_usertype<lua_MQDataItem>("mqdata",
 		sol::constructors<lua_MQDataItem(const std::string&)>(),
-		sol::meta_function::call, sol::overload(&lua_MQDataItem::call, &lua_MQDataItem::call_int, &lua_MQDataItem::call_empty),
+		sol::meta_function::call, sol::overload(&lua_MQDataItem::call, &lua_MQDataItem::call_int, &lua_MQDataItem::call_empty, &lua_MQDataItem::call_va),
 		sol::meta_function::index, &lua_MQDataItem::get,
 		sol::meta_function::to_string, lua_MQDataItem::to_string,
 		sol::meta_function::equal_to, sol::overload(&lua_MQDataItem::operator==, &lua_MQDataItem::equal_var));
@@ -581,6 +609,7 @@ static void register_mq_type(sol::state& lua)
 	lua["cmd"] = lua_MQDoCommand();
 	lua["null"] = lua_MQTypeVar();
 	lua["delay"] = delay;
+	lua["join"] = join;
 }
 
 #pragma endregion
