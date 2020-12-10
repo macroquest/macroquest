@@ -39,6 +39,8 @@ static void ForceYield(lua_State* L, lua_Debug* D)
 	lua_yield(L, 0);
 }
 
+#pragma region Threads
+
 struct ThreadState;
 struct LuaThread
 {
@@ -147,6 +149,8 @@ void RunningState::pause(LuaThread& thread)
 	thread.m_state = std::make_unique<PausedState>();
 }
 
+#pragma endregion
+
 // use a vector for s_running because we need to iterate it every pulse, and find only if a command is issued
 std::vector<LuaThread> s_running;
 
@@ -188,6 +192,8 @@ void DebugStackTrace(lua_State* L)
 // TODO: add variadic args to call for multi-parameter parsing
 // TODO: add concat support
 // TODO: add function that creates "args" with delim
+
+#pragma region Bindings
 
 struct lua_MQDataItem;
 struct lua_MQTypeVar
@@ -577,6 +583,76 @@ static void register_mq_type(sol::state& lua)
 	lua["delay"] = delay;
 }
 
+#pragma endregion
+
+#pragma region TLO
+
+class MQ2LuaType* pLuaType = nullptr;
+class MQ2LuaType : public MQ2Type
+{
+private:
+public:
+	enum class Members
+	{
+		PIDs,
+		Dir,
+		Turbo
+	};
+
+	MQ2LuaType() : MQ2Type("lua")
+	{
+		ScopedTypeMember(Members, PIDs);
+		ScopedTypeMember(Members, Dir);
+		ScopedTypeMember(Members, Turbo);
+	}
+
+	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
+	{
+		auto pMember = MQ2LuaType::FindMember(Member);
+		if (pMember == nullptr)
+			return false;
+
+		switch (static_cast<Members>(pMember->ID))
+		{
+		case Members::PIDs:
+		{
+			Dest.Type = pStringType;
+			std::vector<std::string> pids;
+			std::transform(s_running.cbegin(), s_running.cend(), std::back_inserter(pids),
+				[](const LuaThread& thread) { return std::to_string(thread.m_PID); });
+			strcpy_s(DataTypeTemp, join(pids, ",").c_str());
+			Dest.Ptr = &DataTypeTemp[0];
+			return true;
+		}
+		case Members::Dir:
+			Dest.Type = pStringType;
+			strcpy_s(DataTypeTemp, s_luaDir.string().c_str());
+			Dest.Ptr = &DataTypeTemp[0];
+			return true;
+
+		case Members::Turbo:
+			Dest.Type = pIntType;
+			Dest.Set(s_turboNum);
+			return true;
+
+		default:
+			return false;
+		}
+	}
+
+	bool ToString(MQVarPtr VarPtr, char* Destination)
+	{
+		strcpy_s(Destination, MAX_STRING, "Lua");
+		return true;
+	}
+
+    virtual bool FromString(MQVarPtr& VarPtr, const char* Source) override { return false; }
+};
+
+#pragma endregion
+
+#pragma region Commands
+
 void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 {
 	MQ2Args arg_parser("MQ2Lua: A lua script binding plugin.");
@@ -872,6 +948,15 @@ void LuaConfCommand(SPAWNINFO* pChar, char* Buffer)
 	}
 }
 
+#pragma endregion
+
+bool dataLua(const char* Index, MQTypeVar& Dest)
+{
+	Dest.DWord = 1;
+	Dest.Type = pLuaType;
+	return true;
+}
+
 /**
  * @fn InitializePlugin
  *
@@ -889,9 +974,6 @@ PLUGIN_API void InitializePlugin()
 		WriteChatf("Failed to open or create directory at %s. Scripts will not run.", s_luaDir.c_str());
 	}
 
-	// TODO: Add the Lua TLO, which will include things like the lua script
-	//       directory, the "turbo" parameter (which also needs a command to
-	//       change at runtime), and current running lua scripts with PIDs
 	register_mq_type(s_lua);
 
 	AddCommand("/lua", LuaCommand);
@@ -900,38 +982,8 @@ PLUGIN_API void InitializePlugin()
 	AddCommand("/luastring", LuaStringCommand);
 	AddCommand("/luaconf", LuaConfCommand);
 
-	//	s_lua.safe_script("y = mq.Me.PctHPs\nx = (y == null)\n", sol::script_pass_on_error); // this is nil before a character is loaded, use to test nil handling
-	//	s_lua.script("x = mq.EverQuest.GameState\n");
-	//	s_lua.script("x = mq.Int(20).Hex\n");
-
-
-	// this will freeze the client!
-//	char cmd[] = R"(
-//function f ()
-//  x = 1
-//  while true
-//  do
-//    mq.echo(tostring(x))
-//    x = x + 1
-//  end
-//end
-//
-//co = coroutine.create(f)
-//
-//while true
-//do
-//  coroutine.resume(co)
-//end
-//)";
-
-	//char cmd[] = "mq.echo(mq.EverQuest.GameState)\n";
-
-	//LuaCommand(nullptr, cmd);// "y = mq.Int(20).Hex\nx = mq.EverQuest.GameState\n");
-
-	// Examples:
-	// AddCommand("/mycommand", MyCommand);
-	// AddXMLFile("MQUI_MyXMLFile.xml");
-	// AddMQ2Data("mytlo", MyTLOData);
+	pLuaType = new MQ2LuaType;
+	AddMQ2Data("Lua", dataLua);
 }
 
 /**
@@ -950,10 +1002,8 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveCommand("/luastring");
 	RemoveCommand("/luaconf");
 
-	// Examples:
-	// RemoveCommand("/mycommand");
-	// RemoveXMLFile("MQUI_MyXMLFile.xml");
-	// RemoveMQ2Data("mytlo");
+	RemoveMQ2Data("Lua");
+	delete pLuaType;
 }
 
 /**
