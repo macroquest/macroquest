@@ -8,6 +8,7 @@
 #include <mq/Plugin.h>
 #include <mq/utils/Args.h>
 #include <Yaml.hpp>
+#include <fmt/format.h>
 
 #include <sol/sol.hpp>
 
@@ -22,11 +23,11 @@ using namespace mq::datatypes;
 using MQ2Args = Args<&WriteChatf>;
 using MQ2HelpArgument = HelpArgument;
 
-uint32_t s_turboNum = 500;
-std::filesystem::path s_luaDir = std::filesystem::path(gPathMQRoot) / "lua";
+static uint32_t s_turboNum = 500;
+static std::string s_luaDir = (std::filesystem::path(gPathMQRoot) / "lua").string();
 
 // this is static and will never change
-static std::filesystem::path s_configPath = std::filesystem::path(gPathConfig) / "MQ2Lua.yaml";
+static std::string s_configPath = (std::filesystem::path(gPathConfig) / "MQ2Lua.yaml").string();
 static Yaml::Node s_configNode;
 
 /**
@@ -44,17 +45,17 @@ static void ForceYield(lua_State* L, lua_Debug* D)
 struct ThreadState;
 struct LuaThread
 {
-	sol::thread m_thread;
-	sol::environment m_env;
-	std::string m_name;
-	std::unique_ptr<ThreadState> m_state;
-	uint32_t m_PID;
+	sol::thread Thread;
+	sol::environment Env;
+	std::string Name;
+	std::unique_ptr<ThreadState> State;
+	uint32_t PID;
 
 	static uint32_t next_id()
 	{
 		// no need to do anything special, this will be fine
-		static uint32_t next = 0;
-		return ++next;
+		static uint32_t current = 0;
+		return ++current;
 	}
 };
 
@@ -72,7 +73,7 @@ struct ThreadState
 			try
 			{
 				auto check = sol::function(s_lua, *func);
-				thread.m_env.set_on(check);
+				thread.Env.set_on(check);
 				return check();
 			}
 			catch (sol::error& e)
@@ -88,8 +89,6 @@ struct ThreadState
 
 struct RunningState : public ThreadState
 {
-	RunningState() : m_delayTime(0L), m_delayCondition(std::nullopt) {}
-
 	bool should_run(const LuaThread& thread) override
 	{
 		// check delayed status here
@@ -97,7 +96,7 @@ struct RunningState : public ThreadState
 
 		if (m_delayTime <= MQGetTickCount64() || delay_condition)
 		{
-			lua_sethook(thread.m_thread.state(), ForceYield, LUA_MASKCOUNT, s_turboNum);
+			lua_sethook(thread.Thread.state(), ForceYield, LUA_MASKCOUNT, s_turboNum);
 			m_delayTime = 0L;
 			m_delayCondition = std::nullopt;
 			return true;
@@ -114,7 +113,7 @@ struct RunningState : public ThreadState
 
 		if (time > MQGetTickCount64() && !delay_condition)
 		{
-			lua_sethook(thread.m_thread.state(), ForceYield, LUA_MASKLINE, 0);
+			lua_sethook(thread.Thread.state(), ForceYield, LUA_MASKLINE, 0);
 			m_delayTime = time;
 			m_delayCondition = condition;
 		}
@@ -123,8 +122,8 @@ struct RunningState : public ThreadState
 	void pause(LuaThread&) override;
 
 private:
-	uint64_t m_delayTime;
-	std::optional<sol::function> m_delayCondition;
+	uint64_t m_delayTime = 0L;
+	std::optional<sol::function> m_delayCondition = std::nullopt;
 };
 
 struct PausedState : public ThreadState
@@ -134,9 +133,9 @@ struct PausedState : public ThreadState
 	void set_delay(const LuaThread& thread, uint64_t time, std::optional<sol::function> condition = std::nullopt) override {}
 	void pause(LuaThread& thread) override
 	{
-		lua_sethook(thread.m_thread.state(), ForceYield, LUA_MASKCOUNT, s_turboNum);
-		WriteChatf("Resuming paused lua script '%s' with PID %d", thread.m_name.c_str(), thread.m_PID);
-		thread.m_state = std::make_unique<RunningState>();
+		lua_sethook(thread.Thread.state(), ForceYield, LUA_MASKCOUNT, s_turboNum);
+		WriteChatf("Resuming paused lua script '%s' with PID %d", thread.Name.c_str(), thread.PID);
+		thread.State = std::make_unique<RunningState>();
 	}
 
 };
@@ -144,9 +143,9 @@ struct PausedState : public ThreadState
 void RunningState::pause(LuaThread& thread)
 {
 	// this will force the coroutine to yield, and removing this thread from the vector will cause it to gc
-	lua_sethook(thread.m_thread.state(), ForceYield, LUA_MASKLINE, 0);
-	WriteChatf("Pausing running lua script '%s' with PID %d", thread.m_name.c_str(), thread.m_PID);
-	thread.m_state = std::make_unique<PausedState>();
+	lua_sethook(thread.Thread.state(), ForceYield, LUA_MASKLINE, 0);
+	WriteChatf("Pausing running lua script '%s' with PID %d", thread.Name.c_str(), thread.PID);
+	thread.State = std::make_unique<PausedState>();
 }
 
 #pragma endregion
@@ -195,19 +194,19 @@ static std::string join(sol::this_state L, std::string delim, sol::variadic_args
 {
 	if (va.size() > 0)
 	{
-		std::stringstream str;
+		fmt::memory_buffer str;
 		const auto* del = "";
 		for (const auto& arg : va)
 		{
 			auto value = luaL_tolstring(arg.lua_state(), arg.stack_index(), NULL);
 			if (value != nullptr && strlen(value) > 0)
 			{
-				str << del << value;
+				fmt::format_to(str, "{}{}", del, value);
 				del = delim.c_str();
 			}
 		}
 
-		return str.str();
+		return fmt::to_string(str);
 	}
 
 	return "";
@@ -542,7 +541,7 @@ static void delay(sol::object delayObj, sol::object conditionObj, sol::this_stat
 	{
 		auto it = std::find_if(s_running.begin(), s_running.end(), [&s](LuaThread& thread)
 			{
-				return thread.m_thread.thread_state() == s.lua_state();
+				return thread.Thread.thread_state() == s.lua_state();
 			});
 
 		if (it != s_running.end())
@@ -558,7 +557,7 @@ static void delay(sol::object delayObj, sol::object conditionObj, sol::this_stat
 					// only allocate the string if we need to, but let's help the user and add the return to make this valid code
 					// the temporary string in the else case here only needs to live long enough for the load to happen, it's
 					// fine that it gets destroyed after the result here
-					auto result = it->m_thread.state().load(
+					auto result = it->Thread.state().load(
 						condition_str->rfind("return ", 0) == 0 ?
 						*condition_str :
 						"return " + std::string(*condition_str));
@@ -571,7 +570,7 @@ static void delay(sol::object delayObj, sol::object conditionObj, sol::this_stat
 				}
 			}
 
-			it->m_state->set_delay(*it, delay_ms + MQGetTickCount64(), condition);
+			it->State->set_delay(*it, delay_ms + MQGetTickCount64(), condition);
 		}
 	}
 }
@@ -648,14 +647,14 @@ public:
 			Dest.Type = pStringType;
 			std::vector<std::string> pids;
 			std::transform(s_running.cbegin(), s_running.cend(), std::back_inserter(pids),
-				[](const LuaThread& thread) { return std::to_string(thread.m_PID); });
+				[](const LuaThread& thread) { return std::to_string(thread.PID); });
 			strcpy_s(DataTypeTemp, join(pids, ",").c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 		}
 		case Members::Dir:
 			Dest.Type = pStringType;
-			strcpy_s(DataTypeTemp, s_luaDir.string().c_str());
+			strcpy_s(DataTypeTemp, s_luaDir.c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 
@@ -715,7 +714,7 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 		auto thread = sol::thread::create(s_lua);
 		env.set_on(thread);
 		auto entry = LuaThread{ thread, env, script.Get(), std::make_unique<RunningState>(), LuaThread::next_id() };
-		WriteChatf("Running lua script '%s' with PID %d", script.Get().c_str(), entry.m_PID);
+		WriteChatf("Running lua script '%s' with PID %d", script.Get().c_str(), entry.PID);
 		s_running.emplace_back(std::move(entry));
 
 		try
@@ -770,14 +769,14 @@ void EndLuaCommand(SPAWNINFO* pChar, char* Buffer)
 	{
 		auto thread_it = std::find_if(s_running.begin(), s_running.end(), [&pid](const LuaThread& thread) -> bool
 			{
-				return thread.m_PID == pid.Get();
+				return thread.PID == pid.Get();
 			});
 
 		if (thread_it != s_running.end())
 		{
 			// this will force the coroutine to yield, and removing this thread from the vector will cause it to gc
-			lua_sethook(thread_it->m_thread.state(), ForceYield, LUA_MASKLINE, 0);
-			WriteChatf("Ending running lua script '%s' with PID %d", thread_it->m_name.c_str(), thread_it->m_PID);
+			lua_sethook(thread_it->Thread.state(), ForceYield, LUA_MASKLINE, 0);
+			WriteChatf("Ending running lua script '%s' with PID %d", thread_it->Name.c_str(), thread_it->PID);
 			s_running.erase(thread_it);
 		}
 		else
@@ -789,7 +788,7 @@ void EndLuaCommand(SPAWNINFO* pChar, char* Buffer)
 	{
 		// kill all scripts
 		for (const auto& thread : s_running)
-			lua_sethook(thread.m_thread.state(), ForceYield, LUA_MASKLINE, 0);
+			lua_sethook(thread.Thread.state(), ForceYield, LUA_MASKLINE, 0);
 
 		s_running.clear();
 
@@ -824,12 +823,12 @@ void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
 	{
 		auto thread_it = std::find_if(s_running.begin(), s_running.end(), [&pid](const LuaThread& thread) -> bool
 			{
-				return thread.m_PID == pid.Get();
+				return thread.PID == pid.Get();
 			});
 
 		if (thread_it != s_running.end())
 		{
-			thread_it->m_state->pause(*thread_it);
+			thread_it->State->pause(*thread_it);
 		}
 		else
 		{
@@ -840,12 +839,12 @@ void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
 	{
 		// try to get the user's intention here. If all scripts are running/paused, batch toggle state. If there are any running, assume we want to pause those only.
 		if (std::find_if(s_running.cbegin(), s_running.cend(), [](const LuaThread& thread) -> bool {
-			return thread.m_state->is_paused();
+			return thread.State->is_paused();
 			}) != s_running.cend())
 		{
 			// have at least one running script, so pause all running scripts
 			for (auto& thread : s_running)
-				thread.m_state->pause(thread);
+				thread.State->pause(thread);
 
 			WriteChatf("Pausing ALL running lua scripts");
 		}
@@ -853,7 +852,7 @@ void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
 		{
 			// we have no running scripts, so restart all paused scripts
 			for (auto& thread : s_running)
-				thread.m_state->pause(thread);
+				thread.State->pause(thread);
 
 			WriteChatf("Resuming ALL paused lua scripts");
 		}
@@ -893,7 +892,7 @@ void LuaStringCommand(SPAWNINFO* pChar, char* Buffer)
 		auto thread = sol::thread::create(s_lua);
 		env.set_on(thread);
 		auto entry = LuaThread{ thread, env, "/luastring", std::make_unique<RunningState>(), LuaThread::next_id() };
-		WriteChatf("Running lua string with PID %d", entry.m_PID);
+		WriteChatf("Running lua string with PID %d", entry.PID);
 		s_running.emplace_back(std::move(entry));
 
 		try
@@ -913,23 +912,23 @@ void LuaStringCommand(SPAWNINFO* pChar, char* Buffer)
 
 void WriteSettings()
 {
-	Yaml::Serialize(s_configNode, s_configPath.string().c_str());
+	Yaml::Serialize(s_configNode, s_configPath.c_str());
 }
 
 void ReadSettings()
 {
 	try
 	{
-		Yaml::Parse(s_configNode, s_configPath.string().c_str());
+		Yaml::Parse(s_configNode, s_configPath.c_str());
 	}
 	catch (const Yaml::OperationException&)
 	{
 		// if we can't read the file, then try to write it with an empty config
-		Yaml::Serialize(s_configNode, s_configPath.string());
+		Yaml::Serialize(s_configNode, s_configPath);
 	}
 
 	s_turboNum = s_configNode["turboNum"].As<uint32_t>(s_turboNum);
-	s_luaDir = s_configNode["luaDir"].As<std::string>(s_luaDir.string());
+	s_luaDir = s_configNode["luaDir"].As<std::string>(s_luaDir);
 }
 
 void LuaConfCommand(SPAWNINFO* pChar, char* Buffer)
@@ -1050,30 +1049,30 @@ PLUGIN_API void OnPulse()
 		s_running.begin(), s_running.end(),
 		[](LuaThread& thread) -> bool {
 			// should_run() will automatically re-set the count debug hook when appropriate so we can simply change the turboNum on the fly and it will be respected next pulse.
-			if (thread.m_thread.status() == sol::thread_status::yielded && thread.m_state->should_run(thread))
+			if (thread.Thread.status() == sol::thread_status::yielded && thread.State->should_run(thread))
 			{
 				try
 				{
 					int nresults;
-					lua_resume(thread.m_thread.state(), nullptr, 0, &nresults);
+					lua_resume(thread.Thread.state(), nullptr, 0, &nresults);
 				}
 				catch (sol::error& e)
 				{
-					MacroError("Ending lua script '%s' with PID %d and error %s", thread.m_name.c_str(), thread.m_PID, e.what());
+					MacroError("Ending lua script '%s' with PID %d and error %s", thread.Name.c_str(), thread.PID, e.what());
 					return true;
 				}
 			}
 
-			if (thread.m_thread.status() == sol::thread_status::runtime)
+			if (thread.Thread.status() == sol::thread_status::runtime)
 			{
-				auto str = luaL_tolstring(thread.m_thread.state(), -1, NULL);
-				MacroError("Ending lua script %s with PID %d and error '%s'", thread.m_name.c_str(), thread.m_PID, str);
+				auto str = luaL_tolstring(thread.Thread.state(), -1, NULL);
+				MacroError("Ending lua script %s with PID %d and error '%s'", thread.Name.c_str(), thread.PID, str);
 				return true;
 			}
 
-			if (thread.m_thread.status() != sol::thread_status::ok && thread.m_thread.status() != sol::thread_status::yielded)
+			if (thread.Thread.status() != sol::thread_status::ok && thread.Thread.status() != sol::thread_status::yielded)
 			{
-				WriteChatf("Ending lua script %s with PID %d and status %d", thread.m_name.c_str(), thread.m_PID, static_cast<int>(thread.m_thread.status()));
+				WriteChatf("Ending lua script %s with PID %d and status %d", thread.Name.c_str(), thread.PID, static_cast<int>(thread.Thread.status()));
 				return true;
 			}
 

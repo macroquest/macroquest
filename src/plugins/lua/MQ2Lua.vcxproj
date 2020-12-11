@@ -99,6 +99,6 @@ powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(Proje
   </ImportGroup>
   <Target Name="PostClean" AfterTargets="Clean">
     <Exec Command="powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File &quot;$(ProjectDir)PostClean.ps1&quot; -VCPkgRoot &quot;$(MQ2Root)contrib\vcpkg&quot;" />
-    <Message Text="Cleaning vcpkg install for zyre" Importance="High" />
+    <Message Text="Cleaning vcpkg install for lua" Importance="High" />
   </Target>
 </Project>
