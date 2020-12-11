@@ -14,11 +14,20 @@
 
 #include <string>
 
+#include "LuaCommon.h"
+#include "LuaThread.h"
+
+// bindings:
+#include "bindings/lua_MQTypeVar.h"
+#include "bindings/lua_MQDataItem.h"
+#include "bindings/lua_MQCommand.h"
+
 PreSetup("MQ2Lua");
 PLUGIN_VERSION(0.1);
 
 using namespace mq;
 using namespace mq::datatypes;
+using namespace mq::lua;
 
 using MQ2Args = Args<&WriteChatf>;
 using MQ2HelpArgument = HelpArgument;
@@ -33,127 +42,12 @@ static Yaml::Node s_configNode;
 /**
  * \brief a global lua state needed so that thread states don't go out of scope
  */
-sol::state s_lua;
-
-static void ForceYield(lua_State* L, lua_Debug* D)
-{
-	lua_yield(L, 0);
-}
-
-#pragma region Threads
-
-struct ThreadState;
-struct LuaThread
-{
-	sol::thread Thread;
-	sol::environment Env;
-	std::string Name;
-	std::unique_ptr<ThreadState> State;
-	uint32_t PID;
-
-	static uint32_t next_id()
-	{
-		// no need to do anything special, this will be fine
-		static uint32_t current = 0;
-		return ++current;
-	}
-};
-
-struct ThreadState
-{
-	virtual bool should_run(const LuaThread& thread) = 0;
-	virtual bool is_paused() = 0;
-	virtual void set_delay(const LuaThread& thread, uint64_t time, std::optional<sol::function> condition = std::nullopt) = 0;
-	virtual void pause(LuaThread& thread) = 0;
-
-	static bool check_condition(const LuaThread& thread, std::optional<sol::function>& func)
-	{
-		if (func)
-		{
-			try
-			{
-				auto check = sol::function(s_lua, *func);
-				thread.Env.set_on(check);
-				return check();
-			}
-			catch (sol::error& e)
-			{
-				MacroError("Failed to check delay condition check with error '%s'", e.what());
-				func = std::nullopt;
-			}
-		}
-
-		return false;
-	}
-};
-
-struct RunningState : public ThreadState
-{
-	bool should_run(const LuaThread& thread) override
-	{
-		// check delayed status here
-		bool delay_condition = check_condition(thread, m_delayCondition);
-
-		if (m_delayTime <= MQGetTickCount64() || delay_condition)
-		{
-			lua_sethook(thread.Thread.state(), ForceYield, LUA_MASKCOUNT, s_turboNum);
-			m_delayTime = 0L;
-			m_delayCondition = std::nullopt;
-			return true;
-		}
-
-		return false;
-	}
-
-	bool is_paused() override { return false; }
-
-	void set_delay(const LuaThread& thread, uint64_t time, std::optional<sol::function> condition = std::nullopt) override
-	{
-		bool delay_condition = check_condition(thread, condition);
-
-		if (time > MQGetTickCount64() && !delay_condition)
-		{
-			lua_sethook(thread.Thread.state(), ForceYield, LUA_MASKLINE, 0);
-			m_delayTime = time;
-			m_delayCondition = condition;
-		}
-	}
-
-	void pause(LuaThread&) override;
-
-private:
-	uint64_t m_delayTime = 0L;
-	std::optional<sol::function> m_delayCondition = std::nullopt;
-};
-
-struct PausedState : public ThreadState
-{
-	bool should_run(const LuaThread&) override { return false; }
-	bool is_paused() override { return true; }
-	void set_delay(const LuaThread& thread, uint64_t time, std::optional<sol::function> condition = std::nullopt) override {}
-	void pause(LuaThread& thread) override
-	{
-		lua_sethook(thread.Thread.state(), ForceYield, LUA_MASKCOUNT, s_turboNum);
-		WriteChatf("Resuming paused lua script '%s' with PID %d", thread.Name.c_str(), thread.PID);
-		thread.State = std::make_unique<RunningState>();
-	}
-
-};
-
-void RunningState::pause(LuaThread& thread)
-{
-	// this will force the coroutine to yield, and removing this thread from the vector will cause it to gc
-	lua_sethook(thread.Thread.state(), ForceYield, LUA_MASKLINE, 0);
-	WriteChatf("Pausing running lua script '%s' with PID %d", thread.Name.c_str(), thread.PID);
-	thread.State = std::make_unique<PausedState>();
-}
-
-#pragma endregion
+static sol::state s_lua;
 
 // use a vector for s_running because we need to iterate it every pulse, and find only if a command is issued
-std::vector<LuaThread> s_running;
+std::vector<thread::LuaThread> s_running;
 
-void DebugStackTrace(lua_State* L)
+void mq::lua::DebugStackTrace(lua_State* L)
 {
 	int i;
 	int top = lua_gettop(L);
@@ -190,7 +84,7 @@ void DebugStackTrace(lua_State* L)
 
 #pragma region Bindings
 
-static std::string join(sol::this_state L, std::string delim, sol::variadic_args va)
+std::string mq::lua::join(sol::this_state L, std::string delim, sol::variadic_args va)
 {
 	if (va.size() > 0)
 	{
@@ -212,315 +106,7 @@ static std::string join(sol::this_state L, std::string delim, sol::variadic_args
 	return "";
 }
 
-struct lua_MQDataItem;
-struct lua_MQTypeVar
-{
-	MQTypeVar self_;
-	std::string member_;
-
-	lua_MQTypeVar() = default;
-
-	lua_MQTypeVar(const std::string& str)
-	{
-		auto* const type = FindMQ2DataType(str.c_str());
-		if (type != nullptr)
-		{
-			self_.Type = type;
-		}
-	}
-
-	/**
-	 * \brief wraps an MQ type var in a lua implementation
-	 * \param self the MQ type var data source to be represented in lua
-	 */
-	lua_MQTypeVar(MQTypeVar&& self) : self_(std::move(self)) {}
-
-	bool operator==(const lua_MQTypeVar& right) const
-	{
-		return self_ == right.self_;
-	}
-
-	bool equal_data(const lua_MQDataItem& right) const;
-
-	lua_MQTypeVar evaluate_member(char* index = nullptr) const
-	{
-		MQTypeVar result = self_;
-		if (result.Type != nullptr && !member_.empty())
-		{
-			if (result.Type->GetMember(result.GetVarPtr(), &member_[0], index, result))
-				return lua_MQTypeVar(std::move(result));
-
-			// can't guarantee result didn't get modified, but we want to return nil if GetMember was false
-			return lua_MQTypeVar();
-		}
-
-		return *this;
-	}
-
-	static std::string to_string(const lua_MQTypeVar& obj)
-	{
-		auto var = obj.evaluate_member();
-		if (var.self_.Type != nullptr)
-		{
-			char buf[2048] = { 0 };
-			var.self_.Type->ToString(var.self_, buf);
-			return std::string(std::move(buf));
-		}
-
-		return "null";
-	}
-
-	sol::object call(std::string index, sol::this_state L) const
-	{
-		return sol::object(L, sol::in_place, lua_MQTypeVar(evaluate_member(&index[0])));
-	}
-
-	sol::object call_int(int index, sol::this_state L) const
-	{
-		return call(std::to_string(index), L);
-	}
-
-	sol::object call_va(sol::this_state L, sol::variadic_args args) const
-	{
-		return call(join(L, ",", args), L);
-	}
-
-	sol::object call_empty(sol::this_state L) const
-	{
-		auto result = evaluate_member();
-
-		if (result.self_.Type == nullptr)
-			return sol::object(L, sol::in_place, sol::lua_nil);
-
-		// There are seven basic types in Lua: nil, number, string, function, CFunction, userdata, and table. 
-		// We only care about nil, number, and string, but multiple MQ types decay into the various types, so
-		// we need to capture that.
-		switch (result.self_.GetType())
-		{
-		case MQVarPtr::VariantIdx::Float:
-		case MQVarPtr::VariantIdx::Double:
-			// lua's number type is the same for integral and floating, but sol handles them each slightly differently
-			return sol::object(L, sol::in_place, result.self_.Get<double>());
-		case MQVarPtr::VariantIdx::Int32:
-		case MQVarPtr::VariantIdx::Int64:
-			return sol::object(L, sol::in_place, result.self_.Get<int64_t>());
-		case MQVarPtr::VariantIdx::UInt32:
-		case MQVarPtr::VariantIdx::UInt64:
-			return sol::object(L, sol::in_place, result.self_.Get<uint64_t>());
-		case MQVarPtr::VariantIdx::String:
-			// if we know it's a string, let's get a string explicitly
-			return sol::object(L, sol::in_place, result.self_.Get<CXStr>().c_str());
-		default:
-			// by default run it through the tostring conversion because we are assuming calling with empty parens means
-			// to actualize the data in the native lua space
-			char buf[MAX_STRING] = { 0 };
-			result.self_.Type->ToString(result.self_.GetVarPtr(), buf);
-			return sol::object(L, sol::in_place, buf);
-		}
-	}
-
-	sol::object get(sol::stack_object key, sol::this_state L) const
-	{
-		auto var = lua_MQTypeVar(evaluate_member());
-		auto maybe_key = key.as<std::optional<std::string_view>>();
-
-		if (maybe_key)
-			var.member_ = *maybe_key;
-
-		return sol::object(L, sol::in_place, var);
-	}
-};
-
-struct lua_MQDataItem
-{
-	const MQDataItem* const self_;
-
-	lua_MQDataItem() : self_(nullptr) {}
-
-	// this will allow users an alternate way to get data items
-	lua_MQDataItem(const std::string& str) : self_(FindMQ2Data(str.c_str())) {}
-
-	lua_MQDataItem(const MQDataItem* const self) : self_(self) {}
-
-	lua_MQTypeVar evaluate_self() const
-	{
-		MQTypeVar result;
-		if (self_ != nullptr)
-			self_->Function("", result);
-
-		return lua_MQTypeVar(std::move(result));
-	}
-
-	bool operator==(const lua_MQDataItem& right) const
-	{
-		return evaluate_self().self_ == right.evaluate_self().self_;
-	}
-
-	bool equal_var(const lua_MQTypeVar& right) const
-	{
-		return evaluate_self().self_ == right.evaluate_member().self_;
-	}
-
-	static std::string to_string(const lua_MQDataItem& data)
-	{
-		return lua_MQTypeVar::to_string(data.evaluate_self());
-	}
-
-	sol::object call(const std::string& index, sol::this_state L) const
-	{
-		MQTypeVar result;
-		if (self_ != nullptr && self_->Function(index.c_str(), result))
-			return sol::object(L, sol::in_place, lua_MQTypeVar(std::move(result)));
-
-		return sol::object(L, sol::in_place, lua_MQTypeVar());
-	}
-
-	sol::object call_int(int index, sol::this_state L) const
-	{
-		return call(std::to_string(index), L);
-	}
-
-	sol::object call_va(sol::this_state L, sol::variadic_args args) const
-	{
-		return call(join(L, ",", args), L);
-	}
-
-	sol::object call_empty(sol::this_state L) const
-	{
-		MQTypeVar result;
-		if (self_ != nullptr && self_->Function("", result))
-			return lua_MQTypeVar(std::move(result)).call_empty(L);
-
-		return sol::object(L, sol::in_place, sol::lua_nil);
-	}
-
-	sol::object get(sol::stack_object key, sol::this_state L) const
-	{
-		MQTypeVar result;
-		if (self_ != nullptr && self_->Function("", result))
-			return lua_MQTypeVar(std::move(result)).get(key, L);
-
-		return sol::object(L, sol::in_place, lua_MQTypeVar());
-	}
-};
-
-bool lua_MQTypeVar::equal_data(const lua_MQDataItem& right) const
-{
-	return evaluate_member().self_ == right.evaluate_self().self_;
-}
-
-template <typename Handler>
-bool sol_lua_check(sol::types<lua_MQTypeVar>, lua_State* L, int index, Handler&& handler, sol::stack::record& tracking)
-{
-	if (!sol::stack::check_usertype<lua_MQTypeVar>(L, index) &&
-		!sol::stack::check_usertype<lua_MQDataItem>(L, index) &&
-		!sol::stack::check<sol::lua_nil_t>(L, index))
-	{
-		handler(L, index, sol::type_of(L, index), sol::type::userdata, "Expected an MQ type");
-		return false;
-	}
-	tracking.use(1);
-	return true;
-}
-
-lua_MQTypeVar sol_lua_get(sol::types<lua_MQTypeVar>, lua_State* L, int index, sol::stack::record& tracking)
-{
-	if (sol::stack::check_usertype<lua_MQTypeVar>(L, index))
-	{
-		lua_MQTypeVar& var = sol::stack::get_usertype<lua_MQTypeVar>(L, index, tracking);
-		var.evaluate_member();
-		return var;
-	}
-
-	if (sol::stack::check_usertype<lua_MQDataItem>(L, index))
-	{
-		lua_MQDataItem& data = sol::stack::get_usertype<lua_MQDataItem>(L, index, tracking);
-		return data.evaluate_self();
-	}
-
-	return lua_MQTypeVar();
-}
-
-template <typename Handler>
-bool sol_lua_check(sol::types<lua_MQDataItem>, lua_State* L, int index, Handler&& handler, sol::stack::record& tracking)
-{
-	if (!sol::stack::check_usertype<lua_MQDataItem>(L, index) &&
-		!sol::stack::check<sol::lua_nil_t>(L, index))
-	{
-		handler(L, index, sol::type_of(L, index), sol::type::userdata, "Expected an MQ type");
-		return false;
-	}
-	tracking.use(1);
-	return true;
-}
-
-lua_MQDataItem sol_lua_get(sol::types<lua_MQDataItem>, lua_State* L, int index, sol::stack::record& tracking)
-{
-	if (sol::stack::check_usertype<lua_MQDataItem>(L, index))
-	{
-		lua_MQDataItem& data = sol::stack::get_usertype<lua_MQDataItem>(L, index, tracking);
-		return data;
-	}
-
-	return lua_MQDataItem();
-}
-
-struct lua_MQCommand
-{
-	std::string command_;
-
-	lua_MQCommand(std::string_view command) : command_(command) {}
-
-	void operator()(sol::variadic_args va)
-	{
-		std::stringstream cmd;
-		cmd << command_;
-		for (const auto& a : va)
-		{
-			auto value = luaL_tolstring(a.lua_state(), a.stack_index(), NULL);
-			if (value != nullptr && strlen(value) > 0)
-				cmd << " " << value;
-		}
-
-		HideDoCommand(pLocalPlayer, cmd.str().c_str(), false);
-	}
-};
-
-struct lua_MQTLO
-{
-	[[nodiscard]] sol::object get(sol::stack_object key, sol::this_state L) const
-	{
-		auto maybe_key = key.as<std::optional<std::string>>();
-		if (maybe_key)
-		{
-			MQDataItem* result = FindMQ2Data(maybe_key->c_str());
-			if (result != nullptr)
-				return sol::object(L, sol::in_place, lua_MQDataItem(result));
-		}
-
-		return sol::object(L, sol::in_place, sol::lua_nil);
-	}
-};
-
-struct lua_MQDoCommand
-{
-	// this is only used to provide a namespace for commands
-	[[nodiscard]] sol::object get(sol::stack_object key, sol::this_state L) const
-	{
-		auto maybe_key = key.as<std::optional<std::string>>();
-		if (maybe_key)
-		{
-			std::string cmd("/");
-			cmd += *maybe_key;
-			if (IsCommand(cmd.c_str()))
-				return sol::object(L, sol::in_place, lua_MQCommand(cmd));
-		}
-
-		return sol::object(L, sol::in_place, sol::lua_nil);
-	}
-};
-
-static void delay(sol::object delayObj, sol::object conditionObj, sol::this_state s)
+void mq::lua::delay(sol::object delayObj, sol::object conditionObj, sol::this_state s)
 {
 	auto delay_int = delayObj.as<std::optional<int>>();
 	if (!delay_int)
@@ -539,7 +125,7 @@ static void delay(sol::object delayObj, sol::object conditionObj, sol::this_stat
 
 	if (delay_int)
 	{
-		auto it = std::find_if(s_running.begin(), s_running.end(), [&s](LuaThread& thread)
+		auto it = std::find_if(s_running.begin(), s_running.end(), [&s](const thread::LuaThread& thread)
 			{
 				return thread.Thread.thread_state() == s.lua_state();
 			});
@@ -579,36 +165,12 @@ static void register_mq_type(sol::state& lua)
 {
 	lua.open_libraries();
 
-	lua.new_usertype<lua_MQTypeVar>("mqtype",
-		sol::constructors<lua_MQTypeVar(const std::string&)>(),
-		sol::meta_function::call, sol::overload(&lua_MQTypeVar::call, &lua_MQTypeVar::call_int, &lua_MQTypeVar::call_empty, &lua_MQTypeVar::call_va),
-		sol::meta_function::index, &lua_MQTypeVar::get,
-		sol::meta_function::to_string, lua_MQTypeVar::to_string,
-		sol::meta_function::equal_to, sol::overload(&lua_MQTypeVar::operator==, &lua_MQTypeVar::equal_data));
+	bindings::lua_MQTypeVar::register_binding(lua);
+	bindings::lua_MQDataItem::register_binding(lua);
+	bindings::lua_MQCommand::register_binding(lua);
 
-	lua.new_usertype<lua_MQDataItem>("mqdata",
-		sol::constructors<lua_MQDataItem(const std::string&)>(),
-		sol::meta_function::call, sol::overload(&lua_MQDataItem::call, &lua_MQDataItem::call_int, &lua_MQDataItem::call_empty, &lua_MQDataItem::call_va),
-		sol::meta_function::index, &lua_MQDataItem::get,
-		sol::meta_function::to_string, lua_MQDataItem::to_string,
-		sol::meta_function::equal_to, sol::overload(&lua_MQDataItem::operator==, &lua_MQDataItem::equal_var));
-
-	lua.new_usertype<lua_MQCommand>("mqcommand",
-		sol::no_constructor);
-
-	lua.new_usertype<lua_MQTLO>("mqtlo",
-		sol::no_constructor,
-		sol::meta_function::index, &lua_MQTLO::get);
-
-	lua.new_usertype<lua_MQDoCommand>("mqdocommand",
-		sol::no_constructor,
-		sol::meta_function::index, &lua_MQDoCommand::get);
-
-	lua["TLO"] = lua_MQTLO();
-	lua["cmd"] = lua_MQDoCommand();
-	lua["null"] = lua_MQTypeVar();
-	lua["delay"] = delay;
-	lua["join"] = join;
+	lua["delay"] = &mq::lua::delay;
+	lua["join"] = &mq::lua::join;
 }
 
 #pragma endregion
@@ -647,7 +209,7 @@ public:
 			Dest.Type = pStringType;
 			std::vector<std::string> pids;
 			std::transform(s_running.cbegin(), s_running.cend(), std::back_inserter(pids),
-				[](const LuaThread& thread) { return std::to_string(thread.PID); });
+				[](const thread::LuaThread& thread) { return std::to_string(thread.PID); });
 			strcpy_s(DataTypeTemp, join(pids, ",").c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
@@ -706,33 +268,13 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 
 	if (script)
 	{
-		auto script_path = std::filesystem::path(script.Get());
-		if (script_path.is_relative()) script_path = s_luaDir / script_path;
-		if (!script_path.has_extension()) script_path += ".lua";
-
-		sol::environment env(s_lua, sol::create, s_lua.globals());
-		auto thread = sol::thread::create(s_lua);
-		env.set_on(thread);
-		auto entry = LuaThread{ thread, env, script.Get(), std::make_unique<RunningState>(), LuaThread::next_id() };
+		auto entry = thread::LuaThread(s_lua, script.Get());
 		WriteChatf("Running lua script '%s' with PID %d", script.Get().c_str(), entry.PID);
 		s_running.emplace_back(std::move(entry));
 
 		try
 		{
-			sol::coroutine co = thread.state().load_file(script_path.string());
-			lua_sethook(thread.state(), ForceYield, LUA_MASKCOUNT, s_turboNum);
-
-			// this manually runs the script with the vector of arguments that the user specified.
-			// need to do it this way because we want to break up arguments and not pass a single
-			// vector 
-			co.push();
-			for (auto arg : script_args.Get())
-				sol::stack::push(thread.state(), arg);
-			
-			int nresults;
-			lua_resume(thread.state(), nullptr, script_args.Get().size(), &nresults);
-
-			//auto result = co(join(script_args.Get(), " "));
+			s_running.back().start_file(s_luaDir, s_turboNum, script_args.Get());
 		}
 		catch (sol::error& e)
 		{
@@ -767,7 +309,7 @@ void EndLuaCommand(SPAWNINFO* pChar, char* Buffer)
 
 	if (pid)
 	{
-		auto thread_it = std::find_if(s_running.begin(), s_running.end(), [&pid](const LuaThread& thread) -> bool
+		auto thread_it = std::find_if(s_running.begin(), s_running.end(), [&pid](const thread::LuaThread& thread) -> bool
 			{
 				return thread.PID == pid.Get();
 			});
@@ -775,7 +317,7 @@ void EndLuaCommand(SPAWNINFO* pChar, char* Buffer)
 		if (thread_it != s_running.end())
 		{
 			// this will force the coroutine to yield, and removing this thread from the vector will cause it to gc
-			lua_sethook(thread_it->Thread.state(), ForceYield, LUA_MASKLINE, 0);
+			thread_it->yield_at(0);
 			WriteChatf("Ending running lua script '%s' with PID %d", thread_it->Name.c_str(), thread_it->PID);
 			s_running.erase(thread_it);
 		}
@@ -787,8 +329,8 @@ void EndLuaCommand(SPAWNINFO* pChar, char* Buffer)
 	else
 	{
 		// kill all scripts
-		for (const auto& thread : s_running)
-			lua_sethook(thread.Thread.state(), ForceYield, LUA_MASKLINE, 0);
+		for (thread::LuaThread& thread : s_running)
+			thread.yield_at(0);
 
 		s_running.clear();
 
@@ -821,14 +363,14 @@ void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
 
 	if (pid)
 	{
-		auto thread_it = std::find_if(s_running.begin(), s_running.end(), [&pid](const LuaThread& thread) -> bool
+		auto thread_it = std::find_if(s_running.begin(), s_running.end(), [&pid](const thread::LuaThread& thread) -> bool
 			{
 				return thread.PID == pid.Get();
 			});
 
 		if (thread_it != s_running.end())
 		{
-			thread_it->State->pause(*thread_it);
+			thread_it->State->pause(*thread_it, s_turboNum);
 		}
 		else
 		{
@@ -838,13 +380,13 @@ void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
 	else
 	{
 		// try to get the user's intention here. If all scripts are running/paused, batch toggle state. If there are any running, assume we want to pause those only.
-		if (std::find_if(s_running.cbegin(), s_running.cend(), [](const LuaThread& thread) -> bool {
+		if (std::find_if(s_running.cbegin(), s_running.cend(), [](const thread::LuaThread& thread) -> bool {
 			return thread.State->is_paused();
 			}) != s_running.cend())
 		{
 			// have at least one running script, so pause all running scripts
 			for (auto& thread : s_running)
-				thread.State->pause(thread);
+				thread.State->pause(thread, s_turboNum);
 
 			WriteChatf("Pausing ALL running lua scripts");
 		}
@@ -852,7 +394,7 @@ void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
 		{
 			// we have no running scripts, so restart all paused scripts
 			for (auto& thread : s_running)
-				thread.State->pause(thread);
+				thread.State->pause(thread, s_turboNum);
 
 			WriteChatf("Resuming ALL paused lua scripts");
 		}
@@ -888,19 +430,13 @@ void LuaStringCommand(SPAWNINFO* pChar, char* Buffer)
 
 	if (script)
 	{
-		sol::environment env(s_lua, sol::create, s_lua.globals());
-		auto thread = sol::thread::create(s_lua);
-		env.set_on(thread);
-		auto entry = LuaThread{ thread, env, "/luastring", std::make_unique<RunningState>(), LuaThread::next_id() };
+		auto entry = thread::LuaThread(s_lua, "/luastring");
 		WriteChatf("Running lua string with PID %d", entry.PID);
 		s_running.emplace_back(std::move(entry));
 
 		try
 		{
-			sol::coroutine co = thread.state().load(join(script.Get(), " "));
-			lua_sethook(thread.state(), ForceYield, LUA_MASKCOUNT, s_turboNum);
-
-			auto result = co();
+			s_running.back().start_string(s_turboNum, join(script.Get(), " "));
 		}
 		catch (sol::error& e)
 		{
@@ -1047,9 +583,9 @@ PLUGIN_API void OnPulse()
 {
 	s_running.erase(std::remove_if(
 		s_running.begin(), s_running.end(),
-		[](LuaThread& thread) -> bool {
+		[](thread::LuaThread& thread) -> bool {
 			// should_run() will automatically re-set the count debug hook when appropriate so we can simply change the turboNum on the fly and it will be respected next pulse.
-			if (thread.Thread.status() == sol::thread_status::yielded && thread.State->should_run(thread))
+			if (thread.Thread.status() == sol::thread_status::yielded && thread.State->should_run(thread, s_turboNum))
 			{
 				try
 				{

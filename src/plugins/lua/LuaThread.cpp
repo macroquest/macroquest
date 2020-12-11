@@ -1,0 +1,148 @@
+#include "LuaThread.h"
+
+#include <mq/Plugin.h>
+
+using namespace mq::lua::thread;
+
+// this is the special sauce that lets us execute everything on the main thread without blocking
+static void ForceYield(lua_State* L, lua_Debug* D)
+{
+	lua_yield(L, 0);
+}
+
+bool ThreadState::check_condition(const LuaThread& thread, std::optional<sol::function>& func)
+{
+	if (func)
+	{
+		try
+		{
+			auto check = sol::function(thread.GlobalState, *func);
+			thread.Env.set_on(check);
+			return check();
+		}
+		catch (sol::error& e)
+		{
+			MacroError("Failed to check delay condition check with error '%s'", e.what());
+			func = std::nullopt;
+		}
+	}
+
+	return false;
+}
+
+bool RunningState::should_run(const LuaThread& thread, uint32_t turbo)
+{
+	// check delayed status here
+	bool delay_condition = check_condition(thread, m_delayCondition);
+
+	if (m_delayTime <= MQGetTickCount64() || delay_condition)
+	{
+		lua_sethook(thread.Thread.state(), ForceYield, LUA_MASKCOUNT, turbo);
+		m_delayTime = 0L;
+		m_delayCondition = std::nullopt;
+		return true;
+	}
+
+	return false;
+}
+
+void RunningState::set_delay(const LuaThread& thread, uint64_t time, std::optional<sol::function> condition)
+{
+	bool delay_condition = check_condition(thread, condition);
+
+	if (time > MQGetTickCount64() && !delay_condition)
+	{
+		lua_sethook(thread.Thread.state(), ForceYield, LUA_MASKLINE, 0);
+		m_delayTime = time;
+		m_delayCondition = condition;
+	}
+}
+
+void RunningState::pause(LuaThread& thread, uint32_t)
+{
+	// this will force the coroutine to yield, and removing this thread from the vector will cause it to gc
+	lua_sethook(thread.Thread.state(), ForceYield, LUA_MASKLINE, 0);
+	WriteChatf("Pausing running lua script '%s' with PID %d", thread.Name.c_str(), thread.PID);
+	thread.State = std::make_unique<PausedState>();
+}
+
+void PausedState::pause(LuaThread& thread, uint32_t turbo)
+{
+	lua_sethook(thread.Thread.state(), ForceYield, LUA_MASKCOUNT, turbo);
+	WriteChatf("Resuming paused lua script '%s' with PID %d", thread.Name.c_str(), thread.PID);
+	thread.State = std::make_unique<RunningState>();
+}
+
+LuaThread::LuaThread(const sol::state_view& state, std::string_view name) :
+	Thread(sol::thread::create(state)),
+	GlobalState(state),
+	Env(sol::environment(state, sol::create, state.globals())),
+	Name(name),
+	State(std::make_unique<RunningState>()),
+	PID(next_id())
+{
+	Env.set_on(Thread);
+}
+
+LuaThread::LuaThread(LuaThread&& other) noexcept :
+	Thread(std::move(other.Thread)),
+	GlobalState(std::move(other.GlobalState)),
+	Env(std::move(other.Env)),
+	Name(std::move(other.Name)),
+	State(std::move(other.State)),
+	PID(std::move(other.PID))
+{
+	Env.set_on(Thread);
+}
+
+LuaThread& LuaThread::operator=(LuaThread&& other) noexcept
+{
+	if (this != &other)
+	{
+		Thread = std::move(other.Thread);
+		GlobalState = std::move(other.GlobalState);
+		Env = std::move(other.Env);
+		Name = std::move(other.Name);
+		State = std::move(other.State);
+		PID = std::move(other.PID);
+
+		Env.set_on(Thread);
+	}
+
+	return *this;
+}
+
+int LuaThread::start_file(std::string_view luaDir, uint32_t turbo, const std::vector<std::string>& args)
+{
+	auto script_path = std::filesystem::path(Name);
+	if (script_path.is_relative()) script_path = luaDir / script_path;
+	if (!script_path.has_extension()) script_path += ".lua";
+
+	sol::coroutine co = Thread.state().load_file(script_path.string());
+	yield_at(turbo);
+
+	// this manually runs the script with the vector of arguments that the user specified.
+	// need to do it this way because we want to break up arguments and not pass a single
+	// vector 
+	// the normal way to run this is" `auto result = co(join(script_args.Get(), " "));`
+	co.push();
+	for (auto arg : args)
+		sol::stack::push(Thread.state(), arg);
+
+	int nresults;
+	return lua_resume(Thread.state(), nullptr, args.size(), &nresults);
+}
+
+int LuaThread::start_string(uint32_t turbo, std::string_view script)
+{
+	sol::coroutine co = Thread.state().load(script);
+	yield_at(turbo);
+
+	auto result = co();
+	return static_cast<int>(result.status());
+}
+
+void LuaThread::yield_at(int count)
+{
+	lua_sethook(Thread.state(), ForceYield, LUA_MASKCOUNT, count);
+}

@@ -80,6 +80,10 @@ powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(Proje
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\contrib\mini-yaml\yaml\Yaml.cpp" />
+    <ClCompile Include="bindings\lua_MQCommand.cpp" />
+    <ClCompile Include="bindings\lua_MQDataItem.cpp" />
+    <ClCompile Include="bindings\lua_MQTypeVar.cpp" />
+    <ClCompile Include="LuaThread.cpp" />
     <ClCompile Include="MQ2Lua.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -92,6 +96,11 @@ powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(Proje
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\contrib\mini-yaml\yaml\Yaml.hpp" />
+    <ClInclude Include="bindings\lua_MQCommand.h" />
+    <ClInclude Include="bindings\lua_MQDataItem.h" />
+    <ClInclude Include="bindings\lua_MQTypeVar.h" />
+    <ClInclude Include="LuaCommon.h" />
+    <ClInclude Include="LuaThread.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="$(MQ2Root)contrib\vcpkg\scripts\buildsystems\msbuild\vcpkg.targets" Condition="exists('$(MQ2Root)contrib\vcpkg\scripts\buildsystems\msbuild\vcpkg.targets')" />

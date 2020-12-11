@@ -25,6 +25,12 @@
     <Filter Include="Header Files\contrib\mini-yaml">
       <UniqueIdentifier>{f9875728-f245-46e5-b07d-464ce4e6c294}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\bindings">
+      <UniqueIdentifier>{5688543e-be2f-42be-b0ec-57cef7501052}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\bindings">
+      <UniqueIdentifier>{53a88389-1507-4c14-a59b-d23a6065ef33}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MQ2Lua.cpp">
@@ -33,10 +39,37 @@
     <ClCompile Include="..\..\..\contrib\mini-yaml\yaml\Yaml.cpp">
       <Filter>Source Files\contrib\mini-yaml</Filter>
     </ClCompile>
+    <ClCompile Include="LuaThread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bindings\lua_MQTypeVar.cpp">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="bindings\lua_MQDataItem.cpp">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="bindings\lua_MQCommand.cpp">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\contrib\mini-yaml\yaml\Yaml.hpp">
       <Filter>Header Files\contrib\mini-yaml</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaThread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaCommon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\lua_MQTypeVar.h">
+      <Filter>Header Files\bindings</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\lua_MQDataItem.h">
+      <Filter>Header Files\bindings</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\lua_MQCommand.h">
+      <Filter>Header Files\bindings</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
