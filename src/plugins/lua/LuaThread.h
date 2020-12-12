@@ -3,6 +3,11 @@
 #include <sol/sol.hpp>
 
 // TODO: Put events per thread here
+
+namespace mq::lua::events {
+struct LuaEventProcessor;
+}
+
 namespace mq::lua::thread {
 
 struct ThreadState;
@@ -10,9 +15,10 @@ struct LuaThread
 {
 	sol::thread Thread;
 	sol::state_view GlobalState;
-	sol::environment Env;
+	sol::environment Environment;
 	std::string Name;
 	std::unique_ptr<ThreadState> State;
+	std::unique_ptr<events::LuaEventProcessor> EventProcessor;
 	uint32_t PID;
 
 	static uint32_t next_id()

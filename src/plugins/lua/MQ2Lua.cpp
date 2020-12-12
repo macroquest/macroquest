@@ -16,6 +16,7 @@
 
 #include "LuaCommon.h"
 #include "LuaThread.h"
+#include "LuaEvent.h"
 
 // bindings:
 #include "bindings/lua_MQTypeVar.h"
@@ -161,6 +162,37 @@ void mq::lua::delay(sol::object delayObj, sol::object conditionObj, sol::this_st
 	}
 }
 
+void mq::lua::doevents(sol::this_state s)
+{
+	auto it = std::find_if(s_running.begin(), s_running.end(),
+		[&s](const thread::LuaThread& thread) { return thread.Thread.state() == s; });
+
+	if (it != s_running.end())
+		it->EventProcessor->run_events();
+}
+
+void mq::lua::addevent(std::string_view name, std::string_view expression, sol::function function, sol::this_state s)
+{
+	auto it = std::find_if(s_running.begin(), s_running.end(),
+		[&s](const thread::LuaThread& thread) { return thread.Thread.state() == s; });
+
+	if (it != s_running.end())
+	{
+		it->EventProcessor->add_event(name, expression, function, *it);
+	}
+}
+
+void mq::lua::removeevent(std::string_view name, sol::this_state s)
+{
+	auto it = std::find_if(s_running.begin(), s_running.end(),
+		[&s](const thread::LuaThread& thread) { return thread.Thread.state() == s; });
+
+	if (it != s_running.end())
+	{
+		it->EventProcessor->remove_event(name);
+	}
+}
+
 static void register_mq_type(sol::state& lua)
 {
 	lua.open_libraries();
@@ -171,6 +203,9 @@ static void register_mq_type(sol::state& lua)
 
 	lua["delay"] = &mq::lua::delay;
 	lua["join"] = &mq::lua::join;
+	lua["doevents"] = &mq::lua::doevents;
+	lua["event"] = &mq::lua::addevent;
+	lua["unevent"] = &mq::lua::removeevent;
 }
 
 #pragma endregion
@@ -615,4 +650,31 @@ PLUGIN_API void OnPulse()
 			return false;
 		}),
 		s_running.end());
+}
+
+/**
+ * @fn OnIncomingChat
+ *
+ * This is called each time a line of chat is shown.  It occurs after MQ filters
+ * and chat events have been handled.  If you need to know when MQ2 has sent chat,
+ * consider using @ref OnWriteChatColor instead.
+ *
+ * For a list of Color values, see the constants for USERCOLOR_. The default is
+ * USERCOLOR_DEFAULT.
+ *
+ * @param Line const char* - The line of text that was shown
+ * @param Color int - The type of chat text this was sent as
+ *
+ * @return bool - whether something was done based on the incoming chat
+ */
+PLUGIN_API bool OnIncomingChat(const char* Line, DWORD Color)
+{
+	// DebugSpewAlways("MQ2Template::OnIncomingChat(%s, %d)", Line, Color);
+	for (const auto& thread : s_running)
+	{
+		if (!thread.State->is_paused())
+			thread.EventProcessor->process(Line);
+	}
+
+	return !s_running.empty();
 }

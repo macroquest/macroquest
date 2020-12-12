@@ -51,6 +51,9 @@
     <ClCompile Include="bindings\lua_MQCommand.cpp">
       <Filter>Source Files\bindings</Filter>
     </ClCompile>
+    <ClCompile Include="LuaEvent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\contrib\mini-yaml\yaml\Yaml.hpp">
@@ -70,6 +73,9 @@
     </ClInclude>
     <ClInclude Include="bindings\lua_MQCommand.h">
       <Filter>Header Files\bindings</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaEvent.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

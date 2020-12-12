@@ -1,4 +1,5 @@
 #include "LuaThread.h"
+#include "LuaEvent.h"
 
 #include <mq/Plugin.h>
 
@@ -17,7 +18,7 @@ bool ThreadState::check_condition(const LuaThread& thread, std::optional<sol::fu
 		try
 		{
 			auto check = sol::function(thread.GlobalState, *func);
-			thread.Env.set_on(check);
+			thread.Environment.set_on(check);
 			return check();
 		}
 		catch (sol::error& e)
@@ -76,23 +77,25 @@ void PausedState::pause(LuaThread& thread, uint32_t turbo)
 LuaThread::LuaThread(const sol::state_view& state, std::string_view name) :
 	Thread(sol::thread::create(state)),
 	GlobalState(state),
-	Env(sol::environment(state, sol::create, state.globals())),
+	Environment(sol::environment(state, sol::create, state.globals())),
 	Name(name),
 	State(std::make_unique<RunningState>()),
+	EventProcessor(std::make_unique<events::LuaEventProcessor>()),
 	PID(next_id())
 {
-	Env.set_on(Thread);
+	Environment.set_on(Thread);
 }
 
 LuaThread::LuaThread(LuaThread&& other) noexcept :
 	Thread(std::move(other.Thread)),
 	GlobalState(std::move(other.GlobalState)),
-	Env(std::move(other.Env)),
+	Environment(std::move(other.Environment)),
 	Name(std::move(other.Name)),
 	State(std::move(other.State)),
+	EventProcessor(std::move(other.EventProcessor)),
 	PID(std::move(other.PID))
 {
-	Env.set_on(Thread);
+	Environment.set_on(Thread);
 }
 
 LuaThread& LuaThread::operator=(LuaThread&& other) noexcept
@@ -101,12 +104,13 @@ LuaThread& LuaThread::operator=(LuaThread&& other) noexcept
 	{
 		Thread = std::move(other.Thread);
 		GlobalState = std::move(other.GlobalState);
-		Env = std::move(other.Env);
+		Environment = std::move(other.Environment);
 		Name = std::move(other.Name);
 		State = std::move(other.State);
+		EventProcessor = std::move(other.EventProcessor);
 		PID = std::move(other.PID);
 
-		Env.set_on(Thread);
+		Environment.set_on(Thread);
 	}
 
 	return *this;
@@ -125,12 +129,14 @@ int LuaThread::start_file(std::string_view luaDir, uint32_t turbo, const std::ve
 	// need to do it this way because we want to break up arguments and not pass a single
 	// vector 
 	// the normal way to run this is" `auto result = co(join(script_args.Get(), " "));`
-	co.push();
-	for (auto arg : args)
-		sol::stack::push(Thread.state(), arg);
+	auto result = co(sol::as_args(args));
+	return static_cast<int>(result.status());
+	//co.push();
+	//for (auto arg : args)
+	//	sol::stack::push(Thread.state(), arg);
 
-	int nresults;
-	return lua_resume(Thread.state(), nullptr, args.size(), &nresults);
+	//int nresults;
+	//return lua_resume(Thread.state(), nullptr, args.size(), &nresults);
 }
 
 int LuaThread::start_string(uint32_t turbo, std::string_view script)
