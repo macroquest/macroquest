@@ -21,7 +21,8 @@ void CALLBACK LuaEventCallback(unsigned int ID, void* pData, PBLECHVALUE pValues
 	auto value = pValues;
 	while (value != nullptr)
 	{
-		if (auto num = GetIntFromString(value->Name, 0) > 0) // this will skip any '*' instances for me -- it will in fact only get valid argument positions
+		auto num = GetIntFromString(value->Name, 0);
+		if (num > 0) // this will skip any '*' instances for me -- it will in fact only get valid argument positions
 			args.emplace_back(num, value->Value);
 		value = value->pNext;
 	}
@@ -39,7 +40,7 @@ LuaEventProcessor::LuaEventProcessor() : EventBlech(std::make_unique<Blech>('#',
 
 LuaEventProcessor::~LuaEventProcessor()
 {
-	for (auto& e : EventDefinitions)
+	for (auto e : EventDefinitions)
 		delete e;
 
 	EventDefinitions.clear();
@@ -49,7 +50,7 @@ void LuaEventProcessor::add_event(std::string_view name, std::string_view expres
 {
 	LuaEvent* e = new LuaEvent{std::string(name), std::string(expression), function, thread, 0};
 	EventDefinitions.emplace_back(e);
-	e->ID = EventBlech->AddEvent(e->Name.c_str(), LuaEventCallback, e);
+	e->ID = EventBlech->AddEvent(e->Expression.c_str(), LuaEventCallback, e);
 }
 
 void LuaEventProcessor::remove_event(std::string_view name)
@@ -99,11 +100,12 @@ bool LuaEvent::run(const std::vector<std::string> args) const
 	{
 		auto func = sol::function(Thread.GlobalState, Function);
 		Thread.Environment.set_on(func);
-		return func(sol::as_args(args));
+		auto result = func(sol::as_args(args));
+		return result.valid();
 	}
 	catch (sol::error& e)
 	{
-		MacroError("Failed to run event '%s' function with error '%s'", Name, e.what());
+		MacroError("Failed to run event '%s' function with error '%s'", Name.c_str(), e.what());
 	}
 
 	return false;

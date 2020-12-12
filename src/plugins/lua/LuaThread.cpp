@@ -125,18 +125,8 @@ int LuaThread::start_file(std::string_view luaDir, uint32_t turbo, const std::ve
 	sol::coroutine co = Thread.state().load_file(script_path.string());
 	yield_at(turbo);
 
-	// this manually runs the script with the vector of arguments that the user specified.
-	// need to do it this way because we want to break up arguments and not pass a single
-	// vector 
-	// the normal way to run this is" `auto result = co(join(script_args.Get(), " "));`
 	auto result = co(sol::as_args(args));
 	return static_cast<int>(result.status());
-	//co.push();
-	//for (auto arg : args)
-	//	sol::stack::push(Thread.state(), arg);
-
-	//int nresults;
-	//return lua_resume(Thread.state(), nullptr, args.size(), &nresults);
 }
 
 int LuaThread::start_string(uint32_t turbo, std::string_view script)

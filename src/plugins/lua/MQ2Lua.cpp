@@ -676,5 +676,5 @@ PLUGIN_API bool OnIncomingChat(const char* Line, DWORD Color)
 			thread.EventProcessor->process(Line);
 	}
 
-	return !s_running.empty();
+	return false;
 }
