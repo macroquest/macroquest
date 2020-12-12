@@ -2,8 +2,7 @@
 
 #include <mq/Plugin.h>
 
-using namespace mq::lua;
-using namespace mq::lua::bindings;
+namespace mq::lua::bindings {
 
 void lua_MQCommand::operator()(sol::variadic_args va)
 {
@@ -43,4 +42,5 @@ void mq::lua::bindings::lua_MQCommand::register_binding(sol::state& lua)
 		sol::meta_function::index, &lua_MQDoCommand::get);
 
 	lua["cmd"] = lua_MQDoCommand();
+}
 }

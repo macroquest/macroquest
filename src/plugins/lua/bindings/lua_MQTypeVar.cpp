@@ -3,8 +3,7 @@
 
 #include <mq/Plugin.h>
 
-using namespace mq::lua;
-using namespace mq::lua::bindings;
+namespace mq::lua::bindings {
 
 lua_MQTypeVar::lua_MQTypeVar(const std::string& str)
 {
@@ -112,7 +111,7 @@ sol::object lua_MQTypeVar::get(sol::stack_object key, sol::this_state L) const
 }
 
 template <typename Handler>
-bool sol_lua_check(sol::types<lua_MQTypeVar>, lua_State * L, int index, Handler && handler, sol::stack::record & tracking)
+bool sol_lua_check(sol::types<lua_MQTypeVar>, lua_State* L, int index, Handler && handler, sol::stack::record & tracking)
 {
 	if (!sol::stack::check_usertype<lua_MQTypeVar>(L, index) &&
 		!sol::stack::check_usertype<lua_MQDataItem>(L, index) &&
@@ -152,4 +151,5 @@ void lua_MQTypeVar::register_binding(sol::state& lua)
 		sol::meta_function::equal_to, sol::overload(&lua_MQTypeVar::operator==, &lua_MQTypeVar::equal_data));
 
 	lua["null"] = lua_MQTypeVar(MQTypeVar());
+}
 }

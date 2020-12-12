@@ -3,8 +3,7 @@
 
 #include <mq/Plugin.h>
 
-using namespace mq::lua;
-using namespace mq::lua::bindings;
+namespace mq::lua::bindings {
 
 lua_MQTypeVar lua_MQDataItem::evaluate_self() const
 {
@@ -120,4 +119,5 @@ void lua_MQDataItem::register_binding(sol::state& lua)
 		sol::meta_function::index, &lua_MQTLO::get);
 
 	lua["TLO"] = lua_MQTLO();
+}
 }
