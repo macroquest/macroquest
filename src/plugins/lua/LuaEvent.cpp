@@ -17,6 +17,9 @@ void CALLBACK LuaEventCallback(unsigned int ID, void* pData, PBLECHVALUE pValues
 		return;
 
 	auto def = static_cast<LuaEvent*>(pData);
+	if (def->Thread == nullptr)
+		return;
+
 	std::vector<std::pair<uint32_t, std::string>> args;
 	auto value = pValues;
 	while (value != nullptr)
@@ -33,7 +36,7 @@ void CALLBACK LuaEventCallback(unsigned int ID, void* pData, PBLECHVALUE pValues
 	for (const auto& a : args)
 		ordered_args[a.first - 1] = a.second;
 
-	def->Thread.EventProcessor->EventQueue.emplace(LuaEventInstance{ def, ordered_args });
+	def->Thread->EventProcessor->EventQueue.emplace(LuaEventInstance{ def, ordered_args });
 }
 
 LuaEventProcessor::LuaEventProcessor() : EventBlech(std::make_unique<Blech>('#', '|', LuaVarProcess)) {}
@@ -48,7 +51,7 @@ LuaEventProcessor::~LuaEventProcessor()
 
 void LuaEventProcessor::add_event(std::string_view name, std::string_view expression, const sol::function& function, const thread::LuaThread& thread)
 {
-	LuaEvent* e = new LuaEvent{std::string(name), std::string(expression), function, thread, 0};
+	LuaEvent* e = new LuaEvent{std::string(name), std::string(expression), function, &thread, 0};
 	EventDefinitions.emplace_back(e);
 	e->ID = EventBlech->AddEvent(e->Expression.c_str(), LuaEventCallback, e);
 }
@@ -64,8 +67,14 @@ void LuaEventProcessor::remove_event(std::string_view name)
 	}
 }
 
-void LuaEventProcessor::process(std::string_view line) const
+void LuaEventProcessor::process(std::string_view line, const thread::LuaThread& thread) const
 {
+	// we need to update the reference to thread here to be able to pass it through the blech callback
+	// this reference can invalidate due to vector resizes in the thread vector, so just quickly keep it
+	// up to date
+	for (auto e : EventDefinitions)
+		e->Thread = &thread;
+
 	char line_char[MAX_STRING] = { 0 };
 
 	if (line.find_first_of('\x12') != std::string::npos)
@@ -84,11 +93,12 @@ void LuaEventProcessor::process(std::string_view line) const
 	EventBlech->Feed(line_char);
 }
 
-void LuaEventProcessor::run_events()
+void LuaEventProcessor::run_events(const thread::LuaThread& thread)
 {
 	while (!EventQueue.empty())
 	{
 		auto e = EventQueue.front();
+		e.EventDefinition->Thread = &thread;
 		e.EventDefinition->run(e.Args);
 		EventQueue.pop();
 	}
@@ -96,10 +106,13 @@ void LuaEventProcessor::run_events()
 
 bool LuaEvent::run(const std::vector<std::string> args) const
 {
+	if (Thread == nullptr)
+		return false;
+
 	try
 	{
-		auto func = sol::function(Thread.GlobalState, Function);
-		Thread.Environment.set_on(func);
+		auto func = sol::function(Thread->GlobalState, Function);
+		Thread->Environment.set_on(func);
 		auto result = func(sol::as_args(args));
 		return result.valid();
 	}

@@ -168,7 +168,7 @@ void mq::lua::doevents(sol::this_state s)
 		[&s](const thread::LuaThread& thread) { return thread.Thread.state() == s; });
 
 	if (it != s_running.end())
-		it->EventProcessor->run_events();
+		it->EventProcessor->run_events(*it);
 }
 
 void mq::lua::addevent(std::string_view name, std::string_view expression, sol::function function, sol::this_state s)
@@ -673,7 +673,7 @@ PLUGIN_API bool OnIncomingChat(const char* Line, DWORD Color)
 	for (const auto& thread : s_running)
 	{
 		if (!thread.State->is_paused())
-			thread.EventProcessor->process(Line);
+			thread.EventProcessor->process(Line, thread);
 	}
 
 	return false;
