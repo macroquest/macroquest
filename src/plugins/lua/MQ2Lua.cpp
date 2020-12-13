@@ -13,6 +13,7 @@
 #include <sol/sol.hpp>
 
 #include <string>
+#include <fstream>
 
 #include "LuaCommon.h"
 #include "LuaThread.h"
@@ -51,37 +52,41 @@ std::vector<std::shared_ptr<thread::LuaThread>> s_running;
 
 void mq::lua::DebugStackTrace(lua_State* L)
 {
-	int i;
+	lua_Debug ar;
+	lua_getstack(L, 1, &ar);
+	lua_getinfo(L, "nSl", &ar);
+	MacroError("%s: %s (%s)", ar.what, ar.name, ar.namewhat);
+	MacroError("Line %i in %s", ar.currentline, ar.short_src);
+
 	int top = lua_gettop(L);
-	DebugSpewAlways("---- Begin Stack ----");
-	DebugSpewAlways("Stack size: %i\n", top);
-	for (i = top; i >= 1; i--)
+	MacroError("---- Begin Stack (size: %i) ----", top);
+	for (int i = top; i >= 1; i--)
 	{
 		int t = lua_type(L, i);
 		switch (t)
 		{
 		case LUA_TSTRING:
-			DebugSpewAlways("%i -- (%i) ---- `%s'", i, i - (top + 1), lua_tostring(L, i));
+			MacroError("%i -- (%i) ---- `%s'", i, i - (top + 1), lua_tostring(L, i));
 			break;
 
 		case LUA_TBOOLEAN:
-			DebugSpewAlways("%i -- (%i) ---- %s", i, i - (top + 1), lua_toboolean(L, i) ? "true" : "false");
+			MacroError("%i -- (%i) ---- %s", i, i - (top + 1), lua_toboolean(L, i) ? "true" : "false");
 			break;
 
 		case LUA_TNUMBER:
-			DebugSpewAlways("%i -- (%i) ---- %g", i, i - (top + 1), lua_tonumber(L, i));
+			MacroError("%i -- (%i) ---- %g", i, i - (top + 1), lua_tonumber(L, i));
 			break;
 
 		case LUA_TUSERDATA:
-			DebugSpewAlways("%i -- (%i) ---- [%s]", i, i - (top + 1), luaL_tolstring(L, i, NULL));
+			MacroError("%i -- (%i) ---- [%s]", i, i - (top + 1), luaL_tolstring(L, i, NULL));
 			break;
 
 		default:
-			DebugSpewAlways("%i -- (%i) ---- %s", i, i - (top + 1), lua_typename(L, t));
+			MacroError("%i -- (%i) ---- %s", i, i - (top + 1), lua_typename(L, t));
 			break;
 		}
 	}
-	DebugSpewAlways("---- End Stack ----\n");
+	MacroError("---- End Stack ----\n");
 }
 
 #pragma region Bindings
@@ -207,6 +212,8 @@ static void register_mq_type(sol::state& lua)
 	lua["doevents"] = &mq::lua::doevents;
 	lua["event"] = &mq::lua::addevent;
 	lua["unevent"] = &mq::lua::removeevent;
+	auto package_path = lua["package"]["path"].get<std::string>();
+	lua["package"]["path"] = fmt::format("{};{}\\?.lua", package_path, s_luaDir);
 }
 
 #pragma endregion
@@ -315,6 +322,7 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 		catch (sol::error& e)
 		{
 			MacroError("%s", e.what());
+			DebugStackTrace(entry->Thread.state());
 			s_running.pop_back();
 		}
 	}
@@ -477,6 +485,7 @@ void LuaStringCommand(SPAWNINFO* pChar, char* Buffer)
 		catch (sol::error& e)
 		{
 			MacroError("%s", e.what());
+			DebugStackTrace(entry->Thread.state());
 			s_running.pop_back();
 		}
 
@@ -485,6 +494,11 @@ void LuaStringCommand(SPAWNINFO* pChar, char* Buffer)
 
 void WriteSettings()
 {
+	// Yaml doesn't create the file if it doesn't exist, so let's make sure it creates
+	std::fstream file;
+	file.open(s_configPath, std::ios::out | std::ios::app);
+	file.close();
+
 	Yaml::Serialize(s_configNode, s_configPath.c_str());
 }
 
@@ -497,7 +511,7 @@ void ReadSettings()
 	catch (const Yaml::OperationException&)
 	{
 		// if we can't read the file, then try to write it with an empty config
-		Yaml::Serialize(s_configNode, s_configPath);
+		WriteSettings();
 	}
 
 	s_turboNum = s_configNode["turboNum"].As<uint32_t>(s_turboNum);
@@ -632,14 +646,15 @@ PLUGIN_API void OnPulse()
 				catch (sol::error& e)
 				{
 					MacroError("Ending lua script '%s' with PID %d and error %s", thread->Name.c_str(), thread->PID, e.what());
+					DebugStackTrace(thread->Thread.state());
 					return true;
 				}
 			}
 
 			if (thread->Thread.status() == sol::thread_status::runtime)
 			{
-				auto str = luaL_tolstring(thread->Thread.state(), -1, NULL);
-				MacroError("Ending lua script %s with PID %d and error '%s'", thread->Name.c_str(), thread->PID, str);
+				MacroError("Runtime Error: Ending lua script %s with PID %d", thread->Name.c_str(), thread->PID);
+				DebugStackTrace(thread->Thread.state());
 				return true;
 			}
 
