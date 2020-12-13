@@ -4,7 +4,7 @@
 
 namespace mq::lua::bindings {
 
-void lua_MQCommand::operator()(sol::variadic_args va)
+void lua_MQCommand::operator()(sol::variadic_args va, sol::this_state s)
 {
 	std::stringstream cmd;
 	cmd << Command;

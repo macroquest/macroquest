@@ -99,10 +99,16 @@ sol::object lua_MQTLO::get(sol::stack_object key, sol::this_state L) const
 	{
 		MQDataItem* result = FindMQ2Data(maybe_key->c_str());
 		if (result != nullptr)
-			return sol::object(L, sol::in_place, bindings::lua_MQDataItem(result));
+			return sol::object(L, sol::in_place, lua_MQDataItem(result));
 	}
 
 	return sol::object(L, sol::in_place, sol::lua_nil);
+}
+
+std::ostream& operator<<(std::ostream& os, const lua_MQDataItem& item)
+{
+	os << lua_MQDataItem::to_string(item);
+	return os;
 }
 
 void lua_MQDataItem::register_binding(sol::state& lua)
@@ -111,7 +117,6 @@ void lua_MQDataItem::register_binding(sol::state& lua)
 		sol::constructors<lua_MQDataItem(const std::string&)>(),
 		sol::meta_function::call, sol::overload(&lua_MQDataItem::call, &lua_MQDataItem::call_int, &lua_MQDataItem::call_empty, &lua_MQDataItem::call_va),
 		sol::meta_function::index, &lua_MQDataItem::get,
-		sol::meta_function::to_string, lua_MQDataItem::to_string,
 		sol::meta_function::equal_to, sol::overload(&lua_MQDataItem::operator==, &lua_MQDataItem::equal_var));
 
 	lua.new_usertype<lua_MQTLO>("mqtlo",

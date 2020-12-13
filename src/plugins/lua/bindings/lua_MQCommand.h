@@ -7,7 +7,7 @@ struct lua_MQCommand
 {
 	std::string Command;
 	lua_MQCommand(std::string_view command) : Command(command) {}
-	void operator()(sol::variadic_args va);
+	void operator()(sol::variadic_args va, sol::this_state s);
 	static void register_binding(sol::state& lua);
 };
 

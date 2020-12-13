@@ -141,13 +141,18 @@ lua_MQTypeVar sol_lua_get(sol::types<lua_MQTypeVar>, lua_State* L, int index, so
 	return lua_MQTypeVar(MQTypeVar()); // this will eventually evaluate to a nil, but we need it to stay in userdata until actual evaluation
 }
 
+std::ostream& operator<<(std::ostream& os, const lua_MQTypeVar& item)
+{
+	os << lua_MQTypeVar::to_string(item);
+	return os;
+}
+
 void lua_MQTypeVar::register_binding(sol::state& lua)
 {
 	lua.new_usertype<lua_MQTypeVar>("mqtype",
 		sol::constructors<lua_MQTypeVar(const std::string&)>(),
 		sol::meta_function::call, sol::overload(&lua_MQTypeVar::call, &lua_MQTypeVar::call_int, &lua_MQTypeVar::call_empty, &lua_MQTypeVar::call_va),
 		sol::meta_function::index, &lua_MQTypeVar::get,
-		sol::meta_function::to_string, lua_MQTypeVar::to_string,
 		sol::meta_function::equal_to, sol::overload(&lua_MQTypeVar::operator==, &lua_MQTypeVar::equal_data));
 
 	lua["null"] = lua_MQTypeVar(MQTypeVar());
