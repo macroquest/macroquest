@@ -42,20 +42,20 @@ struct LuaThread
 
 struct ThreadState
 {
-	virtual bool should_run(const LuaThread& thread, uint32_t turbo) = 0;
+	virtual bool should_run(const std::shared_ptr<LuaThread>& thread, uint32_t turbo) = 0;
 	virtual bool is_paused() = 0;
-	virtual void set_delay(const LuaThread& thread, uint64_t time, std::optional<sol::function> condition = std::nullopt) = 0;
-	virtual void pause(LuaThread& thread, uint32_t turbo) = 0;
+	virtual void set_delay(const std::shared_ptr<LuaThread>& thread, uint64_t time, std::optional<sol::function> condition = std::nullopt) = 0;
+	virtual void pause(const std::shared_ptr<LuaThread>& thread, uint32_t turbo) = 0;
 
-	static bool check_condition(const LuaThread& thread, std::optional<sol::function>& func);
+	static bool check_condition(const std::shared_ptr<LuaThread>& thread, std::optional<sol::function>& func);
 };
 
 struct RunningState : public ThreadState
 {
-	bool should_run(const LuaThread& thread, uint32_t turbo) override;
+	bool should_run(const std::shared_ptr<LuaThread>& thread, uint32_t turbo) override;
 	bool is_paused() override { return false; }
-	void set_delay(const LuaThread& thread, uint64_t time, std::optional<sol::function> condition = std::nullopt) override;
-	void pause(LuaThread&, uint32_t) override;
+	void set_delay(const std::shared_ptr<LuaThread>& thread, uint64_t time, std::optional<sol::function> condition = std::nullopt) override;
+	void pause(const std::shared_ptr<LuaThread>&, uint32_t) override;
 
 private:
 	uint64_t m_delayTime = 0L;
@@ -64,10 +64,10 @@ private:
 
 struct PausedState : public ThreadState
 {
-	bool should_run(const LuaThread&, uint32_t) override { return false; }
+	bool should_run(const std::shared_ptr<LuaThread>&, uint32_t) override { return false; }
 	bool is_paused() override { return true; }
-	void set_delay(const LuaThread& thread, uint64_t time, std::optional<sol::function> condition = std::nullopt) override {}
-	void pause(LuaThread& thread, uint32_t turbo) override;
+	void set_delay(const std::shared_ptr<LuaThread>& thread, uint64_t time, std::optional<sol::function> condition = std::nullopt) override {}
+	void pause(const std::shared_ptr<LuaThread>& thread, uint32_t turbo) override;
 };
 
 } // namespace mq::lua::thread
