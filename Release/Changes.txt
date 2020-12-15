@@ -1,3 +1,14 @@
+Dec 15 2020
+- Updated for TEST
+- Removed MAX_KEYRINGITEMS it was a guess at best from 2014 before we knew how the arrays where constructed.
+- pBankArray in CHARINFO is now a ItemBaseContainer named BankItems
+- pSharedBankArray in CHARINFO is now a ItemBaseContainer named SharedBankItems
+- pMercEquipment in CHARINFO is now a ItemBaseContainer named MercenaryItems
+- pMountsArray in CHARINFO is now a ItemBaseContainer named MountKeyRingItems
+- pIllusionsArray in CHARINFO is now a ItemBaseContainer named IllusionKeyRingItems
+- pFamiliarArray in CHARINFO is now a ItemBaseContainer named FamiliarKeyRingItems
+- pHeroForgeArray in CHARINFO is now a ItemBaseContainer named HeroForgeKeyRingItems
+-
 Dec 10 2020
 - Fixes to new alt currency - sic
 - Fixes for num expansions - CWTN

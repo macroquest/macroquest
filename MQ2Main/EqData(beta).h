@@ -1162,7 +1162,7 @@ typedef struct _AALIST {
 #define NUM_INV_SLOTS                   0x21
 #define NUM_BANK_SLOTS                  0x18
 #define NUM_SHAREDBANK_SLOTS            0x06
-#define MAX_KEYRINGITEMS			    0x1B //not really sure need to confirm this
+
 //found in CSpellBookWnd__GetBookSlot_x (see 7A7DD7 in Nov 29 2017 Beta) -eqmule 
 //Find by searching for A1 ? ? ? ? 53 83 CB FF 85 C0 in IDA 
 #define NUM_BOOK_SLOTS                  0x3C0
@@ -1265,17 +1265,6 @@ typedef struct _MERCEQUIPMENT {
 	/*0x00*/ struct _CONTENTS* MercEquipment[4];
 	/*0x68*/
 } MERCEQUIPMENT, *PMERCEQUIPMENT;
-
-//added dec 08 2014 -eqmule
-typedef struct _KEYRINGARRAY {
-	union {
-		/*0x00*/ struct _CONTENTS* Mounts[MAX_KEYRINGITEMS];
-		/*0x00*/ struct _CONTENTS* Illusions[MAX_KEYRINGITEMS];
-		/*0x00*/ struct _CONTENTS* Familiars[MAX_KEYRINGITEMS];
-		/*0x00*/ struct _CONTENTS* HeroForges[MAX_KEYRINGITEMS];
-	};
-	/*0x28*/
-} KEYRINGARRAY, *PKEYRINGARRAY;
 
 struct Point 
 {

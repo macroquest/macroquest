@@ -3336,13 +3336,8 @@ int DoIHave(PITEMINFO Item)
 			{
 				PCHARINFO pCharInfo = GetCharInfo();
 				PCONTENTS pPack = NULL;
-#ifdef NEWCHARINFO
 				if (pCharInfo && pCharInfo->BankItems.Items.Size > nPack)
 					pPack = pCharInfo->BankItems.Items[nPack].pObject;
-#else
-				if (pCharInfo && pCharInfo->pBankArray)
-					pPack = pCharInfo->pBankArray->Bank[nPack];
-#endif
 				if (pPack)
 				{
 					if (GetItemFromContents(pPack)->ItemNumber == ID)
@@ -3377,13 +3372,8 @@ int DoIHave(PITEMINFO Item)
 			{
 				PCHARINFO pCharInfo = GetCharInfo();
 				PCONTENTS pPack = NULL;
-#ifdef NEWCHARINFO
 				if (pCharInfo && pCharInfo->SharedBankItems.Items.Size > nPack)
 					pPack = pCharInfo->SharedBankItems.Items[nPack].pObject;
-#else
-				if (pCharInfo && pCharInfo->pSharedBankArray)
-					pPack = pCharInfo->pSharedBankArray->SharedBank[nPack];
-#endif
 				if (pPack)
 				{
 					if (GetItemFromContents(pPack)->ItemNumber == ID)

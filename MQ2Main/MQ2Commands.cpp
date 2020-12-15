@@ -3332,13 +3332,8 @@ VOID BankList(PSPAWNINFO pChar, PCHAR szLine)
 	WriteChatColor("-------------------------", USERCOLOR_DEFAULT);
 	char Link[MAX_STRING] = { 0 };
 	for (int a = 0; a<NUM_BANK_SLOTS; a++) {
-#ifdef NEWCHARINFO
 		if (pCharInfo && pCharInfo->BankItems.Items.Size > (UINT)a)
 			pContainer = pCharInfo->BankItems.Items[a].pObject;
-#else
-		if (pCharInfo && pCharInfo->pBankArray)
-			pContainer = pCharInfo->pBankArray->Bank[a];
-#endif
 		if (pContainer) {
 			GetItemLink(pContainer, Link);
 			sprintf_s(szTemp, "Slot %d: %dx %s (%s)", a, pContainer->StackCount ? pContainer->StackCount : 1, Link, GetItemFromContents(pContainer)->LoreName);
