@@ -47,7 +47,6 @@ static Yaml::Node s_configNode;
 static sol::state s_lua;
 
 // use a vector for s_running because we need to iterate it every pulse, and find only if a command is issued
-// TODO: change this to store shared_ptr to thread, and pass around weak_ptr for events to store to avoid needing to copy the reference each Blech
 std::vector<std::shared_ptr<thread::LuaThread>> s_running;
 
 void mq::lua::DebugStackTrace(lua_State* L)
@@ -632,41 +631,38 @@ PLUGIN_API void ShutdownPlugin()
  */
 PLUGIN_API void OnPulse()
 {
-	s_running.erase(std::remove_if(
-		s_running.begin(), s_running.end(),
-		[](auto& thread) -> bool {
-			// should_run() will automatically re-set the count debug hook when appropriate so we can simply change the turboNum on the fly and it will be respected next pulse.
-			if (thread->Thread.status() == sol::thread_status::yielded && thread->State->should_run(thread, s_turboNum))
+	for (const auto thread : s_running)
+	{
+		if (thread->Thread.valid() && thread->Thread.status() == sol::thread_status::yielded && thread->State->should_run(thread, s_turboNum))
+		{
+			try
 			{
-				try
+				auto result = thread->MainCoroutine();
+				if (!result.valid())
 				{
-					int nresults;
-					lua_resume(thread->Thread.state(), nullptr, 0, &nresults);
-				}
-				catch (sol::error& e)
-				{
-					MacroError("Ending lua script '%s' with PID %d and error %s", thread->Name.c_str(), thread->PID, e.what());
-					DebugStackTrace(thread->Thread.state());
-					return true;
+					sol::error err = std::move(result);
+					throw err;
 				}
 			}
-
-			if (thread->Thread.status() == sol::thread_status::runtime)
+			catch (sol::error& e)
 			{
-				MacroError("Runtime Error: Ending lua script %s with PID %d", thread->Name.c_str(), thread->PID);
+				MacroError("%s", e.what());
 				DebugStackTrace(thread->Thread.state());
-				return true;
 			}
+		}
 
-			if (thread->Thread.status() != sol::thread_status::ok && thread->Thread.status() != sol::thread_status::yielded)
-			{
-				WriteChatf("Ending lua script %s with PID %d and status %d", thread->Name.c_str(), thread->PID, static_cast<int>(thread->Thread.status()));
-				return true;
-			}
+		if (!thread->Thread.valid() || (thread->Thread.status() != sol::thread_status::ok && thread->Thread.status() != sol::thread_status::yielded))
+		{
+			WriteChatf("Ending lua script %s with PID %d and status %d", thread->Name.c_str(), thread->PID, static_cast<int>(thread->Thread.status()));
+		}
+	}
 
-			return false;
-		}),
-		s_running.end());
+	s_running.erase(std::remove_if(s_running.begin(), s_running.end(), [](const auto& thread) -> bool
+		{
+			return !thread->Thread.valid() || (
+				thread->Thread.status() != sol::thread_status::yielded &&
+				thread->Thread.status() != sol::thread_status::ok);
+		}), s_running.end());
 }
 
 /**

@@ -2,8 +2,6 @@
 
 #include <sol/sol.hpp>
 
-// TODO: Put events per thread here
-
 namespace mq::lua::events {
 struct LuaEventProcessor;
 }
@@ -14,12 +12,15 @@ struct ThreadState;
 struct LuaThread
 {
 	sol::thread Thread;
+	sol::coroutine MainCoroutine;
 	sol::state_view GlobalState;
 	sol::environment Environment;
 	std::string Name;
 	std::unique_ptr<ThreadState> State;
 	std::unique_ptr<events::LuaEventProcessor> EventProcessor;
 	uint32_t PID;
+
+	uint32_t HookProtectionCount;
 
 	static uint32_t next_id()
 	{
@@ -31,13 +32,17 @@ struct LuaThread
 	LuaThread(const sol::state_view& state, std::string_view name);
 	LuaThread() = delete;
 	LuaThread(const LuaThread&) = delete;
-	LuaThread(LuaThread&&) noexcept;
+	//LuaThread(LuaThread&&) noexcept;
+	LuaThread(LuaThread&&) = delete;
 	LuaThread& operator=(const LuaThread&) = delete;
-	LuaThread& operator=(LuaThread&&) noexcept;
+	//LuaThread& operator=(LuaThread&&) noexcept;
+	LuaThread& operator=(LuaThread&&) = delete;
 
 	int start_file(std::string_view luaDir, uint32_t turbo, const std::vector<std::string>& args);
 	int start_string(uint32_t turbo, std::string_view script);
 	void yield_at(int count);
+
+	void register_lua_state();
 };
 
 struct ThreadState

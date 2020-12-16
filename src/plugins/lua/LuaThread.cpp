@@ -81,39 +81,10 @@ LuaThread::LuaThread(const sol::state_view& state, std::string_view name) :
 	Name(name),
 	State(std::make_unique<RunningState>()),
 	EventProcessor(std::make_unique<events::LuaEventProcessor>()),
-	PID(next_id())
+	PID(next_id()),
+	HookProtectionCount(0)
 {
 	Environment.set_on(Thread);
-}
-
-LuaThread::LuaThread(LuaThread&& other) noexcept :
-	Thread(std::move(other.Thread)),
-	GlobalState(std::move(other.GlobalState)),
-	Environment(std::move(other.Environment)),
-	Name(std::move(other.Name)),
-	State(std::move(other.State)),
-	EventProcessor(std::move(other.EventProcessor)),
-	PID(std::move(other.PID))
-{
-	Environment.set_on(Thread);
-}
-
-LuaThread& LuaThread::operator=(LuaThread&& other) noexcept
-{
-	if (this != &other)
-	{
-		Thread = std::move(other.Thread);
-		GlobalState = std::move(other.GlobalState);
-		Environment = std::move(other.Environment);
-		Name = std::move(other.Name);
-		State = std::move(other.State);
-		EventProcessor = std::move(other.EventProcessor);
-		PID = std::move(other.PID);
-
-		Environment.set_on(Thread);
-	}
-
-	return *this;
 }
 
 int LuaThread::start_file(std::string_view luaDir, uint32_t turbo, const std::vector<std::string>& args)
@@ -122,23 +93,69 @@ int LuaThread::start_file(std::string_view luaDir, uint32_t turbo, const std::ve
 	if (script_path.is_relative()) script_path = luaDir / script_path;
 	if (!script_path.has_extension()) script_path += ".lua";
 
-	sol::coroutine co = Thread.state().load_file(script_path.string());
+	register_lua_state();
+
+	//sol::coroutine co = Thread.state().load_file(script_path.string());
+	MainCoroutine = Thread.state().load_file(script_path.string());
 	yield_at(turbo);
 
-	auto result = co(sol::as_args(args));
-	return static_cast<int>(result.status());
+	auto result = MainCoroutine(sol::as_args(args));
+	if (result.valid())
+		return static_cast<int>(result.status());
+
+	sol::error err = std::move(result);
+	throw err;
 }
 
 int LuaThread::start_string(uint32_t turbo, std::string_view script)
 {
-	sol::coroutine co = Thread.state().load(script);
+	MainCoroutine = Thread.state().load(script);
 	yield_at(turbo);
 
-	auto result = co();
-	return static_cast<int>(result.status());
+	auto result = MainCoroutine();
+	if (result.valid())
+		return static_cast<int>(result.status());
+
+	sol::error err = std::move(result);
+	throw err;
 }
 
 void LuaThread::yield_at(int count)
 {
 	lua_sethook(Thread.state(), ForceYield, LUA_MASKCOUNT, count);
+}
+
+void LuaThread::register_lua_state()
+{
+	Thread.state()["_old_require"] = Thread.state()["require"];
+	Thread.state()["require"] = [this](std::string_view mod, sol::variadic_args args) {
+		if (HookProtectionCount++ == 0)
+			lua_sethook(Thread.state(), NULL, 0, 0);
+
+		auto ret = Thread.state()["_old_require"](mod, args);
+
+		if (--HookProtectionCount < 0)
+			HookProtectionCount = 0;
+
+		if (HookProtectionCount == 0)
+			lua_sethook(Thread.state(), ForceYield, LUA_MASKCOUNT, 50);
+
+		return ret;
+	};
+
+	Thread.state()["_old_dofile"] = Thread.state()["dofile"];
+	Thread.state()["dofile"] = [this](std::string_view file, sol::variadic_args args) {
+		if (HookProtectionCount++ == 0)
+			lua_sethook(Thread.state(), NULL, 0, 0);
+
+		auto ret = Thread.state()["_old_dofile"](file, args);
+
+		if (--HookProtectionCount < 0)
+			HookProtectionCount = 0;
+
+		if (HookProtectionCount == 0)
+			lua_sethook(Thread.state(), ForceYield, LUA_MASKCOUNT, 50);
+
+		return ret;
+	};
 }
