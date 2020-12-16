@@ -27,6 +27,11 @@
 PreSetup("MQ2Lua");
 PLUGIN_VERSION(0.1);
 
+// TODO: Add Binds
+// TODO: create library of common functions and replace global functions that we don't want to use
+//  exit() [replace os.exit()] should stop _this_ script
+// TODO: test the efficacy of my sandboxing setup
+
 using namespace mq;
 using namespace mq::datatypes;
 using namespace mq::lua;
@@ -582,9 +587,11 @@ PLUGIN_API void InitializePlugin()
 
 	ReadSettings();
 
-	if (!std::filesystem::exists(s_luaDir) && !std::filesystem::create_directories(s_luaDir))
+	std::error_code ec;
+	if (!std::filesystem::exists(s_luaDir, ec) && !std::filesystem::create_directories(s_luaDir, ec))
 	{
 		WriteChatf("Failed to open or create directory at %s. Scripts will not run.", s_luaDir.c_str());
+		WriteChatf("Error was %s", ec.message().c_str());
 	}
 
 	register_mq_type(s_lua);
