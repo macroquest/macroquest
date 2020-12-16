@@ -322,7 +322,6 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 		{
 			MacroError("%s", e.what());
 			DebugStackTrace(entry->Thread.state());
-			s_running.pop_back();
 		}
 	}
 }
@@ -361,8 +360,8 @@ void EndLuaCommand(SPAWNINFO* pChar, char* Buffer)
 		{
 			// this will force the coroutine to yield, and removing this thread from the vector will cause it to gc
 			(*thread_it)->yield_at(0);
+			(*thread_it)->Thread.abandon();
 			WriteChatf("Ending running lua script '%s' with PID %d", (*thread_it)->Name.c_str(), (*thread_it)->PID);
-			s_running.erase(thread_it);
 		}
 		else
 		{
@@ -373,9 +372,10 @@ void EndLuaCommand(SPAWNINFO* pChar, char* Buffer)
 	{
 		// kill all scripts
 		for (auto& thread : s_running)
+		{
 			thread->yield_at(0);
-
-		s_running.clear();
+			thread->Thread.abandon();
+		}
 
 		WriteChatf("Ending ALL lua scripts");
 	}
@@ -485,7 +485,6 @@ void LuaStringCommand(SPAWNINFO* pChar, char* Buffer)
 		{
 			MacroError("%s", e.what());
 			DebugStackTrace(entry->Thread.state());
-			s_running.pop_back();
 		}
 
 	}
@@ -631,7 +630,7 @@ PLUGIN_API void ShutdownPlugin()
  */
 PLUGIN_API void OnPulse()
 {
-	for (const auto thread : s_running)
+	for (const auto& thread : s_running)
 	{
 		if (thread->Thread.valid() && thread->Thread.status() == sol::thread_status::yielded && thread->State->should_run(thread, s_turboNum))
 		{
@@ -646,12 +645,16 @@ PLUGIN_API void OnPulse()
 			}
 			catch (sol::error& e)
 			{
-				MacroError("%s", e.what());
-				DebugStackTrace(thread->Thread.state());
+				if (thread->Thread.valid())
+				{
+					// invalidated threads have been killed 
+					MacroError("%s", e.what());
+					DebugStackTrace(thread->Thread.state());
+				}
 			}
 		}
 
-		if (!thread->Thread.valid() || (thread->Thread.status() != sol::thread_status::ok && thread->Thread.status() != sol::thread_status::yielded))
+		if (thread->Thread.valid() && thread->Thread.status() != sol::thread_status::ok && thread->Thread.status() != sol::thread_status::yielded)
 		{
 			WriteChatf("Ending lua script %s with PID %d and status %d", thread->Name.c_str(), thread->PID, static_cast<int>(thread->Thread.status()));
 		}
