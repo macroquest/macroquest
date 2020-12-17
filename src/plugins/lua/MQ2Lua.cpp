@@ -29,8 +29,10 @@ PLUGIN_VERSION(0.1);
 
 // TODO: Add Binds
 // TODO: create library of common functions and replace global functions that we don't want to use
-//  exit() [replace os.exit()] should stop _this_ script
 // TODO: test the efficacy of my sandboxing setup
+// TODO: add returns/running info
+
+// TODO: Add UI for start/stop/info/config
 
 using namespace mq;
 using namespace mq::datatypes;
@@ -39,8 +41,10 @@ using namespace mq::lua;
 using MQ2Args = Args<&WriteChatf>;
 using MQ2HelpArgument = HelpArgument;
 
+// configurable options, defaults provided where needed
 static uint32_t s_turboNum = 500;
 static std::string s_luaDir = (std::filesystem::path(gPathMQRoot) / "lua").string();
+static std::vector<std::string> s_requirePaths;
 
 // this is static and will never change
 static std::string s_configPath = (std::filesystem::path(gPathConfig) / "MQ2Lua.yaml").string();
@@ -172,34 +176,42 @@ void mq::lua::delay(sol::object delayObj, sol::object conditionObj, sol::this_st
 	}
 }
 
-void mq::lua::doevents(sol::this_state s)
+static std::shared_ptr<thread::LuaThread> get_thread(sol::this_state s)
 {
-	auto it = std::find_if(s_running.begin(), s_running.end(),
+	auto it = find_if(s_running.begin(), s_running.end(),
 		[&s](const auto& thread) { return thread->Thread.state() == s; });
 
 	if (it != s_running.end())
-		(*it)->EventProcessor->run_events();
+		return *it;
+
+	return nullptr;
+}
+
+void mq::lua::doevents(sol::this_state s)
+{
+	if (auto thread = get_thread(s))
+		thread->EventProcessor->run_events();
 }
 
 void mq::lua::addevent(std::string_view name, std::string_view expression, sol::function function, sol::this_state s)
 {
-	auto it = std::find_if(s_running.begin(), s_running.end(),
-		[&s](const auto& thread) { return thread->Thread.state() == s; });
-
-	if (it != s_running.end())
-	{
-		(*it)->EventProcessor->add_event(name, expression, function, *it);
-	}
+	if (auto thread = get_thread(s))
+		thread->EventProcessor->add_event(name, expression, function, thread);
 }
 
 void mq::lua::removeevent(std::string_view name, sol::this_state s)
 {
-	auto it = std::find_if(s_running.begin(), s_running.end(),
-		[&s](const auto& thread) { return thread->Thread.state() == s; });
+	if (auto thread = get_thread(s))
+		thread->EventProcessor->remove_event(name);
+}
 
-	if (it != s_running.end())
+void mq::lua::exit(sol::this_state s)
+{
+	if (auto thread = get_thread(s))
 	{
-		(*it)->EventProcessor->remove_event(name);
+		WriteChatf("Exit() called in Lua script %s with PID %d", thread->Name.c_str(), thread->PID);
+		thread->yield_at(0);
+		thread->Thread.abandon();
 	}
 }
 
@@ -216,8 +228,11 @@ static void register_mq_type(sol::state& lua)
 	lua["doevents"] = &mq::lua::doevents;
 	lua["event"] = &mq::lua::addevent;
 	lua["unevent"] = &mq::lua::removeevent;
-	auto package_path = lua["package"]["path"].get<std::string>();
-	lua["package"]["path"] = fmt::format("{};{}\\?.lua", package_path, s_luaDir);
+	lua["exit"] = &mq::lua::exit;
+
+	// always search the local dir first, then anything specified by the user, then the default paths
+	static auto package_path = lua["package"]["path"].get<std::string>(); // make this static so we always have the _original_ package paths
+	lua["package"]["path"] = fmt::format("{}\\?.lua;{}{}", s_luaDir, s_requirePaths.empty() ? "" : join(s_requirePaths, ";") + ";", package_path);
 }
 
 #pragma endregion
@@ -233,7 +248,8 @@ public:
 	{
 		PIDs,
 		Dir,
-		Turbo
+		Turbo,
+		RequirePaths
 	};
 
 	MQ2LuaType() : MQ2Type("lua")
@@ -241,6 +257,7 @@ public:
 		ScopedTypeMember(Members, PIDs);
 		ScopedTypeMember(Members, Dir);
 		ScopedTypeMember(Members, Turbo);
+		ScopedTypeMember(Members, RequirePaths);
 	}
 
 	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
@@ -270,6 +287,12 @@ public:
 		case Members::Turbo:
 			Dest.Type = pIntType;
 			Dest.Set(s_turboNum);
+			return true;
+
+		case Members::RequirePaths:
+			Dest.Type = pStringType;
+			strcpy_s(DataTypeTemp, s_lua["package"]["path"].get<std::string>().c_str());
+			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 
 		default:
@@ -519,6 +542,13 @@ void ReadSettings()
 
 	s_turboNum = s_configNode["turboNum"].As<uint32_t>(s_turboNum);
 	s_luaDir = s_configNode["luaDir"].As<std::string>(s_luaDir);
+	s_requirePaths.clear();
+	if (s_configNode["requirePaths"].IsSequence())
+	{
+		// if this is not a sequence, add nothing
+		for (auto path_it = s_configNode["requirePaths"].Begin(); path_it != s_configNode["requirePaths"].End(); path_it++)
+			s_requirePaths.emplace_back((*path_it).second.As<std::string>());
+	}
 }
 
 void LuaConfCommand(SPAWNINFO* pChar, char* Buffer)
@@ -566,6 +596,17 @@ void LuaConfCommand(SPAWNINFO* pChar, char* Buffer)
 	}
 }
 
+void LuaRestartCommand(SPAWNINFO* pChar, char* Buffer)
+{
+	WriteChatf("Stopping all running lua scripts and restarting the global state.");
+	EndLuaCommand(pChar, "");
+
+	ReadSettings();
+
+	s_lua = sol::state();
+	register_mq_type(s_lua);
+}
+
 #pragma endregion
 
 bool dataLua(const char* Index, MQTypeVar& Dest)
@@ -601,6 +642,7 @@ PLUGIN_API void InitializePlugin()
 	AddCommand("/luapause", LuaPauseCommand);
 	AddCommand("/luastring", LuaStringCommand);
 	AddCommand("/luaconf", LuaConfCommand);
+	AddCommand("/luarestart", LuaRestartCommand);
 
 	pLuaType = new MQ2LuaType;
 	AddMQ2Data("Lua", dataLua);
@@ -621,6 +663,7 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveCommand("/luapause");
 	RemoveCommand("/luastring");
 	RemoveCommand("/luaconf");
+	RemoveCommand("/luarestart");
 
 	RemoveMQ2Data("Lua");
 	delete pLuaType;
