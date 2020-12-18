@@ -79,7 +79,6 @@ powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(Proje
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\contrib\mini-yaml\yaml\Yaml.cpp" />
     <ClCompile Include="bindings\lua_MQCommand.cpp" />
     <ClCompile Include="bindings\lua_MQDataItem.cpp" />
     <ClCompile Include="bindings\lua_MQTypeVar.cpp" />
@@ -96,7 +95,6 @@ powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(Proje
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\contrib\mini-yaml\yaml\Yaml.hpp" />
     <ClInclude Include="bindings\lua_MQCommand.h" />
     <ClInclude Include="bindings\lua_MQDataItem.h" />
     <ClInclude Include="bindings\lua_MQTypeVar.h" />
@@ -108,8 +106,4 @@ powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(Proje
   <Import Project="$(MQ2Root)contrib\vcpkg\scripts\buildsystems\msbuild\vcpkg.targets" Condition="exists('$(MQ2Root)contrib\vcpkg\scripts\buildsystems\msbuild\vcpkg.targets')" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-  <Target Name="PostClean" AfterTargets="Clean">
-    <Exec Command="powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File &quot;$(ProjectDir)PostClean.ps1&quot; -VCPkgRoot &quot;$(MQ2Root)contrib\vcpkg&quot;" />
-    <Message Text="Cleaning vcpkg install for lua" Importance="High" />
-  </Target>
 </Project>

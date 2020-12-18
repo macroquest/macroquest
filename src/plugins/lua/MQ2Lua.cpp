@@ -7,10 +7,17 @@
 
 #include <mq/Plugin.h>
 #include <mq/utils/Args.h>
-#include <Yaml.hpp>
 #include <fmt/format.h>
-
 #include <sol/sol.hpp>
+
+// need to undef this for yaml-cpp to work
+#ifdef IsNaN
+#undef IsNaN
+#endif // IsNaN
+#pragma warning( push )
+#pragma warning( disable:4996 )
+#include <yaml-cpp/yaml.h>
+#pragma warning( pop )
 
 #include <string>
 #include <fstream>
@@ -48,7 +55,7 @@ static std::vector<std::string> s_requirePaths;
 
 // this is static and will never change
 static std::string s_configPath = (std::filesystem::path(gPathConfig) / "MQ2Lua.yaml").string();
-static Yaml::Node s_configNode;
+static YAML::Node s_configNode;
 
 /**
  * \brief a global lua state needed so that thread states don't go out of scope
@@ -520,35 +527,44 @@ void LuaStringCommand(SPAWNINFO* pChar, char* Buffer)
 
 void WriteSettings()
 {
-	// Yaml doesn't create the file if it doesn't exist, so let's make sure it creates
-	std::fstream file;
-	file.open(s_configPath, std::ios::out | std::ios::app);
-	file.close();
+	if (!s_configNode.IsNull())
+	{
+		YAML::Emitter y_out;
+		y_out << s_configNode;
 
-	Yaml::Serialize(s_configNode, s_configPath.c_str());
+		std::fstream file(s_configPath, std::ios::out);
+		file << y_out.c_str();
+	}
 }
 
 void ReadSettings()
 {
 	try
 	{
-		Yaml::Parse(s_configNode, s_configPath.c_str());
+		s_configNode = YAML::LoadFile(s_configPath.c_str());
 	}
-	catch (const Yaml::OperationException&)
+	catch (const YAML::ParserException& e)
+	{
+		// failed to parse, notify and return
+		WriteChatf("Failed to parse YAML in %s with %s", s_configPath.c_str(), e.what());
+		return;
+	}
+	catch (const YAML::BadFile&)
 	{
 		// if we can't read the file, then try to write it with an empty config
 		WriteSettings();
 	}
 
-	s_turboNum = s_configNode["turboNum"].As<uint32_t>(s_turboNum);
-	s_luaDir = s_configNode["luaDir"].As<std::string>(s_luaDir);
+	s_turboNum = s_configNode["turboNum"].as<uint32_t>(s_turboNum);
+	s_luaDir = s_configNode["luaDir"].as<std::string>(s_luaDir);
 	s_requirePaths.clear();
-	if (s_configNode["requirePaths"].IsSequence())
+	if (s_configNode["requirePaths"].IsSequence()) // if this is not a sequence, add nothing
 	{
-		// if this is not a sequence, add nothing
-		for (auto path_it = s_configNode["requirePaths"].Begin(); path_it != s_configNode["requirePaths"].End(); path_it++)
-			s_requirePaths.emplace_back((*path_it).second.As<std::string>());
+		for (const auto& path : s_configNode["requirePaths"])
+			s_requirePaths.emplace_back(path.as<std::string>());
 	}
+
+	WriteSettings();
 }
 
 void LuaConfCommand(SPAWNINFO* pChar, char* Buffer)
@@ -558,7 +574,7 @@ void LuaConfCommand(SPAWNINFO* pChar, char* Buffer)
 	arg_parser.RequireCommand(false);
 	args::Group arguments(arg_parser, "");
 	args::Positional<std::string> setting(arguments, "setting", "The setting to display/set");
-	args::Positional<std::string> value(arguments, "value", "An optional parameter to specify the value to set");
+	args::PositionalList<std::string> value(arguments, "value", "An optional parameter to specify the value to set");
 
 	MQ2HelpArgument h(arguments);
 	auto args = allocate_args(Buffer);
@@ -579,14 +595,19 @@ void LuaConfCommand(SPAWNINFO* pChar, char* Buffer)
 	{
 		if (value)
 		{
-			WriteChatf("Lua setting %s to %s and saving...", setting.Get().c_str(), value.Get().c_str());
-			s_configNode[setting.Get()] = value.Get();
+			auto to_set = join(value.Get(), " ");
+			WriteChatf("Lua setting %s to %s and saving...", setting.Get().c_str(), to_set.c_str());
+			s_configNode[setting.Get()] = to_set;
 			WriteSettings();
 			ReadSettings();
 		}
+		else if (s_configNode[setting.Get()])
+		{
+			WriteChatf("Lua setting %s is set to %s.", setting.Get().c_str(), s_configNode[setting.Get()].as<std::string>().c_str());
+		}
 		else
 		{
-			WriteChatf("Lua setting %s is set to %s.", setting.Get().c_str(), s_configNode[setting.Get()].As<std::string>().c_str());
+			WriteChatf("Lua setting %s is not set (using default).", setting.Get().c_str());
 		}
 	}
 	else
