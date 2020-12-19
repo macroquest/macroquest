@@ -20,6 +20,9 @@ void CALLBACK LuaEventCallback(unsigned int ID, void* pData, PBLECHVALUE pValues
 	if (def->Thread.expired()) // this should never actually happen
 		return;
 
+	auto thread = def->Thread.lock();
+	auto event_thread = sol::thread::create(thread->Thread.state());
+
 	std::vector<std::pair<uint32_t, std::string>> args;
 	auto value = pValues;
 	while (value != nullptr)
@@ -30,39 +33,47 @@ void CALLBACK LuaEventCallback(unsigned int ID, void* pData, PBLECHVALUE pValues
 		value = value->pNext;
 	}
 
-	std::sort(args.begin(), args.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+	if (args.empty())
+	{
+		thread->EventProcessor->Pending.emplace_back(LuaEventInstance{ def, {}, std::move(event_thread) });
+	}
+	else
+	{
+		std::sort(args.begin(), args.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
 
-	std::vector<std::string> ordered_args(args.back().first, "");
-	for (const auto& a : args)
-		ordered_args[a.first - 1] = a.second;
+		std::vector<std::string> ordered_args(args.back().first, "");
+		for (const auto& a : args)
+			ordered_args[a.first - 1] = a.second;
 
-	def->Thread.lock()->EventProcessor->EventQueue.emplace(LuaEventInstance{ def, ordered_args });
+		thread->EventProcessor->Pending.emplace_back(LuaEventInstance{ def, ordered_args, std::move(event_thread) });
+	}
 }
 
-LuaEventProcessor::LuaEventProcessor() : EventBlech(std::make_unique<Blech>('#', '|', LuaVarProcess)) {}
+LuaEventProcessor::LuaEventProcessor() :
+	Trie(std::make_unique<Blech>('#', '|', LuaVarProcess)) {}
 
 LuaEventProcessor::~LuaEventProcessor()
 {
-	for (auto e : EventDefinitions)
+	for (auto e : Definitions)
 		delete e;
 
-	EventDefinitions.clear();
+	Definitions.clear();
 }
 
 void LuaEventProcessor::add_event(std::string_view name, std::string_view expression, const sol::function& function, const std::shared_ptr<thread::LuaThread>& thread)
 {
 	LuaEvent* e = new LuaEvent{std::string(name), std::string(expression), function, thread, 0};
-	EventDefinitions.emplace_back(e);
-	e->ID = EventBlech->AddEvent(e->Expression.c_str(), LuaEventCallback, e);
+	Definitions.emplace_back(e);
+	e->ID = Trie->AddEvent(e->Expression.c_str(), LuaEventCallback, e);
 }
 
 void LuaEventProcessor::remove_event(std::string_view name)
 {
-	auto it = std::find_if(EventDefinitions.begin(), EventDefinitions.end(), [&name](LuaEvent* e) { return e->Name == name; });
-	if (it != EventDefinitions.end())
+	auto it = std::find_if(Definitions.begin(), Definitions.end(), [&name](LuaEvent* e) { return e->Name == name; });
+	if (it != Definitions.end())
 	{
-		EventBlech->RemoveEvent((*it)->ID);
-		EventDefinitions.erase(it);
+		Trie->RemoveEvent((*it)->ID);
+		Definitions.erase(it);
 		delete *it;
 	}
 }
@@ -84,37 +95,28 @@ void LuaEventProcessor::process(std::string_view line) const
 		line_char[MAX_STRING - 1] = 0;
 	}
 
-	EventBlech->Feed(line_char);
+	Trie->Feed(line_char);
 }
 
-void LuaEventProcessor::run_events()
+void LuaEventProcessor::run_events(const thread::LuaThread& thread)
 {
-	while (!EventQueue.empty())
-	{
-		auto e = EventQueue.front();
-		e.EventDefinition->run(e.Args);
-		EventQueue.pop();
-	}
+	Running.erase(std::remove_if(Running.begin(), Running.end(), [&thread](auto& co) -> bool
+		{
+			if (thread.YieldToFrame) return false; // return false for everything else because we need to yield to the frame
+
+			auto result = thread::run_co(co.first, co.second);
+			if (!co.second.empty())
+				co.second.clear();
+			return result != sol::thread_status::yielded; // now just erase events that finished
+		}
+	), Running.end());
 }
 
-bool LuaEvent::run(const std::vector<std::string> args) const
+void LuaEventProcessor::prepare_events()
 {
-	if (Thread.expired()) // should never happen
-		return false;
+	for (const auto& e : Pending)
+		Running.emplace_back(sol::coroutine(e.Thread.state(), e.Definition->Function), e.Args);
 
-	try
-	{
-		auto thread = Thread.lock();
-		auto func = sol::function(thread->GlobalState, Function);
-		thread->Environment.set_on(func);
-		auto result = func(sol::as_args(args));
-		return result.valid();
-	}
-	catch (sol::error& e)
-	{
-		MacroError("Failed to run event '%s' function with error '%s'", Name.c_str(), e.what());
-	}
-
-	return false;
+	Pending.clear();
 }
 }

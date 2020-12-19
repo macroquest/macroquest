@@ -34,11 +34,14 @@
 PreSetup("MQ2Lua");
 PLUGIN_VERSION(0.1);
 
-// TODO: Add Binds
+// TODO: Add Binds with dobinds() -- a bind is simply an event with no match text and is force-entered into the queue
+// TODO: Add aggressive bind/event options that scriptwriters can set with functions
 // TODO: create library of common functions and replace global functions that we don't want to use
 // TODO: test the efficacy of my sandboxing setup
 // TODO: add returns/running info
+// TODO: redirect stdout for print
 
+// TODO: https://github.com/MSeys/sol2_ImGui_Bindings
 // TODO: Add UI for start/stop/info/config
 
 using namespace mq;
@@ -147,13 +150,12 @@ void mq::lua::delay(sol::object delayObj, sol::object conditionObj, sol::this_st
 
 	if (delay_int)
 	{
-		auto it = std::find_if(s_running.begin(), s_running.end(), [&s](const auto& thread)
-			{
-				return thread->Thread.thread_state() == s.lua_state();
-			});
+		std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
 
-		if (it != s_running.end())
+		if (thread && !thread->expired())
 		{
+			auto thread_s = thread->lock();
+
 			uint64_t delay_ms = std::max(0L, *delay_int * 100L);
 			auto condition = conditionObj.as<std::optional<sol::function>>();
 			if (!condition)
@@ -165,7 +167,7 @@ void mq::lua::delay(sol::object delayObj, sol::object conditionObj, sol::this_st
 					// only allocate the string if we need to, but let's help the user and add the return to make this valid code
 					// the temporary string in the else case here only needs to live long enough for the load to happen, it's
 					// fine that it gets destroyed after the result here
-					auto result = (*it)->Thread.state().load(
+					auto result = thread_s->Thread.state().load(
 						condition_str->rfind("return ", 0) == 0 ?
 						*condition_str :
 						"return " + std::string(*condition_str));
@@ -178,47 +180,44 @@ void mq::lua::delay(sol::object delayObj, sol::object conditionObj, sol::this_st
 				}
 			}
 
-			(*it)->State->set_delay(*it, delay_ms + MQGetTickCount64(), condition);
+			thread_s->State->set_delay(*thread_s, delay_ms + MQGetTickCount64(), condition);
 		}
 	}
 }
 
-static std::shared_ptr<thread::LuaThread> get_thread(sol::this_state s)
-{
-	auto it = find_if(s_running.begin(), s_running.end(),
-		[&s](const auto& thread) { return thread->Thread.state() == s; });
-
-	if (it != s_running.end())
-		return *it;
-
-	return nullptr;
-}
-
 void mq::lua::doevents(sol::this_state s)
 {
-	if (auto thread = get_thread(s))
-		thread->EventProcessor->run_events();
+	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
+	if (thread && !thread->expired())
+		thread->lock()->EventProcessor->prepare_events();
 }
 
 void mq::lua::addevent(std::string_view name, std::string_view expression, sol::function function, sol::this_state s)
 {
-	if (auto thread = get_thread(s))
-		thread->EventProcessor->add_event(name, expression, function, thread);
+	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
+	if (thread && !thread->expired())
+	{
+		auto thread_s = thread->lock();
+		thread_s->EventProcessor->add_event(name, expression, function, thread_s);
+	}
 }
 
 void mq::lua::removeevent(std::string_view name, sol::this_state s)
 {
-	if (auto thread = get_thread(s))
-		thread->EventProcessor->remove_event(name);
+	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
+	if (thread && !thread->expired())
+		thread->lock()->EventProcessor->remove_event(name);
 }
 
 void mq::lua::exit(sol::this_state s)
 {
-	if (auto thread = get_thread(s))
+	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
+	if (thread && !thread->expired())
 	{
-		WriteChatf("Exit() called in Lua script %s with PID %d", thread->Name.c_str(), thread->PID);
-		thread->yield_at(0);
-		thread->Thread.abandon();
+		auto thread_s = thread->lock();
+		WriteChatf("Exit() called in Lua script %s with PID %d", thread_s->Name.c_str(), thread_s->PID);
+		thread_s->yield_at(0);
+		thread_s->Thread.abandon();
 	}
 }
 
@@ -349,15 +348,8 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 		WriteChatf("Running lua script '%s' with PID %d", script.Get().c_str(), entry->PID);
 		s_running.emplace_back(entry); // this needs to be in the running vector before we run at all
 
-		try
-		{
-			entry->start_file(s_luaDir, s_turboNum, script_args.Get());
-		}
-		catch (sol::error& e)
-		{
-			MacroError("%s", e.what());
-			DebugStackTrace(entry->Thread.state());
-		}
+		entry->register_lua_state(entry);
+		entry->start_file(s_luaDir, s_turboNum, script_args.Get());
 	}
 }
 
@@ -448,7 +440,7 @@ void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
 
 		if (thread_it != s_running.end())
 		{
-			(*thread_it)->State->pause(*thread_it, s_turboNum);
+			(*thread_it)->State->pause(**thread_it, s_turboNum);
 		}
 		else
 		{
@@ -464,7 +456,7 @@ void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
 		{
 			// have at least one running script, so pause all running scripts
 			for (auto& thread : s_running)
-				thread->State->pause(thread, s_turboNum);
+				thread->State->pause(*thread, s_turboNum);
 
 			WriteChatf("Pausing ALL running lua scripts");
 		}
@@ -472,7 +464,7 @@ void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
 		{
 			// we have no running scripts, so restart all paused scripts
 			for (auto& thread : s_running)
-				thread->State->pause(thread, s_turboNum);
+				thread->State->pause(*thread, s_turboNum);
 
 			WriteChatf("Resuming ALL paused lua scripts");
 		}
@@ -512,16 +504,8 @@ void LuaStringCommand(SPAWNINFO* pChar, char* Buffer)
 		WriteChatf("Running lua string with PID %d", entry->PID);
 		s_running.emplace_back(entry); // this needs to be in the running vector before we run at all
 
-		try
-		{
-			entry->start_string(s_turboNum, join(script.Get(), " "));
-		}
-		catch (sol::error& e)
-		{
-			MacroError("%s", e.what());
-			DebugStackTrace(entry->Thread.state());
-		}
-
+		entry->register_lua_state(entry);
+		entry->start_string(s_turboNum, join(script.Get(), " "));
 	}
 }
 
@@ -624,6 +608,7 @@ void LuaRestartCommand(SPAWNINFO* pChar, char* Buffer)
 
 	ReadSettings();
 
+	s_running.clear();
 	s_lua = sol::state();
 	register_mq_type(s_lua);
 }
@@ -703,31 +688,11 @@ PLUGIN_API void OnPulse()
 {
 	for (const auto& thread : s_running)
 	{
-		if (thread->Thread.valid() && thread->Thread.status() == sol::thread_status::yielded && thread->State->should_run(thread, s_turboNum))
-		{
-			try
-			{
-				auto result = thread->MainCoroutine();
-				if (!result.valid())
-				{
-					sol::error err = std::move(result);
-					throw err;
-				}
-			}
-			catch (sol::error& e)
-			{
-				if (thread->Thread.valid())
-				{
-					// invalidated threads have been killed 
-					MacroError("%s", e.what());
-					DebugStackTrace(thread->Thread.state());
-				}
-			}
-		}
+		auto result = thread->run(s_turboNum);
 
-		if (thread->Thread.valid() && thread->Thread.status() != sol::thread_status::ok && thread->Thread.status() != sol::thread_status::yielded)
+		if (result != sol::thread_status::ok && result != sol::thread_status::yielded)
 		{
-			WriteChatf("Ending lua script %s with PID %d and status %d", thread->Name.c_str(), thread->PID, static_cast<int>(thread->Thread.status()));
+			WriteChatf("Ending lua script %s with PID %d and status %d", thread->Name.c_str(), thread->PID, static_cast<int>(result));
 		}
 	}
 
@@ -737,6 +702,35 @@ PLUGIN_API void OnPulse()
 				thread->Thread.status() != sol::thread_status::yielded &&
 				thread->Thread.status() != sol::thread_status::ok);
 		}), s_running.end());
+}
+
+/**
+ * @fn OnWriteChatColor
+ *
+ * This is called each time WriteChatColor is called (whether by MQ2Main or by any
+ * plugin).  This can be considered the "when outputting text from MQ" callback.
+ *
+ * This ignores filters on display, so if they are needed either implement them in
+ * this section or see @ref OnIncomingChat where filters are already handled.
+ *
+ * If CEverQuest::dsp_chat is not called, and events are required, they'll need to
+ * be implemented here as well.  Otherwise, see @ref OnIncomingChat where that is
+ * already handled.
+ *
+ * For a list of Color values, see the constants for USERCOLOR_.  The default is
+ * USERCOLOR_DEFAULT.
+ *
+ * @param Line const char* - The line that was passed to WriteChatColor
+ * @param Color int - The type of chat text this is to be sent as
+ * @param Filter int - (default 0)
+ */
+PLUGIN_API void OnWriteChatColor(const char* Line, int Color, int Filter)
+{
+	for (const auto& thread : s_running)
+	{
+		if (!thread->State->is_paused())
+			thread->EventProcessor->process(Line);
+	}
 }
 
 /**
@@ -756,7 +750,6 @@ PLUGIN_API void OnPulse()
  */
 PLUGIN_API bool OnIncomingChat(const char* Line, DWORD Color)
 {
-	// DebugSpewAlways("MQ2Template::OnIncomingChat(%s, %d)", Line, Color);
 	for (const auto& thread : s_running)
 	{
 		if (!thread->State->is_paused())
