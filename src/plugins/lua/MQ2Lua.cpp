@@ -34,12 +34,11 @@
 PreSetup("MQ2Lua");
 PLUGIN_VERSION(0.1);
 
-// TODO: Add Binds with dobinds() -- a bind is simply an event with no match text and is force-entered into the queue
-// TODO: Add aggressive bind/event options that scriptwriters can set with functions
+// TODO: add returns/running info
+
 // TODO: create library of common functions and replace global functions that we don't want to use
 // TODO: test the efficacy of my sandboxing setup
-// TODO: add returns/running info
-// TODO: redirect stdout for print
+// TODO: Add aggressive bind/event options that scriptwriters can set with functions
 
 // TODO: https://github.com/MSeys/sol2_ImGui_Bindings
 // TODO: Add UI for start/stop/info/config
@@ -189,17 +188,18 @@ void mq::lua::doevents(sol::this_state s)
 {
 	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
 	if (thread && !thread->expired())
-		thread->lock()->EventProcessor->prepare_events();
+	{
+		auto thread_ptr = thread->lock();
+		thread_ptr->EventProcessor->prepare_events();
+		thread_ptr->yield_at(0); // doevents needs to yield, event processing will pick up next frame
+	}
 }
 
 void mq::lua::addevent(std::string_view name, std::string_view expression, sol::function function, sol::this_state s)
 {
 	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
 	if (thread && !thread->expired())
-	{
-		auto thread_s = thread->lock();
-		thread_s->EventProcessor->add_event(name, expression, function, thread_s);
-	}
+		thread->lock()->EventProcessor->add_event(name, expression, function);
 }
 
 void mq::lua::removeevent(std::string_view name, sol::this_state s)
@@ -207,6 +207,20 @@ void mq::lua::removeevent(std::string_view name, sol::this_state s)
 	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
 	if (thread && !thread->expired())
 		thread->lock()->EventProcessor->remove_event(name);
+}
+
+void mq::lua::addbind(std::string_view name, sol::function function, sol::this_state s)
+{
+	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
+	if (thread && !thread->expired())
+		thread->lock()->EventProcessor->add_bind(name, function);
+}
+
+void mq::lua::removebind(std::string_view name, sol::this_state s)
+{
+	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
+	if (thread && !thread->expired())
+		thread->lock()->EventProcessor->remove_bind(name);
 }
 
 void mq::lua::exit(sol::this_state s)
@@ -234,6 +248,8 @@ static void register_mq_type(sol::state& lua)
 	lua["doevents"] = &mq::lua::doevents;
 	lua["event"] = &mq::lua::addevent;
 	lua["unevent"] = &mq::lua::removeevent;
+	lua["bind"] = &mq::lua::addbind;
+	lua["unbind"] = &mq::lua::removebind;
 	lua["exit"] = &mq::lua::exit;
 
 	// always search the local dir first, then anything specified by the user, then the default paths

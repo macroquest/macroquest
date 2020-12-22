@@ -39,9 +39,6 @@
     <ClCompile Include="LuaEvent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LuaBind.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LuaThread.h">
@@ -60,9 +57,6 @@
       <Filter>Header Files\bindings</Filter>
     </ClInclude>
     <ClInclude Include="LuaEvent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LuaBind.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

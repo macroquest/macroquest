@@ -79,7 +79,7 @@ LuaThread::LuaThread(const sol::state_view& state, std::string_view name) :
 	Environment(sol::environment(state, sol::create, state.globals())),
 	Name(name),
 	State(std::make_unique<RunningState>()),
-	EventProcessor(std::make_unique<events::LuaEventProcessor>()),
+	EventProcessor(std::make_unique<events::LuaEventProcessor>(this)),
 	PID(next_id()),
 	HookProtectionCount(0)
 {
@@ -112,7 +112,21 @@ sol::thread_status LuaThread::start_file(std::string_view luaDir, uint32_t turbo
 	if (script_path.is_relative()) script_path = luaDir / script_path;
 	if (!script_path.has_extension()) script_path += ".lua";
 
-	Coroutine = Thread.state().load_file(script_path.string());
+	if (!std::filesystem::exists(script_path))
+	{
+		MacroError("Could not find script at path %s", script_path.string().c_str());
+		return sol::thread_status::dead;
+	}
+
+	auto result = Thread.state().load_file(script_path.string());
+	if (!result.valid())
+	{
+		sol::error err = result;
+		MacroError("Failed to load script %s with error: %s", Name.c_str(), err.what());
+		return sol::thread_status::dead;
+	}
+
+	Coroutine = result;
 	yield_at(turbo);
 
 	run_co(Coroutine, args);
@@ -121,7 +135,15 @@ sol::thread_status LuaThread::start_file(std::string_view luaDir, uint32_t turbo
 
 sol::thread_status LuaThread::start_string(uint32_t turbo, std::string_view script)
 {
-	Coroutine = Thread.state().load(script);
+	auto result = Thread.state().load(script);
+	if (!result.valid())
+	{
+		sol::error err = result;
+		MacroError("Failed to load script with error: %s", err.what());
+		return sol::thread_status::dead;
+	}
+
+	Coroutine = result;
 	yield_at(turbo);
 
 	run_co(Coroutine);
@@ -135,12 +157,14 @@ sol::thread_status LuaThread::run(uint32_t turbo)
 
 	if (Thread.status() != sol::thread_status::ok && Thread.status() != sol::thread_status::yielded)
 	{
-		MacroError("Detected invalid thread status in %s: %d", Name.c_str(), static_cast<int>(Thread.status()));
 		return Thread.status();
 	}
 
 	if (!State->should_run(*this, turbo))
 		return Thread.status();
+
+	// TODO: allow the user to set "aggressive" events (which gets prepared here) and "passive" binds (which would get prepared in `doevents`)
+	EventProcessor->prepare_binds();
 
 	yield_at(turbo);
 

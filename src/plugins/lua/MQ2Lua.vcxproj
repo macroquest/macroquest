@@ -82,7 +82,6 @@ powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(Proje
     <ClCompile Include="bindings\lua_MQCommand.cpp" />
     <ClCompile Include="bindings\lua_MQDataItem.cpp" />
     <ClCompile Include="bindings\lua_MQTypeVar.cpp" />
-    <ClCompile Include="LuaBind.cpp" />
     <ClCompile Include="LuaEvent.cpp" />
     <ClCompile Include="LuaThread.cpp" />
     <ClCompile Include="MQ2Lua.cpp">
@@ -99,7 +98,6 @@ powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(Proje
     <ClInclude Include="bindings\lua_MQCommand.h" />
     <ClInclude Include="bindings\lua_MQDataItem.h" />
     <ClInclude Include="bindings\lua_MQTypeVar.h" />
-    <ClInclude Include="LuaBind.h" />
     <ClInclude Include="LuaCommon.h" />
     <ClInclude Include="LuaEvent.h" />
     <ClInclude Include="LuaThread.h" />

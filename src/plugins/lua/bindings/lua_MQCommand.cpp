@@ -42,5 +42,6 @@ void mq::lua::bindings::lua_MQCommand::register_binding(sol::state& lua)
 		sol::meta_function::index, &lua_MQDoCommand::get);
 
 	lua["cmd"] = lua_MQDoCommand();
+	lua["print"] = lua["cmd"]["echo"];
 }
 }
