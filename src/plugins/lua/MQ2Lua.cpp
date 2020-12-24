@@ -25,6 +25,7 @@
 #include "LuaCommon.h"
 #include "LuaThread.h"
 #include "LuaEvent.h"
+#include "LuaImGui.h"
 
 // bindings:
 #include "bindings/lua_MQTypeVar.h"
@@ -35,12 +36,18 @@ PreSetup("MQ2Lua");
 PLUGIN_VERSION(0.1);
 
 // TODO: add returns/running info
+//       Lua.Script[PID] -- will have return member and other information (what is "running" value, some pre-set global state? maybe a callback?)
+//       PID
+//       Name
+//       Full Path
+//       Arguments
+//       Start Time
+//       Running/Return Value
 
 // TODO: create library of common functions and replace global functions that we don't want to use
 // TODO: test the efficacy of my sandboxing setup
 // TODO: Add aggressive bind/event options that scriptwriters can set with functions
 
-// TODO: https://github.com/MSeys/sol2_ImGui_Bindings
 // TODO: Add UI for start/stop/info/config
 
 using namespace mq;
@@ -184,45 +191,6 @@ void mq::lua::delay(sol::object delayObj, sol::object conditionObj, sol::this_st
 	}
 }
 
-void mq::lua::doevents(sol::this_state s)
-{
-	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
-	if (thread && !thread->expired())
-	{
-		auto thread_ptr = thread->lock();
-		thread_ptr->EventProcessor->prepare_events();
-		thread_ptr->yield_at(0); // doevents needs to yield, event processing will pick up next frame
-	}
-}
-
-void mq::lua::addevent(std::string_view name, std::string_view expression, sol::function function, sol::this_state s)
-{
-	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
-	if (thread && !thread->expired())
-		thread->lock()->EventProcessor->add_event(name, expression, function);
-}
-
-void mq::lua::removeevent(std::string_view name, sol::this_state s)
-{
-	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
-	if (thread && !thread->expired())
-		thread->lock()->EventProcessor->remove_event(name);
-}
-
-void mq::lua::addbind(std::string_view name, sol::function function, sol::this_state s)
-{
-	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
-	if (thread && !thread->expired())
-		thread->lock()->EventProcessor->add_bind(name, function);
-}
-
-void mq::lua::removebind(std::string_view name, sol::this_state s)
-{
-	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
-	if (thread && !thread->expired())
-		thread->lock()->EventProcessor->remove_bind(name);
-}
-
 void mq::lua::exit(sol::this_state s)
 {
 	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
@@ -245,12 +213,10 @@ static void register_mq_type(sol::state& lua)
 
 	lua["delay"] = &mq::lua::delay;
 	lua["join"] = &mq::lua::join;
-	lua["doevents"] = &mq::lua::doevents;
-	lua["event"] = &mq::lua::addevent;
-	lua["unevent"] = &mq::lua::removeevent;
-	lua["bind"] = &mq::lua::addbind;
-	lua["unbind"] = &mq::lua::removebind;
 	lua["exit"] = &mq::lua::exit;
+
+	events::register_lua(lua);
+	imgui::register_lua(lua);
 
 	// always search the local dir first, then anything specified by the user, then the default paths
 	static auto package_path = lua["package"]["path"].get<std::string>(); // make this static so we always have the _original_ package paths
@@ -719,6 +685,24 @@ PLUGIN_API void OnPulse()
 				thread->Thread.status() != sol::thread_status::ok);
 		}), s_running.end());
 }
+
+/**
+ * @fn OnUpdateImGui
+ *
+ * This is called each time that the ImGui Overlay is rendered. Use this to render
+ * and update plugin specific widgets.
+ *
+ * Because this happens extremely frequently, it is recommended to move any actual
+ * work to a separate call and use this only for updating the display.
+ */
+PLUGIN_API void OnUpdateImGui()
+{
+	for (const auto& thread : s_running)
+	{
+		thread->ImGuiProcessor->pulse();
+	}
+}
+
 
 /**
  * @fn OnWriteChatColor

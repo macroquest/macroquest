@@ -7,6 +7,10 @@ namespace mq::lua::events {
 struct LuaEventProcessor;
 }
 
+namespace mq::lua::imgui {
+struct LuaImGuiProcessor;
+}
+
 namespace mq::lua::thread {
 
 sol::thread_status run_co(sol::coroutine& co, const std::vector<std::string>& args = {});
@@ -21,6 +25,7 @@ struct LuaThread
 	std::string Name;
 	std::unique_ptr<ThreadState> State;
 	std::unique_ptr<events::LuaEventProcessor> EventProcessor;
+	std::unique_ptr<imgui::LuaImGuiProcessor> ImGuiProcessor;
 	uint32_t PID;
 	bool YieldToFrame;
 

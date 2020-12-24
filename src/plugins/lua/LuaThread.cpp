@@ -1,5 +1,6 @@
 #include "LuaThread.h"
 #include "LuaEvent.h"
+#include "LuaImGui.h"
 
 #include <mq/Plugin.h>
 
@@ -80,6 +81,7 @@ LuaThread::LuaThread(const sol::state_view& state, std::string_view name) :
 	Name(name),
 	State(std::make_unique<RunningState>()),
 	EventProcessor(std::make_unique<events::LuaEventProcessor>(this)),
+	ImGuiProcessor(std::make_unique<imgui::LuaImGuiProcessor>(this)),
 	PID(next_id()),
 	HookProtectionCount(0)
 {
