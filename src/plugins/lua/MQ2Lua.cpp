@@ -47,6 +47,7 @@ PLUGIN_VERSION(0.1);
 // TODO: create library of common functions and replace global functions that we don't want to use
 // TODO: test the efficacy of my sandboxing setup
 // TODO: Add aggressive bind/event options that scriptwriters can set with functions
+// TODO: Add OnExit callbacks (potentially both as an explicit argument to exit and a set callback)
 
 // TODO: Add UI for start/stop/info/config
 
@@ -61,6 +62,7 @@ using MQ2HelpArgument = HelpArgument;
 static uint32_t s_turboNum = 500;
 static std::string s_luaDir = (std::filesystem::path(gPathMQRoot) / "lua").string();
 static std::vector<std::string> s_requirePaths;
+static uint64_t s_infoGC = 3600000; // 1 hour
 
 // this is static and will never change
 static std::string s_configPath = (std::filesystem::path(gPathConfig) / "MQ2Lua.yaml").string();
@@ -73,6 +75,8 @@ static sol::state s_lua;
 
 // use a vector for s_running because we need to iterate it every pulse, and find only if a command is issued
 std::vector<std::shared_ptr<thread::LuaThread>> s_running;
+
+std::unordered_map<uint32_t, thread::LuaThreadInfo> s_finished;
 
 void mq::lua::DebugStackTrace(lua_State* L)
 {
@@ -331,7 +335,9 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 		s_running.emplace_back(entry); // this needs to be in the running vector before we run at all
 
 		entry->register_lua_state(entry);
-		entry->start_file(s_luaDir, s_turboNum, script_args.Get());
+		auto result = entry->start_file(s_luaDir, s_turboNum, script_args.Get());
+		if (result)
+			s_finished.emplace(result->PID, *result);
 	}
 }
 
@@ -487,7 +493,9 @@ void LuaStringCommand(SPAWNINFO* pChar, char* Buffer)
 		s_running.emplace_back(entry); // this needs to be in the running vector before we run at all
 
 		entry->register_lua_state(entry);
-		entry->start_string(s_turboNum, join(script.Get(), " "));
+		auto result = entry->start_string(s_turboNum, join(script.Get(), " "));
+		if (result)
+			s_finished.emplace(result->PID, *result);
 	}
 }
 
@@ -528,6 +536,31 @@ void ReadSettings()
 	{
 		for (const auto& path : s_configNode["requirePaths"])
 			s_requirePaths.emplace_back(path.as<std::string>());
+	}
+
+	auto GC_interval = s_configNode["infoGC"].as<std::string>(std::to_string(s_infoGC));
+	trim(GC_interval);
+	if (GC_interval.length() > 1 && GC_interval.find_first_not_of("0123456789") == std::string::npos)
+		std::from_chars(GC_interval.data(), GC_interval.data() + GC_interval.size(), s_infoGC);
+	else if (GC_interval.length() > 1 && GC_interval.compare(GC_interval.length() - 1, 1, "h") == 0)
+	{
+		auto result = 0ULL;
+		std::from_chars(GC_interval.data(), GC_interval.data() + GC_interval.size() - 1, result);
+		if (result >= 0) s_infoGC = result * 3600000;
+	}
+	else if (GC_interval.length() > 1 && GC_interval.compare(GC_interval.length() - 1, 1, "m") == 0)
+	{
+		auto result = 0ULL;
+		std::from_chars(GC_interval.data(), GC_interval.data() + GC_interval.size() - 1, result);
+		if (result >= 0) s_infoGC = result * 60000;
+	}
+	else if (GC_interval.length() > 2 && GC_interval.compare(GC_interval.length() - 2, 2, "ms") == 0)
+		std::from_chars(GC_interval.data(), GC_interval.data() + GC_interval.size() - 2, s_infoGC);
+	else if (GC_interval.length() > 1 && GC_interval.compare(GC_interval.length() - 1, 1, "s") == 0)
+	{
+		auto result = 0ULL;
+		std::from_chars(GC_interval.data(), GC_interval.data() + GC_interval.size() - 1, result);
+		if (result >= 0) s_infoGC = result * 1000;
 	}
 
 	WriteSettings();
@@ -672,18 +705,38 @@ PLUGIN_API void OnPulse()
 	{
 		auto result = thread->run(s_turboNum);
 
-		if (result != sol::thread_status::ok && result != sol::thread_status::yielded)
+		if (result.first != sol::thread_status::yielded)
 		{
-			WriteChatf("Ending lua script %s with PID %d and status %d", thread->Name.c_str(), thread->PID, static_cast<int>(result));
+			WriteChatf("Ending lua script %s with PID %d and status %d", thread->Name.c_str(), thread->PID, static_cast<int>(result.first));
+			auto fin_it = s_finished.find(thread->PID);
+			if (fin_it != s_finished.end())
+			{
+				fin_it->second.EndTime = MQGetTickCount64();
+				if (result.second) fin_it->second.Return = result.second->get<std::string>();
+			}
 		}
 	}
 
 	s_running.erase(std::remove_if(s_running.begin(), s_running.end(), [](const auto& thread) -> bool
 		{
-			return !thread->Thread.valid() || (
-				thread->Thread.status() != sol::thread_status::yielded &&
-				thread->Thread.status() != sol::thread_status::ok);
+			return !thread->Thread.valid() || thread->Thread.status() != sol::thread_status::yielded;
 		}), s_running.end());
+
+	static uint64_t last_check_time = MQGetTickCount64();
+	if (MQGetTickCount64() >= last_check_time + s_infoGC)
+	{
+		// this doesn't need to be super tight, no one should be depending on this clearing objects at exactly the GC
+		// interval, so just clear out anything that existed last time we checked.
+		for (auto it = s_finished.begin(); it != s_finished.end();)
+		{
+			if (it->second.EndTime > 0 && it->second.EndTime <= last_check_time)
+				it = s_finished.erase(it);
+			else
+				++it;
+		}
+
+		last_check_time = MQGetTickCount64();
+	}
 }
 
 /**

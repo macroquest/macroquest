@@ -128,7 +128,7 @@ static void loop_and_run(const thread::LuaThread& thread, std::vector<std::pair<
 			auto result = thread::run_co(co.first, co.second);
 			if (!co.second.empty()) co.second.clear(); // a bit of mutation here, but we can only submit a non-empty args the first time
 
-			return result != sol::thread_status::yielded; // now just erase events that finished
+			return !result || result->status() != sol::call_status::yielded; // now just erase events that finished
 		}), vec.end());
 }
 

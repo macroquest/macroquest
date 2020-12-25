@@ -13,7 +13,18 @@ struct LuaImGuiProcessor;
 
 namespace mq::lua::thread {
 
-sol::thread_status run_co(sol::coroutine& co, const std::vector<std::string>& args = {});
+std::optional<sol::protected_function_result> run_co(sol::coroutine& co, const std::vector<std::string>& args = {});
+
+struct LuaThreadInfo
+{
+	uint32_t PID;
+	std::string Name;
+	std::string Path;
+	std::vector<std::string> Arguments;
+	uint64_t StartTime;
+	uint64_t EndTime;
+	std::optional<std::string> Return;
+};
 
 struct ThreadState;
 struct LuaThread
@@ -45,9 +56,9 @@ struct LuaThread
 	LuaThread& operator=(const LuaThread&) = delete;
 	LuaThread& operator=(LuaThread&&) = delete;
 
-	sol::thread_status start_file(std::string_view luaDir, uint32_t turbo, const std::vector<std::string>& args);
-	sol::thread_status start_string(uint32_t turbo, std::string_view script);
-	sol::thread_status run(uint32_t turbo);
+	std::optional<LuaThreadInfo> start_file(std::string_view luaDir, uint32_t turbo, const std::vector<std::string>& args);
+	std::optional<LuaThreadInfo> start_string(uint32_t turbo, std::string_view script);
+	std::pair<sol::thread_status, std::optional<sol::protected_function_result>> run(uint32_t turbo);
 	void yield_at(int count) const;
 
 	void register_lua_state(std::shared_ptr<LuaThread> self_ptr);
@@ -82,5 +93,4 @@ struct PausedState : public ThreadState
 	void set_delay(const LuaThread& thread, uint64_t time, std::optional<sol::function> condition = std::nullopt) override {}
 	void pause(LuaThread& thread, uint32_t turbo) override;
 };
-
 } // namespace mq::lua::thread

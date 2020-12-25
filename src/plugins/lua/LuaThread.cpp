@@ -88,13 +88,13 @@ LuaThread::LuaThread(const sol::state_view& state, std::string_view name) :
 	Environment.set_on(Thread);
 }
 
-sol::thread_status run_co(sol::coroutine& co, const std::vector<std::string>& args)
+std::optional<sol::protected_function_result> run_co(sol::coroutine& co, const std::vector<std::string>& args)
 {
 	try
 	{
 		auto result = co(sol::as_args(args));
 		if (result.valid())
-			return static_cast<sol::thread_status>(result.status());
+			return result;
 
 		sol::error err = std::move(result);
 		throw err;
@@ -105,10 +105,10 @@ sol::thread_status run_co(sol::coroutine& co, const std::vector<std::string>& ar
 		DebugStackTrace(co.lua_state());
 	}
 
-	return sol::thread_status::runtime;
+	return std::nullopt;
 }
 
-sol::thread_status LuaThread::start_file(std::string_view luaDir, uint32_t turbo, const std::vector<std::string>& args)
+std::optional<LuaThreadInfo> LuaThread::start_file(std::string_view luaDir, uint32_t turbo, const std::vector<std::string>& args)
 {
 	auto script_path = std::filesystem::path(Name);
 	if (script_path.is_relative()) script_path = luaDir / script_path;
@@ -117,53 +117,71 @@ sol::thread_status LuaThread::start_file(std::string_view luaDir, uint32_t turbo
 	if (!std::filesystem::exists(script_path))
 	{
 		MacroError("Could not find script at path %s", script_path.string().c_str());
-		return sol::thread_status::dead;
+		return std::nullopt;
 	}
 
-	auto result = Thread.state().load_file(script_path.string());
-	if (!result.valid())
+	auto co = Thread.state().load_file(script_path.string());
+	if (!co.valid())
 	{
-		sol::error err = result;
+		sol::error err = co;
 		MacroError("Failed to load script %s with error: %s", Name.c_str(), err.what());
-		return sol::thread_status::dead;
+		return std::nullopt;
 	}
 
-	Coroutine = result;
+	Coroutine = co;
 	yield_at(turbo);
 
-	run_co(Coroutine, args);
-	return Thread.status();
+	auto start_time = MQGetTickCount64();
+	auto result = run_co(Coroutine, args);
+	return LuaThreadInfo{
+		PID,
+		Name,
+		script_path.string(),
+		args,
+		start_time,
+		!result || result->status() != sol::call_status::yielded ? MQGetTickCount64() : 0UL,
+		result ? *result : std::optional<std::string>(std::nullopt)
+	};
 }
 
-sol::thread_status LuaThread::start_string(uint32_t turbo, std::string_view script)
+std::optional<LuaThreadInfo> LuaThread::start_string(uint32_t turbo, std::string_view script)
 {
-	auto result = Thread.state().load(script);
-	if (!result.valid())
+	auto co = Thread.state().load(script);
+	if (!co.valid())
 	{
-		sol::error err = result;
+		sol::error err = co;
 		MacroError("Failed to load script with error: %s", err.what());
-		return sol::thread_status::dead;
+		return std::nullopt;
 	}
 
-	Coroutine = result;
+	Coroutine = co;
 	yield_at(turbo);
 
-	run_co(Coroutine);
-	return Thread.status();
+	auto start_time = MQGetTickCount64();
+	auto result = run_co(Coroutine);
+	return LuaThreadInfo{
+		PID,
+		Name,
+		"string",
+		{},
+		start_time,
+		!result || result->status() != sol::call_status::yielded ? MQGetTickCount64() : 0UL,
+		result ? *result : std::optional<std::string>(std::nullopt)
+	};
 }
 
-sol::thread_status LuaThread::run(uint32_t turbo)
+std::pair<sol::thread_status, std::optional<sol::protected_function_result>> LuaThread::run(uint32_t turbo)
 {
 	if (!Thread.valid())
-		return sol::thread_status::dead;
+		return std::make_pair(sol::thread_status::dead, std::nullopt);
 
 	if (Thread.status() != sol::thread_status::ok && Thread.status() != sol::thread_status::yielded)
 	{
-		return Thread.status();
+		return std::make_pair(Thread.status(), std::nullopt);
 	}
 
 	if (!State->should_run(*this, turbo))
-		return Thread.status();
+		return std::make_pair(Thread.status(), std::nullopt);
 
 	// TODO: allow the user to set "aggressive" events (which gets prepared here) and "passive" binds (which would get prepared in `doevents`)
 	EventProcessor->prepare_binds();
@@ -174,9 +192,13 @@ sol::thread_status LuaThread::run(uint32_t turbo)
 	EventProcessor->run_events(*this);
 
 	if (!YieldToFrame)
-		run_co(Coroutine);
+	{
+		auto result = run_co(Coroutine);
+		auto status = result ? static_cast<sol::thread_status>(result->status()) : sol::thread_status::dead;
+		return std::make_pair(std::move(status), std::move(result));
+	}
 
-	return Thread.status();
+	return std::make_pair(Thread.status(), std::nullopt);
 }
 
 void LuaThread::yield_at(int count) const
