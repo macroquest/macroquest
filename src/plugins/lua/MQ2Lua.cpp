@@ -35,15 +35,6 @@
 PreSetup("MQ2Lua");
 PLUGIN_VERSION(0.1);
 
-// TODO: add returns/running info
-//       Lua.Script[PID] -- will have return member and other information (what is "running" value, some pre-set global state? maybe a callback?)
-//       PID
-//       Name
-//       Full Path
-//       Arguments
-//       Start Time
-//       Running/Return Value
-
 // TODO: create library of common functions and replace global functions that we don't want to use
 // TODO: test the efficacy of my sandboxing setup
 // TODO: Add aggressive bind/event options that scriptwriters can set with functions
@@ -231,6 +222,106 @@ static void register_mq_type(sol::state& lua)
 
 #pragma region TLO
 
+class MQ2LuaInfoType* pLuaInfoType = nullptr;
+class MQ2LuaInfoType : public MQ2Type
+{
+private:
+public:
+	enum class Members
+	{
+		PID,
+		Name,
+		Path,
+		Arguments,
+		StartTime,
+		EndTime,
+		Return
+	};
+
+	MQ2LuaInfoType() : MQ2Type("luainfo")
+	{
+		ScopedTypeMember(Members, PID);
+		ScopedTypeMember(Members, Name);
+		ScopedTypeMember(Members, Path);
+		ScopedTypeMember(Members, Arguments);
+		ScopedTypeMember(Members, StartTime);
+		ScopedTypeMember(Members, EndTime);
+		ScopedTypeMember(Members, Return);
+	};
+
+	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
+	{
+		auto pMember = MQ2LuaInfoType::FindMember(Member);
+		if (pMember == nullptr)
+			return false;
+
+		auto info = VarPtr.Get<thread::LuaThreadInfo>();
+		if (!info)
+			return false;
+
+		switch (static_cast<Members>(pMember->ID))
+		{
+		case Members::PID:
+			Dest.Type = pIntType;
+			Dest.Set(info->PID);
+			return true;
+
+		case Members::Name:
+			Dest.Type = pStringType;
+			strcpy_s(DataTypeTemp, MAX_STRING, info->Name.c_str());
+			Dest.Ptr = &DataTypeTemp[0];
+			return true;
+
+		case Members::Path:
+			Dest.Type = pStringType;
+			strcpy_s(DataTypeTemp, MAX_STRING, info->Path.c_str());
+			Dest.Ptr = &DataTypeTemp[0];
+			return true;
+
+		case Members::Arguments:
+			Dest.Type = pStringType;
+			strcpy_s(DataTypeTemp, MAX_STRING, join(info->Arguments, ",").c_str());
+			Dest.Ptr = &DataTypeTemp[0];
+			return true;
+
+		case Members::StartTime:
+			Dest.Type = pInt64Type;
+			Dest.Set(info->StartTime);
+			return true;
+
+		case Members::EndTime:
+			Dest.Type = pInt64Type;
+			Dest.Set(info->EndTime);
+			return true;
+
+		case Members::Return:
+			Dest.Type = pStringType;
+			if (info->Return)
+			{
+				strcpy_s(DataTypeTemp, MAX_STRING, info->Return->c_str());
+				Dest.Ptr = &DataTypeTemp[0];
+				return true;
+			}
+			return false;
+
+		default:
+			return false;
+		}
+	}
+
+	bool ToString(MQVarPtr VarPtr, char* Destination)
+	{
+		auto info = VarPtr.Get<thread::LuaThreadInfo>();
+		if (!info || !info->Return)
+			return false;
+
+		strcpy_s(Destination, MAX_STRING, info->Return->c_str());
+		return true;
+	}
+
+    virtual bool FromString(MQVarPtr& VarPtr, const char* Source) override { return false; }
+};
+
 class MQ2LuaType* pLuaType = nullptr;
 class MQ2LuaType : public MQ2Type
 {
@@ -241,7 +332,8 @@ public:
 		PIDs,
 		Dir,
 		Turbo,
-		RequirePaths
+		RequirePaths,
+		Script
 	};
 
 	MQ2LuaType() : MQ2Type("lua")
@@ -250,6 +342,7 @@ public:
 		ScopedTypeMember(Members, Dir);
 		ScopedTypeMember(Members, Turbo);
 		ScopedTypeMember(Members, RequirePaths);
+		ScopedTypeMember(Members, Script);
 	}
 
 	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
@@ -286,6 +379,42 @@ public:
 			strcpy_s(DataTypeTemp, s_lua["package"]["path"].get<std::string>().c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
+
+		case Members::Script:
+		{
+			Dest.Type = pLuaInfoType;
+			if (!Index || !Index[0])
+			{
+				if (s_finished.empty())
+					return false;
+
+				// grab the latest start time that has an end time
+				auto latest = s_finished.cbegin();
+				for (auto it = s_finished.cbegin(); it != s_finished.cend(); ++it)
+				{
+					if (it->second.EndTime > 0 && it->second.StartTime > latest->second.StartTime)
+						latest = it;
+				}
+
+				if (latest->second.EndTime > 0)
+				{
+					Dest.Set(latest->second);
+					return true;
+				}
+
+				return false;
+			}
+
+			auto pid = GetIntFromString(Index, -1);
+			auto it = s_finished.find(pid);
+			if (it != s_finished.end())
+			{
+				Dest.Set(it->second);
+				return true;
+			}
+
+			return false;
+		}
 
 		default:
 			return false;
@@ -665,6 +794,7 @@ PLUGIN_API void InitializePlugin()
 	AddCommand("/luaconf", LuaConfCommand);
 	AddCommand("/luarestart", LuaRestartCommand);
 
+	pLuaInfoType = new MQ2LuaInfoType;
 	pLuaType = new MQ2LuaType;
 	AddMQ2Data("Lua", dataLua);
 }
@@ -688,6 +818,7 @@ PLUGIN_API void ShutdownPlugin()
 
 	RemoveMQ2Data("Lua");
 	delete pLuaType;
+	delete pLuaInfoType;
 }
 
 /**
