@@ -6667,6 +6667,18 @@ int FindBuffID(std::string_view Name)
 	return GetSelfBuff(AllBuffs([&Name](EQ_Spell* spell) { return MaybeExactCompare(spell->Name, Name); }));
 }
 
+void RemoveBuff(EQ_Affect* buff, int slot)
+{
+	if (pPCData)
+	{
+		ArrayClass<LaunchSpellData*> arr;
+		pPCData->RemovePCAffectex(buff, true, arr, 0, 0, 0);
+
+		if (slot >= 0)
+			pPCData->NotifyPCAffectChange(slot, 1);
+	}
+}
+
 void RemoveBuffAt(int BuffID)
 {
 	if (BuffID >= 0 && pLocalPlayer)
@@ -6692,7 +6704,11 @@ void RemoveBuff(SPAWNINFO* pChar, char* szLine)
 	}
 
 	if (szCmd != nullptr)
-		RemoveBuffAt(FindBuffID(szCmd));
+	{
+		auto buff_id = FindBuffID(szCmd);
+		EQ_Affect* buff = &pPCData->GetEffect(buff_id);
+		RemoveBuff(buff, buff_id);
+	}
 }
 
 // TODO: can we just use cached buffs for pet buffs here? We should be getting the buffs packet from the server for them...

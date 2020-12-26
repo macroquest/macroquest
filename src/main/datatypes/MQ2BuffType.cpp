@@ -88,8 +88,10 @@ bool MQ2BuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		switch (static_cast<BuffMethods>(pMethod->ID))
 		{
 		case BuffMethods::Remove:
-			RemoveBuffAt(VarPtr.Int);
+		{
+			RemoveBuff(buff, VarPtr.Int);
 			return true;
+		}
 
 		default:
 			return false;
