@@ -355,6 +355,7 @@ MQLIB_API ALTABILITY* GetAAByIdWrapper(int nAbilityId, int playerLevel = -1);
 MQLIB_API int GetSpellRankByName(const char* SpellName);
 MQLIB_API void TruncateSpellRankName(char* SpellName);
 MQLIB_OBJECT int FindBuffID(std::string_view Name);
+MQLIB_OBJECT void RemoveBuff(EQ_Affect* buff, int slot);
 MQLIB_OBJECT void RemoveBuffAt(int BuffID);
 MQLIB_API void RemoveBuff(SPAWNINFO* pChar, char* szLine);
 MQLIB_API void RemovePetBuff(SPAWNINFO* pChar, char* szLine);
