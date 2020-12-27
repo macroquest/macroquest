@@ -69,6 +69,8 @@ std::vector<std::shared_ptr<thread::LuaThread>> s_running;
 
 std::unordered_map<uint32_t, thread::LuaThreadInfo> s_finished;
 
+#pragma region Bindings
+
 void mq::lua::DebugStackTrace(lua_State* L)
 {
 	lua_Debug ar;
@@ -108,110 +110,9 @@ void mq::lua::DebugStackTrace(lua_State* L)
 	MacroError("---- End Stack ----\n");
 }
 
-#pragma region Bindings
-
-std::string mq::lua::join(sol::this_state L, std::string delim, sol::variadic_args va)
-{
-	if (va.size() > 0)
-	{
-		fmt::memory_buffer str;
-		const auto* del = "";
-		for (const auto& arg : va)
-		{
-			auto value = luaL_tolstring(arg.lua_state(), arg.stack_index(), NULL);
-			if (value != nullptr && strlen(value) > 0)
-			{
-				fmt::format_to(str, "{}{}", del, value);
-				del = delim.c_str();
-			}
-		}
-
-		return fmt::to_string(str);
-	}
-
-	return "";
-}
-
-void mq::lua::delay(sol::object delayObj, sol::object conditionObj, sol::this_state s)
-{
-	auto delay_int = delayObj.as<std::optional<int>>();
-	if (!delay_int)
-	{
-		auto delay_str = delayObj.as<std::optional<std::string_view>>();
-		if (delay_str)
-		{
-			if (delay_str->length() > 1 && delay_str->compare(delay_str->length() - 1, 1, "m") == 0)
-				delay_int.emplace(GetIntFromString(*delay_str, 0) * 600);
-			else if (delay_str->length() > 2 && delay_str->compare(delay_str->length() - 2, 2, "ms") == 0)
-				delay_int.emplace(GetIntFromString(*delay_str, 0) / 100);
-			else if (delay_str->length() > 1 && delay_str->compare(delay_str->length() - 1, 1, "s") == 0)
-				delay_int.emplace(GetIntFromString(*delay_str, 0) * 10);
-		}
-	}
-
-	if (delay_int)
-	{
-		std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
-
-		if (thread && !thread->expired())
-		{
-			auto thread_s = thread->lock();
-
-			uint64_t delay_ms = std::max(0L, *delay_int * 100L);
-			auto condition = conditionObj.as<std::optional<sol::function>>();
-			if (!condition)
-			{
-				// let's accept a string too, and assume they want us to loadstring it
-				auto condition_str = conditionObj.as<std::optional<std::string_view>>();
-				if (condition_str)
-				{
-					// only allocate the string if we need to, but let's help the user and add the return to make this valid code
-					// the temporary string in the else case here only needs to live long enough for the load to happen, it's
-					// fine that it gets destroyed after the result here
-					auto result = thread_s->Thread.state().load(
-						condition_str->rfind("return ", 0) == 0 ?
-						*condition_str :
-						"return " + std::string(*condition_str));
-
-					if (result.valid())
-					{
-						sol::function f = result;
-						condition.emplace(f);
-					}
-				}
-			}
-
-			thread_s->State->set_delay(*thread_s, delay_ms + MQGetTickCount64(), condition);
-		}
-	}
-}
-
-void mq::lua::exit(sol::this_state s)
-{
-	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
-	if (thread && !thread->expired())
-	{
-		auto thread_s = thread->lock();
-		WriteChatf("Exit() called in Lua script %s with PID %d", thread_s->Name.c_str(), thread_s->PID);
-		thread_s->yield_at(0);
-		thread_s->Thread.abandon();
-	}
-}
-
-static void register_mq_type(sol::state& lua)
+static void register_globals(sol::state& lua)
 {
 	lua.open_libraries();
-
-	bindings::lua_MQTypeVar::register_binding(lua);
-	bindings::lua_MQDataItem::register_binding(lua);
-	bindings::lua_MQCommand::register_binding(lua);
-
-	lua["delay"] = &mq::lua::delay;
-	lua["join"] = &mq::lua::join;
-	lua["exit"] = &mq::lua::exit;
-
-	events::register_lua(lua);
-	imgui::register_lua(lua);
 
 	// always search the local dir first, then anything specified by the user, then the default paths
 	static auto package_path = lua["package"]["path"].get<std::string>(); // make this static so we always have the _original_ package paths
@@ -754,7 +655,7 @@ void LuaRestartCommand(SPAWNINFO* pChar, char* Buffer)
 
 	s_running.clear();
 	s_lua = sol::state();
-	register_mq_type(s_lua);
+	register_globals(s_lua);
 }
 
 #pragma endregion
@@ -785,7 +686,7 @@ PLUGIN_API void InitializePlugin()
 		WriteChatf("Error was %s", ec.message().c_str());
 	}
 
-	register_mq_type(s_lua);
+	register_globals(s_lua);
 
 	AddCommand("/lua", LuaCommand);
 	AddCommand("/endlua", EndLuaCommand);

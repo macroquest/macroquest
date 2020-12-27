@@ -62,7 +62,7 @@ sol::object lua_MQTypeVar::call_int(int index, sol::this_state L) const
 
 sol::object lua_MQTypeVar::call_va(sol::this_state L, sol::variadic_args args) const
 {
-	return call(join(L, ",", args), L);
+	return call(thread::join(L, ",", args), L);
 }
 
 sol::object lua_MQTypeVar::call_empty(sol::this_state L) const
@@ -147,9 +147,9 @@ std::ostream& operator<<(std::ostream& os, const lua_MQTypeVar& item)
 	return os;
 }
 
-void lua_MQTypeVar::register_binding(sol::state& lua)
+void lua_MQTypeVar::register_binding(sol::table& lua)
 {
-	lua.new_usertype<lua_MQTypeVar>("mqtype",
+	lua.new_usertype<lua_MQTypeVar>("type",
 		sol::constructors<lua_MQTypeVar(const std::string&)>(),
 		sol::meta_function::call, sol::overload(&lua_MQTypeVar::call, &lua_MQTypeVar::call_int, &lua_MQTypeVar::call_empty, &lua_MQTypeVar::call_va),
 		sol::meta_function::index, &lua_MQTypeVar::get,

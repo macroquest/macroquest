@@ -7,7 +7,7 @@ struct LuaThread;
 }
 
 namespace mq::lua::imgui {
-void register_lua(sol::state& lua);
+void register_lua(sol::table& lua);
 
 struct LuaImGui
 {

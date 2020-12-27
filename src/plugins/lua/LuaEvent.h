@@ -12,7 +12,7 @@ struct ThreadState;
 }
 
 namespace mq::lua::events {
-void register_lua(sol::state& lua);
+void register_lua(sol::table& lua);
 
 struct LuaEventProcessor;
 struct LuaEvent

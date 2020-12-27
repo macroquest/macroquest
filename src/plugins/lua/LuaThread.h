@@ -33,6 +33,7 @@ struct LuaThread
 	sol::coroutine Coroutine;
 	sol::state_view GlobalState;
 	sol::environment Environment;
+	std::optional<sol::table> GlobalTable;
 	std::string Name;
 	std::unique_ptr<ThreadState> State;
 	std::unique_ptr<events::LuaEventProcessor> EventProcessor;

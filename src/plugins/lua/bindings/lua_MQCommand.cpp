@@ -32,12 +32,12 @@ sol::object lua_MQDoCommand::get(sol::stack_object key, sol::this_state L) const
 	return sol::object(L, sol::in_place, sol::lua_nil);
 }
 
-void mq::lua::bindings::lua_MQCommand::register_binding(sol::state& lua)
+void mq::lua::bindings::lua_MQCommand::register_binding(sol::table& lua)
 {
-	lua.new_usertype<lua_MQCommand>("mqcommand",
+	lua.new_usertype<lua_MQCommand>("command",
 		sol::no_constructor);
 
-	lua.new_usertype<lua_MQDoCommand>("mqdocommand",
+	lua.new_usertype<lua_MQDoCommand>("docommand",
 		sol::no_constructor,
 		sol::meta_function::index, &lua_MQDoCommand::get);
 

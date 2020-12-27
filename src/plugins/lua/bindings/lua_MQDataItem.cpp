@@ -45,7 +45,7 @@ sol::object lua_MQDataItem::call_int(int index, sol::this_state L) const
 
 sol::object lua_MQDataItem::call_va(sol::this_state L, sol::variadic_args args) const
 {
-	return call(join(L, ",", args), L);
+	return call(thread::join(L, ",", args), L);
 }
 
 sol::object lua_MQDataItem::call_empty(sol::this_state L) const
@@ -111,15 +111,15 @@ std::ostream& operator<<(std::ostream& os, const lua_MQDataItem& item)
 	return os;
 }
 
-void lua_MQDataItem::register_binding(sol::state& lua)
+void lua_MQDataItem::register_binding(sol::table& lua)
 {
-	lua.new_usertype<lua_MQDataItem>("mqdata",
+	lua.new_usertype<lua_MQDataItem>("data",
 		sol::constructors<lua_MQDataItem(const std::string&)>(),
 		sol::meta_function::call, sol::overload(&lua_MQDataItem::call, &lua_MQDataItem::call_int, &lua_MQDataItem::call_empty, &lua_MQDataItem::call_va),
 		sol::meta_function::index, &lua_MQDataItem::get,
 		sol::meta_function::equal_to, sol::overload(&lua_MQDataItem::operator==, &lua_MQDataItem::equal_var));
 
-	lua.new_usertype<lua_MQTLO>("mqtlo",
+	lua.new_usertype<lua_MQTLO>("tlo",
 		sol::no_constructor,
 		sol::meta_function::index, &lua_MQTLO::get);
 

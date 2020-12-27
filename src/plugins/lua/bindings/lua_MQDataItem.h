@@ -24,7 +24,7 @@ struct lua_MQDataItem
 	sol::object call_va(sol::this_state L, sol::variadic_args args) const;
 	sol::object call_empty(sol::this_state L) const;
 	sol::object get(sol::stack_object key, sol::this_state L) const;
-	static void register_binding(sol::state& lua);
+	static void register_binding(sol::table& lua);
 };
 
 struct lua_MQTLO

@@ -257,7 +257,7 @@ static void removebind(std::string_view name, sol::this_state s)
 		thread->lock()->EventProcessor->remove_bind(name);
 }
 
-void register_lua(sol::state& lua)
+void register_lua(sol::table& lua)
 {
 	lua["doevents"] = &doevents;
 	lua["event"] = &addevent;

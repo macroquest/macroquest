@@ -47,9 +47,9 @@ static void removeimgui(std::string_view name, sol::this_state s)
 		thread->lock()->ImGuiProcessor->remove_callback(name);
 }
 
-void register_lua(sol::state& lua)
+void register_lua(sol::table& lua)
 {
-	lua["imgui"] = lua.create_table_with(
+	lua["imgui"] = lua.create_with(
 		"init", &addimgui,
 		"destroy", &removeimgui
 	);
