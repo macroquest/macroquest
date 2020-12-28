@@ -35,8 +35,6 @@
 PreSetup("MQ2Lua");
 PLUGIN_VERSION(0.1);
 
-// TODO: create library of common functions and replace global functions that we don't want to use
-// TODO: test the efficacy of my sandboxing setup
 // TODO: Add aggressive bind/event options that scriptwriters can set with functions
 // TODO: Add OnExit callbacks (potentially both as an explicit argument to exit and a set callback)
 
