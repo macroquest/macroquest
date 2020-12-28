@@ -1,4 +1,19 @@
+/*
+ * MacroQuest2: The extension platform for EverQuest
+ * Copyright (C) 2002-2020 MacroQuest Authors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 #pragma once
+
 #include "LuaCommon.h"
 
 namespace mq {
@@ -6,6 +21,7 @@ struct MQTypeVar;
 }
 
 namespace mq::lua::bindings {
+
 struct lua_MQDataItem;
 struct lua_MQTypeVar
 {
@@ -31,4 +47,5 @@ struct lua_MQTypeVar
 	sol::object get(sol::stack_object key, sol::this_state L) const;
 	static void register_binding(sol::table& lua);
 };
-}
+
+} // namespace mq::lua::bindings

@@ -1,3 +1,17 @@
+/*
+ * MacroQuest2: The extension platform for EverQuest
+ * Copyright (C) 2002-2020 MacroQuest Authors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 #include "lua_MQCommand.h"
 
 #include <mq/Plugin.h>
@@ -44,4 +58,5 @@ void mq::lua::bindings::lua_MQCommand::register_binding(sol::table& lua)
 	lua["cmd"] = lua_MQDoCommand();
 	lua["print"] = lua["cmd"]["echo"];
 }
-}
+
+} // namespace mq::lua::bindings

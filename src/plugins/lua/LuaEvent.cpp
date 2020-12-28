@@ -1,9 +1,24 @@
+/*
+ * MacroQuest2: The extension platform for EverQuest
+ * Copyright (C) 2002-2020 MacroQuest Authors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 #include "LuaEvent.h"
 #include "LuaThread.h"
 
 #include <mq/Plugin.h>
 
 namespace mq::lua::events {
+
 unsigned int CALLBACK LuaVarProcess(char* VarName, char* Value, size_t ValueLen)
 {
 	// TODO: do we need to evaluate lua code in `Value` here? it should come to us as a string, not sure how to detect string vs lua code similar to the delay condition code
@@ -198,8 +213,7 @@ LuaBind::LuaBind(const std::string& name, const sol::function& function, LuaEven
 		0xc9,                         // leave
 		0xc3                          // return
 	};
-//55 8b ec ff 75 0c 68 00 00 00 00 e8 00 00 00 00 c9 c3
-
+	//55 8b ec ff 75 0c 68 00 00 00 00 e8 00 00 00 00 c9 c3
 
 	memcpy(Callback, callback_template, 18);
 
@@ -265,4 +279,5 @@ void register_lua(sol::table& lua)
 	lua["bind"] = &addbind;
 	lua["unbind"] = &removebind;
 }
-}
+
+} // namespace mq::lua::events
