@@ -104,10 +104,7 @@ bool PickupItemNew(CONTENTS* pCont)
 				{
 					pCursorAttachment->Deactivate();
 					pCursorAttachment->AttachToCursor(nullptr, nullptr, eCursorAttachment_Item, -1, nullptr, nullptr);
-					if (CDisplay* pDisp = (CDisplay*)pDisplay)
-					{
-						pDisp->DragItem = TRUE;
-					}
+					pDisplay->DragItem = TRUE;
 					return true;
 				}
 			}

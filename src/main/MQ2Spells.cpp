@@ -1489,7 +1489,8 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 			|| spa == SPA_SPELL_CRIT_CHANCE
 			|| spa == SPA_SHIELD_BLOCK_CHANCE
 			|| spa == SPA_FOCUS_DAMAGE_MOD_CRIT
-			|| spa == SPA_FOCUS_INCOMING_DMG_MOD);
+			|| spa == SPA_FOCUS_INCOMING_DMG_MOD
+			|| spa == SPA_CANCEL_NEGATIVE_MAGIC);
 
 	bool AEEffect =
 		(targettype == TT_PBAE
@@ -1951,7 +1952,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatPenaltyChance(spelleffectname.c_str(), value, szTemp2, "Penalty"));
 		break;
 	case SPA_CANCEL_NEGATIVE_MAGIC: //Remove Detrimental(c)
-		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
+		strcat_s(szBuff, FormatPenaltyChance(spelleffectname.c_str(), base / 10, szTemp2, "Chance"));
 		break;
 	case SPA_POP_RESURRECT: //PoP Resurrect
 	case SPA_MIRROR: //Illusion: Target

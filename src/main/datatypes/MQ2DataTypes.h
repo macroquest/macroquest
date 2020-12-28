@@ -804,59 +804,10 @@ public:
 class MQ2MacroType : public MQ2Type
 {
 public:
-	enum MacroMembers
-	{
-		Name = 1,
-		RunTime = 2,
-		Paused = 3,
-		Return = 4,
-		Params = 5,
-		Param = 6,
-		CurLine = 7,
-		MemUse = 8,
-		CurCommand = 9,
-		StackSize = 10,
-		IsTLO = 11,
-		IsOuterVariable = 12,
-		CurSub = 13,
-	};
-
-	enum MacroMethods
-	{
-		Undeclared = 1,
-	};
-
-	MQ2MacroType() : MQ2Type("macro")
-	{
-		TypeMember(Name);
-		TypeMember(RunTime);
-		TypeMember(Paused);
-		TypeMember(Return);
-		TypeMember(Params);
-		TypeMember(Param);
-		TypeMember(CurLine);
-		TypeMember(MemUse);
-		TypeMember(CurCommand);
-		TypeMember(StackSize);
-		TypeMember(IsTLO);
-		TypeMember(IsOuterVariable);
-		TypeMember(CurSub);
-
-		TypeMethod(Undeclared);
-	}
+	MQ2MacroType();
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		if (gRunning)
-		{
-			strcpy_s(Destination, MAX_STRING, gszMacroName);
-			return true;
-		}
-
-		return false;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 };
 
 //============================================================================
@@ -1289,27 +1240,7 @@ public:
 class MQ2InvSlotType : public MQ2Type
 {
 public:
-	enum InvSlotMembers
-	{
-		Pack = 1,
-		Slot = 2,
-		ID = 3,
-		Name = 4,
-		Item = 5,
-	};
-
-	enum InvSlotMethods
-	{
-	};
-
-	MQ2InvSlotType() : MQ2Type("invslot")
-	{
-		TypeMember(Pack);
-		TypeMember(Slot);
-		TypeMember(ID);
-		TypeMember(Name);
-		TypeMember(Item);
-	}
+	MQ2InvSlotType();
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 
@@ -1752,50 +1683,10 @@ public:
 class MQ2RaidType : public MQ2Type
 {
 public:
-	enum RaidMembers
-	{
-		xMember = 1,
-		Members = 2,
-		Target = 3,
-		Leader = 4,
-		TotalLevels = 5,
-		AverageLevel = 6,
-		LootType = 7,
-		Looter = 8,
-		Looters = 9,
-		Locked = 10,
-		Invited = 11,
-		MainAssist = 12,
-		MasterLooter = 13,
-	};
-
-	enum RaidMethods
-	{
-	};
-
-	MQ2RaidType() : MQ2Type("raid")
-	{
-		AddMember(xMember, "Member");
-		TypeMember(Members);
-		TypeMember(Target);
-		TypeMember(Leader);
-		TypeMember(TotalLevels);
-		TypeMember(AverageLevel);
-		TypeMember(LootType);
-		TypeMember(Looter);
-		TypeMember(Looters);
-		TypeMember(Locked);
-		TypeMember(Invited);
-		TypeMember(MainAssist);
-		TypeMember(MasterLooter);
-	}
+	MQ2RaidType();
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		return false;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 };
 
 //============================================================================
@@ -1964,20 +1855,7 @@ public:
 
 class MQ2FellowshipType : public MQ2Type
 {
-	enum class FellowshipTypeMembers
-	{
-		ID = 1,
-		Leader,
-		MotD,
-		Members,
-		Member,
-		CampfireDuration,
-		CampfireY,
-		CampfireX,
-		CampfireZ,
-		CampfireZone,
-		Campfire,
-	};
+
 
 public:
 	MQ2FellowshipType();
@@ -1992,31 +1870,10 @@ public:
 class MQ2FellowshipMemberType : public MQ2Type
 {
 public:
-	enum FMTypeMembers
-	{
-		Zone = 1,
-		Level = 2,
-		Class = 3,
-		LastOn = 4,
-		Name = 5,
-	};
-
-	MQ2FellowshipMemberType() : MQ2Type("fellowshipmember")
-	{
-		TypeMember(Zone);
-		TypeMember(Level);
-		TypeMember(Class);
-		TypeMember(LastOn);
-		TypeMember(Name);
-	}
+	MQ2FellowshipMemberType();
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		strcpy_s(Destination, MAX_STRING, ((FELLOWSHIPMEMBER*)VarPtr.Ptr)->Name);
-		return true;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 };
 
 //============================================================================

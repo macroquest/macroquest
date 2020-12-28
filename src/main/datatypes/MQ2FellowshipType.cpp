@@ -15,8 +15,23 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-namespace mq {
-namespace datatypes {
+namespace mq::datatypes {
+
+enum class FellowshipTypeMembers
+{
+	ID = 1,
+	Leader,
+	MotD,
+	Members,
+	Member,
+	CampfireDuration,
+	CampfireY,
+	CampfireX,
+	CampfireZ,
+	CampfireZone,
+	Campfire,
+	Sharing,
+};
 
 MQ2FellowshipType::MQ2FellowshipType()
 	: MQ2Type("fellowship")
@@ -32,6 +47,7 @@ MQ2FellowshipType::MQ2FellowshipType()
 	ScopedTypeMember(FellowshipTypeMembers, CampfireZ);
 	ScopedTypeMember(FellowshipTypeMembers, CampfireZone);
 	ScopedTypeMember(FellowshipTypeMembers, Campfire);
+	ScopedTypeMember(FellowshipTypeMembers, Sharing);
 }
 
 bool MQ2FellowshipType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -138,6 +154,21 @@ bool MQ2FellowshipType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		Dest.Type = pBoolType;
 		return true;
 
+	case FellowshipTypeMembers::Sharing:
+		if (Index[0] && IsNumber(Index))
+		{
+			int nMember = GetIntFromString(Index, 0) - 1;
+			if (nMember < 0) nMember = 0;
+
+			if (nMember > pFellowship->Members)
+				return false;
+
+			Dest.DWord = pFellowship->bExpSharingEnabled[nMember];
+			Dest.Type = pBoolType;
+			return true;
+		}
+		return false;
+
 	default: break;
 	}
 
@@ -153,4 +184,4 @@ bool MQ2FellowshipType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-}} // namespace mq::datatypes
+} // namespace mq::datatypes

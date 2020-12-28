@@ -1,3 +1,8 @@
+Dec 10 2020
+- Fixes to new alt currency
+- Fixes for num expansions
+- Fixed ZONE_COUNT, this should fix misc plugins that rely on it being correct.
+
 Dec 08 2020
 - Added .Move to the Window TLO Methods
 	Usage: /invoke ${Window[GroupWindow].Move[100,200,300,400]} ([x,y,width,height])
@@ -8,6 +13,42 @@ Dec 08 2020
 	Usage: /invoke ${Window[GroupWindow].SetAlpha[255]} (0-255)
 - Added .SetFadeAlpha to the Window TLO Methods
 	Usage: /invoke ${Window[GroupWindow].SetFadeAlpha[255]} (0-255)
+
+Dec 07 2020
+- Fixed malo/tash detection problems
+
+Dec 05 2020
+- Chatwindow at charselect now saves it's position independently from in game
+
+Dec 03 2020
+- Added WarforgedEmblem and RestlessMark Currencies
+- Added .Sharing to the fellowship tlo it returns true of false if exp sharing is on for the member
+	Usage: /echo ${Me.Fellowship.Sharing[x]} where x is fellowship member 1-12
+
+Dec 02 2020
+- Added MarkNPC to the raid tlo
+
+Nov 19 2020
+- All instances of CFacePick has been changed to CPlayerCustomizationWnd
+
+Nov 06 2020
+- Update RaidType.MainAssist to support index by number or name.
+
+Oct 31 2020
+- Fixed a few spell and spellmgr bugs
+
+Oct 21 2020
+- Added raid to chat events - Cred Kaen01
+
+Oct 13 2020
+- Added a fix for stopping movement in mq2targetinfo
+
+Aug 20 2020
+- Fixed the findwindow feature
+
+Aug 19 2020
+- Fixed CButtonWnd::SetCheck
+- Added CHotButton::SetCheck
 
 May 14 2020
 - Filled in the CGuild class

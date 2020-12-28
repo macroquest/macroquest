@@ -849,8 +849,8 @@ void CheckChatForEvent(const char* szMsg)
 		{
 			strncpy_s(Arg1, szClean, (DWORD)(pDest -szClean));
 			strcpy_s(Arg2, pDest + 18);
-			Arg2[strlen(Arg2) - 1] = 0; 
-			AddEvent(EVENT_CHAT, "raid", Arg1, Arg2, NULL); 
+			Arg2[strlen(Arg2) - 1] = 0;
+			AddEvent(EVENT_CHAT, "raid", Arg1, Arg2, NULL);
 		}
 		else if ((CHATEVENT(CHAT_CHAT)) && (strstr(szClean, "You told ") == nullptr)
 			&& (pDest = strstr(szClean, " tells "))

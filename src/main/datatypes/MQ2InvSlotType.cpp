@@ -15,8 +15,29 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class InvSlotMembers
+{
+	Pack = 1,
+	Slot,
+	ID,
+	Name,
+	Item,
+};
+
+enum class InvSlotMethods
+{
+};
+
+MQ2InvSlotType::MQ2InvSlotType() : MQ2Type("invslot")
+{
+	ScopedTypeMember(InvSlotMembers, Pack);
+	ScopedTypeMember(InvSlotMembers, Slot);
+	ScopedTypeMember(InvSlotMembers, ID);
+	ScopedTypeMember(InvSlotMembers, Name);
+	ScopedTypeMember(InvSlotMembers, Item);
+}
 
 // item slots:
 // 2000-2015 bank window
@@ -37,12 +58,12 @@ bool MQ2InvSlotType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 
 	switch (static_cast<InvSlotMembers>(pMember->ID))
 	{
-	case ID:
+	case InvSlotMembers::ID:
 		Dest.DWord = VarPtr.Int;
 		Dest.Type = pIntType;
 		return true;
 
-	case Item:
+	case InvSlotMembers::Item: {
 		Dest.Type = pItemType;
 		if (PcProfile* pProfile = GetPcProfile())
 		{
@@ -214,8 +235,9 @@ bool MQ2InvSlotType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 			}
 		}
 		return false;
+	}
 
-	case Pack:
+	case InvSlotMembers::Pack:
 		Dest.DWord = 0;
 		Dest.Type = pInvSlotType;
 		if (nInvSlot >= 262 && nInvSlot < 342)
@@ -237,7 +259,7 @@ bool MQ2InvSlotType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 		}
 		return false;
 
-	case Slot:
+	case InvSlotMembers::Slot:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (nInvSlot >= 262 && nInvSlot < 342)
@@ -259,7 +281,7 @@ bool MQ2InvSlotType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 		}
 		return false;
 
-	case Name:
+	case InvSlotMembers::Name:
 		Dest.Type = pStringType;
 		if (nInvSlot >= 0 && nInvSlot < NUM_INV_SLOTS)
 		{
@@ -353,3 +375,4 @@ bool MQ2InvSlotType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 	return false;
 }
 
+} // namespace mq::datatypes

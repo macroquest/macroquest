@@ -15,8 +15,49 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class MacroMembers
+{
+	Name = 1,
+	RunTime,
+	Paused,
+	Return,
+	Params,
+	Param,
+	CurLine,
+	MemUse,
+	CurCommand,
+	StackSize,
+	IsTLO,
+	IsOuterVariable,
+	CurSub,
+};
+
+enum class MacroMethods
+{
+	Undeclared = 1,
+};
+
+MQ2MacroType::MQ2MacroType()
+	: MQ2Type("macro")
+{
+	ScopedTypeMember(MacroMembers, Name);
+	ScopedTypeMember(MacroMembers, RunTime);
+	ScopedTypeMember(MacroMembers, Paused);
+	ScopedTypeMember(MacroMembers, Return);
+	ScopedTypeMember(MacroMembers, Params);
+	ScopedTypeMember(MacroMembers, Param);
+	ScopedTypeMember(MacroMembers, CurLine);
+	ScopedTypeMember(MacroMembers, MemUse);
+	ScopedTypeMember(MacroMembers, CurCommand);
+	ScopedTypeMember(MacroMembers, StackSize);
+	ScopedTypeMember(MacroMembers, IsTLO);
+	ScopedTypeMember(MacroMembers, IsOuterVariable);
+	ScopedTypeMember(MacroMembers, CurSub);
+
+	ScopedTypeMethod(MacroMethods, Undeclared);
+}
 
 bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -31,7 +72,7 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	{
 		switch (static_cast<MacroMethods>(pMethod->ID))
 		{
-		case Undeclared:
+		case MacroMethods::Undeclared:
 			if (gMacroBlock && !gUndeclaredVars.empty())
 			{
 				WriteChatf("----------- Undeclared Variables (bad) -----------");
@@ -65,17 +106,17 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	switch (static_cast<MacroMembers>(pMember->ID))
 	{
-	case Name:
+	case MacroMembers::Name:
 		Dest.Ptr = &gszMacroName[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case RunTime:
+	case MacroMembers::RunTime:
 		Dest.UInt64 = ((MQGetTickCount64() - gRunning) / 1000);
 		Dest.Type = pInt64Type;
 		return true;
 
-	case Paused:
+	case MacroMembers::Paused:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
 		if (MQMacroBlockPtr pBlock = GetCurrentMacroBlock())
@@ -84,27 +125,27 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		}
 		return true;
 
-	case Return:
+	case MacroMembers::Return:
 		Dest.Ptr = &DataTypeTemp[0];
 		strcpy_s(DataTypeTemp, gMacroStack->Return.c_str());
 		Dest.Type = pStringType;
 		return true;
 
-	case IsTLO:
+	case MacroMembers::IsTLO:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
 		if (FindMQ2Data(Index))
 			Dest.DWord = 1;
 		return true;
 
-	case IsOuterVariable:
+	case MacroMembers::IsOuterVariable:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
 		if (VariableMap.find(Index) != VariableMap.end())
 			Dest.DWord = 1;
 		return true;
 
-	case StackSize: {
+	case MacroMembers::StackSize: {
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		MQMacroStack* pStack = gMacroStack;
@@ -116,7 +157,7 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 	}
 
-	case Params:
+	case MacroMembers::Params:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		{
@@ -129,7 +170,7 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		}
 		return true;
 
-	case CurLine:
+	case MacroMembers::CurLine:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (gMacroBlock)
@@ -139,7 +180,7 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		}
 		break;
 
-	case CurSub:
+	case MacroMembers::CurSub:
 		if (gMacroBlock && gMacroStack)
 		{
 			GetSubFromLine(gMacroStack->LocationIndex, DataTypeTemp, MAX_STRING);
@@ -149,7 +190,7 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		}
 		return false;
 
-	case CurCommand:
+	case MacroMembers::CurCommand:
 		Dest.Type = pStringType;
 		if (gMacroBlock)
 		{
@@ -163,7 +204,7 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		}
 		break;
 
-	case MemUse:
+	case MacroMembers::MemUse:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		{
@@ -203,3 +244,16 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	return false;
 }
+
+bool MQ2MacroType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (gRunning)
+	{
+		strcpy_s(Destination, MAX_STRING, gszMacroName);
+		return true;
+	}
+
+	return false;
+}
+
+} // namespace mq::datatypes
