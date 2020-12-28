@@ -18,6 +18,7 @@ struct lua_MQDataItem
 	lua_MQTypeVar evaluate_self() const;
 	bool operator==(const lua_MQDataItem& right) const;
 	bool equal_var(const lua_MQTypeVar& right) const;
+	bool equal_nil(const sol::lua_nil_t&) const;
 	static std::string to_string(const lua_MQDataItem& data);
 	sol::object call(const std::string& index, sol::this_state L) const;
 	sol::object call_int(int index, sol::this_state L) const;

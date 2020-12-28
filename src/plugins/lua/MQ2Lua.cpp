@@ -35,9 +35,6 @@
 PreSetup("MQ2Lua");
 PLUGIN_VERSION(0.1);
 
-// TODO: changing the script dir will require either an engine restart or a require paths update
-// TODO: null should be falsey
-
 // TODO: create library of common functions and replace global functions that we don't want to use
 // TODO: test the efficacy of my sandboxing setup
 // TODO: Add aggressive bind/event options that scriptwriters can set with functions
@@ -632,6 +629,7 @@ void ReadSettings()
 	s_squelchStatus = s_configNode[squelchStatus].as<bool>(s_squelchStatus);
 
 	WriteSettings();
+	register_globals(s_lua);
 }
 
 void LuaConfCommand(SPAWNINFO* pChar, char* Buffer)
@@ -691,11 +689,10 @@ void LuaRestartCommand(SPAWNINFO* pChar, char* Buffer)
 	WriteChatStatus("Stopping all running lua scripts and restarting the global state.");
 	EndLuaCommand(pChar, "");
 
-	ReadSettings();
-
 	s_running.clear();
 	s_lua = sol::state();
-	register_globals(s_lua);
+
+	ReadSettings();
 }
 
 #pragma endregion
@@ -718,8 +715,6 @@ PLUGIN_API void InitializePlugin()
 	DebugSpewAlways("MQ2Lua::Initializing version %f", MQ2Version);
 
 	ReadSettings();
-
-	register_globals(s_lua);
 
 	AddCommand("/lua", LuaCommand);
 	AddCommand("/endlua", EndLuaCommand);

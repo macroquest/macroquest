@@ -24,6 +24,11 @@ bool lua_MQDataItem::equal_var(const lua_MQTypeVar& right) const
 	return evaluate_self() == right;
 }
 
+bool lua_MQDataItem::equal_nil(const sol::lua_nil_t&) const
+{
+	return evaluate_self().Self->Type == nullptr;
+}
+
 std::string lua_MQDataItem::to_string(const lua_MQDataItem& data)
 {
 	return lua_MQTypeVar::to_string(data.evaluate_self());
@@ -117,7 +122,7 @@ void lua_MQDataItem::register_binding(sol::table& lua)
 		sol::constructors<lua_MQDataItem(const std::string&)>(),
 		sol::meta_function::call, sol::overload(&lua_MQDataItem::call, &lua_MQDataItem::call_int, &lua_MQDataItem::call_empty, &lua_MQDataItem::call_va),
 		sol::meta_function::index, &lua_MQDataItem::get,
-		sol::meta_function::equal_to, sol::overload(&lua_MQDataItem::operator==, &lua_MQDataItem::equal_var));
+		sol::meta_function::equal_to, sol::overload(&lua_MQDataItem::operator==, &lua_MQDataItem::equal_var, &lua_MQDataItem::equal_nil));
 
 	lua.new_usertype<lua_MQTLO>("tlo",
 		sol::no_constructor,

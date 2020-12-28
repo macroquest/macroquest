@@ -26,6 +26,11 @@ bool lua_MQTypeVar::equal_data(const lua_MQDataItem& right) const
 	return *this == right.evaluate_self();
 }
 
+bool lua_MQTypeVar::equal_nil(const sol::lua_nil_t&) const
+{
+	return evaluate_member().Type == nullptr;
+}
+
 MQTypeVar& lua_MQTypeVar::evaluate_member(char* index) const
 {
 	if (Self->Type != nullptr && !Member.empty() && !Self->Type->GetMember(Self->GetVarPtr(), &Member[0], index, *Self))
@@ -153,7 +158,7 @@ void lua_MQTypeVar::register_binding(sol::table& lua)
 		sol::constructors<lua_MQTypeVar(const std::string&)>(),
 		sol::meta_function::call, sol::overload(&lua_MQTypeVar::call, &lua_MQTypeVar::call_int, &lua_MQTypeVar::call_empty, &lua_MQTypeVar::call_va),
 		sol::meta_function::index, &lua_MQTypeVar::get,
-		sol::meta_function::equal_to, sol::overload(&lua_MQTypeVar::operator==, &lua_MQTypeVar::equal_data));
+		sol::meta_function::equal_to, sol::overload(&lua_MQTypeVar::operator==, &lua_MQTypeVar::equal_data, &lua_MQTypeVar::equal_nil));
 
 	lua["null"] = lua_MQTypeVar(MQTypeVar());
 }
