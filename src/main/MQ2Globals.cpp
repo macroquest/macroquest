@@ -726,8 +726,11 @@ const char* szExpansions[] = {
 	"Ring of Scale",
 	"The Burning Lands",
 	"Torment of Velious",
+	"Claws of Veeshan",
 	nullptr
 };
+static_assert(lengthof(szExpansions) - 1 == NUM_EXPANSIONS,
+              "Need to update szExpansions to match NUM_EXPANSIONS");
 
 bool bAllErrorsFatal = false;
 bool bAllErrorsDumpStack = true;

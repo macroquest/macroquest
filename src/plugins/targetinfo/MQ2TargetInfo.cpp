@@ -15,6 +15,7 @@
 // MQ2TargetInfo by EqMule 2018
 // 2.1 Added enums for menu and go to menu item
 // 2.2 Added fix from dannuic/knightly to stop clearing target when using hotbuttons.
+// 2.3 Added a fix for stopping movement by Freezerburn26
 
 #include <mq/Plugin.h>
 #include "resource.h"
@@ -24,7 +25,7 @@
 #include <string>
 
 PreSetup("MQ2TargetInfo");
-PLUGIN_VERSION(2.0);
+PLUGIN_VERSION(2.3);
 
 // TODO:  Break the group window stuff into its own plugin
 // TODO:  Break the specific hotbuttons out into commands that can be used independently
@@ -1452,7 +1453,7 @@ void Initialize()
 	}
 }
 
-void StopMovement(bool bChange = true)
+void StopMovement(bool bChange = true, bool bStopNav = false)
 {
 	if (bChange)
 	{
@@ -1473,12 +1474,15 @@ void StopMovement(bool bChange = true)
 				DoCommandf("/squelch /bcg //squelch /stick off");
 		}
 
-		if (GetModuleHandle("mq2nav"))
+		if (bStopNav)
 		{
-			if (GetModuleHandle("mq2dannet"))
-				DoCommandf("/squelch /dgge /squelch /nav stop");
-			else if (GetModuleHandle("mq2eqbc"))
-				DoCommandf("/squelch /bcg //squelch /nav stop");
+			if (GetModuleHandle("mq2nav"))
+			{
+				if (GetModuleHandle("mq2dannet"))
+					DoCommandf("/squelch /dgge /squelch /nav stop");
+				else if (GetModuleHandle("mq2eqbc"))
+					DoCommandf("/squelch /bcg //squelch /nav stop");
+			}
 		}
 
 		FollowMeButton->bChecked = false;
@@ -1640,12 +1644,13 @@ public:
 				MimicMeButton->bChecked = gbMimicMe;
 				return 1;
 			}
-			else if (pWnd == NavButton)
+
+			if (pWnd == NavButton)
 			{
 				if (!CheckNavCommand())
 					return 1;
 
-				StopMovement();
+				StopMovement(true, true);
 
 				char szMe[MAX_STRING] = { 0 };
 				strcpy_s(szMe, szNavCommand);
@@ -1653,7 +1658,8 @@ public:
 				DoCommand((SPAWNINFO*)pLocalPlayer, szMe);
 				return 1;
 			}
-			else if (pWnd == FollowMeButton)
+
+			if (pWnd == FollowMeButton)
 			{
 				if (!CheckNavCommand())
 					return 1;
@@ -1701,7 +1707,8 @@ public:
 				DoCommand((SPAWNINFO*)pLocalPlayer, szMe);
 				return 1;
 			}
-			else if (pWnd
+
+			if (pWnd
 				&& (pWnd->GetParentWindow() == GroupHotButton[0]
 					|| pWnd->GetParentWindow() == GroupHotButton[1]
 					|| pWnd->GetParentWindow() == GroupHotButton[2]
@@ -2140,7 +2147,7 @@ void CMD_GroupInfo(SPAWNINFO* pPlayer, char* szLine)
 		if (!CheckNavCommand())
 			return;
 
-		StopMovement();
+		StopMovement(true, true);
 		char szMe[MAX_STRING] = { 0 };
 		strcpy_s(szMe, szNavCommand);
 		ParseMacroData(szMe, MAX_STRING);

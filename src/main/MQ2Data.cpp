@@ -414,7 +414,7 @@ bool dataTime(const char* szIndex, MQTypeVar& Ret)
 {
 	time_t CurTime = { 0 };
 	time(&CurTime);
-	struct tm* pTime = (struct tm*) & DataTypeTemp[0];
+	struct tm* pTime = (struct tm*)&DataTypeTemp[0];
 	ZeroMemory(pTime, sizeof(struct tm));
 	localtime_s(pTime, &CurTime);
 	Ret.Ptr = pTime;
@@ -424,7 +424,7 @@ bool dataTime(const char* szIndex, MQTypeVar& Ret)
 
 bool dataGameTime(const char* szIndex, MQTypeVar& Ret)
 {
-	struct tm* pTime = (struct tm*) & DataTypeTemp[0];
+	struct tm* pTime = (struct tm*)&DataTypeTemp[0];
 	ZeroMemory(pTime, sizeof(struct tm));
 	pTime->tm_sec = 0;
 	pTime->tm_min = pWorldData->Minute;

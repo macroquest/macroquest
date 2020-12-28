@@ -1315,6 +1315,8 @@ int GetCurrencyIDByName(char* szName)
 	if (!_stricmp(szName, "Froststone Ducat")) return ALTCURRENCY_FROSTSTONEDUCAT;
 	if (!_stricmp(szName, "Warlord's Symbol")) return ALTCURRENCY_WARLORDSSYMBOL;
 	if (!_stricmp(szName, "Overseer Tetradrachm")) return ALTCURRENCY_OVERSEERTETRADRACHM;
+	if (!_stricmp(szName, "Restless Mark")) return ALTCURRENCY_RESTLESSMARK;
+	if (!_stricmp(szName, "Warforged Emblem")) return ALTCURRENCY_WARFORGEDEMBLEM;
 	return -1;
 }
 
