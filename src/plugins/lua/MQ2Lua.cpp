@@ -35,8 +35,6 @@
 PreSetup("MQ2Lua");
 PLUGIN_VERSION(0.1);
 
-// TODO: Add a squelch option
-// TODO: luaDir should default to base off of mqroot when setting it via the config
 // TODO: changing the script dir will require either an engine restart or a require paths update
 // TODO: null should be falsey
 
@@ -591,6 +589,7 @@ void ReadSettings()
 	s_turboNum = s_configNode[turboNum].as<uint32_t>(s_turboNum);
 
 	s_luaDir = s_configNode[luaDir].as<std::string>(s_luaDir);
+	if (std::filesystem::path(s_luaDir).is_relative()) s_luaDir = (std::filesystem::path(gPathMQRoot) / s_luaDir).string();
 	std::error_code ec;
 	if (!std::filesystem::exists(s_luaDir, ec) && !std::filesystem::create_directories(s_luaDir, ec))
 	{
