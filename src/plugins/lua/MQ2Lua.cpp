@@ -35,6 +35,11 @@
 PreSetup("MQ2Lua");
 PLUGIN_VERSION(0.1);
 
+// TODO: Add a squelch option
+// TODO: luaDir should default to base off of mqroot when setting it via the config
+// TODO: changing the script dir will require either an engine restart or a require paths update
+// TODO: null should be falsey
+
 // TODO: create library of common functions and replace global functions that we don't want to use
 // TODO: test the efficacy of my sandboxing setup
 // TODO: Add aggressive bind/event options that scriptwriters can set with functions
@@ -49,15 +54,25 @@ using namespace mq::lua;
 using MQ2Args = Args<&WriteChatf>;
 using MQ2HelpArgument = HelpArgument;
 
+namespace mq::lua::config {
+// provide option strings here
+static const std::string turboNum = "turboNum";
+static const std::string luaDir = "luaDir";
+static const std::string requirePaths = "requirePaths";
+static const std::string infoGC = "infoGC";
+static const std::string squelchStatus = "squelchStatus";
+
 // configurable options, defaults provided where needed
 static uint32_t s_turboNum = 500;
 static std::string s_luaDir = (std::filesystem::path(gPathMQRoot) / "lua").string();
 static std::vector<std::string> s_requirePaths;
 static uint64_t s_infoGC = 3600000; // 1 hour
+static bool s_squelchStatus = false;
 
 // this is static and will never change
 static std::string s_configPath = (std::filesystem::path(gPathConfig) / "MQ2Lua.yaml").string();
 static YAML::Node s_configNode;
+}
 
 /**
  * \brief a global lua state needed so that thread states don't go out of scope
@@ -110,13 +125,25 @@ void mq::lua::DebugStackTrace(lua_State* L)
 	MacroError("---- End Stack ----\n");
 }
 
+bool mq::lua::DoStatus()
+{
+	return !config::s_squelchStatus;
+}
+
+// overload for convenience
+template <typename... Args>
+void WriteChatStatus(const char* format, Args&&... args)
+{
+	StatusMessage(&WriteChatf, format, std::forward<Args>(args)...);
+}
+
 static void register_globals(sol::state& lua)
 {
 	lua.open_libraries();
 
 	// always search the local dir first, then anything specified by the user, then the default paths
 	static auto package_path = lua["package"]["path"].get<std::string>(); // make this static so we always have the _original_ package paths
-	lua["package"]["path"] = fmt::format("{}\\?.lua;{}{}", s_luaDir, s_requirePaths.empty() ? "" : join(s_requirePaths, ";") + ";", package_path);
+	lua["package"]["path"] = fmt::format("{}\\?.lua;{}{}", config::s_luaDir, config::s_requirePaths.empty() ? "" : join(config::s_requirePaths, ";") + ";", package_path);
 }
 
 #pragma endregion
@@ -266,13 +293,13 @@ public:
 		}
 		case Members::Dir:
 			Dest.Type = pStringType;
-			strcpy_s(DataTypeTemp, s_luaDir.c_str());
+			strcpy_s(DataTypeTemp, config::s_luaDir.c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 
 		case Members::Turbo:
 			Dest.Type = pIntType;
-			Dest.Set(s_turboNum);
+			Dest.Set(config::s_turboNum);
 			return true;
 
 		case Members::RequirePaths:
@@ -361,11 +388,11 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 	if (script)
 	{
 		auto entry = std::make_shared<thread::LuaThread>(s_lua, script.Get());
-		WriteChatf("Running lua script '%s' with PID %d", script.Get().c_str(), entry->PID);
+		WriteChatStatus("Running lua script '%s' with PID %d", script.Get().c_str(), entry->PID);
 		s_running.emplace_back(entry); // this needs to be in the running vector before we run at all
 
 		entry->register_lua_state(entry);
-		auto result = entry->start_file(s_luaDir, s_turboNum, script_args.Get());
+		auto result = entry->start_file(config::s_luaDir, config::s_turboNum, script_args.Get());
 		if (result)
 			s_finished.emplace(result->PID, *result);
 	}
@@ -406,11 +433,11 @@ void EndLuaCommand(SPAWNINFO* pChar, char* Buffer)
 			// this will force the coroutine to yield, and removing this thread from the vector will cause it to gc
 			(*thread_it)->yield_at(0);
 			(*thread_it)->Thread.abandon();
-			WriteChatf("Ending running lua script '%s' with PID %d", (*thread_it)->Name.c_str(), (*thread_it)->PID);
+			WriteChatStatus("Ending running lua script '%s' with PID %d", (*thread_it)->Name.c_str(), (*thread_it)->PID);
 		}
 		else
 		{
-			WriteChatf("No lua script with PID %d to end", pid.Get());
+			WriteChatStatus("No lua script with PID %d to end", pid.Get());
 		}
 	}
 	else
@@ -422,7 +449,7 @@ void EndLuaCommand(SPAWNINFO* pChar, char* Buffer)
 			thread->Thread.abandon();
 		}
 
-		WriteChatf("Ending ALL lua scripts");
+		WriteChatStatus("Ending ALL lua scripts");
 	}
 }
 
@@ -458,11 +485,11 @@ void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
 
 		if (thread_it != s_running.end())
 		{
-			(*thread_it)->State->pause(**thread_it, s_turboNum);
+			(*thread_it)->State->pause(**thread_it, config::s_turboNum);
 		}
 		else
 		{
-			WriteChatf("No lua script with PID %d to pause/resume", pid.Get());
+			WriteChatStatus("No lua script with PID %d to pause/resume", pid.Get());
 		}
 	}
 	else
@@ -474,22 +501,22 @@ void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
 		{
 			// have at least one running script, so pause all running scripts
 			for (auto& thread : s_running)
-				thread->State->pause(*thread, s_turboNum);
+				thread->State->pause(*thread, config::s_turboNum);
 
-			WriteChatf("Pausing ALL running lua scripts");
+			WriteChatStatus("Pausing ALL running lua scripts");
 		}
 		else if (!s_running.empty())
 		{
 			// we have no running scripts, so restart all paused scripts
 			for (auto& thread : s_running)
-				thread->State->pause(*thread, s_turboNum);
+				thread->State->pause(*thread, config::s_turboNum);
 
-			WriteChatf("Resuming ALL paused lua scripts");
+			WriteChatStatus("Resuming ALL paused lua scripts");
 		}
 		else
 		{
 			// there are no scripts running or paused, just inform the user of that
-			WriteChatf("There are no running OR paused lua scripts to pause/resume");
+			WriteChatStatus("There are no running OR paused lua scripts to pause/resume");
 		}
 	}
 }
@@ -519,11 +546,11 @@ void LuaStringCommand(SPAWNINFO* pChar, char* Buffer)
 	if (script)
 	{
 		auto entry = std::make_shared<thread::LuaThread>(s_lua, "/luastring");
-		WriteChatf("Running lua string with PID %d", entry->PID);
+		WriteChatStatus("Running lua string with PID %d", entry->PID);
 		s_running.emplace_back(entry); // this needs to be in the running vector before we run at all
 
 		entry->register_lua_state(entry);
-		auto result = entry->start_string(s_turboNum, join(script.Get(), " "));
+		auto result = entry->start_string(config::s_turboNum, join(script.Get(), " "));
 		if (result)
 			s_finished.emplace(result->PID, *result);
 	}
@@ -531,6 +558,7 @@ void LuaStringCommand(SPAWNINFO* pChar, char* Buffer)
 
 void WriteSettings()
 {
+	using namespace config;
 	if (!s_configNode.IsNull())
 	{
 		YAML::Emitter y_out;
@@ -543,6 +571,7 @@ void WriteSettings()
 
 void ReadSettings()
 {
+	using namespace config;
 	try
 	{
 		s_configNode = YAML::LoadFile(s_configPath.c_str());
@@ -559,16 +588,24 @@ void ReadSettings()
 		WriteSettings();
 	}
 
-	s_turboNum = s_configNode["turboNum"].as<uint32_t>(s_turboNum);
-	s_luaDir = s_configNode["luaDir"].as<std::string>(s_luaDir);
-	s_requirePaths.clear();
-	if (s_configNode["requirePaths"].IsSequence()) // if this is not a sequence, add nothing
+	s_turboNum = s_configNode[turboNum].as<uint32_t>(s_turboNum);
+
+	s_luaDir = s_configNode[luaDir].as<std::string>(s_luaDir);
+	std::error_code ec;
+	if (!std::filesystem::exists(s_luaDir, ec) && !std::filesystem::create_directories(s_luaDir, ec))
 	{
-		for (const auto& path : s_configNode["requirePaths"])
+		WriteChatf("Failed to open or create directory at %s. Scripts will not run.", s_luaDir.c_str());
+		WriteChatf("Error was %s", ec.message().c_str());
+	}
+
+	s_requirePaths.clear();
+	if (s_configNode[requirePaths].IsSequence()) // if this is not a sequence, add nothing
+	{
+		for (const auto& path : s_configNode[requirePaths])
 			s_requirePaths.emplace_back(path.as<std::string>());
 	}
 
-	auto GC_interval = s_configNode["infoGC"].as<std::string>(std::to_string(s_infoGC));
+	auto GC_interval = s_configNode[infoGC].as<std::string>(std::to_string(s_infoGC));
 	trim(GC_interval);
 	if (GC_interval.length() > 1 && GC_interval.find_first_not_of("0123456789") == std::string::npos)
 		std::from_chars(GC_interval.data(), GC_interval.data() + GC_interval.size(), s_infoGC);
@@ -593,11 +630,15 @@ void ReadSettings()
 		if (result >= 0) s_infoGC = result * 1000;
 	}
 
+	s_squelchStatus = s_configNode[squelchStatus].as<bool>(s_squelchStatus);
+
 	WriteSettings();
 }
 
 void LuaConfCommand(SPAWNINFO* pChar, char* Buffer)
 {
+	using namespace config;
+
 	MQ2Args arg_parser("MQ2Lua: A lua script binding plugin.");
 	arg_parser.Prog("/luaconf");
 	arg_parser.RequireCommand(false);
@@ -625,30 +666,30 @@ void LuaConfCommand(SPAWNINFO* pChar, char* Buffer)
 		if (value)
 		{
 			auto to_set = join(value.Get(), " ");
-			WriteChatf("Lua setting %s to %s and saving...", setting.Get().c_str(), to_set.c_str());
+			WriteChatStatus("Lua setting %s to %s and saving...", setting.Get().c_str(), to_set.c_str());
 			s_configNode[setting.Get()] = to_set;
 			WriteSettings();
 			ReadSettings();
 		}
 		else if (s_configNode[setting.Get()])
 		{
-			WriteChatf("Lua setting %s is set to %s.", setting.Get().c_str(), s_configNode[setting.Get()].as<std::string>().c_str());
+			WriteChatStatus("Lua setting %s is set to %s.", setting.Get().c_str(), s_configNode[setting.Get()].as<std::string>().c_str());
 		}
 		else
 		{
-			WriteChatf("Lua setting %s is not set (using default).", setting.Get().c_str());
+			WriteChatStatus("Lua setting %s is not set (using default).", setting.Get().c_str());
 		}
 	}
 	else
 	{
-		WriteChatf("Reloading lua config.");
+		WriteChatStatus("Reloading lua config.");
 		ReadSettings();
 	}
 }
 
 void LuaRestartCommand(SPAWNINFO* pChar, char* Buffer)
 {
-	WriteChatf("Stopping all running lua scripts and restarting the global state.");
+	WriteChatStatus("Stopping all running lua scripts and restarting the global state.");
 	EndLuaCommand(pChar, "");
 
 	ReadSettings();
@@ -678,13 +719,6 @@ PLUGIN_API void InitializePlugin()
 	DebugSpewAlways("MQ2Lua::Initializing version %f", MQ2Version);
 
 	ReadSettings();
-
-	std::error_code ec;
-	if (!std::filesystem::exists(s_luaDir, ec) && !std::filesystem::create_directories(s_luaDir, ec))
-	{
-		WriteChatf("Failed to open or create directory at %s. Scripts will not run.", s_luaDir.c_str());
-		WriteChatf("Error was %s", ec.message().c_str());
-	}
 
 	register_globals(s_lua);
 
@@ -735,11 +769,11 @@ PLUGIN_API void OnPulse()
 {
 	for (const auto& thread : s_running)
 	{
-		auto result = thread->run(s_turboNum);
+		auto result = thread->run(config::s_turboNum);
 
 		if (result.first != sol::thread_status::yielded)
 		{
-			WriteChatf("Ending lua script %s with PID %d and status %d", thread->Name.c_str(), thread->PID, static_cast<int>(result.first));
+			WriteChatStatus("Ending lua script %s with PID %d and status %d", thread->Name.c_str(), thread->PID, static_cast<int>(result.first));
 			auto fin_it = s_finished.find(thread->PID);
 			if (fin_it != s_finished.end())
 			{
@@ -755,7 +789,7 @@ PLUGIN_API void OnPulse()
 		}), s_running.end());
 
 	static uint64_t last_check_time = MQGetTickCount64();
-	if (MQGetTickCount64() >= last_check_time + s_infoGC)
+	if (MQGetTickCount64() >= last_check_time + config::s_infoGC)
 	{
 		// this doesn't need to be super tight, no one should be depending on this clearing objects at exactly the GC
 		// interval, so just clear out anything that existed last time we checked.

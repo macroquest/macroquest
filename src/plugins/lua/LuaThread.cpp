@@ -67,14 +67,14 @@ void RunningState::pause(LuaThread& thread, uint32_t)
 {
 	// this will force the coroutine to yield, and removing this thread from the vector will cause it to gc
 	thread.yield_at(0);
-	WriteChatf("Pausing running lua script '%s' with PID %d", thread.Name.c_str(), thread.PID);
+	StatusMessage(&WriteChatf, "Pausing running lua script '%s' with PID %d", thread.Name.c_str(), thread.PID);
 	thread.State = std::make_unique<PausedState>();
 }
 
 void PausedState::pause(LuaThread& thread, uint32_t turbo)
 {
 	thread.yield_at(turbo);
-	WriteChatf("Resuming paused lua script '%s' with PID %d", thread.Name.c_str(), thread.PID);
+	StatusMessage(&WriteChatf, "Resuming paused lua script '%s' with PID %d", thread.Name.c_str(), thread.PID);
 	thread.State = std::make_unique<RunningState>();
 }
 
@@ -292,7 +292,7 @@ void exit(sol::this_state s)
 	if (thread && !thread->expired())
 	{
 		auto thread_s = thread->lock();
-		WriteChatf("Exit() called in Lua script %s with PID %d", thread_s->Name.c_str(), thread_s->PID);
+		StatusMessage(&WriteChatf, "Exit() called in Lua script %s with PID %d", thread_s->Name.c_str(), thread_s->PID);
 		thread_s->yield_at(0);
 		thread_s->Thread.abandon();
 	}
