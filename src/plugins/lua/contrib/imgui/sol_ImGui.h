@@ -969,7 +969,7 @@ namespace sol_ImGui
 	inline void SliderScalarN()																																							{ /* TODO: SliderScalarN(...) ==> UNSUPPORTED */ }
 	inline std::tuple<float, bool> VSliderFloat(const std::string& label, float sizeX, float sizeY, float v, float v_min, float v_max)													{ bool used = ImGui::VSliderFloat(label.c_str(), { sizeX, sizeY }, &v, v_min, v_max); return std::make_tuple(v, used); }
 	inline std::tuple<float, bool> VSliderFloat(const std::string& label, float sizeX, float sizeY, float v, float v_min, float v_max, const std::string& format)						{ bool used = ImGui::VSliderFloat(label.c_str(), { sizeX, sizeY }, &v, v_min, v_max, format.c_str()); return std::make_tuple(v, used); }
-	inline std::tuple<float, bool> VSliderFloat(const std::string& label, float sizeX, float sizeY, float v, float v_min, float v_max, const std::string& format, float power)			{ bool used = ImGui::VSliderFloat(label.c_str(), { sizeX, sizeY }, &v, v_min, v_max, format.c_str(), power); return std::make_tuple(v, used); }
+	inline std::tuple<float, bool> VSliderFloat(const std::string& label, float sizeX, float sizeY, float v, float v_min, float v_max, const std::string& format, int power)			{ bool used = ImGui::VSliderFloat(label.c_str(), { sizeX, sizeY }, &v, v_min, v_max, format.c_str(), static_cast<ImGuiSliderFlags>(power)); return std::make_tuple(v, used); }
 	inline std::tuple<int, bool> VSliderInt(const std::string& label, float sizeX, float sizeY, int v, int v_min, int v_max)															{ bool used = ImGui::VSliderInt(label.c_str(), { sizeX, sizeY }, &v, v_min, v_max); return std::make_tuple(v, used); }
 	inline std::tuple<int, bool> VSliderInt(const std::string& label, float sizeX, float sizeY, int v, int v_min, int v_max, const std::string& format)									{ bool used = ImGui::VSliderInt(label.c_str(), { sizeX, sizeY }, &v, v_min, v_max, format.c_str()); return std::make_tuple(v, used); }
 	inline void VSliderScalar()																																							{ /* TODO: VSliderScalar(...) ==> UNSUPPORTED */ }
@@ -1992,6 +1992,17 @@ namespace sol_ImGui
 		);
 #pragma endregion DockNode Flags
 
+#pragma region Slider Flags
+		lua.new_enum("ImGuiSliderFlags",
+			"None"							, ImGuiSliderFlags_None,
+			"AlwaysClamp"					, ImGuiSliderFlags_AlwaysClamp,
+			"Logarithmic"					, ImGuiSliderFlags_Logarithmic,
+			"NoRoundToFormat"				, ImGuiSliderFlags_NoRoundToFormat,
+			"NoInput"						, ImGuiSliderFlags_NoInput
+		);
+#pragma endregion
+
+
 #pragma region MouseButton
 		lua.new_enum("ImGuiMouseButton",
 			"ImGuiMouseButton_Left"			, ImGuiMouseButton_Left,
@@ -2414,7 +2425,7 @@ namespace sol_ImGui
 		ImGui.set_function("VSliderFloat"					, sol::overload(
 																sol::resolve<std::tuple<float, bool>(const std::string&, float, float, float, float, float)>(VSliderFloat),
 																sol::resolve<std::tuple<float, bool>(const std::string&, float, float, float, float, float, const std::string&)>(VSliderFloat),
-																sol::resolve<std::tuple<float, bool>(const std::string&, float, float, float, float, float, const std::string&, float)>(VSliderFloat)
+																sol::resolve<std::tuple<float, bool>(const std::string&, float, float, float, float, float, const std::string&, int)>(VSliderFloat)
 															));
 		ImGui.set_function("VSliderInt"						, sol::overload(
 																sol::resolve<std::tuple<int, bool>(const std::string&, float, float, int, int, int)>(VSliderInt),
