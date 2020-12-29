@@ -182,14 +182,14 @@ inline std::vector<std::string_view> tokenize_args(std::string_view line)
     while (s < line.length())
 	{
 		auto c = b + s;
-		if ((*c == ' ' || *c == '\t') && quote == '\0' && *(c - 1) != '\\')
+		if ((*c == ' ' || *c == '\t') && quote == '\0' && (c == std::begin(line) || *(c - 1) != '\\'))
 		{
 			// hit a boundary, let's put it in the vector
 			args.emplace_back(std::string_view(&d[0], std::distance(d, c)));
             for (; s < line.length() && (*(b + s) == ' ' || *(b + s) == '\t'); ++s);
 			d = b + s;
 		}
-		else if (((*c == '"' || *c == '\'') && (quote == *c || quote == '\0') && *(c - 1) != '\\'))
+		else if (((*c == '"' || *c == '\'') && (quote == *c || quote == '\0') && (c == std::begin(line) || *(c - 1) != '\\')))
 		{
             if (quote == '\0')
                 quote = *c;
@@ -197,7 +197,7 @@ inline std::vector<std::string_view> tokenize_args(std::string_view line)
                 quote = '\0';
             ++s;
 		}
-        else if (*c == '{' && *(c - 1) == '$')
+        else if (*c == '{' && c != std::begin(line) && *(c - 1) == '$')
         {
             // This is MQ2 specific handling, we want to allow passing of ${} arguments without needing quotes
             int b_count = 1;
