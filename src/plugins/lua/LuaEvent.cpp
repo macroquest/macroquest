@@ -235,9 +235,8 @@ LuaBind::~LuaBind()
 static void doevents(sol::this_state s)
 {
 	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
-	if (thread && !thread->expired())
+	if (auto thread_ptr = thread.value_or(std::weak_ptr<mq::lua::thread::LuaThread>()).lock())
 	{
-		auto thread_ptr = thread->lock();
 		thread_ptr->EventProcessor->prepare_events();
 		thread_ptr->yield_at(0); // doevents needs to yield, event processing will pick up next frame
 	}
@@ -246,29 +245,29 @@ static void doevents(sol::this_state s)
 static void addevent(std::string_view name, std::string_view expression, sol::function function, sol::this_state s)
 {
 	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
-	if (thread && !thread->expired())
-		thread->lock()->EventProcessor->add_event(name, expression, function);
+	if (auto thread_ptr = thread.value_or(std::weak_ptr<mq::lua::thread::LuaThread>()).lock())
+		thread_ptr->EventProcessor->add_event(name, expression, function);
 }
 
 static void removeevent(std::string_view name, sol::this_state s)
 {
 	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
-	if (thread && !thread->expired())
-		thread->lock()->EventProcessor->remove_event(name);
+	if (auto thread_ptr = thread.value_or(std::weak_ptr<mq::lua::thread::LuaThread>()).lock())
+		thread_ptr->EventProcessor->remove_event(name);
 }
 
 static void addbind(std::string_view name, sol::function function, sol::this_state s)
 {
 	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
-	if (thread && !thread->expired())
-		thread->lock()->EventProcessor->add_bind(name, function);
+	if (auto thread_ptr = thread.value_or(std::weak_ptr<mq::lua::thread::LuaThread>()).lock())
+		thread_ptr->EventProcessor->add_bind(name, function);
 }
 
 static void removebind(std::string_view name, sol::this_state s)
 {
 	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
-	if (thread && !thread->expired())
-		thread->lock()->EventProcessor->remove_bind(name);
+	if (auto thread_ptr = thread.value_or(std::weak_ptr<mq::lua::thread::LuaThread>()).lock())
+		thread_ptr->EventProcessor->remove_bind(name);
 }
 
 void register_lua(sol::table& lua)

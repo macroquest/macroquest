@@ -20,7 +20,6 @@
 #include <mq/Plugin.h>
 #include <mq/utils/Args.h>
 #include <fmt/format.h>
-#include <sol/sol.hpp>
 
 // need to undef this for yaml-cpp to work
 #ifdef IsNaN

@@ -26,8 +26,8 @@
 static void ForceYield(lua_State* L, lua_Debug* D)
 {
 	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(L)["mqthread"];
-	if (thread && !thread->expired())
-		thread->lock()->YieldToFrame = true;
+	if (auto thread_ptr = thread.value_or(std::weak_ptr<mq::lua::thread::LuaThread>()).lock())
+		thread_ptr->YieldToFrame = true;
 
 	lua_yield(L, 0);
 }
@@ -276,10 +276,8 @@ void delay(sol::object delayObj, sol::object conditionObj, sol::this_state s)
 	{
 		std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
 
-		if (thread && !thread->expired())
+		if (auto thread_ptr = thread.value_or(std::weak_ptr<mq::lua::thread::LuaThread>()).lock())
 		{
-			auto thread_s = thread->lock();
-
 			uint64_t delay_ms = std::max(0L, *delay_int * 100L);
 			auto condition = conditionObj.as<std::optional<sol::function>>();
 			if (!condition)
@@ -291,7 +289,7 @@ void delay(sol::object delayObj, sol::object conditionObj, sol::this_state s)
 					// only allocate the string if we need to, but let's help the user and add the return to make this valid code
 					// the temporary string in the else case here only needs to live long enough for the load to happen, it's
 					// fine that it gets destroyed after the result here
-					auto result = thread_s->Thread.state().load(
+					auto result = thread_ptr->Thread.state().load(
 						condition_str->rfind("return ", 0) == 0 ?
 						*condition_str :
 						"return " + std::string(*condition_str));
@@ -304,7 +302,7 @@ void delay(sol::object delayObj, sol::object conditionObj, sol::this_state s)
 				}
 			}
 
-			thread_s->State->set_delay(*thread_s, delay_ms + MQGetTickCount64(), condition);
+			thread_ptr->State->set_delay(*thread_ptr, delay_ms + MQGetTickCount64(), condition);
 		}
 	}
 }
@@ -312,36 +310,36 @@ void delay(sol::object delayObj, sol::object conditionObj, sol::this_state s)
 void exit(sol::this_state s)
 {
 	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
-	if (thread && !thread->expired())
+	if (auto thread_ptr = thread.value_or(std::weak_ptr<mq::lua::thread::LuaThread>()).lock())
 	{
-		auto thread_s = thread->lock();
-		StatusMessage(&WriteChatf, "Exit() called in Lua script %s with PID %d", thread_s->Name.c_str(), thread_s->PID);
-		thread_s->yield_at(0);
-		thread_s->Thread.abandon();
+		StatusMessage(&WriteChatf, "Exit() called in Lua script %s with PID %d", thread_ptr->Name.c_str(), thread_ptr->PID);
+		thread_ptr->yield_at(0);
+		thread_ptr->Thread.abandon();
 	}
 }
 
 int LoadMQRequire(lua_State* L)
 {
 	std::string path = sol::stack::get<std::string>(L);
+	if (path != "mq") return 0;
+
 	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(L)["mqthread"];
-	if (path == "mq" && thread && !thread->expired())
+	if (auto thread_ptr = thread.value_or(std::weak_ptr<mq::lua::thread::LuaThread>()).lock())
 	{
-		auto thread_s = thread->lock();
-		thread_s->GlobalTable = thread_s->Thread.state().create_table();
+		thread_ptr->GlobalTable = thread_ptr->Thread.state().create_table();
 
-		bindings::lua_MQCommand::register_binding(*thread_s->GlobalTable);
-		bindings::lua_MQDataItem::register_binding(*thread_s->GlobalTable);
-		bindings::lua_MQTypeVar::register_binding(*thread_s->GlobalTable);
+		bindings::lua_MQCommand::register_binding(*thread_ptr->GlobalTable);
+		bindings::lua_MQDataItem::register_binding(*thread_ptr->GlobalTable);
+		bindings::lua_MQTypeVar::register_binding(*thread_ptr->GlobalTable);
 
-		(*thread_s->GlobalTable)["delay"] = &delay;
-		(*thread_s->GlobalTable)["join"] = &join;
-		(*thread_s->GlobalTable)["exit"] = &exit;
+		(*thread_ptr->GlobalTable)["delay"] = &delay;
+		(*thread_ptr->GlobalTable)["join"] = &join;
+		(*thread_ptr->GlobalTable)["exit"] = &exit;
 
-		events::register_lua(*thread_s->GlobalTable);
-		imgui::register_lua(*thread_s->GlobalTable);
+		events::register_lua(*thread_ptr->GlobalTable);
+		imgui::register_lua(*thread_ptr->GlobalTable);
 
-		sol::state_view(L).set("_mq_internal_table", *thread_s->GlobalTable);
+		sol::state_view(L).set("_mq_internal_table", *thread_ptr->GlobalTable);
 		std::string script("return _mq_internal_table");
 		luaL_loadbuffer(L, script.data(), script.size(), path.c_str());
 		return 1;

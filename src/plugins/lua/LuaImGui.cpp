@@ -51,15 +51,15 @@ void LuaImGuiProcessor::pulse() const
 static void addimgui(std::string_view name, sol::function function, sol::this_state s)
 {
 	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
-	if (thread && !thread->expired())
-		thread->lock()->ImGuiProcessor->add_callback(name, function);
+	if (auto thread_ptr = thread.value_or(std::weak_ptr<mq::lua::thread::LuaThread>()).lock())
+		thread_ptr->ImGuiProcessor->add_callback(name, function);
 }
 
 static void removeimgui(std::string_view name, sol::this_state s)
 {
 	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
-	if (thread && !thread->expired())
-		thread->lock()->ImGuiProcessor->remove_callback(name);
+	if (auto thread_ptr = thread.value_or(std::weak_ptr<mq::lua::thread::LuaThread>()).lock())
+		thread_ptr->ImGuiProcessor->remove_callback(name);
 }
 
 void register_lua(sol::table& lua)
