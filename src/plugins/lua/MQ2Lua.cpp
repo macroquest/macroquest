@@ -62,14 +62,16 @@ namespace mq::lua::config {
 // provide option strings here
 static const std::string turboNum = "turboNum";
 static const std::string luaDir = "luaDir";
-static const std::string requirePaths = "requirePaths";
+static const std::string luaRequirePaths = "luaRequirePaths";
+static const std::string dllRequirePaths = "dllRequirePaths";
 static const std::string infoGC = "infoGC";
 static const std::string squelchStatus = "squelchStatus";
 
 // configurable options, defaults provided where needed
 static uint32_t s_turboNum = 500;
 static std::string s_luaDir = (std::filesystem::path(gPathMQRoot) / "lua").string();
-static std::vector<std::string> s_requirePaths;
+static std::vector<std::string> s_luaRequirePaths;
+static std::vector<std::string> s_dllRequirePaths;
 static uint64_t s_infoGC = 3600000; // 1 hour
 static bool s_squelchStatus = false;
 
@@ -77,11 +79,6 @@ static bool s_squelchStatus = false;
 static std::string s_configPath = (std::filesystem::path(gPathConfig) / "MQ2Lua.yaml").string();
 static YAML::Node s_configNode;
 }
-
-/**
- * \brief a global lua state needed so that thread states don't go out of scope
- */
-static sol::state s_lua;
 
 // use a vector for s_running because we need to iterate it every pulse, and find only if a command is issued
 std::vector<std::shared_ptr<thread::LuaThread>> s_running;
@@ -139,15 +136,6 @@ template <typename... Args>
 void WriteChatStatus(const char* format, Args&&... args)
 {
 	StatusMessage(&WriteChatf, format, std::forward<Args>(args)...);
-}
-
-static void register_globals(sol::state& lua)
-{
-	lua.open_libraries();
-
-	// always search the local dir first, then anything specified by the user, then the default paths
-	static auto package_path = lua["package"]["path"].get<std::string>(); // make this static so we always have the _original_ package paths
-	lua["package"]["path"] = fmt::format("{}\\?.lua;{}{}", config::s_luaDir, config::s_requirePaths.empty() ? "" : join(config::s_requirePaths, ";") + ";", package_path);
 }
 
 #pragma endregion
@@ -283,6 +271,7 @@ public:
 		Dir,
 		Turbo,
 		RequirePaths,
+		CRequirePaths,
 		Script
 	};
 
@@ -292,6 +281,7 @@ public:
 		ScopedTypeMember(Members, Dir);
 		ScopedTypeMember(Members, Turbo);
 		ScopedTypeMember(Members, RequirePaths);
+		ScopedTypeMember(Members, CRequirePaths);
 		ScopedTypeMember(Members, Script);
 	}
 
@@ -326,7 +316,13 @@ public:
 
 		case Members::RequirePaths:
 			Dest.Type = pStringType;
-			strcpy_s(DataTypeTemp, s_lua["package"]["path"].get<std::string>().c_str());
+			strcpy_s(DataTypeTemp, fmt::format("{}\\?.lua;{}{}", config::s_luaDir, config::s_luaRequirePaths.empty() ? "" : join(config::s_luaRequirePaths, ";")).c_str());
+			Dest.Ptr = &DataTypeTemp[0];
+			return true;
+
+		case Members::CRequirePaths:
+			Dest.Type = pStringType;
+			strcpy_s(DataTypeTemp, fmt::format("{}\\?.dll;{}{}", config::s_luaDir, config::s_dllRequirePaths.empty() ? "" : join(config::s_dllRequirePaths, ";")).c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 
@@ -409,7 +405,7 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 
 	if (script)
 	{
-		auto entry = std::make_shared<thread::LuaThread>(s_lua, script.Get());
+		auto entry = std::make_shared<thread::LuaThread>(script.Get(), config::s_luaDir, config::s_luaRequirePaths, config::s_dllRequirePaths);
 		WriteChatStatus("Running lua script '%s' with PID %d", script.Get().c_str(), entry->pid);
 		s_running.emplace_back(entry); // this needs to be in the running vector before we run at all
 
@@ -567,7 +563,7 @@ void LuaStringCommand(SPAWNINFO* pChar, char* Buffer)
 
 	if (script)
 	{
-		auto entry = std::make_shared<thread::LuaThread>(s_lua, "/luastring");
+		auto entry = std::make_shared<thread::LuaThread>("/luastring", config::s_luaDir, config::s_luaRequirePaths, config::s_dllRequirePaths);
 		WriteChatStatus("Running lua string with PID %d", entry->pid);
 		s_running.emplace_back(entry); // this needs to be in the running vector before we run at all
 
@@ -621,14 +617,25 @@ void ReadSettings()
 		WriteChatf("Error was %s", ec.message().c_str());
 	}
 
-	s_requirePaths.clear();
-	if (s_configNode[requirePaths].IsSequence()) // if this is not a sequence, add nothing
+	s_luaRequirePaths.clear();
+	if (s_configNode[luaRequirePaths].IsSequence()) // if this is not a sequence, add nothing
 	{
-		for (const auto& path : s_configNode[requirePaths])
+		for (const auto& path : s_configNode[luaRequirePaths])
 		{
 			auto fin_path = std::filesystem::path(path.as<std::string>());
 			if (fin_path.is_relative()) fin_path = std::filesystem::path(gPathMQRoot) / fin_path;
-			s_requirePaths.emplace_back(fin_path.string());
+			s_luaRequirePaths.emplace_back(fin_path.string());
+		}
+	}
+
+	s_dllRequirePaths.clear();
+	if (s_configNode[dllRequirePaths].IsSequence()) // if this is not a sequence, add nothing
+	{
+		for (const auto& path : s_configNode[dllRequirePaths])
+		{
+			auto fin_path = std::filesystem::path(path.as<std::string>());
+			if (fin_path.is_relative()) fin_path = std::filesystem::path(gPathMQRoot) / fin_path;
+			s_dllRequirePaths.emplace_back(fin_path.string());
 		}
 	}
 
@@ -660,7 +667,6 @@ void ReadSettings()
 	s_squelchStatus = s_configNode[squelchStatus].as<bool>(s_squelchStatus);
 
 	WriteSettings();
-	register_globals(s_lua);
 }
 
 void LuaConfCommand(SPAWNINFO* pChar, char* Buffer)
@@ -717,12 +723,10 @@ void LuaConfCommand(SPAWNINFO* pChar, char* Buffer)
 
 void LuaRestartCommand(SPAWNINFO* pChar, char* Buffer)
 {
-	WriteChatStatus("Stopping all running lua scripts and restarting the global state.");
+	WriteChatStatus("Stopping all running lua scripts and re-reading the settings.");
 	EndLuaCommand(pChar, "");
 
 	s_running.clear();
-	s_lua = sol::state();
-
 	ReadSettings();
 }
 

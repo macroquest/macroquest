@@ -93,17 +93,26 @@ void PausedState::Pause(LuaThread& thread, uint32_t turbo)
 	thread.state = std::make_unique<RunningState>();
 }
 
-LuaThread::LuaThread(const sol::state_view& state, std::string_view name) :
-	thread(sol::thread::create(state)),
-	globalState(state),
-	environment(sol::environment(state, sol::create, state.globals())),
+LuaThread::LuaThread(std::string_view name, std::string_view luaDir, const std::vector<std::string>& luaRequire, const std::vector<std::string>& dllRequire) :
+	globalState(sol::state()),
 	name(name),
 	state(std::make_unique<RunningState>()),
 	eventProcessor(std::make_unique<events::LuaEventProcessor>(this)),
 	imguiProcessor(std::make_unique<imgui::LuaImGuiProcessor>(this)),
-	pid(NextID()),
-	hookProtectionCount(0)
+	pid(NextID())
 {
+	globalState.open_libraries();
+
+	// always search the local dir first, then anything specified by the user, then the default paths
+	static auto package_path = globalState["package"]["path"].get<std::string>(); // make this static so we always have the _original_ package paths
+	globalState["package"]["path"] = fmt::format("{}\\?.lua;{}{}", luaDir, luaRequire.empty() ? "" : mq::join(luaRequire, ";") + ";", package_path);
+
+	static auto package_cpath = globalState["package"]["cpath"].get<std::string>();
+	globalState["package"]["cpath"] = fmt::format("{}\\?.dll;{}{}", luaDir, dllRequire.empty() ? "" : mq::join(dllRequire, ";") + ";", package_cpath);
+
+	environment = sol::environment(globalState, sol::create, globalState.globals());
+
+	thread = sol::thread::create(globalState);
 	environment.set_on(thread);
 }
 
@@ -132,6 +141,8 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(std::string_view luaDir, uint3
 	auto script_path = std::filesystem::path(name);
 	if (script_path.is_relative()) script_path = luaDir / script_path;
 	if (!script_path.has_extension()) script_path += ".lua";
+
+	path = script_path.string();
 
 	if (!std::filesystem::exists(script_path))
 	{
@@ -368,10 +379,11 @@ void LuaThread::RegisterLuaState(std::shared_ptr<LuaThread> self_ptr)
 
 	thread.state()["_old_dofile"] = thread.state()["dofile"];
 	thread.state()["dofile"] = [this](std::string_view file, sol::variadic_args args) {
+		auto file_path = std::filesystem::path(path).parent_path() / file;
 		if (hookProtectionCount++ == 0)
 			lua_sethook(thread.state(), NULL, 0, 0);
 
-		auto ret = thread.state()["_old_dofile"](file, args);
+		auto ret = thread.state()["_old_dofile"](file_path.string(), args);
 
 		if (--hookProtectionCount < 0)
 			hookProtectionCount = 0;

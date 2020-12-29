@@ -45,12 +45,15 @@ struct LuaThreadInfo
 struct ThreadState;
 struct LuaThread
 {
+	// this needs to be first in initialization order because other things depend on it
+	sol::state globalState;
+
 	sol::thread thread;
 	sol::coroutine coroutine;
-	sol::state_view globalState;
 	sol::environment environment;
 	std::optional<sol::table> globalTable;
 	std::string name;
+	std::string path;
 	std::unique_ptr<ThreadState> state;
 	std::unique_ptr<events::LuaEventProcessor> eventProcessor;
 	std::unique_ptr<imgui::LuaImGuiProcessor> imguiProcessor;
@@ -66,7 +69,7 @@ struct LuaThread
 		return ++current;
 	}
 
-	LuaThread(const sol::state_view& state, std::string_view name);
+	LuaThread(std::string_view name, std::string_view luaDir, const std::vector<std::string>& luaRequire, const std::vector<std::string>& dllRequire);
 	LuaThread() = delete;
 	LuaThread(const LuaThread&) = delete;
 	LuaThread(LuaThread&&) = delete;
