@@ -625,7 +625,11 @@ void ReadSettings()
 	if (s_configNode[requirePaths].IsSequence()) // if this is not a sequence, add nothing
 	{
 		for (const auto& path : s_configNode[requirePaths])
-			s_requirePaths.emplace_back(path.as<std::string>());
+		{
+			auto fin_path = std::filesystem::path(path.as<std::string>());
+			if (fin_path.is_relative()) fin_path = std::filesystem::path(gPathMQRoot) / fin_path;
+			s_requirePaths.emplace_back(fin_path.string());
+		}
 	}
 
 	auto GC_interval = s_configNode[infoGC].as<std::string>(std::to_string(s_infoGC));
