@@ -24,41 +24,41 @@ lua_MQTypeVar::lua_MQTypeVar(const std::string& str)
 	auto* const type = FindMQ2DataType(str.c_str());
 	if (type != nullptr)
 	{
-		Self->Type = type;
+		self->Type = type;
 	}
 }
 
-lua_MQTypeVar::lua_MQTypeVar(const MQTypeVar& self) : Self(std::make_unique<MQTypeVar>(self)) {}
+lua_MQTypeVar::lua_MQTypeVar(const MQTypeVar& self) : self(std::make_unique<MQTypeVar>(self)) {}
 
 bool lua_MQTypeVar::operator==(const lua_MQTypeVar& right) const
 {
-	return evaluate_member() == right.evaluate_member();
+	return EvaluateMember() == right.EvaluateMember();
 }
 
-bool lua_MQTypeVar::equal_data(const lua_MQDataItem& right) const
+bool lua_MQTypeVar::EqualData(const lua_MQDataItem& right) const
 {
-	return *this == right.evaluate_self();
+	return *this == right.EvaluateSelf();
 }
 
-bool lua_MQTypeVar::equal_nil(const sol::lua_nil_t&) const
+bool lua_MQTypeVar::EqualNil(const sol::lua_nil_t&) const
 {
-	return evaluate_member().Type == nullptr;
+	return EvaluateMember().Type == nullptr;
 }
 
-MQTypeVar& lua_MQTypeVar::evaluate_member(char* index) const
+MQTypeVar& lua_MQTypeVar::EvaluateMember(char* index) const
 {
-	if (Self->Type != nullptr && !Member.empty() && !Self->Type->GetMember(Self->GetVarPtr(), &Member[0], index, *Self))
+	if (self->Type != nullptr && !member.empty() && !self->Type->GetMember(self->GetVarPtr(), &member[0], index, *self))
 	{
-		// can't guarantee result didn't get modified, but we want to return nil if GetMember was false
-		Self->Type = nullptr;
+		// can't guarantee result didn't Get modified, but we want to return nil if GetMember was false
+		self->Type = nullptr;
 	}
 
-	return *Self;
+	return *self;
 }
 
-std::string lua_MQTypeVar::to_string(const lua_MQTypeVar& obj)
+std::string lua_MQTypeVar::ToString(const lua_MQTypeVar& obj)
 {
-	auto var = obj.evaluate_member();
+	auto var = obj.EvaluateMember();
 	if (var.Type != nullptr)
 	{
 		char buf[2048] = { 0 };
@@ -69,24 +69,24 @@ std::string lua_MQTypeVar::to_string(const lua_MQTypeVar& obj)
 	return "null";
 }
 
-sol::object lua_MQTypeVar::call(std::string index, sol::this_state L) const
+sol::object lua_MQTypeVar::Call(std::string index, sol::this_state L) const
 {
-	return sol::object(L, sol::in_place, lua_MQTypeVar(evaluate_member(&index[0])));
+	return sol::object(L, sol::in_place, lua_MQTypeVar(EvaluateMember(&index[0])));
 }
 
-sol::object lua_MQTypeVar::call_int(int index, sol::this_state L) const
+sol::object lua_MQTypeVar::CallInt(int index, sol::this_state L) const
 {
-	return call(std::to_string(index), L);
+	return Call(std::to_string(index), L);
 }
 
-sol::object lua_MQTypeVar::call_va(sol::this_state L, sol::variadic_args args) const
+sol::object lua_MQTypeVar::CallVA(sol::this_state L, sol::variadic_args args) const
 {
-	return call(thread::join(L, ",", args), L);
+	return Call(thread::join(L, ",", args), L);
 }
 
-sol::object lua_MQTypeVar::call_empty(sol::this_state L) const
+sol::object lua_MQTypeVar::CallEmpty(sol::this_state L) const
 {
-	auto result = evaluate_member();
+	auto result = EvaluateMember();
 
 	if (result.Type == nullptr)
 		return sol::object(L, sol::in_place, sol::lua_nil);
@@ -107,7 +107,7 @@ sol::object lua_MQTypeVar::call_empty(sol::this_state L) const
 	case MQVarPtr::VariantIdx::UInt64:
 		return sol::object(L, sol::in_place, result.Get<uint64_t>());
 	case MQVarPtr::VariantIdx::String:
-		// if we know it's a string, let's get a string explicitly
+		// if we know it's a string, let's Get a string explicitly
 		return sol::object(L, sol::in_place, result.Get<CXStr>().c_str());
 	default:
 		// by default run it through the tostring conversion because we are assuming calling with empty parens means
@@ -118,13 +118,13 @@ sol::object lua_MQTypeVar::call_empty(sol::this_state L) const
 	}
 }
 
-sol::object lua_MQTypeVar::get(sol::stack_object key, sol::this_state L) const
+sol::object lua_MQTypeVar::Get(sol::stack_object key, sol::this_state L) const
 {
-	auto var = lua_MQTypeVar(evaluate_member());
+	auto var = lua_MQTypeVar(EvaluateMember());
 	auto maybe_key = key.as<std::optional<std::string_view>>();
 
 	if (maybe_key)
-		var.Member = *maybe_key;
+		var.member = *maybe_key;
 
 	return sol::object(L, sol::in_place, std::move(var));
 }
@@ -148,13 +148,13 @@ lua_MQTypeVar sol_lua_get(sol::types<lua_MQTypeVar>, lua_State* L, int index, so
 	if (sol::stack::check_usertype<lua_MQTypeVar>(L, index))
 	{
 		lua_MQTypeVar& var = sol::stack::get_usertype<lua_MQTypeVar>(L, index, tracking);
-		return lua_MQTypeVar(var.evaluate_member());
+		return lua_MQTypeVar(var.EvaluateMember());
 	}
 
 	if (sol::stack::check_usertype<lua_MQDataItem>(L, index))
 	{
 		lua_MQDataItem& data = sol::stack::get_usertype<lua_MQDataItem>(L, index, tracking);
-		return data.evaluate_self();
+		return data.EvaluateSelf();
 	}
 
 	return lua_MQTypeVar(MQTypeVar()); // this will eventually evaluate to a nil, but we need it to stay in userdata until actual evaluation
@@ -162,17 +162,17 @@ lua_MQTypeVar sol_lua_get(sol::types<lua_MQTypeVar>, lua_State* L, int index, so
 
 std::ostream& operator<<(std::ostream& os, const lua_MQTypeVar& item)
 {
-	os << lua_MQTypeVar::to_string(item);
+	os << lua_MQTypeVar::ToString(item);
 	return os;
 }
 
-void lua_MQTypeVar::register_binding(sol::table& lua)
+void lua_MQTypeVar::RegisterBinding(sol::table& lua)
 {
 	lua.new_usertype<lua_MQTypeVar>("type",
 		sol::constructors<lua_MQTypeVar(const std::string&)>(),
-		sol::meta_function::call, sol::overload(&lua_MQTypeVar::call, &lua_MQTypeVar::call_int, &lua_MQTypeVar::call_empty, &lua_MQTypeVar::call_va),
-		sol::meta_function::index, &lua_MQTypeVar::get,
-		sol::meta_function::equal_to, sol::overload(&lua_MQTypeVar::operator==, &lua_MQTypeVar::equal_data, &lua_MQTypeVar::equal_nil));
+		sol::meta_function::call, sol::overload(&lua_MQTypeVar::Call, &lua_MQTypeVar::CallInt, &lua_MQTypeVar::CallEmpty, &lua_MQTypeVar::CallVA),
+		sol::meta_function::index, &lua_MQTypeVar::Get,
+		sol::meta_function::equal_to, sol::overload(&lua_MQTypeVar::operator==, &lua_MQTypeVar::EqualData, &lua_MQTypeVar::EqualNil));
 
 	lua["null"] = lua_MQTypeVar(MQTypeVar());
 }

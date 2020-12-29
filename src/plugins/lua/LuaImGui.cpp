@@ -22,47 +22,47 @@
 namespace mq::lua::imgui {
 
 LuaImGuiProcessor::LuaImGuiProcessor(const thread::LuaThread* thread)
-	: Thread(thread)
+	: thread(thread)
 {}
 
 LuaImGuiProcessor::~LuaImGuiProcessor() {}
 
-void LuaImGuiProcessor::add_callback(std::string_view name, sol::function callback)
+void LuaImGuiProcessor::AddCallback(std::string_view name, sol::function callback)
 {
-	auto im_state = sol::thread::create(Thread->Thread.state()).state();
+	auto im_state = sol::thread::create(thread->thread.state()).state();
 	sol_ImGui::Init(im_state);
-	ImGuis.emplace_back(new LuaImGui(name, sol::function(im_state, callback)));
+	imguis.emplace_back(new LuaImGui(name, sol::function(im_state, callback)));
 }
 
-void LuaImGuiProcessor::remove_callback(std::string_view name)
+void LuaImGuiProcessor::RemoveCallback(std::string_view name)
 {
-	ImGuis.erase(std::remove_if(ImGuis.begin(), ImGuis.end(), [&name](const std::unique_ptr<LuaImGui>& im)
+	imguis.erase(std::remove_if(imguis.begin(), imguis.end(), [&name](const std::unique_ptr<LuaImGui>& im)
 		{
-			return im->Name == name;
-		}), ImGuis.end());
+			return im->name == name;
+		}), imguis.end());
 }
 
-void LuaImGuiProcessor::pulse() const
+void LuaImGuiProcessor::Pulse() const
 {
-	for (auto& im : ImGuis)
-		im->pulse();
+	for (auto& im : imguis)
+		im->Pulse();
 }
 
 static void addimgui(std::string_view name, sol::function function, sol::this_state s)
 {
 	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
 	if (auto thread_ptr = thread.value_or(std::weak_ptr<mq::lua::thread::LuaThread>()).lock())
-		thread_ptr->ImGuiProcessor->add_callback(name, function);
+		thread_ptr->imguiProcessor->AddCallback(name, function);
 }
 
 static void removeimgui(std::string_view name, sol::this_state s)
 {
 	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
 	if (auto thread_ptr = thread.value_or(std::weak_ptr<mq::lua::thread::LuaThread>()).lock())
-		thread_ptr->ImGuiProcessor->remove_callback(name);
+		thread_ptr->imguiProcessor->RemoveCallback(name);
 }
 
-void register_lua(sol::table& lua)
+void RegisterLua(sol::table& lua)
 {
 	lua["imgui"] = lua.create_with(
 		"init", &addimgui,
@@ -71,16 +71,16 @@ void register_lua(sol::table& lua)
 }
 
 LuaImGui::LuaImGui(std::string_view name, const sol::function& callback) :
-	Name(name), Callback(callback) {}
+	name(name), callback(callback) {}
 
 LuaImGui::~LuaImGui() {}
 
-void LuaImGui::pulse() const
+void LuaImGui::Pulse() const
 {
 	try
 	{
-		lua_sethook(Callback.lua_state(), NULL, 0, 0); // remove any existing hooks, they will be re-installed when running in onpulse
-		auto result = Callback();
+		lua_sethook(callback.lua_state(), NULL, 0, 0); // remove any existing hooks, they will be re-installed when running in onpulse
+		auto result = callback();
 		if (!result.valid())
 		{
 			sol::error err = std::move(result);

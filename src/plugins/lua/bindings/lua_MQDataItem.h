@@ -24,28 +24,28 @@ namespace mq::lua::bindings {
 struct lua_MQTypeVar;
 struct lua_MQDataItem
 {
-	const MQDataItem* const Self;
-	lua_MQDataItem() : Self(nullptr) {}
+	const MQDataItem* const self;
+	lua_MQDataItem() : self(nullptr) {}
 
-	// this will allow users an alternate way to get data items
+	// this will allow users an alternate way to Get data items
 	lua_MQDataItem(const std::string& str);
-	lua_MQDataItem(const MQDataItem* const self) : Self(self) {}
-	lua_MQTypeVar evaluate_self() const;
+	lua_MQDataItem(const MQDataItem* const self) : self(self) {}
+	lua_MQTypeVar EvaluateSelf() const;
 	bool operator==(const lua_MQDataItem& right) const;
-	bool equal_var(const lua_MQTypeVar& right) const;
-	bool equal_nil(const sol::lua_nil_t&) const;
-	static std::string to_string(const lua_MQDataItem& data);
-	sol::object call(const std::string& index, sol::this_state L) const;
-	sol::object call_int(int index, sol::this_state L) const;
-	sol::object call_va(sol::this_state L, sol::variadic_args args) const;
-	sol::object call_empty(sol::this_state L) const;
-	sol::object get(sol::stack_object key, sol::this_state L) const;
-	static void register_binding(sol::table& lua);
+	bool EqualVar(const lua_MQTypeVar& right) const;
+	bool EqualNil(const sol::lua_nil_t&) const;
+	static std::string ToString(const lua_MQDataItem& data);
+	sol::object Call(const std::string& index, sol::this_state L) const;
+	sol::object CallInt(int index, sol::this_state L) const;
+	sol::object CallVA(sol::this_state L, sol::variadic_args args) const;
+	sol::object CallEmpty(sol::this_state L) const;
+	sol::object Get(sol::stack_object key, sol::this_state L) const;
+	static void RegisterBinding(sol::table& lua);
 };
 
 struct lua_MQTLO
 {
-	sol::object get(sol::stack_object key, sol::this_state L) const;
+	sol::object Get(sol::stack_object key, sol::this_state L) const;
 };
 
 } // namespace mq::lua::bindings

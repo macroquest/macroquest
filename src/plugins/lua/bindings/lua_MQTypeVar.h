@@ -25,8 +25,8 @@ namespace mq::lua::bindings {
 struct lua_MQDataItem;
 struct lua_MQTypeVar
 {
-	std::unique_ptr<MQTypeVar> Self;
-	std::string Member;
+	std::unique_ptr<MQTypeVar> self;
+	std::string member;
 
 	lua_MQTypeVar(const std::string& str);
 
@@ -36,16 +36,16 @@ struct lua_MQTypeVar
 	 */
 	lua_MQTypeVar(const MQTypeVar& self);
 	bool operator==(const lua_MQTypeVar& right) const;
-	bool equal_data(const lua_MQDataItem& right) const;
-	bool equal_nil(const sol::lua_nil_t&) const;
-	MQTypeVar& evaluate_member(char* index = nullptr) const;
-	static std::string to_string(const lua_MQTypeVar& obj);
-	sol::object call(std::string index, sol::this_state L) const;
-	sol::object call_int(int index, sol::this_state L) const;
-	sol::object call_va(sol::this_state L, sol::variadic_args args) const;
-	sol::object call_empty(sol::this_state L) const;
-	sol::object get(sol::stack_object key, sol::this_state L) const;
-	static void register_binding(sol::table& lua);
+	bool EqualData(const lua_MQDataItem& right) const;
+	bool EqualNil(const sol::lua_nil_t&) const;
+	MQTypeVar& EvaluateMember(char* index = nullptr) const;
+	static std::string ToString(const lua_MQTypeVar& obj);
+	sol::object Call(std::string index, sol::this_state L) const;
+	sol::object CallInt(int index, sol::this_state L) const;
+	sol::object CallVA(sol::this_state L, sol::variadic_args args) const;
+	sol::object CallEmpty(sol::this_state L) const;
+	sol::object Get(sol::stack_object key, sol::this_state L) const;
+	static void RegisterBinding(sol::table& lua);
 };
 
 } // namespace mq::lua::bindings

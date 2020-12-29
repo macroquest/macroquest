@@ -21,7 +21,7 @@ namespace mq::lua::bindings {
 void lua_MQCommand::operator()(sol::variadic_args va, sol::this_state s)
 {
 	fmt::memory_buffer cmd;
-	fmt::format_to(cmd, "{}", Command);
+	fmt::format_to(cmd, "{}", command);
 	for (const auto& a : va)
 	{
 		auto value = luaL_tolstring(a.lua_state(), a.stack_index(), NULL);
@@ -32,7 +32,7 @@ void lua_MQCommand::operator()(sol::variadic_args va, sol::this_state s)
 	HideDoCommand(pLocalPlayer, fmt::to_string(cmd).c_str(), false);
 }
 
-sol::object lua_MQDoCommand::get(sol::stack_object key, sol::this_state L) const
+sol::object lua_MQDoCommand::Get(sol::stack_object key, sol::this_state L) const
 {
 	auto maybe_key = key.as<std::optional<std::string>>();
 	if (maybe_key)
@@ -46,14 +46,14 @@ sol::object lua_MQDoCommand::get(sol::stack_object key, sol::this_state L) const
 	return sol::object(L, sol::in_place, sol::lua_nil);
 }
 
-void mq::lua::bindings::lua_MQCommand::register_binding(sol::table& lua)
+void mq::lua::bindings::lua_MQCommand::RegisterBinding(sol::table& lua)
 {
 	lua.new_usertype<lua_MQCommand>("command",
 		sol::no_constructor);
 
 	lua.new_usertype<lua_MQDoCommand>("docommand",
 		sol::no_constructor,
-		sol::meta_function::index, &lua_MQDoCommand::get);
+		sol::meta_function::index, &lua_MQDoCommand::Get);
 
 	lua["cmd"] = lua_MQDoCommand();
 	lua["print"] = lua["cmd"]["echo"];

@@ -22,30 +22,30 @@ namespace mq::lua::thread {
 
 namespace mq::lua::imgui {
 
-void register_lua(sol::table& lua);
+void RegisterLua(sol::table& lua);
 
 struct LuaImGui
 {
-	std::string Name;
-	sol::function Callback;
+	std::string name;
+	sol::function callback;
 
 	LuaImGui(std::string_view name, const sol::function& callback);
 	~LuaImGui();
 
-	void pulse() const;
+	void Pulse() const;
 };
 
 struct LuaImGuiProcessor
 {
-	const thread::LuaThread* Thread;
-	std::vector<std::unique_ptr<LuaImGui>> ImGuis;
+	const thread::LuaThread* thread;
+	std::vector<std::unique_ptr<LuaImGui>> imguis;
 
 	LuaImGuiProcessor(const thread::LuaThread* thread);
 	~LuaImGuiProcessor();
 
-	void add_callback(std::string_view name, sol::function callback);
-	void remove_callback(std::string_view name);
-	void pulse() const;
+	void AddCallback(std::string_view name, sol::function callback);
+	void RemoveCallback(std::string_view name);
+	void Pulse() const;
 };
 
 } // namespace mq::lua::imgui

@@ -19,73 +19,73 @@
 
 namespace mq::lua::bindings {
 
-lua_MQTypeVar lua_MQDataItem::evaluate_self() const
+lua_MQTypeVar lua_MQDataItem::EvaluateSelf() const
 {
 	MQTypeVar result;
-	if (Self != nullptr)
-		Self->Function("", result);
+	if (self != nullptr)
+		self->Function("", result);
 
 	return lua_MQTypeVar(result);
 }
 
 bool lua_MQDataItem::operator==(const lua_MQDataItem& right) const
 {
-	return evaluate_self() == right.evaluate_self();
+	return EvaluateSelf() == right.EvaluateSelf();
 }
 
-bool lua_MQDataItem::equal_var(const lua_MQTypeVar& right) const
+bool lua_MQDataItem::EqualVar(const lua_MQTypeVar& right) const
 {
-	return evaluate_self() == right;
+	return EvaluateSelf() == right;
 }
 
-bool lua_MQDataItem::equal_nil(const sol::lua_nil_t&) const
+bool lua_MQDataItem::EqualNil(const sol::lua_nil_t&) const
 {
-	return evaluate_self().Self->Type == nullptr;
+	return EvaluateSelf().self->Type == nullptr;
 }
 
-std::string lua_MQDataItem::to_string(const lua_MQDataItem& data)
+std::string lua_MQDataItem::ToString(const lua_MQDataItem& data)
 {
-	return lua_MQTypeVar::to_string(data.evaluate_self());
+	return lua_MQTypeVar::ToString(data.EvaluateSelf());
 }
 
-sol::object lua_MQDataItem::call(const std::string& index, sol::this_state L) const
+sol::object lua_MQDataItem::Call(const std::string& index, sol::this_state L) const
 {
 	MQTypeVar result;
-	if (Self != nullptr && Self->Function(index.c_str(), result))
+	if (self != nullptr && self->Function(index.c_str(), result))
 		return sol::object(L, sol::in_place, lua_MQTypeVar(result));
 
 	return sol::object(L, sol::in_place, lua_MQTypeVar(MQTypeVar()));
 }
 
-sol::object lua_MQDataItem::call_int(int index, sol::this_state L) const
+sol::object lua_MQDataItem::CallInt(int index, sol::this_state L) const
 {
-	return call(std::to_string(index), L);
+	return Call(std::to_string(index), L);
 }
 
-sol::object lua_MQDataItem::call_va(sol::this_state L, sol::variadic_args args) const
+sol::object lua_MQDataItem::CallVA(sol::this_state L, sol::variadic_args args) const
 {
-	return call(thread::join(L, ",", args), L);
+	return Call(thread::join(L, ",", args), L);
 }
 
-sol::object lua_MQDataItem::call_empty(sol::this_state L) const
+sol::object lua_MQDataItem::CallEmpty(sol::this_state L) const
 {
 	MQTypeVar result;
-	if (Self != nullptr && Self->Function("", result))
-		return lua_MQTypeVar(result).call_empty(L);
+	if (self != nullptr && self->Function("", result))
+		return lua_MQTypeVar(result).CallEmpty(L);
 
 	return sol::object(L, sol::in_place, sol::lua_nil);
 }
 
-sol::object lua_MQDataItem::get(sol::stack_object key, sol::this_state L) const
+sol::object lua_MQDataItem::Get(sol::stack_object key, sol::this_state L) const
 {
 	MQTypeVar result;
-	if (Self != nullptr && Self->Function("", result))
-		return lua_MQTypeVar(result).get(key, L);
+	if (self != nullptr && self->Function("", result))
+		return lua_MQTypeVar(result).Get(key, L);
 
 	return sol::object(L, sol::in_place, lua_MQTypeVar(MQTypeVar()));
 }
 
-lua_MQDataItem::lua_MQDataItem(const std::string& str) : Self(FindMQ2Data(str.c_str())) {}
+lua_MQDataItem::lua_MQDataItem(const std::string& str) : self(FindMQ2Data(str.c_str())) {}
 
 template <typename Handler>
 bool sol_lua_check(sol::types<lua_MQDataItem>, lua_State* L, int index, Handler&& handler, sol::stack::record& tracking)
@@ -111,7 +111,7 @@ lua_MQDataItem sol_lua_get(sol::types<lua_MQDataItem>, lua_State* L, int index, 
 	return lua_MQDataItem();
 }
 
-sol::object lua_MQTLO::get(sol::stack_object key, sol::this_state L) const
+sol::object lua_MQTLO::Get(sol::stack_object key, sol::this_state L) const
 {
 	auto maybe_key = key.as<std::optional<std::string>>();
 	if (maybe_key)
@@ -126,21 +126,21 @@ sol::object lua_MQTLO::get(sol::stack_object key, sol::this_state L) const
 
 std::ostream& operator<<(std::ostream& os, const lua_MQDataItem& item)
 {
-	os << lua_MQDataItem::to_string(item);
+	os << lua_MQDataItem::ToString(item);
 	return os;
 }
 
-void lua_MQDataItem::register_binding(sol::table& lua)
+void lua_MQDataItem::RegisterBinding(sol::table& lua)
 {
 	lua.new_usertype<lua_MQDataItem>("data",
 		sol::constructors<lua_MQDataItem(const std::string&)>(),
-		sol::meta_function::call, sol::overload(&lua_MQDataItem::call, &lua_MQDataItem::call_int, &lua_MQDataItem::call_empty, &lua_MQDataItem::call_va),
-		sol::meta_function::index, &lua_MQDataItem::get,
-		sol::meta_function::equal_to, sol::overload(&lua_MQDataItem::operator==, &lua_MQDataItem::equal_var, &lua_MQDataItem::equal_nil));
+		sol::meta_function::call, sol::overload(&lua_MQDataItem::Call, &lua_MQDataItem::CallInt, &lua_MQDataItem::CallEmpty, &lua_MQDataItem::CallVA),
+		sol::meta_function::index, &lua_MQDataItem::Get,
+		sol::meta_function::equal_to, sol::overload(&lua_MQDataItem::operator==, &lua_MQDataItem::EqualVar, &lua_MQDataItem::EqualNil));
 
 	lua.new_usertype<lua_MQTLO>("tlo",
 		sol::no_constructor,
-		sol::meta_function::index, &lua_MQTLO::get);
+		sol::meta_function::index, &lua_MQTLO::Get);
 
 	lua["TLO"] = lua_MQTLO();
 }

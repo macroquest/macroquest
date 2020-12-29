@@ -46,8 +46,6 @@
 PreSetup("MQ2Lua");
 PLUGIN_VERSION(0.1);
 
-// TODO: Add multi-returns
-
 // TODO: Add aggressive bind/event options that scriptwriters can set with functions
 // TODO: Add OnExit callbacks (potentially both as an explicit argument to exit and a set callback)
 
@@ -199,58 +197,58 @@ public:
 		{
 		case Members::PID:
 			Dest.Type = pIntType;
-			Dest.Set(info->PID);
+			Dest.Set(info->pid);
 			return true;
 
 		case Members::Name:
 			Dest.Type = pStringType;
-			strcpy_s(DataTypeTemp, MAX_STRING, info->Name.c_str());
+			strcpy_s(DataTypeTemp, MAX_STRING, info->name.c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 
 		case Members::Path:
 			Dest.Type = pStringType;
-			strcpy_s(DataTypeTemp, MAX_STRING, info->Path.c_str());
+			strcpy_s(DataTypeTemp, MAX_STRING, info->path.c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 
 		case Members::Arguments:
 			Dest.Type = pStringType;
-			strcpy_s(DataTypeTemp, MAX_STRING, join(info->Arguments, ",").c_str());
+			strcpy_s(DataTypeTemp, MAX_STRING, join(info->arguments, ",").c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 
 		case Members::StartTime:
 			Dest.Type = pInt64Type;
-			Dest.Set(info->StartTime);
+			Dest.Set(info->startTime);
 			return true;
 
 		case Members::EndTime:
 			Dest.Type = pInt64Type;
-			Dest.Set(info->EndTime);
+			Dest.Set(info->endTime);
 			return true;
 
 		case Members::ReturnCount:
 			Dest.Type = pIntType;
-			Dest.Set(info->Return.size());
+			Dest.Set(info->returnValues.size());
 			return true;
 
 		case Members::Return:
 			Dest.Type = pStringType;
-			if (info->Return.empty())
+			if (info->returnValues.empty())
 				return false;
 
 			if (!Index || !Index[0])
 			{
-				strcpy_s(DataTypeTemp, MAX_STRING, join(info->Return, ",").c_str());
+				strcpy_s(DataTypeTemp, MAX_STRING, join(info->returnValues, ",").c_str());
 			}
 			else
 			{
 				int index = GetIntFromString(Index, 0) - 1;
-				if (index < 0 || index >= static_cast<int>(info->Return.size()))
+				if (index < 0 || index >= static_cast<int>(info->returnValues.size()))
 					return false;
 
-				strcpy_s(DataTypeTemp, MAX_STRING, info->Return.at(index).c_str());
+				strcpy_s(DataTypeTemp, MAX_STRING, info->returnValues.at(index).c_str());
 			}
 
 			Dest.Ptr = &DataTypeTemp[0];
@@ -264,10 +262,10 @@ public:
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
 		auto info = VarPtr.Get<thread::LuaThreadInfo>();
-		if (!info || info->Return.empty())
+		if (!info || info->returnValues.empty())
 			return false;
 
-		strcpy_s(Destination, MAX_STRING, join(info->Return, ",").c_str());
+		strcpy_s(Destination, MAX_STRING, join(info->returnValues, ",").c_str());
 		return true;
 	}
 
@@ -310,7 +308,7 @@ public:
 			Dest.Type = pStringType;
 			std::vector<std::string> pids;
 			std::transform(s_running.cbegin(), s_running.cend(), std::back_inserter(pids),
-				[](const auto& thread) { return std::to_string(thread->PID); });
+				[](const auto& thread) { return std::to_string(thread->pid); });
 			strcpy_s(DataTypeTemp, join(pids, ",").c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
@@ -344,11 +342,11 @@ public:
 				auto latest = s_finished.cbegin();
 				for (auto it = s_finished.cbegin(); it != s_finished.cend(); ++it)
 				{
-					if (it->second.EndTime > 0 && it->second.StartTime > latest->second.StartTime)
+					if (it->second.endTime > 0 && it->second.startTime > latest->second.startTime)
 						latest = it;
 				}
 
-				if (latest->second.EndTime > 0)
+				if (latest->second.endTime > 0)
 				{
 					Dest.Set(latest->second);
 					return true;
@@ -412,13 +410,13 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 	if (script)
 	{
 		auto entry = std::make_shared<thread::LuaThread>(s_lua, script.Get());
-		WriteChatStatus("Running lua script '%s' with PID %d", script.Get().c_str(), entry->PID);
+		WriteChatStatus("Running lua script '%s' with PID %d", script.Get().c_str(), entry->pid);
 		s_running.emplace_back(entry); // this needs to be in the running vector before we run at all
 
-		entry->register_lua_state(entry);
-		auto result = entry->start_file(config::s_luaDir, config::s_turboNum, script_args.Get());
+		entry->RegisterLuaState(entry);
+		auto result = entry->StartFile(config::s_luaDir, config::s_turboNum, script_args.Get());
 		if (result)
-			s_finished.emplace(result->PID, *result);
+			s_finished.emplace(result->pid, *result);
 	}
 }
 
@@ -449,15 +447,15 @@ void EndLuaCommand(SPAWNINFO* pChar, char* Buffer)
 	{
 		auto thread_it = std::find_if(s_running.begin(), s_running.end(), [&pid](const auto& thread) -> bool
 			{
-				return thread->PID == pid.Get();
+				return thread->pid == pid.Get();
 			});
 
 		if (thread_it != s_running.end())
 		{
 			// this will force the coroutine to yield, and removing this thread from the vector will cause it to gc
-			(*thread_it)->yield_at(0);
-			(*thread_it)->Thread.abandon();
-			WriteChatStatus("Ending running lua script '%s' with PID %d", (*thread_it)->Name.c_str(), (*thread_it)->PID);
+			(*thread_it)->YieldAt(0);
+			(*thread_it)->thread.abandon();
+			WriteChatStatus("Ending running lua script '%s' with PID %d", (*thread_it)->name.c_str(), (*thread_it)->pid);
 		}
 		else
 		{
@@ -469,8 +467,8 @@ void EndLuaCommand(SPAWNINFO* pChar, char* Buffer)
 		// kill all scripts
 		for (auto& thread : s_running)
 		{
-			thread->yield_at(0);
-			thread->Thread.abandon();
+			thread->YieldAt(0);
+			thread->thread.abandon();
 		}
 
 		WriteChatStatus("Ending ALL lua scripts");
@@ -504,12 +502,12 @@ void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
 	{
 		auto thread_it = std::find_if(s_running.begin(), s_running.end(), [&pid](const auto& thread) -> bool
 			{
-				return thread->PID == pid.Get();
+				return thread->pid == pid.Get();
 			});
 
 		if (thread_it != s_running.end())
 		{
-			(*thread_it)->State->pause(**thread_it, config::s_turboNum);
+			(*thread_it)->state->Pause(**thread_it, config::s_turboNum);
 		}
 		else
 		{
@@ -518,14 +516,14 @@ void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
 	}
 	else
 	{
-		// try to get the user's intention here. If all scripts are running/paused, batch toggle state. If there are any running, assume we want to pause those only.
+		// try to Get the user's intention here. If all scripts are running/paused, batch toggle state. If there are any running, assume we want to pause those only.
 		if (std::find_if(s_running.cbegin(), s_running.cend(), [](const auto& thread) -> bool {
-			return thread->State->is_paused();
+			return thread->state->IsPaused();
 			}) != s_running.cend())
 		{
 			// have at least one running script, so pause all running scripts
 			for (auto& thread : s_running)
-				thread->State->pause(*thread, config::s_turboNum);
+				thread->state->Pause(*thread, config::s_turboNum);
 
 			WriteChatStatus("Pausing ALL running lua scripts");
 		}
@@ -533,7 +531,7 @@ void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
 		{
 			// we have no running scripts, so restart all paused scripts
 			for (auto& thread : s_running)
-				thread->State->pause(*thread, config::s_turboNum);
+				thread->state->Pause(*thread, config::s_turboNum);
 
 			WriteChatStatus("Resuming ALL paused lua scripts");
 		}
@@ -570,13 +568,13 @@ void LuaStringCommand(SPAWNINFO* pChar, char* Buffer)
 	if (script)
 	{
 		auto entry = std::make_shared<thread::LuaThread>(s_lua, "/luastring");
-		WriteChatStatus("Running lua string with PID %d", entry->PID);
+		WriteChatStatus("Running lua string with PID %d", entry->pid);
 		s_running.emplace_back(entry); // this needs to be in the running vector before we run at all
 
-		entry->register_lua_state(entry);
-		auto result = entry->start_string(config::s_turboNum, join(script.Get(), " "));
+		entry->RegisterLuaState(entry);
+		auto result = entry->StartString(config::s_turboNum, join(script.Get(), " "));
 		if (result)
-			s_finished.emplace(result->PID, *result);
+			s_finished.emplace(result->pid, *result);
 	}
 }
 
@@ -785,27 +783,27 @@ PLUGIN_API void ShutdownPlugin()
  * This is called each time MQ2 goes through its heartbeat (pulse) function.
  *
  * Because this happens very frequently, it is recommended to have a timer or
- * counter at the start of this call to limit the amount of times the code in
+ * counter at the start of this Call to limit the amount of times the code in
  * this section is executed.
  */
 PLUGIN_API void OnPulse()
 {
 	s_running.erase(std::remove_if(s_running.begin(), s_running.end(), [](const auto& thread) -> bool
 		{
-			if (thread->Coroutine.status() != sol::call_status::yielded)
+			if (thread->coroutine.status() != sol::call_status::yielded)
 			{
-				WriteChatStatus("Ending lua script %s with PID %d and status %d", thread->Name.c_str(), thread->PID, static_cast<int>(thread->Coroutine.status()));
+				WriteChatStatus("Ending lua script %s with PID %d and status %d", thread->name.c_str(), thread->pid, static_cast<int>(thread->coroutine.status()));
 				return true;
 			}
 
-			auto result = thread->run(config::s_turboNum);
+			auto result = thread->Run(config::s_turboNum);
 
 			if (result.first != sol::thread_status::yielded)
 			{
-				WriteChatStatus("Ending lua script %s with PID %d and status %d", thread->Name.c_str(), thread->PID, static_cast<int>(result.first));
-				auto fin_it = s_finished.find(thread->PID);
+				WriteChatStatus("Ending lua script %s with PID %d and status %d", thread->name.c_str(), thread->pid, static_cast<int>(result.first));
+				auto fin_it = s_finished.find(thread->pid);
 				if (fin_it != s_finished.end() && result.second)
-					fin_it->second.set_result(*result.second);
+					fin_it->second.SetResult(*result.second);
 
 				return true;
 			}
@@ -820,7 +818,7 @@ PLUGIN_API void OnPulse()
 		// interval, so just clear out anything that existed last time we checked.
 		for (auto it = s_finished.begin(); it != s_finished.end();)
 		{
-			if (it->second.EndTime > 0 && it->second.EndTime <= last_check_time)
+			if (it->second.endTime > 0 && it->second.endTime <= last_check_time)
 				it = s_finished.erase(it);
 			else
 				++it;
@@ -837,13 +835,13 @@ PLUGIN_API void OnPulse()
  * and update plugin specific widgets.
  *
  * Because this happens extremely frequently, it is recommended to move any actual
- * work to a separate call and use this only for updating the display.
+ * work to a separate Call and use this only for updating the display.
  */
 PLUGIN_API void OnUpdateImGui()
 {
 	for (const auto& thread : s_running)
 	{
-		thread->ImGuiProcessor->pulse();
+		thread->imguiProcessor->Pulse();
 	}
 }
 
@@ -872,8 +870,8 @@ PLUGIN_API void OnWriteChatColor(const char* Line, int Color, int Filter)
 {
 	for (const auto& thread : s_running)
 	{
-		if (!thread->State->is_paused())
-			thread->EventProcessor->process(Line);
+		if (!thread->state->IsPaused())
+			thread->eventProcessor->Process(Line);
 	}
 }
 
@@ -896,8 +894,8 @@ PLUGIN_API bool OnIncomingChat(const char* Line, DWORD Color)
 {
 	for (const auto& thread : s_running)
 	{
-		if (!thread->State->is_paused())
-			thread->EventProcessor->process(Line);
+		if (!thread->state->IsPaused())
+			thread->eventProcessor->Process(Line);
 	}
 
 	return false;
