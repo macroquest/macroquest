@@ -37,7 +37,9 @@ struct LuaThreadInfo
 	std::vector<std::string> Arguments;
 	uint64_t StartTime;
 	uint64_t EndTime;
-	std::optional<std::string> Return;
+	std::vector<std::string> Return;
+
+	void set_result(const sol::protected_function_result& result);
 };
 
 struct ThreadState;

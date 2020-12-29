@@ -47,6 +47,8 @@
 PreSetup("MQ2Lua");
 PLUGIN_VERSION(0.1);
 
+// TODO: Add multi-returns
+
 // TODO: Add aggressive bind/event options that scriptwriters can set with functions
 // TODO: Add OnExit callbacks (potentially both as an explicit argument to exit and a set callback)
 
@@ -168,6 +170,7 @@ public:
 		Arguments,
 		StartTime,
 		EndTime,
+		ReturnCount,
 		Return
 	};
 
@@ -179,6 +182,7 @@ public:
 		ScopedTypeMember(Members, Arguments);
 		ScopedTypeMember(Members, StartTime);
 		ScopedTypeMember(Members, EndTime);
+		ScopedTypeMember(Members, ReturnCount);
 		ScopedTypeMember(Members, Return);
 	};
 
@@ -227,15 +231,31 @@ public:
 			Dest.Set(info->EndTime);
 			return true;
 
+		case Members::ReturnCount:
+			Dest.Type = pIntType;
+			Dest.Set(info->Return.size());
+			return true;
+
 		case Members::Return:
 			Dest.Type = pStringType;
-			if (info->Return)
+			if (info->Return.empty())
+				return false;
+
+			if (!Index || !Index[0])
 			{
-				strcpy_s(DataTypeTemp, MAX_STRING, info->Return->c_str());
-				Dest.Ptr = &DataTypeTemp[0];
-				return true;
+				strcpy_s(DataTypeTemp, MAX_STRING, join(info->Return, ",").c_str());
 			}
-			return false;
+			else
+			{
+				int index = GetIntFromString(Index, 0) - 1;
+				if (index < 0 || index >= static_cast<int>(info->Return.size()))
+					return false;
+
+				strcpy_s(DataTypeTemp, MAX_STRING, info->Return.at(index).c_str());
+			}
+
+			Dest.Ptr = &DataTypeTemp[0];
+			return true;
 
 		default:
 			return false;
@@ -245,10 +265,10 @@ public:
 	bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
 		auto info = VarPtr.Get<thread::LuaThreadInfo>();
-		if (!info || !info->Return)
+		if (!info || info->Return.empty())
 			return false;
 
-		strcpy_s(Destination, MAX_STRING, info->Return->c_str());
+		strcpy_s(Destination, MAX_STRING, join(info->Return, ",").c_str());
 		return true;
 	}
 
@@ -771,25 +791,27 @@ PLUGIN_API void ShutdownPlugin()
  */
 PLUGIN_API void OnPulse()
 {
-	for (const auto& thread : s_running)
-	{
-		auto result = thread->run(config::s_turboNum);
-
-		if (result.first != sol::thread_status::yielded)
-		{
-			WriteChatStatus("Ending lua script %s with PID %d and status %d", thread->Name.c_str(), thread->PID, static_cast<int>(result.first));
-			auto fin_it = s_finished.find(thread->PID);
-			if (fin_it != s_finished.end())
-			{
-				fin_it->second.EndTime = MQGetTickCount64();
-				if (result.second) fin_it->second.Return = result.second->get<std::string>();
-			}
-		}
-	}
-
 	s_running.erase(std::remove_if(s_running.begin(), s_running.end(), [](const auto& thread) -> bool
 		{
-			return !thread->Thread.valid() || thread->Thread.status() != sol::thread_status::yielded;
+			if (thread->Coroutine.status() != sol::call_status::yielded)
+			{
+				WriteChatStatus("Ending lua script %s with PID %d and status %d", thread->Name.c_str(), thread->PID, static_cast<int>(thread->Coroutine.status()));
+				return true;
+			}
+
+			auto result = thread->run(config::s_turboNum);
+
+			if (result.first != sol::thread_status::yielded)
+			{
+				WriteChatStatus("Ending lua script %s with PID %d and status %d", thread->Name.c_str(), thread->PID, static_cast<int>(result.first));
+				auto fin_it = s_finished.find(thread->PID);
+				if (fin_it != s_finished.end() && result.second)
+					fin_it->second.set_result(*result.second);
+
+				return true;
+			}
+
+			return false;
 		}), s_running.end());
 
 	static uint64_t last_check_time = MQGetTickCount64();

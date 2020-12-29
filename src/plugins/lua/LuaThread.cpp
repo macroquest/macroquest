@@ -152,20 +152,24 @@ std::optional<LuaThreadInfo> LuaThread::start_file(std::string_view luaDir, uint
 
 	auto start_time = MQGetTickCount64();
 	auto result = run_co(Coroutine, args);
-	return LuaThreadInfo{
+
+	auto ret = LuaThreadInfo{
 		PID,
 		Name,
 		script_path.string(),
 		args,
 		start_time,
-		!result || result->status() != sol::call_status::yielded ? MQGetTickCount64() : 0UL,
-		result ? *result : std::optional<std::string>(std::nullopt)
+		0ULL,
+		{}
 	};
+
+	if (result) ret.set_result(*result);
+	return ret;
 }
 
 std::optional<LuaThreadInfo> LuaThread::start_string(uint32_t turbo, std::string_view script)
 {
-	auto co = Thread.state().load(fmt::format("mq = require('mq')\nreturn {}", script));
+	auto co = Thread.state().load(fmt::format("mq = require('mq')\n{}", script));
 	if (!co.valid())
 	{
 		sol::error err = co;
@@ -178,15 +182,19 @@ std::optional<LuaThreadInfo> LuaThread::start_string(uint32_t turbo, std::string
 
 	auto start_time = MQGetTickCount64();
 	auto result = run_co(Coroutine);
-	return LuaThreadInfo{
+
+	auto ret = LuaThreadInfo{
 		PID,
 		Name,
 		"string",
 		{},
 		start_time,
-		!result || result->status() != sol::call_status::yielded ? MQGetTickCount64() : 0UL,
-		result ? *result : std::optional<std::string>(std::nullopt)
+		0ULL,
+		{}
 	};
+
+	if (result) ret.set_result(*result);
+	return ret;
 }
 
 std::pair<sol::thread_status, std::optional<sol::protected_function_result>> LuaThread::run(uint32_t turbo)
@@ -381,4 +389,20 @@ void LuaThread::register_lua_state(std::shared_ptr<LuaThread> self_ptr)
 	Thread.state().add_package_loader(LoadMQRequire);
 }
 
+void LuaThreadInfo::set_result(const sol::protected_function_result& result)
+{
+	if (result.status() != sol::call_status::yielded && result.return_count() > 1)
+	{
+		EndTime = MQGetTickCount64();
+		if (result.return_count() > 1)
+		{
+			Return = std::vector<std::string>(result.return_count() - 1);
+			// need to skip the first "return" (which is not a return, it's at index + 0) which is the function itself
+			for (int i = 1; i < result.return_count(); ++i)
+			{
+				Return[i - 1] = luaL_tolstring(result.lua_state(), result.stack_index() + i, NULL);
+			}
+		}
+	}
+}
 } // namespace mq::lua::thread
