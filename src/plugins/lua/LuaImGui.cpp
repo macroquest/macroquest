@@ -29,9 +29,9 @@ LuaImGuiProcessor::~LuaImGuiProcessor() {}
 
 void LuaImGuiProcessor::AddCallback(std::string_view name, sol::function callback)
 {
-	auto im_state = sol::thread::create(thread->thread.state()).state();
-	sol_ImGui::Init(im_state);
-	imguis.emplace_back(new LuaImGui(name, sol::function(im_state, callback)));
+	auto im_thread = sol::thread::create(thread->thread.state());
+	sol_ImGui::Init(im_thread.state());
+	imguis.emplace_back(new LuaImGui(name, im_thread, callback));
 }
 
 void LuaImGuiProcessor::RemoveCallback(std::string_view name)
@@ -44,6 +44,9 @@ void LuaImGuiProcessor::RemoveCallback(std::string_view name)
 
 void LuaImGuiProcessor::Pulse() const
 {
+	// remove any existing hooks, they will be re-installed when running in onpulse
+	lua_sethook(thread->thread.lua_state(), NULL, 0, 0);
+
 	for (auto& im : imguis)
 		im->Pulse();
 }
@@ -70,8 +73,8 @@ void RegisterLua(sol::table& lua)
 	);
 }
 
-LuaImGui::LuaImGui(std::string_view name, const sol::function& callback) :
-	name(name), callback(callback) {}
+LuaImGui::LuaImGui(std::string_view name, const sol::thread& thread, const sol::function& callback) :
+	name(name), thread(thread), callback(callback) {}
 
 LuaImGui::~LuaImGui() {}
 
@@ -79,8 +82,7 @@ void LuaImGui::Pulse() const
 {
 	try
 	{
-		lua_sethook(callback.lua_state(), NULL, 0, 0); // remove any existing hooks, they will be re-installed when running in onpulse
-		auto result = callback();
+		auto result = sol::function(thread.state(), callback)();
 		if (!result.valid())
 		{
 			sol::error err = std::move(result);

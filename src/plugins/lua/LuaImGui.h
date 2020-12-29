@@ -27,9 +27,10 @@ void RegisterLua(sol::table& lua);
 struct LuaImGui
 {
 	std::string name;
+	sol::thread thread;
 	sol::function callback;
 
-	LuaImGui(std::string_view name, const sol::function& callback);
+	LuaImGui(std::string_view name, const sol::thread& thread, const sol::function& callback);
 	~LuaImGui();
 
 	void Pulse() const;
