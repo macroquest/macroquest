@@ -17,6 +17,10 @@
 #include <sol/sol.hpp>
 #include <utility>
 
+// define some macros so that we don't have to depends on MQ headers in this file
+#define WriteChatStatus(format, ...) StatusMessage(&WriteChatf, format, __VA_ARGS__)
+#define LuaError(format, ...) ErrorMessage(&WriteChatColorf, format, CONCOLOR_RED, __VA_ARGS__)
+
 namespace mq::lua {
 
 void DebugStackTrace(lua_State* L);
@@ -29,6 +33,14 @@ void StatusMessage(Writer writer, const char* format, Args&&... args)
 {
 	if (DoStatus())
 		writer(format, std::forward<Args>(args)...);
+}
+
+using ColorWriter = void(*)(const char*, int, ...);
+
+template <typename... Args>
+void ErrorMessage(ColorWriter writer, const char* format, int color, Args&&... args)
+{
+	writer(format, color, std::forward<Args>(args)...);
 }
 
 namespace thread {

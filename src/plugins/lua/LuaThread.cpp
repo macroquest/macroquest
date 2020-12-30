@@ -46,7 +46,7 @@ bool ThreadState::CheckCondition(const LuaThread& thread, std::optional<sol::fun
 		}
 		catch (sol::error& e)
 		{
-			MacroError("Failed to check delay condition check with error '%s'", e.what());
+			LuaError("Failed to check delay condition check with error '%s'", e.what());
 			func = std::nullopt;
 		}
 	}
@@ -82,14 +82,14 @@ void RunningState::Pause(LuaThread& thread, uint32_t)
 {
 	// this will force the coroutine to yield, and removing this thread from the vector will cause it to gc
 	thread.YieldAt(0);
-	StatusMessage(&WriteChatf, "Pausing running lua script '%s' with PID %d", thread.name.c_str(), thread.pid);
+	WriteChatStatus("Pausing running lua script '%s' with PID %d", thread.name.c_str(), thread.pid);
 	thread.state = std::make_unique<PausedState>();
 }
 
 void PausedState::Pause(LuaThread& thread, uint32_t turbo)
 {
 	thread.YieldAt(turbo);
-	StatusMessage(&WriteChatf, "Resuming paused lua script '%s' with PID %d", thread.name.c_str(), thread.pid);
+	WriteChatStatus("Resuming paused lua script '%s' with PID %d", thread.name.c_str(), thread.pid);
 	thread.state = std::make_unique<RunningState>();
 }
 
@@ -129,7 +129,7 @@ std::optional<sol::protected_function_result> RunCoroutine(sol::coroutine& co, c
 	}
 	catch (sol::error& e)
 	{
-		MacroError("%s", e.what());
+		LuaError("%s", e.what());
 		DebugStackTrace(co.lua_state());
 	}
 
@@ -146,7 +146,7 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(std::string_view luaDir, uint3
 
 	if (!std::filesystem::exists(script_path))
 	{
-		MacroError("Could not find script at path %s", script_path.string().c_str());
+		LuaError("Could not find script at path %s", script_path.string().c_str());
 		return std::nullopt;
 	}
 
@@ -154,7 +154,7 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(std::string_view luaDir, uint3
 	if (!co.valid())
 	{
 		sol::error err = co;
-		MacroError("Failed to load script %s with error: %s", name.c_str(), err.what());
+		LuaError("Failed to load script %s with error: %s", name.c_str(), err.what());
 		return std::nullopt;
 	}
 
@@ -184,7 +184,7 @@ std::optional<LuaThreadInfo> LuaThread::StartString(uint32_t turbo, std::string_
 	if (!co.valid())
 	{
 		sol::error err = co;
-		MacroError("Failed to load script with error: %s", err.what());
+		LuaError("Failed to load script with error: %s", err.what());
 		return std::nullopt;
 	}
 
@@ -323,7 +323,7 @@ void exit(sol::this_state s)
 	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
 	if (auto thread_ptr = thread.value_or(std::weak_ptr<mq::lua::thread::LuaThread>()).lock())
 	{
-		StatusMessage(&WriteChatf, "Exit() called in Lua script %s with PID %d", thread_ptr->name.c_str(), thread_ptr->pid);
+		WriteChatStatus("Exit() called in Lua script %s with PID %d", thread_ptr->name.c_str(), thread_ptr->pid);
 		thread_ptr->YieldAt(0);
 		thread_ptr->thread.abandon();
 	}

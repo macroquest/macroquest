@@ -91,7 +91,7 @@ void LuaImGui::Pulse() const
 	}
 	catch (sol::error& e)
 	{
-		MacroError("ImGui Failure:\n%s", e.what());
+		LuaError("ImGui Failure:\n%s", e.what());
 	}
 }
 

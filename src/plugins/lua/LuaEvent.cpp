@@ -90,11 +90,11 @@ void LuaEventProcessor::AddBind(std::string_view name, const sol::function& func
 	std::string bind_name(name);
 	if (IsCommand(bind_name.c_str()))
 	{
-		MacroError("Cannot bind %s, already bound in MQ.", bind_name.c_str());
+		LuaError("Cannot bind %s, already bound in MQ.", bind_name.c_str());
 	}
 	else if (bind_name.empty() || bind_name[0] != '/')
 	{
-		MacroError("Cannot bind %s, not a valid command string.", bind_name.c_str());
+		LuaError("Cannot bind %s, not a valid command string.", bind_name.c_str());
 	}
 	else
 	{

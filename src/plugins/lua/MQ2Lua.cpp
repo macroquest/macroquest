@@ -85,57 +85,50 @@ std::vector<std::shared_ptr<thread::LuaThread>> s_running;
 
 std::unordered_map<uint32_t, thread::LuaThreadInfo> s_finished;
 
-#pragma region Bindings
+#pragma region Shared Function Definitions
 
 void mq::lua::DebugStackTrace(lua_State* L)
 {
 	lua_Debug ar;
 	lua_getstack(L, 1, &ar);
 	lua_getinfo(L, "nSl", &ar);
-	MacroError("%s: %s (%s)", ar.what, ar.name, ar.namewhat);
-	MacroError("Line %i in %s", ar.currentline, ar.short_src);
+	LuaError("%s: %s (%s)", ar.what, ar.name, ar.namewhat);
+	LuaError("Line %i in %s", ar.currentline, ar.short_src);
 
 	int top = lua_gettop(L);
-	MacroError("---- Begin Stack (size: %i) ----", top);
+	LuaError("---- Begin Stack (size: %i) ----", top);
 	for (int i = top; i >= 1; i--)
 	{
 		int t = lua_type(L, i);
 		switch (t)
 		{
 		case LUA_TSTRING:
-			MacroError("%i -- (%i) ---- `%s'", i, i - (top + 1), lua_tostring(L, i));
+			LuaError("%i -- (%i) ---- `%s'", i, i - (top + 1), lua_tostring(L, i));
 			break;
 
 		case LUA_TBOOLEAN:
-			MacroError("%i -- (%i) ---- %s", i, i - (top + 1), lua_toboolean(L, i) ? "true" : "false");
+			LuaError("%i -- (%i) ---- %s", i, i - (top + 1), lua_toboolean(L, i) ? "true" : "false");
 			break;
 
 		case LUA_TNUMBER:
-			MacroError("%i -- (%i) ---- %g", i, i - (top + 1), lua_tonumber(L, i));
+			LuaError("%i -- (%i) ---- %g", i, i - (top + 1), lua_tonumber(L, i));
 			break;
 
 		case LUA_TUSERDATA:
-			MacroError("%i -- (%i) ---- [%s]", i, i - (top + 1), luaL_tolstring(L, i, NULL));
+			LuaError("%i -- (%i) ---- [%s]", i, i - (top + 1), luaL_tolstring(L, i, NULL));
 			break;
 
 		default:
-			MacroError("%i -- (%i) ---- %s", i, i - (top + 1), lua_typename(L, t));
+			LuaError("%i -- (%i) ---- %s", i, i - (top + 1), lua_typename(L, t));
 			break;
 		}
 	}
-	MacroError("---- End Stack ----\n");
+	LuaError("---- End Stack ----\n");
 }
 
 bool mq::lua::DoStatus()
 {
 	return !config::s_squelchStatus;
-}
-
-// overload for convenience
-template <typename... Args>
-void WriteChatStatus(const char* format, Args&&... args)
-{
-	StatusMessage(&WriteChatf, format, std::forward<Args>(args)...);
 }
 
 #pragma endregion
