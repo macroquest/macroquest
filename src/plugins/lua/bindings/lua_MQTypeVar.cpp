@@ -47,7 +47,8 @@ bool lua_MQTypeVar::EqualNil(const sol::lua_nil_t&) const
 
 MQTypeVar& lua_MQTypeVar::EvaluateMember(char* index) const
 {
-	if (self->Type != nullptr && !member.empty() && !self->Type->GetMember(self->GetVarPtr(), &member[0], index, *self))
+	// the ternary in index is because datatypes are all over the place on whether or not they can accept null pointers. They all seem to agree that an empty string is the same thing, though.
+	if (self->Type != nullptr && !member.empty() && !self->Type->GetMember(self->GetVarPtr(), &member[0], index ? index : "", *self))
 	{
 		// can't guarantee result didn't Get modified, but we want to return nil if GetMember was false
 		self->Type = nullptr;
