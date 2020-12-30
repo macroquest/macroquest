@@ -13,7 +13,7 @@
  */
 
 #pragma once
-#define SOL_LUAJIT 1
+
 #include <sol/sol.hpp>
 #include <utility>
 

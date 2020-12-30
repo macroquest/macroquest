@@ -67,6 +67,7 @@ powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(Proje
     <ClCompile>
       <AdditionalIncludeDirectories>$(ProjectDir);$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\include\luajit;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PreprocessorDefinitions>SOL_LUAJIT=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>libyaml-cppmdd.lib;lua51.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -75,6 +76,7 @@ powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(Proje
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <AdditionalIncludeDirectories>$(ProjectDir);$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\include\luajit;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SOL_LUAJIT=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <PostBuildEvent>
       <Command>
