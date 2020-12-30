@@ -43,7 +43,7 @@ powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(Proje
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
-    <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), src\Plugin.props))\src\Plugin.props" Condition=" '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), src\Plugin.props))' != '' " />
+    <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), src\Plugin.props))\src\Plugin.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
@@ -68,6 +68,9 @@ powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(Proje
       <AdditionalIncludeDirectories>$(ProjectDir);$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\include\luajit;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>libyaml-cppmdd;lua51;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -77,6 +80,9 @@ powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(Proje
       <Command>
       </Command>
     </PostBuildEvent>
+    <Link>
+      <AdditionalDependencies>libyaml-cppmd;lua51;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="bindings\lua_MQCommand.cpp" />
@@ -106,7 +112,7 @@ powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(Proje
     <ClInclude Include="LuaThread.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <Import Project="$(MQ2Root)contrib\vcpkg\scripts\buildsystems\msbuild\vcpkg.targets" Condition="exists('$(MQ2Root)contrib\vcpkg\scripts\buildsystems\msbuild\vcpkg.targets')" />
+  <Import Project="$(MQ2Root)contrib\vcpkg\scripts\buildsystems\msbuild\vcpkg.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>
