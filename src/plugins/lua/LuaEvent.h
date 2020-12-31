@@ -46,11 +46,13 @@ struct LuaBind
 {
 	const std::string name;
 	const sol::function function;
-	uint8_t* callback;
 	LuaEventProcessor* processor;
 
 	LuaBind(const std::string& name, const sol::function& function, LuaEventProcessor* processor);
 	~LuaBind();
+
+private:
+	std::unique_ptr<uint8_t[]> callback;
 };
 
 template <typename T>
@@ -59,6 +61,17 @@ struct LuaEventInstance
 	T* definition;
 	std::vector<std::string> args;
 	sol::thread thread;
+
+	LuaEventInstance(T* definition, std::vector<std::string> args, sol::thread thread)
+		: definition(definition)
+		, args(std::move(args))
+		, thread(std::move(thread))
+	{}
+
+	LuaEventInstance(T* definition, sol::thread thread)
+		: definition(definition)
+		, thread(std::move(thread))
+	{}
 };
 
 struct LuaEventProcessor

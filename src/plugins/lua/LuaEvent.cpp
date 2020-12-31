@@ -47,7 +47,7 @@ void CALLBACK LuaEventCallback(unsigned int ID, void* pData, PBLECHVALUE pValues
 
 	if (args.empty())
 	{
-		def->processor->eventsPending.emplace_back(LuaEventInstance<LuaEvent>{ def, {}, std::move(event_thread) });
+		def->processor->eventsPending.emplace_back(def, std::move(event_thread));
 	}
 	else
 	{
@@ -57,7 +57,7 @@ void CALLBACK LuaEventCallback(unsigned int ID, void* pData, PBLECHVALUE pValues
 		for (const auto& a : args)
 			ordered_args[a.first - 1] = a.second;
 
-		def->processor->eventsPending.emplace_back(LuaEventInstance<LuaEvent>{ def, ordered_args, std::move(event_thread) });
+		def->processor->eventsPending.emplace_back(def, std::move(ordered_args), std::move(event_thread));
 	}
 }
 
@@ -74,7 +74,7 @@ LuaEventProcessor::~LuaEventProcessor()
 
 void LuaEventProcessor::AddEvent(std::string_view name, std::string_view expression, const sol::function& function)
 {
-	eventDefinitions.emplace_back(std::make_unique<LuaEvent>(name, expression, function, this));
+	eventDefinitions.push_back(std::make_unique<LuaEvent>(name, expression, function, this));
 }
 
 void LuaEventProcessor::RemoveEvent(std::string_view name)
@@ -100,7 +100,7 @@ void LuaEventProcessor::AddBind(std::string_view name, const sol::function& func
 	}
 	else
 	{
-		bindDefinitions.emplace_back(std::make_unique<LuaBind>(bind_name, function, this));
+		bindDefinitions.push_back(std::make_unique<LuaBind>(bind_name, function, this));
 	}
 }
 
@@ -158,16 +158,26 @@ void LuaEventProcessor::RunEvents(const thread::LuaThread& thread)
 
 void LuaEventProcessor::PrepareEvents()
 {
-	for (const auto& e : eventsPending)
-		eventsRunning.emplace_back(sol::coroutine(e.thread.state(), e.definition->function), e.args);
+	for (auto& e : eventsPending)
+	{
+		eventsRunning.emplace_back(
+			std::piecewise_construct,
+			std::forward_as_tuple(e.thread.state(), std::move(e.definition->function)),
+			std::forward_as_tuple(std::move(e.args)));
+	}
 
 	eventsPending.clear();
 }
 
 void LuaEventProcessor::PrepareBinds()
 {
-	for (const auto& b : bindsPending)
-		bindsRunning.emplace_back(sol::coroutine(b.thread.state(), b.definition->function), b.args);
+	for (auto& b : bindsPending)
+	{
+		bindsRunning.emplace_back(
+			std::piecewise_construct,
+			std::forward_as_tuple(b.thread.state(), std::move(b.definition->function)),
+			std::forward_as_tuple(std::move(b.args)));
+	}
 
 	bindsPending.clear();
 }
@@ -198,17 +208,23 @@ static void BindHelper(LuaBind* bind, const char* args)
 	auto& args_view = tokenize_args(args);
 	if (args_view.empty())
 	{
-		bind->processor->bindsPending.emplace_back(LuaEventInstance<LuaBind>{ bind, {}, std::move(bind_thread) });
+		bind->processor->bindsPending.emplace_back(bind, std::move(bind_thread));
 	}
 	else
 	{
 		std::vector<std::string> args_vector(args_view.begin(), args_view.end());
-		bind->processor->bindsPending.emplace_back(LuaEventInstance<LuaBind>{ bind, args_vector, std::move(bind_thread) });
+		bind->processor->bindsPending.emplace_back(bind, std::move(args_vector), std::move(bind_thread));
 	}
 }
 
-LuaBind::LuaBind(const std::string& name, const sol::function& function, LuaEventProcessor* processor) :
-	name(name), function(function), callback(new uint8_t[18]), processor(processor)
+// 55 8b ec ff 75 0c 68 00 00 00 00 e8 00 00 00 00 c9 c3
+constexpr int s_callbackBufferSize = 18;
+
+LuaBind::LuaBind(const std::string& name, const sol::function& function, LuaEventProcessor* processor)
+	: name(name)
+	, function(function)
+	, callback(new uint8_t[s_callbackBufferSize])
+	, processor(processor)
 {
 	// TODO: gut all this when core commands are fixed to allow generic callbacks
 
@@ -222,24 +238,26 @@ LuaBind::LuaBind(const std::string& name, const sol::function& function, LuaEven
 		0xc9,                         // leave
 		0xc3                          // return
 	};
-	//55 8b ec ff 75 0c 68 00 00 00 00 e8 00 00 00 00 c9 c3
+	static_assert(lengthof(callback_template) == s_callbackBufferSize,
+	              "Size of callback_template mismatch");
 
-	memcpy(callback, callback_template, 18);
+	memcpy(callback.get(), callback_template, s_callbackBufferSize);
 
-	*(reinterpret_cast<uint32_t*>(callback + 7)) = reinterpret_cast<uint32_t>(this);
-	int diff = reinterpret_cast<int>(&BindHelper) - reinterpret_cast<int>(callback + 16);
-	*(reinterpret_cast<int*>(callback + 12)) = diff;
+	*(reinterpret_cast<uint32_t*>(callback.get() + 7)) = reinterpret_cast<uint32_t>(this);
+	int diff = reinterpret_cast<int>(&BindHelper) - reinterpret_cast<int>(callback.get() + 16);
+	*(reinterpret_cast<int*>(callback.get() + 12)) = diff;
 	DWORD old_protect;
-	VirtualProtectEx(GetCurrentProcess(), reinterpret_cast<LPVOID>(callback), 18, PAGE_EXECUTE_READWRITE, &old_protect);
+	VirtualProtectEx(GetCurrentProcess(), reinterpret_cast<LPVOID>(callback.get()), 18, PAGE_EXECUTE_READWRITE, &old_protect);
 
-	AddCommand(name.c_str(), reinterpret_cast<fEQCommand>(callback));//, false, true, true);
+	AddCommand(name.c_str(), reinterpret_cast<fEQCommand>(callback.get()));//, false, true, true);
 }
 
 LuaBind::~LuaBind()
 {
 	RemoveCommand(name.c_str());
-	delete[] callback;
 }
+
+//----------------------------------------------------------------------------
 
 static void doevents(sol::this_state s)
 {
