@@ -243,8 +243,7 @@ LuaBind::~LuaBind()
 
 static void doevents(sol::this_state s)
 {
-	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
-	if (auto thread_ptr = thread.value_or(std::weak_ptr<mq::lua::thread::LuaThread>()).lock())
+	if (auto thread_ptr = thread::LuaThread::get_from(s))
 	{
 		thread_ptr->eventProcessor->PrepareEvents();
 		thread_ptr->YieldAt(0); // doevents needs to yield, event processing will pick up next frame
@@ -253,30 +252,34 @@ static void doevents(sol::this_state s)
 
 static void addevent(std::string_view name, std::string_view expression, sol::function function, sol::this_state s)
 {
-	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
-	if (auto thread_ptr = thread.value_or(std::weak_ptr<mq::lua::thread::LuaThread>()).lock())
+	if (auto thread_ptr = thread::LuaThread::get_from(s))
+	{
 		thread_ptr->eventProcessor->AddEvent(name, expression, function);
+	}
 }
 
 static void removeevent(std::string_view name, sol::this_state s)
 {
-	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
-	if (auto thread_ptr = thread.value_or(std::weak_ptr<mq::lua::thread::LuaThread>()).lock())
+	if (auto thread_ptr = thread::LuaThread::get_from(s))
+	{
 		thread_ptr->eventProcessor->RemoveEvent(name);
+	}
 }
 
 static void addbind(std::string_view name, sol::function function, sol::this_state s)
 {
-	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
-	if (auto thread_ptr = thread.value_or(std::weak_ptr<mq::lua::thread::LuaThread>()).lock())
+	if (auto thread_ptr = thread::LuaThread::get_from(s))
+	{
 		thread_ptr->eventProcessor->AddBind(name, function);
+	}
 }
 
 static void removebind(std::string_view name, sol::this_state s)
 {
-	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
-	if (auto thread_ptr = thread.value_or(std::weak_ptr<mq::lua::thread::LuaThread>()).lock())
+	if (auto thread_ptr = thread::LuaThread::get_from(s))
+	{
 		thread_ptr->eventProcessor->RemoveBind(name);
+	}
 }
 
 void RegisterLua(sol::table& lua)

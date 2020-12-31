@@ -82,6 +82,12 @@ struct LuaThread
 	void YieldAt(int count) const;
 
 	void RegisterLuaState(std::shared_ptr<LuaThread> self_ptr);
+
+	static inline std::shared_ptr<LuaThread> get_from(sol::state_view s)
+	{
+		std::optional<std::weak_ptr<LuaThread>> thread = s["mqthread"];
+		return thread.value_or(std::weak_ptr<LuaThread>()).lock();
+	}
 };
 
 struct ThreadState

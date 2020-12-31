@@ -26,9 +26,10 @@ namespace mq::lua::thread {
 // this is the special sauce that lets us execute everything on the main thread without blocking
 static void ForceYield(lua_State* L, lua_Debug* D)
 {
-	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(L)["mqthread"];
-	if (auto thread_ptr = thread.value_or(std::weak_ptr<mq::lua::thread::LuaThread>()).lock())
+	if (auto thread_ptr = LuaThread::get_from(L))
+	{
 		thread_ptr->yieldToFrame = true;
+	}
 
 	lua_yield(L, 0);
 }
@@ -284,9 +285,7 @@ void delay(sol::object delayObj, sol::object conditionObj, sol::this_state s)
 
 	if (delay_int)
 	{
-		std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
-
-		if (auto thread_ptr = thread.value_or(std::weak_ptr<mq::lua::thread::LuaThread>()).lock())
+		if (auto thread_ptr = thread::LuaThread::get_from(s))
 		{
 			uint64_t delay_ms = std::max(0L, *delay_int * 100L);
 			auto condition = conditionObj.as<std::optional<sol::function>>();
@@ -318,8 +317,7 @@ void delay(sol::object delayObj, sol::object conditionObj, sol::this_state s)
 
 void exit(sol::this_state s)
 {
-	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(s)["mqthread"];
-	if (auto thread_ptr = thread.value_or(std::weak_ptr<mq::lua::thread::LuaThread>()).lock())
+	if (auto thread_ptr = thread::LuaThread::get_from(s))
 	{
 		WriteChatStatus("Exit() called in Lua script %s with PID %d", thread_ptr->name.c_str(), thread_ptr->pid);
 		thread_ptr->YieldAt(0);
@@ -332,8 +330,7 @@ int LoadMQRequire(lua_State* L)
 	std::string path = sol::stack::get<std::string>(L);
 	if (path != "mq") return 0;
 
-	std::optional<std::weak_ptr<mq::lua::thread::LuaThread>> thread = sol::state_view(L)["mqthread"];
-	if (auto thread_ptr = thread.value_or(std::weak_ptr<mq::lua::thread::LuaThread>()).lock())
+	if (auto thread_ptr = thread::LuaThread::get_from(L))
 	{
 		thread_ptr->globalTable = thread_ptr->thread.state().create_table();
 
