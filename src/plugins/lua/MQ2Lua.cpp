@@ -24,10 +24,6 @@
 #include <mq/utils/Args.h>
 #include <fmt/format.h>
 
-// need to undef this for yaml-cpp to work
-#ifdef IsNaN
-#undef IsNaN
-#endif // IsNaN
 #pragma warning( push )
 #pragma warning( disable:4996 )
 #include <yaml-cpp/yaml.h>
