@@ -137,15 +137,15 @@ std::optional<sol::protected_function_result> RunCoroutine(sol::coroutine& co, c
 
 std::optional<LuaThreadInfo> LuaThread::StartFile(std::string_view luaDir, uint32_t turbo, const std::vector<std::string>& args)
 {
-	auto script_path = std::filesystem::path(name);
-	if (script_path.is_relative()) script_path = luaDir / script_path;
-	if (!script_path.has_extension()) script_path += ".lua";
+	std::filesystem::path script_path = std::filesystem::path{ luaDir } / name;
+	if (!script_path.has_extension()) script_path.replace_extension(".lua");
 
 	path = script_path.string();
 
-	if (!std::filesystem::exists(script_path))
+	std::error_code ec;
+	if (!std::filesystem::exists(script_path, ec))
 	{
-		LuaError("Could not find script at path %s", script_path.string().c_str());
+		LuaError("Could not find script at path %s", script_path.c_str());
 		return std::nullopt;
 	}
 

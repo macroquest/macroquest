@@ -610,8 +610,8 @@ void ReadSettings()
 
 	s_turboNum = s_configNode[turboNum].as<uint32_t>(s_turboNum);
 
-	s_luaDir = s_configNode[luaDir].as<std::string>(s_luaDir);
-	if (std::filesystem::path(s_luaDir).is_relative()) s_luaDir = (std::filesystem::path(gPathMQRoot) / s_luaDir).string();
+	s_luaDir = (std::filesystem::path(gPathMQRoot) / s_configNode[luaDir].as<std::string>(s_luaDir)).string();
+
 	std::error_code ec;
 	if (!std::filesystem::exists(s_luaDir, ec) && !std::filesystem::create_directories(s_luaDir, ec))
 	{
@@ -624,8 +624,7 @@ void ReadSettings()
 	{
 		for (const auto& path : s_configNode[luaRequirePaths])
 		{
-			auto fin_path = std::filesystem::path(path.as<std::string>());
-			if (fin_path.is_relative()) fin_path = std::filesystem::path(gPathMQRoot) / fin_path;
+			auto fin_path = std::filesystem::path(gPathMQRoot) / std::filesystem::path(path.as<std::string>());
 			s_luaRequirePaths.emplace_back(fin_path.string());
 		}
 	}
@@ -635,8 +634,7 @@ void ReadSettings()
 	{
 		for (const auto& path : s_configNode[dllRequirePaths])
 		{
-			auto fin_path = std::filesystem::path(path.as<std::string>());
-			if (fin_path.is_relative()) fin_path = std::filesystem::path(gPathMQRoot) / fin_path;
+			auto fin_path = std::filesystem::path(gPathMQRoot) / std::filesystem::path(path.as<std::string>());
 			s_dllRequirePaths.emplace_back(fin_path.string());
 		}
 	}
