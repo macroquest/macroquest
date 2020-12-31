@@ -15,12 +15,13 @@
 #include "LuaThread.h"
 #include "LuaEvent.h"
 #include "LuaImGui.h"
-
 #include "bindings/lua_MQCommand.h"
 #include "bindings/lua_MQDataItem.h"
 #include "bindings/lua_MQTypeVar.h"
 
 #include <mq/Plugin.h>
+
+namespace mq::lua::thread {
 
 // this is the special sauce that lets us execute everything on the main thread without blocking
 static void ForceYield(lua_State* L, lua_Debug* D)
@@ -31,8 +32,6 @@ static void ForceYield(lua_State* L, lua_Debug* D)
 
 	lua_yield(L, 0);
 }
-
-namespace mq::lua::thread {
 
 bool ThreadState::CheckCondition(const LuaThread& thread, std::optional<sol::function>& func)
 {
@@ -93,13 +92,13 @@ void PausedState::Pause(LuaThread& thread, uint32_t turbo)
 	thread.state = std::make_unique<RunningState>();
 }
 
-LuaThread::LuaThread(std::string_view name, std::string_view luaDir, const std::vector<std::string>& luaRequire, const std::vector<std::string>& dllRequire) :
-	globalState(sol::state()),
-	name(name),
-	state(std::make_unique<RunningState>()),
-	eventProcessor(std::make_unique<events::LuaEventProcessor>(this)),
-	imguiProcessor(std::make_unique<imgui::LuaImGuiProcessor>(this)),
-	pid(NextID())
+LuaThread::LuaThread(std::string_view name, std::string_view luaDir,
+	const std::vector<std::string>& luaRequire, const std::vector<std::string>& dllRequire)
+	: name(name)
+	, state(std::make_unique<RunningState>())
+	, eventProcessor(std::make_unique<events::LuaEventProcessor>(this))
+	, imguiProcessor(std::make_unique<imgui::LuaImGuiProcessor>(this))
+	, pid(NextID())
 {
 	globalState.open_libraries();
 
@@ -301,9 +300,8 @@ void delay(sol::object delayObj, sol::object conditionObj, sol::this_state s)
 					// the temporary string in the else case here only needs to live long enough for the load to happen, it's
 					// fine that it gets destroyed after the result here
 					auto result = thread_ptr->thread.state().load(
-						condition_str->rfind("return ", 0) == 0 ?
-						*condition_str :
-						"return " + std::string(*condition_str));
+						condition_str->rfind("return ", 0) == 0
+							? *condition_str : "return " + std::string(*condition_str));
 
 					if (result.valid())
 					{
@@ -364,7 +362,7 @@ void LuaThread::RegisterLuaState(std::shared_ptr<LuaThread> self_ptr)
 	thread.state()["_old_require"] = thread.state()["require"];
 	thread.state()["require"] = [this](std::string_view mod, sol::variadic_args args) {
 		if (hookProtectionCount++ == 0)
-			lua_sethook(thread.state(), NULL, 0, 0);
+			lua_sethook(thread.state(), nullptr, 0, 0);
 
 		auto ret = thread.state()["_old_require"](mod, args);
 
@@ -410,9 +408,10 @@ void LuaThreadInfo::SetResult(const sol::protected_function_result& result)
 			// need to skip the first "return" (which is not a return, it's at index + 0) which is the function itself
 			for (int i = 1; i < result.return_count(); ++i)
 			{
-				returnValues[i - 1] = luaL_tolstring(result.lua_state(), result.stack_index() + i, NULL);
+				returnValues[i - 1] = luaL_tolstring(result.lua_state(), result.stack_index() + i, nullptr);
 			}
 		}
 	}
 }
+
 } // namespace mq::lua::thread

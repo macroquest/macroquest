@@ -17,7 +17,7 @@
 #include "LuaCommon.h"
 
 namespace mq {
-struct MQTypeVar;
+	struct MQTypeVar;
 }
 
 namespace mq::lua::bindings {

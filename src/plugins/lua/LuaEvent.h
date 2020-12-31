@@ -21,8 +21,8 @@
 class Blech;
 
 namespace mq::lua::thread {
-struct LuaThread;
-struct ThreadState;
+	struct LuaThread;
+	struct ThreadState;
 }
 
 namespace mq::lua::events {

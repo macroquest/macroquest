@@ -16,7 +16,7 @@
 #include "LuaCommon.h"
 
 namespace mq {
-struct MQDataItem;
+	struct MQDataItem;
 }
 
 namespace mq::lua::bindings {
@@ -24,12 +24,13 @@ namespace mq::lua::bindings {
 struct lua_MQTypeVar;
 struct lua_MQDataItem
 {
-	const MQDataItem* const self;
-	lua_MQDataItem() : self(nullptr) {}
+	const MQDataItem* const self = nullptr;
+	lua_MQDataItem() = default;
 
 	// this will allow users an alternate way to Get data items
 	lua_MQDataItem(const std::string& str);
 	lua_MQDataItem(const MQDataItem* const self) : self(self) {}
+
 	lua_MQTypeVar EvaluateSelf() const;
 	bool operator==(const lua_MQDataItem& right) const;
 	bool EqualVar(const lua_MQTypeVar& right) const;

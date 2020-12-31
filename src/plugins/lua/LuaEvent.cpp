@@ -63,7 +63,9 @@ void CALLBACK LuaEventCallback(unsigned int ID, void* pData, PBLECHVALUE pValues
 
 LuaEventProcessor::LuaEventProcessor(const thread::LuaThread* thread) :
 	thread(thread),
-	blech(std::make_unique<Blech>('#', '|', LuaVarProcess)) {}
+	blech(std::make_unique<Blech>('#', '|', LuaVarProcess))
+{
+}
 
 LuaEventProcessor::~LuaEventProcessor()
 {
@@ -134,7 +136,8 @@ void LuaEventProcessor::Process(std::string_view line) const
 	blech->Feed(line_char);
 }
 
-static void loop_and_run(const thread::LuaThread& thread, std::vector<std::pair<sol::coroutine, std::vector<std::string>>>& vec)
+static void loop_and_run(const thread::LuaThread& thread,
+	std::vector<std::pair<sol::coroutine, std::vector<std::string>>>& vec)
 {
 	vec.erase(std::remove_if(vec.begin(), vec.end(), [&thread](auto& co) -> bool
 		{
@@ -169,8 +172,12 @@ void LuaEventProcessor::PrepareBinds()
 	bindsPending.clear();
 }
 
-LuaEvent::LuaEvent(std::string_view name, std::string_view expression, const sol::function& function, LuaEventProcessor* processor) :
-	name(name), expression(expression), function(function), processor(processor)
+LuaEvent::LuaEvent(std::string_view name, std::string_view expression,
+	const sol::function& function, LuaEventProcessor* processor)
+	: name(name)
+	, expression(expression)
+	, function(function)
+	, processor(processor)
 {
 	id = processor->blech->AddEvent(this->expression.c_str(), LuaEventCallback, this);
 }
@@ -179,6 +186,8 @@ LuaEvent::~LuaEvent()
 {
 	processor->blech->RemoveEvent(id);
 }
+
+//----------------------------------------------------------------------------
 
 // TODO: make this work (tokenize args into vector, queue the bind in an instance, etc)
 static void BindHelper(LuaBind* bind, const char* args)

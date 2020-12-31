@@ -18,11 +18,11 @@
 #include <stack>
 
 namespace mq::lua::events {
-struct LuaEventProcessor;
+	struct LuaEventProcessor;
 }
 
 namespace mq::lua::imgui {
-struct LuaImGuiProcessor;
+	struct LuaImGuiProcessor;
 }
 
 namespace mq::lua::thread {

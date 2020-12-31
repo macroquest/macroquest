@@ -14,7 +14,6 @@
 
 #include "LuaImGui.h"
 #include "LuaThread.h"
-
 #include "contrib/imgui/sol_ImGui.h"
 
 #include <mq/Plugin.h>
@@ -23,9 +22,12 @@ namespace mq::lua::imgui {
 
 LuaImGuiProcessor::LuaImGuiProcessor(const thread::LuaThread* thread)
 	: thread(thread)
-{}
+{
+}
 
-LuaImGuiProcessor::~LuaImGuiProcessor() {}
+LuaImGuiProcessor::~LuaImGuiProcessor()
+{
+}
 
 void LuaImGuiProcessor::AddCallback(std::string_view name, sol::function callback)
 {
@@ -45,7 +47,7 @@ void LuaImGuiProcessor::RemoveCallback(std::string_view name)
 void LuaImGuiProcessor::Pulse() const
 {
 	// remove any existing hooks, they will be re-installed when running in onpulse
-	lua_sethook(thread->thread.lua_state(), NULL, 0, 0);
+	lua_sethook(thread->thread.lua_state(), nullptr, 0, 0);
 
 	for (auto& im : imguis)
 		im->Pulse();
@@ -73,10 +75,14 @@ void RegisterLua(sol::table& lua)
 	);
 }
 
-LuaImGui::LuaImGui(std::string_view name, const sol::thread& thread, const sol::function& callback) :
-	name(name), thread(thread), callback(callback) {}
+LuaImGui::LuaImGui(std::string_view name, const sol::thread& thread, const sol::function& callback)
+	: name(name), thread(thread), callback(callback)
+{
+}
 
-LuaImGui::~LuaImGui() {}
+LuaImGui::~LuaImGui()
+{
+}
 
 void LuaImGui::Pulse() const
 {

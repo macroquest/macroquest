@@ -85,7 +85,10 @@ sol::object lua_MQDataItem::Get(sol::stack_object key, sol::this_state L) const
 	return sol::object(L, sol::in_place, lua_MQTypeVar(MQTypeVar()));
 }
 
-lua_MQDataItem::lua_MQDataItem(const std::string& str) : self(FindMQ2Data(str.c_str())) {}
+lua_MQDataItem::lua_MQDataItem(const std::string& str)
+	: self(FindMQ2Data(str.c_str()))
+{
+}
 
 template <typename Handler>
 bool sol_lua_check(sol::types<lua_MQDataItem>, lua_State* L, int index, Handler&& handler, sol::stack::record& tracking)

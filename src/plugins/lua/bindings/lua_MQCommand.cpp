@@ -22,9 +22,10 @@ void lua_MQCommand::operator()(sol::variadic_args va, sol::this_state s)
 {
 	fmt::memory_buffer cmd;
 	fmt::format_to(cmd, "{}", command);
+
 	for (const auto& a : va)
 	{
-		auto value = luaL_tolstring(a.lua_state(), a.stack_index(), NULL);
+		auto value = luaL_tolstring(a.lua_state(), a.stack_index(), nullptr);
 		if (value != nullptr && strlen(value) > 0)
 			fmt::format_to(cmd, " {}", value);
 	}

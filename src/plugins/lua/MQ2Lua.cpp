@@ -12,10 +12,13 @@
  * GNU General Public License for more details.
  */
 
-
-// PLUGIN_API is only to be used for callbacks.  All existing callbacks at this time
-// are shown below. Remove the ones your plugin does not use.  Always use Initialize
-// and Shutdown for setup and cleanup.
+#include "LuaCommon.h"
+#include "LuaThread.h"
+#include "LuaEvent.h"
+#include "LuaImGui.h"
+#include "bindings/lua_MQTypeVar.h"
+#include "bindings/lua_MQDataItem.h"
+#include "bindings/lua_MQCommand.h"
 
 #include <mq/Plugin.h>
 #include <mq/utils/Args.h>
@@ -33,16 +36,6 @@
 #include <string>
 #include <fstream>
 
-#include "LuaCommon.h"
-#include "LuaThread.h"
-#include "LuaEvent.h"
-#include "LuaImGui.h"
-
-// bindings:
-#include "bindings/lua_MQTypeVar.h"
-#include "bindings/lua_MQDataItem.h"
-#include "bindings/lua_MQCommand.h"
-
 PreSetup("MQ2Lua");
 PLUGIN_VERSION(0.1);
 
@@ -51,34 +44,34 @@ PLUGIN_VERSION(0.1);
 
 // TODO: Add UI for start/stop/info/config
 
-using namespace mq;
-using namespace mq::datatypes;
-using namespace mq::lua;
-
 using MQ2Args = Args<&WriteChatf>;
 using MQ2HelpArgument = HelpArgument;
 
-namespace mq::lua::config {
-// provide option strings here
-static const std::string turboNum = "turboNum";
-static const std::string luaDir = "luaDir";
-static const std::string luaRequirePaths = "luaRequirePaths";
-static const std::string dllRequirePaths = "dllRequirePaths";
-static const std::string infoGC = "infoGC";
-static const std::string squelchStatus = "squelchStatus";
+namespace mq::lua {
 
-// configurable options, defaults provided where needed
-static uint32_t s_turboNum = 500;
-static std::string s_luaDir = (std::filesystem::path(gPathMQRoot) / "lua").string();
-static std::vector<std::string> s_luaRequirePaths;
-static std::vector<std::string> s_dllRequirePaths;
-static uint64_t s_infoGC = 3600000; // 1 hour
-static bool s_squelchStatus = false;
+namespace config {
 
-// this is static and will never change
-static std::string s_configPath = (std::filesystem::path(gPathConfig) / "MQ2Lua.yaml").string();
-static YAML::Node s_configNode;
-}
+	// provide option strings here
+	static const std::string turboNum = "turboNum";
+	static const std::string luaDir = "luaDir";
+	static const std::string luaRequirePaths = "luaRequirePaths";
+	static const std::string dllRequirePaths = "dllRequirePaths";
+	static const std::string infoGC = "infoGC";
+	static const std::string squelchStatus = "squelchStatus";
+
+	// configurable options, defaults provided where needed
+	static uint32_t s_turboNum = 500;
+	static std::string s_luaDir = (std::filesystem::path(gPathMQRoot) / "lua").string();
+	static std::vector<std::string> s_luaRequirePaths;
+	static std::vector<std::string> s_dllRequirePaths;
+	static uint64_t s_infoGC = 3600000; // 1 hour
+	static bool s_squelchStatus = false;
+
+	// this is static and will never change
+	static std::string s_configPath = (std::filesystem::path(gPathConfig) / "MQ2Lua.yaml").string();
+	static YAML::Node s_configNode;
+
+} // namespace mq::lua::config
 
 // use a vector for s_running because we need to iterate it every pulse, and find only if a command is issued
 std::vector<std::shared_ptr<thread::LuaThread>> s_running;
@@ -87,7 +80,7 @@ std::unordered_map<uint32_t, thread::LuaThreadInfo> s_finished;
 
 #pragma region Shared Function Definitions
 
-void mq::lua::DebugStackTrace(lua_State* L)
+void DebugStackTrace(lua_State* L)
 {
 	lua_Debug ar;
 	lua_getstack(L, 1, &ar);
@@ -126,7 +119,7 @@ void mq::lua::DebugStackTrace(lua_State* L)
 	LuaError("---- End Stack ----\n");
 }
 
-bool mq::lua::DoStatus()
+bool DoStatus()
 {
 	return !config::s_squelchStatus;
 }
@@ -138,7 +131,6 @@ bool mq::lua::DoStatus()
 class MQ2LuaInfoType* pLuaInfoType = nullptr;
 class MQ2LuaInfoType : public MQ2Type
 {
-private:
 public:
 	enum class Members
 	{
@@ -166,6 +158,8 @@ public:
 
 	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
 	{
+		using namespace mq::datatypes;
+
 		auto pMember = MQ2LuaInfoType::FindMember(Member);
 		if (pMember == nullptr)
 			return false;
@@ -240,7 +234,7 @@ public:
 		}
 	}
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		auto info = VarPtr.Get<thread::LuaThreadInfo>();
 		if (!info || info->returnValues.empty())
@@ -250,13 +244,17 @@ public:
 		return true;
 	}
 
-    virtual bool FromString(MQVarPtr& VarPtr, const char* Source) override { return false; }
+	virtual bool FromString(MQVarPtr& VarPtr, const char* Source) override
+	{
+		return false;
+	}
 };
+
+//----------------------------------------------------------------------------
 
 class MQ2LuaType* pLuaType = nullptr;
 class MQ2LuaType : public MQ2Type
 {
-private:
 public:
 	enum class Members
 	{
@@ -280,6 +278,8 @@ public:
 
 	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
 	{
+		using namespace mq::datatypes;
+
 		auto pMember = MQ2LuaType::FindMember(Member);
 		if (pMember == nullptr)
 			return false;
@@ -309,13 +309,15 @@ public:
 
 		case Members::RequirePaths:
 			Dest.Type = pStringType;
-			strcpy_s(DataTypeTemp, fmt::format("{}\\?.lua;{}{}", config::s_luaDir, config::s_luaRequirePaths.empty() ? "" : join(config::s_luaRequirePaths, ";")).c_str());
+			strcpy_s(DataTypeTemp, fmt::format("{}\\?.lua;{}{}", config::s_luaDir,
+				config::s_luaRequirePaths.empty() ? "" : join(config::s_luaRequirePaths, ";")).c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 
 		case Members::CRequirePaths:
 			Dest.Type = pStringType;
-			strcpy_s(DataTypeTemp, fmt::format("{}\\?.dll;{}{}", config::s_luaDir, config::s_dllRequirePaths.empty() ? "" : join(config::s_dllRequirePaths, ";")).c_str());
+			strcpy_s(DataTypeTemp, fmt::format("{}\\?.dll;{}{}", config::s_luaDir,
+				config::s_dllRequirePaths.empty() ? "" : join(config::s_dllRequirePaths, ";")).c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 
@@ -360,13 +362,23 @@ public:
 		}
 	}
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		strcpy_s(Destination, MAX_STRING, "Lua");
 		return true;
 	}
 
-    virtual bool FromString(MQVarPtr& VarPtr, const char* Source) override { return false; }
+	virtual bool FromString(MQVarPtr& VarPtr, const char* Source) override
+	{
+		return false;
+	}
+
+	static bool dataLua(const char* Index, MQTypeVar& Dest)
+	{
+		Dest.DWord = 1;
+		Dest.Type = pLuaType;
+		return true;
+	}
 };
 
 #pragma endregion
@@ -583,9 +595,10 @@ void WriteSettings()
 void ReadSettings()
 {
 	using namespace config;
+
 	try
 	{
-		s_configNode = YAML::LoadFile(s_configPath.c_str());
+		s_configNode = YAML::LoadFile(s_configPath);
 	}
 	catch (const YAML::ParserException& e)
 	{
@@ -725,12 +738,7 @@ void LuaRestartCommand(SPAWNINFO* pChar, char* Buffer)
 
 #pragma endregion
 
-bool dataLua(const char* Index, MQTypeVar& Dest)
-{
-	Dest.DWord = 1;
-	Dest.Type = pLuaType;
-	return true;
-}
+} // namespace mq::lua
 
 /**
  * @fn InitializePlugin
@@ -753,7 +761,7 @@ PLUGIN_API void InitializePlugin()
 
 	pLuaInfoType = new MQ2LuaInfoType;
 	pLuaType = new MQ2LuaType;
-	AddMQ2Data("Lua", dataLua);
+	AddMQ2Data("Lua", &MQ2LuaType::dataLua);
 }
 
 /**
