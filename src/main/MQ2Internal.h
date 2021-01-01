@@ -624,6 +624,7 @@ struct MQVarPtr
 {
 	using MQVariant = std::variant<
 		void*,
+		bool,
 		float,
 		int32_t,
 		uint32_t,
@@ -639,6 +640,7 @@ struct MQVarPtr
 	enum class VariantIdx
 	{
 		Ptr = 0,
+		Bool,
 		Float,
 		Int32,
 		UInt32,
@@ -741,6 +743,7 @@ template<> Type Set<Type>(Type Val) { return std::get<Type>(Data = Val); } \
 template<> Type Get<Type>() const { return Cast<Type>(); }
 
 	MQVARPTR_SPECIALIZE(void*);
+	MQVARPTR_SPECIALIZE(bool);
 	MQVARPTR_SPECIALIZE(float);
 	MQVARPTR_SPECIALIZE(int32_t);
 	MQVARPTR_SPECIALIZE(uint32_t);
@@ -753,6 +756,7 @@ Type set_##Prop(Type Val) { return Set<Type>(Val); } \
 Type get_##Prop() const { return Get<Type>(); } \
 __declspec(property(get = get_##Prop, put = set_##Prop)) Type Prop;
 
+	// TODO: Future work -- deprecate all of these in favor of Get/Set
 	MQVARPTR_PROPERTIES(void*, Ptr);
 	MQVARPTR_PROPERTIES(float, Float);
 	MQVARPTR_PROPERTIES(int32_t, Int);
