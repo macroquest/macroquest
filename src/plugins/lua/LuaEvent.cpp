@@ -12,6 +12,7 @@
  * GNU General Public License for more details.
  */
 
+#include "pch.h"
 #include "LuaEvent.h"
 #include "LuaThread.h"
 

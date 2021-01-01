@@ -12,6 +12,7 @@
  * GNU General Public License for more details.
  */
 
+#include "pch.h"
 #include "lua_MQCommand.h"
 
 #include <mq/Plugin.h>

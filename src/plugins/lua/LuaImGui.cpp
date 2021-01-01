@@ -12,6 +12,7 @@
  * GNU General Public License for more details.
  */
 
+#include "pch.h"
 #include "LuaImGui.h"
 #include "LuaThread.h"
 #include "contrib/imgui/sol_ImGui.h"
