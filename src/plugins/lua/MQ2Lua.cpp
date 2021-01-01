@@ -565,7 +565,8 @@ void LuaStringCommand(SPAWNINFO* pChar, char* Buffer)
 		WriteChatStatus("Running lua string with PID %d", entry->pid);
 		s_running.emplace_back(entry); // this needs to be in the running vector before we run at all
 
-		entry->RegisterLuaState(entry);
+		// Create lua state with mq namespace already injected.
+		entry->RegisterLuaState(entry, true);
 		auto result = entry->StartString(s_turboNum, join(script.Get(), " "));
 		if (result)
 			s_finished.emplace(result->pid, *result);

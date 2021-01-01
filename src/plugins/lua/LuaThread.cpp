@@ -183,7 +183,8 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(std::string_view luaDir, uint3
 
 std::optional<LuaThreadInfo> LuaThread::StartString(uint32_t turbo, std::string_view script)
 {
-	auto co = thread.state().load(fmt::format("mq = require('mq')\n{}", script));
+	auto co = thread.state().load(script);
+
 	if (!co.valid())
 	{
 		sol::error err = co;
@@ -310,36 +311,42 @@ void exit(sol::this_state s)
 	}
 }
 
-int LoadMQRequire(lua_State* L)
+static void RegisterMQNamespace(sol::table t)
 {
-	std::string path = sol::stack::get<std::string>(L);
+	bindings::lua_MQCommand::RegisterBinding(t);
+	bindings::lua_MQDataItem::RegisterBinding(t);
+	bindings::lua_MQTypeVar::RegisterBinding(t);
+
+	t["delay"] = &delay;
+	t["join"] = &lua_join;
+	t["exit"] = &exit;
+
+	Events_RegisterLua(t);
+	ImGui_RegisterLua(t);
+}
+
+static int LoadMQRequire(sol::this_state s, const std::string& path)
+{
 	if (path != "mq") return 0;
 
-	if (auto thread_ptr = LuaThread::get_from(L))
+	if (auto thread_ptr = LuaThread::get_from(s))
 	{
-		thread_ptr->globalTable = thread_ptr->thread.state().create_table();
+		sol::state_view sv{ s };
 
-		bindings::lua_MQCommand::RegisterBinding(*thread_ptr->globalTable);
-		bindings::lua_MQDataItem::RegisterBinding(*thread_ptr->globalTable);
-		bindings::lua_MQTypeVar::RegisterBinding(*thread_ptr->globalTable);
+		thread_ptr->globalTable = sv.create_table();
+		RegisterMQNamespace(*thread_ptr->globalTable);
 
-		(*thread_ptr->globalTable)["delay"] = &delay;
-		(*thread_ptr->globalTable)["join"] = &lua_join;
-		(*thread_ptr->globalTable)["exit"] = &exit;
+		sv.set("_mq_internal_table", *thread_ptr->globalTable);
 
-		Events_RegisterLua(*thread_ptr->globalTable);
-		ImGui_RegisterLua(*thread_ptr->globalTable);
-
-		sol::state_view(L).set("_mq_internal_table", *thread_ptr->globalTable);
 		std::string script("return _mq_internal_table");
-		luaL_loadbuffer(L, script.data(), script.size(), path.c_str());
+		luaL_loadbuffer(sv, script.data(), script.size(), path.c_str());
 		return 1;
 	}
 
 	return 0;
 }
 
-void LuaThread::RegisterLuaState(std::shared_ptr<LuaThread> self_ptr)
+void LuaThread::RegisterLuaState(std::shared_ptr<LuaThread> self_ptr, bool injectMQ)
 {
 	auto& state = thread.state();
 
@@ -388,6 +395,14 @@ void LuaThread::RegisterLuaState(std::shared_ptr<LuaThread> self_ptr)
 	};
 
 	state.add_package_loader(LoadMQRequire);
+
+	if (injectMQ)
+	{
+		sol::table mq_table = state.create_table();
+		RegisterMQNamespace(mq_table);
+
+		state["mq"] = mq_table;
+	}
 }
 
 void LuaThreadInfo::SetResult(const sol::protected_function_result& result)

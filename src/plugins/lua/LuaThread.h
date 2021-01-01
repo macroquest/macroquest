@@ -77,7 +77,7 @@ struct LuaThread
 	std::pair<sol::thread_status, std::optional<sol::protected_function_result>> Run(uint32_t turbo);
 	void YieldAt(int count) const;
 
-	void RegisterLuaState(std::shared_ptr<LuaThread> self_ptr);
+	void RegisterLuaState(std::shared_ptr<LuaThread> self_ptr, bool injectMQ = false);
 
 	static std::shared_ptr<LuaThread> get_from(sol::state_view s);
 };
