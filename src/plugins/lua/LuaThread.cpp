@@ -383,6 +383,9 @@ void LuaThread::RegisterLuaState(std::shared_ptr<LuaThread> self_ptr)
 	};
 
 	state["mqthread"] = LuaThreadRef(self_ptr);
+	state["print"] = [](sol::variadic_args va, sol::this_state s) {
+		WriteChatColorf("[lua] %s", USERCOLOR_CHAT_CHANNEL, lua_join(s, "", va).c_str());
+	};
 
 	state.add_package_loader(LoadMQRequire);
 }
