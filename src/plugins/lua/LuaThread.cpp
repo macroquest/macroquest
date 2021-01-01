@@ -126,9 +126,11 @@ std::optional<sol::protected_function_result> RunCoroutine(sol::coroutine& co, c
 			return result;
 
 		sol::error err = std::move(result);
-		throw err;
+
+		LuaError("%s", err.what());
+		DebugStackTrace(co.lua_state());
 	}
-	catch (sol::error& e)
+	catch (const sol::error& e)
 	{
 		LuaError("%s", e.what());
 		DebugStackTrace(co.lua_state());
@@ -253,7 +255,7 @@ std::string lua_join(sol::this_state L, std::string delim, sol::variadic_args va
 		const auto* del = "";
 		for (const auto& arg : va)
 		{
-			auto value = luaL_tolstring(arg.lua_state(), arg.stack_index(), NULL);
+			auto value = luaL_tolstring(arg.lua_state(), arg.stack_index(), nullptr);
 			if (value != nullptr && strlen(value) > 0)
 			{
 				fmt::format_to(str, "{}{}", del, value);
@@ -269,47 +271,29 @@ std::string lua_join(sol::this_state L, std::string delim, sol::variadic_args va
 
 void delay(sol::object delayObj, sol::object conditionObj, sol::this_state s)
 {
-	auto delay_int = delayObj.as<std::optional<int>>();
+	using namespace std::chrono_literals;
+
+	auto delay_int = delayObj.as<std::optional<std::chrono::milliseconds>>();
 	if (!delay_int)
 	{
 		auto delay_str = delayObj.as<std::optional<std::string_view>>();
 		if (delay_str)
 		{
 			if (delay_str->length() > 1 && delay_str->compare(delay_str->length() - 1, 1, "m") == 0)
-				delay_int.emplace(GetIntFromString(*delay_str, 0) * 600);
+				delay_int.emplace(std::chrono::minutes(GetIntFromString(*delay_str, 0)));
 			else if (delay_str->length() > 2 && delay_str->compare(delay_str->length() - 2, 2, "ms") == 0)
-				delay_int.emplace(GetIntFromString(*delay_str, 0) / 100);
+				delay_int.emplace(std::chrono::milliseconds(GetIntFromString(*delay_str, 0)));
 			else if (delay_str->length() > 1 && delay_str->compare(delay_str->length() - 1, 1, "s") == 0)
-				delay_int.emplace(GetIntFromString(*delay_str, 0) * 10);
+				delay_int.emplace(std::chrono::seconds(GetIntFromString(*delay_str, 0)));
 		}
 	}
 
-	if (delay_int)
+	if (delay_int.has_value())
 	{
 		if (auto thread_ptr = LuaThread::get_from(s))
 		{
-			uint64_t delay_ms = std::max(0L, *delay_int * 100L);
+			uint64_t delay_ms = std::max(0ms, *delay_int).count();
 			auto condition = conditionObj.as<std::optional<sol::function>>();
-			if (!condition)
-			{
-				// let's accept a string too, and assume they want us to loadstring it
-				auto condition_str = conditionObj.as<std::optional<std::string_view>>();
-				if (condition_str)
-				{
-					// only allocate the string if we need to, but let's help the user and add the return to make this valid code
-					// the temporary string in the else case here only needs to live long enough for the load to happen, it's
-					// fine that it gets destroyed after the result here
-					auto result = thread_ptr->thread.state().load(
-						condition_str->rfind("return ", 0) == 0
-							? *condition_str : "return " + std::string(*condition_str));
-
-					if (result.valid())
-					{
-						sol::function f = result;
-						condition.emplace(f);
-					}
-				}
-			}
 
 			thread_ptr->state->SetDelay(*thread_ptr, delay_ms + MQGetTickCount64(), condition);
 		}
@@ -357,42 +341,50 @@ int LoadMQRequire(lua_State* L)
 
 void LuaThread::RegisterLuaState(std::shared_ptr<LuaThread> self_ptr)
 {
-	thread.state()["_old_require"] = thread.state()["require"];
-	thread.state()["require"] = [this](std::string_view mod, sol::variadic_args args) {
-		if (hookProtectionCount++ == 0)
-			lua_sethook(thread.state(), nullptr, 0, 0);
+	auto& state = thread.state();
 
-		auto ret = thread.state()["_old_require"](mod, args);
+	state["_old_require"] = state["require"];
+	state["require"] = [this](std::string_view mod, sol::variadic_args args)
+	{
+		auto& state = thread.state();
+
+		if (hookProtectionCount++ == 0)
+			lua_sethook(state, nullptr, 0, 0);
+
+		auto ret = state["_old_require"](mod, args);
 
 		if (--hookProtectionCount < 0)
 			hookProtectionCount = 0;
 
 		if (hookProtectionCount == 0)
-			lua_sethook(thread.state(), ForceYield, LUA_MASKCOUNT, 50);
+			lua_sethook(state, ForceYield, LUA_MASKCOUNT, 50);
 
 		return ret;
 	};
 
-	thread.state()["_old_dofile"] = thread.state()["dofile"];
-	thread.state()["dofile"] = [this](std::string_view file, sol::variadic_args args) {
+	state["_old_dofile"] = state["dofile"];
+	state["dofile"] = [this](std::string_view file, sol::variadic_args args)
+	{
+		auto& state = thread.state();
+
 		auto file_path = std::filesystem::path(path).parent_path() / file;
 		if (hookProtectionCount++ == 0)
-			lua_sethook(thread.state(), NULL, 0, 0);
+			lua_sethook(state, nullptr, 0, 0);
 
-		auto ret = thread.state()["_old_dofile"](file_path.string(), args);
+		auto ret = state["_old_dofile"](file_path.string(), args);
 
 		if (--hookProtectionCount < 0)
 			hookProtectionCount = 0;
 
 		if (hookProtectionCount == 0)
-			lua_sethook(thread.state(), ForceYield, LUA_MASKCOUNT, 50);
+			lua_sethook(state, ForceYield, LUA_MASKCOUNT, 50);
 
 		return ret;
 	};
 
 	state["mqthread"] = LuaThreadRef(self_ptr);
 
-	thread.state().add_package_loader(LoadMQRequire);
+	state.add_package_loader(LoadMQRequire);
 }
 
 void LuaThreadInfo::SetResult(const sol::protected_function_result& result)
