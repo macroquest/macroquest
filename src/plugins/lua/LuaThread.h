@@ -17,15 +17,12 @@
 #include <sol/sol.hpp>
 #include <stack>
 
-namespace mq::lua::events {
-	struct LuaEventProcessor;
-}
+namespace mq::lua {
 
-namespace mq::lua::imgui {
-	struct LuaImGuiProcessor;
-}
-
-namespace mq::lua::thread {
+struct LuaEventProcessor;
+struct LuaImGuiProcessor;
+struct LuaThread;
+struct ThreadState;
 
 std::optional<sol::protected_function_result> RunCoroutine(sol::coroutine& co, const std::vector<std::string>& args = {});
 
@@ -42,7 +39,6 @@ struct LuaThreadInfo
 	void SetResult(const sol::protected_function_result& result);
 };
 
-struct ThreadState;
 struct LuaThread
 {
 	// this needs to be first in initialization order because other things depend on it
@@ -55,8 +51,8 @@ struct LuaThread
 	std::string name;
 	std::string path;
 	std::unique_ptr<ThreadState> state;
-	std::unique_ptr<events::LuaEventProcessor> eventProcessor;
-	std::unique_ptr<imgui::LuaImGuiProcessor> imguiProcessor;
+	std::unique_ptr<LuaEventProcessor> eventProcessor;
+	std::unique_ptr<LuaImGuiProcessor> imguiProcessor;
 	uint32_t pid;
 	bool yieldToFrame;
 
@@ -120,4 +116,4 @@ struct PausedState : public ThreadState
 	void Pause(LuaThread& thread, uint32_t turbo) override;
 };
 
-} // namespace mq::lua::thread
+} // namespace mq::lua

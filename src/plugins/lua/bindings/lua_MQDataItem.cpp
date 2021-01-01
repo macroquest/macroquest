@@ -64,7 +64,7 @@ sol::object lua_MQDataItem::CallInt(int index, sol::this_state L) const
 
 sol::object lua_MQDataItem::CallVA(sol::this_state L, sol::variadic_args args) const
 {
-	return Call(thread::join(L, ",", args), L);
+	return Call(lua_join(L, ",", args), L);
 }
 
 sol::object lua_MQDataItem::CallEmpty(sol::this_state L) const

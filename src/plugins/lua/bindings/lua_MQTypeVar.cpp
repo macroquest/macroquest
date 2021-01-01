@@ -82,7 +82,7 @@ sol::object lua_MQTypeVar::CallInt(int index, sol::this_state L) const
 
 sol::object lua_MQTypeVar::CallVA(sol::this_state L, sol::variadic_args args) const
 {
-	return Call(thread::join(L, ",", args), L);
+	return Call(lua_join(L, ",", args), L);
 }
 
 sol::object lua_MQTypeVar::CallEmpty(sol::this_state L) const

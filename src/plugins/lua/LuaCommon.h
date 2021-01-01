@@ -43,8 +43,6 @@ void ErrorMessage(ColorWriter writer, const char* format, int color, Args&&... a
 	writer(format, color, std::forward<Args>(args)...);
 }
 
-namespace thread {
-	std::string join(sol::this_state L, std::string delim, sol::variadic_args va);
-}
+std::string lua_join(sol::this_state L, std::string delim, sol::variadic_args va);
 
 } // namespace mq::lua

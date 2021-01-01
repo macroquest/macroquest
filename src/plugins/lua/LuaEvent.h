@@ -20,16 +20,14 @@
 
 class Blech;
 
-namespace mq::lua::thread {
-	struct LuaThread;
-	struct ThreadState;
-}
+namespace mq::lua {
 
-namespace mq::lua::events {
+void Events_RegisterLua(sol::table& lua);
 
-void RegisterLua(sol::table& lua);
-
+struct LuaThread;
 struct LuaEventProcessor;
+struct ThreadState;
+
 struct LuaEvent
 {
 	const std::string name;
@@ -76,7 +74,7 @@ struct LuaEventInstance
 
 struct LuaEventProcessor
 {
-	const thread::LuaThread* thread;
+	const LuaThread* thread;
 
 	std::unique_ptr<Blech> blech;
 	std::vector<std::unique_ptr<LuaEvent>> eventDefinitions;
@@ -87,7 +85,7 @@ struct LuaEventProcessor
 	std::vector<LuaEventInstance<LuaBind>> bindsPending;
 	std::vector<std::pair<sol::coroutine, std::vector<std::string>>> bindsRunning;
 
-	LuaEventProcessor(const thread::LuaThread* thread);
+	LuaEventProcessor(const LuaThread* thread);
 	~LuaEventProcessor();
 
 	void AddEvent(std::string_view name, std::string_view expression, const sol::function& function);
@@ -99,11 +97,11 @@ struct LuaEventProcessor
 	void Process(std::string_view line) const;
 
 	// this is guaranteed to always run at the exact same time, so we can run binds and events in it
-	void RunEvents(const thread::LuaThread& thread);
+	void RunEvents(const LuaThread& thread);
 
 	// we need two separate functions here because we need to be able to run these at separate points, independently
 	void PrepareEvents();
 	void PrepareBinds();
 };
 
-} // namespace mq::lua::events
+} // namespace mq::lua

@@ -16,13 +16,11 @@
 
 #include "LuaCommon.h"
 
-namespace mq::lua::thread {
-	struct LuaThread;
-}
+namespace mq::lua {
 
-namespace mq::lua::imgui {
+struct LuaThread;
 
-void RegisterLua(sol::table& lua);
+void ImGui_RegisterLua(sol::table& lua);
 
 struct LuaImGui
 {
@@ -38,10 +36,10 @@ struct LuaImGui
 
 struct LuaImGuiProcessor
 {
-	const thread::LuaThread* thread;
+	const LuaThread* thread;
 	std::vector<std::unique_ptr<LuaImGui>> imguis;
 
-	LuaImGuiProcessor(const thread::LuaThread* thread);
+	LuaImGuiProcessor(const LuaThread* thread);
 	~LuaImGuiProcessor();
 
 	void AddCallback(std::string_view name, sol::function callback);
@@ -49,4 +47,4 @@ struct LuaImGuiProcessor
 	void Pulse() const;
 };
 
-} // namespace mq::lua::imgui
+} // namespace mq::lua

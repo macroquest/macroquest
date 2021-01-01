@@ -45,34 +45,30 @@ using MQ2HelpArgument = HelpArgument;
 
 namespace mq::lua {
 
-namespace config {
+// provide option strings here
+static const std::string turboNum = "turboNum";
+static const std::string luaDir = "luaDir";
+static const std::string luaRequirePaths = "luaRequirePaths";
+static const std::string dllRequirePaths = "dllRequirePaths";
+static const std::string infoGC = "infoGC";
+static const std::string squelchStatus = "squelchStatus";
 
-	// provide option strings here
-	static const std::string turboNum = "turboNum";
-	static const std::string luaDir = "luaDir";
-	static const std::string luaRequirePaths = "luaRequirePaths";
-	static const std::string dllRequirePaths = "dllRequirePaths";
-	static const std::string infoGC = "infoGC";
-	static const std::string squelchStatus = "squelchStatus";
+// configurable options, defaults provided where needed
+static uint32_t s_turboNum = 500;
+static std::string s_luaDir = (std::filesystem::path(gPathMQRoot) / "lua").string();
+static std::vector<std::string> s_luaRequirePaths;
+static std::vector<std::string> s_dllRequirePaths;
+static uint64_t s_infoGC = 3600000; // 1 hour
+static bool s_squelchStatus = false;
 
-	// configurable options, defaults provided where needed
-	static uint32_t s_turboNum = 500;
-	static std::string s_luaDir = (std::filesystem::path(gPathMQRoot) / "lua").string();
-	static std::vector<std::string> s_luaRequirePaths;
-	static std::vector<std::string> s_dllRequirePaths;
-	static uint64_t s_infoGC = 3600000; // 1 hour
-	static bool s_squelchStatus = false;
-
-	// this is static and will never change
-	static std::string s_configPath = (std::filesystem::path(gPathConfig) / "MQ2Lua.yaml").string();
-	static YAML::Node s_configNode;
-
-} // namespace mq::lua::config
+// this is static and will never change
+static std::string s_configPath = (std::filesystem::path(gPathConfig) / "MQ2Lua.yaml").string();
+static YAML::Node s_configNode;
 
 // use a vector for s_running because we need to iterate it every pulse, and find only if a command is issued
-std::vector<std::shared_ptr<thread::LuaThread>> s_running;
+std::vector<std::shared_ptr<LuaThread>> s_running;
 
-std::unordered_map<uint32_t, thread::LuaThreadInfo> s_finished;
+std::unordered_map<uint32_t, LuaThreadInfo> s_finished;
 
 #pragma region Shared Function Definitions
 
@@ -117,7 +113,7 @@ void DebugStackTrace(lua_State* L)
 
 bool DoStatus()
 {
-	return !config::s_squelchStatus;
+	return !s_squelchStatus;
 }
 
 #pragma endregion
@@ -160,7 +156,7 @@ public:
 		if (pMember == nullptr)
 			return false;
 
-		auto info = VarPtr.Get<thread::LuaThreadInfo>();
+		auto info = VarPtr.Get<LuaThreadInfo>();
 		if (!info)
 			return false;
 
@@ -232,7 +228,7 @@ public:
 
 	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
-		auto info = VarPtr.Get<thread::LuaThreadInfo>();
+		auto info = VarPtr.Get<LuaThreadInfo>();
 		if (!info || info->returnValues.empty())
 			return false;
 
@@ -294,26 +290,26 @@ public:
 		}
 		case Members::Dir:
 			Dest.Type = pStringType;
-			strcpy_s(DataTypeTemp, config::s_luaDir.c_str());
+			strcpy_s(DataTypeTemp, s_luaDir.c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 
 		case Members::Turbo:
 			Dest.Type = pIntType;
-			Dest.Set(config::s_turboNum);
+			Dest.Set(s_turboNum);
 			return true;
 
 		case Members::RequirePaths:
 			Dest.Type = pStringType;
-			strcpy_s(DataTypeTemp, fmt::format("{}\\?.lua;{}{}", config::s_luaDir,
-				config::s_luaRequirePaths.empty() ? "" : join(config::s_luaRequirePaths, ";")).c_str());
+			strcpy_s(DataTypeTemp, fmt::format("{}\\?.lua;{}{}", s_luaDir,
+				s_luaRequirePaths.empty() ? "" : join(s_luaRequirePaths, ";")).c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 
 		case Members::CRequirePaths:
 			Dest.Type = pStringType;
-			strcpy_s(DataTypeTemp, fmt::format("{}\\?.dll;{}{}", config::s_luaDir,
-				config::s_dllRequirePaths.empty() ? "" : join(config::s_dllRequirePaths, ";")).c_str());
+			strcpy_s(DataTypeTemp, fmt::format("{}\\?.dll;{}{}", s_luaDir,
+				s_dllRequirePaths.empty() ? "" : join(s_dllRequirePaths, ";")).c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 
@@ -406,12 +402,12 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 
 	if (script)
 	{
-		auto entry = std::make_shared<thread::LuaThread>(script.Get(), config::s_luaDir, config::s_luaRequirePaths, config::s_dllRequirePaths);
+		auto entry = std::make_shared<LuaThread>(script.Get(), s_luaDir, s_luaRequirePaths, s_dllRequirePaths);
 		WriteChatStatus("Running lua script '%s' with PID %d", script.Get().c_str(), entry->pid);
 		s_running.emplace_back(entry); // this needs to be in the running vector before we run at all
 
 		entry->RegisterLuaState(entry);
-		auto result = entry->StartFile(config::s_luaDir, config::s_turboNum, script_args.Get());
+		auto result = entry->StartFile(s_luaDir, s_turboNum, script_args.Get());
 		if (result)
 			s_finished.emplace(result->pid, *result);
 	}
@@ -504,7 +500,7 @@ void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
 
 		if (thread_it != s_running.end())
 		{
-			(*thread_it)->state->Pause(**thread_it, config::s_turboNum);
+			(*thread_it)->state->Pause(**thread_it, s_turboNum);
 		}
 		else
 		{
@@ -520,7 +516,7 @@ void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
 		{
 			// have at least one running script, so pause all running scripts
 			for (auto& thread : s_running)
-				thread->state->Pause(*thread, config::s_turboNum);
+				thread->state->Pause(*thread, s_turboNum);
 
 			WriteChatStatus("Pausing ALL running lua scripts");
 		}
@@ -528,7 +524,7 @@ void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
 		{
 			// we have no running scripts, so restart all paused scripts
 			for (auto& thread : s_running)
-				thread->state->Pause(*thread, config::s_turboNum);
+				thread->state->Pause(*thread, s_turboNum);
 
 			WriteChatStatus("Resuming ALL paused lua scripts");
 		}
@@ -564,12 +560,12 @@ void LuaStringCommand(SPAWNINFO* pChar, char* Buffer)
 
 	if (script)
 	{
-		auto entry = std::make_shared<thread::LuaThread>("/luastring", config::s_luaDir, config::s_luaRequirePaths, config::s_dllRequirePaths);
+		auto entry = std::make_shared<LuaThread>("/luastring", s_luaDir, s_luaRequirePaths, s_dllRequirePaths);
 		WriteChatStatus("Running lua string with PID %d", entry->pid);
 		s_running.emplace_back(entry); // this needs to be in the running vector before we run at all
 
 		entry->RegisterLuaState(entry);
-		auto result = entry->StartString(config::s_turboNum, join(script.Get(), " "));
+		auto result = entry->StartString(s_turboNum, join(script.Get(), " "));
 		if (result)
 			s_finished.emplace(result->pid, *result);
 	}
@@ -577,7 +573,6 @@ void LuaStringCommand(SPAWNINFO* pChar, char* Buffer)
 
 void WriteSettings()
 {
-	using namespace config;
 	if (!s_configNode.IsNull())
 	{
 		YAML::Emitter y_out;
@@ -590,8 +585,6 @@ void WriteSettings()
 
 void ReadSettings()
 {
-	using namespace config;
-
 	try
 	{
 		s_configNode = YAML::LoadFile(s_configPath);
@@ -671,8 +664,6 @@ void ReadSettings()
 
 void LuaConfCommand(SPAWNINFO* pChar, char* Buffer)
 {
-	using namespace config;
-
 	MQ2Args arg_parser("MQ2Lua: A lua script binding plugin.");
 	arg_parser.Prog("/luaconf");
 	arg_parser.RequireCommand(false);
@@ -742,6 +733,8 @@ void LuaRestartCommand(SPAWNINFO* pChar, char* Buffer)
  */
 PLUGIN_API void InitializePlugin()
 {
+	using namespace mq::lua;
+
 	DebugSpewAlways("MQ2Lua::Initializing version %f", MQ2Version);
 
 	ReadSettings();
@@ -766,6 +759,8 @@ PLUGIN_API void InitializePlugin()
  */
 PLUGIN_API void ShutdownPlugin()
 {
+	using namespace mq::lua;
+
 	DebugSpewAlways("MQ2Lua::Shutting down");
 
 	RemoveCommand("/lua");
@@ -791,6 +786,8 @@ PLUGIN_API void ShutdownPlugin()
  */
 PLUGIN_API void OnPulse()
 {
+	using namespace mq::lua;
+
 	s_running.erase(std::remove_if(s_running.begin(), s_running.end(), [](const auto& thread) -> bool
 		{
 			if (thread->coroutine.status() != sol::call_status::yielded)
@@ -799,7 +796,7 @@ PLUGIN_API void OnPulse()
 				return true;
 			}
 
-			auto result = thread->Run(config::s_turboNum);
+			auto result = thread->Run(s_turboNum);
 
 			if (result.first != sol::thread_status::yielded)
 			{
@@ -815,7 +812,7 @@ PLUGIN_API void OnPulse()
 		}), s_running.end());
 
 	static uint64_t last_check_time = MQGetTickCount64();
-	if (MQGetTickCount64() >= last_check_time + config::s_infoGC)
+	if (MQGetTickCount64() >= last_check_time + s_infoGC)
 	{
 		// this doesn't need to be super tight, no one should be depending on this clearing objects at exactly the GC
 		// interval, so just clear out anything that existed last time we checked.
@@ -842,6 +839,8 @@ PLUGIN_API void OnPulse()
  */
 PLUGIN_API void OnUpdateImGui()
 {
+	using namespace mq::lua;
+
 	for (const auto& thread : s_running)
 	{
 		thread->imguiProcessor->Pulse();
@@ -871,6 +870,8 @@ PLUGIN_API void OnUpdateImGui()
  */
 PLUGIN_API void OnWriteChatColor(const char* Line, int Color, int Filter)
 {
+	using namespace mq::lua;
+
 	for (const auto& thread : s_running)
 	{
 		if (!thread->state->IsPaused())
@@ -895,6 +896,8 @@ PLUGIN_API void OnWriteChatColor(const char* Line, int Color, int Filter)
  */
 PLUGIN_API bool OnIncomingChat(const char* Line, DWORD Color)
 {
+	using namespace mq::lua;
+
 	for (const auto& thread : s_running)
 	{
 		if (!thread->state->IsPaused())

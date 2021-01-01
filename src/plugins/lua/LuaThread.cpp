@@ -21,7 +21,7 @@
 
 #include <mq/Plugin.h>
 
-namespace mq::lua::thread {
+namespace mq::lua {
 
 // this is the special sauce that lets us execute everything on the main thread without blocking
 static void ForceYield(lua_State* L, lua_Debug* D)
@@ -97,18 +97,18 @@ LuaThread::LuaThread(std::string_view name, std::string_view luaDir,
 	const std::vector<std::string>& luaRequire, const std::vector<std::string>& dllRequire)
 	: name(name)
 	, state(std::make_unique<RunningState>())
-	, eventProcessor(std::make_unique<events::LuaEventProcessor>(this))
-	, imguiProcessor(std::make_unique<imgui::LuaImGuiProcessor>(this))
+	, eventProcessor(std::make_unique<LuaEventProcessor>(this))
+	, imguiProcessor(std::make_unique<LuaImGuiProcessor>(this))
 	, pid(NextID())
 {
 	globalState.open_libraries();
 
 	// always search the local dir first, then anything specified by the user, then the default paths
 	static auto package_path = globalState["package"]["path"].get<std::string>(); // make this static so we always have the _original_ package paths
-	globalState["package"]["path"] = fmt::format("{}\\?.lua;{}{}", luaDir, luaRequire.empty() ? "" : mq::join(luaRequire, ";") + ";", package_path);
+	globalState["package"]["path"] = fmt::format("{}\\?.lua;{}{}", luaDir, luaRequire.empty() ? "" : join(luaRequire, ";") + ";", package_path);
 
 	static auto package_cpath = globalState["package"]["cpath"].get<std::string>();
-	globalState["package"]["cpath"] = fmt::format("{}\\?.dll;{}{}", luaDir, dllRequire.empty() ? "" : mq::join(dllRequire, ";") + ";", package_cpath);
+	globalState["package"]["cpath"] = fmt::format("{}\\?.dll;{}{}", luaDir, dllRequire.empty() ? "" : join(dllRequire, ";") + ";", package_cpath);
 
 	environment = sol::environment(globalState, sol::create, globalState.globals());
 
@@ -244,7 +244,7 @@ void LuaThread::YieldAt(int count) const
 	lua_sethook(thread.state(), ForceYield, count == 0 ? LUA_MASKLINE : LUA_MASKCOUNT, count);
 }
 
-std::string join(sol::this_state L, std::string delim, sol::variadic_args va)
+std::string lua_join(sol::this_state L, std::string delim, sol::variadic_args va)
 {
 	if (va.size() > 0)
 	{
@@ -285,7 +285,7 @@ void delay(sol::object delayObj, sol::object conditionObj, sol::this_state s)
 
 	if (delay_int)
 	{
-		if (auto thread_ptr = thread::LuaThread::get_from(s))
+		if (auto thread_ptr = LuaThread::get_from(s))
 		{
 			uint64_t delay_ms = std::max(0L, *delay_int * 100L);
 			auto condition = conditionObj.as<std::optional<sol::function>>();
@@ -317,7 +317,7 @@ void delay(sol::object delayObj, sol::object conditionObj, sol::this_state s)
 
 void exit(sol::this_state s)
 {
-	if (auto thread_ptr = thread::LuaThread::get_from(s))
+	if (auto thread_ptr = LuaThread::get_from(s))
 	{
 		WriteChatStatus("Exit() called in Lua script %s with PID %d", thread_ptr->name.c_str(), thread_ptr->pid);
 		thread_ptr->YieldAt(0);
@@ -330,7 +330,7 @@ int LoadMQRequire(lua_State* L)
 	std::string path = sol::stack::get<std::string>(L);
 	if (path != "mq") return 0;
 
-	if (auto thread_ptr = thread::LuaThread::get_from(L))
+	if (auto thread_ptr = LuaThread::get_from(L))
 	{
 		thread_ptr->globalTable = thread_ptr->thread.state().create_table();
 
@@ -339,11 +339,11 @@ int LoadMQRequire(lua_State* L)
 		bindings::lua_MQTypeVar::RegisterBinding(*thread_ptr->globalTable);
 
 		(*thread_ptr->globalTable)["delay"] = &delay;
-		(*thread_ptr->globalTable)["join"] = &join;
+		(*thread_ptr->globalTable)["join"] = &lua_join;
 		(*thread_ptr->globalTable)["exit"] = &exit;
 
-		events::RegisterLua(*thread_ptr->globalTable);
-		imgui::RegisterLua(*thread_ptr->globalTable);
+		Events_RegisterLua(*thread_ptr->globalTable);
+		ImGui_RegisterLua(*thread_ptr->globalTable);
 
 		sol::state_view(L).set("_mq_internal_table", *thread_ptr->globalTable);
 		std::string script("return _mq_internal_table");
@@ -411,4 +411,4 @@ void LuaThreadInfo::SetResult(const sol::protected_function_result& result)
 	}
 }
 
-} // namespace mq::lua::thread
+} // namespace mq::lua

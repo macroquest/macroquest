@@ -47,7 +47,7 @@ sol::object lua_MQDoCommand::Get(sol::stack_object key, sol::this_state L) const
 	return sol::object(L, sol::in_place, sol::lua_nil);
 }
 
-void mq::lua::bindings::lua_MQCommand::RegisterBinding(sol::table& lua)
+void lua_MQCommand::RegisterBinding(sol::table& lua)
 {
 	lua.new_usertype<lua_MQCommand>("command",
 		sol::no_constructor);

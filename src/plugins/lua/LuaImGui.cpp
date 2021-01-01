@@ -18,9 +18,9 @@
 
 #include <mq/Plugin.h>
 
-namespace mq::lua::imgui {
+namespace mq::lua {
 
-LuaImGuiProcessor::LuaImGuiProcessor(const thread::LuaThread* thread)
+LuaImGuiProcessor::LuaImGuiProcessor(const LuaThread* thread)
 	: thread(thread)
 {
 }
@@ -55,7 +55,7 @@ void LuaImGuiProcessor::Pulse() const
 
 static void addimgui(std::string_view name, sol::function function, sol::this_state s)
 {
-	if (auto thread_ptr = thread::LuaThread::get_from(s))
+	if (auto thread_ptr = LuaThread::get_from(s))
 	{
 		thread_ptr->imguiProcessor->AddCallback(name, function);
 	}
@@ -63,13 +63,13 @@ static void addimgui(std::string_view name, sol::function function, sol::this_st
 
 static void removeimgui(std::string_view name, sol::this_state s)
 {
-	if (auto thread_ptr = thread::LuaThread::get_from(s))
+	if (auto thread_ptr = LuaThread::get_from(s))
 	{
 		thread_ptr->imguiProcessor->RemoveCallback(name);
 	}
 }
 
-void RegisterLua(sol::table& lua)
+void ImGui_RegisterLua(sol::table& lua)
 {
 	lua["imgui"] = lua.create_with(
 		"init", &addimgui,
@@ -103,4 +103,4 @@ void LuaImGui::Pulse() const
 	}
 }
 
-} // namespace mq::lua::imgui
+} // namespace mq::lua
