@@ -79,12 +79,20 @@ struct LuaThread
 
 	void RegisterLuaState(std::shared_ptr<LuaThread> self_ptr);
 
-	static inline std::shared_ptr<LuaThread> get_from(sol::state_view s)
-	{
-		std::optional<std::weak_ptr<LuaThread>> thread = s["mqthread"];
-		return thread.value_or(std::weak_ptr<LuaThread>()).lock();
-	}
+	static std::shared_ptr<LuaThread> get_from(sol::state_view s);
 };
+
+// Create a discrete type for this weak pointer.
+struct LuaThreadRef : public std::weak_ptr<LuaThread>
+{
+	using weak_ptr::weak_ptr;
+};
+
+inline std::shared_ptr<LuaThread> LuaThread::get_from(sol::state_view s)
+{
+	std::optional<LuaThreadRef> thread = s["mqthread"];
+	return thread.value_or(LuaThreadRef()).lock();
+}
 
 struct ThreadState
 {

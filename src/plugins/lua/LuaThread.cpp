@@ -389,7 +389,7 @@ void LuaThread::RegisterLuaState(std::shared_ptr<LuaThread> self_ptr)
 		return ret;
 	};
 
-	thread.state()["mqthread"] = std::weak_ptr(self_ptr);
+	state["mqthread"] = LuaThreadRef(self_ptr);
 
 	thread.state().add_package_loader(LoadMQRequire);
 }
