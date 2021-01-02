@@ -99,17 +99,17 @@ bool MQ2SkillType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			return true;
 
 		case Activated:
-			Dest.DWord = pSkill->Activated;
+			Dest.Set(pSkill->Activated);
 			Dest.Type = pBoolType;
 			return true;
 
 		case Auto: { // return a bool representing if a skill has /autoskill on or off.
-			Dest.DWord = false;
+			Dest.Set(false);
 			Dest.Type = pBoolType;
 			int id = GetSkillIDFromName(pStringTable->getString(pSkill->nName));
 			if (gAutoSkill.Skill[0] == id || gAutoSkill.Skill[1] == id)
 			{
-				Dest.DWord = true;
+				Dest.Set(true);
 			}
 			return true;
 		}

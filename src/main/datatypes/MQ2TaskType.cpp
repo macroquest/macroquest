@@ -104,7 +104,7 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		case TaskTypeMethods::Select:
 		{
 			Dest.Type = pBoolType;
-			Dest.DWord = false;
+			Dest.Set(false);
 
 			if (!pTaskWnd || !pTask->TaskTitle[0])
 				return false;
@@ -117,7 +117,7 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 			{
 				if (ci_equals(pTask->TaskTitle, clist->GetItemText(i, 2)))
 				{
-					Dest.DWord = SendListSelect2(clist, i);
+					Dest.Set(SendListSelect2(clist, i));
 					return true;
 				}
 			}

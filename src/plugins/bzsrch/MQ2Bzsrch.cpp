@@ -309,7 +309,7 @@ public:
 			return true;
 
 		case BazaarMembers::Done:
-			Dest.DWord = BazaarSearchDone ? 1 : 0;
+			Dest.Set(BazaarSearchDone);
 			Dest.Type = pBoolType;
 			return true;
 
@@ -358,10 +358,7 @@ public:
 			return false;
 
 		case BazaarMembers::Pricecheckdone:
-			if (pg_Item && pg_Item->ItemNumber)
-				Dest.DWord = 1;
-			else
-				Dest.DWord = 0;
+			Dest.Set(pg_Item && pg_Item->ItemNumber);
 			Dest.Type = pBoolType;
 			return true;
 

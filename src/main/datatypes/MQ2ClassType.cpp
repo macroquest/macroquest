@@ -44,86 +44,86 @@ bool MQ2ClassType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case CanCast:
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (VarPtr.DWord <= 16)
 		{
-			Dest.DWord = ClassInfo[VarPtr.DWord].CanCast;
+			Dest.Set(ClassInfo[VarPtr.DWord].CanCast);
 			return true;
 		}
 		return false;
 
 	case PureCaster:
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (VarPtr.DWord <= 16)
 		{
-			Dest.DWord = ClassInfo[VarPtr.DWord].PureCaster;
+			Dest.Set(ClassInfo[VarPtr.DWord].PureCaster);
 			return true;
 		}
 		return false;
 
 	case PetClass:
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (VarPtr.DWord <= 16)
 		{
-			Dest.DWord = ClassInfo[VarPtr.DWord].PetClass;
+			Dest.Set(ClassInfo[VarPtr.DWord].PetClass);
 			return true;
 		}
 		return false;
 
 	case DruidType:
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (VarPtr.DWord <= 16)
 		{
-			Dest.DWord = ClassInfo[VarPtr.DWord].DruidType;
+			Dest.Set(ClassInfo[VarPtr.DWord].DruidType);
 			return true;
 		}
 		return false;
 
 	case ShamanType:
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (VarPtr.DWord <= 16)
 		{
-			Dest.DWord = ClassInfo[VarPtr.DWord].ShamanType;
+			Dest.Set(ClassInfo[VarPtr.DWord].ShamanType);
 			return true;
 		}
 		return false;
 
 	case NecromancerType:
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (VarPtr.DWord <= 16)
 		{
-			Dest.DWord = ClassInfo[VarPtr.DWord].NecroType;
+			Dest.Set(ClassInfo[VarPtr.DWord].NecroType);
 			return true;
 		}
 		return false;
 
 	case ClericType:
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (VarPtr.DWord <= 16)
 		{
-			Dest.DWord = ClassInfo[VarPtr.DWord].ClericType;
+			Dest.Set(ClassInfo[VarPtr.DWord].ClericType);
 			return true;
 		}
 		return false;
 
 	case HealerType:
-		Dest.DWord = (VarPtr.DWord == 2 || VarPtr.DWord == 6 || VarPtr.DWord == 10);
+		Dest.Set(VarPtr.DWord == 2 || VarPtr.DWord == 6 || VarPtr.DWord == 10);
 		Dest.Type = pBoolType;
 		return true;
 
 	case MercType:
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (VarPtr.DWord <= 17)
 		{
-			Dest.DWord = ClassInfo[VarPtr.DWord].MercType;
+			Dest.Set(ClassInfo[VarPtr.DWord].MercType);
 			return true;
 		}
 		return false;

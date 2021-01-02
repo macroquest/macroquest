@@ -42,7 +42,7 @@ bool MQ2BandolierType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		switch (static_cast<BandolierTypeMembers>(pMember->ID))
 		{
 		case Active:
-			Dest.DWord = 0;
+			Dest.Set(false);
 			Dest.Type = pBoolType;
 
 			// TODO: Fix duplication
@@ -100,7 +100,7 @@ bool MQ2BandolierType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 					return true;
 				}
 
-				Dest.DWord = 1;
+				Dest.Set(true);
 			}
 			return true;
 
@@ -151,7 +151,7 @@ bool MQ2BandolierType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				}
 			}
 
-			Dest.DWord = 1;
+			Dest.Set(true);
 			Dest.Type = pBoolType;
 			return true;
 		}

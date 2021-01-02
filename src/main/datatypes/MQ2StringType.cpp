@@ -297,41 +297,41 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		return false;
 
 	case StringMembers::Equal:
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (Index[0])
 		{
-			Dest.DWord = _stricmp(szString, Index) == 0;
+			Dest.Set(_stricmp(szString, Index) == 0);
 			return true;
 		}
 		return false;
 
 	case StringMembers::NotEqual:
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (Index[0])
 		{
-			Dest.DWord = _stricmp(szString, Index) != 0;
+			Dest.Set(_stricmp(szString, Index) != 0);
 			return true;
 		}
 		return false;
 
 	case StringMembers::EqualCS:
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (Index[0])
 		{
-			Dest.DWord = strcmp(szString, Index) == 0;
+			Dest.Set(strcmp(szString, Index) == 0);
 			return true;
 		}
 		return false;
 
 	case StringMembers::NotEqualCS:
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (Index[0])
 		{
-			Dest.DWord = strcmp(szString, Index) != 0;
+			Dest.Set(strcmp(szString, Index) != 0);
 			return true;
 		}
 		return false;

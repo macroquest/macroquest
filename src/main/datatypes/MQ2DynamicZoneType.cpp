@@ -50,7 +50,7 @@ bool MQ2DynamicZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 	}
 
 	case LeaderFlagged:
-		Dest.DWord = pDynamicZone && pDynamicZone->pFirstMember && pDynamicZone->pFirstMember->bFlagged;
+		Dest.Set(pDynamicZone && pDynamicZone->pFirstMember && pDynamicZone->pFirstMember->bFlagged);
 		Dest.Type = pBoolType;
 
 	case MaxMembers:
@@ -111,11 +111,11 @@ bool MQ2DynamicZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 	}
 
 	case InRaid:
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (pDynamicZone && pDynamicZone->LeaderName[0])
 		{
-			Dest.DWord = 1;
+			Dest.Set(true);
 		}
 		return true;
 

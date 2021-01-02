@@ -586,7 +586,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	case SpellMembers::Stacks:
 	case SpellMembers::NewStacks: // stacks on self
 	{
-		Dest.DWord = false;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 
 		if (!pLocalPlayer)
@@ -597,16 +597,16 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		int SlotIndex = -1;
 		EQ_Affect* ret = pPc->FindAffectSlot(pSpell->ID, pLocalPlayer, &SlotIndex, true, pLocalPlayer->Level);
 
-		Dest.DWord = ret &&
+		Dest.Set(ret &&
 			SlotIndex != -1 &&
 			GetSpellDuration(pSpell, pLocalPlayer) >= -1 &&
-			ret->Duration <= GetIntFromString(Index, 0);
+			ret->Duration <= GetIntFromString(Index, 0));
 
 		return true;
 	}
 
 	case SpellMembers::StacksPet: {
-		Dest.DWord = true;
+		Dest.Set(true);
 		Dest.Type = pBoolType;
 
 		if (!pPetInfoWnd || !pLocalPlayer)
@@ -623,7 +623,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 				GetSpellDuration(pBuffSpell, pLocalPlayer) < -1 ||
 				ceil(pPetInfoWnd->PetBuffTimer[nBuff] / 6000) > GetIntFromString(Index, 0)))
 			{
-				Dest.DWord = false;
+				Dest.Set(false);
 				return true;
 			}
 		}
@@ -635,7 +635,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	case SpellMembers::StacksWith:
 	case SpellMembers::NewStacksWith: // if a spell stack with another spell
 	{
-		Dest.DWord = false;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 
 		if (!Index[0] || !pLocalPlayer)
@@ -646,7 +646,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		if (!tmpSpell)
 			return false;
 
-		Dest.DWord = WillStackWith(pSpell, tmpSpell);
+		Dest.Set(WillStackWith(pSpell, tmpSpell));
 		return true;
 	}
 
@@ -661,10 +661,10 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			return false;
 
 		Dest.Type = pBoolType;
-		Dest.DWord = GetCachedBuff(pSpawn, [&pSpell](CachedBuff buff) -> bool {
+		Dest.Set(GetCachedBuff(pSpawn, [&pSpell](CachedBuff buff) -> bool {
 			auto pBuff = GetSpellByID(buff.spellId);
 			return pBuff && !WillStackWith(pSpell, pBuff);
-		}) < 0;
+		}) < 0);
 
 		return true;
 	}
@@ -674,10 +674,10 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			return false;
 
 		Dest.Type = pBoolType;
-		Dest.DWord = GetCachedBuff(pTarget, [&pSpell](CachedBuff buff) -> bool {
+		Dest.Set(GetCachedBuff(pTarget, [&pSpell](CachedBuff buff) -> bool {
 			auto pBuff = GetSpellByID(buff.spellId);
 			return pBuff && !WillStackWith(pSpell, pBuff);
-		}) < 0;
+		}) < 0);
 
 		return true;
 
@@ -921,17 +921,17 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpellMembers::CanMGB:
-		Dest.DWord = pSpell->CanMGB;
+		Dest.Set(pSpell->CanMGB);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpellMembers::IsSkill:
-		Dest.DWord = pSpell->IsSkill;
+		Dest.Set(pSpell->IsSkill);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpellMembers::Deletable:
-		Dest.DWord = pSpell->Deletable;
+		Dest.Set(pSpell->Deletable);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1100,12 +1100,12 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpellMembers::Beneficial:
-		Dest.DWord = pSpell->SpellType != 0;
+		Dest.Set(pSpell->SpellType != 0);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpellMembers::IsActiveAA:
-		Dest.DWord = IsActiveAA(pSpell->Name);
+		Dest.Set(IsActiveAA(pSpell->Name));
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1116,7 +1116,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case SpellMembers::IsSwarmSpell:
 	{
-		Dest.DWord = false;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 
 		for (int i = 0; i < pSpell->NumEffects; ++i)
@@ -1124,7 +1124,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			int attrib = GetSpellAttrib(pSpell, i);
 			if (attrib == SPA_PET_SWARM || attrib == SPA_DOPPELGANGER)
 			{
-				Dest.DWord = true;
+				Dest.Set(true);
 				break;
 			}
 		}
@@ -1137,7 +1137,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpellMembers::StacksWithDiscs:
-		Dest.DWord = pSpell->bStacksWithDiscs;
+		Dest.Set(pSpell->bStacksWithDiscs);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1154,11 +1154,11 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		if (!pSpellAffect)
 			return false;
 
-		Dest.DWord = pLocalPlayer->LegalPlayerRace(pSpellAffect->Base) ||
+		Dest.Set(pLocalPlayer->LegalPlayerRace(pSpellAffect->Base) ||
 			pSpellAffect->Base == EQR_SKELETON ||
 			pSpellAffect->Base == EQR_SKELETON_NEW ||
 			pSpellAffect->Base == EQR_OEQ_SKELETON ||
-			pSpellAffect->Base == EQR_SOL_SKELETON;
+			pSpellAffect->Base == EQR_SOL_SKELETON);
 
 		return true;
 	}
@@ -1173,7 +1173,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			return false;
 
 		Dest.Type = pBoolType;
-		Dest.DWord = IsSPAEffect(pSpell, effectIndex);
+		Dest.Set(IsSPAEffect(pSpell, effectIndex));
 
 		return true;
 	}

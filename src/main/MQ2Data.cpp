@@ -201,13 +201,6 @@ bool dataMacro(const char* szIndex, MQTypeVar& Ret)
 	return false;
 }
 
-bool dataEverQuest(const char* szIndex, MQTypeVar& Ret)
-{
-	Ret.Ptr = 0;
-	Ret.Type = pEverQuestType;
-	return true;
-}
-
 bool dataMath(const char* szIndex, MQTypeVar& Ret)
 {
 	Ret.Ptr = 0;
@@ -600,7 +593,7 @@ bool dataDefined(const char* szIndex, MQTypeVar& Ret)
 {
 	if (!szIndex[0])
 		return false;
-	Ret.DWord = (FindMQ2DataVariable(szIndex) != 0);
+	Ret.Set(FindMQ2DataVariable(szIndex) != 0);
 	Ret.Type = pBoolType;
 	return true;
 }
@@ -609,7 +602,7 @@ bool dataSubDefined(const char* szIndex, MQTypeVar& Ret)
 {
 	if (!szIndex[0])
 		return false;
-	Ret.DWord = gMacroBlock && (gMacroSubLookupMap.find(szIndex) != gMacroSubLookupMap.end());
+	Ret.Set(gMacroBlock && (gMacroSubLookupMap.find(szIndex) != gMacroSubLookupMap.end()));
 	Ret.Type = pBoolType;
 	return true;
 }
@@ -993,7 +986,7 @@ bool dataLineOfSight(const char* szIndex, MQTypeVar& Ret)
 		Temp2.X = P1[1];
 		Temp2.Z = P1[2];
 
-		Ret.DWord = LineOfSight(&Temp, &Temp2);
+		Ret.Set(LineOfSight(&Temp, &Temp2));
 		Ret.Type = pBoolType;
 		return true;
 	}
@@ -1021,7 +1014,7 @@ bool dataAlias(const char* szIndex, MQTypeVar& Ret)
 	{
 		if (IsAlias(szIndex))
 		{
-			Ret.DWord = 1;
+			Ret.Set(true);
 			Ret.Type = pBoolType;
 			return true;
 		}

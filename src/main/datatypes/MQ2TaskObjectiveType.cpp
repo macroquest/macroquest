@@ -252,7 +252,7 @@ bool MQ2TaskObjectiveType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 		return true;
 
 	case TaskObjectiveTypeMembers::Optional:
-		Dest.DWord = pTaskObjective->bOptional;
+		Dest.Set(pTaskObjective->bOptional);
 		Dest.Type = pBoolType;
 		return true;
 

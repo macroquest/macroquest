@@ -147,7 +147,7 @@ bool MQ2AdvLootType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 		return true;
 
 	case AdvLootTypeMembers::LootInProgress:
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 
 		if (CListWnd* pPersonalList = (CListWnd*)pAdvancedLootWnd->GetChildItem("ADLW_PLLList"))
@@ -155,7 +155,7 @@ bool MQ2AdvLootType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 			if (pAdvancedLootWnd->pCLootList)
 			{
 				CListWnd* pSharedList = (CListWnd*)pAdvancedLootWnd->pCLootList->SharedLootList;
-				Dest.DWord = LootInProgress(pAdvancedLootWnd, pPersonalList, pSharedList);
+				Dest.Set(LootInProgress(pAdvancedLootWnd, pPersonalList, pSharedList));
 			}
 		}
 		return true;

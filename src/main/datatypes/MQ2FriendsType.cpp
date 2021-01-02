@@ -51,7 +51,7 @@ bool MQ2FriendsType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 				{
 					if (ci_equals(pChat->GetFriendName(i), Index))
 					{
-						Dest.DWord = 1;
+						Dest.Set(true);
 						Dest.Type = pBoolType;
 						return true;
 					}

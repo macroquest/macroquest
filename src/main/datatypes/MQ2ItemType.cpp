@@ -388,27 +388,27 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::Lore:
-		Dest.DWord = ((ItemBase*)pItem)->IsLore(false);
+		Dest.Set(((ItemBase*)pItem)->IsLore(false));
 		Dest.Type = pBoolType;
 		return true;
 	case ItemMembers::LoreEquipped:
-		Dest.DWord = ((ItemBase*)pItem)->IsLoreEquipped(false);
+		Dest.Set(((ItemBase*)pItem)->IsLoreEquipped(false));
 		Dest.Type = pBoolType;
 		return true;
 
 	case ItemMembers::NoDrop:
 	case ItemMembers::NoTrade:
-		Dest.DWord = !((EQ_Item*)pItem)->CanDrop(0, 1);
+		Dest.Set(!((EQ_Item*)pItem)->CanDrop(0, 1));
 		Dest.Type = pBoolType;
 		return true;
 
 	case ItemMembers::NoRent:
-		Dest.DWord = !GetItemFromContents(pItem)->NoRent;
+		Dest.Set(!GetItemFromContents(pItem)->NoRent);
 		Dest.Type = pBoolType;
 		return true;
 
 	case ItemMembers::Magic:
-		Dest.DWord = ((GetItemFromContents(pItem)->Type == ITEMTYPE_NORMAL) && (GetItemFromContents(pItem)->Magic));
+		Dest.Set(((GetItemFromContents(pItem)->Type == ITEMTYPE_NORMAL) && (GetItemFromContents(pItem)->Magic)));
 		Dest.Type = pBoolType;
 		return true;
 
@@ -610,7 +610,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return false;
 	}
 	case ItemMembers::Stackable:
-		Dest.DWord = ((EQ_Item*)pItem)->IsStackable();
+		Dest.Set(((EQ_Item*)pItem)->IsStackable());
 		Dest.Type = pBoolType;
 		return true;
 
@@ -686,7 +686,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 				uint32_t nInvSlot = ItemSlotMap[Index];
 				if ((nInvSlot || !_stricmp(Index, "charm")) && nInvSlot < 32)
 				{
-					Dest.DWord = (GetItemFromContents(pItem)->EquipSlots & (1 << nInvSlot));
+					Dest.Set((GetItemFromContents(pItem)->EquipSlots & (1 << nInvSlot)) != 0);
 					Dest.Type = pBoolType;
 					return true;
 				}
@@ -792,7 +792,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::Attuneable:
-		Dest.DWord = GetItemFromContents(pItem)->Attuneable;
+		Dest.Set(GetItemFromContents(pItem)->Attuneable);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1722,7 +1722,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::Tradeskills:
-		Dest.DWord = GetItemFromContents(pItem)->TradeSkills;
+		Dest.Set(GetItemFromContents(pItem)->TradeSkills);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1737,7 +1737,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::Prestige:
-		Dest.DWord = GetItemFromContents(pItem)->Prestige;
+		Dest.Set(GetItemFromContents(pItem)->Prestige != 0);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1819,27 +1819,27 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	}
 
 	case ItemMembers::Heirloom:
-		Dest.DWord = GetItemFromContents(pItem)->Heirloom;
+		Dest.Set(GetItemFromContents(pItem)->Heirloom);
 		Dest.Type = pBoolType;
 		return true;
 
 	case ItemMembers::Collectible:
-		Dest.DWord = GetItemFromContents(pItem)->Collectible;
+		Dest.Set(GetItemFromContents(pItem)->Collectible);
 		Dest.Type = pBoolType;
 		return true;
 
 	case ItemMembers::NoDestroy:
-		Dest.DWord = GetItemFromContents(pItem)->NoDestroy;
+		Dest.Set(GetItemFromContents(pItem)->NoDestroy);
 		Dest.Type = pBoolType;
 		return true;
 
 	case ItemMembers::Quest:
-		Dest.DWord = GetItemFromContents(pItem)->QuestItem;
+		Dest.Set(GetItemFromContents(pItem)->QuestItem != 0);
 		Dest.Type = pBoolType;
 		return true;
 
 	case ItemMembers::Expendable:
-		Dest.DWord = GetItemFromContents(pItem)->Expendable;
+		Dest.Set(GetItemFromContents(pItem)->Expendable != 0);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1868,11 +1868,11 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::CanUse:
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (CONTENTS* pCont = pItem)
 		{
-			Dest.DWord = pCharData->CanUseItem(&pCont, false, false);
+			Dest.Set(pCharData->CanUseItem(&pCont, false, false));
 			return true;
 		}
 		return false;

@@ -25,7 +25,6 @@ MQLIB_API bool dataPointMerchant(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataWindow(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataMenu(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataMacro(const char* szIndex, MQTypeVar& Ret);
-MQLIB_API bool dataEverQuest(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataMath(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataZone(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataGroup(const char* szIndex, MQTypeVar& Ret);

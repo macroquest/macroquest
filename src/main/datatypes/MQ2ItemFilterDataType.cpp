@@ -46,42 +46,42 @@ bool MQ2ItemFilterDataType::GetMember(MQVarPtr VarPtr, const char* Member, char*
 		return true;
 
 	case AutoRoll:
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (pItem)
 		{
 			bool bAutoRoll = (pItem->Types & (1 << 0)) != 0;
-			Dest.DWord = bAutoRoll;
+			Dest.Set(bAutoRoll);
 		}
 		return true;
 
 	case Need:
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (pItem)
 		{
 			bool bNeed = (pItem->Types & (1 << 1)) != 0;
-			Dest.DWord = bNeed;
+			Dest.Set(bNeed);
 		}
 		return true;
 
 	case Greed:
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (pItem)
 		{
 			bool bGreed = (pItem->Types & (1 << 2)) != 0;
-			Dest.DWord = bGreed;
+			Dest.Set(bGreed);
 		}
 		return true;
 
 	case Never:
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (pItem)
 		{
 			bool bNever = (pItem->Types & (1 << 3)) != 0;
-			Dest.DWord = bNever;
+			Dest.Set(bNever);
 		}
 		return true;
 

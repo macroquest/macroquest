@@ -79,20 +79,20 @@ bool MQ2AugType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		return true;
 
 	case AugTypeMembers::Visible:
-		Dest.DWord = pItem->AugData.Sockets[index].bVisible;
+		Dest.Set(pItem->AugData.Sockets[index].bVisible);
 		Dest.Type = pBoolType;
 		return true;
 
 	case AugTypeMembers::Infusable:
-		Dest.DWord = pItem->AugData.Sockets[index].bInfusible;
+		Dest.Set(pItem->AugData.Sockets[index].bInfusible);
 		Dest.Type = pBoolType;
 		return true;
 
 	case AugTypeMembers::Empty:
-		Dest.DWord = true;
+		Dest.Set(true);
 		Dest.Type = pBoolType;
 		if (CONTENTS* pCret = pCont->GetContent(index))
-			Dest.DWord = false;
+			Dest.Set(false);
 		return true;
 
 	case AugTypeMembers::Name:

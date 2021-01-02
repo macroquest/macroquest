@@ -150,7 +150,7 @@ bool MQ2FellowshipType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		return false;
 
 	case FellowshipTypeMembers::Campfire:
-		Dest.Int = pMySpawn->Campfire;
+		Dest.Set(pMySpawn->Campfire);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -163,7 +163,7 @@ bool MQ2FellowshipType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 			if (nMember > pFellowship->Members)
 				return false;
 
-			Dest.DWord = pFellowship->bExpSharingEnabled[nMember];
+			Dest.Set(pFellowship->bExpSharingEnabled[nMember]);
 			Dest.Type = pBoolType;
 			return true;
 		}

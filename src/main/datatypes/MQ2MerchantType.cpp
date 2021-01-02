@@ -164,12 +164,12 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 	switch (static_cast<MerchantMembers>(pMember->ID))
 	{
 	case Open:
-		Dest.DWord = pMerchantWnd->IsVisible();
+		Dest.Set(pMerchantWnd->IsVisible());
 		Dest.Type = pBoolType;
 		return true;
 
 	case ItemsReceived:
-		Dest.DWord = gItemsReceived;
+		Dest.Set(gItemsReceived);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -248,7 +248,7 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 		{
 			VePointer<MerchantPageHandler>& page = pMerchantWnd->PageHandlers[RegularMerchantPage];
 
-			Dest.DWord = page->ItemContainer.GetSize() >= page->MaxItems;
+			Dest.Set(page->ItemContainer.GetSize() >= page->MaxItems);
 			return true;
 		}
 		return false;

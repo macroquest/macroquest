@@ -117,11 +117,11 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case MacroMembers::Paused:
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (MQMacroBlockPtr pBlock = GetCurrentMacroBlock())
 		{
-			Dest.DWord = pBlock->Paused;
+			Dest.Set(pBlock->Paused);
 		}
 		return true;
 
@@ -132,17 +132,13 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case MacroMembers::IsTLO:
-		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (FindMQ2Data(Index))
-			Dest.DWord = 1;
+		Dest.Set(FindMQ2Data(Index) != nullptr);
 		return true;
 
 	case MacroMembers::IsOuterVariable:
-		Dest.DWord = 0;
 		Dest.Type = pBoolType;
-		if (VariableMap.find(Index) != VariableMap.end())
-			Dest.DWord = 1;
+		Dest.Set(VariableMap.find(Index) != VariableMap.end());
 		return true;
 
 	case MacroMembers::StackSize: {

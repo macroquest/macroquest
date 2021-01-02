@@ -119,137 +119,137 @@ bool MQ2AlertListType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				return true;
 
 			case bSpawnID:
-				Dest.DWord = search.bSpawnID;
+				Dest.Set(search.bSpawnID);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bNotNearAlert:
-				Dest.DWord = search.bNotNearAlert;
+				Dest.Set(search.bNotNearAlert);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bNearAlert:
-				Dest.DWord = search.bNearAlert;
+				Dest.Set(search.bNearAlert);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bNoAlert:
-				Dest.DWord = search.bNoAlert;
+				Dest.Set(search.bNoAlert);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bAlert:
-				Dest.DWord = search.bAlert;
+				Dest.Set(search.bAlert);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bLFG:
-				Dest.DWord = search.bLFG;
+				Dest.Set(search.bLFG);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bTrader:
-				Dest.DWord = search.bTrader;
+				Dest.Set(search.bTrader);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bLight:
-				Dest.DWord = search.bLight;
+				Dest.Set(search.bLight);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bTargNext:
-				Dest.DWord = search.bTargNext;
+				Dest.Set(search.bTargNext);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bTargPrev:
-				Dest.DWord = search.bTargPrev;
+				Dest.Set(search.bTargPrev);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bGroup:
-				Dest.DWord = search.bGroup;
+				Dest.Set(search.bGroup);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bFellowship:
-				Dest.DWord = search.bFellowship;
+				Dest.Set(search.bFellowship);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bNoGroup:
-				Dest.DWord = search.bNoGroup;
+				Dest.Set(search.bNoGroup);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bRaid:
-				Dest.DWord = search.bRaid;
+				Dest.Set(search.bRaid);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bGM:
-				Dest.DWord = search.bGM;
+				Dest.Set(search.bGM);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bNamed:
-				Dest.DWord = search.bNamed;
+				Dest.Set(search.bNamed);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bMerchant:
-				Dest.DWord = search.bMerchant;
+				Dest.Set(search.bMerchant);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bBanker:
-				Dest.DWord = search.bBanker;
+				Dest.Set(search.bBanker);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bTributeMaster:
-				Dest.DWord = search.bTributeMaster;
+				Dest.Set(search.bTributeMaster);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bKnight:
-				Dest.DWord = search.bKnight;
+				Dest.Set(search.bKnight);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bTank:
-				Dest.DWord = search.bTank;
+				Dest.Set(search.bTank);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bHealer:
-				Dest.DWord = search.bHealer;
+				Dest.Set(search.bHealer);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bDps:
-				Dest.DWord = search.bDps;
+				Dest.Set(search.bDps);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bSlower:
-				Dest.DWord = search.bSlower;
+				Dest.Set(search.bSlower);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bAura:
-				Dest.DWord = search.bAura;
+				Dest.Set(search.bAura);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bBanner:
-				Dest.DWord = search.bBanner;
+				Dest.Set(search.bBanner);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bCampfire:
-				Dest.DWord = search.bCampfire;
+				Dest.Set(search.bCampfire);
 				Dest.Type = pBoolType;
 				return true;
 
@@ -299,12 +299,12 @@ bool MQ2AlertListType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				return true;
 
 			case bKnownLocation:
-				Dest.DWord = search.bKnownLocation;
+				Dest.Set(search.bKnownLocation);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bNoPet:
-				Dest.DWord = search.bNoPet;
+				Dest.Set(search.bNoPet);
 				Dest.Type = pBoolType;
 				return true;
 
@@ -314,22 +314,22 @@ bool MQ2AlertListType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				return true;
 
 			case bNoGuild:
-				Dest.DWord = search.bNoGuild;
+				Dest.Set(search.bNoGuild);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bLoS:
-				Dest.DWord = search.bLoS;
+				Dest.Set(search.bLoS);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bExactName:
-				Dest.DWord = search.bExactName;
+				Dest.Set(search.bExactName);
 				Dest.Type = pBoolType;
 				return true;
 
 			case bTargetable:
-				Dest.DWord = search.bTargetable;
+				Dest.Set(search.bTargetable);
 				Dest.Type = pBoolType;
 				return true;
 

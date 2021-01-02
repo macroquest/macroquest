@@ -950,6 +950,7 @@ public:
 	MQ2EverQuestType();
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	static bool dataEverQuest(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================

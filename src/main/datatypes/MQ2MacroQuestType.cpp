@@ -255,7 +255,7 @@ bool MQ2MacroQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		return true;
 
 	case MacroQuestMembers::Anonymize:
-		Dest.DWord = IsAnonymized();
+		Dest.Set(IsAnonymized());
 		Dest.Type = pBoolType;
 		return true;
 

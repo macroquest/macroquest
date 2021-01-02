@@ -26,19 +26,19 @@ bool MQ2BoolType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 bool MQ2BoolType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	strcpy_s(Destination, MAX_STRING, VarPtr.DWord ? "TRUE" : "FALSE");
+	strcpy_s(Destination, MAX_STRING, VarPtr.Get<bool>() ? "TRUE" : "FALSE");
 	return true;
 }
 
 bool MQ2BoolType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 {
-	VarPtr.DWord = Source.DWord;
+	VarPtr.Set(Source.Get<bool>());
 	return true;
 }
 
 bool MQ2BoolType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
-	VarPtr.DWord = ci_equals(Source, "TRUE") || GetFloatFromString(Source, 0) != 0;
+	VarPtr.Set(!ci_equals(Source, "FALSE") && !ci_equals(Source, "NULL") && GetFloatFromString(Source, 1) != 0);
 	return true;
 }
 
@@ -48,6 +48,6 @@ bool MQ2BoolType::dataBool(const char* szIndex, MQTypeVar& Ret)
 		return false;
 
 	Ret.Type = pBoolType;
-	Ret.DWord = !ci_equals(szIndex, "FALSE") && !ci_equals(szIndex, "NULL") && GetFloatFromString(szIndex, 1) != 0;
+	Ret.Set(!ci_equals(szIndex, "FALSE") && !ci_equals(szIndex, "NULL") && GetFloatFromString(szIndex, 1) != 0);
 	return true;
 }

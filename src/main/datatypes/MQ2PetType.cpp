@@ -220,22 +220,22 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		return false;
 
 	case PetMembers::Combat:
-		Dest.DWord = pSpawn->WhoFollowing != nullptr;
+		Dest.Set(pSpawn->WhoFollowing != nullptr);
 		Dest.Type = pBoolType;
 		return true;
 
 	case PetMembers::GHold:
-		Dest.DWord = pPetInfoWnd->GHold;
+		Dest.Set(pPetInfoWnd->GHold);
 		Dest.Type = pBoolType;
 		return true;
 
 	case PetMembers::Hold:
-		Dest.DWord = pPetInfoWnd->Hold;
+		Dest.Set(pPetInfoWnd->Hold);
 		Dest.Type = pBoolType;
 		return true;
 
 	case PetMembers::ReGroup:
-		Dest.DWord = pPetInfoWnd->ReGroup;
+		Dest.Set(pPetInfoWnd->ReGroup);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -249,7 +249,7 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		return true;
 
 	case PetMembers::Stop:
-		Dest.DWord = pPetInfoWnd->Stop;
+		Dest.Set(pPetInfoWnd->Stop);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -262,7 +262,7 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		return false;
 
 	case PetMembers::Taunt:
-		Dest.DWord = pPetInfoWnd->Taunt;
+		Dest.Set(pPetInfoWnd->Taunt);
 		Dest.Type = pBoolType;
 		return true;
 	}

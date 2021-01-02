@@ -193,7 +193,7 @@ bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		return true;
 
 	case SwitchMembers::Open:
-		Dest.DWord = (pTheSwitch->State == 1);
+		Dest.Set(pTheSwitch->State == 1);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -270,7 +270,7 @@ bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 	}
 
 	case SwitchMembers::LineOfSight:
-		Dest.DWord = CastRay(GetCharInfo()->pSpawn, pTheSwitch->Y, pTheSwitch->X, pTheSwitch->Z);
+		Dest.Set(CastRay(GetCharInfo()->pSpawn, pTheSwitch->Y, pTheSwitch->X, pTheSwitch->Z) != 0);
 		Dest.Type = pBoolType;
 		return true;
 

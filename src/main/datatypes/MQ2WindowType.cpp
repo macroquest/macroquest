@@ -325,7 +325,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		return true;
 
 	case WindowMembers::Open:
-		Dest.DWord = pWnd->IsVisible();
+		Dest.Set(pWnd->IsVisible());
 		Dest.Type = pBoolType;
 		return true;
 
@@ -400,22 +400,22 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		return true;
 
 	case WindowMembers::Children:
-		Dest.DWord = pWnd->GetFirstChildWnd() != nullptr;
+		Dest.Set(pWnd->GetFirstChildWnd() != nullptr);
 		Dest.Type = pBoolType;
 		return true;
 
 	case WindowMembers::Siblings:
-		Dest.DWord = pWnd->GetNextSiblingWnd() != nullptr;
+		Dest.Set(pWnd->GetNextSiblingWnd() != nullptr);
 		Dest.Type = pBoolType;
 		return true;
 
 	case WindowMembers::Minimized:
-		Dest.DWord = pWnd->IsMinimized();
+		Dest.Set(pWnd->IsMinimized());
 		Dest.Type = pBoolType;
 		return true;
 
 	case WindowMembers::MouseOver:
-		Dest.DWord = pWnd->IsMouseOver();
+		Dest.Set(pWnd->IsMouseOver());
 		Dest.Type = pBoolType;
 		return true;
 
@@ -473,22 +473,22 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		return true;
 
 	case WindowMembers::Checked:
-		Dest.Int = ((CButtonWnd*)pWnd)->bChecked;
+		Dest.Set(((CButtonWnd*)pWnd)->bChecked);
 		Dest.Type = pBoolType;
 		return true;
 
 	case WindowMembers::Highlighted: // if the window in question has focus...
-		Dest.Int = false;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (pWndMgr)
 		{
 			if (pWnd == pWndMgr->FocusWindow)
-				Dest.Int = true;
+				Dest.Set(true);
 		}
 		return true;
 
 	case WindowMembers::Enabled:
-		Dest.Int = pWnd->IsEnabled();
+		Dest.Set(pWnd->IsEnabled());
 		Dest.Type = pBoolType;
 		return true;
 
@@ -647,20 +647,20 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		return true;
 
 	case WindowMembers::HisTradeReady:
-		Dest.Int = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (pTradeWnd)
 		{
-			Dest.Int = pTradeWnd->bHisReadyTrade;
+			Dest.Set(pTradeWnd->bHisReadyTrade);
 		}
 		return true;
 
 	case WindowMembers::MyTradeReady:
-		Dest.Int = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (pTradeWnd)
 		{
-			Dest.Int = pTradeWnd->bMyReadyTrade;
+			Dest.Set(pTradeWnd->bMyReadyTrade);
 		}
 		return true;
 

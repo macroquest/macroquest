@@ -257,7 +257,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return false;
 
 	case AnyoneMissing:
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 
 		for (int i = 1; i < MAX_GROUP_SIZE; i++)
@@ -269,7 +269,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 					|| (pChar->pGroupInfo->pMember[i]->pSpawn
 						&& pChar->pGroupInfo->pMember[i]->pSpawn->Type == SPAWN_CORPSE)))
 			{
-				Dest.DWord = 1;
+				Dest.Set(true);
 				break;
 			}
 		}
