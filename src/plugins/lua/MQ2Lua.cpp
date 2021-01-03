@@ -36,6 +36,10 @@
 PreSetup("MQ2Lua");
 PLUGIN_VERSION(0.1);
 
+// TODO: Add ps argument to command
+// TODO: allow passing of script name where pid is allowed
+// TODO: restrict to one running instance of script
+
 // TODO: Add aggressive bind/event options that scriptwriters can set with functions
 // TODO: Add OnExit callbacks (potentially both as an explicit argument to exit and a set callback)
 
@@ -378,70 +382,38 @@ public:
 
 #pragma region Commands
 
-void LuaCommand(SPAWNINFO* pChar, char* Buffer)
+static void LuaRunCommand(const std::string& script, const std::vector<std::string>& args)
 {
-	MQ2Args arg_parser("MQ2Lua: A lua script binding plugin.");
-	arg_parser.Prog("/lua");
-	args::Group arguments(arg_parser, "");
-	args::Positional<std::string> script(arguments, "script", "the name of the lua script to run. will automatically append .lua extension if no extension specified.");
-	args::PositionalList<std::string> script_args(arguments, "args", "optional arguments to pass to the lua script.");
+	auto entry = std::make_shared<LuaThread>(script, s_luaDir, s_luaRequirePaths, s_dllRequirePaths);
+	WriteChatStatus("Running lua script '%s' with PID %d", script.c_str(), entry->pid);
+	s_running.emplace_back(entry); // this needs to be in the running vector before we run at all
 
-	MQ2HelpArgument h(arguments);
-	auto args = allocate_args(Buffer);
-	try
-	{
-		arg_parser.ParseArgs(args);
-	}
-	catch (const args::Help&)
-	{
-		arg_parser.Help();
-	}
-	catch (const args::Error& e)
-	{
-		WriteChatColor(e.what());
-	}
-
-	if (script)
-	{
-		auto entry = std::make_shared<LuaThread>(script.Get(), s_luaDir, s_luaRequirePaths, s_dllRequirePaths);
-		WriteChatStatus("Running lua script '%s' with PID %d", script.Get().c_str(), entry->pid);
-		s_running.emplace_back(entry); // this needs to be in the running vector before we run at all
-
-		entry->RegisterLuaState(entry);
-		auto result = entry->StartFile(s_luaDir, s_turboNum, script_args.Get());
-		if (result)
-			s_finished.emplace(result->pid, *result);
-	}
+	entry->RegisterLuaState(entry);
+	auto result = entry->StartFile(s_luaDir, s_turboNum, args);
+	if (result)
+		s_finished.emplace(result->pid, *result);
 }
 
-void EndLuaCommand(SPAWNINFO* pChar, char* Buffer)
+static void LuaParseCommand(const std::string& script)
 {
-	MQ2Args arg_parser("MQ2Lua: A lua script binding plugin.");
-	arg_parser.Prog("/endlua");
-	arg_parser.RequireCommand(false);
-	args::Group arguments(arg_parser, "");
-	args::Positional<uint32_t> pid(arguments, "PID", "optional parameter to specify a PID of script to stop, if not specified will stop all running scripts.");
+	auto entry = std::make_shared<LuaThread>("lua parse", s_luaDir, s_luaRequirePaths, s_dllRequirePaths);
+	WriteChatStatus("Running lua string with PID %d", entry->pid);
+	s_running.emplace_back(entry); // this needs to be in the running vector before we run at all
 
-	MQ2HelpArgument h(arguments);
-	auto args = allocate_args(Buffer);
-	try
-	{
-		arg_parser.ParseArgs(args);
-	}
-	catch (const args::Help&)
-	{
-		arg_parser.Help();
-	}
-	catch (const args::Error& e)
-	{
-		WriteChatColor(e.what());
-	}
+	// Create lua state with mq namespace already injected.
+	entry->RegisterLuaState(entry, true);
+	auto result = entry->StartString(s_turboNum, script);
+	if (result)
+		s_finished.emplace(result->pid, *result);
+}
 
+static void LuaStopCommand(std::optional<uint32_t> pid = std::nullopt)
+{
 	if (pid)
 	{
 		auto thread_it = std::find_if(s_running.begin(), s_running.end(), [&pid](const auto& thread) -> bool
 			{
-				return thread->pid == pid.Get();
+				return thread->pid == *pid;
 			});
 
 		if (thread_it != s_running.end())
@@ -453,7 +425,7 @@ void EndLuaCommand(SPAWNINFO* pChar, char* Buffer)
 		}
 		else
 		{
-			WriteChatStatus("No lua script with PID %d to end", pid.Get());
+			WriteChatStatus("No lua script with PID %d to end", *pid);
 		}
 	}
 	else
@@ -469,34 +441,13 @@ void EndLuaCommand(SPAWNINFO* pChar, char* Buffer)
 	}
 }
 
-void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
+static void LuaPauseCommand(std::optional<uint32_t> pid = std::nullopt)
 {
-	MQ2Args arg_parser("MQ2Lua: A lua script binding plugin.");
-	arg_parser.Prog("/luapause");
-	arg_parser.RequireCommand(false);
-	args::Group arguments(arg_parser, "");
-	args::Positional<uint32_t> pid(arguments, "PID", "optional parameter to specify a PID of script to pause, if not specified will pause all running scripts.");
-
-	MQ2HelpArgument h(arguments);
-	auto args = allocate_args(Buffer);
-	try
-	{
-		arg_parser.ParseArgs(args);
-	}
-	catch (const args::Help&)
-	{
-		arg_parser.Help();
-	}
-	catch (const args::Error& e)
-	{
-		WriteChatColor(e.what());
-	}
-
 	if (pid)
 	{
 		auto thread_it = std::find_if(s_running.begin(), s_running.end(), [&pid](const auto& thread) -> bool
 			{
-				return thread->pid == pid.Get();
+				return thread->pid == *pid;
 			});
 
 		if (thread_it != s_running.end())
@@ -505,14 +456,14 @@ void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
 		}
 		else
 		{
-			WriteChatStatus("No lua script with PID %d to pause/resume", pid.Get());
+			WriteChatStatus("No lua script with PID %d to pause/resume", *pid);
 		}
 	}
 	else
 	{
 		// try to Get the user's intention here. If all scripts are running/paused, batch toggle state. If there are any running, assume we want to pause those only.
 		if (std::find_if(s_running.cbegin(), s_running.cend(), [](const auto& thread) -> bool {
-			return thread->state->IsPaused();
+			return !thread->state->IsPaused();
 			}) != s_running.cend())
 		{
 			// have at least one running script, so pause all running scripts
@@ -537,43 +488,7 @@ void LuaPauseCommand(SPAWNINFO* pChar, char* Buffer)
 	}
 }
 
-void LuaStringCommand(SPAWNINFO* pChar, char* Buffer)
-{
-	MQ2Args arg_parser("MQ2Lua: A lua script binding plugin.");
-	arg_parser.Prog("/luastring");
-	args::Group arguments(arg_parser, "");
-	args::PositionalList<std::string> script(arguments, "script", "the text of the lua script to run");
-
-	MQ2HelpArgument h(arguments);
-	auto args = allocate_args(Buffer);
-	try
-	{
-		arg_parser.ParseArgs(args);
-	}
-	catch (const args::Help&)
-	{
-		arg_parser.Help();
-	}
-	catch (const args::Error& e)
-	{
-		WriteChatColor(e.what());
-	}
-
-	if (script)
-	{
-		auto entry = std::make_shared<LuaThread>("/luastring", s_luaDir, s_luaRequirePaths, s_dllRequirePaths);
-		WriteChatStatus("Running lua string with PID %d", entry->pid);
-		s_running.emplace_back(entry); // this needs to be in the running vector before we run at all
-
-		// Create lua state with mq namespace already injected.
-		entry->RegisterLuaState(entry, true);
-		auto result = entry->StartString(s_turboNum, join(script.Get(), " "));
-		if (result)
-			s_finished.emplace(result->pid, *result);
-	}
-}
-
-void WriteSettings()
+static void WriteSettings()
 {
 	if (!s_configNode.IsNull())
 	{
@@ -585,7 +500,7 @@ void WriteSettings()
 	}
 }
 
-void ReadSettings()
+static void ReadSettings()
 {
 	try
 	{
@@ -664,16 +579,106 @@ void ReadSettings()
 	WriteSettings();
 }
 
-void LuaConfCommand(SPAWNINFO* pChar, char* Buffer)
+static void LuaConfCommand(const std::string& setting, const std::string& value)
+{
+	if (!value.empty())
+	{
+		WriteChatStatus("Lua setting %s to %s and saving...", setting.c_str(), value.c_str());
+		s_configNode[setting] = value;
+		WriteSettings();
+		ReadSettings();
+	}
+	else if (s_configNode[setting])
+	{
+		WriteChatStatus("Lua setting %s is set to %s.", setting.c_str(), s_configNode[setting].as<std::string>().c_str());
+	}
+	else
+	{
+		WriteChatStatus("Lua setting %s is not set (using default).", setting.c_str());
+	}
+}
+
+void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 {
 	MQ2Args arg_parser("MQ2Lua: A lua script binding plugin.");
-	arg_parser.Prog("/luaconf");
+	arg_parser.Prog("/lua");
 	arg_parser.RequireCommand(false);
-	args::Group arguments(arg_parser, "");
-	args::Positional<std::string> setting(arguments, "setting", "The setting to display/set");
-	args::PositionalList<std::string> value(arguments, "value", "An optional parameter to specify the value to set");
+	args::Group commands(arg_parser, "", args::Group::Validators::AtMostOne);
 
-	MQ2HelpArgument h(arguments);
+	args::Command run(commands, "run", "run lua script from file location",
+		[](args::Subparser& parser)
+		{
+			args::Group arguments(parser, "", args::Group::Validators::AllChildGroups);
+			args::Positional<std::string> script(arguments, "script", "the name of the lua script to run. will automatically append .lua extension if no extension specified.");
+			args::PositionalList<std::string> script_args(arguments, "args", "optional arguments to pass to the lua script.");
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+			
+			if (script) LuaRunCommand(script.Get(), script_args.Get());
+		});
+
+	args::Command parse(commands, "parse", "parse a lua string with an available mq namespace",
+		[](args::Subparser& parser)
+		{
+			args::Group arguments(parser, "", args::Group::Validators::DontCare);
+			args::PositionalList<std::string> script(arguments, "script", "the text of the lua script to run");
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+
+			if (script) LuaParseCommand(join(script.Get(), " "));
+		});
+
+	args::Command stop(commands, "stop", "stop one or all running lua scripts",
+		[](args::Subparser& parser)
+		{
+			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::Positional<uint32_t> pid(arguments, "PID", "optional parameter to specify a PID of script to stop, if not specified will stop all running scripts.");
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+
+			if (pid) LuaStopCommand(pid.Get());
+			else LuaStopCommand();
+		});
+	stop.RequireCommand(false);
+
+	args::Command pause(commands, "pause", "pause one or all running lua scripts",
+		[](args::Subparser& parser)
+		{
+			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::Positional<uint32_t> pid(arguments, "PID", "optional parameter to specify a PID of script to pause, if not specified will pause all running scripts.");
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+
+			if (pid) LuaPauseCommand(pid.Get());
+			else LuaPauseCommand();
+		});
+	pause.RequireCommand(false);
+
+	args::Command conf(commands, "conf", "set or view configuration variable",
+		[](args::Subparser& parser)
+		{
+			args::Group arguments(parser, "", args::Group::Validators::AtLeastOne);
+			args::Positional<std::string> setting(arguments, "setting", "The setting to display/set");
+			args::PositionalList<std::string> value(arguments, "value", "An optional parameter to specify the value to set");
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+
+			if (setting) LuaConfCommand(setting.Get(), join(value.Get(), " "));
+		});
+
+	args::Command reloadconf(commands, "reloadconf", "reload configuration",
+		[](args::Subparser& parser)
+		{
+			args::Group arguments(parser, "", args::Group::Validators::DontCare);
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+
+			WriteChatStatus("Reloading lua config.");
+			ReadSettings();
+		});
+
+	MQ2HelpArgument h(commands);
+
 	auto args = allocate_args(Buffer);
 	try
 	{
@@ -688,39 +693,10 @@ void LuaConfCommand(SPAWNINFO* pChar, char* Buffer)
 		WriteChatColor(e.what());
 	}
 
-	if (setting)
+	if (args.empty())
 	{
-		if (value)
-		{
-			auto to_set = join(value.Get(), " ");
-			WriteChatStatus("Lua setting %s to %s and saving...", setting.Get().c_str(), to_set.c_str());
-			s_configNode[setting.Get()] = to_set;
-			WriteSettings();
-			ReadSettings();
-		}
-		else if (s_configNode[setting.Get()])
-		{
-			WriteChatStatus("Lua setting %s is set to %s.", setting.Get().c_str(), s_configNode[setting.Get()].as<std::string>().c_str());
-		}
-		else
-		{
-			WriteChatStatus("Lua setting %s is not set (using default).", setting.Get().c_str());
-		}
+		arg_parser.Help();
 	}
-	else
-	{
-		WriteChatStatus("Reloading lua config.");
-		ReadSettings();
-	}
-}
-
-void LuaRestartCommand(SPAWNINFO* pChar, char* Buffer)
-{
-	WriteChatStatus("Stopping all running lua scripts and re-reading the settings.");
-	EndLuaCommand(pChar, "");
-
-	s_running.clear();
-	ReadSettings();
 }
 
 #pragma endregion
@@ -742,11 +718,6 @@ PLUGIN_API void InitializePlugin()
 	ReadSettings();
 
 	AddCommand("/lua", LuaCommand);
-	AddCommand("/endlua", EndLuaCommand);
-	AddCommand("/luapause", LuaPauseCommand);
-	AddCommand("/luastring", LuaStringCommand);
-	AddCommand("/luaconf", LuaConfCommand);
-	AddCommand("/luarestart", LuaRestartCommand);
 
 	pLuaInfoType = new MQ2LuaInfoType;
 	pLuaType = new MQ2LuaType;
@@ -766,11 +737,6 @@ PLUGIN_API void ShutdownPlugin()
 	DebugSpewAlways("MQ2Lua::Shutting down");
 
 	RemoveCommand("/lua");
-	RemoveCommand("/endlua");
-	RemoveCommand("/luapause");
-	RemoveCommand("/luastring");
-	RemoveCommand("/luaconf");
-	RemoveCommand("/luarestart");
 
 	RemoveMQ2Data("Lua");
 	delete pLuaType;
