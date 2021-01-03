@@ -24,6 +24,8 @@
 #define DBG_SPEW // enable DebugSpew messages in debug builds
 #endif
 
+#define IsNaN(x) (x != x)
+
 namespace mq {
 
 //***************************************************************************
