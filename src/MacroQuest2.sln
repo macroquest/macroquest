@@ -41,6 +41,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "core", "core", "{5BB58FDF-3
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pluginapi", "plugins\pluginapi\pluginapi.vcxproj", "{70752189-B826-4E5D-816B-61B9147881CB}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Lua", "plugins\lua\MQ2Lua.vcxproj", "{CF3A1DD3-1DC4-4238-A4B5-B3159599FCC0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -111,6 +113,10 @@ Global
 		{70752189-B826-4E5D-816B-61B9147881CB}.Debug|Win32.Build.0 = Debug|Win32
 		{70752189-B826-4E5D-816B-61B9147881CB}.Release|Win32.ActiveCfg = Release|Win32
 		{70752189-B826-4E5D-816B-61B9147881CB}.Release|Win32.Build.0 = Release|Win32
+		{CF3A1DD3-1DC4-4238-A4B5-B3159599FCC0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CF3A1DD3-1DC4-4238-A4B5-B3159599FCC0}.Debug|Win32.Build.0 = Debug|Win32
+		{CF3A1DD3-1DC4-4238-A4B5-B3159599FCC0}.Release|Win32.ActiveCfg = Release|Win32
+		{CF3A1DD3-1DC4-4238-A4B5-B3159599FCC0}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -133,6 +139,7 @@ Global
 		{7CC5690F-593C-4938-922D-73A0AC84537A} = {5BB58FDF-3760-4BAD-A147-D71E4EC66BE8}
 		{1777E251-0F50-496A-B8C5-EC7F41A0B186} = {5BB58FDF-3760-4BAD-A147-D71E4EC66BE8}
 		{70752189-B826-4E5D-816B-61B9147881CB} = {A648B03F-7642-4857-A62A-AFABC7CAB451}
+		{CF3A1DD3-1DC4-4238-A4B5-B3159599FCC0} = {A648B03F-7642-4857-A62A-AFABC7CAB451}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {330AC4A2-17BC-4784-AB3C-2B1DA71EB6A5}

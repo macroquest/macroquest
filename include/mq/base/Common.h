@@ -33,7 +33,5 @@
 #define STRINGIFY_IMPL(x) #x
 #define STRINGIFY(x) STRINGIFY_IMPL(x)
 
-#define IsNaN(x) (x != x)
-
 #define LODWORD(_qw)          ((uint32_t)(_qw))
 #define HIDWORD(_qw)          ((uint32_t)(((_qw) >> 32) & 0xffffffff))
