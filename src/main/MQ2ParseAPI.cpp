@@ -38,10 +38,6 @@ void ShutdownParser()
 
 char* ParseMacroParameter(PSPAWNINFO pChar, char* szOriginal, size_t BufferSize)
 {
-	CHARINFO* pCharInfo = GetCharInfo();
-	if (!pCharInfo)
-		return szOriginal;
-
 	EnterMQ2Benchmark(bmParseMacroParameter);
 
 	ParseMacroData(szOriginal, BufferSize);

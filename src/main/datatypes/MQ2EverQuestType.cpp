@@ -214,7 +214,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				{
 					if (!_stricmp(Name, pChat->ChannelList->ChannelName[i]))
 					{
-						Dest.DWord = 1;
+						Dest.Set(true);
 						Dest.Type = pBoolType;
 						return true;
 					}
@@ -254,7 +254,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case EverQuestMembers::LClickedObject:
-		Dest.DWord = gLClickedObject;
+		Dest.Set(gLClickedObject);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -323,7 +323,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case EverQuestMembers::LayoutCopyInProgress:
-		Dest.DWord = *(BYTE*)CSidlScreenWnd__m_layoutCopy;
+		Dest.Set(*(BYTE*)CSidlScreenWnd__m_layoutCopy != 0);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -389,7 +389,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return false;
 
 	case EverQuestMembers::IsDefaultUILoaded:
-		Dest.DWord = 1;
+		Dest.Set(true);
 		Dest.Type = pBoolType;
 
 		if (CHARINFO* pCharInfo = GetCharInfo())
@@ -400,13 +400,13 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 			if (_stricmp(DataTypeTemp, "default"))
 			{
-				Dest.DWord = 0;
+				Dest.Set(false);
 			}
 		}
 		return true;
 
 	case EverQuestMembers::Foreground:
-		Dest.DWord = gbInForeground;
+		Dest.Set(gbInForeground);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -421,7 +421,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		GetArg(szLoc.get(), Index, 3);
 		float Z = GetFloatFromString(szLoc.get(), 0);
 
-		Dest.DWord = pLocalPlayer->IsValidTeleport(Y, X, Z, 0, 0);
+		Dest.Set(pLocalPlayer->IsValidTeleport(Y, X, Z, 0, 0));
 		Dest.Type = pBoolType;
 		return true;
 	}
@@ -443,4 +443,11 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 bool MQ2EverQuestType::ToString(MQVarPtr VarPtr, char* Destination)
 {
 	return false;
+}
+
+bool MQ2EverQuestType::dataEverQuest(const char* szIndex, MQTypeVar& Ret)
+{
+	Ret.Ptr = 0;
+	Ret.Type = pEverQuestType;
+	return true;
 }

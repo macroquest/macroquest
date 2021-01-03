@@ -69,12 +69,12 @@ bool MQ2PointMerchantItemType::GetMember(MQVarPtr VarPtr, const char* Member, ch
 		return true;
 
 	case IsStackable:
-		Dest.Int = ((EQ_Item*)pCont)->IsStackable();
+		Dest.Set(((EQ_Item*)pCont)->IsStackable());
 		Dest.Type = pBoolType;
 		return true;
 
 	case IsLore:
-		Dest.Int = pItem->Lore;
+		Dest.Set(pItem->Lore != 0);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -89,7 +89,7 @@ bool MQ2PointMerchantItemType::GetMember(MQVarPtr VarPtr, const char* Member, ch
 		return true;
 
 	case CanUse:
-		Dest.Int = pCharData->CanUseItem(&pCont, false, false);
+		Dest.Set(pCharData->CanUseItem(&pCont, false, false));
 		Dest.Type = pBoolType;
 		return true;
 	}

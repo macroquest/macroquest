@@ -136,7 +136,7 @@ public:
 
 		if (pMethod)
 		{
-			Dest.DWord = 0;
+			Dest.Set(false);
 			Dest.Type = pBoolType;
 
 			switch (static_cast<DisplayItemMethods>(pMethod->ID))
@@ -147,7 +147,7 @@ public:
 					pLootFiltersManager->AddItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 5);
 
 					WriteChatf("Added %s to AG and Roll LootFilters.", pItem->Name);
-					Dest.DWord = 1;
+					Dest.Set(true);
 				}
 				break;
 
@@ -190,19 +190,19 @@ public:
 				Dest.Type = pStringType;
 				return true;
 			case Collected:
-				Dest.DWord = gContentsItemStrings[index].bCollected;
+				Dest.Set(gContentsItemStrings[index].bCollected);
 				Dest.Type = pBoolType;
 				return true;
 			case CollectedRecieved:
-				Dest.DWord = gContentsItemStrings[index].bCollectedRecieved;
+				Dest.Set(gContentsItemStrings[index].bCollectedRecieved);
 				Dest.Type = pBoolType;
 				return true;
 			case Scribed:
-				Dest.DWord = gContentsItemStrings[index].bScribed;
+				Dest.Set(gContentsItemStrings[index].bScribed);
 				Dest.Type = pBoolType;
 				return true;
 			case ScribedRecieved:
-				Dest.DWord = gContentsItemStrings[index].bScribedRecieved;
+				Dest.Set(gContentsItemStrings[index].bScribedRecieved);
 				Dest.Type = pBoolType;
 				return true;
 			case Information:

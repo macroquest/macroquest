@@ -37,7 +37,7 @@ bool MQ2DZMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 		return true;
 
 	case Flagged:
-		Dest.DWord = pDynamicZoneMember->bFlagged;
+		Dest.Set(pDynamicZoneMember->bFlagged);
 		Dest.Type = pBoolType;
 
 	case Status:

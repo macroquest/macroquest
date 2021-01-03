@@ -34,7 +34,7 @@ bool MQ2CorpseType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 	switch (static_cast<CorpseMembers>(pMember->ID))
 	{
 	case Open:
-		Dest.DWord = 1; // obviously, since we're this far
+		Dest.Set(true); // obviously, since we're this far
 		Dest.Type = pBoolType;
 		return true;
 

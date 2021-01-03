@@ -102,17 +102,17 @@ bool MQ2CurrentZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 
 	case Dungeon:
 	case Indoor:
-		Dest.DWord = indoor;
+		Dest.Set(indoor);
 		Dest.Type = pBoolType;
 		return true;
 
 	case Outdoor:
-		Dest.DWord = outdoor;
+		Dest.Set(outdoor);
 		Dest.Type = pBoolType;
 		return true;
 
 	case NoBind:
-		Dest.DWord = !bindable;
+		Dest.Set(!bindable);
 		Dest.Type = pBoolType;
 		return true;
 

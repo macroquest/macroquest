@@ -168,10 +168,10 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		return true;
 
 	case Passive:
-		Dest.DWord = 1;
+		Dest.Set(true);
 		Dest.Type = pBoolType;
 		if (pAbility->SpellID != -1)
-			Dest.DWord = 0;
+			Dest.Set(false);
 		return true;
 
 	case PointsSpent:
@@ -188,7 +188,7 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		if (ALTABILITY* pNextAbility = GetAAByIdWrapper(pAbility->NextGroupAbilityId))
 			pAbility = pNextAbility;
 
-		Dest.DWord = pAltAdvManager->CanTrainAbility((PcZoneClient*)pPCData, pAbility, 0, 0, 0);
+		Dest.Set(pAltAdvManager->CanTrainAbility((PcZoneClient*)pPCData, pAbility, 0, 0, 0));
 		Dest.Type = pBoolType;
 		return true;
 	}

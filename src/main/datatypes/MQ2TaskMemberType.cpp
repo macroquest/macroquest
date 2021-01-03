@@ -51,7 +51,7 @@ bool MQ2TaskMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		return true;
 
 	case TaskMemberTypeMembers::Leader:
-		Dest.DWord = pTaskMemberData->IsLeader;
+		Dest.Set(pTaskMemberData->IsLeader != 0);
 		Dest.Type = pBoolType;
 		return true;
 

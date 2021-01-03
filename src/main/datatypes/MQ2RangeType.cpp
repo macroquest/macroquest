@@ -33,7 +33,7 @@ bool MQ2RangeType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	switch (static_cast<RangeMembers>(pMember->ID))
 	{
 	case Inside:
-		Dest.DWord = false;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (Index[0])
 		{
@@ -49,7 +49,7 @@ bool MQ2RangeType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 					if (P3 > P1 && P3 < P2)
 					{
-						Dest.DWord = true;
+						Dest.Set(true);
 						return true;
 					}
 				}
@@ -58,7 +58,7 @@ bool MQ2RangeType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case Between:
-		Dest.DWord = false;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (Index[0]) {
 			if (char* pColon = strchr(Index, ':'))
@@ -73,7 +73,7 @@ bool MQ2RangeType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 					if (P3 >= P1 && P3 <= P2)
 					{
-						Dest.DWord = true;
+						Dest.Set(true);
 						return true;
 					}
 				}

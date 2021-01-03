@@ -462,7 +462,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("Defined", dataDefined);
 	AddMQ2Data("DoorTarget", datatypes::MQ2SpawnType::dataDoorTarget);
 	AddMQ2Data("DynamicZone", dataDynamicZone);
-	AddMQ2Data("EverQuest", dataEverQuest);
+	AddMQ2Data("EverQuest", datatypes::MQ2EverQuestType::dataEverQuest);
 	AddMQ2Data("Familiar", datatypes::MQ2KeyRingType::dataFamiliar);
 	AddMQ2Data("FindItem", dataFindItem);
 	AddMQ2Data("FindItemBank", dataFindItemBank);

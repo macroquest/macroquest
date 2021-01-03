@@ -124,37 +124,37 @@ bool MQ2AdvLootItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		return false;
 
 	case AdvLootItemMembers::AutoRoll:
-		Dest.DWord = item.AutoRoll;
+		Dest.Set(item.AutoRoll);
 		Dest.Type = pBoolType;
 		return true;
 
 	case AdvLootItemMembers::Need:
-		Dest.DWord = item.Need;
+		Dest.Set(item.Need);
 		Dest.Type = pBoolType;
 		return true;
 
 	case AdvLootItemMembers::Greed:
-		Dest.DWord = item.Greed;
+		Dest.Set(item.Greed);
 		Dest.Type = pBoolType;
 		return true;
 
 	case AdvLootItemMembers::No:
-		Dest.DWord = Dest.DWord = item.No;
+		Dest.Set(item.No);
 		Dest.Type = pBoolType;
 		return true;
 
 	case AdvLootItemMembers::AlwaysNeed:
-		Dest.DWord = item.AlwaysNeed;
+		Dest.Set(item.AlwaysNeed);
 		Dest.Type = pBoolType;
 		return true;
 
 	case AdvLootItemMembers::AlwaysGreed:
-		Dest.DWord = item.AlwaysGreed;
+		Dest.Set(item.AlwaysGreed);
 		Dest.Type = pBoolType;
 		return true;
 
 	case AdvLootItemMembers::Never:
-		Dest.DWord = item.Never;
+		Dest.Set(item.Never);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -164,7 +164,7 @@ bool MQ2AdvLootItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		return true;
 
 	case AdvLootItemMembers::NoDrop:
-		Dest.DWord = item.NoDrop;
+		Dest.Set(item.NoDrop);
 		Dest.Type = pBoolType;
 		return true;
 

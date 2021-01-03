@@ -52,7 +52,7 @@ bool MQ2MenuType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 										WriteChatf("\ay[${Menu.Select}] SUCCESS\ax: Clicking \"%s\" at position %d in the menu.", Str.c_str(), i);
 
 										pMgr->WndNotification(menu, XWM_LMOUSEUP, (void*)i);
-										Dest.DWord = 1;
+										Dest.Set(true);
 										Dest.Type = pBoolType;
 										return true;
 									}
@@ -70,7 +70,7 @@ bool MQ2MenuType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		default: break;
 		}
 
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		return true;
 	}

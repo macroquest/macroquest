@@ -31,7 +31,7 @@ bool MQ2EvolvingItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* I
 	switch (static_cast<EvolvingItemMembers>(pMember->ID))
 	{
 	case ExpOn:
-		Dest.DWord = true; // its always on after 2019-02-14 test patch
+		Dest.Set(true); // its always on after 2019-02-14 test patch
 		Dest.Type = pBoolType;
 		return true;
 

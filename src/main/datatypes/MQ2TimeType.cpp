@@ -132,7 +132,7 @@ bool MQ2TimeType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case TimeMembers::Night:
-		Dest.DWord = ((pTime->tm_hour < 7) || (pTime->tm_hour > 20));
+		Dest.Set(pTime->tm_hour < 7 || pTime->tm_hour > 20);
 		Dest.Type = pBoolType;
 		return true;
 

@@ -597,27 +597,27 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpawnMembers::GM:
-		Dest.DWord = pSpawn->GM;
+		Dest.Set(pSpawn->GM != 0);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::Levitating:
-		Dest.DWord = (pSpawn->mPlayerPhysicsClient.Levitate == 2);
+		Dest.Set(pSpawn->mPlayerPhysicsClient.Levitate == 2);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::Sneaking:
-		Dest.DWord = pSpawn->Sneak;
+		Dest.Set(pSpawn->Sneak);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::Invis: {
 		Dest.Type = pBoolType;
-		Dest.DWord = 0;
+		Dest.Set(false);
 
 		if (!Index[0])
 		{
-			Dest.DWord = pSpawn->HideMode;
+			Dest.Set(pSpawn->HideMode != 0);
 			return true;
 		}
 
@@ -655,23 +655,23 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		switch (mode)
 		{
 		case InvisModes::Any:
-			Dest.DWord = pSpawn->HideMode;
+			Dest.Set(pSpawn->HideMode != 0);
 			break;
 		case InvisModes::Regular:
-			Dest.DWord = pCharData->CalculateInvisLevel(eAll) ? 1 : 0;
+			Dest.Set(pCharData->CalculateInvisLevel(eAll) != 0);
 			break;
 		case InvisModes::Undead:
-			Dest.DWord = pCharData->CalculateInvisLevel(eUndead) ? 1 : 0;
+			Dest.Set(pCharData->CalculateInvisLevel(eUndead) != 0);
 			break;
 		case InvisModes::Animal:
-			Dest.DWord = pCharData->CalculateInvisLevel(eAnimal) ? 1 : 0;
+			Dest.Set(pCharData->CalculateInvisLevel(eAnimal) != 0);
 			break;
 		case InvisModes::SoS:
 			if (PcProfile* pProfile = GetPcProfile())
 			{
 				int skill = pCharData->GetAdjustedSkill(EQSKILL_HIDE);
 				if ((pProfile->bHide + pCharData->TotalEffect(SPA_SHROUD_OF_STEALTH) >= 2) && skill >= 100)
-					Dest.DWord = 1;
+					Dest.Set(true);
 			}
 			break;
 		}
@@ -785,12 +785,12 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpawnMembers::Standing:
-		Dest.DWord = pSpawn->StandState == STANDSTATE_STAND;
+		Dest.Set(pSpawn->StandState == STANDSTATE_STAND);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::Sitting:
-		Dest.DWord = pSpawn->StandState == STANDSTATE_SIT;
+		Dest.Set(pSpawn->StandState == STANDSTATE_SIT);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -800,7 +800,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpawnMembers::IsSummoned: // if its a summoned being (pet for example)
-		Dest.DWord = pSpawn->bSummoned;
+		Dest.Set(pSpawn->bSummoned);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -813,41 +813,41 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return false;
 
 	case SpawnMembers::Ducking:
-		Dest.DWord = pSpawn->StandState == STANDSTATE_DUCK;
+		Dest.Set(pSpawn->StandState == STANDSTATE_DUCK);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::Feigning:
-		Dest.DWord = pSpawn->StandState == STANDSTATE_FEIGN;
+		Dest.Set(pSpawn->StandState == STANDSTATE_FEIGN);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::Binding:
-		Dest.DWord = pSpawn->StandState == STANDSTATE_BIND;
+		Dest.Set(pSpawn->StandState == STANDSTATE_BIND);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::Dead:
-		Dest.DWord = pSpawn->StandState == STANDSTATE_DEAD;
+		Dest.Set(pSpawn->StandState == STANDSTATE_DEAD);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::Stunned:
-		Dest.DWord = false;
+		Dest.Set(false);
 		if (pSpawn->PlayerState & 0x20)
-			Dest.DWord = true;
+			Dest.Set(true);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::Aggressive:
-		Dest.DWord = false;
+		Dest.Set(false);
 		if (pSpawn->PlayerState & 0x4 || pSpawn->PlayerState & 0x8)
-			Dest.DWord = true;
+			Dest.Set(true);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::Hovering:
-		Dest.DWord = (pSpawn->RespawnTimer);
+		Dest.Set(pSpawn->RespawnTimer != 0);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -915,12 +915,12 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return false;
 
 	case SpawnMembers::Underwater:
-		Dest.DWord = (pSpawn->UnderWater == 5);
+		Dest.Set(pSpawn->UnderWater == 5);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::FeetWet:
-		Dest.DWord = (pSpawn->FeetWet == 5);
+		Dest.Set(pSpawn->FeetWet == 5);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -930,7 +930,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpawnMembers::Stuck:
-		Dest.DWord = pSpawn->PossiblyStuck;
+		Dest.Set(pSpawn->PossiblyStuck != 0);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -940,11 +940,11 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpawnMembers::Holding:
-		Dest.DWord = false;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (pSpawn->LeftHolding || pSpawn->RightHolding)
 		{
-			Dest.DWord = true;
+			Dest.Set(true);
 		}
 		return true;
 
@@ -987,7 +987,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpawnMembers::Invited:
-		Dest.DWord = (pSpawn->InvitedToGroup);
+		Dest.Set(pSpawn->InvitedToGroup);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1041,22 +1041,22 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return false;
 
 	case SpawnMembers::Trader:
-		Dest.DWord = pSpawn->Trader;
+		Dest.Set(pSpawn->Trader != 0);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::AFK:
-		Dest.DWord = pSpawn->AFK;
+		Dest.Set(pSpawn->AFK != 0);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::LFG:
-		Dest.DWord = pSpawn->LFG;
+		Dest.Set(pSpawn->LFG);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::Linkdead:
-		Dest.DWord = pSpawn->Linkdead;
+		Dest.Set(pSpawn->Linkdead);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1074,22 +1074,22 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpawnMembers::GroupLeader:
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 
 		if (CHARINFO* pCharInfo = GetCharInfo())
 		{
 			if (pCharInfo->pGroupInfo && pCharInfo->pGroupInfo->pLeader)
 			{
-				Dest.DWord = pSpawn->Type == SPAWN_PLAYER
-					&& !_stricmp(pCharInfo->pGroupInfo->pLeader->Name.c_str(), pSpawn->Name);
+				Dest.Set(pSpawn->Type == SPAWN_PLAYER
+					&& !_stricmp(pCharInfo->pGroupInfo->pLeader->Name.c_str(), pSpawn->Name));
 				return true;
 			}
 		}
 		return false;
 
 	case SpawnMembers::Assist:
-		Dest.DWord = 0;
+		Dest.Set(false);
 		Dest.Type = pBoolType;
 
 		if (gGameState == GAMESTATE_INGAME)
@@ -1098,7 +1098,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			{
 				if (AssistID == pSpawn->SpawnID)
 				{
-					Dest.DWord = 1;
+					Dest.Set(true);
 					return true;
 				}
 			}
@@ -1108,7 +1108,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 				if (DWORD AssistID = GetRaidMainAssistTargetID(nAssist))
 				{
 					if (AssistID == pSpawn->SpawnID) {
-						Dest.DWord = 1;
+						Dest.Set(true);
 						return true;
 					}
 				}
@@ -1143,17 +1143,17 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return false;
 
 	case SpawnMembers::Anonymous:
-		Dest.DWord = (pSpawn->Anon == 1);
+		Dest.Set(pSpawn->Anon == 1);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::Roleplaying:
-		Dest.DWord = (pSpawn->Anon == 2);
+		Dest.Set(pSpawn->Anon == 2);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::LineOfSight:
-		Dest.DWord = pCharSpawn->CanSee(*pPlayerClient);
+		Dest.Set(pCharSpawn->CanSee(*pPlayerClient));
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1183,22 +1183,22 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return false;
 
 	case SpawnMembers::Fleeing:
-		Dest.DWord = IsMobFleeing(GetCharInfo()->pSpawn, pSpawn);
+		Dest.Set(IsMobFleeing(GetCharInfo()->pSpawn, pSpawn));
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::Named:
-		Dest.DWord = IsNamed(pSpawn);
+		Dest.Set(IsNamed(pSpawn));
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::Buyer:
-		Dest.DWord = pSpawn->Buyer;
+		Dest.Set(pSpawn->Buyer != 0);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::Moving:
-		Dest.DWord = fabs(pSpawn->SpeedRun) > 0.0f;
+		Dest.Set(fabs(pSpawn->SpeedRun) > 0.0f);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1343,7 +1343,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return false;
 
 	case SpawnMembers::Targetable:
-		Dest.DWord = pSpawn->Targetable;
+		Dest.Set(pSpawn->Targetable);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1352,7 +1352,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		sv3.X = pSpawn->Y;
 		sv3.Y = pSpawn->X;
 		sv3.Z = pSpawn->Z;
-		Dest.DWord = pCharSpawn->CanSee(sv3);
+		Dest.Set(pCharSpawn->CanSee(sv3));
 		Dest.Type = pBoolType;
 		return true;
 	}
@@ -1368,7 +1368,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpawnMembers::bShowHelm:
-		Dest.DWord = pSpawn->bShowHelm;
+		Dest.Set(pSpawn->bShowHelm);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1378,7 +1378,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpawnMembers::bBetaBuffed:
-		Dest.DWord = pSpawn->bBetaBuffed;
+		Dest.Set(pSpawn->bBetaBuffed);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1409,7 +1409,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpawnMembers::bAlwaysShowAura:
-		Dest.DWord = pSpawn->bAlwaysShowAura;
+		Dest.Set(pSpawn->bAlwaysShowAura);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1455,7 +1455,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.Type = pStringType;
 
 	case SpawnMembers::bStationary:
-		Dest.DWord = pSpawn->bStationary;
+		Dest.Set(pSpawn->bStationary);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1465,7 +1465,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpawnMembers::bTempPet:
-		Dest.DWord = pSpawn->bTempPet;
+		Dest.Set(pSpawn->bTempPet);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1533,7 +1533,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return false;
 
 	case SpawnMembers::bWaitingForPort:
-		Dest.DWord = pSpawn->bWaitingForPort;
+		Dest.Set(pSpawn->bWaitingForPort);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1604,7 +1604,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpawnMembers::BuffsPopulated:
-		Dest.DWord = gTargetbuffs && pTarget != nullptr;
+		Dest.Set(gTargetbuffs && pTarget != nullptr);
 		Dest.Type = pBoolType;
 		return true;
 
