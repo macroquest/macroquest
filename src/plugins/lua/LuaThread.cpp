@@ -125,10 +125,9 @@ std::optional<sol::protected_function_result> RunCoroutine(sol::coroutine& co, c
 		if (result.valid())
 			return result;
 
-		sol::error err = std::move(result);
-
-		LuaError("%s", err.what());
-		DebugStackTrace(co.lua_state());
+		LuaError("%s", sol::stack::get<std::string>(result.lua_state(), result.stack_index()));
+		DebugStackTrace(result.lua_state());
+		result.abandon();
 	}
 	catch (const sol::error& e)
 	{
@@ -325,13 +324,14 @@ static void RegisterMQNamespace(sol::table t)
 	ImGui_RegisterLua(t);
 }
 
-static int LoadMQRequire(sol::this_state s, const std::string& path)
+static int LoadMQRequire(lua_State* L)
 {
+	auto path = sol::stack::get<std::string>(L);
 	if (path != "mq") return 0;
 
-	if (auto thread_ptr = LuaThread::get_from(s))
+	if (auto thread_ptr = LuaThread::get_from(L))
 	{
-		sol::state_view sv{ s };
+		sol::state_view sv{ L };
 
 		thread_ptr->globalTable = sv.create_table();
 		RegisterMQNamespace(*thread_ptr->globalTable);
