@@ -689,7 +689,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.Type = pFloatType;
 		if (GetSpawnType(pSpawn) != ITEM)
 		{
-			Dest.Float = get_melee_range((PlayerClient*)pSpawn, (PlayerClient*)pSpawn);
+			Dest.Float = get_melee_range((PlayerClient*)pSpawn, pCharSpawn);
 			return true;
 		}
 		return false;
