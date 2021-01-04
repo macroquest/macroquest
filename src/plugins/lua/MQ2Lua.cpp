@@ -37,7 +37,6 @@ PreSetup("MQ2Lua");
 PLUGIN_VERSION(0.1);
 
 // TODO: Add ps argument to command
-// TODO: allow passing of script name where pid is allowed
 
 // TODO: Add aggressive bind/event options that scriptwriters can set with functions
 // TODO: Add OnExit callbacks (potentially both as an explicit argument to exit and a set callback)
@@ -427,14 +426,26 @@ static void LuaParseCommand(const std::string& script)
 		s_infoMap.emplace(result->pid, *result);
 }
 
-static void LuaStopCommand(std::optional<uint32_t> pid = std::nullopt)
+static void LuaStopCommand(std::optional<std::string> script = std::nullopt)
 {
-	if (pid)
+	if (script)
 	{
-		auto thread_it = std::find_if(s_running.begin(), s_running.end(), [&pid](const auto& thread) -> bool
-			{
-				return thread->pid == *pid;
-			});
+		auto thread_it = s_running.end();
+		uint32_t pid = GetIntFromString(*script, 0UL);
+		if (pid > 0UL)
+		{
+			thread_it = std::find_if(s_running.begin(), s_running.end(), [&pid](const auto& thread) -> bool
+				{
+					return thread->pid == pid;
+				});
+		}
+		else
+		{
+			thread_it = std::find_if(s_running.begin(), s_running.end(), [&script](const auto& thread) -> bool
+				{
+					return thread->name == *script;
+				});
+		}
 
 		if (thread_it != s_running.end())
 		{
@@ -445,7 +456,7 @@ static void LuaStopCommand(std::optional<uint32_t> pid = std::nullopt)
 		}
 		else
 		{
-			WriteChatStatus("No lua script with PID %d to end", *pid);
+			WriteChatStatus("No lua script '%s' to end", *script);
 		}
 	}
 	else
@@ -461,14 +472,26 @@ static void LuaStopCommand(std::optional<uint32_t> pid = std::nullopt)
 	}
 }
 
-static void LuaPauseCommand(std::optional<uint32_t> pid = std::nullopt)
+static void LuaPauseCommand(std::optional<std::string> script = std::nullopt)
 {
-	if (pid)
+	if (script)
 	{
-		auto thread_it = std::find_if(s_running.begin(), s_running.end(), [&pid](const auto& thread) -> bool
-			{
-				return thread->pid == *pid;
-			});
+		auto thread_it = s_running.end();
+		uint32_t pid = GetIntFromString(*script, 0UL);
+		if (pid > 0UL)
+		{
+			thread_it = std::find_if(s_running.begin(), s_running.end(), [&pid](const auto& thread) -> bool
+				{
+					return thread->pid == pid;
+				});
+		}
+		else
+		{
+			thread_it = std::find_if(s_running.begin(), s_running.end(), [&script](const auto& thread) -> bool
+				{
+					return thread->name == *script;
+				});
+		}
 
 		if (thread_it != s_running.end())
 		{
@@ -476,7 +499,7 @@ static void LuaPauseCommand(std::optional<uint32_t> pid = std::nullopt)
 		}
 		else
 		{
-			WriteChatStatus("No lua script with PID %d to pause/resume", *pid);
+			WriteChatStatus("No lua script '%s' to pause/resume", *script);
 		}
 	}
 	else
@@ -652,11 +675,11 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 		[](args::Subparser& parser)
 		{
 			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
-			args::Positional<uint32_t> pid(arguments, "PID", "optional parameter to specify a PID of script to stop, if not specified will stop all running scripts.");
+			args::Positional<std::string> script(arguments, "process", "optional parameter to specify a PID or name of script to stop, if not specified will stop all running scripts.");
 			MQ2HelpArgument h(arguments);
 			parser.Parse();
 
-			if (pid) LuaStopCommand(pid.Get());
+			if (script) LuaStopCommand(script.Get());
 			else LuaStopCommand();
 		});
 	stop.RequireCommand(false);
@@ -665,11 +688,11 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 		[](args::Subparser& parser)
 		{
 			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
-			args::Positional<uint32_t> pid(arguments, "PID", "optional parameter to specify a PID of script to pause, if not specified will pause all running scripts.");
+			args::Positional<std::string> script(arguments, "process", "optional parameter to specify a PID or name of script to pause, if not specified will pause all running scripts.");
 			MQ2HelpArgument h(arguments);
 			parser.Parse();
 
-			if (pid) LuaPauseCommand(pid.Get());
+			if (script) LuaPauseCommand(script.Get());
 			else LuaPauseCommand();
 		});
 	pause.RequireCommand(false);
