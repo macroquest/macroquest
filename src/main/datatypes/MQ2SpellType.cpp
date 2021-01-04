@@ -1197,9 +1197,11 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		switch (spaFound)
 		{
 		case SPA_TRIGGER_BEST_IN_SPELL_GROUP:
+		case SPA_CHANCE_BEST_IN_SPELL_GROUP:
 			Dest.Ptr = GetHighestLearnedSpellByGroupID(base2);
 			return Dest.Ptr != nullptr;
 		case SPA_TRIGGER_SPELL:
+		case SPA_CHANCE_SPELL:
 			Dest.Ptr = GetSpellByID(base2);
 			return Dest.Ptr != nullptr;
 		default:
