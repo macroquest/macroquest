@@ -176,7 +176,11 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(std::string_view luaDir, uint3
 		{}
 	};
 
-	if (result) ret.SetResult(*result);
+	if (result)
+		ret.SetResult(*result);
+	else if (coroutine.status() != sol::call_status::yielded)
+		ret.EndRun();
+
 	return ret;
 }
 
@@ -207,7 +211,11 @@ std::optional<LuaThreadInfo> LuaThread::StartString(uint32_t turbo, std::string_
 		{}
 	};
 
-	if (result) ret.SetResult(*result);
+	if (result)
+		ret.SetResult(*result);
+	else if (coroutine.status() != sol::call_status::yielded)
+		ret.EndRun();
+
 	return ret;
 }
 
@@ -409,17 +417,19 @@ void LuaThreadInfo::SetResult(const sol::protected_function_result& result)
 {
 	if (result.status() != sol::call_status::yielded && result.return_count() > 1)
 	{
-		endTime = MQGetTickCount64();
-		if (result.return_count() > 1)
+		EndRun();
+		returnValues = std::vector<std::string>(result.return_count() - 1);
+		// need to skip the first "return" (which is not a return, it's at index + 0) which is the function itself
+		for (int i = 1; i < result.return_count(); ++i)
 		{
-			returnValues = std::vector<std::string>(result.return_count() - 1);
-			// need to skip the first "return" (which is not a return, it's at index + 0) which is the function itself
-			for (int i = 1; i < result.return_count(); ++i)
-			{
-				returnValues[i - 1] = luaL_tolstring(result.lua_state(), result.stack_index() + i, nullptr);
-			}
+			returnValues[i - 1] = luaL_tolstring(result.lua_state(), result.stack_index() + i, nullptr);
 		}
 	}
+}
+
+void LuaThreadInfo::EndRun()
+{
+	endTime = MQGetTickCount64();
 }
 
 } // namespace mq::lua

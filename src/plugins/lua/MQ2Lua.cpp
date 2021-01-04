@@ -38,7 +38,6 @@ PLUGIN_VERSION(0.1);
 
 // TODO: Add ps argument to command
 // TODO: allow passing of script name where pid is allowed
-// TODO: restrict to one running instance of script
 
 // TODO: Add aggressive bind/event options that scriptwriters can set with functions
 // TODO: Add OnExit callbacks (potentially both as an explicit argument to exit and a set callback)
@@ -73,7 +72,7 @@ static YAML::Node s_configNode;
 // use a vector for s_running because we need to iterate it every pulse, and find only if a command is issued
 std::vector<std::shared_ptr<LuaThread>> s_running;
 
-std::unordered_map<uint32_t, LuaThreadInfo> s_finished;
+std::unordered_map<uint32_t, LuaThreadInfo> s_infoMap;
 
 #pragma region Shared Function Definitions
 
@@ -323,12 +322,12 @@ public:
 			Dest.Type = pLuaInfoType;
 			if (!Index || !Index[0])
 			{
-				if (s_finished.empty())
+				if (s_infoMap.empty())
 					return false;
 
 				// grab the latest start time that has an end time
-				auto latest = s_finished.cbegin();
-				for (auto it = s_finished.cbegin(); it != s_finished.cend(); ++it)
+				auto latest = s_infoMap.cbegin();
+				for (auto it = s_infoMap.cbegin(); it != s_infoMap.cend(); ++it)
 				{
 					if (it->second.endTime > 0 && it->second.startTime > latest->second.startTime)
 						latest = it;
@@ -344,8 +343,8 @@ public:
 			}
 
 			auto pid = GetIntFromString(Index, -1);
-			auto it = s_finished.find(pid);
-			if (it != s_finished.end())
+			auto it = s_infoMap.find(pid);
+			if (it != s_infoMap.end())
 			{
 				Dest.Set(it->second);
 				return true;
@@ -384,6 +383,27 @@ public:
 
 static void LuaRunCommand(const std::string& script, const std::vector<std::string>& args)
 {
+	// methodology for duplicate scripts: 
+	//   if a script with the same name is _currently_ running, inform and exit
+	//   if a script with the same name _has previously_ run, drop from infoMap and run
+	//   otherwise, run script as normal
+	auto info_it = std::find_if(s_infoMap.begin(), s_infoMap.end(),
+		[&script](const std::pair<uint32_t, mq::lua::LuaThreadInfo>& kv)
+		{ return kv.second.name == script; });
+
+	if (info_it != s_infoMap.end() && info_it->second.endTime == 0ULL)
+	{
+		// script is currently running, inform and exit
+		WriteChatStatus("Lua script %s is already running, not starting another instance.", script.c_str());
+		return;
+	}
+
+	if (info_it != s_infoMap.end())
+	{
+		// script has previously run, simply erase it because we are going to get a new entry
+		s_infoMap.erase(info_it);
+	}
+
 	auto entry = std::make_shared<LuaThread>(script, s_luaDir, s_luaRequirePaths, s_dllRequirePaths);
 	WriteChatStatus("Running lua script '%s' with PID %d", script.c_str(), entry->pid);
 	s_running.emplace_back(entry); // this needs to be in the running vector before we run at all
@@ -391,7 +411,7 @@ static void LuaRunCommand(const std::string& script, const std::vector<std::stri
 	entry->RegisterLuaState(entry);
 	auto result = entry->StartFile(s_luaDir, s_turboNum, args);
 	if (result)
-		s_finished.emplace(result->pid, *result);
+		s_infoMap.emplace(result->pid, *result);
 }
 
 static void LuaParseCommand(const std::string& script)
@@ -404,7 +424,7 @@ static void LuaParseCommand(const std::string& script)
 	entry->RegisterLuaState(entry, true);
 	auto result = entry->StartString(s_turboNum, script);
 	if (result)
-		s_finished.emplace(result->pid, *result);
+		s_infoMap.emplace(result->pid, *result);
 }
 
 static void LuaStopCommand(std::optional<uint32_t> pid = std::nullopt)
@@ -758,20 +778,21 @@ PLUGIN_API void OnPulse()
 
 	s_running.erase(std::remove_if(s_running.begin(), s_running.end(), [](const auto& thread) -> bool
 		{
-			if (thread->coroutine.status() != sol::call_status::yielded)
-			{
-				WriteChatStatus("Ending lua script %s with PID %d and status %d", thread->name.c_str(), thread->pid, static_cast<int>(thread->coroutine.status()));
-				return true;
-			}
-
-			auto result = thread->Run(s_turboNum);
+			auto result = thread->coroutine.status() == sol::call_status::yielded 
+				? thread->Run(s_turboNum)
+				: std::make_pair(static_cast<sol::thread_status>(thread->coroutine.status()), std::nullopt);
 
 			if (result.first != sol::thread_status::yielded)
 			{
 				WriteChatStatus("Ending lua script %s with PID %d and status %d", thread->name.c_str(), thread->pid, static_cast<int>(result.first));
-				auto fin_it = s_finished.find(thread->pid);
-				if (fin_it != s_finished.end() && result.second)
-					fin_it->second.SetResult(*result.second);
+				auto fin_it = s_infoMap.find(thread->pid);
+				if (fin_it != s_infoMap.end())
+				{
+					if (result.second)
+						fin_it->second.SetResult(*result.second);
+					else
+						fin_it->second.EndRun();
+				}
 
 				return true;
 			}
@@ -784,10 +805,10 @@ PLUGIN_API void OnPulse()
 	{
 		// this doesn't need to be super tight, no one should be depending on this clearing objects at exactly the GC
 		// interval, so just clear out anything that existed last time we checked.
-		for (auto it = s_finished.begin(); it != s_finished.end();)
+		for (auto it = s_infoMap.begin(); it != s_infoMap.end();)
 		{
 			if (it->second.endTime > 0 && it->second.endTime <= last_check_time)
-				it = s_finished.erase(it);
+				it = s_infoMap.erase(it);
 			else
 				++it;
 		}

@@ -37,6 +37,7 @@ struct LuaThreadInfo
 	std::vector<std::string> returnValues;
 
 	void SetResult(const sol::protected_function_result& result);
+	void EndRun();
 };
 
 struct LuaThread
