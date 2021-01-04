@@ -36,8 +36,6 @@
 PreSetup("MQ2Lua");
 PLUGIN_VERSION(0.1);
 
-// TODO: Add ps argument to command
-
 // TODO: Add aggressive bind/event options that scriptwriters can set with functions
 // TODO: Add OnExit callbacks (potentially both as an explicit argument to exit and a set callback)
 
@@ -641,6 +639,72 @@ static void LuaConfCommand(const std::string& setting, const std::string& value)
 	}
 }
 
+static void LuaPSCommand(const std::optional<std::string>& script = std::nullopt)
+{
+	//uint32_t pid;
+	//std::string name;
+	//std::string path;
+	//std::vector<std::string> arguments;
+	//uint64_t startTime;
+	//uint64_t endTime;
+	//std::vector<std::string> returnValues;
+	if (script)
+	{
+		auto thread_it = s_infoMap.end();
+		uint32_t pid = GetIntFromString(*script, 0UL);
+		if (pid > 0UL)
+		{
+			thread_it = std::find_if(s_infoMap.begin(), s_infoMap.end(), [&pid](const auto& kv) -> bool
+				{
+					return kv.first == pid;
+				});
+		}
+		else
+		{
+			thread_it = std::find_if(s_infoMap.begin(), s_infoMap.end(), [&script](const auto& kv) -> bool
+				{
+					return kv.second.name == *script;
+				});
+		}
+
+		if (thread_it != s_infoMap.end())
+		{
+			fmt::memory_buffer line;
+			fmt::format_to(
+				line,
+				"pid: {}\nname: {}\npath: {}\narguments: {}\nstartTime: {}\nendTime: {}\nreturnValues: {}",
+				thread_it->second.pid,
+				thread_it->second.name,
+				thread_it->second.path,
+				join(thread_it->second.arguments, ", "),
+				thread_it->second.startTime,
+				thread_it->second.endTime,
+				join(thread_it->second.returnValues, ", "));
+
+			WriteChatStatus("%.*s", line.size(), line.data());
+		}
+		else
+		{
+			WriteChatStatus("No lua script '%s'", *script);
+		}
+	}
+	else
+	{
+		WriteChatStatus("|  PID  |    NAME    |    START    |     END     |");
+
+		for (const auto& info : s_infoMap)
+		{
+			fmt::memory_buffer line;
+			fmt::format_to(line, "|{:^7}|{:^12}|{:^13}|{:^13}|",
+				info.first,
+				info.second.name.length() > 12 ? info.second.name.substr(0, 9) + "..." : info.second.name,
+				info.second.startTime,
+				info.second.endTime);
+			WriteChatStatus("%.*s", line.size(), line.data());
+		}
+	}
+}
+
 void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 {
 	MQ2Args arg_parser("MQ2Lua: A lua script binding plugin.");
@@ -718,6 +782,18 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 
 			WriteChatStatus("Reloading lua config.");
 			ReadSettings();
+		});
+
+	args::Command ps(commands, "ps", "ps-like process listing",
+		[](args::Subparser& parser)
+		{
+			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::Positional<std::string> script(arguments, "process", "optional parameter to specify a PID or name of script to get info for, if not specified will return table of all scripts.");
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+
+			if (script) LuaPSCommand(script.Get());
+			else LuaPSCommand();
 		});
 
 	MQ2HelpArgument h(commands);
