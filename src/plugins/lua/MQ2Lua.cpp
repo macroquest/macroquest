@@ -641,13 +641,6 @@ static void LuaConfCommand(const std::string& setting, const std::string& value)
 
 static void LuaPSCommand(const std::optional<std::string>& script = std::nullopt)
 {
-	//uint32_t pid;
-	//std::string name;
-	//std::string path;
-	//std::vector<std::string> arguments;
-	//uint64_t startTime;
-	//uint64_t endTime;
-	//std::vector<std::string> returnValues;
 	if (script)
 	{
 		auto thread_it = s_infoMap.end();
