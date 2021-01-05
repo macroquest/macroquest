@@ -41,13 +41,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <CodeAnalysisRuleSet>..\VisualStudioAnalysis.ruleset</CodeAnalysisRuleSet>
-    <IncludePath>$(MQ2Root)contrib\crashpad\include;$(MQ2Root)contrib\crashpad\include\mini_chromium;$(IncludePath)</IncludePath>
-    <LibraryPath>$(MQ2Root)contrib\crashpad\lib_debug_mt;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(VCPKG_IncludeDirs)\crashpad-backtrace;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <CodeAnalysisRuleSet>..\VisualStudioAnalysis.ruleset</CodeAnalysisRuleSet>
-    <IncludePath>$(MQ2Root)contrib\crashpad\include;$(MQ2Root)contrib\crashpad\include\mini_chromium;$(IncludePath)</IncludePath>
-    <LibraryPath>$(MQ2Root)contrib\crashpad\lib_debug_mt;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(VCPKG_IncludeDirs)\crashpad-backtrace;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -61,7 +59,6 @@
       <BaseAddress>0x03000000</BaseAddress>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;client.lib;util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <AdditionalLibraryDirectories>$(MQ2Root)contrib\crashpad\lib_$(Configuration)_mt;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File $(MQ2Root)tools\build_scripts\PostBuild.ps1 "$(MQ2Root)data" "$(MQ2buildDirectory)bin\$(MQ2BinaryDirName)"</Command>
@@ -78,7 +75,6 @@
     <Link>
       <BaseAddress>0x03000000</BaseAddress>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;client.lib;util.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(MQ2Root)contrib\crashpad\lib_$(Configuration)_mt;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File $(MQ2Root)tools\build_scripts\PostBuild.ps1 "$(MQ2Root)data" "$(MQ2buildDirectory)bin\$(MQ2BinaryDirName)"</Command>
