@@ -44,7 +44,9 @@ enum class SpellMembers
 	CounterType,
 	CounterNumber,
 	Stacks,
+	WillLand,
 	StacksPet,
+	WillLandPet,
 	WillStack,
 	MyRange,
 	Address,
@@ -134,7 +136,9 @@ MQ2SpellType::MQ2SpellType() : MQ2Type("spell")
 	ScopedTypeMember(SpellMembers, CounterType);
 	ScopedTypeMember(SpellMembers, CounterNumber);
 	ScopedTypeMember(SpellMembers, Stacks);
+	ScopedTypeMember(SpellMembers, WillLand);
 	ScopedTypeMember(SpellMembers, StacksPet);
+	ScopedTypeMember(SpellMembers, WillLandPet);
 	ScopedTypeMember(SpellMembers, WillStack);
 	ScopedTypeMember(SpellMembers, MyRange);
 	ScopedTypeMember(SpellMembers, Address);
@@ -605,6 +609,24 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 	}
 
+	case SpellMembers::WillLand:
+	{
+		// this extra member is exactly like stacks but without a duration check. The duration
+		// check on stacks implies that we _don't_ want overwrites, but that means that any
+		// spell that will land but overwrites something will fail that check. So provide the
+		// raw "this will land on your target" check as well
+		if (!pLocalPlayer) return false;
+
+		auto pPc = pLocalPlayer->GetPcClient();
+
+		int SlotIndex = -1;
+		EQ_Affect* ret = pPc->FindAffectSlot(pSpell->ID, pLocalPlayer, &SlotIndex, true, pLocalPlayer->Level);
+
+		Dest.Type = pIntType;
+		Dest.Set(SlotIndex + 1); // + 1 here because everything in macro land is 1-indexed and this allows someone to test as a BOOL (0 is falsey)
+		return true;
+	}
+
 	case SpellMembers::StacksPet: {
 		Dest.Set(true);
 		Dest.Type = pBoolType;
@@ -624,6 +646,28 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 				ceil(pPetInfoWnd->PetBuffTimer[nBuff] / 6000) > GetIntFromString(Index, 0)))
 			{
 				Dest.Set(false);
+				return true;
+			}
+		}
+
+		return true;
+	}
+
+	case SpellMembers::WillLandPet:
+	{
+		// This is the same as `WillLand`, but for pets
+		if (!pPetInfoWnd || !pLocalPlayer)
+			return false;
+
+		Dest.Set(0);
+		Dest.Type = pIntType;
+
+		for (int nBuff = 0; nBuff < NUM_BUFF_SLOTS; nBuff++)
+		{
+			auto pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
+			if (pBuffSpell && !WillStackWith(pSpell, pBuffSpell))
+			{
+				Dest.Set(nBuff + 1);
 				return true;
 			}
 		}
