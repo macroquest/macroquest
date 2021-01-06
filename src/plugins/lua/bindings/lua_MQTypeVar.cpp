@@ -108,6 +108,8 @@ sol::object lua_MQTypeVar::CallEmpty(sol::this_state L) const
 	case MQVarPtr::VariantIdx::UInt32:
 	case MQVarPtr::VariantIdx::UInt64:
 		return sol::object(L, sol::in_place, result.Get<uint64_t>());
+	case MQVarPtr::VariantIdx::Bool:
+		return sol::object(L, sol::in_place, result.Get<bool>());
 	case MQVarPtr::VariantIdx::String:
 		// if we know it's a string, let's Get a string explicitly
 		return sol::object(L, sol::in_place, result.Get<CXStr>().c_str());
