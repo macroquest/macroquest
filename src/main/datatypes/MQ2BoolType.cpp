@@ -18,6 +18,14 @@
 using namespace mq;
 using namespace mq::datatypes;
 
+static bool IsFalsey(std::string_view var)
+{
+	return var.empty()
+		|| ci_equals(var, "FALSE")
+		|| ci_equals(var, "NULL")
+		|| GetFloatFromString(var, 1) == 0;
+}
+
 // pure type, no members
 bool MQ2BoolType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -38,7 +46,7 @@ bool MQ2BoolType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 
 bool MQ2BoolType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
-	VarPtr.Set(!ci_equals(Source, "FALSE") && !ci_equals(Source, "NULL") && GetFloatFromString(Source, 1) != 0);
+	VarPtr.Set(!IsFalsey(Source));
 	return true;
 }
 
@@ -48,6 +56,6 @@ bool MQ2BoolType::dataBool(const char* szIndex, MQTypeVar& Ret)
 		return false;
 
 	Ret.Type = pBoolType;
-	Ret.Set(!ci_equals(szIndex, "FALSE") && !ci_equals(szIndex, "NULL") && GetFloatFromString(szIndex, 1) != 0);
+	Ret.Set(!IsFalsey(szIndex));
 	return true;
 }
