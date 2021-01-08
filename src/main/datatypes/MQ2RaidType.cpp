@@ -215,7 +215,7 @@ bool MQ2RaidType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 					return false;
 
 				// This matches what EQ says the RA at this index is.
-				const char* raName = rd.MainAssistNames[maIndex];
+				const char* raName = rd.MainAssistNames[maIndex - 1];
 				if (raName[0] == 0)
 					return false;
 
