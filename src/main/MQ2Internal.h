@@ -634,7 +634,7 @@ struct MQVarPtr
 		std::shared_ptr<void>,
 		CXStr
 	>;
-	
+
 	MQVariant Data;
 
 	enum class VariantIdx
@@ -862,7 +862,7 @@ using PMQ2VARPTR [[deprecated("Use MQVarPtr* instead")]] = MQVarPtr*;
 struct MQTypeVar : public MQVarPtr
 {
 	MQ2Type* Type = nullptr;
-	
+
 	bool operator==(const MQTypeVar& other) const
 	{
 		return Type == other.Type && this->MQVarPtr::operator==(other);
@@ -1110,5 +1110,115 @@ public:
 
 void RefreshKeyRingWindow();
 
+
+//----------------------------------------------------------------------------
+// TODO: Put this somewhere in a more shared location
+
+
+/** this function does not consider the current locale and only
+works with ASCII digits.
+@return true if c is a digit character
+*/
+inline bool alphanum_isdigit(const char c)
+{
+	return c >= '0' && c <= '9';
+}
+
+/**
+	compare l and r with strcmp() semantics, but using
+	the "Alphanum Algorithm". This function is designed to read
+	through the l and r strings only one time, for
+	maximum performance. It does not allocate memory for
+	substrings. It can either use the C-library functions isdigit()
+	and atoi() to honour your locale settings, when recognizing
+	digit characters when you "#define ALPHANUM_LOCALE=1" or use
+	it's own digit character handling which only works with ASCII
+	digit characters, but provides better performance.
+
+	@param l NULL-terminated C-style string
+	@param r NULL-terminated C-style string
+	@return negative if l<r, 0 if l equals r, positive if l>r
+*/
+inline int alphanum_comp(std::string_view lsv, std::string_view rsv)
+{
+	enum mode_t { STRING, NUMBER } mode = STRING;
+	auto l = lsv.begin();
+	auto r = rsv.begin();
+
+	while (l != lsv.end() && r != rsv.end())
+	{
+		if (mode == STRING)
+		{
+			char l_char, r_char;
+			while (l != lsv.end() && (l_char = *l) && r != rsv.end() && (r_char = *r))
+			{
+				// check if this are digit characters
+				const bool l_digit = alphanum_isdigit(l_char), r_digit = alphanum_isdigit(r_char);
+				// if both characters are digits, we continue in NUMBER mode
+				if (l_digit && r_digit)
+				{
+					mode = NUMBER;
+					break;
+				}
+				// if only the left character is a digit, we have a result
+				if (l_digit) return -1;
+				// if only the right character is a digit, we have a result
+				if (r_digit) return +1;
+				// compute the difference of both characters
+				const int diff = l_char - r_char;
+				// if they differ we have a result
+				if (diff != 0) return diff;
+				// otherwise process the next characters
+				++l;
+				++r;
+			}
+		}
+		else // mode==NUMBER
+		{
+			// get the left number
+			unsigned long l_int = 0;
+			while (l != lsv.end() && alphanum_isdigit(*l))
+			{
+				// TODO: this can overflow
+				l_int = l_int * 10 + *l - '0';
+				++l;
+			}
+
+			// get the right number
+			unsigned long r_int = 0;
+			while (r != rsv.end() && alphanum_isdigit(*r))
+			{
+				// TODO: this can overflow
+				r_int = r_int * 10 + *r - '0';
+				++r;
+			}
+
+			// if the difference is not equal to zero, we have a comparison result
+			const long diff = l_int - r_int;
+			if (diff != 0)
+				return diff;
+
+			// otherwise we process the next substring in STRING mode
+			mode = STRING;
+		}
+	}
+
+	if (r != rsv.end()) return -1;
+	if (l != lsv.end()) return +1;
+	return 0;
+}
+
+/**
+   Functor class to compare two objects with the "Alphanum
+   Algorithm".
+*/
+template <class Ty>
+struct alphanum_less
+{
+	bool operator()(const Ty& left, const Ty& right) const
+	{
+		return alphanum_comp(left, right) < 0;
+	}
+};
 
 } // namespace mq

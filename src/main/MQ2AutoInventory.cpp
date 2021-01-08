@@ -95,12 +95,12 @@ bool PickupItemNew(CONTENTS* pCont)
 		if (bFound && slot1 > -1)
 		{
 			ItemIndex IIndex = pCharData->CreateItemIndex(slot1, slot2);
-			VePointer<CONTENTS> pCont = pCharData->GetItemPossession(IIndex);
+			ItemPtr pCont = pCharData->GetItemPossession(IIndex);
 			if (pCont != nullptr)
 			{
 				if (pInvSlotMgr->MoveItem(
 					pCharData->CreateItemGlobalIndex(slot1, slot2),
-					pCharData->CreateItemGlobalIndex(eItemContainerCursor), false, false))
+					pCharData->CreateItemGlobalIndex(eItemContainerOverflow), false, false))
 				{
 					pCursorAttachment->Deactivate();
 					pCursorAttachment->AttachToCursor(nullptr, nullptr, eCursorAttachment_Item, -1, nullptr, nullptr);
@@ -242,7 +242,7 @@ public:
 								if (PCHARINFO pCharInfo = GetCharInfo())
 								{
 									CharacterBase* cb = (CharacterBase*)&pCharInfo->CharacterBase_vftable;
-									VePointer<CONTENTS> ptr = cb->GetItemByGlobalIndex(*gi);
+									ItemPtr ptr = cb->GetItemByGlobalIndex(*gi);
 
 									if (ptr)
 									{
@@ -264,7 +264,7 @@ public:
 
 											if (pItem->Cost > 0)
 											{
-												int sellprice = ((EQ_Item*)ptr.get())->ValueSellMerchant(1.05f, 1);
+												int sellprice = ptr->ValueSellMerchant(1.05f, 1);
 												int cp = sellprice;
 												int sp = cp / 10; cp = cp % 10;
 												int gp = sp / 10; sp = sp % 10;
@@ -318,6 +318,9 @@ public:
 	int WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
 	{
 		CFindItemWnd* pThis = (CFindItemWnd*)this;
+		PcProfile* pProfile = GetPcProfile();
+		if (!pProfile)
+			return WndNotification_Trampoline(pWnd, uiMessage, pData);;
 
 		if (uiMessage == XWM_SORTREQUEST)
 		{
@@ -410,7 +413,7 @@ public:
 		{
 			if (CButtonWnd* FIW_DestroyItem = (CButtonWnd*)pThis->GetChildItem("FIW_DestroyItem"))
 			{
-				if ((CButtonWnd*)pWnd == FIW_DestroyItem || (CButtonWnd*)pWnd == pNLMarkedButton || (CLabelWnd*)pWnd == pCountLabel)
+				if (pWnd == FIW_DestroyItem || pWnd == pNLMarkedButton || pWnd == pCountLabel)
 				{
 					if (pContextMenuManager)
 					{
@@ -643,40 +646,37 @@ public:
 							if (!gDeleteList.empty())
 								return 0;
 
-							if (PcProfile* pProfile = GetPcProfile())
+							// if we have something on cursor we let eq handle the destroy
+							if (!pProfile->GetInventorySlot(InvSlot_Cursor))
 							{
 								// if we have something on cursor we let eq handle the destroy
-								if (pProfile->pInventoryArray && pProfile->pInventoryArray->Inventory.Cursor == nullptr)
+								// IF have something checked... AND they clicked the destroy item button... we go... their fault if they do this.
+								for (int i = 0; i < list->ItemsArray.Count; i++)
 								{
-									// if we have something on cursor we let eq handle the destroy
-									// IF have something checked... AND they clicked the destroy item button... we go... their fault if they do this.
-									for (int i = 0; i < list->ItemsArray.Count; i++)
+									if (CButtonWnd* button = (CButtonWnd*)list->GetItemWnd(i, Column_CheckBox))
 									{
-										if (CButtonWnd* button = (CButtonWnd*)list->GetItemWnd(i, Column_CheckBox))
+										if (button->bChecked)
 										{
-											if (button->bChecked)
-											{
-												CXStr str = list->GetItemText(i, 1);
-												int dta = (int)list->GetItemData(i);
+											CXStr str = list->GetItemText(i, 1);
+											int dta = (int)list->GetItemData(i);
 
-												if (ItemGlobalIndex* igg = (ItemGlobalIndex*)pThis->gi[dta])
-												{
-													gDeleteList.push_back(*igg);
-												}
+											if (ItemGlobalIndex* igg = (ItemGlobalIndex*)pThis->gi[dta])
+											{
+												gDeleteList.push_back(*igg);
 											}
 										}
 									}
-
-									if (SListWndColumn* col = &list->Columns[Column_CheckBox])
-									{
-										col->pTextureAnim = pUnChecked;
-									}
-
-									if (!gDeleteList.empty())
-										gbStartDeleting = true;
-
-									return 1;
 								}
+
+								if (SListWndColumn* col = &list->Columns[Column_CheckBox])
+								{
+									col->pTextureAnim = pUnChecked;
+								}
+
+								if (!gDeleteList.empty())
+									gbStartDeleting = true;
+
+								return 1;
 							}
 						}
 						else if (pNLMarkedButton == pWnd)
@@ -702,7 +702,7 @@ public:
 												if (PCHARINFO pCharInfo = GetCharInfo())
 												{
 													CharacterBase* cb = (CharacterBase*)&pCharInfo->CharacterBase_vftable;
-													VePointer<CONTENTS> ptr = cb->GetItemByGlobalIndex(*gi);
+													ItemPtr ptr = cb->GetItemByGlobalIndex(*gi);
 													if (ptr)
 													{
 														if (PITEMINFO pItem = ptr->GetItemDefinition())
@@ -765,6 +765,8 @@ public:
 	int WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
 	{
 		CBankWnd* pThis = (CBankWnd*)this;
+		PcProfile* pProfile = GetPcProfile();
+
 		// we use this to intercept the menu messages for our autobank button extension
 		if (pThis->AutoButton == pWnd)
 		{
@@ -776,50 +778,44 @@ public:
 				switch (uiMessage)
 				{
 				case XWM_LCLICK:
-					if (PcProfile* pProfile = GetPcProfile())
+					if (!pProfile->GetInventorySlot(InvSlot_Cursor))
 					{
-						if (pProfile->pInventoryArray && pProfile->pInventoryArray->Inventory.Cursor == nullptr)
+						if (!gbAutoBankTradeSkillItems && !gbAutoBankCollectibleItems && !gbAutoBankQuestItems)
 						{
-							if (!gbAutoBankTradeSkillItems && !gbAutoBankCollectibleItems && !gbAutoBankQuestItems)
-							{
-								gAutoBankButton->bChecked = false;
-							}
-							else
-							{
-								gAutoBankButton->bChecked = true;
-							}
+							gAutoBankButton->bChecked = false;
+						}
+						else
+						{
+							gAutoBankButton->bChecked = true;
 						}
 					}
 					break;
 
 				case XWM_LMOUSEUP:
-					if (PcProfile* pProfile = GetPcProfile())
+					if (!pProfile->GetInventorySlot(InvSlot_Cursor))
 					{
-						if (pProfile->pInventoryArray && pProfile->pInventoryArray->Inventory.Cursor == nullptr)
+						if (!gbAutoBankTradeSkillItems && !gbAutoBankCollectibleItems && !gbAutoBankQuestItems)
 						{
-							if (!gbAutoBankTradeSkillItems && !gbAutoBankCollectibleItems && !gbAutoBankQuestItems)
-							{
-								WriteChatf("\ay[AUTOBANK FILTER NOT CONFIGURED]\ax AutoBank Filters where empty there is nothing selected for moving, rightclick the autobank button to select filters.\n");
-								gAutoBankButton->bChecked = false;
-								break;
-							}
+							WriteChatf("\ay[AUTOBANK FILTER NOT CONFIGURED]\ax AutoBank Filters where empty there is nothing selected for moving, rightclick the autobank button to select filters.\n");
+							gAutoBankButton->bChecked = false;
+							break;
+						}
 
-							if (!gbStartAutoBanking)
-							{
-								// user leftclicked the autobank button and nothing on cursor
-								// we will autobank from inventory instead and pick items he wants
-								// by using his menu settings.
-								gbStartAutoBanking = true;
+						if (!gbStartAutoBanking)
+						{
+							// user leftclicked the autobank button and nothing on cursor
+							// we will autobank from inventory instead and pick items he wants
+							// by using his menu settings.
+							gbStartAutoBanking = true;
 
-								WriteChatf("\ay[Auto%s started. Please wait...]\ax",
-									gbAutoInventoryItems ? "Inventory" : "Bank");
-							}
-							else
-							{
-								WriteChatf("\ar[Auto%s ALREADY in Progress, please wait for it to finish...]\ax",
-									gbAutoInventoryItems ? "Inventory" : "Bank");
-								return 0;
-							}
+							WriteChatf("\ay[Auto%s started. Please wait...]\ax",
+								gbAutoInventoryItems ? "Inventory" : "Bank");
+						}
+						else
+						{
+							WriteChatf("\ar[Auto%s ALREADY in Progress, please wait for it to finish...]\ax",
+								gbAutoInventoryItems ? "Inventory" : "Bank");
+							return 0;
 						}
 					}
 					break;
@@ -1122,6 +1118,11 @@ void RemoveAutoBankMenu()
 
 static void AutoBankPulse()
 {
+	CHARINFO* pCharInfo = GetCharInfo();
+	if (!pCharInfo)
+		return;
+	PcProfile* pProfile = GetPcProfile();
+
 	if (pMerchantWnd)
 	{
 		if (pMerchantWnd->IsVisible())
@@ -1166,42 +1167,26 @@ static void AutoBankPulse()
 			for (auto g = gSellList.begin(); g != gSellList.end(); g++)
 			{
 				ItemGlobalIndex& gi = *g;
-				if (CHARINFO* pCharInfo = GetCharInfo())
+				if (ItemPtr pItem = pCharData->GetItemByGlobalIndex(gi))
 				{
-					CharacterBase* cb = (CharacterBase*)&pCharInfo->CharacterBase_vftable;
-					VePointer<CONTENTS> ptr = cb->GetItemByGlobalIndex(gi);
-					if (ptr)
+					bool bwesold = false;
+					if (pMerchantWnd->pSelectedItem)
 					{
-						if (ITEMINFO* pItem = ptr->GetItemDefinition())
+						if (pMerchantWnd->pSelectedItem->GetID() == pItem->GetID())
 						{
-							bool bwesold = false;
-							if (pMerchantWnd->pSelectedItem)
-							{
-								if (pMerchantWnd->pSelectedItem->ID == ptr->ID)
-								{
-									gSellList.pop_front();
-									WriteChatf("Sold %d %s", pItem->StackSize, pItem->Name);
-
-									if (((EQ_Item*)ptr.get())->IsStackable())
-									{
-										DoCommandf("/sellitem %d", pItem->StackSize);
-									}
-									else
-									{
-										DoCommandf("/sellitem 1");
-									}
-									SellTimer = GetTickCount64();
-									bwesold = true;
-									break;
-								}
-							}
-
-							if (!bwesold)
-							{
-								pMerchantWnd->SelectBuySellSlot(gi, gi.GetTopSlot());
-								break;
-							}
+							gSellList.pop_front();
+							WriteChatf("Sold %d %s", pItem->GetItemCount(), pItem->GetName());
+							DoCommandf("/sellitem %d", pItem->GetItemCount());
+							SellTimer = GetTickCount64();
+							bwesold = true;
+							break;
 						}
+					}
+
+					if (!bwesold)
+					{
+						pMerchantWnd->SelectBuySellSlot(gi, gi.GetTopSlot());
+						break;
 					}
 				}
 
@@ -1222,35 +1207,22 @@ static void AutoBankPulse()
 
 	if (gbStartDeleting)
 	{
-		if (pCursorAttachment && pCursorAttachment->Type == -1/*none*/)
+		if (pCursorAttachment && pCursorAttachment->Type == eCursorAttachment_None)
 		{
-			// user wants us to delete stuff
-			for (auto g = gDeleteList.begin(); g != gDeleteList.end(); g++)
+			// user wants us to delete stuff. Delete one item per frame.
+			if (!gDeleteList.empty())
 			{
-				ItemGlobalIndex* gi = (ItemGlobalIndex*)&(*g);
-				if (CHARINFO* pCharInfo = GetCharInfo())
+				ItemGlobalIndex index = gDeleteList.front();
+				gDeleteList.pop_front();
+
+				if (ItemPtr pItem = pCharData->GetItemByGlobalIndex(index))
 				{
-					if (CharacterBase* cb = (CharacterBase*)&pCharInfo->CharacterBase_vftable)
+					if (PickupItemNew(pItem.get()))
 					{
-						VePointer<CONTENTS> ptr = cb->GetItemByGlobalIndex(*gi);
-						if (ptr)
-						{
-							if (ITEMINFO* pItem = ptr->GetItemDefinition())
-							{
-								if (PickupItemNew(ptr.get()))
-								{
-									gDeleteList.pop_front();
-									WriteChatf("Destroyed %s", pItem->Name);
-									DoCommandf("/destroyitem");
-									break;
-								}
-							}
-						}
+						WriteChatf("Destroyed %s", pItem->GetItemDefinition()->Name);
+						DoCommandf("/destroyitem");
 					}
 				}
-
-				gDeleteList.pop_front();
-				break;
 			}
 
 			if (gDeleteList.empty())
@@ -1285,70 +1257,22 @@ static void AutoBankPulse()
 
 		if (gAutoInventoryList.empty() && (gbAutoBankTradeSkillItems || gbAutoBankCollectibleItems || gbAutoBankQuestItems))
 		{
-#ifdef NEWCHARINFO
-			if (CHARINFO* pChar = GetCharInfo()) {
-#else
-			if (CHARINFONEW* pChar = (CHARINFONEW*)GetCharInfo()) {
-#endif
-				// check toplevel slots
-				for (DWORD slot = 0; slot < pChar->BankItems.Items.Size; slot++)
-				{
-					if (CONTENTS* pCont = pChar->BankItems.Items[slot].get())
-					{
-						if (ITEMINFO* pItem = pCont->GetItemDefinition())
-						{
-							if (pItem->Type == ITEMTYPE_PACK && !((EQ_Item*)pCont)->IsEmpty())
-								continue; // dont add bags that has items inside of them...
+			pCharInfo->BankItems.VisitContainers(
+				[&](const ItemPtr& pItem, const ItemIndex& index)
+			{
+				// dont add bags that have items inside of them.
+				if (pItem->IsContainer() && !pItem->IsEmpty())
+					return;
 
-							if (gbAutoBankTradeSkillItems && pItem->TradeSkills)
-							{
-								gAutoInventoryList.push_back(pCont->GetGlobalIndex());
-							}
-							else if (gbAutoBankCollectibleItems && pItem->Collectible)
-							{
-								gAutoInventoryList.push_back(pCont->GetGlobalIndex());
-							}
-							else if (gbAutoBankQuestItems && pItem->QuestItem)
-							{
-								gAutoInventoryList.push_back(pCont->GetGlobalIndex());
-							}
-						}
-					}
-				}
-
-				// check the bags
-				for (DWORD slot = 0; slot < pChar->BankItems.Items.Size; slot++)
+				ItemDefinition* itemDef = pItem->GetItemDefinition();
+				if ((gbAutoBankTradeSkillItems && itemDef->TradeSkills)
+					|| (gbAutoBankCollectibleItems && itemDef->Collectible)
+					|| (gbAutoBankQuestItems && itemDef->QuestItem))
 				{
-					if (CONTENTS* pPack = pChar->BankItems.Items[slot].get())
-					{
-						if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
-						{
-							for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
-							{
-								if (CONTENTS* pCont = pPack->GetContent(nItem))
-								{
-									if (PITEMINFO pItem = GetItemFromContents(pCont))
-									{
-										if (gbAutoBankTradeSkillItems && pItem->TradeSkills)
-										{
-											gAutoInventoryList.push_back(pCont->GetGlobalIndex());
-										}
-										else if (gbAutoBankCollectibleItems && pItem->Collectible)
-										{
-											gAutoInventoryList.push_back(pCont->GetGlobalIndex());
-										}
-										else if (gbAutoBankQuestItems && pItem->QuestItem)
-										{
-											gAutoInventoryList.push_back(pCont->GetGlobalIndex());
-										}
-									}
-								}
-							}
-						}
-					}
+					gAutoInventoryList.push_back(pItem->GetItemLocation());
 				}
-			}
-			}
+			});
+		}
 
 		if (!gAutoInventoryList.empty())
 		{
@@ -1365,7 +1289,7 @@ static void AutoBankPulse()
 			WriteChatf("\ay[No Items Found for Auto Inventory.]\ax\n");
 			return;
 		}
-		}
+	}
 
 	// user wants us to autobank stuff
 	else if (!gbAutoInventoryItems && !gbAutoBankInProgress)
@@ -1373,69 +1297,20 @@ static void AutoBankPulse()
 		if (gAutoBankList.empty() && (gbAutoBankTradeSkillItems || gbAutoBankCollectibleItems || gbAutoBankQuestItems))
 		{
 			// check toplevel slots
-			PcProfile* pProfile = GetPcProfile();
-			if (pProfile && pProfile->pInventoryArray && pProfile->pInventoryArray->InventoryArray)
+			pProfile->GetInventory().VisitContainers(
+				[&](const ItemPtr& pItem, const ItemIndex& index)
 			{
-				for (CONTENTS* pCont : pProfile->pInventoryArray->InventoryArray)
-				{
-					if (pCont)
-					{
-						if (PITEMINFO pItem = GetItemFromContents(pCont))
-						{
-							if (pItem->Type == ITEMTYPE_PACK && !((EQ_Item*)pCont)->IsEmpty())
-								continue; //dont add bags that has items inside of them...
+				if (pItem->IsContainer() && !pItem->IsEmpty())
+					return;
 
-							if (gbAutoBankTradeSkillItems && pItem->TradeSkills)
-							{
-								gAutoBankList.push_back(pCont->GetGlobalIndex());
-							}
-							else if (gbAutoBankCollectibleItems && pItem->Collectible)
-							{
-								gAutoBankList.push_back(pCont->GetGlobalIndex());
-							}
-							else if (gbAutoBankQuestItems && pItem->QuestItem)
-							{
-								gAutoBankList.push_back(pCont->GetGlobalIndex());
-							}
-						}
-					}
-				}
-			}
-
-			// check the bags
-			if (pProfile && pProfile->pInventoryArray)
-			{
-				for (CONTENTS* pPack : pProfile->pInventoryArray->Inventory.Pack)
+				ItemDefinition* itemDef = pItem->GetItemDefinition();
+				if ((gbAutoBankTradeSkillItems && itemDef->TradeSkills)
+					|| (gbAutoBankCollectibleItems && itemDef->Collectible)
+					|| (gbAutoBankQuestItems && itemDef->QuestItem))
 				{
-					if (pPack)
-					{
-						if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
-						{
-							for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
-							{
-								if (CONTENTS* pCont = pPack->GetContent(nItem))
-								{
-									if (PITEMINFO pItem = GetItemFromContents(pCont))
-									{
-										if (gbAutoBankTradeSkillItems && pItem->TradeSkills)
-										{
-											gAutoBankList.push_back(pCont->GetGlobalIndex());
-										}
-										else if (gbAutoBankCollectibleItems && pItem->Collectible)
-										{
-											gAutoBankList.push_back(pCont->GetGlobalIndex());
-										}
-										else if (gbAutoBankQuestItems && pItem->QuestItem)
-										{
-											gAutoBankList.push_back(pCont->GetGlobalIndex());
-										}
-									}
-								}
-							}
-						}
-					}
+					gAutoBankList.push_back(pItem->GetItemLocation());
 				}
-			}
+			});
 		}
 
 		if (!gAutoBankList.empty())
@@ -1455,38 +1330,34 @@ static void AutoBankPulse()
 		}
 	}
 
-	if (PcProfile* pProfile = GetPcProfile())
+	if (pProfile->GetInventorySlot(InvSlot_Cursor) != nullptr)
 	{
-		if (pProfile->pInventoryArray && pProfile->pInventoryArray->Inventory.Cursor != 0)
-		{
-			if (gbAutoInventoryInProgress)
-				DoCommandf("/autoinventory");
-			else
-				DoCommandf("/autobank");
-			return;
-		}
+		if (gbAutoInventoryInProgress)
+			DoCommandf("/autoinventory");
+		else
+			DoCommandf("/autobank");
+		return;
 	}
 
 	if (!gAutoInventoryList.empty())
 	{
 		const ItemGlobalIndex& ind = gAutoInventoryList.front();
 
-		if (CONTENTS* pCont = FindItemBySlot(ind.GetIndex().GetSlot(0), ind.GetIndex().GetSlot(1), ind.GetLocation()))
+		if (CONTENTS* pCont = FindItemByGlobalIndex(ind))
 		{
-			if (PITEMINFO pItem = GetItemFromContents(pCont))
+			ItemDefinition* pItem = GetItemFromContents(pCont);
+			ItemGlobalIndex indy = pCont->GetItemLocation();
+
+			if (WillFitInInventory(pCont))
 			{
-				ItemGlobalIndex indy = pCont->GetGlobalIndex();
-				if (WillFitInInventory(pCont))
-				{
-					WriteChatf("[%d] Moving %s from slot %d %d to inventory",
-						gAutoInventoryList.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
-					PickupItem(indy.Location, pCont);
-				}
-				else
-				{
-					WriteChatf("[%d] \arAutoinventory for %s from slot %d %d to inventory \ayFAILED\ar, you are out of space.\ax",
-						gAutoInventoryList.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
-				}
+				WriteChatf("[%d] Moving %s from slot %d %d to inventory",
+					gAutoInventoryList.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
+				PickupItem(indy.Location, pCont);
+			}
+			else
+			{
+				WriteChatf("[%d] \arAutoinventory for %s from slot %d %d to inventory \ayFAILED\ar, you are out of space.\ax",
+					gAutoInventoryList.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
 			}
 		}
 		else
@@ -1494,6 +1365,7 @@ static void AutoBankPulse()
 			WriteChatf("[%d] \arAutoinventory for slot %d %d to inventory \ayFAILED\ar, no item was found.\ax",
 				gAutoInventoryList.size(), ind.GetIndex().GetSlot(0), ind.GetIndex().GetSlot(1));
 		}
+
 		gAutoInventoryList.pop_front();
 		return;
 	}
@@ -1502,21 +1374,21 @@ static void AutoBankPulse()
 	{
 		const ItemGlobalIndex& ind = gAutoBankList.front();
 
-		if (CONTENTS* pCont = FindItemBySlot(ind.GetIndex().GetSlot(0), ind.GetIndex().GetSlot(1), ind.GetLocation()))
+		if (CONTENTS* pCont = FindItemByGlobalIndex(ind))
 		{
-			if (PITEMINFO pItem = GetItemFromContents(pCont))
+			ItemDefinition* pItem = GetItemFromContents(pCont);
+			ItemGlobalIndex indy = pCont->GetItemLocation();
+
+			if (WillFitInBank(pCont))
 			{
-				ItemGlobalIndex indy = pCont->GetGlobalIndex();
-				if (WillFitInBank(pCont))
-				{
-					WriteChatf("[%d] Moving %s from slot %d %d to bank",
-						gAutoBankList.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
-					PickupItem(indy.Location, pCont);
-				}
-				else {
-					WriteChatf("[%d] \arAutoBank for %s from slot %d %d to bank \ayFAILED\ar, you are out of space.\ax",
-						gAutoBankList.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
-				}
+				WriteChatf("[%d] Moving %s from slot %d %d to bank",
+					gAutoBankList.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
+				PickupItem(indy.Location, pCont);
+			}
+			else
+			{
+				WriteChatf("[%d] \arAutoBank for %s from slot %d %d to bank \ayFAILED\ar, you are out of space.\ax",
+					gAutoBankList.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
 			}
 		}
 		else
@@ -1524,6 +1396,7 @@ static void AutoBankPulse()
 			WriteChatf("[%d] \arAutoBank for slot %d %d to bank \ayFAILED\ar, no item was found.\ax",
 				gAutoBankList.size(), ind.GetIndex().GetSlot(0), ind.GetIndex().GetSlot(1));
 		}
+
 		gAutoBankList.pop_front();
 		return;
 	}
@@ -1546,8 +1419,7 @@ static void AutoBankPulse()
 		gbStartAutoBanking = false;
 		WriteChatf("\ay[AutoBank Finished.]\ax");
 	}
-	}
-
+}
 
 void InitializeMQ2AutoInventory()
 {

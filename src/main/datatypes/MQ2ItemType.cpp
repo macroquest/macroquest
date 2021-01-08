@@ -15,8 +15,7 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
 
 enum class ItemMembers
 {
@@ -362,12 +361,8 @@ MQ2ItemType::MQ2ItemType() : MQ2Type("item")
 
 bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	CONTENTS* pItem = static_cast<CONTENTS*>(VarPtr.Ptr);
+	ItemClient* pItem = static_cast<ItemClient*>(VarPtr.Ptr);
 	if (!pItem)
-		return false;
-
-	PITEMINFO pItemInfo = GetItemFromContents(pItem);
-	if (!pItemInfo)
 		return false;
 
 	MQTypeMember* pMember = MQ2ItemType::FindMember(Member);
@@ -377,28 +372,28 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	switch (static_cast<ItemMembers>(pMember->ID))
 	{
 	case ItemMembers::ID:
-		Dest.DWord = GetItemFromContents(pItem)->ItemNumber;
+		Dest.DWord = pItem->GetID();
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::Name:
-		strcpy_s(DataTypeTemp, GetItemFromContents(pItem)->Name);
+		strcpy_s(DataTypeTemp, pItem->GetName());
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
 	case ItemMembers::Lore:
-		Dest.Set(((ItemBase*)pItem)->IsLore(false));
+		Dest.Set(pItem->IsLore(false));
 		Dest.Type = pBoolType;
 		return true;
 	case ItemMembers::LoreEquipped:
-		Dest.Set(((ItemBase*)pItem)->IsLoreEquipped(false));
+		Dest.Set(pItem->IsLoreEquipped(false));
 		Dest.Type = pBoolType;
 		return true;
 
 	case ItemMembers::NoDrop:
 	case ItemMembers::NoTrade:
-		Dest.Set(!((EQ_Item*)pItem)->CanDrop(0, 1));
+		Dest.Set(!pItem->CanDrop(false, true));
 		Dest.Type = pBoolType;
 		return true;
 
@@ -433,38 +428,39 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::Stack:
-		if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1))
-			Dest.DWord = 1;
-		else
-			Dest.DWord = pItem->StackCount;
+		Dest.DWord = pItem->GetItemCount();
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::Type:
 		DataTypeTemp[0] = '\0';
-		if (GetItemFromContents(pItem)->Type == ITEMTYPE_NORMAL)
+		if (pItem->GetType() == ITEMTYPE_NORMAL)
 		{
-			if ((GetItemFromContents(pItem)->ItemType < MAX_ITEMTYPES) && (szItemTypes[GetItemFromContents(pItem)->ItemType] != nullptr))
+			uint8_t itemClass = pItem->GetItemClass();
+
+			if (itemClass < MAX_ITEMCLASSES && szItemClasses[itemClass] != nullptr)
 			{
-				strcpy_s(DataTypeTemp, szItemTypes[GetItemFromContents(pItem)->ItemType]);
+				strcpy_s(DataTypeTemp, szItemClasses[itemClass]);
 			}
 			else
 			{
-				sprintf_s(DataTypeTemp, "*UnknownType%d", GetItemFromContents(pItem)->ItemType);
+				sprintf_s(DataTypeTemp, "*UnknownItemClass%d", itemClass);
 			}
 		}
-		else if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK)
+		else if (pItem->GetType() == ITEMTYPE_PACK)
 		{
-			if ((GetItemFromContents(pItem)->Combine < MAX_COMBINES) && (szCombineTypes[GetItemFromContents(pItem)->Combine] != nullptr))
+			uint8_t combine = pItem->GetItemDefinition()->Combine;
+
+			if (combine < MAX_COMBINES && szCombineTypes[combine] != nullptr)
 			{
-				strcpy_s(DataTypeTemp, szCombineTypes[GetItemFromContents(pItem)->Combine]);
+				strcpy_s(DataTypeTemp, szCombineTypes[combine]);
 			}
 			else
 			{
-				sprintf_s(DataTypeTemp, "*UnknownCombine%d", GetItemFromContents(pItem)->Combine);
+				sprintf_s(DataTypeTemp, "*UnknownCombine%d", combine);
 			}
 		}
-		else if (GetItemFromContents(pItem)->Type == ITEMTYPE_BOOK)
+		else if (pItem->GetType() == ITEMTYPE_BOOK)
 		{
 			strcpy_s(DataTypeTemp, "Book");
 		}
@@ -474,7 +470,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::Charges:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetType() != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
 			Dest.DWord = pItem->Charges;
@@ -516,14 +512,9 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	case ItemMembers::Items:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK)
+		if (pItem->IsContainer())
 		{
-			if (pItem->Contents.ContainedItems.pItems) {
-				for (unsigned long N = 0; N < GetItemFromContents(pItem)->Slots; N++) {
-					if (pItem->GetContent(N))
-						Dest.DWord++;
-				}
-			}
+			Dest.DWord = pItem->GetChildItemContainer()->GetCount();
 			return true;
 		}
 		return false;
@@ -575,42 +566,22 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	case ItemMembers::Item: {
 		Dest.Type = pItemType;
-		CONTENTS* pCont = (CONTENTS*)pItem;
+		ItemDefinition* itemDef = pItem->GetItemDefinition();
 
-		if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK && IsNumber(Index))
+		if (!IsNumber(Index))
+			return false;
+
+		if (itemDef->Type == ITEMTYPE_PACK
+			|| itemDef->Type == ITEMTYPE_NORMAL)
 		{
-			// FIXME:  Add some safety checks here for bad conversion
 			int num = GetIntFromString(Index, 1) - 1;
-			if (num < GetItemFromContents(pItem)->Slots)
-			{
-				if (pItem->Contents.ContainedItems.pItems)
-				{
-					if (Dest.Ptr = pItem->GetContent(num))
-					{
-						return true;
-					}
-				}
-			}
-		}
-		else if (GetItemFromContents(pItem)->Type == ITEMTYPE_NORMAL && IsNumber(Index))
-		{
-			// FIXME:  Add some safety checks here for bad conversion
-			int num = GetIntFromString(Index, 1) - 1;
-			Dest.Ptr = nullptr;
-
-			if (pItem->Contents.ContainedItems.pItems)
-			{
-				if (GetItemFromContents(pItem)->AugData.Sockets[num].Type)
-					Dest.Ptr = pItem->Contents.ContainedItems.pItems->Item[num];
-			}
-
-			if (Dest.Ptr)
+			if (Dest.Ptr = pItem->GetChildItemContainer()->GetItem(num).get())
 				return true;
 		}
 		return false;
 	}
 	case ItemMembers::Stackable:
-		Dest.Set(((EQ_Item*)pItem)->IsStackable());
+		Dest.Set(pItem->IsStackable());
 		Dest.Type = pBoolType;
 		return true;
 
@@ -624,12 +595,12 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return false;
 
 	case ItemMembers::ItemSlot:
-		Dest.Int = pItem->GetGlobalIndex().GetIndex().GetSlot(0);
+		Dest.Int = pItem->GetItemLocation().GetIndex().GetSlot(0);
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::ItemSlot2:
-		Dest.Int = pItem->GetGlobalIndex().GetIndex().GetSlot(1);
+		Dest.Int = pItem->GetItemLocation().GetIndex().GetSlot(1);
 		Dest.Type = pIntType;
 		return true;
 
@@ -839,105 +810,82 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	case ItemMembers::StackSize:
 		// This returns the MAX size of a stack for the item
 		// If this was properly named it should be called MaxStack.
-		Dest.DWord = 1; //we know its at least 1
+		Dest.DWord = pItem->GetMaxItemCount();
 		Dest.Type = pIntType;
-
-		if (pItem)
-		{
-			if ((pItem->GetItemDefinition()->Type == ITEMTYPE_NORMAL) && (((EQ_Item*)pItem)->IsStackable()))
-			{
-				Dest.DWord = pItem->GetItemDefinition()->StackSize;
-			}
-		}
 		return true;
 
-	case ItemMembers::Stacks:
+	case ItemMembers::Stacks: {
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
-		if (PcProfile* pProfile = GetPcProfile())
-		{
-			if (!((EQ_Item*)pItem)->IsStackable())
-				return true;
+		PcProfile* pProfile = GetPcProfile();
+		if (!pProfile) return false;
 
-			for (int slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++)
+		if (!pItem->IsStackable())
+			return true;
+
+		int itemToFind = pItem->GetID();
+
+		// If we used ItemContainer::FindItem, we might count augs that are placed
+		// within items in the bag slots (not in the bags).
+		for (int slot = InvSlot_FirstBagSlot; slot <= GetHighestAvailableBagSlot(); slot++)
+		{
+			ItemPtr pBagItem = pProfile->InventoryContainer.GetItem(slot);
+			if (!pBagItem) continue;
+
+			if (pBagItem->GetID() == itemToFind)
 			{
-				if (pProfile->pInventoryArray && pProfile->pInventoryArray->InventoryArray[slot])
+				Dest.DWord++;
+			}
+			else if (pBagItem->IsContainer())
+			{
+				for (const ItemPtr& item : pBagItem->GetHeldItems())
 				{
-					if (CONTENTS* pTempItem = pProfile->pInventoryArray->InventoryArray[slot])
+					if (item && item->GetID() == itemToFind)
 					{
-						if (GetItemFromContents(pTempItem)->Type == ITEMTYPE_PACK && pTempItem->Contents.ContainedItems.pItems)
-						{
-							for (int pslot = 0; pslot < (GetItemFromContents(pTempItem)->Slots); pslot++)
-							{
-								if (pTempItem->Contents.ContainedItems.pItems->Item[pslot])
-								{
-									if (CONTENTS* pSlotItem = pTempItem->Contents.ContainedItems.pItems->Item[pslot])
-									{
-										if (GetItemFromContents(pSlotItem)->ItemNumber == GetItemFromContents(pItem)->ItemNumber)
-										{
-											Dest.DWord++;
-										}
-									}
-								}
-							}
-						}
-						else
-						{
-							if (GetItemFromContents(pTempItem)->ItemNumber == GetItemFromContents(pItem)->ItemNumber)
-							{
-								Dest.DWord++;
-							}
-						}
+						Dest.DWord++;
+					}
+				}
+			}
+		}
+
+		return true;
+	}
+
+	case ItemMembers::StackCount: {
+		Dest.DWord = 0;
+		Dest.Type = pIntType;
+
+		PcProfile* pProfile = GetPcProfile();
+		if (!pProfile) return false;
+
+		if (!pItem->IsStackable())
+			return true;
+
+		int itemToFind = pItem->GetID();
+
+		for (int slot = InvSlot_FirstBagSlot; slot <= GetHighestAvailableBagSlot(); slot++)
+		{
+			ItemPtr pBagItem = pProfile->InventoryContainer.GetItem(slot);
+			if (!pBagItem) continue;
+
+			if (pBagItem->GetID() == itemToFind)
+			{
+				Dest.DWord += pBagItem->GetItemCount();
+			}
+			else if (pBagItem->IsContainer())
+			{
+				for (const ItemPtr& item : pBagItem->GetHeldItems())
+				{
+					if (item && item->GetID() == itemToFind)
+					{
+						Dest.DWord += pBagItem->GetItemCount();
 					}
 				}
 			}
 		}
 		return true;
-
-	case ItemMembers::StackCount:
-		Dest.DWord = 0;
-		Dest.Type = pIntType;
-
-		if (PcProfile* pProfile = GetPcProfile())
-		{
-			if (!((EQ_Item*)pItem)->IsStackable())
-				return true;
-
-			for (int slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++)
-			{
-				if (pProfile->pInventoryArray && pProfile->pInventoryArray->InventoryArray[slot])
-				{
-					if (CONTENTS* pTempItem = pProfile->pInventoryArray->InventoryArray[slot])
-					{
-						if (GetItemFromContents(pTempItem)->Type == ITEMTYPE_PACK && pTempItem->Contents.ContainedItems.pItems)
-						{
-							for (int pslot = 0; pslot < (GetItemFromContents(pTempItem)->Slots); pslot++)
-							{
-								if (pTempItem->Contents.ContainedItems.pItems->Item[pslot])
-								{
-									if (CONTENTS* pSlotItem = pTempItem->Contents.ContainedItems.pItems->Item[pslot])
-									{
-										if (GetItemFromContents(pSlotItem)->ItemNumber == GetItemFromContents(pItem)->ItemNumber)
-										{
-											Dest.DWord += pSlotItem->StackCount;
-										}
-									}
-								}
-							}
-						}
-						else
-						{
-							if (GetItemFromContents(pTempItem)->ItemNumber == GetItemFromContents(pItem)->ItemNumber)
-							{
-								Dest.DWord += pTempItem->StackCount;
-							}
-						}
-					}
-				}
-			}
-		}
-		return true;
+	}
 
 	case ItemMembers::FreeStack:
 		Dest.DWord = GetFreeStack(pItem);
@@ -1384,10 +1332,11 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	{
 		Dest.Type = pAugType;
 		int index = GetIntFromString(Index, -1);
-		if (index >= 0 && index <= 5 &&
-			GetItemFromContents(pItem)->Type == ITEMTYPE_NORMAL)
+		if (index >= 0 && index < MAX_AUG_SOCKETS
+			&& GetItemFromContents(pItem)->Type == ITEMTYPE_NORMAL)
 		{
-			Dest.Set(MQSlotInItem(pItem->GetGlobalIndex(), index));
+			// FIXME: ItemIndex
+			Dest.Set(MQSlotInItem(pItem->GetItemLocation(), index));
 			return true;
 		}
 		return false;
@@ -1703,23 +1652,22 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		Dest.Type = pIntType;
 		return true;
 
-	case ItemMembers::Augs:
+	case ItemMembers::Augs: {
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (ITEMINFO* pitem = GetItemFromContents(pItem))
-		{
-			if (pitem->Type == ITEMTYPE_NORMAL)
-			{
-				for (int i = 0; i < MAX_AUG_SOCKETS; ++i)
-				{
-					if (pitem->AugData.Sockets[i].Type > 0 && pitem->AugData.Sockets[i].Type < 20 && pitem->AugData.Sockets[i].bVisible)
-						Dest.DWord++;
-				}
 
-				Dest.Type = pIntType;
+		ItemDefinition* itemDef = pItem->GetItemDefinition();
+		if (itemDef->Type == ITEMTYPE_NORMAL)
+		{
+			for (const auto& augInfo : itemDef->AugData.Sockets)
+			{
+				if (augInfo.Type != 0 && augInfo.bVisible)
+					Dest.DWord++;
 			}
 		}
+
 		return true;
+	}
 
 	case ItemMembers::Tradeskills:
 		Dest.Set(GetItemFromContents(pItem)->TradeSkills);
@@ -1742,80 +1690,37 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::FirstFreeSlot: {
-		Dest.DWord = 0;
+		Dest.DWord = -1;
 		Dest.Type = pIntType;
 
-		CONTENTS* pTheCont = pItem;
-		if (ITEMINFO* pTheItem = GetItemFromContents(pItem))
+		// FIXME: Check with world container
+
+		for (int i = 0; i < pItem->GetHeldItems().GetSize(); ++i)
 		{
-			if (pTheItem->Type == ITEMTYPE_PACK || (pTheItem->Type == ITEMTYPE_NORMAL && pTheCont->Item1)) //a worldcontainer has its item in Item1
+			ItemPtr pInnerItem = pItem->GetHeldItem(i);
+
+			if (!pInnerItem)
 			{
-				Dest.DWord = -1;
-				if (pTheCont->Contents.ContainedItems.pItems)
-				{
-					for (int num = 0; num < pTheItem->Slots; num++)
-					{
-						if (!pTheCont->Contents.ContainedItems.pItems->Item[num])
-						{
-							Dest.DWord = num;
-							break;
-						}
-					}
-				}
-				return true;
+				Dest.DWord = i;
+				break;
 			}
 		}
-		return false;
+
+		return true;
 	}
 
 	case ItemMembers::SlotsUsedByItem:
 	{
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		CONTENTS* pTheCont = pItem;
-		if (ITEMINFO* pTheItem = GetItemFromContents(pItem))
-		{
-			if (pTheItem->Type == ITEMTYPE_PACK || (pTheItem->Type == ITEMTYPE_NORMAL && pTheCont->Item1))
-			{
-				Dest.DWord = 0;
-				bool bExact = false;
-				char* pName1 = Index;
-				if (*pName1 == '=')
-				{
-					bExact = true;
-					pName1++;
-				}
 
-				if (pTheCont->Contents.ContainedItems.pItems)
-				{
-					for (int nSlot = 0; nSlot < pTheItem->Slots; nSlot++)
-					{
-						if (pTheCont->Contents.ContainedItems.pItems->Item[nSlot])
-						{
-							if (ITEMINFO* bagitem = GetItemFromContents(pTheCont->Contents.ContainedItems.pItems->Item[nSlot]))
-							{
-								if (bExact)
-								{
-									if (ci_equals(bagitem->Name, pName1))
-									{
-										Dest.DWord++;
-									}
-								}
-								else
-								{
-									if (ci_find_substr(bagitem->Name, pName1) != -1)
-									{
-										Dest.DWord++;
-									}
-								}
-							}
-						}
-					}
-					return true;
-				}
-			}
+		for (const ItemPtr& pInnerItem : pItem->GetHeldItems())
+		{
+			if (pInnerItem && MaybeExactCompare(pInnerItem->GetName(), Index))
+				Dest.DWord++;
 		}
-		return false;
+
+		return true;
 	}
 
 	case ItemMembers::Heirloom:
@@ -1863,19 +1768,14 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::ContentSize:
-		Dest.DWord = pItem->Contents.ContentSize;
+		Dest.DWord = pItem->GetHeldItems().GetSize();
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::CanUse:
-		Dest.Set(false);
+		Dest.Set(pCharData->CanUseItem(pItem, false, false));
 		Dest.Type = pBoolType;
-		if (CONTENTS* pCont = pItem)
-		{
-			Dest.Set(pCharData->CanUseItem(&pCont, false, false));
-			return true;
-		}
-		return false;
+		return true;
 
 	case ItemMembers::Luck:
 		Dest.DWord = pItem->Luck;
@@ -1903,24 +1803,28 @@ bool MQ2ItemType::ToString(MQVarPtr VarPtr, char* Destination)
 	if (!VarPtr.Ptr)
 		return false;
 
-	CONTENTS* pContents = static_cast<CONTENTS*>(VarPtr.Ptr);
-	strcpy_s(Destination, MAX_STRING, GetItemFromContents(pContents)->Name);
+	ItemClient* pItem = static_cast<ItemClient*>(VarPtr.Ptr);
+	strcpy_s(Destination, MAX_STRING, pItem->GetName());
 	return true;
 }
 
 void MQ2ItemType::InitVariable(MQVarPtr& VarPtr)
 {
-	CONTENTS* pContents = eqNew<CONTENTS>();
-	pContents->IncrementRefCount();
+	ItemClient* pItem = eqNew<ItemClient>();
 
-	VarPtr.Ptr = pContents;
-	VarPtr.HighPart = 0;
+	// manually increment since we are not using a VePointer
+	pItem->IncrementRefCount();
+	VarPtr.Ptr = pItem;
 }
 
 void MQ2ItemType::FreeVariable(MQVarPtr& VarPtr)
 {
-	CONTENTS* pContents = static_cast<CONTENTS*>(VarPtr.Ptr);
-	pContents->DecrementRefCount();
+	ItemClient* pItem = static_cast<ItemClient*>(VarPtr.Ptr);
+
+	// Manually decrement since we are not using a VePointer. This should
+	// delete the item if it is the last reference.
+	pItem->DecrementRefCount();
+	VarPtr.Ptr = nullptr;
 }
 
 bool MQ2ItemType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
@@ -1928,15 +1832,18 @@ bool MQ2ItemType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	if (Source.Type != pItemType)
 		return false;
 
-	CONTENTS* pNewContents = static_cast<CONTENTS*>(Source.Ptr);
-	if (pNewContents)
-		pNewContents->IncrementRefCount();
+	// Increment new object reference count.
+	ItemClient* pNewItem = static_cast<ItemClient*>(Source.Ptr);
+	if (pNewItem)
+		pNewItem->IncrementRefCount();
 
-	CONTENTS* pOldContents = static_cast<CONTENTS*>(VarPtr.Ptr);
-	if (pOldContents)
-		pOldContents->DecrementRefCount();
+	// Decrement old object reference count.
+	ItemClient* pOldItem = static_cast<ItemClient*>(VarPtr.Ptr);
+	if (pOldItem)
+		pOldItem->DecrementRefCount();
 
-	VarPtr.Ptr = pNewContents;
+	VarPtr.Ptr = pNewItem;
 	return true;
 }
 
+} // namespace mq::datatypes

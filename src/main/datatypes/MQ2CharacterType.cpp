@@ -59,6 +59,7 @@ enum class CharacterMembers
 	Endurance,
 	Inventory,
 	Bank,
+	SharedBank,
 	Combat,
 	FreeInventory,
 	Gem,
@@ -377,6 +378,7 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, Endurance);
 	ScopedTypeMember(CharacterMembers, Inventory);
 	ScopedTypeMember(CharacterMembers, Bank);
+	ScopedTypeMember(CharacterMembers, SharedBank);
 	ScopedTypeMember(CharacterMembers, Combat);
 	ScopedTypeMember(CharacterMembers, FreeInventory);
 	ScopedTypeMember(CharacterMembers, Gem);
@@ -1200,12 +1202,10 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			if (IsNumber(Index))
 			{
 				int nSlot = GetIntFromString(Index, NUM_INV_SLOTS);
-				if (nSlot < NUM_INV_SLOTS)
+				if (nSlot < NUM_INV_SLOTS && nSlot >= 0)
 				{
-					if (pProfile->pInventoryArray && ((Dest.Ptr = pProfile->pInventoryArray->InventoryArray[nSlot])))
-					{
+					if (Dest.Ptr = pProfile->GetInventorySlot(nSlot).get())
 						return true;
-					}
 				}
 			}
 			else
@@ -1214,10 +1214,10 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				{
 					if (!_stricmp(Index, szItemSlot[nSlot]))
 					{
-						if (pProfile->pInventoryArray && ((Dest.Ptr = pProfile->pInventoryArray->InventoryArray[nSlot])))
-						{
+						if (Dest.Ptr = pProfile->GetInventorySlot(nSlot).get())
 							return true;
-						}
+
+						return false;
 					}
 				}
 			}
@@ -1234,29 +1234,36 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				if (nSlot < 0)
 					return false;
 
-				if (nSlot < NUM_BANK_SLOTS)
+				if (nSlot < GetAvailableBankSlots())
 				{
-					if (pChar && pChar->pBankArray)
-					{
-						if (Dest.Ptr = pChar->pBankArray->Bank[nSlot])
-						{
-							return true;
-						}
-					}
+					if (Dest.Ptr = pChar->BankItems.GetItem(nSlot).get())
+						return true;
 				}
-				else
+				else if (nSlot >= NUM_BANK_SLOTS)
 				{
 					nSlot -= NUM_BANK_SLOTS;
-					if (nSlot < NUM_SHAREDBANK_SLOTS)
-					{
-						if (pChar && pChar->pSharedBankArray)
-						{
-							if (Dest.Ptr = pChar->pSharedBankArray->SharedBank[nSlot])
-							{
-								return true;
-							}
-						}
-					}
+
+					if (Dest.Ptr = pChar->SharedBankItems.GetItem(nSlot).get())
+						return true;
+				}
+			}
+		}
+		return false;
+
+	case CharacterMembers::SharedBank:
+		Dest.Type = pItemType;
+		if (Index[0])
+		{
+			if (IsNumber(Index))
+			{
+				int nSlot = GetIntFromString(Index, 0) - 1;
+				if (nSlot < 0)
+					return false;
+
+				if (nSlot < GetAvailableSharedBankSlots())
+				{
+					if (Dest.Ptr = pChar->SharedBankItems.GetItem(nSlot).get())
+						return true;
 				}
 			}
 		}
@@ -2312,33 +2319,29 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case CharacterMembers::LargestFreeInventory:
 	{
-		Dest.DWord = 0;
+		Dest.DWord = ItemSize_Tiny;
 		Dest.Type = pIntType;
 
-		if (pProfile->pInventoryArray && pProfile->pInventoryArray->InventoryArray)
+		for (int slot = InvSlot_Bag1; slot < GetHighestAvailableBagSlot(); slot++)
 		{
-			for (int slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++)
+			if (ItemPtr pItem = pProfile->InventoryContainer.GetItem(slot))
 			{
-				if (CONTENTS* pItem = pProfile->pInventoryArray->InventoryArray[slot])
+				ItemDefinition* itemDef = pItem->GetItemDefinition();
+				if (itemDef->Type == ITEMTYPE_PACK
+					&& itemDef->SizeCapacity > Dest.DWord)
 				{
-					if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK
-						&& GetItemFromContents(pItem)->SizeCapacity > Dest.DWord)
+					// Check if the container has a free slot.
+					if (!pItem->GetChildItemContainer()->IsFull())
 					{
-						for (int pslot = 0; pslot < (GetItemFromContents(pItem)->Slots); pslot++)
-						{
-							if (!pItem->Contents.ContainedItems.pItems || !pItem->GetContent(pslot))
-							{
-								Dest.DWord = GetItemFromContents(pItem)->SizeCapacity;
-								break; // break the loop for this pack
-							}
-						}
+						Dest.DWord = itemDef->SizeCapacity;
+						return true;
 					}
 				}
-				else
-				{
-					Dest.DWord = 4;
-					return true;
-				}
+			}
+			else
+			{
+				// Its an empty slot, we can hold the largest size things here...
+				Dest.DWord = ItemSize_Giant;
 			}
 		}
 		return true;
@@ -3371,6 +3374,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 		if (IsNumber(Index))
 		{
+			// Check if expansion is owned by number: ${Me.HaveExpansion[18]}
 			int nExpansion = GetIntFromString(Index, 0);
 			if (nExpansion > NUM_EXPANSIONS)
 				return true;
@@ -3378,6 +3382,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 		else
 		{
+			// Check if expansion is owned by name: ${Me.HaveExpansion[Veil of Alaris]}
 			for (int n = 0; n < NUM_EXPANSIONS; n++)
 			{
 				if (!_stricmp(Index, szExpansions[n]))

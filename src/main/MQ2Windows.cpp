@@ -27,6 +27,22 @@
 
 namespace mq {
 
+static void Windows_Initialize();
+static void Windows_Shutdown();
+static void Windows_Pulse();
+static void Windows_UpdateImGui();
+
+static MQModule gWindowsModule = {
+	"Windows",                  // Name
+	false,                      // CanUnload
+	Windows_Initialize,
+	Windows_Shutdown,
+	Windows_Pulse,
+	nullptr,
+	Windows_UpdateImGui,
+};
+MQModule* GetWindowsModule() { return &gWindowsModule; }
+
 char* szClickNotification[] = {
 	"leftmouse",        // 0
 	"leftmouseup",      // 1
@@ -44,8 +60,8 @@ std::vector<std::string> XmlFiles;
 
 int WinCount = 0;
 
-bool GenerateMQUI();
-void DestroyMQUI();
+static bool GenerateMQUI();
+static void DestroyMQUI();
 
 static void DropWindowFromMap(std::string_view Name, CXWnd* pWnd)
 {
@@ -63,7 +79,7 @@ static void DropWindowFromMap(std::string_view Name, CXWnd* pWnd)
 	}
 }
 
-inline void AddWindowToList(const CXStr& WindowName, CXWnd* pWnd, bool log)
+void AddWindowToList(const CXStr& WindowName, CXWnd* pWnd)
 {
 	// if the window changes names, then we will be changing the entry in WindowList, so deal with that before setting the WindowList entry
 	auto listIt = WindowList.find(pWnd);
@@ -93,11 +109,6 @@ inline void AddWindowToList(const CXStr& WindowName, CXWnd* pWnd, bool log)
 	{
 		// not found in the multimap, we can add it
 		WindowMap.emplace(listIt->second, pWnd);
-		if (log) DebugSpew("Adding WndNotification target '%s'", WindowName.c_str());
-	}
-	else if (log)
-	{
-		DebugSpew("Updating WndNotification target '%s'", WindowName.c_str());
 	}
 }
 
@@ -107,7 +118,7 @@ public:
 	void Init_Trampoline(const CXStr& Name, int A);
 	void Init_Detour(const CXStr& Name, int A)
 	{
-		AddWindowToList(Name, reinterpret_cast<CXWnd*>(this), true);
+		AddWindowToList(Name, reinterpret_cast<CXWnd*>(this));
 
 		Init_Trampoline(Name, A);
 	}
@@ -116,25 +127,20 @@ public:
 	int CTargetWnd__WndNotification_Tramp(CXWnd*, uint32_t, void*);
 	int CTargetWnd__WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
 	{
-		if (gUseTradeOnTarget)
+		if (gUseTradeOnTarget && pTarget && uiMessage == XWM_LCLICK)
 		{
-			if (uiMessage == XWM_LCLICK)
+			PcProfile* pProfile = GetPcProfile();
+
+			if (pTarget->SpawnID != pLocalPlayer->SpawnID
+				&& (pProfile->GetInventorySlot(InvSlot_Cursor) != nullptr
+					|| pProfile->CursorPlat || pProfile->CursorGold || pProfile->CursorSilver || pProfile->CursorCopper))
 			{
-				if (PcProfile* pProfile = GetPcProfile())
-				{
-					if (pTarget && pLocalPlayer
-						&& ((SPAWNINFO*)pTarget)->SpawnID != ((SPAWNINFO*)pLocalPlayer)->SpawnID
-						&& pEverQuest && pProfile->pInventoryArray
-						&& (pProfile->pInventoryArray->Inventory.Cursor
-							|| pProfile->CursorPlat || pProfile->CursorGold || pProfile->CursorSilver || pProfile->CursorCopper))
-					{
-						// player has a item or coin on his cursor and clicked targetwindow, he wants to trade with target...
-						pEverQuest->LeftClickedOnPlayer(pTarget);
-						WeDidStuff();
-					}
-				}
+				// player has a item or coin on his cursor and clicked targetwindow, he wants to trade with target...
+				pEverQuest->LeftClickedOnPlayer(pTarget);
+				WeDidStuff();
 			}
 		}
+
 		return CTargetWnd__WndNotification_Tramp(pWnd, uiMessage, pData);
 	}
 };
@@ -183,7 +189,7 @@ static void InitializeWindowList()
 
 		if (pXMLData->Type == UI_Screen)
 		{
-			AddWindowToList(pXMLData->Name, pWnd, false);
+			AddWindowToList(pXMLData->Name, pWnd);
 		}
 	}
 }
@@ -555,42 +561,41 @@ CXWnd* FindMQ2Window(const char* Name)
 
 		if (iter != range.second)
 			return iter->second;
-		else
-			return range.first->second;
+
+		return range.first->second;
 	}
 
-	// didnt find one, is it a container?
-	CONTENTS* pPack = nullptr;
-	if (ci_starts_with(WindowName, "bank"))
+	// If we're in game, we'll have a profile We can check for some specially named windows.
+	if (gGameState == GAMESTATE_INGAME)
 	{
-		unsigned long nPack = GetIntFromString(&WindowName[4], 0);
-		if (nPack > 0 && nPack <= NUM_BANK_SLOTS && pPCData && pPCData->BankItems.Items.Size > nPack - 1)
+		// didnt find one, is it a container?
+		ItemPtr pPack;
+		if (ci_starts_with(WindowName, "bank"))
 		{
-			pPack = pPCData->BankItems.Items[nPack - 1].get();
-		}
-	}
-	else if (ci_starts_with(WindowName, "pack"))
-	{
-		unsigned long nPack = GetIntFromString(&WindowName[4], 0);
-		if (nPack > 0 && nPack <= 10)
-		{
-			if (PcProfile* pProfile = GetPcProfile())
+			int nPack = GetIntFromString(&WindowName[4], 0) - 1;
+			if (nPack >= 0 && nPack < GetAvailableBankSlots())
 			{
-				if (pProfile->pInventoryArray)
-				{
-					pPack = pProfile->pInventoryArray->Inventory.Pack[nPack - 1];
-				}
+				pPack = pPCData->BankItems.GetItem(nPack - 1);
 			}
 		}
-	}
-	else if (ci_equals(WindowName, "enviro"))
-	{
-		pPack = pContainerMgr->pWorldContainer.get();
-	}
+		else if (ci_starts_with(WindowName, "pack"))
+		{
+			int nPack = GetIntFromString(&WindowName[4], 0) + InvSlot_FirstBagSlot - 1;
 
-	if (pPack)
-	{
-		return FindContainerForContents(pPack);
+			if (nPack >= InvSlot_FirstBagSlot && nPack <= GetHighestAvailableBagSlot())
+			{
+				pPack = GetPcProfile()->GetInventorySlot(nPack);
+			}
+		}
+		else if (ci_equals(WindowName, "enviro"))
+		{
+			pPack = pContainerMgr->GetWorldContainerItem();
+		}
+
+		if (pPack)
+		{
+			return FindContainerForContents(pPack.get());
+		}
 	}
 
 	return nullptr;
@@ -1465,13 +1470,8 @@ void ItemNotify(PSPAWNINFO pChar, char* szLine)
 		return;
 	}
 
-	char* pNotification = &szArg2[0];
+	char* szNotification = &szArg2[0];
 	CInvSlot* pSlot = nullptr;
-	int i = 0;
-	CInvSlotMgr* pInvMgr = pInvSlotMgr;
-	short bagslot = -1;
-	short invslot = -1;
-	ItemContainerInstance type = eItemContainerInvalid;
 
 	if (!_stricmp(szArg1, "in"))
 	{
@@ -1481,254 +1481,263 @@ void ItemNotify(PSPAWNINFO pChar, char* szLine)
 			return;
 		}
 
+		ItemGlobalIndex globalIndex;
+
 		if (!_strnicmp(szArg2, "bank", 4))
 		{
-			invslot = GetIntFromString(&szArg2[4], invslot) - 1;
-			bagslot = GetIntFromString(szArg3, bagslot) - 1;
-			type = eItemContainerBank;
+			int invslot = GetIntFromString(&szArg2[4], 0) - 1;
+			int bagslot = GetIntFromString(szArg3, 0) - 1;
+			if (invslot >= 0 && invslot < GetAvailableBankSlots())
+				globalIndex = ItemGlobalIndex(eItemContainerBank, ItemIndex(invslot, bagslot));
 		}
 		else if (!_strnicmp(szArg2, "sharedbank", 10))
 		{
-			invslot = GetIntFromString(&szArg2[10], invslot) - 1;
-			bagslot = GetIntFromString(szArg3, bagslot) - 1;
-			type = eItemContainerSharedBank;
+			int invslot = GetIntFromString(&szArg2[10], 0) - 1;
+			int bagslot = GetIntFromString(szArg3, 0) - 1;
+			if (invslot >= 0 && invslot < GetAvailableSharedBankSlots())
+				globalIndex = ItemGlobalIndex(eItemContainerSharedBank, ItemIndex(invslot, bagslot));
 		}
 		else if (!_strnicmp(szArg2, "pack", 4))
 		{
-			invslot = GetIntFromString(&szArg2[4], invslot) - 1 + BAG_SLOT_START;
-			bagslot = GetIntFromString(szArg3, bagslot) - 1;
-			type = eItemContainerPossessions;
+			int invslot = GetIntFromString(&szArg2[4], 0) - 1;
+			int bagslot = GetIntFromString(szArg3, 0) - 1;
+			if (invslot >= 0 && invslot < GetAvailableBagSlots())
+				globalIndex = ItemGlobalIndex(eItemContainerPossessions, ItemIndex(invslot + InvSlot_FirstBagSlot, bagslot));
 		}
 
-		// I wish I could just call:
-		// pSlot = (PEQINVSLOT)pInvSlotMgr->FindInvSlot(invslot,bagslot);
-		// BUT it returns HB_InvSlot as well as containers AND it doesn't take "type" into account...
-		// which is why I use GetInvSlot instead...
-		pSlot = GetInvSlot(type, invslot, bagslot);
-		pNotification = &szArg4[0];
+		pSlot = pInvSlotMgr->FindInvSlot(globalIndex, false);
+		szNotification = &szArg4[0];
 
-		if (!pSlot && type != -1)
+		if (!pSlot && globalIndex.IsValidIndex())
 		{
-			// pSlot was not found (so bag is closed) BUT we can "click" it anyway with moveitem
-			// so lets just do that if pNotification is leftmoseup
-			if (invslot < 0 || invslot > NUM_INV_SLOTS)
+			// pSlot was not found (so bag is closed) BUT if we are doing a leftmouseup, we can
+			// simulate a click by moving the item to the cursor.
+			if (_strnicmp(szNotification, "leftmouseup", 11) == 0)
 			{
-				WriteChatf("%d is not a valid invslot. (itemnotify)", invslot);
-				return;
-			}
+				// this is the "in" command, so we know the user is trying to locate an item in
+				// a bag. Look up the top level bag.
+				ItemContainer* itemContainer = GetItemContainerByType(globalIndex.GetLocation());
+				if (!itemContainer)
+				{
+					// We didn't get a valid container. Maybe an invalid parameter?
+					WriteChatf("Invalid item container at location %s", GetNameForContainerInstance(globalIndex.GetLocation()));
+					return;
+				}
 
-			if (pNotification && !_strnicmp(pNotification, "leftmouseup", 11))
-			{
-				// we dont care about the bagslot here
-				// and we dont care if the user has something
-				// on cursor either, cause we know they
-				// specified "in" so a container MUST exist... -eqmule
-				CONTENTS* pContainer = FindItemBySlot(invslot);
+				// Find the bag in the item container.
+				ItemPtr pContainer = itemContainer->GetItem(globalIndex.GetTopSlot());
 				if (!pContainer)
 				{
-					WriteChatf("There was no container in slot %d", invslot);
+					WriteChatf("There was no container in slot %d", globalIndex.GetTopSlot());
 					return;
 				}
 
-				if (bagslot < 0 && bagslot >= (int)pContainer->Contents.ContentSize)
+				if (!pContainer->IsContainer())
 				{
-					WriteChatf("%d is not a valid slot for this container.", bagslot);
+					WriteChatf("There was no container in slot %d", globalIndex.GetTopSlot());
 					return;
 				}
 
-				if (GetItemFromContents(pContainer)->Type != ITEMTYPE_PACK)
+				// Ensure that the specified bagslot is within the proper range
+				if (!pContainer->GetHeldItems().IsValidIndex(globalIndex.GetIndex().GetSlot(1)))
 				{
-					WriteChatf("There was no container in slot %d", invslot);
+					WriteChatf("%d is not a valid slot for this container.", globalIndex.GetIndex().GetSlot(1));
 					return;
 				}
 
+				// Either drop the item or pick it up, depending on whether we have an item on the cursor or not.
 				if (ItemOnCursor())
 				{
-					DropItem(type, invslot, bagslot);
+					DropItem(globalIndex);
 				}
 				else
 				{
-					PickupItem(type, FindItemBySlot(invslot, bagslot));
+					PickupItem(globalIndex);
 				}
 
 				return;
 			}
 
-			if (pNotification && !_strnicmp(pNotification, "rightmouseup", 12))
+			if (_strnicmp(szNotification, "rightmouseup", 12) == 0)
 			{
-				// we fake it with /useitem
-				if (HasExpansion(EXPANSION_VoA))
+				ItemPtr pItem = FindItemByGlobalIndex(globalIndex);
+				if (!pItem)
 				{
-					CONTENTS* pItem = FindItemBySlot(invslot, bagslot);
-					if (pItem)
-					{
-						if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID != -1)
-						{
-							char cmd[MAX_STRING] = { 0 };
-							sprintf_s(cmd, "/useitem \"%s\"", GetItemFromContents(pItem)->Name);
-							EzCommand(cmd);
-							return;
-						}
-					}
-					else
-					{
-						// it doesnt matter if its a bag, since the user specified "in"
-						// we cant open bags inside bags so lets just return...
-						WriteChatf("Item '%s' not found.", szArg2);
-						return;
-					}
+					WriteChatf("Item '%s' not found.", szArg2);
+					return;
+				}
+
+				if (globalIndex.GetLocation() != eItemContainerPossessions)
+				{
+					WriteChatf("Cannot use '%s' because it is not in your inventory.", pItem->GetName());
+					return;
+				}
+
+				// we fake it with /useitem
+				if (pItem->GetItemDefinition()->Clicky.SpellID > 0)
+				{
+					char cmd[MAX_STRING] = { 0 };
+					sprintf_s(cmd, "/useitem \"%s\"", pItem->GetName());
+					EzCommand(cmd);
+					return;
 				}
 			}
 		}
+
+		// If we still continue beyond this point, we may have set a pSlot which
+		// will be handled below at the end of the function.
 	}
 	else
 	{
 		// user didnt specify "in" so it should be outside a container
-		// OR it's an item, either way we can "click" it -eqmule
-		int Slot = GetIntFromString(szArg1, 0);
-		if (Slot == 0)
+		// OR it's an item, either way we can "click" it
+		int slotNum = GetIntFromString(szArg1, -1);
+
+		// Check if slotNum falls into the range of inventory slots.
+		if (slotNum >= 0 && slotNum < InvSlot_NumInvSlots)
+		{
+			pSlot = pInvSlotMgr->SlotArray[slotNum];
+		}
+
+		// The argument wasn't a number. Check if it is a named slot
+		if (slotNum == -1)
 		{
 			_strlwr_s(szArg1);
-			Slot = ItemSlotMap[szArg1];
-			if (Slot < NUM_INV_SLOTS && pInvSlotMgr)
+
+			// Check if its a character sheet slot ("charm", "neck", etc...)
+			auto iter = ItemSlotMap.find(szArg1);
+			if (iter != ItemSlotMap.end())
 			{
-				DebugTry(pSlot = pInvSlotMgr->FindInvSlot(Slot));
+				int mappedSlot = iter->second;
+				pSlot = pInvSlotMgr->FindInvSlot(mappedSlot, -1, eItemContainerPossessions, false);
 			}
-			else
+
+			// Check if its another type of named container slot
+			if (!pSlot)
 			{
+				ItemGlobalIndex globalIndex;
+
 				if (!_strnicmp(szArg1, "loot", 4))
 				{
-					invslot = GetIntFromString(&szArg1[4], invslot) - 1;
-					type = eItemContainerCorpse;
+					int invslot = GetIntFromString(&szArg1[4], 0) - 1;
+					globalIndex = ItemGlobalIndex(eItemContainerCorpse, ItemIndex(invslot));
 				}
 				else if (!_strnicmp(szArg1, "enviro", 6))
 				{
-					invslot = GetIntFromString(&szArg1[6], invslot) - 1;
-					type = eItemContainerWorld;
+					int invslot = GetIntFromString(&szArg1[6], 0) - 1;
+					globalIndex = ItemGlobalIndex(eItemContainerWorld, ItemIndex(invslot));
 				}
 				else if (!_strnicmp(szArg1, "pack", 4))
 				{
-					invslot = GetIntFromString(&szArg1[4], invslot) - 1 + BAG_SLOT_START;
-					type = eItemContainerPossessions;
+					int invslot = GetIntFromString(&szArg1[4], 0) - 1 + InvSlot_FirstBagSlot;
+					globalIndex = ItemGlobalIndex(eItemContainerPossessions, ItemIndex(invslot));
 				}
 				else if (!_strnicmp(szArg1, "bank", 4))
 				{
-					invslot = GetIntFromString(&szArg1[4], invslot) - 1;
-					type = eItemContainerBank;
+					int invslot = GetIntFromString(&szArg1[4], 0) - 1;
+					globalIndex = ItemGlobalIndex(eItemContainerBank, ItemIndex(invslot));
 				}
 				else if (!_strnicmp(szArg1, "sharedbank", 10))
 				{
-					invslot = GetIntFromString(&szArg1[10], invslot) - 1;
-					type = eItemContainerSharedBank;
+					int invslot = GetIntFromString(&szArg1[10], 0) - 1;
+					globalIndex = ItemGlobalIndex(eItemContainerSharedBank, ItemIndex(invslot));
 				}
 				else if (!_strnicmp(szArg1, "trade", 5))
 				{
-					invslot = GetIntFromString(&szArg1[5], invslot) - 1;
-					type = eItemContainerTrade;
+					int invslot = GetIntFromString(&szArg1[5], 0) - 1;
+					globalIndex = ItemGlobalIndex(eItemContainerTrade, ItemIndex(invslot));
 				}
 
-				for (i = 0; i < pInvMgr->TotalSlots; i++)
-				{
-					pSlot = pInvMgr->SlotArray[i];
-					if (pSlot
-						&& pSlot->bEnabled
-						&& pSlot->pInvSlotWnd
-						&& pSlot->pInvSlotWnd->ItemLocation.GetLocation() == type
-						&& pSlot->pInvSlotWnd->ItemLocation.GetTopSlot() == invslot)
-					{
-						CXMLData* pXMLData = pSlot->pInvSlotWnd->GetXMLData();
-						if (pXMLData)
-						{
-							if (!_stricmp(pXMLData->ScreenID.c_str(), "HB_InvSlot"))
-							{
-								continue;
-							}
-						}
+				pSlot = GetInvSlot(globalIndex);
+			}
 
-						Slot = 1;
-						break;
+			ItemClient* pItem = nullptr;
+
+			// Check if its the name or id of an item.
+			if (!pSlot)
+			{
+				// Starts with #, its an item id
+				if (szArg1[0] == '#')
+				{
+					int id = GetIntFromString(szArg1 + 1, -1);
+					if (id > 0)
+					{
+						pItem = FindItemByID(id);
 					}
 				}
+				else
+				{
+					pItem = FindItemByName(szArg1, true);
+				}
 
-				if (i == pInvMgr->TotalSlots)
-					Slot = 0;
-			}
-		}
+				// Try to get a slot from the item.
+				if (pItem)
+				{
+					pSlot = GetInvSlot(pItem->GetItemLocation());
+				}
 
-		if (Slot == 0 && szArg1[0] != '0' && _stricmp(szArg1, "charm"))
-		{
-			// could it be an itemname?
-			// lets check:
-			CONTENTS* ptheitem = nullptr;
-
-			if (szArg1[0] == '#')
-			{
-				int id = GetIntFromString(&szArg1[1], 0);
-				ptheitem = FindItemByID(id);
-			}
-			else
-			{
-				ptheitem = FindItemByName(szArg1, true);
 			}
 
-			if (ptheitem)
+			// At this point, if we don't have a slot, but we do have an item, there is a chance
+			// that we can do something with it.
+			if (!pSlot && pItem)
 			{
-				if (pNotification && !_strnicmp(pNotification, "leftmouseup", 11))
+				if (!_strnicmp(szNotification, "leftmouseup", 11))
 				{
 					if (ItemOnCursor())
 					{
-						DropItem(eItemContainerPossessions, bagslot, invslot);
+						DropItem(pItem->GetItemLocation());
 					}
 					else
 					{
-						PickupItem(eItemContainerPossessions, ptheitem);
+						PickupItem(pItem->GetItemLocation());
 					}
 				}
-				else if (pNotification && !_strnicmp(pNotification, "rightmouseup", 12))
+				else if (!_strnicmp(szNotification, "rightmouseup", 12))
 				{
-					// we fake it with /useitem
-					// better check if its a spell cause then it means we should mem it
-					PITEMINFO pClicky = GetItemFromContents(ptheitem);
-
-					if (pClicky && pClicky->ItemType == ITEMITEMTYPE_SCROLL)
+					if (pItem->GetItemClass() == ItemClass_Spell)
 					{
-						if (IsItemInsideContainer(ptheitem))
+						bool needsClose = false;
+						ItemClient* pContainer = nullptr;
+
+						if (IsItemInsideContainer(pItem))
 						{
-							OpenContainer(ptheitem, true);
+							if (pContainer = FindItemByGlobalIndex(pItem->GetItemLocation().GetParent()))
+								needsClose = OpenContainer(pContainer, true);
 						}
 
-						if (pInvSlotMgr)
-						{
-							pSlot = pInvSlotMgr->FindInvSlot(ptheitem->GetGlobalIndex().GetTopSlot(),
-								ptheitem->GetGlobalIndex().GetIndex().GetSlot(1));
-						}
+						CInvSlot* pInvSlot = GetInvSlot(pItem->GetItemLocation());
 
-						if (!pSlot || !pSlot->pInvSlotWnd || !SendWndClick2(pSlot->pInvSlotWnd, pNotification))
+						if (!pInvSlot || !pSlot->pInvSlotWnd || !SendWndClick2(pSlot->pInvSlotWnd, szNotification))
 						{
 							WriteChatf("Could not mem spell, most likely cause bag wasnt open and i didnt find it");
 						}
 
+						if (needsClose)
+						{
+							CloseContainer(pContainer);
+						}
 						return;
 					}
 
-					if (pClicky && pClicky->Clicky.SpellID != -1)
+					if (pItem->GetItemDefinition()->Clicky.SpellID != -1)
 					{
 						char cmd[512] = { 0 };
-						sprintf_s(cmd, "/useitem \"%s\"", GetItemFromContents(ptheitem)->Name);
+						sprintf_s(cmd, "/useitem \"%s\"", pItem->GetName());
 						EzCommand(cmd);
-
 						return;
 					}
 
-					if (pClicky->Type == ITEMTYPE_PACK)
+					if (pItem->IsContainer())
 					{
 						// its a pack, so just open it
-						if (ptheitem->Open)
+						if (pItem->Open)
 						{
-							CloseContainer(ptheitem);
+							CloseContainer(pItem);
 						}
-						else {
-							OpenContainer(ptheitem, false);
+						else
+						{
+							OpenContainer(pItem, false);
 						}
 					}
 				}
@@ -1736,68 +1745,59 @@ void ItemNotify(PSPAWNINFO pChar, char* szLine)
 				return;
 			}
 
-			WriteChatf("[/itemnotify] Invalid item slot '%s'", szArg1);
-			return;
-		}
-
-		if (Slot > 0 && Slot < MAX_INV_SLOTS && !pSlot)
-		{
-			pSlot = pInvMgr->SlotArray[Slot];
+			if (!pSlot)
+			{
+				WriteChatf("Invalid item slot '%s'", szArg1);
+				return;
+			}
 		}
 	}
 
 	if (!pSlot)
 	{
-		WriteChatf("SLOT IS NULL: Could not send notification to %s %s", szArg1, szArg2);
+		WriteChatf("Could not find slot to send notification to %s %s", szArg1, szArg2);
 		return;
 	}
 
 	DebugSpew("ItemNotify: Calling SendWndClick");
 
-	if (!pSlot->pInvSlotWnd || !SendWndClick2(pSlot->pInvSlotWnd, pNotification))
+	if (!pSlot->pInvSlotWnd || !SendWndClick2(pSlot->pInvSlotWnd, szNotification))
 	{
 		WriteChatf("Could not send notification to %s %s", szArg1, szArg2);
 	}
 }
 
-void ListItemSlots(PSPAWNINFO pChar, char* szLine)
+void ListItemSlots(SPAWNINFO* pChar, char* szLine)
 {
-	CInvSlotMgr* pMgr = pInvSlotMgr;
-	if (!pMgr)
-		return;
-	unsigned long Count = 0;
-
 	WriteChatColor("List of available item slots");
 	WriteChatColor("-------------------------");
 
-	for (int N = 0; N < MAX_INV_SLOTS; N++)
+	int count = 0;
+	for (int index = 0; index < MAX_INV_SLOTS; index++)
 	{
-		if (CInvSlot* pSlot = pMgr->SlotArray[N])
+		if (CInvSlot* pSlot = pInvSlotMgr->SlotArray[index])
 		{
 			if (pSlot->pInvSlotWnd)
 			{
-				WriteChatf("%d %d %d", N, pSlot->pInvSlotWnd->ItemLocation.GetLocation(), pSlot->Index);
-				Count++;
+				WriteChatf("%d: %d %d", index, pSlot->pInvSlotWnd->ItemLocation.GetLocation(), pSlot->Index);
+				count++;
 			}
 			else if (pSlot->Index)
 			{
-				WriteChatf("%d %d", N, pSlot->Index);
+				WriteChatf("%d: %d", index, pSlot->Index);
 			}
 		}
 	}
 
-	WriteChatf("%d available item slots", Count);
+	WriteChatf("%d available item slots", count);
 }
 
 void ReloadUI(SPAWNINFO* pChar, char* szLine)
 {
-	CHARINFO* pCharInfo = GetCharInfo();
-	if (!pCharInfo) return;
-
 	char szFilename[MAX_PATH];
-	char UISkin[256];
+	sprintf_s(szFilename, "UI_%s_%s.ini", pCharData->Name, EQADDR_SERVERNAME);
 
-	sprintf_s(szFilename, "UI_%s_%s.ini", pCharInfo->Name, EQADDR_SERVERNAME);
+	char UISkin[256];
 	GetPrivateProfileString("Main", "UISkin", "default", UISkin, 256, szFilename);
 
 	char szBuffer[50];
@@ -2041,9 +2041,211 @@ void UpdateCascadeMenu()
 
 //============================================================================
 
-void InitializeMQ2Windows()
+#pragma region InvSlotInspector
+
+class InvSlotInspector : public ImGuiWindowBase
+{
+public:
+	InvSlotInspector()
+		: ImGuiWindowBase("InvSlot Inspector")
+	{}
+
+	bool IsEnabled() const override
+	{
+		return pInvSlotMgr != nullptr;
+	}
+
+	void Draw() override
+	{
+		if (ImGui::BeginTabBar("##InvSlotInspector_TabBar", ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton))
+		{
+			if (ImGui::BeginTabItem("InvSlots"))
+			{
+				Draw_InvSlotList();
+				ImGui::EndTabItem();
+			}
+			if (ImGui::BeginTabItem("InvSlot Mapping"))
+			{
+				Draw_InvSlotMapping();
+				ImGui::EndTabItem();
+			}
+
+			ImGui::EndTabBar();
+		}
+	}
+
+	void Draw_InvSlotList()
+	{
+		ImGuiTableFlags tableFlags = ImGuiTableFlags_SizingPolicyFixedX
+			| ImGuiTableFlags_ScrollY
+			| ImGuiTableFlags_BordersV
+			| ImGuiTableFlags_BordersOuterH
+			| ImGuiTableFlags_Resizable
+			| ImGuiTableFlags_RowBg;
+
+		// Columns:
+		// Icon, Index, Container?, ItemIndex?, LinkedItem?, Template
+
+		if (ImGui::BeginTable("##InvSlotTable", 6, tableFlags, ImGui::GetContentRegionAvail()))
+		{
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableSetupColumn("##Index", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize, -1.0f);
+			ImGui::TableSetupColumn("##Icon", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize, -1.0f);
+			ImGui::TableSetupColumn("Container", ImGuiTableColumnFlags_WidthFixed, -1.0f);
+			ImGui::TableSetupColumn("Item Index", ImGuiTableColumnFlags_WidthFixed, -1.0f);
+			ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch, -1.0f);
+			ImGui::TableSetupColumn("Screen ID", ImGuiTableColumnFlags_WidthFixed, -1.0f);
+			ImGui::TableHeadersRow();
+
+			for (int i = 0; i < pInvSlotMgr->TotalSlots; ++i)
+			{
+				CInvSlot* pInvSlot = pInvSlotMgr->SlotArray[i];
+				if (!pInvSlot || !pInvSlot->bEnabled) continue;
+
+				ImGui::TableNextRow();
+
+				ImGui::TableNextColumn(); // index
+				ImGui::Text("%d", pInvSlot->Index);
+
+				ImGui::TableNextColumn(); // icon
+				RenderTextureAnimation(pInvSlot->pInvSlotAnimation, CXSize(16, 16));
+
+				ItemGlobalIndex globalIndex = pInvSlot->pInvSlotWnd ? pInvSlot->pInvSlotWnd->ItemLocation : ItemGlobalIndex();
+				ItemPtr pItem = pCharData->GetItemByGlobalIndex(globalIndex);
+
+				ImGui::TableNextColumn(); // Container
+				if (globalIndex.IsValidLocation())
+					ImGui::Text("%s", GetNameForContainerInstance(globalIndex.GetLocation()));
+
+				ImGui::TableNextColumn(); // ItemIndex
+				if (globalIndex.IsValidIndex())
+				{
+					char szItemIndex[32];
+					globalIndex.GetIndex().FormatItemIndex(szItemIndex, lengthof(szItemIndex));
+					ImGui::Text("%s", szItemIndex);
+				}
+
+				ImGui::TableNextColumn(); // Item Name
+				if (pItem)
+				{
+					if (ItemLinkText(pItem->GetName()))
+						pItemDisplayManager->ShowItem(pItem);
+				}
+
+				ImGui::TableNextColumn(); // Template
+				if (pInvSlot->pInvSlotWnd)
+				{
+					if (CXMLData* pXMLData = pInvSlot->pInvSlotWnd->GetXMLData())
+					{
+						ImGui::Text("%s", pXMLData->ScreenID.c_str());
+					}
+				}
+			}
+
+			ImGui::EndTable();
+		}
+	}
+
+	void Draw_InvSlotMapping()
+	{
+		ImGuiTableFlags tableFlags = ImGuiTableFlags_SizingPolicyFixedX
+			| ImGuiTableFlags_ScrollY
+			| ImGuiTableFlags_Sortable
+			| ImGuiTableFlags_BordersV
+			| ImGuiTableFlags_BordersOuterH
+			| ImGuiTableFlags_Resizable
+			| ImGuiTableFlags_RowBg;
+
+		if (ImGui::BeginTable("##InvSlotMappingTable", 2, tableFlags, ImGui::GetContentRegionAvail()))
+		{
+			enum {
+				ColumnId_Value = 1,
+				ColumnId_Slot = 2,
+			};
+
+			// Columns:
+			// Value, SlotId
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_DefaultSort, -1.0f, ColumnId_Value);
+			ImGui::TableSetupColumn("Slot ID", ImGuiTableColumnFlags_WidthStretch, -1.0f, ColumnId_Slot);
+			ImGui::TableHeadersRow();
+
+			static std::vector<std::pair<std::string, int>> slotMapping;
+			static bool init = false;
+
+			ImGuiTableSortSpecs* sort_specs = ImGui::TableGetSortSpecs();
+			auto sortFunc = [&](const auto& lhs, const auto& rhs)
+			{
+				for (int n = 0; n < sort_specs->SpecsCount; n++)
+				{
+					const ImGuiTableSortSpecsColumn* sort_spec = &sort_specs->Specs[n];
+					int delta = 0;
+
+					switch (sort_spec->ColumnUserID)
+					{
+					case ColumnId_Slot:
+						delta = lhs.second - rhs.second;
+						if (delta != 0)
+							break;
+						// fallthrough
+					case ColumnId_Value:
+						delta = alphanum_comp(lhs.first, rhs.first);
+						break;
+					default: break;
+					}
+					if (delta > 0)
+						return (sort_spec->SortDirection == ImGuiSortDirection_Ascending);
+					if (delta < 0)
+						return !(sort_spec->SortDirection == ImGuiSortDirection_Ascending);
+				}
+
+				return true;
+			};
+
+			if (!init)
+			{
+				for (auto& [key, value] : ItemSlotMap)
+				{
+					slotMapping.emplace_back(key, value);
+				}
+
+				init = true;
+			}
+
+			if (sort_specs->SpecsDirty)
+			{
+				std::sort(slotMapping.begin(), slotMapping.end(), sortFunc);
+				sort_specs->SpecsDirty = false;
+			}
+
+			for (auto& [key, value] : slotMapping)
+			{
+				ImGui::TableNextRow();
+
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", key.c_str());
+
+				ImGui::TableNextColumn();
+				ImGui::Text("%d", value);
+			}
+
+			ImGui::EndTable();
+		}
+	}
+};
+
+InvSlotInspector* s_invSlotInspector = nullptr;
+
+#pragma endregion
+
+//============================================================================
+
+static void Windows_Initialize()
 {
 	DebugSpew("Initializing MQ2 Windows");
+
+	s_invSlotInspector = new InvSlotInspector();
+	DeveloperTools_RegisterMenuItem(s_invSlotInspector, "Inventory Slots", s_menuNameInspectors);
 
 	for (int i = 0; i < NUM_INV_SLOTS; i++)
 		ItemSlotMap[szItemSlot[i]] = i;
@@ -2091,18 +2293,21 @@ void InitializeMQ2Windows()
 
 	AddCommand("/windows", ListWindows);
 	AddCommand("/notify", WndNotify);
-	AddCommand("/itemnotify", ItemNotify);
-	AddCommand("/itemslots", ListItemSlots);
-	AddCommand("/reloadui", ReloadUI);
+	AddCommand("/itemnotify", ItemNotify, false, true, true);
+	AddCommand("/itemslots", ListItemSlots, false, true, true);
+	AddCommand("/reloadui", ReloadUI, false, true, true);
 
 	InitializeWindowList();
 
 	UpdateCascadeMenu();
 }
 
-void ShutdownMQ2Windows()
+static void Windows_Shutdown()
 {
 	DebugSpew("Shutting down MQ2 Windows");
+
+	DeveloperTools_UnregisterMenuItem(s_invSlotInspector);
+	delete s_invSlotInspector; s_invSlotInspector = nullptr;
 
 	RemoveCascadeMenuItem("Toggle Overlay UI");
 
@@ -2125,12 +2330,16 @@ void ShutdownMQ2Windows()
 	RemoveDetour(__CreateCascadeMenuItems);
 }
 
-void PulseMQ2Windows()
+static void Windows_Pulse()
 {
 	if (gbCascadeMenuNeedsUpdate)
 	{
 		UpdateCascadeMenu();
 	}
+}
+
+static void Windows_UpdateImGui()
+{
 }
 
 } // namespace mq

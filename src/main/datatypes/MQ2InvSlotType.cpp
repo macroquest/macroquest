@@ -39,6 +39,7 @@ MQ2InvSlotType::MQ2InvSlotType() : MQ2Type("invslot")
 	ScopedTypeMember(InvSlotMembers, Item);
 }
 
+// FIXME: Items
 // item slots:
 // 2000-2015 bank window
 // 2500-2503 shared bank
@@ -65,172 +66,125 @@ bool MQ2InvSlotType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 
 	case InvSlotMembers::Item: {
 		Dest.Type = pItemType;
-		if (PcProfile* pProfile = GetPcProfile())
+
+		PcProfile* pProfile = GetPcProfile();
+		if (!pProfile) return false;
+		if (nInvSlot < 0) return false;
+
+		CHARINFO* pCharInfo = GetCharInfo();
+		if (!pCharInfo) return false;
+
+		// TODO: We could translate this "nInvSlot" index into a ItemGlobalIndex and perform a single lookup.
+
+		if (nInvSlot < NUM_INV_SLOTS)
 		{
-			if (pProfile->pInventoryArray && nInvSlot >= 0)
+			if (Dest.Ptr = pProfile->InventoryContainer.GetItem(nInvSlot).get())
+				return true;
+		}
+		else
+		{
+			if (nInvSlot >= 262 && nInvSlot < 342)
 			{
-				if (nInvSlot < NUM_INV_SLOTS)
+				int nPack = (nInvSlot - 262) / 10;
+				int nSlot = (nInvSlot - 262) % 10;
+
+				if (ItemPtr pPack = pProfile->InventoryContainer.GetItem(nPack))
 				{
-					if (Dest.Ptr = pProfile->pInventoryArray->InventoryArray[nInvSlot])
+					ITEMINFO* itemDef = pPack->GetItemDefinition();
+					if (itemDef->Type == ITEMTYPE_PACK)
 					{
-						return true;
+						if (Dest.Ptr = pPack->GetChildItemContainer()->GetItem(nSlot).get())
+							return true;
 					}
 				}
-				else
+			}
+			else if (nInvSlot >= 2032 && nInvSlot < 2272)
+			{
+				int nPack = (nInvSlot - 2032) / 10;
+				int nSlot = (nInvSlot - 2) % 10;
+
+				if (ItemPtr pPack = pCharInfo->BankItems.GetItem(nPack))
 				{
-					if (CHARINFO* pCharInfo = GetCharInfo())
+					ITEMINFO* itemDef = pPack->GetItemDefinition();
+					if (itemDef->Type == ITEMTYPE_PACK)
 					{
-						if (nInvSlot >= 262 && nInvSlot < 342)
-						{
-							int nPack = (nInvSlot - 262) / 10;
-							int nSlot = (nInvSlot - 262) % 10;
-
-							if (CONTENTS* pPack = pProfile->pInventoryArray->Inventory.Pack[nPack])
-							{
-								if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && nSlot < GetItemFromContents(pPack)->Slots)
-								{
-									if (pPack->Contents.ContainedItems.pItems)
-									{
-										if (Dest.Ptr = pPack->Contents.ContainedItems.pItems->Item[nSlot])
-										{
-											return true;
-										}
-									}
-								}
-							}
-						}
-						else if (nInvSlot >= 2032 && nInvSlot < 2272)
-						{
-							unsigned long nPack = (nInvSlot - 2032) / 10;
-							unsigned long nSlot = (nInvSlot - 2) % 10;
-							CONTENTS* pPack = nullptr;
-
-							if (pCharInfo && pCharInfo->pBankArray)
-								pPack = pCharInfo->pBankArray->Bank[nPack];
-
-							if (pPack)
-							{
-								if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && nSlot < GetItemFromContents(pPack)->Slots)
-								{
-									if (pPack->Contents.ContainedItems.pItems)
-									{
-										if (Dest.Ptr = pPack->Contents.ContainedItems.pItems->Item[nSlot])
-										{
-											return true;
-										}
-									}
-								}
-							}
-						}
-						else if (nInvSlot >= 2532 && nInvSlot < 2552)
-						{
-							unsigned long nPack = 23 + ((nInvSlot - 2532) / 10);
-							unsigned long nSlot = (nInvSlot - 2) % 10;
-							CONTENTS* pPack = nullptr;
-
-							if (pCharInfo && pCharInfo->pBankArray)
-								pPack = pCharInfo->pBankArray->Bank[nPack];
-
-							if (pPack)
-							{
-								if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && nSlot < GetItemFromContents(pPack)->Slots)
-								{
-									if (pPack->Contents.ContainedItems.pItems)
-									{
-										if (Dest.Ptr = pPack->Contents.ContainedItems.pItems->Item[nSlot])
-										{
-											return true;
-										}
-									}
-								}
-							}
-						}
-						else if (nInvSlot >= 2000 && nInvSlot < 2024)
-						{
-							if (pCharInfo && pCharInfo->pBankArray)
-							{
-								if (Dest.Ptr = pCharInfo->pBankArray->Bank[nInvSlot - 2000])
-								{
-									return true;
-								}
-							}
-						}
-						else if (nInvSlot == 2500 || nInvSlot == 2501)
-						{
-							if (pCharInfo && pCharInfo->pBankArray)
-							{
-								if (Dest.Ptr = pCharInfo->pBankArray->Bank[nInvSlot - 2500 + 22])
-								{
-									if (Dest.Ptr)
-									{
-										return true;
-									}
-								}
-							}
-						}
-						else if (nInvSlot > 2999 && nInvSlot < 3016)
-						{
-							CInvSlotWnd* pInvSlotWnd = nullptr;
-
-							if (pGiveWnd && pGiveWnd->IsVisible())
-							{
-								int slot = std::min(nInvSlot - 3000, MAX_GIVE_SLOTS);
-								if (slot >= MAX_TRADE_SLOTS)
-									slot = 0;
-
-								pInvSlotWnd = pGiveWnd->pInvSlotWnd[slot];
-							}
-							else if (pTradeWnd && pTradeWnd->IsVisible())
-							{
-								int slot = std::min(nInvSlot - 3000, MAX_TRADE_SLOTS);
-								if (slot >= MAX_TRADE_SLOTS)
-									slot = 0;
-
-								pInvSlotWnd = pTradeWnd->pInvSlotWnd[slot];
-							}
-
-							if (pInvSlotWnd)
-							{
-								if (CInvSlot* pInvSlot = pInvSlotWnd->pInvSlot)
-								{
-									CONTENTS* pC = nullptr;
-									pInvSlot->GetItemBase(&pC);
-									if (pC)
-									{
-										Dest.Ptr = pC;
-										return true;
-									}
-								}
-							}
-						}
-						else if (nInvSlot > 3999 && nInvSlot < 4011) // enviro slots
-						{
-							if (pContainerMgr)
-							{
-								uint32_t index = nInvSlot - 4000;
-								if (CONTENTS* pContents = pContainerMgr->pWorldContainer.get())
-								{
-									if (index < pContents->Contents.ContainedItems.Size
-										&& pContents->Contents.ContainedItems.pItems)
-									{
-										Dest.Ptr = pContents->Contents.ContainedItems.pItems->Item[index];
-										return true;
-									}
-								}
-							}
-						}
-						else if (nInvSlot == 4100) // enviro
-						{
-							if ( pContainerMgr)
-							{
-								if (pContainerMgr->pWorldContainer)
-								{
-									Dest.Ptr = pContainerMgr->pWorldContainer.get();
-									return true;
-								}
-							}
-						}
+						if (Dest.Ptr = pPack->GetChildItemContainer()->GetItem(nSlot).get())
+							return true;
 					}
+				}
+			}
+			else if (nInvSlot >= 2532 && nInvSlot < 2552)
+			{
+				int nPack = 23 + ((nInvSlot - 2532) / 10);
+				int nSlot = (nInvSlot - 2) % 10;
+
+				if (ItemPtr pPack = pCharInfo->BankItems.GetItem(nPack))
+				{
+					ITEMINFO* itemDef = pPack->GetItemDefinition();
+					if (itemDef->Type == ITEMTYPE_PACK)
+					{
+						if (Dest.Ptr = pPack->GetChildItemContainer()->GetItem(nSlot).get())
+							return true;
+					}
+				}
+			}
+			// Bank slots (2000-2024)
+			else if (nInvSlot >= 2000 && nInvSlot < 2000 + NUM_BANK_SLOTS)
+			{
+				if (Dest.Ptr = pCharInfo->BankItems.GetItem(nInvSlot - 2000).get())
+					return true;
+			}
+			// Shared bank slots
+			else if (nInvSlot >= 2500 && nInvSlot < 2500 + NUM_SHAREDBANK_SLOTS)
+			{
+				if (Dest.Ptr = pCharInfo->SharedBankItems.GetItem(nInvSlot - 2500).get())
+					return true;
+			}
+			// 3000-3015 trade window (including npc) 3000-3007 are your slots, 3008-3015 are other character's slots
+			else if (nInvSlot >= 3000 && nInvSlot < 3016)
+			{
+				CInvSlotWnd* pInvSlotWnd = nullptr;
+
+				if (pGiveWnd && pGiveWnd->IsVisible())
+				{
+					int slot = std::min(nInvSlot - 3000, MAX_GIVE_SLOTS);
+					if (slot >= MAX_TRADE_SLOTS)
+						slot = 0;
+
+					pInvSlotWnd = pGiveWnd->pInvSlotWnd[slot];
+				}
+				else if (pTradeWnd && pTradeWnd->IsVisible())
+				{
+					int slot = std::min(nInvSlot - 3000, MAX_TRADE_SLOTS);
+					if (slot >= MAX_TRADE_SLOTS)
+						slot = 0;
+
+					pInvSlotWnd = pTradeWnd->pInvSlotWnd[slot];
+				}
+
+				if (pInvSlotWnd && pInvSlotWnd->pInvSlot)
+				{
+					if (Dest.Ptr = pInvSlotWnd->pInvSlot->GetItem().get())
+						return true;
+				}
+			}
+			// 4000-4010 world container window
+			else if (nInvSlot >= 4000 && nInvSlot <= 4010) // enviro slots
+			{
+				uint32_t index = nInvSlot - 4000;
+
+				if (pContainerMgr && pContainerMgr->WorldContainer)
+				{
+					if (Dest.Ptr = pContainerMgr->WorldContainer->GetHeldItem(index).get())
+						return true;
+				}
+			}
+			else if (nInvSlot == 4100) // enviro container
+			{
+				if (pContainerMgr)
+				{
+					if (Dest.Ptr = pContainerMgr->WorldContainer.get())
+						return true;
 				}
 			}
 		}
@@ -242,7 +196,7 @@ bool MQ2InvSlotType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 		Dest.Type = pInvSlotType;
 		if (nInvSlot >= 262 && nInvSlot < 342)
 		{
-			Dest.DWord = ((nInvSlot - 262) / 10) + BAG_SLOT_START;
+			Dest.DWord = ((nInvSlot - 262) / 10) + InvSlot_FirstBagSlot;
 			return true;
 		}
 
@@ -283,21 +237,21 @@ bool MQ2InvSlotType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 
 	case InvSlotMembers::Name:
 		Dest.Type = pStringType;
-		if (nInvSlot >= 0 && nInvSlot < NUM_INV_SLOTS)
+		if (nInvSlot >= InvSlot_FirstWornItem && nInvSlot <= InvSlot_LastWornItem)
 		{
 			strcpy_s(DataTypeTemp, szItemSlot[nInvSlot]);
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 		}
 
-		if (nInvSlot >= BAG_SLOT_START && nInvSlot < NUM_INV_SLOTS)
+		if (nInvSlot >= InvSlot_FirstBagSlot && nInvSlot <= InvSlot_LastBagSlot)
 		{
-			sprintf_s(DataTypeTemp, "pack%d", nInvSlot - 21);
+			sprintf_s(DataTypeTemp, "pack%d", nInvSlot - InvSlot_FirstBagSlot + 1);
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 		}
 
-		if (nInvSlot >= 2000 && nInvSlot < 2024)
+		if (nInvSlot >= 2000 && nInvSlot < 2024) // FIXME: Items
 		{
 			sprintf_s(DataTypeTemp, "bank%d", nInvSlot - 1999);
 			Dest.Ptr = &DataTypeTemp[0];

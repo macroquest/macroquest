@@ -79,7 +79,7 @@ struct DisplayItemStrings
 };
 
 // Keep data about the last 6 items displayed
-VePointer<CONTENTS> gContents[MAX_ITEMDISPLAY_WINDOWS];
+ItemPtr gContents[MAX_ITEMDISPLAY_WINDOWS];
 DisplayItemStrings gContentsItemStrings[MAX_ITEMDISPLAY_WINDOWS];
 int gLastIndex = 5;
 
@@ -127,7 +127,7 @@ public:
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
 	{
 		const int index = std::clamp<int>(VarPtr.DWord, 0, MAX_ITEMDISPLAY_WINDOWS - 1);
-		VePointer<CONTENTS> pContents = gContents[index];
+		ItemPtr pContents = gContents[index];
 
 		if (!pContents)
 			return false;
@@ -222,7 +222,7 @@ public:
 	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		const int index = std::clamp<int>(VarPtr.DWord, 0, MAX_ITEMDISPLAY_WINDOWS - 1);
-		VePointer<CONTENTS> pContents = gContents[index];
+		ItemPtr pContents = gContents[index];
 
 		if (pContents)
 		{
@@ -364,7 +364,9 @@ bool ItemInfoManager::doValidateURI(eqlib::libMozilla::Window* wnd, const char* 
 // Description: Our Item display hook
 // ***************************************************************************
 
-CONTENTS* pOldCont = 0;
+// Don't ever directly reference this. We don't know when it might get deleted. We only use
+// this to check if the current tooltip item has changed.
+CONTENTS* gpOldTooltipItem = nullptr;
 
 class CCompareTipWnd : public CSidlScreenWnd
 {
@@ -425,23 +427,19 @@ char* GetSlots(ITEMINFO* pItem, char(&_Buffer)[_Size])
 	return _Buffer;
 }
 
-CONTENTS* GetEquippedSlot(CONTENTS* pCont)
+// Returns an item that is equipped in the same slot as this item. Does not
+// account for cases where the item could be placed into multiple slots.
+ItemPtr GetItemEquippedInSlot(const ItemPtr& pItem)
 {
-	if (ITEMINFO* pItem = GetItemFromContents(pCont))
+	PcProfile* pProfile = GetPcProfile();
+	ItemDefinition* pItemDef = pItem->GetItemDefinition();
+
+	for (int slot = InvSlot_FirstWornItem; slot <= InvSlot_LastWornItem; slot++)
 	{
-		DWORD cmp = pItem->EquipSlots;
-		for (int N = 0; N < 32; N++)
+		if (pItemDef->EquipSlots & (1 << slot))
 		{
-			if (cmp & (1 << N))
-			{
-				if (PcProfile* pProfile = GetPcProfile())
-				{
-					if (CONTENTS* pInvSlot = pProfile->pInventoryArray->InventoryArray[N])
-					{
-						return pInvSlot;
-					}
-				}
-			}
+			if (ItemPtr pSlotItem = pProfile->GetInventorySlot(slot))
+				return pSlotItem;
 		}
 	}
 
@@ -928,7 +926,7 @@ public:
 			WriteChatf("Tell eqmule his PEQITEMWINDOW struct is wrong");
 		}
 
-		VePointer<CONTENTS>& item = pThis->pItem;
+		ItemPtr& item = pThis->pItem;
 		ITEMINFO* Item = item->GetItemDefinition();
 
 		UpdateStrings_Trampoline();
@@ -986,7 +984,7 @@ public:
 		// Dewey 2461 - user defined score 12-22-2012
 		AddGearScores(pThis->pItem.get(), Item, out, "<BR>");
 
-		if (((EQ_Item*)item.get())->IsStackable())
+		if (item->IsStackable())
 		{
 			if (Item->StackSize > 0)
 			{
@@ -1827,27 +1825,19 @@ public:
 		}
 
 		CInvSlotWnd* wnd = (CInvSlotWnd*)this;
-		CONTENTS* pCont = nullptr;
+		ItemPtr pItem = wnd->pInvSlot ? wnd->pInvSlot->GetItem() : nullptr;
 
-		if (wnd->pInvSlot)
+		if (pItem && pItem.get() != gpOldTooltipItem)
 		{
-			wnd->pInvSlot->GetItemBase(&pCont);
-		}
+			gpOldTooltipItem = pItem.get();
 
-		if (pCont && pCont != pOldCont)
-		{
-			pOldCont = pCont;
-
-			if (ITEMINFO* pItem = GetItemFromContents(pCont))
+			if (pCompareTipWnd && pCompareTipWnd->Display)
 			{
-				if (pCompareTipWnd && pCompareTipWnd->Display)
+				if (ItemPtr pEquipped = GetItemEquippedInSlot(pItem))
 				{
-					if (CONTENTS* pEquipped = GetEquippedSlot(pCont))
+					if (pItem != pEquipped)
 					{
-						if (pCont != pEquipped)
-						{
-							UpdateCompareWindow(pCont, pEquipped);
-						}
+						UpdateCompareWindow(pItem.get(), pEquipped.get());
 					}
 				}
 			}
@@ -2181,7 +2171,7 @@ static void UpdateCompareWindow(PCONTENTS pCont, PCONTENTS pEquipped)
 
 		// FIXME: Skill does no make much sense for all items. Probably only needs to be displayed for weapons.
 
-		sprintf_s(szTemp, "<TR><TD>Skill:</TD><TD><c \"#%06X\">%s</c></TD>", color_green, szItemTypes[pItem->ItemType]);
+		sprintf_s(szTemp, "<TR><TD>Skill:</TD><TD><c \"#%06X\">%s</c></TD>", color_green, szItemClasses[pItem->ItemType]);
 		AddCompareTableData(szTemp, MAX_STRING, "Haste:", hasteColor, hastestat);
 		strcat_s(szTemp, "</TR>");
 		strcat_s(szTable, szTemp);
@@ -2426,31 +2416,24 @@ static void UpdateCompareWindow(PCONTENTS pCont, PCONTENTS pEquipped)
 
 void RequestConvertItem(SPAWNINFO* pSpawn, char* szLine)
 {
+	if (!pItemDisplayManager) return;
+
 	if (szLine && szLine[0] != '\0')
 	{
 		GetArg(ConvertFrom, szLine, 1);
 
-		if (CONTENTS* pCont = FindItemByName(ConvertFrom))
+		if (ItemPtr pItem = FindItemByName(ConvertFrom))
 		{
-			if (ITEMINFO* pItem = GetItemFromContents(pCont))
+			int index = pItemDisplayManager->FindWindow(true);
+			if (index == -1)
 			{
-				if (CItemDisplayManager* mgr = pItemDisplayManager)
-				{
-					int index = mgr->FindWindow(true);
-					if (index == -1)
-					{
-						index = mgr->CreateWindowInstance();
-					}
+				index = pItemDisplayManager->CreateWindowInstance();
+			}
 
-					if (index > -1 && index < mgr->pWindows.Count)
-					{
-						if (CItemDisplayWnd* itemDis = (CItemDisplayWnd*)mgr->pWindows[index])
-						{
-							itemDis->SetItem(&pCont, 0);
-							itemDis->RequestConvertItem();
-						}
-					}
-				}
+			if (auto itemDis = pItemDisplayManager->GetWindow(index))
+			{
+				itemDis->SetItem(pItem, 0);
+				itemDis->RequestConvertItem();
 			}
 			return;
 		}
@@ -2493,19 +2476,24 @@ void AddLootFilter(SPAWNINFO* pChar, char* szLine)
 
 void InsertAug(SPAWNINFO* pChar, char* szLine)
 {
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile) return;
+	if (!pItemDisplayManager) return;
+
 	char szArg1[MAX_STRING] = { 0 };
 	char szArg2[MAX_STRING] = { 0 };
 	GetArg(szArg1, szLine, 1);
 	GetArg(szArg2, szLine, 2);
 
-	CONTENTS* pCont = nullptr;
+	ItemPtr pTargetItem;
+
 	if (szArg1[0] != '\0' && IsNumber(szArg1))
 	{
 		if (szArg2[0] == '\0')
 		{
 			// its an itemid...
 			int iID = GetIntFromString(szArg1, -1);
-			pCont = FindItemByID(iID);
+			pTargetItem = FindItemByID(iID);
 		}
 		else
 		{
@@ -2517,16 +2505,16 @@ void InsertAug(SPAWNINFO* pChar, char* szLine)
 			{
 				slot2 = GetIntFromString(szArg2, -1);
 			}
-			pCont = FindItemBySlot(slot1, slot2);
+			pTargetItem = FindItemBySlot(slot1, slot2);
 		}
 	}
 	else if (szArg1[0] != '\0')
 	{
 		// its a itemname....
-		pCont = FindItemByName(szArg1);
+		pTargetItem = FindItemByName(szArg1);
 	}
 
-	if (!pCont)
+	if (!pTargetItem)
 	{
 		WriteChatColor("/insertaug USAGE: /insertaug \ay#######\ax where ####### is the itemid OR \ay\"Item Name in Quotes\"\ax OR \ay## ##\ax where ## ## are slotnumbers the item is in.", CONCOLOR_WHITE);
 		WriteChatColor("Example1: /insertaug \ay41302\ax", CONCOLOR_WHITE);
@@ -2535,88 +2523,66 @@ void InsertAug(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	if (PcProfile* pMe = GetPcProfile())
+	if (ItemPtr pAugItem = pProfile->GetInventorySlot(InvSlot_Cursor))
 	{
-		if (pMe->pInventoryArray)
+		int Slot = 0;
+		bool bFits = false;
+
+		for (; Slot < MAX_AUG_SOCKETS; Slot++)
 		{
-			if (CONTENTS* pCursor = pMe->pInventoryArray->Inventory.Cursor)
+			int fit = pTargetItem->GetAugmentFitBySlot(pAugItem, Slot);
+			if (fit == 0)
 			{
-				int Slot = 0;
-				bool bFits = false;
-				for (; Slot < 6; Slot++)
-				{
-					int fit = ((EQ_Item*)pCont)->GetAugmentFitBySlot(&pCursor, Slot);
-
-					if (fit == 0)
-					{
-						bFits = true;
-						break;
-					}
-				}
-
-				if (bFits)
-				{
-					if (CItemDisplayManager* mgr = pItemDisplayManager)
-					{
-						int index = mgr->FindWindow(true);
-						if (index == -1)
-						{
-							index = mgr->CreateWindowInstance();
-						}
-
-						if (index > -1 && index < mgr->pWindows.Count)
-						{
-							if (CItemDisplayWnd* itemDis = (CItemDisplayWnd*)mgr->pWindows[index])
-							{
-								itemDis->SetItem(&pCont, 0);
-
-								if (ITEMINFO* pTheAug = GetItemFromContents(pCursor))
-								{
-									// hack to bypass popupdialog...
-									int oldsolv = std::exchange(pTheAug->SolventItemID, 0);
-									bool oldattn = std::exchange(pTheAug->Attuneable, false);
-
-									// now the actual function call...
-									itemDis->InsertAugmentRequest(Slot);
-
-									// ok so lets restore the org values...
-									pTheAug->SolventItemID = oldsolv;
-									pTheAug->Attuneable = oldattn;
-								}
-							}
-						}
-					}
-				}
-				else
-				{
-					if (ITEMINFO* ptheAug = GetItemFromContents(pCursor))
-					{
-						if (ITEMINFO* ptheItem = GetItemFromContents(pCont))
-						{
-							WriteChatf("\ayCould NOT insert the\ax \at%s\ax into the \ag%s\ax", ptheAug->Name, ptheItem->Name);
-						}
-					}
-				}
+				bFits = true;
+				break;
 			}
+		}
+
+		if (!bFits)
+		{
+			WriteChatf("\ayCould NOT insert the\ax \at%s\ax into the \ag%s\ax",
+				pAugItem->GetName(), pTargetItem->GetName());
+			return;
+		}
+
+		int index = pItemDisplayManager->FindWindow(true);
+		if (index == -1)
+		{
+			index = pItemDisplayManager->CreateWindowInstance();
+		}
+
+		if (index >= 0 && index < pItemDisplayManager->pWindows.GetLength())
+		{
+			auto itemDis = (CItemDisplayWnd*)pItemDisplayManager->pWindows[index];
+			itemDis->SetItem(pTargetItem, 0);
+
+			ItemDefinition* pAugDef = pAugItem->GetItemDefinition();
+
+			// hack to bypass popupdialog...
+			int oldsolv = std::exchange(pAugDef->SolventItemID, 0);
+			bool oldattn = std::exchange(pAugDef->Attuneable, false);
+
+			// now the actual function call...
+			itemDis->InsertAugmentRequest(Slot);
+
+			// ok so lets restore the org values...
+			pAugDef->SolventItemID = oldsolv;
+			pAugDef->Attuneable = oldattn;
 		}
 	}
 }
 
 void RemoveAug(SPAWNINFO* pChar, char* szLine)
 {
-	if (PcProfile* pMe = GetPcProfile())
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile) return;
+	if (!pItemDisplayManager) return;
+
+	if (pProfile->GetInventorySlot(InvSlot_Cursor))
 	{
-		if (pMe->pInventoryArray)
-		{
-			if (CONTENTS* pCursor = pMe->pInventoryArray->Inventory.Cursor)
-			{
-				if (const char* pError = pStringTable->getString(5478, nullptr))
-				{
-					WriteChatf("\ay%s", pError);
-				}
-				return;
-			}
-		}
+		// You cannot remove the augment while you are holding something.
+		WriteChatf("\ay%s", pStringTable->getString(5478));
+		return;
 	}
 
 	char szArg1[MAX_STRING] = { 0 };
@@ -2624,21 +2590,21 @@ void RemoveAug(SPAWNINFO* pChar, char* szLine)
 	GetArg(szArg1, szLine, 1);
 	GetArg(szArg2, szLine, 2);
 
-	CONTENTS* pCont = nullptr;
-
+	ItemPtr pTargetItem;
 	if (szArg2[0] != '\0' && IsNumber(szArg2))
 	{
 		// its an id
-		int iID = GetIntFromString(szArg2, -1);
-		pCont = FindItemByID(iID);
+		int itemId = GetIntFromString(szArg2, -1);
+		if (itemId > 0)
+			pTargetItem = FindItemByID(itemId);
 	}
 	else if (szArg2[0] != '\0')
 	{
 		// its a name...
-		pCont = FindItemByName(szArg2, true);
+		pTargetItem = FindItemByName(szArg2, true);
 	}
 
-	if (!pCont || szArg1[0] == '\0')
+	if (!pTargetItem || szArg1[0] == '\0')
 	{
 		WriteChatColor("/removeaug USAGE: /removeaug \ay<augid>\ax <#####> OR \ay<augname>\ax \"Name in quotes\" \ay<itemid>\ax <#####> OR \ay<itemname>\ax \"Name in quotes\"", CONCOLOR_WHITE);
 		WriteChatColor("NOTE! /removeaug \ayIS A CASE SENSITIVE FUNCTION\ax", CONCOLOR_WHITE);
@@ -2649,125 +2615,85 @@ void RemoveAug(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	int Slot = 0;
-	bool bFound = false;
-	int iID = 0;
+	ItemIndex foundAugment;
 	if (IsNumber(szArg1))
 	{
-		// its an id
-		iID = GetIntFromString(szArg1, 0);
+		int itemId = GetIntFromString(szArg1, 0);
+		if (itemId > 0)
+		{
+			foundAugment = pTargetItem->GetHeldItems().FindItem(0, FindItemByIdPred(itemId));
+		}
+	}
+	else
+	{
+		foundAugment = pTargetItem->GetHeldItems().FindItem(0, FindItemByNamePred(szArg1));
 	}
 
-	ITEMINFO* ptheAug = nullptr;
-	if (iID)
+	ItemPtr pAugItem;
+	if (foundAugment.IsValid())
 	{
-		for (; Slot < 6; Slot++)
+		pAugItem = pTargetItem->GetHeldItem(foundAugment.GetDeepestSlot());
+	}
+
+	if (pAugItem)
+	{
+		int index = pItemDisplayManager->FindWindow(true);
+		if (index == -1)
 		{
-			if (CONTENTS* pAug = pCont->GetContent(Slot))
+			index = pItemDisplayManager->CreateWindowInstance();
+		}
+
+		if (index >= 0 && index < pItemDisplayManager->pWindows.GetLength())
+		{
+			auto itemDis = (CItemDisplayWnd*)pItemDisplayManager->pWindows[index];
+
+			itemDis->SetItem(pTargetItem, 0);
+
+			if (pAugItem)
 			{
-				if (iID == pAug->ID)
+				ItemPtr pItemSolvent;
+				int realID = 0;
+
+				// we need to check for all distillers
+				int minreqid = pAugItem->GetItemDefinition()->SolventItemID;
+
+				CDistillerInfo& pDistillerInfo = CDistillerInfo::Instance();
+
+				for (int i = minreqid; i <= 21; i++)
 				{
-					if (ptheAug = GetItemFromContents(pAug))
+					realID = pDistillerInfo.GetIDFromRecordNum(i, false);
+
+					pItemSolvent = pPCData->GetItemByID(realID);
+					if (pItemSolvent)
 					{
-						// found it...
-						bFound = true;
+						// found a distiller that will work...
 						break;
 					}
+				}
+
+				if (!pItemSolvent)
+				{
+					// Universal Augment Solvent... aka perfect distiller...
+					pItemSolvent = pPCData->GetItemByItemClass(ItemClass_PerfectedDistiller);
+				}
+
+				if (pItemSolvent)
+				{
+					// we shouldnt do the solvent thing for removals, people who macro this can click the ok button on the confirmation window...
+					itemDis->RemoveAugmentRequest(foundAugment.GetDeepestSlot());
+				}
+				else
+				{
+					// The augment cannot be removed because your inventory does not contain the required solvent.
+					WriteChatf("\ay%s", pStringTable->getString(5474));
+					return;
 				}
 			}
 		}
 	}
 	else
 	{
-		for (; Slot < 6; Slot++)
-		{
-			if (CONTENTS* pAug = pCont->GetContent(Slot))
-			{
-				if (ptheAug = GetItemFromContents(pAug))
-				{
-					if (!_stricmp(ptheAug->Name, szArg1))
-					{
-						bFound = true;
-						break;
-					}
-				}
-			}
-		}
-	}
-
-	if (bFound)
-	{
-		if (CItemDisplayManager*mgr = pItemDisplayManager)
-		{
-			int index = mgr->FindWindow(true);
-			if (index == -1)
-			{
-				index = mgr->CreateWindowInstance();
-			}
-
-			if (index > -1 && index < mgr->pWindows.Count)
-			{
-				if (CItemDisplayWnd* itemDis = (CItemDisplayWnd*)mgr->pWindows[index])
-				{
-					itemDis->SetItem(&pCont, 0);
-					if (ptheAug)
-					{
-						CONTENTS* contout = nullptr;
-						CONTENTS** pContsolv = nullptr;
-						int realID = 0;
-
-						// we need to check for all distillers
-						int minreqid = ptheAug->SolventItemID;
-
-						CDistillerInfo* pDistillerInfo = &CDistillerInfo::Instance();
-						if (pDistillerInfo)
-						{
-							for (int i = minreqid; i <= 21; i++)
-							{
-								realID = pDistillerInfo->GetIDFromRecordNum(i, 0);
-
-								pContsolv = ((PcZoneClient*)pPCData)->GetItemByID(&contout, realID);
-								if (contout)
-								{
-									// found a distiller that will work...
-									break;
-								}
-							}
-						}
-
-						if (!contout)
-						{
-							// Universal Augment Solvent... aka perfect distiller...
-							pContsolv = ((PcZoneClient*)pPCData)->GetItemByItemClass(&contout, 64);
-						}
-
-						if (contout)
-						{
-							// we shouldnt do the solvent thing for removals, people who macro this can click the ok button on the confirmation window...
-							itemDis->RemoveAugmentRequest(Slot);
-						}
-						else
-						{
-							if (const char* pError = pStringTable->getString(5474, NULL))
-							{
-								WriteChatf("\ay%s", pError);
-							}
-							return;
-						}
-					}
-				}
-			}
-			}
-		}
-	else
-	{
-		if (ptheAug)
-		{
-			if (ITEMINFO* ptheItem = GetItemFromContents(pCont))
-			{
-				WriteChatf("\ayCould NOT remove the\ax \at%s\ax from the \ag%s\ax", ptheAug->Name, ptheItem->Name);
-			}
-		}
+		WriteChatf("\ayCould NOT remove the\ax \at%s\ax from the \ag%s\ax", szArg1, pTargetItem->GetName());
 	}
 }
 
@@ -2830,7 +2756,7 @@ int   IniLoaded = 0;
 int   BestSlot = 0;
 float BestScore = 0;
 float CurrScore = 0;
-int CurrSlot = 0;
+int   CurrSlot = 0;
 
 struct trATR
 {
@@ -3157,21 +3083,17 @@ void DoGearScoreUserCommand(PSPAWNINFO pChar, char* szLine)
 
 void DoScoreForCursor()
 {
-	if (PcProfile* pProfile = GetPcProfile())
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile) return;
+
+	if (ItemPtr pItem = pProfile->GetInventorySlot(InvSlot_Cursor))
 	{
-		if (pProfile->pInventoryArray)
-		{
-			if (CONTENTS* pCursorContents = pProfile->pInventoryArray->Inventory.Cursor)
-			{
-				if (ITEMINFO* pCursorItem = GetItemFromContents(pCursorContents))
-				{
-					char Temp[MAX_STRING];
-					AddGearScores(pCursorContents, pCursorItem, Temp, "\n");
-					WriteChatf("MQ2ItemDisplay::Cursor item %s", pCursorItem->Name);
-					WriteChatf("%s", Temp);
-				}
-			}
-		}
+		ItemDefinition* pItemDef = pItem->GetItemDefinition();
+
+		char Temp[MAX_STRING];
+		AddGearScores(pItem.get(), pItemDef, Temp, "\n");
+		WriteChatf("MQ2ItemDisplay::Cursor item %s", pItemDef->Name);
+		WriteChatf("%s", Temp);
 	}
 }
 
@@ -3258,11 +3180,9 @@ void AddGearScore_CheckAugSlot(ITEMINFO* pItem, float score, int SlotNum, char* 
 
 	char temp[MAX_STRING];
 	ITEMINFO* pAug = NULL;
-	if (pInvContent
-		&& pInvContent->Contents.ContainedItems.pItems
-		&& pInvContent->Contents.ContainedItems.pItems->Item[AugSlot])
+	if (ItemPtr pAugItem = pInvContent->GetHeldItem(AugSlot))
 	{
-		pAug = GetItemFromContents(pInvContent->Contents.ContainedItems.pItems->Item[AugSlot]);
+		pAug = pAugItem->GetItemDefinition();
 	}
 
 	if (!pAug)
@@ -3297,223 +3217,38 @@ void AddGearScores_CheckAugs(CONTENTS* pSlot, ITEMINFO* pItem, char(&out)[_Size]
 
 	if (PcProfile* pProfile = GetPcProfile())
 	{
-		if (pProfile->pInventoryArray)
+		float bestVal = score;
+
+		// Loop over all the worn items
+		for (int i = InvSlot_FirstWornItem; i <= InvSlot_LastWornItem; i++)
 		{
-			ITEMINFO* pInvItem;
-			CONTENTS* pInvContent;
-			float bestVal = score;
+			uint32_t mask = SlotInfo[i].SlotMask;
+			char* name = SlotInfo[i].SlotName;
 
-			// Loop over all the worn items
-			for (int i = 0; i < BAG_SLOT_START - 1; i++)
+			ItemDefinition* pInvItem = nullptr;
+			CONTENTS* pInvContent = pProfile->GetInventorySlot(i).get();
+			if (pInvContent)
+				pInvItem = pInvContent->GetItemDefinition();
+
+			if (pInvItem && (pItem->EquipSlots & mask) == mask)
 			{
-				uint32_t mask = SlotInfo[i].SlotMask;
-				char* name = SlotInfo[i].SlotName;
-				pInvItem = nullptr;
-				pInvContent = pProfile->pInventoryArray->InventoryArray[i];
-				if (pInvContent)
-					pInvItem = GetItemFromContents(pInvContent);
-
-				if (pInvItem && (pItem->EquipSlots & mask) == mask)
-				{
-					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[0].Type, 0, out, br);
-					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[1].Type, 1, out, br);
-					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[2].Type, 2, out, br);
-					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[3].Type, 3, out, br);
-					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[4].Type, 4, out, br);
-					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[5].Type, 5, out, br);
-				}
+				AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[0].Type, 0, out, br);
+				AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[1].Type, 1, out, br);
+				AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[2].Type, 2, out, br);
+				AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[3].Type, 3, out, br);
+				AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[4].Type, 4, out, br);
+				AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[5].Type, 5, out, br);
 			}
 		}
 	}
 }
 
-// DoIHave() - pinkfloydx33 - determine if you already have an item
-int DoIHave(ITEMINFO* Item)
+// determine if you already have an item
+bool DoIHave(ITEMINFO* Item)
 {
-	DWORD ID = Item->ItemNumber;
-	DWORD AugType = Item->AugType;
+	int ID = Item->ItemNumber;
 
-	int nHowMany = 0;
-
-	if (PcProfile* pProfile = GetPcProfile())
-	{
-		if (pProfile->pInventoryArray)
-		{
-			// Normal Inventory worn slots
-			for (int iSlot = 0; iSlot < NUM_INV_SLOTS; iSlot++)
-			{
-				if (CONTENTS* pItem = pProfile->pInventoryArray->InventoryArray[iSlot])
-				{
-					if (GetItemFromContents(pItem)->ItemNumber == ID)
-					{
-						if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
-							|| (((EQ_Item*)pItem)->IsStackable() != 1))
-						{
-							nHowMany++;
-						}
-						else
-						{
-							nHowMany += pItem->StackCount;
-						}
-					}
-					else // for augs
-					{
-						if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size)
-						{
-							for (size_t nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++)
-							{
-								if (pItem->Contents.ContainedItems.pItems->Item[nAug]
-									&& GetItemFromContents(pItem->Contents.ContainedItems.pItems->Item[nAug])->Type == ITEMTYPE_NORMAL
-									&& GetItemFromContents(pItem->Contents.ContainedItems.pItems->Item[nAug])->AugType
-									&& GetItemFromContents(pItem->Contents.ContainedItems.pItems->Item[nAug])->ItemNumber == ID)
-								{
-									nHowMany++;
-								}
-							}
-						}
-					}
-				}
-			}
-
-			// Bags
-			for (int nPack = 0; nPack < NUM_BAG_SLOTS; nPack++)
-			{
-				if (CONTENTS* pPack = pProfile->pInventoryArray->Inventory.Pack[nPack])
-				{
-					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
-					{
-						for (size_t nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
-						{
-							if (CONTENTS* pItem = pPack->Contents.ContainedItems.pItems->Item[nItem])
-							{
-								if (GetItemFromContents(pItem)->ItemNumber == ID)
-								{
-									if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
-										|| (((EQ_Item*)pItem)->IsStackable() != 1))
-									{
-										nHowMany++;
-									}
-									else
-									{
-										nHowMany += pItem->StackCount;
-									}
-								}
-								else // for augs
-								{
-									if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size)
-									{
-										for (size_t nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++)
-										{
-											if (pItem->Contents.ContainedItems.pItems->Item[nAug]
-												&& GetItemFromContents(pItem->Contents.ContainedItems.pItems->Item[nAug])->Type == ITEMTYPE_NORMAL
-												&& GetItemFromContents(pItem->Contents.ContainedItems.pItems->Item[nAug])->AugType
-												&& GetItemFromContents(pItem->Contents.ContainedItems.pItems->Item[nAug])->ItemNumber == ID)
-											{
-												nHowMany++;
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-
-			// Bank slots, not including shared
-			for (int nPack = 0; nPack < NUM_BANK_SLOTS; nPack++)
-			{
-				CHARINFO* pCharInfo = GetCharInfo();
-				CONTENTS* pPack = nullptr;
-#ifdef NEWCHARINFO
-				if (pCharInfo && pCharInfo->BankItems.Items.Size > nPack)
-					pPack = pCharInfo->BankItems.Items[nPack].pObject;
-#else
-				if (pCharInfo && pCharInfo->pBankArray)
-					pPack = pCharInfo->pBankArray->Bank[nPack];
-#endif
-				if (pPack)
-				{
-					if (GetItemFromContents(pPack)->ItemNumber == ID)
-					{
-						if ((GetItemFromContents(pPack)->Type != ITEMTYPE_NORMAL)
-							|| (((EQ_Item*)pPack)->IsStackable() != 1))
-						{
-							nHowMany++;
-						}
-						else
-						{
-						nHowMany += pPack->StackCount;
-						}
-					}
-
-					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
-					{
-						for (size_t nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
-						{
-							if (CONTENTS* pItem = pPack->Contents.ContainedItems.pItems->Item[nItem])
-							{
-								if (GetItemFromContents(pItem)->ItemNumber == ID)
-								{
-									if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
-										|| (((EQ_Item*)pItem)->IsStackable() != 1))
-									{
-										nHowMany++;
-									}
-									else
-									{
-										nHowMany += pItem->StackCount;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-
-			for (int nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++)
-			{
-				CHARINFO* pCharInfo = GetCharInfo();
-				CONTENTS* pPack = nullptr;
-#ifdef NEWCHARINFO
-				if (pCharInfo && pCharInfo->SharedBankItems.Items.Size > nPack)
-					pPack = pCharInfo->SharedBankItems.Items[nPack].pObject;
-#else
-				if (pCharInfo && pCharInfo->pSharedBankArray)
-					pPack = pCharInfo->pSharedBankArray->SharedBank[nPack];
-#endif
-				if (pPack)
-				{
-					if (GetItemFromContents(pPack)->ItemNumber == ID)
-					{
-						if ((GetItemFromContents(pPack)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pPack)->IsStackable() != 1))
-							nHowMany++;
-						else
-							nHowMany += pPack->StackCount;
-					}
-
-					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
-					{
-						for (size_t nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
-						{
-							if (CONTENTS* pItem = pPack->Contents.ContainedItems.pItems->Item[nItem])
-							{
-								if (GetItemFromContents(pItem)->ItemNumber == ID)
-								{
-									if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1))
-										nHowMany++;
-									else
-										nHowMany += pItem->StackCount;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	return nHowMany;
+	return FindItemByID(ID) || FindBankItemByID(ID);
 }
 
 void FormatBestStr(ITEMINFO* pItem)
@@ -3570,29 +3305,25 @@ void AddGearScores_CheckItems(CONTENTS* pSlot, ITEMINFO* pItem, char(&out)[_Size
 
 	if (PcProfile* pProfile = GetPcProfile())
 	{
-		if (pProfile->pInventoryArray)
+		for (int i = InvSlot_FirstWornItem; i <= InvSlot_LastWornItem; i++)
 		{
-			for (int i = 0; i < BAG_SLOT_START - 1; i++)
+			uint32_t mask = SlotInfo[i].SlotMask;
+			if ((pItem->EquipSlots & mask) == mask)
 			{
-				uint32_t mask = SlotInfo[i].SlotMask;
-				if ((pItem->EquipSlots & mask) == mask)
-				{
-					float score = 0;
-					ClearAttribListVal();
+				float score = 0;
+				ClearAttribListVal();
 
-					CONTENTS* pInvSlot = pProfile->pInventoryArray->InventoryArray[i];
-					if (pInvSlot)
+				if (ItemPtr pInvSlot = pProfile->GetInventorySlot(i))
+				{
+					ItemDefinition* pItemInfo = pInvSlot->GetItemDefinition();
+					score = CalcItemGearScore(pItemInfo);
+					if (pItemInfo && pItemInfo->ItemNumber != pItem->ItemNumber)
 					{
-						ITEMINFO* pItemInfo = GetItemFromContents(pInvSlot);
-						score = CalcItemGearScore(pItemInfo);
-						if (pItemInfo && pItemInfo->ItemNumber != pItem->ItemNumber)
-						{
-							sprintf_s(temp, "Worn Item Score : %6.0f (%s%s) %s", score, (score - CurrScore > 0 ? "Keep " : "UPGRADE for "), SlotInfo[i].SlotName, br);
-							strcat_s(out, temp);
-						}
+						sprintf_s(temp, "Worn Item Score : %6.0f (%s%s) %s", score, (score - CurrScore > 0 ? "Keep " : "UPGRADE for "), SlotInfo[i].SlotName, br);
+						strcat_s(out, temp);
 					}
-					CheckForBest(score, i);
 				}
+				CheckForBest(score, i);
 			}
 		}
 	}
@@ -3612,10 +3343,10 @@ void AddGearScores(CONTENTS* pSlot, ITEMINFO* pItem, char(&out)[_Size], char* br
 	CurrScore = CalcItemGearScore(pItem);
 	if (CurrScore == 0) return;
 
-	CurrSlot = pSlot->GetGlobalIndex().GetTopSlot();
+	CurrSlot = pSlot->GetItemLocation().GetTopSlot();
 	BestScore = CurrScore;
 	BestSlot = 0;
-	if (pItem->ItemType == ITEMITEMTYPE_AUGUMENT)
+	if (pItem->ItemType == ItemClass_Augmentation)
 		AddGearScores_CheckAugs(pSlot, pItem, out, br);
 	else
 		AddGearScores_CheckItems(pSlot, pItem, out, br);
@@ -3870,6 +3601,6 @@ PLUGIN_API void OnPulse()
 
 PLUGIN_API void OnBeginZone()
 {
-	for (VePointer<CONTENTS>& ptr : gContents)
+	for (ItemPtr& ptr : gContents)
 		ptr.reset();
 }

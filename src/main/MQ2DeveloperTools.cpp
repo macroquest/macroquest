@@ -50,188 +50,163 @@ DECLARE_MODULE_INITIALIZER(s_developerToolsModule);
 
 //----------------------------------------------------------------------------
 
-struct PersistedBool
+PersistedBool::PersistedBool(std::string_view section, std::string_view key, bool init)
+	: m_section(section)
+	, m_key(key)
+	, m_defaultValue(init)
+	, m_value(init)
 {
-	PersistedBool(const std::string& Section, const std::string& Key, bool init = false)
-		: m_section(Section)
-		, m_key(Key)
-		, m_defaultValue(init)
-		, m_value(init)
-	{
-		Load();
-	}
+	Load();
+}
 
-	bool& operator=(bool value)
-	{
-		if (mq::test_and_set(m_value, value))
-		{
-			m_lastValue = value;
-			Save();
-		}
+void PersistedBool::Save()
+{
+	mq::WritePrivateProfileBool(m_section, m_key, m_value, mq::internal_paths::MQini);
+	m_isLoaded = true;
+}
 
-		return m_value;
-	}
-
-	operator bool& ()
+void PersistedBool::Load()
+{
+	if (!mq::internal_paths::MQini.empty())
 	{
-		if (!m_isLoaded)
-			Load();
-		return m_value;
-	}
-
-	operator bool() const
-	{
-		// lazy load if we haven't done it yet
-		if (!m_isLoaded)
-			const_cast<PersistedBool*>(this)->Load();
-		return m_value;
-	}
-
-	bool* get_ptr()
-	{
-		if (!m_isLoaded)
-			Load();
-		return &m_value;
-	}
-
-	void Save()
-	{
-		mq::WritePrivateProfileBool(m_section, m_key, m_value, mq::internal_paths::MQini);
+		m_value = mq::GetPrivateProfileBool(m_section, m_key, m_defaultValue, mq::internal_paths::MQini);
 		m_isLoaded = true;
 	}
+}
 
-	void Load()
-	{
-		if (!mq::internal_paths::MQini.empty())
-		{
-			m_value = mq::GetPrivateProfileBool(m_section, m_key, m_defaultValue, mq::internal_paths::MQini);
-			m_isLoaded = true;
-		}
-	}
-
-	void Update()
-	{
-		if (mq::test_and_set(m_lastValue, m_value))
-			Save();
-	}
-
-private:
-	bool m_value;
-	bool m_lastValue;
-	bool m_isLoaded = false;
-	const bool m_defaultValue;
-	std::string m_section;
-	std::string m_key;
-};
+void PersistedBool::Update()
+{
+	if (mq::test_and_set(m_lastValue, m_value))
+		Save();
+}
 
 // TODO: Use TList/TLinkNode
 class ImGuiWindowBase;
 ImGuiWindowBase* s_imguiBaseWindows = nullptr;
 ImGuiWindowBase* s_lastImguiBaseWindow = nullptr;
 
-class ImGuiWindowBase
+ImGuiWindowBase::ImGuiWindowBase(std::string_view windowId, std::string_view windowTitle)
+	: m_open("Developer Tools", windowId)
+	, m_windowId(windowId)
 {
-public:
-	ImGuiWindowBase(const std::string& windowId, const std::string& windowTitle = {})
-		: m_open("Developer Tools", windowId.c_str())
-		, m_windowId(windowId)
-	{
-		SetWindowTitle(windowTitle);
+	SetWindowTitle(windowTitle);
 
-		if (!s_lastImguiBaseWindow)
+	if (!s_lastImguiBaseWindow)
+	{
+		s_imguiBaseWindows = s_lastImguiBaseWindow = this;
+	}
+	else
+	{
+		m_prev = s_lastImguiBaseWindow;
+		m_prev->m_next = this;
+		s_lastImguiBaseWindow = this;
+	}
+}
+
+ImGuiWindowBase::~ImGuiWindowBase()
+{
+	// Unlink from the chain
+	if (m_next)
+		m_next->m_prev = m_prev;
+	if (m_prev)
+		m_prev->m_next = m_next;
+}
+
+void ImGuiWindowBase::Update()
+{
+	if (!IsEnabled())
+		return;
+
+	if (m_open)
+	{
+		if (Begin())
 		{
-			s_imguiBaseWindows = s_lastImguiBaseWindow = this;
+			Draw();
 		}
-		else
-		{
-			m_prev = s_lastImguiBaseWindow;
-			m_prev->m_next = this;
-			s_lastImguiBaseWindow = this;
-		}
+		ImGui::End();
 	}
 
-	virtual ~ImGuiWindowBase()
-	{
-		// Unlink from the chain
-		if (m_next)
-			m_next->m_prev = m_prev;
-		if (m_prev)
-			m_prev->m_next = m_next;
-	}
+	m_open.Update();
+}
 
-	bool IsOpen() const { return m_open && IsEnabled(); }
-	virtual bool IsEnabled() const { return true; }
-
-	virtual void Show()
-	{
-		m_open = true;
-	}
-
-	virtual void Close()
-	{
-		m_open = false;
-	}
-
-	void Toggle()
-	{
-		if (m_open)
-			Close();
-		else
-			Show();
-	}
-
-	ImGuiWindowBase* GetNext() { return m_next; }
-
-	virtual void Update()
-	{
-		if (!IsEnabled())
-			return;
-
-		if (m_open)
-		{
-			if (Begin())
-			{
-				Draw();
-			}
-			ImGui::End();
-		}
-
-		m_open.Update();
-	}
-
-	void SetWindowTitle(std::string_view windowTitle)
-	{
-		m_windowTitle = fmt::format("{}###{}", windowTitle, m_windowId);
-	}
-
-	void SetDefaultSize(const ImVec2& size)
-	{
-		m_defaultSize = size;
-	}
-
-protected:
-	// Override this to set some properties before the window is drawn. If this returns false
-	// the update is aborted.
-	virtual bool Begin()
-	{
-		ImGui::SetNextWindowSize(m_defaultSize, ImGuiCond_FirstUseEver);
-		return ImGui::Begin(m_windowId.c_str(), m_open.get_ptr());
-	}
-
-	virtual void Draw() {}
-
-	//----------------------------------------------------------------------------
-	std::string m_windowId;                      //
-	std::string m_windowTitle;                   // WindowTitle###WindowId
-	PersistedBool m_open;
-
-private:
-	ImGuiWindowBase* m_next = nullptr;
-	ImGuiWindowBase* m_prev = nullptr;
-	ImVec2 m_defaultSize;
-};
+void ImGuiWindowBase::SetWindowTitle(std::string_view windowTitle)
+{
+	m_windowTitle = fmt::format("{}###{}", windowTitle, m_windowId);
+}
 
 #pragma region Common Tools
+
+//----------------------------------------------------------------------------
+
+bool ItemLinkTextV(const char* fmt, va_list args)
+{
+	ImVec2 pos = ImGui::GetCursorPos();
+	MQColor textLinkColor = GetColorForChatColor(USERCOLOR_LINK);
+	ImGui::TextColoredV(ImColor(textLinkColor.ToRGBA8()), fmt, args);
+
+	bool clicked = ImGui::IsItemClicked(0);
+
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetCursorPos(pos);
+
+		// HACK: Render text again with different color.
+		ImGui::TextColoredV(ImColor(MQColor(0, 0, 128).ToRGBA8()), fmt, args);
+	}
+
+	return clicked;
+}
+
+bool ItemLinkText(const char* fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	bool result = ItemLinkTextV(fmt, args);
+	va_end(args);
+	return result;
+}
+
+
+const char* UITypeToScreenPieceTemplateType(UIType type)
+{
+	switch (type)
+	{
+	case UI_LayoutStrategy: return "CLayoutStrategyTemplate*";
+	case UI_LayoutVertical: return "CLayoutVerticalTemplate*";
+	case UI_LayoutHorizontal: return "CLayoutHorizontalTemplate*";
+	case UI_StaticScreenPiece: return "CStaticScreenPieceTemplate*";
+	case UI_StaticAnimation: return "CStaticAnimationTemplate*";
+	case UI_StaticText: return "CStaticTextTemplate*";
+	case UI_StaticFrame: return "CStaticFrameTemplate*";
+	case UI_StaticHeader: return "CStaticHeaderTemplate*";
+	case UI_StaticTintedBlendAnimation: return "CStaticTintedBlendAnimationTemplate*";
+	case UI_Control: return "CControlTemplate*";
+	case UI_ListboxColumn: return "CListboxColumnTemplate*";
+	case UI_Listbox: return "CListboxTemplate*";
+	case UI_EditBox: return "CEditboxTemplate*";
+	case UI_Slider: return "CSliderTemplate*";
+	case UI_Label: return "CLabelTemplate*";
+	case UI_STMLBox: return "CSTMLboxTemplate*";
+	case UI_TreeView: return "CTreeViewTemplate*";
+	case UI_Combobox: return "CComboboxTemplate*";
+	case UI_Button: return "CButtonTemplate*";
+	case UI_Gauge: return "CGaugeTemplate*";
+	case UI_SpellGem: return "CSpellGemTemplate*";
+	case UI_InvSlot: return "CInvSlotTemplate*";
+	case UI_Page: return "CPageTemplate*";
+	case UI_TabBox: return "CTabBoxTemplate*";
+	case UI_LayoutBox: return "CLayoutBoxTemplate*";
+	case UI_HorizontalLayoutBox: return "CHorizontalLayoutBoxTemplate*";
+	case UI_VerticalLayoutBox: return "CVerticalLayoutBoxTemplate*";
+	case UI_TileLayoutBox: return "CTileLayoutBoxTemplate*";
+	case UI_Screen: return "CScreenTemplate*";
+	case UI_HtmlComponent: return "CHtmlComponentTemplate*";
+	case UI_TemplateContainer: return "CTemplateContainerTemplate*";
+	case UI_HotButton: return "CHotButtonTemplate*";
+	default:
+		return "(other template)";
+	}
+}
 
 bool IsEmptyValue(const char* val)
 {
@@ -262,6 +237,31 @@ static void ColumnValue(const char* fmt, va_list args)
 	}
 }
 
+static bool ColumnLinkValue(const char* fmt, va_list args)
+{
+	bool clicked = false;
+
+	if (IsEmptyValue(fmt))
+	{
+		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "%s", fmt);
+	}
+	else if (strcmp(fmt, "%s") == 0)
+	{
+		const char* str = va_arg(args, const char*);
+
+		if (IsEmptyValue(str))
+			ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), str);
+		else
+			clicked = ItemLinkText("%s", str);
+	}
+	else
+	{
+		clicked = ItemLinkTextV(fmt, args);
+	}
+
+	return clicked;
+}
+
 static void ColumnText(const char* Label, const char* fmt, ...)
 {
 	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
@@ -288,6 +288,23 @@ static void ColumnTextType(const char* Label, const char* Type, const char* fmt,
 	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), Type);
 	ImGui::TableNextRow();
 	ImGui::TableNextColumn();
+}
+
+static bool ColumnLinkTextType(const char* Label, const char* Type, const char* fmt, ...)
+{
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+
+	va_list args;
+	va_start(args, fmt);
+	bool clicked = ColumnLinkValue(fmt, args);
+	va_end(args);
+	ImGui::TableNextColumn();
+
+	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), Type);
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn();
+
+	return clicked;
 }
 
 static bool ColumnCheckBox(const char* Label, bool* value)
@@ -484,7 +501,7 @@ inline const char* UIDirectoryToString(enDir dir)
 	}
 }
 
-bool RenderUITextureInfoTexture(const CUITextureInfo& textureInfo, const CXRect& rect = CXRect(0, 0, -1, -1))
+bool RenderUITextureInfoTexture(const CUITextureInfo& textureInfo, const CXRect& rect = CXRect(0, 0, -1, -1), const CXSize& size = CXSize())
 {
 	if (textureInfo.TextureId == -1)
 	{
@@ -520,6 +537,12 @@ bool RenderUITextureInfoTexture(const CUITextureInfo& textureInfo, const CXRect&
 	ImVec2 maxUV = ImVec2(1, 1);
 	ImVec2 textureSize = ImVec2((float)textureInfo.TextureSize.cx, (float)textureInfo.TextureSize.cy);
 
+	ImVec2 imageSize;
+	if (size.cx != 0 && size.cy != 0)
+		imageSize = ImVec2(static_cast<float>(size.cx), static_cast<float>(size.cy));
+	else
+		imageSize = textureSize;
+
 	if (!rect.IsAbnormal())
 	{
 		minUV.x = rect.left / textureSize.x;
@@ -532,25 +555,28 @@ bool RenderUITextureInfoTexture(const CUITextureInfo& textureInfo, const CXRect&
 		textureSize.y = (float)rect.GetHeight();
 	}
 
-	ImGui::Image((ImTextureID)pEQGBitmap->pD3DTexture, textureSize, minUV, maxUV, ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 0.5f));
+	ImGui::Image((ImTextureID)pEQGBitmap->pD3DTexture, imageSize, minUV, maxUV, ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 0.5f));
 	return true;
 }
 
-bool RenderTexturePiece(const CUITexturePiece& texturePiece, const CXRect& srcRect)
+bool RenderTexturePiece(const CUITexturePiece& texturePiece, const CXRect& srcRect, const CXSize& imageSize = CXSize())
 {
-	return RenderUITextureInfoTexture(texturePiece.GetTextureInfo(), srcRect);
+	return RenderUITextureInfoTexture(texturePiece.GetTextureInfo(), srcRect, imageSize);
 }
 
-bool RenderTexturePiece(const CUITexturePiece& texturePiece)
+bool RenderTexturePiece(const CUITexturePiece& texturePiece, const CXSize& imageSize = CXSize())
 {
-	return RenderTexturePiece(texturePiece, texturePiece.GetRect());
+	return RenderTexturePiece(texturePiece, texturePiece.GetRect(), imageSize);
 }
 
 // TODO: Move to a helper for CTextureAnimation that can draw with imgui.
-bool RenderTextureAnimation(const CTextureAnimation* pAnim)
+bool RenderTextureAnimation(const CTextureAnimation* pAnim, const CXSize& size)
 {
+	CXSize theSize = size.cx != 0 && size.cy != 0 ? size : (pAnim->bGrid ? pAnim->CellRect.GetSize() : pAnim->Size);
+
 	if (pAnim->Frames.IsEmpty())
 	{
+		ImGui::ItemSize(ImVec2(static_cast<float>(theSize.cx), static_cast<float>(theSize.cy)));
 		// TODO: Draw box with the current size.
 		return false;
 	}
@@ -565,12 +591,12 @@ bool RenderTextureAnimation(const CTextureAnimation* pAnim)
 	{
 		if (pAnim->CurCell != -1)
 		{
-			return RenderTexturePiece(frame.Piece, pAnim->CellRect);
+			return RenderTexturePiece(frame.Piece, pAnim->CellRect, theSize);
 		}
 	}
 	else
 	{
-		return RenderTexturePiece(frame.Piece);
+		return RenderTexturePiece(frame.Piece, theSize);
 	}
 
 	return false;
@@ -855,7 +881,10 @@ void ColumnWindow(const char* Label, CXWnd* window)
 		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(null)");
 	else
 	{
-		if (ImGui::Button("view"))
+		ImGui::PushID(window);
+		bool view = ImGui::Button("view");
+		ImGui::PopID();
+		if (view)
 		{
 			DeveloperTools_ShowWindowInspector(window);
 		}
@@ -869,6 +898,48 @@ void ColumnWindow(const char* Label, CXWnd* window)
 	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "CXWnd");
 	ImGui::TableNextRow();
 	ImGui::TableNextColumn();
+}
+
+void ColumnItemContainerInstance(const char* Label, ItemContainerInstance instance)
+{
+	ColumnTextType(Label, "ItemContainerInstance", GetNameForContainerInstance(instance));
+}
+
+void ColumnItemIndex(const char* Label, const ItemIndex& index)
+{
+	char indexStr[32];
+	index.FormatItemIndex(indexStr, lengthof(indexStr));
+
+	ColumnTextType(Label, "ItemIndex", "%s", indexStr);
+}
+
+void ColumnItemGlobalIndex(const char* Label, const ItemGlobalIndex& index)
+{
+	char globIndexStr[32];
+
+	strcpy_s(globIndexStr, GetNameForContainerInstance(index.GetLocation()));
+	strcat_s(globIndexStr, ": ");
+
+	char indexStr[32];
+	index.GetIndex().FormatItemIndex(indexStr, lengthof(indexStr));
+	strcat_s(globIndexStr, indexStr);
+
+	// Maybe in future this can be used to look up the item in another inspector.
+	if (ColumnTreeNodeType2(&index, Label, "ItemGlobalIndex", "%s", globIndexStr))
+	{
+		ColumnItemContainerInstance("Container", index.GetLocation());
+		ColumnItemIndex("Index", index.GetIndex());
+
+		ImGui::TreePop();
+	}
+}
+
+void ColumnItem(const char* Label, const ItemPtr& pItem)
+{
+	if (ColumnLinkTextType(Label, "ItemPtr", "%s", pItem ? pItem->GetName() : "(null)"))
+	{
+		if (pItemDisplayManager) pItemDisplayManager->ShowItem(pItem);
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -901,7 +972,24 @@ void DisplayScreenPieceTemplate(const CScreenPieceTemplate* pTemplate)
 	ColumnCXStr("Name", pTemplate->strName);
 	ColumnText("Object Id", "%d", pTemplate->uParamObjectId);
 	ColumnCXStr("Screen ID", pTemplate->strScreenId);
-	// TODO: RuntimeTypes
+
+	std::vector<int> runtimeTypeInts;
+	for (int i = 0; i < pTemplate->arRuntimeTypes.GetLength(); ++i)
+		runtimeTypeInts.push_back(pTemplate->arRuntimeTypes[i]);
+	std::string runtimeTypes = fmt::format("[{}]", fmt::join(runtimeTypeInts, ", "));
+
+	if (ColumnTreeNodeType2(&pTemplate->arRuntimeTypes, "Runtime Types", "ArrayClass2<int>", "%s", runtimeTypes.c_str()))
+	{
+		for (int i = 0; i < pTemplate->arRuntimeTypes.GetLength(); ++i)
+		{
+			char szLabel[10];
+			fmt::format_to(szLabel, "#{}\0", i + 1);
+			ColumnText(szLabel, "%s (%d)", UITypeToString(static_cast<UIType>(pTemplate->arRuntimeTypes[i])), pTemplate->arRuntimeTypes[i]);
+		}
+
+		ImGui::TreePop();
+	}
+
 	// TODO: Font
 	// TODO: RelativePosition
 	// TODO: AutoStretchVertical
@@ -987,47 +1075,6 @@ void DisplayControlTemplate(const CControlTemplate* pTemplate)
 void DisplayLayoutBoxTemplate(const CLayoutBoxTemplate* pTemplate)
 {
 	DisplayControlTemplate(pTemplate);
-}
-
-const char* UITypeToScreenPieceTemplateType(UIType type)
-{
-	switch (type)
-	{
-	case UI_LayoutStrategy: return "CLayoutStrategyTemplate*";
-	case UI_LayoutVertical: return "CLayoutVerticalTemplate*";
-	case UI_LayoutHorizontal: return "CLayoutHorizontalTemplate*";
-	case UI_StaticScreenPiece: return "CStaticScreenPieceTemplate*";
-	case UI_StaticAnimation: return "CStaticAnimationTemplate*";
-	case UI_StaticText: return "CStaticTextTemplate*";
-	case UI_StaticFrame: return "CStaticFrameTemplate*";
-	case UI_StaticHeader: return "CStaticHeaderTemplate*";
-	case UI_StaticTintedBlendAnimation: return "CStaticTintedBlendAnimationTemplate*";
-	case UI_Control: return "CControlTemplate*";
-	case UI_ListboxColumn: return "CListboxColumnTemplate*";
-	case UI_Listbox: return "CListboxTemplate*";
-	case UI_EditBox: return "CEditboxTemplate*";
-	case UI_Slider: return "CSliderTemplate*";
-	case UI_Label: return "CLabelTemplate*";
-	case UI_STMLBox: return "CSTMLboxTemplate*";
-	case UI_TreeView: return "CTreeViewTemplate*";
-	case UI_Combobox: return "CComboboxTemplate*";
-	case UI_Button: return "CButtonTemplate*";
-	case UI_Gauge: return "CGaugeTemplate*";
-	case UI_SpellGem: return "CSpellGemTemplate*";
-	case UI_InvSlot: return "CInvSlotTemplate*";
-	case UI_Page: return "CPageTemplate*";
-	case UI_TabBox: return "CTabBoxTemplate*";
-	case UI_LayoutBox: return "CLayoutBoxTemplate*";
-	case UI_HorizontalLayoutBox: return "CHorizontalLayoutBoxTemplate*";
-	case UI_VerticalLayoutBox: return "CVerticalLayoutBoxTemplate*";
-	case UI_TileLayoutBox: return "CTileLayoutBoxTemplate*";
-	case UI_Screen: return "CScreenTemplate*";
-	case UI_HtmlComponent: return "CHtmlComponentTemplate*";
-	case UI_TemplateContainer: return "CTemplateContainerTemplate*";
-	case UI_HotButton: return "CHotButtonTemplate*";
-	default:
-		return "(other template)";
-	}
 }
 
 void DisplayScreenTemplate(const CScreenTemplate* pTemplate);
@@ -1362,6 +1409,19 @@ public:
 			DisplayCGaugeWndProperties(static_cast<CGaugeWnd*>(m_window));
 			break;
 
+		case UI_HotButton:
+			// HotButton is cloned into a CButtonWnd as well, so the dynamic type information is wrong.
+			// we need to tell the difference apart, so the best way I can find is to compare the vftable.
+			if (m_window->GetVFTable() == CButtonWnd::sm_vftable)
+				DisplayCButtonWndProperties(static_cast<CButtonWnd*>(m_window));
+			else
+				DisplayCHotButtonProperties(static_cast<CHotButton*>(m_window));
+			break;
+
+		case UI_InvSlot:
+			DisplayInvSlotWndProperties(static_cast<CInvSlotWnd*>(m_window));
+			break;
+
 		case UI_Listbox:
 		case UI_Unknown:
 		default:
@@ -1391,13 +1451,17 @@ public:
 				break;
 			}
 
-			//WRT_LISTWND,
+			if (m_window->IsType(WRT_HOTKEYWND))
+			{
+				DisplayCHotButtonProperties(static_cast<CHotButton*>(m_window));
+				break;
+			}
+
 			//WRT_EDITWND,
 			//WRT_TREEWND,
 			//WRT_PAGEWND,
 			//WRT_TABWND,
 			//WRT_HTMLWND,
-			//WRT_HOTKEYWND,
 			//WRT_EDITHOTKEYWND,
 			//WRT_RANGESLIDERWND,
 			//WRT_STMLWND,
@@ -1405,21 +1469,16 @@ public:
 			//WRT_MODALMESSAGEWND,
 			//WRT_CHECKBOXWND,
 			//WRT_SLIDERWND,
-			//WRT_LABEL,
 			//WRT_GAUGE,
 			//WRT_COMBOBOX,
 			//WRT_CHATWND,
 			//WRT_HELPWND,
-
-			//WRT_WND
 
 			if (m_window->IsType(WRT_WND))
 			{
 				DisplayCXWndProperties(m_window);
 				break;
 			}
-
-
 			break;
 		}
 
@@ -1471,6 +1530,26 @@ public:
 		if (BeginColorSection("CXWnd Properties", open))
 		{
 			DisplayDrawTemplate("Template", pWnd->DrawTemplate);
+
+			std::vector<int> runtimeTypeInts;
+			for (int i = 0; i < pWnd->RuntimeTypes.GetLength(); ++i)
+				runtimeTypeInts.push_back(pWnd->RuntimeTypes[i]);
+			std::string runtimeTypes = fmt::format("[{}]", fmt::join(runtimeTypeInts, ", "));
+
+			if (ColumnTreeNodeType2(&pWnd->RuntimeTypes, "Runtime Types", "ArrayClass2<int>", "%s", runtimeTypes.c_str()))
+			{
+				for (int i = 0; i < pWnd->RuntimeTypes.GetLength(); ++i)
+				{
+					char szLabel[10];
+					fmt::format_to(szLabel, "#{}\0", i + 1);
+					ColumnText(szLabel, "%s (%d)",
+						EWndRuntimeTypeToString(static_cast<EWndRuntimeType>(pWnd->RuntimeTypes[i])),
+						pWnd->RuntimeTypes[i]);
+				}
+
+				ImGui::TreePop();
+			}
+
 			ColumnCXRect("Position", pWnd->Location);
 			ColumnCXRect("Client rect", pWnd->ClientRect);
 			ColumnCXStr("Text", pWnd->WindowText);
@@ -1626,7 +1705,6 @@ public:
 				//ColumnText("XML Index", "%d", pWnd->XMLIndex);
 				//ColumnCheckBox("Capture title", &pWnd->bCaptureTitle);
 				// TextObject
-				// RuntimeTypes
 				// bClientClipRectChanged
 				// ParentWindow
 				// pTipTextObject
@@ -1788,6 +1866,73 @@ public:
 		}
 	}
 
+	void DisplayCHotButtonProperties(CHotButton* pWnd, bool open = true)
+	{
+		DisplayCXWndProperties(pWnd, true);
+
+		if (BeginColorSection("CHotButton Properties", open))
+		{
+			ColumnText("Bar index", "%d", pWnd->BarIndex);
+			ColumnText("Button index", "%d", pWnd->ButtonIndex);
+			ColumnText("Timer", "%d", std::max<int>(0, pWnd->Timer - pDisplay->TimeStamp));
+			DisplayTextureAnimation("Decal icon", pWnd->DecalIcon);
+			ColumnText("Button type", "%d", pWnd->LastButtonType); // TODO: translate enum
+			ColumnText("Button slot", "%d", pWnd->LastButtonSlot);
+			ColumnText("Button page", "%d", (int)pWnd->LastButtonPage);
+			ColumnText("Item Guid", "%s", pWnd->LastItemGuid.guid);
+			ColumnText("Item ID", "%d", pWnd->LastItemId);
+			ColumnText("Icon type", "%d", pWnd->LastIconType);
+			ColumnText("Icon slot", "%d", pWnd->LastIconSlot);
+			ColumnCXStr("Label", pWnd->LastLabel);
+			ColumnCXStr("Default label", pWnd->DefaultLabel);
+			DisplayTextObject("Keymap text", pWnd->pKeyMapText);
+			ColumnWindow("Button", pWnd->pButtonWnd);
+			ColumnWindow("InvSlot", pWnd->pInvSlotWnd);
+			ColumnWindow("SpellGem", pWnd->pSpellGemWnd);
+			ColumnCXSize("Base size", pWnd->BaseSize);
+			ColumnText("Percent size", "%d", pWnd->ButtonPercentSize);
+			ColumnCXSize("Base button size", pWnd->BaseButtonSize);
+			ColumnCXSize("Base decal size", pWnd->BaseDecalSize);
+			ColumnCXSize("Base inv button size", pWnd->BaseInvButtonSize);
+			ColumnCXSize("Base spell button size", pWnd->BaseSpellButtonSize);
+		}
+	}
+
+	void DisplayInvSlotWndProperties(CInvSlotWnd* pWnd, bool open = true)
+	{
+		DisplayCXWndProperties(pWnd, true);
+
+		if (BeginColorSection("CInvSlotWnd Properties", open))
+		{
+			DisplayTextureAnimation("Background", pWnd->pBackground);
+			ColumnItemGlobalIndex("Item location", pWnd->ItemLocation);
+
+			// An invslot is either linked to a slot, or an item. Slots on the character pane are linked to slots.
+			// Slots in your hotbar are usually linked to an item.
+			if (pWnd->LinkedItem)
+				ColumnItem("Linked item", pWnd->LinkedItem);
+			else
+			{
+				ItemPtr pItem = pCharData->GetItemByGlobalIndex(pWnd->ItemLocation);
+				ColumnItem("Item in slot", pItem);
+			}
+
+			ColumnCXSize("Item offset", CXSize(pWnd->ItemOffsetX, pWnd->ItemOffsetY));
+			DisplayTextureAnimation("Item texture", pWnd->ptItem);
+			ColumnText("Quantity", "%d", pWnd->Quantity);
+			ColumnCheckBox("Selected", pWnd->bSelected);
+			ColumnCheckBox("Find selected", pWnd->bFindSelected);
+			ColumnCheckBox("Is hotbutton", pWnd->bHotButton);
+			ColumnCheckBox("Is linked to inv slot", pWnd->bInventorySlotLinked);
+			// TODO: CInvSlot
+			DisplayTextObject("Text object", pWnd->pTextObject);
+			ColumnText("Text style", "%d", pWnd->TextFontStyle);
+			ColumnText("Mode", "%d", pWnd->Mode);
+			ColumnColor("Background normal", pWnd->BGTintNormal);
+			ColumnColor("Background Rollover", pWnd->BGTintRollover);
+		}
+	}
+
 	void DisplayCListWndProperties(CListWnd* pWnd, bool open = true)
 	{
 		DisplayCXWndProperties(pWnd, true);
@@ -1922,9 +2067,9 @@ public:
 
 #pragma endregion
 
-#pragma region Windows Developer Tool
+#pragma region Window Inspector
 
-class ImGuiWindowsDeveloperTool : public ImGuiWindowBase
+class WindowInspector : public ImGuiWindowBase
 {
 	CXWnd* m_pSelectedWnd = nullptr;
 	CXWnd* m_pHoveredWnd = nullptr;
@@ -1945,7 +2090,7 @@ class ImGuiWindowsDeveloperTool : public ImGuiWindowBase
 	ImGuiID m_mainDockId = 0;
 
 public:
-	ImGuiWindowsDeveloperTool()
+	WindowInspector()
 		: ImGuiWindowBase("Window Inspector")
 	{
 	}
@@ -1979,11 +2124,23 @@ public:
 
 				ImGuiViewport* viewport = ImGui::GetMainViewport();
 				ImGui::DockBuilderSetNodePos(m_mainDockId, ImVec2(viewport->Pos.x + 100, viewport->Pos.y + 100));
+
+				node = ImGui::DockBuilderGetNode(m_mainDockId);
 			}
 
-			ImGui::DockBuilderSplitNode(m_mainDockId, ImGuiDir_Up, 0.5f, &m_topNode, &m_bottomNode);
+			ImGuiDockNode* topNode = nullptr;
 
-			ImGuiDockNode* topNode = ImGui::DockBuilderGetNode(m_topNode);
+			if (!node->IsSplitNode())
+			{
+				ImGui::DockBuilderSplitNode(m_mainDockId, ImGuiDir_Up, 0.5f, &m_topNode, &m_bottomNode);
+				topNode = ImGui::DockBuilderGetNode(m_topNode);
+			}
+			else
+			{
+				topNode = node->ChildNodes[0];
+				m_topNode = topNode->ID;
+			}
+
 			topNode->LocalFlags |= ImGuiDockNodeFlags_NoWindowMenuButton;
 
 			ImGui::DockBuilderDockWindow("Window Inspector", m_topNode);
@@ -2484,7 +2641,7 @@ public:
 		m_pSelectedWnd = pWnd;
 	}
 };
-static ImGuiWindowsDeveloperTool s_windowDebugPanel;
+static WindowInspector* s_windowInspector = nullptr;
 
 #pragma endregion
 
@@ -2530,13 +2687,13 @@ static ImPlotDemoWindow s_imPlotDemoWindow;
 
 #pragma region Spells Developer Tool
 
-class SpellsDeveloperTool : public ImGuiWindowBase
+class SpellsInspector : public ImGuiWindowBase
 {
 	CTextureAnimation* m_pTASpellIcon = nullptr;
 public:
-	SpellsDeveloperTool() : ImGuiWindowBase("Spells Developer Tools") {}
+	SpellsInspector() : ImGuiWindowBase("Spells Developer Tools") {}
 
-	~SpellsDeveloperTool()
+	~SpellsInspector()
 	{
 		if (m_pTASpellIcon)
 		{
@@ -2846,7 +3003,7 @@ public:
 		}
 	}
 };
-static SpellsDeveloperTool s_spellsTool;
+static SpellsInspector* s_spellsInspector = nullptr;
 
 #pragma endregion
 
@@ -2888,10 +3045,10 @@ struct ScrollingData
 extern float gCurrentFPS;
 extern float gCurrentCPU;
 
-class BenchmarksDeveloperTool : public ImGuiWindowBase
+class BenchmarksInspector : public ImGuiWindowBase
 {
 public:
-	BenchmarksDeveloperTool() : ImGuiWindowBase("Benchmarks")
+	BenchmarksInspector() : ImGuiWindowBase("Benchmarks")
 	{
 	}
 
@@ -3076,20 +3233,20 @@ private:
 	ScrollingData m_fpsData;
 	ScrollingData m_cpuData;
 };
-static BenchmarksDeveloperTool s_benchmarksTool;
+static BenchmarksInspector* s_benchmarksInspector = nullptr;
 
 #pragma endregion
 
-#pragma region CXStrDeveloperTool
+#pragma region String Inspector
 
-class CXStrDeveloperTool : public ImGuiWindowBase
+class StringInspector : public ImGuiWindowBase
 {
 public:
-	CXStrDeveloperTool() : ImGuiWindowBase("CXStr Metrics")
+	StringInspector() : ImGuiWindowBase("String Inspector")
 	{
 	}
 
-	~CXStrDeveloperTool()
+	~StringInspector()
 	{
 	}
 
@@ -3143,7 +3300,7 @@ protected:
 		eqlib::internal::UnlockCXStrMutex();
 	}
 };
-static CXStrDeveloperTool s_cxstrTool;
+static StringInspector* s_stringInspector = nullptr;
 
 #pragma endregion
 
@@ -3153,9 +3310,9 @@ static CXStrDeveloperTool s_cxstrTool;
 bool DeveloperTools_HandleClick(int mouseButton, bool clicked)
 {
 	// If the picker is active, tell it that we clicked. Returns true (to consume the click) if this happens.
-	if (mouseButton == 0 && clicked && s_windowDebugPanel.IsPicking())
+	if (mouseButton == 0 && clicked && s_windowInspector->IsPicking())
 	{
-		s_windowDebugPanel.Pick();
+		s_windowInspector->Pick();
 		return true;
 	}
 
@@ -3164,64 +3321,135 @@ bool DeveloperTools_HandleClick(int mouseButton, bool clicked)
 
 void DeveloperTools_RemoveWindow(CXWnd* pWnd)
 {
-	s_windowDebugPanel.OnWindowRemoved(pWnd);
+	s_windowInspector->OnWindowRemoved(pWnd);
 }
 
 void DeveloperTools_ShowWindowInspector(CXWnd* pWnd)
 {
-	s_windowDebugPanel.ShowWindowInspector(pWnd);
+	s_windowInspector->ShowWindowInspector(pWnd);
 }
 
 void DeveloperTools_SetSelectedWindow(CXWnd* pWnd)
 {
-	s_windowDebugPanel.SetSelectedWindow(pWnd);
+	s_windowInspector->SetSelectedWindow(pWnd);
 }
 
 void DeveloperTools_CloseLoginFrontend()
 {
-	s_windowDebugPanel.Reset();
+	s_windowInspector->Reset();
 }
+
+//----------------------------------------------------------------------------
+
+struct WindowMenuEntry
+{
+	ImGuiWindowBase* window;
+	std::string menuName;
+	std::string itemName;
+};
+static std::vector<WindowMenuEntry> s_inspectorMenus;
+static bool s_inspectorMenusDirty = false;
 
 void DeveloperTools_DrawMenu()
 {
-	if (ImGui::MenuItem("Benchmarks", nullptr, s_benchmarksTool.IsOpen()))
-		s_benchmarksTool.Toggle();
-
-	if (ImGui::BeginMenu("Data Inspectors"))
+	if (ImGui::BeginMenu("Windows"))
 	{
-		if (ImGui::MenuItem("CXStr Metrics"))
-			s_cxstrTool.Toggle();
+		ImGui::Separator();
+
+		if (ImGui::MenuItem("ImGui Demo", nullptr, s_demoWindow.IsOpen()))
+			s_demoWindow.Toggle();
+		if (ImGui::MenuItem("ImPlot Demo", nullptr, s_imPlotDemoWindow.IsOpen()))
+			s_imPlotDemoWindow.Toggle();
 
 		ImGui::EndMenu();
 	}
 
-	if (ImGui::MenuItem("Window Inspector", nullptr, s_windowDebugPanel.IsOpen()))
-		s_windowDebugPanel.Toggle();
+	if (s_inspectorMenusDirty)
+	{
+		std::sort(s_inspectorMenus.begin(), s_inspectorMenus.end(),
+			[](const auto& l, const auto& r)
+		{
+			return std::tie(l.menuName, l.itemName) < std::tie(r.menuName, r.itemName);
+		});
+	}
 
-	if (ImGui::MenuItem("Spells Inspector", nullptr, s_spellsTool.IsOpen(), s_spellsTool.IsEnabled()))
-		s_spellsTool.Toggle();
+	bool isMenuOpen = false;
+	const std::string* lastMenu = nullptr;
 
-	ImGui::Separator();
+	for (const auto& entry : s_inspectorMenus)
+	{
+		if (!lastMenu || *lastMenu != entry.menuName)
+		{
+			if (lastMenu && isMenuOpen)
+				ImGui::EndMenu();
 
-	if (ImGui::MenuItem("ImGui Demo", nullptr, s_demoWindow.IsOpen()))
-		s_demoWindow.Toggle();
-	if (ImGui::MenuItem("ImPlot Demo", nullptr, s_imPlotDemoWindow.IsOpen()))
-		s_imPlotDemoWindow.Toggle();
+			isMenuOpen = ImGui::BeginMenu(entry.menuName.c_str());
+			lastMenu = &entry.menuName;
+		}
+
+		if (isMenuOpen)
+		{
+			if (ImGui::MenuItem(entry.itemName.c_str(), nullptr, entry.window->IsOpen()))
+				entry.window->Toggle();
+		}
+	}
+
+	if (lastMenu && isMenuOpen)
+	{
+		ImGui::EndMenu();
+	}
+}
+
+void DeveloperTools_RegisterMenuItem(ImGuiWindowBase* window, const char* itemName, const char* menuName)
+{
+	s_inspectorMenus.push_back(WindowMenuEntry{ window, menuName ? menuName : "Tools", itemName });
+
+	s_inspectorMenusDirty = true;
+}
+
+void DeveloperTools_UnregisterMenuItem(ImGuiWindowBase* window)
+{
+	s_inspectorMenus.erase(
+		std::remove_if(std::begin(s_inspectorMenus), std::end(s_inspectorMenus),
+			[&](const auto& p) { return p.window == window; }),
+		std::end(s_inspectorMenus));
 }
 
 //============================================================================
 
 static void DeveloperTools_Initialize()
 {
+	s_benchmarksInspector = new BenchmarksInspector();
+	DeveloperTools_RegisterMenuItem(s_benchmarksInspector, "Benchmarks", s_menuNameInspectors);
+
+	s_spellsInspector = new SpellsInspector();
+	DeveloperTools_RegisterMenuItem(s_spellsInspector, "Spells", s_menuNameInspectors);
+
+	s_stringInspector = new StringInspector();
+	DeveloperTools_RegisterMenuItem(s_stringInspector, "CXStr Metrics", s_menuNameTools);
+
+	s_windowInspector = new WindowInspector();
+	DeveloperTools_RegisterMenuItem(s_windowInspector, "Windows", s_menuNameInspectors);
 }
 
 static void DeveloperTools_Shutdown()
 {
+	DeveloperTools_UnregisterMenuItem(s_benchmarksInspector);
+	delete s_benchmarksInspector; s_benchmarksInspector = nullptr;
+
+	DeveloperTools_UnregisterMenuItem(s_spellsInspector);
+	delete s_spellsInspector; s_spellsInspector = nullptr;
+
+	DeveloperTools_UnregisterMenuItem(s_stringInspector);
+	delete s_stringInspector; s_stringInspector = nullptr;
+
+	DeveloperTools_UnregisterMenuItem(s_windowInspector);
+	delete s_windowInspector; s_windowInspector = nullptr;
 }
 
 static void DeveloperTools_SetGameState(DWORD gameState)
 {
-	s_windowDebugPanel.Reset();
+	s_windowInspector->Reset();
 }
 
 static void DeveloperTools_UpdateImGui()

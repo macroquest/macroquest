@@ -885,7 +885,7 @@ void InitializeMQ2Commands()
 		{ "/dumpbinds",         DumpBindsCommand,           true,  false },
 		{ "/dosocial",          DoSocial,                   true,  true  },
 		{ "/combine",           CombineCmd,                 true,  true  },
-		{ "/drop",              DropCmd,                    true,  false },
+		{ "/drop",              DropCmd,                    true,  true  },
 		{ "/delay",             Delay,                      false, false }, // do not parse
 		{ "/hud",               HudCmd,                     true,  false },
 		{ "/hotbutton",         DoHotButton,                true,  true  },

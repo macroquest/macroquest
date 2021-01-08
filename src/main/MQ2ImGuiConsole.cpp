@@ -396,11 +396,7 @@ public:
 				ImGui::EndMenu();
 			}
 
-			if (ImGui::BeginMenu("Developer Tools"))
-			{
-				DeveloperTools_DrawMenu();
-				ImGui::EndMenu();
-			}
+			DeveloperTools_DrawMenu();
 
 			ImGui::EndMenuBar();
 		}

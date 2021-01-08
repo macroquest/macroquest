@@ -22,7 +22,7 @@ static void Spawns_Shutdown();
 static void Spawns_Pulse();
 
 static MQModule gSpawnsModule = {
-	"Spawns"  ,                   // Name
+	"Spawns",                     // Name
 	false,                        // CanUnload
 	Spawns_Initialize,            // Initialize
 	Spawns_Shutdown,              // Shutdown

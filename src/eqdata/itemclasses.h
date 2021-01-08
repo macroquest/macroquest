@@ -28,7 +28,7 @@
 	"Fist",                  //13
 	"Food",                  //14
 	"Drink",                 //15
-	"Light",                 //16   
+	"Light",                 //16
 	"Combinable",            //17
 	"Bandages",              //18
 	"Ammo",                  //19

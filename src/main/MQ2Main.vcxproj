@@ -461,6 +461,7 @@
     <ClInclude Include="..\..\contrib\fmt\include\fmt\safe-duration-cast.h" />
     <ClInclude Include="..\..\contrib\mini-yaml\yaml\Yaml.hpp" />
     <ClInclude Include="..\..\contrib\tinyfsm\include\tinyfsm.hpp" />
+    <ClInclude Include="..\..\include\moveitem.h" />
     <ClInclude Include="..\..\include\mq\base\Common.h" />
     <ClInclude Include="..\..\include\mq\base\Threading.h" />
     <ClInclude Include="..\..\include\mq\imgui\ImGuiUtils.h" />

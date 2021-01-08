@@ -540,7 +540,6 @@ static HeartbeatState Heartbeat()
 	UpdateMQ2SpawnSort();
 
 	DebugTry(DrawHUD());
-	DebugTry(PulseMQ2Windows());
 	DebugTry(PulseMQ2AutoInventory());
 
 	bRunNextCommand = true;
