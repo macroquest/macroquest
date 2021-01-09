@@ -685,7 +685,16 @@ struct MQVarPtr
 			if constexpr (std::is_convertible_v<U, T>)
 				value = static_cast<T>(val);
 			else
+			{
 				WriteChatf("Tried to convert unlike types %s and %s", type_name<T>().c_str(), type_name<U>().c_str());
+				if (gMacroBlock != nullptr)
+					WriteChatf("%s: %d", gMacroBlock->Line.at(gMacroBlock->CurrIndex).SourceFile.c_str(), gMacroBlock->Line.at(gMacroBlock->CurrIndex).LineNumber);
+				if (gMacroStack != nullptr)
+				{
+					char buf[MAX_STRING];
+					WriteChatf("%s", GetSubFromLine(gMacroStack->LocationIndex, buf, MAX_STRING));
+				}
+			}
 		};
 
 		std::visit(visitor, Data);

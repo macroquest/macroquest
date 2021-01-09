@@ -3062,7 +3062,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::CountersDisease:
-		Dest.DWord += GetMySpellCounters(SPA_DISEASE);
+		Dest.DWord = GetMySpellCounters(SPA_DISEASE);
 		Dest.Type = pIntType;
 		return true;
 
