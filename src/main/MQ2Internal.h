@@ -651,8 +651,8 @@ struct MQVarPtr
 		String
 	};
 
-	bool IsType(VariantIdx Index) { return Data.index() == static_cast<size_t>(Index); }
-	VariantIdx GetType() { return static_cast<VariantIdx>(Data.index()); }
+	bool IsType(VariantIdx Index) const { return Data.index() == static_cast<size_t>(Index); }
+	VariantIdx GetType() const { return static_cast<VariantIdx>(Data.index()); }
 
 	bool operator==(const MQVarPtr& other) const
 	{
@@ -662,29 +662,34 @@ struct MQVarPtr
 	}
 
 	template <typename T>
-	struct ConvertVisitor
+	static constexpr auto type_name() noexcept
 	{
-		mutable std::optional<T> value;
+		std::string_view name = __FUNCSIG__
+			, prefix = "auto __cdecl mq::MQVarPtr::type_name<"
+			, suffix = ">(void) noexcept";
 
-		template <typename U>
-		void operator()(U&& val)
-		{
-			if constexpr (std::is_convertible_v<U, T>)
-				value = static_cast<T>(val);
-		}
-
-		ConvertVisitor() : value(std::nullopt) {}
-	};
+		name.remove_prefix(prefix.size());
+		name.remove_suffix(suffix.size());
+		return std::string(name);
+	}
 
 	template <typename T>
 	T Cast() const
 	{
-		auto visitor = ConvertVisitor<T>();
-		std::visit(visitor, Data);
-		if (visitor.value)
-			return *visitor.value;
+		std::optional<T> value;
 
-		return T();
+		auto visitor = [&value, this](const auto& val)
+		{
+			using U = std::decay_t<decltype(val)>;
+
+			if constexpr (std::is_convertible_v<U, T>)
+				value = static_cast<T>(val);
+			else
+				WriteChatf("Tried to convert unlike types %s and %s", type_name<T>().c_str(), type_name<U>().c_str());
+		};
+
+		std::visit(visitor, Data);
+		return value.value_or(T());
 	}
 
 	template <typename T>

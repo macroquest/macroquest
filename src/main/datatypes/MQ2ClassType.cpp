@@ -27,7 +27,7 @@ bool MQ2ClassType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	switch (static_cast<ClassMembers>(pMember->ID))
 	{
 	case ID:
-		Dest.Ptr = VarPtr.Ptr;
+		Dest.Set(VarPtr.Get<uint32_t>());
 		Dest.Type = pIntType;
 		return true;
 
