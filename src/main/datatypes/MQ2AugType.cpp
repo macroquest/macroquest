@@ -89,28 +89,23 @@ bool MQ2AugType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		return true;
 
 	case AugTypeMembers::Empty:
-		Dest.Set(true);
+		Dest.Set(pCont->GetContent(index) == nullptr);
 		Dest.Type = pBoolType;
-		if (CONTENTS* pCret = pCont->GetContent(index))
-			Dest.Set(false);
 		return true;
 
 	case AugTypeMembers::Name:
 		Dest.Type = pStringType;
-		if (CONTENTS* pCret = pCont->GetContent(index))
+		if (ItemClient* pCret = pCont->GetContent(index))
 		{
-			if (ITEMINFO* pAug = GetItemFromContents(pCret))
-			{
-				strcpy_s(DataTypeTemp, pAug->Name);
-				Dest.Ptr = DataTypeTemp;
-				return true;
-			}
+			strcpy_s(DataTypeTemp, pCret->GetName());
+			Dest.Ptr = DataTypeTemp;
+			return true;
 		}
 		return false;
 
 	case AugTypeMembers::Item:
 		Dest.Type = pItemType;
-		if (CONTENTS* pCret = pCont->GetContent(index))
+		if (ItemClient* pCret = pCont->GetContent(index))
 		{
 			Dest.Ptr = pCret;
 			return true;
@@ -120,13 +115,10 @@ bool MQ2AugType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 	case AugTypeMembers::Solvent:
 		Dest.DWord = 0;
 		Dest.Type = pSolventType;
-		if (CONTENTS* pCret = pCont->GetContent(index))
+		if (ItemPtr pItem = pCont->GetHeldItem(index))
 		{
-			if (ITEMINFO* ptheAug = GetItemFromContents(pCret))
-			{
-				Dest.DWord = ptheAug->SolventItemID;
-				return true;
-			}
+			Dest.DWord = pItem->GetItemDefinition()->SolventItemID;
+			return true;
 		}
 		return false;
 

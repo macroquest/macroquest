@@ -477,7 +477,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case SpellMembers::MyCastTime:
 	{
-		VePointer<CONTENTS> pc;
+		ItemPtr pc;
 		uint64_t mct = (uint64_t)GetCastingTimeModifier(pSpell) +
 			GetFocusCastingTimeModifier(pSpell, pc, false) +
 			pSpell->CastTime;
@@ -727,7 +727,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case SpellMembers::MyRange:
 	{
-		VePointer<CONTENTS> n;
+		ItemPtr n;
 		Dest.Float = pSpell->Range + (float)GetFocusRangeModifier(pSpell, n);
 		Dest.Type = pFloatType;
 		return true;

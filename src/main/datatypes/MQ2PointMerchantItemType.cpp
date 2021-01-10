@@ -15,84 +15,125 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class PointMerchantItemMembers
+{
+	Name = 1,
+	ItemID,
+	Price,
+	ThemeID,
+	IsStackable,
+	IsLore,
+	RaceMask,
+	ClassMask,
+	CanUse,
+};
+
+enum class PointMerchantMethods
+{
+};
+
+MQ2PointMerchantItemType::MQ2PointMerchantItemType()
+	: MQ2Type("pointmerchantitem")
+{
+	ScopedTypeMember(PointMerchantItemMembers, Name);
+	ScopedTypeMember(PointMerchantItemMembers, ItemID);
+	ScopedTypeMember(PointMerchantItemMembers, Price);
+	ScopedTypeMember(PointMerchantItemMembers, ThemeID);
+	ScopedTypeMember(PointMerchantItemMembers, IsStackable);
+	ScopedTypeMember(PointMerchantItemMembers, IsLore);
+	ScopedTypeMember(PointMerchantItemMembers, RaceMask);
+	ScopedTypeMember(PointMerchantItemMembers, ClassMask);
+	ScopedTypeMember(PointMerchantItemMembers, CanUse);
+}
 
 bool MQ2PointMerchantItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	if (!pMerchantWnd)
-		return false;
+	if (!pMerchantWnd) return false;
 
-	if (VarPtr.Int < 0 || VarPtr.Int > pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer.GetSize())
-		return false;
+	MQTypeMember* pMember = MQ2PointMerchantItemType::FindMember(Member);
+	if (!pMember) return false;
 
 	int index = VarPtr.Int;
-	MQTypeMember* pMember = MQ2PointMerchantItemType::FindMember(Member);
+	auto& itemContainer = pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer;
 
-	if (!pMember)
+	if (index < 0 || index > itemContainer.GetSize())
 		return false;
 
-	ITEMINFO* pItem = nullptr;
-	CONTENTS* pCont = nullptr;
-	if (pCont = pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer[index].pCont)
-	{
-		pItem = GetItemFromContents(pCont);
-	}
-
+	ItemPtr pItem = itemContainer[index].pItem;
 	if (!pItem)
 		return false;
 
 	switch (static_cast<PointMerchantItemMembers>(pMember->ID))
 	{
-	case Name:
-		strcpy_s(DataTypeTemp, pItem->Name);
+	case PointMerchantItemMembers::Name:
+		strcpy_s(DataTypeTemp, pItem->GetName());
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case ItemID:
-		Dest.Int = pCont->ID;
+	case PointMerchantItemMembers::ItemID:
+		Dest.Int = pItem->GetID();
 		Dest.Type = pIntType;
 		return true;
 
-	case Price:
-		if (pItem->LDTheme)
-			Dest.Int64 = pItem->LDCost;
+	case PointMerchantItemMembers::Price:
+		if (pItem->GetItemDefinition()->LDTheme)
+			Dest.Int64 = pItem->GetItemDefinition()->LDCost;
 		else
-			Dest.Int64 = pCont->Price;
+			Dest.Int64 = pItem->Price;
 		Dest.Type = pInt64Type;
 		return true;
 
-	case ThemeID:
-		Dest.Int = pItem->LDTheme;
+	case PointMerchantItemMembers::ThemeID:
+		Dest.Int = pItem->GetItemDefinition()->LDTheme;
 		Dest.Type = pIntType;
 		return true;
 
-	case IsStackable:
-		Dest.Set(((EQ_Item*)pCont)->IsStackable());
+	case PointMerchantItemMembers::IsStackable:
+		Dest.Set(pItem->IsStackable());
 		Dest.Type = pBoolType;
 		return true;
 
-	case IsLore:
-		Dest.Set(pItem->Lore != 0);
+	case PointMerchantItemMembers::IsLore:
+		Dest.Set(pItem->GetItemDefinition()->Lore != 0);
 		Dest.Type = pBoolType;
 		return true;
 
-	case RaceMask:
-		Dest.Int = pItem->Races;
+	case PointMerchantItemMembers::RaceMask:
+		Dest.Int = pItem->GetItemDefinition()->Races;
 		Dest.Type = pIntType;
 		return true;
 
-	case ClassMask:
-		Dest.Int = pItem->Classes;
+	case PointMerchantItemMembers::ClassMask:
+		Dest.Int = pItem->GetItemDefinition()->Classes;
 		Dest.Type = pIntType;
 		return true;
 
-	case CanUse:
-		Dest.Set(pCharData->CanUseItem(&pCont, false, false));
+	case PointMerchantItemMembers::CanUse:
+		Dest.Set(pCharData->CanUseItem(pItem, false, false));
 		Dest.Type = pBoolType;
 		return true;
 	}
 	return false;
 }
 
+bool MQ2PointMerchantItemType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (pMerchantWnd)
+	{
+		auto& itemContainer = pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer;
+		int index = VarPtr.Int;
+
+		if (index >= 0 && index < itemContainer.GetSize())
+		{
+			strcpy_s(Destination, MAX_STRING, itemContainer[index].pCont->GetName());
+			return true;
+		}
+	}
+
+	return false;
+}
+
+} // namespace mq::datatypes

@@ -77,6 +77,10 @@ bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 	if (!VarPtr.Ptr)
 		return false;
 
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile)
+		return false;
+
 	//----------------------------------------------------------------------------
 	// methods
 
@@ -89,31 +93,25 @@ bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			int KeyID = 0;
 			int Skill = 0;
 
-			if (PcProfile* pProfile = GetPcProfile())
+			if (ItemPtr pItem = pProfile->GetInventorySlot(InvSlot_Cursor))
 			{
-				if (pProfile->pInventoryArray && pProfile->pInventoryArray->Inventory.Cursor)
+				if (pItem->GetType() != ITEMTYPE_NORMAL)
 				{
-					if (ITEMINFO* pItem = GetItemFromContents(pProfile->pInventoryArray->Inventory.Cursor))
+					switch (pItem->GetItemClass())
 					{
-						if (pItem->Type != ITEMTYPE_NORMAL)
-						{
-							switch (pItem->Type)
-							{
-							case 33: // EQIC_KEY
-								KeyID = pItem->ItemNumber;
-								Skill = 0;
-								break;
-							case 35: // EQIC_LOCKPICK
-								KeyID = pItem->ItemNumber;
-								Skill = GetAdjustedSkill(SKILL_PICKLOCK);
-								break;
+					case ItemClass_Key:
+						KeyID = pItem->GetID();
+						Skill = 0;
+						break;
+					case ItemClass_LockPicks:
+						KeyID = pItem->GetID();
+						Skill = GetAdjustedSkill(SKILL_PICKLOCK);
+						break;
 
-							default:
-								KeyID = pItem->ItemNumber;
-								Skill = 0;
-								break;
-							}
-						}
+					default:
+						KeyID = pItem->GetID();
+						Skill = 0;
+						break;
 					}
 				}
 			}

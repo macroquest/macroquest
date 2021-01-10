@@ -594,55 +594,10 @@ public:
 class MQ2PointMerchantItemType : public MQ2Type
 {
 public:
-	enum PointMerchantItemMembers
-	{
-		Name = 1,
-		ItemID = 2,
-		Price = 3,
-		ThemeID = 4,
-		IsStackable = 5,
-		IsLore = 6,
-		RaceMask = 7,
-		ClassMask = 8,
-		CanUse = 9,
-	};
-
-	enum PointMerchantMethods
-	{
-	};
-
-	MQ2PointMerchantItemType() : MQ2Type("pointmerchantitem")
-	{
-		TypeMember(Name);
-		TypeMember(ItemID);
-		TypeMember(Price);
-		TypeMember(ThemeID);
-		TypeMember(IsStackable);
-		TypeMember(IsLore);
-		TypeMember(RaceMask);
-		TypeMember(ClassMask);
-		TypeMember(CanUse);
-	}
+	MQ2PointMerchantItemType();
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		if (pMerchantWnd)
-		{
-			int sz = pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer.GetSize();
-			if (sz)
-			{
-				if (VarPtr.Int >= 0 && VarPtr.Int < sz)
-				{
-					strcpy_s(Destination, MAX_STRING,
-						pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer[VarPtr.Int].pCont->Item2->Name);
-					return true;
-				}
-			}
-		}
-		return false;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 };
 
 //============================================================================
@@ -2260,7 +2215,7 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination)
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
 		if (PcProfile* pProfile = GetPcProfile())
 		{
@@ -2286,84 +2241,10 @@ public:
 class MQ2SolventType : public MQ2Type
 {
 public:
-	enum SolventTypeMembers
-	{
-		Name = 1,
-		ID = 2,
-		Item = 3,
-		Count = 4,
-	};
-
-	MQ2SolventType() : MQ2Type("solventtype")
-	{
-		TypeMember(Name);
-		TypeMember(ID);
-		TypeMember(Item);
-		TypeMember(Count);
-	}
+	MQ2SolventType();
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
-
-	// TODO: Move this to a global
-	static const char* GetAugmentNameByID(int itemid)
-	{
-		switch (itemid)
-		{
-		case 47001:
-			return "Class I Augmentation Distiller";
-		case 47002:
-			return "Class II Augmentation Distiller";
-		case 47003:
-			return "Class III Augmentation Distiller";
-		case 47004:
-			return "Class IV Augmentation Distiller";
-		case 47005:
-			return "Class V Augmentation Distiller";
-		case 47006:
-			return "Class VI Augmentation Distiller";
-		case 47007:
-			return "Class VII Augmentation Distiller";
-		case 47008:
-			return "Class VIII Augmentation Distiller";
-		case 47009:
-			return "Class IX Augmentation Distiller";
-		case 47010:
-			return "Class X Augmentation Distiller";
-		case 47011:
-			return "Class XI Augmentation Distiller";
-		case 47012:
-			return "Class XII Augmentation Distiller";
-		case 47013:
-			return "Class XIII Augmentation Distiller";
-		case 47014:
-			return "Class XIV Augmentation Distiller";
-		case 47015:
-			return "Class XV Augmentation Distiller";
-		case 47016:
-			return "Class XVI Augmentation Distiller";
-		case 47017:
-			return "Class XVII Augmentation Distiller";
-		case 47018:
-			return "Class XVIII Augmentation Distiller";
-		case 47019:
-			return "Class XIX Augmentation Distiller";
-		case 47020:
-			return "Class XX Augmentation Distiller";
-		case 47021:
-			return "Class XXI Augmentation Distiller";
-		default:
-			return "Perfected Augmentation Distiller";
-		};
-	}
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		if (const char* pstr = GetAugmentNameByID(VarPtr.DWord)) {
-			strcpy_s(Destination, MAX_STRING, pstr);
-			return true;
-		}
-		return false;
-	}
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 };
 
 //============================================================================

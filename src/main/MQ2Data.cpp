@@ -388,16 +388,14 @@ bool dataIf(const char* szIndex, MQTypeVar& Ret)
 
 bool dataCursor(const char* szIndex, MQTypeVar& Ret)
 {
-	if (PcProfile* pChar2 = GetPcProfile())
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile)
+		return false;
+
+	if (Ret.Ptr = pProfile->GetInventorySlot(InvSlot_Cursor).get())
 	{
-		if (pChar2->pInventoryArray)
-		{
-			if (Ret.Ptr = pChar2->pInventoryArray->Inventory.Cursor)
-			{
-				Ret.Type = pItemType;
-				return true;
-			}
-		}
+		Ret.Type = pItemType;
+		return true;
 	}
 
 	return false;
@@ -609,16 +607,11 @@ bool dataSubDefined(const char* szIndex, MQTypeVar& Ret)
 
 bool dataSelectedItem(const char* szIndex, MQTypeVar& Ret)
 {
-	if (pInvSlotMgr->pSelectedItem && pInvSlotMgr->pSelectedItem->Index)
+	if (pInvSlotMgr->pSelectedItem)
 	{
-		CInvSlot* pCIS = pInvSlotMgr->pSelectedItem;
-
-		CONTENTS* pC = nullptr;
-		pCIS->GetItemBase(&pC);
-
-		if (pC)
+		if (ItemPtr pItem = pInvSlotMgr->pSelectedItem->GetItem())
 		{
-			Ret.Ptr = pC;
+			Ret.Ptr = pItem.get();
 			Ret.Type = pItemType;
 			return true;
 		}

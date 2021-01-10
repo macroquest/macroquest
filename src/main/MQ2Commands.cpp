@@ -913,48 +913,32 @@ void SelectItem(SPAWNINFO* pChar, char* szLine)
 	if (szBuffer[0])
 	{
 		char* pName = &szBuffer[0];
-		bool bExact = false;
+		bool bExact = *pName == '=' && ++pName;
 
-		if (*pName == '=')
+		if (pMerchantWnd->IsVisible())
 		{
-			bExact = true;
-			pName++;
-		}
-
-		if (CHARINFO * pCharInfo = GetCharInfo())
-		{
-			if (CMerchantWnd* pmercho = (CMerchantWnd*)pMerchantWnd)
+			if (ItemClient* pItem = FindItemByName(szBuffer, bExact))
 			{
-				if (pmercho->IsVisible())
+				// Only allow items that are in our inventory.
+				const ItemGlobalIndex& To = pItem->GetItemLocation();
+				if (To.GetLocation() == eItemContainerPossessions)
 				{
-					ITEMINFO* pItem = nullptr;
-					CONTENTS* pCont = nullptr;
-					bool bFound = false;
-
-					if (CONTENTS* pCont = FindItemByName(szBuffer, bExact))
-					{
-						ItemGlobalIndex To;
-						To.Location = pCont->GetGlobalIndex().GetLocation();
-						To.Index.SetSlot(0, pCont->GetGlobalIndex().GetTopSlot());
-						To.Index.SetSlot(1, pCont->GetGlobalIndex().GetIndex().GetSlot(1));
-
-						pmercho->SelectBuySellSlot(To, To.GetTopSlot());
-					}
-					else
-					{
-						WriteChatf("/selectitem Could NOT find %s in your inventory to select.\n"
-							"Use /invoke ${Merchant.SelectItem[%s]} if you want to select an item in the merchants inventory.", szBuffer, szBuffer);
-					}
+					pMerchantWnd->SelectBuySellSlot(To, To.GetTopSlot());
 				}
 			}
+			else
+			{
+				WriteChatf("/selectitem Could NOT find \ay%s\ax in your inventory to select.\n"
+					"Use /invoke ${Merchant.SelectItem[%s]} if you want to select an item in the merchants inventory.", szBuffer, szBuffer);
+			}
+
+			return;
 		}
 	}
-	else
-	{
-		WriteChatf("/selectitem works when a merchantwindow is open, it will select a item from YOUR inventory.\n"
-			"Use /invoke ${Merchant.SelectItem[some item]} if you want to select an item in the MERCHANTS inventory.");
-		WriteChatf(R"(Usage: /selectitem "some item in YOUR inventory", use "=some item in YOUR inventory" for EXACT name search.)");
-	}
+
+	WriteChatf("/selectitem works when a merchantwindow is open, it will select a item from YOUR inventory.\n"
+		"Use /invoke ${Merchant.SelectItem[some item]} if you want to select an item in the MERCHANTS inventory.");
+	WriteChatf(R"(Usage: /selectitem "some item in YOUR inventory", use "=some item in YOUR inventory" for EXACT name search.)");
 }
 
 // ***************************************************************************
@@ -1645,26 +1629,26 @@ void Identify(SPAWNINFO* pChar, char* szLine)
 	if (!pProfile)
 		return;
 
-	CONTENTS* pCursor = pProfile->pInventoryArray->Inventory.Cursor;
+	ItemPtr pCursor = pProfile->GetInventorySlot(InvSlot_Cursor);
 	if (!pCursor)
 	{
 		MacroError("You must be holding an item to identify it.");
 		return;
 	}
 
-	ITEMINFO* pItemInfo = GetItemFromContents(pCursor);
+	ItemDefinition* pItemInfo = pCursor->GetItemDefinition();
 	DebugSpew("Identify - %s", pItemInfo->LoreName);
 
 	WriteChatColor(" ", USERCOLOR_SPELLS);
 
-	if (pItemInfo->Type == ITEMTYPE_NORMAL && pItemInfo->ItemType < MAX_ITEMTYPES && szItemTypes[pItemInfo->ItemType] != nullptr)
+	if (pItemInfo->Type == ITEMTYPE_NORMAL && pItemInfo->ItemClass < MAX_ITEMCLASSES && szItemClasses[pItemInfo->ItemClass] != nullptr)
 	{
 		WriteChatColorf("Item: %s (Slot: %s, Weight: %.1f, Value: %dcp, Type: %s)", USERCOLOR_SPELLS,
 			pItemInfo->Name,
 			szSize[pItemInfo->Size],
 			static_cast<float>(pItemInfo->Weight) / 10.f,
 			pItemInfo->Cost,
-			szItemTypes[pItemInfo->ItemType]);
+			szItemClasses[pItemInfo->ItemType]);
 	}
 	else if (pItemInfo->Type == ITEMTYPE_PACK && pItemInfo->Combine < MAX_COMBINES && szCombineTypes[pItemInfo->Combine] != nullptr)
 	{
@@ -1865,7 +1849,7 @@ void Identify(SPAWNINFO* pChar, char* szLine)
 			strcat_s(szMsg, szTmp);
 		}
 
-		if (((EQ_Item*)pCursor)->IsStackable() == 1)
+		if (pCursor->IsStackable())
 		{
 			sprintf_s(szTmp, "Stack size = %d ", pCursor->StackCount);
 			strcat_s(szMsg, szTmp);
@@ -2988,46 +2972,23 @@ void Cast(SPAWNINFO* pChar, char* szLine)
 
 	if (!_stricmp(szArg1, "item"))
 	{
-		if (HasExpansion(EXPANSION_VoA))
+		// Find the item
+		if (CONTENTS* pItem = FindItemByName(szArg2, true))
 		{
-			if (CONTENTS* pItem = FindItemByName(szArg2, true))
+			int spellId = pItem->GetItemDefinition()->Clicky.SpellID;
+
+			if (spellId > 0)
 			{
-				if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID != -1)
-				{
-					char cmd[MAX_STRING] = { 0 };
-					sprintf_s(cmd, "/useitem \"%s\"", GetItemFromContents(pItem)->Name);
-					EzCommand(cmd);
-				}
-			}
-			else
-			{
-				WriteChatf("Item '%s' not found.", szArg2);
+				char cmd[256] = { 0 };
+				sprintf_s(cmd, "/useitem \"%s\"", pItem->GetName());
+				EzCommand(cmd);
 			}
 		}
 		else
 		{
-			if (CONTENTS* pItem = FindItemByName(szArg2, true))
-			{
-				if (pItem->GetGlobalIndex().GetTopSlot() < NUM_INV_SLOTS)
-				{
-					if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID != -1)
-					{
-						if (pInvSlotMgr)
-						{
-							if (CInvSlot* pSlot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex().GetTopSlot()))
-							{
-								CXPoint p;
-								pSlot->HandleRButtonUp(p);
-							}
-						}
-					}
-				}
-			}
-			else
-			{
-				WriteChatf("Item '%s' not found.", szArg2);
-			}
+			WriteChatf("Item '%s' not found.", szArg2);
 		}
+
 		return;
 	}
 
@@ -3036,48 +2997,42 @@ void Cast(SPAWNINFO* pChar, char* szLine)
 
 	for (int Index = 0; Index < NUM_SPELL_GEMS; Index++)
 	{
-		int Spellid = GetMemorizedSpell(Index);
-		if (Spellid != -1)
+		EQ_Spell* pSpell = GetSpellByID(GetMemorizedSpell(Index));
+		if (pSpell && ci_starts_with(pSpell->Name, szArg1))
 		{
-			if (SPELL* pSpell = GetSpellByID(Spellid))
+			if (pSpell->TargetType == TT_SPLASH)
 			{
-				if (!_strnicmp(szArg1, pSpell->Name, strlen(szArg1)))
+				// is it a splashspell?
+				if (!_stricmp(szArg2, "loc"))
 				{
-					if (pSpell->TargetType == TT_SPLASH)
-					{
-						// is it a splashspell?
-						if (!_stricmp(szArg2, "loc"))
-						{
-							CVector3 castLoc;
+					CVector3 castLoc;
 
-							// they want to cast it at a specific location
-							char loc[32] = { 0 };
-							GetArg(loc, szLine, 3);
-							castLoc.X = GetFloatFromString(loc, 0);
+					// they want to cast it at a specific location
+					char loc[32] = { 0 };
+					GetArg(loc, szLine, 3);
+					castLoc.X = GetFloatFromString(loc, 0);
 
-							GetArg(loc, szLine, 4);
-							castLoc.Y = GetFloatFromString(loc, 0);
+					GetArg(loc, szLine, 4);
+					castLoc.Y = GetFloatFromString(loc, 0);
 
-							GetArg(loc, szLine, 5);
-							castLoc.Z = GetFloatFromString(loc, 0);
+					GetArg(loc, szLine, 5);
+					castLoc.Z = GetFloatFromString(loc, 0);
 
-							CastSplash(Index, pSpell, &castLoc);
-						}
-						else
-						{
-							CastSplash(Index, pSpell, nullptr);
-						}
-					}
-					else
-					{
-						// nope normal, so just pipe it through
-						_itoa_s(Index + 1, szArg1, 10);
-						cmdCast(pChar, szArg1);
-					}
-
-					return;
+					CastSplash(Index, pSpell, &castLoc);
+				}
+				else
+				{
+					CastSplash(Index, pSpell, nullptr);
 				}
 			}
+			else
+			{
+				// nope normal, so just pipe it through
+				_itoa_s(Index + 1, szArg1, 10);
+				cmdCast(pChar, szArg1);
+			}
+
+			return;
 		}
 	}
 
@@ -3375,36 +3330,30 @@ void BankList(SPAWNINFO* pChar, char* szLine)
 
 	char Link[MAX_STRING] = { 0 };
 
-	for (int a = 0; a < NUM_BANK_SLOTS; a++)
+	pCharInfo->BankItems.VisitItems(-1,
+		[&](const ItemPtr& item, const ItemIndex& index)
 	{
-		CONTENTS* pContainer = nullptr;
+		GetItemLink(item.get(), Link);
 
-		if (pCharInfo && pCharInfo->pBankArray)
-			pContainer = pCharInfo->pBankArray->Bank[a];
-
-		if (pContainer)
+		if (index.IsBase())
 		{
-			GetItemLink(pContainer, Link);
-			WriteChatf("Slot %d: %dx %s (%s)", a, pContainer->StackCount ? pContainer->StackCount : 1, Link, GetItemFromContents(pContainer)->LoreName);
-
-			if (pContainer->Contents.ContainedItems.pItems)
-			{
-				for (int b = 0; b < GetItemFromContents(pContainer)->Slots; b++)
-				{
-					CONTENTS* pItem = pContainer->Contents.ContainedItems.pItems->Item[b];
-
-					if (pItem)
-					{
-						GetItemLink(pItem, Link);
-						WriteChatf("- Slot %d: %dx %s (%s)", b,
-							pItem->StackCount ? pItem->StackCount : 1,
-							Link,
-							GetItemFromContents(pItem)->LoreName);
-					}
-				}
-			}
+			WriteChatf("Slot %d: %dx %s (%s)", index.GetSlot(0),
+				item->GetItemCount(), Link, item->GetItemDefinition()->LoreName);
 		}
-	}
+		else if (pCharInfo->BankItems.IsItemInSocket(index))
+		{
+			ItemPtr parentItem = pCharInfo->BankItems.GetItem(index.GetParentIndex());
+			int augSlot = index.GetDeepestSlot();
+
+			WriteChatf("-- Aug Slot %d, type %d: %s", augSlot + 1,
+				parentItem->GetItemDefinition()->AugData.GetSocketType(augSlot), Link);
+		}
+		else
+		{
+			WriteChatf("- Slot %d: %dx %s (%s)", index.GetSlot(1),
+				item->GetItemCount(), Link, item->GetItemDefinition()->LoreName);
+		}
+	});
 }
 
 // ***************************************************************************
@@ -3817,37 +3766,35 @@ void UseItemCmd(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	CONTENTS* pItem = FindItemByName(szCmd, stripped);
+	ItemClient* pItem = FindItemByName(szCmd, stripped);
 	if (!pItem)
 		return;
 
-	CHARINFO* pCharInfo = GetCharInfo();
-	if (!pCharInfo)
-		return;
+	const ItemGlobalIndex& itemLocation = pItem->GetItemLocation();
 
-	if (!pItem->GlobalIndex.IsKeyRingLocation())
+	if (itemLocation.GetLocation() == eItemContainerPossessions)
 	{
 		char szTemp[32] = { 0 };
-		sprintf_s(szTemp, "%d %d", pItem->GetGlobalIndex().GetTopSlot(), pItem->GetGlobalIndex().GetIndex().GetSlot(1));
+		sprintf_s(szTemp, "%d %d", itemLocation.GetTopSlot(), itemLocation.GetIndex().GetSlot(1));
 
 		cmdUseItem(pChar, szTemp);
-		return;
 	}
-
-	// Check if this item qualifies to be on a keyring
-	KeyRingType keyRingType;
-	switch (pItem->GetItemDefinition()->ItemType)
+	else if (itemLocation.IsKeyRingLocation())
 	{
-	case eItemClass_Mount: keyRingType = eMount; break;
-	case eItemClass_Illusion: keyRingType = eIllusion; break;
-	case eItemClass_Familiar: keyRingType = eFamiliar; break;
-		break;
+		// Check if this item qualifies to be on a keyring
+		KeyRingType keyRingType;
+		switch (pItem->GetItemClass())
+		{
+		case ItemClass_Mount: keyRingType = eMount; break;
+		case ItemClass_Illusion: keyRingType = eIllusion; break;
+		case ItemClass_Familiar: keyRingType = eFamiliar; break;
+			break;
 
-	default: return;
+		default: return;
+		}
+
+		CKeyRingWnd::ExecuteRightClick(keyRingType, pItem, itemLocation.GetTopSlot());
 	}
-
-	VePointer<CONTENTS> pContents{ pItem };
-	CKeyRingWnd::ExecuteRightClick(keyRingType, pContents, pItem->GlobalIndex.GetTopSlot());
 }
 
 // ***************************************************************************
@@ -4198,19 +4145,12 @@ void CombineCmd(SPAWNINFO* pChar, char* szLine)
 	MacroError("Window '%s' not container window", szLine);
 }
 
-void DropCmd(SPAWNINFO* pChar, char* szLine)
+void DropCmd(SPAWNINFO*, char*)
 {
-	PcProfile* pProfile = GetPcProfile();
-	if (!pProfile)
-		return;
+	ItemPtr pItem = GetPcProfile()->GetInventorySlot(InvSlot_Cursor);
 
-	if (pProfile->pInventoryArray && pProfile->pInventoryArray->Inventory.Cursor)
-	{
-		if (((EQ_Item*)pProfile->pInventoryArray->Inventory.Cursor)->CanDrop(0, 1))
-		{
-			pEverQuest->DropHeldItemOnGround(1);
-		}
-	}
+	if (pItem && pItem->CanDrop(false, true))
+		pEverQuest->DropHeldItemOnGround(1);
 }
 
 void HudCmd(SPAWNINFO* pChar, char* szLine)
