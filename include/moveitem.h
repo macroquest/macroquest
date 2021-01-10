@@ -88,7 +88,7 @@ CItemLocation* ItemFind(CItemLocation* pItemFound, char* pcItemName, unsigned sh
 CItemLocation* ItemFind(CItemLocation* pItemFound, char* pcItemName, unsigned short usMin, unsigned short usInvSlots)
 {
 	PcProfile* pProfile = GetPcProfile();
-	if (pProfile) return nullptr;
+	if (!pProfile) return nullptr;
 
 	unsigned short usSlot = 0;
 	int iIsNum = IsNumber(pcItemName);
