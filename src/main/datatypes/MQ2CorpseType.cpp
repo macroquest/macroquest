@@ -45,62 +45,31 @@ bool MQ2CorpseType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			if (IsNumber(Index))
 			{
 				int nIndex = GetIntFromString(Index, 0) - 1;
-				if (nIndex < 0 || nIndex >= NUM_INV_SLOTS)
+				if (nIndex < 0 || nIndex >= InvSlot_Max)
 					return false;
 
-				if (Dest.Ptr = pLootWnd->pInventoryArray->InventoryArray[nIndex])
-				{
+				if (Dest.Ptr = pLootWnd->GetLootItem(nIndex).get())
 					return true;
-				}
 			}
 			else
 			{
 				// name
-				bool bExact = false;
 				char* pName1 = Index;
-				if (*pName1 == '=')
-				{
-					bExact = true;
-					pName1++;
-				}
+				bool bExact = (*pName1 == '=') && ++pName1;
 
-				for (int nIndex = 0; nIndex < NUM_INV_SLOTS; nIndex++)
+				ItemIndex itemIndex = pLootWnd->GetLootItems().FindItem(0, FindItemByNamePred(pName1, bExact));
+				if (itemIndex.IsValid())
 				{
-					if (CONTENTS* pContents = pLootWnd->pInventoryArray->InventoryArray[nIndex])
-					{
-						const char* itemName = GetItemFromContents(pContents)->Name;
-
-						if (bExact)
-						{
-							if (ci_equals(itemName, pName1))
-							{
-								Dest.Ptr = pContents;
-								return true;
-							}
-						}
-						else
-						{
-							if (ci_find_substr(itemName, pName1) != -1)
-							{
-								Dest.Ptr = pContents;
-								return true;
-							}
-						}
-					}
+					Dest.Ptr = pLootWnd->GetLootItems().GetItem(itemIndex).get();
+					return true;
 				}
 			}
 		}
 		return false;
 
 	case Items:
-		Dest.DWord = 0;
+		Dest.DWord = pLootWnd->GetLootItems().GetCount();
 		Dest.Type = pIntType;
-
-		for (int index = 0; index < 31; index++)
-		{
-			if (pLootWnd->pInventoryArray->InventoryArray[index])
-				Dest.DWord++;
-		}
 		return true;
 
 	default: break;

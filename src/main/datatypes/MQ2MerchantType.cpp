@@ -36,38 +36,30 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 			{
 				bool bFound = false;
 				int listIndex = 0;
-				CONTENTS* pCont = nullptr;
-				ITEMINFO* pItem = nullptr;
+				ItemClient* pItem = nullptr;
 
 				for (int i = 0; i < pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer.GetSize(); i++)
 				{
-					if (pCont = pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer[i].pCont)
+					if (pItem = pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer[i].pCont)
 					{
-						if (pItem = GetItemFromContents(pCont))
+						if (MaybeExactCompare(pItem->GetName(), Index))
 						{
-							if (MaybeExactCompare(pItem->Name, Index))
-							{
-								listIndex = i;
-								bFound = true;
-								break;
-							}
+							listIndex = i;
+							bFound = true;
+							break;
 						}
 					}
 				}
 
 				if (bFound)
 				{
-					// TODO: Maybe this should just be a straight global index copy.
-					ItemGlobalIndex To;
-					To.Location = eItemContainerMerchant;
-					To.GetIndex().SetSlot(0, pCont->GetGlobalIndex().GetTopSlot());
-					To.GetIndex().SetSlot(1, pCont->GetGlobalIndex().GetIndex().GetSlot(1));
+					ItemGlobalIndex To(eItemContainerMerchant, pItem->GetItemLocation().GetTopSlot());
 
 					for (int i = 0; i < pMerchantWnd->ItemsList->ItemsArray.GetLength(); i++)
 					{
 						CXStr Str = pMerchantWnd->ItemsList->GetItemText(i, 1);
 
-						if (ci_equals(Str, pItem->Name))
+						if (ci_equals(Str, pItem->GetName()))
 						{
 							pMerchantWnd->ItemsList->SetCurSel(i);
 						}
@@ -88,7 +80,7 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 					return false;
 
 				if (pMerchantWnd->pSelectedItem
-					&& pMerchantWnd->pSelectedItem->GetGlobalIndex().GetLocation() == eItemContainerMerchant)
+					&& pMerchantWnd->pSelectedItem->GetItemLocation().GetLocation() == eItemContainerMerchant)
 				{
 					pMerchantWnd->PageHandlers[RegularMerchantPage]->RequestGetItem(Qty);
 					return true;
@@ -105,7 +97,7 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 					return false;
 
 				if (pMerchantWnd->pSelectedItem
-					&& pMerchantWnd->pSelectedItem->GetGlobalIndex().GetLocation() == eItemContainerPossessions)
+					&& pMerchantWnd->pSelectedItem->GetItemLocation().GetLocation() == eItemContainerPossessions)
 				{
 					pMerchantWnd->PageHandlers[RegularMerchantPage]->RequestPutItem(Qty);
 					return true;
@@ -178,39 +170,36 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 
 		if (Index[0])
 		{
-			if (pMerchantWnd)
+			VePointer<MerchantPageHandler>& page = pMerchantWnd->PageHandlers[RegularMerchantPage];
+
+			if (IsNumber(Index))
 			{
-				VePointer<MerchantPageHandler>& page = pMerchantWnd->PageHandlers[RegularMerchantPage];
+				// by index
+				int nIndex = GetIntFromString(Index, 0) - 1;
+				if (nIndex < 0)
+					return false;
 
-				if (IsNumber(Index))
+				if (nIndex < page->ItemContainer.GetSize())
 				{
-					// by index
-					int nIndex = GetIntFromString(Index, 0) - 1;
-					if (nIndex < 0)
-						return false;
-
-					if (nIndex < page->ItemContainer.GetSize())
+					if (Dest.Ptr = page->ItemContainer[nIndex].pCont)
 					{
-						if (Dest.Ptr = page->ItemContainer[nIndex].pCont)
-						{
-							return true;
-						}
+						return true;
 					}
 				}
-				else
+			}
+			else
+			{
+				// by name
+				for (int nIndex = 0; nIndex < page->ItemContainer.GetSize(); nIndex++)
 				{
-					// by name
-					for (int nIndex = 0; nIndex < page->ItemContainer.GetSize(); nIndex++)
+					if (CONTENTS* pContents = page->ItemContainer[nIndex].pCont)
 					{
-						if (CONTENTS* pContents = page->ItemContainer[nIndex].pCont)
-						{
-							const char* itemName = GetItemFromContents(pContents)->Name;
+						const char* itemName = GetItemFromContents(pContents)->Name;
 
-							if (MaybeExactCompare(itemName, Index))
-							{
-								Dest.Ptr = pContents;
-								return true;
-							}
+						if (MaybeExactCompare(itemName, Index))
+						{
+							Dest.Ptr = pContents;
+							return true;
 						}
 					}
 				}
@@ -219,39 +208,27 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 		return false;
 
 	case Items:
-		Dest.DWord = 0;
+		Dest.DWord = pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer.GetSize();
 		Dest.Type = pIntType;
-		if (pMerchantWnd)
-		{
-			Dest.DWord = pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer.GetSize();
-		}
 		return true;
 
 	case SelectedItem:
-		if (pMerchantWnd)
-		{
-			Dest.Ptr = pMerchantWnd->pSelectedItem.get();
-			Dest.Type = pItemType;
-			return true;
-		}
+		Dest.Ptr = pMerchantWnd->pSelectedItem.get();
+		Dest.Type = pItemType;
+		return true;
 
-	case Markup: {
+	case Markup:
 		Dest.Float = pMerchantWnd->MerchantGreed;
 		Dest.Type = pFloatType;
 		return true;
-	}
 
-	case Full:
+	case Full: {
 		Dest.Type = pBoolType;
 
-		if (pMerchantWnd)
-		{
-			VePointer<MerchantPageHandler>& page = pMerchantWnd->PageHandlers[RegularMerchantPage];
-
-			Dest.Set(page->ItemContainer.GetSize() >= page->MaxItems);
-			return true;
-		}
-		return false;
+		VePointer<MerchantPageHandler>& page = pMerchantWnd->PageHandlers[RegularMerchantPage];
+		Dest.Set(page->ItemContainer.GetSize() >= page->MaxItems);
+		return true;
+	}
 
 	default: break;
 	}

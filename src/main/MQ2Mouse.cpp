@@ -383,6 +383,7 @@ bool IsMouseWaiting()
 
 void Click(SPAWNINFO* pChar, char* szLine)
 {
+	// This check protects against many of the pointers in this function being uninitialized
 	if (GetGameState() != GAMESTATE_INGAME)
 	{
 		WriteChatf("Dont /click stuff(%s) when not in game... Gamestate is %d", szLine, GetGameState());
@@ -398,7 +399,7 @@ void Click(SPAWNINFO* pChar, char* szLine)
 	strcpy_s(szMouseLoc, GetNextArg(szLine, 1));  // location to click
 
 	// parse location for click location (szMouseLoc) here
-	if (szMouseLoc && szMouseLoc[0] != 0)
+	if (szMouseLoc[0] != 0)
 	{
 		if (!_strnicmp(szMouseLoc, "target", 6))
 		{
@@ -407,6 +408,7 @@ void Click(SPAWNINFO* pChar, char* szLine)
 				WriteChatColor("You must have a target selected for /click x target.", CONCOLOR_RED);
 				return;
 			}
+
 			if (!_strnicmp(szArg1, "left", 4))
 			{
 				pEverQuest->LeftClickedOnPlayer(pTarget);
@@ -464,31 +466,25 @@ void Click(SPAWNINFO* pChar, char* szLine)
 							int KeyID = 0;
 							int Skill = 0;
 
-							if (PcProfile* pProfile = GetPcProfile())
+							if (ItemPtr pItem = GetPcProfile()->GetInventorySlot(InvSlot_Cursor))
 							{
-								if (pProfile->pInventoryArray && pProfile->pInventoryArray->Inventory.Cursor)
+								switch (pItem->GetItemClass())
 								{
-									if (PITEMINFO pItem = GetItemFromContents(pProfile->pInventoryArray->Inventory.Cursor))
-									{
-										switch (pItem->ItemType)
-										{
-										case 33: // Key
-											KeyID = pItem->ItemNumber;
-											Skill = 0;
-											break;
+								case ItemClass_Key:
+									KeyID = pItem->GetID();
+									Skill = 0;
+									break;
 
-										case 11: // Misc (some keys have this type)
-										case 12: // Lockpicks
-											KeyID = pItem->ItemNumber;
-											Skill = GetAdjustedSkill(SKILL_PICKLOCK);
-											break;
+								case ItemClass_Misc: // (some keys have this type)
+								case ItemClass_LockPicks:
+									KeyID = pItem->GetID();
+									Skill = GetAdjustedSkill(SKILL_PICKLOCK);
+									break;
 
-										default:
-											KeyID = pItem->ItemNumber;
-											Skill = 0;
-											break;
-										}
-									}
+								default:
+									KeyID = pItem->GetID();
+									Skill = 0;
+									break;
 								}
 							}
 
@@ -606,7 +602,7 @@ ScreenVector3 g_vWorldLocation, v3ScreenCoord;
 EqViewPort9 g_viewPort;
 EQD3DMATRIX9 g_projection, g_view, g_world;
 
-//we also need a couple virtual functions defined and we can just put them FakeCDisplay 
+//we also need a couple virtual functions defined and we can just put them FakeCDisplay
 FUNCTION_AT_VIRTUAL_ADDRESS(void FakeCDisplay::SetCursorPosition(void* This, int X, int Y, DWORD Flags), 0x2c);
 FUNCTION_AT_VIRTUAL_ADDRESS(bool FakeCDisplay::ShowCursor(void* This, bool bShow), 0x30);
 FUNCTION_AT_VIRTUAL_ADDRESS(HRESULT FakeCDisplay::GetViewport(void*, void* pViewport), 0xc0);

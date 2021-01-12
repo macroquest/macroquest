@@ -330,7 +330,7 @@ inline const int GetCastingTimeModifier(const EQ_Spell* cSpell)
 	return 0;
 }
 
-inline int GetFocusCastingTimeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut, bool bEvalOnly)
+inline int GetFocusCastingTimeModifier(const EQ_Spell* pSpell, ItemPtr& pItemOut, bool bEvalOnly)
 {
 	if (pCharData)
 	{
@@ -340,7 +340,7 @@ inline int GetFocusCastingTimeModifier(const EQ_Spell* pSpell, VePointer<CONTENT
 	return 0;
 }
 
-inline int GetFocusRangeModifier(const EQ_Spell* pSpell, VePointer<CONTENTS>& pItemOut)
+inline int GetFocusRangeModifier(const EQ_Spell* pSpell, ItemPtr& pItemOut)
 {
 	if (pCharData)
 	{
@@ -605,7 +605,7 @@ inline int EQGetMySpellDuration(EQ_Spell* pSpell)
 	int origDuration = EQGetSpellDuration(pSpell, pSpawnInfo->Level, false);
 
 	int out1 = 0, out2 = 0;
-	VePointer<CONTENTS> pContents;
+	ItemPtr pContents;
 
 	int durationMod = pCharData->GetFocusDurationMod(pSpell, pContents, pLocalPlayer, origDuration, &out1, &out2);
 
@@ -670,6 +670,32 @@ inline bool MaybeExactCompare(std::string_view haystack, std::string_view needle
 	}
 
 	return ci_equals(haystack, needle, exact);
+}
+
+enum class StringMatchType {
+	Exact,
+	CaseInsensitive,
+	CaseInsensitiveSubstring,
+	CaseInsensitiveWithSentinel,        // treat as substring or match, based on presence of '='
+};
+
+inline bool StringCompare(std::string_view haystack, std::string_view needle,
+	StringMatchType matchType = StringMatchType::CaseInsensitive)
+{
+	switch (matchType)
+	{
+	case StringMatchType::Exact:
+		return haystack.size() == needle.size()
+			&& std::equal(haystack.begin(), haystack.end(), needle.begin());
+	case StringMatchType::CaseInsensitive:
+		return ci_equals(haystack, needle);
+	case StringMatchType::CaseInsensitiveSubstring:
+		return ci_find_substr(haystack, needle);
+	case StringMatchType::CaseInsensitiveWithSentinel:
+		return MaybeExactCompare(haystack, needle);
+
+	default: return false;
+	}
 }
 
 [[deprecated("Access CXStr directly instead of calling GetCXStr")]]

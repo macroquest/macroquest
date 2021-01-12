@@ -1494,10 +1494,7 @@ CONTENTS* GetEnviroContainer()
 	if (!pContainerMgr)
 		return nullptr;
 
-	if (!pContainerMgr->pWorldContainer)
-		return nullptr;
-
-	return pContainerMgr->pWorldContainer.get();
+	return pContainerMgr->WorldContainer.get();
 }
 
 CContainerWnd* FindContainerForContents(CONTENTS* pContents)
@@ -1505,13 +1502,7 @@ CContainerWnd* FindContainerForContents(CONTENTS* pContents)
 	if (!pContainerMgr)
 		return nullptr;
 
-	for (int j = 0; j < MAX_CONTAINERS; j++)
-	{
-		if (pContainerMgr->pContainerWnds[j] && pContainerMgr->pContainerWnds[j]->pContents == pContents)
-			return pContainerMgr->pContainerWnds[j];
-	}
-
-	return nullptr;
+	return pContainerMgr->GetWindowForItem(pContents);
 }
 
 // ***************************************************************************
@@ -1532,7 +1523,7 @@ float FindSpeed(SPAWNINFO* pSpawn)
 
 void GetItemLinkHash(CONTENTS* Item, char* Buffer, size_t BufferSize)
 {
-	((EQ_Item*)Item)->CreateItemTagString(Buffer, BufferSize, true);
+	Item->CreateItemTagString(Buffer, BufferSize, true);
 }
 
 bool GetItemLink(CONTENTS* Item, char* Buffer, size_t BufferSize, bool Clickable)
@@ -1689,50 +1680,46 @@ bool SearchThroughItems(MQItemSearch& SearchItem, CONTENTS** pResult, DWORD* nRe
 	return true;                       \
 }
 
-	if (PcProfile* pProfile = GetPcProfile())
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile) return false;
+
+	if (MaskSet(Worn) && Flag(Worn))
 	{
-		if (pProfile->pInventoryArray)
+		// iterate through worn items
+		for (int N = InvSlot_FirstWornItem; N <= InvSlot_LastWornItem; N++)
 		{
-			if (MaskSet(Worn) && Flag(Worn))
+			if (CONTENTS* pContents = pProfile->GetInventorySlot(N).get())
 			{
-				// iterate through worn items
-				for (int N = 0; N < NUM_WORN_ITEMS; N++)
-				{
-					if (CONTENTS* pContents = pProfile->pInventoryArray->InventoryArray[N])
-					{
-						if (ItemMatchesSearch(SearchItem, pContents)) {
-							DoResult(pContents, N);
-						}
-					}
-				}
+				if (ItemMatchesSearch(SearchItem, pContents))
+					DoResult(pContents, N);
 			}
+		}
+	}
 
-			if (MaskSet(Inventory) && Flag(Inventory))
+	if (MaskSet(Inventory) && Flag(Inventory))
+	{
+		// iterate through inventory slots before in-pack slots
+		for (int nPack = InvSlot_FirstBagSlot; nPack < GetHighestAvailableBagSlot(); nPack++)
+		{
+			if (CONTENTS* pContents = pProfile->GetInventorySlot(nPack).get())
 			{
-				// iterate through inventory slots before in-pack slots
-				for (int nPack = 0; nPack < NUM_BAG_SLOTS; nPack++)
-				{
-					if (CONTENTS* pContents = pProfile->pInventoryArray->Inventory.Pack[nPack])
-					{
-						if (ItemMatchesSearch(SearchItem, pContents))
-							DoResult(pContents, nPack + 21);
-					}
-				}
+				if (ItemMatchesSearch(SearchItem, pContents))
+					DoResult(pContents, nPack + 21);
+			}
+		}
 
-				for (int nPack = 0; nPack < NUM_BAG_SLOTS; nPack++)
+		for (int nPack = InvSlot_FirstBagSlot; nPack < GetHighestAvailableBagSlot(); nPack++)
+		{
+			if (CONTENTS* pContents = pProfile->GetInventorySlot(nPack).get())
+			{
+				if (pContents->IsContainer())
 				{
-					if (CONTENTS* pContents = pProfile->pInventoryArray->Inventory.Pack[nPack])
+					for (int nItem = 0; nItem < pContents->GetHeldItems().GetSize(); ++nItem)
 					{
-						if (GetItemFromContents(pContents)->Type == ITEMTYPE_PACK && pContents->Contents.ContainedItems.Capacity)
+						if (ItemPtr pItem = pContents->GetHeldItems().GetItem(nItem))
 						{
-							for (int nItem = 0; nItem < GetItemFromContents(pContents)->Slots; nItem++)
-							{
-								if (CONTENTS* pItem = pContents->GetContent(nItem))
-								{
-									if (ItemMatchesSearch(SearchItem, pItem))
-										DoResult(pItem, nPack * 100 + nItem);
-								}
-							}
+							if (ItemMatchesSearch(SearchItem, pItem.get()))
+								DoResult(pItem.get(), nPack * 100 + nItem);
 						}
 					}
 				}
@@ -1969,6 +1956,7 @@ char* DescribeKeyCombo(const KeyCombo& Combo, char* szDest, size_t BufferSize)
 bool LoadCfgFile(const char* Filename, bool Delayed)
 {
 	std::filesystem::path pathFilename = Filename;
+
 	// The original search order was: Configs\Filename.cfg, root\Filename.cfg, EQ\Filename.cfg, EQ\Filename
 	// The new search order is just Config\Filename.cfg.  If it needs to be the other way, use exists() to check.
 	if (!strchr(Filename, '.'))
@@ -2006,171 +1994,6 @@ bool LoadCfgFile(const char* Filename, bool Delayed)
 		}
 	}
 	return false;
-}
-
-int FindInvSlotForContents(CONTENTS* pContents)
-{
-	int LastMatch = -1;
-
-	// screw the old style InvSlot numbers
-	// return the index into the INVSLOTMGR array
-	DebugSpew("FindInvSlotForContents(0x%08X) (0x%08X)", pContents, GetItemFromContents(pContents));
-
-	for (int index = 0; index < MAX_INV_SLOTS; index++)
-	{
-		CONTENTS* pC = nullptr;
-
-		if (pInvSlotMgr->SlotArray[index])
-		{
-			CInvSlot* pCIS = pInvSlotMgr->SlotArray[index];
-			pCIS->GetItemBase(&pC);
-
-			if (pC)
-			{
-				DebugSpew("pInvSlotMgr->SlotArray[%d] Contents==0x%08X", index, pC);
-
-				if (pC == pContents)
-				{
-					CInvSlot* pInvSlot = pInvSlotMgr->SlotArray[index];
-
-					if (pInvSlot->pInvSlotWnd)
-					{
-						DebugSpew("%d slot %d wnd %d %d %d", index,
-							pInvSlot->Index,
-							pInvSlot->pInvSlotWnd->ItemLocation.GetLocation(),
-							pInvSlot->pInvSlotWnd->ItemLocation.GetIndex().GetSlot(0),
-							pInvSlot->pInvSlotWnd->ItemLocation.GetIndex().GetSlot(1));
-					}
-
-					if (pInvSlot->pInvSlotWnd
-						&& pInvSlot->pInvSlotWnd->ItemLocation.GetLocation() == eItemContainerPossessions)
-					{
-						return pInvSlot->Index;
-					}
-
-					if (pInvSlot->pInvSlotWnd && pInvSlot->pInvSlotWnd->ItemLocation.GetIndex().GetSlot(1) != -1)
-					{
-						return pInvSlot->Index;
-					}
-
-					if (pInvSlot->pInvSlotWnd
-						&& pInvSlot->pInvSlotWnd->ItemLocation.GetLocation() == eItemContainerCorpse)
-					{
-						// loot window items should not be anywhere else
-						return pInvSlot->Index;
-					}
-
-					LastMatch = index;
-				}
-			}
-		}
-	}
-
-	// return specific window type if needed
-	if (LastMatch != -1 && pInvSlotMgr->SlotArray[LastMatch]->pInvSlotWnd->ItemLocation.GetLocation() == 9999)
-		return  pInvSlotMgr->SlotArray[LastMatch]->Index;
-
-	return -1;
-}
-
-int LastFoundInvSlot = -1;
-
-int FindInvSlot(const char* Name, bool Exact)
-{
-	char szTemp[MAX_STRING] = { 0 };
-
-	for (int nSlot = 0; nSlot < MAX_INV_SLOTS; nSlot++)
-	{
-		if (pInvSlotMgr->SlotArray[nSlot])
-		{
-			CInvSlot* x = pInvSlotMgr->SlotArray[nSlot];
-			CONTENTS* y = nullptr;
-
-			if (x)
-			{
-				x->GetItemBase(&y);
-			}
-
-			if (y)
-			{
-				ITEMINFO* pItem = GetItemFromContents(y);
-
-				if (!Exact)
-				{
-					if (ci_find_substr(pItem->Name, Name) != -1)
-					{
-						if (pInvSlotMgr->SlotArray[nSlot]->pInvSlotWnd)
-						{
-							LastFoundInvSlot = nSlot;
-							return pInvSlotMgr->SlotArray[nSlot]->Index;
-						}
-
-						// let it try to find it in an open slot if this fails
-					}
-				}
-				else if (ci_equals(pItem->Name, Name))
-				{
-					if (pInvSlotMgr->SlotArray[nSlot]->pInvSlotWnd)
-					{
-						LastFoundInvSlot = nSlot;
-						return pInvSlotMgr->SlotArray[nSlot]->Index;
-					}
-
-					// let it try to find it in an open slot if this fails
-				}
-
-			}
-		}
-	}
-
-	LastFoundInvSlot = -1;
-	return -1;
-}
-
-int FindNextInvSlot(const char* pName, bool Exact)
-{
-	char szTemp[MAX_STRING] = { 0 };
-	char Name[MAX_STRING] = { 0 };
-	strcpy_s(Name, pName);
-	_strlwr_s(Name);
-
-#if 0 // FIXME
-	PEQINVSLOTMGR pInvMgr = (PEQINVSLOTMGR)pInvSlotMgr;
-	for (int N = LastFoundInvSlot + 1; N < MAX_INV_SLOTS; N++)
-	{
-		if (pInvMgr->SlotArray[N])
-		{
-			if (pInvMgr->SlotArray[N]->ppContents && *pInvMgr->SlotArray[N]->ppContents)
-			{
-				if (!Exact)
-				{
-					__strlwr_s(strcpy_s(szTemp, (*pInvMgr->SlotArray[N]->ppContents)->Item->Name));
-					if (strstr(szTemp, Name))
-					{
-						if (pInvMgr->SlotArray[N]->pInvSlotWnd)
-						{
-							LastFoundInvSlot = N;
-							return pInvMgr->SlotArray[N]->pInvSlotWnd->InvSlot;
-						}
-						// let it try to find it in an open slot if this fails
-					}
-				}
-				else if (!_stricmp(Name, (*pInvMgr->SlotArray[N]->ppContents)->Item->Name))
-				{
-					if (pInvMgr->SlotArray[N]->pInvSlotWnd)
-					{
-						LastFoundInvSlot = N;
-						return pInvMgr->SlotArray[N]->pInvSlotWnd->InvSlot;
-					}
-					// let it try to find it in an open slot if this fails
-				}
-
-			}
-		}
-	}
-#endif
-	LastFoundInvSlot = -1;
-	return -1;
 }
 
 enum eCalcOp
@@ -4769,7 +4592,7 @@ const char* GetLDoNTheme(int LDTheme)
 
 uint32_t GetItemTimer(CONTENTS* pItem)
 {
-	uint32_t Timer = pPCData->GetItemRecastTimer((EQ_Item*)& pItem, eActivatableSpell);
+	uint32_t Timer = pPCData->GetItemRecastTimer(pItem, eActivatableSpell);
 
 	if (Timer < GetFastTime())
 		return 0;
@@ -4777,76 +4600,29 @@ uint32_t GetItemTimer(CONTENTS* pItem)
 	return Timer - GetFastTime();
 }
 
-CONTENTS* GetItemContentsBySlotID(int dwSlotID)
-{
-	int InvSlot = -1;
-	int SubSlot = -1;
-
-	if (dwSlotID >= 0 && dwSlotID < NUM_INV_SLOTS)
-		InvSlot = dwSlotID;
-	else if (dwSlotID >= 262 && dwSlotID < 342)
-	{
-		InvSlot = BAG_SLOT_START + (dwSlotID - 262) / 10;
-		SubSlot = (dwSlotID - 262) % 10;
-	}
-
-	if (InvSlot >= 0 && InvSlot < NUM_INV_SLOTS)
-	{
-		if (PcProfile* pProfile = GetPcProfile())
-		{
-			if (pProfile->pInventoryArray)
-			{
-				if (CONTENTS* iSlot = pProfile->pInventoryArray->InventoryArray[InvSlot])
-				{
-					if (SubSlot < 0)
-						return iSlot;
-
-					if (iSlot->Contents.ContainedItems.pItems)
-					{
-						if (CONTENTS* sSlot = iSlot->GetContent(SubSlot))
-						{
-							return sSlot;
-						}
-					}
-				}
-			}
-		}
-	}
-	return nullptr;
-}
-
 CONTENTS* GetItemContentsByName(const char* ItemName)
 {
-	if (PcProfile* pProfile = GetPcProfile())
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile) return nullptr;
+
+	for (const ItemPtr& pItem : pProfile->InventoryContainer)
 	{
-		if (pProfile->pInventoryArray && pProfile->pInventoryArray->InventoryArray)
+		if (pItem)
 		{
-			for (CONTENTS* pItem : pProfile->pInventoryArray->InventoryArray)
+			if (!_stricmp(ItemName, pItem->GetItemDefinition()->Name))
 			{
-				if (pItem)
-				{
-					if (!_stricmp(ItemName, GetItemFromContents(pItem)->Name))
-					{
-						return pItem;
-					}
-				}
+				return pItem.get();
 			}
 
-			for (CONTENTS* pPack : pProfile->pInventoryArray->Inventory.Pack)
+			if (pItem->GetItemDefinition()->Type == ITEMTYPE_PACK)
 			{
-				if (pPack)
+				for (const ItemPtr& pItem2 : pItem->GetHeldItems())
 				{
-					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
+					if (pItem2)
 					{
-						for (int nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
+						if (!_stricmp(ItemName, pItem2->GetItemDefinition()->Name))
 						{
-							if (CONTENTS* pItem = pPack->GetContent(nItem))
-							{
-								if (!_stricmp(ItemName, GetItemFromContents(pItem)->Name))
-								{
-									return pItem;
-								}
-							}
+							return pItem2.get();
 						}
 					}
 				}
@@ -5269,7 +5045,7 @@ uint32_t GetSpellGemTimer2(int nGem)
 				int TotalDuration = Timer;
 				if (RecastDuration > LinkedDuration)
 				{
-					VePointer<CONTENTS> pFocusItem;
+					ItemPtr pFocusItem;
 					int ReuseMod = pCharData->GetFocusReuseMod((EQ_Spell*)pSpell, pFocusItem);
 					TotalDuration = pSpell->RecastTime - ReuseMod;
 				}
@@ -5417,6 +5193,26 @@ bool HasExpansion(int nExpansion)
 	return (GetCharInfo()->ExpansionFlags & nExpansion) != 0;
 }
 
+int GetAvailableBagSlots()
+{
+	return GetHighestAvailableBagSlot() - InvSlot_Bag1 + 1;
+}
+
+int GetHighestAvailableBagSlot()
+{
+	return HasExpansion(EXPANSION_HoT) ? InvSlot_Bag10 : InvSlot_Bag8;
+}
+
+int GetAvailableBankSlots()
+{
+	return HasExpansion(EXPANSION_PoR) ? 24 : 16;
+}
+
+int GetAvailableSharedBankSlots()
+{
+	return HasExpansion(EXPANSION_TBL) ? 6 : HasExpansion(EXPANSION_CotF) ? 4 : 2;
+}
+
 // Just a Function that needs more work
 // I use this to test merc aa struct -eqmule
 void ListMercAltAbilities()
@@ -5446,340 +5242,275 @@ void ListMercAltAbilities()
 	}
 }
 
-CONTENTS* FindItemByGlobalIndex(const ItemGlobalIndex& idx)
+ItemContainer* GetItemContainerByType(ItemContainerInstance type)
 {
-	return FindItemBySlot(idx.GetTopSlot(), idx.GetIndex().GetSlot(1), idx.GetLocation());
-}
-
-CONTENTS* FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance location)
-{
-	CHARINFO* pChar = GetCharInfo();
 	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile) return nullptr;
 
-	if (!pChar || !pProfile)
-		return nullptr;
-
-	if (location == eItemContainerPossessions)
+	switch (type)
 	{
-		// check regular inventory
-		if (pProfile->pInventoryArray && pProfile->pInventoryArray->InventoryArray)
-		{
-			for (CONTENTS* pItem : pProfile->pInventoryArray->InventoryArray)
-			{
-				if (pItem
-					&& pItem->GetGlobalIndex().GetTopSlot() == InvSlot
-					&& pItem->GetGlobalIndex().GetIndex().GetSlot(1) == BagSlot)
-				{
-					return pItem;
-				}
-			}
-		}
+	case eItemContainerPossessions:
+		return &pProfile->InventoryContainer;
+	case eItemContainerBank:
+		return &pCharData->BankItems;
+	case eItemContainerSharedBank:
+		return &pCharData->SharedBankItems;
+	case eItemContainerTrade:
+		return &pTradeWnd->GetTradeItems();
+	case eItemContainerWorld:
+		return pContainerMgr->GetWorldContainerItem() ? &pContainerMgr->GetWorldContainerItem()->GetHeldItems() : nullptr;
+	case eItemContainerLimbo:
+		return &pCharData->LimboBufferItems;
+	case eItemContainerTribute:
+		return &pProfile->TributeBenefitItems;
+	case eItemContainerTrophyTribute:
+		return &pProfile->TrophyTributeBenefitItems;
+	case eItemContainerGuildTribute:
+		return &pProfile->GuildTributeBenefitItems;
+	case eItemContainerGuildTrophyTribute:
+		return &pProfile->GuildTrophyTributeBenefitItems;
+	case eItemContainerCorpse:
+		return &pLootWnd->GetLootItems();
+	case eItemContainerBazaar:
+		return &pBazaarWnd->GetBazaarItems();
+	case eItemContainerInspect:
+		return &pInspectWnd->GetInspectItems();
+	case eItemContainerAltStorage:
+		return &pCharData->AltStorageItems;
+	case eItemContainerArchived:
+		return &pCharData->ArchivedDeletedItems;
+	case eItemContainerMail:
+		return &pCharData->MailItems;
+	case eItemContainerMercenaryItems:
+		return &pCharData->MercenaryItems;
+	case eItemContainerMountKeyRingItems:
+		return &pCharData->MountKeyRingItems;
+	case eItemContainerIllusionKeyRingItems:
+		return &pCharData->IllusionKeyRingItems;
+	case eItemContainerFamiliarKeyRingItems:
+		return &pCharData->FamiliarKeyRingItems;
+	case eItemContainerHeroForgeKeyRingItems:
+		return &pCharData->HeroForgeKeyRingItems;
+	case eItemContainerOverflow:
+		return &pCharData->OverflowBufferItems;
+	case eItemContainerDragonHoard:
+		return &pCharData->DragonHoardItems;
 
-		// check inside bags
-		if (pProfile->pInventoryArray)
-		{
-			for (CONTENTS* pPack : pProfile->pInventoryArray->Inventory.Pack)
-			{
-				if (pPack
-					&& GetItemFromContents(pPack)->Type == ITEMTYPE_PACK
-					&& pPack->Contents.ContainedItems.pItems)
-				{
-					for (int nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
-					{
-						CONTENTS* pItem = pPack->GetContent(nItem);
-
-						if (pItem
-							&& pItem->GetGlobalIndex().GetTopSlot() == InvSlot
-							&& pItem->GetGlobalIndex().GetIndex().GetSlot(1) == BagSlot)
-						{
-							return pItem;
-						}
-					}
-				}
-			}
-		}
-	}
-	else if (location == eItemContainerBank)
-	{
-		// check bank
-		if (pChar->pBankArray && pChar->pBankArray->Bank)
-		{
-			for (CONTENTS* pItem : pChar->pBankArray->Bank)
-			{
-				if (pItem
-					&& pItem->GetGlobalIndex().GetTopSlot() == InvSlot
-					&& pItem->GetGlobalIndex().GetIndex().GetSlot(1) == BagSlot)
-				{
-					return pItem;
-				}
-			}
-		}
-
-		// check inside bank bags
-		if (pChar->pBankArray && pChar->pBankArray->Bank)
-		{
-			for (CONTENTS* pPack : pChar->pBankArray->Bank)
-			{
-				if (pPack
-					&& GetItemFromContents(pPack)->Type == ITEMTYPE_PACK
-					&& pPack->Contents.ContainedItems.pItems)
-				{
-					for (int nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
-					{
-						CONTENTS* pItem = pPack->GetContent(nItem);
-
-						if (pItem
-							&& pItem->GetGlobalIndex().GetTopSlot() == InvSlot
-							&& pItem->GetGlobalIndex().GetIndex().GetSlot(1) == BagSlot)
-						{
-							return pItem;
-						}
-					}
-				}
-			}
-		}
-	}
-	else if (location == eItemContainerSharedBank)
-	{
-		// check shared bank
-		if (pChar->pSharedBankArray && pChar->pSharedBankArray->SharedBank)
-		{
-			for (CONTENTS* pItem : pChar->pSharedBankArray->SharedBank)
-			{
-				if (pItem
-					&& pItem->GetGlobalIndex().GetTopSlot() == InvSlot
-					&& pItem->GetGlobalIndex().GetIndex().GetSlot(1) == BagSlot)
-				{
-					return pItem;
-				}
-			}
-		}
-
-		// check inside shared bank bags
-		if (pChar && pChar->pSharedBankArray && pChar->pSharedBankArray->SharedBank)
-		{
-			for (CONTENTS* pPack : pChar->pSharedBankArray->SharedBank)
-			{
-				if (pPack
-					&& GetItemFromContents(pPack)->Type == ITEMTYPE_PACK
-					&& pPack->Contents.ContainedItems.pItems)
-				{
-					for (int nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
-					{
-						CONTENTS* pItem = pPack->GetContent(nItem);
-
-						if (pItem
-							&& pItem->GetGlobalIndex().GetTopSlot() == InvSlot
-							&& pItem->GetGlobalIndex().GetIndex().GetSlot(1) == BagSlot)
-						{
-							return pItem;
-						}
-					}
-				}
-			}
-		}
+	case eItemContainerRealEstate:   // todo
+	case eItemContainerKrono:        // this is a special value and doesn't actually exist as a container
+	case eItemContainerOther:        // can't do lookup by "other"
+	case eItemContainerMerchant:     // merchant window doesn't use item container
+	case eItemContainerDeleted:      // merchant buyback doesn't use item container
+		break;
 	}
 
 	return nullptr;
+}
+
+// Validates that this index points to something that makes sense.
+bool IsValidGlobalIndex(const ItemGlobalIndex& globalIndex)
+{
+	if (!globalIndex.IsValidIndex())
+		return false;
+
+	// For this index to be valid, all depths of this index must have valid containers.
+	int depth = 0;
+
+	int curSlot = globalIndex.GetIndex().GetSlot(depth++);
+	ItemBaseContainer* curContainer = GetItemContainerByGlobalIndex(globalIndex);
+
+	while (curSlot != -1 && curContainer != nullptr)
+	{
+		// If the slot is out of range, its a bust.
+		if (curSlot < -1 || curSlot >= curContainer->GetSize())
+			return false;
+
+		// get this item. We'll check if it is a container if there is
+		// more depth to this index.
+		ItemPtr pItem = curContainer->GetItem(curSlot);
+
+		// increment to the next depth.
+		curSlot = globalIndex.GetIndex().GetSlot(depth++);
+
+		if (curSlot == -1)
+		{
+			// this was the last depth. The previous one was good to this point,
+			// so the index is valid.
+			return true;
+		}
+
+		// setup container for next iteration
+		curContainer = pItem ? pItem->GetChildItemContainer() : nullptr;
+	}
+
+	// didn't reach something valid. This index is no good.
+	return false;
+}
+
+
+CONTENTS* FindItemBySlot(int InvSlot, int BagSlot, ItemContainerInstance location)
+{
+	return FindItemByGlobalIndex(ItemGlobalIndex(location, InvSlot, BagSlot));
+}
+
+CONTENTS* FindItemByGlobalIndex(const ItemGlobalIndex& idx)
+{
+	ItemPtr pItem;
+	ItemContainer* pContainer = GetItemContainerByType(idx.GetLocation());
+
+	if (pContainer)
+	{
+		pItem = pContainer->GetItem(idx.GetIndex());
+	}
+
+	return pItem.get();
 }
 
 template <typename T>
-CONTENTS* FindItem(T&& callback)
+static CONTENTS* FindItem(T&& callback)
 {
-	struct ItemSetterVisitor
+	auto pProfile = GetPcProfile();
+	if (!pProfile) return nullptr;
+	if (!pCharData) return nullptr;
+
+	ItemPtr foundItem;
+	auto itemVisitor = [&](const ItemPtr& itemPtr, const ItemIndex& itemIndex)
 	{
-	public:
-		ItemSetterVisitor(const T& predicate) : m_predicate(predicate) {}
-		void operator() (const ItemContainer::ItemPointer& itemPointer, const ItemIndex&)
+		if (callback(itemPtr, itemIndex))
 		{
-			if (itemPointer && m_predicate(itemPointer.get(), itemPointer->GetItemDefinition()))
-			{
-				m_item = itemPointer;
-			}
+			foundItem = itemPtr;
+			return true;
 		}
+		return false;
+	};
 
-		ItemContainer::ItemPointer GetItem() const { return m_item; }
+	// Prioritize checking the cursor slot first.
+	pProfile->InventoryContainer.FindItem(InvSlot_Cursor, InvSlot_Cursor, -1, itemVisitor);
 
-	private:
-		ItemContainer::ItemPointer m_item = nullptr;
-		T m_predicate;
-	} visitor(callback);
-
-	if (auto pProfile = GetPcProfile())
+	if (!foundItem)
 	{
-		auto item = pProfile->InventoryContainer.VisitItems(visitor).GetItem();
-		if (item)
-			return item.get();
+		pProfile->InventoryContainer.FindItem(itemVisitor);
 	}
 
-	for (auto keyRingType = eKeyRingTypeFirst;
-		pCharData != nullptr && keyRingType <= eKeyRingTypeLast;
-		keyRingType = static_cast<KeyRingType>(keyRingType + 1))
+	if (!foundItem)
 	{
-		auto item = pCharData->GetKeyRingItems(keyRingType).VisitItems(visitor).GetItem();
-		if (item)
-			return item.get();
+		// Check the different keyrings
+		for (
+			auto keyRingType = eKeyRingTypeFirst; keyRingType <= eKeyRingTypeLast;
+			keyRingType = static_cast<KeyRingType>(keyRingType + 1))
+		{
+			pCharData->GetKeyRingItems(keyRingType).FindItem(0, itemVisitor);
+
+			if (foundItem) break;
+		}
 	}
 
-	return nullptr;
+	return foundItem.get();
 }
 
 CONTENTS* FindItemByName(const char* pName, bool bExact)
 {
-	return FindItem([pName, bExact](CONTENTS* pItem, ITEMINFO* pItemInfo)
-		{ return ci_equals(pItemInfo->Name, pName, bExact); });
+	return FindItem([pName, bExact](const ItemPtr& pItem, const ItemIndex&)
+		{ return ci_equals(pItem->GetName(), pName, bExact); });
 }
 
 CONTENTS* FindItemByID(int ItemID)
 {
-	return FindItem([ItemID](CONTENTS* pItem, ITEMINFO* pItemInfo)
-		{ return ItemID == pItemInfo->ItemNumber; });
+	return FindItem([ItemID](const ItemPtr& pItem, const ItemIndex&)
+		{ return ItemID == pItem->GetID(); });
 }
 
-int GetItemCount(CONTENTS* pItem)
+template <typename T>
+static int CountContainerItems(ItemContainer& container, int fromSlot, int toSlot, T& checkItem)
 {
-	if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL || GetItemFromContents(pItem)->StackSize <= 1)
-		return 1;
+	int count = 0;
+	auto predicatedCountVisitor = [&](const ItemPtr& pItem, const ItemIndex& index)
+	{
+		if (checkItem(pItem, index))
+			count += pItem->GetItemCount();
+	};
 
-	return pItem->StackCount;
+	container.VisitItems(fromSlot, toSlot, -1, predicatedCountVisitor);
+	return count;
+}
+
+template <typename T>
+int CountInventoryItems(T& checkItem, int minSlot, int maxSlot)
+{
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile) return 0;
+
+	return CountContainerItems(pProfile->InventoryContainer, minSlot, maxSlot, checkItem);
+}
+
+template <typename T>
+int CountKeyringItems(T& checkItem)
+{
+	if (!pCharData) return 0;
+	int count = 0;
+
+	for (auto keyRingType = eKeyRingTypeFirst;
+		keyRingType <= eKeyRingTypeLast;
+		keyRingType = static_cast<KeyRingType>(keyRingType + 1))
+	{
+		count += CountContainerItems(pCharData->GetKeyRingItems(keyRingType), -1, -1, checkItem);
+	}
+
+	return count;
 }
 
 template <typename T>
 int CountItems(T&& checkItem)
 {
-	struct PredicatedCountVisitor
-	{
-		PredicatedCountVisitor(const T& predicate) : m_predicate(predicate) {}
-		void operator() (const ItemContainer::ItemPointer& itemPointer, const ItemIndex&)
-		{
-			if (m_predicate(itemPointer.get()))
-			{
-				if (itemPointer && ((EQ_Item*)itemPointer.get())->IsStackable())
-					m_count += itemPointer->StackCount;
-				else
-					++m_count;
-			}
-		}
-		uint32_t GetCount() const { return m_count; }
+	return CountInventoryItems(checkItem, -1, -1) + CountKeyringItems(checkItem);
+}
 
-	private:
-		uint32_t m_count = 0;
-		T m_predicate;
-	} visitor(checkItem);
+int FindInventoryItemCountByName(const char* pName, StringMatchType matchType, int slotBegin, int slotEnd)
+{
+	return CountInventoryItems(
+		[pName, matchType](const ItemPtr& pItem, const ItemIndex&)
+		{ return StringCompare(pItem->GetName(), pName, matchType); },
+		slotBegin, slotEnd);
+}
 
-	PcProfile* pProfile = GetPcProfile();
-	if (pProfile)
-	{
-		pProfile->InventoryContainer.VisitItems<PredicatedCountVisitor&>(visitor);
-	}
-
-	for (auto keyRingType = eKeyRingTypeFirst;
-		pCharData != nullptr && keyRingType <= eKeyRingTypeLast;
-		keyRingType = static_cast<KeyRingType>(keyRingType + 1))
-	{
-		pCharData->GetKeyRingItems(keyRingType).VisitItems<PredicatedCountVisitor&>(visitor);
-	}
-
-	return visitor.GetCount();
+int FindInventoryItemCountByID(int ItemID, int slotBegin, int slotEnd)
+{
+	return CountInventoryItems(
+		[ItemID](const ItemPtr& pItem, const ItemIndex&)
+		{ return pItem->GetID() == ItemID; },
+		slotBegin, slotEnd);
 }
 
 int FindItemCountByName(const char* pName)
 {
-	return CountItems([pName](CONTENTS* pItem)
-		{ return MaybeExactCompare(GetItemFromContents(pItem)->Name, pName); });
+	return CountItems([pName](const ItemPtr& pItem, const ItemIndex&)
+		{ return MaybeExactCompare(pItem->GetName(), pName); });
 }
 
 int FindItemCountByID(int ItemID)
 {
-	return CountItems([ItemID](CONTENTS* pItem)
-		{ return GetItemFromContents(pItem)->ItemNumber == ItemID; });
+	return CountItems([ItemID](const ItemPtr& pItem, const ItemIndex&)
+		{ return pItem->GetID() == ItemID; });
 }
 
 template <typename T>
-CONTENTS* FindBankItem(T&& checkItem)
+static CONTENTS* FindBankItem(T&& checkItem)
 {
 	CHARINFO* pCharInfo = GetCharInfo();
-	if (!pCharInfo)
-		return nullptr;
-
-	auto checkAugs = [&](CONTENTS* pContents) -> CONTENTS *
-	{
-		if (pContents->Contents.ContainedItems.pItems && pContents->Contents.ContainedItems.Size)
-		{
-			for (size_t nAug = 0; nAug < pContents->Contents.ContainedItems.Size; nAug++)
-			{
-				if (CONTENTS* pAugItem = pContents->Contents.ContainedItems.pItems->Item[nAug])
-				{
-					ITEMINFO* pItem = GetItemFromContents(pAugItem);
-					if (pItem->Type == ITEMTYPE_NORMAL && pItem->AugType)
-					{
-						if (checkItem(pAugItem))
-							return pAugItem;
-					}
-				}
-			}
-		}
-
-		return nullptr;
-	};
-
-	auto checkContainer = [&](CONTENTS* pPack) -> CONTENTS *
-	{
-		// check this item
-		if (checkItem(pPack))
-			return pPack;
-
-		if (GetItemFromContents(pPack)->Type != ITEMTYPE_PACK)
-		{
-			// Hey it's not a pack we should check for augs
-			if (CONTENTS* pAugItem = checkAugs(pPack))
-				return pAugItem;
-		}
-		else if (pPack->Contents.ContainedItems.pItems)
-		{
-			// Ok it was a pack, if it has items in it lets check them
-			for (int nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
-			{
-				if (CONTENTS* pItem = pPack->GetContent(nItem))
-				{
-					// check this item
-					if (checkItem(pItem))
-						return pItem;
-
-					// Check for augs next
-					if (CONTENTS* pAugItem = checkAugs(pItem))
-						return pAugItem;
-				}
-			}
-		}
-
-		return nullptr;
-	};
+	if (!pCharInfo) return nullptr;
 
 	// Check bank slots
-	if (pCharInfo->pBankArray && pCharInfo->pBankArray->Bank)
+	ItemIndex bankIndex = pCharInfo->BankItems.FindItem(checkItem);
+	if (bankIndex.IsValid())
 	{
-		for (CONTENTS* pPack : pCharInfo->pBankArray->Bank)
-		{
-			if (!pPack)
-				continue;
-
-			if (CONTENTS* pItem = checkContainer(pPack))
-				return pItem;
-		}
+		return pCharInfo->BankItems.GetItem(bankIndex).get();
 	}
 
 	// Check shared bank slots
-	if (pCharInfo->pSharedBankArray)
+	ItemIndex sharedBankIndex = pCharInfo->SharedBankItems.FindItem(checkItem);
+	if (sharedBankIndex.IsValid())
 	{
-		for (CONTENTS* pPack : pCharInfo->pSharedBankArray->SharedBank)
-		{
-			if (!pPack)
-				continue;
-
-			if (CONTENTS* pItem = checkContainer(pPack))
-				return pItem;
-		}
+		return pCharInfo->SharedBankItems.GetItem(sharedBankIndex).get();
 	}
 
 	return nullptr;
@@ -5787,552 +5518,236 @@ CONTENTS* FindBankItem(T&& checkItem)
 
 CONTENTS* FindBankItemByName(const char* pName, bool bExact)
 {
-	return FindBankItem([pName, bExact](CONTENTS* pItem)
-		{ return ci_equals(GetItemFromContents(pItem)->Name, pName, bExact); });
+	return FindBankItem([pName, bExact](const ItemPtr& pItem, const ItemIndex&)
+		{ return ci_equals(pItem->GetItemDefinition()->Name, pName, bExact); });
 }
 
 CONTENTS* FindBankItemByID(int ItemID)
 {
-	return FindBankItem([ItemID](CONTENTS* pItem)
-		{ return GetItemFromContents(pItem)->ItemNumber == ItemID; });
+	return FindBankItem([ItemID](const ItemPtr& pItem, const ItemIndex&)
+		{ return pItem->GetItemDefinition()->ItemNumber == ItemID; });
 }
 
 template <typename T>
 int CountBankItems(T&& checkItem)
 {
 	CHARINFO* pCharInfo = GetCharInfo();
-	if (!pCharInfo)
-		return 0;
-
-	int Count = 0;
+	if (!pCharInfo) return 0;
 
 	// Check bank slots
-	if (pCharInfo && pCharInfo->pBankArray && pCharInfo->pBankArray->Bank)
-	{
-		for (CONTENTS* pPack : pCharInfo->pBankArray->Bank)
-		{
-			if (!pPack)
-				continue;
-
-			if (checkItem(pPack))
-			{
-				Count += GetItemCount(pPack);
-			}
-
-			if (GetItemFromContents(pPack)->Type != ITEMTYPE_PACK)
-			{
-				// check for augs
-				if (pPack->Contents.ContainedItems.pItems && pPack->Contents.ContainedItems.Size)
-				{
-					for (size_t nAug = 0; nAug < pPack->Contents.ContainedItems.Size; nAug++)
-					{
-						CONTENTS* pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug];
-
-						if (pAugItem
-							&& GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL
-							&& GetItemFromContents(pAugItem)->AugType
-							&& checkItem(pAugItem))
-						{
-							Count++;
-						}
-					}
-				}
-			}
-			else if (pPack->Contents.ContainedItems.pItems)
-			{
-				// it was a pack, if it has items in it lets check them
-				for (int nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
-				{
-					CONTENTS* pItem = pPack->GetContent(nItem);
-					if (!pItem)
-						continue;
-
-					if (checkItem(pItem))
-					{
-						Count += GetItemCount(pItem);
-					}
-
-					// Check for augs next
-					if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size)
-					{
-						for (size_t nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++)
-						{
-							CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug];
-
-							if (pAugItem
-								&& GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL
-								&& GetItemFromContents(pAugItem)->AugType
-								&& checkItem(pAugItem))
-							{
-								Count++;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+	int count = CountContainerItems(pCharInfo->BankItems, -1, -1, checkItem);
 
 	// Check shared bank slots
-	if (pCharInfo->pSharedBankArray)
-	{
-		for (CONTENTS* pPack : pCharInfo->pSharedBankArray->SharedBank)
-		{
-			if (!pPack)
-				continue;
+	count += CountContainerItems(pCharInfo->SharedBankItems, -1, -1, checkItem);
 
-			if (checkItem(pPack))
-			{
-				Count += GetItemCount(pPack);
-			}
-
-			if (GetItemFromContents(pPack)->Type != ITEMTYPE_PACK)
-			{
-				// check for augs
-				if (pPack->Contents.ContainedItems.pItems && pPack->Contents.ContainedItems.Size)
-				{
-					for (size_t nAug = 0; nAug < pPack->Contents.ContainedItems.Size; nAug++)
-					{
-						CONTENTS* pAugItem = pPack->Contents.ContainedItems.pItems->Item[nAug];
-
-						if (pAugItem
-							&& GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL
-							&& GetItemFromContents(pAugItem)->AugType
-							&& checkItem(pAugItem))
-						{
-							Count++;
-						}
-					}
-				}
-			}
-			else if (pPack->Contents.ContainedItems.pItems)
-			{
-				// Ok it was a pack, if it has items in it lets check them
-				for (int nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
-				{
-					CONTENTS* pItem = pPack->GetContent(nItem);
-					if (!pItem)
-						continue;
-
-					if (checkItem(pItem))
-					{
-						Count += GetItemCount(pItem);
-					}
-
-					// Check for augs next
-					if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size)
-					{
-						for (size_t nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++)
-						{
-							CONTENTS* pAugItem = pItem->Contents.ContainedItems.pItems->Item[nAug];
-
-							if (pAugItem
-								&& GetItemFromContents(pAugItem)->Type == ITEMTYPE_NORMAL
-								&& GetItemFromContents(pAugItem)->AugType
-								&& checkItem(pItem))
-							{
-								Count++;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	return Count;
+	return count;
 }
 
 int FindBankItemCountByName(const char* pName, bool bExact)
 {
-	return CountBankItems([pName, bExact](CONTENTS* pItem)
-		{ return ci_equals(GetItemFromContents(pItem)->Name, pName, bExact); });
+	return CountBankItems([pName, bExact](const ItemPtr& pItem, const ItemIndex&)
+		{ return ci_equals(pItem->GetItemDefinition()->Name, pName, bExact); });
 }
 
 int FindBankItemCountByID(int ItemID)
 {
-	return CountBankItems([ItemID](CONTENTS* pItem)
-		{ return GetItemFromContents(pItem)->ItemNumber == ItemID; });
+	return CountBankItems([ItemID](const ItemPtr& pItem, const ItemIndex&)
+		{ return pItem->GetItemDefinition()->ItemNumber == ItemID; });
 }
 
-CInvSlot* GetInvSlot2(const ItemGlobalIndex & index)
+// Gets the CInvSlot for a given index.
+CInvSlot* GetInvSlot(const ItemGlobalIndex& index)
 {
-	return GetInvSlot(index.Location, index.GetIndex().GetSlot(0), index.GetIndex().GetSlot(1));
+	if (!pInvSlotMgr)
+		return nullptr;
+
+	return pInvSlotMgr->FindInvSlot(index, false);
 }
 
-CInvSlot* GetInvSlot(DWORD type, short invslot, short bagslot)
+int FindInvSlotForContents(CONTENTS* pContents)
 {
-	if (pInvSlotMgr)
-	{
-		for (int i = 0; i < pInvSlotMgr->TotalSlots; i++)
-		{
-			CInvSlot* pSlot = pInvSlotMgr->SlotArray[i];
-
-			if (pSlot && pSlot->bEnabled && pSlot->pInvSlotWnd
-				&& pSlot->pInvSlotWnd->ItemLocation.GetLocation() == type
-				&& (short)pSlot->pInvSlotWnd->ItemLocation.GetIndex().GetSlot(0) == invslot
-				&& (short)pSlot->pInvSlotWnd->ItemLocation.GetIndex().GetSlot(1) == bagslot)
-			{
-				if (CXMLData* pXMLData = pSlot->pInvSlotWnd->GetXMLData())
-				{
-					if (ci_equals(pXMLData->ScreenID, "HB_InvSlot"))
-					{
-						// we dont want this, the user specified a container, not a hotbutton...
-						continue;
-					}
-				}
-
-				return pSlot;
-			}
-		}
-	}
-
-	return nullptr;
+	CInvSlot* invSlot = GetInvSlot(pContents->GetItemLocation());
+	return invSlot ? invSlot->Index : -1;
 }
 
-//work in progress -eqmule
 bool IsItemInsideContainer(CONTENTS* pItem)
 {
 	if (!pItem)
 		return false;
-	PcProfile* pChar2 = GetPcProfile();
-	if (!pChar2)
-		return false;
 
-	// TODO: Just check if !IsBaseIndex()
-	int index = pItem->GetGlobalIndex().GetTopSlot();
-
-	if (index >= 0 && index <= NUM_INV_SLOTS)
-	{
-		if (pChar2 && pChar2->pInventoryArray)
-		{
-			if (CONTENTS* pItemFound = pChar2->pInventoryArray->InventoryArray[index])
-			{
-				if (pItemFound != pItem)
-				{
-					return true;
-				}
-			}
-		}
-	}
-
-	return false;
+	return !pItem->GetItemLocation().GetIndex().IsBase();
 }
 
-bool OpenContainer(CONTENTS* pItem, bool hidden, bool bAllowTradeskill)
+// opens the container. Returns true if the container was already open.
+bool OpenContainer(ItemClient* pItem, bool hidden, bool bAllowTradeskill)
 {
 	if (!pItem)
 		return false;
 
-	if (CONTENTS* pcont = FindItemBySlot2(pItem->GetGlobalIndex()))
+	if (pItem->IsContainer())
 	{
-		if (pcont->Open)
+		if (pItem->Open)
 			return true;
 
-		if (GetItemFromContents(pcont)->Type == ITEMTYPE_PACK)
+		if (CInvSlot* pSlot = GetInvSlot(pItem->GetItemLocation()))
 		{
-			if (CInvSlot* pSlot = GetInvSlot2(pcont->GetGlobalIndex()))
-			{
-				if (hidden)
-				{
-					// put code to hide bag here
-					// until i can figure out how to call moveitemqty
-				}
-
-				ItemGlobalIndex To = pSlot->pInvSlotWnd->ItemLocation;
-				To.Location = pcont->GetGlobalIndex().Location; // eItemContainerPossessions;
-
-				pContainerMgr->OpenContainer(&pcont, To, bAllowTradeskill);
-				//pPCData->AlertInventoryChanged();
-				return pcont->Open;
-			}
+			pContainerMgr->OpenContainer(pItem, pSlot->pInvSlotWnd->ItemLocation, bAllowTradeskill);
 		}
 	}
+
 	return false;
 }
 
-bool CloseContainer(CONTENTS* pItem)
+// closes the container. Returns true if the container was originally open.
+bool CloseContainer(ItemClient* pItem)
 {
 	if (!pItem)
 		return false;
 
-	if (CONTENTS* pcont = FindItemBySlot2(pItem->GetGlobalIndex()))
-	{
-		if (!pcont->Open)
-			return false;
+	if (!pItem->Open)
+		return false;
 
-		if (GetItemFromContents(pcont)->Type == ITEMTYPE_PACK)
-		{
-			pContainerMgr->CloseContainer(&pcont, true);
-			return !pcont->Open;
-		}
+	if (pItem->IsContainer())
+	{
+		pContainerMgr->CloseContainer(pItem, true);
+		return true;
 	}
 
 	return false;
-}
-
-//WaitForBagToOpen code by eqmule 2014
-DWORD __stdcall WaitForBagToOpen(void* pData)
-{
-	PLARGE_INTEGER i64tmp = (PLARGE_INTEGER)pData;
-	ItemContainerInstance type = (ItemContainerInstance)i64tmp->LowPart;
-	CONTENTS* pItem = (CONTENTS*)i64tmp->HighPart;
-	int timeout = 0;
-
-	if (CONTENTS* pcont = FindItemBySlot2(pItem->GetGlobalIndex()))
-	{
-		if (pInvSlotMgr)
-		{
-			if (CInvSlot* theslot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex()))
-			{
-				if (theslot->pInvSlotWnd)
-				{
-					while (!theslot->pInvSlotWnd->IsVisible())
-					{
-						if (GetGameState() != GAMESTATE_INGAME)
-							break;
-
-						Sleep(10);
-						timeout += 100;
-						if (timeout >= 1000)
-						{
-							break;
-						}
-					}
-				}
-			}
-		}
-
-		//this is most likely completely useless
-		//since the bag will actually always be open at this point
-		//how can i check if the item is in the slot?
-		//need to look into this further
-		//get the texture maybe? -eqmule
-		/*while(!pcont->Open) {
-		Sleep(10);
-		timeout+=100;
-		if(timeout>=1000) {
-		break;
-		}
-		}*/
-	}
-
-	Sleep(100);
-
-	if (pWndMgr)
-	{
-		bool Old = pWndMgr->KeyboardFlags[1];
-		pWndMgr->KeyboardFlags[1] = true;
-
-		if (ItemOnCursor())
-		{
-			DropItem(type, pItem->GetGlobalIndex().GetTopSlot(), pItem->GetGlobalIndex().GetIndex().GetSlot(1));
-		}
-		else
-		{
-			PickupItem(type, pItem);
-		}
-
-		pWndMgr->KeyboardFlags[1] = Old;
-		LocalFree(pData);
-		//CloseContainer(pItem);
-	}
-	return 1;
 }
 
 bool ItemOnCursor()
 {
-	PcProfile* pChar2 = GetPcProfile();
-	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor)
-	{
-		return true;
-	}
-	return false;
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile) return false;
+
+	return pProfile->InventoryContainer.GetItem(InvSlot_Cursor) != nullptr;
 }
 
-bool PickupItem(ItemContainerInstance type, CONTENTS* pItem)
+bool PickupItem(const ItemGlobalIndex& globalIndex)
 {
-	if (!pItem || !pInvSlotMgr)
+	if (!pInvSlotMgr) return false;
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile) return false;
+
+	ItemPtr pItem = FindItemByGlobalIndex(globalIndex);
+	if (!pItem)
 	{
+		WriteChatf("Could not pick up item: no item found.");
 		return false;
 	}
 
-	bool bSelectSlot = false;
-
-	if (pMerchantWnd && pMerchantWnd->IsVisible()) {
-		// if the merchant window is open, we dont actually drop anything we just select the slot
-		bSelectSlot = true;
-	}
-
-	if (pItem->GetGlobalIndex().GetIndex().IsBase())
+	if (pMerchantWnd && pMerchantWnd->IsVisible())
 	{
-		// ok so they want to pick it up from a toplevelslot
-		CInvSlot* pSlot = GetInvSlot(type, pItem->GetGlobalIndex().GetTopSlot());
-		if (!pSlot || !pSlot->pInvSlotWnd)
+		// If this is merchant selection, we cannot do it anywhere other than our inventory.
+		if (globalIndex.GetLocation() != eItemContainerPossessions)
 		{
-			// if we got all the way here this really shouldnt happen... but why assume...
-			WriteChatf("Could not find the %d itemslot", pItem->GetGlobalIndex().GetTopSlot());
+			WriteChatf("Can only select items in inventory.");
 			return false;
 		}
 
-		if (bSelectSlot)
+		// if the merchant window is open, we dont actually drop anything we just select the slot
+		if (CInvSlot* pSlot = GetInvSlot(globalIndex))
 		{
-			if (CInvSlot* theslot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex().GetTopSlot()))
-			{
-				pInvSlotMgr->SelectSlot(theslot);
-
-				ItemGlobalIndex To;
-				To.Location = eItemContainerPossessions;
-				To.Index.SetSlot(0, pItem->GetGlobalIndex().GetTopSlot());
-				To.Index.SetSlot(1, pItem->GetGlobalIndex().GetIndex().GetSlot(1));
-
-				pMerchantWnd->SelectBuySellSlot(To);
-				return true;
-			}
+			pInvSlotMgr->SelectSlot(pSlot);
 		}
-		else
+
+		pMerchantWnd->SelectBuySellSlot(globalIndex);
+		return true;
+	}
+
+	bool isCtrl = pWndMgr->GetKeyboardFlags() & KeyboardFlags_Ctrl;
+
+	// This is just a a top level slot. We should have invslots for all of these.
+	if (globalIndex.GetIndex().GetSlot(1) == -1)
+	{
+		// If ctrl was pressed, and its a stackable item, we need to use the InvSlot in order to
+		// perform the move, otherwise we would need to know more about how to transfer partial stacks.
+		if (pItem->GetItemCount() > 1 && isCtrl)
 		{
-			// just move it from the slot to the cursor
-			ItemGlobalIndex From;
-			From.Location = (ItemContainerInstance)pItem->GetGlobalIndex().GetLocation();
-			From.Index.SetSlot(0, pItem->GetGlobalIndex().GetTopSlot());
+			CInvSlot* pInvSlot = pInvSlotMgr->FindInvSlot(globalIndex, false);
 
-			ItemGlobalIndex To;
-			To.Location = eItemContainerPossessions;
-			To.Index.SetSlot(0, eItemContainerCursor);
+			// This ctrl keypress will propogate through to the InvSlot and QuantityWnd that it will
+			// spawn, ultimiately leading to a transfer of a single item.
+			if (!pInvSlot || !pInvSlot->pInvSlotWnd || !SendWndClick2(pInvSlot->pInvSlotWnd, "leftmouseup"))
+			{
+				WriteChatf("Could not pick up '%s'", pItem->GetName());
+				return false;
+			}
 
-			pInvSlotMgr->MoveItem(From, To, true, true);
 			return true;
 		}
+
+		// just move it from the slot to the cursor
+		return pInvSlotMgr->MoveItem(globalIndex, pCharData->CreateItemGlobalIndex(InvSlot_Cursor), true, true);
+	}
+
+	// We're dealing with an item inside of a bag from this point forward.
+	if (pItem->GetItemCount() > 1 && isCtrl)
+	{
+		// We need an invslot to handle this case.
+		CInvSlot* pInvSlot = pInvSlotMgr->FindInvSlot(globalIndex, false);
+		ItemClient* pBag = nullptr;
+		bool needToClose = false;
+
+		if (!pInvSlot)
+		{
+			// Get index to parent container
+			if (pBag = FindItemByGlobalIndex(globalIndex.GetParent()))
+			{
+				needToClose = OpenContainer(pBag, true);
+				pInvSlot = pInvSlotMgr->FindInvSlot(globalIndex, false);
+			}
+		}
+
+		if (!pInvSlot || !pInvSlot->pInvSlotWnd || !SendWndClick2(pInvSlot->pInvSlotWnd, "leftmouseup"))
+		{
+			WriteChatf("Could not pick up '%s'", pItem->GetName());
+			return false;
+		}
+
+		if (needToClose)
+		{
+			CloseContainer(pBag);
+		}
+
+		return true;
+	}
+
+	// ctrl is not pressed, so this will move the whole stack.
+	ItemGlobalIndex To(eItemContainerPossessions, ItemIndex(InvSlot_Cursor));
+
+	// TODO: Clean this all up
+	CONTENTS* pContBefore = pProfile->InventoryContainer.GetItem(InvSlot_Cursor).get();
+	pInvSlotMgr->MoveItem(globalIndex, pCharData->CreateItemGlobalIndex(InvSlot_Cursor), true, true, false, true);
+	CONTENTS* pContAfter = pProfile->InventoryContainer.GetItem(InvSlot_Cursor).get();
+	if (pContAfter)
+	{
+		EqItemGuid g;
+		strcpy_s(g.guid, 18, "0000000000000000");
+
+		pCursorAttachment->AttachToCursor(nullptr, nullptr, eCursorAttachment_Item, -1, g, 0, nullptr, nullptr);
 	}
 	else
 	{
-		// BagSlot is NOT -1 so they want to pick it up from INSIDE a bag
-		if (bSelectSlot)
-		{
-			if (CInvSlot* theslot = pInvSlotMgr->FindInvSlot(pItem->GetGlobalIndex().GetTopSlot(), pItem->GetGlobalIndex().GetIndex().GetSlot(1)))
-			{
-				pInvSlotMgr->SelectSlot(theslot);
-				ItemGlobalIndex To;
-				To.Location = eItemContainerPossessions;
-				To.Index.SetSlot(0, pItem->GetGlobalIndex().GetIndex().GetSlot(0));
-				To.Index.SetSlot(1, pItem->GetGlobalIndex().GetIndex().GetSlot(1));
-
-				pMerchantWnd->SelectBuySellSlot(To);
-				return true;
-			}
-			else
-			{
-				// well now is where it gets complicated then... or not...
-				ItemGlobalIndex To;
-				To.Location = eItemContainerPossessions;
-				To.Index.SetSlot(0, pItem->GetGlobalIndex().GetIndex().GetSlot(0));
-				To.Index.SetSlot(1, pItem->GetGlobalIndex().GetIndex().GetSlot(1));
-
-				pMerchantWnd->SelectBuySellSlot(To);
-				return true;
-			}
-		}
-		else
-		{
-			// not a selected slot
-			// ok so its a slot inside a bag
-			// is ctrl pressed?
-			// if it is we HAVE to open the bag, until I get a bypass worked out
-
-			uint32_t keybflag = pWndMgr->GetKeyboardFlags();
-
-			if (keybflag == 2 && pItem->StackCount > 1)
-			{
-				// ctrl was pressed and it is a stackable item
-				// I need to open the bag and notify it cause moveitem only picks up full stacks
-				CInvSlot* pSlot = GetInvSlot2(pItem->GetGlobalIndex());
-				if (!pSlot)
-				{
-					// well lets try to open it then
-					if (CONTENTS* pBag = FindItemBySlot2(pItem->GetGlobalIndex().GetParent()))
-					{
-						bool wechangedpackopenstatus = OpenContainer(pBag, true);
-						if (wechangedpackopenstatus)
-						{
-							if (PLARGE_INTEGER i64tmp = (PLARGE_INTEGER)LocalAlloc(LPTR, sizeof(LARGE_INTEGER)))
-							{
-								i64tmp->LowPart = type;
-								i64tmp->HighPart = (int)pItem;
-								DWORD nThreadId = 0;
-								CreateThread(nullptr, 0, WaitForBagToOpen, i64tmp, 0, &nThreadId);
-								return false;
-							}
-						}
-					}
-					else
-					{
-						WriteChatf("[PickupItem] falied due to no bag found in slot %d", pItem->GetGlobalIndex().GetTopSlot());
-						return false;
-					}
-				}
-				else
-				{
-					// ok so the bag is open...
-					// well we just select it then...
-					if (!pSlot->pInvSlotWnd || !SendWndClick2(pSlot->pInvSlotWnd, "leftmouseup"))
-					{
-						WriteChatf("Could not pickup %s", GetItemFromContents(pItem)->Name);
-					}
-					return true;
-				}
-
-				// thread this? hmm if i close it before item ends up on cursor, it wont...
-				// if(wechangedpackopenstatus)
-				//     CloseContainer(pItem);
-				return false;
-			}
-			else
-			{
-				// ctrl is NOT pressed
-				// we can just move the whole stack
-				ItemGlobalIndex From;
-				From.Location = (ItemContainerInstance)pItem->GetGlobalIndex().Location;
-				From.Index.SetSlot(0, pItem->GetGlobalIndex().GetTopSlot());
-				From.Index.SetSlot(1, pItem->GetGlobalIndex().GetIndex().GetSlot(1));
-
-				ItemGlobalIndex To;
-				To.Location = eItemContainerPossessions;
-				To.Index.SetSlot(0, eItemContainerCursor); // this is probably wrong
-
-				PcProfile* pChar2 = GetPcProfile();
-				CONTENTS* pContBefore = pChar2->pInventoryArray->Inventory.Cursor;
-				pInvSlotMgr->MoveItem(From, To, true, true, false, true);
-
-				if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor)
-				{
-					CONTENTS* pContAfter = pChar2->pInventoryArray->Inventory.Cursor;
-
-					EqItemGuid g;
-					strcpy_s(g.guid, 18, "0000000000000000");
-
-					pCursorAttachment->AttachToCursor(nullptr, nullptr, eCursorAttachment_Item, -1, g, 0, nullptr, nullptr);
-				}
-				else
-				{
-					pCursorAttachment->Deactivate();
-				}
-			}
-			return true;
-		}
+		pCursorAttachment->Deactivate();
 	}
-	return false;
+
+	return true;
 }
 
-bool DropItem2(const ItemGlobalIndex & index)
-{
-	return DropItem(index.GetLocation(), index.GetTopSlot(), index.GetIndex().GetSlot(1));
-}
-
-bool DropItem(ItemContainerInstance type, short ToInvSlot, short ToBagSlot)
+bool DropItem(const ItemGlobalIndex& globalIndex)
 {
 	if (!pInvSlotMgr)
 		return false;
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile)
+		return false;
+
+	// FIXME
+	ItemContainerInstance type = globalIndex.GetLocation();
+	short ToInvSlot = globalIndex.GetTopSlot();
+	short ToBagSlot = globalIndex.GetIndex().GetSlot(1);
 
 	bool bSelectSlot = false;
 	if (pMerchantWnd && pMerchantWnd->IsVisible())
@@ -6370,16 +5785,9 @@ bool DropItem(ItemContainerInstance type, short ToInvSlot, short ToBagSlot)
 		else
 		{
 			// just move it from cursor to the slot
-			ItemGlobalIndex From;
-			From.Location = eItemContainerPossessions;
-			From.Index.SetSlot(0, eItemContainerCursor);   // TODO: Check this, i'm pretty sure its wrong.
+			ItemGlobalIndex To(type, ItemIndex(ToInvSlot, ToBagSlot));
 
-			ItemGlobalIndex To;
-			To.Location = type;
-			To.Index.SetSlot(0, ToInvSlot);
-			To.Index.SetSlot(1, ToBagSlot);
-
-			pInvSlotMgr->MoveItem(From, To, true, true);
+			pInvSlotMgr->MoveItem(pCharData->CreateItemGlobalIndex(InvSlot_Cursor), To, true, true);
 			return true;
 		}
 	}
@@ -6391,13 +5799,7 @@ bool DropItem(ItemContainerInstance type, short ToInvSlot, short ToBagSlot)
 			if (CInvSlot* theSlot = pInvSlotMgr->FindInvSlot(ToInvSlot, ToBagSlot))
 			{
 				pInvSlotMgr->SelectSlot(theSlot);
-
-				ItemGlobalIndex To;
-				To.Location = eItemContainerPossessions;
-				To.Index.SetSlot(0, theSlot->pInvSlotWnd->ItemLocation.GetTopSlot());
-				To.Index.SetSlot(1, theSlot->pInvSlotWnd->ItemLocation.GetIndex().GetSlot(1));
-
-				pMerchantWnd->SelectBuySellSlot(To);
+				pMerchantWnd->SelectBuySellSlot(theSlot->GetItemLocation());
 				return true;
 
 			}
@@ -6405,42 +5807,25 @@ bool DropItem(ItemContainerInstance type, short ToInvSlot, short ToBagSlot)
 			{
 				// well now is where it gets complicated then...
 				// so we need to open the bag...
-
-				ItemGlobalIndex To;
-				To.Location = eItemContainerPossessions;
-				To.Index.SetSlot(0, ToInvSlot);
-				To.Index.SetSlot(1, ToBagSlot);
-
-				pMerchantWnd->SelectBuySellSlot(To);
+				pMerchantWnd->SelectBuySellSlot(pCharData->CreateItemGlobalIndex(ToInvSlot, ToBagSlot));
 				return true;
 			}
 		}
 		else
 		{
 			// ok so its a slot inside a bag
-			ItemGlobalIndex From;
-			From.Location = eItemContainerPossessions;
-			From.Index.SetSlot(0, eItemContainerCursor); // TODO: Check this, i'm pretty sure its wrong.
+			ItemGlobalIndex From = pCharData->CreateItemGlobalIndex(InvSlot_Cursor);
+			ItemGlobalIndex To(type, ItemIndex(ToInvSlot, ToBagSlot));
 
-			ItemGlobalIndex To;
-			To.Location = type;
-			To.Index.SetSlot(0, ToInvSlot);
-			To.Index.SetSlot(1, ToBagSlot);
-
-			PcProfile* pChar2 = GetPcProfile();
-			CONTENTS* pContBefore = pChar2->pInventoryArray->Inventory.Cursor;
-
+			CONTENTS* pContBefore = pProfile->InventoryContainer.GetItem(InvSlot_Cursor).get();
 			pInvSlotMgr->MoveItem(From, To, true, true, true, false);
+			CONTENTS* pContAfter = pProfile->InventoryContainer.GetItem(InvSlot_Cursor).get();
 
-			if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor)
+			if (pContAfter)
 			{
-				CONTENTS* pContAfter = pChar2->pInventoryArray->Inventory.Cursor;
-
 				EqItemGuid g;
 				strcpy_s(g.guid, 18, "0000000000000000");
-				CCursorAttachment* pCursAtch = pCursorAttachment;
-
-				pCursAtch->AttachToCursor(nullptr, nullptr, eCursorAttachment_Item, -1, g, 0, nullptr, nullptr);
+				pCursorAttachment->AttachToCursor(nullptr, nullptr, eCursorAttachment_Item, -1, g, 0, nullptr, nullptr);
 			}
 			else
 			{
@@ -7128,75 +6513,19 @@ int GetFreeInventory(int nSize)
 		return 0;
 
 	int freeSlots = 0;
-
-	if (nSize)
+	for (int slot = InvSlot_FirstBagSlot; slot <= GetHighestAvailableBagSlot(); slot++)
 	{
-		for (int slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++)
+		if (ItemPtr pItem = pProfile->InventoryContainer.GetItem(slot))
 		{
-			if (pProfile->pInventoryArray && pProfile->pInventoryArray->InventoryArray[slot])
+			if (pItem->IsContainer()
+				&& (nSize == 0 || pItem->GetItemDefinition()->SizeCapacity >= nSize))
 			{
-				CONTENTS* pItem = pProfile->pInventoryArray->InventoryArray[slot];
-
-				if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK
-					&& GetItemFromContents(pItem)->SizeCapacity >= nSize)
-				{
-					if (!pItem->Contents.ContainedItems.pItems)
-					{
-						freeSlots += GetItemFromContents(pItem)->Slots;
-					}
-					else
-					{
-						for (int pSlot = 0; pSlot < GetItemFromContents(pItem)->Slots; pSlot++)
-						{
-							if (!pItem->GetContent(pSlot))
-							{
-								freeSlots++;
-							}
-						}
-					}
-				}
-			}
-			else
-			{
-				freeSlots++;
+				freeSlots += pItem->GetHeldItems().GetSize() - pItem->GetHeldItems().GetCount();
 			}
 		}
-	}
-	else
-	{
-		for (int slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++)
+		else
 		{
-			if (!HasExpansion(EXPANSION_HoT) && slot > BAG_SLOT_START + 7)
-			{
-				break;
-			}
-
-			if (pProfile->pInventoryArray && pProfile->pInventoryArray->InventoryArray[slot])
-			{
-				CONTENTS* pItem = pProfile->pInventoryArray->InventoryArray[slot];
-
-				if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK)
-				{
-					if (!pItem->Contents.ContainedItems.pItems)
-					{
-						freeSlots += GetItemFromContents(pItem)->Slots;
-					}
-					else
-					{
-						for (int pSlot = 0; pSlot < (GetItemFromContents(pItem)->Slots); pSlot++)
-						{
-							if (!pItem->GetContent(pSlot))
-							{
-								freeSlots++;
-							}
-						}
-					}
-				}
-			}
-			else
-			{
-				freeSlots++;
-			}
+			freeSlots++;
 		}
 	}
 
@@ -7206,47 +6535,36 @@ int GetFreeInventory(int nSize)
 int GetFreeStack(CONTENTS* pContents)
 {
 	PcProfile* pProfile = GetPcProfile();
-	if (!pProfile)
-		return 0;
-	if (!pProfile->pInventoryArray)
-		return 0;
+	if (!pProfile || !pContents) return 0;
 
-	ITEMINFO* pItem = GetItemFromContents(pContents);
-	if (!pItem || pItem->StackSize == 0) // pContents->IsStackable() is equivalent to pContents->GetItemDefinition()->StackSize != 0
+	if (!pContents->IsStackable())
 		return 0;
 
 	int freeStack = 0;
+	int findId = pContents->GetID();
 
-	for (int slot = InvSlot_Ammo; slot <= InvSlot_Bag10; slot++)
+	for (int slot = InvSlot_FirstBagSlot; slot <= GetHighestAvailableBagSlot(); slot++)
 	{
-		if (CONTENTS* pTempItem = pProfile->pInventoryArray->InventoryArray[slot])
+		ItemPtr pCurrentItem = pProfile->GetInventorySlot(slot);
+		if (!pCurrentItem) continue;
+
+		if (pCurrentItem->IsContainer())
 		{
-			ITEMINFO* pTempItemInfo = GetItemFromContents(pTempItem);
-
-			if (pTempItemInfo->Type == ITEMTYPE_PACK && pTempItem->Contents.ContainedItems.pItems)
+			for (const ItemPtr& pChildItem : pCurrentItem->GetHeldItems())
 			{
-				for (int pslot = 0; pslot < pTempItemInfo->Slots; pslot++)
-				{
-					if (pTempItem->Contents.ContainedItems.pItems->Item[pslot])
-					{
-						if (CONTENTS* pSlotItem = pTempItem->Contents.ContainedItems.pItems->Item[pslot])
-						{
-							ITEMINFO* pSlotItemInfo = GetItemFromContents(pSlotItem);
+				if (!pChildItem) continue;
 
-							if (pSlotItemInfo->ItemNumber == pItem->ItemNumber)
-							{
-								freeStack += pSlotItemInfo->StackSize - pSlotItem->StackCount;
-							}
-						}
-					}
+				if (pChildItem->GetID() == findId)
+				{
+					freeStack += pChildItem->GetMaxItemCount() - pChildItem->GetItemCount();
 				}
 			}
-			else
+		}
+		else
+		{
+			if (pCurrentItem->GetID() == findId)
 			{
-				if (pTempItemInfo->ItemNumber == pItem->ItemNumber)
-				{
-					freeStack += pTempItemInfo->StackSize - pTempItem->StackCount;
-				}
+				freeStack += pCurrentItem->GetMaxItemCount() - pCurrentItem->GetItemCount();
 			}
 		}
 	}
@@ -7256,43 +6574,65 @@ int GetFreeStack(CONTENTS* pContents)
 
 bool CanItemMergeInPack(CONTENTS* pPack, CONTENTS* pItem)
 {
-	for (size_t i = 0; i < pPack->Contents.ContainedItems.Size; i++)
+	if (!pPack || !pItem) return false;
+	int findId = pItem->GetID();
+
+	for (const ItemPtr& pSlot : pPack->GetHeldItems())
 	{
-		if (CONTENTS* pSlot = pPack->Contents.ContainedItems.pItems->Item[i])
+		if (!pSlot) continue;
+
+		// If its the same item, check if it has stack space left for
+		// the requested item.
+		if (findId == pSlot->GetID())
 		{
-			if (pSlot->ID == pItem->ID)
-			{
-				if (ITEMINFO* pItemInfo = GetItemFromContents(pSlot))
-				{
-					if (pSlot->StackCount + pItem->StackCount <= (int)pItemInfo->StackSize)
-					{
-						return true;
-					}
-				}
-			}
+			if (pSlot->GetItemCount() + pItem->GetItemCount() <= pSlot->GetMaxItemCount())
+				return true;
 		}
 	}
 
 	return false;
 }
 
-bool CanItemGoInPack(CONTENTS* pPack, CONTENTS* pItem)
+bool CanItemGoInPack(CONTENTS* pPack_, CONTENTS* pItem)
 {
 	// so CanGoInBag doesnt actually check if there is any room, all it checks
 	// is IF there where room, could the item go in it.
-	if (!((EQ_Item*)pItem)->CanGoInBag(&pPack))
+	ItemPtr pPack{ pPack_ };
+
+	if (!pItem->CanGoInBag(pPack))
 		return false;
 
-	for (size_t i = 0; i < pPack->Contents.ContainedItems.Size; i++)
+	for (const ItemPtr& pItemInBag : pPack->GetHeldItems())
 	{
-		if (CONTENTS* pSlot = pPack->Contents.ContainedItems.pItems->Item[i])
+		// If this slot is empty, then the bag has room.
+		if (!pItemInBag)
 		{
+			return true;
+		}
+	}
 
-		}
-		else
-		{
-			return true; // free slot...
-		}
+	return false;
+}
+
+static bool WillItemFitInSlot(const ItemPtr& pItemSlot, const ItemPtr& itemToFit)
+{
+	// If there is nothing in this slot then it will fit there.
+	if (!pItemSlot) return true;
+
+	if (pItemSlot->IsContainer())
+	{
+		// Check if the item can go into this bag.
+		if (CanItemMergeInPack(pItemSlot.get(), itemToFit.get()))
+			return true;
+
+		if (CanItemGoInPack(pItemSlot.get(), itemToFit.get()))
+			return true;
+	}
+	else if (pItemSlot->GetID() == itemToFit->GetID() && pItemSlot->IsStackable())
+	{
+		// Its the same item and the item is stackable, see if the slot has room to spare
+		if (pItemSlot->GetItemCount() + itemToFit->GetItemCount() <= pItemSlot->GetMaxItemCount())
+			return true;
 	}
 
 	return false;
@@ -7300,53 +6640,17 @@ bool CanItemGoInPack(CONTENTS* pPack, CONTENTS* pItem)
 
 bool WillFitInBank(CONTENTS* pContent)
 {
-	ITEMINFO* pMyItem = GetItemFromContents(pContent);
-	if (!pMyItem)
-		return false;
+	if (!pContent) return false;
 
-	CHARINFONEW* pChar = (CHARINFONEW*)GetCharInfo();
-	if (!pChar)
-		return false;
+	CHARINFO* pChar = GetCharInfo();
+	if (!pChar) return false;
 
-	// If bank is empty, then it will fit.
-	if (pChar->BankItems.Items.Size == 0)
-		return true;
+	ItemPtr pItemToFit{ pContent };
 
-	for (size_t slot = 0; slot < pChar->BankItems.Items.Size; slot++)
+	for (const ItemPtr& pBankSlot : pChar->BankItems)
 	{
-		CONTENTS* pCont = pChar->BankItems.Items[slot].get();
-		if (!pCont)
-		{
-			// if its empty it will fit.
+		if (WillItemFitInSlot(pBankSlot, pItemToFit))
 			return true;
-		}
-
-		ITEMINFO* pItem = pCont->GetItemDefinition();
-		if (!pItem) continue;
-
-		if (pItem->Type == ITEMTYPE_PACK)
-		{
-			if (CanItemMergeInPack(pCont, pContent))
-			{
-				return true;
-			}
-
-			if (CanItemGoInPack(pCont, pContent))
-			{
-				return true;
-			}
-		}
-		else
-		{
-			// its not a pack but its an item, do we match?
-			if (pCont->ID == pContent->ID)
-			{
-				if (pCont->StackCount + pContent->StackCount <= pItem->StackSize)
-				{
-					return true;
-				}
-			}
-		}
 	}
 
 	return false;
@@ -7354,52 +6658,19 @@ bool WillFitInBank(CONTENTS* pContent)
 
 bool WillFitInInventory(CONTENTS* pContent)
 {
-	ITEMINFO* pMyItem = GetItemFromContents(pContent);
-	if (!pMyItem)
-		return false;
+	if (!pContent) return false;
 
 	PcProfile* pProfile = GetPcProfile();
-	if (!pProfile)
-		return false;
+	if (!pProfile) return false;
 
-	if (pProfile->pInventoryArray && pProfile->pInventoryArray->InventoryArray)
+	ItemPtr pItemToFit{ pContent };
+
+	for (int slot = InvSlot_FirstBagSlot; slot != GetHighestAvailableBagSlot(); ++slot)
 	{
-		for (int slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++)
-		{
-			CONTENTS* pCont = pProfile->pInventoryArray->InventoryArray[slot];
-			if (!pCont)
-			{
-				// if its empty it will fit.
-				return true;
-			}
+		ItemPtr pInvSlot = pProfile->InventoryContainer.GetItem(slot);
 
-			ITEMINFO* pItem = GetItemFromContents(pCont);
-			if (!pItem)
-				continue;
-
-			if (pItem->Type == ITEMTYPE_PACK)
-			{
-				if (CanItemMergeInPack(pCont, pContent))
-				{
-					return true;
-				}
-				else if (CanItemGoInPack(pCont, pContent))
-				{
-					return true;
-				}
-			}
-			else
-			{
-				// its not a pack but its an item, do we match?
-				if (pCont->ID == pContent->ID)
-				{
-					if (pCont->StackCount + pContent->StackCount <= pItem->StackSize)
-					{
-						return true;
-					}
-				}
-			}
-		}
+		if (WillItemFitInSlot(pInvSlot, pItemToFit))
+			return true;
 	}
 
 	return false;

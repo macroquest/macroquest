@@ -50,6 +50,19 @@
 		</Expand>
 	</Type>
 
+	<Type Name="eqlib::SoeUtil::SharedPtr&lt;*&gt;">
+		<DisplayString Condition="m_ptr == 0">empty</DisplayString>
+		<DisplayString Condition="m_ptr != 0">{*m_ptr,na}</DisplayString>
+		<Expand>
+			<Item Name="[ptr]" Condition="m_ptr != 0">*m_ptr</Item>
+			<Item Name="[rep]">m_rep</Item>
+		</Expand>
+	</Type>
+
+	<Type Name="eqlib::TSafeString&lt;*&gt;">
+		<DisplayString>{Data,s}</DisplayString>
+	</Type>
+
 	<Type Name="eqlib::ForeignPointer&lt;*&gt;">
 		<DisplayString Condition="m_ptr == 0">empty</DisplayString>
 		<DisplayString Condition="m_ptr != 0">{*m_ptr,na}</DisplayString>
@@ -62,12 +75,25 @@
 	</Type>
 
 	<Type Name="eqlib::ArrayClass&lt;*&gt;">
-		<DisplayString>{{Size={m_length} Capacity={m_alloc}}}</DisplayString>
+		<DisplayString>{{size={m_length}}}</DisplayString>
 		<Expand>
+			<Item Name="[size]">m_length</Item>
+			<Item Name="[capacity]">m_alloc</Item>
 			<ArrayItems>
 				<Size>m_length</Size>
 				<ValuePointer>m_array</ValuePointer>
 			</ArrayItems>
+		</Expand>
+	</Type>
+
+	<Type Name="eqlib::ArrayClass2&lt;*&gt;">
+		<DisplayString>{{size={m_length}}}</DisplayString>
+		<Expand>
+			<Item Name="[size]">m_length</Item>
+			<IndexListItems>
+				<Size>m_length</Size>
+				<ValueNode>m_array[($i &gt;&gt; m_binShift)][$i &amp; m_slotMask]</ValueNode>
+			</IndexListItems>
 		</Expand>
 	</Type>
 
@@ -113,7 +139,7 @@
 
 	<Type Name="eqlib::VePointer&lt;*&gt;">
 		<DisplayString Condition="m_pObject == 0">empty</DisplayString>
-		<DisplayString Condition="m_pObject != 0">VePointer {*m_pObject}</DisplayString>
+		<DisplayString Condition="m_pObject != 0">VePointer {*m_pObject,na}</DisplayString>
 		<Expand>
 			<Item Condition="m_pObject != 0" Name="[ptr]">m_pObject</Item>
 		</Expand>
@@ -127,5 +153,12 @@
 				<ValuePointer>m_data</ValuePointer>
 			</ArrayItems>
 		</Expand>
+	</Type>
+
+	<Type Name="eqlib::ItemIndex">
+		<DisplayString>[{m_slots[0]}, {m_slots[1]}, {m_slots[2]}]</DisplayString>
+	</Type>
+	<Type Name="eqlib::ItemClient">
+		<DisplayString Condition="SharedItemDef.m_ptr != 0">[Item #{ID,d} {SharedItemDef.m_ptr->Name,s}]</DisplayString>
 	</Type>
 </AutoVisualizer>

@@ -135,9 +135,6 @@ MQLIB_OBJECT void RemoveCascadeMenuItem(const char* name);
 
 /* WINDOWS */
 MQLIB_API HWND GetEQWindowHandle();
-MQLIB_API void InitializeMQ2Windows();
-MQLIB_API void ShutdownMQ2Windows();
-MQLIB_API void PulseMQ2Windows();
 MQLIB_API void ReinitializeWindowList();
 MQLIB_API void RemoveXMLFile(const char* filename);
 MQLIB_API void AddXMLFile(const char* filename);
@@ -482,7 +479,6 @@ MQLIB_API bool TriggeringEffectSpell(SPELL* aSpell, int i);
 MQLIB_API bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects = false, bool bTriggeredEffectCheck = false);
 MQLIB_API bool WillStackWith(const EQ_Spell* testSpell, const EQ_Spell* existingSpell);
 MQLIB_API uint32_t GetItemTimer(CONTENTS* pItem);
-MQLIB_API CONTENTS* GetItemContentsBySlotID(int dwSlotID);
 MQLIB_API CONTENTS* GetItemContentsByName(const char* ItemName);
 MQLIB_API DWORD GetAvailableSlots(CONTENTS* pContainer, CONTENTS* pItem, int *firstavailableslot);
 MQLIB_API bool LoH_HT_Ready();
@@ -647,27 +643,45 @@ MQLIB_API uint32_t    GetSpellGemTimer(int nGem);
 MQLIB_API uint32_t    GetSpellBuffTimer(int SpellID);
 MQLIB_API bool        HasExpansion(int nExpansion);
 MQLIB_API void        ListMercAltAbilities();
-MQLIB_API CONTENTS*   FindItemBySlot(short InvSlot, short BagSlot = -1, ItemContainerInstance location = eItemContainerPossessions);
+MQLIB_API CONTENTS*   FindItemBySlot(int InvSlot, int BagSlot = -1, ItemContainerInstance location = eItemContainerPossessions);
+MQLIB_API ItemContainer* GetItemContainerByType(ItemContainerInstance type);
+   inline ItemContainer* GetItemContainerByGlobalIndex(const ItemGlobalIndex& index) { return GetItemContainerByType(index.GetLocation()); }
 MQLIB_API CONTENTS*   FindItemByGlobalIndex(const ItemGlobalIndex& idx);
+   inline ItemClient* FindItemBySlot(const ItemGlobalIndex& idx) { return FindItemByGlobalIndex(idx); }
+   DEPRECATE("Use FindItemByGlobalIndex instead of FindItemBySlot2")
    inline CONTENTS*   FindItemBySlot2(const ItemGlobalIndex& idx) { return FindItemByGlobalIndex(idx); }
 MQLIB_API CONTENTS*   FindItemByName(const char* pName, bool bExact = false);
 MQLIB_API CONTENTS*   FindItemByID(int ItemID);
 MQLIB_API int         FindItemCountByName(const char* pName);
 MQLIB_API int         FindItemCountByID(int ItemID);
+MQLIB_API int         FindInventoryItemCountByName(const char* pName, StringMatchType matchType = StringMatchType::CaseInsensitive,
+                                                   int slotBegin = -1, int slotEnd = -1);
+MQLIB_API int         FindInventoryItemCountByID(int ItemID, int slobBegin = -1, int slotEnd = -1);
 MQLIB_API CONTENTS*   FindBankItemByName(const char* pName, bool bExact);
 MQLIB_API CONTENTS*   FindBankItemByID(int ItemID);
 MQLIB_API int         FindBankItemCountByName(const char* pName, bool bExact);
 MQLIB_API int         FindBankItemCountByID(int ItemID);
-MQLIB_API CInvSlot*   GetInvSlot(DWORD type, short Invslot, short Bagslot = -1);
-MQLIB_API CInvSlot*   GetInvSlot2(const ItemGlobalIndex& idx);
+MQLIB_API CInvSlot*   GetInvSlot(const ItemGlobalIndex& idx);
+   inline CInvSlot*   GetInvSlot(DWORD type, short Invslot, short Bagslot = -1) { return GetInvSlot(ItemGlobalIndex(static_cast<ItemContainerInstance>(type), ItemIndex(Invslot, Bagslot))); }
+   DEPRECATE("Use GetInvSlot instead of GetInvSlot2")
+   inline CInvSlot*   GetInvSlot2(const ItemGlobalIndex& idx) { return GetInvSlot(idx); }
 MQLIB_API bool        IsItemInsideContainer(CONTENTS* pItem);
 MQLIB_API bool        ItemMatchesSearch(MQItemSearch& itemSearch, CONTENTS* pItem);
-MQLIB_API bool        PickupItem(ItemContainerInstance type, CONTENTS* pItem);
-MQLIB_API bool        DropItem(ItemContainerInstance type, short InvSlot, short Bagslot);
-MQLIB_API bool        DropItem2(const ItemGlobalIndex& index);
+MQLIB_API bool        PickupItem(const ItemGlobalIndex& index);
+   inline bool        PickupItem(ItemContainerInstance type, CONTENTS* pItem) { return PickupItem(pItem->GetItemLocation()); }
+MQLIB_API bool        DropItem(const ItemGlobalIndex& index);
+   inline bool        DropItem(ItemContainerInstance type, short InvSlot, short Bagslot) { return DropItem(ItemGlobalIndex(type, ItemIndex(InvSlot, Bagslot))); }
+   DEPRECATE("Use DropItem instead of DropItem2")
+   inline bool        DropItem2(ItemContainerInstance type, short InvSlot, short Bagslot) { return DropItem(ItemGlobalIndex(type, ItemIndex(InvSlot, Bagslot))); }
 MQLIB_API bool        ItemOnCursor();
-MQLIB_API bool        OpenContainer(CONTENTS* pItem, bool hidden, bool flag = false);
-MQLIB_API bool        CloseContainer(CONTENTS* pItem);
+MQLIB_API bool        OpenContainer(ItemClient* pItem, bool hidden = false, bool allowTradeskill = false);
+MQLIB_API bool        CloseContainer(ItemClient* pItem);
+
+// The number of available inventory slots are limited by expansion level.
+MQLIB_API int         GetAvailableBagSlots();          // returns the number of bag slots that are enabled
+MQLIB_API int         GetHighestAvailableBagSlot();    // returns the InvSlot of the highest bag slot that is enabled
+MQLIB_API int         GetAvailableBankSlots();         // returns the number of bank slots that are enabled
+MQLIB_API int         GetAvailableSharedBankSlots();   // returns the number of shared bank slots that are enabled
 
 /* BUFF PREDICATES */
 #define SPELLPREDICATE(Type, Code) \

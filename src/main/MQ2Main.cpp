@@ -64,6 +64,7 @@ MQModule* GetDataAPIModule();
 MQModule* GetGroundSpawnsModule();
 MQModule* GetSpawnsModule();
 MQModule* GetItemsModule();
+MQModule* GetWindowsModule();
 
 DWORD WINAPI MQ2Start(void* lpParameter);
 HANDLE hMQ2StartThread = nullptr;
@@ -587,7 +588,7 @@ void DoInitialization()
 
 	InitializeAnonymizer();
 	InitializeMQ2Commands();
-	InitializeMQ2Windows();
+	AddInternalModule(GetWindowsModule());
 	InitializeMQ2AutoInventory();
 	InitializeMQ2CrashHandler();
 
@@ -792,7 +793,6 @@ void MQ2Shutdown()
 	DebugTry(ShutdownChatHook());
 	DebugTry(ShutdownMQ2Pulse());
 	DebugTry(ShutdownLoginFrontend());
-	DebugTry(ShutdownMQ2Windows());
 	DebugTry(ShutdownMQ2AutoInventory());
 	DebugTry(MQ2MouseHooks(false));
 	DebugTry(ShutdownMQ2CrashHandler());

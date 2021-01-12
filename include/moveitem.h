@@ -2,7 +2,7 @@
 /* moveitem.h by pms - item find and move functions centralized in a single file */
 /* last update  - 2011-0415                                                      */
 /* release      - 2010-1103                                                      */
-// edited by: woobs 01/20/2014 
+// edited by: woobs 01/20/2014
 //    Removed MQ2BagWindow dependency.
 //    Removed EQINVSLOT type references.
 //    Removed Item swapping routines.
@@ -14,20 +14,11 @@
 class CItemLocation
 {
 public:
-    short InvSlot;    // main inventory slot (with or without a pack)
-    short BagSlot;    // slot inside of the pack at InvSlot, 0xFFFF when not a bag
-    PCONTENTS      pInvSlot;   // CONTENTS* of the main inventory slot
-    PCONTENTS      pBagSlot;   // CONTENTS* of the bag slot inside of pInvSlot
-    PCONTENTS      pItem;      // CONTENTS* of an item, regardless of where it is
-
-    CItemLocation()
-    {
-        InvSlot    = 0;
-        BagSlot    = INVALID_PACK;
-        pInvSlot   = NULL;
-        pBagSlot   = NULL;
-        pItem      = NULL;
-    }
+	short InvSlot = 0;              // main inventory slot (with or without a pack)
+	short BagSlot = INVALID_PACK;   // slot inside of the pack at InvSlot, 0xFFFF when not a bag
+	CONTENTS* pInvSlot = nullptr;   // CONTENTS* of the main inventory slot
+	CONTENTS* pBagSlot = nullptr;   // CONTENTS* of the bag slot inside of pInvSlot
+	CONTENTS* pItem = nullptr;      // CONTENTS* of an item, regardless of where it is
 };
 
 /*********************************************************************************/
@@ -35,51 +26,47 @@ public:
 
 #define NOID -1
 
-inline bool TypePack(PCONTENTS Item)
+inline bool TypePack(ItemClient* Item)
 {
-    PITEMINFO pItemInfo = GetItemFromContents(Item);
-    return (Item && pItemInfo && pItemInfo->Type == ITEMTYPE_PACK);
+	return Item && Item->IsContainer();
 }
 
-inline bool ItemIsStackable(PCONTENTS Item)
+inline bool ItemIsStackable(ItemClient* Item)
 {
-    PITEMINFO pItemInfo = GetItemFromContents(Item);
-    return (Item && pItemInfo && pItemInfo->Type == ITEMTYPE_NORMAL && ((EQ_Item*)Item)->IsStackable());
+	return Item && Item->IsStackable();
 }
 
-inline long StackHasRoom(PCONTENTS Item)
+inline bool StackHasRoom(ItemClient* Item)
 {
-    PITEMINFO pItemInfo = GetItemFromContents(Item);
-    return (Item && pItemInfo && pItemInfo->Type == ITEMTYPE_NORMAL && ((EQ_Item*)Item)->IsStackable()) ? pItemInfo->StackSize - Item->StackCount : 0;
+	return Item && Item->IsStackable() && Item->GetItemCount() < Item->GetMaxItemCount();
 }
 
 // cannot move items when casting. SOE has detection on this.
 // returns true if a class other than bard is casting.
 bool NonBardCasting()
 {
-    if (!GetCharInfo() || !GetPcProfile() || !pCharSpawn) return false;
-    if (GetPcProfile()->Class == Bard) return false;
-    if (GetCharInfo()->pSpawn && GetCharInfo()->pSpawn->mActorClient.Class == Bard) return false;
-    if (((PSPAWNINFO)pCharSpawn)->CastingData.SpellETA) return true;
-    return false;
+	if (!GetCharInfo() || !GetPcProfile() || !pCharSpawn) return false;
+	if (GetPcProfile()->Class == Bard) return false;
+	if (GetCharInfo()->pSpawn && GetCharInfo()->pSpawn->mActorClient.Class == Bard) return false;
+	if (((PSPAWNINFO)pCharSpawn)->CastingData.SpellETA) return true;
+	return false;
 }
 
 inline bool IsCasting()
 {
-    return (pCharSpawn && ((PSPAWNINFO)pCharSpawn)->CastingData.SpellID != NOID);
+	return (pCharSpawn && ((PSPAWNINFO)pCharSpawn)->CastingData.SpellID != NOID);
 }
 
 inline bool AbilityInUse()
 {
-    if (pCharSpawn && ((PSPAWNINFO)pCharSpawn)->CastingData.SpellETA == 0) return false;
-    return true;
+	if (pCharSpawn && ((PSPAWNINFO)pCharSpawn)->CastingData.SpellETA == 0) return false;
+	return true;
 }
 
 // returns true if there is something on the cursor
 inline bool CursorHasItem()
 {
-    if (GetPcProfile()->pInventoryArray->Inventory.Cursor) return true;
-    return false;
+	return GetPcProfile()->GetInventorySlot(InvSlot_Cursor) != nullptr;
 }
 
 /*********************************************************************************/
@@ -100,42 +87,49 @@ CItemLocation* ItemFind(CItemLocation* pItemFound, char* pcItemName, unsigned sh
 
 CItemLocation* ItemFind(CItemLocation* pItemFound, char* pcItemName, unsigned short usMin, unsigned short usInvSlots)
 {
-    unsigned short usSlot  = 0;
-    int iIsNum  = IsNumber(pcItemName);
-    int iItemID = atoi(pcItemName);
-    PcProfile* pChar2 = GetPcProfile();
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile) return nullptr;
 
-	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
-        // loop through inv slots & worn slots
-		for (usSlot = usMin; usSlot < usInvSlots; usSlot++) {
-			if (PCONTENTS pItem2 = pChar2->pInventoryArray->InventoryArray[usSlot]) {
-				if ((iIsNum && iItemID == GetItemFromContents(pItem2)->ItemNumber) || (!iIsNum && !_stricmp(pcItemName, GetItemFromContents(pItem2)->Name))) {
-                    pItemFound->InvSlot   = pItem2->Contents.ItemSlot;
-					pItemFound->BagSlot   = -1;
-                    pItemFound->pInvSlot  = pItem2;
-                    pItemFound->pBagSlot  = pItem2;
-					pItemFound->pItem     = pItem2;
-                    return pItemFound;
-				}
-                // else if there is a non-empty bag in this slot
-				if (GetItemFromContents(pItem2)->Type==ITEMTYPE_PACK && pItem2->Contents.ContainedItems.pItems) {
-					for (unsigned long nItem=0; nItem < GetItemFromContents(pItem2)->Slots; nItem++) {
-						if (PCONTENTS pBagSlot = pItem2->Contents.ContainedItems.pItems->Item[nItem]) {
-							if ((iIsNum && iItemID == GetItemFromContents(pBagSlot)->ItemNumber) || (!iIsNum && !_stricmp(pcItemName, GetItemFromContents(pBagSlot)->Name))) {
-                               pItemFound->InvSlot   = pBagSlot->Contents.ItemSlot;
-					           pItemFound->BagSlot   = pBagSlot->Contents.ItemSlot2;
-                               pItemFound->pInvSlot  = pItem2;
-                               pItemFound->pBagSlot  = pBagSlot;
-					           pItemFound->pItem     = pBagSlot;
-                               return pItemFound;
-                            }
-                        }
-                    }
-                }
+	unsigned short usSlot = 0;
+	int iIsNum = IsNumber(pcItemName);
+	int iItemID = atoi(pcItemName);
+
+	// loop through inv slots & worn slots
+	for (usSlot = usMin; usSlot < usInvSlots; usSlot++)
+	{
+		if (CONTENTS* pItem2 = pProfile->GetInventorySlot(usSlot))
+		{
+			if ((iIsNum && iItemID == pItem2->GetID()) || (!iIsNum && !_stricmp(pcItemName, pItem2->GetName())))
+			{
+				pItemFound->InvSlot = pItem2->Contents.ItemSlot;
+				pItemFound->BagSlot = -1;
+				pItemFound->pInvSlot = pItem2;
+				pItemFound->pBagSlot = pItem2;
+				pItemFound->pItem = pItem2;
+				return pItemFound;
 			}
-        }
-    }
-    return NULL;
+			// else if there is a non-empty bag in this slot
+			if (pItem2->IsContainer())
+			{
+				for (const ItemPtr& pBagSlot : pItem2->GetHeldItems())
+				{
+					if (pBagSlot)
+					{
+						if ((iIsNum && iItemID == pBagSlot->GetID()) || (!iIsNum && !_stricmp(pcItemName, pBagSlot->GetName())))
+						{
+							pItemFound->InvSlot = pBagSlot->Contents.ItemSlot;
+							pItemFound->BagSlot = pBagSlot->Contents.ItemSlot2;
+							pItemFound->pInvSlot = pItem2;
+							pItemFound->pBagSlot = pBagSlot.get();
+							pItemFound->pItem = pBagSlot.get();
+							return pItemFound;
+						}
+					}
+				}
+			}
+		}
+	}
+	return nullptr;
 }
 
 /*********************************************************************************/
@@ -151,18 +145,18 @@ CItemLocation* ItemFind(CItemLocation* pItemFound, char* pcItemName, unsigned sh
 
 long SlotFind(char* pcSlotID)
 {
-    long lSlotNum = 0;
-    if (IsNumber(pcSlotID)) {
-        lSlotNum = atoi(pcSlotID);
-        // if the slot provided is a worn or main inventory slot, excludes old "magic numbers" for packs
-        if (lSlotNum >= 0 && lSlotNum < NUM_INV_SLOTS) return lSlotNum;
-    } else {
-        for (lSlotNum = 0; szItemSlot[lSlotNum]; lSlotNum++) {
-            if (!_stricmp(pcSlotID, szItemSlot[lSlotNum])) return lSlotNum;
-        }
-    }
-    // mq slot was not found by name or number
-    return NOID;
+	long lSlotNum = 0;
+	if (IsNumber(pcSlotID)) {
+		lSlotNum = atoi(pcSlotID);
+		// if the slot provided is a worn or main inventory slot, excludes old "magic numbers" for packs
+		if (lSlotNum >= 0 && lSlotNum < NUM_INV_SLOTS) return lSlotNum;
+	} else {
+		for (lSlotNum = 0; szItemSlot[lSlotNum]; lSlotNum++) {
+			if (!_stricmp(pcSlotID, szItemSlot[lSlotNum])) return lSlotNum;
+		}
+	}
+	// mq slot was not found by name or number
+	return NOID;
 }
 
 /*********************************************************************************/
@@ -170,93 +164,31 @@ long SlotFind(char* pcSlotID)
 // pcItemName is a string that either contains the item name or item ID to be compared.
 // Return will be your count as unsigned long, adjusted if found, 0 if not.
 
-unsigned long CountItemByID(unsigned long ulID, unsigned short usMin = 0, unsigned short usInvSlots = NUM_INV_SLOTS);
+inline int CountItemByID(int ulID, int usMin = 0, int usInvSlots = NUM_INV_SLOTS);
 // We prototype the args to search from 0 to 33 (worn, inv, and cursor) by default. You can change this to search
 // only bags by calling CountItem() with usMin starting point BAG_SLOT_START.
 
 // counts by item name
-template <unsigned int _Size> unsigned long CountItemByName(char(&pcItemName)[_Size], unsigned short usMin = 0, unsigned short usInvSlots = NUM_INV_SLOTS)
+inline int CountItemByName(const char* pcItemName, unsigned short usMin = 0, unsigned short usInvSlots = NUM_INV_SLOTS)
 {
-    unsigned long  ulCount = 0;
-    unsigned short usSlot  = 0;
-
-    // loop through inv slots & worn slots
-    for (usSlot = usMin; usSlot < usInvSlots; usSlot++) {
-        if (PCONTENTS pInvSlot = GetCharInfo2()->pInventoryArray->InventoryArray[usSlot]) {
-            PITEMINFO pItemInfo = GetItemFromContents(pInvSlot);
-            if (pItemInfo && !_stricmp(pcItemName, pItemInfo->Name)) {
-                if (ItemIsStackable(pInvSlot)) {
-                    ulCount += pInvSlot->StackCount; // increment by the size of stack
-                } else {
-                    ulCount++; // increment by a single item
-                }
-            // else if there is a non-empty bag in this slot
-		    } else if (pItemInfo && TypePack(pInvSlot) && pInvSlot->Contents.ContainedItems.pItems) {
-                // cycle through the number of pack slots
-                unsigned short usPack = 0;
-                for (usPack = 0; usPack < pItemInfo->Slots; usPack++) {
-                    if (PCONTENTS pBagSlot = pInvSlot->Contents.ContainedItems.pItems->Item[usPack]) {
-                        PITEMINFO pBagInfo = GetItemFromContents(pBagSlot);
-                        if (pBagInfo && !_stricmp(pcItemName, pBagInfo->Name)) {
-                            if (ItemIsStackable(pBagSlot)) {
-                                ulCount += pBagSlot->StackCount; // increment by the size of stack
-                            } else {
-                                ulCount++; // increment by a single item
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return ulCount;
+	return FindInventoryItemCountByName(pcItemName, StringMatchType::CaseInsensitive, usMin, usInvSlots);
 }
 
-unsigned long CountItemByID(unsigned long ulID, unsigned short usMin, unsigned short usInvSlots)
+inline int CountItemByID(int ulID, int usMin, int usInvSlots)
 {
-    unsigned long  ulCount = 0;
-    unsigned short usSlot  = 0;
-
-    // loop through inv slots & worn slots
-    for (usSlot = usMin; usSlot < usInvSlots; usSlot++) {
-        if (PCONTENTS pInvSlot = GetPcProfile()->pInventoryArray->InventoryArray[usSlot]) {
-            PITEMINFO pItemInfo = GetItemFromContents(pInvSlot);
-            // if item provided by user is an item id and it matches, or item is by name and it matches
-            if (pItemInfo && (ulID == pItemInfo->ItemNumber)) {
-                if (ItemIsStackable(pInvSlot)) {
-                    ulCount += pInvSlot->StackCount; // increment by the size of stack
-                } else {
-                    ulCount++; // increment by a single item
-                }
-            // else if there is a non-empty bag in this slot
-		    } else if (pItemInfo && TypePack(pInvSlot) && pInvSlot->Contents.ContainedItems.pItems) {
-                // cycle through the number of pack slots
-                unsigned short usPack = 0;
-                for (usPack = 0; usPack < pItemInfo->Slots; usPack++) {
-                    if (PCONTENTS pBagSlot = pInvSlot->Contents.ContainedItems.pItems->Item[usPack]) {
-                        PITEMINFO pBagInfo = GetItemFromContents(pBagSlot);
-                        if (ulID == pBagInfo->ItemNumber) {
-                            if (ItemIsStackable(pBagSlot)) {
-                                ulCount += pBagSlot->StackCount; // increment by the size of stack
-                            } else {
-                                ulCount++; // increment by a single item
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return ulCount;
+	return FindInventoryItemCountByID(ulID, usMin, usInvSlots);
 }
 
 // wrapper for string id passing
-template <unsigned int _Size>unsigned long CountItem(char(&pcItemName)[_Size], unsigned short usMin, unsigned short usInvSlots)
+inline int CountItem(const char* pcItemName, int usMin, int usInvSlots)
 {
-    int iIsNum  = IsNumber(pcItemName);
-    int iItemID = atoi(pcItemName);
-    if (iIsNum) return CountItemByID((unsigned long)iItemID, usMin, usInvSlots);
-    return CountItemByName(pcItemName, usMin, usInvSlots);
+	if (IsNumber(pcItemName))
+	{
+		int iItemID = atoi(pcItemName);
+		return CountItemByID(iItemID, usMin, usInvSlots);
+	}
+
+	return CountItemByName(pcItemName, usMin, usInvSlots);
 }
 
 /*********************************************************************************/
@@ -264,105 +196,109 @@ template <unsigned int _Size>unsigned long CountItem(char(&pcItemName)[_Size], u
 //
 
 // finds an open slot in a bag that has items (not empty bags)
-CItemLocation* PackFind(CItemLocation* pFreeSlot, PCONTENTS pUnequipSlot)
+CItemLocation* PackFind(CItemLocation* pFreeSlot, CONTENTS* pUnequipSlot)
 {
-    unsigned char  ucCurSize = 10;
-    unsigned short usSlot    = 0;
+	unsigned char  ucCurSize = 10;
+	unsigned short usSlot    = 0;
 
-    unsigned short usDecrement = 0;
+	unsigned short usDecrement = 0;
 
-    // no user-specific slot given, find the first free bag slot
-    for (usSlot = BAG_SLOT_START; usSlot < NUM_INV_SLOTS; usSlot++) {
-        if (PCONTENTS pInvSlot = GetPcProfile()->pInventoryArray->InventoryArray[usSlot]) {
-            PITEMINFO pItemInfo    = GetItemFromContents(pInvSlot);
-            PITEMINFO pUnequipInfo = GetItemFromContents(pUnequipSlot);
+	// no user-specific slot given, find the first free bag slot
+	for (usSlot = InvSlot_FirstBagSlot; usSlot <= GetHighestAvailableBagSlot(); usSlot++)
+	{
+		if (CONTENTS* pInvSlot = GetPcProfile()->GetInventorySlot(usSlot))
+		{
+			PITEMINFO pItemInfo    = GetItemFromContents(pInvSlot);
+			PITEMINFO pUnequipInfo = GetItemFromContents(pUnequipSlot);
 
-            if (pItemInfo && pUnequipInfo && TypePack(pInvSlot) && pInvSlot->Contents.ContainedItems.pItems && pItemInfo->Combine != 2 && pUnequipInfo->Size <= pItemInfo->SizeCapacity) { 
-                PCONTENTS pLAST = pInvSlot->Contents.ContainedItems.pItems->Item[0];
+			if (pItemInfo && pUnequipInfo && pInvSlot->IsContainer()
+				&& pItemInfo->Combine != 2
+				&& pUnequipInfo->Size <= pItemInfo->SizeCapacity)
+			{
+				CONTENTS* pLAST = pInvSlot->GetHeldItem(0);
 
-                unsigned short usPack = 0;
-                for (usPack = 0; usPack < pItemInfo->Slots; usPack++) {
-                    if (!pInvSlot->Contents.ContainedItems.pItems->Item[usPack]) {
-                        //DebugSpewAlways("no pointer at %hu of pack %hu", usPack, usSlot);
-                        if (pLAST) {
-                            pFreeSlot->InvSlot   = pInvSlot->Contents.ItemSlot;
-                            pFreeSlot->BagSlot   = usPack;
-                            pFreeSlot->pBagSlot  = pInvSlot->Contents.ContainedItems.pItems->Item[usPack]; // will be NULL
-                            pFreeSlot->pInvSlot  = pInvSlot;
-                            return pFreeSlot;
-                        // else first bag slot was empty
-					    } else {
-                            usDecrement++;
-                        }
-                    } else if (usDecrement) {
-                        //DebugSpewAlways("pack %hu minus decrement %hu equals %hu", usPack, usDecrement, usPack-usDecrement);
-                        pFreeSlot->InvSlot    = pInvSlot->Contents.ItemSlot;
-                        pFreeSlot->BagSlot    = usPack;
-                        pFreeSlot->pBagSlot   = pInvSlot->Contents.ContainedItems.pItems->Item[usPack - usDecrement]; // will be NULL
-                        pFreeSlot->pInvSlot   = pInvSlot;
-                        return pFreeSlot;
-                    }
-                    pLAST = pInvSlot->Contents.ContainedItems.pItems->Item[usPack];
-                }
-                usDecrement = 0;
-                pLAST = NULL;
-            }
-        }
-    }
-    return NULL;
+				unsigned short usPack = 0;
+				for (usPack = 0; pInvSlot->GetHeldItems().GetSize(); usPack++) {
+					if (!pInvSlot->GetHeldItem(usPack)) {
+						//DebugSpewAlways("no pointer at %hu of pack %hu", usPack, usSlot);
+						if (pLAST) {
+							pFreeSlot->InvSlot   = usSlot;
+							pFreeSlot->BagSlot   = usPack;
+							pFreeSlot->pBagSlot  = pInvSlot->GetHeldItem(usPack); // will be NULL
+							pFreeSlot->pInvSlot  = pInvSlot;
+							return pFreeSlot;
+						// else first bag slot was empty
+						} else {
+							usDecrement++;
+						}
+					} else if (usDecrement) {
+						//DebugSpewAlways("pack %hu minus decrement %hu equals %hu", usPack, usDecrement, usPack-usDecrement);
+						pFreeSlot->InvSlot    = usSlot;
+						pFreeSlot->BagSlot    = usPack;
+						pFreeSlot->pBagSlot   = pInvSlot->GetHeldItem(usPack - usDecrement); // will be NULL
+						pFreeSlot->pInvSlot   = pInvSlot;
+						return pFreeSlot;
+					}
+					pLAST = pInvSlot->GetHeldItem(usPack);
+				}
+				usDecrement = 0;
+				pLAST = NULL;
+			}
+		}
+	}
+	return NULL;
 }
 
 // searches only main inventory for somewhere to put a pack
 // returns slot number if it exists
 long FindSlotForPack()
 {
-    long lSlot = 0;
-    for (lSlot = BAG_SLOT_START; lSlot < NUM_INV_SLOTS; lSlot++) {
-        PCONTENTS pInvSlot = GetPcProfile()->pInventoryArray->InventoryArray[lSlot];
-        if (!pInvSlot) {
-            // main inventory slot is empty
-            return lSlot;
-        }
-        PITEMINFO pItemInfo = GetItemFromContents(pInvSlot);
-        // if there is an item that is not a pack             // if the item is a pack, but the pack is empty, we can swap it
-        if (pItemInfo && ((pItemInfo->Type != ITEMTYPE_PACK) || (pItemInfo->Type == ITEMTYPE_PACK && !pInvSlot->Contents.ContainedItems.pItems))) {
-            return lSlot;
-        }
-    }
-    // no room for another pack
-    return NOID;
+	long lSlot = 0;
+	for (lSlot = InvSlot_FirstBagSlot; lSlot <= GetHighestAvailableBagSlot(); lSlot++) {
+		CONTENTS* pInvSlot = GetPcProfile()->GetInventorySlot(lSlot);
+		if (!pInvSlot) {
+			// main inventory slot is empty
+			return lSlot;
+		}
+
+		// if there is an item that is not a pack             // if the item is a pack, but the pack is empty, we can swap it
+		if (!pInvSlot->IsContainer() || pInvSlot->GetHeldItems().IsEmpty()) {
+			return lSlot;
+		}
+	}
+	// no room for another pack
+	return NOID;
 }
 
 // searches for any available inventory/pack slot -  to use with auto-inventory
 // this includes stackable support, does not include main worn
-long FreeSlotForItem(PCONTENTS pItem)
+int FreeSlotForItem(CONTENTS* pItem)
 {
-    long lSlot = 0;
-    bool bCheckStack = ItemIsStackable(pItem);
+	bool bCheckStack = ItemIsStackable(pItem);
 
-    for (lSlot = BAG_SLOT_START; lSlot < NUM_INV_SLOTS; lSlot++) {
-        PCONTENTS pInvSlot = GetPcProfile()->pInventoryArray->InventoryArray[lSlot];
-        if (!pInvSlot) return lSlot; // free main inv slot, we are done
-        PITEMINFO pItemInfo = GetItemFromContents(pItem);
-        PITEMINFO pSlotInfo = GetItemFromContents(pInvSlot);
-        if (pItemInfo && pSlotInfo) {
+	for (int lSlot = InvSlot_FirstBagSlot; lSlot <= GetHighestAvailableBagSlot(); lSlot++) {
+		CONTENTS* pInvSlot = GetPcProfile()->GetInventorySlot(lSlot);
+		if (!pInvSlot) return lSlot; // free main inv slot, we are done
+		PITEMINFO pItemInfo = GetItemFromContents(pItem);
+		PITEMINFO pSlotInfo = GetItemFromContents(pInvSlot);
+		if (pItemInfo && pSlotInfo) {
 			if (bCheckStack && pSlotInfo->Type != ITEMTYPE_PACK) { // check for stackable
-                if (pItemInfo->ItemNumber == pSlotInfo->ItemNumber && StackHasRoom(pInvSlot)) return NOID; // use autoinventory
-            }
-            // search through the pack for a free slot
-            if (TypePack(pInvSlot) && pItemInfo->Size <= pSlotInfo->SizeCapacity && (pSlotInfo->Combine == 2) ? (pItemInfo->ItemType == 27) : true) {
-                if (!pInvSlot->Contents.ContainedItems.pItems) return NOID; // the pack is empty, use autoinventory
-                unsigned short usPack = 0;
-                for (usPack = 0; usPack < pSlotInfo->Slots; usPack++) {
-                    PCONTENTS pBagSlot = pInvSlot->Contents.ContainedItems.pItems->Item[usPack];
-                    if (!pBagSlot) return NOID;
-                    PITEMINFO pBagInfo = GetItemFromContents(pBagSlot);
-                    if (bCheckStack && pItemInfo->ItemNumber == pBagInfo->ItemNumber && StackHasRoom(pBagSlot)) return NOID;
-                    // return if the slot is free or meets stacking requirements
-                }
-            }
-        }
-        // if its not stackable to main inventory or in this pack, move on to next slot
-    }
-    return 0;
+				if (pItemInfo->ItemNumber == pSlotInfo->ItemNumber && StackHasRoom(pInvSlot)) return NOID; // use autoinventory
+			}
+			// search through the pack for a free slot
+			if (TypePack(pInvSlot) && pItemInfo->Size <= pSlotInfo->SizeCapacity && (pSlotInfo->Combine == ContainerType_Quiver) ? (pItemInfo->ItemType == ItemClass_Arrow) : true) {
+				if (pInvSlot->GetHeldItems().IsEmpty()) return NOID; // the pack is empty, use autoinventory
+				unsigned short usPack = 0;
+				for (usPack = 0; usPack < pSlotInfo->Slots; usPack++) {
+					CONTENTS* pBagSlot = pInvSlot->GetHeldItem(usPack);
+					if (!pBagSlot) return NOID;
+					PITEMINFO pBagInfo = GetItemFromContents(pBagSlot);
+					if (bCheckStack && pItemInfo->ItemNumber == pBagInfo->ItemNumber && StackHasRoom(pBagSlot)) return NOID;
+					// return if the slot is free or meets stacking requirements
+				}
+			}
+		}
+		// if its not stackable to main inventory or in this pack, move on to next slot
+	}
+	return 0;
 }
