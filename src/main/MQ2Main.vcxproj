@@ -50,7 +50,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <PreprocessorDefinitions>MQ2MAIN_EXPORTS;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
+      <PreprocessorDefinitions>MQ2MAIN_EXPORTS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(MQ2Root)src\main;$(MQ2Root)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -67,7 +67,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <PreprocessorDefinitions>MQ2MAIN_EXPORTS;%(PreprocessorDefinitions);NOMINMAX</PreprocessorDefinitions>
+      <PreprocessorDefinitions>MQ2MAIN_EXPORTS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(MQ2Root)src\main;$(MQ2Root)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>

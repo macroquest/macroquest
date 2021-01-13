@@ -27,7 +27,9 @@
 #include <wil/resource.h>
 #include <fstream>
 
+#if !defined(COMMENT_UPDATER)
 #include "client/crashpad_client.h"
+#endif
 
 #include <Psapi.h>
 #pragma comment(lib, "Psapi.lib")
