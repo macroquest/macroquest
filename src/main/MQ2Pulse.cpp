@@ -272,6 +272,124 @@ void NaturalTurn(SPAWNINFO* pCharOrMount, SPAWNINFO* pChar)
 	}
 }
 
+static void CheckGameState()
+{
+	static int lastGameState = gGameState;
+
+	if (lastGameState != gGameState)
+	{
+		SPDLOG_INFO("GameState Change: {} -> {}", lastGameState, gGameState);
+		lastGameState = gGameState;
+	}
+
+	// Testing for in game flags
+	if (gGameState == GAMESTATE_INGAME)
+	{
+		if (!pCharData)
+			SPDLOG_ERROR("InGame with no pCharData");
+		if (!pPCData)
+			SPDLOG_ERROR("InGame with no pPCData");
+
+		if (pCharData)
+		{
+			if (pCharData->me != pLocalPlayer)
+				SPDLOG_ERROR("pCharData->me ({}) is different than pLocalPlayer ({})",
+					(void*)pCharData->me, (void*)pLocalPlayer.get());
+		}
+
+		if (!pCharSpawn)
+			SPDLOG_ERROR("InGame with no pCharSpawn");
+		if (!pControlledPlayer)
+			SPDLOG_ERROR("InGame with no pControlledPlayer");
+		if (!pLocalPlayer)
+			SPDLOG_ERROR("InGame with no pLocalPlayer");
+
+		// Check UI state
+		if (!pPlayerWnd)
+			SPDLOG_ERROR("InGame with no pPlayerWnd");
+		if (!gbInZone)
+			SPDLOG_ERROR("InGame but not gbInZone");
+	}
+	else if (gGameState == GAMESTATE_CHARSELECT)
+	{
+		if (!pCharData)
+			SPDLOG_ERROR("At CharSelect without pCharData");
+		else if (pCharData->me != nullptr)
+		{
+			// Me should be null
+			SPDLOG_ERROR("At CharSelect with pCharData->me ({} {})", (void*)pCharData->me, pCharData->me->Name);
+		}
+
+		if (!pPCData)
+			SPDLOG_ERROR("At CharSelect without pPCData ({})", (void*)pPCData.get());
+
+		if (!pCharSpawn)
+			SPDLOG_ERROR("At CharSelect without pCharSpawn");
+		if (!pLocalPlayer)
+			SPDLOG_ERROR("At CharSelect without pLocalPlayer");
+		if (!pControlledPlayer)
+			SPDLOG_ERROR("At CharSelect without pControlledPlayer");
+
+		// Check UI state
+		if (pPlayerWnd)
+			SPDLOG_ERROR("Not InGame with pPlayerWnd");
+
+		if (!gbInZone)
+			SPDLOG_ERROR("At CharSelect without gbInZone");
+	}
+
+	if (pCharData.get() != pPCData.get())
+		SPDLOG_ERROR("pCharData is different than pPCData");
+
+	if (pCharSpawn.get() != pControlledPlayer.get())
+	{
+		SPDLOG_ERROR("pCharSpawn ({} {}) is different than pControlledPlayer ({} {})",
+			(void*)pCharSpawn.get(), pCharSpawn ? pCharSpawn->Name : "<null>",
+			(void*)pControlledPlayer.get(), pControlledPlayer ? pControlledPlayer->Name : "<null>");
+	}
+
+	if (pCharData)
+	{
+		if (pCharData->ProfileManager.GetCurrentProfile() == nullptr)
+			SPDLOG_ERROR("pCharData exists but CurrentProfile does not");
+	}
+	else if (pLocalPlayer)
+	{
+		SPDLOG_ERROR("pCharSpawn exists but pLocalPlayer doesn't");
+	}
+
+	if (pLocalPlayer && (!pCharSpawn || !pControlledPlayer))
+	{
+		SPDLOG_ERROR("pLocalPlayer ({}) exists but no pCharSpawn ({}) or pControlledPlayer ({})",
+			(void*)pLocalPlayer.get(), (void*)pCharSpawn.get(), (void*)pControlledPlayer.get());
+	}
+
+	// Check for changes.
+	static PcClient* OldCharData = nullptr;
+	static PcClient* OldPcData = nullptr;
+	static PlayerClient* OldCharSpawn = nullptr;
+	static PlayerClient* OldControlledPlayer = nullptr;
+	static PlayerClient* OldLocalPlayer = nullptr;
+
+	static PlayerClient* OldMe = nullptr;
+
+	if (test_and_set(OldCharData, pCharData.get()))
+		SPDLOG_INFO("pCharData Changed: {}", (void*)pCharData.get());
+	if (test_and_set(OldPcData, pPCData.get()))
+		SPDLOG_INFO("pPCData Changed: {}", (void*)pPCData.get());
+
+	if (test_and_set(OldCharSpawn, pCharSpawn.get()))
+		SPDLOG_INFO("pCharSpawn Changed: {} {}", (void*)pCharSpawn.get(), pCharSpawn ? pCharSpawn->Name : "<null>");
+	if (test_and_set(OldControlledPlayer, pControlledPlayer.get()))
+		SPDLOG_INFO("pControlledPlayer Changed: {} {}", (void*)pControlledPlayer.get(), pControlledPlayer ? pControlledPlayer->Name : "<null>");
+	if (test_and_set(OldLocalPlayer, pLocalPlayer.get()))
+		SPDLOG_INFO("pLocalPlayer Changed: {} {}", (void*)pLocalPlayer.get(), pLocalPlayer ? pLocalPlayer->Name : "<null>");
+
+	PlayerClient* pMe = pCharData ? pCharData->me : nullptr;
+	if (test_and_set(OldMe, pMe))
+		SPDLOG_INFO("pCharData->Me Changed: {} {}", (void*)pMe, pMe ? pMe->Name : "<null>");
+}
+
 static void Pulse()
 {
 	static HWND EQhWnd = *(HWND*)EQADDR_HWND;
@@ -282,6 +400,8 @@ static void Pulse()
 
 	// handle queued events.
 	ProcessQueuedEvents();
+
+	//CheckGameState();
 
 	if (!pCharSpawn) return;
 
