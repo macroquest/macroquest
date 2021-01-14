@@ -553,11 +553,11 @@ void Items(SPAWNINFO* pChar, char* szLine)
 		if (!pRealEstateItem)
 			continue;
 
-		CONTENTS* pCont = pRealEstateItem->Object.pItemBase.get();
+		ItemClient* pCont = pRealEstateItem->Object.pItemBase.get();
 		if (!pCont)
 			continue;
 
-		ITEMINFO* pItem = pCont->GetItemDefinition();
+		ItemDefinition* pItem = pCont->GetItemDefinition();
 		if (!pItem)
 			continue;
 
@@ -1851,7 +1851,7 @@ void Identify(SPAWNINFO* pChar, char* szLine)
 
 		if (pCursor->IsStackable())
 		{
-			sprintf_s(szTmp, "Stack size = %d ", pCursor->StackCount);
+			sprintf_s(szTmp, "Stack size = %d ", pCursor->GetItemCount());
 			strcat_s(szMsg, szTmp);
 		}
 	}
@@ -2909,7 +2909,7 @@ void Cast(SPAWNINFO* pChar, char* szLine)
 	char szArg2[MAX_STRING] = { 0 };
 	GetArg(szArg2, szLine, 2);
 
-	if (szLine[0] == 0 || GetIntFromString(szLine, 0) || !pSpellMgr || !pCharData)
+	if (szLine[0] == 0 || GetIntFromString(szLine, 0))
 	{
 		int Index = GetIntFromString(szLine, 0) - 1;
 
@@ -2973,7 +2973,7 @@ void Cast(SPAWNINFO* pChar, char* szLine)
 	if (!_stricmp(szArg1, "item"))
 	{
 		// Find the item
-		if (CONTENTS* pItem = FindItemByName(szArg2, true))
+		if (ItemClient* pItem = FindItemByName(szArg2, true))
 		{
 			int spellId = pItem->GetItemDefinition()->Clicky.SpellID;
 

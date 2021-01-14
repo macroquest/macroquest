@@ -193,13 +193,13 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.Type = pStringType;
 		if (pEQ->ChatService)
 		{
-			CHATSERVICE* pChat = pEQ->ChatService;
+			UniversalChatProxy* pChat = pEQ->ChatService;
 			if (IsNumber(Index))
 			{
 				int index = GetIntFromString(Index, 0) - 1;
 				if (pChat->ActiveChannels && index >= 0 && index < pChat->ActiveChannels)
 				{
-					strcpy_s(DataTypeTemp, pChat->ChannelList->ChannelName[index]);
+					strcpy_s(DataTypeTemp, pChat->ChannelList[index]);
 					Dest.Ptr = &DataTypeTemp[0];
 					Dest.Type = pStringType;
 					return true;
@@ -212,7 +212,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 				for (int i = 0; i < pChat->ActiveChannels; i++)
 				{
-					if (!_stricmp(Name, pChat->ChannelList->ChannelName[i]))
+					if (!_stricmp(Name, pChat->ChannelList[i]))
 					{
 						Dest.Set(true);
 						Dest.Type = pBoolType;

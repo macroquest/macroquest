@@ -2167,7 +2167,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	case CharacterMembers::ItemReady: {
 		Dest.Set(false);
 		Dest.Type = pBoolType;
-		CONTENTS* pCont = nullptr;
+		ItemClient* pCont = nullptr;
 
 		if (pDisplay && pLocalPlayer && Index[0])
 		{
@@ -2192,7 +2192,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 			if (pCont)
 			{
-				if (PITEMINFO pIteminf = GetItemFromContents(pCont))
+				if (ItemDefinition* pIteminf = GetItemFromContents(pCont))
 				{
 					if (pIteminf->Clicky.TimerID != -1)
 					{

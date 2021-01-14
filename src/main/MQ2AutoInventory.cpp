@@ -85,7 +85,7 @@ CCheckBoxWnd* pCheck = nullptr;
 bool bChangedNL = false;
 ULONGLONG SellTimer = 0;
 
-bool PickupItemNew(CONTENTS* pCont)
+bool PickupItemNew(ItemClient* pCont)
 {
 	if (pCharData && pInvSlotMgr && pCursorAttachment && pCursorAttachment->Type == eCursorAttachment_None)
 	{
@@ -246,7 +246,7 @@ public:
 
 									if (ptr)
 									{
-										if (ITEMINFO* pItem = ptr->GetItemDefinition())
+										if (ItemDefinition* pItem = ptr->GetItemDefinition())
 										{
 											if (gbColorsFeatureEnabled)
 											{
@@ -705,16 +705,16 @@ public:
 													ItemPtr ptr = cb->GetItemByGlobalIndex(*gi);
 													if (ptr)
 													{
-														if (PITEMINFO pItem = ptr->GetItemDefinition())
+														if (ItemDefinition* pItem = ptr->GetItemDefinition())
 														{
 															if (pMerchantWnd && pMerchantWnd->IsVisible())
 															{
-																WriteChatf("[%d] Adding %s to Sell List", i, pItem->Name);
+																WriteChatf("[%d] Adding %s to Sell List", i, ptr->GetName());
 																gSellList.push_back(*gi);
 															}
 															else
 															{
-																WriteChatf("[%d] Marking %s as Never Loot", i, pItem->Name);
+																WriteChatf("[%d] Marking %s as Never Loot", i, ptr->GetName());
 																if (pLootFiltersManager)
 																{
 																	pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 8, false, false);
@@ -1169,7 +1169,7 @@ static void AutoBankPulse()
 				ItemGlobalIndex& gi = *g;
 				if (ItemPtr pItem = pCharData->GetItemByGlobalIndex(gi))
 				{
-					bool bwesold = false;
+					bool didSell = false;
 					if (pMerchantWnd->pSelectedItem)
 					{
 						if (pMerchantWnd->pSelectedItem->GetID() == pItem->GetID())
@@ -1178,12 +1178,12 @@ static void AutoBankPulse()
 							WriteChatf("Sold %d %s", pItem->GetItemCount(), pItem->GetName());
 							DoCommandf("/sellitem %d", pItem->GetItemCount());
 							SellTimer = GetTickCount64();
-							bwesold = true;
+							didSell = true;
 							break;
 						}
 					}
 
-					if (!bwesold)
+					if (!didSell)
 					{
 						pMerchantWnd->SelectBuySellSlot(gi, gi.GetTopSlot());
 						break;
@@ -1343,7 +1343,7 @@ static void AutoBankPulse()
 	{
 		const ItemGlobalIndex& ind = gAutoInventoryList.front();
 
-		if (CONTENTS* pCont = FindItemByGlobalIndex(ind))
+		if (ItemClient* pCont = FindItemByGlobalIndex(ind))
 		{
 			ItemDefinition* pItem = GetItemFromContents(pCont);
 			ItemGlobalIndex indy = pCont->GetItemLocation();
@@ -1374,7 +1374,7 @@ static void AutoBankPulse()
 	{
 		const ItemGlobalIndex& ind = gAutoBankList.front();
 
-		if (CONTENTS* pCont = FindItemByGlobalIndex(ind))
+		if (ItemClient* pCont = FindItemByGlobalIndex(ind))
 		{
 			ItemDefinition* pItem = GetItemFromContents(pCont);
 			ItemGlobalIndex indy = pCont->GetItemLocation();

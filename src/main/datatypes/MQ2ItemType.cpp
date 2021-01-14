@@ -1301,7 +1301,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	case ItemMembers::DamShield:
 		Dest.DWord = 0;
-		if (ITEMINFO* pII = GetItemFromContents(pItem))
+		if (ItemDefinition* pII = GetItemFromContents(pItem))
 		{
 			if (pII->Type == ITEMTYPE_NORMAL)
 			{
@@ -1445,7 +1445,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	case ItemMembers::Avoidance:
 		Dest.DWord = 0;
-		if (ITEMINFO* pII = GetItemFromContents(pItem))
+		if (ItemDefinition* pII = GetItemFromContents(pItem))
 		{
 			if (pII->Type == ITEMTYPE_NORMAL)
 			{
@@ -1458,7 +1458,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	case ItemMembers::SpellShield:
 		Dest.DWord = 0;
-		if (ITEMINFO* pII = GetItemFromContents(pItem))
+		if (ItemDefinition* pII = GetItemFromContents(pItem))
 		{
 			if (pII->Type == ITEMTYPE_NORMAL)
 			{
@@ -1471,7 +1471,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	case ItemMembers::StrikeThrough:
 		Dest.DWord = 0;
-		if (ITEMINFO* pII = GetItemFromContents(pItem))
+		if (ItemDefinition* pII = GetItemFromContents(pItem))
 		{
 			if (pII->Type == ITEMTYPE_NORMAL)
 			{
@@ -1484,7 +1484,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	case ItemMembers::StunResist:
 		Dest.DWord = 0;
-		if (ITEMINFO* pII = GetItemFromContents(pItem))
+		if (ItemDefinition* pII = GetItemFromContents(pItem))
 		{
 			if (pII->Type == ITEMTYPE_NORMAL)
 			{
@@ -1497,7 +1497,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	case ItemMembers::Shielding:
 		Dest.DWord = 0;
-		if (ITEMINFO* pII = GetItemFromContents(pItem))
+		if (ItemDefinition* pII = GetItemFromContents(pItem))
 		{
 			if (pII->Type == ITEMTYPE_NORMAL)
 			{
@@ -1510,7 +1510,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	case ItemMembers::Accuracy:
 		Dest.DWord = 0;
-		if (ITEMINFO* pII = GetItemFromContents(pItem))
+		if (ItemDefinition* pII = GetItemFromContents(pItem))
 		{
 			if (pII->Type == ITEMTYPE_NORMAL)
 			{
@@ -1523,7 +1523,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	case ItemMembers::CombatEffects:
 		Dest.DWord = 0;
-		if (ITEMINFO* pII = GetItemFromContents(pItem))
+		if (ItemDefinition* pII = GetItemFromContents(pItem))
 		{
 			if (pII->Type == ITEMTYPE_NORMAL)
 			{
@@ -1536,7 +1536,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	case ItemMembers::DoTShielding:
 		Dest.DWord = 0;
-		if (ITEMINFO* pII = GetItemFromContents(pItem))
+		if (ItemDefinition* pII = GetItemFromContents(pItem))
 		{
 			if (pII->Type == ITEMTYPE_NORMAL)
 			{
@@ -1629,7 +1629,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	case ItemMembers::DamageShieldMitigation:
 		Dest.DWord = 0;
-		if (ITEMINFO* pII = GetItemFromContents(pItem))
+		if (ItemDefinition* pII = GetItemFromContents(pItem))
 		{
 			if (pII->Type == ITEMTYPE_NORMAL)
 			{
@@ -1642,7 +1642,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	case ItemMembers::SpellDamage:
 		Dest.DWord = 0;
-		if (ITEMINFO* pII = GetItemFromContents(pItem))
+		if (ItemDefinition* pII = GetItemFromContents(pItem))
 		{
 			if (pII->Type == ITEMTYPE_NORMAL)
 			{

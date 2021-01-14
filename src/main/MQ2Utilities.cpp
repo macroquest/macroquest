@@ -800,7 +800,7 @@ DWORD MQToSTML(const char* in, char* out, size_t maxlen, uint32_t ColorOverride)
 	return pchar_out_string_position;
 }
 
-static bool ItemFitsInSlot(CONTENTS* pCont, std::string_view search)
+static bool ItemFitsInSlot(ItemClient* pCont, std::string_view search)
 {
 	// map some commonly used synonyms
 	struct Mapping {
@@ -840,168 +840,168 @@ static bool ItemFitsInSlot(CONTENTS* pCont, std::string_view search)
 	return false;
 }
 
-int ItemHasStat(CONTENTS* pCont, std::string_view search)
+int ItemHasStat(ItemClient* pCont, std::string_view search)
 {
 	// map stat names to accessors
-	static const std::map<std::string, std::function<int(ITEMINFO*)>, ci_less> mapping = {
+	static const std::map<std::string, std::function<int(ItemDefinition*)>, ci_less> mapping = {
 		{
 			"armor class",
-			[](ITEMINFO* pi) { return pi->AC; }
+			[](ItemDefinition* pi) { return pi->AC; }
 		},
 		{
 			"agility",
-			[](ITEMINFO* pi) { return pi->AGI; }
+			[](ItemDefinition* pi) { return pi->AGI; }
 		},
 		{
 			"charisma",
-			[](ITEMINFO* pi) { return pi->CHA; }
+			[](ItemDefinition* pi) { return pi->CHA; }
 		},
 		{
 			"dexterity",
-			[](ITEMINFO* pi) { return pi->DEX; }
+			[](ItemDefinition* pi) { return pi->DEX; }
 		},
 		{
 			"intelligence",
-			[](ITEMINFO* pi) { return pi->INT; }
+			[](ItemDefinition* pi) { return pi->INT; }
 		},
 		{
 			"stamina",
-			[](ITEMINFO* pi) { return pi->STA; }
+			[](ItemDefinition* pi) { return pi->STA; }
 		},
 		{
 			"strength",
-			[](ITEMINFO* pi) { return pi->STR; }
+			[](ItemDefinition* pi) { return pi->STR; }
 		},
 		{
 			"wisdom",
-			[](ITEMINFO* pi) { return pi->WIS; }
+			[](ItemDefinition* pi) { return pi->WIS; }
 		},
 		{
 			"vs cold",
-			[](ITEMINFO* pi) { return pi->SvCold; }
+			[](ItemDefinition* pi) { return pi->SvCold; }
 		},
 		{
 			"vs fire",
-			[](ITEMINFO* pi) { return pi->SvFire; }
+			[](ItemDefinition* pi) { return pi->SvFire; }
 		},
 		{
 			"vs magic",
-			[](ITEMINFO* pi) { return pi->SvMagic; }
+			[](ItemDefinition* pi) { return pi->SvMagic; }
 		},
 		{
 			"vs poison",
-			[](ITEMINFO* pi) { return pi->SvPoison; }
+			[](ItemDefinition* pi) { return pi->SvPoison; }
 		},
 		{
 			"hit points",
-			[](ITEMINFO* pi) { return pi->HP; }
+			[](ItemDefinition* pi) { return pi->HP; }
 		},
 		{
 			"mana",
-			[](ITEMINFO* pi) { return pi->Mana; }
+			[](ItemDefinition* pi) { return pi->Mana; }
 		},
 		{
 			"endurance",
-			[](ITEMINFO* pi) { return pi->Endurance; }
+			[](ItemDefinition* pi) { return pi->Endurance; }
 		},
 		{
 			"attack",
-			[](ITEMINFO* pi) { return pi->Attack; }
+			[](ItemDefinition* pi) { return pi->Attack; }
 		},
 		{
 			"hp regen",
-			[](ITEMINFO* pi) { return pi->HPRegen; }
+			[](ItemDefinition* pi) { return pi->HPRegen; }
 		},
 		{
 			"mana regen",
-			[](ITEMINFO* pi) { return pi->ManaRegen; }
+			[](ItemDefinition* pi) { return pi->ManaRegen; }
 		},
 		{
 			"haste",
-			[](ITEMINFO* pi) { return pi->Haste; }
+			[](ItemDefinition* pi) { return pi->Haste; }
 		},
 		{
 			"heal amount",
-			[](ITEMINFO* pi) { return pi->HealAmount; }
+			[](ItemDefinition* pi) { return pi->HealAmount; }
 		},
 		{
 			"spell damage",
-			[](ITEMINFO* pi) { return pi->SpellDamage; }
+			[](ItemDefinition* pi) { return pi->SpellDamage; }
 		},
 		{
 			"clairvoyance",
-			[](ITEMINFO* pi) { return pi->Clairvoyance; }
+			[](ItemDefinition* pi) { return pi->Clairvoyance; }
 		},
 		{
 			"heroic agility",
-			[](ITEMINFO* pi) { return pi->HeroicAGI; }
+			[](ItemDefinition* pi) { return pi->HeroicAGI; }
 		},
 		{
 			"heroic charisma",
-			[](ITEMINFO* pi) { return pi->HeroicCHA; }
+			[](ItemDefinition* pi) { return pi->HeroicCHA; }
 		},
 		{
 			"heroic dexterity",
-			[](ITEMINFO* pi) { return pi->HeroicDEX; }
+			[](ItemDefinition* pi) { return pi->HeroicDEX; }
 		},
 		{
 			"heroic intelligence",
-			[](ITEMINFO* pi) { return pi->HeroicINT; }
+			[](ItemDefinition* pi) { return pi->HeroicINT; }
 		},
 		{
 			"heroic stamina",
-			[](ITEMINFO* pi) { return pi->HeroicSTA; }
+			[](ItemDefinition* pi) { return pi->HeroicSTA; }
 		},
 		{
 			"heroic strength",
-			[](ITEMINFO* pi) { return pi->HeroicSTR; }
+			[](ItemDefinition* pi) { return pi->HeroicSTR; }
 		},
 		{
 			"heroic wisdom",
-			[](ITEMINFO* pi) { return pi->HeroicWIS; }
+			[](ItemDefinition* pi) { return pi->HeroicWIS; }
 		},
 		{
 			"backstab",
-			[](ITEMINFO* pi) { return pi->BackstabDamage; }
+			[](ItemDefinition* pi) { return pi->BackstabDamage; }
 		},
 		{
 			"bash",
-			[](ITEMINFO* pi) { return pi->DmgBonusSkill == 10 ? pi->DmgBonusValue : 0; }
+			[](ItemDefinition* pi) { return pi->DmgBonusSkill == 10 ? pi->DmgBonusValue : 0; }
 		},
 		{
 			"dragon punch",
-			[](ITEMINFO* pi) { return pi->DmgBonusSkill == 21 ? pi->DmgBonusValue : 0; }
+			[](ItemDefinition* pi) { return pi->DmgBonusSkill == 21 ? pi->DmgBonusValue : 0; }
 		},
 		{
 			"eagle strike",
-			[](ITEMINFO* pi) { return pi->DmgBonusSkill == 23 ? pi->DmgBonusValue : 0; }
+			[](ItemDefinition* pi) { return pi->DmgBonusSkill == 23 ? pi->DmgBonusValue : 0; }
 		},
 		{
 			"flying kick",
-			[](ITEMINFO* pi) { return pi->DmgBonusSkill == 26 ? pi->DmgBonusValue : 0; }
+			[](ItemDefinition* pi) { return pi->DmgBonusSkill == 26 ? pi->DmgBonusValue : 0; }
 		},
 		{
 			"kick",
-			[](ITEMINFO* pi) { return pi->DmgBonusSkill == 30 ? pi->DmgBonusValue : 0; }
+			[](ItemDefinition* pi) { return pi->DmgBonusSkill == 30 ? pi->DmgBonusValue : 0; }
 		},
 		{
 			"round kick",
-			[](ITEMINFO* pi) { return pi->DmgBonusSkill == 38 ? pi->DmgBonusValue : 0; }
+			[](ItemDefinition* pi) { return pi->DmgBonusSkill == 38 ? pi->DmgBonusValue : 0; }
 		},
 		{
 			"tiger claw",
-			[](ITEMINFO* pi) { return pi->DmgBonusSkill == 52 ? pi->DmgBonusValue : 0; }
+			[](ItemDefinition* pi) { return pi->DmgBonusSkill == 52 ? pi->DmgBonusValue : 0; }
 		},
 		{
 			"frenzy",
-			[](ITEMINFO* pi) { return pi->DmgBonusSkill == 74 ? pi->DmgBonusValue : 0; }
+			[](ItemDefinition* pi) { return pi->DmgBonusSkill == 74 ? pi->DmgBonusValue : 0; }
 		}
 	};
 
 	auto iter = mapping.find(search);
 	if (iter != mapping.end())
 	{
-		ITEMINFO* pItem = GetItemFromContents(pCont);
+		ItemDefinition* pItem = GetItemFromContents(pCont);
 		if (pItem)
 		{
 			return iter->second(pItem);
@@ -1011,7 +1011,7 @@ int ItemHasStat(CONTENTS* pCont, std::string_view search)
 	return 0;
 }
 
-static bool ItemHasRace(CONTENTS* pCont, std::string_view search)
+static bool ItemHasRace(ItemClient* pCont, std::string_view search)
 {
 	// FIXME: This code is duplicated in a multiple of places.
 	int cmp = GetItemFromContents(pCont)->Races;
@@ -1046,7 +1046,7 @@ static bool ItemHasRace(CONTENTS* pCont, std::string_view search)
 	return false;
 }
 
-static bool ItemHasClass(CONTENTS* pCont, std::string_view search)
+static bool ItemHasClass(ItemClient* pCont, std::string_view search)
 {
 	// FIXME: This code is duplicated in a multiple of places.
 	int cmp = GetItemFromContents(pCont)->Classes;
@@ -1489,15 +1489,15 @@ int ConColor(SPAWNINFO* pSpawn)
 	}
 }
 
-CONTENTS* GetEnviroContainer()
+ItemClient* GetEnviroContainer()
 {
 	if (!pContainerMgr)
 		return nullptr;
 
-	return pContainerMgr->WorldContainer.get();
+	return pContainerMgr->WorldContainer;
 }
 
-CContainerWnd* FindContainerForContents(CONTENTS* pContents)
+CContainerWnd* FindContainerForContents(ItemClient* pContents)
 {
 	if (!pContainerMgr)
 		return nullptr;
@@ -1521,12 +1521,12 @@ float FindSpeed(SPAWNINFO* pSpawn)
 	return fRunSpeed;
 }
 
-void GetItemLinkHash(CONTENTS* Item, char* Buffer, size_t BufferSize)
+void GetItemLinkHash(ItemClient* Item, char* Buffer, size_t BufferSize)
 {
 	Item->CreateItemTagString(Buffer, BufferSize, true);
 }
 
-bool GetItemLink(CONTENTS* Item, char* Buffer, size_t BufferSize, bool Clickable)
+bool GetItemLink(ItemClient* Item, char* Buffer, size_t BufferSize, bool Clickable)
 {
 	char hash[MAX_STRING] = { 0 };
 	bool retVal = false;
@@ -1538,7 +1538,7 @@ bool GetItemLink(CONTENTS* Item, char* Buffer, size_t BufferSize, bool Clickable
 	{
 		if (Clickable)
 		{
-			sprintf_s(Buffer, BufferSize, "%c0%s%s%c", 0x12, hash, GetItemFromContents(Item)->Name, 0x12);
+			sprintf_s(Buffer, BufferSize, "%c%d%s%s%c", 0x12, 0 /* Item tag */, hash, GetItemFromContents(Item)->Name, 0x12);
 		}
 		else
 		{
@@ -1636,9 +1636,9 @@ void ClearSearchItem(MQItemSearch& SearchItem)
 #define Flag(n) (SearchItem.Flag[(SearchItemFlag)n])
 #define RequireFlag(flag,value) { if (MaskSet(flag) && Flag(flag) != (char)((value)!=0)) return false;}
 
-bool ItemMatchesSearch(MQItemSearch& SearchItem, CONTENTS* pContents)
+bool ItemMatchesSearch(MQItemSearch& SearchItem, ItemClient* pContents)
 {
-	ITEMINFO* pItem = GetItemFromContents(pContents);
+	ItemDefinition* pItem = GetItemFromContents(pContents);
 
 	if (SearchItem.ID && pItem->ItemNumber != SearchItem.ID)
 		return false;
@@ -1669,7 +1669,7 @@ bool ItemMatchesSearch(MQItemSearch& SearchItem, CONTENTS* pContents)
 	return true;
 }
 
-bool SearchThroughItems(MQItemSearch& SearchItem, CONTENTS** pResult, DWORD* nResult)
+bool SearchThroughItems(MQItemSearch& SearchItem, ItemClient** pResult, DWORD* nResult)
 {
 	// TODO
 #define DoResult(pContents, nresult) { \
@@ -1688,7 +1688,7 @@ bool SearchThroughItems(MQItemSearch& SearchItem, CONTENTS** pResult, DWORD* nRe
 		// iterate through worn items
 		for (int N = InvSlot_FirstWornItem; N <= InvSlot_LastWornItem; N++)
 		{
-			if (CONTENTS* pContents = pProfile->GetInventorySlot(N).get())
+			if (ItemClient* pContents = pProfile->GetInventorySlot(N))
 			{
 				if (ItemMatchesSearch(SearchItem, pContents))
 					DoResult(pContents, N);
@@ -1701,7 +1701,7 @@ bool SearchThroughItems(MQItemSearch& SearchItem, CONTENTS** pResult, DWORD* nRe
 		// iterate through inventory slots before in-pack slots
 		for (int nPack = InvSlot_FirstBagSlot; nPack < GetHighestAvailableBagSlot(); nPack++)
 		{
-			if (CONTENTS* pContents = pProfile->GetInventorySlot(nPack).get())
+			if (ItemClient* pContents = pProfile->GetInventorySlot(nPack))
 			{
 				if (ItemMatchesSearch(SearchItem, pContents))
 					DoResult(pContents, nPack + 21);
@@ -1710,7 +1710,7 @@ bool SearchThroughItems(MQItemSearch& SearchItem, CONTENTS** pResult, DWORD* nRe
 
 		for (int nPack = InvSlot_FirstBagSlot; nPack < GetHighestAvailableBagSlot(); nPack++)
 		{
-			if (CONTENTS* pContents = pProfile->GetInventorySlot(nPack).get())
+			if (ItemClient* pContents = pProfile->GetInventorySlot(nPack))
 			{
 				if (pContents->IsContainer())
 				{
@@ -4590,7 +4590,7 @@ const char* GetLDoNTheme(int LDTheme)
 	return "Unknown";
 }
 
-uint32_t GetItemTimer(CONTENTS* pItem)
+uint32_t GetItemTimer(ItemClient* pItem)
 {
 	uint32_t Timer = pPCData->GetItemRecastTimer(pItem, eActivatableSpell);
 
@@ -4600,7 +4600,7 @@ uint32_t GetItemTimer(CONTENTS* pItem)
 	return Timer - GetFastTime();
 }
 
-CONTENTS* GetItemContentsByName(const char* ItemName)
+ItemClient* GetItemContentsByName(const char* ItemName)
 {
 	PcProfile* pProfile = GetPcProfile();
 	if (!pProfile) return nullptr;
@@ -5348,12 +5348,12 @@ bool IsValidGlobalIndex(const ItemGlobalIndex& globalIndex)
 }
 
 
-CONTENTS* FindItemBySlot(int InvSlot, int BagSlot, ItemContainerInstance location)
+ItemClient* FindItemBySlot(int InvSlot, int BagSlot, ItemContainerInstance location)
 {
 	return FindItemByGlobalIndex(ItemGlobalIndex(location, InvSlot, BagSlot));
 }
 
-CONTENTS* FindItemByGlobalIndex(const ItemGlobalIndex& idx)
+ItemClient* FindItemByGlobalIndex(const ItemGlobalIndex& idx)
 {
 	ItemPtr pItem;
 	ItemContainer* pContainer = GetItemContainerByType(idx.GetLocation());
@@ -5367,7 +5367,7 @@ CONTENTS* FindItemByGlobalIndex(const ItemGlobalIndex& idx)
 }
 
 template <typename T>
-static CONTENTS* FindItem(T&& callback)
+static ItemClient* FindItem(T&& callback)
 {
 	auto pProfile = GetPcProfile();
 	if (!pProfile) return nullptr;
@@ -5408,13 +5408,13 @@ static CONTENTS* FindItem(T&& callback)
 	return foundItem.get();
 }
 
-CONTENTS* FindItemByName(const char* pName, bool bExact)
+ItemClient* FindItemByName(const char* pName, bool bExact)
 {
 	return FindItem([pName, bExact](const ItemPtr& pItem, const ItemIndex&)
 		{ return ci_equals(pItem->GetName(), pName, bExact); });
 }
 
-CONTENTS* FindItemByID(int ItemID)
+ItemClient* FindItemByID(int ItemID)
 {
 	return FindItem([ItemID](const ItemPtr& pItem, const ItemIndex&)
 		{ return ItemID == pItem->GetID(); });
@@ -5494,7 +5494,7 @@ int FindItemCountByID(int ItemID)
 }
 
 template <typename T>
-static CONTENTS* FindBankItem(T&& checkItem)
+static ItemClient* FindBankItem(T&& checkItem)
 {
 	CHARINFO* pCharInfo = GetCharInfo();
 	if (!pCharInfo) return nullptr;
@@ -5516,13 +5516,13 @@ static CONTENTS* FindBankItem(T&& checkItem)
 	return nullptr;
 }
 
-CONTENTS* FindBankItemByName(const char* pName, bool bExact)
+ItemClient* FindBankItemByName(const char* pName, bool bExact)
 {
 	return FindBankItem([pName, bExact](const ItemPtr& pItem, const ItemIndex&)
 		{ return ci_equals(pItem->GetItemDefinition()->Name, pName, bExact); });
 }
 
-CONTENTS* FindBankItemByID(int ItemID)
+ItemClient* FindBankItemByID(int ItemID)
 {
 	return FindBankItem([ItemID](const ItemPtr& pItem, const ItemIndex&)
 		{ return pItem->GetItemDefinition()->ItemNumber == ItemID; });
@@ -5564,13 +5564,13 @@ CInvSlot* GetInvSlot(const ItemGlobalIndex& index)
 	return pInvSlotMgr->FindInvSlot(index, false);
 }
 
-int FindInvSlotForContents(CONTENTS* pContents)
+int FindInvSlotForContents(ItemClient* pContents)
 {
 	CInvSlot* invSlot = GetInvSlot(pContents->GetItemLocation());
 	return invSlot ? invSlot->Index : -1;
 }
 
-bool IsItemInsideContainer(CONTENTS* pItem)
+bool IsItemInsideContainer(ItemClient* pItem)
 {
 	if (!pItem)
 		return false;
@@ -5718,9 +5718,9 @@ bool PickupItem(const ItemGlobalIndex& globalIndex)
 	ItemGlobalIndex To(eItemContainerPossessions, ItemIndex(InvSlot_Cursor));
 
 	// TODO: Clean this all up
-	CONTENTS* pContBefore = pProfile->InventoryContainer.GetItem(InvSlot_Cursor).get();
+	ItemClient* pContBefore = pProfile->InventoryContainer.GetItem(InvSlot_Cursor);
 	pInvSlotMgr->MoveItem(globalIndex, pCharData->CreateItemGlobalIndex(InvSlot_Cursor), true, true, false, true);
-	CONTENTS* pContAfter = pProfile->InventoryContainer.GetItem(InvSlot_Cursor).get();
+	ItemClient* pContAfter = pProfile->InventoryContainer.GetItem(InvSlot_Cursor);
 	if (pContAfter)
 	{
 		EqItemGuid g;
@@ -5817,9 +5817,9 @@ bool DropItem(const ItemGlobalIndex& globalIndex)
 			ItemGlobalIndex From = pCharData->CreateItemGlobalIndex(InvSlot_Cursor);
 			ItemGlobalIndex To(type, ItemIndex(ToInvSlot, ToBagSlot));
 
-			CONTENTS* pContBefore = pProfile->InventoryContainer.GetItem(InvSlot_Cursor).get();
+			ItemClient* pContBefore = pProfile->InventoryContainer.GetItem(InvSlot_Cursor);
 			pInvSlotMgr->MoveItem(From, To, true, true, true, false);
-			CONTENTS* pContAfter = pProfile->InventoryContainer.GetItem(InvSlot_Cursor).get();
+			ItemClient* pContAfter = pProfile->InventoryContainer.GetItem(InvSlot_Cursor);
 
 			if (pContAfter)
 			{
@@ -6532,7 +6532,7 @@ int GetFreeInventory(int nSize)
 	return freeSlots;
 }
 
-int GetFreeStack(CONTENTS* pContents)
+int GetFreeStack(ItemClient* pContents)
 {
 	PcProfile* pProfile = GetPcProfile();
 	if (!pProfile || !pContents) return 0;
@@ -6572,7 +6572,7 @@ int GetFreeStack(CONTENTS* pContents)
 	return freeStack;
 }
 
-bool CanItemMergeInPack(CONTENTS* pPack, CONTENTS* pItem)
+bool CanItemMergeInPack(ItemClient* pPack, ItemClient* pItem)
 {
 	if (!pPack || !pItem) return false;
 	int findId = pItem->GetID();
@@ -6593,7 +6593,7 @@ bool CanItemMergeInPack(CONTENTS* pPack, CONTENTS* pItem)
 	return false;
 }
 
-bool CanItemGoInPack(CONTENTS* pPack_, CONTENTS* pItem)
+bool CanItemGoInPack(ItemClient* pPack_, ItemClient* pItem)
 {
 	// so CanGoInBag doesnt actually check if there is any room, all it checks
 	// is IF there where room, could the item go in it.
@@ -6638,7 +6638,7 @@ static bool WillItemFitInSlot(const ItemPtr& pItemSlot, const ItemPtr& itemToFit
 	return false;
 }
 
-bool WillFitInBank(CONTENTS* pContent)
+bool WillFitInBank(ItemClient* pContent)
 {
 	if (!pContent) return false;
 
@@ -6656,7 +6656,7 @@ bool WillFitInBank(CONTENTS* pContent)
 	return false;
 }
 
-bool WillFitInInventory(CONTENTS* pContent)
+bool WillFitInInventory(ItemClient* pContent)
 {
 	if (!pContent) return false;
 
@@ -6718,7 +6718,7 @@ int RangeRandom(int min, int max)
 
 //============================================================================
 
-ITEMINFO* GetItemFromContents(CONTENTS* c)
+ItemDefinition* GetItemFromContents(ItemClient* c)
 {
 	if (!c)
 		return nullptr;

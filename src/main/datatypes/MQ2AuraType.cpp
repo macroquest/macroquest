@@ -20,7 +20,7 @@ using namespace mq::datatypes;
 
 bool MQ2AuraType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	AURAINFO* pAura = (AURAINFO*)VarPtr.Ptr;
+	AuraData* pAura = reinterpret_cast<AuraData*>(VarPtr.Ptr);
 	if (!pAura)
 		return false;
 

@@ -75,7 +75,7 @@ struct
 	"drakkin",          522,
 };
 
-ITEMINFO* pg_Item;                                // dependent on MQ2ItemDisplay
+ItemDefinition* pg_Item = nullptr;                          // dependent on MQ2ItemDisplay
 
 // Contains an item response from the bazaar search. Struct layout does not
 // matter because we are constructing it ourself via CUnSerializeBuffer.
@@ -856,8 +856,9 @@ void DoWaitingForSearchChecks()
 // Called once, when the plugin is to initialize
 PLUGIN_API void InitializePlugin()
 {
+	// FIXME: MQ2ItemDisplay doesn't provide this functionality anymore.
+#if 0
 	LoadMQ2Plugin("MQ2ItemDisplay");
-
 	if (HMODULE h = GetModuleHandle("MQ2ItemDisplay.dll"))
 	{
 		pg_Item = (ITEMINFO*)GetProcAddress(h, "g_Item");
@@ -866,6 +867,7 @@ PLUGIN_API void InitializePlugin()
 	{
 		pg_Item = nullptr;
 	}
+#endif
 
 	AddCommand("/bzquery", BZQuery);
 	AddCommand("/bzsrch", BzSrchMe);

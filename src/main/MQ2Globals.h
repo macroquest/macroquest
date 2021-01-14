@@ -35,7 +35,7 @@ namespace mq {
 MQLIB_VAR const double DegToRad;
 MQLIB_VAR const double PI;
 
-MQLIB_API DWORD baseAddress [[deprecated]];
+MQLIB_API DWORD baseAddress DEPRECATE("baseAddress is deprecated; use EQGameBaseAddress instead");
 
 bool InitOffsets();
 

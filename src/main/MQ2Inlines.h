@@ -37,7 +37,6 @@ inline CHARINFO* GetCharInfo()
 	return (CHARINFO*)pCharData;
 }
 
-
 inline PcProfile* GetPcProfile()
 {
 	if (pCharData)
@@ -48,8 +47,7 @@ inline PcProfile* GetPcProfile()
 	return nullptr;
 }
 
-
-[[deprecated("Use GetPcProfile instead")]]
+DEPRECATE("Use GetPcProfile instead of GetCharInfo2()")
 inline PcProfile* GetCharInfo2()
 {
 	return GetPcProfile();
@@ -698,7 +696,7 @@ inline bool StringCompare(std::string_view haystack, std::string_view needle,
 	}
 }
 
-[[deprecated("Access CXStr directly instead of calling GetCXStr")]]
+DEPRECATE("Access CXStr directly instead of calling GetCXStr")
 inline DWORD GetCXStr(CXStr* pCXStr, char* szBuffer, uint32_t length = MAX_STRING)
 {
 	if (!szBuffer)
@@ -720,7 +718,7 @@ inline DWORD GetCXStr(CXStr* pCXStr, char* szBuffer, uint32_t length = MAX_STRIN
 	return length;
 }
 
-[[deprecated("Set CXStr directly instead of using SetCXStr")]]
+DEPRECATE("Set CXStr directly instead of using SetCXStr")
 inline void SetCXStr(CXStr* pCXStr, const char* text)
 {
 	if (pCXStr)
@@ -729,7 +727,7 @@ inline void SetCXStr(CXStr* pCXStr, const char* text)
 	}
 }
 
-[[deprecated("modify CXStr directly instead of using AppendCXStr")]]
+DEPRECATE("modify CXStr directly instead of using AppendCXStr")
 inline void AppendCXStr(CXStr* pCXStr, const char* text)
 {
 	if (pCXStr)
@@ -738,7 +736,7 @@ inline void AppendCXStr(CXStr* pCXStr, const char* text)
 	}
 }
 
-inline bool IsEvolvingItem(CONTENTS* pContents)
+inline bool IsEvolvingItem(ItemClient* pContents)
 {
 	return pContents->pEvolutionData != nullptr;
 }

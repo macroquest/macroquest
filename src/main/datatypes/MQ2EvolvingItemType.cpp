@@ -20,7 +20,7 @@ using namespace mq::datatypes;
 
 bool MQ2EvolvingItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	CONTENTS* pItem = reinterpret_cast<CONTENTS*>(VarPtr.Ptr);
+	ItemClient* pItem = reinterpret_cast<ItemClient*>(VarPtr.Ptr);
 	if (!pItem)
 		return false;
 

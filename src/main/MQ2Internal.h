@@ -145,8 +145,8 @@ struct MQSpawnSearch
 	bool bTargetable = false;
 	uint32_t PlayerState = 0;
 };
-using SEARCHSPAWN [[deprecated("Use MQSpawnSearch instead")]] = MQSpawnSearch;
-using PSEARCHSPAWN [[deprecated("Use MQSpawnSearch* instead")]] = MQSpawnSearch *;
+using SEARCHSPAWN DEPRECATE("Use MQSpawnSearch instead of SEARCHSPAWN") = MQSpawnSearch;
+using PSEARCHSPAWN DEPRECATE("Use MQSpawnSearch* instead of PSEARCHSPAWN") = MQSpawnSearch *;
 
 enum SearchItemFlag
 {
@@ -188,8 +188,8 @@ struct MQItemSearch
 
 	uint32_t ID = 0;
 };
-using SEARCHITEM [[deprecated("Use MQItemSearch instead")]] = MQItemSearch;
-using PSEARCHITEM [[deprecated("Use MQItemSearch instead")]] = MQItemSearch*;
+using SEARCHITEM DEPRECATE("Use MQItemSearch instead of SEARCHITEM") = MQItemSearch;
+using PSEARCHITEM DEPRECATE("Use MQItemSearch instead of PSEARCHITEM") = MQItemSearch*;
 
 struct MQWhoFilter
 {
@@ -214,8 +214,8 @@ struct MQWhoFilter
 	bool ConColor = false;
 	bool Invisible = false;
 };
-using SWHOFILTER [[deprecated("Use MQWhoFilter instead")]] = MQWhoFilter;
-using PSWHOFILTER [[deprecated("Use MQWhoFilter* instead")]] = MQWhoFilter*;
+using SWHOFILTER DEPRECATE("Use MQWhoFilter instead of SWHOFILTER") = MQWhoFilter;
+using PSWHOFILTER DEPRECATE("Use MQWhoFilter* instead of PSWHOFILTER") = MQWhoFilter*;
 
 struct MQWhoSort
 {
@@ -228,8 +228,8 @@ struct MQWhoSort
 	int Race = 0;
 	int64_t GuildID = 0;
 };
-using WHOSORT [[deprecated("Use MQWhoSort instead")]] = MQWhoSort;
-using PWHOSORT [[deprecated("Use MQWhoSort* instead")]] = MQWhoSort*;
+using WHOSORT DEPRECATE("Use MQWhoSort instead of WHOSORT") = MQWhoSort;
+using PWHOSORT DEPRECATE("Use MQWhoSort* instead PWHOSORT") = MQWhoSort*;
 
 struct MQMacroLine
 {
@@ -256,8 +256,8 @@ struct MQMacroLine
 	MQMacroLine(const MQMacroLine&) = delete;
 	MQMacroLine& operator=(const MQMacroLine&) = delete;
 };
-using PMACROLINE [[deprecated("Use MQMacroLine* instead")]] = MQMacroLine;
-using MACROLINE [[deprecated("Use MQMacroLine instead")]] = MQMacroLine;
+using MACROLINE DEPRECATE("Use MQMacroLine instead MACROLINE") = MQMacroLine;
+using PMACROLINE DEPRECATE("Use MQMacroLine* instead of PMACROLINE") = MQMacroLine;
 
 struct MQMacroBlock
 {
@@ -276,8 +276,8 @@ struct MQMacroBlock
 };
 using MQMacroBlockPtr = std::shared_ptr<MQMacroBlock>;
 
-using PMACROBLOCK [[deprecated("Use MQMacroBlockPtr instead")]] = MQMacroBlockPtr;
-using MACROBLOCK [[deprecated("Use MQMacroBlock instead")]] = MQMacroBlock;
+using PMACROBLOCK DEPRECATE("Use MQMacroBlockPtr instead of PMACROBLOCK") = MQMacroBlockPtr;
+using MACROBLOCK DEPRECATE("Use MQMacroBlock instead MACROBLOCK") = MQMacroBlock;
 
 struct MQTimer
 {
@@ -287,8 +287,8 @@ struct MQTimer
 	MQTimer* pNext = nullptr;
 	MQTimer* pPrev = nullptr;
 };
-using MQTIMER [[deprecated("Use MQTimer instead")]] = MQTimer;
-using PMQTIMER [[deprecated("Use MQTimer* instead")]] = MQTimer*;
+using MQTIMER DEPRECATE("Use MQTimer instead of MQTIMER") = MQTimer;
+using PMQTIMER DEPRECATE("Use MQTimer* instead of PMQTIMER") = MQTimer*;
 
 struct MQKeyPress
 {
@@ -297,13 +297,15 @@ struct MQKeyPress
 
 	MQKeyPress* pNext = nullptr;
 };
-using KEYPRESS [[deprecated("Use MQKeyPress instead")]] = MQKeyPress;
-typedef struct _ITEMDB {
-	struct _ITEMDB* pNext;
+using KEYPRESS DEPRECATE("Use MQKeyPress instead of KEYPRESS") = MQKeyPress;
+
+struct ITEMDB {
+	ITEMDB* pNext;
 	DWORD ID;
 	DWORD StackSize;
 	char szName[256];
-} ITEMDB, * PITEMDB;
+};
+using PITEMDB DEPRECATE("Use ITEMDB* instead of PITEMDB") = ITEMDB*;
 
 struct MQDefine
 {
@@ -322,8 +324,8 @@ struct MQEventList
 
 	MQEventList* pNext = nullptr;
 };
-using EVENTLIST [[deprecated("Use MQEventList instead")]] = MQEventList;
-using PEVENTLIST [[deprecated("Use MQEventList* instead")]] = MQEventList *;
+using EVENTLIST DEPRECATE("Use MQEventList instead of EVENTLIST") = MQEventList;
+using PEVENTLIST DEPRECATE("Use MQEventList* instead PEVENTLIST") = MQEventList *;
 
 struct MQBindList
 {
@@ -333,8 +335,8 @@ struct MQBindList
 
 	MQBindList* pNext = nullptr;
 };
-using BINDLIST [[deprecated("Use MQBindList instead")]] = MQBindList;
-using PBINDLIST [[deprecated("Use MQBindList* instead")]] = MQBindList *;
+using BINDLIST DEPRECATE("Use MQBindList instead of BINDLIST") = MQBindList;
+using PBINDLIST DEPRECATE("Use MQBindList* instead of PBINDLIST") = MQBindList *;
 
 struct MQFilter
 {
@@ -350,8 +352,8 @@ struct MQFilter
 	bool* pEnabled;
 	MQFilter* pNext = nullptr;
 };
-using FILTER [[deprecated("use MQFilter instead")]] = MQFilter;
-using PFILTER [[deprecated("use MQFilter* instead")]] = MQFilter*;
+using FILTER DEPRECATE("use MQFilter instead FILTER") = MQFilter;
+using PFILTER DEPRECATE("use MQFilter* instead of PFILTER") = MQFilter*;
 
 struct MQBenchmark
 {
@@ -402,8 +404,8 @@ struct MQPlugin
 	MQPlugin* pLast = nullptr;
 	MQPlugin* pNext = nullptr;
 };
-using PMQPLUGIN [[deprecated("Use MQPlugin* instead")]] = MQPlugin*;
-using MQPLUGIN [[deprecated("Use MQPlugin instead")]] = MQPlugin;
+using PMQPLUGIN DEPRECATE("Use MQPlugin* instead of PMQPLUGIN") = MQPlugin*;
+using MQPLUGIN DEPRECATE("Use MQPlugin instead of MQPLUGIN") = MQPlugin;
 
 // Like lightweight plugins, but these are internal to mq2main
 struct MQModule
@@ -522,9 +524,9 @@ template <class Any>
 class CIndex
 {
 public:
-	[[deprecated("Use std::vector instead")]] CIndex() = default;
+	DEPRECATE("Use std::vector instead of CIndex") CIndex() = default;
 
-	[[deprecated("Use std::vector instead")]] CIndex(size_t InitialSize)
+	DEPRECATE("Use std::vector instead of CIndex") CIndex(size_t InitialSize)
 	{
 		Resize(InitialSize);
 	}
@@ -870,8 +872,8 @@ __declspec(property(get = get_##Prop, put = set_##Prop)) Type Prop;
 
 	__declspec(property(get = get_Argb, put = set_Argb)) ARGBCOLOR Argb;
 };
-using MQ2VARPTR [[deprecated("Use MQVarPtr instead")]] = MQVarPtr;
-using PMQ2VARPTR [[deprecated("Use MQVarPtr* instead")]] = MQVarPtr*;
+using MQ2VARPTR DEPRECATE("Use MQVarPtr instead of MQ2VARPTR.") = MQVarPtr;
+using PMQ2VARPTR DEPRECATE("Use MQVarPtr* instead of PMQ2VARPTR.") = MQVarPtr*;
 
 struct MQTypeVar : public MQVarPtr
 {
@@ -886,8 +888,8 @@ struct MQTypeVar : public MQVarPtr
 	MQVarPtr& SetVarPtr(const MQVarPtr& VarPtr) { Data = VarPtr.Data; return *this; }
 	__declspec(property(get = GetVarPtr, put = SetVarPtr)) MQVarPtr VarPtr;
 };
-using MQ2TYPEVAR [[deprecated("Use MQTypeVar instead")]] = MQTypeVar;
-using PMQ2TYPEVAR [[deprecated("Use MQTypeVar* instead")]] = MQTypeVar;
+using MQ2TYPEVAR DEPRECATE("Use MQTypeVar instead of MQ2TYPEVAR") = MQTypeVar;
+using PMQ2TYPEVAR DEPRECATE("Use MQTypeVar* instead of PMQ2TYPEVAR") = MQTypeVar;
 
 struct MQTypeMember
 {
@@ -895,8 +897,8 @@ struct MQTypeMember
 	const char*  Name;
 	uint32_t     Type;
 };
-using MQ2TYPEMEMBER [[deprecated("Use MQTypeMember instead")]] = MQTypeMember;
-using PMQ2TYPEMEMBER [[deprecated("Use MQTypeMember* instead")]] = MQTypeMember*;
+using MQ2TYPEMEMBER DEPRECATE("Use MQTypeMember instead of MQ2TYPEMEMBER") = MQTypeMember;
+using PMQ2TYPEMEMBER DEPRECATE("Use MQTypeMember* instead of PMQ2TYPEMEMBER") = MQTypeMember*;
 
 using fMQData = bool(*)(const char*, MQTypeVar&);
 using fMQDataOld = BOOL(*)(char*, MQTypeVar&);
@@ -906,8 +908,8 @@ struct MQDataItem
 	char Name[64];
 	fMQData Function;
 };
-using MQ2DATAITEM [[deprecated("Use MQDataItem instead")]] = MQDataItem;
-using PMQ2DATAITEM [[deprecated("Use MQDataItem* instead")]] = MQDataItem*;
+using MQ2DATAITEM DEPRECATE("Use MQDataItem instead of MQ2DATAITEM") = MQDataItem;
+using PMQ2DATAITEM DEPRECATE("Use MQDataItem* instead of PMQ2DATAITEM") = MQDataItem*;
 
 struct MQDataVar
 {
@@ -918,8 +920,8 @@ struct MQDataVar
 	MQDataVar* pPrev;
 	MQDataVar** ppHead;
 };
-using PDATAVAR [[deprecated("Use MQDataVar* instead")]] = MQDataVar*;
-using DATAVAR [[deprecated("Use MQDataVar instead")]] = MQDataVar;
+using PDATAVAR DEPRECATE("Use MQDataVar* instead of PDATAVAR") = MQDataVar*;
+using DATAVAR DEPRECATE("Use MQDataVar instead of DATAVAR") = MQDataVar;
 
 //============================================================================
 
@@ -1015,8 +1017,8 @@ struct MQMacroStack
 	MQMacroStack(const MQMacroStack&) = delete;
 	MQMacroStack& operator=(const MQMacroStack&) = delete;
 };
-using PMACROSTACK [[deprecated("Use MQMacroStack* instead")]] = MQMacroStack *;
-using MACROSTACK [[deprecated("Use MQMacroStack instead")]] = MQMacroStack;
+using PMACROSTACK DEPRECATE("Use MQMacroStack* instead of PMACROSTACK") = MQMacroStack *;
+using MACROSTACK DEPRECATE("Use MQMacroStack instead of MACROSTACK") = MQMacroStack;
 
 struct MQEventQueue
 {
@@ -1027,8 +1029,8 @@ struct MQEventQueue
 	MQEventList*  pEventList = nullptr;
 	MQDataVar*      Parameters = nullptr;
 };
-using EVENTQUEUE [[deprecated("Use MQEventQueue instead")]] = MQEventQueue;
-using PEVENTQUEUE [[deprecated("Use MQEventQueue* instead")]] = MQEventQueue *;
+using EVENTQUEUE DEPRECATE("Use MQEventQueue instead of EVENTQUEUE") = MQEventQueue;
+using PEVENTQUEUE DEPRECATE("Use MQEventQueue* instead of PEVENTQUEUE") = MQEventQueue *;
 
 //----------------------------------------------------------------------------
 

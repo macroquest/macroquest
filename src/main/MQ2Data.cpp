@@ -625,7 +625,7 @@ bool dataFindItemBank(const char* szIndex, MQTypeVar& Ret)
 	if (!szIndex[0])
 		return false;
 
-	CONTENTS* pItem = nullptr;
+	ItemClient* pItem = nullptr;
 
 	if (IsNumber(szIndex))
 	{
@@ -664,7 +664,7 @@ bool dataFindItem(const char* szIndex, MQTypeVar& Ret)
 
 	if (IsNumber(szIndex))
 	{
-		if (CONTENTS* pItem = FindItemByID(GetIntFromString(szIndex, 0)))
+		if (ItemClient* pItem = FindItemByID(GetIntFromString(szIndex, 0)))
 		{
 			Ret.Ptr = pItem;
 			Ret.Type = pItemType;
@@ -682,7 +682,7 @@ bool dataFindItem(const char* szIndex, MQTypeVar& Ret)
 		pName++;
 	}
 
-	if (CONTENTS* pItem = FindItemByName(pName, bExact))
+	if (ItemClient* pItem = FindItemByName(pName, bExact))
 	{
 		Ret.Ptr = pItem;
 		Ret.Type = pItemType;

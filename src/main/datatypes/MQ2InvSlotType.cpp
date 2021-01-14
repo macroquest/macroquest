@@ -90,7 +90,7 @@ bool MQ2InvSlotType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 
 				if (ItemPtr pPack = pProfile->InventoryContainer.GetItem(nPack))
 				{
-					ITEMINFO* itemDef = pPack->GetItemDefinition();
+					ItemDefinition* itemDef = pPack->GetItemDefinition();
 					if (itemDef->Type == ITEMTYPE_PACK)
 					{
 						if (Dest.Ptr = pPack->GetChildItemContainer()->GetItem(nSlot).get())
@@ -105,7 +105,7 @@ bool MQ2InvSlotType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 
 				if (ItemPtr pPack = pCharInfo->BankItems.GetItem(nPack))
 				{
-					ITEMINFO* itemDef = pPack->GetItemDefinition();
+					ItemDefinition* itemDef = pPack->GetItemDefinition();
 					if (itemDef->Type == ITEMTYPE_PACK)
 					{
 						if (Dest.Ptr = pPack->GetChildItemContainer()->GetItem(nSlot).get())
@@ -120,7 +120,7 @@ bool MQ2InvSlotType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 
 				if (ItemPtr pPack = pCharInfo->BankItems.GetItem(nPack))
 				{
-					ITEMINFO* itemDef = pPack->GetItemDefinition();
+					ItemDefinition* itemDef = pPack->GetItemDefinition();
 					if (itemDef->Type == ITEMTYPE_PACK)
 					{
 						if (Dest.Ptr = pPack->GetChildItemContainer()->GetItem(nSlot).get())
@@ -290,7 +290,7 @@ bool MQ2InvSlotType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 		{
 			if (pContainerMgr)
 			{
-				if (ITEMINFO* pItemInfo = pContainerMgr->pWorldContainer->GetItemDefinition())
+				if (ItemDefinition* pItemInfo = pContainerMgr->pWorldContainer->GetItemDefinition())
 				{
 					strcpy_s(DataTypeTemp, pItemInfo->Name);
 					Dest.Ptr = &DataTypeTemp[0];

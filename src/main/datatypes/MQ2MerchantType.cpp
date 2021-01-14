@@ -192,7 +192,7 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 				// by name
 				for (int nIndex = 0; nIndex < page->ItemContainer.GetSize(); nIndex++)
 				{
-					if (CONTENTS* pContents = page->ItemContainer[nIndex].pCont)
+					if (ItemClient* pContents = page->ItemContainer[nIndex].pCont)
 					{
 						const char* itemName = GetItemFromContents(pContents)->Name;
 

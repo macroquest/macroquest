@@ -16,9 +16,9 @@ class CItemLocation
 public:
 	short InvSlot = 0;              // main inventory slot (with or without a pack)
 	short BagSlot = INVALID_PACK;   // slot inside of the pack at InvSlot, 0xFFFF when not a bag
-	CONTENTS* pInvSlot = nullptr;   // CONTENTS* of the main inventory slot
-	CONTENTS* pBagSlot = nullptr;   // CONTENTS* of the bag slot inside of pInvSlot
-	CONTENTS* pItem = nullptr;      // CONTENTS* of an item, regardless of where it is
+	ItemClient* pInvSlot = nullptr; // ItemClient* of the main inventory slot
+	ItemClient* pBagSlot = nullptr; // ItemClient* of the bag slot inside of pInvSlot
+	ItemClient* pItem = nullptr;    // ItemClient* of an item, regardless of where it is
 };
 
 /*********************************************************************************/
@@ -48,18 +48,18 @@ bool NonBardCasting()
 	if (!GetCharInfo() || !GetPcProfile() || !pCharSpawn) return false;
 	if (GetPcProfile()->Class == Bard) return false;
 	if (GetCharInfo()->pSpawn && GetCharInfo()->pSpawn->mActorClient.Class == Bard) return false;
-	if (((PSPAWNINFO)pCharSpawn)->CastingData.SpellETA) return true;
+	if (((SPAWNINFO*)pCharSpawn)->CastingData.SpellETA) return true;
 	return false;
 }
 
 inline bool IsCasting()
 {
-	return (pCharSpawn && ((PSPAWNINFO)pCharSpawn)->CastingData.SpellID != NOID);
+	return (pCharSpawn && ((SPAWNINFO*)pCharSpawn)->CastingData.SpellID != NOID);
 }
 
 inline bool AbilityInUse()
 {
-	if (pCharSpawn && ((PSPAWNINFO)pCharSpawn)->CastingData.SpellETA == 0) return false;
+	if (pCharSpawn && ((SPAWNINFO*)pCharSpawn)->CastingData.SpellETA == 0) return false;
 	return true;
 }
 
@@ -97,7 +97,7 @@ CItemLocation* ItemFind(CItemLocation* pItemFound, char* pcItemName, unsigned sh
 	// loop through inv slots & worn slots
 	for (usSlot = usMin; usSlot < usInvSlots; usSlot++)
 	{
-		if (CONTENTS* pItem2 = pProfile->GetInventorySlot(usSlot))
+		if (ItemClient* pItem2 = pProfile->GetInventorySlot(usSlot))
 		{
 			if ((iIsNum && iItemID == pItem2->GetID()) || (!iIsNum && !_stricmp(pcItemName, pItem2->GetName())))
 			{
@@ -196,7 +196,7 @@ inline int CountItem(const char* pcItemName, int usMin, int usInvSlots)
 //
 
 // finds an open slot in a bag that has items (not empty bags)
-CItemLocation* PackFind(CItemLocation* pFreeSlot, CONTENTS* pUnequipSlot)
+CItemLocation* PackFind(CItemLocation* pFreeSlot, ItemClient* pUnequipSlot)
 {
 	unsigned char  ucCurSize = 10;
 	unsigned short usSlot    = 0;
@@ -206,16 +206,16 @@ CItemLocation* PackFind(CItemLocation* pFreeSlot, CONTENTS* pUnequipSlot)
 	// no user-specific slot given, find the first free bag slot
 	for (usSlot = InvSlot_FirstBagSlot; usSlot <= GetHighestAvailableBagSlot(); usSlot++)
 	{
-		if (CONTENTS* pInvSlot = GetPcProfile()->GetInventorySlot(usSlot))
+		if (ItemClient* pInvSlot = GetPcProfile()->GetInventorySlot(usSlot))
 		{
-			PITEMINFO pItemInfo    = GetItemFromContents(pInvSlot);
-			PITEMINFO pUnequipInfo = GetItemFromContents(pUnequipSlot);
+			ItemDefinition* pItemInfo    = GetItemFromContents(pInvSlot);
+			ItemDefinition* pUnequipInfo = GetItemFromContents(pUnequipSlot);
 
 			if (pItemInfo && pUnequipInfo && pInvSlot->IsContainer()
 				&& pItemInfo->Combine != 2
 				&& pUnequipInfo->Size <= pItemInfo->SizeCapacity)
 			{
-				CONTENTS* pLAST = pInvSlot->GetHeldItem(0);
+				ItemClient* pLAST = pInvSlot->GetHeldItem(0);
 
 				unsigned short usPack = 0;
 				for (usPack = 0; pInvSlot->GetHeldItems().GetSize(); usPack++) {
@@ -242,11 +242,11 @@ CItemLocation* PackFind(CItemLocation* pFreeSlot, CONTENTS* pUnequipSlot)
 					pLAST = pInvSlot->GetHeldItem(usPack);
 				}
 				usDecrement = 0;
-				pLAST = NULL;
+				pLAST = nullptr;
 			}
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 // searches only main inventory for somewhere to put a pack
@@ -255,7 +255,7 @@ long FindSlotForPack()
 {
 	long lSlot = 0;
 	for (lSlot = InvSlot_FirstBagSlot; lSlot <= GetHighestAvailableBagSlot(); lSlot++) {
-		CONTENTS* pInvSlot = GetPcProfile()->GetInventorySlot(lSlot);
+		ItemClient* pInvSlot = GetPcProfile()->GetInventorySlot(lSlot);
 		if (!pInvSlot) {
 			// main inventory slot is empty
 			return lSlot;
@@ -272,15 +272,15 @@ long FindSlotForPack()
 
 // searches for any available inventory/pack slot -  to use with auto-inventory
 // this includes stackable support, does not include main worn
-int FreeSlotForItem(CONTENTS* pItem)
+int FreeSlotForItem(ItemClient* pItem)
 {
 	bool bCheckStack = ItemIsStackable(pItem);
 
 	for (int lSlot = InvSlot_FirstBagSlot; lSlot <= GetHighestAvailableBagSlot(); lSlot++) {
-		CONTENTS* pInvSlot = GetPcProfile()->GetInventorySlot(lSlot);
+		ItemClient* pInvSlot = GetPcProfile()->GetInventorySlot(lSlot);
 		if (!pInvSlot) return lSlot; // free main inv slot, we are done
-		PITEMINFO pItemInfo = GetItemFromContents(pItem);
-		PITEMINFO pSlotInfo = GetItemFromContents(pInvSlot);
+		ItemDefinition* pItemInfo = GetItemFromContents(pItem);
+		ItemDefinition* pSlotInfo = GetItemFromContents(pInvSlot);
 		if (pItemInfo && pSlotInfo) {
 			if (bCheckStack && pSlotInfo->Type != ITEMTYPE_PACK) { // check for stackable
 				if (pItemInfo->ItemNumber == pSlotInfo->ItemNumber && StackHasRoom(pInvSlot)) return NOID; // use autoinventory
@@ -290,9 +290,9 @@ int FreeSlotForItem(CONTENTS* pItem)
 				if (pInvSlot->GetHeldItems().IsEmpty()) return NOID; // the pack is empty, use autoinventory
 				unsigned short usPack = 0;
 				for (usPack = 0; usPack < pSlotInfo->Slots; usPack++) {
-					CONTENTS* pBagSlot = pInvSlot->GetHeldItem(usPack);
+					ItemClient* pBagSlot = pInvSlot->GetHeldItem(usPack);
 					if (!pBagSlot) return NOID;
-					PITEMINFO pBagInfo = GetItemFromContents(pBagSlot);
+					ItemDefinition* pBagInfo = GetItemFromContents(pBagSlot);
 					if (bCheckStack && pItemInfo->ItemNumber == pBagInfo->ItemNumber && StackHasRoom(pBagSlot)) return NOID;
 					// return if the slot is free or meets stacking requirements
 				}

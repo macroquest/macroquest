@@ -60,7 +60,7 @@ void Comment(SPAWNINFO* pChar, char* szLine);
 void DoGearScoreUserCommand(SPAWNINFO* pChar, char* szLine);
 
 template <unsigned int _Size>
-void AddGearScores(CONTENTS* pSlot, ITEMINFO* pItem, char(&out)[_Size], char* br);
+void AddGearScores(ItemClient* pSlot, ItemDefinition* pItem, char(&out)[_Size], char* br);
 
 struct DisplayItemStrings
 {
@@ -84,7 +84,7 @@ DisplayItemStrings gContentsItemStrings[MAX_ITEMDISPLAY_WINDOWS];
 int gLastIndex = 5;
 
 class MQ2DisplayItemType;
-MQ2DisplayItemType* pDisplayItemType = 0;
+MQ2DisplayItemType* pDisplayItemType = nullptr;
 
 class MQ2DisplayItemType : public MQ2Type
 {
@@ -142,7 +142,7 @@ public:
 			switch (static_cast<DisplayItemMethods>(pMethod->ID))
 			{
 			case AddLootFilter:
-				if (ITEMINFO* pItem = pContents->GetItemDefinition())
+				if (ItemDefinition* pItem = pContents->GetItemDefinition())
 				{
 					pLootFiltersManager->AddItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 5);
 
@@ -226,7 +226,7 @@ public:
 
 		if (pContents)
 		{
-			if (ITEMINFO* pItem = pContents->GetItemDefinition())
+			if (ItemDefinition* pItem = pContents->GetItemDefinition())
 			{
 				strcpy_s(Destination, 128, pItem->Name);
 				return true;
@@ -366,7 +366,7 @@ bool ItemInfoManager::doValidateURI(eqlib::libMozilla::Window* wnd, const char* 
 
 // Don't ever directly reference this. We don't know when it might get deleted. We only use
 // this to check if the current tooltip item has changed.
-CONTENTS* gpOldTooltipItem = nullptr;
+ItemClient* gpOldTooltipItem = nullptr;
 
 class CCompareTipWnd : public CSidlScreenWnd
 {
@@ -398,7 +398,7 @@ public:
 };
 CCompareTipWnd* pCompareTipWnd = nullptr;
 
-int CanIUseThisItem(ITEMINFO* pItem)
+int CanIUseThisItem(ItemDefinition* pItem)
 {
 	if (PcProfile* pProfile = GetPcProfile())
 	{
@@ -413,7 +413,7 @@ int CanIUseThisItem(ITEMINFO* pItem)
 }
 
 template <unsigned int _Size>
-char* GetSlots(ITEMINFO* pItem, char(&_Buffer)[_Size])
+char* GetSlots(ItemDefinition* pItem, char(&_Buffer)[_Size])
 {
 	DWORD cmp = pItem->EquipSlots;
 	for (int N = 0; N < 32; N++)
@@ -446,7 +446,7 @@ ItemPtr GetItemEquippedInSlot(const ItemPtr& pItem)
 	return nullptr;
 }
 
-static void UpdateCompareWindow(CONTENTS* pCont, CONTENTS* pEquipped);
+static void UpdateCompareWindow(ItemClient* pCont, ItemClient* pEquipped);
 
 class ItemDisplayHook
 {
@@ -927,7 +927,7 @@ public:
 		}
 
 		ItemPtr& item = pThis->pItem;
-		ITEMINFO* Item = item->GetItemDefinition();
+		ItemDefinition* Item = item->GetItemDefinition();
 
 		UpdateStrings_Trampoline();
 		std::scoped_lock lock(s_mutex);
@@ -1219,7 +1219,7 @@ public:
 				// open in lucy
 				if (buttonInfo.ID == 6)
 				{
-					if (ITEMINFO* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
+					if (ItemDefinition* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
 					{
 						std::string url = fmt::format(
 							"http://mwn12.com/proxy/browse.php?u=https://lucy.allakhazam.com/item.html?id={}", pItem->ItemNumber);
@@ -1258,7 +1258,7 @@ public:
 							}
 						}
 
-						if (ITEMINFO* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
+						if (ItemDefinition* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
 						{
 							if (pLootFiltersManager)
 							{
@@ -1282,7 +1282,7 @@ public:
 							}
 						}
 
-						if (ITEMINFO* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
+						if (ItemDefinition* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
 						{
 							if (pLootFiltersManager)
 							{
@@ -1339,7 +1339,7 @@ public:
 							}
 						}
 
-						if (ITEMINFO* pItem = iter->second.ItemDisplayWnd->pItem->GetItemDefinition())
+						if (ItemDefinition* pItem = iter->second.ItemDisplayWnd->pItem->GetItemDefinition())
 						{
 							if (pLootFiltersManager)
 							{
@@ -1364,7 +1364,7 @@ public:
 							}
 						}
 
-						if (ITEMINFO* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
+						if (ItemDefinition* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
 						{
 							if (pLootFiltersManager)
 							{
@@ -1422,7 +1422,7 @@ public:
 							}
 						}
 
-						if (ITEMINFO* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
+						if (ItemDefinition* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
 						{
 							if (pLootFiltersManager)
 							{
@@ -1447,7 +1447,7 @@ public:
 							}
 						}
 
-						if (ITEMINFO* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
+						if (ItemDefinition* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
 						{
 							if (pLootFiltersManager)
 							{
@@ -1487,7 +1487,7 @@ public:
 					if (pButton->bChecked)
 					{
 						// check autoroll
-						if (ITEMINFO* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
+						if (ItemDefinition* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
 						{
 							if (pLootFiltersManager)
 							{
@@ -1524,7 +1524,7 @@ public:
 					else
 					{
 						// uncheck autoroll
-						if (ITEMINFO* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
+						if (ItemDefinition* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
 						{
 							pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 1);
 						}
@@ -1534,7 +1534,7 @@ public:
 
 				case 6: // open in lucy
 				{
-					if (ITEMINFO* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
+					if (ItemDefinition* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
 					{
 						std::string url = "http://lucy.allakhazam.com/item.html?id=" + std::to_string(pItem->ItemNumber);
 
@@ -1585,8 +1585,8 @@ public:
 			WriteChatf("Tell eqmule his PEQITEMWINDOW struct is wrong");
 		}
 
-		CONTENTS* item = pThis->pItem.get();
-		ITEMINFO* Item = item->GetItemDefinition();
+		ItemClient* item = pThis->pItem.get();
+		ItemDefinition* Item = item->GetItemDefinition();
 
 		// Ziggy - Items showing their spell details:
 		bNoSpellTramp = true;
@@ -1745,7 +1745,7 @@ public:
 					pAutoRollBtn->SetData(5);
 					ButtonMap[pAutoRollBtn] = { pThis, 5 };
 
-					if (ITEMINFO* pItem = pThis->pItem->GetItemDefinition())
+					if (ItemDefinition* pItem = pThis->pItem->GetItemDefinition())
 					{
 						if (pLootFiltersManager)
 						{
@@ -2022,10 +2022,10 @@ static void AddCompareTableData(char* buffer, size_t length, const char* statnam
 	}
 }
 
-static void UpdateCompareWindow(PCONTENTS pCont, PCONTENTS pEquipped)
+static void UpdateCompareWindow(ItemClient* pCont, ItemClient* pEquipped)
 {
-	PITEMINFO pItem = GetItemFromContents(pCont);
-	PITEMINFO pItem2 = GetItemFromContents(pEquipped);
+	ItemDefinition* pItem = GetItemFromContents(pCont);
+	ItemDefinition* pItem2 = GetItemFromContents(pEquipped);
 	if (!pItem || !pItem2 || !CanIUseThisItem(pItem))
 		return;
 
@@ -2895,7 +2895,7 @@ void ClearAttribListVal()
 	}
 }
 
-void LoadAttribListVal(ITEMINFO* pItem)
+void LoadAttribListVal(ItemDefinition* pItem)
 {
 	AttribList[0].Val = static_cast<float>(pItem->AC);
 	AttribList[1].Val = static_cast<float>(pItem->HP);
@@ -2927,7 +2927,7 @@ void LoadAttribListVal(ITEMINFO* pItem)
 }
 #undef cvtfloat
 
-float CalcItemGearScore(ITEMINFO* pItem)
+float CalcItemGearScore(ItemDefinition* pItem)
 {
 	float score = 0;
 	LoadAttribListVal(pItem);
@@ -3172,14 +3172,14 @@ bool dataGearScore(const char* szName, MQTypeVar& Dest)
 }
 
 template <unsigned int _Size>
-void AddGearScore_CheckAugSlot(ITEMINFO* pItem, float score, int SlotNum, char* SlotName, CONTENTS* pInvContent, ITEMINFO* pInvItem, DWORD AugType, DWORD AugSlot, char(&out)[_Size], char* br)
+void AddGearScore_CheckAugSlot(ItemDefinition* pItem, float score, int SlotNum, char* SlotName, ItemClient* pInvContent, ItemDefinition* pInvItem, DWORD AugType, DWORD AugSlot, char(&out)[_Size], char* br)
 {
 	if (!AugType) return; // This worn item does not have an aug slot for [n]
 	DWORD mask = (1 << (AugType - 1));
 	if ((mask & pItem->AugType) == 0) return; // Calculate a bitmask and compare to the aug we have, does it fit?
 
 	char temp[MAX_STRING];
-	ITEMINFO* pAug = NULL;
+	ItemDefinition* pAug = NULL;
 	if (ItemPtr pAugItem = pInvContent->GetHeldItem(AugSlot))
 	{
 		pAug = pAugItem->GetItemDefinition();
@@ -3205,7 +3205,7 @@ void AddGearScore_CheckAugSlot(ITEMINFO* pItem, float score, int SlotNum, char* 
 }
 
 template <unsigned int _Size>
-void AddGearScores_CheckAugs(CONTENTS* pSlot, ITEMINFO* pItem, char(&out)[_Size], char* br)
+void AddGearScores_CheckAugs(ItemClient* pSlot, ItemDefinition* pItem, char(&out)[_Size], char* br)
 {
 	float score = CalcItemGearScore(pItem);
 	if (!score) return;
@@ -3226,7 +3226,7 @@ void AddGearScores_CheckAugs(CONTENTS* pSlot, ITEMINFO* pItem, char(&out)[_Size]
 			char* name = SlotInfo[i].SlotName;
 
 			ItemDefinition* pInvItem = nullptr;
-			CONTENTS* pInvContent = pProfile->GetInventorySlot(i).get();
+			ItemClient* pInvContent = pProfile->GetInventorySlot(i).get();
 			if (pInvContent)
 				pInvItem = pInvContent->GetItemDefinition();
 
@@ -3244,14 +3244,14 @@ void AddGearScores_CheckAugs(CONTENTS* pSlot, ITEMINFO* pItem, char(&out)[_Size]
 }
 
 // determine if you already have an item
-bool DoIHave(ITEMINFO* Item)
+bool DoIHave(ItemDefinition* Item)
 {
 	int ID = Item->ItemNumber;
 
 	return FindItemByID(ID) || FindBankItemByID(ID);
 }
 
-void FormatBestStr(ITEMINFO* pItem)
+void FormatBestStr(ItemDefinition* pItem)
 {
 	ReportBestStr[0] = 0;
 	ReportBestSlot[0] = 0;
@@ -3297,7 +3297,7 @@ void FormatBestStr(ITEMINFO* pItem)
 }
 
 template <unsigned int _Size>
-void AddGearScores_CheckItems(CONTENTS* pSlot, ITEMINFO* pItem, char(&out)[_Size], char* br)
+void AddGearScores_CheckItems(ItemClient* pSlot, ItemDefinition* pItem, char(&out)[_Size], char* br)
 {
 	char temp[MAX_STRING];
 	sprintf_s(temp, "This Item Score : %6.0f%s", CurrScore, br);
@@ -3330,7 +3330,7 @@ void AddGearScores_CheckItems(CONTENTS* pSlot, ITEMINFO* pItem, char(&out)[_Size
 }
 
 template <unsigned int _Size>
-void AddGearScores(CONTENTS* pSlot, ITEMINFO* pItem, char(&out)[_Size], char* br)
+void AddGearScores(ItemClient* pSlot, ItemDefinition* pItem, char(&out)[_Size], char* br)
 {
 	static ULONGLONG lastTick = 0;
 	ReportBestStr[0] = 0;

@@ -1728,7 +1728,7 @@ public:
 
 	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
-		if (VarPtr.Ptr && IsEvolvingItem((CONTENTS*)VarPtr.Ptr))
+		if (VarPtr.Ptr && IsEvolvingItem((ItemClient*)VarPtr.Ptr))
 			strcpy_s(Destination, MAX_STRING, "TRUE");
 		else
 			strcpy_s(Destination, MAX_STRING, "FALSE");
@@ -1801,7 +1801,7 @@ public:
 
 	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
-		strcpy_s(Destination, MAX_STRING, ((DZMEMBER*)VarPtr.Ptr)->Name);
+		strcpy_s(Destination, MAX_STRING, reinterpret_cast<DynamicZonePlayerInfo*>(VarPtr.Ptr)->Name);
 		return true;
 	}
 };
@@ -2326,7 +2326,8 @@ public:
 
 	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
-		if (AURAINFO* pAura = (AURAINFO*)VarPtr.Ptr) {
+		if (AuraData* pAura = reinterpret_cast<AuraData*>(VarPtr.Ptr))
+		{
 			strcpy_s(Destination, MAX_STRING, pAura->Name);
 			return true;
 		}
@@ -2360,7 +2361,7 @@ public:
 
 	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
-		if (BandolierItemInfo* ptr = (BandolierItemInfo*)VarPtr.Ptr)
+		if (BandolierItemInfo* ptr = reinterpret_cast<BandolierItemInfo*>(VarPtr.Ptr))
 		{
 			strcpy_s(Destination, MAX_STRING, ptr->Name);
 			return true;

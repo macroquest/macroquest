@@ -1458,7 +1458,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		break;
 	}
 
-	PITEMDB ItemDB = gItemDB;
+	ITEMDB* ItemDB = gItemDB;
 
 	std::string spelleffectname(GetSpellEffectName(spa, szTemp, sizeof(szTemp)));
 	memset(szTemp, 0, sizeof(szTemp));

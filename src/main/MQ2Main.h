@@ -339,7 +339,7 @@ MQLIB_API void DefaultFilters();
 MQLIB_API char* ConvertHotkeyNameToKeyName(char* szName);
 MQLIB_API void CheckChatForEvent(const char* szMsg);
 MQLIB_API void ConvertItemTags(CXStr& cxstr, bool Tag = true);
-MQLIB_API int FindInvSlotForContents(CONTENTS* pContents);
+MQLIB_API int FindInvSlotForContents(ItemClient* pContents);
 MQLIB_API int FindInvSlot(const char* Name, bool Exact);
 MQLIB_API int FindNextInvSlot(const char* Name, bool Exact);
 
@@ -371,7 +371,7 @@ MQLIB_API CXWnd* GetAdvLootSharedListItem(DWORD ListIndex, DWORD type);
 MQLIB_API bool LootInProgress(CAdvancedLootWnd* pAdvLoot, CListWnd* pPersonalList, CListWnd* pSharedList);
 MQLIB_API void WeDidStuff();
 MQLIB_API int GetFreeInventory(int nSize);
-MQLIB_API int GetFreeStack(CONTENTS* pContents);
+MQLIB_API int GetFreeStack(ItemClient* pContents);
 MQLIB_API int RangeRandom(int min, int max);
 
 MQLIB_API int GetCharMaxBuffSlots();
@@ -404,7 +404,7 @@ struct RefreshKeyRingsThreadData
 	bool bUseCmd;
 };
 
-MQLIB_API ITEMINFO* GetItemFromContents(CONTENTS* c);
+MQLIB_API ItemDefinition* GetItemFromContents(ItemClient* c);
 
 MQLIB_API bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineNumber, int localLine);
 
@@ -416,31 +416,31 @@ MQLIB_API int ConColor(SPAWNINFO* pSpawn);
 MQLIB_API const char* GetGuildByID(int64_t GuildID);
 MQLIB_API int64_t GetGuildIDByName(char* szGuild);
 
-MQLIB_API CONTENTS* GetEnviroContainer();
-MQLIB_API CContainerWnd* FindContainerForContents(CONTENTS* pContents);
+MQLIB_API ItemClient* GetEnviroContainer();
+MQLIB_API CContainerWnd* FindContainerForContents(ItemClient* pContents);
 MQLIB_API float FindSpeed(SPAWNINFO* pSpawn);
 MQLIB_API bool IsNamed(SPAWNINFO* pSpawn);
-MQLIB_API void GetItemLinkHash(CONTENTS* Item, char* Buffer, size_t BufferSize);
+MQLIB_API void GetItemLinkHash(ItemClient* Item, char* Buffer, size_t BufferSize);
 
 template <unsigned int _Size>
-inline void GetItemLinkHash(CONTENTS* Item, char(&Buffer)[_Size])
+inline void GetItemLinkHash(ItemClient* Item, char(&Buffer)[_Size])
 {
 	return GetItemLinkHash(Item, Buffer, _Size);
 }
 
-MQLIB_API bool GetItemLink(CONTENTS* Item, char* Buffer, size_t BufferSize, bool Clickable = true);
+MQLIB_API bool GetItemLink(ItemClient* Item, char* Buffer, size_t BufferSize, bool Clickable = true);
 
 template <unsigned int _Size>
-inline bool GetItemLink(CONTENTS* Item, char(&Buffer)[_Size], bool Clickable = true)
+inline bool GetItemLink(ItemClient* Item, char(&Buffer)[_Size], bool Clickable = true)
 {
 	return GetItemLink(Item, Buffer, _Size, Clickable);
 }
 
-MQLIB_API int ItemHasStat(CONTENTS* pCont, std::string_view search);
+MQLIB_API int ItemHasStat(ItemClient* pCont, std::string_view search);
 
 // Compatibility for ItemHasStat
 DEPRECATE("Use string_view form of ItemHasStat instead")
-inline bool ItemHasStat(CONTENTS* pCont, int* num, const char* buffer)
+inline bool ItemHasStat(ItemClient* pCont, int* num, const char* buffer)
 {
 	*num = ItemHasStat(pCont, buffer);
 	return *num != 0;
@@ -478,9 +478,9 @@ MQLIB_API const char* GetLDoNTheme(int LDTheme);
 MQLIB_API bool TriggeringEffectSpell(SPELL* aSpell, int i);
 MQLIB_API bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects = false, bool bTriggeredEffectCheck = false);
 MQLIB_API bool WillStackWith(const EQ_Spell* testSpell, const EQ_Spell* existingSpell);
-MQLIB_API uint32_t GetItemTimer(CONTENTS* pItem);
-MQLIB_API CONTENTS* GetItemContentsByName(const char* ItemName);
-MQLIB_API DWORD GetAvailableSlots(CONTENTS* pContainer, CONTENTS* pItem, int *firstavailableslot);
+MQLIB_API uint32_t GetItemTimer(ItemClient* pItem);
+MQLIB_API ItemClient* GetItemContentsByName(const char* ItemName);
+MQLIB_API DWORD GetAvailableSlots(ItemClient* pContainer, ItemClient* pItem, int *firstavailableslot);
 MQLIB_API bool LoH_HT_Ready();
 
 /* MQ2DATAVARS */
@@ -643,32 +643,32 @@ MQLIB_API uint32_t    GetSpellGemTimer(int nGem);
 MQLIB_API uint32_t    GetSpellBuffTimer(int SpellID);
 MQLIB_API bool        HasExpansion(int nExpansion);
 MQLIB_API void        ListMercAltAbilities();
-MQLIB_API CONTENTS*   FindItemBySlot(int InvSlot, int BagSlot = -1, ItemContainerInstance location = eItemContainerPossessions);
+MQLIB_API ItemClient*   FindItemBySlot(int InvSlot, int BagSlot = -1, ItemContainerInstance location = eItemContainerPossessions);
 MQLIB_API ItemContainer* GetItemContainerByType(ItemContainerInstance type);
    inline ItemContainer* GetItemContainerByGlobalIndex(const ItemGlobalIndex& index) { return GetItemContainerByType(index.GetLocation()); }
-MQLIB_API CONTENTS*   FindItemByGlobalIndex(const ItemGlobalIndex& idx);
+MQLIB_API ItemClient*   FindItemByGlobalIndex(const ItemGlobalIndex& idx);
    inline ItemClient* FindItemBySlot(const ItemGlobalIndex& idx) { return FindItemByGlobalIndex(idx); }
    DEPRECATE("Use FindItemByGlobalIndex instead of FindItemBySlot2")
-   inline CONTENTS*   FindItemBySlot2(const ItemGlobalIndex& idx) { return FindItemByGlobalIndex(idx); }
-MQLIB_API CONTENTS*   FindItemByName(const char* pName, bool bExact = false);
-MQLIB_API CONTENTS*   FindItemByID(int ItemID);
+   inline ItemClient*   FindItemBySlot2(const ItemGlobalIndex& idx) { return FindItemByGlobalIndex(idx); }
+MQLIB_API ItemClient*   FindItemByName(const char* pName, bool bExact = false);
+MQLIB_API ItemClient*   FindItemByID(int ItemID);
 MQLIB_API int         FindItemCountByName(const char* pName);
 MQLIB_API int         FindItemCountByID(int ItemID);
 MQLIB_API int         FindInventoryItemCountByName(const char* pName, StringMatchType matchType = StringMatchType::CaseInsensitive,
                                                    int slotBegin = -1, int slotEnd = -1);
 MQLIB_API int         FindInventoryItemCountByID(int ItemID, int slobBegin = -1, int slotEnd = -1);
-MQLIB_API CONTENTS*   FindBankItemByName(const char* pName, bool bExact);
-MQLIB_API CONTENTS*   FindBankItemByID(int ItemID);
+MQLIB_API ItemClient*   FindBankItemByName(const char* pName, bool bExact);
+MQLIB_API ItemClient*   FindBankItemByID(int ItemID);
 MQLIB_API int         FindBankItemCountByName(const char* pName, bool bExact);
 MQLIB_API int         FindBankItemCountByID(int ItemID);
 MQLIB_API CInvSlot*   GetInvSlot(const ItemGlobalIndex& idx);
    inline CInvSlot*   GetInvSlot(DWORD type, short Invslot, short Bagslot = -1) { return GetInvSlot(ItemGlobalIndex(static_cast<ItemContainerInstance>(type), ItemIndex(Invslot, Bagslot))); }
    DEPRECATE("Use GetInvSlot instead of GetInvSlot2")
    inline CInvSlot*   GetInvSlot2(const ItemGlobalIndex& idx) { return GetInvSlot(idx); }
-MQLIB_API bool        IsItemInsideContainer(CONTENTS* pItem);
-MQLIB_API bool        ItemMatchesSearch(MQItemSearch& itemSearch, CONTENTS* pItem);
+MQLIB_API bool        IsItemInsideContainer(ItemClient* pItem);
+MQLIB_API bool        ItemMatchesSearch(MQItemSearch& itemSearch, ItemClient* pItem);
 MQLIB_API bool        PickupItem(const ItemGlobalIndex& index);
-   inline bool        PickupItem(ItemContainerInstance type, CONTENTS* pItem) { return PickupItem(pItem->GetItemLocation()); }
+   inline bool        PickupItem(ItemContainerInstance type, ItemClient* pItem) { return PickupItem(pItem->GetItemLocation()); }
 MQLIB_API bool        DropItem(const ItemGlobalIndex& index);
    inline bool        DropItem(ItemContainerInstance type, short InvSlot, short Bagslot) { return DropItem(ItemGlobalIndex(type, ItemIndex(InvSlot, Bagslot))); }
    DEPRECATE("Use DropItem instead of DropItem2")
@@ -871,8 +871,8 @@ constexpr int GAMESTATE_UNLOADING      = 255;
 MQLIB_API void memchecks_tramp(char*, DWORD, void*, DWORD, bool);
 MQLIB_API void memchecks(char*, DWORD, void*, DWORD, bool);
 MQLIB_API void RemoveAutoBankMenu();
-MQLIB_API bool WillFitInBank(CONTENTS* pContent);
-MQLIB_API bool WillFitInInventory(CONTENTS* pContent);
+MQLIB_API bool WillFitInBank(ItemClient* pContent);
+MQLIB_API bool WillFitInInventory(ItemClient* pContent);
 
 /* MQ2ANONYMIZE */
 void InitializeAnonymizer();
