@@ -13,7 +13,7 @@
 
 PreSetup("MQ2TargetInfo");
 PLUGIN_VERSION(2.3);
-
+#include <Shellapi.h>
 enum TI_MenuCommands
 {
 	TIMC_MakeMeLeader = 54,
@@ -129,6 +129,11 @@ public:
 			if (pTarget) {
 				phinfo pinf;
 				if (GetPhMap((PSPAWNINFO)pTarget, &pinf)) {
+
+					#if defined(TEST)
+					std::string url = pinf.Link;
+					ShellExecute(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
+					#else
 					std::string url = "https://webproxy.to/browse.php?b=4&u=";
 					url.append(pinf.Link);// https://eqresource.com&b=4";
 					//std::string url = "https://www.google.com/search?q=";
@@ -138,6 +143,7 @@ public:
 					{
 						//Beep(1000, 100);
 					}
+					#endif
 				}
 			}
 		}

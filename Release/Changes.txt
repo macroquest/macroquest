@@ -1,3 +1,8 @@
+Jan 13 2021
+- Updated for TEST
+- The internal webbrowser is on vacation, it will return when it's ready to do so.
+- For now we will just have to open links in an external browser.
+-
 Dec 15 2020
 - Updated for TEST
 - Removed MAX_KEYRINGITEMS it was a guess at best from 2014 before we knew how the arrays where constructed.

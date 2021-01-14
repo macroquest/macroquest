@@ -266,7 +266,9 @@ public:
 		if (im) {
 			if (im->htmlwnd)
 			{
+				#if !defined(TEST)
 				im->htmlwnd->SetClientCallbacks(NULL);
+				#endif
 			}
 		}
 		//this->GetInstance().htmlwnd->SetClientCallbacks(NULL);
@@ -312,19 +314,24 @@ void ItemInfoManager::Notify(CObservable *Src, const CNotification* const Notifi
 }
 void ItemInfoManager::onStatusChanged(Window *wnd)
 {
+	#if !defined(TEST)
 	if (const wchar_t *status = wnd->getStatus()) {
 		//WriteChatf("Status changed: %s", status);
 	}
+	#endif
 }
 void ItemInfoManager::onURIChanged(Window *wnd)
 {
+	#if !defined(TEST)
 	if (const char *uri = wnd->getURI()) {
 		//WriteChatf("URI changed: %s", uri);
 	}
+	#endif
 }
 
 void ItemInfoManager::onProgressChanged(Window *wnd)
 {
+#if !defined(TEST)
 	bool bIsLoading;
 	float pct = wnd->getProgress(bIsLoading);
 	//WriteChatf("Progress %0.2f Loading is %s", pct, bIsLoading ? "TRUE":"FALSE");
@@ -339,6 +346,7 @@ void ItemInfoManager::onProgressChanged(Window *wnd)
 		}
 	}
 	Sleep(0);*/
+#endif
 }
 bool ItemInfoManager::doValidateURI(Window *wnd, const char *uri)
 {
@@ -1440,7 +1448,14 @@ public:
 					case 6://open in lucy
 					{
 						if (PITEMINFO pItem = GetItemFromContents(i->second.ItemDisplayWnd->pCurrentItem)) {
-							//break it
+							#if defined(TEST)
+							std::string url = "http://lucy.allakhazam.com/item.html?id=";
+							CHAR szID[64] = { 0 };
+							_itoa_s(pItem->ItemNumber, szID, 10);
+							url.append(szID);
+							ShellExecute(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
+							#else
+														//break it
 							//std::string url = "http://webproxy.to/browse.php?b=4&u=http://lucy.allakhazam.com/item.html?id=";
 							//std::string url = "https://lucy.allakhazam.com/item.html?id=";
 							//std::string url = "https://www.raidloot.com/Item.aspx?id=";
@@ -1478,6 +1493,7 @@ public:
 								//maybe later im not 100% sure what observers are for
 								//ItemHtmlwnd->AddObserver(&manager);
 							}
+							#endif
 						}
 						return 0;
 					}

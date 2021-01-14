@@ -674,8 +674,10 @@ namespace MQ2Globals
 	EQLIB_VAR CPotionBeltWnd **ppPotionBeltWnd;
 	#endif
 	EQLIB_VAR CBandolierWnd **ppBandolierWnd;
+#if !defined(TEST)
 	EQLIB_VAR CWebManager **ppCWebManager;
 	#define pCWebManager (*ppCWebManager)
+#endif
 	EQLIB_VAR CTaskWnd **ppTaskWnd;
 	EQLIB_VAR CTaskManager *ppTaskManager;
 	#define pTaskManager (*ppTaskManager)
@@ -1074,7 +1076,9 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstCAdvancedLootWnd;
 	EQLIB_VAR DWORD pinstCContextMenuManager;
 	EQLIB_VAR DWORD pinstCVoiceMacroWnd;
+	#if !defined(TEST)
 	EQLIB_VAR DWORD pinstCWebManager;
+	#endif
 	EQLIB_VAR DWORD pinstItemIconCache;
 	EQLIB_VAR DWORD pinstRewardSelectionWnd;
 	EQLIB_VAR DWORD pinstCConfirmationDialog;

@@ -234,7 +234,9 @@ namespace MQ2Globals
 		ppSoulmarkWnd = (CSoulmarkWnd**)pinstCSoulmarkWnd;
 		ppFeedbackWnd = (CFeedbackWnd**)pinstCFeedbackWnd;
 #endif
+#if !defined(TEST)
 		ppCWebManager = (CWebManager**)pinstCWebManager;
+#endif
 		ppTaskWnd = (CTaskWnd**)pinstCTaskWnd;
 		ppTaskManager = (CTaskManager*)pinstCTaskManager;
 		ppTimeLeftWnd = (CTimeLeftWnd**)pinstCTimeLeftWnd;
@@ -1314,7 +1316,9 @@ namespace MQ2Globals
 	CPotionBeltWnd **ppPotionBeltWnd = 0;
 #endif
 	CBandolierWnd **ppBandolierWnd = 0;
+#if !defined(TEST)
 	CWebManager **ppCWebManager = 0;
+#endif
 	CTaskWnd **ppTaskWnd = 0;
 	CTaskManager *ppTaskManager = 0;
 	CTimeLeftWnd **ppTimeLeftWnd = 0;
@@ -1635,7 +1639,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCTitleWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCContextMenuManager);
 	INITIALIZE_EQGAME_OFFSET(pinstCVoiceMacroWnd);
+#if !defined(TEST)
 	INITIALIZE_EQGAME_OFFSET(pinstCWebManager);
+#endif
 #if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(pinstCAdvancedLootWnd);
 #endif
@@ -2062,6 +2068,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CTextureFont__DrawWrappedText);
 	INITIALIZE_EQGAME_OFFSET(CTextureFont__GetTextExtent);
 
+	#if !defined(TEST)
 	INITIALIZE_EQGAME_OFFSET(CWebManager__CreateHtmlWnd);
 	INITIALIZE_EQGAME_OFFSET(CHtmlComponentWnd__ValidateUri);
 	INITIALIZE_EQGAME_OFFSET(CHtmlWnd__SetClientCallbacks);
@@ -2070,7 +2077,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(Window__getProgress);
 	INITIALIZE_EQGAME_OFFSET(Window__getStatus);
 	INITIALIZE_EQGAME_OFFSET(Window__getURI);
-
+	#endif
 	INITIALIZE_EQGAME_OFFSET(CXMLDataManager__GetXMLData);
 
 	INITIALIZE_EQGAME_OFFSET(CXMLSOMDocumentBase__XMLRead);
