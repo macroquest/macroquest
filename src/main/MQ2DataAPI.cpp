@@ -438,25 +438,21 @@ bool EvaluateDataExpression(MQTypeVar& Result, const char* pStart, char* pIndex,
 	return true;
 }
 
-bool dataType(const char* szIndex, MQTypeVar& Ret)
-{
-	if (MQ2Type* pType = FindMQ2DataType(szIndex))
-	{
-		Ret.Ptr = pType;
-		Ret.Type = datatypes::pTypeType;
-		return true;
-	}
-
-	return false;
-}
-
 void InitializeMQ2Data()
 {
+	// Basic types
+	AddMQ2Data("Bool", datatypes::MQ2BoolType::dataBool);
+	AddMQ2Data("Float", datatypes::MQ2FloatType::dataFloat);
+	AddMQ2Data("Heading", datatypes::MQ2HeadingType::dataHeading);
+	AddMQ2Data("Int", datatypes::MQ2IntType::dataInt);
+	AddMQ2Data("Range", datatypes::MQ2RangeType::dataRange);
+	AddMQ2Data("Time", datatypes::MQ2TimeType::dataTime);
+	AddMQ2Data("Type", datatypes::MQ2TypeType::dataType);
+
 	AddMQ2Data("AdvLoot", dataAdvLoot);
 	AddMQ2Data("Alert", dataAlert);
 	AddMQ2Data("Alias", dataAlias);
 	AddMQ2Data("AltAbility", dataAltAbility);
-	AddMQ2Data("Bool", datatypes::MQ2BoolType::dataBool);
 	AddMQ2Data("Corpse", dataCorpse);
 	AddMQ2Data("Cursor", dataCursor);
 	AddMQ2Data("Defined", dataDefined);
@@ -468,17 +464,14 @@ void InitializeMQ2Data()
 	AddMQ2Data("FindItemBank", dataFindItemBank);
 	AddMQ2Data("FindItemBankCount", dataFindItemBankCount);
 	AddMQ2Data("FindItemCount", dataFindItemCount);
-	AddMQ2Data("Float", datatypes::MQ2FloatType::dataFloat);
 	AddMQ2Data("Friends", dataFriends);
 	AddMQ2Data("GameTime", dataGameTime);
 	AddMQ2Data("Ground", datatypes::MQ2GroundType::dataGroundItem);
 	AddMQ2Data("GroundItemCount", datatypes::MQ2GroundType::dataGroundItemCount);
 	AddMQ2Data("Group", dataGroup);
-	AddMQ2Data("Heading", dataHeading);
 	AddMQ2Data("If", dataIf);
 	AddMQ2Data("Illusion", datatypes::MQ2KeyRingType::dataIllusion);
 	AddMQ2Data("Ini", dataIni);
-	AddMQ2Data("Int", datatypes::MQ2IntType::dataInt);
 	AddMQ2Data("InvSlot", dataInvSlot);
 	AddMQ2Data("ItemTarget", datatypes::MQ2SpawnType::dataItemTarget);
 	AddMQ2Data("LastSpawn", datatypes::MQ2SpawnType::dataLastSpawn);
@@ -496,7 +489,6 @@ void InitializeMQ2Data()
 	AddMQ2Data("Plugin", dataPlugin);
 	AddMQ2Data("PointMerchant", dataPointMerchant);
 	AddMQ2Data("Raid", dataRaid);
-	AddMQ2Data("Range", dataRange);
 	AddMQ2Data("Select", dataSelect);
 	AddMQ2Data("SelectedItem", dataSelectedItem);
 	AddMQ2Data("Skill", dataSkill);
@@ -507,8 +499,6 @@ void InitializeMQ2Data()
 	AddMQ2Data("Switch", dataSwitch);
 	AddMQ2Data("Target", datatypes::MQ2TargetType::dataTarget);
 	AddMQ2Data("Task", datatypes::MQ2TaskType::dataTask);
-	AddMQ2Data("Time", dataTime);
-	AddMQ2Data("Type", dataType);
 	AddMQ2Data("Window", dataWindow);
 	AddMQ2Data("Zone", dataZone);
 	AddMQ2Data("FrameLimiter", dataFrameLimiter);

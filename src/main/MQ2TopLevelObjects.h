@@ -28,14 +28,11 @@ MQLIB_API bool dataMacro(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataMath(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataZone(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataGroup(const char* szIndex, MQTypeVar& Ret);
-MQLIB_API bool dataFloat(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataCorpse(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataIf(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataCursor(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataGameTime(const char* szIndex, MQTypeVar& Ret);
-MQLIB_API bool dataTime(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataIni(const char* szIndex, MQTypeVar& Ret);
-MQLIB_API bool dataHeading(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataDefined(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataSubDefined(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataInvSlot(const char* szIndex, MQTypeVar& Ret);
@@ -53,13 +50,9 @@ MQLIB_API bool dataPlugin(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataSelect(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataDynamicZone(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataFriends(const char* szIndex, MQTypeVar& Ret);
-MQLIB_API bool dataMount(const char* szIndex, MQTypeVar& Ret);
-MQLIB_API bool dataIllusion(const char* szIndex, MQTypeVar& Ret);
-MQLIB_API bool dataFamiliar(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataAlias(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataAdvLoot(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataAlert(const char* szIndex, MQTypeVar& Ret);
-MQLIB_API bool dataRange(const char* szIndex, MQTypeVar& Ret);
 MQLIB_API bool dataFrameLimiter(const char* szIndex, MQTypeVar& Ret);
 
 } // namespace mq

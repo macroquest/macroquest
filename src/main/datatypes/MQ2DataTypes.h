@@ -153,6 +153,8 @@ private:
 	int m_totalElements = 0;
 };
 
+#pragma region Basic Types
+
 //============================================================================
 // MQ2BoolType
 
@@ -164,6 +166,8 @@ public:
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
+
+	// ${Bool[...]}
 	static bool dataBool(const char* szIndex, MQTypeVar& Ret);
 };
 
@@ -172,17 +176,6 @@ public:
 
 class MQ2IntType : public MQ2Type
 {
-	enum class IntMembers
-	{
-		Float = 1,
-		Double,
-		Hex,
-		Reverse,
-		LowPart,
-		HighPart,
-		Prettify,
-	};
-
 public:
 	MQ2IntType();
 
@@ -191,6 +184,7 @@ public:
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 
+	// ${Int[...]}
 	static bool dataInt(const char* szIndex, MQTypeVar& Ret);
 };
 
@@ -199,17 +193,6 @@ public:
 
 class MQ2Int64Type : public MQ2Type
 {
-	enum class Int64Members
-	{
-		Float = 1,
-		Double,
-		Hex,
-		Reverse,
-		LowPart,
-		HighPart,
-		Prettify,
-	};
-
 public:
 	MQ2Int64Type();
 
@@ -238,33 +221,13 @@ public:
 class MQ2ByteType : public MQ2Type
 {
 public:
-	MQ2ByteType() : MQ2Type("byte")
-	{
-	}
+	MQ2ByteType();
 
 	// pure type, no members
-	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
-	{
-		return false;
-	}
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		_itoa_s(VarPtr.Int, Destination, MAX_STRING, 10);
-		return true;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		VarPtr.DWord = Source.DWord % 0xFF;
-		return true;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, const char* Source) override
-	{
-		VarPtr.DWord = GetIntFromString(Source, 0) % 0xFF;
-		return true;
-	}
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 };
 
 //============================================================================
@@ -274,6 +237,7 @@ class MQ2StringType : public MQ2Type
 {
 public:
 	MQ2StringType();
+
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	void InitVariable(MQVarPtr& VarPtr) override;
@@ -287,17 +251,6 @@ public:
 
 class MQ2FloatType : public MQ2Type
 {
-	enum class FloatMembers
-	{
-		Deci = 1,
-		Centi,
-		Milli,
-		Int,
-		Precision,
-		Raw,
-		Prettify,
-	};
-
 public:
 	MQ2FloatType();
 
@@ -314,16 +267,6 @@ public:
 
 class MQ2DoubleType : public MQ2Type
 {
-	enum class DoubleMembers
-	{
-		Deci = 1,
-		Centi,
-		Milli,
-		Int,
-		Precision,
-		Prettify,
-	};
-
 public:
 	MQ2DoubleType();
 
@@ -340,6 +283,7 @@ class MQ2TicksType : public MQ2Type
 {
 public:
 	MQ2TicksType();
+
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
@@ -353,11 +297,93 @@ class MQ2TimeStampType : public MQ2Type
 {
 public:
 	MQ2TimeStampType();
+
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 };
+
+//============================================================================
+// MQ2ArrayType
+
+class MQ2ArrayType : public MQ2Type
+{
+public:
+	MQ2ArrayType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	void InitVariable(MQVarPtr& VarPtr) override;
+	void FreeVariable(MQVarPtr& VarPtr) override;
+};
+
+//============================================================================
+// MQ2RangeType
+
+class MQ2RangeType : public MQ2Type
+{
+public:
+	MQ2RangeType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	static bool dataRange(const char* szIndex, MQTypeVar& Ret);
+};
+
+//============================================================================
+// MQ2TypeType
+
+class MQ2TypeType : public MQ2Type
+{
+public:
+	MQ2TypeType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
+
+	static bool dataType(const char* szIndex, MQTypeVar& Ret);
+};
+
+
+//============================================================================
+// MQ2TimeType
+
+class MQ2TimeType : public MQ2Type
+{
+public:
+	MQ2TimeType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	void InitVariable(MQVarPtr& VarPtr) override;
+	void FreeVariable(MQVarPtr& VarPtr) override;
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	static bool dataTime(const char* szIndex, MQTypeVar& Ret);
+};
+
+//============================================================================
+// MQ2HeadingType
+
+class MQ2HeadingType : public MQ2Type
+{
+public:
+	MQ2HeadingType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
+
+	static bool dataHeading(const char* szIndex, MQTypeVar& Ret);
+};
+
+#pragma endregion // Basic Types
 
 //============================================================================
 // MQ2SpawnType
@@ -1119,78 +1145,6 @@ public:
 };
 
 //============================================================================
-// MQ2TimeType
-
-class MQ2TimeType : public MQ2Type
-{
-public:
-	MQ2TimeType();
-	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
-	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	void InitVariable(MQVarPtr& VarPtr) override;
-	void FreeVariable(MQVarPtr& VarPtr) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
-};
-
-//============================================================================
-// MQ2TypeType
-
-class MQ2TypeType : public MQ2Type
-{
-public:
-	MQ2TypeType();
-	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
-	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
-	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
-};
-
-//============================================================================
-// MQ2HeadingType
-
-class MQ2HeadingType : public MQ2Type
-{
-public:
-	enum HeadingMembers
-	{
-		Name = 1,
-		ShortName = 2,
-		Degrees = 3,
-		Clock = 4,
-		DegreesCCW = 5,
-	};
-
-	enum HeadingMethods
-	{
-	};
-
-	MQ2HeadingType() : MQ2Type("heading")
-	{
-		TypeMember(Name);
-		TypeMember(ShortName);
-		TypeMember(Degrees);
-		TypeMember(Clock);
-		TypeMember(DegreesCCW);
-	}
-
-	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		strcpy_s(Destination, MAX_STRING, szHeadingNormalShort[(INT)((360.0f - VarPtr.Float) / 22.5f + 0.5f) % 16]);
-		return true;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
-
-	bool FromString(MQVarPtr& VarPtr, const char* Source) override
-	{
-		VarPtr.Float = GetFloatFromString(Source, 0);
-		return true;
-	}
-};
-
-//============================================================================
 // MQ2InvSlotType
 
 class MQ2InvSlotType : public MQ2Type
@@ -1468,41 +1422,6 @@ public:
 	void FreeVariable(MQVarPtr& VarPtr) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
-};
-
-//============================================================================
-// MQ2ArrayType
-
-class MQ2ArrayType : public MQ2Type
-{
-public:
-	enum ArrayMembers
-	{
-		Dimensions = 1,
-		Size = 2,
-	};
-	MQ2ArrayType() : MQ2Type("array")
-	{
-		TypeMember(Dimensions);
-		TypeMember(Size);
-	}
-
-	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		return false;
-	}
-
-	void InitVariable(MQVarPtr& VarPtr) override
-	{
-	}
-
-	void FreeVariable(MQVarPtr& VarPtr) override
-	{
-		CDataArray* pArray = (CDataArray*)VarPtr.Ptr;
-		delete pArray;
-	}
 };
 
 //============================================================================
@@ -2256,41 +2175,6 @@ public:
 	MQ2AugType();
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-};
-
-//============================================================================
-// MQ2RangeType
-
-class MQ2RangeType : public MQ2Type
-{
-public:
-	enum RangeMembers
-	{
-		Between = 1,
-		Inside = 2,
-	};
-
-	MQ2RangeType() : MQ2Type("Range")
-	{
-		TypeMember(Between);
-		TypeMember(Inside);
-	}
-
-	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		return false;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		if (Source.Type != pRangeType)
-			return false;
-
-		VarPtr.Ptr = Source.Ptr;
-		return true;
-	}
 };
 
 //============================================================================

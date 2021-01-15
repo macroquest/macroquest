@@ -146,31 +146,10 @@
     <ClCompile Include="MQ2LoginFrontend.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="datatypes\MQ2Type.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
     <ClCompile Include="datatypes\MQ2DataTypes.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
-    <ClCompile Include="datatypes\MQ2TypeType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
     <ClCompile Include="datatypes\MQ2PluginType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
-    <ClCompile Include="datatypes\MQ2FloatType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
-    <ClCompile Include="datatypes\MQ2DoubleType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
-    <ClCompile Include="datatypes\MQ2IntType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
-    <ClCompile Include="datatypes\MQ2Int64Type.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
-    <ClCompile Include="datatypes\MQ2StringType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2BandolierType.cpp">
@@ -180,9 +159,6 @@
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2AuraType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
-    <ClCompile Include="datatypes\MQ2RangeType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2AugType.cpp">
@@ -281,12 +257,6 @@
     <ClCompile Include="datatypes\MQ2CorpseType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
-    <ClCompile Include="datatypes\MQ2HeadingType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
-    <ClCompile Include="datatypes\MQ2TimeType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
     <ClCompile Include="datatypes\MQ2EverQuestType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
@@ -347,22 +317,10 @@
     <ClCompile Include="datatypes\MQ2SpawnType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
-    <ClCompile Include="datatypes\MQ2ArgbType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
-    <ClCompile Include="datatypes\MQ2TicksType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
     <ClCompile Include="datatypes\MQ2MacroType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2MathType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
-    <ClCompile Include="datatypes\MQ2ArrayType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
-    <ClCompile Include="datatypes\MQ2BoolType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
     <ClCompile Include="MQ2Anonymize.cpp">
@@ -379,9 +337,6 @@
     </ClCompile>
     <ClCompile Include="MQ2CachedBuffs.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="datatypes\MQ2TimeStampType.cpp">
-      <Filter>Source Files\datatypes</Filter>
     </ClCompile>
     <ClCompile Include="MQ2StringDB.cpp">
       <Filter>Source Files</Filter>
@@ -417,6 +372,9 @@
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2RaidMemberType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2BasicTypes.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
   </ItemGroup>

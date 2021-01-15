@@ -16,6 +16,7 @@
 #include "MQ2DataTypes.h"
 
 namespace mq::datatypes {
+
 //----------------------------------------------------------------------------
 // Datatype Definitions
 
@@ -50,6 +51,192 @@ void ShutdownMQ2DataTypes()
 #include "DataTypeList.h"
 #undef DATATYPE
 }
+
+//============================================================================
+// MQ2Type
+
+MQ2Type::MQ2Type(const char* newName)
+{
+	strcpy_s(TypeName, newName);
+	m_owned = AddMQ2Type(*this);
+}
+
+MQ2Type::~MQ2Type()
+{
+	if (m_owned)
+	{
+		RemoveMQ2Type(*this);
+	}
+}
+
+void MQ2Type::InitializeMembers(MQTypeMember* memberArray)
+{
+	for (int i = 0; memberArray[i].ID; i++)
+	{
+		AddMember(memberArray[i].ID, memberArray[i].Name);
+	}
+}
+
+const char* MQ2Type::GetName() const
+{
+	if (TypeName)
+		return &TypeName[0];
+
+	return nullptr;
+}
+
+const char* MQ2Type::GetMemberName(int ID) const
+{
+	for (const auto& pMember : Members)
+	{
+		if (pMember && pMember->ID == ID)
+		{
+			return &pMember->Name[0];
+		}
+	}
+
+	return nullptr;
+}
+
+bool MQ2Type::GetMemberID(const char* Name, int& result) const
+{
+	std::scoped_lock lock(m_mutex);
+
+	auto iter = MemberMap.find(Name);
+	if (iter == MemberMap.end())
+		return false;
+
+	int index = iter->second;
+	result = Members[index]->ID;
+	return true;
+}
+
+mq::MQTypeMember* MQ2Type::FindMember(const char* Name)
+{
+	std::scoped_lock lock(m_mutex);
+
+	auto iter = MemberMap.find(Name);
+	if (iter == MemberMap.end())
+		return nullptr;
+
+	int index = MemberMap[Name];
+	return Members[index].get();
+}
+
+mq::MQTypeMember* MQ2Type::FindMethod(const char* Name)
+{
+	std::scoped_lock lock(m_mutex);
+
+	auto iter = MethodMap.find(Name);
+	if (iter == MethodMap.end())
+		return nullptr;
+
+	int index = iter->second;
+	return Methods[index].get();
+}
+
+bool MQ2Type::AddMember(int id, const char* Name)
+{
+	std::scoped_lock lock(m_mutex);
+
+	if (MemberMap.find(Name) != MemberMap.end())
+		return false;
+
+	// find an unused index from members.
+	int index = -1;
+	for (size_t i = 0; i < Members.size(); ++i)
+	{
+		if (Members[i] == nullptr)
+		{
+			index = i;
+			break;
+		}
+	}
+
+	if (index == -1)
+	{
+		Members.emplace_back();
+		index = Members.size() - 1;
+	}
+
+	auto pMember = std::make_unique<MQTypeMember>();
+	pMember->Name = Name;
+	pMember->ID = id;
+	pMember->Type = 0;
+	Members[index] = std::move(pMember);
+	MemberMap[Name] = index;
+	return true;
+}
+
+bool MQ2Type::RemoveMember(const char* Name)
+{
+	std::scoped_lock lock(m_mutex);
+
+	auto iter = MemberMap.find(Name);
+	if (iter == MemberMap.end())
+		return false;
+
+	int index = iter->second;
+	MemberMap.erase(iter);
+
+	if (index < 0)
+		return false;
+	Members[index].reset();
+	return true;
+}
+
+bool MQ2Type::AddMethod(int ID, const char* Name)
+{
+	std::scoped_lock lock(m_mutex);
+
+	if (MethodMap.find(Name) != MethodMap.end())
+		return false;
+
+	// find an unused index from members.
+	int index = -1;
+	for (size_t i = 0; i < Methods.size(); ++i)
+	{
+		if (Methods[i] == nullptr)
+		{
+			index = i;
+			break;
+		}
+	}
+
+	if (index == -1)
+	{
+		Methods.emplace_back();
+		index = Methods.size() - 1;
+	}
+
+	auto pMethod = std::make_unique<MQTypeMember>();
+	pMethod->Name = Name;
+	pMethod->ID = ID;
+	pMethod->Type = 1;
+	Methods[index] = std::move(pMethod);
+	MethodMap[Name] = index;
+	return true;
+}
+
+bool MQ2Type::RemoveMethod(const char* Name)
+{
+	std::scoped_lock lock(m_mutex);
+
+	auto iter = MethodMap.find(Name);
+	if (iter == MethodMap.end())
+		return false;
+
+	int index = iter->second;
+	MethodMap.erase(iter);
+
+	if (index < 0)
+		return false;
+	Methods[index].reset();
+	return true;
+}
+
+//============================================================================
+// CDataArray
 
 CDataArray::CDataArray(MQ2Type* Type, char* Index, const char* Default, bool ByData)
 {
@@ -252,21 +439,21 @@ bool CDataArray::GetElement(char* Index, MQTypeVar& Dest)
 	Dest.VarPtr = m_pData[Element];
 	return true;
 }
-}
+
+} // namespace mq::datatypes
+
+#include "MQ2BasicTypes.cpp"
 
 #include "MQ2AdvLootItemType.cpp"
 #include "MQ2AdvLootType.cpp"
 #include "MQ2AlertListType.cpp"
 #include "MQ2AlertType.cpp"
 #include "MQ2AltAbilityType.cpp"
-#include "MQ2ArgbType.cpp"
-#include "MQ2ArrayType.cpp"
 #include "MQ2AugType.cpp"
 #include "MQ2AuraType.cpp"
 #include "MQ2BandolierItemType.cpp"
 #include "MQ2BandolierType.cpp"
 #include "MQ2BodyType.cpp"
-#include "MQ2BoolType.cpp"
 #include "MQ2BuffType.cpp"
 #include "MQ2CachedBuffType.cpp"
 #include "MQ2CharacterType.cpp"
@@ -275,21 +462,16 @@ bool CDataArray::GetElement(char* Index, MQTypeVar& Dest)
 #include "MQ2CorpseType.cpp"
 #include "MQ2CurrentZoneType.cpp"
 #include "MQ2DeityType.cpp"
-#include "MQ2DoubleType.cpp"
 #include "MQ2DynamicZoneType.cpp"
 #include "MQ2DZMemberType.cpp"
 #include "MQ2EverQuestType.cpp"
 #include "MQ2EvolvingItemType.cpp"
 #include "MQ2FellowshipMemberType.cpp"
 #include "MQ2FellowshipType.cpp"
-#include "MQ2FloatType.cpp"
 #include "MQ2FriendsType.cpp"
 #include "MQ2GroundType.cpp"
 #include "MQ2GroupMemberType.cpp"
 #include "MQ2GroupType.cpp"
-#include "MQ2HeadingType.cpp"
-#include "MQ2Int64Type.cpp"
-#include "MQ2IntType.cpp"
 #include "MQ2InvSlotType.cpp"
 #include "MQ2ItemFilterDataType.cpp"
 #include "MQ2ItemSpellType.cpp"
@@ -308,23 +490,16 @@ bool CDataArray::GetElement(char* Index, MQTypeVar& Dest)
 #include "MQ2RaceType.cpp"
 #include "MQ2RaidType.cpp"
 #include "MQ2RaidMemberType.cpp"
-#include "MQ2RangeType.cpp"
 #include "MQ2SkillType.cpp"
 #include "MQ2SolventType.cpp"
 #include "MQ2SpawnType.cpp"
 #include "MQ2SpellType.cpp"
-#include "MQ2StringType.cpp"
 #include "MQ2SwitchType.cpp"
 #include "MQ2TargetType.cpp"
 #include "MQ2TaskMemberType.cpp"
 #include "MQ2TaskObjectiveType.cpp"
 #include "MQ2TaskType.cpp"
-#include "MQ2TicksType.cpp"
 #include "MQ2TimerType.cpp"
-#include "MQ2TimeStampType.cpp"
-#include "MQ2TimeType.cpp"
-#include "MQ2Type.cpp"
-#include "MQ2TypeType.cpp"
 #include "MQ2WindowType.cpp"
 #include "MQ2WorldLocationType.cpp"
 #include "MQ2XTargetType.cpp"

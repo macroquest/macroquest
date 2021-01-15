@@ -267,36 +267,6 @@ bool dataZone(const char* szIndex, MQTypeVar& Ret)
 	return false;
 }
 
-bool dataHeading(const char* szIndex, MQTypeVar& Ret)
-{
-	if (!szIndex[0])
-		return false;
-
-	char szInput[256];
-	strcpy_s(szInput, szIndex);
-
-	if (char* pComma = strchr(szInput, ','))
-	{
-		*pComma = 0;
-		float Y = GetFloatFromString(szInput, 0);
-		*pComma = ',';
-		float X = GetFloatFromString(&pComma[1], 0);
-
-		Ret.Float = static_cast<float>(atan2f(static_cast<SPAWNINFO*>(pCharSpawn)->Y - Y,
-			X - static_cast<SPAWNINFO*>(pCharSpawn)->X) * 180.0f / PI + 90.0f);
-		if (Ret.Float < 0.0f)
-			Ret.Float += 360.0f;
-		else if (Ret.Float >= 360.0f)
-			Ret.Float -= 360.0f;
-		Ret.Type = pHeadingType;
-		return true;
-	}
-
-	Ret.Float = GetFloatFromString(szIndex, 0);
-	Ret.Type = pHeadingType;
-	return true;
-}
-
 bool dataGroup(const char* szIndex, MQTypeVar& Ret)
 {
 	Ret.DWord = 1;
@@ -401,18 +371,6 @@ bool dataCursor(const char* szIndex, MQTypeVar& Ret)
 	return false;
 }
 
-bool dataTime(const char* szIndex, MQTypeVar& Ret)
-{
-	time_t CurTime = { 0 };
-	time(&CurTime);
-	struct tm* pTime = (struct tm*)&DataTypeTemp[0];
-	ZeroMemory(pTime, sizeof(struct tm));
-	localtime_s(pTime, &CurTime);
-	Ret.Ptr = pTime;
-	Ret.Type = pTimeType;
-	return true;
-}
-
 bool dataGameTime(const char* szIndex, MQTypeVar& Ret)
 {
 	struct tm* pTime = (struct tm*)&DataTypeTemp[0];
@@ -428,13 +386,6 @@ bool dataGameTime(const char* szIndex, MQTypeVar& Ret)
 
 	Ret.Ptr = pTime;
 	Ret.Type = pTimeType;
-	return true;
-}
-
-bool dataRange(const char* szIndex, MQTypeVar& Ret)
-{
-	Ret.DWord = 1;
-	Ret.Type = pRangeType;
 	return true;
 }
 
