@@ -12,16 +12,6 @@
  * GNU General Public License for more details.
  */
 
-//		This plugin will provide fast item comparisons based strictly on the base
-//		armor status. It does NOT add in augs. This makes it bad for cultural vs
-//		traditional gear.
-//
-//		/iScore 			; shows basic status
-//		/iScore AC 10 		; scores AC as 10:1
-//		/iScore HP 1 		; scores HP as 1:1
-//		/iScore HeroicSTA 15; scores HeroicSTA at 15:1
-//
-
 #include <mq/Plugin.h>
 #include "resource.h"
 
@@ -57,10 +47,6 @@ struct ButtonInfo
 std::map<CButtonWnd*, ButtonInfo> ButtonMap;
 
 void Comment(SPAWNINFO* pChar, char* szLine);
-void DoGearScoreUserCommand(SPAWNINFO* pChar, char* szLine);
-
-template <unsigned int _Size>
-void AddGearScores(ItemClient* pSlot, ItemDefinition* pItem, char(&out)[_Size], char* br);
 
 struct DisplayItemStrings
 {
@@ -269,96 +255,6 @@ bool dataLastItem(const char* szName, MQTypeVar& Ret)
 	return true;
 }
 
-class ItemInfoManager : public libMozilla::ICallback, public CObservable, public IObserver
-{
-	virtual void onStatusChanged(eqlib::libMozilla::Window* wnd) override;
-	virtual void onURIChanged(eqlib::libMozilla::Window* wnd) override;
-	virtual void onProgressChanged(eqlib::libMozilla::Window* wnd) override;
-	virtual bool doValidateURI(eqlib::libMozilla::Window* wnd, const char* uri) override;
-
-public:
-	CHtmlWnd* htmlwnd = nullptr;
-
-	ItemInfoManager() = default;
-
-	~ItemInfoManager()
-	{
-		ItemInfoManager* im = &GetInstance();
-		if (im)
-		{
-			if (im->htmlwnd)
-			{
-				im->htmlwnd->SetClientCallbacks(nullptr);
-			}
-		}
-	};
-
-	static ItemInfoManager& GetInstance();
-	void Notify(CObservable* Src, const CNotification* const Notification) override;
-};
-
-ItemInfoManager& ItemInfoManager::GetInstance()
-{
-	static std::unique_ptr<ItemInfoManager> instance;
-	if (instance.get() == nullptr)
-	{
-		instance.reset(new ItemInfoManager);
-	}
-
-	return *instance;
-}
-
-// work in progress
-enum EHTMLNotification
-{
-	URISelected,
-	WindowClosed,
-};
-
-void ItemInfoManager::Notify(CObservable* Src, const CNotification* Notification)
-{
-	if (!Src || !Notification)
-		return;
-}
-
-void ItemInfoManager::onStatusChanged(eqlib::libMozilla::Window* wnd)
-{
-	if (const wchar_t* status = wnd->getStatus()) {
-		//WriteChatf("Status changed: %s", status);
-	}
-}
-
-void ItemInfoManager::onURIChanged(eqlib::libMozilla::Window* wnd)
-{
-	if (const char* uri = wnd->getURI())
-	{
-		//WriteChatf("URI changed: %s", uri);
-	}
-}
-
-void ItemInfoManager::onProgressChanged(eqlib::libMozilla::Window* wnd)
-{
-	bool bIsLoading;
-	float pct = wnd->getProgress(bIsLoading);
-	//WriteChatf("Progress %0.2f Loading is %s", pct, bIsLoading ? "TRUE":"FALSE");
-	//ghettofix for resize, i need to detect this better... another detour? gah... -eqmule
-	/*if (!bIsLoading) {
-		ItemInfoManager& manager = ItemInfoManager::GetInstance();
-		if (manager.htmlwnd) {
-			//int width = manager.htmlwnd->Location.right - manager.htmlwnd->Location.left;
-			//int height = manager.htmlwnd->Location.bottom - manager.htmlwnd->Location.top;
-			//((CXWnd*)manager.htmlwnd)->Resize(width+1, height+1);
-			//Beep(1000, 100);
-		}
-	}
-	Sleep(0);*/
-}
-
-bool ItemInfoManager::doValidateURI(eqlib::libMozilla::Window* wnd, const char* uri)
-{
-	return true;
-}
-
 // ***************************************************************************
 // Function:    ItemDisplayHook
 // Description: Our Item display hook
@@ -371,7 +267,7 @@ ItemClient* gpOldTooltipItem = nullptr;
 class CCompareTipWnd : public CSidlScreenWnd
 {
 public:
-	CCompareTipWnd() : CSidlScreenWnd(0, "CompareTipWnd", -1, 1, 0)
+	CCompareTipWnd() : CSidlScreenWnd(nullptr, "CompareTipWnd", -1, 1, nullptr)
 	{
 		CreateChildrenFromSidl();
 		SetEscapable(false);
@@ -562,7 +458,7 @@ public:
 
 		if (pCharInfo == nullptr) return;
 
-		SPELL* pSpell = GetSpellByID(SpellID);
+		EQ_Spell* pSpell = GetSpellByID(SpellID);
 		if (pSpell == nullptr)
 		{
 			return;
@@ -682,11 +578,11 @@ public:
 		for (int j = Warrior; j <= Berserker; j++)
 		{
 			// Ziggy - output will word wrap properly now
-			if (((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j) > 0 && ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j) <= MAX_PC_LEVEL)
+			if (pSpell->GetSpellLevelNeeded(j) > 0 && pSpell->GetSpellLevelNeeded(j) <= MAX_PC_LEVEL)
 			{
 				if (bUseableClasses) strcat_s(out, ", ");
 
-				sprintf_s(temp, "%s(%d)", GetClassDesc(j), ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j));
+				sprintf_s(temp, "%s(%d)", GetClassDesc(j), pSpell->GetSpellLevelNeeded(j));
 				strcat_s(out, temp);
 				bUseableClasses = true;
 			}
@@ -878,11 +774,11 @@ public:
 		for (int j = Warrior; j <= Berserker; j++)
 		{
 			// Ziggy - output will word wrap properly now
-			if (((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j) > 0 && ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j) <= MAX_PC_LEVEL)
+			if (pSpell->GetSpellLevelNeeded(j) > 0 && pSpell->GetSpellLevelNeeded(j) <= MAX_PC_LEVEL)
 			{
 				if (bUseableClasses) strcat_s(out, ", ");
 
-				sprintf_s(temp, "%s(%d)", GetClassDesc(j), ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j));
+				sprintf_s(temp, "%s(%d)", GetClassDesc(j), pSpell->GetSpellLevelNeeded(j));
 				strcat_s(out, temp);
 				bUseableClasses = true;
 			}
@@ -981,8 +877,7 @@ public:
 			strcat_s(out, temp);
 		}
 
-		// Dewey 2461 - user defined score 12-22-2012
-		AddGearScores(pThis->pItem.get(), Item, out, "<BR>");
+		// TODO: Add injection point for additional stats
 
 		if (item->IsStackable())
 		{
@@ -1206,6 +1101,15 @@ public:
 		}
 	}
 
+	void HandleLucyButton(const ItemPtr& pItem)
+	{
+		if (pItem)
+		{
+			std::string url = fmt::format("https://lucy.allakhazam.com/item.html?id={}", pItem->GetID());
+			ShellExecute(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+		}
+	}
+
 	int WndNotification_Trampoline(CXWnd*, uint32_t, void*);
 	int WndNotification_Detour(CXWnd* pWnd, uint32_t Message, void* pData)
 	{
@@ -1219,13 +1123,7 @@ public:
 				// open in lucy
 				if (buttonInfo.ID == 6)
 				{
-					if (ItemDefinition* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
-					{
-						std::string url = fmt::format(
-							"http://mwn12.com/proxy/browse.php?u=https://lucy.allakhazam.com/item.html?id={}", pItem->ItemNumber);
-						ShellExecute(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
-					}
-
+					HandleLucyButton(buttonInfo.ItemDisplayWnd->pItem);
 					return 0;
 				}
 			}
@@ -1534,35 +1432,7 @@ public:
 
 				case 6: // open in lucy
 				{
-					if (ItemDefinition* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
-					{
-						std::string url = "http://lucy.allakhazam.com/item.html?id=" + std::to_string(pItem->ItemNumber);
-
-						if (CHtmlWnd* ItemHtmlwnd = pCWebManager->CreateHtmlWnd(url.c_str(), pItem->Name, nullptr, true, pItem->Name))
-						{
-							ItemHtmlwnd->SetMinClientSize({ 10, 20 });
-							ItemHtmlwnd->SetMaximizable(true);
-							ItemHtmlwnd->SetWindowStyle(CWS_USEMYALPHA | CWS_RESIZEBORDER | CWS_MAXIMIZE | CWS_CLOSE | CWS_TITLE | CWS_MINIMIZE);
-							int oldwidth = ItemHtmlwnd->GetLocation().right - ItemHtmlwnd->GetLocation().left;
-							int oldheight = ItemHtmlwnd->GetLocation().bottom - ItemHtmlwnd->GetLocation().top;
-							int ourleftloc = ItemHtmlwnd->GetLocation().left;
-							int ourtoploc = ItemHtmlwnd->GetLocation().top;
-
-							// left top right bottom
-							ItemHtmlwnd->SetLocation({ ourleftloc,
-								ourtoploc,
-								ItemHtmlwnd->GetLocation().left + 759,
-								ItemHtmlwnd->GetLocation().top + 539 });
-
-							ItemInfoManager& manager = ItemInfoManager::GetInstance();
-							manager.htmlwnd = ItemHtmlwnd;
-							int width = manager.htmlwnd->GetLocation().right - manager.htmlwnd->GetLocation().left;
-							int height = manager.htmlwnd->GetLocation().bottom - manager.htmlwnd->GetLocation().top;
-
-							ItemHtmlwnd->Resize(width + 1, height + 1);
-							ItemHtmlwnd->SetClientCallbacks(&manager);
-						}
-					}
+					HandleLucyButton(buttonInfo.ItemDisplayWnd->pItem);
 					return 0;
 				}
 
@@ -2645,7 +2515,7 @@ void RemoveAug(SPAWNINFO* pChar, char* szLine)
 
 		if (index >= 0 && index < pItemDisplayManager->pWindows.GetLength())
 		{
-			auto itemDis = (CItemDisplayWnd*)pItemDisplayManager->pWindows[index];
+			auto itemDis = pItemDisplayManager->GetWindow(index);
 
 			itemDis->SetItem(pTargetItem, 0);
 
@@ -2744,630 +2614,6 @@ void Comment(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-char  ReportChannel[MAX_STRING];
-char  ReportBestStr[MAX_STRING];
-char  ReportBestSlot[MAX_STRING];
-char  ReportBestName[MAX_STRING];
-int   ClickGroup = 0;
-int   ClickGuild = 0;
-int   ClickRaid = 0;
-int   ClickAny = 0;
-int   IniLoaded = 0;
-int   BestSlot = 0;
-float BestScore = 0;
-float CurrScore = 0;
-int   CurrSlot = 0;
-
-struct trATR
-{
-	char* Name;
-	float Weight;
-	float Val;
-	float Best;
-};
-
-int      AttribMax = 26;
-trATR    AttribList[] = {
-/*00*/ { "AC",            0, 0 },
-/*01*/ { "HP",            0, 0 },
-/*02*/ { "HPReg",         0, 0 },
-/*03*/ { "Mana",          0, 0 },
-/*04*/ { "ManaReg",       0, 0 },
-/*05*/ { "hSTR",          0, 0 },
-/*06*/ { "hSTA",          0, 0 },
-/*07*/ { "hAGI",          0, 0 },
-/*08*/ { "hDEX",          0, 0 },
-/*09*/ { "hINT",          0, 0 },
-/*10*/ { "hWIS",          0, 0 },
-/*11*/ { "hCHR",          0, 0 },
-/*12*/ { "Heal",          0, 0 },
-/*13*/ { "Nuke",          0, 0 },
-/*14*/ { "Clrv",          0, 0 },
-/*15*/ { "Attack",        0, 0 },
-/*16*/ { "Accuracy",      0, 0 },
-/*17*/ { "CE",            0, 0 },
-/*18*/ { "StrikeThrough", 0, 0 },
-/*19*/ { "Avoidance",     0, 0 },
-/*20*/ { "Shielding",     0, 0 },
-/*21*/ { "DoTShielding",  0, 0 },
-/*22*/ { "SpellShield",   0, 0 },
-/*23*/ { "Stun",          0, 0 },
-/*24*/ { "DS",            0, 0 },
-/*25*/ { "Haste",         0, 0 },
-/*26*/ { "Ratio",         0, 0 },
-};
-
-struct tSLOTINFO
-{
-	uint32_t SlotMask;
-	char*    SlotName;
-};
-
-tSLOTINFO SlotInfo[] = {
-/*00 | 0x000001*/ { 1,         "Charm" },
-/*01 | 0x000002*/ { 2,         "Left Ear" },
-/*02 | 0x000004*/ { 4,         "Head" },
-/*03 | 0x000008*/ { 8,         "Face" },
-/*04 | 0x000010*/ { 16,        "Right Ear" },
-/*05 | 0x000020*/ { 32,        "Neck" },
-/*06 | 0x000040*/ { 64,        "Shoulders" },
-/*07 | 0x000080*/ { 128,       "Arms" },
-/*08 | 0x000100*/ { 256,       "Back" },
-/*09 | 0x000200*/ { 512,       "Left Wrist" },
-/*10 | 0x000401*/ { 1024,      "Right Wrist" },
-/*11 | 0x000800*/ { 2048,      "Range" },
-/*12 | 0x001000*/ { 4096,      "Hands" },
-/*13 | 0x002000*/ { 8192,      "Primary" },
-/*14 | 0x004000*/ { 16384,     "Secondary" },
-/*15 | 0x008000*/ { 32768,     "Left Finger" },
-/*16 | 0x010000*/ { 65536,     "Right Finger" },
-/*17 | 0x020000*/ { 131072,    "Chest" },
-/*18 | 0x040000*/ { 262144,    "Legs" },
-/*19 | 0x080000*/ { 524288,    "Feet" },
-/*20 | 0x100000*/ { 1048576,   "Waist" },
-/*21 | 0x200000*/ { 2097152,   "Power Source" },
-/*22 | 0x400000*/ { 4194304,   "Ammo" },
-/*23 | 0x800000*/ { 0,         nullptr }
-};
-
-// ***************************************************************************
-//	This section is methods to interact with the AttributeList
-// ***************************************************************************
-
-void LoadAttribListWeights(char* Section)
-{
-	char szVal[MAX_STRING];
-
-	for (int i = 0; i <= AttribMax; i++)
-	{
-		GetPrivateProfileString(Section, AttribList[i].Name, "0", szVal, 256, INIFileName);
-		AttribList[i].Weight = GetFloatFromString(szVal, 0);
-	}
-}
-
-void SaveAttribListWeights(char* Section)
-{
-	char szVal[MAX_STRING];
-
-	for (int i = 0; i <= AttribMax; i++)
-	{
-		sprintf_s(szVal, "%0.2f", AttribList[i].Weight);
-		WritePrivateProfileString(Section, AttribList[i].Name, szVal, INIFileName);
-	}
-}
-
-int SetAttribListWeight(char* Key, char* Val)
-{
-	for (int i = 0; i <= AttribMax; i++)
-	{
-		if (_stricmp(AttribList[i].Name, Key) == 0)
-		{
-			WriteChatf("MQ2GearScore::Setting %s to %s", AttribList[i].Name, Val);
-			AttribList[i].Weight = GetFloatFromString(Val, 0);
-			return 1;
-		}
-	}
-	return 0;
-}
-
-void ClearAttribListWeights()
-{
-	for (int i = 0; i <= AttribMax; i++)
-		AttribList[i].Weight = 0;
-}
-
-void ClearAttribListScores()
-{
-	BestSlot = 0;
-	BestScore = 0;
-	for (int i = 0; i <= AttribMax; i++)
-	{
-		AttribList[i].Val = 0;
-		AttribList[i].Best = 0;
-	}
-}
-
-void ClearAttribListVal()
-{
-	for (int i = 0; i <= AttribMax; i++)
-	{
-		AttribList[i].Val = 0;
-	}
-}
-
-void LoadAttribListVal(ItemDefinition* pItem)
-{
-	AttribList[0].Val = static_cast<float>(pItem->AC);
-	AttribList[1].Val = static_cast<float>(pItem->HP);
-	AttribList[2].Val = static_cast<float>(pItem->HPRegen);
-	AttribList[3].Val = static_cast<float>(pItem->Mana);
-	AttribList[4].Val = static_cast<float>(pItem->ManaRegen);
-	AttribList[5].Val = static_cast<float>(pItem->HeroicSTR);
-	AttribList[6].Val = static_cast<float>(pItem->HeroicSTA);
-	AttribList[7].Val = static_cast<float>(pItem->HeroicAGI);
-	AttribList[8].Val = static_cast<float>(pItem->HeroicDEX);
-	AttribList[9].Val = static_cast<float>(pItem->HeroicINT);
-	AttribList[10].Val = static_cast<float>(pItem->HeroicWIS);
-	AttribList[11].Val = static_cast<float>(pItem->HeroicCHA);
-	AttribList[12].Val = static_cast<float>(pItem->HealAmount);
-	AttribList[13].Val = static_cast<float>(pItem->SpellDamage);
-	AttribList[14].Val = static_cast<float>(pItem->Clairvoyance);
-	AttribList[15].Val = static_cast<float>(pItem->Attack);
-	AttribList[16].Val = 0; // FIX THIS static_cast<float>(pItem->Accuracy);
-	AttribList[17].Val = 0; // FIX THIS static_cast<float>(pItem->CombatEffects);
-	AttribList[18].Val = 0; // FIX THIS static_cast<float>(pItem->StrikeThrough);
-	AttribList[19].Val = 0; // FIX THIS static_cast<float>(pItem->Avoidance);
-	AttribList[20].Val = 0; // FIX THIS static_cast<float>(pItem->Shielding);
-	AttribList[21].Val = 0; // FIX THIS static_cast<float>(pItem->DoTShielding);
-	AttribList[22].Val = 0; // FIX THIS static_cast<float>(pItem->SpellShield);
-	AttribList[23].Val = 0; // FIX THIS static_cast<float>(pItem->StunResist);
-	AttribList[24].Val = 0; // FIX THIS static_cast<float>(pItem->DamageShieldMitigation);
-	AttribList[25].Val = static_cast<float>(pItem->Haste);
-	AttribList[26].Val = static_cast<float>(pItem->Damage) / (pItem->Delay == 0 ? 1.0f : static_cast<float>(pItem->Delay));
-}
-#undef cvtfloat
-
-float CalcItemGearScore(ItemDefinition* pItem)
-{
-	float score = 0;
-	LoadAttribListVal(pItem);
-
-	for (int i = 0; i <= AttribMax; i++)
-	{
-		score = score + AttribList[i].Val * AttribList[i].Weight;
-	}
-	return score;
-}
-
-void CheckForBest(float ItemScore, int ItemSlot)
-{
-	if (ItemScore < BestScore)
-	{
-		for (int i = 0; i <= AttribMax; i++)
-		{
-			AttribList[i].Best = AttribList[i].Val;
-		}
-		BestScore = ItemScore;
-		BestSlot = ItemSlot;
-	}
-}
-
-// ***************************************************************************
-//	This section is to set, save, and report global profile variables.
-// ***************************************************************************
-
-void ClearProfile(int Echo)
-{
-	sprintf_s(ReportChannel, "None");
-	ClickGroup = 0;
-	ClickGuild = 0;
-	ClickRaid = 0;
-	ClickAny = 0;
-	ClearAttribListWeights();
-	if (Echo) WriteChatf("MQ2ItemDisplay::plugin variables cleared but not saved.");
-}
-
-void ReadProfile(char* pName, int Echo)
-{
-	if (Echo) WriteChatf("MQ2ItemDisplay::loading settings for [%s]", pName);
-	GetPrivateProfileString(pName, "Report", "None", ReportChannel, 256, INIFileName);
-	ClickGroup = GetPrivateProfileInt(pName, "ClickGroup", 0, INIFileName);
-	ClickGuild = GetPrivateProfileInt(pName, "ClickGuild", 0, INIFileName);
-	ClickRaid = GetPrivateProfileInt(pName, "ClickRaid", 0, INIFileName);
-	ClickAny = GetPrivateProfileInt(pName, "ClickAny", 0, INIFileName);
-	LoadAttribListWeights(pName);
-	IniLoaded = 1;
-}
-
-void WriteProfile(char* pName, int Echo)
-{
-	char szKey[MAX_STRING];
-
-	WritePrivateProfileString(pName, "Report", ReportChannel, INIFileName);
-	sprintf_s(szKey, "%d", ClickGroup);	WritePrivateProfileString(pName, "ClickGroup", szKey, INIFileName);
-	sprintf_s(szKey, "%d", ClickGuild);	WritePrivateProfileString(pName, "ClickGuild", szKey, INIFileName);
-	sprintf_s(szKey, "%d", ClickRaid);	WritePrivateProfileString(pName, "ClickRaid", szKey, INIFileName);
-	sprintf_s(szKey, "%d", ClickAny);	WritePrivateProfileString(pName, "ClickAny", szKey, INIFileName);
-	SaveAttribListWeights(pName);
-
-	if (Echo) WriteChatf("MQ2ItemDisplay::saving settings for [%s]", pName);
-}
-
-void EchoProfile(int reporting, int clicking, int weights)
-{
-	if (reporting)
-	{
-		WriteChatf("MQ2GearScore::Report to [ %s ]", ReportChannel);
-	}
-
-	if (clicking)
-	{
-		WriteChatf("MQ2GearScore::ClickGroup = %d", ClickGroup);
-		WriteChatf("MQ2GearScore::ClickGuild = %d", ClickGuild);
-		WriteChatf("MQ2GearScore::ClickRaid  = %d", ClickRaid);
-		WriteChatf("MQ2GearScore::ClickAny   = %d", ClickAny);
-	}
-
-	if (weights)
-	{
-		for (int i = AttribMax; i >= 0; i--)
-		{
-			WriteChatf("MQ2ItemDisplay::%s = %0.0f", AttribList[i].Name, AttribList[i].Weight);
-		}
-	}
-}
-
-void EchoHelp(int Echo)
-{
-	WriteChatf("MQ2ItemDisplay::Commands :");
-	WriteChatf("  /iScore clear -- resets all variables");
-	WriteChatf("  /iScore click [Group|Guild|Raid|Any] -- auto click links for these sources");
-	WriteChatf("  /iScore cursor -- evaluate item on cursor");
-	WriteChatf("  /iScore report [Channel] -- send upgrade using this command ex: /bc ");
-	WriteChatf("  /iScore load -- load settings from disk");
-	WriteChatf("  /iScore save -- save current settings to disk");
-	WriteChatf("  /iScore [attribute] [weight] -- sets an item weight");
-}
-
-void EchoCommands(int Echo)
-{
-	EchoHelp(TRUE);
-	EchoProfile(FALSE, TRUE, FALSE);
-	EchoProfile(TRUE, FALSE, TRUE);
-}
-
-// ***************************************************************************
-//	This section is for each of the user commands.
-// ***************************************************************************
-
-void DoScoreForCursor();
-
-void SetReportChannel(char* pName, char* Val)
-{
-	strcpy_s(ReportChannel, Val);
-	EchoProfile(TRUE, FALSE, FALSE);
-}
-
-void SetClickMode(char* pName, char* Val)
-{
-	if (_stricmp(Val, "Group") == 0) ClickGroup = !ClickGroup;
-	if (_stricmp(Val, "Guild") == 0) ClickGuild = !ClickGuild;
-	if (_stricmp(Val, "Raid") == 0) ClickRaid = !ClickRaid;
-	if (_stricmp(Val, "Any") == 0) ClickAny = !ClickAny;
-	EchoProfile(FALSE, TRUE, FALSE);
-}
-
-// ***************************************************************************
-//	This is the actual entry point for user commands. Parse and divy up the work.
-// ***************************************************************************
-
-void DoGearScoreUserCommand(PSPAWNINFO pChar, char* szLine)
-{
-	char Key[MAX_STRING] = { 0 };
-	char Val[MAX_STRING] = { 0 };
-	char* pName = GetCharInfo()->Name;
-	if (!pName) return;
-	GetArg(Key, szLine, 1);
-	GetArg(Val, szLine, 2);
-
-	if (_stricmp(Key, "save") == 0) { WriteProfile(pName, TRUE); return; }
-	if (_stricmp(Key, "load") == 0) { ReadProfile(pName, TRUE);	return; }
-	if (_stricmp(Key, "report") == 0) { SetReportChannel(pName, Val); return; }
-	if (_stricmp(Key, "click") == 0) { SetClickMode(pName, Val); return; }
-	if (_stricmp(Key, "cursor") == 0) { DoScoreForCursor(); return; }
-	if (_stricmp(Key, "clear") == 0) { ClearProfile(TRUE); return; }
-	if (_stricmp(Key, "help") == 0) { EchoHelp(TRUE); return; }
-	if (Key[0] == 0) { EchoCommands(TRUE); return; }
-	SetAttribListWeight(Key, Val);
-}
-
-void DoScoreForCursor()
-{
-	PcProfile* pProfile = GetPcProfile();
-	if (!pProfile) return;
-
-	if (ItemPtr pItem = pProfile->GetInventorySlot(InvSlot_Cursor))
-	{
-		ItemDefinition* pItemDef = pItem->GetItemDefinition();
-
-		char Temp[MAX_STRING];
-		AddGearScores(pItem.get(), pItemDef, Temp, "\n");
-		WriteChatf("MQ2ItemDisplay::Cursor item %s", pItemDef->Name);
-		WriteChatf("%s", Temp);
-	}
-}
-
-class MQ2GearScoreType : public MQ2Type
-{
-public:
-	enum GearScoreMembers
-	{
-		Upgrade = 1,
-		UpgradeName = 2,
-		UpgradeSlot = 3,
-	};
-
-	MQ2GearScoreType() : MQ2Type("GearScore")
-	{
-		TypeMember(Upgrade);
-		TypeMember(UpgradeName);
-		TypeMember(UpgradeSlot);
-	}
-
-	bool MQ2GearScoreType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
-	{
-		MQTypeMember* pMember = MQ2GearScoreType::FindMember(Member);
-
-		if (!pMember)
-			return false;
-
-		char* pName = GetCharInfo()->Name;
-		if (!pName)
-			return false;
-
-		switch (static_cast<GearScoreMembers>(pMember->ID))
-		{
-		case Upgrade:
-			Dest.Type = pStringType;
-			Dest.Ptr = ReportBestStr;
-			return true;
-
-		case UpgradeName:
-			Dest.Type = pStringType;
-			Dest.Ptr = ReportBestName;
-			return true;
-
-		case UpgradeSlot:
-			Dest.Type = pStringType;
-			Dest.Ptr = ReportBestSlot;
-			return true;
-		}
-
-		return false;
-	}
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		strcpy_s(Destination, MAX_STRING, "TRUE");
-		return true;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, const char* Source) override
-	{
-		return false;
-	}
-};
-MQ2GearScoreType* pGearScoreType = nullptr;
-
-bool dataGearScore(const char* szName, MQTypeVar& Dest)
-{
-	Dest.DWord = 1;
-	Dest.Type = pGearScoreType;
-	return true;
-}
-
-template <unsigned int _Size>
-void AddGearScore_CheckAugSlot(ItemDefinition* pItem, float score, int SlotNum, char* SlotName, ItemClient* pInvContent, ItemDefinition* pInvItem, DWORD AugType, DWORD AugSlot, char(&out)[_Size], char* br)
-{
-	if (!AugType) return; // This worn item does not have an aug slot for [n]
-	DWORD mask = (1 << (AugType - 1));
-	if ((mask & pItem->AugType) == 0) return; // Calculate a bitmask and compare to the aug we have, does it fit?
-
-	char temp[MAX_STRING];
-	ItemDefinition* pAug = NULL;
-	if (ItemPtr pAugItem = pInvContent->GetHeldItem(AugSlot))
-	{
-		pAug = pAugItem->GetItemDefinition();
-	}
-
-	if (!pAug)
-	{
-		ClearAttribListVal();
-		CheckForBest(0, SlotNum);
-		sprintf_s(temp, "%s = empty : UPGRADE%s", SlotName, br);
-		strcat_s(out, temp);
-		return;
-	}
-
-	if (pItem->ItemNumber == pInvItem->ItemNumber)
-		return;
-
-	float s2 = CalcItemGearScore(pAug);
-	CheckForBest(s2, SlotNum);
-
-	sprintf_s(temp, "%s = %s : %6.0f %s %s", SlotName, pAug->Name, s2, (s2 >= score ? "Keep " : "UPGRADE"), br);
-	strcat_s(out, temp);
-}
-
-template <unsigned int _Size>
-void AddGearScores_CheckAugs(ItemClient* pSlot, ItemDefinition* pItem, char(&out)[_Size], char* br)
-{
-	float score = CalcItemGearScore(pItem);
-	if (!score) return;
-
-	char temp[MAX_STRING];
-
-	sprintf_s(temp, "Base Aug Score : %6.0f%s", score, br);
-	strcat_s(out, temp);
-
-	if (PcProfile* pProfile = GetPcProfile())
-	{
-		float bestVal = score;
-
-		// Loop over all the worn items
-		for (int i = InvSlot_FirstWornItem; i <= InvSlot_LastWornItem; i++)
-		{
-			uint32_t mask = SlotInfo[i].SlotMask;
-			char* name = SlotInfo[i].SlotName;
-
-			ItemDefinition* pInvItem = nullptr;
-			ItemClient* pInvContent = pProfile->GetInventorySlot(i).get();
-			if (pInvContent)
-				pInvItem = pInvContent->GetItemDefinition();
-
-			if (pInvItem && (pItem->EquipSlots & mask) == mask)
-			{
-				AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[0].Type, 0, out, br);
-				AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[1].Type, 1, out, br);
-				AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[2].Type, 2, out, br);
-				AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[3].Type, 3, out, br);
-				AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[4].Type, 4, out, br);
-				AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[5].Type, 5, out, br);
-			}
-		}
-	}
-}
-
-// determine if you already have an item
-bool DoIHave(ItemDefinition* Item)
-{
-	int ID = Item->ItemNumber;
-
-	return FindItemByID(ID) || FindBankItemByID(ID);
-}
-
-void FormatBestStr(ItemDefinition* pItem)
-{
-	ReportBestStr[0] = 0;
-	ReportBestSlot[0] = 0;
-	ReportBestName[0] = 0;
-	if (BestScore < CurrScore && BestSlot >= 0 && BestSlot <= 23) // We found an item to replace
-	{
-		char szVerb[MAX_STRING];
-		char* pSlotName = SlotInfo[BestSlot].SlotName;
-		float v;
-		if (BestScore > 0)
-			v = 100.0f * (CurrScore / BestScore) - 100.0f;
-		else
-			v = 100.0f;
-		if (CurrSlot < BAG_SLOT_START) return;
-
-		if (CurrSlot < 65500)
-			sprintf_s(szVerb, "WEAR [ %s ] As ", pItem->Name);
-		else
-			sprintf_s(szVerb, "LOOT [ %s ] For ", pItem->Name);
-
-		if (pItem->Lore && DoIHave(pItem))
-			sprintf_s(szVerb, "WEAR [ %s ] As ", pItem->Name);
-
-		sprintf_s(ReportBestStr, "%s %s = %+6.1f%%", szVerb, pSlotName, v);
-
-		strcpy_s(ReportBestSlot, pSlotName);
-		strcpy_s(ReportBestName, pItem->Name);
-
-		CalcItemGearScore(pItem);
-
-		char szTmp[MAX_STRING];
-		strcat_s(ReportBestStr, " =");
-
-		for (int i = 0; i <= AttribMax; i++)
-		{
-			if (AttribList[i].Weight != 0 && (AttribList[i].Val != AttribList[i].Best))
-			{
-				sprintf_s(szTmp, " %s %+0.0f", AttribList[i].Name, AttribList[i].Val - AttribList[i].Best);
-				strcat_s(ReportBestStr, szTmp);
-			}
-		}
-	}
-}
-
-template <unsigned int _Size>
-void AddGearScores_CheckItems(ItemClient* pSlot, ItemDefinition* pItem, char(&out)[_Size], char* br)
-{
-	char temp[MAX_STRING];
-	sprintf_s(temp, "This Item Score : %6.0f%s", CurrScore, br);
-	strcat_s(out, temp);
-
-	if (PcProfile* pProfile = GetPcProfile())
-	{
-		for (int i = InvSlot_FirstWornItem; i <= InvSlot_LastWornItem; i++)
-		{
-			uint32_t mask = SlotInfo[i].SlotMask;
-			if ((pItem->EquipSlots & mask) == mask)
-			{
-				float score = 0;
-				ClearAttribListVal();
-
-				if (ItemPtr pInvSlot = pProfile->GetInventorySlot(i))
-				{
-					ItemDefinition* pItemInfo = pInvSlot->GetItemDefinition();
-					score = CalcItemGearScore(pItemInfo);
-					if (pItemInfo && pItemInfo->ItemNumber != pItem->ItemNumber)
-					{
-						sprintf_s(temp, "Worn Item Score : %6.0f (%s%s) %s", score, (score - CurrScore > 0 ? "Keep " : "UPGRADE for "), SlotInfo[i].SlotName, br);
-						strcat_s(out, temp);
-					}
-				}
-				CheckForBest(score, i);
-			}
-		}
-	}
-}
-
-template <unsigned int _Size>
-void AddGearScores(ItemClient* pSlot, ItemDefinition* pItem, char(&out)[_Size], char* br)
-{
-	static ULONGLONG lastTick = 0;
-	ReportBestStr[0] = 0;
-	ReportBestSlot[0] = 0;
-	ReportBestName[0] = 0;
-	if (CanIUseThisItem(pItem) < 1)
-		return;
-
-	ClearAttribListScores();
-	CurrScore = CalcItemGearScore(pItem);
-	if (CurrScore == 0) return;
-
-	CurrSlot = pSlot->GetItemLocation().GetTopSlot();
-	BestScore = CurrScore;
-	BestSlot = 0;
-	if (pItem->ItemType == ItemClass_Augmentation)
-		AddGearScores_CheckAugs(pSlot, pItem, out, br);
-	else
-		AddGearScores_CheckItems(pSlot, pItem, out, br);
-
-	FormatBestStr(pItem);
-	if (BestScore < CurrScore && ReportBestStr[0] != 0)
-	{
-		strcat_s(out, ReportBestStr);
-		strcat_s(out, br);
-	}
-
-	// Trap the 3x call back stuff.
-	if (MQGetTickCount64() - lastTick > 1000 && ReportBestStr[0] != 0 && ReportChannel[0] == '/')
-	{
-		char szCmd[MAX_STRING];
-		lastTick = MQGetTickCount64();
-		sprintf_s(szCmd, "%s %s", ReportChannel, ReportBestStr);
-		EzCommand(szCmd);
-	}
-}
-
 void DestroyCompareTipWnd()
 {
 	if (pCompareTipWnd)
@@ -3412,7 +2658,6 @@ void CreateCompareTipWnd()
 // Called once, when the plugin is to initialize
 PLUGIN_API void InitializePlugin()
 {
-	pGearScoreType = new MQ2GearScoreType;
 	gLootButton = 1 == GetPrivateProfileInt("Settings", "LootButton", 1, INIFileName);
 	gLucyButton = 1 == GetPrivateProfileInt("Settings", "LucyButton", 1, INIFileName);
 	gCompareTip = 1 == GetPrivateProfileInt("Settings", "CompareTip", 0, INIFileName);
@@ -3428,12 +2673,9 @@ PLUGIN_API void InitializePlugin()
 	AddCommand("/insertaug", InsertAug);
 	AddCommand("/removeaug", RemoveAug);
 	AddCommand("/inote", Comment);
-	AddCommand("/iScore", DoGearScoreUserCommand);
-	AddCommand("/GearScore", DoGearScoreUserCommand);
 
 	pDisplayItemType = new MQ2DisplayItemType;
 	AddMQ2Data("DisplayItem", dataLastItem);
-	AddMQ2Data("GearScore", dataGearScore);
 
 	if (!IsXMLFilePresent(TipWndXML))
 	{
@@ -3483,15 +2725,8 @@ PLUGIN_API void InitializePlugin()
 
 	if (gGameState == GAMESTATE_INGAME)
 	{
-		ReadProfile(GetCharInfo()->Name, FALSE);
 		CreateCompareTipWnd();
 	}
-}
-
-PLUGIN_API void SetGameState(DWORD GameState)
-{
-	if (GameState == GAMESTATE_INGAME && IniLoaded == 0)
-		ReadProfile(GetCharInfo()->Name, FALSE);
 }
 
 // Called once, when the plugin is to shutdown
@@ -3512,19 +2747,13 @@ PLUGIN_API void ShutdownPlugin()
 	}
 	ButtonMap.clear();
 
-	delete pGearScoreType;
-	pGearScoreType = nullptr;
-
 	RemoveMQ2Data("DisplayItem");
-	RemoveMQ2Data("GearScore");
 	RemoveCommand("/inote");
-	RemoveCommand("/iScore");
-	RemoveCommand("/GearScore");
 	RemoveCommand("/addlootfilter");
 	RemoveCommand("/convertitem");
 	RemoveCommand("/itemdisplay");
-	RemoveMQ2Data("/insertaug");
-	RemoveMQ2Data("/removeaug");
+	RemoveCommand("/insertaug");
+	RemoveCommand("/removeaug");
 
 	delete pDisplayItemType;
 	DestroyCompareTipWnd();
@@ -3554,41 +2783,6 @@ PLUGIN_API void OnReloadUI()
 		bDisabledComparetip = false;
 		CreateCompareTipWnd();
 	}
-}
-
-PLUGIN_API DWORD OnIncomingChat(char* Line, DWORD Color)
-{
-	// TODO: Get rid of all these dynamic 2k buffers
-	if (ClickGroup || ClickGuild || ClickRaid || ClickAny)
-	{
-		char* szStart = new char[MAX_STRING];
-		sprintf_s(szStart, MAX_STRING, "%c%c", 0x12, 0x30);
-		char* p = strstr(Line, szStart);
-		delete[] szStart;
-		if (!p)
-		{
-			return 0;
-		}
-		int doLink = 0;
-
-		if (ClickAny) doLink = 1;
-		if (!doLink && ClickGroup && (strstr(Line, "tells the group") || strstr(Line, "tell your party"))) doLink = 1;
-		if (!doLink && ClickGuild && (strstr(Line, "tells the guild") || strstr(Line, "to your guild"))) doLink = 1;
-		if (!doLink && ClickRaid && (strstr(Line, "tells the raid") || strstr(Line, "tell your raid"))) doLink = 1;
-
-		if (doLink && p && strlen(p) > LINK_LEN + 2)
-		{
-			char* szText = new char[MAX_STRING];
-			memset(szText, 0, 100);
-			strncpy_s(szText, MAX_STRING, p + 2, LINK_LEN);
-			char* szCommand = new char[MAX_STRING];
-			sprintf_s(szCommand, MAX_STRING, "/notify ChatWindow CW_ChatOutput link %s", szText);
-			delete[] szText;
-			DoCommand(((SPAWNINFO*)pLocalPlayer), szCommand);
-			delete[] szCommand;
-		}
-	}
-	return 0;
 }
 
 PLUGIN_API void OnPulse()
