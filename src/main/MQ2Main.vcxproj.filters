@@ -155,9 +155,6 @@
     <ClCompile Include="datatypes\MQ2BandolierType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
-    <ClCompile Include="datatypes\MQ2BandolierItemType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
     <ClCompile Include="datatypes\MQ2AuraType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
@@ -191,34 +188,19 @@
     <ClCompile Include="datatypes\MQ2TaskType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
-    <ClCompile Include="datatypes\MQ2TaskMemberType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
-    <ClCompile Include="datatypes\MQ2TaskObjectiveType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
     <ClCompile Include="datatypes\MQ2TargetType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2FriendsType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
-    <ClCompile Include="datatypes\MQ2FellowshipMemberType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
     <ClCompile Include="datatypes\MQ2FellowshipType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
-    <ClCompile Include="datatypes\MQ2DZMemberType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2DynamicZoneType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2EvolvingItemType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
-    <ClCompile Include="datatypes\MQ2GroupMemberType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2GroupType.cpp">
@@ -363,9 +345,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2RaidType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
-    <ClCompile Include="datatypes\MQ2RaidMemberType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2BasicTypes.cpp">
