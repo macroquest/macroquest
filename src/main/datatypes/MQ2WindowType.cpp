@@ -19,7 +19,7 @@ namespace mq::datatypes {
 
 enum class WindowMembers
 {
-	Open,
+	Open = 1,
 	Child,
 	VScrollMax,
 	VScrollPos,
@@ -60,7 +60,7 @@ enum class WindowMembers
 
 enum class WindowMethods
 {
-	LeftMouseDown,
+	LeftMouseDown = 1,
 	LeftMouseUp,
 	LeftMouseHeld,
 	LeftMouseHeldUp,

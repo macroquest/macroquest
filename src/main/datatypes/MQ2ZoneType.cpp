@@ -20,10 +20,10 @@ namespace mq::datatypes {
 enum class ZoneMembers
 {
 	Name = 1,
-	ShortName = 2,
-	ID = 3,
-	Address = 4,
-	ZoneFlags = 5,
+	ShortName,
+	ID,
+	Address,
+	ZoneFlags,
 };
 
 MQ2ZoneType::MQ2ZoneType() : MQ2Type("zone")

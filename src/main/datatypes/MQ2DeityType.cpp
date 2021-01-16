@@ -15,8 +15,21 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class DeityMembers
+{
+	Name = 1,
+	Team,
+	ID,
+};
+
+MQ2DeityType::MQ2DeityType() : MQ2Type("Deity")
+{
+	ScopedTypeMember(DeityMembers, Name);
+	ScopedTypeMember(DeityMembers, Team);
+	ScopedTypeMember(DeityMembers, ID);
+}
 
 bool MQ2DeityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -26,18 +39,18 @@ bool MQ2DeityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	switch (static_cast<DeityMembers>(pMember->ID))
 	{
-	case ID:
+	case DeityMembers::ID:
 		Dest.Ptr = VarPtr.Ptr;
 		Dest.Type = pIntType;
 		return true;
 
-	case Name:
+	case DeityMembers::Name:
 		strcpy_s(DataTypeTemp, pEverQuest->GetDeityDesc(VarPtr.DWord));
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case Team:
+	case DeityMembers::Team:
 		strcpy_s(DataTypeTemp, szDeityTeam[GetDeityTeamByID(VarPtr.DWord)]);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
@@ -49,3 +62,23 @@ bool MQ2DeityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	return false;
 }
 
+bool MQ2DeityType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	char* pDesc = pEverQuest->GetDeityDesc(VarPtr.DWord);
+	strcpy_s(Destination, MAX_STRING, pDesc);
+	return true;
+}
+
+bool MQ2DeityType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	VarPtr.DWord = Source.DWord;
+	return true;
+}
+
+bool MQ2DeityType::FromString(MQVarPtr& VarPtr, const char* Source)
+{
+	VarPtr.DWord = GetIntFromString(Source, 0);
+	return true;
+}
+
+} // namespace mq::datatypes

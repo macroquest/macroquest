@@ -15,12 +15,11 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
 
 enum class MacroQuestMembers
 {
-	Error,
+	Error = 1,
 	SyntaxError,
 	MQ2DataError,
 	BuildDate,
@@ -276,3 +275,4 @@ bool MQ2MacroQuestType::dataMacroQuest(const char* szIndex, MQTypeVar& Ret)
 	return true;
 }
 
+} // namespace mq::datatypes

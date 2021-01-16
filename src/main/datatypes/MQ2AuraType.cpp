@@ -15,8 +15,30 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class AuraTypeMembers
+{
+	ID = 1,
+	Name,
+	SpawnID,
+	Find,
+};
+
+enum class AuraTypeMethods
+{
+	Remove = 1,
+};
+
+MQ2AuraType::MQ2AuraType() : MQ2Type("auratype")
+{
+	ScopedTypeMember(AuraTypeMembers, ID);
+	ScopedTypeMember(AuraTypeMembers, Name);
+	ScopedTypeMember(AuraTypeMembers, SpawnID);
+	ScopedTypeMember(AuraTypeMembers, Find);
+
+	ScopedTypeMethod(AuraTypeMethods, Remove);
+}
 
 bool MQ2AuraType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -34,12 +56,12 @@ bool MQ2AuraType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	{
 		switch (static_cast<AuraTypeMembers>(pMember->ID))
 		{
-		case ID:
+		case AuraTypeMembers::ID:
 			Dest.DWord = index + 1;
 			Dest.Type = pIntType;
 			return true;
 
-		case Find: {
+		case AuraTypeMembers::Find: {
 			Dest.DWord = 0;
 			Dest.Type = pIntType;
 			if (!Index[0])
@@ -55,13 +77,13 @@ bool MQ2AuraType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 			return false;
 		}
 
-		case Name:
+		case AuraTypeMembers::Name:
 			strcpy_s(DataTypeTemp, pAura->Name);
 			Dest.Ptr = DataTypeTemp;
 			Dest.Type = pStringType;
 			return true;
 
-		case SpawnID:
+		case AuraTypeMembers::SpawnID:
 			Dest.DWord = pAura->SpawnID;
 			Dest.Type = pIntType;
 			return true;
@@ -80,7 +102,7 @@ bool MQ2AuraType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	{
 		switch (static_cast<AuraTypeMethods>(pMethod->ID))
 		{
-		case Remove:
+		case AuraTypeMethods::Remove:
 			if (!pAuraWnd)
 				break;
 
@@ -101,3 +123,14 @@ bool MQ2AuraType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	return false;
 }
 
+bool MQ2AuraType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (AuraData* pAura = reinterpret_cast<AuraData*>(VarPtr.Ptr))
+	{
+		strcpy_s(Destination, MAX_STRING, pAura->Name);
+		return true;
+	}
+	return false;
+}
+
+} // namespace mq::datatypes

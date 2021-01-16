@@ -15,8 +15,31 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class SkillMembers
+{
+	Name = 1,
+	ID,
+	ReuseTime,
+	MinLevel,
+	SkillCap,
+	AltTimer,
+	Activated,
+	Auto,
+};
+
+MQ2SkillType::MQ2SkillType() : MQ2Type("skill")
+{
+	ScopedTypeMember(SkillMembers, Name);
+	ScopedTypeMember(SkillMembers, ID);
+	ScopedTypeMember(SkillMembers, ReuseTime);
+	ScopedTypeMember(SkillMembers, MinLevel);
+	ScopedTypeMember(SkillMembers, SkillCap);
+	ScopedTypeMember(SkillMembers, AltTimer);
+	ScopedTypeMember(SkillMembers, Activated);
+	ScopedTypeMember(SkillMembers, Auto);
+}
 
 bool MQ2SkillType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -57,7 +80,7 @@ bool MQ2SkillType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 		switch (static_cast<SkillMembers>(pMember->ID))
 		{
-		case Name:
+		case SkillMembers::Name:
 			Dest.Type = pStringType;
 			if (const char* ptr = pStringTable->getString(pSkill->nName))
 			{
@@ -67,22 +90,22 @@ bool MQ2SkillType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			}
 			return false;
 
-		case ID:
+		case SkillMembers::ID:
 			Dest.DWord = GetSkillIDFromName(pStringTable->getString(pSkill->nName));
 			Dest.Type = pIntType;
 			return true;
 
-		case ReuseTime:
+		case SkillMembers::ReuseTime:
 			Dest.DWord = pSkill->ReuseTimer;
 			Dest.Type = pIntType;
 			return true;
 
-		case MinLevel:
+		case SkillMembers::MinLevel:
 			Dest.DWord = pSkill->MinLevel[nIndex];
 			Dest.Type = pIntType;
 			return true;
 
-		case SkillCap:
+		case SkillMembers::SkillCap:
 			Dest.DWord = 0;
 			Dest.Type = pIntType;
 			if (pCharData)
@@ -93,17 +116,17 @@ bool MQ2SkillType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			}
 			return false;
 
-		case AltTimer:
+		case SkillMembers::AltTimer:
 			Dest.DWord = pSkill->SkillCombatType;
 			Dest.Type = pIntType;
 			return true;
 
-		case Activated:
+		case SkillMembers::Activated:
 			Dest.Set(pSkill->Activated);
 			Dest.Type = pBoolType;
 			return true;
 
-		case Auto: { // return a bool representing if a skill has /autoskill on or off.
+		case SkillMembers::Auto: { // return a bool representing if a skill has /autoskill on or off.
 			Dest.Set(false);
 			Dest.Type = pBoolType;
 			int id = GetSkillIDFromName(pStringTable->getString(pSkill->nName));
@@ -119,6 +142,30 @@ bool MQ2SkillType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	}
 
 	return false;
+}
+
+bool MQ2SkillType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (!VarPtr.Ptr)
+		return false;
+
+	if (SKILL* pSkill = *(SKILL**)VarPtr.Ptr)
+	{
+		if (const char* pName = pStringTable->getString(pSkill->nName))
+		{
+			strcpy_s(Destination, MAX_STRING, pName);
+			return true;
+		}
+	}
+	return false;
+}
+
+bool MQ2SkillType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type != pSkillType)
+		return false;
+	VarPtr.Ptr = Source.Ptr;
+	return true;
 }
 
 bool MQ2SkillType::dataSkill(const char* szIndex, MQTypeVar& Ret)
@@ -158,3 +205,5 @@ bool MQ2SkillType::dataSkill(const char* szIndex, MQTypeVar& Ret)
 
 	return false;
 }
+
+} // namespace mq::datatypes

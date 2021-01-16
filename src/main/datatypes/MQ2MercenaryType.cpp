@@ -15,12 +15,11 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
 
 enum class MercenaryMembers
 {
-	AAPoints,
+	AAPoints = 1,
 	Stance,
 	State,
 	StateID,
@@ -228,3 +227,5 @@ bool MQ2MercenaryType::dataMercenary(const char* szIndex, MQTypeVar& Ret)
 	// we need to return true always to be able to get other members out
 	return false;
 }
+
+} // namespace mq::datatypes

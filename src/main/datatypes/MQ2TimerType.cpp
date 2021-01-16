@@ -15,18 +15,17 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
 
 enum class TimerMembers
 {
-	Value,
+	Value = 1,
 	OriginalValue
 };
 
 enum class TimerMethods
 {
-	Reset,
+	Reset = 1,
 	Expire,
 	Set
 };
@@ -166,3 +165,4 @@ bool MQ2TimerType::FromString(MQVarPtr& VarPtr, const char* Source)
 	return true;
 }
 
+} // namespcae mq::datatypes

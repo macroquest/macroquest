@@ -17,41 +17,44 @@
 
 namespace mq::datatypes {
 
-bool MQ2GroupMemberType::ToString(MQVarPtr VarPtr, char* Destination)
+enum class GroupMemberMembers
 {
-	if (int index = VarPtr.Int)
-	{
-		if (index > 5)
-			return false;
+	Address = 1,
+	Name,
+	Leader,
+	Spawn,
+	Level,
+	MainTank,
+	MainAssist,
+	Puller,
+	MarkNpc,
+	MasterLooter,
+	Mercenary,
+	PctAggro,
+	Index,
+	Offline,
+	OtherZone,
+	Present,
+};
 
-		CHARINFO* pChar = GetCharInfo();
-		if (!pChar->pGroupInfo) return false;
-
-		// members 1 to 5. Count to the nth member.
-		for (int i = 1; i < MAX_GROUP_SIZE; i++)
-		{
-			GROUPMEMBER* pMember = pChar->pGroupInfo->pMember[i];
-			if (pMember)
-			{
-				index--;
-				if (index == 0)
-				{
-					char Name[MAX_STRING] = { 0 };
-					strcpy_s(Name, pMember->Name.c_str());
-
-					strcpy_s(Destination, MAX_STRING, CleanupName(Name, MAX_STRING, false, false));
-					return true;
-				}
-			}
-		}
-	}
-	else
-	{
-		strcpy_s(Destination, MAX_STRING, GetCharInfo()->pSpawn->DisplayedName);
-		return true;
-	}
-
-	return false;
+MQ2GroupMemberType::MQ2GroupMemberType() : MQ2Type("groupmember")
+{
+	ScopedTypeMember(GroupMemberMembers, Address);
+	ScopedTypeMember(GroupMemberMembers, Name);
+	ScopedTypeMember(GroupMemberMembers, Leader);
+	ScopedTypeMember(GroupMemberMembers, Spawn);
+	ScopedTypeMember(GroupMemberMembers, Level);
+	ScopedTypeMember(GroupMemberMembers, MainTank);
+	ScopedTypeMember(GroupMemberMembers, MainAssist);
+	ScopedTypeMember(GroupMemberMembers, Puller);
+	ScopedTypeMember(GroupMemberMembers, MarkNpc);
+	ScopedTypeMember(GroupMemberMembers, MasterLooter);
+	ScopedTypeMember(GroupMemberMembers, Mercenary);
+	ScopedTypeMember(GroupMemberMembers, PctAggro);
+	ScopedTypeMember(GroupMemberMembers, Index);
+	ScopedTypeMember(GroupMemberMembers, Offline);
+	ScopedTypeMember(GroupMemberMembers, OtherZone);
+	ScopedTypeMember(GroupMemberMembers, Present);
 }
 
 bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -121,18 +124,18 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 
 	switch (static_cast<GroupMemberMembers>(pMember->ID))
 	{
-	case Address:
+	case GroupMemberMembers::Address:
 		Dest.DWord = (DWORD)pGroupMemberData;
 		Dest.Type = pIntType;
 		return true;
 
-	case Name:
-		strcpy_s(DataTypeTemp, CleanupName(MemberName, sizeof(MemberName), FALSE, FALSE));
+	case GroupMemberMembers::Name:
+		strcpy_s(DataTypeTemp, CleanupName(MemberName, sizeof(MemberName), false, false));
 		Dest.Type = pStringType;
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 
-	case Leader:
+	case GroupMemberMembers::Leader:
 		Dest.Type = pBoolType;
 		if (!pChar->pGroupInfo->pLeader)
 			return false;
@@ -141,7 +144,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		Dest.Set(!_stricmp(MemberName, LeaderName));
 		return true;
 
-	case Spawn:
+	case GroupMemberMembers::Spawn:
 		Dest.Type = pSpawnType;
 		if (Dest.Ptr = pGroupMember)
 		{
@@ -149,7 +152,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		}
 		return false;
 
-	case Level:
+	case GroupMemberMembers::Level:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (pGroupMember)
@@ -164,7 +167,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		}
 		return false;
 
-	case MainTank:
+	case GroupMemberMembers::MainTank:
 		Dest.Type = pBoolType;
 		if (pGroupMemberData)
 		{
@@ -173,7 +176,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		}
 		return false;
 
-	case MainAssist:
+	case GroupMemberMembers::MainAssist:
 		Dest.Type = pBoolType;
 		if (pGroupMemberData)
 		{
@@ -182,7 +185,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		}
 		return false;
 
-	case MarkNpc:
+	case GroupMemberMembers::MarkNpc:
 		Dest.Type = pBoolType;
 		if (pGroupMemberData)
 		{
@@ -191,7 +194,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		}
 		return false;
 
-	case MasterLooter:
+	case GroupMemberMembers::MasterLooter:
 		Dest.Type = pBoolType;
 		if (pGroupMemberData)
 		{
@@ -200,7 +203,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		}
 		return false;
 
-	case Puller:
+	case GroupMemberMembers::Puller:
 		Dest.Type = pBoolType;
 		if (pGroupMemberData)
 		{
@@ -209,7 +212,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		}
 		return false;
 
-	case Mercenary:
+	case GroupMemberMembers::Mercenary:
 		Dest.Type = pBoolType;
 		if (pGroupMemberData)
 		{
@@ -218,7 +221,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		}
 		return false;
 
-	case PctAggro:
+	case GroupMemberMembers::PctAggro:
 		Dest.Type = pIntType;
 		if (GROUPAGGRO* pAggrp = (GROUPAGGRO*)EQADDR_GROUPAGGRO)
 		{
@@ -230,12 +233,12 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		}
 		return false;
 
-	case xIndex:
+	case GroupMemberMembers::Index:
 		Dest.DWord = nMember;
 		Dest.Type = pIntType;
 		return true;
 
-	case Offline:
+	case GroupMemberMembers::Offline:
 		Dest.Type = pBoolType;
 		if (pGroupMemberData)
 		{
@@ -244,7 +247,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		}
 		return false;
 
-	case Present:
+	case GroupMemberMembers::Present:
 		Dest.Type = pBoolType;
 		if (pGroupMemberData)
 		{
@@ -254,12 +257,57 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		}
 		return false;
 
-	case OtherZone:
+	case GroupMemberMembers::OtherZone:
 		Dest.Type = pBoolType;
-		Dest.Set(pGroupMemberData && pGroupMemberData->Offline == 0 && pGroupMemberData->pSpawn == 0);
+		Dest.Set(pGroupMemberData && !pGroupMemberData->Offline && !pGroupMemberData->pSpawn);
 		return true;
 	}
 	return false;
+}
+
+bool MQ2GroupMemberType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (int index = VarPtr.Int)
+	{
+		if (index > 5)
+			return false;
+
+		CHARINFO* pChar = GetCharInfo();
+		if (!pChar->pGroupInfo) return false;
+
+		// members 1 to 5. Count to the nth member.
+		for (int i = 1; i < MAX_GROUP_SIZE; i++)
+		{
+			GROUPMEMBER* pMember = pChar->pGroupInfo->pMember[i];
+			if (pMember)
+			{
+				index--;
+				if (index == 0)
+				{
+					char Name[MAX_STRING] = { 0 };
+					strcpy_s(Name, pMember->Name.c_str());
+
+					strcpy_s(Destination, MAX_STRING, CleanupName(Name, MAX_STRING, false, false));
+					return true;
+				}
+			}
+		}
+	}
+	else
+	{
+		strcpy_s(Destination, MAX_STRING, GetCharInfo()->pSpawn->DisplayedName);
+		return true;
+	}
+
+	return false;
+}
+
+bool MQ2GroupMemberType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type != pGroupMemberType)
+		return false;
+	VarPtr.Ptr = Source.Ptr;
+	return true;
 }
 
 } // namespace mq::datatypes

@@ -15,8 +15,7 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
 
 enum class BuffMembers
 {
@@ -272,3 +271,4 @@ bool MQ2BuffType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	return true;
 }
 
+} // namespace mq::datatypes

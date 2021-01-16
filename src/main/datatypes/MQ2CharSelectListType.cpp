@@ -15,8 +15,27 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class CharSelectListMembers
+{
+	Name = 1,
+	Level,
+	ZoneID,
+	Count,
+	Class,
+	Race,
+};
+
+MQ2CharSelectListType::MQ2CharSelectListType() : MQ2Type("charselectlist")
+{
+	ScopedTypeMember(CharSelectListMembers, Name);
+	ScopedTypeMember(CharSelectListMembers, Level);
+	ScopedTypeMember(CharSelectListMembers, ZoneID);
+	ScopedTypeMember(CharSelectListMembers, Count);
+	ScopedTypeMember(CharSelectListMembers, Class);
+	ScopedTypeMember(CharSelectListMembers, Race);
+}
 
 bool MQ2CharSelectListType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -28,7 +47,7 @@ bool MQ2CharSelectListType::GetMember(MQVarPtr VarPtr, const char* Member, char*
 
 	switch (static_cast<CharSelectListMembers>(pMember->ID))
 	{
-	case Name:
+	case CharSelectListMembers::Name:
 		Dest.Type = pStringType;
 		if (pEQ && VarPtr.Int < pEQ->pCharSelectPlayerArray.Count)
 		{
@@ -38,7 +57,7 @@ bool MQ2CharSelectListType::GetMember(MQVarPtr VarPtr, const char* Member, char*
 		}
 		return false;
 
-	case Level:
+	case CharSelectListMembers::Level:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -49,7 +68,7 @@ bool MQ2CharSelectListType::GetMember(MQVarPtr VarPtr, const char* Member, char*
 		}
 		return false;
 
-	case Class:
+	case CharSelectListMembers::Class:
 		Dest.DWord = 0;
 		Dest.Type = pStringType;
 
@@ -61,7 +80,7 @@ bool MQ2CharSelectListType::GetMember(MQVarPtr VarPtr, const char* Member, char*
 		}
 		return false;
 
-	case Race:
+	case CharSelectListMembers::Race:
 		Dest.DWord = 0;
 		Dest.Type = pStringType;
 
@@ -73,7 +92,7 @@ bool MQ2CharSelectListType::GetMember(MQVarPtr VarPtr, const char* Member, char*
 		}
 		return false;
 
-	case ZoneID:
+	case CharSelectListMembers::ZoneID:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -86,7 +105,7 @@ bool MQ2CharSelectListType::GetMember(MQVarPtr VarPtr, const char* Member, char*
 		}
 		return false;
 
-	case Count:
+	case CharSelectListMembers::Count:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -102,3 +121,9 @@ bool MQ2CharSelectListType::GetMember(MQVarPtr VarPtr, const char* Member, char*
 	return false;
 }
 
+bool MQ2CharSelectListType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	return false;
+}
+
+} // namespace mq::datatypes

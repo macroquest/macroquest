@@ -20,8 +20,8 @@ namespace mq::datatypes {
 enum class CorpseMembers
 {
 	Open = 1,
-	Item = 2,
-	Items = 3,
+	Item,
+	Items,
 };
 
 MQ2CorpseType::MQ2CorpseType() : MQ2Type("corpse")

@@ -15,12 +15,11 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
 
 enum class XTargetMembers
 {
-	Address,
+	Address = 1,
 	TargetType,
 	ID,
 	Name,
@@ -179,3 +178,4 @@ bool MQ2XTargetType::FromString(MQVarPtr& VarPtr, const char* Source)
 	return false;
 }
 
+} // namespace mq::datatypes

@@ -17,10 +17,16 @@
 
 namespace mq::datatypes {
 
+enum class AlertTypeMembers
+{
+	List = 1,
+	Size,
+};
+
 MQ2AlertType::MQ2AlertType() : MQ2Type("alert")
 {
-	TypeMember(List);
-	TypeMember(Size);
+	ScopedTypeMember(AlertTypeMembers, List);
+	ScopedTypeMember(AlertTypeMembers, Size);
 }
 
 // /echo ${Alert[a].List[b].bGM}
@@ -37,7 +43,7 @@ bool MQ2AlertType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	switch (static_cast<AlertTypeMembers>(pMember->ID))
 	{
-	case List:
+	case AlertTypeMembers::List:
 		if (IsNumber(Index))
 		{
 			Dest.DWord = MAKELONG(VarPtr.DWord, GetIntFromString(Index, 0));
@@ -46,7 +52,7 @@ bool MQ2AlertType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		}
 		break;
 
-	case Size:
+	case AlertTypeMembers::Size:
 		Dest.Type = pIntType;
 		Dest.DWord = CAlerts.GetCount(VarPtr.DWord);
 		return true;

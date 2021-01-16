@@ -15,8 +15,56 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class CurrentZoneMembers
+{
+	Name = 1,
+	ShortName,
+	Type,
+	Gravity,
+	SkyType,
+	SafeY,
+	SafeX,
+	SafeZ,
+	MinClip,
+	MaxClip,
+	ID,
+	SafeN,
+	SafeW,
+	SafeU,
+	Address,
+	ZoneType,
+	Dungeon,
+	Indoor,
+	Outdoor,
+	NoBind,
+};
+
+MQ2CurrentZoneType::MQ2CurrentZoneType() : MQ2Type("currentzone")
+{
+	ScopedTypeMember(CurrentZoneMembers, Name);
+	ScopedTypeMember(CurrentZoneMembers, ShortName);
+	ScopedTypeMember(CurrentZoneMembers, Type);
+	ScopedTypeMember(CurrentZoneMembers, Gravity);
+	ScopedTypeMember(CurrentZoneMembers, SkyType);
+	ScopedTypeMember(CurrentZoneMembers, SafeY);
+	ScopedTypeMember(CurrentZoneMembers, SafeX);
+	ScopedTypeMember(CurrentZoneMembers, SafeZ);
+	ScopedTypeMember(CurrentZoneMembers, MinClip);
+	ScopedTypeMember(CurrentZoneMembers, MaxClip);
+	ScopedTypeMember(CurrentZoneMembers, ID);
+	ScopedTypeMember(CurrentZoneMembers, SafeN);
+	ScopedTypeMember(CurrentZoneMembers, SafeW);
+	ScopedTypeMember(CurrentZoneMembers, SafeU);
+	ScopedTypeMember(CurrentZoneMembers, Address);
+	ScopedTypeMember(CurrentZoneMembers, ZoneType);
+	ScopedTypeMember(CurrentZoneMembers, Dungeon);
+	ScopedTypeMember(CurrentZoneMembers, Indoor);
+	ScopedTypeMember(CurrentZoneMembers, Outdoor);
+	ScopedTypeMember(CurrentZoneMembers, NoBind);
+}
+
 
 bool MQ2CurrentZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -42,12 +90,12 @@ bool MQ2CurrentZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 
 	switch (static_cast<CurrentZoneMembers>(pMember->ID))
 	{
-	case Address:
+	case CurrentZoneMembers::Address:
 		Dest.DWord = (uint32_t)VarPtr.Ptr;
 		Dest.Type = pIntType;
 		return true;
 
-	case ID:
+	case CurrentZoneMembers::ID:
 		Dest.Int = 0;
 		Dest.Type = pIntType;
 		if (CHARINFO* pChar = GetCharInfo())
@@ -58,60 +106,60 @@ bool MQ2CurrentZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		}
 		return false;
 
-	case Name:
+	case CurrentZoneMembers::Name:
 		strcpy_s(DataTypeTemp, pCurrentZone->LongName);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case ShortName:
+	case CurrentZoneMembers::ShortName:
 		strcpy_s(DataTypeTemp, pCurrentZone->ShortName);
 		Dest.Ptr = &DataTypeTemp;
 		Dest.Type = pStringType;
 		return true;
 
-	case Type:
+	case CurrentZoneMembers::Type:
 		Dest.DWord = pCurrentZone->OutDoor;
 		Dest.Type = pIntType;
 		return true;
 
-	case Gravity:
+	case CurrentZoneMembers::Gravity:
 		Dest.Float = pCurrentZone->ZoneGravity;
 		Dest.Type = pFloatType;
 		return true;
 
-	case SkyType:
+	case CurrentZoneMembers::SkyType:
 		Dest.DWord = pCurrentZone->SkyType;
 		Dest.Type = pIntType;
 		return true;
 
-	case MinClip:
+	case CurrentZoneMembers::MinClip:
 		Dest.Float = pCurrentZone->MinClip;
 		Dest.Type = pFloatType;
 		return true;
 
-	case MaxClip:
+	case CurrentZoneMembers::MaxClip:
 		Dest.Float = pCurrentZone->MaxClip;
 		Dest.Type = pFloatType;
 		return true;
 
-	case ZoneType:
+	case CurrentZoneMembers::ZoneType:
 		Dest.DWord = (*EQADDR_ZONETYPE);
 		Dest.Type = pIntType;
 		return true;
 
-	case Dungeon:
-	case Indoor:
+	case CurrentZoneMembers::Dungeon:
+	case CurrentZoneMembers::Indoor:
 		Dest.Set(indoor);
 		Dest.Type = pBoolType;
 		return true;
 
-	case Outdoor:
+	case CurrentZoneMembers::Outdoor:
 		Dest.Set(outdoor);
 		Dest.Type = pBoolType;
 		return true;
 
-	case NoBind:
+	case CurrentZoneMembers::NoBind:
 		Dest.Set(!bindable);
 		Dest.Type = pBoolType;
 		return true;
@@ -122,3 +170,18 @@ bool MQ2CurrentZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 	return false;
 }
 
+bool MQ2CurrentZoneType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	strcpy_s(Destination, MAX_STRING, pZoneInfo->LongName);
+	return true;
+}
+
+bool MQ2CurrentZoneType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type != pCurrentZoneType)
+		return false;
+	VarPtr.Ptr = Source.Ptr;
+	return true;
+}
+
+} // namespace mq::datatypes

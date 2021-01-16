@@ -15,8 +15,7 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
 
 enum class TaskMemberTypeMembers
 {
@@ -90,3 +89,4 @@ bool MQ2TaskMemberType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
+} // namespace mq::datatypes

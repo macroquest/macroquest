@@ -15,12 +15,11 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
 
 enum class MathMembers
 {
-	Abs,
+	Abs = 1,
 	Rand,
 	Calc,
 	Sin,
@@ -320,3 +319,5 @@ bool MQ2MathType::dataMath(const char* szIndex, MQTypeVar& Ret)
 	Ret.Type = pMathType;
 	return true;
 }
+
+} // namespace mq::datatypes

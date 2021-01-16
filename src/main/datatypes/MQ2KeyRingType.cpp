@@ -20,8 +20,8 @@ namespace mq::datatypes {
 enum class KeyRingTypeMembers
 {
 	Index = 1,
-	Name = 2,
-	Item = 3,
+	Name,
+	Item,
 };
 
 MQ2KeyRingType::MQ2KeyRingType() : MQ2Type("keyring")

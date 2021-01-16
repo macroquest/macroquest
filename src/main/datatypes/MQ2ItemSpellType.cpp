@@ -15,12 +15,11 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
 
 enum class ItemSpellMembers
 {
-	SpellID,
+	SpellID = 1,
 	RequiredLevel,
 	EffectType,
 	EffectiveCasterLevel,
@@ -166,3 +165,4 @@ bool MQ2ItemSpellType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	return true;
 }
 
+} // namespace mq::datatypes

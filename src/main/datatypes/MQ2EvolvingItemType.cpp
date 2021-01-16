@@ -15,8 +15,23 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class EvolvingItemMembers
+{
+	ExpPct = 1,
+	ExpOn,
+	Level,
+	MaxLevel,
+};
+
+MQ2EvolvingItemType::MQ2EvolvingItemType() : MQ2Type("Evolving")
+{
+	ScopedTypeMember(EvolvingItemMembers, ExpPct);
+	ScopedTypeMember(EvolvingItemMembers, ExpOn);
+	ScopedTypeMember(EvolvingItemMembers, Level);
+	ScopedTypeMember(EvolvingItemMembers, MaxLevel);
+}
 
 bool MQ2EvolvingItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -30,12 +45,12 @@ bool MQ2EvolvingItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* I
 
 	switch (static_cast<EvolvingItemMembers>(pMember->ID))
 	{
-	case ExpOn:
+	case EvolvingItemMembers::ExpOn:
 		Dest.Set(true); // its always on after 2019-02-14 test patch
 		Dest.Type = pBoolType;
 		return true;
 
-	case ExpPct:
+	case EvolvingItemMembers::ExpPct:
 		if (pItem->pEvolutionData)
 		{
 			Dest.Float = (float)pItem->pEvolutionData->EvolvingExpPct;
@@ -44,7 +59,7 @@ bool MQ2EvolvingItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* I
 		}
 		break;
 
-	case Level:
+	case EvolvingItemMembers::Level:
 		if (pItem->pEvolutionData)
 		{
 			Dest.Int = pItem->pEvolutionData->EvolvingCurrentLevel;
@@ -53,7 +68,7 @@ bool MQ2EvolvingItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* I
 		}
 		break;
 
-	case MaxLevel:
+	case EvolvingItemMembers::MaxLevel:
 		if (pItem->pEvolutionData)
 		{
 			Dest.Int = pItem->pEvolutionData->EvolvingMaxLevel;
@@ -68,3 +83,10 @@ bool MQ2EvolvingItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* I
 	return false;
 }
 
+bool MQ2EvolvingItemType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	strcpy_s(Destination, MAX_STRING, (VarPtr.Ptr && IsEvolvingItem((ItemClient*)VarPtr.Ptr)) ? "TRUE" : "FALSE");
+	return true;
+}
+
+} // namespace mq::datatypes

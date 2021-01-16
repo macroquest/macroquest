@@ -15,8 +15,17 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class FriendsMembers
+{
+	Friend = 1
+};
+
+MQ2FriendsType::MQ2FriendsType() : MQ2Type("friend")
+{
+	ScopedTypeMember(FriendsMembers, Friend);
+}
 
 bool MQ2FriendsType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -26,7 +35,7 @@ bool MQ2FriendsType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 
 	switch (static_cast<FriendsMembers>(pMember->ID))
 	{
-	case xFriend:
+	case FriendsMembers::Friend:
 		Dest.Type = pStringType;
 		if (Index[0] && pChatService)
 		{
@@ -67,9 +76,23 @@ bool MQ2FriendsType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 	return false;
 }
 
+bool MQ2FriendsType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	// return the number of friends here...
+	if (((EVERQUEST*)pEverQuest)->ChatService)
+	{
+		UniversalChatProxy* pChat = ((EVERQUEST*)pEverQuest)->ChatService;
+		sprintf_s(Destination, MAX_STRING, "%d", pChat->GetNumberOfFriends());
+		return true;
+	}
+	return false;
+}
+
 bool MQ2FriendsType::dataFriends(const char* szIndex, MQTypeVar& Ret)
 {
 	Ret.DWord = 0;
 	Ret.Type = pFriendsType;
 	return true;
 }
+
+} // namespace mq::datatypes

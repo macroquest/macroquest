@@ -15,17 +15,58 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
 
-bool MQ2AltAbilityType::ToString(MQVarPtr VarPtr, char* Destination)
+enum class AltAbilityMembers
 {
-	ALTABILITY* pAbility = static_cast<ALTABILITY*>(VarPtr.Ptr);
-	if (!pAbility)
-		return false;
+	Name = 1,
+	ShortName,
+	Description,
+	MinLevel,
+	Cost,
+	RequiresAbility,
+	RequiresAbilityPoints,
+	MaxRank,
+	AARankRequired,
+	Spell,
+	Type,
+	ReuseTime,
+	ID,
+	MyReuseTime,
+	Flags,
+	Expansion,
+	Passive,
+	PointsSpent,
+	Rank,
+	Index,
+	CanTrain,
+	NextIndex,
+};
 
-	_itoa_s(pAbility->ID, Destination, MAX_STRING, 10);
-	return true;
+MQ2AltAbilityType::MQ2AltAbilityType() : MQ2Type("altability")
+{
+	ScopedTypeMember(AltAbilityMembers, Name);
+	ScopedTypeMember(AltAbilityMembers, ShortName);
+	ScopedTypeMember(AltAbilityMembers, Description);
+	ScopedTypeMember(AltAbilityMembers, MinLevel);
+	ScopedTypeMember(AltAbilityMembers, Cost);
+	ScopedTypeMember(AltAbilityMembers, RequiresAbility);
+	ScopedTypeMember(AltAbilityMembers, RequiresAbilityPoints);
+	ScopedTypeMember(AltAbilityMembers, MaxRank);
+	ScopedTypeMember(AltAbilityMembers, AARankRequired);
+	ScopedTypeMember(AltAbilityMembers, Spell);
+	ScopedTypeMember(AltAbilityMembers, Type);
+	ScopedTypeMember(AltAbilityMembers, ReuseTime);
+	ScopedTypeMember(AltAbilityMembers, ID);
+	ScopedTypeMember(AltAbilityMembers, MyReuseTime);
+	ScopedTypeMember(AltAbilityMembers, Flags);
+	ScopedTypeMember(AltAbilityMembers, Expansion);
+	ScopedTypeMember(AltAbilityMembers, Passive);
+	ScopedTypeMember(AltAbilityMembers, PointsSpent);
+	ScopedTypeMember(AltAbilityMembers, Rank);
+	ScopedTypeMember(AltAbilityMembers, Index);
+	ScopedTypeMember(AltAbilityMembers, CanTrain);
+	ScopedTypeMember(AltAbilityMembers, NextIndex);
 }
 
 bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar & Dest)
@@ -40,7 +81,7 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 
 	switch (static_cast<AltAbilityMembers>(pMember->ID))
 	{
-	case Name:
+	case AltAbilityMembers::Name:
 		Dest.Type = pStringType;
 		if (const char* ptr = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
 		{
@@ -50,7 +91,7 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		}
 		return false;
 
-	case ShortName:
+	case AltAbilityMembers::ShortName:
 		// What is this even for? Need to check -eqmule
 		Dest.Type = pStringType;
 		if (const char* ptr = pCDBStr->GetString(pAbility->nName, eAltAbilityButton1))
@@ -61,7 +102,7 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		}
 		return false;
 
-	case Description:
+	case AltAbilityMembers::Description:
 		Dest.Type = pStringType;
 		if (const char* ptr = pCDBStr->GetString(pAbility->nName, eAltAbilityDescription))
 		{
@@ -71,32 +112,32 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		}
 		return false;
 
-	case ID:
+	case AltAbilityMembers::ID:
 		Dest.DWord = pAbility->ID;
 		Dest.Type = pIntType;
 		return true;
 
-	case ReuseTime:
+	case AltAbilityMembers::ReuseTime:
 		Dest.DWord = pAbility->ReuseTimer;
 		Dest.Type = pIntType;
 		return true;
 
-	case MyReuseTime:
+	case AltAbilityMembers::MyReuseTime:
 		Dest.DWord = pAltAdvManager->GetCalculatedTimer(pPCData, pAbility);
 		Dest.Type = pIntType;
 		return true;
 
-	case MinLevel:
+	case AltAbilityMembers::MinLevel:
 		Dest.DWord = pAbility->MinLevel;
 		Dest.Type = pIntType;
 		return true;
 
-	case Cost:
+	case AltAbilityMembers::Cost:
 		Dest.DWord = pAbility->Cost;
 		Dest.Type = pIntType;
 		return true;
 
-	case Spell:
+	case AltAbilityMembers::Spell:
 		Dest.Type = pSpellType;
 		if (Dest.Ptr = GetSpellByID(pAbility->SpellID))
 		{
@@ -104,7 +145,7 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		}
 		return false;
 
-	case RequiresAbility:
+	case AltAbilityMembers::RequiresAbility:
 		Dest.Type = pAltAbilityType;
 		if (pAbility->RequiredGroupLevels && *pAbility->RequiredGroupLevels > 0)
 		{
@@ -125,7 +166,7 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 			DebugSpew("ability %d not found\n", pAbility->RequiredGroupLevels);
 		return false;
 
-	case RequiresAbilityPoints:
+	case AltAbilityMembers::RequiresAbilityPoints:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (pAbility->RequiresAbilityPoints)
@@ -135,13 +176,13 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		}
 		return false;
 
-	case MaxRank:
+	case AltAbilityMembers::MaxRank:
 		Dest.DWord = pAbility->MaxRank;
 		Dest.Type = pIntType;
 		return true;
 
-	case Rank: // the current rank
-	case AARankRequired: { // kept this for legacy reasons
+	case AltAbilityMembers::Rank: // the current rank
+	case AltAbilityMembers::AARankRequired: { // kept this for legacy reasons
 		int CurrentRank = pAbility->CurrentRank - 1;
 		if (pPCData->HasAlternateAbility(pAbility->Index))
 		{
@@ -152,48 +193,48 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		return true;
 	}
 
-	case Type:
+	case AltAbilityMembers::Type:
 		Dest.DWord = pAbility->Type;
 		Dest.Type = pIntType;
 		return true;
 
-	case Flags:
+	case AltAbilityMembers::Flags:
 		Dest.DWord = pAbility->bShowInAbilityWindow;
 		Dest.Type = pIntType;
 		return true;
 
-	case Expansion:
+	case AltAbilityMembers::Expansion:
 		Dest.DWord = pAbility->Expansion;
 		Dest.Type = pIntType;
 		return true;
 
-	case Passive:
+	case AltAbilityMembers::Passive:
 		Dest.Set(true);
 		Dest.Type = pBoolType;
 		if (pAbility->SpellID != -1)
 			Dest.Set(false);
 		return true;
 
-	case PointsSpent:
+	case AltAbilityMembers::PointsSpent:
 		Dest.DWord = pAbility->TotalPoints;
 		Dest.Type = pIntType;
 		return true;
 
-	case xIndex:
+	case AltAbilityMembers::Index:
 		Dest.DWord = pAbility->Index;
 		Dest.Type = pIntType;
 		return true;
 
-	case CanTrain: {
+	case AltAbilityMembers::CanTrain: {
 		if (ALTABILITY* pNextAbility = GetAAByIdWrapper(pAbility->NextGroupAbilityId))
 			pAbility = pNextAbility;
 
-		Dest.Set(pAltAdvManager->CanTrainAbility((PcZoneClient*)pPCData, pAbility, 0, 0, 0));
+		Dest.Set(pAltAdvManager->CanTrainAbility((PcZoneClient*)pPCData, pAbility, false, false, false));
 		Dest.Type = pBoolType;
 		return true;
 	}
 
-	case NextIndex:
+	case AltAbilityMembers::NextIndex:
 		Dest.DWord = pAbility->NextGroupAbilityId;
 		Dest.Type = pIntType;
 		return true;
@@ -202,6 +243,24 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 	}
 
 	return false;
+}
+
+bool MQ2AltAbilityType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	ALTABILITY* pAbility = static_cast<ALTABILITY*>(VarPtr.Ptr);
+	if (!pAbility)
+		return false;
+
+	_itoa_s(pAbility->ID, Destination, MAX_STRING, 10);
+	return true;
+}
+
+bool MQ2AltAbilityType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type != pAltAbilityType)
+		return false;
+	VarPtr.Ptr = Source.Ptr;
+	return true;
 }
 
 bool MQ2AltAbilityType::dataAltAbility(const char* szIndex, MQTypeVar& Ret)
@@ -253,4 +312,4 @@ bool MQ2AltAbilityType::dataAltAbility(const char* szIndex, MQTypeVar& Ret)
 	return false;
 }
 
-
+} // namespace mq::datatypes

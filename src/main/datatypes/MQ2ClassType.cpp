@@ -15,8 +15,39 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class ClassMembers
+{
+	Name = 1,
+	ShortName,
+	ID,
+	PureCaster,
+	CanCast,
+	DruidType,
+	NecromancerType,
+	ShamanType,
+	ClericType,
+	PetClass,
+	HealerType,
+	MercType,
+};
+
+MQ2ClassType::MQ2ClassType() : MQ2Type("class")
+{
+	ScopedTypeMember(ClassMembers, Name);
+	ScopedTypeMember(ClassMembers, ShortName);
+	ScopedTypeMember(ClassMembers, ID);
+	ScopedTypeMember(ClassMembers, PureCaster);
+	ScopedTypeMember(ClassMembers, CanCast);
+	ScopedTypeMember(ClassMembers, DruidType);
+	ScopedTypeMember(ClassMembers, NecromancerType);
+	ScopedTypeMember(ClassMembers, ShamanType);
+	ScopedTypeMember(ClassMembers, ClericType);
+	ScopedTypeMember(ClassMembers, PetClass);
+	ScopedTypeMember(ClassMembers, HealerType);
+	ScopedTypeMember(ClassMembers, MercType);
+}
 
 bool MQ2ClassType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -26,24 +57,24 @@ bool MQ2ClassType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	switch (static_cast<ClassMembers>(pMember->ID))
 	{
-	case ID:
+	case ClassMembers::ID:
 		Dest.Set(VarPtr.Get<uint32_t>());
 		Dest.Type = pIntType;
 		return true;
 
-	case Name:
+	case ClassMembers::Name:
 		strcpy_s(DataTypeTemp, GetClassDesc(VarPtr.DWord));
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case ShortName:
+	case ClassMembers::ShortName:
 		strcpy_s(DataTypeTemp, pEverQuest->GetClassThreeLetterCode(VarPtr.DWord));
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case CanCast:
+	case ClassMembers::CanCast:
 		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (VarPtr.DWord <= 16)
@@ -53,7 +84,7 @@ bool MQ2ClassType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		}
 		return false;
 
-	case PureCaster:
+	case ClassMembers::PureCaster:
 		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (VarPtr.DWord <= 16)
@@ -63,7 +94,7 @@ bool MQ2ClassType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		}
 		return false;
 
-	case PetClass:
+	case ClassMembers::PetClass:
 		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (VarPtr.DWord <= 16)
@@ -73,7 +104,7 @@ bool MQ2ClassType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		}
 		return false;
 
-	case DruidType:
+	case ClassMembers::DruidType:
 		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (VarPtr.DWord <= 16)
@@ -83,7 +114,7 @@ bool MQ2ClassType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		}
 		return false;
 
-	case ShamanType:
+	case ClassMembers::ShamanType:
 		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (VarPtr.DWord <= 16)
@@ -93,7 +124,7 @@ bool MQ2ClassType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		}
 		return false;
 
-	case NecromancerType:
+	case ClassMembers::NecromancerType:
 		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (VarPtr.DWord <= 16)
@@ -103,7 +134,7 @@ bool MQ2ClassType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		}
 		return false;
 
-	case ClericType:
+	case ClassMembers::ClericType:
 		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (VarPtr.DWord <= 16)
@@ -113,12 +144,12 @@ bool MQ2ClassType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		}
 		return false;
 
-	case HealerType:
+	case ClassMembers::HealerType:
 		Dest.Set(VarPtr.DWord == 2 || VarPtr.DWord == 6 || VarPtr.DWord == 10);
 		Dest.Type = pBoolType;
 		return true;
 
-	case MercType:
+	case ClassMembers::MercType:
 		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (VarPtr.DWord <= 17)
@@ -134,3 +165,24 @@ bool MQ2ClassType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	return false;
 }
 
+bool MQ2ClassType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	const char* pDesc = GetClassDesc(VarPtr.DWord);
+	strcpy_s(Destination, MAX_STRING, pDesc);
+
+	return true;
+}
+
+bool MQ2ClassType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	VarPtr.DWord = Source.DWord;
+	return true;
+}
+
+bool MQ2ClassType::FromString(MQVarPtr& VarPtr, const char* Source)
+{
+	VarPtr.DWord = GetIntFromString(Source, 0);
+	return true;
+}
+
+} // namespace mq::datatypes

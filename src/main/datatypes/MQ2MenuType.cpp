@@ -15,8 +15,34 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class MenuMembers
+{
+	Address = 1,
+	NumVisibleMenus,
+	CurrMenu,
+	Name,
+	NumItems,
+	Items,
+};
+
+enum class MenuMethods
+{
+	Select = 1,
+};
+
+MQ2MenuType::MQ2MenuType() : MQ2Type("menu")
+{
+	ScopedTypeMember(MenuMembers, Address);
+	ScopedTypeMember(MenuMembers, NumVisibleMenus);
+	ScopedTypeMember(MenuMembers, CurrMenu);
+	ScopedTypeMember(MenuMembers, Name);
+	ScopedTypeMember(MenuMembers, NumItems);
+	ScopedTypeMember(MenuMembers, Items);
+
+	ScopedTypeMethod(MenuMethods, Select);
+}
 
 bool MQ2MenuType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -32,7 +58,7 @@ bool MQ2MenuType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	{
 		switch (static_cast<MenuMethods>(pMethod->ID))
 		{
-		case Select: {
+		case MenuMethods::Select: {
 			if (Index[0])
 			{
 				if (pMgr->NumVisibleMenus == 1)
@@ -96,7 +122,7 @@ bool MQ2MenuType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	switch (static_cast<MenuMembers>(pMember->ID))
 	{
-	case Address:
+	case MenuMembers::Address:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (pMgr->NumVisibleMenus == 1)
@@ -109,17 +135,17 @@ bool MQ2MenuType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		}
 		return false;
 
-	case NumVisibleMenus:
+	case MenuMembers::NumVisibleMenus:
 		Dest.DWord = pMgr->NumVisibleMenus;
 		Dest.Type = pIntType;
 		return true;
 
-	case CurrMenu:
+	case MenuMembers::CurrMenu:
 		Dest.DWord = pMgr->CurrMenu;
 		Dest.Type = pIntType;
 		return true;
 
-	case Name:
+	case MenuMembers::Name:
 		Dest.Type = pStringType;
 		if (pMgr->NumVisibleMenus == 1)
 		{
@@ -140,7 +166,7 @@ bool MQ2MenuType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		}
 		return false;
 
-	case NumItems:
+	case MenuMembers::NumItems:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -158,7 +184,7 @@ bool MQ2MenuType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		}
 		return false;
 
-	case Items:
+	case MenuMembers::Items:
 		Dest.Type = pStringType;
 		if (IsNumber(Index))
 		{
@@ -190,6 +216,32 @@ bool MQ2MenuType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	return false;
 }
 
+bool MQ2MenuType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	strcpy_s(Destination, MAX_STRING, "No Menu Open");
+	if (VarPtr.Ptr && ((CContextMenuManager*)VarPtr.Ptr)->NumVisibleMenus == 1)
+	{
+		CContextMenuManager* pMgr = (CContextMenuManager*)VarPtr.Ptr;
+		if (pMgr->CurrMenu < 8)
+		{
+			int currmen = pMgr->CurrMenu;
+			if (CContextMenu* menu = pMgr->pCurrMenus[currmen])
+			{
+				strcpy_s(Destination, MAX_STRING, menu->GetItemText(0, 1).c_str());
+			}
+		}
+	}
+	return true;
+}
+
+bool MQ2MenuType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type != pMenuType)
+		return false;
+	VarPtr.Ptr = Source.Ptr;
+	return true;
+}
+
 bool MQ2MenuType::dataMenu(const char* szIndex, MQTypeVar& Ret)
 {
 	if (CContextMenuManager* pMrg = pContextMenuManager)
@@ -203,3 +255,5 @@ bool MQ2MenuType::dataMenu(const char* szIndex, MQTypeVar& Ret)
 
 	return false;
 }
+
+} // namespace mq::datatypes

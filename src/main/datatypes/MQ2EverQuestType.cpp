@@ -15,12 +15,11 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
 
 enum class EverQuestMembers
 {
-	GameState,
+	GameState = 1,
 	LoginName,
 	Server,
 	LastCommand,
@@ -451,3 +450,5 @@ bool MQ2EverQuestType::dataEverQuest(const char* szIndex, MQTypeVar& Ret)
 	Ret.Type = pEverQuestType;
 	return true;
 }
+
+} // namespace mq::datatypes

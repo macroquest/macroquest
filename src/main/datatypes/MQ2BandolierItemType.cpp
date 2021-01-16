@@ -15,8 +15,23 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class BandolierItemTypeMembers
+{
+	Index = 1,
+	ID ,
+	IconID,
+	Name,
+};
+
+MQ2BandolierItemType::MQ2BandolierItemType() : MQ2Type("bandolieritem")
+{
+	ScopedTypeMember(BandolierItemTypeMembers, Index);
+	ScopedTypeMember(BandolierItemTypeMembers, ID);
+	ScopedTypeMember(BandolierItemTypeMembers, IconID);
+	ScopedTypeMember(BandolierItemTypeMembers, Name);
+}
 
 bool MQ2BandolierItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -27,22 +42,22 @@ bool MQ2BandolierItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 		{
 			switch (static_cast<BandolierItemTypeMembers>(pMember->ID))
 			{
-			case xIndex:
+			case BandolierItemTypeMembers::Index:
 				Dest.DWord = VarPtr.HighPart;
 				Dest.Type = pIntType;
 				return true;
 
-			case IconID:
+			case BandolierItemTypeMembers::IconID:
 				Dest.DWord = ptr->IconID;
 				Dest.Type = pIntType;
 				return true;
 
-			case ID:
+			case BandolierItemTypeMembers::ID:
 				Dest.DWord = ptr->ItemID;
 				Dest.Type = pIntType;
 				return true;
 
-			case Name:
+			case BandolierItemTypeMembers::Name:
 				strcpy_s(DataTypeTemp, ptr->Name);
 				Dest.Ptr = &DataTypeTemp[0];
 				Dest.Type = pStringType;
@@ -57,3 +72,14 @@ bool MQ2BandolierItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 	return false;
 }
 
+bool MQ2BandolierItemType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (BandolierItemInfo* ptr = reinterpret_cast<BandolierItemInfo*>(VarPtr.Ptr))
+	{
+		strcpy_s(Destination, MAX_STRING, ptr->Name);
+		return true;
+	}
+	return false;
+}
+
+} // namespace mq::datatypes

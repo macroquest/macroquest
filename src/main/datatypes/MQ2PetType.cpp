@@ -15,12 +15,11 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-namespace mq {
-namespace datatypes {
+namespace mq::datatypes {
 
 enum class PetBuffMembers
 {
-	Caster,
+	Caster = 1,
 	Duration,
 };
 
@@ -350,5 +349,5 @@ bool MQ2PetType::dataPet(const char* szIndex, MQTypeVar& Ret)
 	return false;
 }
 
-}} // namespace mq::datatypes
+} // namespace mq::datatypes
 

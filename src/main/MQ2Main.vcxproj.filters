@@ -179,9 +179,6 @@
     <ClCompile Include="datatypes\MQ2AdvLootType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
-    <ClCompile Include="datatypes\MQ2AdvLootItemType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
     <ClCompile Include="datatypes\MQ2ItemFilterDataType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
@@ -246,9 +243,6 @@
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2PointMerchantType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
-    <ClCompile Include="datatypes\MQ2PointMerchantItemType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2MerchantType.cpp">

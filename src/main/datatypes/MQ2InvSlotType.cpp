@@ -358,4 +358,37 @@ bool MQ2InvSlotType::dataInvSlot(const char* szIndex, MQTypeVar& Ret)
 	return false;
 }
 
+bool MQ2InvSlotType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	_itoa_s(VarPtr.Int, Destination, MAX_STRING, 10);
+	return true;
+}
+
+bool MQ2InvSlotType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	VarPtr.DWord = Source.DWord;
+	return true;
+}
+
+bool MQ2InvSlotType::FromString(MQVarPtr& VarPtr, const char* Source)
+{
+	if (IsNumber(Source))
+	{
+		VarPtr.DWord = GetIntFromString(Source, 0);
+		return true;
+	}
+	else
+	{
+		char Temp[MAX_STRING] = { 0 };
+		strcpy_s(Temp, Source);
+		_strlwr_s(Temp);
+		VarPtr.DWord = ItemSlotMap[Temp];
+		if (VarPtr.DWord || !_stricmp(Temp, "charm"))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 } // namespace mq::datatypes

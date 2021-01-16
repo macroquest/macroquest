@@ -15,8 +15,30 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class DynamicZoneMembers
+{
+	Name = 1,
+	Members,
+	MaxMembers,
+	Member,
+	Leader,
+	InRaid,
+	LeaderFlagged,
+};
+
+MQ2DynamicZoneType::MQ2DynamicZoneType() : MQ2Type("dynamiczone")
+{
+	ScopedTypeMember(DynamicZoneMembers, Name);
+	ScopedTypeMember(DynamicZoneMembers, Members);
+	ScopedTypeMember(DynamicZoneMembers, MaxMembers);
+	ScopedTypeMember(DynamicZoneMembers, Member);
+	ScopedTypeMember(DynamicZoneMembers, Leader);
+	ScopedTypeMember(DynamicZoneMembers, InRaid);
+	ScopedTypeMember(DynamicZoneMembers, LeaderFlagged);
+}
+
 
 bool MQ2DynamicZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -25,18 +47,18 @@ bool MQ2DynamicZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		return false;
 
 	DynamicZoneMembers dataMember = static_cast<DynamicZoneMembers>(pMember->ID);
-	if (!pDZMember && dataMember != LeaderFlagged)
+	if (!pDZMember && dataMember != DynamicZoneMembers::LeaderFlagged)
 		return false;
 
 	switch (dataMember)
 	{
-	case Name:
+	case DynamicZoneMembers::Name:
 		strcpy_s(DataTypeTemp, pDynamicZone->ExpeditionName);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case Members: {
+	case DynamicZoneMembers::Members: {
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		DynamicZonePlayerInfo* pDynamicZoneMember = pDynamicZone->pFirstMember;
@@ -49,16 +71,16 @@ bool MQ2DynamicZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		return true;
 	}
 
-	case LeaderFlagged:
+	case DynamicZoneMembers::LeaderFlagged:
 		Dest.Set(pDynamicZone && pDynamicZone->pFirstMember && pDynamicZone->pFirstMember->bFlagged);
 		Dest.Type = pBoolType;
 
-	case MaxMembers:
+	case DynamicZoneMembers::MaxMembers:
 		Dest.DWord = pDynamicZone->MaxPlayers;
 		Dest.Type = pIntType;
 		return true;
 
-	case xMember:
+	case DynamicZoneMembers::Member:
 		Dest.Type = pDZMemberType;
 		if (Index[0])
 		{
@@ -94,7 +116,7 @@ bool MQ2DynamicZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		}
 		return false;
 
-	case Leader: {
+	case DynamicZoneMembers::Leader: {
 		Dest.Type = pDZMemberType;
 		DynamicZonePlayerInfo* pDynamicZoneMember = pDynamicZone->pMemberList;
 
@@ -110,7 +132,7 @@ bool MQ2DynamicZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		return false;
 	}
 
-	case InRaid:
+	case DynamicZoneMembers::InRaid:
 		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (pDynamicZone && pDynamicZone->LeaderName[0])
@@ -125,6 +147,15 @@ bool MQ2DynamicZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 	return false;
 }
 
+bool MQ2DynamicZoneType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (pDZMember)
+	{
+		strcpy_s(Destination, MAX_STRING, pDynamicZone->DZName);
+		return true;
+	}
+	return false;
+}
 
 bool MQ2DynamicZoneType::dataDynamicZone(const char* szIndex, MQTypeVar& Ret)
 {
@@ -132,3 +163,5 @@ bool MQ2DynamicZoneType::dataDynamicZone(const char* szIndex, MQTypeVar& Ret)
 	Ret.Type = pDynamicZoneType;
 	return true;
 }
+
+} // namespace mq::datatypes

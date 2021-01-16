@@ -15,8 +15,19 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class PluginMembers
+{
+	Name = 1,
+	Version,
+};
+
+MQ2PluginType::MQ2PluginType() : MQ2Type("plugin")
+{
+	ScopedTypeMember(PluginMembers, Name);
+	ScopedTypeMember(PluginMembers, Version);
+}
 
 bool MQ2PluginType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -30,12 +41,12 @@ bool MQ2PluginType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 
 	switch (static_cast<PluginMembers>(pMember->ID))
 	{
-	case Name:
+	case PluginMembers::Name:
 		Dest.Ptr = pPlugin->szFilename;
 		Dest.Type = pStringType;
 		return true;
 
-	case Version:
+	case PluginMembers::Version:
 		Dest.Float = pPlugin->fpVersion;
 		Dest.Type = pFloatType;
 		return true;
@@ -88,3 +99,23 @@ bool MQ2PluginType::dataPlugin(const char* szIndex, MQTypeVar& Ret)
 
 	return false;
 }
+
+bool MQ2PluginType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (VarPtr.Ptr)
+	{
+		strcpy_s(Destination, MAX_STRING, ((MQPlugin*)VarPtr.Ptr)->szFilename);
+		return true;
+	}
+	return false;
+}
+
+bool MQ2PluginType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type != pPluginType)
+		return false;
+	VarPtr.Ptr = Source.Ptr;
+	return true;
+}
+
+} // namespace mq::datatypes

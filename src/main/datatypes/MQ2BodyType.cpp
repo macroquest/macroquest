@@ -15,8 +15,19 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class BodyMembers
+{
+	Name = 1,
+	ID,
+};
+
+MQ2BodyType::MQ2BodyType() : MQ2Type("body")
+{
+	ScopedTypeMember(BodyMembers, Name);
+	ScopedTypeMember(BodyMembers, ID);
+}
 
 bool MQ2BodyType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -26,12 +37,12 @@ bool MQ2BodyType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	switch (static_cast<BodyMembers>(pMember->ID))
 	{
-	case ID:
+	case BodyMembers::ID:
 		Dest.Ptr = VarPtr.Ptr;
 		Dest.Type = pIntType;
 		return true;
 
-	case Name:
+	case BodyMembers::Name:
 		strcpy_s(DataTypeTemp, GetBodyTypeDesc(VarPtr.DWord));
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
@@ -43,3 +54,23 @@ bool MQ2BodyType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	return false;
 }
 
+bool MQ2BodyType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	const char* pDesc = GetBodyTypeDesc(VarPtr.DWord);
+	strcpy_s(Destination, MAX_STRING, pDesc);
+	return true;
+}
+
+bool MQ2BodyType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	VarPtr.DWord = Source.DWord;
+	return true;
+}
+
+bool MQ2BodyType::FromString(MQVarPtr& VarPtr, const char* Source)
+{
+	VarPtr.DWord = GetIntFromString(Source, 0);
+	return true;
+}
+
+} // namespace mq::datatypes

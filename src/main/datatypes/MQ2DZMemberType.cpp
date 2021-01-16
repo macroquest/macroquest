@@ -15,8 +15,21 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class DZMemberTypeMembers
+{
+	Name = 1,
+	Status,
+	Flagged,
+};
+
+MQ2DZMemberType::MQ2DZMemberType() : MQ2Type("dzmember")
+{
+	ScopedTypeMember(DZMemberTypeMembers, Name);
+	ScopedTypeMember(DZMemberTypeMembers, Status);
+	ScopedTypeMember(DZMemberTypeMembers, Flagged);
+}
 
 bool MQ2DZMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -30,17 +43,17 @@ bool MQ2DZMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 
 	switch (static_cast<DZMemberTypeMembers>(pMember->ID))
 	{
-	case Name:
+	case DZMemberTypeMembers::Name:
 		strcpy_s(DataTypeTemp, pDynamicZoneMember->Name);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case Flagged:
+	case DZMemberTypeMembers::Flagged:
 		Dest.Set(pDynamicZoneMember->bFlagged);
 		Dest.Type = pBoolType;
 
-	case Status:
+	case DZMemberTypeMembers::Status:
 		strcpy_s(DataTypeTemp, "Unknown");
 		switch (pDynamicZoneMember->Status)
 		{
@@ -71,3 +84,10 @@ bool MQ2DZMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 	return false;
 }
 
+bool MQ2DZMemberType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	strcpy_s(Destination, MAX_STRING, reinterpret_cast<DynamicZonePlayerInfo*>(VarPtr.Ptr)->Name);
+	return true;
+}
+
+} // namespace mq::datatypes

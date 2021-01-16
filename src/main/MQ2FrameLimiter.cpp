@@ -1052,65 +1052,64 @@ MQ2FrameLimiterType::MQ2FrameLimiterType() : MQ2Type("framelimiter")
 
 bool MQ2FrameLimiterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	using FLTM = FrameLimiterTypeMembers;
 	auto pMember = MQ2FrameLimiterType::FindMember(Member);
 	if (pMember == nullptr)
 		return false;
 
-	switch (static_cast<FLTM>(pMember->ID))
+	switch (static_cast<FrameLimiterTypeMembers>(pMember->ID))
 	{
-	case FLTM::Enabled:
+	case FrameLimiterTypeMembers::Enabled:
 		Dest.Type = pBoolType;
 		Dest.Set(s_frameLimiter.IsEnabled());
 		return true;
 
-	case FLTM::Status:
+	case FrameLimiterTypeMembers::Status:
 		Dest.Type = pStringType;
 		strcpy_s(DataTypeTemp, s_frameLimiter.IsForeground() ? "Foreground" : "Background");
 		Dest.Set(&DataTypeTemp[0]);
 		return true;
 
-	case FLTM::CPU:
+	case FrameLimiterTypeMembers::CPU:
 		Dest.Type = pFloatType;
 		Dest.Set(s_frameLimiter.CPUUsage());
 		return true;
 
-	case FLTM::RenderFPS:
+	case FrameLimiterTypeMembers::RenderFPS:
 		Dest.Type = pFloatType;
 		Dest.Set(s_frameLimiter.RenderFPS());
 		return true;
 
-	case FLTM::SimulationFPS:
+	case FrameLimiterTypeMembers::SimulationFPS:
 		Dest.Type = pFloatType;
 		Dest.Set(s_frameLimiter.SimulationFPS());
 		return true;
 
-	case FLTM::BackgroundFPS:
+	case FrameLimiterTypeMembers::BackgroundFPS:
 		Dest.Type = pFloatType;
 		Dest.Set(s_frameLimiter.BackgroundFPS());
 		return true;
 
-	case FLTM::ForegroundFPS:
+	case FrameLimiterTypeMembers::ForegroundFPS:
 		Dest.Type = pFloatType;
 		Dest.Set(s_frameLimiter.ForegroundFPS());
 		return true;
 
-	case FLTM::MinSimulationFPS:
+	case FrameLimiterTypeMembers::MinSimulationFPS:
 		Dest.Type = pFloatType;
 		Dest.Set(s_frameLimiter.MinSimulationFPS());
 		return true;
 
-	case FLTM::MinImGuiFPS:
+	case FrameLimiterTypeMembers::MinImGuiFPS:
 		Dest.Type = pFloatType;
 		Dest.Set(s_frameLimiter.MinImGuiFPS());
 		return true;
 
-	case FLTM::MinUiFPS:
+	case FrameLimiterTypeMembers::MinUiFPS:
 		Dest.Type = pFloatType;
 		Dest.Set(s_frameLimiter.MinUiFPS());
 		return true;
 
-	case FLTM::ClearScreen:
+	case FrameLimiterTypeMembers::ClearScreen:
 		Dest.Type = pBoolType;
 		Dest.Set(s_frameLimiter.DoClearScreen());
 		return true;

@@ -15,8 +15,19 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class RaceMembers
+{
+	Name = 1,
+	ID,
+};
+
+MQ2RaceType::MQ2RaceType() : MQ2Type("race")
+{
+	ScopedTypeMember(RaceMembers, Name);
+	ScopedTypeMember(RaceMembers, ID);
+}
 
 bool MQ2RaceType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -26,12 +37,12 @@ bool MQ2RaceType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	switch (static_cast<RaceMembers>(pMember->ID))
 	{
-	case ID:
+	case RaceMembers::ID:
 		Dest.Ptr = VarPtr.Ptr;
 		Dest.Type = pIntType;
 		return true;
 
-	case Name:
+	case RaceMembers::Name:
 		strcpy_s(DataTypeTemp, pEverQuest->GetRaceDesc(VarPtr.DWord));
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
@@ -43,3 +54,23 @@ bool MQ2RaceType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	return false;
 }
 
+bool MQ2RaceType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	const char* pDesc = pEverQuest->GetRaceDesc(VarPtr.DWord);
+	strcpy_s(Destination, MAX_STRING, pDesc);
+	return true;
+}
+
+bool MQ2RaceType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	VarPtr.DWord = Source.DWord;
+	return true;
+}
+
+bool MQ2RaceType::FromString(MQVarPtr& VarPtr, const char* Source)
+{
+	VarPtr.DWord = GetIntFromString(Source, 0);
+	return true;
+}
+
+} // namespace mq::datatypes

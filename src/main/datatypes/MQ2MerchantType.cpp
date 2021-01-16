@@ -15,8 +15,44 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class MerchantMembers
+{
+	Markup = 1,
+	Item,
+	Items,
+	Open,
+	Full,
+	ItemsReceived,
+	SelectedItem,
+};
+
+enum MerchantMethods
+{
+	SelectItem = 1,
+	Buy,
+	Sell,
+	OpenWindow,
+	CloseWindow,
+};
+
+MQ2MerchantType::MQ2MerchantType() : MQ2Type("merchant")
+{
+	ScopedTypeMember(MerchantMembers, Markup);
+	ScopedTypeMember(MerchantMembers, Item);
+	ScopedTypeMember(MerchantMembers, Items);
+	ScopedTypeMember(MerchantMembers, Open);
+	ScopedTypeMember(MerchantMembers, Full);
+	ScopedTypeMember(MerchantMembers, ItemsReceived);
+	ScopedTypeMember(MerchantMembers, SelectedItem);
+
+	ScopedTypeMethod(MerchantMethods, SelectItem);
+	ScopedTypeMethod(MerchantMethods, Buy);
+	ScopedTypeMethod(MerchantMethods, Sell);
+	ScopedTypeMethod(MerchantMethods, OpenWindow);
+	ScopedTypeMethod(MerchantMethods, CloseWindow);
+}
 
 bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -31,7 +67,7 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 	{
 		switch (static_cast<MerchantMethods>(pMethod->ID))
 		{
-		case SelectItem: {
+		case MerchantMethods::SelectItem: {
 			if (pMerchantWnd->IsVisible())
 			{
 				bool bFound = false;
@@ -72,7 +108,7 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 			return true;
 		}
 
-		case Buy: {
+		case MerchantMethods::Buy: {
 			if (pMerchantWnd->IsVisible())
 			{
 				int Qty = GetIntFromString(Index, 0);
@@ -89,7 +125,7 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 			return true;
 		}
 
-		case Sell: {
+		case MerchantMethods::Sell: {
 			if (pMerchantWnd->IsVisible())
 			{
 				int Qty = GetIntFromString(Index, 0);
@@ -106,7 +142,7 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 			return true;
 		}
 
-		case OpenWindow: {
+		case MerchantMethods::OpenWindow: {
 			MQSpawnSearch SearchSpawn;
 			ClearSearchSpawn(&SearchSpawn);
 			SearchSpawn.FRadius = 999999.0f;
@@ -126,7 +162,7 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 			return true;
 		}
 
-		case CloseWindow:
+		case MerchantMethods::CloseWindow:
 			if (pMerchantWnd->IsVisible())
 			{
 				// Need to call deactivate here.
@@ -155,17 +191,17 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 
 	switch (static_cast<MerchantMembers>(pMember->ID))
 	{
-	case Open:
+	case MerchantMembers::Open:
 		Dest.Set(pMerchantWnd->IsVisible());
 		Dest.Type = pBoolType;
 		return true;
 
-	case ItemsReceived:
+	case MerchantMembers::ItemsReceived:
 		Dest.Set(gItemsReceived);
 		Dest.Type = pBoolType;
 		return true;
 
-	case Item:
+	case MerchantMembers::Item:
 		Dest.Type = pItemType;
 
 		if (Index[0])
@@ -207,22 +243,22 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 		}
 		return false;
 
-	case Items:
+	case MerchantMembers::Items:
 		Dest.DWord = pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer.GetSize();
 		Dest.Type = pIntType;
 		return true;
 
-	case SelectedItem:
+	case MerchantMembers::SelectedItem:
 		Dest.Ptr = pMerchantWnd->pSelectedItem.get();
 		Dest.Type = pItemType;
 		return true;
 
-	case Markup:
+	case MerchantMembers::Markup:
 		Dest.Float = pMerchantWnd->MerchantGreed;
 		Dest.Type = pFloatType;
 		return true;
 
-	case Full: {
+	case MerchantMembers::Full: {
 		Dest.Type = pBoolType;
 
 		VePointer<MerchantPageHandler>& page = pMerchantWnd->PageHandlers[RegularMerchantPage];
@@ -236,9 +272,24 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 	return false;
 }
 
+bool MQ2MerchantType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (pActiveMerchant && pMerchantWnd)
+	{
+		strcpy_s(Destination, MAX_STRING, "TRUE");
+	}
+	else
+	{
+		strcpy_s(Destination, MAX_STRING, "FALSE");
+	}
+	return true;
+}
+
 bool MQ2MerchantType::dataMerchant(const char* szIndex, MQTypeVar& Ret)
 {
 	Ret.Ptr = pActiveMerchant;
 	Ret.Type = pMerchantType;
 	return true;
 }
+
+} // namespace mq::datatypes

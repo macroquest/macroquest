@@ -15,8 +15,129 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class AlertListTypeMembers
+{
+	MinLevel = 1,
+	MaxLevel,
+	SpawnType,
+	SpawnID,
+	FromSpawnID,
+	Radius,
+	Name,
+	BodyType,
+	Race,
+	Class,
+	Light,
+	GuildID,
+	bSpawnID,
+	bNotNearAlert,
+	bNearAlert,
+	bNoAlert,
+	bAlert,
+	bLFG,
+	bTrader,
+	bLight,
+	bTargNext,
+	bTargPrev,
+	bGroup,
+	bNoGroup,
+	bRaid,
+	bGM,
+	bNamed,
+	bMerchant,
+	bTributeMaster,
+	bKnight,
+	bTank,
+	bHealer,
+	bDps,
+	bSlower,
+	bAura,
+	bBanner,
+	bCampfire,
+	NotID,
+	NotNearAlertList,
+	NearAlertList,
+	NoAlertList,
+	AlertList,
+	ZRadius,
+	FRadius,
+	xLoc,
+	yLoc,
+	bKnownLocation,
+	bNoPet,
+	SortBy,
+	bNoGuild,
+	bLoS,
+	bExactName,
+	bTargetable,
+	PlayerState,
+	Spawn,
+	bFellowship,
+	bBanker,
+};
+
+MQ2AlertListType::MQ2AlertListType() : MQ2Type("alertlist")
+{
+	ScopedTypeMember(AlertListTypeMembers, MinLevel);
+	ScopedTypeMember(AlertListTypeMembers, MaxLevel);
+	ScopedTypeMember(AlertListTypeMembers, SpawnType);
+	ScopedTypeMember(AlertListTypeMembers, SpawnID);
+	ScopedTypeMember(AlertListTypeMembers, FromSpawnID);
+	ScopedTypeMember(AlertListTypeMembers, Radius);
+	ScopedTypeMember(AlertListTypeMembers, Name);
+	ScopedTypeMember(AlertListTypeMembers, BodyType);
+	ScopedTypeMember(AlertListTypeMembers, Race);
+	ScopedTypeMember(AlertListTypeMembers, Class);
+	ScopedTypeMember(AlertListTypeMembers, Light);
+	ScopedTypeMember(AlertListTypeMembers, GuildID);
+	ScopedTypeMember(AlertListTypeMembers, bSpawnID);
+	ScopedTypeMember(AlertListTypeMembers, bNotNearAlert);
+	ScopedTypeMember(AlertListTypeMembers, bNearAlert);
+	ScopedTypeMember(AlertListTypeMembers, bNoAlert);
+	ScopedTypeMember(AlertListTypeMembers, bAlert);
+	ScopedTypeMember(AlertListTypeMembers, bLFG);
+	ScopedTypeMember(AlertListTypeMembers, bTrader);
+	ScopedTypeMember(AlertListTypeMembers, bLight);
+	ScopedTypeMember(AlertListTypeMembers, bTargNext);
+	ScopedTypeMember(AlertListTypeMembers, bTargPrev);
+	ScopedTypeMember(AlertListTypeMembers, bGroup);
+	ScopedTypeMember(AlertListTypeMembers, bNoGroup);
+	ScopedTypeMember(AlertListTypeMembers, bRaid);
+	ScopedTypeMember(AlertListTypeMembers, bGM);
+	ScopedTypeMember(AlertListTypeMembers, bNamed);
+	ScopedTypeMember(AlertListTypeMembers, bMerchant);
+	ScopedTypeMember(AlertListTypeMembers, bTributeMaster);
+	ScopedTypeMember(AlertListTypeMembers, bKnight);
+	ScopedTypeMember(AlertListTypeMembers, bTank);
+	ScopedTypeMember(AlertListTypeMembers, bHealer);
+	ScopedTypeMember(AlertListTypeMembers, bDps);
+	ScopedTypeMember(AlertListTypeMembers, bSlower);
+	ScopedTypeMember(AlertListTypeMembers, bAura);
+	ScopedTypeMember(AlertListTypeMembers, bBanner);
+	ScopedTypeMember(AlertListTypeMembers, bCampfire);
+	ScopedTypeMember(AlertListTypeMembers, NotID);
+	ScopedTypeMember(AlertListTypeMembers, NotNearAlertList);
+	ScopedTypeMember(AlertListTypeMembers, NearAlertList);
+	ScopedTypeMember(AlertListTypeMembers, NoAlertList);
+	ScopedTypeMember(AlertListTypeMembers, AlertList);
+	ScopedTypeMember(AlertListTypeMembers, ZRadius);
+	ScopedTypeMember(AlertListTypeMembers, FRadius);
+	ScopedTypeMember(AlertListTypeMembers, xLoc);
+	ScopedTypeMember(AlertListTypeMembers, yLoc);
+	ScopedTypeMember(AlertListTypeMembers, bKnownLocation);
+	ScopedTypeMember(AlertListTypeMembers, bNoPet);
+	ScopedTypeMember(AlertListTypeMembers, SortBy);
+	ScopedTypeMember(AlertListTypeMembers, bNoGuild);
+	ScopedTypeMember(AlertListTypeMembers, bLoS);
+	ScopedTypeMember(AlertListTypeMembers, bExactName);
+	ScopedTypeMember(AlertListTypeMembers, bTargetable);
+	ScopedTypeMember(AlertListTypeMembers, PlayerState);
+	ScopedTypeMember(AlertListTypeMembers, Spawn);
+	ScopedTypeMember(AlertListTypeMembers, bFellowship);
+	ScopedTypeMember(AlertListTypeMembers, bBanker);
+}
 
 bool MQ2AlertListType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -36,37 +157,37 @@ bool MQ2AlertListType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 			switch (static_cast<AlertListTypeMembers>(pMember->ID))
 			{
-			case MinLevel:
+			case AlertListTypeMembers::MinLevel:
 				Dest.DWord = search.MinLevel;
 				Dest.Type = pIntType;
 				return true;
 
-			case MaxLevel:
+			case AlertListTypeMembers::MaxLevel:
 				Dest.DWord = search.MaxLevel;
 				Dest.Type = pIntType;
 				return true;
 
-			case SpawnType:
+			case AlertListTypeMembers::SpawnType:
 				Dest.DWord = search.SpawnType;
 				Dest.Type = pIntType;
 				return true;
 
-			case SpawnID:
+			case AlertListTypeMembers::SpawnID:
 				Dest.DWord = search.SpawnID;
 				Dest.Type = pIntType;
 				return true;
 
-			case FromSpawnID:
+			case AlertListTypeMembers::FromSpawnID:
 				Dest.DWord = search.FromSpawnID;
 				Dest.Type = pIntType;
 				return true;
 
-			case Radius:
+			case AlertListTypeMembers::Radius:
 				Dest.Float = search.Radius;
 				Dest.Type = pFloatType;
 				return true;
 
-			case Name:
+			case AlertListTypeMembers::Name:
 				Dest.Type = pStringType;
 				strcpy_s(DataTypeTemp, search.szName);
 				if (DataTypeTemp[0])
@@ -76,7 +197,7 @@ bool MQ2AlertListType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				}
 				return false;
 
-			case BodyType:
+			case AlertListTypeMembers::BodyType:
 				Dest.Type = pStringType;
 				strcpy_s(DataTypeTemp, search.szBodyType);
 				if (DataTypeTemp[0]) {
@@ -85,7 +206,7 @@ bool MQ2AlertListType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				}
 				return false;
 
-			case Race:
+			case AlertListTypeMembers::Race:
 				Dest.Type = pStringType;
 				strcpy_s(DataTypeTemp, search.szRace);
 				if (DataTypeTemp[0]) {
@@ -94,7 +215,7 @@ bool MQ2AlertListType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				}
 				return false;
 
-			case Class:
+			case AlertListTypeMembers::Class:
 				Dest.Type = pStringType;
 				strcpy_s(DataTypeTemp, search.szClass);
 				if (DataTypeTemp[0]) {
@@ -103,7 +224,7 @@ bool MQ2AlertListType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				}
 				return false;
 
-			case Light:
+			case AlertListTypeMembers::Light:
 				Dest.Type = pStringType;
 				strcpy_s(DataTypeTemp, search.szLight);
 				if (DataTypeTemp[0])
@@ -113,232 +234,232 @@ bool MQ2AlertListType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				}
 				return false;
 
-			case GuildID:
+			case AlertListTypeMembers::GuildID:
 				Dest.UInt64 = search.GuildID;
 				Dest.Type = pInt64Type;
 				return true;
 
-			case bSpawnID:
+			case AlertListTypeMembers::bSpawnID:
 				Dest.Set(search.bSpawnID);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bNotNearAlert:
+			case AlertListTypeMembers::bNotNearAlert:
 				Dest.Set(search.bNotNearAlert);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bNearAlert:
+			case AlertListTypeMembers::bNearAlert:
 				Dest.Set(search.bNearAlert);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bNoAlert:
+			case AlertListTypeMembers::bNoAlert:
 				Dest.Set(search.bNoAlert);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bAlert:
+			case AlertListTypeMembers::bAlert:
 				Dest.Set(search.bAlert);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bLFG:
+			case AlertListTypeMembers::bLFG:
 				Dest.Set(search.bLFG);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bTrader:
+			case AlertListTypeMembers::bTrader:
 				Dest.Set(search.bTrader);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bLight:
+			case AlertListTypeMembers::bLight:
 				Dest.Set(search.bLight);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bTargNext:
+			case AlertListTypeMembers::bTargNext:
 				Dest.Set(search.bTargNext);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bTargPrev:
+			case AlertListTypeMembers::bTargPrev:
 				Dest.Set(search.bTargPrev);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bGroup:
+			case AlertListTypeMembers::bGroup:
 				Dest.Set(search.bGroup);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bFellowship:
+			case AlertListTypeMembers::bFellowship:
 				Dest.Set(search.bFellowship);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bNoGroup:
+			case AlertListTypeMembers::bNoGroup:
 				Dest.Set(search.bNoGroup);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bRaid:
+			case AlertListTypeMembers::bRaid:
 				Dest.Set(search.bRaid);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bGM:
+			case AlertListTypeMembers::bGM:
 				Dest.Set(search.bGM);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bNamed:
+			case AlertListTypeMembers::bNamed:
 				Dest.Set(search.bNamed);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bMerchant:
+			case AlertListTypeMembers::bMerchant:
 				Dest.Set(search.bMerchant);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bBanker:
+			case AlertListTypeMembers::bBanker:
 				Dest.Set(search.bBanker);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bTributeMaster:
+			case AlertListTypeMembers::bTributeMaster:
 				Dest.Set(search.bTributeMaster);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bKnight:
+			case AlertListTypeMembers::bKnight:
 				Dest.Set(search.bKnight);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bTank:
+			case AlertListTypeMembers::bTank:
 				Dest.Set(search.bTank);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bHealer:
+			case AlertListTypeMembers::bHealer:
 				Dest.Set(search.bHealer);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bDps:
+			case AlertListTypeMembers::bDps:
 				Dest.Set(search.bDps);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bSlower:
+			case AlertListTypeMembers::bSlower:
 				Dest.Set(search.bSlower);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bAura:
+			case AlertListTypeMembers::bAura:
 				Dest.Set(search.bAura);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bBanner:
+			case AlertListTypeMembers::bBanner:
 				Dest.Set(search.bBanner);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bCampfire:
+			case AlertListTypeMembers::bCampfire:
 				Dest.Set(search.bCampfire);
 				Dest.Type = pBoolType;
 				return true;
 
-			case NotID:
+			case AlertListTypeMembers::NotID:
 				Dest.DWord = search.NotID;
 				Dest.Type = pIntType;
 				return true;
 
-			case NotNearAlertList:
+			case AlertListTypeMembers::NotNearAlertList:
 				Dest.DWord = search.NotNearAlertList;
 				Dest.Type = pIntType;
 				return true;
 
-			case NearAlertList:
+			case AlertListTypeMembers::NearAlertList:
 				Dest.DWord = search.NearAlertList;
 				Dest.Type = pIntType;
 				return true;
 
-			case NoAlertList:
+			case AlertListTypeMembers::NoAlertList:
 				Dest.DWord = search.NoAlertList;
 				Dest.Type = pIntType;
 				return true;
 
-			case AlertList:
+			case AlertListTypeMembers::AlertList:
 				Dest.DWord = search.AlertList;
 				Dest.Type = pIntType;
 				return true;
 
-			case ZRadius:
+			case AlertListTypeMembers::ZRadius:
 				Dest.Double = search.ZRadius;
 				Dest.Type = pDoubleType;
 				return true;
 
-			case FRadius:
+			case AlertListTypeMembers::FRadius:
 				Dest.Double = search.FRadius;
 				Dest.Type = pDoubleType;
 				return true;
 
-			case xLoc:
+			case AlertListTypeMembers::xLoc:
 				Dest.Float = search.xLoc;
 				Dest.Type = pFloatType;
 				return true;
 
-			case yLoc:
+			case AlertListTypeMembers::yLoc:
 				Dest.Float = search.yLoc;
 				Dest.Type = pFloatType;
 				return true;
 
-			case bKnownLocation:
+			case AlertListTypeMembers::bKnownLocation:
 				Dest.Set(search.bKnownLocation);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bNoPet:
+			case AlertListTypeMembers::bNoPet:
 				Dest.Set(search.bNoPet);
 				Dest.Type = pBoolType;
 				return true;
 
-			case SortBy:
+			case AlertListTypeMembers::SortBy:
 				Dest.DWord = static_cast<unsigned int>(search.SortBy);
 				Dest.Type = pIntType;
 				return true;
 
-			case bNoGuild:
+			case AlertListTypeMembers::bNoGuild:
 				Dest.Set(search.bNoGuild);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bLoS:
+			case AlertListTypeMembers::bLoS:
 				Dest.Set(search.bLoS);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bExactName:
+			case AlertListTypeMembers::bExactName:
 				Dest.Set(search.bExactName);
 				Dest.Type = pBoolType;
 				return true;
 
-			case bTargetable:
+			case AlertListTypeMembers::bTargetable:
 				Dest.Set(search.bTargetable);
 				Dest.Type = pBoolType;
 				return true;
 
-			case PlayerState:
+			case AlertListTypeMembers::PlayerState:
 				Dest.DWord = search.PlayerState;
 				Dest.Type = pIntType;
 				return true;
 
-			case Spawn:
+			case AlertListTypeMembers::Spawn:
 				Dest.Type = pSpawnType;
 				if (uint32_t spawnid = search.SpawnID)
 				{
@@ -364,3 +485,12 @@ bool MQ2AlertListType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	return false;
 }
 
+bool MQ2AlertListType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	DWORD theindex = LOWORD(VarPtr.DWord);
+	DWORD theitem = HIWORD(VarPtr.DWord);
+	sprintf_s(Destination, 128, "${Alert[%d].List[%d].Name}", (int)theindex, (int)theitem);
+	return true;
+}
+
+} // namespace mq::datatypes

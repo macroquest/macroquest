@@ -15,8 +15,7 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
 
 enum class SpellMembers
 {
@@ -534,7 +533,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		strcpy_s(DataTypeTemp, " is the victim of an unknown spell.");
 		if (const char* str = GetSpellString(pSpell->ID, SpellStringCastOnAnother))
 			strcpy_s(DataTypeTemp, str);
-		
+
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
@@ -543,7 +542,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		strcpy_s(DataTypeTemp, "An unknown spell is gone.");
 		if (const char* str = GetSpellString(pSpell->ID, SpellStringWearOff))
 			strcpy_s(DataTypeTemp, str);
-		
+
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
@@ -1332,3 +1331,4 @@ bool MQ2SpellType::dataSpell(const char* szIndex, MQTypeVar& Ret)
 	return false;
 }
 
+} // namespace mq::datatypes

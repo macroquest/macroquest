@@ -15,8 +15,31 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class ItemFilterDataMembers
+{
+	Name = 1,
+	ID,
+	IconID,
+	AutoRoll,
+	Need,
+	Greed,
+	Never,
+	Types,
+};
+
+MQ2ItemFilterDataType::MQ2ItemFilterDataType() : MQ2Type("itemfilterdata")
+{
+	ScopedTypeMember(ItemFilterDataMembers, Name);
+	ScopedTypeMember(ItemFilterDataMembers, ID);
+	ScopedTypeMember(ItemFilterDataMembers, IconID);
+	ScopedTypeMember(ItemFilterDataMembers, AutoRoll);
+	ScopedTypeMember(ItemFilterDataMembers, Need);
+	ScopedTypeMember(ItemFilterDataMembers, Greed);
+	ScopedTypeMember(ItemFilterDataMembers, Never);
+	ScopedTypeMember(ItemFilterDataMembers, Types);
+}
 
 bool MQ2ItemFilterDataType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -30,7 +53,7 @@ bool MQ2ItemFilterDataType::GetMember(MQVarPtr VarPtr, const char* Member, char*
 
 	switch (static_cast<ItemFilterDataMembers>(pMember->ID))
 	{
-	case Name:
+	case ItemFilterDataMembers::Name:
 		Dest.Type = pStringType;
 		if (pItem && pItem->Name[0])
 		{
@@ -40,12 +63,12 @@ bool MQ2ItemFilterDataType::GetMember(MQVarPtr VarPtr, const char* Member, char*
 		}
 		return false;
 
-	case ID:
+	case ItemFilterDataMembers::ID:
 		Dest.DWord = pItem->ID;
 		Dest.Type = pIntType;
 		return true;
 
-	case AutoRoll:
+	case ItemFilterDataMembers::AutoRoll:
 		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (pItem)
@@ -55,7 +78,7 @@ bool MQ2ItemFilterDataType::GetMember(MQVarPtr VarPtr, const char* Member, char*
 		}
 		return true;
 
-	case Need:
+	case ItemFilterDataMembers::Need:
 		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (pItem)
@@ -65,7 +88,7 @@ bool MQ2ItemFilterDataType::GetMember(MQVarPtr VarPtr, const char* Member, char*
 		}
 		return true;
 
-	case Greed:
+	case ItemFilterDataMembers::Greed:
 		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (pItem)
@@ -75,7 +98,7 @@ bool MQ2ItemFilterDataType::GetMember(MQVarPtr VarPtr, const char* Member, char*
 		}
 		return true;
 
-	case Never:
+	case ItemFilterDataMembers::Never:
 		Dest.Set(false);
 		Dest.Type = pBoolType;
 		if (pItem)
@@ -85,7 +108,7 @@ bool MQ2ItemFilterDataType::GetMember(MQVarPtr VarPtr, const char* Member, char*
 		}
 		return true;
 
-	case IconID:
+	case ItemFilterDataMembers::IconID:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (pItem)
@@ -95,7 +118,7 @@ bool MQ2ItemFilterDataType::GetMember(MQVarPtr VarPtr, const char* Member, char*
 		}
 		return false;
 
-	case Types:
+	case ItemFilterDataMembers::Types:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (pItem)
@@ -110,3 +133,22 @@ bool MQ2ItemFilterDataType::GetMember(MQVarPtr VarPtr, const char* Member, char*
 	return false;
 }
 
+bool MQ2ItemFilterDataType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (ItemFilterData* pitem = (ItemFilterData*)VarPtr.Ptr)
+	{
+		strcpy_s(Destination, 64, pitem->Name);
+		return true;
+	}
+	return false;
+}
+
+bool MQ2ItemFilterDataType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type != pItemFilterDataType)
+		return false;
+	VarPtr.Ptr = Source.Ptr;
+	return true;
+}
+
+} // namespace mq::datatypes

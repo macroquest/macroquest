@@ -15,8 +15,7 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
 
 enum class TaskTypeMembers
 {
@@ -415,7 +414,7 @@ bool MQ2TaskType::dataTask(const char* szIndex, MQTypeVar& Ret)
 		return true;
 	}
 
-	// look up the task by name -- we loop by index here because it's the easiest way to 
+	// look up the task by name -- we loop by index here because it's the easiest way to
 	// loop by address of the task arrays
 	for (auto& SharedTaskEntry : pTaskManager->SharedTaskEntries)
 	{
@@ -440,3 +439,4 @@ bool MQ2TaskType::dataTask(const char* szIndex, MQTypeVar& Ret)
 	return false;
 }
 
+} // namespace mq::datatypes

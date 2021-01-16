@@ -17,6 +17,30 @@
 
 namespace mq::datatypes {
 
+enum class RaidMemberMembers
+{
+	Name = 1,
+	Group,
+	GroupLeader,
+	RaidLeader,
+	Spawn,
+	Looter,
+	Class,
+	Level,
+};
+
+MQ2RaidMemberType::MQ2RaidMemberType() : MQ2Type("raidmember")
+{
+	ScopedTypeMember(RaidMemberMembers, Name);
+	ScopedTypeMember(RaidMemberMembers, Group);
+	ScopedTypeMember(RaidMemberMembers, GroupLeader);
+	ScopedTypeMember(RaidMemberMembers, RaidLeader);
+	ScopedTypeMember(RaidMemberMembers, Spawn);
+	ScopedTypeMember(RaidMemberMembers, Looter);
+	ScopedTypeMember(RaidMemberMembers, Class);
+	ScopedTypeMember(RaidMemberMembers, Level);
+}
+
 bool MQ2RaidMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	int nRaidMember = VarPtr.Int - 1;
@@ -26,7 +50,7 @@ bool MQ2RaidMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 	if (!pRaid->RaidMemberUsed[nRaidMember])
 		return false;
 
-	EQRAIDMEMBER* pRaidMember = &pRaid->RaidMember[nRaidMember];
+	RaidPlayer* pRaidMember = &pRaid->RaidMember[nRaidMember];
 	MQTypeMember* pMember = MQ2RaidMemberType::FindMember(Member);
 
 	if (!pMember)
@@ -42,28 +66,28 @@ bool MQ2RaidMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 
 	switch (static_cast<RaidMemberMembers>(pMember->ID))
 	{
-	case Name:
+	case RaidMemberMembers::Name:
 		strcpy_s(DataTypeTemp, pRaidMember->Name);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case Group:
+	case RaidMemberMembers::Group:
 		Dest.DWord = pRaidMember->GroupNumber + 1;
 		Dest.Type = pIntType;
 		return true;
 
-	case GroupLeader:
+	case RaidMemberMembers::GroupLeader:
 		Dest.Set(pRaidMember->GroupLeader);
 		Dest.Type = pBoolType;
 		return true;
 
-	case RaidLeader:
+	case RaidMemberMembers::RaidLeader:
 		Dest.Set(pRaidMember->RaidLeader);
 		Dest.Type = pBoolType;
 		return true;
 
-	case Looter:
+	case RaidMemberMembers::Looter:
 		Dest.Set(false);
 		Dest.Type = pBoolType;
 
@@ -81,9 +105,9 @@ bool MQ2RaidMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 
 		if (pRaid->LootType == RaidLootAssignments)
 		{
-			for (int index = 0; index < MAX_RAID_LOOTERS; index++)
+			for (auto& RaidLooter : pRaid->RaidLooters)
 			{
-				if (ci_equals(pRaid->RaidLooters[index], pRaidMember->Name))
+				if (ci_equals(RaidLooter, pRaidMember->Name))
 				{
 					Dest.Set(true);
 					return true;
@@ -92,7 +116,7 @@ bool MQ2RaidMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		}
 		return true;
 
-	case Spawn:
+	case RaidMemberMembers::Spawn:
 		Dest.Type = pSpawnType;
 		if (Dest.Ptr = (SPAWNINFO*)GetSpawnByName(pRaidMember->Name))
 		{
@@ -100,12 +124,12 @@ bool MQ2RaidMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		}
 		return false;
 
-	case Level:
+	case RaidMemberMembers::Level:
 		Dest.DWord = pRaidMember->nLevel;
 		Dest.Type = pIntType;
 		return true;
 
-	case Class:
+	case RaidMemberMembers::Class:
 		Dest.DWord = pRaidMember->nClass;
 		Dest.Type = pClassType;
 		return true;
@@ -114,6 +138,26 @@ bool MQ2RaidMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 	}
 
 	return false;
+}
+
+bool MQ2RaidMemberType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	DWORD nRaidMember = VarPtr.DWord - 1;
+	if (VarPtr.DWord >= 72)
+		return false;
+	if (!pRaid->RaidMemberUsed[nRaidMember])
+		return false;
+	RaidPlayer* pRaidMember = &pRaid->RaidMember[nRaidMember];
+	strcpy_s(Destination, MAX_STRING, pRaidMember->Name);
+	return true;
+}
+
+bool MQ2RaidMemberType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+{
+	if (Source.Type != pRaidMemberType)
+		return false;
+	VarPtr.Ptr = Source.Ptr;
+	return true;
 }
 
 } // namespace mq::datatypes

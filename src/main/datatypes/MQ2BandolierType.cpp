@@ -15,8 +15,30 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class BandolierTypeMembers
+{
+	Index = 1,
+	Active,
+	Name,
+	Item,
+};
+
+enum class BandolierTypeMethods
+{
+	Activate = 1,
+};
+
+MQ2BandolierType::MQ2BandolierType() : MQ2Type("bandolier")
+{
+	ScopedTypeMember(BandolierTypeMembers, Index);
+	ScopedTypeMember(BandolierTypeMembers, Active);
+	ScopedTypeMember(BandolierTypeMembers, Name);
+	ScopedTypeMember(BandolierTypeMembers, Item);
+
+	ScopedTypeMethod(BandolierTypeMethods, Activate);
+}
 
 bool MQ2BandolierType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -41,7 +63,7 @@ bool MQ2BandolierType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	{
 		switch (static_cast<BandolierTypeMembers>(pMember->ID))
 		{
-		case Active: {
+		case BandolierTypeMembers::Active: {
 			Dest.Set(false);
 			Dest.Type = pBoolType;
 
@@ -71,12 +93,12 @@ bool MQ2BandolierType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			return true;
 		}
 
-		case xIndex:
+		case BandolierTypeMembers::Index:
 			Dest.DWord = index + 1;
 			Dest.Type = pIntType;
 			return true;
 
-		case Item: {
+		case BandolierTypeMembers::Item: {
 			Dest.Type = pBandolierItemType;
 			if (!Index[0])
 				return false;
@@ -87,7 +109,7 @@ bool MQ2BandolierType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			return true;
 		}
 
-		case Name:
+		case BandolierTypeMembers::Name:
 			strcpy_s(DataTypeTemp, pBand->Name);
 			Dest.Ptr = DataTypeTemp;
 			Dest.Type = pStringType;
@@ -107,7 +129,7 @@ bool MQ2BandolierType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	{
 		switch (static_cast<BandolierTypeMethods>(pMethod->ID))
 		{
-		case Activate:
+		case BandolierTypeMethods::Activate:
 			pPCData->BandolierSwap(index);
 
 			if (pBandolierWnd)
@@ -127,3 +149,16 @@ bool MQ2BandolierType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	return false;
 }
+
+bool MQ2BandolierType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (PcProfile* pProfile = GetPcProfile())
+	{
+		int index = std::clamp(VarPtr.Int, 0, MAX_BANDOLIER_ITEMS - 1);
+		strcpy_s(Destination, MAX_STRING, pProfile->Bandolier[index].Name);
+		return true;
+	}
+	return false;
+}
+
+} // namespace mq::datatypes

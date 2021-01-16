@@ -15,8 +15,27 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class WorldLocationTypeMembers
+{
+	ID = 1,
+	Y,
+	X,
+	Z,
+	Heading,
+	Zone,
+};
+
+MQ2WorldLocationType::MQ2WorldLocationType() : MQ2Type("worldlocation")
+{
+	ScopedTypeMember(WorldLocationTypeMembers, ID);
+	ScopedTypeMember(WorldLocationTypeMembers, Y);
+	ScopedTypeMember(WorldLocationTypeMembers, X);
+	ScopedTypeMember(WorldLocationTypeMembers, Z);
+	ScopedTypeMember(WorldLocationTypeMembers, Heading);
+	ScopedTypeMember(WorldLocationTypeMembers, Zone);
+}
 
 bool MQ2WorldLocationType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -32,14 +51,14 @@ bool MQ2WorldLocationType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 
 	switch (static_cast<WorldLocationTypeMembers>(pMember->ID))
 	{
-	case ID: {
+	case WorldLocationTypeMembers::ID: {
 		int zindex = pProfile->BoundLocations[index].ZoneBoundID;
 		Dest.DWord = zindex;
 		Dest.Type = pIntType;
 		return true;
 	}
 
-	case Zone: {
+	case WorldLocationTypeMembers::Zone: {
 		Dest.Type = pZoneType;
 
 		int zindex = pProfile->BoundLocations[index].ZoneBoundID & 0x7FFF;
@@ -53,22 +72,22 @@ bool MQ2WorldLocationType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 		return true;
 	}
 
-	case Y:
+	case WorldLocationTypeMembers::Y:
 		Dest.Float = pProfile->BoundLocations[index].ZoneBoundY;
 		Dest.Type = pFloatType;
 		return true;
 
-	case X:
+	case WorldLocationTypeMembers::X:
 		Dest.Float = pProfile->BoundLocations[index].ZoneBoundX;
 		Dest.Type = pFloatType;
 		return true;
 
-	case Z:
+	case WorldLocationTypeMembers::Z:
 		Dest.Float = pProfile->BoundLocations[index].ZoneBoundZ;
 		Dest.Type = pFloatType;
 		return true;
 
-	case Heading:
+	case WorldLocationTypeMembers::Heading:
 		Dest.Float = pProfile->BoundLocations[index].ZoneBoundHeading;
 		Dest.Type = pFloatType;
 		return true;
@@ -79,3 +98,23 @@ bool MQ2WorldLocationType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 	return false;
 }
 
+bool MQ2WorldLocationType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (PcProfile* pProfile = GetPcProfile())
+	{
+		int index = std::clamp(VarPtr.Int, 0, 4);
+
+		int zindex = pProfile->BoundLocations[index].ZoneBoundID & 0x7FFF;
+		if (zindex < MAX_ZONES)
+		{
+			if (EQZoneInfo* pList = pWorldData->ZoneArray[zindex])
+			{
+				strcpy_s(Destination, MAX_STRING, pList->ShortName);
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+} // namespace mq::datatypes

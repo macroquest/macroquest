@@ -15,8 +15,7 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
 
 enum class TaskObjectiveTypeMembers
 {
@@ -34,7 +33,8 @@ enum class TaskObjectiveTypeMembers
 	CurrentCount
 };
 
-struct ObjectiveIndex {
+struct ObjectiveIndex
+{
 	int taskIndex;
 	int objectiveIndex;
 	TaskSystemType systemType;
@@ -305,3 +305,4 @@ bool MQ2TaskObjectiveType::ToString(MQVarPtr VarPtr, char* Destination)
 	return false;
 }
 
+} // namespace mq::datatypes

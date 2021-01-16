@@ -17,8 +17,7 @@
 
 #include "MQ2Mercenaries.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
 
 enum class CharacterMembers
 {
@@ -4179,3 +4178,4 @@ bool MQ2CharacterType::dataCharacter(const char* szIndex, MQTypeVar& Ret)
 	return false;
 }
 
+} // namespace mq::datatypes

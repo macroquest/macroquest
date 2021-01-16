@@ -15,8 +15,7 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
 
 enum class SpawnMembers
 {
@@ -1980,3 +1979,4 @@ bool MQ2SpawnType::dataItemTarget(const char* szIndex, MQTypeVar& Ret)
 	return false;
 }
 
+} // namespace mq::datatypes
