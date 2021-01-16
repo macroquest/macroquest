@@ -15,8 +15,16 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-namespace mq {
-namespace datatypes {
+namespace mq::datatypes {
+
+enum class ZoneMembers
+{
+	Name = 1,
+	ShortName = 2,
+	ID = 3,
+	Address = 4,
+	ZoneFlags = 5,
+};
 
 MQ2ZoneType::MQ2ZoneType() : MQ2Type("zone")
 {
@@ -104,4 +112,63 @@ bool MQ2ZoneType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	return false;
 }
 
-}} // namespace mq::datatypes
+bool MQ2ZoneType::dataZone(const char* szIndex, MQTypeVar& Ret)
+{
+	if (!szIndex[0])
+	{
+		Ret.DWord = instEQZoneInfo;
+		Ret.Type = pCurrentZoneType;
+		return true;
+	}
+	if (IsNumber(szIndex))
+	{
+		EQZoneInfo* pZone = nullptr;
+
+		if (int nIndex = (GetIntFromString(szIndex, 0) & 0x7FFF))
+		{
+			if (CHARINFO* pChar = GetCharInfo()) {
+				if ((pChar->zoneId & 0x7FFF) == nIndex)
+				{
+					Ret.DWord = instEQZoneInfo;
+					Ret.Type = pCurrentZoneType;
+				}
+				else if (nIndex < MAX_ZONES)
+				{
+					Ret.Ptr = pWorldData->ZoneArray[nIndex];
+					Ret.Type = pZoneType;
+				}
+
+				if (!Ret.Ptr)
+					return false;
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	int nIndex = GetZoneID(szIndex);
+	if (nIndex != -1)
+	{
+		if (CHARINFO* pChar = GetCharInfo())
+		{
+			if ((pChar->zoneId & 0x7FFF) == nIndex)
+			{
+				Ret.DWord = instEQZoneInfo;
+				Ret.Type = pCurrentZoneType;
+			}
+			else if (nIndex < MAX_ZONES)
+			{
+				Ret.Ptr = pWorldData->ZoneArray[nIndex];
+				Ret.Type = pZoneType;
+			}
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
+} // namespace mq::datatypes

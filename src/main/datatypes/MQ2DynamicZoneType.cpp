@@ -125,3 +125,10 @@ bool MQ2DynamicZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 	return false;
 }
 
+
+bool MQ2DynamicZoneType::dataDynamicZone(const char* szIndex, MQTypeVar& Ret)
+{
+	Ret.DWord = 0;
+	Ret.Type = pDynamicZoneType;
+	return true;
+}

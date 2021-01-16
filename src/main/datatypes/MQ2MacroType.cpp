@@ -252,4 +252,16 @@ bool MQ2MacroType::ToString(MQVarPtr VarPtr, char* Destination)
 	return false;
 }
 
+bool MQ2MacroType::dataMacro(const char* szIndex, MQTypeVar& Ret)
+{
+	if (gRunning)
+	{
+		Ret.Ptr = 0;
+		Ret.Type = pMacroType;
+		return true;
+	}
+
+	return false;
+}
+
 } // namespace mq::datatypes

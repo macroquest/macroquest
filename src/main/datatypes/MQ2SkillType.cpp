@@ -121,3 +121,40 @@ bool MQ2SkillType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	return false;
 }
 
+bool MQ2SkillType::dataSkill(const char* szIndex, MQTypeVar& Ret)
+{
+	if (!szIndex[0])
+		return false;
+
+	if (IsNumber(szIndex))
+	{
+		int nSkill = GetIntFromString(szIndex, 0) - 1;
+		if (nSkill < 0)
+			nSkill = 0;
+
+		if (nSkill > NUM_SKILLS)
+			return false;
+
+		Ret.Ptr = &pSkillMgr->pSkill[nSkill];
+		Ret.Type = pSkillType;
+		return true;
+	}
+
+	for (int nSkill = 0; nSkill < NUM_SKILLS; nSkill++)
+	{
+		if (SKILL* pSkill = pSkillMgr->pSkill[nSkill])
+		{
+			if (const char* pName = pStringTable->getString(pSkill->nName))
+			{
+				if (!_stricmp(szIndex, pName))
+				{
+					Ret.Ptr = &pSkillMgr->pSkill[nSkill];
+					Ret.Type = pSkillType;
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
+}

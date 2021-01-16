@@ -314,3 +314,9 @@ bool MQ2MathType::ToString(MQVarPtr VarPtr, char* Destination)
 	return false;
 }
 
+bool MQ2MathType::dataMath(const char* szIndex, MQTypeVar& Ret)
+{
+	Ret.Ptr = nullptr;
+	Ret.Type = pMathType;
+	return true;
+}

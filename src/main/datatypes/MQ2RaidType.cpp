@@ -348,4 +348,11 @@ bool MQ2RaidType::ToString(MQVarPtr VarPtr, char* Destination)
 	return false;
 }
 
+bool MQ2RaidType::dataRaid(const char* szIndex, MQTypeVar& Ret)
+{
+	Ret.DWord = 0;
+	Ret.Type = pRaidType;
+	return true;
+}
+
 } // namespace mq::datatypes

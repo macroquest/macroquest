@@ -61,7 +61,6 @@ using namespace eqlib;
 #include "MQ2Internal.h"
 #include "MQ2Globals.h"
 #include "MQ2Inlines.h"
-#include "MQ2TopLevelObjects.h"
 #include "MQ2Commands.h"
 #include "MQ2DataContainers.h"
 #include "MQ2Utilities.h"

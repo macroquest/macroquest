@@ -288,7 +288,6 @@ bool MQ2SwitchType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-
 void MQ2SwitchType::InitVariable(MQVarPtr& VarPtr)
 {
 	// FIXME: Do not allocate a DOOR
@@ -311,3 +310,13 @@ bool MQ2SwitchType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	return true;
 }
 
+bool MQ2SwitchType::dataSwitch(const char* szIndex, MQTypeVar& Ret)
+{
+	if (pDoorTarget)
+	{
+		Ret.Ptr = pDoorTarget;
+		Ret.Type = pSwitchType;
+		return true;
+	}
+	return false;
+}

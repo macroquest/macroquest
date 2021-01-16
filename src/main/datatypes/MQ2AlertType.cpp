@@ -15,8 +15,7 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
 
 MQ2AlertType::MQ2AlertType() : MQ2Type("alert")
 {
@@ -71,3 +70,31 @@ bool MQ2AlertType::ToString(MQVarPtr VarPtr, char* Destination)
 	return false;
 }
 
+bool MQ2AlertType::dataAlert(const char* szIndex, MQTypeVar& Ret)
+{
+	if (!szIndex[0])
+	{
+		char szTemp[2048] = { 0 };
+
+		if (CAlerts.ListAlerts(szTemp, 2048))
+		{
+			strcpy_s(DataTypeTemp, szTemp);
+			Ret.Ptr = &DataTypeTemp[0];
+			Ret.Type = pStringType;
+			return true;
+		}
+
+		return false;
+	}
+
+	if (IsNumber(szIndex))
+	{
+		Ret.DWord = GetIntFromString(szIndex, 0);
+		Ret.Type = pAlertType;
+		return true;
+	}
+
+	return false;
+}
+
+} // namespace mq::datatypes

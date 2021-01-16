@@ -68,3 +68,14 @@ bool MQ2PointMerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 	return false;
 }
 
+bool MQ2PointMerchantType::dataPointMerchant(const char* szIndex, MQTypeVar& Ret)
+{
+	if (pMerchantWnd)
+	{
+		Ret.Ptr = pMerchantWnd;
+		Ret.Type = pPointMerchantType;
+		return true;
+	}
+
+	return false;
+}

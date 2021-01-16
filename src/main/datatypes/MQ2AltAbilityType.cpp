@@ -204,3 +204,53 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 	return false;
 }
 
+bool MQ2AltAbilityType::dataAltAbility(const char* szIndex, MQTypeVar& Ret)
+{
+	if (!szIndex[0])
+		return false;
+
+	if (IsNumber(szIndex))
+	{
+		for (int nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++)
+		{
+			if (ALTABILITY* pAbility = GetAAByIdWrapper(nAbility))
+			{
+				if (pAbility->ID == GetIntFromString(szIndex, 0))
+				{
+					Ret.Ptr = pAbility;
+					Ret.Type = pAltAbilityType;
+					return true;
+				}
+			}
+		}
+	}
+	else
+	{
+		// we need to get the level appropriate one if they just supplied a name
+		int level = -1;
+		if (SPAWNINFO* pMe = (SPAWNINFO*)pLocalPlayer)
+		{
+			level = pMe->Level;
+		}
+
+		for (int nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++)
+		{
+			if (PALTABILITY pAbility = GetAAByIdWrapper(nAbility, level))
+			{
+				if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
+				{
+					if (!_stricmp(szIndex, pName))
+					{
+						Ret.Ptr = pAbility;
+						Ret.Type = pAltAbilityType;
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+

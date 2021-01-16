@@ -383,7 +383,7 @@ public:
 	static bool dataHeading(const char* szIndex, MQTypeVar& Ret);
 };
 
-#pragma endregion // Basic Types
+#pragma endregion
 
 //============================================================================
 // MQ2SpawnType
@@ -392,12 +392,14 @@ class MQ2SpawnType : public MQ2Type
 {
 public:
 	MQ2SpawnType();
+
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	void InitVariable(MQVarPtr& VarPtr) override;
 	void FreeVariable(MQVarPtr& VarPtr) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
+
 	static bool dataSpawn(const char* szIndex, MQTypeVar& Ret);
 	static bool dataSpawnCount(const char* szIndex, MQTypeVar& Ret);
 	static bool dataLastSpawn(const char* szIndex, MQTypeVar& Ret);
@@ -413,9 +415,11 @@ class MQ2CharacterType : public MQ2Type
 {
 public:
 	MQ2CharacterType();
+
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
 	static bool dataCharacter(const char* szIndex, MQTypeVar& Ret);
 };
 
@@ -426,11 +430,13 @@ class MQ2SpellType : public MQ2Type
 {
 public:
 	MQ2SpellType();
+
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	void InitVariable(MQVarPtr& VarPtr) override;
 	void FreeVariable(MQVarPtr& VarPtr) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
 	static bool dataSpell(const char* szIndex, MQTypeVar& Ret);
 };
 
@@ -441,6 +447,7 @@ class MQ2BuffType : public MQ2Type
 {
 public:
 	MQ2BuffType();
+
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
@@ -453,6 +460,7 @@ class MQ2CachedBuffType : public MQ2Type
 {
 public:
 	MQ2CachedBuffType();
+
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
@@ -465,6 +473,7 @@ class MQ2ItemSpellType : public MQ2Type
 {
 public:
 	MQ2ItemSpellType();
+
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	void InitVariable(MQVarPtr& VarPtr) override;
@@ -479,11 +488,19 @@ class MQ2ItemType : public MQ2Type
 {
 public:
 	MQ2ItemType();
+
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	void InitVariable(MQVarPtr& VarPtr) override;
 	void FreeVariable(MQVarPtr& VarPtr) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	static bool dataCursor(const char* szIndex, MQTypeVar& Ret);
+	static bool dataSelectedItem(const char* szIndex, MQTypeVar& Ret);
+	static bool dataFindItemBank(const char* szIndex, MQTypeVar& Ret);
+	static bool dataFindItem(const char* szIndex, MQTypeVar& Ret);
+	static bool dataFindItemCount(const char* szIndex, MQTypeVar& Ret);
+	static bool dataFindItemBankCount(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -493,11 +510,14 @@ class MQ2SwitchType : public MQ2Type
 {
 public:
 	MQ2SwitchType();
+
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	void InitVariable(MQVarPtr& VarPtr) override;
 	void FreeVariable(MQVarPtr& VarPtr) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	static bool dataSwitch(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -507,10 +527,12 @@ class MQ2GroundType : public MQ2Type
 {
 public:
 	MQ2GroundType();
+
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
+
 	static bool dataGroundItem(const char* szIndex, MQTypeVar& Ret);
 	static bool dataGroundItemCount(const char* szIndex, MQTypeVar& Ret);
 };
@@ -521,38 +543,12 @@ public:
 class MQ2CorpseType : public MQ2Type
 {
 public:
-	enum CorpseMembers
-	{
-		Open = 1,
-		Item = 2,
-		Items = 3,
-	};
-
-	enum CorpseMethods
-	{
-	};
-
-	MQ2CorpseType() : MQ2Type("corpse")
-	{
-		TypeMember(Open);
-		TypeMember(Item);
-		TypeMember(Items);
-	}
+	MQ2CorpseType();
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		if (pActiveCorpse && pLootWnd)
-		{
-			strcpy_s(Destination, MAX_STRING, "TRUE");
-		}
-		else
-		{
-			strcpy_s(Destination, MAX_STRING, "FALSE");
-		}
-		return true;
-	}
+	static bool dataCorpse(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -612,6 +608,8 @@ public:
 		}
 		return true;
 	}
+
+	static bool dataMerchant(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -660,6 +658,8 @@ public:
 		}
 		return true;
 	}
+
+	static bool dataPointMerchant(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -675,6 +675,8 @@ public:
 	void FreeVariable(MQVarPtr& VarPtr) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
+
+	static bool dataMercenary(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -684,12 +686,15 @@ class MQ2PetType : public MQ2Type
 {
 public:
 	MQ2PetType();
+
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	void InitVariable(MQVarPtr& VarPtr) override;
 	void FreeVariable(MQVarPtr& VarPtr) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
+
+	static bool dataPet(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -711,10 +716,13 @@ class MQ2WindowType : public MQ2Type
 {
 public:
 	MQ2WindowType();
+
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
+
+	static bool dataWindow(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -777,6 +785,8 @@ public:
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
+
+	static bool dataMenu(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -789,6 +799,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
+	static bool dataMacro(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -796,21 +808,14 @@ public:
 
 class MQ2ZoneType : public MQ2Type
 {
-	enum class ZoneMembers
-	{
-		Name = 1,
-		ShortName = 2,
-		ID = 3,
-		Address = 4,
-		ZoneFlags = 5,
-	};
-
 public:
 	MQ2ZoneType();
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	static bool dataZone(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -929,8 +934,10 @@ class MQ2EverQuestType : public MQ2Type
 {
 public:
 	MQ2EverQuestType();
+
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
 	static bool dataEverQuest(const char* szIndex, MQTypeVar& Ret);
 };
 
@@ -941,8 +948,10 @@ class MQ2MacroQuestType : public MQ2Type
 {
 public:
 	MQ2MacroQuestType();
+
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
 	static bool dataMacroQuest(const char* szIndex, MQTypeVar& Ret);
 };
 
@@ -953,8 +962,11 @@ class MQ2MathType : public MQ2Type
 {
 public:
 	MQ2MathType();
+
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
+	static bool dataMath(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -1186,6 +1198,8 @@ public:
 		}
 		return false;
 	}
+
+	static bool dataInvSlot(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -1225,6 +1239,8 @@ public:
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
+
+	static bool dataPlugin(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -1331,6 +1347,8 @@ public:
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
+
+	static bool dataSkill(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -1407,6 +1425,8 @@ public:
 		VarPtr.Ptr = Source.Ptr;
 		return true;
 	}
+
+	static bool dataAltAbility(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -1485,8 +1505,9 @@ public:
 	}
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
-
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
+	static bool dataGroup(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -1562,6 +1583,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
+	static bool dataRaid(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -1694,6 +1717,8 @@ public:
 		}
 		return false;
 	}
+
+	static bool dataDynamicZone(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -1784,6 +1809,8 @@ public:
 		}
 		return false;
 	}
+
+	static bool dataFriends(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -1947,6 +1974,8 @@ public:
 	MQ2AdvLootType();
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override { return false; }
+
+	static bool dataAdvLoot(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -1965,6 +1994,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
+	static bool dataAlert(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -2306,6 +2337,19 @@ public:
 	MQ2FrameLimiterType();
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
+	static bool dataFrameLimiter(const char* szIndex, MQTypeVar& Ret);
 };
 
-} // namespace mq
+//----------------------------------------------------------------------------
+
+bool dataIf(const char* szIndex, MQTypeVar& Ret);
+bool dataGameTime(const char* szIndex, MQTypeVar& Ret);
+bool dataIni(const char* szIndex, MQTypeVar& Ret);
+bool dataDefined(const char* szIndex, MQTypeVar& Ret);
+bool dataSubDefined(const char* szIndex, MQTypeVar& Ret);
+bool dataLineOfSight(const char* szIndex, MQTypeVar& Ret);
+bool dataSelect(const char* szIndex, MQTypeVar& Ret);
+bool dataAlias(const char* szIndex, MQTypeVar& Ret);
+
+} // namespace mq::datatypes

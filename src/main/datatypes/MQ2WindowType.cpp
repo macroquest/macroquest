@@ -15,8 +15,7 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
 
 enum class WindowMembers
 {
@@ -735,3 +734,18 @@ bool MQ2WindowType::FromString(MQVarPtr& VarPtr, const char* Source)
 	return false;
 }
 
+bool MQ2WindowType::dataWindow(const char* szIndex, MQTypeVar& Ret)
+{
+	if (szIndex[0])
+	{
+		if (Ret.Ptr = FindMQ2Window(szIndex))
+		{
+			Ret.Type = pWindowType;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+} // namespace mq::datatypes

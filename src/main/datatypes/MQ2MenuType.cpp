@@ -190,3 +190,16 @@ bool MQ2MenuType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	return false;
 }
 
+bool MQ2MenuType::dataMenu(const char* szIndex, MQTypeVar& Ret)
+{
+	if (CContextMenuManager* pMrg = pContextMenuManager)
+	{
+		if (Ret.Ptr = pMrg)
+		{
+			Ret.Type = pMenuType;
+			return true;
+		}
+	}
+
+	return false;
+}

@@ -26,10 +26,6 @@ enum class InvSlotMembers
 	Item,
 };
 
-enum class InvSlotMethods
-{
-};
-
 MQ2InvSlotType::MQ2InvSlotType() : MQ2Type("invslot")
 {
 	ScopedTypeMember(InvSlotMembers, Pack);
@@ -324,6 +320,39 @@ bool MQ2InvSlotType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 		return false;
 
 	default: break;
+	}
+
+	return false;
+}
+
+bool MQ2InvSlotType::dataInvSlot(const char* szIndex, MQTypeVar& Ret)
+{
+	if (!szIndex[0])
+		return false;
+
+	if (IsNumber(szIndex))
+	{
+		Ret.DWord = GetIntFromString(szIndex, 0);
+		Ret.Type = pInvSlotType;
+		return true;
+	}
+	else
+	{
+		char Temp[MAX_STRING] = { 0 };
+		strcpy_s(Temp, szIndex);
+		_strlwr_s(Temp);
+		Ret.DWord = 0;
+
+		if (ItemSlotMap.find(Temp) != ItemSlotMap.end())
+		{
+			Ret.DWord = ItemSlotMap[Temp];
+		}
+
+		if (Ret.DWord || !_stricmp(Temp, "charm"))
+		{
+			Ret.Type = pInvSlotType;
+			return true;
+		}
 	}
 
 	return false;

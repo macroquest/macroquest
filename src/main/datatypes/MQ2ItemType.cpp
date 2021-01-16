@@ -1846,4 +1846,153 @@ bool MQ2ItemType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 	return true;
 }
 
+//----------------------------------------------------------------------------
+
+bool MQ2ItemType::dataCursor(const char* szIndex, MQTypeVar& Ret)
+{
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile)
+		return false;
+
+	if (Ret.Ptr = pProfile->GetInventorySlot(InvSlot_Cursor).get())
+	{
+		Ret.Type = pItemType;
+		return true;
+	}
+
+	return false;
+}
+
+bool MQ2ItemType::dataSelectedItem(const char* szIndex, MQTypeVar& Ret)
+{
+	if (pInvSlotMgr->pSelectedItem)
+	{
+		if (ItemPtr pItem = pInvSlotMgr->pSelectedItem->GetItem())
+		{
+			Ret.Ptr = pItem.get();
+			Ret.Type = pItemType;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool MQ2ItemType::dataFindItemBank(const char* szIndex, MQTypeVar& Ret)
+{
+	if (!szIndex[0])
+		return false;
+
+	ItemClient* pItem = nullptr;
+
+	if (IsNumber(szIndex))
+	{
+		if ((pItem = FindBankItemByID(GetIntFromString(szIndex, 0))))
+		{
+			Ret.Ptr = pItem;
+			Ret.Type = pItemType;
+			return true;
+		}
+
+		return false;
+	}
+
+	const char* pName = szIndex;
+	bool bExact = false;
+
+	if (*pName == '=')
+	{
+		bExact = true;
+		pName++;
+	}
+
+	if (pItem = FindBankItemByName(pName, bExact))
+	{
+		Ret.Ptr = pItem;
+		Ret.Type = pItemType;
+		return true;
+	}
+	return false;
+}
+
+bool MQ2ItemType::dataFindItem(const char* szIndex, MQTypeVar& Ret)
+{
+	if (!szIndex[0])
+		return false;
+
+	if (IsNumber(szIndex))
+	{
+		if (ItemClient* pItem = FindItemByID(GetIntFromString(szIndex, 0)))
+		{
+			Ret.Ptr = pItem;
+			Ret.Type = pItemType;
+			return true;
+		}
+		return false;
+	}
+
+	const char* pName = szIndex;
+	bool bExact = false;
+
+	if (*pName == '=')
+	{
+		bExact = true;
+		pName++;
+	}
+
+	if (ItemClient* pItem = FindItemByName(pName, bExact))
+	{
+		Ret.Ptr = pItem;
+		Ret.Type = pItemType;
+		return true;
+	}
+
+	return false;
+}
+
+bool MQ2ItemType::dataFindItemCount(const char* szIndex, MQTypeVar& Ret)
+{
+	if (!szIndex[0])
+		return false;
+
+	if (IsNumber(szIndex))
+	{
+		Ret.DWord = FindItemCountByID(GetIntFromString(szIndex, 0));
+	}
+	else
+	{
+		Ret.DWord = FindItemCountByName(szIndex);
+	}
+
+	Ret.Type = pIntType;
+	return true;
+}
+
+bool MQ2ItemType::dataFindItemBankCount(const char* szIndex, MQTypeVar& Ret)
+{
+	if (!szIndex[0])
+		return false;
+
+	if (IsNumber(szIndex))
+	{
+		Ret.DWord = FindBankItemCountByID(GetIntFromString(szIndex, 0));
+		Ret.Type = pIntType;
+		return true;
+	}
+
+	const char* pName = szIndex;
+	bool bExact = false;
+
+	if (*pName == '=')
+	{
+		bExact = true;
+		pName++;
+	}
+
+	Ret.DWord = FindBankItemCountByName(pName, bExact);
+	Ret.Type = pIntType;
+	return true;
+}
+
+
 } // namespace mq::datatypes

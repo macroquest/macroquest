@@ -45,3 +45,46 @@ bool MQ2PluginType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 
 	return false;
 }
+
+bool MQ2PluginType::dataPlugin(const char* szIndex, MQTypeVar& Ret)
+{
+	if (!szIndex[0])
+		return false;
+	if (IsNumber(szIndex))
+	{
+		int index = GetIntFromString(szIndex, 0) - 1;
+		if (index < 0)
+			index = 0;
+
+		MQPlugin* pPlugin = pPlugins;
+		while (index)
+		{
+			pPlugin = pPlugin->pNext;
+			if (!pPlugin)
+				return false;
+			index--;
+		}
+
+		Ret.Ptr = pPlugin;
+		Ret.Type = pPluginType;
+		return true;
+	}
+	else
+	{
+		// name
+		MQPlugin* pPlugin = pPlugins;
+		while (pPlugin)
+		{
+			if (!_stricmp(pPlugin->szFilename, szIndex))
+			{
+				Ret.Ptr = pPlugin;
+				Ret.Type = pPluginType;
+				return true;
+			}
+
+			pPlugin = pPlugin->pNext;
+		}
+	}
+
+	return false;
+}

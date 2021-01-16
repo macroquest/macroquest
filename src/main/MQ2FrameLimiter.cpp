@@ -312,7 +312,7 @@ class FrameLimiter
 	float m_minSimulationFPS;
 
 public:
-	FrameLimiter() : 
+	FrameLimiter() :
 		m_startTime(std::chrono::steady_clock::now()),
 		m_prevFrame(m_startTime)
 	{
@@ -1125,8 +1125,17 @@ bool MQ2FrameLimiterType::ToString(MQVarPtr VarPtr, char* Destination)
 	strcpy_s(Destination, MAX_STRING, s_frameLimiter.IsEnabled() ? "TRUE" : "FALSE");
 	return true;
 }
+
+bool MQ2FrameLimiterType::dataFrameLimiter(const char* szIndex, MQTypeVar& Ret)
+{
+	Ret.Ptr = nullptr;
+	Ret.Type = pFrameLimiterType;
+	return true;
 }
+
+
+} // namespace datatypes
 
 #pragma endregion
 
-}
+} // namespace mq

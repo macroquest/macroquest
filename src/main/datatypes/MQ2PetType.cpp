@@ -324,5 +324,31 @@ bool MQ2PetType::FromString(MQVarPtr& VarPtr, const char* Source)
 	return false;
 }
 
+bool MQ2PetType::dataPet(const char* szIndex, MQTypeVar& Ret)
+{
+	SPAWNINFO* pSpawn = GetCharInfo()->pSpawn;
+
+	if (pSpawn && pSpawn->PetID != 0xFFFFFFFF)
+	{
+		Ret.Ptr = GetSpawnByID(pSpawn->PetID);
+		Ret.Type = pPetType;
+		return true;
+	}
+	else if (pSpawn)
+	{
+		// FIXME: Do not ZeroMemory a SPAWNINFO
+		ZeroMemory(&PetSpawn, sizeof(PetSpawn));
+
+		strcpy_s(PetSpawn.Name, "NO PET");
+
+		Ret.Ptr = &PetSpawn;
+		Ret.Type = pPetType;
+		return true;
+	}
+
+	// we need to return true always to be able to get other members out
+	return false;
+}
+
 }} // namespace mq::datatypes
 

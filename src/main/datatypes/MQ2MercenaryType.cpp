@@ -173,3 +173,58 @@ bool MQ2MercenaryType::FromString(MQVarPtr& VarPtr, const char* Source)
 	return false;
 }
 
+bool MQ2MercenaryType::dataMercenary(const char* szIndex, MQTypeVar& Ret)
+{
+	if (pMercInfo && pMercInfo->MercSpawnId)
+	{
+		Ret.Ptr = GetSpawnByID(pMercInfo->MercSpawnId);
+		Ret.Type = pMercenaryType;
+		return true;
+	}
+
+	if (pMercInfo)
+	{
+		// FIXME: Do not ZeroMemory a SPAWNINFO
+		ZeroMemory(&MercenarySpawn, sizeof(MercenarySpawn));
+
+		if (pMercInfo->HaveMerc == 1)
+		{
+			switch (pMercInfo->MercState)
+			{
+			case 0:
+				strcpy_s(MercenarySpawn.Name, "DEAD");
+				break;
+			case 1:
+				strcpy_s(MercenarySpawn.Name, "SUSPENDED");
+				break;
+			default:
+				strcpy_s(MercenarySpawn.Name, "UNKNOWN");
+				break;
+			}
+
+			Ret.Ptr = &MercenarySpawn;
+			Ret.Type = pMercenaryType;
+			return true;
+		}
+		else
+		{
+			if (pMercInfo->MercenaryCount >= 1)
+			{
+				strcpy_s(MercenarySpawn.Name, "SUSPENDED");
+				Ret.Ptr = &MercenarySpawn;
+				Ret.Type = pMercenaryType;
+				return true;
+			}
+			else
+			{
+				strcpy_s(MercenarySpawn.Name, "NOT FOUND");
+				Ret.Ptr = &MercenarySpawn;
+				Ret.Type = pMercenaryType;
+				return true;
+			}
+		}
+	}
+
+	// we need to return true always to be able to get other members out
+	return false;
+}

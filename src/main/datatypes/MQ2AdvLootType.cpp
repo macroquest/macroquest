@@ -181,4 +181,11 @@ bool MQ2AdvLootType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 	return false;
 }
 
+bool MQ2AdvLootType::dataAdvLoot(const char* szIndex, MQTypeVar& Ret)
+{
+	Ret.DWord = 0;
+	Ret.Type = pAdvLootType;
+	return true;
+}
+
 } // namespace mq::datatypes

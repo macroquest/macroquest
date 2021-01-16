@@ -67,3 +67,9 @@ bool MQ2FriendsType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 	return false;
 }
 
+bool MQ2FriendsType::dataFriends(const char* szIndex, MQTypeVar& Ret)
+{
+	Ret.DWord = 0;
+	Ret.Type = pFriendsType;
+	return true;
+}

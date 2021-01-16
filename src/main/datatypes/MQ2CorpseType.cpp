@@ -15,8 +15,21 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-using namespace mq;
-using namespace mq::datatypes;
+namespace mq::datatypes {
+
+enum class CorpseMembers
+{
+	Open = 1,
+	Item = 2,
+	Items = 3,
+};
+
+MQ2CorpseType::MQ2CorpseType() : MQ2Type("corpse")
+{
+	ScopedTypeMember(CorpseMembers, Open);
+	ScopedTypeMember(CorpseMembers, Item);
+	ScopedTypeMember(CorpseMembers, Items);
+}
 
 bool MQ2CorpseType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
@@ -33,12 +46,12 @@ bool MQ2CorpseType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 
 	switch (static_cast<CorpseMembers>(pMember->ID))
 	{
-	case Open:
+	case CorpseMembers::Open:
 		Dest.Set(true); // obviously, since we're this far
 		Dest.Type = pBoolType;
 		return true;
 
-	case Item:
+	case CorpseMembers::Item:
 		Dest.Type = pItemType;
 		if (Index[0])
 		{
@@ -67,7 +80,7 @@ bool MQ2CorpseType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		}
 		return false;
 
-	case Items:
+	case CorpseMembers::Items:
 		Dest.DWord = pLootWnd->GetLootItems().GetCount();
 		Dest.Type = pIntType;
 		return true;
@@ -78,3 +91,28 @@ bool MQ2CorpseType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 	return false;
 }
 
+bool MQ2CorpseType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (pActiveCorpse && pLootWnd)
+	{
+		strcpy_s(Destination, MAX_STRING, "TRUE");
+	}
+	else
+	{
+		strcpy_s(Destination, MAX_STRING, "FALSE");
+	}
+	return true;
+}
+
+bool MQ2CorpseType::dataCorpse(const char* szIndex, MQTypeVar& Ret)
+{
+	if (pLootWnd)
+	{
+		Ret.Ptr = pLootWnd;
+		Ret.Type = pCorpseType;
+		return true;
+	}
+	return false;
+}
+
+} // namespace mq::datatypes

@@ -444,3 +444,9 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	return false;
 }
 
+bool MQ2GroupType::dataGroup(const char* szIndex, MQTypeVar& Ret)
+{
+	Ret.DWord = 1;
+	Ret.Type = pGroupType;
+	return true;
+}

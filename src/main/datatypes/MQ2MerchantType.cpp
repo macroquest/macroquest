@@ -236,3 +236,9 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 	return false;
 }
 
+bool MQ2MerchantType::dataMerchant(const char* szIndex, MQTypeVar& Ret)
+{
+	Ret.Ptr = pActiveMerchant;
+	Ret.Type = pMerchantType;
+	return true;
+}
