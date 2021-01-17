@@ -845,48 +845,40 @@ bool SendListSelect(const char* WindowName, const char* ScreenID, int Value)
 			return false;
 		}
 
+		// Selecting an item is a two step process:
+		// 1. Change the current selection
+		// 2. Emit a notification so that the parent can react.
+
 		if (pWnd->GetType() == UI_Listbox)
 		{
 			CListWnd* listWnd = static_cast<CListWnd*>(pWnd);
-
 			listWnd->SetCurSel(Value);
+
 			int index = listWnd->GetCurSel();
+			listWnd->ParentWndNotification(listWnd, XWM_LCLICK, (void*)index);
+
+			// Make the new selection visible for the user.
 			listWnd->EnsureVisible(index);
 
-			CXRect rect = listWnd->GetItemRect(index, 0);
-			CXPoint pt = rect.CenterPoint();
-			listWnd->HandleLButtonDown(pt, 0);
-			listWnd->HandleLButtonUp(pt, 0);
-
 			WeDidStuff();
+			return true;
 		}
-		else if (pWnd->GetType() == UI_Combobox)
+
+		if (pWnd->GetType() == UI_Combobox)
 		{
 			CComboWnd* comboWnd = static_cast<CComboWnd*>(pWnd);
-
-			CXRect comborect = comboWnd->GetScreenRect();
-			CXPoint combopt = comborect.CenterPoint();
-
 			comboWnd->SetChoice(Value);
-			comboWnd->HandleLButtonDown(combopt, 0);
 
-			CListWnd* pListWnd = comboWnd->pListWnd;
-
-			int index = pListWnd->GetCurSel();
-			CXRect listrect = pListWnd->GetItemRect(index, 0);
-			CXPoint listpt = listrect.CenterPoint();
-			pListWnd->HandleLButtonDown(listpt, 0);
-			pListWnd->HandleLButtonUp(listpt, 0);
+			CListWnd* listWnd = comboWnd->pListWnd;
+			int index = listWnd->GetCurSel();
+			listWnd->ParentWndNotification(listWnd, XWM_LCLICK, (void*)index);
 
 			WeDidStuff();
-		}
-		else
-		{
-			MacroError("Window '%s' child '%s' cannot accept this notification.", WindowName, ScreenID);
-			return false;
+			return true;
 		}
 
-		return true;
+		MacroError("Window '%s' child '%s' cannot accept this notification.", WindowName, ScreenID);
+		return false;
 	}
 
 	return false;
@@ -904,17 +896,16 @@ bool SendListSelect2(CXWnd* pWnd, int ListIndex)
 	{
 		CListWnd* listWnd = static_cast<CListWnd*>(pWnd);
 
-		if (listWnd->ItemsArray.Count >= ListIndex)
+		if (ListIndex < listWnd->ItemsArray.Count)
 		{
+			CListWnd* listWnd = static_cast<CListWnd*>(pWnd);
 			listWnd->SetCurSel(ListIndex);
+
 			int index = listWnd->GetCurSel();
+			listWnd->ParentWndNotification(listWnd, XWM_LCLICK, (void*)index);
 
+			// Make the new selection visible for the user.
 			listWnd->EnsureVisible(index);
-
-			CXPoint pt = listWnd->GetItemRect(index, 0).CenterPoint();
-
-			listWnd->HandleLButtonDown(pt, 0);
-			listWnd->HandleLButtonUp(pt, 0);
 
 			WeDidStuff();
 			return true;
@@ -930,19 +921,14 @@ bool SendListSelect2(CXWnd* pWnd, int ListIndex)
 
 		if (CListWnd* listWnd = comboWnd->pListWnd)
 		{
-			if (listWnd->ItemsArray.Count >= ListIndex)
+			if (ListIndex < listWnd->ItemsArray.Count)
 			{
-				CXRect comborect = listWnd->GetScreenRect();
-				CXPoint combopt = comborect.CenterPoint();
-
+				CComboWnd* comboWnd = static_cast<CComboWnd*>(pWnd);
 				comboWnd->SetChoice(ListIndex);
-				comboWnd->HandleLButtonDown(combopt, 0);
 
+				CListWnd* listWnd = comboWnd->pListWnd;
 				int index = listWnd->GetCurSel();
-
-				CXPoint pt = listWnd->GetItemRect(index, 0).CenterPoint();
-				listWnd->HandleLButtonDown(pt, 0);
-				listWnd->HandleLButtonUp(pt, 0);
+				listWnd->ParentWndNotification(listWnd, XWM_LCLICK, (void*)index);
 
 				WeDidStuff();
 				return true;
@@ -956,7 +942,7 @@ bool SendListSelect2(CXWnd* pWnd, int ListIndex)
 		return false;
 	}
 
-	MacroError("Window was neiter a UI_Listbox nor a UI_Combobox");
+	MacroError("Can only listselect a listbox or combobox.");
 	return false;
 }
 
@@ -996,18 +982,11 @@ bool SendComboSelect(const char* WindowName, const char* ScreenID, int Value)
 		if (pWnd->GetType() == UI_Combobox)
 		{
 			CComboWnd* comboWnd = static_cast<CComboWnd*>(pWnd);
-
-			CXPoint comboPt = comboWnd->GetScreenRect().CenterPoint();
 			comboWnd->SetChoice(Value);
-			comboWnd->HandleLButtonDown(comboPt, 0);
 
-			CListWnd* pListWnd = comboWnd->pListWnd;
-			int index = pListWnd->GetCurSel();
-
-			CXPoint listPt = pListWnd->GetItemRect(index, 0).CenterPoint();
-
-			comboWnd->HandleLButtonDown(listPt, 0);
-			comboWnd->HandleLButtonUp(listPt, 0);
+			CListWnd* listWnd = comboWnd->pListWnd;
+			int index = listWnd->GetCurSel();
+			listWnd->ParentWndNotification(listWnd, XWM_LCLICK, (void*)index);
 
 			WeDidStuff();
 			return true;
