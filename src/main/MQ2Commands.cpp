@@ -3281,29 +3281,24 @@ void IniOutput(SPAWNINFO* pChar, char* szLine)
 		}
 	}
 
-	if (ci_equals(szArg3, "NULL"))
-	{
-		szArg3[0] = '\0';
-	}
-	else
+	const char* szKey = nullptr;
+	const char* szValue = nullptr;
+
+	if (!ci_equals(szArg3, "NULL"))
 	{
 		// Strip embedded quotes now that we know it's not NULL
 		GetArg(szArg3, szLine, 3);
+		szKey = szArg3;
 	}
-	if (ci_equals(szArg4, "NULL"))
-	{
-		szArg4[0] = '\0';
-	}
-	else
+
+	if (!ci_equals(szArg4, "NULL"))
 	{
 		// Strip embedded quotes now that we know it's not NULL
 		GetArg(szArg4, szLine, 4);
+		szValue = szArg4;
 	}
 
-	if (!WritePrivateProfileStringA(szArg2,
-	                                szArg3[0] == '\0' ? nullptr : szArg3,
-	                                szArg4[0] == '\0' ? nullptr : szArg4,
-	                                iniFile.string().c_str()))
+	if (!WritePrivateProfileStringA(szArg2, szKey, szValue, iniFile.string().c_str()))
 	{
 		DebugSpew("IniOutput ERROR -- during WritePrivateProfileString: %s", szLine);
 		WriteChatf("Failed to write to INI: %s", iniFile.string().c_str());
