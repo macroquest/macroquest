@@ -3235,16 +3235,16 @@ void SetAutoRun(SPAWNINFO* pChar, char* szLine)
 // Usage:
 //
 //	/ini "someini.ini" "the section" "NULL" "NULL"
-//	adds a key named nullptr and a value named nullptr under the [the section]:
-//	to remove the key named nullptr:
-//	/ini "someini.ini" "the section" "NULL" nullptr
+//	adds a key named NULL and a value named NULL under the [the section]:
+//	to remove the key named NULL:
+//	/ini "someini.ini" "the section" "NULL" NULL
 //	OR /ini "someini.ini" "the section" "NULL"
 //	to remove section "the section":
-//	/ini "someini.ini" "the section" nullptr
+//	/ini "someini.ini" "the section" NULL
 //	OR /ini "someini.ini" "the section"
 //
-//	Basically leaving the third and/or fourth parameter blank will be interpreted as nullptr
-//	enclosing nullptr in quotes will interpret it as an actual string "NULL"
+//	Basically leaving the third and/or fourth parameter blank will be interpreted as NULL
+//	enclosing NULL in quotes will interpret it as an actual string "NULL"
 // ***************************************************************************
 void IniOutput(SPAWNINFO* pChar, char* szLine)
 {
