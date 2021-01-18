@@ -10,6 +10,12 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemDefinitionGroup>
+    <PostBuildEvent>
+      <Command>if exist "$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), tools\build_scripts\MQ2Main_PostBuild.ps1))\tools\build_scripts\MQ2Main_PostBuild.ps1" powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), tools\build_scripts\MQ2Main_PostBuild.ps1))\tools\build_scripts\MQ2Main_PostBuild.ps1" "$(MQ2Root)data" "$(MQ2buildDirectory)bin\$(MQ2BinaryDirName)"</Command>
+      <Message>Performing PostBuild for $(MSBuildProjectName)...</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -60,9 +66,6 @@
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;client.lib;util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
-    <PostBuildEvent>
-      <Command>powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File $(MQ2Root)tools\build_scripts\PostBuild.ps1 "$(MQ2Root)data" "$(MQ2buildDirectory)bin\$(MQ2BinaryDirName)"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -76,9 +79,6 @@
       <BaseAddress>0x03000000</BaseAddress>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;client.lib;util.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File $(MQ2Root)tools\build_scripts\PostBuild.ps1 "$(MQ2Root)data" "$(MQ2buildDirectory)bin\$(MQ2BinaryDirName)"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\contrib\fmt\src\format.cc">
@@ -398,6 +398,7 @@
     <ClInclude Include="MQ2Mercenaries.h" />
     <ClInclude Include="MQ2Prototypes.h" />
     <ClInclude Include="MQ2Utilities.h" />
+    <ClInclude Include="MQVersionInfo.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
