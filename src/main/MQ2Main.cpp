@@ -1,5 +1,5 @@
 /*
- * MacroQuest2: The extension platform for EverQuest
+ * MacroQuest: The extension platform for EverQuest
  * Copyright (C) 2002-2019 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
@@ -39,12 +39,12 @@
 
 #if defined(LIVE)
 #pragma message("Building MQ2 for LIVE")
-#define MacroQuestWinClassName "__MacroQuest2Tray(Live)"
-#define MacroQuestWinName "MacroQuest2(Live)"
+#define MacroQuestWinClassName "__MacroQuestTray(Live)"
+#define MacroQuestWinName "MacroQuest(Live)"
 #elif defined(TEST)
 #pragma message("Building MQ2 for TEST")
-#define MacroQuestWinClassName "__MacroQuest2Tray(Test)"
-#define MacroQuestWinName "MacroQuest2(Test)"
+#define MacroQuestWinClassName "__MacroQuestTray(Test)"
+#define MacroQuestWinName "MacroQuest(Test)"
 #endif
 
 namespace fs = std::filesystem;
@@ -214,7 +214,7 @@ bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& str
 		std::filesystem::path pathMQini = strMQini;
 
 		/*
-		 *  ** NOTE ** This logic exists here and in MacroQuest2.cpp.  Changes should be applied in both
+		 *  ** NOTE ** This logic exists here and in MacroQuest.cpp.  Changes should be applied in both
 		 *             until the code is shared.
 		 */
 
@@ -956,7 +956,7 @@ public:
 		RemoveStyle(CWS_TRANSPARENT | CWS_CLOSE);
 		SetBGColor(0xFF000000);
 		SetLocation({ 230,620,850,920 });
-		SetWindowText("MacroQuest2 Recent Changes");
+		SetWindowText("MacroQuest Recent Changes");
 		SetZLayer(1);
 
 		OutputBox = (CStmlWnd*)GetChildItem("CW_ChatOutput");

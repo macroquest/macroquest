@@ -1,5 +1,5 @@
 /*
- * MacroQuest2: The extension platform for EverQuest
+ * MacroQuest: The extension platform for EverQuest
  * Copyright (C) 2002-2019 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
@@ -52,7 +52,7 @@ namespace mq {
 // - Improved crash notification to include information about what kind of unhandled exception occurred.
 // - Stretch: Create a way to notify the user that a process has crashed from the launcher.
 
-// Some of these settings are mirrored in MacroQuest2.exe
+// Some of these settings are mirrored in MacroQuest.exe
 
 static bool gEnableCrashpad = true;                                  // Indicates if we we want to be using crashpad.
 static bool gEnableSharedCrashpad = true;                            // If using crashpad, use the shared crashpad process.

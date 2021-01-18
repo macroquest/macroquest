@@ -7,5 +7,5 @@ resources/CHANGELOG.md
 resources/GPL.txt
 resources/ItemDB.txt
 resources/readme.chm
-MacroQuest2.exe
+MacroQuest.exe
 MQ2Ic.dll

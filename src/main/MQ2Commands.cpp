@@ -1,5 +1,5 @@
 /*
- * MacroQuest2: The extension platform for EverQuest
+ * MacroQuest: The extension platform for EverQuest
  * Copyright (C) 2002-2019 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
@@ -3231,20 +3231,17 @@ void SetAutoRun(SPAWNINFO* pChar, char* szLine)
 // ***************************************************************************
 // Function:   IniOutput our /ini command
 // Description:   Outputs string data to an INI file using WritePrivateProfileString.
-// If the inifile does'nt exist one will be created.
+// If the inifile doesn't exist one will be created.
 // Usage:
 //
-//	/ini "someini.ini" "the section" "NULL" "NULL"
-//	adds a key named NULL and a value named NULL under the [the section]:
-//	to remove the key named NULL:
-//	/ini "someini.ini" "the section" "NULL" NULL
-//	OR /ini "someini.ini" "the section" "NULL"
-//	to remove section "the section":
-//	/ini "someini.ini" "the section" NULL
-//	OR /ini "someini.ini" "the section"
+//    /ini "someini.ini" "the section" "NULL" "NULL"
+//    adds a key named NULL and a value named NULL under the [the section]:
+//    to remove the key named NULL:
+//    /ini "someini.ini" "the section" "NULL" NULL
+//    to remove section "the section":
+//    /ini "someini.ini" "the section" NULL
 //
-//	Basically leaving the third and/or fourth parameter blank will be interpreted as NULL
-//	enclosing NULL in quotes will interpret it as an actual string "NULL"
+//    Enclosing NULL in quotes will interpret it as an actual string "NULL"
 // ***************************************************************************
 void IniOutput(SPAWNINFO* pChar, char* szLine)
 {

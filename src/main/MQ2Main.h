@@ -1,5 +1,5 @@
 /*
- * MacroQuest2: The extension platform for EverQuest
+ * MacroQuest: The extension platform for EverQuest
  * Copyright (C) 2002-2019 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
@@ -861,7 +861,7 @@ constexpr int GAMESTATE_UNLOADING      = 255;
 
 // DO NOT CHANGE these user message id's.
 // They must be identical between MQ2 and the
-// injector process (macroquest2.exe).
+// injector process (MacroQuest.exe).
 //#define WM_USER_REGISTER_HK		(WM_USER + 1000)
 //#define WM_USER_UNREGISTER_HK	(WM_USER + 1001)
 //#define WM_USER_RESETLOADED		(WM_USER + 1002)
