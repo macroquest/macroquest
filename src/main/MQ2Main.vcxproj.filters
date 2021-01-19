@@ -493,6 +493,9 @@
     <ClInclude Include="..\..\include\moveitem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MQVersionInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MQ2Main.rc">

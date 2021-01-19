@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "MQ2Main.h"
 #include "CrashHandler.h"
+#include "MQVersionInfo.h"
 
 // Crashpad client headers
 #include <client/crash_report_database.h>
@@ -433,6 +434,7 @@ void UninstallUnhandledExceptionFilter()
 
 static crashpad::StringAnnotation<32> buildTypeAnnotation("buildType");
 static crashpad::StringAnnotation<32> buildTimestampAnnotation("eqVersion");
+static crashpad::StringAnnotation<32> buildVersionAnnotation("mqVersion");
 
 void InitializeCrashHandler()
 {
@@ -470,6 +472,8 @@ void InitializeCrashHandler()
 
 #pragma warning(suppress: 4996)
 	buildTypeAnnotation.Set(buildType);
+#pragma warning(suppress: 4996)
+	buildVersionAnnotation.Set(MQMAIN_VERSION);
 	buildTimestampAnnotation.Set(__ExpectedVersionDate " " __ExpectedVersionTime);
 }
 
