@@ -434,7 +434,7 @@ void UninstallUnhandledExceptionFilter()
 
 static crashpad::StringAnnotation<32> buildTypeAnnotation("buildType");
 static crashpad::StringAnnotation<32> buildTimestampAnnotation("eqVersion");
-static crashpad::StringAnnotation<7>  buildVersionAnnotation("mqVersion");
+static crashpad::StringAnnotation<32> buildVersionAnnotation("mqVersion");
 
 void InitializeCrashHandler()
 {
