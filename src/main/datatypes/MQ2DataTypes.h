@@ -18,22 +18,6 @@
 
 namespace mq::datatypes {
 
-// non-mq2data TODO
-// command to clear macro return value
-// networking
-// macro line continuation e.g. \
-// command to set raid class colors
-// /cast list
-// #chat tell
-//
-// mq2data todo:
-// -------------
-// "bind" type (key binds)
-// Friend TLO
-// Ignore TLO
-// key state (ctrl/shift/alt)
-// spawn count
-
 #define TypeMember(name) AddMember(static_cast<int>(name), #name)
 #define ScopedTypeMember(scope, name) AddMember(static_cast<int>(scope::name), #name)
 #define TypeMethod(name) AddMethod(static_cast<int>(name), #name)

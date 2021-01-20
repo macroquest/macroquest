@@ -2,11 +2,11 @@
     "commands": {
         "launcher (debug)": {
             "workingDirectory": ".",
-            "fileName": "..\\build\\bin\\debug\\MacroQuest2.exe"
+            "fileName": "..\\build\\bin\\debug\\MacroQuest.exe"
         },
         "launcher (release)": {
             "workingDirectory": ".",
-            "fileName": "..\\build\\bin\\release\\MacroQuest2.exe"
+            "fileName": "..\\build\\bin\\release\\MacroQuest.exe"
         },
         "comment-update (debug)": {
             "fileName": "cmd.exe",
