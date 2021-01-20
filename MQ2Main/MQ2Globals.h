@@ -674,7 +674,7 @@ namespace MQ2Globals
 	EQLIB_VAR CPotionBeltWnd **ppPotionBeltWnd;
 	#endif
 	EQLIB_VAR CBandolierWnd **ppBandolierWnd;
-#if !defined(TEST)
+#if defined(ROF2EMU) || defined(UFEMU)
 	EQLIB_VAR CWebManager **ppCWebManager;
 	#define pCWebManager (*ppCWebManager)
 #endif
@@ -1076,7 +1076,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstCAdvancedLootWnd;
 	EQLIB_VAR DWORD pinstCContextMenuManager;
 	EQLIB_VAR DWORD pinstCVoiceMacroWnd;
-	#if !defined(TEST)
+	#if defined(ROF2EMU) || defined(UFEMU)
 	EQLIB_VAR DWORD pinstCWebManager;
 	#endif
 	EQLIB_VAR DWORD pinstItemIconCache;

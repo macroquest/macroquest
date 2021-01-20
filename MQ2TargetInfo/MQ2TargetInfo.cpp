@@ -130,7 +130,7 @@ public:
 				phinfo pinf;
 				if (GetPhMap((PSPAWNINFO)pTarget, &pinf)) {
 
-					#if defined(TEST)
+					#if !defined(ROF2EMU) && !defined(UFEMU)
 					std::string url = pinf.Link;
 					ShellExecute(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
 					#else

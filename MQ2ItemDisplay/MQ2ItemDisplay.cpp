@@ -266,7 +266,7 @@ public:
 		if (im) {
 			if (im->htmlwnd)
 			{
-				#if !defined(TEST)
+				#if defined(ROF2EMU) || defined(UFEMU)
 				im->htmlwnd->SetClientCallbacks(NULL);
 				#endif
 			}
@@ -314,7 +314,7 @@ void ItemInfoManager::Notify(CObservable *Src, const CNotification* const Notifi
 }
 void ItemInfoManager::onStatusChanged(Window *wnd)
 {
-	#if !defined(TEST)
+	#if defined(ROF2EMU) || defined(UFEMU)
 	if (const wchar_t *status = wnd->getStatus()) {
 		//WriteChatf("Status changed: %s", status);
 	}
@@ -322,7 +322,7 @@ void ItemInfoManager::onStatusChanged(Window *wnd)
 }
 void ItemInfoManager::onURIChanged(Window *wnd)
 {
-	#if !defined(TEST)
+	#if defined(ROF2EMU) || defined(UFEMU)
 	if (const char *uri = wnd->getURI()) {
 		//WriteChatf("URI changed: %s", uri);
 	}
@@ -331,7 +331,7 @@ void ItemInfoManager::onURIChanged(Window *wnd)
 
 void ItemInfoManager::onProgressChanged(Window *wnd)
 {
-#if !defined(TEST)
+#if defined(ROF2EMU) || defined(UFEMU)
 	bool bIsLoading;
 	float pct = wnd->getProgress(bIsLoading);
 	//WriteChatf("Progress %0.2f Loading is %s", pct, bIsLoading ? "TRUE":"FALSE");
@@ -1448,7 +1448,7 @@ public:
 					case 6://open in lucy
 					{
 						if (PITEMINFO pItem = GetItemFromContents(i->second.ItemDisplayWnd->pCurrentItem)) {
-							#if defined(TEST)
+							#if !defined(ROF2EMU) && !defined(UFEMU)
 							std::string url = "http://lucy.allakhazam.com/item.html?id=";
 							CHAR szID[64] = { 0 };
 							_itoa_s(pItem->ItemNumber, szID, 10);
