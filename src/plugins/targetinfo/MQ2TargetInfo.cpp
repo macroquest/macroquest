@@ -203,14 +203,7 @@ public:
 				PHInfo pinf;
 				if (GetPhMap((SPAWNINFO*)pTarget, &pinf))
 				{
-					std::string url = "https://webproxy.to/browse.php?b=4&u=";
-					url.append(pinf.Link);// https://eqresource.com&b=4";
-					//std::string url = "https://www.google.com/search?q=";
-					//std::string url = "http://everquest.allakhazam.com/search.html?q=";
-					//url.append(pinf.Named);
-					if (CHtmlWnd* ItemHtmlwnd = pCWebManager->CreateHtmlWnd(url.c_str(), pinf.Named.c_str(), nullptr, true, pinf.Named.c_str()))
-					{
-					}
+					ShellExecute(nullptr, "open", pinf.Link.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 				}
 			}
 		}
