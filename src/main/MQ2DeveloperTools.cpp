@@ -200,7 +200,6 @@ const char* UITypeToScreenPieceTemplateType(UIType type)
 	case UI_VerticalLayoutBox: return "CVerticalLayoutBoxTemplate*";
 	case UI_TileLayoutBox: return "CTileLayoutBoxTemplate*";
 	case UI_Screen: return "CScreenTemplate*";
-	case UI_HtmlComponent: return "CHtmlComponentTemplate*";
 	case UI_TemplateContainer: return "CTemplateContainerTemplate*";
 	case UI_HotButton: return "CHotButtonTemplate*";
 	default:
@@ -1107,7 +1106,6 @@ void DisplayDynamicTemplate(CXMLData* pXMLData, const CScreenPieceTemplate* pTem
 	case UI_HorizontalLayoutBox:
 	case UI_VerticalLayoutBox:
 	case UI_TileLayoutBox:
-	case UI_HtmlComponent:
 	case UI_TemplateContainer:
 		DisplayControlTemplate(static_cast<const CControlTemplate*>(pTemplate));
 		break;
