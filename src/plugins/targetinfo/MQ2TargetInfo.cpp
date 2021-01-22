@@ -120,7 +120,7 @@ bool gBShowHotButtons = true;
 bool gBShowDistance = true;
 bool gBShowExtDistance = true;
 
-int rightclickindex = -1;
+int gRightClickIndex = -1;
 
 DWORD orgwstyle = 0;
 DWORD orgTargetWindStyle = 0;
@@ -1483,61 +1483,39 @@ void StopMovement(bool bChange = true, bool bStopNav = false)
 	}
 }
 
-class CGroupWnd2
+class CGroupWnd_Detours : public CGroupWnd
 {
 public:
-	void UpdateDisplay_Tramp(int, SPAWNINFO*, COLORREF, unsigned int);
-	void UpdateDisplay_Detour(int Index, SPAWNINFO* groupmember, COLORREF NameColor, unsigned int RoleBits)
+	int GetSelectedGroupIndex(CXWnd* pWnd)
 	{
-		if (CHARINFO* pChar = GetCharInfo())
-		{
-			if (CGroupClient* group = (CGroupClient*)pChar->pGroupInfo)
-			{
-				int ind = rightclickindex; // group->GroupSelectID;
-				if (Index == ind)
-				{
-					// NameColor = 0xFF0040FF;
-				}
-			}
-		}
-
-		return UpdateDisplay_Tramp(Index, groupmember, NameColor, RoleBits);
-	}
-
-	int CGroupWnd2::GetSelectedGroupIndex(CXWnd* pWnd)
-	{
-		CLabel* lab = (CLabel*)pWnd;
 		int index = -1;
 
-		if (CHARINFO* pChar = GetCharInfo())
+		if (pCharData && pCharData->Group)
 		{
-			if (CGroupClient* group = (CGroupClient*)pChar->pGroupInfo)
+			// index = group->GroupSelectID;
+			for (int i = 1; i < MAX_GROUP_SIZE; i++)
 			{
-				// index = group->GroupSelectID;
-				for (int i = 1; i < 6; i++)
+				CGroupMember* pMember = pCharData->Group->GetGroupMember(i);
+
+				if (pMember && pMember->GetPlayer() && pMember->GetPlayer()->Type == EQP_PC
+					&& (pWnd == HPGauge[i]
+					|| pWnd == PetGauge[i]
+					|| pWnd == ManaGauge[i]
+					|| pWnd == EnduranceGauge[i]
+					|| pWnd == HPLabel[i]
+					|| pWnd == HPPercLabel[i]
+					|| pWnd == ManaLabel[i]
+					|| pWnd == ManaPercLabel[i]
+					|| pWnd == EnduranceLabel[i]
+					|| pWnd == EndurancePercLabel[i]
+					|| pWnd == EnduranceLabel[i]
+					|| pWnd == GroupTankButton[i]
+					|| pWnd == GroupAssistButton[i]
+					|| pWnd == GroupPullerButton[i]
+					|| pWnd == GroupMarkNPCButton[i]
+					|| pWnd == AggroPercLabel[i]))
 				{
-					if (pWnd == ((CGroupWnd*)this)->HPGauge[i]
-						|| pWnd == ((CGroupWnd*)this)->PetGauge[i]
-						|| pWnd == ((CGroupWnd*)this)->ManaGauge[i]
-						|| pWnd == ((CGroupWnd*)this)->EnduranceGauge[i]
-						|| lab == ((CGroupWnd*)this)->HPLabel[i]
-						|| lab == ((CGroupWnd*)this)->HPPercLabel[i]
-						|| lab == ((CGroupWnd*)this)->ManaLabel[i]
-						|| lab == ((CGroupWnd*)this)->ManaPercLabel[i]
-						|| lab == ((CGroupWnd*)this)->EnduranceLabel[i]
-						|| lab == ((CGroupWnd*)this)->EndurancePercLabel[i]
-						|| lab == ((CGroupWnd*)this)->EnduranceLabel[i]
-						|| pWnd == ((CGroupWnd*)this)->GroupTankButton[i]
-						|| pWnd == ((CGroupWnd*)this)->GroupAssistButton[i]
-						|| pWnd == ((CGroupWnd*)this)->GroupPullerButton[i]
-						|| pWnd == ((CGroupWnd*)this)->GroupMarkNPCButton[i]
-						|| lab == ((CGroupWnd*)this)->AggroPercLabel[i])
-					{
-						if (group->pMembers[i] && group->pMembers[i]->pSpawn && group->pMembers[i]->Type == 0)
-						{
-							return i;
-						}
-					}
+					return i;
 				}
 			}
 		}
@@ -1546,44 +1524,24 @@ public:
 
 	SPAWNINFO* GetSpawnFromRightClickIndex()
 	{
-		char szMe[MAX_STRING] = { 0 };
-		SPAWNINFO* pSpawn = nullptr;
-
-		if (CHARINFO* pChar = GetCharInfo())
+		if (pCharData && pCharData->Group)
 		{
-			if (CGroupClient* group = (CGroupClient*)pChar->pGroupInfo)
-			{
-				int ind = rightclickindex; // group->GroupSelectID;
-				if (ind != -1 && ind < 6)
-				{
-					if (group->pMembers[ind] && group->pMembers[ind]->pSpawn && group->pMembers[ind]->Type != 1)
-					{
-						pSpawn = group->pMembers[ind]->pSpawn;
-					}
-				}
-			}
+			CGroupMember* pMember = pCharData->Group->GetGroupMember(gRightClickIndex);
+			if (pMember && pMember->GetPlayer() && pMember->GetPlayer()->Type != EQP_NPC)
+				return (SPAWNINFO*)pMember->GetPlayer();
 		}
 
-		return pSpawn;
+		return nullptr;
 	}
 
 	bool UpdateOurMenu(int index)
 	{
-		if (CGroupWnd* pGwnd = (CGroupWnd*)this)
+		if (GroupContextMenu)
 		{
-			if (pGwnd->GroupContextMenu)
-			{
-				if (index != -1)
-				{
-					//WriteChatf("User Rightclicked group member number %d", index);
-					AddOurMenu(pGwnd, true, index);
-					return true;
-				}
-				AddOurMenu(pGwnd, false, -1);
-				return true;
-				//RemoveOurMenu(pGwnd);
-			}
+			AddOurMenu(this, index != -1, index);
+			return true;
 		}
+
 		return false;
 	}
 
@@ -1624,8 +1582,8 @@ public:
 				return 1;
 			}
 
-			rightclickindex = this->GetSelectedGroupIndex(pWnd);
-			UpdateOurMenu(rightclickindex);
+			gRightClickIndex = this->GetSelectedGroupIndex(pWnd);
+			UpdateOurMenu(gRightClickIndex);
 			// dont return here or group roles wont be filled in //return 1;
 		}
 		else if (Message == XWM_LCLICK)
@@ -1814,15 +1772,15 @@ public:
 				SPAWNINFO* pSpawn = GetSpawnFromRightClickIndex();
 				if (pSpawn)
 				{
-					if (FollowMeMap.find(rightclickindex) != FollowMeMap.end())
+					if (FollowMeMap.find(gRightClickIndex) != FollowMeMap.end())
 					{
-						if (FollowMeMap[rightclickindex])
+						if (FollowMeMap[gRightClickIndex])
 						{
 							if (GetModuleHandle("mq2dannet"))
 								DoCommandf("/dex %s /afollow off", pSpawn->Name);
 							else if (GetModuleHandle("mq2eqbc"))
 								DoCommandf("/bct %s //afollow off", pSpawn->Name);
-							FollowMeMap[rightclickindex] = false;
+							FollowMeMap[gRightClickIndex] = false;
 						}
 						else
 						{
@@ -1830,7 +1788,7 @@ public:
 								DoCommandf("/dex %s /afollow spawn %d", pSpawn->Name, ((SPAWNINFO*)pLocalPlayer)->SpawnID);
 							else if (GetModuleHandle("mq2eqbc"))
 								DoCommandf("/bct %s //afollow spawn %d", pSpawn->Name, ((SPAWNINFO*)pLocalPlayer)->SpawnID);
-							FollowMeMap[rightclickindex] = true;
+							FollowMeMap[gRightClickIndex] = true;
 						}
 					}
 					else
@@ -1839,7 +1797,7 @@ public:
 							DoCommandf("/dex %s /afollow spawn %d", pSpawn->Name, ((SPAWNINFO*)pLocalPlayer)->SpawnID);
 						else if (GetModuleHandle("mq2eqbc"))
 							DoCommandf("/bct %s //afollow spawn %d", pSpawn->Name, ((SPAWNINFO*)pLocalPlayer)->SpawnID);
-						FollowMeMap[rightclickindex] = true;
+						FollowMeMap[gRightClickIndex] = true;
 					}
 				}
 				return 1;
@@ -1939,18 +1897,9 @@ public:
 		}
 		return WndNotification_Trampoline(pWnd, Message, pData);
 	}
-
-	CXWnd* CSidlManager_CreateHotButtonWnd_Tramp(CXWnd*, CControlTemplate*);
-	CXWnd* CSidlManager_CreateHotButtonWnd_Detour(CXWnd* pwndParent, CControlTemplate* pControl)
-	{
-		CHotButton* ret = (CHotButton*)CSidlManager_CreateHotButtonWnd_Tramp(pwndParent, pControl);
-		return ret;
-	}
 };
 
-DETOUR_TRAMPOLINE_EMPTY(CXWnd* CGroupWnd2::CSidlManager_CreateHotButtonWnd_Tramp(CXWnd*, CControlTemplate*));
-DETOUR_TRAMPOLINE_EMPTY(int CGroupWnd2::WndNotification_Trampoline(CXWnd*, uint32_t, void*));
-DETOUR_TRAMPOLINE_EMPTY(void CGroupWnd2::UpdateDisplay_Tramp(int, SPAWNINFO*, COLORREF, UINT));
+DETOUR_TRAMPOLINE_EMPTY(int CGroupWnd_Detours::WndNotification_Trampoline(CXWnd*, uint32_t, void*));
 
 void CMD_GroupInfo(SPAWNINFO* pPlayer, char* szLine)
 {
@@ -2151,9 +2100,8 @@ void CMD_GroupInfo(SPAWNINFO* pPlayer, char* szLine)
 PLUGIN_API void InitializePlugin()
 {
 	AddCommand("/groupinfo", CMD_GroupInfo);
-	EzDetour(CSidlManager__CreateHotButtonWnd, &CGroupWnd2::CSidlManager_CreateHotButtonWnd_Detour, &CGroupWnd2::CSidlManager_CreateHotButtonWnd_Tramp);
-	EzDetour(CGroupWnd__UpdateDisplay, &CGroupWnd2::UpdateDisplay_Detour, &CGroupWnd2::UpdateDisplay_Tramp);
-	EzDetour(CGroupWnd__WndNotification, &CGroupWnd2::WndNotification_Detour, &CGroupWnd2::WndNotification_Trampoline);
+
+	EzDetour(CGroupWnd__WndNotification, &CGroupWnd_Detours::WndNotification_Detour, &CGroupWnd_Detours::WndNotification_Trampoline);
 
 	std::filesystem::path curFilepath = gPathResources;
 	curFilepath /= "MQ2TargetInfoPHs.txt";
@@ -2361,8 +2309,6 @@ PLUGIN_API void ShutdownPlugin()
 
 	RemoveCommand("/groupinfo");
 	RemoveDetour(CGroupWnd__WndNotification);
-	RemoveDetour(CGroupWnd__UpdateDisplay);
-	RemoveDetour(CSidlManager__CreateHotButtonWnd);
 }
 
 // Called after entering a new zone
@@ -2415,16 +2361,17 @@ bool GetPhMap(SPAWNINFO* pSpawn, PHInfo* pinf)
 static char szTargetDist[64] = { 0 };
 SPAWNINFO* oldspawn = nullptr;
 
-void UpdateGroupDist(CHARINFO* pChar, int index)
+void UpdateGroupDist(int index)
 {
 	if (index < 1 || index > NUM_GROUPWND_CONTROLS)
 		return;
 
 	if (CLabelWnd* pWnd = GroupDistLabels[index - 1])
 	{
-		if (pChar->pGroupInfo->pMember[index] && pChar->pGroupInfo->pMember[index]->pSpawn)
+		CGroupMember* pMember = pCharData->Group->GetGroupMember(index);
+		if (pMember && pMember->GetPlayer())
 		{
-			float dist = Distance3DToSpawn(pLocalPlayer, pChar->pGroupInfo->pMember[index]->pSpawn);
+			float dist = Distance3DToSpawn(pLocalPlayer, pMember->pSpawn);
 			sprintf_s(szTargetDist, "%.2f", dist);
 
 			if (dist < 250)
@@ -2624,39 +2571,36 @@ PLUGIN_API void OnPulse()
 					RemoveOurMenu(pGroupWnd);
 				}
 
-				if (CHARINFO* pChar = GetCharInfo())
+				if (pCharData->Group)
 				{
-					if (pChar->pGroupInfo)
+					if (gBShowDistance)
 					{
-						if (gBShowDistance)
-						{
-							for (int i = 0; i < NUM_GROUPWND_CONTROLS; ++i)
-								UpdateGroupDist(pChar, i + 1);
-						}
+						for (int i = 0; i < NUM_GROUPWND_CONTROLS; ++i)
+							UpdateGroupDist(i + 1);
+					}
 
-						if (!gBShowMimicMeButton && MimicMeButton && MimicMeButton->IsVisible())
-							MimicMeButton->SetVisible(true);
-						if (!gBShowFollowMeButton && FollowMeButton && FollowMeButton->IsVisible())
-							FollowMeButton->SetVisible(true);
-						if (!gBShowComeToMeButton && NavButton && NavButton->IsVisible())
-							NavButton->SetVisible(true);
-					}
-					else
+					if (!gBShowMimicMeButton && MimicMeButton && MimicMeButton->IsVisible())
+						MimicMeButton->SetVisible(true);
+					if (!gBShowFollowMeButton && FollowMeButton && FollowMeButton->IsVisible())
+						FollowMeButton->SetVisible(true);
+					if (!gBShowComeToMeButton && NavButton && NavButton->IsVisible())
+						NavButton->SetVisible(true);
+				}
+				else
+				{
+					if (GroupDistLabels[0] && GroupDistLabels[0]->IsVisible())
 					{
-						if (GroupDistLabels[0] && GroupDistLabels[0]->IsVisible())
+						for (auto& label : GroupDistLabels)
 						{
-							for (auto& label : GroupDistLabels)
-							{
-								if (label) label->SetVisible(false);
-							}
+							if (label) label->SetVisible(false);
 						}
-						if (MimicMeButton && MimicMeButton->IsVisible())
-							MimicMeButton->SetVisible(false);
-						if (FollowMeButton && FollowMeButton->IsVisible())
-							FollowMeButton->SetVisible(false);
-						if (NavButton && NavButton->IsVisible())
-							NavButton->SetVisible(false);
 					}
+					if (MimicMeButton && MimicMeButton->IsVisible())
+						MimicMeButton->SetVisible(false);
+					if (FollowMeButton && FollowMeButton->IsVisible())
+						FollowMeButton->SetVisible(false);
+					if (NavButton && NavButton->IsVisible())
+						NavButton->SetVisible(false);
 				}
 			}
 

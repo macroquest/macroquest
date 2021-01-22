@@ -69,15 +69,9 @@ MQ2GroupType::MQ2GroupType() : MQ2Type("group")
 
 bool MQ2GroupType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	CHARINFO* pChar = GetCharInfo();
-	if (!pChar || !pChar->pGroupInfo) return false;
+	if (!pCharData || !pCharData->Group) return false;
 
-	int nMembers = 0;
-	for (int index = 1; index < MAX_GROUP_SIZE; index++)
-	{
-		if (pChar->pGroupInfo->pMember[index])
-			nMembers++;
-	}
+	int nMembers = pCharData->Group->GetNumberOfMembersExcludingSelf();
 
 	_itoa_s(nMembers, Destination, MAX_STRING, 10);
 	return true;
@@ -88,13 +82,13 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	MQTypeMember* pMember = MQ2GroupType::FindMember(Member);
 	CHARINFO* pChar = GetCharInfo();
 
-	if (!pMember || !pChar || !pChar->pGroupInfo)
+	if (!pMember || !pCharData || !pChar->pSpawn || !pCharData->Group)
 		return false;
 
 	switch (static_cast<GroupMembers>(pMember->ID))
 	{
 	case GroupMembers::Address:
-		Dest.DWord = (uint32_t)pChar->pGroupInfo;
+		Dest.DWord = (uint32_t)pCharData->Group;
 		Dest.Type = pIntType;
 		return true;
 
@@ -111,74 +105,45 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		}
 
 		// by name
-		if (pChar->pSpawn)
+		Dest.DWord = 0;
+		if (ci_equals(pChar->pSpawn->Name, Index))
 		{
 			Dest.DWord = 0;
-			if (ci_equals(pChar->pSpawn->Name, Index))
-			{
-				Dest.DWord = 0;
-				return true;
-			}
+			return true;
+		}
 
-			for (int i = 1; i < MAX_GROUP_SIZE; i++)
+		for (int i = 1; i < MAX_GROUP_SIZE; i++)
+		{
+			if (CGroupMember* pMember = pCharData->Group->GetGroupMember(i))
 			{
-				if (pChar->pGroupInfo->pMember[i])
+				Dest.DWord++;
+				char Name[MAX_STRING] = { 0 };
+				strcpy_s(Name, pMember->GetName());
+
+				CleanupName(Name, sizeof(Name), false, false); // we do this to fix the mercenaryname bug
+
+				if (Index[0] != 0 && ci_equals(Name, Index))
 				{
-					Dest.DWord++;
-					char Name[MAX_STRING] = { 0 };
-					strcpy_s(Name, pChar->pGroupInfo->pMember[i]->Name.c_str());
-
-					CleanupName(Name, sizeof(Name), false, false); // we do this to fix the mercenaryname bug
-
-					if (Index[0] != 0 && ci_equals(Name, Index))
-					{
-						return true;
-					}
+					return true;
 				}
 			}
 		}
 		return false;
 
 	case GroupMembers::Members:
-		Dest.DWord = 0;
+		Dest.DWord = pCharData->Group->GetNumberOfMembersExcludingSelf();
 		Dest.Type = pIntType;
-		for (int i = 1; i < MAX_GROUP_SIZE; i++)
-		{
-			if (pChar->pGroupInfo->pMember[i])
-				Dest.DWord++;
-		}
 		return true;
 
 	case GroupMembers::Leader: {
 		Dest.Type = pGroupMemberType;
-		if (!pChar->pGroupInfo->pLeader || !pChar->pSpawn)
+
+		CGroupMember* pLeader = pCharData->Group->GetGroupLeader();
+		if (!pLeader)
 			return false;
-		Dest.DWord = 0;
 
-		if (ci_equals(pChar->pSpawn->Name, pChar->pGroupInfo->pLeader->Name))
-		{
-			return true;
-		}
-
-		for (int i = 1; i < MAX_GROUP_SIZE; i++)
-		{
-			if (pChar->pGroupInfo->pMember[i])
-			{
-				Dest.DWord++;
-
-				if (ci_equals(pChar->pGroupInfo->pMember[i]->Name, pChar->pGroupInfo->pLeader->Name))
-				{
-					return true;
-				}
-			}
-		}
-
-		if (!Dest.DWord)
-		{
-			// group has no members
-			return true;
-		}
-		return false;
+		Dest.DWord = pCharData->Group->GetGroupMemberIndex(pLeader);
+		return true;
 	}
 
 	case GroupMembers::GroupSize:
@@ -187,7 +152,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
-			if (pChar->pGroupInfo->pMember[i])
+			if (pCharData->Group->GetGroupMember(i))
 				Dest.DWord++;
 		}
 
@@ -199,21 +164,10 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.DWord = 0;
 		Dest.Type = pGroupMemberType;
 
-		if (pChar->pGroupInfo->pMember[0]->MainTank)
+		if (CGroupMember* pMember = pCharData->Group->GetGroupMemberByRole(GroupRoleTank))
 		{
+			Dest.DWord = pCharData->Group->GetGroupMemberIndex(pMember);
 			return true;
-		}
-
-		for (int i = 1; i < MAX_GROUP_SIZE; i++)
-		{
-			if (pChar->pGroupInfo->pMember[i])
-			{
-				Dest.DWord++;
-				if (pChar->pGroupInfo->pMember[i]->MainTank)
-				{
-					return true;
-				}
-			}
 		}
 		return false;
 
@@ -221,21 +175,10 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.DWord = 0;
 		Dest.Type = pGroupMemberType;
 
-		if (pChar->pGroupInfo->pMember[0]->MainAssist)
+		if (CGroupMember* pMember = pCharData->Group->GetGroupMemberByRole(GroupRoleAssist))
 		{
+			Dest.DWord = pCharData->Group->GetGroupMemberIndex(pMember);
 			return true;
-		}
-
-		for (int i = 1; i < MAX_GROUP_SIZE; i++)
-		{
-			if (pChar->pGroupInfo->pMember[i])
-			{
-				Dest.DWord++;
-				if (pChar->pGroupInfo->pMember[i]->MainAssist)
-				{
-					return true;
-				}
-			}
 		}
 		return false;
 
@@ -243,21 +186,10 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.DWord = 0;
 		Dest.Type = pGroupMemberType;
 
-		if (pChar->pGroupInfo->pMember[0]->Puller)
+		if (CGroupMember* pMember = pCharData->Group->GetGroupMemberByRole(GroupRolePuller))
 		{
+			Dest.DWord = pCharData->Group->GetGroupMemberIndex(pMember);
 			return true;
-		}
-
-		for (int i = 1; i < MAX_GROUP_SIZE; i++)
-		{
-			if (pChar->pGroupInfo->pMember[i])
-			{
-				Dest.DWord++;
-				if (pChar->pGroupInfo->pMember[i]->Puller)
-				{
-					return true;
-				}
-			}
 		}
 		return false;
 
@@ -265,21 +197,10 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.DWord = 0;
 		Dest.Type = pGroupMemberType;
 
-		if (pChar->pGroupInfo->pMember[0]->MarkNpc)
+		if (CGroupMember* pMember = pCharData->Group->GetGroupMemberByRole(GroupRoleMarkNPC))
 		{
+			Dest.DWord = pCharData->Group->GetGroupMemberIndex(pMember);
 			return true;
-		}
-
-		for (int i = 1; i < MAX_GROUP_SIZE; i++)
-		{
-			if (pChar->pGroupInfo->pMember[i])
-			{
-				Dest.DWord++;
-				if (pChar->pGroupInfo->pMember[i]->MarkNpc)
-				{
-					return true;
-				}
-			}
 		}
 		return false;
 
@@ -287,21 +208,10 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.DWord = 0;
 		Dest.Type = pGroupMemberType;
 
-		if (pChar->pGroupInfo->pMember[0]->MasterLooter)
+		if (CGroupMember* pMember = pCharData->Group->GetGroupMemberByRole(GroupRoleMasterLooter))
 		{
+			Dest.DWord = pCharData->Group->GetGroupMemberIndex(pMember);
 			return true;
-		}
-
-		for (int i = 1; i < MAX_GROUP_SIZE; i++)
-		{
-			if (pChar->pGroupInfo->pMember[i])
-			{
-				Dest.DWord++;
-				if (pChar->pGroupInfo->pMember[i]->MasterLooter)
-				{
-					return true;
-				}
-			}
 		}
 		return false;
 
@@ -311,12 +221,14 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
-			if (pChar->pGroupInfo->pMember[i]
-				&& (pChar->pGroupInfo->pMember[i]->Offline
-					|| (pChar->pGroupInfo->pMember[i]->Offline == 0
-						&& pChar->pGroupInfo->pMember[i]->pSpawn == nullptr)
-					|| (pChar->pGroupInfo->pMember[i]->pSpawn
-						&& pChar->pGroupInfo->pMember[i]->pSpawn->Type == SPAWN_CORPSE)))
+			CGroupMember* pMember = pCharData->Group->GetGroupMember(i);
+
+			if (pMember
+				&& (pMember->IsOffline()
+					|| (!pMember->IsOffline()
+						&& pMember->GetPlayer() == nullptr)
+					|| (pMember->GetPlayer()
+						&& pMember->GetPlayer()->Type == SPAWN_CORPSE)))
 			{
 				Dest.Set(true);
 				break;
@@ -330,9 +242,12 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
-			if (pChar->pGroupInfo->pMember[i]
-				&& pChar->pGroupInfo->pMember[i]->pSpawn
-				&& pChar->pGroupInfo->pMember[i]->pSpawn->Type != SPAWN_CORPSE)
+			CGroupMember* pMember = pCharData->Group->GetGroupMember(i);
+
+			// TODO: GroupMembers: pMember has a type field as well
+			if (pMember
+				&& pMember->GetPlayer()
+				&& pMember->GetPlayer()->Type != SPAWN_CORPSE)
 			{
 				Dest.DWord++;
 			}
@@ -379,11 +294,13 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
-			if (pChar->pGroupInfo->pMember[i]
-				&& pChar->pGroupInfo->pMember[i]->pSpawn
-				&& pChar->pGroupInfo->pMember[i]->pSpawn->Type != SPAWN_CORPSE)
+			CGroupMember* pMember = pCharData->Group->GetGroupMember(i);
+
+			if (pMember
+				&& pMember->GetPlayer()
+				&& pMember->GetPlayer()->Type != SPAWN_CORPSE)
 			{
-				hps += pChar->pGroupInfo->pMember[i]->pSpawn->HPCurrent;
+				hps += pMember->GetPlayer()->HPCurrent;
 				nummembers++;
 			}
 		}
@@ -404,24 +321,26 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			int64_t hps = 0;
 			for (int i = 0; i < MAX_GROUP_SIZE; i++)
 			{
-				if (pChar->pGroupInfo->pMember[i]
-					&& pChar->pGroupInfo->pMember[i]->pSpawn
-					&& pChar->pGroupInfo->pMember[i]->pSpawn->Type != SPAWN_CORPSE
-					&& pChar->pGroupInfo->pMember[i]->Offline == 0)
+				CGroupMember* pMember = pCharData->Group->GetGroupMember(i);
+
+				if (pMember
+					&& pMember->GetPlayer()
+					&& pMember->GetPlayer()->Type != SPAWN_CORPSE
+					&& !pMember->IsOffline())
 				{
 					if (i == 0)
 					{
-						if (pChar->pGroupInfo->pMember[i]->pSpawn->HPCurrent
-							&& pChar->pGroupInfo->pMember[i]->pSpawn->HPMax)
+						if (pMember->GetPlayer()->HPCurrent
+							&& pMember->GetPlayer()->HPMax)
 						{
-							float fhpc = (float)pChar->pGroupInfo->pMember[i]->pSpawn->HPCurrent;
-							float fhpm = (float)pChar->pGroupInfo->pMember[i]->pSpawn->HPMax;
+							float fhpc = (float)pMember->GetPlayer()->HPCurrent;
+							float fhpm = (float)pMember->GetPlayer()->HPMax;
 							hps = (int64_t)(fhpc * 100 / fhpm);
 						}
 					}
 					else
 					{
-						hps = pChar->pGroupInfo->pMember[i]->pSpawn->HPCurrent;
+						hps = pMember->GetPlayer()->HPCurrent;
 					}
 
 					if (hps > 0 && hps < threshold)
@@ -438,7 +357,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.Ptr = nullptr;
 		Dest.Type = pSpawnType;
 
-		for (auto& member : pChar->pGroupInfo->pMember)
+		for (auto& member : *pCharData->Group)
 		{
 			if (member
 				&& member->Type == EQP_PC
@@ -472,7 +391,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 						{
 							// GW_Gauge1 -> GWGauge5
 							int i = digit[0] - '0';
-							if (i > 0 && i < MAX_GROUP_SIZE && pChar->pGroupInfo->pMember[i])
+							if (i > 0 && i < MAX_GROUP_SIZE && pCharData->Group->GetGroupMember(i))
 							{
 								Dest.DWord = i;
 								return true;
@@ -543,11 +462,11 @@ MQ2GroupMemberType::MQ2GroupMemberType() : MQ2Type("groupmember")
 bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	CHARINFO* pChar = GetCharInfo();
-	if (!pChar || !pChar->pGroupInfo)
+	if (!pChar || !pCharData->Group)
 		return false;
 
 	SPAWNINFO* pGroupMember = nullptr;
-	GROUPMEMBER* pGroupMemberData = nullptr;
+	CGroupMember* pGroupMemberData = nullptr;
 
 	char MemberName[MAX_STRING] = { 0 };
 	char LeaderName[MAX_STRING] = { 0 };
@@ -561,14 +480,14 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 
 		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
-			GROUPMEMBER* pMember = pChar->pGroupInfo->pMember[i];
+			CGroupMember* pMember = pCharData->Group->GetGroupMember(i);
 
 			if (pMember)
 			{
 				index--;
 				if (index == 0)
 				{
-					strcpy_s(MemberName, pMember->Name.c_str());
+					strcpy_s(MemberName, pMember->GetName());
 
 					if (pMember->pSpawn)
 					{
@@ -590,7 +509,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 			strcpy_s(MemberName, pGroupMember->Name);
 		}
 
-		pGroupMemberData = pChar->pGroupInfo->pMember[0];
+		pGroupMemberData = pCharData->Group->GetGroupMember(0);
 	}
 
 	MQTypeMember* pMember = MQ2GroupMemberType::FindMember(Member);
@@ -620,10 +539,11 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 
 	case GroupMemberMembers::Leader:
 		Dest.Type = pBoolType;
-		if (!pChar->pGroupInfo->pLeader)
+		if (!pCharData->Group->GetGroupLeader())
 			return false;
 
-		strcpy_s(LeaderName, pChar->pGroupInfo->pLeader->Name.c_str());
+		// TODO: GroupMembers: use IsGroupLeader
+		strcpy_s(LeaderName, pCharData->Group->GetGroupLeader()->GetName());
 		Dest.Set(!_stricmp(MemberName, LeaderName));
 		return true;
 
@@ -654,7 +574,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		Dest.Type = pBoolType;
 		if (pGroupMemberData)
 		{
-			Dest.Set(pGroupMemberData->MainTank != 0);
+			Dest.Set(pGroupMemberData->IsMainTank());
 			return true;
 		}
 		return false;
@@ -663,7 +583,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		Dest.Type = pBoolType;
 		if (pGroupMemberData)
 		{
-			Dest.Set(pGroupMemberData->MainAssist != 0);
+			Dest.Set(pGroupMemberData->IsMainAssist());
 			return true;
 		}
 		return false;
@@ -672,7 +592,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		Dest.Type = pBoolType;
 		if (pGroupMemberData)
 		{
-			Dest.Set(pGroupMemberData->MarkNpc != 0);
+			Dest.Set(pGroupMemberData->IsMarkNPC());
 			return true;
 		}
 		return false;
@@ -681,7 +601,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		Dest.Type = pBoolType;
 		if (pGroupMemberData)
 		{
-			Dest.Set(pGroupMemberData->MasterLooter != 0);
+			Dest.Set(pGroupMemberData->IsMasterLooter());
 			return true;
 		}
 		return false;
@@ -690,7 +610,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		Dest.Type = pBoolType;
 		if (pGroupMemberData)
 		{
-			Dest.Set(pGroupMemberData->Puller != 0);
+			Dest.Set(pGroupMemberData->IsPuller());
 			return true;
 		}
 		return false;
@@ -725,7 +645,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		Dest.Type = pBoolType;
 		if (pGroupMemberData)
 		{
-			Dest.Set(pGroupMemberData->Offline != 0);
+			Dest.Set(pGroupMemberData->IsOffline());
 			return true;
 		}
 		return false;
@@ -734,7 +654,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		Dest.Type = pBoolType;
 		if (pGroupMemberData)
 		{
-			Dest.Set(pGroupMemberData->pSpawn != nullptr);
+			Dest.Set(pGroupMemberData->GetPlayer() != nullptr);
 			Dest.Type = pBoolType;
 			return true;
 		}
@@ -742,7 +662,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 
 	case GroupMemberMembers::OtherZone:
 		Dest.Type = pBoolType;
-		Dest.Set(pGroupMemberData && !pGroupMemberData->Offline && !pGroupMemberData->pSpawn);
+		Dest.Set(pGroupMemberData && !pGroupMemberData->IsOffline() && !pGroupMemberData->GetPlayer());
 		return true;
 	}
 	return false;
@@ -756,19 +676,19 @@ bool MQ2GroupMemberType::ToString(MQVarPtr VarPtr, char* Destination)
 			return false;
 
 		CHARINFO* pChar = GetCharInfo();
-		if (!pChar->pGroupInfo) return false;
+		if (!pCharData->Group) return false;
 
 		// members 1 to 5. Count to the nth member.
 		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
-			GROUPMEMBER* pMember = pChar->pGroupInfo->pMember[i];
+			CGroupMember* pMember = pCharData->Group->GetGroupMember(i);
 			if (pMember)
 			{
 				index--;
 				if (index == 0)
 				{
 					char Name[MAX_STRING] = { 0 };
-					strcpy_s(Name, pMember->Name.c_str());
+					strcpy_s(Name, pMember->GetName());
 
 					strcpy_s(Destination, MAX_STRING, CleanupName(Name, MAX_STRING, false, false));
 					return true;

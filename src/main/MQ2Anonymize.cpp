@@ -555,8 +555,6 @@ CXStr Anonymize(const CXStr& Text)
 			return r ? r->replace_text(text) : text;
 		});
 
-	auto pChar = GetCharInfo();
-
 	if (anon_self != Anonymization::None && pLocalPlayer)
 	{
 		if (!self_replacer || ci_find_substr(self_replacer->name, pLocalPlayer->Name) != 0)
@@ -565,21 +563,21 @@ CXStr Anonymize(const CXStr& Text)
 		new_text = self_replacer->replace_text(new_text);
 	}
 
-	if (anon_group != Anonymization::None && pChar && pChar->pGroupInfo)
+	if (anon_group != Anonymization::None && pCharData && pCharData->Group)
 	{
 		new_text = std::accumulate(
-			std::cbegin(pChar->pGroupInfo->pMember),
-			std::cend(pChar->pGroupInfo->pMember),
+			std::cbegin(*pCharData->Group),
+			std::cend(*pCharData->Group),
 			new_text,
-			[](std::string& text, const GROUPMEMBER* g) -> std::string
+			[](std::string& text, const CGroupMember* pMember) -> std::string
 			{
-				if (g && g->Name[0] != '\0' && ci_equals(text, g->Name, false))
+				if (pMember && pMember->Name[0] != '\0' && ci_equals(text, pMember->Name, false))
 				{
-					auto memoized = group_memoization.find(g->Name);
+					auto memoized = group_memoization.find(pMember->Name);
 					if (memoized == group_memoization.end())
 						memoized = group_memoization.emplace(
-							g->Name,
-							std::make_unique<anon_replacer>(g->Name, anon_group)
+							pMember->Name,
+							std::make_unique<anon_replacer>(pMember->Name, anon_group)
 						).first;
 
 					return memoized->second->replace_text(text);
@@ -590,9 +588,9 @@ CXStr Anonymize(const CXStr& Text)
 		);
 	}
 
-	if (anon_fellowship != Anonymization::None && pChar && pChar->pSpawn)
+	if (anon_fellowship != Anonymization::None && pCharData && pCharData->pSpawn)
 	{
-		auto fellowship = pChar->pSpawn->Fellowship;
+		auto& fellowship = pCharData->pSpawn->Fellowship;
 		new_text = std::accumulate(
 			std::cbegin(fellowship.FellowshipMember),
 			std::cend(fellowship.FellowshipMember),
@@ -618,9 +616,9 @@ CXStr Anonymize(const CXStr& Text)
 
 	if (anon_guild != Anonymization::None && pGuildList)
 	{
-		if (pGuild && pChar)
+		if (pGuild && pCharData)
 		{
-			auto guild_name = pGuild->GetGuildName(pChar->GuildID);
+			const char* guild_name = pGuild->GetGuildName(pCharData->GuildID.GUID);
 			if (guild_name[0] != '\0' && ci_equals(new_text, guild_name, false))
 			{
 				auto memoized = guild_memoization.find(guild_name);
@@ -651,7 +649,7 @@ CXStr Anonymize(const CXStr& Text)
 		}
 	}
 
-	if (anon_raid != Anonymization::None && pChar && pRaid)
+	if (anon_raid != Anonymization::None && pCharData && pRaid)
 	{
 		for (auto pMember : pRaid->RaidMember)
 		{

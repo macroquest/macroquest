@@ -856,7 +856,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			return false;
 
 		// TODO:  Move this into a function for both BlockedPetBuff and BlockedBuff
-		if (CHARINFONEW* pCharnew = reinterpret_cast<CHARINFONEW*>(GetCharInfo()))
+		if (pCharData)
 		{
 			int iMaxBlockedSpells = (static_cast<CharacterMembers>(pMember->ID) == CharacterMembers::BlockedBuff ? MAX_BLOCKED_SPELLS : MAX_BLOCKED_SPELLS_PET);
 			if (IsNumber(Index))
@@ -867,7 +867,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				if (nBuff > iMaxBlockedSpells)
 					return false;
 
-				if (int spellId = (static_cast<CharacterMembers>(pMember->ID) == CharacterMembers::BlockedBuff) ? pCharnew->BlockedSpell[nBuff] : pCharnew->BlockedPetSpell[nBuff])
+				if (int spellId = (static_cast<CharacterMembers>(pMember->ID) == CharacterMembers::BlockedBuff) ? pCharData->BlockedSpell[nBuff] : pCharData->BlockedPetSpell[nBuff])
 				{
 					if (SPELL* pSpell = GetSpellByID(spellId))
 					{
@@ -880,7 +880,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			{
 				for (auto i = 0; i < iMaxBlockedSpells; ++i)
 				{
-					if (int spellId = (static_cast<CharacterMembers>(pMember->ID) == CharacterMembers::BlockedBuff) ? pCharnew->BlockedSpell[i] : pCharnew->BlockedPetSpell[i])
+					if (int spellId = (static_cast<CharacterMembers>(pMember->ID) == CharacterMembers::BlockedBuff) ? pCharData->BlockedSpell[i] : pCharData->BlockedPetSpell[i])
 					{
 						if (SPELL* pSpell = GetSpellByID(spellId))
 						{
@@ -1375,26 +1375,23 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case CharacterMembers::Grouped:
 		Dest.Type = pBoolType;
-		if (!pChar->pGroupInfo)
+		if (!pCharData->Group)
 			return false;
 
-		Dest.Set(pChar->pGroupInfo->pMember[1]
-			|| pChar->pGroupInfo->pMember[2]
-			|| pChar->pGroupInfo->pMember[3]
-			|| pChar->pGroupInfo->pMember[4]
-			|| pChar->pGroupInfo->pMember[5]);
+		Dest.Set(pCharData->Group->GetNumberOfMembers() > 1);
 		return true;
 
 	case CharacterMembers::GroupList: { // This isn't really working as intended just yet
 		Dest.Type = pStringType;
-		if (!pChar->pGroupInfo)
+		if (!pCharData->Group)
 			return false;
-		for (int i = 1; i < 6; i++)
+
+		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
-			if (pChar->pGroupInfo->pMember[i])
+			if (CGroupMember* pMember = pCharData->Group->GetGroupMember(i))
 			{
-				strcpy_s(DataTypeTemp, pChar->pGroupInfo->pMember[i]->Name.c_str());
-				if (i < 5 && pChar->pGroupInfo->pMember[i + 1])
+				strcpy_s(DataTypeTemp, pMember->GetName());
+				if ((i < MAX_GROUP_SIZE - 1) && pCharData->Group->GetGroupMember(i + 1))
 					strcat_s(DataTypeTemp, " ");
 			}
 		}
@@ -1404,13 +1401,9 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case CharacterMembers::AmIGroupLeader:
 		Dest.Type = pStringType;
-		if (!pChar->pGroupInfo) return false;
-		if (!pChar->pGroupInfo->pLeader) return false;
+		if (!pCharData->Group) return false;
 
-		if (!_stricmp(pChar->pGroupInfo->pLeader->Name.c_str(), pChar->Name))
-			strcpy_s(DataTypeTemp, "TRUE");
-		else
-			strcpy_s(DataTypeTemp, "FALSE");
+		strcpy_s(DataTypeTemp, pCharData->Group->IsGroupLeader(pCharData->me) ? "TRUE" : "FALSE");
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 
@@ -2543,16 +2536,8 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::GroupSize:
-		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (!pChar->pGroupInfo)
-			return false;
-
-		for (int i = 1; i < 6; i++)
-		{
-			if (pChar->pGroupInfo->pMember[i])
-				Dest.DWord++;
-		}
+		Dest.DWord = (pCharData->Group ? pCharData->Group->GetNumberOfMembersExcludingSelf() : 0);
 
 		// if we have at least one other group member, count self.
 		if (Dest.DWord)

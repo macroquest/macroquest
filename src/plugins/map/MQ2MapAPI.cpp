@@ -668,17 +668,19 @@ void MapUpdate()
 
 	if (IsOptionEnabled(MAPFILTER_Group))
 	{
-		CHARINFO* pChar = GetCharInfo();
-		for (int i = 1; i < MAX_GROUP_SIZE; i++)
+		if (pCharData && pCharData->Group)
 		{
-			if (pChar->pGroupInfo && pChar->pGroupInfo->pMember[i])
+			for (int i = 1; i < MAX_GROUP_SIZE; i++)
 			{
-				auto pSpawn = GetSpawnByName(pChar->pGroupInfo->pMember[i]->Name.c_str());
-				if (pSpawn)
+				if (CGroupMember* pMember = pCharData->Group->GetGroupMember(i))
 				{
-					if (pMapSpawn = SpawnMap[pSpawn->SpawnID])
+					// TODO: GroupMembers: use GetPlayer()
+					if (auto pSpawn = GetSpawnByName(pMember->GetName()))
 					{
-						pMapSpawn->pMapLabel->Color.ARGB = MapFilterOptions[MAPFILTER_Group].Color;
+						if (pMapSpawn = SpawnMap[pSpawn->SpawnID])
+						{
+							pMapSpawn->pMapLabel->Color.ARGB = MapFilterOptions[MAPFILTER_Group].Color;
+						}
 					}
 				}
 			}

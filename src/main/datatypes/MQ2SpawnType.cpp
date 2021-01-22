@@ -1076,16 +1076,13 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.Set(false);
 		Dest.Type = pBoolType;
 
-		if (CHARINFO* pCharInfo = GetCharInfo())
+		if (pCharData->Group && pCharData->Group->GetGroupLeader())
 		{
-			if (pCharInfo->pGroupInfo && pCharInfo->pGroupInfo->pLeader)
-			{
-				Dest.Set(pSpawn->Type == SPAWN_PLAYER
-					&& !_stricmp(pCharInfo->pGroupInfo->pLeader->Name.c_str(), pSpawn->Name));
-				return true;
-			}
+			// TODO: GroupMembers: use IsLeader
+			Dest.Set(pSpawn->Type == SPAWN_PLAYER
+				&& !_stricmp(pCharData->Group->GetGroupLeader()->GetName(), pSpawn->Name));
 		}
-		return false;
+		return true;
 
 	case SpawnMembers::Assist:
 		Dest.Set(false);

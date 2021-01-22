@@ -2607,21 +2607,18 @@ bool IsInGroup(SPAWNINFO* pSpawn, bool bCorpse)
 	if (pSpawn == nullptr)
 		return false;
 
-	CHARINFO* pChar = GetCharInfo();
-	if (!pChar->pGroupInfo)
+	if (!pCharData->Group)
 		return false;
-	if (pSpawn == pChar->pSpawn)
+	if (pSpawn == pCharData->pSpawn)
 		return true;
 
 	for (int i = 1; i < MAX_GROUP_SIZE; i++)
 	{
-		GROUPMEMBER* pMember = pChar->pGroupInfo->pMember[i];
-
-		if (pMember)
+		if (CGroupMember* pMember = pCharData->Group->GetGroupMember(i))
 		{
 			if (!bCorpse)
 			{
-				if (!_stricmp(pMember->Name.c_str(), pSpawn->Name))
+				if (!_stricmp(pMember->GetName(), pSpawn->Name))
 				{
 					return true;
 				}
@@ -2629,7 +2626,7 @@ bool IsInGroup(SPAWNINFO* pSpawn, bool bCorpse)
 			else
 			{
 				char szSearch[256] = { 0 };
-				strcpy_s(szSearch, pMember->Name.c_str());
+				strcpy_s(szSearch, pMember->GetName());
 				strcat_s(szSearch, "'s corpse");
 
 				if (!_strnicmp(pSpawn->Name, szSearch, strlen(szSearch)))
@@ -6678,15 +6675,14 @@ bool WillFitInInventory(ItemClient* pContent)
 
 int GetGroupMemberClassByIndex(int index)
 {
-	if (CHARINFO* pChar = GetCharInfo())
-	{
-		if (!pChar->pGroupInfo)
-			return 0;
+	if (!pCharData || !pCharData->Group)
+		return 0;
 
-		if (pChar->pGroupInfo->pMember[index] && pChar->pGroupInfo->pMember[index]->pSpawn)
-		{
-			return pChar->pGroupInfo->pMember[index]->pSpawn->mActorClient.Class;
-		}
+	CGroupMember* pMember = pCharData->Group->GetGroupMember(index);
+
+	if (pMember && pMember->GetPlayer())
+	{
+		return pMember->GetPlayer()->mActorClient.Class;
 	}
 
 	return 0;
@@ -6975,23 +6971,20 @@ int GetRaidMemberIndex(SPAWNINFO* pSpawn)
 
 bool IsGroupMember(const char* SpawnName)
 {
-	if (CHARINFO* pChar = GetCharInfo())
+	if (!pCharData || !pCharData->Group)
+		return false;
+
+	for (int index = 1; index < MAX_GROUP_SIZE; index++)
 	{
-		if (!pChar->pGroupInfo)
-			return false;
-
-		for (int index = 1; index < MAX_GROUP_SIZE; index++)
+		if (CGroupMember* pMember = pCharData->Group->GetGroupMember(index))
 		{
-			if (pChar->pGroupInfo->pMember[index])
-			{
-				char Name[MAX_STRING] = { 0 };
-				strcpy_s(Name, pChar->pGroupInfo->pMember[index]->Name.c_str());
+			char Name[MAX_STRING] = { 0 };
+			strcpy_s(Name, pMember->GetName());
 
-				CleanupName(Name, sizeof(Name), false, false);
+			CleanupName(Name, sizeof(Name), false, false);
 
-				if (!_stricmp(SpawnName, Name))
-					return true;
-			}
+			if (!_stricmp(SpawnName, Name))
+				return true;
 		}
 	}
 
@@ -7000,23 +6993,20 @@ bool IsGroupMember(const char* SpawnName)
 
 bool IsGroupMember(SPAWNINFO* pSpawn)
 {
-	if (CHARINFO* pChar = GetCharInfo())
+	if (!pCharData || !pCharData->Group)
+		return false;
+
+	for (int index = 1; index < MAX_GROUP_SIZE; index++)
 	{
-		if (!pChar->pGroupInfo)
-			return false;
-
-		for (int index = 1; index < MAX_GROUP_SIZE; index++)
+		if (CGroupMember* pMember = pCharData->Group->GetGroupMember(index))
 		{
-			if (pChar->pGroupInfo->pMember[index])
-			{
-				char Name[MAX_STRING] = { 0 };
-				strcpy_s(Name, pChar->pGroupInfo->pMember[index]->Name.c_str());
+			char Name[MAX_STRING] = { 0 };
+			strcpy_s(Name, pMember->GetName());
 
-				//CleanupName(Name, sizeof(Name), false, false);
+			//CleanupName(Name, sizeof(Name), false, false);
 
-				if (!_stricmp(pSpawn->Name, Name))
-					return true;
-			}
+			if (!_stricmp(pSpawn->Name, Name))
+				return true;
 		}
 	}
 
@@ -7060,27 +7050,25 @@ bool IsGuildMember(const char* SpawnName)
 
 int GetGroupMercenaryCount(uint32_t ClassMASK)
 {
-	int retValue = 0;
 
-	if (CHARINFO* pChar = GetCharInfo())
+	if (!pCharData || !pCharData->Group)
+		return 0;
+
+	int count = 0;
+
+	for (int index = 1; index < MAX_GROUP_SIZE; index++)
 	{
-		if (!pChar->pGroupInfo)
-			return 0;
-
-		for (int index = 1; index < MAX_GROUP_SIZE; index++)
+		if (CGroupMember* pMember = pCharData->Group->GetGroupMember(index))
 		{
-			if (pChar->pGroupInfo->pMember[index])
+			if (pMember->Type == EQP_NPC && pMember->GetPlayer()
+				&& (ClassMASK & (1 << (pMember->GetPlayer()->mActorClient.Class - 1))))
 			{
-				if (pChar->pGroupInfo->pMember[index]->Type == EQP_NPC
-					&& (ClassMASK & (1 << (pChar->pGroupInfo->pMember[index]->pSpawn->mActorClient.Class - 1))))
-				{
-					retValue++;
-				}
+				count++;
 			}
 		}
 	}
 
-	return retValue;
+	return count;
 }
 
 SPAWNINFO* GetRaidMember(int index)
@@ -7101,23 +7089,20 @@ inline SPAWNINFO* GetGroupMember(int index)
 	if (index >= MAX_GROUP_SIZE)
 		return nullptr;
 
-	CHARINFO* pChar = GetCharInfo();
-	if (!pChar->pGroupInfo)
+	if (!pCharData || !pCharData->Group)
 		return nullptr;
 
 	for (int i = 1; i < MAX_GROUP_SIZE; i++)
 	{
-		if (pChar->pGroupInfo->pMember[i])
+		if (CGroupMember* pMember = pCharData->Group->GetGroupMember(i))
 		{
 			index--;
 
 			if (index == 0)
 			{
-				// FIXME: Why a copy?
-				char Name[MAX_STRING] = { 0 };
-				strcpy_s(Name, pChar->pGroupInfo->pMember[i]->Name.c_str());
+				// FIXME: GroupMember - use GetPlayer()
 
-				return (SPAWNINFO*)GetSpawnByName(Name);
+				return (SPAWNINFO*)GetSpawnByName(pMember->GetName());
 			}
 		}
 	}
@@ -7127,7 +7112,7 @@ inline SPAWNINFO* GetGroupMember(int index)
 
 uint32_t GetGroupMainAssistTargetID()
 {
-	if (!pCharData || !pCharData->pGroupInfo) return 0;
+	if (!pCharData || !pCharData->Group) return 0;
 	if (!pLocalPlayer) return 0;
 
 	return pLocalPlayer->GroupAssistNPC[0];

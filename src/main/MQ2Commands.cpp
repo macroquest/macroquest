@@ -4827,19 +4827,19 @@ void AdvLootCmd(SPAWNINFO* pChar, char* szLine)
 
 							if (szEntity[0] != '\0')
 							{
-								if (CHARINFO* pCI = GetCharInfo())
+								if (pCharData)
 								{
 									CXStr out;
 
-									if (pCI->pGroupInfo)
+									if (pCharData->Group)
 									{
-										for (auto& member : pCI->pGroupInfo->pMember)
+										for (auto& member : *pCharData->Group)
 										{
 											if (member
 												&& member->Type == EQP_PC
 												&& !member->Name.empty())
 											{
-												if (!_stricmp(member->Name.c_str(), szEntity))
+												if (!_stricmp(member->GetName(), szEntity))
 												{
 													out = member->Name;
 													break;
@@ -4853,7 +4853,7 @@ void AdvLootCmd(SPAWNINFO* pChar, char* szLine)
 									{
 										if (pRaid && pRaid->RaidMemberCount)
 										{
-											for (DWORD nMember = 0; nMember < 72; nMember++)
+											for (DWORD nMember = 0; nMember < MAX_RAID_SIZE; nMember++)
 											{
 												if (pRaid->RaidMemberUsed[nMember] && !_stricmp(pRaid->RaidMember[nMember].Name, szEntity))
 												{
