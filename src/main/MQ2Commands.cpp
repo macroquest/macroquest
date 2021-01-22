@@ -3265,10 +3265,12 @@ void IniOutput(SPAWNINFO* pChar, char* szLine)
 		iniFile += ".ini";
 	}
 
+	std::error_code ec;
+
 	if (iniFile.is_relative())
 	{
 		// Config is the primary path, but fall back to the old path if needed
-		if (!exists(internal_paths::Config / iniFile) && exists(internal_paths::Macros / iniFile))
+		if (!exists(internal_paths::Config / iniFile, ec) && exists(internal_paths::Macros / iniFile, ec))
 		{
 			iniFile = internal_paths::Macros / iniFile;
 		}
@@ -3280,7 +3282,6 @@ void IniOutput(SPAWNINFO* pChar, char* szLine)
 
 	// Make sure the directory exists for the ini file.
 	std::filesystem::path iniDirectory = iniFile.parent_path();
-	std::error_code ec;
 	std::filesystem::create_directories(iniDirectory, ec);
 
 	const char* szKey = nullptr;
