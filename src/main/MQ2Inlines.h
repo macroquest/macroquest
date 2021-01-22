@@ -566,14 +566,12 @@ inline uint64_t MQGetTickCount64()
 
 inline int GetMemorizedSpell(int index)
 {
-	if (index < 0 || index > 0xF)
+	if (index < 0 || index > 15)
 		return -1;
 
 	if (CHARINFO* pCharInfo = GetCharInfo())
 	{
-		// FIXME: Don't take the address of the vtable, just let compiler do typecast.
-		CharacterBase* cb = (CharacterBase*)&pCharInfo->CharacterBase_vftable;
-		return cb->GetMemorizedSpell(index);
+		return pCharInfo->GetMemorizedSpell(index);
 	}
 
 	return -1;

@@ -769,14 +769,14 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	}
 
 	case CharacterMembers::AAVitality:
-		Dest.Int = pChar->AAVitality;
-		Dest.Type = pIntType;
+		Dest.Int64 = pChar->AAVitality;
+		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::PctAAVitality: {
 		Dest.Float = 0;
 		Dest.Type = pFloatType;
-		int aavitality = pChar->AAVitality;
+		int64_t aavitality = pChar->AAVitality;
 		int aacap = pInventoryWnd->AAVitalityCap;
 		if (aavitality > aacap)
 			aavitality = aacap;
@@ -3285,10 +3285,8 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			// TODO: Is this GetCharInfo Redundant? Remove if so.
 			if (CHARINFO* pCharInfo = GetCharInfo())
 			{
-				if (pCharInfo->vtable2) {
-					Dest.DWord = pCharData->TotalEffect(GetIntFromString(Index, 0), true, 0, true, true);
-					return true;
-				}
+				Dest.DWord = pCharData->TotalEffect(GetIntFromString(Index, 0), true, 0, true, true);
+				return true;
 			}
 		}
 		return false;

@@ -239,62 +239,54 @@ public:
 
 							if (ItemGlobalIndex* gi = (ItemGlobalIndex*)pFIWnd->gi[(int)pCheck->GetData()])
 							{
-								if (PCHARINFO pCharInfo = GetCharInfo())
+								if (ItemPtr ptr = pCharData->GetItemByGlobalIndex(*gi))
 								{
-									CharacterBase* cb = (CharacterBase*)&pCharInfo->CharacterBase_vftable;
-									ItemPtr ptr = cb->GetItemByGlobalIndex(*gi);
-
-									if (ptr)
+									ItemDefinition* pItem = ptr->GetItemDefinition();
+									if (gbColorsFeatureEnabled)
 									{
-										if (ItemDefinition* pItem = ptr->GetItemDefinition())
+										if (pItem->TradeSkills)
 										{
-											if (gbColorsFeatureEnabled)
-											{
-												if (pItem->TradeSkills)
-												{
-													list->SetItemColor(i, 1, 0xFFFF00FF);
-												}
-												if (pItem->QuestItem)
-												{
-													list->SetItemColor(i, 1, 0xFFFFFF00);
-												}
-											}
-
-											szTemp3[0] = 0;
-
-											if (pItem->Cost > 0)
-											{
-												int sellprice = ptr->ValueSellMerchant(1.05f, 1);
-												int cp = sellprice;
-												int sp = cp / 10; cp = cp % 10;
-												int gp = sp / 10; sp = sp % 10;
-												int pp = gp / 10; gp = gp % 10;
-
-												if (pp > 0)
-												{
-													sprintf_s(szTemp2, " %dpp", pp);
-													strcat_s(szTemp3, szTemp2);
-												}
-												if (gp > 0)
-												{
-													sprintf_s(szTemp2, " %dgp", gp);
-													strcat_s(szTemp3, szTemp2);
-												}
-												if (sp > 0)
-												{
-													sprintf_s(szTemp2, " %dsp", sp);
-													strcat_s(szTemp3, szTemp2);
-												}
-												if (cp > 0)
-												{
-													sprintf_s(szTemp2, " %dcp", cp);
-													strcat_s(szTemp3, szTemp2);
-												}
-											}
-
-											list->SetItemText(i, ValueCol, szTemp3);
+											list->SetItemColor(i, 1, 0xFFFF00FF);
+										}
+										if (pItem->QuestItem)
+										{
+											list->SetItemColor(i, 1, 0xFFFFFF00);
 										}
 									}
+
+									szTemp3[0] = 0;
+
+									if (pItem->Cost > 0)
+									{
+										int sellprice = ptr->ValueSellMerchant(1.05f, 1);
+										int cp = sellprice;
+										int sp = cp / 10; cp = cp % 10;
+										int gp = sp / 10; sp = sp % 10;
+										int pp = gp / 10; gp = gp % 10;
+
+										if (pp > 0)
+										{
+											sprintf_s(szTemp2, " %dpp", pp);
+											strcat_s(szTemp3, szTemp2);
+										}
+										if (gp > 0)
+										{
+											sprintf_s(szTemp2, " %dgp", gp);
+											strcat_s(szTemp3, szTemp2);
+										}
+										if (sp > 0)
+										{
+											sprintf_s(szTemp2, " %dsp", sp);
+											strcat_s(szTemp3, szTemp2);
+										}
+										if (cp > 0)
+										{
+											sprintf_s(szTemp2, " %dcp", cp);
+											strcat_s(szTemp3, szTemp2);
+										}
+									}
+
+									list->SetItemText(i, ValueCol, szTemp3);
 								}
 							}
 						}
@@ -697,29 +689,23 @@ public:
 										{
 											int dta = (int)list->GetItemData(i);
 
-											if (ItemGlobalIndex* gi = (ItemGlobalIndex*)pThis->gi[dta])
+											if (ItemGlobalIndex* gi = pThis->gi[dta])
 											{
-												if (PCHARINFO pCharInfo = GetCharInfo())
+												if (ItemPtr ptr = pCharData->GetItemByGlobalIndex(*gi))
 												{
-													CharacterBase* cb = (CharacterBase*)&pCharInfo->CharacterBase_vftable;
-													ItemPtr ptr = cb->GetItemByGlobalIndex(*gi);
-													if (ptr)
+													ItemDefinition* pItem = ptr->GetItemDefinition();
+
+													if (pMerchantWnd && pMerchantWnd->IsVisible())
 													{
-														if (ItemDefinition* pItem = ptr->GetItemDefinition())
+														WriteChatf("[%d] Adding %s to Sell List", i, ptr->GetName());
+														gSellList.push_back(*gi);
+													}
+													else
+													{
+														WriteChatf("[%d] Marking %s as Never Loot", i, ptr->GetName());
+														if (pLootFiltersManager)
 														{
-															if (pMerchantWnd && pMerchantWnd->IsVisible())
-															{
-																WriteChatf("[%d] Adding %s to Sell List", i, ptr->GetName());
-																gSellList.push_back(*gi);
-															}
-															else
-															{
-																WriteChatf("[%d] Marking %s as Never Loot", i, ptr->GetName());
-																if (pLootFiltersManager)
-																{
-																	pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 8, false, false);
-																}
-															}
+															pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 8, false, false);
 														}
 													}
 												}
