@@ -3278,6 +3278,11 @@ void IniOutput(SPAWNINFO* pChar, char* szLine)
 		}
 	}
 
+	// Make sure the directory exists for the ini file.
+	std::filesystem::path iniDirectory = iniFile.parent_path();
+	std::error_code ec;
+	std::filesystem::create_directories(iniDirectory, ec);
+
 	const char* szKey = nullptr;
 	const char* szValue = nullptr;
 
