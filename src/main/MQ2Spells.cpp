@@ -152,7 +152,7 @@ DWORD CALLBACK InitializeMQ2SpellDb(void* pData)
 	default: WriteChatf("Initializing SpellMap. (%d)", state); break;
 	}
 
-	while (gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME)
+	while (GetGameState() != GAMESTATE_CHARSELECT && GetGameState() != GAMESTATE_INGAME)
 	{
 		Sleep(10);
 	}
