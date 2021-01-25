@@ -1,3 +1,28 @@
+Jan 24 2021
+- Implementation of CHARINFO has been switched over to use new class hierarchy based
+  on PcBase and CharacterBase. Removed old CHARINFO/CHARINFONEW definitions. There should
+  be no functional changaes.
+- Update /ini to create folder if it doesn't exist
+- Fix PickupItem/DropItem (function used by itemnotify) to allow picking up and dropping
+  items when they are in a closed bag.
+
+Jan 20 2021
+- Removed HTML Window code that was deleted from EverQuest.
+- Added CLICKABLE parameter to Item.ItemLink datatype member.
+- Update filename references from MacroQuest2 to plain MacroQuest.
+- Fix listselect/comboselect: selecting out of range will deselect current item. Enables
+  comboselect without using screen coordinates or opening combobox popup first.
+- Fix /ini improper handling of NULL or absent parameters.
+- Deleted gearscore code from MQ2ItemDisplay. Use the standalone plugin instead.
+
+Jan 8 2021
+- Fixed raid assist indexing
+- Added WillLand and WillLandPet to Spell datatype. Checks if the buff will stack but without
+  a duration component. This provides a raw "this will land on your target" check.
+- Fix bool properly handling empty string as falsey
+- Add warning when invalid datatype conversion is happening
+- Added chance spells to Spell.Trigger member
+
 Dec 10 2020
 - Fixes to new alt currency
 - Fixes for num expansions
