@@ -1175,7 +1175,7 @@ static void AutoBankPulse()
 
 				if (ItemPtr pItem = pCharData->GetItemByGlobalIndex(index))
 				{
-					if (PickupItem(pItem->GetGlobalIndex()))
+					if (PickupItem(pItem->GetItemLocation()))
 					{
 						WriteChatf("Destroyed %s", pItem->GetName());
 						DoCommandf("/destroyitem");
@@ -1309,7 +1309,7 @@ static void AutoBankPulse()
 			{
 				WriteChatf("[%d] Moving %s from slot %d %d to inventory",
 					gAutoInventoryList.size(), pItem->GetName(), indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
-				PickupItem(pItem->GetGlobalIndex());
+				PickupItem(pItem->GetItemLocation());
 			}
 			else
 			{
