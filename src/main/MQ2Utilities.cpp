@@ -5634,6 +5634,13 @@ bool PickupItem(const ItemGlobalIndex& globalIndex)
 		return false;
 	}
 
+	if (globalIndex.GetLocation() == eItemContainerPossessions
+		&& globalIndex.GetTopSlot() == InvSlot_Cursor)
+	{
+		WriteChatf("Cannot pick up an item from the cursor slot!");
+		return false;
+	}
+
 	if (pMerchantWnd && pMerchantWnd->IsVisible())
 	{
 		// If this is merchant selection, we cannot do it anywhere other than our inventory.
@@ -5655,82 +5662,16 @@ bool PickupItem(const ItemGlobalIndex& globalIndex)
 
 	bool isCtrl = pWndMgr->GetKeyboardFlags() & KeyboardFlags_Ctrl;
 
-	// This is just a a top level slot. We should have invslots for all of these.
-	if (globalIndex.GetIndex().GetSlot(1) == -1)
-	{
-		// If ctrl was pressed, and its a stackable item, we need to use the InvSlot in order to
-		// perform the move, otherwise we would need to know more about how to transfer partial stacks.
-		if (pItem->GetItemCount() > 1 && isCtrl)
-		{
-			CInvSlot* pInvSlot = pInvSlotMgr->FindInvSlot(globalIndex, false);
+	MultipleItemMoveManager::MoveItemArray moveArray;
+	MultipleItemMoveManager::MoveItem moveItem;
+	moveItem.from = globalIndex;
+	moveItem.to = pCharData->CreateItemGlobalIndex(InvSlot_Cursor);
+	moveItem.flags = MultipleItemMoveManager::MoveItemFlagSwapEnabled;
+	moveItem.count = isCtrl ? 1 : 0;
+	moveArray.Add(moveItem);
 
-			// This ctrl keypress will propogate through to the InvSlot and QuantityWnd that it will
-			// spawn, ultimiately leading to a transfer of a single item.
-			if (!pInvSlot || !pInvSlot->pInvSlotWnd || !SendWndClick2(pInvSlot->pInvSlotWnd, "leftmouseup"))
-			{
-				WriteChatf("Could not pick up '%s'", pItem->GetName());
-				return false;
-			}
-
-			return true;
-		}
-
-		// just move it from the slot to the cursor
-		return pInvSlotMgr->MoveItem(globalIndex, pCharData->CreateItemGlobalIndex(InvSlot_Cursor), true, true);
-	}
-
-	// We're dealing with an item inside of a bag from this point forward.
-	if (pItem->GetItemCount() > 1 && isCtrl)
-	{
-		// We need an invslot to handle this case.
-		CInvSlot* pInvSlot = pInvSlotMgr->FindInvSlot(globalIndex, false);
-		ItemClient* pBag = nullptr;
-		bool needToClose = false;
-
-		if (!pInvSlot)
-		{
-			// Get index to parent container
-			if (pBag = FindItemByGlobalIndex(globalIndex.GetParent()))
-			{
-				needToClose = OpenContainer(pBag, true);
-				pInvSlot = pInvSlotMgr->FindInvSlot(globalIndex, false);
-			}
-		}
-
-		if (!pInvSlot || !pInvSlot->pInvSlotWnd || !SendWndClick2(pInvSlot->pInvSlotWnd, "leftmouseup"))
-		{
-			WriteChatf("Could not pick up '%s'", pItem->GetName());
-			return false;
-		}
-
-		if (needToClose)
-		{
-			CloseContainer(pBag);
-		}
-
-		return true;
-	}
-
-	// ctrl is not pressed, so this will move the whole stack.
-	ItemGlobalIndex To(eItemContainerPossessions, ItemIndex(InvSlot_Cursor));
-
-	// TODO: Clean this all up
-	ItemClient* pContBefore = pProfile->InventoryContainer.GetItem(InvSlot_Cursor);
-	pInvSlotMgr->MoveItem(globalIndex, pCharData->CreateItemGlobalIndex(InvSlot_Cursor), true, true, false, true);
-	ItemClient* pContAfter = pProfile->InventoryContainer.GetItem(InvSlot_Cursor);
-	if (pContAfter)
-	{
-		EqItemGuid g;
-		strcpy_s(g.guid, 18, "0000000000000000");
-
-		pCursorAttachment->AttachToCursor(nullptr, nullptr, eCursorAttachment_Item, -1, g, 0, nullptr, nullptr);
-	}
-	else
-	{
-		pCursorAttachment->Deactivate();
-	}
-
-	return true;
+	auto result = MultipleItemMoveManager::ProcessMove(pCharData, moveArray);
+	return result == MultipleItemMoveManager::ErrorOk;
 }
 
 bool DropItem(const ItemGlobalIndex& globalIndex)
@@ -5741,97 +5682,47 @@ bool DropItem(const ItemGlobalIndex& globalIndex)
 	if (!pProfile)
 		return false;
 
-	// FIXME
-	ItemContainerInstance type = globalIndex.GetLocation();
-	short ToInvSlot = globalIndex.GetTopSlot();
-	short ToBagSlot = globalIndex.GetIndex().GetSlot(1);
+	ItemPtr pItem = pProfile->GetInventorySlot(InvSlot_Cursor);
+	if (!pItem)
+	{
+		WriteChatf("Cannot drop item into inventory slot: no item is on the cursor.");
+		return false;
+	}
 
 	bool bSelectSlot = false;
 	if (pMerchantWnd && pMerchantWnd->IsVisible())
 	{
-		// if the merchant window is open, we dont actually drop anything we just select the slot
-		bSelectSlot = true;
-	}
-
-	if (ToBagSlot == -1)
-	{
-		// they want to drop it to a toplevelslot
-		CInvSlot* pSlot = GetInvSlot(type, ToInvSlot);
-		if (!pSlot || !pSlot->pInvSlotWnd)
+		// If this is merchant selection, we cannot do it anywhere other than our inventory.
+		if (globalIndex.GetLocation() != eItemContainerPossessions)
 		{
-			// if we got all the way here this really shouldnt happen... but why assume...
-			WriteChatf("Could not find the %d itemslot", ToInvSlot);
+			WriteChatf("Can only select items in inventory.");
 			return false;
 		}
 
-		if (bSelectSlot)
+		// if the merchant window is open, we dont actually drop anything we just select the slot
+		if (CInvSlot* pSlot = GetInvSlot(globalIndex))
 		{
-			if (CInvSlot* theSlot = pInvSlotMgr->FindInvSlot(ToInvSlot))
-			{
-				// we select the slot, and that will set pSelectedItem correctly
-				// we do this cause later on we need that address for the .Selection member
-				pInvSlotMgr->SelectSlot(theSlot);
-
-				ItemGlobalIndex To = theSlot->pInvSlotWnd->ItemLocation;
-				To.Location = eItemContainerPossessions;
-
-				pMerchantWnd->SelectBuySellSlot(To);
-				return true;
-			}
+			pInvSlotMgr->SelectSlot(pSlot);
 		}
-		else
-		{
-			// just move it from cursor to the slot
-			ItemGlobalIndex To(type, ItemIndex(ToInvSlot, ToBagSlot));
 
-			pInvSlotMgr->MoveItem(pCharData->CreateItemGlobalIndex(InvSlot_Cursor), To, true, true);
-			return true;
-		}
-	}
-	else
-	{
-		// BagSlot is NOT -1 so they want to drop it INSIDE a bag
-		if (bSelectSlot)
-		{
-			if (CInvSlot* theSlot = pInvSlotMgr->FindInvSlot(ToInvSlot, ToBagSlot))
-			{
-				pInvSlotMgr->SelectSlot(theSlot);
-				pMerchantWnd->SelectBuySellSlot(theSlot->GetItemLocation());
-				return true;
-
-			}
-			else
-			{
-				// well now is where it gets complicated then...
-				// so we need to open the bag...
-				pMerchantWnd->SelectBuySellSlot(pCharData->CreateItemGlobalIndex(ToInvSlot, ToBagSlot));
-				return true;
-			}
-		}
-		else
-		{
-			// ok so its a slot inside a bag
-			ItemGlobalIndex From = pCharData->CreateItemGlobalIndex(InvSlot_Cursor);
-			ItemGlobalIndex To(type, ItemIndex(ToInvSlot, ToBagSlot));
-
-			ItemClient* pContBefore = pProfile->InventoryContainer.GetItem(InvSlot_Cursor);
-			pInvSlotMgr->MoveItem(From, To, true, true, true, false);
-			ItemClient* pContAfter = pProfile->InventoryContainer.GetItem(InvSlot_Cursor);
-
-			if (pContAfter)
-			{
-				EqItemGuid g;
-				strcpy_s(g.guid, 18, "0000000000000000");
-				pCursorAttachment->AttachToCursor(nullptr, nullptr, eCursorAttachment_Item, -1, g, 0, nullptr, nullptr);
-			}
-			else
-			{
-				pCursorAttachment->Deactivate();
-			}
-		}
+		pMerchantWnd->SelectBuySellSlot(globalIndex);
 		return true;
 	}
-	return false;
+
+	MultipleItemMoveManager::MoveItemArray moveArray;
+	MultipleItemMoveManager::MoveItem moveItem;
+	moveItem.from = pCharData->CreateItemGlobalIndex(InvSlot_Cursor);
+	moveItem.to = globalIndex;
+	moveItem.flags = MultipleItemMoveManager::MoveItemFlagSwapEnabled;
+	moveItem.count = 0;
+	moveArray.Add(moveItem);
+
+	// Deactivate the cursor attachment. This will ensure that the new item (if any)
+	// will replace it on the cursor.
+	pCursorAttachment->Deactivate();
+
+	auto result = MultipleItemMoveManager::ProcessMove(pCharData, moveArray);
+	return result == MultipleItemMoveManager::ErrorOk;
 }
 
 //Usage: The spa is the spellaffect id, for example 11 for Melee Speed
