@@ -177,6 +177,7 @@ std::map<DWORD, std::list<MQSpawnSearch>> gAlertMap;
 
 SPAWNINFO MercenarySpawn = { 0 };
 SPAWNINFO PetSpawn = { 0 };
+
 Property<SPAWNINFO> EnviroTarget = Property<SPAWNINFO>(
 	[]() -> SPAWNINFO
 	{

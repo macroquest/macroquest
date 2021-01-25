@@ -85,34 +85,6 @@ CCheckBoxWnd* pCheck = nullptr;
 bool bChangedNL = false;
 ULONGLONG SellTimer = 0;
 
-bool PickupItemNew(ItemClient* pCont)
-{
-	if (pCharData && pInvSlotMgr && pCursorAttachment && pCursorAttachment->Type == eCursorAttachment_None)
-	{
-		int slot1 = -1;
-		int slot2 = -1;
-		bool bFound = pCharData->FindItemByGuid(pCont->ItemGUID, &slot1, &slot2);
-		if (bFound && slot1 > -1)
-		{
-			ItemIndex IIndex = pCharData->CreateItemIndex(slot1, slot2);
-			ItemPtr pCont = pCharData->GetItemPossession(IIndex);
-			if (pCont != nullptr)
-			{
-				if (pInvSlotMgr->MoveItem(
-					pCharData->CreateItemGlobalIndex(slot1, slot2),
-					pCharData->CreateItemGlobalIndex(eItemContainerOverflow), false, false))
-				{
-					pCursorAttachment->Deactivate();
-					pCursorAttachment->AttachToCursor(nullptr, nullptr, eCursorAttachment_Item, -1, nullptr, nullptr);
-					pDisplay->DragItem = TRUE;
-					return true;
-				}
-			}
-		}
-	}
-	return false;
-}
-
 static int GetMoneyFromString(const char* str)
 {
 	char szLabel1[50];
@@ -1203,9 +1175,9 @@ static void AutoBankPulse()
 
 				if (ItemPtr pItem = pCharData->GetItemByGlobalIndex(index))
 				{
-					if (PickupItemNew(pItem.get()))
+					if (PickupItem(pItem->GetGlobalIndex()))
 					{
-						WriteChatf("Destroyed %s", pItem->GetItemDefinition()->Name);
+						WriteChatf("Destroyed %s", pItem->GetName());
 						DoCommandf("/destroyitem");
 					}
 				}
@@ -1329,21 +1301,20 @@ static void AutoBankPulse()
 	{
 		const ItemGlobalIndex& ind = gAutoInventoryList.front();
 
-		if (ItemClient* pCont = FindItemByGlobalIndex(ind))
+		if (ItemClient* pItem = FindItemByGlobalIndex(ind))
 		{
-			ItemDefinition* pItem = GetItemFromContents(pCont);
-			ItemGlobalIndex indy = pCont->GetItemLocation();
+			ItemGlobalIndex indy = pItem->GetItemLocation();
 
-			if (WillFitInInventory(pCont))
+			if (WillFitInInventory(pItem))
 			{
 				WriteChatf("[%d] Moving %s from slot %d %d to inventory",
-					gAutoInventoryList.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
-				PickupItem(indy.Location, pCont);
+					gAutoInventoryList.size(), pItem->GetName(), indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
+				PickupItem(pItem->GetGlobalIndex());
 			}
 			else
 			{
 				WriteChatf("[%d] \arAutoinventory for %s from slot %d %d to inventory \ayFAILED\ar, you are out of space.\ax",
-					gAutoInventoryList.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
+					gAutoInventoryList.size(), pItem->GetName(), indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
 			}
 		}
 		else
