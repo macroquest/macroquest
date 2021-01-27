@@ -125,7 +125,7 @@ bool MQ2IntType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		return true;
 
 	case IntMembers::Prettify:
-		sprintf_s(DataTypeTemp, "%lld", VarPtr.Int64);
+		sprintf_s(DataTypeTemp, "%d", VarPtr.Int);
 		PrettifyNumber(DataTypeTemp, sizeof(DataTypeTemp), IsNumber(Index) ? atoi(Index) : 0);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;

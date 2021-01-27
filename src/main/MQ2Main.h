@@ -286,7 +286,8 @@ MQLIB_API bool IsMouseWaitingForButton();
 MQLIB_API void MQ2MouseHooks(bool bFlag);
 MQLIB_API bool MoveMouse(int x, int y, bool bClick = false);
 MQLIB_API bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick = false);
-MQLIB_API bool ClickMouseItem(SPAWNINFO* pChar, const MQGroundSpawn& pGroundSpawn, bool left);
+MQLIB_API bool ClickMouseItem(const MQGroundSpawn& pGroundSpawn, bool left);
+   inline bool ClickMouseItem(SPAWNINFO* pChar, const MQGroundSpawn& pGroundSpawn, bool left) { return ClickMouseItem(pGroundSpawn, left); }
 
 /* PULSING */
 MQLIB_API void InitializeMQ2Pulse();
@@ -596,9 +597,16 @@ MQLIB_OBJECT void SetGroundSpawn(std::string_view Name);
 MQLIB_OBJECT void SetGroundSpawn(const MQGroundSpawn& groundSpawn);
 MQLIB_OBJECT void ClearGroundSpawn();
 MQLIB_OBJECT bool HasCurrentGroundSpawn();
-MQLIB_OBJECT CXStr GetFriendlyNameForGroundItem(EQGroundItem* pItem);
-MQLIB_OBJECT CXStr GetFriendlyNameForPlacedItem(EQPlacedItem* pItem);
+MQLIB_OBJECT CXStr GetFriendlyNameForGroundItem(const EQGroundItem* pItem);
+MQLIB_OBJECT CXStr GetFriendlyNameForPlacedItem(const EQPlacedItem* pItem);
 MQLIB_API char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, size_t BufferSize);
+
+// A.k.a. "Door target"
+MQLIB_API void SetSwitchTarget(EQSwitch* pSwitch);
+MQLIB_API EQSwitch* GetSwitchByID(int id);
+// retrieves the closest switch with the specified name.
+MQLIB_API EQSwitch* FindSwitchByName(const char* szName = nullptr);  
+
 
 MQLIB_API void ClearSearchSpawn(MQSpawnSearch* pSearchSpawn);
 MQLIB_API SPAWNINFO* NthNearestSpawn(MQSpawnSearch* pSearchSpawn, int Nth, SPAWNINFO* pOrigin, bool IncludeOrigin = false);

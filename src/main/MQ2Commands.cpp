@@ -692,16 +692,15 @@ void DoorTarget(SPAWNINFO* pChar, char* szLine)
 	bRunNextCommand = true;
 
 	if (!pSwitchMgr) return;
-
-	// FIXME: Do not ZeroMemory SPAWNINFO
-	ZeroMemory(&DoorEnviroTarget, sizeof(DoorEnviroTarget));
-	pDoorTarget = nullptr;
+	SetSwitchTarget(nullptr);
 
 	char Arg1[MAX_STRING] = { 0 };
 	GetArg(Arg1, szLine, 1);
 
 	char Arg2[MAX_STRING] = { 0 };
 	GetArg(Arg2, szLine, 2);
+
+	EQSwitch* pNewSwitch = nullptr;
 
 	if (!_stricmp(Arg1, "id"))
 	{
@@ -714,69 +713,25 @@ void DoorTarget(SPAWNINFO* pChar, char* szLine)
 		int ID = GetIntFromString(Arg2, 0);
 		GetArg(Arg2, szLine, 3);
 
-		for (int Count = 0; Count < pSwitchMgr->NumEntries; Count++)
-		{
-			EQSwitch* pSwitch = pSwitchMgr->Switches[Count];
-
-			if (pSwitch->ID == ID)
-			{
-				strcpy_s(DoorEnviroTarget.Name, pSwitch->Name);
-				strcpy_s(DoorEnviroTarget.DisplayedName, pSwitch->Name);
-				DoorEnviroTarget.Y = pSwitch->Y;
-				DoorEnviroTarget.X = pSwitch->X;
-				DoorEnviroTarget.Z = pSwitch->Z;
-				DoorEnviroTarget.Heading = pSwitch->Heading;
-				DoorEnviroTarget.Type = SPAWN_NPC;
-				DoorEnviroTarget.HPCurrent = 1;
-				DoorEnviroTarget.HPMax = 1;
-				pDoorTarget = pSwitch;
-				break;
-			}
-		}
+		pNewSwitch = GetSwitchByID(ID);
 	}
 	else
 	{
-		float cDistance = 100000.0f;
-
-		for (int Count = 0; Count < pSwitchMgr->NumEntries; Count++)
-		{
-			EQSwitch* pSwitch = pSwitchMgr->Switches[Count];
-
-			// Match against the name if it is within the z filter (or if the z filter is disabled)
-			if ((Arg1[0] == 0 || ci_find_substr(pSwitch->Name, Arg1) == 0)
-				&& (gZFilter >= 10000.0f || (pSwitch->Z <= pChar->Z + gZFilter && pSwitch->Z >= pChar->Z - gZFilter)))
-			{
-				// FIXME: Do not ZeroMemory SPAWNINFO
-				SPAWNINFO tSpawn;
-				ZeroMemory(&tSpawn, sizeof(tSpawn));
-				strcpy_s(tSpawn.Name, pSwitch->Name);
-				strcpy_s(tSpawn.DisplayedName, pSwitch->Name);
-				tSpawn.Y = pSwitch->Y;
-				tSpawn.X = pSwitch->X;
-				tSpawn.Z = pSwitch->Z;
-				tSpawn.Type = SPAWN_NPC;
-				tSpawn.HPCurrent = 1;
-				tSpawn.HPMax = 1;
-				tSpawn.Heading = pSwitch->Heading;
-				float Distance = Distance3DToSpawn(pChar, &tSpawn);
-
-				if (Distance < cDistance)
-				{
-					CopyMemory(&DoorEnviroTarget, &tSpawn, sizeof(DoorEnviroTarget));
-					pDoorTarget = pSwitch;
-					cDistance = Distance;
-				}
-			}
-		}
+		pNewSwitch = FindSwitchByName(Arg1);
 	}
 
-	if (pDoorTarget && DoorEnviroTarget.Name[0] != '\0')
+	if (pNewSwitch)
 	{
-		WriteChatf("Door %d '%s' targeted.", pDoorTarget->ID, DoorEnviroTarget.Name);
+		SetSwitchTarget(pNewSwitch);
+	}
+
+	if (pSwitchTarget)
+	{
+		WriteChatf("Switch %d '%s' targeted.", pSwitchTarget->ID, pSwitchTarget->Name);
 	}
 	else
 	{
-		MacroError("Couldn't find door '%s' to target.", szLine);
+		MacroError("Couldn't find switch '%s' to target.", szLine);
 	}
 }
 
@@ -2305,6 +2260,103 @@ void MacroLog(SPAWNINFO* pChar, char* szLine)
 	fclose(fOut);
 }
 
+static void FaceObject(const MQGameObject& faceTarget, int flags)
+{
+	if (flags & FaceFlags_HeadingOnly)
+	{
+		if (flags & FaceFlags_Fast)
+		{
+			pControlledPlayer->Heading = faceTarget.heading;
+			gFaceAngle = 10000.0f;
+			bRunNextCommand = true;
+		}
+		else
+		{
+			gFaceAngle = faceTarget.heading;
+		}
+
+		return;
+	}
+
+	float angle = 0.f;
+
+	if (flags & FaceFlags_Predict)
+	{
+		float distance = Distance3DToSpawn(pControlledPlayer, faceTarget);
+
+		angle = atan2(
+			(faceTarget.x + (faceTarget.velocityX * distance)) - pControlledPlayer->X,
+			(faceTarget.y + (faceTarget.velocityY * distance)) - pControlledPlayer->Y)
+			* 256.0f / static_cast<float>(PI);
+	}
+	else
+	{
+		angle = atan2(
+			faceTarget.x - pControlledPlayer->X,
+			faceTarget.y - pControlledPlayer->Y)
+			* 256.0f / static_cast<float>(PI);
+	}
+
+	if (!(flags & FaceFlags_NoLook))
+	{
+		float distance = Distance3DToSpawn(pControlledPlayer, faceTarget);
+		float charHeight = pControlledPlayer->AvatarHeight * StateHeightMultiplier(pControlledPlayer->StandState);
+		float angle = atan2(
+			faceTarget.z + faceTarget.height - pCharData->Z - charHeight,
+			distance)
+			* 256.0f / static_cast<float>(PI);
+
+		if (flags & FaceFlags_FaceAway)
+		{
+			angle = -angle;
+		}
+
+		if (flags & FaceFlags_Fast)
+		{
+			pControlledPlayer->CameraAngle = angle;
+			gLookAngle = 10000.0f;
+		}
+		else
+		{
+			gLookAngle = angle;
+		}
+	}
+
+	if (flags & FaceFlags_FaceAway)
+	{
+		// rotate by 180 degrees
+		angle += 256.0f;
+	}
+
+	// normalize the angle
+	if (angle >= 512.0f)
+		angle -= 512.0f;
+	if (angle < 0.0f)
+		angle += 512.0f;
+
+	if (flags & FaceFlags_Fast)
+	{
+		pControlledPlayer->Heading = angle;
+		gFaceAngle = 10000.0f;
+		bRunNextCommand = true;
+	}
+	else
+	{
+		gFaceAngle = angle;
+	}
+
+	char szMsg[256];
+	sprintf_s(szMsg, "Facing %s'%s'...", (flags & FaceFlags_FaceAway) ? "away from " : "", faceTarget.GetDisplayName().c_str());
+
+	if (faceTarget.type != eGameObjectType::Location
+		&& ((flags & FaceFlags_FaceAway) || faceTarget.type != eGameObjectType::SpawnTarget))
+	{
+		WriteChatColor(szMsg, USERCOLOR_WHO);
+	}
+
+	DebugSpew("Face - %s", szMsg);
+}
+
 // ***************************************************************************
 // Function:    Face
 // Description: Our '/face' command
@@ -2319,15 +2371,11 @@ void Face(SPAWNINFO* pChar, char* szLine)
 
 	if (GetGameState() != GAMESTATE_INGAME)
 	{
-		MacroError("You shouldn't execute /face when not in game. Gamestate is %d", GetGameState());
+		MacroError("You shouldn't execute /face when not in game.");
 		return;
 	}
 
 	bRunNextCommand = false;
-
-	SPAWNINFO* pSpawnClosest = nullptr;
-	SPAWNINFO* psTarget = nullptr;
-	SPAWNINFO LocSpawn = { 0 };
 
 	MQSpawnSearch SearchSpawn;
 	ClearSearchSpawn(&SearchSpawn);
@@ -2336,48 +2384,53 @@ void Face(SPAWNINFO* pChar, char* szLine)
 	char szName[MAX_STRING] = { 0 };
 	char szArg[MAX_STRING] = { 0 };
 
-	bool bArg = true;
-	bool bOtherArgs = false;
-	bool Away = false;
-	bool Predict = false;
-	bool Fast = false;
-	bool Look = true;
-	bool Parsing = true;
+	bool spawnSearchArgs = false;
+	const char* szFilter = szLine;
 
-	char szLLine[MAX_STRING] = { 0 };
-	strcpy_s(szLLine, szLine);
-	_strlwr_s(szLLine);
-	const char* szFilter = szLLine;
+	MQGameObject faceTarget;
+	int flags = FaceFlags_None;
 
-	while (bArg)
+	while (true)
 	{
 		GetArg(szArg, szFilter, 1);
 		szFilter = GetNextArg(szFilter, 1);
 
 		if (szArg[0] == 0)
 		{
-			bArg = false;
+			break;
 		}
-		else if (!strcmp(szArg, "predict"))
+
+		if (!strcmp(szArg, "predict"))
 		{
-			Predict = true;
+			flags |= FaceFlags_Predict;
+			continue;
 		}
-		else if (!strcmp(szArg, "fast"))
+
+		if (!strcmp(szArg, "fast"))
 		{
-			Fast = true;
+			flags |= FaceFlags_Fast;
+			continue;
 		}
-		else if (!strcmp(szArg, "away"))
+		
+		if (!strcmp(szArg, "away"))
 		{
-			Away = true;
+			flags |= FaceFlags_FaceAway;
+			continue;
 		}
-		else if (!strcmp(szArg, "nolook"))
+
+		if (!strcmp(szArg, "nolook"))
 		{
-			Look = false;
+			flags |= FaceFlags_NoLook;
+			continue;
 		}
-		else if (!_stricmp(szArg, "loc"))
+
+		if (!_stricmp(szArg, "loc"))
 		{
-			pSpawnClosest = &LocSpawn;
-			strcpy_s(LocSpawn.Name, "location");
+			if (faceTarget.valid)
+			{
+				MacroError("Face: multiple face target options supplied.");
+				return;
+			}
 
 			if ((szFilter[0] == 0) || (!strstr(szFilter, ",")))
 			{
@@ -2385,7 +2438,7 @@ void Face(SPAWNINFO* pChar, char* szLine)
 				return;
 			}
 
-			pSpawnClosest->Y = GetFloatFromString(szFilter, 0);
+			float y = GetFloatFromString(szFilter, 0);
 
 			while ((szFilter[0] != ',') && (szFilter[0] != 0))
 				szFilter++;
@@ -2397,168 +2450,136 @@ void Face(SPAWNINFO* pChar, char* szLine)
 			}
 
 			szFilter++;
-			pSpawnClosest->X = GetFloatFromString(szFilter, 0);
+			float x = GetFloatFromString(szFilter, 0);
 
 			while ((szFilter[0] != ',') && (szFilter[0] != 0))
 				szFilter++;
 
+			float z = 0.f;
+
 			if (szFilter[0] != 0)
 			{
 				szFilter++;
-				pSpawnClosest->Z = GetFloatFromString(szFilter, 0);
-			}
-		}
-		else if (!_stricmp(szArg, "item"))
-		{
-			// FIXME: refactor this function to not need to set the spawn in the higher scope
-			// -- reusing LocSpawn here for now because we don't need more stack explosion in this function
-			auto item = CurrentGroundSpawn();
-			if (item)
-			{
-				LocSpawn = item.ToSpawn();
+				z = GetFloatFromString(szFilter, 0);
 			}
 
-			if (LocSpawn.Name[0] == 0)
+			faceTarget = ToGameObject(y, x, z);
+			continue;
+		}
+
+		if (!_stricmp(szArg, "item"))
+		{
+			if (faceTarget.valid)
+			{
+				MacroError("Face: multiple face target options supplied.");
+				return;
+			}
+
+			MQGroundSpawn item = CurrentGroundSpawn();
+			if (item)
+			{
+				faceTarget = ToGameObject(item);
+			}
+
+			if (!faceTarget.valid)
 			{
 				MacroError("Face: item specified but no item targetted.");
 				return;
 			}
 
-			pSpawnClosest = &LocSpawn;
+			continue;
 		}
-		else if (!_stricmp(szArg, "door"))
+
+		if (!_stricmp(szArg, "door") || !_stricmp(szArg, "switch"))
 		{
-			if (DoorEnviroTarget.Name[0] == 0)
+			if (faceTarget.valid)
 			{
-				MacroError("Face: door specified but no door targetted.");
+				MacroError("Face: multiple face target options supplied.");
 				return;
 			}
 
-			pSpawnClosest = &DoorEnviroTarget;
+			if (!pSwitchTarget)
+			{
+				MacroError("Face: switch specified but none targetted.");
+				return;
+			}
+
+			faceTarget = ToGameObject(pSwitchTarget);
+			continue;
 		}
-		else if (!_stricmp(szArg, "heading"))
+
+		if (!_stricmp(szArg, "heading"))
 		{
+			if (faceTarget.valid)
+			{
+				MacroError("Face: multiple face target options supplied.");
+				return;
+			}
+
 			if (szFilter[0] == 0)
 			{
 				MacroError("Face: heading specified but angle not found.");
-			}
-			else
-			{
-				float Heading = GetFloatFromString(szFilter, 0);
-				gFaceAngle = Heading / 0.703125f;
-
-				if (gFaceAngle >= 512.0f)
-					gFaceAngle -= 512.0f;
-				if (gFaceAngle < 0.0f)
-					gFaceAngle += 512.0f;
-
-				if (Fast)
-				{
-					//changed
-					((SPAWNINFO*)pCharSpawn)->Heading = (float)gFaceAngle;
-					gFaceAngle = 10000.0f;
-					bRunNextCommand = true;
-				}
+				return;
 			}
 
-			return;
+			float Heading = GetFloatFromString(szFilter, 0);
+			float angle = Heading / 0.703125f;
+
+			if (angle >= 512.0f)
+				angle -= 512.0f;
+			if (angle < 0.0f)
+				angle += 512.0f;
+
+			faceTarget.heading = angle;
+			faceTarget.name = "heading";
+			faceTarget.valid = true;
+
+			flags |= FaceFlags_HeadingOnly;
+			continue;
 		}
-		else if (!strcmp(szArg, "help"))
+
+		if (!strcmp(szArg, "help"))
 		{
-			SyntaxError("Usage: /face [spawn] [item] [door] [id #] [heading <ang>] [loc <y>,<x>] [away] [alert #]");
+			SyntaxError("Usage: /face [spawn] [item] [door] [id #] [heading <ang>] [loc <y>,<x>[,<z>]] [away] [alert #]");
 			bRunNextCommand = true;
 			return;
 		}
-		else
+
+		spawnSearchArgs = true;
+		szFilter = ParseSearchSpawnArgs(szArg, szFilter, &SearchSpawn);
+	}
+
+	if (!faceTarget.valid)
+	{
+		// if spawn search args provided, try using them.
+		if (spawnSearchArgs)
 		{
-			bOtherArgs = true;
-			szFilter = ParseSearchSpawnArgs(szArg, szFilter, &SearchSpawn);
+			SPAWNINFO* pFacingSpawn = SearchThroughSpawns(&SearchSpawn, pChar);
+			faceTarget = ToGameObject(pFacingSpawn);
+		}
+		// otherwise try using the current target
+		else if (pTarget)
+		{
+			faceTarget = ToGameObject(pTarget);
+			faceTarget.type = eGameObjectType::SpawnTarget;
 		}
 	}
 
-	if (!pSpawnClosest)
+	if (!faceTarget.valid)
 	{
-		if (!bOtherArgs)
+		if (spawnSearchArgs)
 		{
-			if (pTarget)
-			{
-				pSpawnClosest = (SPAWNINFO*)pTarget;
-			}
-		}
-		else
-		{
-			pSpawnClosest = SearchThroughSpawns(&SearchSpawn, pChar);
-		}
-	}
-
-	szMsg[0] = 0;
-
-	if (!pSpawnClosest)
-	{
-		MacroError("There were no matches for: %s", FormatSearchSpawn(szArg, sizeof(szArg), &SearchSpawn));
-	}
-	else
-	{
-		if (Predict)
-		{
-			float distance = Distance3DToSpawn(pChar, pSpawnClosest);
-
-			gFaceAngle = atan2(
-				(pSpawnClosest->X + (pSpawnClosest->SpeedX * distance)) - pChar->X,
-				(pSpawnClosest->Y + (pSpawnClosest->SpeedY * distance)) - pChar->Y)
-				* 256.0f / PI;
+			MacroError("There were no matches for: %s", FormatSearchSpawn(szArg, sizeof(szArg), &SearchSpawn));
 		}
 		else
 		{
-			gFaceAngle = atan2(pSpawnClosest->X - pChar->X,pSpawnClosest->Y - pChar->Y) * 256.0f / PI;
+			MacroError("Could not find valid target for /face");
 		}
 
-		if (Look)
-		{
-			float distance = Distance3DToSpawn(pChar, pSpawnClosest);
-
-			float spawnHeight = pSpawnClosest->AvatarHeight * StateHeightMultiplier(pSpawnClosest->StandState);
-			float charHeight = pChar->AvatarHeight * StateHeightMultiplier(pChar->StandState);
-
-			gLookAngle = atan2(pSpawnClosest->Z + spawnHeight - pChar->Z - charHeight, distance) * 256.0f / PI;
-
-			if (Away)
-				gLookAngle = -gLookAngle;
-
-			if (Fast)
-			{
-				pChar->CameraAngle = (float)gLookAngle;
-				gLookAngle = 10000.0f;
-			}
-		}
-
-		if (Away)
-			gFaceAngle += 256.0f;
-
-		if (gFaceAngle >= 512.0f)
-			gFaceAngle -= 512.0f;
-		if (gFaceAngle < 0.0f)
-			gFaceAngle += 512.0f;
-
-		if (Fast)
-		{
-			((SPAWNINFO*)pCharSpawn)->Heading = (float)gFaceAngle;
-			gFaceAngle = 10000.0f;
-			bRunNextCommand = true;
-		}
-
-		sprintf_s(szMsg, "Facing %s'%s'...", (Away) ? "away from " : "", pSpawnClosest->DisplayedName);
+		return;
 	}
 
-	if (pTarget)
-	{
-		psTarget = (SPAWNINFO*)pTarget;
-	}
-
-	if (szMsg[0] && ((pSpawnClosest != &LocSpawn || !ci_equals(LocSpawn.Name, "location")) && (Away || pSpawnClosest != psTarget)))
-		WriteChatColor(szMsg, USERCOLOR_WHO);
-
-	DebugSpew("Face - %s", szMsg);
+	FaceObject(faceTarget, flags);
 }
 
 // ***************************************************************************
@@ -3121,9 +3142,8 @@ void Target(SPAWNINFO* pChar, char* szLine)
 		else if (!strcmp(szArg, "clear"))
 		{
 			pTarget = nullptr;
-			pDoorTarget = nullptr;
 
-			ZeroMemory(&DoorEnviroTarget, sizeof(DoorEnviroTarget));
+			SetSwitchTarget(nullptr);
 			ClearGroundSpawn();
 
 			if (pChar)

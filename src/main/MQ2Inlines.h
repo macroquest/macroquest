@@ -429,8 +429,17 @@ inline float DistanceToSpawn(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
 template <typename T1, typename T2>
 inline float Distance3DToSpawn(const T1& pSpawn1, const T2& pSpawn2)
 {
-	return Get3DDistance(((SPAWNINFO*)pSpawn1)->X, ((SPAWNINFO*)pSpawn1)->Y, ((SPAWNINFO*)pSpawn1)->Z,
+	return Get3DDistance(
+		((SPAWNINFO*)pSpawn1)->X, ((SPAWNINFO*)pSpawn1)->Y, ((SPAWNINFO*)pSpawn1)->Z,
 		((SPAWNINFO*)pSpawn2)->X, ((SPAWNINFO*)pSpawn2)->Y, ((SPAWNINFO*)pSpawn2)->Z);
+}
+
+template <typename T1>
+inline float Distance3DToSpawn(const T1& pSpawn1, const MQGameObject& gameObj)
+{
+	return  Get3DDistance(
+		((SPAWNINFO*)pSpawn1)->X, ((SPAWNINFO*)pSpawn1)->Y, ((SPAWNINFO*)pSpawn1)->Z,
+		gameObj.x, gameObj.y, gameObj.z);
 }
 
 template <typename Reference, typename T, typename Func>
@@ -513,6 +522,14 @@ inline bool IsNumberToComma(const char* String)
 	}
 
 	return true;
+}
+
+inline bool LineOfSight(SPAWNINFO* Origin, const CVector3& position)
+{
+	if (!Origin)
+		return false;
+
+	return ((PlayerClient*)Origin)->CanSee(position);
 }
 
 inline bool LineOfSight(SPAWNINFO* Origin, SPAWNINFO* CanISeeThis)

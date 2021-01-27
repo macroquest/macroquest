@@ -1035,6 +1035,7 @@ using PEVENTQUEUE DEPRECATE("Use MQEventQueue* instead of PEVENTQUEUE") = MQEven
 
 //----------------------------------------------------------------------------
 
+// This structure is deprecated
 enum eGroundObjectType
 {
 	GO_None,
@@ -1045,7 +1046,7 @@ enum eGroundObjectType
 struct MQGroundObject
 {
 /*0x00*/ eGroundObjectType  Type;
-/*0x04*/ EQGroundItem       GroundItem;         // for conversion between switch and gorunditems
+/*0x04*/ EQGroundItem       GroundItem;         // for conversion between switch and grounditems
 /*0x84*/ void*              ObjPtr;             // EQPlacedItem *
 /*0x88*/ EQGroundItem*      pGroundItem;
 /*0x8c*/
@@ -1053,6 +1054,59 @@ struct MQGroundObject
 	// Currently necessary because of MQ2DataTypes
 	MQGroundObject() { ZeroMemory(this, sizeof(MQGroundObject)); }
 };
+
+enum class eGameObjectType {
+	None,
+	GroundItem,
+	PlaceableItem,
+	Spawn,
+	SpawnTarget,
+	Location,
+	Switch,
+};
+
+enum eFaceCommandFlags : uint8_t {
+	FaceFlags_None                        = 0,
+	FaceFlags_FaceAway                    = 0x01,
+	FaceFlags_Predict                     = 0x02,
+	FaceFlags_Fast                        = 0x04,
+	FaceFlags_NoLook                      = 0x08,
+	FaceFlags_HeadingOnly                 = 0x10,
+};
+
+// generic structure for storing positional information about an object
+struct MQGameObject
+{
+	float y = 0.f;
+	float x = 0.f;
+	float z = 0.f;
+	eGameObjectType type = eGameObjectType::None;
+	bool valid = false;
+	float heading = 0.f;
+	std::string name;
+	std::string displayName;
+
+	// optional params
+	float velocityY = 0.f;
+	float velocityX = 0.f;
+	float velocityZ = 0.f;
+	float height = 0.f;
+
+	const std::string& GetDisplayName() const
+	{
+		if (!displayName.empty())
+			return displayName;
+		return name;
+	}
+};
+
+MQGameObject ToGameObject(const EQGroundItem& groundItem);
+MQGameObject ToGameObject(const EQPlacedItem& placedItem);
+MQGameObject ToGameObject(const MQGroundSpawn& groundSpawn);
+MQGameObject ToGameObject(const SPAWNINFO* spawnInfo);
+MQGameObject ToGameObject(float y, float x, float z);
+MQGameObject ToGameObject(const EQSwitch* pSwitch);
+
 
 //----------------------------------------------------------------------------
 

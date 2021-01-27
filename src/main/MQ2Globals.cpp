@@ -261,8 +261,9 @@ Property<GROUNDITEM*> pGroundTarget = Property<GROUNDITEM*>(
 		return GetGroundSpawnByID(other->DropID).Get<EQGroundItem>();
 	});
 
-SPAWNINFO DoorEnviroTarget = { 0 };
-DOOR* pDoorTarget = nullptr;
+int DoorEnviroTarget = 0;
+EQSwitch* pDoorTarget = nullptr;
+EQSwitch* pSwitchTarget = nullptr;
 ITEMDB* gItemDB = nullptr;
 bool bRunNextCommand = false;
 bool gTurbo = false;

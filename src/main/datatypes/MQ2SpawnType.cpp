@@ -1948,16 +1948,6 @@ bool MQ2SpawnType::dataNearestSpawn(const char* szIndex, MQTypeVar& Ret)
 	return false;
 }
 
-bool MQ2SpawnType::dataDoorTarget(const char* szIndex, MQTypeVar& Ret)
-{
-	if (Ret.Ptr = &DoorEnviroTarget)
-	{
-		Ret.Type = pSpawnType;
-		return true;
-	}
-	return false;
-}
-
 bool MQ2SpawnType::dataItemTarget(const char* szIndex, MQTypeVar& Ret)
 {
 	// FIXME: We don't want to use a global here, change SpawnType to use the shared pointer functionality of VarPtr to remove dependency on EnviroTarget

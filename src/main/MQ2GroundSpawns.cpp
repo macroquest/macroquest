@@ -444,7 +444,7 @@ bool HasCurrentGroundSpawn()
 	return GroundSpawnSearch::IsValid();
 }
 
-CXStr GetFriendlyNameForGroundItem(EQGroundItem* pItem)
+CXStr GetFriendlyNameForGroundItem(const EQGroundItem* pItem)
 {
 	if (!pItem)
 		return CXStr();
@@ -460,7 +460,7 @@ CXStr GetFriendlyNameForGroundItem(EQGroundItem* pItem)
 	return CXStr(fmt::format("Drop{:05d}/{:d}", item_def, pItem->DropID));
 }
 
-CXStr GetFriendlyNameForPlacedItem(EQPlacedItem* pItem)
+CXStr GetFriendlyNameForPlacedItem(const EQPlacedItem* pItem)
 {
 	if (!pItem)
 		return CXStr();

@@ -7476,4 +7476,145 @@ bool TargetBuffCastByMe(const char* szBuffName)
 	return HasBuffCastByPlayer(pTarget, szBuffName, pLocalPlayer->Name);
 }
 
+//----------------------------------------------------------------------------
+
+MQGameObject ToGameObject(const EQGroundItem& groundItem)
+{
+	MQGameObject temp;
+
+	temp.name = groundItem.Name;
+	temp.displayName = GetFriendlyNameForGroundItem(&groundItem);
+	temp.type = eGameObjectType::GroundItem;
+	temp.y = groundItem.Y;
+	temp.x = groundItem.X;
+	temp.z = groundItem.Z;
+	temp.heading = groundItem.Heading * 0.703125f;
+
+	return temp;
+}
+
+MQGameObject ToGameObject(const EQPlacedItem& placedItem)
+{
+	MQGameObject temp;
+
+	temp.name = placedItem.Name;
+	temp.displayName = GetFriendlyNameForPlacedItem(&placedItem);
+	temp.type = eGameObjectType::PlaceableItem;
+	temp.y = placedItem.Y;
+	temp.x = placedItem.X;
+	temp.z = placedItem.Z;
+	temp.heading = placedItem.Heading * 0.703125f;
+
+	return temp;
+}
+
+MQGameObject ToGameObject(const MQGroundSpawn& groundSpawn)
+{
+	if (EQGroundItem* pEQGroundItem = groundSpawn.Get<EQGroundItem>())
+	{
+		return ToGameObject(*pEQGroundItem);
+	}
+
+	if (EQPlacedItem* pEQPlacedItem = groundSpawn.Get<EQPlacedItem>())
+	{
+		return ToGameObject(*pEQPlacedItem);
+	}
+
+	return MQGameObject();
+}
+
+MQGameObject ToGameObject(const SPAWNINFO* pSpawn)
+{
+	MQGameObject temp;
+	temp.type = eGameObjectType::Spawn;
+	temp.y = pSpawn->X;
+	temp.x = pSpawn->X;
+	temp.z = pSpawn->Z;
+	temp.heading = pSpawn->Heading;
+	temp.name = pSpawn->Name;
+	temp.displayName = pSpawn->DisplayedName;
+	temp.velocityY = pSpawn->SpeedY;
+	temp.velocityX = pSpawn->SpeedX;
+	temp.velocityZ = pSpawn->SpeedZ;
+	temp.height = pSpawn->AvatarHeight * StateHeightMultiplier(pSpawn->StandState);
+	temp.valid = true;
+
+	return temp;
+}
+
+MQGameObject ToGameObject(float y, float x, float z)
+{
+	MQGameObject temp;
+	temp.type = eGameObjectType::Location;
+	temp.name = "location";
+	temp.y = y;
+	temp.x = x;
+	temp.z = z;
+	temp.valid = true;
+
+	return temp;
+}
+
+MQGameObject ToGameObject(const EQSwitch* pSwitch)
+{
+	MQGameObject temp;
+	temp.type = eGameObjectType::Switch;
+	temp.name = pSwitch->Name;
+	temp.y = pSwitch->Y;
+	temp.x = pSwitch->X;
+	temp.z = pSwitch->Z;
+	temp.heading = pSwitch->Heading;
+	temp.valid = true;
+
+	return temp;
+}
+
+void SetSwitchTarget(EQSwitch* pSwitch)
+{
+#pragma warning(suppress: 4996)
+	pDoorTarget = pSwitch;
+	pSwitchTarget = pSwitch;
+}
+
+EQSwitch* GetSwitchByID(int ID)
+{
+	for (int Count = 0; Count < pSwitchMgr->NumEntries; Count++)
+	{
+		EQSwitch* pSwitch = pSwitchMgr->Switches[Count];
+
+		if (pSwitch->ID == ID)
+		{
+			return pSwitch;
+		}
+	}
+
+	return nullptr;
+}
+
+EQSwitch* FindSwitchByName(const char* szName)
+{
+	EQSwitch* closestSwitch = nullptr;
+	float cDistance = FLT_MAX;
+
+	for (int Count = 0; Count < pSwitchMgr->NumEntries; Count++)
+	{
+		EQSwitch* pSwitch = pSwitchMgr->Switches[Count];
+
+		// Match against the name if it is within the z filter (or if the z filter is disabled)
+		if ((!szName || szName[0] == 0 || ci_find_substr(pSwitch->Name, szName) == 0)
+			&& (gZFilter >= 10000.0f || (pSwitch->Z <= pLocalPlayer->Z + gZFilter && pSwitch->Z >= pLocalPlayer->Z - gZFilter)))
+		{
+			float Distance = Get3DDistanceSquared(pLocalPlayer->X, pLocalPlayer->Y, pLocalPlayer->Z,
+				pSwitch->X, pSwitch->Y, pSwitch->Z);
+			if (Distance < cDistance)
+			{
+				closestSwitch = pSwitch;
+				cDistance = Distance;
+			}
+		}
+	}
+
+	return closestSwitch;
+}
+
 } // namespace mq

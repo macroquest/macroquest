@@ -95,7 +95,7 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		switch (static_cast<GroundMethods>(pMethod->ID))
 		{
 		case GroundMethods::Grab:
-			Dest.Set(ClickMouseItem(pCharSpawn, *pGroundSpawn, true));
+			Dest.Set(ClickMouseItem(*pGroundSpawn, true));
 			Dest.Type = pBoolType;
 			return true;
 
@@ -217,7 +217,7 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		case GroundMembers::LineOfSight:
 		{
 			auto pos = pGroundSpawn->Position();
-			Dest.Set(CastRay(pCharSpawn, pos.Y, pos.X, pos.Z));
+			Dest.Set(CastRay(pLocalPlayer, pos.Y, pos.X, pos.Z));
 			Dest.Type = pBoolType;
 			return true;
 		}

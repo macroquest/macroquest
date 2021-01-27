@@ -303,7 +303,7 @@ bool dataDefined(const char* szIndex, MQTypeVar& Ret)
 {
 	if (!szIndex[0])
 		return false;
-	Ret.Set(FindMQ2DataVariable(szIndex) != 0);
+	Ret.Set(FindMQ2DataVariable(szIndex) != nullptr);
 	Ret.Type = pBoolType;
 	return true;
 }
@@ -319,16 +319,15 @@ bool dataSubDefined(const char* szIndex, MQTypeVar& Ret)
 
 bool dataLineOfSight(const char* szIndex, MQTypeVar& Ret)
 {
-	if (!GetCharInfo() && !GetCharInfo()->pSpawn)
+	if (pControlledPlayer)
 		return false;
 
 	if (szIndex[0])
 	{
-		float P1[3];
-		float P2[3];
-		P1[0] = P2[0] = ((SPAWNINFO*)pCharSpawn)->Y;
-		P1[1] = P2[1] = ((SPAWNINFO*)pCharSpawn)->X;
-		P1[2] = P2[2] = ((SPAWNINFO*)pCharSpawn)->Z;
+		CVector3 SourcePos, DestPos;
+		SourcePos.X = DestPos.X = pControlledPlayer->Y;
+		SourcePos.Y = DestPos.Y = pControlledPlayer->X;
+		SourcePos.Z = DestPos.Z = pControlledPlayer->Z;
 
 		char szTemp[MAX_STRING];
 		strcpy_s(szTemp, szIndex);
@@ -340,57 +339,51 @@ bool dataLineOfSight(const char* szIndex, MQTypeVar& Ret)
 			if (char* pComma = strchr(&pColon[1], ','))
 			{
 				*pComma = 0;
-				P2[0] = GetFloatFromString(&pColon[1], P2[0]);
+				DestPos.X = GetFloatFromString(&pColon[1], DestPos.X);
 				*pComma = ',';
 				if (char* pComma2 = strchr(&pComma[1], ','))
 				{
 					*pComma2 = 0;
-					P2[1] = GetFloatFromString(&pComma[1], P2[1]);
+					DestPos.Y = GetFloatFromString(&pComma[1], DestPos.Y);
 					*pComma2 = ',';
-					P2[2] = GetFloatFromString(&pComma2[1], P2[2]);
+					DestPos.Z = GetFloatFromString(&pComma2[1], DestPos.Z);
 				}
 				else
 				{
-					P2[1] = GetFloatFromString(&pComma[1], P2[1]);
+					DestPos.Y = GetFloatFromString(&pComma[1], DestPos.Y);
 				}
 			}
 			else
-				P2[0] = GetFloatFromString(&pColon[1], P2[0]);
+			{
+				DestPos.X = GetFloatFromString(&pColon[1], DestPos.X);
+			}
 		}
 
 		if (char* pComma = strchr(szTemp, ','))
 		{
 			*pComma = 0;
-			P1[0] = GetFloatFromString(szTemp, P1[0]);
+			SourcePos.X = GetFloatFromString(szTemp, SourcePos.X);
 			*pComma = ',';
 			if (char* pComma2 = strchr(&pComma[1], ','))
 			{
 				*pComma2 = 0;
-				P1[1] = GetFloatFromString(&pComma[1], P1[1]);
+				SourcePos.Y = GetFloatFromString(&pComma[1], SourcePos.Y);
 				*pComma2 = ',';
-				P1[2] = GetFloatFromString(&pComma2[1], P1[2]);
+				SourcePos.Z = GetFloatFromString(&pComma2[1], SourcePos.Z);
 			}
 			else
 			{
-				P1[1] = GetFloatFromString(&pComma[1], P1[1]);
+				SourcePos.Y = GetFloatFromString(&pComma[1], SourcePos.Y);
 			}
 		}
 		else
-			P1[0] = GetFloatFromString(szTemp, P1[0]);
+		{
+			SourcePos.X = GetFloatFromString(szTemp, SourcePos.X);
+		}
 
-		// FIXME: Can't copy data like this. Refactor to use line of sight calculation
-		// without using a SPAWNINFO.
-		SPAWNINFO Temp = *GetCharInfo()->pSpawn;
-		Temp.Y = P2[0];
-		Temp.X = P2[1];
-		Temp.Z = P2[2];
-
-		SPAWNINFO Temp2 = *GetCharInfo()->pSpawn;
-		Temp2.Y = P1[0];
-		Temp2.X = P1[1];
-		Temp2.Z = P1[2];
-
-		Ret.Set(LineOfSight(&Temp, &Temp2));
+		// This is possibly inaccurate because it adjusts the ray for the player model,
+		// despite not necessarily using player model as the source location.
+		Ret.Set(CastRayLoc(SourcePos, pControlledPlayer->GetRace(), DestPos.X, DestPos.Y, DestPos.Z));
 		Ret.Type = pBoolType;
 		return true;
 	}

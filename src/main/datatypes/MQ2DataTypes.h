@@ -406,7 +406,6 @@ public:
 	static bool dataSpawnCount(const char* szIndex, MQTypeVar& Ret);
 	static bool dataLastSpawn(const char* szIndex, MQTypeVar& Ret);
 	static bool dataNearestSpawn(const char* szIndex, MQTypeVar& Ret);
-	static bool dataDoorTarget(const char* szIndex, MQTypeVar& Ret);
 	static bool dataItemTarget(const char* szIndex, MQTypeVar& Ret);
 };
 
@@ -515,11 +514,11 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	void InitVariable(MQVarPtr& VarPtr) override;
-	void FreeVariable(MQVarPtr& VarPtr) override;
 	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 
 	static bool dataSwitch(const char* szIndex, MQTypeVar& Ret);
+	static bool dataSwitchTarget(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================

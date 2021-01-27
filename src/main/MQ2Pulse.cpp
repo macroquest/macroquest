@@ -435,9 +435,7 @@ static void Pulse()
 		LastX = pChar->X;
 		LastY = pChar->Y;
 		LastMoveTick = MQGetTickCount64();
-		DoorEnviroTarget.Name[0] = 0;
-		DoorEnviroTarget.DisplayedName[0] = 0;
-		pDoorTarget = nullptr;
+		SetSwitchTarget(nullptr);
 
 		// see if we're on a pvp server
 		if (!_strnicmp(EQADDR_SERVERNAME, "zek", 3))

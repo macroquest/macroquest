@@ -1238,7 +1238,7 @@ void EndMacro(PSPAWNINFO pChar, char* szLine)
 	gLookAngle = 10000.0f;
 	gDelay = 0;
 	gTurbo = false;
-	pDoorTarget = nullptr;
+	SetSwitchTarget(nullptr);
 	gszMacroName[0] = 0;
 	gRunning = 0;
 
