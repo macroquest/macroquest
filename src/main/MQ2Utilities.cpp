@@ -7527,7 +7527,7 @@ MQGameObject ToGameObject(const SPAWNINFO* pSpawn)
 {
 	MQGameObject temp;
 	temp.type = eGameObjectType::Spawn;
-	temp.y = pSpawn->X;
+	temp.y = pSpawn->Y;
 	temp.x = pSpawn->X;
 	temp.z = pSpawn->Z;
 	temp.heading = pSpawn->Heading;
