@@ -7484,12 +7484,12 @@ PCONTENTS GetItemContentsBySlotID(DWORD dwSlotID)
 {
 	int InvSlot = -1;
 	int SubSlot = -1;
-	if (dwSlotID >= 0 && dwSlotID<NUM_INV_SLOTS) InvSlot = dwSlotID;
+	if (dwSlotID >= 0 && dwSlotID < (DWORD)GetCurrentInvSlots()) InvSlot = dwSlotID;
 	else if (dwSlotID >= 262 && dwSlotID<342) {
 		InvSlot = BAG_SLOT_START + (dwSlotID - 262) / 10;
 		SubSlot = (dwSlotID - 262) % 10;
 	}
-	if (InvSlot >= 0 && InvSlot<NUM_INV_SLOTS) {
+	if (InvSlot >= 0 && InvSlot<(int)GetCurrentInvSlots()) {
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 			if (pChar2->pInventoryArray) {
 				if (PCONTENTS iSlot = pChar2->pInventoryArray->InventoryArray[InvSlot]) {
@@ -7511,7 +7511,7 @@ PCONTENTS GetItemContentsByName(CHAR *ItemName)
 {
 	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 		if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
-			for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++) {
+			for (int nSlot = 0; nSlot < GetCurrentInvSlots(); nSlot++) {
 				if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
 					if (!_stricmp(ItemName, GetItemFromContents(pItem)->Name)) {
 						return pItem;
@@ -8188,7 +8188,7 @@ PCONTENTS FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 	if (location == eItemContainerPossessions) {
 		//check regular inventory
 		if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
-			for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++) {
+			for (int nSlot = 0; nSlot < GetCurrentInvSlots(); nSlot++) {
 				if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
 					if (pItem->GetGlobalIndex().Index.Slot1 == InvSlot && pItem->GetGlobalIndex().Index.Slot2 == BagSlot) {
 							return pItem;
@@ -8363,7 +8363,7 @@ PCONTENTS FindItemByName(PCHAR pName, BOOL bExact)
 
 	//check toplevel slots
 	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
-		for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++) {
+		for (int nSlot = 0; nSlot < GetCurrentInvSlots(); nSlot++) {
 			if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
 				if (bExact) {
 					if (PITEMINFO pItemi = GetItemFromContents(pItem))
@@ -8562,7 +8562,7 @@ PCONTENTS FindItemByID(int ItemID)
 
 	//check toplevel slots
 	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
-		for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++) {
+		for (int nSlot = 0; nSlot < GetCurrentInvSlots(); nSlot++) {
 			if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
 				if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
 					return pItem;
@@ -8757,7 +8757,7 @@ DWORD FindItemCountByName(PCHAR pName, BOOL bExact)
 
 	//check toplevel slots
 	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
-		for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++) {
+		for (int nSlot = 0; nSlot < GetCurrentInvSlots(); nSlot++) {
 			if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
 				if (bExact) {
 					if (!_stricmp(Name, GetItemFromContents(pItem)->Name)) {
@@ -9022,7 +9022,7 @@ DWORD FindItemCountByID(int ItemID)
 
 	//check toplevel slots
 	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
-		for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++) {
+		for (int nSlot = 0; nSlot < GetCurrentInvSlots(); nSlot++) {
 			if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
 				if (ItemID == pItem->ID) {
 					if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable() != 1)) {
@@ -9756,7 +9756,7 @@ PEQINVSLOT GetInvSlot(DWORD type, short invslot, short bagslot)
 //work in progress -eqmule
 BOOL IsItemInsideContainer(PCONTENTS pItem)
 {
-	if (pItem && pItem->GetGlobalIndex().Index.Slot1 >= 0 && pItem->GetGlobalIndex().Index.Slot1 <= NUM_INV_SLOTS) {
+	if (pItem && pItem->GetGlobalIndex().Index.Slot1 >= 0 && pItem->GetGlobalIndex().Index.Slot1 < (int)GetCurrentInvSlots()) {
 		PCHARINFO2 pChar2 = GetCharInfo2();
 		if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray[pItem->GetGlobalIndex().Index.Slot1]) {
 			if (PCONTENTS pItemFound = pChar2->pInventoryArray->InventoryArray[pItem->GetGlobalIndex().Index.Slot1]) {
@@ -11337,7 +11337,7 @@ int GetFreeStack(PCONTENTS pCont)
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 			if (!((EQ_Item*)pCont)->IsStackable())
 				return 0;
-			for (DWORD slot = BAG_SLOT_START-1/*we want to check ammo slot as well...*/; slot < NUM_INV_SLOTS; slot++)
+			for (int slot = BAG_SLOT_START-1/*we want to check ammo slot as well...*/; slot < GetCurrentInvSlots(); slot++)
 			{
 				if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray[slot]) {
 					if (PCONTENTS pTempItem = pChar2->pInventoryArray->InventoryArray[slot])
@@ -11382,7 +11382,7 @@ int GetFreeInventory(int nSize)
 	int freeslots = 0;
 	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 		if(nSize) {
-			for (DWORD slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++) {
+			for (int slot = BAG_SLOT_START; slot < GetCurrentInvSlots(); slot++) {
 				if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray && pChar2->pInventoryArray->InventoryArray[slot]) {
 					if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[slot]) {
 						if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK && GetItemFromContents(pItem)->SizeCapacity >= nSize) {
@@ -11408,7 +11408,7 @@ int GetFreeInventory(int nSize)
 			}
 		}
 		else {
-			for (DWORD slot = BAG_SLOT_START; slot<NUM_INV_SLOTS; slot++) {
+			for (int slot = BAG_SLOT_START; slot<GetCurrentInvSlots(); slot++) {
 				if (!HasExpansion(EXPANSION_HoT) && slot > BAG_SLOT_START + 7) {
 					break;
 				}
@@ -11543,7 +11543,7 @@ bool WillFitInInventory(PCONTENTS pContent)
 		if (PCHARINFO2 pChar2 = (PCHARINFO2)GetCharInfo2()) {
 			if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray)
 			{
-				for (DWORD slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++)
+				for (int slot = BAG_SLOT_START; slot < GetCurrentInvSlots(); slot++)
 				{
 					if (PCONTENTS pCont = pChar2->pInventoryArray->InventoryArray[slot])
 					{

@@ -915,16 +915,27 @@ void RemoveLoginPulse()
 }
 void InitializeLoginPulse()
 {
-	if (*(DWORD*)__heqmain && !LoginController__GiveTime) {
-		if (!(LoginController__GiveTime = FindPattern(*(DWORD*)__heqmain, 0x200000, lpPattern, lpMask)))
+	if (*(DWORD*)__heqmain)
+	{
+		if (!LoginController__GiveTime)
 		{
-			MessageBox(NULL, "MQ2 needs an update.", "Couldn't find LoginController__GiveTime", MB_SYSTEMMODAL | MB_OK);
-			return;
-		}
-		if (LoginController__GiveTime) {
-			if (*(BYTE*)LoginController__GiveTime != 0xe9) {
-				EzDetourwName(LoginController__GiveTime, &CEverQuestHook::LoginController__GiveTime_Detour, &CEverQuestHook::LoginController__GiveTime_Tramp, "LoginController__GiveTime");
+			if (!(LoginController__GiveTime = FindPattern(*(DWORD*)__heqmain, 0x200000, lpPattern, lpMask)))
+			{
+				MessageBox(NULL, "Couldn't find LoginController__GiveTime", "MQ2 needs an update.", MB_SYSTEMMODAL | MB_OK);
+				return;
 			}
+			if (LoginController__GiveTime) {
+				if (*(BYTE*)LoginController__GiveTime != 0xe9) {
+					EzDetourwName(LoginController__GiveTime, &CEverQuestHook::LoginController__GiveTime_Detour, &CEverQuestHook::LoginController__GiveTime_Tramp, "LoginController__GiveTime");
+				}
+			}
+		}
+	}
+	else
+	{
+		if (GetGameState() == GAMESTATE_POSTFRONTLOAD)
+		{
+			MessageBox(NULL, "Failed to locate eqmain.dll", "InitializeLoginPulse", MB_OK | MB_SYSTEMMODAL);
 		}
 	}
 }

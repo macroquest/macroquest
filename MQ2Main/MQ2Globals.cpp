@@ -1739,7 +1739,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CChatManager__GetRGBAFromIndex);
 	INITIALIZE_EQGAME_OFFSET(CChatManager__InitContextMenu);
 	INITIALIZE_EQGAME_OFFSET(CChatManager__FreeChatWindow);
+	#if defined(ROF2EMU) || defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(CChatManager__GetLockedActiveChatWindow);
+	#endif
 	INITIALIZE_EQGAME_OFFSET(CChatManager__SetLockedActiveChatWindow);
 	INITIALIZE_EQGAME_OFFSET(CChatManager__CreateChatWindow);
 
@@ -1870,7 +1872,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(COptionsWnd__FillChatFilterList);
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetMemorizedSpell);
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__CreateItemGlobalIndex);
+	#if defined CharacterBase__CreateItemIndex_x
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__CreateItemIndex);
+	#endif
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetItemPossession);
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetItemByGlobalIndex);
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetItemByGlobalIndex1);
@@ -2026,7 +2030,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CStmlWnd__FastForwardToEndOfTag);
 	INITIALIZE_EQGAME_OFFSET(CStmlWnd__ForceParseNow);
 	INITIALIZE_EQGAME_OFFSET(CStmlWnd__GetNextTagPiece);
+	#ifdef CStmlWnd__GetSTMLText_x
 	INITIALIZE_EQGAME_OFFSET(CStmlWnd__GetSTMLText);
+	#endif
 	INITIALIZE_EQGAME_OFFSET(CStmlWnd__GetVisibleText);
 	INITIALIZE_EQGAME_OFFSET(CStmlWnd__InitializeWindowVariables);
 	INITIALIZE_EQGAME_OFFSET(CStmlWnd__MakeStmlColorTag);
@@ -2050,7 +2056,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CTabWnd__GetPageFromTabIndex);
 	INITIALIZE_EQGAME_OFFSET(CTabWnd__GetCurrentTabIndex);
 
+#ifdef CPageWnd__GetTabText_x
 	INITIALIZE_EQGAME_OFFSET(CPageWnd__GetTabText);
+#endif
 	INITIALIZE_EQGAME_OFFSET(CPageWnd__SetTabText);
 #if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(CPageWnd__FlashTab);
@@ -2090,13 +2098,16 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CXStr__GetChar);
 	INITIALIZE_EQGAME_OFFSET(CXStr__Delete);
 	INITIALIZE_EQGAME_OFFSET(CXStr__GetUnicode);
+	#ifdef CXStr__GetLength_x
 	INITIALIZE_EQGAME_OFFSET(CXStr__GetLength);
 	INITIALIZE_EQGAME_OFFSET(CXStr__Mid);
+	INITIALIZE_EQGAME_OFFSET(CXWnd__Center);
+	#endif
 	INITIALIZE_EQGAME_OFFSET(CXStr__Insert);
+	INITIALIZE_EQGAME_OFFSET(CXStr__Copy);
 	INITIALIZE_EQGAME_OFFSET(CXStr__FindNext);
 
 	INITIALIZE_EQGAME_OFFSET(CXWnd__BringToTop);
-	INITIALIZE_EQGAME_OFFSET(CXWnd__Center);
 	INITIALIZE_EQGAME_OFFSET(CXWnd__ClrFocus);
 	INITIALIZE_EQGAME_OFFSET(CXWnd__Destroy);
 	INITIALIZE_EQGAME_OFFSET(CXWnd__DoAllDrawing);
@@ -2168,8 +2179,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetAdjustedSkill);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetBaseSkill);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__CanUseItem);
+#ifdef BaseProfile__GetItemPossession_x
 	INITIALIZE_EQGAME_OFFSET(BaseProfile__GetItemPossession);
-
+#endif
 	INITIALIZE_EQGAME_OFFSET(AggroMeterManagerClient__Instance);
 	INITIALIZE_EQGAME_OFFSET(ClientSOIManager__GetSingleton);
 #ifdef MercenaryAlternateAdvancementManagerClient__Instance_x
@@ -2205,7 +2217,7 @@ namespace MQ2Globals
 #endif
 	INITIALIZE_EQGAME_OFFSET(EQ_Item__CanGoInBag);
 	INITIALIZE_EQGAME_OFFSET(EQ_Item__IsEmpty);
-	INITIALIZE_EQGAME_OFFSET(EQ_Item__GetAugmentFitBySlot);
+	INITIALIZE_EQGAME_OFFSET(EQ_Item__CanGemFitInSlot);
 
 	INITIALIZE_EQGAME_OFFSET(EQ_LoadingS__SetProgressBar);
 	INITIALIZE_EQGAME_OFFSET(EQ_LoadingS__Array);
@@ -2308,20 +2320,22 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CHelpWnd__SetFile);
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__GetSpellLevelNeeded);
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__SpellAffects);
+#ifdef EQ_Spell__IsStackable_x
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsStackable);
+	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsNoRemove);
+#endif
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__GetSpellAffectBySlot);
 
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsSPAStacking);
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsSPAIgnoredByStacking);
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__SpellAffectBase);
-	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsNoRemove);
 
 #if !defined(ROF2EMU) && !defined(UFEMU)
 	INITIALIZE_EQGAME_OFFSET(EQSpellStrings__GetString);
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__GetSpellAffectByIndex);
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsDegeneratingLevelMod);
 #endif
-
+	INITIALIZE_EQGAME_OFFSET(EQ_Spell__IsLullSpell);
 	INITIALIZE_EQGAME_OFFSET(__IsResEffectSpell);
 	INITIALIZE_EQGAME_OFFSET(EQ_Affect__GetAffectData);
 

@@ -405,9 +405,10 @@ bool __cdecl MQ2Initialize()
 		Sleep(1000);
 	}
 	
-	
-
-	
+	while (!GetModuleHandle("EQGraphicsDX9.dll"))
+	{
+		Sleep(10);
+	}
     if(!InitOffsets())
     {
         DebugSpewAlways("InitOffsets returned false - thread aborted.");

@@ -422,6 +422,11 @@ char swmMask[] = "xx????xxxx";
 #if defined(ROF2EMU) || defined(UFEMU)
 PBYTE xmldataPattern = (PBYTE)"\x8B\x54\x24\x00\x56\x8B\x74\x24\x00\x8B\xC1\x85\xD2\x75\x00\x85\xF6\x75\x00\x33\xC0\x5E\xC2\x00\x00";
 char xmldataMask[] = "xxx?xxxx?xxxxx?xxx?xxxx??";
+#elif defined(TEST)
+//Jan 25 2021 Test
+//IDA Style Sig: E8 ? ? ? ? 50 8B CD
+PBYTE xmldataPattern = (PBYTE)"\xE8\x00\x00\x00\x00\x50\x8B\xCD";
+char xmldataMask[] = "x????xxx";
 #else
 PBYTE xmldataPattern = (PBYTE)"\x53\x8B\x5C\x24\x0C\x8B\xC1\x57";
 char xmldataMask[] = "xxxxxxxx";
@@ -433,6 +438,11 @@ char xmldataMask[] = "xxxxxxxx";
 #if defined(ROF2EMU) || defined(UFEMU)
 PBYTE lmousePattern = (PBYTE)"\x55\x8B\xEC\x6A\x00\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x00\x53\x56\x57\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\x00\x64\xA3\x00\x00\x00\x00\x8B\xF1\x83\x7E\x00\x00";
 char lmouseMask[] = "xxxx?x????xx????xxx?xxxx????xxxxx?xx????xxxx??";
+#elif defined(TEST)
+//Jan 25 2021 Test
+//IDA Style Sig: E8 ? ? ? ? EB 53 83 F8 0D
+PBYTE lmousePattern = (PBYTE)"\xE8\x00\x00\x00\x00\xEB\x53\x83\xF8\x0D";
+char lmouseMask[] = "x????xxxxx";
 #else
 PBYTE lmousePattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x08\x53\x56\x57\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xF1\x83\x7E\x14\x00\x74\x5D\x51\x8B\xCC\x89\x65\xF0\x68\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x51\x8B\xCC\x89\x65\xEC\x68\x00\x00\x00\x00\xC7\x45\x00\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x8B\x4E\x14\xC6\x45\xFC\x01\xE8\x00\x00\x00\x00\x8B\xF8\x51\x8B\xDC\x8B\x0F\x85\xC9\x74\x09\x51\xE8\x00\x00\x00\x00\x83\xC4\x04\x8B\x07\x8B\xCE\x89\x03\xC7\x45\x00\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x84\xC0\x75\x17\x8B\x4E\x1C\x8B\x7D\x08\x85\xC9\x74\x26\x8B\x01\x57\xFF\x90\x00\x00\x00\x00\x85\xC0\x74\x29\xB8\x00\x00\x00\x00\x8B\x4D\xF4\x64\x89\x0D\x00\x00\x00\x00\x59\x5F\x5E\x5B\x8B\xE5\x5D\xC2\x04\x00\x8B\x4E\x14\x85\xC9\x74\x09\x8B\x01\x57\xFF\x90\x00\x00\x00\x00\x8B\x0D\x00\x00\x00\x00\x57\xE8\x00\x00\x00\x00\x8B\x4D\xF4\x64\x89\x0D\x00\x00\x00\x00\x59\x5F\x5E\x5B\x8B\xE5\x5D\xC2\x04\x00";
 char lmouseMask[] = "xxxxxx????xx????xxxxxxxx????xxxxxxxx????xxxxxxxxxxxxxxx????x????xxxxxxx????xx?????x????xxxxxxxx????xxxxxxxxxxxxx????xxxxxxxxxxx?????x????xxxxxxxxxxxxxxxxxxx????xxxxx????xxxxxx????xxxxxxxxxxxxxxxxxxxxxx????xx????xx????xxxxxx????xxxxxxxxxx";
@@ -962,7 +972,7 @@ void Cmd_Relog(PSPAWNINFO pChar, PCHAR szLine)
 bool bGotOffsets = false;
 bool GetAllOffsets(DWORD dweqmain)
 {
-	//MessageBox(NULL, "Inject", "AutoLogin::GetAllOffsets", MB_SYSTEMMODAL | MB_OK);
+//	MessageBox(NULL, "Inject", "AutoLogin::GetAllOffsets", MB_SYSTEMMODAL | MB_OK);
 	if (!dweqmain)
 		return false;
 	if(dwLoginClient = _FindPattern(dweqmain, 0x100000, lcPattern, lcMask))
@@ -989,13 +999,28 @@ bool GetAllOffsets(DWORD dweqmain)
     {
         AutoLoginDebug("Error: !dwGetXMLDataAddr");
         return false;
-    }
+	}
+	else
+	{
+		#if defined(TEST)
+		int dwGetXMLDataAddr1 = _GetDWordAt(dwGetXMLDataAddr, 1);
+		dwGetXMLDataAddr = dwGetXMLDataAddr + dwGetXMLDataAddr1 + 5;
+		#endif
+		Sleep(0);
+	}
 
     if(!(dwSendLMouseClickAddr = _FindPattern(dweqmain, 0x100000, lmousePattern, lmouseMask)))
     {
         AutoLoginDebug("Error: !dwSendLMouseClickAddr");
         return false;
-    }
+	}
+	else {
+		#if defined(TEST)
+		int dwSendLMouseClickAddr1 = _GetDWordAt(dwSendLMouseClickAddr, 1);
+		dwSendLMouseClickAddr = dwSendLMouseClickAddr + dwSendLMouseClickAddr1 + 5;
+		#endif
+		Sleep(0);
+	}
 
     if(dwSidlMgr = _FindPattern(dweqmain, 0x100000, swmPattern, swmMask))
     {
@@ -1408,7 +1433,7 @@ PLUGIN_API VOID OnPulse(VOID)
 			if (CSidlScreenWnd *pWnd = (CSidlScreenWnd *)FindMQ2Window("ConfirmationDialogBox", true)) {
 				if (CStmlWnd *Child = (CStmlWnd*)pWnd->GetChildItem("cd_textoutput")) {
 					CHAR InputCXStr[MAX_STRING] = { 0 };
-					GetCXStr(Child->STMLText, InputCXStr, MAX_STRING);
+					GetCXStr(Child->STMLText.Ptr, InputCXStr, MAX_STRING);
 					if (strstr(InputCXStr, "you agree to abide by the server specific rules")) {
 						if (CButtonWnd *pButton = (CButtonWnd*)pWnd->GetChildItem("cd_yes_button")) {
 							pButton->WndNotification(pButton, XWM_LCLICK, 0);
@@ -1676,7 +1701,7 @@ void HandleWindows()
 					char szTemp[MAX_STRING * 8] = { 0 };
 					if (((CXWnd2*)pWnd)->GetType() == UI_STMLBox) {
 						CStmlWnd*cstm = (CStmlWnd*)pWnd;
-						GetCXStr(cstm->STMLText, szTemp, MAX_STRING * 8);
+						GetCXStr(cstm->STMLText.Ptr, szTemp, MAX_STRING * 8);
 					}
 					else {
 						CSidlScreenWnd*cwnd = (CSidlScreenWnd*)pWnd;
@@ -1738,7 +1763,7 @@ void HandleWindows()
 				char szTemp[MAX_STRING * 8] = { 0 };
 				if (((CXWnd2*)pWnd)->GetType() == UI_STMLBox) {
 					CStmlWnd *stmlwnd = (CStmlWnd*)pWnd;
-					GetCXStr(stmlwnd->STMLText, szTemp, MAX_STRING * 8);
+					GetCXStr(stmlwnd->STMLText.Ptr, szTemp, MAX_STRING * 8);
 				}
 				else {
 					CSidlScreenWnd *cpwnd = (CSidlScreenWnd*)pWnd;
@@ -2017,7 +2042,7 @@ void HandleWindows()
                 char szTemp[MAX_STRING * 8] = {0};
 
                 if(((CXWnd2*)pWnd)->GetType() == UI_STMLBox)
-                    GetCXStr(((CStmlWnd*)pWnd)->STMLText, szTemp, MAX_STRING * 8);
+                    GetCXStr(((CStmlWnd*)pWnd)->STMLText.Ptr, szTemp, MAX_STRING * 8);
                 else
                     GetCXStr(((CSidlScreenWnd*)pWnd)->CGetWindowText(), szTemp, MAX_STRING * 8);
 				bGotOffsets = false;
@@ -2068,7 +2093,7 @@ void HandleWindows()
                 char szTemp[MAX_STRING * 8] = {0};
 
                 if(((CXWnd2*)pWnd)->GetType() == UI_STMLBox)
-                    GetCXStr(((CStmlWnd*)pWnd)->STMLText, szTemp, MAX_STRING * 8);
+                    GetCXStr(((CStmlWnd*)pWnd)->STMLText.Ptr, szTemp, MAX_STRING * 8);
                 else
                     GetCXStr(((CSidlScreenWnd*)pWnd)->CGetWindowText(), szTemp, MAX_STRING * 8);
 
@@ -2166,7 +2191,7 @@ void HandleWindows()
 
 			if (((CXWnd2*)pWnd)->GetType() == UI_STMLBox) {
 				CStmlWnd*pcstm = (CStmlWnd*)pWnd;
-				GetCXStr(pcstm->STMLText, szTemp, MAX_STRING);
+				GetCXStr(pcstm->STMLText.Ptr, szTemp, MAX_STRING);
 			}
 			else {
 				CSidlScreenWnd*pcsidl = (CSidlScreenWnd*)pWnd;

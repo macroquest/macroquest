@@ -41,6 +41,7 @@ public:
 		this->SetEscapable(false);
 		this->SetClickable(true);
 		this->SetAlpha(0xFF);
+		this->SetFadeToAlpha(0xFF);
 		this->SetBGType(1);
 		this->ContextMenuID = 3;
 		InputBox->SetCRNormal(0xFFFFFFFF);//we want a white cursor
@@ -55,6 +56,9 @@ public:
 		iCurrentCmd = -1;
 		SetZLayer(1); // Make this the topmost window (we will leave it as such for charselect, and allow it to move to background ingame)
 		this->SetNeedsSaving(0);
+		this->CSetWindowText("MQ");
+		CXRect rc = { 300, 10, 600, 210 };
+		((CXWnd*)this)->Move(rc, false);
 		//this->SetKeepOnScreen(1);
 	}
     ~CMQChatWnd()
@@ -224,6 +228,8 @@ public:
     //struct _CSIDLWND* OutStruct;
     DWORD OutBoxLines;
     DWORD FontSize;
+	DWORD GameState;
+	std::string IniSection;
 private:
     std::vector<std::string> sCmdHistory;
     int iCurrentCmd;
@@ -244,15 +250,15 @@ VOID LoadChatFromINI(PCSIDLWND pWindow)
 {
 	if (!pLocalPlayer)
 		return;
+	if (!MQChatWnd)
+		return;
+	int gs = MQChatWnd->GameState;
+	if (gs != GAMESTATE_INGAME && gs != GAMESTATE_CHARSELECT)
+		return;
     CHAR szTemp[MAX_STRING]={0};
 	CHAR szChatINISection[MAX_STRING]={0};
     LoadChatSettings();
-	sprintf_s(szChatINISection, "%s.%s", EQADDR_SERVERNAME, ((PSPAWNINFO)pLocalPlayer)->Name);
-	if (!bSaveByChar)
-		sprintf_s(szChatINISection, "Default");
-	if (GetGameState() == GAMESTATE_CHARSELECT) {
-		strcpy_s(szChatINISection, "CharSelect");
-	}
+	sprintf_s(szChatINISection, "%s", MQChatWnd->IniSection.c_str());
 	//left top right bottom
 	int left = GetPrivateProfileInt(szChatINISection, "ChatLeft", 10, INIFileName);
 	if (left == 2000)
@@ -295,15 +301,15 @@ VOID SaveChatToINI(PCSIDLWND pWindow)
 {
  	if (!pLocalPlayer)
 		return;
+	if (!MQChatWnd)
+		return;
+	int gs = MQChatWnd->GameState;
+	if (gs != GAMESTATE_INGAME && gs != GAMESTATE_CHARSELECT)
+		return;
 	CHAR szTemp[MAX_STRING]={0};
 	CHAR szChatINISection[MAX_STRING]={0};
+	sprintf_s(szChatINISection, "%s", MQChatWnd->IniSection.c_str());
 
-	sprintf_s(szChatINISection, "%s.%s", EQADDR_SERVERNAME, ((PSPAWNINFO)pLocalPlayer)->Name);
-	if (!bSaveByChar)
-		sprintf_s(szChatINISection, "Default");
-	if (GetGameState() == GAMESTATE_CHARSELECT) {
-		strcpy_s(szChatINISection, "CharSelect");
-	}
     WritePrivateProfileString("Settings","AutoScroll",   bAutoScroll?"on":"off",INIFileName);
     WritePrivateProfileString("Settings","NoCharSelect", bNoCharSelect?"on":"off",INIFileName);
     WritePrivateProfileString("Settings","SaveByChar",   bSaveByChar?"on":"off",INIFileName);
@@ -342,10 +348,9 @@ VOID SaveChatToINI(PCSIDLWND pWindow)
 	//GetCXStr(pWindow->WindowText,szTemp, MAX_STRING);
     WritePrivateProfileString(szChatINISection,"WindowTitle",szTemp,INIFileName);
 }
-
+void UpdateGameState(DWORD GameState);
 VOID CreateChatWindow()
 {
-    DebugSpew("MQ2ChatWnd::CreateChatWindow()");
     if (MQChatWnd)
     {
         return;
@@ -355,6 +360,7 @@ VOID CreateChatWindow()
     {
         return;
     }
+	UpdateGameState(GetGameState());
 	LoadChatFromINI((PCSIDLWND)MQChatWnd);
 	SaveChatToINI((PCSIDLWND)MQChatWnd); // A) we're masochists, B) this creates the file if its not there..
 }
@@ -364,7 +370,7 @@ VOID DestroyChatWnd()
     if (MQChatWnd)
     {
         sPendingChat.clear();
-        SaveChatToINI((PCSIDLWND)MQChatWnd);
+		SaveChatToINI((PCSIDLWND)MQChatWnd);
         delete MQChatWnd;
         MQChatWnd=0;
         ulOldVScrollPos=0;
@@ -438,6 +444,11 @@ VOID MQChat(PSPAWNINFO pChar, PCHAR Line)
 			CXRect rc = { 300, 10, 600, 210 };
 			((CXWnd*)MQChatWnd)->Move(rc, false);
 			SaveChatToINI((PCSIDLWND)MQChatWnd);
+			MQChatWnd->GameState = GAMESTATE_CHARSELECT;
+			MQChatWnd->IniSection = "CharSelect";
+			SaveChatToINI((PCSIDLWND)MQChatWnd);
+			UpdateGameState(GetGameState());
+
             return;
 		}
 
@@ -564,23 +575,46 @@ PLUGIN_API VOID OnReloadUI()
 {
     DebugSpewAlways("MQ2ChatWnd::OnReloadUI()");
     // redraw window when you load/reload UI
-    DebugTry(CreateChatWindow());
+	DebugSpewAlways("OnReloadUI called %d loading chat", GetGameState());
+	DebugTry(CreateChatWindow());
 }
 
 PLUGIN_API VOID OnCleanUI()
 {
     DebugSpewAlways("MQ2ChatWnd::OnCleanUI()");
     // destroy chatwnd before server select & while reloading UI
+	DebugSpewAlways("OnCleanUI called %d saving chat", GetGameState());
     DestroyChatWnd();
 }
-
+void UpdateGameState(DWORD GameState)
+{
+	if (MQChatWnd)
+	{
+		if (GameState == GAMESTATE_CHARSELECT || GameState == GAMESTATE_INGAME)
+		{
+			MQChatWnd->GameState = GameState;
+			MQChatWnd->IniSection = "CharSelect";
+			if (GameState == GAMESTATE_INGAME)
+			{
+				CHAR szChatINISection[128];
+				sprintf_s(szChatINISection, "%s.%s", EQADDR_SERVERNAME, ((PSPAWNINFO)pLocalPlayer)->Name);
+				MQChatWnd->IniSection = szChatINISection;
+				if (!bSaveByChar)
+					MQChatWnd->IniSection = "Default";
+			}
+			LoadChatFromINI((PCSIDLWND)MQChatWnd);
+		}
+	}
+}
 PLUGIN_API VOID SetGameState(DWORD GameState)
 {
-    DebugSpew("MQ2ChatWnd::SetGameState()");
+    //DebugSpew("MQ2ChatWnd::SetGameState()");
+	UpdateGameState(GameState);
     if (GameState==GAMESTATE_CHARSELECT)
     {
         if (bNoCharSelect)
         {
+			DebugSpewAlways("Gamestate changed to %d saving chat", GameState);
             // destroy chatwnd at charselect if NoCharSelect=on
             DestroyChatWnd();
         }
@@ -598,9 +632,11 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
         if (GameState==GAMESTATE_INGAME && !MQChatWnd)
         {
             // we entered the game, set up shop
+			DebugSpewAlways("Gamestate changed to %d loading chat", GameState);
             DebugTry(CreateChatWindow());
-        }
+		}
     }
+	UpdateGameState(GameState);
 }
 
 // This is called every time WriteChatColor is called by MQ2Main or any plugin,
@@ -736,7 +772,7 @@ PLUGIN_API VOID OnPulse()
     }
     if (MQChatWnd)
     {
-		if (savecounter++ > 100)//we dont need to check this a million times per second...
+		/*if (savecounter++ > 100)//we dont need to check this a million times per second...
 		{
 			if (MQChatWnd->GetNeedsSaving())
 			{
@@ -745,7 +781,7 @@ PLUGIN_API VOID OnPulse()
 				//WriteChatf("Saved ChatWindow Position");
 			}
 			savecounter = 0;
-		}
+		}*/
 		switch (gGameState)
 		{
 			case GAMESTATE_CHARSELECT:

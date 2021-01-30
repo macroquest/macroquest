@@ -1032,3 +1032,12 @@ static inline unsigned long GetDWordAt(unsigned long address, unsigned long numB
     }
     return 0;
 }
+static inline int GetCurrentInvSlots()
+{
+	int invslots = NUM_INV_SLOTS;
+	if (BaseProfile *pBprof = (BaseProfile *)GetCharInfo2())
+	{
+		invslots = pBprof->pInventoryArray.Size;
+	}
+	return invslots;
+}

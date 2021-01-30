@@ -2222,6 +2222,25 @@ bool MQ2SpawnType::GETMEMBER()
         sv3.X = pSpawn->Y;
         sv3.Y = pSpawn->X;
         sv3.Z = pSpawn->Z;
+		PZONEINFO pZone = reinterpret_cast<PZONEINFO>(pZoneInfo);
+        CDisplay *pDsp = reinterpret_cast<CDisplay*>(pDisplay);
+		if (pZone && pDsp) {
+			float Z = 0;
+			FLOAT curr_z = 0.0f;
+			for (float f = pZone->Ceiling; f > pZone->Floor; f -= 1.0f)
+			{
+				curr_z = pDsp->GetFloorHeight(X, Y, f);
+				if (curr_z != ((float)-1.0e27))
+				{
+					Z = curr_z;
+					break;
+				}
+			}
+			if (Z)
+			{
+				sv3.Z = Z;
+			}
+		}
         Dest.DWord = pCharSpawn->CanSee(&sv3);
         Dest.Type = pBoolType;
         return true;
@@ -3764,7 +3783,9 @@ bool MQ2CharacterType::GETMEMBER()
 		return true;
 	case Grouped:
 		Dest.Type = pBoolType;
-		if (!pChar->pGroupInfo) return false;
+		Dest.DWord = 0;
+		if (!pChar->pGroupInfo)
+			return true;
 		Dest.DWord = pChar->pGroupInfo->pMember[1] ||
 			pChar->pGroupInfo->pMember[2] ||
 			pChar->pGroupInfo->pMember[3] ||
@@ -4718,7 +4739,7 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pIntType;
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 			if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
-				for (DWORD slot = BAG_SLOT_START; slot<NUM_INV_SLOTS; slot++)
+				for (int slot = BAG_SLOT_START; slot < GetCurrentInvSlots(); slot++)
 				{
 					if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[slot])
 					{
@@ -8443,7 +8464,7 @@ bool MQ2ItemType::GETMEMBER()
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 			if (!((EQ_Item*)pItem)->IsStackable())
 				return true;
-			for (DWORD slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++)
+			for (int slot = BAG_SLOT_START; slot < GetCurrentInvSlots(); slot++)
 			{
 				if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray[slot]) {
 					if (PCONTENTS pTempItem = pChar2->pInventoryArray->InventoryArray[slot])
@@ -8481,7 +8502,7 @@ bool MQ2ItemType::GETMEMBER()
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 			if (!((EQ_Item*)pItem)->IsStackable())
 				return true;
-			for (DWORD slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++)
+			for (int slot = BAG_SLOT_START; slot < GetCurrentInvSlots(); slot++)
 			{
 				if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray[slot]) {
 					if (PCONTENTS pTempItem = pChar2->pInventoryArray->InventoryArray[slot])
@@ -9685,7 +9706,7 @@ bool MQ2WindowType::GETMEMBER()
 	case Text:
 		if (((CXWnd*)pWnd)->GetType() == UI_STMLBox) {
 			CStmlWnd*cstmlwnd = (CStmlWnd*)pWnd;
-			GetCXStr(cstmlwnd->STMLText, DataTypeTemp, MAX_STRING);
+			GetCXStr(cstmlwnd->STMLText.Ptr, DataTypeTemp, MAX_STRING);
 		}
 		else {
 			GetCXStr(pWnd->CGetWindowText(), DataTypeTemp, MAX_STRING);
@@ -12689,7 +12710,7 @@ bool MQ2InvSlotType::GETMEMBER()
 		Dest.Type = pItemType;
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 			if (pChar2->pInventoryArray && nInvSlot >= 0) {
-				if (nInvSlot < NUM_INV_SLOTS)
+				if (nInvSlot < (int)GetCurrentInvSlots())
 				{
 					if (Dest.Ptr = pChar2->pInventoryArray->InventoryArray[nInvSlot])
 					{
@@ -12921,13 +12942,13 @@ bool MQ2InvSlotType::GETMEMBER()
 		return false;
 	case Name:
 		Dest.Type = pStringType;
-		if (nInvSlot >= 0 && nInvSlot<NUM_INV_SLOTS)
+		if (nInvSlot >= 0 && nInvSlot<(int)GetCurrentInvSlots())
 		{
 			strcpy_s(DataTypeTemp, szItemSlot[nInvSlot]);
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 		}
-		if (nInvSlot >= BAG_SLOT_START && nInvSlot<NUM_INV_SLOTS)
+		if (nInvSlot >= BAG_SLOT_START && nInvSlot<(int)GetCurrentInvSlots())
 		{
 			sprintf_s(DataTypeTemp, "pack%d", nInvSlot - 21);
 			Dest.Ptr = &DataTypeTemp[0];
@@ -17167,7 +17188,7 @@ bool MQ2BandolierType::GETMEMBER()
 					case Active:
 						Dest.DWord = 0;
 						Dest.Type = pBoolType;
-						if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray[0])
+						if (pChar2->pInventoryArray)
 						{
 							if (pBand->Items[0].ItemID)
 							{

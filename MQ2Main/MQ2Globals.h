@@ -1539,6 +1539,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CXStr__GetLength;
 	EQLIB_VAR DWORD CXStr__Mid;
 	EQLIB_VAR DWORD CXStr__Insert;
+	EQLIB_VAR DWORD CXStr__Copy;
 	EQLIB_VAR DWORD CXStr__FindNext;
 
 	EQLIB_VAR DWORD CXWnd__BringToTop;
@@ -1646,7 +1647,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQ_Item__CanGoInBag;
 	EQLIB_VAR DWORD EQ_Item__IsEmpty;
 	EQLIB_VAR DWORD EQ_Item__GetMaxItemCount;
-	EQLIB_VAR DWORD EQ_Item__GetAugmentFitBySlot;
+	EQLIB_VAR DWORD EQ_Item__CanGemFitInSlot;
 	
 	EQLIB_VAR DWORD EQ_LoadingS__SetProgressBar;
 	EQLIB_VAR DWORD EQ_LoadingS__Array;
@@ -1774,7 +1775,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQ_Spell__SpellAffectBase;
 	EQLIB_VAR DWORD EQ_Spell__IsNoRemove;
 	EQLIB_VAR DWORD EQ_Spell__IsDegeneratingLevelMod;
-
+	EQLIB_VAR DWORD EQ_Spell__IsLullSpell;
+	
 	EQLIB_VAR DWORD EQSpellStrings__GetString;
 	
 	EQLIB_VAR DWORD __IsResEffectSpell;

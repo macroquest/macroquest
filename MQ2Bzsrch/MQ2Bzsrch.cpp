@@ -252,7 +252,7 @@ public:
     bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest) {
         if (!VarPtr.Ptr)
             return false;
-#define pBzrItem ((_BazaarSearchResponsePacket*)VarPtr.Ptr)
+		_BazaarSearchResponsePacket *pBzrItem = (_BazaarSearchResponsePacket*)VarPtr.Ptr;
         PMQ2TYPEMEMBER pMember=MQ2BazaarItemType::FindMember(Member);
         if (!pMember)
             return false;
@@ -271,11 +271,10 @@ public:
             Dest.Type=pIntType;
             return true;
         case Trader:
-            if (Dest.Ptr=GetSpawnByName(pBzrItem->BSSTraderName)) {
-                Dest.Type=pSpawnType;
-                return true;
-            }
-            return false;
+			strcpy_s(DataTypeTemp, &pBzrItem->BSSTraderName[0]);
+            Dest.Ptr=&DataTypeTemp[0];
+            Dest.Type=pStringType;
+            return true;
         case Name:
             strcpy_s(DataTypeTemp, &pBzrItem->BSSName[0]);
             if (PCHAR pDest = strrchr(DataTypeTemp,'('))
@@ -286,7 +285,6 @@ public:
         }
 
         return false;
-#undef pBzrItem
     }
 
     bool ToString(MQ2VARPTR VarPtr, PCHAR Destination) {

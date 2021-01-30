@@ -2547,7 +2547,7 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 	CHAR szBuffer[MAX_STRING] = { 0 };
 	GetArg(szBuffer, szLine, 1);
 	int abil = atoi(szBuffer);
-	if (abil && abil > 5 && abil < NUM_SKILLS)//user wants us to activate a ability by its REAL ID...
+	if (abil && abil > 6 && abil < NUM_SKILLS)//user wants us to activate a ability by its REAL ID...
 	{
 		if (DWORD nToken = pCSkillMgr->GetNameToken(abil))
 		{
@@ -2650,7 +2650,11 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 		}
 	}
 	// else display that we didnt found abilities
-	WriteChatColor("You do not seem to have that ability available", USERCOLOR_DEFAULT);
+	if(abil)
+		WriteChatf("You do not seem to have ability %s (ID %d) available", szBuffer,abil);
+	else
+		WriteChatf("You do not seem to have ability %s available", szBuffer);
+
 }
 
 // ***************************************************************************
@@ -2856,7 +2860,7 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 		else {
 			if (PCONTENTS pItem = FindItemByName(szArg2, true))
 			{
-				if (pItem->GetGlobalIndex().Index.Slot1 < NUM_INV_SLOTS)
+				if (pItem->GetGlobalIndex().Index.Slot1 < (int)GetCurrentInvSlots())
 				{
 					if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID != -1)
 					{

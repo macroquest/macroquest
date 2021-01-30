@@ -2484,7 +2484,7 @@ void InsertAug(PSPAWNINFO pChar, PCHAR szLine)
 					int Slot = 0;
 					bool bFits = false;
 					for (; Slot < 6; Slot++) {
-						int fit = ((EQ_Item*)pCont)->GetAugmentFitBySlot(&pCursor, Slot);
+						int fit = ((EQ_Item*)pCont)->CanGemFitInSlot(&pCursor, Slot);
 						if (fit == 0) {
 							bFits = true;
 							break;
@@ -3273,12 +3273,13 @@ int DoIHave(PITEMINFO Item)
    DWORD nAug = 0;
 	unsigned long nPack;
 	unsigned long iSlot;
-
-   //return nHowMany;
+  //return nHowMany;
 	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-		if (pChar2->pInventoryArray) {
+		BaseProfile *pBprof = (BaseProfile *)pChar2;
+		DWORD invslots = pBprof->pInventoryArray.Size;
+ 		if (pChar2->pInventoryArray) {
 			// Normal Inventory worn slots
-			for (iSlot = 0; iSlot < NUM_INV_SLOTS; iSlot++)
+			for (iSlot = 0; iSlot < invslots; iSlot++)
 			{
 				if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[iSlot])
 				{

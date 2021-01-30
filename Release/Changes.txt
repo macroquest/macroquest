@@ -1,3 +1,17 @@
+Jan 29 2021
+- Updated for TEST
+-
+Jan 22 2021
+- Fixed a bug where if you did not have a charm item equipped ${Me.Bandolier[blah].Active} would always return false
+- Changed /doability so it now takes fake ID 1-6 where it previously only took 1-5 because people where confused when fake IDs did not work.
+	I strongly recommend you never use fake ID 1-8, it's incredibly stupid, just use the real name, for example /doability Hide
+	or the REAL ID which in the example of Hide is 29, so /doability 29
+- Made a change to ${Target.CanSplashLand} so it takes floor z into account as well as spawn z, this should fix some corner cases where a splashspell can land
+	even though npc z is under or over the floor. - Feature request: Kaen01
+- Changed ${Bazaar.Item[x].Trader} to return a stringtype
+- Fixed ${Me.Grouped} to correctly return FALSE instead of NULL when not in a group.
+- Made NUM_INV_SLOTS dynamic Use GetCurrentInvSlots() instead.
+-
 Jan 20 2021
 - Updated for LIVE
 -

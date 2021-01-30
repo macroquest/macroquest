@@ -929,7 +929,7 @@ GNU General Public License for more details.
 #define EQ_Item__IsEmpty_x                                         0x89DD50
 #define EQ_Item__GetMaxItemCount_x                                 0x89CF10
 #define EQ_Item__GetHeldItem_x                                     0x89B6D0
-#define EQ_Item__GetAugmentFitBySlot_x                             0x8994A0
+#define EQ_Item__CanGemFitInSlot_x                                 0x8994A0
 
 // EQ_LoadingS 
 #define EQ_LoadingS__SetProgressBar_x                              0x566B50

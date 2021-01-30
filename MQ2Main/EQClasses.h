@@ -517,9 +517,16 @@ public:
 	EQLIB_OBJECT char GetChar(long) const;
 	EQLIB_OBJECT char SetChar(long, char);
 
-	EQLIB_OBJECT CXStr Copy(long, long)const;
+	EQLIB_OBJECT CXStr Copy(long Start, long Count) const;
 	EQLIB_OBJECT CXStr Left(int)const;
+	#ifdef CXStr__Mid_x
 	EQLIB_OBJECT CXStr Mid(int, int)const;
+	#else
+	EQLIB_OBJECT CXStr CXStr::Mid(int First, int Len) const
+	{
+		return Copy(First, Len);
+	}
+	#endif
 	EQLIB_OBJECT CXStr Right(int)const;
 	//EQLIB_OBJECT enum EStringEncoding CXStr::GetEncoding(void)const;
 	EQLIB_OBJECT int PrintString(char const*, ...);
@@ -529,7 +536,18 @@ public:
 	EQLIB_OBJECT int operator==(char const*) const;
 	EQLIB_OBJECT int operator==(const CXStr&) const;
 	EQLIB_OBJECT int operator>(const CXStr&) const;
+	#if defined(ROF2EMU) || defined(UFEMU)
 	EQLIB_OBJECT long GetLength() const;
+	#else
+	EQLIB_OBJECT long GetLength() const
+	{
+		if (Ptr != NULL)
+		{
+			return Ptr->Length;
+		}
+		return 0;
+	}
+	#endif
 	EQLIB_OBJECT wchar_t GetUnicode(long pos) const;
 	EQLIB_OBJECT unsigned short SetUnicode(long, unsigned short);
 	EQLIB_OBJECT bool FindNext(char ch, int& pos) const;
@@ -1541,7 +1559,16 @@ EQLIB_OBJECT void CChatManager::SetChannelMap(int,class CChatWindow *);
 EQLIB_OBJECT void CChatManager::SetLockedActiveChatWindow(CChatWindow *);
 EQLIB_OBJECT void CChatManager::UpdateContextMenus(class CChatWindow *);
 EQLIB_OBJECT void CChatManager::UpdateTellMenus(class CChatWindow *);
+#if defined(ROF2EMU) || defined(UFEMU)
 EQLIB_OBJECT CChatWindow *CChatManager::GetLockedActiveChatWindow(void);
+#else
+EQLIB_OBJECT CChatWindow *CChatManager::GetLockedActiveChatWindow(void)
+{
+	//return (CChatWindow *)
+	PCXWND pWnd = (((EQCHATMGR*)this)->LockedActive != -1) ? ((EQCHATMGR*)this)->ChatWnd[((EQCHATMGR*)this)->LockedActive] : NULL;
+	return (CChatWindow *)pWnd;
+}
+#endif
 #if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT void CChatManager::CreateChatWindow(CXWnd*pParentWnd, int ID, char* Name, int Language, int DefaultChannel, int ChatChannel, char* szTellTarget, int FontStyle, bool bScrollbar, bool bHighLight, COLORREF HighlightColor);
 #else
@@ -5287,7 +5314,7 @@ EQLIB_OBJECT CPageTemplate::~CPageTemplate(void);
 class CPageWnd : public CSidlScreenWnd
 {
 public:
-/*0x230*/ PCXSTR TabText;
+/*0x230*/ CXStr TabText;
 #if !defined(ROF2EMU) && !defined(UFEMU)
 /*0x234*/ PCXSTR OrgTabText;
 #endif
@@ -5305,7 +5332,10 @@ public:
 EQLIB_OBJECT CPageWnd::CPageWnd(class CXWnd *,unsigned __int32,class CXRect,class CXStr,class CPageTemplate *);
 EQLIB_OBJECT void CPageWnd::SetTabText(CXStr &)const;
 #if !defined(ROF2EMU) && !defined(UFEMU)
-EQLIB_OBJECT CXStr CPageWnd::GetTabText(bool bSomething = false) const;
+EQLIB_OBJECT CXStr CPageWnd::GetTabText(bool bSomething = false) const
+{
+	return TabText;
+}
 EQLIB_OBJECT void CPageWnd::FlashTab(bool bFlash, int mstime) const;
 #else
 EQLIB_OBJECT CXStr CPageWnd::GetTabText() const;
@@ -6817,7 +6847,7 @@ class CStmlWnd//ok Look... this SHOULD inherit CXWnd but doing so... calls the c
 public:
 	//we include CXW instead...
 /*0x000*/ CXW
-/*0x1F0*/ PCXSTR STMLText;
+/*0x1F0*/ CXStr STMLText;
 /*0x1F4*/ CircularArrayClass2<STextLine> TextLines;//size 0x24
 /*0x21c*/ __int32 TextTotalHeight;
 /*0x220*/ __int32 TextTotalWidth;//0x220 see 8F5A6F in sep 11 2017 test - eqmule
@@ -6851,7 +6881,18 @@ public:
 EQLIB_OBJECT CStmlWnd::CStmlWnd(class CXWnd *,unsigned __int32,class CXRect);
 EQLIB_OBJECT bool CStmlWnd::CanGoBackward(void);
 EQLIB_OBJECT CXSize CStmlWnd::AppendSTML(CXStr); // lax 11-15-2003
-EQLIB_OBJECT class CXStr CStmlWnd::GetSTMLText(void)const;
+#ifdef CStmlWnd__GetSTMLText_x
+EQLIB_OBJECT CXStr CStmlWnd::GetSTMLText(void) const;
+#else
+EQLIB_OBJECT CXStr CStmlWnd::GetSTMLText(void) const
+{
+	return this->STMLText;
+	/*if(CXStr *txt = (CXStr *)this->STMLText)
+		return *txt;
+	else
+		return */
+}
+#endif
 EQLIB_OBJECT class CXStr CStmlWnd::GetVisibleText(class CXStr&,class CXRect)const;
 EQLIB_OBJECT static class CXStr __cdecl CStmlWnd::MakeStmlColorTag(unsigned long);
 EQLIB_OBJECT static class CXStr __cdecl CStmlWnd::MakeWndNotificationTag(unsigned __int32,class CXStr&,class CXStr&);
@@ -8253,7 +8294,7 @@ EQLIB_OBJECT bool EQ_Item::IsKeyRingItem(KeyRingType type)const;
 EQLIB_OBJECT bool EQ_Item::CanGoInBag(PCONTENTS *pCont, int OutputText = 0, bool mustbefalse = false) const;
 EQLIB_OBJECT bool EQ_Item::IsEmpty(void) const;
 EQLIB_OBJECT int EQ_Item::GetMaxItemCount(void)const;
-EQLIB_OBJECT int EQ_Item::GetAugmentFitBySlot(PCONTENTS *Aug, int Slot, bool bCheckSlot = true, bool bCheckDup = true)const; 
+EQLIB_OBJECT int EQ_Item::CanGemFitInSlot(PCONTENTS *Aug, int Slot, bool bCheckSlot = true, bool bCheckDup = true)const; 
 ITEMINFO Data;
 };
 
@@ -8363,17 +8404,58 @@ public:
 EQLIB_OBJECT EQ_Spell::~EQ_Spell(void);
 EQLIB_OBJECT EQ_Spell::EQ_Spell(char *);
 EQLIB_OBJECT bool EQ_Spell::IsStackableDot(void)const;
+#ifdef EQ_Spell__IsStackable_x
 EQLIB_OBJECT bool EQ_Spell::IsStackable(void) const;
+#else
+EQLIB_OBJECT bool EQ_Spell::IsStackable(void) const
+{
+	if (((PSPELL)this)->NotStackableDot)
+	{
+		return false;
+	}
+	else if (((PSPELL)this)->SpellType != 0 )
+	{
+		return false;
+	}
+	else if (((PSPELL)this)->DurationType == 0 )
+	{
+		return false;
+	}
+	return SpellAffects(SPA_HP) != 0 || SpellAffects(SPA_GRAVITATE) != 0;
+}
+#endif
 EQLIB_OBJECT int EQ_Spell::IsPermIllusionSpell(void)const;
 EQLIB_OBJECT int EQ_Spell::SpellUsesDragonBreathEffect(void);
 EQLIB_OBJECT unsigned char EQ_Spell::SpellAffects(int)const;//this one takes an attrib(soe calls it affect) and returns the index for it...
 EQLIB_OBJECT unsigned char EQ_Spell::GetSpellLevelNeeded(int)const;//takes a Class, druid for example is 6
 EQLIB_OBJECT int EQ_Spell::SpellAffectBase(int)const;//takes a SPA, returns the first matching base it finds for it
 EQLIB_OBJECT const PSPELLCALCINFO EQ_Spell::GetSpellAffectBySlot(int Slot) const;
+EQLIB_OBJECT bool EQ_Spell::IsLullSpell(void) const;
 #if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT const PSPELLCALCINFO EQ_Spell::GetSpellAffectByIndex(int Index) const;
 #endif
-EQLIB_OBJECT bool EQ_Spell::IsNoRemove(void)const;
+#ifdef EQ_Spell__IsNoRemove_x
+EQLIB_OBJECT bool EQ_Spell::IsNoRemove(void) const;
+inline bool IsDetrimentalSpell() const
+{
+	return (Data.SpellType == 0);
+}
+#else
+EQLIB_OBJECT bool EQ_Spell::IsBeneficialSpellUsedDetrimentally() const
+{
+	const PSPELLCALCINFO pSpellAffect = GetSpellAffectByIndex(0);
+	return pSpellAffect->Attrib == SPA_CLEAR_NPC_TARGETLIST || pSpellAffect->Attrib == SPA_NPC_REACTION_RATING ||
+		   pSpellAffect->Attrib == SPA_NPC_FACTION || pSpellAffect->Attrib == SPA_CANCEL_MAGIC || IsLullSpell();
+}
+EQLIB_OBJECT bool EQ_Spell::IsNoRemove(void) const
+{
+	return !(((PSPELL)this)->SpellType >= 1) || ((PSPELL)this)->NoRemove;
+}
+EQLIB_OBJECT bool EQ_Spell::IsDetrimentalSpell() const
+{
+	return (!(((PSPELL)this)->SpellType >= 1) || IsBeneficialSpellUsedDetrimentally());
+}
+#endif
 EQLIB_OBJECT static bool EQ_Spell::IsDegeneratingLevelMod(int);
 
 EQLIB_OBJECT static bool EQ_Spell::IsSPAStacking(int Spa);
@@ -8393,10 +8475,6 @@ inline int GetNoOverwrite() const
 inline bool IsBeneficialSpell() const
 {
 	return (Data.SpellType >= 1);
-}
-inline bool IsDetrimentalSpell() const
-{
-	return (Data.SpellType == 0);
 }
 inline bool IsShortEffectDuration() const 
 {

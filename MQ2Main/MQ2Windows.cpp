@@ -118,7 +118,14 @@ bool PickupItemNew(PCONTENTS pCont)
 						{
 							if (CharacterBase* cbase = (CharacterBase*)&pCharInfo->CharacterBase_vftable)
 							{
-								ItemIndex IIndex = cbase->CreateItemIndex(slot1, slot2);
+								#if defined(LIVE)
+								ItemIndex IIndexlive = cbase->CreateItemIndex(slot1, slot2);
+								#endif
+								ItemGlobalIndex IGIndex = cbase->CreateItemGlobalIndex(slot1, slot2);
+								ItemIndex IIndex;
+								IIndex.Slot1 = IGIndex.Index.Slot1;
+								IIndex.Slot2 = IGIndex.Index.Slot2;
+								IIndex.Slot3 = IGIndex.Index.Slot3;
 								VePointer<CONTENTS> Cont = ((CharacterBase*)cbase)->GetItemPossession(IIndex);
 								if (Cont.pObject != nullptr)
 								{
@@ -1483,7 +1490,7 @@ void InitializeMQ2Windows()
 {
     DebugSpew("Initializing MQ2 Windows");
 
-	for (int i = 0; i < NUM_INV_SLOTS; i++)
+	for (int i = 0; i < GetCurrentInvSlots(); i++)
 		ItemSlotMap[szItemSlot[i]] = i;
 
 	CHAR szOut[MAX_STRING] = { 0 };
@@ -2953,7 +2960,7 @@ int ItemNotify(int argc, char *argv[])
 		{
 			// pSlot was not found (so bag is closed) BUT we can "click" it anyway with moveitem
 			// so lets just do that if pNotification is leftmoseup
-			if (invslot < 0 || invslot > NUM_INV_SLOTS)
+			if (invslot < 0 || invslot > GetCurrentInvSlots())
 			{
 				WriteChatf("%d is not a valid invslot. (itemnotify)", invslot);
 				RETURN(0);
@@ -3027,12 +3034,12 @@ int ItemNotify(int argc, char *argv[])
 	{
 		// user didnt specify "in" so it should be outside a container
 		// OR it's an item, either way we can "click" it -eqmule
-		unsigned long Slot = atoi(szArg1);
+		int Slot = atoi(szArg1);
 		if (Slot == 0)
 		{
 			_strlwr_s(szArg1);
 			Slot = ItemSlotMap[szArg1];
-			if (Slot < NUM_INV_SLOTS && pInvSlotMgr)
+			if (Slot < GetCurrentInvSlots() && pInvSlotMgr)
 			{
 				DebugTry(pSlot = (EQINVSLOT*)pInvSlotMgr->FindInvSlot(Slot));
 			}

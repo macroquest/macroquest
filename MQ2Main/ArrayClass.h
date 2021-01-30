@@ -496,6 +496,7 @@ public:
 	{
 		Reset();
 	}
+	//ArrayClass<T> & ArrayClass<T>::operator=(ArrayClass<T> const &);
 
 	ArrayClass& operator=(const ArrayClass& rhs)
 	{

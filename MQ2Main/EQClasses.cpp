@@ -4760,6 +4760,9 @@ FUNCTION_AT_ADDRESS(bool EQ_Spell::IsNoRemove(void)const ,EQ_Spell__IsNoRemove);
 #ifdef EQ_Spell__IsDegeneratingLevelMod_x
 FUNCTION_AT_ADDRESS(bool EQ_Spell::IsDegeneratingLevelMod(int) ,EQ_Spell__IsDegeneratingLevelMod);
 #endif
+#ifdef EQ_Spell__IsLullSpell_x
+FUNCTION_AT_ADDRESS(bool EQ_Spell::IsLullSpell(void) const,EQ_Spell__IsLullSpell);
+#endif
 #ifdef EQ_Character__EQSPA_Feign_Death_x
 FUNCTION_AT_ADDRESS(void  EQ_Character::EQSPA_Feign_Death(int),EQ_Character__EQSPA_Feign_Death);
 #endif
@@ -4874,8 +4877,8 @@ FUNCTION_AT_ADDRESS(bool EQ_Item::IsEmpty(void) const,EQ_Item__IsEmpty);
 #ifdef EQ_Item__ValueSellMerchant_x
 FUNCTION_AT_ADDRESS(long  EQ_Item::ValueSellMerchant(float,long)const,EQ_Item__ValueSellMerchant);
 #endif
-#ifdef EQ_Item__GetAugmentFitBySlot_x
-FUNCTION_AT_ADDRESS(int EQ_Item::GetAugmentFitBySlot(PCONTENTS *, int, bool, bool index)const,EQ_Item__GetAugmentFitBySlot); 
+#ifdef EQ_Item__CanGemFitInSlot_x
+FUNCTION_AT_ADDRESS(int EQ_Item::CanGemFitInSlot(PCONTENTS *, int, bool, bool index)const,EQ_Item__CanGemFitInSlot); 
 #endif
 #ifdef EQ_Item__ValueSSell_x
 FUNCTION_AT_ADDRESS(char *  EQ_Item::ValueSSell(float,long),EQ_Item__ValueSSell);
@@ -8058,7 +8061,7 @@ FUNCTION_AT_ADDRESS(bool CXStr::FindNext(char ch, int& pos) const,CXStr__FindNex
 FUNCTION_AT_ADDRESS(void CXStr::Insert(long pos, const CXStr& str),CXStr__Insert);
 #endif
 #ifdef CXStr__Copy_x
-FUNCTION_AT_ADDRESS(class CXStr  CXStr::Copy(long,long)const ,CXStr__Copy);
+FUNCTION_AT_ADDRESS(CXStr CXStr::Copy(long Start, long Count)const ,CXStr__Copy);
 #endif
 #ifdef CXStr__CopySelf_x
 FUNCTION_AT_ADDRESS(void  CXStr::CopySelf(long,long),CXStr__CopySelf);
