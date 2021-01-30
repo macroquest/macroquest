@@ -1433,7 +1433,7 @@ PLUGIN_API VOID OnPulse(VOID)
 			if (CSidlScreenWnd *pWnd = (CSidlScreenWnd *)FindMQ2Window("ConfirmationDialogBox", true)) {
 				if (CStmlWnd *Child = (CStmlWnd*)pWnd->GetChildItem("cd_textoutput")) {
 					CHAR InputCXStr[MAX_STRING] = { 0 };
-					GetCXStr(Child->STMLText.Ptr, InputCXStr, MAX_STRING);
+					GetCXStr(Child->STMLText, InputCXStr, MAX_STRING);
 					if (strstr(InputCXStr, "you agree to abide by the server specific rules")) {
 						if (CButtonWnd *pButton = (CButtonWnd*)pWnd->GetChildItem("cd_yes_button")) {
 							pButton->WndNotification(pButton, XWM_LCLICK, 0);
@@ -1701,7 +1701,7 @@ void HandleWindows()
 					char szTemp[MAX_STRING * 8] = { 0 };
 					if (((CXWnd2*)pWnd)->GetType() == UI_STMLBox) {
 						CStmlWnd*cstm = (CStmlWnd*)pWnd;
-						GetCXStr(cstm->STMLText.Ptr, szTemp, MAX_STRING * 8);
+						GetCXStr(cstm->STMLText, szTemp, MAX_STRING * 8);
 					}
 					else {
 						CSidlScreenWnd*cwnd = (CSidlScreenWnd*)pWnd;
@@ -1763,7 +1763,7 @@ void HandleWindows()
 				char szTemp[MAX_STRING * 8] = { 0 };
 				if (((CXWnd2*)pWnd)->GetType() == UI_STMLBox) {
 					CStmlWnd *stmlwnd = (CStmlWnd*)pWnd;
-					GetCXStr(stmlwnd->STMLText.Ptr, szTemp, MAX_STRING * 8);
+					GetCXStr(stmlwnd->STMLText, szTemp, MAX_STRING * 8);
 				}
 				else {
 					CSidlScreenWnd *cpwnd = (CSidlScreenWnd*)pWnd;
@@ -2042,7 +2042,7 @@ void HandleWindows()
                 char szTemp[MAX_STRING * 8] = {0};
 
                 if(((CXWnd2*)pWnd)->GetType() == UI_STMLBox)
-                    GetCXStr(((CStmlWnd*)pWnd)->STMLText.Ptr, szTemp, MAX_STRING * 8);
+                    GetCXStr(((CStmlWnd*)pWnd)->STMLText, szTemp, MAX_STRING * 8);
                 else
                     GetCXStr(((CSidlScreenWnd*)pWnd)->CGetWindowText(), szTemp, MAX_STRING * 8);
 				bGotOffsets = false;
@@ -2093,7 +2093,7 @@ void HandleWindows()
                 char szTemp[MAX_STRING * 8] = {0};
 
                 if(((CXWnd2*)pWnd)->GetType() == UI_STMLBox)
-                    GetCXStr(((CStmlWnd*)pWnd)->STMLText.Ptr, szTemp, MAX_STRING * 8);
+                    GetCXStr(((CStmlWnd*)pWnd)->STMLText, szTemp, MAX_STRING * 8);
                 else
                     GetCXStr(((CSidlScreenWnd*)pWnd)->CGetWindowText(), szTemp, MAX_STRING * 8);
 
@@ -2191,7 +2191,7 @@ void HandleWindows()
 
 			if (((CXWnd2*)pWnd)->GetType() == UI_STMLBox) {
 				CStmlWnd*pcstm = (CStmlWnd*)pWnd;
-				GetCXStr(pcstm->STMLText.Ptr, szTemp, MAX_STRING);
+				GetCXStr(pcstm->STMLText, szTemp, MAX_STRING);
 			}
 			else {
 				CSidlScreenWnd*pcsidl = (CSidlScreenWnd*)pWnd;

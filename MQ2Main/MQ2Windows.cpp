@@ -118,9 +118,6 @@ bool PickupItemNew(PCONTENTS pCont)
 						{
 							if (CharacterBase* cbase = (CharacterBase*)&pCharInfo->CharacterBase_vftable)
 							{
-								#if defined(LIVE)
-								ItemIndex IIndexlive = cbase->CreateItemIndex(slot1, slot2);
-								#endif
 								ItemGlobalIndex IGIndex = cbase->CreateItemGlobalIndex(slot1, slot2);
 								ItemIndex IIndex;
 								IIndex.Slot1 = IGIndex.Index.Slot1;

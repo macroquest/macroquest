@@ -1,3 +1,9 @@
+Jan 30 2021
+- Fixed a backwards compatability problem with CPageWnd::GetTabText and CStmlWnd::GetSTMLText for TEST
+  If you already changed your plugins to use STMLText.Ptr instead of just STMLText you can change it back.
+  Sorry for the inconvenience, it was a difficult patch which took several days to fix, 
+  I did not have time to think that change through until I had a good nights sleep.
+-
 Jan 29 2021
 - Updated for TEST
 -

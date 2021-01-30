@@ -9706,7 +9706,7 @@ bool MQ2WindowType::GETMEMBER()
 	case Text:
 		if (((CXWnd*)pWnd)->GetType() == UI_STMLBox) {
 			CStmlWnd*cstmlwnd = (CStmlWnd*)pWnd;
-			GetCXStr(cstmlwnd->STMLText.Ptr, DataTypeTemp, MAX_STRING);
+			GetCXStr(cstmlwnd->GetSTMLText().Ptr, DataTypeTemp, MAX_STRING);
 		}
 		else {
 			GetCXStr(pWnd->CGetWindowText(), DataTypeTemp, MAX_STRING);

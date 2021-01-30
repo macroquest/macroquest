@@ -5314,7 +5314,7 @@ EQLIB_OBJECT CPageTemplate::~CPageTemplate(void);
 class CPageWnd : public CSidlScreenWnd
 {
 public:
-/*0x230*/ CXStr TabText;
+/*0x230*/ PCXSTR TabText;
 #if !defined(ROF2EMU) && !defined(UFEMU)
 /*0x234*/ PCXSTR OrgTabText;
 #endif
@@ -5334,7 +5334,10 @@ EQLIB_OBJECT void CPageWnd::SetTabText(CXStr &)const;
 #if !defined(ROF2EMU) && !defined(UFEMU)
 EQLIB_OBJECT CXStr CPageWnd::GetTabText(bool bSomething = false) const
 {
-	return TabText;
+	if (CXStr *txt = (CXStr *)&this->TabText)
+		return *txt;
+	else
+		return "";
 }
 EQLIB_OBJECT void CPageWnd::FlashTab(bool bFlash, int mstime) const;
 #else
@@ -6847,7 +6850,8 @@ class CStmlWnd//ok Look... this SHOULD inherit CXWnd but doing so... calls the c
 public:
 	//we include CXW instead...
 /*0x000*/ CXW
-/*0x1F0*/ CXStr STMLText;
+/*0x1F0*/ PCXSTR STMLText;
+//*0x1F0*/ CXStr STMLText;
 /*0x1F4*/ CircularArrayClass2<STextLine> TextLines;//size 0x24
 /*0x21c*/ __int32 TextTotalHeight;
 /*0x220*/ __int32 TextTotalWidth;//0x220 see 8F5A6F in sep 11 2017 test - eqmule
@@ -6886,11 +6890,10 @@ EQLIB_OBJECT CXStr CStmlWnd::GetSTMLText(void) const;
 #else
 EQLIB_OBJECT CXStr CStmlWnd::GetSTMLText(void) const
 {
-	return this->STMLText;
-	/*if(CXStr *txt = (CXStr *)this->STMLText)
+	if (CXStr *txt = (CXStr *)&this->STMLText)
 		return *txt;
 	else
-		return */
+		return "";
 }
 #endif
 EQLIB_OBJECT class CXStr CStmlWnd::GetVisibleText(class CXStr&,class CXRect)const;
