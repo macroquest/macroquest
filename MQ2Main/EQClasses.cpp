@@ -9342,7 +9342,7 @@ FUNCTION_AT_ADDRESS( STextureAnimationFrame::STextureAnimationFrame(class CUITex
 FUNCTION_AT_ADDRESS( CUITextureInfo::CUITextureInfo(unsigned __int32,int),CUITextureInfo__CUITextureInfo3);
 #endif
 #ifdef CTextureAnimation__AddBlankFrame_x
-FUNCTION_AT_ADDRESS(int  CTextureAnimation::AddBlankFrame(unsigned __int32,class CXPoint),CTextureAnimation__AddBlankFrame);
+FUNCTION_AT_ADDRESS(int CTextureAnimation::AddBlankFrame(unsigned __int32 Ticks, CXPoint Hotspot),CTextureAnimation__AddBlankFrame);
 #endif
 #ifdef CTextureAnimation__SetCurFrame_x
 FUNCTION_AT_ADDRESS(void  CTextureAnimation::SetCurFrame(int),CTextureAnimation__SetCurFrame);

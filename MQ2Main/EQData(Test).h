@@ -2251,8 +2251,8 @@ typedef struct _CHARINFO {
 /*0x1629*/ bool			bGM;
 /*0x162A*/ bool			bGMStealth;
 /*0x162C*/ DWORD        AAExp;//Post60Exp
-/*0x1630*/ BYTE         NobilityRank;
-/*0x1631*/ BYTE         PercentEXPtoAA;//do_alt_exp
+//gone in Jan 12 2021 test /*0x1630*/ BYTE         NobilityRank;
+/*0x1630*/ BYTE         PercentEXPtoAA;//do_alt_exp
 /*0x1634*/ int			AirSupply;
 /*0x1638*/ int			SerialNum;
 /*0x163C*/ bool			bNewCharacter;
@@ -2573,8 +2573,8 @@ typedef struct _CHARINFONEW {
 /*0x1629*/ bool			bGM;
 /*0x162A*/ bool			bGMStealth;
 /*0x162C*/ DWORD        AAExp;//Post60Exp
-/*0x1630*/ BYTE         NobilityRank;
-/*0x1631*/ BYTE         PercentEXPtoAA;//do_alt_exp
+//gone in Jan 12 2021 test /*0x1630*/ BYTE         NobilityRank;
+/*0x1630*/ BYTE         PercentEXPtoAA;//do_alt_exp
 /*0x1634*/ int			AirSupply;
 /*0x1638*/ int			SerialNum;
 /*0x163C*/ bool			bNewCharacter;

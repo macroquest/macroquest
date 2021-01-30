@@ -1092,6 +1092,7 @@ GNU General Public License for more details.
 //CTextureAnimation
 #define CTextureAnimation__SetCurCell_x                            0x999830
 #define CTextureAnimation__Draw_x                                  0x999A70
+#define CTextureAnimation__AddBlankFrame_x                         0x999650
 
 //CTAFrameDraw
 #define CTAFrameDraw__Draw_x                                       0x995580

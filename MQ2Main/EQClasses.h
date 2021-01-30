@@ -7325,7 +7325,7 @@ EQLIB_OBJECT CTextureAnimation::CTextureAnimation(void);
 EQLIB_OBJECT class CTextureAnimation & CTextureAnimation::operator=(class CTextureAnimation const &);
 EQLIB_OBJECT class CXPoint CTextureAnimation::GetHotspot(void)const;
 EQLIB_OBJECT class CXStr CTextureAnimation::GetName(void)const;
-EQLIB_OBJECT int CTextureAnimation::AddBlankFrame(unsigned __int32,class CXPoint);
+EQLIB_OBJECT int CTextureAnimation::AddBlankFrame(unsigned __int32 Ticks, class CXPoint Hotspot);
 EQLIB_OBJECT int CTextureAnimation::AddFrame(class CUITexturePiece,unsigned __int32,class CXPoint);
 EQLIB_OBJECT int CTextureAnimation::AddFrame(class CUITextureInfo const *,class CXRect,unsigned __int32,class CXPoint);
 EQLIB_OBJECT int CTextureAnimation::Draw(class CXPoint,class CXRect,unsigned long,unsigned long)const;

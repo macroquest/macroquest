@@ -2358,6 +2358,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CCombatSkillsSelectWnd__ShouldDisplayThisSkill);
 	INITIALIZE_EQGAME_OFFSET(CTextureAnimation__SetCurCell);
 	INITIALIZE_EQGAME_OFFSET(CTextureAnimation__Draw);
+	INITIALIZE_EQGAME_OFFSET(CTextureAnimation__AddBlankFrame);
 	INITIALIZE_EQGAME_OFFSET(CTAFrameDraw__Draw);
 	INITIALIZE_EQGAME_OFFSET(CSidlManager__FindAnimation1);
 	//INITIALIZE_EQGAME_OFFSET(ActorClient__GetPosition);
