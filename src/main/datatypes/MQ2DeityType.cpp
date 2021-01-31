@@ -40,7 +40,7 @@ bool MQ2DeityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	switch (static_cast<DeityMembers>(pMember->ID))
 	{
 	case DeityMembers::ID:
-		Dest.Ptr = VarPtr.Ptr;
+		Dest.Set(VarPtr.Get<uint32_t>());
 		Dest.Type = pIntType;
 		return true;
 
