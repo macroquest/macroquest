@@ -52,6 +52,15 @@ catch [System.Management.Automation.CommandNotFoundException]
     $gitAvailable = $false
 }
 
+# For simultaneous runs, if bootstrap is currently running, wait until it finishes
+$timeout = 120
+while (((Get-CimInstance Win32_Process -Filter "name = 'powershell.exe'" | Where-Object {$_.CommandLine -like "*scripts\bootstrap.ps1*"}).Count -gt 0) -And ($timeout -gt 0)) {
+    $waitInterval = 30
+    Write-Host "$ProjectName waiting for another vcpkg bootstrap to complete, timeout in $timeout seconds..."
+    $timeout -= $waitInterval
+    Start-Sleep $waitInterval
+}
+
 # Only bootstrap if we have no vcpkg or an old vcpkg
 $performBootstrap = $false
 if (-Not (Test-Path "./vcpkg.exe")) {
