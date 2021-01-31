@@ -218,7 +218,7 @@ MQLIB_VAR int gDelay;
 MQLIB_VAR char gDelayCondition[MAX_STRING];
 MQLIB_VAR Property<SPAWNINFO> EnviroTarget DEPRECATE("Use CurrentGroundSpawn() and the various GetGroundSpawnByX() functions instead");
 MQLIB_VAR SPAWNINFO PetSpawn;
-MQLIB_VAR SPAWNINFO MercenarySpawn;
+MQLIB_VAR int MercenarySpawn DEPRECATE("MercenarySpawn is no longer supported. Get the spawnid through pMercManager and look it up instead");
 MQLIB_VAR Property<MQGroundObject> GroundObject DEPRECATE("Use CurrentGroundSpawn() and the various GetGroundSpawnByX() functions instead");
 MQLIB_VAR Property<GROUNDITEM*> pGroundTarget DEPRECATE("Use CurrentGroundSpawn() and the various GetGroundSpawnByX() functions instead");
 MQLIB_VAR int DoorEnviroTarget DEPRECATE("DoorEnviroTarget has been deprecated and removed. Use pSwitchTarget instead.");

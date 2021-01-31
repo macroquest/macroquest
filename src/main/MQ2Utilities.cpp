@@ -6065,14 +6065,14 @@ std::vector<MercDesc> GetAllMercDesc()
 	if (!pMercManager)
 		return {};
 
-	std::vector<MercDesc> mercInfo;
-	mercInfo.resize(pMercManager->mercenaries.GetLength());
+	std::vector<MercDesc> mercDescs;
+	mercDescs.reserve(pMercManager->mercenaries.GetCount());
 
-	for (int i = 0; i < pMercManager->mercenaries.GetLength(); i++)
+	for (const MercenaryInfo& mercInfo : pMercManager->mercenaries)
 	{
-		MercDesc& outDesc = mercInfo[i];
+		MercDesc outDesc;
 
-		int descIdx = pMercManager->mercenaries[i].nMercDesc;
+		int descIdx = mercInfo.subtypeStringId;
 		std::string_view subcatDesc = pCDBStr->GetString(descIdx, eMercenarySubCategoryDescription);
 		size_t pos = 0;
 
@@ -6111,9 +6111,11 @@ std::vector<MercDesc> GetAllMercDesc()
 				outDesc.Proficiency.erase(pos);
 			}
 		}
+
+		mercDescs.push_back(std::move(outDesc));
 	}
 
-	return mercInfo;
+	return mercDescs;
 }
 
 bool IsActiveAA(const char* pSpellName)

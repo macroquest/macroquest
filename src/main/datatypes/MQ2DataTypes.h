@@ -602,10 +602,6 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	void InitVariable(MQVarPtr& VarPtr) override;
-	void FreeVariable(MQVarPtr& VarPtr) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
-	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 
 	static bool dataMercenary(const char* szIndex, MQTypeVar& Ret);
 };
