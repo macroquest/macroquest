@@ -38,7 +38,7 @@ bool MQ2RaceType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	switch (static_cast<RaceMembers>(pMember->ID))
 	{
 	case RaceMembers::ID:
-		Dest.Ptr = VarPtr.Ptr;
+		Dest.Set(VarPtr.Get<uint32_t>());
 		Dest.Type = pIntType;
 		return true;
 

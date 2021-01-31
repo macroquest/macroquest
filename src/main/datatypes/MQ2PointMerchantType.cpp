@@ -215,7 +215,7 @@ bool MQ2PointMerchantItemType::ToString(MQVarPtr VarPtr, char* Destination)
 
 		if (index >= 0 && index < itemContainer.GetSize())
 		{
-			strcpy_s(Destination, MAX_STRING, itemContainer[index].pCont->GetName());
+			strcpy_s(Destination, MAX_STRING, itemContainer[index].pItem->GetName());
 			return true;
 		}
 	}
