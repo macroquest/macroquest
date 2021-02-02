@@ -178,8 +178,6 @@ char gDelayCondition[MAX_STRING] = { 0 };
 bool bAllowCommandParse = true;
 std::map<DWORD, std::list<MQSpawnSearch>> gAlertMap;
 
-SPAWNINFO PetSpawn = { 0 };
-
 Property<SPAWNINFO> EnviroTarget = Property<SPAWNINFO>(
 	[]() -> SPAWNINFO
 	{
@@ -271,6 +269,7 @@ char gLastFindSlot[MAX_STRING] = { 0 };
 MQFilter* gpFilters = nullptr;
 
 // Deprecated
+int PetSpawn = 0;
 int MercenarySpawn = 0;
 int DoorEnviroTarget = 0;
 EQSwitch* pDoorTarget = nullptr;

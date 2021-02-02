@@ -542,13 +542,13 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case SpawnMembers::Pet:
 		Dest.Type = pPetType;
-		Dest.Ptr = GetSpawnByID(pSpawn->PetID);
-		if (!Dest.Ptr)
+		if (pSpawn->PetID != -1)
 		{
-			// FIXME: Do not ZeroMemory a SPAWNINFO
-			ZeroMemory(&PetSpawn, sizeof(PetSpawn));
-			strcpy_s(PetSpawn.Name, "NO PET");
-			Dest.Ptr = &PetSpawn;
+			if (SPAWNINFO* pPetSpawn = (SPAWNINFO*)GetSpawnByID(pSpawn->PetID))
+			{
+				ObservedSpawnPtr obj = ObserveEQObject(pPetSpawn);
+				Dest.Set(obj);
+			}
 		}
 		return true;
 

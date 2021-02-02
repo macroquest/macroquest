@@ -626,6 +626,21 @@ private:
 
 //============================================================================
 
+namespace detail {
+
+	template <typename T>
+	constexpr bool is_shared_ptr = false;
+
+	template <typename T>
+	constexpr bool is_shared_ptr<std::shared_ptr<T>> = true;
+
+	template <typename T>
+	struct shared_ptr_element_type { using type = T; };
+
+	template <typename T>
+	struct shared_ptr_element_type<std::shared_ptr<T>> { using type = typename std::shared_ptr<T>::element_type;  };
+}
+
 struct MQVarPtr
 {
 	using MQVariant = std::variant<
@@ -708,7 +723,10 @@ struct MQVarPtr
 	}
 
 	template <typename T>
-	struct ReturnType { using type = std::shared_ptr<T>; };
+	struct ReturnType {
+		using type = std::conditional_t<detail::is_shared_ptr<T>, T, std::shared_ptr<T>>;
+		using value_type = typename detail::shared_ptr_element_type<T>::type;
+	};
 
 	template <typename T>
 	typename ReturnType<T>::type Set(T Object)
@@ -726,13 +744,17 @@ struct MQVarPtr
 	template <typename T>
 	typename ReturnType<T>::type Get() const
 	{
-		if (Data.index() != static_cast<size_t>(VariantIdx::ComplexObject))
-			return std::shared_ptr<T>();
+		using value_type = ReturnType<T>::value_type;
+		using return_type = ReturnType<T>::type;
 
-		return std::static_pointer_cast<T>(std::get<std::shared_ptr<void>>(Data));
+		if (Data.index() != static_cast<size_t>(VariantIdx::ComplexObject))
+			return return_type();
+
+		return std::static_pointer_cast<value_type>(std::get<std::shared_ptr<void>>(Data));
 	}
 
 	template <> struct ReturnType<CXStr> { using type = CXStr; };
+
 	template <>
 	CXStr Set<CXStr>(CXStr String)
 	{

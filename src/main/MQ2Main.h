@@ -507,9 +507,10 @@ MQLIB_API bool LoadCfgFile(const char* Filename, bool Delayed = FromPlugin);
 
 /* MQ2GROUNDSPAWNS */
 
-using EQGroundItemPtr = std::shared_ptr<MQEQObject<EQGroundItem>>;
-using EQPlacedItemPtr = std::shared_ptr<MQEQObject<EQPlacedItem>>;
+using EQGroundItemPtr = MQEQObjectPtr<EQGroundItem>;
+using EQPlacedItemPtr = MQEQObjectPtr<EQPlacedItem>;
 using AnyMQGroundItem = std::variant<std::monostate, EQGroundItemPtr, EQPlacedItemPtr>;
+
 enum class MQGroundSpawnType
 { // this ordering needs to match the GroundSpawn::Object variant class ordering
 	None,
@@ -600,6 +601,9 @@ MQLIB_OBJECT bool HasCurrentGroundSpawn();
 MQLIB_OBJECT CXStr GetFriendlyNameForGroundItem(const EQGroundItem* pItem);
 MQLIB_OBJECT CXStr GetFriendlyNameForPlacedItem(const EQPlacedItem* pItem);
 MQLIB_API char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, size_t BufferSize);
+
+inline int EQObjectID(SPAWNINFO* pSpawn) { return pSpawn->SpawnID; }
+using ObservedSpawnPtr = MQEQObjectPtr<SPAWNINFO>;
 
 // A.k.a. "Door target"
 MQLIB_API void SetSwitchTarget(EQSwitch* pSwitch);
