@@ -122,6 +122,15 @@ bool MQ2MercenaryType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.Type = pIntType;
 		return true;
 
+	case MercenaryMembers::Name:
+		if (!pMercenary)
+			strcpy_s(DataTypeTemp, GetMercenaryStateString());
+		else
+			strcpy_s(DataTypeTemp, pMercenary->Name);
+		Dest.Type = pStringType;
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
+
 	default: break;
 	}
 
