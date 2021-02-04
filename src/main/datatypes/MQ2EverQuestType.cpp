@@ -376,32 +376,13 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return false;
 
 	case EverQuestMembers::CurrentUI:
+		Dest.Ptr = &gUISkin[0];
 		Dest.Type = pStringType;
-		if (CHARINFO* pCharInfo = GetCharInfo())
-		{
-			char szFilename[MAX_STRING] = { 0 };
-			sprintf_s(szFilename, "UI_%s_%s.ini", pCharInfo->Name, EQADDR_SERVERNAME);
-			GetPrivateProfileString("Main", "UISkin", "default", DataTypeTemp, MAX_STRING, szFilename);
-			Dest.Ptr = &DataTypeTemp[0];
-			return true;
-		}
-		return false;
+		return true;
 
 	case EverQuestMembers::IsDefaultUILoaded:
-		Dest.Set(true);
+		Dest.Set(ci_equals(gUISkin, "default"));
 		Dest.Type = pBoolType;
-
-		if (CHARINFO* pCharInfo = GetCharInfo())
-		{
-			char szFilename[MAX_STRING] = { 0 };
-			sprintf_s(szFilename, "UI_%s_%s.ini", pCharInfo->Name, EQADDR_SERVERNAME);
-			GetPrivateProfileString("Main", "UISkin", "default", DataTypeTemp, MAX_STRING, szFilename);
-
-			if (_stricmp(DataTypeTemp, "default"))
-			{
-				Dest.Set(false);
-			}
-		}
 		return true;
 
 	case EverQuestMembers::Foreground:
@@ -427,9 +408,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case EverQuestMembers::Path: {
 		Dest.Type = pStringType;
-		std::error_code ec;
-		strcpy_s(DataTypeTemp, std::filesystem::current_path(ec).string().c_str());
-		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Ptr = &mq::internal_paths::EverQuest[0];
 		return true;
 	}
 

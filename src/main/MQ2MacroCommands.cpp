@@ -275,8 +275,8 @@ void CleanMacroLine(char* szLine)
 bool Include(const char* szFile, int* LineNumber)
 {
 	FILE* fMacro = nullptr;
-	errno_t err = fopen_s(&fMacro, szFile, "rt");
-	if (err)
+	const errno_t err = fopen_s(&fMacro, szFile, "rt");
+	if (err || fMacro == nullptr)
 	{
 		FatalError("Couldn't open include file: %s", szFile);
 		return false;
@@ -787,9 +787,9 @@ void Macro(PSPAWNINFO pChar, char* szLine)
 	}
 
 	FILE* fMacro = nullptr;
-	errno_t err = fopen_s(&fMacro, macFilePath.string().c_str(), "rt");
+	const errno_t err = fopen_s(&fMacro, macFilePath.string().c_str(), "rt");
 
-	if (err)
+	if (err || fMacro == nullptr)
 	{
 		FatalError("Couldn't open macro file: %s", macFilePath.string().c_str());
 		gszMacroName[0] = 0;
@@ -1256,7 +1256,7 @@ void EndMacro(PSPAWNINFO pChar, char* szLine)
 	DebugSpewNoFile("EndMacro - Ended");
 	if (gFilterMacro != FILTERMACRO_NONE && gFilterMacro != FILTERMACRO_MACROENDED)
 		WriteChatColor("The current macro has ended.", USERCOLOR_DEFAULT);
-		
+
 	PluginsMacroStop(MacroName);
 	gbGroundDeprecateCount = -1;
 }

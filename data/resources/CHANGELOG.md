@@ -1,3 +1,11 @@
+Feb 4 2021
+- Fixed issues with custom UIs being reset when /reloadui is issued
+- Fixed issues with having to reload plugins that modify the UI when using a custom UI
+- Deprecated IsXMLFilePresent -- this doesn't give you any indication of whether the XML
+  file is usable, so we can rely on file checks for that and AddXML for the error messages.
+- Added a helper function IsScreenPieceLoaded that can be used to check to make sure your
+  custom UI addition is loaded (or not).
+
 Jan 24 2021
 - Implementation of CHARINFO has been switched over to use new class hierarchy based
   on PcBase and CharacterBase. Removed old CHARINFO/CHARINFONEW definitions. There should
