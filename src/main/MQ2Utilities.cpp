@@ -38,7 +38,7 @@ static void LogToFile(const char* szOutput)
 	FILE* fOut = nullptr;
 
 	const std::filesystem::path pathDebugSpew = std::filesystem::path(mq::internal_paths::Logs) / "DebugSpew.log";
-	errno_t err = fopen_s(&fOut, pathDebugSpew.string().c_str(), "at");
+	const errno_t err = fopen_s(&fOut, pathDebugSpew.string().c_str(), "at");
 
 	if (err || !fOut)
 		return;

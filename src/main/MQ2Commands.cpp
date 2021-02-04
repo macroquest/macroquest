@@ -2271,7 +2271,7 @@ void MacroLog(SPAWNINFO* pChar, char* szLine)
 	if (!_stricmp(szLine, "clear"))
 	{
 		FILE* fOut = nullptr;
-		errno_t err = fopen_s(&fOut, logFilePath.string().c_str(), "wt");
+		const errno_t err = fopen_s(&fOut, logFilePath.string().c_str(), "wt");
 		if (err || !fOut)
 		{
 			MacroError("Couldn't open log file: %s", logFilePath.string().c_str());
@@ -2288,7 +2288,7 @@ void MacroLog(SPAWNINFO* pChar, char* szLine)
 	create_directories(logFilePath.parent_path(), ec);
 
 	FILE* fOut = nullptr;
-	errno_t err = fopen_s(&fOut, logFilePath.string().c_str(), "at");
+	const errno_t err = fopen_s(&fOut, logFilePath.string().c_str(), "at");
 	if (err || !fOut)
 	{
 		MacroError("Couldn't open log file: %s", logFilePath.string().c_str());
