@@ -503,8 +503,8 @@ bool DumpBinds(const char* Filename)
 	}
 
 	FILE* file = nullptr;
-	errno_t err = fopen_s(&file, pathFilename.string().c_str(), "wt");
-	if (err)
+	const errno_t err = fopen_s(&file, pathFilename.string().c_str(), "wt");
+	if (err || file == nullptr)
 	{
 		return false;
 	}

@@ -219,7 +219,7 @@ public:
 		{
 			if (GenerateMQUI())
 			{
-				bool result = XMLRead_Trampoline(strPath,
+				const bool result = XMLRead_Trampoline(strPath,
 					strDefaultPath,
 					"MQUI.xml",
 					strDefaultPath2);
@@ -310,113 +310,86 @@ void ReloadUI(PSPAWNINFO pChar, char* szLine);
 #define WSF_CLOSEBOX        0x00000008
 #define WSF_TITLEBAR        0x00000004
 
+void UpdateUISkin() {
+	if (pCharData != nullptr)
+	{
+		const std::string pathUIConfig = fmt::format("{BasePath}\\UI_{CharName}_{ServerName}.ini",
+			fmt::arg("BasePath", mq::internal_paths::EverQuest),
+			fmt::arg("CharName", pCharData->Name),
+			fmt::arg("ServerName", EQADDR_SERVERNAME));
+		GetPrivateProfileString("Main", "UISkin", "default", gUISkin, MAX_PATH, pathUIConfig);
+	}
+	else
+	{
+		strcpy_s(gUISkin, "default");
+	}
+}
+
 bool GenerateMQUI()
 {
-	// create EverQuest\uifiles\default\MQUI.xml
-	CHARINFO* pCharInfo = GetCharInfo();
-	char szFilename[MAX_PATH] = { 0 };
-	char szOrgFilename[MAX_PATH] = { 0 };
-	char UISkin[256] = { 0 };
-	char Buffer[2048];
+	UpdateUISkin();
 
 	if (XmlFiles.empty())
 	{
 		DebugSpew("GenerateMQUI::Not Generating MQUI.xml, no files in our list");
 		return false;
 	}
-	sprintf_s(UISkin, "default");
-	sprintf_s(szOrgFilename, "uifiles\\%s\\EQUI.xml", UISkin);
-	sprintf_s(szFilename, "uifiles\\%s\\MQUI.xml", UISkin);
 
-	DebugSpew("GenerateMQUI::Generating %s", szFilename);
-
-	FILE* forg = nullptr;
-	errno_t err = fopen_s(&forg, szOrgFilename, "rt");
-	if (err)
+	std::error_code ec;
+	std::filesystem::path pathEQUI = fmt::format("{}\\uifiles\\{}\\EQUI.xml", mq::internal_paths::EverQuest, gUISkin);
+	if (!std::filesystem::exists(pathEQUI, ec) && !ci_equals(gUISkin, "default"))
 	{
-		DebugSpew("GenerateMQUI::could not open %s", szOrgFilename);
-		return false;
+		pathEQUI = mq::internal_paths::EverQuest + "\\uifiles\\default\\EQUI.xml";
 	}
 
-	FILE* fnew = nullptr;
-	err = fopen_s(&fnew, szFilename, "wt");
-	if (err)
-	{
-		DebugSpew("GenerateMQUI::could not open %s", szFilename);
-		fclose(forg);
-		return false;
-	}
+	const std::filesystem::path pathMQUI = fmt::format("{}\\uifiles\\{}\\MQUI.xml", mq::internal_paths::Resources, gUISkin);
 
-	while (fgets(Buffer, 2048, forg))
+	if (std::filesystem::exists(pathEQUI, ec) && (std::filesystem::exists(pathMQUI.parent_path(), ec) || std::filesystem::create_directories(pathMQUI.parent_path(), ec)))
 	{
-		if (strstr(Buffer, "</Composite>"))
+		DebugSpew("GenerateMQUI::Generating %s", pathMQUI.string().c_str());
+
+		FILE* forg = nullptr;
+		errno_t err = fopen_s(&forg, pathEQUI.string().c_str(), "rt");
+		if (err || forg == nullptr)
 		{
-			DebugSpew("GenerateMQUI::Inserting our xml files");
-
-			for (const std::string& file : XmlFiles)
-			{
-				DebugSpew("GenerateMQUI::Inserting %s", file.c_str());
-				fprintf(fnew, "<Include>%s</Include>\n", file.c_str());
-			}
+			DebugSpew("GenerateMQUI::could not open %s", pathEQUI.string().c_str());
 		}
-		fprintf(fnew, "%s", Buffer);
-	}
-	fclose(fnew);
-	fclose(forg);
-
-	if (pCharInfo != nullptr)
-	{
-		sprintf_s(szFilename, "UI_%s_%s.ini", pCharInfo->Name, EQADDR_SERVERNAME);
-		GetPrivateProfileString("Main", "UISkin", "default", UISkin, 256, szFilename);
-
-		if (strcmp(UISkin, "default") != 0)
+		else
 		{
-			sprintf_s(szOrgFilename, "uifiles\\%s\\EQUI.xml", UISkin);
-			sprintf_s(szFilename, "uifiles\\%s\\MQUI.xml", UISkin);
-
-			DebugSpew("GenerateMQUI::Generating %s", szFilename);
-
-			err = fopen_s(&forg, szOrgFilename, "rt");
-			if (err)
-			{
-				DebugSpew("GenerateMQUI::could not open %s (non-fatal)", szOrgFilename);
-				sprintf_s(szOrgFilename, "uifiles\\default\\EQUI.xml");
-				err = fopen_s(&forg, szOrgFilename, "rt");
-				if (err)
-				{
-					DebugSpew("GenerateMQUI::could not open %s", szOrgFilename);
-					DebugSpew("GenerateMQUI::giving up");
-					return false;
-				}
-			}
-
-			err = fopen_s(&fnew, szFilename, "wt");
+			FILE* fnew = nullptr;
+			err = fopen_s(&fnew, pathMQUI.string().c_str(), "wt");
 			if (err || fnew == nullptr)
 			{
-				DebugSpew("GenerateMQUI::could not open %s", szFilename);
+				DebugSpew("GenerateMQUI::could not open %s", pathMQUI.string().c_str());
 				fclose(forg);
-				return false;
 			}
-
-			while (fgets(Buffer, 2048, forg))
+			else
 			{
-				if (strstr(Buffer, "</Composite>"))
+				char Buffer[MAX_STRING] = { 0 };
+				while (fgets(Buffer, MAX_STRING, forg))
 				{
-					for (const std::string& file : XmlFiles)
+					if (strstr(Buffer, "</Composite>"))
 					{
-						fprintf(fnew, "<Include>%s</Include>\n", file.c_str());
-					}
-				}
+						DebugSpew("GenerateMQUI::Inserting our xml files");
 
-				fprintf(fnew, "%s", Buffer);
+						for (const std::string& file : XmlFiles)
+						{
+							DebugSpew("GenerateMQUI::Inserting %s", file.c_str());
+							fprintf(fnew, "<Include>%s</Include>\n", file.c_str());
+						}
+					}
+					fprintf(fnew, "%s", Buffer);
+				}
+				fclose(fnew);
+				fclose(forg);
+				return true;
 			}
-			fclose(fnew);
-			fclose(forg);
 		}
 	}
-	return true;
+	return false;
 }
 
+// DEPRECATED
 bool IsXMLFilePresent(const char* filename)
 {
 	// check default location.
@@ -433,7 +406,7 @@ bool IsXMLFilePresent(const char* filename)
 	{
 		char UISkin[256] = { 0 };
 
-		sprintf_s(szFilename, "UI_%s_%s.ini", pCharInfo->Name, EQADDR_SERVERNAME);
+		sprintf_s(szFilename, "%s\\UI_%s_%s.ini", mq::internal_paths::EverQuest.c_str(), pCharInfo->Name, EQADDR_SERVERNAME);
 		GetPrivateProfileString("Main", "UISkin", "default", UISkin, 256, szFilename);
 
 		sprintf_s(szFilename, "uifiles\\%s\\%s", UISkin, filename);
@@ -448,23 +421,11 @@ bool IsXMLFilePresent(const char* filename)
 void DestroyMQUI()
 {
 	// delete MQUI.xml files.
-	CHARINFO* pCharInfo = GetCharInfo();
-	char szFilename[MAX_PATH] = { 0 };
-	char UISkin[256] = { 0 };
+	const std::filesystem::path pathMQUI = fmt::format("{}\\uifiles\\{}\\MQUI.xml", mq::internal_paths::Resources, gUISkin);
+	std::error_code ec;
 
-	sprintf_s(szFilename, "uifiles\\default\\MQUI.xml");
-	DebugSpew("DestroyMQUI: removing file %s", szFilename);
-	remove(szFilename);
-
-	if (pCharInfo != nullptr)
-	{
-		sprintf_s(szFilename, "UI_%s_%s.ini", pCharInfo->Name, EQADDR_SERVERNAME);
-		GetPrivateProfileString("Main", "UISkin", "default", UISkin, 256, szFilename);
-
-		sprintf_s(szFilename, "uifiles\\%s\\MQUI.xml", UISkin);
-		DebugSpew("DestroyMQUI: removing file %s", szFilename);
-		remove(szFilename);
-	}
+	DebugSpew("DestroyMQUI: removing file %s", pathMQUI.string().c_str());
+	std::filesystem::remove(pathMQUI, ec);
 }
 
 void AddXMLFile(const char* filename)
@@ -475,27 +436,16 @@ void AddXMLFile(const char* filename)
 			return; // we already added this file
 	}
 
-	char szBuffer[MAX_PATH] = { 0 };
-	CHARINFO* pCharInfo = GetCharInfo();
-	char szFilename[MAX_PATH] = { 0 };
-	char UISkin[256] = { 0 };
-	sprintf_s(UISkin, "default");
+	char szBuffer[MAX_STRING] = { 0 };
 
-	// grab the name of the ui skin
-	if (pCharInfo != nullptr)
-	{
-		sprintf_s(szFilename, "UI_%s_%s.ini", pCharInfo->Name, EQADDR_SERVERNAME);
-		GetPrivateProfileString("Main", "UISkin", "default", UISkin, 256, szFilename);
-	}
-
-	sprintf_s(szBuffer, "uifiles\\%s\\%s", UISkin, filename);
+	sprintf_s(szBuffer, "uifiles\\%s\\%s", gUISkin, filename);
 
 	if (!DoesFileExist(szBuffer))
 	{
 		sprintf_s(szBuffer, "uifiles\\default\\%s", filename);
 		if (!DoesFileExist(szBuffer))
 		{
-			WriteChatf("UI file %s not found in either uifiles\\%s or uifiles\\default.  Please copy it there, reload the UI, and reload this plugin.", filename, UISkin);
+			WriteChatf("UI file %s not found in either uifiles\\%s or uifiles\\default.  Please copy it there, reload the UI, and reload this plugin.", filename, gUISkin);
 			return;
 		}
 	}
@@ -599,6 +549,11 @@ CXWnd* FindMQ2Window(const char* Name)
 	}
 
 	return nullptr;
+}
+
+bool IsScreenPieceLoaded(const char* screenPiece)
+{
+	return pSidlMgr && pSidlMgr->FindScreenPieceTemplate(screenPiece) != nullptr;
 }
 
 bool SendWndClick2(CXWnd* pWnd, const char* ClickNotification)
@@ -1773,14 +1728,9 @@ void ListItemSlots(SPAWNINFO* pChar, char* szLine)
 
 void ReloadUI(SPAWNINFO* pChar, char* szLine)
 {
-	char szFilename[MAX_PATH];
-	sprintf_s(szFilename, "UI_%s_%s.ini", pCharData->Name, EQADDR_SERVERNAME);
-
-	char UISkin[256];
-	GetPrivateProfileString("Main", "UISkin", "default", UISkin, 256, szFilename);
-
-	char szBuffer[50];
-	sprintf_s(szBuffer, "/loadskin %s 1", UISkin);
+	// gUISkin is MAX_PATH and /loadskin 1 null terminated is 13
+	char szBuffer[MAX_PATH + 13] = { 0 };
+	sprintf_s(szBuffer, "/loadskin %s 1", gUISkin);
 
 	DoCommand(pChar, szBuffer);
 }

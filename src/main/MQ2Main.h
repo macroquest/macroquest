@@ -137,12 +137,14 @@ MQLIB_API HWND GetEQWindowHandle();
 MQLIB_API void ReinitializeWindowList();
 MQLIB_API void RemoveXMLFile(const char* filename);
 MQLIB_API void AddXMLFile(const char* filename);
-MQLIB_API bool IsXMLFilePresent(const char* filename);
+MQLIB_API DEPRECATE("IsXMLFilePresent does not ensure that the content of the XML file is available. Add the XML file with AddXMLFile and use IsScreenPieceLoaded with the name of the screen piece to check if it was loaded successfully")
+bool IsXMLFilePresent(const char* filename);
 MQLIB_API bool SendWndClick(const char* WindowName, const char* ScreenID, const char* ClickNotification);
 MQLIB_API bool SendWndNotification(const char* WindowName, const char* ScreenID, int Notification, void* Data = nullptr);
 MQLIB_API CXWnd* FindMQ2Window(const char* Name);
 MQLIB_API CXWnd* FindMQ2WindowPath(const char* Name);
 MQLIB_API CXWnd* GetParentWnd(CXWnd* pWnd);
+MQLIB_API bool IsScreenPieceLoaded(const char*);
 
 MQLIB_API bool SendComboSelect(const char* WindowName, const char* ScreenID, int Value);
 MQLIB_API bool SendListSelect(const char* WindowName, const char* ScreenID, int Value);
