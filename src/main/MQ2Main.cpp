@@ -305,18 +305,23 @@ bool InitDirectories(const std::string& iniToRead)
 		&& InitDirectory(mq::internal_paths::Resources, "ResourcePath", iniToRead, mq::internal_paths::MQRoot)
 		)
 	{
+		std::error_code ec;
+		mq::internal_paths::EverQuest = std::filesystem::current_path(ec).string();
 #pragma warning(push)
 #pragma warning(disable: 4996) // temporarily disable deprecation warnings.
 		// Backwards compatible before we deprecate
 		strcpy_s(gszMacroPath, mq::internal_paths::Macros.c_str());
 		strcpy_s(gszLogPath, mq::internal_paths::Logs.c_str());
+		strcpy_s(gszEQPath, mq::internal_paths::EverQuest.c_str());
+#pragma warning(pop)
 		// API compatible
 		strcpy_s(gPathMacros, mq::internal_paths::Macros.c_str());
 		strcpy_s(gPathLogs, mq::internal_paths::Logs.c_str());
 		strcpy_s(gPathCrashDumps, mq::internal_paths::CrashDumps.c_str());
 		strcpy_s(gPathPlugins, mq::internal_paths::Plugins.c_str());
 		strcpy_s(gPathResources, mq::internal_paths::Resources.c_str());
-#pragma warning(pop)
+		strcpy_s(gPathResources, mq::internal_paths::Resources.c_str());
+		strcpy_s(gPathEverQuest, mq::internal_paths::EverQuest.c_str());
 		return true;
 	}
 
@@ -515,11 +520,9 @@ bool ParseINIFile(const std::string& iniFile)
 	std::error_code ec_exists;
 	if (std::filesystem::exists(itemDBPath, ec_exists))
 	{
-#pragma warning(push)
-#pragma warning(disable: 4996) // temporarily disable deprecation warnings.
 		// Backwards compatibility prior to deprecation
+#pragma warning(suppress: 4996) // temporarily disable deprecation warnings.
 		strcpy_s(gszItemDB, itemDBPath.string().c_str());
-#pragma warning(pop)
 
 		std::ifstream itemDB(itemDBPath);
 		std::string itemDBLine;
