@@ -337,14 +337,14 @@ bool GenerateMQUI()
 
 	std::error_code ec;
 	std::filesystem::path pathEQUI = fmt::format("{}\\uifiles\\{}\\EQUI.xml", mq::internal_paths::EverQuest, gUISkin);
-	if (!std::filesystem::exists(pathEQUI) && !ci_equals(gUISkin, "default"))
+	if (!std::filesystem::exists(pathEQUI, ec) && !ci_equals(gUISkin, "default"))
 	{
 		pathEQUI = mq::internal_paths::EverQuest + "\\uifiles\\default\\EQUI.xml";
 	}
 
 	const std::filesystem::path pathMQUI = fmt::format("{}\\uifiles\\{}\\MQUI.xml", mq::internal_paths::Resources, gUISkin);
 
-	if (std::filesystem::exists(pathEQUI) && (std::filesystem::exists(pathMQUI.parent_path(), ec) || std::filesystem::create_directories(pathMQUI.parent_path(), ec)))
+	if (std::filesystem::exists(pathEQUI, ec) && (std::filesystem::exists(pathMQUI.parent_path(), ec) || std::filesystem::create_directories(pathMQUI.parent_path(), ec)))
 	{
 		DebugSpew("GenerateMQUI::Generating %s", pathMQUI.string().c_str());
 
