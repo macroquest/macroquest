@@ -354,7 +354,8 @@ bool GenerateMQUI()
 		{
 			DebugSpew("GenerateMQUI::could not open %s", pathEQUI.string().c_str());
 		}
-		else {
+		else
+		{
 			FILE* fnew = nullptr;
 			err = fopen_s(&fnew, pathMQUI.string().c_str(), "wt");
 			if (err || fnew == nullptr)
@@ -362,7 +363,8 @@ bool GenerateMQUI()
 				DebugSpew("GenerateMQUI::could not open %s", pathMQUI.string().c_str());
 				fclose(forg);
 			}
-			else {
+			else
+			{
 				char Buffer[MAX_STRING] = { 0 };
 				while (fgets(Buffer, MAX_STRING, forg))
 				{
