@@ -158,29 +158,24 @@ void CleanUp(bool bUnload);
 
 void ResetIni()
 {
-	HMODULE hMe = 0;
+	HMODULE hMe = nullptr;
 	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)ResetIni, &hMe);
-	void* pMyBinaryData = nullptr;
 
-	if (HRSRC hRes = FindResource(hMe, MAKEINTRESOURCE(IDR_INI1), "INI"))
+	if (const HRSRC hRes = FindResource(hMe, MAKEINTRESOURCE(IDR_INI1), "INI"))
 	{
-		if (HGLOBAL bin = LoadResource(hMe, hRes))
+		if (const HGLOBAL bin = LoadResource(hMe, hRes))
 		{
-			bool bResult = false;
-			if (pMyBinaryData = LockResource(bin))
+			if (void* pMyBinaryData = LockResource(bin))
 			{
-				//save it...
-				DWORD ressize = SizeofResource(hMe, hRes);
-				FILE* File = 0;
+				std::size_t ressize = SizeofResource(hMe, hRes);
+				FILE* File = nullptr;
 				errno_t err = fopen_s(&File, INIFileName, "wb");
-				if (!err)
+				if (!err && File != nullptr)
 				{
 					fwrite(pMyBinaryData, ressize, 1, File);
 					fclose(File);
 				}
-				bResult = UnlockResource(hRes);
 			}
-			bResult = FreeResource(hRes);
 		}
 	}
 
@@ -222,7 +217,7 @@ void LoadPHs(char* szMyName)
 	char szBuffer[MAX_STRING] = { 0 };
 	FILE* fp = nullptr;
 	errno_t err = fopen_s(&fp, szMyName, "rb");
-	if (!err)
+	if (!err && fp != nullptr)
 	{
 		while (fgets(szBuffer, MAX_STRING, fp) != nullptr)
 		{
@@ -538,7 +533,6 @@ bool CheckNavCommand()
 	}
 	else if (strstr(szNavCommand, "/dg"))
 	{
-		bool bConnectedtoEqBCs = false;
 		if (!GetModuleHandle("mq2dannet"))
 		{
 			WriteChatf("%s only works if mq2dannet is loaded, Please run /plugin mq2dannet", szNavCommand);
@@ -569,20 +563,13 @@ void WriteSetting(const char* Key, const char* value)
 
 void WriteUIStringSetting(const char* Key, const char* value)
 {
-	char szSettingINISection[MAX_STRING] = { 0 };
-	char szUI[MAX_STRING] = { 0 };
-	char szFilename[MAX_STRING] = { 0 };
-
 	if (!pLocalPlayer || EQADDR_SERVERNAME[0] == '\0')
 	{
 		return; // better not mess with this if we are not ingame...
 	}
-	else
-	{
-		sprintf_s(szFilename, "UI_%s_%s.ini", ((SPAWNINFO*)pLocalPlayer)->Name, EQADDR_SERVERNAME);
-		GetPrivateProfileString("Main", "UISkin", "Unknown", szUI, MAX_STRING, szFilename);
-		sprintf_s(szSettingINISection, "UI_%s", szUI);
-	}
+
+	char szSettingINISection[MAX_STRING] = "UI_";
+	strcat_s(szSettingINISection, gUISkin);
 
 	WritePrivateProfileString(szSettingINISection, Key, value, INIFileName);
 	int ival = GetIntFromString(value, 0);
@@ -592,21 +579,14 @@ void WriteUIStringSetting(const char* Key, const char* value)
 template <unsigned int _Size>
 LPSTR ReadUIStringSetting(char* Key, char* defaultval, char(&_Out)[_Size])
 {
-	char szSettingINISection[MAX_STRING] = { 0 };
-	char szUI[MAX_STRING] = { 0 };
-	char szFilename[MAX_STRING] = { 0 };
-
 	if (!pLocalPlayer || EQADDR_SERVERNAME[0] == '\0')
 	{
 		strcpy_s(_Out, _Size, defaultval);
 		return _Out;//better not mess with this if we are not ingame...
 	}
-	else
-	{
-		sprintf_s(szFilename, "UI_%s_%s.ini", ((SPAWNINFO*)pLocalPlayer)->Name, EQADDR_SERVERNAME);
-		GetPrivateProfileString("Main", "UISkin", "Unknown", szUI, MAX_STRING, szFilename);
-		sprintf_s(szSettingINISection, "UI_%s", szUI);
-	}
+
+	char szSettingINISection[MAX_STRING] = "UI_";
+	strcat_s(szSettingINISection, gUISkin);
 
 	int ret = GetPrivateProfileString(szSettingINISection, Key, "", _Out, _Size, INIFileName);
 	if (_Out[0] == '\0')
@@ -630,10 +610,6 @@ LPSTR ReadUIStringSetting(char* Key, char* defaultval, char(&_Out)[_Size])
 
 bool ReadUILocSetting(char* Key, int top, int bottom, int left, int right, CXRect& rect)
 {
-	char szSettingINISection[MAX_STRING] = { 0 };
-	char szUI[MAX_STRING] = { 0 };
-	char szFilename[MAX_STRING] = { 0 };
-
 	if (!pLocalPlayer || EQADDR_SERVERNAME[0] == '\0')
 	{
 		rect.top = top;
@@ -642,13 +618,14 @@ bool ReadUILocSetting(char* Key, int top, int bottom, int left, int right, CXRec
 		rect.right = right;
 		return false;
 	}
-	else
-	{
-		sprintf_s(szFilename, "UI_%s_%s.ini", ((SPAWNINFO*)pLocalPlayer)->Name, EQADDR_SERVERNAME);
-		GetPrivateProfileString("Main", "UISkin", "Unknown", szUI, MAX_STRING, szFilename);
-		sprintf_s(szSettingINISection, "UI_%s", szUI);
-	}
 
+	char szFilename[MAX_STRING] = { 0 };
+	sprintf_s(szFilename, "%s\\UI_%s_%s.ini", gPathEverQuest, pLocalPlayer->Name, EQADDR_SERVERNAME);
+
+	char szSettingINISection[MAX_STRING] = "UI_%s";
+	strcat_s(szSettingINISection, gUISkin);
+
+	char szUI[MAX_STRING] = { 0 };
 	sprintf_s(szUI, "%d,%d,%d,%d", top, bottom, left, right);
 	int ret = GetPrivateProfileString(szSettingINISection, Key, "", szFilename, MAX_STRING, INIFileName);
 
@@ -2112,28 +2089,23 @@ PLUGIN_API void InitializePlugin()
 	{
 		HMODULE hMe = nullptr;
 		GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)InitializePlugin, &hMe);
-		void* pMyBinaryData = nullptr;
 
 		// need to unpack our resource.
-		if (HRSRC hRes = FindResource(hMe, MAKEINTRESOURCE(IDR_DB1), "DB"))
+		if (const HRSRC hRes = FindResource(hMe, MAKEINTRESOURCE(IDR_DB1), "DB"))
 		{
-			if (HGLOBAL bin = LoadResource(hMe, hRes))
+			if (const HGLOBAL bin = LoadResource(hMe, hRes))
 			{
-				bool bResult = false;
-				if (pMyBinaryData = LockResource(bin))
+				if (void* pMyBinaryData = LockResource(bin))
 				{
-					// save it...
-					DWORD ressize = SizeofResource(hMe, hRes);
+					std::size_t ressize = SizeofResource(hMe, hRes);
 					FILE* File = nullptr;
 					errno_t err = fopen_s(&File, curFilepath.string().c_str(), "wb");
-					if (!err)
+					if (!err && File != nullptr)
 					{
 						fwrite(pMyBinaryData, ressize, 1, File);
 						fclose(File);
 					}
-					bResult = UnlockResource(hRes);
 				}
-				bResult = FreeResource(hRes);
 			}
 		}
 	}

@@ -104,8 +104,8 @@ static void LoadCustomBinds()
 	std::filesystem::path pathCustomBinds = gPathConfig;
 	pathCustomBinds /= BindsFile;
 	FILE* file = nullptr;
-	errno_t err = fopen_s(&file, pathCustomBinds.string().c_str(), "rt");
-	if (err)
+	const errno_t err = fopen_s(&file, pathCustomBinds.string().c_str(), "rt");
+	if (err || file == nullptr)
 		return;
 
 	char szLine[MAX_STRING];
@@ -143,8 +143,8 @@ static void SaveCustomBinds()
 	std::filesystem::path pathCustomBinds = gPathConfig;
 	pathCustomBinds /= BindsFile;
 	FILE* file = nullptr;
-	errno_t err = fopen_s(&file, pathCustomBinds.string().c_str(), "wt");
-	if (err)
+	const errno_t err = fopen_s(&file, pathCustomBinds.string().c_str(), "wt");
+	if (err || file == nullptr)
 		return;
 
 	for (const auto& pBind : sCustomBinds)

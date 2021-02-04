@@ -285,7 +285,7 @@ void SetupCustomIni()
 	if (const char* pLogin = GetLoginName())
 	{
 		char CustomPath[MAX_STRING] = { 0 };
-		GetPrivateProfileStringA_Trampoline(pLogin, "CustomClientIni", 0, CustomPath, MAX_STRING, INIFileName);
+		GetPrivateProfileStringA_Trampoline(pLogin, "CustomClientIni", nullptr, CustomPath, MAX_STRING, INIFileName);
 
 		// If a relative path is specified, need to prepend it with current path, which is the EQ directory
 		CustomIni = fs::path{ CustomPath };

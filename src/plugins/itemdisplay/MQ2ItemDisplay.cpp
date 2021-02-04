@@ -20,6 +20,7 @@
 
 #include <mutex>
 #include <string_view>
+#include <fstream>
 
 using namespace mq::datatypes;
 
@@ -2556,7 +2557,6 @@ void RemoveAug(SPAWNINFO* pChar, char* szLine)
 				{
 					// The augment cannot be removed because your inventory does not contain the required solvent.
 					WriteChatf("\ay%s", pStringTable->getString(5474));
-					return;
 				}
 			}
 		}
@@ -2630,28 +2630,18 @@ void CreateCompareTipWnd()
 		return;
 	}
 
-	if (IsXMLFilePresent(TipWndXML))
+	if (IsScreenPieceLoaded("CompareTipWnd"))
 	{
-		if (pSidlMgr && pSidlMgr->FindScreenPieceTemplate("CompareTipWnd"))
+		pCompareTipWnd = new CCompareTipWnd();
+		if (!pCompareTipWnd)
 		{
-			if (pCompareTipWnd = new CCompareTipWnd())
-			{
-				//LoadWindowSettings((PCSIDLWND)pCompareTipWnd);
-			}
-		}
-		else
-		{
-			bDisabledComparetip = true;
-			WriteChatf("Unable to create CompareTipWnd. Please do /reloadui");
+			WriteChatf("[MQ2ItemDisplay] Unable to Create Tip Window.");
 		}
 	}
 	else
 	{
 		bDisabledComparetip = true;
-
-		MessageBox(NULL, "MQUI_CompareTipWnd.xml not Found in UIFiles\\default\n"
-			"This feature will be disabled for now.\n"
-			"You can retry again by /plugin mq2itemdisplay unload and then /plugin mq2itemdisplay", "MQ2ItemDisplay", MB_OK | MB_SYSTEMMODAL);
+		WriteChatf("[MQ2ItemDisplay] Unable to create CompareTipWnd. Please do /reloadui");
 	}
 }
 
@@ -2677,7 +2667,13 @@ PLUGIN_API void InitializePlugin()
 	pDisplayItemType = new MQ2DisplayItemType;
 	AddMQ2Data("DisplayItem", dataLastItem);
 
-	if (!IsXMLFilePresent(TipWndXML))
+	// The XML only needs to exist in the default UI for AddXML to load it
+	std::filesystem::path pathXML = gPathResources;
+	pathXML = pathXML / "uifiles" / "default" / TipWndXML;
+
+	std::error_code ec_fs;
+
+	if (!std::filesystem::exists(pathXML, ec_fs))
 	{
 		HMODULE hMe = nullptr;
 
@@ -2685,37 +2681,22 @@ PLUGIN_API void InitializePlugin()
 			(LPCTSTR)InitializePlugin, &hMe);
 
 		// need to unpack our resource.
-		if (HRSRC hRes = FindResource(hMe, MAKEINTRESOURCE(IDR_XML1), "XML"))
+		if (const HRSRC hRes = FindResource(hMe, MAKEINTRESOURCE(IDR_XML1), "XML"))
 		{
-			if (HGLOBAL bin = LoadResource(hMe, hRes))
+			if (const HGLOBAL bin = LoadResource(hMe, hRes))
 			{
-				BOOL bResult = 0;
-				if (void* pMyBinaryData = LockResource(bin))
+				if (const void* pMyBinaryData = LockResource(bin))
 				{
-					std::filesystem::path pathUI = gPathResources;
-					pathUI = pathUI / "uifiles" / "default";
-					std::error_code ec_fs;
-
-					if (!std::filesystem::exists(pathUI, ec_fs))
+					if (std::filesystem::exists(pathXML.parent_path(), ec_fs) || std::filesystem::create_directories(pathXML.parent_path(), ec_fs))
 					{
-						std::filesystem::create_directories(pathUI, ec_fs);
+						const std::size_t ressize = SizeofResource(hMe, hRes);
+						std::ofstream outFile(pathXML, std::ios::binary);
+						if (outFile)
+						{
+							outFile.write(static_cast<const char*>(pMyBinaryData), ressize);
+						}
 					}
-
-					pathUI /= TipWndXML;
-
-					// save it to the default mq uifiles dir
-					DWORD ressize = SizeofResource(hMe, hRes);
-					FILE* File = nullptr;
-
-					errno_t err = fopen_s(&File, pathUI.string().c_str(), "wb");
-					if (!err && File)
-					{
-						fwrite(pMyBinaryData, ressize, 1, File);
-						fclose(File);
-					}
-					bResult = UnlockResource(hRes);
 				}
-				bResult = FreeResource(hRes);
 			}
 		}
 	}
