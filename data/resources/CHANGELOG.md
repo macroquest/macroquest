@@ -1,6 +1,7 @@
 Feb 4 2021
 - Fixed issues with custom UIs being reset when /reloadui is issued
 - Fixed issues with having to reload plugins that modify the UI when using a custom UI
+- Fixed issues with /multiline appending extra characters
 - Deprecated IsXMLFilePresent -- this doesn't give you any indication of whether the XML
   file is usable, so we can rely on file checks for that and AddXML for the error messages.
 - Added a helper function IsScreenPieceLoaded that can be used to check to make sure your

@@ -68,15 +68,15 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 		return;
 	}
 
-	char szTheCmd[MAX_STRING];
+	char szTheCmd[MAX_STRING] = { 0 };
 	strcpy_s(szTheCmd, szLine);
 
 	WeDidStuff();
 
-	char szOriginalLine[MAX_STRING];
+	char szOriginalLine[MAX_STRING] = { 0 };
 	strcpy_s(szOriginalLine, szTheCmd);
 
-	char szArg1[MAX_STRING];
+	char szArg1[MAX_STRING] = { 0 };
 	GetArg(szArg1, szTheCmd, 1);
 
 	std::string sName = szArg1;
@@ -91,7 +91,7 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 	if (szArg1[0] == 0)
 		return;
 
-	char szParam[MAX_STRING];
+	char szParam[MAX_STRING] = { 0 };
 	strcpy_s(szParam, GetNextArg(szTheCmd));
 
 	if ((szArg1[0] == ':') || (szArg1[0] == '{'))
@@ -105,7 +105,7 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 	{
 		if (pBlock)
 		{
-			auto loopStart = pBlock->Line.at(pBlock->CurrIndex).LoopStart;
+			const auto loopStart = pBlock->Line.at(pBlock->CurrIndex).LoopStart;
 			if (loopStart != 0)
 			{
 				pBlock->CurrIndex = loopStart;

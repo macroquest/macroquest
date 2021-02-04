@@ -3579,17 +3579,16 @@ void MultilineCommand(SPAWNINFO* pChar, char* szLine)
 	if (!szRest[0])
 		return;
 
-	char Copy[MAX_STRING];
-	strcpy_s(Copy, szRest); // dont destroy original...
-
-	char szCmd[MAX_STRING] = { 0 };
+	char Copy[MAX_STRING] = { 0 };
+	strcpy_s(Copy, szRest); // don't destroy original...
 
 	char* next_token1 = nullptr;
 	char* token1 = strtok_s(Copy, szArg, &next_token1);
 	while (token1 != nullptr)
 	{
-		strcpy_s(szCmd, token1);
-		DoCommand(pChar, szCmd);
+		std::string strCmd = token1;
+		trim(strCmd);
+		DoCommand(pChar, &strCmd[0]);
 
 		token1 = strtok_s(nullptr, szArg, &next_token1);
 	}
