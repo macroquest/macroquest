@@ -3588,7 +3588,10 @@ void MultilineCommand(SPAWNINFO* pChar, char* szLine)
 	{
 		std::string strCmd = token1;
 		trim(strCmd);
-		DoCommand(pChar, &strCmd[0]);
+		if (!strCmd.empty())
+		{
+			DoCommand(pChar, &strCmd[0]);
+		}
 
 		token1 = strtok_s(nullptr, szArg, &next_token1);
 	}
