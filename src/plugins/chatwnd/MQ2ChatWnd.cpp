@@ -18,7 +18,7 @@
 #include <list>
 #include <string>
 
-// MQ2ChatWnd: Single-window MQ Chat 
+// MQ2ChatWnd: Single-window MQ Chat
 
 PreSetup("MQ2ChatWnd");
 
@@ -191,8 +191,8 @@ public:
 
 	void SetChatFont(int size) // brainiac 12-12-2007
 	{
-		// get fonts structure -- this offset can be found by looking at 
-		// SetChatfont which is called from the /chatfontsize function 
+		// get fonts structure -- this offset can be found by looking at
+		// SetChatfont which is called from the /chatfontsize function
 
 		// check font array bounds and pointers
 		if (size < 0 || size >= pWndMgr->FontsArray.GetCount())
@@ -205,16 +205,16 @@ public:
 		{
 			return;
 		}
-		//DebugSpew("Setting Size: %i", size); 
+		//DebugSpew("Setting Size: %i", size);
 
-		// Save the text, change the font, then restore the text 
+		// Save the text, change the font, then restore the text
 		CXStr str = OutputBox->GetSTMLText();
-	
+
 		OutputBox->SetFont(font);
 		OutputBox->SetSTMLText(str);
 		OutputBox->ForceParseNow();
 
-		// scroll to bottom of chat window 
+		// scroll to bottom of chat window
 		OutputBox->SetVScrollPos(OutputBox->GetVScrollMax());
 
 		FontSize = size;
@@ -241,8 +241,6 @@ private:
 
 void LoadChatSettings()
 {
-	char szTemp[MAX_STRING] = { 0 };
-
 	bAutoScroll = GetPrivateProfileBool("Settings", "AutoScroll", bAutoScroll, INIFileName);
 	bNoCharSelect = GetPrivateProfileBool("Settings", "NoCharSelect", bNoCharSelect, INIFileName);
 	bSaveByChar = GetPrivateProfileBool("Settings", "SaveByChar", bSaveByChar, INIFileName);
@@ -547,13 +545,13 @@ void DoMQ2ChatBind(const char* Name, bool Down)
 
 PLUGIN_API void OnReloadUI()
 {
-	// redraw window when you load/reload UI 
+	// redraw window when you load/reload UI
 	DebugTry(CreateChatWindow());
 }
 
 PLUGIN_API void OnCleanUI()
 {
-	// destroy chatwnd before server select & while reloading UI 
+	// destroy chatwnd before server select & while reloading UI
 	DestroyChatWnd();
 }
 
@@ -564,7 +562,7 @@ PLUGIN_API void SetGameState(int GameState)
 	{
 		if (bNoCharSelect)
 		{
-			// destroy chatwnd at charselect if NoCharSelect=on 
+			// destroy chatwnd at charselect if NoCharSelect=on
 			DestroyChatWnd();
 		}
 		else
@@ -602,15 +600,15 @@ PLUGIN_API void SetGameState(int GameState)
 		if (GameState != GAMESTATE_CHARCREATE) RemoveMQ2KeyBind("MQ2CSCHAT");
 		if (GameState == GAMESTATE_INGAME && !MQChatWnd)
 		{
-			// we entered the game, set up shop 
+			// we entered the game, set up shop
 			DebugTry(CreateChatWindow());
 		}
 	}
 }
 
-// This is called every time WriteChatColor is called by MQ2Main or any plugin, 
-// IGNORING FILTERS, IF YOU NEED THEM MAKE SURE TO IMPLEMENT THEM. IF YOU DONT 
-// CALL CEverQuest::dsp_chat MAKE SURE TO IMPLEMENT EVENTS HERE 
+// This is called every time WriteChatColor is called by MQ2Main or any plugin,
+// IGNORING FILTERS, IF YOU NEED THEM MAKE SURE TO IMPLEMENT THEM. IF YOU DONT
+// CALL CEverQuest::dsp_chat MAKE SURE TO IMPLEMENT EVENTS HERE
 PLUGIN_API DWORD OnWriteChatColor(char* Line, DWORD Color, DWORD Filter)
 {
 	if (!MQChatWnd)
@@ -686,7 +684,7 @@ PLUGIN_API void OnPulse()
 			// set 'old' to current
 			ulOldVScrollPos = MQChatWnd->OutputBox->GetVScrollPos();
 
-			// scroll down if autoscroll enabled, or current position is the bottom of chatwnd 
+			// scroll down if autoscroll enabled, or current position is the bottom of chatwnd
 			bool bScrollDown = bAutoScroll || (MQChatWnd->OutputBox->GetVScrollPos() == MQChatWnd->OutputBox->GetVScrollMax());
 
 			size_t ThisPulse = sPendingChat.size();
@@ -706,7 +704,7 @@ PLUGIN_API void OnPulse()
 
 			if (bScrollDown)
 			{
-				// set current vscroll position to bottom 
+				// set current vscroll position to bottom
 				MQChatWnd->OutputBox->SetVScrollPos(MQChatWnd->OutputBox->GetVScrollMax());
 			}
 			else
@@ -819,7 +817,7 @@ PLUGIN_API void ShutdownPlugin()
 {
 	sPendingChat.clear();
 
-	// Remove commands, macro parameters, hooks, etc. 
+	// Remove commands, macro parameters, hooks, etc.
 	RemoveCommand("/setchattitle");
 	RemoveCommand("/style");
 	RemoveCommand("/mqchat");

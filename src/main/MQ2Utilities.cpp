@@ -3656,11 +3656,11 @@ const char* ParseSearchSpawnArgs(char* szArg, const char* szRest, MQSpawnSearch*
 			pSearchSpawn->bNoGuild = true;
 		}
 		else if (!_stricmp(szArg, "trader"))
-{
+		{
 			pSearchSpawn->bTrader = true;
 		}
 		else if (!_stricmp(szArg, "named"))
-{
+		{
 			pSearchSpawn->bNamed = true;
 		}
 		else if (!_stricmp(szArg, "merchant"))
