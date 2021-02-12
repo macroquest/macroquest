@@ -49,7 +49,8 @@
     <ResourceCompile Include="MQ2TargetInfo.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="db1.bin" />
+    <None Include="MQ2TargetInfoPHs.txt" />
+    <None Include="MQ2TargetInfo.ini" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\main\MQ2Main.vcxproj">

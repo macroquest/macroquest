@@ -30,7 +30,10 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="db1.bin">
+    <None Include="MQ2TargetInfoPHs.txt">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="MQ2TargetInfo.ini">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
