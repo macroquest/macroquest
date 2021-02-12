@@ -159,7 +159,7 @@ inline std::string join(const std::vector<T>& vec, std::string_view delim)
 // of not allocating any strings, but the result of this function will
 // only be valid inside the lifetime of the original line passed as an
 // argument to this function. Be sure to allocate any values as strings
-// that you care about _before_ the original line goes out of scope 
+// that you care about _before_ the original line goes out of scope
 // (or is otherwise destroyed)!
 inline std::vector<std::string_view> tokenize_args(std::string_view line)
 {
@@ -555,6 +555,10 @@ inline bool GetBoolFromString(const std::string_view svString, const bool defaul
 	else if (ci_equals(trimmed, "on"))
 	{
 		returnValue = true;
+	}
+	else if (ci_equals(trimmed, "off"))
+	{
+		returnValue = false;
 	}
 	else
 	{
