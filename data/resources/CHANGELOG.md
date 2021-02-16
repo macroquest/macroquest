@@ -1,3 +1,7 @@
+Feb 16 2021
+- Added Plugin TLO boolean member IsLoaded
+  Example:  ${Plugin[mq2lua].IsLoaded}
+
 Feb 4 2021
 - Fixed issues with custom UIs being reset when /reloadui is issued
 - Fixed issues with having to reload plugins that modify the UI when using a custom UI
