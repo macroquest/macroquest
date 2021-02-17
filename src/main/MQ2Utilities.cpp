@@ -5184,7 +5184,7 @@ void UseAbility(const char* sAbility)
 }
 
 // Function to check if the account has a given expansion enabled.
-// Pass exansion macros from EQData.h to it -- e.g. HasExpansion(EXPANSION_RoF)
+// Pass expansion macros from EQData.h to it -- e.g. HasExpansion(EXPANSION_RoF)
 bool HasExpansion(int nExpansion)
 {
 	return (GetCharInfo()->ExpansionFlags & nExpansion) != 0;
@@ -6677,6 +6677,63 @@ int GetCharMaxBuffSlots()
 
 	return NumBuffs;
 }
+
+int GetCharMaxLevel()
+{
+	int MaxLevel = 50;
+
+	if (HasExpansion(EXPANSION_COV) || HasExpansion(EXPANSION_TOV))
+	{
+		MaxLevel = 115;
+	}
+	else if (HasExpansion(EXPANSION_TBL) || HasExpansion(EXPANSION_RoS))
+	{
+		MaxLevel = 110;
+	}
+	else if (HasExpansion(EXPANSION_EoK) || HasExpansion(EXPANSION_TBM) || HasExpansion(EXPANSION_TDS))
+	{
+		MaxLevel = 105;
+	}
+	else if (HasExpansion(EXPANSION_CotF) || HasExpansion(EXPANSION_RoF))
+	{
+		MaxLevel = 100;
+	}
+	else if (HasExpansion(EXPANSION_VoA))
+	{
+		MaxLevel = 95;
+	}
+	else if (HasExpansion(EXPANSION_HoT))
+	{
+		MaxLevel = 90;
+	}
+	else if (HasExpansion(EXPANSION_UFT) || HasExpansion(EXPANSION_SoD))
+	{
+		MaxLevel = 85;
+	}
+	else if (HasExpansion(EXPANSION_SoF))
+	{
+		MaxLevel = 80;
+	}
+	else if (HasExpansion(EXPANSION_TBS) || HasExpansion(EXPANSION_TSS))
+	{
+		MaxLevel = 75;
+	}
+	else if (HasExpansion(EXPANSION_PoR) || HasExpansion(EXPANSION_DoD) || HasExpansion(EXPANSION_DoN) || HasExpansion(EXPANSION_OoW))
+	{
+		MaxLevel = 70;
+	}
+	else if (HasExpansion(EXPANSION_GoD) || HasExpansion(EXPANSION_LDoN) || HasExpansion(EXPANSION_LoY) || HasExpansion(EXPANSION_PoP))
+	{
+		MaxLevel = 65;
+	}
+	else if (HasExpansion(EXPANSION_SoL) || HasExpansion(EXPANSION_SoV) || HasExpansion(EXPANSION_RoK))
+	{
+		MaxLevel = 60;
+	}
+
+	return MaxLevel;
+}
+
 
 int GetBodyType(SPAWNINFO* pSpawn)
 {

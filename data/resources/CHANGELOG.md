@@ -1,6 +1,10 @@
 Feb 16 2021
 - Added Plugin TLO boolean member IsLoaded
   Example:  ${Plugin[mq2lua].IsLoaded}
+- Added Me TLO int member MaxLevel to get the current max level based on your expansion
+  This should help with TLP Max Level checks in scripts
+  Example:  ${Me.MaxLevel}
+  Would return 60 if you were currently on a TLP in Kunark/Velious/Luclin
 
 Feb 4 2021
 - Fixed issues with custom UIs being reset when /reloadui is issued

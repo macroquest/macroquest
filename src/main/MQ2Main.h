@@ -376,6 +376,7 @@ MQLIB_API int GetFreeStack(ItemClient* pContents);
 MQLIB_API int RangeRandom(int min, int max);
 
 MQLIB_API int GetCharMaxBuffSlots();
+MQLIB_API int GetCharMaxLevel();
 MQLIB_API int GetBodyType(SPAWNINFO* pSpawn);
 MQLIB_API eSpawnType GetSpawnType(SPAWNINFO* pSpawn);
 

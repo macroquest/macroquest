@@ -330,6 +330,7 @@ enum class CharacterMembers
 	SpellRankCap,
 	AbilityTimer,
 	CastTimeLeft,
+	MaxLevel,
 };
 
 enum class CharacterMethods
@@ -651,6 +652,7 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, SpellRankCap);
 	ScopedTypeMember(CharacterMembers, AbilityTimer);
 	ScopedTypeMember(CharacterMembers, CastTimeLeft);
+	ScopedTypeMember(CharacterMembers, MaxLevel);
 
 	ScopedTypeMethod(CharacterMethods, Stand);
 	ScopedTypeMethod(CharacterMethods, Sit);
@@ -4122,6 +4124,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				Dest.Int64 = delta;
 			}
 		}
+		return true;
+
+	case CharacterMembers::MaxLevel:
+		Dest.Type = pIntType;
+		Dest.Set(GetCharMaxLevel());
 		return true;
 
 	default:
