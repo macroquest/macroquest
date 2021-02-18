@@ -84,15 +84,21 @@ struct {
 class CSidlManagerHook
 {
 public:
-	CLabel* CreateLabel_Trampoline(CXWnd*, CControlTemplate*);
-	CLabel* CreateLabel_Detour(CXWnd* CWin, CControlTemplate* CControl)
+	CXWnd* CreateXWnd_Trampoline(CXWnd*, CControlTemplate*, bool bValue);
+	CXWnd* CreateXWnd_Detour(CXWnd* pParent, CControlTemplate* pTemplate, bool bValue)
 	{
-		CLabel* pLabel = CreateLabel_Trampoline(CWin, CControl);
-		pLabel->EQType = GetIntFromString(CControl->strController, pLabel->EQType);
-		return pLabel;
+		CXWnd* newXWnd = CreateXWnd_Trampoline(pParent, pTemplate, bValue);
+
+		if (pTemplate->GetUltimateType() == UI_Label)
+		{
+			CLabel* pLabel = static_cast<CLabel*>(newXWnd);
+			pLabel->EQType = GetIntFromString(pTemplate->strController, pLabel->EQType);
+		}
+
+		return newXWnd;
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(CLabel* CSidlManagerHook::CreateLabel_Trampoline(CXWnd*, CControlTemplate*));
+DETOUR_TRAMPOLINE_EMPTY(CXWnd* CSidlManagerHook::CreateXWnd_Trampoline(CXWnd*, CControlTemplate*, bool));
 
 class CLabelHook
 {
@@ -152,14 +158,14 @@ DETOUR_TRAMPOLINE_EMPTY(void CLabelHook::UpdateText_Trampoline());
 PLUGIN_API void InitializePlugin()
 {
 	// Add commands, macro parameters, hooks, etc.
-	EzDetour(CLabel__Draw, &CLabelHook::UpdateText_Detour, &CLabelHook::UpdateText_Trampoline);
-	EzDetour(CSidlManagerBase__CreateLabel, &CSidlManagerHook::CreateLabel_Detour, &CSidlManagerHook::CreateLabel_Trampoline);
+	EzDetour(CLabel__UpdateText, &CLabelHook::UpdateText_Detour, &CLabelHook::UpdateText_Trampoline);
+	EzDetour(CSidlManager__CreateXWnd, &CSidlManagerHook::CreateXWnd_Detour, &CSidlManagerHook::CreateXWnd_Trampoline);
 }
 
 // Called once, when the plugin is to shutdown
 PLUGIN_API void ShutdownPlugin()
 {
 	// Remove commands, macro parameters, hooks, etc.
-	RemoveDetour(CSidlManagerBase__CreateLabel);
-	RemoveDetour(CLabel__Draw);
+	RemoveDetour(CSidlManager__CreateXWnd);
+	RemoveDetour(CLabel__UpdateText);
 }

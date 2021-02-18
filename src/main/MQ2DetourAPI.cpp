@@ -1171,12 +1171,18 @@ int memcheck4(unsigned char* buffer, size_t count, mckey key)
 	return eax;
 }
 
+void TryInitializeLogin();
+
 // MQ2Ic loads things from MQ2Main, but they've been moved to eqlib. So we forward them.
 DETOUR_TRAMPOLINE_EMPTY(void* WINAPI GetProcAddress_Trampoline(HMODULE, LPCSTR));
 void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
 {
 	if (void* result = GetProcAddress_Trampoline(hModule, lpProcName))
 	{
+		// This is the trigger for loading the eqmain.dll
+		if (hModule == *ghEQMainInstance && std::string_view{ lpProcName } == "new_dll_main")
+			TryInitializeLogin();
+
 		return result;
 	}
 

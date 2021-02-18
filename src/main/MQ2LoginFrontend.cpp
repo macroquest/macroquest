@@ -85,6 +85,12 @@ public:
 	void GiveTime_Trampoline();
 	void GiveTime_Detour()
 	{
+		if (!gbInFrontend)
+		{
+			gGameState = GetGameState();
+			DebugTry(Benchmark(bmPluginsSetGameState, PluginsSetGameState(gGameState)));
+		}
+
 		gbInFrontend = true;
 
 		if (gbWaitingForFrontend)
@@ -220,6 +226,7 @@ void RemoveLoginDetours()
 	gbDetoursInstalled = false;
 }
 
+// This also gets called from our GetProcAddress detour when the client tries to load eqmain.dll
 void TryInitializeLogin()
 {
 	// leave if the dll isn't loaded
@@ -272,25 +279,6 @@ void TryRemoveLogin()
 	}
 }
 
-
-// Purpose of this hook is to detect when we are loading the frontend. This is only necessary if MQ2 is
-// injected before eqmain.dll is loaded.
-DETOUR_TRAMPOLINE_EMPTY(int LoadFrontEnd_Trampoline());
-int LoadFrontEnd_Detour()
-{
-	gGameState = GetGameState();
-
-	DebugTry(Benchmark(bmPluginsSetGameState, PluginsSetGameState(gGameState)));
-
-	int ret = LoadFrontEnd_Trampoline();
-	if (ret)
-	{
-		TryInitializeLogin();
-	}
-
-	return ret;
-}
-
 // Right after leaving the frontend, we get a call to FlushDxKeyboard in ExecuteEverQuest(). We
 // hook this function and use it to determine that we've exited the frontend.
 DETOUR_TRAMPOLINE_EMPTY(int FlushDxKeyboard_Trampoline());
@@ -302,7 +290,6 @@ int FlushDxKeyboard_Detour()
 
 void InitializeLoginFrontend()
 {
-	EzDetour(__LoadFrontEnd, LoadFrontEnd_Detour, LoadFrontEnd_Trampoline);
 	EzDetour(__FlushDxKeyboard, FlushDxKeyboard_Detour, FlushDxKeyboard_Trampoline);
 
 	gbWaitingForFrontend = true;
@@ -314,7 +301,6 @@ void InitializeLoginFrontend()
 
 void ShutdownLoginFrontend()
 {
-	RemoveDetour(__LoadFrontEnd);
 	RemoveDetour(__FlushDxKeyboard);
 	RemoveLoginDetours();
 }

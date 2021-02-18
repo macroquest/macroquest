@@ -102,6 +102,11 @@ void InitializeLogging()
 
 extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void* lpReserved)
 {
+	if (ul_reason_for_call != DLL_PROCESS_ATTACH && ul_reason_for_call != DLL_PROCESS_DETACH)
+	{
+		return true;
+	}
+
 	char szFilename[MAX_STRING] = { 0 };
 	ghModule = (HMODULE)hModule;
 	ghInstance = (HINSTANCE)hModule;
