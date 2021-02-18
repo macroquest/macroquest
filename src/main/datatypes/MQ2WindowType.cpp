@@ -454,7 +454,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		if (pWnd->GetType() == UI_STMLBox)
 		{
 			CStmlWnd* cstmlwnd = static_cast<CStmlWnd*>(pWnd);
-			strcpy_s(DataTypeTemp, cstmlwnd->STMLText.c_str());
+			strcpy_s(DataTypeTemp, cstmlwnd->GetSTMLText().c_str());
 		}
 		else
 		{

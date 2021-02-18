@@ -965,7 +965,8 @@ static void InitializeFrameLimiter()
 	EzDetour(CRender__UpdateDisplay, &CRenderHook::UpdateDisplay_Detour, &CRenderHook::UpdateDisplay_Trampoline);
 
 	// Hook the main loop throttle function
-	EzDetour(__ThrottleFrameRate, &Throttler_Detour, &Throttler_Trampoline);
+	if constexpr (__ThrottleFrameRate_x)
+		EzDetour(__ThrottleFrameRate, &Throttler_Detour, &Throttler_Trampoline);
 
 	// Hook CDisplay::RealRender_World to control render loop
 	EzDetour(CDisplay__RealRender_World, &CDisplayHook::RealRender_World_Detour, &CDisplayHook::RealRender_World_Trampoline);
@@ -984,8 +985,10 @@ static void ShutdownFrameLimiter()
 	RemoveDetour(CXWndManager__DrawWindows);
 	RemoveDetour(CRender__RenderScene);
 	RemoveDetour(CRender__UpdateDisplay);
-	RemoveDetour(__ThrottleFrameRate);
 	RemoveDetour(CDisplay__RealRender_World);
+
+	if constexpr (__ThrottleFrameRate_x)
+		RemoveDetour(__ThrottleFrameRate);
 
 	RemoveMQ2Benchmark(bmRenderScene);
 	RemoveMQ2Benchmark(bmRealRenderWorld);

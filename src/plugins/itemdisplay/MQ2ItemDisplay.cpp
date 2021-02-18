@@ -2401,7 +2401,7 @@ void InsertAug(SPAWNINFO* pChar, char* szLine)
 
 		for (; Slot < MAX_AUG_SOCKETS; Slot++)
 		{
-			int fit = pTargetItem->GetAugmentFitBySlot(pAugItem, Slot);
+			int fit = pTargetItem->CanGemFitInSlot(pAugItem, Slot);
 			if (fit == 0)
 			{
 				bFits = true;

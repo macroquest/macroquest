@@ -1377,10 +1377,10 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case CharacterMembers::Grouped:
 		Dest.Type = pBoolType;
-		if (!pCharData->Group)
-			return false;
-
-		Dest.Set(pCharData->Group->GetNumberOfMembers() > 1);
+		if (pCharData->Group)
+			Dest.Set(pCharData->Group->GetNumberOfMembers() > 1);
+		else
+			Dest.Set(false);
 		return true;
 
 	case CharacterMembers::GroupList: { // This isn't really working as intended just yet

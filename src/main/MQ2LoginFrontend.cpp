@@ -240,8 +240,7 @@ void TryInitializeLogin()
 
 		bool overlaySuccess = EQMain__WndProc != 0
 			&& EQMain__LoginController__ProcessKeyboardEvents
-			&& EQMain__LoginController__ProcessMouseEvents
-			&& EQMain__LoginController__FlushDxKeyboard;
+			&& EQMain__LoginController__ProcessMouseEvents;
 
 		// We'll continue in the first iteration of LoginPulse. This is important
 		// because it means the frontend is actually running.
