@@ -422,7 +422,7 @@ char swmMask[] = "xx????xxxx";
 #if defined(ROF2EMU) || defined(UFEMU)
 PBYTE xmldataPattern = (PBYTE)"\x8B\x54\x24\x00\x56\x8B\x74\x24\x00\x8B\xC1\x85\xD2\x75\x00\x85\xF6\x75\x00\x33\xC0\x5E\xC2\x00\x00";
 char xmldataMask[] = "xxx?xxxx?xxxxx?xxx?xxxx??";
-#elif defined(TEST)
+#elif defined(TEST) || defined(LIVE)
 //Jan 25 2021 Test
 //IDA Style Sig: E8 ? ? ? ? 50 8B CD
 PBYTE xmldataPattern = (PBYTE)"\xE8\x00\x00\x00\x00\x50\x8B\xCD";
@@ -438,7 +438,7 @@ char xmldataMask[] = "xxxxxxxx";
 #if defined(ROF2EMU) || defined(UFEMU)
 PBYTE lmousePattern = (PBYTE)"\x55\x8B\xEC\x6A\x00\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x00\x53\x56\x57\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\x00\x64\xA3\x00\x00\x00\x00\x8B\xF1\x83\x7E\x00\x00";
 char lmouseMask[] = "xxxx?x????xx????xxx?xxxx????xxxxx?xx????xxxx??";
-#elif defined(TEST)
+#elif defined(TEST) || defined(LIVE)
 //Jan 25 2021 Test
 //IDA Style Sig: E8 ? ? ? ? EB 53 83 F8 0D
 PBYTE lmousePattern = (PBYTE)"\xE8\x00\x00\x00\x00\xEB\x53\x83\xF8\x0D";
@@ -470,7 +470,7 @@ char lcMask[] = "xx????xxx";
 #if defined(ROF2EMU) || defined(UFEMU)
 PBYTE lcEGPattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x34\x53\x56\xA1";
 char lcEGMask[] = "xxxxxx????xx????xxxxxxx";
-#elif defined(TEST) 
+#elif defined(TEST) || defined (LIVE)
 //0x55 0x8B 0xEC 0x6A 0xFF 0x68 ? ? ? ? 0x64 0xA1 ? ? ? ? 0x50 0x83 0xEC 0x34 0x56
 //55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 ?? ?? ?? ?? 50 83 EC 3C 56
 PBYTE lcEGPattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x3C\x56";
@@ -1002,7 +1002,7 @@ bool GetAllOffsets(DWORD dweqmain)
 	}
 	else
 	{
-		#if defined(TEST)
+		#if defined(TEST) || defined(LIVE)
 		int dwGetXMLDataAddr1 = _GetDWordAt(dwGetXMLDataAddr, 1);
 		dwGetXMLDataAddr = dwGetXMLDataAddr + dwGetXMLDataAddr1 + 5;
 		#endif
@@ -1015,7 +1015,7 @@ bool GetAllOffsets(DWORD dweqmain)
         return false;
 	}
 	else {
-		#if defined(TEST)
+		#if defined(TEST) || defined(LIVE)
 		int dwSendLMouseClickAddr1 = _GetDWordAt(dwSendLMouseClickAddr, 1);
 		dwSendLMouseClickAddr = dwSendLMouseClickAddr + dwSendLMouseClickAddr1 + 5;
 		#endif
