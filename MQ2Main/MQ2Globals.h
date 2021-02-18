@@ -1109,6 +1109,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD __HeadingDiff;
 	EQLIB_VAR DWORD __HelpPath;
 	EQLIB_VAR DWORD __LoadFrontEnd;
+	EQLIB_VAR DWORD __ExecuteFrontEnd;
 	EQLIB_VAR DWORD __NewUIINI;
 	EQLIB_VAR DWORD __pCrashHandler;
 	EQLIB_VAR DWORD __ProcessGameEvents;
@@ -1355,7 +1356,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CItemDisplayWnd__CItemDisplayWnd;
 	EQLIB_VAR DWORD CItemDisplayWnd__dCItemDisplayWnd;
 	
-	EQLIB_VAR DWORD CLabel__Draw;
+	EQLIB_VAR DWORD CLabel__UpdateText;
 
 	EQLIB_VAR DWORD CListWnd__CListWnd;
 	EQLIB_VAR DWORD CListWnd__dCListWnd;
@@ -1432,6 +1433,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CSidlManager__CreateXWndFromTemplate1;
 	EQLIB_VAR DWORD CSidlManager__CreateXWnd;
 	EQLIB_VAR DWORD CSidlManager__CreateHotButtonWnd;
+
+	EQLIB_VAR DWORD CSidlManagerbase__CreateXWnd;
 	
 	EQLIB_VAR DWORD CSidlScreenWnd__CalculateHSBRange;
 	EQLIB_VAR DWORD CSidlScreenWnd__CalculateVSBRange;

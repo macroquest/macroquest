@@ -1665,7 +1665,12 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(__ToggleKeyRingItem);
 #endif
 	INITIALIZE_EQGAME_OFFSET(__GetXTargetType);
+	#ifdef __LoadFrontEnd_x
 	INITIALIZE_EQGAME_OFFSET(__LoadFrontEnd);
+	#endif
+	#ifdef __ExecuteFrontEnd_x
+	INITIALIZE_EQGAME_OFFSET(__ExecuteFrontEnd);
+	#endif
 	INITIALIZE_EQGAME_OFFSET(__NewUIINI);
 	INITIALIZE_EQGAME_OFFSET(__ProcessGameEvents);
 	INITIALIZE_EQGAME_OFFSET(__ProcessMouseEvent);
@@ -1911,7 +1916,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__CItemDisplayWnd);
 	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__dCItemDisplayWnd);
 
-	INITIALIZE_EQGAME_OFFSET(CLabel__Draw);
+	INITIALIZE_EQGAME_OFFSET(CLabel__UpdateText);
 
 	INITIALIZE_EQGAME_OFFSET(CListWnd__CListWnd);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__dCListWnd);
@@ -1989,6 +1994,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CSidlManager__CreateXWnd);
 	INITIALIZE_EQGAME_OFFSET(CSidlManager__CreateHotButtonWnd);
 
+#ifdef CSidlManagerbase__CreateXWnd_x
+	INITIALIZE_EQGAME_OFFSET(CSidlManagerbase__CreateXWnd);
+#endif
 	INITIALIZE_EQGAME_OFFSET(CSidlScreenWnd__CalculateHSBRange);
 	INITIALIZE_EQGAME_OFFSET(CSidlScreenWnd__CalculateVSBRange);
 	INITIALIZE_EQGAME_OFFSET(CSidlScreenWnd__ConvertToRes);

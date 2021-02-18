@@ -86,20 +86,30 @@ struct _CControl {
 
 class CSidlManagerHook {
 public:
-    class CXWnd * CreateLabel_Trampoline(CXWnd *, CControlTemplate *);
-    class CXWnd * CreateLabel_Detour(CXWnd *CWin, CControlTemplate *CControl)
+	CXWnd* CreateXWnd_Trampoline(CXWnd*, CControlTemplate*, bool bValue);
+	CXWnd* CreateXWnd_Detour(CXWnd* pParent, CControlTemplate* pTemplate, bool bValue)
     {
-		CLabel *clabel = (CLabel *)CreateLabel_Trampoline(CWin, CControl);
-        if (CControl->Controller) {
-			clabel->EQType = atoi(CControl->Controller->Text);
-        } else {
-			clabel->EQType = 0;
-        }
-        return (CXWnd*)clabel;
+		CXWnd* newXWnd = CreateXWnd_Trampoline(pParent, pTemplate, bValue);
+		if (pTemplate && pTemplate->RuntimeTypes.GetLength() > 0)
+		{
+			int type = pTemplate->RuntimeTypes[pTemplate->RuntimeTypes.GetLength() - 1];
+			if (type == (int)UI_Label)
+			{
+				CLabel* pLabel = (CLabel*)newXWnd;
+				if (pTemplate->Controller) {
+					pLabel->EQType = atoi(pTemplate->Controller->Text);
+				}
+				else
+				{
+					pLabel->EQType = 0;
+				}
+			}
+		}
+		return newXWnd;
     }
 };
 
-DETOUR_TRAMPOLINE_EMPTY(class CXWnd * CSidlManagerHook::CreateLabel_Trampoline(CXWnd *, CControlTemplate *));
+DETOUR_TRAMPOLINE_EMPTY(class CXWnd * CSidlManagerHook::CreateXWnd_Trampoline(CXWnd*, CControlTemplate*, bool bValue));
 
 //#pragma optimize ("g", on)
 
@@ -263,8 +273,8 @@ public:
 		}
 		return ret;
 	}
-    VOID Draw_Trampoline(VOID);
-    VOID Draw_Detour(VOID)
+    VOID UpdateText_Trampoline(VOID);
+    VOID UpdateText_Detour(VOID)
     {
 		CLabel* pThisLabel = (CLabel*)this;
         CHAR *szBuffer = new CHAR[MAX_STRING];
@@ -310,7 +320,7 @@ public:
 			#endif
 			}
 		}
-		Draw_Trampoline();
+		UpdateText_Trampoline();
        if ((DWORD)pThisLabel->EQType==9999) {
 		   if (PCXSTR Str = pThisLabel->GetXMLToolTip())
 		   {
@@ -328,7 +338,7 @@ public:
 			   strcpy_s(szBuffer,MAX_STRING, "BadCustom");
 			   Found = TRUE;
 		   }
-        } else if (pThisLabel->EQType==1000) {
+        } else if ((pThisLabel->EQType>=1000 && pThisLabel->EQType<=1015) || (pThisLabel->EQType>=2000 && pThisLabel->EQType<=2011) || (pThisLabel->EQType>=3000 && pThisLabel->EQType<=3012)) {
             for (index=0;Id_PMP[index].ID>0 && !Found;index++) {
                 if (Id_PMP[index].ID==(DWORD)pThisLabel->EQType) {
                     strcpy_s(szBuffer,MAX_STRING,Id_PMP[index].PMP);
@@ -359,7 +369,7 @@ DETOUR_TRAMPOLINE_EMPTY(void CLabelHook::CListWnd__SetItemText_Trampoline(int ID
 DETOUR_TRAMPOLINE_EMPTY(int CLabelHook::CComboWnd__InsertChoiceAtIndex_Trampoline(const CXStr& Str, unsigned __int32 index));
 DETOUR_TRAMPOLINE_EMPTY(void CLabelHook::CAdvancedLootWnd__AddPlayerToList_Trampoline(CGroupMemberBase *));
 DETOUR_TRAMPOLINE_EMPTY(int CLabelHook::CComboWnd__InsertChoice_Trampoline(const CXStr& Str, unsigned __int32 Data));
-DETOUR_TRAMPOLINE_EMPTY(VOID CLabelHook::Draw_Trampoline(VOID));
+DETOUR_TRAMPOLINE_EMPTY(VOID CLabelHook::UpdateText_Trampoline(VOID));
 DETOUR_TRAMPOLINE_EMPTY(char *CLabelHook::CEverQuest__trimName_Trampoline(char *));
 DETOUR_TRAMPOLINE_EMPTY(int __cdecl GetGaugeValueFromEQ_Trampoline(int, class CXStr *, bool *, unsigned long *));
 DETOUR_TRAMPOLINE_EMPTY(int __cdecl GetLabelFromEQ_Trampoline(int, class CXStr *, bool *, unsigned long *));
@@ -375,9 +385,9 @@ PLUGIN_API VOID InitializePlugin(VOID)
     DebugSpewAlways("Initializing MQ2Labels");
 
     // Add commands, macro parameters, hooks, etc.
-    //EasyClassDetour(CLabel__Draw,CLabelHook,Draw_Detour,VOID,(VOID),Draw_Trampoline);
-    EzDetourwName(CLabel__Draw,&CLabelHook::Draw_Detour,&CLabelHook::Draw_Trampoline,"CLabel__Draw");
-    EzDetourwName(CSidlManager__CreateLabel,&CSidlManagerHook::CreateLabel_Detour,&CSidlManagerHook::CreateLabel_Trampoline,"CSidlManager__CreateLabel");
+    //EasyClassDetour(CLabel__UpdateText,CLabelHook,UpdateText_Detour,VOID,(VOID),UpdateText_Trampoline);
+    EzDetourwName(CLabel__UpdateText,&CLabelHook::UpdateText_Detour,&CLabelHook::UpdateText_Trampoline,"CLabel__UpdateText");
+    EzDetourwName(CSidlManager__CreateXWnd,&CSidlManagerHook::CreateXWnd_Detour,&CSidlManagerHook::CreateXWnd_Trampoline,"CSidlManager__CreateXWnd");
 	if (gAnonymize) {
 		//EzDetourwName(CListWnd__SetItemText, &CLabelHook::CListWnd__SetItemText_Detour, &CLabelHook::CListWnd__SetItemText_Trampoline,"CListWnd__SetItemText");
 		//EzDetourwName(CComboWnd__InsertChoice, &CLabelHook::CComboWnd__InsertChoice_Detour, &CLabelHook::CComboWnd__InsertChoice_Trampoline,"CComboWnd__InsertChoice");
@@ -447,8 +457,8 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 #endif
 	}
 	//FindMQ2Window(pAdvancedLootWnd->GetChildItem(""))
-    RemoveDetour(CSidlManager__CreateLabel);
-    RemoveDetour(CLabel__Draw);
+    RemoveDetour(CSidlManager__CreateXWnd);
+    RemoveDetour(CLabel__UpdateText);
     //RemoveDetour(CGaugeWnd__Draw);
     //RemoveDetour(__GetGaugeValueFromEQ);
 }

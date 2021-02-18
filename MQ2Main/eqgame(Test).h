@@ -374,8 +374,7 @@ GNU General Public License for more details.
 #define __HandleMouseWheel_x                                       0x6DDCC0
 #define __HeadingDiff_x                                            0x9E1850
 #define __HelpPath_x                                               0xF8DCFC
-//#define __LoadFrontEnd_x                                           0x6DA320
-#define __LoadFrontEnd_x                                           0x6D9710
+#define __ExecuteFrontEnd_x                                        0x6D9710
 #define __NewUIINI_x                                               0x850EA0
 #define __ProcessGameEvents_x                                      0x642D40
 #define __ProcessMouseEvent_x                                      0x642440
@@ -621,7 +620,7 @@ GNU General Public License for more details.
 #define CItemDisplayManager__CreateWindowInstance_x                0x797A80
 
 // CLabel 
-#define CLabel__Draw_x                                             0x79E1A0
+#define CLabel__UpdateText_x                                       0x79E1A0
 
 // CListWnd
 #define CListWnd__CListWnd_x                                       0x9636C0
@@ -698,16 +697,20 @@ GNU General Public License for more details.
 #define CPacketScrambler__ntoh_x                                   0x8EC200
 #define CPacketScrambler__hton_x                                   0x8EC1F0
 
-// CSidlManager 
+// CSidlManagerbase we should rename at some point
 #define CSidlManager__FindAnimation1_x                             0x985BA0
 #define CSidlManager__FindScreenPieceTemplate_x                    0x985F70
 #define CSidlManager__FindScreenPieceTemplate1_x                   0x985DA0
-#define CSidlManager__CreateLabel_x                                0x8411F0
 #define CSidlManager__CreateXWndFromTemplate_x                     0x989420
 #define CSidlManager__CreateXWndFromTemplate1_x                    0x9896B0
-#define CSidlManager__CreateXWnd_x                                 0x840C70
+#define CSidlManagerbase__CreateXWnd_x                             0x9896F0
+
 //inlined since jan 25 2021 test but they left the function intact
 #define CSidlManager__CreateHotButtonWnd_x                         0x841620
+#define CSidlManager__CreateLabel_x                                0x8411F0
+
+//CSidlManager
+#define CSidlManager__CreateXWnd_x                                 0x840C70
 
 // CSidlScreenWnd 
 #define CSidlScreenWnd__CalculateHSBRange_x                        0x9818E0

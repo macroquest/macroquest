@@ -1411,20 +1411,26 @@ void InitializeMQ2Detours()
 #endif
 #ifndef TESTMEM
 	//we don't need this detour anymore, we wil just add a one time guard page exception and add login pulse up when it's hit
-	//EzDetourwName(__LoadFrontEnd, LoadFrontEnd_Detour, LoadFrontEnd_Trampoline,"__LoadFrontEnd");
+	#if defined(ROF2EMU) || defined(UFEMU)
+	EzDetourwName(__LoadFrontEnd, LoadFrontEnd_Detour, LoadFrontEnd_Trampoline,"__LoadFrontEnd");
+	#else
 	pv = AddVectoredExceptionHandler(TRUE, ExceptionHandler);
-	VirtualProtect((LPVOID)__LoadFrontEnd, 1, PAGE_EXECUTE_READWRITE|PAGE_GUARD, &op);
+	VirtualProtect((LPVOID)__ExecuteFrontEnd, 1, PAGE_EXECUTE_READWRITE|PAGE_GUARD, &op);
+	#endif
 #endif
 }
 
 void ShutdownMQ2Detours()
 {
+	#if !defined(ROF2EMU) && !defined(UFEMU)
 	RemoveVectoredExceptionHandler(pv);
 	ULONG tmp;
-	VirtualProtect((LPVOID)__LoadFrontEnd, 1, op, &tmp);
+	VirtualProtect((LPVOID)__ExecuteFrontEnd, 1, op, &tmp);
 	TerminateThread(ghFrontEnd, 0);
 	ghFrontEnd = 0;
-	//RemoveDetour(__LoadFrontEnd);
+	#else
+	RemoveDetour(__LoadFrontEnd);
+	#endif
 #ifndef ISXEQ
 	HookMemChecker(FALSE);
 	RemoveOurDetours();
