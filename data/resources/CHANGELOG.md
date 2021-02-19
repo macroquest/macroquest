@@ -6,6 +6,20 @@ Feb 16 2021
   Example:  ${Me.MaxLevel}
   Would return 60 if you were currently on a TLP in Kunark/Velious/Luclin
 
+Feb 12 2021
+- Split MQ2TargetInfo into individual window components
+  - MQ2TargetInfo deals with the target window
+    - Use /targetinfo to see help
+    - Use MQ2TargetInfo.ini to adjust UI specific settings
+    - Added command line arguments perchar, distance, info, placeholder, and sight toggle options to modify each of the options.
+  - MQ2XTarInfo deals with the Extended Target Window
+    - Use /xtarinfo to see help
+    - Use MQ2XTarInfo.ini to adjust UI specific settings
+    - Added command line arguments perchar and distance toggle options to toggle options.
+    - Fixed an issue where your Extended target window would be extended even if you did not have the slots available yet
+  - MQ2GroupInfo deals with the Group Window
+    - See MQ2GroupInfo Changelog
+
 Feb 4 2021
 - Fixed issues with custom UIs being reset when /reloadui is issued
 - Fixed issues with having to reload plugins that modify the UI when using a custom UI
