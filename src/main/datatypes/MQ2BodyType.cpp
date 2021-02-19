@@ -38,7 +38,7 @@ bool MQ2BodyType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	switch (static_cast<BodyMembers>(pMember->ID))
 	{
 	case BodyMembers::ID:
-		Dest.Ptr = VarPtr.Ptr;
+		Dest.Set(VarPtr.Get<uint32_t>());
 		Dest.Type = pIntType;
 		return true;
 
