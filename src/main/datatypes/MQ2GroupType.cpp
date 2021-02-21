@@ -499,7 +499,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 				}
 			}
 		}
-		if (!MemberName)
+		if (MemberName[0] == '\0')
 			return false;
 	}
 	else
