@@ -12,7 +12,7 @@
  * GNU General Public License for more details.
  */
 
-// AutoLogin code shared between MacroQuest2.exe and MQ2AutoLogin.dll
+// AutoLogin code shared between MacroQuest.exe and MQ2AutoLogin.dll
 
 #pragma once
 
