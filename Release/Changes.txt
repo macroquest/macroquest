@@ -1,4 +1,4 @@
-Feb 19 2021
+Feb 22 2021
 - Fix for FreeInventory (and other spots where GetCurrentInvSlots() is called) - SwiftyMUSE - Brainiac
 - Everything is using the CHARINFONEW struct now, we will keep it like that for a couple patches then just remove old charinfo.
 - Fixed  ${Me.Buff[buff name].Caster} so it works like ${Target.Buff[buff name].Caster} when you have yourself as target
