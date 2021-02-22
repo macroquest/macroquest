@@ -234,7 +234,14 @@ private:
     std::vector<std::string> sCmdHistory;
     int iCurrentCmd;
 };
-
+template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], int _Radix)
+{
+	errno_t err = _itoa_s(_Value, _Buffer, _Radix);
+	if (!err) {
+		return _Buffer;
+	}
+	return "";
+}
 VOID LoadChatSettings()
 {
     CHAR szTemp[MAX_STRING]={0};
@@ -265,11 +272,7 @@ VOID LoadChatFromINI(PCSIDLWND pWindow)
 	{
 		left = 10;
 	}
-	pWindow->SetLocation({ (LONG)left,
-		(LONG)GetPrivateProfileInt(szChatINISection,"ChatTop",       10,INIFileName),
-		(LONG)GetPrivateProfileInt(szChatINISection,"ChatRight",    410,INIFileName),
-		(LONG)GetPrivateProfileInt(szChatINISection,"ChatBottom",   210,INIFileName) });
-
+	
     pWindow->SetLocked((GetPrivateProfileInt(szChatINISection,"Locked",         0,INIFileName) ? true:false));
     pWindow->SetFades((GetPrivateProfileInt(szChatINISection,"Fades",          0,INIFileName) ? true:false));
     pWindow->SetFadeDelay(GetPrivateProfileInt(szChatINISection,"Delay",       2000,INIFileName));
@@ -288,15 +291,15 @@ VOID LoadChatFromINI(PCSIDLWND pWindow)
     GetPrivateProfileString(szChatINISection,"WindowTitle","MQ",szTemp,MAX_STRING,INIFileName);
 	pWindow->CSetWindowText(szTemp);
 	pWindow->SetKeepOnScreen(GetPrivateProfileInt(szChatINISection,"KeepOnScreen",         0,INIFileName));
+	CXRect rc;
+	rc.left = left;
+	rc.top = (LONG)GetPrivateProfileInt(szChatINISection,"ChatTop",       10,INIFileName);
+	rc.right = (LONG)GetPrivateProfileInt(szChatINISection, "ChatRight", 410, INIFileName);
+	rc.bottom = (LONG)GetPrivateProfileInt(szChatINISection,"ChatBottom",   210,INIFileName);
+
+	((CXWnd*)pWindow)->Move(rc, true, true, true, true);
 }
-template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], int _Radix)
-{
-	errno_t err = _itoa_s(_Value, _Buffer, _Radix);
-	if (!err) {
-		return _Buffer;
-	}
-	return "";
-}
+
 VOID SaveChatToINI(PCSIDLWND pWindow)
 {
  	if (!pLocalPlayer)
@@ -772,16 +775,6 @@ PLUGIN_API VOID OnPulse()
     }
     if (MQChatWnd)
     {
-		/*if (savecounter++ > 100)//we dont need to check this a million times per second...
-		{
-			if (MQChatWnd->GetNeedsSaving())
-			{
-				SaveChatToINI((PCSIDLWND)MQChatWnd);
-				MQChatWnd->SetNeedsSaving(0);
-				//WriteChatf("Saved ChatWindow Position");
-			}
-			savecounter = 0;
-		}*/
 		switch (gGameState)
 		{
 			case GAMESTATE_CHARSELECT:
@@ -794,6 +787,16 @@ PLUGIN_API VOID OnPulse()
 			{
 				if (MQChatWnd->GetZLayer() != 0)
 					MQChatWnd->SetZLayer(0);
+				if (savecounter++ > 100)//we dont need to check this a million times per second...
+				{
+					if (MQChatWnd->GetNeedsSaving())
+					{
+						SaveChatToINI((PCSIDLWND)MQChatWnd);
+						MQChatWnd->SetNeedsSaving(0);
+						//WriteChatf("Saved ChatWindow Position");
+					}
+					savecounter = 0;
+				}
 				break;
 			}
 		}

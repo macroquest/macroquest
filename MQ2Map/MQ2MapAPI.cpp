@@ -844,9 +844,14 @@ bool MapSelectTarget()
 	if (!pCurrentMapLabel)
 		return false;
 	PMAPSPAWN pMapSpawn = LabelMap[pCurrentMapLabel];
-	if (!pMapSpawn)
+	if (!pMapSpawn || !pMapSpawn->pSpawn)
 		return true;
-	if (pMapSpawn->SpawnType == ITEM)
+	
+	if (!pMapSpawn->pSpawn->vtable)
+	{
+		return true;
+	}
+	else if (pMapSpawn->SpawnType == ITEM)
 	{
 		EnviroTarget = *pMapSpawn->pSpawn;
 		EnviroTarget.Type = SPAWN_NPC;
@@ -2084,13 +2089,13 @@ VOID AddMapSpawnForMapLoc(PMAPLOC mapLoc)
 	}
 
 	// Create unique "spawnid"
-	unsigned long mapId = 3000;
+	unsigned long mapId = 300000;
 	std::map<unsigned long, PMAPSPAWN>::iterator it;
 	do
 	{
 		mapId++;
 		it = SpawnMap.find(mapId);
-	} while (it != SpawnMap.end() && mapId < 4000);
+	} while (it != SpawnMap.end() && mapId < 304000);
 
 	// Build the SpawnInfo
 	PSPAWNINFO pFakeSpawn = new SPAWNINFO;

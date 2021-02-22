@@ -1565,7 +1565,8 @@ DWORD ConColor(PSPAWNINFO pSpawn)
 	PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
 	if (!pChar)
 		return CONCOLOR_WHITE; // its you
-
+	if (!pSpawn->vtable)
+		return CONCOLOR_RED;
 	switch (pCharData->GetConLevel((EQPlayer*)pSpawn))
 	{
 	case 0:
@@ -8156,7 +8157,11 @@ void UseAbility(char *sAbility) {
 // Pass exansion macros from EQData.h to it -- e.g. HasExpansion(EXPANSION_RoF)
 bool HasExpansion(DWORD nExpansion)
 {
-	return (bool)((GetCharInfo()->ExpansionFlags & nExpansion) != 0);
+	if (PCHARINFO pChar = GetCharInfo())
+	{
+		return (bool)((pChar->ExpansionFlags & nExpansion) != 0);
+	}
+	return true;
 }
 //Just a Function that needs more work
 //I use this to test merc aa struct -eqmule

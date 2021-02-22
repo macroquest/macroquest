@@ -2757,11 +2757,14 @@ bool MQ2BuffType::GETMEMBER()
 	{
 		if (PSPELL pSpell = GetSpellByID(pBuff->SpellID))
 		{
+			MQ2VARPTR pvar = *(MQ2VARPTR*)&pSpell;
+			pvar.HighPart = VarPtr.HighPart;
 #ifndef ISXEQ
-			return pSpellType->GetMember(*(MQ2VARPTR*)&pSpell, Member, Index, Dest);
+			bool bRet = pSpellType->GetMember(pvar, Member, Index, Dest);
 #else
-			return pSpellType->GetMember(*(LSVARPTR*)&pSpell, Member, argc, argv, Dest);
+			bool bRet = return pSpellType->GetMember(pvar, Member, argc, argv, Dest);
 #endif
+			return bRet;
 		}
 		return false;
 	}

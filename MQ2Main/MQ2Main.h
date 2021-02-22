@@ -101,18 +101,19 @@ extern CRITICAL_SECTION gPluginCS;
 #endif
 #if defined(LIVE)
 #include "eqgame.h"
-//#define NEWCHARINFO
+#define NEWCHARINFO
 #elif defined(TEST)
 #include "eqgame(Test).h"
-//#define NEWCHARINFO
+#define NEWCHARINFO
 #elif defined(EQBETA)
 #include "eqgame(beta).h"
-//#define NEWCHARINFO
+#define NEWCHARINFO
 #elif defined(ROF2EMU)
 #include "eqgame(emu).h"
 //#define NEWCHARINFO
 #elif defined(UFEMU)
 #include "eqgame(uf).h"
+//#define NEWCHARINFO
 #endif
 #ifndef ISXEQ
 #define RETURN(x) return;
@@ -563,6 +564,7 @@ EQLIB_API PSPELL GetSpellByAAName(PCHAR szName);
 EQLIB_API PSPELL GetSpellByAAName(PCHAR szName);
 EQLIB_API PALTABILITY GetAAByIdWrapper(int nAbilityId, int playerLevel = -1);
 EQLIB_API DWORD GetSpellRankByName(PCHAR SpellName);
+EQLIB_API bool HasExpansion(DWORD nExpansion);
 EQLIB_API VOID TruncateSpellRankName(PCHAR SpellName);
 EQLIB_API VOID RemoveBuff(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID RemovePetBuff(PSPAWNINFO pChar, PCHAR szLine);
@@ -790,7 +792,6 @@ EQLIB_API DWORD       GetWorldState(VOID);
 EQLIB_API float       GetMeleeRange(class EQPlayer *, class EQPlayer *);
 EQLIB_API DWORD       GetSpellGemTimer(DWORD nGem);
 EQLIB_API DWORD       GetSpellBuffTimer(DWORD SpellID);
-EQLIB_API bool        HasExpansion(DWORD nExpansion);
 EQLIB_API VOID		  ListMercAltAbilities();
 EQLIB_API PCONTENTS	  FindItemBySlot(short InvSlot, short BagSlot = -1, ItemContainerInstance location = eItemContainerPossessions);
 EQLIB_API PCONTENTS	  FindItemByName(PCHAR pName, BOOL bExact = false);
@@ -991,7 +992,7 @@ EQLIB_API AggroMeterManagerClient *GetAggroInfo();
 EQLIB_API ClientSOIManager *GetAuraMgr();
 EQLIB_API CBroadcast *GetTextOverlay();
 EQLIB_API MercenaryAlternateAdvancementManagerClient *GetMercAltAbilities();
-EQLIB_API bool Anonymize(char *name, int maxlen, int NameFlag = 0);
+EQLIB_API bool Anonymize(char *name, int maxlen, int bNameFlag = 0);
 EQLIB_API void UpdatedMasterLooterLabel();
 //EQLIB_API EQGroundItemListManager *GetItemList();
 

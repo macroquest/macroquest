@@ -1032,12 +1032,27 @@ static inline unsigned long GetDWordAt(unsigned long address, unsigned long numB
     }
     return 0;
 }
+
+static inline int GetHighestAvailableBagSlot()
+{
+	return HasExpansion(EXPANSION_HoT) ? NUM_BAG_SLOTS : (NUM_BAG_SLOTS - 2);
+}
+
+static inline int GetAvailableBankSlots()
+{
+	return HasExpansion(EXPANSION_PoR) ? 24 : 16;
+}
+
+static inline int GetAvailableSharedBankSlots()
+{
+	return HasExpansion(EXPANSION_TBL) ? 6 : HasExpansion(EXPANSION_CotF) ? 4 : 2;
+}
+
 static inline int GetCurrentInvSlots()
 {
 	int invslots = NUM_INV_SLOTS;
-	if (BaseProfile *pBprof = (BaseProfile *)GetCharInfo2())
-	{
-		invslots = pBprof->pInventoryArray.Size;
+	if (PCHARINFO pChar = GetCharInfo()) {
+		invslots = BAG_SLOT_START + GetHighestAvailableBagSlot();
 	}
 	return invslots;
 }
