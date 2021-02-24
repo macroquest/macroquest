@@ -271,10 +271,16 @@ public:
 DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::RealRender_World_Trampoline());
 
 DETOUR_TRAMPOLINE_EMPTY(static void Throttler_Trampoline());
-static void Throttler_Detour()
+__declspec(naked) static void Throttler_Detour()
 {
-	if (ShouldDoThrottle())
-		Throttler_Trampoline();
+	__asm
+	{
+		call ShouldDoThrottle;
+		cmp eax, eax;
+		jz Throttler_Trampoline;
+		mov eax, __ThrottleFrameRateEnd;
+		jmp eax;
+	}
 }
 
 #pragma endregion
@@ -965,7 +971,7 @@ static void InitializeFrameLimiter()
 	EzDetour(CRender__UpdateDisplay, &CRenderHook::UpdateDisplay_Detour, &CRenderHook::UpdateDisplay_Trampoline);
 
 	// Hook the main loop throttle function
-	if constexpr (__ThrottleFrameRate_x)
+	if constexpr (__ThrottleFrameRate_x && __ThrottleFrameRateEnd_x)
 		EzDetour(__ThrottleFrameRate, &Throttler_Detour, &Throttler_Trampoline);
 
 	// Hook CDisplay::RealRender_World to control render loop
