@@ -289,7 +289,7 @@ __declspec(naked) static void Throttler_Detour()
 
 class FrameLimiter
 {
-	bool m_lastInForeground = true;
+	std::optional<bool> m_lastInForeground = std::nullopt;
 	bool m_resetOnNextPulse = false;
 	FrameCounter m_renderFPS;
 	FrameCounter m_gameFPS;
@@ -362,9 +362,9 @@ public:
 
 	bool IsEnabled() const { return !m_pauseForZone && m_enabled && gbInZone; }
 
-	bool IsForeground() const { return m_lastInForeground; }
+	bool IsForeground() const { return m_lastInForeground.value_or(false); }
 
-	bool IsRendering() const { return m_lastInForeground ? m_renderInForeground : m_renderInBackground; }
+	bool IsRendering() const { return m_lastInForeground.value_or(false) ? m_renderInForeground : m_renderInBackground; }
 
 	float CPUUsage() const { return static_cast<float>(m_cpuUsage.Average()) / 1000.f; }
 
@@ -523,7 +523,7 @@ public:
 
 	void UpdateThrottler()
 	{
-		float desiredRenderRate = m_lastInForeground ? m_foregroundFPS : m_backgroundFPS;
+		float desiredRenderRate = m_lastInForeground.value_or(false) ? m_foregroundFPS : m_backgroundFPS;
 		m_frameThrottler.SetMinDuration(std::chrono::microseconds(static_cast<int64_t>(1000000 / desiredRenderRate)));
 
 		// Cap the main loop at a minimum of m_minSimulationFPS.
@@ -534,7 +534,7 @@ public:
 	void UpdateSettingsPanel()
 	{
 		ImGui::Text("Status: "); ImGui::SameLine(0, 0);
-		if (m_lastInForeground)
+		if (m_lastInForeground.value_or(false))
 			ImGui::TextColored(ImColor(0, 255, 0), "Foreground");
 		else
 			ImGui::TextColored(ImColor(255, 0, 0), "Background");
