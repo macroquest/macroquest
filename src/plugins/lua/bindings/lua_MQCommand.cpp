@@ -14,6 +14,7 @@
 
 #include "pch.h"
 #include "lua_MQCommand.h"
+#include "LuaThread.h"
 
 #include <mq/Plugin.h>
 
@@ -32,6 +33,14 @@ void lua_MQCommand::operator()(sol::variadic_args va, sol::this_state s)
 	}
 
 	HideDoCommand(pLocalPlayer, fmt::to_string(cmd).c_str(), false);
+
+	if (!bRunNextCommand)
+	{
+		if (auto thread_ptr = LuaThread::get_from(s))
+		{
+			thread_ptr->YieldAt(0);
+		}
+	}
 }
 
 sol::object lua_MQDoCommand::Get(sol::stack_object key, sol::this_state L) const
