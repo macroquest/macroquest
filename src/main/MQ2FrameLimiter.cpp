@@ -231,7 +231,8 @@ public:
 		{
 			MQScopedBenchmark bm(bmRenderScene);
 			// call the UI DrawWindows function here to explicitly tie the framerates, but only do it if we have the limiter enabled
-			if (!UseEQRenderer() && pWndMgr) pWndMgr.get_as<CXWndManagerHook>()->DrawWindows_Trampoline();
+			if (!UseEQRenderer() && pWndMgr && (pScreenMode == nullptr || *pScreenMode != 3))
+				pWndMgr.get_as<CXWndManagerHook>()->DrawWindows_Trampoline();
 			RenderScene_Trampoline();
 		}
 	}
@@ -429,7 +430,7 @@ public:
 			RecordSimulationSample();
 
 			pDisplay.get_as<CDisplayHook>()->RealRender_World_Trampoline();
-			if (!IsRendering() && m_tieUiToSimulation && pWndMgr)
+			if (!IsRendering() && m_tieUiToSimulation && pWndMgr && (pScreenMode == nullptr || *pScreenMode != 3))
 				pWndMgr.get_as<CXWndManagerHook>()->DrawWindows_Trampoline();
 		}
 
@@ -993,7 +994,7 @@ static void ShutdownFrameLimiter()
 	RemoveDetour(CRender__UpdateDisplay);
 	RemoveDetour(CDisplay__RealRender_World);
 
-	if constexpr (__ThrottleFrameRate_x)
+	if constexpr (__ThrottleFrameRate_x && __ThrottleFrameRateEnd_x)
 		RemoveDetour(__ThrottleFrameRate);
 
 	RemoveMQ2Benchmark(bmRenderScene);
