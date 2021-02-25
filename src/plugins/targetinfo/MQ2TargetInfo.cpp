@@ -786,104 +786,107 @@ PLUGIN_API void OnPulse()
 
 		if (pTargetWnd)
 		{
-			if (InfoLabel && DistanceLabel && CanSeeLabel && PHButton && pTarget)
+			if (InfoLabel && DistanceLabel && CanSeeLabel && PHButton)
 			{
-				if (gbShowPlaceholder)
+				if (pTarget)
 				{
-					if (oldspawn != pTarget)
+					if (gbShowPlaceholder)
 					{
-						oldspawn = pTarget;
-
-						PHInfo pinf;
-						if (GetPhMap(pTarget, &pinf))
+						if (oldspawn != pTarget)
 						{
-							PHButton->SetTooltip(CXStr{ pinf.Named });
-							PHButton->SetVisible(true);
-						}
-						else
-						{
-							PHButton->SetVisible(false);
-						}
-					}
-				}
-				else
-				{
-					PHButton->SetVisible(false);
-				}
+							oldspawn = pTarget;
 
-				char szTargetDist[EQ_MAX_NAME] = { 0 };
-
-				if (gbShowTargetInfo)
-				{
-					switch (pTarget->Anon)
-					{
-						case 1:
-							strcpy_s(szTargetDist, "Anonymous");
-							break;
-						case 2:
-							strcpy_s(szTargetDist, "Roleplaying");
-							break;
-						default:
-						{
-							if (pTarget->Type == SPAWN_PLAYER)
+							PHInfo pinf;
+							if (GetPhMap(pTarget, &pinf))
 							{
-								sprintf_s(szTargetDist, "%d %s %s", pTarget->Level, pEverQuest->GetRaceDesc(pTarget->mActorClient.Race), pEverQuest->GetClassThreeLetterCode(pTarget->mActorClient.Class));
+								PHButton->SetTooltip(CXStr{ pinf.Named });
+								PHButton->SetVisible(true);
 							}
 							else
 							{
-								sprintf_s(szTargetDist, "%d %s %s", pTarget->Level, pEverQuest->GetRaceDesc(pTarget->mActorClient.Race), GetClassDesc(pTarget->mActorClient.Class));
+								PHButton->SetVisible(false);
 							}
 						}
 					}
-
-					InfoLabel->SetWindowText(szTargetDist);
-				}
-				InfoLabel->SetVisible(gbShowTargetInfo);
-
-				// then distance
-				if(gBShowDistance)
-				{
-					float dist = Distance3DToSpawn(pLocalPlayer, pTarget);
-					sprintf_s(szTargetDist, "%.2f", dist);
-
-					if (dist < 250)
-					{
-						DistanceLabel->SetCRNormal(MQColor(0, 255, 0)); // green
-					}
 					else
 					{
-						DistanceLabel->SetCRNormal(MQColor(255, 0, 0)); // red
+						PHButton->SetVisible(false);
 					}
 
-					DistanceLabel->SetWindowText(szTargetDist);
-				}
-				DistanceLabel->SetVisible(gBShowDistance);
+					char szTargetDist[EQ_MAX_NAME] = { 0 };
 
-				// now do can see
-				if (gbShowSight)
+					if (gbShowTargetInfo)
+					{
+						switch (pTarget->Anon)
+						{
+							case 1:
+								strcpy_s(szTargetDist, "Anonymous");
+								break;
+							case 2:
+								strcpy_s(szTargetDist, "Roleplaying");
+								break;
+							default:
+							{
+								if (pTarget->Type == SPAWN_PLAYER)
+								{
+									sprintf_s(szTargetDist, "%d %s %s", pTarget->Level, pEverQuest->GetRaceDesc(pTarget->mActorClient.Race), pEverQuest->GetClassThreeLetterCode(pTarget->mActorClient.Class));
+								}
+								else
+								{
+									sprintf_s(szTargetDist, "%d %s %s", pTarget->Level, pEverQuest->GetRaceDesc(pTarget->mActorClient.Race), GetClassDesc(pTarget->mActorClient.Class));
+								}
+							}
+						}
+
+						InfoLabel->SetWindowText(szTargetDist);
+					}
+					InfoLabel->SetVisible(gbShowTargetInfo);
+
+					// then distance
+					if(gBShowDistance)
+					{
+						float dist = Distance3DToSpawn(pLocalPlayer, pTarget);
+						sprintf_s(szTargetDist, "%.2f", dist);
+
+						if (dist < 250)
+						{
+							DistanceLabel->SetCRNormal(MQColor(0, 255, 0)); // green
+						}
+						else
+						{
+							DistanceLabel->SetCRNormal(MQColor(255, 0, 0)); // red
+						}
+
+						DistanceLabel->SetWindowText(szTargetDist);
+					}
+					DistanceLabel->SetVisible(gBShowDistance);
+
+					// now do can see
+					if (gbShowSight)
+					{
+						if (pLocalPlayer->CanSee(*(PlayerClient*)pTarget))
+						{
+							strcpy_s(szTargetDist, "O");
+							CanSeeLabel->SetCRNormal(MQColor(0, 255, 0)); // green
+						}
+						else
+						{
+							strcpy_s(szTargetDist, "X");
+							CanSeeLabel->SetCRNormal(MQColor(255, 0, 0)); // red
+						}
+						CanSeeLabel->SetWindowText(szTargetDist);
+					}
+
+					CanSeeLabel->SetVisible(gbShowSight);
+
+				}
+				else
 				{
-					if (pLocalPlayer->CanSee(*(PlayerClient*)pTarget))
-					{
-						strcpy_s(szTargetDist, "O");
-						CanSeeLabel->SetCRNormal(MQColor(0, 255, 0)); // green
-					}
-					else
-					{
-						strcpy_s(szTargetDist, "X");
-						CanSeeLabel->SetCRNormal(MQColor(255, 0, 0)); // red
-					}
-					CanSeeLabel->SetWindowText(szTargetDist);
+					InfoLabel->SetWindowText(CXStr());
+					DistanceLabel->SetWindowText(CXStr());
+					CanSeeLabel->SetWindowText(CXStr());
+					PHButton->SetVisible(false);
 				}
-
-				CanSeeLabel->SetVisible(gbShowSight);
-
-			}
-			else
-			{
-				InfoLabel->SetWindowText(CXStr());
-				DistanceLabel->SetWindowText(CXStr());
-				CanSeeLabel->SetWindowText(CXStr());
-				PHButton->SetVisible(false);
 			}
 		}
 	}
