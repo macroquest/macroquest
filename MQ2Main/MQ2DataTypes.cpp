@@ -2762,7 +2762,7 @@ bool MQ2BuffType::GETMEMBER()
 #ifndef ISXEQ
 			bool bRet = pSpellType->GetMember(pvar, Member, Index, Dest);
 #else
-			bool bRet = return pSpellType->GetMember(pvar, Member, argc, argv, Dest);
+			bool bRet = pSpellType->GetMember(pvar, Member, argc, argv, Dest);
 #endif
 			return bRet;
 		}
