@@ -435,6 +435,13 @@ GNU General Public License for more details.
 #define CBankWnd__GetNumBankSlots_x                                0x706AD0
 #define CBankWnd__WndNotification_x                                0x706870
 
+//CBarterWnd
+#define CBarterWnd__WndNotification_x                              0x7114F0
+
+//CBarterSearchWnd
+#define CBarterSearchWnd__WndNotification_x                        0x70C140
+#define CBarterSearchWnd__UpdateInventoryList_x                    0x70A110
+
 // CBazaarSearchWnd 
 #define CBazaarSearchWnd__HandleBazaarMsg_x                        0x715B20
 
@@ -616,6 +623,7 @@ GNU General Public License for more details.
 
 //CItemDisplayManager
 #define CItemDisplayManager__CreateWindowInstance_x                0x797CB0
+#define CItemDisplayManager__ShowItem_x                            0x797260
 
 // CLabel 
 #define CLabel__UpdateText_x                                       0x79E3D0
@@ -854,7 +862,7 @@ GNU General Public License for more details.
 #define CXWnd__SetFont_x                                           0x973DF0
 #define CXWnd__SetKeyTooltip_x                                     0x974A30
 #define CXWnd__SetMouseOver_x                                      0x971710
-#define CXWnd__StartFade_x                                         0x905610
+#define CXWnd__StartFade_x                                         0x973210
 #define CXWnd__GetChildItem_x                                      0x974660
 #define CXWnd__SetParent_x                                         0x973050
 #define CXWnd__Minimize_x                                          0x973A70

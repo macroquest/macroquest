@@ -1738,6 +1738,9 @@ namespace MQ2Globals
 #endif
 
 	INITIALIZE_EQGAME_OFFSET(CBankWnd__WndNotification);
+	INITIALIZE_EQGAME_OFFSET(CBarterSearchWnd__WndNotification);
+	INITIALIZE_EQGAME_OFFSET(CBarterWnd__WndNotification);
+	INITIALIZE_EQGAME_OFFSET(CBarterSearchWnd__UpdateInventoryList);
 	INITIALIZE_EQGAME_OFFSET(CBankWnd__GetNumBankSlots);
 	INITIALIZE_EQGAME_OFFSET(CBazaarSearchWnd__HandleBazaarMsg);
 	INITIALIZE_EQGAME_OFFSET(CButtonWnd__SetCheck);
@@ -2391,6 +2394,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CLargeDialogWnd__Open);
 	INITIALIZE_EQGAME_OFFSET(CWndDisplayManager__FindWindowA);
 	INITIALIZE_EQGAME_OFFSET(CItemDisplayManager__CreateWindowInstance);
+	INITIALIZE_EQGAME_OFFSET(CItemDisplayManager__ShowItem);
 	INITIALIZE_EQGAME_OFFSET(CCursorAttachment__AttachToCursor);
 	INITIALIZE_EQGAME_OFFSET(CCursorAttachment__AttachToCursor1);
 	INITIALIZE_EQGAME_OFFSET(CCursorAttachment__Deactivate);

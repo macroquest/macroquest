@@ -80,7 +80,7 @@ PCHAR szClickNotification[] = {
 	"rightmouseup",     // 5
 	"rightmouseheld",   // 6
 	"rightmouseheldup", // 7
-}; 
+};
 
 struct WindowInfo
 {
@@ -93,6 +93,9 @@ std::map<CXWnd*, WindowInfo> WindowList;
 
 int MarkCol = 0;
 int ValueCol = 0;
+int BarterValueCol = 0;
+int BarterLastSortIndex = 1;
+bool BarterLastSortDirection = true;
 
 bool GenerateMQUI();
 void DestroyMQUI();
@@ -155,13 +158,13 @@ class CSidlInitHook
 public:
 	void Init_Trampoline(class CXStr* pName, int A);
 	void Init_Detour(class CXStr* pName, int A)
-    {
+	{
 		CHAR Name[MAX_STRING] = { 0 };
 		if (pName)
 			GetCXStr(pName->Ptr, Name, MAX_STRING);
 
 		std::string WindowName = Name;
-        MakeLower((WindowName));
+		MakeLower((WindowName));
 
 		unsigned long N = 0;
 		if (WindowMap.find(WindowName) != WindowMap.end())
@@ -187,10 +190,10 @@ public:
 				DebugSpew("Adding WndNotification target '%s'", Name);
 			else
 				DebugSpew("Adding WndNotification target FAILED");
-        }
+		}
 
-        Init_Trampoline(pName, A);
-    }
+		Init_Trampoline(pName, A);
+	}
 
 	int CTargetWnd__WndNotification_Tramp(CXWnd*, uint32_t, void*);
 	int CTargetWnd__WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
@@ -320,12 +323,12 @@ public:
 												{
 													if (pItem->TradeSkills)
 													{
-													list->SetItemColor(i, 1, 0xFFFF00FF);
-												}
+														list->SetItemColor(i, 1, 0xFFFF00FF);
+													}
 													if (pItem->QuestItem)
 													{
-													list->SetItemColor(i, 1, 0xFFFFFF00);
-												}
+														list->SetItemColor(i, 1, 0xFFFFFF00);
+													}
 												}
 
 												if (pItem->Cost > 0)
@@ -346,7 +349,7 @@ public:
 													{
 														sprintf_s(szTemp2, MAX_STRING, " %dgp", gp);
 														strcat_s(szTemp3, MAX_STRING, szTemp2);
-												}
+													}
 													if (sp > 0)
 													{
 														sprintf_s(szTemp2, MAX_STRING, " %dsp", sp);
@@ -409,33 +412,352 @@ public:
 			pp = atoi(szLabel1);
 			strcpy_s(szLabel1, MAX_STRING, &pDest[2]);
 		}
-
+		else if (char* pDest = strstr(szLabel1, "p"))
+		{
+			pDest[0] = '\0';
+			pp = atoi(szLabel1);
+			strcpy_s(szLabel1, MAX_STRING, &pDest[1]);
+		}
 		if (char* pDest = strstr(szLabel1, "gp"))
 		{
 			pDest[0] = '\0';
 			gp = atoi(szLabel1);
 			strcpy_s(szLabel1, MAX_STRING, &pDest[2]);
 		}
-
+		else if (char* pDest = strstr(szLabel1, "g"))
+		{
+			pDest[0] = '\0';
+			gp = atoi(szLabel1);
+			strcpy_s(szLabel1, MAX_STRING, &pDest[1]);
+		}
 		if (char* pDest = strstr(szLabel1, "sp"))
 		{
 			pDest[0] = '\0';
 			sp = atoi(szLabel1);
 			strcpy_s(szLabel1, MAX_STRING, &pDest[2]);
 		}
-
+		else if (char* pDest = strstr(szLabel1, "s"))
+		{
+			pDest[0] = '\0';
+			sp = atoi(szLabel1);
+			strcpy_s(szLabel1, MAX_STRING, &pDest[1]);
+		}
 		if (char* pDest = strstr(szLabel1, "cp"))
 		{
 			pDest[0] = '\0';
 			cp = atoi(szLabel1);
 			strcpy_s(szLabel1, MAX_STRING, &pDest[2]);
 		}
+		else if (char* pDest = strstr(szLabel1, "c"))
+		{
+			pDest[0] = '\0';
+			cp = atoi(szLabel1);
+			strcpy_s(szLabel1, MAX_STRING, &pDest[1]);
+		}
 
 		delete szLabel1;
 		int total = (pp * 1000) + (gp * 100) + (sp * 10) + cp;
 		return total;
 	}
+	int CBarterWnd__WndNotification_Tramp(CXWnd*, uint32_t, void*);
+	int CBarterWnd__WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
+	{
+		if (uiMessage == XWM_COLUMNCLICK)
+		{
+			if (pWnd == ((CXWnd*)this)->GetChildItem("BTR_BuyLineList"))
+			{
+				CListWnd *pListWnd = (CListWnd *)pWnd;
+				int colindex = (int)pData;
+				if (colindex == 1)//icons
+					colindex = 2;//so just sort by name...
+				if (colindex != 0)
+				{
+					if (pListWnd->SortCol == colindex)
+					{
+						pListWnd->bSortAsc = !pListWnd->bSortAsc;
+					}
+					else
+					{
+						pListWnd->SortCol = colindex;
+						pListWnd->bSortAsc = true;
+					}
+					BarterLastSortDirection = pListWnd->bSortAsc;
+					BarterLastSortIndex = pListWnd->SortCol;
+					pListWnd->Sort();
+					return 1;
+				}
+			}
+		}
+		else if (uiMessage == XWM_SORTREQUEST)
+		{
+			if (pWnd == ((CXWnd*)this)->GetChildItem("BTR_BuyLineList"))
+			{
+				SListWndSortInfo *pSI = (SListWndSortInfo *)pData;
 
+				CHAR *szLabel1 = new CHAR[MAX_STRING];
+				CHAR *szLabel2 = new CHAR[MAX_STRING];
+				switch (pSI->SortCol)
+				{
+				case 2://column 2 item name
+				{
+					GetCXStr(pSI->StrLabel1, szLabel1);
+					GetCXStr(pSI->StrLabel2, szLabel2);
+					pSI->SortResult = _stricmp(szLabel1, szLabel2);
+					break;
+				}
+				case 3://Count
+				{
+					GetCXStr(pSI->StrLabel1, szLabel1);
+					int int1 = atoi(szLabel1);
+					GetCXStr(pSI->StrLabel2, szLabel2);
+					int int2 = atoi(szLabel2);
+
+					if (int1 > int2)
+						pSI->SortResult = -1;
+					else if (int1 < int2)
+						pSI->SortResult = 1;
+					else
+						pSI->SortResult = 0;
+					break;
+				}
+				case 4://Offering
+				{
+					GetCXStr(pSI->StrLabel1, szLabel1);
+					int int1 = GetMoneyFromString(szLabel1);
+					GetCXStr(pSI->StrLabel2, szLabel2);
+					int int2 = GetMoneyFromString(szLabel2);
+
+					if (int1 > int2)
+						pSI->SortResult = -1;
+					else if (int1 < int2)
+						pSI->SortResult = 1;
+					else
+						pSI->SortResult = 0;
+					break;
+				}
+				}
+				delete szLabel1;
+				delete szLabel2;
+				return 1;
+			}
+		}
+		return CBarterWnd__WndNotification_Tramp(pWnd, uiMessage, pData);
+	}
+	int CBarterSearchWnd__WndNotification_Tramp(CXWnd*, uint32_t, void*);
+	int CBarterSearchWnd__WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
+	{
+		if (uiMessage == XWM_RCLICK)
+		{
+			if (pWnd == ((CXWnd*)this)->GetChildItem("BTRSRCH_InventoryList"))
+			{
+				CBarterSearchWnd* pBSWnd = (CBarterSearchWnd*)this;
+				CListWnd *pListWnd = (CListWnd *)pWnd;
+				int selIndex = pListWnd->GetCurSel();
+				if (selIndex != -1)
+				{
+					int searchIndex = (int)pListWnd->GetItemData(selIndex);
+					if (searchIndex < pBSWnd->InventoryItemsArray.Count)
+					{
+						if (PCONTENTS pCont = FindItemByID(pBSWnd->InventoryItemsArray[searchIndex].ItemID))
+						{
+							bool IsShiftPressed = (pWndMgr->GetKeyboardFlags() & 1U) != 0;
+							VePointer<CONTENTS>cont;
+							cont.pObject = pCont;
+							pItemDisplayManager->ShowItem(cont, !IsShiftPressed);
+						}
+					}
+				}
+				return 1;
+			}
+		}
+		else if (uiMessage == XWM_COLUMNCLICK)
+		{
+			if (pWnd == ((CXWnd*)this)->GetChildItem("BTRSRCH_InventoryList"))
+			{
+				CListWnd *pListWnd = (CListWnd *)pWnd;
+				int colindex = (int)pData;
+				if (colindex == 0)
+					colindex = 1;
+				if (pListWnd->SortCol == colindex)
+				{
+					pListWnd->bSortAsc = !pListWnd->bSortAsc;
+				}
+				else
+				{
+					pListWnd->SortCol = colindex;
+					pListWnd->bSortAsc = true;
+				}
+				BarterLastSortDirection = pListWnd->bSortAsc;
+				BarterLastSortIndex = pListWnd->SortCol;
+				pListWnd->Sort();
+				return 1;
+			}
+		}
+		else if (uiMessage == XWM_SORTREQUEST)
+		{
+			if (pWnd == ((CXWnd*)this)->GetChildItem("BTRSRCH_InventoryList"))
+			{
+				SListWndSortInfo *pSI = (SListWndSortInfo *)pData;
+
+				CHAR *szLabel1 = new CHAR[MAX_STRING];
+				CHAR *szLabel2 = new CHAR[MAX_STRING];
+				switch (pSI->SortCol)
+				{
+				case 1://column 2 item name
+				{
+					GetCXStr(pSI->StrLabel1, szLabel1);
+					GetCXStr(pSI->StrLabel2, szLabel2);
+					pSI->SortResult = _stricmp(szLabel1, szLabel2);
+					break;
+				}
+				case 2://Qty
+				{
+					GetCXStr(pSI->StrLabel1, szLabel1);
+					int int1 = atoi(szLabel1);
+					GetCXStr(pSI->StrLabel2, szLabel2);
+					int int2 = atoi(szLabel2);
+
+					if (int1 > int2)
+						pSI->SortResult = -1;
+					else if (int1 < int2)
+						pSI->SortResult = 1;
+					else
+						pSI->SortResult = 0;
+					break;
+				}
+				case 3://Value
+				{
+					GetCXStr(pSI->StrLabel1, szLabel1);
+					int int1 = GetMoneyFromString(szLabel1);
+					GetCXStr(pSI->StrLabel2, szLabel2);
+					int int2 = GetMoneyFromString(szLabel2);
+
+					if (int1 > int2)
+						pSI->SortResult = -1;
+					else if (int1 < int2)
+						pSI->SortResult = 1;
+					else
+						pSI->SortResult = 0;
+					break;
+				}
+				default:
+					delete szLabel1;
+					delete szLabel2;
+					return 0;
+				}
+				delete szLabel1;
+				delete szLabel2;
+				return 1;
+			}
+		}
+		return CBarterSearchWnd__WndNotification_Tramp(pWnd, uiMessage, pData);
+	}
+	void CBarterSearchWnd__UpdateInventoryList_Tramp();
+	void CBarterSearchWnd__UpdateInventoryList_Detour()
+	{
+		CBarterSearchWnd* pBSWnd = (CBarterSearchWnd*)this;
+		CBarterSearchWnd__UpdateInventoryList_Tramp();
+		if (CListWnd* list = (CListWnd*)((CXWnd*)this)->GetChildItem("BTRSRCH_InventoryList"))
+		{
+			if (BarterValueCol && list->Columns.Count > BarterValueCol)
+			{
+				/* we really need the list to fit to the window so people can actually see this new feature.
+				CXRect rectmain = ((CXWnd*)this)->GetClientRect();
+				CXWnd* layout = (CXWnd*)((CXWnd*)this)->GetChildItem("BTRSRCH_Layout");
+				//CXRect rectmain = ((CXWnd*)layout)->GetClientRect();
+				CXRect rect = ((CXWnd*)list)->GetClientRect();
+				DWORD TotalWidth = 0;
+				for (int i = 0; i < list->Columns.Count; i++)
+				{
+					TotalWidth += list->Columns[i].Width;
+				}
+				TotalWidth += 20;
+
+				DWORD mainwidth = rectmain.right - rectmain.left;
+				int newwidth = 0;
+
+				if (TotalWidth > rect.right - rect.left)
+				{
+					newwidth = TotalWidth - (rect.right - rect.left);
+					rect.right += newwidth;
+					rectmain.right += newwidth + 10;
+					((CXWnd*)list)->Move(rect, true, true, true, true);
+					//((CXWnd*)layout)->Move(rectmain, true, true, true, true);
+					//((CXWnd*)this)->Move(rectmain, false, false, false, false);
+				}*/
+				char* szTemp2 = new char[MAX_STRING];
+				char* szTemp3 = new char[MAX_STRING];
+
+				for (int i = 0; i < list->ItemsArray.Count && i < 900; i++)
+				{
+					int realindex = (int)list->GetItemData(i);
+					if (realindex < pBSWnd->InventoryItemsArray.Count)
+					{
+						if (PCONTENTS pCont = FindItemByID(pBSWnd->InventoryItemsArray[realindex].ItemID))
+						{
+							if (PITEMINFO pItem = GetItemFromContents(pCont))
+							{
+								/*maybe later it works but I don't have time to make a stting for it.
+								if (gColorsFeatureEnabled)
+								{
+									if (pItem->TradeSkills)
+									{
+										list->SetItemColor(i, 1, 0xFFFF00FF);
+									}
+									if (pItem->QuestItem)
+									{
+										list->SetItemColor(i, 1, 0xFFFFFF00);
+									}
+								}*/
+
+								if (pItem->Cost > 0)
+								{
+									int sellprice = ((EQ_Item*)pCont)->ValueSellMerchant((float)1.05, 1);
+									DWORD cp = sellprice;
+									DWORD sp = cp / 10; cp = cp % 10;
+									DWORD gp = sp / 10; sp = sp % 10;
+									DWORD pp = gp / 10; gp = gp % 10;
+									szTemp3[0] = '\0';
+
+									if (pp > 0)
+									{
+										sprintf_s(szTemp2, MAX_STRING, " %dp", pp);
+										strcat_s(szTemp3, MAX_STRING, szTemp2);
+									}
+									if (gp > 0)
+									{
+										sprintf_s(szTemp2, MAX_STRING, " %dg", gp);
+										strcat_s(szTemp3, MAX_STRING, szTemp2);
+									}
+									if (sp > 0)
+									{
+										sprintf_s(szTemp2, MAX_STRING, " %ds", sp);
+										strcat_s(szTemp3, MAX_STRING, szTemp2);
+									}
+									if (cp > 0)
+									{
+										sprintf_s(szTemp2, MAX_STRING, " %dc", cp);
+										strcat_s(szTemp3, MAX_STRING, szTemp2);
+									}
+								}
+								else
+								{
+									strcpy_s(szTemp3, MAX_STRING, "");
+								}
+
+								list->SetItemText(i, BarterValueCol, &CXStr(szTemp3));
+							}
+						}
+					}
+				}
+				delete szTemp2;
+				delete szTemp3;
+				list->bSortAsc = BarterLastSortDirection;
+				list->SortCol = BarterLastSortIndex;
+				list->Sort();
+			}
+		}
+	}
 	int CFindItemWnd__WndNotification_Tramp(CXWnd*, uint32_t, void*);
 	int CFindItemWnd__WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
 	{
@@ -470,6 +792,7 @@ public:
 
 					delete szLabel1;
 					delete szLabel2;
+					return 0;
 				}
 			}
 		}
@@ -1081,6 +1404,9 @@ public:
 DETOUR_TRAMPOLINE_EMPTY(void CSidlInitHook::Init_Trampoline(CXStr*, int));
 DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CTargetWnd__WndNotification_Tramp(CXWnd*, unsigned __int32, void*));
 DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CBankWnd__WndNotification_Tramp(CXWnd*, unsigned __int32, void*));
+DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CBarterSearchWnd__WndNotification_Tramp(CXWnd*, unsigned __int32, void*));
+DETOUR_TRAMPOLINE_EMPTY(void CSidlInitHook::CBarterSearchWnd__UpdateInventoryList_Tramp());
+DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CBarterWnd__WndNotification_Tramp(CXWnd*, unsigned __int32, void*));
 #if !defined(ROF2EMU) && !defined(UFEMU)
 DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CFindItemWnd__WndNotification_Tramp(CXWnd*, unsigned __int32, void*));
 DETOUR_TRAMPOLINE_EMPTY(void CSidlInitHook::CFindItemWnd__Update_Tramp());
@@ -1217,6 +1543,29 @@ int ListItemSlots(int argc, char *argv[]);
 
 void AddAutoBankMenu()
 {
+	if (BarterValueCol == 0)
+	{
+		//Add a Value sort column
+		if (CBarterSearchWnd *pBSW = (CBarterSearchWnd*)*(DWORD*)pinstCBarterSearchWnd)
+		{
+			if (CListWnd* list = (CListWnd*)((CXWnd*)pBSW)->GetChildItem("BTRSRCH_InventoryList"))
+			{
+				BarterLastSortIndex = list->SortCol;
+				BarterLastSortDirection = list->bSortAsc;
+				if (list->Columns.Count < 4)
+				{
+					CXStr Str = "Shows Merchant Value of item";
+					BarterValueCol = list->AddColumn(CXStr("Value"), nullptr, 160, 0, Str, 1, 0, 0, true, { 0,0 }, { 0,0 });
+					list->SetColumnJustification(BarterValueCol, 0);
+				}
+				else
+				{
+					SListWndColumn_RO col = list->Columns[4];
+					BarterValueCol = 4;
+				}
+			}
+		}
+	}
 #if !defined(ROF2EMU) && !defined(UFEMU)
 	if (OurCheckBoxMenuIndex == 0)
 	{
@@ -1431,6 +1780,25 @@ void AddAutoBankMenu()
 
 void RemoveAutoBankMenu()
 {
+	if (BarterValueCol)
+	{
+		if (CBarterSearchWnd *pBSW = (CBarterSearchWnd*)*(DWORD*)pinstCBarterSearchWnd)
+		{
+			if (CListWnd* list = (CListWnd*)pBSW->GetChildItem("BTRSRCH_InventoryList"))
+			{
+				if (BarterValueCol && list->Columns.Count > BarterValueCol)
+				{
+					list->Columns.DeleteElement(BarterValueCol);
+					BarterValueCol = 0;
+				}
+				list->bSortAsc = true;
+				list->SortCol = 1;
+				BarterLastSortIndex = list->SortCol;
+				BarterLastSortDirection = list->bSortAsc;
+				list->Sort();
+			}
+		}
+	}
 	if (CContextMenuManager* pMgr = pContextMenuManager)
 	{
 		if (OurDefaultMenuIndex != 0)
@@ -1511,6 +1879,10 @@ void InitializeMQ2Windows()
 #undef AddSlotArray
 	
 	EzDetourwName(CBankWnd__WndNotification, &CSidlInitHook::CBankWnd__WndNotification_Detour, &CSidlInitHook::CBankWnd__WndNotification_Tramp, "CBankWnd__WndNotification");
+	EzDetourwName(CBarterSearchWnd__WndNotification, &CSidlInitHook::CBarterSearchWnd__WndNotification_Detour, &CSidlInitHook::CBarterSearchWnd__WndNotification_Tramp, "CBarterSearchWnd__WndNotification");
+	EzDetourwName(CBarterSearchWnd__UpdateInventoryList, &CSidlInitHook::CBarterSearchWnd__UpdateInventoryList_Detour, &CSidlInitHook::CBarterSearchWnd__UpdateInventoryList_Tramp, "CBarterSearchWnd__UpdateInventoryList");
+	EzDetourwName(CBarterWnd__WndNotification, &CSidlInitHook::CBarterWnd__WndNotification_Detour, &CSidlInitHook::CBarterWnd__WndNotification_Tramp, "CBarterWnd__WndNotification");
+	
 #if !defined(ROF2EMU) && !defined(UFEMU)
 	EzDetourwName(CFindItemWnd__WndNotification, &CSidlInitHook::CFindItemWnd__WndNotification_Detour, &CSidlInitHook::CFindItemWnd__WndNotification_Tramp, "CFindItemWnd__WndNotification");
 	EzDetourwName(CFindItemWnd__Update, &CSidlInitHook::CFindItemWnd__Update_Detour, &CSidlInitHook::CFindItemWnd__Update_Tramp, "CFindItemWnd__Update");
@@ -1604,6 +1976,9 @@ void ShutdownMQ2Windows()
 #else
 	RemoveCommand("/autobank");
 #endif
+    RemoveDetour(CBarterWnd__WndNotification);
+    RemoveDetour(CBarterSearchWnd__UpdateInventoryList);
+    RemoveDetour(CBarterSearchWnd__WndNotification);
     RemoveDetour(CBankWnd__WndNotification);
 	RemoveAutoBankMenu();
 	RemoveDetour(CXMLSOMDocumentBase__XMLRead);
@@ -1613,6 +1988,7 @@ void ShutdownMQ2Windows()
 	RemoveDetour(__DoesFileExist);
 	RemoveDetour(CMemoryMappedFile__SetFile);
 	RemoveDetour(__eqgraphics_fopen);
+	
 	// for testing notifications, only for debugging
 	// dont leave active for release
 	//RemoveDetour(CChatWindow__WndNotification);

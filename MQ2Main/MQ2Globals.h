@@ -1167,6 +1167,9 @@ namespace MQ2Globals
 	
 	EQLIB_VAR DWORD CBankWnd__GetNumBankSlots;
 	EQLIB_VAR DWORD CBankWnd__WndNotification;
+	EQLIB_VAR DWORD CBarterSearchWnd__WndNotification;
+	EQLIB_VAR DWORD CBarterSearchWnd__UpdateInventoryList;
+	EQLIB_VAR DWORD CBarterWnd__WndNotification;
 	#if !defined(ROF2EMU) && !defined(UFEMU)
 	EQLIB_VAR DWORD CFindItemWnd__WndNotification;
 	EQLIB_VAR DWORD CFindItemWnd__Update;
@@ -1824,6 +1827,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CLargeDialogWnd__Open;
 	EQLIB_VAR DWORD CWndDisplayManager__FindWindowA;
 	EQLIB_VAR DWORD CItemDisplayManager__CreateWindowInstance;
+	EQLIB_VAR DWORD CItemDisplayManager__ShowItem;
 	EQLIB_VAR DWORD CCursorAttachment__AttachToCursor;
 	EQLIB_VAR DWORD CCursorAttachment__AttachToCursor1;
 	EQLIB_VAR DWORD CCursorAttachment__Deactivate;

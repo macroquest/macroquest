@@ -48,6 +48,7 @@ class CAchievementsWnd;
 class CRealEstateItemsWnd;
 class CAlarmWnd;
 class CBankWnd;
+class CBarterSearchWnd;
 class CBazaarSearchWnd;
 class CBazaarWnd;
 class CBodyTintWnd;
@@ -122,6 +123,7 @@ class CInvSlot;
 class CInvSlotMgr;
 class CInvSlotTemplate;
 class CInvSlotWnd;
+class CItemDisplayManager;
 class CItemDisplayWnd;
 class CJournalCatWnd;
 class CJournalNPCWnd;
@@ -1139,6 +1141,55 @@ EQLIB_OBJECT long CBankWnd::GetBankQtyFromCoinType(int);
 EQLIB_OBJECT void CBankWnd::ClickedMoneyButton(int,int);
 EQLIB_OBJECT void CBankWnd::Init(void);
 EQLIB_OBJECT void CBankWnd::UpdateMoneyDisplay(void);
+};
+struct InventoryItem
+{
+/*0x00*/ int	ItemID;
+/*0x04*/ int	Charges;
+/*0x08*/ int	Qty;
+/*0x0c*/ int	ItemIcon;
+/*0x10*/ CHAR	Name[0x40];
+/*0x50*/ 
+};
+struct BarterBuyerSearchData
+{
+/*0x00*/ int	ZoneID;
+/*0x04*/ UINT	UniquePlayerID;
+/*0x08*/ UINT	ZonePlayerID;
+/*0x0c*/ CHAR	Name[0x40];
+/*0x4c*/ 
+};
+
+struct BarterBuyLine
+{
+public:
+	//maybe later
+};
+class CBarterSearchWnd : public CSidlScreenWnd
+{
+public:
+/*0x000*/ HashTable<BarterBuyerSearchData> Buyers;//size 0x10
+/*0x010*/ CListWnd		*plistInventory;
+/*0x014*/ CListWnd		*plistBuyLines;
+/*0x018*/ CListWnd		*plistDetails;
+/*0x01c*/ CEditWnd		*peditSearch;
+/*0x020*/ CButtonWnd	*pbtnRefreshInventory;
+/*0x024*/ CButtonWnd	*pbtnSearch;
+/*0x028*/ CButtonWnd	*pbtnWelcome;
+/*0x02c*/ CButtonWnd	*pbtnGreeting;
+/*0x030*/ CButtonWnd	*pbtnFind;
+/*0x034*/ CButtonWnd	*pbtnHide;
+/*0x038*/ CButtonWnd	*pbtnBuyLineInspectItem;
+/*0x03c*/ CButtonWnd	*pbtnCompensationInspectItem;
+/*0x040*/ CButtonWnd	*pbtnCompensationPreviewItem;
+/*0x044*/ CButtonWnd	*pbtnSellButton;
+/*0x048*/ CComboWnd		*pcomboPlayersCombo;
+/*0x04c*/ void			*pLayout;//CLayoutWnd
+/*0x050*/ void			*pMatchLayout;//CLayoutWnd
+/*0x054*/ bool			NeedsUpdate;
+/*0x058*/ ArrayClass_RO<BarterBuyLine> BuyLinesArray;//size is 0x10
+/*0x068*/ ArrayClass2_RO<InventoryItem> InventoryItemsArray;//size 0x1c
+/*0x084*/ //more members that I dont need atm
 };
 
 class CBazaarSearchWnd : public CSidlScreenWnd
@@ -4017,6 +4068,7 @@ EQLIB_OBJECT int CInvSlotWnd::WndNotification(class CXWnd *,unsigned __int32,voi
 //EQLIB_OBJECT void * CInvSlotWnd::`vector deleting destructor'(unsigned int);
 EQLIB_OBJECT void CInvSlotWnd::SetAttributesFromSidl(class CParamScreenPiece *);
 };
+
 enum ItemDisplayFlags
 {
 	PREVENT_LINK = 0x00000001,
@@ -4330,10 +4382,12 @@ EQLIB_OBJECT void CWndDisplayManager::CloseAll();
 //virtual
 EQLIB_OBJECT int CreateWindowInstance();
 };
+
 class CItemDisplayManager : public CWndDisplayManager
 {
 public:
 EQLIB_OBJECT int CItemDisplayManager::CreateWindowInstance(void);
+EQLIB_OBJECT void CItemDisplayManager::ShowItem(const VePointer<CONTENTS>& Cont, int Flags);
 };
 
 class CLineBase

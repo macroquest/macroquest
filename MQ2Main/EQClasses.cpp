@@ -8390,6 +8390,9 @@ FUNCTION_AT_ADDRESS(int CWndDisplayManager::FindWindowA(bool bNewWnd),CWndDispla
 #ifdef CItemDisplayManager__CreateWindowInstance_x
 FUNCTION_AT_ADDRESS(int CItemDisplayManager::CreateWindowInstance(void),CItemDisplayManager__CreateWindowInstance);
 #endif
+#ifdef CItemDisplayManager__ShowItem_x
+FUNCTION_AT_ADDRESS(void CItemDisplayManager::ShowItem(const VePointer<CONTENTS>& Cont, int Flags), CItemDisplayManager__ShowItem);
+#endif
 #ifdef CSTMLboxTemplate__CSTMLboxTemplate_x
 FUNCTION_AT_ADDRESS( CSTMLboxTemplate::CSTMLboxTemplate(class CParamSTMLbox *),CSTMLboxTemplate__CSTMLboxTemplate);
 #endif
