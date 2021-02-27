@@ -5337,32 +5337,6 @@ void UserCameraCmd(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-void SetForegroundWindowInternal(HWND hWnd)
-{
-	if (!IsWindow(hWnd)) return;
-
-	BYTE keyState[256] = { 0 };
-	//to unlock SetForegroundWindow we need to imitate Alt pressing
-	if (GetKeyboardState((LPBYTE)& keyState))
-	{
-		if (!(keyState[VK_MENU] & 0x80))
-		{
-			keybd_event(VK_MENU, 0, KEYEVENTF_EXTENDEDKEY | 0, 0);
-		}
-	}
-
-	SetForegroundWindow(hWnd);
-	ShowWindow(hWnd, ::IsIconic(hWnd) ? SW_RESTORE : SW_SHOWNORMAL);
-
-	if (GetKeyboardState((LPBYTE)& keyState))
-	{
-		if (keyState[VK_MENU] & 0x80)
-		{
-			keybd_event(VK_MENU, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
-		}
-	}
-}
-
 // ***************************************************************************
 // Function:    ForeGroundCmd
 // Description: '/foreground' command
@@ -5375,21 +5349,21 @@ void ForeGroundCmd(SPAWNINFO* pChar, char* szLine)
 {
 	HWND EQhWnd = GetEQWindowHandle();
 
-	// Is this even necessary?
-	AllowSetForegroundWindow(GetCurrentProcessId());
-
-	if (EQhWnd)
-	{
-		SetForegroundWindowInternal(EQhWnd);
-	}
-	else
+	if (EQhWnd == nullptr)
 	{
 		if (EQW_GetDisplayWindow)
 			EQhWnd = EQW_GetDisplayWindow();
 		else
 			EQhWnd = *(HWND*)EQADDR_HWND;
+	}
 
-		SetForegroundWindowInternal(EQhWnd);
+	if (EQhWnd)
+	{
+		SwitchToThisWindow(EQhWnd, true);
+	}
+	else
+	{
+		WriteChatf("\ar/foreground failed to find window");
 	}
 }
 
