@@ -5359,7 +5359,8 @@ void ForeGroundCmd(SPAWNINFO* pChar, char* szLine)
 
 	if (EQhWnd)
 	{
-		SwitchToThisWindow(EQhWnd, true);
+		ShowWindow(EQhWnd, SW_MINIMIZE);
+		ShowWindow(EQhWnd, SW_RESTORE);
 	}
 	else
 	{
