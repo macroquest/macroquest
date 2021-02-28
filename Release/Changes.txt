@@ -1,4 +1,7 @@
 Feb 27 2021
+- Added pMarketplaceWnd and pPurchaseGroupWnd
+-
+Feb 27 2021
 - Added sorting capability to the /buyer buy lines list - Feature suggestion: Ladon
 - Added sorting capability to the /barter inventory list
 - Added a Value column to the /barter inventory list so we can sort by merchant value.

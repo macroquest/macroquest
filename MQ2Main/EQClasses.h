@@ -139,6 +139,7 @@ class CLoadskinWnd;
 class CLootWnd;
 class CMapToolbarWnd;
 class CMapViewWnd;
+class CMarketplaceWnd;
 class CMemoryStream;
 class PointMerchantWnd;
 class CMerchantWnd;
@@ -195,6 +196,7 @@ class CPetInfoWnd;
 class CPetitionQWnd;
 class CPlayerNotesWnd;
 class CPlayerWnd;
+class CPurchaseGroupWnd;
 class CPotionBeltWnd;
 class CBandolierWnd;
 class CQuantityWnd;
@@ -4940,6 +4942,10 @@ public:
 	int SliderType;
 	void *pHandler;//PointMerchantInterface*
 };
+class CMarketplaceWnd : public CSidlScreenWnd
+{
+	public:
+};
 
 class VeBaseReferenceCount
 {
@@ -6081,6 +6087,12 @@ EQLIB_OBJECT void CPlayerWnd::LoadIniInfo(void);
 EQLIB_OBJECT void CPlayerWnd::StoreIniInfo(void);
 // private
 EQLIB_OBJECT void CPlayerWnd::Init(void);
+};
+
+class CPurchaseGroupWnd : public CSidlScreenWnd
+{
+public:
+
 };
 
 class CPotionBeltWnd : public CSidlScreenWnd

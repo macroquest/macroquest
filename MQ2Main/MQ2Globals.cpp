@@ -191,6 +191,7 @@ namespace MQ2Globals
 		ppBreathWnd = (CBreathWnd**)pinstCBreathWnd;
 		ppMapToolbarWnd = (CMapToolbarWnd**)pinstCMapToolbarWnd;
 		ppMapViewWnd = (CMapViewWnd**)pinstCMapViewWnd;
+		ppMarketplaceWnd = (CMarketplaceWnd**)pinstCMarketplaceWnd;
 		ppEditLabelWnd = (CEditLabelWnd**)pinstCEditLabelWnd;
 		ppOptionsWnd = (COptionsWnd**)pinstCOptionsWnd;
 		ppBuffWindowSHORT = (CBuffWindow**)pinstCBuffWindowSHORT;
@@ -200,6 +201,7 @@ namespace MQ2Globals
 		ppCombatSkillsSelectWnd = (CCombatSkillsSelectWnd**)pinstCCombatSkillsSelectWnd;
 		ppHotButtonWnd = (CHotButtonWnd**)pinstCHotButtonWnd;
 		ppPlayerWnd = (CPlayerWnd**)pinstCPlayerWnd;
+		ppPurchaseGroupWnd = (CPurchaseGroupWnd**)pinstCPurchaseGroupWnd;
 		ppCastingWnd = (CCastingWnd**)pinstCCastingWnd;
 		ppCastSpellWnd = (CCastSpellWnd**)pinstCCastSpellWnd;
 		ppSpellBookWnd = (CSpellBookWnd**)pinstCSpellBookWnd;
@@ -1269,6 +1271,7 @@ namespace MQ2Globals
 	CBreathWnd **ppBreathWnd = 0;
 	CMapToolbarWnd **ppMapToolbarWnd = 0;
 	CMapViewWnd **ppMapViewWnd = 0;
+	CMarketplaceWnd **ppMarketplaceWnd = 0;
 	CEditLabelWnd **ppEditLabelWnd = 0;
 	COptionsWnd **ppOptionsWnd = 0;
 	CBuffWindow **ppBuffWindowSHORT = 0;
@@ -1278,6 +1281,7 @@ namespace MQ2Globals
 	CCombatSkillsSelectWnd **ppCombatSkillsSelectWnd = 0;
 	CHotButtonWnd **ppHotButtonWnd = 0;
 	CPlayerWnd **ppPlayerWnd = 0;
+	CPurchaseGroupWnd **ppPurchaseGroupWnd = 0;
 	CCastingWnd **ppCastingWnd = 0;
 	CCastSpellWnd **ppCastSpellWnd = 0;
 	CSpellBookWnd **ppSpellBookWnd = 0;
@@ -1542,11 +1546,15 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCRaidOptionsWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCBreathWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCMapViewWnd);
+	INITIALIZE_EQGAME_OFFSET(pinstCMarketplaceWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCMapToolbarWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCEditLabelWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCTargetWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCColorPickerWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCPlayerWnd);
+	#ifdef pinstCPurchaseGroupWnd_x
+	INITIALIZE_EQGAME_OFFSET(pinstCPurchaseGroupWnd);
+	#endif
 	INITIALIZE_EQGAME_OFFSET(pinstCOptionsWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCBuffWindowNORMAL);
 	INITIALIZE_EQGAME_OFFSET(pinstCBuffWindowSHORT);
