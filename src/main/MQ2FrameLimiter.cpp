@@ -535,7 +535,9 @@ public:
 	void UpdateSettingsPanel()
 	{
 		ImGui::Text("Status: "); ImGui::SameLine(0, 0);
-		if (m_lastInForeground.value_or(false))
+
+		// fake this value if not enabled because this boolean won't get set and has no meaning if frame limiter isn't enabled
+		if (IsEnabled() ? m_lastInForeground.value_or(false) : gbInForeground)
 			ImGui::TextColored(ImColor(0, 255, 0), "Foreground");
 		else
 			ImGui::TextColored(ImColor(255, 0, 0), "Background");
