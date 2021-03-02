@@ -791,8 +791,12 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 
 bool MQ2StringType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	strcpy_s(Destination, MAX_STRING, static_cast<const char*>(VarPtr.Ptr));
-	return true;
+	if (VarPtr.Ptr)
+	{
+		strcpy_s(Destination, MAX_STRING, static_cast<const char*>(VarPtr.Ptr));
+		return true;
+	}
+	return false;
 }
 
 void MQ2StringType::InitVariable(MQVarPtr& VarPtr)
