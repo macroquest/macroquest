@@ -45,7 +45,7 @@ bool MQ2PluginType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 	{
 	case PluginMembers::Name:
 		Dest.Type = pStringType;
-		Dest.Set(pPlugin->szFilename);
+		Dest.Ptr = pPlugin->szFilename;
 		return true;
 
 	case PluginMembers::Version:
