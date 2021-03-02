@@ -477,7 +477,6 @@ public:
 	void OnPulse()
 	{
 		m_needWaitRender = mq::test_and_set(m_lastGameState, gGameState);
-		bool updateForeground = mq::test_and_set(m_lastInForeground, gbInForeground || IsImGuiForeground());
 
 		m_cpuUsage.AddSample(static_cast<int64_t>(m_cpuUsageCalc.GetCurrentValue() * 1000));
 
@@ -506,6 +505,7 @@ public:
 		if (!IsEnabled())
 			return;
 
+		bool updateForeground = mq::test_and_set(m_lastInForeground, gbInForeground || IsImGuiForeground());
 		if (updateForeground)
 		{
 			UpdateForegroundState();
