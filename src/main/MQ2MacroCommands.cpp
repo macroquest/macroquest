@@ -1111,6 +1111,8 @@ void EndMacro(PSPAWNINFO pChar, char* szLine)
 		{
 			i++;
 			pBlock->CurrIndex = i->first;
+			// Force unpause to finish processing
+			pBlock->Paused = false;
 			if (gReturn)            // return to the macro the first time around
 			{
 				gReturn = false;    // We don't want to return the 2nd time.

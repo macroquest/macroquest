@@ -1,3 +1,7 @@
+Mar 01 2021
+- Fix :OnExit so that it processes even while paused.  This also fixes the behavior where you
+  would have to /endmac twice on a paused macro with an :OnExit routine
+
 Feb 16 2021
 - Added Plugin TLO boolean member IsLoaded
   Example:  ${Plugin[mq2lua].IsLoaded}

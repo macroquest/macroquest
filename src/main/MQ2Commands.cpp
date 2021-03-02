@@ -245,7 +245,7 @@ void MacroPause(SPAWNINFO* pChar, char* szLine)
 	MQMacroBlockPtr pBlock = GetCurrentMacroBlock();
 	if (!pBlock)
 	{
-		MacroError("You cannot pause a macro when one isn't running.");
+		MacroError("You cannot pause or unpause a macro when one isn't running.");
 		return;
 	}
 
