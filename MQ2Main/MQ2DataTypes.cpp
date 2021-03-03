@@ -14563,7 +14563,6 @@ bool MQ2FellowshipMemberType::GETMEMBER()
 	if (!pMember)
 		return false;
 	PFELLOWSHIPMEMBER pFellowshipMember = (PFELLOWSHIPMEMBER)VarPtr.Ptr;
-	PFELLOWSHIPINFO pFellowship = (PFELLOWSHIPINFO)VarPtr.Ptr;
 	switch ((FMTypeMembers)pMember->ID)
 	{
 	case Zone:
@@ -14600,22 +14599,20 @@ bool MQ2FellowshipMemberType::GETMEMBER()
 		Dest.Type = pStringType;
 		return true;
 	case Sharing:
-		if (ISINDEX())
+		Dest.DWord = 0;
+		Dest.Type = pBoolType;
+		if (PFELLOWSHIPINFO pFellowship = &((PSPAWNINFO)pLocalPlayer)->Fellowship)
 		{
-			if (ISNUMBER())
+			for (int i = 0; i < pFellowship->Members; i++)
 			{
-				int i = GETNUMBER();
-				i--;
-				if (i < 0)
-					i = 0;
-				if (i > pFellowship->Members)
-					return false;
-				Dest.DWord = pFellowship->bExpSharingEnabled[i];
-				Dest.Type = pBoolType;
-				return true;
+				if (pFellowshipMember->UniqueEntityID.GUID == pFellowship->FellowshipMember[i].UniqueEntityID.GUID)
+				{
+					Dest.DWord = pFellowship->bExpSharingEnabled[i];
+					break;
+				}
 			}
 		}
-		return false;
+		return true;
 	}
 
 	return false;
