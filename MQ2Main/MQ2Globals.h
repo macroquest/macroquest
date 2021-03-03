@@ -624,6 +624,7 @@ namespace MQ2Globals
 	EQLIB_VAR CMarketplaceWnd **ppMarketplaceWnd;
 	EQLIB_VAR CEditLabelWnd **ppEditLabelWnd;
 	EQLIB_VAR COptionsWnd **ppOptionsWnd;
+	EQLIB_VAR COverseerWnd **ppOverseerWnd;
 	EQLIB_VAR CBuffWindow **ppBuffWindowNORMAL;
 	EQLIB_VAR CBuffWindow **ppBuffWindowSHORT;
 	EQLIB_VAR CTargetWnd **ppTargetWnd;
@@ -742,6 +743,7 @@ namespace MQ2Globals
 #define pMarketplaceWnd (*ppMarketplaceWnd)
 #define pEditLabelWnd (*ppEditLabelWnd)
 #define pOptionsWnd (*ppOptionsWnd)
+#define pOverseerWnd (*ppOverseerWnd)
 #define pBuffWnd (*ppBuffWindowNORMAL)
 #define pSongWnd (*ppBuffWindowSHORT)
 #define pTargetWnd (*ppTargetWnd)
@@ -997,6 +999,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstCPlayerWnd;
 	EQLIB_VAR DWORD pinstCPurchaseGroupWnd;
 	EQLIB_VAR DWORD pinstCOptionsWnd;
+	EQLIB_VAR DWORD pinstCOverseerWnd;
 	EQLIB_VAR DWORD pinstCBuffWindowNORMAL;
 	EQLIB_VAR DWORD pinstCBuffWindowSHORT;
 	EQLIB_VAR DWORD pinstCharacterCreation;

@@ -194,6 +194,7 @@ namespace MQ2Globals
 		ppMarketplaceWnd = (CMarketplaceWnd**)pinstCMarketplaceWnd;
 		ppEditLabelWnd = (CEditLabelWnd**)pinstCEditLabelWnd;
 		ppOptionsWnd = (COptionsWnd**)pinstCOptionsWnd;
+		ppOverseerWnd = (COverseerWnd**)pinstCOverseerWnd;
 		ppBuffWindowSHORT = (CBuffWindow**)pinstCBuffWindowSHORT;
 		ppBuffWindowNORMAL = (CBuffWindow**)pinstCBuffWindowNORMAL;
 		ppTargetWnd = (CTargetWnd**)pinstCTargetWnd;
@@ -1274,6 +1275,7 @@ namespace MQ2Globals
 	CMarketplaceWnd **ppMarketplaceWnd = 0;
 	CEditLabelWnd **ppEditLabelWnd = 0;
 	COptionsWnd **ppOptionsWnd = 0;
+	COverseerWnd **ppOverseerWnd = 0;
 	CBuffWindow **ppBuffWindowSHORT = 0;
 	CBuffWindow **ppBuffWindowNORMAL = 0;
 	CTargetWnd **ppTargetWnd = 0;
@@ -1556,6 +1558,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCPurchaseGroupWnd);
 	#endif
 	INITIALIZE_EQGAME_OFFSET(pinstCOptionsWnd);
+	#ifdef pinstCOverseerWnd_x
+	INITIALIZE_EQGAME_OFFSET(pinstCOverseerWnd);
+	#endif
 	INITIALIZE_EQGAME_OFFSET(pinstCBuffWindowNORMAL);
 	INITIALIZE_EQGAME_OFFSET(pinstCBuffWindowSHORT);
 	INITIALIZE_EQGAME_OFFSET(pinstCharacterCreation);

@@ -151,6 +151,7 @@ class CMutexSyncCounted;
 class CNoteWnd;
 class ConversationJournal;
 class COptionsWnd;
+class COverseerWnd;
 class CPageTemplate;
 class CPageWnd;
 class CParam;
@@ -5359,6 +5360,12 @@ EQLIB_OBJECT void COptionsWnd::SyncDisplayPage(void);
 EQLIB_OBJECT void COptionsWnd::SyncGeneralPage(void);
 EQLIB_OBJECT void COptionsWnd::SyncMousePage(void);
 EQLIB_OBJECT void COptionsWnd::FillChatFilterList(void);
+};
+
+class COverseerWnd : public CSidlScreenWnd
+{
+public:
+
 };
 
 class CPageTemplate
