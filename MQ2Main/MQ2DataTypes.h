@@ -1279,6 +1279,7 @@ public:
 		CastTimeLeft = 316,
 		WarforgedEmblem = 317,
 		RestlessMark = 318,
+		LoyaltyTokens = 319,
 	};
 	enum CharacterMethods
 	{
@@ -1599,6 +1600,7 @@ public:
 		TypeMember(CastTimeLeft);//316
 		TypeMember(RestlessMark);
 		TypeMember(WarforgedEmblem);
+		TypeMember(LoyaltyTokens);
 
 		TypeMethod(Stand);
 		TypeMethod(Sit);

@@ -6857,6 +6857,10 @@ bool MQ2CharacterType::GETMEMBER()
 		}
 		return true;
 	}
+	case LoyaltyTokens:
+		Dest.DWord = pChar->LoyaltyRewardBalance;
+		Dest.Type = pIntType;
+		return true;
 	}
 
 
@@ -14559,6 +14563,7 @@ bool MQ2FellowshipMemberType::GETMEMBER()
 	if (!pMember)
 		return false;
 	PFELLOWSHIPMEMBER pFellowshipMember = (PFELLOWSHIPMEMBER)VarPtr.Ptr;
+	PFELLOWSHIPINFO pFellowship = (PFELLOWSHIPINFO)VarPtr.Ptr;
 	switch ((FMTypeMembers)pMember->ID)
 	{
 	case Zone:
@@ -14594,7 +14599,25 @@ bool MQ2FellowshipMemberType::GETMEMBER()
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
+	case Sharing:
+		if (ISINDEX())
+		{
+			if (ISNUMBER())
+			{
+				int i = GETNUMBER();
+				i--;
+				if (i < 0)
+					i = 0;
+				if (i > pFellowship->Members)
+					return false;
+				Dest.DWord = pFellowship->bExpSharingEnabled[i];
+				Dest.Type = pBoolType;
+				return true;
+			}
+		}
+		return false;
 	}
+
 	return false;
 }
 

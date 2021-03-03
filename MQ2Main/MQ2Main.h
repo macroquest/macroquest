@@ -65,7 +65,7 @@ GNU General Public License for more details.
 #if !defined(ISXEQ) && !defined(ISXEQ_LEGACY)
 // MQ2
 #include "..\Dxsdk90\include\dinput.h"
-#include "..\Detours\inc\detours.h" 
+#include "..\Detours\inc\detours.h"
 #include "..\Blech\Blech.h"
 #elif !defined(ISXEQ_LEGACY)
 // ISXEQ
@@ -637,7 +637,7 @@ EQLIB_API __int64 GetGuildIDByName(PCHAR szGuild);
 EQLIB_API PCHAR GetGuildByID(DWORD GuildID);
 EQLIB_API DWORD GetGuildIDByName(PCHAR szGuild);
 #endif
-extern std::map<int, std::string>targetBuffSlotToCasterMap; 
+extern std::map<int, std::string>targetBuffSlotToCasterMap;
 extern std::map<int, std::map<int,cTargetBuff>>CachedBuffsMap;
 EQLIB_API PCONTENTS GetEnviroContainer();
 EQLIB_API CContainerWnd *FindContainerForContents(PCONTENTS pContents);
@@ -995,6 +995,8 @@ EQLIB_API MercenaryAlternateAdvancementManagerClient *GetMercAltAbilities();
 EQLIB_API bool Anonymize(char *name, int maxlen, int bNameFlag = 0);
 EQLIB_API void UpdatedMasterLooterLabel();
 //EQLIB_API EQGroundItemListManager *GetItemList();
+
+EQLIB_API bool TargetBuffCastByMe(const char* pBuff);
 
 EQLIB_API int MQ2ExceptionFilter(unsigned int code, struct _EXCEPTION_POINTERS* ex, const char * description, ...);
 inline PCHAR ISXEQArgToMQ2Arg(int argc, char *argv[], char *szTemp, size_t size)

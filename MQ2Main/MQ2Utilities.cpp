@@ -12160,3 +12160,20 @@ void PrettifyNumber(char* string, size_t bufferSize, int decimals /* = 0 */)
 		string,
 		bufferSize);
 }
+
+bool TargetBuffCastByMe(const char* pBuffName) {
+	lockit lk(ghCachedBuffsLock);
+	uint32_t buffID = 0;
+	for (const auto& x : targetBuffSlotToCasterMap) {
+		if (!_stricmp(((PSPAWNINFO)pLocalPlayer)->Name, x.second.c_str())) {
+			if (x.first < NUM_BUFF_SLOTS)
+			{
+				buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[x.first];
+				if (!_stricmp(GetSpellNameByID(buffID), pBuffName)) {
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
