@@ -785,7 +785,7 @@ GNU General Public License for more details.
 #define CTabWnd__RemovePage_x                                      0x99B990
 #define CTabWnd__SetPage_x                                         0x99B6D0
 //inlined but we can probably call it jan 25 2021
-#define CTabWnd__SetPageRect_x                                     0x99C030
+#define CTabWnd__SetPageRect_x                                     0x99BBC0
 #define CTabWnd__UpdatePage_x                                      0x99C030
 #define CTabWnd__GetPageFromTabIndex_x                             0x99C180
 #define CTabWnd__GetCurrentTabIndex_x                              0x99B410
