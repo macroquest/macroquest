@@ -101,7 +101,7 @@ CItemLocation* ItemFind(CItemLocation* pItemFound, char* pcItemName, unsigned sh
 		{
 			if ((iIsNum && iItemID == pItem2->GetID()) || (!iIsNum && !_stricmp(pcItemName, pItem2->GetName())))
 			{
-				pItemFound->InvSlot = pItem2->Contents.ItemSlot;
+				pItemFound->InvSlot = pItem2->GetItemLocation().GetTopSlot();
 				pItemFound->BagSlot = -1;
 				pItemFound->pInvSlot = pItem2;
 				pItemFound->pBagSlot = pItem2;
@@ -117,8 +117,8 @@ CItemLocation* ItemFind(CItemLocation* pItemFound, char* pcItemName, unsigned sh
 					{
 						if ((iIsNum && iItemID == pBagSlot->GetID()) || (!iIsNum && !_stricmp(pcItemName, pBagSlot->GetName())))
 						{
-							pItemFound->InvSlot = pBagSlot->Contents.ItemSlot;
-							pItemFound->BagSlot = pBagSlot->Contents.ItemSlot2;
+							pItemFound->InvSlot = pItem2->GetItemLocation().GetTopSlot();
+							pItemFound->BagSlot = pItem2->GetItemLocation().GetSlot(1);
 							pItemFound->pInvSlot = pItem2;
 							pItemFound->pBagSlot = pBagSlot.get();
 							pItemFound->pItem = pBagSlot.get();

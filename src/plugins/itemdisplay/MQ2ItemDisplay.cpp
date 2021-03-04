@@ -2412,9 +2412,8 @@ void InsertAug(SPAWNINFO* pChar, char* szLine)
 			index = pItemDisplayManager->CreateWindowInstance();
 		}
 
-		if (index >= 0 && index < pItemDisplayManager->GetCount())
+		if (CItemDisplayWnd* itemDis = pItemDisplayManager->GetWindow(index))
 		{
-			auto itemDis = pItemDisplayManager->GetWindow(index);
 			itemDis->SetItem(pTargetItem, 0);
 
 			ItemDefinition* pAugDef = pAugItem->GetItemDefinition();

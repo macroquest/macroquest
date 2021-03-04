@@ -50,13 +50,11 @@ auto Any(Predicates&&... predicates)
 template <typename T, typename U>
 bool test_and_set(T& target, U&& value)
 {
-	if (target != value)
-	{
-		target = std::forward<U>(value);
-		return true;
-	}
+	if (target == value)
+		return false;
 
-	return false;
+	target = std::forward<U>(value);
+	return true;
 }
 
 } // namespace mq

@@ -21,47 +21,68 @@ namespace mq {
 struct MQColor
 {
 	// default is opaque black
-	MQLIB_OBJECT constexpr MQColor()
+	constexpr MQColor()
 		: Red(0)
 		, Green(0)
 		, Blue(0)
 		, Alpha(255)
 	{}
 
-	MQLIB_OBJECT constexpr MQColor(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255)
+	constexpr MQColor(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255)
 		: Blue(blue)
 		, Green(green)
 		, Red(red)
 		, Alpha(alpha)
 	{}
 
-	MQLIB_OBJECT constexpr MQColor(uint32_t argbcolor)
+	constexpr MQColor(const MQColor& other)
+		: ARGB(other.ARGB)
+	{}
+
+	constexpr MQColor& operator=(uint32_t argbcolor)
+	{
+		ARGB = argbcolor;
+		return *this;
+	}
+
+	constexpr MQColor& operator=(const MQColor& other)
+	{
+		ARGB = other.ARGB;
+		return *this;
+	}
+
+	constexpr MQColor(uint32_t argbcolor)
 		: ARGB(argbcolor)
 	{}
 
-	MQLIB_OBJECT constexpr operator ARGBCOLOR() const
+	constexpr operator ARGBCOLOR() const
 	{
 		ARGBCOLOR color = { 0 };
 		color.ARGB = ARGB;
 		return color;
 	}
 
-	MQLIB_OBJECT constexpr operator COLORREF() const
+	constexpr operator COLORREF() const
 	{
 		return ARGB;
 	}
 
-	MQLIB_OBJECT constexpr operator uint32_t() const
+	constexpr operator uint32_t() const
 	{
 		return ARGB;
 	}
 
-	MQLIB_OBJECT constexpr uint32_t ToRGBA8() const
+	constexpr uint32_t ToRGBA8() const
 	{
 		return (((uint32_t)(Alpha) << 24)
 			| ((uint32_t)(Blue) << 16)
 			| ((uint32_t)(Green) << 8)
 			| ((uint32_t)(Red) << 0));
+	}
+
+	constexpr uint32_t ToRGB() const
+	{
+		return ARGB & 0xffffff;
 	}
 
 	// Layout matches ARGBCOLOR
@@ -78,6 +99,16 @@ struct MQColor
 		uint32_t ARGB = 0;
 	};
 };
+
+inline bool operator==(const MQColor& left, const MQColor& right)
+{
+	return left.ARGB == right.ARGB;
+}
+
+inline bool operator!=(const MQColor& left, const MQColor& right)
+{
+	return left.ARGB != right.ARGB;
+}
 
 // Get the MQColor for a given chat color. Respects user preference if
 // it is available.
