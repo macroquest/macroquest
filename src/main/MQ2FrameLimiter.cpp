@@ -278,9 +278,11 @@ __declspec(naked) static void Throttler_Detour()
 	{
 		call ShouldDoThrottle;
 		cmp eax, eax;
-		jz Throttler_Trampoline;
+		jz call_to_trampoline
 		mov eax, __ThrottleFrameRateEnd;
 		jmp eax;
+	call_to_trampoline:
+		jmp Throttler_Trampoline;
 	}
 }
 
