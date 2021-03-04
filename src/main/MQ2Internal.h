@@ -639,6 +639,40 @@ namespace detail {
 
 	template <typename T>
 	struct shared_ptr_element_type<std::shared_ptr<T>> { using type = typename std::shared_ptr<T>::element_type;  };
+
+	template <typename From, typename To>
+	static void ConvertData(const From& input, std::optional<To>& output)
+	{
+		if constexpr (std::is_convertible_v<From, To>)
+			output = static_cast<To>(input);
+		else
+		{
+			WriteChatf("Tried to convert unlike types %s and %s", type_name<From>().c_str(), type_name<To>().c_str());
+
+			if (gMacroBlock != nullptr)
+			{
+				WriteChatf("%s: %d", gMacroBlock->Line.at(gMacroBlock->CurrIndex).SourceFile.c_str(), gMacroBlock->Line.at(gMacroBlock->CurrIndex).LineNumber);
+			}
+
+			if (gMacroStack != nullptr)
+			{
+				char buf[MAX_STRING];
+				WriteChatf("%s", GetSubFromLine(gMacroStack->LocationIndex, buf, MAX_STRING));
+			}
+		}
+	}
+}
+
+template <typename T>
+static constexpr auto type_name() noexcept
+{
+	std::string_view name = __FUNCSIG__
+		, prefix = "auto __cdecl mq::type_name<"
+		, suffix = ">(void) noexcept";
+
+	name.remove_prefix(prefix.size());
+	name.remove_suffix(suffix.size());
+	return std::string(name);
 }
 
 struct MQVarPtr
@@ -647,10 +681,7 @@ struct MQVarPtr
 		void*,
 		bool,
 		float,
-		int32_t,
-		uint32_t,
 		double,
-		int64_t,
 		uint64_t,
 		std::shared_ptr<void>,
 		CXStr
@@ -663,10 +694,7 @@ struct MQVarPtr
 		Ptr = 0,
 		Bool,
 		Float,
-		Int32,
-		UInt32,
 		Double,
-		Int64,
 		UInt64,
 		ComplexObject,
 		String
@@ -683,43 +711,19 @@ struct MQVarPtr
 	}
 
 	template <typename T>
-	static constexpr auto type_name() noexcept
-	{
-		std::string_view name = __FUNCSIG__
-			, prefix = "auto __cdecl mq::MQVarPtr::type_name<"
-			, suffix = ">(void) noexcept";
-
-		name.remove_prefix(prefix.size());
-		name.remove_suffix(suffix.size());
-		return std::string(name);
-	}
-
-	template <typename T>
 	T Cast() const
 	{
-		std::optional<T> value;
+		using ToType = T;
+		std::optional<ToType> to;
 
-		auto visitor = [&value, this](const auto& val)
+		auto visitor = [&to, this](const auto& from)
 		{
-			using U = std::decay_t<decltype(val)>;
-
-			if constexpr (std::is_convertible_v<U, T>)
-				value = static_cast<T>(val);
-			else
-			{
-				WriteChatf("Tried to convert unlike types %s and %s", type_name<T>().c_str(), type_name<U>().c_str());
-				if (gMacroBlock != nullptr)
-					WriteChatf("%s: %d", gMacroBlock->Line.at(gMacroBlock->CurrIndex).SourceFile.c_str(), gMacroBlock->Line.at(gMacroBlock->CurrIndex).LineNumber);
-				if (gMacroStack != nullptr)
-				{
-					char buf[MAX_STRING];
-					WriteChatf("%s", GetSubFromLine(gMacroStack->LocationIndex, buf, MAX_STRING));
-				}
-			}
+			using FromType = std::decay_t<decltype(from)>;
+			detail::ConvertData<FromType, ToType>(from, to);
 		};
 
 		std::visit(visitor, Data);
-		return value.value_or(T());
+		return to.value_or(ToType());
 	}
 
 	template <typename T>
@@ -776,25 +780,35 @@ struct MQVarPtr
 		return std::get<CXStr>(Data);
 	}
 
-#define MQVARPTR_SPECIALIZE(Type) \
-template<> struct ReturnType<Type> { using type = Type; }; \
-template<> Type Set<Type>(Type Val) { return std::get<Type>(Data = Val); } \
-template<> Type Get<Type>() const { return Cast<Type>(); }
+	// Specializations for integer types
+#define MQVARPTR_INTSPECIALIZE(Type) \
+	template <> struct ReturnType<Type> { using type = Type; }; \
+	template <> Type Set<Type>(Type Val) { return static_cast<Type>(std::get<uint64_t>(Data = static_cast<uint64_t>(Val))); } \
+	template <> Type Get<Type>() const { return static_cast<Type>(Cast<uint64_t>()); }
+	MQVARPTR_INTSPECIALIZE(int8_t);
+	MQVARPTR_INTSPECIALIZE(uint8_t);
+	MQVARPTR_INTSPECIALIZE(int16_t);
+	MQVARPTR_INTSPECIALIZE(uint16_t);
+	MQVARPTR_INTSPECIALIZE(int32_t);
+	MQVARPTR_INTSPECIALIZE(uint32_t);
+	MQVARPTR_INTSPECIALIZE(int64_t);
+#undef MQVARPTR_INTSPECIALIZE
 
+#define MQVARPTR_SPECIALIZE(Type) \
+	template<> struct ReturnType<Type> { using type = Type; }; \
+	template<> Type Set<Type>(Type Val) { return std::get<Type>(Data = Val); } \
+	template<> Type Get<Type>() const { return Cast<Type>(); }
 	MQVARPTR_SPECIALIZE(void*);
 	MQVARPTR_SPECIALIZE(bool);
 	MQVARPTR_SPECIALIZE(float);
-	MQVARPTR_SPECIALIZE(int32_t);
-	MQVARPTR_SPECIALIZE(uint32_t);
 	MQVARPTR_SPECIALIZE(double);
-	MQVARPTR_SPECIALIZE(int64_t);
 	MQVARPTR_SPECIALIZE(uint64_t);
+#undef MQVARPTR_SPECIALIZE
 
 #define MQVARPTR_PROPERTIES(Type, Prop) \
-Type set_##Prop(Type Val) { return Set<Type>(Val); } \
-Type get_##Prop() const { return Get<Type>(); } \
-__declspec(property(get = get_##Prop, put = set_##Prop)) Type Prop;
-
+	Type set_##Prop(Type Val) { return Set<Type>(Val); } \
+	Type get_##Prop() const { return Get<Type>(); } \
+	__declspec(property(get = get_##Prop, put = set_##Prop)) Type Prop;
 	// TODO: Future work -- deprecate all of these in favor of Get/Set
 	MQVARPTR_PROPERTIES(void*, Ptr);
 	MQVARPTR_PROPERTIES(float, Float);
@@ -803,6 +817,7 @@ __declspec(property(get = get_##Prop, put = set_##Prop)) Type Prop;
 	MQVARPTR_PROPERTIES(double, Double);
 	MQVARPTR_PROPERTIES(int64_t, Int64);
 	MQVARPTR_PROPERTIES(uint64_t, UInt64);
+#undef MQVARPTR_PROPERTIES
 
 	// TODO: Future work -- uncomment the deprecates and refactor all uses of high/low part
 	// these are here only to support deprecated functionality where some types rely on storing ints in low and high parts
@@ -833,9 +848,8 @@ __declspec(property(get = get_##Prop, put = set_##Prop)) Type Prop;
 		return Set<uint32_t>(Val);
 	}
 
-#pragma warning(disable: 4996)
+#pragma warning(suppress: 4996)
 	__declspec(property(get = get_LowPart, put = set_LowPart)) uint32_t LowPart;
-#pragma warning(default: 4996)
 
 	// HighPart is slightly more complicated, but only just. We just save off the HighPart in this member variable unless
 	// the underlying data is uint64_t -- and we will prefer to store the uint32_t variant when setting
@@ -894,6 +908,39 @@ __declspec(property(get = get_##Prop, put = set_##Prop)) Type Prop;
 	}
 
 	__declspec(property(get = get_Argb, put = set_Argb)) ARGBCOLOR Argb;
+
+	MQVarPtr() = default;
+
+	MQVarPtr(const MQVarPtr& other)
+		: Data(other.Data)
+	{
+	}
+
+	MQVarPtr(MQVarPtr&& other)
+		: Data(std::move(other.Data))
+	{
+	}
+
+	MQVarPtr& operator=(MQVarPtr&& other)
+	{
+		Data = std::move(other.Data);
+		return *this;
+	}
+
+	MQVarPtr& operator=(const MQVarPtr& other)
+	{
+		Data = other.Data;
+		return *this;
+	}
+
+	template <typename T>
+	static MQVarPtr Create(T&& Data)
+	{
+		MQVarPtr VarPtr;
+		VarPtr.Set(std::forward<T>(Data));
+		return VarPtr;
+	}
+
 };
 using MQ2VARPTR DEPRECATE("Use MQVarPtr instead of MQ2VARPTR.") = MQVarPtr;
 using PMQ2VARPTR DEPRECATE("Use MQVarPtr* instead of PMQ2VARPTR.") = MQVarPtr*;
