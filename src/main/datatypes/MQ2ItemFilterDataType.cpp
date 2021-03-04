@@ -143,7 +143,7 @@ bool MQ2ItemFilterDataType::ToString(MQVarPtr VarPtr, char* Destination)
 	return false;
 }
 
-bool MQ2ItemFilterDataType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2ItemFilterDataType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pItemFilterDataType)
 		return false;

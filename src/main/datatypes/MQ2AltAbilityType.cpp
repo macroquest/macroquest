@@ -255,7 +255,7 @@ bool MQ2AltAbilityType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2AltAbilityType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2AltAbilityType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pAltAbilityType)
 		return false;

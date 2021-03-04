@@ -43,9 +43,8 @@ public:
 
 	MQLIB_OBJECT void InitializeMembers(MQTypeMember* MemberArray);
 
-	virtual bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) { return false; }
+	virtual bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) { return false; }
 	virtual bool FromString(MQVarPtr& VarPtr, const char* Source) { return false; }
-
 
 	virtual void InitVariable(MQVarPtr& VarPtr)
 	{
@@ -90,6 +89,12 @@ public:
 	// your GetMember function to take a const char* as the second parameter.
 	virtual bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) final {
 		return GetMember(VarPtr, (const char*)Member, Index, Dest);
+	}
+
+	// If you encounter an error here, you've derived from MQ2Type and implemented FromData using a non-const Source. Change
+	// your FromData function to take a const MQTypeVar& as the second parameter.
+	virtual bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) final {
+		return FromData(VarPtr, (const MQTypeVar&)Source);
 	}
 
 protected:
@@ -152,7 +157,8 @@ public:
 	MQ2BoolType() : MQ2Type("bool") {}
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 
 	// ${Bool[...]}
@@ -169,7 +175,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 
 	// ${Int[...]}
@@ -186,7 +193,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 };
 
@@ -199,7 +207,8 @@ public:
 	MQ2ArgbType();
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 };
 
@@ -214,7 +223,8 @@ public:
 	// pure type, no members
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 };
 
@@ -228,9 +238,10 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
 	void InitVariable(MQVarPtr& VarPtr) override;
 	void FreeVariable(MQVarPtr& VarPtr) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 };
 
@@ -244,7 +255,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 
 	static bool dataFloat(const char* szIndex, MQTypeVar& Ret);
@@ -260,7 +272,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 };
 
@@ -274,7 +287,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 };
 
@@ -288,7 +302,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 };
 
@@ -302,6 +317,7 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
 	void InitVariable(MQVarPtr& VarPtr) override;
 	void FreeVariable(MQVarPtr& VarPtr) override;
 };
@@ -316,7 +332,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 
 	static bool dataRange(const char* szIndex, MQTypeVar& Ret);
 };
@@ -331,7 +348,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 
 	static bool dataType(const char* szIndex, MQTypeVar& Ret);
@@ -348,9 +366,10 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
 	void InitVariable(MQVarPtr& VarPtr) override;
 	void FreeVariable(MQVarPtr& VarPtr) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 
 	static bool dataTime(const char* szIndex, MQTypeVar& Ret);
 };
@@ -365,7 +384,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 
 	static bool dataHeading(const char* szIndex, MQTypeVar& Ret);
@@ -388,7 +408,6 @@ public:
 	static bool dataAlert(const char* szIndex, MQTypeVar& Ret);
 };
 
-
 #pragma endregion
 
 //============================================================================
@@ -403,7 +422,7 @@ public:
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	void InitVariable(MQVarPtr& VarPtr) override;
 	void FreeVariable(MQVarPtr& VarPtr) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 
 	static bool dataSpawn(const char* szIndex, MQTypeVar& Ret);
@@ -421,9 +440,9 @@ class MQ2CharacterType : public MQ2Type
 public:
 	MQ2CharacterType();
 
-	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
-	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	virtual bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
 
 	static bool dataCharacter(const char* szIndex, MQTypeVar& Ret);
 };
@@ -438,9 +457,10 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
 	void InitVariable(MQVarPtr& VarPtr) override;
 	void FreeVariable(MQVarPtr& VarPtr) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 
 	static bool dataSpell(const char* szIndex, MQTypeVar& Ret);
 };
@@ -455,7 +475,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 };
 
 //============================================================================
@@ -468,7 +489,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 };
 
 //============================================================================
@@ -481,9 +503,10 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
 	void InitVariable(MQVarPtr& VarPtr) override;
 	void FreeVariable(MQVarPtr& VarPtr) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 };
 
 //============================================================================
@@ -496,9 +519,10 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
 	void InitVariable(MQVarPtr& VarPtr) override;
 	void FreeVariable(MQVarPtr& VarPtr) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 
 	static bool dataCursor(const char* szIndex, MQTypeVar& Ret);
 	static bool dataSelectedItem(const char* szIndex, MQTypeVar& Ret);
@@ -518,7 +542,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 
 	static bool dataSwitch(const char* szIndex, MQTypeVar& Ret);
@@ -535,7 +560,7 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 
 	static bool dataGroundItem(const char* szIndex, MQTypeVar& Ret);
@@ -646,7 +671,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 
 	static bool dataWindow(const char* szIndex, MQTypeVar& Ret);
@@ -662,7 +688,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 
 	static bool dataMenu(const char* szIndex, MQTypeVar& Ret);
 };
@@ -691,7 +718,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 
 	static bool dataZone(const char* szIndex, MQTypeVar& Ret);
 };
@@ -706,7 +734,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 };
 
 //============================================================================
@@ -773,7 +802,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 };
 
@@ -787,7 +817,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 };
 
@@ -800,9 +831,9 @@ public:
 	MQ2BodyType();
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
-
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 };
 
@@ -816,7 +847,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 };
 
@@ -830,7 +862,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 
 	static bool dataInvSlot(const char* szIndex, MQTypeVar& Ret);
@@ -846,7 +879,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 
 	static bool dataPlugin(const char* szIndex, MQTypeVar& Ret);
 };
@@ -861,7 +895,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 
 	static bool dataSkill(const char* szIndex, MQTypeVar& Ret);
 };
@@ -876,7 +911,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 
 	static bool dataAltAbility(const char* szIndex, MQTypeVar& Ret);
 };
@@ -891,9 +927,10 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
 	void InitVariable(MQVarPtr& VarPtr) override;
 	void FreeVariable(MQVarPtr& VarPtr) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 };
 
@@ -921,7 +958,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 };
 
 //============================================================================
@@ -948,7 +986,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 };
 
 //============================================================================
@@ -1093,7 +1132,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 };
 
@@ -1123,7 +1163,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 };
 
 //============================================================================
@@ -1150,7 +1191,8 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 };
 
 //============================================================================

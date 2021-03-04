@@ -284,7 +284,7 @@ bool MQ2SwitchType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2SwitchType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2SwitchType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type == pSwitchType)
 	{

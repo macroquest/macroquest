@@ -134,7 +134,7 @@ bool MQ2CachedBuffType::ToString(MQVarPtr VarPtr, char* Destination)
 	return false;
 }
 
-bool MQ2CachedBuffType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2CachedBuffType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	VarPtr.Ptr = Source.Ptr;
 	VarPtr.HighPart = Source.HighPart;

@@ -19,8 +19,7 @@ namespace mq::datatypes {
 
 enum class GroupMembers
 {
-	Address = 1,
-	Member,
+	Member = 1,
 	Members,
 	Leader,
 	GroupSize,
@@ -44,7 +43,6 @@ enum class GroupMembers
 
 MQ2GroupType::MQ2GroupType() : MQ2Type("group")
 {
-	ScopedTypeMember(GroupMembers, Address);
 	ScopedTypeMember(GroupMembers, Member);
 	ScopedTypeMember(GroupMembers, Members);
 	ScopedTypeMember(GroupMembers, Leader);
@@ -87,11 +85,6 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	switch (static_cast<GroupMembers>(pMember->ID))
 	{
-	case GroupMembers::Address:
-		Dest.DWord = (uint32_t)pCharData->Group;
-		Dest.Type = pIntType;
-		return true;
-
 	case GroupMembers::Member:
 		Dest.DWord = 0;
 		Dest.Type = pGroupMemberType;
@@ -421,8 +414,7 @@ bool MQ2GroupType::dataGroup(const char* szIndex, MQTypeVar& Ret)
 
 enum class GroupMemberMembers
 {
-	Address = 1,
-	Name,
+	Name = 1,
 	Leader,
 	Spawn,
 	Level,
@@ -441,7 +433,6 @@ enum class GroupMemberMembers
 
 MQ2GroupMemberType::MQ2GroupMemberType() : MQ2Type("groupmember")
 {
-	ScopedTypeMember(GroupMemberMembers, Address);
 	ScopedTypeMember(GroupMemberMembers, Name);
 	ScopedTypeMember(GroupMemberMembers, Leader);
 	ScopedTypeMember(GroupMemberMembers, Spawn);
@@ -526,11 +517,6 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 
 	switch (static_cast<GroupMemberMembers>(pMember->ID))
 	{
-	case GroupMemberMembers::Address:
-		Dest.DWord = (DWORD)pGroupMemberData;
-		Dest.Type = pIntType;
-		return true;
-
 	case GroupMemberMembers::Name:
 		strcpy_s(DataTypeTemp, CleanupName(MemberName, sizeof(MemberName), false, false));
 		Dest.Type = pStringType;
@@ -705,7 +691,7 @@ bool MQ2GroupMemberType::ToString(MQVarPtr VarPtr, char* Destination)
 	return false;
 }
 
-bool MQ2GroupMemberType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2GroupMemberType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pGroupMemberType)
 		return false;

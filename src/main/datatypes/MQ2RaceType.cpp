@@ -61,7 +61,7 @@ bool MQ2RaceType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2RaceType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2RaceType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	VarPtr.DWord = Source.DWord;
 	return true;

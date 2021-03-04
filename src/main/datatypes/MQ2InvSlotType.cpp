@@ -364,7 +364,7 @@ bool MQ2InvSlotType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2InvSlotType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2InvSlotType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	VarPtr.DWord = Source.DWord;
 	return true;

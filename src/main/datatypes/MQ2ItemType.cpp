@@ -1827,7 +1827,7 @@ void MQ2ItemType::FreeVariable(MQVarPtr& VarPtr)
 	VarPtr.Ptr = nullptr;
 }
 
-bool MQ2ItemType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2ItemType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pItemType)
 		return false;

@@ -378,7 +378,7 @@ bool MQ2AdvLootItemType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2AdvLootItemType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2AdvLootItemType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pAdvLootItemType)
 		return false;

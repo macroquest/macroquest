@@ -176,7 +176,7 @@ bool MQ2CurrentZoneType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2CurrentZoneType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2CurrentZoneType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pCurrentZoneType)
 		return false;

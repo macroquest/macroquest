@@ -223,16 +223,6 @@ public:
 		strcpy_s(Destination, 128, gContentsItemStrings[index].WindowTitle.c_str());
 		return true;
 	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, const char* Source) override
-	{
-		return false;
-	}
 };
 
 bool dataLastItem(const char* szName, MQTypeVar& Ret)

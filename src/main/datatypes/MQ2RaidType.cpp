@@ -490,7 +490,7 @@ bool MQ2RaidMemberType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2RaidMemberType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2RaidMemberType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pRaidMemberType)
 		return false;

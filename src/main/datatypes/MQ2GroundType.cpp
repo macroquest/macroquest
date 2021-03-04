@@ -31,7 +31,6 @@ enum class GroundMembers
 	W,
 	U,
 	LineOfSight,
-	Address,
 	DisplayName,
 	Distance3D,
 	SubID,
@@ -310,7 +309,7 @@ bool MQ2GroundType::FromString(MQVarPtr& VarPtr, const char* Source)
 	return false;
 }
 
-bool MQ2GroundType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2GroundType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pGroundType)
 		return false;

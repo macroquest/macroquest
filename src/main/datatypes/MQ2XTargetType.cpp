@@ -129,7 +129,7 @@ bool MQ2XTargetType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2XTargetType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2XTargetType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type == pSpawnType)
 	{

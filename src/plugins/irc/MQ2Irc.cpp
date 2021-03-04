@@ -907,9 +907,6 @@ public:
 		TypeMember(Channel);
 		TypeMember(Nick);
 	}
-	~MQ2IrcType()
-	{
-	}
 
 	bool MQ2IrcType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
 	{
@@ -950,16 +947,6 @@ public:
 		else
 			strcpy_s(Destination, MAX_STRING, "FALSE");
 		return true;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, const char* Source) override
-	{
-		return false;
 	}
 };
 MQ2IrcType* pIrcType = nullptr;

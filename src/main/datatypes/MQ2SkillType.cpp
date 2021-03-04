@@ -160,7 +160,7 @@ bool MQ2SkillType::ToString(MQVarPtr VarPtr, char* Destination)
 	return false;
 }
 
-bool MQ2SkillType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2SkillType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pSkillType)
 		return false;

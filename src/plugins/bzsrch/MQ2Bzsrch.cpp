@@ -253,22 +253,13 @@ public:
 		VarPtr.DWord = 0;
 	}
 
-	virtual void FreeVariable(MQVarPtr& VarPtr) override
-	{
-	}
-
-	virtual bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
+	virtual bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override
 	{
 		if (Source.Type != pBazaarItemType)
 			return false;
 
 		VarPtr.DWord = Source.DWord;
 		return true;
-	}
-
-	virtual bool FromString(MQVarPtr& VarPtr, const char* Source) override
-	{
-		return false;
 	}
 };
 
@@ -381,16 +372,6 @@ public:
 			strcpy_s(Destination, MAX_STRING, "FALSE");
 
 		return true;
-	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, const char* Source) override
-	{
-		return false;
 	}
 
 	static bool dataBazaar(const char* szName, MQTypeVar& Ret)

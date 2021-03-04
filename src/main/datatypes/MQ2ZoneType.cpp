@@ -88,7 +88,7 @@ bool MQ2ZoneType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2ZoneType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2ZoneType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type == pZoneType)
 	{

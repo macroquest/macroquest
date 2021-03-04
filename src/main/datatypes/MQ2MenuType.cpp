@@ -234,7 +234,7 @@ bool MQ2MenuType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2MenuType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2MenuType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pMenuType)
 		return false;

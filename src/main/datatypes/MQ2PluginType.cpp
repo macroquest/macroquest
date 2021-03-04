@@ -119,7 +119,7 @@ bool MQ2PluginType::ToString(MQVarPtr VarPtr, char* Destination)
 	return false;
 }
 
-bool MQ2PluginType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2PluginType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pPluginType)
 		return false;
