@@ -13,7 +13,9 @@
  */
 
 #include <mq/Plugin.h>
+
 #include "MQ2Map.h"
+#include "MapObject.h"
 
 #include <sstream>
 #include <algorithm>
@@ -28,7 +30,7 @@
 //              Sets map filters
 // Usage:       /mapfilter [options|help]
 // ***************************************************************************
-void MapFilterSetting(SPAWNINFO* pChar, DWORD nMapFilter, const char* szValue)
+void MapFilterSetting(SPAWNINFO* pChar, MapFilter nMapFilter, const char* szValue /* = nullptr */)
 {
 	if (!pChar) return;
 
@@ -42,10 +44,11 @@ void MapFilterSetting(SPAWNINFO* pChar, DWORD nMapFilter, const char* szValue)
 		nullptr
 	};
 
-	MAPFILTER* pMapFilter = &MapFilterOptions[nMapFilter];
+	MapFilterOption* pMapFilter = &MapFilterOptions[static_cast<size_t>(nMapFilter)];
 	if (!RequirementsMet(nMapFilter))
 	{
-		WriteChatf("'%s' requires '%s' option.  Please enable this option first.", pMapFilter->szName, MapFilterOptions[pMapFilter->RequiresOption].szName);
+		MapFilterOption& option = MapFilterOptions[static_cast<size_t>(pMapFilter->RequiresOption)];
+		WriteChatf("'%s' requires '%s' option.  Please enable this option first.", pMapFilter->szName, option.szName);
 		return;
 	}
 
@@ -57,7 +60,7 @@ void MapFilterSetting(SPAWNINFO* pChar, DWORD nMapFilter, const char* szValue)
 		{
 			sprintf_s(szBuffer, "%s: %s", pMapFilter->szName, szFilterMap[pMapFilter->Enabled]);
 		}
-		else if (nMapFilter == MAPFILTER_Custom)
+		else if (nMapFilter == MapFilter::Custom)
 		{
 			if (IsOptionEnabled(nMapFilter) == 0)
 			{
@@ -73,12 +76,11 @@ void MapFilterSetting(SPAWNINFO* pChar, DWORD nMapFilter, const char* szValue)
 			sprintf_s(szBuffer, "%s: %d", pMapFilter->szName, pMapFilter->Enabled);
 		}
 
-		if (pMapFilter->DefaultColor != -1)
+		// FIXME: Use a flag to indicate that filter has a color
+		if (pMapFilter->DefaultColor.ARGB != -1)
 		{
-			DWORD R = (pMapFilter->Color & 0xFF0000) / 0x10000;
-			DWORD G = (pMapFilter->Color & 0xFF00) / 0x100;
-			DWORD B = pMapFilter->Color & 0xFF;
-			WriteChatf("%s (Color: %d %d %d)", szBuffer, R, G, B);
+			WriteChatf("%s (Color: %d %d %d)", szBuffer, pMapFilter->Color.Red,
+				pMapFilter->Color.Green, pMapFilter->Color.Blue);
 		}
 		else
 		{
@@ -91,72 +93,74 @@ void MapFilterSetting(SPAWNINFO* pChar, DWORD nMapFilter, const char* szValue)
 		{
 			if (!_stricmp(szFilterMap[0], szValue))
 			{
-				pMapFilter->Enabled = 0;
+				pMapFilter->Enabled = false;
 			}
 			else if (!_stricmp(szFilterMap[1], szValue))
 			{
-				pMapFilter->Enabled = 1;
+				pMapFilter->Enabled = true;
 			}
 			else
 			{
-				pMapFilter->Enabled = 1 - pMapFilter->Enabled;
+				pMapFilter->Enabled = !pMapFilter->Enabled;
 			}
+
 			WriteChatf("%s is now set to: %s", pMapFilter->szName, szFilterMap[IsOptionEnabled(nMapFilter)]);
 		}
-		else if (nMapFilter == MAPFILTER_Custom)
+		else if (nMapFilter == MapFilter::Custom)
 		{
 			ClearSearchSpawn(&MapFilterCustom);
 			if (szValue[0] == 0)
 			{
-				pMapFilter->Enabled = 0;
+				pMapFilter->Enabled = false;
 				WriteChatf("%s is now set to: Off", pMapFilter->szName);
 			}
 			else
 			{
-				pMapFilter->Enabled = 1;
+				pMapFilter->Enabled = true;
 				ParseSearchSpawn(szValue, &MapFilterCustom);
 
 				WriteChatf("%s is now set to: %s", pMapFilter->szName, FormatSearchSpawn(Buff, sizeof(Buff), &MapFilterCustom));
 			}
 		}
-		else if (nMapFilter == MAPFILTER_Marker)
+		else if (nMapFilter == MapFilter::Marker)
 		{
 			char szBuffer2[MAX_STRING] = { 0 };
 			GetArg(szBuffer2, szValue, 1);
 
 			if (!_stricmp(szFilterMap[0], szValue))
 			{
-				pMapFilter->Enabled = 0;
+				pMapFilter->Enabled = false;
 				WriteChatf("%s is now set to: %s", pMapFilter->szName, szFilterMap[IsOptionEnabled(nMapFilter)]);
 			}
 			else if (!_stricmp(szFilterMap[1], szValue))
 			{
-				pMapFilter->Enabled = 1;
+				pMapFilter->Enabled = true;
 				WriteChatf("%s is now set to: %s", pMapFilter->szName, szFilterMap[IsOptionEnabled(nMapFilter)]);
 			}
 			else
 			{
-				pMapFilter->Enabled = 1;
+				pMapFilter->Enabled = true;
 				WriteChatf("%s %s", pMapFilter->szName, FormatMarker(szValue, Buff, sizeof(Buff)));
 			}
 		}
 		else
 		{
-			pMapFilter->Enabled = GetIntFromString(szValue, 0);
+			pMapFilter->Radius = GetFloatFromString(szValue, 0.0f);
+			pMapFilter->Enabled = pMapFilter->Radius > 0.0f;
 
-			if (pMapFilter->Enabled && !_stricmp(pMapFilter->szName, "CampRadius"))
+			if (pMapFilter->Radius > 0.0f && !_stricmp(pMapFilter->szName, "CampRadius"))
 			{
 				CampX = pChar->X;
 				CampY = pChar->Y;
 			}
 
-			if (pMapFilter->Enabled && !_stricmp(pMapFilter->szName , "PullRadius"))
+			if (pMapFilter->Radius > 0.0f && !_stricmp(pMapFilter->szName , "PullRadius"))
 			{
 				PullX = pChar->X;
 				PullY = pChar->Y;
 			}
 
-			WriteChatf("%s is now set to: %d", pMapFilter->szName, pMapFilter->Enabled);
+			WriteChatf("%s is now set to: %.2f", pMapFilter->szName, pMapFilter->Radius);
 		}
 	}
 
@@ -179,10 +183,12 @@ void MapFilters(SPAWNINFO* pChar, char* szLine)
 		WriteChatColor("Map filtering settings:");
 		WriteChatColor("-----------------------");
 
-		for (DWORD i = 0; MapFilterOptions[i].szName != nullptr; i++)
+		for (uint32_t i = 0; MapFilterOptions[i].szName != nullptr; i++)
 		{
-			if (RequirementsMet(i))
-				MapFilterSetting(pChar, i);
+			MapFilter mf = static_cast<MapFilter>(i);
+
+			if (RequirementsMet(mf))
+				MapFilterSetting(pChar, mf);
 		}
 	}
 	else if (!_strnicmp(szArg, "help", 4)) // Display Help
@@ -198,53 +204,49 @@ void MapFilters(SPAWNINFO* pChar, char* szLine)
 	}
 	else // Set Option
 	{
-		MAPFILTER* Found = nullptr;
-		for (DWORD i = 0; MapFilterOptions[i].szName != nullptr; i++)
+		MapFilterOption* Found = nullptr;
+		for (uint32_t i = 0; MapFilterOptions[i].szName != nullptr; i++)
 		{
-			if (!_stricmp(szArg, MapFilterOptions[i].szName))
+			MapFilterOption& option = MapFilterOptions[i];
+
+			if (!_stricmp(szArg, option.szName))
 			{
 				if (!_strnicmp(szRest, "color", 5))
 				{
-					if (MapFilterOptions[i].DefaultColor == -1)
+					// FIXME: Change this to be a flag
+					if (option.DefaultColor.ARGB == -1)
 					{
-						WriteChatf("Option '%s' does not have a color.", MapFilterOptions[i].szName);
+						WriteChatf("Option '%s' does not have a color.", option.szName);
 					}
 					else
 					{
-						DWORD R, G, B;
 						char szBuffer2[MAX_STRING] = { 0 };
 						GetArg(szArg, szRest, 2);
 
+						MQColor& color = option.Color;
+
 						if (szArg[0] == 0)
 						{
-							MapFilterOptions[i].Color = MapFilterOptions[i].DefaultColor;
+							option.Color = option.DefaultColor;
 						}
 						else
 						{
-							R = GetIntFromString(szArg, 256);
-							G = GetIntFromString(GetArg(szArg, szRest, 3), 256);
-							B = GetIntFromString(GetArg(szArg, szRest, 4), 256);
-							if (R > 255) R = 255;
-							if (G > 255) G = 255;
-							if (B > 255) B = 255;
-							MapFilterOptions[i].Color = R * 0x10000 + G * 0x100 + B;
+							uint8_t R = std::clamp(GetIntFromString(szArg, 255), 0, 255);
+							uint8_t G = std::clamp(GetIntFromString(GetArg(szArg, szRest, 3), 255), 0, 255);
+							uint8_t B = std::clamp(GetIntFromString(GetArg(szArg, szRest, 4), 255), 0, 255);
+							color = MQColor(R, G, B);
 						}
 
-						WriteChatf("Option '%s' color set to: %d %d %d", MapFilterOptions[i].szName, R, G, B);
-
-						WritePrivateProfileInt("Map Filters",
-							fmt::format("{}-Color", MapFilterOptions[i].szName),
-							MapFilterOptions[i].Color & 0xFFFFFF, INIFileName);
-
-						MapFilterOptions[i].Color |= 0xFF000000;
+						WriteChatf("Option '%s' color set to: %d %d %d", option.szName, color.Red, color.Green, color.Blue);
+						WritePrivateProfileInt("Map Filters", fmt::format("{}-Color", option.szName), option.Color.ToRGB(), INIFileName);
 					}
 				}
 				else
 				{
-					MapFilterSetting(pChar, i, szRest);
+					MapFilterSetting(pChar, static_cast<MapFilter>(i), szRest);
 				}
 
-				Found = &MapFilterOptions[i];
+				Found = &option;
 			}
 		}
 
@@ -459,7 +461,7 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 				return;
 			}
 
-			auto targetLoc = GetTargetLoc();
+			CVector3 targetLoc{ pTarget->X, pTarget->Y, pTarget->Z };
 
 			std::stringstream sslocx;
 			sslocx << std::fixed << std::setprecision(0) << targetLoc.X;
@@ -554,99 +556,117 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 		}
 	}
 
-	// Get or create MAPLOC entry in LocationMap
-	MAPLOC* loc;
-	if (LocationMap.count(tag) > 0)
-	{
-		loc = LocationMap[tag];
-	}
-	else
-	{
-		loc = new MAPLOC{};
-		loc->tag = tag;
-		loc->lineSize = DefaultMapLoc->lineSize;
-		loc->width = DefaultMapLoc->width;
-		loc->r_color = DefaultMapLoc->r_color;
-		loc->g_color = DefaultMapLoc->g_color;
-		loc->b_color = DefaultMapLoc->b_color;
-		loc->radius = DefaultMapLoc->radius;
-		loc->rr_color = DefaultMapLoc->rr_color;
-		loc->rg_color = DefaultMapLoc->rg_color;
-		loc->rb_color = DefaultMapLoc->rb_color;
-	}
-
 	std::stringstream MapLocVars;
 	MapLocVars << "MapLoc: ";
 
-	if (size[0] != 0)
-	{
-		loc->lineSize = GetIntFromString(size, DefaultMapLoc->lineSize);
-	}
-	if (width[0] != 0)
-	{
-		loc->width = GetIntFromString(width, DefaultMapLoc->width);
-	}
-	if (red[0] != 0)
-	{
-		loc->r_color = GetIntFromString(red, DefaultMapLoc->r_color);
-		loc->g_color = GetIntFromString(green, DefaultMapLoc->g_color);
-		loc->b_color = GetIntFromString(blue, DefaultMapLoc->b_color);
-	}
-	if (radius[0] != 0)
-	{
-		loc->radius = GetIntFromString(radius, DefaultMapLoc->radius);
-	}
-	if (radius_red[0] != 0)
-	{
-		loc->rr_color = GetIntFromString(radius_red, DefaultMapLoc->rr_color);
-		loc->rg_color = GetIntFromString(radius_green, DefaultMapLoc->rg_color);
-		loc->rb_color = GetIntFromString(radius_blue, DefaultMapLoc->rb_color);
-	}
+	// Init params either from MapLoc with matching tag, or the defaults.
+	MapLocParams params;
 
-	// Are we placing a new MapLoc?
-	if (strcmp(yloc, "not set") != 0)
+	MapObjectMapLoc* origLoc = GetMapLocByTag(tag);
+	if (origLoc)
 	{
-		loc->yloc = static_cast<int>(std::stof(yloc));
-		loc->xloc = static_cast<int>(std::stof(xloc));
-		loc->zloc = static_cast<int>(std::stof(zloc));
-		loc->isCreatedFromDefaultLoc = isDefaultLocSettings;
-		MapLocVars << "y:" << loc->yloc << " x:" << loc->xloc << " z:" << loc->zloc;
-
-		if (label[0] != 0)
-		{
-			loc->label = label;
-			MapLocVars << ", Label: " << label;
-		}
-
-		LocationMap[tag] = loc;
-		AddMapLocToList(loc);
-		UpdateMapLocIndexes();
-		UpdateMapLoc(loc);
+		params = origLoc->GetParams();
 	}
 	else
 	{
+		params = gDefaultMapLocParams;
+	}
+
+	if (size[0] != 0)
+	{
+		//loc->lineSize = GetIntFromString(size, DefaultMapLoc->lineSize);
+		params.lineSize = GetFloatFromString(size, gDefaultMapLocParams.lineSize);
+	}
+
+	if (width[0] != 0)
+	{
+		//loc->width = GetIntFromString(width, DefaultMapLoc->width);
+		params.width = GetFloatFromString(width, gDefaultMapLocParams.width);
+	}
+
+	if (red[0] != 0)
+	{
+		//loc->r_color = GetIntFromString(red, DefaultMapLoc->r_color);
+		//loc->g_color = GetIntFromString(green, DefaultMapLoc->g_color);
+		//loc->b_color = GetIntFromString(blue, DefaultMapLoc->b_color);
+		params.color = MQColor{
+			(uint8_t)GetIntFromString(red, gDefaultMapLocParams.color.Red),
+			(uint8_t)GetIntFromString(green, gDefaultMapLocParams.color.Green),
+			(uint8_t)GetIntFromString(blue, gDefaultMapLocParams.color.Blue)
+		};
+	}
+
+	if (radius[0] != 0)
+	{
+		//loc->radius = GetIntFromString(radius, DefaultMapLoc->radius);
+		params.circleRadius = GetFloatFromString(radius, gDefaultMapLocParams.circleRadius);
+	}
+
+	if (radius_red[0] != 0)
+	{
+		//loc->rr_color = GetIntFromString(radius_red, DefaultMapLoc->rr_color);
+		//loc->rg_color = GetIntFromString(radius_green, DefaultMapLoc->rg_color);
+		//loc->rb_color = GetIntFromString(radius_blue, DefaultMapLoc->rb_color);
+		params.circleColor = MQColor{
+			(uint8_t)GetIntFromString(radius_red, gDefaultMapLocParams.circleColor.Red),
+			(uint8_t)GetIntFromString(radius_green, gDefaultMapLocParams.circleColor.Green),
+			(uint8_t)GetIntFromString(radius_blue, gDefaultMapLocParams.circleColor.Blue)
+		};
+	}
+
+	// Updating an existing thing
+	if (origLoc)
+	{
+		origLoc->UpdateFromParams(params);
+	}
+
+	// not updating an existing thing. and we aren't placing a location, so update the defaults
+	else if (strcmp(yloc, "not set") != 0)
+	{
+		gDefaultMapLocParams = params;
 		MapLocVars << "DefaultLoc";
 
 		// If we aren't placing a loc, then the values are updates to the default. Persist them.
-		WritePrivateProfileInt("MapLoc", "Size", loc->lineSize, INIFileName);
-		WritePrivateProfileInt("MapLoc", "Width", loc->width, INIFileName);
-		WritePrivateProfileInt("MapLoc", "Red", loc->r_color, INIFileName);
-		WritePrivateProfileInt("MapLoc", "Green", loc->g_color, INIFileName);
-		WritePrivateProfileInt("MapLoc", "Blue", loc->b_color, INIFileName);
-		WritePrivateProfileInt("MapLoc", "Radius", loc->radius, INIFileName);
-		WritePrivateProfileInt("MapLoc", "RadiusGreen", loc->rg_color, INIFileName);
-		WritePrivateProfileInt("MapLoc", "RadiusRed", loc->rr_color, INIFileName);
-		WritePrivateProfileInt("MapLoc", "RadiusBlue", loc->rb_color, INIFileName);
-		UpdateDefaultMapLoc();
+		WritePrivateProfileFloat("MapLoc", "Size", params.lineSize, INIFileName);
+		WritePrivateProfileFloat("MapLoc", "Width", params.width, INIFileName);
+		WritePrivateProfileInt("MapLoc", "Red", params.color.Red, INIFileName);
+		WritePrivateProfileInt("MapLoc", "Green", params.color.Green, INIFileName);
+		WritePrivateProfileInt("MapLoc", "Blue", params.color.Blue, INIFileName);
+		WritePrivateProfileFloat("MapLoc", "Radius", params.circleRadius, INIFileName);
+		WritePrivateProfileInt("MapLoc", "RadiusRed", params.circleColor.Red, INIFileName);
+		WritePrivateProfileInt("MapLoc", "RadiusGreen", params.circleColor.Green, INIFileName);
+		WritePrivateProfileInt("MapLoc", "RadiusBlue", params.circleColor.Blue, INIFileName);
+
+		UpdateDefaultMapLocInstances();
+	}
+
+	// we are placing a new MapLoc.
+	else
+	{
+		// FIXME: exception handling?
+		CVector3 pos{ std::stof(yloc), std::stof(xloc), std::stof(zloc) };
+
+		MakeMapLoc(params, label, tag, pos, isDefaultLocSettings);
+
+		MapLocVars
+			<< "y:" << pos.Y
+			<< " x:" << pos.X
+			<< " z:" << pos.Z;
+
+		if (label[0] != 0)
+		{
+			MapLocVars << ", Label: " << label;
+		}
 	}
 
 	if (!isDefaultLocSettings)
 	{
-		MapLocVars << ", Width:" << loc->width
-			<< ", Size:" << loc->lineSize
-			<< ", Color:" << loc->r_color << "," << loc->g_color << "," << loc->b_color
-			<< ", Radius:" << loc->radius
-			<< ", Radius Color:" << loc->rr_color << "," << loc->rg_color << "," << loc->rb_color;
+		MapLocVars
+			<< ", Width:" << params.width
+			<< ", Size:" << params.lineSize
+			<< ", Color:" << params.color.Red << "," << params.color.Green << "," << params.color.Blue
+			<< ", Radius:" << params.circleRadius
+			<< ", Radius Color:" << params.circleColor.Red << "," << params.circleColor.Green << "," << params.circleColor.Blue;
 	}
 
 	WriteChatf("%s", MapLocVars.str().c_str());
@@ -711,7 +731,7 @@ void MapHighlightCmd(SPAWNINFO* pChar, char* szLine)
 		unsigned char R = GetIntFromString(red, 255);
 		unsigned char G = GetIntFromString(green, 255);
 		unsigned char B = GetIntFromString(blue, 255);
-		HighlightColor = 0xFF000000 | (R << 16) | (G << 8) | (B);
+		HighlightColor = MQColor(R, G, B);
 
 		WriteChatf("Highlight color: %d %d %d", R, G, B);
 		return;
@@ -1094,12 +1114,12 @@ char* FormatMarker(const char* szLine, char* szDest, size_t BufferSize)
 		return szDest;
 	}
 
-	for (DWORD i = 0; MapFilterOptions[i].szName != nullptr; i++)
+	for (uint32_t i = 0; MapFilterOptions[i].szName != nullptr; i++)
 	{
 		if (!_stricmp(MarkType, MapFilterOptions[i].szName))
 		{
-			int Marker = FindMarker(MarkShape);
-			if (Marker == 99)
+			MarkerType Marker = FindMarker(MarkShape);
+			if (Marker == MarkerType::Unknown)
 			{
 				sprintf_s(szDest, BufferSize, "unchanged, unknown shape: '%s'", MarkShape);
 				return szDest;
@@ -1116,13 +1136,13 @@ char* FormatMarker(const char* szLine, char* szDest, size_t BufferSize)
 				}
 			}
 
-			WritePrivateProfileString("Marker Filters", MapFilterOptions[i].szName, szMarkType[Marker], INIFileName);
+			WritePrivateProfileString("Marker Filters", MapFilterOptions[i].szName, szMarkType[static_cast<size_t>(Marker)], INIFileName);
 			WritePrivateProfileInt("Marker Filters", fmt::format("{}-Size", MapFilterOptions[i].szName), Size, INIFileName);
 
 			MapFilterOptions[i].Marker = Marker;
 			MapFilterOptions[i].MarkerSize = Size;
 
-			sprintf_s(szDest, BufferSize, "'%s' is now set to '%s' with size %d.", MapFilterOptions[i].szName, szMarkType[Marker], Size);
+			sprintf_s(szDest, BufferSize, "'%s' is now set to '%s' with size %d.", MapFilterOptions[i].szName, szMarkType[static_cast<size_t>(Marker)], Size);
 			return szDest;
 		}
 	}

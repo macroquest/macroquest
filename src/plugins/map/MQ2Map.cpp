@@ -13,7 +13,9 @@
  */
 
 #include <mq/Plugin.h>
+
 #include "MQ2Map.h"
+#include "MapObject.h"
 
 #include <sstream>
 
@@ -23,7 +25,7 @@ long repeatLast = 0;
 long repeatInterval = 10;
 clock_t highPulseRepeatLast = clock();
 long highPulseRepeatIntervalMillis = 50;
-unsigned long bmMapRefresh = 0;
+uint32_t bmMapRefresh = 0;
 int activeLayer = 2;
 float CampX = 0.0f;
 float CampY = 0.0f;
@@ -33,12 +35,13 @@ bool Update = true;
 uint16_t currentZoneId = 0;
 bool repeatMaphide = false;
 bool repeatMapshow = false;
-DWORD HighlightColor = 0xFF700070;
+MQColor HighlightColor = MQColor(112, 0, 112);
 int HighlightSIDELEN = 100;
 bool HighlightPulse = false;
 bool HighlightPulseIncreasing = true;
 int HighlightPulseIndex = 0;
 int HighlightPulseDiff = HighlightSIDELEN / 10;
+extern MapObject* gpActiveMapObjects;
 
 #define INVALID_FLOOR ((float)-1.0e27)
 
@@ -89,47 +92,50 @@ char maphideStr[MAX_STRING] = { "" };
 MQSpawnSearch MapFilterCustom;
 MQSpawnSearch MapFilterNamed;
 
-MAPFILTER MapFilterOptions[] =
-{
-	{ "All",          TRUE,  (DWORD)-1,         TRUE,  (DWORD)MAPFILTER_Invalid, TRUE,  "Enables/disables map functions" },
-	{ "PC",           FALSE, (DWORD)0xFF00FF,   TRUE,  MAPFILTER_All,            TRUE,  "Displays PCs" },
-	{ "PCConColor",   FALSE, (DWORD)-1,         TRUE,  MAPFILTER_PC,             FALSE, "Displays PCs in consider colors" },
-	{ "Group",        FALSE, (DWORD)0x0080C0,   TRUE,  MAPFILTER_PC,             FALSE, "Displays group members in a specific color" },
-	{ "Mount",        FALSE, (DWORD)0x707070,   TRUE,  MAPFILTER_All,            TRUE,  "Displays mounts" },
-	{ "NPC",          FALSE, (DWORD)0x404040,   TRUE,  MAPFILTER_All,            TRUE,  "Displays NPCs" },
-	{ "NPCConColor",  FALSE, (DWORD)-1,         TRUE,  MAPFILTER_NPC,            FALSE, "Displays NPCs in consider colors" },
-	{ "Untargetable", FALSE, (DWORD)0x404040,   TRUE,  MAPFILTER_All,            TRUE,  "Displays Untargetable NPCs" },
-	{ "Pet",          FALSE, (DWORD)0x707070,   TRUE,  MAPFILTER_All,            TRUE,  "Displays pets" },
-	{ "Corpse",       FALSE, (DWORD)0x00C000,   TRUE,  MAPFILTER_All,            TRUE,  "Displays corpses" },
-	{ "Chest",        FALSE, (DWORD)0xC08000,   TRUE,  MAPFILTER_All,            TRUE,  "Displays chests" },
-	{ "Trigger",      FALSE, (DWORD)0xC08000,   TRUE,  MAPFILTER_All,            TRUE,  "Displays hidden triggers" },
-	{ "Trap",         FALSE, (DWORD)0xC08000,   TRUE,  MAPFILTER_All,            TRUE,  "Displays hidden traps" },
-	{ "Timer",        FALSE, (DWORD)0xC08000,   TRUE,  MAPFILTER_All,            TRUE,  "Displays hidden timers" },
-	{ "Ground",       FALSE, (DWORD)0xC0C0C0,   TRUE,  MAPFILTER_All,            TRUE,  "Displays ground items" },
-	{ "Target",       FALSE, (DWORD)0xC00000,   TRUE,  MAPFILTER_All,            FALSE, "Displays your target" },
-	{ "TargetLine",   FALSE, (DWORD)0x808080,   TRUE,  MAPFILTER_Target,         FALSE, "Displays a line to your target" },
-	{ "TargetRadius", FALSE, (DWORD)0x808080,   FALSE, MAPFILTER_Target,         FALSE, "Sets radius of a circle around your target to # (omit or set to 0 to disable)" },
-	{ "TargetMelee",  FALSE, (DWORD)0xFF8080,   FALSE, MAPFILTER_Target,         FALSE, "Draws a melee-range circle around your target" },
-	{ "Vector",       FALSE, (DWORD)-1,         TRUE,  MAPFILTER_All,            TRUE,  "Displays heading vectors" },
-	{ "Custom",       FALSE, (DWORD)-1,         FALSE, MAPFILTER_All,            TRUE,  "Sets custom filter (omit to disable)" },
-	{ "CastRadius",   FALSE, (DWORD)0x808080,   FALSE, MAPFILTER_All,            FALSE, "Sets radius of casting circle to # (omit or set to 0 to disable)" },
-	{ "NormalLabels", FALSE, (DWORD)-1,         TRUE,  (DWORD)MAPFILTER_Invalid, FALSE, "Toggles non-MQ2 label display" },
-	{ "Menu",         FALSE, (DWORD)-1,         TRUE,  (DWORD)MAPFILTER_Invalid, FALSE, "Allows display of right-click context menu" },
-	{ "SpellRadius",  FALSE, (DWORD)0x00C000,   FALSE, MAPFILTER_All,            FALSE, "Sets radius of 2nd casting circle to # (omit or set to 0 to disable)" },
-	{ "Aura",         FALSE, (DWORD)0x404040,   TRUE,  MAPFILTER_All,            TRUE,  "Displays Auras" },
-	{ "Object",       FALSE, (DWORD)0x404040,   TRUE,  MAPFILTER_All,            TRUE,  "Displays inanimate objects" },
-	{ "Banner",       FALSE, (DWORD)0x404040,   TRUE,  MAPFILTER_All,            TRUE,  "Displays banners" },
-	{ "Campfire",     FALSE, (DWORD)0x404040,   TRUE,  MAPFILTER_All,            TRUE,  "Displays campfires" },
-	{ "PCCorpse",     FALSE, (DWORD)0x00C000,   TRUE,  MAPFILTER_All,            TRUE,  "Displays PC corpses, when corpse setting is on" },
-	{ "NPCCorpse",    FALSE, (DWORD)0x00C000,   TRUE,  MAPFILTER_All,            TRUE,  "Displays NPC corpses, when corpse setting is on" },
-	{ "Mercenary",    FALSE, (DWORD)0x404040,   TRUE,  MAPFILTER_All,            TRUE,  "Displays mercenaries" },
-	{ "Named",        FALSE, (DWORD)0x404040,   TRUE,  MAPFILTER_All,            TRUE,  "Displays named NPCs" },
-	{ "TargetPath",   FALSE, (DWORD)-1,         TRUE,  MAPFILTER_Target,         FALSE, "Draws EQ Path to selected target" },
-	{ "Marker",       FALSE, (DWORD)-1,         FALSE, MAPFILTER_All,            TRUE,  "Displays marker (mobtype triangle/square/diamond size)" },
-	{ "CampRadius",   FALSE, (DWORD)0x808080,   FALSE, MAPFILTER_All,            FALSE, "Sets radius of Camp circle to # (omit or set to 0 to disable)" },
-	{ "PullRadius",   FALSE, (DWORD)0x808080,   FALSE, MAPFILTER_All,            FALSE, "Sets radius of casting circle to # (omit or set to 0 to disable)" },
+MapFilterOption MapFilterInvalidOption =
+	{ nullptr,        false, MQColor(255, 255, 255), false, MapFilter::Invalid,        false, nullptr };
 
-	{ nullptr,        FALSE, (DWORD)-1,         FALSE, (DWORD)MAPFILTER_Invalid, FALSE, NULL }
+MapFilterOption MapFilterOptions[] =
+{
+	{ "All",          true,  MQColor(255, 255, 255), true,  MapFilter::Invalid,        true,  "Enables/disables map functions" },
+	{ "PC",           false, MQColor(255, 0, 255),   true,  MapFilter::All,            true,  "Displays PCs" },
+	{ "PCConColor",   false, MQColor(255, 255, 255), true,  MapFilter::PC,             false, "Displays PCs in consider colors" },
+	{ "Group",        false, MQColor(0, 128, 192),   true,  MapFilter::PC,             false, "Displays group members in a specific color" },
+	{ "Mount",        false, MQColor(112, 112, 112), true,  MapFilter::All,            true,  "Displays mounts" },
+	{ "NPC",          false, MQColor(64, 64, 64),    true,  MapFilter::All,            true,  "Displays NPCs" },
+	{ "NPCConColor",  false, MQColor(255, 255, 255), true,  MapFilter::NPC,            false, "Displays NPCs in consider colors" },
+	{ "Untargetable", false, MQColor(64, 64, 64),    true,  MapFilter::All,            true,  "Displays Untargetable NPCs" },
+	{ "Pet",          false, MQColor(112, 112, 112), true,  MapFilter::All,            true,  "Displays pets" },
+	{ "Corpse",       false, MQColor(0, 192, 0),     true,  MapFilter::All,            true,  "Displays corpses" },
+	{ "Chest",        false, MQColor(192, 128, 0),   true,  MapFilter::All,            true,  "Displays chests" },
+	{ "Trigger",      false, MQColor(192, 128, 0),   true,  MapFilter::All,            true,  "Displays hidden triggers" },
+	{ "Trap",         false, MQColor(192, 128, 0),   true,  MapFilter::All,            true,  "Displays hidden traps" },
+	{ "Timer",        false, MQColor(192, 128, 0),   true,  MapFilter::All,            true,  "Displays hidden timers" },
+	{ "Ground",       false, MQColor(192, 192, 192), true,  MapFilter::All,            true,  "Displays ground items" },
+	{ "Target",       false, MQColor(192, 0, 0),     true,  MapFilter::All,            false, "Displays your target" },
+	{ "TargetLine",   false, MQColor(128, 128, 128), true,  MapFilter::Target,         false, "Displays a line to your target" },
+	{ "TargetRadius", false, MQColor(128, 128, 128), false, MapFilter::Target,         false, "Sets radius of a circle around your target to # (omit or set to 0 to disable)" },
+	{ "TargetMelee",  false, MQColor(255, 128, 128), false, MapFilter::Target,         false, "Draws a melee-range circle around your target" },
+	{ "Vector",       false, MQColor(255, 255, 255), true,  MapFilter::All,            true,  "Displays heading vectors" },
+	{ "Custom",       false, MQColor(255, 255, 255), false, MapFilter::All,            true,  "Sets custom filter (omit to disable)" },
+	{ "CastRadius",   false, MQColor(128, 128, 128), false, MapFilter::All,            false, "Sets radius of casting circle to # (omit or set to 0 to disable)" },
+	{ "NormalLabels", false, MQColor(255, 255, 255), true,  MapFilter::Invalid,        false, "Toggles non-MQ2 label display" },
+	{ "Menu",         false, MQColor(255, 255, 255), true,  MapFilter::Invalid,        false, "Allows display of right-click context menu" },
+	{ "SpellRadius",  false, MQColor(0, 192, 0),     false, MapFilter::All,            false, "Sets radius of 2nd casting circle to # (omit or set to 0 to disable)" },
+	{ "Aura",         false, MQColor(64, 64, 64),    true,  MapFilter::All,            true,  "Displays Auras" },
+	{ "Object",       false, MQColor(64, 64, 64),    true,  MapFilter::All,            true,  "Displays inanimate objects" },
+	{ "Banner",       false, MQColor(64, 64, 64),    true,  MapFilter::All,            true,  "Displays banners" },
+	{ "Campfire",     false, MQColor(64, 64, 64),    true,  MapFilter::All,            true,  "Displays campfires" },
+	{ "PCCorpse",     false, MQColor(0, 192, 0),     true,  MapFilter::All,            true,  "Displays PC corpses, when corpse setting is on" },
+	{ "NPCCorpse",    false, MQColor(0, 192, 0),     true,  MapFilter::All,            true,  "Displays NPC corpses, when corpse setting is on" },
+	{ "Mercenary",    false, MQColor(64, 64, 64),    true,  MapFilter::All,            true,  "Displays mercenaries" },
+	{ "Named",        false, MQColor(64, 64, 64),    true,  MapFilter::All,            true,  "Displays named NPCs" },
+	{ "TargetPath",   false, MQColor(255, 255, 255), true,  MapFilter::Target,         false, "Draws EQ Path to selected target" },
+	{ "Marker",       false, MQColor(255, 255, 255), false, MapFilter::All,            true,  "Displays marker (mobtype triangle/square/diamond size)" },
+	{ "CampRadius",   false, MQColor(128, 128, 128), false, MapFilter::All,            false, "Sets radius of Camp circle to # (omit or set to 0 to disable)" },
+	{ "PullRadius",   false, MQColor(128, 128, 128), false, MapFilter::All,            false, "Sets radius of casting circle to # (omit or set to 0 to disable)" },
+
+	MapFilterInvalidOption,
 };
 
 bool RButtonDown()
@@ -139,12 +145,7 @@ bool RButtonDown()
 		return MapSelectTarget();
 	}
 
-	if (!IsOptionEnabled(MAPFILTER_ContextMenu))
-	{
-		return false;
-	}
-
-	return true;
+	return IsOptionEnabled(MapFilter::ContextMenu);
 }
 
 // This class inherits from MapViewMap to set up virtual functions, but we
@@ -286,18 +287,18 @@ PLUGIN_API void InitializePlugin()
 		}
 
 		// Lets see what color option was last saved as, if any. If none then use the default.
-		MapFilterOptions[i].Color = GetPrivateProfileInt("Map Filters", fmt::format("{}-Color", MapFilterOptions[i].szName),
-			MapFilterOptions[i].DefaultColor, INIFileName) | 0xFF000000;
+		MapFilterOptions[i].Color = GetPrivateProfileInt("Map Filters", fmt::format("{}-Color", MapFilterOptions[i].szName), (uint32_t)MapFilterOptions[i].DefaultColor, INIFileName);
+		MapFilterOptions[i].Color.Alpha = 255; // always enforce 255 alpha channel
 		MapFilterOptions[i].MarkerSize = GetPrivateProfileInt("Marker Filters", fmt::format("{}-Size",
 			MapFilterOptions[i].szName), 0, INIFileName);
 
 		std::string markerString = GetPrivateProfileString("Marker Filters", MapFilterOptions[i].szName, "None", INIFileName);
-		MapFilterOptions[i].Marker = FindMarker(markerString, 0);
+		MapFilterOptions[i].Marker = FindMarker(markerString, MarkerType::None);
 	}
 
 	activeLayer = GetPrivateProfileInt("Map Filters", "ActiveLayer", activeLayer, INIFileName);
 
-	UpdateDefaultMapLoc();
+	UpdateDefaultMapLocParams();
 
 	repeatMapshow = GetPrivateProfileBool("Map Filters", "Mapshow-Repeat", false, INIFileName);
 	repeatMaphide = GetPrivateProfileBool("Map Filters", "Maphide-Repeat", false, INIFileName);
@@ -322,7 +323,7 @@ PLUGIN_API void InitializePlugin()
 	}
 
 	// Do not use Custom, since the string isn't stored
-	MapFilterOptions[MAPFILTER_Custom].Enabled = 0;
+	MapFilterOptions[static_cast<size_t>(MapFilter::Custom)].Enabled = false;
 
 	AddCommand("/mapfilter", MapFilters, false, true, true);
 	AddCommand("/maphide", MapHideCmd, false, true, true);
@@ -375,6 +376,9 @@ PLUGIN_API void ShutdownPlugin()
 // This is called every time MQ pulses
 PLUGIN_API void OnPulse()
 {
+	if (GetGameState() != GAMESTATE_INGAME)
+		return;
+
 	long curTime = MakeTime();
 	clock_t curClockTime = clock();
 	bool cleared = false;
@@ -384,16 +388,11 @@ PLUGIN_API void OnPulse()
 	{
 		if (currentZoneId != (charInfo->zoneId & 0x7FFF))
 		{
-			if (!LocationMap.empty())
-			{
-				MapRemoveLocation(nullptr, "");
-			}
+			DeleteAllMapLocs();
 
 			currentZoneId = (charInfo->zoneId & 0x7FFF);
 		}
 	}
-
-	char szBuffer[MAX_STRING] = { 0 };
 
 	if (curClockTime > highPulseRepeatLast + highPulseRepeatIntervalMillis && HighlightPulse)
 	{
@@ -410,6 +409,8 @@ PLUGIN_API void OnPulse()
 
 	if (curTime > repeatLast + repeatInterval)
 	{
+		static MQSpawnSearch ss;
+
 		if (repeatMapshow && strlen(mapshowStr) > 0)
 		{
 			if (!cleared)
@@ -419,7 +420,6 @@ PLUGIN_API void OnPulse()
 				cleared = true;
 			}
 
-			MQSpawnSearch ss;
 			ClearSearchSpawn(&ss);
 			ParseSearchSpawn(mapshowStr, &ss);
 			MapShow(ss);
@@ -434,7 +434,6 @@ PLUGIN_API void OnPulse()
 				cleared = true;
 			}
 
-			MQSpawnSearch ss;
 			ClearSearchSpawn(&ss);
 			ParseSearchSpawn(maphideStr, &ss);
 			MapHide(ss);
@@ -449,17 +448,13 @@ PLUGIN_API void OnPulse()
 // NOTE: When you zone, these will come BEFORE OnZoned
 PLUGIN_API void OnAddSpawn(SPAWNINFO* pNewSpawn)
 {
-	// your toon's spawn id changes and it's no longer zero to start
-	// don't added it all
-	if (pNewSpawn)
+	if (!pLocalPlayer)
+		return;
+
+	// your toon's spawn id changes and it's no longer zero to start don't added it all
+	if (Update && pNewSpawn->SpawnID != 0 && pLocalPlayer != pNewSpawn)
 	{
-		if (PCHARINFO pMe = GetCharInfo())
-		{
-			if (Update && pNewSpawn->SpawnID != 0 && pMe->pSpawn != pNewSpawn)
-			{
-				AddSpawn(pNewSpawn);
-			}
-		}
+		AddSpawn(pNewSpawn);
 	}
 }
 
