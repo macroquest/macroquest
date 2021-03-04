@@ -4103,15 +4103,18 @@ bool MQ2CharacterType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2CharacterType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2CharacterType::Downcast(MQVarPtr& VarPtr, MQ2Type* toType)
 {
-	if (Source.Type != pCharacterType)
-		return false;
+	if (toType == pSpawnType)
+	{
+		if (!pLocalPlayer)
+			return false;
 
-	// there is only ever one Character pointer, and we don't own it, so
-	// there is no point to storing it.
-	VarPtr.Ptr = nullptr;
-	return true;
+		VarPtr = MQ2SpawnType::MakeVarPtr(pLocalPlayer.get_as<SPAWNINFO>());
+		return true;
+	}
+
+	return false;
 }
 
 bool MQ2CharacterType::dataCharacter(const char* szIndex, MQTypeVar& Ret)

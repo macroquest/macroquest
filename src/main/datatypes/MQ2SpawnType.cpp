@@ -350,16 +350,17 @@ MQ2SpawnType::MQ2SpawnType() : MQ2Type("spawn")
 
 bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	if (!VarPtr.Ptr)
-		return false;
+	return GetMember(GetSpawnPtr(VarPtr), Member, Index, Dest);
+}
 
-	SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
+bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index, MQTypeVar& Dest)
+{
 	SPAWNINFO* pMySpawn = pLocalPlayer;
-	SPAWNINFO* pControlledSpawn = pCharSpawn;
-	PlayerClient* pPlayerClient = reinterpret_cast<PlayerClient*>(pSpawn);
-
 	if (!pMySpawn)
 		return false;
+
+	SPAWNINFO* pControlledSpawn = pCharSpawn;
+	PlayerClient* pPlayerClient = reinterpret_cast<PlayerClient*>(pSpawn);
 
 	//----------------------------------------------------------------------------
 	// methods
@@ -484,17 +485,17 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpawnMembers::Next:
-		Dest.Type = pSpawnType;
-		if (Dest.Ptr = pSpawn->pNext)
+		if (pSpawn->pNext)
 		{
+			Dest = MakeTypeVar(pSpawn->pNext);
 			return true;
 		}
 		return false;
 
 	case SpawnMembers::Prev:
-		Dest.Type = pSpawnType;
-		if (Dest.Ptr = pSpawn->pPrev)
+		if (pSpawn->pPrev)
 		{
+			Dest = MakeTypeVar(pSpawn->pPrev);
 			return true;
 		}
 		return false;
@@ -545,9 +546,9 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpawnMembers::Master:
-		Dest.Type = pSpawnType;
-		if (Dest.Ptr = GetSpawnByID(pSpawn->MasterID))
+		if (SPAWNINFO* pMaster = (SPAWNINFO*)GetSpawnByID(pSpawn->MasterID))
 		{
+			Dest = MakeTypeVar(pMaster);
 			return true;
 		}
 		return false;
@@ -796,9 +797,9 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpawnMembers::TargetOfTarget:
-		Dest.Type = pSpawnType;
-		if (Dest.Ptr = GetSpawnByID(pSpawn->TargetOfTarget))
+		if (SPAWNINFO* pToT = (SPAWNINFO*)GetSpawnByID(pSpawn->TargetOfTarget))
 		{
+			Dest = MakeTypeVar(pToT);
 			return true;
 		}
 		return false;
@@ -898,9 +899,9 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return false;
 
 	case SpawnMembers::Mount:
-		Dest.Type = pSpawnType;
-		if (Dest.Ptr = pSpawn->Mount)
+		if (pSpawn->Mount)
 		{
+			Dest = MakeTypeVar(pSpawn->Mount);
 			return true;
 		}
 		return false;
@@ -989,7 +990,6 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpawnMembers::NearestSpawn:
-		Dest.Type = pSpawnType;
 		if (pSpawn == pControlledSpawn)
 		{
 			return (dataNearestSpawn(Index, Dest) != 0); // use top-level object if it's you
@@ -1024,8 +1024,9 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 				}
 			}
 
-			if (Dest.Ptr = NthNearestSpawn(&ssSpawn, nth, pSpawn))
+			if (SPAWNINFO* pNearest = NthNearestSpawn(&ssSpawn, nth, pSpawn))
 			{
+				Dest = MakeTypeVar(pNearest);
 				return true;
 			}
 		}
@@ -1255,7 +1256,6 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpawnMembers::Owner:
-		Dest.Type = pSpawnType;
 		if (pSpawn->Mercenary)
 		{
 			size_t pos = strchr(pSpawn->Lastname, '\'') - &pSpawn->Lastname[0];
@@ -1265,16 +1265,16 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 			if (SPAWNINFO* pOwner = (SPAWNINFO*)GetSpawnByName(DataTypeTemp))
 			{
-				Dest.Ptr = pOwner;
+				Dest = MakeTypeVar(pOwner);
 				return true;
 			}
 		}
 		return false;
 
 	case SpawnMembers::Following:
-		Dest.Type = pSpawnType;
-		if (Dest.Ptr = pSpawn->WhoFollowing)
+		if (pSpawn->WhoFollowing)
 		{
+			Dest = MakeTypeVar(pSpawn->WhoFollowing);
 			return true;
 		}
 		return false;
@@ -1728,45 +1728,25 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 bool MQ2SpawnType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	if (!VarPtr.Ptr)
+	SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(GetSpawnPtr(VarPtr));
+	if (!pSpawn)
 		return false;
 
-	SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
 	strcpy_s(Destination, MAX_STRING, pSpawn->Name);
 	return true;
 }
 
-void MQ2SpawnType::InitVariable(MQVarPtr& VarPtr)
-{
-	// FIXME: Do not Allocate a SPAWNINFO
-	VarPtr.Ptr = new SPAWNINFO();
-
-	// FIXME: Do not ZeroMemory a SPAWNINFO
-	ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
-}
-
-void MQ2SpawnType::FreeVariable(MQVarPtr& VarPtr)
-{
-	// FIXME: Find way to not allocate SPAWNINFO
-	SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
-	delete pSpawn;
-}
-
 bool MQ2SpawnType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
-	if (Source.Type == pSpawnType)
+	if (Source.IsType(MQVarPtr::VariantIdx::UInt64))
 	{
-		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(SPAWNINFO));
-		return true;
-	}
-	else
-	{
-		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(Source.DWord))
+		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(Source.Get<int>()))
 		{
-			memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
+			VarPtr = MakeVarPtr(pOther);
 			return true;
 		}
 	}
+
 	return false;
 }
 
@@ -1774,9 +1754,10 @@ bool MQ2SpawnType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
 	if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(GetIntFromString(Source, 0)))
 	{
-		memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
+		VarPtr = MakeVarPtr(pOther);
 		return true;
 	}
+
 	return false;
 }
 
@@ -1786,9 +1767,9 @@ bool MQ2SpawnType::dataSpawn(const char* szIndex, MQTypeVar& Ret)
 	{
 		if (IsNumber(szIndex))
 		{
-			if ((Ret.Ptr = GetSpawnByID(GetIntFromString(szIndex, 0))))
+			if (SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByID(GetIntFromString(szIndex, 0)))
 			{
-				Ret.Type = pSpawnType;
+				Ret = pSpawnType->MakeTypeVar(pSpawn);
 				return true;
 			}
 		}
@@ -1798,9 +1779,9 @@ bool MQ2SpawnType::dataSpawn(const char* szIndex, MQTypeVar& Ret)
 			MQSpawnSearch ssSpawn;
 			ClearSearchSpawn(&ssSpawn);
 			ParseSearchSpawn(szIndex, &ssSpawn);
-			if (Ret.Ptr = SearchThroughSpawns(&ssSpawn, (SPAWNINFO*)pCharSpawn))
+			if (SPAWNINFO* pSearchSpawn = SearchThroughSpawns(&ssSpawn, (SPAWNINFO*)pCharSpawn))
 			{
-				Ret.Type = pSpawnType;
+				Ret = pSpawnType->MakeTypeVar(pSearchSpawn);
 				return true;
 			}
 		}
@@ -1857,16 +1838,15 @@ bool MQ2SpawnType::dataLastSpawn(const char* szIndex, MQTypeVar& Ret)
 						return false;
 					index--;
 				}
-				Ret.Ptr = pSpawn;
-				Ret.Type = pSpawnType;
+
+				Ret = pSpawnType->MakeTypeVar(pSpawn);
 				return true;
 			}
 		}
 	}
-	else
+	else if (SPAWNINFO* pSpawn = pSpawnList)
 	{
-		Ret.Ptr = pSpawnList;
-		Ret.Type = pSpawnType;
+		Ret = pSpawnType->MakeTypeVar(pSpawn);
 		return true;
 	}
 	return false;
@@ -1928,8 +1908,7 @@ bool MQ2SpawnType::dataNearestSpawn(const char* szIndex, MQTypeVar& Ret)
 			{
 				if (--nth == 0)
 				{
-					Ret.Ptr = spawnItem.GetSpawn();
-					Ret.Type = pSpawnType;
+					Ret = pSpawnType->MakeTypeVar(spawnItem.GetSpawn());
 					return true;
 				}
 			}
@@ -1940,22 +1919,33 @@ bool MQ2SpawnType::dataNearestSpawn(const char* szIndex, MQTypeVar& Ret)
 	return false;
 }
 
-bool MQ2SpawnType::dataItemTarget(const char* szIndex, MQTypeVar& Ret)
+/*static*/ SPAWNINFO* MQ2SpawnType::GetSpawnPtr(const MQVarPtr& VarPtr)
 {
-	// FIXME: We don't want to use a global here, change SpawnType to use the shared pointer functionality of VarPtr to remove dependency on EnviroTarget
-	auto ground = CurrentGroundSpawn();
-	if (ground)
+	SPAWNINFO* pSpawn = nullptr;
+
+	if (VarPtr.IsType(MQVarPtr::VariantIdx::ComplexObject))
 	{
-#pragma warning(push)
-#pragma warning(disable: 4996) // temporarily disable deprecation warnings.
-		EnviroTarget = ground.ToSpawn();
-		Ret.Ptr = &EnviroTarget;
-#pragma warning(pop)
-		Ret.Type = pSpawnType;
-		return true;
+		const auto& observedSpawn = VarPtr.Get<ObservedSpawnPtr>();
+		if (observedSpawn)
+		{
+			pSpawn = observedSpawn->Ptr();
+		}
+	}
+	else if (VarPtr.IsType(MQVarPtr::VariantIdx::Ptr))
+	{
+		pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
 	}
 
-	return false;
+	return pSpawn;
+}
+
+MQTypeVar MQ2SpawnType::MakeTypeVar(SPAWNINFO* pSpawn)
+{
+	MQTypeVar Dest;
+	Dest.Set(ObserveEQObject(pSpawn));
+	Dest.Type = this;
+
+	return Dest;
 }
 
 } // namespace mq::datatypes

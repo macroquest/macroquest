@@ -69,15 +69,38 @@ public:
 	MQLIB_OBJECT MQTypeMember* FindMember(const char* Name);
 	MQLIB_OBJECT MQTypeMember* FindMethod(const char* Name);
 
-	bool InheritedMember(const char* Name)
+	inline bool InheritsFrom(MQ2Type* testType)
 	{
-		return pInherits && pInherits->FindMember(Name);
+		MQ2Type* parentType = m_parent;
+		int limit = 10; // arbitrary limit to avoid infinite looping with cyclical references
+		while (parentType)
+		{
+			if (parentType == testType)
+				return true;
+
+			if (--limit == 0)
+				return false;
+			parentType = parentType->m_parent;
+		}
+		return false;
 	}
 
-	void SetInheritance(MQ2Type* pNewInherit)
+	inline bool InheritedMember(const char* Name)
 	{
-		pInherits = pNewInherit;
+		return m_parent && m_parent->FindMember(Name);
 	}
+
+	inline void SetInheritance(MQ2Type* pNewInherit)
+	{
+		m_parent = pNewInherit;
+	}
+
+	// Override this function to convert this type to the requested type. Return true if the conversion is successful. The
+	// Result should be placed in VarPtr and its type should match that of toType.
+	virtual bool Downcast(MQVarPtr& VarPtr, MQ2Type* toType) { return false; }
+
+	//----------------------------------------------------------------------------
+	// deprecated virtual functions
 
 	// If you encounter an error here, you've derived from MQ2Type using a non-const Source. Change
 	// your FromString function to take a const char* as the second parameter.
@@ -105,7 +128,7 @@ protected:
 
 	char TypeName[32];
 	bool m_owned = false;
-	MQ2Type* pInherits = nullptr;
+	MQ2Type* m_parent = nullptr;
 	mutable std::mutex m_mutex;
 
 private:
@@ -420,8 +443,7 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	void InitVariable(MQVarPtr& VarPtr) override;
-	void FreeVariable(MQVarPtr& VarPtr) override;
+
 	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 
@@ -429,7 +451,31 @@ public:
 	static bool dataSpawnCount(const char* szIndex, MQTypeVar& Ret);
 	static bool dataLastSpawn(const char* szIndex, MQTypeVar& Ret);
 	static bool dataNearestSpawn(const char* szIndex, MQTypeVar& Ret);
-	static bool dataItemTarget(const char* szIndex, MQTypeVar& Ret);
+
+	// This is for use in retrieving the spawn that is pointed to by the MQVarPtr.
+	static SPAWNINFO* GetSpawnPtr(const MQVarPtr& VarPtr);
+	MQLIB_OBJECT MQTypeVar MakeTypeVar(SPAWNINFO* pSpawn);
+
+	static inline MQVarPtr MakeVarPtr(SPAWNINFO* pSpawn)
+	{
+		return MQVarPtr::Create(ObserveEQObject(pSpawn));
+	}
+
+	bool GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index, MQTypeVar& Dest);
+};
+
+//============================================================================
+// MQ2TargetType
+
+class MQ2TargetType : public MQ2Type
+{
+public:
+	MQ2TargetType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
+	static bool dataTarget(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
@@ -442,7 +488,7 @@ public:
 
 	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	virtual bool ToString(MQVarPtr VarPtr, char* Destination) override;
-
+	virtual bool Downcast(MQVarPtr& VarPtr, MQ2Type* toType) override;
 
 	static bool dataCharacter(const char* szIndex, MQTypeVar& Ret);
 };
@@ -1065,24 +1111,6 @@ public:
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 
 	static bool dataFriends(const char* szIndex, MQTypeVar& Ret);
-};
-
-//============================================================================
-// MQ2TargetType
-
-class MQ2TargetType : public MQ2Type
-{
-public:
-	MQ2TargetType();
-
-	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
-	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	void InitVariable(MQVarPtr& VarPtr) override;
-	void FreeVariable(MQVarPtr& VarPtr) override;
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override;
-	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
-
-	static bool dataTarget(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================

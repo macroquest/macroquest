@@ -35,10 +35,7 @@ bool MQ2PointMerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 	MQTypeMember* pMember = MQ2PointMerchantType::FindMember(Member);
 	if (!pMember)
 	{
-		MQVarPtr data;
-		data.Ptr = pActiveMerchant;
-
-		return pSpawnType->GetMember(data, Member, Index, Dest);
+		return pSpawnType->GetMember(pActiveMerchant.get_as<SPAWNINFO>(), Member, Index, Dest);
 	}
 
 	switch (static_cast<PointMerchantMembers>(pMember->ID))

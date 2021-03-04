@@ -460,12 +460,11 @@ bool MQ2AlertListType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				return true;
 
 			case AlertListTypeMembers::Spawn:
-				Dest.Type = pSpawnType;
 				if (uint32_t spawnid = search.SpawnID)
 				{
 					if (SPAWNINFO* psp = (SPAWNINFO*)GetSpawnByID(spawnid))
 					{
-						Dest.Ptr = psp;
+						Dest = pSpawnType->MakeTypeVar(psp);
 						return true;
 					}
 				}
@@ -474,10 +473,11 @@ bool MQ2AlertListType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				{
 					if (SPAWNINFO* psp = (SPAWNINFO*)GetSpawnByName(search.szName))
 					{
-						Dest.Ptr = psp;
+						Dest = pSpawnType->MakeTypeVar(psp);
 						return true;
 					}
 				}
+
 				return false;
 			}
 		}

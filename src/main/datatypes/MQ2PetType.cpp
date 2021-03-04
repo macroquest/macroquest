@@ -127,17 +127,11 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 {
 	// Check if we have a stored spawn on this object
 	bool playerPet = false;
-	SPAWNINFO* pPetSpawn = nullptr;
+	SPAWNINFO* pPetSpawn = MQ2SpawnType::GetSpawnPtr(VarPtr); nullptr;
 
-	auto observedSpawn = VarPtr.Get<ObservedSpawnPtr>();
-	if (observedSpawn)
-	{
-		pPetSpawn = observedSpawn->Ptr();
-
-		// If its our pet then we can enable all the player pet members
-		if (pPetSpawn && pPetSpawn->MasterID == pLocalPlayer->PetID)
-			playerPet = true;
-	}
+	// If its our pet then we can enable all the player pet members
+	if (pPetSpawn && pPetSpawn->MasterID == pLocalPlayer->PetID)
+		playerPet = true;
 
 	// We override the Name member to display NO PET when there is no pet.
 	MQTypeMember* pMember = MQ2PetType::FindMember(Member);
@@ -161,6 +155,7 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		if (!pPetSpawn)
 			return false;
 
+		// Forward our VarPtr along to the spawn type.
 		return pSpawnType->GetMember(VarPtr, Member, Index, Dest);
 	}
 
@@ -279,9 +274,11 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		return true;
 
 	case PetMembers::Target:
-		Dest.Type = pSpawnType;
-		if (Dest.Ptr = pPetSpawn->WhoFollowing)
+		if (pPetSpawn->WhoFollowing)
+		{
+			Dest = pSpawnType->MakeTypeVar(pPetSpawn->WhoFollowing);
 			return true;
+		}
 		return false;
 
 	case PetMembers::Taunt:

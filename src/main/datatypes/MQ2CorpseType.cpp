@@ -39,9 +39,7 @@ bool MQ2CorpseType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 	MQTypeMember* pMember = MQ2CorpseType::FindMember(Member);
 	if (!pMember)
 	{
-		MQVarPtr data;
-		data.Ptr = pActiveCorpse;
-		return pSpawnType->GetMember(data, Member, Index, Dest);
+		return pSpawnType->GetMember(pActiveCorpse.get_as<SPAWNINFO>(), Member, Index, Dest);
 	}
 
 	switch (static_cast<CorpseMembers>(pMember->ID))

@@ -347,9 +347,6 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case GroupMembers::Cleric:
-		Dest.Ptr = nullptr;
-		Dest.Type = pSpawnType;
-
 		for (auto& member : *pCharData->Group)
 		{
 			if (member
@@ -357,7 +354,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 				&& member->pSpawn
 				&& member->pSpawn->GetClass() == Cleric)
 			{
-				Dest.Ptr = member->pSpawn;
+				Dest = pSpawnType->MakeTypeVar(member->pSpawn);
 				return true;
 			}
 		}
@@ -471,11 +468,10 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 
 		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
-			CGroupMember* pMember = pCharData->Group->GetGroupMember(i);
-
-			if (pMember)
+			if (CGroupMember* pMember = pCharData->Group->GetGroupMember(i))
 			{
 				index--;
+
 				if (index == 0)
 				{
 					strcpy_s(MemberName, pMember->GetName());
@@ -506,13 +502,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 	MQTypeMember* pMember = MQ2GroupMemberType::FindMember(Member);
 	if (!pMember)
 	{
-		if (!pGroupMember)
-			return false;
-
-		MQVarPtr data;
-		data.Ptr = pGroupMember;
-
-		return pSpawnType->GetMember(data, Member, Index, Dest);
+		return pSpawnType->GetMember(pGroupMember, Member, Index, Dest);
 	}
 
 	switch (static_cast<GroupMemberMembers>(pMember->ID))
@@ -534,9 +524,9 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		return true;
 
 	case GroupMemberMembers::Spawn:
-		Dest.Type = pSpawnType;
-		if (Dest.Ptr = pGroupMember)
+		if (pGroupMember)
 		{
+			Dest = pSpawnType->MakeTypeVar(pGroupMember);
 			return true;
 		}
 		return false;
@@ -549,11 +539,13 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 			Dest.DWord = pGroupMember->Level;
 			return true;
 		}
-		else if (pGroupMemberData)
+
+		if (pGroupMemberData)
 		{
 			Dest.DWord = pGroupMemberData->Level;
 			return true;
 		}
+
 		return false;
 
 	case GroupMemberMembers::MainTank:
