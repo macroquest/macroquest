@@ -178,19 +178,6 @@ char gDelayCondition[MAX_STRING] = { 0 };
 bool bAllowCommandParse = true;
 std::map<DWORD, std::list<MQSpawnSearch>> gAlertMap;
 
-Property<SPAWNINFO> EnviroTarget = Property<SPAWNINFO>(
-	[]() -> SPAWNINFO
-	{
-		auto ground = CurrentGroundSpawn();
-		if (ground)
-			return ground.ToSpawn();
-
-		return { 0 };
-	},
-	[](const SPAWNINFO& other) -> SPAWNINFO {
-		return GetGroundSpawnByID(other.mActorClient.Race).ToSpawn();
-	});
-
 static MQGroundObject FromGroundSpawn(const MQGroundSpawn& ground)
 {
 	MQGroundObject ret;
@@ -272,6 +259,8 @@ MQFilter* gpFilters = nullptr;
 int PetSpawn = 0;
 int MercenarySpawn = 0;
 int DoorEnviroTarget = 0;
+int EnviroTarget = 0;
+
 EQSwitch* pDoorTarget = nullptr;
 
 // TODO: Remove this once the parsing engine is fully backwards compatible.

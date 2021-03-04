@@ -1146,13 +1146,15 @@ enum eFaceCommandFlags : uint8_t {
 // generic structure for storing positional information about an object
 struct MQGameObject
 {
+	eGameObjectType type = eGameObjectType::None;
+	uint32_t id = 0;
+	uint32_t subId = 0;
+	std::string name;
+
 	float y = 0.f;
 	float x = 0.f;
 	float z = 0.f;
-	eGameObjectType type = eGameObjectType::None;
-	bool valid = false;
 	float heading = 0.f;
-	std::string name;
 	std::string displayName;
 
 	// optional params
@@ -1160,11 +1162,15 @@ struct MQGameObject
 	float velocityX = 0.f;
 	float velocityZ = 0.f;
 	float height = 0.f;
+	CActorInterface* actor = nullptr;
+
+	bool valid = false;
 
 	const std::string& GetDisplayName() const
 	{
 		if (!displayName.empty())
 			return displayName;
+
 		return name;
 	}
 };
@@ -1175,7 +1181,6 @@ MQGameObject ToGameObject(const MQGroundSpawn& groundSpawn);
 MQGameObject ToGameObject(const SPAWNINFO* spawnInfo);
 MQGameObject ToGameObject(float y, float x, float z);
 MQGameObject ToGameObject(const EQSwitch* pSwitch);
-
 
 //----------------------------------------------------------------------------
 

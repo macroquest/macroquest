@@ -541,7 +541,7 @@ struct MQGroundSpawn
 	MQLIB_OBJECT int SubID() const;
 	MQLIB_OBJECT int ZoneID() const;
 	MQLIB_OBJECT float Heading() const;
-	MQLIB_OBJECT SPAWNINFO ToSpawn() const;
+	MQLIB_OBJECT MQGameObject ToGameObject() const;
 	MQLIB_OBJECT void Reset();
 
 	template <typename T> T* Get() const { static_assert(false, "Unsupported GroundSpawn Type."); }

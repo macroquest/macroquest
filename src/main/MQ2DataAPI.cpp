@@ -483,7 +483,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("Group", datatypes::MQ2GroupType::dataGroup);
 	AddMQ2Data("Illusion", datatypes::MQ2KeyRingType::dataIllusion);
 	AddMQ2Data("InvSlot", datatypes::MQ2InvSlotType::dataInvSlot);
-	AddMQ2Data("ItemTarget", datatypes::MQ2SpawnType::dataItemTarget);
+	AddMQ2Data("ItemTarget", datatypes::MQ2GroundType::dataItemTarget);
 	AddMQ2Data("LastSpawn", datatypes::MQ2SpawnType::dataLastSpawn);
 	AddMQ2Data("LineOfSight", datatypes::dataLineOfSight);
 	AddMQ2Data("Me", datatypes::MQ2CharacterType::dataCharacter);

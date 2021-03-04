@@ -7484,13 +7484,17 @@ MQGameObject ToGameObject(const EQGroundItem& groundItem)
 {
 	MQGameObject temp;
 
-	temp.name = groundItem.Name;
-	temp.displayName = GetFriendlyNameForGroundItem(&groundItem);
 	temp.type = eGameObjectType::GroundItem;
+	temp.id = groundItem.DropID;
+	temp.subId = groundItem.DropSubID;
+	temp.name = groundItem.Name;
+
+	temp.displayName = GetFriendlyNameForGroundItem(&groundItem);
 	temp.y = groundItem.Y;
 	temp.x = groundItem.X;
 	temp.z = groundItem.Z;
 	temp.heading = groundItem.Heading * 0.703125f;
+	temp.actor = (CActorInterface*)groundItem.pSwitch;
 
 	return temp;
 }
@@ -7499,13 +7503,17 @@ MQGameObject ToGameObject(const EQPlacedItem& placedItem)
 {
 	MQGameObject temp;
 
-	temp.name = placedItem.Name;
-	temp.displayName = GetFriendlyNameForPlacedItem(&placedItem);
 	temp.type = eGameObjectType::PlaceableItem;
+	temp.id = placedItem.RealEstateItemID;
+	temp.subId = placedItem.RealEstateID;
+	temp.name = placedItem.Name;
+
+	temp.displayName = GetFriendlyNameForPlacedItem(&placedItem);
 	temp.y = placedItem.Y;
 	temp.x = placedItem.X;
 	temp.z = placedItem.Z;
 	temp.heading = placedItem.Heading * 0.703125f;
+	temp.actor = placedItem.pActor;
 
 	return temp;
 }
@@ -7528,17 +7536,21 @@ MQGameObject ToGameObject(const MQGroundSpawn& groundSpawn)
 MQGameObject ToGameObject(const SPAWNINFO* pSpawn)
 {
 	MQGameObject temp;
+
 	temp.type = eGameObjectType::Spawn;
+	temp.id = pSpawn->SpawnID;
+	temp.name = pSpawn->Name;
+
 	temp.y = pSpawn->Y;
 	temp.x = pSpawn->X;
 	temp.z = pSpawn->Z;
 	temp.heading = pSpawn->Heading;
-	temp.name = pSpawn->Name;
 	temp.displayName = pSpawn->DisplayedName;
 	temp.velocityY = pSpawn->SpeedY;
 	temp.velocityX = pSpawn->SpeedX;
 	temp.velocityZ = pSpawn->SpeedZ;
 	temp.height = pSpawn->AvatarHeight * StateHeightMultiplier(pSpawn->StandState);
+	temp.actor = (CActorInterface*)&pSpawn->mActorClient;
 	temp.valid = true;
 
 	return temp;
@@ -7547,6 +7559,7 @@ MQGameObject ToGameObject(const SPAWNINFO* pSpawn)
 MQGameObject ToGameObject(float y, float x, float z)
 {
 	MQGameObject temp;
+
 	temp.type = eGameObjectType::Location;
 	temp.name = "location";
 	temp.y = y;
@@ -7560,12 +7573,15 @@ MQGameObject ToGameObject(float y, float x, float z)
 MQGameObject ToGameObject(const EQSwitch* pSwitch)
 {
 	MQGameObject temp;
+
 	temp.type = eGameObjectType::Switch;
+	temp.id = pSwitch->ID;
 	temp.name = pSwitch->Name;
 	temp.y = pSwitch->Y;
 	temp.x = pSwitch->X;
 	temp.z = pSwitch->Z;
 	temp.heading = pSwitch->Heading;
+	temp.actor = (CActorInterface*)pSwitch->pSwitch;
 	temp.valid = true;
 
 	return temp;

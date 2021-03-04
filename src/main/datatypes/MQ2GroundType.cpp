@@ -373,4 +373,15 @@ bool MQ2GroundType::dataGroundItemCount(const char* szIndex, MQTypeVar& Ret)
 	return true;
 }
 
+bool MQ2GroundType::dataItemTarget(const char* szIndex, MQTypeVar& Ret)
+{
+	if (HasCurrentGroundSpawn())
+	{
+		Ret.Set(CurrentGroundSpawn());
+	}
+
+	Ret.Type = pGroundType;
+	return true;
+}
+
 } // namespace mq::datatypes

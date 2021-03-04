@@ -465,11 +465,11 @@ CXStr GetFriendlyNameForPlacedItem(const EQPlacedItem* pItem)
 	if (!pItem)
 		return CXStr();
 
-	const auto& real_estate = RealEstateManagerClient::Instance();
+	const RealEstateManagerClient& real_estate = RealEstateManagerClient::Instance();
 	auto pRealEstateItem = real_estate.GetItemByRealEstateAndItemIds(pItem->RealEstateID, pItem->RealEstateItemID);
 	if (pRealEstateItem && pRealEstateItem->Object.pItemBase)
 	{
-		auto placed = pRealEstateItem->Object.pItemBase->GetItemDefinition();
+		ItemDefinition* placed = pRealEstateItem->Object.pItemBase->GetItemDefinition();
 		if (placed)
 			return placed->Name;
 	}
@@ -491,13 +491,13 @@ float MQGroundSpawn::Distance(SPAWNINFO* pSpawn) const
 {
 	if (Type == MQGroundSpawnType::Ground)
 	{
-		auto ground = Get<EQGroundItem>();
+		EQGroundItem* ground = Get<EQGroundItem>();
 		if (ground)
 			return DistanceToPoint(pSpawn, ground->X, ground->Y);
 	}
 	else if (Type == MQGroundSpawnType::Placed)
 	{
-		auto placed = Get<EQPlacedItem>();
+		EQPlacedItem* placed = Get<EQPlacedItem>();
 		if (placed)
 			return DistanceToPoint(pSpawn, placed->X, placed->Y);
 	}
@@ -509,13 +509,13 @@ float MQGroundSpawn::Distance3D(SPAWNINFO* pSpawn) const
 {
 	if (Type == MQGroundSpawnType::Ground)
 	{
-		auto ground = Get<EQGroundItem>();
+		EQGroundItem* ground = Get<EQGroundItem>();
 		if (ground)
 			return Distance3DToPoint(pSpawn, ground->X, ground->Y, ground->pSwitch ? ground->pSwitch->Z : ground->Z);
 	}
 	else if (Type == MQGroundSpawnType::Placed)
 	{
-		auto placed = Get<EQPlacedItem>();
+		EQPlacedItem* placed = Get<EQPlacedItem>();
 		if (placed)
 			return Distance3DToPoint(pSpawn, placed->X, placed->Y, placed->Z);
 	}
@@ -527,13 +527,13 @@ int MQGroundSpawn::ID() const
 {
 	if (Type == MQGroundSpawnType::Ground)
 	{
-		auto ground = Get<EQGroundItem>();
+		EQGroundItem* ground = Get<EQGroundItem>();
 		if (ground)
 			return ground->DropID;
 	}
 	else if (Type == MQGroundSpawnType::Placed)
 	{
-		auto placed = Get<EQPlacedItem>();
+		EQPlacedItem* placed = Get<EQPlacedItem>();
 		if (placed)
 			return placed->RealEstateItemID;
 	}
@@ -545,13 +545,13 @@ int MQGroundSpawn::SubID() const
 {
 	if (Type == MQGroundSpawnType::Ground)
 	{
-		auto ground = Get<EQGroundItem>();
+		EQGroundItem* ground = Get<EQGroundItem>();
 		if (ground)
 			return ground->DropSubID;
 	}
 	else if (Type == MQGroundSpawnType::Placed)
 	{
-		auto placed = Get<EQPlacedItem>();
+		EQPlacedItem* placed = Get<EQPlacedItem>();
 		if (placed)
 			return placed->RealEstateID;
 	}
@@ -563,7 +563,7 @@ int MQGroundSpawn::ZoneID() const
 {
 	if (Type == MQGroundSpawnType::Ground)
 	{
-		auto ground = Get<EQGroundItem>();
+		EQGroundItem* ground = Get<EQGroundItem>();
 		if (ground)
 			return ground->ZoneID & 0x7FFF;
 	}
@@ -579,13 +579,13 @@ float MQGroundSpawn::Heading() const
 {
 	if (Type == MQGroundSpawnType::Ground)
 	{
-		auto ground = Get<EQGroundItem>();
+		EQGroundItem* ground = Get<EQGroundItem>();
 		if (ground)
 			return ground->Heading * 0.703125f;
 	}
 	else if (Type == MQGroundSpawnType::Placed)
 	{
-		auto placed = Get<EQPlacedItem>();
+		EQPlacedItem* placed = Get<EQPlacedItem>();
 		if (placed)
 			return placed->Heading * 0.703125f;
 	}
@@ -593,33 +593,35 @@ float MQGroundSpawn::Heading() const
 	return std::numeric_limits<float>::max();
 }
 
-SPAWNINFO MQGroundSpawn::ToSpawn() const
+MQGameObject MQGroundSpawn::ToGameObject() const
 {
-	SPAWNINFO ret;
+	if (Type == MQGroundSpawnType::Ground)
+	{
+		EQGroundItem* ground = Get<EQGroundItem>();
+		if (ground)
+		{
+			return mq::ToGameObject(*ground);
+		}
+	}
+	else if (Type == MQGroundSpawnType::Placed)
+	{
+		EQPlacedItem* placed = Get<EQPlacedItem>();
+		if (placed)
+		{
+			return mq::ToGameObject(*placed);
+		}
+	}
 
-	strcpy_s(ret.Name, Name().c_str());
-	strcpy_s(ret.DisplayedName, DisplayName().c_str());
-
-	auto pos = Position();
-	ret.Y = pos.Y;
-	ret.X = pos.X;
-	ret.Z = pos.Z;
-	ret.Type = SPAWN_NPC;
-	ret.HPCurrent = 1;
-	ret.HPMax = 1;
-	ret.Heading = Heading();
-	ret.mActorClient.Race = ID();
-
-	return ret;
+	return MQGameObject();
 }
 
 template <> EQGroundItem* MQGroundSpawn::Get<EQGroundItem>() const
 {
 	if (Type == MQGroundSpawnType::Ground)
 	{
-		auto ptr = *std::get<EQGroundItemPtr>(Object);
+		EQGroundItemPtr ptr = std::get<EQGroundItemPtr>(Object);
 		if (ptr)
-			return ptr.Ptr();
+			return ptr->Ptr();
 	}
 
 	return nullptr;
@@ -629,9 +631,9 @@ template <> EQPlacedItem* MQGroundSpawn::Get<EQPlacedItem>() const
 {
 	if (Type == MQGroundSpawnType::Placed)
 	{
-		auto ptr = *std::get<EQPlacedItemPtr>(Object);
+		EQPlacedItemPtr ptr = std::get<EQPlacedItemPtr>(Object);
 		if (ptr)
-			return ptr.Ptr();
+			return ptr->Ptr();
 	}
 
 	return nullptr;
