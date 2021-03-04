@@ -238,7 +238,7 @@ bool MQ2Type::RemoveMethod(const char* Name)
 //============================================================================
 // CDataArray
 
-CDataArray::CDataArray(MQ2Type* Type, char* Index, const char* Default, bool ByData)
+CDataArray::CDataArray(MQ2Type* Type, const char* Index)
 {
 	m_nExtents = 1;
 	m_totalElements = 1;
@@ -257,7 +257,8 @@ CDataArray::CDataArray(MQ2Type* Type, char* Index, const char* Default, bool ByD
 	m_pExtents = new int[m_nExtents];
 
 	// read extents
-	char* pStart = Index;
+	std::string IndexCopy = Index;
+	char* pStart = &IndexCopy[0];
 	for (int index = 0; index < m_nExtents; index++)
 	{
 		char* pComma = strchr(pStart, ',');
@@ -274,21 +275,34 @@ CDataArray::CDataArray(MQ2Type* Type, char* Index, const char* Default, bool ByD
 		}
 	}
 
-	m_pData = new MQVarPtr[m_totalElements];
 	m_pType = Type;
+	m_pData = new MQVarPtr[m_totalElements];
+}
+
+void CDataArray::Initialize(const char* defaultValue)
+{
 	if (m_pType != nullptr)
 	{
 		for (int index = 0; index < m_totalElements; index++)
 		{
 			m_pType->InitVariable(m_pData[index]);
-
-			if (ByData)
-				m_pType->FromData(m_pData[index], *(MQTypeVar*)Default);
-			else
-				m_pType->FromString(m_pData[index], Default);
+			m_pType->FromString(m_pData[index], defaultValue);
 		}
 	}
 }
+
+void CDataArray::Initialize(const MQTypeVar& defaultValue)
+{
+	if (m_pType != nullptr)
+	{
+		for (int index = 0; index < m_totalElements; index++)
+		{
+			m_pType->InitVariable(m_pData[index]);
+			m_pType->FromData(m_pData[index], defaultValue);
+		}
+	}
+}
+
 
 CDataArray::~CDataArray()
 {

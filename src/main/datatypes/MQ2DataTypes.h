@@ -117,8 +117,9 @@ class CDataArray
 {
 public:
 	CDataArray() = default;
-	CDataArray(MQ2Type* Type, char* Index, const char* Default, bool ByData = false);
+	CDataArray(MQ2Type* Type, const char* Index);
 	~CDataArray();
+
 	void Delete();
 	int GetElement(char* Index);
 	bool GetElement(char* Index, MQTypeVar& Dest);
@@ -128,6 +129,9 @@ public:
 	int GetExtents(int index) const { return m_pExtents[index]; }
 	int GetNumExtents() const { return m_nExtents; }
 	int GetTotalElements() const { return m_totalElements; }
+
+	void Initialize(const char* defaultValue);
+	void Initialize(const MQTypeVar& defaultValue);
 
 private:
 	MQ2Type* m_pType = nullptr;

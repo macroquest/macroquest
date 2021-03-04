@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+#include <variant>
+
 using namespace mq::datatypes;
 namespace mq {
 
@@ -71,7 +73,66 @@ MQDataVar* FindMQ2DataVariable(const char* Name)
 	return nullptr;
 }
 
-static bool AddMQ2DataEventVariable(const char* Name, char* Index, MQ2Type* pType, MQDataVar** ppHead, const char* Default)
+using DefaultValueType = std::variant<const char*, MQTypeVar>;
+
+static bool InitVariableValue(MQTypeVar& TypeVar, const DefaultValueType& defaultValue)
+{
+	switch (defaultValue.index())
+	{
+	case 0: { // const char*
+		const char* defaultString = std::get<const char*>(defaultValue);
+		if (!defaultString)
+			defaultString = "";
+
+		return TypeVar.Type->FromString(TypeVar.VarPtr, defaultString);
+	}
+
+	case 1: { // MQTypeVar
+		const MQTypeVar& sourceVar = std::get<MQTypeVar>(defaultValue);
+
+		// Check if these types are related.
+		MQ2Type* sourceType = sourceVar.Type;
+		MQ2Type* destType = TypeVar.Type;
+
+		// If we're assigning from a descendent, then we can attempt to downcast to this type.
+		if (sourceType != destType && sourceType->InheritsFrom(destType))
+		{
+			if (sourceType->Downcast(TypeVar, destType))
+				return true;
+		}
+
+		return destType->FromData(TypeVar.VarPtr, sourceVar);
+	}
+
+	default: break;
+	}
+
+	return false;
+}
+
+static bool InitArrayValue(CDataArray* pArray, const DefaultValueType& defaultValue)
+{
+	switch (defaultValue.index())
+	{
+	case 0: { // const char*
+		const char* defaultString = std::get<const char*>(defaultValue);
+		pArray->Initialize(defaultString);
+		return true;
+	}
+
+	case 1: { // MQTypeVar
+		const MQTypeVar& defaultVar = std::get<MQTypeVar>(defaultValue);
+		pArray->Initialize(defaultVar);
+		return true;
+	}
+
+	default: break;
+	}
+
+	return false;
+}
+
+static bool AddMQ2DataEventVariable(const char* Name, char* Index, MQ2Type* pType, MQDataVar** ppHead, const DefaultValueType& defaultValue)
 {
 	std::scoped_lock lock(s_dataVarMutex);
 
@@ -79,8 +140,7 @@ static bool AddMQ2DataEventVariable(const char* Name, char* Index, MQ2Type* pTyp
 		return false;
 	if (!Index)
 		Index = "";
-	if (!Default)
-		Default = "";
+
 	if (FindMQ2Data(Name) || FindMQ2DataType(Name))
 		return false; // name in use
 	if (!pType)
@@ -98,17 +158,17 @@ static bool AddMQ2DataEventVariable(const char* Name, char* Index, MQ2Type* pTyp
 
 	if (Index[0])
 	{
-		CDataArray* pArray = new CDataArray(pType, Index, Default);
+		CDataArray* pArray = new CDataArray(pType, Index);
 		pVar->Var.Ptr = pArray;
 
+		InitArrayValue(pArray, defaultValue);
 	}
 	else
 	{
 		pVar->Var.Type = pType;
 		pType->InitVariable(pVar->Var.VarPtr);
 
-		// FIXME: This should be const char*
-		pType->FromString(pVar->Var.VarPtr, Default);
+		InitVariableValue(pVar->Var, defaultValue);
 	}
 
 	if (pVar->ppHead == &pMacroVariables || pVar->ppHead == &pGlobalVariables)
@@ -119,7 +179,7 @@ static bool AddMQ2DataEventVariable(const char* Name, char* Index, MQ2Type* pTyp
 	return true;
 }
 
-static bool AddMQ2DataVariableBy(const char* Name, const char* Index, MQ2Type* pType, MQDataVar** ppHead, const char* Default, bool ByData)
+static bool AddMQ2DataVariableBy(const char* Name, const char* Index, MQ2Type* pType, MQDataVar** ppHead, const DefaultValueType& defaultValue)
 {
 	std::scoped_lock lock(s_dataVarMutex);
 
@@ -127,8 +187,7 @@ static bool AddMQ2DataVariableBy(const char* Name, const char* Index, MQ2Type* p
 		return false;
 	if (!Index)
 		Index = "";
-	if (!Default)
-		Default = "";
+
 	if (FindMQ2DataVariable(Name) || FindMQ2Data(Name) || FindMQ2DataType(Name))
 		return false; // name in use
 	if (!pType)
@@ -146,18 +205,18 @@ static bool AddMQ2DataVariableBy(const char* Name, const char* Index, MQ2Type* p
 
 	if (Index[0])
 	{
-		CDataArray* pArray = new CDataArray(pType, (char*)Index, Default);
+		CDataArray* pArray = new CDataArray(pType, Index);
 		pVar->Var.Ptr = pArray;
 		pVar->Var.Type = pArrayType;
+
+		InitArrayValue(pArray, defaultValue);
 	}
 	else
 	{
 		pVar->Var.Type = pType;
 		pType->InitVariable(pVar->Var.VarPtr);
-		if (ByData)
-			pType->FromData(pVar->Var.VarPtr, *(MQTypeVar*)Default);
-		else
-			pType->FromString(pVar->Var.VarPtr, Default);
+
+		InitVariableValue(pVar->Var, defaultValue);
 	}
 
 	if (!(gMacroStack && (ppHead == &gMacroStack->LocalVariables || ppHead == &gMacroStack->Parameters)))
@@ -170,12 +229,16 @@ static bool AddMQ2DataVariableBy(const char* Name, const char* Index, MQ2Type* p
 
 bool AddMQ2DataVariable(const char* Name, const char* Index, MQ2Type* pType, MQDataVar** ppHead, const char* Default)
 {
-	return AddMQ2DataVariableBy(Name, Index, pType, ppHead, Default, false);
+	DefaultValueType defaultValue = Default;
+
+	return AddMQ2DataVariableBy(Name, Index, pType, ppHead, defaultValue);
 }
 
 bool AddMQ2DataVariableFromData(const char* Name, const char* Index, MQ2Type* pType, MQDataVar** ppHead, MQTypeVar Default)
 {
-	return AddMQ2DataVariableBy(Name, Index, pType, ppHead, (const char*)&Default, true);
+	DefaultValueType defaultValue = Default;
+
+	return AddMQ2DataVariableBy(Name, Index, pType, ppHead, defaultValue);
 }
 
 MQDataVar** FindVariableScope(const char* Name)
@@ -500,6 +563,10 @@ void NewVardata(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
+	MQ2Type* pType = nullptr;
+	MQVarPtr* pDataDest = nullptr;
+	int num = -1;
+
 	if (szIndex[0])
 	{
 		if (pVar->Var.Type != pArrayType)
@@ -509,21 +576,29 @@ void NewVardata(SPAWNINFO* pChar, char* szLine)
 		}
 
 		CDataArray* pArray = (CDataArray*)pVar->Var.Ptr;
-		int num = pArray->GetElement(szIndex);
+		num = pArray->GetElement(szIndex);
 		if (num == -1)
 		{
 			MacroError("/vardata '%s[%d]' failed, out of bounds on array", szName, num);
 			return;
 		}
 
-		if (!pArray->GetType()->FromData(pArray->GetData(num), Result))
-		{
-			MacroError("/vardata '%s[%d]'failed, array element type rejected new value", szName, num);
-		}
+		pType = pArray->GetType();
+		pDataDest = &pArray->GetData(num);
 	}
 	else
 	{
-		if (!pVar->Var.Type->FromData(pVar->Var.VarPtr, Result))
+		pType = pVar->Var.Type;
+		pDataDest = &pVar->Var.VarPtr;
+	}
+
+	if (!pType->FromData(*pDataDest, Result))
+	{
+		if (num != -1)
+		{
+			MacroError("/vardata '%s[%d]'failed, array element type rejected new value", szName, num);
+		}
+		else
 		{
 			MacroError("/vardata '%s' failed, variable type rejected new value", szName);
 		}
