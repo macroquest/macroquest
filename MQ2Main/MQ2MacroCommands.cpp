@@ -920,8 +920,7 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
 		MacroError("Cannot end a macro when one isn't running.");
 		return;
 	}
-	if (pBlock->Paused)
-		pBlock->Paused = false;
+	pBlock->Paused = false;
 	/////////////// 
 	// Code allowing for a routine for "OnExit"
 	for (std::map<int, MACROLINE>::iterator i = pBlock->Line.begin(); i != pBlock->Line.end(); i++)
