@@ -1,3 +1,7 @@
+Mar 04 2021
+- Fixed the SPELL struct this should fix a bunch of misc bugs.
+- Updated for TEST
+-
 Mar 03 2021
 - Updated for TEST
 -
