@@ -355,6 +355,9 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index, MQTypeVar& Dest)
 {
+	if (!pSpawn)
+		return false;
+
 	SPAWNINFO* pMySpawn = pLocalPlayer;
 	if (!pMySpawn)
 		return false;
