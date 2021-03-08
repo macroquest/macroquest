@@ -516,7 +516,13 @@ const char* szZoneExpansionName[] = {
 	"Veil of Alaris",           //18
 	"Rain of Fear",             //19
 	"Call of the Forsaken",     //20
-	"Broken Mirror",            //21
+	"The Darkened Sea",         //21
+	"The Broken Mirror",        //22
+	"Empires of Kunark",        //23
+	"Ring of Scale",            //24
+	"The Burning Lands",        //25
+	"Torment of Velious",       //26
+	"Claws of Veeshan",         //27
 };
 
 const char* szDmgBonusType[] = {
