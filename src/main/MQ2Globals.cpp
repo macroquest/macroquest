@@ -305,7 +305,6 @@ decltype(ItemSlotMap) ItemSlotMap;
 
 char DataTypeTemp[MAX_STRING] = { 0 };
 
-std::map<std::string, SPAWNINFO*> SpawnByName;
 MQRank* EQP_DistArray = nullptr;
 int gSpawnCount = 0;
 

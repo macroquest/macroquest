@@ -20,6 +20,8 @@ namespace mq {
 static void Spawns_Initialize();
 static void Spawns_Shutdown();
 static void Spawns_Pulse();
+static void Spawns_BeginZone();
+static void Spawns_SpawnRemoved(SPAWNINFO* pSpawn);
 
 static MQModule gSpawnsModule = {
 	"Spawns",                     // Name
@@ -27,6 +29,13 @@ static MQModule gSpawnsModule = {
 	Spawns_Initialize,            // Initialize
 	Spawns_Shutdown,              // Shutdown
 	Spawns_Pulse,                 // Pulse
+	nullptr,                      // SetGameState
+	nullptr,                      // UpdateImGui
+	nullptr,                      // Zoned
+	nullptr,                      // WriteChatColor
+	nullptr,                      // SpawnAdded
+	Spawns_SpawnRemoved,          // SpawnRemoved
+	Spawns_BeginZone,             // BeginZone
 };
 MQModule* GetSpawnsModule() { return &gSpawnsModule; }
 
@@ -1004,5 +1013,20 @@ static void Spawns_Pulse()
 	ProcessPendingGroundItems();
 }
 
+static void Spawns_BeginZone()
+{
+	gSpawnsArray.clear();
+}
+
+static void Spawns_SpawnRemoved(SPAWNINFO* pSpawn)
+{
+	if (gSpawnsArray.empty())
+		return;
+
+	gSpawnsArray.erase(
+		std::remove_if(std::begin(gSpawnsArray), std::end(gSpawnsArray),
+			[pSpawn](const MQSpawnArrayItem& item) { return item.GetSpawn() == pSpawn; }),
+		std::end(gSpawnsArray));
+}
 
 } // namespace mq

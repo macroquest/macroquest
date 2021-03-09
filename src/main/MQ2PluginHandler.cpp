@@ -706,6 +706,14 @@ void PluginsAddSpawn(SPAWNINFO* pNewSpawn)
 	if (GetBodyTypeDesc(BodyType)[0] == '*')
 		WriteChatf("Spawn '%s' has unknown bodytype %d", pNewSpawn->Name, BodyType);
 
+	for (const MQModule* module : gInternalModules)
+	{
+		if (module->SpawnAdded)
+		{
+			module->SpawnAdded(pNewSpawn);
+		}
+	}
+
 	std::scoped_lock lock(s_pluginsMutex);
 	MQPlugin* pPlugin = pPlugins;
 	while (pPlugin)
@@ -728,8 +736,15 @@ void PluginsRemoveSpawn(SPAWNINFO* pSpawn)
 
 	PluginDebug("PluginsRemoveSpawn(%s)", pSpawn->Name);
 
-	SpawnByName.erase(pSpawn->Name);
 	ClearCachedBuffsSpawn(pSpawn);
+
+	for (const MQModule* module : gInternalModules)
+	{
+		if (module->SpawnRemoved)
+		{
+			module->SpawnRemoved(pSpawn);
+		}
+	}
 
 	std::scoped_lock lock(s_pluginsMutex);
 	MQPlugin* pPlugin = pPlugins;
@@ -798,6 +813,14 @@ void PluginsBeginZone()
 	gbInZone = false;
 	gZoning = true;
 
+	for (const MQModule* module : gInternalModules)
+	{
+		if (module->BeginZone)
+		{
+			module->BeginZone();
+		}
+	}
+
 	std::scoped_lock lock(s_pluginsMutex);
 	MQPlugin* pPlugin = pPlugins;
 	while (pPlugin)
@@ -821,6 +844,14 @@ void PluginsEndZone()
 	gbInZone = true;
 	WereWeZoning = true;
 	LastEnteredZone = MQGetTickCount64();
+
+	for (const MQModule* module : gInternalModules)
+	{
+		if (module->EndZone)
+		{
+			module->EndZone();
+		}
+	}
 
 	std::scoped_lock lock(s_pluginsMutex);
 	MQPlugin* pPlugin = pPlugins;

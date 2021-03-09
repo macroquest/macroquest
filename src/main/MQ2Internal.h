@@ -419,6 +419,10 @@ struct MQModule
 	fMQUpdateImGui       UpdateImGui = 0;
 	fMQZoned             Zoned = 0;
 	fMQWriteChatColor    WriteChatColor = 0;
+	fMQSpawn             SpawnAdded = 0;
+	fMQSpawn             SpawnRemoved = 0;
+	fMQBeginZone         BeginZone = 0;
+	fMQEndZone           EndZone = 0;
 
 	bool                 loaded = false;
 };

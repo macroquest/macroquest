@@ -305,8 +305,6 @@ MQLIB_VAR std::map<std::string, MQDataVar*> VariableMap;
 MQLIB_VAR std::unordered_map<std::string, std::unique_ptr<MQDataItem>> MQ2DataMap;
 MQLIB_VAR MQPlugin* pPlugins;
 
-MQLIB_VAR std::map<std::string, SPAWNINFO*> SpawnByName;
-
 // Prefer using gSpawnArray over these for internal usage
 MQLIB_VAR MQRank* EQP_DistArray;
 MQLIB_VAR int gSpawnCount;
