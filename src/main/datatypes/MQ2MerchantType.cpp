@@ -72,22 +72,23 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 			{
 				bool bFound = false;
 				int listIndex = 0;
-				ItemClient* pItem = nullptr;
+				ItemPtr pItem;
 
-				for (int i = 0; i < pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer.GetSize(); i++)
+				auto& itemContainer = pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer;
+				for (int i = 0; i < itemContainer.GetSize(); i++)
 				{
-					if (pItem = pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer[i].pCont)
+					if (itemContainer[i].pItem)
 					{
-						if (MaybeExactCompare(pItem->GetName(), Index))
+						if (MaybeExactCompare(itemContainer[i].pItem->GetName(), Index))
 						{
 							listIndex = i;
-							bFound = true;
+							pItem = itemContainer[i].pItem;
 							break;
 						}
 					}
 				}
 
-				if (bFound)
+				if (pItem)
 				{
 					ItemGlobalIndex To(eItemContainerMerchant, pItem->GetItemLocation().GetTopSlot());
 

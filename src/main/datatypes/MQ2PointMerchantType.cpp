@@ -43,33 +43,33 @@ bool MQ2PointMerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 
 	switch (static_cast<PointMerchantMembers>(pMember->ID))
 	{
-	case PointMerchantMembers::Item:
+	case PointMerchantMembers::Item: {
 		Dest.Int = 0;
 		Dest.Type = pPointMerchantItemType;
+
+		auto& itemContainer = pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer;
 		if (IsNumber(Index))
 		{
 			int index = GetIntFromString(Index, 0) - 1;
-			if (index >= 0 && index < pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer.GetSize())
+			if (index >= 0 && index < itemContainer.GetSize())
 			{
 				Dest.Int = index;
 				return true;
 			}
 		}
-		else
+		else if (Index[0] != 0)
 		{
-			if (Index[0] != '\0')
+			for (int i = 0; i < itemContainer.GetSize(); i++)
 			{
-				for (int i = 0; i < pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer.GetSize(); i++)
+				if (!_stricmp(itemContainer[i].pItem->GetName(), Index))
 				{
-					auto name = GetItemFromContents(pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer[i].pCont)->Name;
-					if (!_stricmp(name, Index))
-					{
-						Dest.Int = i;
-						return true;
-					}
+					Dest.Int = i;
+					return true;
 				}
 			}
 		}
+		return false;
+	}
 
 	default: break;
 	}
