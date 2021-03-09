@@ -251,6 +251,7 @@ enum class CharacterMembers
 	OverseerTetradrachm,
 	WarforgedEmblem,
 	RestlessMark,
+	LoyaltyTokens,
 	SpellInCooldown,
 	Slowed,
 	Rooted,
@@ -573,6 +574,7 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, OverseerTetradrachm);
 	ScopedTypeMember(CharacterMembers, WarforgedEmblem);
 	ScopedTypeMember(CharacterMembers, RestlessMark);
+	ScopedTypeMember(CharacterMembers, LoyaltyTokens);
 	ScopedTypeMember(CharacterMembers, SpellInCooldown);
 	ScopedTypeMember(CharacterMembers, Slowed);
 	ScopedTypeMember(CharacterMembers, Rooted);
@@ -2993,6 +2995,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.Type = pIntType;
 		return true;
 
+	case CharacterMembers::LoyaltyTokens:
+		Dest.DWord = pChar->LoyaltyRewardBalance;
+		Dest.Type = pIntType;
+		return true;
+
 	case CharacterMembers::Fellowship:
 		Dest.Type = pFellowshipType;
 		if (pChar->pSpawn)
@@ -4075,7 +4082,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				// numeric
 				if (int nSkill = GetIntFromString(Index, 0))
 				{
-					if (bool bActivated = pCSkillMgr->IsActivatedSkill(nSkill))
+					if (bool bActivated = pSkillMgr->IsActivatedSkill(nSkill))
 					{
 						int calcedduration = pSkillMgr->SkillTimerDuration[nSkill] - (EQGetTime() - pSkillMgr->SkillLastUsed[nSkill]);
 						if (calcedduration < 0)
@@ -4091,14 +4098,14 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			// name
 			for (int nSkill = 0; nSkill < NUM_SKILLS; nSkill++)
 			{
-				int nToken = pCSkillMgr->GetNameToken(nSkill);
+				int nToken = pSkillMgr->GetNameToken(nSkill);
 				const char* thename = pStringTable->getString(nToken);
 
 				if (!thename || _stricmp(Index, thename) != 0)
 					continue;
 
 				// TODO: DRY - refactor duplicated code from above.
-				if (bool bActivated = pCSkillMgr->IsActivatedSkill(nSkill))
+				if (bool bActivated = pSkillMgr->IsActivatedSkill(nSkill))
 				{
 					int calcedduration = pSkillMgr->SkillTimerDuration[nSkill] - (EQGetTime() - pSkillMgr->SkillLastUsed[nSkill]);
 					if (calcedduration < 0)

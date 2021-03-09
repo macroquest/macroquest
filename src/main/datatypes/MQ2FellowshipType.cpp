@@ -52,7 +52,7 @@ MQ2FellowshipType::MQ2FellowshipType()
 
 bool MQ2FellowshipType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	FELLOWSHIPINFO* pFellowship = reinterpret_cast<FELLOWSHIPINFO*>(VarPtr.Ptr);
+	SFellowship* pFellowship = reinterpret_cast<SFellowship*>(VarPtr.Ptr);
 	if (!VarPtr.Ptr)
 		return false;
 
@@ -177,7 +177,7 @@ bool MQ2FellowshipType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 
 bool MQ2FellowshipType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	if (VarPtr.Ptr && static_cast<FELLOWSHIPINFO*>(VarPtr.Ptr)->FellowshipID != 0)
+	if (VarPtr.Ptr && static_cast<SFellowship*>(VarPtr.Ptr)->FellowshipID != 0)
 		strcpy_s(Destination, MAX_STRING, "TRUE");
 	else
 		strcpy_s(Destination, MAX_STRING, "FALSE");
@@ -191,6 +191,7 @@ enum class FMTypeMembers
 	Class,
 	LastOn,
 	Name,
+	Sharing,
 };
 
 MQ2FellowshipMemberType::MQ2FellowshipMemberType()
@@ -201,12 +202,16 @@ MQ2FellowshipMemberType::MQ2FellowshipMemberType()
 	ScopedTypeMember(FMTypeMembers, Class);
 	ScopedTypeMember(FMTypeMembers, LastOn);
 	ScopedTypeMember(FMTypeMembers, Name);
+	ScopedTypeMember(FMTypeMembers, Sharing);
 }
 
 bool MQ2FellowshipMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	FELLOWSHIPMEMBER* pFellowshipMember = reinterpret_cast<FELLOWSHIPMEMBER*>(VarPtr.Ptr);
+	SFellowshipMember* pFellowshipMember = reinterpret_cast<SFellowshipMember*>(VarPtr.Ptr);
 	if (!pFellowshipMember)
+		return false;
+
+	if (!pLocalPlayer)
 		return false;
 
 	MQTypeMember* pMember = MQ2FellowshipMemberType::FindMember(Member);
@@ -253,6 +258,22 @@ bool MQ2FellowshipMemberType::GetMember(MQVarPtr VarPtr, const char* Member, cha
 		Dest.Type = pStringType;
 		return true;
 
+	case FMTypeMembers::Sharing: {
+		Dest.Set(false);
+		Dest.Type = pBoolType;
+
+		auto& fellowship = pLocalPlayer.get_as<SPAWNINFO>()->Fellowship;
+		for (int i = 0; i < fellowship.Members; ++i)
+		{
+			if (pFellowshipMember->UniqueEntityID == fellowship.FellowshipMember[i].UniqueEntityID)
+			{
+				Dest.Set(fellowship.bExpSharingEnabled[i]);
+				break;
+			}
+		}
+		return true;
+	}
+
 	default: break;
 	}
 
@@ -261,7 +282,7 @@ bool MQ2FellowshipMemberType::GetMember(MQVarPtr VarPtr, const char* Member, cha
 
 bool MQ2FellowshipMemberType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	FELLOWSHIPMEMBER* pFellowshipMember = reinterpret_cast<FELLOWSHIPMEMBER*>(VarPtr.Ptr);
+	SFellowshipMember* pFellowshipMember = reinterpret_cast<SFellowshipMember*>(VarPtr.Ptr);
 	if (!pFellowshipMember)
 		return false;
 

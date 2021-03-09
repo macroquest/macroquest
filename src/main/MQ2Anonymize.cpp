@@ -595,7 +595,7 @@ CXStr Anonymize(const CXStr& Text)
 			std::cbegin(fellowship.FellowshipMember),
 			std::cend(fellowship.FellowshipMember),
 			new_text,
-			[](std::string& text, const FELLOWSHIPMEMBER& f) -> std::string
+			[](std::string& text, const SFellowshipMember& f) -> std::string
 			{
 				if (f.Name[0] != '\0' && ci_equals(text, f.Name, false))
 				{

@@ -181,7 +181,8 @@ ProfileRecord ProfileRecord::FromBlob(const std::string& blob)
 ProfileRecord ProfileRecord::FromINI(const std::string& profile, const std::string& blobKey, const std::string& iniFile)
 {
 	std::string blob = GetPrivateProfileString(profile, blobKey, "", iniFile);
-	blob = split(blob, '=').at(0); // remove the "checked" status
+	if (!blob.empty())
+		blob = split(blob, '=').at(0); // remove the "checked" status
 
 	auto record = ProfileRecord::FromBlob(blob);
 	record.profileName = profile;

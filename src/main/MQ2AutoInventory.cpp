@@ -85,50 +85,15 @@ CCheckBoxWnd* pCheck = nullptr;
 bool bChangedNL = false;
 ULONGLONG SellTimer = 0;
 
-static int GetMoneyFromString(const char* str)
-{
-	char szLabel1[50];
-	strcpy_s(szLabel1, str);
-
-	int pp = 0;
-	int gp = 0;
-	int sp = 0;
-	int cp = 0;
-
-	if (char* pDest = strstr(szLabel1, "pp"))
-	{
-		pDest[0] = '\0';
-		pp = GetIntFromString(szLabel1, pp);
-		strcpy_s(szLabel1, &pDest[2]);
-	}
-
-	if (char* pDest = strstr(szLabel1, "gp"))
-	{
-		pDest[0] = '\0';
-		gp = GetIntFromString(szLabel1, gp);
-		strcpy_s(szLabel1, &pDest[2]);
-	}
-
-	if (char* pDest = strstr(szLabel1, "sp"))
-	{
-		pDest[0] = '\0';
-		sp = GetIntFromString(szLabel1, sp);
-		strcpy_s(szLabel1, &pDest[2]);
-	}
-
-	if (char* pDest = strstr(szLabel1, "cp"))
-	{
-		pDest[0] = '\0';
-		cp = GetIntFromString(szLabel1, cp);
-		strcpy_s(szLabel1, &pDest[2]);
-	}
-
-	int total = (pp * 1000) + (gp * 100) + (sp * 10) + cp;
-	return total;
+namespace AutoInventory {
+	class FindItemWnd_Hook;
+	class BankWnd_Hook;
+	class CBarterWnd_Hook;
+	class CBarterSearchWnd_Hook;
 }
 
 // CFindItemWnd hooks
-class AutoInventory_FindItemWnd_Hook
+class AutoInventory::FindItemWnd_Hook
 {
 public:
 	void Update_Detour()
@@ -231,31 +196,7 @@ public:
 									if (pItem->Cost > 0)
 									{
 										int sellprice = ptr->ValueSellMerchant(1.05f, 1);
-										int cp = sellprice;
-										int sp = cp / 10; cp = cp % 10;
-										int gp = sp / 10; sp = sp % 10;
-										int pp = gp / 10; gp = gp % 10;
-
-										if (pp > 0)
-										{
-											sprintf_s(szTemp2, " %dpp", pp);
-											strcat_s(szTemp3, szTemp2);
-										}
-										if (gp > 0)
-										{
-											sprintf_s(szTemp2, " %dgp", gp);
-											strcat_s(szTemp3, szTemp2);
-										}
-										if (sp > 0)
-										{
-											sprintf_s(szTemp2, " %dsp", sp);
-											strcat_s(szTemp3, szTemp2);
-										}
-										if (cp > 0)
-										{
-											sprintf_s(szTemp2, " %dcp", cp);
-											strcat_s(szTemp3, szTemp2);
-										}
+										FormatMoneyString(szTemp3, lengthof(szTemp3), (uint64_t)sellprice, GetMoneyFromStringFormat::Long);
 									}
 
 									list->SetItemText(i, ValueCol, szTemp3);
@@ -282,31 +223,20 @@ public:
 	int WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
 	{
 		CFindItemWnd* pThis = (CFindItemWnd*)this;
-		PcProfile* pProfile = GetPcProfile();
-		if (!pProfile)
-			return WndNotification_Trampoline(pWnd, uiMessage, pData);;
 
 		if (uiMessage == XWM_SORTREQUEST)
 		{
 			if (pWnd == pThis->FIW_ItemList)
 			{
-				if (SListWndSortInfo* pSI = (SListWndSortInfo*)pData)
+				SListWndSortInfo* pSI = (SListWndSortInfo*)pData;
+
+				if (pSI->SortCol == Column_Value)
 				{
-					if (pSI->SortCol == Column_Value)
-					{
-						int int1 = GetMoneyFromString(pSI->StrLabel1.c_str());
-						int int2 = GetMoneyFromString(pSI->StrLabel2.c_str());
-
-						if (int1 > int2)
-							pSI->SortResult = -1;
-						else if (int1 < int2)
-							pSI->SortResult = 1;
-						else
-							pSI->SortResult = 0;
-
-						return 0;
-					}
+					pSI->SortResult = (int)(GetMoneyFromString(pSI->StrLabel1.c_str())
+						- GetMoneyFromString(pSI->StrLabel2.c_str()));
 				}
+
+				return 0;
 			}
 		}
 		else if (uiMessage == XWM_MENUSELECT)
@@ -611,6 +541,7 @@ public:
 								return 0;
 
 							// if we have something on cursor we let eq handle the destroy
+							PcProfile* pProfile = GetPcProfile();
 							if (!pProfile->GetInventorySlot(InvSlot_Cursor))
 							{
 								// if we have something on cursor we let eq handle the destroy
@@ -713,11 +644,11 @@ public:
 	}
 	int WndNotification_Trampoline(CXWnd*, uint32_t, void*);
 };
-DETOUR_TRAMPOLINE_EMPTY(void AutoInventory_FindItemWnd_Hook::Update_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(int AutoInventory_FindItemWnd_Hook::WndNotification_Trampoline(CXWnd*, uint32_t, void*));
+DETOUR_TRAMPOLINE_EMPTY(void AutoInventory::FindItemWnd_Hook::Update_Trampoline());
+DETOUR_TRAMPOLINE_EMPTY(int AutoInventory::FindItemWnd_Hook::WndNotification_Trampoline(CXWnd*, uint32_t, void*));
 
 // CBankWnd hooks
-class AutoInventory_BankWnd_Hook
+class AutoInventory::BankWnd_Hook
 {
 public:
 	int WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
@@ -832,10 +763,200 @@ public:
 	}
 	int WndNotification_Trampoline(CXWnd*, uint32_t, void*);
 };
-DETOUR_TRAMPOLINE_EMPTY(int AutoInventory_BankWnd_Hook::WndNotification_Trampoline(CXWnd*, uint32_t, void*));
+DETOUR_TRAMPOLINE_EMPTY(int AutoInventory::BankWnd_Hook::WndNotification_Trampoline(CXWnd*, uint32_t, void*));
+
+// CBarterWnd hooks
+class AutoInventory::CBarterWnd_Hook
+{
+public:
+	int WndNotification_Trampoline(CXWnd* pWnd, uint32_t uiMessage, void* pData);
+	int WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
+	{
+		CBarterWnd* pThis = (CBarterWnd*)this;
+
+		if (pWnd == pThis->plistBuyLines)
+		{
+			if (uiMessage == XWM_COLUMNCLICK)
+			{
+				int columnIndex = (int)pData;
+
+				pThis->plistBuyLines->SetSortColumn(columnIndex);
+				return 0;
+			}
+			else if (uiMessage == XWM_SORTREQUEST)
+			{
+				SListWndSortInfo* sortInfo = (SListWndSortInfo*)pData;
+
+				switch (sortInfo->SortCol)
+				{
+				case CBarterWnd::Column_Active:
+				case CBarterWnd::Column_Icon:
+				case CBarterWnd::Column_Name:
+				default:
+					sortInfo->SortResult = sortInfo->StrLabel1.Compare(sortInfo->StrLabel2, CaseInsensitive);
+					break;
+
+				case CBarterWnd::Column_Count:
+					sortInfo->SortResult = GetIntFromString(sortInfo->StrLabel1, 0) - GetIntFromString(sortInfo->StrLabel2, 0);
+					break;
+
+				case CBarterWnd::Column_Offering:
+					sortInfo->SortResult = (int)(GetMoneyFromString(sortInfo->StrLabel1.c_str(), GetMoneyFromStringFormat::Short)
+						- GetMoneyFromString(sortInfo->StrLabel2.c_str(), GetMoneyFromStringFormat::Short));
+					break;
+				}
+
+				return 0;
+			}
+		}
+
+		return WndNotification_Trampoline(pWnd, uiMessage, pData);
+	}
+};
+DETOUR_TRAMPOLINE_EMPTY(int AutoInventory::CBarterWnd_Hook::WndNotification_Trampoline(CXWnd* pWnd, uint32_t uiMessage, void* pData));
+
+class AutoInventory::CBarterSearchWnd_Hook
+{
+	static inline int BarterValueCol = 0;
+	static inline int BarterLastSortIndex = 1;
+	static inline bool BarterLastSortDirection = true;
+
+public:
+	int WndNotification_Trampoline(CXWnd* pWnd, uint32_t uiMessage, void* pData);
+	int WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
+	{
+		CBarterSearchWnd* pThis = (CBarterSearchWnd*)this;
+
+		if (pWnd == pThis->plistInventory)
+		{
+			if (uiMessage == XWM_RCLICK)
+			{
+				int selectedIndex = pThis->plistInventory->GetCurSel();
+				if (selectedIndex != -1)
+				{
+					int searchIndex = (int)pThis->plistInventory->GetItemData(selectedIndex);
+					if (searchIndex >= 0 && searchIndex < pThis->InventoryItems.GetLength())
+					{
+						BarterInventoryItem& item = pThis->InventoryItems[searchIndex];
+						ItemPtr pItem = FindItemByID(item.ItemID);
+
+						if (pItem)
+						{
+							pItemDisplayManager->ShowItem(pItem);
+						}
+					}
+				}
+
+				return 0;
+			}
+			else if (uiMessage == XWM_COLUMNCLICK)
+			{
+				int columnIndex = (int)pData;
+				pThis->plistInventory->SetSortColumn(columnIndex);
+
+				return 0;
+			}
+			else if (uiMessage == XWM_SORTREQUEST)
+			{
+				SListWndSortInfo* sortInfo = (SListWndSortInfo*)pData;
+
+				switch (sortInfo->SortCol)
+				{
+				case CBarterSearchWnd::Column_Icon:
+				case CBarterSearchWnd::Column_Name:
+				default:
+					sortInfo->SortResult = sortInfo->StrLabel1.Compare(sortInfo->StrLabel2, CaseInsensitive);
+					break;
+
+				case CBarterSearchWnd::Column_Count:
+					sortInfo->SortResult = GetIntFromString(sortInfo->StrLabel1, 0) - GetIntFromString(sortInfo->StrLabel2, 0);
+					break;
+				}
+
+				return 0;
+			}
+		}
+
+		return WndNotification_Trampoline(pWnd, uiMessage, pData);
+	}
+
+	void UpdateInventoryList_Trampoline();
+	void UpdateInventoryList_Detour()
+	{
+		UpdateInventoryList_Trampoline();
+
+		CBarterSearchWnd* pThis = (CBarterSearchWnd*)this;
+
+		if (BarterValueCol != 0 && BarterValueCol < pThis->plistInventory->Columns.GetCount())
+		{
+			for (int i = 0; i < pThis->plistInventory->ItemsArray.GetCount(); ++i)
+			{
+				int realIndex = (int)pThis->plistInventory->GetItemData(i);
+				ItemPtr pItem = FindItemByID(pThis->InventoryItems[realIndex].ItemID);
+
+				char szLabel[32] = "";
+
+				if (pItem && pItem->GetItemDefinition()->Cost > 0)
+				{
+					int sellPrice = pItem->ValueSellMerchant(1.05f, 1);
+					FormatMoneyString(szLabel, lengthof(szLabel), sellPrice, GetMoneyFromStringFormat::Short);
+				}
+
+				pThis->plistInventory->SetItemText(i, BarterValueCol, szLabel);
+			}
+
+			pThis->plistInventory->bSortAsc = BarterLastSortDirection;
+			pThis->plistInventory->SortCol = BarterLastSortIndex;
+			pThis->plistInventory->Sort();
+		}
+	}
+
+	static void AddInventoryValueColumn()
+	{
+		// Add a value sort column
+		if (BarterValueCol == 0 && pBarterSearchWnd)
+		{
+			BarterLastSortIndex = pBarterSearchWnd->plistInventory->SortCol;
+			BarterLastSortDirection = pBarterSearchWnd->plistInventory->bSortAsc;
+
+			if (pBarterSearchWnd->plistInventory->Columns.GetCount() <= CBarterSearchWnd::Column_Max)
+			{
+				CXStr tooltip = "Shows merchant value of item";
+				BarterValueCol = pBarterSearchWnd->plistInventory->AddColumn("Value", nullptr, 160 /* width */, 0, tooltip,
+					CellTypeBasicText, nullptr, nullptr, true, CXSize(), CXPoint());
+				pBarterSearchWnd->plistInventory->SetColumnJustification(BarterValueCol, 0);
+			}
+			else
+			{
+				BarterValueCol = CBarterSearchWnd::Column_Max; // we added it already at the end.
+			}
+		}
+	}
+
+	static void RemoveInventoryValueColumn()
+	{
+		// Remove the sort column
+		if (BarterValueCol != 0 && pBarterSearchWnd && BarterValueCol < pBarterSearchWnd->plistInventory->Columns.GetCount())
+		{
+			pBarterSearchWnd->plistInventory->Columns.DeleteElement(BarterValueCol);
+			BarterValueCol = 0;
+
+			BarterLastSortIndex = 1;
+			BarterLastSortDirection = true;
+
+			pBarterSearchWnd->plistInventory->SortCol = BarterLastSortIndex;
+			pBarterSearchWnd->plistInventory->bSortAsc = BarterLastSortDirection;
+			pBarterSearchWnd->plistInventory->Sort();
+		}
+	}
+};
+DETOUR_TRAMPOLINE_EMPTY(int AutoInventory::CBarterSearchWnd_Hook::WndNotification_Trampoline(CXWnd* pWnd, uint32_t uiMessage, void* pData));
+DETOUR_TRAMPOLINE_EMPTY(void AutoInventory::CBarterSearchWnd_Hook::UpdateInventoryList_Trampoline());
 
 static void AddAutoBankMenu()
 {
+	AutoInventory::CBarterSearchWnd_Hook::AddInventoryValueColumn();
+
 	if (OurCheckBoxMenuIndex == 0)
 	{
 		if (CContextMenuManager* pMgr = pContextMenuManager)
@@ -1028,6 +1149,8 @@ static void AddAutoBankMenu()
 
 void RemoveAutoBankMenu()
 {
+	AutoInventory::CBarterSearchWnd_Hook::RemoveInventoryValueColumn();
+
 	if (CContextMenuManager* pMgr = pContextMenuManager)
 	{
 		if (OurDefaultMenuIndex != 0)
@@ -1381,18 +1504,30 @@ static void AutoBankPulse()
 void InitializeMQ2AutoInventory()
 {
 	EzDetour(CBankWnd__WndNotification,
-		&AutoInventory_BankWnd_Hook::WndNotification_Detour,
-		&AutoInventory_BankWnd_Hook::WndNotification_Trampoline);
+		&AutoInventory::BankWnd_Hook::WndNotification_Detour,
+		&AutoInventory::BankWnd_Hook::WndNotification_Trampoline);
 	EzDetour(CFindItemWnd__WndNotification,
-		&AutoInventory_FindItemWnd_Hook::WndNotification_Detour,
-		&AutoInventory_FindItemWnd_Hook::WndNotification_Trampoline);
+		&AutoInventory::FindItemWnd_Hook::WndNotification_Detour,
+		&AutoInventory::FindItemWnd_Hook::WndNotification_Trampoline);
 	EzDetour(CFindItemWnd__Update,
-		&AutoInventory_FindItemWnd_Hook::Update_Detour,
-		&AutoInventory_FindItemWnd_Hook::Update_Trampoline);
+		&AutoInventory::FindItemWnd_Hook::Update_Detour,
+		&AutoInventory::FindItemWnd_Hook::Update_Trampoline);
+	EzDetour(CBarterSearchWnd__WndNotification,
+		&AutoInventory::CBarterSearchWnd_Hook::WndNotification_Detour,
+		&AutoInventory::CBarterSearchWnd_Hook::WndNotification_Trampoline);
+	EzDetour(CBarterSearchWnd__UpdateInventoryList,
+		&AutoInventory::CBarterSearchWnd_Hook::UpdateInventoryList_Detour,
+		&AutoInventory::CBarterSearchWnd_Hook::UpdateInventoryList_Trampoline);
+	EzDetour(CBarterWnd__WndNotification,
+		&AutoInventory::CBarterWnd_Hook::WndNotification_Detour,
+		&AutoInventory::CBarterWnd_Hook::WndNotification_Trampoline);
 }
 
 void ShutdownMQ2AutoInventory()
 {
+	RemoveDetour(CBarterWnd__WndNotification);
+	RemoveDetour(CBarterSearchWnd__UpdateInventoryList);
+	RemoveDetour(CBarterSearchWnd__WndNotification);
 	RemoveDetour(CFindItemWnd__WndNotification);
 	RemoveDetour(CFindItemWnd__Update);
 	RemoveDetour(CBankWnd__WndNotification);

@@ -2422,9 +2422,9 @@ void InsertAug(SPAWNINFO* pChar, char* szLine)
 			index = pItemDisplayManager->CreateWindowInstance();
 		}
 
-		if (index >= 0 && index < pItemDisplayManager->pWindows.GetLength())
+		if (index >= 0 && index < pItemDisplayManager->GetCount())
 		{
-			auto itemDis = (CItemDisplayWnd*)pItemDisplayManager->pWindows[index];
+			auto itemDis = pItemDisplayManager->GetWindow(index);
 			itemDis->SetItem(pTargetItem, 0);
 
 			ItemDefinition* pAugDef = pAugItem->GetItemDefinition();
@@ -2514,7 +2514,7 @@ void RemoveAug(SPAWNINFO* pChar, char* szLine)
 			index = pItemDisplayManager->CreateWindowInstance();
 		}
 
-		if (index >= 0 && index < pItemDisplayManager->pWindows.GetLength())
+		if (index >= 0 && index < pItemDisplayManager->GetCount())
 		{
 			auto itemDis = pItemDisplayManager->GetWindow(index);
 

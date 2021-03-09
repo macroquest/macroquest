@@ -2688,7 +2688,7 @@ bool IsInFellowship(SPAWNINFO* pSpawn, bool bCorpse)
 		if (!pChar->pSpawn)
 			return false;
 
-		FELLOWSHIPINFO Fellowship = (FELLOWSHIPINFO)pChar->pSpawn->Fellowship;
+		SFellowship& Fellowship = pChar->pSpawn->Fellowship;
 
 		for (int i = 0; i < Fellowship.Members; i++)
 		{
@@ -6062,18 +6062,17 @@ void RemoveAura(SPAWNINFO* pChar, char* szLine)
 
 std::vector<MercDesc> GetAllMercDesc()
 {
-	MERCSLIST* pmlist = pMercInfo ? pMercInfo->pMercsList : nullptr;
-	if (!pmlist)
+	if (!pMercManager)
 		return {};
 
 	std::vector<MercDesc> mercInfo;
-	mercInfo.resize(pMercInfo->MercenaryCount);
+	mercInfo.resize(pMercManager->mercenaries.GetLength());
 
-	for (int i = 0; i < pMercInfo->MercenaryCount; i++)
+	for (int i = 0; i < pMercManager->mercenaries.GetLength(); i++)
 	{
 		MercDesc& outDesc = mercInfo[i];
 
-		int descIdx = pmlist->mercinfo[i].nMercDesc;
+		int descIdx = pMercManager->mercenaries[i].nMercDesc;
 		std::string_view subcatDesc = pCDBStr->GetString(descIdx, eMercenarySubCategoryDescription);
 		size_t pos = 0;
 
@@ -7323,6 +7322,155 @@ MQColor GetColorForChatColor(uint32_t chatColor)
 uint32_t mqGetColorForChatColor(uint32_t chatColor)
 {
 	return GetColorForChatColor(chatColor).ARGB;
+}
+
+// TODO: Rewrite this using string_view
+uint64_t GetMoneyFromString(const char* str, GetMoneyFromStringFormat format)
+{
+	char szLabel1[50];
+	strcpy_s(szLabel1, str);
+
+	uint64_t pp = 0;
+	uint64_t gp = 0;
+	uint64_t sp = 0;
+	uint64_t cp = 0;
+
+	if (format == GetMoneyFromStringFormat::Long)
+	{
+		if (char* pDest = strstr(szLabel1, "pp"))
+		{
+			pDest[0] = '\0';
+			pp = GetInt64FromString(szLabel1, pp);
+			strcpy_s(szLabel1, &pDest[2]);
+		}
+
+		if (char* pDest = strstr(szLabel1, "gp"))
+		{
+			pDest[0] = '\0';
+			gp = GetInt64FromString(szLabel1, gp);
+			strcpy_s(szLabel1, &pDest[2]);
+		}
+
+		if (char* pDest = strstr(szLabel1, "sp"))
+		{
+			pDest[0] = '\0';
+			sp = GetInt64FromString(szLabel1, sp);
+			strcpy_s(szLabel1, &pDest[2]);
+		}
+
+		if (char* pDest = strstr(szLabel1, "cp"))
+		{
+			pDest[0] = '\0';
+			cp = GetInt64FromString(szLabel1, cp);
+			strcpy_s(szLabel1, &pDest[2]);
+		}
+	}
+	else if (format == GetMoneyFromStringFormat::Short)
+	{
+		if (char* pDest = strstr(szLabel1, "p"))
+		{
+			pDest[0] = '\0';
+			pp = GetInt64FromString(szLabel1, pp);
+			strcpy_s(szLabel1, &pDest[1]);
+		}
+
+		if (char* pDest = strstr(szLabel1, "g"))
+		{
+			pDest[0] = '\0';
+			gp = GetInt64FromString(szLabel1, gp);
+			strcpy_s(szLabel1, &pDest[1]);
+		}
+
+		if (char* pDest = strstr(szLabel1, "s"))
+		{
+			pDest[0] = '\0';
+			sp = GetInt64FromString(szLabel1, sp);
+			strcpy_s(szLabel1, &pDest[1]);
+		}
+
+		if (char* pDest = strstr(szLabel1, "c"))
+		{
+			pDest[0] = '\0';
+			cp = GetInt64FromString(szLabel1, cp);
+			strcpy_s(szLabel1, &pDest[1]);
+		}
+	}
+
+	uint64_t total = (pp * 1000) + (gp * 100) + (sp * 10) + cp;
+	return total;
+}
+
+void FormatMoneyString(char* szBuffer, size_t bufferLength, uint64_t moneyAmount, GetMoneyFromStringFormat format)
+{
+	uint64_t cp = moneyAmount;
+	uint64_t sp = cp / 10; cp = cp % 10;
+	uint64_t gp = sp / 10; sp = sp % 10;
+	uint64_t pp = gp / 10; gp = gp % 10;
+
+	szBuffer[0] = 0;
+	char szTemp[16];
+
+	if (pp > 0)
+	{
+		if (format == GetMoneyFromStringFormat::Long)
+			sprintf_s(szTemp, "%I64dpp", pp);
+		else if (format == GetMoneyFromStringFormat::Short)
+			sprintf_s(szTemp, "%I64dp", pp);
+		strcat_s(szBuffer, bufferLength, szTemp);
+	}
+
+	if (gp > 0)
+	{
+		if (szBuffer[0] != 0)
+			strcat_s(szBuffer, bufferLength, " ");
+		if (format == GetMoneyFromStringFormat::Long)
+			sprintf_s(szTemp, " %I64dgp", gp);
+		else if (format == GetMoneyFromStringFormat::Short)
+			sprintf_s(szTemp, " %I64dg", gp);
+		strcat_s(szBuffer, bufferLength, szTemp);
+	}
+
+	if (sp > 0)
+	{
+		if (szBuffer[0] != 0)
+			strcat_s(szBuffer, bufferLength, " ");
+		if (format == GetMoneyFromStringFormat::Long)
+			sprintf_s(szTemp, " %I64dsp", sp);
+		else if (format == GetMoneyFromStringFormat::Short)
+			sprintf_s(szTemp, " %I64ds", sp);
+		strcat_s(szBuffer, bufferLength, szTemp);
+	}
+
+	if (cp > 0)
+	{
+		if (szBuffer[0] != 0)
+			strcat_s(szBuffer, bufferLength, " ");
+		if (format == GetMoneyFromStringFormat::Long)
+			sprintf_s(szTemp, " %I64dcp", sp);
+		else if (format == GetMoneyFromStringFormat::Short)
+			sprintf_s(szTemp, " %I64dc", cp);
+		strcat_s(szBuffer, bufferLength, szTemp);
+	}
+}
+
+bool HasBuffCastByPlayer(SPAWNINFO* pBuffOwner, const char* szBuffName, const char* casterName)
+{
+	auto predicate = [szBuffName, casterName](const CachedBuff& buff)
+	{
+		return MaybeExactCompare(GetSpellNameByID(buff.spellId), szBuffName)
+			&& _stricmp(buff.casterName, casterName) == 0;
+	};
+
+	int slot = GetCachedBuff(pBuffOwner, predicate);
+	return slot != -1;
+}
+
+bool TargetBuffCastByMe(const char* szBuffName)
+{
+	if (!pLocalPlayer || !pTarget)
+		return false;
+
+	return HasBuffCastByPlayer(pTarget, szBuffName, pLocalPlayer->Name);
 }
 
 } // namespace mq

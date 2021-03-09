@@ -131,7 +131,7 @@ public:
 			return;
 		}
 
-		if (pThis->EQType == 1000)
+		if ((pThis->EQType >= 1000 && pThis->EQType <= 1015) || (pThis->EQType >= 2000 && pThis->EQType <= 2011) || (pThis->EQType >= 3000 && pThis->EQType <= 3012))
 		{
 			for (int index = 0; Id_PMP[index].ID > 0; index++)
 			{

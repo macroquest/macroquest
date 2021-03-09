@@ -767,6 +767,9 @@ MQLIB_API DWORD GetCachedBuffCount(SPAWNINFO* pSpawn);
 MQLIB_API void ClearCachedBuffsSpawn(SPAWNINFO* pSpawn);
 MQLIB_API void ClearCachedBuffs();
 
+MQLIB_API bool HasBuffCastByPlayer(SPAWNINFO* pBuffOwner, const char* szBuffName, const char* casterName);
+MQLIB_API DEPRECATE("Use HasBuffCastByPlayer insteead of TargetBuffCastByMe") bool TargetBuffCastByMe(const char* szBuffName);
+
 /* MQ2PIPECLIENT */
 void InitializeMQ2PipeClient();
 void ShutdownMQ2PipeClient();
@@ -906,5 +909,14 @@ void InitializeStringDB();
 void ShutdownStringDB();
 MQLIB_OBJECT int AddTokenMessageCmd(int StringID, fMQTokenMessageCmd Command);
 MQLIB_OBJECT void RemoveTokenMessageCmd(int StringID, int CallbackID);
+
+//----------------------------------------------------------------------------
+
+enum class GetMoneyFromStringFormat {
+	Long = 0,       // e.g. pp, gp, sp, cp
+	Short = 1,      // e.g. p, g, s, c
+};
+MQLIB_API uint64_t GetMoneyFromString(const char* string, GetMoneyFromStringFormat format = GetMoneyFromStringFormat::Long);
+MQLIB_API void FormatMoneyString(char* szBuffer, size_t bufferLength, uint64_t moneyAmount, GetMoneyFromStringFormat format = GetMoneyFromStringFormat::Long);
 
 } // namespace mq

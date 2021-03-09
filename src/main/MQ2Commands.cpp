@@ -2710,6 +2710,26 @@ void DoAbility(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
+	int abilityNum = GetIntFromString(szBuffer, 0);
+	if (abilityNum > 0 || !EQADDR_DOABILITYLIST)
+	{
+		// Check if user wants us to activate an ability by its "real id" (?)
+		if (abilityNum > 6 && abilityNum < NUM_SKILLS)
+		{
+			int token = pSkillMgr->GetNameToken(abilityNum);
+			if (token != 0)
+			{
+				strcpy_s(szBuffer, pStringTable->getString(token));
+			}
+		}
+		else
+		{
+			// passthrough to original function
+			cmdDoAbility(pChar, szLine);
+			return;
+		}
+	}
+
 	// scan for matching abilities name
 	for (int Index = 0; Index < 128; Index++)
 	{
@@ -2751,7 +2771,10 @@ void DoAbility(SPAWNINFO* pChar, char* szLine)
 	}
 
 	// else display that we didnt found abilities
-	WriteChatColor("You do not seem to have that ability available", USERCOLOR_DEFAULT);
+	if (abilityNum)
+		WriteChatf("You do not seem to have ability %s (%d) available", szBuffer, abilityNum);
+	else
+		WriteChatf("You do not seem to have ability %s available", szBuffer);
 }
 
 // ***************************************************************************

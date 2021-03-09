@@ -1,3 +1,16 @@
+Mar 07 2021
+- Fix EQ_Spell structure misalignment
+- Changed /doability so it now takes fake ID 1-6 where it previously only took 1-5
+  because people were confused when fake IDs did not work.
+    I strongly recommend you never use fake ID 1-8, it's incredibly stupid, just use the real
+    name, for example /doability Hide or the REAL ID which in the example of Hide is 29, so /doability 29.
+- Fix ${Me.PctExpToAA}
+- Added sorting capability to the /buyer buy lines list
+- Added sorting capability to the /barter inventory list
+- Added Value column to the /barter inventory list so we can sort by merchant value.
+- Added Rightclick on item feature to /barter inventory list so it opens up the item inspect window.
+- Added FellowshipMember.Sharing
+
 Mar 01 2021
 - Fix :OnExit so that it processes even while paused.  This also fixes the behavior where you
   would have to /endmac twice on a paused macro with an :OnExit routine
