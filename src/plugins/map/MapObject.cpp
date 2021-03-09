@@ -224,7 +224,7 @@ void MapObject::SetText(std::string_view text)
 			if (m_text.empty())
 				m_label->Label = "";
 			else
-				m_label->Label = m_text.c_str();
+				m_label->Label = &m_text[0];
 		}
 	}
 }
