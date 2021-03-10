@@ -596,4 +596,12 @@ inline std::string wstring_to_utf8(const std::wstring& s)
 	return r;
 }
 
+inline bool ends_with(std::string_view a, std::string_view b)
+{
+	if (a.length() < b.length())
+		return false;
+
+	return a.substr(a.length() - b.length()).compare(b) == 0;
+}
+
 } // namespace mq
