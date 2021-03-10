@@ -912,6 +912,7 @@ void InitializeMQ2Commands()
 		{ "/engine",            EngineCommand,              true,  false },
 		{ "/cachedbuffs",       CachedBuffsCommand,         true,  true  },
 		{ "/mqcopylayout",      MQCopyLayout,               true,  false },
+		{ "/plugin",            PluginCommand,              false, false },
 
 		{ nullptr,              nullptr,                    false, true  },
 	};
