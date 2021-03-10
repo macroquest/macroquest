@@ -7427,9 +7427,9 @@ void FormatMoneyString(char* szBuffer, size_t bufferLength, uint64_t moneyAmount
 		if (szBuffer[0] != 0)
 			strcat_s(szBuffer, bufferLength, " ");
 		if (format == GetMoneyFromStringFormat::Long)
-			sprintf_s(szTemp, " %I64dgp", gp);
+			sprintf_s(szTemp, "%I64dgp", gp);
 		else if (format == GetMoneyFromStringFormat::Short)
-			sprintf_s(szTemp, " %I64dg", gp);
+			sprintf_s(szTemp, "%I64dg", gp);
 		strcat_s(szBuffer, bufferLength, szTemp);
 	}
 
@@ -7438,9 +7438,9 @@ void FormatMoneyString(char* szBuffer, size_t bufferLength, uint64_t moneyAmount
 		if (szBuffer[0] != 0)
 			strcat_s(szBuffer, bufferLength, " ");
 		if (format == GetMoneyFromStringFormat::Long)
-			sprintf_s(szTemp, " %I64dsp", sp);
+			sprintf_s(szTemp, "%I64dsp", sp);
 		else if (format == GetMoneyFromStringFormat::Short)
-			sprintf_s(szTemp, " %I64ds", sp);
+			sprintf_s(szTemp, "%I64ds", sp);
 		strcat_s(szBuffer, bufferLength, szTemp);
 	}
 
@@ -7449,9 +7449,9 @@ void FormatMoneyString(char* szBuffer, size_t bufferLength, uint64_t moneyAmount
 		if (szBuffer[0] != 0)
 			strcat_s(szBuffer, bufferLength, " ");
 		if (format == GetMoneyFromStringFormat::Long)
-			sprintf_s(szTemp, " %I64dcp", sp);
+			sprintf_s(szTemp, "%I64dcp", sp);
 		else if (format == GetMoneyFromStringFormat::Short)
-			sprintf_s(szTemp, " %I64dc", cp);
+			sprintf_s(szTemp, "%I64dc", cp);
 		strcat_s(szBuffer, bufferLength, szTemp);
 	}
 }
