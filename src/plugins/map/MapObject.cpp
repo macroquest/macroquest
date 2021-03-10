@@ -632,7 +632,7 @@ void MapObjectSpawn::HandleFormatSpecifier(char spec, CXStr& sOutput)
 	{
 	case 'N': // cleaned up name
 		sOutput.append(m_spawn->DisplayedName);
-		if (m_type == SPAWN_CORPSE)
+		if (m_type == CORPSE)
 			sOutput.append("'s Corpse");
 		return;
 
