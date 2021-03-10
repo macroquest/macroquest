@@ -6772,7 +6772,10 @@ eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 		return PC;
 
 	case SPAWN_NPC:
-		if (pSpawn->Rider)
+		// Sometimes mounts can be spawned without a rider. Sometimes a user can have
+		// multiple mounts due to bugs! Check the display name which will have the same
+		// suffix for all mounts.
+		if (pSpawn->Rider || mq::ends_with(pSpawn->DisplayedName, "`s Mount"))
 			return MOUNT;
 
 		if (pSpawn->MasterID)
