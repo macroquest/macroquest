@@ -7537,21 +7537,24 @@ MQGameObject ToGameObject(const SPAWNINFO* pSpawn)
 {
 	MQGameObject temp;
 
-	temp.type = eGameObjectType::Spawn;
-	temp.id = pSpawn->SpawnID;
-	temp.name = pSpawn->Name;
+	if (pSpawn)
+	{
+		temp.type = eGameObjectType::Spawn;
+		temp.id = pSpawn->SpawnID;
+		temp.name = pSpawn->Name;
 
-	temp.y = pSpawn->Y;
-	temp.x = pSpawn->X;
-	temp.z = pSpawn->Z;
-	temp.heading = pSpawn->Heading;
-	temp.displayName = pSpawn->DisplayedName;
-	temp.velocityY = pSpawn->SpeedY;
-	temp.velocityX = pSpawn->SpeedX;
-	temp.velocityZ = pSpawn->SpeedZ;
-	temp.height = pSpawn->AvatarHeight * StateHeightMultiplier(pSpawn->StandState);
-	temp.actor = (CActorInterface*)&pSpawn->mActorClient;
-	temp.valid = true;
+		temp.y = pSpawn->Y;
+		temp.x = pSpawn->X;
+		temp.z = pSpawn->Z;
+		temp.heading = pSpawn->Heading;
+		temp.displayName = pSpawn->DisplayedName;
+		temp.velocityY = pSpawn->SpeedY;
+		temp.velocityX = pSpawn->SpeedX;
+		temp.velocityZ = pSpawn->SpeedZ;
+		temp.height = pSpawn->AvatarHeight * StateHeightMultiplier(pSpawn->StandState);
+		temp.actor = (CActorInterface*)&pSpawn->mActorClient;
+		temp.valid = true;
+	}
 
 	return temp;
 }
