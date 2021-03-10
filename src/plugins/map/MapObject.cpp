@@ -927,9 +927,12 @@ MapObject* MakeMapObject(SPAWNINFO* pSpawn, bool Explicit)
 
 MapObject* FindMapObject(SPAWNINFO* pSpawn)
 {
-	auto iter = SpawnMap.find(pSpawn->SpawnID);
-	if (iter != SpawnMap.end())
-		return iter->second;
+	if (pSpawn)
+	{
+		auto iter = SpawnMap.find(pSpawn->SpawnID);
+		if (iter != SpawnMap.end())
+			return iter->second;
+	}
 
 	return nullptr;
 }
@@ -947,9 +950,12 @@ MapObject* MakeMapObject(EQGroundItem* pGroundItem)
 
 MapObject* FindMapObject(EQGroundItem* pGroundItem)
 {
-	auto iter = GroundItemMap.find(pGroundItem->DropID);
-	if (iter != GroundItemMap.end())
-		return iter->second;
+	if (pGroundItem)
+	{
+		auto iter = GroundItemMap.find(pGroundItem->DropID);
+		if (iter != GroundItemMap.end())
+			return iter->second;
+	}
 
 	return nullptr;
 }
