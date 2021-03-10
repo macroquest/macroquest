@@ -77,18 +77,30 @@ enum class MarkerType
 
 struct MapFilterOption
 {
+	enum Flags {
+		Toggle       = 0x01,       // option is an on/off
+		NoColor      = 0x02,       // option has no color property
+		Regenerate   = 0x04,       // map is regenerated if this option is changed
+		UsesRadius   = 0x08,       // option has a radius (draws a circle)
+	};
+
 	const char*      szName = nullptr;
 	bool             Default = false;
 	MQColor          DefaultColor;
-	bool             bIsToggle = false;
 	MapFilter        RequiresOption = MapFilter::Invalid;
-	bool             RegenerateOnChange = false;
+	uint32_t         Flags = 0;
 	const char*      szHelpString = nullptr;
+
 	MarkerType       Marker = MarkerType::None;
 	int              MarkerSize = 0;
 	bool             Enabled = false;
 	float            Radius = 0;
 	MQColor          Color;
+
+	bool IsToggle() const { return Flags & Toggle; }
+	bool IsRegenerateOnChange() const { return Flags & Regenerate; }
+	bool IsRadius() const { return Flags & UsesRadius; }
+	bool HasColor() const { return !(Flags & NoColor); }
 };
 
 extern uint32_t bmMapRefresh;
@@ -154,6 +166,7 @@ bool MapSelectTarget();
 void MapClickLocation(float x, float y, const std::vector<float>& z_hits);
 
 int MakeTime();
+void DrawMapSettingsPanel();
 
 bool dataMapSpawn(const char* szIndex, MQTypeVar& Ret);
 

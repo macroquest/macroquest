@@ -750,9 +750,9 @@ static bool CanDisplaySpawnObject(eSpawnType type, SPAWNINFO* spawn)
 			return IsOptionEnabled(MapFilter::NPC);
 	case CORPSE:
 		if (spawn->Deity == 0) // ???
-			return (IsOptionEnabled(MapFilter::NPCCorpse) && IsOptionEnabled(MapFilter::Corpse));
+			return IsOptionEnabled(MapFilter::NPCCorpse);
 		else
-			return (IsOptionEnabled(MapFilter::PCCorpse) && IsOptionEnabled(MapFilter::Corpse));
+			return IsOptionEnabled(MapFilter::PCCorpse);
 	case ITEM:
 		return IsOptionEnabled(MapFilter::Ground);
 	case UNTARGETABLE:
@@ -915,7 +915,6 @@ void MapObjectGroundSpawn::HandleFormatSpecifier(char spec, CXStr& sOutput)
 
 MapObject* MakeMapObject(SPAWNINFO* pSpawn, bool Explicit)
 {
-
 	if (!Explicit && !CanDisplaySpawnObject(GetSpawnType(pSpawn), pSpawn))
 		return nullptr;
 

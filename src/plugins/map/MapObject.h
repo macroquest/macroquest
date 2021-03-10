@@ -35,6 +35,7 @@ public:
 	virtual bool CanDisplayObject() const;  // determines if this object should be displayed. Will be removed if not.
 
 	void SetText(std::string_view text);
+	CXStr GetText() const { return m_text; }
 	void SetColor(MQColor color);
 
 	void SetHighlight(bool highlight) { m_highlight = highlight; }
