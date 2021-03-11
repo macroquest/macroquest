@@ -14,8 +14,6 @@
 
 #include "MapObject.h"
 
-std::map<uint32_t, MapObject*> GroundItemMap;
-
 extern MapObject* pLastTarget;
 MapObject* gpActiveMapObjects = nullptr;
 
@@ -505,7 +503,7 @@ void MapObject::MakeRingMarker()
 
 //============================================================================
 
-static std::map<uint32_t, MapObject*> SpawnMap;
+static std::map<SPAWNINFO*, MapObject*> SpawnMap;
 
 MapObjectSpawn::MapObjectSpawn(SPAWNINFO* pSpawn, bool Explicit)
 	: m_spawn(pSpawn)
@@ -517,12 +515,12 @@ MapObjectSpawn::MapObjectSpawn(SPAWNINFO* pSpawn, bool Explicit)
 	SetText(FormatString(MapNameString));
 	SetColor(GetSpawnColor());
 
-	SpawnMap[m_spawn->SpawnID] = this;
+	SpawnMap[m_spawn] = this;
 }
 
 MapObjectSpawn::~MapObjectSpawn()
 {
-	SpawnMap.erase(m_spawn->SpawnID);
+	SpawnMap.erase(m_spawn);
 
 	if (pLastTarget == this)
 		pLastTarget = nullptr;
@@ -849,6 +847,8 @@ void MapObjectSpawn::RemoveVector()
 
 //============================================================================
 
+static std::map<EQGroundItem*, MapObject*> GroundItemMap;
+
 MapObjectGroundSpawn::MapObjectGroundSpawn(EQGroundItem* pGroundItem)
 	: m_groundItem(pGroundItem)
 	, m_friendlyName(GetFriendlyNameForGroundItem(m_groundItem))
@@ -858,12 +858,12 @@ MapObjectGroundSpawn::MapObjectGroundSpawn(EQGroundItem* pGroundItem)
 	SetText(FormatString(MapNameString));
 	SetColor(GetMapFilterOption(MapFilter::Ground).Color);
 
-	GroundItemMap[m_groundItem->DropID] = this;
+	GroundItemMap[m_groundItem] = this;
 }
 
 MapObjectGroundSpawn::~MapObjectGroundSpawn()
 {
-	GroundItemMap.erase(m_groundItem->DropID);
+	GroundItemMap.erase(m_groundItem);
 }
 
 void MapObjectGroundSpawn::PostInit()
@@ -928,7 +928,7 @@ MapObject* FindMapObject(SPAWNINFO* pSpawn)
 {
 	if (pSpawn)
 	{
-		auto iter = SpawnMap.find(pSpawn->SpawnID);
+		auto iter = SpawnMap.find(pSpawn);
 		if (iter != SpawnMap.end())
 			return iter->second;
 	}
@@ -951,7 +951,7 @@ MapObject* FindMapObject(EQGroundItem* pGroundItem)
 {
 	if (pGroundItem)
 	{
-		auto iter = GroundItemMap.find(pGroundItem->DropID);
+		auto iter = GroundItemMap.find(pGroundItem);
 		if (iter != GroundItemMap.end())
 			return iter->second;
 	}
