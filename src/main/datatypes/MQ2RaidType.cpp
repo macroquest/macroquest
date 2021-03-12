@@ -393,13 +393,7 @@ bool MQ2RaidMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 
 	if (!pMember)
 	{
-		SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByName(pRaidMember->Name);
-		if (!pSpawn)
-			return false;
-
-		MQVarPtr data;
-		data.Ptr = pSpawn;
-		return pSpawnType->GetMember(data, Member, Index, Dest);
+		return pSpawnType->GetMember(MQVarPtr::Create(GetSpawnByName(pRaidMember->Name)), Member, Index, Dest);
 	}
 
 	switch (static_cast<RaidMemberMembers>(pMember->ID))
@@ -455,9 +449,9 @@ bool MQ2RaidMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		return true;
 
 	case RaidMemberMembers::Spawn:
-		Dest.Type = pSpawnType;
-		if (Dest.Ptr = (SPAWNINFO*)GetSpawnByName(pRaidMember->Name))
+		if (SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByName(pRaidMember->Name))
 		{
+			Dest = pSpawnType->MakeTypeVar(pSpawn);
 			return true;
 		}
 		return false;
@@ -490,7 +484,7 @@ bool MQ2RaidMemberType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2RaidMemberType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2RaidMemberType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pRaidMemberType)
 		return false;

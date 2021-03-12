@@ -58,7 +58,7 @@ static void SetGameStateDataAPI(DWORD)
 
 	std::scoped_lock lock(s_objectMapMutex);
 
-	for (auto weak : s_objectMap)
+	for (const auto& weak : s_objectMap)
 	{
 		weak.lock()->Invalidate();
 	}
@@ -81,7 +81,7 @@ void InvalidateObservedEQObject(void* Object)
 
 	std::scoped_lock lock(s_objectMapMutex);
 
-	for (auto weak : s_objectMap)
+	for (const auto& weak : s_objectMap)
 	{
 		if (*weak.lock() == Object)
 			weak.lock()->Invalidate();
@@ -468,7 +468,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("AltAbility", datatypes::MQ2AltAbilityType::dataAltAbility);
 	AddMQ2Data("Corpse", datatypes::MQ2CorpseType::dataCorpse);
 	AddMQ2Data("Cursor", datatypes::MQ2ItemType::dataCursor);
-	AddMQ2Data("DoorTarget", datatypes::MQ2SpawnType::dataDoorTarget);
+	AddMQ2Data("DoorTarget", datatypes::MQ2SwitchType::dataSwitchTarget);
 	AddMQ2Data("DynamicZone", datatypes::MQ2DynamicZoneType::dataDynamicZone);
 	AddMQ2Data("EverQuest", datatypes::MQ2EverQuestType::dataEverQuest);
 	AddMQ2Data("Familiar", datatypes::MQ2KeyRingType::dataFamiliar);
@@ -483,7 +483,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("Group", datatypes::MQ2GroupType::dataGroup);
 	AddMQ2Data("Illusion", datatypes::MQ2KeyRingType::dataIllusion);
 	AddMQ2Data("InvSlot", datatypes::MQ2InvSlotType::dataInvSlot);
-	AddMQ2Data("ItemTarget", datatypes::MQ2SpawnType::dataItemTarget);
+	AddMQ2Data("ItemTarget", datatypes::MQ2GroundType::dataItemTarget);
 	AddMQ2Data("LastSpawn", datatypes::MQ2SpawnType::dataLastSpawn);
 	AddMQ2Data("LineOfSight", datatypes::dataLineOfSight);
 	AddMQ2Data("Me", datatypes::MQ2CharacterType::dataCharacter);
@@ -501,6 +501,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("SpawnCount", datatypes::MQ2SpawnType::dataSpawnCount);
 	AddMQ2Data("Spell", datatypes::MQ2SpellType::dataSpell);
 	AddMQ2Data("Switch", datatypes::MQ2SwitchType::dataSwitch);
+	AddMQ2Data("SwitchTarget", datatypes::MQ2SwitchType::dataSwitchTarget);
 	AddMQ2Data("Target", datatypes::MQ2TargetType::dataTarget);
 	AddMQ2Data("Task", datatypes::MQ2TaskType::dataTask);
 	AddMQ2Data("Window", datatypes::MQ2WindowType::dataWindow);

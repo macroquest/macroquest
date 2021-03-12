@@ -105,17 +105,14 @@ MQ2TargetType::MQ2TargetType() : MQ2Type("target")
 
 bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	if (!VarPtr.Ptr)
+	if (!pTarget)
 		return false;
 
 	MQTypeMember* pMember = MQ2TargetType::FindMember(Member);
 	if (!pMember)
 	{
-		return pSpawnType->GetMember(VarPtr, Member, Index, Dest);
+		return pSpawnType->GetMember(pTarget.get_as<SPAWNINFO>(), Member, Index, Dest);
 	}
-
-	if (!GetCharInfo())
-		return false;
 
 	switch (static_cast<TargetMembers>(pMember->ID))
 	{
@@ -142,40 +139,34 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		return false;
 
 	case TargetMembers::SecondaryAggroPlayer:
-		Dest.Type = pSpawnType;
-
 		if (pAggroInfo && pAggroInfo->AggroSecondaryID)
 		{
-			Dest.Ptr = GetSpawnByID(pAggroInfo->AggroSecondaryID);
+			Dest = pSpawnType->MakeTypeVar((SPAWNINFO*)GetSpawnByID(pAggroInfo->AggroSecondaryID));
 			return true;
 		}
 		return false;
 
 	case TargetMembers::AggroHolder: {
-		Dest.Type = pSpawnType;
 		// who the Target has the MOST aggro on
 		char* pTargetAggroHolder = EQADDR_TARGETAGGROHOLDER;
 		if (pTargetAggroHolder[0] != '\0')
 		{
-			SPAWNINFO* pAggroHolder = (SPAWNINFO*)GetSpawnByName(pTargetAggroHolder);
-			if (pAggroHolder)
+			if (SPAWNINFO* pAggroHolder = (SPAWNINFO*)GetSpawnByName(pTargetAggroHolder))
 			{
-				Dest.Ptr = pAggroHolder;
+				Dest = pSpawnType->MakeTypeVar(pAggroHolder);
 				return true;
 			}
-			else
+
+			// no spawn was found for the name given, this can only mean one thing... its a pet or a mercenary
+			MQSpawnSearch SearchSpawn;
+			ClearSearchSpawn(&SearchSpawn);
+			SearchSpawn.FRadius = 999999.0f;
+			strcpy_s(SearchSpawn.szName, pTargetAggroHolder);
+
+			if (SPAWNINFO* pAggroHolder = SearchThroughSpawns(&SearchSpawn, (SPAWNINFO*)pLocalPlayer))
 			{
-				// ok no spawn was found for the name given, this can only mean one thing... its a pet or a mercenary
-				MQSpawnSearch SearchSpawn;
-				ClearSearchSpawn(&SearchSpawn);
-				SearchSpawn.FRadius = 999999.0f;
-				strcpy_s(SearchSpawn.szName, pTargetAggroHolder);
-				pAggroHolder = SearchThroughSpawns(&SearchSpawn, (SPAWNINFO*)pLocalPlayer);
-				if (pAggroHolder)
-				{
-					Dest.Ptr = pAggroHolder;
-					return true;
-				}
+				Dest = pSpawnType->MakeTypeVar(pAggroHolder);
+				return true;
 			}
 		}
 		else
@@ -184,7 +175,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			// lets check
 			if (pTarget && EQADDR_GROUPAGGRO)
 			{
-				if (*(DWORD*)(EQADDR_GROUPAGGRO + 0x78) >= 100)
+				if (*(DWORD*)(EQADDR_GROUPAGGRO + 120) >= 100)
 				{
 					if (Dest.Ptr = GetSpawnByID(((SPAWNINFO*)pLocalPlayer)->TargetOfTarget))
 					{
@@ -461,64 +452,18 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 
 bool MQ2TargetType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	if (!VarPtr.Ptr)
+	SPAWNINFO* pSpawn = MQ2SpawnType::GetSpawnPtr(VarPtr);
+	if (!pSpawn)
 		return false;
-
-	SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
 	strcpy_s(Destination, MAX_STRING, pSpawn->Name);
 	return true;
-}
-
-void MQ2TargetType::InitVariable(MQVarPtr& VarPtr)
-{
-	// FIXME: Do not allocate a SPAWNINFO
-	VarPtr.Ptr = new SPAWNINFO();
-	VarPtr.HighPart = 0;
-
-	// FIXME: Do not ZeroMemory a SPAWNINFO
-	ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
-}
-
-void MQ2TargetType::FreeVariable(MQVarPtr& VarPtr)
-{
-	// FIXME: Do not allocate a SPAWNINFO
-	SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
-	delete pSpawn;
-}
-
-bool MQ2TargetType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-{
-	if (Source.Type == pSpawnType)
-	{
-		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(SPAWNINFO));
-		return true;
-	}
-	else
-	{
-		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(Source.DWord))
-		{
-			memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
-			return true;
-		}
-	}
-	return false;
-}
-
-bool MQ2TargetType::FromString(MQVarPtr& VarPtr, const char* Source)
-{
-	if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(GetIntFromString(Source, 0)))
-	{
-		memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
-		return true;
-	}
-	return false;
 }
 
 bool MQ2TargetType::dataTarget(const char* szIndex, MQTypeVar& Ret)
 {
 	if (pTarget)
 	{
-		Ret.Ptr = pTarget;
+		Ret.Set(ObserveEQObject(pTarget.get_as<SPAWNINFO>()));
 		Ret.Type = pTargetType;
 		return true;
 	}

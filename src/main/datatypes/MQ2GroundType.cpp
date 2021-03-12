@@ -31,7 +31,6 @@ enum class GroundMembers
 	W,
 	U,
 	LineOfSight,
-	Address,
 	DisplayName,
 	Distance3D,
 	SubID,
@@ -95,7 +94,7 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		switch (static_cast<GroundMethods>(pMethod->ID))
 		{
 		case GroundMethods::Grab:
-			Dest.Set(ClickMouseItem(pCharSpawn, *pGroundSpawn, true));
+			Dest.Set(ClickMouseItem(*pGroundSpawn, true));
 			Dest.Type = pBoolType;
 			return true;
 
@@ -106,7 +105,7 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			return true;
 
 		case GroundMethods::DoFace:
-			DoFace(pCharSpawn, pGroundSpawn->Position());
+			DoFace(pLocalPlayer, pGroundSpawn->Position());
 			Dest.Set(pGroundSpawn);
 			Dest.Type = pGroundType;
 			return true;
@@ -192,19 +191,19 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			return true;
 
 		case GroundMembers::Distance:
-			Dest.Set(pGroundSpawn->Distance(pCharSpawn));
+			Dest.Set(pGroundSpawn->Distance(pLocalPlayer));
 			Dest.Type = pFloatType;
 			return true;
 
 		case GroundMembers::Distance3D:
-			Dest.Set(pGroundSpawn->Distance3D(pCharSpawn));
+			Dest.Set(pGroundSpawn->Distance3D(pLocalPlayer));
 			Dest.Type = pFloatType;
 			return true;
 
 		case GroundMembers::HeadingTo:
 		{
 			auto pos = pGroundSpawn->Position();
-			auto heading = atan2(pCharSpawn->Y - pos.Y, pos.X - pCharSpawn->X) * 180.f / PI + 90.f;
+			auto heading = atan2(pLocalPlayer->Y - pos.Y, pos.X - pLocalPlayer->X) * 180.f / PI + 90.f;
 			if (heading < 0.f)
 				heading += 360.f;
 			else if (heading >= 360.f)
@@ -217,7 +216,7 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		case GroundMembers::LineOfSight:
 		{
 			auto pos = pGroundSpawn->Position();
-			Dest.Set(CastRay(pCharSpawn, pos.Y, pos.X, pos.Z));
+			Dest.Set(CastRay(pLocalPlayer, pos.Y, pos.X, pos.Z));
 			Dest.Type = pBoolType;
 			return true;
 		}
@@ -310,7 +309,7 @@ bool MQ2GroundType::FromString(MQVarPtr& VarPtr, const char* Source)
 	return false;
 }
 
-bool MQ2GroundType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2GroundType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pGroundType)
 		return false;
@@ -321,8 +320,9 @@ bool MQ2GroundType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
 
 bool MQ2GroundType::dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 {
-	SPAWNINFO* pSpawn = (SPAWNINFO*)pCharSpawn;
-	if (szIndex[0]) {
+	SPAWNINFO* pSpawn = (SPAWNINFO*)pLocalPlayer;
+	if (szIndex[0])
+	{
 		auto idx = GetIntFromString(szIndex, 0) - 1;
 		if (idx >= 0)
 		{
@@ -370,6 +370,17 @@ bool MQ2GroundType::dataGroundItemCount(const char* szIndex, MQTypeVar& Ret)
 	}
 
 	Ret.Type = pIntType;
+	return true;
+}
+
+bool MQ2GroundType::dataItemTarget(const char* szIndex, MQTypeVar& Ret)
+{
+	if (HasCurrentGroundSpawn())
+	{
+		Ret.Set(CurrentGroundSpawn());
+	}
+
+	Ret.Type = pGroundType;
 	return true;
 }
 

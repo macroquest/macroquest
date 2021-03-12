@@ -3079,54 +3079,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case CharacterMembers::Mercenary:
 		Dest.Type = pMercenaryType;
-		if (pMercInfo && pMercInfo->MercSpawnId)
-		{
-			Dest.Ptr = GetSpawnByID(pMercInfo->MercSpawnId);
-			return true;
-		}
-		else if (pMercInfo)
-		{
-			// FIXME: Do not ZeroMemory a SPAWNINFO
-			ZeroMemory(&MercenarySpawn, sizeof(MercenarySpawn));
-
-			if (pMercInfo->HaveMerc == 1)
-			{
-				switch (pMercInfo->MercState)
-				{
-				case 0:
-					strcpy_s(MercenarySpawn.Name, "DEAD");
-					break;
-
-				case 1:
-					strcpy_s(MercenarySpawn.Name, "SUSPENDED");
-					break;
-
-				default:
-					strcpy_s(MercenarySpawn.Name, "NULL");
-					break;
-				}
-
-				Dest.Ptr = &MercenarySpawn;
-				return true;
-			}
-			else
-			{
-				if (pMercInfo->MercenaryCount >= 1)
-				{
-					strcpy_s(MercenarySpawn.Name, "SUSPENDED");
-					Dest.Ptr = &MercenarySpawn;
-					return true;
-				}
-				else
-				{
-					strcpy_s(MercenarySpawn.Name, "NULL");
-					Dest.Ptr = &MercenarySpawn;
-					return true;
-				}
-			}
-		}
-
-		return false;
+		return true;
 
 	case CharacterMembers::XTargetSlots:
 		Dest.DWord = 0;
@@ -3302,18 +3255,15 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	}
 
 	case CharacterMembers::MercenaryStance:
-		strcpy_s(DataTypeTemp, "NULL");
-		if (pMercInfo->HaveMerc)
+		if (const MercenaryStanceInfo* pInfo = pMercManager->GetActiveMercenaryStance())
 		{
-			for (int n = 0; n < pMercInfo->NumStances; n++)
-			{
-				if (pMercInfo->pMercStanceData[n]->nStance == pMercInfo->ActiveStance)
-				{
-					strcpy_s(DataTypeTemp, pCDBStr->GetString(pMercInfo->pMercStanceData[n]->nDbStance, eMercenaryStanceName));
-					break;
-				}
-			}
+			strcpy_s(DataTypeTemp, pCDBStr->GetString(pInfo->stanceStringId, eMercenaryStanceName));
 		}
+		else
+		{
+			strcpy_s(DataTypeTemp, "NULL");
+		}
+
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
@@ -3781,7 +3731,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		if (IsNumber(Index))
 		{
 			int nIndex = GetIntFromString(Index, 0) - 1;
-			if (nIndex >= pMercInfo->MercenaryCount || nIndex < 0)
+			if (nIndex >= pMercManager->mercenaries.GetLength() || nIndex < 0)
 				return false;
 
 			std::vector<MercDesc> descs = GetAllMercDesc();
@@ -4153,15 +4103,18 @@ bool MQ2CharacterType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2CharacterType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2CharacterType::Downcast(MQVarPtr& VarPtr, MQ2Type* toType)
 {
-	if (Source.Type != pCharacterType)
-		return false;
+	if (toType == pSpawnType)
+	{
+		if (!pLocalPlayer)
+			return false;
 
-	// there is only ever one Character pointer, and we don't own it, so
-	// there is no point to storing it.
-	VarPtr.Ptr = nullptr;
-	return true;
+		VarPtr = MQ2SpawnType::MakeVarPtr(pLocalPlayer.get_as<SPAWNINFO>());
+		return true;
+	}
+
+	return false;
 }
 
 bool MQ2CharacterType::dataCharacter(const char* szIndex, MQTypeVar& Ret)

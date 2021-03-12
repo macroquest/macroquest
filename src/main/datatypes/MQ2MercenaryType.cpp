@@ -23,8 +23,32 @@ enum class MercenaryMembers
 	Stance,
 	State,
 	StateID,
-	Index
+	Index,
+	Name,
 };
+
+static const char* GetMercenaryStateString()
+{
+	if (!pMercManager->HasMercenary())
+	{
+		if (pMercManager->currMercenaryIndex != -1)
+			return "SUSPENDED";
+
+		return "NONE";
+	}
+
+	switch (pMercManager->GetMercenaryState())
+	{
+	case MercenaryState_Dead:
+		return "DEAD";
+	case MercenaryState_Suspended:
+		return "SUSPENDED";
+	case MercenaryState_Active:
+		return "ACTIVE";
+	default:
+		return "UNKNOWN";
+	}
+}
 
 MQ2MercenaryType::MQ2MercenaryType() : MQ2Type("mercenary")
 {
@@ -33,21 +57,32 @@ MQ2MercenaryType::MQ2MercenaryType() : MQ2Type("mercenary")
 	ScopedTypeMember(MercenaryMembers, State);
 	ScopedTypeMember(MercenaryMembers, StateID);
 	ScopedTypeMember(MercenaryMembers, Index);
+	ScopedTypeMember(MercenaryMembers, Name);
 }
 
 bool MQ2MercenaryType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	SPAWNINFO* pSpawn = reinterpret_cast<SPAWNINFO*>(VarPtr.Ptr);
-	if (!pSpawn)
+	// MercInfo is constructed before we get in game. We don't need to do anything before it exists
+	if (!pMercManager)
 		return false;
+
+	SPAWNINFO* pMercenary = nullptr;
+	if (pMercManager->mercenarySpawnId)
+	{
+		pMercenary = (SPAWNINFO*)GetSpawnByID(pMercManager->mercenarySpawnId);
+	}
 
 	MQTypeMember* pMember = MQ2MercenaryType::FindMember(Member);
 	if (!pMember)
 	{
-		if (!pSpawn->SpawnID)
-			return false;
+		if (pMercenary)
+		{
+			// We fall back to spawn type if we found a mercenary.
+			VarPtr.Ptr = pMercenary;
+			return pSpawnType->GetMember(VarPtr, Member, Index, Dest);
+		}
 
-		return pSpawnType->GetMember(VarPtr, Member, Index, Dest);
+		return false;
 	}
 
 	switch (static_cast<MercenaryMembers>(pMember->ID))
@@ -58,58 +93,42 @@ bool MQ2MercenaryType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case MercenaryMembers::Stance:
-		strcpy_s(DataTypeTemp, "NULL");
-		if (pMercInfo->HaveMerc)
+		if (const MercenaryStanceInfo* pStance = pMercManager->GetActiveMercenaryStance())
 		{
-			for (int n = 0; n < pMercInfo->NumStances; n++)
-			{
-				if (pMercInfo->pMercStanceData[n]->nStance == pMercInfo->ActiveStance)
-				{
-					strcpy_s(DataTypeTemp, pCDBStr->GetString(pMercInfo->pMercStanceData[n]->nDbStance, eMercenaryStanceName));
-					break;
-				}
-			}
+			strcpy_s(DataTypeTemp, pCDBStr->GetString(pStance->stanceStringId, eMercenaryStanceName));
 		}
+		else
+		{
+			strcpy_s(DataTypeTemp, "NULL");
+		}
+
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
 	case MercenaryMembers::State:
-		switch (pMercInfo->MercState)
-		{
-		case 0:
-			strcpy_s(DataTypeTemp, "DEAD");
-			break;
-
-		case 1:
-			strcpy_s(DataTypeTemp, "SUSPENDED");
-			break;
-
-		case 5:
-			if (pMercInfo->HaveMerc) {
-				strcpy_s(DataTypeTemp, "ACTIVE");
-			}
-			else {
-				strcpy_s(DataTypeTemp, "NOMERC");
-			}
-			break;
-
-		default:
-			strcpy_s(DataTypeTemp, "UNKNOWN");
-			break;
-		}
+		strcpy_s(DataTypeTemp, GetMercenaryStateString());
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
 	case MercenaryMembers::StateID:
-		Dest.DWord = pMercInfo->MercState;
+		Dest.DWord = static_cast<int>(pMercManager->GetMercenaryState());
 		Dest.Type = pIntType;
 		return true;
 
 	case MercenaryMembers::Index:
-		Dest.DWord = pMercInfo->CurrentMercIndex + 1;
+		Dest.DWord = pMercManager->currMercenaryIndex + 1;
 		Dest.Type = pIntType;
+		return true;
+
+	case MercenaryMembers::Name:
+		if (!pMercenary)
+			strcpy_s(DataTypeTemp, GetMercenaryStateString());
+		else
+			strcpy_s(DataTypeTemp, pMercenary->Name);
+		Dest.Type = pStringType;
+		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 
 	default: break;
@@ -120,112 +139,19 @@ bool MQ2MercenaryType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 bool MQ2MercenaryType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	if (!VarPtr.Ptr)
+	if (!pMercManager)
 		return false;
 
-	SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
-	strcpy_s(Destination, MAX_STRING, pSpawn->Name);
+	strcpy_s(Destination, MAX_STRING, GetMercenaryStateString());
 	return true;
-}
-
-void MQ2MercenaryType::InitVariable(MQVarPtr& VarPtr)
-{
-	// FIXME: Do not Allocate a SPAWNINFO
-	VarPtr.Ptr = new SPAWNINFO();
-
-	// FIXME: Do not ZeroMemory a SPAWNINFO
-	ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
-}
-
-void MQ2MercenaryType::FreeVariable(MQVarPtr& VarPtr)
-{
-	// FIXME: Do not Allocate a SPAWNINFO
-	SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
-	delete pSpawn;
-}
-
-bool MQ2MercenaryType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-{
-	if (Source.Type == pSpawnType)
-	{
-		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(SPAWNINFO));
-		return true;
-	}
-	else
-	{
-		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(Source.DWord))
-		{
-			memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
-			return true;
-		}
-	}
-	return false;
-}
-
-bool MQ2MercenaryType::FromString(MQVarPtr& VarPtr, const char* Source)
-{
-	if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(GetIntFromString(Source, 0)))
-	{
-		memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
-		return true;
-	}
-	return false;
 }
 
 bool MQ2MercenaryType::dataMercenary(const char* szIndex, MQTypeVar& Ret)
 {
-	if (pMercInfo && pMercInfo->MercSpawnId)
-	{
-		Ret.Ptr = GetSpawnByID(pMercInfo->MercSpawnId);
-		Ret.Type = pMercenaryType;
-		return true;
-	}
-
-	if (pMercInfo)
-	{
-		// FIXME: Do not ZeroMemory a SPAWNINFO
-		ZeroMemory(&MercenarySpawn, sizeof(MercenarySpawn));
-
-		if (pMercInfo->HaveMerc == 1)
-		{
-			switch (pMercInfo->MercState)
-			{
-			case 0:
-				strcpy_s(MercenarySpawn.Name, "DEAD");
-				break;
-			case 1:
-				strcpy_s(MercenarySpawn.Name, "SUSPENDED");
-				break;
-			default:
-				strcpy_s(MercenarySpawn.Name, "UNKNOWN");
-				break;
-			}
-
-			Ret.Ptr = &MercenarySpawn;
-			Ret.Type = pMercenaryType;
-			return true;
-		}
-		else
-		{
-			if (pMercInfo->MercenaryCount >= 1)
-			{
-				strcpy_s(MercenarySpawn.Name, "SUSPENDED");
-				Ret.Ptr = &MercenarySpawn;
-				Ret.Type = pMercenaryType;
-				return true;
-			}
-			else
-			{
-				strcpy_s(MercenarySpawn.Name, "NOT FOUND");
-				Ret.Ptr = &MercenarySpawn;
-				Ret.Type = pMercenaryType;
-				return true;
-			}
-		}
-	}
-
-	// we need to return true always to be able to get other members out
-	return false;
+	// Mercenary is a global, do not need a pointer to it stored.
+	Ret.Ptr = nullptr;
+	Ret.Type = pMercenaryType;
+	return true;
 }
 
 } // namespace mq::datatypes

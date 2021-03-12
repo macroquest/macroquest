@@ -223,16 +223,6 @@ public:
 		strcpy_s(Destination, 128, gContentsItemStrings[index].WindowTitle.c_str());
 		return true;
 	}
-
-	bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) override
-	{
-		return false;
-	}
-
-	bool FromString(MQVarPtr& VarPtr, const char* Source) override
-	{
-		return false;
-	}
 };
 
 bool dataLastItem(const char* szName, MQTypeVar& Ret)
@@ -2422,9 +2412,8 @@ void InsertAug(SPAWNINFO* pChar, char* szLine)
 			index = pItemDisplayManager->CreateWindowInstance();
 		}
 
-		if (index >= 0 && index < pItemDisplayManager->GetCount())
+		if (CItemDisplayWnd* itemDis = pItemDisplayManager->GetWindow(index))
 		{
-			auto itemDis = pItemDisplayManager->GetWindow(index);
 			itemDis->SetItem(pTargetItem, 0);
 
 			ItemDefinition* pAugDef = pAugItem->GetItemDefinition();

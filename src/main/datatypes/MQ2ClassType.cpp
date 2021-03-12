@@ -173,7 +173,7 @@ bool MQ2ClassType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2ClassType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2ClassType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	VarPtr.DWord = Source.DWord;
 	return true;

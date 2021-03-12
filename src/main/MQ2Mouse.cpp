@@ -300,13 +300,13 @@ void ClickMouseLoc(char* szMouseLoc, char* szButton)
 	}
 }
 
-bool ClickMouseItem(SPAWNINFO* pChar, const MQGroundSpawn& GroundSpawn, bool left)
+bool ClickMouseItem(const MQGroundSpawn& GroundSpawn, bool left)
 {
-	if (!pChar || !GroundSpawn)
+	if (!pLocalPlayer || !GroundSpawn)
 		return false;
 
-	auto distance = GroundSpawn.Distance3D(pChar);
-	if (distance > 20.f)
+	auto distance = GroundSpawn.Distance3D(pLocalPlayer);
+	if (distance >= 20.f)
 	{
 		WriteChatf("You are %.2f away from the %s, move within 20 feet of it to click it.", distance, GroundSpawn.Name().c_str());
 		return false;
@@ -314,7 +314,7 @@ bool ClickMouseItem(SPAWNINFO* pChar, const MQGroundSpawn& GroundSpawn, bool lef
 
 	if (!left) // implied right click
 	{
-		*((DWORD*)__RMouseHeldTime) = pDisplay->TimeStamp - 0x45;
+		*((DWORD*)__RMouseHeldTime) = pDisplay->TimeStamp - 70;
 
 		if (pWndMgr)
 		{
@@ -325,7 +325,7 @@ bool ClickMouseItem(SPAWNINFO* pChar, const MQGroundSpawn& GroundSpawn, bool lef
 	}
 	else
 	{
-		*((DWORD*)__LMouseHeldTime) = pDisplay->TimeStamp - 0x45;
+		*((DWORD*)__LMouseHeldTime) = pDisplay->TimeStamp - 70;
 
 		// we "click" at -10000,-10000 because we know the user doesnt have any windows there...
 		// if its possible, i would like to figure out a pixel
@@ -429,36 +429,36 @@ void Click(SPAWNINFO* pChar, char* szLine)
 		{
 			auto GroundSpawn = CurrentGroundSpawn();
 			if (GroundSpawn)
-				ClickMouseItem(pChar, GroundSpawn, !_strnicmp(szArg1, "left", 4));
+				ClickMouseItem(GroundSpawn, !_strnicmp(szArg1, "left", 4));
 			else
 				WriteChatf("No Item targeted, use /itemtarget <theid> before issuing a /click left|right item command.");
 
 			return;
 		}
-		else if (!_strnicmp(szMouseLoc, "door", 4))
+		else if (!_strnicmp(szMouseLoc, "door", 4) || !_strnicmp(szMouseLoc, "switch", 6))
 		{
 			// a right clicked door spawn does nothing
-			if (pDoorTarget)
+			if (pSwitchTarget)
 			{
 				if (!_strnicmp(szArg1, "left", 4))
 				{
-					if (DoorEnviroTarget.Name[0] != 0)
+					if (pSwitchTarget->Name[0] != 0)
 					{
 						// the distance needs to be calculated by the outer radius of the door and the characters reach...
 						float BoundingRadius = 0;
 
-						if (ActorBase* pBase = (ActorBase*)pDoorTarget->pSwitch)
+						if (ActorBase* pBase = (ActorBase*)pSwitchTarget->pSwitch)
 						{
 							BoundingRadius = pBase->GetBoundingRadius();
 						}
 						else
 						{
-							BoundingRadius = pDoorTarget->ScaleFactor * 0.01f;
+							BoundingRadius = pSwitchTarget->ScaleFactor * 0.01f;
 						}
 
 						SPAWNINFO* pSpawn = (SPAWNINFO*)pCharSpawn;
 
-						float Dist = pDisplay->TrueDistance(pSpawn->Y, pSpawn->X, pSpawn->Z, pDoorTarget->Y, pDoorTarget->X, pDoorTarget->Z, 0.0f);
+						float Dist = GetDistance(pSpawn->Y, pSpawn->X, pSwitchTarget->Y, pSwitchTarget->X);
 						float reach = pSpawn->Height + 20.0f + BoundingRadius;
 
 						if (Dist <= reach)
@@ -488,12 +488,7 @@ void Click(SPAWNINFO* pChar, char* szLine)
 								}
 							}
 
-							((EQSwitch*)pDoorTarget)->UseSwitch(pChar->SpawnID, KeyID, Skill);
-							if (pTarget == (PlayerClient*)&DoorEnviroTarget)
-							{
-								// this should NEVER be allowed to happen
-								pTarget = nullptr;
-							}
+							pSwitchTarget->UseSwitch(pChar->SpawnID, KeyID, Skill);
 							return;
 						}
 						else

@@ -69,7 +69,7 @@ bool MQ2DeityType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2DeityType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2DeityType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	VarPtr.DWord = Source.DWord;
 	return true;

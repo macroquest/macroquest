@@ -156,7 +156,7 @@ void MQ2ItemSpellType::FreeVariable(MQVarPtr& VarPtr)
 	delete pItemSpells;
 }
 
-bool MQ2ItemSpellType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2ItemSpellType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pItemSpellType)
 		return false;

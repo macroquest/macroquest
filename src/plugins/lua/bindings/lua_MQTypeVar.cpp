@@ -93,7 +93,7 @@ sol::object lua_MQTypeVar::CallEmpty(sol::this_state L) const
 	if (result.Type == nullptr)
 		return sol::object(L, sol::in_place, sol::lua_nil);
 
-	// There are seven basic types in Lua: nil, number, string, function, CFunction, userdata, and table. 
+	// There are seven basic types in Lua: nil, number, string, function, CFunction, userdata, and table.
 	// We only care about nil, number, and string, but multiple MQ types decay into the various types, so
 	// we need to capture that.
 	switch (result.GetType())
@@ -102,12 +102,8 @@ sol::object lua_MQTypeVar::CallEmpty(sol::this_state L) const
 	case MQVarPtr::VariantIdx::Double:
 		// lua's number type is the same for integral and floating, but sol handles them each slightly differently
 		return sol::object(L, sol::in_place, result.Get<double>());
-	case MQVarPtr::VariantIdx::Int32:
-	case MQVarPtr::VariantIdx::Int64:
-		return sol::object(L, sol::in_place, result.Get<int64_t>());
-	case MQVarPtr::VariantIdx::UInt32:
 	case MQVarPtr::VariantIdx::UInt64:
-		return sol::object(L, sol::in_place, result.Get<uint64_t>());
+		return sol::object(L, sol::in_place, result.Get<int64_t>());
 	case MQVarPtr::VariantIdx::Bool:
 		return sol::object(L, sol::in_place, result.Get<bool>());
 	case MQVarPtr::VariantIdx::String:

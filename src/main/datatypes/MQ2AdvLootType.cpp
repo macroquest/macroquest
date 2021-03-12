@@ -292,12 +292,11 @@ bool MQ2AdvLootItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		return true;
 
 	case AdvLootItemMembers::Corpse:
-		Dest.Type = pSpawnType;
 		if (!item.LootDetails.IsEmpty())
 		{
 			if (SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByID(item.LootDetails[0].CorpseID))
 			{
-				Dest.Ptr = pSpawn;
+				Dest = pSpawnType->MakeTypeVar(pSpawn);
 				return true;
 			}
 		}
@@ -378,7 +377,7 @@ bool MQ2AdvLootItemType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2AdvLootItemType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2AdvLootItemType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pAdvLootItemType)
 		return false;

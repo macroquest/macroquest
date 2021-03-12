@@ -262,7 +262,7 @@ bool MQ2BuffType::ToString(MQVarPtr VarPtr, char* Destination)
 	return false;
 }
 
-bool MQ2BuffType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2BuffType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pBuffType)
 		return false;

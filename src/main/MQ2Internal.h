@@ -626,16 +626,62 @@ private:
 
 //============================================================================
 
+namespace detail {
+
+	template <typename T>
+	constexpr bool is_shared_ptr = false;
+
+	template <typename T>
+	constexpr bool is_shared_ptr<std::shared_ptr<T>> = true;
+
+	template <typename T>
+	struct shared_ptr_element_type { using type = T; };
+
+	template <typename T>
+	struct shared_ptr_element_type<std::shared_ptr<T>> { using type = typename std::shared_ptr<T>::element_type;  };
+
+	template <typename From, typename To>
+	static void ConvertData(const From& input, std::optional<To>& output)
+	{
+		if constexpr (std::is_convertible_v<From, To>)
+			output = static_cast<To>(input);
+		else
+		{
+			WriteChatf("Tried to convert unlike types %s and %s", type_name<From>().c_str(), type_name<To>().c_str());
+
+			if (gMacroBlock != nullptr)
+			{
+				WriteChatf("%s: %d", gMacroBlock->Line.at(gMacroBlock->CurrIndex).SourceFile.c_str(), gMacroBlock->Line.at(gMacroBlock->CurrIndex).LineNumber);
+			}
+
+			if (gMacroStack != nullptr)
+			{
+				char buf[MAX_STRING];
+				WriteChatf("%s", GetSubFromLine(gMacroStack->LocationIndex, buf, MAX_STRING));
+			}
+		}
+	}
+}
+
+template <typename T>
+static constexpr auto type_name() noexcept
+{
+	std::string_view name = __FUNCSIG__
+		, prefix = "auto __cdecl mq::type_name<"
+		, suffix = ">(void) noexcept";
+
+	name.remove_prefix(prefix.size());
+	name.remove_suffix(suffix.size());
+	return std::string(name);
+}
+
 struct MQVarPtr
 {
 	using MQVariant = std::variant<
 		void*,
 		bool,
 		float,
-		int32_t,
-		uint32_t,
 		double,
-		int64_t,
 		uint64_t,
 		std::shared_ptr<void>,
 		CXStr
@@ -648,10 +694,7 @@ struct MQVarPtr
 		Ptr = 0,
 		Bool,
 		Float,
-		Int32,
-		UInt32,
 		Double,
-		Int64,
 		UInt64,
 		ComplexObject,
 		String
@@ -668,47 +711,26 @@ struct MQVarPtr
 	}
 
 	template <typename T>
-	static constexpr auto type_name() noexcept
-	{
-		std::string_view name = __FUNCSIG__
-			, prefix = "auto __cdecl mq::MQVarPtr::type_name<"
-			, suffix = ">(void) noexcept";
-
-		name.remove_prefix(prefix.size());
-		name.remove_suffix(suffix.size());
-		return std::string(name);
-	}
-
-	template <typename T>
 	T Cast() const
 	{
-		std::optional<T> value;
+		using ToType = T;
+		std::optional<ToType> to;
 
-		auto visitor = [&value, this](const auto& val)
+		auto visitor = [&to, this](const auto& from)
 		{
-			using U = std::decay_t<decltype(val)>;
-
-			if constexpr (std::is_convertible_v<U, T>)
-				value = static_cast<T>(val);
-			else
-			{
-				WriteChatf("Tried to convert unlike types %s and %s", type_name<T>().c_str(), type_name<U>().c_str());
-				if (gMacroBlock != nullptr)
-					WriteChatf("%s: %d", gMacroBlock->Line.at(gMacroBlock->CurrIndex).SourceFile.c_str(), gMacroBlock->Line.at(gMacroBlock->CurrIndex).LineNumber);
-				if (gMacroStack != nullptr)
-				{
-					char buf[MAX_STRING];
-					WriteChatf("%s", GetSubFromLine(gMacroStack->LocationIndex, buf, MAX_STRING));
-				}
-			}
+			using FromType = std::decay_t<decltype(from)>;
+			detail::ConvertData<FromType, ToType>(from, to);
 		};
 
 		std::visit(visitor, Data);
-		return value.value_or(T());
+		return to.value_or(ToType());
 	}
 
 	template <typename T>
-	struct ReturnType { using type = std::shared_ptr<T>; };
+	struct ReturnType {
+		using type = std::conditional_t<detail::is_shared_ptr<T>, T, std::shared_ptr<T>>;
+		using value_type = typename detail::shared_ptr_element_type<T>::type;
+	};
 
 	template <typename T>
 	typename ReturnType<T>::type Set(T Object)
@@ -726,13 +748,17 @@ struct MQVarPtr
 	template <typename T>
 	typename ReturnType<T>::type Get() const
 	{
-		if (Data.index() != static_cast<size_t>(VariantIdx::ComplexObject))
-			return std::shared_ptr<T>();
+		using value_type = ReturnType<T>::value_type;
+		using return_type = ReturnType<T>::type;
 
-		return std::static_pointer_cast<T>(std::get<std::shared_ptr<void>>(Data));
+		if (Data.index() != static_cast<size_t>(VariantIdx::ComplexObject))
+			return return_type();
+
+		return std::static_pointer_cast<value_type>(std::get<std::shared_ptr<void>>(Data));
 	}
 
 	template <> struct ReturnType<CXStr> { using type = CXStr; };
+
 	template <>
 	CXStr Set<CXStr>(CXStr String)
 	{
@@ -754,25 +780,35 @@ struct MQVarPtr
 		return std::get<CXStr>(Data);
 	}
 
-#define MQVARPTR_SPECIALIZE(Type) \
-template<> struct ReturnType<Type> { using type = Type; }; \
-template<> Type Set<Type>(Type Val) { return std::get<Type>(Data = Val); } \
-template<> Type Get<Type>() const { return Cast<Type>(); }
+	// Specializations for integer types
+#define MQVARPTR_INTSPECIALIZE(Type) \
+	template <> struct ReturnType<Type> { using type = Type; }; \
+	template <> Type Set<Type>(Type Val) { return static_cast<Type>(std::get<uint64_t>(Data = static_cast<uint64_t>(Val))); } \
+	template <> Type Get<Type>() const { return static_cast<Type>(Cast<uint64_t>()); }
+	MQVARPTR_INTSPECIALIZE(int8_t);
+	MQVARPTR_INTSPECIALIZE(uint8_t);
+	MQVARPTR_INTSPECIALIZE(int16_t);
+	MQVARPTR_INTSPECIALIZE(uint16_t);
+	MQVARPTR_INTSPECIALIZE(int32_t);
+	MQVARPTR_INTSPECIALIZE(uint32_t);
+	MQVARPTR_INTSPECIALIZE(int64_t);
+#undef MQVARPTR_INTSPECIALIZE
 
+#define MQVARPTR_SPECIALIZE(Type) \
+	template<> struct ReturnType<Type> { using type = Type; }; \
+	template<> Type Set<Type>(Type Val) { return std::get<Type>(Data = Val); } \
+	template<> Type Get<Type>() const { return Cast<Type>(); }
 	MQVARPTR_SPECIALIZE(void*);
 	MQVARPTR_SPECIALIZE(bool);
 	MQVARPTR_SPECIALIZE(float);
-	MQVARPTR_SPECIALIZE(int32_t);
-	MQVARPTR_SPECIALIZE(uint32_t);
 	MQVARPTR_SPECIALIZE(double);
-	MQVARPTR_SPECIALIZE(int64_t);
 	MQVARPTR_SPECIALIZE(uint64_t);
+#undef MQVARPTR_SPECIALIZE
 
 #define MQVARPTR_PROPERTIES(Type, Prop) \
-Type set_##Prop(Type Val) { return Set<Type>(Val); } \
-Type get_##Prop() const { return Get<Type>(); } \
-__declspec(property(get = get_##Prop, put = set_##Prop)) Type Prop;
-
+	Type set_##Prop(Type Val) { return Set<Type>(Val); } \
+	Type get_##Prop() const { return Get<Type>(); } \
+	__declspec(property(get = get_##Prop, put = set_##Prop)) Type Prop;
 	// TODO: Future work -- deprecate all of these in favor of Get/Set
 	MQVARPTR_PROPERTIES(void*, Ptr);
 	MQVARPTR_PROPERTIES(float, Float);
@@ -781,6 +817,7 @@ __declspec(property(get = get_##Prop, put = set_##Prop)) Type Prop;
 	MQVARPTR_PROPERTIES(double, Double);
 	MQVARPTR_PROPERTIES(int64_t, Int64);
 	MQVARPTR_PROPERTIES(uint64_t, UInt64);
+#undef MQVARPTR_PROPERTIES
 
 	// TODO: Future work -- uncomment the deprecates and refactor all uses of high/low part
 	// these are here only to support deprecated functionality where some types rely on storing ints in low and high parts
@@ -811,9 +848,8 @@ __declspec(property(get = get_##Prop, put = set_##Prop)) Type Prop;
 		return Set<uint32_t>(Val);
 	}
 
-#pragma warning(disable: 4996)
+#pragma warning(suppress: 4996)
 	__declspec(property(get = get_LowPart, put = set_LowPart)) uint32_t LowPart;
-#pragma warning(default: 4996)
 
 	// HighPart is slightly more complicated, but only just. We just save off the HighPart in this member variable unless
 	// the underlying data is uint64_t -- and we will prefer to store the uint32_t variant when setting
@@ -872,6 +908,39 @@ __declspec(property(get = get_##Prop, put = set_##Prop)) Type Prop;
 	}
 
 	__declspec(property(get = get_Argb, put = set_Argb)) ARGBCOLOR Argb;
+
+	MQVarPtr() = default;
+
+	MQVarPtr(const MQVarPtr& other)
+		: Data(other.Data)
+	{
+	}
+
+	MQVarPtr(MQVarPtr&& other)
+		: Data(std::move(other.Data))
+	{
+	}
+
+	MQVarPtr& operator=(MQVarPtr&& other)
+	{
+		Data = std::move(other.Data);
+		return *this;
+	}
+
+	MQVarPtr& operator=(const MQVarPtr& other)
+	{
+		Data = other.Data;
+		return *this;
+	}
+
+	template <typename T>
+	static MQVarPtr Create(T&& Data)
+	{
+		MQVarPtr VarPtr;
+		VarPtr.Set(std::forward<T>(Data));
+		return VarPtr;
+	}
+
 };
 using MQ2VARPTR DEPRECATE("Use MQVarPtr instead of MQ2VARPTR.") = MQVarPtr;
 using PMQ2VARPTR DEPRECATE("Use MQVarPtr* instead of PMQ2VARPTR.") = MQVarPtr*;
@@ -1035,6 +1104,7 @@ using PEVENTQUEUE DEPRECATE("Use MQEventQueue* instead of PEVENTQUEUE") = MQEven
 
 //----------------------------------------------------------------------------
 
+// This structure is deprecated
 enum eGroundObjectType
 {
 	GO_None,
@@ -1045,7 +1115,7 @@ enum eGroundObjectType
 struct MQGroundObject
 {
 /*0x00*/ eGroundObjectType  Type;
-/*0x04*/ EQGroundItem       GroundItem;         // for conversion between switch and gorunditems
+/*0x04*/ EQGroundItem       GroundItem;         // for conversion between switch and grounditems
 /*0x84*/ void*              ObjPtr;             // EQPlacedItem *
 /*0x88*/ EQGroundItem*      pGroundItem;
 /*0x8c*/
@@ -1053,6 +1123,64 @@ struct MQGroundObject
 	// Currently necessary because of MQ2DataTypes
 	MQGroundObject() { ZeroMemory(this, sizeof(MQGroundObject)); }
 };
+
+enum class eGameObjectType {
+	None,
+	GroundItem,
+	PlaceableItem,
+	Spawn,
+	SpawnTarget,
+	Location,
+	Switch,
+};
+
+enum eFaceCommandFlags : uint8_t {
+	FaceFlags_None                        = 0,
+	FaceFlags_FaceAway                    = 0x01,
+	FaceFlags_Predict                     = 0x02,
+	FaceFlags_Fast                        = 0x04,
+	FaceFlags_NoLook                      = 0x08,
+	FaceFlags_HeadingOnly                 = 0x10,
+};
+
+// generic structure for storing positional information about an object
+struct MQGameObject
+{
+	eGameObjectType type = eGameObjectType::None;
+	uint32_t id = 0;
+	uint32_t subId = 0;
+	std::string name;
+
+	float y = 0.f;
+	float x = 0.f;
+	float z = 0.f;
+	float heading = 0.f;
+	std::string displayName;
+
+	// optional params
+	float velocityY = 0.f;
+	float velocityX = 0.f;
+	float velocityZ = 0.f;
+	float height = 0.f;
+	CActorInterface* actor = nullptr;
+
+	bool valid = false;
+
+	const std::string& GetDisplayName() const
+	{
+		if (!displayName.empty())
+			return displayName;
+
+		return name;
+	}
+};
+
+MQGameObject ToGameObject(const EQGroundItem& groundItem);
+MQGameObject ToGameObject(const EQPlacedItem& placedItem);
+MQGameObject ToGameObject(const MQGroundSpawn& groundSpawn);
+MQGameObject ToGameObject(const SPAWNINFO* spawnInfo);
+MQGameObject ToGameObject(float y, float x, float z);
+MQGameObject ToGameObject(const EQSwitch* pSwitch);
 
 //----------------------------------------------------------------------------
 

@@ -1303,18 +1303,36 @@ void WndNotify(PSPAWNINFO pChar, char* szLine)
 
 	if (!_stricmp(szArg3, "listselect"))
 	{
+		if (Data <= 0)
+		{
+			WriteChatf("\arWndNotify: listselect index out of bounds: %s", szLine);
+			return;
+		}
+
 		SendListSelect(szArg1, szArg2, Data - 1);
 		return;
 	}
 
 	if (!_stricmp(szArg3, "comboselect"))
 	{
+		if (Data <= 0)
+		{
+			WriteChatf("\arWndNotify: comboselect index out of bounds: %s", szLine);
+			return;
+		}
+
 		SendComboSelect(szArg1, szArg2, Data - 1);
 		return;
 	}
 
 	if (!_stricmp(szArg3, "tabselect"))
 	{
+		if (Data <= 0)
+		{
+			WriteChatf("\arWndNotify: tabselect index out of bounds: %s", szLine);
+			return;
+		}
+
 		SendTabSelect(szArg1, szArg2, Data - 1);
 		return;
 	}

@@ -718,7 +718,7 @@ bool MQ2WindowType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2WindowType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2WindowType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pWindowType)
 		return false;

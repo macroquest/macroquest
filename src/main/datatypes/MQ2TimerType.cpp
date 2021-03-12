@@ -130,7 +130,7 @@ void MQ2TimerType::FreeVariable(MQVarPtr& VarPtr)
 	}
 }
 
-bool MQ2TimerType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2TimerType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	MQTimer* pTimer = reinterpret_cast<MQTimer*>(VarPtr.Ptr);
 	if (Source.Type == pFloatType)
@@ -165,4 +165,4 @@ bool MQ2TimerType::FromString(MQVarPtr& VarPtr, const char* Source)
 	return true;
 }
 
-} // namespcae mq::datatypes
+} // namespace mq::datatypes

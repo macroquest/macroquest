@@ -12,116 +12,105 @@
  * GNU General Public License for more details.
  */
 
+#pragma once
+
 #include <mq/Plugin.h>
 #include <map>
 
-constexpr int MAPFILTER_All          = 0;
-constexpr int MAPFILTER_PC           = 1;
-constexpr int MAPFILTER_PCConColor   = 2;
-constexpr int MAPFILTER_Group        = 3;
-constexpr int MAPFILTER_Mount        = 4;
-constexpr int MAPFILTER_NPC          = 5;
-constexpr int MAPFILTER_NPCConColor  = 6;
-constexpr int MAPFILTER_Untargetable = 7;
-constexpr int MAPFILTER_Pet          = 8;
-constexpr int MAPFILTER_Corpse       = 9;
-constexpr int MAPFILTER_Chest        = 10;
-constexpr int MAPFILTER_Trigger      = 11;
-constexpr int MAPFILTER_Trap         = 12;
-constexpr int MAPFILTER_Timer        = 13;
-constexpr int MAPFILTER_Ground       = 14;
-constexpr int MAPFILTER_Target       = 15;
-constexpr int MAPFILTER_TargetLine   = 16;
-constexpr int MAPFILTER_TargetRadius = 17;
-constexpr int MAPFILTER_TargetMelee  = 18;
-constexpr int MAPFILTER_Vector       = 19;
-constexpr int MAPFILTER_Custom       = 20;
-constexpr int MAPFILTER_CastRadius   = 21;
-constexpr int MAPFILTER_NormalLabels = 22;
-constexpr int MAPFILTER_ContextMenu  = 23;
-constexpr int MAPFILTER_SpellRadius  = 24;
-constexpr int MAPFILTER_Aura         = 25;
-constexpr int MAPFILTER_Object       = 26;
-constexpr int MAPFILTER_Banner       = 27;
-constexpr int MAPFILTER_Campfire     = 28;
-constexpr int MAPFILTER_PCCorpse     = 29;
-constexpr int MAPFILTER_NPCCorpse    = 30;
-constexpr int MAPFILTER_Mercenary    = 31;
-constexpr int MAPFILTER_Named        = 32;
-constexpr int MAPFILTER_TargetPath   = 33;
-constexpr int MAPFILTER_Marker       = 34;
-constexpr int MAPFILTER_CampRadius   = 35;
-constexpr int MAPFILTER_PullRadius   = 36;
-constexpr int MAPFILTER_Invalid      = -1;
+enum class MapFilter {
+	Invalid = -1,
+	All = 0,
+	PC = 1,
+	PCConColor = 2,
+	Group = 3,
+	Mount = 4,
+	NPC = 5,
+	NPCConColor = 6,
+	Untargetable = 7,
+	Pet = 8,
+	Corpse = 9,
+	Chest = 10,
+	Trigger = 11,
+	Trap = 12,
+	Timer = 13,
+	Ground = 14,
+	Target = 15,
+	TargetLine = 16,
+	TargetRadius = 17,
+	TargetMelee = 18,
+	Vector = 19,
+	Custom = 20,
+	CastRadius = 21,
+	NormalLabels = 22,
+	ContextMenu = 23,
+	SpellRadius = 24,
+	Aura = 25,
+	Object = 26,
+	Banner = 27,
+	Campfire = 28,
+	PCCorpse = 29,
+	NPCCorpse = 30,
+	Mercenary = 31,
+	Named = 32,
+	TargetPath = 33,
+	Marker = 34,
+	CampRadius = 35,
+	PullRadius = 36,
+
+	Last,
+};
+
 // normal labels
 
-struct MAPSPAWN
+class MapObject;
+using MAPSPAWN = MapObject;
+
+enum class MarkerType
 {
-	SPAWNINFO* pSpawn = nullptr;
-	eSpawnType SpawnType;
-
-	MAPLABEL*   pMapLabel = nullptr;
-	MAPLINE*    pVector = nullptr;
-	bool        Highlight = false;
-	bool        Explicit = false;
-	int         Marker = 0;
-	int         MarkerSize = 0;
-	MAPLINE*    MarkerLines[10];
-
-	MAPSPAWN*   pLast = nullptr;
-	MAPSPAWN*   pNext = nullptr;
+	None = 0,
+	Triangle,
+	Square,
+	Diamond,
+	Ring,
+	Unknown,
 };
 
-struct MAPLOC
+struct MapFilterOption
 {
-	bool        isCreatedFromDefaultLoc;
-	int         index;
-	MAPSPAWN* mapSpawn;
-	int         yloc;
-	int         xloc;
-	int         zloc;
-	std::string label;
-	std::string tag; // "yloc,xloc,zloc"
-	int         lineSize;
-	int         width;
-	int         r_color;
-	int         g_color;
-	int         b_color;
-	int         radius;
-	int         rr_color; // radius colors..
-	int         rg_color;
-	int         rb_color;
-	MAPLINE*    markerLines[150]; // lineMax = 4*maxWidth + 360 / CASTRADIUS_ANGLESIZE
+	enum Flags {
+		Toggle       = 0x01,       // option is an on/off
+		NoColor      = 0x02,       // option has no color property
+		Regenerate   = 0x04,       // map is regenerated if this option is changed
+		UsesRadius   = 0x08,       // option has a radius (draws a circle)
+	};
+
+	const char*      szName = nullptr;
+	bool             Default = false;
+	MQColor          DefaultColor;
+	MapFilter        RequiresOption = MapFilter::Invalid;
+	uint32_t         Flags = 0;
+	const char*      szHelpString = nullptr;
+
+	MarkerType       Marker = MarkerType::None;
+	int              MarkerSize = 0;
+	bool             Enabled = false;
+	float            Radius = 0;
+	MQColor          Color;
+
+	bool IsToggle() const { return Flags & Toggle; }
+	bool IsRegenerateOnChange() const { return Flags & Regenerate; }
+	bool IsRadius() const { return Flags & UsesRadius; }
+	bool HasColor() const { return !(Flags & NoColor); }
 };
 
-struct MAPFILTER
-{
-	char*       szName;
-	DWORD       Default;
-	DWORD       DefaultColor;
-	BOOL        bIsToggle;
-	DWORD       RequiresOption;
-	BOOL        RegenerateOnChange;
-	char*       szHelpString;
-	DWORD       Marker;
-	DWORD       MarkerSize;
-	DWORD       Enabled;
-	DWORD       Color;
-};
-
-struct MAPSPAWN;
-
-extern unsigned long bmMapRefresh;
+extern uint32_t bmMapRefresh;
 extern int activeLayer;
 extern float CampX;
 extern float CampY;
 extern float PullX;
 extern float PullY;
 
-extern std::map<std::string, MAPLOC*> LocationMap;
-extern MAPLOC* DefaultMapLoc;
-
-extern DWORD HighlightColor;
+extern MQColor HighlightColor;
 extern int HighlightSIDELEN;
 extern bool HighlightPulse;
 extern bool HighlightPulseIncreasing;
@@ -134,7 +123,9 @@ extern char mapshowStr[MAX_STRING];
 extern char maphideStr[MAX_STRING];
 extern MQSpawnSearch MapFilterCustom;
 extern MQSpawnSearch MapFilterNamed;
-extern MAPFILTER MapFilterOptions[];
+
+extern MapFilterOption MapFilterOptions[];
+extern MapFilterOption MapFilterInvalidOption;
 
 constexpr int MAX_CLICK_STRINGS = 16;
 extern char MapSpecialClickString[MAX_CLICK_STRINGS][MAX_STRING];
@@ -144,7 +135,7 @@ extern bool repeatMaphide;
 
 /* COMMANDS */
 void MapFilters(SPAWNINFO* pChar, char* szLine);
-void MapFilterSetting(SPAWNINFO* pChar, DWORD nMapFilter, const char* szValue = nullptr);
+void MapFilterSetting(SPAWNINFO* pChar, MapFilter nMapFilter, const char* szValue = nullptr);
 void MapHighlightCmd(SPAWNINFO* pChar, char* szLine);
 void PulseReset();
 void MapHideCmd(SPAWNINFO* pChar, char* szLine);
@@ -154,11 +145,8 @@ void MapClickCommand(SPAWNINFO* pChar, char* szLine);
 void MapActiveLayerCmd(SPAWNINFO* pChar, char* szLine);
 void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine);
 char* FormatMarker(const char* szLine, char* szDest, size_t BufferSize);
-DWORD TypeToMapfilter(SPAWNINFO* pChar);
 void MapRemoveLocation(SPAWNINFO* pChar, char* szLine);
 bool IsFloat(const std::string& in);
-CVector3 GetTargetLoc();
-
 
 /* API */
 void MapInit();
@@ -170,40 +158,50 @@ int MapShow(MQSpawnSearch& Search);
 void MapUpdate();
 void MapAttach();
 void MapDetach();
-void UpdateDefaultMapLoc();
+
 void MapLocSyntaxOutput();
 void MapRemoveLocation(SPAWNINFO* pChar, char* szLine);
-void DeleteMapLoc(MAPLOC* maploc);
-void UpdateMapLoc(MAPLOC* mapLoc);
-void AddMapLocToList(MAPLOC* loc);
-void UpdateMapLocIndexes();
-void AddMapSpawnForMapLoc(MAPLOC* mapLoc);
 
 bool MapSelectTarget();
 void MapClickLocation(float x, float y, const std::vector<float>& z_hits);
-int FindMarker(std::string_view szMark, int fallback = 99);
-long  MakeTime();
+
+int MakeTime();
+void DrawMapSettingsPanel();
 
 bool dataMapSpawn(const char* szIndex, MQTypeVar& Ret);
 
-MAPSPAWN* AddSpawn(SPAWNINFO* pNewSpawn, BOOL ExplicitAllow = false);
+MapObject* AddSpawn(SPAWNINFO* pNewSpawn, bool ExplicitAllow = false);
 bool RemoveSpawn(SPAWNINFO* pSpawn);
-void AddGroundItem(PGROUNDITEM pGroundItem);
-void RemoveGroundItem(PGROUNDITEM pGroundItem);
+MapObject* AddGroundItem(GROUNDITEM* pGroundItem);
+void RemoveGroundItem(GROUNDITEM* pGroundItem);
 
-inline bool IsOptionEnabled(DWORD Option)
+inline MapFilterOption& GetMapFilterOption(MapFilter Option)
 {
-	if (Option == MAPFILTER_Invalid)
-		return true;
-	return (MapFilterOptions[Option].Enabled && IsOptionEnabled(MapFilterOptions[Option].RequiresOption));
+	if (Option < MapFilter::All || Option >= MapFilter::Last)
+		return MapFilterInvalidOption;
+
+	return MapFilterOptions[static_cast<size_t>(Option)];
 }
 
-inline bool RequirementsMet(DWORD Option)
+inline bool IsOptionEnabled(MapFilter Option)
 {
-	if (Option == MAPFILTER_Invalid)
+	if (Option == MapFilter::Invalid)
 		return true;
-	return (IsOptionEnabled(MapFilterOptions[Option].RequiresOption));
+
+	MapFilterOption& option = GetMapFilterOption(Option);
+	return option.Enabled && IsOptionEnabled(option.RequiresOption);
 }
+
+inline bool RequirementsMet(MapFilter Option)
+{
+	if (Option == MapFilter::Invalid)
+		return true;
+
+	MapFilterOption& option = GetMapFilterOption(Option);
+	return IsOptionEnabled(option.RequiresOption);
+}
+
+MarkerType FindMarker(std::string_view szMark, MarkerType fallback = MarkerType::Unknown);
 
 PLUGIN_API PMAPLINE InitLine();
 PLUGIN_API void DeleteLine(PMAPLINE pLine);

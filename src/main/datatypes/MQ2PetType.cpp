@@ -104,7 +104,8 @@ enum class PetMembers
 	Stop,
 	Target,
 	Taunt,
-	BuffDuration
+	BuffDuration,
+	Name,
 };
 
 MQ2PetType::MQ2PetType() : MQ2Type("pet")
@@ -119,20 +120,42 @@ MQ2PetType::MQ2PetType() : MQ2Type("pet")
 	ScopedTypeMember(PetMembers, Target);
 	ScopedTypeMember(PetMembers, Taunt);
 	ScopedTypeMember(PetMembers, BuffDuration);
+	ScopedTypeMember(PetMembers, Name);
 }
 
 bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	SPAWNINFO* pSpawn = reinterpret_cast<SPAWNINFO*>(VarPtr.Ptr);
-	if (!pSpawn)
-		return false;
+	// Check if we have a stored spawn on this object
+	bool playerPet = false;
+	SPAWNINFO* pPetSpawn = MQ2SpawnType::GetSpawnPtr(VarPtr); nullptr;
 
+	// If its our pet then we can enable all the player pet members
+	if (pPetSpawn && pPetSpawn->MasterID == pLocalPlayer->PetID)
+		playerPet = true;
+
+	// We override the Name member to display NO PET when there is no pet.
 	MQTypeMember* pMember = MQ2PetType::FindMember(Member);
-	if (!pMember)
+	if (pMember && static_cast<PetMembers>(pMember->ID) == PetMembers::Name)
 	{
-		if (!pSpawn->SpawnID)
+		// If asked for name, we check if pet exists
+		if (!pPetSpawn)
+			strcpy_s(DataTypeTemp, "NO PET");
+		else
+			strcpy_s(DataTypeTemp, pPetSpawn->Name);
+
+		Dest.Type = pStringType;
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
+	}
+
+	// If its a player pet then we can enable all the members. If its another player's
+	// pet then just treat it like a regular spawn.
+	if (!pMember || !playerPet)
+	{
+		if (!pPetSpawn)
 			return false;
 
+		// Forward our VarPtr along to the spawn type.
 		return pSpawnType->GetMember(VarPtr, Member, Index, Dest);
 	}
 
@@ -202,24 +225,22 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 			Dest.UInt64 = pPetInfoWnd->PetBuffTimer[nBuff];
 			return true;
 		}
-		else
+
+		for (int nBuff = 0; nBuff < NUM_BUFF_SLOTS; nBuff++)
 		{
-			for (int nBuff = 0; nBuff < NUM_BUFF_SLOTS; nBuff++)
+			if (SPELL* pSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
 			{
-				if (SPELL* pSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
+				if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
 				{
-					if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
-					{
-						Dest.UInt64 = pPetInfoWnd->PetBuffTimer[nBuff];
-						return true;
-					}
+					Dest.UInt64 = pPetInfoWnd->PetBuffTimer[nBuff];
+					return true;
 				}
 			}
 		}
 		return false;
 
 	case PetMembers::Combat:
-		Dest.Set(pSpawn->WhoFollowing != nullptr);
+		Dest.Set(pPetSpawn->WhoFollowing != nullptr);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -253,9 +274,9 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		return true;
 
 	case PetMembers::Target:
-		Dest.Type = pSpawnType;
-		if (Dest.Ptr = pSpawn->WhoFollowing)
+		if (pPetSpawn->WhoFollowing)
 		{
+			Dest = pSpawnType->MakeTypeVar(pPetSpawn->WhoFollowing);
 			return true;
 		}
 		return false;
@@ -271,82 +292,32 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 
 bool MQ2PetType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	if (!VarPtr.Ptr)
-		return false;
+	SPAWNINFO* pPetSpawn = nullptr;
 
-	SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
-	strcpy_s(Destination, MAX_STRING, pSpawn->Name);
-	return true;
-}
-
-void MQ2PetType::InitVariable(MQVarPtr& VarPtr)
-{
-	// FIXME: Do not allocate a SPAWNINFO
-	VarPtr.Ptr = new SPAWNINFO();
-
-	// FIXME: Do not ZeroMemory a SPAWNINFO
-	ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
-}
-
-void MQ2PetType::FreeVariable(MQVarPtr& VarPtr)
-{
-	// FIXME: Do not allocate a SPAWNINFO
-	SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
-	delete pSpawn;
-}
-
-bool MQ2PetType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-{
-	if (Source.Type == pSpawnType)
+	ObservedSpawnPtr observedSpawn = VarPtr.Get<ObservedSpawnPtr>();
+	if (observedSpawn)
 	{
-		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(SPAWNINFO));
-		return true;
+		pPetSpawn = observedSpawn->Ptr();
 	}
+
+	if (!pPetSpawn)
+	{
+		pPetSpawn = (pLocalPlayer && pLocalPlayer->PetID != -1)
+			? (SPAWNINFO*)GetSpawnByID(pLocalPlayer->PetID) : nullptr;
+	}
+
+	if (!pPetSpawn)
+		strcpy_s(Destination, MAX_STRING, "NO PET");
 	else
-	{
-		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(Source.DWord))
-		{
-			memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
-			return true;
-		}
-	}
-	return false;
-}
-
-bool MQ2PetType::FromString(MQVarPtr& VarPtr, const char* Source)
-{
-	if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(GetIntFromString(Source, 0)))
-	{
-		memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
-		return true;
-	}
-	return false;
+		strcpy_s(Destination, MAX_STRING, pPetSpawn->Name);
+	return true;
 }
 
 bool MQ2PetType::dataPet(const char* szIndex, MQTypeVar& Ret)
 {
-	SPAWNINFO* pSpawn = GetCharInfo()->pSpawn;
-
-	if (pSpawn && pSpawn->PetID != 0xFFFFFFFF)
-	{
-		Ret.Ptr = GetSpawnByID(pSpawn->PetID);
-		Ret.Type = pPetType;
-		return true;
-	}
-	else if (pSpawn)
-	{
-		// FIXME: Do not ZeroMemory a SPAWNINFO
-		ZeroMemory(&PetSpawn, sizeof(PetSpawn));
-
-		strcpy_s(PetSpawn.Name, "NO PET");
-
-		Ret.Ptr = &PetSpawn;
-		Ret.Type = pPetType;
-		return true;
-	}
-
-	// we need to return true always to be able to get other members out
-	return false;
+	Ret.Ptr = nullptr;
+	Ret.Type = pPetType;
+	return true;
 }
 
 } // namespace mq::datatypes

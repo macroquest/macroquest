@@ -1289,7 +1289,7 @@ void MQ2SpellType::FreeVariable(MQVarPtr& VarPtr)
 	delete pSpell;
 }
 
-bool MQ2SpellType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2SpellType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pSpellType)
 		return false;

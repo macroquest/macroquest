@@ -178,22 +178,6 @@ char gDelayCondition[MAX_STRING] = { 0 };
 bool bAllowCommandParse = true;
 std::map<DWORD, std::list<MQSpawnSearch>> gAlertMap;
 
-SPAWNINFO MercenarySpawn = { 0 };
-SPAWNINFO PetSpawn = { 0 };
-
-Property<SPAWNINFO> EnviroTarget = Property<SPAWNINFO>(
-	[]() -> SPAWNINFO
-	{
-		auto ground = CurrentGroundSpawn();
-		if (ground)
-			return ground.ToSpawn();
-
-		return { 0 };
-	},
-	[](const SPAWNINFO& other) -> SPAWNINFO {
-		return GetGroundSpawnByID(other.mActorClient.Race).ToSpawn();
-	});
-
 static MQGroundObject FromGroundSpawn(const MQGroundSpawn& ground)
 {
 	MQGroundObject ret;
@@ -261,8 +245,7 @@ Property<GROUNDITEM*> pGroundTarget = Property<GROUNDITEM*>(
 		return GetGroundSpawnByID(other->DropID).Get<EQGroundItem>();
 	});
 
-SPAWNINFO DoorEnviroTarget = { 0 };
-DOOR* pDoorTarget = nullptr;
+EQSwitch* pSwitchTarget = nullptr;
 ITEMDB* gItemDB = nullptr;
 bool bRunNextCommand = false;
 bool gTurbo = false;
@@ -271,6 +254,14 @@ MQDefine* pDefines = nullptr;
 MQBindList* pBindList = nullptr;
 char gLastFindSlot[MAX_STRING] = { 0 };
 MQFilter* gpFilters = nullptr;
+
+// Deprecated
+int PetSpawn = 0;
+int MercenarySpawn = 0;
+int DoorEnviroTarget = 0;
+int EnviroTarget = 0;
+
+EQSwitch* pDoorTarget = nullptr;
 
 // TODO: Remove this once the parsing engine is fully backwards compatible.
 // Alternatively, move it into the macro block.

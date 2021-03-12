@@ -40,11 +40,13 @@
     <_ProjectFileVersion>11.0.51106.1</_ProjectFileVersion>
   </PropertyGroup>
   <ItemGroup>
+    <ClCompile Include="MapObject.cpp" />
     <ClCompile Include="MQ2Map.cpp" />
     <ClCompile Include="MQ2MapAPI.cpp" />
     <ClCompile Include="MQ2MapCommands.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MapObject.h" />
     <ClInclude Include="MQ2Map.h" />
   </ItemGroup>
   <ItemGroup>

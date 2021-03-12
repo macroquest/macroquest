@@ -35,10 +35,7 @@ bool MQ2PointMerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 	MQTypeMember* pMember = MQ2PointMerchantType::FindMember(Member);
 	if (!pMember)
 	{
-		MQVarPtr data;
-		data.Ptr = pActiveMerchant;
-
-		return pSpawnType->GetMember(data, Member, Index, Dest);
+		return pSpawnType->GetMember(pActiveMerchant.get_as<SPAWNINFO>(), Member, Index, Dest);
 	}
 
 	switch (static_cast<PointMerchantMembers>(pMember->ID))
@@ -215,7 +212,7 @@ bool MQ2PointMerchantItemType::ToString(MQVarPtr VarPtr, char* Destination)
 
 		if (index >= 0 && index < itemContainer.GetSize())
 		{
-			strcpy_s(Destination, MAX_STRING, itemContainer[index].pCont->GetName());
+			strcpy_s(Destination, MAX_STRING, itemContainer[index].pItem->GetName());
 			return true;
 		}
 	}

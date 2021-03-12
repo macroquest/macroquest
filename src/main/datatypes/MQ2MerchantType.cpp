@@ -184,10 +184,7 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 	MQTypeMember* pMember = MQ2MerchantType::FindMember(Member);
 	if (!pMember)
 	{
-		MQVarPtr data;
-		data.Ptr = pActiveMerchant;
-
-		return pSpawnType->GetMember(data, Member, Index, Dest);
+		return pSpawnType->GetMember(pActiveMerchant.get_as<SPAWNINFO>(), Member, Index, Dest);
 	}
 
 	switch (static_cast<MerchantMembers>(pMember->ID))
@@ -218,7 +215,7 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 
 				if (nIndex < page->ItemContainer.GetSize())
 				{
-					if (Dest.Ptr = page->ItemContainer[nIndex].pCont)
+					if (Dest.Ptr = page->ItemContainer[nIndex].pItem)
 					{
 						return true;
 					}
@@ -229,7 +226,7 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 				// by name
 				for (int nIndex = 0; nIndex < page->ItemContainer.GetSize(); nIndex++)
 				{
-					if (ItemClient* pContents = page->ItemContainer[nIndex].pCont)
+					if (ItemClient* pContents = page->ItemContainer[nIndex].pItem)
 					{
 						const char* itemName = GetItemFromContents(pContents)->Name;
 

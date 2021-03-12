@@ -39,7 +39,7 @@ bool MQ2BoolType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2BoolType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2BoolType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	VarPtr.Set(Source.Get<bool>());
 	return true;
@@ -125,7 +125,7 @@ bool MQ2IntType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		return true;
 
 	case IntMembers::Prettify:
-		sprintf_s(DataTypeTemp, "%lld", VarPtr.Int64);
+		sprintf_s(DataTypeTemp, "%d", VarPtr.Int);
 		PrettifyNumber(DataTypeTemp, sizeof(DataTypeTemp), IsNumber(Index) ? atoi(Index) : 0);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
@@ -142,7 +142,7 @@ bool MQ2IntType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2IntType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2IntType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	VarPtr.Int = Source.Int;
 	return true;
@@ -245,7 +245,7 @@ bool MQ2Int64Type::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2Int64Type::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2Int64Type::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	VarPtr.Int64 = Source.Int64;
 	return true;
@@ -320,7 +320,7 @@ bool MQ2ArgbType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2ArgbType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2ArgbType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	VarPtr.DWord = Source.DWord;
 	return true;
@@ -355,7 +355,7 @@ bool MQ2ByteType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2ByteType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2ByteType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	VarPtr.DWord = Source.DWord & 0xFF;
 	return true;
@@ -810,7 +810,7 @@ void MQ2StringType::FreeVariable(MQVarPtr& VarPtr)
 }
 
 // TODO: This should be using the CXStr underlying type of VarPtr, but that is a very large change
-bool MQ2StringType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2StringType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pStringType)
 		return false;
@@ -915,7 +915,7 @@ bool MQ2FloatType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2FloatType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2FloatType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pFloatType && Source.Type != (MQ2Type*)pHeadingType)
 		VarPtr.Float = (float)Source.DWord;
@@ -1022,7 +1022,7 @@ bool MQ2DoubleType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2DoubleType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2DoubleType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pDoubleType && Source.Type != (MQ2Type*)pHeadingType)
 		VarPtr.Double = Source.Double;
@@ -1141,7 +1141,7 @@ bool MQ2TicksType::ToString(MQVarPtr VarPtr, char* Destination)
 	_itoa_s(VarPtr.DWord, Destination, MAX_STRING, 10);
 	return true;
 }
-bool MQ2TicksType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2TicksType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	VarPtr.DWord = Source.DWord;
 	return true;
@@ -1272,7 +1272,7 @@ bool MQ2TimeStampType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2TimeStampType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2TimeStampType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	VarPtr.UInt64 = Source.UInt64;
 	return true;
@@ -1446,7 +1446,7 @@ bool MQ2RangeType::ToString(MQVarPtr VarPtr, char* Destination)
 	return false;
 }
 
-bool MQ2RangeType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2RangeType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pRangeType)
 		return false;
@@ -1533,7 +1533,7 @@ bool MQ2TypeType::ToString(MQVarPtr VarPtr, char* Destination)
 	strcpy_s(Destination, MAX_STRING, ((MQ2Type*)VarPtr.Ptr)->GetName());
 	return true;
 }
-bool MQ2TypeType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2TypeType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	VarPtr.Ptr = Source.Type;
 	return true;
@@ -1712,7 +1712,7 @@ void MQ2TimeType::FreeVariable(MQVarPtr& VarPtr)
 	delete Now;
 }
 
-bool MQ2TimeType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2TimeType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pTimeType)
 		return false;
@@ -1804,7 +1804,7 @@ bool MQ2HeadingType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2HeadingType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2HeadingType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pHeadingType && Source.Type != pFloatType)
 		VarPtr.Float = (float)Source.DWord;

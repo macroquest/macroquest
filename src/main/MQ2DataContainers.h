@@ -31,7 +31,7 @@ public:
 class MQTransient : public std::enable_shared_from_this<MQTransient>
 {
 protected:
-	bool m_invalidated; // let's track if this got invalidated to help troubleshooting things
+	bool m_invalidated = false; // let's track if this got invalidated to help troubleshooting things
 
 	template <typename T>
 	std::shared_ptr<T> SharedFromBase()
@@ -44,7 +44,7 @@ public:
 	virtual operator bool() const = 0;
 	virtual bool operator==(void*) const = 0;
 
-	MQTransient() : m_invalidated(false) {}
+	MQTransient() = default;
 };
 
 template <typename EQType>
@@ -132,19 +132,23 @@ public:
 
 	EQType* Ptr()
 	{
-		Validate();
 		return m_object;
 	}
 
 	template <typename U>
 	friend std::shared_ptr<MQEQObject<U>> ObserveEQObject(U*);
+
+	MQEQObject(const MQEQObject&) = delete;
+	MQEQObject& operator=(const MQEQObject&) = delete;
 };
 
+template <typename T>
+using MQEQObjectPtr = std::shared_ptr<MQEQObject<T>>;
+
 template <typename U>
-std::shared_ptr<MQEQObject<U>> ObserveEQObject(U* Object)
+MQEQObjectPtr<U> ObserveEQObject(U* Object)
 {
-	auto ptr = std::shared_ptr<MQEQObject<U>>(new MQEQObject<U>(Object),
-		[](MQEQObject<U>* ptr) { delete ptr; });
+	auto ptr = MQEQObjectPtr<U>(new MQEQObject<U>(Object), [](MQEQObject<U>* ptr) { delete ptr; });
 	AddObservedEQObject(ptr);
 	return ptr;
 }

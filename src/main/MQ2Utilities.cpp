@@ -6065,14 +6065,14 @@ std::vector<MercDesc> GetAllMercDesc()
 	if (!pMercManager)
 		return {};
 
-	std::vector<MercDesc> mercInfo;
-	mercInfo.resize(pMercManager->mercenaries.GetLength());
+	std::vector<MercDesc> mercDescs;
+	mercDescs.reserve(pMercManager->mercenaries.GetCount());
 
-	for (int i = 0; i < pMercManager->mercenaries.GetLength(); i++)
+	for (const MercenaryInfo& mercInfo : pMercManager->mercenaries)
 	{
-		MercDesc& outDesc = mercInfo[i];
+		MercDesc outDesc;
 
-		int descIdx = pMercManager->mercenaries[i].nMercDesc;
+		int descIdx = mercInfo.subtypeStringId;
 		std::string_view subcatDesc = pCDBStr->GetString(descIdx, eMercenarySubCategoryDescription);
 		size_t pos = 0;
 
@@ -6111,9 +6111,11 @@ std::vector<MercDesc> GetAllMercDesc()
 				outDesc.Proficiency.erase(pos);
 			}
 		}
+
+		mercDescs.push_back(std::move(outDesc));
 	}
 
-	return mercInfo;
+	return mercDescs;
 }
 
 bool IsActiveAA(const char* pSpellName)
@@ -7474,6 +7476,166 @@ bool TargetBuffCastByMe(const char* szBuffName)
 		return false;
 
 	return HasBuffCastByPlayer(pTarget, szBuffName, pLocalPlayer->Name);
+}
+
+//----------------------------------------------------------------------------
+
+MQGameObject ToGameObject(const EQGroundItem& groundItem)
+{
+	MQGameObject temp;
+
+	temp.type = eGameObjectType::GroundItem;
+	temp.id = groundItem.DropID;
+	temp.subId = groundItem.DropSubID;
+	temp.name = groundItem.Name;
+
+	temp.displayName = GetFriendlyNameForGroundItem(&groundItem);
+	temp.y = groundItem.Y;
+	temp.x = groundItem.X;
+	temp.z = groundItem.Z;
+	temp.heading = groundItem.Heading * 0.703125f;
+	temp.actor = (CActorInterface*)groundItem.pSwitch;
+
+	return temp;
+}
+
+MQGameObject ToGameObject(const EQPlacedItem& placedItem)
+{
+	MQGameObject temp;
+
+	temp.type = eGameObjectType::PlaceableItem;
+	temp.id = placedItem.RealEstateItemID;
+	temp.subId = placedItem.RealEstateID;
+	temp.name = placedItem.Name;
+
+	temp.displayName = GetFriendlyNameForPlacedItem(&placedItem);
+	temp.y = placedItem.Y;
+	temp.x = placedItem.X;
+	temp.z = placedItem.Z;
+	temp.heading = placedItem.Heading * 0.703125f;
+	temp.actor = placedItem.pActor;
+
+	return temp;
+}
+
+MQGameObject ToGameObject(const MQGroundSpawn& groundSpawn)
+{
+	if (EQGroundItem* pEQGroundItem = groundSpawn.Get<EQGroundItem>())
+	{
+		return ToGameObject(*pEQGroundItem);
+	}
+
+	if (EQPlacedItem* pEQPlacedItem = groundSpawn.Get<EQPlacedItem>())
+	{
+		return ToGameObject(*pEQPlacedItem);
+	}
+
+	return MQGameObject();
+}
+
+MQGameObject ToGameObject(const SPAWNINFO* pSpawn)
+{
+	MQGameObject temp;
+
+	if (pSpawn)
+	{
+		temp.type = eGameObjectType::Spawn;
+		temp.id = pSpawn->SpawnID;
+		temp.name = pSpawn->Name;
+
+		temp.y = pSpawn->Y;
+		temp.x = pSpawn->X;
+		temp.z = pSpawn->Z;
+		temp.heading = pSpawn->Heading;
+		temp.displayName = pSpawn->DisplayedName;
+		temp.velocityY = pSpawn->SpeedY;
+		temp.velocityX = pSpawn->SpeedX;
+		temp.velocityZ = pSpawn->SpeedZ;
+		temp.height = pSpawn->AvatarHeight * StateHeightMultiplier(pSpawn->StandState);
+		temp.actor = (CActorInterface*)&pSpawn->mActorClient;
+		temp.valid = true;
+	}
+
+	return temp;
+}
+
+MQGameObject ToGameObject(float y, float x, float z)
+{
+	MQGameObject temp;
+
+	temp.type = eGameObjectType::Location;
+	temp.name = "location";
+	temp.y = y;
+	temp.x = x;
+	temp.z = z;
+	temp.valid = true;
+
+	return temp;
+}
+
+MQGameObject ToGameObject(const EQSwitch* pSwitch)
+{
+	MQGameObject temp;
+
+	temp.type = eGameObjectType::Switch;
+	temp.id = pSwitch->ID;
+	temp.name = pSwitch->Name;
+	temp.y = pSwitch->Y;
+	temp.x = pSwitch->X;
+	temp.z = pSwitch->Z;
+	temp.heading = pSwitch->Heading;
+	temp.actor = (CActorInterface*)pSwitch->pSwitch;
+	temp.valid = true;
+
+	return temp;
+}
+
+void SetSwitchTarget(EQSwitch* pSwitch)
+{
+#pragma warning(suppress: 4996)
+	pDoorTarget = pSwitch;
+	pSwitchTarget = pSwitch;
+}
+
+EQSwitch* GetSwitchByID(int ID)
+{
+	for (int Count = 0; Count < pSwitchMgr->NumEntries; Count++)
+	{
+		EQSwitch* pSwitch = pSwitchMgr->Switches[Count];
+
+		if (pSwitch->ID == ID)
+		{
+			return pSwitch;
+		}
+	}
+
+	return nullptr;
+}
+
+EQSwitch* FindSwitchByName(const char* szName)
+{
+	EQSwitch* closestSwitch = nullptr;
+	float cDistance = FLT_MAX;
+
+	for (int Count = 0; Count < pSwitchMgr->NumEntries; Count++)
+	{
+		EQSwitch* pSwitch = pSwitchMgr->Switches[Count];
+
+		// Match against the name if it is within the z filter (or if the z filter is disabled)
+		if ((!szName || szName[0] == 0 || ci_find_substr(pSwitch->Name, szName) == 0)
+			&& (gZFilter >= 10000.0f || (pSwitch->Z <= pLocalPlayer->Z + gZFilter && pSwitch->Z >= pLocalPlayer->Z - gZFilter)))
+		{
+			float Distance = Get3DDistanceSquared(pLocalPlayer->X, pLocalPlayer->Y, pLocalPlayer->Z,
+				pSwitch->X, pSwitch->Y, pSwitch->Z);
+			if (Distance < cDistance)
+			{
+				closestSwitch = pSwitch;
+				cDistance = Distance;
+			}
+		}
+	}
+
+	return closestSwitch;
 }
 
 } // namespace mq

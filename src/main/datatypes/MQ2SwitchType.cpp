@@ -21,6 +21,7 @@ enum class SwitchMembers
 {
 	ID = 1,
 	Distance,
+	Distance3D,
 	X,
 	Y,
 	Z,
@@ -32,26 +33,22 @@ enum class SwitchMembers
 	Open,
 	HeadingTo,
 	Name,
-	N,
-	W,
-	U,
-	DefaultN,
-	DefaultW,
-	DefaultU,
 	LineOfSight,
-	Address,
-	Distance3D
+	IsTargeted
 };
 
 enum class SwitchMethods
 {
-	Toggle
+	Toggle,
+	Target,
+	Use,
 };
 
 MQ2SwitchType::MQ2SwitchType() : MQ2Type("switch")
 {
 	ScopedTypeMember(SwitchMembers, ID);
 	ScopedTypeMember(SwitchMembers, Distance);
+	ScopedTypeMember(SwitchMembers, Distance3D);
 	ScopedTypeMember(SwitchMembers, X);
 	ScopedTypeMember(SwitchMembers, Y);
 	ScopedTypeMember(SwitchMembers, Z);
@@ -64,16 +61,17 @@ MQ2SwitchType::MQ2SwitchType() : MQ2Type("switch")
 	ScopedTypeMember(SwitchMembers, HeadingTo);
 	ScopedTypeMember(SwitchMembers, Name);
 	ScopedTypeMember(SwitchMembers, LineOfSight);
-	ScopedTypeMember(SwitchMembers, Address);
-	ScopedTypeMember(SwitchMembers, Distance3D);
+	ScopedTypeMember(SwitchMembers, IsTargeted);
 
 	ScopedTypeMethod(SwitchMethods, Toggle);
+	ScopedTypeMethod(SwitchMethods, Target);
+	ScopedTypeMethod(SwitchMethods, Use);
 }
 
 bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	DOOR* pTheSwitch = static_cast<DOOR*>(VarPtr.Ptr);
-	if (!VarPtr.Ptr)
+	EQSwitch* pTheSwitch = static_cast<EQSwitch*>(VarPtr.Ptr);
+	if (!pTheSwitch)
 		return false;
 
 	PcProfile* pProfile = GetPcProfile();
@@ -88,7 +86,8 @@ bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 	{
 		switch (static_cast<SwitchMethods>(pMethod->ID))
 		{
-		case SwitchMethods::Toggle: {
+		case SwitchMethods::Toggle:
+		case SwitchMethods::Use: {
 			int KeyID = 0;
 			int Skill = 0;
 
@@ -115,9 +114,13 @@ bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 				}
 			}
 
-			((EQSwitch*)pTheSwitch->pSwitch)->UseSwitch(((SPAWNINFO*)pLocalPlayer)->SpawnID, KeyID, Skill);
+			pTheSwitch->UseSwitch(pLocalPlayer->SpawnID, KeyID, Skill);
 			return true;
 		}
+
+		case SwitchMethods::Target:
+			SetSwitchTarget(pTheSwitch);
+			return true;
 
 		default: break;
 		}
@@ -133,47 +136,36 @@ bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 
 	switch (static_cast<SwitchMembers>(pMember->ID))
 	{
-	case SwitchMembers::Address:
-		Dest.DWord = (uint32_t)VarPtr.Ptr;
-		Dest.Type = pIntType;
-		return true;
-
 	case SwitchMembers::ID:
 		Dest.DWord = pTheSwitch->ID;
 		Dest.Type = pIntType;
 		return true;
 
-	case SwitchMembers::W:
 	case SwitchMembers::X:
 		Dest.Float = pTheSwitch->X;
 		Dest.Type = pFloatType;
 		return true;
 
-	case SwitchMembers::N:
 	case SwitchMembers::Y:
 		Dest.Float = pTheSwitch->Y;
 		Dest.Type = pFloatType;
 		return true;
 
-	case SwitchMembers::U:
 	case SwitchMembers::Z:
 		Dest.Float = pTheSwitch->Z;
 		Dest.Type = pFloatType;
 		return true;
 
-	case SwitchMembers::DefaultW:
 	case SwitchMembers::DefaultX:
 		Dest.Float = pTheSwitch->DefaultX;
 		Dest.Type = pFloatType;
 		return true;
 
-	case SwitchMembers::DefaultN:
 	case SwitchMembers::DefaultY:
 		Dest.Float = pTheSwitch->DefaultY;
 		Dest.Type = pFloatType;
 		return true;
 
-	case SwitchMembers::DefaultU:
 	case SwitchMembers::DefaultZ:
 		Dest.Float = pTheSwitch->DefaultZ;
 		Dest.Type = pFloatType;
@@ -267,7 +259,12 @@ bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 	}
 
 	case SwitchMembers::LineOfSight:
-		Dest.Set(CastRay(GetCharInfo()->pSpawn, pTheSwitch->Y, pTheSwitch->X, pTheSwitch->Z) != 0);
+		Dest.Set(CastRay(pControlledPlayer, pTheSwitch->Y, pTheSwitch->X, pTheSwitch->Z) != 0);
+		Dest.Type = pBoolType;
+		return true;
+
+	case SwitchMembers::IsTargeted:
+		Dest.Set(pTheSwitch == pSwitchTarget);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -282,42 +279,82 @@ bool MQ2SwitchType::ToString(MQVarPtr VarPtr, char* Destination)
 	if (!VarPtr.Ptr)
 		return false;
 
-	DOOR* pDoor = static_cast<DOOR*>(VarPtr.Ptr);
-	_itoa_s(pDoor->ID, Destination, MAX_STRING, 10);
+	EQSwitch* pSwitch = static_cast<EQSwitch*>(VarPtr.Ptr);
+	_itoa_s(pSwitch->ID, Destination, MAX_STRING, 10);
 	return true;
 }
 
-void MQ2SwitchType::InitVariable(MQVarPtr& VarPtr)
+bool MQ2SwitchType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
-	// FIXME: Do not allocate a DOOR
-	VarPtr.Ptr = new DOOR();
+	if (Source.Type == pSwitchType)
+	{
+		VarPtr.Ptr = Source.Ptr;
+	}
+	else if (Source.Type == pStringType)
+	{
+		const char* switchName = static_cast<const char*>(Source.Ptr);
+		VarPtr.Ptr = FindSwitchByName(switchName);
+	}
+	else if (Source.Type == pIntType)
+	{
+		VarPtr.Ptr = GetSwitchByID(Source.Int);
+	}
+
+	return VarPtr.Ptr != nullptr;
 }
 
-void MQ2SwitchType::FreeVariable(MQVarPtr& VarPtr)
+static EQSwitch* GetSwitchFromIndex(const char* szIndex, bool noneIsTarget)
 {
-	// FIXME: Do not allocate a DOOR
-	DOOR* pDoor = static_cast<DOOR*>(VarPtr.Ptr);
-	delete pDoor;
+	if (szIndex[0] == 0)
+	{
+		return noneIsTarget ? pSwitchTarget : nullptr;
+	}
+
+	int ID = GetIntFromString(szIndex, -1);
+
+	// Check if the string is a number.
+	if (ID >= 0)
+	{
+		return GetSwitchByID(ID);
+	}
+
+	// Check if its the word "target", return targeted switch.
+	if (ci_equals(szIndex, "target"))
+	{
+		return pSwitchTarget;
+	}
+
+	// Check if its the word "nearest", return nearest switch.
+	if (ci_equals(szIndex, "nearest"))
+	{
+		return FindSwitchByName();
+	}
+
+	// Do a nearest search by name.
+	return FindSwitchByName(szIndex);
 }
 
-bool MQ2SwitchType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
+bool MQ2SwitchType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
-	if (Source.Type != pSwitchType)
-		return false;
+	VarPtr.Ptr = GetSwitchFromIndex(Source, false);
 
-	memcpy(VarPtr.Ptr, Source.Ptr, sizeof(DOOR));
-	return true;
+	return VarPtr.Ptr != nullptr;
 }
 
 bool MQ2SwitchType::dataSwitch(const char* szIndex, MQTypeVar& Ret)
 {
-	if (pDoorTarget)
-	{
-		Ret.Ptr = pDoorTarget;
-		Ret.Type = pSwitchType;
-		return true;
-	}
-	return false;
+	Ret.Type = pSwitchType;
+	Ret.Ptr = GetSwitchFromIndex(szIndex, true);
+
+	return Ret.Ptr != nullptr;
+}
+
+bool MQ2SwitchType::dataSwitchTarget(const char* szIndex, MQTypeVar& Ret)
+{
+	Ret.Type = pSwitchType;
+	Ret.Ptr = pSwitchTarget;
+
+	return Ret.Ptr != nullptr;
 }
 
 } // namespace mq::datatypes

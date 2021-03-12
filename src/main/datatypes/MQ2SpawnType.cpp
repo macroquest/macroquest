@@ -118,7 +118,6 @@ enum class SpawnMembers
 	LocYXZ,
 	Owner,
 	Following,
-	Address,
 	Inviter,
 	MercID,
 	ContractorID,
@@ -185,183 +184,186 @@ enum class SpawnMethods
 	RightClick
 };
 
-	MQ2SpawnType::MQ2SpawnType() : MQ2Type("spawn")
-	{
-		ScopedTypeMember(SpawnMembers, ID);
-		ScopedTypeMember(SpawnMembers, Name);
-		ScopedTypeMember(SpawnMembers, Level);
-		ScopedTypeMember(SpawnMembers, X);
-		ScopedTypeMember(SpawnMembers, Y);
-		ScopedTypeMember(SpawnMembers, Z);
-		ScopedTypeMember(SpawnMembers, DistanceX);
-		ScopedTypeMember(SpawnMembers, DistanceY);
-		ScopedTypeMember(SpawnMembers, DistanceZ);
-		ScopedTypeMember(SpawnMembers, Distance);
-		ScopedTypeMember(SpawnMembers, Distance3D);
-		ScopedTypeMember(SpawnMembers, DistancePredict);
-		ScopedTypeMember(SpawnMembers, Next);
-		ScopedTypeMember(SpawnMembers, Prev);
-		ScopedTypeMember(SpawnMembers, Heading);
-		ScopedTypeMember(SpawnMembers, Speed);
-		ScopedTypeMember(SpawnMembers, Levitating);
-		ScopedTypeMember(SpawnMembers, Sneaking);
-		ScopedTypeMember(SpawnMembers, HeadingTo);
-		ScopedTypeMember(SpawnMembers, Light);
-		ScopedTypeMember(SpawnMembers, Body);
-		ScopedTypeMember(SpawnMembers, State);
-		ScopedTypeMember(SpawnMembers, CurrentHPs);
-		ScopedTypeMember(SpawnMembers, MaxHPs);
-		ScopedTypeMember(SpawnMembers, PctHPs);
-		ScopedTypeMember(SpawnMembers, Deity);
-		ScopedTypeMember(SpawnMembers, Type);
-		ScopedTypeMember(SpawnMembers, CleanName);
-		ScopedTypeMember(SpawnMembers, Surname);
-		ScopedTypeMember(SpawnMembers, Guild);
-		ScopedTypeMember(SpawnMembers, GuildStatus);
-		ScopedTypeMember(SpawnMembers, Master);
-		ScopedTypeMember(SpawnMembers, Pet);
-		ScopedTypeMember(SpawnMembers, Race);
-		ScopedTypeMember(SpawnMembers, Class);
-		ScopedTypeMember(SpawnMembers, Gender);
-		ScopedTypeMember(SpawnMembers, GM);
-		ScopedTypeMember(SpawnMembers, Height);
-		ScopedTypeMember(SpawnMembers, MaxRange);
-		ScopedTypeMember(SpawnMembers, AARank);
-		ScopedTypeMember(SpawnMembers, Casting);
-		ScopedTypeMember(SpawnMembers, Mount);
-		ScopedTypeMember(SpawnMembers, FeetWet);
-		ScopedTypeMember(SpawnMembers, Underwater);
-		ScopedTypeMember(SpawnMembers, Animation);
-		ScopedTypeMember(SpawnMembers, Holding);
-		ScopedTypeMember(SpawnMembers, Look);
-		ScopedTypeMember(SpawnMembers, N);
-		ScopedTypeMember(SpawnMembers, W);
-		ScopedTypeMember(SpawnMembers, U);
-		ScopedTypeMember(SpawnMembers, S);
-		ScopedTypeMember(SpawnMembers, E);
-		ScopedTypeMember(SpawnMembers, D);
-		ScopedTypeMember(SpawnMembers, DistanceN);
-		ScopedTypeMember(SpawnMembers, DistanceW);
-		ScopedTypeMember(SpawnMembers, DistanceU);
-		ScopedTypeMember(SpawnMembers, Invis);
-		ScopedTypeMember(SpawnMembers, Linkdead);
-		ScopedTypeMember(SpawnMembers, LFG);
-		ScopedTypeMember(SpawnMembers, Trader);
-		ScopedTypeMember(SpawnMembers, AFK);
-		ScopedTypeMember(SpawnMembers, ConColor);
-		ScopedTypeMember(SpawnMembers, Standing);
-		ScopedTypeMember(SpawnMembers, Sitting);
-		ScopedTypeMember(SpawnMembers, Ducking);
-		ScopedTypeMember(SpawnMembers, Feigning);
-		ScopedTypeMember(SpawnMembers, Binding);
-		ScopedTypeMember(SpawnMembers, Invited);
-		ScopedTypeMember(SpawnMembers, NearestSpawn);
-		ScopedTypeMember(SpawnMembers, MaxRangeTo);
-		ScopedTypeMember(SpawnMembers, DisplayName);
-		ScopedTypeMember(SpawnMembers, AATitle);
-		ScopedTypeMember(SpawnMembers, GroupLeader);
-		ScopedTypeMember(SpawnMembers, Assist);
-		ScopedTypeMember(SpawnMembers, Mark);
-		ScopedTypeMember(SpawnMembers, Anonymous);
-		ScopedTypeMember(SpawnMembers, Roleplaying);
-		ScopedTypeMember(SpawnMembers, LineOfSight);
-		ScopedTypeMember(SpawnMembers, HeadingToLoc);
-		ScopedTypeMember(SpawnMembers, Title);
-		ScopedTypeMember(SpawnMembers, Suffix);
-		ScopedTypeMember(SpawnMembers, Fleeing);
-		ScopedTypeMember(SpawnMembers, Named);
-		ScopedTypeMember(SpawnMembers, Buyer);
-		ScopedTypeMember(SpawnMembers, Moving);
-		ScopedTypeMember(SpawnMembers, StandState);
-		ScopedTypeMember(SpawnMembers, Dead);
-		ScopedTypeMember(SpawnMembers, Stunned);
-		ScopedTypeMember(SpawnMembers, Hovering);
-		ScopedTypeMember(SpawnMembers, CurrentMana);
-		ScopedTypeMember(SpawnMembers, MaxMana);
-		ScopedTypeMember(SpawnMembers, CurrentEndurance);
-		ScopedTypeMember(SpawnMembers, PctEndurance);
-		ScopedTypeMember(SpawnMembers, MaxEndurance);
-		ScopedTypeMember(SpawnMembers, Loc);
-		ScopedTypeMember(SpawnMembers, LocYX);
-		ScopedTypeMember(SpawnMembers, LocYXZ);
-		ScopedTypeMember(SpawnMembers, Owner);
-		ScopedTypeMember(SpawnMembers, Following);
-		ScopedTypeMember(SpawnMembers, Address);
-		ScopedTypeMember(SpawnMembers, Inviter);
-		ScopedTypeMember(SpawnMembers, MercID);
-		ScopedTypeMember(SpawnMembers, ContractorID);
-		ScopedTypeMember(SpawnMembers, PctMana);
-		ScopedTypeMember(SpawnMembers, Primary);
-		ScopedTypeMember(SpawnMembers, Secondary);
-		ScopedTypeMember(SpawnMembers, Equipment);
-		ScopedTypeMember(SpawnMembers, Targetable);
-		ScopedTypeMember(SpawnMembers, PlayerState);
-		ScopedTypeMember(SpawnMembers, Stuck);
-		ScopedTypeMember(SpawnMembers, Aggressive);
-		ScopedTypeMember(SpawnMembers, CanSplashLand);
-		ScopedTypeMember(SpawnMembers, IsBerserk);
-		ScopedTypeMember(SpawnMembers, pTouchingSwitch);
-		ScopedTypeMember(SpawnMembers, bShowHelm);
-		ScopedTypeMember(SpawnMembers, CorpseDragCount);
-		ScopedTypeMember(SpawnMembers, bBetaBuffed);
-		ScopedTypeMember(SpawnMembers, CombatSkillTicks);
-		ScopedTypeMember(SpawnMembers, FD);
-		ScopedTypeMember(SpawnMembers, InPvPArea);
-		ScopedTypeMember(SpawnMembers, bAlwaysShowAura);
-		ScopedTypeMember(SpawnMembers, GMRank);
-		ScopedTypeMember(SpawnMembers, WarCry);
-		ScopedTypeMember(SpawnMembers, IsPassenger);
-		ScopedTypeMember(SpawnMembers, LastCastTime);
-		ScopedTypeMember(SpawnMembers, DragNames);
-		ScopedTypeMember(SpawnMembers, DraggingPlayer);
-		ScopedTypeMember(SpawnMembers, bStationary);
-		ScopedTypeMember(SpawnMembers, BearingToTarget);
-		ScopedTypeMember(SpawnMembers, bTempPet);
-		ScopedTypeMember(SpawnMembers, HoldingAnimation);
-		ScopedTypeMember(SpawnMembers, Blind);
-		ScopedTypeMember(SpawnMembers, LastCastNum);
-		ScopedTypeMember(SpawnMembers, CollisionCounter);
-		ScopedTypeMember(SpawnMembers, CeilingHeightAtCurrLocation);
-		ScopedTypeMember(SpawnMembers, AssistName);
-		ScopedTypeMember(SpawnMembers, SeeInvis);
-		ScopedTypeMember(SpawnMembers, SpawnStatus);
-		ScopedTypeMember(SpawnMembers, bWaitingForPort);
-		ScopedTypeMember(SpawnMembers, EQLoc);
-		ScopedTypeMember(SpawnMembers, MQLoc);
-		ScopedTypeMember(SpawnMembers, TimeBeenDead);
-		ScopedTypeMember(SpawnMembers, FloorZ);
-		ScopedTypeMember(SpawnMembers, IsSummoned);
-		ScopedTypeMember(SpawnMembers, TargetOfTarget);
-		ScopedTypeMember(SpawnMembers, ActorDef);
-		ScopedTypeMember(SpawnMembers, CachedBuff);
-		ScopedTypeMember(SpawnMembers, CachedBuffCount);
-		ScopedTypeMember(SpawnMembers, Buff);
-		ScopedTypeMember(SpawnMembers, BuffCount);
-		ScopedTypeMember(SpawnMembers, BuffDuration);
-		ScopedTypeMember(SpawnMembers, BuffsPopulated);
-		ScopedTypeMember(SpawnMembers, MyBuff);
-		ScopedTypeMember(SpawnMembers, MyBuffCount);
-		ScopedTypeMember(SpawnMembers, MyBuffDuration);
+MQ2SpawnType::MQ2SpawnType() : MQ2Type("spawn")
+{
+	ScopedTypeMember(SpawnMembers, ID);
+	ScopedTypeMember(SpawnMembers, Name);
+	ScopedTypeMember(SpawnMembers, Level);
+	ScopedTypeMember(SpawnMembers, X);
+	ScopedTypeMember(SpawnMembers, Y);
+	ScopedTypeMember(SpawnMembers, Z);
+	ScopedTypeMember(SpawnMembers, DistanceX);
+	ScopedTypeMember(SpawnMembers, DistanceY);
+	ScopedTypeMember(SpawnMembers, DistanceZ);
+	ScopedTypeMember(SpawnMembers, Distance);
+	ScopedTypeMember(SpawnMembers, Distance3D);
+	ScopedTypeMember(SpawnMembers, DistancePredict);
+	ScopedTypeMember(SpawnMembers, Next);
+	ScopedTypeMember(SpawnMembers, Prev);
+	ScopedTypeMember(SpawnMembers, Heading);
+	ScopedTypeMember(SpawnMembers, Speed);
+	ScopedTypeMember(SpawnMembers, Levitating);
+	ScopedTypeMember(SpawnMembers, Sneaking);
+	ScopedTypeMember(SpawnMembers, HeadingTo);
+	ScopedTypeMember(SpawnMembers, Light);
+	ScopedTypeMember(SpawnMembers, Body);
+	ScopedTypeMember(SpawnMembers, State);
+	ScopedTypeMember(SpawnMembers, CurrentHPs);
+	ScopedTypeMember(SpawnMembers, MaxHPs);
+	ScopedTypeMember(SpawnMembers, PctHPs);
+	ScopedTypeMember(SpawnMembers, Deity);
+	ScopedTypeMember(SpawnMembers, Type);
+	ScopedTypeMember(SpawnMembers, CleanName);
+	ScopedTypeMember(SpawnMembers, Surname);
+	ScopedTypeMember(SpawnMembers, Guild);
+	ScopedTypeMember(SpawnMembers, GuildStatus);
+	ScopedTypeMember(SpawnMembers, Master);
+	ScopedTypeMember(SpawnMembers, Pet);
+	ScopedTypeMember(SpawnMembers, Race);
+	ScopedTypeMember(SpawnMembers, Class);
+	ScopedTypeMember(SpawnMembers, Gender);
+	ScopedTypeMember(SpawnMembers, GM);
+	ScopedTypeMember(SpawnMembers, Height);
+	ScopedTypeMember(SpawnMembers, MaxRange);
+	ScopedTypeMember(SpawnMembers, AARank);
+	ScopedTypeMember(SpawnMembers, Casting);
+	ScopedTypeMember(SpawnMembers, Mount);
+	ScopedTypeMember(SpawnMembers, FeetWet);
+	ScopedTypeMember(SpawnMembers, Underwater);
+	ScopedTypeMember(SpawnMembers, Animation);
+	ScopedTypeMember(SpawnMembers, Holding);
+	ScopedTypeMember(SpawnMembers, Look);
+	ScopedTypeMember(SpawnMembers, N);
+	ScopedTypeMember(SpawnMembers, W);
+	ScopedTypeMember(SpawnMembers, U);
+	ScopedTypeMember(SpawnMembers, S);
+	ScopedTypeMember(SpawnMembers, E);
+	ScopedTypeMember(SpawnMembers, D);
+	ScopedTypeMember(SpawnMembers, DistanceN);
+	ScopedTypeMember(SpawnMembers, DistanceW);
+	ScopedTypeMember(SpawnMembers, DistanceU);
+	ScopedTypeMember(SpawnMembers, Invis);
+	ScopedTypeMember(SpawnMembers, Linkdead);
+	ScopedTypeMember(SpawnMembers, LFG);
+	ScopedTypeMember(SpawnMembers, Trader);
+	ScopedTypeMember(SpawnMembers, AFK);
+	ScopedTypeMember(SpawnMembers, ConColor);
+	ScopedTypeMember(SpawnMembers, Standing);
+	ScopedTypeMember(SpawnMembers, Sitting);
+	ScopedTypeMember(SpawnMembers, Ducking);
+	ScopedTypeMember(SpawnMembers, Feigning);
+	ScopedTypeMember(SpawnMembers, Binding);
+	ScopedTypeMember(SpawnMembers, Invited);
+	ScopedTypeMember(SpawnMembers, NearestSpawn);
+	ScopedTypeMember(SpawnMembers, MaxRangeTo);
+	ScopedTypeMember(SpawnMembers, DisplayName);
+	ScopedTypeMember(SpawnMembers, AATitle);
+	ScopedTypeMember(SpawnMembers, GroupLeader);
+	ScopedTypeMember(SpawnMembers, Assist);
+	ScopedTypeMember(SpawnMembers, Mark);
+	ScopedTypeMember(SpawnMembers, Anonymous);
+	ScopedTypeMember(SpawnMembers, Roleplaying);
+	ScopedTypeMember(SpawnMembers, LineOfSight);
+	ScopedTypeMember(SpawnMembers, HeadingToLoc);
+	ScopedTypeMember(SpawnMembers, Title);
+	ScopedTypeMember(SpawnMembers, Suffix);
+	ScopedTypeMember(SpawnMembers, Fleeing);
+	ScopedTypeMember(SpawnMembers, Named);
+	ScopedTypeMember(SpawnMembers, Buyer);
+	ScopedTypeMember(SpawnMembers, Moving);
+	ScopedTypeMember(SpawnMembers, StandState);
+	ScopedTypeMember(SpawnMembers, Dead);
+	ScopedTypeMember(SpawnMembers, Stunned);
+	ScopedTypeMember(SpawnMembers, Hovering);
+	ScopedTypeMember(SpawnMembers, CurrentMana);
+	ScopedTypeMember(SpawnMembers, MaxMana);
+	ScopedTypeMember(SpawnMembers, CurrentEndurance);
+	ScopedTypeMember(SpawnMembers, PctEndurance);
+	ScopedTypeMember(SpawnMembers, MaxEndurance);
+	ScopedTypeMember(SpawnMembers, Loc);
+	ScopedTypeMember(SpawnMembers, LocYX);
+	ScopedTypeMember(SpawnMembers, LocYXZ);
+	ScopedTypeMember(SpawnMembers, Owner);
+	ScopedTypeMember(SpawnMembers, Following);
+	ScopedTypeMember(SpawnMembers, Inviter);
+	ScopedTypeMember(SpawnMembers, MercID);
+	ScopedTypeMember(SpawnMembers, ContractorID);
+	ScopedTypeMember(SpawnMembers, PctMana);
+	ScopedTypeMember(SpawnMembers, Primary);
+	ScopedTypeMember(SpawnMembers, Secondary);
+	ScopedTypeMember(SpawnMembers, Equipment);
+	ScopedTypeMember(SpawnMembers, Targetable);
+	ScopedTypeMember(SpawnMembers, PlayerState);
+	ScopedTypeMember(SpawnMembers, Stuck);
+	ScopedTypeMember(SpawnMembers, Aggressive);
+	ScopedTypeMember(SpawnMembers, CanSplashLand);
+	ScopedTypeMember(SpawnMembers, IsBerserk);
+	ScopedTypeMember(SpawnMembers, pTouchingSwitch);
+	ScopedTypeMember(SpawnMembers, bShowHelm);
+	ScopedTypeMember(SpawnMembers, CorpseDragCount);
+	ScopedTypeMember(SpawnMembers, bBetaBuffed);
+	ScopedTypeMember(SpawnMembers, CombatSkillTicks);
+	ScopedTypeMember(SpawnMembers, FD);
+	ScopedTypeMember(SpawnMembers, InPvPArea);
+	ScopedTypeMember(SpawnMembers, bAlwaysShowAura);
+	ScopedTypeMember(SpawnMembers, GMRank);
+	ScopedTypeMember(SpawnMembers, WarCry);
+	ScopedTypeMember(SpawnMembers, IsPassenger);
+	ScopedTypeMember(SpawnMembers, LastCastTime);
+	ScopedTypeMember(SpawnMembers, DragNames);
+	ScopedTypeMember(SpawnMembers, DraggingPlayer);
+	ScopedTypeMember(SpawnMembers, bStationary);
+	ScopedTypeMember(SpawnMembers, BearingToTarget);
+	ScopedTypeMember(SpawnMembers, bTempPet);
+	ScopedTypeMember(SpawnMembers, HoldingAnimation);
+	ScopedTypeMember(SpawnMembers, Blind);
+	ScopedTypeMember(SpawnMembers, LastCastNum);
+	ScopedTypeMember(SpawnMembers, CollisionCounter);
+	ScopedTypeMember(SpawnMembers, CeilingHeightAtCurrLocation);
+	ScopedTypeMember(SpawnMembers, AssistName);
+	ScopedTypeMember(SpawnMembers, SeeInvis);
+	ScopedTypeMember(SpawnMembers, SpawnStatus);
+	ScopedTypeMember(SpawnMembers, bWaitingForPort);
+	ScopedTypeMember(SpawnMembers, EQLoc);
+	ScopedTypeMember(SpawnMembers, MQLoc);
+	ScopedTypeMember(SpawnMembers, TimeBeenDead);
+	ScopedTypeMember(SpawnMembers, FloorZ);
+	ScopedTypeMember(SpawnMembers, IsSummoned);
+	ScopedTypeMember(SpawnMembers, TargetOfTarget);
+	ScopedTypeMember(SpawnMembers, ActorDef);
+	ScopedTypeMember(SpawnMembers, CachedBuff);
+	ScopedTypeMember(SpawnMembers, CachedBuffCount);
+	ScopedTypeMember(SpawnMembers, Buff);
+	ScopedTypeMember(SpawnMembers, BuffCount);
+	ScopedTypeMember(SpawnMembers, BuffDuration);
+	ScopedTypeMember(SpawnMembers, BuffsPopulated);
+	ScopedTypeMember(SpawnMembers, MyBuff);
+	ScopedTypeMember(SpawnMembers, MyBuffCount);
+	ScopedTypeMember(SpawnMembers, MyBuffDuration);
 
-		ScopedTypeMethod(SpawnMethods, DoTarget);
-		ScopedTypeMethod(SpawnMethods, DoFace);
-		ScopedTypeMethod(SpawnMethods, DoAssist);
-		ScopedTypeMethod(SpawnMethods, LeftClick);
-		ScopedTypeMethod(SpawnMethods, RightClick);
-	}
+	ScopedTypeMethod(SpawnMethods, DoTarget);
+	ScopedTypeMethod(SpawnMethods, DoFace);
+	ScopedTypeMethod(SpawnMethods, DoAssist);
+	ScopedTypeMethod(SpawnMethods, LeftClick);
+	ScopedTypeMethod(SpawnMethods, RightClick);
+}
 
 bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	if (!VarPtr.Ptr)
+	return GetMember(GetSpawnPtr(VarPtr), Member, Index, Dest);
+}
+
+bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index, MQTypeVar& Dest)
+{
+	if (!pSpawn)
 		return false;
 
-	SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
 	SPAWNINFO* pMySpawn = pLocalPlayer;
-	SPAWNINFO* pControlledSpawn = pCharSpawn;
-	PlayerClient* pPlayerClient = reinterpret_cast<PlayerClient*>(pSpawn);
-
 	if (!pMySpawn)
 		return false;
+
+	SPAWNINFO* pControlledSpawn = pCharSpawn;
+	PlayerClient* pPlayerClient = reinterpret_cast<PlayerClient*>(pSpawn);
 
 	//----------------------------------------------------------------------------
 	// methods
@@ -412,12 +414,6 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	switch (static_cast<SpawnMembers>(pMember->ID))
 	{
-	case SpawnMembers::Address:
-		// This is for debugging purposes/correcting struct on patchday
-		Dest.DWord = (DWORD)VarPtr.Ptr;
-		Dest.Type = pIntType;
-		return true;
-
 	case SpawnMembers::Level:
 		Dest.DWord = pSpawn->Level;
 		Dest.Type = pIntType;
@@ -492,17 +488,17 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpawnMembers::Next:
-		Dest.Type = pSpawnType;
-		if (Dest.Ptr = pSpawn->pNext)
+		if (pSpawn->pNext)
 		{
+			Dest = MakeTypeVar(pSpawn->pNext);
 			return true;
 		}
 		return false;
 
 	case SpawnMembers::Prev:
-		Dest.Type = pSpawnType;
-		if (Dest.Ptr = pSpawn->pPrev)
+		if (pSpawn->pPrev)
 		{
+			Dest = MakeTypeVar(pSpawn->pPrev);
 			return true;
 		}
 		return false;
@@ -542,20 +538,20 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case SpawnMembers::Pet:
 		Dest.Type = pPetType;
-		Dest.Ptr = GetSpawnByID(pSpawn->PetID);
-		if (!Dest.Ptr)
+		if (pSpawn->PetID != -1)
 		{
-			// FIXME: Do not ZeroMemory a SPAWNINFO
-			ZeroMemory(&PetSpawn, sizeof(PetSpawn));
-			strcpy_s(PetSpawn.Name, "NO PET");
-			Dest.Ptr = &PetSpawn;
+			if (SPAWNINFO* pPetSpawn = (SPAWNINFO*)GetSpawnByID(pSpawn->PetID))
+			{
+				ObservedSpawnPtr obj = ObserveEQObject(pPetSpawn);
+				Dest.Set(obj);
+			}
 		}
 		return true;
 
 	case SpawnMembers::Master:
-		Dest.Type = pSpawnType;
-		if (Dest.Ptr = GetSpawnByID(pSpawn->MasterID))
+		if (SPAWNINFO* pMaster = (SPAWNINFO*)GetSpawnByID(pSpawn->MasterID))
 		{
+			Dest = MakeTypeVar(pMaster);
 			return true;
 		}
 		return false;
@@ -804,9 +800,9 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpawnMembers::TargetOfTarget:
-		Dest.Type = pSpawnType;
-		if (Dest.Ptr = GetSpawnByID(pSpawn->TargetOfTarget))
+		if (SPAWNINFO* pToT = (SPAWNINFO*)GetSpawnByID(pSpawn->TargetOfTarget))
 		{
+			Dest = MakeTypeVar(pToT);
 			return true;
 		}
 		return false;
@@ -906,9 +902,9 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return false;
 
 	case SpawnMembers::Mount:
-		Dest.Type = pSpawnType;
-		if (Dest.Ptr = pSpawn->Mount)
+		if (pSpawn->Mount)
 		{
+			Dest = MakeTypeVar(pSpawn->Mount);
 			return true;
 		}
 		return false;
@@ -997,7 +993,6 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpawnMembers::NearestSpawn:
-		Dest.Type = pSpawnType;
 		if (pSpawn == pControlledSpawn)
 		{
 			return (dataNearestSpawn(Index, Dest) != 0); // use top-level object if it's you
@@ -1032,8 +1027,9 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 				}
 			}
 
-			if (Dest.Ptr = NthNearestSpawn(&ssSpawn, nth, pSpawn))
+			if (SPAWNINFO* pNearest = NthNearestSpawn(&ssSpawn, nth, pSpawn))
 			{
+				Dest = MakeTypeVar(pNearest);
 				return true;
 			}
 		}
@@ -1263,7 +1259,6 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpawnMembers::Owner:
-		Dest.Type = pSpawnType;
 		if (pSpawn->Mercenary)
 		{
 			size_t pos = strchr(pSpawn->Lastname, '\'') - &pSpawn->Lastname[0];
@@ -1273,16 +1268,16 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 			if (SPAWNINFO* pOwner = (SPAWNINFO*)GetSpawnByName(DataTypeTemp))
 			{
-				Dest.Ptr = pOwner;
+				Dest = MakeTypeVar(pOwner);
 				return true;
 			}
 		}
 		return false;
 
 	case SpawnMembers::Following:
-		Dest.Type = pSpawnType;
-		if (Dest.Ptr = pSpawn->WhoFollowing)
+		if (pSpawn->WhoFollowing)
 		{
+			Dest = MakeTypeVar(pSpawn->WhoFollowing);
 			return true;
 		}
 		return false;
@@ -1736,45 +1731,25 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 bool MQ2SpawnType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	if (!VarPtr.Ptr)
+	SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(GetSpawnPtr(VarPtr));
+	if (!pSpawn)
 		return false;
 
-	SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
 	strcpy_s(Destination, MAX_STRING, pSpawn->Name);
 	return true;
 }
 
-void MQ2SpawnType::InitVariable(MQVarPtr& VarPtr)
+bool MQ2SpawnType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
-	// FIXME: Do not Allocate a SPAWNINFO
-	VarPtr.Ptr = new SPAWNINFO();
-
-	// FIXME: Do not ZeroMemory a SPAWNINFO
-	ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
-}
-
-void MQ2SpawnType::FreeVariable(MQVarPtr& VarPtr)
-{
-	// FIXME: Find way to not allocate SPAWNINFO
-	SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
-	delete pSpawn;
-}
-
-bool MQ2SpawnType::FromData(MQVarPtr& VarPtr, MQTypeVar& Source)
-{
-	if (Source.Type == pSpawnType)
+	if (Source.IsType(MQVarPtr::VariantIdx::UInt64))
 	{
-		memcpy(VarPtr.Ptr, Source.Ptr, sizeof(SPAWNINFO));
-		return true;
-	}
-	else
-	{
-		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(Source.DWord))
+		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(Source.Get<int>()))
 		{
-			memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
+			VarPtr = MakeVarPtr(pOther);
 			return true;
 		}
 	}
+
 	return false;
 }
 
@@ -1782,9 +1757,10 @@ bool MQ2SpawnType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
 	if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(GetIntFromString(Source, 0)))
 	{
-		memcpy(VarPtr.Ptr, pOther, sizeof(SPAWNINFO));
+		VarPtr = MakeVarPtr(pOther);
 		return true;
 	}
+
 	return false;
 }
 
@@ -1794,9 +1770,9 @@ bool MQ2SpawnType::dataSpawn(const char* szIndex, MQTypeVar& Ret)
 	{
 		if (IsNumber(szIndex))
 		{
-			if ((Ret.Ptr = GetSpawnByID(GetIntFromString(szIndex, 0))))
+			if (SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByID(GetIntFromString(szIndex, 0)))
 			{
-				Ret.Type = pSpawnType;
+				Ret = pSpawnType->MakeTypeVar(pSpawn);
 				return true;
 			}
 		}
@@ -1806,9 +1782,9 @@ bool MQ2SpawnType::dataSpawn(const char* szIndex, MQTypeVar& Ret)
 			MQSpawnSearch ssSpawn;
 			ClearSearchSpawn(&ssSpawn);
 			ParseSearchSpawn(szIndex, &ssSpawn);
-			if (Ret.Ptr = SearchThroughSpawns(&ssSpawn, (SPAWNINFO*)pCharSpawn))
+			if (SPAWNINFO* pSearchSpawn = SearchThroughSpawns(&ssSpawn, (SPAWNINFO*)pCharSpawn))
 			{
-				Ret.Type = pSpawnType;
+				Ret = pSpawnType->MakeTypeVar(pSearchSpawn);
 				return true;
 			}
 		}
@@ -1865,16 +1841,15 @@ bool MQ2SpawnType::dataLastSpawn(const char* szIndex, MQTypeVar& Ret)
 						return false;
 					index--;
 				}
-				Ret.Ptr = pSpawn;
-				Ret.Type = pSpawnType;
+
+				Ret = pSpawnType->MakeTypeVar(pSpawn);
 				return true;
 			}
 		}
 	}
-	else
+	else if (SPAWNINFO* pSpawn = pSpawnList)
 	{
-		Ret.Ptr = pSpawnList;
-		Ret.Type = pSpawnType;
+		Ret = pSpawnType->MakeTypeVar(pSpawn);
 		return true;
 	}
 	return false;
@@ -1936,8 +1911,7 @@ bool MQ2SpawnType::dataNearestSpawn(const char* szIndex, MQTypeVar& Ret)
 			{
 				if (--nth == 0)
 				{
-					Ret.Ptr = spawnItem.GetSpawn();
-					Ret.Type = pSpawnType;
+					Ret = pSpawnType->MakeTypeVar(spawnItem.GetSpawn());
 					return true;
 				}
 			}
@@ -1948,32 +1922,33 @@ bool MQ2SpawnType::dataNearestSpawn(const char* szIndex, MQTypeVar& Ret)
 	return false;
 }
 
-bool MQ2SpawnType::dataDoorTarget(const char* szIndex, MQTypeVar& Ret)
+/*static*/ SPAWNINFO* MQ2SpawnType::GetSpawnPtr(const MQVarPtr& VarPtr)
 {
-	if (Ret.Ptr = &DoorEnviroTarget)
+	SPAWNINFO* pSpawn = nullptr;
+
+	if (VarPtr.IsType(MQVarPtr::VariantIdx::ComplexObject))
 	{
-		Ret.Type = pSpawnType;
-		return true;
+		const auto& observedSpawn = VarPtr.Get<ObservedSpawnPtr>();
+		if (observedSpawn)
+		{
+			pSpawn = observedSpawn->Ptr();
+		}
 	}
-	return false;
+	else if (VarPtr.IsType(MQVarPtr::VariantIdx::Ptr))
+	{
+		pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
+	}
+
+	return pSpawn;
 }
 
-bool MQ2SpawnType::dataItemTarget(const char* szIndex, MQTypeVar& Ret)
+MQTypeVar MQ2SpawnType::MakeTypeVar(SPAWNINFO* pSpawn)
 {
-	// FIXME: We don't want to use a global here, change SpawnType to use the shared pointer functionality of VarPtr to remove dependency on EnviroTarget
-	auto ground = CurrentGroundSpawn();
-	if (ground)
-	{
-#pragma warning(push)
-#pragma warning(disable: 4996) // temporarily disable deprecation warnings.
-		EnviroTarget = ground.ToSpawn();
-		Ret.Ptr = &EnviroTarget;
-#pragma warning(pop)
-		Ret.Type = pSpawnType;
-		return true;
-	}
+	MQTypeVar Dest;
+	Dest.Set(ObserveEQObject(pSpawn));
+	Dest.Type = this;
 
-	return false;
+	return Dest;
 }
 
 } // namespace mq::datatypes

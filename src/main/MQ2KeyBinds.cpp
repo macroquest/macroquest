@@ -75,7 +75,11 @@ static bool SetEQKeyBindByNumber(int index, bool alternate, KeyCombo& combo)
 
 bool SetEQKeyBind(const char* name, bool alternate, KeyCombo& combo)
 {
-	return SetEQKeyBindByNumber(FindMappableCommand(name), alternate, combo);
+	int num = FindMappableCommand(name);
+	if (num >= 0)
+		return SetEQKeyBindByNumber(num, alternate, combo);
+
+	return false;
 }
 
 bool MQ2HandleKeyDown(const KeyCombo& combo)
