@@ -1743,11 +1743,9 @@ bool MQ2SpawnType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.IsType(MQVarPtr::VariantIdx::UInt64))
 	{
-		if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(Source.Get<int>()))
-		{
-			VarPtr = MakeVarPtr(pOther);
-			return true;
-		}
+		SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(Source.Get<int>());
+		VarPtr = MakeVarPtr(pOther);
+		return true;
 	}
 
 	return false;
@@ -1755,8 +1753,10 @@ bool MQ2SpawnType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 
 bool MQ2SpawnType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
-	if (SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(GetIntFromString(Source, 0)))
+	int spawnID = GetIntFromString(Source, -1);
+	if (spawnID >= 0)
 	{
+		SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(spawnID);
 		VarPtr = MakeVarPtr(pOther);
 		return true;
 	}
