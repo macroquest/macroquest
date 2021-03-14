@@ -393,7 +393,7 @@ bool MQ2RaidMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 
 	if (!pMember)
 	{
-		return pSpawnType->GetMember(MQVarPtr::Create(GetSpawnByName(pRaidMember->Name)), Member, Index, Dest);
+		return pSpawnType->GetMember((SPAWNINFO*)GetSpawnByName(pRaidMember->Name), Member, Index, Dest);
 	}
 
 	switch (static_cast<RaidMemberMembers>(pMember->ID))
