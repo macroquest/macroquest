@@ -92,6 +92,13 @@ namespace AutoInventory {
 	class CBarterSearchWnd_Hook;
 }
 
+static int CompareMoneyStrings(SListWndSortInfo* sInfo, GetMoneyFromStringFormat format)
+{
+	int64_t value1 = static_cast<int64_t>(!sInfo->StrLabel1.empty() ? GetMoneyFromString(sInfo->StrLabel1.c_str(), format) : -1);
+	int64_t value2 = static_cast<int64_t>(!sInfo->StrLabel2.empty() ? GetMoneyFromString(sInfo->StrLabel2.c_str(), format) : -1);
+	return static_cast<int>(value1 - value2);
+}
+
 // CFindItemWnd hooks
 class AutoInventory::FindItemWnd_Hook
 {
@@ -232,11 +239,12 @@ public:
 
 				if (pSI->SortCol == Column_Value)
 				{
-					pSI->SortResult = (int)(GetMoneyFromString(pSI->StrLabel1.c_str())
-						- GetMoneyFromString(pSI->StrLabel2.c_str()));
+					pSI->SortResult = CompareMoneyStrings(pSI, GetMoneyFromStringFormat::Long);
+					return 0;
 				}
 
-				return 0;
+				// Let other columns sort by default
+				return WndNotification_Trampoline(pWnd, uiMessage, pData);
 			}
 		}
 		else if (uiMessage == XWM_MENUSELECT)
@@ -801,8 +809,7 @@ public:
 					break;
 
 				case CBarterWnd::Column_Offering:
-					sortInfo->SortResult = (int)(GetMoneyFromString(sortInfo->StrLabel1.c_str(), GetMoneyFromStringFormat::Short)
-						- GetMoneyFromString(sortInfo->StrLabel2.c_str(), GetMoneyFromStringFormat::Short));
+					sortInfo->SortResult = CompareMoneyStrings(sortInfo, GetMoneyFromStringFormat::Long);
 					break;
 				}
 
