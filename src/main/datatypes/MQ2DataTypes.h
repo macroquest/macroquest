@@ -116,7 +116,7 @@ public:
 
 	// If you encounter an error here, you've derived from MQ2Type and implemented FromData using a non-const Source. Change
 	// your FromData function to take a const MQTypeVar& as the second parameter.
-	virtual bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) /* final */ {
+	virtual bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) final {
 		return FromData(VarPtr, (const MQTypeVar&)Source);
 	}
 
