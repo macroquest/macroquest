@@ -797,7 +797,6 @@ PLUGIN_API void InitializePlugin()
 	AddCommand("/setchattitle", SetChatTitle);
 
 	AddMQ2KeyBind("MQ2CHAT", DoMQ2ChatBind);
-	bmStripFirstStmlLines = AddMQ2Benchmark("StripFirstStmlLines");
 	LoadChatSettings();
 }
 
@@ -815,7 +814,5 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveMQ2KeyBind("MQ2CHAT");
 	RemoveMQ2Data("ChatWnd");
 	delete pChatWndType;
-	RemoveMQ2Benchmark(bmStripFirstStmlLines);
-	bmStripFirstStmlLines = 0;
 	DestroyChatWnd();
 }
