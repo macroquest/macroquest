@@ -1,3 +1,21 @@
+Mar 14 2021
+- Implementation of SPAWNINFO has been switch over to use the new class hierarchy
+  based on PlayerClient. SPAWNINFO and PLayerClient are now synonymous. Typecasts
+  should no longer be needed.
+- SPAWNINFO can now be assigned and copied between macro vars using the "spawn" type.
+- An int can be assigned to a spawn var to look up the spawn by id.
+- SPAWNINFO is no longer copyable or createable, all existing code paths that used
+  SPAWNINFO as a container for mq2 data has been rewritten.
+- Work-in-progress iteration of settings window for MQ2Map added. more to come in the
+  future.
+- ItemTarget no longer returns Spawn type. It now returns Ground type. It behaves the
+  same way as Ground except that the default search is of the current ground item target.
+- Certain SPAWNINFO global such as EnviroTarget or DoorEnviroTarget are now removed
+  and no longer supported.
+- Fixed FindItem window column sorting. Fixed money sorting to teach items with
+  no vendor value as being the least valuable.
+- Added bounds check to /notify to avoid crashing
+
 Mar 07 2021
 - Fix EQ_Spell structure misalignment
 - Changed /doability so it now takes fake ID 1-6 where it previously only took 1-5
@@ -49,7 +67,7 @@ Feb 4 2021
 Jan 24 2021
 - Implementation of CHARINFO has been switched over to use new class hierarchy based
   on PcBase and CharacterBase. Removed old CHARINFO/CHARINFONEW definitions. There should
-  be no functional changaes.
+  be no functional changes.
 - Update /ini to create folder if it doesn't exist
 - Fix PickupItem/DropItem (function used by itemnotify) to allow picking up and dropping
   items when they are in a closed bag.

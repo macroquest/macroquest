@@ -216,7 +216,7 @@ MQLIB_VAR MQEventList* pEventList;
 MQLIB_VAR MQTimer* gTimer;
 MQLIB_VAR int gDelay;
 MQLIB_VAR char gDelayCondition[MAX_STRING];
-MQLIB_VAR int EnviroTarget DEPRECATE("EnviroTarget is no longer su9pported. Use CurrentGroundSpawn() and the various GetGroundSpawnByX() functions instead");
+MQLIB_VAR int EnviroTarget DEPRECATE("EnviroTarget is no longer supported. Use CurrentGroundSpawn() and the various GetGroundSpawnByX() functions instead");
 MQLIB_VAR int PetSpawn DEPRECATE("PetSpawn is no longer supported. Get the pet spawn id through pLocalPlayer->PetID");
 MQLIB_VAR int MercenarySpawn DEPRECATE("MercenarySpawn is no longer supported. Get the spawn id through pMercManager and look it up instead");
 MQLIB_VAR Property<MQGroundObject> GroundObject DEPRECATE("Use CurrentGroundSpawn() and the various GetGroundSpawnByX() functions instead");
