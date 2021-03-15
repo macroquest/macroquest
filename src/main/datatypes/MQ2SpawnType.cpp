@@ -488,17 +488,17 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		return true;
 
 	case SpawnMembers::Next:
-		if (pSpawn->pNext)
+		if (PlayerClient* pNext = pSpawn->GetNext())
 		{
-			Dest = MakeTypeVar(pSpawn->pNext);
+			Dest = MakeTypeVar(pNext);
 			return true;
 		}
 		return false;
 
 	case SpawnMembers::Prev:
-		if (pSpawn->pPrev)
+		if (PlayerClient* pPrev = pSpawn->GetPrevious())
 		{
-			Dest = MakeTypeVar(pSpawn->pPrev);
+			Dest = MakeTypeVar(pPrev);
 			return true;
 		}
 		return false;
