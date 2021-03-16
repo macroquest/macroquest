@@ -127,10 +127,10 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 {
 	// Check if we have a stored spawn on this object
 	bool playerPet = false;
-	SPAWNINFO* pPetSpawn = MQ2SpawnType::GetSpawnPtr(VarPtr); nullptr;
+	SPAWNINFO* pPetSpawn = MQ2SpawnType::GetSpawnPtr(VarPtr);
 
 	// If its our pet then we can enable all the player pet members
-	if (pPetSpawn && pPetSpawn->MasterID == pLocalPlayer->PetID)
+	if (pPetSpawn && pPetSpawn->MasterID == pLocalPlayer->SpawnID)
 		playerPet = true;
 
 	// We override the Name member to display NO PET when there is no pet.
