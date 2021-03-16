@@ -1,5 +1,6 @@
 Mar 16 2021
-- Fix Me.Pet
+- Fix Me.Pet (#227)
+- Fix /face fast (#226)
 
 Mar 14 2021
 - Implementation of SPAWNINFO has been switched over to use the new class hierarchy

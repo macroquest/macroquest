@@ -2301,10 +2301,10 @@ static void FaceObject(const MQGameObject& faceTarget, int flags)
 	{
 		float distance = Distance3DToSpawn(pControlledPlayer, faceTarget);
 		float charHeight = pControlledPlayer->AvatarHeight * StateHeightMultiplier(pControlledPlayer->StandState);
-		float angle = atan2(
-			faceTarget.z + faceTarget.height - pCharData->Z - charHeight,
-			distance)
-			* 256.0f / static_cast<float>(PI);
+		float targetHeight = faceTarget.height;
+		float rise = (faceTarget.z + faceTarget.height) - (pCharData->Z + charHeight);
+
+		float angle = atan2(rise, distance) * 256.0f / static_cast<float>(PI);
 
 		if (flags & FaceFlags_FaceAway)
 		{
