@@ -542,8 +542,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		{
 			if (SPAWNINFO* pPetSpawn = (SPAWNINFO*)GetSpawnByID(pSpawn->PetID))
 			{
-				ObservedSpawnPtr obj = ObserveEQObject(pPetSpawn);
-				Dest.Set(obj);
+				Dest.Set(ObserveEQObject(pPetSpawn));
 			}
 		}
 		return true;

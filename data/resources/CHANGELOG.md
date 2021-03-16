@@ -1,6 +1,9 @@
+Mar 16 2021
+- Fix Me.Pet
+
 Mar 14 2021
-- Implementation of SPAWNINFO has been switch over to use the new class hierarchy
-  based on PlayerClient. SPAWNINFO and PLayerClient are now synonymous. Typecasts
+- Implementation of SPAWNINFO has been switched over to use the new class hierarchy
+  based on PlayerClient. SPAWNINFO and PlayerClient are now synonymous. Typecasts
   should no longer be needed.
 - SPAWNINFO can now be assigned and copied between macro vars using the "spawn" type.
 - An int can be assigned to a spawn var to look up the spawn by id.
