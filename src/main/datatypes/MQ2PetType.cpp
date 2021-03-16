@@ -106,6 +106,7 @@ enum class PetMembers
 	Taunt,
 	BuffDuration,
 	Name,
+	Focus,
 };
 
 MQ2PetType::MQ2PetType() : MQ2Type("pet")
@@ -121,6 +122,7 @@ MQ2PetType::MQ2PetType() : MQ2Type("pet")
 	ScopedTypeMember(PetMembers, Taunt);
 	ScopedTypeMember(PetMembers, BuffDuration);
 	ScopedTypeMember(PetMembers, Name);
+	ScopedTypeMember(PetMembers, Focus);
 }
 
 bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -283,6 +285,11 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 
 	case PetMembers::Taunt:
 		Dest.Set(pPetInfoWnd->Taunt);
+		Dest.Type = pBoolType;
+		return true;
+
+	case PetMembers::Focus:
+		Dest.Set(pPetInfoWnd->Focus);
 		Dest.Type = pBoolType;
 		return true;
 	}

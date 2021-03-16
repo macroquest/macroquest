@@ -1,6 +1,7 @@
 Mar 16 2021
 - Fix Me.Pet (#227)
 - Fix /face fast (#226)
+- Add ${Me.Pet.Focus} - bool type, reflects the Focus state if your pet. (#228)
 
 Mar 14 2021
 - Implementation of SPAWNINFO has been switched over to use the new class hierarchy
