@@ -299,19 +299,7 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 
 bool MQ2PetType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	SPAWNINFO* pPetSpawn = nullptr;
-
-	ObservedSpawnPtr observedSpawn = VarPtr.Get<ObservedSpawnPtr>();
-	if (observedSpawn)
-	{
-		pPetSpawn = observedSpawn->Ptr();
-	}
-
-	if (!pPetSpawn)
-	{
-		pPetSpawn = (pLocalPlayer && pLocalPlayer->PetID != -1)
-			? (SPAWNINFO*)GetSpawnByID(pLocalPlayer->PetID) : nullptr;
-	}
+	SPAWNINFO* pPetSpawn = MQ2SpawnType::GetSpawnPtr(VarPtr);
 
 	if (!pPetSpawn)
 		strcpy_s(Destination, MAX_STRING, "NO PET");
@@ -322,8 +310,12 @@ bool MQ2PetType::ToString(MQVarPtr VarPtr, char* Destination)
 
 bool MQ2PetType::dataPet(const char* szIndex, MQTypeVar& Ret)
 {
-	Ret.Ptr = nullptr;
+	SPAWNINFO* pPetSpawn = (pLocalPlayer && pLocalPlayer->PetID != -1)
+		? (SPAWNINFO*)GetSpawnByID(pLocalPlayer->PetID) : nullptr;
+
+	Ret = pSpawnType->MakeTypeVar(pPetSpawn);
 	Ret.Type = pPetType;
+
 	return true;
 }
 
