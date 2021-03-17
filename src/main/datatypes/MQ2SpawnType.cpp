@@ -1948,7 +1948,7 @@ MQTypeVar MQ2SpawnType::MakeTypeVar(SPAWNINFO* pSpawn)
 	if (pSpawn)
 		Dest.Set(ObserveEQObject(pSpawn));
 	else
-		Dest.Set(nullptr);
+		Dest.Ptr = nullptr;
 	return Dest;
 }
 
