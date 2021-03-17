@@ -50,6 +50,31 @@ DECLARE_MODULE_INITIALIZER(s_developerToolsModule);
 
 //----------------------------------------------------------------------------
 
+void CopyWindowChildTLO(CXWnd* pWindow)
+{
+	// Get the parent window
+	CXWnd* pParentWindow = pWindow;
+	while (CXWnd* pTemp = pParentWindow->GetParentWindow())
+		pParentWindow = pTemp;
+
+	char buffer[128];
+
+	if (pParentWindow != pWindow)
+	{
+		sprintf_s(buffer, "${Window[%s].Child[%s]}", pParentWindow->GetXMLName().c_str(),
+			pWindow->GetXMLName().c_str());
+	}
+	else
+	{
+		sprintf_s(buffer, "${Window[%s]}", pWindow->GetXMLName().c_str());
+	}
+
+	ImGui::SetClipboardText(buffer);
+	WriteChatf("Copied: \ay%s", buffer);
+}
+
+//----------------------------------------------------------------------------
+
 PersistedBool::PersistedBool(std::string_view section, std::string_view key, bool init)
 	: m_section(section)
 	, m_key(key)
@@ -2545,6 +2570,19 @@ public:
 			ImGui::TreeNodeEx(pWnd, flags, "%s", name.c_str());
 		}
 
+		bool openNew = false;
+
+		if (ImGui::BeginPopupContextItem())
+		{
+			if (ImGui::Selectable("Open New Inspector"))
+				openNew = true;
+			ImGui::Separator();
+			if (ImGui::Selectable("Copy Window Child TLO"))
+				CopyWindowChildTLO(pWnd);
+
+			ImGui::EndPopup();
+		}
+
 		if (selectPicking)
 		{
 			ImGui::SetScrollHere();
@@ -2565,6 +2603,10 @@ public:
 				m_pSelectedWnd = pWnd;
 				m_selectionChanged = true;
 			}
+		}
+		else if (openNew)
+		{
+			DeveloperTools_ShowWindowInspector(pWnd);
 		}
 
 		ImGui::TableNextColumn();
