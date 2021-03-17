@@ -1,3 +1,8 @@
+Mar 17 2021
+- Fix cached buffs not being able to look up buffs (#229)
+- Fix ${Pet} defaulting to my pet (#230)
+- Fix a crash in mq2chatwnd if /style is used before window is created (#231)
+
 Mar 16 2021
 - Fix Me.Pet (#227)
 - Fix /face fast (#226)

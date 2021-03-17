@@ -34,8 +34,8 @@ bool bAutoScroll = true;
 bool bNoCharSelect = false;
 bool bSaveByChar = true;
 
-class CMQChatWnd;
-CMQChatWnd* MQChatWnd = nullptr;
+static uint32_t s_pendingRemoveStyle = 0;
+static uint32_t s_pendingAddStyle = 0;
 
 class CMQChatWnd : public CCustomWnd
 {
@@ -46,6 +46,19 @@ public:
 
 		SetWindowStyle(CWS_CLIENTMOVABLE | CWS_USEMYALPHA | CWS_RESIZEALL | CWS_BORDER | CWS_MINIMIZE | CWS_TITLE);
 		RemoveStyle(CWS_TRANSPARENT | CWS_CLOSE);
+
+		if (s_pendingAddStyle)
+		{
+			AddStyle(s_pendingAddStyle);
+			s_pendingAddStyle = 0;
+		}
+
+		if (s_pendingRemoveStyle)
+		{
+			RemoveStyle(s_pendingRemoveStyle);
+			s_pendingRemoveStyle = 0;
+		}
+
 		SetBGColor(0xFF000000); // black background
 
 		InputBox = (CEditWnd*)GetChildItem("CW_ChatInput");
@@ -67,10 +80,6 @@ public:
 		OutputBox->AddStyle(CWS_CLIENTMOVABLE);
 		iCurrentCmd = -1;
 		SetZLayer(1); // Make this the topmost window (we will leave it as such for charselect, and allow it to move to background ingame)
-	}
-
-	~CMQChatWnd()
-	{
 	}
 
 	virtual int WndNotification(CXWnd* pWnd, unsigned int Message, void* data) override
@@ -239,6 +248,9 @@ private:
 	int iCurrentCmd;
 };
 
+CMQChatWnd* MQChatWnd = nullptr;
+
+
 void LoadChatSettings()
 {
 	bAutoScroll = GetPrivateProfileBool("Settings", "AutoScroll", bAutoScroll, INIFileName);
@@ -363,7 +375,15 @@ void Style(SPAWNINFO* pChar, char* szLine)
 			// well we set it anyway i guess...
 		}
 
-		MQChatWnd->RemoveStyle(TurnOff);
+		if (MQChatWnd)
+		{
+			MQChatWnd->RemoveStyle(TurnOff);
+		}
+		else
+		{
+			s_pendingRemoveStyle |= TurnOff;
+			s_pendingAddStyle &= ~TurnOff;
+		}
 	}
 	else
 	{
@@ -373,7 +393,15 @@ void Style(SPAWNINFO* pChar, char* szLine)
 			// hmm can error handle i guess
 		}
 
-		MQChatWnd->AddStyle(TurnOn);
+		if (MQChatWnd)
+		{
+			MQChatWnd->AddStyle(TurnOn);
+		}
+		else
+		{
+			s_pendingAddStyle |= TurnOn;
+			s_pendingRemoveStyle &= ~TurnOn;
+		}
 	}
 
 	WriteChatf("Style 0x%X", MQChatWnd->GetWindowStyle());
