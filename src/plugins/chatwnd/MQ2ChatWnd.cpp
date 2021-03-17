@@ -210,7 +210,7 @@ public:
 		}
 
 		CTextureFont* font = pWndMgr->FontsArray[size];
-		if (!font || !MQChatWnd)
+		if (!font)
 		{
 			return;
 		}
