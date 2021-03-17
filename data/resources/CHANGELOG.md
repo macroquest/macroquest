@@ -3,7 +3,7 @@ Mar 17 2021
 - Fix ${Pet} defaulting to my pet (#230)
 - Fix a crash in mq2chatwnd if /style is used before window is created (#231)
 - Added right click menu to window inspector tree which gives the option to copy the window TLO
-  text as well asl opening up a new window inspector. (#224)
+  text as well as opening up a new window inspector. (#224)
 
 Mar 16 2021
 - Fix Me.Pet (#227)

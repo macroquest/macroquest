@@ -1944,9 +1944,11 @@ bool MQ2SpawnType::dataNearestSpawn(const char* szIndex, MQTypeVar& Ret)
 MQTypeVar MQ2SpawnType::MakeTypeVar(SPAWNINFO* pSpawn)
 {
 	MQTypeVar Dest;
-	Dest.Set(ObserveEQObject(pSpawn));
 	Dest.Type = this;
-
+	if (pSpawn)
+		Dest.Set(ObserveEQObject(pSpawn));
+	else
+		Dest.Set(nullptr);
 	return Dest;
 }
 
