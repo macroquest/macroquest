@@ -853,7 +853,7 @@ struct MQVarPtr
 
 	// HighPart is slightly more complicated, but only just. We just save off the HighPart in this member variable unless
 	// the underlying data is uint64_t -- and we will prefer to store the uint32_t variant when setting
-	uint32_t HighPart_;
+	uint32_t HighPart_ = 0;
 
 	//DEPRECATE("For data needing High and Low part, create a data structure instead.")
 	uint32_t get_HighPart() const
@@ -924,12 +924,16 @@ struct MQVarPtr
 	MQVarPtr& operator=(MQVarPtr&& other)
 	{
 		Data = std::move(other.Data);
+		HighPart_ = other.HighPart_;
+
 		return *this;
 	}
 
 	MQVarPtr& operator=(const MQVarPtr& other)
 	{
 		Data = other.Data;
+		HighPart_ = other.HighPart_;
+
 		return *this;
 	}
 
