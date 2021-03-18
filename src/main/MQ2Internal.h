@@ -913,11 +913,13 @@ struct MQVarPtr
 
 	MQVarPtr(const MQVarPtr& other)
 		: Data(other.Data)
+		, HighPart_(other.HighPart_)
 	{
 	}
 
 	MQVarPtr(MQVarPtr&& other)
 		: Data(std::move(other.Data))
+		, HighPart_(other.HighPart_)
 	{
 	}
 
