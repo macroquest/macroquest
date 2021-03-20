@@ -458,7 +458,13 @@ public:
 
 	static inline MQVarPtr MakeVarPtr(SPAWNINFO* pSpawn)
 	{
-		return MQVarPtr::Create(ObserveEQObject(pSpawn));
+		if (pSpawn)
+		{
+			return MQVarPtr::Create(ObserveEQObject(pSpawn));
+		}
+
+		return MQVarPtr{};
+
 	}
 
 	bool GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index, MQTypeVar& Dest);
