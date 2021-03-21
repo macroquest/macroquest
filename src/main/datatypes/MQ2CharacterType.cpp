@@ -3980,15 +3980,6 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 					return true;
 			}
 
-			// TODO: Check that these need to be set. Then update or remove this comment.
-			int zoneId = pWorldData->GetZoneBaseId(pPlayer->GetZoneID());
-			if (zoneId == 151 /* bazaar */
-				|| zoneId == 152 /* nexus */)
-			{
-				Dest.Set(true);
-				return true;
-			}
-
 			// TODO: Check that these are correct. Then update or remove this comment.
 			switch (pZoneInfo->OutDoor)
 			{
