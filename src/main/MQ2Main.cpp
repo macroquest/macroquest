@@ -969,6 +969,11 @@ public:
 
 		OutputBox = (CStmlWnd*)GetChildItem("CW_ChatOutput");
 		OutputBox->SetParentWindow(this);
+
+		// Disable the input box since it doesn't handle anything anyway.
+		InputBox = (CEditWnd*)GetChildItem("CW_ChatInput");
+		InputBox->SetParentWindow(this);
+		InputBox->Enabled = false;
 	}
 
 	~CMQNewsWnd()
@@ -990,6 +995,7 @@ public:
 	};
 
 	CStmlWnd* OutputBox;
+	CEditWnd* InputBox;
 };
 CMQNewsWnd* pNewsWindow = nullptr;
 
@@ -1030,7 +1036,7 @@ void InsertMQ2News(const std::filesystem::path& pathChangeLog)
 		return;
 	}
 
-	AddNewsLine("If you need help, refer to www.macroquest2.com/wiki", CONCOLOR_RED);
+	//AddNewsLine("If you need help, refer to www.macroquest2.com/wiki", CONCOLOR_RED);
 	AddNewsLine("Recent changes...", CONCOLOR_RED);
 
 	char szLine[MAX_STRING] = { 0 };
@@ -1042,17 +1048,34 @@ void InsertMQ2News(const std::filesystem::path& pathChangeLog)
 
 		if (char* Cmd = strtok_s(szLine, "\r\n", &Next_Token1))
 		{
-			if (GetIntFromString(Cmd, 1))
-				AddNewsLine(Cmd, CONCOLOR_GREEN);
-			else
+			// TODO:  Move this to a method that isn't going to hit false positives.  Change the colors to be nicer on the eyes.
+			if (GetIntFromString(Cmd, 0) != 0
+				|| ci_starts_with(Cmd, "Jan")
+				|| ci_starts_with(Cmd, "Feb")
+				|| ci_starts_with(Cmd, "Mar")
+				|| ci_starts_with(Cmd, "Apr")
+				|| ci_starts_with(Cmd, "May")
+				|| ci_starts_with(Cmd, "Jun")
+				|| ci_starts_with(Cmd, "Jul")
+				|| ci_starts_with(Cmd, "Aug")
+				|| ci_starts_with(Cmd, "Sep")
+				|| ci_starts_with(Cmd, "Oct")
+				|| ci_starts_with(Cmd, "Nov")
+				|| ci_starts_with(Cmd, "Dec"))
 				AddNewsLine(Cmd, CONCOLOR_YELLOW);
+			else
+				AddNewsLine(Cmd, CONCOLOR_GREEN);
+		}
+		else
+		{
+			AddNewsLine("", CONCOLOR_GREEN);
 		}
 
 		nLines++;
 
 		if (nLines > 200)
 		{
-			AddNewsLine("...read changes.txt for more.", CONCOLOR_RED);
+			AddNewsLine("...read CHANGELOG.md for more.", CONCOLOR_RED);
 			break;
 		}
 	}
@@ -1062,10 +1085,24 @@ void InsertMQ2News(const std::filesystem::path& pathChangeLog)
 
 void CreateMQ2NewsWindow()
 {
-	const std::filesystem::path pathChangeLog = std::filesystem::path(mq::internal_paths::Resources) / "CHANGELOG.md";
-	std::error_code ec_exists;
+	// This is one of the few places we want to hardcode the path since if the user redirects their resources we would not have distributed that file and they would always have old news.
+	const std::filesystem::path pathMQRootChangeLog = std::filesystem::path(mq::internal_paths::MQRoot) / "resources" / "CHANGELOG.md";
+	const std::filesystem::path pathResourceChangeLog = std::filesystem::path(mq::internal_paths::Resources) / "CHANGELOG.md";
+	// Default to the one in the resource path.
+	std::filesystem::path pathChangeLog = pathResourceChangeLog;
 
-	if (!pNewsWindow && std::filesystem::exists(pathChangeLog, ec_exists))
+	std::error_code ec;
+	// If the file paths are different and both files exist...
+	if (pathMQRootChangeLog != pathResourceChangeLog && exists(pathMQRootChangeLog, ec) && exists(pathResourceChangeLog, ec))
+	{
+		// Choose the one from MQRoot based on last write time
+		if (last_write_time(pathMQRootChangeLog, ec) > last_write_time(pathResourceChangeLog, ec))
+		{
+			pathChangeLog = pathMQRootChangeLog;
+		}
+	}
+
+	if (!pNewsWindow && exists(pathChangeLog, ec))
 	{
 		pNewsWindow = new CMQNewsWnd();
 	}
