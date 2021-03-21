@@ -1,5 +1,6 @@
 Mar 20 2021
 - Fix ${MacroQuest.Version} (#232)
+- Fix News window not appearing at character select
 
 Mar 17 2021
 - Fix cached buffs not being able to look up buffs (#229)

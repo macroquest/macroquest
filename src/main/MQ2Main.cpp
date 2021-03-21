@@ -1062,7 +1062,7 @@ void InsertMQ2News(const std::filesystem::path& pathChangeLog)
 
 void CreateMQ2NewsWindow()
 {
-	const std::filesystem::path pathChangeLog = std::filesystem::path(mq::internal_paths::MQRoot) / "CHANGELOG.md";
+	const std::filesystem::path pathChangeLog = std::filesystem::path(mq::internal_paths::Resources) / "CHANGELOG.md";
 	std::error_code ec_exists;
 
 	if (!pNewsWindow && std::filesystem::exists(pathChangeLog, ec_exists))
