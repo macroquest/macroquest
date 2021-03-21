@@ -1,3 +1,6 @@
+Mar 20 2021
+- Fix ${MacroQuest.Version} (#232)
+
 Mar 17 2021
 - Fix cached buffs not being able to look up buffs (#229)
 - Fix ${Pet} defaulting to my pet (#230)

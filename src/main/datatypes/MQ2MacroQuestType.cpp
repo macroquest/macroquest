@@ -154,17 +154,17 @@ bool MQ2MacroQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 
 		// Get the size of the version information
 		DWORD dwVerHnd = 0;
-		uint32_t dwVerInfoSize = GetFileVersionInfoSizeA(szModulePath, &dwVerHnd);
+		const uint32_t dwVerInfoSize = GetFileVersionInfoSizeA(szModulePath, &dwVerHnd);
 
-		if (dwVerInfoSize)
+		if (dwVerInfoSize > 0)
 		{
 			// Retrieve the version information
 			std::unique_ptr<uint8_t[]> pVersionInfo = std::make_unique<uint8_t[]>(dwVerInfoSize);
-			GetFileVersionInfoA(szModulePath, dwVerHnd, dwVerInfoSize, pVersionInfo.get());
+			GetFileVersionInfo(szModulePath, dwVerHnd, dwVerInfoSize, pVersionInfo.get());
 
 			uint32_t uVersionLen = 0;
-			char* lpVersion = nullptr;
-			bool bRetCode = VerQueryValueA(pVersionInfo.get(), "\\VarFileInfo\\Translation", (void**)&lpVersion, (uint32_t*)&uVersionLen);
+			uint32_t* lpVersion = nullptr;
+			bool bRetCode = VerQueryValue(pVersionInfo.get(), "\\VarFileInfo\\Translation", (void**)&lpVersion, (uint32_t*)&uVersionLen);
 
 			char szTranslation[20];
 			if (bRetCode && uVersionLen && lpVersion)
