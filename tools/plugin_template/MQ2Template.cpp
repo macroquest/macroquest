@@ -181,7 +181,7 @@ PLUGIN_API void OnWriteChatColor(const char* Line, int Color, int Filter)
  * @param Line const char* - The line of text that was shown
  * @param Color int - The type of chat text this was sent as
  *
- * @return bool - whether something was done based on the incoming chat
+ * @return bool - Whether to filter this chat from display
  */
 PLUGIN_API bool OnIncomingChat(const char* Line, DWORD Color)
 {
