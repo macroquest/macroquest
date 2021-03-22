@@ -67,6 +67,7 @@ MQModule* GetGroundSpawnsModule();
 MQModule* GetSpawnsModule();
 MQModule* GetItemsModule();
 MQModule* GetWindowsModule();
+MQModule* GetServerValidationModule();
 
 DWORD WINAPI MQ2Start(void* lpParameter);
 HANDLE hMQ2StartThread = nullptr;
@@ -571,16 +572,6 @@ bool ParseINIFile(const std::string& iniFile)
 	return true;
 }
 
-void InitializeMQ2IcExports()
-{
-	IC_MQ2Unload = (fMQ2Unload)GetProcAddress(ghmq2ic, "IC_MQ2Unload");
-}
-
-void DeInitializeMQ2IcExports()
-{
-	IC_MQ2Unload = nullptr;
-}
-
 void SetMainThreadId()
 {
 	// initialize main thread id
@@ -763,12 +754,6 @@ bool MQ2Initialize()
 
 	InitializeMQ2Detours();
 
-	// from now on MQ2Ic is not optional.
-	LoadMQ2Plugin("mq2ic");
-
-	if (ghmq2ic = GetModuleHandle("mq2ic.dll"))
-		InitializeMQ2IcExports();
-
 	InitializeMQ2Benchmarks();
 	InitializeParser();
 	InitializeDisplayHook();
@@ -784,6 +769,7 @@ bool MQ2Initialize()
 	AddInternalModule(GetGroundSpawnsModule());
 	AddInternalModule(GetSpawnsModule());
 	AddInternalModule(GetItemsModule());
+	AddInternalModule(GetServerValidationModule());
 
 	// We will wait for pulse from the game to init on main thread.
 	g_hLoadComplete.wait();
@@ -812,7 +798,6 @@ void MQ2Shutdown()
 	DebugTry(ShutdownMQ2Plugins());
 	DebugTry(ShutdownMQ2Overlay());
 	DebugTry(ShutdownStringDB());
-	DebugTry(DeInitializeMQ2IcExports());
 	DebugTry(ShutdownMQ2Detours());
 	DebugTry(ShutdownMQ2Benchmarks());
 	DebugTry(ShutdownMQ2PipeClient());

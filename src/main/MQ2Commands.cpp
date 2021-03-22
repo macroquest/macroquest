@@ -43,11 +43,6 @@ void Unload(SPAWNINFO* pChar, char* szLine)
 	DebugSpew("%s", ToUnloadString);
 	WriteChatColor(ToUnloadString, USERCOLOR_DEFAULT);
 	gbUnload = true;
-
-	if (IC_MQ2Unload)
-	{
-		IC_MQ2Unload(GetCurrentProcessId());
-	}
 }
 
 // ***************************************************************************
@@ -405,12 +400,8 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 
 		while (pLoop)
 		{
-			// TODO: Remove mq2ic from plugin list
-			if (!ci_equals(pLoop->szFilename, "mq2ic"))
-			{
-				WriteChatColorf("%s", USERCOLOR_WHO, pLoop->szFilename);
-				Count++;
-			}
+			WriteChatColorf("%s", USERCOLOR_WHO, pLoop->szFilename);
+			Count++;
 			pLoop = pLoop->pNext;
 		}
 
@@ -433,8 +424,7 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 
 	if (!_strnicmp(szCommand, "unload", 6) || ci_find_substr(szCommand, "toggle") != -1 && IsPluginLoaded(szName))
 	{
-		// TODO: Remove mq2ic from plugin list
-		if (!ci_equals(szName, "mq2ic") && UnloadMQ2Plugin(szName))
+		if (UnloadMQ2Plugin(szName))
 		{
 			WriteChatf("Plugin '%s' unloaded.", szName);
 			// As below, this will capture MQ2NoAutomaticstuff as well.  As a long term fix, consider arg parsing.

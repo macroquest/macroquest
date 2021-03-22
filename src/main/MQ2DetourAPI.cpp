@@ -288,6 +288,60 @@ void SetAssist(BYTE* address)
 }
 
 //============================================================================
+
+// This can just be a hardcoded list because any changes to this list will require a recompile anyway
+constexpr const char* valid_servers[] = {
+	"antonius",
+	"bertox",
+	"brekt",
+	"bristle",
+	"cazic",
+	"drinal",
+	"erollisi",
+	"firiona",
+	"luclin",
+	"povar",
+	"rathe",
+	"tunare",
+	"vox",
+	"xegony",
+	"zek",
+	"ragefire",
+	"rizlona",
+	"test",
+	"beta",
+};
+
+static void ZonedServerValidation();
+
+static MQModule gServerValidationModule = {
+	"ServerValidation",
+	false,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	ZonedServerValidation
+};
+MQModule* GetServerValidationModule() { return &gServerValidationModule; }
+
+static void CheckZone()
+{
+	auto is_valid = [](const char* valid_server) { return _stricmp(EQADDR_SERVERNAME, valid_server) == 0; };
+	if (std::find_if(std::cbegin(valid_servers), std::cend(valid_servers), is_valid) == std::cend(valid_servers))
+	{
+		// unload
+		WriteChatf("MQ2 does not function on this server: %s -- UNLOADING", EQADDR_SERVERNAME);
+		EzCommand("/unload");
+	}
+}
+
+static void ZonedServerValidation()
+{
+	CheckZone();
+}
+
 //============================================================================
 
 class CPacketScrambler_Detours
@@ -593,8 +647,6 @@ void HookMemChecker(bool Patch)
 
 DWORD IsAddressDetoured(uint32_t address, size_t count)
 {
-	if (g_bDoingModuleChecks)
-		return 4;
 	if (g_bDoingSpellChecks)
 		return 3;
 
@@ -682,24 +734,6 @@ int memcheck0(unsigned char* buffer, size_t count)
 	return eax;
 }
 
-using fGetHashSum = DWORD(*)(DWORD,DWORD);
-static fGetHashSum GetHashSum = nullptr;
-
-int memcheck5(DWORD count)
-{
-	if (!GetHashSum)
-	{
-		GetHashSum = (fGetHashSum)GetProcAddress(ghmq2ic, "GetHashSum");
-	}
-
-	if (GetHashSum)
-	{
-		return GetHashSum(count, __EP1_Data_x);
-	}
-
-	return 0;
-}
-
 int memcheck1(unsigned char* buffer, size_t count, mckey key)
 {
 	// leave this here. I uncomment now and then to check the hash -eqmule
@@ -722,8 +756,7 @@ int memcheck1(unsigned char* buffer, size_t count, mckey key)
 	//                push    edi
 	//                or      edi, 0FFFFFFFFh
 	//                cmp     [ebp+arg_8], 0
-	int creset = memcheck5(count);
-	if (key.x != 0 && creset == __EncryptPad5_x) {
+	if (key.x != 0) {
 	//                mov     esi, 0FFh
 	//                mov     ecx, 0FFFFFFh
 	//                jz      short loc_4C3978
@@ -1186,55 +1219,6 @@ void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
 		return result;
 	}
 
-	static HMODULE eqlibModule = GetModuleHandle("eqlib.dll");
-
-	// If this is our module...
-	if (hModule == ghModule)
-	{
-		void* pRet = GetProcAddress_Trampoline(eqlibModule, lpProcName);
-
-		if (!pRet)
-		{
-			if (ci_equals("ppLocalPlayer", lpProcName))
-			{
-				pRet = &pLocalPlayer;
-			}
-			else if (ci_equals("ppCharData", lpProcName))
-			{
-				pRet = &pLocalPC;
-			}
-			else if (ci_equals("ppEverQuest", lpProcName))
-			{
-				pRet = &pEverQuest;
-			}
-			else if (ci_equals("ppEverQuestInfo", lpProcName))
-			{
-				pRet = &pEverQuestInfo;
-			}
-		}
-
-#if DEBUG_GETPROCADDRESS
-		char szModuleName[MAX_PATH] = { 0 };
-		char* pModuleName = szModuleName;
-
-		HMODULE hModuleCaller = nullptr;
-		if (::GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-			(LPCSTR)_ReturnAddress(), &hModuleCaller))
-		{
-			::GetModuleFileNameA(hModuleCaller, szModuleName, MAX_PATH);
-
-			if (char* value = strrchr(pModuleName, '\\'))
-			{
-				pModuleName = value + 1;
-			}
-		}
-
-		DebugSpewAlways("GetProcAddressHook: %s -> %p (from %s)", lpProcName, pRet, pModuleName);
-#endif
-
-		return pRet;
-	}
-
 	return nullptr;
 }
 
@@ -1275,12 +1259,3 @@ void emotify()
 
 } // namespace mq
 
-//============================================================================
-// this shit is here to satisfy mq2ic. Just because its here doesn't mean you should ever use it
-class CCXStr
-{
-public:
-	MQLIB_OBJECT CCXStr& operator= (char const* str);
-	void* Ptr [[deprecated]] ;
-};
-FUNCTION_AT_ADDRESS(CCXStr& CCXStr::operator=(char const*), CXStr__operator_equal1);

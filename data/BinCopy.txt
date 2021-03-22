@@ -10,4 +10,3 @@ resources/GPL.txt
 resources/ItemDB.txt
 resources/readme.chm
 MacroQuest.exe
-MQ2Ic.dll
