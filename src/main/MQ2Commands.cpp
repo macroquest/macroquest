@@ -328,7 +328,7 @@ void EngineCommand(SPAWNINFO* pChar, char* szLine)
 {
 	bool bNoAuto = false;
 
-	if (strstr(szLine, "noauto") != nullptr)
+	if (ci_find_substr(szLine, "noauto") != -1)
 	{
 		bNoAuto = true;
 	}
@@ -437,8 +437,8 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 		if (!ci_equals(szName, "mq2ic") && UnloadMQ2Plugin(szName))
 		{
 			WriteChatf("Plugin '%s' unloaded.", szName);
-
-			if (!strstr(szCommand, "noauto"))
+			// As below, this will capture MQ2NoAutomaticstuff as well.  As a long term fix, consider arg parsing.
+			if (ci_find_substr(szCommand, "noauto") != -1)
 			{
 				WritePrivateProfileBool("Plugins", szName, false, mq::internal_paths::MQini);
 			}
@@ -455,7 +455,8 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 		{
 			WriteChatf("Plugin '%s' loaded.", szName);
 
-			if (_stricmp(szCommand, "noauto"))
+			// As above, this will capture MQ2NoAutomaticstuff as well.  As a long term fix, consider arg parsing.
+			if (ci_find_substr(szCommand, "noauto") != -1)
 			{
 				WritePrivateProfileBool("Plugins", szName, true, mq::internal_paths::MQini);
 			}
@@ -2411,7 +2412,7 @@ void Face(SPAWNINFO* pChar, char* szLine)
 			flags |= FaceFlags_Fast;
 			continue;
 		}
-		
+
 		if (!strcmp(szArg, "away"))
 		{
 			flags |= FaceFlags_FaceAway;

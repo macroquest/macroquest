@@ -1,5 +1,7 @@
 Mar 26 2021
-- Fix loading of config for MQ2CustomBinds (#246)
+- Fix noauto being missed when using /plugin someplugin load noauto
+- noauto in the engine command and in the plugin command is no longer case sensitive
+- Fix loading of config for MQ2CustomBinds (#243)
 
 Mar 20 2021
 - Fix ${MacroQuest.Version} (#232)
