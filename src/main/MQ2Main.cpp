@@ -1085,22 +1085,22 @@ void InsertMQ2News(const std::filesystem::path& pathChangeLog)
 
 void CreateMQ2NewsWindow()
 {
+	// NOTE: This change log search logic is duplicated in the launcher menu item.
 	// This is one of the few places we want to hardcode the path since if the user redirects their resources we would not have distributed that file and they would always have old news.
-	const std::filesystem::path pathMQRootChangeLog = std::filesystem::path(mq::internal_paths::MQRoot) / "resources" / "CHANGELOG.md";
-	const std::filesystem::path pathResourceChangeLog = std::filesystem::path(mq::internal_paths::Resources) / "CHANGELOG.md";
+	const std::filesystem::path pathMQRootChangeLog = std::filesystem::path(internal_paths::MQRoot) / "resources" / "CHANGELOG.md";
+	const std::filesystem::path pathResourceChangeLog = std::filesystem::path(internal_paths::Resources) / "CHANGELOG.md";
 	// Default to the one in the resource path.
 	std::filesystem::path pathChangeLog = pathResourceChangeLog;
 
 	std::error_code ec;
-	// If the file paths are different and both files exist...
-	if (pathMQRootChangeLog != pathResourceChangeLog && exists(pathMQRootChangeLog, ec) && exists(pathResourceChangeLog, ec))
+	// If the paths are different, and the Resource Change Log doesn't exist or is older than the Root\Resource changelog
+	if (pathMQRootChangeLog != pathResourceChangeLog
+		&& (!exists(pathResourceChangeLog, ec)
+			|| last_write_time(pathMQRootChangeLog, ec) > last_write_time(pathResourceChangeLog, ec)))
 	{
-		// Choose the one from MQRoot based on last write time
-		if (last_write_time(pathMQRootChangeLog, ec) > last_write_time(pathResourceChangeLog, ec))
-		{
-			pathChangeLog = pathMQRootChangeLog;
-		}
+		pathChangeLog = pathMQRootChangeLog;
 	}
+	// END Duplicate logic
 
 	if (!pNewsWindow && exists(pathChangeLog, ec))
 	{
