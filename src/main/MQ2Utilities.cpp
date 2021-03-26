@@ -3402,34 +3402,12 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 
 	if (pSearchSpawn->bGroup)
 	{
-		bool ingrp = false;
-		if (pSearchSpawn->SpawnType == PCCORPSE || pSpawn->Type == SPAWN_CORPSE)
-		{
-			ingrp = IsInGroup(pSpawn, true);
-		}
-		else
-		{
-			ingrp = IsInGroup(pSpawn);
-		}
-
-		if (!ingrp)
-			return false;
+		return IsInGroup(pSpawn, pSearchSpawn->SpawnType == PCCORPSE || pSpawn->Type == SPAWN_CORPSE);
 	}
 
 	if (pSearchSpawn->bFellowship)
 	{
-		bool infellowship = false;
-		if (pSearchSpawn->SpawnType == PCCORPSE || pSpawn->Type == SPAWN_CORPSE)
-		{
-			infellowship = IsInFellowship(pSpawn, true);
-		}
-		else
-		{
-			infellowship = IsInFellowship(pSpawn);
-		}
-
-		if (!infellowship)
-			return false;
+		return IsInFellowship(pSpawn, pSearchSpawn->SpawnType == PCCORPSE || pSpawn->Type == SPAWN_CORPSE);
 	}
 
 	if (pSearchSpawn->bNoGroup && IsInGroup(pSpawn))
@@ -3437,17 +3415,7 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 
 	if (pSearchSpawn->bRaid)
 	{
-		bool ingrp = false;
-		if (pSearchSpawn->SpawnType == PCCORPSE || pSpawn->Type == SPAWN_CORPSE)
-		{
-			ingrp = IsInRaid(pSpawn, true);
-		}
-		else
-		{
-			ingrp = IsInRaid(pSpawn);
-		}
-		if (!ingrp)
-			return false;
+		return IsInRaid(pSpawn, pSearchSpawn->SpawnType == PCCORPSE || pSpawn->Type == SPAWN_CORPSE);
 	}
 
 	if (pSearchSpawn->bKnownLocation)
