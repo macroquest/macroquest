@@ -1,3 +1,6 @@
+Mar 26 2021
+- Fix loading of config for MQ2CustomBinds (#246)
+
 Mar 20 2021
 - Fix ${MacroQuest.Version} (#232)
 - Fix News window not appearing at character select

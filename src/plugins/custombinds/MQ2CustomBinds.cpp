@@ -110,14 +110,14 @@ static void LoadCustomBinds()
 
 	char szLine[MAX_STRING];
 
+	std::string name, down, up;
+
 	while (fgets(szLine, 2048, file))
 	{
 		char* Next_Token1 = nullptr;
 		char* Next_Token2 = nullptr;
 		char* Cmd = strtok_s(szLine, "\r\n", &Next_Token1);
 		char* Cmd2 = strtok_s(Cmd, "=", &Next_Token2);
-
-		std::string name, down, up;
 
 		if (ci_equals(Cmd2, "name"))
 		{
@@ -128,6 +128,9 @@ static void LoadCustomBinds()
 			up = &szLine[3];
 
 			AddCustomBind(name, down, up);
+			name.clear();
+			down.clear();
+			up.clear();
 		}
 		else if (ci_equals(Cmd2, "down"))
 		{
