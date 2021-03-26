@@ -141,6 +141,7 @@ MQLIB_API DEPRECATE("IsXMLFilePresent does not ensure that the content of the XM
 bool IsXMLFilePresent(const char* filename);
 MQLIB_API bool SendWndClick(const char* WindowName, const char* ScreenID, const char* ClickNotification);
 MQLIB_API bool SendWndNotification(const char* WindowName, const char* ScreenID, int Notification, void* Data = nullptr);
+MQLIB_API bool SendTabSelect(const char* WindowName, const char* ScreenID, int Value);
 MQLIB_API CXWnd* FindMQ2Window(const char* Name);
 MQLIB_API CXWnd* FindMQ2WindowPath(const char* Name);
 MQLIB_API CXWnd* GetParentWnd(CXWnd* pWnd);
