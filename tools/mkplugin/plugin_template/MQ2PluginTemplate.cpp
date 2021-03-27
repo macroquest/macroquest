@@ -93,8 +93,8 @@ PLUGIN_API void OnDrawHUD()
 	// Run only after timer is up
 	if (std::chrono::steady_clock::now() > DrawHUDTimer)
 	{
-		// Wait 1 second before running again
-		DrawHUDTimer = std::chrono::steady_clock::now() + std::chrono::seconds(1);
+		// Wait half a second before running again
+		DrawHUDTimer = std::chrono::steady_clock::now() + std::chrono::milliseconds(500);
 		DebugSpewAlways("MQ2PluginTemplate::OnDrawHUD()");
 	}
 */
@@ -304,15 +304,6 @@ PLUGIN_API void OnZoned()
 PLUGIN_API void OnUpdateImGui()
 {
 /*
-	static std::chrono::steady_clock::time_point UpdateImGuiTimer = std::chrono::steady_clock::now();
-	// Run only after timer is up for the Debug Spew Message
-	if (std::chrono::steady_clock::now() > UpdateImGuiTimer)
-	{
-		// Wait half a second before running again
-		UpdateImGuiTimer = std::chrono::steady_clock::now() + std::chrono::milliseconds(500);
-		DebugSpewAlways("MQ2PluginTemplate::OnUpdateImGui()");
-	}
-
 	if (GetGameState() == GAMESTATE_INGAME)
 	{
 		static bool ShowMQ2PluginTemplateWindow = true;
