@@ -89,11 +89,12 @@ PLUGIN_API void OnReloadUI()
 PLUGIN_API void OnDrawHUD()
 {
 /*
-	static int DrawHUDCount = 0;
-	// Skip ~500 draws
-	if (++DrawHUDCount > 500)
+	static std::chrono::steady_clock::time_point DrawHUDTimer = std::chrono::steady_clock::now();
+	// Run only after timer is up
+	if (std::chrono::steady_clock::now() > DrawHUDTimer)
 	{
-		DrawHUDCount = 0;
+		// Wait 1 second before running again
+		DrawHUDTimer = std::chrono::steady_clock::now() + std::chrono::seconds(1);
 		DebugSpewAlways("MQ2PluginTemplate::OnDrawHUD()");
 	}
 */
@@ -133,11 +134,12 @@ PLUGIN_API void SetGameState(int GameState)
 PLUGIN_API void OnPulse()
 {
 /*
-	static int PulseCount = 0;
-	// Skip ~500 pulses
-	if (++PulseCount > 500)
+	static std::chrono::steady_clock::time_point PulseTimer = std::chrono::steady_clock::now();
+	// Run only after timer is up
+	if (std::chrono::steady_clock::now() > PulseTimer)
 	{
-		PulseCount = 0;
+		// Wait 5 seconds before running again
+		PulseTimer = std::chrono::steady_clock::now() + std::chrono::seconds(5);
 		DebugSpewAlways("MQ2PluginTemplate::OnPulse()");
 	}
 */
@@ -302,11 +304,12 @@ PLUGIN_API void OnZoned()
 PLUGIN_API void OnUpdateImGui()
 {
 /*
-	static int UpdateCount = 0;
-	// Skip ~4000 updates for debug spew message
-	if (++UpdateCount > 4000)
+	static std::chrono::steady_clock::time_point UpdateImGuiTimer = std::chrono::steady_clock::now();
+	// Run only after timer is up for the Debug Spew Message
+	if (std::chrono::steady_clock::now() > UpdateImGuiTimer)
 	{
-		UpdateCount = 0;
+		// Wait half a second before running again
+		UpdateImGuiTimer = std::chrono::steady_clock::now() + std::chrono::milliseconds(500);
 		DebugSpewAlways("MQ2PluginTemplate::OnUpdateImGui()");
 	}
 
