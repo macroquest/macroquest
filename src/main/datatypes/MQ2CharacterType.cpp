@@ -664,8 +664,8 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 
 bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	CHARINFO* pChar = static_cast<CHARINFO*>(pCharData);
-	if (!pChar)
+	PcClient* pChar = static_cast<PcClient*>(pCharData);
+	if (!pCharData)
 		return false;
 
 	PcProfile* pProfile = GetPcProfile();
@@ -1135,56 +1135,32 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::GukEarned:
-		Dest.DWord = 0;
-		if (CHARINFONEW* pCharnew = (CHARINFONEW*)GetCharInfo())
-		{
-			Dest.DWord = pCharnew->AdventureData.ThemeStats[eAT_DeepGuk].AdventureTotalPointsEarned;
-		}
+		Dest.DWord = pCharData->AdventureData.ThemeStats[eAT_DeepGuk].AdventureTotalPointsEarned;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::MMEarned:
-		Dest.DWord = 0;
-		if (CHARINFONEW* pCharnew = (CHARINFONEW*)GetCharInfo())
-		{
-			Dest.DWord = pCharnew->AdventureData.ThemeStats[eAT_Mistmoore].AdventureTotalPointsEarned;
-		}
+		Dest.DWord = pCharData->AdventureData.ThemeStats[eAT_Mistmoore].AdventureTotalPointsEarned;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::RujEarned:
-		Dest.DWord = 0;
-		if (CHARINFONEW* pCharnew = (CHARINFONEW*)GetCharInfo())
-		{
-			Dest.DWord = pCharnew->AdventureData.ThemeStats[eAT_Rujarkian].AdventureTotalPointsEarned;
-		}
+		Dest.DWord = pCharData->AdventureData.ThemeStats[eAT_Rujarkian].AdventureTotalPointsEarned;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::TakEarned:
-		Dest.DWord = 0;
-		if (CHARINFONEW* pCharnew = (CHARINFONEW*)GetCharInfo())
-		{
-			Dest.DWord = pCharnew->AdventureData.ThemeStats[eAT_Takish].AdventureTotalPointsEarned;
-		}
+		Dest.DWord = pCharData->AdventureData.ThemeStats[eAT_Takish].AdventureTotalPointsEarned;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::MirEarned:
-		Dest.DWord = 0;
-		if (CHARINFONEW* pCharnew = (CHARINFONEW*)GetCharInfo())
-		{
-			Dest.DWord = pCharnew->AdventureData.ThemeStats[eAT_Miraguls].AdventureTotalPointsEarned;
-		}
+		Dest.DWord = pCharData->AdventureData.ThemeStats[eAT_Miraguls].AdventureTotalPointsEarned;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LDoNPoints:
-		Dest.DWord = 0;
-		if (CHARINFONEW* pCharnew = (CHARINFONEW*)GetCharInfo())
-		{
-			Dest.DWord = pCharnew->AdventureData.AdventurePointsAvailable;
-		}
+		Dest.DWord = pCharData->AdventureData.AdventurePointsAvailable;
 		Dest.Type = pIntType;
 		return true;
 
