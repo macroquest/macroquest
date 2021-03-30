@@ -45,13 +45,13 @@ void LuaImGuiProcessor::RemoveCallback(std::string_view name)
 		}), imguis.end());
 }
 
-void LuaImGuiProcessor::Pulse() const
+void LuaImGuiProcessor::Pulse()
 {
 	// remove any existing hooks, they will be re-installed when running in onpulse
 	lua_sethook(thread->thread.lua_state(), nullptr, 0, 0);
 
 	for (auto& im : imguis)
-		im->Pulse();
+		if (!im->Pulse()) RemoveCallback(im->name);
 }
 
 static void addimgui(std::string_view name, sol::function function, sol::this_state s)
@@ -81,27 +81,32 @@ void ImGui_RegisterLua(sol::table& lua)
 LuaImGui::LuaImGui(std::string_view name, const sol::thread& thread, const sol::function& callback)
 	: name(name), thread(thread), callback(callback)
 {
+	coroutine = sol::coroutine(this->thread.state(), this->callback);
 }
 
 LuaImGui::~LuaImGui()
 {
 }
 
-void LuaImGui::Pulse() const
+bool LuaImGui::Pulse() const
 {
 	try
 	{
-		auto result = sol::function(thread.state(), callback)();
+		auto result = coroutine();
 		if (!result.valid())
 		{
-			sol::error err = std::move(result);
-			throw err;
+			LuaError("ImGui Failure:\n%s", sol::stack::get<std::string>(result.lua_state(), result.stack_index()));
+			result.abandon();
+			return false;
 		}
 	}
-	catch (sol::error& e)
+	catch (std::runtime_error& e)
 	{
 		LuaError("ImGui Failure:\n%s", e.what());
+		return false;
 	}
+
+	return true;
 }
 
 } // namespace mq::lua

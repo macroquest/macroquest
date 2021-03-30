@@ -27,11 +27,12 @@ struct LuaImGui
 	std::string name;
 	sol::thread thread;
 	sol::function callback;
+	mutable sol::coroutine coroutine;
 
 	LuaImGui(std::string_view name, const sol::thread& thread, const sol::function& callback);
 	~LuaImGui();
 
-	void Pulse() const;
+	bool Pulse() const;
 };
 
 struct LuaImGuiProcessor
@@ -44,7 +45,7 @@ struct LuaImGuiProcessor
 
 	void AddCallback(std::string_view name, sol::function callback);
 	void RemoveCallback(std::string_view name);
-	void Pulse() const;
+	void Pulse();
 };
 
 } // namespace mq::lua
