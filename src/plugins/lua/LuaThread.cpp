@@ -415,14 +415,18 @@ void LuaThread::RegisterLuaState(std::shared_ptr<LuaThread> self_ptr, bool injec
 
 void LuaThreadInfo::SetResult(const sol::protected_function_result& result)
 {
-	if (result.status() != sol::call_status::yielded && result.return_count() > 1)
+	if (result.status() != sol::call_status::yielded)
 	{
 		EndRun();
-		returnValues = std::vector<std::string>(result.return_count() - 1);
-		// need to skip the first "return" (which is not a return, it's at index + 0) which is the function itself
-		for (int i = 1; i < result.return_count(); ++i)
+
+		if (result.return_count() > 1)
 		{
-			returnValues[i - 1] = luaL_tolstring(result.lua_state(), result.stack_index() + i, nullptr);
+			returnValues = std::vector<std::string>(result.return_count() - 1);
+			// need to skip the first "return" (which is not a return, it's at index + 0) which is the function itself
+			for (int i = 1; i < result.return_count(); ++i)
+			{
+				returnValues[i - 1] = luaL_tolstring(result.lua_state(), result.stack_index() + i, nullptr);
+			}
 		}
 	}
 }
