@@ -57,7 +57,7 @@ struct LuaThread
 	uint32_t pid;
 	bool yieldToFrame;
 
-	uint32_t hookProtectionCount;
+	uint32_t hookProtectionCount = 0;
 
 	static uint32_t NextID()
 	{
