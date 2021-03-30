@@ -413,6 +413,23 @@ static void LuaRunCommand(const std::string& script, const std::vector<std::stri
 
 static void LuaParseCommand(const std::string& script)
 {
+	auto info_it = std::find_if(s_infoMap.begin(), s_infoMap.end(),
+		[](const std::pair<uint32_t, mq::lua::LuaThreadInfo>& kv)
+		{ return kv.second.name == "lua parse"; });
+
+	if (info_it != s_infoMap.end() && info_it->second.endTime == 0ULL)
+	{
+		// parsed script is currently running, inform and exit
+		WriteChatStatus("Parsed Lua script is already running, not starting another instance.");
+		return;
+	}
+
+	if (info_it != s_infoMap.end())
+	{
+		// always erase previous parse entries in the ps, it gets overcrowded otherwise
+		s_infoMap.erase(info_it);
+	}
+
 	auto entry = std::make_shared<LuaThread>("lua parse", s_luaDir, s_luaRequirePaths, s_dllRequirePaths);
 	WriteChatStatus("Running lua string with PID %d", entry->pid);
 	s_running.emplace_back(entry); // this needs to be in the running vector before we run at all
