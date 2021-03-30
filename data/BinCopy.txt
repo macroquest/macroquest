@@ -3,6 +3,8 @@ macros/*.mac
 macros/TestSuite/*.mac
 macros/TestSuite/*.inc
 macros/TestSuite/README.md
+lua/examples/*.lua
+lua/examples/*.zip
 resources/CHANGELOG.md
 resources/GPL.txt
 resources/ItemDB.txt
