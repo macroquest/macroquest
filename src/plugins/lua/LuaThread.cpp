@@ -281,18 +281,20 @@ void delay(sol::object delayObj, sol::object conditionObj, sol::this_state s)
 {
 	using namespace std::chrono_literals;
 
-	auto delay_int = delayObj.as<std::optional<std::chrono::milliseconds>>();
+	auto delay_int = delayObj.as<std::optional<const int>>();
 	if (!delay_int)
 	{
 		auto delay_str = delayObj.as<std::optional<std::string_view>>();
 		if (delay_str)
 		{
 			if (delay_str->length() > 1 && delay_str->compare(delay_str->length() - 1, 1, "m") == 0)
-				delay_int.emplace(std::chrono::minutes(GetIntFromString(*delay_str, 0)));
+				delay_int.emplace(std::chrono::duration_cast<std::chrono::milliseconds>(
+					std::chrono::minutes(GetIntFromString(*delay_str, 0))).count());
 			else if (delay_str->length() > 2 && delay_str->compare(delay_str->length() - 2, 2, "ms") == 0)
-				delay_int.emplace(std::chrono::milliseconds(GetIntFromString(*delay_str, 0)));
+				delay_int.emplace(std::chrono::milliseconds(GetIntFromString(*delay_str, 0)).count());
 			else if (delay_str->length() > 1 && delay_str->compare(delay_str->length() - 1, 1, "s") == 0)
-				delay_int.emplace(std::chrono::seconds(GetIntFromString(*delay_str, 0)));
+				delay_int.emplace(std::chrono::duration_cast<std::chrono::milliseconds>(
+					std::chrono::seconds(GetIntFromString(*delay_str, 0))).count());
 		}
 	}
 
@@ -300,7 +302,7 @@ void delay(sol::object delayObj, sol::object conditionObj, sol::this_state s)
 	{
 		if (auto thread_ptr = LuaThread::get_from(s))
 		{
-			uint64_t delay_ms = std::max(0ms, *delay_int).count();
+			uint64_t delay_ms = std::max(0ms, std::chrono::milliseconds(*delay_int)).count();
 			auto condition = conditionObj.as<std::optional<sol::function>>();
 
 			thread_ptr->state->SetDelay(*thread_ptr, delay_ms + MQGetTickCount64(), condition);
