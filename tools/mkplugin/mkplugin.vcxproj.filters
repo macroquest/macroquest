@@ -2,21 +2,54 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{320ada69-4cfc-4721-abfc-4c4ccd372f8a}</UniqueIdentifier>
-      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm</Extensions>
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{5b173978-0595-4085-b07b-2550e480c2cf}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc</Extensions>
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
     <Filter Include="Resource Files">
-      <UniqueIdentifier>{20b958d3-9048-4dcb-95c7-442519c104f5}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Template Files">
+      <UniqueIdentifier>{f08df33d-fd99-402a-aca0-28971ef1b008}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mkplugin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="mkplugin.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="plugin_template\resource.h">
+      <Filter>Template Files</Filter>
+    </ClInclude>
+    <ClCompile Include="plugin_template\MQ2PluginTemplate.cpp">
+      <Filter>Template Files</Filter>
+    </ClCompile>
+    <None Include="plugin_template\README.MD">
+      <Filter>Template Files</Filter>
+    </None>
+    <None Include="plugin_template\.gitignore">
+      <Filter>Template Files</Filter>
+    </None>
+    <None Include="plugin_template\MQ2PluginTemplate.vcxproj">
+      <Filter>Template Files</Filter>
+    </None>
+    <None Include="plugin_template\MQ2PluginTemplate.vcxproj.filters">
+      <Filter>Template Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

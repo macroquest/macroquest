@@ -1,0 +1,11 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+IDR_TEXT1 TEXT "plugin_template\\MQ2PluginTemplate.cpp"
+IDR_TEXT2 TEXT "plugin_template\\README.MD"
+IDR_TEXT3 TEXT "plugin_template\\MQ2PluginTemplate.rc"
+IDR_TEXT4 TEXT "plugin_template\\Resource.h"
+IDR_TEXT5 TEXT "plugin_template\\.gitignore"
+IDR_XML1 XML "plugin_template\\MQ2PluginTemplate.vcxproj"
+IDR_XML2 XML "plugin_template\\MQ2PluginTemplate.vcxproj.filters"
