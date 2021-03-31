@@ -281,7 +281,7 @@ void delay(sol::object delayObj, sol::object conditionObj, sol::this_state s)
 {
 	using namespace std::chrono_literals;
 
-	auto delay_int = delayObj.as<std::optional<const int>>();
+	auto delay_int = delayObj.as<std::optional<const __int64>>();
 	if (!delay_int)
 	{
 		auto delay_str = delayObj.as<std::optional<std::string_view>>();
