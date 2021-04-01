@@ -14,9 +14,8 @@ local openGUI = true
 local shouldDrawGUI = true
 
 local AssistGUI = function()
+    openGUI, shouldDrawGUI = ImGui.Begin('Assist GUI', openGUI)
     if shouldDrawGUI then
-        openGUI, shouldDrawGUI = ImGui.Begin('Assist GUI', openGUI)
-
         local pctHPs = mq.TLO.Me.GroupAssistTarget.PctHPs()
         if not pctHPs then pctHPs = 0 end
         local ratioHPs = pctHPs / 100
@@ -36,7 +35,6 @@ end
 mq.imgui.init('assistGUI', AssistGUI)
 mq.bind('/assgui', function()
     openGUI = not openGUI
-    shouldDrawGUI = openGUI
 end)
 
 local terminate = false
@@ -44,7 +42,5 @@ mq.bind('/assend', function() terminate = true end)
 
 while not terminate do
     GroupAssist()
-    --mq.delay('1s')
-    mq.delay(1000)
-    print('test')
+    mq.delay(1000) -- equivalent to '1s'
 end
