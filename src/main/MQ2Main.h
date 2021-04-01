@@ -702,10 +702,10 @@ MQLIB_API int         GetAvailableSharedBankSlots();   // returns the number of 
 template <typename T>
 struct SpellAttribute
 {
-	template <typename Buff>
-	bool operator()(const Buff& buff) const { return true; }
-
 	const T& get() const { return static_cast<T const&>(*this); }
+
+	template <typename Buff>
+	bool operator()(const Buff& buff) const { return get().operator()(buff); }
 };
 
 template <typename T>
