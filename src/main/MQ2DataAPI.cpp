@@ -304,7 +304,6 @@ static bool CallFunction(const char* name, const char* args)
 
 	MQMacroBlockPtr saved_block = GetCurrentMacroBlock();
 	const auto saved_block_line = gMacroBlock->CurrIndex;
-	const auto pChar = (PSPAWNINFO)pCharSpawn;
 
 	char subLine[MAX_STRING];
 	strcpy_s(subLine, name);
@@ -322,7 +321,7 @@ static bool CallFunction(const char* name, const char* args)
 		}
 	}
 
-	Call(pChar, subLine);
+	Call(pLocalPlayer, subLine);
 	// In case we're calling from an else, we need to adjust where we are expecting to return to.
 	gMacroStack->pNext->LocationIndex = saved_block_line;
 

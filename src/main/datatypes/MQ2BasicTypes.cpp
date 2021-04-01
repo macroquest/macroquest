@@ -917,7 +917,7 @@ bool MQ2FloatType::ToString(MQVarPtr VarPtr, char* Destination)
 
 bool MQ2FloatType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
-	if (Source.Type != pFloatType && Source.Type != (MQ2Type*)pHeadingType)
+	if (Source.Type != pFloatType && Source.Type != pHeadingType)
 		VarPtr.Float = (float)Source.DWord;
 	else
 		VarPtr.Float = Source.Float;
@@ -1024,7 +1024,7 @@ bool MQ2DoubleType::ToString(MQVarPtr VarPtr, char* Destination)
 
 bool MQ2DoubleType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
-	if (Source.Type != pDoubleType && Source.Type != (MQ2Type*)pHeadingType)
+	if (Source.Type != pDoubleType && Source.Type != pHeadingType)
 		VarPtr.Double = Source.Double;
 	else
 		VarPtr.Double = Source.Double;
@@ -1835,8 +1835,7 @@ bool MQ2HeadingType::dataHeading(const char* szIndex, MQTypeVar& Ret)
 		*pComma = ',';
 		float X = GetFloatFromString(&pComma[1], 0);
 
-		Ret.Float = static_cast<float>(atan2f(static_cast<SPAWNINFO*>(pCharSpawn)->Y - Y,
-			X - static_cast<SPAWNINFO*>(pCharSpawn)->X) * 180.0f / PI + 90.0f);
+		Ret.Float = static_cast<float>(atan2f(pControlledPlayer->Y - Y, X - pControlledPlayer->X) * 180.0f / PI + 90.0f);
 		if (Ret.Float < 0.0f)
 			Ret.Float += 360.0f;
 		else if (Ret.Float >= 360.0f)

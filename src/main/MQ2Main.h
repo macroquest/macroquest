@@ -329,7 +329,7 @@ inline void DoCommand(PSPAWNINFO pSpawnInfo, const char* szCommand)
 {
 	HideDoCommand(pSpawnInfo, szCommand, FromPlugin);
 }
-inline void EzCommand(const char* szCommand) { DoCommand((SPAWNINFO*)pLocalPlayer, szCommand); }
+inline void EzCommand(const char* szCommand) { DoCommand(pLocalPlayer, szCommand); }
 
 MQLIB_API DWORD MQToSTML(const char* in, char* out, size_t maxlen = MAX_STRING, uint32_t ColorOverride = 0xFFFFFF);
 MQLIB_API void StripMQChat(const char* in, char* out);

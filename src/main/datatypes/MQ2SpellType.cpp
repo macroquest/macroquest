@@ -224,9 +224,9 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	{
 		Dest.Type = pIntType;
 
-		if (!Index[0] && GetCharInfo()->pSpawn)
+		if (!Index[0] && pLocalPlayer)
 		{
-			Dest.DWord = pSpell->ClassLevel[GetCharInfo()->pSpawn->mActorClient.Class];
+			Dest.DWord = pSpell->ClassLevel[pLocalPlayer->GetClass()];
 			return true;
 		}
 
@@ -1099,7 +1099,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			if (!pCombatSkillsSelectWnd || !pCombatSkillsSelectWnd->ShouldDisplayThisSkill(i))
 				continue;
 
-			auto pFoundSpell = GetSpellByID(pPCData->GetCombatAbility(i));
+			auto pFoundSpell = GetSpellByID(pCharData->GetCombatAbility(i));
 			if (pFoundSpell && pFoundSpell->SpellGroup == pSpell->SpellGroup &&
 				!_strnicmp(pSpell->Name, pFoundSpell->Name, strlen(pSpell->Name)))
 			{

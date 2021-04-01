@@ -918,12 +918,12 @@ static int CalcMaxSpellLevel(int calc, int base, int max, int tick, int minlevel
 
 static int CalcMinSpellLevel(EQ_Spell* pSpell)
 {
-	int minspelllvl = ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(Warrior);
+	int minspelllvl = pSpell->GetSpellLevelNeeded(Warrior);
 
 	for (int j = Warrior; j <= Berserker; j++)
 	{
-		if (((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j) < minspelllvl)
-			minspelllvl = ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j);
+		if (pSpell->GetSpellLevelNeeded(j) < minspelllvl)
+			minspelllvl = pSpell->GetSpellLevelNeeded(j);
 	}
 
 	if (minspelllvl > MAX_PC_LEVEL)
@@ -1308,9 +1308,9 @@ int GetSpellBase(EQ_Spell* pSpell, int index)
 
 		if (numeff > index)
 		{
-			if (ClientSpellManager* pSpellM = (ClientSpellManager*)pSpellMgr)
+			if (pSpellMgr)
 			{
-				if (SPELLCALCINFO* pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index))
+				if (SPELLCALCINFO* pCalcInfo = pSpellMgr->GetSpellAffect(pSpell->CalcIndex + index))
 				{
 					return pCalcInfo->Base;
 				}
@@ -1334,9 +1334,9 @@ int GetSpellBase2(EQ_Spell* pSpell, int index)
 
 		if (numeff > index)
 		{
-			if (ClientSpellManager* pSpellM = (ClientSpellManager*)pSpellMgr)
+			if (pSpellMgr)
 			{
-				if (SPELLCALCINFO* pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index))
+				if (SPELLCALCINFO* pCalcInfo = pSpellMgr->GetSpellAffect(pSpell->CalcIndex + index))
 				{
 					return pCalcInfo->Base2;
 				}
@@ -1360,9 +1360,9 @@ int GetSpellMax(EQ_Spell* pSpell, int index)
 
 		if (numeff > index)
 		{
-			if (ClientSpellManager* pSpellM = (ClientSpellManager*)pSpellMgr)
+			if (pSpellMgr)
 			{
-				if (SPELLCALCINFO* pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index))
+				if (SPELLCALCINFO* pCalcInfo = pSpellMgr->GetSpellAffect(pSpell->CalcIndex + index))
 				{
 					return pCalcInfo->Max;
 				}
@@ -1386,9 +1386,9 @@ int GetSpellCalc(EQ_Spell* pSpell, int index)
 
 		if (numeff > index)
 		{
-			if (ClientSpellManager* pSpellM = (ClientSpellManager*)pSpellMgr)
+			if (pSpellMgr)
 			{
-				if (SPELLCALCINFO* pCalcInfo = pSpellM->GetSpellAffect(pSpell->CalcIndex + index))
+				if (SPELLCALCINFO* pCalcInfo = pSpellMgr->GetSpellAffect(pSpell->CalcIndex + index))
 				{
 					return pCalcInfo->Calc;
 				}

@@ -141,7 +141,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 	case TargetMembers::SecondaryAggroPlayer:
 		if (pAggroInfo && pAggroInfo->AggroSecondaryID)
 		{
-			Dest = pSpawnType->MakeTypeVar((SPAWNINFO*)GetSpawnByID(pAggroInfo->AggroSecondaryID));
+			Dest = pSpawnType->MakeTypeVar(GetSpawnByID(pAggroInfo->AggroSecondaryID));
 			return true;
 		}
 		return false;
@@ -151,7 +151,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		char* pTargetAggroHolder = EQADDR_TARGETAGGROHOLDER;
 		if (pTargetAggroHolder[0] != '\0')
 		{
-			if (SPAWNINFO* pAggroHolder = (SPAWNINFO*)GetSpawnByName(pTargetAggroHolder))
+			if (SPAWNINFO* pAggroHolder = GetSpawnByName(pTargetAggroHolder))
 			{
 				Dest = pSpawnType->MakeTypeVar(pAggroHolder);
 				return true;
@@ -163,7 +163,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			SearchSpawn.FRadius = 999999.0f;
 			strcpy_s(SearchSpawn.szName, pTargetAggroHolder);
 
-			if (SPAWNINFO* pAggroHolder = SearchThroughSpawns(&SearchSpawn, (SPAWNINFO*)pLocalPlayer))
+			if (SPAWNINFO* pAggroHolder = SearchThroughSpawns(&SearchSpawn, pLocalPlayer))
 			{
 				Dest = pSpawnType->MakeTypeVar(pAggroHolder);
 				return true;
@@ -177,7 +177,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			{
 				if (*(DWORD*)(EQADDR_GROUPAGGRO + 120) >= 100)
 				{
-					if (Dest.Ptr = GetSpawnByID(((SPAWNINFO*)pLocalPlayer)->TargetOfTarget))
+					if (Dest.Ptr = GetSpawnByID(pLocalPlayer->TargetOfTarget))
 					{
 						return true;
 					}
@@ -424,7 +424,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		return Dest.HighPart >= 0;
 
 	case TargetMembers::MaxMeleeTo: {
-		Dest.Float = get_melee_range(pCharSpawn, pTarget);
+		Dest.Float = get_melee_range(pControlledPlayer, pTarget);
 		Dest.Type = pFloatType;
 		return true;
 	}

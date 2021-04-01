@@ -129,7 +129,7 @@ void Delay(SPAWNINFO* pChar, char* szLine)
 	char szVal[MAX_STRING] = { 0 };
 	GetArg(szVal, szLine, 1);
 
-	ParseMacroParameter(GetCharInfo()->pSpawn, szVal);
+	ParseMacroParameter(pLocalPlayer, szVal);
 	strcpy_s(gDelayCondition, GetNextArg(szLine));
 
 	int VarValue = GetIntFromString(szVal, 0);
@@ -154,7 +154,7 @@ void Delay(SPAWNINFO* pChar, char* szLine)
 		char szCond[MAX_STRING];
 		strcpy_s(szCond, gDelayCondition);
 
-		ParseMacroParameter(GetCharInfo()->pSpawn, szCond);
+		ParseMacroParameter(pLocalPlayer, szCond);
 
 		double Result;
 		if (!Calculate(szCond, Result))
@@ -532,7 +532,7 @@ bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineN
 			std::string strLine = std::string{ lineView.substr(8) } + " noauto";
 
 			strcpy_s(szLine, Linelen, strLine.c_str());
-			EngineCommand(GetCharInfo()->pSpawn, szLine);
+			EngineCommand(pLocalPlayer, szLine);
 		}
 		else if (!_strnicmp(szLine, "#chat ", 6))
 		{

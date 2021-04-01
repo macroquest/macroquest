@@ -283,57 +283,57 @@ static void SetGameStateGroundSpawns(DWORD)
 MQGroundSpawn GetGroundSpawnByName(std::string_view Name)
 {
 	GroundSpawnSearch::Reset();
-	return GroundSpawnSearch::Search(pCharSpawn, Name).First();
+	return GroundSpawnSearch::Search(pControlledPlayer, Name).First();
 }
 
 MQGroundSpawn GetGroundSpawnByID(int ID)
 {
 	GroundSpawnSearch::Reset();
-	return GroundSpawnSearch::Search(pCharSpawn, ID).First();
+	return GroundSpawnSearch::Search(pControlledPlayer, ID).First();
 }
 
 MQGroundSpawn GetNearestGroundSpawn()
 {
 	GroundSpawnSearch::Reset();
-	return GroundSpawnSearch::Search(pCharSpawn).First();
+	return GroundSpawnSearch::Search(pControlledPlayer).First();
 }
 
 MQGroundSpawn GetNthGroundSpawnFromMe(size_t N)
 {
-	return GroundSpawnSearch::Search(pCharSpawn).At(N);
+	return GroundSpawnSearch::Search(pControlledPlayer).At(N);
 }
 
 int GetGroundSpawnCount()
 {
 	GroundSpawnSearch::Reset();
-	return GroundSpawnSearch::Search(pCharSpawn).Count();
+	return GroundSpawnSearch::Search(pControlledPlayer).Count();
 }
 
 int GetGroundSpawnCountByName(std::string_view Name)
 {
 	GroundSpawnSearch::Reset();
-	return GroundSpawnSearch::Search(pCharSpawn, Name).Count();
+	return GroundSpawnSearch::Search(pControlledPlayer, Name).Count();
 }
 
 MQGroundSpawn CurrentGroundSpawn()
 {
-	return GroundSpawnSearch::Search(pCharSpawn).Current();
+	return GroundSpawnSearch::Search(pControlledPlayer).Current();
 }
 
 MQGroundSpawn FirstGroundSpawn()
 {
-	return GroundSpawnSearch::Search(pCharSpawn).First();
+	return GroundSpawnSearch::Search(pControlledPlayer).First();
 }
 
 MQGroundSpawn LastGroundSpawn()
 {
-	return GroundSpawnSearch::Search(pCharSpawn).Last();
+	return GroundSpawnSearch::Search(pControlledPlayer).Last();
 }
 
 MQGroundSpawn NextGroundSpawn()
 {
 	if (GroundSpawnSearch::IsValid())
-		return GroundSpawnSearch::Search(pCharSpawn).Next();
+		return GroundSpawnSearch::Search(pControlledPlayer).Next();
 
 	return FirstGroundSpawn();
 }
@@ -341,7 +341,7 @@ MQGroundSpawn NextGroundSpawn()
 MQGroundSpawn PrevGroundSpawn()
 {
 	if (GroundSpawnSearch::IsValid())
-		return GroundSpawnSearch::Search(pCharSpawn).Prev();
+		return GroundSpawnSearch::Search(pControlledPlayer).Prev();
 
 	return LastGroundSpawn();
 }
@@ -425,13 +425,13 @@ CVector3 MQGroundSpawn::Position() const
 void SetGroundSpawn(std::string_view Name)
 {
 	GroundSpawnSearch::Reset();
-	GroundSpawnSearch::Search(pCharSpawn, Name);
+	GroundSpawnSearch::Search(pControlledPlayer, Name);
 }
 
 void SetGroundSpawn(const MQGroundSpawn& groundSpawn)
 {
 	GroundSpawnSearch::Reset();
-	GroundSpawnSearch::Search(pCharSpawn, groundSpawn);
+	GroundSpawnSearch::Search(pControlledPlayer, groundSpawn);
 }
 
 void ClearGroundSpawn()

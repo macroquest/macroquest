@@ -187,7 +187,7 @@ bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		return true;
 
 	case SwitchMembers::HeadingTo:
-		Dest.Float = (float)(atan2f(((SPAWNINFO*)pCharSpawn)->Y - pTheSwitch->Y, pTheSwitch->X - ((SPAWNINFO*)pCharSpawn)->X) * 180.0f / PI + 90.0f);
+		Dest.Float = (float)(atan2f(pControlledPlayer->Y - pTheSwitch->Y, pTheSwitch->X - pControlledPlayer->X) * 180.0f / PI + 90.0f);
 		if (Dest.Float < 0.0f)
 			Dest.Float += 360.0f;
 		else if (Dest.Float >= 360.0f)
@@ -227,9 +227,9 @@ bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 	}
 
 	case SwitchMembers::Distance3D: {
-		float X = ((SPAWNINFO*)pCharSpawn)->X - pTheSwitch->X;
-		float Y = ((SPAWNINFO*)pCharSpawn)->Y - pTheSwitch->Y;
-		float Z = ((SPAWNINFO*)pCharSpawn)->Z - pTheSwitch->Z;
+		float X = pControlledPlayer->X - pTheSwitch->X;
+		float Y = pControlledPlayer->Y - pTheSwitch->Y;
+		float Z = pControlledPlayer->Z - pTheSwitch->Z;
 
 		float BoundingRadius = 0;
 		float thedist = 0;

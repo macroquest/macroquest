@@ -45,22 +45,17 @@ inline bool StackHasRoom(ItemClient* Item)
 // returns true if a class other than bard is casting.
 bool NonBardCasting()
 {
-	if (!GetCharInfo() || !GetPcProfile() || !pCharSpawn) return false;
-	if (GetPcProfile()->Class == Bard) return false;
-	if (GetCharInfo()->pSpawn && GetCharInfo()->pSpawn->mActorClient.Class == Bard) return false;
-	if (((SPAWNINFO*)pCharSpawn)->CastingData.SpellETA) return true;
-	return false;
+	return pLocalPlayer && pLocalPlayer->GetClass() != Bard && pLocalPlayer->CastingData.SpellETA != 0;
 }
 
 inline bool IsCasting()
 {
-	return (pCharSpawn && ((SPAWNINFO*)pCharSpawn)->CastingData.SpellID != NOID);
+	return pLocalPlayer && pLocalPlayer->CastingData.SpellID != -1;
 }
 
 inline bool AbilityInUse()
 {
-	if (pCharSpawn && ((SPAWNINFO*)pCharSpawn)->CastingData.SpellETA == 0) return false;
-	return true;
+	return pLocalPlayer && pLocalPlayer->CastingData.SpellETA != 0;
 }
 
 // returns true if there is something on the cursor

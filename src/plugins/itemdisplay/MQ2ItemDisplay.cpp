@@ -2523,7 +2523,7 @@ void RemoveAug(SPAWNINFO* pChar, char* szLine)
 				{
 					realID = pDistillerInfo.GetIDFromRecordNum(i, false);
 
-					pItemSolvent = pPCData->GetItemByID(realID);
+					pItemSolvent = pCharData->GetItemByID(realID);
 					if (pItemSolvent)
 					{
 						// found a distiller that will work...
@@ -2534,7 +2534,7 @@ void RemoveAug(SPAWNINFO* pChar, char* szLine)
 				if (!pItemSolvent)
 				{
 					// Universal Augment Solvent... aka perfect distiller...
-					pItemSolvent = pPCData->GetItemByItemClass(ItemClass_PerfectedDistiller);
+					pItemSolvent = pCharData->GetItemByItemClass(ItemClass_PerfectedDistiller);
 				}
 
 				if (pItemSolvent)
@@ -2748,7 +2748,7 @@ PLUGIN_API void OnReloadUI()
 	}
 	ButtonMap.clear();
 
-	if (GetGameState() == GAMESTATE_INGAME && pCharSpawn)
+	if (GetGameState() == GAMESTATE_INGAME && pControlledPlayer)
 	{
 		bDisabledComparetip = false;
 		CreateCompareTipWnd();

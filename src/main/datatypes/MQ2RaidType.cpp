@@ -67,8 +67,7 @@ bool MQ2RaidType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	if (!pMember)
 		return false;
 
-	CHARINFO* pCharInfo = GetCharInfo();
-	if (!pCharInfo)
+	if (!pCharData)
 		return false;
 
 	switch (static_cast<RaidMembers>(pMember->ID))
@@ -205,7 +204,7 @@ bool MQ2RaidType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 		if (Index[0])
 		{
-			RaidData& rd = pCharInfo->raidData;
+			RaidData& rd = pCharData->raidData;
 
 			if (IsNumber(Index))
 			{
@@ -393,7 +392,7 @@ bool MQ2RaidMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 
 	if (!pMember)
 	{
-		return pSpawnType->GetMember((SPAWNINFO*)GetSpawnByName(pRaidMember->Name), Member, Index, Dest);
+		return pSpawnType->GetMember(GetSpawnByName(pRaidMember->Name), Member, Index, Dest);
 	}
 
 	switch (static_cast<RaidMemberMembers>(pMember->ID))

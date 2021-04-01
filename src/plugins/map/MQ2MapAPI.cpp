@@ -321,7 +321,7 @@ void MapUpdate()
 
 			// At the time of this writing, setting radius > 1 will use target's melee radius. Setting it < 1 will
 			// use the player's melee radius. wut.
-			float radius = get_melee_range(static_cast<int>(option.Radius) <= 1 ? pCharSpawn : pTarget, pTarget);
+			float radius = get_melee_range(static_cast<int>(option.Radius) <= 1 ? pControlledPlayer : pTarget, pTarget);
 
 			TargetMeleeCircle.UpdateCircle(option.Color, radius, pTarget->X, pTarget->Y, pTarget->Z);
 		}

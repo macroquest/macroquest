@@ -355,15 +355,8 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	if (!pSpawn)
+	if (!pLocalPlayer || !pCharData || !pSpawn)
 		return false;
-
-	SPAWNINFO* pMySpawn = pLocalPlayer;
-	if (!pMySpawn)
-		return false;
-
-	SPAWNINFO* pControlledSpawn = pCharSpawn;
-	PlayerClient* pPlayerClient = reinterpret_cast<PlayerClient*>(pSpawn);
 
 	//----------------------------------------------------------------------------
 	// methods
@@ -374,30 +367,30 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		switch (static_cast<SpawnMethods>(pMethod->ID))
 		{
 		case SpawnMethods::DoTarget:
-			pTarget = pPlayerClient;
+			pTarget = pSpawn;
 			return true;
 
 		case SpawnMethods::DoFace: {
 			char szOut[256] = { 0 };
 			sprintf_s(szOut, "id %d", pSpawn->SpawnID);
-			Face(pMySpawn, szOut);
+			Face(pLocalPlayer, szOut);
 			return true;
 		}
 
 		case SpawnMethods::LeftClick:
-			pEverQuest->LeftClickedOnPlayer(pPlayerClient);
+			pEverQuest->LeftClickedOnPlayer(pSpawn);
 			WeDidStuff();
 			return true;
 
 		case SpawnMethods::RightClick:
-			pEverQuest->RightClickedOnPlayer(pPlayerClient, 0);
+			pEverQuest->RightClickedOnPlayer(pSpawn, 0);
 			WeDidStuff();
 			return true;
 
 		case SpawnMethods::DoAssist: {
 			char szOut[256] = { 0 };
 			sprintf_s(szOut, "%s", pSpawn->DisplayedName);
-			AssistCmd(pMySpawn, szOut);
+			AssistCmd(pLocalPlayer, szOut);
 			return true;
 		}
 
@@ -562,7 +555,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		return true;
 
 	case SpawnMembers::Race:
-		Dest.DWord = pSpawn->mActorClient.Race;
+		Dest.DWord = pSpawn->GetRace();
 		Dest.Type = pRaceType;
 		return true;
 
@@ -683,7 +676,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		Dest.Type = pFloatType;
 		if (GetSpawnType(pSpawn) != ITEM)
 		{
-			Dest.Float = get_melee_range((PlayerClient*)pSpawn, pCharSpawn);
+			Dest.Float = get_melee_range(pSpawn, pControlledPlayer);
 			return true;
 		}
 		return false;
@@ -693,7 +686,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		Dest.Type = pFloatType;
 		if (GetSpawnType(pSpawn) != ITEM)
 		{
-			Dest.Float = get_melee_range(pCharSpawn, (PlayerClient*)pSpawn);
+			Dest.Float = get_melee_range(pControlledPlayer, pSpawn);
 			return true;
 		}
 		return false;
@@ -740,7 +733,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		{
 			strcpy_s(DataTypeTemp, "STUN");
 		}
-		else if (pSpawn == (SPAWNINFO*)pLocalPlayer && pSpawn->RespawnTimer)
+		else if (pSpawn == pLocalPlayer && pSpawn->RespawnTimer)
 		{
 			strcpy_s(DataTypeTemp, "HOVER");
 		}
@@ -856,35 +849,35 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		return true;
 
 	case SpawnMembers::Distance3D:
-		Dest.Float = DistanceToSpawn3D(pControlledSpawn, pSpawn);
+		Dest.Float = DistanceToSpawn3D(pControlledPlayer, pSpawn);
 		Dest.Type = pFloatType;
 		return true;
 
 	case SpawnMembers::DistancePredict:
-		Dest.Float = EstimatedDistanceToSpawn(pControlledSpawn, pSpawn);
+		Dest.Float = EstimatedDistanceToSpawn(pControlledPlayer, pSpawn);
 		Dest.Type = pFloatType;
 		return true;
 
 	case SpawnMembers::DistanceW:
 	case SpawnMembers::DistanceX:
-		Dest.Float = (float)fabs(pControlledSpawn->X - pSpawn->X);
+		Dest.Float = (float)fabs(pControlledPlayer->X - pSpawn->X);
 		Dest.Type = pFloatType;
 		return true;
 
 	case SpawnMembers::DistanceN:
 	case SpawnMembers::DistanceY:
-		Dest.Float = (float)fabs(pControlledSpawn->Y - pSpawn->Y);
+		Dest.Float = (float)fabs(pControlledPlayer->Y - pSpawn->Y);
 		Dest.Type = pFloatType;
 		return true;
 
 	case SpawnMembers::DistanceU:
 	case SpawnMembers::DistanceZ:
-		Dest.Float = (float)fabs(pControlledSpawn->Z - pSpawn->Z);
+		Dest.Float = (float)fabs(pControlledPlayer->Z - pSpawn->Z);
 		Dest.Type = pFloatType;
 		return true;
 
 	case SpawnMembers::HeadingTo:
-		Dest.Float = (float)(atan2f(pControlledSpawn->Y - pSpawn->Y, pSpawn->X - pControlledSpawn->X) * 180.0f / PI + 90.0f);
+		Dest.Float = (float)(atan2f(pControlledPlayer->Y - pSpawn->Y, pSpawn->X - pControlledPlayer->X) * 180.0f / PI + 90.0f);
 		if (Dest.Float < 0.0f)
 			Dest.Float += 360.0f;
 		else if (Dest.Float >= 360.0f)
@@ -992,7 +985,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		return true;
 
 	case SpawnMembers::NearestSpawn:
-		if (pSpawn == pControlledSpawn)
+		if (pSpawn == pControlledPlayer)
 		{
 			return (dataNearestSpawn(Index, Dest) != 0); // use top-level object if it's you
 		}
@@ -1144,7 +1137,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		return true;
 
 	case SpawnMembers::LineOfSight:
-		Dest.Set(pCharSpawn->CanSee(*pPlayerClient));
+		Dest.Set(pControlledPlayer->CanSee(*pSpawn));
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1174,7 +1167,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		return false;
 
 	case SpawnMembers::Fleeing:
-		Dest.Set(IsMobFleeing(GetCharInfo()->pSpawn, pSpawn));
+		Dest.Set(IsMobFleeing(pLocalPlayer, pSpawn));
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1265,7 +1258,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 
 			DataTypeTemp[pos] = 0;
 
-			if (SPAWNINFO* pOwner = (SPAWNINFO*)GetSpawnByName(DataTypeTemp))
+			if (SPAWNINFO* pOwner = GetSpawnByName(DataTypeTemp))
 			{
 				Dest = MakeTypeVar(pOwner);
 				return true;
@@ -1342,7 +1335,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		sv3.X = pSpawn->Y;
 		sv3.Y = pSpawn->X;
 		sv3.Z = pSpawn->Z;
-		Dest.Set(pCharSpawn->CanSee(sv3));
+		Dest.Set(pControlledPlayer->CanSee(sv3));
 		Dest.Type = pBoolType;
 		return true;
 	}
@@ -1624,15 +1617,14 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		if (!Index[0] || (Index[0] && IsNumber(Index)))
 		{
 			Dest.HighPart = GetCachedBuffAt(pTarget, Index[0] ? GetIntFromString(Index, 0) - 1 : 0,
-				[](const CachedBuff& buff) { return GetCharInfo() && ci_equals(GetCharInfo()->Name, buff.casterName); });
+				[](const CachedBuff& buff) { return ci_equals(pCharData->Name, buff.casterName); });
 		}
 		else
 		{
 			Dest.HighPart = GetCachedBuff(pTarget,
 				[&Index](const CachedBuff& buff)
 				{
-					return GetCharInfo()
-						&& ci_equals(GetCharInfo()->Name, buff.casterName)
+					return ci_equals(pCharData->Name, buff.casterName)
 						&& ci_starts_with(GetSpellNameByID(buff.spellId), Index);
 				});
 		}
@@ -1648,7 +1640,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		Dest.Type = pIntType;
 		Dest.DWord = GetCachedBuffCount(pTarget, [](const CachedBuff& buff)
 			{
-				return GetCharInfo() && ci_equals(GetCharInfo()->Name, buff.casterName);
+				return ci_equals(pCharData->Name, buff.casterName);
 			});
 		return true;
 
@@ -1691,7 +1683,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		if (!Index[0] || (Index[0] && IsNumber(Index)))
 		{
 			auto slot = GetCachedBuffAt(pTarget, Index[0] ? GetIntFromString(Index, 0) - 1 : 0,
-				[](const CachedBuff& buff) { return GetCharInfo() && ci_equals(GetCharInfo()->Name, buff.casterName); });
+				[](const CachedBuff& buff) { return ci_equals(pCharData->Name, buff.casterName); });
 
 			if (slot < 0)
 				return false;
@@ -1708,8 +1700,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 			auto buffs = FilterCachedBuffs(pTarget,
 				[&Index](const CachedBuff& buff)
 				{
-					return GetCharInfo()
-						&& ci_equals(GetCharInfo()->Name, buff.casterName)
+					return ci_equals(pCharData->Name, buff.casterName)
 						&& ci_starts_with(GetSpellNameByID(buff.spellId), Index);
 				});
 
@@ -1730,7 +1721,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 
 bool MQ2SpawnType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	SPAWNINFO* pSpawn = static_cast<SPAWNINFO*>(GetSpawnPtr(VarPtr));
+	SPAWNINFO* pSpawn = GetSpawnPtr(VarPtr);
 	if (!pSpawn)
 		return false;
 
@@ -1742,7 +1733,7 @@ bool MQ2SpawnType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.IsType(MQVarPtr::VariantIdx::UInt64))
 	{
-		SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(Source.Get<int>());
+		SPAWNINFO* pOther = GetSpawnByID(Source.Get<int>());
 		VarPtr = MakeVarPtr(pOther);
 		return true;
 	}
@@ -1755,7 +1746,7 @@ bool MQ2SpawnType::FromString(MQVarPtr& VarPtr, const char* Source)
 	int spawnID = GetIntFromString(Source, -1);
 	if (spawnID >= 0)
 	{
-		SPAWNINFO* pOther = (SPAWNINFO*)GetSpawnByID(spawnID);
+		SPAWNINFO* pOther = GetSpawnByID(spawnID);
 		VarPtr = MakeVarPtr(pOther);
 		return true;
 	}
@@ -1769,7 +1760,7 @@ bool MQ2SpawnType::dataSpawn(const char* szIndex, MQTypeVar& Ret)
 	{
 		if (IsNumber(szIndex))
 		{
-			if (SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByID(GetIntFromString(szIndex, 0)))
+			if (SPAWNINFO* pSpawn = GetSpawnByID(GetIntFromString(szIndex, 0)))
 			{
 				Ret = pSpawnType->MakeTypeVar(pSpawn);
 				return true;
@@ -1781,7 +1772,7 @@ bool MQ2SpawnType::dataSpawn(const char* szIndex, MQTypeVar& Ret)
 			MQSpawnSearch ssSpawn;
 			ClearSearchSpawn(&ssSpawn);
 			ParseSearchSpawn(szIndex, &ssSpawn);
-			if (SPAWNINFO* pSearchSpawn = SearchThroughSpawns(&ssSpawn, (SPAWNINFO*)pCharSpawn))
+			if (SPAWNINFO* pSearchSpawn = SearchThroughSpawns(&ssSpawn, pControlledPlayer))
 			{
 				Ret = pSpawnType->MakeTypeVar(pSearchSpawn);
 				return true;
@@ -1800,7 +1791,7 @@ bool MQ2SpawnType::dataSpawnCount(const char* szIndex, MQTypeVar& Ret)
 		MQSpawnSearch ssSpawn;
 		ClearSearchSpawn(&ssSpawn);
 		ParseSearchSpawn(szIndex, &ssSpawn);
-		Ret.DWord = CountMatchingSpawns(&ssSpawn, GetCharInfo()->pSpawn, true);
+		Ret.DWord = CountMatchingSpawns(&ssSpawn, pLocalPlayer, true);
 		Ret.Type = pIntType;
 		return true;
 	}
@@ -1906,7 +1897,7 @@ bool MQ2SpawnType::dataNearestSpawn(const char* szIndex, MQTypeVar& Ret)
 					return false;
 			}
 
-			if (SpawnMatchesSearch(&ssSpawn, (SPAWNINFO*)pCharSpawn, spawnItem.GetSpawn()))
+			if (SpawnMatchesSearch(&ssSpawn, pControlledPlayer, spawnItem.GetSpawn()))
 			{
 				if (--nth == 0)
 				{

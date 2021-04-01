@@ -320,7 +320,6 @@ bool MQ2GroundType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 
 bool MQ2GroundType::dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 {
-	SPAWNINFO* pSpawn = (SPAWNINFO*)pLocalPlayer;
 	if (szIndex[0])
 	{
 		auto idx = GetIntFromString(szIndex, 0) - 1;

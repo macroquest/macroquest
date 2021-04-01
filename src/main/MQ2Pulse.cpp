@@ -67,15 +67,14 @@ static void ProcessQueuedEvents()
 
 static bool DoNextCommand(MQMacroBlockPtr pBlock)
 {
-	if (!pCharSpawn)
+	if (!pControlledPlayer || !pCharData)
 		return false;
 
 	SPAWNINFO* pCharOrMount = nullptr;
-	CHARINFO* pCharInfo = GetCharInfo();
-	SPAWNINFO* pChar = pCharOrMount = pCharSpawn;
+	SPAWNINFO* pChar = pCharOrMount = pControlledPlayer;
 
-	if (pCharInfo && pCharInfo->pSpawn)
-		pChar = pCharInfo->pSpawn;
+	if (pLocalPlayer)
+		pChar = pLocalPlayer;
 	if (!pChar)
 		return false;
 
@@ -92,7 +91,7 @@ static bool DoNextCommand(MQMacroBlockPtr pBlock)
 		char szCond[MAX_STRING];
 		strcpy_s(szCond, gDelayCondition);
 
-		ParseMacroParameter(GetCharInfo()->pSpawn, szCond);
+		ParseMacroParameter(pLocalPlayer, szCond);
 
 		double Result;
 		if (!Calculate(szCond, Result))
@@ -287,8 +286,6 @@ static void CheckGameState()
 	{
 		if (!pCharData)
 			SPDLOG_ERROR("InGame with no pCharData");
-		if (!pPCData)
-			SPDLOG_ERROR("InGame with no pPCData");
 
 		if (pCharData)
 		{
@@ -297,8 +294,6 @@ static void CheckGameState()
 					(void*)pCharData->me, (void*)pLocalPlayer.get());
 		}
 
-		if (!pCharSpawn)
-			SPDLOG_ERROR("InGame with no pCharSpawn");
 		if (!pControlledPlayer)
 			SPDLOG_ERROR("InGame with no pControlledPlayer");
 		if (!pLocalPlayer)
@@ -320,11 +315,6 @@ static void CheckGameState()
 			SPDLOG_ERROR("At CharSelect with pCharData->me ({} {})", (void*)pCharData->me, pCharData->me->Name);
 		}
 
-		if (!pPCData)
-			SPDLOG_ERROR("At CharSelect without pPCData ({})", (void*)pPCData.get());
-
-		if (!pCharSpawn)
-			SPDLOG_ERROR("At CharSelect without pCharSpawn");
 		if (!pLocalPlayer)
 			SPDLOG_ERROR("At CharSelect without pLocalPlayer");
 		if (!pControlledPlayer)
@@ -338,16 +328,6 @@ static void CheckGameState()
 			SPDLOG_ERROR("At CharSelect without gbInZone");
 	}
 
-	if (pCharData.get() != pPCData.get())
-		SPDLOG_ERROR("pCharData is different than pPCData");
-
-	if (pCharSpawn.get() != pControlledPlayer.get())
-	{
-		SPDLOG_ERROR("pCharSpawn ({} {}) is different than pControlledPlayer ({} {})",
-			(void*)pCharSpawn.get(), pCharSpawn ? pCharSpawn->Name : "<null>",
-			(void*)pControlledPlayer.get(), pControlledPlayer ? pControlledPlayer->Name : "<null>");
-	}
-
 	if (pCharData)
 	{
 		if (pCharData->ProfileManager.GetCurrentProfile() == nullptr)
@@ -355,19 +335,17 @@ static void CheckGameState()
 	}
 	else if (pLocalPlayer)
 	{
-		SPDLOG_ERROR("pCharSpawn exists but pLocalPlayer doesn't");
+		SPDLOG_ERROR("pLocalPlayer exists but pCharData doesn't");
 	}
 
-	if (pLocalPlayer && (!pCharSpawn || !pControlledPlayer))
+	if (pLocalPlayer && !pControlledPlayer)
 	{
-		SPDLOG_ERROR("pLocalPlayer ({}) exists but no pCharSpawn ({}) or pControlledPlayer ({})",
-			(void*)pLocalPlayer.get(), (void*)pCharSpawn.get(), (void*)pControlledPlayer.get());
+		SPDLOG_ERROR("pLocalPlayer ({}) exists but no pControlledPlayer ({})",
+			(void*)pLocalPlayer.get(), (void*)pControlledPlayer.get());
 	}
 
 	// Check for changes.
 	static PcClient* OldCharData = nullptr;
-	static PcClient* OldPcData = nullptr;
-	static PlayerClient* OldCharSpawn = nullptr;
 	static PlayerClient* OldControlledPlayer = nullptr;
 	static PlayerClient* OldLocalPlayer = nullptr;
 
@@ -375,11 +353,7 @@ static void CheckGameState()
 
 	if (test_and_set(OldCharData, pCharData.get()))
 		SPDLOG_INFO("pCharData Changed: {}", (void*)pCharData.get());
-	if (test_and_set(OldPcData, pPCData.get()))
-		SPDLOG_INFO("pPCData Changed: {}", (void*)pPCData.get());
 
-	if (test_and_set(OldCharSpawn, pCharSpawn.get()))
-		SPDLOG_INFO("pCharSpawn Changed: {} {}", (void*)pCharSpawn.get(), pCharSpawn ? pCharSpawn->Name : "<null>");
 	if (test_and_set(OldControlledPlayer, pControlledPlayer.get()))
 		SPDLOG_INFO("pControlledPlayer Changed: {} {}", (void*)pControlledPlayer.get(), pControlledPlayer ? pControlledPlayer->Name : "<null>");
 	if (test_and_set(OldLocalPlayer, pLocalPlayer.get()))
@@ -403,19 +377,18 @@ static void Pulse()
 
 	//CheckGameState();
 
-	if (!pCharSpawn) return;
+	if (!pControlledPlayer) return;
 
 	SPAWNINFO* pCharOrMount = nullptr;
-	CHARINFO* pCharInfo = GetCharInfo();
 	PcProfile* pProfile = GetPcProfile();
-	SPAWNINFO* pChar = pCharOrMount = (SPAWNINFO*)pCharSpawn;
+	SPAWNINFO* pChar = pCharOrMount = pControlledPlayer;
 
 	// Drop out here if we're waiting for something.
 	if (!pChar || gZoning) return;
-	if (!pCharInfo) return;
+	if (!pCharData) return;
 
-	if (pCharInfo && pCharInfo->pSpawn)
-		pChar = pCharInfo->pSpawn;
+	if (pLocalPlayer)
+		pChar = pLocalPlayer;
 
 	static int16_t LastZone = -1;
 	static SPAWNINFO* pCharOld = nullptr;
@@ -469,7 +442,7 @@ static void Pulse()
 	if (pMerchantWnd && !pMerchantWnd->IsVisible())
 		gItemsReceived = false;
 
-	if (gbDoAutoRun && pChar && pCharInfo)
+	if (gbDoAutoRun && pChar && pCharData)
 	{
 		gbDoAutoRun = false;
 
@@ -486,7 +459,7 @@ static void Pulse()
 		szAutoRun[0] = 0;
 		pAutoRun = szAutoRun;
 		char szServerAndName[128] = { 0 };
-		sprintf_s(szServerAndName, "%s.%s", EQADDR_SERVERNAME, pCharInfo->Name);
+		sprintf_s(szServerAndName, "%s.%s", EQADDR_SERVERNAME, pCharData->Name);
 		GetPrivateProfileString("AutoRun", szServerAndName, "", szAutoRun, MAX_STRING, mq::internal_paths::MQini);
 		while (pAutoRun[0] == ' ' || pAutoRun[0] == '\t') pAutoRun++;
 		if (szAutoRun[0] != 0)

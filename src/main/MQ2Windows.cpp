@@ -402,11 +402,11 @@ bool IsXMLFilePresent(const char* filename)
 		return true;
 
 	// check current ui
-	if (CHARINFO* pCharInfo = GetCharInfo())
+	if (pCharData)
 	{
 		char UISkin[256] = { 0 };
 
-		sprintf_s(szFilename, "%s\\UI_%s_%s.ini", mq::internal_paths::EverQuest.c_str(), pCharInfo->Name, EQADDR_SERVERNAME);
+		sprintf_s(szFilename, "%s\\UI_%s_%s.ini", mq::internal_paths::EverQuest.c_str(), pCharData->Name, EQADDR_SERVERNAME);
 		GetPrivateProfileString("Main", "UISkin", "default", UISkin, 256, szFilename);
 
 		sprintf_s(szFilename, "uifiles\\%s\\%s", UISkin, filename);
@@ -525,7 +525,7 @@ CXWnd* FindMQ2Window(const char* Name)
 			int nPack = GetIntFromString(&WindowName[4], 0) - 1;
 			if (nPack >= 0 && nPack < GetAvailableBankSlots())
 			{
-				pPack = pPCData->BankItems.GetItem(nPack - 1);
+				pPack = pCharData->BankItems.GetItem(nPack - 1);
 			}
 		}
 		else if (ci_starts_with(WindowName, "pack"))

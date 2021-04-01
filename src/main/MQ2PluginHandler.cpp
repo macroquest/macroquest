@@ -249,7 +249,7 @@ int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
 	// init spawns
 	if (pPlugin->AddSpawn && GetGameState() == GAMESTATE_INGAME)
 	{
-		SPAWNINFO* pSpawn = (SPAWNINFO*)pSpawnList;
+		SPAWNINFO* pSpawn = pSpawnList;
 		while (pSpawn)
 		{
 			pPlugin->AddSpawn(pSpawn);
@@ -622,11 +622,11 @@ void PluginsSetGameState(DWORD GameState)
 
 			DebugSpew("PluginsSetGameState(%s server)", EQADDR_SERVERNAME);
 
-			if (CHARINFO* pCharInfo = GetCharInfo())
+			if (pCharData)
 			{
-				DebugSpew("PluginsSetGameState(%s name)", pCharInfo->Name);
+				DebugSpew("PluginsSetGameState(%s name)", pCharData->Name);
 
-				sprintf_s(szBuffer, "%s_%s", EQADDR_SERVERNAME, pCharInfo->Name);
+				sprintf_s(szBuffer, "%s_%s", EQADDR_SERVERNAME, pCharData->Name);
 				LoadCfgFile(szBuffer, false);
 			}
 

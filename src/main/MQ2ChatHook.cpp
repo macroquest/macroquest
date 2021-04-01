@@ -141,9 +141,9 @@ unsigned int CALLBACK MQ2DataVariableLookup(char* VarName, char* Value, size_t V
 {
 	strcpy_s(Value, ValueLen, VarName);
 
-	if (CHARINFO* pChar = GetCharInfo())
+	if (pLocalPlayer)
 	{
-		return strlen(ParseMacroParameter(pChar->pSpawn, Value, ValueLen));
+		return strlen(ParseMacroParameter(pLocalPlayer, Value, ValueLen));
 	}
 
 	return strlen(Value);

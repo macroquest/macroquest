@@ -96,15 +96,9 @@ bool MQ2CurrentZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		return true;
 
 	case CurrentZoneMembers::ID:
-		Dest.Int = 0;
+		Dest.Int = pCharData ? (pCharData->zoneId & 0x7FFF) : 0;
 		Dest.Type = pIntType;
-		if (CHARINFO* pChar = GetCharInfo())
-		{
-			Dest.Int = (pChar->zoneId & 0x7FFF);
-			Dest.Type = pIntType;
-			return true;
-		}
-		return false;
+		return true;
 
 	case CurrentZoneMembers::Name:
 		strcpy_s(DataTypeTemp, pCurrentZone->LongName);

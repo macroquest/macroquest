@@ -271,7 +271,7 @@ void SetAssist(BYTE* address)
 	{
 		if (DWORD Assistee = *(DWORD*)address)
 		{
-			if (SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByID(Assistee))
+			if (SPAWNINFO* pSpawn = GetSpawnByID(Assistee))
 			{
 				bExpectTarget = true;
 				gbAssistComplete = AS_AssistSent;

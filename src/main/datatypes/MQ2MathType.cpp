@@ -243,9 +243,9 @@ bool MQ2MathType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		{
 			float P1[3];
 			float P2[3];
-			P1[0] = P2[0] = ((SPAWNINFO*)pCharSpawn)->Y;
-			P1[1] = P2[1] = ((SPAWNINFO*)pCharSpawn)->X;
-			P1[2] = P2[2] = ((SPAWNINFO*)pCharSpawn)->Z;
+			P1[0] = P2[0] = pControlledPlayer->Y;
+			P1[1] = P2[1] = pControlledPlayer->X;
+			P1[2] = P2[2] = pControlledPlayer->Z;
 
 			if (char* pColon = strchr(Index, ':'))
 			{

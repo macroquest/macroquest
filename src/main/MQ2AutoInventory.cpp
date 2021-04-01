@@ -181,7 +181,7 @@ public:
 
 							list->SetItemWnd(i, MarkCol, pCheck);
 
-							if (ItemGlobalIndex* gi = (ItemGlobalIndex*)pFIWnd->gi[(int)pCheck->GetData()])
+							if (ItemGlobalIndex* gi = pFIWnd->gi[(int)pCheck->GetData()])
 							{
 								if (ItemPtr ptr = pCharData->GetItemByGlobalIndex(*gi))
 								{
@@ -1206,8 +1206,7 @@ void RemoveAutoBankMenu()
 
 static void AutoBankPulse()
 {
-	CHARINFO* pCharInfo = GetCharInfo();
-	if (!pCharInfo)
+	if (!pCharData)
 		return;
 	PcProfile* pProfile = GetPcProfile();
 
@@ -1345,7 +1344,7 @@ static void AutoBankPulse()
 
 		if (gAutoInventoryList.empty() && (gbAutoBankTradeSkillItems || gbAutoBankCollectibleItems || gbAutoBankQuestItems))
 		{
-			pCharInfo->BankItems.VisitContainers(
+			pCharData->BankItems.VisitContainers(
 				[&](const ItemPtr& pItem, const ItemIndex& index)
 			{
 				// dont add bags that have items inside of them.

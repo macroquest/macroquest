@@ -45,9 +45,9 @@ static void LogToFile(const char* szOutput)
 
 #ifdef DBG_CHARNAME
 	char Name[256] = "Unknown";
-	if (CHARINFO* pCharInfo = GetCharInfo())
+	if (pCharData)
 	{
-		strcpy_s(Name, pCharInfo->Name);
+		strcpy_s(Name, pCharData->Name);
 	}
 	fprintf(fOut, "%s - ", Name);
 #endif
@@ -265,7 +265,7 @@ void MacroError(const char* szFormat, ...)
 			DumpStack(nullptr, nullptr);
 
 		if (bAllErrorsFatal)
-			EndMacro((SPAWNINFO*)pLocalPlayer, "");
+			EndMacro(pLocalPlayer, "");
 	}
 }
 
@@ -289,7 +289,7 @@ void FatalError(const char* szFormat, ...)
 	if (gMacroBlock)
 	{
 		DumpStack(nullptr, nullptr);
-		EndMacro((SPAWNINFO*)pLocalPlayer, "");
+		EndMacro(pLocalPlayer, "");
 	}
 }
 
@@ -319,7 +319,7 @@ void MQ2DataError(char* szFormat, ...)
 			DumpStack(nullptr, nullptr);
 
 		if (bAllErrorsFatal)
-			EndMacro((SPAWNINFO*)pLocalPlayer, "");
+			EndMacro(pLocalPlayer, "");
 	}
 }
 
@@ -1330,12 +1330,7 @@ ALTABILITY* GetAAByIdWrapper(int nAbilityId, int playerLevel)
 
 SPELL* GetSpellByAAName(const char* szName)
 {
-	int level = -1;
-
-	if (SPAWNINFO* pMe = (SPAWNINFO*)pLocalPlayer)
-	{
-		level = pMe->Level;
-	}
+	int level = pLocalPlayer ? pLocalPlayer->Level : -1;
 
 	for (int nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++)
 	{
@@ -1463,11 +1458,10 @@ float EstimatedDistanceToSpawn(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
 // ***************************************************************************
 int ConColor(SPAWNINFO* pSpawn)
 {
-	SPAWNINFO* pChar = (SPAWNINFO*)pLocalPlayer;
-	if (!pChar)
-		return CONCOLOR_WHITE; // its you
+	if (!pLocalPlayer || !pCharData || !pSpawn)
+		return CONCOLOR_WHITE;
 
-	switch (pCharData->GetConLevel((PlayerClient*)pSpawn))
+	switch (pCharData->GetConLevel(pSpawn))
 	{
 	case 0:
 	case 1:
@@ -1741,10 +1735,10 @@ void ClearSearchSpawn(MQSpawnSearch* pSearchSpawn)
 
 	*pSearchSpawn = MQSpawnSearch();
 
-	if (pCharSpawn)
-		pSearchSpawn->zLoc = ((SPAWNINFO*)pCharSpawn)->Z;
+	if (pControlledPlayer)
+		pSearchSpawn->zLoc = pControlledPlayer->Z;
 	else if (pLocalPlayer)
-		pSearchSpawn->zLoc = ((SPAWNINFO*)pLocalPlayer)->Z;
+		pSearchSpawn->zLoc = pLocalPlayer->Z;
 }
 
 // ***************************************************************************
@@ -1985,7 +1979,7 @@ bool LoadCfgFile(const char* Filename, bool Delayed)
 				char* Cmd = strtok_s(szBuffer, "\r\n", &Next_Token1);
 				if (Cmd && Cmd[0] && Cmd[0] != ';')
 				{
-					HideDoCommand(((SPAWNINFO*)pLocalPlayer), Cmd, Delayed);
+					HideDoCommand(pLocalPlayer, Cmd, Delayed);
 				}
 			}
 
@@ -2486,7 +2480,7 @@ bool PlayerHasAAAbility(int AAIndex)
 {
 	for (int i = 0; i < AA_CHAR_MAX_REAL; i++)
 	{
-		if (pPCData->GetAlternateAbilityId(i) == AAIndex)
+		if (pCharData->GetAlternateAbilityId(i) == AAIndex)
 			return true;
 	}
 	return false;
@@ -2514,16 +2508,12 @@ const char* GetAANameByIndex(int AAIndex)
 
 int GetAAIndexByName(const char* AAName)
 {
-	int level = -1;
-	if (SPAWNINFO* pMe = (SPAWNINFO*)pLocalPlayer)
-	{
-		level = pMe->Level;
-	}
+	int level = pLocalPlayer ? pLocalPlayer->Level : -1;
 
 	// check bought aa's first
 	for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 	{
-		if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level))
+		if (ALTABILITY* pAbility = GetAAByIdWrapper(pCharData->GetAlternateAbilityId(nAbility), level))
 		{
 			if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
 			{
@@ -2558,7 +2548,7 @@ int GetAAIndexByID(int ID)
 	// check our bought aa's first
 	for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 	{
-		if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility)))
+		if (ALTABILITY* pAbility = GetAAByIdWrapper(pCharData->GetAlternateAbilityId(nAbility)))
 		{
 			if (pAbility->ID == ID)
 			{
@@ -2584,12 +2574,7 @@ int GetAAIndexByID(int ID)
 
 bool IsPCNear(SPAWNINFO* pSpawn, float Radius)
 {
-	SPAWNINFO* pClose = nullptr;
-	if (pSpawnManager && pSpawnList)
-	{
-		pClose = (SPAWNINFO*)pSpawnList;
-	}
-
+	SPAWNINFO* pClose = pSpawnList;
 	while (pClose)
 	{
 		if (!IsInGroup(pClose) && (pClose->Type == SPAWN_PLAYER))
@@ -2644,8 +2629,7 @@ bool IsInRaid(SPAWNINFO* pSpawn, bool bCorpse)
 {
 	if (pSpawn == nullptr)
 		return false;
-
-	if (pSpawn == GetCharInfo()->pSpawn)
+	if (pSpawn == pLocalPlayer)
 		return true;
 
 	size_t l = strlen(pSpawn->Name);
@@ -2683,33 +2667,30 @@ bool IsInFellowship(SPAWNINFO* pSpawn, bool bCorpse)
 	if (pSpawn == nullptr)
 		return false;
 
-	if (CHARINFO* pChar = GetCharInfo())
+	if (!pLocalPlayer)
+		return false;
+
+	SFellowship& Fellowship = pLocalPlayer->Fellowship;
+
+	for (int i = 0; i < Fellowship.Members; i++)
 	{
-		if (!pChar->pSpawn)
-			return false;
-
-		SFellowship& Fellowship = pChar->pSpawn->Fellowship;
-
-		for (int i = 0; i < Fellowship.Members; i++)
+		if (!bCorpse)
 		{
-			if (!bCorpse)
+			if (!_stricmp(Fellowship.FellowshipMember[i].Name, pSpawn->Name))
 			{
-				if (!_stricmp(Fellowship.FellowshipMember[i].Name, pSpawn->Name))
-				{
-					return true;
-				}
+				return true;
 			}
-			else
-			{
-				char szSearch[256] = { 0 };
-				strcpy_s(szSearch, Fellowship.FellowshipMember[i].Name);
-				strcat_s(szSearch, "'s corpse");
+		}
+		else
+		{
+			char szSearch[256] = { 0 };
+			strcpy_s(szSearch, Fellowship.FellowshipMember[i].Name);
+			strcat_s(szSearch, "'s corpse");
 
-				if (!_strnicmp(szSearch, pSpawn->Name, strlen(szSearch))
-					&& Fellowship.FellowshipMember[i].Class == pSpawn->mActorClient.Class)
-				{
-					return true;
-				}
+			if (!_strnicmp(szSearch, pSpawn->Name, strlen(szSearch))
+				&& Fellowship.FellowshipMember[i].Class == pSpawn->mActorClient.Class)
+			{
+				return true;
 			}
 		}
 	}
@@ -3027,7 +3008,7 @@ int CountMatchingSpawns(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pOrigin, bool In
 		return 0;
 
 	int TotalMatching = 0;
-	SPAWNINFO* pSpawn = (SPAWNINFO*)pSpawnList;
+	SPAWNINFO* pSpawn = pSpawnList;
 
 	if (IncludeOrigin)
 	{
@@ -3061,7 +3042,7 @@ SPAWNINFO* SearchThroughSpawns(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar)
 
 	if (pSearchSpawn->FromSpawnID > 0 && (pSearchSpawn->bTargNext || pSearchSpawn->bTargPrev))
 	{
-		pFromSpawn = (SPAWNINFO*)GetSpawnByID(pSearchSpawn->FromSpawnID);
+		pFromSpawn = GetSpawnByID(pSearchSpawn->FromSpawnID);
 		if (!pFromSpawn) return nullptr;
 		for (int index = 0; index < (int)gSpawnsArray.size(); index++)
 		{
@@ -3223,14 +3204,14 @@ bool SearchSpawnMatchesSearchSpawn(MQSpawnSearch* pSearchSpawn1, MQSpawnSearch* 
 
 bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO* pSpawn)
 {
-	if (pSearchSpawn == nullptr || pChar == nullptr || pSpawn == nullptr)
+	if (pSearchSpawn == nullptr || pChar == nullptr || pSpawn == nullptr || !pCharData)
 		return false;
 
 	eSpawnType SpawnType = GetSpawnType(pSpawn);
 
 	if (SpawnType == PET && (pSearchSpawn->SpawnType == PCPET || pSearchSpawn->SpawnType == NPCPET))
 	{
-		if (SPAWNINFO* pTheMaster = (SPAWNINFO*)GetSpawnByID(pSpawn->MasterID))
+		if (SPAWNINFO* pTheMaster = GetSpawnByID(pSpawn->MasterID))
 		{
 			if (pTheMaster != nullptr)
 			{
@@ -3468,7 +3449,7 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 		return false;
 	if (pSearchSpawn->szRace[0] && _stricmp(pSearchSpawn->szRace, pEverQuest->GetRaceDesc(pSpawn->mActorClient.Race)))
 		return false;
-	if (pSearchSpawn->bLoS && !pCharSpawn->CanSee(*(PlayerClient*)pSpawn))
+	if (pSearchSpawn->bLoS && !pControlledPlayer->CanSee(*pSpawn))
 		return false;
 	if (pSearchSpawn->bTargetable && !IsTargetable(pSpawn))
 		return false;
@@ -3690,7 +3671,7 @@ const char* ParseSearchSpawnArgs(char* szArg, const char* szRest, MQSpawnSearch*
 			pSearchSpawn->zLoc = GetFloatFromString(szArg, 0);
 			if (pSearchSpawn->zLoc == 0.0)
 			{
-				pSearchSpawn->zLoc = ((SPAWNINFO*)pCharSpawn)->Z;
+				pSearchSpawn->zLoc = pControlledPlayer->Z;
 				szRest = GetNextArg(szRest, 2);
 			}
 			else
@@ -3755,7 +3736,7 @@ const char* ParseSearchSpawnArgs(char* szArg, const char* szRest, MQSpawnSearch*
 		}
 		else if (!_stricmp(szArg, "guild"))
 		{
-			pSearchSpawn->GuildID = GetCharInfo()->GuildID;
+			pSearchSpawn->GuildID = pCharData->GuildID;
 		}
 		else if (!_stricmp(szArg, "guildname"))
 		{
@@ -3768,9 +3749,9 @@ const char* ParseSearchSpawnArgs(char* szArg, const char* szRest, MQSpawnSearch*
 				pSearchSpawn->GuildID = GuildID;
 				szRest = GetNextArg(szRest, 1);
 			}
-			else if (SPAWNINFO* pSpawn = pLocalPlayer)
+			else if (pLocalPlayer)
 			{
-				GuildID = pSpawn->GuildID;
+				GuildID = pLocalPlayer->GuildID;
 			}
 		}
 		else if (!_stricmp(szArg, "alert"))
@@ -4261,8 +4242,8 @@ void SuperWhoDisplay(SPAWNINFO* pSpawn, DWORD Color)
 
 	if (gFilterSWho.Distance)
 	{
-		int Angle = static_cast<int>((atan2f(GetCharInfo()->pSpawn->X - pSpawn->X, GetCharInfo()->pSpawn->Y - pSpawn->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
-		sprintf_s(szTemp, " \a-u(\ax%1.2f %s\a-u,\ax %1.2fZ\a-u)\ax", GetDistance(GetCharInfo()->pSpawn, pSpawn), szHeadingShort[Angle], pSpawn->Z - GetCharInfo()->pSpawn->Z);
+		int Angle = static_cast<int>((atan2f(pLocalPlayer->X - pSpawn->X, pLocalPlayer->Y - pSpawn->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
+		sprintf_s(szTemp, " \a-u(\ax%1.2f %s\a-u,\ax %1.2fZ\a-u)\ax", GetDistance(pLocalPlayer, pSpawn), szHeadingShort[Angle], pSpawn->Z - pLocalPlayer->Z);
 		strcat_s(szMsg, szTemp);
 	}
 
@@ -4384,11 +4365,11 @@ void SuperWhoDisplay(SPAWNINFO* pChar, MQSpawnSearch* pSearchSpawn, DWORD Color)
 
 	std::vector<SPAWNINFO*> SpawnSet;
 
-	SPAWNINFO* pSpawn = (SPAWNINFO*)pSpawnList;
+	SPAWNINFO* pSpawn = pSpawnList;
 	SPAWNINFO* pOrigin = nullptr;
 
 	if (pSearchSpawn->FromSpawnID)
-		pOrigin = (SPAWNINFO*)GetSpawnByID(pSearchSpawn->FromSpawnID);
+		pOrigin = GetSpawnByID(pSearchSpawn->FromSpawnID);
 	if (!pOrigin)
 		pOrigin = pChar;
 
@@ -4474,12 +4455,12 @@ void SuperWhoDisplay(SPAWNINFO* pChar, MQSpawnSearch* pSearchSpawn, DWORD Color)
 			break;
 		}
 
-		if (CHARINFO* pCharinf = GetCharInfo())
+		if (pCharData)
 		{
 			size_t count = SpawnSet.size();
 
 			WriteChatf("There %s \ag%d\ax %s%s in %s.",
-				(count == 1) ? "is" : "are", count, pszSpawnType, (count == 1) ? "" : "s", GetFullZone(pCharinf->zoneId));
+				(count == 1) ? "is" : "are", count, pszSpawnType, (count == 1) ? "" : "s", GetFullZone(pCharData->zoneId));
 		}
 	}
 	else
@@ -4554,7 +4535,7 @@ const char* GetLDoNTheme(int LDTheme)
 
 uint32_t GetItemTimer(ItemClient* pItem)
 {
-	uint32_t Timer = pPCData->GetItemRecastTimer(pItem, eActivatableSpell);
+	uint32_t Timer = pCharData->GetItemRecastTimer(pItem, eActivatableSpell);
 
 	if (Timer < GetFastTime())
 		return 0;
@@ -4610,7 +4591,8 @@ CXWnd* GetParentWnd(CXWnd* pWnd)
 
 bool LoH_HT_Ready()
 {
-	unsigned int i = ((SPAWNINFO*)pLocalPlayer)->SpellGemETA[InnateETA];
+	if (!pLocalPlayer) return false;
+	unsigned int i = pLocalPlayer->SpellGemETA[InnateETA];
 	unsigned int j = i - pDisplay->TimeStamp;
 	return i < j;
 }
@@ -4631,29 +4613,17 @@ int GetSkillIDFromName(const char* name)
 
 bool InHoverState()
 {
-	if (GetCharInfo() && GetCharInfo()->Stunned == 3)
-		return true;
-
-	return false;
+	return pCharData && pCharData->Stunned == 3;
 }
 
 int GetGameState()
 {
-	if (!pEverQuest)
-	{
-		return -1;
-	}
-
-	return ((EVERQUEST*)pEverQuest)->GameState;
+	return pEverQuest ? ((EVERQUEST*)pEverQuest)->GameState : -1;
 }
 
 int GetWorldState()
 {
-	if (!pEverQuest)
-	{
-		return -1;
-	}
-	return ((EVERQUEST*)pEverQuest)->WorldState;
+	return pEverQuest ? ((EVERQUEST*)pEverQuest)->WorldState : -1;
 }
 
 // ***************************************************************************
@@ -4748,18 +4718,13 @@ inline void StackingDebugLog(const char* string, Args&& ...args)
 // ***************************************************************************
 bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, bool bTriggeredEffectCheck)
 {
-	SPAWNINFO* pSpawn = (SPAWNINFO*)pLocalPlayer;
-	if (!pSpawn || !pSpawn->GetPcClient())
+	if (!pLocalPlayer)
 		return true;
 	if (GetGameState() != GAMESTATE_INGAME)
 		return true;
 	if (gZoning)
 		return true;
 	if (!aSpell || !bSpell)
-		return false;
-	if (IsBadReadPtr((void*)aSpell, 4))
-		return false;
-	if (IsBadReadPtr((void*)bSpell, 4))
 		return false;
 	if (aSpell->ID == bSpell->ID)
 		return true;
@@ -4937,10 +4902,10 @@ float GetMeleeRange(PlayerClient* pSpawn1, PlayerClient* pSpawn2)
 {
 	if (pSpawn1 && pSpawn2)
 	{
-		float f = ((SPAWNINFO*)pSpawn1)->GetMeleeRangeVar1 * ((SPAWNINFO*)pSpawn1)->MeleeRadius;
-		float g = ((SPAWNINFO*)pSpawn2)->GetMeleeRangeVar1 * ((SPAWNINFO*)pSpawn2)->MeleeRadius;
+		float f = pSpawn1->GetMeleeRangeVar1 * pSpawn1->MeleeRadius;
+		float g = pSpawn2->GetMeleeRangeVar1 * pSpawn2->MeleeRadius;
 
-		float h = abs(((SPAWNINFO*)pSpawn1)->AvatarHeight - ((SPAWNINFO*)pSpawn2)->AvatarHeight);
+		float h = abs(pSpawn1->AvatarHeight - pSpawn2->AvatarHeight);
 
 		f = (f + g) * 0.75f;
 
@@ -4980,12 +4945,12 @@ uint32_t GetSpellGemTimer2(int nGem)
 		if (SPELL* pSpell = GetSpellByID(memspell))
 		{
 			int ReuseTimerIndex = pSpell->ReuseTimerIndex;
-			unsigned int linkedtimer = ((PcZoneClient*)pPCData)->GetLinkedSpellReuseTimer(ReuseTimerIndex);
+			unsigned int linkedtimer = pCharData->GetLinkedSpellReuseTimer(ReuseTimerIndex);
 
 			__time32_t RecastTime = ReuseTimerIndex > 0 && ReuseTimerIndex < 25 ? linkedtimer : 0;
 			unsigned int RecastDuration = 0;
 			unsigned int LinkedDuration = 0;
-			unsigned int gemeta = ((SPAWNINFO*)pLocalPlayer)->SpellGemETA[nGem];
+			unsigned int gemeta = pLocalPlayer->SpellGemETA[nGem];
 			DWORD now = pDisplay->TimeStamp;
 			if (gemeta > now)
 			{
@@ -5008,7 +4973,7 @@ uint32_t GetSpellGemTimer2(int nGem)
 				if (RecastDuration > LinkedDuration)
 				{
 					ItemPtr pFocusItem;
-					int ReuseMod = pCharData->GetFocusReuseMod((EQ_Spell*)pSpell, pFocusItem);
+					int ReuseMod = pCharData->GetFocusReuseMod(pSpell, pFocusItem);
 					TotalDuration = pSpell->RecastTime - ReuseMod;
 				}
 				//do stuff
@@ -5091,11 +5056,10 @@ void UseAbility(const char* sAbility)
 
 	if (GetIntFromString(szBuffer, 0) || !EQADDR_DOABILITYLIST)
 	{
-		cmdDoAbility((SPAWNINFO*)pLocalPlayer, szBuffer);
+		cmdDoAbility(pLocalPlayer, szBuffer);
 		return;
 	}
 
-	SPAWNINFO* pChar = (SPAWNINFO*)pLocalPlayer;
 	int DoIndex = -1;
 
 	for (int Index = 0; Index < 10; Index++)
@@ -5119,7 +5083,7 @@ void UseAbility(const char* sAbility)
 	if (DoIndex != -1)
 	{
 		_itoa_s(DoIndex, szBuffer, 10);
-		cmdDoAbility(pChar, szBuffer);
+		cmdDoAbility(pLocalPlayer, szBuffer);
 	}
 	else
 	{
@@ -5152,7 +5116,7 @@ void UseAbility(const char* sAbility)
 // Pass expansion macros from EQData.h to it -- e.g. HasExpansion(EXPANSION_RoF)
 bool HasExpansion(int nExpansion)
 {
-	return (GetCharInfo()->ExpansionFlags & nExpansion) != 0;
+	return pCharData && (pCharData->ExpansionFlags & nExpansion) != 0;
 }
 
 int GetAvailableBagSlots()
@@ -5181,11 +5145,11 @@ void ListMercAltAbilities()
 {
 	if (pMercAltAbilities)
 	{
-		int mercaapoints = ((CHARINFO*)pCharData)->MercAAPoints;
+		int mercaapoints = pCharData->MercAAPoints;
 
 		for (int i = 0; i < MERC_ALT_ABILITY_COUNT; i++)
 		{
-			PEQMERCALTABILITIES pinfo = (PEQMERCALTABILITIES)pMercAltAbilities;
+			EQMERCALTABILITIES* pinfo = pMercAltAbilities;
 			if (pinfo->MercAAInfo[i])
 			{
 				if (pinfo->MercAAInfo[i]->Ptr)
@@ -5458,21 +5422,20 @@ int FindItemCountByID(int ItemID)
 template <typename T>
 static ItemClient* FindBankItem(T&& checkItem)
 {
-	CHARINFO* pCharInfo = GetCharInfo();
-	if (!pCharInfo) return nullptr;
+	if (!pCharData) return nullptr;
 
 	// Check bank slots
-	ItemIndex bankIndex = pCharInfo->BankItems.FindItem(checkItem);
+	ItemIndex bankIndex = pCharData->BankItems.FindItem(checkItem);
 	if (bankIndex.IsValid())
 	{
-		return pCharInfo->BankItems.GetItem(bankIndex).get();
+		return pCharData->BankItems.GetItem(bankIndex).get();
 	}
 
 	// Check shared bank slots
-	ItemIndex sharedBankIndex = pCharInfo->SharedBankItems.FindItem(checkItem);
+	ItemIndex sharedBankIndex = pCharData->SharedBankItems.FindItem(checkItem);
 	if (sharedBankIndex.IsValid())
 	{
-		return pCharInfo->SharedBankItems.GetItem(sharedBankIndex).get();
+		return pCharData->SharedBankItems.GetItem(sharedBankIndex).get();
 	}
 
 	return nullptr;
@@ -5493,14 +5456,13 @@ ItemClient* FindBankItemByID(int ItemID)
 template <typename T>
 int CountBankItems(T&& checkItem)
 {
-	CHARINFO* pCharInfo = GetCharInfo();
-	if (!pCharInfo) return 0;
+	if (!pCharData) return 0;
 
 	// Check bank slots
-	int count = CountContainerItems(pCharInfo->BankItems, -1, -1, checkItem);
+	int count = CountContainerItems(pCharData->BankItems, -1, -1, checkItem);
 
 	// Check shared bank slots
-	count += CountContainerItems(pCharInfo->SharedBankItems, -1, -1, checkItem);
+	count += CountContainerItems(pCharData->SharedBankItems, -1, -1, checkItem);
 
 	return count;
 }
@@ -5997,20 +5959,20 @@ int FindBuffID(std::string_view Name)
 
 void RemoveBuff(EQ_Affect* buff, int slot)
 {
-	if (pPCData)
+	if (pCharData)
 	{
 		ArrayClass<LaunchSpellData*> arr;
-		pPCData->RemovePCAffectex(buff, true, arr, 0, 0, 0);
+		pCharData->RemovePCAffectex(buff, true, arr, 0, 0, 0);
 
 		if (slot >= 0)
-			pPCData->NotifyPCAffectChange(slot, 1);
+			pCharData->NotifyPCAffectChange(slot, 1);
 	}
 }
 
 void RemoveBuffAt(int BuffID)
 {
 	if (BuffID >= 0 && pLocalPlayer)
-		pPCData->RemoveBuffEffect(BuffID, pLocalPlayer->SpawnID);
+		pCharData->RemoveBuffEffect(BuffID, pLocalPlayer->SpawnID);
 }
 
 void RemoveBuff(SPAWNINFO* pChar, char* szLine)
@@ -6034,7 +5996,7 @@ void RemoveBuff(SPAWNINFO* pChar, char* szLine)
 	if (szCmd != nullptr)
 	{
 		auto buff_id = FindBuffID(szCmd);
-		EQ_Affect* buff = &pPCData->GetEffect(buff_id);
+		EQ_Affect* buff = &pCharData->GetEffect(buff_id);
 		RemoveBuff(buff, buff_id);
 	}
 }
@@ -6050,7 +6012,7 @@ void RemovePetBuff(SPAWNINFO* pChar, char* szLine)
 		auto pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
 		if (pBuffSpell && MaybeExactCompare(pBuffSpell->Name, szLine))
 		{
-			pPCData->RemovePetEffect(nBuff);
+			pCharData->RemovePetEffect(nBuff);
 			return;
 		}
 	}
@@ -6171,15 +6133,11 @@ std::vector<MercDesc> GetAllMercDesc()
 
 bool IsActiveAA(const char* pSpellName)
 {
-	int level = -1;
-	if (SPAWNINFO* pMe = (SPAWNINFO*)pLocalPlayer)
-	{
-		level = pMe->Level;
-	}
+	int level = pLocalPlayer ? pLocalPlayer->Level : -1;
 
 	for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 	{
-		if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level))
+		if (ALTABILITY* pAbility = GetAAByIdWrapper(pCharData->GetAlternateAbilityId(nAbility), level))
 		{
 			if (!_stricmp(pSpellName, pCDBStr->GetString(pAbility->nName, eAltAbilityName)))
 			{
@@ -6581,13 +6539,11 @@ static bool WillItemFitInSlot(const ItemPtr& pItemSlot, const ItemPtr& itemToFit
 bool WillFitInBank(ItemClient* pContent)
 {
 	if (!pContent) return false;
-
-	CHARINFO* pChar = GetCharInfo();
-	if (!pChar) return false;
+	if (!pCharData) return false;
 
 	ItemPtr pItemToFit{ pContent };
 
-	for (const ItemPtr& pBankSlot : pChar->BankItems)
+	for (const ItemPtr& pBankSlot : pCharData->BankItems)
 	{
 		if (WillItemFitInSlot(pBankSlot, pItemToFit))
 			return true;
@@ -6717,14 +6673,17 @@ int GetCharMaxBuffSlots()
 {
 	int NumBuffs = 15;
 
-	if (CHARINFO* pChar = GetCharInfo())
+	if (pCharData)
 	{
 		NumBuffs += pCharData->TotalEffect(SPA_ADD_BUFF_SLOTS, true, 0, true, true);
 
-		if (pChar->pSpawn && pChar->pSpawn->Level > 70)
-			NumBuffs++;
-		if (pChar->pSpawn && pChar->pSpawn->Level > 74)
-			NumBuffs++;
+		if (pLocalPlayer)
+		{
+			if (pLocalPlayer->Level > 70)
+				NumBuffs++;
+			if (pLocalPlayer->Level > 74)
+				NumBuffs++;
+		}
 	}
 
 	return NumBuffs;
@@ -6793,17 +6752,15 @@ int GetBodyType(SPAWNINFO* pSpawn)
 	{
 		for (int i = 0; i < 104; i++)
 		{
-			PlayerClient* pc = (PlayerClient*)pSpawn;
-
-			if (pc != nullptr && pc->HasProperty(i, 0, 0))
+			if (pSpawn != nullptr && pSpawn->HasProperty(i, 0, 0))
 			{
 				if (i == 100)
 				{
-					if (pc->HasProperty(i, 101, 0))
+					if (pSpawn->HasProperty(i, 101, 0))
 						return 101;
-					if (pc->HasProperty(i, 102, 0))
+					if (pSpawn->HasProperty(i, 102, 0))
 						return 102;
-					if (pc->HasProperty(i, 103, 0))
+					if (pSpawn->HasProperty(i, 103, 0))
 						return 103;
 				}
 				return i;
@@ -7033,27 +6990,15 @@ bool IsFellowshipMember(const char* SpawnName)
 
 bool IsGuildMember(const char* SpawnName)
 {
-	if (CHARINFO* pChar = GetCharInfo())
-	{
-		if (pChar->GuildID == 0)
-			return false;
+	if (!pCharData || pCharData->GuildID == 0 || !pGuild)
+		return false;
 
-		if (pGuild)
-		{
-			if (GuildMember* mem = pGuild->FindMemberByName(SpawnName))
-			{
-				if (!_stricmp(SpawnName, mem->Name))
-					return true;
-			}
-		}
-	}
-
-	return false;
+	GuildMember* mem = pGuild->FindMemberByName(SpawnName);
+	return mem && _stricmp(SpawnName, mem->Name) == 0;
 }
 
 int GetGroupMercenaryCount(uint32_t ClassMASK)
 {
-
 	if (!pCharData || !pCharData->Group)
 		return 0;
 
@@ -7084,7 +7029,7 @@ SPAWNINFO* GetRaidMember(int index)
 	if (!pRaidMember)
 		return nullptr;
 
-	return (SPAWNINFO*)GetSpawnByName(pRaidMember->Name);
+	return GetSpawnByName(pRaidMember->Name);
 }
 
 inline SPAWNINFO* GetGroupMember(int index)
@@ -7104,8 +7049,7 @@ inline SPAWNINFO* GetGroupMember(int index)
 			if (index == 0)
 			{
 				// FIXME: GroupMember - use GetPlayer()
-
-				return (SPAWNINFO*)GetSpawnByName(pMember->GetName());
+				return GetSpawnByName(pMember->GetName());
 			}
 		}
 	}

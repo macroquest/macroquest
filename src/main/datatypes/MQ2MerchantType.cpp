@@ -149,15 +149,15 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 			SearchSpawn.FRadius = 999999.0f;
 			SearchSpawn.bMerchant = true;
 
-			if (pTarget && ((SPAWNINFO*)pTarget)->mActorClient.Class == 41)
+			if (pTarget && pTarget->GetClass() == Class_Merchant)
 			{
 				pEverQuest->RightClickedOnPlayer(pTarget, 0);
 				return true;
 			}
-			else if (SPAWNINFO* pSpawn = SearchThroughSpawns(&SearchSpawn, (SPAWNINFO*)pLocalPlayer))
+			else if (SPAWNINFO* pSpawn = SearchThroughSpawns(&SearchSpawn, pLocalPlayer))
 			{
 				pTarget = pSpawn;
-				pEverQuest->RightClickedOnPlayer((PlayerClient*)pSpawn, 0);
+				pEverQuest->RightClickedOnPlayer(pSpawn, 0);
 				return true;
 			}
 			return true;

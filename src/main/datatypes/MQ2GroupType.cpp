@@ -78,9 +78,8 @@ bool MQ2GroupType::ToString(MQVarPtr VarPtr, char* Destination)
 bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQTypeMember* pMember = MQ2GroupType::FindMember(Member);
-	CHARINFO* pChar = GetCharInfo();
 
-	if (!pMember || !pCharData || !pChar->pSpawn || !pCharData->Group)
+	if (!pMember || !pCharData || !pCharData->Group)
 		return false;
 
 	switch (static_cast<GroupMembers>(pMember->ID))
@@ -99,7 +98,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 		// by name
 		Dest.DWord = 0;
-		if (ci_equals(pChar->pSpawn->Name, Index))
+		if (ci_equals(pLocalPlayer->Name, Index))
 		{
 			Dest.DWord = 0;
 			return true;
@@ -280,9 +279,9 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		int nummembers = 1;
 		int64_t hps = 0;
 
-		if (pChar->pSpawn && pChar->pSpawn->HPCurrent && pChar->pSpawn->HPMax)
+		if (pLocalPlayer->HPCurrent && pLocalPlayer->HPMax)
 		{
-			hps = (pChar->pSpawn->HPCurrent / pChar->pSpawn->HPMax) * 100;
+			hps = (pLocalPlayer->HPCurrent / pLocalPlayer->HPMax) * 100;
 		}
 
 		for (int i = 1; i < MAX_GROUP_SIZE; i++)
@@ -449,8 +448,7 @@ MQ2GroupMemberType::MQ2GroupMemberType() : MQ2Type("groupmember")
 
 bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	CHARINFO* pChar = GetCharInfo();
-	if (!pChar || !pCharData->Group)
+	if (!pCharData || !pCharData->Group)
 		return false;
 
 	SPAWNINFO* pGroupMember = nullptr;
@@ -491,7 +489,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 	}
 	else
 	{
-		if (pGroupMember = pChar->pSpawn)
+		if (pGroupMember = pCharData->pSpawn)
 		{
 			strcpy_s(MemberName, pGroupMember->Name);
 		}
@@ -653,8 +651,7 @@ bool MQ2GroupMemberType::ToString(MQVarPtr VarPtr, char* Destination)
 		if (index > 5)
 			return false;
 
-		CHARINFO* pChar = GetCharInfo();
-		if (!pCharData->Group) return false;
+		if (!pCharData || !pCharData->Group) return false;
 
 		// members 1 to 5. Count to the nth member.
 		for (int i = 1; i < MAX_GROUP_SIZE; i++)
@@ -676,7 +673,7 @@ bool MQ2GroupMemberType::ToString(MQVarPtr VarPtr, char* Destination)
 	}
 	else
 	{
-		strcpy_s(Destination, MAX_STRING, GetCharInfo()->pSpawn->DisplayedName);
+		strcpy_s(Destination, MAX_STRING, pLocalPlayer->DisplayedName);
 		return true;
 	}
 

@@ -743,8 +743,7 @@ static void TellCheck(const char* szClean)
 	if (!gbFlashOnTells && !gbBeepOnTells)
 		return;
 
-	CHARINFO* pChar = GetCharInfo();
-	if (!pChar) return;
+	if (!pCharData) return;
 
 	char name[2048] = { 0 };
 	bool isTell = false;
@@ -763,13 +762,13 @@ static void TellCheck(const char* szClean)
 		return;
 
 	// don't perform action if its us doing the tell
-	if (!_stricmp(pChar->Name, name))
+	if (!_stricmp(pCharData->Name, name))
 		return;
 
 	// don't perform action if its our pet
-	if (pChar->pSpawn->PetID != -1)
+	if (pCharData->pSpawn->PetID != -1)
 	{
-		if (SPAWNINFO* pPet = (SPAWNINFO*)GetSpawnByID(pChar->pSpawn->PetID))
+		if (SPAWNINFO* pPet = GetSpawnByID(pCharData->pSpawn->PetID))
 		{
 			if (!_stricmp(pPet->DisplayedName, name))
 				return;
@@ -777,8 +776,8 @@ static void TellCheck(const char* szClean)
 	}
 
 	// only react to player tells
-	SPAWNINFO* pNpc = (SPAWNINFO*)GetSpawnByPartialName(name);
-	if (!pNpc && pCharSpawn != nullptr)
+	SPAWNINFO* pNpc = GetSpawnByPartialName(name);
+	if (!pNpc && pControlledPlayer != nullptr)
 	{
 		// try to use spawn search to find it.
 		char szSearch[256] = { 0 };
@@ -788,7 +787,7 @@ static void TellCheck(const char* szClean)
 		ClearSearchSpawn(&ssSpawn);
 		ParseSearchSpawn(szSearch, &ssSpawn);
 
-		pNpc = SearchThroughSpawns(&ssSpawn, (SPAWNINFO*)pCharSpawn);
+		pNpc = SearchThroughSpawns(&ssSpawn, pControlledPlayer);
 	}
 
 	if (pNpc)

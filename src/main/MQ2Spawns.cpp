@@ -512,9 +512,9 @@ static void SetNameSpriteTint(SPAWNINFO* pSpawn)
 			NewColor = pRaidWnd->ClassColors[ClassInfo[pSpawn->mActorClient.Class].RaidColorOrder];
 		else if (CaptionColors[CC_PetConColor].Enabled)
 			NewColor = ConColorToARGB(ConColor(pSpawn));
-		else if (CaptionColors[CC_PetNPC].Enabled && ((SPAWNINFO*)GetSpawnByID(pSpawn->MasterID))->Type == SPAWN_NPC)
+		else if (CaptionColors[CC_PetNPC].Enabled && GetSpawnByID(pSpawn->MasterID)->Type == SPAWN_NPC)
 			NewColor = CaptionColors[CC_PetNPC].Color;
-		else if (CaptionColors[CC_PetPC].Enabled && ((SPAWNINFO*)GetSpawnByID(pSpawn->MasterID))->Type == SPAWN_PLAYER)
+		else if (CaptionColors[CC_PetPC].Enabled && GetSpawnByID(pSpawn->MasterID)->Type == SPAWN_PLAYER)
 			NewColor = CaptionColors[CC_PetPC].Color;
 		else
 		{
@@ -830,10 +830,10 @@ void UpdateMQ2SpawnSort()
 	gSpawnsArray.clear();
 
 	float myX = 0, myY = 0;
-	if (pCharSpawn)
+	if (pControlledPlayer)
 	{
-		myX = pCharSpawn->X;
-		myY = pCharSpawn->Y;
+		myX = pControlledPlayer->X;
+		myY = pControlledPlayer->Y;
 	}
 
 	// we need to make sure the spawn manager is valid here because this can get called from login pulse before the spawn manager is valid
@@ -859,7 +859,7 @@ void UpdateMQ2SpawnSort()
 
 bool IsTargetable(SPAWNINFO* pSpawn)
 {
-	return pSpawn && ((PlayerBase*)pSpawn)->IsTargetable();
+	return pSpawn && pSpawn->IsTargetable();
 }
 
 bool AreNameSpritesCustomized()

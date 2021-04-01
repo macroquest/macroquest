@@ -157,7 +157,7 @@ bool MoveMouse(int x, int y, bool bClick)
 	return true;
 }
 
-static bool ParseMouseLoc(CHARINFO* pCharInfo, char* szMouseLoc)
+static bool ParseMouseLoc(const char* szMouseLoc)
 {
 
 	if (!_strnicmp(szMouseLoc, "target", 6))
@@ -456,10 +456,8 @@ void Click(SPAWNINFO* pChar, char* szLine)
 							BoundingRadius = pSwitchTarget->ScaleFactor * 0.01f;
 						}
 
-						SPAWNINFO* pSpawn = (SPAWNINFO*)pCharSpawn;
-
-						float Dist = GetDistance(pSpawn->Y, pSpawn->X, pSwitchTarget->Y, pSwitchTarget->X);
-						float reach = pSpawn->Height + 20.0f + BoundingRadius;
+						float Dist = GetDistance(pControlledPlayer->Y, pControlledPlayer->X, pSwitchTarget->Y, pSwitchTarget->X);
+						float reach = pControlledPlayer->Height + 20.0f + BoundingRadius;
 
 						if (Dist <= reach)
 						{
@@ -546,7 +544,7 @@ void MouseTo(SPAWNINFO* pChar, char* szLine)
 {
 	if (szLine && szLine[0])
 	{
-		if (ParseMouseLoc(GetCharInfo(), szLine))
+		if (ParseMouseLoc(szLine))
 		{
 			return;
 		}
@@ -654,20 +652,20 @@ bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick)
 	{
 		if (pRender = g_pDrawHandler.get_as<FakeCDisplay>())
 		{
-			g_vWorldLocation.x = ((SPAWNINFO*)pPlayer)->Y;
-			g_vWorldLocation.y = ((SPAWNINFO*)pPlayer)->X;
-			g_vWorldLocation.z = ((SPAWNINFO*)pPlayer)->Z; // smack in the middle...
+			g_vWorldLocation.x = pPlayer->Y;
+			g_vWorldLocation.y = pPlayer->X;
+			g_vWorldLocation.z = pPlayer->Z; // smack in the middle...
 
 			if (position == 1)
 			{
 				// head
-				g_vWorldLocation.z = ((SPAWNINFO*)pPlayer)->FloorHeight + ((SPAWNINFO*)pPlayer)->AvatarHeight;
+				g_vWorldLocation.z = pPlayer->FloorHeight + pPlayer->AvatarHeight;
 			}
 
 			if (position == 2)
 			{
 				// feet
-				g_vWorldLocation.z = ((SPAWNINFO*)pPlayer)->FloorHeight;
+				g_vWorldLocation.z = pPlayer->FloorHeight;
 			}
 
 			ScreenVector3 v3ScreenCoord = { 0 };
@@ -681,11 +679,11 @@ bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick)
 
 			if (v3ScreenCoord.z >= 1)
 			{
-				WriteChatf("%s is not within view %.2f", ((SPAWNINFO*)pPlayer)->DisplayedName, v3ScreenCoord.z);
+				WriteChatf("%s is not within view %.2f", pPlayer->DisplayedName, v3ScreenCoord.z);
 				return false;
 			}
 
-			WriteChatf("%s is at %.2f, %.2f, %.2f before adjustment", ((SPAWNINFO*)pPlayer)->DisplayedName, v3ScreenCoord.x, v3ScreenCoord.y, v3ScreenCoord.z);
+			WriteChatf("%s is at %.2f, %.2f, %.2f before adjustment", pPlayer->DisplayedName, v3ScreenCoord.x, v3ScreenCoord.y, v3ScreenCoord.z);
 
 			int x = (int)v3ScreenCoord.x;
 			int y = (int)v3ScreenCoord.y;
@@ -694,7 +692,7 @@ bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick)
 
 			MoveMouse(x, y, bClick);
 			WriteChatf("%s is at %d, %d, %.2f after adjustment and mouse is at %d, %d",
-				((SPAWNINFO*)pPlayer)->DisplayedName, x, y, v3ScreenCoord.z, EQADDR_MOUSE->X, EQADDR_MOUSE->Y);
+				pPlayer->DisplayedName, x, y, v3ScreenCoord.z, EQADDR_MOUSE->X, EQADDR_MOUSE->Y);
 		}
 	}
 

@@ -294,7 +294,7 @@ bool MQ2AdvLootItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 	case AdvLootItemMembers::Corpse:
 		if (!item.LootDetails.IsEmpty())
 		{
-			if (SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByID(item.LootDetails[0].CorpseID))
+			if (SPAWNINFO* pSpawn = GetSpawnByID(item.LootDetails[0].CorpseID))
 			{
 				Dest = pSpawnType->MakeTypeVar(pSpawn);
 				return true;

@@ -310,8 +310,7 @@ bool MQ2PetType::ToString(MQVarPtr VarPtr, char* Destination)
 
 bool MQ2PetType::dataPet(const char* szIndex, MQTypeVar& Ret)
 {
-	SPAWNINFO* pPetSpawn = (pLocalPlayer && pLocalPlayer->PetID != -1)
-		? (SPAWNINFO*)GetSpawnByID(pLocalPlayer->PetID) : nullptr;
+	SPAWNINFO* pPetSpawn = (pLocalPlayer && pLocalPlayer->PetID != -1) ? GetSpawnByID(pLocalPlayer->PetID) : nullptr;
 
 	Ret = pSpawnType->MakeTypeVar(pPetSpawn);
 	Ret.Type = pPetType;

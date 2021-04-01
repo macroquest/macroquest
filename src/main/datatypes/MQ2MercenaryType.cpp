@@ -69,7 +69,7 @@ bool MQ2MercenaryType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	SPAWNINFO* pMercenary = nullptr;
 	if (pMercManager->mercenarySpawnId)
 	{
-		pMercenary = (SPAWNINFO*)GetSpawnByID(pMercManager->mercenarySpawnId);
+		pMercenary = GetSpawnByID(pMercManager->mercenarySpawnId);
 	}
 
 	MQTypeMember* pMember = MQ2MercenaryType::FindMember(Member);
@@ -78,8 +78,7 @@ bool MQ2MercenaryType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		if (pMercenary)
 		{
 			// We fall back to spawn type if we found a mercenary.
-			VarPtr.Ptr = pMercenary;
-			return pSpawnType->GetMember(VarPtr, Member, Index, Dest);
+			return pSpawnType->GetMember(pMercenary, Member, Index, Dest);
 		}
 
 		return false;
@@ -88,7 +87,7 @@ bool MQ2MercenaryType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	switch (static_cast<MercenaryMembers>(pMember->ID))
 	{
 	case MercenaryMembers::AAPoints:
-		Dest.DWord = GetCharInfo()->MercAAPoints;
+		Dest.DWord = pCharData->MercAAPoints;
 		Dest.Type = pIntType;
 		return true;
 

@@ -154,7 +154,7 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 
 	if (szArg1[0] == ';' || szArg1[0] == '[')
 	{
-		pEverQuest->InterpretCmd((PlayerClient*)pChar, szOriginalLine);
+		pEverQuest->InterpretCmd(pChar, szOriginalLine);
 		return;
 	}
 
@@ -211,7 +211,7 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 			// found it!
 			if (pBind->szFuncName)
 			{
-				if (CHARINFO* pCharInfo = GetCharInfo())
+				if (pLocalPlayer)
 				{
 					std::string sCallFunc(pBind->szFuncName);
 					sCallFunc += " ";
@@ -272,7 +272,7 @@ void DoCommandf(const char* szFormat, ...)
 	char* szOutput = out.get();
 
 	vsprintf_s(szOutput, len, szFormat, vaList);
-	HideDoCommand((SPAWNINFO*)pLocalPlayer, szOutput, false);
+	HideDoCommand(pLocalPlayer, szOutput, false);
 }
 
 class CCommandHook
@@ -444,7 +444,7 @@ public:
 					// found it!
 					if (pBind->szFuncName)
 					{
-						if (CHARINFO* pCharInfo = GetCharInfo())
+						if (pLocalPlayer)
 						{
 							std::string sCallFunc = pBind->szFuncName;
 							sCallFunc += " ";
@@ -1047,7 +1047,7 @@ void PulseCommands()
 		// handle delayed commands
 		for (const std::string& delayedCommand : delayedCommands)
 		{
-			DoCommand((SPAWNINFO*)pLocalPlayer, delayedCommand.c_str());
+			DoCommand(pLocalPlayer, delayedCommand.c_str());
 		}
 	}
 
@@ -1057,7 +1057,7 @@ void PulseCommands()
 	while (s_pTimedCommands && s_pTimedCommands->Time <= Now)
 	{
 		MQTimedCommand* pNext = s_pTimedCommands->pNext;
-		DoCommand((SPAWNINFO*)pLocalPlayer, s_pTimedCommands->Command);
+		DoCommand(pLocalPlayer, s_pTimedCommands->Command);
 
 		delete s_pTimedCommands;
 		s_pTimedCommands = pNext;

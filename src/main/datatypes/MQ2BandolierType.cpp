@@ -130,7 +130,7 @@ bool MQ2BandolierType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		switch (static_cast<BandolierTypeMethods>(pMethod->ID))
 		{
 		case BandolierTypeMethods::Activate:
-			pPCData->BandolierSwap(index);
+			pCharData->BandolierSwap(index);
 
 			if (pBandolierWnd)
 			{

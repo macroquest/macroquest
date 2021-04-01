@@ -31,10 +31,10 @@ namespace mq {
 
 MQLIB_API char* CleanupName(char* szName, size_t BufferSize, bool Article = true, bool ForWhoList = true);
 
-inline CHARINFO* GetCharInfo()
+inline PcClient* GetCharInfo()
 {
 	// pPCData and pCharData points to same address
-	return (CHARINFO*)pCharData;
+	return pCharData;
 }
 
 inline PcProfile* GetPcProfile()
@@ -55,8 +55,6 @@ inline PcProfile* GetCharInfo2()
 
 inline PlayerClient* GetSpawnByID(DWORD dwSpawnID)
 {
-	//    if (dwSpawnID<3000)
-	//        return ppEQP_IDArray[dwSpawnID];
 	return pSpawnManager->GetSpawnByID(dwSpawnID);
 }
 
@@ -174,19 +172,19 @@ inline const char* GetTypeDesc(eSpawnType TypeID)
 
 inline bool IsMarkedNPC(SPAWNINFO* pSpawn)
 {
-	if (GetCharInfo() && GetCharInfo()->pSpawn && pSpawn)
+	if (pLocalPlayer && pSpawn)
 	{
-		for (int nMark = 0; nMark < 3; nMark++)
+		for (uint32_t id : pLocalPlayer->RaidMarkNPC)
 		{
-			if (GetCharInfo()->pSpawn->RaidMarkNPC[nMark] == pSpawn->SpawnID)
+			if (id == pSpawn->SpawnID)
 			{
 				return true;
 			}
 		}
 
-		for (int nMark = 0; nMark < 3; nMark++)
+		for (uint32_t id : pLocalPlayer->GroupMarkNPC)
 		{
-			if (GetCharInfo()->pSpawn->GroupMarkNPC[nMark] == pSpawn->SpawnID)
+			if (id == pSpawn->SpawnID)
 			{
 				return true;
 			}
@@ -360,8 +358,8 @@ inline bool HasSkill(int nSkill)
 
 inline float GetDistance(float X1, float Y1)
 {
-	float dX = X1 - ((SPAWNINFO*)pCharSpawn)->X;
-	float dY = Y1 - ((SPAWNINFO*)pCharSpawn)->Y;
+	float dX = X1 - pControlledPlayer->X;
+	float dY = Y1 - pControlledPlayer->Y;
 	return sqrtf(dX * dX + dY * dY);
 }
 
@@ -430,15 +428,15 @@ template <typename T1, typename T2>
 inline float Distance3DToSpawn(const T1& pSpawn1, const T2& pSpawn2)
 {
 	return Get3DDistance(
-		((SPAWNINFO*)pSpawn1)->X, ((SPAWNINFO*)pSpawn1)->Y, ((SPAWNINFO*)pSpawn1)->Z,
-		((SPAWNINFO*)pSpawn2)->X, ((SPAWNINFO*)pSpawn2)->Y, ((SPAWNINFO*)pSpawn2)->Z);
+		pSpawn1->X, pSpawn1->Y, pSpawn1->Z,
+		pSpawn2->X, pSpawn2->Y, pSpawn2->Z);
 }
 
 template <typename T1>
 inline float Distance3DToSpawn(const T1& pSpawn1, const MQGameObject& gameObj)
 {
 	return  Get3DDistance(
-		((SPAWNINFO*)pSpawn1)->X, ((SPAWNINFO*)pSpawn1)->Y, ((SPAWNINFO*)pSpawn1)->Z,
+		pSpawn1->X, pSpawn1->Y, pSpawn1->Z,
 		gameObj.x, gameObj.y, gameObj.z);
 }
 
@@ -529,7 +527,7 @@ inline bool LineOfSight(SPAWNINFO* Origin, const CVector3& position)
 	if (!Origin)
 		return false;
 
-	return ((PlayerClient*)Origin)->CanSee(position);
+	return Origin->CanSee(position);
 }
 
 inline bool LineOfSight(SPAWNINFO* Origin, SPAWNINFO* CanISeeThis)
@@ -537,7 +535,7 @@ inline bool LineOfSight(SPAWNINFO* Origin, SPAWNINFO* CanISeeThis)
 	if (!Origin || !CanISeeThis)
 		return false;
 
-	return ((PlayerClient*)Origin)->CanSee(*(PlayerClient*)CanISeeThis);
+	return Origin->CanSee(*CanISeeThis);
 }
 
 inline bool IsMobFleeing(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
@@ -586,9 +584,9 @@ inline int GetMemorizedSpell(int index)
 	if (index < 0 || index > 15)
 		return -1;
 
-	if (CHARINFO* pCharInfo = GetCharInfo())
+	if (pCharData)
 	{
-		return pCharInfo->GetMemorizedSpell(index);
+		return pCharData->GetMemorizedSpell(index);
 	}
 
 	return -1;
@@ -608,14 +606,10 @@ inline int EQGetMySpellDuration(EQ_Spell* pSpell)
 {
 	if (!pLocalPlayer)
 		return 0;
-	if (!pCharData)
-		return 0;
 	if (!pSpell)
 		return 0;
 
-	SPAWNINFO* pSpawnInfo = pLocalPlayer.get_as<SPAWNINFO>();
-
-	int origDuration = EQGetSpellDuration(pSpell, pSpawnInfo->Level, false);
+	int origDuration = EQGetSpellDuration(pSpell, pLocalPlayer->Level, false);
 
 	int out1 = 0, out2 = 0;
 	ItemPtr pContents;

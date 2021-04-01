@@ -123,7 +123,7 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		return true;
 
 	case AltAbilityMembers::MyReuseTime:
-		Dest.DWord = pAltAdvManager->GetCalculatedTimer(pPCData, pAbility);
+		Dest.DWord = pAltAdvManager->GetCalculatedTimer(pCharData, pAbility);
 		Dest.Type = pIntType;
 		return true;
 
@@ -184,7 +184,7 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 	case AltAbilityMembers::Rank: // the current rank
 	case AltAbilityMembers::AARankRequired: { // kept this for legacy reasons
 		int CurrentRank = pAbility->CurrentRank - 1;
-		if (pPCData->HasAlternateAbility(pAbility->Index))
+		if (pCharData->HasAlternateAbility(pAbility->Index))
 		{
 			CurrentRank++;
 		}
@@ -229,7 +229,7 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		if (ALTABILITY* pNextAbility = GetAAByIdWrapper(pAbility->NextGroupAbilityId))
 			pAbility = pNextAbility;
 
-		Dest.Set(pAltAdvManager->CanTrainAbility((PcZoneClient*)pPCData, pAbility, false, false, false));
+		Dest.Set(pAltAdvManager->CanTrainAbility(pCharData, pAbility, false, false, false));
 		Dest.Type = pBoolType;
 		return true;
 	}
@@ -286,11 +286,7 @@ bool MQ2AltAbilityType::dataAltAbility(const char* szIndex, MQTypeVar& Ret)
 	else
 	{
 		// we need to get the level appropriate one if they just supplied a name
-		int level = -1;
-		if (SPAWNINFO* pMe = (SPAWNINFO*)pLocalPlayer)
-		{
-			level = pMe->Level;
-		}
+		int level = pLocalPlayer ? pLocalPlayer->Level : -1;
 
 		for (int nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++)
 		{

@@ -664,15 +664,12 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 
 bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	PcClient* pChar = static_cast<PcClient*>(pCharData);
 	if (!pCharData)
 		return false;
 
 	PcProfile* pProfile = GetPcProfile();
 	if (!pProfile)
 		return false;
-
-	PlayerClient* pPlayerClient = reinterpret_cast<PlayerClient*>(pChar->pSpawn);
 
 	//------------------------------------------------------------------------
 	// methods
@@ -682,19 +679,19 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		switch (static_cast<CharacterMethods>(pMethod->ID))
 		{
 		case CharacterMethods::Stand:
-			pEverQuest->InterpretCmd(pPlayerClient, "/stand on");
+			pEverQuest->InterpretCmd(pLocalPlayer, "/stand on");
 			return true;
 
 		case CharacterMethods::Sit:
-			pEverQuest->InterpretCmd(pPlayerClient, "/sit on");
+			pEverQuest->InterpretCmd(pLocalPlayer, "/sit on");
 			return true;
 
 		case CharacterMethods::Dismount:
-			pEverQuest->InterpretCmd(pPlayerClient, "/dismount");
+			pEverQuest->InterpretCmd(pLocalPlayer, "/dismount");
 			return true;
 
 		case CharacterMethods::StopCast:
-			pEverQuest->InterpretCmd(pPlayerClient, "/stopcast");
+			pEverQuest->InterpretCmd(pLocalPlayer, "/stopcast");
 			return true;
 
 		default: break;
@@ -716,54 +713,54 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	switch (static_cast<CharacterMembers>(pMember->ID))
 	{
 	case CharacterMembers::Name:
-		strcpy_s(DataTypeTemp, ((SPAWNINFO*)pLocalPlayer)->Name);
+		strcpy_s(DataTypeTemp, pLocalPlayer->Name);
 		Dest.Type = pStringType;
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 
 	case CharacterMembers::Origin:
-		if (pChar->StartingCity > 0 && pChar->StartingCity < MAX_ZONES)
+		if (pCharData->StartingCity > 0 && pCharData->StartingCity < MAX_ZONES)
 		{
 			Dest.Type = pZoneType;
-			Dest.Ptr = pWorldData->ZoneArray[pChar->StartingCity];
+			Dest.Ptr = pWorldData->ZoneArray[pCharData->StartingCity];
 			return true;
 		}
 		return false;
 
 	case CharacterMembers::SubscriptionDays:
-		Dest.Int = pChar->SubscriptionDays;
+		Dest.Int = pCharData->SubscriptionDays;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::Exp:
-		Dest.Int64 = pChar->Exp;
+		Dest.Int64 = pCharData->Exp;
 		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::PctExp:
-		Dest.Float = (float)pChar->Exp / 1000.0f;
+		Dest.Float = (float)pCharData->Exp / 1000.0f;
 		Dest.Type = pFloatType;
 		return true;
 
 	case CharacterMembers::PctExpToAA:
-		Dest.Int = (int)pChar->PercentEXPtoAA;
+		Dest.Int = (int)pCharData->PercentEXPtoAA;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::PctAAExp:
-		Dest.Float = (float)pChar->AAExp / 1000.0f;
+		Dest.Float = (float)pCharData->AAExp / 1000.0f;
 		Dest.Type = pFloatType;
 		return true;
 
 	case CharacterMembers::Vitality:
-		Dest.Int64 = pChar->Vitality;
+		Dest.Int64 = pCharData->Vitality;
 		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::PctVitality: {
 		Dest.Float = 0;
 		Dest.Type = pFloatType;
-		int64_t vitality = pChar->Vitality;
+		int64_t vitality = pCharData->Vitality;
 		int64_t cap = pInventoryWnd->VitalityCap;
 		if (vitality > cap)
 			vitality = cap;
@@ -773,14 +770,14 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	}
 
 	case CharacterMembers::AAVitality:
-		Dest.Int64 = pChar->AAVitality;
+		Dest.Int64 = pCharData->AAVitality;
 		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::PctAAVitality: {
 		Dest.Float = 0;
 		Dest.Type = pFloatType;
-		int64_t aavitality = pChar->AAVitality;
+		int64_t aavitality = pCharData->AAVitality;
 		int aacap = pInventoryWnd->AAVitalityCap;
 		if (aavitality > aacap)
 			aavitality = aacap;
@@ -854,51 +851,49 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::BlockedPetBuff:
-	case CharacterMembers::BlockedBuff:
+	case CharacterMembers::BlockedBuff: {
 		Dest.Type = pSpellType;
 		if (!Index[0])
 			return false;
 
 		// TODO:  Move this into a function for both BlockedPetBuff and BlockedBuff
-		if (pCharData)
+		int iMaxBlockedSpells = (static_cast<CharacterMembers>(pMember->ID) == CharacterMembers::BlockedBuff ? MAX_BLOCKED_SPELLS : MAX_BLOCKED_SPELLS_PET);
+		if (IsNumber(Index))
 		{
-			int iMaxBlockedSpells = (static_cast<CharacterMembers>(pMember->ID) == CharacterMembers::BlockedBuff ? MAX_BLOCKED_SPELLS : MAX_BLOCKED_SPELLS_PET);
-			if (IsNumber(Index))
-			{
-				int nBuff = GetIntFromString(Index, iMaxBlockedSpells + 2) - 1;
-				if (nBuff < 0)
-					nBuff = 0;
-				if (nBuff > iMaxBlockedSpells)
-					return false;
+			int nBuff = GetIntFromString(Index, iMaxBlockedSpells + 2) - 1;
+			if (nBuff < 0)
+				nBuff = 0;
+			if (nBuff > iMaxBlockedSpells)
+				return false;
 
-				if (int spellId = (static_cast<CharacterMembers>(pMember->ID) == CharacterMembers::BlockedBuff) ? pCharData->BlockedSpell[nBuff] : pCharData->BlockedPetSpell[nBuff])
+			if (int spellId = (static_cast<CharacterMembers>(pMember->ID) == CharacterMembers::BlockedBuff) ? pCharData->BlockedSpell[nBuff] : pCharData->BlockedPetSpell[nBuff])
+			{
+				if (SPELL* pSpell = GetSpellByID(spellId))
+				{
+					Dest.Ptr = pSpell;
+					return true;
+				}
+			}
+		}
+		else
+		{
+			for (auto i = 0; i < iMaxBlockedSpells; ++i)
+			{
+				if (int spellId = (static_cast<CharacterMembers>(pMember->ID) == CharacterMembers::BlockedBuff) ? pCharData->BlockedSpell[i] : pCharData->BlockedPetSpell[i])
 				{
 					if (SPELL* pSpell = GetSpellByID(spellId))
 					{
-						Dest.Ptr = pSpell;
-						return true;
-					}
-				}
-			}
-			else
-			{
-				for (auto i = 0; i < iMaxBlockedSpells; ++i)
-				{
-					if (int spellId = (static_cast<CharacterMembers>(pMember->ID) == CharacterMembers::BlockedBuff) ? pCharData->BlockedSpell[i] : pCharData->BlockedPetSpell[i])
-					{
-						if (SPELL* pSpell = GetSpellByID(spellId))
+						if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
 						{
-							if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
-							{
-								Dest.Ptr = pSpell;
-								return true;
-							}
+							Dest.Ptr = pSpell;
+							return true;
 						}
 					}
 				}
 			}
 		}
 		return false;
+	}
 
 	// TODO:  Move this to a function for both Buff and Song since code is identical except for Short vs Long Buff.
 	case CharacterMembers::Buff:
@@ -956,162 +951,162 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return false;
 
 	case CharacterMembers::HPBonus:
-		Dest.DWord = pChar->HPBonus;
+		Dest.DWord = pCharData->HPBonus;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::ManaBonus:
-		Dest.DWord = pChar->ManaBonus;
+		Dest.DWord = pCharData->ManaBonus;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::EnduranceBonus:
-		Dest.DWord = pChar->EnduranceBonus;
+		Dest.DWord = pCharData->EnduranceBonus;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::CombatEffectsBonus: {
 		int CombatEffectsCap = GetModCap(HEROIC_MOD_COMBAT_EFFECTS);
-		Dest.DWord = (pChar->CombatEffectsBonus > CombatEffectsCap ? CombatEffectsCap : pChar->CombatEffectsBonus);
+		Dest.DWord = (pCharData->CombatEffectsBonus > CombatEffectsCap ? CombatEffectsCap : pCharData->CombatEffectsBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 
 	case CharacterMembers::ShieldingBonus: {
 		int ShieldingCap = GetModCap(HEROIC_MOD_MELEE_SHIELDING);
-		Dest.DWord = (pChar->ShieldingBonus > ShieldingCap ? ShieldingCap : pChar->ShieldingBonus);
+		Dest.DWord = (pCharData->ShieldingBonus > ShieldingCap ? ShieldingCap : pCharData->ShieldingBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 
 	case CharacterMembers::SpellShieldBonus: {
 		int SpellShieldCap = GetModCap(HEROIC_MOD_SPELL_SHIELDING);
-		Dest.DWord = (pChar->SpellShieldBonus > SpellShieldCap ? SpellShieldCap : pChar->SpellShieldBonus);
+		Dest.DWord = (pCharData->SpellShieldBonus > SpellShieldCap ? SpellShieldCap : pCharData->SpellShieldBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 
 	case CharacterMembers::AvoidanceBonus: {
 		int AvoidanceCap = GetModCap(HEROIC_MOD_AVOIDANCE);
-		Dest.DWord = (pChar->AvoidanceBonus > AvoidanceCap ? AvoidanceCap : pChar->AvoidanceBonus);
+		Dest.DWord = (pCharData->AvoidanceBonus > AvoidanceCap ? AvoidanceCap : pCharData->AvoidanceBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 
 	case CharacterMembers::AccuracyBonus: {
 		int AccuracyCap = GetModCap(HEROIC_MOD_ACCURACY);
-		Dest.DWord = (pChar->AccuracyBonus > AccuracyCap ? AccuracyCap : pChar->AccuracyBonus);
+		Dest.DWord = (pCharData->AccuracyBonus > AccuracyCap ? AccuracyCap : pCharData->AccuracyBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 
 	case CharacterMembers::StunResistBonus: {
 		int StunResistCap = GetModCap(HEROIC_MOD_STUN_RESIST);
-		Dest.DWord = (pChar->StunResistBonus > StunResistCap ? StunResistCap : pChar->StunResistBonus);
+		Dest.DWord = (pCharData->StunResistBonus > StunResistCap ? StunResistCap : pCharData->StunResistBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 
 	case CharacterMembers::StrikeThroughBonus: {
 		int StrikeThroughCap = GetModCap(HEROIC_MOD_STRIKETHROUGH);
-		Dest.DWord = (pChar->StrikeThroughBonus > StrikeThroughCap ? StrikeThroughCap : pChar->StrikeThroughBonus);
+		Dest.DWord = (pCharData->StrikeThroughBonus > StrikeThroughCap ? StrikeThroughCap : pCharData->StrikeThroughBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 
 	case CharacterMembers::DoTShieldBonus: {
 		int DoTShieldCap = GetModCap(HEROIC_MOD_DOT_SHIELDING);
-		Dest.DWord = (pChar->DoTShieldBonus > DoTShieldCap ? DoTShieldCap : pChar->DoTShieldBonus);
+		Dest.DWord = (pCharData->DoTShieldBonus > DoTShieldCap ? DoTShieldCap : pCharData->DoTShieldBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 
 	case CharacterMembers::AttackBonus:
-		Dest.DWord = pChar->AttackBonus;
+		Dest.DWord = pCharData->AttackBonus;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::HPRegenBonus:
-		Dest.DWord = pChar->HPRegenBonus;
+		Dest.DWord = pCharData->HPRegenBonus;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::ManaRegenBonus:
-		Dest.DWord = pChar->ManaRegenBonus;
+		Dest.DWord = pCharData->ManaRegenBonus;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::DamageShieldBonus: {
 		int DamageShieldCap = GetModCap(HEROIC_MOD_DAMAGE_SHIELDING);
-		Dest.DWord = (pChar->DamageShieldBonus > DamageShieldCap ? DamageShieldCap : pChar->DamageShieldBonus);
+		Dest.DWord = (pCharData->DamageShieldBonus > DamageShieldCap ? DamageShieldCap : pCharData->DamageShieldBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 
 	case CharacterMembers::DamageShieldMitigationBonus: {
 		int DamageShieldMitigationCap = GetModCap(HEROIC_MOD_DAMAGE_SHIELD_MITIG);
-		Dest.DWord = (pChar->DamageShieldMitigationBonus > DamageShieldMitigationCap ? DamageShieldMitigationCap : pChar->DamageShieldMitigationBonus);
+		Dest.DWord = (pCharData->DamageShieldMitigationBonus > DamageShieldMitigationCap ? DamageShieldMitigationCap : pCharData->DamageShieldMitigationBonus);
 		Dest.Type = pIntType;
 		return true;
 	}
 
 	case CharacterMembers::HeroicSTRBonus:
-		Dest.DWord = pChar->HeroicSTRBonus;
+		Dest.DWord = pCharData->HeroicSTRBonus;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::HeroicINTBonus:
-		Dest.DWord = pChar->HeroicINTBonus;
+		Dest.DWord = pCharData->HeroicINTBonus;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::HeroicWISBonus:
-		Dest.DWord = pChar->HeroicWISBonus;
+		Dest.DWord = pCharData->HeroicWISBonus;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::HeroicAGIBonus:
-		Dest.DWord = pChar->HeroicAGIBonus;
+		Dest.DWord = pCharData->HeroicAGIBonus;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::HeroicDEXBonus:
-		Dest.DWord = pChar->HeroicDEXBonus;
+		Dest.DWord = pCharData->HeroicDEXBonus;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::HeroicSTABonus:
-		Dest.DWord = pChar->HeroicSTABonus;
+		Dest.DWord = pCharData->HeroicSTABonus;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::HeroicCHABonus:
-		Dest.DWord = pChar->HeroicCHABonus;
+		Dest.DWord = pCharData->HeroicCHABonus;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::HealAmountBonus:
-		Dest.DWord = pChar->HealAmountBonus;
+		Dest.DWord = pCharData->HealAmountBonus;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::SpellDamageBonus:
-		Dest.DWord = pChar->SpellDamageBonus;
+		Dest.DWord = pCharData->SpellDamageBonus;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::ClairvoyanceBonus:
-		Dest.DWord = pChar->ClairvoyanceBonus;
+		Dest.DWord = pCharData->ClairvoyanceBonus;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::EnduranceRegenBonus:
-		Dest.DWord = pChar->EnduranceRegenBonus;
+		Dest.DWord = pCharData->EnduranceRegenBonus;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::AttackSpeed:
-		Dest.DWord = pChar->AttackSpeed;
+		Dest.DWord = pCharData->AttackSpeed;
 		Dest.Type = pIntType;
 		return true;
 
@@ -1165,12 +1160,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::CurrentFavor:
-		Dest.Int64 = pChar->CurrFavor;
+		Dest.Int64 = pCharData->CurrFavor;
 		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::CareerFavor:
-		Dest.Int64 = pChar->CareerFavor;
+		Dest.Int64 = pCharData->CareerFavor;
 		Dest.Type = pInt64Type;
 		return true;
 
@@ -1215,14 +1210,14 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 				if (nSlot < GetAvailableBankSlots())
 				{
-					if (Dest.Ptr = pChar->BankItems.GetItem(nSlot).get())
+					if (Dest.Ptr = pCharData->BankItems.GetItem(nSlot).get())
 						return true;
 				}
 				else if (nSlot >= NUM_BANK_SLOTS)
 				{
 					nSlot -= NUM_BANK_SLOTS;
 
-					if (Dest.Ptr = pChar->SharedBankItems.GetItem(nSlot).get())
+					if (Dest.Ptr = pCharData->SharedBankItems.GetItem(nSlot).get())
 						return true;
 				}
 			}
@@ -1241,7 +1236,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 				if (nSlot < GetAvailableSharedBankSlots())
 				{
-					if (Dest.Ptr = pChar->SharedBankItems.GetItem(nSlot).get())
+					if (Dest.Ptr = pCharData->SharedBankItems.GetItem(nSlot).get())
 						return true;
 				}
 			}
@@ -1249,7 +1244,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return false;
 
 	case CharacterMembers::PlatinumShared:
-		Dest.DWord = pChar->BankSharedPlat;
+		Dest.DWord = pCharData->BankSharedPlat;
 		Dest.Type = pIntType;
 		return true;
 
@@ -1304,27 +1299,27 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::PlatinumBank:
-		Dest.DWord = pChar->BankPlat;
+		Dest.DWord = pCharData->BankPlat;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::GoldBank:
-		Dest.DWord = pChar->BankGold;
+		Dest.DWord = pCharData->BankGold;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::SilverBank:
-		Dest.DWord = pChar->BankSilver;
+		Dest.DWord = pCharData->BankSilver;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::CopperBank:
-		Dest.DWord = pChar->BankCopper;
+		Dest.DWord = pCharData->BankCopper;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::AAExp:
-		Dest.DWord = pChar->AAExp;
+		Dest.DWord = pCharData->AAExp;
 		Dest.Type = pIntType;
 		return true;
 
@@ -1462,7 +1457,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		if (nLang < 0 || nLang >= 25)
 			return false;
 
-		Dest.DWord = pChar->languages[nLang];
+		Dest.DWord = pCharData->languages[nLang];
 		return true;
 	}
 
@@ -1481,7 +1476,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			{
 				if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(nCombatAbility))
 				{
-					if (SPELL* pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)))
+					if (SPELL* pSpell = GetSpellByID(pCharData->GetCombatAbility(nCombatAbility)))
 					{
 						Dest.Ptr = pSpell;
 						Dest.Type = pSpellType;
@@ -1497,7 +1492,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			{
 				if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(nCombatAbility))
 				{
-					if (SPELL* pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)))
+					if (SPELL* pSpell = GetSpellByID(pCharData->GetCombatAbility(nCombatAbility)))
 					{
 						if (!_stricmp(Index, pSpell->Name))
 						{
@@ -1527,13 +1522,13 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				{
 					if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(nCombatAbility))
 					{
-						if (SPELL* pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)))
+						if (SPELL* pSpell = GetSpellByID(pCharData->GetCombatAbility(nCombatAbility)))
 						{
 							uint32_t timeNow = static_cast<uint32_t>(time(nullptr));
 
-							if (pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) > timeNow)
+							if (pCharData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) > timeNow)
 							{
-								Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) - timeNow + 6;
+								Dest.Int = pCharData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup) - timeNow + 6;
 								Dest.Int /= 6;
 							}
 
@@ -1548,12 +1543,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				for (int nCombatAbility = 0; nCombatAbility < NUM_COMBAT_ABILITIES; nCombatAbility++)
 				{
 					if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(nCombatAbility)) {
-						if (SPELL* pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)))
+						if (SPELL* pSpell = GetSpellByID(pCharData->GetCombatAbility(nCombatAbility)))
 						{
 							if (!_stricmp(Index, pSpell->Name))
 							{
 								uint32_t timeNow = static_cast<uint32_t>(time(nullptr));
-								uint32_t timer = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup);
+								uint32_t timer = pCharData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup);
 
 								if (timer > timeNow)
 								{
@@ -1586,10 +1581,10 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				{
 					if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(nCombatAbility))
 					{
-						if (SPELL* pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)))
+						if (SPELL* pSpell = GetSpellByID(pCharData->GetCombatAbility(nCombatAbility)))
 						{
 							uint32_t timeNow = static_cast<uint32_t>(time(nullptr));
-							uint32_t timer = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup);
+							uint32_t timer = pCharData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup);
 
 							if (timer < timeNow)
 							{
@@ -1607,12 +1602,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				{
 					if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(nCombatAbility))
 					{
-						if (SPELL* pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)))
+						if (SPELL* pSpell = GetSpellByID(pCharData->GetCombatAbility(nCombatAbility)))
 						{
 							if (!_stricmp(Index, pSpell->Name))
 							{
 								uint32_t timeNow = static_cast<uint32_t>(time(nullptr));
-								uint32_t timer = pPCData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup);
+								uint32_t timer = pCharData->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup);
 
 								if (timer < timeNow)
 								{
@@ -1647,15 +1642,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return false;
 
 	case CharacterMembers::Moving:
-		Dest.Set(false);
-		if (pCharSpawn && pChar && pChar->pSpawn)
-		{
-			Dest.Set(
-				((gbMoving
-					&& (pChar->pSpawn->SpeedRun == 0.0f)
-					&& (pChar->pSpawn->Mount == nullptr))
-				|| (fabs(FindSpeed(pChar->pSpawn) > 0.0f))));
-		}
+		// FIXME: Use pControlledPlayer
+		Dest.Set(
+			((gbMoving
+				&& (pLocalPlayer->SpeedRun == 0.0f)
+				&& (pLocalPlayer->Mount == nullptr))
+			|| (fabs(FindSpeed(pLocalPlayer) > 0.0f))));
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1679,12 +1671,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				// numeric
 				for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 				{
-					if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility)))
+					if (ALTABILITY* pAbility = GetAAByIdWrapper(pCharData->GetAlternateAbilityId(nAbility)))
 					{
 						if (pAbility->ID == GetIntFromString(Index, 0))
 						{
 							int reusetimer = 0;
-							pAltAdvManager->IsAbilityReady(pPCData, pAbility, &reusetimer);
+							pAltAdvManager->IsAbilityReady(pCharData, pAbility, &reusetimer);
 							if (reusetimer < 0)
 							{
 								reusetimer = 0;
@@ -1699,22 +1691,18 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			else
 			{
 				// by name so we ned to take level into account
-				int level = -1;
-				if (pChar->pSpawn)
-				{
-					level = pChar->pSpawn->Level;
-				}
+				int level = pLocalPlayer->Level;
 
 				for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 				{
-					if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level))
+					if (ALTABILITY* pAbility = GetAAByIdWrapper(pCharData->GetAlternateAbilityId(nAbility), level))
 					{
 						if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
 						{
 							if (!_stricmp(Index, pName))
 							{
 								int reusetimer = 0;
-								pAltAdvManager->IsAbilityReady(pPCData, pAbility, &reusetimer);
+								pAltAdvManager->IsAbilityReady(pCharData, pAbility, &reusetimer);
 								if (reusetimer < 0)
 								{
 									reusetimer = 0;
@@ -1741,12 +1729,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				// numeric
 				for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 				{
-					if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility)))
+					if (ALTABILITY* pAbility = GetAAByIdWrapper(pCharData->GetAlternateAbilityId(nAbility)))
 					{
 						if (pAbility->ID == GetIntFromString(Index, 0))
 						{
 							if (pAbility->SpellID != -1)
-								Dest.Set(pAltAdvManager->IsAbilityReady(pPCData, pAbility, nullptr));
+								Dest.Set(pAltAdvManager->IsAbilityReady(pCharData, pAbility, nullptr));
 
 							return true;
 						}
@@ -1756,22 +1744,18 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			else
 			{
 				// by name so we need to take their level into account
-				int level = -1;
-				if (pChar->pSpawn)
-				{
-					level = pChar->pSpawn->Level;
-				}
+				int level = pLocalPlayer->Level;
 
 				for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 				{
-					if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level))
+					if (ALTABILITY* pAbility = GetAAByIdWrapper(pCharData->GetAlternateAbilityId(nAbility), level))
 					{
 						if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
 						{
 							if (!_stricmp(Index, pName))
 							{
 								if (pAbility->SpellID != -1)
-									Dest.Set(pAltAdvManager->IsAbilityReady(pPCData, pAbility, nullptr));
+									Dest.Set(pAltAdvManager->IsAbilityReady(pCharData, pAbility, nullptr));
 
 								return true;
 							}
@@ -1785,14 +1769,13 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	case CharacterMembers::AltAbility:
 		Dest.Type = pAltAbilityType;
 		if (Index[0])
-
 		{
 			if (IsNumber(Index))
 			{
 				// numeric
 				for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 				{
-					if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility)))
+					if (ALTABILITY* pAbility = GetAAByIdWrapper(pCharData->GetAlternateAbilityId(nAbility)))
 					{
 						if (pAbility->ID == GetIntFromString(Index, 0))
 						{
@@ -1805,15 +1788,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			else
 			{
 				// by name so we need to take their level into account
-				int level = -1;
-				if (pChar->pSpawn)
-				{
-					level = pChar->pSpawn->Level;
-				}
+				int level = pLocalPlayer->Level;
 
 				for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 				{
-					if (ALTABILITY* pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level))
+					if (ALTABILITY* pAbility = GetAAByIdWrapper(pCharData->GetAlternateAbilityId(nAbility), level))
 					{
 						if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
 						{
@@ -2216,8 +2195,8 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 				if (GetSpellByID(GetMemorizedSpell(nGem)))
 				{
-					if (pDisplay->TimeStamp > pChar->pSpawn->SpellGemETA[nGem]
-						&& pDisplay->TimeStamp > pChar->pSpawn->GetSpellCooldownETA())
+					if (pDisplay->TimeStamp > pLocalPlayer->SpellGemETA[nGem]
+						&& pDisplay->TimeStamp > pLocalPlayer->GetSpellCooldownETA())
 					{
 						Dest.Set(true);
 					}
@@ -2232,8 +2211,8 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 					{
 						if (!_stricmp(Index, pSpell->Name))
 						{
-							if (pDisplay->TimeStamp > pChar->pSpawn->SpellGemETA[nGem]
-								&& pDisplay->TimeStamp > pChar->pSpawn->GetSpellCooldownETA())
+							if (pDisplay->TimeStamp > pLocalPlayer->SpellGemETA[nGem]
+								&& pDisplay->TimeStamp > pLocalPlayer->GetSpellCooldownETA())
 							{
 								Dest.Set(true);
 							}
@@ -2285,7 +2264,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return false;
 
 	case CharacterMembers::Stunned:
-		Dest.Set(pChar->Stunned == 1);
+		Dest.Set(pCharData->Stunned == 1);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -2421,72 +2400,72 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return false;
 
 	case CharacterMembers::STR:
-		Dest.DWord = pChar->STR;
+		Dest.DWord = pCharData->STR;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::STA:
-		Dest.DWord = pChar->STA;
+		Dest.DWord = pCharData->STA;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::AGI:
-		Dest.DWord = pChar->AGI;
+		Dest.DWord = pCharData->AGI;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::DEX:
-		Dest.DWord = pChar->DEX;
+		Dest.DWord = pCharData->DEX;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::WIS:
-		Dest.DWord = pChar->WIS;
+		Dest.DWord = pCharData->WIS;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::INT:
-		Dest.DWord = pChar->INT;
+		Dest.DWord = pCharData->INT;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::CHA:
-		Dest.DWord = pChar->CHA;
+		Dest.DWord = pCharData->CHA;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LCK:
-		Dest.DWord = pChar->LCK;
+		Dest.DWord = pCharData->LCK;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::svMagic:
-		Dest.DWord = pChar->SaveMagic;
+		Dest.DWord = pCharData->SaveMagic;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::svFire:
-		Dest.DWord = pChar->SaveFire;
+		Dest.DWord = pCharData->SaveFire;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::svCold:
-		Dest.DWord = pChar->SaveCold;
+		Dest.DWord = pCharData->SaveCold;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::svPoison:
-		Dest.DWord = pChar->SavePoison;
+		Dest.DWord = pCharData->SavePoison;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::svDisease:
-		Dest.DWord = pChar->SaveDisease;
+		Dest.DWord = pCharData->SaveDisease;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::CurrentWeight:
-		Dest.DWord = pChar->CurrWeight;
+		Dest.DWord = pCharData->CurrWeight;
 		Dest.Type = pIntType;
 		return true;
 
@@ -2525,17 +2504,17 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::TributeTimer:
-		Dest.DWord = pChar->TributeTimer / 60 / 100;
+		Dest.DWord = pCharData->TributeTimer / 60 / 100;
 		Dest.Type = pTicksType;
 		return true;
 
 	case CharacterMembers::RadiantCrystals:
-		Dest.DWord = pChar->RadiantCrystals;
+		Dest.DWord = pCharData->RadiantCrystals;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::EbonCrystals:
-		Dest.DWord = pChar->EbonCrystals;
+		Dest.DWord = pCharData->EbonCrystals;
 		Dest.Type = pIntType;
 		return true;
 
@@ -2730,31 +2709,23 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::svCorruption:
-		Dest.DWord = pChar->SaveCorruption;
+		Dest.DWord = pCharData->SaveCorruption;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::svPrismatic:
-		Dest.DWord = (pChar->SaveMagic + pChar->SaveFire + pChar->SaveCold + pChar->SavePoison + pChar->SaveDisease) / 5;
+		Dest.DWord = (pCharData->SaveMagic + pCharData->SaveFire + pCharData->SaveCold + pCharData->SavePoison + pCharData->SaveDisease) / 5;
 		Dest.Type = pIntType;
 		return true;
 
-	case CharacterMembers::svChromatic: {
-		int lowSave;
-		lowSave = pChar->SaveMagic;
-		if (lowSave > pChar->SaveFire)
-			lowSave = pChar->SaveFire;
-		if (lowSave > pChar->SaveCold)
-			lowSave = pChar->SaveCold;
-		if (lowSave > pChar->SavePoison)
-			lowSave = pChar->SavePoison;
-		if (lowSave > pChar->SaveDisease)
-			lowSave = pChar->SaveDisease;
-
-		Dest.Int = lowSave;
+	case CharacterMembers::svChromatic:
+		Dest.Int = std::min({ pCharData->SaveMagic,
+			pCharData->SaveFire,
+			pCharData->SaveCold,
+			pCharData->SavePoison,
+			pCharData->SaveDisease });
 		Dest.Type = pIntType;
 		return true;
-	}
 
 	case CharacterMembers::Doubloons:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_DOUBLOONS);
@@ -2972,24 +2943,18 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::LoyaltyTokens:
-		Dest.DWord = pChar->LoyaltyRewardBalance;
+		Dest.DWord = pCharData->LoyaltyRewardBalance;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::Fellowship:
 		Dest.Type = pFellowshipType;
-		if (pChar->pSpawn)
-		{
-			Dest.Ptr = &pChar->pSpawn->Fellowship;
-			return true;
-		}
-		return false;
+		Dest.Ptr = &pLocalPlayer->Fellowship;
+		return true;
 
 	case CharacterMembers::Downtime:
-		Dest.DWord = 0;
+		Dest.DWord = pCharData->DowntimeStamp ? ((pCharData->Downtime - (GetFastTime() - pCharData->DowntimeStamp)) / 6) + 1 : 0;
 		Dest.Type = pTicksType;
-		if (pChar->DowntimeStamp)
-			Dest.DWord = ((pChar->Downtime - (GetFastTime() - pChar->DowntimeStamp)) / 6) + 1;
 		return true;
 
 		// returns combined number of spell and damage "absorbment"
@@ -3058,177 +3023,145 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::XTargetSlots:
-		Dest.DWord = 0;
+		Dest.DWord = pCharData->pExtendedTargetList->GetNumSlots();
 		Dest.Type = pIntType;
-		if (ExtendedTargetList* xtm = pChar->pXTargetMgr)
-		{
-			Dest.DWord = xtm->XTargetSlots.Count;
-		}
 		return true;
 
-	case CharacterMembers::XTAggroCount:
+	case CharacterMembers::XTAggroCount: {
 		Dest.DWord = 0;
-		if (ExtendedTargetList* xtm = pChar->pXTargetMgr)
+		Dest.Type = pIntType;
+
+		int AggroPct = 100;
+		if (IsNumber(Index))
 		{
-			int AggroPct = 100;
-			if (IsNumber(Index))
+			AggroPct = GetIntFromString(Index, AggroPct);
+			if (AggroPct < 1 || AggroPct > 100)
 			{
-				AggroPct = GetIntFromString(Index, AggroPct);
-				if (AggroPct < 1 || AggroPct > 100)
-				{
-					AggroPct = 100;
-				}
+				AggroPct = 100;
 			}
+		}
 
-			if (pAggroInfo)
+		if (pAggroInfo)
+		{
+			int count = pCharData->pExtendedTargetList->GetNumSlots();
+			for (int i = 0; i < count; i++)
 			{
-				for (int i = 0; i < xtm->XTargetSlots.Count; i++)
+				ExtendedTargetSlot* slot = pCharData->pExtendedTargetList->GetSlot(i);
+				if (!slot) continue;
+
+				if (slot->SpawnID && slot->xTargetType == XTARGET_AUTO_HATER)
 				{
-					XTARGETSLOT xts = xtm->XTargetSlots[i];
-					uint32_t spID = xts.SpawnID;
-
-					if (spID && xts.xTargetType == XTARGET_AUTO_HATER)
+					SPAWNINFO* pSpawn = GetSpawnByID(slot->SpawnID);
+					if (!pSpawn
+						|| (pTarget && pTarget->SpawnID == pSpawn->SpawnID)
+						|| (pSpawn->Type != SPAWN_NPC))
 					{
-						if (SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByID(spID))
-						{
-							if (pTarget && ((SPAWNINFO*)pTarget)->SpawnID == pSpawn->SpawnID)
-								continue;
+						continue;
+					}
 
-							if (pSpawn->Type == SPAWN_NPC)
-							{
-								uint16_t aggropct = pAggroInfo->aggroData[AD_xTarget1 + i].AggroPct;
-
-								if (aggropct < AggroPct)
-								{
-									Dest.DWord++;
-								}
-							}
-						}
+					uint16_t aggropct = pAggroInfo->aggroData[AD_xTarget1 + i].AggroPct;
+					if (aggropct < AggroPct)
+					{
+						Dest.DWord++;
 					}
 				}
 			}
 		}
-
-		Dest.Type = pIntType;
 		return true;
+	}
 
 	case CharacterMembers::XTHaterCount:
 		Dest.DWord = 0;
-		if (ExtendedTargetList* xtm = pChar->pXTargetMgr)
+		Dest.Type = pIntType;
+
+		if (pAggroInfo)
 		{
-			if (pAggroInfo)
+			for (ExtendedTargetSlot& slot : *pCharData->pExtendedTargetList)
 			{
-				for (int i = 0; i < xtm->XTargetSlots.Count; i++)
+				if (slot.SpawnID != 0
+					&& slot.xTargetType == XTARGET_AUTO_HATER)
 				{
-					XTARGETSLOT xts = xtm->XTargetSlots[i];
-					uint32_t spID = xts.SpawnID;
-
-					if (spID && xts.xTargetType == XTARGET_AUTO_HATER)
+					SPAWNINFO* pSpawn = GetSpawnByID(slot.SpawnID);
+					if (!pSpawn
+						|| (pTarget && pTarget->SpawnID == pSpawn->SpawnID)
+						|| (pSpawn->Type != SPAWN_NPC))
 					{
-						if (SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByID(spID))
-						{
-							if (pTarget && ((SPAWNINFO*)pTarget)->SpawnID == pSpawn->SpawnID)
-								continue;
-
-							if (pSpawn->Type == SPAWN_NPC)
-							{
-								Dest.DWord++;
-							}
-						}
+						continue;
 					}
+
+					Dest.DWord++;
 				}
 			}
 		}
 
-		Dest.Type = pIntType;
 		return true;
 
-	case CharacterMembers::XTarget:
+	case CharacterMembers::XTarget: {
 		Dest.DWord = 0;
 		Dest.Type = pXTargetType;
 
-		if (ExtendedTargetList* xtm = pChar->pXTargetMgr)
+		if (Index[0])
 		{
-			if (xtm->XTargetSlots.Count)
+			if (IsNumber(Index))
 			{
-				if (Index[0])
-				{
-					if (IsNumber(Index))
-					{
-						int index = GetIntFromString(Index, 0) - 1;
-						if (index >= 0 && index < (int)xtm->XTargetSlots.Count)
-						{
-							Dest.DWord = index;
-							Dest.Type = pXTargetType;
-							return true;
-						}
-					}
-					else
-					{
-						for (int n = 0; n < xtm->XTargetSlots.Count; n++)
-						{
-							XTARGETSLOT& xts = xtm->XTargetSlots[n];
+				int index = GetIntFromString(Index, 0) - 1;
 
-							if (xts.xTargetType && xts.XTargetSlotStatus && !_stricmp(Index, xts.Name))
-							{
-								Dest.DWord = n;
-								Dest.Type = pXTargetType;
-								return true;
-							}
-						}
-					}
-				}
-				else
+				if (pCharData->pExtendedTargetList->GetSlot(index) != nullptr)
 				{
-					int count = 0;
-					for (int n = 0; n < xtm->XTargetSlots.Count; n++)
-					{
-						XTARGETSLOT& xts = xtm->XTargetSlots[n];
-						if (xts.xTargetType && xts.XTargetSlotStatus)
-						{
-							count++;
-						}
-					}
-
-					Dest.DWord = count;
-					Dest.Type = pIntType;
+					Dest.DWord = index;
+					Dest.Type = pXTargetType;
 					return true;
 				}
 			}
+			else
+			{
+				int pos = 0;
+				for (const ExtendedTargetSlot& slot : *pCharData->pExtendedTargetList)
+				{
+					if (slot.xTargetType != 0
+						&& slot.XTargetSlotStatus != eXTSlotEmpty
+						&& _stricmp(Index, slot.Name) == 0)
+					{
+						Dest.DWord = pos;
+						Dest.Type = pXTargetType;
+						return true;
+					}
+
+					pos++;
+				}
+			}
+
+			return false;
 		}
-		return false;
 
-	case CharacterMembers::Haste: {
-		Dest.DWord = 0;
-		Dest.Type = pIntType;
-
-		// TODO: Is this GetCharInfo Redundant? Remove if so.
-		if (CHARINFO* pCharInfo = GetCharInfo())
+		// No index was given, so we return the count.
+		int count = 0;
+		for (const ExtendedTargetSlot& slot : *pCharData->pExtendedTargetList)
 		{
-			// TODO: Replace magic constant with enum
-			Dest.DWord = pCharData->TotalEffect(0xb, true, 0, true, true);
+			if (slot.xTargetType != 0 && slot.XTargetSlotStatus != eXTSlotEmpty)
+			{
+				count++;
+			}
+		}
+
+		Dest.DWord = count;
+		Dest.Type = pIntType;
+		return true;
+	}
+
+	case CharacterMembers::Haste:
+		Dest.DWord = pCharData->TotalEffect(SPA_HASTE, true, 0, true, true);
+		Dest.Type = pIntType;
+		return true;
+
+	case CharacterMembers::SPA:
+		if (IsNumber(Index))
+		{
+			Dest.DWord = pCharData->TotalEffect(GetIntFromString(Index, 0), true, 0, true, true);
+			Dest.Type = pIntType;
 			return true;
 		}
 		return false;
-	}
-
-	case CharacterMembers::SPA: {
-		Dest.DWord = 0;
-		Dest.Type = pIntType;
-		if (!Index[0])
-			return false;
-
-		if (IsNumber(Index))
-		{
-			// TODO: Is this GetCharInfo Redundant? Remove if so.
-			if (CHARINFO* pCharInfo = GetCharInfo())
-			{
-				Dest.DWord = pCharData->TotalEffect(GetIntFromString(Index, 0), true, 0, true, true);
-				return true;
-			}
-		}
-		return false;
-	}
 
 	case CharacterMembers::MercenaryStance:
 		if (const MercenaryStanceInfo* pInfo = pMercManager->GetActiveMercenaryStance())
@@ -3295,7 +3228,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			int nExpansion = GetIntFromString(Index, 0);
 			if (nExpansion > NUM_EXPANSIONS)
 				return true;
-			Dest.Set((GetCharInfo()->ExpansionFlags & EQ_EXPANSION(nExpansion)) != 0);
+			Dest.Set((pCharData->ExpansionFlags & EQ_EXPANSION(nExpansion)) != 0);
 		}
 		else
 		{
@@ -3304,7 +3237,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			{
 				if (!_stricmp(Index, szExpansions[n]))
 				{
-					Dest.Set((GetCharInfo()->ExpansionFlags & EQ_EXPANSION(n + 1)) != 0);
+					Dest.Set((pCharData->ExpansionFlags & EQ_EXPANSION(n + 1)) != 0);
 					return true;
 				}
 			}
@@ -3375,17 +3308,17 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case CharacterMembers::PctMercAAExp:
 		// this is how it looks like the client is doing it in the disasm...
-		Dest.Float = (float)((pChar->MercAAExp + 5) / 10);
+		Dest.Float = (float)((pCharData->MercAAExp + 5) / 10.f);
 		Dest.Type = pFloatType;
 		return true;
 
 	case CharacterMembers::MercAAExp:
-		Dest.Int64 = pChar->MercAAExp;
+		Dest.Int64 = pCharData->MercAAExp;
 		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::Krono:
-		Dest.DWord = pChar->Krono;
+		Dest.DWord = pCharData->Krono;
 		Dest.Type = pIntType;
 		return true;
 
@@ -3666,22 +3599,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return Dest.Int >= 0;
 
 	case CharacterMembers::InInstance:
-		Dest.Set(false);
-		if (pChar->pSpawn)
-		{
-			if (int zoneid = pChar->pSpawn->GetZoneID())
-			{
-				if (uint16_t instance = HIWORD(zoneid))
-					Dest.Set(true);
-			}
-		}
+		Dest.Set(HIWORD(pLocalPlayer->GetZoneID()) != 0);
 		Dest.Type = pBoolType;
 		return true;
 
 	case CharacterMembers::Instance:
-		Dest.DWord = 0;
-		if (pChar->pSpawn)
-			Dest.DWord = HIWORD(pChar->pSpawn->GetZoneID());
+		Dest.DWord = HIWORD(pLocalPlayer->GetZoneID());
 		Dest.Type = pIntType;
 		return true;
 
@@ -3725,12 +3648,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	}
 
 	case CharacterMembers::UseAdvancedLooting:
-		Dest.Set(pChar->UseAdvancedLooting != 0);
+		Dest.Set(pCharData->UseAdvancedLooting != 0);
 		Dest.Type = pBoolType;
 		return true;
 
 	case CharacterMembers::SpellInCooldown:
-		Dest.Set(pDisplay->TimeStamp <= ((SPAWNINFO*)pLocalPlayer)->GetSpellCooldownETA());
+		Dest.Set(pDisplay->TimeStamp <= pLocalPlayer->GetSpellCooldownETA());
 		Dest.Type = pBoolType;
 		return true;
 
@@ -3761,12 +3684,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::GuildID:
-		Dest.UInt64 = pChar->GuildID;
+		Dest.UInt64 = pCharData->GuildID;
 		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::ExpansionFlags:
-		Dest.DWord = pChar->ExpansionFlags;
+		Dest.DWord = pCharData->ExpansionFlags;
 		Dest.Type = pIntType;
 		return true;
 
@@ -3847,17 +3770,17 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return Dest.Int >= 0;
 
 	case CharacterMembers::CursorKrono:
-		Dest.DWord = pChar->CursorKrono;
+		Dest.DWord = pCharData->CursorKrono;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::MercAAPoints:
-		Dest.DWord = pChar->MercAAPoints;
+		Dest.DWord = pCharData->MercAAPoints;
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::MercAAPointsSpent:
-		Dest.DWord = pChar->MercAAPointsSpent;
+		Dest.DWord = pCharData->MercAAPointsSpent;
 		Dest.Type = pIntType;
 		return true;
 
@@ -3867,13 +3790,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 		if (IsNumber(Index))
 		{
-			int index = GetIntFromString(Index, 0) - 1;
-			if (index < 0)
-				index = 0;
-			if (index > 19)
-				index = 19;
-
-			Dest.DWord = index;
+			Dest.DWord = std::clamp(GetIntFromString(Index, 1), 1, MAX_BANDOLIER_ITEMS) - 1;
 			return true;
 		}
 		else
@@ -3915,51 +3832,48 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return Dest.Int >= 0;
 
 	case CharacterMembers::ParcelStatus:
-		Dest.DWord = pChar->ParcelStatus;
+		Dest.DWord = pCharData->ParcelStatus;
 		Dest.Type = pIntType;
 		return true;
 
-	case CharacterMembers::CanMount:
-		if (PlayerClient* pPlayer = pLocalPlayer)
-		{
-			Dest.Set(false);
-			Dest.Type = pBoolType;
+	case CharacterMembers::CanMount: {
+		Dest.Set(false);
+		Dest.Type = pBoolType;
 
-			if (pPlayer->HeadWet != 0 || pPlayer->Vehicle != nullptr)
-				return true;
-
-			int race = pPlayer->mActorClient.Race;
-
-			// These non-player races can mount.
-			if (race != EQR_SKELETON
-				|| race != EQR_SKELETON_NEW
-				|| race != EQR_OEQ_SKELETON
-				|| race != EQR_SOL_SKELETON)
-			{
-				// FIXME: we can calculate this, don't need to look it up.
-				// The -1 means "use the current race of the player"
-				if (!pPlayer->LegalPlayerRace(-1))
-					return true;
-			}
-
-			// TODO: Check that these are correct. Then update or remove this comment.
-			switch (pZoneInfo->OutDoor)
-			{
-			case IndoorDungeon:
-			case IndoorCity:
-			case DungeonCity:
-				return true;
-			default: break;
-			}
-
-			if (pWorldData->IsFlagSet(pPlayer->GetZoneID(), EQZoneFlag_NoMount))
-				return true;
-
-			// If we made it this far, we can mount.
-			Dest.Set(true);
+		if (pLocalPlayer->HeadWet != 0 || pLocalPlayer->Vehicle != nullptr)
 			return true;
+
+		int race = pLocalPlayer->GetRace();
+
+		// These non-player races can mount.
+		if (race != EQR_SKELETON
+			|| race != EQR_SKELETON_NEW
+			|| race != EQR_OEQ_SKELETON
+			|| race != EQR_SOL_SKELETON)
+		{
+			// FIXME: we can calculate this, don't need to look it up.
+			// The -1 means "use the current race of the player"
+			if (!pLocalPlayer->LegalPlayerRace(-1))
+				return true;
 		}
-		return false;
+
+		// TODO: Check that these are correct. Then update or remove this comment.
+		switch (pZoneInfo->OutDoor)
+		{
+		case IndoorDungeon:
+		case IndoorCity:
+		case DungeonCity:
+			return true;
+		default: break;
+		}
+
+		if (pWorldData->IsFlagSet(pLocalPlayer->GetZoneID(), EQZoneFlag_NoMount))
+			return true;
+
+		// If we made it this far, we can mount.
+		Dest.Set(true);
+		return true;
+	}
 
 	case CharacterMembers::SpellRankCap:
 		Dest.DWord = 1;
@@ -4051,8 +3965,7 @@ bool MQ2CharacterType::ToString(MQVarPtr VarPtr, char* Destination)
 	if (!pCharData)
 		return false;
 
-	CHARINFO* pCharInfo = static_cast<CHARINFO*>(pCharData);
-	strcpy_s(Destination, MAX_STRING, pCharInfo->Name);
+	strcpy_s(Destination, MAX_STRING, pCharData->Name);
 	return true;
 }
 
@@ -4063,7 +3976,7 @@ bool MQ2CharacterType::Downcast(MQVarPtr& VarPtr, MQ2Type* toType)
 		if (!pLocalPlayer)
 			return false;
 
-		VarPtr = MQ2SpawnType::MakeVarPtr(pLocalPlayer.get_as<SPAWNINFO>());
+		VarPtr = MQ2SpawnType::MakeVarPtr(pLocalPlayer);
 		return true;
 	}
 
