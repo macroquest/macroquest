@@ -1543,30 +1543,30 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 			if (IsNumber(Index))
 			{
 				Dest.HighPart = GetCachedBuff(pSpawn,
-					AllBuffs([&Index](const CachedBuff& buff) { return GetIntFromString(Index, 0) == buff.spellId; }));
+					[&Index](const CachedBuff& buff) { return GetIntFromString(Index, 0) == buff.spellId; });
 			}
 			else
 			{
 				if (Index[0] == '#') // by buff slot
-					Dest.HighPart = GetCachedBuff(pSpawn, AllBuffs([&Index](const CachedBuff& buff) { return GetIntFromString(&Index[1], 0) - 1 == buff.slot; }));
+					Dest.HighPart = GetCachedBuff(pSpawn, [&Index](const CachedBuff& buff) { return GetIntFromString(&Index[1], 0) - 1 == buff.slot; });
 				else if (Index[0] == '*') // by buff index
 					Dest.HighPart = GetCachedBuffAt(pSpawn, GetIntFromString(&Index[1], 0) - 1);
 				else if (Index[0] == '^') // by keyword
 				{
 					if (ci_equals(&Index[1], "slowed"))
-						Dest.HighPart = GetCachedBuff(pSpawn, AllBuffs(SpellAffect(SPA_HASTE, false)));
+						Dest.HighPart = GetCachedBuff(pSpawn, SpellAffect(SPA_HASTE, false));
 					else if (ci_equals(&Index[1], "rooted"))
-						Dest.HighPart = GetCachedBuff(pSpawn, AllBuffs(SpellAffect(SPA_ROOT, false)));
+						Dest.HighPart = GetCachedBuff(pSpawn, SpellAffect(SPA_ROOT, false));
 					else if (ci_equals(&Index[1], "mezzed"))
-						Dest.HighPart = GetCachedBuff(pSpawn, AllBuffs(SpellAffect(SPA_ENTHRALL, false)));
+						Dest.HighPart = GetCachedBuff(pSpawn, SpellAffect(SPA_ENTHRALL, false));
 					else if (ci_equals(&Index[1], "crippled"))
-						Dest.HighPart = GetCachedBuff(pSpawn, AllBuffs(SpellSubCat(SPELLCAT_DISEMPOWERING)));
+						Dest.HighPart = GetCachedBuff(pSpawn, SpellSubCat(SPELLCAT_DISEMPOWERING));
 					else if (ci_equals(&Index[1], "maloed"))
-						Dest.HighPart = GetCachedBuff(pSpawn, AllBuffs(SpellSubCat(SPELLCAT_RESIST_DEBUFFS), SpellClassMask(Shaman, Mage)));
+						Dest.HighPart = GetCachedBuff(pSpawn, SpellSubCat(SPELLCAT_RESIST_DEBUFFS) && SpellClassMask(Shaman, Mage));
 					else if (ci_equals(&Index[1], "tashed"))
-						Dest.HighPart = GetCachedBuff(pSpawn, AllBuffs(SpellSubCat(SPELLCAT_RESIST_DEBUFFS), SpellClassMask(Enchanter)));
+						Dest.HighPart = GetCachedBuff(pSpawn, SpellSubCat(SPELLCAT_RESIST_DEBUFFS) && SpellClassMask(Enchanter));
 					else if (ci_equals(&Index[1], "snared"))
-						Dest.HighPart = GetCachedBuff(pSpawn, AllBuffs(SpellAffect(SPA_MOVEMENT_RATE, false)));
+						Dest.HighPart = GetCachedBuff(pSpawn, SpellAffect(SPA_MOVEMENT_RATE, false));
 					else if (ci_equals(&Index[1], "beneficial"))
 					{
 						Dest.HighPart = GetCachedBuff(pSpawn, [](const CachedBuff& buff) -> bool
@@ -1608,11 +1608,11 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		}
 		else
 		{
-			Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(
+			Dest.HighPart = GetCachedBuff(pTarget,
 				[&Index](const CachedBuff& buff)
 				{
 					return ci_starts_with(GetSpellNameByID(buff.spellId), Index);
-				}));
+				});
 		}
 
 		return Dest.HighPart >= 0;
@@ -1628,13 +1628,13 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		}
 		else
 		{
-			Dest.HighPart = GetCachedBuff(pTarget, AllBuffs(
+			Dest.HighPart = GetCachedBuff(pTarget,
 				[&Index](const CachedBuff& buff)
 				{
 					return GetCharInfo()
 						&& ci_equals(GetCharInfo()->Name, buff.casterName)
 						&& ci_starts_with(GetSpellNameByID(buff.spellId), Index);
-				}));
+				});
 		}
 
 		return Dest.HighPart >= 0;
@@ -1669,11 +1669,11 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		}
 		else
 		{
-			auto buffs = FilterCachedBuffs(pTarget, AllBuffs(
+			auto buffs = FilterCachedBuffs(pTarget,
 				[&Index](const CachedBuff& buff)
 				{
 					return ci_starts_with(GetSpellNameByID(buff.spellId), Index);
-				}));
+				});
 
 			auto buff_it = std::max_element(std::cbegin(buffs), std::cend(buffs),
 				[](const CachedBuff& a, const CachedBuff& b) { return a.Duration() < b.Duration(); });
@@ -1705,13 +1705,13 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		}
 		else
 		{
-			auto buffs = FilterCachedBuffs(pTarget, AllBuffs(
+			auto buffs = FilterCachedBuffs(pTarget,
 				[&Index](const CachedBuff& buff)
 				{
 					return GetCharInfo()
 						&& ci_equals(GetCharInfo()->Name, buff.casterName)
 						&& ci_starts_with(GetSpellNameByID(buff.spellId), Index);
-				}));
+				});
 
 			auto buff_it = std::max_element(std::cbegin(buffs), std::cend(buffs),
 				[](const CachedBuff& a, const CachedBuff& b) { return a.Duration() < b.Duration(); });
