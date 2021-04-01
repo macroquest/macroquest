@@ -438,7 +438,7 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 		{
 			WriteChatf("Plugin '%s' unloaded.", szName);
 			// As below, this will capture MQ2NoAutomaticstuff as well.  As a long term fix, consider arg parsing.
-			if (ci_find_substr(szCommand, "noauto") != -1)
+			if (ci_find_substr(szCommand, "noauto") == -1)
 			{
 				WritePrivateProfileBool("Plugins", szName, false, mq::internal_paths::MQini);
 			}
@@ -456,7 +456,7 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 			WriteChatf("Plugin '%s' loaded.", szName);
 
 			// As above, this will capture MQ2NoAutomaticstuff as well.  As a long term fix, consider arg parsing.
-			if (ci_find_substr(szCommand, "noauto") != -1)
+			if (ci_find_substr(szCommand, "noauto") == -1)
 			{
 				WritePrivateProfileBool("Plugins", szName, true, mq::internal_paths::MQini);
 			}
