@@ -5707,10 +5707,10 @@ int GetTargetBuffBySubCat(const char* subcat, DWORD classmask, int startslot)
 
 			if (const char* ptr = pCDBStr->GetString(GetSpellSubcategory(spell), eSpellCategory, NULL))
 			{
-				if (!_stricmp(ptr, subcat) && IsSpellUsableForClass(spell, classmask))
-				{
-				}
+				return !_stricmp(ptr, subcat) && IsSpellUsableForClass(spell, classmask);
 			}
+
+			return false;
 		});
 }
 
@@ -5728,10 +5728,10 @@ bool HasCachedTargetBuffSubCat(const char* subcat, SPAWNINFO* pSpawn, void*, DWO
 
 			if (const char* ptr = pCDBStr->GetString(GetSpellSubcategory(spell), eSpellCategory, NULL))
 			{
-				if (!_stricmp(ptr, subcat) && IsSpellUsableForClass(spell, classmask))
-				{
-				}
+				return !_stricmp(ptr, subcat) && IsSpellUsableForClass(spell, classmask);
 			}
+
+			return false;
 		}) > 0;
 }
 
@@ -5824,10 +5824,10 @@ int GetSelfBuffBySubCat(PCHAR subcat, DWORD classmask, int startslot)
 
 			if (const char* ptr = pCDBStr->GetString(GetSpellSubcategory(spell), eSpellCategory, NULL))
 			{
-				if (!_stricmp(ptr, subcat) && IsSpellUsableForClass(spell, classmask))
-				{
-				}
+				return !_stricmp(ptr, subcat) && IsSpellUsableForClass(spell, classmask);
 			}
+
+			return false;
 		});
 }
 
