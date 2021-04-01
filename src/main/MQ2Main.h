@@ -703,7 +703,7 @@ template <typename T>
 struct SpellAttribute
 {
 	template <typename Buff>
-	bool operator()(const Buff& buff) const { WriteChatf("Hit base class");  return true; }// this->T::operator()(buff);
+	bool operator()(const Buff& buff) const { return true; }
 
 	const T& get() const { return static_cast<T const&>(*this); }
 };
