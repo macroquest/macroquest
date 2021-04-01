@@ -3443,49 +3443,49 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	case CharacterMembers::Slowed:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_HASTE, false)));
+		Dest.Int = GetSelfBuff(SpellAffect(SPA_HASTE, false));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Rooted:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_ROOT, false)));
+		Dest.Int = GetSelfBuff(SpellAffect(SPA_ROOT, false));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Mezzed:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_ENTHRALL, false)));
+		Dest.Int = GetSelfBuff(SpellAffect(SPA_ENTHRALL, false));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Crippled:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(SpellSubCat(SPELLCAT_DISEMPOWERING)));
+		Dest.Int = GetSelfBuff(SpellSubCat(SPELLCAT_DISEMPOWERING));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Maloed:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(SpellSubCat(SPELLCAT_RESIST_DEBUFFS), SpellClassMask(Shaman, Mage)));
+		Dest.Int = GetSelfBuff(SpellSubCat(SPELLCAT_RESIST_DEBUFFS) && SpellClassMask(Shaman, Mage));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Tashed:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(SpellSubCat(SPELLCAT_RESIST_DEBUFFS), SpellClassMask(Enchanter)));
+		Dest.Int = GetSelfBuff(SpellSubCat(SPELLCAT_RESIST_DEBUFFS) && SpellClassMask(Enchanter));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Snared:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_MOVEMENT_RATE, false)));
+		Dest.Int = GetSelfBuff(SpellAffect(SPA_MOVEMENT_RATE, false));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Hasted:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_HASTE, true)));
+		Dest.Int = GetSelfBuff(SpellAffect(SPA_HASTE));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::LastZoned:
@@ -3516,167 +3516,153 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	case CharacterMembers::DSed:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_DAMAGE_SHIELD, true)));
+		Dest.Int = GetSelfBuff(SpellAffect(SPA_DAMAGE_SHIELD));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::RevDSed:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_IRONMAIDEN, true)));
+		Dest.Int = GetSelfBuff(SpellAffect(SPA_IRONMAIDEN));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Charmed:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_CHARM, false)));
+		Dest.Int = GetSelfBuff(SpellAffect(SPA_CHARM, false));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Aego:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(
-			SpellAffect(SPA_AC, true),
-			SpellCategory(SPELLCAT_HP_BUFFS),
-			AnyBuffs(SpellSubCat(SPELLCAT_AEGOLISM), SpellSubCat(SPELLCAT_SYMBOL)),
-			SpellClassMask(Cleric)));
+		Dest.Int = GetSelfBuff(SpellAffect(SPA_AC, true) &&
+			SpellCategory(SPELLCAT_HP_BUFFS) &&
+			(SpellSubCat(SPELLCAT_AEGOLISM) || SpellSubCat(SPELLCAT_SYMBOL)) &&
+			SpellClassMask(Cleric));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Skin:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(
-			SpellCategory(SPELLCAT_HP_BUFFS),
-			SpellSubCat(SPELLCAT_HP_TYPE_ONE),
-			SpellClassMask(Druid)));
+		Dest.Int = GetSelfBuff(SpellCategory(SPELLCAT_HP_BUFFS) &&
+			SpellSubCat(SPELLCAT_HP_TYPE_ONE) &&
+			SpellClassMask(Druid));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Focus:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(
-			SpellCategory(SPELLCAT_HP_BUFFS),
-			SpellSubCat(SPELLCAT_SHIELDING),
-			SpellClassMask(Shaman)));
+		Dest.Int = GetSelfBuff(SpellCategory(SPELLCAT_HP_BUFFS) &&
+			SpellSubCat(SPELLCAT_SHIELDING) &&
+			SpellClassMask(Shaman));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Regen:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_HP, true), !SpellClassMask(Beastlord)));
+		Dest.Int = GetSelfBuff(SpellAffect(SPA_HP) && !SpellClassMask(Beastlord));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Diseased:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_DISEASE, false)));
+		Dest.Int = GetSelfBuff(SpellAffect(SPA_DISEASE, false));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Poisoned:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_POISON, false)));
+		Dest.Int = GetSelfBuff(SpellAffect(SPA_POISON, false));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Cursed:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_CURSE, false)));
+		Dest.Int = GetSelfBuff(SpellAffect(SPA_CURSE, false));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Corrupted:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_CORRUPTION, false)));
+		Dest.Int = GetSelfBuff(SpellAffect(SPA_CORRUPTION, false));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Symbol:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(
-			SpellCategory(SPELLCAT_HP_BUFFS),
-			SpellSubCat(SPELLCAT_SYMBOL),
-			SpellClassMask(Cleric)));
+		Dest.Int = GetSelfBuff(SpellCategory(SPELLCAT_HP_BUFFS) &&
+			SpellSubCat(SPELLCAT_SYMBOL) &&
+			SpellClassMask(Cleric));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Clarity:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(
-			SpellAffect(SPA_MANA, true),
-			SpellClassMask(Enchanter)));
+		Dest.Int = GetSelfBuff(SpellAffect(SPA_MANA) && SpellClassMask(Enchanter));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Pred:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(
-			SpellCategory(SPELLCAT_STATISTIC_BUFFS),
-			SpellSubCat(SPELLCAT_ATTACK),
-			SpellClassMask(Ranger)));
+		Dest.Int = GetSelfBuff(SpellCategory(SPELLCAT_STATISTIC_BUFFS) &&
+			SpellSubCat(SPELLCAT_ATTACK) &&
+			SpellClassMask(Ranger));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Strength:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(
-			SpellCategory(SPELLCAT_HP_BUFFS),
-			SpellSubCat(SPELLCAT_HP_TYPE_TWO),
-			SpellClassMask(Ranger)));
+		Dest.Int = GetSelfBuff(SpellCategory(SPELLCAT_HP_BUFFS) &&
+			SpellSubCat(SPELLCAT_HP_TYPE_TWO) &&
+			SpellClassMask(Ranger));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Brells:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(
-			SpellCategory(SPELLCAT_HP_BUFFS),
-			SpellSubCat(SPELLCAT_HP_TYPE_TWO),
-			SpellClassMask(Paladin)));
+		Dest.Int = GetSelfBuff(SpellCategory(SPELLCAT_HP_BUFFS) &&
+			SpellSubCat(SPELLCAT_HP_TYPE_TWO) &&
+			SpellClassMask(Paladin));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::SV:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(
-			SpellCategory(SPELLCAT_REGEN),
-			SpellSubCat(SPELLCAT_MANA),
-			SpellClassMask(Beastlord)));
+		Dest.Int = GetSelfBuff(SpellCategory(SPELLCAT_REGEN) &&
+			SpellSubCat(SPELLCAT_MANA) &&
+			SpellClassMask(Beastlord));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::SE:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(
-			SpellCategory(SPELLCAT_REGEN),
-			SpellSubCat(SPELLCAT_HEALTH_MANA),
-			SpellClassMask(Beastlord)));
+		Dest.Int = GetSelfBuff(SpellCategory(SPELLCAT_REGEN) &&
+			SpellSubCat(SPELLCAT_HEALTH_MANA) &&
+			SpellClassMask(Beastlord));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::HybridHP:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(
-			SpellCategory(SPELLCAT_HP_BUFFS),
-			SpellSubCat(SPELLCAT_HP_TYPE_ONE),
-			SpellClassMask(Ranger)));
+		Dest.Int = GetSelfBuff(SpellCategory(SPELLCAT_HP_BUFFS) &&
+			SpellSubCat(SPELLCAT_HP_TYPE_ONE) &&
+			SpellClassMask(Ranger));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Growth:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(
-			SpellCategory(SPELLCAT_HP_BUFFS),
-			SpellSubCat(SPELLCAT_TEMPORARY),
-			SpellClassMask(Druid)));
+		Dest.Int = GetSelfBuff(SpellCategory(SPELLCAT_HP_BUFFS) &&
+			SpellSubCat(SPELLCAT_TEMPORARY) &&
+			SpellClassMask(Druid));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Shining:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(
-			SpellCategory(SPELLCAT_UTILITY_BENEFICIAL),
-			SpellSubCat(SPELLCAT_MELEE_GUARD),
-			SpellAffect(SPA_MELEE_GUARD, true),
-			SpellClassMask(Cleric)));
+		Dest.Int = GetSelfBuff(SpellCategory(SPELLCAT_UTILITY_BENEFICIAL) &&
+			SpellSubCat(SPELLCAT_MELEE_GUARD) &&
+			SpellAffect(SPA_MELEE_GUARD) &&
+			SpellClassMask(Cleric));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::InInstance:
@@ -3857,7 +3843,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	case CharacterMembers::Beneficial:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs([](EQ_Spell* spell) { return spell->SpellType != 0; }));
+		Dest.Int = GetSelfBuff([](EQ_Spell* spell) { return spell->SpellType != 0; });
 		return Dest.Int >= 0;
 
 	case CharacterMembers::CursorKrono:
@@ -3906,26 +3892,26 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	case CharacterMembers::Feared:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_FEAR, true)));
+		Dest.Int = GetSelfBuff(SpellAffect(SPA_FEAR));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Silenced:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_SILENCE, true)));
+		Dest.Int = GetSelfBuff(SpellAffect(SPA_SILENCE));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Invulnerable:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_INVULNERABILITY, true)));
+		Dest.Int = GetSelfBuff(SpellAffect(SPA_INVULNERABILITY));
 		return Dest.Int >= 0;
 
 	case CharacterMembers::Dotted:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		Dest.Int = GetSelfBuff(AllBuffs(SpellAffect(SPA_HP, false),
-			[](EQ_Spell* spell) { return spell->IsDetrimentalSpell() && spell->IsDoTSpell(); }));
+		Dest.Int = GetSelfBuff(
+			[](EQ_Spell* spell) { return SpellAffect(SPA_HP, false)(spell) && spell->IsDetrimentalSpell() && spell->IsDoTSpell(); });
 		return Dest.Int >= 0;
 
 	case CharacterMembers::ParcelStatus:
