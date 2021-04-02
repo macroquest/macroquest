@@ -1,6 +1,6 @@
 local mq = require('mq')
 local ForceEnd = function ()
-    mq.cmd.endlua()
+    mq.exit()
 end
 
 mq.event('BrokenPole', "#*#You can't fish without a fishing pole, go buy one.#*#", ForceEnd)
@@ -23,7 +23,7 @@ end
 local CheckPole = function ()
     if (string.find(mq.TLO.Me.Inventory('mainhand').Name(), 'The Bone Rod') ~= nil) then return end
     mq.cmd.echo('You need to put your fishing pole in your primary hand.')
-    mq.cmd.endlua()
+    mq.exit()
 end
 
 while true do
