@@ -548,12 +548,12 @@ static void LuaPauseCommand(std::optional<std::string> script = std::nullopt)
 
 static void WriteSettings()
 {
+	std::fstream file(s_configPath, std::ios::out);
 	if (!s_configNode.IsNull())
 	{
 		YAML::Emitter y_out;
 		y_out << s_configNode;
 
-		std::fstream file(s_configPath, std::ios::out);
 		file << y_out.c_str();
 	}
 }
@@ -574,6 +574,7 @@ static void ReadSettings()
 	{
 		// if we can't read the file, then try to write it with an empty config
 		WriteSettings();
+		return;
 	}
 
 	s_turboNum = s_configNode[turboNum].as<uint32_t>(s_turboNum);
