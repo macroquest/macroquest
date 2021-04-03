@@ -329,6 +329,12 @@ static void RegisterMQNamespace(sol::table t)
 	t["delay"] = &delay;
 	t["join"] = &lua_join;
 	t["exit"] = &exit;
+	t["configDir"] = gPathConfig;
+
+	if (auto thread_ptr = LuaThread::get_from(t.lua_state()))
+	{
+		t["luaDir"] = std::filesystem::path(thread_ptr->path).parent_path().string();
+	}
 
 	Events_RegisterLua(t);
 	ImGui_RegisterLua(t);
