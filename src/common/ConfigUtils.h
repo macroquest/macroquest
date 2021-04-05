@@ -76,25 +76,25 @@ inline int GetPrivateProfileString(const char* Section, const char* Key, const c
 
 inline std::string GetPrivateProfileString(const std::string& Section, const std::string& Key, const std::string& DefaultValue, const std::string& iniFileName)
 {
-	char szBuffer[MAX_STRING];
+	char szBuffer[MAX_STRING] = { 0 };
 
-	DWORD length = ::GetPrivateProfileStringA(Section.empty() ? nullptr : Section.c_str(), Key.empty() ? nullptr : Key.c_str(), DefaultValue.c_str(), szBuffer, MAX_STRING, iniFileName.c_str());
+	const DWORD length = ::GetPrivateProfileStringA(Section.empty() ? nullptr : Section.c_str(), Key.empty() ? nullptr : Key.c_str(), DefaultValue.c_str(), szBuffer, MAX_STRING, iniFileName.c_str());
 	return std::string{ szBuffer, length };
 }
 
 inline std::string GetPrivateProfileString(const char* Section, const char* Key, const char* DefaultValue, const char* iniFileName)
 {
-	char szBuffer[MAX_STRING];
+	char szBuffer[MAX_STRING] = { 0 };
 
-	DWORD length = ::GetPrivateProfileStringA(Section, Key, DefaultValue, szBuffer, MAX_STRING, iniFileName);
+	const DWORD length = ::GetPrivateProfileStringA(Section, Key, DefaultValue, szBuffer, MAX_STRING, iniFileName);
 	return std::string{ szBuffer, length };
 }
 
 inline std::vector<std::string> GetPrivateProfileKeys(const std::string& section, const std::string& iniFileName)
 {
-	char keybuffer[MAX_STRING];
+	char keybuffer[MAX_STRING] = { 0 };
 
-	int bufferLen = ::GetPrivateProfileStringA(section.c_str(), nullptr, "", keybuffer, MAX_STRING, iniFileName.c_str());
+	const int bufferLen = ::GetPrivateProfileStringA(section.c_str(), nullptr, "", keybuffer, MAX_STRING, iniFileName.c_str());
 	char* ptr = keybuffer;
 
 	std::vector<std::string> results;
