@@ -3898,19 +3898,16 @@ bool GetClosestAlert(SPAWNINFO* pChar, uint32_t id)
 	if (!pSpawnManager) return false;
 	if (!pSpawnList) return false;
 
-	SPAWNINFO* pSpawn = nullptr;
 	SPAWNINFO* pClosest = nullptr;
 
 	float ClosestDistance = 50000.0f;
-
-	char szName[MAX_STRING] = { 0 };
 
 	std::vector<MQSpawnSearch> search;
 	if (CAlerts.GetAlert(id, search))
 	{
 		for (auto& s : search)
 		{
-			if (pSpawn = SearchThroughSpawns(&s, pChar))
+			if (SPAWNINFO* pSpawn = SearchThroughSpawns(&s, pChar))
 			{
 				if (Distance3DToSpawn(pChar, pSpawn) < ClosestDistance)
 				{
