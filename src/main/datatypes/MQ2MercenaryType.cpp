@@ -145,6 +145,18 @@ bool MQ2MercenaryType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
+bool MQ2MercenaryType::Downcast(const MQVarPtr& fromVar, MQVarPtr& toVar, MQ2Type* toType)
+{
+	if (toType == pSpawnType)
+	{
+		SPAWNINFO* pMercenary = pMercManager->mercenarySpawnId ? GetSpawnByID(pMercManager->mercenarySpawnId) : nullptr;
+		toVar = pSpawnType->MakeVarPtr(pMercenary);
+		return true;
+	}
+
+	return false;
+}
+
 bool MQ2MercenaryType::dataMercenary(const char* szIndex, MQTypeVar& Ret)
 {
 	// Mercenary is a global, do not need a pointer to it stored.

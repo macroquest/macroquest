@@ -7067,10 +7067,32 @@ uint32_t GetGroupMainAssistTargetID()
 
 uint32_t GetRaidMainAssistTargetID(int index)
 {
-	if (!pLocalPlayer || !pRaid) return 0;
+	if (!pLocalPlayer) return 0;
 
-	index = std::clamp(index, 0, MAX_RAID_ASSISTS - 1);
+	if (index < 0 || index >= (int)lengthof(pLocalPlayer->RaidAssistNPC))
+		return 0;
+
 	return pLocalPlayer->RaidAssistNPC[index];
+}
+
+uint32_t GetGroupMarkedTargetID(int index)
+{
+	if (!pLocalPlayer || !pCharData->Group) return 0;
+
+	if (index < 0 || index >= (int)lengthof(pLocalPlayer->GroupMarkNPC))
+		return 0;
+
+	return pLocalPlayer->GroupMarkNPC[index];
+}
+
+uint32_t GetRaidMarkedTargetID(int index)
+{
+	if (!pLocalPlayer) return 0;
+
+	if (index < 0 || index >= (int)lengthof(pLocalPlayer->RaidMarkNPC))
+		return 0;
+
+	return pLocalPlayer->RaidMarkNPC[index];
 }
 
 bool IsAssistNPC(SPAWNINFO* pSpawn)

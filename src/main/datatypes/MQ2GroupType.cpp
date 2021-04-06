@@ -357,7 +357,9 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 				return true;
 			}
 		}
-		return false;
+
+		Dest = pSpawnType->MakeTypeVar();
+		return true;
 
 	case GroupMembers::MouseOver:
 		Dest.DWord = 0;
@@ -522,12 +524,8 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		return true;
 
 	case GroupMemberMembers::Spawn:
-		if (pGroupMember)
-		{
-			Dest = pSpawnType->MakeTypeVar(pGroupMember);
-			return true;
-		}
-		return false;
+		Dest = pSpawnType->MakeTypeVar(pGroupMember);
+		return true;
 
 	case GroupMemberMembers::Level:
 		Dest.DWord = 0;
@@ -684,7 +682,43 @@ bool MQ2GroupMemberType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pGroupMemberType)
 		return false;
-	VarPtr.Ptr = Source.Ptr;
+
+	VarPtr = Source;
+	return true;
+}
+
+bool MQ2GroupMemberType::Downcast(const MQVarPtr& fromVar, MQVarPtr& toVar, MQ2Type* toType)
+{
+	if (toType != pSpawnType)
+		return false;
+
+	SPAWNINFO* pGroupMember = nullptr;
+	uint32_t nMember = static_cast<uint32_t>(fromVar.Int);
+
+	if (nMember == 0)
+	{
+		toVar = pSpawnType->MakeVarPtr(pLocalPlayer);
+		return true;
+	}
+
+	if (nMember < MAX_GROUP_SIZE)
+	{
+		for (int i = 1; i < MAX_GROUP_SIZE; i++)
+		{
+			if (CGroupMember* pMember = pCharData->Group->GetGroupMember(i))
+			{
+				nMember--;
+
+				if (nMember == 0)
+				{
+					pGroupMember = pMember->pSpawn;
+					break;
+				}
+			}
+		}
+	}
+
+	toVar = pSpawnType->MakeVarPtr(pGroupMember);
 	return true;
 }
 

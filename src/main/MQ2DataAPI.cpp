@@ -345,7 +345,7 @@ static bool CallFunction(const char* name, const char* args)
 				WriteChatf("\ayWARNING: Delays in subs called with variable syntax are ignored: (\ao%s\ay) Line \ao%i\ay called (\ao%s\ay) from (\a-o%s\ay) Line \a-o%i\ay (\a-o%s\ay) ", ml.SourceFile.c_str(), ml.LineNumber, ml.Command.c_str(), ml_saved.SourceFile.c_str(), ml_saved.LineNumber, ml_saved.Command.c_str());
 			}
 		}
-		DoCommand(pChar, &subBlock->second.Command[0]);
+		DoCommand(pLocalPlayer, &subBlock->second.Command[0]);
 
 		if (!gMacroBlock)
 			break;

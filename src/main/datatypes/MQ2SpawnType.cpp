@@ -530,23 +530,13 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		return true;
 
 	case SpawnMembers::Pet:
+		Dest = pSpawnType->MakeTypeVar(pSpawn->PetID != -1 ? GetSpawnByID(pSpawn->PetID) : nullptr);
 		Dest.Type = pPetType;
-		if (pSpawn->PetID != -1)
-		{
-			if (SPAWNINFO* pPetSpawn = (SPAWNINFO*)GetSpawnByID(pSpawn->PetID))
-			{
-				Dest.Set(ObserveEQObject(pPetSpawn));
-			}
-		}
 		return true;
 
 	case SpawnMembers::Master:
-		if (SPAWNINFO* pMaster = (SPAWNINFO*)GetSpawnByID(pSpawn->MasterID))
-		{
-			Dest = MakeTypeVar(pMaster);
-			return true;
-		}
-		return false;
+		Dest = MakeTypeVar(GetSpawnByID(pSpawn->MasterID));
+		return true;
 
 	case SpawnMembers::Gender:
 		strcpy_s(DataTypeTemp, szGender[pSpawn->mActorClient.Gender]);
@@ -792,12 +782,8 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		return true;
 
 	case SpawnMembers::TargetOfTarget:
-		if (SPAWNINFO* pToT = (SPAWNINFO*)GetSpawnByID(pSpawn->TargetOfTarget))
-		{
-			Dest = MakeTypeVar(pToT);
-			return true;
-		}
-		return false;
+		Dest = MakeTypeVar(GetSpawnByID(pSpawn->TargetOfTarget));
+		return true;
 
 	case SpawnMembers::Ducking:
 		Dest.Set(pSpawn->StandState == STANDSTATE_DUCK);
@@ -1731,10 +1717,15 @@ bool MQ2SpawnType::ToString(MQVarPtr VarPtr, char* Destination)
 
 bool MQ2SpawnType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
+	if (Source.Type == pSpawnType)
+	{
+		VarPtr = Source;
+		return true;
+	}
+
 	if (Source.IsType(MQVarPtr::VariantIdx::UInt64))
 	{
-		SPAWNINFO* pOther = GetSpawnByID(Source.Get<int>());
-		VarPtr = MakeVarPtr(pOther);
+		VarPtr = MakeVarPtr(GetSpawnByID(Source.Get<int>()));
 		return true;
 	}
 
@@ -1760,11 +1751,8 @@ bool MQ2SpawnType::dataSpawn(const char* szIndex, MQTypeVar& Ret)
 	{
 		if (IsNumber(szIndex))
 		{
-			if (SPAWNINFO* pSpawn = GetSpawnByID(GetIntFromString(szIndex, 0)))
-			{
-				Ret = pSpawnType->MakeTypeVar(pSpawn);
-				return true;
-			}
+			Ret = pSpawnType->MakeTypeVar(GetSpawnByID(GetIntFromString(szIndex, 0)));
+			return true;
 		}
 		else
 		{
@@ -1772,16 +1760,16 @@ bool MQ2SpawnType::dataSpawn(const char* szIndex, MQTypeVar& Ret)
 			MQSpawnSearch ssSpawn;
 			ClearSearchSpawn(&ssSpawn);
 			ParseSearchSpawn(szIndex, &ssSpawn);
-			if (SPAWNINFO* pSearchSpawn = SearchThroughSpawns(&ssSpawn, pControlledPlayer))
-			{
-				Ret = pSpawnType->MakeTypeVar(pSearchSpawn);
-				return true;
-			}
+
+			SPAWNINFO* pSearchSpawn = SearchThroughSpawns(&ssSpawn, pControlledPlayer);
+			Ret = pSpawnType->MakeTypeVar(pSearchSpawn);
+			return true;
 		}
 	}
-	// No spawn
 
-	return false;
+	// No spawn
+	Ret = pSpawnType->MakeTypeVar();
+	return true;
 }
 
 bool MQ2SpawnType::dataSpawnCount(const char* szIndex, MQTypeVar& Ret)
@@ -1805,6 +1793,8 @@ bool MQ2SpawnType::dataSpawnCount(const char* szIndex, MQTypeVar& Ret)
 
 bool MQ2SpawnType::dataLastSpawn(const char* szIndex, MQTypeVar& Ret)
 {
+	Ret = pSpawnType->MakeTypeVar();
+
 	if (szIndex[0])
 	{
 		if (IsNumber(szIndex))
@@ -1828,7 +1818,7 @@ bool MQ2SpawnType::dataLastSpawn(const char* szIndex, MQTypeVar& Ret)
 				{
 					pSpawn = bPosIndex ? pSpawn->pNext : pSpawn->pPrev;
 					if (!pSpawn)
-						return false;
+						return true;
 					index--;
 				}
 
@@ -1842,7 +1832,8 @@ bool MQ2SpawnType::dataLastSpawn(const char* szIndex, MQTypeVar& Ret)
 		Ret = pSpawnType->MakeTypeVar(pSpawn);
 		return true;
 	}
-	return false;
+
+	return true;
 }
 
 constexpr float MAX_SEARCH_RADIUS = 999999.0f;
@@ -1930,17 +1921,6 @@ bool MQ2SpawnType::dataNearestSpawn(const char* szIndex, MQTypeVar& Ret)
 	}
 
 	return pSpawn;
-}
-
-MQTypeVar MQ2SpawnType::MakeTypeVar(SPAWNINFO* pSpawn)
-{
-	MQTypeVar Dest;
-	Dest.Type = this;
-	if (pSpawn)
-		Dest.Set(ObserveEQObject(pSpawn));
-	else
-		Dest.Ptr = nullptr;
-	return Dest;
 }
 
 } // namespace mq::datatypes

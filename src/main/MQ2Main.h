@@ -395,6 +395,8 @@ MQLIB_API SPAWNINFO* GetRaidMember(int index);
 MQLIB_API SPAWNINFO* GetGroupMember(int index);
 MQLIB_API uint32_t GetGroupMainAssistTargetID();
 MQLIB_API uint32_t GetRaidMainAssistTargetID(int index);
+MQLIB_API uint32_t GetGroupMarkedTargetID(int index);
+MQLIB_API uint32_t GetRaidMarkedTargetID(int index);
 MQLIB_API bool IsAssistNPC(SPAWNINFO* pSpawn);
 MQLIB_API void DoFace(SPAWNINFO* pChar, CVector3 Position);
 

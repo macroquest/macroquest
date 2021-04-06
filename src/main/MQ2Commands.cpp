@@ -4498,7 +4498,7 @@ void SetWinTitle(SPAWNINFO* pChar, char* szLine)
 	{
 		if (szLine && szLine[0] != '\0')
 		{
-			SetWindowText(hEQWnd, szLine);
+			::SetWindowTextA(hEQWnd, szLine);
 		}
 	}
 }

@@ -283,9 +283,19 @@ bool MQ2MerchantType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
+bool MQ2MerchantType::Downcast(const MQVarPtr& fromVar, MQVarPtr& toVar, MQ2Type* toType)
+{
+	if (toType == pSpawnType)
+	{
+		toVar = pSpawnType->MakeVarPtr(pActiveMerchant);
+		return true;
+	}
+
+	return false;
+}
+
 bool MQ2MerchantType::dataMerchant(const char* szIndex, MQTypeVar& Ret)
 {
-	Ret.Ptr = pActiveMerchant;
 	Ret.Type = pMerchantType;
 	return true;
 }

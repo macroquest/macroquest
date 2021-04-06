@@ -448,12 +448,8 @@ bool MQ2RaidMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		return true;
 
 	case RaidMemberMembers::Spawn:
-		if (SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByName(pRaidMember->Name))
-		{
-			Dest = pSpawnType->MakeTypeVar(pSpawn);
-			return true;
-		}
-		return false;
+		Dest = pSpawnType->MakeTypeVar(GetSpawnByName(pRaidMember->Name));
+		return true;
 
 	case RaidMemberMembers::Level:
 		Dest.DWord = pRaidMember->nLevel;
@@ -473,13 +469,13 @@ bool MQ2RaidMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 
 bool MQ2RaidMemberType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	DWORD nRaidMember = VarPtr.DWord - 1;
-	if (VarPtr.DWord >= 72)
+	int nRaidMember = VarPtr.Int - 1;
+	if (nRaidMember >= MAX_RAID_SIZE || nRaidMember < 0)
 		return false;
 	if (!pRaid->RaidMemberUsed[nRaidMember])
 		return false;
-	RaidPlayer* pRaidMember = &pRaid->RaidMember[nRaidMember];
-	strcpy_s(Destination, MAX_STRING, pRaidMember->Name);
+
+	strcpy_s(Destination, MAX_STRING, pRaid->RaidMember[nRaidMember].Name);
 	return true;
 }
 
@@ -487,8 +483,27 @@ bool MQ2RaidMemberType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pRaidMemberType)
 		return false;
-	VarPtr.Ptr = Source.Ptr;
+
+	VarPtr = Source;
 	return true;
+}
+
+bool MQ2RaidMemberType::Downcast(const MQVarPtr& fromVar, MQVarPtr& toVar, MQ2Type* toType)
+{
+	if (toType == pSpawnType)
+	{
+		int nRaidMember = fromVar.Int - 1;
+		if (nRaidMember >= MAX_RAID_SIZE || nRaidMember < 0)
+			return false;
+
+		if (!pRaid->RaidMemberUsed[nRaidMember])
+			return false;
+
+		toVar = pSpawnType->MakeVarPtr(GetSpawnByName(pRaid->RaidMember[nRaidMember].Name));
+		return true;
+	}
+
+	return false;
 }
 
 } // namespace mq::datatypes

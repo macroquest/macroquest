@@ -664,7 +664,7 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 
 bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	if (!pCharData)
+	if (!pCharData || !pLocalPlayer)
 		return false;
 
 	PcProfile* pProfile = GetPcProfile();
@@ -704,10 +704,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	if (!pMember)
 	{
 		// call into spawn type using our own spawn
-		MQVarPtr data;
-		data.Ptr = pLocalPlayer;
-
-		return pSpawnType->GetMember(data, Member, Index, Dest);
+		return pSpawnType->GetMember(pLocalPlayer, Member, Index, Dest);
 	}
 
 	switch (static_cast<CharacterMembers>(pMember->ID))
@@ -787,8 +784,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	}
 
 	case CharacterMembers::Spawn:
-		Dest.Ptr = pLocalPlayer;
-		Dest.Type = pSpawnType;
+		Dest = pSpawnType->MakeTypeVar(pLocalPlayer);
 		return true;
 
 	case CharacterMembers::CurrentHPs:
@@ -2319,85 +2315,45 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::TargetOfTarget:
-		Dest.Type = pSpawnType;
-		if (gGameState == GAMESTATE_INGAME && pLocalPlayer && pChar->pSpawn)
-		{
-			if (Dest.Ptr = GetSpawnByID(pChar->pSpawn->TargetOfTarget))
-			{
-				return true;
-			}
-		}
-		return false;
+		Dest = pSpawnType->MakeTypeVar(GetSpawnByID(pLocalPlayer->TargetOfTarget));
+		return true;
 
 	case CharacterMembers::RaidAssistTarget:
-		Dest.Type = pSpawnType;
-		if (gGameState == GAMESTATE_INGAME && pLocalPlayer)
+		if (Index[0] && IsNumber(Index))
 		{
-			if (Index[0] && IsNumber(Index))
-			{
-				int index = GetIntFromString(Index, 0) - 1;
-				if (index < 0)
-					return false;
-				if (index >= 3)
-					return false;
-
-				if (Dest.Ptr = (SPAWNINFO*)GetSpawnByID(GetRaidMainAssistTargetID(index)))
-				{
-					return true;
-				}
-			}
+			int index = GetIntFromString(Index, 0) - 1;
+			Dest = pSpawnType->MakeTypeVar(GetSpawnByID(GetRaidMainAssistTargetID(index)));
+			return true;
 		}
-		return false;
+
+		Dest = pSpawnType->MakeTypeVar();
+		return true;
 
 	case CharacterMembers::GroupAssistTarget:
-		Dest.Type = pSpawnType;
-		if (gGameState == GAMESTATE_INGAME && GetCharInfo()->pSpawn)
-		{
-			if (Dest.Ptr = (SPAWNINFO*)GetSpawnByID(GetGroupMainAssistTargetID()))
-			{
-				return true;
-			}
-		}
-		return false;
+		Dest = pSpawnType->MakeTypeVar(GetSpawnByID(GetGroupMainAssistTargetID()));
+		return true;
 
 	case CharacterMembers::RaidMarkNPC:
-		Dest.Type = pSpawnType;
-		if (gGameState == GAMESTATE_INGAME && pChar->pSpawn)
+		if (Index[0] && IsNumber(Index))
 		{
-			if (Index[0] && IsNumber(Index))
-			{
-				int index = GetIntFromString(Index, 0) - 1;
-				if (index < 0)
-					return false;
-				if (index >= 3)
-					return false;
-				if (Dest.Ptr = GetSpawnByID(pChar->pSpawn->RaidMarkNPC[index]))
-				{
-					return true;
-				}
-			}
+			int index = GetIntFromString(Index, 0) - 1;
+			Dest = pSpawnType->MakeTypeVar(GetSpawnByID(GetRaidMarkedTargetID(index)));
+			return true;
 		}
-		return false;
+
+		Dest = pSpawnType->MakeTypeVar();
+		return true;
 
 	case CharacterMembers::GroupMarkNPC:
-		Dest.Type = pSpawnType;
-		if (gGameState == GAMESTATE_INGAME && pChar->pSpawn)
+		if (Index[0] && IsNumber(Index))
 		{
-			if (Index[0] && IsNumber(Index))
-			{
-				int index = GetIntFromString(Index, 0) - 1;
-				if (index < 0)
-					return false;
-				if (index >= 3)
-					return false;
-
-				if (Dest.Ptr = GetSpawnByID(pChar->pSpawn->GroupMarkNPC[index]))
-				{
-					return true;
-				}
-			}
+			int index = GetIntFromString(Index, 0) - 1;
+			Dest = pSpawnType->MakeTypeVar(GetSpawnByID(GetGroupMarkedTargetID(index)));
+			return true;
 		}
-		return false;
+
+		Dest = pSpawnType->MakeTypeVar();
+		return true;
 
 	case CharacterMembers::STR:
 		Dest.DWord = pCharData->STR;
@@ -3265,22 +3221,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return false;
 
 	case CharacterMembers::SecondaryAggroPlayer:
-		if (pAggroInfo && pAggroInfo->AggroSecondaryID)
-		{
-			Dest.Type = pSpawnType;
-			Dest.Ptr = GetSpawnByID(pAggroInfo->AggroSecondaryID);
-			return true;
-		}
-		return false;
+		Dest = pSpawnType->MakeTypeVar(pAggroInfo ? GetSpawnByID(pAggroInfo->AggroSecondaryID) : nullptr);
+		return true;
 
 	case CharacterMembers::AggroLock:
-		if (pAggroInfo && pAggroInfo->AggroLockID)
-		{
-			Dest.Type = pSpawnType;
-			Dest.Ptr = GetSpawnByID(pAggroInfo->AggroLockID);
-			return true;
-		}
-		return false;
+		Dest = pSpawnType->MakeTypeVar(pAggroInfo ? GetSpawnByID(pAggroInfo->AggroLockID) : nullptr);
+		return true;
 
 	case CharacterMembers::ZoneBound:
 		if (pProfile->BoundLocations[0].ZoneBoundID)
@@ -3969,14 +3915,12 @@ bool MQ2CharacterType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2CharacterType::Downcast(MQVarPtr& VarPtr, MQ2Type* toType)
+bool MQ2CharacterType::Downcast(const MQVarPtr& fromVar, MQVarPtr& toVar, MQ2Type* toType)
 {
 	if (toType == pSpawnType)
 	{
-		if (!pLocalPlayer)
-			return false;
-
-		VarPtr = MQ2SpawnType::MakeVarPtr(pLocalPlayer);
+		// We don't store anything on the soutce VarPtr so we ignore it.
+		toVar = MQ2SpawnType::MakeVarPtr(pLocalPlayer);
 		return true;
 	}
 
@@ -3985,13 +3929,9 @@ bool MQ2CharacterType::Downcast(MQVarPtr& VarPtr, MQ2Type* toType)
 
 bool MQ2CharacterType::dataCharacter(const char* szIndex, MQTypeVar& Ret)
 {
-	if (pCharData)
-	{
-		Ret.Ptr = nullptr;
-		Ret.Type = pCharacterType;
-		return true;
-	}
-	return false;
+	Ret.Ptr = nullptr;
+	Ret.Type = pCharacterType;
+	return true;
 }
 
 } // namespace mq::datatypes

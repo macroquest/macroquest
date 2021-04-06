@@ -87,16 +87,21 @@ bool MQ2PointMerchantType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2PointMerchantType::dataPointMerchant(const char* szIndex, MQTypeVar& Ret)
+bool MQ2PointMerchantType::Downcast(const MQVarPtr& fromVar, MQVarPtr& toVar, MQ2Type* toType)
 {
-	if (pMerchantWnd)
+	if (toType == pSpawnType)
 	{
-		Ret.Ptr = pMerchantWnd;
-		Ret.Type = pPointMerchantType;
+		toVar = pSpawnType->MakeVarPtr(pActiveMerchant);
 		return true;
 	}
 
 	return false;
+}
+
+bool MQ2PointMerchantType::dataPointMerchant(const char* szIndex, MQTypeVar& Ret)
+{
+	Ret.Type = pPointMerchantType;
+	return true;
 }
 
 //============================================================================

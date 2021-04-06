@@ -478,7 +478,8 @@ bool MQ2AlertListType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 					}
 				}
 
-				return false;
+				Dest = pSpawnType->MakeTypeVar();
+				return true;
 			}
 		}
 	}

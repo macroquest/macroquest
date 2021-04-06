@@ -129,4 +129,26 @@ bool MQ2XTargetType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
+bool MQ2XTargetType::Downcast(const MQVarPtr& fromVar, MQVarPtr& toVar, MQ2Type* toType)
+{
+	if (toType == pSpawnType)
+	{
+		SPAWNINFO* pSpawn = nullptr;
+
+		if (pCharData)
+		{
+			int index = fromVar.Int;
+			if (ExtendedTargetSlot* xts = pCharData->pExtendedTargetList->GetSlot(index))
+			{
+				pSpawn = GetSpawnByID(xts->SpawnID);
+			}
+		}
+
+		toVar = pSpawnType->MakeVarPtr(pSpawn);
+		return true;
+	}
+
+	return false;
+}
+
 } // namespace mq::datatypes

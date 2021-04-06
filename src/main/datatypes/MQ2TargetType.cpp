@@ -443,15 +443,21 @@ bool MQ2TargetType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-bool MQ2TargetType::dataTarget(const char* szIndex, MQTypeVar& Ret)
+bool MQ2TargetType::Downcast(const MQVarPtr& fromVar, MQVarPtr& toVar, MQ2Type* toType)
 {
-	if (pTarget)
+	if (toType == pSpawnType)
 	{
-		Ret.Set(ObserveEQObject(pTarget.get_as<SPAWNINFO>()));
-		Ret.Type = pTargetType;
+		toVar = fromVar;
 		return true;
 	}
+
 	return false;
+}
+
+bool MQ2TargetType::dataTarget(const char* szIndex, MQTypeVar& Ret)
+{
+	Ret = pSpawnType->MakeTypeVar(pTarget, pTargetType);
+	return true;
 }
 
 } // namespace mq::datatypes

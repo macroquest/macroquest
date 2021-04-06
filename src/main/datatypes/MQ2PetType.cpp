@@ -276,12 +276,8 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		return true;
 
 	case PetMembers::Target:
-		if (pPetSpawn->WhoFollowing)
-		{
-			Dest = pSpawnType->MakeTypeVar(pPetSpawn->WhoFollowing);
-			return true;
-		}
-		return false;
+		Dest = pSpawnType->MakeTypeVar(pPetSpawn->WhoFollowing);
+		return true;
 
 	case PetMembers::Taunt:
 		Dest.Set(pPetInfoWnd->Taunt);
@@ -308,13 +304,22 @@ bool MQ2PetType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
+bool MQ2PetType::Downcast(const MQVarPtr& fromVar, MQVarPtr& toVar, MQ2Type* toType)
+{
+	if (toType == pSpawnType)
+	{
+		toVar = fromVar;
+		return true;
+	}
+
+	return false;
+}
+
 bool MQ2PetType::dataPet(const char* szIndex, MQTypeVar& Ret)
 {
 	SPAWNINFO* pPetSpawn = (pLocalPlayer && pLocalPlayer->PetID != -1) ? GetSpawnByID(pLocalPlayer->PetID) : nullptr;
 
-	Ret = pSpawnType->MakeTypeVar(pPetSpawn);
-	Ret.Type = pPetType;
-
+	Ret = pSpawnType->MakeTypeVar(pPetSpawn, pPetType);
 	return true;
 }
 

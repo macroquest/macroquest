@@ -102,6 +102,17 @@ bool MQ2CorpseType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
+bool MQ2CorpseType::Downcast(const MQVarPtr& fromVar, MQVarPtr& toVar, MQ2Type* toType)
+{
+	if (toType == pSpawnType)
+	{
+		toVar = pSpawnType->MakeTypeVar(pActiveCorpse);
+		return true;
+	}
+
+	return false;
+}
+
 bool MQ2CorpseType::dataCorpse(const char* szIndex, MQTypeVar& Ret)
 {
 	if (pLootWnd)

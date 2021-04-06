@@ -97,7 +97,7 @@ static bool InitVariableValue(MQTypeVar& TypeVar, const DefaultValueType& defaul
 		// If we're assigning from a descendent, then we can attempt to downcast to this type.
 		if (sourceType != destType && sourceType->InheritsFrom(destType))
 		{
-			if (sourceType->Downcast(TypeVar, destType))
+			if (sourceType->Downcast(sourceVar, TypeVar, destType))
 				return true;
 		}
 
@@ -549,33 +549,33 @@ void NewVardata(SPAWNINFO* pChar, char* szLine)
 		strcpy_s(szIndex, &pBracket[1]);
 	}
 
-	MQDataVar* pVar = FindMQ2DataVariable(szName);
-	if (!pVar)
+	MQDataVar* destVar = FindMQ2DataVariable(szName);
+	if (!destVar)
 	{
 		MacroError("/vardata '%s' failed, variable not found", szName);
 		return;
 	}
 
-	MQTypeVar Result;
-	if (!ParseMQ2DataPortion(szRest, Result))
+	MQTypeVar sourceVar;
+	if (!ParseMQ2DataPortion(szRest, sourceVar))
 	{
 		MacroError("/vardata '%s' failed, MQ2Data portion '%s' unparsable", szName, szRest);
 		return;
 	}
 
-	MQ2Type* pType = nullptr;
-	MQVarPtr* pDataDest = nullptr;
+	MQ2Type* destType = nullptr;
+	MQVarPtr* destData = nullptr;
 	int num = -1;
 
 	if (szIndex[0])
 	{
-		if (pVar->Var.Type != pArrayType)
+		if (destVar->Var.Type != pArrayType)
 		{
 			MacroError("/vardata '%s' failed, array form on non-array", szName);
 			return;
 		}
 
-		CDataArray* pArray = (CDataArray*)pVar->Var.Ptr;
+		CDataArray* pArray = (CDataArray*)destVar->Var.Ptr;
 		num = pArray->GetElement(szIndex);
 		if (num == -1)
 		{
@@ -583,16 +583,26 @@ void NewVardata(SPAWNINFO* pChar, char* szLine)
 			return;
 		}
 
-		pType = pArray->GetType();
-		pDataDest = &pArray->GetData(num);
+		destType = pArray->GetType();
+		destData = &pArray->GetData(num);
 	}
 	else
 	{
-		pType = pVar->Var.Type;
-		pDataDest = &pVar->Var.VarPtr;
+		destType = destVar->Var.Type;
+		destData = &destVar->Var.VarPtr;
 	}
 
-	if (!pType->FromData(*pDataDest, Result))
+	// Check if these types are related.
+	MQ2Type* sourceType = sourceVar.Type;
+
+	// If we're assigning from a descendent, then we can attempt to downcast to this type.
+	if (sourceType != destType && sourceType->InheritsFrom(destType))
+	{
+		if (sourceType->Downcast(sourceVar, *destData, destType))
+			return;
+	}
+
+	if (!destType->FromData(*destData, sourceVar))
 	{
 		if (num != -1)
 		{
