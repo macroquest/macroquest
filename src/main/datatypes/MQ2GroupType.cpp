@@ -491,7 +491,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 	}
 	else
 	{
-		if (pGroupMember = pCharData->pSpawn)
+		if (pGroupMember = pLocalPlayer)
 		{
 			strcpy_s(MemberName, pGroupMember->Name);
 		}

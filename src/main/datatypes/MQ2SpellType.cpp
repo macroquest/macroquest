@@ -699,7 +699,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			return false;
 
 		int spawnID = GetIntFromString(Index, -1);
-		auto pSpawn = reinterpret_cast<SPAWNINFO*>(spawnID >= 0 ? GetSpawnByID(spawnID) : GetSpawnByName(Index));
+		auto pSpawn = spawnID >= 0 ? GetSpawnByID(spawnID) : GetSpawnByName(Index);
 		if (!pSpawn)
 			return false;
 

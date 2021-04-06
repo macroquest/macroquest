@@ -546,16 +546,15 @@ static bool SetCaption(SPAWNINFO* pSpawn, const char* CaptionString)
 	{
 		pNamingSpawn = pSpawn;
 
-		PlayerClient* pPC = reinterpret_cast<PlayerClient*>(pSpawn);
 		std::string str = ModifyMacroString(CaptionString);
 
 		if (MaybeAnonymize(str))
 		{
-			pPC->ChangeBoneStringSprite(0, Anonymize(CXStr{ str }).c_str());
+			pSpawn->ChangeBoneStringSprite(0, Anonymize(CXStr{ str }).c_str());
 		}
 		else
 		{
-			pPC->ChangeBoneStringSprite(0, str.c_str());
+			pSpawn->ChangeBoneStringSprite(0, str.c_str());
 		}
 
 		pNamingSpawn = nullptr;
@@ -986,7 +985,7 @@ static void Spawns_Pulse()
 
 	if (LastTarget)
 	{
-		if (auto pSpawnTarget = reinterpret_cast<SPAWNINFO*>(GetSpawnByID(LastTarget)))
+		if (auto pSpawnTarget = GetSpawnByID(LastTarget))
 		{
 			if (pSpawnTarget != pTarget)
 			{

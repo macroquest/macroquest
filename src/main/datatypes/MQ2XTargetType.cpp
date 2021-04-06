@@ -19,8 +19,7 @@ namespace mq::datatypes {
 
 enum class XTargetMembers
 {
-	Address = 1,
-	TargetType,
+	TargetType = 1,
 	ID,
 	Name,
 	PctAggro
@@ -28,7 +27,6 @@ enum class XTargetMembers
 
 MQ2XTargetType::MQ2XTargetType() : MQ2Type("xtarget")
 {
-	ScopedTypeMember(XTargetMembers, Address);
 	ScopedTypeMember(XTargetMembers, TargetType);
 	ScopedTypeMember(XTargetMembers, ID);
 	ScopedTypeMember(XTargetMembers, Name);
@@ -37,89 +35,73 @@ MQ2XTargetType::MQ2XTargetType() : MQ2Type("xtarget")
 
 bool MQ2XTargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	if (!GetCharInfo() || !GetCharInfo()->pXTargetMgr || VarPtr.DWord >= MAX_EXTENDED_TARGETS)
+	if (!pCharData)
 		return false;
 
-	if (MQTypeMember* pMember = MQ2XTargetType::FindMember(Member))
+	int index = VarPtr.DWord;
+	ExtendedTargetSlot* xts = pCharData->pExtendedTargetList->GetSlot(index);
+	if (!xts) return false;
+
+	MQTypeMember* pMember = MQ2XTargetType::FindMember(Member);
+	if (!pMember)
 	{
-		const XTARGETSLOT& xts = GetCharInfo()->pXTargetMgr->XTargetSlots[VarPtr.DWord];
-
-		switch (static_cast<XTargetMembers>(pMember->ID))
-		{
-		case XTargetMembers::Address:
-			Dest.DWord = (uint32_t)GetCharInfo()->pXTargetMgr;
-			Dest.Type = pIntType;
-			return true;
-
-		case XTargetMembers::TargetType:
-			if (const char* ptr = GetXtargetType(xts.xTargetType))
-				strcpy_s(DataTypeTemp, ptr);
-			else
-				strcpy_s(DataTypeTemp, "UNKNOWN");
-			Dest.Ptr = &DataTypeTemp[0];
-			Dest.Type = pStringType;
-			return true;
-
-		case XTargetMembers::ID:
-			Dest.DWord = xts.SpawnID;
-			Dest.Type = pIntType;
-			return true;
-
-		case XTargetMembers::Name:
-			if (xts.Name[0] != 0)
-				strcpy_s(DataTypeTemp, xts.Name);
-			else
-				strcpy_s(DataTypeTemp, "NULL");
-			Dest.Ptr = &DataTypeTemp[0];
-			Dest.Type = pStringType;
-			return true;
-
-		case XTargetMembers::PctAggro:
-			Dest.DWord = 0;
-			Dest.Type = pIntType;
-			if (pAggroInfo)
-			{
-				int index = AD_xTarget1 + VarPtr.DWord;
-				if (index >= MAX_AGGRO_METER_SIZE)
-					return false;
-
-				Dest.DWord = pAggroInfo->aggroData[AD_xTarget1 + VarPtr.DWord].AggroPct;
-				return true;
-			}
-			return false;
-
-		default: break;
-		}
+		return pSpawnType->GetMember(GetSpawnByID(xts->SpawnID), Member, Index, Dest);
 	}
-	else
+
+	switch (static_cast<XTargetMembers>(pMember->ID))
 	{
-		if (VarPtr.DWord >= MAX_EXTENDED_TARGETS)
-			return false;
+	case XTargetMembers::TargetType:
+		if (const char* ptr = pCharData->pExtendedTargetList->ExtendedTargetRoleName(xts->xTargetType))
+			strcpy_s(DataTypeTemp, ptr);
+		else
+			strcpy_s(DataTypeTemp, "UNKNOWN");
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
 
-		XTARGETSLOT xts = GetCharInfo()->pXTargetMgr->XTargetSlots[VarPtr.DWord];
-		SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByID(xts.SpawnID);
-		if (pSpawn)
+	case XTargetMembers::ID:
+		Dest.DWord = xts->SpawnID;
+		Dest.Type = pIntType;
+		return true;
+
+	case XTargetMembers::Name:
+		if (xts->Name[0] != 0)
+			strcpy_s(DataTypeTemp, xts->Name);
+		else
+			strcpy_s(DataTypeTemp, "NULL");
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
+
+	case XTargetMembers::PctAggro:
+		Dest.DWord = 0;
+		Dest.Type = pIntType;
+		if (pAggroInfo)
 		{
-			MQVarPtr data;
-			data.Ptr = pSpawn;
+			uint32_t aggroIndex = AD_xTarget1 + index;
+			if (aggroIndex >= MAX_AGGRO_METER_SIZE)
+				return false;
 
-			return pSpawnType->GetMember(data, Member, Index, Dest);
+			Dest.DWord = pAggroInfo->aggroData[aggroIndex].AggroPct;
+			return true;
 		}
+		return false;
+
+	default: break;
 	}
+
 	return false;
 };
 
 bool MQ2XTargetType::ToString(MQVarPtr VarPtr, char* Destination)
 {
 	int index = VarPtr.DWord;
+	ExtendedTargetSlot* xts = nullptr;
 
-	if (CHARINFO* pChar = GetCharInfo())
+	if (pCharData
+		&& (xts = pCharData->pExtendedTargetList->GetSlot(index)))
 	{
-		if (index <= 23 && pChar->pXTargetMgr && pChar->pXTargetMgr->XTargetSlots.Count)
-		{
-			XTARGETSLOT xtd = GetCharInfo()->pXTargetMgr->XTargetSlots[index];
-			strcpy_s(Destination, MAX_STRING, xtd.Name);
-		}
+		strcpy_s(Destination, MAX_STRING, xts->Name);
 	}
 	else
 	{

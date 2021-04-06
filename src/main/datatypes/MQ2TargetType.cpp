@@ -423,11 +423,10 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			});
 		return Dest.HighPart >= 0;
 
-	case TargetMembers::MaxMeleeTo: {
+	case TargetMembers::MaxMeleeTo:
 		Dest.Float = get_melee_range(pControlledPlayer, pTarget);
 		Dest.Type = pFloatType;
 		return true;
-	}
 
 	default:
 		return false;

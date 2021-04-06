@@ -218,7 +218,7 @@ public:
 
 		case Anonymization::Class:
 		{
-			auto spawn = reinterpret_cast<SPAWNINFO*>(GetSpawnByName(name.c_str()));
+			SPAWNINFO* spawn = GetSpawnByName(name.c_str());
 			if (spawn)
 				return fmt::format("[{}] {} {} {}",
 					spawn->Level,

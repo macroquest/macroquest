@@ -251,24 +251,21 @@ void Initialize()
 
 void UpdatedExtDistance()
 {
-	CHARINFO* pChar = GetCharInfo();
-	if (!pChar)
+	if (!pCharData)
 		return;
 
-	ExtendedTargetList* xtm = pChar->pXTargetMgr;
-	if (!xtm)
-		return;
+	ExtendedTargetList* xtm = pCharData->pXTargetMgr;
 
-	for (int i = 0; i < xtm->XTargetSlots.Count; i++)
+	for (int i = 0; i < xtm->GetNumSlots(); i++)
 	{
 		if (CLabelWnd* pWnd = ETW_DistLabel[i])
 		{
-			const XTARGETSLOT& xts = xtm->XTargetSlots[i];
+			const ExtendedTargetSlot& xts = *xtm->GetSlot(i);
 			uint32_t spID = xts.SpawnID;
 
 			if (spID)
 			{
-				if (SPAWNINFO* pSpawn = (SPAWNINFO*)GetSpawnByID(spID))
+				if (SPAWNINFO* pSpawn = GetSpawnByID(spID))
 				{
 					char szTargetDist[EQ_MAX_NAME] = { 0 };
 					float dist = Distance3DToSpawn(pLocalPlayer, pSpawn);

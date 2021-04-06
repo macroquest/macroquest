@@ -20,7 +20,7 @@ namespace mq::datatypes {
 //----------------------------------------------------------------------------
 // Datatype Definitions
 
-#define DATATYPE(Class, Var, Inherits, PersistentClass)              \
+#define DATATYPE(Class, Var, Inherits)                               \
 	Class* Var = nullptr;
 #include "DataTypeList.h"
 #undef DATATYPE
@@ -33,7 +33,7 @@ MQ2CachedBuffType* pTargetBuffType DEPRECATE("Use pCachedBuffType instead.") = p
 // DataType Initializations
 void InitializeMQ2DataTypes()
 {
-#define DATATYPE(Class, Var, Inherits, PersistentClass)              \
+#define DATATYPE(Class, Var, Inherits)                               \
 	Var = new Class();                                               \
 	if (Inherits != nullptr) {                                       \
 		Var->SetInheritance(Inherits);                               \
@@ -46,7 +46,7 @@ void InitializeMQ2DataTypes()
 // DataType Shutdown
 void ShutdownMQ2DataTypes()
 {
-#define DATATYPE(Class, Var, Inherits, PersistentClass)              \
+#define DATATYPE(Class, Var, Inherits)                               \
 	delete Var;
 #include "DataTypeList.h"
 #undef DATATYPE

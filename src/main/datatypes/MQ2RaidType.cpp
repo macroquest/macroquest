@@ -60,14 +60,11 @@ MQ2RaidType::MQ2RaidType()
 
 bool MQ2RaidType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	if (!pRaid)
+	if (!pCharData)
 		return false;
 
 	MQTypeMember* pMember = MQ2RaidType::FindMember(Member);
 	if (!pMember)
-		return false;
-
-	if (!pCharData)
 		return false;
 
 	switch (static_cast<RaidMembers>(pMember->ID))
@@ -387,34 +384,34 @@ bool MQ2RaidMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 	if (!pRaid->RaidMemberUsed[nRaidMember])
 		return false;
 
-	RaidPlayer* pRaidMember = &pRaid->RaidMember[nRaidMember];
+	RaidPlayer& raidMember = pRaid->RaidMember[nRaidMember];
 	MQTypeMember* pMember = MQ2RaidMemberType::FindMember(Member);
 
 	if (!pMember)
 	{
-		return pSpawnType->GetMember(GetSpawnByName(pRaidMember->Name), Member, Index, Dest);
+		return pSpawnType->GetMember(GetSpawnByName(raidMember.Name), Member, Index, Dest);
 	}
 
 	switch (static_cast<RaidMemberMembers>(pMember->ID))
 	{
 	case RaidMemberMembers::Name:
-		strcpy_s(DataTypeTemp, pRaidMember->Name);
+		strcpy_s(DataTypeTemp, raidMember.Name);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
 	case RaidMemberMembers::Group:
-		Dest.DWord = pRaidMember->GroupNumber + 1;
+		Dest.DWord = raidMember.GroupNumber + 1;
 		Dest.Type = pIntType;
 		return true;
 
 	case RaidMemberMembers::GroupLeader:
-		Dest.Set(pRaidMember->GroupLeader);
+		Dest.Set(raidMember.GroupLeader);
 		Dest.Type = pBoolType;
 		return true;
 
 	case RaidMemberMembers::RaidLeader:
-		Dest.Set(pRaidMember->RaidLeader);
+		Dest.Set(raidMember.RaidLeader);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -422,7 +419,7 @@ bool MQ2RaidMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		Dest.Set(false);
 		Dest.Type = pBoolType;
 
-		if (pRaidMember->RaidLeader)
+		if (raidMember.RaidLeader)
 		{
 			Dest.Set(true);
 			return true;
@@ -430,7 +427,7 @@ bool MQ2RaidMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 
 		if (pRaid->LootType == RaidLootLeaderAndGroupLeader)
 		{
-			Dest.Set(pRaidMember->GroupLeader);
+			Dest.Set(raidMember.GroupLeader);
 			return true;
 		}
 
@@ -438,7 +435,7 @@ bool MQ2RaidMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		{
 			for (auto& RaidLooter : pRaid->RaidLooters)
 			{
-				if (ci_equals(RaidLooter, pRaidMember->Name))
+				if (ci_equals(RaidLooter, raidMember.Name))
 				{
 					Dest.Set(true);
 					return true;
@@ -448,16 +445,16 @@ bool MQ2RaidMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		return true;
 
 	case RaidMemberMembers::Spawn:
-		Dest = pSpawnType->MakeTypeVar(GetSpawnByName(pRaidMember->Name));
+		Dest = pSpawnType->MakeTypeVar(GetSpawnByName(raidMember.Name));
 		return true;
 
 	case RaidMemberMembers::Level:
-		Dest.DWord = pRaidMember->nLevel;
+		Dest.DWord = raidMember.nLevel;
 		Dest.Type = pIntType;
 		return true;
 
 	case RaidMemberMembers::Class:
-		Dest.DWord = pRaidMember->nClass;
+		Dest.DWord = raidMember.nClass;
 		Dest.Type = pClassType;
 		return true;
 

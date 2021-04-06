@@ -26,7 +26,7 @@ namespace mq::datatypes {
 //----------------------------------------------------------------------------
 // Datatype Declarations
 
-#define DATATYPE(Class, Var, Inherits, PersistentClass)              \
+#define DATATYPE(Class, Var, Inherits)                               \
 	class Class;                                                     \
 	MQLIB_VAR Class* Var;
 #include "DataTypeList.h"

@@ -154,11 +154,8 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 	// pet then just treat it like a regular spawn.
 	if (!pMember || !playerPet)
 	{
-		if (!pPetSpawn)
-			return false;
-
 		// Forward our VarPtr along to the spawn type.
-		return pSpawnType->GetMember(VarPtr, Member, Index, Dest);
+		return pSpawnType->GetMember(pPetSpawn, Member, Index, Dest);
 	}
 
 	if (!pPetInfoWnd)

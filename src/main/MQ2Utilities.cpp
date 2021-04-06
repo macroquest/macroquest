@@ -3350,27 +3350,17 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 	{
 		bool foundhater = false;
 
-		if (CHARINFO* pmyChar = GetCharInfo())
+		for (const ExtendedTargetSlot& xts : *pCharData->pExtendedTargetList)
 		{
-			if (ExtendedTargetList* xtm = pmyChar->pXTargetMgr)
+			if (xts.xTargetType == XTARGET_AUTO_HATER
+				&& xts.XTargetSlotStatus != eXTSlotEmpty
+				&& xts.SpawnID != 0)
 			{
-				if (xtm->XTargetSlots.Count)
+				SPAWNINFO* pXTargetSpawn = GetSpawnByID(xts.SpawnID);
+				if (pXTargetSpawn != nullptr
+					&& pXTargetSpawn->SpawnID == pSpawn->SpawnID)
 				{
-					for (int i = 0; i < pmyChar->pXTargetMgr->XTargetSlots.Count; i++)
-					{
-						XTARGETSLOT xts = xtm->XTargetSlots[i];
-
-						if (xts.xTargetType == XTARGET_AUTO_HATER && xts.XTargetSlotStatus && xts.SpawnID)
-						{
-							if (SPAWNINFO* pxtarSpawn = (SPAWNINFO*)GetSpawnByID(xts.SpawnID))
-							{
-								if (pxtarSpawn->SpawnID == pSpawn->SpawnID)
-								{
-									foundhater = true;
-								}
-							}
-						}
-					}
+					foundhater = true;
 				}
 			}
 		}
@@ -6875,7 +6865,7 @@ eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 
 bool IsRaidMember(const char* SpawnName)
 {
-	if (pRaid && pRaid->Invited == RaidStateInRaid)
+	if (pRaid->Invited == RaidStateInRaid)
 	{
 		for (int index = 0; index < MAX_RAID_SIZE; index++)
 		{
@@ -6889,7 +6879,7 @@ bool IsRaidMember(const char* SpawnName)
 
 int GetRaidMemberIndex(const char* SpawnName)
 {
-	if (pRaid && pRaid->Invited == RaidStateInRaid)
+	if (pRaid->Invited == RaidStateInRaid)
 	{
 		for (int index = 0; index < MAX_RAID_SIZE; index++)
 		{
@@ -6903,7 +6893,7 @@ int GetRaidMemberIndex(const char* SpawnName)
 
 bool IsRaidMember(SPAWNINFO* pSpawn)
 {
-	if (pSpawn != nullptr && pRaid != nullptr)
+	if (pSpawn != nullptr)
 	{
 		for (int index = 0; index < MAX_RAID_SIZE; index++)
 		{
@@ -6917,7 +6907,7 @@ bool IsRaidMember(SPAWNINFO* pSpawn)
 
 int GetRaidMemberIndex(SPAWNINFO* pSpawn)
 {
-	if (pSpawn != nullptr && pRaid != nullptr)
+	if (pSpawn != nullptr)
 	{
 		for (int index = 0; index < MAX_RAID_SIZE; index++)
 		{
