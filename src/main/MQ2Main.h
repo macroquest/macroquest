@@ -28,7 +28,6 @@ using namespace eqlib;
 
 #define VersionString          __ExpectedVersionDate
 #define TimeString             __ExpectedVersionTime
-#define DebugHeader            "[MQ2]"
 #define LoadedString           "MQ2 Loaded."
 #define ToUnloadString         "MQ2 Unloading..."
 #define UnloadedString         "MQ2 Unloaded."

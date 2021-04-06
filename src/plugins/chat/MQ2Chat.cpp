@@ -16,6 +16,7 @@
 #include <mq/Plugin.h>
 
 PreSetup("MQ2Chat");
+static const std::string DebugHeader("[MQ2] ");
 
 PLUGIN_API void InitializePlugin()
 {
@@ -45,7 +46,11 @@ PLUGIN_API DWORD OnWriteChatColor(char* Line, DWORD Color, DWORD Filter)
 	if (!pEverQuest)
 		return 0;
 
-	dsp_chat_no_events(Stripped, Color, 1);
+	auto output = DebugHeader + Stripped;
+	if (output.size() > MAX_STRING)
+		output.erase(MAX_STRING - 1);
+
+	dsp_chat_no_events(output.c_str(), Color, 1);
 	return 0;
 }
 

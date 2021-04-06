@@ -63,14 +63,12 @@ static void DebugSpewImpl(bool always, bool logToFile, const char* szFormat, va_
 
 	// _vscprintf doesn't count // terminating '\0'
 	int len = _vscprintf(szFormat, vaList) + 1;
-	int headerlen = strlen(DebugHeader) + 1;
-	size_t theLen = len + headerlen + 32;
+	size_t theLen = len + 32;
 
 	auto out = std::make_unique<char[]>(theLen);
 	char* szOutput = out.get();
 
-	strcpy_s(szOutput, theLen, DebugHeader " ");
-	vsprintf_s(szOutput + headerlen, theLen - headerlen, szFormat, vaList);
+	vsprintf_s(szOutput, theLen, szFormat, vaList);
 
 	strcat_s(szOutput, theLen, "\n");
 	OutputDebugString(szOutput);
