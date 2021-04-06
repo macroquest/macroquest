@@ -3371,22 +3371,24 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 		}
 	}
 
-	if (pSearchSpawn->bGroup)
-	{
-		return IsInGroup(pSpawn, pSearchSpawn->SpawnType == PCCORPSE || pSpawn->Type == SPAWN_CORPSE);
-	}
-
-	if (pSearchSpawn->bFellowship)
-	{
-		return IsInFellowship(pSpawn, pSearchSpawn->SpawnType == PCCORPSE || pSpawn->Type == SPAWN_CORPSE);
-	}
-
 	if (pSearchSpawn->bNoGroup && IsInGroup(pSpawn))
-		return false;
-
-	if (pSearchSpawn->bRaid)
 	{
-		return IsInRaid(pSpawn, pSearchSpawn->SpawnType == PCCORPSE || pSpawn->Type == SPAWN_CORPSE);
+		return false;
+	}
+
+	if (pSearchSpawn->bGroup && !IsInGroup(pSpawn, pSearchSpawn->SpawnType == PCCORPSE || pSpawn->Type == SPAWN_CORPSE))
+	{
+		return false;
+	}
+
+	if (pSearchSpawn->bFellowship && !IsInFellowship(pSpawn, pSearchSpawn->SpawnType == PCCORPSE || pSpawn->Type == SPAWN_CORPSE))
+	{
+		return false;
+	}
+
+	if (pSearchSpawn->bRaid && !IsInRaid(pSpawn, pSearchSpawn->SpawnType == PCCORPSE || pSpawn->Type == SPAWN_CORPSE))
+	{
+		return false;
 	}
 
 	if (pSearchSpawn->bKnownLocation)
