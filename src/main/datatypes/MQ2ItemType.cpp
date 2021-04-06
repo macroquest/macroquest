@@ -1773,7 +1773,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::CanUse:
-		Dest.Set(pCharData->CanUseItem(pItem, false, false));
+		Dest.Set(pLocalPC->CanUseItem(pItem, false, false));
 		Dest.Type = pBoolType;
 		return true;
 

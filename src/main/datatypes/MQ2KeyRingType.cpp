@@ -43,7 +43,7 @@ bool MQ2KeyRingType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 		// We want the index of the item that is in the UI list, so we need to map back from the item
 		// to the UI index.
 		Dest.Type = pIntType;
-		if (pCharData && pKeyRingWnd)
+		if (pLocalPC && pKeyRingWnd)
 		{
 			int16_t n = LOWORD(VarPtr.DWord);
 			KeyRingType type = static_cast<KeyRingType>(HIWORD(VarPtr.DWord));
@@ -67,12 +67,12 @@ bool MQ2KeyRingType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 
 	case KeyRingTypeMembers::Name:
 		Dest.Type = pStringType;
-		if (pCharData)
+		if (pLocalPC)
 		{
 			int16_t n = LOWORD(VarPtr.DWord);
 			KeyRingType type = static_cast<KeyRingType>(HIWORD(VarPtr.DWord));
 
-			ItemPtr item = pCharData->GetKeyRingItems(type).GetItem(n);
+			ItemPtr item = pLocalPC->GetKeyRingItems(type).GetItem(n);
 			if (item)
 			{
 				strcpy_s(DataTypeTemp, item->GetItemDefinition()->Name);
@@ -84,12 +84,12 @@ bool MQ2KeyRingType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 
 	case KeyRingTypeMembers::Item:
 		Dest.Type = pItemType;
-		if (pCharData)
+		if (pLocalPC)
 		{
 			int16_t n = LOWORD(VarPtr.DWord);
 			KeyRingType type = static_cast<KeyRingType>(HIWORD(VarPtr.DWord));
 
-			ItemPtr item = pCharData->GetKeyRingItems(type).GetItem(n);
+			ItemPtr item = pLocalPC->GetKeyRingItems(type).GetItem(n);
 			if (item)
 			{
 				Dest.Ptr = item.get();
@@ -104,13 +104,13 @@ bool MQ2KeyRingType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 
 bool MQ2KeyRingType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	if (!pCharData)
+	if (!pLocalPC)
 		return false;
 
 	KeyRingType type = static_cast<KeyRingType>(HIWORD(VarPtr.DWord));
 	int16_t n = LOWORD(VarPtr.DWord);
 
-	ItemPtr item = pCharData->GetKeyRingItems(type).GetItem(n);
+	ItemPtr item = pLocalPC->GetKeyRingItems(type).GetItem(n);
 	if (item)
 	{
 		strcpy_s(Destination, MAX_STRING, item->GetItemDefinition()->Name);
@@ -125,7 +125,7 @@ static bool dataGetKeyRing(KeyRingType keyRingType, const char* szIndex, MQTypeV
 	if (!szIndex[0])
 		return false;
 
-	if (!pCharData)
+	if (!pLocalPC)
 		return false;
 
 	if (IsNumber(szIndex))
@@ -158,7 +158,7 @@ static bool dataGetKeyRing(KeyRingType keyRingType, const char* szIndex, MQTypeV
 	const char* pName = szIndex;
 	bool exact = pName[0] == '=' && pName++;
 
-	ItemIndex index = pCharData->GetKeyRingItems(keyRingType).FindItem(0, FindItemByNamePred(pName, exact));
+	ItemIndex index = pLocalPC->GetKeyRingItems(keyRingType).FindItem(0, FindItemByNamePred(pName, exact));
 	if (index.IsValid())
 	{
 		Ret.DWord = MAKELPARAM(index.GetTopSlot(), keyRingType);

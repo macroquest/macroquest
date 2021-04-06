@@ -622,11 +622,11 @@ void PluginsSetGameState(DWORD GameState)
 
 			DebugSpew("PluginsSetGameState(%s server)", EQADDR_SERVERNAME);
 
-			if (pCharData)
+			if (pLocalPC)
 			{
-				DebugSpew("PluginsSetGameState(%s name)", pCharData->Name);
+				DebugSpew("PluginsSetGameState(%s name)", pLocalPC->Name);
 
-				sprintf_s(szBuffer, "%s_%s", EQADDR_SERVERNAME, pCharData->Name);
+				sprintf_s(szBuffer, "%s_%s", EQADDR_SERVERNAME, pLocalPC->Name);
 				LoadCfgFile(szBuffer, false);
 			}
 

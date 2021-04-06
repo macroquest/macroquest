@@ -1099,7 +1099,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			if (!pCombatSkillsSelectWnd || !pCombatSkillsSelectWnd->ShouldDisplayThisSkill(i))
 				continue;
 
-			auto pFoundSpell = GetSpellByID(pCharData->GetCombatAbility(i));
+			auto pFoundSpell = GetSpellByID(pLocalPC->GetCombatAbility(i));
 			if (pFoundSpell && pFoundSpell->SpellGroup == pSpell->SpellGroup &&
 				!_strnicmp(pSpell->Name, pFoundSpell->Name, strlen(pSpell->Name)))
 			{
@@ -1188,9 +1188,9 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	{
 		Dest.Type = pBoolType;
 
-		if (!pLocalPlayer || !pCharData ||
+		if (!pLocalPlayer || !pLocalPC ||
 			pSpell->SpellAffects(SPA_CHANGE_FORM) == 0 ||
-			!pCharData->GetPCSpellAffect(SPA_SUMMON_MOUNT, nullptr))
+			!pLocalPC->GetPCSpellAffect(SPA_SUMMON_MOUNT, nullptr))
 			return false;
 
 		auto pSpellAffect = pSpell->GetSpellAffectByIndex(pSpell->SpellAffects(SPA_CHANGE_FORM));

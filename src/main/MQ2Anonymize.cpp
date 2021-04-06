@@ -563,11 +563,11 @@ CXStr Anonymize(const CXStr& Text)
 		new_text = self_replacer->replace_text(new_text);
 	}
 
-	if (anon_group != Anonymization::None && pCharData && pCharData->Group)
+	if (anon_group != Anonymization::None && pLocalPC && pLocalPC->Group)
 	{
 		new_text = std::accumulate(
-			std::cbegin(*pCharData->Group),
-			std::cend(*pCharData->Group),
+			std::cbegin(*pLocalPC->Group),
+			std::cend(*pLocalPC->Group),
 			new_text,
 			[](std::string& text, const CGroupMember* pMember) -> std::string
 			{
@@ -588,9 +588,9 @@ CXStr Anonymize(const CXStr& Text)
 		);
 	}
 
-	if (anon_fellowship != Anonymization::None && pCharData && pCharData->pSpawn)
+	if (anon_fellowship != Anonymization::None && pLocalPlayer)
 	{
-		auto& fellowship = pCharData->pSpawn->Fellowship;
+		auto& fellowship = pLocalPlayer->Fellowship;
 		new_text = std::accumulate(
 			std::cbegin(fellowship.FellowshipMember),
 			std::cend(fellowship.FellowshipMember),
@@ -616,9 +616,9 @@ CXStr Anonymize(const CXStr& Text)
 
 	if (anon_guild != Anonymization::None && pGuildList)
 	{
-		if (pGuild && pCharData)
+		if (pGuild && pLocalPC)
 		{
-			const char* guild_name = pGuild->GetGuildName(pCharData->GuildID.GUID);
+			const char* guild_name = pGuild->GetGuildName(pLocalPC->GuildID.GUID);
 			if (guild_name[0] != '\0' && ci_equals(new_text, guild_name, false))
 			{
 				auto memoized = guild_memoization.find(guild_name);
@@ -649,7 +649,7 @@ CXStr Anonymize(const CXStr& Text)
 		}
 	}
 
-	if (anon_raid != Anonymization::None && pCharData && pRaid)
+	if (anon_raid != Anonymization::None && pLocalPC)
 	{
 		for (auto pMember : pRaid->RaidMember)
 		{

@@ -355,7 +355,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	if (!pLocalPlayer || !pCharData || !pSpawn)
+	if (!pLocalPlayer || !pLocalPC || !pSpawn)
 		return false;
 
 	//----------------------------------------------------------------------------
@@ -635,19 +635,19 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 			Dest.Set(pSpawn->HideMode != 0);
 			break;
 		case InvisModes::Regular:
-			Dest.Set(pCharData->CalculateInvisLevel(eAll) != 0);
+			Dest.Set(pLocalPC->CalculateInvisLevel(eAll) != 0);
 			break;
 		case InvisModes::Undead:
-			Dest.Set(pCharData->CalculateInvisLevel(eUndead) != 0);
+			Dest.Set(pLocalPC->CalculateInvisLevel(eUndead) != 0);
 			break;
 		case InvisModes::Animal:
-			Dest.Set(pCharData->CalculateInvisLevel(eAnimal) != 0);
+			Dest.Set(pLocalPC->CalculateInvisLevel(eAnimal) != 0);
 			break;
 		case InvisModes::SoS:
 			if (PcProfile* pProfile = GetPcProfile())
 			{
-				int skill = pCharData->GetAdjustedSkill(EQSKILL_HIDE);
-				if ((pProfile->bHide + pCharData->TotalEffect(SPA_SHROUD_OF_STEALTH) >= 2) && skill >= 100)
+				int skill = pLocalPC->GetAdjustedSkill(EQSKILL_HIDE);
+				if ((pProfile->bHide + pLocalPC->TotalEffect(SPA_SHROUD_OF_STEALTH) >= 2) && skill >= 100)
 					Dest.Set(true);
 			}
 			break;
@@ -1050,11 +1050,11 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		Dest.Set(false);
 		Dest.Type = pBoolType;
 
-		if (pCharData->Group && pCharData->Group->GetGroupLeader())
+		if (pLocalPC->Group && pLocalPC->Group->GetGroupLeader())
 		{
 			// TODO: GroupMembers: use IsLeader
 			Dest.Set(pSpawn->Type == SPAWN_PLAYER
-				&& !_stricmp(pCharData->Group->GetGroupLeader()->GetName(), pSpawn->Name));
+				&& !_stricmp(pLocalPC->Group->GetGroupLeader()->GetName(), pSpawn->Name));
 		}
 		return true;
 
@@ -1603,14 +1603,14 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		if (!Index[0] || (Index[0] && IsNumber(Index)))
 		{
 			Dest.HighPart = GetCachedBuffAt(pTarget, Index[0] ? GetIntFromString(Index, 0) - 1 : 0,
-				[](const CachedBuff& buff) { return ci_equals(pCharData->Name, buff.casterName); });
+				[](const CachedBuff& buff) { return ci_equals(pLocalPC->Name, buff.casterName); });
 		}
 		else
 		{
 			Dest.HighPart = GetCachedBuff(pTarget,
 				[&Index](const CachedBuff& buff)
 				{
-					return ci_equals(pCharData->Name, buff.casterName)
+					return ci_equals(pLocalPC->Name, buff.casterName)
 						&& ci_starts_with(GetSpellNameByID(buff.spellId), Index);
 				});
 		}
@@ -1626,7 +1626,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		Dest.Type = pIntType;
 		Dest.DWord = GetCachedBuffCount(pTarget, [](const CachedBuff& buff)
 			{
-				return ci_equals(pCharData->Name, buff.casterName);
+				return ci_equals(pLocalPC->Name, buff.casterName);
 			});
 		return true;
 
@@ -1669,7 +1669,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		if (!Index[0] || (Index[0] && IsNumber(Index)))
 		{
 			auto slot = GetCachedBuffAt(pTarget, Index[0] ? GetIntFromString(Index, 0) - 1 : 0,
-				[](const CachedBuff& buff) { return ci_equals(pCharData->Name, buff.casterName); });
+				[](const CachedBuff& buff) { return ci_equals(pLocalPC->Name, buff.casterName); });
 
 			if (slot < 0)
 				return false;
@@ -1686,7 +1686,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 			auto buffs = FilterCachedBuffs(pTarget,
 				[&Index](const CachedBuff& buff)
 				{
-					return ci_equals(pCharData->Name, buff.casterName)
+					return ci_equals(pLocalPC->Name, buff.casterName)
 						&& ci_starts_with(GetSpellNameByID(buff.spellId), Index);
 				});
 

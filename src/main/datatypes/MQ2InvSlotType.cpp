@@ -67,7 +67,7 @@ bool MQ2InvSlotType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 		if (!pProfile) return false;
 		if (nInvSlot < 0) return false;
 
-		if (!pCharData) return false;
+		if (!pLocalPC) return false;
 
 		// TODO: We could translate this "nInvSlot" index into a ItemGlobalIndex and perform a single lookup.
 
@@ -98,7 +98,7 @@ bool MQ2InvSlotType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 				int nPack = (nInvSlot - 2032) / 10;
 				int nSlot = (nInvSlot - 2) % 10;
 
-				if (ItemPtr pPack = pCharData->BankItems.GetItem(nPack))
+				if (ItemPtr pPack = pLocalPC->BankItems.GetItem(nPack))
 				{
 					ItemDefinition* itemDef = pPack->GetItemDefinition();
 					if (itemDef->Type == ITEMTYPE_PACK)
@@ -113,7 +113,7 @@ bool MQ2InvSlotType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 				int nPack = 23 + ((nInvSlot - 2532) / 10);
 				int nSlot = (nInvSlot - 2) % 10;
 
-				if (ItemPtr pPack = pCharData->BankItems.GetItem(nPack))
+				if (ItemPtr pPack = pLocalPC->BankItems.GetItem(nPack))
 				{
 					ItemDefinition* itemDef = pPack->GetItemDefinition();
 					if (itemDef->Type == ITEMTYPE_PACK)
@@ -126,13 +126,13 @@ bool MQ2InvSlotType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 			// Bank slots (2000-2024)
 			else if (nInvSlot >= 2000 && nInvSlot < 2000 + NUM_BANK_SLOTS)
 			{
-				if (Dest.Ptr = pCharData->BankItems.GetItem(nInvSlot - 2000).get())
+				if (Dest.Ptr = pLocalPC->BankItems.GetItem(nInvSlot - 2000).get())
 					return true;
 			}
 			// Shared bank slots
 			else if (nInvSlot >= 2500 && nInvSlot < 2500 + NUM_SHAREDBANK_SLOTS)
 			{
-				if (Dest.Ptr = pCharData->SharedBankItems.GetItem(nInvSlot - 2500).get())
+				if (Dest.Ptr = pLocalPC->SharedBankItems.GetItem(nInvSlot - 2500).get())
 					return true;
 			}
 			// 3000-3015 trade window (including npc) 3000-3007 are your slots, 3008-3015 are other character's slots

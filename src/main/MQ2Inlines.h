@@ -33,18 +33,13 @@ MQLIB_API char* CleanupName(char* szName, size_t BufferSize, bool Article = true
 
 inline PcClient* GetCharInfo()
 {
-	// pPCData and pCharData points to same address
-	return pCharData;
+	// FYI: pPCData and pCharData point to the same address as pLocalPC
+	return pLocalPC;
 }
 
 inline PcProfile* GetPcProfile()
 {
-	if (pCharData)
-	{
-		return pCharData->GetCurrentPcProfile();
-	}
-
-	return nullptr;
+	return pLocalPC ? pLocalPC->GetCurrentPcProfile() : nullptr;
 }
 
 DEPRECATE("Use GetPcProfile instead of GetCharInfo2()")
@@ -196,164 +191,85 @@ inline bool IsMarkedNPC(SPAWNINFO* pSpawn)
 
 inline int GetEnduranceRegen()
 {
-	if (pCharData)
-	{
-		return pCharData->GetEnduranceRegen(true, false);
-	}
-
-	return 0;
+	return pLocalPC ? pLocalPC->GetEnduranceRegen(true, false) : 0;
 }
 
 inline int GetHPRegen()
 {
-	if (pCharData)
-	{
-		// the client sets it to true on return if we are bleeding.
-		bool bBleed = false;
-		return pCharData->GetHPRegen(true, &bBleed, false);
-	}
-
-	return 0;
+	// the client sets it to true on return if we are bleeding.
+	bool bBleed = false;
+	return pLocalPC ? pLocalPC->GetHPRegen(true, &bBleed, false) : 0;
 }
 
 inline int GetManaRegen()
 {
-	if (pCharData)
-	{
-		return pCharData->GetManaRegen(true, false);
-	}
-
-	return 0;
+	return pLocalPC ? pLocalPC->GetManaRegen(true, false) : 0;
 }
 
 inline int GetCurMana()
 {
-	if (pCharData)
-	{
-		return pCharData->Cur_Mana(true);
-	}
-
-	return 0;
+	return pLocalPC ? pLocalPC->Cur_Mana(true) : 0;
 }
 
 inline int GetCurHPS()
 {
-	if (pCharData)
-	{
-		return pCharData->Cur_HP(0);
-	}
-
-	return 0;
+	return pLocalPC ? pLocalPC->Cur_HP(0) : 0;
 }
 
 inline int GetMaxHPS()
 {
-	if (pCharData)
-	{
-		return pCharData->Max_HP(0);
-	}
-
-	return 0;
+	return pLocalPC ? pLocalPC->Max_HP(0) : 0;
 }
 
 inline int GetMaxEndurance()
 {
-	if (pCharData)
-	{
-		return pCharData->Max_Endurance();
-	}
-
-	return 0;
+	return pLocalPC ? pLocalPC->Max_Endurance() : 0;
 }
 
 inline int GetCurEndurance()
 {
-	if (PcProfile* pProfile = GetPcProfile())
-	{
-		return pProfile->Endurance;
-	}
-
-	return 0;
+	PcProfile* pProfile = GetPcProfile();
+	return pProfile ? pProfile->Endurance : 0;
 }
 
 inline int GetMaxMana()
 {
-	if (pCharData)
-	{
-		return pCharData->Max_Mana();
-	}
-
-	return 0;
+	return pLocalPC ? pLocalPC->Max_Mana() : 0;
 }
 
 inline int GetAdjustedSkill(int nSkill)
 {
-	if (pCharData)
-	{
-		return pCharData->GetAdjustedSkill(nSkill);
-	}
-
-	return 0;
+	return pLocalPC ? pLocalPC->GetAdjustedSkill(nSkill) : 0;
 }
 
 inline int GetBaseSkill(int nSkill)
 {
-	if (pCharData)
-	{
-		return pCharData->GetBaseSkill(nSkill);
-	}
-
-	return 0;
+	return pLocalPC ? pLocalPC->GetBaseSkill(nSkill) : 0;
 }
 
 inline int GetModCap(int index, bool bToggle = false)
 {
-	if (pCharData)
-	{
-		return pCharData->GetModCap(index, bToggle);
-	}
-
-	return 0;
+	return pLocalPC ? pLocalPC->GetModCap(index, bToggle) : 0;
 }
 
 inline const int GetCastingTimeModifier(const EQ_Spell* cSpell)
 {
-	if (pCharData)
-	{
-		return pCharData->GetCastingTimeModifier(cSpell);
-	}
-
-	return 0;
+	return pLocalPC ? pLocalPC->GetCastingTimeModifier(cSpell) : 0;
 }
 
 inline int GetFocusCastingTimeModifier(const EQ_Spell* pSpell, ItemPtr& pItemOut, bool bEvalOnly)
 {
-	if (pCharData)
-	{
-		return pCharData->GetFocusCastingTimeModifier(pSpell, pItemOut, bEvalOnly);
-	}
-
-	return 0;
+	return pLocalPC ? pLocalPC->GetFocusCastingTimeModifier(pSpell, pItemOut, bEvalOnly) : 0;
 }
 
 inline int GetFocusRangeModifier(const EQ_Spell* pSpell, ItemPtr& pItemOut)
 {
-	if (pCharData)
-	{
-		return pCharData->GetFocusRangeModifier(pSpell, pItemOut);
-	}
-
-	return 0;
+	return pLocalPC ? pLocalPC->GetFocusRangeModifier(pSpell, pItemOut) : 0;
 }
 
 inline bool HasSkill(int nSkill)
 {
-	if (pCharData)
-	{
-		return pCharData->HasSkill(nSkill);
-	}
-
-	return false;
+	return pLocalPC ? pLocalPC->HasSkill(nSkill) : 0;
 }
 
 inline float GetDistance(float X1, float Y1)
@@ -584,22 +500,12 @@ inline int GetMemorizedSpell(int index)
 	if (index < 0 || index > 15)
 		return -1;
 
-	if (pCharData)
-	{
-		return pCharData->GetMemorizedSpell(index);
-	}
-
-	return -1;
+	return pLocalPC ? pLocalPC->GetMemorizedSpell(index) : -1;
 }
 
 inline int EQGetSpellDuration(EQ_Spell* pSpell, unsigned char casterLevel, bool isItemEffect)
 {
-	if (pCharData)
-	{
-		return pCharData->SpellDuration(pSpell, casterLevel, isItemEffect);
-	}
-
-	return 0;
+	return pLocalPC ? pLocalPC->SpellDuration(pSpell, casterLevel, isItemEffect) : 0;
 }
 
 inline int EQGetMySpellDuration(EQ_Spell* pSpell)
@@ -614,19 +520,14 @@ inline int EQGetMySpellDuration(EQ_Spell* pSpell)
 	int out1 = 0, out2 = 0;
 	ItemPtr pContents;
 
-	int durationMod = pCharData->GetFocusDurationMod(pSpell, pContents, pLocalPlayer, origDuration, &out1, &out2);
+	int durationMod = pLocalPC->GetFocusDurationMod(pSpell, pContents, pLocalPlayer, origDuration, &out1, &out2);
 
 	return origDuration + durationMod;
 }
 
 inline int GetSpellNumEffects(SPELL* pSpell)
 {
-	if (pSpell)
-	{
-		return pSpell->NumEffects;
-	}
-
-	return 0;
+	return pSpell ? pSpell->NumEffects : 0;
 }
 
 inline bool IsPlayerClass(int Class)

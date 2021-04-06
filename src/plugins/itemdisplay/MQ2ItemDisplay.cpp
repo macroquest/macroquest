@@ -2523,7 +2523,7 @@ void RemoveAug(SPAWNINFO* pChar, char* szLine)
 				{
 					realID = pDistillerInfo.GetIDFromRecordNum(i, false);
 
-					pItemSolvent = pCharData->GetItemByID(realID);
+					pItemSolvent = pLocalPC->GetItemByID(realID);
 					if (pItemSolvent)
 					{
 						// found a distiller that will work...
@@ -2534,7 +2534,7 @@ void RemoveAug(SPAWNINFO* pChar, char* szLine)
 				if (!pItemSolvent)
 				{
 					// Universal Augment Solvent... aka perfect distiller...
-					pItemSolvent = pCharData->GetItemByItemClass(ItemClass_PerfectedDistiller);
+					pItemSolvent = pLocalPC->GetItemByItemClass(ItemClass_PerfectedDistiller);
 				}
 
 				if (pItemSolvent)

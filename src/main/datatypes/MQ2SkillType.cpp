@@ -108,10 +108,10 @@ bool MQ2SkillType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		case SkillMembers::SkillCap:
 			Dest.DWord = 0;
 			Dest.Type = pIntType;
-			if (pCharData)
+			if (pLocalPC)
 			{
 				int i = GetSkillIDFromName(pStringTable->getString(pSkill->nName));
-				Dest.DWord = pSkillMgr->GetSkillCap(pCharData, pProfile->Level, pProfile->Class, i, true, true, true);
+				Dest.DWord = pSkillMgr->GetSkillCap(pLocalPC, pProfile->Level, pProfile->Class, i, true, true, true);
 				return true;
 			}
 			return false;

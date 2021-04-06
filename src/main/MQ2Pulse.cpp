@@ -67,7 +67,7 @@ static void ProcessQueuedEvents()
 
 static bool DoNextCommand(MQMacroBlockPtr pBlock)
 {
-	if (!pControlledPlayer || !pCharData)
+	if (!pControlledPlayer || !pLocalPC)
 		return false;
 
 	SPAWNINFO* pCharOrMount = nullptr;
@@ -284,14 +284,14 @@ static void CheckGameState()
 	// Testing for in game flags
 	if (gGameState == GAMESTATE_INGAME)
 	{
-		if (!pCharData)
-			SPDLOG_ERROR("InGame with no pCharData");
+		if (!pLocalPC)
+			SPDLOG_ERROR("InGame with no pLocalPC");
 
-		if (pCharData)
+		if (pLocalPC)
 		{
-			if (pCharData->me != pLocalPlayer)
-				SPDLOG_ERROR("pCharData->me ({}) is different than pLocalPlayer ({})",
-					(void*)pCharData->me, (void*)pLocalPlayer.get());
+			if (pLocalPC->me != pLocalPlayer)
+				SPDLOG_ERROR("pLocalPC->me ({}) is different than pLocalPlayer ({})",
+					(void*)pLocalPC->me, (void*)pLocalPlayer.get());
 		}
 
 		if (!pControlledPlayer)
@@ -307,12 +307,12 @@ static void CheckGameState()
 	}
 	else if (gGameState == GAMESTATE_CHARSELECT)
 	{
-		if (!pCharData)
-			SPDLOG_ERROR("At CharSelect without pCharData");
-		else if (pCharData->me != nullptr)
+		if (!pLocalPC)
+			SPDLOG_ERROR("At CharSelect without pLocalPC");
+		else if (pLocalPC->me != nullptr)
 		{
 			// Me should be null
-			SPDLOG_ERROR("At CharSelect with pCharData->me ({} {})", (void*)pCharData->me, pCharData->me->Name);
+			SPDLOG_ERROR("At CharSelect with pLocalPC->me ({} {})", (void*)pLocalPC->me, pLocalPC->me->Name);
 		}
 
 		if (!pLocalPlayer)
@@ -328,14 +328,14 @@ static void CheckGameState()
 			SPDLOG_ERROR("At CharSelect without gbInZone");
 	}
 
-	if (pCharData)
+	if (pLocalPC)
 	{
-		if (pCharData->ProfileManager.GetCurrentProfile() == nullptr)
-			SPDLOG_ERROR("pCharData exists but CurrentProfile does not");
+		if (pLocalPC->ProfileManager.GetCurrentProfile() == nullptr)
+			SPDLOG_ERROR("pLocalPC exists but CurrentProfile does not");
 	}
 	else if (pLocalPlayer)
 	{
-		SPDLOG_ERROR("pLocalPlayer exists but pCharData doesn't");
+		SPDLOG_ERROR("pLocalPlayer exists but pLocalPC doesn't");
 	}
 
 	if (pLocalPlayer && !pControlledPlayer)
@@ -345,23 +345,22 @@ static void CheckGameState()
 	}
 
 	// Check for changes.
-	static PcClient* OldCharData = nullptr;
+	static PcClient* OldLocalPC = nullptr;
 	static PlayerClient* OldControlledPlayer = nullptr;
 	static PlayerClient* OldLocalPlayer = nullptr;
-
 	static PlayerClient* OldMe = nullptr;
 
-	if (test_and_set(OldCharData, pCharData.get()))
-		SPDLOG_INFO("pCharData Changed: {}", (void*)pCharData.get());
+	if (test_and_set(OldLocalPC, pLocalPC.get()))
+		SPDLOG_INFO("pLocalPC Changed: {}", (void*)pLocalPC.get());
 
 	if (test_and_set(OldControlledPlayer, pControlledPlayer.get()))
 		SPDLOG_INFO("pControlledPlayer Changed: {} {}", (void*)pControlledPlayer.get(), pControlledPlayer ? pControlledPlayer->Name : "<null>");
 	if (test_and_set(OldLocalPlayer, pLocalPlayer.get()))
 		SPDLOG_INFO("pLocalPlayer Changed: {} {}", (void*)pLocalPlayer.get(), pLocalPlayer ? pLocalPlayer->Name : "<null>");
 
-	PlayerClient* pMe = pCharData ? pCharData->me : nullptr;
+	PlayerClient* pMe = pLocalPC ? pLocalPC->me : nullptr;
 	if (test_and_set(OldMe, pMe))
-		SPDLOG_INFO("pCharData->Me Changed: {} {}", (void*)pMe, pMe ? pMe->Name : "<null>");
+		SPDLOG_INFO("pLocalPC->Me Changed: {} {}", (void*)pMe, pMe ? pMe->Name : "<null>");
 }
 
 static void Pulse()
@@ -385,7 +384,7 @@ static void Pulse()
 
 	// Drop out here if we're waiting for something.
 	if (!pChar || gZoning) return;
-	if (!pCharData) return;
+	if (!pLocalPC) return;
 
 	if (pLocalPlayer)
 		pChar = pLocalPlayer;
@@ -442,7 +441,7 @@ static void Pulse()
 	if (pMerchantWnd && !pMerchantWnd->IsVisible())
 		gItemsReceived = false;
 
-	if (gbDoAutoRun && pChar && pCharData)
+	if (gbDoAutoRun && pChar && pLocalPC)
 	{
 		gbDoAutoRun = false;
 
@@ -459,7 +458,7 @@ static void Pulse()
 		szAutoRun[0] = 0;
 		pAutoRun = szAutoRun;
 		char szServerAndName[128] = { 0 };
-		sprintf_s(szServerAndName, "%s.%s", EQADDR_SERVERNAME, pCharData->Name);
+		sprintf_s(szServerAndName, "%s.%s", EQADDR_SERVERNAME, pLocalPC->Name);
 		GetPrivateProfileString("AutoRun", szServerAndName, "", szAutoRun, MAX_STRING, mq::internal_paths::MQini);
 		while (pAutoRun[0] == ' ' || pAutoRun[0] == '\t') pAutoRun++;
 		if (szAutoRun[0] != 0)

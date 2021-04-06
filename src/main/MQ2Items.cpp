@@ -43,7 +43,7 @@ MQModule* GetItemsModule() { return &gItemsModule; }
 
 int GetKeyRingCount(KeyRingType keyRingType)
 {
-	if (!pCharData)
+	if (!pLocalPC)
 		return 0;
 
 	switch (keyRingType)
@@ -56,7 +56,7 @@ int GetKeyRingCount(KeyRingType keyRingType)
 	default: return 0;
 	}
 
-	return pCharData->GetKeyRingItems(keyRingType).GetCount();
+	return pLocalPC->GetKeyRingItems(keyRingType).GetCount();
 }
 
 int GetMountCount() { return GetKeyRingCount(eMount); }

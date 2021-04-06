@@ -201,7 +201,7 @@ bool MQ2PointMerchantItemType::GetMember(MQVarPtr VarPtr, const char* Member, ch
 		return true;
 
 	case PointMerchantItemMembers::CanUse:
-		Dest.Set(pCharData->CanUseItem(pItem, false, false));
+		Dest.Set(pLocalPC->CanUseItem(pItem, false, false));
 		Dest.Type = pBoolType;
 		return true;
 	}

@@ -1936,7 +1936,7 @@ public:
 				ColumnItem("Linked item", pWnd->LinkedItem);
 			else
 			{
-				ItemPtr pItem = pCharData->GetItemByGlobalIndex(pWnd->ItemLocation);
+				ItemPtr pItem = pLocalPC->GetItemByGlobalIndex(pWnd->ItemLocation);
 				ColumnItem("Item in slot", pItem);
 			}
 

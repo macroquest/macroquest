@@ -43,7 +43,7 @@ MQ2AugType::MQ2AugType() : MQ2Type("augtype")
 
 bool MQ2AugType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	if (!pCharData)
+	if (!pLocalPC)
 		return false;
 
 	auto slotWithIdx = VarPtr.Get<MQSlotInItem>();
@@ -51,7 +51,7 @@ bool MQ2AugType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		return false;
 
 	auto globalIdx = slotWithIdx->GlobalIndex;
-	auto pCont = pCharData->GetItemByGlobalIndex(globalIdx);
+	auto pCont = pLocalPC->GetItemByGlobalIndex(globalIdx);
 	if (!pCont)
 		return false;
 
@@ -128,7 +128,7 @@ bool MQ2AugType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 
 bool MQ2AugType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	if (!pCharData)
+	if (!pLocalPC)
 		return false;
 
 	auto slotWithIdx = VarPtr.Get<MQSlotInItem>();
@@ -136,7 +136,7 @@ bool MQ2AugType::ToString(MQVarPtr VarPtr, char* Destination)
 		return false;
 
 	auto globalIdx = slotWithIdx->GlobalIndex;
-	auto pCont = pCharData->GetItemByGlobalIndex(globalIdx);
+	auto pCont = pLocalPC->GetItemByGlobalIndex(globalIdx);
 	if (!pCont)
 		return false;
 

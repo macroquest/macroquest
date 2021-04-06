@@ -170,7 +170,7 @@ void MapClear()
 
 void MapUpdate()
 {
-	if (!pCharData) return;
+	if (!pLocalPC) return;
 	EnterMQ2Benchmark(bmMapRefresh);
 
 	bool bTargetChanged = false;
@@ -264,13 +264,13 @@ void MapUpdate()
 		SpellCircle.Clear();
 	}
 
-	if (IsOptionEnabled(MapFilter::Group) && pCharData->Group)
+	if (IsOptionEnabled(MapFilter::Group) && pLocalPC->Group)
 	{
 		const MapFilterOption& option = MapFilterOptions[static_cast<size_t>(MapFilter::Group)];
 
 		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
-			CGroupMember* pMember = pCharData->Group->GetGroupMember(i);
+			CGroupMember* pMember = pLocalPC->Group->GetGroupMember(i);
 			if (!pMember) continue;
 
 			if (MapObject* obj = FindMapObject((SPAWNINFO*)pMember->GetPlayer()))

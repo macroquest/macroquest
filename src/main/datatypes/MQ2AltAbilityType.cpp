@@ -123,7 +123,7 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		return true;
 
 	case AltAbilityMembers::MyReuseTime:
-		Dest.DWord = pAltAdvManager->GetCalculatedTimer(pCharData, pAbility);
+		Dest.DWord = pAltAdvManager->GetCalculatedTimer(pLocalPC, pAbility);
 		Dest.Type = pIntType;
 		return true;
 
@@ -184,7 +184,7 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 	case AltAbilityMembers::Rank: // the current rank
 	case AltAbilityMembers::AARankRequired: { // kept this for legacy reasons
 		int CurrentRank = pAbility->CurrentRank - 1;
-		if (pCharData->HasAlternateAbility(pAbility->Index))
+		if (pLocalPC->HasAlternateAbility(pAbility->Index))
 		{
 			CurrentRank++;
 		}
@@ -229,7 +229,7 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		if (ALTABILITY* pNextAbility = GetAAByIdWrapper(pAbility->NextGroupAbilityId))
 			pAbility = pNextAbility;
 
-		Dest.Set(pAltAdvManager->CanTrainAbility(pCharData, pAbility, false, false, false));
+		Dest.Set(pAltAdvManager->CanTrainAbility(pLocalPC, pAbility, false, false, false));
 		Dest.Type = pBoolType;
 		return true;
 	}

@@ -1201,7 +1201,7 @@ void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
 			}
 			else if (ci_equals("ppCharData", lpProcName))
 			{
-				pRet = &pCharData;
+				pRet = &pLocalPC;
 			}
 			else if (ci_equals("ppEverQuest", lpProcName))
 			{

@@ -251,10 +251,10 @@ void Initialize()
 
 void UpdatedExtDistance()
 {
-	if (!pCharData)
+	if (!pLocalPC)
 		return;
 
-	ExtendedTargetList* xtm = pCharData->pXTargetMgr;
+	ExtendedTargetList* xtm = pLocalPC->pXTargetMgr;
 
 	for (int i = 0; i < xtm->GetNumSlots(); i++)
 	{
@@ -398,7 +398,7 @@ PLUGIN_API void SetGameState(int GameState)
 
 PLUGIN_API void OnPulse()
 {
-	if (GetGameState() != GAMESTATE_INGAME || !pCharData)
+	if (GetGameState() != GAMESTATE_INGAME || !pLocalPC)
 		return;
 
 	static uint64_t lastPulseUpdate = MQGetTickCount64();

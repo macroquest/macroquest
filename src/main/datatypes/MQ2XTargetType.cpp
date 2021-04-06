@@ -35,11 +35,11 @@ MQ2XTargetType::MQ2XTargetType() : MQ2Type("xtarget")
 
 bool MQ2XTargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	if (!pCharData)
+	if (!pLocalPC)
 		return false;
 
 	int index = VarPtr.DWord;
-	ExtendedTargetSlot* xts = pCharData->pExtendedTargetList->GetSlot(index);
+	ExtendedTargetSlot* xts = pLocalPC->pExtendedTargetList->GetSlot(index);
 	if (!xts) return false;
 
 	MQTypeMember* pMember = MQ2XTargetType::FindMember(Member);
@@ -51,7 +51,7 @@ bool MQ2XTargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 	switch (static_cast<XTargetMembers>(pMember->ID))
 	{
 	case XTargetMembers::TargetType:
-		if (const char* ptr = pCharData->pExtendedTargetList->ExtendedTargetRoleName(xts->xTargetType))
+		if (const char* ptr = pLocalPC->pExtendedTargetList->ExtendedTargetRoleName(xts->xTargetType))
 			strcpy_s(DataTypeTemp, ptr);
 		else
 			strcpy_s(DataTypeTemp, "UNKNOWN");
@@ -98,8 +98,8 @@ bool MQ2XTargetType::ToString(MQVarPtr VarPtr, char* Destination)
 	int index = VarPtr.DWord;
 	ExtendedTargetSlot* xts = nullptr;
 
-	if (pCharData
-		&& (xts = pCharData->pExtendedTargetList->GetSlot(index)))
+	if (pLocalPC
+		&& (xts = pLocalPC->pExtendedTargetList->GetSlot(index)))
 	{
 		strcpy_s(Destination, MAX_STRING, xts->Name);
 	}
@@ -117,10 +117,10 @@ bool MQ2XTargetType::Downcast(const MQVarPtr& fromVar, MQVarPtr& toVar, MQ2Type*
 	{
 		SPAWNINFO* pSpawn = nullptr;
 
-		if (pCharData)
+		if (pLocalPC)
 		{
 			int index = fromVar.Int;
-			if (ExtendedTargetSlot* xts = pCharData->pExtendedTargetList->GetSlot(index))
+			if (ExtendedTargetSlot* xts = pLocalPC->pExtendedTargetList->GetSlot(index))
 			{
 				pSpawn = GetSpawnByID(xts->SpawnID);
 			}

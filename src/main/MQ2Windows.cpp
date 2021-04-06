@@ -311,11 +311,11 @@ void ReloadUI(PSPAWNINFO pChar, char* szLine);
 #define WSF_TITLEBAR        0x00000004
 
 void UpdateUISkin() {
-	if (pCharData != nullptr)
+	if (pLocalPC != nullptr)
 	{
 		const std::string pathUIConfig = fmt::format("{BasePath}\\UI_{CharName}_{ServerName}.ini",
 			fmt::arg("BasePath", mq::internal_paths::EverQuest),
-			fmt::arg("CharName", pCharData->Name),
+			fmt::arg("CharName", pLocalPC->Name),
 			fmt::arg("ServerName", EQADDR_SERVERNAME));
 		GetPrivateProfileString("Main", "UISkin", "default", gUISkin, MAX_PATH, pathUIConfig);
 	}
@@ -402,11 +402,11 @@ bool IsXMLFilePresent(const char* filename)
 		return true;
 
 	// check current ui
-	if (pCharData)
+	if (pLocalPC)
 	{
 		char UISkin[256] = { 0 };
 
-		sprintf_s(szFilename, "%s\\UI_%s_%s.ini", mq::internal_paths::EverQuest.c_str(), pCharData->Name, EQADDR_SERVERNAME);
+		sprintf_s(szFilename, "%s\\UI_%s_%s.ini", mq::internal_paths::EverQuest.c_str(), pLocalPC->Name, EQADDR_SERVERNAME);
 		GetPrivateProfileString("Main", "UISkin", "default", UISkin, 256, szFilename);
 
 		sprintf_s(szFilename, "uifiles\\%s\\%s", UISkin, filename);
@@ -525,7 +525,7 @@ CXWnd* FindMQ2Window(const char* Name)
 			int nPack = GetIntFromString(&WindowName[4], 0) - 1;
 			if (nPack >= 0 && nPack < GetAvailableBankSlots())
 			{
-				pPack = pCharData->BankItems.GetItem(nPack - 1);
+				pPack = pLocalPC->BankItems.GetItem(nPack - 1);
 			}
 		}
 		else if (ci_starts_with(WindowName, "pack"))
@@ -2058,7 +2058,7 @@ public:
 				RenderTextureAnimation(pInvSlot->pInvSlotAnimation, CXSize(16, 16));
 
 				ItemGlobalIndex globalIndex = pInvSlot->pInvSlotWnd ? pInvSlot->pInvSlotWnd->ItemLocation : ItemGlobalIndex();
-				ItemPtr pItem = pCharData->GetItemByGlobalIndex(globalIndex);
+				ItemPtr pItem = pLocalPC->GetItemByGlobalIndex(globalIndex);
 
 				ImGui::TableNextColumn(); // Container
 				if (globalIndex.IsValidLocation())

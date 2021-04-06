@@ -218,7 +218,7 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		if (idx < 0)
 			return false;
 
-		auto taskStatus = pTaskManager->GetTaskStatus(pCharData, idx, pTask->TaskSystem);
+		auto taskStatus = pTaskManager->GetTaskStatus(pLocalPC, idx, pTask->TaskSystem);
 
 		if (!taskStatus)
 			return false;
@@ -318,7 +318,7 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		if (idx < 0)
 			return false;
 
-		auto taskStatus = pTaskManager->GetTaskStatus(pCharData, idx, pTask->TaskSystem);
+		auto taskStatus = pTaskManager->GetTaskStatus(pLocalPC, idx, pTask->TaskSystem);
 
 		for (int i = 0; i < MAX_TASK_ELEMENTS; ++i)
 		{
@@ -615,7 +615,7 @@ bool MQ2TaskObjectiveType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 		if (idx.taskIndex < 0)
 			return false;
 
-		auto taskStatus = pTaskManager->GetTaskStatus(pCharData, idx.taskIndex, idx.systemType);
+		auto taskStatus = pTaskManager->GetTaskStatus(pLocalPC, idx.taskIndex, idx.systemType);
 		if (!taskStatus)
 			return false;
 
@@ -731,7 +731,7 @@ bool MQ2TaskObjectiveType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 		if (idx.taskIndex < 0)
 			return false;
 
-		auto taskStatus = pTaskManager->GetTaskStatus(pCharData, idx.taskIndex, idx.systemType);
+		auto taskStatus = pTaskManager->GetTaskStatus(pLocalPC, idx.taskIndex, idx.systemType);
 		if (!taskStatus)
 			return false;
 

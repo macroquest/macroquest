@@ -98,9 +98,9 @@ bool MQ2ZoneType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 
 	if (Source.Type == pCurrentZoneType)
 	{
-		if (pCharData)
+		if (pLocalPC)
 		{
-			int zoneid = (pCharData->zoneId & 0x7FFF);
+			int zoneid = (pLocalPC->zoneId & 0x7FFF);
 			if (zoneid <= MAX_ZONES)
 			{
 				VarPtr.Ptr = &pWorldData->ZoneArray[zoneid];
@@ -127,9 +127,9 @@ bool MQ2ZoneType::dataZone(const char* szIndex, MQTypeVar& Ret)
 
 		if (int nIndex = (GetIntFromString(szIndex, 0) & 0x7FFF))
 		{
-			if (pCharData)
+			if (pLocalPC)
 			{
-				if ((pCharData->zoneId & 0x7FFF) == nIndex)
+				if ((pLocalPC->zoneId & 0x7FFF) == nIndex)
 				{
 					Ret.DWord = instEQZoneInfo;
 					Ret.Type = pCurrentZoneType;
@@ -154,9 +154,9 @@ bool MQ2ZoneType::dataZone(const char* szIndex, MQTypeVar& Ret)
 
 	if (nIndex != -1)
 	{
-		if (pCharData)
+		if (pLocalPC)
 		{
-			if ((pCharData->zoneId & 0x7FFF) == nIndex)
+			if ((pLocalPC->zoneId & 0x7FFF) == nIndex)
 			{
 				Ret.DWord = instEQZoneInfo;
 				Ret.Type = pCurrentZoneType;

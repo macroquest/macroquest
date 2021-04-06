@@ -45,9 +45,9 @@ static void LogToFile(const char* szOutput)
 
 #ifdef DBG_CHARNAME
 	char Name[256] = "Unknown";
-	if (pCharData)
+	if (pLocalPC)
 	{
-		strcpy_s(Name, pCharData->Name);
+		strcpy_s(Name, pLocalPC->Name);
 	}
 	fprintf(fOut, "%s - ", Name);
 #endif
@@ -1458,10 +1458,10 @@ float EstimatedDistanceToSpawn(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
 // ***************************************************************************
 int ConColor(SPAWNINFO* pSpawn)
 {
-	if (!pLocalPlayer || !pCharData || !pSpawn)
+	if (!pLocalPlayer || !pLocalPC || !pSpawn)
 		return CONCOLOR_WHITE;
 
-	switch (pCharData->GetConLevel(pSpawn))
+	switch (pLocalPC->GetConLevel(pSpawn))
 	{
 	case 0:
 	case 1:
@@ -2480,7 +2480,7 @@ bool PlayerHasAAAbility(int AAIndex)
 {
 	for (int i = 0; i < AA_CHAR_MAX_REAL; i++)
 	{
-		if (pCharData->GetAlternateAbilityId(i) == AAIndex)
+		if (pLocalPC->GetAlternateAbilityId(i) == AAIndex)
 			return true;
 	}
 	return false;
@@ -2513,7 +2513,7 @@ int GetAAIndexByName(const char* AAName)
 	// check bought aa's first
 	for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 	{
-		if (ALTABILITY* pAbility = GetAAByIdWrapper(pCharData->GetAlternateAbilityId(nAbility), level))
+		if (ALTABILITY* pAbility = GetAAByIdWrapper(pLocalPC->GetAlternateAbilityId(nAbility), level))
 		{
 			if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
 			{
@@ -2548,7 +2548,7 @@ int GetAAIndexByID(int ID)
 	// check our bought aa's first
 	for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 	{
-		if (ALTABILITY* pAbility = GetAAByIdWrapper(pCharData->GetAlternateAbilityId(nAbility)))
+		if (ALTABILITY* pAbility = GetAAByIdWrapper(pLocalPC->GetAlternateAbilityId(nAbility)))
 		{
 			if (pAbility->ID == ID)
 			{
@@ -2592,14 +2592,14 @@ bool IsInGroup(SPAWNINFO* pSpawn, bool bCorpse)
 	if (pSpawn == nullptr)
 		return false;
 
-	if (!pCharData->Group)
+	if (!pLocalPC->Group)
 		return false;
-	if (pSpawn == pCharData->pSpawn)
+	if (pSpawn == pLocalPC->pSpawn)
 		return true;
 
 	for (int i = 1; i < MAX_GROUP_SIZE; i++)
 	{
-		if (CGroupMember* pMember = pCharData->Group->GetGroupMember(i))
+		if (CGroupMember* pMember = pLocalPC->Group->GetGroupMember(i))
 		{
 			if (!bCorpse)
 			{
@@ -3204,7 +3204,7 @@ bool SearchSpawnMatchesSearchSpawn(MQSpawnSearch* pSearchSpawn1, MQSpawnSearch* 
 
 bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO* pSpawn)
 {
-	if (pSearchSpawn == nullptr || pChar == nullptr || pSpawn == nullptr || !pCharData)
+	if (pSearchSpawn == nullptr || pChar == nullptr || pSpawn == nullptr || !pLocalPC)
 		return false;
 
 	eSpawnType SpawnType = GetSpawnType(pSpawn);
@@ -3350,7 +3350,7 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 	{
 		bool foundhater = false;
 
-		for (const ExtendedTargetSlot& xts : *pCharData->pExtendedTargetList)
+		for (const ExtendedTargetSlot& xts : *pLocalPC->pExtendedTargetList)
 		{
 			if (xts.xTargetType == XTARGET_AUTO_HATER
 				&& xts.XTargetSlotStatus != eXTSlotEmpty
@@ -3726,7 +3726,7 @@ const char* ParseSearchSpawnArgs(char* szArg, const char* szRest, MQSpawnSearch*
 		}
 		else if (!_stricmp(szArg, "guild"))
 		{
-			pSearchSpawn->GuildID = pCharData->GuildID;
+			pSearchSpawn->GuildID = pLocalPC->GuildID;
 		}
 		else if (!_stricmp(szArg, "guildname"))
 		{
@@ -4445,12 +4445,12 @@ void SuperWhoDisplay(SPAWNINFO* pChar, MQSpawnSearch* pSearchSpawn, DWORD Color)
 			break;
 		}
 
-		if (pCharData)
+		if (pLocalPC)
 		{
 			size_t count = SpawnSet.size();
 
 			WriteChatf("There %s \ag%d\ax %s%s in %s.",
-				(count == 1) ? "is" : "are", count, pszSpawnType, (count == 1) ? "" : "s", GetFullZone(pCharData->zoneId));
+				(count == 1) ? "is" : "are", count, pszSpawnType, (count == 1) ? "" : "s", GetFullZone(pLocalPC->zoneId));
 		}
 	}
 	else
@@ -4525,7 +4525,7 @@ const char* GetLDoNTheme(int LDTheme)
 
 uint32_t GetItemTimer(ItemClient* pItem)
 {
-	uint32_t Timer = pCharData->GetItemRecastTimer(pItem, eActivatableSpell);
+	uint32_t Timer = pLocalPC->GetItemRecastTimer(pItem, eActivatableSpell);
 
 	if (Timer < GetFastTime())
 		return 0;
@@ -4603,7 +4603,7 @@ int GetSkillIDFromName(const char* name)
 
 bool InHoverState()
 {
-	return pCharData && pCharData->Stunned == 3;
+	return pLocalPC && pLocalPC->Stunned == 3;
 }
 
 int GetGameState()
@@ -4935,7 +4935,7 @@ uint32_t GetSpellGemTimer2(int nGem)
 		if (SPELL* pSpell = GetSpellByID(memspell))
 		{
 			int ReuseTimerIndex = pSpell->ReuseTimerIndex;
-			unsigned int linkedtimer = pCharData->GetLinkedSpellReuseTimer(ReuseTimerIndex);
+			unsigned int linkedtimer = pLocalPC->GetLinkedSpellReuseTimer(ReuseTimerIndex);
 
 			__time32_t RecastTime = ReuseTimerIndex > 0 && ReuseTimerIndex < 25 ? linkedtimer : 0;
 			unsigned int RecastDuration = 0;
@@ -4963,7 +4963,7 @@ uint32_t GetSpellGemTimer2(int nGem)
 				if (RecastDuration > LinkedDuration)
 				{
 					ItemPtr pFocusItem;
-					int ReuseMod = pCharData->GetFocusReuseMod(pSpell, pFocusItem);
+					int ReuseMod = pLocalPC->GetFocusReuseMod(pSpell, pFocusItem);
 					TotalDuration = pSpell->RecastTime - ReuseMod;
 				}
 				//do stuff
@@ -5089,7 +5089,7 @@ void UseAbility(const char* sAbility)
 						if (!_stricmp(pCA->Name, szBuffer))
 						{
 							// We got the cookie, let's try and do it
-							pCharData->DoCombatAbility(pCA->ID);
+							pLocalPC->DoCombatAbility(pCA->ID);
 							break;
 						}
 					}
@@ -5106,7 +5106,7 @@ void UseAbility(const char* sAbility)
 // Pass expansion macros from EQData.h to it -- e.g. HasExpansion(EXPANSION_RoF)
 bool HasExpansion(int nExpansion)
 {
-	return pCharData && (pCharData->ExpansionFlags & nExpansion) != 0;
+	return pLocalPC && (pLocalPC->ExpansionFlags & nExpansion) != 0;
 }
 
 int GetAvailableBagSlots()
@@ -5135,7 +5135,7 @@ void ListMercAltAbilities()
 {
 	if (pMercAltAbilities)
 	{
-		int mercaapoints = pCharData->MercAAPoints;
+		int mercaapoints = pLocalPC->MercAAPoints;
 
 		for (int i = 0; i < MERC_ALT_ABILITY_COUNT; i++)
 		{
@@ -5168,15 +5168,15 @@ ItemContainer* GetItemContainerByType(ItemContainerInstance type)
 	case eItemContainerPossessions:
 		return &pProfile->InventoryContainer;
 	case eItemContainerBank:
-		return &pCharData->BankItems;
+		return &pLocalPC->BankItems;
 	case eItemContainerSharedBank:
-		return &pCharData->SharedBankItems;
+		return &pLocalPC->SharedBankItems;
 	case eItemContainerTrade:
 		return &pTradeWnd->GetTradeItems();
 	case eItemContainerWorld:
 		return pContainerMgr->GetWorldContainerItem() ? &pContainerMgr->GetWorldContainerItem()->GetHeldItems() : nullptr;
 	case eItemContainerLimbo:
-		return &pCharData->LimboBufferItems;
+		return &pLocalPC->LimboBufferItems;
 	case eItemContainerTribute:
 		return &pProfile->TributeBenefitItems;
 	case eItemContainerTrophyTribute:
@@ -5192,25 +5192,25 @@ ItemContainer* GetItemContainerByType(ItemContainerInstance type)
 	case eItemContainerInspect:
 		return &pInspectWnd->GetInspectItems();
 	case eItemContainerAltStorage:
-		return &pCharData->AltStorageItems;
+		return &pLocalPC->AltStorageItems;
 	case eItemContainerArchived:
-		return &pCharData->ArchivedDeletedItems;
+		return &pLocalPC->ArchivedDeletedItems;
 	case eItemContainerMail:
-		return &pCharData->MailItems;
+		return &pLocalPC->MailItems;
 	case eItemContainerMercenaryItems:
-		return &pCharData->MercenaryItems;
+		return &pLocalPC->MercenaryItems;
 	case eItemContainerMountKeyRingItems:
-		return &pCharData->MountKeyRingItems;
+		return &pLocalPC->MountKeyRingItems;
 	case eItemContainerIllusionKeyRingItems:
-		return &pCharData->IllusionKeyRingItems;
+		return &pLocalPC->IllusionKeyRingItems;
 	case eItemContainerFamiliarKeyRingItems:
-		return &pCharData->FamiliarKeyRingItems;
+		return &pLocalPC->FamiliarKeyRingItems;
 	case eItemContainerHeroForgeKeyRingItems:
-		return &pCharData->HeroForgeKeyRingItems;
+		return &pLocalPC->HeroForgeKeyRingItems;
 	case eItemContainerOverflow:
-		return &pCharData->OverflowBufferItems;
+		return &pLocalPC->OverflowBufferItems;
 	case eItemContainerDragonHoard:
-		return &pCharData->DragonHoardItems;
+		return &pLocalPC->DragonHoardItems;
 
 	case eItemContainerRealEstate:   // todo
 	case eItemContainerKrono:        // this is a special value and doesn't actually exist as a container
@@ -5287,7 +5287,7 @@ static ItemClient* FindItem(T&& callback)
 {
 	auto pProfile = GetPcProfile();
 	if (!pProfile) return nullptr;
-	if (!pCharData) return nullptr;
+	if (!pLocalPC) return nullptr;
 
 	ItemPtr foundItem;
 	auto itemVisitor = [&](const ItemPtr& itemPtr, const ItemIndex& itemIndex)
@@ -5315,7 +5315,7 @@ static ItemClient* FindItem(T&& callback)
 			auto keyRingType = eKeyRingTypeFirst; keyRingType <= eKeyRingTypeLast;
 			keyRingType = static_cast<KeyRingType>(keyRingType + 1))
 		{
-			pCharData->GetKeyRingItems(keyRingType).FindItem(0, itemVisitor);
+			pLocalPC->GetKeyRingItems(keyRingType).FindItem(0, itemVisitor);
 
 			if (foundItem) break;
 		}
@@ -5362,14 +5362,14 @@ int CountInventoryItems(T& checkItem, int minSlot, int maxSlot)
 template <typename T>
 int CountKeyringItems(T& checkItem)
 {
-	if (!pCharData) return 0;
+	if (!pLocalPC) return 0;
 	int count = 0;
 
 	for (auto keyRingType = eKeyRingTypeFirst;
 		keyRingType <= eKeyRingTypeLast;
 		keyRingType = static_cast<KeyRingType>(keyRingType + 1))
 	{
-		count += CountContainerItems(pCharData->GetKeyRingItems(keyRingType), -1, -1, checkItem);
+		count += CountContainerItems(pLocalPC->GetKeyRingItems(keyRingType), -1, -1, checkItem);
 	}
 
 	return count;
@@ -5412,20 +5412,20 @@ int FindItemCountByID(int ItemID)
 template <typename T>
 static ItemClient* FindBankItem(T&& checkItem)
 {
-	if (!pCharData) return nullptr;
+	if (!pLocalPC) return nullptr;
 
 	// Check bank slots
-	ItemIndex bankIndex = pCharData->BankItems.FindItem(checkItem);
+	ItemIndex bankIndex = pLocalPC->BankItems.FindItem(checkItem);
 	if (bankIndex.IsValid())
 	{
-		return pCharData->BankItems.GetItem(bankIndex).get();
+		return pLocalPC->BankItems.GetItem(bankIndex).get();
 	}
 
 	// Check shared bank slots
-	ItemIndex sharedBankIndex = pCharData->SharedBankItems.FindItem(checkItem);
+	ItemIndex sharedBankIndex = pLocalPC->SharedBankItems.FindItem(checkItem);
 	if (sharedBankIndex.IsValid())
 	{
-		return pCharData->SharedBankItems.GetItem(sharedBankIndex).get();
+		return pLocalPC->SharedBankItems.GetItem(sharedBankIndex).get();
 	}
 
 	return nullptr;
@@ -5446,13 +5446,13 @@ ItemClient* FindBankItemByID(int ItemID)
 template <typename T>
 int CountBankItems(T&& checkItem)
 {
-	if (!pCharData) return 0;
+	if (!pLocalPC) return 0;
 
 	// Check bank slots
-	int count = CountContainerItems(pCharData->BankItems, -1, -1, checkItem);
+	int count = CountContainerItems(pLocalPC->BankItems, -1, -1, checkItem);
 
 	// Check shared bank slots
-	count += CountContainerItems(pCharData->SharedBankItems, -1, -1, checkItem);
+	count += CountContainerItems(pLocalPC->SharedBankItems, -1, -1, checkItem);
 
 	return count;
 }
@@ -5582,12 +5582,12 @@ bool PickupItem(const ItemGlobalIndex& globalIndex)
 	MultipleItemMoveManager::MoveItemArray moveArray;
 	MultipleItemMoveManager::MoveItem moveItem;
 	moveItem.from = globalIndex;
-	moveItem.to = pCharData->CreateItemGlobalIndex(InvSlot_Cursor);
+	moveItem.to = pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor);
 	moveItem.flags = MultipleItemMoveManager::MoveItemFlagSwapEnabled;
 	moveItem.count = isCtrl ? 1 : 0;
 	moveArray.Add(moveItem);
 
-	auto result = MultipleItemMoveManager::ProcessMove(pCharData, moveArray);
+	auto result = MultipleItemMoveManager::ProcessMove(pLocalPC, moveArray);
 	return result == MultipleItemMoveManager::ErrorOk;
 }
 
@@ -5628,7 +5628,7 @@ bool DropItem(const ItemGlobalIndex& globalIndex)
 
 	MultipleItemMoveManager::MoveItemArray moveArray;
 	MultipleItemMoveManager::MoveItem moveItem;
-	moveItem.from = pCharData->CreateItemGlobalIndex(InvSlot_Cursor);
+	moveItem.from = pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor);
 	moveItem.to = globalIndex;
 	moveItem.flags = MultipleItemMoveManager::MoveItemFlagSwapEnabled;
 	moveItem.count = 0;
@@ -5638,7 +5638,7 @@ bool DropItem(const ItemGlobalIndex& globalIndex)
 	// will replace it on the cursor.
 	pCursorAttachment->Deactivate();
 
-	auto result = MultipleItemMoveManager::ProcessMove(pCharData, moveArray);
+	auto result = MultipleItemMoveManager::ProcessMove(pLocalPC, moveArray);
 	return result == MultipleItemMoveManager::ErrorOk;
 }
 
@@ -5949,20 +5949,20 @@ int FindBuffID(std::string_view Name)
 
 void RemoveBuff(EQ_Affect* buff, int slot)
 {
-	if (pCharData)
+	if (pLocalPC)
 	{
 		ArrayClass<LaunchSpellData*> arr;
-		pCharData->RemovePCAffectex(buff, true, arr, 0, 0, 0);
+		pLocalPC->RemovePCAffectex(buff, true, arr, 0, 0, 0);
 
 		if (slot >= 0)
-			pCharData->NotifyPCAffectChange(slot, 1);
+			pLocalPC->NotifyPCAffectChange(slot, 1);
 	}
 }
 
 void RemoveBuffAt(int BuffID)
 {
 	if (BuffID >= 0 && pLocalPlayer)
-		pCharData->RemoveBuffEffect(BuffID, pLocalPlayer->SpawnID);
+		pLocalPC->RemoveBuffEffect(BuffID, pLocalPlayer->SpawnID);
 }
 
 void RemoveBuff(SPAWNINFO* pChar, char* szLine)
@@ -5986,7 +5986,7 @@ void RemoveBuff(SPAWNINFO* pChar, char* szLine)
 	if (szCmd != nullptr)
 	{
 		auto buff_id = FindBuffID(szCmd);
-		EQ_Affect* buff = &pCharData->GetEffect(buff_id);
+		EQ_Affect* buff = &pLocalPC->GetEffect(buff_id);
 		RemoveBuff(buff, buff_id);
 	}
 }
@@ -6002,7 +6002,7 @@ void RemovePetBuff(SPAWNINFO* pChar, char* szLine)
 		auto pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
 		if (pBuffSpell && MaybeExactCompare(pBuffSpell->Name, szLine))
 		{
-			pCharData->RemovePetEffect(nBuff);
+			pLocalPC->RemovePetEffect(nBuff);
 			return;
 		}
 	}
@@ -6025,9 +6025,9 @@ bool StripQuotes(char* str)
 //.text:00638059                 call    ?MakeMeVisible@CharacterZoneClient@@QAEXH_N@Z ; CharacterZoneClient::MakeMeVisible(int,bool)
 void MakeMeVisible(SPAWNINFO* pChar, char* szLine)
 {
-	if (pCharData)
+	if (pLocalPC)
 	{
-		pCharData->MakeMeVisible(0, false);
+		pLocalPC->MakeMeVisible(0, false);
 	}
 }
 
@@ -6127,7 +6127,7 @@ bool IsActiveAA(const char* pSpellName)
 
 	for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 	{
-		if (ALTABILITY* pAbility = GetAAByIdWrapper(pCharData->GetAlternateAbilityId(nAbility), level))
+		if (ALTABILITY* pAbility = GetAAByIdWrapper(pLocalPC->GetAlternateAbilityId(nAbility), level))
 		{
 			if (!_stricmp(pSpellName, pCDBStr->GetString(pAbility->nName, eAltAbilityName)))
 			{
@@ -6529,11 +6529,11 @@ static bool WillItemFitInSlot(const ItemPtr& pItemSlot, const ItemPtr& itemToFit
 bool WillFitInBank(ItemClient* pContent)
 {
 	if (!pContent) return false;
-	if (!pCharData) return false;
+	if (!pLocalPC) return false;
 
 	ItemPtr pItemToFit{ pContent };
 
-	for (const ItemPtr& pBankSlot : pCharData->BankItems)
+	for (const ItemPtr& pBankSlot : pLocalPC->BankItems)
 	{
 		if (WillItemFitInSlot(pBankSlot, pItemToFit))
 			return true;
@@ -6564,10 +6564,10 @@ bool WillFitInInventory(ItemClient* pContent)
 
 int GetGroupMemberClassByIndex(int index)
 {
-	if (!pCharData || !pCharData->Group)
+	if (!pLocalPC || !pLocalPC->Group)
 		return 0;
 
-	CGroupMember* pMember = pCharData->Group->GetGroupMember(index);
+	CGroupMember* pMember = pLocalPC->Group->GetGroupMember(index);
 
 	if (pMember && pMember->GetPlayer())
 	{
@@ -6663,9 +6663,9 @@ int GetCharMaxBuffSlots()
 {
 	int NumBuffs = 15;
 
-	if (pCharData)
+	if (pLocalPC)
 	{
-		NumBuffs += pCharData->TotalEffect(SPA_ADD_BUFF_SLOTS, true, 0, true, true);
+		NumBuffs += pLocalPC->TotalEffect(SPA_ADD_BUFF_SLOTS, true, 0, true, true);
 
 		if (pLocalPlayer)
 		{
@@ -6921,12 +6921,12 @@ int GetRaidMemberIndex(SPAWNINFO* pSpawn)
 
 bool IsGroupMember(const char* SpawnName)
 {
-	if (!pCharData || !pCharData->Group)
+	if (!pLocalPC || !pLocalPC->Group)
 		return false;
 
 	for (int index = 1; index < MAX_GROUP_SIZE; index++)
 	{
-		if (CGroupMember* pMember = pCharData->Group->GetGroupMember(index))
+		if (CGroupMember* pMember = pLocalPC->Group->GetGroupMember(index))
 		{
 			char Name[MAX_STRING] = { 0 };
 			strcpy_s(Name, pMember->GetName());
@@ -6943,12 +6943,12 @@ bool IsGroupMember(const char* SpawnName)
 
 bool IsGroupMember(SPAWNINFO* pSpawn)
 {
-	if (!pCharData || !pCharData->Group)
+	if (!pLocalPC || !pLocalPC->Group)
 		return false;
 
 	for (int index = 1; index < MAX_GROUP_SIZE; index++)
 	{
-		if (CGroupMember* pMember = pCharData->Group->GetGroupMember(index))
+		if (CGroupMember* pMember = pLocalPC->Group->GetGroupMember(index))
 		{
 			char Name[MAX_STRING] = { 0 };
 			strcpy_s(Name, pMember->GetName());
@@ -6980,7 +6980,7 @@ bool IsFellowshipMember(const char* SpawnName)
 
 bool IsGuildMember(const char* SpawnName)
 {
-	if (!pCharData || pCharData->GuildID == 0 || !pGuild)
+	if (!pLocalPC || pLocalPC->GuildID == 0 || !pGuild)
 		return false;
 
 	GuildMember* mem = pGuild->FindMemberByName(SpawnName);
@@ -6989,14 +6989,14 @@ bool IsGuildMember(const char* SpawnName)
 
 int GetGroupMercenaryCount(uint32_t ClassMASK)
 {
-	if (!pCharData || !pCharData->Group)
+	if (!pLocalPC || !pLocalPC->Group)
 		return 0;
 
 	int count = 0;
 
 	for (int index = 1; index < MAX_GROUP_SIZE; index++)
 	{
-		if (CGroupMember* pMember = pCharData->Group->GetGroupMember(index))
+		if (CGroupMember* pMember = pLocalPC->Group->GetGroupMember(index))
 		{
 			if (pMember->Type == EQP_NPC && pMember->GetPlayer()
 				&& (ClassMASK & (1 << (pMember->GetPlayer()->mActorClient.Class - 1))))
@@ -7027,12 +7027,12 @@ inline SPAWNINFO* GetGroupMember(int index)
 	if (index >= MAX_GROUP_SIZE)
 		return nullptr;
 
-	if (!pCharData || !pCharData->Group)
+	if (!pLocalPC || !pLocalPC->Group)
 		return nullptr;
 
 	for (int i = 1; i < MAX_GROUP_SIZE; i++)
 	{
-		if (CGroupMember* pMember = pCharData->Group->GetGroupMember(i))
+		if (CGroupMember* pMember = pLocalPC->Group->GetGroupMember(i))
 		{
 			index--;
 
@@ -7049,7 +7049,7 @@ inline SPAWNINFO* GetGroupMember(int index)
 
 uint32_t GetGroupMainAssistTargetID()
 {
-	if (!pCharData || !pCharData->Group) return 0;
+	if (!pLocalPC || !pLocalPC->Group) return 0;
 	if (!pLocalPlayer) return 0;
 
 	return pLocalPlayer->GroupAssistNPC[0];
@@ -7067,7 +7067,7 @@ uint32_t GetRaidMainAssistTargetID(int index)
 
 uint32_t GetGroupMarkedTargetID(int index)
 {
-	if (!pLocalPlayer || !pCharData->Group) return 0;
+	if (!pLocalPlayer || !pLocalPC->Group) return 0;
 
 	if (index < 0 || index >= (int)lengthof(pLocalPlayer->GroupMarkNPC))
 		return 0;

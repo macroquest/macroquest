@@ -183,7 +183,7 @@ public:
 
 							if (ItemGlobalIndex* gi = pFIWnd->gi[(int)pCheck->GetData()])
 							{
-								if (ItemPtr ptr = pCharData->GetItemByGlobalIndex(*gi))
+								if (ItemPtr ptr = pLocalPC->GetItemByGlobalIndex(*gi))
 								{
 									ItemDefinition* pItem = ptr->GetItemDefinition();
 									if (gbColorsFeatureEnabled)
@@ -602,7 +602,7 @@ public:
 
 											if (ItemGlobalIndex* gi = pThis->gi[dta])
 											{
-												if (ItemPtr ptr = pCharData->GetItemByGlobalIndex(*gi))
+												if (ItemPtr ptr = pLocalPC->GetItemByGlobalIndex(*gi))
 												{
 													ItemDefinition* pItem = ptr->GetItemDefinition();
 
@@ -1206,7 +1206,7 @@ void RemoveAutoBankMenu()
 
 static void AutoBankPulse()
 {
-	if (!pCharData)
+	if (!pLocalPC)
 		return;
 	PcProfile* pProfile = GetPcProfile();
 
@@ -1254,7 +1254,7 @@ static void AutoBankPulse()
 			for (auto g = gSellList.begin(); g != gSellList.end(); g++)
 			{
 				ItemGlobalIndex& gi = *g;
-				if (ItemPtr pItem = pCharData->GetItemByGlobalIndex(gi))
+				if (ItemPtr pItem = pLocalPC->GetItemByGlobalIndex(gi))
 				{
 					bool didSell = false;
 					if (pMerchantWnd->pSelectedItem)
@@ -1302,7 +1302,7 @@ static void AutoBankPulse()
 				ItemGlobalIndex index = gDeleteList.front();
 				gDeleteList.pop_front();
 
-				if (ItemPtr pItem = pCharData->GetItemByGlobalIndex(index))
+				if (ItemPtr pItem = pLocalPC->GetItemByGlobalIndex(index))
 				{
 					if (PickupItem(pItem->GetItemLocation()))
 					{
@@ -1344,7 +1344,7 @@ static void AutoBankPulse()
 
 		if (gAutoInventoryList.empty() && (gbAutoBankTradeSkillItems || gbAutoBankCollectibleItems || gbAutoBankQuestItems))
 		{
-			pCharData->BankItems.VisitContainers(
+			pLocalPC->BankItems.VisitContainers(
 				[&](const ItemPtr& pItem, const ItemIndex& index)
 			{
 				// dont add bags that have items inside of them.

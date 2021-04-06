@@ -803,7 +803,7 @@ void MemSpell(SPAWNINFO* pSpawn, char* szLine)
 	if (!pSpellBookWnd)
 		return;
 
-	if (!pCharData)
+	if (!pLocalPC)
 		return;
 
 	PcProfile* pProfile = GetPcProfile();
@@ -911,7 +911,7 @@ void BuyItem(SPAWNINFO* pChar, char* szLine)
 
 	char szQty[MAX_STRING] = { 0 };
 
-	if (!pCharData || !pMerchantWnd->pSelectedItem)
+	if (!pLocalPC || !pMerchantWnd->pSelectedItem)
 		return;
 
 	if (pMerchantWnd->PageHandlers[RegularMerchantPage])
@@ -939,7 +939,7 @@ void SellItem(SPAWNINFO* pChar, char* szLine)
 
 	char szQty[MAX_STRING] = { 0 };
 
-	if (!pCharData || !pMerchantWnd->pSelectedItem)
+	if (!pLocalPC || !pMerchantWnd->pSelectedItem)
 		return;
 
 	if (pMerchantWnd->PageHandlers[RegularMerchantPage])
@@ -2299,7 +2299,7 @@ static void FaceObject(const MQGameObject& faceTarget, int flags)
 		float distance = Distance3DToSpawn(pControlledPlayer, faceTarget);
 		float charHeight = pControlledPlayer->AvatarHeight * StateHeightMultiplier(pControlledPlayer->StandState);
 		float targetHeight = faceTarget.height;
-		float rise = (faceTarget.z + faceTarget.height) - (pCharData->Z + charHeight);
+		float rise = (faceTarget.z + faceTarget.height) - (pControlledPlayer->Z + charHeight);
 
 		float angle = atan2(rise, distance) * 256.0f / static_cast<float>(PI);
 
@@ -2665,7 +2665,7 @@ void Where(SPAWNINFO* pChar, char* szLine)
 // ***************************************************************************
 void DoAbility(SPAWNINFO* pChar, char* szLine)
 {
-	if (!szLine[0] || !cmdDoAbility)
+	if (!szLine[0] || !cmdDoAbility || !pLocalPC)
 		return;
 	if (IsNumber(szLine) || !EQADDR_DOABILITYLIST)
 	{
@@ -2719,7 +2719,7 @@ void DoAbility(SPAWNINFO* pChar, char* szLine)
 		{
 			if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index))
 			{
-				if (SPELL* pCA = GetSpellByID(pCharData->GetCombatAbility(Index)))
+				if (SPELL* pCA = GetSpellByID(pLocalPC->GetCombatAbility(Index)))
 				{
 					WriteChatf("<\ag%s\ax>", pCA->Name);
 				}
@@ -2762,11 +2762,7 @@ void DoAbility(SPAWNINFO* pChar, char* szLine)
 					return;
 				}
 
-				if (pCharData)
-				{
-					pCharData->UseSkill(static_cast<uint8_t>(Index), pCharData->me);
-				}
-
+				pLocalPC->UseSkill(static_cast<uint8_t>(Index), pLocalPlayer);
 				return;
 			}
 		}
@@ -2781,7 +2777,7 @@ void DoAbility(SPAWNINFO* pChar, char* szLine)
 			{
 				if (!_stricmp(pCA->Name, szBuffer))
 				{
-					pCharData->DoCombatAbility(pCA->ID);
+					pLocalPC->DoCombatAbility(pCA->ID);
 					return;
 				}
 			}
@@ -3247,7 +3243,7 @@ void Skills(SPAWNINFO* pChar, char* szLine)
 void SetAutoRun(SPAWNINFO* pChar, char* szLine)
 {
 	char szServerAndName[256] = { 0 };
-	sprintf_s(szServerAndName, "%s.%s", EQADDR_SERVERNAME, pCharData->Name);
+	sprintf_s(szServerAndName, "%s.%s", EQADDR_SERVERNAME, pLocalPC->Name);
 	WritePrivateProfileString("AutoRun", szServerAndName, szLine, mq::internal_paths::MQini);
 
 	WriteChatf("Set autorun to: '%s'", szLine);
@@ -3344,7 +3340,7 @@ void IniOutput(SPAWNINFO* pChar, char* szLine)
 // ***************************************************************************
 void BankList(SPAWNINFO* pChar, char* szLine)
 {
-	if (!pCharData)
+	if (!pLocalPC)
 		return;
 
 	WriteChatColor("Listing of Bank Inventory");
@@ -3352,7 +3348,7 @@ void BankList(SPAWNINFO* pChar, char* szLine)
 
 	char Link[MAX_STRING] = { 0 };
 
-	pCharData->BankItems.VisitItems(-1,
+	pLocalPC->BankItems.VisitItems(-1,
 		[&](const ItemPtr& item, const ItemIndex& index)
 	{
 		GetItemLink(item.get(), Link);
@@ -3362,9 +3358,9 @@ void BankList(SPAWNINFO* pChar, char* szLine)
 			WriteChatf("Slot %d: %dx %s (%s)", index.GetSlot(0),
 				item->GetItemCount(), Link, item->GetItemDefinition()->LoreName);
 		}
-		else if (pCharData->BankItems.IsItemInSocket(index))
+		else if (pLocalPC->BankItems.IsItemInSocket(index))
 		{
-			ItemPtr parentItem = pCharData->BankItems.GetItem(index.GetParentIndex());
+			ItemPtr parentItem = pLocalPC->BankItems.GetItem(index.GetParentIndex());
 			int augSlot = index.GetDeepestSlot();
 
 			WriteChatf("-- Aug Slot %d, type %d: %s", augSlot + 1,
@@ -3447,7 +3443,7 @@ void DisplayLoginName(SPAWNINFO* pChar, char* szLine)
 // ***************************************************************************
 void EQDestroyHeldItemOrMoney(SPAWNINFO* pChar, char* szLine)
 {
-	pCharData->DestroyHeldItemOrMoney();
+	pLocalPC->DestroyHeldItemOrMoney();
 }
 
 // ***************************************************************************
@@ -4242,7 +4238,7 @@ void AltAbility(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	if (!pCharData || !pLocalPlayer) return;
+	if (!pLocalPC || !pLocalPlayer) return;
 
 	if (!_stricmp(szCommand, "list"))
 	{
@@ -4253,7 +4249,7 @@ void AltAbility(SPAWNINFO* pChar, char* szLine)
 
 			for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 			{
-				if (ALTABILITY* pAbility = GetAAByIdWrapper(pCharData->GetAlternateAbilityId(nAbility)))
+				if (ALTABILITY* pAbility = GetAAByIdWrapper(pLocalPC->GetAlternateAbilityId(nAbility)))
 				{
 					WriteChatColorf("[ %d: %s ]", USERCOLOR_WHO, pAbility->ID,
 						pCDBStr->GetString(pAbility->nName, eAltAbilityName));
@@ -4267,24 +4263,24 @@ void AltAbility(SPAWNINFO* pChar, char* szLine)
 
 			for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 			{
-				if (ALTABILITY* pAbility = GetAAByIdWrapper(pCharData->GetAlternateAbilityId(nAbility)))
+				if (ALTABILITY* pAbility = GetAAByIdWrapper(pLocalPC->GetAlternateAbilityId(nAbility)))
 				{
-					if ((pAltAdvManager->GetCalculatedTimer(pCharData, pAbility)) > 0)
+					if ((pAltAdvManager->GetCalculatedTimer(pLocalPC, pAbility)) > 0)
 					{
-						if (pAltAdvManager->IsAbilityReady(pCharData, pAbility, nullptr))
+						if (pAltAdvManager->IsAbilityReady(pLocalPC, pAbility, nullptr))
 						{
 							WriteChatColorf("[ %d: %s ] (Reuse Time: %d seconds) <Ready>", USERCOLOR_WHO,
 								pAbility->ID, pCDBStr->GetString(pAbility->nName, eAltAbilityName),
-								pAltAdvManager->GetCalculatedTimer(pCharData, pAbility));
+								pAltAdvManager->GetCalculatedTimer(pLocalPC, pAbility));
 						}
 						else
 						{
 							int i = 0;
-							pAltAdvManager->IsAbilityReady(pCharData, pAbility, &i);
+							pAltAdvManager->IsAbilityReady(pLocalPC, pAbility, &i);
 
 							WriteChatColorf("[ %d: %s ] (Reuse Time: %d seconds) <Ready in %d seconds>",
 								USERCOLOR_WHO, pAbility->ID, pCDBStr->GetString(pAbility->nName, eAltAbilityName),
-								pAltAdvManager->GetCalculatedTimer(pCharData, pAbility), i);
+								pAltAdvManager->GetCalculatedTimer(pLocalPC, pAbility), i);
 						}
 					}
 				}
@@ -4308,16 +4304,16 @@ void AltAbility(SPAWNINFO* pChar, char* szLine)
 					WriteChatColor("Alternative Advancement Ability Information", CONCOLOR_YELLOW);
 					WriteChatColor("-------------------------------------------", USERCOLOR_WHO);
 
-					if ((pAltAdvManager->GetCalculatedTimer(pCharData, pAbility)) > 0)
+					if ((pAltAdvManager->GetCalculatedTimer(pLocalPC, pAbility)) > 0)
 					{
 						// has a timer
 						int i = 0;
-						if (!pAltAdvManager->IsAbilityReady(pCharData, pAbility, &i))
+						if (!pAltAdvManager->IsAbilityReady(pLocalPC, pAbility, &i))
 						{
 							// it's not ready
 							WriteChatColorf("[ %d: %s ] %s", USERCOLOR_WHO, pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, eAltAbilityDescription));
 							WriteChatColorf("Min Level: %d, Cost: %d, Max Rank: %d, Type: %d, Reuse Time: %d seconds", USERCOLOR_WHO,
-								pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type, pAltAdvManager->GetCalculatedTimer(pCharData, pAbility));
+								pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type, pAltAdvManager->GetCalculatedTimer(pLocalPC, pAbility));
 
 							if (pAbility->SpellID > 0)
 							{
@@ -4337,7 +4333,7 @@ void AltAbility(SPAWNINFO* pChar, char* szLine)
 						{
 							WriteChatColorf("[ %d: %s ] %s", USERCOLOR_WHO, pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, eAltAbilityDescription));
 							WriteChatColorf("Min Level: %d, Cost: %d, Max Rank: %d, Type: %d, Reuse Time: %d seconds", USERCOLOR_WHO,
-								pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type, pAltAdvManager->GetCalculatedTimer(pCharData, pAbility));
+								pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type, pAltAdvManager->GetCalculatedTimer(pLocalPC, pAbility));
 
 							if (pAbility->SpellID > 0)
 							{
@@ -4350,7 +4346,7 @@ void AltAbility(SPAWNINFO* pChar, char* szLine)
 					else
 					{
 						int i = 0;
-						pAltAdvManager->IsAbilityReady(pCharData, pAbility, &i);
+						pAltAdvManager->IsAbilityReady(pLocalPC, pAbility, &i);
 
 						WriteChatColorf("[ %d: %s ] %s", USERCOLOR_WHO, pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, eAltAbilityName));
 						WriteChatColorf("Min Level: %d, Cost: %d, Max Rank: %d, Type: %d", USERCOLOR_WHO,
@@ -4373,7 +4369,7 @@ void AltAbility(SPAWNINFO* pChar, char* szLine)
 		// only search through the ones we have...
 		for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 		{
-			if (ALTABILITY* pAbility = GetAAByIdWrapper(pCharData->GetAlternateAbilityId(nAbility), level))
+			if (ALTABILITY* pAbility = GetAAByIdWrapper(pLocalPC->GetAlternateAbilityId(nAbility), level))
 			{
 				if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
 				{
@@ -4841,7 +4837,7 @@ void AdvLootCmd(SPAWNINFO* pChar, char* szLine)
 						{
 							if (item.LootDetails.GetSize())
 							{
-								pAdvancedLootWnd->DoSharedAdvLootAction(item, pCharData->Name, true, item.LootDetails[0].StackCount);
+								pAdvancedLootWnd->DoSharedAdvLootAction(item, pLocalPC->Name, true, item.LootDetails[0].StackCount);
 							}
 						}
 						else if (!_stricmp(szAction, "giveto"))
@@ -4853,23 +4849,20 @@ void AdvLootCmd(SPAWNINFO* pChar, char* szLine)
 
 							if (szEntity[0] != '\0')
 							{
-								if (pCharData)
+								if (pLocalPC && pLocalPC->Group)
 								{
 									CXStr out;
 
-									if (pCharData->Group)
+									for (auto& member : *pLocalPC->Group)
 									{
-										for (auto& member : *pCharData->Group)
+										if (member
+											&& member->Type == EQP_PC
+											&& !member->Name.empty())
 										{
-											if (member
-												&& member->Type == EQP_PC
-												&& !member->Name.empty())
+											if (!_stricmp(member->GetName(), szEntity))
 											{
-												if (!_stricmp(member->GetName(), szEntity))
-												{
-													out = member->Name;
-													break;
-												}
+												out = member->Name;
+												break;
 											}
 										}
 									}
@@ -5076,7 +5069,7 @@ DWORD CALLBACK openpickzonewnd(void* pData)
 		}
 	}
 
-	WriteChatf("%s instance %d NOT found in list", GetFullZone(pCharData->zoneId), nInst);
+	WriteChatf("%s instance %d NOT found in list", GetFullZone(pLocalPC->zoneId), nInst);
 	return 0;
 }
 
@@ -5419,7 +5412,7 @@ void RemoveLevCmd(SPAWNINFO* pChar, char* szLine)
 		{
 			if (HasLevSPA(pBuff))
 			{
-				pCharData->RemoveBuffEffect(i, pLocalPlayer->SpawnID);
+				pLocalPC->RemoveBuffEffect(i, pLocalPlayer->SpawnID);
 
 				WriteChatf("\arRemoving: \ap%s", pBuff->Name);
 			}
@@ -5433,7 +5426,7 @@ void RemoveLevCmd(SPAWNINFO* pChar, char* szLine)
 		{
 			if (HasLevSPA(pBuff))
 			{
-				pCharData->RemoveBuffEffect(i + NUM_LONG_BUFFS, pLocalPlayer->SpawnID);
+				pLocalPC->RemoveBuffEffect(i + NUM_LONG_BUFFS, pLocalPlayer->SpawnID);
 				WriteChatf("\arRemoving: \ap%s", pBuff->Name);
 			}
 		}

@@ -60,7 +60,7 @@ MQ2RaidType::MQ2RaidType()
 
 bool MQ2RaidType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	if (!pCharData)
+	if (!pLocalPC)
 		return false;
 
 	MQTypeMember* pMember = MQ2RaidType::FindMember(Member);
@@ -201,7 +201,7 @@ bool MQ2RaidType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 		if (Index[0])
 		{
-			RaidData& rd = pCharData->raidData;
+			RaidData& rd = pLocalPC->raidData;
 
 			if (IsNumber(Index))
 			{
