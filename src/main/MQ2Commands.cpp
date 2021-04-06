@@ -4870,7 +4870,7 @@ void AdvLootCmd(SPAWNINFO* pChar, char* szLine)
 									// not found? check raid
 									if (out.empty())
 									{
-										if (pRaid && pRaid->RaidMemberCount)
+										if (pRaid->RaidMemberCount)
 										{
 											for (DWORD nMember = 0; nMember < MAX_RAID_SIZE; nMember++)
 											{

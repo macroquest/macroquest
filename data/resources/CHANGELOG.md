@@ -1,3 +1,7 @@
+April 6, 2021
+- Fixed LineOfSight (#260)
+- Various fixes to the assignment of macro data to spawn variable types.
+
 Mar 26 2021
 - Fix noauto being missed when using /plugin someplugin load noauto
 - noauto in the engine command and in the plugin command is no longer case sensitive
