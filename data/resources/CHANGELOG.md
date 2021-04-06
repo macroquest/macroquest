@@ -1,6 +1,7 @@
 April 6, 2021
 - Fixed LineOfSight (#260)
 - Various fixes to the assignment of macro data to spawn variable types.
+- Removed blanket [MQ2] from WriteChat lines (#112)
 
 Mar 26 2021
 - Fix noauto being missed when using /plugin someplugin load noauto
