@@ -319,7 +319,7 @@ bool dataSubDefined(const char* szIndex, MQTypeVar& Ret)
 
 bool dataLineOfSight(const char* szIndex, MQTypeVar& Ret)
 {
-	if (pControlledPlayer)
+	if (!pControlledPlayer)
 		return false;
 
 	if (szIndex[0])
