@@ -134,7 +134,8 @@ public:
 		StartTime,
 		EndTime,
 		ReturnCount,
-		Return
+		Return,
+		Status
 	};
 
 	MQ2LuaInfoType() : MQ2Type("luainfo")
@@ -147,6 +148,7 @@ public:
 		ScopedTypeMember(Members, EndTime);
 		ScopedTypeMember(Members, ReturnCount);
 		ScopedTypeMember(Members, Return);
+		ScopedTypeMember(Members, Status);
 	};
 
 	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
@@ -219,6 +221,12 @@ public:
 				strcpy_s(DataTypeTemp, MAX_STRING, info->returnValues.at(index).c_str());
 			}
 
+			Dest.Ptr = &DataTypeTemp[0];
+			return true;
+
+		case Members::Status:
+			Dest.Type = pStringType;
+			strcpy_s(DataTypeTemp, MAX_STRING, std::string(info->status).c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 
@@ -408,7 +416,10 @@ static void LuaRunCommand(const std::string& script, const std::vector<std::stri
 	entry->RegisterLuaState(entry);
 	auto result = entry->StartFile(s_luaDir, s_turboNum, args);
 	if (result)
+	{
+		result->status = "RUNNING";
 		s_infoMap.emplace(result->pid, *result);
+	}
 }
 
 static void LuaParseCommand(const std::string& script)
@@ -438,7 +449,10 @@ static void LuaParseCommand(const std::string& script)
 	entry->RegisterLuaState(entry, true);
 	auto result = entry->StartString(s_turboNum, script);
 	if (result)
+	{
+		result->status = "RUNNING";
 		s_infoMap.emplace(result->pid, *result);
+	}
 }
 
 static void LuaStopCommand(std::optional<std::string> script = std::nullopt)
@@ -510,7 +524,10 @@ static void LuaPauseCommand(std::optional<std::string> script = std::nullopt)
 
 		if (thread_it != s_running.end())
 		{
-			(*thread_it)->state->Pause(**thread_it, s_turboNum);
+			auto status = (*thread_it)->state->Pause(**thread_it, s_turboNum);
+			auto info = s_infoMap.find((*thread_it)->pid);
+			if (info != s_infoMap.end())
+				info->second.status = status;
 		}
 		else
 		{
@@ -526,7 +543,12 @@ static void LuaPauseCommand(std::optional<std::string> script = std::nullopt)
 		{
 			// have at least one running script, so pause all running scripts
 			for (auto& thread : s_running)
-				thread->state->Pause(*thread, s_turboNum);
+			{
+				auto status = thread->state->Pause(*thread, s_turboNum);
+				auto info = s_infoMap.find(thread->pid);
+				if (info != s_infoMap.end())
+					info->second.status = status;
+			}
 
 			WriteChatStatus("Pausing ALL running lua scripts");
 		}
@@ -534,7 +556,12 @@ static void LuaPauseCommand(std::optional<std::string> script = std::nullopt)
 		{
 			// we have no running scripts, so restart all paused scripts
 			for (auto& thread : s_running)
-				thread->state->Pause(*thread, s_turboNum);
+			{
+				auto status = thread->state->Pause(*thread, s_turboNum);
+				auto info = s_infoMap.find(thread->pid);
+				if (info != s_infoMap.end())
+					info->second.status = status;
+			}
 
 			WriteChatStatus("Resuming ALL paused lua scripts");
 		}
@@ -657,7 +684,35 @@ static void LuaConfCommand(const std::string& setting, const std::string& value)
 	}
 }
 
-static void LuaPSCommand(const std::optional<std::string>& script = std::nullopt)
+static void LuaPSCommand(const std::vector<std::string>& filters = {})
+{
+	auto predicate = [&filters](const std::pair<uint32_t, LuaThreadInfo>& pair)
+	{
+		if (filters.empty())
+			return pair.second.status == "RUNNING" || pair.second.status == "PAUSED";
+
+		return std::find(filters.begin(), filters.end(), pair.second.status) != filters.end();
+	};
+	
+	WriteChatStatus("|  PID  |    NAME    |    START    |     END     |   STATUS   |");
+
+	for (const auto& info : s_infoMap)
+	{
+		if (predicate(info))
+		{
+			fmt::memory_buffer line;
+			fmt::format_to(line, "|{:^7}|{:^12}|{:^13}|{:^13}|{:^12}|",
+				info.first,
+				info.second.name.length() > 12 ? info.second.name.substr(0, 9) + "..." : info.second.name,
+				info.second.startTime,
+				info.second.endTime,
+				info.second.status);
+			WriteChatStatus("%.*s", line.size(), line.data());
+		}
+	}
+}
+
+static void LuaInfoCommand(const std::optional<std::string>& script = std::nullopt)
 {
 	if (script)
 	{
@@ -683,14 +738,15 @@ static void LuaPSCommand(const std::optional<std::string>& script = std::nullopt
 			fmt::memory_buffer line;
 			fmt::format_to(
 				line,
-				"pid: {}\nname: {}\npath: {}\narguments: {}\nstartTime: {}\nendTime: {}\nreturnValues: {}",
+				"pid: {}\nname: {}\npath: {}\narguments: {}\nstartTime: {}\nendTime: {}\nreturnValues: {}\nstatus: {}",
 				thread_it->second.pid,
 				thread_it->second.name,
 				thread_it->second.path,
 				join(thread_it->second.arguments, ", "),
 				thread_it->second.startTime,
 				thread_it->second.endTime,
-				join(thread_it->second.returnValues, ", "));
+				join(thread_it->second.returnValues, ", "),
+				thread_it->second.status);
 
 			WriteChatStatus("%.*s", line.size(), line.data());
 		}
@@ -701,16 +757,17 @@ static void LuaPSCommand(const std::optional<std::string>& script = std::nullopt
 	}
 	else
 	{
-		WriteChatStatus("|  PID  |    NAME    |    START    |     END     |");
+		WriteChatStatus("|  PID  |    NAME    |    START    |     END     |   STATUS   |");
 
 		for (const auto& info : s_infoMap)
 		{
 			fmt::memory_buffer line;
-			fmt::format_to(line, "|{:^7}|{:^12}|{:^13}|{:^13}|",
+			fmt::format_to(line, "|{:^7}|{:^12}|{:^13}|{:^13}|{:^12}|",
 				info.first,
 				info.second.name.length() > 12 ? info.second.name.substr(0, 9) + "..." : info.second.name,
 				info.second.startTime,
-				info.second.endTime);
+				info.second.endTime,
+				info.second.status);
 			WriteChatStatus("%.*s", line.size(), line.data());
 		}
 	}
@@ -799,12 +856,23 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 		[](args::Subparser& parser)
 		{
 			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::PositionalList<std::string> filters(arguments, "filters", "optional parameters to specify status filters. Defaults to RUNNING or PAUSED.");
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+
+			LuaPSCommand(filters.Get());
+		});
+
+	args::Command info(commands, "info", "info for a process",
+		[](args::Subparser& parser)
+		{
+			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
 			args::Positional<std::string> script(arguments, "process", "optional parameter to specify a PID or name of script to get info for, if not specified will return table of all scripts.");
 			MQ2HelpArgument h(arguments);
 			parser.Parse();
 
-			if (script) LuaPSCommand(script.Get());
-			else LuaPSCommand();
+			if (script) LuaInfoCommand(script.Get());
+			else LuaInfoCommand();
 		});
 
 	MQ2HelpArgument h(commands);

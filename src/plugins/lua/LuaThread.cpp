@@ -79,19 +79,21 @@ void RunningState::SetDelay(const LuaThread& thread, uint64_t time, std::optiona
 	}
 }
 
-void RunningState::Pause(LuaThread& thread, uint32_t)
+std::string_view RunningState::Pause(LuaThread& thread, uint32_t)
 {
 	// this will force the coroutine to yield, and removing this thread from the vector will cause it to gc
 	thread.YieldAt(0);
 	WriteChatStatus("Pausing running lua script '%s' with PID %d", thread.name.c_str(), thread.pid);
 	thread.state = std::make_unique<PausedState>();
+	return "PAUSED";
 }
 
-void PausedState::Pause(LuaThread& thread, uint32_t turbo)
+std::string_view PausedState::Pause(LuaThread& thread, uint32_t turbo)
 {
 	thread.YieldAt(turbo);
 	WriteChatStatus("Resuming paused lua script '%s' with PID %d", thread.name.c_str(), thread.pid);
 	thread.state = std::make_unique<RunningState>();
+	return "RUNNING";
 }
 
 LuaThread::LuaThread(std::string_view name, std::string_view luaDir,
@@ -173,7 +175,8 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(std::string_view luaDir, uint3
 		args,
 		start_time,
 		0ULL,
-		{}
+		{},
+		"STARTING"
 	};
 
 	if (result)
@@ -208,7 +211,8 @@ std::optional<LuaThreadInfo> LuaThread::StartString(uint32_t turbo, std::string_
 		{},
 		start_time,
 		0ULL,
-		{}
+		{},
+		"STARTING"
 	};
 
 	if (result)
@@ -441,6 +445,7 @@ void LuaThreadInfo::SetResult(const sol::protected_function_result& result)
 
 void LuaThreadInfo::EndRun()
 {
+	status = "EXITED";
 	endTime = MQGetTickCount64();
 }
 

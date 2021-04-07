@@ -35,6 +35,7 @@ struct LuaThreadInfo
 	uint64_t startTime;
 	uint64_t endTime;
 	std::vector<std::string> returnValues;
+	std::string_view status;
 
 	void SetResult(const sol::protected_function_result& result);
 	void EndRun();
@@ -100,7 +101,7 @@ struct ThreadState
 	virtual bool ShouldRun(const LuaThread& thread, uint32_t turbo) = 0;
 	virtual bool IsPaused() = 0;
 	virtual void SetDelay(const LuaThread& thread, uint64_t time, std::optional<sol::function> condition = std::nullopt) = 0;
-	virtual void Pause(LuaThread& thread, uint32_t turbo) = 0;
+	virtual std::string_view Pause(LuaThread& thread, uint32_t turbo) = 0;
 
 	static bool CheckCondition(const LuaThread& thread, std::optional<sol::function>& func);
 };
@@ -110,7 +111,7 @@ struct RunningState : public ThreadState
 	bool ShouldRun(const LuaThread& thread, uint32_t turbo) override;
 	bool IsPaused() override { return false; }
 	void SetDelay(const LuaThread& thread, uint64_t time, std::optional<sol::function> condition = std::nullopt) override;
-	void Pause(LuaThread&, uint32_t) override;
+	std::string_view Pause(LuaThread&, uint32_t) override;
 
 private:
 	uint64_t m_delayTime = 0L;
@@ -122,7 +123,7 @@ struct PausedState : public ThreadState
 	bool ShouldRun(const LuaThread&, uint32_t) override { return false; }
 	bool IsPaused() override { return true; }
 	void SetDelay(const LuaThread& thread, uint64_t time, std::optional<sol::function> condition = std::nullopt) override {}
-	void Pause(LuaThread& thread, uint32_t turbo) override;
+	std::string_view Pause(LuaThread& thread, uint32_t turbo) override;
 };
 
 } // namespace mq::lua
