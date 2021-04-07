@@ -1,3 +1,6 @@
+April 7, 2021
+- Changed the Lua event callback signature to take the entire matched line as the first argument
+
 April 6, 2021
 - Fixed LineOfSight (#260)
 - Various fixes to the assignment of macro data to spawn variable types.

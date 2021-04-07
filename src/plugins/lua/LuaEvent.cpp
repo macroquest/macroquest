@@ -37,6 +37,10 @@ void CALLBACK LuaEventCallback(unsigned int ID, void* pData, PBLECHVALUE pValues
 	auto event_thread = sol::thread::create(thread->thread.state());
 
 	std::vector<std::pair<uint32_t, std::string>> args;
+
+	std::optional<std::string> line = thread->thread.state()["_mq_event_line"];
+	args.emplace_back(0, line.value_or(""));
+
 	auto value = pValues;
 	while (value != nullptr)
 	{
@@ -54,9 +58,9 @@ void CALLBACK LuaEventCallback(unsigned int ID, void* pData, PBLECHVALUE pValues
 	{
 		std::sort(args.begin(), args.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
 
-		std::vector<std::string> ordered_args(args.back().first, "");
+		std::vector<std::string> ordered_args(args.back().first + 1, "");
 		for (const auto& a : args)
-			ordered_args[a.first - 1] = a.second;
+			ordered_args[a.first] = a.second;
 
 		def->processor->eventsPending.emplace_back(def, std::move(ordered_args), std::move(event_thread));
 	}
@@ -119,6 +123,9 @@ void LuaEventProcessor::RemoveBind(std::string_view name)
 
 void LuaEventProcessor::Process(std::string_view line) const
 {
+	if (!thread->thread.valid())
+		return;
+
 	char line_char[MAX_STRING] = { 0 };
 
 	if (line.find_first_of('\x12') != std::string::npos)
@@ -130,11 +137,16 @@ void LuaEventProcessor::Process(std::string_view line) const
 	else
 	{
 		strncpy_s(line_char, line.data(), line.size());
-		// since we initialized to 0, we know that any remaining members will be 0, so just in case we Get an overflow, re-set the last character to 0
-		line_char[MAX_STRING - 1] = 0;
 	}
 
+	// since we initialized to 0, we know that any remaining members will be 0, so just in case we Get an overflow, re-set the last character to 0
+	line_char[MAX_STRING - 1] = 0;
+
+	auto& state = thread->thread.state();
+
+	state["_mq_event_line"] = line_char;
 	blech->Feed(line_char);
+	state["_mq_event_line"] = sol::lua_nil;
 }
 
 static void loop_and_run(const LuaThread& thread,
