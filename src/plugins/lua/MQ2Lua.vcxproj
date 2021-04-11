@@ -89,7 +89,6 @@
     <ClCompile Include="bindings\lua_MQTypeVar.cpp" />
     <ClCompile Include="LuaEvent.cpp" />
     <ClCompile Include="LuaImGui.cpp" />
-    <ClCompile Include="LuaMenu.cpp" />
     <ClCompile Include="LuaThread.cpp" />
     <ClCompile Include="MQ2Lua.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
