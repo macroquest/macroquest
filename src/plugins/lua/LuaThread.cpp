@@ -79,21 +79,21 @@ void RunningState::SetDelay(const LuaThread& thread, uint64_t time, std::optiona
 	}
 }
 
-std::string_view RunningState::Pause(LuaThread& thread, uint32_t)
+LuaThreadStatus RunningState::Pause(LuaThread& thread, uint32_t)
 {
 	// this will force the coroutine to yield, and removing this thread from the vector will cause it to gc
 	thread.YieldAt(0);
 	WriteChatStatus("Pausing running lua script '%s' with PID %d", thread.name.c_str(), thread.pid);
 	thread.state = std::make_unique<PausedState>();
-	return "PAUSED";
+	return LuaThreadStatus::Paused;
 }
 
-std::string_view PausedState::Pause(LuaThread& thread, uint32_t turbo)
+LuaThreadStatus PausedState::Pause(LuaThread& thread, uint32_t turbo)
 {
 	thread.YieldAt(turbo);
 	WriteChatStatus("Resuming paused lua script '%s' with PID %d", thread.name.c_str(), thread.pid);
 	thread.state = std::make_unique<RunningState>();
-	return "RUNNING";
+	return LuaThreadStatus::Running;
 }
 
 LuaThread::LuaThread(std::string_view name, std::string_view luaDir,
@@ -165,7 +165,7 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(std::string_view luaDir, uint3
 	coroutine = co;
 	YieldAt(turbo);
 
-	auto start_time = MQGetTickCount64();
+	auto start_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	auto result = RunCoroutine(coroutine, args);
 
 	auto ret = LuaThreadInfo{
@@ -176,7 +176,7 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(std::string_view luaDir, uint3
 		start_time,
 		0ULL,
 		{},
-		"STARTING"
+		LuaThreadStatus::Starting
 	};
 
 	if (result)
@@ -201,18 +201,18 @@ std::optional<LuaThreadInfo> LuaThread::StartString(uint32_t turbo, std::string_
 	coroutine = co;
 	YieldAt(turbo);
 
-	auto start_time = MQGetTickCount64();
+	auto start_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	auto result = RunCoroutine(coroutine);
 
 	auto ret = LuaThreadInfo{
 		pid,
 		name,
-		"string",
+		std::string(script),
 		{},
 		start_time,
 		0ULL,
 		{},
-		"STARTING"
+		LuaThreadStatus::Starting
 	};
 
 	if (result)
@@ -445,8 +445,8 @@ void LuaThreadInfo::SetResult(const sol::protected_function_result& result)
 
 void LuaThreadInfo::EndRun()
 {
-	status = "EXITED";
-	endTime = MQGetTickCount64();
+	status = LuaThreadStatus::Exited;
+	endTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 }
 
 } // namespace mq::lua

@@ -31,6 +31,9 @@
     <Filter Include="Source Files\implot">
       <UniqueIdentifier>{c1258b57-8581-49f2-a54e-58af8b5e511c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\dirent">
+      <UniqueIdentifier>{2a385d9a-ec88-499a-ae7c-05883d9b126e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -78,6 +81,15 @@
     <ClInclude Include="implot\implot.h">
       <Filter>Header Files\implot</Filter>
     </ClInclude>
+    <ClInclude Include="ImGuiFileDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGuiFileDialogConfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dirent\dirent.h">
+      <Filter>Header Files\dirent</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -121,6 +133,9 @@
     </ClCompile>
     <ClCompile Include="implot\implot.cpp">
       <Filter>Source Files\implot</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGuiFileDialog.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

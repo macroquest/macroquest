@@ -22,8 +22,13 @@
 #include "bindings/lua_MQCommand.h"
 
 #include <mq/Plugin.h>
+#pragma comment(lib, "imgui")
+
 #include <mq/utils/Args.h>
 #include <fmt/format.h>
+#include <fmt/chrono.h>
+
+#include <imgui/ImGuiFileDialog.h>
 
 #pragma warning( push )
 #pragma warning( disable:4996 )
@@ -65,6 +70,9 @@ static bool s_squelchStatus = false;
 // this is static and will never change
 static std::string s_configPath = (std::filesystem::path(gPathConfig) / "MQ2Lua.yaml").string();
 static YAML::Node s_configNode;
+
+// this is for the imgui menu display
+static bool s_showMenu = false;
 
 // use a vector for s_running because we need to iterate it every pulse, and find only if a command is issued
 std::vector<std::shared_ptr<LuaThread>> s_running;
@@ -189,8 +197,9 @@ public:
 			return true;
 
 		case Members::StartTime:
-			Dest.Type = pInt64Type;
-			Dest.Set(info->startTime);
+			Dest.Type = pStringType;
+			ctime_s(DataTypeTemp, MAX_STRING, &info->startTime);
+			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 
 		case Members::EndTime:
@@ -226,7 +235,7 @@ public:
 
 		case Members::Status:
 			Dest.Type = pStringType;
-			strcpy_s(DataTypeTemp, MAX_STRING, std::string(info->status).c_str());
+			strcpy_s(DataTypeTemp, MAX_STRING, std::string(info->status_string()).c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 
@@ -386,21 +395,39 @@ public:
 
 #pragma region Commands
 
-static void LuaRunCommand(const std::string& script, const std::vector<std::string>& args)
+static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::string>& args)
 {
+	namespace fs = std::filesystem;
+
+	// Need to do this first to get the script path and compare paths instead of just the names
+	// since there are multiple valid ways to name the same script
+	auto script_path = fs::path{ s_luaDir } / script;
+	if (!script_path.has_extension()) script_path.replace_extension(".lua");
+
+	std::error_code ec;
+	if (!std::filesystem::exists(script_path, ec))
+	{
+		LuaError("Could not find script at path %s", script_path.c_str());
+		return 0;
+	}
+
 	// methodology for duplicate scripts: 
 	//   if a script with the same name is _currently_ running, inform and exit
 	//   if a script with the same name _has previously_ run, drop from infoMap and run
 	//   otherwise, run script as normal
 	auto info_it = std::find_if(s_infoMap.begin(), s_infoMap.end(),
-		[&script](const std::pair<uint32_t, mq::lua::LuaThreadInfo>& kv)
-		{ return kv.second.name == script; });
+		[&script_path](const std::pair<uint32_t, mq::lua::LuaThreadInfo>& kv)
+		{
+			auto info_path = fs::path(kv.second.path);
+			std::error_code ec;
+			return fs::exists(info_path, ec) && fs::equivalent(info_path, script_path, ec);
+		});
 
-	if (info_it != s_infoMap.end() && info_it->second.endTime == 0ULL)
+	if (info_it != s_infoMap.end() && info_it->second.status != LuaThreadStatus::Exited)
 	{
 		// script is currently running, inform and exit
 		WriteChatStatus("Lua script %s is already running, not starting another instance.", script.c_str());
-		return;
+		return 0;
 	}
 
 	if (info_it != s_infoMap.end())
@@ -417,12 +444,15 @@ static void LuaRunCommand(const std::string& script, const std::vector<std::stri
 	auto result = entry->StartFile(s_luaDir, s_turboNum, args);
 	if (result)
 	{
-		result->status = "RUNNING";
+		result->status = LuaThreadStatus::Running;
 		s_infoMap.emplace(result->pid, *result);
+		return result->pid;
 	}
+
+	return 0;
 }
 
-static void LuaParseCommand(const std::string& script)
+static uint32_t LuaParseCommand(const std::string& script)
 {
 	auto info_it = std::find_if(s_infoMap.begin(), s_infoMap.end(),
 		[](const std::pair<uint32_t, mq::lua::LuaThreadInfo>& kv)
@@ -432,7 +462,7 @@ static void LuaParseCommand(const std::string& script)
 	{
 		// parsed script is currently running, inform and exit
 		WriteChatStatus("Parsed Lua script is already running, not starting another instance.");
-		return;
+		return 0;
 	}
 
 	if (info_it != s_infoMap.end())
@@ -450,9 +480,12 @@ static void LuaParseCommand(const std::string& script)
 	auto result = entry->StartString(s_turboNum, script);
 	if (result)
 	{
-		result->status = "RUNNING";
+		result->status = LuaThreadStatus::Running;
 		s_infoMap.emplace(result->pid, *result);
+		return result->pid;
 	}
+
+	return 0;
 }
 
 static void LuaStopCommand(std::optional<std::string> script = std::nullopt)
@@ -689,9 +722,11 @@ static void LuaPSCommand(const std::vector<std::string>& filters = {})
 	auto predicate = [&filters](const std::pair<uint32_t, LuaThreadInfo>& pair)
 	{
 		if (filters.empty())
-			return pair.second.status == "RUNNING" || pair.second.status == "PAUSED";
+			return pair.second.status == LuaThreadStatus::Running || pair.second.status == LuaThreadStatus::Paused;
 
-		return std::find(filters.begin(), filters.end(), pair.second.status) != filters.end();
+		auto status = pair.second.status_string();
+
+		return std::find(filters.begin(), filters.end(), status) != filters.end();
 	};
 	
 	WriteChatStatus("|  PID  |    NAME    |    START    |     END     |   STATUS   |");
@@ -771,6 +806,11 @@ static void LuaInfoCommand(const std::optional<std::string>& script = std::nullo
 			WriteChatStatus("%.*s", line.size(), line.data());
 		}
 	}
+}
+
+static void LuaGuiCommand()
+{
+	s_showMenu = !s_showMenu;
 }
 
 void LuaCommand(SPAWNINFO* pChar, char* Buffer)
@@ -875,6 +915,13 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 			else LuaInfoCommand();
 		});
 
+	args::Command gui(commands, "gui", "toggle the lua GUI",
+		[](args::Subparser& parser)
+		{
+			parser.Parse();
+			LuaGuiCommand();
+		});
+
 	MQ2HelpArgument h(commands);
 
 	auto args = allocate_args(Buffer);
@@ -920,6 +967,8 @@ PLUGIN_API void InitializePlugin()
 	pLuaInfoType = new MQ2LuaInfoType;
 	pLuaType = new MQ2LuaType;
 	AddMQ2Data("Lua", &MQ2LuaType::dataLua);
+
+	AddCascadeMenuItem("MQ2Lua", []() { s_showMenu = true; }, -1);
 }
 
 /**
@@ -939,6 +988,8 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveMQ2Data("Lua");
 	delete pLuaType;
 	delete pLuaInfoType;
+
+	RemoveCascadeMenuItem("MQ2Lua");
 }
 
 /**
@@ -978,8 +1029,9 @@ PLUGIN_API void OnPulse()
 			return false;
 		}), s_running.end());
 
-	static uint64_t last_check_time = MQGetTickCount64();
-	if (MQGetTickCount64() >= last_check_time + s_infoGC)
+	auto now_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	static auto last_check_time = now_time;
+	if (now_time >= last_check_time + static_cast<time_t>(s_infoGC))
 	{
 		// this doesn't need to be super tight, no one should be depending on this clearing objects at exactly the GC
 		// interval, so just clear out anything that existed last time we checked.
@@ -991,7 +1043,7 @@ PLUGIN_API void OnPulse()
 				++it;
 		}
 
-		last_check_time = MQGetTickCount64();
+		last_check_time = now_time;
 	}
 }
 
@@ -1008,9 +1060,247 @@ PLUGIN_API void OnUpdateImGui()
 {
 	using namespace mq::lua;
 
+	// update any script-defined windows first
 	for (const auto& thread : s_running)
 	{
 		thread->imguiProcessor->Pulse();
+	}
+
+	// now update the lua menu window
+	ImGui::SetNextWindowSize(ImVec2(500, 440), ImGuiCond_FirstUseEver);
+	if (s_showMenu && ImGui::Begin("MQ2Lua", &s_showMenu, ImGuiWindowFlags_None))
+	{
+		static bool show_running = true;
+		static bool show_paused = true;
+		static bool show_exited = false;
+
+		auto should_show = [](const LuaThreadInfo& info)
+		{
+			if (info.status == LuaThreadStatus::Exited)
+				return show_exited;
+
+			if (info.status == LuaThreadStatus::Paused)
+				return show_paused;
+
+			return show_running;
+		};
+
+		ImGui::BeginGroup();
+		static uint32_t selected_pid = 0;
+		{
+			ImGui::BeginChild("process list", ImVec2(150, -ImGui::GetFrameHeightWithSpacing() - 4), true);
+			std::vector<uint32_t> running;
+			std::vector<uint32_t> paused;
+			std::vector<uint32_t> exited;
+			for (const auto& info : s_infoMap)
+			{
+				if (info.second.status == LuaThreadStatus::Exited)
+					exited.emplace_back(info.first);
+				else if (info.second.status == LuaThreadStatus::Paused)
+					paused.emplace_back(info.first);
+				else
+					running.emplace_back(info.first);
+			}
+
+			if (ImGui::CollapsingHeader("RUNNING"))
+			{
+				show_running = true;
+				for (auto pid : running)
+				{
+					const auto& info = s_infoMap[pid];
+					if (ImGui::Selectable(info.name.c_str(), selected_pid == info.pid))
+						selected_pid = info.pid;
+				}
+			}
+			else
+			{
+				show_running = false;
+			}
+
+			if (ImGui::CollapsingHeader("PAUSED"))
+			{
+				show_paused = true;
+				for (auto pid : paused)
+				{
+					const auto& info = s_infoMap[pid];
+					if (ImGui::Selectable(info.name.c_str(), selected_pid == info.pid))
+						selected_pid = info.pid;
+				}
+			}
+			else
+			{
+				show_paused = false;
+			}
+
+			if (ImGui::CollapsingHeader("EXITED"))
+			{
+				show_exited = true;
+				for (auto pid : exited)
+				{
+					const auto& info = s_infoMap[pid];
+					if (ImGui::Selectable(info.name.c_str(), selected_pid == info.pid))
+						selected_pid = info.pid;
+				}
+			}
+			else
+			{
+				show_exited = false;
+			}
+
+			ImGui::EndChild();
+		}
+		ImGui::EndGroup();
+
+		ImGui::SameLine();
+
+		ImGui::BeginGroup();
+		const auto& info = s_infoMap.find(selected_pid);
+		if (info != s_infoMap.end() && should_show(info->second))
+		{
+			ImGui::BeginChild("process view", ImVec2(0, -2 * ImGui::GetFrameHeightWithSpacing() - 4)); // Leave room for 1 line below us
+			if (ImGui::CollapsingHeader(" PID", ImGuiTreeNodeFlags_Leaf))
+			{
+				ImGui::Text(" %u", info->second.pid);
+			}
+
+			if (ImGui::CollapsingHeader(" Name", ImGuiTreeNodeFlags_Leaf))
+			{
+				ImGui::Text(" %s", info->second.name.c_str());
+			}
+
+			if (!info->second.arguments.empty() && ImGui::CollapsingHeader(" Arguments", ImGuiTreeNodeFlags_Leaf))
+			{
+				ImGui::Text(" %s", join(info->second.arguments, ", ").c_str());
+			}
+
+			if (ImGui::CollapsingHeader(" Status", ImGuiTreeNodeFlags_Leaf))
+			{
+				auto status = info->second.status_string();
+				ImGui::Text(" %.*s", status.size(), status.data());
+			}
+
+			if (ImGui::CollapsingHeader(" Path", ImGuiTreeNodeFlags_Leaf))
+			{
+				ImGui::TextWrapped("%s", info->second.path.c_str());
+			}
+
+			if (ImGui::CollapsingHeader(" Start Time", ImGuiTreeNodeFlags_Leaf))
+			{
+				tm ts;
+				localtime_s(&ts, &info->second.startTime);
+				ImGui::Text(" %s", fmt::format("{:%a, %b %d @ %I:%M:%S %p}", ts).c_str());
+			}
+
+			if (info->second.endTime > 0 && ImGui::CollapsingHeader(" End Time", ImGuiTreeNodeFlags_Leaf))
+			{
+				tm ts;
+				localtime_s(&ts, &info->second.endTime);
+				ImGui::Text(" %s", fmt::format("{:%a, %b %d @ %I:%M:%S %p}", ts).c_str());
+			}
+
+
+			if (!info->second.returnValues.empty() && ImGui::CollapsingHeader(" Return Values", ImGuiTreeNodeFlags_Leaf))
+			{
+				ImGui::Text(" %s", join(info->second.returnValues, ", ").c_str());
+			}
+
+			ImGui::EndChild();
+
+			if (info->second.status != LuaThreadStatus::Exited)
+			{
+				if (ImGui::Button("Stop"))
+				{
+					LuaStopCommand(fmt::format("{}", info->second.pid));
+				}
+
+				ImGui::SameLine();
+
+				if (ImGui::Button(info->second.status == LuaThreadStatus::Paused ? "Resume" : "Pause"))
+				{
+					LuaPauseCommand(fmt::format("{}", info->second.pid));
+				}
+			}
+			else
+			{
+				if (ImGui::Button("Restart"))
+				{
+					if (info->second.name == "lua parse")
+					{
+						std::string script(info->second.path);
+						selected_pid = LuaParseCommand(script);
+					}
+					else
+					{
+						// need to copy these because the run command will junk the info
+						std::string script(info->second.name);
+						std::vector<std::string> args(info->second.arguments);
+						selected_pid = LuaRunCommand(script, args);
+					}
+				}
+			}
+
+		}
+		else
+		{
+			selected_pid = 0;
+		}
+		ImGui::EndGroup();
+
+		ImGui::Spacing();
+
+		static char args[MAX_STRING] = { 0 };
+		auto args_entry = [](const char* vFilter, IGFDUserDatas vUserDatas, bool* vCantContinue) -> void
+		{
+			ImGui::InputText("args", (char*)vUserDatas, MAX_STRING);
+		};
+
+		if (ImGui::Button("Launch Script...", ImVec2(-1, 0)))
+		{
+			ImGuiFileDialog::Instance()->OpenDialog(
+				"ChooseScriptKey",
+				"Select Lua Script to Run",
+				".lua",
+				s_luaDir + "/",
+				args_entry,
+				350,
+				1,
+				static_cast<IGFDUserDatas>(args));
+		}
+
+		if (ImGuiFileDialog::Instance()->Display("ChooseScriptKey"))
+		{
+			if (ImGuiFileDialog::Instance()->IsOk())
+			{
+				// make these both canonical to ensure we get a correct comparison
+				auto selected_file = ImGuiFileDialog::Instance()->GetFilePathName();
+				auto lua_path = std::filesystem::canonical(std::filesystem::path(s_luaDir)).string();
+				auto script_path = std::filesystem::canonical(
+					std::filesystem::path(selected_file)
+				).replace_extension("").string();
+
+				auto [rootEnd, scriptEnd] = std::mismatch(lua_path.begin(), lua_path.end(), script_path.begin());
+
+				auto clean_name = [](std::string_view s)
+				{
+					s.remove_prefix(std::min(s.find_first_not_of("\\"), s.size()));
+					return std::string(s);
+				};
+
+				auto script_name = rootEnd != lua_path.end()
+					? script_path
+					: clean_name(std::string(scriptEnd, script_path.end()));
+
+				std::string args;
+				if (ImGuiFileDialog::Instance()->GetUserDatas())
+					args = std::string((const char*)ImGuiFileDialog::Instance()->GetUserDatas());
+
+				LuaRunCommand(script_name, allocate_args(args));
+			}
+
+			ImGuiFileDialog::Instance()->Close();
+		}
+
+		ImGui::End();
 	}
 }
 

@@ -1,3 +1,7 @@
+April 11, 2021
+- Added file dialog to imgui infrastructure
+- Added Lua gui that can launch scripts and observe script status
+
 April 7, 2021
 - Changed the Lua event callback signature to take the entire matched line as the first argument
 

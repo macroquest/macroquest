@@ -89,6 +89,7 @@
     <ClCompile Include="bindings\lua_MQTypeVar.cpp" />
     <ClCompile Include="LuaEvent.cpp" />
     <ClCompile Include="LuaImGui.cpp" />
+    <ClCompile Include="LuaMenu.cpp" />
     <ClCompile Include="LuaThread.cpp" />
     <ClCompile Include="MQ2Lua.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -102,6 +103,9 @@
   <ItemGroup>
     <ProjectReference Include="$(MQ2Root)src\main\MQ2Main.vcxproj">
       <Project>{2a0a06a4-e9c6-4229-82ee-bd2d4e0a7221}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\imgui\imgui.vcxproj">
+      <Project>{1777e251-0f50-496a-b8c5-ec7f41a0b186}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
