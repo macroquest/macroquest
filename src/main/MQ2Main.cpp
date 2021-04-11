@@ -67,7 +67,7 @@ MQModule* GetGroundSpawnsModule();
 MQModule* GetSpawnsModule();
 MQModule* GetItemsModule();
 MQModule* GetWindowsModule();
-MQModule* GetServerValidationModule();
+MQModule* GetDetoursModule();
 
 DWORD WINAPI MQ2Start(void* lpParameter);
 HANDLE hMQ2StartThread = nullptr;
@@ -752,7 +752,7 @@ bool MQ2Initialize()
 	szEQMappableCommands[nEQMappableCommands -  2] = "UNKNOWN0x220";
 	szEQMappableCommands[nEQMappableCommands -  1] = "UNKNOWN0x221";
 
-	InitializeMQ2Detours();
+	AddInternalModule(GetDetoursModule(), true);
 
 	InitializeMQ2Benchmarks();
 	InitializeParser();
@@ -769,7 +769,6 @@ bool MQ2Initialize()
 	AddInternalModule(GetGroundSpawnsModule());
 	AddInternalModule(GetSpawnsModule());
 	AddInternalModule(GetItemsModule());
-	AddInternalModule(GetServerValidationModule());
 
 	// We will wait for pulse from the game to init on main thread.
 	g_hLoadComplete.wait();
@@ -781,26 +780,26 @@ void MQ2Shutdown()
 {
 	OutputDebugString("MQ2Shutdown Called");
 
-	DebugTry(ShutdownCachedBuffs());
-	DebugTry(ShutdownInternalModules());
-	DebugTry(ShutdownMQ2KeyBinds());
-	DebugTry(ShutdownDisplayHook());
-	DebugTry(ShutdownMQ2DInput());
-	DebugTry(ShutdownChatHook());
-	DebugTry(ShutdownMQ2Pulse());
-	DebugTry(ShutdownLoginFrontend());
-	DebugTry(ShutdownMQ2AutoInventory());
-	DebugTry(MQ2MouseHooks(false));
-	DebugTry(ShutdownMQ2CrashHandler());
-	DebugTry(ShutdownParser());
-	DebugTry(ShutdownMQ2Commands());
-	DebugTry(ShutdownAnonymizer());
-	DebugTry(ShutdownMQ2Plugins());
-	DebugTry(ShutdownMQ2Overlay());
-	DebugTry(ShutdownStringDB());
-	DebugTry(ShutdownMQ2Detours());
-	DebugTry(ShutdownMQ2Benchmarks());
-	DebugTry(ShutdownMQ2PipeClient());
+	ShutdownCachedBuffs();
+	ShutdownInternalModules();
+	ShutdownMQ2KeyBinds();
+	ShutdownDisplayHook();
+	ShutdownMQ2DInput();
+	ShutdownChatHook();
+	ShutdownMQ2Pulse();
+	ShutdownLoginFrontend();
+	ShutdownMQ2AutoInventory();
+	MQ2MouseHooks(false);
+	ShutdownMQ2CrashHandler();
+	ShutdownParser();
+	ShutdownMQ2Commands();
+	ShutdownAnonymizer();
+	ShutdownMQ2Plugins();
+	ShutdownMQ2Overlay();
+	ShutdownStringDB();
+	RemoveInternalModule(GetDetoursModule());
+	ShutdownMQ2Benchmarks();
+	ShutdownMQ2PipeClient();
 }
 
 HMODULE GetCurrentModule()

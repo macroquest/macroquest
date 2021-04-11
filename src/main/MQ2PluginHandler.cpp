@@ -64,7 +64,7 @@ void AddStaticInitializationModule(ModuleInitializer* module)
 	s_moduleInitializerList = module;
 }
 
-void AddInternalModule(MQModule* module)
+void AddInternalModule(MQModule* module, bool manualUnload /*=false*/)
 {
 	SPDLOG_DEBUG("Initializing module: {0}", module->name);
 
@@ -76,6 +76,7 @@ void AddInternalModule(MQModule* module)
 		module->SetGameState(GetGameState());
 
 	module->loaded = true;
+	module->manualUnload = manualUnload;
 }
 
 void RemoveInternalModule(MQModule* module)
@@ -96,9 +97,15 @@ void RemoveInternalModule(MQModule* module)
 
 void ShutdownInternalModules()
 {
-	while (!gInternalModules.empty())
+	auto modulesCopy = gInternalModules;
+
+	for (auto iter = modulesCopy.rbegin(); iter != modulesCopy.rend(); ++iter)
 	{
-		RemoveInternalModule(gInternalModules.back());
+		auto mod = *iter;
+		if (!mod->manualUnload)
+		{
+			RemoveInternalModule(mod);
+		}
 	}
 }
 

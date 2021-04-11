@@ -160,9 +160,6 @@ MQLIB_API void ShutdownChatHook();
 MQLIB_API void dsp_chat_no_events(const char* Text, int Color, bool EqLog = true, bool dopercentsubst = true);
 
 /* DETOURING API */
-MQLIB_API void InitializeMQ2Detours();
-MQLIB_API void ShutdownMQ2Detours();
-
 MQLIB_API bool AddDetour(DWORD address, BYTE* pfDetour = nullptr, BYTE* pfTrampoline = nullptr, DWORD Count = 20, const char* Name = nullptr);
 MQLIB_API void AddDetourf(DWORD address, ...);
 MQLIB_API void RemoveDetour(DWORD address);

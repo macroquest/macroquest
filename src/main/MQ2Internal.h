@@ -425,10 +425,11 @@ struct MQModule
 	fMQEndZone           EndZone = 0;
 
 	bool                 loaded = false;
+	bool                 manualUnload = false;
 };
 
 void InitializeInternalModules();
-void AddInternalModule(MQModule* module);
+void AddInternalModule(MQModule* module, bool manualUnload = false);
 void RemoveInternalModule(MQModule* module);
 
 struct ModuleInitializer;
