@@ -48,14 +48,15 @@ struct DetourRecord
 /*0xbc*/
 };
 
-MQLIB_VAR DetourRecord* g_detours = nullptr;
-std::recursive_mutex g_detourMutex;
+DetourRecord* gDetours = nullptr;
+std::recursive_mutex gDetourMutex;
 
-bool g_bDoingSpellChecks = false;
+bool gbDoingSpellChecks = false;
+int gbInMemCheck4 = 0;
 
 DetourRecord* FindDetour(DWORD address)
 {
-	DetourRecord* pDetour = g_detours;
+	DetourRecord* pDetour = gDetours;
 	while (pDetour)
 	{
 		if (pDetour->addr == address)
@@ -68,7 +69,7 @@ DetourRecord* FindDetour(DWORD address)
 
 bool AddDetour(DWORD address, BYTE* pfDetour, BYTE* pfTrampoline, DWORD Count, const char* Name)
 {
-	std::scoped_lock lock(g_detourMutex);
+	std::scoped_lock lock(gDetourMutex);
 
 	char szName[MAX_STRING] = { 0 };
 
@@ -94,9 +95,9 @@ bool AddDetour(DWORD address, BYTE* pfDetour, BYTE* pfTrampoline, DWORD Count, c
 	detour->addr = address;
 	detour->count = Count;
 	memcpy(detour->array, (char*)address, Count);
-	detour->pNext = g_detours;
-	if (g_detours)
-		g_detours->pLast = detour;
+	detour->pNext = gDetours;
+	if (gDetours)
+		gDetours->pLast = detour;
 	detour->pLast = nullptr;
 
 	if (pfTrampoline)
@@ -131,7 +132,7 @@ bool AddDetour(DWORD address, BYTE* pfDetour, BYTE* pfTrampoline, DWORD Count, c
 		DebugSpew("Detour of %s was successful.", szName);
 	}
 
-	g_detours = detour;
+	gDetours = detour;
 	return Ret;
 }
 
@@ -171,9 +172,9 @@ void AddDetourf(DWORD address, ...)
 
 void RemoveDetour(DWORD address)
 {
-	std::scoped_lock lock(g_detourMutex);
+	std::scoped_lock lock(gDetourMutex);
 
-	DetourRecord* detour = g_detours;
+	DetourRecord* detour = gDetours;
 	char szFilename[MAX_STRING] = { 0 };
 	HMODULE hModule = nullptr;
 	DWORD myaddress = 0;
@@ -209,7 +210,7 @@ void RemoveDetour(DWORD address)
 			if (detour->pLast)
 				detour->pLast->pNext = detour->pNext;
 			else
-				g_detours = detour->pNext;
+				gDetours = detour->pNext;
 
 			if (detour->pNext)
 				detour->pNext->pLast = detour->pLast;
@@ -228,9 +229,9 @@ void RemoveDetour(DWORD address)
 
 void DeleteDetour(DWORD address)
 {
-	std::scoped_lock lock(g_detourMutex);
+	std::scoped_lock lock(gDetourMutex);
 
-	DetourRecord* detour = g_detours;
+	DetourRecord* detour = gDetours;
 	while (detour)
 	{
 		if (detour->addr == address)
@@ -239,7 +240,7 @@ void DeleteDetour(DWORD address)
 			if (detour->pLast)
 				detour->pLast->pNext = detour->pNext;
 			else
-				g_detours = detour->pNext;
+				gDetours = detour->pNext;
 
 			if (detour->pNext)
 				detour->pNext->pLast = detour->pLast;
@@ -253,29 +254,29 @@ void DeleteDetour(DWORD address)
 
 void RemoveDetours()
 {
-	std::scoped_lock lock(g_detourMutex);
+	std::scoped_lock lock(gDetourMutex);
 	DebugSpew("RemoveOurDetours()");
 
-	if (!g_detours)
+	if (!gDetours)
 		return;
 
-	while (g_detours)
+	while (gDetours)
 	{
-		if (g_detours->pfDetour)
+		if (gDetours->pfDetour)
 		{
-			DebugSpew("RemoveOurDetours() -- Removing %s (%X)", g_detours->Name, g_detours->addr);
-			RemoveDetour(g_detours->addr);
+			DebugSpew("RemoveOurDetours() -- Removing %s (%X)", gDetours->Name, gDetours->addr);
+			RemoveDetour(gDetours->addr);
 		}
 
-		if (g_detours)
+		if (gDetours)
 		{
-			DetourRecord* pNext = g_detours->pNext;
-			delete g_detours;
-			g_detours = pNext;
+			DetourRecord* pNext = gDetours->pNext;
+			delete gDetours;
+			gDetours = pNext;
 		}
 	}
 
-	g_detours = nullptr;
+	gDetours = nullptr;
 }
 
 void SetAssist(BYTE* address)
@@ -373,9 +374,9 @@ public:
 	bool LoadTextSpells_Trampoline(char*, char*, EQ_Spell*, SpellAffectData*);
 	bool LoadTextSpells_Detour(char* FileName, char* AssocFileName, EQ_Spell* SpellArray, SpellAffectData* EffectArray)
 	{
-		g_bDoingSpellChecks = true;
+		gbDoingSpellChecks = true;
 		bool ret = LoadTextSpells_Trampoline(FileName, AssocFileName, SpellArray, EffectArray);
-		g_bDoingSpellChecks = false;
+		gbDoingSpellChecks = false;
 		return ret;
 	}
 };
@@ -436,6 +437,7 @@ int memcheck0(unsigned char* buffer, size_t count);
 int memcheck1(unsigned char* buffer, size_t count, mckey key);
 int memcheck2(unsigned char* buffer, size_t count, mckey key);
 int memcheck3(unsigned char* buffer, size_t count, mckey key);
+int memcheck4(int a1, int a2);
 
 // ***************************************************************************
 // Function:    HookMemChecker
@@ -446,6 +448,7 @@ DETOUR_TRAMPOLINE_EMPTY(int memcheck0_tramp(unsigned char* buffer, size_t count)
 DETOUR_TRAMPOLINE_EMPTY(int memcheck1_tramp(unsigned char* buffer, size_t count, int key));
 DETOUR_TRAMPOLINE_EMPTY(int memcheck2_tramp(unsigned char* buffer, size_t count, mckey key));
 DETOUR_TRAMPOLINE_EMPTY(int memcheck3_tramp(unsigned char* buffer, size_t count, mckey key));
+DETOUR_TRAMPOLINE_EMPTY(int memcheck4_tramp(int a1, int a2));
 
 void HookInlineChecks(bool Patch)
 {
@@ -539,10 +542,11 @@ void HookMemChecker(bool Patch)
 
 	if (Patch)
 	{
-		EzDetour(EQADDR_MEMCHECK0, memcheck0, memcheck0_tramp);
-		EzDetour(EQADDR_MEMCHECK1, memcheck1, memcheck1_tramp);
-		EzDetour(EQADDR_MEMCHECK2, memcheck2, memcheck2_tramp);
-		EzDetour(EQADDR_MEMCHECK3, memcheck3, memcheck3_tramp);
+		EzDetour(__MemChecker0, memcheck0, memcheck0_tramp);
+		EzDetour(__MemChecker1, memcheck1, memcheck1_tramp);
+		EzDetour(__MemChecker2, memcheck2, memcheck2_tramp);
+		EzDetour(__MemChecker3, memcheck3, memcheck3_tramp);
+		EzDetour(__MemChecker4, memcheck4, memcheck4_tramp);
 
 		EzDetour(CPacketScrambler__ntoh, &CPacketScrambler_Detours::ntoh_Detour, &CPacketScrambler_Detours::ntoh_Trampoline);
 		EzDetour(Spellmanager__LoadTextSpells, &SpellManager_Detours::LoadTextSpells_Detour, &SpellManager_Detours::LoadTextSpells_Trampoline);
@@ -555,10 +559,11 @@ void HookMemChecker(bool Patch)
 	{
 		HookInlineChecks(Patch);
 
-		RemoveDetour(EQADDR_MEMCHECK0);
-		RemoveDetour(EQADDR_MEMCHECK1);
-		RemoveDetour(EQADDR_MEMCHECK2);
-		RemoveDetour(EQADDR_MEMCHECK3);
+		RemoveDetour(__MemChecker0);
+		RemoveDetour(__MemChecker1);
+		RemoveDetour(__MemChecker2);
+		RemoveDetour(__MemChecker3);
+		RemoveDetour(__MemChecker4);
 
 		RemoveDetour(CPacketScrambler__ntoh);
 		RemoveDetour(Spellmanager__LoadTextSpells);
@@ -575,14 +580,15 @@ enum class AddressDetourState {
 
 AddressDetourState IsAddressDetoured(uint32_t address, size_t count)
 {
-	if (g_bDoingSpellChecks)
+	if (gbDoingSpellChecks || gbInMemCheck4 > 0)
 		return AddressDetourState::KnownSkippable;
 
-	// This is a bad check, but we're trying to scan an executable file.
-	if (address && *(DWORD*)address == 'MZ\x90\x00')
+	// Executables start with a header that has 'MZ\x90\x00'. This is checking for this
+	// magic value and skipping the crc32 of an executable since we don't care about those.
+	if (address && count >= 4 &&  *(DWORD*)address == 0x00905a4d)
 		return AddressDetourState::KnownSkippable;
 
-	DetourRecord* detour = g_detours;
+	DetourRecord* detour = gDetours;
 	while (detour)
 	{
 		if (detour->count && address <= detour->addr && detour->addr <= (address + count))
@@ -596,7 +602,7 @@ AddressDetourState IsAddressDetoured(uint32_t address, size_t count)
 
 inline uint8_t GetDetouredByte(uint32_t address, uint8_t original)
 {
-	DetourRecord* detour = g_detours;
+	DetourRecord* detour = gDetours;
 	while (detour)
 	{
 		if (detour->count && (address >= detour->addr) && (address < detour->addr + detour->count))
@@ -755,9 +761,16 @@ int memcheck3(unsigned char* buffer, size_t count, mckey key)
 	return eax;
 }
 
+int memcheck4(int a1, int a2)
+{
+	gbInMemCheck4 = 1;
+	int result = memcheck4_tramp(a1, a2);
+	gbInMemCheck4 = 0;
+	return result;
+}
+
 void TryInitializeLogin();
 
-// MQ2Ic loads things from MQ2Main, but they've been moved to eqlib. So we forward them.
 DETOUR_TRAMPOLINE_EMPTY(void* WINAPI GetProcAddress_Trampoline(HMODULE, LPCSTR));
 void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
 {
@@ -773,36 +786,51 @@ void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
 	return nullptr;
 }
 
+DETOUR_TRAMPOLINE_EMPTY(BOOL WINAPI FindModules_Trampoline(HANDLE, HMODULE*, DWORD, DWORD*));
+BOOL WINAPI FindModules_Detour(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWORD* lpcbNeeded)
+{
+	if (gbInMemCheck4 > 1) return FindModules_Trampoline(hProcess, hModule, cb, lpcbNeeded);
+	++gbInMemCheck4;
+	bool getMacroQuestModules = true;
+	BOOL result = GetFilteredModules(hProcess, hModule, cb, lpcbNeeded,
+		[&getMacroQuestModules](HMODULE hModule) -> bool { return IsMacroQuestModule(hModule, getMacroQuestModules); }) ? TRUE : FALSE;
+	--gbInMemCheck4;
+	return result;
+}
+
 static void Detours_Initialize()
 {
+	// hit the debugger if we don't hook this. take no chances
+	if (!__MemChecker0
+		|| !__MemChecker1
+		|| !__MemChecker2
+		|| !__MemChecker3
+		|| !__MemChecker4
+		|| !__EncryptPad0
+		|| !__EncryptPad1
+		|| !__EncryptPad2
+		|| !__EncryptPad3)
+	{
+		__debugbreak();
+	}
+
+	extern_array0 = reinterpret_cast<uint32_t*>(__EncryptPad0);
+	extern_array1 = reinterpret_cast<uint32_t*>(__EncryptPad1);
+	extern_array2 = reinterpret_cast<uint32_t*>(__EncryptPad2);
+	extern_array3 = reinterpret_cast<uint32_t*>(__EncryptPad3);
+
 	HookMemChecker(true);
 
 	DWORD GetProcAddress_Addr = (DWORD)&::GetProcAddress;
 	EzDetour(GetProcAddress_Addr, &GetProcAddress_Detour, &GetProcAddress_Trampoline);
-
-	extern_array0 = reinterpret_cast<uint32_t*>(EQADDR_ENCRYPTPAD0);
-	extern_array1 = reinterpret_cast<uint32_t*>(EQADDR_ENCRYPTPAD1);
-	extern_array2 = reinterpret_cast<uint32_t*>(EQADDR_ENCRYPTPAD2);
-	extern_array3 = reinterpret_cast<uint32_t*>(EQADDR_ENCRYPTPAD3);
-
-	// hit the debugger if we don't hook this. take no chances
-	if (!EQADDR_MEMCHECK0
-		|| !EQADDR_MEMCHECK1
-		|| !EQADDR_MEMCHECK2
-		|| !EQADDR_MEMCHECK3
-		|| !EQADDR_ENCRYPTPAD0
-		|| !EQADDR_ENCRYPTPAD1
-		|| !EQADDR_ENCRYPTPAD2
-		|| !EQADDR_ENCRYPTPAD3)
-	{
-		__debugbreak();
-	}
+	EzDetour(__ModuleList, FindModules_Detour, FindModules_Trampoline);
 }
 
 static void Detours_Shutdown()
 {
 	DWORD GetProcAddress_Addr = (DWORD)&::GetProcAddress;
 	RemoveDetour(GetProcAddress_Addr);
+	RemoveDetour(__ModuleList);
 
 	HookMemChecker(false);
 	RemoveDetours();

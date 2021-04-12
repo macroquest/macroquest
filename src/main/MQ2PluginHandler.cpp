@@ -32,7 +32,7 @@ namespace mq {
 static std::atomic_bool s_pluginsInitialized = false;
 static uint32_t s_mq2mainstamp = 0;
 static std::recursive_mutex s_pluginsMutex;
-static const char EverQuestVersion[] = __ExpectedVersionDate "" __ExpectedVersionDate;
+static const char EverQuestVersion[] = __ExpectedVersionDate " " __ExpectedVersionTime;
 MQPlugin* pPlugins = nullptr;
 
 char szPluginLoadFailure[MAX_STRING];

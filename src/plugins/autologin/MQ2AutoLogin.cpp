@@ -57,12 +57,14 @@ void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
 	}
 
 	// this is just a validity check, that's the only reason we have that set of server names
-	if (ServerData.find(szServer) == std::cend(ServerData) && GetPrivateProfileString("Servers", szServer, "", INIFileName).empty())
+	if (GetServerIDFromServerName(szServer) != ServerID::Invalid && GetPrivateProfileString("Servers", szServer, "", INIFileName).empty())
 	{
 		WriteChatf("Invalid server name \ag%s\ax.  Valid server names are:", szServer);
 
+
 		std::vector<std::string_view> server_names;
-		std::transform(ServerData.cbegin(), ServerData.cend(), server_names.end(), [](const auto& e) { return e.first; });
+		std::transform(std::begin(eqlib::ServerIDArray), std::end(eqlib::ServerIDArray),
+			std::back_inserter(server_names), [](const ServerID id) { return GetServerNameFromServerID(id); });
 		std::vector<std::string> custom_server_names = GetPrivateProfileKeys("Servers", INIFileName);
 
 		server_names.insert(server_names.end(), custom_server_names.cbegin(), custom_server_names.cend());

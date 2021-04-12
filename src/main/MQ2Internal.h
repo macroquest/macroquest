@@ -1373,4 +1373,10 @@ struct alphanum_less
 	}
 };
 
+//----------------------------------------------------------------------------
+bool GetFilteredModules(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWORD* lpcbNeeded,
+	const std::function<bool(HMODULE)>& filter);
+bool IsMacroQuestModule(HMODULE hModule, bool getMacroQuestModules = false);
+bool IsModuleSubstring(HMODULE hModule, std::wstring_view searchString);
+
 } // namespace mq

@@ -939,6 +939,7 @@ void InitializeMQ2Commands()
 		{ "/continue",          Continue,                   true,  false },
 		{ "/clearerrors",       ClearErrorsCmd,             true,  false },
 		{ "/invoke",            InvokeCmd,                  true,  false },
+		{ "/mqlistmodules",     ListModulesCommand,         false, false },
 
 		{ nullptr,              nullptr,                    false, true  },
 	};

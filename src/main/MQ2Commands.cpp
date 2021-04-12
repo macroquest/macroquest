@@ -5417,6 +5417,12 @@ void RemoveLevCmd(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
+// ***************************************************************************
+// Function:    MQCopyLayout
+// Usage:       /mqcopylayout
+// Author:      eqmule
+// ***************************************************************************
+
 void MQCopyLayoutImpl(const std::string& charName, const std::string& serverName, const std::string& arguments)
 {
 	if (!pLocalPlayer)
@@ -5514,6 +5520,47 @@ void MQCopyLayout(SPAWNINFO* pChar, char* szLine)
 		WriteChatf("    \ag\"/mqcopylayout character vox nohot noload nosoc\"\ax Will copy everything from the layout excluding hotbuttons, loadouts and socials from the layout using the windowed resolution.");
 		WriteChatf("    \ag\"/mqcopylayout character vox none\"\ax               Same as the example above: no hotbuttons, no loadouts, no socials");
 		WriteChatf("    \ag\"/mqcopylayout character vox res:1600x900\"\ax       Will copy the layout from the UI_character_vox.ini for the specific 1600x900 resolution (if that resolution actually exists in the UI ini.");
+	}
+}
+
+// ***************************************************************************
+// Function:    ListModulesCommand
+// Description: List loaded modules in the MQ directory to help with debugging stuck
+//              and/or broken dependencies/plugins.
+// Usage:       /mqlistmodules [name]
+// Author:      brainiac
+// ***************************************************************************
+void ListModulesCommand(PSPAWNINFO pChar, char* szLine)
+{
+	HANDLE hProcess = GetCurrentProcess();
+
+	std::vector<HMODULE> hModules;
+	hModules.resize(1024);
+
+	std::wstring search = mq::utf8_to_wstring(szLine);
+
+	DWORD cbNeeded = 0;
+	BOOL result = GetFilteredModules(hProcess, hModules.data(), hModules.size() * sizeof(HMODULE), &cbNeeded,
+		[&](HMODULE hModule) -> bool { return IsMacroQuestModule(hModule) || (!search.empty() && !IsModuleSubstring(hModule, search)); });
+	hModules.resize(cbNeeded / sizeof(HMODULE));
+
+	if (result)
+	{
+		WriteChatColor("List of matching modules", USERCOLOR_WHO);
+		WriteChatColor("--------------------------------", USERCOLOR_WHO);
+
+		int pos = 0;
+		for (HMODULE hModule : hModules)
+		{
+			wchar_t szModulePath[MAX_PATH];
+			::GetModuleFileNameW(hModule, szModulePath, MAX_PATH);
+
+			WriteChatColorf("%d: %S", USERCOLOR_WHO, ++pos, szModulePath);
+		}
+	}
+	else
+	{
+		WriteChatf("\arFailed to list modules: %x", GetLastError());
 	}
 }
 
