@@ -676,11 +676,11 @@ namespace IGFD
 		}
 
 	public:
-		IMGUI_API FileDialog();												// ImGuiFileDialog Constructor. can be used for have many dialog at same tiem (not possible with singleton)
-		IMGUI_API virtual ~FileDialog();										// ImGuiFileDialog Destructor
+		FileDialog();												// ImGuiFileDialog Constructor. can be used for have many dialog at same tiem (not possible with singleton)
+		virtual ~FileDialog();										// ImGuiFileDialog Destructor
 
 		// standard dialog
-		IMGUI_API void OpenDialog(											// open simple dialog (path and fileName can be specified)
+		void OpenDialog(											// open simple dialog (path and fileName can be specified)
 			const std::string& vKey,								// key dialog
 			const std::string& vTitle,								// title
 			const char* vFilters,									// filters
@@ -690,7 +690,7 @@ namespace IGFD
 			UserDatas vUserDatas = nullptr,							// user datas (can be retrieved in pane)
 			ImGuiFileDialogFlags vFlags = 0);						// ImGuiFileDialogFlags 
 
-		IMGUI_API void OpenDialog(											// open simple dialog (path and filename are obtained from filePathName)
+		void OpenDialog(											// open simple dialog (path and filename are obtained from filePathName)
 			const std::string& vKey,								// key dialog
 			const std::string& vTitle,								// title
 			const char* vFilters,									// filters
@@ -700,7 +700,7 @@ namespace IGFD
 			ImGuiFileDialogFlags vFlags = 0);						// ImGuiFileDialogFlags 
 
 		// with pane
-		IMGUI_API void OpenDialog(											// open dialog with custom right pane (path and fileName can be specified)
+		void OpenDialog(											// open dialog with custom right pane (path and fileName can be specified)
 			const std::string& vKey,								// key dialog
 			const std::string& vTitle,								// title
 			const char* vFilters,									// filters
@@ -712,7 +712,7 @@ namespace IGFD
 			UserDatas vUserDatas = nullptr,							// user datas (can be retrieved in pane)
 			ImGuiFileDialogFlags vFlags = 0);						// ImGuiFileDialogFlags 
 
-		IMGUI_API void OpenDialog(											// open dialog with custom right pane (path and filename are obtained from filePathName)
+		void OpenDialog(											// open dialog with custom right pane (path and filename are obtained from filePathName)
 			const std::string& vKey,								// key dialog
 			const std::string& vTitle,								// title
 			const char* vFilters,									// filters
@@ -724,7 +724,7 @@ namespace IGFD
 			ImGuiFileDialogFlags vFlags = 0);						// ImGuiFileDialogFlags 
 
 		// modal dialog
-		IMGUI_API void OpenModal(												// open simple modal (path and fileName can be specified)
+		void OpenModal(												// open simple modal (path and fileName can be specified)
 			const std::string& vKey,								// key dialog
 			const std::string& vTitle,								// title
 			const char* vFilters,									// filters
@@ -734,7 +734,7 @@ namespace IGFD
 			UserDatas vUserDatas = nullptr,							// user datas (can be retrieved in pane)
 			ImGuiFileDialogFlags vFlags = 0);						// ImGuiFileDialogFlags 
 
-		IMGUI_API void OpenModal(												// open simple modal (path and fielname are obtained from filePathName)
+		void OpenModal(												// open simple modal (path and fielname are obtained from filePathName)
 			const std::string& vKey,								// key dialog
 			const std::string& vTitle,								// title
 			const char* vFilters,									// filters
@@ -744,7 +744,7 @@ namespace IGFD
 			ImGuiFileDialogFlags vFlags = 0);						// ImGuiFileDialogFlags 
 
 		// with pane
-		IMGUI_API void OpenModal(												// open modal with custom right pane (path and filename are obtained from filePathName)
+		void OpenModal(												// open modal with custom right pane (path and filename are obtained from filePathName)
 			const std::string& vKey,								// key dialog
 			const std::string& vTitle,								// title
 			const char* vFilters,									// filters
@@ -756,7 +756,7 @@ namespace IGFD
 			UserDatas vUserDatas = nullptr,							// user datas (can be retrieved in pane)
 			ImGuiFileDialogFlags vFlags = 0);						// ImGuiFileDialogFlags 
 
-		IMGUI_API void OpenModal(												// open modal with custom right pane (path and fielname are obtained from filePathName)
+		void OpenModal(												// open modal with custom right pane (path and fielname are obtained from filePathName)
 			const std::string& vKey,								// key dialog
 			const std::string& vTitle,								// title
 			const char* vFilters,									// filters
@@ -768,50 +768,50 @@ namespace IGFD
 			ImGuiFileDialogFlags vFlags = 0);						// ImGuiFileDialogFlags 
 
 		// Display / Close dialog form
-		IMGUI_API bool Display(												// Display the dialog. return true if a result was obtained (Ok or not)
+		bool Display(												// Display the dialog. return true if a result was obtained (Ok or not)
 			const std::string& vKey,								// key dialog to display (if not the same key as defined by OpenDialog/Modal => no opening)
 			ImGuiWindowFlags vFlags = ImGuiWindowFlags_NoCollapse,	// ImGuiWindowFlags
 			ImVec2 vMinSize = ImVec2(0, 0),							// mininmal size contraint for the ImGuiWindow
 			ImVec2 vMaxSize = ImVec2(FLT_MAX, FLT_MAX));			// maximal size contraint for the ImGuiWindow
-		IMGUI_API void Close();												// close dialog
+		void Close();												// close dialog
 
 		// queries
-		IMGUI_API bool WasOpenedThisFrame(const std::string& vKey);			// say if the dialog key was already opened this frame
-		IMGUI_API bool WasOpenedThisFrame();									// say if the dialog was already opened this frame
-		IMGUI_API bool IsOpened(const std::string& vKey);						// say if the key is opened
-		IMGUI_API bool IsOpened();											// say if the dialog is opened somewhere	
-		IMGUI_API std::string GetOpenedKey();									// return the dialog key who is opened, return nothing if not opened
+		bool WasOpenedThisFrame(const std::string& vKey);			// say if the dialog key was already opened this frame
+		bool WasOpenedThisFrame();									// say if the dialog was already opened this frame
+		bool IsOpened(const std::string& vKey);						// say if the key is opened
+		bool IsOpened();											// say if the dialog is opened somewhere	
+		std::string GetOpenedKey();									// return the dialog key who is opened, return nothing if not opened
 
 		// get result
-		IMGUI_API bool IsOk();												// true => Dialog Closed with Ok result / false : Dialog closed with cancel result
-		IMGUI_API std::map<std::string, std::string> GetSelection();			// Open File behavior : will return selection via a map<FileName, FilePathName>
-		IMGUI_API std::string GetFilePathName();								// Save File behavior : will always return the content of the field with current filter extention and current path
-		IMGUI_API std::string GetCurrentFileName();							// Save File behavior : will always return the content of the field with current filter extention
-		IMGUI_API std::string GetCurrentPath();								// will return current path
-		IMGUI_API std::string GetCurrentFilter();								// will return selected filter
-		IMGUI_API UserDatas GetUserDatas();									// will return user datas send with Open Dialog/Modal
+		bool IsOk();												// true => Dialog Closed with Ok result / false : Dialog closed with cancel result
+		std::map<std::string, std::string> GetSelection();			// Open File behavior : will return selection via a map<FileName, FilePathName>
+		std::string GetFilePathName();								// Save File behavior : will always return the content of the field with current filter extention and current path
+		std::string GetCurrentFileName();							// Save File behavior : will always return the content of the field with current filter extention
+		std::string GetCurrentPath();								// will return current path
+		std::string GetCurrentFilter();								// will return selected filter
+		UserDatas GetUserDatas();									// will return user datas send with Open Dialog/Modal
 		
 		// extentions displaying
-		IMGUI_API void SetExtentionInfos(										// SetExtention datas for have custom display of particular file type
+		void SetExtentionInfos(										// SetExtention datas for have custom display of particular file type
 			const std::string& vFilter,								// extention filter to tune
 			const FileExtentionInfosStruct& vInfos);				// Filter Extention Struct who contain Color and Icon/Text for the display of the file with extention filter
-		IMGUI_API void SetExtentionInfos(										// SetExtention datas for have custom display of particular file type
+		void SetExtentionInfos(										// SetExtention datas for have custom display of particular file type
 			const std::string& vFilter,								// extention filter to tune
 			const ImVec4& vColor,									// wanted color for the display of the file with extention filter
 			const std::string& vIcon = "");							// wanted text or icon of the file with extention filter
-		IMGUI_API bool GetExtentionInfos(										// GetExtention datas. return true is extention exist
+		bool GetExtentionInfos(										// GetExtention datas. return true is extention exist
 			const std::string& vFilter,								// extention filter (same as used in SetExtentionInfos)
 			ImVec4 *vOutColor,										// color to retrieve
 			std::string* vOutIcon = 0);								// icon or text to retrieve
-		IMGUI_API void ClearExtentionInfos();									// clear extentions setttings
+		void ClearExtentionInfos();									// clear extentions setttings
 
 #ifdef USE_EXPLORATION_BY_KEYS
-		IMGUI_API void SetFlashingAttenuationInSeconds(						// set the flashing time of the line in file list when use exploration keys
+		void SetFlashingAttenuationInSeconds(						// set the flashing time of the line in file list when use exploration keys
 			float vAttenValue);										// set the attenuation (from flashed to not flashed) in seconds
 #endif // USE_EXPLORATION_BY_KEYS
 #ifdef USE_BOOKMARK
-		IMGUI_API std::string SerializeBookmarks();							// serialize bookmarks : return bookmark buffer to save in a file
-		IMGUI_API void DeserializeBookmarks(									// deserialize bookmarks : load bookmar buffer to load in the dialog (saved from previous use with SerializeBookmarks())
+		std::string SerializeBookmarks();							// serialize bookmarks : return bookmark buffer to save in a file
+		void DeserializeBookmarks(									// deserialize bookmarks : load bookmar buffer to load in the dialog (saved from previous use with SerializeBookmarks())
 			const std::string& vBookmarks);							// bookmark buffer to load
 #endif // USE_BOOKMARK
 

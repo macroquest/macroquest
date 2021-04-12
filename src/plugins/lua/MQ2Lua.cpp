@@ -73,6 +73,7 @@ static YAML::Node s_configNode;
 
 // this is for the imgui menu display
 static bool s_showMenu = false;
+static ImGuiFileDialog* s_fileDialog = nullptr;
 
 // use a vector for s_running because we need to iterate it every pulse, and find only if a command is issued
 std::vector<std::shared_ptr<LuaThread>> s_running;
@@ -968,6 +969,7 @@ PLUGIN_API void InitializePlugin()
 	pLuaType = new MQ2LuaType;
 	AddMQ2Data("Lua", &MQ2LuaType::dataLua);
 
+	s_fileDialog = IGFD_Create();
 	AddCascadeMenuItem("MQ2Lua", []() { s_showMenu = true; }, -1);
 }
 
@@ -990,6 +992,7 @@ PLUGIN_API void ShutdownPlugin()
 	delete pLuaInfoType;
 
 	RemoveCascadeMenuItem("MQ2Lua");
+	if (s_fileDialog != nullptr) IGFD_Destroy(s_fileDialog);
 }
 
 /**
@@ -1249,55 +1252,66 @@ PLUGIN_API void OnUpdateImGui()
 		ImGui::Spacing();
 
 		static char args[MAX_STRING] = { 0 };
-		auto args_entry = [](const char* vFilter, IGFDUserDatas vUserDatas, bool* vCantContinue) -> void
+		auto args_entry = [](const char* vFilter, void* vUserDatas, bool* vCantContinue) -> void
 		{
 			ImGui::InputText("args", (char*)vUserDatas, MAX_STRING);
 		};
 
-		if (ImGui::Button("Launch Script...", ImVec2(-1, 0)))
+		if (ImGui::Button("Launch Script...", ImVec2(-1, 0)) && s_fileDialog != nullptr)
 		{
-			ImGuiFileDialog::Instance()->OpenDialog(
+			IGFD_OpenPaneDialog2(
+				s_fileDialog,
 				"ChooseScriptKey",
 				"Select Lua Script to Run",
 				".lua",
-				s_luaDir + "/",
+				(s_luaDir + "/").c_str(),
 				args_entry,
 				350,
 				1,
-				static_cast<IGFDUserDatas>(args));
+				static_cast<void*>(args),
+				ImGuiFileDialogFlags_None
+			);
 		}
 
-		if (ImGuiFileDialog::Instance()->Display("ChooseScriptKey"))
+		if (IGFD_DisplayDialog(s_fileDialog, "ChooseScriptKey", ImGuiWindowFlags_NoCollapse, ImVec2(700, 350), ImVec2(FLT_MAX, FLT_MAX)))
 		{
-			if (ImGuiFileDialog::Instance()->IsOk())
+			if (IGFD_IsOk(s_fileDialog))
 			{
-				// make these both canonical to ensure we get a correct comparison
-				auto selected_file = ImGuiFileDialog::Instance()->GetFilePathName();
-				auto lua_path = std::filesystem::canonical(std::filesystem::path(s_luaDir)).string();
-				auto script_path = std::filesystem::canonical(
-					std::filesystem::path(selected_file)
-				).replace_extension("").string();
+				auto selection = IGFD_GetSelection(s_fileDialog);
+				auto selected_file = selection.table->filePathName;
 
-				auto [rootEnd, scriptEnd] = std::mismatch(lua_path.begin(), lua_path.end(), script_path.begin());
-
-				auto clean_name = [](std::string_view s)
+				if (selected_file != nullptr && std::filesystem::exists(selected_file))
 				{
-					s.remove_prefix(std::min(s.find_first_not_of("\\"), s.size()));
-					return std::string(s);
-				};
+					// make these both canonical to ensure we get a correct comparison
+					auto lua_path = std::filesystem::canonical(std::filesystem::path(s_luaDir)).string();
+					auto script_path = std::filesystem::canonical(
+						std::filesystem::path(selected_file)
+					).replace_extension("").string();
 
-				auto script_name = rootEnd != lua_path.end()
-					? script_path
-					: clean_name(std::string(scriptEnd, script_path.end()));
+					auto [rootEnd, scriptEnd] = std::mismatch(lua_path.begin(), lua_path.end(), script_path.begin());
 
-				std::string args;
-				if (ImGuiFileDialog::Instance()->GetUserDatas())
-					args = std::string((const char*)ImGuiFileDialog::Instance()->GetUserDatas());
+					auto clean_name = [](std::string_view s)
+					{
+						s.remove_prefix(std::min(s.find_first_not_of("\\"), s.size()));
+						return std::string(s);
+					};
 
-				LuaRunCommand(script_name, allocate_args(args));
+					auto script_name = rootEnd != lua_path.end()
+						? script_path
+						: clean_name(std::string(scriptEnd, script_path.end()));
+
+					std::string args;
+					auto user_datas = static_cast<const char*>(IGFD_GetUserDatas(s_fileDialog));
+					if (user_datas != nullptr)
+						args = std::string(user_datas);
+
+					LuaRunCommand(script_name, allocate_args(args));
+				}
+
+				IGFD_Selection_DestroyContent(&selection);
 			}
 
-			ImGuiFileDialog::Instance()->Close();
+			IGFD_CloseDialog(s_fileDialog);
 		}
 
 		ImGui::End();
