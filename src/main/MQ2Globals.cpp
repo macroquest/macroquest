@@ -63,7 +63,6 @@ int gBuild = 2;               // TEST
 int gBuild = 1;               // LIVE
 #endif
 
-bool g_bDoingModuleChecks = false;
 DWORD gGameState = 0;
 bool gAnonymize = false; // Deprecate
 DWORD ThreadID = 0;
@@ -78,7 +77,6 @@ bool gbUnload = false;
 bool gBindInProgress = false;
 bool gbLoad = true;
 DWORD gpHook = 0;
-HMODULE ghmq2ic = nullptr;
 MQMacroBlockPtr gMacroBlock = nullptr;
 int BlockIndex = 0;
 MQMacroStack* gMacroStack = nullptr;
@@ -753,8 +751,6 @@ int  gOldCameraType = -1;
 
 fEQGetMelee get_melee_range = GetMeleeRange;
 fEQW_GetDisplayWindow EQW_GetDisplayWindow = nullptr;
-
-fMQ2Unload IC_MQ2Unload = nullptr;
 
 bool ExecuteCmd(unsigned int command, bool keyDown, void* data)
 {

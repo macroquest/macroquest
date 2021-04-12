@@ -37,6 +37,6 @@ bool PluginMain(HANDLE hModule, DWORD dwReason, void* lpReserved)
 // mqnext codebase.
 PLUGIN_API bool IsBuiltForNext = true;
 
-PLUGIN_API const char EverQuestVersion[] = __ExpectedVersionDate "" __ExpectedVersionDate;
+PLUGIN_API const char EverQuestVersion[] = __ExpectedVersionDate " " __ExpectedVersionTime;
 
 } // namespace mqplugin

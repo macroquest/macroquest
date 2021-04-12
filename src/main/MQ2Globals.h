@@ -73,7 +73,6 @@ MQLIB_API char DataTypeTemp[MAX_STRING];
 MQLIB_API char gszVersion[32];
 MQLIB_API char gszTime[32];
 MQLIB_API int gBuild;
-MQLIB_API bool g_bDoingModuleChecks;
 
 MQLIB_API ePVPServer PVPServer;
 MQLIB_API HANDLE ghInitializeSpellDbThread;
@@ -93,7 +92,6 @@ MQLIB_VAR bool gbUnload;
 MQLIB_VAR bool gBindInProgress;
 MQLIB_VAR bool gbLoad;
 MQLIB_VAR DWORD gpHook;
-MQLIB_VAR HMODULE ghmq2ic;
 MQLIB_VAR MQMacroBlockPtr gMacroBlock;
 MQLIB_VAR int BlockIndex;
 MQLIB_VAR MQMacroStack* gMacroStack;
@@ -288,8 +286,6 @@ MQLIB_VAR fEQCommand            cmdAssist;
 MQLIB_VAR fEQCommand            cmdQuit;
 
 MQLIB_VAR fEQGetMelee           get_melee_range;
-
-MQLIB_VAR fMQ2Unload            IC_MQ2Unload;
 
 MQLIB_VAR fEQW_GetDisplayWindow EQW_GetDisplayWindow;
 

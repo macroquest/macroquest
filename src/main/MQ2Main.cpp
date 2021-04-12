@@ -67,6 +67,7 @@ MQModule* GetGroundSpawnsModule();
 MQModule* GetSpawnsModule();
 MQModule* GetItemsModule();
 MQModule* GetWindowsModule();
+MQModule* GetDetoursModule();
 
 DWORD WINAPI MQ2Start(void* lpParameter);
 HANDLE hMQ2StartThread = nullptr;
@@ -74,6 +75,7 @@ DWORD dwMainThreadId = 0;
 
 wil::unique_event g_hLoadComplete;
 HANDLE hUnloadComplete = nullptr;
+void* ModuleListHandler = nullptr;
 
 void InitializeLogging()
 {
@@ -118,7 +120,7 @@ extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void*
 	szProcessName[0] = '\0';
 	szProcessName = strrchr(szFilename, '\\') + 1;
 
-	if (!_stricmp(szProcessName, __ClientName))
+	if (_stricmp(szProcessName, __ClientName) == 0)
 	{
 		if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 		{
@@ -571,16 +573,6 @@ bool ParseINIFile(const std::string& iniFile)
 	return true;
 }
 
-void InitializeMQ2IcExports()
-{
-	IC_MQ2Unload = (fMQ2Unload)GetProcAddress(ghmq2ic, "IC_MQ2Unload");
-}
-
-void DeInitializeMQ2IcExports()
-{
-	IC_MQ2Unload = nullptr;
-}
-
 void SetMainThreadId()
 {
 	// initialize main thread id
@@ -761,13 +753,7 @@ bool MQ2Initialize()
 	szEQMappableCommands[nEQMappableCommands -  2] = "UNKNOWN0x220";
 	szEQMappableCommands[nEQMappableCommands -  1] = "UNKNOWN0x221";
 
-	InitializeMQ2Detours();
-
-	// from now on MQ2Ic is not optional.
-	LoadMQ2Plugin("mq2ic");
-
-	if (ghmq2ic = GetModuleHandle("mq2ic.dll"))
-		InitializeMQ2IcExports();
+	AddInternalModule(GetDetoursModule(), true);
 
 	InitializeMQ2Benchmarks();
 	InitializeParser();
@@ -795,27 +781,26 @@ void MQ2Shutdown()
 {
 	OutputDebugString("MQ2Shutdown Called");
 
-	DebugTry(ShutdownCachedBuffs());
-	DebugTry(ShutdownInternalModules());
-	DebugTry(ShutdownMQ2KeyBinds());
-	DebugTry(ShutdownDisplayHook());
-	DebugTry(ShutdownMQ2DInput());
-	DebugTry(ShutdownChatHook());
-	DebugTry(ShutdownMQ2Pulse());
-	DebugTry(ShutdownLoginFrontend());
-	DebugTry(ShutdownMQ2AutoInventory());
-	DebugTry(MQ2MouseHooks(false));
-	DebugTry(ShutdownMQ2CrashHandler());
-	DebugTry(ShutdownParser());
-	DebugTry(ShutdownMQ2Commands());
-	DebugTry(ShutdownAnonymizer());
-	DebugTry(ShutdownMQ2Plugins());
-	DebugTry(ShutdownMQ2Overlay());
-	DebugTry(ShutdownStringDB());
-	DebugTry(DeInitializeMQ2IcExports());
-	DebugTry(ShutdownMQ2Detours());
-	DebugTry(ShutdownMQ2Benchmarks());
-	DebugTry(ShutdownMQ2PipeClient());
+	ShutdownCachedBuffs();
+	ShutdownInternalModules();
+	ShutdownMQ2KeyBinds();
+	ShutdownDisplayHook();
+	ShutdownMQ2DInput();
+	ShutdownChatHook();
+	ShutdownMQ2Pulse();
+	ShutdownLoginFrontend();
+	ShutdownMQ2AutoInventory();
+	MQ2MouseHooks(false);
+	ShutdownMQ2CrashHandler();
+	ShutdownParser();
+	ShutdownMQ2Commands();
+	ShutdownAnonymizer();
+	ShutdownMQ2Plugins();
+	ShutdownMQ2Overlay();
+	ShutdownStringDB();
+	RemoveInternalModule(GetDetoursModule());
+	ShutdownMQ2Benchmarks();
+	ShutdownMQ2PipeClient();
 }
 
 HMODULE GetCurrentModule()

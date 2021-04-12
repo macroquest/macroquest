@@ -913,6 +913,33 @@ void InitializeMQ2Commands()
 		{ "/cachedbuffs",       CachedBuffsCommand,         true,  true  },
 		{ "/mqcopylayout",      MQCopyLayout,               true,  false },
 		{ "/plugin",            PluginCommand,              false, false },
+		{ "/who",               SuperWho,                   true,  true  },
+		{ "/macro",             Macro,                      true,  false },
+		{ "/endmacro",          EndMacro,                   true,  false },
+		{ "/mqpause",           MacroPause,                 true,  false },
+		{ "/listmacros",        ListMacros,                 true,  false },
+		{ "/seterror",          SetError,                   true,  false },
+		{ "/declare",           NewDeclareVar,              true,  false },
+		{ "/deletevar",         NewDeleteVarCmd,            true,  false },
+		{ "/varcalc",           NewVarcalc,                 true,  false },
+		{ "/varset",            NewVarset,                  true,  false },
+		{ "/vardata",           NewVardata,                 true,  false },
+		{ "/cleanup",           Cleanup,                    true,  false },
+		{ "/doevents",          DoEvents,                   true,  false },
+		{ "/goto",              Goto,                       true,  false },
+		{ "/for",               For,                        true,  false },
+		{ "/next",              Next,                       true,  false },
+		{ "/call",              Call,                       true,  false },
+		{ "/return",            Return,                     true,  false },
+		{ "/dumpstack",         DumpStack,                  true,  false },
+		{ "/keepkeys",          KeepKeys,                   true,  false },
+		{ "/if",                NewIf,                      true,  false },
+		{ "/while",             WhileCmd,                   true,  false },
+		{ "/break",             Break,                      true,  false },
+		{ "/continue",          Continue,                   true,  false },
+		{ "/clearerrors",       ClearErrorsCmd,             true,  false },
+		{ "/invoke",            InvokeCmd,                  true,  false },
+		{ "/mqlistmodules",     ListModulesCommand,         false, false },
 
 		{ nullptr,              nullptr,                    false, true  },
 	};
@@ -922,26 +949,6 @@ void InitializeMQ2Commands()
 	{
 		RemoveCommand(NewCommands[i].szCommand);
 		AddCommand(NewCommands[i].szCommand, NewCommands[i].pFunc, false, NewCommands[i].Parse, NewCommands[i].InGame);
-	}
-
-	// truebox builds are not supported anymore.
-	// This code is here to make sure we are NOT run on truebox.
-	// (bypassing these calls will severly cripple your mq2) -eqmule
-	using fAuthenticateTrueBox = DWORD(*)(DWORD);
-	fAuthenticateTrueBox AuthenticateTrueBox = nullptr;
-	using fGetTrueBoxKey = DWORD(*)(DWORD);
-	fGetTrueBoxKey GetTrueBoxKey = nullptr;
-
-	if (ghmq2ic)
-	{
-		AuthenticateTrueBox = (fAuthenticateTrueBox)GetProcAddress(ghmq2ic, "AuthenticateTrueBox");
-		GetTrueBoxKey = (fGetTrueBoxKey)GetProcAddress(ghmq2ic, "GetTrueBoxKey");
-		DWORD tbkey = GetTrueBoxKey(1);
-
-		if (AuthenticateTrueBox)
-		{
-			AuthenticateTrueBox(tbkey);
-		}
 	}
 
 	/* ALIASES FOR OUT OF ORDER SHORTHAND COMMANDS */

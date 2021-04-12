@@ -32,7 +32,7 @@ namespace mq {
 static std::atomic_bool s_pluginsInitialized = false;
 static uint32_t s_mq2mainstamp = 0;
 static std::recursive_mutex s_pluginsMutex;
-static const char EverQuestVersion[] = __ExpectedVersionDate "" __ExpectedVersionDate;
+static const char EverQuestVersion[] = __ExpectedVersionDate " " __ExpectedVersionTime;
 MQPlugin* pPlugins = nullptr;
 
 char szPluginLoadFailure[MAX_STRING];
@@ -64,7 +64,7 @@ void AddStaticInitializationModule(ModuleInitializer* module)
 	s_moduleInitializerList = module;
 }
 
-void AddInternalModule(MQModule* module)
+void AddInternalModule(MQModule* module, bool manualUnload /*=false*/)
 {
 	SPDLOG_DEBUG("Initializing module: {0}", module->name);
 
@@ -76,6 +76,7 @@ void AddInternalModule(MQModule* module)
 		module->SetGameState(GetGameState());
 
 	module->loaded = true;
+	module->manualUnload = manualUnload;
 }
 
 void RemoveInternalModule(MQModule* module)
@@ -96,9 +97,15 @@ void RemoveInternalModule(MQModule* module)
 
 void ShutdownInternalModules()
 {
-	while (!gInternalModules.empty())
+	auto modulesCopy = gInternalModules;
+
+	for (auto iter = modulesCopy.rbegin(); iter != modulesCopy.rend(); ++iter)
 	{
-		RemoveInternalModule(gInternalModules.back());
+		auto mod = *iter;
+		if (!mod->manualUnload)
+		{
+			RemoveInternalModule(mod);
+		}
 	}
 }
 
@@ -139,10 +146,7 @@ int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
 
 	std::filesystem::path pathToPlugin;
 
-	if (ci_equals(strFileName, "mq2ic"))
-		pathToPlugin = std::filesystem::path(mq::internal_paths::MQRoot);
-	else
-		pathToPlugin = std::filesystem::path(mq::internal_paths::Plugins);
+	pathToPlugin = std::filesystem::path(mq::internal_paths::Plugins);
 	pathToPlugin /= strFileNameWithDll;
 
 	HMODULE hmod = LoadLibrary(pathToPlugin.string().c_str());
@@ -153,42 +157,38 @@ int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
 		return 0;
 	}
 
-	// bypass version checks for mq2ic for reasons.
-	if (!ci_equals(strFileName, "mq2ic"))
+	// Perform MQNext version check
+	void* isBuildForNext = GetProcAddress(hmod, "IsBuiltForNext");
+	if (isBuildForNext == nullptr)
 	{
-		// Perform MQNext version check
-		void* isBuildForNext = GetProcAddress(hmod, "IsBuiltForNext");
-		if (isBuildForNext == nullptr)
-		{
-			DebugSpew("LoadMQ2Plugin(%s) failed: Plugin was not built for this version of MacroQuest",
-				strFileName.c_str());
-			strcpy_s(szPluginLoadFailure, "Plugin was not built for this version of MacroQuest");
+		DebugSpew("LoadMQ2Plugin(%s) failed: Plugin was not built for this version of MacroQuest",
+			strFileName.c_str());
+		strcpy_s(szPluginLoadFailure, "Plugin was not built for this version of MacroQuest");
 
-			FreeLibrary(hmod);
-			return 0;
-		}
+		FreeLibrary(hmod);
+		return 0;
+	}
 
-		// Perform EQ version check
-		const char* eqVersion = reinterpret_cast<const char*>(GetProcAddress(hmod, "EverQuestVersion"));
-		if (eqVersion == nullptr)
-		{
-			DebugSpew("LoadMQ2Plugin(%s) failed: Plugin was not built for this version of EverQuest",
-				strFileName.c_str());
-			strcpy_s(szPluginLoadFailure, "Plugin was not built for this version of EverQuest");
+	// Perform EQ version check
+	const char* eqVersion = reinterpret_cast<const char*>(GetProcAddress(hmod, "EverQuestVersion"));
+	if (eqVersion == nullptr)
+	{
+		DebugSpew("LoadMQ2Plugin(%s) failed: Plugin was not built for this version of EverQuest",
+			strFileName.c_str());
+		strcpy_s(szPluginLoadFailure, "Plugin was not built for this version of EverQuest");
 
-			FreeLibrary(hmod);
-			return 0;
-		}
-		else if (strcmp(eqVersion, EverQuestVersion) != 0)
-		{
-			DebugSpew("LoadMQ2Plugin(%s) failed: Plugin was not built for this version of EverQuest (was built for %s)",
-				strFileName.c_str(), eqVersion);
-			sprintf_s(szPluginLoadFailure, "Plugin was not built for this version of EverQuest (was built for %s)",
-				eqVersion);
+		FreeLibrary(hmod);
+		return 0;
+	}
+	else if (strcmp(eqVersion, EverQuestVersion) != 0)
+	{
+		DebugSpew("LoadMQ2Plugin(%s) failed: Plugin was not built for this version of EverQuest (was built for %s)",
+			strFileName.c_str(), eqVersion);
+		sprintf_s(szPluginLoadFailure, "Plugin was not built for this version of EverQuest (was built for %s)",
+			eqVersion);
 
-			FreeLibrary(hmod);
-			return 0;
-		}
+		FreeLibrary(hmod);
+		return 0;
 	}
 
 	MQPlugin* pPlugin = pPlugins;
@@ -390,19 +390,10 @@ void ShutdownMQ2Plugins()
 	MQPlugin* pPlugin = nullptr;
 	while (pPlugins)
 	{
-		if (!_stricmp(pPlugins->szFilename, "mq2ic")) // has to be the last one we unload...
-		{
-			pPlugin = pPlugins;
-			pPlugins = pPlugins->pNext;
-			continue;
-		}
-
 		DebugSpew("%s->Unload()", pPlugins->szFilename);
 		UnloadMQ2Plugin(pPlugins->szFilename);
 	}
 	pPlugins = pPlugin;
-
-	UnloadMQ2Plugin("mq2ic");
 }
 
 void PluginsWriteChatColor(const char* Line, int Color, int Filter)

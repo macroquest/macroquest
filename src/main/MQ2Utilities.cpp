@@ -19,6 +19,7 @@
 #include "MQ2Utilities.h"
 
 #include <DbgHelp.h>
+#include <PathCch.h>
 
 #ifdef _DEBUG
 #define DBG_SPEW // enable DebugSpew messages in debug builds
@@ -7643,6 +7644,62 @@ EQSwitch* FindSwitchByName(const char* szName)
 	}
 
 	return closestSwitch;
+}
+
+//----------------------------------------------------------------------------
+bool IsMacroQuestModule(HMODULE hModule, bool getMacroQuestModules)
+{
+	static wchar_t szMacroQuestDir[MAX_PATH] = { 0 };
+	if (szMacroQuestDir[0] == 0)
+	{
+		::GetModuleFileNameW(ghModule, szMacroQuestDir, MAX_PATH);
+		PathCchRemoveFileSpec(szMacroQuestDir, MAX_PATH);
+	}
+
+	// Get the path to this module and then check if it is in the same folder as
+	// our main module.
+
+	wchar_t szModulePath[MAX_PATH];
+	::GetModuleFileNameW(hModule, szModulePath, MAX_PATH);
+
+	int substr_pos = ci_find_substr_w(szModulePath, szMacroQuestDir);
+
+	return !getMacroQuestModules ? (substr_pos == -1) : (substr_pos == 0);
+}
+
+bool IsModuleSubstring(HMODULE hModule, std::wstring_view searchString)
+{
+	if (searchString.empty()) return true;
+
+	wchar_t szModulePath[MAX_PATH];
+	::GetModuleFileNameW(hModule, szModulePath, MAX_PATH);
+
+	return ci_find_substr_w(szModulePath, searchString) != -1;
+}
+
+bool GetFilteredModules(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWORD* lpcbNeeded,
+	const std::function<bool(HMODULE)>& filter)
+{
+	BOOL result = ((BOOL(WINAPI*)(HANDLE, HMODULE*, DWORD, DWORD*))__ModuleList)(hProcess, hModule, cb, lpcbNeeded);
+
+	if (result)
+	{
+		DWORD size = std::min(cb, *lpcbNeeded);
+
+		auto a1 = hModule;
+		auto a2 = hModule + (size / sizeof(HMODULE));     // end of items
+		auto a3 = hModule + (cb / sizeof(HMODULE));       // end of container
+
+		auto iter = std::remove_if(a1, a2, [&filter](HMODULE hModule) { return filter(hModule); });
+		if (iter != a2)
+		{
+			a2 = iter;
+			*lpcbNeeded = std::distance(a1, a2) * sizeof(HMODULE);
+			std::fill(a2, a3, nullptr);
+		}
+	}
+
+	return result;
 }
 
 } // namespace mq

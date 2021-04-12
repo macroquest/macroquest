@@ -15,9 +15,21 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
-#define DEBUG_GETPROCADDRESS 1
-
 namespace mq {
+
+//============================================================================
+
+static void Detours_Initialize();
+static void Detours_Shutdown();
+static void Detours_Zoned();
+
+static MQModule gDetoursModule = {
+	"Detours",                         // Name
+	false,                             // CanUnload
+	Detours_Initialize,                // Initialize
+	Detours_Shutdown,                  // Shutdown
+};
+MQModule* GetDetoursModule() { return &gDetoursModule; }
 
 struct DetourRecord
 {
@@ -32,13 +44,15 @@ struct DetourRecord
 /*0xbc*/
 };
 
-MQLIB_VAR DetourRecord* g_detours = nullptr;
-std::recursive_mutex g_detourMutex;
-bool g_bDoingSpellChecks = false;
+DetourRecord* gDetours = nullptr;
+std::recursive_mutex gDetourMutex;
+
+bool gbDoingSpellChecks = false;
+int gbInMemCheck4 = 0;
 
 DetourRecord* FindDetour(DWORD address)
 {
-	DetourRecord* pDetour = g_detours;
+	DetourRecord* pDetour = gDetours;
 	while (pDetour)
 	{
 		if (pDetour->addr == address)
@@ -51,7 +65,7 @@ DetourRecord* FindDetour(DWORD address)
 
 bool AddDetour(DWORD address, BYTE* pfDetour, BYTE* pfTrampoline, DWORD Count, const char* Name)
 {
-	std::scoped_lock lock(g_detourMutex);
+	std::scoped_lock lock(gDetourMutex);
 
 	char szName[MAX_STRING] = { 0 };
 
@@ -77,9 +91,9 @@ bool AddDetour(DWORD address, BYTE* pfDetour, BYTE* pfTrampoline, DWORD Count, c
 	detour->addr = address;
 	detour->count = Count;
 	memcpy(detour->array, (char*)address, Count);
-	detour->pNext = g_detours;
-	if (g_detours)
-		g_detours->pLast = detour;
+	detour->pNext = gDetours;
+	if (gDetours)
+		gDetours->pLast = detour;
 	detour->pLast = nullptr;
 
 	if (pfTrampoline)
@@ -114,7 +128,7 @@ bool AddDetour(DWORD address, BYTE* pfDetour, BYTE* pfTrampoline, DWORD Count, c
 		DebugSpew("Detour of %s was successful.", szName);
 	}
 
-	g_detours = detour;
+	gDetours = detour;
 	return Ret;
 }
 
@@ -154,9 +168,9 @@ void AddDetourf(DWORD address, ...)
 
 void RemoveDetour(DWORD address)
 {
-	std::scoped_lock lock(g_detourMutex);
+	std::scoped_lock lock(gDetourMutex);
 
-	DetourRecord* detour = g_detours;
+	DetourRecord* detour = gDetours;
 	char szFilename[MAX_STRING] = { 0 };
 	HMODULE hModule = nullptr;
 	DWORD myaddress = 0;
@@ -192,7 +206,7 @@ void RemoveDetour(DWORD address)
 			if (detour->pLast)
 				detour->pLast->pNext = detour->pNext;
 			else
-				g_detours = detour->pNext;
+				gDetours = detour->pNext;
 
 			if (detour->pNext)
 				detour->pNext->pLast = detour->pLast;
@@ -211,9 +225,9 @@ void RemoveDetour(DWORD address)
 
 void DeleteDetour(DWORD address)
 {
-	std::scoped_lock lock(g_detourMutex);
+	std::scoped_lock lock(gDetourMutex);
 
-	DetourRecord* detour = g_detours;
+	DetourRecord* detour = gDetours;
 	while (detour)
 	{
 		if (detour->addr == address)
@@ -222,7 +236,7 @@ void DeleteDetour(DWORD address)
 			if (detour->pLast)
 				detour->pLast->pNext = detour->pNext;
 			else
-				g_detours = detour->pNext;
+				gDetours = detour->pNext;
 
 			if (detour->pNext)
 				detour->pNext->pLast = detour->pLast;
@@ -236,58 +250,42 @@ void DeleteDetour(DWORD address)
 
 void RemoveDetours()
 {
-	std::scoped_lock lock(g_detourMutex);
+	std::scoped_lock lock(gDetourMutex);
 	DebugSpew("RemoveOurDetours()");
 
-	if (!g_detours)
+	if (!gDetours)
 		return;
 
-	while (g_detours)
+	while (gDetours)
 	{
-		if (g_detours->pfDetour)
+		if (gDetours->pfDetour)
 		{
-			DebugSpew("RemoveOurDetours() -- Removing %s (%X)", g_detours->Name, g_detours->addr);
-			RemoveDetour(g_detours->addr);
+			DebugSpew("RemoveOurDetours() -- Removing %s (%X)", gDetours->Name, gDetours->addr);
+			RemoveDetour(gDetours->addr);
 		}
 
-		if (g_detours)
+		if (gDetours)
 		{
-			DetourRecord* pNext = g_detours->pNext;
-			delete g_detours;
-			g_detours = pNext;
+			DetourRecord* pNext = gDetours->pNext;
+			delete gDetours;
+			gDetours = pNext;
 		}
 	}
 
-	g_detours = nullptr;
+	gDetours = nullptr;
 }
 
 void SetAssist(BYTE* address)
 {
-	if ((DWORD)address == -1)
-		return;
+	gbAssistComplete = AS_AssistReceived;
 
-	bool bExpectTarget = false;
-	if (address)
-	{
-		if (DWORD Assistee = *(DWORD*)address)
-		{
-			if (SPAWNINFO* pSpawn = GetSpawnByID(Assistee))
-			{
-				bExpectTarget = true;
-				gbAssistComplete = AS_AssistSent;
-				//WriteChatf("We can expect a target packet because assist retuned %s", pSpawn->Name);
-			}
-		}
-	}
+	if (!address) return;
+	DWORD Assistee = *(DWORD*)address;
 
-	if (!bExpectTarget)
-	{
-		//WriteChatColor("We can NOT expect a target packet because assist was 0");
-		gbAssistComplete = AS_AssistReceived;
-	}
+	if (SPAWNINFO* pSpawn = GetSpawnByID(Assistee))
+		gbAssistComplete = AS_AssistSent;
 }
 
-//============================================================================
 //============================================================================
 
 class CPacketScrambler_Detours
@@ -298,9 +296,6 @@ public:
 };
 DETOUR_TRAMPOLINE_EMPTY(int CPacketScrambler_Detours::ntoh_Trampoline(int));
 
-using fGetAssistCalc = DWORD(*)(DWORD);
-static fGetAssistCalc GetAssistCalc = nullptr;
-
 // ntoh_detour actually climbs into the stack and pulls data out from the caller's
 // stack frame. Because of this we need to avoid optimizing this function as it
 // changes the layout of the stack. Keep optimizations off for this function or
@@ -310,26 +305,6 @@ int CPacketScrambler_Detours::ntoh_Detour(int nopcode)
 {
 	int hopcode = ntoh_Trampoline(nopcode);
 
-#if 0
-	if (hopcode == EQ_ASSIST_COMPLETE) {
-		DWORD calc = 0;
-		__asm {
-			push eax;
-			push ebx;
-			mov eax, dword ptr[esi + 0x19];
-			mov ebx, dword ptr[esi + 0x15];
-			xor eax, ebx;
-			mov calc, eax;
-			pop ebx;
-			pop eax;
-		};
-		DWORD assistflag = 0;
-		if (GetAssistCalc = (fGetAssistCalc)GetProcAddress(ghmq2ic, "GetAssistCalc")) {
-			assistflag = GetAssistCalc(calc);
-		}
-		SetAssist((BYTE*)assistflag);
-	}
-#endif
 	if (hopcode == EQ_ASSIST)
 	{
 		__asm {
@@ -354,39 +329,19 @@ int CPacketScrambler_Detours::ntoh_Detour(int nopcode)
 
 //============================================================================
 
-class Spellmanager
+class SpellManager_Detours
 {
 public:
-	bool LoadTextSpells_Trampoline(char*, char*, EQ_Spell*, SPELLCALCINFO*);
-	bool LoadTextSpells_Detour(char* FileName, char* AssocFileName, EQ_Spell* SpellArray, SPELLCALCINFO* EffectArray) // SpellAffectData*
+	bool LoadTextSpells_Trampoline(char*, char*, EQ_Spell*, SpellAffectData*);
+	bool LoadTextSpells_Detour(char* FileName, char* AssocFileName, EQ_Spell* SpellArray, SpellAffectData* EffectArray)
 	{
-		g_bDoingSpellChecks = true;
+		gbDoingSpellChecks = true;
 		bool ret = LoadTextSpells_Trampoline(FileName, AssocFileName, SpellArray, EffectArray);
-		g_bDoingSpellChecks = false;
+		gbDoingSpellChecks = false;
 		return ret;
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(bool Spellmanager::LoadTextSpells_Trampoline(char*, char*, EQ_Spell*, PSPELLCALCINFO));
-
-//============================================================================
-
-// helper function just initializes stack space so that sending an email
-// doesn't send uninitialized memory.
-void emotify();
-
-// we need this detour to clean up the stack because emote sends 1024 bytes
-// no matter how many bytes in the string, and MQ2 variables get left on the stack
-class CEmoteHook
-{
-public:
-	void SendEmote_Trampoline();
-	void SendEmote_Detour()
-	{
-		emotify();
-		SendEmote_Trampoline();
-	}
-};
-DETOUR_TRAMPOLINE_EMPTY(void CEmoteHook::SendEmote_Trampoline());
+DETOUR_TRAMPOLINE_EMPTY(bool SpellManager_Detours::LoadTextSpells_Trampoline(char*, char*, EQ_Spell*, SpellAffectData*));
 
 //============================================================================
 
@@ -396,6 +351,13 @@ public:
 	void ZoneMainUI_Trampoline();
 	void ZoneMainUI_Detour()
 	{
+		if (GetServerIDFromServerName(EQADDR_SERVERNAME) == ServerID::Invalid)
+		{
+			// unload
+			WriteChatf("MQ2 does not function on this server: %s -- UNLOADING", EQADDR_SERVERNAME);
+			EzCommand("/unload");
+		}
+
 		PluginsEndZone();
 		ZoneMainUI_Trampoline();
 	}
@@ -435,16 +397,11 @@ struct mckey
 
 // pointer to encryption pad for memory checker
 unsigned int* extern_array0 = nullptr;
-unsigned int* extern_array1 = nullptr;
-unsigned int* extern_array2 = nullptr;
-unsigned int* extern_array3 = nullptr;
-unsigned int* extern_array4 = nullptr;
 
 int memcheck0(unsigned char* buffer, size_t count);
 int memcheck1(unsigned char* buffer, size_t count, mckey key);
 int memcheck2(unsigned char* buffer, size_t count, mckey key);
-int memcheck3(unsigned char* buffer, size_t count, mckey key);
-int memcheck4(unsigned char* buffer, size_t count, mckey key);
+int memcheck4(unsigned char* buffer, size_t* count);
 
 // ***************************************************************************
 // Function:    HookMemChecker
@@ -452,378 +409,149 @@ int memcheck4(unsigned char* buffer, size_t count, mckey key);
 // ***************************************************************************
 
 DETOUR_TRAMPOLINE_EMPTY(int memcheck0_tramp(unsigned char* buffer, size_t count));
-DETOUR_TRAMPOLINE_EMPTY(int memcheck1_tramp(unsigned char* buffer, size_t count, mckey key));
+DETOUR_TRAMPOLINE_EMPTY(int memcheck1_tramp(unsigned char* buffer, size_t count, int key));
 DETOUR_TRAMPOLINE_EMPTY(int memcheck2_tramp(unsigned char* buffer, size_t count, mckey key));
 DETOUR_TRAMPOLINE_EMPTY(int memcheck3_tramp(unsigned char* buffer, size_t count, mckey key));
-DETOUR_TRAMPOLINE_EMPTY(int memcheck4_tramp(unsigned char* buffer, size_t count, mckey key));
-
-void HookInlineChecks(bool Patch)
-{
-	DWORD cmps[] = {
-		__AC1 + 6
-	};
-
-	DWORD cmps2[] = {
-		__AC2,
-		__AC3,
-		__AC4,
-		__AC5,
-		__AC6,
-		__AC7
-	};
-
-	int len2[] = { 6, 6, 6, 6, 6, 6 };
-	char NewData2[20];
-	static char OldData2[lengthof(cmps2)][20];
-
-	if (Patch)
-	{
-		uint32_t NewData = 0x7fffffff;
-
-		for (size_t i = 0; i < lengthof(cmps); i++)
-		{
-			void* dest = reinterpret_cast<void*>(cmps[i]);
-			void* src = &NewData;
-			size_t length = 4;
-
-			// Add the detour record
-			AddDetour(cmps[i], nullptr, nullptr, 4, "cmps");
-
-			// patch bytes
-			PatchMemory(dest, src, length);
-		}
-
-		memset(NewData2, 0x90, 20);
-
-		for (size_t i = 0; i < lengthof(cmps2); i++)
-		{
-			void* dest = reinterpret_cast<void*>(cmps2[i]);
-			void* src = NewData2;
-			size_t length = len2[i];
-
-			// Add the detour record
-			AddDetour(cmps2[i], nullptr, nullptr, length, "cmps2");
-
-			// Make a backup
-			memcpy(reinterpret_cast<void*>(OldData2[i]), dest, length);
-
-			// patch bytes
-			PatchMemory(dest, src, length);
-		}
-	}
-	else
-	{
-		uint32_t NewData = __AC1_Data;
-
-		for (size_t i = 0; i < lengthof(cmps); i++)
-		{
-			void* dest = reinterpret_cast<void*>(cmps[i]);
-			void* src = &NewData;
-			size_t length = 4;
-
-			// unpatch bytes
-			PatchMemory(dest, src, length);
-
-			// Remove detour record
-			RemoveDetour(cmps[i]);
-		}
-
-		for (size_t i = 0; i < lengthof(cmps2); i++)
-		{
-			void* dest = reinterpret_cast<void*>(cmps2[i]);
-			void* src = reinterpret_cast<void*>(OldData2[i]);
-			size_t length = len2[i];
-
-			// unpatch bytes
-			PatchMemory(dest, src, length);
-
-			// Remove detour record
-			RemoveDetour(cmps2[i]);
-		}
-	}
-}
+DETOUR_TRAMPOLINE_EMPTY(int memcheck4_tramp(unsigned char* buffer, size_t* count));
 
 void HookMemChecker(bool Patch)
 {
-	// hit the debugger if we don't hook this. take no chances
-	if (!EQADDR_MEMCHECK0
-		|| !EQADDR_MEMCHECK1
-		|| !EQADDR_MEMCHECK2
-		|| !EQADDR_MEMCHECK3
-		|| !EQADDR_MEMCHECK4)
-	{
-		__debugbreak();
-	}
-
 	DebugSpew("HookMemChecker - %satching", (Patch) ? "P" : "Unp");
 
-	if (Patch) {
-
-		EzDetour(EQADDR_MEMCHECK0, memcheck0, memcheck0_tramp);
-		EzDetour(EQADDR_MEMCHECK1, memcheck1, memcheck1_tramp);
-		EzDetour(EQADDR_MEMCHECK2, memcheck2, memcheck2_tramp);
-		EzDetour(EQADDR_MEMCHECK3, memcheck3, memcheck3_tramp);
-		EzDetour(EQADDR_MEMCHECK4, memcheck4, memcheck4_tramp);
+	if (Patch)
+	{
+		EzDetour(__MemChecker0, memcheck0, memcheck0_tramp);
+		EzDetour(__MemChecker1, memcheck1, memcheck1_tramp);
+		EzDetour(__MemChecker2, memcheck2, memcheck2_tramp);
+		EzDetour(__MemChecker3, memcheck2, memcheck3_tramp); // shares same impl as memcheck2.
+		EzDetour(__MemChecker4, memcheck4, memcheck4_tramp);
 
 		EzDetour(CPacketScrambler__ntoh, &CPacketScrambler_Detours::ntoh_Detour, &CPacketScrambler_Detours::ntoh_Trampoline);
-		EzDetour(CEverQuest__Emote, &CEmoteHook::SendEmote_Detour, &CEmoteHook::SendEmote_Trampoline);
-		EzDetour(Spellmanager__LoadTextSpells, &Spellmanager::LoadTextSpells_Detour, &Spellmanager::LoadTextSpells_Trampoline);
+		EzDetour(Spellmanager__LoadTextSpells, &SpellManager_Detours::LoadTextSpells_Detour, &SpellManager_Detours::LoadTextSpells_Trampoline);
 		EzDetour(CDisplay__ZoneMainUI, &CDisplay_Detours::ZoneMainUI_Detour, &CDisplay_Detours::ZoneMainUI_Trampoline);
 		EzDetour(CDisplay__PreZoneMainUI, &CDisplay_Detours::PreZoneMainUI_Detour, &CDisplay_Detours::PreZoneMainUI_Trampoline);
-
-		HookInlineChecks(Patch);
 	}
 	else
 	{
-		HookInlineChecks(Patch);
-
-		RemoveDetour(EQADDR_MEMCHECK0);
-		RemoveDetour(EQADDR_MEMCHECK1);
-		RemoveDetour(EQADDR_MEMCHECK2);
-		RemoveDetour(EQADDR_MEMCHECK3);
-		RemoveDetour(EQADDR_MEMCHECK4);
+		RemoveDetour(__MemChecker0);
+		RemoveDetour(__MemChecker1);
+		RemoveDetour(__MemChecker2);
+		RemoveDetour(__MemChecker3);
+		RemoveDetour(__MemChecker4);
 
 		RemoveDetour(CPacketScrambler__ntoh);
-		RemoveDetour(CEverQuest__Emote);
 		RemoveDetour(Spellmanager__LoadTextSpells);
 		RemoveDetour(CDisplay__ZoneMainUI);
 		RemoveDetour(CDisplay__PreZoneMainUI);
 	}
 }
 
-DWORD IsAddressDetoured(uint32_t address, size_t count)
+enum class AddressDetourState {
+	None = 0,
+	CodeDetour = 1,
+	KnownSkippable = 2,
+};
+
+AddressDetourState IsAddressDetoured(uint32_t address, size_t count)
 {
-	if (g_bDoingModuleChecks)
-		return 4;
-	if (g_bDoingSpellChecks)
-		return 3;
+	if (gbDoingSpellChecks || gbInMemCheck4 > 0)
+		return AddressDetourState::KnownSkippable;
 
-	if (address && *(DWORD*)address == 0x00905a4d)
-	{
-		// its a executable being checked
-		return 2;
-	}
+	// Executables start with a header that has 'MZ\x90\x00'. This is checking for this
+	// magic value and skipping the crc32 of an executable since we don't care about those.
+	if (address && count >= 4 &&  *(DWORD*)address == 0x00905a4d)
+		return AddressDetourState::KnownSkippable;
 
-	DetourRecord* detour = g_detours;
+	DetourRecord* detour = gDetours;
 	while (detour)
 	{
-		if (IsBadReadPtr(detour, 4))
-			return 0;
-
 		if (detour->count && address <= detour->addr && detour->addr <= (address + count))
-			return 1;
+			return AddressDetourState::CodeDetour;
 
 		detour = detour->pNext;
 	}
 
-	return 0;
+	return AddressDetourState::None;
+}
+
+inline uint8_t GetDetouredByte(uint32_t address, uint8_t original)
+{
+	DetourRecord* detour = gDetours;
+	while (detour)
+	{
+		if (detour->count && (address >= detour->addr) && (address < detour->addr + detour->count))
+		{
+			return detour->array[address - detour->addr];
+		}
+		detour = detour->pNext;
+	}
+
+	return original;
 }
 
 int memcheck0(unsigned char* buffer, size_t count)
 {
-	int origCrc = memcheck0_tramp(buffer, count);
-	unsigned int addr = (int)&buffer[0];
+	uint32_t addr = reinterpret_cast<uint32_t>(buffer);
 
 	// If we are not detouring memory that overlaps this region, just let it pass through.
-	DWORD dwGetOrg = IsAddressDetoured(addr, count);
-	if (dwGetOrg >= 2)
-		return origCrc;
-
-	if (!extern_array0)
+	AddressDetourState detourState = IsAddressDetoured(addr, count);
+	if (detourState != AddressDetourState::CodeDetour)
 	{
-		if (!EQADDR_ENCRYPTPAD0)
-		{
-			__debugbreak();
-		}
-
-		extern_array0 = reinterpret_cast<uint32_t*>(EQADDR_ENCRYPTPAD0);
+		return memcheck0_tramp(buffer, count);
 	}
 
-	unsigned int eax = 0xffffffff;
+	unsigned int crc32 = 0xffffffff;
 
 	for (size_t i = 0; i < count; i++)
 	{
 		// Feed in bytes to the hash algorithm using the source bytes of a detour
 		// if the data range overlaps an active detour.
-		unsigned char tmp = 0;
-		if (dwGetOrg == 1)
-		{
+		uint8_t value = GetDetouredByte(addr + i, buffer[i]);
 
-			unsigned int startAddr = (int)&buffer[i];
-			DetourRecord* detour = g_detours;
-
-			while (detour)
-			{
-				if (detour->count && (startAddr >= detour->addr) && (startAddr < detour->addr + detour->count))
-				{
-					tmp = detour->array[startAddr - detour->addr];
-					break;
-				}
-
-				detour = detour->pNext;
-			}
-
-			if (!detour)
-			{
-				tmp = buffer[i];
-			}
-		}
-		else
-		{
-			tmp = buffer[i];
-		}
-
-		int x = (int)tmp ^ (eax & 0xff);
-		eax = ((int)eax >> 8) & 0xffffff;
+		int x = (int)value ^ (crc32 & 0xff);
+		crc32 = ((int)crc32 >> 8) & 0xffffff;
 		x = extern_array0[x];
-		eax ^= x;
+		crc32 ^= x;
 	}
 
-	return eax;
-}
-
-using fGetHashSum = DWORD(*)(DWORD,DWORD);
-static fGetHashSum GetHashSum = nullptr;
-
-int memcheck5(DWORD count)
-{
-	if (!GetHashSum)
-	{
-		GetHashSum = (fGetHashSum)GetProcAddress(ghmq2ic, "GetHashSum");
-	}
-
-	if (GetHashSum)
-	{
-		return GetHashSum(count, __EP1_Data_x);
-	}
-
-	return 0;
+	return crc32;
 }
 
 int memcheck1(unsigned char* buffer, size_t count, mckey key)
 {
-	// leave this here. I uncomment now and then to check the hash -eqmule
-	//int realchecksum = memcheck1Tester(buffer, (UINT)count, (int)key.x);
+	uint32_t addr = reinterpret_cast<uint32_t>(buffer);
 	unsigned int ebx, eax, edx;
 
-	if (!extern_array1)
-	{
-		if (!EQADDR_ENCRYPTPAD1)
-		{
-			__debugbreak();
-		}
-
-		extern_array1 = (uint32_t*)EQADDR_ENCRYPTPAD1;
-	}
-
-	//                push    ebp
-	//                mov     ebp, esp
-	//                push    esi
-	//                push    edi
-	//                or      edi, 0FFFFFFFFh
-	//                cmp     [ebp+arg_8], 0
-	int creset = memcheck5(count);
-	if (key.x != 0 && creset == __EncryptPad5_x) {
-	//                mov     esi, 0FFh
-	//                mov     ecx, 0FFFFFFh
-	//                jz      short loc_4C3978
-	//                xor     eax, eax
-	//                mov     al, byte ptr [ebp+arg_8]
-	//                xor     edx, edx
-	//                mov     dl, byte ptr [ebp+arg_8+1]
-		edx = key.a[1];
-	//                not     eax
-	//                and     eax, esi
+	if (key.x != 0) {
 		eax = ~key.a[0] & 0xff;
-	//                mov     eax, encryptpad1[eax*4]
-		eax = extern_array1[eax];
-	//                xor     eax, ecx
+		eax = extern_array0[eax];
 		eax ^= 0xffffff;
-	//                xor     edx, eax
-	//                and     edx, esi
+
+		edx = key.a[1];
 		edx = (edx ^ eax) & 0xff;
-	//                sar     eax, 8
-	//                and     eax, ecx
 		eax = ((int)eax >> 8) & 0xffffff;
-	//                xor     eax, encryptpad1[edx*4]
-		eax ^= extern_array1[edx];
-	//                xor     edx, edx
-	//                mov     dl, byte ptr [ebp+arg_8+2]
+		eax ^= extern_array0[edx];
+
 		edx = key.a[2];
-	//                xor     edx, eax
-	//                sar     eax, 8
-	//                and     edx, esi
 		edx = (edx ^ eax) & 0xff;
-	//                and     eax, ecx
 		eax = ((int)eax >> 8) & 0xffffff;
-	//                xor     eax, encryptpad1[edx*4]
-		eax ^= extern_array1[edx];
-	//                xor     edx, edx
-	//                mov     dl, byte ptr [ebp+arg_8+3]
+		eax ^= extern_array0[edx];
+
 		edx = key.a[3];
-	//                xor     edx, eax
-	//                sar     eax, 8
-	//                and     edx, esi
 		edx = (edx ^ eax) & 0xff;
-	//                and     eax, ecx
 		eax = ((int)eax >> 8) & 0xffffff;
-	//                xor     eax, encryptpad1[edx*4]
-		eax ^= extern_array1[edx];
-	//                mov     edi, eax
-	//
-	} else { // key.x != 0
+		eax ^= extern_array0[edx];
+	} else {
 		eax = 0xffffffff;
 	}
-	//loc_4C3978:                             ; CODE XREF: new_memcheck1+16j
-	//                mov     edx, [ebp+arg_0]
-	//                mov     eax, [ebp+arg_4]
-	//                add     eax, edx
-	//                cmp     edx, eax
-	//                jnb     short loc_4C399F
-	//                push    ebx
-	//
-	//loc_4C3985:                             ; CODE XREF: new_memcheck1+8Fj
-	//                xor     ebx, ebx
-	//                mov     bl, [edx]
-	//                xor     ebx, edi
-	//                sar     edi, 8
-	//                and     ebx, esi
-	//                and     edi, ecx
-	//                xor     edi, encryptpad1[ebx*4]
-	//                inc     edx
-	//                cmp     edx, eax
-	//                jb      short loc_4C3985
-	//                pop     ebx
-	//
-	//loc_4C399F:                             ; CODE XREF: new_memcheck1+75j
-	//                mov     eax, edi
-	//                pop     edi
-	//                not     eax
-	//                pop     esi
-	//                pop     ebp
-	//                retn
-	//
 
 	for (size_t i = 0; i < count; i++)
 	{
-		unsigned char tmp;
-		unsigned int b = (int)& buffer[i];
-		DetourRecord* detour = g_detours;
-		while (detour)
-		{
-			if (detour->count && (b >= detour->addr) && (b < detour->addr + detour->count))
-			{
-				tmp = detour->array[b - detour->addr];
-				break;
-			}
+		uint8_t value = GetDetouredByte(addr + i, buffer[i]);
 
-			detour = detour->pNext;
-		}
-		if (!detour)
-			tmp = buffer[i];
-		ebx = ((int)tmp ^ eax) & 0xff;
+		ebx = ((int)value ^ eax) & 0xff;
 		eax = ((int)eax >> 8) & 0xffffff;
-		eax ^= extern_array1[ebx];
+		eax ^= extern_array0[ebx];
 	}
 	ebx = ~eax;
 	return ebx;
@@ -831,349 +559,75 @@ int memcheck1(unsigned char* buffer, size_t count, mckey key)
 
 int memcheck2(unsigned char* buffer, size_t count, mckey key)
 {
-	if (!extern_array2)
-	{
-		if (!EQADDR_ENCRYPTPAD2)
-		{
-			__debugbreak();
-		}
-
-		extern_array2 = (unsigned int*)EQADDR_ENCRYPTPAD2;
-	}
-
+	uint32_t addr = reinterpret_cast<uint32_t>(buffer);
 	unsigned int ebx, edx, eax;
 
-	//                push    ebp
-	//                mov     ebp, esp
-	//                push    ecx
-	//                xor     eax, eax
-	//                mov     al, [ebp+arg_8]
-	//                xor     edx, edx
-	//                mov     dl, [ebp+arg_9]
-	edx = key.a[1];
-	//                push    ebx
-	//                push    esi
-	//                mov     esi, 0FFh
-	//                mov     ecx, 0FFFFFFh
-	//                not     eax
-	//                and     eax, esi
 	eax = ~key.a[0] & 0xff;
-	//                mov     eax, encryptpad2[eax*4]
-	eax = extern_array2[eax];
-	//                xor     eax, ecx
+	eax = extern_array0[eax];
 	eax ^= 0xffffff;
-	//                xor     edx, eax
+
+	edx = key.a[1];
 	edx = (edx ^ eax) & 0xff;
-	//                sar     eax, 8
-	//                and     edx, esi
-	//                and     eax, ecx
 	eax = ((int)eax >> 8) & 0xffffff;
-	//                xor     eax, encryptpad2[edx*4]
-	eax ^= extern_array2[edx];
-	//                xor     edx, edx
-	//                mov     dl, [ebp+arg_A]
+	eax ^= extern_array0[edx];
+
 	edx = key.a[2];
-	//                push    edi
-	//                xor     edx, eax
 	edx = (edx ^ eax) & 0xff;
-	//                sar     eax, 8
-	//                and     edx, esi
-	//                and     eax, ecx
 	eax = ((int)eax >> 8) & 0xffffff;
-	//                xor     eax, encryptpad2[edx*4]
-	//                mov     edx, eax
-	edx = eax ^ extern_array2[edx];
-	//                call    null_sub_ret_0
-	eax = 0;
-	//                mov     edi, [ebp+arg_0]
-	//                xor     ebx, ebx
-	//                mov     bl, [ebp+arg_B]
+	edx = eax ^ extern_array0[edx];
+
 	ebx = key.a[3];
-	//                mov     [ebp+var_4], eax
-	//                xor     ebx, edx
 	ebx = (edx ^ ebx) & 0xff;
-	//                sar     edx, 8
-	//                and     edx, ecx
-	//                and     ebx, esi
 	edx = ((int)edx >> 8) & 0xffffff;
-	//                xor     edx, encryptpad2[ebx*4]
-	edx ^= extern_array2[ebx];
-	//                xor     edx, eax
-	edx ^= eax;
-	//                mov     eax, [ebp+arg_4]
-	//                add     eax, edi
-	//                jmp     short loc_4C5776
-	//; ---------------------------------------------------------------------------
-	//
-	//loc_4C5761:                             ; CODE XREF: new_memcheck2+8Fj
-	//                xor     ebx, ebx
-	//                mov     bl, [edi]
-	//                xor     ebx, edx
-	//                sar     edx, 8
-	//                and     ebx, esi
-	//                and     edx, ecx
-	//                xor     edx, encryptpad2[ebx*4]
-	//                inc     edi
-	//
-	//loc_4C5776:                             ; CODE XREF: new_memcheck2+76j
-	//                cmp     edi, eax
-	//                jb      short loc_4C5761
-	//                pop     edi
-	//                mov     eax, edx
-	//                not     eax
-	//                xor     eax, [ebp+var_4]
-	//                pop     esi
-	//                pop     ebx
-	//                leave
-	//                retn
+	edx ^= extern_array0[ebx];
 
 	for (size_t i = 0; i < count; i++)
 	{
-		unsigned char tmp;
-		unsigned int b = (int)&buffer[i];
-		DetourRecord* detour = g_detours;
+		uint8_t value = GetDetouredByte(addr + i, buffer[i]);
 
-		while (detour)
-		{
-			if (detour->count && (b >= detour->addr) && (b < detour->addr + detour->count))
-			{
-				tmp = detour->array[b - detour->addr];
-				break;
-			}
-
-			detour = detour->pNext;
-		}
-		if (!detour)
-			tmp = buffer[i];
-
-		ebx = ((int)tmp ^ edx) & 0xff;
+		ebx = ((int)value ^ edx) & 0xff;
 		edx = ((int)edx >> 8) & 0xffffff;
-		edx ^= extern_array2[ebx];
+		edx ^= extern_array0[ebx];
 	}
-	eax = ~edx ^ 0;
 
+	eax = ~edx;
 	return eax;
 }
 
-//extern int extern_arrray[];
-//unsigned int *extern_array3 = (unsigned int *)0x5C0E98;
-
-//  004F4AB9: 55                 push        ebp
-//  004F4ABA: 8B EC              mov         ebp,esp
-//  004F4ABC: 56                 push        esi
-
-//  bah - 83 /1 ib OR r/m16,imm8 r/m16 OR imm8 (sign-extended)
-//  sign extended!!!!!!!!!!!!
-
-//  004F4ABD: 83 C8 FF           or          eax,0FFh
-
-int memcheck3(unsigned char* buffer, size_t count, mckey key)
+int memcheck4(unsigned char* buffer, size_t* count_)
 {
-	unsigned int eax, ebx, edx;
+	uint32_t addr = reinterpret_cast<uint32_t>(buffer);
+	size_t count = *count_ & 0xff;
 
-	if (!extern_array3)
+	// If we are not detouring memory that overlaps this region, just let it pass through.
+	AddressDetourState detourState = IsAddressDetoured(addr, count);
+	if (detourState != AddressDetourState::CodeDetour)
 	{
-		if (!EQADDR_ENCRYPTPAD3)
-		{
-			__debugbreak();
-		}
-
-		extern_array3 = (unsigned int*)EQADDR_ENCRYPTPAD3;
+		gbInMemCheck4 = 1;
+		int result = memcheck4_tramp(buffer, count_);
+		gbInMemCheck4 = 0;
+		return result;
 	}
 
-	//                push    ebp
-	//                mov     ebp, esp
-	//                push    ecx
-	//                xor     eax, eax
-	//                mov     al, [ebp+arg_8]
-	//                xor     edx, edx
-	//                mov     dl, [ebp+arg_9]
-	edx = key.a[1];
-	//                push    ebx
-	//                push    esi
-	//                mov     esi, 0FFh
-	//                mov     ecx, 0FFFFFFh
-	//                not     eax
-	//                and     eax, esi
-	eax = ~key.a[0] & 0xff;
-	//                mov     eax, encryptpad3[eax*4]
-	eax = extern_array3[eax];
-	//                xor     eax, ecx
-	eax ^= 0xffffff;
-	//                xor     edx, eax
-	//                sar     eax, 8
-	//                and     edx, esi
-	edx = (edx ^ eax) & 0xff;
-	//                and     eax, ecx
-	eax = ((int)eax >> 8) & 0xffffff;
-	//                xor     eax, encryptpad3[edx*4]
-	eax ^= extern_array3[edx];
-	//                xor     edx, edx
-	//                mov     dl, [ebp+arg_A]
-	edx = key.a[2];
-	//                push    edi
-	//                xor     edx, eax
-	edx = (edx ^ eax) & 0xff;
-	//                sar     eax, 8
-	//                and     edx, esi
-	//                and     eax, ecx
-	eax = ((int)eax >> 8) & 0xffffff;
-	//                xor     eax, encryptpad3[edx*4]
-	//                mov     edx, eax
-	edx = eax ^ extern_array3[edx];
-
-	//                call    null_sub_ret_0
-	eax = 0;
-	//                mov     edi, [ebp+arg_0]
-	//                xor     ebx, ebx
-	//                mov     bl, [ebp+arg_B]
-	ebx = key.a[3];
-	//                mov     [ebp+var_4], eax
-	//                xor     ebx, edx
-	//                sar     edx, 8
-	//                and     edx, ecx
-	//                and     ebx, esi
-	ebx = (ebx ^ edx) & 0xff;
-	edx = ((int)edx >> 8) & 0xffffff;
-	//                xor     edx, encryptpad3[ebx*4]
-	edx ^= extern_array3[ebx];
-	//                xor     edx, eax
-	edx ^= eax;
-	//                mov     eax, [ebp+arg_4]
-	//                add     eax, edi
-	//                jmp     short loc_4C5813
-	//; ---------------------------------------------------------------------------
-	//
-	//loc_4C57FE:                             ; CODE XREF: new_memcheck3+8Fj
-	//                xor     ebx, ebx
-	//                mov     bl, [edi]
-	//                xor     ebx, edx
-	//                sar     edx, 8
-	//                and     ebx, esi
-	//                and     edx, ecx
-	//                xor     edx, encryptpad3[ebx*4]
-	//                inc     edi
-	//
+	unsigned int crc32 = 0xffffffff;
 
 	for (size_t i = 0; i < count; i++)
 	{
-		unsigned char tmp;
-		unsigned int b = (int)& buffer[i];
-		DetourRecord* detour = g_detours;
-		while (detour)
-		{
-			if (detour->count && (b >= detour->addr) && (b < detour->addr + detour->count))
-			{
-				tmp = detour->array[b - detour->addr];
-				break;
-			}
-			detour = detour->pNext;
-		}
-		if (!detour)
-			tmp = buffer[i];
+		// Feed in bytes to the hash algorithm using the source bytes of a detour
+		// if the data range overlaps an active detour.
+		uint8_t value = GetDetouredByte(addr + i, buffer[i]);
 
-		ebx = (tmp ^ edx) & 0xff;
-		edx = ((int)edx >> 8) & 0xffffff;
-		edx ^= extern_array3[ebx];
+		int x = (int)value ^ (crc32 & 0xff);
+		crc32 = ((int)crc32 >> 8) & 0xffffff;
+		x = extern_array0[x];
+		crc32 ^= x;
 	}
 
-	//loc_4C5813:                             ; CODE XREF: new_memcheck3+76j
-	//                cmp     edi, eax
-	//                jb      short loc_4C57FE
-	//                pop     edi
-	//                mov     eax, edx
-	//                not     eax
-	//                xor     eax, [ebp+var_4]
-	eax = ~edx ^ 0;
-
-	return eax;
-	//                pop     esi
-	//                pop     ebx
-	//                leave
-	//                retn
-}
-
-//?Crc32@UdpMisc@UdpLibrary@@SAHPBXHH@Z
-int memcheck4(unsigned char* buffer, size_t count, mckey key)
-{
-	int origCrc = memcheck4_tramp(buffer, count, key);
-	unsigned int addr = (int)&buffer[0];
-	DWORD dwGetOrg = IsAddressDetoured(addr, count);
-
-	if (dwGetOrg == 0)
-		return origCrc;
-
-	if (!extern_array4)
-	{
-		if (!EQADDR_ENCRYPTPAD4)
-		{
-			__debugbreak();
-		}
-
-		extern_array4 = (unsigned int*)EQADDR_ENCRYPTPAD4;
-	}
-
-	unsigned int eax, ebx, edx;
-
-	edx = key.a[1];
-	eax = ~key.a[0] & 0xff;
-	eax = extern_array4[eax];
-	eax ^= 0xffffff;
-	edx = (edx ^ eax) & 0xff;
-	eax = ((int)eax >> 8) & 0xffffff;
-	eax ^= extern_array4[edx];
-	edx = key.a[2];
-	edx = (edx ^ eax) & 0xff;
-	eax = ((int)eax >> 8) & 0xffffff;
-	edx = eax ^ extern_array4[edx];
-	eax = 0;
-	ebx = key.a[3];
-	ebx = (ebx ^ edx) & 0xff;
-	edx = ((int)edx >> 8) & 0xffffff;
-	edx ^= extern_array4[ebx];
-	edx ^= eax;
-
-	for (size_t i = 0; i < count; i++)
-	{
-		unsigned char tmp;
-		if (dwGetOrg == 1)
-		{
-			unsigned int b = (int)& buffer[i];
-			DetourRecord* detour = g_detours;
-			while (detour)
-			{
-				if (detour->count && (b >= detour->addr) &&
-					(b < detour->addr + detour->count)) {
-					tmp = detour->array[b - detour->addr];
-					break;
-				}
-				detour = detour->pNext;
-			}
-			if (!detour)
-				tmp = buffer[i];
-		}
-		else
-		{
-			tmp = buffer[i];
-		}
-
-		ebx = (tmp ^ edx) & 0xff;
-		edx = ((int)edx >> 8) & 0xffffff;
-		edx ^= extern_array4[ebx];
-	}
-	eax = ~edx ^ 0;
-
-	if (origCrc != eax)
-	{
-		__debugbreak();
-		return origCrc;
-	}
-	return eax;
+	return crc32;
 }
 
 void TryInitializeLogin();
 
-// MQ2Ic loads things from MQ2Main, but they've been moved to eqlib. So we forward them.
 DETOUR_TRAMPOLINE_EMPTY(void* WINAPI GetProcAddress_Trampoline(HMODULE, LPCSTR));
 void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
 {
@@ -1186,101 +640,51 @@ void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
 		return result;
 	}
 
-	static HMODULE eqlibModule = GetModuleHandle("eqlib.dll");
-
-	// If this is our module...
-	if (hModule == ghModule)
-	{
-		void* pRet = GetProcAddress_Trampoline(eqlibModule, lpProcName);
-
-		if (!pRet)
-		{
-			if (ci_equals("ppLocalPlayer", lpProcName))
-			{
-				pRet = &pLocalPlayer;
-			}
-			else if (ci_equals("ppCharData", lpProcName))
-			{
-				pRet = &pLocalPC;
-			}
-			else if (ci_equals("ppEverQuest", lpProcName))
-			{
-				pRet = &pEverQuest;
-			}
-			else if (ci_equals("ppEverQuestInfo", lpProcName))
-			{
-				pRet = &pEverQuestInfo;
-			}
-		}
-
-#if DEBUG_GETPROCADDRESS
-		char szModuleName[MAX_PATH] = { 0 };
-		char* pModuleName = szModuleName;
-
-		HMODULE hModuleCaller = nullptr;
-		if (::GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-			(LPCSTR)_ReturnAddress(), &hModuleCaller))
-		{
-			::GetModuleFileNameA(hModuleCaller, szModuleName, MAX_PATH);
-
-			if (char* value = strrchr(pModuleName, '\\'))
-			{
-				pModuleName = value + 1;
-			}
-		}
-
-		DebugSpewAlways("GetProcAddressHook: %s -> %p (from %s)", lpProcName, pRet, pModuleName);
-#endif
-
-		return pRet;
-	}
-
 	return nullptr;
 }
 
-void InitializeMQ2Detours()
+DETOUR_TRAMPOLINE_EMPTY(BOOL WINAPI FindModules_Trampoline(HANDLE, HMODULE*, DWORD, DWORD*));
+BOOL WINAPI FindModules_Detour(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWORD* lpcbNeeded)
 {
+	if (gbInMemCheck4 != 1) return FindModules_Trampoline(hProcess, hModule, cb, lpcbNeeded);
+	++gbInMemCheck4;
+	bool getMacroQuestModules = true;
+	BOOL result = GetFilteredModules(hProcess, hModule, cb, lpcbNeeded,
+		[&getMacroQuestModules](HMODULE hModule) -> bool { return IsMacroQuestModule(hModule, getMacroQuestModules); }) ? TRUE : FALSE;
+	--gbInMemCheck4;
+	return result;
+}
+
+static void Detours_Initialize()
+{
+	// hit the debugger if we don't hook this. take no chances
+	if (!__MemChecker0
+		|| !__MemChecker1
+		|| !__MemChecker2
+		|| !__MemChecker3
+		|| !__MemChecker4
+		|| !__EncryptPad0)
+	{
+		__debugbreak();
+	}
+
+	extern_array0 = reinterpret_cast<uint32_t*>(__EncryptPad0);
+
 	HookMemChecker(true);
 
 	DWORD GetProcAddress_Addr = (DWORD)&::GetProcAddress;
 	EzDetour(GetProcAddress_Addr, &GetProcAddress_Detour, &GetProcAddress_Trampoline);
+	EzDetour(__ModuleList, FindModules_Detour, FindModules_Trampoline);
 }
 
-void ShutdownMQ2Detours()
+static void Detours_Shutdown()
 {
 	DWORD GetProcAddress_Addr = (DWORD)&::GetProcAddress;
 	RemoveDetour(GetProcAddress_Addr);
+	RemoveDetour(__ModuleList);
 
 	HookMemChecker(false);
 	RemoveDetours();
 }
 
-//============================================================================
-// Workaround for /emote message sending uninitialized memory
-
-#pragma optimize("", off)
-// used to fill the buffer with random data
-void emotify2(char* A, int size)
-{
-	for (int i = 0; i < size; i += 1024)
-		memcpy(A + i, EQADDR_ENCRYPTPAD0, 1024);
-}
-
-void emotify()
-{
-	char buffer[1024 * 4];
-	emotify2(buffer, lengthof(buffer));
-}
-#pragma optimize( "", on )
-
 } // namespace mq
-
-//============================================================================
-// this shit is here to satisfy mq2ic. Just because its here doesn't mean you should ever use it
-class CCXStr
-{
-public:
-	MQLIB_OBJECT CCXStr& operator= (char const* str);
-	void* Ptr [[deprecated]] ;
-};
-FUNCTION_AT_ADDRESS(CCXStr& CCXStr::operator=(char const*), CXStr__operator_equal1);
