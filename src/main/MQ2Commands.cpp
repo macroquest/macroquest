@@ -43,11 +43,6 @@ void Unload(SPAWNINFO* pChar, char* szLine)
 	DebugSpew("%s", ToUnloadString);
 	WriteChatColor(ToUnloadString, USERCOLOR_DEFAULT);
 	gbUnload = true;
-
-	if (IC_MQ2Unload)
-	{
-		IC_MQ2Unload(GetCurrentProcessId());
-	}
 }
 
 // ***************************************************************************
@@ -405,12 +400,8 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 
 		while (pLoop)
 		{
-			// TODO: Remove mq2ic from plugin list
-			if (!ci_equals(pLoop->szFilename, "mq2ic"))
-			{
-				WriteChatColorf("%s", USERCOLOR_WHO, pLoop->szFilename);
-				Count++;
-			}
+			WriteChatColorf("%s", USERCOLOR_WHO, pLoop->szFilename);
+			Count++;
 			pLoop = pLoop->pNext;
 		}
 
@@ -433,8 +424,7 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 
 	if (!_strnicmp(szCommand, "unload", 6) || ci_find_substr(szCommand, "toggle") != -1 && IsPluginLoaded(szName))
 	{
-		// TODO: Remove mq2ic from plugin list
-		if (!ci_equals(szName, "mq2ic") && UnloadMQ2Plugin(szName))
+		if (UnloadMQ2Plugin(szName))
 		{
 			WriteChatf("Plugin '%s' unloaded.", szName);
 			// As below, this will capture MQ2NoAutomaticstuff as well.  As a long term fix, consider arg parsing.
@@ -5427,6 +5417,12 @@ void RemoveLevCmd(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
+// ***************************************************************************
+// Function:    MQCopyLayout
+// Usage:       /mqcopylayout
+// Author:      eqmule
+// ***************************************************************************
+
 void MQCopyLayoutImpl(const std::string& charName, const std::string& serverName, const std::string& arguments)
 {
 	if (!pLocalPlayer)
@@ -5524,6 +5520,47 @@ void MQCopyLayout(SPAWNINFO* pChar, char* szLine)
 		WriteChatf("    \ag\"/mqcopylayout character vox nohot noload nosoc\"\ax Will copy everything from the layout excluding hotbuttons, loadouts and socials from the layout using the windowed resolution.");
 		WriteChatf("    \ag\"/mqcopylayout character vox none\"\ax               Same as the example above: no hotbuttons, no loadouts, no socials");
 		WriteChatf("    \ag\"/mqcopylayout character vox res:1600x900\"\ax       Will copy the layout from the UI_character_vox.ini for the specific 1600x900 resolution (if that resolution actually exists in the UI ini.");
+	}
+}
+
+// ***************************************************************************
+// Function:    ListModulesCommand
+// Description: List loaded modules in the MQ directory to help with debugging stuck
+//              and/or broken dependencies/plugins.
+// Usage:       /mqlistmodules [name]
+// Author:      brainiac
+// ***************************************************************************
+void ListModulesCommand(PSPAWNINFO pChar, char* szLine)
+{
+	HANDLE hProcess = GetCurrentProcess();
+
+	std::vector<HMODULE> hModules;
+	hModules.resize(1024);
+
+	std::wstring search = mq::utf8_to_wstring(szLine);
+
+	DWORD cbNeeded = 0;
+	BOOL result = GetFilteredModules(hProcess, hModules.data(), hModules.size() * sizeof(HMODULE), &cbNeeded,
+		[&](HMODULE hModule) -> bool { return IsMacroQuestModule(hModule) || (!search.empty() && !IsModuleSubstring(hModule, search)); });
+	hModules.resize(cbNeeded / sizeof(HMODULE));
+
+	if (result)
+	{
+		WriteChatColor("List of matching modules", USERCOLOR_WHO);
+		WriteChatColor("--------------------------------", USERCOLOR_WHO);
+
+		int pos = 0;
+		for (HMODULE hModule : hModules)
+		{
+			wchar_t szModulePath[MAX_PATH];
+			::GetModuleFileNameW(hModule, szModulePath, MAX_PATH);
+
+			WriteChatColorf("%d: %S", USERCOLOR_WHO, ++pos, szModulePath);
+		}
+	}
+	else
+	{
+		WriteChatf("\arFailed to list modules: %x", GetLastError());
 	}
 }
 

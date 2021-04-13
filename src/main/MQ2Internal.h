@@ -425,10 +425,11 @@ struct MQModule
 	fMQEndZone           EndZone = 0;
 
 	bool                 loaded = false;
+	bool                 manualUnload = false;
 };
 
 void InitializeInternalModules();
-void AddInternalModule(MQModule* module);
+void AddInternalModule(MQModule* module, bool manualUnload = false);
 void RemoveInternalModule(MQModule* module);
 
 struct ModuleInitializer;
@@ -1371,5 +1372,11 @@ struct alphanum_less
 		return alphanum_comp(left, right) < 0;
 	}
 };
+
+//----------------------------------------------------------------------------
+bool GetFilteredModules(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWORD* lpcbNeeded,
+	const std::function<bool(HMODULE)>& filter);
+bool IsMacroQuestModule(HMODULE hModule, bool getMacroQuestModules = false);
+bool IsModuleSubstring(HMODULE hModule, std::wstring_view searchString);
 
 } // namespace mq

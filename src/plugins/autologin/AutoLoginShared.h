@@ -21,34 +21,6 @@
 #include <Windows.h>
 #include <wincrypt.h>
 
-// This is a constant set of live server shortnames
-const mq::ci_unordered::map<std::string_view, int> ServerData = {
-	{ "rizlona",     169 },
-	{ "lockjaw",     160 },
-	{ "ragefire",    159 },
-	{ "vox",         158 },
-	{ "trakanon",    155 },
-	{ "fippy",       156 },
-	{ "vulak",       157 },
-	{ "mayong",      163 },
-	{ "antonius",    100 },
-	{ "brekt",       162 },
-	{ "bertox",      102 },
-	{ "bristle",     104 },
-	{ "cazic",       105 },
-	{ "drinal",      106 },
-	{ "erollisi",    109 },
-	{ "firiona",     111 },
-	{ "luclin",      116 },
-	{ "povar",       123 },
-	{ "rathe",       127 },
-	{ "tunare",      140 },
-	{ "xegony",      144 },
-	{ "zek",         147 },
-	{ "beta",        2   },
-	{ "test",        1   }
-};
-
 bool DecryptData(DATA_BLOB* DataIn, DATA_BLOB* DataOut);
 
 struct ProfileRecord

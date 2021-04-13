@@ -389,13 +389,18 @@ public:
 		else
 		{
 			// get server
-			auto liveServerIter = ServerData.find(m_record->serverName);
-			std::string serverName = liveServerIter == std::cend(ServerData) ? GetServerLongName(m_record->serverName) : std::string(liveServerIter->first);
-			int server_id = liveServerIter == std::cend(ServerData) ? -1 : liveServerIter->second;
+			std::string serverName = m_record->serverName;
+			ServerID serverId = GetServerIDFromServerName(m_record->serverName.c_str());
+			if (serverId == ServerID::Invalid)
+			{
+				// Try looking up a name from the custom server list.
+				serverName = GetServerLongName(m_record->serverName);
 
-			auto server = GetServer([&serverName, &server_id](EQLS::EQClientServerData* s)
+			}
+
+			auto server = GetServer([&serverName, &serverId](EQLS::EQClientServerData* s)
 				{
-					return s->ID == server_id || ci_equals(s->ServerName, serverName);
+					return (serverId != ServerID::Invalid && s->ID == serverId) || ci_equals(s->ServerName, serverName);
 				});
 
 			if (!server)
@@ -412,7 +417,7 @@ public:
 			{
 				action();
 				// join server (both server and Info are already guaranteed to be non-null)
-				g_pLoginServerAPI->JoinServer(server->ID);
+				g_pLoginServerAPI->JoinServer((int)server->ID);
 				return false;
 			}
 		}
