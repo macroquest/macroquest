@@ -401,7 +401,7 @@ unsigned int* extern_array0 = nullptr;
 int memcheck0(unsigned char* buffer, size_t count);
 int memcheck1(unsigned char* buffer, size_t count, mckey key);
 int memcheck2(unsigned char* buffer, size_t count, mckey key);
-int memcheck4(unsigned char* buffer, size_t* count);
+int WINAPI memcheck4(unsigned char* buffer, size_t* count);
 
 // ***************************************************************************
 // Function:    HookMemChecker
@@ -412,7 +412,7 @@ DETOUR_TRAMPOLINE_EMPTY(int memcheck0_tramp(unsigned char* buffer, size_t count)
 DETOUR_TRAMPOLINE_EMPTY(int memcheck1_tramp(unsigned char* buffer, size_t count, int key));
 DETOUR_TRAMPOLINE_EMPTY(int memcheck2_tramp(unsigned char* buffer, size_t count, mckey key));
 DETOUR_TRAMPOLINE_EMPTY(int memcheck3_tramp(unsigned char* buffer, size_t count, mckey key));
-DETOUR_TRAMPOLINE_EMPTY(int memcheck4_tramp(unsigned char* buffer, size_t* count));
+DETOUR_TRAMPOLINE_EMPTY(int WINAPI memcheck4_tramp(unsigned char* buffer, size_t* count));
 
 void HookMemChecker(bool Patch)
 {
@@ -594,7 +594,7 @@ int memcheck2(unsigned char* buffer, size_t count, mckey key)
 	return eax;
 }
 
-int memcheck4(unsigned char* buffer, size_t* count_)
+int WINAPI memcheck4(unsigned char* buffer, size_t* count_)
 {
 	uint32_t addr = reinterpret_cast<uint32_t>(buffer);
 	size_t count = *count_ & 0xff;
