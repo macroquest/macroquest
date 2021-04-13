@@ -931,6 +931,8 @@ typedef IGFD::FileDialog ImGuiFileDialog;
 	IMGUIFILEDIALOG_API IGFD_Selection IGFD_Selection_Get();												// return an initialized IGFD_Selection
 	IMGUIFILEDIALOG_API void IGFD_Selection_DestroyContent(IGFD_Selection* vSelection);						// destroy the content of a IGFD_Selection
 
+	IMGUIFILEDIALOG_API void IGFD_DestroyString(char* str);
+
 	// constructor / destructor
 	IMGUIFILEDIALOG_API ImGuiFileDialog* IGFD_Create(void);													// create the filedialog context
 	IMGUIFILEDIALOG_API void IGFD_Destroy(ImGuiFileDialog *vContext);										// destroy the filedialog context

@@ -2990,6 +2990,15 @@ IMGUIFILEDIALOG_API void IGFD_Selection_DestroyContent(IGFD_Selection* vSelectio
 	}
 }
 
+IMGUIFILEDIALOG_API void IGFD_DestroyString(char* str)
+{
+	if (str)
+	{
+		delete[] str;
+		str = nullptr;
+	}
+}
+
 // create an instance of ImGuiFileDialog
 IMGUIFILEDIALOG_API ImGuiFileDialog* IGFD_Create(void)
 {

@@ -1020,13 +1020,14 @@ static void DrawLuaSettings()
 	{
 		if (IGFD_IsOk(s_luaDirDialog))
 		{
-			auto selected_path = std::make_unique<char*>(IGFD_GetCurrentPath(s_luaDirDialog));
+			std::shared_ptr<char[]> selected_path(IGFD_GetCurrentPath(s_luaDirDialog), IGFD_DestroyString);
+			//auto selected_path = std::make_shared<char*>(IGFD_GetCurrentPath(s_luaDirDialog));
 
 			std::error_code ec;
-			if (selected_path && std::filesystem::exists(*selected_path, ec))
+			if (selected_path && std::filesystem::exists(selected_path.get(), ec))
 			{
 				auto mq_path = std::filesystem::canonical(std::filesystem::path(gPathMQRoot), ec).string();
-				auto lua_path = std::filesystem::canonical(std::filesystem::path(*selected_path), ec).string();
+				auto lua_path = std::filesystem::canonical(std::filesystem::path(selected_path.get()), ec).string();
 
 				auto [mqEnd, luaEnd] = std::mismatch(mq_path.begin(), mq_path.end(), lua_path.begin());
 
