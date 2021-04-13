@@ -58,10 +58,12 @@ static const std::string luaRequirePaths = "luaRequirePaths";
 static const std::string dllRequirePaths = "dllRequirePaths";
 static const std::string infoGC = "infoGC";
 static const std::string squelchStatus = "squelchStatus";
+static const std::string showMenu = "showMenu";
 
 // configurable options, defaults provided where needed
 static uint32_t s_turboNum = 500;
-static std::string s_luaDir = (std::filesystem::path(gPathMQRoot) / "lua").string();
+static std::string s_luaDir = "lua";
+static std::string get_luaDir() { return (std::filesystem::path(gPathMQRoot) / s_luaDir).string(); }
 static std::vector<std::string> s_luaRequirePaths;
 static std::vector<std::string> s_dllRequirePaths;
 static uint64_t s_infoGC = 3600000; // 1 hour
@@ -73,7 +75,8 @@ static YAML::Node s_configNode;
 
 // this is for the imgui menu display
 static bool s_showMenu = false;
-static ImGuiFileDialog* s_fileDialog = nullptr;
+static ImGuiFileDialog* s_scriptLaunchDialog = nullptr;
+static ImGuiFileDialog* s_luaDirDialog = nullptr;
 
 // use a vector for s_running because we need to iterate it every pulse, and find only if a command is issued
 std::vector<std::shared_ptr<LuaThread>> s_running;
@@ -309,7 +312,7 @@ public:
 		}
 		case Members::Dir:
 			Dest.Type = pStringType;
-			strcpy_s(DataTypeTemp, s_luaDir.c_str());
+			strcpy_s(DataTypeTemp, get_luaDir().c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 
@@ -320,14 +323,14 @@ public:
 
 		case Members::RequirePaths:
 			Dest.Type = pStringType;
-			strcpy_s(DataTypeTemp, fmt::format("{}\\?.lua;{}{}", s_luaDir,
+			strcpy_s(DataTypeTemp, fmt::format("{}\\?.lua;{}{}", get_luaDir(),
 				s_luaRequirePaths.empty() ? "" : join(s_luaRequirePaths, ";")).c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 
 		case Members::CRequirePaths:
 			Dest.Type = pStringType;
-			strcpy_s(DataTypeTemp, fmt::format("{}\\?.dll;{}{}", s_luaDir,
+			strcpy_s(DataTypeTemp, fmt::format("{}\\?.dll;{}{}", get_luaDir(),
 				s_dllRequirePaths.empty() ? "" : join(s_dllRequirePaths, ";")).c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
@@ -402,7 +405,7 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 
 	// Need to do this first to get the script path and compare paths instead of just the names
 	// since there are multiple valid ways to name the same script
-	auto script_path = fs::path{ s_luaDir } / script;
+	auto script_path = fs::path{ get_luaDir() } / script;
 	if (!script_path.has_extension()) script_path.replace_extension(".lua");
 
 	std::error_code ec;
@@ -437,12 +440,12 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 		s_infoMap.erase(info_it);
 	}
 
-	auto entry = std::make_shared<LuaThread>(script, s_luaDir, s_luaRequirePaths, s_dllRequirePaths);
+	auto entry = std::make_shared<LuaThread>(script, get_luaDir(), s_luaRequirePaths, s_dllRequirePaths);
 	WriteChatStatus("Running lua script '%s' with PID %d", script.c_str(), entry->pid);
 	s_running.emplace_back(entry); // this needs to be in the running vector before we run at all
 
 	entry->RegisterLuaState(entry);
-	auto result = entry->StartFile(s_luaDir, s_turboNum, args);
+	auto result = entry->StartFile(get_luaDir(), s_turboNum, args);
 	if (result)
 	{
 		result->status = LuaThreadStatus::Running;
@@ -472,7 +475,7 @@ static uint32_t LuaParseCommand(const std::string& script)
 		s_infoMap.erase(info_it);
 	}
 
-	auto entry = std::make_shared<LuaThread>("lua parse", s_luaDir, s_luaRequirePaths, s_dllRequirePaths);
+	auto entry = std::make_shared<LuaThread>("lua parse", get_luaDir(), s_luaRequirePaths, s_dllRequirePaths);
 	WriteChatStatus("Running lua string with PID %d", entry->pid);
 	s_running.emplace_back(entry); // this needs to be in the running vector before we run at all
 
@@ -640,12 +643,12 @@ static void ReadSettings()
 
 	s_turboNum = s_configNode[turboNum].as<uint32_t>(s_turboNum);
 
-	s_luaDir = (std::filesystem::path(gPathMQRoot) / s_configNode[luaDir].as<std::string>(s_luaDir)).string();
+	s_luaDir = s_configNode[luaDir].as<std::string>(s_luaDir);
 
 	std::error_code ec;
-	if (!std::filesystem::exists(s_luaDir, ec) && !std::filesystem::create_directories(s_luaDir, ec))
+	if (!std::filesystem::exists(get_luaDir(), ec) && !std::filesystem::create_directories(get_luaDir(), ec))
 	{
-		WriteChatf("Failed to open or create directory at %s. Scripts will not run.", s_luaDir.c_str());
+		WriteChatf("Failed to open or create directory at %s. Scripts will not run.", get_luaDir().c_str());
 		WriteChatf("Error was %s", ec.message().c_str());
 	}
 
@@ -695,6 +698,8 @@ static void ReadSettings()
 	}
 
 	s_squelchStatus = s_configNode[squelchStatus].as<bool>(s_squelchStatus);
+
+	s_showMenu = s_configNode[showMenu].as<bool>(s_showMenu);
 
 	WriteSettings();
 }
@@ -812,6 +817,7 @@ static void LuaInfoCommand(const std::optional<std::string>& script = std::nullo
 static void LuaGuiCommand()
 {
 	s_showMenu = !s_showMenu;
+	s_configNode[showMenu] = s_showMenu;
 }
 
 void LuaCommand(SPAWNINFO* pChar, char* Buffer)
@@ -949,6 +955,230 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 
 } // namespace mq::lua
 
+
+#pragma region GUI
+
+static void DrawLuaSettings()
+{
+	using namespace mq::lua;
+
+	ImGui::BeginChild("##luasettings", ImVec2(0, -ImGui::GetFrameHeightWithSpacing() - 4), false);
+
+	bool squelch = s_configNode[squelchStatus].as<bool>(s_squelchStatus);
+	if (ImGui::Checkbox("Suppress Lua Messages", &squelch))
+	{
+		s_squelchStatus = squelch;
+		s_configNode[squelchStatus] = s_squelchStatus;
+	}
+
+	ImGui::SameLine();
+
+	bool showgui = s_configNode[showMenu].as<bool>(s_showMenu);
+	if (ImGui::Checkbox("Show Lua GUI", &showgui))
+	{
+		s_showMenu = showgui;
+		s_configNode[showMenu] = s_showMenu;
+	}
+
+	ImGui::NewLine();
+
+	ImGui::Text("Turbo Num:");
+	uint32_t turbo_selected = s_configNode[turboNum].as<uint32_t>(s_turboNum), turbo_min = 100U, turbo_max = 1000U;
+	if (ImGui::SliderScalar(
+		"##turboNumslider",
+		ImGuiDataType_U32,
+		&turbo_selected,
+		&turbo_min,
+		&turbo_max,
+		"%u Instructions per Frame",
+		ImGuiSliderFlags_None))
+	{
+		s_turboNum = turbo_selected;
+		s_configNode[turboNum] = s_turboNum;
+	}
+
+	ImGui::NewLine();
+
+	ImGui::Text("Lua Directory:");
+	auto dirDisplay = s_configNode[luaDir].as<std::string>(s_luaDir);
+	ImGui::InputText("##luadirname", &dirDisplay[0], dirDisplay.size(), ImGuiInputTextFlags_ReadOnly);
+	if (ImGui::Button("Choose...") && s_luaDirDialog != nullptr)
+	{
+		IGFD_OpenDialog2(
+			s_luaDirDialog,
+			"ChooseLuaDirKey",
+			"Select Lua Directory",
+			nullptr,
+			(std::string(gPathMQRoot) + "/").c_str(),
+			1,
+			nullptr,
+			ImGuiFileDialogFlags_None
+		);
+	}
+
+	if (IGFD_DisplayDialog(s_luaDirDialog, "ChooseLuaDirKey", ImGuiWindowFlags_None, ImVec2(350, 350), ImVec2(FLT_MAX, FLT_MAX)))
+	{
+		if (IGFD_IsOk(s_luaDirDialog))
+		{
+			auto selected_path = std::make_unique<char*>(IGFD_GetCurrentPath(s_luaDirDialog));
+
+			std::error_code ec;
+			if (selected_path && std::filesystem::exists(*selected_path, ec))
+			{
+				auto mq_path = std::filesystem::canonical(std::filesystem::path(gPathMQRoot), ec).string();
+				auto lua_path = std::filesystem::canonical(std::filesystem::path(*selected_path), ec).string();
+
+				auto [mqEnd, luaEnd] = std::mismatch(mq_path.begin(), mq_path.end(), lua_path.begin());
+
+				auto clean_name = [](std::string_view s)
+				{
+					s.remove_prefix(std::min(s.find_first_not_of("\\"), s.size()));
+					return std::string(s);
+				};
+
+				auto lua_name = mqEnd != mq_path.end()
+					? lua_path
+					: clean_name(std::string(luaEnd, lua_path.end()));
+
+				s_luaDir = lua_name;
+				s_configNode[luaDir] = s_luaDir;
+			}
+		}
+
+		IGFD_CloseDialog(s_luaDirDialog);
+	}
+
+	ImGui::NewLine();
+
+	ImGui::Text("Process Info Garbage Collect Time:");
+	float gc_selected = s_configNode[infoGC].as<uint64_t>(s_infoGC) / 60000.f;
+	if (ImGui::SliderFloat("##infoGCslider", &gc_selected, 0.f, 300.f, "%.3f minutes", ImGuiSliderFlags_None))
+	{
+		s_infoGC = static_cast<uint64_t>(gc_selected * 60000);
+		s_configNode[infoGC] = s_infoGC;
+	}
+
+	ImGui::NewLine();
+
+	if (ImGui::CollapsingHeader("Lua Require Paths:"))
+	{
+		if (ImGui::ListBoxHeader("##luarequirepaths"))
+		{
+			if (s_configNode[luaRequirePaths].IsSequence())
+			{
+				std::optional<size_t> to_remove = std::nullopt;
+				size_t idx = 0;
+				for (const auto& path : s_configNode[luaRequirePaths])
+				{
+					ImGui::Text(path.as<std::string>().c_str());
+					if (ImGui::IsItemHovered())
+					{
+						ImGui::BeginTooltip();
+						ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+						ImGui::TextUnformatted(path.as<std::string>().c_str());
+						ImGui::PopTextWrapPos();
+						ImGui::EndTooltip();
+					}
+
+					ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - ImGui::GetFrameHeight());
+					if (ImGui::Button((std::string("X##lua") + std::to_string(idx)).c_str(), ImVec2(0, ImGui::GetFrameHeight())))
+					{
+						to_remove = idx;
+					}
+
+					++idx;
+				}
+
+				if (to_remove)
+				{
+					s_luaRequirePaths.clear();
+					s_configNode[luaRequirePaths].remove(*to_remove);
+					for (const auto& path : s_configNode[luaRequirePaths])
+					{
+						auto fin_path = std::filesystem::path(gPathMQRoot) / std::filesystem::path(path.as<std::string>());
+						s_luaRequirePaths.emplace_back(fin_path.string());
+					}
+				}
+			}
+			ImGui::ListBoxFooter();
+
+			static char lua_req_buf[256] = { 0 };
+			if (ImGui::InputText("##luarequireadd", lua_req_buf, 256, ImGuiInputTextFlags_EnterReturnsTrue) && strlen(lua_req_buf) > 0)
+			{
+				s_configNode[luaRequirePaths].push_back<std::string>(lua_req_buf);
+				auto fin_path = std::filesystem::path(gPathMQRoot) / std::filesystem::path(lua_req_buf);
+				s_luaRequirePaths.emplace_back(fin_path.string());
+				memset(lua_req_buf, 0, 256);
+			}
+		}
+	}
+
+	ImGui::NewLine();
+
+	if (ImGui::CollapsingHeader("DLL Require Paths:"))
+	{
+		if (ImGui::ListBoxHeader("##dllrequirepaths"))
+		{
+			if (s_configNode[dllRequirePaths].IsSequence())
+			{
+				std::optional<size_t> to_remove = std::nullopt;
+				size_t idx = 0;
+				for (const auto& path : s_configNode[dllRequirePaths])
+				{
+					ImGui::Text(path.as<std::string>().c_str());
+					if (ImGui::IsItemHovered())
+					{
+						ImGui::BeginTooltip();
+						ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+						ImGui::TextUnformatted(path.as<std::string>().c_str());
+						ImGui::PopTextWrapPos();
+						ImGui::EndTooltip();
+					}
+
+					ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - ImGui::GetFrameHeight());
+					if (ImGui::Button((std::string("X##dll") + std::to_string(idx)).c_str(), ImVec2(0, ImGui::GetFrameHeight())))
+					{
+						to_remove = idx;
+					}
+
+					++idx;
+				}
+
+				if (to_remove)
+				{
+					s_dllRequirePaths.clear();
+					s_configNode[dllRequirePaths].remove(*to_remove);
+					for (const auto& path : s_configNode[dllRequirePaths])
+					{
+						auto fin_path = std::filesystem::path(gPathMQRoot) / std::filesystem::path(path.as<std::string>());
+						s_dllRequirePaths.emplace_back(fin_path.string());
+					}
+				}
+			}
+			ImGui::ListBoxFooter();
+
+			static char dll_req_buf[256] = { 0 };
+			if (ImGui::InputText("##dllrequireadd", dll_req_buf, 256, ImGuiInputTextFlags_EnterReturnsTrue) && strlen(dll_req_buf) > 0)
+			{
+				s_configNode[dllRequirePaths].push_back<std::string>(dll_req_buf);
+				auto fin_path = std::filesystem::path(gPathMQRoot) / std::filesystem::path(dll_req_buf);
+				s_dllRequirePaths.emplace_back(fin_path.string());
+				memset(dll_req_buf, 0, 256);
+			}
+		}
+	}
+
+	ImGui::EndChild();
+
+	if (ImGui::Button("Write Config"))
+	{
+		WriteSettings();
+	}
+}
+
+#pragma endregion
+
+
 /**
  * @fn InitializePlugin
  *
@@ -969,8 +1199,11 @@ PLUGIN_API void InitializePlugin()
 	pLuaType = new MQ2LuaType;
 	AddMQ2Data("Lua", &MQ2LuaType::dataLua);
 
-	s_fileDialog = IGFD_Create();
-	AddCascadeMenuItem("MQ2Lua", []() { s_showMenu = true; }, -1);
+	s_scriptLaunchDialog = IGFD_Create();
+	AddCascadeMenuItem("MQ2Lua", []() { s_showMenu = s_configNode[showMenu].as<bool>(s_showMenu); }, -1);
+
+	s_luaDirDialog = IGFD_Create();
+	AddSettingsPanel("plugins/MQ2Lua", DrawLuaSettings);
 }
 
 /**
@@ -992,7 +1225,10 @@ PLUGIN_API void ShutdownPlugin()
 	delete pLuaInfoType;
 
 	RemoveCascadeMenuItem("MQ2Lua");
-	if (s_fileDialog != nullptr) IGFD_Destroy(s_fileDialog);
+	if (s_scriptLaunchDialog != nullptr) IGFD_Destroy(s_scriptLaunchDialog);
+
+	RemoveSettingsPanel("plugins/MQ2Lua");
+	if (s_luaDirDialog != nullptr) IGFD_Destroy(s_luaDirDialog);
 }
 
 /**
@@ -1032,21 +1268,24 @@ PLUGIN_API void OnPulse()
 			return false;
 		}), s_running.end());
 
-	auto now_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-	static auto last_check_time = now_time;
-	if (now_time >= last_check_time + static_cast<time_t>(s_infoGC))
+	if (s_infoGC > 0)
 	{
-		// this doesn't need to be super tight, no one should be depending on this clearing objects at exactly the GC
-		// interval, so just clear out anything that existed last time we checked.
-		for (auto it = s_infoMap.begin(); it != s_infoMap.end();)
+		auto now_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+		static auto last_check_time = now_time;
+		if (now_time >= last_check_time + static_cast<time_t>(s_infoGC))
 		{
-			if (it->second.endTime > 0 && it->second.endTime <= last_check_time)
-				it = s_infoMap.erase(it);
-			else
-				++it;
-		}
+			// this doesn't need to be super tight, no one should be depending on this clearing objects at exactly the GC
+			// interval, so just clear out anything that existed last time we checked.
+			for (auto it = s_infoMap.begin(); it != s_infoMap.end();)
+			{
+				if (it->second.endTime > 0 && it->second.endTime <= last_check_time)
+					it = s_infoMap.erase(it);
+				else
+					++it;
+			}
 
-		last_check_time = now_time;
+			last_check_time = now_time;
+		}
 	}
 }
 
@@ -1257,14 +1496,14 @@ PLUGIN_API void OnUpdateImGui()
 			ImGui::InputText("args", (char*)vUserDatas, MAX_STRING);
 		};
 
-		if (ImGui::Button("Launch Script...", ImVec2(-1, 0)) && s_fileDialog != nullptr)
+		if (ImGui::Button("Launch Script...", ImVec2(-1, 0)) && s_scriptLaunchDialog != nullptr)
 		{
 			IGFD_OpenPaneDialog2(
-				s_fileDialog,
+				s_scriptLaunchDialog,
 				"ChooseScriptKey",
 				"Select Lua Script to Run",
 				".lua",
-				(s_luaDir + "/").c_str(),
+				(get_luaDir() + "/").c_str(),
 				args_entry,
 				350,
 				1,
@@ -1273,19 +1512,20 @@ PLUGIN_API void OnUpdateImGui()
 			);
 		}
 
-		if (IGFD_DisplayDialog(s_fileDialog, "ChooseScriptKey", ImGuiWindowFlags_NoCollapse, ImVec2(700, 350), ImVec2(FLT_MAX, FLT_MAX)))
+		if (IGFD_DisplayDialog(s_scriptLaunchDialog, "ChooseScriptKey", ImGuiWindowFlags_NoCollapse, ImVec2(700, 350), ImVec2(FLT_MAX, FLT_MAX)))
 		{
-			if (IGFD_IsOk(s_fileDialog))
+			if (IGFD_IsOk(s_scriptLaunchDialog))
 			{
-				auto selection = IGFD_GetSelection(s_fileDialog);
+				auto selection = IGFD_GetSelection(s_scriptLaunchDialog);
 				auto selected_file = selection.table->filePathName;
 
-				if (selected_file != nullptr && std::filesystem::exists(selected_file))
+				std::error_code ec;
+				if (selected_file != nullptr && std::filesystem::exists(selected_file, ec))
 				{
 					// make these both canonical to ensure we get a correct comparison
-					auto lua_path = std::filesystem::canonical(std::filesystem::path(s_luaDir)).string();
+					auto lua_path = std::filesystem::canonical(std::filesystem::path(get_luaDir()), ec).string();
 					auto script_path = std::filesystem::canonical(
-						std::filesystem::path(selected_file)
+						std::filesystem::path(selected_file), ec
 					).replace_extension("").string();
 
 					auto [rootEnd, scriptEnd] = std::mismatch(lua_path.begin(), lua_path.end(), script_path.begin());
@@ -1301,7 +1541,7 @@ PLUGIN_API void OnUpdateImGui()
 						: clean_name(std::string(scriptEnd, script_path.end()));
 
 					std::string args;
-					auto user_datas = static_cast<const char*>(IGFD_GetUserDatas(s_fileDialog));
+					auto user_datas = static_cast<const char*>(IGFD_GetUserDatas(s_scriptLaunchDialog));
 					if (user_datas != nullptr)
 						args = std::string(user_datas);
 
@@ -1311,10 +1551,12 @@ PLUGIN_API void OnUpdateImGui()
 				IGFD_Selection_DestroyContent(&selection);
 			}
 
-			IGFD_CloseDialog(s_fileDialog);
+			IGFD_CloseDialog(s_scriptLaunchDialog);
 		}
 
 		ImGui::End();
+
+		s_configNode[showMenu] = s_showMenu;
 	}
 }
 
