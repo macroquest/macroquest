@@ -1021,7 +1021,6 @@ static void DrawLuaSettings()
 		if (IGFD_IsOk(s_luaDirDialog))
 		{
 			std::shared_ptr<char[]> selected_path(IGFD_GetCurrentPath(s_luaDirDialog), IGFD_DestroyString);
-			//auto selected_path = std::make_shared<char*>(IGFD_GetCurrentPath(s_luaDirDialog));
 
 			std::error_code ec;
 			if (selected_path && std::filesystem::exists(selected_path.get(), ec))
@@ -1201,7 +1200,7 @@ PLUGIN_API void InitializePlugin()
 	AddMQ2Data("Lua", &MQ2LuaType::dataLua);
 
 	s_scriptLaunchDialog = IGFD_Create();
-	AddCascadeMenuItem("MQ2Lua", []() { s_showMenu = s_configNode[showMenu].as<bool>(s_showMenu); }, -1);
+	AddCascadeMenuItem("MQ2Lua", LuaGuiCommand, -1);
 
 	s_luaDirDialog = IGFD_Create();
 	AddSettingsPanel("plugins/MQ2Lua", DrawLuaSettings);
