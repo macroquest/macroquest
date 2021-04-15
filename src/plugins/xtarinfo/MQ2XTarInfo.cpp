@@ -389,11 +389,9 @@ PLUGIN_API void OnCleanUI()
 	CleanUp();
 }
 
-PLUGIN_API void SetGameState(int GameState)
+PLUGIN_API void OnReloadUI()
 {
-	if (GameState == GAMESTATE_CHARSELECT) {
-		Initialized = false; //will force it to load the settings from the INI once you are back in game.
-	}
+	Initialized = false;
 }
 
 PLUGIN_API void OnPulse()
