@@ -1,5 +1,7 @@
 variables:
-  GIT_STRATEGY: clone
+  GIT_STRATEGY: fetch
+  GIT_DEPTH: 10
+  GIT_CLEAN_FLAGS: none
 
 stages:
   - build
