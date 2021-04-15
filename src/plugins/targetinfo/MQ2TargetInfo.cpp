@@ -263,7 +263,7 @@ CXRect GetCXRectTBLRFromString(const std::string& Input, int defaultTop, int def
 	return CXRect(defaultLeft, defaultTop, defaultRight, defaultBottom);
 }
 
-void CleanUp(bool bUnload)
+void CleanUp()
 {
 	bDisablePluginDueToBadUI = false;
 
@@ -304,41 +304,38 @@ void CleanUp(bool bUnload)
 
 	if (GetGameState() == GAMESTATE_INGAME)
 	{
-		if (bUnload)
+		// Check that our controls still exist.
+		CXWnd* pBuffWindow = pTargetWnd->GetChildItem("Target_BuffWindow");
+		if (Target_BuffWindow && pBuffWindow == Target_BuffWindow)
 		{
-			// Check that our controls still exist.
-			CXWnd* pBuffWindow = pTargetWnd->GetChildItem("Target_BuffWindow");
-			if (Target_BuffWindow && pBuffWindow == Target_BuffWindow)
-			{
-				Target_BuffWindow->SetTopOffset(Target_BuffWindow_TopOffsetOld);
-			}
-			Target_BuffWindow = nullptr;
+			Target_BuffWindow->SetTopOffset(Target_BuffWindow_TopOffsetOld);
+		}
 
-			CLabelWnd* pAggroPctPlayerLabel = (CLabelWnd*)pTargetWnd->GetChildItem("Target_AggroPctPlayerLabel");
-			if (Target_AggroPctPlayerLabel && pAggroPctPlayerLabel == Target_AggroPctPlayerLabel)
-			{
-				Target_AggroPctPlayerLabel->SetTopOffset(Target_AggroPctPlayerLabel_TopOffsetOrg);
-				Target_AggroPctPlayerLabel->SetBottomOffset(Target_AggroPctPlayerLabel_BottomOffsetOrg);
-			}
-			Target_AggroPctPlayerLabel = nullptr;
+		CLabelWnd* pAggroPctPlayerLabel = (CLabelWnd*)pTargetWnd->GetChildItem("Target_AggroPctPlayerLabel");
+		if (Target_AggroPctPlayerLabel && pAggroPctPlayerLabel == Target_AggroPctPlayerLabel)
+		{
+			Target_AggroPctPlayerLabel->SetTopOffset(Target_AggroPctPlayerLabel_TopOffsetOrg);
+			Target_AggroPctPlayerLabel->SetBottomOffset(Target_AggroPctPlayerLabel_BottomOffsetOrg);
+		}
 
-			CLabelWnd* pAggroNameSecondaryLabel = (CLabelWnd*)pTargetWnd->GetChildItem("Target_AggroNameSecondaryLabel");
-			if (Target_AggroNameSecondaryLabel && pAggroNameSecondaryLabel == Target_AggroNameSecondaryLabel)
-			{
-				Target_AggroNameSecondaryLabel->SetTopOffset(Target_AggroNameSecondaryLabel_TopOffsetOrg);
-				Target_AggroNameSecondaryLabel->SetBottomOffset(Target_AggroNameSecondaryLabel_BottomOffsetOrg);
-			}
-			Target_AggroNameSecondaryLabel = nullptr;
+		CLabelWnd* pAggroNameSecondaryLabel = (CLabelWnd*)pTargetWnd->GetChildItem("Target_AggroNameSecondaryLabel");
+		if (Target_AggroNameSecondaryLabel && pAggroNameSecondaryLabel == Target_AggroNameSecondaryLabel)
+		{
+			Target_AggroNameSecondaryLabel->SetTopOffset(Target_AggroNameSecondaryLabel_TopOffsetOrg);
+			Target_AggroNameSecondaryLabel->SetBottomOffset(Target_AggroNameSecondaryLabel_BottomOffsetOrg);
+		}
 
-			CLabelWnd* pAggroPctSecondaryLabel = (CLabelWnd*)pTargetWnd->GetChildItem("Target_AggroPctSecondaryLabel");
-			if (Target_AggroPctSecondaryLabel && pAggroPctSecondaryLabel == Target_AggroPctSecondaryLabel)
-			{
-				Target_AggroPctSecondaryLabel->SetTopOffset(Target_AggroPctSecondaryLabel_TopOffsetOrg);
-				Target_AggroPctSecondaryLabel->SetBottomOffset(Target_AggroPctSecondaryLabel_BottomOffsetOrg);
-			}
-			Target_AggroPctSecondaryLabel = nullptr;
+		CLabelWnd* pAggroPctSecondaryLabel = (CLabelWnd*)pTargetWnd->GetChildItem("Target_AggroPctSecondaryLabel");
+		if (Target_AggroPctSecondaryLabel && pAggroPctSecondaryLabel == Target_AggroPctSecondaryLabel)
+		{
+			Target_AggroPctSecondaryLabel->SetTopOffset(Target_AggroPctSecondaryLabel_TopOffsetOrg);
+			Target_AggroPctSecondaryLabel->SetBottomOffset(Target_AggroPctSecondaryLabel_BottomOffsetOrg);
 		}
 	}
+	Target_BuffWindow = nullptr;
+	Target_AggroPctPlayerLabel = nullptr;
+	Target_AggroNameSecondaryLabel = nullptr;
+	Target_AggroPctSecondaryLabel = nullptr;
 
 	if (pTargetWnd)
 	{
@@ -637,6 +634,10 @@ void Initialize()
 			return;
 		}
 
+		if (!(InfoLabel && DistanceLabel && CanSeeLabel && PHButton))
+		{
+			WriteChatf("MQ2TargetInfo has failed to initialize, try toggling the plugin.");
+		}
 		Initialized = true;
 	}
 }
@@ -693,12 +694,12 @@ void CMD_TargetInfo(SPAWNINFO* pPlayer, char* szLine)
 	else if (ci_equals(szArg1, "reset"))
 	{
 		UnpackIni();
-		CleanUp(true);
+		CleanUp();
 		Initialized=false;
 	}
 	else if (ci_equals(szArg1, "reload"))
 	{
-		CleanUp(true);
+		CleanUp();
 		Initialized=false;
 	}
 	else
@@ -749,26 +750,23 @@ PLUGIN_API void InitializePlugin()
 	LoadPHs(curFilepath.string().data());
 
 	EzDetour(CTargetWnd__HandleBuffRemoveRequest, &MyCTargetWnd::HandleBuffRemoveRequest_Detour, &MyCTargetWnd::HandleBuffRemoveRequest_Tramp);
-	Initialize();
 }
 
 PLUGIN_API void ShutdownPlugin()
 {
-	CleanUp(true);
+	CleanUp();
 	RemoveCommand("/targetinfo");
 	RemoveDetour(CTargetWnd__HandleBuffRemoveRequest);
 }
 
 PLUGIN_API void OnCleanUI()
 {
-	CleanUp(false);
+	CleanUp();
 }
 
-PLUGIN_API void SetGameState(int GameState)
+PLUGIN_API void OnReloadUI()
 {
-	if (GameState == GAMESTATE_CHARSELECT) {
-		Initialized = false; //will force it to load the settings from the INI once you are back in game.
-	}
+	Initialized = false;
 }
 
 PLUGIN_API void OnPulse()
@@ -782,10 +780,10 @@ PLUGIN_API void OnPulse()
 	if (currentTime - lastPulseUpdate > 500) // 500ms
 	{
 		lastPulseUpdate = currentTime;
-		Initialize();
 
-		if (pTargetWnd)
+		if (pTargetWnd && pTargetWnd->IsVisible())
 		{
+			Initialize();
 			if (InfoLabel && DistanceLabel && CanSeeLabel && PHButton)
 			{
 				if (pTarget)
