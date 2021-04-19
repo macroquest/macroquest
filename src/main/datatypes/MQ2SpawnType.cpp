@@ -1573,21 +1573,21 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		return true;
 
 	case SpawnMembers::BuffsPopulated:
-		Dest.Set(gTargetbuffs && pTarget != nullptr);
+		Dest.Set(gTargetbuffs && pSpawn != nullptr);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::Buff:
 		Dest.Type = pCachedBuffType;
-		Dest.Ptr = pTarget;
+		Dest.Ptr = pSpawn;
 
 		if (!Index[0] || (Index[0] && IsNumber(Index)))
 		{
-			Dest.HighPart = GetCachedBuffAt(pTarget, Index[0] ? GetIntFromString(Index, 0) - 1 : 0);
+			Dest.HighPart = GetCachedBuffAt(pSpawn, Index[0] ? GetIntFromString(Index, 0) - 1 : 0);
 		}
 		else
 		{
-			Dest.HighPart = GetCachedBuff(pTarget,
+			Dest.HighPart = GetCachedBuff(pSpawn,
 				[&Index](const CachedBuff& buff)
 				{
 					return MaybeExactCompare(GetSpellNameByID(buff.spellId), Index);
@@ -1598,16 +1598,16 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 
 	case SpawnMembers::MyBuff:
 		Dest.Type = pCachedBuffType;
-		Dest.Ptr = pTarget;
+		Dest.Ptr = pSpawn;
 
 		if (!Index[0] || (Index[0] && IsNumber(Index)))
 		{
-			Dest.HighPart = GetCachedBuffAt(pTarget, Index[0] ? GetIntFromString(Index, 0) - 1 : 0,
+			Dest.HighPart = GetCachedBuffAt(pSpawn, Index[0] ? GetIntFromString(Index, 0) - 1 : 0,
 				[](const CachedBuff& buff) { return ci_equals(pLocalPC->Name, buff.casterName); });
 		}
 		else
 		{
-			Dest.HighPart = GetCachedBuff(pTarget,
+			Dest.HighPart = GetCachedBuff(pSpawn,
 				[&Index](const CachedBuff& buff)
 				{
 					return ci_equals(pLocalPC->Name, buff.casterName)
@@ -1619,12 +1619,12 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 
 	case SpawnMembers::BuffCount:
 		Dest.Type = pIntType;
-		Dest.DWord = GetCachedBuffCount(pTarget);
+		Dest.DWord = GetCachedBuffCount(pSpawn);
 		return true;
 
 	case SpawnMembers::MyBuffCount:
 		Dest.Type = pIntType;
-		Dest.DWord = GetCachedBuffCount(pTarget, [](const CachedBuff& buff)
+		Dest.DWord = GetCachedBuffCount(pSpawn, [](const CachedBuff& buff)
 			{
 				return ci_equals(pLocalPC->Name, buff.casterName);
 			});
@@ -1634,11 +1634,11 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		Dest.Type = pTimeStampType;
 		if (!Index[0] || (Index[0] && IsNumber(Index)))
 		{
-			auto slot = GetCachedBuffAt(pTarget, Index[0] ? GetIntFromString(Index, 0) - 1 : 0);
+			auto slot = GetCachedBuffAt(pSpawn, Index[0] ? GetIntFromString(Index, 0) - 1 : 0);
 			if (slot < 0)
 				return false;
 
-			auto buff = GetCachedBuffAtSlot(pTarget, slot);
+			auto buff = GetCachedBuffAtSlot(pSpawn, slot);
 			if (!buff)
 				return false;
 
@@ -1647,7 +1647,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		}
 		else
 		{
-			auto buffs = FilterCachedBuffs(pTarget,
+			auto buffs = FilterCachedBuffs(pSpawn,
 				[&Index](const CachedBuff& buff)
 				{
 					return ci_starts_with(GetSpellNameByID(buff.spellId), Index);
@@ -1668,13 +1668,13 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		Dest.Type = pTimeStampType;
 		if (!Index[0] || (Index[0] && IsNumber(Index)))
 		{
-			auto slot = GetCachedBuffAt(pTarget, Index[0] ? GetIntFromString(Index, 0) - 1 : 0,
+			auto slot = GetCachedBuffAt(pSpawn, Index[0] ? GetIntFromString(Index, 0) - 1 : 0,
 				[](const CachedBuff& buff) { return ci_equals(pLocalPC->Name, buff.casterName); });
 
 			if (slot < 0)
 				return false;
 
-			auto buff = GetCachedBuffAtSlot(pTarget, slot);
+			auto buff = GetCachedBuffAtSlot(pSpawn, slot);
 			if (!buff)
 				return false;
 
@@ -1683,7 +1683,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		}
 		else
 		{
-			auto buffs = FilterCachedBuffs(pTarget,
+			auto buffs = FilterCachedBuffs(pSpawn,
 				[&Index](const CachedBuff& buff)
 				{
 					return ci_equals(pLocalPC->Name, buff.casterName)
