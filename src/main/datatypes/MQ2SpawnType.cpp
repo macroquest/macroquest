@@ -1590,7 +1590,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 			Dest.HighPart = GetCachedBuff(pTarget,
 				[&Index](const CachedBuff& buff)
 				{
-					return ci_starts_with(GetSpellNameByID(buff.spellId), Index);
+					return MaybeExactCompare(GetSpellNameByID(buff.spellId), Index);
 				});
 		}
 

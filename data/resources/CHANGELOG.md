@@ -1,3 +1,6 @@
+April 18, 2021
+- Fixed spawn datatype Buff member index to use MaybeExactCompare (and allow for =)
+
 April 11, 2021
 - Added file dialog to imgui infrastructure
 - Added Lua gui that can launch scripts and observe script status
