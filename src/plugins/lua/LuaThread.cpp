@@ -40,11 +40,6 @@ namespace mq::lua {
 // this is the special sauce that lets us execute everything on the main thread without blocking
 static void ForceYield(lua_State* L, lua_Debug* D)
 {
-	// the caveat here is that this will just retry again in `turboNum` instructions, so slipping
-	// in and out of c boundaries could cause this to keep getting deferred and miss some
-	// opportunities to yield. If this becomes an issue, we could potentially mess with hooks to
-	// keep trying on returns (+1 line?) to see if we broken back through the boundary, but
-	// that could come with some performance costs since calling these hooks isn't cheap.
 	if (lua_isyieldable(L))
 	{
 		if (auto thread_ptr = LuaThread::get_from(L))
@@ -53,6 +48,11 @@ static void ForceYield(lua_State* L, lua_Debug* D)
 		}
 
 		lua_yield(L, 0);
+	}
+	else if (D->event != LUA_HOOKRET && D->event != LUA_HOOKTAILRET) // if we have either of these, we know we've already set the hook
+	{
+		// we can just keep retrying at every return (every chance we get to possibly change boundaries)
+		lua_sethook(L, ForceYield, LUA_MASKRET, 0);
 	}
 }
 
