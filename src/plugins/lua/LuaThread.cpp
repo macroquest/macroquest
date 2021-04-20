@@ -391,6 +391,14 @@ void LuaThread::RegisterLuaState(std::shared_ptr<LuaThread> self_ptr, bool injec
 {
 	auto& state = thread.state();
 
+	state["_old_dofile"] = state["dofile"];
+	state["dofile"] = [this](std::string_view file, sol::variadic_args args)
+	{
+		auto& state = thread.state();
+		auto file_path = std::filesystem::path(path).parent_path() / file;
+		return state["_old_dofile"](file_path.string(), args);
+	};
+
 	state["mqthread"] = LuaThreadRef(self_ptr);
 	state["print"] = [](sol::variadic_args va, sol::this_state s) {
 		WriteChatColorf("%s", USERCOLOR_CHAT_CHANNEL, lua_join(s, "", va).c_str());

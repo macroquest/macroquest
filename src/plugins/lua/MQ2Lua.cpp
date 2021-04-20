@@ -323,14 +323,14 @@ public:
 
 		case Members::RequirePaths:
 			Dest.Type = pStringType;
-			strcpy_s(DataTypeTemp, fmt::format("{}\\?.lua;{}{}", get_luaDir(),
+			strcpy_s(DataTypeTemp, fmt::format("{}\\?.lua;{}", get_luaDir(),
 				s_luaRequirePaths.empty() ? "" : join(s_luaRequirePaths, ";")).c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 
 		case Members::CRequirePaths:
 			Dest.Type = pStringType;
-			strcpy_s(DataTypeTemp, fmt::format("{}\\?.dll;{}{}", get_luaDir(),
+			strcpy_s(DataTypeTemp, fmt::format("{}\\?.dll;{}", get_luaDir(),
 				s_dllRequirePaths.empty() ? "" : join(s_dllRequirePaths, ";")).c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
