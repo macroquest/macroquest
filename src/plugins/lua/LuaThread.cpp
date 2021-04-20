@@ -21,18 +21,39 @@
 #include "bindings/lua_MQTypeVar.h"
 
 #include <mq/Plugin.h>
+#include <luajit.h>
+
+#if LUAJIT_VERSION_NUM == 20005
+bool lua_isyieldable(lua_State* L)
+{
+	// this is defined in luajit 2.1, but not in 2.0.5 -- this is a hack that is steady because
+	// it's a single version, and it's preferable to pulling in 2 internal luajit headers to do
+	// this nicely (lj_obj.h and lj_frame.h)
+
+	// return ((intptr_t)(L->cframe) & CFRAME_RESUME);
+	return (*(intptr_t*)((char*)L + 0x28) & 1);
+}
+#endif
 
 namespace mq::lua {
 
 // this is the special sauce that lets us execute everything on the main thread without blocking
 static void ForceYield(lua_State* L, lua_Debug* D)
 {
-	if (auto thread_ptr = LuaThread::get_from(L))
+	// the caveat here is that this will just retry again in `turboNum` instructions, so slipping
+	// in and out of c boundaries could cause this to keep getting deferred and miss some
+	// opportunities to yield. If this becomes an issue, we could potentially mess with hooks to
+	// keep trying on returns (+1 line?) to see if we broken back through the boundary, but
+	// that could come with some performance costs since calling these hooks isn't cheap.
+	if (lua_isyieldable(L))
 	{
-		thread_ptr->yieldToFrame = true;
-	}
+		if (auto thread_ptr = LuaThread::get_from(L))
+		{
+			thread_ptr->yieldToFrame = true;
+		}
 
-	lua_yield(L, 0);
+		lua_yield(L, 0);
+	}
 }
 
 bool ThreadState::CheckCondition(const LuaThread& thread, std::optional<sol::function>& func)
@@ -369,45 +390,6 @@ static int LoadMQRequire(lua_State* L)
 void LuaThread::RegisterLuaState(std::shared_ptr<LuaThread> self_ptr, bool injectMQ)
 {
 	auto& state = thread.state();
-
-	state["_old_require"] = state["require"];
-	state["require"] = [this](std::string_view mod, sol::variadic_args args)
-	{
-		auto& state = thread.state();
-
-		if (hookProtectionCount++ == 0)
-			lua_sethook(state, nullptr, 0, 0);
-
-		auto ret = state["_old_require"](mod, args);
-
-		if (--hookProtectionCount < 0)
-			hookProtectionCount = 0;
-
-		if (hookProtectionCount == 0)
-			lua_sethook(state, ForceYield, LUA_MASKCOUNT, 50);
-
-		return ret;
-	};
-
-	state["_old_dofile"] = state["dofile"];
-	state["dofile"] = [this](std::string_view file, sol::variadic_args args)
-	{
-		auto& state = thread.state();
-
-		auto file_path = std::filesystem::path(path).parent_path() / file;
-		if (hookProtectionCount++ == 0)
-			lua_sethook(state, nullptr, 0, 0);
-
-		auto ret = state["_old_dofile"](file_path.string(), args);
-
-		if (--hookProtectionCount < 0)
-			hookProtectionCount = 0;
-
-		if (hookProtectionCount == 0)
-			lua_sethook(state, ForceYield, LUA_MASKCOUNT, 50);
-
-		return ret;
-	};
 
 	state["mqthread"] = LuaThreadRef(self_ptr);
 	state["print"] = [](sol::variadic_args va, sol::this_state s) {
