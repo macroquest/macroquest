@@ -522,7 +522,7 @@ static void LuaStopCommand(std::optional<std::string> script = std::nullopt)
 		}
 		else
 		{
-			WriteChatStatus("No lua script '%s' to end", *script);
+			WriteChatStatus("No lua script '%s' to end", script->c_str());
 		}
 	}
 	else
@@ -568,7 +568,7 @@ static void LuaPauseCommand(std::optional<std::string> script = std::nullopt)
 		}
 		else
 		{
-			WriteChatStatus("No lua script '%s' to pause/resume", *script);
+			WriteChatStatus("No lua script '%s' to pause/resume", script->c_str());
 		}
 	}
 	else
@@ -793,7 +793,7 @@ static void LuaInfoCommand(const std::optional<std::string>& script = std::nullo
 		}
 		else
 		{
-			WriteChatStatus("No lua script '%s'", *script);
+			WriteChatStatus("No lua script '%s'", script->c_str());
 		}
 	}
 	else
