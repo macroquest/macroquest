@@ -26,6 +26,47 @@ $vcpkg_triplet = "x86-windows-static"
 $vcpkg_mq_file = "vcpkg_mq.txt"
 $vcpkg_last_bootstrap_file = "vcpkg_mq_last_bootstrap.txt"
 
+function Wait-Process {
+    [CmdletBinding()]
+
+    Param (
+        [Parameter(
+            Mandatory = $true,
+            ValueFromPipeLine = $true,
+            ValueFromPipelineByPropertyName = $true
+        )]
+        [string]$Name,
+        [Parameter(
+            Mandatory = $false,
+            ValueFromPipeLine = $true,
+            ValueFromPipelineByPropertyName = $true
+        )]
+        [int]$Timeout = 600,
+        [Parameter(
+            Mandatory = $false,
+            ValueFromPipeLine = $true,
+            ValueFromPipelineByPropertyName = $true
+        )]
+        [int]$SleepInterval = 30,
+        [Parameter(
+            Mandatory = $false,
+            ValueFromPipeLine = $true,
+            ValueFromPipelineByPropertyName = $true
+        )]
+        [string]$Filter = "*"
+    )
+
+    while ($Timeout -gt 0 -And @(Get-CimInstance Win32_Process -Filter "name = '$Name'" | Where-Object {$_.CommandLine -like $Filter}).Count -gt 0) {
+        Write-Host "$ProjectName waiting for another $Name process to complete, timeout in $Timeout seconds..."
+        $Timeout -= $SleepInterval
+        Start-Sleep $SleepInterval
+    }
+    if ($Timeout -lt 1)
+    {
+        Write-Host "$ProjectName timed out waiting for another $Name process to complete."
+    }
+}
+
 # If there is not a vcpkg_mq_file, then no reason to continue
 if (-Not (Test-Path -Path "$ProjectDirectory\$vcpkg_mq_file")) {
     exit 0
@@ -52,14 +93,21 @@ catch [System.Management.Automation.CommandNotFoundException]
     $gitAvailable = $false
 }
 
-# For simultaneous runs, if bootstrap is currently running, wait until it finishes
-$timeout = 120
-while (((Get-CimInstance Win32_Process -Filter "name = 'powershell.exe'" | Where-Object {$_.CommandLine -like "*scripts\bootstrap.ps1*"}).Count -gt 0) -And ($timeout -gt 0)) {
-    $waitInterval = 30
-    Write-Host "$ProjectName waiting for another vcpkg bootstrap to complete, timeout in $timeout seconds..."
-    $timeout -= $waitInterval
-    Start-Sleep $waitInterval
+# If multiple vcpkg_mq processes are running, try to divide them up so they're not running at EXACTLY the same time.
+$ProcessList = @(Get-CimInstance Win32_Process -Filter "name = 'powershell.exe'" | Where-Object {$_.CommandLine -like "*vcpkg_mq.ps1*"} | Sort-Object -Property ProcessId)
+if ($ProcessList.Count -gt 1) {
+    $ProcessIndex = 0;
+    ForEach ($process in $ProcessList) {
+        if ($process.ProcessId -eq $PID) {
+            break
+        }
+        $ProcessIndex++
+    }
+    Start-Sleep $($ProcessIndex * 5)
 }
+
+# For simultaneous runs, if bootstrap is currently running, wait until it finishes
+Wait-Process -Name "powershell.exe" -Filter "*scripts\bootstrap.ps1*"
 
 # Only bootstrap if we have no vcpkg or an old vcpkg
 $performBootstrap = $false
@@ -179,6 +227,8 @@ if ($vcpkgInstallTable.Count -ne 0) {
         }
         $vcpkg_command += ":$vcpkg_triplet"
     }
+    # For simultaneous runs, if vcpkg.exe is currently running, wait until it finishes.
+    Wait-Process -Name "vcpkg.exe"
     & ./vcpkg.exe $vcpkg_command.Split(" ")
 }
 

@@ -17,8 +17,6 @@
 
 #include <mq/utils/Args.h>
 
-#include <locale>
-#include <codecvt>
 #include <regex>
 #include <memory>
 #include <Yaml.hpp>
@@ -354,7 +352,7 @@ static void AddAnonymization(std::string_view Name, Anonymization Strategy, std:
 	{
 		// just update things
 		(*replacer_it)->update_strategy(Strategy);
-		(*replacer_it)->update_target(Replace); 
+		(*replacer_it)->update_target(Replace);
 		WriteChatf("Updated anonymization \at%s\ax with \at%s\ax%s",
 			Name.data(),
 			GetStringFromAnonymization(Strategy).data(),
