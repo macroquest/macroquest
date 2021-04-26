@@ -32,6 +32,7 @@ enum class MacroMembers
 	IsTLO,
 	IsOuterVariable,
 	CurSub,
+	Variable,
 };
 
 enum class MacroMethods
@@ -55,6 +56,7 @@ MQ2MacroType::MQ2MacroType()
 	ScopedTypeMember(MacroMembers, IsTLO);
 	ScopedTypeMember(MacroMembers, IsOuterVariable);
 	ScopedTypeMember(MacroMembers, CurSub);
+	ScopedTypeMember(MacroMembers, Variable);
 
 	ScopedTypeMethod(MacroMethods, Undeclared);
 }
@@ -234,6 +236,18 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			Dest.DWord = size;
 			return true;
 		}
+
+	case MacroMembers::Variable:
+	{
+		auto var = FindMQ2DataVariable(Index);
+		if (var != nullptr)
+		{
+			Dest = var->Var;
+			return true;
+		}
+
+		return false;
+	}
 
 	default: break;
 	}
