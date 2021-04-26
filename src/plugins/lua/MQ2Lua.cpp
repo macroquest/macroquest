@@ -207,9 +207,14 @@ public:
 			return true;
 
 		case Members::EndTime:
-			Dest.Type = pInt64Type;
-			Dest.Set(info->endTime);
-			return true;
+			if (info->endTime > 0)
+			{
+				Dest.Type = pStringType;
+				ctime_s(DataTypeTemp, MAX_STRING, &info->endTime);
+				return true;
+			}
+
+			return false;
 
 		case Members::ReturnCount:
 			Dest.Type = pIntType;
