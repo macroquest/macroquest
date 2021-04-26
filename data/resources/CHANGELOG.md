@@ -1,3 +1,7 @@
+April 26, 2021
+- Allowed access to TreeView members as if they were list entries
+- Added ${Macro.Variable[]} member to get macro variables outside the macro environment
+
 April 18, 2021
 - Fixed spawn datatype Buff member index to use MaybeExactCompare (and allow for =)
 
