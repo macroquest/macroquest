@@ -804,7 +804,7 @@ bool SendListSelect(const char* WindowName, const char* ScreenID, int Value)
 		// 1. Change the current selection
 		// 2. Emit a notification so that the parent can react.
 
-		if (pWnd->GetType() == UI_Listbox)
+		if (pWnd->GetType() == UI_Listbox || pWnd->GetType() == UI_TreeView)
 		{
 			CListWnd* listWnd = static_cast<CListWnd*>(pWnd);
 			listWnd->SetCurSel(Value);
@@ -847,7 +847,7 @@ bool SendListSelect2(CXWnd* pWnd, int ListIndex)
 		return false;
 	}
 
-	if (pWnd->GetType() == UI_Listbox)
+	if (pWnd->GetType() == UI_Listbox || pWnd->GetType() == UI_TreeView)
 	{
 		CListWnd* listWnd = static_cast<CListWnd*>(pWnd);
 

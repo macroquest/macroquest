@@ -193,7 +193,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			if (ListIndex < 0)
 				ListIndex = 0;
 
-			if (pWnd->GetType() == UI_Listbox)
+			if (pWnd->GetType() == UI_Listbox || pWnd->GetType() == UI_TreeView)
 			{
 				CListWnd* listWnd = static_cast<CListWnd*>(pWnd);
 				if (listWnd->ItemsArray.Count < ListIndex)
@@ -505,7 +505,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			CComboWnd* combownd = static_cast<CComboWnd*>(pWnd);
 			pListWnd = combownd->pListWnd;
 		}
-		else if (pWnd->GetType() == UI_Listbox)
+		else if (pWnd->GetType() == UI_Listbox || pWnd->GetType() == UI_TreeView)
 		{
 			pListWnd = static_cast<CListWnd*>(pWnd);
 		}
@@ -630,7 +630,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
-		if (pWnd->GetType() == UI_Listbox)
+		if (pWnd->GetType() == UI_Listbox || pWnd->GetType() == UI_TreeView)
 		{
 			CListWnd* clist = static_cast<CListWnd*>(pWnd);
 			Dest.DWord = clist->ItemsArray.Count;
@@ -676,7 +676,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			return true;
 		}
 
-		if (pWnd->GetType() == UI_Listbox)
+		if (pWnd->GetType() == UI_Listbox || pWnd->GetType() == UI_TreeView)
 		{
 			CListWnd* list = static_cast<CListWnd*>(pWnd);
 			Dest.DWord = list->GetCurSel() + 1;

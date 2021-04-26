@@ -2623,7 +2623,7 @@ public:
 
 #if 0
 			// If this is a list box, then also traverse its child list windows.
-			if (pWnd->GetType() == UI_Listbox)
+			if (pWnd->GetType() == UI_Listbox || pWnd->GetType() == UI_TreeView)
 			{
 				CListWnd* listWnd = static_cast<CListWnd*>(pWnd);
 
