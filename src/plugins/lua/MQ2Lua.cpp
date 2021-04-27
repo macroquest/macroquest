@@ -365,8 +365,24 @@ public:
 				return false;
 			}
 
-			auto pid = GetIntFromString(Index, -1);
-			auto it = s_infoMap.find(pid);
+			auto pid = GetIntFromString(Index, 0UL);
+			auto it = s_infoMap.end();
+			if (pid > 0UL)
+			{
+				it = std::find_if(s_infoMap.begin(), s_infoMap.end(), [&pid](const auto& kv) -> bool
+					{
+						return kv.first == pid;
+					});
+			}
+			else
+			{
+				std::string script(Index);
+				it = std::find_if(s_infoMap.begin(), s_infoMap.end(), [&script](const auto& kv) -> bool
+					{
+						return kv.second.name == script;
+					});
+			}
+
 			if (it != s_infoMap.end())
 			{
 				Dest.Set(it->second);
