@@ -122,6 +122,48 @@ inline const char* GetClassDesc(DWORD ClassID)
 	}
 }
 
+inline const char* GetClassShortName(DWORD ClassID)
+{
+	switch (ClassID)
+	{
+		case PlayerClass::Shaman:
+			return "Shm";
+		case PlayerClass::Necromancer:
+			return "Nec";
+		case PlayerClass::Mage:
+			return "Mag";
+		case PlayerClass::Enchanter:
+			return "Enc";
+		case PlayerClass::Wizard:
+			return "Wiz";
+		case PlayerClass::Druid:
+			return "Dru";
+		case PlayerClass::Bard:
+			return "Brd";
+		case PlayerClass::Cleric:
+			return "Clr";
+		case PlayerClass::Paladin:
+			return "Pal";
+		case PlayerClass::Ranger:
+			return "Rng";
+		case PlayerClass::Rogue:
+			return "Rog";
+		case PlayerClass::Warrior:
+			return "War";
+		case PlayerClass::Beastlord:
+			return "Bst";
+		case PlayerClass::Berserker:
+			return "Ber";
+		case PlayerClass::Shadowknight:
+			return "Shd";
+		case PlayerClass::Monk:
+			return "Mnk";
+		default:
+			// return the Unk if the class type is unknown.
+			return "Unk";
+	}
+}
+
 inline const char* GetTypeDesc(eSpawnType TypeID)
 {
 	switch (TypeID)
