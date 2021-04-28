@@ -684,6 +684,17 @@ int GetGaugeValueFromEQ_Detour(int EQType, CXStr& Str, bool* arg3, unsigned long
 class CTextureFontHook
 {
 public:
+	int DrawWrappedText_Trampoline(const CXStr&, int, int, int, const CXRect&, COLORREF, uint16_t, int) const;
+	int DrawWrappedText_Detour(const CXStr& Str, int x, int y, int z, const CXRect& BoundRect, COLORREF Color, uint16_t Flags = 0, int StartX = 0) const
+	{
+		if (MaybeAnonymize(Str))
+		{
+			return DrawWrappedText_Trampoline(Anonymize(Str), x, y, z, BoundRect, Color, Flags, StartX);
+		}
+
+		return DrawWrappedText_Trampoline(Str, x, y, z, BoundRect, Color, Flags, StartX);
+	}
+
 	int DrawWrappedText1_Trampoline(const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const;
 	int DrawWrappedText1_Detour(const CXStr& Str, const CXRect& Rect, const CXRect& BoundRect, COLORREF Color, uint16_t Flags = 0, int StartX = 0) const
 	{
@@ -708,6 +719,7 @@ public:
 };
 
 DETOUR_TRAMPOLINE_EMPTY(int GetGaugeValueFromEQ_Trampoline(int, CXStr&, bool*, unsigned long*));
+DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText_Trampoline(const CXStr&, int, int, int, const CXRect&, COLORREF, uint16_t, int) const);
 DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText1_Trampoline(const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const);
 DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText2_Trampoline(CTextObjectInterface*, const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const);
 
@@ -903,6 +915,7 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 static void InstallAnonDetours()
 {
 	EzDetour(__GetGaugeValueFromEQ, &GetGaugeValueFromEQ_Detour, &GetGaugeValueFromEQ_Trampoline);
+	EzDetour(CTextureFont__DrawWrappedText, &CTextureFontHook::DrawWrappedText_Detour, &CTextureFontHook::DrawWrappedText_Trampoline);
 	EzDetour(CTextureFont__DrawWrappedText1, &CTextureFontHook::DrawWrappedText1_Detour, &CTextureFontHook::DrawWrappedText1_Trampoline);
 	EzDetour(CTextureFont__DrawWrappedText2, &CTextureFontHook::DrawWrappedText2_Detour, &CTextureFontHook::DrawWrappedText2_Trampoline);
 }
@@ -910,6 +923,7 @@ static void InstallAnonDetours()
 static void RemoveAnonDetours()
 {
 	RemoveDetour(__GetGaugeValueFromEQ);
+	RemoveDetour(CTextureFont__DrawWrappedText);
 	RemoveDetour(CTextureFont__DrawWrappedText1);
 	RemoveDetour(CTextureFont__DrawWrappedText2);
 }
