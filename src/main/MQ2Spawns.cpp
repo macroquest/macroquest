@@ -587,7 +587,7 @@ bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
 	case PC:
 		if (!gPCNames && pSpawn != pTarget)
 			return false;
-		if (SetCaption(pSpawn, gszSpawnPlayerName[gShowNames]))
+		if (SetCaption(pSpawn, gszSpawnPlayerName[IsAnonymized() ? 1 : gShowNames]))
 			return true;
 		break;
 
