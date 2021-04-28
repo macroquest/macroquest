@@ -841,6 +841,21 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 			if (anon_type) SetAnonymization(AnonymizationClasses::Raid, anon_type.Get());
 		});
 
+	args::Command all(commands, "all", "sets group/fellowship/guild/raid anonymization in one command",
+		[](args::Subparser& parser) {
+			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
+			MQ2HelpArgument h(arguments);
+			parser.Parse();
+			if (anon_type)
+			{
+				SetAnonymization(AnonymizationClasses::Group, anon_type.Get());
+				SetAnonymization(AnonymizationClasses::Fellowship, anon_type.Get());
+				SetAnonymization(AnonymizationClasses::Guild, anon_type.Get());
+				SetAnonymization(AnonymizationClasses::Raid, anon_type.Get());
+			}
+		});
+
 	args::Command me(commands, "me", "sets me anonymization",
 		[](args::Subparser& parser)
 		{
