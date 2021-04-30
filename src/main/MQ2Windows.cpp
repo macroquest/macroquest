@@ -1921,6 +1921,9 @@ CascadeItemArray* CreateCascadeMenuItems_Detour()
 {
 	CascadeItemArray* array = CreateCascadeMenuItems_Trampoline();
 
+	if (gCascadeItemData.empty())
+		return array;
+
 	// Create Submenu Item that holds all of our custom items
 	CascadeItemSubMenu* mq2Menu = eqNew<CascadeItemSubMenu>();
 	mq2Menu->SetIcon(21); // TODO: Custom Icon

@@ -1372,7 +1372,7 @@ const char* GetGuildByID(int64_t GuildID)
 	return nullptr;
 }
 
-int64_t GetGuildIDByName(char* szGuild)
+int64_t GetGuildIDByName(const char* szGuild)
 {
 	return pGuild->GetGuildIndex(szGuild);
 }
@@ -3391,20 +3391,30 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 		return false;
 	if (pSearchSpawn->PlayerState && !(pSpawn->PlayerState & pSearchSpawn->PlayerState)) // if player state isn't 0 and we have that bit set
 		return false;
+
 	if (pSearchSpawn->szName[0] && pSpawn->Name[0])
 	{
-		char szName[MAX_STRING] = { 0 };
-		char szSearchName[MAX_STRING] = { 0 };
-		strcpy_s(szName, pSpawn->Name);
-		_strlwr_s(szName);
-		strcpy_s(szSearchName, pSearchSpawn->szName);
-		_strlwr_s(szSearchName);
+		if (ci_find_substr(pSpawn->Name, pSearchSpawn->szName) == -1)
+		{
+			char szCleanName[EQ_MAX_NAME] = { 0 };
+			strcpy_s(szCleanName, pSpawn->Name);
+			CleanupName(szCleanName, sizeof(szCleanName), false);
 
-		if (!strstr(szName, szSearchName) && !strstr(CleanupName(szName, sizeof(szName), false), szSearchName))
-			return false;
-		if (pSearchSpawn->bExactName && _stricmp(CleanupName(szName, sizeof(szName), false, !gbExactSearchCleanNames), pSearchSpawn->szName))
-			return false;
+			if (ci_find_substr(szCleanName, pSearchSpawn->szName) == -1)
+				return false;
+		}
+
+		if (pSearchSpawn->bExactName)
+		{
+			char szCleanName[EQ_MAX_NAME] = { 0 };
+			strcpy_s(szCleanName, pSpawn->Name);
+			CleanupName(szCleanName, sizeof(szCleanName), false, !gbExactSearchCleanNames);
+
+			if (!ci_equals(szCleanName, pSearchSpawn->szName))
+				return false;
+		}
 	}
+
 	return true;
 }
 
@@ -3788,11 +3798,7 @@ const char* ParseSearchSpawnArgs(char* szArg, const char* szRest, MQSpawnSearch*
 void ParseSearchSpawn(const char* Buffer, MQSpawnSearch* pSearchSpawn)
 {
 	bRunNextCommand = true;
-
-	char szLLine[MAX_STRING] = { 0 };
-	strcpy_s(szLLine, Buffer);
-	_strlwr_s(szLLine);
-	const char* szFilter = szLLine;
+	const char* szFilter = Buffer;
 
 	char szArg[MAX_STRING] = { 0 };
 
