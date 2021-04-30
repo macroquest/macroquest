@@ -569,11 +569,11 @@ inline bool GetBoolFromString(const std::string_view svString, const bool defaul
 	bool returnValue = defaultValue;
 	const auto trimmed = trim(svString);
 
-	if (ci_equals(trimmed, "True"))
+	if (ci_equals(trimmed, "true"))
 	{
 		returnValue = true;
 	}
-	else if (ci_equals(trimmed, "False"))
+	else if (ci_equals(trimmed, "false"))
 	{
 		returnValue = false;
 	}
@@ -582,6 +582,14 @@ inline bool GetBoolFromString(const std::string_view svString, const bool defaul
 		returnValue = true;
 	}
 	else if (ci_equals(trimmed, "off"))
+	{
+		returnValue = false;
+	}
+	else if (ci_equals(trimmed, "yes"))
+	{
+		returnValue = true;
+	}
+	else if (ci_equals(trimmed, "no"))
 	{
 		returnValue = false;
 	}

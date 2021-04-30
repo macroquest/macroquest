@@ -337,7 +337,6 @@ MQLIB_API void AddFilter(const char* szFilter, int Length, bool& pEnabled);
 MQLIB_API void DefaultFilters();
 MQLIB_API char* ConvertHotkeyNameToKeyName(char* szName);
 MQLIB_API void CheckChatForEvent(const char* szMsg);
-MQLIB_API void ConvertItemTags(CXStr& cxstr, bool Tag = true);
 MQLIB_API int FindInvSlotForContents(ItemClient* pContents);
 MQLIB_API int FindInvSlot(const char* Name, bool Exact);
 MQLIB_API int FindNextInvSlot(const char* Name, bool Exact);
@@ -416,27 +415,13 @@ MQLIB_API int GetDeityTeamByID(int DeityID);
 MQLIB_API int ConColor(SPAWNINFO* pSpawn);
 
 MQLIB_API const char* GetGuildByID(int64_t GuildID);
-MQLIB_API int64_t GetGuildIDByName(char* szGuild);
+MQLIB_API int64_t GetGuildIDByName(const char* szGuild);
 
 MQLIB_API ItemClient* GetEnviroContainer();
 MQLIB_API CContainerWnd* FindContainerForContents(ItemClient* pContents);
 MQLIB_API float FindSpeed(SPAWNINFO* pSpawn);
 MQLIB_API bool IsNamed(SPAWNINFO* pSpawn);
-MQLIB_API void GetItemLinkHash(ItemClient* Item, char* Buffer, size_t BufferSize);
 
-template <unsigned int _Size>
-inline void GetItemLinkHash(ItemClient* Item, char(&Buffer)[_Size])
-{
-	return GetItemLinkHash(Item, Buffer, _Size);
-}
-
-MQLIB_API bool GetItemLink(ItemClient* Item, char* Buffer, size_t BufferSize, bool Clickable = true);
-
-template <unsigned int _Size>
-inline bool GetItemLink(ItemClient* Item, char(&Buffer)[_Size], bool Clickable = true)
-{
-	return GetItemLink(Item, Buffer, _Size, Clickable);
-}
 
 MQLIB_API int ItemHasStat(ItemClient* pCont, std::string_view search);
 

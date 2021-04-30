@@ -461,31 +461,6 @@ char* GetEQPath(char* szBuffer, size_t len)
 	return szBuffer;
 }
 
-void ConvertItemTags(CXStr& cxstr, bool Tag)
-{
-	using fnConvertItemTags = void(*)(CXStr&, bool);
-
-	// FIXME why asm?
-
-	if (fnConvertItemTags func = (fnConvertItemTags)EQADDR_CONVERTITEMTAGS)
-	{
-		func(cxstr, Tag);
-	}
-#if 0
-	__asm {
-		push ecx;
-		push eax;
-		push [Tag];
-		push [cxstr];
-		call [EQADDR_CONVERTITEMTAGS];
-		pop  ecx;
-		pop  ecx;
-		pop  eax;
-		pop  ecx;
-	};
-#endif
-}
-
 #define InsertColor(text, color) sprintf(text,"<c \"#%06X\">", color); TotalColors++;
 #define InsertColorSafe(text, len, color) sprintf_s(text, len, "<c \"#%06X\">", color); TotalColors++;
 #define InsertStopColor(text)   sprintf(text, "</c>"); TotalColors--;
@@ -1512,36 +1487,6 @@ float FindSpeed(SPAWNINFO* pSpawn)
 		fRunSpeed = pMount->SpeedRun * 10000 / 70;
 
 	return fRunSpeed;
-}
-
-void GetItemLinkHash(ItemClient* Item, char* Buffer, size_t BufferSize)
-{
-	Item->CreateItemTagString(Buffer, BufferSize, true);
-}
-
-bool GetItemLink(ItemClient* Item, char* Buffer, size_t BufferSize, bool Clickable)
-{
-	char hash[MAX_STRING] = { 0 };
-	bool retVal = false;
-
-	GetItemLinkHash(Item, hash);
-
-	int len = strlen(hash);
-	if (len > 0)
-	{
-		if (Clickable)
-		{
-			sprintf_s(Buffer, BufferSize, "%c%d%s%s%c", 0x12, 0 /* Item tag */, hash, GetItemFromContents(Item)->Name, 0x12);
-		}
-		else
-		{
-			sprintf_s(Buffer, BufferSize, "0%s%s", hash, GetItemFromContents(Item)->Name);
-		}
-
-		retVal = true;
-	}
-
-	return retVal;
 }
 
 const char* GetLoginName()
