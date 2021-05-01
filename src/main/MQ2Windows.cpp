@@ -1548,7 +1548,7 @@ void ItemNotify(PSPAWNINFO pChar, char* szLine)
 		// Check if slotNum falls into the range of inventory slots.
 		if (slotNum >= 0 && slotNum < InvSlot_NumInvSlots)
 		{
-			pSlot = pInvSlotMgr->SlotArray[slotNum];
+			pSlot = pInvSlotMgr->FindInvSlot(slotNum, -1, eItemContainerPossessions, false);
 		}
 
 		// The argument wasn't a number. Check if it is a named slot
