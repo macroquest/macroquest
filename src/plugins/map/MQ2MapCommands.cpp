@@ -339,7 +339,7 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 				return;
 			}
 
-			if (GetIntFromString(size, 9) < 10 || GetIntFromString(width, 201) > 200)
+			if (GetIntFromString(size, 9) < 10 || GetIntFromString(size, 201) > 200)
 			{
 				MapLocSyntaxOutput();
 				return;
@@ -619,7 +619,7 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 	}
 
 	// not updating an existing thing. and we aren't placing a location, so update the defaults
-	else if (strcmp(yloc, "not set") != 0)
+	else if (!strcmp(yloc, "not set"))
 	{
 		gDefaultMapLocParams = params;
 		MapLocVars << "DefaultLoc";
@@ -642,7 +642,7 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 	else
 	{
 		// FIXME: exception handling?
-		CVector3 pos{ std::stof(yloc), std::stof(xloc), std::stof(zloc) };
+		CVector3 pos{ std::stof(xloc), std::stof(yloc), std::stof(zloc) };
 
 		MakeMapLoc(params, label, tag, pos, isDefaultLocSettings);
 
@@ -662,9 +662,9 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 		MapLocVars
 			<< ", Width:" << params.width
 			<< ", Size:" << params.lineSize
-			<< ", Color:" << params.color.Red << "," << params.color.Green << "," << params.color.Blue
+			<< ", Color:" << std::to_string(params.color.Red) << "," << std::to_string(params.color.Green) << "," << std::to_string(params.color.Blue)
 			<< ", Radius:" << params.circleRadius
-			<< ", Radius Color:" << params.circleColor.Red << "," << params.circleColor.Green << "," << params.circleColor.Blue;
+			<< ", Radius Color:" << std::to_string(params.circleColor.Red) << "," << std::to_string(params.circleColor.Green) << "," << std::to_string(params.circleColor.Blue);
 	}
 
 	WriteChatf("%s", MapLocVars.str().c_str());
