@@ -4,7 +4,9 @@ May 1, 2021
 - Fixed /maploc
 - Fixed MQ2LinkDB and improved item link behaviors in general
 - Misc fixes to mqanon (#278, #275)
-
+- Add Select method to MQ2Bzsrch: /invoke ${Bazaar.Item[1].Select} (#202)
+- Add SortedItem to MQ2Bzsrch, to return results sorted the same way as the search window.
+    ${Bazaar.SortedItem[1]} returns first item in the bazaar search results.
 
 April 26, 2021
 - Allowed access to TreeView members as if they were list entries

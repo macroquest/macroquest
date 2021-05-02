@@ -199,6 +199,17 @@ static void SelectBazaarSearchItem(const BazaarSearchItem* pSearchItem)
 	}
 };
 
+static int FindBazaarItemsArrayIndex(const BazaarSearchResults* pResult)
+{
+	for (int i = 0; i < (int)BazaarItemsArray.size(); ++i)
+	{
+		if (BazaarItemsArray[i].ItemGuid == pResult->itemGuid)
+			return i;
+	}
+
+	return -1;
+}
+
 MQ2BazaarType* pBazaarType = nullptr;
 MQ2BazaarItemType* pBazaarItemType = nullptr;
 
@@ -329,7 +340,8 @@ public:
 		Done,
 		Item,
 		Pricecheckdone,
-		Pricecheck
+		Pricecheck,
+		SortedItem,
 	};
 
 	MQ2BazaarType() : MQ2Type("bazaar")
@@ -339,6 +351,7 @@ public:
 		ScopedTypeMember(BazaarMembers, Item);
 		ScopedTypeMember(BazaarMembers, Pricecheckdone);
 		ScopedTypeMember(BazaarMembers, Pricecheck);
+		ScopedTypeMember(BazaarMembers, SortedItem);
 	}
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
@@ -398,6 +411,56 @@ public:
 						if (!strncmp(Index, &item.ItemName[0], len))
 						{
 							Dest.DWord = i;
+							Dest.Type = pBazaarItemType;
+							return true;
+						}
+					}
+				}
+			}
+			return false;
+
+		case BazaarMembers::SortedItem:
+			if (Index[0])
+			{
+				bool isNumber = true;
+
+				// check if the index is an array index
+				// or an item name
+				for (uint32_t i = 0; i < strlen(Index); i++)
+				{
+					if (!isdigit(Index[i]))
+					{
+						isNumber = false;
+						break;
+					}
+				}
+
+				if (isNumber)
+				{
+					int N = GetIntFromString(Index, 0) - 1;
+					if (N < 0 || N >= pBazaarSearchWnd->pItemList->GetItemCount())
+						return false;
+
+					N = FindBazaarItemsArrayIndex(&pBazaarSearchWnd->searchResults[N]);
+					if (N < 0) return false;
+
+					Dest.DWord = N;
+					Dest.Type = pBazaarItemType;
+					return true;
+				}
+				else
+				{
+					for (int i = 0; i < pBazaarSearchWnd->pItemList->GetItemCount(); ++i)
+					{
+						const BazaarSearchResults* pResults = &pBazaarSearchWnd->searchResults[i];
+
+						int len = strrchr(&pResults->itemName[0], '(') - &pResults->itemName[0];
+						if (!strncmp(Index, &pResults->itemName[0], len))
+						{
+							int index = FindBazaarItemsArrayIndex(pResults);
+							if (index == -1) continue;
+
+							Dest.DWord = index;
 							Dest.Type = pBazaarItemType;
 							return true;
 						}
