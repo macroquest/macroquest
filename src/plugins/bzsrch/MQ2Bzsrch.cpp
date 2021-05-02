@@ -89,6 +89,7 @@ struct BazaarSearchItem
 	uint32_t    IconID = 0;
 	char        ItemName[0x40];
 	int         StatValue = 0;
+	float       StatValueFloat = 0.f;
 
 	// This isn't part of the network response -- we read this from the UI
 	char        TraderName[0x40];
@@ -109,6 +110,7 @@ struct BazaarSearchItem
 		buffer.Read(IconID);
 		buffer.ReadString(ItemName, lengthof(ItemName));
 		buffer.Read(StatValue);
+		buffer.Read(StatValueFloat);
 	}
 };
 std::vector<BazaarSearchItem> BazaarItemsArray;
@@ -856,7 +858,7 @@ PLUGIN_API void InitializePlugin()
 	AddCommand("/mq2bzsrch", MQ2BzSrch);
 	AddMQ2Data("Bazaar", MQ2BazaarType::dataBazaar);
 
-	EzDetourwName(CBazaarSearchWnd__HandleBazaarMsg, &CBazaarSearchWnd_Hook::HandleSearchResults_Detour, &CBazaarSearchWnd_Hook::HandleSearchResults_Trampoline, "CBazaarSearchWnd__HandleBazaarMsg");
+	EzDetourwName(CBazaarSearchWnd__HandleSearchResults, &CBazaarSearchWnd_Hook::HandleSearchResults_Detour, &CBazaarSearchWnd_Hook::HandleSearchResults_Trampoline, "CBazaarSearchWnd__HandleBazaarMsg");
 	pBazaarType = new MQ2BazaarType;
 	pBazaarItemType = new MQ2BazaarItemType;
 }
@@ -864,7 +866,7 @@ PLUGIN_API void InitializePlugin()
 // Called once, when the plugin is to shutdown
 PLUGIN_API void ShutdownPlugin()
 {
-	RemoveDetour(CBazaarSearchWnd__HandleBazaarMsg);
+	RemoveDetour(CBazaarSearchWnd__HandleSearchResults);
 	RemoveMQ2Data("Bazaar");
 	RemoveCommand("/mq2bzsrch");
 	RemoveCommand("/breset");
