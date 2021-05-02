@@ -77,6 +77,20 @@ struct
 
 ItemDefinition* pg_Item = nullptr;                          // dependent on MQ2ItemDisplay
 
+enum class BazaarSearchSortColumn
+{
+	Icon = 0,
+	Name,
+	Qty,
+	Platinum,
+	Gold,
+	Silver,
+	Copper,
+	Trader,
+	Buy,
+	StatValue,
+};
+
 // Contains an item response from the bazaar search. Struct layout does not
 // matter because we are constructing it ourself via CUnSerializeBuffer.
 struct BazaarSearchItem
@@ -166,6 +180,25 @@ public:
 };
 DETOUR_TRAMPOLINE_EMPTY(void CBazaarSearchWnd_Hook::HandleSearchResults_Trampoline(CUnSerializeBuffer&));
 
+static void SelectBazaarSearchItem(const BazaarSearchItem* pSearchItem)
+{
+	if (!pBazaarSearchWnd)
+		return;
+
+	// We want to find the item with the same guid in the search results, and then use that to select
+	// the item by index in the list.
+	int numItems = pBazaarSearchWnd->pItemList->GetItemCount();
+	for (int i = 0; i < numItems; ++i)
+	{
+		const BazaarSearchResults& result = pBazaarSearchWnd->searchResults[i];
+		if (result.itemGuid == pSearchItem->ItemGuid)
+		{
+			pBazaarSearchWnd->pItemList->SetCurSel(i);
+			break;
+		}
+	}
+};
+
 MQ2BazaarType* pBazaarType = nullptr;
 MQ2BazaarItemType* pBazaarItemType = nullptr;
 
@@ -181,6 +214,11 @@ public:
 		Name,
 	};
 
+	enum class BazaarItemMethods
+	{
+		Select
+	};
+
 	MQ2BazaarItemType() : MQ2Type("bazaaritem")
 	{
 		ScopedTypeMember(BazaarItemMembers, Price);
@@ -188,6 +226,8 @@ public:
 		ScopedTypeMember(BazaarItemMembers, ItemID);
 		ScopedTypeMember(BazaarItemMembers, Trader);
 		ScopedTypeMember(BazaarItemMembers, Name);
+
+		ScopedTypeMethod(BazaarItemMethods, Select);
 	}
 
 	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
@@ -196,6 +236,19 @@ public:
 		if (index >= BazaarItemsArray.size())
 			return false;
 		BazaarSearchItem& item = BazaarItemsArray[index];
+
+		MQTypeMember* pMethod = MQ2BazaarItemType::FindMethod(Member);
+		if (pMethod)
+		{
+			switch (static_cast<BazaarItemMethods>(pMethod->ID))
+			{
+			case BazaarItemMethods::Select:
+				SelectBazaarSearchItem(&item);
+				return true;
+			}
+
+			return false;
+		}
 
 		MQTypeMember* pMember = MQ2BazaarItemType::FindMember(Member);
 		if (!pMember)
@@ -290,6 +343,9 @@ public:
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
 	{
+		if (!pBazaarSearchWnd)
+			return false;
+
 		MQTypeMember* pMember = MQ2BazaarType::FindMember(Member);
 		if (!pMember)
 			return false;
@@ -368,11 +424,7 @@ public:
 
 	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
-		if (BazaarSearchDone)
-			strcpy_s(Destination, MAX_STRING, "TRUE");
-		else
-			strcpy_s(Destination, MAX_STRING, "FALSE");
-
+		strcpy_s(Destination, MAX_STRING, BazaarSearchDone ? "TRUE" : "FALSE");
 		return true;
 	}
 
@@ -612,8 +664,7 @@ void BzReset(SPAWNINFO* pChar, char* szLine)
 
 void BzSrchMe(SPAWNINFO* pChar, char* szLine)
 {
-	CHARINFO* pCharInfo = GetCharInfo();
-	if (!pBazaarSearchWnd || !pCharInfo)
+	if (!pBazaarSearchWnd || !pLocalPC)
 		return;
 
 	BazaarSearchDone = false;
@@ -818,7 +869,7 @@ void DoWaitingForSearchChecks()
 	case SearchCheckState::WaitForQueryButton:
 		if (pQueryButton->IsEnabled())
 		{
-			HideDoCommand((SPAWNINFO*)pLocalPlayer, "/bzquery", true);
+			HideDoCommand(pLocalPlayer, "/bzquery", true);
 
 			SearchState = SearchCheckState::WaitForQueryComplete;
 			NextSearchCheck = MQGetTickCount64() + 2000; // 2 seconds arbitrarily
