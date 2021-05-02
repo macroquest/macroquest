@@ -140,17 +140,8 @@ void PopulateSpellMap()
 
 DWORD CALLBACK InitializeMQ2SpellDb(void* pData)
 {
-	int state = reinterpret_cast<int>(pData);
-
 	bmSpellLoad = AddMQ2Benchmark("SpellLoad");
 	bmSpellAccess = AddMQ2Benchmark("SpellAccess");
-
-	switch (state)
-	{
-	case 1: WriteChatf("Initializing SpellMap from SetGameState."); break;
-	case 2: WriteChatf("Initializing SpellMap from GetSpellByName."); break;
-	default: WriteChatf("Initializing SpellMap. (%d)", state); break;
-	}
 
 	while (GetGameState() != GAMESTATE_CHARSELECT && GetGameState() != GAMESTATE_INGAME)
 	{
@@ -164,13 +155,6 @@ DWORD CALLBACK InitializeMQ2SpellDb(void* pData)
 
 	// ok everything checks out lets fill our own map with spells
 	Benchmark(bmSpellLoad, PopulateSpellMap());
-
-	switch (state)
-	{
-	case 1: WriteChatf("SpellMap Initialized from SetGameState."); break;
-	case 2: WriteChatf("SpellMap Initialized from GetSpellByName."); break;
-	default: WriteChatf("SpellMap Initialized. (%d)", state); break;
-	}
 
 	ghInitializeSpellDbThread = nullptr;
 	return 0;
@@ -250,7 +234,7 @@ EQ_Spell* GetSpellByName(std::string_view name)
 
 	if (gbSpelldbLoaded == false)
 	{
-		InitializeMQ2SpellDb((void*)2);
+		InitializeMQ2SpellDb(nullptr);
 
 		if (gbSpelldbLoaded == false)
 		{

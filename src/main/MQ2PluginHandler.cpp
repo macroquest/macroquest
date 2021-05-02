@@ -594,7 +594,7 @@ void PluginsSetGameState(DWORD GameState)
 	{
 		if (!gbSpelldbLoaded && ghInitializeSpellDbThread == nullptr)
 		{
-			ghInitializeSpellDbThread = CreateThread(nullptr, 0, InitializeMQ2SpellDb, (void*)1, 0, nullptr);
+			ghInitializeSpellDbThread = CreateThread(nullptr, 0, InitializeMQ2SpellDb, nullptr, 0, nullptr);
 		}
 
 		gZoning = false;
