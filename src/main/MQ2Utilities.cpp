@@ -4801,41 +4801,17 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
 bool WillStackWith(const EQ_Spell* testSpell, const EQ_Spell* existingSpell)
 {
 	// if there is no local player, then the hypothetical situation fails anyway
-	if (!pLocalPlayer)
+	if (!pLocalPlayer || !pLocalPC)
 		return false;
 
-	auto pPc = pLocalPlayer->GetPcClient();
-
 	EQ_Affect buff;
-	buff.SpellID = existingSpell->ID;
 	buff.Level = pLocalPlayer->Level;
-	buff.CasterGuid = pPc->Guid;
-	buff.Duration = existingSpell->DurationCap;
-	buff.InitialDuration = existingSpell->DurationCap;
-	int dataIndex = 0;
+	buff.CasterGuid = pLocalPC->Guid;
 
-	// We need to fill in the affect slot data fields. There is a max of NUM_SLOTDATA per buff.
-	// slot data contains things like the amount of absorb left on a rune or the number of counters
-	// remaining on a debuff.
-	for (int index = 0; index < existingSpell->NumEffects && dataIndex < NUM_SLOTDATA; ++index)
-	{
-		auto affect = existingSpell->GetSpellAffectByIndex(index); // this cannot be null if we are < NumEffects
-		if (affect->Max != 0)
-		{
-			buff.SlotData[dataIndex].Slot = affect->Slot;
-			buff.SlotData[dataIndex].Value = affect->Max;
-			dataIndex++;
-		}
-	}
-
-	for (int slot = dataIndex; slot < NUM_SLOTDATA; ++slot)
-	{
-		buff.SlotData[slot].Slot = -1;
-		buff.SlotData[slot].Value = 0;
-	}
+	buff.PopulateFromSpell(existingSpell);
 
 	int SlotIndex = -1;
-	EQ_Affect* ret = pPc->FindAffectSlot(testSpell->ID, pLocalPlayer, &SlotIndex, true, pLocalPlayer->Level, &buff, 1);
+	EQ_Affect* ret = pLocalPC->FindAffectSlot(testSpell->ID, pLocalPlayer, &SlotIndex, true, pLocalPlayer->Level, &buff, 1);
 
 	return ret && SlotIndex != -1;
 }

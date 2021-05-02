@@ -1,6 +1,10 @@
 May 1, 2021
 - Fixed an issue with inventory slots being out of order due to ui load order (#247)
 - Updated MQ2Bzsrch structure and fix bzsrch crash (#108)
+- Fixed /maploc
+- Fixed MQ2LinkDB and improved item link behaviors in general
+- Misc fixes to mqanon (#278, #275)
+
 
 April 26, 2021
 - Allowed access to TreeView members as if they were list entries
