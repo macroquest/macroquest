@@ -75,9 +75,9 @@ public:
 
 	struct Breakpoint
 	{
-		int mLine = -1;
-		bool mEnabled = false;
-		std::string mCondition;
+		int line = -1;
+		bool enabled = false;
+		std::string condition;
 	};
 
 	// Represents a character coordinate from the user's point of view,
@@ -89,12 +89,12 @@ public:
 	// because it is rendered as "    ABC" on the screen.
 	struct Coordinates
 	{
-		int mLine = 0;
-		int mColumn = 0;
+		int line = 0;
+		int column = 0;
 
 		IMGUI_API Coordinates() = default;
 		IMGUI_API Coordinates(int aLine, int aColumn)
-			: mLine(aLine), mColumn(aColumn)
+			: line(aLine), column(aColumn)
 		{
 			assert(aLine >= 0);
 			assert(aColumn >= 0);
@@ -108,50 +108,50 @@ public:
 		inline bool operator ==(const Coordinates& o) const
 		{
 			return
-				mLine == o.mLine &&
-				mColumn == o.mColumn;
+				line == o.line &&
+				column == o.column;
 		}
 
 		inline bool operator !=(const Coordinates& o) const
 		{
 			return
-				mLine != o.mLine ||
-				mColumn != o.mColumn;
+				line != o.line ||
+				column != o.column;
 		}
 
 		inline bool operator <(const Coordinates& o) const
 		{
-			if (mLine != o.mLine)
-				return mLine < o.mLine;
-			return mColumn < o.mColumn;
+			if (line != o.line)
+				return line < o.line;
+			return column < o.column;
 		}
 
 		inline bool operator >(const Coordinates& o) const
 		{
-			if (mLine != o.mLine)
-				return mLine > o.mLine;
-			return mColumn > o.mColumn;
+			if (line != o.line)
+				return line > o.line;
+			return column > o.column;
 		}
 
 		inline bool operator <=(const Coordinates& o) const
 		{
-			if (mLine != o.mLine)
-				return mLine < o.mLine;
-			return mColumn <= o.mColumn;
+			if (line != o.line)
+				return line < o.line;
+			return column <= o.column;
 		}
 
 		inline bool operator >=(const Coordinates& o) const
 		{
-			if (mLine != o.mLine)
-				return mLine > o.mLine;
-			return mColumn >= o.mColumn;
+			if (line != o.line)
+				return line > o.line;
+			return column >= o.column;
 		}
 	};
 
 	struct Identifier
 	{
-		Coordinates mLocation;
-		std::string mDeclaration;
+		Coordinates location;
+		std::string declaration;
 	};
 
 	using String = std::string;
@@ -164,20 +164,20 @@ public:
 
 	struct Glyph
 	{
-		Char mChar;
+		Char ch;
 		union {
-			PaletteIndex mColorIndex;
-			ImU32 mARGBColor;
+			PaletteIndex colorIndex;
+			ImU32 argbColor;
 		};
-		bool mComment : 1;
-		bool mMultiLineComment : 1;
-		bool mPreprocessor : 1;
-		bool mRawColor : 1;
+		bool comment : 1;
+		bool multlineComment : 1;
+		bool preprocessor : 1;
+		bool rawColor : 1;
 
-		IMGUI_API Glyph(Char aChar, PaletteIndex aColorIndex) : mChar(aChar), mColorIndex(aColorIndex),
-			mComment(false), mMultiLineComment(false), mPreprocessor(false), mRawColor(false) {}
-		IMGUI_API Glyph(Char aChar, uint32_t ARGB) : mChar(aChar), mARGBColor(ARGB),
-			mComment(false), mMultiLineComment(false), mPreprocessor(false), mRawColor(true) {}
+		IMGUI_API Glyph(Char aChar, PaletteIndex aColorIndex) : ch(aChar), colorIndex(aColorIndex),
+			comment(false), multlineComment(false), preprocessor(false), rawColor(false) {}
+		IMGUI_API Glyph(Char aChar, uint32_t ARGB) : ch(aChar), argbColor(ARGB),
+			comment(false), multlineComment(false), preprocessor(false), rawColor(true) {}
 	};
 
 	using Line = std::vector<Glyph>;
@@ -191,17 +191,17 @@ public:
 		// inBegin, inEnd, outBegin, outEnd, palleteIndex
 		using TokenizeCallback = bool(*)(const char*, const char*, const char*&, const char*&, PaletteIndex&);
 
-		std::string mName;
-		Keywords mKeywords;
-		Identifiers mIdentifiers;
-		Identifiers mPreprocIdentifiers;
-		std::string mCommentStart, mCommentEnd, mSingleLineComment;
-		char mPreprocChar = '#';
-		bool mAutoIndentation = true;
-		TokenizeCallback mTokenize = nullptr;
-		TokenRegexStrings mTokenRegexStrings;
-		bool mCaseSensitive = true;
-		bool mEnabled = true;
+		std::string name;
+		Keywords keywords;
+		Identifiers identifiers;
+		Identifiers preprocIdentifiers;
+		std::string commentStart, commentEnd, singleLineComment;
+		char preprocChar = '#';
+		bool autoIndentation = true;
+		TokenizeCallback tokenize = nullptr;
+		TokenRegexStrings tokenRegexStrings;
+		bool caseSensitive = true;
+		bool enabled = true;
 
 		IMGUI_API LanguageDefinition() = default;
 
@@ -210,7 +210,6 @@ public:
 		IMGUI_API static const LanguageDefinition& GLSL();
 		IMGUI_API static const LanguageDefinition& C();
 		IMGUI_API static const LanguageDefinition& SQL();
-		IMGUI_API static const LanguageDefinition& AngelScript();
 		IMGUI_API static const LanguageDefinition& Lua();
 		IMGUI_API static const LanguageDefinition& PlainText();
 	};
@@ -218,23 +217,23 @@ public:
 	IMGUI_API TextEditor();
 	IMGUI_API ~TextEditor();
 
-	IMGUI_API void SetLanguageDefinition(const LanguageDefinition& aLanguageDef);
+	IMGUI_API void SetLanguageDefinition(const LanguageDefinition& languageDef);
 	inline const LanguageDefinition& GetLanguageDefinition() const { return m_languageDefinition; }
 
 	inline const Palette& GetPalette() const { return m_paletteBase; }
-	IMGUI_API void SetPalette(const Palette& aValue);
+	IMGUI_API void SetPalette(const Palette& value);
 
-	inline void SetErrorMarkers(const ErrorMarkers& aMarkers) { m_errorMarkers = aMarkers; }
-	inline void SetBreakpoints(const Breakpoints& aMarkers) { m_breakPoints = aMarkers; }
+	inline void SetErrorMarkers(const ErrorMarkers& markers) { m_errorMarkers = markers; }
+	inline void SetBreakpoints(const Breakpoints& bps) { m_breakPoints = bps; }
 
-	IMGUI_API void Render(const char* aTitle, const ImVec2& aSize = ImVec2(), bool aBorder = false);
+	IMGUI_API void Render(const char* title, const ImVec2& size = ImVec2(), bool border = false);
 
 	IMGUI_API void SetText(std::string_view text, ImU32 color);
-	IMGUI_API void SetText(std::string_view aText);
+	IMGUI_API void SetText(std::string_view text);
 
 	IMGUI_API std::string GetText() const;
 
-	IMGUI_API void SetTextLines(const std::vector<std::string>& aLines);
+	IMGUI_API void SetTextLines(const std::vector<std::string>& lines);
 	IMGUI_API std::vector<std::string> GetTextLines() const;
 
 	IMGUI_API std::string GetSelectedText() const;
@@ -243,16 +242,16 @@ public:
 	inline int GetTotalLines() const { return (int)m_lines.size(); }
 	inline bool IsOverwrite() const { return m_overwrite; }
 
-	IMGUI_API void SetReadOnly(bool aValue);
+	IMGUI_API void SetReadOnly(bool value);
 	inline bool IsReadOnly() const { return m_readOnly; }
 	inline bool IsTextChanged() const { return m_textChanged; }
 	inline bool IsCursorPositionChanged() const { return m_cursorPositionChanged; }
 
-	inline void SetRenderCursor(bool bRender) { m_renderCursor = bRender; }
-	inline void SetRenderLineNumbers(bool bRender) { m_renderLineNumbers = bRender; }
+	inline void SetRenderCursor(bool render) { m_renderCursor = render; }
+	inline void SetRenderLineNumbers(bool render) { m_renderLineNumbers = render; }
 
 	inline bool IsColorizerEnabled() const { return m_colorizerEnabled; }
-	IMGUI_API void SetColorizerEnable(bool aValue);
+	IMGUI_API void SetColorizerEnable(bool vValue);
 
 	inline Coordinates GetEnd() const
 	{
@@ -260,41 +259,41 @@ public:
 	}
 
 	inline Coordinates GetCursorPosition() const { return GetActualCursorCoordinates(); }
-	IMGUI_API void SetCursorPosition(const Coordinates& aPosition);
+	IMGUI_API void SetCursorPosition(const Coordinates& position);
 
-	inline void SetHandleMouseInputs(bool aValue) { m_handleMouseInputs = aValue; }
+	inline void SetHandleMouseInputs(bool value) { m_handleMouseInputs = value; }
 	inline bool IsHandleMouseInputsEnabled() const { return m_handleKeyboardInputs; }
 
-	inline void SetHandleKeyboardInputs(bool aValue) { m_handleKeyboardInputs = aValue; }
+	inline void SetHandleKeyboardInputs(bool value) { m_handleKeyboardInputs = value; }
 	inline bool IsHandleKeyboardInputsEnabled() const { return m_handleKeyboardInputs; }
 
-	inline void SetImGuiChildIgnored(bool aValue) { m_ignoreImGuiChild = aValue; }
+	inline void SetImGuiChildIgnored(bool value) { m_ignoreImGuiChild = value; }
 	inline bool IsImGuiChildIgnored() const { return m_ignoreImGuiChild; }
 
-	inline void SetShowWhitespace(bool aValue) { m_showWhitespace = aValue; }
+	inline void SetShowWhitespace(bool value) { m_showWhitespace = value; }
 	inline bool IsShowingWhitespace() const { return m_showWhitespace; }
 
-	inline void SetShowShortTabGlyphs(bool aValue) { m_showShortTabGlyphs = aValue; }
+	inline void SetShowShortTabGlyphs(bool value) { m_showShortTabGlyphs = value; }
 	inline bool IsShowingShortTabGlyphs() const { return m_showShortTabGlyphs; }
 
-	IMGUI_API void SetTabSize(int aValue);
+	IMGUI_API void SetTabSize(int value);
 	inline int GetTabSize() const { return m_tabSize; }
 
-	IMGUI_API void InsertText(std::string_view aValue, ImU32 color);
-	IMGUI_API void InsertText(std::string_view aValue);
+	IMGUI_API void InsertText(std::string_view value, ImU32 color);
+	IMGUI_API void InsertText(std::string_view value);
 
-	IMGUI_API void MoveUp(int aAmount = 1, bool aSelect = false);
-	IMGUI_API void MoveDown(int aAmount = 1, bool aSelect = false);
-	IMGUI_API void MoveLeft(int aAmount = 1, bool aSelect = false, bool aWordMode = false);
-	IMGUI_API void MoveRight(int aAmount = 1, bool aSelect = false, bool aWordMode = false);
-	IMGUI_API void MoveTop(bool aSelect = false);
-	IMGUI_API void MoveBottom(bool aSelect = false);
-	IMGUI_API void MoveHome(bool aSelect = false);
-	IMGUI_API void MoveEnd(bool aSelect = false);
+	IMGUI_API void MoveUp(int amount = 1, bool select = false);
+	IMGUI_API void MoveDown(int amount = 1, bool select = false);
+	IMGUI_API void MoveLeft(int amount = 1, bool select = false, bool wordMode = false);
+	IMGUI_API void MoveRight(int amount = 1, bool select = false, bool wordMode = false);
+	IMGUI_API void MoveTop(bool select = false);
+	IMGUI_API void MoveBottom(bool select = false);
+	IMGUI_API void MoveHome(bool select = false);
+	IMGUI_API void MoveEnd(bool select = false);
 
-	IMGUI_API void SetSelectionStart(const Coordinates& aPosition);
-	IMGUI_API void SetSelectionEnd(const Coordinates& aPosition);
-	IMGUI_API void SetSelection(const Coordinates& aStart, const Coordinates& aEnd, SelectionMode aMode = SelectionMode::Normal);
+	IMGUI_API void SetSelectionStart(const Coordinates& pos);
+	IMGUI_API void SetSelectionEnd(const Coordinates& pos);
+	IMGUI_API void SetSelection(const Coordinates& start, const Coordinates& end, SelectionMode mode = SelectionMode::Normal);
 	IMGUI_API void SelectWordUnderCursor();
 	IMGUI_API void SelectAll();
 	IMGUI_API bool HasSelection() const;
@@ -306,8 +305,8 @@ public:
 
 	IMGUI_API bool CanUndo() const;
 	IMGUI_API bool CanRedo() const;
-	IMGUI_API void Undo(int aSteps = 1);
-	IMGUI_API void Redo(int aSteps = 1);
+	IMGUI_API void Undo(int steps = 1);
+	IMGUI_API void Redo(int steps = 1);
 
 	IMGUI_API static const Palette& GetDarkPalette();
 	IMGUI_API static const Palette& GetLightPalette();
@@ -318,9 +317,9 @@ private:
 
 	struct EditorState
 	{
-		Coordinates mSelectionStart;
-		Coordinates mSelectionEnd;
-		Coordinates mCursorPosition;
+		Coordinates selectionStart;
+		Coordinates selectionEnd;
+		Coordinates cursorPosition;
 	};
 
 	class UndoRecord
@@ -330,67 +329,67 @@ private:
 		~UndoRecord() {}
 
 		UndoRecord(
-			const std::string& aAdded,
-			const TextEditor::Coordinates aAddedStart,
-			const TextEditor::Coordinates aAddedEnd,
+			const std::string& added,
+			const TextEditor::Coordinates addedStart,
+			const TextEditor::Coordinates addedEnd,
 
-			const std::string& aRemoved,
-			const TextEditor::Coordinates aRemovedStart,
-			const TextEditor::Coordinates aRemovedEnd,
+			const std::string& removed,
+			const TextEditor::Coordinates removedStart,
+			const TextEditor::Coordinates removedEnd,
 
-			TextEditor::EditorState& aBefore,
-			TextEditor::EditorState& aAfter);
+			TextEditor::EditorState& before,
+			TextEditor::EditorState& after);
 
-		void Undo(TextEditor* aEditor);
-		void Redo(TextEditor* aEditor);
+		void Undo(TextEditor* editor);
+		void Redo(TextEditor* editor);
 
-		std::string mAdded;
-		Coordinates mAddedStart;
-		Coordinates mAddedEnd;
+		std::string added;
+		Coordinates addedStart;
+		Coordinates addedEnd;
 
-		std::string mRemoved;
-		Coordinates mRemovedStart;
-		Coordinates mRemovedEnd;
+		std::string removed;
+		Coordinates removedStart;
+		Coordinates removedEnd;
 
-		EditorState mBefore;
-		EditorState mAfter;
+		EditorState before;
+		EditorState after;
 	};
 
 	using UndoBuffer = std::vector<UndoRecord>;
 
 	void ProcessInputs();
-	void Colorize(int aFromLine = 0, int aCount = -1);
-	void ColorizeRange(int aFromLine = 0, int aToLine = 0);
+	void Colorize(int fromLine = 0, int count = -1);
+	void ColorizeRange(int fromLine = 0, int toLine = 0);
 	void ColorizeInternal();
-	float TextDistanceToLineStart(const Coordinates& aFrom) const;
+	float TextDistanceToLineStart(const Coordinates& from) const;
 	void EnsureCursorVisible();
 	int GetPageSize() const;
-	std::string GetText(const Coordinates& aStart, const Coordinates& aEnd) const;
+	std::string GetText(const Coordinates& start, const Coordinates& end) const;
 	Coordinates GetActualCursorCoordinates() const;
-	Coordinates SanitizeCoordinates(const Coordinates& aValue) const;
-	void Advance(Coordinates& aCoordinates) const;
-	void DeleteRange(const Coordinates& aStart, const Coordinates& aEnd);
-	int InsertTextAt(Coordinates& aWhere, std::string_view aValue);
-	int InsertTextAt(Coordinates& aWhere, std::string_view aValue, ImU32 aColor);
-	void AddUndo(UndoRecord& aValue);
-	Coordinates ScreenPosToCoordinates(const ImVec2& aPosition, bool aInsertionMode = false) const;
-	Coordinates FindWordStart(const Coordinates& aFrom) const;
-	Coordinates FindWordEnd(const Coordinates& aFrom) const;
-	Coordinates FindNextWord(const Coordinates& aFrom) const;
-	int GetCharacterIndex(const Coordinates& aCoordinates) const;
-	int GetCharacterColumn(int aLine, int aIndex) const;
-	int GetLineCharacterCount(int aLine) const;
-	int GetLineMaxColumn(int aLine) const;
-	bool IsOnWordBoundary(const Coordinates& aAt) const;
-	void RemoveLine(int aStart, int aEnd);
-	void RemoveLine(int aIndex);
-	Line& InsertLine(int aIndex);
-	void EnterCharacter(ImWchar aChar, bool aShift);
+	Coordinates SanitizeCoordinates(const Coordinates& value) const;
+	void Advance(Coordinates& coordinates) const;
+	void DeleteRange(const Coordinates& start, const Coordinates& end);
+	int InsertTextAt(Coordinates& position, std::string_view value);
+	int InsertTextAt(Coordinates& position, std::string_view value, ImU32 color);
+	void AddUndo(UndoRecord& value);
+	Coordinates ScreenPosToCoordinates(const ImVec2& position, bool insertionMode = false) const;
+	Coordinates FindWordStart(const Coordinates& from) const;
+	Coordinates FindWordEnd(const Coordinates& from) const;
+	Coordinates FindNextWord(const Coordinates& from) const;
+	int GetCharacterIndex(const Coordinates& coordinates) const;
+	int GetCharacterColumn(int line, int index) const;
+	int GetLineCharacterCount(int line) const;
+	int GetLineMaxColumn(int line) const;
+	bool IsOnWordBoundary(const Coordinates& at) const;
+	void RemoveLine(int start, int end);
+	void RemoveLine(int index);
+	Line& InsertLine(int index);
+	void EnterCharacter(ImWchar ch, bool shift);
 	void Backspace();
 	void DeleteSelection();
 	std::string GetWordUnderCursor() const;
-	std::string GetWordAt(const Coordinates& aCoords) const;
-	ImU32 GetGlyphColor(const Glyph& aGlyph) const;
+	std::string GetWordAt(const Coordinates& coords) const;
+	ImU32 GetGlyphColor(const Glyph& glyph) const;
 
 	void HandleKeyboardInputs();
 	void HandleMouseInputs();
