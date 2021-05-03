@@ -739,30 +739,30 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	arg_parser.RequireCommand(false);
 	args::Group commands(arg_parser, "", args::Group::Validators::AtMostOne);
 
-	args::Command asterisk(commands, "asterisk", "anonymize with asterisks",
+	args::Command asterisk(commands, "asterisk", "add a filter to replace with asterisks",
 		[](args::Subparser& parser)
 		{
-			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::Group arguments(parser, "", args::Group::Validators::All);
 			args::Positional<std::string> name(arguments, "name", "the name to anonymize");
 			MQ2HelpArgument h(arguments);
 			parser.Parse();
 			if (name) AddAnonymization(name.Get(), Anonymization::Asterisk);
 		});
 
-	args::Command clas(commands, "class", "anonymize by class attributes",
+	args::Command clas(commands, "class", "add a filter to replace by class attributes",
 		[](args::Subparser& parser)
 		{
-			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::Group arguments(parser, "", args::Group::Validators::All);
 			args::Positional<std::string> name(arguments, "name", "the name to anonymize");
 			MQ2HelpArgument h(arguments);
 			parser.Parse();
 			if (name) AddAnonymization(name.Get(), Anonymization::Class);
 		});
 
-	args::Command custom(commands, "custom", "anonymize with custom string",
+	args::Command custom(commands, "custom", "add a filter to replace with custom string",
 		[](args::Subparser& parser)
 		{
-			args::Group arguments(parser, "", args::Group::Validators::AllChildGroups);
+			args::Group arguments(parser, "", args::Group::Validators::All);
 			args::Positional<std::string> name(arguments, "name", "the name to anonymize");
 			args::PositionalList<std::string> replacers(arguments, "replacers", "the text to anonymize with");
 			MQ2HelpArgument h(arguments);
@@ -773,7 +773,7 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	args::Command drop(commands, "drop", "drops anonymization name from list of filtered names",
 		[](args::Subparser& parser)
 		{
-			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::Group arguments(parser, "", args::Group::Validators::All);
 			args::Positional<std::string> name(arguments, "name", "the name to de-anonymize");
 			MQ2HelpArgument h(arguments);
 			parser.Parse();
@@ -783,9 +783,9 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	args::Command alias(commands, "alias", "adds an alias for a name in the list of filtered names",
 		[](args::Subparser& parser)
 		{
-			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
-			args::Positional<std::string> name(arguments, "[name]", "the name entry to unalias");
-			args::Positional<std::string> alias(arguments, "alias", "the alias to also stop searching for when replacing the name");
+			args::Group arguments(parser, "", args::Group::Validators::All);
+			args::Positional<std::string> name(arguments, "name", "the name entry to alias");
+			args::Positional<std::string> alias(arguments, "alias", "the alias to also search for when replacing the name");
 			MQ2HelpArgument h(arguments);
 			parser.Parse();
 			if (name && alias) AddAlternate(name.Get(), alias.Get());
@@ -794,8 +794,8 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	args::Command unalias(commands, "unalias", "drops an alias for a name in the list of filtered names",
 		[](args::Subparser& parser)
 		{
-			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
-			args::Positional<std::string> name(arguments, "[name]", "the name entry to unalias");
+			args::Group arguments(parser, "", args::Group::Validators::AtLeastOne);
+			args::Positional<std::string> name(arguments, "name", "the name entry to unalias");
 			args::Positional<std::string> alias(arguments, "alias", "the alias to also stop searching for when replacing the name");
 			MQ2HelpArgument h(arguments);
 			parser.Parse();
@@ -805,7 +805,7 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	args::Command group(commands, "group", "sets group anonymization",
 		[](args::Subparser& parser)
 		{
-			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::Group arguments(parser, "", args::Group::Validators::All);
 			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
 			MQ2HelpArgument h(arguments);
 			parser.Parse();
@@ -815,7 +815,7 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	args::Command fellowship(commands, "fellowship", "sets fellowship anonymization",
 		[](args::Subparser& parser)
 		{
-			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::Group arguments(parser, "", args::Group::Validators::All);
 			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
 			MQ2HelpArgument h(arguments);
 			parser.Parse();
@@ -825,7 +825,7 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	args::Command guild(commands, "guild", "sets guild anonymization",
 		[](args::Subparser& parser)
 		{
-			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::Group arguments(parser, "", args::Group::Validators::All);
 			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
 			MQ2HelpArgument h(arguments);
 			parser.Parse();
@@ -834,7 +834,7 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 
 	args::Command raid(commands, "raid", "sets raid anonymization",
 		[](args::Subparser& parser) {
-			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::Group arguments(parser, "", args::Group::Validators::All);
 			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
 			MQ2HelpArgument h(arguments);
 			parser.Parse();
@@ -843,7 +843,7 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 
 	args::Command all(commands, "all", "sets group/fellowship/guild/raid anonymization in one command",
 		[](args::Subparser& parser) {
-			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::Group arguments(parser, "", args::Group::Validators::All);
 			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
 			MQ2HelpArgument h(arguments);
 			parser.Parse();
@@ -859,7 +859,7 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	args::Command me(commands, "me", "sets me anonymization",
 		[](args::Subparser& parser)
 		{
-			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::Group arguments(parser, "", args::Group::Validators::DontCare);
 			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
 			MQ2HelpArgument h(arguments);
 			parser.Parse();
@@ -870,7 +870,7 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	args::Command save(commands, "save", "saves the configuration to file, completely rewriting data",
 		[](args::Subparser& parser)
 		{
-			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::Group arguments(parser, "", args::Group::Validators::DontCare);
 			MQ2HelpArgument h(arguments);
 			parser.Parse();
 			Serialize();
@@ -879,7 +879,7 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	args::Command load(commands, "load", "loads the configuration from file, overwriting and current settings or data",
 		[](args::Subparser& parser)
 		{
-			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::Group arguments(parser, "", args::Group::Validators::DontCare);
 			MQ2HelpArgument h(arguments);
 			parser.Parse();
 			Deserialize();
@@ -888,7 +888,7 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	args::Command on(commands, "on", "turns anonymization on",
 		[](args::Subparser& parser)
 		{
-			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::Group arguments(parser, "", args::Group::Validators::DontCare);
 			MQ2HelpArgument h(arguments);
 			parser.Parse();
 			SetAnon(true);
@@ -897,7 +897,7 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	args::Command off(commands, "off", "turns anonymization off",
 		[](args::Subparser& parser)
 		{
-			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
+			args::Group arguments(parser, "", args::Group::Validators::DontCare);
 			MQ2HelpArgument h(arguments);
 			parser.Parse();
 			SetAnon(false);
@@ -912,6 +912,10 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 		arg_parser.ParseArgs(args);
 	}
 	catch (const args::Help&)
+	{
+		arg_parser.Help();
+	}
+	catch (const args::ValidationError& e)
 	{
 		arg_parser.Help();
 	}
