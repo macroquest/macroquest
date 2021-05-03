@@ -180,7 +180,17 @@ public:
 			comment(false), multlineComment(false), preprocessor(false), rawColor(true) {}
 	};
 
-	using Line = std::vector<Glyph>;
+	using Glyphs = std::vector<Glyph>;
+	struct Line
+	{
+		Glyphs glyphs;
+
+		std::string to_string() const;
+
+		Line(Glyphs glyphs) : glyphs(std::move(glyphs)) {}
+		Line() = default;
+	};
+
 	using Lines = std::deque<Line>;
 
 	struct LanguageDefinition
