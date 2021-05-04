@@ -34,196 +34,264 @@
 #include <unordered_map>
 #include <vector>
 
-namespace mq {
-namespace imgui {
+namespace mq::imgui::texteditor {
+
+//============================================================================
+
+class TextEditor;
+
+enum class PaletteIndex
+{
+	Default,
+	Keyword,
+	Number,
+	String,
+	CharLiteral,
+	Punctuation,
+	Preprocessor,
+	Identifier,
+	KnownIdentifier,
+	PreprocIdentifier,
+	Comment,
+	MultiLineComment,
+	Background,
+	Cursor,
+	Selection,
+	ErrorMarker,
+	Breakpoint,
+	LineNumber,
+	CurrentLineFill,
+	CurrentLineFillInactive,
+	CurrentLineEdge,
+	Max
+};
+
+//============================================================================
+
+enum class SelectionMode
+{
+	Normal,
+	Word,
+	Line
+};
+
+//============================================================================
+
+struct Breakpoint
+{
+	int line = -1;
+	bool enabled = false;
+	std::string condition;
+};
+
+//============================================================================
+// Represents a character coordinate from the user's point of view,
+// i. e. consider an uniform grid (assuming fixed-width font) on the
+// screen as it is rendered, and each cell has its own coordinate, starting from 0.
+// Tabs are counted as [1..mTabSize] count empty spaces, depending on
+// how many space is necessary to reach the next tab stop.
+// For example, coordinate (1, 5) represents the character 'B' in a line "\tABC", when mTabSize = 4,
+// because it is rendered as "    ABC" on the screen.
+struct Coordinates
+{
+	int line = 0;
+	int column = 0;
+
+	IMGUI_API Coordinates() = default;
+	IMGUI_API Coordinates(int aLine, int aColumn)
+		: line(aLine), column(aColumn)
+	{
+		assert(aLine >= 0);
+		assert(aColumn >= 0);
+	}
+
+	IMGUI_API static Coordinates Invalid()
+	{
+		static Coordinates invalid(-1, -1); return invalid;
+	}
+
+	inline bool operator ==(const Coordinates& o) const
+	{
+		return
+			line == o.line &&
+			column == o.column;
+	}
+
+	inline bool operator !=(const Coordinates& o) const
+	{
+		return
+			line != o.line ||
+			column != o.column;
+	}
+
+	inline bool operator <(const Coordinates& o) const
+	{
+		if (line != o.line)
+			return line < o.line;
+		return column < o.column;
+	}
+
+	inline bool operator >(const Coordinates& o) const
+	{
+		if (line != o.line)
+			return line > o.line;
+		return column > o.column;
+	}
+
+	inline bool operator <=(const Coordinates& o) const
+	{
+		if (line != o.line)
+			return line < o.line;
+		return column <= o.column;
+	}
+
+	inline bool operator >=(const Coordinates& o) const
+	{
+		if (line != o.line)
+			return line > o.line;
+		return column >= o.column;
+	}
+};
+
+//============================================================================
+
+struct Identifier
+{
+	Coordinates location;
+	std::string declaration;
+};
+
+//============================================================================
+
+using Char = uint8_t;
+using String = std::string;
+
+using Identifiers = std::unordered_map<std::string, texteditor::Identifier>;
+using Keywords = std::unordered_set<std::string>;
+using ErrorMarkers = std::map<int, std::string>;
+using Breakpoints = std::unordered_set<int>;
+using Palette = std::array<ImU32, (unsigned)texteditor::PaletteIndex::Max>;
+
+//============================================================================
+
+struct Glyph
+{
+	Char ch;
+	union {
+		PaletteIndex colorIndex;
+		ImU32 argbColor;
+	};
+	bool comment : 1;
+	bool multlineComment : 1;
+	bool preprocessor : 1;
+	bool rawColor : 1;
+
+	Glyph(Char ch, PaletteIndex colorIndex) : ch(ch), colorIndex(colorIndex),
+		comment(false), multlineComment(false), preprocessor(false), rawColor(false) {}
+	Glyph(Char ch, uint32_t ARGB) : ch(ch), argbColor(ARGB),
+		comment(false), multlineComment(false), preprocessor(false), rawColor(true) {}
+};
+
+using Glyphs = std::vector<Glyph>;
+
+//============================================================================
+
+struct Line
+{
+	Glyphs glyphs;
+
+	std::string to_string() const;
+
+	Line(Glyphs glyphs) : glyphs(std::move(glyphs)) {}
+	Line() = default;
+};
+
+using Lines = std::deque<Line>;
+
+//============================================================================
+
+struct LanguageDefinition
+{
+	using TokenRegexString = std::pair<std::string, PaletteIndex>;
+	using TokenRegexStrings = std::vector<TokenRegexString>;
+
+	// inBegin, inEnd, outBegin, outEnd, palleteIndex
+	using TokenizeCallback = bool(*)(const char*, const char*, const char*&, const char*&, PaletteIndex&);
+
+	std::string name;
+	Keywords keywords;
+	Identifiers identifiers;
+	Identifiers preprocIdentifiers;
+	std::string commentStart, commentEnd, singleLineComment;
+	char preprocChar = '#';
+	bool autoIndentation = true;
+	TokenizeCallback tokenize = nullptr;
+	TokenRegexStrings tokenRegexStrings;
+	bool caseSensitive = true;
+	bool enabled = true;
+
+	IMGUI_API LanguageDefinition() = default;
+
+	IMGUI_API static const LanguageDefinition& CPlusPlus();
+	IMGUI_API static const LanguageDefinition& HLSL();
+	IMGUI_API static const LanguageDefinition& GLSL();
+	IMGUI_API static const LanguageDefinition& C();
+	IMGUI_API static const LanguageDefinition& SQL();
+	IMGUI_API static const LanguageDefinition& Lua();
+	IMGUI_API static const LanguageDefinition& PlainText();
+};
+
+//============================================================================
+
+using RegexList = std::vector<std::pair<std::regex, PaletteIndex>>;
+
+struct EditorState
+{
+	Coordinates selectionStart;
+	Coordinates selectionEnd;
+	Coordinates cursorPosition;
+};
+
+class UndoRecord
+{
+public:
+	UndoRecord() {}
+	~UndoRecord() {}
+
+	UndoRecord(
+		const std::string& added,
+		const Coordinates addedStart,
+		const Coordinates addedEnd,
+		const std::string& removed,
+		const Coordinates removedStart,
+		const Coordinates removedEnd,
+		EditorState& before,
+		EditorState& after);
+
+	void Undo(TextEditor* editor);
+	void Redo(TextEditor* editor);
+
+	std::string added;
+	Coordinates addedStart;
+	Coordinates addedEnd;
+
+	std::string removed;
+	Coordinates removedStart;
+	Coordinates removedEnd;
+
+	EditorState before;
+	EditorState after;
+};
+
+using UndoBuffer = std::vector<UndoRecord>;
+
+//============================================================================
 
 class TextEditor
 {
+	friend class UndoRecord;
+
 public:
-	enum class PaletteIndex
-	{
-		Default,
-		Keyword,
-		Number,
-		String,
-		CharLiteral,
-		Punctuation,
-		Preprocessor,
-		Identifier,
-		KnownIdentifier,
-		PreprocIdentifier,
-		Comment,
-		MultiLineComment,
-		Background,
-		Cursor,
-		Selection,
-		ErrorMarker,
-		Breakpoint,
-		LineNumber,
-		CurrentLineFill,
-		CurrentLineFillInactive,
-		CurrentLineEdge,
-		Max
-	};
-
-	enum class SelectionMode
-	{
-		Normal,
-		Word,
-		Line
-	};
-
-	struct Breakpoint
-	{
-		int line = -1;
-		bool enabled = false;
-		std::string condition;
-	};
-
-	// Represents a character coordinate from the user's point of view,
-	// i. e. consider an uniform grid (assuming fixed-width font) on the
-	// screen as it is rendered, and each cell has its own coordinate, starting from 0.
-	// Tabs are counted as [1..mTabSize] count empty spaces, depending on
-	// how many space is necessary to reach the next tab stop.
-	// For example, coordinate (1, 5) represents the character 'B' in a line "\tABC", when mTabSize = 4,
-	// because it is rendered as "    ABC" on the screen.
-	struct Coordinates
-	{
-		int line = 0;
-		int column = 0;
-
-		IMGUI_API Coordinates() = default;
-		IMGUI_API Coordinates(int aLine, int aColumn)
-			: line(aLine), column(aColumn)
-		{
-			assert(aLine >= 0);
-			assert(aColumn >= 0);
-		}
-
-		IMGUI_API static Coordinates Invalid()
-		{
-			static Coordinates invalid(-1, -1); return invalid;
-		}
-
-		inline bool operator ==(const Coordinates& o) const
-		{
-			return
-				line == o.line &&
-				column == o.column;
-		}
-
-		inline bool operator !=(const Coordinates& o) const
-		{
-			return
-				line != o.line ||
-				column != o.column;
-		}
-
-		inline bool operator <(const Coordinates& o) const
-		{
-			if (line != o.line)
-				return line < o.line;
-			return column < o.column;
-		}
-
-		inline bool operator >(const Coordinates& o) const
-		{
-			if (line != o.line)
-				return line > o.line;
-			return column > o.column;
-		}
-
-		inline bool operator <=(const Coordinates& o) const
-		{
-			if (line != o.line)
-				return line < o.line;
-			return column <= o.column;
-		}
-
-		inline bool operator >=(const Coordinates& o) const
-		{
-			if (line != o.line)
-				return line > o.line;
-			return column >= o.column;
-		}
-	};
-
-	struct Identifier
-	{
-		Coordinates location;
-		std::string declaration;
-	};
-
-	using String = std::string;
-	using Identifiers = std::unordered_map<std::string, Identifier>;
-	using Keywords = std::unordered_set<std::string>;
-	using ErrorMarkers = std::map<int, std::string>;
-	using Breakpoints = std::unordered_set<int>;
-	using Palette = std::array<ImU32, (unsigned)PaletteIndex::Max>;
-	using Char = uint8_t;
-
-	struct Glyph
-	{
-		Char ch;
-		union {
-			PaletteIndex colorIndex;
-			ImU32 argbColor;
-		};
-		bool comment : 1;
-		bool multlineComment : 1;
-		bool preprocessor : 1;
-		bool rawColor : 1;
-
-		Glyph(Char ch, PaletteIndex colorIndex) : ch(ch), colorIndex(colorIndex),
-			comment(false), multlineComment(false), preprocessor(false), rawColor(false) {}
-		Glyph(Char ch, uint32_t ARGB) : ch(ch), argbColor(ARGB),
-			comment(false), multlineComment(false), preprocessor(false), rawColor(true) {}
-	};
-
-	using Glyphs = std::vector<Glyph>;
-	struct Line
-	{
-		Glyphs glyphs;
-
-		std::string to_string() const;
-
-		Line(Glyphs glyphs) : glyphs(std::move(glyphs)) {}
-		Line() = default;
-	};
-
-	using Lines = std::deque<Line>;
-
-	struct LanguageDefinition
-	{
-		using TokenRegexString = std::pair<std::string, PaletteIndex>;
-		using TokenRegexStrings = std::vector<TokenRegexString>;
-
-		// inBegin, inEnd, outBegin, outEnd, palleteIndex
-		using TokenizeCallback = bool(*)(const char*, const char*, const char*&, const char*&, PaletteIndex&);
-
-		std::string name;
-		Keywords keywords;
-		Identifiers identifiers;
-		Identifiers preprocIdentifiers;
-		std::string commentStart, commentEnd, singleLineComment;
-		char preprocChar = '#';
-		bool autoIndentation = true;
-		TokenizeCallback tokenize = nullptr;
-		TokenRegexStrings tokenRegexStrings;
-		bool caseSensitive = true;
-		bool enabled = true;
-
-		IMGUI_API LanguageDefinition() = default;
-
-		IMGUI_API static const LanguageDefinition& CPlusPlus();
-		IMGUI_API static const LanguageDefinition& HLSL();
-		IMGUI_API static const LanguageDefinition& GLSL();
-		IMGUI_API static const LanguageDefinition& C();
-		IMGUI_API static const LanguageDefinition& SQL();
-		IMGUI_API static const LanguageDefinition& Lua();
-		IMGUI_API static const LanguageDefinition& PlainText();
-	};
-
 	IMGUI_API TextEditor();
 	IMGUI_API ~TextEditor();
 
@@ -323,50 +391,6 @@ public:
 	IMGUI_API static const Palette& GetRetroBluePalette();
 
 private:
-	using RegexList = std::vector<std::pair<std::regex, PaletteIndex>>;
-
-	struct EditorState
-	{
-		Coordinates selectionStart;
-		Coordinates selectionEnd;
-		Coordinates cursorPosition;
-	};
-
-	class UndoRecord
-	{
-	public:
-		UndoRecord() {}
-		~UndoRecord() {}
-
-		UndoRecord(
-			const std::string& added,
-			const TextEditor::Coordinates addedStart,
-			const TextEditor::Coordinates addedEnd,
-
-			const std::string& removed,
-			const TextEditor::Coordinates removedStart,
-			const TextEditor::Coordinates removedEnd,
-
-			TextEditor::EditorState& before,
-			TextEditor::EditorState& after);
-
-		void Undo(TextEditor* editor);
-		void Redo(TextEditor* editor);
-
-		std::string added;
-		Coordinates addedStart;
-		Coordinates addedEnd;
-
-		std::string removed;
-		Coordinates removedStart;
-		Coordinates removedEnd;
-
-		EditorState before;
-		EditorState after;
-	};
-
-	using UndoBuffer = std::vector<UndoRecord>;
-
 	void ProcessInputs();
 	void Colorize(int fromLine = 0, int count = -1);
 	void ColorizeRange(int fromLine = 0, int toLine = 0);
@@ -448,4 +472,8 @@ private:
 	std::chrono::steady_clock::time_point m_startTime;
 };
 
-}} // namespace mq::imgui
+} // namespace mq::imgui::texteditor
+
+namespace mq::imgui {
+	using mq::imgui::texteditor::TextEditor;
+}

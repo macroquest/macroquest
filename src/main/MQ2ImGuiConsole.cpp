@@ -38,9 +38,9 @@ static bool s_setFocus = false;
 class ImGuiConsole;
 ImGuiConsole* gImGuiConsole = nullptr;
 
-const mq::imgui::TextEditor::Palette& GetColorPalette()
+const mq::imgui::texteditor::Palette& GetColorPalette()
 {
-	const static mq::imgui::TextEditor::Palette p = { {
+	const static mq::imgui::texteditor::Palette p = { {
 			0xffffffff, // Default
 			0xffffffff, // Keyword
 			0xffffffff, // Number
@@ -127,7 +127,7 @@ public:
 		m_editor.SetRenderCursor(false);
 		m_editor.SetShowWhitespace(false);
 		m_editor.SetRenderLineNumbers(false);
-		m_editor.SetLanguageDefinition(mq::imgui::TextEditor::LanguageDefinition::PlainText());
+		m_editor.SetLanguageDefinition(mq::imgui::texteditor::LanguageDefinition::PlainText());
 		//m_editor.SetImGuiChildIgnored(true);
 	}
 

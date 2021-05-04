@@ -36,8 +36,7 @@
 
 using namespace std::chrono_literals;
 
-namespace mq {
-namespace imgui {
+namespace mq::imgui::texteditor {
 
 template <class InputIt1, class InputIt2, class BinaryPredicate>
 bool equals(InputIt1 first1, InputIt1 last1,
@@ -53,7 +52,7 @@ bool equals(InputIt1 first1, InputIt1 last1,
 
 // https://en.wikipedia.org/wiki/UTF-8
 // We assume that the char is a standalone character (<128) or a leading byte of an UTF-8 code sequence (non-10xxxxxx code)
-static int UTF8CharLength(TextEditor::Char c)
+static int UTF8CharLength(Char c)
 {
 	if ((c & 0xFE) == 0xFC)
 		return 6;
@@ -108,7 +107,7 @@ static inline int ImTextCharToUtf8(char* buf, int buf_size, unsigned int c)
 
 //============================================================================
 
-std::string TextEditor::Line::to_string() const
+std::string Line::to_string() const
 {
 	std::string text;
 	text.resize(glyphs.size());
@@ -121,15 +120,15 @@ std::string TextEditor::Line::to_string() const
 
 //============================================================================
 
-TextEditor::UndoRecord::UndoRecord(
+UndoRecord::UndoRecord(
 	const std::string& added,
-	const TextEditor::Coordinates addedStart,
-	const TextEditor::Coordinates addedEnd,
+	const Coordinates addedStart,
+	const Coordinates addedEnd,
 	const std::string& removed,
-	const TextEditor::Coordinates removedStart,
-	const TextEditor::Coordinates removedEnd,
-	TextEditor::EditorState& before,
-	TextEditor::EditorState& after)
+	const Coordinates removedStart,
+	const Coordinates removedEnd,
+	EditorState& before,
+	EditorState& after)
 	: added(added)
 	, addedStart(addedStart)
 	, addedEnd(addedEnd)
@@ -143,7 +142,7 @@ TextEditor::UndoRecord::UndoRecord(
 	assert(removedStart <= removedEnd);
 }
 
-void TextEditor::UndoRecord::Undo(TextEditor* editor)
+void UndoRecord::Undo(TextEditor* editor)
 {
 	if (!added.empty())
 	{
@@ -162,7 +161,7 @@ void TextEditor::UndoRecord::Undo(TextEditor* editor)
 
 }
 
-void TextEditor::UndoRecord::Redo(TextEditor* editor)
+void UndoRecord::Redo(TextEditor* editor)
 {
 	if (!removed.empty())
 	{
@@ -180,6 +179,7 @@ void TextEditor::UndoRecord::Redo(TextEditor* editor)
 	editor->EnsureCursorVisible();
 }
 
+//============================================================================
 //============================================================================
 
 TextEditor::TextEditor()
@@ -246,12 +246,12 @@ std::string TextEditor::GetText(const Coordinates& start, const Coordinates& end
 	return result;
 }
 
-TextEditor::Coordinates TextEditor::GetActualCursorCoordinates() const
+Coordinates TextEditor::GetActualCursorCoordinates() const
 {
 	return SanitizeCoordinates(m_state.cursorPosition);
 }
 
-TextEditor::Coordinates TextEditor::SanitizeCoordinates(const Coordinates& value) const
+Coordinates TextEditor::SanitizeCoordinates(const Coordinates& value) const
 {
 	int line = value.line;
 	int column = value.column;
@@ -456,7 +456,7 @@ void TextEditor::AddUndo(UndoRecord& value)
 	++m_undoIndex;
 }
 
-TextEditor::Coordinates TextEditor::ScreenPosToCoordinates(const ImVec2& position, bool insertionMode) const
+Coordinates TextEditor::ScreenPosToCoordinates(const ImVec2& position, bool insertionMode) const
 {
 	ImVec2 origin = ImGui::GetCursorScreenPos();
 	ImVec2 local(position.x - origin.x + 3.0f, position.y - origin.y);
@@ -513,7 +513,7 @@ TextEditor::Coordinates TextEditor::ScreenPosToCoordinates(const ImVec2& positio
 	return SanitizeCoordinates(Coordinates(lineNo, columnCoord));
 }
 
-TextEditor::Coordinates TextEditor::FindWordStart(const Coordinates& fromPos) const
+Coordinates TextEditor::FindWordStart(const Coordinates& fromPos) const
 {
 	Coordinates at = fromPos;
 	if (at.line >= (int)m_lines.size())
@@ -550,7 +550,7 @@ TextEditor::Coordinates TextEditor::FindWordStart(const Coordinates& fromPos) co
 	return Coordinates(at.line, GetCharacterColumn(at.line, cindex));
 }
 
-TextEditor::Coordinates TextEditor::FindWordEnd(const Coordinates& fromPos) const
+Coordinates TextEditor::FindWordEnd(const Coordinates& fromPos) const
 {
 	Coordinates at = fromPos;
 	if (at.line >= (int)m_lines.size())
@@ -587,7 +587,7 @@ TextEditor::Coordinates TextEditor::FindWordEnd(const Coordinates& fromPos) cons
 	return Coordinates(fromPos.line, GetCharacterColumn(fromPos.line, cindex));
 }
 
-TextEditor::Coordinates TextEditor::FindNextWord(const Coordinates& fromPos) const
+Coordinates TextEditor::FindNextWord(const Coordinates& fromPos) const
 {
 	Coordinates at = fromPos;
 	if (at.line >= (int)m_lines.size())
@@ -796,7 +796,7 @@ void TextEditor::RemoveLine(int lineIndex)
 	m_textChanged = true;
 }
 
-TextEditor::Line& TextEditor::InsertLine(int index)
+Line& TextEditor::InsertLine(int index)
 {
 	//assert(!mReadOnly);
 
@@ -1527,7 +1527,7 @@ void TextEditor::EnterCharacter(ImWchar ch, bool shift)
 				}
 				else
 				{
-					line.glyphs.emplace(line.glyphs.begin(), '\t', TextEditor::PaletteIndex::Background);
+					line.glyphs.emplace(line.glyphs.begin(), '\t', PaletteIndex::Background);
 					modified = true;
 				}
 			}
@@ -1691,16 +1691,16 @@ void TextEditor::SetSelection(const Coordinates& startPos, const Coordinates& en
 
 	switch (mode)
 	{
-	case TextEditor::SelectionMode::Normal:
+	case SelectionMode::Normal:
 		break;
-	case TextEditor::SelectionMode::Word:
+	case SelectionMode::Word:
 	{
 		m_state.selectionStart = FindWordStart(m_state.selectionStart);
 		if (!IsOnWordBoundary(m_state.selectionEnd))
 			m_state.selectionEnd = FindWordEnd(FindWordStart(m_state.selectionEnd));
 		break;
 	}
-	case TextEditor::SelectionMode::Line:
+	case SelectionMode::Line:
 	{
 		const int lineNo = m_state.selectionEnd.line;
 		const size_t lineSize = (size_t)lineNo < m_lines.size() ? m_lines[lineNo].glyphs.size() : 0;
@@ -2285,7 +2285,7 @@ void TextEditor::Redo(int steps)
 		m_undoBuffer[m_undoIndex++].Redo(this);
 }
 
-const TextEditor::Palette& TextEditor::GetDarkPalette()
+const Palette& TextEditor::GetDarkPalette()
 {
 	const static Palette p = { {
 		0xff7f7f7f,	// Default
@@ -2313,7 +2313,7 @@ const TextEditor::Palette& TextEditor::GetDarkPalette()
 	return p;
 }
 
-const TextEditor::Palette& TextEditor::GetLightPalette()
+const Palette& TextEditor::GetLightPalette()
 {
 	const static Palette p = { {
 		0xff7f7f7f,	// None
@@ -2341,7 +2341,7 @@ const TextEditor::Palette& TextEditor::GetLightPalette()
 	return p;
 }
 
-const TextEditor::Palette& TextEditor::GetRetroBluePalette()
+const Palette& TextEditor::GetRetroBluePalette()
 {
 	const static Palette p = { {
 		0xff00ffff,	// None
@@ -3133,7 +3133,7 @@ static bool TokenizeLuaStylePunctuation(const char* in_begin, const char* in_end
 	return false;
 }
 
-const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::CPlusPlus()
+const LanguageDefinition& LanguageDefinition::CPlusPlus()
 {
 	static bool inited = false;
 	static LanguageDefinition langDef;
@@ -3202,7 +3202,7 @@ const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::CPlusPlus(
 	return langDef;
 }
 
-const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::HLSL()
+const LanguageDefinition& LanguageDefinition::HLSL()
 {
 	static bool inited = false;
 	static LanguageDefinition langDef;
@@ -3274,7 +3274,7 @@ const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::HLSL()
 	return langDef;
 }
 
-const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::GLSL()
+const LanguageDefinition& LanguageDefinition::GLSL()
 {
 	static bool inited = false;
 	static LanguageDefinition langDef;
@@ -3323,7 +3323,7 @@ const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::GLSL()
 	return langDef;
 }
 
-const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::C()
+const LanguageDefinition& LanguageDefinition::C()
 {
 	static bool inited = false;
 	static LanguageDefinition langDef;
@@ -3389,7 +3389,7 @@ const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::C()
 	return langDef;
 }
 
-const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::SQL()
+const LanguageDefinition& LanguageDefinition::SQL()
 {
 	static bool inited = false;
 	static LanguageDefinition langDef;
@@ -3453,7 +3453,7 @@ const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::SQL()
 	return langDef;
 }
 
-const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::Lua()
+const LanguageDefinition& LanguageDefinition::Lua()
 {
 	static bool inited = false;
 	static LanguageDefinition langDef;
@@ -3524,7 +3524,7 @@ const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::Lua()
 	return langDef;
 }
 
-const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::PlainText()
+const LanguageDefinition& LanguageDefinition::PlainText()
 {
 	static bool inited = false;
 	static LanguageDefinition langDef;
@@ -3544,5 +3544,4 @@ const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::PlainText(
 
 #pragma endregion
 
-
-}} // namespace mq::imgui
+} // namespace mq::imgui::texteditor
