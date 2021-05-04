@@ -174,9 +174,9 @@ public:
 		bool preprocessor : 1;
 		bool rawColor : 1;
 
-		IMGUI_API Glyph(Char aChar, PaletteIndex aColorIndex) : ch(aChar), colorIndex(aColorIndex),
+		Glyph(Char ch, PaletteIndex colorIndex) : ch(ch), colorIndex(colorIndex),
 			comment(false), multlineComment(false), preprocessor(false), rawColor(false) {}
-		IMGUI_API Glyph(Char aChar, uint32_t ARGB) : ch(aChar), argbColor(ARGB),
+		Glyph(Char ch, uint32_t ARGB) : ch(ch), argbColor(ARGB),
 			comment(false), multlineComment(false), preprocessor(false), rawColor(true) {}
 	};
 
