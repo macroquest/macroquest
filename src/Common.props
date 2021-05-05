@@ -37,7 +37,7 @@
     </ClCompile>
     <!-- Shared compiler settings -->
     <ClCompile>
-      <AdditionalIncludeDirectories>$(MQ2Root)include;$(MQ2Root)contrib;$(MQ2Root)contrib\imgui;$(MQ2Root)contrib\imgui\misc\cpp;$(MQ2Root)contrib\tinyfsm\include;$(MQ2Root)src;$(VCPKG_IncludeDirs);$(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MQ2Root)include;$(MQ2Root)contrib;$(MQ2Root)contrib\imgui;$(MQ2Root)contrib\imgui\misc\cpp;$(MQ2Root)contrib\zep\include;$(MQ2Root)contrib\tinyfsm\include;$(MQ2Root)src;$(VCPKG_IncludeDirs);$(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <WarningLevel>Level3</WarningLevel>
       <CompileAs>CompileAsCpp</CompileAs>
