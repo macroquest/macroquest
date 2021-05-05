@@ -1,3 +1,6 @@
+May 5, 2021
+- Fixed InputText ImGui functions in the lua binding, also removed the buffer size argument.
+
 May 1, 2021
 - Fixed an issue with inventory slots being out of order due to ui load order (#247)
 - Updated MQ2Bzsrch structure and fix bzsrch crash (#108)
