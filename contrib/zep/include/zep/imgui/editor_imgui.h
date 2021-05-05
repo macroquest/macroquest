@@ -131,6 +131,7 @@ public:
         const auto& buffer = pWindow->GetBuffer();
 
         // Check USB Keys
+#if 0
         for (auto& usbKey : MapUSBKeys)
         {
             if (ImGui::IsKeyPressed(usbKey.first))
@@ -139,6 +140,7 @@ public:
                 return;
             }
         }
+#endif
 
         if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Tab)))
         {

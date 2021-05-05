@@ -31,7 +31,7 @@ bool GlyphIterator::Valid() const
         return false;
     }
 
-    if (m_index < 0 || m_index >= m_pBuffer->GetWorkingBuffer().size())
+    if (m_index < 0 || m_index >= (int)m_pBuffer->GetWorkingBuffer().size())
     {
         return false;
     }

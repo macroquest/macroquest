@@ -249,7 +249,7 @@ private:
     long m_lastCursorColumn = 0;                    // The last cursor column (could be removed and recalculated)
 
     // Visual stuff
-    DisplayMode m_displayMode = DisplayMode::Vim;
+    DisplayMode m_displayMode = DisplayMode::Normal;
     std::vector<std::string> m_statusLines; // Status information, shown under the buffer
 
     // Setup of displayed lines

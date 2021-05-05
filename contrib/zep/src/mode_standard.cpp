@@ -46,10 +46,10 @@ void ZepMode_Standard::Init()
     GetEditor().SetRegister('"', "");
     
     // Insert Mode
-    keymap_add({ &m_insertMap }, { "<Backspace>" }, id_Backspace);
-    keymap_add({ &m_insertMap }, { "<Return>" }, id_InsertCarriageReturn);
-    keymap_add({ &m_insertMap }, { "<Tab>" }, id_InsertTab);
-    keymap_add({ &m_insertMap }, { "<Del>" }, id_Delete);
+    keymap_add({ &m_insertMap, &m_visualMap }, { "<Backspace>" }, id_Backspace);
+    keymap_add({ &m_insertMap, &m_visualMap }, { "<Return>" }, id_InsertCarriageReturn);
+    keymap_add({ &m_insertMap, &m_visualMap }, { "<Tab>" }, id_InsertTab);
+    keymap_add({ &m_insertMap, &m_visualMap }, { "<Del>" }, id_Delete);
     keymap_add({ &m_insertMap, &m_visualMap }, { "<C-y>" }, id_Redo);
     keymap_add({ &m_insertMap, &m_visualMap }, { "<C-z>" }, id_Undo);
 
@@ -58,8 +58,8 @@ void ZepMode_Standard::Init()
     keymap_add({ &m_insertMap, &m_visualMap }, { "<Up>" }, id_MotionStandardUp);
     keymap_add({ &m_insertMap, &m_visualMap }, { "<Down>" }, id_MotionStandardDown);
    
-    keymap_add({ &m_insertMap }, { "<C-Left>" }, id_MotionStandardLeftWord);
-    keymap_add({ &m_insertMap }, { "<C-Right>" }, id_MotionStandardRightWord);
+    keymap_add({ &m_insertMap, &m_visualMap }, { "<C-Left>" }, id_MotionStandardLeftWord);
+    keymap_add({ &m_insertMap, &m_visualMap }, { "<C-Right>" }, id_MotionStandardRightWord);
     
     keymap_add({ &m_insertMap, &m_visualMap }, { "<C-S-Left>" }, id_MotionStandardLeftWordSelect);
     keymap_add({ &m_insertMap, &m_visualMap }, { "<C-S-Right>" }, id_MotionStandardRightWordSelect);
@@ -69,10 +69,10 @@ void ZepMode_Standard::Init()
     keymap_add({ &m_insertMap, &m_visualMap }, { "<S-Up>" }, id_MotionStandardUpSelect);
     keymap_add({ &m_insertMap, &m_visualMap }, { "<S-Down>" }, id_MotionStandardDownSelect);
 
-    keymap_add({ &m_visualMap }, { "<C-x>" }, id_Delete);
+    keymap_add({ &m_insertMap, &m_visualMap }, { "<C-x>" }, id_Delete);
     
     keymap_add({ &m_insertMap, &m_visualMap }, { "<C-v>" }, id_StandardPaste);
-    keymap_add({ &m_visualMap }, { "<C-c>" }, id_StandardCopy);
+    keymap_add({ &m_insertMap, &m_visualMap }, { "<C-c>" }, id_StandardCopy);
 
     keymap_add({ &m_normalMap, &m_visualMap, &m_insertMap }, { "<Escape>" }, id_InsertMode);
     keymap_add({ &m_normalMap }, { "<Backspace>" }, id_MotionStandardLeft);
