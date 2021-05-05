@@ -15,7 +15,7 @@ namespace Zep
 
 class ZepMode;
 
-#define DECLARE_COMMANDID(name) const StringId id_##name(#name);
+#define DECLARE_COMMANDID(name) constexpr StringId id_##name(#name);
 
 DECLARE_COMMANDID(YankLine)
 DECLARE_COMMANDID(Yank)
@@ -198,7 +198,7 @@ struct KeyMapResult
         }
         return std::accumulate(captureNumbers.begin(), captureNumbers.end(), 0);
     }
-    
+
     // Return the first register for commands that only want 1
     char RegisterName() const
     {

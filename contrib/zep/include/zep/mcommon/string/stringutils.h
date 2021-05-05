@@ -88,52 +88,215 @@ inline std::wstring makeWStr(const std::string& str)
 std::string string_from_wstring(const std::wstring& str);
 std::string string_tolower(const std::string& str);
 
+namespace detail
+{
+template <size_t R, class T>
+static inline constexpr T rotl(const T v)
+{
+    static_assert(std::is_unsigned<T>::value, "Can only rotate unsigned integral types");
+
+    return (v << (R % std::numeric_limits<T>::digits)) | (v >> (std::numeric_limits<T>::digits - (R % std::numeric_limits<T>::digits)));
+}
+
+template <class T>
+struct LittleEndianIndexer
+{
+    static inline constexpr size_t index_of(size_t v)
+    {
+        return v;
+    }
+};
+
+template <class T>
+struct BigEndianIndexer
+{
+    static inline constexpr size_t index_of(size_t v)
+    {
+        return (sizeof(T) - v - 1);
+    }
+};
+
+template <class T, template <typename> class Indexer = LittleEndianIndexer>
+struct IntegralByteView
+{
+    static_assert(std::is_integral<T>::value, "IntegralByteView supports only integral types");
+
+    inline constexpr IntegralByteView(const T* const p, size_t n)
+        : _p(p)
+        , _n(p ? n * sizeof(T) : 0)
+    {
+    }
+
+    inline constexpr size_t size() const
+    {
+        return _n;
+    }
+
+    inline constexpr uint8_t byte_at(size_t n) const
+    {
+        return n < _n ? uint8_t(_p[n / sizeof(T)] >> (Indexer<T>::index_of(n % sizeof(T)) * std::numeric_limits<uint8_t>::digits)) : throw int();
+    }
+
+private:
+    const T* const _p;
+    size_t _n;
+};
+
+template <class T>
+struct MurmurHash3;
+
+template <>
+struct MurmurHash3<uint32_t>
+{
+    using value_type = uint32_t;
+
+    template <class T, template <typename> class Indexer>
+    inline constexpr MurmurHash3(const IntegralByteView<T, Indexer>& s, value_type seed)
+        : _value(fmix3(fmix2(fmix1(tail(body(seed, s, 0), s)))))
+    {
+    }
+
+    inline constexpr operator value_type() const
+    {
+        return _value;
+    }
+
+private:
+    static constexpr const uint32_t C1 = 0xcc9e2d51;
+    static constexpr const uint32_t C2 = 0x1b873593;
+
+    static constexpr const size_t BODY_CHUNK_SIZE = 256;
+
+    template <class T, template <typename> class Indexer>
+    static inline constexpr value_type get_block(const IntegralByteView<T, Indexer>& s, size_t offset)
+    {
+        return value_type(s.byte_at(offset)) | (value_type(s.byte_at(offset + 1)) << 8) | (value_type(s.byte_at(offset + 2)) << 16) | (value_type(s.byte_at(offset + 3)) << 24);
+    }
+
+    template <class T, template <typename> class Indexer>
+    static inline constexpr value_type get_tail(const IntegralByteView<T, Indexer>& s, size_t offset)
+    {
+        return offset >= s.size() ? 0 : value_type(s.byte_at(offset)) | (s.size() - offset > 1 ? (value_type(s.byte_at(offset + 1)) << 8) : 0) | (s.size() - offset > 2 ? (value_type(s.byte_at(offset + 2)) << 16) : 0);
+    }
+
+    static inline constexpr value_type process_block(value_type k1, value_type h)
+    {
+        return 0xe6546b64 + (5 * rotl<13>(h ^ (rotl<15>(k1 * C1) * C2)));
+    }
+
+    static inline constexpr value_type fmix1(value_type h)
+    {
+        return (h ^ h >> 16) * 0x85ebca6b;
+    }
+
+    static inline constexpr value_type fmix2(value_type h)
+    {
+        return (h ^ (h >> 13)) * 0xc2b2ae35;
+    }
+
+    static inline constexpr value_type fmix3(value_type h)
+    {
+        return h ^ (h >> 16);
+    }
+
+    template <class T, template <typename> class Indexer>
+    static inline constexpr value_type body_chunk(value_type h, const IntegralByteView<T, Indexer>& s, size_t offset, size_t left)
+    {
+        return left < 4 ? h : body_chunk(process_block(get_block(s, offset), h), s, offset + 4, left - 4);
+    }
+
+    template <class T, template <typename> class Indexer>
+    static inline constexpr value_type body(value_type h, const IntegralByteView<T, Indexer>& s, size_t offset)
+    {
+        return (offset > s.size() || s.size() - offset < 4) ? h : body(body_chunk(h, s, offset, s.size() - offset >= BODY_CHUNK_SIZE ? BODY_CHUNK_SIZE : s.size() - offset), s, offset + BODY_CHUNK_SIZE);
+    }
+
+    template <class T, template <typename> class Indexer>
+    static inline constexpr value_type tail(value_type h, const IntegralByteView<T, Indexer>& s)
+    {
+        return s.size() ^ h ^ (rotl<15>(get_tail(s, s.size() - (s.size() & 3)) * C1) * C2);
+    }
+
+    value_type _value;
+};
+} // namespace detail
+
+template <class T, class U>
+inline constexpr T murmur_hash3(const U* s, size_t n, const T seed = 0)
+{
+    return detail::MurmurHash3<T>(detail::IntegralByteView<U>(s, n), seed);
+}
+
+namespace detail
+{
+inline constexpr const char* _strnul_chunk(const char* s, size_t l)
+{
+    return (!l || !s || !*s) ? s : _strnul_chunk(s + 1, l - 1);
+}
+inline constexpr const char* strnul(const char* s)
+{
+    return (!s || !*s) ? s : strnul(_strnul_chunk(s + 1, 250));
+}
+inline constexpr size_t strlen(const char* s)
+{
+    return strnul(s) - s;
+}
+} // namespace detail
+
+template <class T>
+inline constexpr T murmur_hash3(const char* s, const T seed = 0)
+{
+    return detail::MurmurHash3<T>(detail::IntegralByteView<char>(s, detail::strlen(s)), seed);
+}
+
 struct StringId
 {
     uint32_t id = 0;
-    StringId()
+
+    constexpr StringId() = default;
+
+    constexpr StringId(const char* pszString)
+        : id(murmur_hash3<uint32_t>(pszString))
     {
-    }
-    StringId(const char* pszString);
-    StringId(const std::string& str);
-    explicit StringId(uint32_t _id)
-    {
-        id = _id;
     }
 
-    bool operator==(const StringId& rhs) const
+    StringId(const std::string& str)
+        : id(murmur_hash3<uint32_t>(str.c_str()))
+    {
+    }
+
+    constexpr explicit StringId(uint32_t id_)
+        : id(id_)
+    {
+    }
+
+    constexpr bool operator==(const StringId& rhs) const
     {
         return id == rhs.id;
     }
-    const StringId& operator=(const char* pszString);
-    const StringId& operator=(const std::string& str);
-    bool operator<(const StringId& rhs) const
+
+    constexpr StringId& operator=(const char* pszString)
+    {
+        id = murmur_hash3<uint32_t>(pszString);
+        return *this;
+    }
+
+    StringId& operator=(const std::string& str)
+    {
+        id = murmur_hash3<uint32_t>(str.c_str());
+        return *this;
+    }
+
+    constexpr bool operator<(const StringId& rhs) const
     {
         return id < rhs.id;
     }
 
-    operator uint32_t() const
+    constexpr operator uint32_t() const
     {
         return id;
     }
-    std::string ToString() const
-    {
-        auto itr = GetStringLookup().find(id);
-        if (itr == GetStringLookup().end())
-        {
-            return "murmur:" + std::to_string(id);
-        }
-        return itr->second;
-    }
-
-    static std::unordered_map<uint32_t, std::string>& GetStringLookup();
 };
-
-inline std::ostream& operator<<(std::ostream& str, StringId id)
-{
-    str << id.ToString();
-    return str;
-}
 
 void string_split(const std::string& text, const char* delims, std::vector<std::string>& tokens);
 std::vector<std::string> string_split(const std::string& text, const char* delims);

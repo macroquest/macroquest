@@ -159,8 +159,8 @@ void keymap_dump(const KeyMap& map, std::ostringstream& str)
             str << " ";
         }
         str << node->token;
-        if (node->commandId != 0)
-            str << " : " << node->commandId.ToString();
+        //if (node->commandId != 0)
+        //    str << " : " << node->commandId.ToString();
         str << std::endl;
 
         for (auto& child : node->children)
@@ -334,7 +334,7 @@ void keymap_find(const KeyMap& map, const std::string& strCommand, KeyMapResult&
                 else
                 {
                     // This is the find result, note it and record the capture groups for the find
-                    result.searchPath += " : " + spChildNode->commandId.ToString();
+                    //result.searchPath += " : " + spChildNode->commandId.ToString();
                     result.captureChars = nodeCaptures.captureChars;
                     result.captureNumbers = nodeCaptures.captureNumbers;
                     result.captureRegisters = nodeCaptures.captureRegisters;
