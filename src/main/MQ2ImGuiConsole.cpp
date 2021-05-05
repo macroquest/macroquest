@@ -22,8 +22,6 @@
 #include "imgui/ImGuiTextEditor.h"
 #include <imgui/imgui_internal.h>
 
-#define ZEP_SINGLE_HEADER_BUILD
-#define ZEP_FEATURE_CPP_FILE_SYSTEM
 #include "zep.h"
 
 namespace mq {

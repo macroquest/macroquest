@@ -140,9 +140,6 @@
     <ClCompile Include="MQ2Overlay.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\contrib\fmt\src\format.cc">
-      <Filter>Source Files\Contrib\fmt</Filter>
-    </ClCompile>
     <ClCompile Include="MQ2LoginFrontend.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -331,9 +328,6 @@
     </ClCompile>
     <ClCompile Include="MQ2Items.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\fmt\src\os.cc">
-      <Filter>Source Files\Contrib\fmt</Filter>
     </ClCompile>
     <ClCompile Include="MQ2FrameLimiter.cpp">
       <Filter>Source Files</Filter>
