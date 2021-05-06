@@ -614,7 +614,7 @@ bool MQ2Initialize()
 
 	if (GetModuleHandle("Lavish.dll") || GetModuleHandle("InnerSpace.dll"))
 	{
-		uintptr_t baseAddress = 0;
+		uintptr_t baseAddressLS = 0;
 		uintptr_t endAddress = 0;
 
 		MODULEINFO moduleInfo;
@@ -624,32 +624,32 @@ bool MQ2Initialize()
 		if (hISModule
 			&& GetModuleInformation(GetCurrentProcess(), hISModule, &moduleInfo, sizeof(MODULEINFO)))
 		{
-			baseAddress = (uintptr_t)moduleInfo.lpBaseOfDll;
-			endAddress = baseAddress + (uintptr_t)moduleInfo.SizeOfImage;
+			baseAddressLS = (uintptr_t)moduleInfo.lpBaseOfDll;
+			endAddress = baseAddressLS + (uintptr_t)moduleInfo.SizeOfImage;
 		}
 
-		bool foundHooks = baseAddress == 0;             // skip checks if InnerSpace.dll isn't loaded
+		bool foundHooks = baseAddressLS == 0;             // skip checks if InnerSpace.dll isn't loaded
 		bool foundWindowHandle = false;
 
-		// Do some checks against Lavish/InnerSpace integrations. Wait a total of 10 seconds of we fail all checks.
-		auto startTime = std::chrono::steady_clock::now();
-		while (std::chrono::steady_clock::now() - startTime < std::chrono::seconds{ 10 } && !(foundHooks && foundWindowHandle))
+		// Do some checks against Lavish/InnerSpace integrations. Wait a total of 10 seconds or we fail all checks.
+		const auto startTime = std::chrono::steady_clock::now();
+		while (std::chrono::steady_clock::now() - startTime < std::chrono::seconds(10) && !(foundHooks && foundWindowHandle))
 		{
-			std::this_thread::sleep_for(std::chrono::milliseconds{ 200 });
+			std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
 			if (!foundHooks)
 			{
 				// Wait for InnerSpace to finish loading before we try to continue. InnerSpace will modify our
 				// import address table, resulting in our detours being ineffective if we go first.
 				uintptr_t fnGetProcAddress = (uintptr_t)&::GetProcAddress;
-				if (fnGetProcAddress >= baseAddress && fnGetProcAddress < endAddress)
+				if (fnGetProcAddress >= baseAddressLS && fnGetProcAddress < endAddress)
 				{
 					foundHooks = true;
 				}
 				else
 				{
 					fnGetProcAddress = (uintptr_t)GetProcAddress(hKernelModule, "GetProcAddress");
-					if (fnGetProcAddress >= baseAddress && fnGetProcAddress < endAddress)
+					if (fnGetProcAddress >= baseAddressLS && fnGetProcAddress < endAddress)
 					{
 						foundHooks = true;
 					}
