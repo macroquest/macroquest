@@ -203,36 +203,7 @@ void Scroller::Notify(std::shared_ptr<ZepMessage> message)
 
 void Scroller::Display(ZepTheme& theme)
 {
-    auto& display = GetEditor().GetDisplay();
-
-    display.SetClipRect(m_region->rect);
-
-    auto mousePos = GetEditor().GetMousePos();
-    auto activeColor = theme.GetColor(ThemeColor::WidgetActive);
-    auto inactiveColor = theme.GetColor(ThemeColor::WidgetInactive);
-
-    // Scroller background
-    display.DrawRectFilled(m_region->rect, theme.GetColor(ThemeColor::WidgetBackground));
-
-    bool onTop = m_topButtonRegion->rect.Contains(mousePos) && m_scrollState != ScrollState::Drag;
-    bool onBottom = m_bottomButtonRegion->rect.Contains(mousePos) && m_scrollState != ScrollState::Drag;
-
-    if (m_scrollState == ScrollState::ScrollUp)
-    {
-        onTop = true;
-    }
-    if (m_scrollState == ScrollState::ScrollDown)
-    {
-        onBottom = true;
-    }
-
-    display.DrawRectFilled(m_topButtonRegion->rect, onTop ? activeColor : inactiveColor);
-    display.DrawRectFilled(m_bottomButtonRegion->rect, onBottom ? activeColor : inactiveColor);
-
-    auto thumbRect = ThumbRect();
-
-    // Thumb
-    display.DrawRectFilled(thumbRect, thumbRect.Contains(mousePos) || m_scrollState == ScrollState::Drag ? activeColor : inactiveColor);
+    GetEditor().GetDisplay().DrawScroller(*this, theme);
 }
 
 }; // namespace Zep

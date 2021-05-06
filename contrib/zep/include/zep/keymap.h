@@ -15,7 +15,22 @@ namespace Zep
 
 class ZepMode;
 
-#define DECLARE_COMMANDID(name) constexpr StringId id_##name(#name);
+struct StringIdReverseLookup
+{
+    StringIdReverseLookup(const StringId* id, const char* name);
+};
+
+std::string StringIdToString(StringId id);
+
+inline std::ostream& operator<<(std::ostream& str, StringId id)
+{
+    str << StringIdToString(id);
+    return str;
+}
+
+#define DECLARE_COMMANDID(name) \
+    constexpr StringId id_##name(#name); \
+    const StringIdReverseLookup idLookup_##name(&id_##name, #name);
 
 DECLARE_COMMANDID(YankLine)
 DECLARE_COMMANDID(Yank)
@@ -94,6 +109,9 @@ DECLARE_COMMANDID(FontSmaller)
 
 DECLARE_COMMANDID(QuickSearch)
 
+DECLARE_COMMANDID(ViewLineForward)
+DECLARE_COMMANDID(ViewLineBackward)
+
 DECLARE_COMMANDID(Undo)
 DECLARE_COMMANDID(Redo)
 
@@ -103,14 +121,14 @@ DECLARE_COMMANDID(MotionPreviousMarker)
 DECLARE_COMMANDID(MotionNextSearch)
 DECLARE_COMMANDID(MotionPreviousSearch)
 
-DECLARE_COMMANDID(MotionLineEnd)
-DECLARE_COMMANDID(MotionLineBegin)
-DECLARE_COMMANDID(MotionLineFirstChar)
-
 DECLARE_COMMANDID(MotionRightSplit)
 DECLARE_COMMANDID(MotionLeftSplit)
 DECLARE_COMMANDID(MotionUpSplit)
 DECLARE_COMMANDID(MotionDownSplit)
+
+DECLARE_COMMANDID(MotionLineEnd)
+DECLARE_COMMANDID(MotionLineBegin)
+DECLARE_COMMANDID(MotionLineFirstChar)
 
 DECLARE_COMMANDID(MotionDown)
 DECLARE_COMMANDID(MotionUp)
@@ -126,10 +144,10 @@ DECLARE_COMMANDID(MotionEndWORD)
 DECLARE_COMMANDID(MotionBackEndWord)
 DECLARE_COMMANDID(MotionBackEndWORD)
 DECLARE_COMMANDID(MotionGotoBeginning)
+DECLARE_COMMANDID(MotionGotoEnd)
 
 DECLARE_COMMANDID(MotionPageForward)
 DECLARE_COMMANDID(MotionPageBackward)
-
 DECLARE_COMMANDID(MotionHalfPageForward)
 DECLARE_COMMANDID(MotionHalfPageBackward)
 
@@ -147,8 +165,14 @@ DECLARE_COMMANDID(MotionStandardUp)
 DECLARE_COMMANDID(MotionStandardLeft)
 DECLARE_COMMANDID(MotionStandardRight)
 
+DECLARE_COMMANDID(MotionStandardPageForward)
+DECLARE_COMMANDID(MotionStandardPageBackward)
+
 DECLARE_COMMANDID(MotionStandardLeftWord)
 DECLARE_COMMANDID(MotionStandardRightWord)
+
+DECLARE_COMMANDID(MotionStandardLineBegin)
+DECLARE_COMMANDID(MotionStandardLineEnd)
 
 DECLARE_COMMANDID(MotionStandardLeftSelect)
 DECLARE_COMMANDID(MotionStandardRightSelect)
@@ -158,8 +182,16 @@ DECLARE_COMMANDID(MotionStandardDownSelect)
 DECLARE_COMMANDID(MotionStandardLeftWordSelect)
 DECLARE_COMMANDID(MotionStandardRightWordSelect)
 
+DECLARE_COMMANDID(MotionStandardLineBeginSelect)
+DECLARE_COMMANDID(MotionStandardLineEndSelect)
+
 DECLARE_COMMANDID(InsertCarriageReturn)
 DECLARE_COMMANDID(InsertTab)
+
+DECLARE_COMMANDID(MotionStandardMoveCursor);
+DECLARE_COMMANDID(MotionStandardMoveCursorSelect);
+DECLARE_COMMANDID(MotionStandardSelectWord);
+DECLARE_COMMANDID(MotionStandardSelectLine);
 
 // Insert Mode
 DECLARE_COMMANDID(Backspace)

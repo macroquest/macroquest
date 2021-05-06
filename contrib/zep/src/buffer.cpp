@@ -1118,13 +1118,12 @@ void ZepBuffer::SetTheme(std::shared_ptr<ZepTheme> spTheme)
 
 bool ZepBuffer::HasSelection() const
 {
-    return m_selection.first != m_selection.second;
+    return m_selection.IsValid();
 }
 
 void ZepBuffer::ClearSelection()
 {
-    m_selection.first = Begin();
-    m_selection.second = Begin();
+    m_selection.Invalidate();
 }
 
 GlyphRange ZepBuffer::GetInclusiveSelection() const

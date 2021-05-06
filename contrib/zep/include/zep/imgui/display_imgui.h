@@ -1,7 +1,10 @@
 #pragma once
-#include "../display.h"
-#include "../syntax.h"
+
+#include "zep/display.h"
+#include "zep/syntax.h"
+#include "zep/scroller.h"
 #include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 #include <string>
 
 // Can't include this publicly
@@ -122,6 +125,58 @@ public:
             drawList->PopClipRect();
         }
     }
+
+    //void DrawScroller(const Scroller& scroller, ZepTheme& theme) override
+    //{
+    //    const auto& region = scroller.GetRegion();
+    //    const auto& topButton = scroller.GetTopButtonRegion();
+    //    const auto& bottomButton = scroller.GetBottomButtonRegion();
+    //    SetClipRect(region->rect);
+
+    //    auto mousePos = scroller.GetEditor().GetMousePos();
+    //    auto activeColor = theme.GetColor(ThemeColor::WidgetActive);
+    //    auto inactiveColor = theme.GetColor(ThemeColor::WidgetInactive);
+
+    //    auto scrollState = scroller.GetState();
+    //    bool held = scrollState == Scroller::ScrollState::Drag;
+    //    bool hovered = region->rect.Contains(mousePos);
+
+    //    const ImU32 bg_col = ImGui::GetColorU32(ImGuiCol_ScrollbarBg);
+    //    const ImU32 grab_col = ImGui::GetColorU32(held ? ImGuiCol_ScrollbarGrabActive : hovered ? ImGuiCol_ScrollbarGrabHovered : ImGuiCol_ScrollbarGrab, 1.0f);
+
+    //    // Frame
+    //    ImGuiWindow* window = ImGui::GetCurrentContext()->CurrentWindow;
+
+    //    ImDrawCornerFlags rounding_corners = 0;
+    //    if ((window->Flags & ImGuiWindowFlags_NoTitleBar) && !(window->Flags & ImGuiWindowFlags_MenuBar))
+    //        rounding_corners |= ImDrawCornerFlags_TopRight;
+    //    if (!window->ScrollbarX)
+    //        rounding_corners |= ImDrawCornerFlags_BotRight;
+
+    //    window->DrawList->AddRectFilled(toImVec2(region->rect.topLeftPx),
+    //        toImVec2(region->rect.bottomRightPx), bg_col, window->WindowRounding, rounding_corners);
+    //    //DrawRectFilled(region->rect, theme.GetColor(ThemeColor::WidgetBackground));
+
+    //    bool onTop = topButton->rect.Contains(mousePos) && scrollState != Scroller::ScrollState::Drag;
+    //    bool onBottom = bottomButton->rect.Contains(mousePos) && scrollState != Scroller::ScrollState::Drag;
+
+    //    if (scrollState == Scroller::ScrollState::ScrollUp)
+    //    {
+    //        onTop = true;
+    //    }
+    //    if (scrollState == Scroller::ScrollState::ScrollDown)
+    //    {
+    //        onBottom = true;
+    //    }
+
+    //    DrawRectFilled(topButton->rect, onTop ? activeColor : inactiveColor);
+    //    DrawRectFilled(bottomButton->rect, onBottom ? activeColor : inactiveColor);
+
+    //    auto thumbRect = scroller.ThumbRect();
+
+    //    // Thumb
+    //    DrawRectFilled(thumbRect, thumbRect.Contains(mousePos) || scrollState == Scroller::ScrollState::Drag ? activeColor : inactiveColor);
+    //}
 
     virtual void SetClipRect(const NRectf& rc) override
     {

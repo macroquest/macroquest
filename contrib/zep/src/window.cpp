@@ -274,27 +274,10 @@ void ZepWindow::EnsureCursorVisible()
     }
 }
 
-void ZepWindow::ScrollToCursor()
+void ZepWindow::AdjustScroll(float delta)
 {
-    if (!m_cursorMoved)
-    {
-        return;
-    }
-
-    auto lineMargins = DPI_VEC2(GetEditor().GetConfig().lineMargins);
     auto old_offset = m_textOffsetPx;
-    auto two_lines = (GetEditor().GetDisplay().GetFont(ZepTextType::Text).GetPixelHeight() * 2); // +(lineMargins.x + lineMargins.y) * 2;
-    auto& cursorLine = GetCursorLineInfo(BufferToDisplay().y);
-
-    // If the buffer is beyond two lines above the cursor position, move it back by the difference
-    if (m_textOffsetPx > (cursorLine.yOffsetPx - two_lines))
-    {
-        m_textOffsetPx -= (m_textOffsetPx - (cursorLine.yOffsetPx - two_lines));
-    }
-    else if ((m_textOffsetPx + m_textRegion->rect.Height() - two_lines) < cursorLine.yOffsetPx)
-    {
-        m_textOffsetPx += cursorLine.yOffsetPx - (m_textOffsetPx + m_textRegion->rect.Height() - two_lines);
-    }
+    m_textOffsetPx += delta;
 
     m_textOffsetPx = std::min(m_textOffsetPx, m_textSizePx.y - m_textRegion->rect.Height());
     m_textOffsetPx = std::max(0.f, m_textOffsetPx);
@@ -303,6 +286,32 @@ void ZepWindow::ScrollToCursor()
     {
         UpdateVisibleLineRange();
     }
+}
+
+void ZepWindow::ScrollToCursor()
+{
+    if (!m_cursorMoved)
+    {
+        return;
+    }
+
+    auto lineMargins = DPI_VEC2(GetEditor().GetConfig().lineMargins);
+    auto two_lines = (GetEditor().GetDisplay().GetFont(ZepTextType::Text).GetPixelHeight() * 2); // +(lineMargins.x + lineMargins.y) * 2;
+    auto& cursorLine = GetCursorLineInfo(BufferToDisplay().y);
+
+    float scrollDelta = 0;
+
+    // If the buffer is beyond two lines above the cursor position, move it back by the difference
+    if (m_textOffsetPx > (cursorLine.yOffsetPx - two_lines))
+    {
+        scrollDelta = -(m_textOffsetPx - (cursorLine.yOffsetPx - two_lines));
+    }
+    else if ((m_textOffsetPx + m_textRegion->rect.Height() - two_lines) < cursorLine.yOffsetPx)
+    {
+        scrollDelta = cursorLine.yOffsetPx - (m_textOffsetPx + m_textRegion->rect.Height() - two_lines);
+    }
+
+    AdjustScroll(scrollDelta);
     m_cursorMoved = false;
 }
 
@@ -849,28 +858,31 @@ void ZepWindow::DisplayLineBackground(SpanInfo& lineInfo, ZepSyntax* pSyntax)
     NVec2f linePx = GetSpanPixelRange(lineInfo);
 
     NVec4f backColor;
-    // Fill entire line background
-    if (lineInfo.lineByteRange.ContainsLocation(GetBufferCursor().Index()) && IsActiveWindow())
+    if (ZTestFlags(m_windowFlags, WindowFlags::ShowLineBackground))
     {
-        backColor = GetBlendedColor(ThemeColor::CursorLineBackground);
+        // Fill entire line background
+        if (lineInfo.lineByteRange.ContainsLocation(GetBufferCursor().Index()) && IsActiveWindow())
+        {
+            backColor = GetBlendedColor(ThemeColor::CursorLineBackground);
 
-        // Note; We fill below the line for underlines for now, to make them standout in minimal mode
-        display.DrawRectFilled(
-            NRectf(
-                NVec2f(linePx.x, ToWindowY(lineInfo.yOffsetPx)),
-                NVec2f(linePx.y, ToWindowY(lineInfo.yOffsetPx + lineInfo.FullLineHeightPx() + lineInfo.lineWidgetHeights.y))),
-            backColor);
-    }
-    else
-    {
-        backColor = GetBlendedColor(ThemeColor::Background);
+            // Note; We fill below the line for underlines for now, to make them standout in minimal mode
+            display.DrawRectFilled(
+                NRectf(
+                    NVec2f(linePx.x, ToWindowY(lineInfo.yOffsetPx)),
+                    NVec2f(linePx.y, ToWindowY(lineInfo.yOffsetPx + lineInfo.FullLineHeightPx() + lineInfo.lineWidgetHeights.y))),
+                backColor);
+        }
+        else
+        {
+            backColor = GetBlendedColor(ThemeColor::Background);
 
-        // Fill the background of the line
-        display.DrawRectFilled(
-            NRectf(
-                NVec2f(linePx.x, ToWindowY(lineInfo.yOffsetPx)),
-                NVec2f(linePx.y, ToWindowY(lineInfo.yOffsetPx + lineInfo.FullLineHeightPx() + lineInfo.lineWidgetHeights.y))),
-            backColor);
+            // Fill the background of the line
+            display.DrawRectFilled(
+                NRectf(
+                    NVec2f(linePx.x, ToWindowY(lineInfo.yOffsetPx)),
+                    NVec2f(linePx.y, ToWindowY(lineInfo.yOffsetPx + lineInfo.FullLineHeightPx() + lineInfo.lineWidgetHeights.y))),
+                backColor);
+        }
     }
 
     // Walk from the start of the line to the end of the line (in buffer chars)
@@ -1119,8 +1131,21 @@ bool ZepWindow::DisplayLine(SpanInfo& lineInfo, int displayPass)
 
     bool lineStart = true;
 
+    if (displayPass == WindowPass::Background)
+    {
+        // if the mouse is within the bounds of this whole line, then set it to the end of the line.
+        // if we find a specific character then we will move it there.
+        NRectf lineRect(NVec2f(m_textRegion->rect.Left(), ToWindowY(lineInfo.yOffsetPx)),
+            NVec2f(m_textRegion->rect.Right(), ToWindowY(lineInfo.yOffsetPx + lineInfo.FullLineHeightPx())));
+        if (lineRect.Contains(m_mouseHoverPos))
+        {
+            GlyphIterator linePos = GetBuffer().GetLinePos(GlyphIterator(&GetBuffer(), lineInfo.lineByteRange.first), LineLocation::LineCRBegin);
+            m_mouseCursorIterator = linePos;
+        }
+    }
+
     // Walk from the start of the line to the end of the line (in buffer chars)
-    for (auto cp : lineInfo.lineCodePoints)
+    for (const auto& cp : lineInfo.lineCodePoints)
     {
         const uint8_t* pCh;
         const uint8_t* pEnd;
@@ -1135,7 +1160,9 @@ bool ZepWindow::DisplayLine(SpanInfo& lineInfo, int displayPass)
             {
                 // Record the mouse-over buffer location
                 m_mouseBufferLocation = cp.iterator;
+                m_mouseCursorIterator = cp.iterator;
             }
+
 
             // Draw the visual selection marker second
             if (IsActiveWindow())
@@ -1492,7 +1519,7 @@ void ZepWindow::GetCursorInfo(NVec2f& pos, NVec2f& size)
     float xPos = m_textRegion->rect.topLeftPx.x + m_xPad;
 
     int count = 0;
-    for (auto ch : cursorBufferLine.lineCodePoints)
+    for (auto& ch : cursorBufferLine.lineCodePoints)
     {
         if (count == cursorCL.x)
         {
@@ -1643,6 +1670,7 @@ void ZepWindow::Display()
     auto& display = GetEditor().GetDisplay();
     auto cursorCL = BufferToDisplay(m_bufferCursor);
     m_mouseBufferLocation = GlyphIterator();
+    m_mouseCursorIterator = GlyphIterator();
 
     // Always update
     UpdateAirline();
@@ -1862,23 +1890,30 @@ void ZepWindow::MoveCursorY(int yDistance, LineLocation clampLocation)
     target.y = std::max(0l, target.y);
     target.y = std::min(target.y, long(m_windowLines.size() - 1));
 
-    auto& line = *m_windowLines[target.y];
+    auto* line = m_windowLines[target.y];
+    if (line->lineCodePoints.empty())
+        line = m_windowLines[target.y - 1];
 
     // Snap to the new vertical column if necessary (see comment below)
     if (target.x < m_lastCursorColumn)
         target.x = m_lastCursorColumn;
 
+    GlyphIterator cursorItr;
+
     // TODO; this was an assert
-    if (line.lineCodePoints.empty())
+    /*if (line.lineCodePoints.empty())
     {
-        return;
+        target.x = 0;
+        cursorItr = GetBufferCursor().PeekByteOffset(line.lineByteRange.first);
     }
+    else*/
+    {
+        // Move to the same codepoint offset on the line below
+        target.x = std::min(target.x, long(line->lineCodePoints.size() - 1));
+        target.x = std::max(target.x, long(0));
 
-    // Move to the same codepoint offset on the line below
-    target.x = std::min(target.x, long(line.lineCodePoints.size() - 1));
-    target.x = std::max(target.x, long(0));
-
-    GlyphIterator cursorItr = line.lineCodePoints[target.x].iterator;
+        cursorItr = line->lineCodePoints[target.x].iterator;
+    }
 
     // We can't call the buffer's LineLocation code, because when moving in span lines,
     // we are technically not moving in buffer lines; we are stepping in wrapped buffer lines.

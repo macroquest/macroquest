@@ -77,6 +77,8 @@ enum class ZepMouseButton
     Left,
     Middle,
     Right,
+    Button4,
+    Button5,
     Unknown
 };
 
@@ -93,7 +95,8 @@ enum class Msg
     ComponentChanged,
     Tick,
     ConfigChanged,
-    ToolTip
+    ToolTip,
+    MouseScroll,
 };
 
 struct IZepComponent;
@@ -105,11 +108,13 @@ public:
         , str(strIn)
     {
     }
-    
-    ZepMessage(Msg id, const NVec2f& p, ZepMouseButton b = ZepMouseButton::Unknown)
+
+    ZepMessage(Msg id, const NVec2f& p, ZepMouseButton b = ZepMouseButton::Unknown, uint32_t m = 0, int c = 1)
         : messageId(id)
         , pos(p)
         , button(b)
+        , modifiers(m)
+        , clicks(c)
     {
     }
 
@@ -123,7 +128,10 @@ public:
     std::string str;       // Generic string for simple messages
     bool handled = false;  // If the message was handled
     NVec2f pos;
+    int clicks = 1;
+    float fval = 0.f;
     ZepMouseButton button = ZepMouseButton::Unknown;
+    uint32_t modifiers;
     IZepComponent* pComponent = nullptr;
 };
 
@@ -211,7 +219,7 @@ enum class EditorStyle
 struct EditorConfig
 {
     uint32_t showScrollBar = 1;
-    EditorStyle style = EditorStyle::Normal;
+    EditorStyle style = EditorStyle::Minimal;
     NVec2f lineMargins = NVec2f(1.0f);
     NVec2f widgetMargins = NVec2f(1.0f);
     NVec2f inlineWidgetMargins = NVec2f(2.0f);
@@ -363,15 +371,16 @@ public:
 
     ZepTheme& GetTheme() const;
 
-    bool OnMouseMove(const NVec2f& mousePos);
-    bool OnMouseDown(const NVec2f& mousePos, ZepMouseButton button);
-    bool OnMouseUp(const NVec2f& mousePos, ZepMouseButton button);
+    bool OnMouseMove(const NVec2f& mousePos, ZepMouseButton button, uint32_t mods);
+    bool OnMouseDown(const NVec2f& mousePos, ZepMouseButton button, uint32_t mods = 0, int clicks = 1);
+    bool OnMouseUp(const NVec2f& mousePos, ZepMouseButton button, uint32_t mods = 0);
+    bool OnMouseWheel(const NVec2f& mousePos, float scrollAmount);
     const NVec2f GetMousePos() const;
 
     void SetBufferSyntax(ZepBuffer& buffer) const;
     void SetBufferMode(ZepBuffer& buffer) const;
 
-    EditorConfig& GetConfig() 
+    EditorConfig& GetConfig()
     {
         return m_config;
     }

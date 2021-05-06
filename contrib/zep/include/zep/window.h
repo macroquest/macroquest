@@ -32,7 +32,7 @@ struct SpanInfo
     std::vector<LineCharInfo> lineCodePoints;      // Codepoints
     long bufferLineNumber = 0;                     // Line in the original buffer, not the screen line
     float yOffsetPx = 0.0f;                        // Position in the buffer in pixels, if the screen was as big as the buffer.
-    NVec2f lineTextSizePx = NVec2f(0.0f);          // Pixel size of the text 
+    NVec2f lineTextSizePx = NVec2f(0.0f);          // Pixel size of the text
     int spanLineIndex = 0;                         // The index of this line in spans; might be more than buffer index
     NVec2f padding = NVec2f(1.0f, 1.0f);           // Padding above and below the line
     bool isSplitContinuation = false;
@@ -94,7 +94,8 @@ enum
     Modal = (1 << 5),
     WrapText = (1 << 6), // Warning: this is not for general use yet. Has issues
     HideSplitMark = (1 << 7),
-    GridStyle = (1 << 8)
+    GridStyle = (1 << 8),
+    ShowLineBackground = (1 << 9),
 };
 }
 
@@ -163,6 +164,17 @@ public:
     NVec4f FilterActiveColor(const NVec4f& col, float atten = 1.0f);
 
     void DirtyLayout();
+    void AdjustScroll(float delta);
+
+    GlyphIterator GetMouseCursor() const
+    {
+        return m_mouseCursorIterator;
+    }
+
+    NRectf GetDisplayRect() const
+    {
+        return m_displayRect;
+    }
 
 private:
     void UpdateLayout(bool force = false);
@@ -209,7 +221,7 @@ private:
     void DrawAboveLineWidgets(SpanInfo& lineInfo);
 
     NVec2f ArrangeLineMarkers(tRangeMarkers& markers);
-    
+
     bool IsActiveWindow() const;
 
     NVec2f GetSpanPixelRange(SpanInfo& span) const;
@@ -217,13 +229,13 @@ private:
 private:
     NRectf m_displayRect;
     std::shared_ptr<Region> m_bufferRegion;  // region of the display we are showing on.
-    std::shared_ptr<Region> m_editRegion;   // region of the window buffer editing 
+    std::shared_ptr<Region> m_editRegion;   // region of the window buffer editing
     std::shared_ptr<Region> m_textRegion;    // region of the display for text.
     std::shared_ptr<Region> m_airlineRegion; // Airline
     std::shared_ptr<Region> m_numberRegion;     // Numbers
     std::shared_ptr<Region> m_indicatorRegion;  // Indicators (between numbers and text)
     std::shared_ptr<Region> m_vScrollRegion;    // Vertical scroller
-    std::shared_ptr<Region> m_expandingEditRegion;    // Region containing the text sub-box 
+    std::shared_ptr<Region> m_expandingEditRegion;    // Region containing the text sub-box
     Airline m_airline;
 
     // Owner tab
@@ -242,7 +254,7 @@ private:
     bool m_layoutDirty = true;
     bool m_scrollVisibilityChanged = true;
     bool m_cursorMoved = true;
-    uint32_t m_windowFlags = WindowFlags::ShowWhiteSpace | WindowFlags::ShowIndicators | WindowFlags::ShowLineNumbers | WindowFlags::WrapText;
+    uint32_t m_windowFlags = WindowFlags::WrapText;
 
     // Cursor
     GlyphIterator m_bufferCursor;                   // Location in buffer coordinates.  Each window has a different buffer cursor
@@ -264,7 +276,8 @@ private:
     // Tooltips
     timer m_toolTipTimer;                // Timer for when the tip is shown
     NVec2f m_mouseHoverPos;              // Current location for the tip
-    GlyphIterator m_mouseBufferLocation;     // The character in the buffer the tip pos is over, or -1
+    GlyphIterator m_mouseBufferLocation; // The character in the buffer the tip pos is over, or -1
+    GlyphIterator m_mouseCursorIterator; // The position in the buffer where the mouse is at. Can be after end of line.
     NVec2f m_lastTipQueryPos;            // last query location for the tip
     bool m_tipDisabledTillMove = false;  // Certain operations will stop the tip until the mouse is moved
     std::map<NVec2f, std::shared_ptr<RangeMarker>> m_toolTips;  // All tooltips for a given position, currently only 1 at a time

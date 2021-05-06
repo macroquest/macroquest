@@ -15,6 +15,7 @@ CommandContext::CommandContext(const std::string& commandIn, ZepMode& md, Editor
     , fullCommand(commandIn)
     , buffer(md.GetCurrentWindow()->GetBuffer())
     , bufferCursor(md.GetCurrentWindow()->GetBufferCursor())
+    , mouseCursor(md.GetCurrentWindow()->GetMouseCursor())
     , tempReg("", false)
     , currentMode(editorMode)
 {
@@ -309,35 +310,35 @@ std::string ZepMode::ConvertInputToMapString(uint32_t key, uint32_t modifierKeys
 
     std::string mapped;
 
-#define COMPARE_STR(a, b) \
-    if (key == b)         \
-        mapped = #a;
-
-    COMPARE_STR(Return, ExtKeys::RETURN)
-    COMPARE_STR(Escape, ExtKeys::ESCAPE)
-    COMPARE_STR(Backspace, ExtKeys::BACKSPACE)
-    COMPARE_STR(Left, ExtKeys::LEFT)
-    COMPARE_STR(Right, ExtKeys::RIGHT)
-    COMPARE_STR(Up, ExtKeys::UP)
-    COMPARE_STR(Down, ExtKeys::DOWN)
-    COMPARE_STR(Tab, ExtKeys::TAB)
-    COMPARE_STR(Del, ExtKeys::DEL)
-    COMPARE_STR(Home, ExtKeys::HOME)
-    COMPARE_STR(End, ExtKeys::END)
-    COMPARE_STR(PageDown, ExtKeys::PAGEDOWN)
-    COMPARE_STR(PageUp, ExtKeys::PAGEUP)
-    COMPARE_STR(F1, ExtKeys::F1)
-    COMPARE_STR(F2, ExtKeys::F2)
-    COMPARE_STR(F3, ExtKeys::F3)
-    COMPARE_STR(F4, ExtKeys::F4)
-    COMPARE_STR(F5, ExtKeys::F5)
-    COMPARE_STR(F6, ExtKeys::F6)
-    COMPARE_STR(F7, ExtKeys::F7)
-    COMPARE_STR(F8, ExtKeys::F8)
-    COMPARE_STR(F9, ExtKeys::F9)
-    COMPARE_STR(F10, ExtKeys::F10)
-    COMPARE_STR(F11, ExtKeys::F11)
-    COMPARE_STR(F12, ExtKeys::F12)
+    switch (key)
+    {
+    case ExtKeys::RETURN: mapped = "Return"; break;
+    case ExtKeys::ESCAPE: mapped = "Escape"; break;
+    case ExtKeys::BACKSPACE: mapped = "Backspace"; break;
+    case ExtKeys::LEFT: mapped = "Left"; break;
+    case ExtKeys::RIGHT: mapped = "Right"; break;
+    case ExtKeys::UP: mapped = "Up"; break;
+    case ExtKeys::DOWN: mapped = "Down"; break;
+    case ExtKeys::TAB: mapped = "Tab"; break;
+    case ExtKeys::DEL: mapped = "Del"; break;
+    case ExtKeys::HOME: mapped = "Home"; break;
+    case ExtKeys::END: mapped = "End"; break;
+    case ExtKeys::PAGEDOWN: mapped = "PageDown"; break;
+    case ExtKeys::PAGEUP: mapped = "PageUp"; break;
+    case ExtKeys::F1: mapped = "F1"; break;
+    case ExtKeys::F2: mapped = "F2"; break;
+    case ExtKeys::F3: mapped = "F3"; break;
+    case ExtKeys::F4: mapped = "F4"; break;
+    case ExtKeys::F5: mapped = "F5"; break;
+    case ExtKeys::F6: mapped = "F6"; break;
+    case ExtKeys::F7: mapped = "F7"; break;
+    case ExtKeys::F8: mapped = "F8"; break;
+    case ExtKeys::F9: mapped = "F9"; break;
+    case ExtKeys::F10: mapped = "F10"; break;
+    case ExtKeys::F11: mapped = "F11"; break;
+    case ExtKeys::F12: mapped = "F12"; break;
+    default: break;
+    }
 
     if (!mapped.empty())
     {
@@ -364,7 +365,100 @@ std::string ZepMode::ConvertInputToMapString(uint32_t key, uint32_t modifierKeys
     return str.str();
 }
 
-// Handle a key press, convert it to an input command and context, and return it.
+std::string ZepMode::ConvertMouseInputToMapString(ZepMouseButton button, bool isDrag, uint32_t modifierKeys, int clicks)
+{
+    std::ostringstream str;
+    bool closeBracket = false;
+    if (modifierKeys & ModifierKey::Ctrl)
+    {
+        str << "<C-";
+        if (modifierKeys & ModifierKey::Shift)
+        {
+            // Add the S- modifier for shift enabled special keys
+            // We want to avoid adding S- to capitalized (and already shifted)
+            // keys
+             str << "S-";
+        }
+        closeBracket = true;
+    }
+    else if (modifierKeys & ModifierKey::Shift)
+    {
+        str << "<S-";
+        closeBracket = true;
+    }
+
+    if (clicks > 1)
+    {
+        if (!closeBracket)
+        {
+            str << "<";
+            closeBracket = true;
+        }
+        else
+        {
+            str << "-";
+        }
+
+        str << clicks << "-";
+    }
+
+    std::string mapped;
+
+    switch (button)
+    {
+    case ZepMouseButton::Left:
+        if (isDrag)
+            mapped = "LeftDrag";
+        else
+            mapped = "LeftMouse";
+        break;
+    case ZepMouseButton::Middle:
+        if (isDrag)
+            mapped = "MiddleDrag";
+        else
+            mapped = "MiddleMouse";
+        break;
+    case ZepMouseButton::Right:
+        if (isDrag)
+            mapped = "RightDrag";
+        else
+            mapped = "RightMouse";
+        break;
+    case ZepMouseButton::Button4:
+        if (isDrag)
+            mapped = "X4MouseDrag";
+        else
+            mapped = "X4Mouse";
+        break;
+    case ZepMouseButton::Button5:
+        if (isDrag)
+            mapped = "X5MouseDrag";
+        else
+            mapped = "X5Mouse";
+        break;
+    default:
+        break;
+    }
+
+    if (!closeBracket)
+    {
+        str << "<" << mapped;
+        closeBracket = true;
+    }
+    else
+    {
+        str << mapped;
+    }
+
+    if (closeBracket)
+    {
+        str << ">";
+    }
+
+    return str.str();
+}
+
+// Handle a key press, convert it to an input command and context, and execute it.
 void ZepMode::AddKeyPress(uint32_t key, uint32_t modifierKeys)
 {
     if (m_pCurrentWindow == nullptr)
@@ -399,12 +493,27 @@ void ZepMode::AddKeyPress(uint32_t key, uint32_t modifierKeys)
     timer_restart(m_lastKeyPressTimer);
 }
 
+// Handle a mouse press. convert it to an input command and context, and execute it.
+void ZepMode::AddMouseEvent(ZepMouseButton mouseButton, bool isDrag /*= false*/, uint32_t modifierKeys /*= ModifierKey::None*/, int clicks /*= 1 */)
+{
+    if (m_pCurrentWindow == nullptr)
+    {
+        return;
+    }
+
+    HandleMappedInput(ConvertMouseInputToMapString(mouseButton, isDrag, modifierKeys, clicks));
+
+    timer_restart(m_lastKeyPressTimer);
+}
+
 void ZepMode::HandleMappedInput(const std::string& input)
 {
     if (input.empty())
     {
         return;
     }
+
+    ZLOG(DBG, input);
 
     // Special case, dot command (do last edit again)
     // Dot command is complicated, this is my second attempt at implementing it and is less
@@ -1014,6 +1123,35 @@ bool ZepMode::GetCommand(CommandContext& context)
         UpdateVisualSelection();
         return true;
     }
+    case id_MotionStandardLineBegin:
+        GetCurrentWindow()->SetBufferCursor(context.buffer.GetLinePos(bufferCursor, LineLocation::LineBegin));
+        return true;
+    case id_MotionStandardLineEnd:
+        GetCurrentWindow()->SetBufferCursor(context.buffer.GetLinePos(bufferCursor, LineLocation::LineCRBegin));
+        return true;
+    case id_MotionStandardLineBeginSelect:
+    {
+        context.commandResult.modeSwitch = EditorMode::Visual;
+        if (m_currentMode != EditorMode::Visual)
+        {
+            m_visualBegin = GetCurrentWindow()->GetBufferCursor();
+        }
+        GetCurrentWindow()->SetBufferCursor(context.buffer.GetLinePos(bufferCursor, LineLocation::LineBegin));
+        UpdateVisualSelection();
+        return true;
+    }
+    case id_MotionStandardLineEndSelect:
+    {
+        context.commandResult.modeSwitch = EditorMode::Visual;
+        if (m_currentMode != EditorMode::Visual)
+        {
+            m_visualBegin = GetCurrentWindow()->GetBufferCursor();
+        }
+        GetCurrentWindow()->SetBufferCursor(context.buffer.GetLinePos(bufferCursor, LineLocation::LineCRBegin));
+        UpdateVisualSelection();
+        return true;
+    }
+
     case id_MotionPageForward:
         // Note: the vim spec says 'visible lines - 2' for a 'page'.
         // We jump the max possible lines, which might hit the end of the text; this matches observed vim behavior
@@ -1025,6 +1163,10 @@ bool ZepMode::GetCommand(CommandContext& context)
         GetCurrentWindow()->MoveCursorY((GetCurrentWindow()->GetNumDisplayedLines() / 2) * context.keymap.TotalCount());
         context.commandResult.flags |= CommandResultFlags::HandledCount;
         return true;
+    case id_MotionStandardPageForward:
+        GetCurrentWindow()->MoveCursorY(GetCurrentWindow()->GetMaxDisplayLines() * context.keymap.TotalCount());
+        context.commandResult.flags |= CommandResultFlags::HandledCount;
+        return true;
     case id_MotionPageBackward:
         // Note: the vim spec says 'visible lines - 2' for a 'page'
         GetCurrentWindow()->MoveCursorY(-(GetCurrentWindow()->GetMaxDisplayLines() - 2) * context.keymap.TotalCount());
@@ -1033,6 +1175,16 @@ bool ZepMode::GetCommand(CommandContext& context)
     case id_MotionHalfPageBackward:
         GetCurrentWindow()->MoveCursorY(-(GetCurrentWindow()->GetNumDisplayedLines() / 2) * context.keymap.TotalCount());
         context.commandResult.flags |= CommandResultFlags::HandledCount;
+        return true;
+    case id_MotionStandardPageBackward:
+        GetCurrentWindow()->MoveCursorY(-GetCurrentWindow()->GetMaxDisplayLines() * context.keymap.TotalCount());
+        context.commandResult.flags |= CommandResultFlags::HandledCount;
+        return true;
+    case id_ViewLineForward:
+        GetCurrentWindow()->AdjustScroll((float)GetEditor().GetDisplay().GetFont(ZepTextType::Text).GetPixelHeight());
+        return true;
+    case id_ViewLineBackward:
+        GetCurrentWindow()->AdjustScroll((float)-GetEditor().GetDisplay().GetFont(ZepTextType::Text).GetPixelHeight());
         return true;
     case id_MotionGotoLine:
         if (!context.keymap.captureNumbers.empty())
@@ -1062,6 +1214,7 @@ bool ZepMode::GetCommand(CommandContext& context)
         context.beginRange = cursorItr.Peek(-1);
         context.endRange = cursorItr;
         context.op = CommandOperation::Delete;
+        break;
     case id_MotionWord:
     {
         auto target = context.buffer.WordMotion(context.bufferCursor, SearchType::Word, Direction::Forward);
@@ -1112,6 +1265,44 @@ bool ZepMode::GetCommand(CommandContext& context)
     }
     case id_MotionGotoBeginning:
         GetCurrentWindow()->SetBufferCursor(context.buffer.Begin());
+        return true;
+    case id_MotionGotoEnd:
+        GetCurrentWindow()->SetBufferCursor(context.buffer.End());
+        return true;
+
+    case id_MotionStandardMoveCursor:
+        if (context.mouseCursor.Valid())
+            GetCurrentWindow()->SetBufferCursor(context.mouseCursor);
+        return true;
+    case id_MotionStandardMoveCursorSelect:
+        if (context.mouseCursor.Valid())
+        {
+            context.commandResult.modeSwitch = EditorMode::Visual;
+            if (m_currentMode != EditorMode::Visual)
+            {
+                m_visualBegin = GetCurrentWindow()->GetBufferCursor();
+            }
+            GetCurrentWindow()->SetBufferCursor(context.mouseCursor);
+        }
+        return true;
+    case id_MotionStandardSelectWord:
+        if (context.mouseCursor.Valid())
+        {
+            context.commandResult.modeSwitch = EditorMode::Visual;
+            auto range = buffer.InnerWordMotion(context.mouseCursor, SearchType::Word);
+            m_visualBegin = range.first;
+            GetCurrentWindow()->SetBufferCursor(range.second);
+            UpdateVisualSelection();
+        }
+        return true;
+    case id_MotionStandardSelectLine:
+        if (context.mouseCursor.Valid())
+        {
+            context.commandResult.modeSwitch = EditorMode::Visual;
+            m_visualBegin = buffer.GetLinePos(context.mouseCursor, LineLocation::BeyondLineEnd);
+            GetCurrentWindow()->SetBufferCursor(buffer.GetLinePos(context.mouseCursor, LineLocation::LineBegin));
+            UpdateVisualSelection();
+        }
         return true;
 
     case id_JoinLines:

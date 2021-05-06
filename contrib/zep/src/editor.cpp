@@ -1228,26 +1228,36 @@ ZepTheme& ZepEditor::GetTheme() const
     return *m_spTheme;
 }
 
-bool ZepEditor::OnMouseMove(const NVec2f& mousePos)
+bool ZepEditor::OnMouseMove(const NVec2f& mousePos, ZepMouseButton button, uint32_t mods)
 {
     m_mousePos = mousePos;
-    bool handled = Broadcast(std::make_shared<ZepMessage>(Msg::MouseMove, mousePos));
+    bool handled = Broadcast(std::make_shared<ZepMessage>(Msg::MouseMove, mousePos, button, mods));
     m_bPendingRefresh = true;
     return handled;
 }
 
-bool ZepEditor::OnMouseDown(const NVec2f& mousePos, ZepMouseButton button)
+bool ZepEditor::OnMouseDown(const NVec2f& mousePos, ZepMouseButton button, uint32_t mods, int clicks)
 {
     m_mousePos = mousePos;
-    bool handled = Broadcast(std::make_shared<ZepMessage>(Msg::MouseDown, mousePos, button));
+    bool handled = Broadcast(std::make_shared<ZepMessage>(Msg::MouseDown, mousePos, button, mods, clicks));
     m_bPendingRefresh = true;
     return handled;
 }
 
-bool ZepEditor::OnMouseUp(const NVec2f& mousePos, ZepMouseButton button)
+bool ZepEditor::OnMouseUp(const NVec2f& mousePos, ZepMouseButton button, uint32_t mods)
 {
     m_mousePos = mousePos;
-    bool handled = Broadcast(std::make_shared<ZepMessage>(Msg::MouseUp, mousePos, button));
+    bool handled = Broadcast(std::make_shared<ZepMessage>(Msg::MouseUp, mousePos, button, mods));
+    m_bPendingRefresh = true;
+    return handled;
+}
+
+bool ZepEditor::OnMouseWheel(const NVec2f& mousePos, float scrollAmount)
+{
+    m_mousePos = mousePos;
+    auto message = std::make_shared<ZepMessage>(Msg::MouseScroll, mousePos);
+    message->fval = scrollAmount;
+    bool handled = Broadcast(message);
     m_bPendingRefresh = true;
     return handled;
 }
@@ -1284,7 +1294,7 @@ std::vector<const KeyMap*> ZepEditor::GetGlobalKeyMaps(ZepMode& mode)
     }
     return maps;
 }
-    
+
 ZepBuffer* ZepEditor::GetBufferFromHandle(uint64_t handle)
 {
     for (auto& buffer : m_buffers)

@@ -1,5 +1,6 @@
 #include "zep/display.h"
 
+#include "zep/scroller.h"
 #include "zep/mcommon/logger.h"
 #include "zep/mcommon/string/stringutils.h"
 
@@ -121,6 +122,44 @@ void ZepDisplay::SetFont(ZepTextType type, std::shared_ptr<ZepFont> spFont)
 const NVec2f& ZepDisplay::GetPixelScale() const
 {
     return m_pixelScale;
+}
+
+void ZepDisplay::DrawScroller(const Scroller& scroller, ZepTheme& theme)
+{
+    const auto& region = scroller.GetRegion();
+    const auto& topButton = scroller.GetTopButtonRegion();
+    const auto& bottomButton = scroller.GetBottomButtonRegion();
+
+    SetClipRect(region->rect);
+
+    auto mousePos = scroller.GetEditor().GetMousePos();
+    auto activeColor = theme.GetColor(ThemeColor::WidgetActive);
+    auto inactiveColor = theme.GetColor(ThemeColor::WidgetInactive);
+
+    // Scroller background
+    DrawRectFilled(region->rect, theme.GetColor(ThemeColor::WidgetBackground));
+
+    auto scrollState = scroller.GetState();
+
+    bool onTop = topButton->rect.Contains(mousePos) && scrollState != Scroller::ScrollState::Drag;
+    bool onBottom = bottomButton->rect.Contains(mousePos) && scrollState != Scroller::ScrollState::Drag;
+
+    if (scrollState == Scroller::ScrollState::ScrollUp)
+    {
+        onTop = true;
+    }
+    if (scrollState == Scroller::ScrollState::ScrollDown)
+    {
+        onBottom = true;
+    }
+
+    DrawRectFilled(topButton->rect, onTop ? activeColor : inactiveColor);
+    DrawRectFilled(bottomButton->rect, onBottom ? activeColor : inactiveColor);
+
+    auto thumbRect = scroller.ThumbRect();
+
+    // Thumb
+    DrawRectFilled(thumbRect, thumbRect.Contains(mousePos) || scrollState == Scroller::ScrollState::Drag ? activeColor : inactiveColor);
 }
 
 void ZepDisplay::Bigger()

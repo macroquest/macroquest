@@ -177,7 +177,7 @@ void ZepMode_Vim::SetupKeyMaps()
     AddKeyMapWithCountRegisters({ &m_normalMap, &m_visualMap }, { "<C-z>", "u" }, id_Undo);
 
     keymap_add({ &m_normalMap }, { "<Backspace>" }, id_MotionStandardLeft);
-    
+
     // No count allowed on backspace in insert mode, or that would interfere with text.
     keymap_add({ &m_insertMap }, { "<Backspace>" }, id_Backspace);
     keymap_add({ &m_insertMap }, { "<Del>" }, id_Delete);

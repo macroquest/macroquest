@@ -763,9 +763,7 @@ struct ZepContainerImGui : public Zep::IZepComponent
 		display.SetFont(Zep::ZepTextType::Heading3, std::make_shared<Zep::ZepFont_ImGui>(display, mq::imgui::DefaultFont, 20));
 
 		spEditor->RegisterCallback(this);
-
-		std::shared_ptr<Zep::ZepMode> consoleMode = std::make_shared<Zep::ZepMode_Standard>(*spEditor);
-		spEditor->RegisterGlobalMode(consoleMode);
+		spEditor->SetGlobalMode(Zep::ZepMode_Standard::StaticName());
 
 		spEditor->GetConfig().cursorLineSolid = true;
 		spEditor->GetConfig().showLineNumbers = false;
@@ -788,12 +786,13 @@ struct ZepContainerImGui : public Zep::IZepComponent
 	{
 		if (message->messageId == Zep::Msg::GetClipBoard)
 		{
-			//Zep::clip::get_text(message->str);
+			const char* clipboard = ImGui::GetClipboardText();
+			message->str = clipboard ? clipboard : "";
 			message->handled = true;
 		}
 		else if (message->messageId == Zep::Msg::SetClipBoard)
 		{
-			//Zep::clip::set_text(message->str);
+			ImGui::SetClipboardText(message->str.c_str());
 			message->handled = true;
 		}
 		else if (message->messageId == Zep::Msg::RequestQuit)
@@ -852,43 +851,28 @@ void UpdateImGuiConsole()
 
 	if (zep)
 	{
-		//if (zep->spEditor->RefreshRequired())
+		ImGui::SetNextWindowSize(ImVec2(640, 480), ImGuiCond_Appearing);
+
+		if (ImGui::Begin("Zep", nullptr, ImGuiWindowFlags_NoScrollbar))
 		{
-			ImGui::SetNextWindowSize(ImVec2(640, 480), ImGuiCond_Appearing);
-			//ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-			//ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-			//ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-			//ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-			//ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-			if (ImGui::Begin("Zep", nullptr, ImGuiWindowFlags_NoScrollbar))
-			{
-				auto min = ImGui::GetCursorScreenPos();
-				auto max = ImGui::GetContentRegionAvail();
-				max.x = std::max(1.0f, max.x);
-				max.y = std::max(1.0f, max.y);
+			auto max = ImGui::GetContentRegionAvail();
+			ImGui::BeginChild("###ZepEditor", ImVec2(), false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove);
+			auto min = ImGui::GetCursorScreenPos();
+			max.x = std::max(1.0f, max.x);
+			max.y = std::max(1.0f, max.y);
 
-				// Fill the window
-				max.x = min.x + max.x;
-				max.y = min.y + max.y;
-				zep->spEditor->SetDisplayRegion(Zep::NVec2f(min.x, min.y), Zep::NVec2f(max.x, max.y));
+			// Fill the window
+			max.x = min.x + max.x;
+			max.y = min.y + max.y;
+			zep->spEditor->SetDisplayRegion(Zep::NVec2f(min.x, min.y), Zep::NVec2f(max.x, max.y));
 
-				// Display the editor inside this window
-				zep->spEditor->Display();
+			// Display the editor inside this window
+			zep->spEditor->Display();
+			zep->spEditor->HandleInput();
 
-				if (ImGui::IsWindowFocused())
-				{
-					if (ImGui::IsWindowHovered())
-						ImGui::SetMouseCursor(ImGuiMouseCursor_TextInput);
-
-					zep->spEditor->HandleInput();
-				}
-
-
-			}
-			ImGui::End();
-			//ImGui::PopStyleVar(4);
-			//ImGui::PopStyleColor(1);
+			ImGui::EndChild();
 		}
+		ImGui::End();
 	}
 
 	if (gbToggleConsoleRequested)

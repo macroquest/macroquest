@@ -44,6 +44,25 @@ namespace Zep
 #define ZEP_KEY_Z 0x1d // Keyboard z and Z
 #define ZEP_KEY_SPACE 0x2c // Keyboard Spacebar
 
+ZepMouseButton ImGuiMouseToZepButton(int index)
+{
+    switch (index)
+    {
+    case 0:
+        return ZepMouseButton::Left;
+    case 1:
+        return ZepMouseButton::Right;
+    case 2:
+        return ZepMouseButton::Middle;
+    case 3:
+        return ZepMouseButton::Button4;
+    case 4:
+        return ZepMouseButton::Button5;
+    default:
+        return ZepMouseButton::Unknown;
+    }
+}
+
 class ZepDisplay_ImGui;
 class ZepTabWindow;
 class ZepEditor_ImGui : public ZepEditor
@@ -56,72 +75,106 @@ public:
 
     void HandleInput()
     {
+        HandleMouseInput();
+
+        if (ImGui::IsWindowFocused())
+        {
+            HandleKeyboardInput();
+        }
+    }
+
+    void HandleMouseInput()
+    {
         auto& io = ImGui::GetIO();
-
-        bool handled = false;
-
         uint32_t mod = 0;
-
-        static std::map<int, int> MapUSBKeys =
-        {
-            { ZEP_KEY_F1, ExtKeys::F1},
-            { ZEP_KEY_F2, ExtKeys::F2},
-            { ZEP_KEY_F3, ExtKeys::F3},
-            { ZEP_KEY_F4, ExtKeys::F4},
-            { ZEP_KEY_F5, ExtKeys::F5},
-            { ZEP_KEY_F6, ExtKeys::F6},
-            { ZEP_KEY_F7, ExtKeys::F7},
-            { ZEP_KEY_F8, ExtKeys::F8},
-            { ZEP_KEY_F9, ExtKeys::F9},
-            { ZEP_KEY_F10, ExtKeys::F10},
-            { ZEP_KEY_F11, ExtKeys::F11},
-            { ZEP_KEY_F12, ExtKeys::F12}
-        };
-        if (io.MouseDelta.x != 0 || io.MouseDelta.y != 0)
-        {
-            OnMouseMove(toNVec2f(io.MousePos));
-        }
-
-        if (io.MouseClicked[0])
-        {
-            if (OnMouseDown(toNVec2f(io.MousePos), ZepMouseButton::Left))
-            {
-                // Hide the mouse click from imgui if we handled it
-                io.MouseClicked[0] = false;
-            }
-        }
-
-        if (io.MouseClicked[1])
-        {
-            if (OnMouseDown(toNVec2f(io.MousePos), ZepMouseButton::Right))
-            {
-                // Hide the mouse click from imgui if we handled it
-                io.MouseClicked[0] = false;
-            }
-        }
-
-        if (io.MouseReleased[0])
-        {
-            if (OnMouseUp(toNVec2f(io.MousePos), ZepMouseButton::Left))
-            {
-                // Hide the mouse click from imgui if we handled it
-                io.MouseClicked[0] = false;
-            }
-        }
-
-        if (io.MouseReleased[1])
-        {
-            if (OnMouseUp(toNVec2f(io.MousePos), ZepMouseButton::Right))
-            {
-                // Hide the mouse click from imgui if we handled it
-                io.MouseClicked[0] = false;
-            }
-        }
 
         if (io.KeyCtrl)
         {
             mod |= ModifierKey::Ctrl;
         }
+
+        if (io.KeyShift)
+        {
+            mod |= ModifierKey::Shift;
+        }
+
+        int clickCount = 1;
+
+        if (mod == 0)
+        {
+            bool click = ImGui::IsMouseClicked(0);
+            bool doubleClick = ImGui::IsMouseDoubleClicked(0);
+            double t = ImGui::GetTime();
+            bool tripleClick = click && !doubleClick && (m_lastClick != -1.0f && (t - m_lastClick) < io.MouseDoubleClickTime);
+
+            if (tripleClick)
+            {
+                m_lastClick = -1.0f;
+                clickCount = 3;
+            }
+            else if (click || doubleClick)
+            {
+                m_lastClick = (float)ImGui::GetTime();
+                clickCount = doubleClick ? 2 : 1;
+            }
+        }
+
+        for (int i = 0; i < 5; ++i)
+        {
+            if (ImGui::IsMouseClicked(i) || ImGui::IsMouseDoubleClicked(i))
+            {
+                OnMouseDown(toNVec2f(io.MousePos), ImGuiMouseToZepButton(i), mod, clickCount);
+            }
+        }
+
+        bool dragging = false;
+
+        for (int i = 0; i < 5; ++i)
+        {
+            if (ImGui::IsMouseDragging(i))
+            {
+                OnMouseMove(toNVec2f(io.MousePos), ImGuiMouseToZepButton(i), mod);
+                dragging = true;
+            }
+        }
+
+        if (!dragging)
+        {
+            OnMouseMove(toNVec2f(io.MousePos), ImGuiMouseToZepButton(-1), 0);
+        }
+
+        for (int i = 0; i < 5; ++i)
+        {
+            if (ImGui::IsMouseReleased(i))
+            {
+                OnMouseUp(toNVec2f(io.MousePos), ImGuiMouseToZepButton(i));
+            }
+        }
+
+        if (io.MouseWheel != 0.f)
+        {
+            // TODO: Customize the scroll rate
+            OnMouseWheel(toNVec2f(io.MousePos), io.MouseWheel * 12.5f);
+        }
+
+        // If mouse cursor is over text, change cursor.
+        // TODO
+        /*if (ImGui::IsWindowHovered())
+            ImGui::SetMouseCursor(ImGuiMouseCursor_TextInput);*/
+    }
+
+    void HandleKeyboardInput()
+    {
+        auto& io = ImGui::GetIO();
+
+        bool handled = false;
+        uint32_t mod = 0;
+
+        if (io.KeyCtrl)
+        {
+            mod |= ModifierKey::Ctrl;
+        }
+
         if (io.KeyShift)
         {
             mod |= ModifierKey::Shift;
@@ -129,18 +182,6 @@ public:
 
         auto pWindow = GetActiveTabWindow()->GetActiveWindow();
         const auto& buffer = pWindow->GetBuffer();
-
-        // Check USB Keys
-#if 0
-        for (auto& usbKey : MapUSBKeys)
-        {
-            if (ImGui::IsKeyPressed(usbKey.first))
-            {
-                buffer.GetMode()->AddKeyPress(usbKey.second, mod);
-                return;
-            }
-        }
-#endif
 
         if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Tab)))
         {
@@ -285,6 +326,7 @@ public:
     }
 
 private:
+    float m_lastClick = -1.0f;
 };
 
 } // namespace Zep

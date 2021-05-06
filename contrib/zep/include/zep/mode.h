@@ -128,6 +128,7 @@ public:
     GlyphIterator beginRange;
     GlyphIterator endRange;
     ZepBuffer& buffer;
+    GlyphIterator mouseCursor;
 
     // Cursor State
     GlyphIterator bufferCursor;
@@ -156,13 +157,15 @@ public:
 
     virtual void Init() {};
     virtual void AddKeyPress(uint32_t key, uint32_t modifierKeys = ModifierKey::None);
+    virtual void AddMouseEvent(ZepMouseButton mouseButton, bool isDrag = false, uint32_t modifierKeys = ModifierKey::None,
+        int clicks = 1);
     virtual const char* Name() const = 0;
     virtual void Begin(ZepWindow* pWindow);
     virtual void Notify(std::shared_ptr<ZepMessage> message) override {}
     virtual uint32_t ModifyWindowFlags(uint32_t windowFlags) { return windowFlags; }
     virtual EditorMode GetEditorMode() const;
     virtual EditorMode DefaultMode() const = 0;
-    
+
     // About to display this window, which is associated with this mode
     virtual void PreDisplay(ZepWindow&){};
 
@@ -209,6 +212,7 @@ protected:
     virtual void ClampCursorForMode();
     virtual bool HandleExCommand(std::string strCommand);
     virtual std::string ConvertInputToMapString(uint32_t key, uint32_t modifierKeys);
+    virtual std::string ConvertMouseInputToMapString(ZepMouseButton button, bool isDrag, uint32_t modifierKeys, int clicks);
 
     virtual bool HandleIgnoredInput(CommandContext&) { return false; };
 
@@ -225,7 +229,7 @@ protected:
     KeyMap m_normalMap;
     KeyMap m_visualMap;
     KeyMap m_insertMap;
-    
+
     Direction m_lastFindDirection = Direction::Forward;
     Direction m_lastSearchDirection = Direction::Forward;
 

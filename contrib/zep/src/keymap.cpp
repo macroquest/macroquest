@@ -9,6 +9,28 @@
 namespace Zep
 {
 
+std::unordered_map<uint32_t, std::string>& GetStringLookup()
+{
+    static std::unordered_map<uint32_t, std::string> stringLookup;
+    return stringLookup;
+}
+
+StringIdReverseLookup::StringIdReverseLookup(const StringId* id, const char* name)
+{
+    GetStringLookup()[id->id] = name;
+}
+
+std::string StringIdToString(StringId id)
+{
+    auto iter = GetStringLookup().find(id);
+    if (iter == GetStringLookup().end())
+    {
+        return "murmur:" + std::to_string(id);
+    }
+
+    return iter->second;
+}
+
 // Keyboard mapping strings such as <PageDown> get converted here
 ExtKeys::Key MapStringToExKey(const std::string& str)
 {
@@ -89,18 +111,6 @@ std::string NextToken(std::string::const_iterator& itrChar, std::string::const_i
     return str.str();
 }
 
-/*
-static bool ends_with(const std::string& str, const std::string& suffix)
-{
-    return str.size() >= suffix.size() && 0 == str.compare(str.size() - suffix.size(), suffix.size(), suffix);
-}
-
-static bool starts_with(const std::string& str, const std::string& prefix)
-{
-    return str.size() >= prefix.size() && 0 == str.compare(0, prefix.size(), prefix);
-}
-*/
-
 // Add a collection of commands to a collection of mappings
 bool keymap_add(const std::vector<KeyMap*>& maps, const std::vector<std::string>& commands, const StringId& commandId, KeyMapAdd option)
 {
@@ -159,8 +169,8 @@ void keymap_dump(const KeyMap& map, std::ostringstream& str)
             str << " ";
         }
         str << node->token;
-        //if (node->commandId != 0)
-        //    str << " : " << node->commandId.ToString();
+        if (node->commandId != 0)
+            str << " : " << StringIdToString(node->commandId);
         str << std::endl;
 
         for (auto& child : node->children)
@@ -334,7 +344,7 @@ void keymap_find(const KeyMap& map, const std::string& strCommand, KeyMapResult&
                 else
                 {
                     // This is the find result, note it and record the capture groups for the find
-                    //result.searchPath += " : " + spChildNode->commandId.ToString();
+                    result.searchPath += " : " + StringIdToString(spChildNode->commandId);
                     result.captureChars = nodeCaptures.captureChars;
                     result.captureNumbers = nodeCaptures.captureNumbers;
                     result.captureRegisters = nodeCaptures.captureRegisters;
