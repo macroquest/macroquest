@@ -17,7 +17,7 @@ The recommended way to build MacroQuest is from a source code checkout using Git
 Create the checkout. **ACTUAL URL TBD**
 
 ```
-git clone git@github.com:macroquest/macroquest.git
+git clone git@gitlab.com:macroquest/next/mqnext.git
 ```
 
 Make sure that submodules are initialized. If you have run this step already, you can skip it
@@ -50,7 +50,7 @@ At this point, the source should be ready to compile. Proceed to building.
 
 ### Build Steps
 
-1. Open the `MacroQuest2.sln` file in src
+1. Open the `MacroQuest.sln` file in src
 1. Select the `Release` configuration from the drop-down menu near the top of the window
 1. Select `Build -> Build Solution` from the menu.
 
@@ -98,4 +98,4 @@ tools       | Source code and additional tools that are used for MacroQuest deve
 
 **plugins/mkplugin.exe** Generates a new plugin from the template. Use this when creating a new plugin, or when converting an existing plugin from legacy MacroQuest.
 
-**src/MacroQuest2.sln** The main MacroQuest solution file. Use this to build the project.
+**src/MacroQuest.sln** The main MacroQuest solution file. Use this to build the project.
