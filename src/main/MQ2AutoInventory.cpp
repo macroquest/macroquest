@@ -1142,7 +1142,7 @@ static void AddAutoBankMenu()
 				WritePrivateProfileBool("AutoBank", "AutoBankTradeSkillItems", gbAutoBankTradeSkillItems, mq::internal_paths::MQini);
 				WritePrivateProfileBool("AutoBank", "AutoBankCollectibleItems", gbAutoBankCollectibleItems, mq::internal_paths::MQini);
 				WritePrivateProfileBool("AutoBank", "AutoBankQuestItems", gbAutoBankQuestItems, mq::internal_paths::MQini);
-				WritePrivateProfileBool("AutoBank", "AutoInventoryItems", gbWriteAllConfig, mq::internal_paths::MQini);
+				WritePrivateProfileBool("AutoBank", "AutoInventoryItems", gbAutoInventoryItems, mq::internal_paths::MQini);
 			}
 
 			tradeskilloptionID = AutoBankMenu->AddMenuItem("Tradeskill Items", ContextMenu_TradeskillItemsId, gbAutoBankTradeSkillItems);
