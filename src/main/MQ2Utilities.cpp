@@ -2531,7 +2531,10 @@ bool IsPCNear(SPAWNINFO* pSpawn, float Radius)
 	return false;
 }
 
-bool IsInGroup(SPAWNINFO* pSpawn, bool bCorpse)
+/*
+ * Returns group member including self
+ */
+bool IsInGroup(SPAWNINFO* pSpawn, bool bCorpse /* = false */)
 {
 	if (pSpawn == nullptr)
 		return false;
@@ -4560,12 +4563,12 @@ bool InHoverState()
 
 int GetGameState()
 {
-	return pEverQuest ? ((EVERQUEST*)pEverQuest)->GameState : -1;
+	return pEverQuest ? pEverQuest->GameState : -1;
 }
 
 int GetWorldState()
 {
-	return pEverQuest ? ((EVERQUEST*)pEverQuest)->WorldState : -1;
+	return pEverQuest ? pEverQuest->WorldState : -1;
 }
 
 // ***************************************************************************
@@ -6869,6 +6872,9 @@ bool IsGroupMember(const char* SpawnName)
 	return false;
 }
 
+/*
+ * Returns Group Member that is not self
+ */
 bool IsGroupMember(SPAWNINFO* pSpawn)
 {
 	if (!pLocalPC || !pLocalPC->Group)
