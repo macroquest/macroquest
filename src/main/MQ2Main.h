@@ -593,7 +593,7 @@ using ObservedSpawnPtr = MQEQObjectPtr<SPAWNINFO>;
 MQLIB_API void SetSwitchTarget(EQSwitch* pSwitch);
 MQLIB_API EQSwitch* GetSwitchByID(int id);
 // retrieves the closest switch with the specified name.
-MQLIB_API EQSwitch* FindSwitchByName(const char* szName = nullptr);  
+MQLIB_API EQSwitch* FindSwitchByName(const char* szName = nullptr);
 
 
 MQLIB_API void ClearSearchSpawn(MQSpawnSearch* pSearchSpawn);
@@ -746,7 +746,7 @@ class BuffHasBoth : public SpellAttribute<BuffHasBoth<P1, P2>>
 {
 	const P1& m_p1;
 	const P2& m_p2;
-	
+
 public:
 	BuffHasBoth(const P1& p1, const P2& p2) : m_p1(p1), m_p2(p2) {}
 
@@ -768,7 +768,7 @@ class BuffHasEither : public SpellAttribute<BuffHasEither<P1, P2>>
 {
 	const P1& m_p1;
 	const P2& m_p2;
-	
+
 public:
 	BuffHasEither(const P1& p1, const P2& p2) : m_p1(p1), m_p2(p2) {}
 
@@ -856,7 +856,7 @@ MQLIB_API DEPRECATE("Use GetCachedBuff with predicates instead") bool HasCachedT
 MQLIB_API DEPRECATE("Use GetCachedBuff with predicates instead") bool HasCachedTargetBuffSPA(int spa, bool bIncrease, SPAWNINFO* pSpawn, void*);
 
 MQLIB_API bool HasBuffCastByPlayer(SPAWNINFO* pBuffOwner, const char* szBuffName, const char* casterName);
-MQLIB_API DEPRECATE("Use HasBuffCastByPlayer insteead of TargetBuffCastByMe") bool TargetBuffCastByMe(const char* szBuffName);
+MQLIB_API DEPRECATE("Use HasBuffCastByPlayer instead of TargetBuffCastByMe") bool TargetBuffCastByMe(const char* szBuffName);
 
 /* MQ2PIPECLIENT */
 void InitializeMQ2PipeClient();
