@@ -1,5 +1,6 @@
 May 5, 2021
 - Fixed InputText ImGui functions in the lua binding, also removed the buffer size argument.
+- /mqlog will no longer force a parse on items sent to the log (#177)
 
 May 1, 2021
 - Fixed an issue with inventory slots being out of order due to ui load order (#247)

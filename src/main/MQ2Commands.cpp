@@ -18,6 +18,8 @@
 #include "MQ2KeyBinds.h"
 #include "MQ2Mercenaries.h"
 
+#include <fmt/chrono.h>
+
 namespace mq {
 
 CMQ2Alerts CAlerts;
@@ -2237,12 +2239,15 @@ void MacroLog(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	char szBuffer[MAX_STRING] = { 0 };
-	sprintf_s(szBuffer, "[${Time.Date} ${Time.Time24}] %s", szLine);
-	ParseMacroParameter(pChar, szBuffer);
+	std::time_t t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	std::tm now = {};
+	localtime_s(&now, &t);
+	const std::string strLogMessage = fmt::format("[{DateTime:%m/%d/%Y %H:%M:%S}] {LogMessage}",
+		fmt::arg("DateTime", now),
+		fmt::arg("LogMessage", szLine));
 
-	fprintf(fOut, "%s\n", szBuffer);
-	DebugSpew("MacroLog - %s", szBuffer);
+	fprintf(fOut, "%s\n", strLogMessage.c_str());
+	DebugSpew("MacroLog - %s", strLogMessage.c_str());
 
 	fclose(fOut);
 }
