@@ -1754,17 +1754,15 @@ bool MQ2SpawnType::dataSpawn(const char* szIndex, MQTypeVar& Ret)
 			Ret = pSpawnType->MakeTypeVar(GetSpawnByID(GetIntFromString(szIndex, 0)));
 			return true;
 		}
-		else
-		{
-			// set up search spawn
-			MQSpawnSearch ssSpawn;
-			ClearSearchSpawn(&ssSpawn);
-			ParseSearchSpawn(szIndex, &ssSpawn);
 
-			SPAWNINFO* pSearchSpawn = SearchThroughSpawns(&ssSpawn, pControlledPlayer);
-			Ret = pSpawnType->MakeTypeVar(pSearchSpawn);
-			return true;
-		}
+		// set up search spawn
+		MQSpawnSearch ssSpawn;
+		ClearSearchSpawn(&ssSpawn);
+		ParseSearchSpawn(szIndex, &ssSpawn);
+
+		SPAWNINFO* pSearchSpawn = SearchThroughSpawns(&ssSpawn, pControlledPlayer);
+		Ret = pSpawnType->MakeTypeVar(pSearchSpawn);
+		return true;
 	}
 
 	// No spawn
