@@ -732,53 +732,139 @@ static void MakeColorGradient(float frequency1, float frequency2, float frequenc
 	}
 }
 
-//----------------------------------------------------------------------------
+//============================================================================
 
-Zep::NVec2f pixelScale = { 1.0f, 1.0f };
+// This theme extends the default theme to support arbitrary coloring via extended
+// UserColor values of the ThemeColor enum.
+class ZepConsoleTheme : public Zep::ZepTheme
+{
+	static inline constexpr int UserColorStart = (int)Zep::ThemeColor::UniqueColorLast + 1;
 
-class ConsoleMode : public Zep::ZepMode
+public:
+	virtual const Zep::NVec4f& GetColor(Zep::ThemeColor themeColor) const
+	{
+		if ((int)themeColor >= UserColorStart)
+			return m_userColors[(size_t)themeColor - UserColorStart];
+
+		return Zep::ZepTheme::GetColor(themeColor);
+	}
+
+	// This overrides GetUniqueColor to treat any value over UniqueColorLast as an MQColor value.
+	// It will be inserted into the user color map and the index + UserColorStart will be returned.
+	Zep::ThemeColor GetUserColor(uint32_t id)
+	{
+		if (id < (int)Zep::ThemeColor::UniqueColorLast - (int)Zep::ThemeColor::UniqueColor0)
+			return Zep::ZepTheme::GetUniqueColor(id);
+
+		MQColor color{ id };
+		Zep::NVec4 rgba{ color.Red / 255.f, color.Green / 255.f, color.Blue / 255.f, color.Alpha / 255.f };
+
+		auto iter = std::find(std::begin(m_userColors), std::end(m_userColors), rgba);
+		if (iter == std::end(m_userColors))
+		{
+			m_userColors.push_back(rgba);
+			return (Zep::ThemeColor)(m_userColors.size() - 1 + UserColorStart);
+		}
+
+		int index = std::distance(std::begin(m_userColors), iter);
+		return (Zep::ThemeColor)(index + UserColorStart);
+	}
+
+private:
+	std::vector<Zep::NVec4f> m_userColors;
+};
+
+class ZepConsoleSyntax : public Zep::ZepSyntax
 {
 public:
-	ConsoleMode(Zep::ZepEditor& editor) : Zep::ZepMode(editor) {}
-	virtual void Init() override
+	ZepConsoleSyntax(Zep::ZepBuffer& buffer, const std::shared_ptr<ZepConsoleTheme>& theme)
+		: Zep::ZepSyntax(buffer)
+		, m_theme(theme)
+	{
+		m_adornments.clear();
+	}
+
+	struct SyntaxInfo
+	{
+		Zep::ThemeColor color;
+	};
+
+	virtual Zep::SyntaxResult GetSyntaxAt(const Zep::GlyphIterator& index) const override
+	{
+		SyntaxInfo info = GetSyntaxInfo(index);
+		Zep::SyntaxResult result;
+		result.foreground = info.color;
+		result.background = Zep::ThemeColor::None;
+		result.underline = false;
+
+		return result;
+	}
+
+	virtual void UpdateSyntax() override
 	{
 	}
 
-	virtual const char* Name() const override { return "Console"; }
-	virtual Zep::EditorMode DefaultMode() const override { return Zep::EditorMode::Visual; }
-};
+private:
+	SyntaxInfo GetSyntaxInfo(const Zep::GlyphIterator& index) const
+	{
+		SyntaxInfo info;
 
-//============================================================================
+		info.color = m_theme->GetUserColor(MQColor(255, 0, 0));
+
+		return info;
+	}
+
+private:
+	std::shared_ptr<ZepConsoleTheme> m_theme;
+	std::deque<SyntaxInfo> m_syntaxInfo;
+};
 
 struct ZepContainerImGui : public Zep::IZepComponent
 {
-	ZepContainerImGui(const std::string& startupFilePath, const std::string& configPath)
-		: spEditor(std::make_unique<Zep::ZepEditor_ImGui>(configPath, pixelScale))
+	ZepContainerImGui()
 	{
-		auto& display = static_cast<Zep::ZepDisplay_ImGui&>(spEditor->GetDisplay());
-		display.SetFont(Zep::ZepTextType::UI, std::make_shared<Zep::ZepFont_ImGui>(display, mq::imgui::DefaultFont, 16));
-		display.SetFont(Zep::ZepTextType::Text, std::make_shared<Zep::ZepFont_ImGui>(display, mq::imgui::ConsoleFont, 13));
-		display.SetFont(Zep::ZepTextType::Heading1, std::make_shared<Zep::ZepFont_ImGui>(display, mq::imgui::DefaultFont, 28));
-		display.SetFont(Zep::ZepTextType::Heading2, std::make_shared<Zep::ZepFont_ImGui>(display, mq::imgui::DefaultFont, 14));
-		display.SetFont(Zep::ZepTextType::Heading3, std::make_shared<Zep::ZepFont_ImGui>(display, mq::imgui::DefaultFont, 20));
+		Zep::NVec2f pixelScale = { 1.0f, 1.0f };
+		auto display = new Zep::ZepDisplay_ImGui(pixelScale);
+		display->SetFont(Zep::ZepTextType::UI, std::make_shared<Zep::ZepFont_ImGui>(*display, mq::imgui::DefaultFont, 16));
+		display->SetFont(Zep::ZepTextType::Text, std::make_shared<Zep::ZepFont_ImGui>(*display, mq::imgui::ConsoleFont, 13));
+		display->SetFont(Zep::ZepTextType::Heading1, std::make_shared<Zep::ZepFont_ImGui>(*display, mq::imgui::DefaultFont, 28));
+		display->SetFont(Zep::ZepTextType::Heading2, std::make_shared<Zep::ZepFont_ImGui>(*display, mq::imgui::DefaultFont, 14));
+		display->SetFont(Zep::ZepTextType::Heading3, std::make_shared<Zep::ZepFont_ImGui>(*display, mq::imgui::DefaultFont, 20));
 
-		spEditor->RegisterCallback(this);
-		spEditor->SetGlobalMode(Zep::ZepMode_Standard::StaticName());
+		Zep::ZepEditorParams params;
+		params.pDisplay = display;
+		params.flags = Zep::ZepEditorFlags::DisableThreads;
 
-		spEditor->GetConfig().cursorLineSolid = true;
-		spEditor->GetConfig().showLineNumbers = false;
+		m_editor = std::make_unique<Zep::ZepEditor_ImGui>(params);
+		m_editor->RegisterCallback(this);
+		m_editor->GetConfig().cursorLineSolid = true;
+		m_editor->GetConfig().showLineNumbers = false;
 
-		spEditor->InitWithText("Console", "");
+		m_theme = std::make_shared<ZepConsoleTheme>();
+		auto syntaxFactory = [this](Zep::ZepBuffer* buffer)
+		{
+			return std::make_shared<ZepConsoleSyntax>(*buffer, m_theme);
+		};
+
+		m_editor->RegisterSyntaxFactory({ "Console" }, { "Console", syntaxFactory });
+		m_editor->SetGlobalMode(Zep::ZepMode_Standard::StaticName());
+
+		Zep::ZepBuffer* buffer = m_editor->InitWithText("Console", "");
+		buffer->SetTheme(m_theme);
 	}
 
 	~ZepContainerImGui()
 	{
+		Destroy();
 	}
 
 	void Destroy()
 	{
-		spEditor->UnRegisterCallback(this);
-		spEditor.reset();
+		if (m_editor)
+		{
+			m_editor->UnRegisterCallback(this);
+			m_editor.reset();
+		}
 	}
 
 	// Inherited via IZepComponent
@@ -830,12 +916,14 @@ struct ZepContainerImGui : public Zep::IZepComponent
 		}
 	}
 
-	virtual Zep::ZepEditor& GetEditor() const override
+	virtual Zep::ZepEditor_ImGui& GetEditor() const override
 	{
-		return *spEditor;
+		return *m_editor;
 	}
 
-	std::unique_ptr<Zep::ZepEditor_ImGui> spEditor;
+	std::unique_ptr<Zep::ZepEditor_ImGui> m_editor;
+	std::shared_ptr<ZepConsoleTheme> m_theme;
+	std::shared_ptr<ZepConsoleSyntax> m_syntax;
 };
 
 ZepContainerImGui* zep = nullptr;
@@ -846,7 +934,7 @@ void UpdateImGuiConsole()
 {
 	if (!zep)
 	{
-		zep = new ZepContainerImGui("", "d:\\zep.ini");
+		zep = new ZepContainerImGui();
 	}
 
 	if (zep)
@@ -864,11 +952,11 @@ void UpdateImGuiConsole()
 			// Fill the window
 			max.x = min.x + max.x;
 			max.y = min.y + max.y;
-			zep->spEditor->SetDisplayRegion(Zep::NVec2f(min.x, min.y), Zep::NVec2f(max.x, max.y));
+			zep->GetEditor().SetDisplayRegion(Zep::NVec2f(min.x, min.y), Zep::NVec2f(max.x, max.y));
 
 			// Display the editor inside this window
-			zep->spEditor->Display();
-			zep->spEditor->HandleInput();
+			zep->GetEditor().Display();
+			zep->GetEditor().HandleInput();
 
 			ImGui::EndChild();
 		}

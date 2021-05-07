@@ -255,12 +255,20 @@ struct TabRegionTab : public Region
     ZepTabWindow* pTabWindow = nullptr;
 };
 
+struct ZepEditorParams
+{
+    ZepDisplay* pDisplay;
+    ZepPath root;
+    uint32_t flags = 0;
+    IZepFileSystem* pFileSystem = nullptr;
+};
 
 class ZepEditor
 {
 public:
     // Root path is the path to search for a config file
     ZepEditor(ZepDisplay* pDisplay, const ZepPath& root, uint32_t flags = 0, IZepFileSystem* pFileSystem = nullptr);
+    ZepEditor(const ZepEditorParams& params);
     ~ZepEditor();
 
     void LoadConfig(const ZepPath& config_path);
@@ -396,6 +404,8 @@ public:
     ZepBuffer* GetBufferFromHandle(uint64_t handle);
 
 private:
+    void Init();
+
     // Call GetBuffer publicly, to stop creation of duplicate buffers refering to the same file
     ZepBuffer* CreateNewBuffer(const std::string& bufferName);
     ZepBuffer* CreateNewBuffer(const ZepPath& path);

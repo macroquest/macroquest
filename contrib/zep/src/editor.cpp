@@ -54,15 +54,6 @@ ZepEditor::ZepEditor(ZepDisplay* pDisplay, const ZepPath& configRoot, uint32_t f
     }
 #endif
 
-    if (m_flags & ZepEditorFlags::DisableThreads)
-    {
-        m_threadPool = std::make_unique<ThreadPool>(1);
-    }
-    else
-    {
-        m_threadPool = std::make_unique<ThreadPool>();
-    }
-
     LoadConfig(m_pFileSystem->GetConfigPath() / "zep.cfg");
 
     m_spTheme = std::make_shared<ZepTheme>();
@@ -71,6 +62,50 @@ ZepEditor::ZepEditor(ZepDisplay* pDisplay, const ZepPath& configRoot, uint32_t f
     RegisterGlobalMode(std::make_shared<ZepMode_Vim>(*this));
     RegisterGlobalMode(std::make_shared<ZepMode_Standard>(*this));
     SetGlobalMode(ZepMode_Vim::StaticName());
+
+    Init();
+}
+
+ZepEditor::ZepEditor(const ZepEditorParams& params)
+    : m_pDisplay(params.pDisplay)
+    , m_pFileSystem(params.pFileSystem)
+    , m_flags(params.flags)
+{
+#if defined(ZEP_FEATURE_CPP_FILE_SYSTEM)
+    if (m_pFileSystem == nullptr)
+    {
+        m_pFileSystem = new ZepFileSystemCPP(params.root);
+    }
+#else
+    if (m_pFileSystem == nullptr)
+    {
+        assert(!"Must supply a file system - no default available on this platform!");
+        throw std::invalid_argument("pFileSystem");
+    }
+#endif
+
+    //LoadConfig(m_pFileSystem->GetConfigPath() / "zep.cfg");
+    assert(m_pDisplay != nullptr);
+
+    m_spTheme = std::make_shared<ZepTheme>();
+
+    RegisterGlobalMode(std::make_shared<ZepMode_Vim>(*this));
+    RegisterGlobalMode(std::make_shared<ZepMode_Standard>(*this));
+    SetGlobalMode(ZepMode_Vim::StaticName());
+
+    Init();
+}
+
+void ZepEditor::Init()
+{
+    if (m_flags & ZepEditorFlags::DisableThreads)
+    {
+        m_threadPool = std::make_unique<ThreadPool>(1);
+    }
+    else
+    {
+        m_threadPool = std::make_unique<ThreadPool>();
+    }
 
     timer_restart(m_cursorTimer);
     timer_restart(m_lastEditTimer);
