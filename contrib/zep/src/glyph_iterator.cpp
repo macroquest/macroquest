@@ -89,11 +89,7 @@ uint8_t GlyphIterator::Char() const
 
 uint8_t GlyphIterator::operator*() const
 {
-    if (!m_pBuffer)
-    {
-        return 0;
-    }
-    return m_pBuffer->GetWorkingBuffer()[m_index];
+    return Char();
 }
 
 GlyphIterator& GlyphIterator::MoveClamped(long count, LineLocation clamp)
@@ -126,7 +122,6 @@ GlyphIterator& GlyphIterator::MoveClamped(long count, LineLocation clamp)
     }
 
     Clamp();
-
     return *this;
 }
 
@@ -149,9 +144,10 @@ GlyphIterator& GlyphIterator::Move(long count)
     {
         for (long c = count; c < 0; c++)
         {
-            while ((m_index > 0) && utf8::internal::is_trail(gapBuffer[--m_index]));
+            while ((m_index > 0) && utf8_is_trailing(gapBuffer[--m_index]));
         }
     }
+
     Clamp();
     return *this;
 }
@@ -247,7 +243,7 @@ GlyphRange::GlyphRange(GlyphIterator a, GlyphIterator b)
     , second(b)
 {
 }
-    
+
 GlyphRange::GlyphRange(const ZepBuffer* pBuffer, ByteRange range)
     : first(pBuffer, range.first), second(pBuffer, range.second)
 {
@@ -270,6 +266,12 @@ bool GlyphRange::ContainsLocation(GlyphIterator loc) const
 bool GlyphRange::ContainsInclusiveLocation(GlyphIterator loc) const
 {
     return loc >= first && loc <= second;
+}
+
+bool GlyphRange::OverlapsRange(const GlyphRange& other) const
+{
+    return (other.first >= first && other.first < second)
+        || (other.second >= first && other.second < second);
 }
 
 } // namespace Zep

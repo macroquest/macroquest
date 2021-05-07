@@ -176,18 +176,19 @@ public:
         return m_displayRect;
     }
 
+    void EnsureCursorVisible();
+    void ScrollToCursor();
+
 private:
     void UpdateLayout(bool force = false);
     void UpdateMarkers();
     void UpdateAirline();
     void UpdateScrollers();
     void UpdateLineSpans();
-    void EnsureCursorVisible();
     void UpdateVisibleLineRange();
 
     NVec2i BufferToDisplay(const GlyphIterator& location);
 
-    void ScrollToCursor();
     bool IsInsideVisibleText(NVec2i pos) const;
 
     enum class SpecialChar

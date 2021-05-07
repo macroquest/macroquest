@@ -88,7 +88,7 @@ struct RangeMarker : std::enable_shared_from_this<RangeMarker>
     virtual void SetEnabled(bool enabled);
     virtual void SetInlineSize(const NVec2f& size);
 
-    void HandleBufferInsert(ZepBuffer& buffer, const GlyphIterator& itrStart, const std::string& str);
+    void HandleBufferInsert(ZepBuffer& buffer, const GlyphIterator& itrStart, std::string_view str);
     void HandleBufferDelete(ZepBuffer& buffer, const GlyphIterator& itr, const GlyphIterator& itrEnd);
 
     ZepBuffer& GetBuffer();

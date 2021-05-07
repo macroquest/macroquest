@@ -935,7 +935,18 @@ std::string ZepBuffer::GetBufferText(const GlyphIterator& start, const GlyphIter
     return std::string(m_workingBuffer.begin() + start.Index(), m_workingBuffer.begin() + end.Index());
 }
 
-bool ZepBuffer::Insert(const GlyphIterator& startIndex, const std::string& str, ChangeRecord& changeRecord)
+bool ZepBuffer::Insert(const GlyphIterator& startIndex, std::string_view str, ChangeRecord& changeRecord)
+{
+    if (!startIndex.Valid())
+    {
+        return false;
+    }
+
+    tZepAttributes attributes;
+    return InsertAttributed(startIndex, str, attributes, changeRecord);
+}
+
+bool ZepBuffer::InsertAttributed(const GlyphIterator& startIndex, std::string_view str, const tZepAttributes& attributes, ChangeRecord& changeRecord)
 {
     if (!startIndex.Valid())
     {
@@ -953,7 +964,7 @@ bool ZepBuffer::Insert(const GlyphIterator& startIndex, const std::string& str, 
 
     // abcdef\r\nabc<insert>dfdf\r\n
     auto itrLine = std::lower_bound(m_lineEnds.begin(), m_lineEnds.end(), startIndex.Index());
-    ;
+
     if (itrLine != m_lineEnds.end() && *itrLine <= startIndex.Index())
     {
         itrLine++;
@@ -999,15 +1010,38 @@ bool ZepBuffer::Insert(const GlyphIterator& startIndex, const std::string& str, 
     changeRecord.strInserted = str;
     m_workingBuffer.insert(m_workingBuffer.begin() + startIndex.Index(), str.begin(), str.end());
 
+    // Insert attributes
+    size_t attrStart = m_attributes.size();
+    for (const auto& attr : attributes)
+    {
+        if (attr.startIndex >= 0 && attr.startIndex < (int)str.length()
+            && attr.endIndex > attr.startIndex && attr.endIndex <= (int)str.length())
+        {
+            m_attributes.emplace_back(GlyphRange(startIndex + attr.startIndex, startIndex + attr.endIndex), attr.data);
+        }
+    }
+    size_t attrEnd = m_attributes.size();
+
     MarkUpdate();
 
     // This is the range we added (not valid any more in the buffer)
-    GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::TextAdded, startIndex, endIndex));
+    GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::TextAdded, startIndex, endIndex, attrStart, attrEnd));
 
     return true;
 }
 
-bool ZepBuffer::Replace(const GlyphIterator& startIndex, const GlyphIterator& endIndex, std::string str, ReplaceRangeMode mode, ChangeRecord& changeRecord)
+bool ZepBuffer::Replace(const GlyphIterator& startIndex, const GlyphIterator& endIndex, std::string_view str, ReplaceRangeMode mode, ChangeRecord& changeRecord)
+{
+    if (!startIndex.Valid())
+    {
+        return false;
+    }
+
+    tZepAttributes attributes;
+    return ReplaceAttributed(startIndex, endIndex, std::move(str), mode, attributes, changeRecord);
+}
+
+bool ZepBuffer::ReplaceAttributed(const GlyphIterator& startIndex, const GlyphIterator& endIndex, std::string_view str, ReplaceRangeMode mode, const tZepAttributes& attributes, ChangeRecord& changeRecord)
 {
     if (!startIndex.Valid() || !endIndex.Valid())
     {
@@ -1020,7 +1054,7 @@ bool ZepBuffer::Replace(const GlyphIterator& startIndex, const GlyphIterator& en
         Delete(startIndex, endIndex, changeRecord);
 
         ChangeRecord tempRecord;
-        Insert(startIndex, str, tempRecord);
+        InsertAttributed(startIndex, str, attributes, tempRecord);
         return true;
     }
 
@@ -1038,6 +1072,8 @@ bool ZepBuffer::Replace(const GlyphIterator& startIndex, const GlyphIterator& en
         m_workingBuffer[loc.Index()] = str[0];
     }
 
+    // TODO: Does this even get hit?
+
     MarkUpdate();
 
     // This is the range we added (not valid any more in the buffer)
@@ -1045,6 +1081,7 @@ bool ZepBuffer::Replace(const GlyphIterator& startIndex, const GlyphIterator& en
 
     return true;
 }
+
 // A fundamental operation - delete a range of characters
 // Need to update:
 // - m_lineEnds
@@ -1159,7 +1196,7 @@ void ZepBuffer::ClearRangeMarker(std::shared_ptr<RangeMarker> spMarker)
             m_rangeMarkers.erase(spMarker->GetRange().first);
         }
     }
-    
+
     // TODO: Why is this necessary; marks the whole buffer
     GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::MarkersChanged, Begin(), End()));
 }
@@ -1335,6 +1372,23 @@ std::shared_ptr<RangeMarker> ZepBuffer::FindNextMarker(GlyphIterator start, Dire
         search();
     }
     return spFound;
+}
+
+void ZepBuffer::ForEachAttribute(const GlyphIterator& begin, const GlyphIterator& end,
+    std::function<bool(const BufferAttribute&)>& fnCB) const
+{
+    GlyphRange searchRange(begin, end);
+
+    for (const auto& attr : m_attributes)
+    {
+        if (attr.range.OverlapsRange(searchRange))
+        {
+            if (!fnCB(attr))
+            {
+                return;
+            }
+        }
+    }
 }
 
 void ZepBuffer::SetBufferType(BufferType type)
