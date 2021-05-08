@@ -1,3 +1,6 @@
+May 7, 2021
+- Plugins using pLocalPC->zoneId (GetCharInfo()->zoneId) will once again function properly (#287)
+
 May 5, 2021
 - Fixed InputText ImGui functions in the lua binding, also removed the buffer size argument.
 - /mqlog will no longer force a parse on items sent to the log (#177)

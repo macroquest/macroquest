@@ -5356,6 +5356,7 @@ void ForeGroundCmd(SPAWNINFO* pChar, char* szLine)
 			EQhWnd = *(HWND*)EQADDR_HWND;
 	}
 
+	/* This same code exists in the launcher in Utility.cpp so if it is changed here, change it there. */
 	if (EQhWnd)
 	{
 		ShowWindow(EQhWnd, SW_MINIMIZE);
