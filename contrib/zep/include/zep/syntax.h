@@ -41,8 +41,8 @@ struct SyntaxData
 
 struct SyntaxResult : SyntaxData
 {
-    NVec4f customBackgroundColor;
-    NVec4f customForegroundColor;
+    uint32_t customBackgroundColor;
+    uint32_t customForegroundColor;
 };
 
 class ZepSyntax : public ZepComponent
@@ -60,7 +60,7 @@ public:
 
     virtual SyntaxResult GetSyntaxAt(const GlyphIterator& index) const = 0;
 
-    const NVec4f& ToBackgroundColor(const SyntaxResult& res) const
+    const uint32_t ToBackgroundColor(const SyntaxResult& res) const
     {
         if (res.background == ThemeColor::Custom)
         {
@@ -72,7 +72,7 @@ public:
         }
     }
 
-    virtual const NVec4f& ToForegroundColor(const SyntaxResult& res) const
+    virtual uint32_t ToForegroundColor(const SyntaxResult& res) const
     {
         if (res.foreground == ThemeColor::Custom)
         {

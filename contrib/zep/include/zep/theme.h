@@ -3,7 +3,7 @@
 #include <vector>
 #include <map>
 
-#include "zep/mcommon/math/math.h"
+#include "zep/mcommon/math/color.h"
 
 namespace Zep
 {
@@ -81,8 +81,8 @@ public:
     ZepTheme();
     virtual ~ZepTheme() {}
 
-    virtual const NVec4f& GetColor(ThemeColor themeColor) const;
-    virtual NVec4f GetComplement(const NVec4f& col, const NVec4f& adjust = NVec4f(0.0f)) const;
+    virtual ZepColor GetColor(ThemeColor themeColor) const;
+    virtual ZepColor GetComplement(ZepColor col, ZepColor adjust = ZepColor(0u)) const;
     virtual ThemeColor GetUniqueColor(uint32_t id) const;
 
     void SetThemeType(ThemeType type);
@@ -93,8 +93,8 @@ private:
     void SetLightTheme();
 
 private:
-    std::vector<NVec4f> m_uniqueColors;
-    std::map<ThemeColor, NVec4f> m_colors;
+    std::vector<ZepColor> m_uniqueColors;
+    std::map<ThemeColor, ZepColor> m_colors;
     ThemeType m_currentTheme = ThemeType::Dark;
 };
 

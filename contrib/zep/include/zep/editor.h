@@ -10,6 +10,7 @@
 #include "zep_config.h"
 
 #include "zep/mcommon/math/math.h"
+#include "zep/mcommon/math/color.h"
 #include "zep/mcommon/animation/timer.h"
 #include "zep/mcommon/threadpool.h"
 #include "zep/mcommon/file/path.h"
@@ -250,7 +251,7 @@ public:
 
 struct TabRegionTab : public Region
 {
-    NVec4f color;
+    ZepColor color;
     std::string name;
     ZepTabWindow* pTabWindow = nullptr;
 };

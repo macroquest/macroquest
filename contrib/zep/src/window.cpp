@@ -741,16 +741,16 @@ void ZepWindow::DisplayToolTip(const NVec2f& pos, const RangeMarker& marker) con
     display.DrawChars(display.GetFont(ZepTextType::Text), tipBox.topLeftPx + NVec2f(textBorder, textBorder), m_pBuffer->GetTheme().GetColor(marker.GetTextColor()), (const uint8_t*)marker.GetDescription().c_str());
 }
 
-NVec4f ZepWindow::GetBlendedColor(ThemeColor color) const
+ZepColor ZepWindow::GetBlendedColor(ThemeColor color) const
 {
-    auto col = m_pBuffer->GetTheme().GetColor(color);
+    ZepColor col = m_pBuffer->GetTheme().GetColor(color);
     if (GetEditor().GetConfig().style == EditorStyle::Minimal)
     {
         float lastEdit = GetEditor().GetLastEditElapsedTime();
         if (lastEdit > GetEditor().GetConfig().backgroundFadeWait)
         {
             lastEdit -= GetEditor().GetConfig().backgroundFadeWait;
-            col.w = std::max(0.0f, 1.0f - lastEdit / GetEditor().GetConfig().backgroundFadeTime);
+            col.a = static_cast<uint8_t>(255u * std::max(0.0f, 1.0f - lastEdit / GetEditor().GetConfig().backgroundFadeTime));
         }
     }
     return col;
@@ -857,7 +857,7 @@ void ZepWindow::DisplayLineBackground(SpanInfo& lineInfo, ZepSyntax* pSyntax)
 
     NVec2f linePx = GetSpanPixelRange(lineInfo);
 
-    NVec4f backColor;
+    ZepColor backColor;
     if (ZTestFlags(m_windowFlags, WindowFlags::ShowLineBackground))
     {
         // Fill entire line background
@@ -943,7 +943,7 @@ void ZepWindow::DisplayLineBackground(SpanInfo& lineInfo, ZepSyntax* pSyntax)
         // Background and underlines
         // Track the background color for multiple overlapping markers and blend the alpha correctly by 
         // doing a mix between the previous color and the new one.
-        NVec4f backgroundColor = backColor;
+        ZepColor backgroundColor = backColor;
 
         m_pBuffer->ForEachMarker(RangeMarkerType::All, Direction::Forward, GlyphIterator(m_pBuffer, lineInfo.lineByteRange.first), GlyphIterator(m_pBuffer, lineInfo.lineByteRange.second), [&](const std::shared_ptr<RangeMarker>& marker) {
             // Don't show hidden markers
@@ -1238,7 +1238,7 @@ bool ZepWindow::DisplayLine(SpanInfo& lineInfo, int displayPass)
             {
                 auto centerY = ToWindowY(lineInfo.yOffsetPx) + cp.size.y / 2;
                 auto centerChar = NVec2f(cp.pos.x + cp.size.x / 2, centerY);
-                NVec4f col;
+                ZepColor col;
                 if (special == SpecialChar::Hidden)
                 {
                     col = m_pBuffer->GetTheme().GetColor(ThemeColor::HiddenText);
@@ -1420,11 +1420,11 @@ bool ZepWindow::IsActiveWindow() const
     return m_tabWindow.GetActiveWindow() == this;
 }
 
-NVec4f ZepWindow::FilterActiveColor(const NVec4f& col, float atten)
+ZepColor ZepWindow::FilterActiveColor(ZepColor col, float atten)
 {
     if (!IsActiveWindow())
     {
-        return NVec4f(Luminosity(col) * atten);
+        return ZepColor(Luminosity(col) * atten);
     }
     return col;
 }
@@ -1638,7 +1638,7 @@ void ZepWindow::DisplayGridMarkers()
 
             if (i != 0 && i % 8 == 0)
             {
-                display.DrawLine(NVec2f(pos.x - m_xPad / 2, pos.y), NVec2f(pos.x - m_xPad / 2, pos.y + DPI_Y(3.0f)), NVec4f(1.0f));
+                display.DrawLine(NVec2f(pos.x - m_xPad / 2, pos.y), NVec2f(pos.x - m_xPad / 2, pos.y + DPI_Y(3.0f)), ZepColor(255u));
             }
             pos.x += cp.size.x + m_xPad;
         }
@@ -1838,7 +1838,7 @@ void ZepWindow::Display()
                 auto col = airline.leftBoxes[i].background;
                 display.DrawRectFilled(NRectf(screenPosYPx, NVec2f(textSize.x + screenPosYPx.x, screenPosYPx.y + airHeight)), col);
 
-                NVec4f textCol = m_pBuffer->GetTheme().GetComplement(airline.leftBoxes[i].background, IsActiveWindow() ? NVec4f(0.0f) : NVec4f(.5f, .5f, .5f, 0.0f));
+                ZepColor textCol = m_pBuffer->GetTheme().GetComplement(airline.leftBoxes[i].background, IsActiveWindow() ? ZepColor(0u) : ZepColor(.5f, .5f, .5f, 0.0f));
                 display.DrawChars(uiFont, screenPosYPx + NVec2f(border, 0.0f), textCol, (const uint8_t*)(airline.leftBoxes[i].text.c_str()));
                 screenPosYPx.x += textSize.x;
             }
@@ -1866,7 +1866,7 @@ void ZepWindow::Display()
                     auto col = airline.rightBoxes[i].background;
                     display.DrawRectFilled(NRectf(screenPosYPx, NVec2f(textSize.x + screenPosYPx.x, screenPosYPx.y + float(airHeight))), col);
 
-                    NVec4f textCol = m_pBuffer->GetTheme().GetComplement(airline.rightBoxes[i].background, IsActiveWindow() ? NVec4f(0.0f) : NVec4f(.5f, .5f, .5f, 0.0f));
+                    ZepColor textCol = m_pBuffer->GetTheme().GetComplement(airline.rightBoxes[i].background, IsActiveWindow() ? ZepColor(0u) : ZepColor(.5f, .5f, .5f, 0.0f));
                     display.DrawChars(uiFont, screenPosYPx + NVec2f(border, 0.0f), textCol, (const uint8_t*)(airline.rightBoxes[i].text.c_str()));
                     screenPosYPx.x += textSize.x;
                 }

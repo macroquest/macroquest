@@ -103,7 +103,7 @@ namespace WindowFlags
 struct AirBox
 {
     std::string text;
-    NVec4f background;
+    ZepColor background;
 };
 
 struct Airline
@@ -162,7 +162,7 @@ public:
     virtual void SetBuffer(ZepBuffer* pBuffer);
 
     ZepTabWindow& GetTabWindow() const;
-    NVec4f FilterActiveColor(const NVec4f& col, float atten = 1.0f);
+    ZepColor FilterActiveColor(ZepColor col, float atten = 1.0f);
 
     void DirtyLayout();
     void AdjustScroll(float delta);
@@ -217,7 +217,7 @@ private:
 
     void DisableToolTipTillMove();
 
-    NVec4f GetBlendedColor(ThemeColor color) const;
+    ZepColor GetBlendedColor(ThemeColor color) const;
     void GetCursorInfo(NVec2f& pos, NVec2f& size);
 
     void PlaceToolTip(const NVec2f& pos, ToolTipPos location, uint32_t lineGap, const std::shared_ptr<RangeMarker> spMarker);

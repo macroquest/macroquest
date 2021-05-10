@@ -192,6 +192,7 @@
     <ClInclude Include="include\zep\mcommon\file\path.h" />
     <ClInclude Include="include\zep\mcommon\gsl-lite.hpp" />
     <ClInclude Include="include\zep\mcommon\logger.h" />
+    <ClInclude Include="include\zep\mcommon\math\color.h" />
     <ClInclude Include="include\zep\mcommon\math\math.h" />
     <ClInclude Include="include\zep\mcommon\platform.h" />
     <ClInclude Include="include\zep\mcommon\registrar.h" />

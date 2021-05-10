@@ -756,7 +756,7 @@ class ZepConsoleTheme : public Zep::ZepTheme
 	static inline constexpr int UserColorStart = (int)Zep::ThemeColor::UniqueColorLast + 1;
 
 public:
-	virtual const Zep::NVec4f& GetColor(Zep::ThemeColor themeColor) const
+	virtual Zep::ZepColor GetColor(Zep::ThemeColor themeColor) const
 	{
 		if ((int)themeColor >= UserColorStart)
 			return m_userColors[(size_t)themeColor - UserColorStart];
@@ -766,18 +766,18 @@ public:
 
 	// This overrides GetUniqueColor to treat any value over UniqueColorLast as an MQColor value.
 	// It will be inserted into the user color map and the index + UserColorStart will be returned.
-	Zep::ThemeColor GetUserColor(uint32_t id)
+	Zep::ThemeColor GetUserColor(MQColor mqColor)
 	{
+		uint32_t id = mqColor.ARGB;
 		if (id < (int)Zep::ThemeColor::UniqueColorLast - (int)Zep::ThemeColor::UniqueColor0)
 			return Zep::ZepTheme::GetUniqueColor(id);
 
-		MQColor color{ id };
-		Zep::NVec4 rgba{ color.Blue / 255.f, color.Green / 255.f, color.Red / 255.f, color.Alpha / 255.f };
+		Zep::ZepColor color(mqColor.Red, mqColor.Green, mqColor.Blue, mqColor.Alpha);
 
-		auto iter = std::find(std::begin(m_userColors), std::end(m_userColors), rgba);
+		auto iter = std::find(std::begin(m_userColors), std::end(m_userColors), color);
 		if (iter == std::end(m_userColors))
 		{
-			m_userColors.push_back(rgba);
+			m_userColors.emplace_back(id);
 			return (Zep::ThemeColor)(m_userColors.size() - 1 + UserColorStart);
 		}
 
@@ -794,7 +794,7 @@ public:
 	}
 
 private:
-	std::vector<Zep::NVec4f> m_userColors;
+	std::vector<Zep::ZepColor> m_userColors;
 };
 
 //----------------------------------------------------------------------------
@@ -1069,8 +1069,8 @@ struct ZepContainerImGui : public Zep::IZepComponent
 			m_editor->GetConfig().style = Zep::EditorStyle::Normal;
 			m_window->SetWindowFlags(Zep::WindowFlags::None
 				| Zep::WindowFlags::ShowWhiteSpace | Zep::WindowFlags::ShowLineNumbers | Zep::WindowFlags::WrapText
-				//| Zep::WindowFlags::ShowLineBackground
-				| Zep::WindowFlags::ShowCR);
+				| Zep::WindowFlags::ShowLineBackground
+			);
 
 			m_editor->RegisterSyntaxFactory(
 				{ "Console" },
@@ -1079,6 +1079,8 @@ struct ZepContainerImGui : public Zep::IZepComponent
 				})
 			});
 		}
+
+		//m_theme->SetThemeType(Zep::ThemeType::Light);
 
 		if (consoleMode)
 		{
@@ -1276,7 +1278,7 @@ void UpdateImGuiConsole()
 {
 	if (!zep)
 	{
-		zep = new ZepContainerImGui(true);
+		zep = new ZepContainerImGui(false, "d:\\source\\mqnext\\build\\bin\\debug\\lua\\fishb.lua");
 	}
 
 	if (zep)

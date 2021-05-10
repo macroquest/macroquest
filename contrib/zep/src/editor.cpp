@@ -644,8 +644,8 @@ void ZepEditor::UpdateTabs()
             if (window != GetActiveTabWindow())
             {
                 // Desaturate unselected ones
-                tabColor = tabColor * .55f;
-                tabColor.w = 1.0f;
+                tabColor *= .55f;
+                tabColor.a = 255u;
             }
             auto tabLength = m_pDisplay->GetFont(ZepTextType::Text).GetTextSize((const uint8_t*)name.c_str()).x + DPI_X(textBorder) * 2;
 
@@ -1246,12 +1246,12 @@ void ZepEditor::Display()
         m_pDisplay->DrawRectFilled(rc, spTabRegionTab->color);
 
         auto lum = Luminosity(spTabRegionTab->color);
-        auto textCol = NVec4f(1.0f);
+        ZepColor textCol = ZepColor(255u);
         if (lum > .5f)
         {
-            textCol.x = 0.0f;
-            textCol.y = 0.0f;
-            textCol.z = 0.0f;
+            textCol.r = 0;
+            textCol.g = 0;
+            textCol.b = 0;
         }
 
         // Tab text

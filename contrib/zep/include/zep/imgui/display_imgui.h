@@ -74,7 +74,7 @@ public:
     {
     }
 
-    void DrawChars(ZepFont& font, const NVec2f& pos, const NVec4f& col, const uint8_t* text_begin, const uint8_t* text_end) const override
+    void DrawChars(ZepFont& font, const NVec2f& pos, ZepColor col, const uint8_t* text_begin, const uint8_t* text_end) const override
     {
         auto imFont = static_cast<ZepFont_ImGui&>(font).GetImFont();
         ImDrawList* drawList = ImGui::GetWindowDrawList();
@@ -84,44 +84,44 @@ public:
         }
         if (m_clipRect.Width() == 0)
         {
-            drawList->AddText(imFont, float(font.GetPixelHeight()), toImVec2(pos), ToPackedABGR(col), (const char*)text_begin, (const char*)text_end);
+            drawList->AddText(imFont, float(font.GetPixelHeight()), toImVec2(pos), col.ToPackedABGR(), (const char*)text_begin, (const char*)text_end);
         }
         else
         {
             drawList->PushClipRect(toImVec2(m_clipRect.topLeftPx), toImVec2(m_clipRect.bottomRightPx));
-            drawList->AddText(imFont, float(font.GetPixelHeight()), toImVec2(pos), ToPackedABGR(col), (const char*)text_begin, (const char*)text_end);
+            drawList->AddText(imFont, float(font.GetPixelHeight()), toImVec2(pos), col.ToPackedABGR(), (const char*)text_begin, (const char*)text_end);
             drawList->PopClipRect();
         }
     }
 
-    void DrawLine(const NVec2f& start, const NVec2f& end, const NVec4f& color, float width) const override
+    void DrawLine(const NVec2f& start, const NVec2f& end, ZepColor color, float width) const override
     {
         ImDrawList* drawList = ImGui::GetWindowDrawList();
         // Background rect for numbers
         if (m_clipRect.Width() == 0)
         {
-            drawList->AddLine(toImVec2(start), toImVec2(end), ToPackedABGR(color), width);
+            drawList->AddLine(toImVec2(start), toImVec2(end), color.ToPackedABGR(), width);
         }
         else
         {
             drawList->PushClipRect(toImVec2(m_clipRect.topLeftPx), toImVec2(m_clipRect.bottomRightPx));
-            drawList->AddLine(toImVec2(start), toImVec2(end), ToPackedABGR(color), width);
+            drawList->AddLine(toImVec2(start), toImVec2(end), color.ToPackedABGR(), width);
             drawList->PopClipRect();
         }
     }
 
-    void DrawRectFilled(const NRectf& rc, const NVec4f& color) const override
+    void DrawRectFilled(const NRectf& rc, ZepColor color) const override
     {
         ImDrawList* drawList = ImGui::GetWindowDrawList();
         // Background rect for numbers
         if (m_clipRect.Width() == 0)
         {
-            drawList->AddRectFilled(toImVec2(rc.topLeftPx), toImVec2(rc.bottomRightPx), ToPackedABGR(color));
+            drawList->AddRectFilled(toImVec2(rc.topLeftPx), toImVec2(rc.bottomRightPx), color.ToPackedABGR());
         }
         else
         {
             drawList->PushClipRect(toImVec2(m_clipRect.topLeftPx), toImVec2(m_clipRect.bottomRightPx));
-            drawList->AddRectFilled(toImVec2(rc.topLeftPx), toImVec2(rc.bottomRightPx), ToPackedABGR(color));
+            drawList->AddRectFilled(toImVec2(rc.topLeftPx), toImVec2(rc.bottomRightPx), color.ToPackedABGR());
             drawList->PopClipRect();
         }
     }

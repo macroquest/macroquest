@@ -96,7 +96,7 @@ uint32_t ZepDisplay::GetCodePointCount(const uint8_t* pCh, const uint8_t* pEnd) 
     return count;
 }
 
-void ZepDisplay::DrawRect(const NRectf& rc, const NVec4f& col) const
+void ZepDisplay::DrawRect(const NRectf& rc, ZepColor col) const
 {
     DrawLine(rc.topLeftPx, rc.BottomLeft(), col);
     DrawLine(rc.topLeftPx, rc.TopRight(), col);

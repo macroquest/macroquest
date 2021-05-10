@@ -272,6 +272,9 @@
     <ClInclude Include="include\zep\mcommon\utf8\core.h">
       <Filter>Header Files\mcommon</Filter>
     </ClInclude>
+    <ClInclude Include="include\zep\mcommon\math\color.h">
+      <Filter>Header Files\mcommon</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="zep.natvis">

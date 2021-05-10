@@ -74,13 +74,13 @@ public:
 
     // Renderer specific overrides
     // Implement these to draw the buffer using whichever system you prefer
-    virtual void DrawLine(const NVec2f& start, const NVec2f& end, const NVec4f& color = NVec4f(1.0f), float width = 1.0f) const = 0;
-    virtual void DrawChars(ZepFont& font, const NVec2f& pos, const NVec4f& col, const uint8_t* text_begin, const uint8_t* text_end = nullptr) const = 0;
-    virtual void DrawRectFilled(const NRectf& rc, const NVec4f& col = NVec4f(1.0f)) const = 0;
+    virtual void DrawLine(const NVec2f& start, const NVec2f& end, ZepColor color = ZepColor(255u), float width = 1.0f) const = 0;
+    virtual void DrawChars(ZepFont& font, const NVec2f& pos, ZepColor col, const uint8_t* text_begin, const uint8_t* text_end = nullptr) const = 0;
+    virtual void DrawRectFilled(const NRectf& rc, ZepColor col = ZepColor(255u)) const = 0;
     virtual void SetClipRect(const NRectf& rc) = 0;
 
     virtual uint32_t GetCodePointCount(const uint8_t* pCh, const uint8_t* pEnd) const;
-    virtual void DrawRect(const NRectf& rc, const NVec4f& col = NVec4f(1.0f)) const;
+    virtual void DrawRect(const NRectf& rc, ZepColor color = ZepColor(255u)) const;
     virtual bool LayoutDirty() const;
     virtual void SetLayoutDirty(bool changed = true);
 
@@ -130,7 +130,7 @@ public:
     {
     }
 
-    virtual void DrawLine(const NVec2f& start, const NVec2f& end, const NVec4f& color = NVec4f(1.0f), float width = 1.0f) const override
+    virtual void DrawLine(const NVec2f& start, const NVec2f& end, ZepColor color = ZepColor(255u), float width = 1.0f) const override
     {
         (void)start;
         (void)end;
@@ -138,7 +138,7 @@ public:
         (void)width;
     };
 
-    virtual void DrawChars(ZepFont&, const NVec2f& pos, const NVec4f& col, const uint8_t* text_begin, const uint8_t* text_end = nullptr) const override
+    virtual void DrawChars(ZepFont&, const NVec2f& pos, Zep::ZepColor col, const uint8_t* text_begin, const uint8_t* text_end = nullptr) const override
     {
         (void)pos;
         (void)col;
@@ -146,7 +146,7 @@ public:
         (void)text_end;
     }
 
-    virtual void DrawRectFilled(const NRectf& a, const NVec4f& col = NVec4f(1.0f)) const override
+    virtual void DrawRectFilled(const NRectf& a, Zep::ZepColor col = ZepColor(255u)) const override
     {
         (void)a;
         (void)col;

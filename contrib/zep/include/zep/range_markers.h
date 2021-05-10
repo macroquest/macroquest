@@ -4,6 +4,7 @@
 #include <map>
 
 #include "zep/mcommon/animation/timer.h"
+#include "zep/mcommon/math/math.h"
 #include "zep/mcommon/signals.h"
 
 #include "zep/glyph_iterator.h"
