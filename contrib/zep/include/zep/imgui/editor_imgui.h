@@ -156,8 +156,8 @@ public:
 
         // If mouse cursor is over text, change cursor.
         // TODO
-        /*if (ImGui::IsWindowHovered())
-            ImGui::SetMouseCursor(ImGuiMouseCursor_TextInput);*/
+        //if (ImGui::IsWindowHovered())
+        //    ImGui::SetMouseCursor(ImGuiMouseCursor_TextInput);
     }
 
     void HandleKeyboardInput()

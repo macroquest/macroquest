@@ -11,8 +11,7 @@
 #include "zep/mcommon/animation/timer.h"
 #include "zep/mcommon/math/math.h"
 
-namespace Zep
-{
+namespace Zep {
 
 enum class ThemeColor;
 
@@ -26,19 +25,18 @@ struct CommentEntry
 
 namespace ZepSyntaxFlags
 {
-enum
-{
-    CaseInsensitive = (1 << 0),
-    IgnoreLineHighlight = (1 << 1),
-    LispLike = (1 << 2)
-};
+    enum
+    {
+        CaseInsensitive = (1 << 0),
+        IgnoreLineHighlight = (1 << 1),
+        LispLike = (1 << 2)
+    };
 };
 
 struct SyntaxData
 {
     ThemeColor foreground = ThemeColor::Normal;
     ThemeColor background = ThemeColor::None;
-    bool underline = false;
 };
 
 struct SyntaxResult : SyntaxData
@@ -47,17 +45,60 @@ struct SyntaxResult : SyntaxData
     NVec4f customForegroundColor;
 };
 
-class ZepSyntaxAdorn;
 class ZepSyntax : public ZepComponent
 {
 public:
-    ZepSyntax(ZepBuffer& buffer,
+    ZepSyntax(ZepBuffer& buffer)
+        : ZepComponent(buffer.GetEditor())
+        , m_buffer(buffer)
+    {
+    }
+
+    virtual ~ZepSyntax()
+    {
+    }
+
+    virtual SyntaxResult GetSyntaxAt(const GlyphIterator& index) const = 0;
+
+    const NVec4f& ToBackgroundColor(const SyntaxResult& res) const
+    {
+        if (res.background == ThemeColor::Custom)
+        {
+            return res.customBackgroundColor;
+        }
+        else
+        {
+            return m_buffer.GetTheme().GetColor(res.background);
+        }
+    }
+
+    virtual const NVec4f& ToForegroundColor(const SyntaxResult& res) const
+    {
+        if (res.foreground == ThemeColor::Custom)
+        {
+            return res.customForegroundColor;
+        }
+        else
+        {
+            return m_buffer.GetTheme().GetColor(res.foreground);
+        }
+    }
+
+protected:
+    ZepBuffer& m_buffer;
+};
+
+class ZepSyntaxAdorn;
+class ZepBasicSyntax : public ZepSyntax
+{
+public:
+    ZepBasicSyntax(ZepBuffer& buffer,
         const std::unordered_set<std::string>& keywords = std::unordered_set<std::string>{},
         const std::unordered_set<std::string>& identifiers = std::unordered_set<std::string>{},
         uint32_t flags = 0);
-    virtual ~ZepSyntax();
+    virtual ~ZepBasicSyntax();
 
-    virtual SyntaxResult GetSyntaxAt(const GlyphIterator& index) const;
+    virtual SyntaxResult GetSyntaxAt(const GlyphIterator& index) const override;
     virtual void UpdateSyntax();
     virtual void Interrupt();
     virtual void Wait() const;
@@ -68,8 +109,6 @@ public:
     }
     virtual void Notify(std::shared_ptr<ZepMessage> payload) override;
 
-    const NVec4f& ToBackgroundColor(const SyntaxResult& res) const;
-    const NVec4f& ToForegroundColor(const SyntaxResult& res) const;
 
     virtual void IgnoreLineHighlight() { m_flags |= ZepSyntaxFlags::IgnoreLineHighlight; }
 
@@ -77,7 +116,6 @@ private:
     virtual void QueueUpdateSyntax(GlyphIterator startLocation, GlyphIterator endLocation);
 
 protected:
-    ZepBuffer& m_buffer;
     std::vector<CommentEntry> m_commentEntries;
     std::vector<SyntaxData> m_syntax;
     std::future<void> m_syntaxResult;

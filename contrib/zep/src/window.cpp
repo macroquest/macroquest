@@ -527,7 +527,7 @@ void ZepWindow::UpdateLineSpans()
         {
             const uint8_t* pCh = &textBuffer[ch];
             auto textSize = font.GetCharSize(pCh);
-            
+
             // Skip to current marker
             while (itrWidgetMarkers != widgetMarkers.end() && itrWidgetMarkers->first < ch)
             {
@@ -551,8 +551,8 @@ void ZepWindow::UpdateLineSpans()
 
             // Wrap if we have displayed at least one char, and we are wrapping.
             // Don't wrap just for the CR
-            if (ZTestFlags(GetWindowFlags(), WindowFlags::WrapText) && 
-                ch != lineByteRange.first && 
+            if (ZTestFlags(GetWindowFlags(), WindowFlags::WrapText) &&
+                ch != lineByteRange.first &&
                 *pCh != '\n' && *pCh != 0)
             {
                 // At least a single char has wrapped; close the old line, start a new one
@@ -893,7 +893,7 @@ void ZepWindow::DisplayLineBackground(SpanInfo& lineInfo, ZepSyntax* pSyntax)
         // If the syntax overrides the background, show it first, and underneath a marker or char that might come next
         if (pSyntax)
         {
-            auto syntaxResult = pSyntax->GetSyntaxAt(cp.iterator);
+            SyntaxResult syntaxResult = pSyntax->GetSyntaxAt(cp.iterator);
             if (syntaxResult.background != ThemeColor::None)
             {
                 auto syntaxColor = pSyntax->ToBackgroundColor(syntaxResult);
@@ -1026,15 +1026,19 @@ void ZepWindow::DisplayLineNumbers()
 
     if (m_numberRegion->rect.Width() > 0)
     {
+        int lastLineNumber = 0;
         for (long windowLine = m_visibleLineIndices.x; windowLine < m_visibleLineIndices.y; windowLine++)
         {
-            auto& lineInfo = *m_windowLines[windowLine];
+            SpanInfo& lineInfo = *m_windowLines[windowLine];
 
             if (!IsInsideVisibleText(NVec2i(0, lineInfo.spanLineIndex)))
                 return;
 
-            auto cursorBufferLine = GetCursorLineInfo(cursorCL.y).bufferLineNumber;
+            long cursorBufferLine = GetCursorLineInfo(cursorCL.y).bufferLineNumber;
             std::string strNum;
+
+            if (!(GetWindowFlags() & WindowFlags::ShowWrappedLineNumbers) && lineInfo.isSplitContinuation)
+                continue;
 
             // In Vim mode show relative lines, unless in Ex mode (with hidden cursor)
             if (m_displayMode == DisplayMode::Vim && m_pBuffer->GetMode()->GetCursorType() != CursorType::None)
@@ -1046,9 +1050,9 @@ void ZepWindow::DisplayLineNumbers()
                 strNum = std::to_string(lineInfo.bufferLineNumber);
             }
 
-            auto& numFont = display.GetFont(ZepTextType::UI);
-            auto textSize = numFont.GetTextSize((const uint8_t*)strNum.c_str(), (const uint8_t*)(strNum.c_str() + strNum.size()));
-            auto lineCenter = (lineInfo.FullLineHeightPx() * .5f) + lineInfo.yOffsetPx;
+            ZepFont& numFont = display.GetFont(ZepTextType::UI);
+            NVec2f textSize = numFont.GetTextSize((const uint8_t*)strNum.c_str(), (const uint8_t*)(strNum.c_str() + strNum.size()));
+            float lineCenter = (lineInfo.FullLineHeightPx() * .5f) + lineInfo.yOffsetPx;
 
             auto digitCol = m_pBuffer->GetTheme().GetColor(ThemeColor::LineNumber);
             if (lineInfo.BufferCursorInside(m_bufferCursor))
@@ -1670,6 +1674,8 @@ void ZepWindow::Display()
     auto& display = GetEditor().GetDisplay();
     auto cursorCL = BufferToDisplay(m_bufferCursor);
     m_mouseBufferLocation = GlyphIterator();
+
+    GlyphIterator oldMouseCursor = m_mouseCursorIterator;
     m_mouseCursorIterator = GlyphIterator();
 
     // Always update
@@ -1717,6 +1723,12 @@ void ZepWindow::Display()
                 }
             }
         }
+    }
+
+    // Mouse cursor should be updated now.
+    if (m_mouseCursorIterator != oldMouseCursor)
+    {
+        sigMouseCursorChanged(GetBuffer(), m_mouseCursorIterator);
     }
 
     if (ZTestFlags(GetWindowFlags(), WindowFlags::GridStyle))

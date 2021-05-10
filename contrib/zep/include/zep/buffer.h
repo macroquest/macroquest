@@ -109,58 +109,6 @@ struct ChangeRecord
     }
 };
 
-enum class ZepAttributeType
-{
-    Color,
-    Hyperlink,
-};
-
-struct ZepAttribute
-{
-    struct ColorAttributeData
-    {
-        uint32_t color;
-    };
-
-    struct HyperlinkAttributeData
-    {
-        std::string linkData;
-    };
-
-    using ZepAttributeData = std::variant<ColorAttributeData, HyperlinkAttributeData>;
-
-    ZepAttributeType type;
-    ZepAttributeData data;
-
-    ZepAttribute(ZepAttributeType type, ZepAttributeData data)
-        : type(type)
-        , data(std::move(data))
-    {
-    }
-
-    ZepAttribute() = default;
-};
-
-struct ZepTextAttribute
-{
-    int startIndex;
-    int endIndex;
-    ZepAttribute data;
-};
-using tZepAttributes = std::vector<ZepTextAttribute>;
-
-struct BufferAttribute
-{
-    GlyphRange range;
-    ZepAttribute attribute;
-
-    BufferAttribute(GlyphRange range, ZepAttribute attribute)
-        : range(std::move(range))
-        , attribute(std::move(attribute))
-    {
-    }
-};
-
 using fnKeyNotifier = std::function<bool(uint32_t key, uint32_t modifier)>;
 class ZepBuffer : public ZepComponent
 {
@@ -203,9 +151,6 @@ public:
     bool Delete(const GlyphIterator& startOffset, const GlyphIterator& endOffset, ChangeRecord& changeRecord);
     bool Insert(const GlyphIterator& startOffset, std::string_view str, ChangeRecord& changeRecord);
     bool Replace(const GlyphIterator& startOffset, const GlyphIterator& endOffset, std::string_view str, ReplaceRangeMode mode, ChangeRecord& changeRecord);
-
-    bool InsertAttributed(const GlyphIterator& startOffset, std::string_view str, const tZepAttributes& attributes, ChangeRecord& changeRecord);
-    bool ReplaceAttributed(const GlyphIterator& startOffset, const GlyphIterator& endOffset, std::string_view str, ReplaceRangeMode mode, const tZepAttributes& attributes, ChangeRecord& changeRecord);
 
     long GetLineCount() const
     {
@@ -286,14 +231,6 @@ public:
     void ForEachMarker(uint32_t types, Direction dir, const GlyphIterator& begin, const GlyphIterator& end, std::function<bool(const std::shared_ptr<RangeMarker>&)> fnCB) const;
     std::shared_ptr<RangeMarker> FindNextMarker(GlyphIterator start, Direction dir, uint32_t markerType);
 
-    const BufferAttribute& GetBufferAttribute(int index)
-    {
-        return m_attributes[index];
-    }
-
-    void ForEachAttribute(const GlyphIterator& begin, const GlyphIterator& end, std::function<bool(const BufferAttribute&)>& fnCB) const;
-
-
     void SetBufferType(BufferType type);
     BufferType GetBufferType() const;
 
@@ -362,8 +299,6 @@ private:
     GlyphRange m_selection;
     tRangeMarkers m_rangeMarkers;
 
-    std::deque<BufferAttribute> m_attributes;
-
     // Modes
     std::shared_ptr<ZepMode> m_spMode;
     fnKeyNotifier m_postKeyNotifier;
@@ -383,15 +318,12 @@ enum class BufferMessageType
 
 struct BufferMessage : public ZepMessage
 {
-    BufferMessage(ZepBuffer* pBuff, BufferMessageType messageType, const GlyphIterator& startLoc, const GlyphIterator& endLoc,
-        size_t attrStart = 0, size_t attrEnd = 0)
+    BufferMessage(ZepBuffer* pBuff, BufferMessageType messageType, const GlyphIterator& startLoc, const GlyphIterator& endLoc)
         : ZepMessage(Msg::Buffer)
         , pBuffer(pBuff)
         , type(messageType)
         , startLocation(startLoc)
         , endLocation(endLoc)
-        , attrStart(attrStart)
-        , attrEnd(attrEnd)
     {
     }
 
@@ -399,7 +331,6 @@ struct BufferMessage : public ZepMessage
     BufferMessageType type;
     GlyphIterator startLocation;
     GlyphIterator endLocation;
-    size_t attrStart, attrEnd;
 };
 
 

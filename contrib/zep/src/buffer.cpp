@@ -942,17 +942,6 @@ bool ZepBuffer::Insert(const GlyphIterator& startIndex, std::string_view str, Ch
         return false;
     }
 
-    tZepAttributes attributes;
-    return InsertAttributed(startIndex, str, attributes, changeRecord);
-}
-
-bool ZepBuffer::InsertAttributed(const GlyphIterator& startIndex, std::string_view str, const tZepAttributes& attributes, ChangeRecord& changeRecord)
-{
-    if (!startIndex.Valid())
-    {
-        return false;
-    }
-
     GlyphIterator endIndex(this, startIndex.Index() + long(str.length()));
 
     sigPreInsert(*this, startIndex, str);
@@ -1010,38 +999,15 @@ bool ZepBuffer::InsertAttributed(const GlyphIterator& startIndex, std::string_vi
     changeRecord.strInserted = str;
     m_workingBuffer.insert(m_workingBuffer.begin() + startIndex.Index(), str.begin(), str.end());
 
-    // Insert attributes
-    size_t attrStart = m_attributes.size();
-    for (const auto& attr : attributes)
-    {
-        if (attr.startIndex >= 0 && attr.startIndex < (int)str.length()
-            && attr.endIndex > attr.startIndex && attr.endIndex <= (int)str.length())
-        {
-            m_attributes.emplace_back(GlyphRange(startIndex + attr.startIndex, startIndex + attr.endIndex), attr.data);
-        }
-    }
-    size_t attrEnd = m_attributes.size();
-
     MarkUpdate();
 
     // This is the range we added (not valid any more in the buffer)
-    GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::TextAdded, startIndex, endIndex, attrStart, attrEnd));
+    GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::TextAdded, startIndex, endIndex));
 
     return true;
 }
 
 bool ZepBuffer::Replace(const GlyphIterator& startIndex, const GlyphIterator& endIndex, std::string_view str, ReplaceRangeMode mode, ChangeRecord& changeRecord)
-{
-    if (!startIndex.Valid())
-    {
-        return false;
-    }
-
-    tZepAttributes attributes;
-    return ReplaceAttributed(startIndex, endIndex, std::move(str), mode, attributes, changeRecord);
-}
-
-bool ZepBuffer::ReplaceAttributed(const GlyphIterator& startIndex, const GlyphIterator& endIndex, std::string_view str, ReplaceRangeMode mode, const tZepAttributes& attributes, ChangeRecord& changeRecord)
 {
     if (!startIndex.Valid() || !endIndex.Valid())
     {
@@ -1054,7 +1020,7 @@ bool ZepBuffer::ReplaceAttributed(const GlyphIterator& startIndex, const GlyphIt
         Delete(startIndex, endIndex, changeRecord);
 
         ChangeRecord tempRecord;
-        InsertAttributed(startIndex, str, attributes, tempRecord);
+        Insert(startIndex, str, tempRecord);
         return true;
     }
 
@@ -1372,23 +1338,6 @@ std::shared_ptr<RangeMarker> ZepBuffer::FindNextMarker(GlyphIterator start, Dire
         search();
     }
     return spFound;
-}
-
-void ZepBuffer::ForEachAttribute(const GlyphIterator& begin, const GlyphIterator& end,
-    std::function<bool(const BufferAttribute&)>& fnCB) const
-{
-    GlyphRange searchRange(begin, end);
-
-    for (const auto& attr : m_attributes)
-    {
-        if (attr.range.OverlapsRange(searchRange))
-        {
-            if (!fnCB(attr))
-            {
-                return;
-            }
-        }
-    }
 }
 
 void ZepBuffer::SetBufferType(BufferType type)

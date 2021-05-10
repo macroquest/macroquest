@@ -102,6 +102,8 @@ ImU32 str_to_col(std::string_view str)
 	return IM_COL32(r, g, b, 255);
 }
 
+static void DoHyperlinkTest();
+
 static void MakeColorGradient(float frequency1, float frequency2, float frequency3,
 	float phase1, float phase2, float phase3,
 	float center = 128, float width = 127, int length = 50);
@@ -386,6 +388,11 @@ public:
 						WriteChatColor("\awWHITE     \a-wGREY");
 
 						MakeColorGradient(.3f, .3f, .3f, 0, 2, 4);
+					}
+
+					if (ImGui::MenuItem("Hyperlink Test"))
+					{
+						DoHyperlinkTest();
 					}
 					ImGui::EndMenu();
 				}
@@ -778,37 +785,134 @@ public:
 		return (Zep::ThemeColor)(index + UserColorStart);
 	}
 
+	Zep::ThemeColor GetHyperlinkColor(bool hovered)
+	{
+		if (hovered)
+			return GetUserColor(MQColor(255, 255, 0));
+		else
+			return GetUserColor(MQColor(255, 0, 255));
+	}
+
 private:
 	std::vector<Zep::NVec4f> m_userColors;
 };
 
+//----------------------------------------------------------------------------
+
+enum class ZepAttributeType
+{
+	Color,
+	Hyperlink,
+};
+
+struct ZepAttribute
+{
+	struct ColorAttributeData
+	{
+		uint32_t color;
+	};
+
+	struct HyperlinkAttributeData
+	{
+		std::string linkData;
+	};
+
+	using ZepAttributeData = std::variant<ColorAttributeData, HyperlinkAttributeData>;
+
+	ZepAttributeType type;
+	ZepAttributeData data;
+
+	ZepAttribute(ZepAttributeType type, ZepAttributeData data)
+		: type(type)
+		, data(std::move(data))
+	{
+	}
+
+	ZepAttribute() = default;
+};
+
+struct ZepTextAttribute
+{
+	int startIndex;
+	int endIndex;
+	ZepAttribute attribute;
+};
+
+struct ZepBufferAttribute
+{
+	Zep::GlyphIterator start;
+	int startIndex;
+	int endIndex;
+	ZepAttribute attribute;
+};
+
+using ZepAttributes = std::vector<ZepBufferAttribute>;
+
 class ZepConsoleSyntax : public Zep::ZepSyntax
 {
 public:
-	ZepConsoleSyntax(Zep::ZepBuffer& buffer, const std::shared_ptr<ZepConsoleTheme>& theme)
+	ZepConsoleSyntax(Zep::ZepBuffer& buffer, const std::shared_ptr<ZepConsoleTheme>& theme, Zep::ZepWindow* window)
 		: Zep::ZepSyntax(buffer)
 		, m_theme(theme)
 	{
-		m_adornments.clear();
-
-		onPreBufferInsert = buffer.sigPreInsert.connect(
-			[=](Zep::ZepBuffer& buffer, const Zep::GlyphIterator& itrStart, std::string_view str) { HandleBufferInsert(buffer, itrStart, str); });
-		onPreBufferDelete = buffer.sigPreDelete.connect(
-			[=](Zep::ZepBuffer& buffer, const Zep::GlyphIterator& itrStart, const Zep::GlyphIterator itrEnd) { HandleBufferDelete(buffer, itrStart, itrEnd); });
+		SetWindow(window);
 	}
 
-	virtual void UpdateSyntax() override
+	void SetWindow(Zep::ZepWindow* window)
 	{
+		onMouseCursorChanged = window->sigMouseCursorChanged.connect(
+			[=](Zep::ZepBuffer& buffer, const Zep::GlyphIterator& mousePos)
+		{
+			if (&buffer != &m_buffer)
+				return;
+			UpdateMouseCursor(mousePos);
+		});
 	}
 
-	void UpdateSyntax(const Zep::GlyphIterator& begin, const Zep::GlyphIterator& end)
+	struct SyntaxData
 	{
+		Zep::ThemeColor foreground = Zep::ThemeColor::Normal;
+		uint32_t hyperlinkId = 0;
+	};
 
+	Zep::SyntaxResult GetSyntaxAt(const Zep::GlyphIterator& offset) const
+	{
+		Zep::SyntaxResult result{};
+
+		if (m_latestPosition < offset.Index() || (long)m_syntax.size() <= offset.Index())
+		{
+			return result;
+		}
+
+		const SyntaxData& syntaxData = m_syntax[offset.Index()];
+
+		if (syntaxData.hyperlinkId)
+		{
+			result.foreground = m_theme->GetHyperlinkColor(m_hoveredHyperlink == syntaxData.hyperlinkId);
+		}
+		else
+		{
+			result.foreground = syntaxData.foreground;
+		}
+
+		return result;
 	}
 
 	void Notify(std::shared_ptr<Zep::ZepMessage> spMsg)
 	{
-		// Handle any interesting buffer messages
+		if (spMsg->messageId == Zep::Msg::MouseDown
+			&& m_hoveredHyperlink != 0)
+		{
+			if ((spMsg->modifiers & Zep::ModifierKey::Ctrl)
+				&& spMsg->button == Zep::ZepMouseButton::Left)
+			{
+				std::string text = fmt::format("Clicked hyperlink: {}\n", m_hyperlinkData[m_hoveredHyperlink]);
+
+				Zep::ChangeRecord changeRecord;
+				m_buffer.Insert(m_buffer.End(), text, changeRecord);
+			}
+		}
+
 		if (spMsg->messageId == Zep::Msg::Buffer)
 		{
 			auto spBufferMsg = std::static_pointer_cast<Zep::BufferMessage>(spMsg);
@@ -822,116 +926,111 @@ public:
 			}
 			else if (spBufferMsg->type == Zep::BufferMessageType::TextDeleted)
 			{
+				// Remove any hyperlinks in deleted text.
+				for (int pos = spBufferMsg->startLocation.Index(); pos != spBufferMsg->endLocation.Index(); ++pos)
+				{
+					if (m_syntax[pos].hyperlinkId != 0)
+					{
+						RemoveHyperlink(m_syntax[pos].hyperlinkId);
+					}
+				}
+
 				m_syntax.erase(m_syntax.begin() + spBufferMsg->startLocation.Index(),
 					m_syntax.begin() + spBufferMsg->endLocation.Index());
 
-				m_processedChar = m_processedChar - (spBufferMsg->endLocation.Index() - spBufferMsg->endLocation.Index());
+				m_latestPosition -= (spBufferMsg->endLocation.Index() - spBufferMsg->endLocation.Index());
 			}
 			else if (spBufferMsg->type == Zep::BufferMessageType::TextAdded
 				|| spBufferMsg->type == Zep::BufferMessageType::Loaded)
 			{
 				auto dist = Zep::ByteDistance(spBufferMsg->startLocation, spBufferMsg->endLocation);
+				m_syntax.insert(m_syntax.begin() + spBufferMsg->startLocation.Index(), dist, SyntaxData{});
 
-				m_syntax.insert(m_syntax.begin() + spBufferMsg->startLocation.Index(), dist, Zep::SyntaxData{});
-
-				for (size_t i = spBufferMsg->attrStart; i < spBufferMsg->attrEnd; ++i)
+				// Fill in syntax data from attributes.
+				for (const ZepBufferAttribute& attribute : m_pendingAttributes)
 				{
-					const auto& attr = spBufferMsg->pBuffer->GetBufferAttribute(i);
-					if (attr.attribute.type == Zep::ZepAttributeType::Color)
+					if (attribute.attribute.type == ZepAttributeType::Color)
 					{
-						uint32_t color = std::get<0>(attr.attribute.data).color;
+						uint32_t color = std::get<(int)ZepAttributeType::Color>(attribute.attribute.data).color;
 						Zep::ThemeColor themeColor = m_theme->GetUserColor(color);
 
-						for (auto iter = spBufferMsg->startLocation; iter != spBufferMsg->endLocation; iter++)
+						Zep::GlyphRange range = { attribute.start + attribute.startIndex, attribute.start + attribute.endIndex };
+						for (Zep::GlyphIterator iter = range.first; iter !=range.second; iter++)
 						{
 							m_syntax[iter.Index()].foreground = themeColor;
 						}
 					}
-				}
 
-				m_processedChar += dist;
+					if (attribute.attribute.type == ZepAttributeType::Hyperlink)
+					{
+						uint32_t hyperlinkId = MakeHyperlink(std::get<(int)ZepAttributeType::Hyperlink>(attribute.attribute.data).linkData);
+
+						Zep::GlyphRange range = { attribute.start + attribute.startIndex, attribute.start + attribute.endIndex };
+						for (Zep::GlyphIterator iter = range.first; iter != range.second; iter++)
+						{
+							m_syntax[iter.Index()].hyperlinkId = hyperlinkId;
+						}
+					}
+				}
+				m_pendingAttributes.clear();
+				m_latestPosition += (spBufferMsg->endLocation.Index() - spBufferMsg->startLocation.Index());
 			}
 			else if (spBufferMsg->type == Zep::BufferMessageType::TextChanged)
 			{
-				Interrupt();
+				auto dist = Zep::ByteDistance(spBufferMsg->startLocation, spBufferMsg->endLocation);
 
-				UpdateSyntax(spBufferMsg->startLocation, spBufferMsg->endLocation);
+				// Just clear syntax data. Changed text has no new attributes.
+				std::fill_n(m_syntax.begin() + spBufferMsg->startLocation.Index(), dist, SyntaxData{});
 			}
 		}
 	}
 
-private:
-
-	// By Default Markers will:
-	// - Move down if text is inserted before them.
-	// - Move up if text is deleted before them.
-	// - Remove themselves from the buffer if text is edited _inside_ them.
-	// Derived markers can modify this behavior.
-	// Its up to marker owners to update this behavior if necessary
-	// Markers do not act inside the undo/redo system.  They live on the buffer but are not stored with it.  They are adornments that 
-	// must be managed externally
-	void HandleBufferInsert(Zep::ZepBuffer& buffer, const Zep::GlyphIterator& itrStart, std::string_view str)
+	void AddAttribute(const Zep::GlyphIterator& position, ZepTextAttribute attr)
 	{
-		//if (!m_enabled)
-		//{
-		//	return;
-		//}
-
-		//if (itrStart.Index() > GetRange().second)
-		//{
-		//	return;
-		//}
-		//else
-		//{
-		//	auto itrEnd = itrStart + long(str.size());
-		//	if (itrEnd.Index() <= (GetRange().first + 1))
-		//	{
-		//		auto distance = itrEnd.Index() - itrStart.Index();
-		//		auto currentRange = GetRange();
-		//		SetRange(ByteRange(currentRange.first + distance, currentRange.second + distance));
-		//	}
-		//	else
-		//	{
-		//		buffer.ClearRangeMarker(shared_from_this());
-		//		m_enabled = false;
-		//	}
-		//}
+		ZepBufferAttribute& buffAttr = m_pendingAttributes.emplace_back();
+		buffAttr.start = position;
+		buffAttr.startIndex = attr.startIndex;
+		buffAttr.endIndex = attr.endIndex;
+		buffAttr.attribute = std::move(attr.attribute);
 	}
 
-	void HandleBufferDelete(Zep::ZepBuffer& buffer, const Zep::GlyphIterator& itrStart, const Zep::GlyphIterator& itrEnd)
+	uint32_t MakeHyperlink(const std::string& hyperlinkData)
 	{
-		//if (!m_enabled)
-		//{
-		//	return;
-		//}
+		uint32_t hyperlinkId = m_nextHyperlinkId++;
+		m_hyperlinkData[hyperlinkId] = hyperlinkData;
+		return hyperlinkId;
+	}
 
-		//if (itrStart.Index() > GetRange().second)
-		//{
-		//	return;
-		//}
-		//else
-		//{
-		//	ZLOG(INFO, "Range: " << itrStart.Index() << ", " << itrEnd.Index() << " : mark: " << GetRange().first);
+	void RemoveHyperlink(uint32_t hyperlinkId)
+	{
+		m_hyperlinkData.erase(hyperlinkId);
+		m_hoveredHyperlink = 0;
+	}
 
-		//	// It's OK to move on the first char; since that is like a shove
-		//	if (itrEnd.Index() < (GetRange().first + 1))
-		//	{
-		//		auto distance = std::min(itrEnd.Index(), GetRange().first) - itrStart.Index();
-		//		auto currentRange = GetRange();
-		//		SetRange(ByteRange(currentRange.first - distance, currentRange.second - distance));
-		//	}
-		//	else
-		//	{
-		//		buffer.ClearRangeMarker(shared_from_this());
-		//		m_enabled = false;
-		//	}
-		//}
+	void UpdateMouseCursor(const Zep::GlyphIterator& offset)
+	{
+		m_hoveredHyperlink = 0;
+
+		if (m_latestPosition < offset.Index() || (long)m_syntax.size() <= offset.Index())
+		{
+			return;
+		}
+
+		if (offset.Valid())
+		{
+			m_hoveredHyperlink = m_syntax[offset.Index()].hyperlinkId;
+		}
 	}
 
 private:
+	std::vector<SyntaxData> m_syntax;
 	std::shared_ptr<ZepConsoleTheme> m_theme;
-	Zep::scoped_connection onPreBufferInsert;
-	Zep::scoped_connection onPreBufferDelete;
+	std::vector<ZepBufferAttribute> m_pendingAttributes;
+	uint32_t m_nextHyperlinkId = 1;
+	std::map<uint32_t, std::string> m_hyperlinkData;
+	uint32_t m_hoveredHyperlink = 0;
+	Zep::scoped_connection onMouseCursorChanged;
+	int m_latestPosition = 0;
 };
 
 struct ZepContainerImGui : public Zep::IZepComponent
@@ -939,7 +1038,7 @@ struct ZepContainerImGui : public Zep::IZepComponent
 	Zep::ZepBuffer* m_buffer = nullptr;
 	Zep::ZepWindow* m_window = nullptr;
 
-	ZepContainerImGui()
+	ZepContainerImGui(bool consoleMode, const std::string& filename = "")
 	{
 		Zep::NVec2f pixelScale = { 1.0f, 1.0f };
 		auto display = new Zep::ZepDisplay_ImGui(pixelScale);
@@ -955,23 +1054,43 @@ struct ZepContainerImGui : public Zep::IZepComponent
 
 		m_editor = std::make_unique<Zep::ZepEditor_ImGui>(params);
 		m_editor->RegisterCallback(this);
-		m_editor->GetConfig().cursorLineSolid = true;
-		m_editor->GetConfig().showLineNumbers = false;
-
-		m_theme = std::make_shared<ZepConsoleTheme>();
-		auto syntaxFactory = [this](Zep::ZepBuffer* buffer)
-		{
-			return std::make_shared<ZepConsoleSyntax>(*buffer, m_theme);
-		};
-
-		m_editor->RegisterSyntaxFactory({ "Console" }, { "Console", syntaxFactory });
 		m_editor->SetGlobalMode(Zep::ZepMode_Standard::StaticName());
 
-		m_buffer = m_editor->InitWithText("Console", "\n");
-		m_buffer->SetTheme(m_theme);
-
 		m_window = m_editor->GetActiveTabWindow()->GetActiveWindow();
-		m_window->SetBufferCursor(m_buffer->End());
+		m_theme = std::make_shared<ZepConsoleTheme>();
+
+		if (consoleMode)
+		{
+			m_editor->GetConfig().style = Zep::EditorStyle::Minimal;
+			m_window->SetWindowFlags(Zep::WindowFlags::WrapText);
+		}
+		else
+		{
+			m_editor->GetConfig().style = Zep::EditorStyle::Normal;
+			m_window->SetWindowFlags(Zep::WindowFlags::None
+				| Zep::WindowFlags::ShowWhiteSpace | Zep::WindowFlags::ShowLineNumbers | Zep::WindowFlags::WrapText
+				//| Zep::WindowFlags::ShowLineBackground
+				| Zep::WindowFlags::ShowCR);
+
+			m_editor->RegisterSyntaxFactory(
+				{ "Console" },
+				Zep::SyntaxProvider{ "Console", Zep::tSyntaxFactory([this](Zep::ZepBuffer* pBuffer) {
+					return std::make_shared<ZepConsoleSyntax>(*pBuffer, m_theme, m_window);
+				})
+			});
+		}
+
+		if (consoleMode)
+		{
+			m_buffer = m_editor->InitWithText("Console", "\n");
+			m_buffer->SetTheme(m_theme);
+			m_window->SetBufferCursor(m_buffer->End());
+		}
+		else
+		{
+			m_buffer = m_editor->InitWithFileOrDir(filename);
+			m_buffer->SetTheme(m_theme);
+		}
 	}
 
 	~ZepContainerImGui()
@@ -1044,14 +1163,20 @@ struct ZepContainerImGui : public Zep::IZepComponent
 
 	void InsertText(std::string_view text, ImU32 color)
 	{
-		Zep::ZepTextAttribute attribute;
+		ZepTextAttribute attribute;
 		attribute.startIndex = 0;
 		attribute.endIndex = text.length();
-		attribute.data.type = Zep::ZepAttributeType::Color;
-		attribute.data.data = Zep::ZepAttribute::ColorAttributeData{ color };
+		attribute.attribute.type = ZepAttributeType::Color;
+		attribute.attribute.data = ZepAttribute::ColorAttributeData{ color };
+
+		// Append to end of buffer
+		Zep::GlyphIterator position = m_buffer->End();
+
+		ZepConsoleSyntax* syntax = static_cast<ZepConsoleSyntax*>(m_buffer->GetSyntax());
+		syntax->AddAttribute(position, std::move(attribute));
 
 		Zep::ChangeRecord changeRecord;
-		m_buffer->InsertAttributed(m_buffer->End(), text, { attribute }, changeRecord);
+		m_buffer->Insert(position, text, changeRecord);
 	}
 
 	void InsertText(std::string_view text)
@@ -1109,6 +1234,27 @@ struct ZepContainerImGui : public Zep::IZepComponent
 		}
 	}
 
+	void DoHyperlinkTest()
+	{
+		static int hyperlinkNum = 1;
+		std::string text = fmt::format("This is hyperlink {}", hyperlinkNum++);
+
+		ZepTextAttribute attribute;
+		attribute.startIndex = 0;
+		attribute.endIndex = text.length();
+		attribute.attribute.type = ZepAttributeType::Hyperlink;
+		attribute.attribute.data = ZepAttribute::HyperlinkAttributeData{ text + "'s data" };
+
+		// Append to end of buffer
+		Zep::GlyphIterator position = m_buffer->End();
+
+		ZepConsoleSyntax* syntax = static_cast<ZepConsoleSyntax*>(m_buffer->GetSyntax());
+		syntax->AddAttribute(position, std::move(attribute));
+
+		Zep::ChangeRecord changeRecord;
+		m_buffer->Insert(position, text + "\n", changeRecord);
+	}
+
 	std::unique_ptr<Zep::ZepEditor_ImGui> m_editor;
 	std::shared_ptr<ZepConsoleTheme> m_theme;
 	std::shared_ptr<ZepConsoleSyntax> m_syntax;
@@ -1116,13 +1262,21 @@ struct ZepContainerImGui : public Zep::IZepComponent
 
 ZepContainerImGui* zep = nullptr;
 
+void DoHyperlinkTest()
+{
+	if (zep)
+	{
+		zep->DoHyperlinkTest();
+	}
+}
+
 //----------------------------------------------------------------------------
 
 void UpdateImGuiConsole()
 {
 	if (!zep)
 	{
-		zep = new ZepContainerImGui();
+		zep = new ZepContainerImGui(true);
 	}
 
 	if (zep)

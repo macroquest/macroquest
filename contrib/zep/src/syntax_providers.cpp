@@ -140,51 +140,73 @@ static std::unordered_set<std::string> markdown_identifiers = {};
 
 void RegisterSyntaxProviders(ZepEditor& editor)
 {
-    editor.RegisterSyntaxFactory({ ".vert", ".frag" }, SyntaxProvider{ "gl_shader", tSyntaxFactory([](ZepBuffer* pBuffer) {
-                                                                          return std::make_shared<ZepSyntax>(*pBuffer, glsl_keywords, glsl_identifiers);
-                                                                      }) });
-
-    editor.RegisterSyntaxFactory({ ".hlsl", ".hlsli", ".vs", ".ps" }, SyntaxProvider{ "hlsl_shader", tSyntaxFactory([](ZepBuffer* pBuffer) {
-                                                                                         return std::make_shared<ZepSyntax>(*pBuffer, hlsl_keywords, hlsl_identifiers);
-                                                                                     }) });
-
-    editor.RegisterSyntaxFactory({ ".cpp", ".cxx", ".h", ".c" }, SyntaxProvider{ "cpp", tSyntaxFactory([](ZepBuffer* pBuffer) {
-                                                                                    return std::make_shared<ZepSyntax>(*pBuffer, cpp_keywords, cpp_identifiers);
-                                                                                }) });
-
-    editor.RegisterSyntaxFactory({ ".lisp", ".lsp" }, SyntaxProvider{ "lisp", tSyntaxFactory([](ZepBuffer* pBuffer) {
-                                                                         return std::make_shared<ZepSyntax>(*pBuffer, lisp_keywords, lisp_identifiers, ZepSyntaxFlags::LispLike);
-                                                                     }) });
-    
-    editor.RegisterSyntaxFactory({ ".janet" }, SyntaxProvider{ "janet", tSyntaxFactory([](ZepBuffer* pBuffer) {
-                                                                         return std::make_shared<ZepSyntax>(*pBuffer, janet_keywords, janet_identifiers, ZepSyntaxFlags::LispLike);
-                                                                     }) });
-    
-    editor.RegisterSyntaxFactory({ ".scm", ".scheme", ".sps", ".sls", ".sld", ".ss", ".sch" }, SyntaxProvider{ "lisp", tSyntaxFactory([](ZepBuffer* pBuffer) {
-                                                                         return std::make_shared<ZepSyntax>(*pBuffer, lisp_keywords, lisp_identifiers, ZepSyntaxFlags::LispLike);
-                                                                     }) });
-
-    editor.RegisterSyntaxFactory({ ".cmake", "CMakeLists.txt" }, SyntaxProvider{ "cmake", tSyntaxFactory([](ZepBuffer* pBuffer) {
-                                                                                    return std::make_shared<ZepSyntax>(*pBuffer, cmake_keywords, cmake_identifiers, ZepSyntaxFlags::CaseInsensitive);
-                                                                                }) });
-
+    editor.RegisterSyntaxFactory(
+        { ".vert", ".frag" },
+        SyntaxProvider{ "gl_shader", tSyntaxFactory([](ZepBuffer* pBuffer) {
+            return std::make_shared<ZepBasicSyntax>(*pBuffer, glsl_keywords, glsl_identifiers);
+        })
+    });
+    editor.RegisterSyntaxFactory(
+        { ".hlsl", ".hlsli", ".vs", ".ps" },
+        SyntaxProvider{ "hlsl_shader", tSyntaxFactory([](ZepBuffer* pBuffer) {
+            return std::make_shared<ZepBasicSyntax>(*pBuffer, hlsl_keywords, hlsl_identifiers);
+        })
+    });
+    editor.RegisterSyntaxFactory(
+        { ".cpp", ".cxx", ".h", ".c" },
+        SyntaxProvider{ "cpp", tSyntaxFactory([](ZepBuffer* pBuffer) {
+            return std::make_shared<ZepBasicSyntax>(*pBuffer, cpp_keywords, cpp_identifiers);
+        })
+    });
+    editor.RegisterSyntaxFactory(
+        { ".lisp", ".lsp" },
+        SyntaxProvider{ "lisp", tSyntaxFactory([](ZepBuffer* pBuffer) {
+            return std::make_shared<ZepBasicSyntax>(*pBuffer, lisp_keywords, lisp_identifiers, ZepSyntaxFlags::LispLike);
+        })
+    });
+    editor.RegisterSyntaxFactory(
+        { ".janet" },
+        SyntaxProvider{ "janet", tSyntaxFactory([](ZepBuffer* pBuffer) {
+            return std::make_shared<ZepBasicSyntax>(*pBuffer, janet_keywords, janet_identifiers, ZepSyntaxFlags::LispLike);
+        })
+    });
+    editor.RegisterSyntaxFactory(
+        { ".scm", ".scheme", ".sps", ".sls", ".sld", ".ss", ".sch" },
+        SyntaxProvider{ "lisp", tSyntaxFactory([](ZepBuffer* pBuffer) {
+            return std::make_shared<ZepBasicSyntax>(*pBuffer, lisp_keywords, lisp_identifiers, ZepSyntaxFlags::LispLike);
+        })
+    });
+    editor.RegisterSyntaxFactory(
+        { ".cmake", "CMakeLists.txt" },
+        SyntaxProvider{ "cmake", tSyntaxFactory([](ZepBuffer* pBuffer) {
+            return std::make_shared<ZepBasicSyntax>(*pBuffer, cmake_keywords, cmake_identifiers, ZepSyntaxFlags::CaseInsensitive);
+        })
+    });
     editor.RegisterSyntaxFactory(
         { ".toml" },
         SyntaxProvider{ "cpp", tSyntaxFactory([](ZepBuffer* pBuffer) {
-                           return std::make_shared<ZepSyntax>(*pBuffer, toml_keywords, toml_identifiers, ZepSyntaxFlags::CaseInsensitive);
-                       }) });
-
+            return std::make_shared<ZepBasicSyntax>(*pBuffer, toml_keywords, toml_identifiers, ZepSyntaxFlags::CaseInsensitive);
+        })
+    });
     editor.RegisterSyntaxFactory(
         { ".tree" },
         SyntaxProvider{ "tree", tSyntaxFactory([](ZepBuffer* pBuffer) {
-                           return std::make_shared<ZepSyntax_Tree>(*pBuffer, tree_keywords, tree_identifiers, ZepSyntaxFlags::CaseInsensitive);
-                       }) });
+            return std::make_shared<ZepSyntax_Tree>(*pBuffer, tree_keywords, tree_identifiers, ZepSyntaxFlags::CaseInsensitive);
+        })
+    });
+    editor.RegisterSyntaxFactory(
+        { ".lua" },
+        SyntaxProvider{ "lua", tSyntaxFactory([](ZepBuffer* pBuffer) {
+            return std::make_shared<ZepBasicSyntax>(*pBuffer, lua_keywords, lua_identifiers);
+        })
+    });
 
     editor.RegisterSyntaxFactory(
         { ".md", ".markdown" },
         SyntaxProvider{ "markdown", tSyntaxFactory([](ZepBuffer* pBuffer) {
-                           return std::make_shared<ZepSyntax_Markdown>(*pBuffer, markdown_keywords, markdown_identifiers, ZepSyntaxFlags::CaseInsensitive);
-                       }) });
+            return std::make_shared<ZepSyntax_Markdown>(*pBuffer, markdown_keywords, markdown_identifiers, ZepSyntaxFlags::CaseInsensitive);
+        })
+    });
 }
 
 } // namespace Zep

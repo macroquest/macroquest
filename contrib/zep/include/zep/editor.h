@@ -57,7 +57,7 @@ struct Region;
 
 #define ZEP_UNUSED(var) (void)var;
 
-// Helpers 
+// Helpers
 inline bool ZTestFlags(const uint32_t& flags, uint32_t value) { return ((flags & value) ? true : false); }
 inline uint32_t ZSetFlags(const uint32_t& flags, uint32_t value, bool set = true) { if (set) { return flags | value; } else return flags; }
 inline uint32_t ZClearFlags(const uint32_t& flags, uint32_t value) { return flags & ~value; }
@@ -277,7 +277,7 @@ public:
     void RequestQuit();
 
     void Reset();
-    ZepBuffer* InitWithFileOrDir(const std::string& str);
+    ZepBuffer* InitWithFileOrDir(const std::string& str, bool setWorkingDir = false);
     ZepBuffer* InitWithText(const std::string& strName, const std::string& strText);
 
     ZepMode* GetGlobalMode();

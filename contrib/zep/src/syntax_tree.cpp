@@ -15,7 +15,7 @@ ZepSyntax_Tree::ZepSyntax_Tree(ZepBuffer& buffer,
     const std::unordered_set<std::string>& keywords,
     const std::unordered_set<std::string>& identifiers,
     uint32_t flags)
-    : ZepSyntax(buffer, keywords, identifiers, flags)
+    : ZepBasicSyntax(buffer, keywords, identifiers, flags)
 {
     // Don't need default
     m_adornments.clear();

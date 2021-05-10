@@ -5,7 +5,7 @@
 namespace Zep
 {
 
-class ZepSyntax_Markdown : public ZepSyntax
+class ZepSyntax_Markdown : public ZepBasicSyntax
 {
 public:
     ZepSyntax_Markdown(ZepBuffer& buffer,

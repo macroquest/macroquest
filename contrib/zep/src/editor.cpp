@@ -396,7 +396,7 @@ ZepWindow* ZepEditor::AddSearch()
 
     auto pSearchBuffer = GetEmptyBuffer("Search", FileFlags::Locked | FileFlags::ReadOnly);
     pSearchBuffer->SetBufferType(BufferType::Search);
-    pSearchBuffer->SetSyntax(std::make_shared<ZepSyntax>(*pSearchBuffer, search_keywords, search_identifiers, ZepSyntaxFlags::CaseInsensitive));
+    pSearchBuffer->SetSyntax(std::make_shared<ZepBasicSyntax>(*pSearchBuffer, search_keywords, search_identifiers, ZepSyntaxFlags::CaseInsensitive));
 
     auto pActiveWindow = GetActiveTabWindow()->GetActiveWindow();
 
@@ -433,7 +433,7 @@ void ZepEditor::Reset()
 }
 
 // TODO fix for directory startup; it won't work
-ZepBuffer* ZepEditor::InitWithFileOrDir(const std::string& str)
+ZepBuffer* ZepEditor::InitWithFileOrDir(const std::string& str, bool setWorkingDir)
 {
     ZepPath startPath(str);
 
@@ -445,8 +445,12 @@ ZepBuffer* ZepEditor::InitWithFileOrDir(const std::string& str)
         // If a directory, just return the default already created buffer.
         if (fs.IsDirectory(startPath))
         {
-            // Remember the working directory 
-            fs.SetWorkingDirectory(startPath);
+            if (setWorkingDir)
+            {
+                // Remember the working directory
+                fs.SetWorkingDirectory(startPath);
+            }
+
             return &GetActiveTabWindow()->GetActiveWindow()->GetBuffer();
         }
         else
@@ -455,7 +459,10 @@ ZepBuffer* ZepEditor::InitWithFileOrDir(const std::string& str)
             auto parentDir = startPath.parent_path();
             if (fs.Exists(parentDir) && fs.IsDirectory(parentDir))
             {
-                fs.SetWorkingDirectory(startPath.parent_path());
+                if (setWorkingDir)
+                {
+                    fs.SetWorkingDirectory(startPath.parent_path());
+                }
             }
         }
     }

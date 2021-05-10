@@ -83,20 +83,21 @@ enum class DisplayMode
 
 namespace WindowFlags
 {
-enum
-{
-    None = (0),
-    ShowWhiteSpace = (1 << 0),
-    ShowCR = (1 << 1),
-    ShowLineNumbers = (1 << 2),
-    ShowIndicators = (1 << 3),
-    HideScrollBar = (1 << 4),
-    Modal = (1 << 5),
-    WrapText = (1 << 6), // Warning: this is not for general use yet. Has issues
-    HideSplitMark = (1 << 7),
-    GridStyle = (1 << 8),
-    ShowLineBackground = (1 << 9),
-};
+    enum
+    {
+        None                   = 0,
+        ShowWhiteSpace         = 0x0001,
+        ShowCR                 = 0x0002,
+        ShowLineNumbers        = 0x0004,
+        ShowIndicators         = 0x0008,
+        HideScrollBar          = 0x0010,
+        Modal                  = 0x0020,
+        WrapText               = 0x0040, // Warning: this is not for general use yet. Has issues
+        HideSplitMark          = 0x0080,
+        GridStyle              = 0x0020,
+        ShowLineBackground     = 0x0040,
+        ShowWrappedLineNumbers = 0x0080,
+    };
 }
 
 struct AirBox
@@ -178,6 +179,8 @@ public:
 
     void EnsureCursorVisible();
     void ScrollToCursor();
+
+    Zep::signal<void(ZepBuffer& buffer, const GlyphIterator&)> sigMouseCursorChanged;
 
 private:
     void UpdateLayout(bool force = false);

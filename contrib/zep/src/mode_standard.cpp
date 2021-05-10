@@ -91,7 +91,7 @@ void ZepMode_Standard::Init()
     keymap_add({ &m_normalMap }, { "<Backspace>" }, id_MotionStandardLeft);
 
     // mouse binds
-    keymap_add({ &m_insertMap, &m_visualMap }, { "<LeftMouse>" }, id_MotionStandardMoveCursor);
+    keymap_add({ &m_insertMap, &m_visualMap }, { "<LeftMouse>", "<C-LeftMouse>" }, id_MotionStandardMoveCursor);
     keymap_add({ &m_insertMap, &m_visualMap }, { "<S-LeftMouse>" }, id_MotionStandardMoveCursorSelect);
     keymap_add({ &m_insertMap, &m_visualMap }, { "<LeftDrag>", "<S-LeftDrag>" }, id_MotionStandardMoveCursorSelect);
     keymap_add({ &m_insertMap, &m_visualMap }, { "<2-LeftMouse>" }, id_MotionStandardSelectWord);
@@ -128,7 +128,7 @@ void ZepMode_Standard::Notify(std::shared_ptr<ZepMessage> message)
             {
                 if (w->GetDisplayRect().Contains(message->pos))
                 {
-                    w->AdjustScroll(-message->fval);
+                    w->AdjustScroll(-message->fval * 3);
                 }
             }
         }

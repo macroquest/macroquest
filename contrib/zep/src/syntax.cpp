@@ -12,13 +12,12 @@
 namespace Zep
 {
 
-ZepSyntax::ZepSyntax(
+ZepBasicSyntax::ZepBasicSyntax(
     ZepBuffer& buffer,
     const std::unordered_set<std::string>& keywords,
     const std::unordered_set<std::string>& identifiers,
     uint32_t flags)
-    : ZepComponent(buffer.GetEditor())
-    , m_buffer(buffer)
+    : ZepSyntax(buffer)
     , m_keywords(keywords)
     , m_identifiers(identifiers)
     , m_stop(false)
@@ -28,12 +27,12 @@ ZepSyntax::ZepSyntax(
     m_adornments.push_back(std::make_shared<ZepSyntaxAdorn_RainbowBrackets>(*this, m_buffer));
 }
 
-ZepSyntax::~ZepSyntax()
+ZepBasicSyntax::~ZepBasicSyntax()
 {
     Interrupt();
 }
 
-SyntaxResult ZepSyntax::GetSyntaxAt(const GlyphIterator& offset) const
+SyntaxResult ZepBasicSyntax::GetSyntaxAt(const GlyphIterator& offset) const
 {
     Zep::SyntaxResult result;
 
@@ -46,7 +45,6 @@ SyntaxResult ZepSyntax::GetSyntaxAt(const GlyphIterator& offset) const
 
     result.background = m_syntax[offset.Index()].background;
     result.foreground = m_syntax[offset.Index()].foreground;
-    result.underline = m_syntax[offset.Index()].underline;
 
     bool found = false;
     for (auto& adorn : m_adornments)
@@ -62,7 +60,7 @@ SyntaxResult ZepSyntax::GetSyntaxAt(const GlyphIterator& offset) const
     return result;
 }
 
-void ZepSyntax::Wait() const
+void ZepBasicSyntax::Wait() const
 {
     if (m_syntaxResult.valid())
     {
@@ -70,7 +68,7 @@ void ZepSyntax::Wait() const
     }
 }
 
-void ZepSyntax::Interrupt()
+void ZepBasicSyntax::Interrupt()
 {
     // Stop the thread, wait for it
     m_stop = true;
@@ -81,7 +79,7 @@ void ZepSyntax::Interrupt()
     m_stop = false;
 }
 
-void ZepSyntax::QueueUpdateSyntax(GlyphIterator startLocation, GlyphIterator endLocation)
+void ZepBasicSyntax::QueueUpdateSyntax(GlyphIterator startLocation, GlyphIterator endLocation)
 {
     assert(startLocation.Valid());
     assert(endLocation >= startLocation);
@@ -107,7 +105,7 @@ void ZepSyntax::QueueUpdateSyntax(GlyphIterator startLocation, GlyphIterator end
     //});
 }
 
-void ZepSyntax::Notify(std::shared_ptr<ZepMessage> spMsg)
+void ZepBasicSyntax::Notify(std::shared_ptr<ZepMessage> spMsg)
 {
     // Handle any interesting buffer messages
     if (spMsg->messageId == Msg::Buffer)
@@ -142,7 +140,7 @@ void ZepSyntax::Notify(std::shared_ptr<ZepMessage> spMsg)
 }
 
 // TODO: Multiline comments
-void ZepSyntax::UpdateSyntax()
+void ZepBasicSyntax::UpdateSyntax()
 {
     auto& buffer = m_buffer.GetWorkingBuffer();
     auto itrCurrent = buffer.begin() + m_processedChar;
@@ -155,7 +153,7 @@ void ZepSyntax::UpdateSyntax()
     std::string lineEnd("\n");
 
     if (m_flags & ZepSyntaxFlags::LispLike)
-    { 
+    {
         delim = std::string(" \t.\n(){}[]");
     }
     else
@@ -330,30 +328,6 @@ void ZepSyntax::UpdateSyntax()
     // Reset the target to the beginning
     m_targetChar = long(0);
     m_processedChar = long(buffer.size() - 1);
-}
-
-const NVec4f& ZepSyntax::ToBackgroundColor(const SyntaxResult& res) const
-{
-    if (res.background == ThemeColor::Custom)
-    {
-        return res.customBackgroundColor;
-    }
-    else
-    {
-        return m_buffer.GetTheme().GetColor(res.background);
-    }
-}
-
-const NVec4f& ZepSyntax::ToForegroundColor(const SyntaxResult& res) const
-{
-    if (res.foreground == ThemeColor::Custom)
-    {
-        return res.customForegroundColor;
-    }
-    else
-    {
-        return m_buffer.GetTheme().GetColor(res.foreground);
-    }
 }
 
 } // namespace Zep
