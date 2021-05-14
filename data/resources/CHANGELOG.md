@@ -1,3 +1,6 @@
+May 14, 2021
+- Added drag/drop interface to lua imgui bindings
+
 May 7, 2021
 - Plugins using pLocalPC->zoneId (GetCharInfo()->zoneId) will once again function properly (#287)
 

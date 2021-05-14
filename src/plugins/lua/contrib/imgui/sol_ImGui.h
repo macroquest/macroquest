@@ -3,6 +3,7 @@
 #include <imgui/misc/cpp/imgui_stdlib.h>
 #include <string>
 #include <sol/sol.hpp>
+#include <mq/Plugin.h>
 
 namespace sol_ImGui
 {
@@ -1523,7 +1524,42 @@ namespace sol_ImGui
 	inline void LogText(const std::string& fmt)															{ ImGui::LogText(fmt.c_str()); }
 
 	// Drag and Drop
-	// TODO: Drag and Drop ==> UNSUPPORTED
+	// Create a type to add as a lua usertype
+	struct LuaImGuiPayload
+	{
+		// TODO: expand this variant to handle more complex types. The issue with that is that SetDragDropPayload will
+		// shallow copy data (with memcpy), so we need to specially handle any complex types (like sol::function) that
+		// would lose their refs on both the Set and Accept ends
+		using VarType = std::variant<int, float, std::string>;
+		VarType Data;
+		LuaImGuiPayload(const ImGuiPayload* payload)
+			: Data(*static_cast<VarType*>(payload->Data)) {}
+	};
+	inline bool BeginDragDropSource()																	{ return ImGui::BeginDragDropSource(); }
+	inline bool BeginDragDropSource(int flags)															{ return ImGui::BeginDragDropSource(static_cast<ImGuiDragDropFlags>(flags)); }
+	inline bool SetDragDropPayload(const std::string& type, sol::object data, int cond)
+	{
+		if (data.get_type() == sol::type::nil)
+			return false;
+
+		auto vardata = data.as<LuaImGuiPayload::VarType>();
+		return ImGui::SetDragDropPayload(type.c_str(), &vardata, sizeof(vardata), static_cast<ImGuiCond>(cond));
+	}
+	inline bool SetDragDropPayload(const std::string& type, sol::object data)							{ return SetDragDropPayload(type, data, ImGuiCond_None); }
+	inline void EndDragDropSource()																		{ ImGui::EndDragDropSource(); }
+	inline bool BeginDragDropTarget()																	{ return ImGui::BeginDragDropTarget(); }
+	inline std::unique_ptr<LuaImGuiPayload> AcceptDragDropPayload(const std::string& type, int flags)
+	{
+		auto payload = ImGui::AcceptDragDropPayload(type.c_str(), static_cast<ImGuiDragDropFlags>(flags));
+		return payload == nullptr ? nullptr : std::make_unique<LuaImGuiPayload>(payload);
+	}
+	inline std::unique_ptr<LuaImGuiPayload> AcceptDragDropPayload(const std::string& type)				{ return AcceptDragDropPayload(type, ImGuiDragDropFlags_None); }
+	inline void EndDragDropTarget()																		{ ImGui::EndDragDropTarget(); }
+	inline std::unique_ptr<LuaImGuiPayload> GetDragDropPayload()
+	{
+		auto payload = ImGui::GetDragDropPayload();
+		return payload == nullptr ? nullptr : std::make_unique<LuaImGuiPayload>(payload);
+	}
 
 	// Clipping
 	inline void PushClipRect(float min_x, float min_y, float max_x, float max_y, bool intersect_current) { ImGui::PushClipRect({ min_x, min_y }, { max_x, max_y }, intersect_current); }
@@ -1702,6 +1738,22 @@ namespace sol_ImGui
 			"RootAndChildWindows"		, ImGuiFocusedFlags_RootAndChildWindows
 		);
 #pragma endregion Focused Flags
+
+#pragma region DragDrop Flags
+		lua.new_enum("ImGuiDragDropFlags",
+			"None"						, ImGuiDragDropFlags_None,
+			"SourceNoPreviewTooltip"	, ImGuiDragDropFlags_SourceNoPreviewTooltip,
+			"SourceNoDisableHover"		, ImGuiDragDropFlags_SourceNoDisableHover,
+			"SourceNoHoldToOpenOthers"	, ImGuiDragDropFlags_SourceNoHoldToOpenOthers,
+			"SourceAllowNullID"			, ImGuiDragDropFlags_SourceAllowNullID,
+			"SourceExtern"				, ImGuiDragDropFlags_SourceExtern,
+			"SourceAutoExpirePayload"	, ImGuiDragDropFlags_SourceAutoExpirePayload,
+			"AcceptBeforeDelivery"		, ImGuiDragDropFlags_AcceptBeforeDelivery,
+			"AcceptNoDrawDefaultRect"	, ImGuiDragDropFlags_AcceptNoDrawDefaultRect,
+			"AcceptNoPreviewTooltip"	, ImGuiDragDropFlags_AcceptNoPreviewTooltip,
+			"AcceptPeekOnly"			, ImGuiDragDropFlags_AcceptPeekOnly
+		);
+#pragma endregion DragDrop Flags
 
 #pragma region Hovered Flags
 		lua.new_enum("ImGuiHoveredFlags",
@@ -2707,6 +2759,44 @@ namespace sol_ImGui
 		ImGui.set_function("LogButtons"						, LogButtons);
 		ImGui.set_function("LogText"						, LogText);
 #pragma endregion Logging / Capture
+
+#pragma region DragDrop
+		ImGui.new_usertype<LuaImGuiPayload>(
+			"ImGuiPayload", sol::no_constructor,
+			"Data", sol::readonly(&LuaImGuiPayload::Data)
+			//"Data", [](const ImGuiPayload* self)
+			//{
+			//	return *static_cast<sol::object*>(self->Data);
+			//},
+			//"DataSize", sol::readonly(&ImGuiPayload::DataSize),
+			//"SourceId", sol::readonly(&ImGuiPayload::SourceId),
+			//"SourceParentId", sol::readonly(&ImGuiPayload::SourceParentId),
+			//"DataFrameCount", sol::readonly(&ImGuiPayload::DataFrameCount),
+			//"DataType", sol::readonly(&ImGuiPayload::DataType),
+			//"Preview", sol::readonly(&ImGuiPayload::Preview),
+			//"Delivery", sol::readonly(&ImGuiPayload::Delivery),
+			//"Clear", &ImGuiPayload::Clear,
+			//"IsDataType", &ImGuiPayload::IsDataType,
+			//"IsPreview", &ImGuiPayload::IsPreview,
+			//"IsDelivery", &ImGuiPayload::IsDelivery
+		);
+		ImGui.set_function("BeginDragDropSource"			, sol::overload(
+																sol::resolve<bool()>(BeginDragDropSource),
+																sol::resolve<bool(int)>(BeginDragDropSource)
+															));
+		ImGui.set_function("SetDragDropPayload"				, sol::overload(
+																sol::resolve<bool(const std::string&, sol::object, int)>(SetDragDropPayload),
+																sol::resolve<bool(const std::string&, sol::object)>(SetDragDropPayload)
+															));
+		ImGui.set_function("EndDragDropSource"				, EndDragDropSource);
+		ImGui.set_function("BeginDragDropTarget"			, BeginDragDropTarget);
+		ImGui.set_function("AcceptDragDropPayload"			, sol::overload(
+																sol::resolve<std::unique_ptr<LuaImGuiPayload>(const std::string&, int)>(AcceptDragDropPayload),
+																sol::resolve<std::unique_ptr<LuaImGuiPayload>(const std::string&)>(AcceptDragDropPayload)
+															));
+		ImGui.set_function("EndDragDropTarget"				, EndDragDropTarget);
+		ImGui.set_function("GetDragDropPayload"				, GetDragDropPayload);
+#pragma endregion DragDrop
 
 #pragma region Clipping
 		ImGui.set_function("PushClipRect"					, PushClipRect);
