@@ -271,6 +271,10 @@ std::pair<sol::thread_status, std::optional<sol::protected_function_result>> Lua
 		auto status = result ? static_cast<sol::thread_status>(result->status()) : sol::thread_status::dead;
 		return std::make_pair(std::move(status), std::move(result));
 	}
+	else if (!thread.valid())
+	{
+		return std::make_pair(sol::thread_status::dead, std::nullopt);
+	}
 
 	return std::make_pair(thread.status(), std::nullopt);
 }
