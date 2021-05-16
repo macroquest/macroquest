@@ -39,10 +39,18 @@ void LuaImGuiProcessor::AddCallback(std::string_view name, sol::function callbac
 
 void LuaImGuiProcessor::RemoveCallback(std::string_view name)
 {
-	imguis.erase(std::remove_if(imguis.begin(), imguis.end(), [&name](const std::unique_ptr<LuaImGui>& im)
+	imguis.erase(std::remove_if(imguis.begin(), imguis.end(), [&name](const auto& im)
 		{
 			return im->name == name;
 		}), imguis.end());
+}
+
+bool LuaImGuiProcessor::HasCallback(std::string_view name)
+{
+	return std::find_if(imguis.cbegin(), imguis.cend(), [&name](const auto& im)
+		{
+			return im->name == name;
+		}) != imguis.cend();
 }
 
 void LuaImGuiProcessor::Pulse()
@@ -70,11 +78,22 @@ static void removeimgui(std::string_view name, sol::this_state s)
 	}
 }
 
+static bool hasimgui(std::string_view name, sol::this_state s)
+{
+	if (auto thread_ptr = LuaThread::get_from(s))
+	{
+		return thread_ptr->imguiProcessor->HasCallback(name);
+	}
+
+	return false;
+}
+
 void ImGui_RegisterLua(sol::table& lua)
 {
 	lua["imgui"] = lua.create_with(
 		"init", &addimgui,
-		"destroy", &removeimgui
+		"destroy", &removeimgui,
+		"exists", &hasimgui
 	);
 }
 

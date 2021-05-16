@@ -45,6 +45,7 @@ struct LuaImGuiProcessor
 
 	void AddCallback(std::string_view name, sol::function callback);
 	void RemoveCallback(std::string_view name);
+	bool HasCallback(std::string_view name);
 	void Pulse();
 };
 
