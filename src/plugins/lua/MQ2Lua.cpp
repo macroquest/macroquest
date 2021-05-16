@@ -432,7 +432,7 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 	std::error_code ec;
 	if (!std::filesystem::exists(script_path, ec))
 	{
-		LuaError("Could not find script at path %s", script_path.c_str());
+		LuaError("Could not find script at path %ls", script_path.c_str());
 		return 0;
 	}
 
