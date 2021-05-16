@@ -101,6 +101,7 @@ struct LuaEventProcessor
 
 	// we need two separate functions here because we need to be able to run these at separate points, independently
 	void PrepareEvents(const std::vector<std::string>& events);
+	void RemoveEvents(const std::vector<std::string>& events);
 	void PrepareBinds();
 };
 

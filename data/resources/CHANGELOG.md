@@ -1,5 +1,6 @@
 May 15, 2021
 - Added variadic string arguments to mq.doevents() to allow for a list of specific events processing (#292)
+- Added a command mq.flushevents() that takes variadic string arguments to drop events without processing them (#292)
 
 May 14, 2021
 - Added drag/drop interface to lua imgui bindings

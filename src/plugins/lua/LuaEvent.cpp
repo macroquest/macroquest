@@ -191,7 +191,7 @@ void LuaEventProcessor::PrepareEvents(const std::vector<std::string>& events)
 	}
 	else
 	{
-		eventsPending.erase(std::remove_if(eventsPending.begin(), eventsPending.end(), [this, &events](const LuaEventInstance<LuaEvent>& e)
+		eventsPending.erase(std::remove_if(eventsPending.begin(), eventsPending.end(), [this, &events](const auto& e)
 			{
 				if (std::find(events.cbegin(), events.cend(), e.definition->name) != events.cend())
 				{
@@ -200,6 +200,19 @@ void LuaEventProcessor::PrepareEvents(const std::vector<std::string>& events)
 				}
 
 				return false;
+			}), eventsPending.end());
+	}
+}
+
+void LuaEventProcessor::RemoveEvents(const std::vector<std::string>& events)
+{
+	if (events.empty())
+		eventsPending.clear();
+	else
+	{
+		eventsPending.erase(std::remove_if(eventsPending.begin(), eventsPending.end(), [this, &events](const auto& e)
+			{
+				return std::find(events.cbegin(), events.cend(), e.definition->name) != events.cend();
 			}), eventsPending.end());
 	}
 }
@@ -307,6 +320,21 @@ static void doevents(sol::variadic_args va, sol::this_state s)
 	}
 }
 
+static void flushevents(sol::variadic_args va, sol::this_state s)
+{
+	if (auto thread_ptr = LuaThread::get_from(s))
+	{
+		std::vector<std::string> args;
+		for (auto& a : va)
+		{
+			auto arg = a.as<std::optional<std::string>>();
+			if (arg) args.emplace_back(*arg);
+		}
+
+		thread_ptr->eventProcessor->RemoveEvents(args);
+	}
+}
+
 static void addevent(std::string_view name, std::string_view expression, sol::function function, sol::this_state s)
 {
 	if (auto thread_ptr = LuaThread::get_from(s))
@@ -342,6 +370,7 @@ static void removebind(std::string_view name, sol::this_state s)
 void Events_RegisterLua(sol::table& lua)
 {
 	lua["doevents"] = &doevents;
+	lua["flushevents"] = &flushevents;
 	lua["event"] = &addevent;
 	lua["unevent"] = &removeevent;
 	lua["bind"] = &addbind;
