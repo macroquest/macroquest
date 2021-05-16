@@ -191,7 +191,7 @@ void LuaEventProcessor::PrepareEvents(const std::vector<std::string>& events)
 	}
 	else
 	{
-		eventsPending.erase(std::remove_if(eventsPending.begin(), eventsPending.end(), [this, &events](const auto& e)
+		eventsPending.erase(std::remove_if(eventsPending.begin(), eventsPending.end(), [this, &events](auto& e)
 			{
 				if (std::find(events.cbegin(), events.cend(), e.definition->name) != events.cend())
 				{
@@ -210,7 +210,7 @@ void LuaEventProcessor::RemoveEvents(const std::vector<std::string>& events)
 		eventsPending.clear();
 	else
 	{
-		eventsPending.erase(std::remove_if(eventsPending.begin(), eventsPending.end(), [this, &events](const auto& e)
+		eventsPending.erase(std::remove_if(eventsPending.begin(), eventsPending.end(), [this, &events](auto& e)
 			{
 				return std::find(events.cbegin(), events.cend(), e.definition->name) != events.cend();
 			}), eventsPending.end());
