@@ -169,27 +169,46 @@ void LuaEventProcessor::RunEvents(const LuaThread& thread)
 	if (!thread.yieldToFrame) loop_and_run(thread, eventsRunning);
 }
 
-void LuaEventProcessor::PrepareEvents()
+template <typename RVec, typename R>
+static void emplace_running(RVec& running_vec, R& to_run)
 {
-	for (auto& e : eventsPending)
-	{
-		eventsRunning.emplace_back(
-			std::piecewise_construct,
-			std::forward_as_tuple(e.thread.state(), std::move(e.definition->function)),
-			std::forward_as_tuple(std::move(e.args)));
-	}
+	running_vec.emplace_back(
+		std::piecewise_construct,
+		std::forward_as_tuple(to_run.thread.state(), to_run.definition->function),
+		std::forward_as_tuple(std::move(to_run.args)));
+}
 
-	eventsPending.clear();
+void LuaEventProcessor::PrepareEvents(const std::vector<std::string>& events)
+{
+	if (events.empty())
+	{
+		for (auto& e : eventsPending)
+		{
+			emplace_running(eventsRunning, e);
+		}
+
+		eventsPending.clear();
+	}
+	else
+	{
+		eventsPending.erase(std::remove_if(eventsPending.begin(), eventsPending.end(), [this, &events](const LuaEventInstance<LuaEvent>& e)
+			{
+				if (std::find(events.cbegin(), events.cend(), e.definition->name) != events.cend())
+				{
+					emplace_running(eventsRunning, e);
+					return true;
+				}
+
+				return false;
+			}), eventsPending.end());
+	}
 }
 
 void LuaEventProcessor::PrepareBinds()
 {
 	for (auto& b : bindsPending)
 	{
-		bindsRunning.emplace_back(
-			std::piecewise_construct,
-			std::forward_as_tuple(b.thread.state(), std::move(b.definition->function)),
-			std::forward_as_tuple(std::move(b.args)));
+		emplace_running(bindsRunning, b);
 	}
 
 	bindsPending.clear();
@@ -272,11 +291,18 @@ LuaBind::~LuaBind()
 
 //----------------------------------------------------------------------------
 
-static void doevents(sol::this_state s)
+static void doevents(sol::variadic_args va, sol::this_state s)
 {
 	if (auto thread_ptr = LuaThread::get_from(s))
 	{
-		thread_ptr->eventProcessor->PrepareEvents();
+		std::vector<std::string> args;
+		for (auto& a : va)
+		{
+			auto arg = a.as<std::optional<std::string>>();
+			if (arg) args.emplace_back(*arg);
+		}
+
+		thread_ptr->eventProcessor->PrepareEvents(args);
 		thread_ptr->YieldAt(0); // doevents needs to yield, event processing will pick up next frame
 	}
 }
