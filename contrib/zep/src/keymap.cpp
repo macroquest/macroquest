@@ -390,6 +390,11 @@ void keymap_find(const KeyMap& map, const std::string& strCommand, KeyMapResult&
                 if (token.empty())
                 {
                     token = strCommand;
+                    findResult.isCommandToken = false;
+                }
+                else
+                {
+                    findResult.isCommandToken = true;
                 }
                 findResult.commandWithoutGroups = token;
             }

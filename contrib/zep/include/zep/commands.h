@@ -76,6 +76,8 @@ public:
     virtual void Redo() override;
     virtual void Undo() override;
 
+    virtual GlyphIterator GetCursorAfter() const override;
+
     GlyphIterator m_startIndex;
     GlyphIterator m_endIndex;
 

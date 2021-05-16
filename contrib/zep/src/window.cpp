@@ -259,19 +259,48 @@ void ZepWindow::EnsureCursorVisible()
     {
         if (line->lineByteRange.first <= loc.Index() && line->lineByteRange.second > loc.Index())
         {
-            auto cursorLine = line->spanLineIndex;
+            int cursorLine = line->spanLineIndex;
             if (cursorLine < m_visibleLineIndices.x)
             {
-                MoveCursorY(std::abs(m_visibleLineIndices.x - cursorLine));
+                int toLine = m_visibleLineIndices.x;
+#if 0 // FIXME
+
+                // If the line isn't fully visible, use the following line.
+                if (!IsLineFullyVisible(toLine))
+                    ++toLine;
+#endif
+
+                MoveCursorY(std::abs(toLine - cursorLine));
             }
             else if (cursorLine >= m_visibleLineIndices.y)
             {
-                MoveCursorY((long(m_visibleLineIndices.y) - cursorLine) - 1);
+                int toLine = m_visibleLineIndices.y - 1;
+#if 0 // FIXME
+
+                // If the line isn't fully visible, use the previous line.
+                if (!IsLineFullyVisible(toLine))
+                    --toLine;
+#endif
+
+                MoveCursorY(toLine - cursorLine);
             }
             m_cursorMoved = false;
             return;
         }
     }
+}
+
+bool ZepWindow::IsLineFullyVisible(int lineNum) const
+{
+    const SpanInfo& lineInfo = *m_windowLines[lineNum];
+
+    float yPos = lineInfo.yOffsetPx - m_textOffsetPx;
+    if (yPos < 0)
+        return false;
+
+    float yPosMax = lineInfo.FullLineHeightPx() + yPos;
+
+    return true;
 }
 
 void ZepWindow::AdjustScroll(float delta)
@@ -285,6 +314,19 @@ void ZepWindow::AdjustScroll(float delta)
     if (old_offset != m_textOffsetPx)
     {
         UpdateVisibleLineRange();
+    }
+}
+
+void ZepWindow::ScrollByLine(int lines, bool ensureVisible /* = true */)
+{
+    float height = (float)GetEditor().GetDisplay().GetFont(ZepTextType::Text).GetPixelHeight();
+    // TODO: need actual height of line...
+    height += (float)GetEditor().GetConfig().lineMargins.x + (float)GetEditor().GetConfig().lineMargins.y;
+
+    AdjustScroll(lines * height);
+    if (ensureVisible)
+    {
+        EnsureCursorVisible();
     }
 }
 
@@ -1062,13 +1104,15 @@ void ZepWindow::DisplayLineNumbers()
 
             if (m_numberRegion->rect.Width() > 0)
             {
+                NVec2f numRect(m_numberRegion->rect.bottomRightPx.x - textSize.x,
+                    ToWindowY(lineCenter - numFont.GetPixelHeight() * .5f));
+
+                float posX = m_numberRegion->rect.bottomRightPx.x - textSize.x;
+
                 // Numbers
                 display.SetClipRect(m_numberRegion->rect);
-                display.DrawChars(numFont,
-                    NVec2f(m_numberRegion->rect.bottomRightPx.x - textSize.x,
-                        ToWindowY(lineCenter - numFont.GetPixelHeight() * .5f)),
-                        digitCol,
-                        (const uint8_t*)strNum.c_str(), (const uint8_t*)(strNum.c_str() + strNum.size()));
+                display.DrawChars(numFont, numRect, digitCol,
+                    (const uint8_t*)strNum.c_str(), (const uint8_t*)(strNum.c_str() + strNum.size()));
             }
 
             if (m_indicatorRegion->rect.Width() > 0)

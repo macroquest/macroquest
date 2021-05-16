@@ -72,7 +72,9 @@ enum class ThemeColor
 enum class ThemeType
 {
     Dark,
-    Light
+    Light,
+    SolarizedDark,
+    SolarizedLight,
 };
 
 class ZepTheme
@@ -91,6 +93,8 @@ public:
 private:
     void SetDarkTheme();
     void SetLightTheme();
+    void SetSolarizedDarkTheme();
+    void SetSolarizedLightTheme();
 
 private:
     std::vector<ZepColor> m_uniqueColors;

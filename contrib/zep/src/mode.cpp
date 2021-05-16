@@ -289,6 +289,7 @@ std::string ZepMode::ConvertInputToMapString(uint32_t key, uint32_t modifierKeys
         str << "<C-";
         if (modifierKeys & ModifierKey::Shift)
         {
+#if 0
             // Add the S- modifier for shift enabled special keys
             // We want to avoid adding S- to capitalized (and already shifted)
             // keys
@@ -296,6 +297,9 @@ std::string ZepMode::ConvertInputToMapString(uint32_t key, uint32_t modifierKeys
             {
                 str << "S-";
             }
+#else
+            str << "S-";
+#endif
         }
         closeBracket = true;
     }
@@ -612,11 +616,13 @@ void ZepMode::HandleMappedInput(const std::string& input)
         {
             // This command didn't change anything, but switched into insert mode, so
             // remember the dot command that did it
+#if 0
             if (enteringMode(EditorMode::Insert))
             {
                 AddCommand(std::make_shared<ZepCommand_GroupMarker>(spContext->buffer));
                 m_dotCommand = m_currentCommand;
             }
+#endif
         }
 
         // If the command can't manage the count, we do it
@@ -777,6 +783,11 @@ GlyphRange ZepMode::GetInclusiveVisualRange() const
 
     if (DefaultMode() == EditorMode::Insert)
     {
+        if (startOffset == endOffset)
+        {
+            return GlyphRange();
+        }
+
         // In standard/insert mode, selections exclude the last character
         endOffset.Move(-1);
     }
@@ -1130,7 +1141,6 @@ bool ZepMode::GetCommand(CommandContext& context)
         GetCurrentWindow()->SetBufferCursor(context.buffer.GetLinePos(bufferCursor, LineLocation::LineCRBegin));
         return true;
     case id_MotionStandardLineBeginSelect:
-    {
         context.commandResult.modeSwitch = EditorMode::Visual;
         if (m_currentMode != EditorMode::Visual)
         {
@@ -1139,9 +1149,7 @@ bool ZepMode::GetCommand(CommandContext& context)
         GetCurrentWindow()->SetBufferCursor(context.buffer.GetLinePos(bufferCursor, LineLocation::LineBegin));
         UpdateVisualSelection();
         return true;
-    }
     case id_MotionStandardLineEndSelect:
-    {
         context.commandResult.modeSwitch = EditorMode::Visual;
         if (m_currentMode != EditorMode::Visual)
         {
@@ -1150,7 +1158,6 @@ bool ZepMode::GetCommand(CommandContext& context)
         GetCurrentWindow()->SetBufferCursor(context.buffer.GetLinePos(bufferCursor, LineLocation::LineCRBegin));
         UpdateVisualSelection();
         return true;
-    }
 
     case id_MotionPageForward:
         // Note: the vim spec says 'visible lines - 2' for a 'page'.
@@ -1167,6 +1174,17 @@ bool ZepMode::GetCommand(CommandContext& context)
         GetCurrentWindow()->MoveCursorY(GetCurrentWindow()->GetMaxDisplayLines() * context.keymap.TotalCount());
         context.commandResult.flags |= CommandResultFlags::HandledCount;
         return true;
+    case id_MotionStandardPageForwardSelect:
+        context.commandResult.modeSwitch = EditorMode::Visual;
+        if (m_currentMode != EditorMode::Visual)
+        {
+            m_visualBegin = GetCurrentWindow()->GetBufferCursor();
+        }
+        GetCurrentWindow()->MoveCursorY(GetCurrentWindow()->GetMaxDisplayLines() * context.keymap.TotalCount());
+        context.commandResult.flags |= CommandResultFlags::HandledCount;
+        UpdateVisualSelection();
+        return true;
+
     case id_MotionPageBackward:
         // Note: the vim spec says 'visible lines - 2' for a 'page'
         GetCurrentWindow()->MoveCursorY(-(GetCurrentWindow()->GetMaxDisplayLines() - 2) * context.keymap.TotalCount());
@@ -1180,11 +1198,22 @@ bool ZepMode::GetCommand(CommandContext& context)
         GetCurrentWindow()->MoveCursorY(-GetCurrentWindow()->GetMaxDisplayLines() * context.keymap.TotalCount());
         context.commandResult.flags |= CommandResultFlags::HandledCount;
         return true;
+    case id_MotionStandardPageBackwardSelect:
+        context.commandResult.modeSwitch = EditorMode::Visual;
+        if (m_currentMode != EditorMode::Visual)
+        {
+            m_visualBegin = GetCurrentWindow()->GetBufferCursor();
+        }
+        GetCurrentWindow()->MoveCursorY(-GetCurrentWindow()->GetMaxDisplayLines() * context.keymap.TotalCount());
+        context.commandResult.flags |= CommandResultFlags::HandledCount;
+        UpdateVisualSelection();
+        return true;
+
     case id_ViewLineForward:
-        GetCurrentWindow()->AdjustScroll((float)GetEditor().GetDisplay().GetFont(ZepTextType::Text).GetPixelHeight());
+        GetCurrentWindow()->ScrollByLine(1);
         return true;
     case id_ViewLineBackward:
-        GetCurrentWindow()->AdjustScroll((float)-GetEditor().GetDisplay().GetFont(ZepTextType::Text).GetPixelHeight());
+        GetCurrentWindow()->ScrollByLine(-1);
         return true;
     case id_MotionGotoLine:
         if (!context.keymap.captureNumbers.empty())
@@ -1211,8 +1240,16 @@ bool ZepMode::GetCommand(CommandContext& context)
         return true;
     case id_Backspace:
         // In insert mode, we are 'on' the character after the one we want to delete
-        context.beginRange = cursorItr.Peek(-1);
-        context.endRange = cursorItr;
+        if (m_currentMode != EditorMode::Visual)
+        {
+            context.beginRange = cursorItr.Peek(-1);
+            context.endRange = cursorItr;
+        }
+        else
+        {
+            context.beginRange = m_visualBegin;
+            context.endRange = m_visualEnd;
+        }
         context.op = CommandOperation::Delete;
         break;
     case id_MotionWord:
@@ -1266,8 +1303,27 @@ bool ZepMode::GetCommand(CommandContext& context)
     case id_MotionGotoBeginning:
         GetCurrentWindow()->SetBufferCursor(context.buffer.Begin());
         return true;
+    case id_MotionStandardGotoBeginningSelect:
+        context.commandResult.modeSwitch = EditorMode::Visual;
+        if (m_currentMode != EditorMode::Visual)
+        {
+            m_visualBegin = GetCurrentWindow()->GetBufferCursor();
+        }
+        GetCurrentWindow()->SetBufferCursor(context.buffer.Begin());
+        UpdateVisualSelection();
+        return true;
+
     case id_MotionGotoEnd:
         GetCurrentWindow()->SetBufferCursor(context.buffer.End());
+        return true;
+    case id_MotionStandardGotoEndSelect:
+        context.commandResult.modeSwitch = EditorMode::Visual;
+        if (m_currentMode != EditorMode::Visual)
+        {
+            m_visualBegin = GetCurrentWindow()->GetBufferCursor();
+        }
+        GetCurrentWindow()->SetBufferCursor(context.buffer.End());
+        UpdateVisualSelection();
         return true;
 
     case id_MotionStandardMoveCursor:
@@ -1304,6 +1360,14 @@ bool ZepMode::GetCommand(CommandContext& context)
             UpdateVisualSelection();
         }
         return true;
+    case id_MotionStandardSelectAll:
+    {
+        context.commandResult.modeSwitch = EditorMode::Visual;
+        m_visualBegin = context.buffer.Begin();
+        GetCurrentWindow()->SetBufferCursor(context.buffer.End());
+        UpdateVisualSelection();
+        return true;
+    }
 
     case id_JoinLines:
     {
@@ -1391,29 +1455,6 @@ bool ZepMode::GetCommand(CommandContext& context)
             context.commandResult.modeSwitch = EditorMode::Insert;
             context.commandResult.flags = ZSetFlags(context.commandResult.flags, CommandResultFlags::BeginUndoGroup);
             break;
-        case id_InsertCarriageReturn:
-            context.beginRange = context.bufferCursor;
-            context.tempReg.text = "\n";
-            context.pRegister = &context.tempReg;
-            context.op = CommandOperation::Insert;
-            context.commandResult.modeSwitch = EditorMode::Insert;
-            context.commandResult.flags = ZSetFlags(context.commandResult.flags, CommandResultFlags::BeginUndoGroup, shouldGroupInserts);
-            break;
-        case id_InsertTab:
-            context.beginRange = context.bufferCursor;
-            if (buffer.HasFileFlags(FileFlags::InsertTabs))
-            {
-                context.tempReg.text = "\t";
-            }
-            else
-            {
-                context.tempReg.text = "    ";
-            }
-            context.pRegister = &context.tempReg;
-            context.op = CommandOperation::Insert;
-            context.commandResult.modeSwitch = EditorMode::Insert;
-            context.commandResult.flags = ZSetFlags(context.commandResult.flags, CommandResultFlags::BeginUndoGroup, shouldGroupInserts);
-            break;
         case id_OpenLineAbove:
             context.beginRange = context.buffer.GetLinePos(context.bufferCursor, LineLocation::LineBegin);
             context.tempReg.text = "\n";
@@ -1452,15 +1493,25 @@ bool ZepMode::GetCommand(CommandContext& context)
         {
             // Ignore empty copy
             auto range = GetInclusiveVisualRange();
-            context.beginRange = range.first;
-            context.endRange = range.second.Peek(1);
+            if (context.currentMode == EditorMode::Visual && range.IsValid())
+            {
+                context.beginRange = range.first;
+                context.endRange = range.second.Peek(1);
+            }
+            else
+            {
+                context.beginRange = context.buffer.GetLinePos(bufferCursor, LineLocation::LineBegin);
+                context.endRange = context.buffer.GetLinePos(bufferCursor, LineLocation::BeyondLineEnd);
+            }
+
             if (context.beginRange == context.endRange)
             {
                 return true;
             }
 
             // Copy in standard mode stays in visual mode
-            context.commandResult.modeSwitch = EditorMode::Visual;
+            if (context.currentMode == EditorMode::Visual)
+                context.commandResult.modeSwitch = EditorMode::Visual;
             context.registers.push('0');
             context.registers.push('*');
             context.registers.push('+');
@@ -1470,13 +1521,43 @@ bool ZepMode::GetCommand(CommandContext& context)
             context.op = CommandOperation::Copy;
             break;
         }
+        case id_StandardCut:
+        {
+            // Ignore empty copy
+            auto range = GetInclusiveVisualRange();
+            if (context.currentMode == EditorMode::Visual && range.IsValid())
+            {
+                context.beginRange = range.first;
+                context.endRange = range.second.Peek(1);
+            }
+            else
+            {
+                context.beginRange = context.buffer.GetLinePos(bufferCursor, LineLocation::LineBegin);
+                context.endRange = context.buffer.GetLinePos(bufferCursor, LineLocation::BeyondLineEnd);
+            }
+
+            if (context.beginRange == context.endRange)
+            {
+                return true;
+            }
+
+            context.registers.push('0');
+            context.registers.push('*');
+            context.registers.push('+');
+            context.cursorAfterOverride = context.bufferCursor;
+
+            // Note: select line wise yank if we started in linewise copy mode
+            context.op = CommandOperation::Delete;
+            break;
+        }
         case id_StandardPaste:
         {
+            context.pRegister = &GetEditor().GetRegister(DefaultMode() == EditorMode::Insert ? '*' : '"');
+
             if (context.currentMode == EditorMode::Visual)
             {
                 context.replaceRangeMode = ReplaceRangeMode::Replace;
                 context.op = CommandOperation::Replace;
-                context.pRegister = &GetEditor().GetRegister('"');
                 auto range = GetInclusiveVisualRange();
                 context.beginRange = range.first;
                 context.endRange = range.second.Peek(1);
@@ -1832,33 +1913,59 @@ bool ZepMode::GetCommand(CommandContext& context)
             break;
 
         default:
-            //if (m_currentMode == EditorMode::Visual && m_visualBegin != m_visualEnd)
-            //{
-            //    // Clamp and orient the correct way around
-            //    auto startOffset = m_visualBegin.Clamped();
-            //    auto endOffset = m_visualEnd.Clamped();
+            if (m_currentMode == EditorMode::Visual && m_visualBegin != m_visualEnd)
+            {
+                // Clamp and orient the correct way around
+                GlyphIterator startOffset = m_visualBegin.Clamped();
+                GlyphIterator endOffset = m_visualEnd.Clamped();
 
-            //    if (startOffset > endOffset)
-            //    {
-            //        std::swap(startOffset, endOffset);
-            //    }
-            //    context.beginRange = startOffset;
-            //    context.endRange = endOffset;
-            //    context.op = CommandOperation::Replace;
-            //    context.replaceRangeMode = ReplaceRangeMode::Replace;
-            //}
-            //else
+                if (startOffset > endOffset)
+                {
+                    std::swap(startOffset, endOffset);
+                }
+                context.beginRange = startOffset;
+                context.endRange = endOffset;
+                context.op = CommandOperation::Replace;
+                context.replaceRangeMode = ReplaceRangeMode::Replace;
+            }
+            else
             {
                 context.beginRange = context.bufferCursor;
                 context.op = CommandOperation::Insert;
             }
-            context.tempReg.text = context.keymap.commandWithoutGroups;
-            context.pRegister = &context.tempReg;
+
             context.commandResult.modeSwitch = EditorMode::Insert;
-            context.commandResult.flags |= CommandResultFlags::HandledCount;
+            bool beginUndoGroup = false;
+
+            switch (mappedCommand)
+            {
+            case id_InsertTab:
+                if (buffer.HasFileFlags(FileFlags::InsertTabs))
+                    context.tempReg.text = "\t";
+                else
+                    context.tempReg.text = "    ";
+                context.pRegister = &context.tempReg;
+                beginUndoGroup = true;
+                break;
+            case id_InsertCarriageReturn:
+                context.tempReg.text = "\n";
+                context.pRegister = &context.tempReg;
+                beginUndoGroup = true;
+                break;
+            default:
+                // No command match at this point means its verbatim insert/replace. If its just
+                // a key combo at this point, then abort out.
+                if (context.keymap.isCommandToken)
+                    return false;
+                context.tempReg.text = context.keymap.commandWithoutGroups;
+                context.pRegister = &context.tempReg;
+                context.commandResult.flags |= CommandResultFlags::HandledCount;
+                beginUndoGroup = (context.fullCommand == " ");
+                break;
+            }
 
             // Insert grouping command if necessary
-            if (context.fullCommand == " ")
+            if (beginUndoGroup)
             {
                 context.commandResult.flags = ZSetFlags(context.commandResult.flags, CommandResultFlags::BeginUndoGroup, shouldGroupInserts);
             }

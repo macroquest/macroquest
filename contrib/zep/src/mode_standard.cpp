@@ -47,48 +47,53 @@ void ZepMode_Standard::Init()
     }
     GetEditor().SetRegister('"', "");
 
+    std::vector<KeyMap*> keyMaps = { &m_insertMap, &m_visualMap };
+
     // Insert Mode
-    keymap_add({ &m_insertMap }, { "<Backspace>" }, id_Backspace);
-    keymap_add({ &m_insertMap }, { "<Return>" }, id_InsertCarriageReturn);
-    keymap_add({ &m_insertMap }, { "<Tab>" }, id_InsertTab);
-    keymap_add({ &m_insertMap }, { "<Del>" }, id_Delete);
-    keymap_add({ &m_insertMap, &m_visualMap }, { "<C-y>" }, id_Redo);
-    keymap_add({ &m_insertMap, &m_visualMap }, { "<C-z>" }, id_Undo);
+    keymap_add(keyMaps, { "<Backspace>" }, id_Backspace);
+    keymap_add(keyMaps, { "<Return>" }, id_InsertCarriageReturn);
+    keymap_add(keyMaps, { "<Tab>" }, id_InsertTab);
+    keymap_add(keyMaps, { "<Del>" }, id_Delete);
+    keymap_add(keyMaps, { "<C-y>", "<C-S-z>" }, id_Redo);
+    keymap_add(keyMaps, { "<C-z>" }, id_Undo);
 
-    keymap_add({ &m_insertMap, &m_visualMap }, { "<Left>" }, id_MotionStandardLeft);
-    keymap_add({ &m_insertMap, &m_visualMap }, { "<Right>" }, id_MotionStandardRight);
-    keymap_add({ &m_insertMap, &m_visualMap }, { "<Up>" }, id_MotionStandardUp);
-    keymap_add({ &m_insertMap, &m_visualMap }, { "<Down>" }, id_MotionStandardDown);
-    keymap_add({ &m_insertMap, &m_visualMap }, { "<Home>" }, id_MotionStandardLineBegin);
-    keymap_add({ &m_insertMap, &m_visualMap }, { "<End>" }, id_MotionStandardLineEnd);
-    keymap_add({ &m_insertMap, &m_visualMap }, { "<PageUp>" }, id_MotionStandardPageBackward);
-    keymap_add({ &m_insertMap, &m_visualMap }, { "<PageDown>" }, id_MotionStandardPageForward);
+    keymap_add(keyMaps, { "<Left>" }, id_MotionStandardLeft);
+    keymap_add(keyMaps, { "<Right>" }, id_MotionStandardRight);
+    keymap_add(keyMaps, { "<Up>" }, id_MotionStandardUp);
+    keymap_add(keyMaps, { "<Down>" }, id_MotionStandardDown);
+    keymap_add(keyMaps, { "<Home>" }, id_MotionStandardLineBegin);
+    keymap_add(keyMaps, { "<End>" }, id_MotionStandardLineEnd);
+    keymap_add(keyMaps, { "<PageUp>" }, id_MotionStandardPageBackward);
+    keymap_add(keyMaps, { "<PageDown>" }, id_MotionStandardPageForward);
 
-    keymap_add({ &m_insertMap }, { "<C-Left>" }, id_MotionStandardLeftWord);
-    keymap_add({ &m_insertMap }, { "<C-Right>" }, id_MotionStandardRightWord);
-    keymap_add({ &m_insertMap }, { "<C-Home>" }, id_MotionGotoBeginning);
-    keymap_add({ &m_insertMap }, { "<C-End>" }, id_MotionGotoEnd);
+    keymap_add(keyMaps, { "<C-Left>" }, id_MotionStandardLeftWord);
+    keymap_add(keyMaps, { "<C-Right>" }, id_MotionStandardRightWord);
+    keymap_add(keyMaps, { "<C-Home>" }, id_MotionGotoBeginning);
+    keymap_add(keyMaps, { "<C-End>" }, id_MotionGotoEnd);
+    keymap_add(keyMaps, { "<C-a>" }, id_MotionStandardSelectAll);
 
-    keymap_add({ &m_insertMap, &m_visualMap }, { "<C-Up>" }, id_ViewLineBackward);
-    keymap_add({ &m_insertMap, &m_visualMap }, { "<C-Down>" }, id_ViewLineForward);
+    keymap_add(keyMaps, { "<S-Left>" }, id_MotionStandardLeftSelect);
+    keymap_add(keyMaps, { "<S-Right>" }, id_MotionStandardRightSelect);
+    keymap_add(keyMaps, { "<S-Up>" }, id_MotionStandardUpSelect);
+    keymap_add(keyMaps, { "<S-Down>" }, id_MotionStandardDownSelect);
+    keymap_add(keyMaps, { "<S-Home>" }, id_MotionStandardLineBeginSelect);
+    keymap_add(keyMaps, { "<S-End>" }, id_MotionStandardLineEndSelect);
+    keymap_add(keyMaps, { "<S-PageUp>" }, id_MotionStandardPageBackwardSelect);
+    keymap_add(keyMaps, { "<S-PageDown>" }, id_MotionStandardPageForwardSelect);
 
-    keymap_add({ &m_insertMap, &m_visualMap }, { "<C-S-Left>" }, id_MotionStandardLeftWordSelect);
-    keymap_add({ &m_insertMap, &m_visualMap }, { "<C-S-Right>" }, id_MotionStandardRightWordSelect);
+    keymap_add(keyMaps, { "<C-S-Left>" }, id_MotionStandardLeftWordSelect);
+    keymap_add(keyMaps, { "<C-S-Right>" }, id_MotionStandardRightWordSelect);
+    keymap_add(keyMaps, { "<C-S-Home>" }, id_MotionStandardGotoBeginningSelect);
+    keymap_add(keyMaps, { "<C-S-End>" }, id_MotionStandardGotoEndSelect);
 
-    keymap_add({ &m_insertMap, &m_visualMap }, { "<S-Left>" }, id_MotionStandardLeftSelect);
-    keymap_add({ &m_insertMap, &m_visualMap }, { "<S-Right>" }, id_MotionStandardRightSelect);
-    keymap_add({ &m_insertMap, &m_visualMap }, { "<S-Up>" }, id_MotionStandardUpSelect);
-    keymap_add({ &m_insertMap, &m_visualMap }, { "<S-Down>" }, id_MotionStandardDownSelect);
-    keymap_add({ &m_insertMap, &m_visualMap }, { "<S-Home>" }, id_MotionStandardLineBeginSelect);
-    keymap_add({ &m_insertMap, &m_visualMap }, { "<S-End>" }, id_MotionStandardLineEndSelect);
+    keymap_add(keyMaps, { "<C-Up>" }, id_ViewLineBackward);
+    keymap_add(keyMaps, { "<C-Down>" }, id_ViewLineForward);
 
-    keymap_add({ &m_visualMap }, { "<C-x>" }, id_Delete);
-
-    keymap_add({ &m_insertMap, &m_visualMap }, { "<C-v>" }, id_StandardPaste);
-    keymap_add({ &m_visualMap }, { "<C-c>" }, id_StandardCopy);
+    keymap_add(keyMaps, { "<C-v>" }, id_StandardPaste);
+    keymap_add(keyMaps, { "<C-x>" }, id_StandardCut);
+    keymap_add(keyMaps, { "<C-c>" }, id_StandardCopy);
 
     keymap_add({ &m_normalMap, &m_visualMap, &m_insertMap }, { "<Escape>" }, id_InsertMode);
-    keymap_add({ &m_normalMap }, { "<Backspace>" }, id_MotionStandardLeft);
 
     // mouse binds
     keymap_add({ &m_insertMap, &m_visualMap }, { "<LeftMouse>", "<C-LeftMouse>" }, id_MotionStandardMoveCursor);

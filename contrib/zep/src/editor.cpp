@@ -1155,7 +1155,7 @@ void ZepEditor::Display()
     auto& commandLines = GetCommandLines();
 
     long commandCount = long(commandLines.size());
-    
+
     auto& uiFont = m_pDisplay->GetFont(ZepTextType::UI);
     const float commandSize = uiFont.GetPixelHeight() * commandCount + DPI_X(textBorder) * 2.0f;
 

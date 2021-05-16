@@ -263,7 +263,9 @@ GlyphRange ZepBuffer::StandardCtrlMotion(GlyphIterator cursor, Direction searchD
         current--;
 
         // Stop on the newline, or continue
+#if 0
         if (current.Char() != '\n')
+#endif
         {
             SkipNot(IsWORDChar, current, searchDir);
             Skip(IsWORDChar, current, searchDir);

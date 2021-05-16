@@ -23,13 +23,19 @@ void ZepTheme::SetThemeType(ThemeType type)
     m_currentTheme = type;
     switch (type)
     {
-        default:
-        case ThemeType::Dark:
-            SetDarkTheme();
-            break;
-        case ThemeType::Light:
-            SetLightTheme();
-            break;
+    case ThemeType::Dark:
+        SetDarkTheme();
+        break;
+    case ThemeType::Light:
+        SetLightTheme();
+        break;
+    case ThemeType::SolarizedLight:
+        SetSolarizedLightTheme();
+        break;
+    case ThemeType::SolarizedDark:
+    default:
+        SetDarkTheme();
+        break;
     }
 }
 
@@ -123,6 +129,72 @@ void ZepTheme::SetLightTheme()
 
     m_colors[ThemeColor::FlashColor] = ZepColor(0.8f, .4f, .05f, 1.0f);
 }
+
+void ZepTheme::SetSolarizedLightTheme()
+{
+    const ZepColor base03{ "#002b36" };
+    const ZepColor base02{ "#073642" };
+    const ZepColor base01{ "#586e75" };
+    const ZepColor base00{ "#657b83" };
+
+    const ZepColor base0{ "#839496" };
+    const ZepColor base1{ "#93a1a1" };
+    const ZepColor base2{ "#eee8d5" };
+    const ZepColor base3{ "#fdf6e3" };
+
+    const ZepColor yellow{ "#b58900" };
+    const ZepColor orange{ "#cb4b16" };
+    const ZepColor red{ "#dc322f" };
+    const ZepColor magenta{ "#d33682" };
+    const ZepColor violet{ "#6c71c4" };
+    const ZepColor blue{ "#268bd2" };
+    const ZepColor cyan{ "#2aa198" };
+    const ZepColor green{ "#859900" };
+
+
+    m_colors[ThemeColor::Text] = base0;
+    m_colors[ThemeColor::TextDim] = base1;
+    m_colors[ThemeColor::Background] = base3;
+    m_colors[ThemeColor::HiddenText] = ZepColor(.9f, .1f, .1f, 1.0f);
+    m_colors[ThemeColor::TabBorder] = ZepColor(.55f, .55f, .55f, 1.0f);
+    m_colors[ThemeColor::TabInactive] = ZepColor(.4f, .4f, .4f, .55f);
+    m_colors[ThemeColor::TabActive] = ZepColor(.55f, .55f, .55f, 1.0f);
+    m_colors[ThemeColor::LineNumberBackground] = base2;
+    m_colors[ThemeColor::LineNumber] = base01;
+    m_colors[ThemeColor::LineNumberActive] = base01;
+    m_colors[ThemeColor::CursorNormal] = base01;
+    m_colors[ThemeColor::CursorInsert] = base00;
+    m_colors[ThemeColor::CursorLineBackground] = base2;
+    m_colors[ThemeColor::AirlineBackground] = ZepColor(.80f, .80f, .80f, 1.0f);
+    m_colors[ThemeColor::Light] = ZepColor(1.0f);
+    m_colors[ThemeColor::Dark] = ZepColor(0.0f, 0.0f, 0.0f, 1.0f);
+    m_colors[ThemeColor::VisualSelectBackground] = base0;
+    m_colors[ThemeColor::Mode] = ZepColor(.2f, 0.8f, 0.2f, 1.0f);
+
+    m_colors[ThemeColor::Normal] = m_colors[ThemeColor::Text];
+    m_colors[ThemeColor::Parenthesis] = m_colors[ThemeColor::Text];
+    m_colors[ThemeColor::Comment] = base1;
+    m_colors[ThemeColor::Keyword] = green;
+    m_colors[ThemeColor::Identifier] = blue;
+    m_colors[ThemeColor::Number] = cyan;
+    m_colors[ThemeColor::String] = cyan;
+    m_colors[ThemeColor::Whitespace] = base1;
+
+    m_colors[ThemeColor::Error] = red;
+    m_colors[ThemeColor::Warning] = yellow;
+    m_colors[ThemeColor::Info] = blue;
+
+    m_colors[ThemeColor::WidgetActive] = m_colors[ThemeColor::TabActive];
+    m_colors[ThemeColor::WidgetInactive] = m_colors[ThemeColor::TabInactive];
+
+    m_colors[ThemeColor::WidgetBorder] = ZepColor(.5f, .5f, .5f, 1.0f);
+    m_colors[ThemeColor::WidgetActive] = m_colors[ThemeColor::TabActive];
+    m_colors[ThemeColor::WidgetInactive] = m_colors[ThemeColor::TabInactive];
+    m_colors[ThemeColor::WidgetBackground] = ZepColor(.8f, .8f, .8f, 1.0f);
+
+    m_colors[ThemeColor::FlashColor] = ZepColor(0.8f, .4f, .05f, 1.0f);
+}
+
 
 ThemeColor ZepTheme::GetUniqueColor(uint32_t index) const
 {

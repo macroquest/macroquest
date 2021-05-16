@@ -94,9 +94,9 @@ namespace WindowFlags
         Modal                  = 0x0020,
         WrapText               = 0x0040, // Warning: this is not for general use yet. Has issues
         HideSplitMark          = 0x0080,
-        GridStyle              = 0x0020,
-        ShowLineBackground     = 0x0040,
-        ShowWrappedLineNumbers = 0x0080,
+        GridStyle              = 0x0200,
+        ShowLineBackground     = 0x0400,
+        ShowWrappedLineNumbers = 0x0800,
     };
 }
 
@@ -166,6 +166,7 @@ public:
 
     void DirtyLayout();
     void AdjustScroll(float delta);
+    void ScrollByLine(int lines, bool ensureVisible = true);
 
     GlyphIterator GetMouseCursor() const
     {
@@ -190,6 +191,7 @@ private:
     void UpdateLineSpans();
     void UpdateVisibleLineRange();
 
+    bool IsLineFullyVisible(int lineNum) const;
     NVec2i BufferToDisplay(const GlyphIterator& location);
 
     bool IsInsideVisibleText(NVec2i pos) const;

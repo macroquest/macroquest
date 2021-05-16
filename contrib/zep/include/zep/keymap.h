@@ -159,6 +159,7 @@ DECLARE_COMMANDID(NextTabWindow)
 // Standard mode commands
 DECLARE_COMMANDID(StandardCopy)
 DECLARE_COMMANDID(StandardPaste)
+DECLARE_COMMANDID(StandardCut)
 
 DECLARE_COMMANDID(MotionStandardDown)
 DECLARE_COMMANDID(MotionStandardUp)
@@ -173,11 +174,15 @@ DECLARE_COMMANDID(MotionStandardRightWord)
 
 DECLARE_COMMANDID(MotionStandardLineBegin)
 DECLARE_COMMANDID(MotionStandardLineEnd)
+DECLARE_COMMANDID(MotionStandardGotoBeginningSelect)
+DECLARE_COMMANDID(MotionStandardGotoEndSelect)
 
 DECLARE_COMMANDID(MotionStandardLeftSelect)
 DECLARE_COMMANDID(MotionStandardRightSelect)
 DECLARE_COMMANDID(MotionStandardUpSelect)
 DECLARE_COMMANDID(MotionStandardDownSelect)
+DECLARE_COMMANDID(MotionStandardPageBackwardSelect)
+DECLARE_COMMANDID(MotionStandardPageForwardSelect)
 
 DECLARE_COMMANDID(MotionStandardLeftWordSelect)
 DECLARE_COMMANDID(MotionStandardRightWordSelect)
@@ -192,6 +197,7 @@ DECLARE_COMMANDID(MotionStandardMoveCursor);
 DECLARE_COMMANDID(MotionStandardMoveCursorSelect);
 DECLARE_COMMANDID(MotionStandardSelectWord);
 DECLARE_COMMANDID(MotionStandardSelectLine);
+DECLARE_COMMANDID(MotionStandardSelectAll);
 
 // Insert Mode
 DECLARE_COMMANDID(Backspace)
@@ -218,6 +224,7 @@ struct KeyMapResult
     std::vector<char> captureRegisters;
     std::string commandWithoutGroups;
     bool needMoreChars = false;
+    bool isCommandToken = false;
 
     StringId foundMapping;
     std::string searchPath;

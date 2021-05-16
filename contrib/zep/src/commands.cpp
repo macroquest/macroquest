@@ -76,7 +76,7 @@ void ZepCommand_Insert::Undo()
 
 // Replace
 ZepCommand_ReplaceRange::ZepCommand_ReplaceRange(ZepBuffer& buffer, ReplaceRangeMode currentMode, const GlyphIterator& startIndex, const GlyphIterator& endIndex, const std::string& strReplace, const GlyphIterator& cursor, const GlyphIterator& cursorAfter)
-    : ZepCommand(buffer, cursor.Valid() ? cursor : endIndex, cursorAfter.Valid() ? cursorAfter : startIndex)
+    : ZepCommand(buffer, cursor.Valid() ? cursor : endIndex, cursorAfter)
     , m_startIndex(startIndex)
     , m_endIndex(endIndex)
     , m_strReplace(strReplace)
@@ -102,6 +102,25 @@ void ZepCommand_ReplaceRange::Undo()
         ChangeRecord temp;
         m_buffer.Replace(m_startIndex, m_mode == ReplaceRangeMode::Fill ? m_endIndex : m_startIndex.PeekByteOffset((long)m_strReplace.length()), m_changeRecord.strDeleted, ReplaceRangeMode::Replace, temp);
     }
+}
+
+GlyphIterator ZepCommand_ReplaceRange::GetCursorAfter() const
+{
+    if (!m_cursorAfter.Valid())
+    {
+        GlyphIterator tempIter = m_startIndex;
+
+        // If replacement includes the current cursor, move cursor to end of the replacement.
+        if (m_cursorBefore.Valid()
+            && GlyphRange(m_startIndex, m_endIndex).ContainsInclusiveLocation(m_cursorBefore))
+        {
+            tempIter.Move(m_strReplace.length());
+        }
+
+        return tempIter;
+    }
+
+    return m_cursorAfter;
 }
 
 } // namespace Zep

@@ -12,6 +12,17 @@
 namespace Zep
 {
 
+namespace detail
+{
+    struct InvalidHexChar {};
+
+    constexpr int hexToDec(const char c)
+    {
+        return (c >= '0' && c <= '9') ? c - '0' : ((c >= 'a' && c <= 'f') ? c - 'a' + 10 : (c >= 'A' && c <= 'F') ? c - 'A' + 10
+                                                                                                                  : throw InvalidHexChar{});
+    }
+}
+
 struct ZepColor
 {
     // default is opaque black
@@ -60,6 +71,14 @@ struct ZepColor
     constexpr ZepColor(const ZepColor& other)
         : ABGR(other.ABGR)
     {
+    }
+
+    constexpr ZepColor(const char* str)
+        : r(static_cast<uint8_t>(detail::hexToDec(str[1]) << 4 | detail::hexToDec(str[2])) & 0xff)
+        , g(static_cast<uint8_t>(detail::hexToDec(str[3]) << 4 | detail::hexToDec(str[4])) & 0xff)
+        , b(static_cast<uint8_t>(detail::hexToDec(str[5]) << 4 | detail::hexToDec(str[6])) & 0xff)
+    {
+        if (str[0] != '#') throw detail::InvalidHexChar();
     }
 
     constexpr ZepColor& operator=(uint32_t color)

@@ -1063,6 +1063,17 @@ struct ZepContainerImGui : public Zep::IZepComponent
 		{
 			m_editor->GetConfig().style = Zep::EditorStyle::Minimal;
 			m_window->SetWindowFlags(Zep::WindowFlags::WrapText);
+
+			m_editor->RegisterSyntaxFactory(
+				{ "Console" },
+				Zep::SyntaxProvider{ "Console", Zep::tSyntaxFactory([this](Zep::ZepBuffer* pBuffer) {
+					return std::make_shared<ZepConsoleSyntax>(*pBuffer, m_theme, m_window);
+				})
+			});
+
+			m_buffer = m_editor->InitWithText("Console", "\n");
+			m_buffer->SetTheme(m_theme);
+			m_window->SetBufferCursor(m_buffer->End());
 		}
 		else
 		{
@@ -1072,26 +1083,8 @@ struct ZepContainerImGui : public Zep::IZepComponent
 				| Zep::WindowFlags::ShowLineBackground
 			);
 
-			m_editor->RegisterSyntaxFactory(
-				{ "Console" },
-				Zep::SyntaxProvider{ "Console", Zep::tSyntaxFactory([this](Zep::ZepBuffer* pBuffer) {
-					return std::make_shared<ZepConsoleSyntax>(*pBuffer, m_theme, m_window);
-				})
-			});
-		}
-
-		//m_theme->SetThemeType(Zep::ThemeType::Light);
-
-		if (consoleMode)
-		{
-			m_buffer = m_editor->InitWithText("Console", "\n");
-			m_buffer->SetTheme(m_theme);
-			m_window->SetBufferCursor(m_buffer->End());
-		}
-		else
-		{
 			m_buffer = m_editor->InitWithFileOrDir(filename);
-			m_buffer->SetTheme(m_theme);
+			//m_editor->GetTheme().SetThemeType(Zep::ThemeType::SolarizedLight);
 		}
 	}
 
@@ -1278,7 +1271,8 @@ void UpdateImGuiConsole()
 {
 	if (!zep)
 	{
-		zep = new ZepContainerImGui(false, "d:\\source\\mqnext\\build\\bin\\debug\\lua\\fishb.lua");
+		zep = new ZepContainerImGui(true);
+		//zep = new ZepContainerImGui(false, "d:\\source\\mqnext\\build\\bin\\debug\\lua\\fishb.lua");
 	}
 
 	if (zep)
