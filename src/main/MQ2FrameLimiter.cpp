@@ -248,6 +248,14 @@ public:
 		{
 			UpdateDisplay_Trampoline();
 		}
+		else if (pSpellBookWnd && pSpellBookWnd->IsVisible())
+		{
+			// this is a small kludge to allow spell memming and scribing to work while not rendering
+			bool test;
+			auto GetGaugeValueFromEQ = reinterpret_cast<int (*)(int, CXStr*, bool*, unsigned long*)>(__GetGaugeValueFromEQ);
+			GetGaugeValueFromEQ(9, nullptr, &test, nullptr); // spell mem gauge
+			GetGaugeValueFromEQ(10, nullptr, &test, nullptr); // spell scribe gauge
+		}
 	}
 };
 DETOUR_TRAMPOLINE_EMPTY(void CRenderHook::RenderScene_Trampoline());
