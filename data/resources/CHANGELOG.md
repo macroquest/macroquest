@@ -1,3 +1,6 @@
+May 17, 2021
+- Added specific updates in frame limiter to allow for scribing and memming with no rendering (#279 & #167)
+
 May 15, 2021
 - Added variadic string arguments to mq.doevents() to allow for a list of specific events processing (#292)
 - Added a command mq.flushevents() that takes variadic string arguments to drop events without processing them (#292)
