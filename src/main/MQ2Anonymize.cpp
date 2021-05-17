@@ -915,7 +915,7 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 	{
 		arg_parser.Help();
 	}
-	catch (const args::ValidationError& e)
+	catch (const args::ValidationError&)
 	{
 		arg_parser.Help();
 	}
