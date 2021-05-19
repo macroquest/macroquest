@@ -1222,51 +1222,56 @@ bool ZepWindow::DisplayLine(SpanInfo& lineInfo, int displayPass)
                     // Visual selection is 'inclusive' - it starts/ends on the cursor
                     if (sel.ContainsInclusiveLocation(cp.iterator))
                     {
-                        display.DrawRectFilled(NRectf(NVec2f(cp.pos.x, ToWindowY(lineInfo.yOffsetPx)), NVec2f(cp.pos.x + cp.size.x, ToWindowY(lineInfo.yOffsetPx + lineInfo.FullLineHeightPx()))), m_pBuffer->GetTheme().GetColor(ThemeColor::VisualSelectBackground));
+                        display.DrawRectFilled(
+                            NRectf(
+                                NVec2f(cp.pos.x, ToWindowY(lineInfo.yOffsetPx)),
+                                NVec2f(cp.pos.x + cp.size.x, ToWindowY(lineInfo.yOffsetPx + lineInfo.FullLineHeightPx()))), m_pBuffer->GetTheme().GetColor(ThemeColor::VisualSelectBackground));
                     }
                 }
             }
 
             // If active window and this is the cursor char then display the marker as a priority over what we would have shown
-            if (IsActiveWindow() && (cp.iterator == m_bufferCursor) && (!cursorBlink || cursorType == CursorType::LineMarker))
+            if (IsActiveWindow()
+                && (cp.iterator == m_bufferCursor)
+                && (!cursorBlink || cursorType == CursorType::LineMarker)
+                && IsActiveWindow() && GetEditor().IsInFocus())
             {
                 auto height = lineInfo.FullLineHeightPx();
                 switch (cursorType)
                 {
-                default:
-                case CursorType::None:
-                    break;
-
                 case CursorType::LineMarker:
                 {
                     display.SetClipRect(NRectf());
                     auto posX = m_indicatorRegion->rect.Right() - DPI_X(2.0f);
-                    GetEditor().GetDisplay().DrawRectFilled(NRectf(
-                                                                NVec2f(posX, ToWindowY(lineInfo.yOffsetPx)),
-                                                                NVec2f(posX + DPI_X(2.0f), ToWindowY(lineInfo.yOffsetPx + height))),
+                    GetEditor().GetDisplay().DrawRectFilled(
+                        NRectf(
+                            NVec2f(posX, ToWindowY(lineInfo.yOffsetPx)),
+                            NVec2f(posX + DPI_X(2.0f), ToWindowY(lineInfo.yOffsetPx + height))),
                         m_pBuffer->GetTheme().GetColor(ThemeColor::CursorNormal));
                     display.SetClipRect(m_textRegion->rect);
+                    break;
                 }
-                break;
 
                 case CursorType::Insert:
-                {
-                    GetEditor().GetDisplay().DrawRectFilled(NRectf(
-                                                                NVec2f(cp.pos.x, ToWindowY(lineInfo.yOffsetPx)),
-                                                                NVec2f(cp.pos.x + DPI_X(1.0f), ToWindowY(lineInfo.yOffsetPx + height))),
+                    GetEditor().GetDisplay().DrawRectFilled(
+                        NRectf(
+                            NVec2f(cp.pos.x, ToWindowY(lineInfo.yOffsetPx)),
+                            NVec2f(cp.pos.x + DPI_X(1.0f), ToWindowY(lineInfo.yOffsetPx + height))),
                         m_pBuffer->GetTheme().GetColor(ThemeColor::CursorInsert));
-                }
-                break;
+                    break;
 
                 case CursorType::Normal:
                 case CursorType::Visual:
-                {
-                    GetEditor().GetDisplay().DrawRectFilled(NRectf(
-                                                                NVec2f(cp.pos.x, ToWindowY(lineInfo.yOffsetPx)),
-                                                                NVec2f(cp.pos.x + cp.size.x, ToWindowY(lineInfo.yOffsetPx + height))),
+                    GetEditor().GetDisplay().DrawRectFilled(
+                        NRectf(
+                            NVec2f(cp.pos.x, ToWindowY(lineInfo.yOffsetPx)),
+                            NVec2f(cp.pos.x + cp.size.x, ToWindowY(lineInfo.yOffsetPx + height))),
                         m_pBuffer->GetTheme().GetColor(ThemeColor::CursorNormal));
-                }
-                break;
+                    break;
+
+                case CursorType::None:
+                default:
+                    break;
                 }
             }
         }

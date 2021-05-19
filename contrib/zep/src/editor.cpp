@@ -118,14 +118,14 @@ void ZepEditor::Init()
 
     m_tabRegion = std::make_shared<Region>();
     m_tabRegion->layoutType = RegionLayoutType::HBox;
-    m_tabRegion->margin = NVec4f(0, textBorder, 0, textBorder);
+    //m_tabRegion->margin = NVec4f(0, textBorder, 0, textBorder);
 
     m_tabContentRegion = std::make_shared<Region>();
     m_commandRegion = std::make_shared<Region>();
 
-    m_editorRegion->children.push_back(m_tabRegion);
+    //m_editorRegion->children.push_back(m_tabRegion);
     m_editorRegion->children.push_back(m_tabContentRegion);
-    m_editorRegion->children.push_back(m_commandRegion);
+    //m_editorRegion->children.push_back(m_commandRegion);
 
 #ifdef IMPLEMENTED_INDEXER
     m_indexer = std::make_shared<Indexer>(*this);
@@ -1037,11 +1037,11 @@ void ZepEditor::Notify(std::shared_ptr<ZepMessage> pMsg)
 {
     if (pMsg->messageId == Msg::MouseDown)
     {
-        for (auto& tab : m_tabRegion->children)
+        for (std::shared_ptr<Region>& tab : m_tabRegion->children)
         {
             if (tab->rect.Contains(pMsg->pos))
             {
-                auto pTabRegionTab = std::static_pointer_cast<TabRegionTab>(tab);
+                std::shared_ptr<TabRegionTab> pTabRegionTab = std::static_pointer_cast<TabRegionTab>(tab);
                 SetCurrentTabWindow(pTabRegionTab->pTabWindow);
             }
         }

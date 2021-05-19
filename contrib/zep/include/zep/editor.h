@@ -69,7 +69,8 @@ enum
 {
     None = (0),
     DisableThreads = (1 << 0),
-    FastUpdate = (1 << 1)
+    FastUpdate = (1 << 1),
+    HasFocus = (1 << 2),
 };
 };
 
@@ -330,6 +331,15 @@ public:
     uint32_t GetFlags() const;
     void SetFlags(uint32_t flags);
 
+    bool IsInFocus() const
+    {
+        return m_hasFocus;
+    }
+    void SetHasFocus(bool focus)
+    {
+        m_hasFocus = focus;
+    }
+
     // Tab windows
     using tTabWindows = std::vector<ZepTabWindow*>;
     void NextTabWindow();
@@ -379,6 +389,7 @@ public:
     }
 
     ZepTheme& GetTheme() const;
+    void SetTheme(const std::shared_ptr<ZepTheme>& theme) { m_spTheme = theme; }
 
     bool OnMouseMove(const NVec2f& mousePos, ZepMouseButton button, uint32_t mods);
     bool OnMouseDown(const NVec2f& mousePos, ZepMouseButton button, uint32_t mods = 0, int clicks = 1);
@@ -470,6 +481,8 @@ private:
     std::unique_ptr<ThreadPool> m_threadPool;
 
     std::shared_ptr<Indexer> m_indexer;
+
+    bool m_hasFocus = true;
 };
 
 } // namespace Zep

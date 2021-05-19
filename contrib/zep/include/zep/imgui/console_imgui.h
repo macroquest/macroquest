@@ -50,7 +50,7 @@ struct ZepConsole : Zep::IZepComponent
 
         pBuffer->Insert(pBuffer->EndLocation(), buf);
         pBuffer->Insert(pBuffer->EndLocation(), "\n");
-     
+
         pendingScroll = true;
     }
 
@@ -71,7 +71,7 @@ struct ZepConsole : Zep::IZepComponent
 
         auto size = ImGui::GetWindowContentRegionMax();
         auto cursor = ImGui::GetCursorScreenPos();
-        
+
         zepEditor.SetDisplayRegion(Zep::NVec2f(cursor.x, cursor.y), Zep::NVec2f(size.x, size.y - cursor.y));
         zepEditor.Display();
         zepEditor.HandleInput();

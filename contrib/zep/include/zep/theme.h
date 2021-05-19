@@ -96,7 +96,7 @@ private:
     void SetSolarizedDarkTheme();
     void SetSolarizedLightTheme();
 
-private:
+protected:
     std::vector<ZepColor> m_uniqueColors;
     std::map<ThemeColor, ZepColor> m_colors;
     ThemeType m_currentTheme = ThemeType::Dark;

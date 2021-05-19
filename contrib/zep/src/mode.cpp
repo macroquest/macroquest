@@ -1331,6 +1331,7 @@ bool ZepMode::GetCommand(CommandContext& context)
             GetCurrentWindow()->SetBufferCursor(context.mouseCursor);
         return true;
     case id_MotionStandardMoveCursorSelect:
+        ZLOG(INFO, "MotionStandardMoveCursorSelect: " << context.mouseCursor.Index());
         if (context.mouseCursor.Valid())
         {
             context.commandResult.modeSwitch = EditorMode::Visual;
@@ -1969,6 +1970,22 @@ bool ZepMode::GetCommand(CommandContext& context)
             {
                 context.commandResult.flags = ZSetFlags(context.commandResult.flags, CommandResultFlags::BeginUndoGroup, shouldGroupInserts);
             }
+            break;
+        }
+    }
+
+    if (buffer.HasFileFlags(Zep::FileFlags::ReadOnly))
+    {
+        switch (context.op)
+        {
+        case CommandOperation::Delete:
+        case CommandOperation::DeleteLines:
+        case CommandOperation::Insert:
+        case CommandOperation::Replace:
+        case CommandOperation::Paste:
+            return false;
+
+        default:
             break;
         }
     }

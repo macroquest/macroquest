@@ -86,6 +86,9 @@ void ZepMode_Standard::Init()
     keymap_add(keyMaps, { "<C-S-Home>" }, id_MotionStandardGotoBeginningSelect);
     keymap_add(keyMaps, { "<C-S-End>" }, id_MotionStandardGotoEndSelect);
 
+    keymap_add(keyMaps, { "<C-=>" }, id_FontBigger);
+    keymap_add(keyMaps, { "<C-->" }, id_FontSmaller);
+
     keymap_add(keyMaps, { "<C-Up>" }, id_ViewLineBackward);
     keymap_add(keyMaps, { "<C-Down>" }, id_ViewLineForward);
 
@@ -113,6 +116,7 @@ void ZepMode_Standard::Begin(ZepWindow* pWindow)
 
 void ZepMode_Standard::Notify(std::shared_ptr<ZepMessage> message)
 {
+    // TODO: Move this to the editor and propogate to visible widgets.
     if (message->messageId == Msg::MouseDown)
     {
         AddMouseEvent(message->button, false, message->modifiers, message->clicks);

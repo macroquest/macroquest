@@ -72,16 +72,24 @@ public:
 
     void HandleInput()
     {
-        HandleMouseInput();
-
         if (ImGui::IsWindowFocused())
         {
             HandleKeyboardInput();
         }
+
+        HandleMouseInput();
     }
 
+ private:
+    float m_lastClick = -1.0f;
+    bool m_hasMouse = false;
+
+public:
     void HandleMouseInput()
     {
+        if (!ImGui::IsWindowHovered() && !m_hasMouse)
+            return;
+
         auto& io = ImGui::GetIO();
         uint32_t mod = 0;
 
@@ -128,7 +136,7 @@ public:
 
         for (int i = 0; i < 5; ++i)
         {
-            if (ImGui::IsMouseDragging(i))
+            if (ImGui::IsMouseDragging(i) && ImGui::IsMouseDown(i))
             {
                 OnMouseMove(toNVec2f(io.MousePos), ImGuiMouseToZepButton(i), mod);
                 dragging = true;
@@ -154,8 +162,7 @@ public:
             OnMouseWheel(toNVec2f(io.MousePos), io.MouseWheel * 12.5f);
         }
 
-        // If mouse cursor is over text, change cursor.
-        // TODO
+
         //if (ImGui::IsWindowHovered())
         //    ImGui::SetMouseCursor(ImGuiMouseCursor_TextInput);
     }
@@ -321,9 +328,6 @@ public:
             }
         }
     }
-
-private:
-    float m_lastClick = -1.0f;
 };
 
 } // namespace Zep

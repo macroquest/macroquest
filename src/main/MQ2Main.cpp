@@ -598,7 +598,6 @@ void DoInitialization()
 	Sleep(100);
 
 	InitializeMQ2KeyBinds();
-	InitializeMQ2Overlay();
 	InitializeMQ2Plugins();
 	InitializeCachedBuffs();
 }
@@ -754,6 +753,7 @@ bool MQ2Initialize()
 	szEQMappableCommands[nEQMappableCommands -  1] = "UNKNOWN0x221";
 
 	AddInternalModule(GetDetoursModule(), true);
+	InitializeMQ2Overlay();
 
 	InitializeMQ2Benchmarks();
 	InitializeParser();
@@ -762,9 +762,8 @@ bool MQ2Initialize()
 	InitializeMQ2Pulse();
 	InitializeLoginFrontend();
 
-	AddInternalModule(GetImGuiToolsModule());
-
 	InitializeInternalModules();
+	AddInternalModule(GetImGuiToolsModule());
 	AddInternalModule(GetSpellsModule());
 	AddInternalModule(GetDataAPIModule());
 	AddInternalModule(GetGroundSpawnsModule());
