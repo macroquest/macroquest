@@ -39,6 +39,27 @@ namespace mq::imgui {
 
 //----------------------------------------------------------------------------
 
+inline Zep::NVec2f toNVec2f(const ImVec2& im)
+{
+	return Zep::NVec2f(im.x, im.y);
+}
+inline ImVec2 toImVec2(const Zep::NVec2f& im)
+{
+	return ImVec2(im.x, im.y);
+}
+
+inline Zep::NVec2f toNVec2fAdjusted(const ImVec2& im, const Zep::NVec2f& rel)
+{
+	return Zep::NVec2f(im.x + rel.x, im.y + rel.y);
+}
+
+inline ImVec2 toImVec2Adjusted(const Zep::NVec2f& im, const Zep::NVec2f& rel)
+{
+	return ImVec2(im.x + rel.x, im.y + rel.y);
+}
+
+//----------------------------------------------------------------------------
+
 class ZepFont_ImGui : public Zep::ZepFont
 {
 public:
@@ -53,7 +74,6 @@ private:
 	ImFont* m_pFont = nullptr;
 	float m_fontScale = 1.0f;
 };
-
 
 ZepFont_ImGui::ZepFont_ImGui(ZepDisplay& display, ImFont* pFont, int pixelHeight)
 	: ZepFont(display)
@@ -86,12 +106,55 @@ NVec2f ZepFont_ImGui::GetTextSize(const uint8_t* pBegin, const uint8_t* pEnd) co
 
 //----------------------------------------------------------------------------
 
-ZepDisplay_ImGui::ZepDisplay_ImGui(const NVec2f& pixelScale)
-	: ZepDisplay(pixelScale)
+class ZepEditor_ImGui : public Zep::ZepDisplay, public Zep::ZepEditor
 {
+public:
+	ZepEditor_ImGui(const ZepPath& root, uint32_t flags = 0, IZepFileSystem* pFileSystem = nullptr, const NVec2f& pixelScale = NVec2f{ 1.0f, 1.0f })
+		: Zep::ZepDisplay(pixelScale)
+		, Zep::ZepEditor(this, root, flags, pFileSystem)
+	{
+	}
+
+	void HandleInput();
+	void SetScreenPosition(const NVec2f& screenPos) { m_screenPos = screenPos; }
+
+private:
+	void HandleMouseInput();
+	void HandleKeyboardInput();
+
+	virtual void DrawChars(ZepFont& font, const NVec2f& pos, ZepColor col, const uint8_t* text_begin, const uint8_t* text_end) const override;
+	virtual void DrawLine(const NVec2f& start, const NVec2f& end, ZepColor color, float width) const override;
+	virtual void DrawRectFilled(const NRectf& rc, ZepColor col) const override;
+	virtual void SetClipRect(const NRectf& rc) override { m_clipRect = rc; }
+	virtual Zep::ZepFont& GetFont(ZepTextType type) override;
+
+private:
+	float m_lastClick = -1.0f;
+	bool m_hasMouse = false;
+	NVec2f m_screenPos;
+	NRectf m_clipRect;
+};
+
+static ZepMouseButton ImGuiMouseToZepButton(int index)
+{
+	switch (index)
+	{
+	case 0:
+		return ZepMouseButton::Left;
+	case 1:
+		return ZepMouseButton::Right;
+	case 2:
+		return ZepMouseButton::Middle;
+	case 3:
+		return ZepMouseButton::Button4;
+	case 4:
+		return ZepMouseButton::Button5;
+	default:
+		return ZepMouseButton::Unknown;
+	}
 }
 
-void ZepDisplay_ImGui::DrawChars(ZepFont& font, const NVec2f& pos, ZepColor col,
+void ZepEditor_ImGui::DrawChars(ZepFont& font, const NVec2f& pos, ZepColor col,
 	const uint8_t* text_begin, const uint8_t* text_end) const
 {
 	ImFont* imFont = static_cast<ZepFont_ImGui&>(font).GetImFont();
@@ -113,7 +176,7 @@ void ZepDisplay_ImGui::DrawChars(ZepFont& font, const NVec2f& pos, ZepColor col,
 	}
 }
 
-void ZepDisplay_ImGui::DrawLine(const NVec2f& start, const NVec2f& end, ZepColor color, float width) const
+void ZepEditor_ImGui::DrawLine(const NVec2f& start, const NVec2f& end, ZepColor color, float width) const
 {
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
 
@@ -130,7 +193,7 @@ void ZepDisplay_ImGui::DrawLine(const NVec2f& start, const NVec2f& end, ZepColor
 	}
 }
 
-void ZepDisplay_ImGui::DrawRectFilled(const NRectf& rc, ZepColor color) const
+void ZepEditor_ImGui::DrawRectFilled(const NRectf& rc, ZepColor color) const
 {
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
 
@@ -147,7 +210,7 @@ void ZepDisplay_ImGui::DrawRectFilled(const NRectf& rc, ZepColor color) const
 	}
 }
 
-ZepFont& ZepDisplay_ImGui::GetFont(ZepTextType type)
+ZepFont& ZepEditor_ImGui::GetFont(ZepTextType type)
 {
 	if (m_fonts[(int)type] == nullptr)
 	{
@@ -157,26 +220,6 @@ ZepFont& ZepDisplay_ImGui::GetFont(ZepTextType type)
 	return *m_fonts[(int)type];
 }
 
-//----------------------------------------------------------------------------
-
-static ZepMouseButton ImGuiMouseToZepButton(int index)
-{
-	switch (index)
-	{
-	case 0:
-		return ZepMouseButton::Left;
-	case 1:
-		return ZepMouseButton::Right;
-	case 2:
-		return ZepMouseButton::Middle;
-	case 3:
-		return ZepMouseButton::Button4;
-	case 4:
-		return ZepMouseButton::Button5;
-	default:
-		return ZepMouseButton::Unknown;
-	}
-}
 
 void ZepEditor_ImGui::HandleInput()
 {
@@ -385,15 +428,7 @@ void ZepEditor_ImGui::HandleKeyboardInput()
 
 ImGuiZepEditor::ImGuiZepEditor()
 {
-	NVec2f pixelScale = { 1.0f, 1.0f };
-
-	m_display = new ZepDisplay_ImGui(pixelScale);
-
-	ZepEditorParams params;
-	params.pDisplay = m_display;
-	params.flags = ZepEditorFlags::DisableThreads;
-
-	m_editor = new ZepEditor_ImGui(params);
+	m_editor = new ZepEditor_ImGui(ZepPath(), ZepEditorFlags::DisableThreads);
 	m_editor->RegisterCallback(this);
 	m_editor->SetGlobalMode(ZepMode_Standard::StaticName());
 }
@@ -424,7 +459,12 @@ void ImGuiZepEditor::Notify(std::shared_ptr<Zep::ZepMessage> message)
 
 void ImGuiZepEditor::SetFont(Zep::ZepTextType type, ImFont* pFont, int pixelHeight)
 {
-	m_display->SetFont(type, std::make_shared<ZepFont_ImGui>(*m_display, pFont, pixelHeight));
+	m_editor->SetFont(type, std::make_shared<ZepFont_ImGui>(*m_editor, pFont, pixelHeight));
+}
+
+ZepEditor& ImGuiZepEditor::GetEditor() const
+{
+	return *m_editor;
 }
 
 void ImGuiZepEditor::Render(const char* id, const ImVec2& displaySize)
@@ -437,7 +477,6 @@ void ImGuiZepEditor::Render(const char* id, const ImVec2& displaySize)
 
 	if (ImGui::BeginChild(id, actualSize, false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground))
 	{
-		m_display->SetScreenPosition(toNVec2f(ImGui::GetCursorScreenPos()));
 		m_editor->SetScreenPosition(toNVec2f(ImGui::GetCursorScreenPos()));
 		m_editor->SetDisplayRegionSize(toNVec2f(actualSize));
 

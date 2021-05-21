@@ -40,64 +40,51 @@ ZepEditor::ZepEditor(ZepDisplay* pDisplay, const ZepPath& configRoot, uint32_t f
     , m_pFileSystem(pFileSystem)
     , m_flags(flags)
 {
+    assert(m_pDisplay != nullptr);
 
-#if defined(ZEP_FEATURE_CPP_FILE_SYSTEM)
     if (m_pFileSystem == nullptr)
     {
         m_pFileSystem = new ZepFileSystemCPP(configRoot);
     }
-#else
-    if (m_pFileSystem == nullptr)
-    {
-        assert(!"Must supply a file system - no default available on this platform!");
-        throw std::invalid_argument("pFileSystem");
-    }
-#endif
-
-    LoadConfig(m_pFileSystem->GetConfigPath() / "zep.cfg");
 
     m_spTheme = std::make_shared<ZepTheme>();
-
-    assert(m_pDisplay != nullptr);
-    RegisterGlobalMode(std::make_shared<ZepMode_Vim>(*this));
-    RegisterGlobalMode(std::make_shared<ZepMode_Standard>(*this));
-    SetGlobalMode(ZepMode_Vim::StaticName());
-
     Init();
 }
 
-ZepEditor::ZepEditor(const ZepEditorParams& params)
-    : m_pDisplay(params.pDisplay)
-    , m_pFileSystem(params.pFileSystem)
-    , m_flags(params.flags)
+ZepEditor::ZepEditor()
 {
-#if defined(ZEP_FEATURE_CPP_FILE_SYSTEM)
+}
+
+ZepEditor::ZepEditor(const ZepEditorParams& params)
+{
+    Initialize(params);
+}
+
+void ZepEditor::Initialize(const ZepEditorParams& params)
+{
+    m_pDisplay = params.pDisplay;
+    m_pFileSystem = params.pFileSystem;
+    m_flags = params.flags;
+
+    assert(m_pDisplay != nullptr);
+
     if (m_pFileSystem == nullptr)
     {
         m_pFileSystem = new ZepFileSystemCPP(params.root);
     }
-#else
-    if (m_pFileSystem == nullptr)
-    {
-        assert(!"Must supply a file system - no default available on this platform!");
-        throw std::invalid_argument("pFileSystem");
-    }
-#endif
-
-    //LoadConfig(m_pFileSystem->GetConfigPath() / "zep.cfg");
-    assert(m_pDisplay != nullptr);
 
     m_spTheme = std::make_shared<ZepTheme>();
-
-    RegisterGlobalMode(std::make_shared<ZepMode_Vim>(*this));
-    RegisterGlobalMode(std::make_shared<ZepMode_Standard>(*this));
-    SetGlobalMode(ZepMode_Vim::StaticName());
-
     Init();
 }
 
 void ZepEditor::Init()
 {
+    RegisterGlobalMode(std::make_shared<ZepMode_Vim>(*this));
+    RegisterGlobalMode(std::make_shared<ZepMode_Standard>(*this));
+    SetGlobalMode(ZepMode_Vim::StaticName());
+
+    //LoadConfig(m_pFileSystem->GetConfigPath() / "zep.cfg");
+
     if (m_flags & ZepEditorFlags::DisableThreads)
     {
         m_threadPool = std::make_unique<ThreadPool>(1);

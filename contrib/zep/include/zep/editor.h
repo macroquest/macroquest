@@ -270,7 +270,10 @@ public:
     // Root path is the path to search for a config file
     ZepEditor(ZepDisplay* pDisplay, const ZepPath& root, uint32_t flags = 0, IZepFileSystem* pFileSystem = nullptr);
     ZepEditor(const ZepEditorParams& params);
+    ZepEditor();
     ~ZepEditor();
+
+    void Initialize(const ZepEditorParams& params);
 
     void LoadConfig(const ZepPath& config_path);
     void LoadConfig(std::shared_ptr<cpptoml::table> spConfig);
@@ -428,8 +431,8 @@ private:
     ZepTabWindow* EnsureTab();
 
 private:
-    ZepDisplay* m_pDisplay;
-    IZepFileSystem* m_pFileSystem;
+    ZepDisplay* m_pDisplay = nullptr;
+    IZepFileSystem* m_pFileSystem = nullptr;
 
     std::set<IZepComponent*> m_notifyClients;
     mutable tRegisters m_registers;
