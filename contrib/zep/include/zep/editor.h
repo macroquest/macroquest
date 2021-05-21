@@ -375,7 +375,7 @@ public:
     void UpdateWindowState();
 
     // Setup the display fixed_size for the editor
-    void SetDisplayRegion(const NVec2f& topLeft, const NVec2f& bottomRight);
+    void SetDisplayRegionSize(const NVec2f& regionSize);
     void UpdateSize();
 
     ZepDisplay& GetDisplay() const

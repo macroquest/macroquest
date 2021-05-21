@@ -542,19 +542,20 @@ struct ZepContainerImGui : public Zep::IZepComponent
 	Zep::ZepBuffer* m_buffer = nullptr;
 	Zep::ZepWindow* m_window = nullptr;
 	bool m_deferredCursorToEnd = false;
+	Zep::ZepDisplay_ImGui* m_display = nullptr;
 
 	ZepContainerImGui(bool consoleMode, const std::string& filename = "")
 	{
 		Zep::NVec2f pixelScale = { 1.0f, 1.0f };
-		auto display = new Zep::ZepDisplay_ImGui(pixelScale);
-		display->SetFont(Zep::ZepTextType::UI, std::make_shared<Zep::ZepFont_ImGui>(*display, mq::imgui::DefaultFont, 16));
-		display->SetFont(Zep::ZepTextType::Text, std::make_shared<Zep::ZepFont_ImGui>(*display, mq::imgui::ConsoleFont, 13));
-		display->SetFont(Zep::ZepTextType::Heading1, std::make_shared<Zep::ZepFont_ImGui>(*display, mq::imgui::DefaultFont, 28));
-		display->SetFont(Zep::ZepTextType::Heading2, std::make_shared<Zep::ZepFont_ImGui>(*display, mq::imgui::DefaultFont, 14));
-		display->SetFont(Zep::ZepTextType::Heading3, std::make_shared<Zep::ZepFont_ImGui>(*display, mq::imgui::DefaultFont, 20));
+		m_display = new Zep::ZepDisplay_ImGui(pixelScale);
+		m_display->SetFont(Zep::ZepTextType::UI, std::make_shared<Zep::ZepFont_ImGui>(*m_display, mq::imgui::DefaultFont, 16));
+		m_display->SetFont(Zep::ZepTextType::Text, std::make_shared<Zep::ZepFont_ImGui>(*m_display, mq::imgui::ConsoleFont, 13));
+		m_display->SetFont(Zep::ZepTextType::Heading1, std::make_shared<Zep::ZepFont_ImGui>(*m_display, mq::imgui::DefaultFont, 28));
+		m_display->SetFont(Zep::ZepTextType::Heading2, std::make_shared<Zep::ZepFont_ImGui>(*m_display, mq::imgui::DefaultFont, 14));
+		m_display->SetFont(Zep::ZepTextType::Heading3, std::make_shared<Zep::ZepFont_ImGui>(*m_display, mq::imgui::DefaultFont, 20));
 
 		Zep::ZepEditorParams params;
-		params.pDisplay = display;
+		params.pDisplay = m_display;
 		params.flags = Zep::ZepEditorFlags::DisableThreads;
 
 		m_editor = std::make_unique<Zep::ZepEditor_ImGui>(params);
@@ -591,7 +592,6 @@ struct ZepContainerImGui : public Zep::IZepComponent
 			);
 
 			m_buffer = m_editor->InitWithFileOrDir(filename);
-			//m_editor->GetTheme().SetThemeType(Zep::ThemeType::SolarizedLight);
 		}
 	}
 
@@ -623,38 +623,8 @@ struct ZepContainerImGui : public Zep::IZepComponent
 			ImGui::SetClipboardText(message->str.c_str());
 			message->handled = true;
 		}
-		else if (message->messageId == Zep::Msg::RequestQuit)
-		{
-			//quit = true;
-		}
 		else if (message->messageId == Zep::Msg::ToolTip)
 		{
-			//auto spTipMsg = std::static_pointer_cast<Zep::ToolTipMessage>(message);
-			//if (spTipMsg->location.Valid() && spTipMsg->pBuffer)
-			//{
-			//	auto pSyntax = spTipMsg->pBuffer->GetSyntax();
-			//	if (pSyntax)
-			//	{
-			//		if (pSyntax->GetSyntaxAt(spTipMsg->location).foreground == Zep::ThemeColor::Identifier)
-			//		{
-			//			auto spMarker = std::make_shared<Zep::RangeMarker>(*spTipMsg->pBuffer);
-			//			spMarker->SetDescription("This is an identifier");
-			//			spMarker->SetHighlightColor(Zep::ThemeColor::Identifier);
-			//			spMarker->SetTextColor(Zep::ThemeColor::Text);
-			//			spTipMsg->spMarker = spMarker;
-			//			spTipMsg->handled = true;
-			//		}
-			//		else if (pSyntax->GetSyntaxAt(spTipMsg->location).foreground == Zep::ThemeColor::Keyword)
-			//		{
-			//			auto spMarker = std::make_shared<Zep::RangeMarker>(*spTipMsg->pBuffer);
-			//			spMarker->SetDescription("This is a keyword");
-			//			spMarker->SetHighlightColor(Zep::ThemeColor::Keyword);
-			//			spMarker->SetTextColor(Zep::ThemeColor::Text);
-			//			spTipMsg->spMarker = spMarker;
-			//			spTipMsg->handled = true;
-			//		}
-			//	}
-			//}
 		}
 	}
 
@@ -777,7 +747,8 @@ struct ZepContainerImGui : public Zep::IZepComponent
 			m_window->ScrollToCursor();
 		}
 
-		m_editor->SetDisplayRegionSize(displaySize);
+		m_display->SetScreenPosition(Zep::toNVec2f(ImGui::GetCursorScreenPos()));
+		m_editor->SetDisplayRegionSize(Zep::toNVec2f(displaySize));
 
 		// Display the editor inside this window
 		m_editor->HandleInput();
@@ -1042,14 +1013,10 @@ public:
 
 		if (m_zepEditor)
 		{
-			ImVec2 min = ImGui::GetCursorScreenPos();
-			ImVec2 contentSize = ImGui::GetContentRegionMaxAbs();
+			ImVec2 contentSize = ImGui::GetContentRegionAvail();
 			contentSize.y -= footer_height_to_reserve;
-			ImVec2 max = contentSize;
-			max.x = std::max(1.0f, max.x);
-			max.y = std::max(1.0f, max.y);
 
-			m_zepEditor->Render(ImRect(min, max));
+			m_zepEditor->Render(contentSize);
 		}
 		else
 		{

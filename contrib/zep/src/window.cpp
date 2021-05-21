@@ -241,13 +241,12 @@ void ZepWindow::SetDisplayRegion(const NRectf& region)
         return;
     }
 
+    if (m_displayRect.Size() != region.Size())
+        m_layoutDirty = true;
+
     m_displayRect = region;
-
-    m_layoutDirty = true;
     m_bufferRegion->rect = region;
-
     m_airlineRegion->fixed_size = NVec2f(0.0f, float(GetEditor().GetDisplay().GetFont(ZepTextType::UI).GetPixelHeight()));
-
     m_defaultLineSize = GetEditor().GetDisplay().GetFont(ZepTextType::Text).GetPixelHeight();
 }
 

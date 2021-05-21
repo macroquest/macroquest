@@ -1101,10 +1101,10 @@ bool ZepEditor::GetCursorBlinkState() const
     return m_lastCursorBlink;
 }
 
-void ZepEditor::SetDisplayRegion(const NVec2f& topLeft, const NVec2f& bottomRight)
+void ZepEditor::SetDisplayRegionSize(const NVec2f& regionSize)
 {
-    m_editorRegion->rect.topLeftPx = topLeft;
-    m_editorRegion->rect.bottomRightPx = bottomRight;
+    m_editorRegion->rect.topLeftPx = NVec2f();
+    m_editorRegion->rect.bottomRightPx = regionSize;
     UpdateSize();
 }
 

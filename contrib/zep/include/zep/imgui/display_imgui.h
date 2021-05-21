@@ -10,8 +10,7 @@
 // Can't include this publicly
 //#include "zep/mcommon/logger.h"
 
-namespace Zep
-{
+namespace Zep {
 
 inline NVec2f toNVec2f(const ImVec2& im)
 {
@@ -21,6 +20,17 @@ inline ImVec2 toImVec2(const NVec2f& im)
 {
     return ImVec2(im.x, im.y);
 }
+
+inline NVec2f toNVec2fAdjusted(const ImVec2& im, const NVec2f& rel)
+{
+    return NVec2f(im.x + rel.x, im.y + rel.y);
+}
+
+inline ImVec2 toImVec2Adjusted(const NVec2f& im, const NVec2f& rel)
+{
+    return ImVec2(im.x + rel.x, im.y + rel.y);
+}
+
 
 static ImWchar greek_range[] = { 0x300, 0x52F, 0x1f00, 0x1fff, 0, 0 };
 
@@ -84,12 +94,12 @@ public:
         }
         if (m_clipRect.Width() == 0)
         {
-            drawList->AddText(imFont, float(font.GetPixelHeight()), toImVec2(pos), col.ToPackedABGR(), (const char*)text_begin, (const char*)text_end);
+            drawList->AddText(imFont, float(font.GetPixelHeight()), toImVec2Adjusted(pos, m_screenPos), col.ToPackedABGR(), (const char*)text_begin, (const char*)text_end);
         }
         else
         {
-            drawList->PushClipRect(toImVec2(m_clipRect.topLeftPx), toImVec2(m_clipRect.bottomRightPx));
-            drawList->AddText(imFont, float(font.GetPixelHeight()), toImVec2(pos), col.ToPackedABGR(), (const char*)text_begin, (const char*)text_end);
+            drawList->PushClipRect(toImVec2Adjusted(m_clipRect.topLeftPx, m_screenPos), toImVec2Adjusted(m_clipRect.bottomRightPx, m_screenPos));
+            drawList->AddText(imFont, float(font.GetPixelHeight()), toImVec2Adjusted(pos, m_screenPos), col.ToPackedABGR(), (const char*)text_begin, (const char*)text_end);
             drawList->PopClipRect();
         }
     }
@@ -100,12 +110,12 @@ public:
         // Background rect for numbers
         if (m_clipRect.Width() == 0)
         {
-            drawList->AddLine(toImVec2(start), toImVec2(end), color.ToPackedABGR(), width);
+            drawList->AddLine(toImVec2Adjusted(start, m_screenPos), toImVec2Adjusted(end, m_screenPos), color.ToPackedABGR(), width);
         }
         else
         {
-            drawList->PushClipRect(toImVec2(m_clipRect.topLeftPx), toImVec2(m_clipRect.bottomRightPx));
-            drawList->AddLine(toImVec2(start), toImVec2(end), color.ToPackedABGR(), width);
+            drawList->PushClipRect(toImVec2Adjusted(m_clipRect.topLeftPx, m_screenPos), toImVec2Adjusted(m_clipRect.bottomRightPx, m_screenPos));
+            drawList->AddLine(toImVec2Adjusted(start, m_screenPos), toImVec2Adjusted(end, m_screenPos), color.ToPackedABGR(), width);
             drawList->PopClipRect();
         }
     }
@@ -116,12 +126,12 @@ public:
         // Background rect for numbers
         if (m_clipRect.Width() == 0)
         {
-            drawList->AddRectFilled(toImVec2(rc.topLeftPx), toImVec2(rc.bottomRightPx), color.ToPackedABGR());
+            drawList->AddRectFilled(toImVec2Adjusted(rc.topLeftPx, m_screenPos), toImVec2Adjusted(rc.bottomRightPx, m_screenPos), color.ToPackedABGR());
         }
         else
         {
-            drawList->PushClipRect(toImVec2(m_clipRect.topLeftPx), toImVec2(m_clipRect.bottomRightPx));
-            drawList->AddRectFilled(toImVec2(rc.topLeftPx), toImVec2(rc.bottomRightPx), color.ToPackedABGR());
+            drawList->PushClipRect(toImVec2Adjusted(m_clipRect.topLeftPx, m_screenPos), toImVec2Adjusted(m_clipRect.bottomRightPx, m_screenPos));
+            drawList->AddRectFilled(toImVec2Adjusted(rc.topLeftPx, m_screenPos), toImVec2Adjusted(rc.bottomRightPx, m_screenPos), color.ToPackedABGR());
             drawList->PopClipRect();
         }
     }
@@ -192,9 +202,14 @@ public:
         return *m_fonts[(int)type];
     }
 
+    void SetScreenPosition(const NVec2f& screenPos)
+    {
+        m_screenPos = screenPos;
+    }
 
 private:
     NRectf m_clipRect;
+    NVec2f m_screenPos;
 }; // namespace Zep
 
 } // namespace Zep
