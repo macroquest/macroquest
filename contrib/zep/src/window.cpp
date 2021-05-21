@@ -1147,7 +1147,7 @@ void ZepWindow::DisplayLineNumbers()
 // complexity.  Basically, I don't like the current implementation, but it works for now.
 // The text is displayed acorrding to the region bounds and the display lineData
 // Additionally (and perhaps that should be a seperate function), this code draws line numbers
-bool ZepWindow::DisplayLine(SpanInfo& lineInfo, int displayPass)
+bool ZepWindow::DisplayLine(SpanInfo& lineInfo, int displayPass, GlyphIterator* outCursorIter)
 {
     static const auto blankSpace = ' ';
 
@@ -1179,19 +1179,6 @@ bool ZepWindow::DisplayLine(SpanInfo& lineInfo, int displayPass)
 
     bool lineStart = true;
 
-    if (displayPass == WindowPass::Background)
-    {
-        // if the mouse is within the bounds of this whole line, then set it to the end of the line.
-        // if we find a specific character then we will move it there.
-        NRectf lineRect(NVec2f(m_textRegion->rect.Left(), ToWindowY(lineInfo.yOffsetPx)),
-            NVec2f(m_textRegion->rect.Right(), ToWindowY(lineInfo.yOffsetPx + lineInfo.FullLineHeightPx())));
-        if (lineRect.Contains(m_mouseHoverPos))
-        {
-            GlyphIterator linePos = GetBuffer().GetLinePos(GlyphIterator(&GetBuffer(), lineInfo.lineByteRange.first), LineLocation::LineCRBegin);
-            m_mouseCursorIterator = linePos;
-        }
-    }
-
     // Walk from the start of the line to the end of the line (in buffer chars)
     for (const auto& cp : lineInfo.lineCodePoints)
     {
@@ -1203,14 +1190,21 @@ bool ZepWindow::DisplayLine(SpanInfo& lineInfo, int displayPass)
         // TODO : Cache this for speed - a little sluggish on debug builds.
         if (displayPass == WindowPass::Background)
         {
-            NRectf charRect(NVec2f(cp.pos.x, ToWindowY(lineInfo.yOffsetPx)), NVec2f(cp.pos.x + cp.size.x, ToWindowY(lineInfo.yOffsetPx + lineInfo.FullLineHeightPx())));
+            NRectf charRect(NVec2f(cp.pos.x, ToWindowY(lineInfo.yOffsetPx)),
+                NVec2f(cp.pos.x + cp.size.x, ToWindowY(lineInfo.yOffsetPx + lineInfo.FullLineHeightPx())));
+
             if (charRect.Contains(m_mouseHoverPos))
             {
                 // Record the mouse-over buffer location
                 m_mouseBufferLocation = cp.iterator;
-                m_mouseCursorIterator = cp.iterator;
             }
 
+            // If we have the cursor iter pointer, assign the position of the character in the vertical column.
+            if (outCursorIter)
+            {
+                if (m_mouseHoverPos.x >= charRect.Left() && m_mouseHoverPos.x < charRect.Right())
+                    *outCursorIter = cp.iterator;
+            }
 
             // Draw the visual selection marker second
             if (IsActiveWindow())
@@ -1761,15 +1755,67 @@ void ZepWindow::Display()
 
     {
         TIME_SCOPE(DrawLine);
-        for (int displayPass = 0; displayPass < WindowPass::Max; displayPass++)
+
+        // Background & Mouse cursor pass
+        for (long windowLine = m_visibleLineIndices.x; windowLine < m_visibleLineIndices.y; windowLine++)
         {
-            for (long windowLine = m_visibleLineIndices.x; windowLine < m_visibleLineIndices.y; windowLine++)
+            auto& lineInfo = *m_windowLines[windowLine];
+            GlyphIterator mousePos;
+
+            // if the mouse is within the bounds of this whole line, then set it to the end of the line.
+            // if we find a specific character then we will move it there.
+            NRectf lineRect(NVec2f(m_textRegion->rect.Left(), ToWindowY(lineInfo.yOffsetPx)),
+                NVec2f(m_textRegion->rect.Right(), ToWindowY(lineInfo.yOffsetPx + lineInfo.FullLineHeightPx())));
+
+            bool useThisLine = false;
+
+            if (windowLine == m_visibleLineIndices.x)
             {
-                auto& lineInfo = *m_windowLines[windowLine];
-                if (!DisplayLine(lineInfo, displayPass))
+                // First line.
+                if (m_mouseHoverPos.y < lineRect.Top())
                 {
-                    break;
+                    useThisLine = true;
                 }
+            }
+            else if (windowLine == m_visibleLineIndices.y - 1)
+            {
+                // Last line.
+                if (m_mouseHoverPos.y >= lineRect.Bottom())
+                {
+                    useThisLine = true;
+                }
+            }
+
+            // Check if it is constrained to this row.
+            if (useThisLine || m_mouseHoverPos.y >= lineRect.Top() && m_mouseHoverPos.y < lineRect.Bottom())
+            {
+                GlyphIterator linePos = GlyphIterator(&GetBuffer(), lineInfo.lineByteRange.first);
+                useThisLine = true;
+
+                // If its to the left of the line, put at the beginning, otherwise stick at the end. We'll place the
+                // cursor inside the line if we encounter its position while we draw glyphs.
+                if (m_mouseHoverPos.x < lineRect.Left())
+                    mousePos = GetBuffer().GetLinePos(linePos, LineLocation::LineBegin);
+                else
+                    mousePos = GetBuffer().GetLinePos(linePos, LineLocation::LineCRBegin);
+            }
+
+            if (!DisplayLine(lineInfo, WindowPass::Background, useThisLine ? &mousePos : nullptr))
+            {
+                break;
+            }
+
+            if (mousePos.Valid())
+                m_mouseCursorIterator = mousePos;
+        }
+
+        // Text pass
+        for (long windowLine = m_visibleLineIndices.x; windowLine < m_visibleLineIndices.y; windowLine++)
+        {
+            auto& lineInfo = *m_windowLines[windowLine];
+            if (!DisplayLine(lineInfo, WindowPass::Text, nullptr))
+            {
+                break;
             }
         }
     }

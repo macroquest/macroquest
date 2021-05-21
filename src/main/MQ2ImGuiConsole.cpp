@@ -259,8 +259,8 @@ public:
 
 		if (themeColor == Zep::ThemeColor::Background)
 			return Zep::ZepColor(0, 0, 0, 0);
-		if (themeColor == Zep::ThemeColor::VisualSelectBackground)
-			return Zep::ZepColor(0, 0, 128, 128);
+		//if (themeColor == Zep::ThemeColor::VisualSelectBackground)
+		//	return Zep::ZepColor(0, 0, 128, 128);
 
 		return Zep::ZepTheme::GetColor(themeColor);
 	}
@@ -541,6 +541,7 @@ struct ZepContainerImGui : public Zep::IZepComponent
 {
 	Zep::ZepBuffer* m_buffer = nullptr;
 	Zep::ZepWindow* m_window = nullptr;
+	bool m_deferredCursorToEnd = false;
 
 	ZepContainerImGui(bool consoleMode, const std::string& filename = "")
 	{
@@ -694,7 +695,7 @@ struct ZepContainerImGui : public Zep::IZepComponent
 	void AddColoredText(std::string_view text, uint32_t defaultColor, bool newline = false)
 	{
 		Zep::GlyphIterator cursor = m_window->GetBufferCursor();
-		bool cursorAtEnd = cursor == m_buffer->End();
+		bool cursorAtEnd = cursor == m_buffer->End().Clamped();
 
 		std::string_view lineView = text;
 		ImU32 currentColor = defaultColor;
@@ -735,8 +736,7 @@ struct ZepContainerImGui : public Zep::IZepComponent
 
 		if (cursorAtEnd)
 		{
-			m_window->SetBufferCursor(m_buffer->End());
-			m_window->ScrollToCursor();
+			m_deferredCursorToEnd = true;
 		}
 	}
 
@@ -761,17 +761,23 @@ struct ZepContainerImGui : public Zep::IZepComponent
 		m_buffer->Insert(position, text + "\n", changeRecord);
 	}
 
-	void Render(const ImRect& displayRect)
+	void Render(const ImVec2& displaySize)
 	{
-		if (!ImGui::BeginChild("ZepEditor", displayRect.GetSize(), false, ImGuiWindowFlags_NoMove |
+		if (!ImGui::BeginChild("ZepEditor", displaySize, false, ImGuiWindowFlags_NoMove |
 			ImGuiWindowFlags_NoBackground))
 		{
 			ImGui::EndChild();
 			return;
 		}
 
-		m_editor->SetDisplayRegion(Zep::NVec2f(displayRect.Min.x, displayRect.Min.y),
-			Zep::NVec2f(displayRect.Max.x, displayRect.Max.y));
+		if (m_deferredCursorToEnd)
+		{
+			m_deferredCursorToEnd = false;
+			m_window->SetBufferCursor(m_buffer->End());
+			m_window->ScrollToCursor();
+		}
+
+		m_editor->SetDisplayRegionSize(displaySize);
 
 		// Display the editor inside this window
 		m_editor->HandleInput();

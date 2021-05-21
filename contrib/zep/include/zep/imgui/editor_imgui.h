@@ -104,6 +104,7 @@ public:
         }
 
         int clickCount = 1;
+        m_hasMouse = false;
 
         if (mod == 0)
         {
@@ -132,18 +133,16 @@ public:
             }
         }
 
-        bool dragging = false;
-
         for (int i = 0; i < 5; ++i)
         {
             if (ImGui::IsMouseDragging(i) && ImGui::IsMouseDown(i))
             {
                 OnMouseMove(toNVec2f(io.MousePos), ImGuiMouseToZepButton(i), mod);
-                dragging = true;
+                m_hasMouse = true;
             }
         }
 
-        if (!dragging)
+        if (!m_hasMouse)
         {
             OnMouseMove(toNVec2f(io.MousePos), ImGuiMouseToZepButton(-1), 0);
         }

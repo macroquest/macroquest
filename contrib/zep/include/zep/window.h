@@ -211,7 +211,7 @@ private:
 
     // Display
     void DisplayToolTip(const NVec2f& pos, const RangeMarker& marker) const;
-    bool DisplayLine(SpanInfo& lineInfo, int displayPass);
+    bool DisplayLine(SpanInfo& lineInfo, int displayPass, GlyphIterator* cursorIter);
     void DisplayLineBackground(SpanInfo& lineInfo, ZepSyntax* pSyntax);
     void DisplayScrollers();
     void DisplayGridMarkers();
