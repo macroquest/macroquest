@@ -178,10 +178,6 @@
     <ClInclude Include="include\zep\filesystem.h" />
     <ClInclude Include="include\zep\gap_buffer.h" />
     <ClInclude Include="include\zep\glyph_iterator.h" />
-    <ClInclude Include="include\zep\imgui\console_imgui.h" />
-    <ClInclude Include="include\zep\imgui\display_imgui.h" />
-    <ClInclude Include="include\zep\imgui\editor_imgui.h" />
-    <ClInclude Include="include\zep\imgui\usb_hid_keys.h" />
     <ClInclude Include="include\zep\indexer.h" />
     <ClInclude Include="include\zep\keymap.h" />
     <ClInclude Include="include\zep\line_widgets.h" />

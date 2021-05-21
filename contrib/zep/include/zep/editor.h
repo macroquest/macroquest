@@ -70,7 +70,6 @@ enum
     None = (0),
     DisableThreads = (1 << 0),
     FastUpdate = (1 << 1),
-    HasFocus = (1 << 2),
 };
 };
 

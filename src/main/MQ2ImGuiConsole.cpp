@@ -17,9 +17,9 @@
 #include "MQ2DeveloperTools.h"
 #include "MQ2ImGuiTools.h"
 #include "MQ2Utilities.h"
+#include "ImGuiZepEditor.h"
 
 #include "imgui/ImGuiTreePanelWindow.h"
-#include "imgui/ImGuiTextEditor.h"
 #include <imgui/imgui_internal.h>
 
 #include "zep.h"
@@ -37,38 +37,8 @@ static bool s_dockspaceVisible = false;
 static bool s_resetDockspace = false;
 static bool s_setFocus = false;
 
-constexpr const bool s_useZepConsole = true;
-
 class ImGuiConsole;
 ImGuiConsole* gImGuiConsole = nullptr;
-
-const mq::imgui::texteditor::Palette& GetColorPalette()
-{
-	const static mq::imgui::texteditor::Palette p = { {
-			0xffffffff, // Default
-			0xffffffff, // Keyword
-			0xffffffff, // Number
-			0xffffffff, // String
-			0xffffffff, // Char literal
-			0xffffffff, // Punctuation
-			0xffffffff, // Preprocessor
-			0xffffffff, // Identifier
-			0xffffffff, // Known identifier
-			0xffffffff, // Preproc identifier
-			0xffffffff, // Comment (single line)
-			0xffffffff, // Comment (multi line)
-			0x00000000, // Background
-			0xffe0e0e0, // Cursor
-			0x80a06020, // Selection
-			0x800020ff, // ErrorMarker
-			0x40f08000, // Breakpoint
-			0xff707000, // Line number
-			0x40000000, // Current line fill
-			0x40808080, // Current line fill (inactive)
-			0x40a0a0a0, // Current line edge
-		} };
-	return p;
-}
 
 static void Strtrim(char* str)
 {
@@ -537,105 +507,46 @@ private:
 //----------------------------------------------------------------------------
 
 // This is the imgui container for the Zep component.
-struct ZepContainerImGui : public Zep::IZepComponent
+struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 {
 	Zep::ZepBuffer* m_buffer = nullptr;
 	Zep::ZepWindow* m_window = nullptr;
 	bool m_deferredCursorToEnd = false;
-	Zep::ZepDisplay_ImGui* m_display = nullptr;
+	std::shared_ptr<ZepConsoleTheme> m_theme;
+	std::shared_ptr<ZepConsoleSyntax> m_syntax;
 
-	ZepContainerImGui(bool consoleMode, const std::string& filename = "")
+	ImGuiZepConsole()
 	{
-		Zep::NVec2f pixelScale = { 1.0f, 1.0f };
-		m_display = new Zep::ZepDisplay_ImGui(pixelScale);
-		m_display->SetFont(Zep::ZepTextType::UI, std::make_shared<Zep::ZepFont_ImGui>(*m_display, mq::imgui::DefaultFont, 16));
-		m_display->SetFont(Zep::ZepTextType::Text, std::make_shared<Zep::ZepFont_ImGui>(*m_display, mq::imgui::ConsoleFont, 13));
-		m_display->SetFont(Zep::ZepTextType::Heading1, std::make_shared<Zep::ZepFont_ImGui>(*m_display, mq::imgui::DefaultFont, 28));
-		m_display->SetFont(Zep::ZepTextType::Heading2, std::make_shared<Zep::ZepFont_ImGui>(*m_display, mq::imgui::DefaultFont, 14));
-		m_display->SetFont(Zep::ZepTextType::Heading3, std::make_shared<Zep::ZepFont_ImGui>(*m_display, mq::imgui::DefaultFont, 20));
+		SetFont(Zep::ZepTextType::UI, mq::imgui::DefaultFont, 16);
+		SetFont(Zep::ZepTextType::Text, mq::imgui::ConsoleFont, 13);
+		SetFont(Zep::ZepTextType::Heading1, mq::imgui::DefaultFont, 28);
+		SetFont(Zep::ZepTextType::Heading2, mq::imgui::DefaultFont, 14);
+		SetFont(Zep::ZepTextType::Heading3, mq::imgui::DefaultFont, 20);
 
-		Zep::ZepEditorParams params;
-		params.pDisplay = m_display;
-		params.flags = Zep::ZepEditorFlags::DisableThreads;
-
-		m_editor = std::make_unique<Zep::ZepEditor_ImGui>(params);
-		m_editor->RegisterCallback(this);
-		m_editor->SetGlobalMode(Zep::ZepMode_Standard::StaticName());
-
-		m_window = m_editor->GetActiveTabWindow()->GetActiveWindow();
+		m_window = GetEditor().GetActiveTabWindow()->GetActiveWindow();
 		m_theme = std::make_shared<ZepConsoleTheme>();
-		m_editor->SetTheme(m_theme);
+		GetEditor().SetTheme(m_theme);
 
-		if (consoleMode)
-		{
-			m_editor->GetConfig().style = Zep::EditorStyle::Minimal;
-			m_window->SetWindowFlags(Zep::WindowFlags::WrapText);
+		GetEditor().GetConfig().style = Zep::EditorStyle::Minimal;
+		m_window->SetWindowFlags(Zep::WindowFlags::WrapText);
 
-			m_editor->RegisterSyntaxFactory(
-				{ "Console" },
-				Zep::SyntaxProvider{ "Console", Zep::tSyntaxFactory([this](Zep::ZepBuffer* pBuffer) {
-					return std::make_shared<ZepConsoleSyntax>(*pBuffer, m_theme, m_window);
-				})
-			});
+		GetEditor().RegisterSyntaxFactory(
+			{ "Console" },
+			Zep::SyntaxProvider{ "Console", Zep::tSyntaxFactory([this](Zep::ZepBuffer* pBuffer) {
+				return std::make_shared<ZepConsoleSyntax>(*pBuffer, m_theme, m_window);
+			})
+		});
 
-			m_buffer = m_editor->InitWithText("Console", "");
-			m_buffer->SetTheme(m_theme);
-			m_window->SetBufferCursor(m_buffer->End());
-			m_buffer->SetFileFlags(Zep::FileFlags::ReadOnly);
-		}
-		else
-		{
-			m_editor->GetConfig().style = Zep::EditorStyle::Normal;
-			m_window->SetWindowFlags(Zep::WindowFlags::None
-				| Zep::WindowFlags::ShowWhiteSpace | Zep::WindowFlags::ShowLineNumbers | Zep::WindowFlags::WrapText
-				| Zep::WindowFlags::ShowLineBackground
-			);
+		m_buffer = GetEditor().InitWithText("Console", "");
+		m_buffer->SetTheme(m_theme);
+		m_window->SetBufferCursor(m_buffer->End());
+		m_buffer->SetFileFlags(Zep::FileFlags::ReadOnly);
 
-			m_buffer = m_editor->InitWithFileOrDir(filename);
-		}
-	}
-
-	~ZepContainerImGui()
-	{
-		Destroy();
-	}
-
-	void Destroy()
-	{
-		if (m_editor)
-		{
-			m_editor->UnRegisterCallback(this);
-			m_editor.reset();
-		}
-	}
-
-	// Inherited via IZepComponent
-	virtual void Notify(std::shared_ptr<Zep::ZepMessage> message) override
-	{
-		if (message->messageId == Zep::Msg::GetClipBoard)
-		{
-			const char* clipboard = ImGui::GetClipboardText();
-			message->str = clipboard ? clipboard : "";
-			message->handled = true;
-		}
-		else if (message->messageId == Zep::Msg::SetClipBoard)
-		{
-			ImGui::SetClipboardText(message->str.c_str());
-			message->handled = true;
-		}
-		else if (message->messageId == Zep::Msg::ToolTip)
-		{
-		}
-	}
-
-	virtual Zep::ZepEditor_ImGui& GetEditor() const override
-	{
-		return *m_editor;
 	}
 
 	void Clear()
 	{
-
+		m_buffer->Clear();
 	}
 
 	void InsertText(std::string_view text, ImU32 color)
@@ -731,15 +642,8 @@ struct ZepContainerImGui : public Zep::IZepComponent
 		m_buffer->Insert(position, text + "\n", changeRecord);
 	}
 
-	void Render(const ImVec2& displaySize)
+	void Render(const char* id, const ImVec2& displaySize = ImVec2()) override
 	{
-		if (!ImGui::BeginChild("ZepEditor", displaySize, false, ImGuiWindowFlags_NoMove |
-			ImGuiWindowFlags_NoBackground))
-		{
-			ImGui::EndChild();
-			return;
-		}
-
 		if (m_deferredCursorToEnd)
 		{
 			m_deferredCursorToEnd = false;
@@ -747,24 +651,8 @@ struct ZepContainerImGui : public Zep::IZepComponent
 			m_window->ScrollToCursor();
 		}
 
-		m_display->SetScreenPosition(Zep::toNVec2f(ImGui::GetCursorScreenPos()));
-		m_editor->SetDisplayRegionSize(Zep::toNVec2f(displaySize));
-
-		// Display the editor inside this window
-		m_editor->HandleInput();
-
-		ImGui::PushAllowKeyboardFocus(true);
-		m_editor->SetHasFocus(ImGui::IsWindowFocused());
-		m_editor->Display();
-
-		ImGui::PopAllowKeyboardFocus();
-
-		ImGui::EndChild();
+		ImGuiZepEditor::Render(id, displaySize);
 	}
-
-	std::unique_ptr<Zep::ZepEditor_ImGui> m_editor;
-	std::shared_ptr<ZepConsoleTheme> m_theme;
-	std::shared_ptr<ZepConsoleSyntax> m_syntax;
 };
 
 #pragma endregion
@@ -782,28 +670,12 @@ public:
 	int m_historyPos = -1;    // -1: new line, 0..History.Size-1 browsing history.
 	bool m_autoScroll = true;
 	bool m_scrollToBottom = true;
-	std::unique_ptr<mq::imgui::TextEditor> m_imguiEditor;
-	std::unique_ptr<ZepContainerImGui> m_zepEditor;
+	std::unique_ptr<ImGuiZepConsole> m_zepEditor;
 
 	ImGuiConsole()
 	{
 		ZeroMemory(m_inputBuffer, lengthof(m_inputBuffer));
-
-		if constexpr (s_useZepConsole)
-		{
-			m_zepEditor = std::make_unique<ZepContainerImGui>(true);
-		}
-		else
-		{
-			m_imguiEditor = std::make_unique<mq::imgui::TextEditor>();
-			m_imguiEditor->SetPalette(GetColorPalette());
-			m_imguiEditor->SetReadOnly(true);
-			m_imguiEditor->SetRenderCursor(false);
-			m_imguiEditor->SetShowWhitespace(false);
-			m_imguiEditor->SetRenderLineNumbers(false);
-			m_imguiEditor->SetLanguageDefinition(mq::imgui::texteditor::LanguageDefinition::PlainText());
-			//m_imguiEditor->SetImGuiChildIgnored(true);
-		}
+		m_zepEditor = std::make_unique<ImGuiZepConsole>();
 	}
 
 	~ImGuiConsole()
@@ -813,14 +685,7 @@ public:
 
 	void ClearLog()
 	{
-		if (m_zepEditor)
-		{
-			m_zepEditor->Clear();
-		}
-		else
-		{
-			m_imguiEditor->SetText("");
-		}
+		m_zepEditor->Clear();
 	}
 
 	template <typename... Args>
@@ -829,16 +694,7 @@ public:
 		fmt::basic_memory_buffer<char> buf;
 		fmt::format_to(buf, fmt, args...);
 
-		if (m_zepEditor)
-		{
-			m_zepEditor->AddColoredText(std::string_view(buf.data(), buf.size()), color, false);
-		}
-		else
-		{
-			m_imguiEditor->MoveBottom();
-			m_imguiEditor->MoveEnd();
-			m_imguiEditor->InsertText(std::string_view(buf.data(), buf.size()), color);
-		}
+		m_zepEditor->AddColoredText(std::string_view(buf.data(), buf.size()), color, false);
 	}
 
 	template <typename... Args>
@@ -849,51 +705,7 @@ public:
 
 	void AddWriteChatColorLog(const char* line, ImU32 defaultColor = s_defaultColor, bool newline = false)
 	{
-		if (m_zepEditor)
-		{
-			m_zepEditor->AddColoredText(line, defaultColor, newline);
-			return;
-		}
-
-		m_imguiEditor->MoveBottom();
-		m_imguiEditor->MoveEnd();
-
-		std::string_view lineView{ line };
-		ImU32 currentColor = defaultColor;
-
-		std::vector<ImU32> colorStack;
-
-		while (!lineView.empty())
-		{
-			auto colorPos = lineView.find("\a");
-
-			// this is everything before the color code.
-			auto beforeColor = lineView.substr(0, colorPos);
-			if (!beforeColor.empty())
-			{
-				// no color codes, write out with current color
-				m_imguiEditor->InsertText(beforeColor, currentColor);
-			}
-
-			// did we find a color?
-			if (colorPos == std::string_view::npos)
-				break;
-
-			lineView = lineView.substr(colorPos);
-
-			auto& [nextSegment, nextColor] = ParseColorTags(lineView, colorStack, defaultColor);
-			// Parse the color and get the next segment. We pass in the
-			// default color to handle \ax properly
-
-			if (nextSegment.empty())
-				break;
-
-			currentColor = nextColor;
-			lineView = nextSegment;
-		}
-
-		if (newline)
-			m_imguiEditor->InsertText("\n");
+		m_zepEditor->AddColoredText(line, defaultColor, newline);
 	}
 
 	void Draw(bool* pOpen)
@@ -980,30 +792,6 @@ public:
 
 		const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing(); // 1 separator, 1 input text
 
-		if (m_zepEditor)
-		{
-			//ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-			//ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-			//ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0.0f);
-			//ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-			//ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-			//ImGui::BeginChild("ZepContainer", ImVec2(0, -footer_height_to_reserve), false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove);
-		}
-		else
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 4));
-			ImGui::BeginChild("ScrollingRegion", ImVec2(0, -footer_height_to_reserve), false, ImGuiWindowFlags_HorizontalScrollbar); // Leave room for 1 separator + 1 InputText
-		}
-
-		if (m_zepEditor)
-		{
-			//ImGui::PopStyleVar(5);
-		}
-		else
-		{
-			ImGui::PopStyleVar();
-		}
-
 		// Right click menu for editor
 		if (ImGui::BeginPopupContextWindow())
 		{
@@ -1011,23 +799,10 @@ public:
 			ImGui::EndPopup();
 		}
 
-		if (m_zepEditor)
-		{
-			ImVec2 contentSize = ImGui::GetContentRegionAvail();
-			contentSize.y -= footer_height_to_reserve;
+		ImVec2 contentSize = ImGui::GetContentRegionAvail();
+		contentSize.y -= footer_height_to_reserve;
 
-			m_zepEditor->Render(contentSize);
-		}
-		else
-		{
-			ImGui::PushAllowKeyboardFocus(false);
-			m_imguiEditor->Render("TextEditor");
-			ImGui::PopAllowKeyboardFocus();
-			if (m_scrollToBottom || (m_autoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY()))
-				ImGui::SetScrollHereY(1.0f);
-			ImGui::EndChild();
-			m_scrollToBottom = false;
-		}
+		m_zepEditor->Render("##ZepConsole", contentSize);
 
 		ImGui::Separator();
 

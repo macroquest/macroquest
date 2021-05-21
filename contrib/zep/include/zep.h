@@ -42,6 +42,3 @@
 #include "zep/mode_vim.h"
 #include "zep/mode_standard.h"
 #endif
-
-#include "zep/imgui/display_imgui.h"
-#include "zep/imgui/editor_imgui.h"

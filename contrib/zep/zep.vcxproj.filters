@@ -16,9 +16,6 @@
     <Filter Include="Source Files\mcommon">
       <UniqueIdentifier>{9d45a062-0353-4ede-96e4-150c8bbfcfbd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\imgui">
-      <UniqueIdentifier>{bb1601e1-66f3-4a45-9100-4c0db6008f4a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\mcommon">
       <UniqueIdentifier>{7802156d-84a8-411c-958b-bb18fbfb2d01}</UniqueIdentifier>
     </Filter>
@@ -202,18 +199,6 @@
     </ClInclude>
     <ClInclude Include="include\zep\buffer.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\imgui\display_imgui.h">
-      <Filter>Header Files\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\imgui\editor_imgui.h">
-      <Filter>Header Files\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\imgui\usb_hid_keys.h">
-      <Filter>Header Files\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\imgui\console_imgui.h">
-      <Filter>Header Files\imgui</Filter>
     </ClInclude>
     <ClInclude Include="include\zep\mcommon\platform.h">
       <Filter>Header Files\mcommon</Filter>
