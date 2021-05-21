@@ -254,14 +254,6 @@ public:
 		return (Zep::ThemeColor)(index + UserColorStart);
 	}
 
-	Zep::ThemeColor GetHyperlinkColor(bool hovered)
-	{
-		if (hovered)
-			return GetUserColor(Zep::ZepColor(255, 255, 0));
-		else
-			return GetUserColor(Zep::ZepColor(255, 0, 255));
-	}
-
 private:
 	std::vector<Zep::ZepColor> m_userColors;
 };
@@ -284,6 +276,7 @@ struct ZepAttribute
 	struct HyperlinkAttributeData
 	{
 		std::string linkData;
+		uint32_t color = Zep::ZepColor(255, 0, 255);
 	};
 
 	using ZepAttributeData = std::variant<ColorAttributeData, HyperlinkAttributeData>;
@@ -316,6 +309,9 @@ struct ZepBufferAttribute
 };
 
 using ZepAttributes = std::vector<ZepBufferAttribute>;
+
+constexpr const Zep::Msg UserEvent_HyperlinkLeftClick = static_cast<Zep::Msg>(static_cast<int>(Zep::Msg::UserEvent) + 1);
+constexpr const Zep::Msg UserEvent_HyperlinkRightClick = static_cast<Zep::Msg>(static_cast<int>(Zep::Msg::UserEvent) + 2);
 
 // This custom syntax makes use of ranged-based "attributes" that annotate the text to produce
 // colorization and hyperlinks for the editor.
@@ -359,7 +355,7 @@ public:
 
 		if (syntaxData.hyperlinkId)
 		{
-			result.foreground = m_theme->GetHyperlinkColor(m_hoveredHyperlink == syntaxData.hyperlinkId);
+			result.foreground = GetHyperlinkColor(syntaxData.hyperlinkId, m_hoveredHyperlink == syntaxData.hyperlinkId);
 		}
 		else
 		{
@@ -369,21 +365,24 @@ public:
 		return result;
 	}
 
-	void Notify(std::shared_ptr<Zep::ZepMessage> spMsg)
+	Zep::ThemeColor GetHyperlinkColor(uint32_t linkId, bool hovered) const
 	{
-		if (spMsg->messageId == Zep::Msg::MouseDown
-			&& m_hoveredHyperlink != 0)
+		if (hovered)
 		{
-			if ((spMsg->modifiers & Zep::ModifierKey::Ctrl)
-				&& spMsg->button == Zep::ZepMouseButton::Left)
-			{
-				std::string text = fmt::format("Clicked hyperlink: {}\n", m_hyperlinkData[m_hoveredHyperlink]);
-
-				Zep::ChangeRecord changeRecord;
-				m_buffer.Insert(m_buffer.End(), text, changeRecord);
-			}
+			// Yellow
+			return m_theme->GetUserColor(Zep::ZepColor(255, 255, 0));
 		}
 
+		// Get the color tied to this hyperlink.
+		auto iter = m_hyperlinkData.find(linkId);
+		if (iter != m_hyperlinkData.end())
+			return m_theme->GetUserColor(iter->second.color);
+
+		return m_theme->GetUserColor(Zep::ZepColor(255, 0, 255));
+	}
+
+	void Notify(std::shared_ptr<Zep::ZepMessage> spMsg)
+	{
 		if (spMsg->messageId == Zep::Msg::Buffer)
 		{
 			auto spBufferMsg = std::static_pointer_cast<Zep::BufferMessage>(spMsg);
@@ -434,7 +433,8 @@ public:
 
 					if (attribute.attribute.type == ZepAttributeType::Hyperlink)
 					{
-						uint32_t hyperlinkId = MakeHyperlink(std::get<(int)ZepAttributeType::Hyperlink>(attribute.attribute.data).linkData);
+						auto& hyperlinkData = std::get<(int)ZepAttributeType::Hyperlink>(attribute.attribute.data);
+						uint32_t hyperlinkId = MakeHyperlink(hyperlinkData);
 
 						Zep::GlyphRange range = { attribute.start + attribute.startIndex, attribute.start + attribute.endIndex };
 						for (Zep::GlyphIterator iter = range.first; iter != range.second; iter++)
@@ -456,6 +456,21 @@ public:
 		}
 	}
 
+	void DispatchMouseEvent(std::shared_ptr<Zep::ZepMessage> message)
+	{
+		if (message->messageId == Zep::Msg::MouseDown
+			&& m_hoveredHyperlink != 0)
+		{
+			if (message->button == Zep::ZepMouseButton::Left)
+			{
+				auto hyperlinkMsg = std::make_shared<Zep::ZepMessage>(UserEvent_HyperlinkLeftClick, m_hyperlinkData[m_hoveredHyperlink].linkData);
+				GetEditor().Broadcast(hyperlinkMsg);
+
+				message->handled = true;
+			}
+		}
+	}
+
 	void AddAttribute(const Zep::GlyphIterator& position, ZepTextAttribute attr)
 	{
 		ZepBufferAttribute& buffAttr = m_pendingAttributes.emplace_back();
@@ -465,7 +480,7 @@ public:
 		buffAttr.attribute = std::move(attr.attribute);
 	}
 
-	uint32_t MakeHyperlink(const std::string& hyperlinkData)
+	uint32_t MakeHyperlink(const ZepAttribute::HyperlinkAttributeData& hyperlinkData)
 	{
 		uint32_t hyperlinkId = m_nextHyperlinkId++;
 		m_hyperlinkData[hyperlinkId] = hyperlinkData;
@@ -498,7 +513,7 @@ private:
 	std::shared_ptr<ZepConsoleTheme> m_theme;
 	std::vector<ZepBufferAttribute> m_pendingAttributes;
 	uint32_t m_nextHyperlinkId = 1;
-	std::map<uint32_t, std::string> m_hyperlinkData;
+	std::map<uint32_t, ZepAttribute::HyperlinkAttributeData> m_hyperlinkData;
 	uint32_t m_hoveredHyperlink = 0;
 	Zep::scoped_connection onMouseCursorChanged;
 	int m_latestPosition = 0;
@@ -514,6 +529,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 	bool m_deferredCursorToEnd = false;
 	std::shared_ptr<ZepConsoleTheme> m_theme;
 	std::shared_ptr<ZepConsoleSyntax> m_syntax;
+	int m_maxBufferLines = 10000;
 
 	ImGuiZepConsole()
 	{
@@ -549,16 +565,31 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		m_buffer->Clear();
 	}
 
-	void InsertText(std::string_view text, ImU32 color)
+	void InsertText(Zep::GlyphIterator position, std::string_view text, ImU32 color = 0)
+	{
+		if (color != 0)
+		{
+			ZepTextAttribute attribute;
+			attribute.startIndex = 0;
+			attribute.endIndex = text.length();
+			attribute.attribute.type = ZepAttributeType::Color;
+			attribute.attribute.data = ZepAttribute::ColorAttributeData{ color };
+
+			ZepConsoleSyntax* syntax = static_cast<ZepConsoleSyntax*>(m_buffer->GetSyntax());
+			syntax->AddAttribute(position, std::move(attribute));
+		}
+
+		Zep::ChangeRecord changeRecord;
+		m_buffer->Insert(position, text, changeRecord);
+	}
+
+	void InsertHyperlink(Zep::GlyphIterator position, std::string_view text, std::string_view hyperlinkData)
 	{
 		ZepTextAttribute attribute;
 		attribute.startIndex = 0;
 		attribute.endIndex = text.length();
-		attribute.attribute.type = ZepAttributeType::Color;
-		attribute.attribute.data = ZepAttribute::ColorAttributeData{ color };
-
-		// Append to end of buffer
-		Zep::GlyphIterator position = m_buffer->End();
+		attribute.attribute.type = ZepAttributeType::Hyperlink;
+		attribute.attribute.data = ZepAttribute::HyperlinkAttributeData{ std::string(hyperlinkData) };
 
 		ZepConsoleSyntax* syntax = static_cast<ZepConsoleSyntax*>(m_buffer->GetSyntax());
 		syntax->AddAttribute(position, std::move(attribute));
@@ -567,13 +598,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		m_buffer->Insert(position, text, changeRecord);
 	}
 
-	void InsertText(std::string_view text)
-	{
-		Zep::ChangeRecord changeRecord;
-		m_buffer->Insert(m_buffer->End(), text, changeRecord);
-	}
-
-	void AddColoredText(std::string_view text, uint32_t defaultColor, bool newline = false)
+	void AppendFormattedText(std::string_view text, uint32_t defaultColor = s_defaultColor, bool newline = false)
 	{
 		Zep::GlyphIterator cursor = m_window->GetBufferCursor();
 		bool cursorAtEnd = cursor == m_buffer->End().Clamped();
@@ -592,7 +617,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 			if (!beforeColor.empty())
 			{
 				// no color codes, write out with current color
-				InsertText(beforeColor, currentColor);
+				InsertText(m_buffer->End(), beforeColor, currentColor);
 			}
 
 			// did we find a color?
@@ -613,7 +638,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		}
 
 		if (newline)
-			InsertText("\n");
+			InsertText(m_buffer->End(), "\n");
 
 		if (cursorAtEnd)
 		{
@@ -623,6 +648,9 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 
 	void DoHyperlinkTest()
 	{
+		Zep::GlyphIterator cursor = m_window->GetBufferCursor();
+		bool cursorAtEnd = cursor == m_buffer->End().Clamped();
+
 		static int hyperlinkNum = 1;
 		std::string text = fmt::format("This is hyperlink {}", hyperlinkNum++);
 
@@ -640,6 +668,11 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 
 		Zep::ChangeRecord changeRecord;
 		m_buffer->Insert(position, text + "\n", changeRecord);
+
+		if (cursorAtEnd)
+		{
+			m_deferredCursorToEnd = true;
+		}
 	}
 
 	void Render(const char* id, const ImVec2& displaySize = ImVec2()) override
@@ -652,6 +685,16 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		}
 
 		ImGuiZepEditor::Render(id, displaySize);
+	}
+
+	void Notify(std::shared_ptr<Zep::ZepMessage> message) override
+	{
+		if (message->messageId == UserEvent_HyperlinkLeftClick)
+		{
+			std::string text = fmt::format("Clicked hyperlink: {}\n", message->str);
+
+			AppendFormattedText(text, MQColor(255, 255, 0));
+		}
 	}
 };
 
@@ -694,7 +737,7 @@ public:
 		fmt::basic_memory_buffer<char> buf;
 		fmt::format_to(buf, fmt, args...);
 
-		m_zepEditor->AddColoredText(std::string_view(buf.data(), buf.size()), color, false);
+		m_zepEditor->AppendFormattedText(std::string_view(buf.data(), buf.size()), color, false);
 	}
 
 	template <typename... Args>
@@ -705,7 +748,7 @@ public:
 
 	void AddWriteChatColorLog(const char* line, ImU32 defaultColor = s_defaultColor, bool newline = false)
 	{
-		m_zepEditor->AddColoredText(line, defaultColor, newline);
+		m_zepEditor->AppendFormattedText(line, defaultColor, newline);
 	}
 
 	void Draw(bool* pOpen)

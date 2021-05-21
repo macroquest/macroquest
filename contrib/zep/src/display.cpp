@@ -136,13 +136,20 @@ void ZepDisplay::DrawScroller(const Scroller& scroller, ZepTheme& theme)
     auto activeColor = theme.GetColor(ThemeColor::WidgetActive);
     auto inactiveColor = theme.GetColor(ThemeColor::WidgetInactive);
 
+    bool canHover = scroller.GetEditor().IsMouseCaptured(&scroller);
+
     // Scroller background
     DrawRectFilled(region->rect, theme.GetColor(ThemeColor::WidgetBackground));
 
     auto scrollState = scroller.GetState();
+    bool onTop = false;
+    bool onBottom = false;
 
-    bool onTop = topButton->rect.Contains(mousePos) && scrollState != Scroller::ScrollState::Drag;
-    bool onBottom = bottomButton->rect.Contains(mousePos) && scrollState != Scroller::ScrollState::Drag;
+    if (canHover)
+    {
+        onTop = topButton->rect.Contains(mousePos) && scrollState != Scroller::ScrollState::Drag;
+        onBottom = bottomButton->rect.Contains(mousePos) && scrollState != Scroller::ScrollState::Drag;
+    }
 
     if (scrollState == Scroller::ScrollState::ScrollUp)
     {
@@ -159,7 +166,13 @@ void ZepDisplay::DrawScroller(const Scroller& scroller, ZepTheme& theme)
     auto thumbRect = scroller.ThumbRect();
 
     // Thumb
-    DrawRectFilled(thumbRect, thumbRect.Contains(mousePos) || scrollState == Scroller::ScrollState::Drag ? activeColor : inactiveColor);
+    bool onThumb = false;
+    if (canHover)
+    {
+        onThumb = thumbRect.Contains(mousePos);
+    }
+
+    DrawRectFilled(thumbRect, onThumb || scrollState == Scroller::ScrollState::Drag ? activeColor : inactiveColor);
 }
 
 void ZepDisplay::Bigger()

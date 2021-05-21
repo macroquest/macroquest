@@ -98,6 +98,8 @@ enum class Msg
     ConfigChanged,
     ToolTip,
     MouseScroll,
+
+    UserEvent = 100,
 };
 
 struct IZepComponent;
@@ -139,6 +141,7 @@ public:
 struct IZepComponent
 {
     virtual void Notify(std::shared_ptr<ZepMessage> message) { ZEP_UNUSED(message); };
+    virtual void DispatchMouseEvent(std::shared_ptr<ZepMessage> message) { ZEP_UNUSED(message); }
     virtual ZepEditor& GetEditor() const = 0;
 };
 
@@ -301,6 +304,9 @@ public:
 
     void RegisterSyntaxFactory(const std::vector<std::string>& mappings, SyntaxProvider factory);
     bool Broadcast(std::shared_ptr<ZepMessage> payload);
+    void DispatchMouseEvent(std::shared_ptr<ZepMessage> message);
+    const NVec2f& GetMousePos() const { return m_mousePos; }
+
     void RegisterCallback(IZepComponent* pClient)
     {
         m_notifyClients.insert(pClient);
@@ -328,6 +334,14 @@ public:
 
     void ReadClipboard();
     void WriteClipboard();
+
+    void CaptureMouse(ZepComponent* pComponent, bool capture);
+    bool IsMouseCaptured(const ZepComponent* by = nullptr) const
+    {
+        if (by)
+            return m_mouseCaptureComponent == nullptr || m_mouseCaptureComponent == by;
+        return m_mouseCaptureComponent != nullptr;
+    }
 
     void Notify(std::shared_ptr<ZepMessage> message);
     uint32_t GetFlags() const;
@@ -393,11 +407,10 @@ public:
     ZepTheme& GetTheme() const;
     void SetTheme(const std::shared_ptr<ZepTheme>& theme) { m_spTheme = theme; }
 
-    bool OnMouseMove(const NVec2f& mousePos, ZepMouseButton button, uint32_t mods);
-    bool OnMouseDown(const NVec2f& mousePos, ZepMouseButton button, uint32_t mods = 0, int clicks = 1);
-    bool OnMouseUp(const NVec2f& mousePos, ZepMouseButton button, uint32_t mods = 0);
-    bool OnMouseWheel(const NVec2f& mousePos, float scrollAmount);
-    const NVec2f GetMousePos() const;
+    void OnMouseMove(const NVec2f& mousePos, ZepMouseButton button, uint32_t mods);
+    void OnMouseDown(const NVec2f& mousePos, ZepMouseButton button, uint32_t mods = 0, int clicks = 1);
+    void OnMouseUp(const NVec2f& mousePos, ZepMouseButton button, uint32_t mods = 0);
+    void OnMouseWheel(const NVec2f& mousePos, float scrollAmount);
 
     void SetBufferSyntax(ZepBuffer& buffer) const;
     void SetBufferMode(ZepBuffer& buffer) const;
@@ -476,6 +489,7 @@ private:
 
     NVec2f m_mousePos = NVec2f(0.0f);
     NVec2f m_pixelScale = NVec2f(1.0f);
+    ZepComponent* m_mouseCaptureComponent = nullptr; // the component currently capturing the mouse drag
 
     // Config
     EditorConfig m_config;

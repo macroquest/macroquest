@@ -139,6 +139,7 @@ public:
     virtual ~ZepWindow();
 
     virtual void Notify(std::shared_ptr<ZepMessage> message) override;
+    virtual void DispatchMouseEvent(std::shared_ptr<ZepMessage> message) override;
 
     // Display
     virtual void SetDisplayRegion(const NRectf& region);

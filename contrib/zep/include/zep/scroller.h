@@ -17,6 +17,7 @@ public:
 
     virtual void Display(ZepTheme& theme);
     virtual void Notify(std::shared_ptr<ZepMessage> message) override;
+    virtual void DispatchMouseEvent(std::shared_ptr<ZepMessage> message) override;
 
     std::shared_ptr<Region> GetRegion() const { return m_region; }
     std::shared_ptr<Region> GetTopButtonRegion() const { return m_topButtonRegion; }

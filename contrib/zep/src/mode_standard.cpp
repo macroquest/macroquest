@@ -116,10 +116,24 @@ void ZepMode_Standard::Begin(ZepWindow* pWindow)
 
 void ZepMode_Standard::Notify(std::shared_ptr<ZepMessage> message)
 {
-    // TODO: Move this to the editor and propogate to visible widgets.
+}
+
+void ZepMode_Standard::DispatchMouseEvent(std::shared_ptr<ZepMessage> message)
+{
+
     if (message->messageId == Msg::MouseDown)
     {
+        if (message->button == ZepMouseButton::Left)
+            GetEditor().CaptureMouse(this, true);
+
         AddMouseEvent(message->button, false, message->modifiers, message->clicks);
+        message->handled = true;
+    }
+    else if (message->messageId == Msg::MouseUp)
+    {
+        if (message->button == ZepMouseButton::Left)
+            GetEditor().CaptureMouse(this, false);
+        message->handled = true;
     }
     else if (message->messageId == Msg::MouseMove)
     {
@@ -127,20 +141,7 @@ void ZepMode_Standard::Notify(std::shared_ptr<ZepMessage> message)
         {
             AddMouseEvent(message->button, true, message->modifiers, 1);
         }
-    }
-    else if (message->messageId == Msg::MouseScroll)
-    {
-        // Get the window under the cursor.
-        for (const auto& tw : GetEditor().GetTabWindows())
-        {
-            for (const auto& w : tw->GetWindows())
-            {
-                if (w->GetDisplayRect().Contains(message->pos))
-                {
-                    w->AdjustScroll(-message->fval * 3);
-                }
-            }
-        }
+        message->handled = true;
     }
 }
 

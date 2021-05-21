@@ -140,65 +140,75 @@ NRectf Scroller::ThumbRect() const
 
 void Scroller::Notify(std::shared_ptr<ZepMessage> message)
 {
+    if (message->messageId == Msg::Tick)
+        CheckState();
+}
+
+void Scroller::DispatchMouseEvent(std::shared_ptr<ZepMessage> message)
+{
+    if (message->button != ZepMouseButton::Left)
+        return;
+    if (message->handled)
+        return;
+
+    if (message->messageId == Msg::MouseDown)
+        GetEditor().CaptureMouse(this, true);
+    if (message->messageId == Msg::MouseUp)
+        GetEditor().CaptureMouse(this, false);
+
     switch (message->messageId)
     {
-        case Msg::Tick:
+    case Msg::MouseDown:
+        if (message->button == ZepMouseButton::Left)
         {
-            CheckState();
-        }
-        break;
-
-        case Msg::MouseDown:
-            if (message->button == ZepMouseButton::Left)
+            if (m_bottomButtonRegion->rect.Contains(message->pos))
             {
-                if (m_bottomButtonRegion->rect.Contains(message->pos))
+                ClickDown();
+                timer_start(m_start_delay_timer);
+                message->handled = true;
+            }
+            else if (m_topButtonRegion->rect.Contains(message->pos))
+            {
+                ClickUp();
+                timer_start(m_start_delay_timer);
+                message->handled = true;
+            }
+            else if (m_mainRegion->rect.Contains(message->pos))
+            {
+                auto thumbRect = ThumbRect();
+                if (thumbRect.Contains(message->pos))
                 {
-                    ClickDown();
+                    m_mouseDownPos = message->pos;
+                    m_mouseDownPercent = vScrollPosition;
+                    m_scrollState = ScrollState::Drag;
+                    message->handled = true;
+                }
+                else if (message->pos.y > thumbRect.BottomLeft().y)
+                {
+                    PageDown();
                     timer_start(m_start_delay_timer);
                     message->handled = true;
                 }
-                else if (m_topButtonRegion->rect.Contains(message->pos))
+                else if (message->pos.y < thumbRect.TopRight().y)
                 {
-                    ClickUp();
+                    PageUp();
                     timer_start(m_start_delay_timer);
                     message->handled = true;
-                }
-                else if (m_mainRegion->rect.Contains(message->pos))
-                {
-                    auto thumbRect = ThumbRect();
-                    if (thumbRect.Contains(message->pos))
-                    {
-                        m_mouseDownPos = message->pos;
-                        m_mouseDownPercent = vScrollPosition;
-                        m_scrollState = ScrollState::Drag;
-                        message->handled = true;
-                    }
-                    else if (message->pos.y > thumbRect.BottomLeft().y)
-                    {
-                        PageDown();
-                        timer_start(m_start_delay_timer);
-                        message->handled = true;
-                    }
-                    else if (message->pos.y < thumbRect.TopRight().y)
-                    {
-                        PageUp();
-                        timer_start(m_start_delay_timer);
-                        message->handled = true;
-                    }
                 }
             }
-            break;
-        case Msg::MouseUp:
-        {
-            m_scrollState = ScrollState::None;
         }
         break;
-        case Msg::MouseMove:
-            DoMove(message->pos);
-            break;
-        default:
-            break;
+    case Msg::MouseUp:
+    {
+        m_scrollState = ScrollState::None;
     }
+    break;
+    case Msg::MouseMove:
+        DoMove(message->pos);
+        break;
+    }
+
+    message->handled = true;
 }
 
 void Scroller::Display(ZepTheme& theme)

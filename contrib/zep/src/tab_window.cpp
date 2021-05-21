@@ -383,22 +383,29 @@ void ZepTabWindow::RemoveWindow(ZepWindow* pWindow)
 
 void ZepTabWindow::Notify(std::shared_ptr<ZepMessage> pMsg)
 {
-    if (pMsg->messageId == Msg::MouseDown)
+}
+
+void ZepTabWindow::DispatchMouseEvent(std::shared_ptr<ZepMessage> pMsg)
+{
+    for (auto& region : m_windowRegions)
     {
-        for (auto& region : m_windowRegions)
+        if (region.second->rect.Contains(pMsg->pos))
         {
-            if (region.second->rect.Contains(pMsg->pos))
+            if (pMsg->messageId == Msg::MouseDown && !pMsg->handled)
             {
                 if (m_pActiveWindow != region.first)
                 {
                     SetActiveWindow(region.first);
-                    pMsg->handled = true;
-                    return;
                 }
             }
+
+            ZepWindow* window = region.first;
+            window->DispatchMouseEvent(pMsg);
+            break;
         }
     }
 }
+
 
 void ZepTabWindow::SetDisplayRegion(const NRectf& region, bool force)
 {

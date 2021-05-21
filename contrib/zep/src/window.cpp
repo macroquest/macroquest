@@ -209,11 +209,19 @@ void ZepWindow::Notify(std::shared_ptr<ZepMessage> payload)
             DisableToolTipTillMove();
         }
     }
-    else if (payload->messageId == Msg::MouseMove)
+    else if (payload->messageId == Msg::ConfigChanged)
     {
-        if (!m_toolTips.empty())
+        m_layoutDirty = true;
+    }
+}
+
+void ZepWindow::DispatchMouseEvent(std::shared_ptr<ZepMessage> message)
+{
+    if (message->messageId == Msg::MouseMove)
+    {
+        if (!m_toolTips.empty() && !message->handled)
         {
-            if (ManhattanDistance(m_mouseHoverPos, payload->pos) > 4.0f)
+            if (ManhattanDistance(m_mouseHoverPos, message->pos) > 4.0f)
             {
                 timer_restart(m_toolTipTimer);
                 m_toolTips.clear();
@@ -222,15 +230,40 @@ void ZepWindow::Notify(std::shared_ptr<ZepMessage> payload)
         else
         {
             timer_restart(m_toolTipTimer);
-            m_mouseHoverPos = payload->pos;
+            m_mouseHoverPos = message->pos;
 
             // Can now show tooltip again, due to mouse hover
             m_tipDisabledTillMove = false;
         }
     }
-    else if (payload->messageId == Msg::ConfigChanged)
+
+    if (message->handled)
+        return;
+
+    if (m_vScrollRegion->rect.Contains(message->pos))
     {
-        m_layoutDirty = true;
+        m_vScroller->DispatchMouseEvent(message);
+    }
+
+    if (m_textRegion->rect.Contains(message->pos))
+    {
+        if (message->messageId == Msg::MouseScroll)
+        {
+            AdjustScroll(-message->fval * 3);
+            message->handled = true;
+        }
+        else
+        {
+            // Give syntax a chance to handle the event
+            m_pBuffer->GetSyntax()->DispatchMouseEvent(message);
+
+            if (!message->handled)
+            {
+                // Doing it this way might make wierd issues with having two panes
+                // with the same editor, but deal with that when it comes up..
+                m_pBuffer->GetMode()->DispatchMouseEvent(message);
+            }
+        }
     }
 }
 
@@ -1175,6 +1208,7 @@ bool ZepWindow::DisplayLine(SpanInfo& lineInfo, int displayPass, GlyphIterator* 
     }
 
     display.SetClipRect(m_textRegion->rect);
+    const NVec2f& mousePos = GetEditor().GetMousePos();
 
     bool lineStart = true;
 
@@ -1192,7 +1226,7 @@ bool ZepWindow::DisplayLine(SpanInfo& lineInfo, int displayPass, GlyphIterator* 
             NRectf charRect(NVec2f(cp.pos.x, ToWindowY(lineInfo.yOffsetPx)),
                 NVec2f(cp.pos.x + cp.size.x, ToWindowY(lineInfo.yOffsetPx + lineInfo.FullLineHeightPx())));
 
-            if (charRect.Contains(m_mouseHoverPos))
+            if (charRect.Contains(mousePos))
             {
                 // Record the mouse-over buffer location
                 m_mouseBufferLocation = cp.iterator;
@@ -1201,7 +1235,7 @@ bool ZepWindow::DisplayLine(SpanInfo& lineInfo, int displayPass, GlyphIterator* 
             // If we have the cursor iter pointer, assign the position of the character in the vertical column.
             if (outCursorIter)
             {
-                if (m_mouseHoverPos.x >= charRect.Left() && m_mouseHoverPos.x < charRect.Right())
+                if (mousePos.x >= charRect.Left() && mousePos.x < charRect.Right())
                     *outCursorIter = cp.iterator;
             }
 
@@ -1715,6 +1749,7 @@ void ZepWindow::Display()
 
     auto& display = GetEditor().GetDisplay();
     auto cursorCL = BufferToDisplay(m_bufferCursor);
+    const NVec2f& mousePos = GetEditor().GetMousePos();
     m_mouseBufferLocation = GlyphIterator();
 
     GlyphIterator oldMouseCursor = m_mouseCursorIterator;
@@ -1759,7 +1794,7 @@ void ZepWindow::Display()
         for (long windowLine = m_visibleLineIndices.x; windowLine < m_visibleLineIndices.y; windowLine++)
         {
             auto& lineInfo = *m_windowLines[windowLine];
-            GlyphIterator mousePos;
+            GlyphIterator mousePosIter;
 
             // if the mouse is within the bounds of this whole line, then set it to the end of the line.
             // if we find a specific character then we will move it there.
@@ -1771,7 +1806,7 @@ void ZepWindow::Display()
             if (windowLine == m_visibleLineIndices.x)
             {
                 // First line.
-                if (m_mouseHoverPos.y < lineRect.Top())
+                if (mousePos.y < lineRect.Top())
                 {
                     useThisLine = true;
                 }
@@ -1779,33 +1814,33 @@ void ZepWindow::Display()
             else if (windowLine == m_visibleLineIndices.y - 1)
             {
                 // Last line.
-                if (m_mouseHoverPos.y >= lineRect.Bottom())
+                if (mousePos.y >= lineRect.Bottom())
                 {
                     useThisLine = true;
                 }
             }
 
             // Check if it is constrained to this row.
-            if (useThisLine || m_mouseHoverPos.y >= lineRect.Top() && m_mouseHoverPos.y < lineRect.Bottom())
+            if (useThisLine || mousePos.y >= lineRect.Top() && mousePos.y < lineRect.Bottom())
             {
                 GlyphIterator linePos = GlyphIterator(&GetBuffer(), lineInfo.lineByteRange.first);
                 useThisLine = true;
 
                 // If its to the left of the line, put at the beginning, otherwise stick at the end. We'll place the
                 // cursor inside the line if we encounter its position while we draw glyphs.
-                if (m_mouseHoverPos.x < lineRect.Left())
-                    mousePos = GetBuffer().GetLinePos(linePos, LineLocation::LineBegin);
+                if (mousePos.x < lineRect.Left())
+                    mousePosIter = GetBuffer().GetLinePos(linePos, LineLocation::LineBegin);
                 else
-                    mousePos = GetBuffer().GetLinePos(linePos, LineLocation::LineCRBegin);
+                    mousePosIter = GetBuffer().GetLinePos(linePos, LineLocation::LineCRBegin);
             }
 
-            if (!DisplayLine(lineInfo, WindowPass::Background, useThisLine ? &mousePos : nullptr))
+            if (!DisplayLine(lineInfo, WindowPass::Background, useThisLine ? &mousePosIter : nullptr))
             {
                 break;
             }
 
-            if (mousePos.Valid())
-                m_mouseCursorIterator = mousePos;
+            if (mousePosIter.Valid())
+                m_mouseCursorIterator = mousePosIter;
         }
 
         // Text pass

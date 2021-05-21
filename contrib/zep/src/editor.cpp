@@ -886,6 +886,35 @@ bool ZepEditor::Broadcast(std::shared_ptr<ZepMessage> message)
     return message->handled;
 }
 
+void ZepEditor::DispatchMouseEvent(std::shared_ptr<ZepMessage> pMsg)
+{
+    if (m_mouseCaptureComponent)
+    {
+        m_mouseCaptureComponent->DispatchMouseEvent(pMsg);
+    }
+
+    if (m_tabRegion->rect.Contains(pMsg->pos) && !pMsg->handled)
+    {
+        if (pMsg->messageId == Msg::MouseDown && pMsg->button == ZepMouseButton::Left)
+        {
+            for (std::shared_ptr<Region>& tab : m_tabRegion->children)
+            {
+                if (tab->rect.Contains(pMsg->pos))
+                {
+                    std::shared_ptr<TabRegionTab> pTabRegionTab = std::static_pointer_cast<TabRegionTab>(tab);
+                    SetCurrentTabWindow(pTabRegionTab->pTabWindow);
+                    pMsg->handled = true;
+                }
+            }
+        }
+    }
+
+    if (m_tabContentRegion->rect.Contains(pMsg->pos))
+    {
+        GetActiveTabWindow()->DispatchMouseEvent(pMsg);
+    }
+}
+
 const std::deque<std::shared_ptr<ZepBuffer>>& ZepEditor::GetBuffers() const
 {
     return m_buffers;
@@ -1022,17 +1051,6 @@ const tRegisters& ZepEditor::GetRegisters()
 
 void ZepEditor::Notify(std::shared_ptr<ZepMessage> pMsg)
 {
-    if (pMsg->messageId == Msg::MouseDown)
-    {
-        for (std::shared_ptr<Region>& tab : m_tabRegion->children)
-        {
-            if (tab->rect.Contains(pMsg->pos))
-            {
-                std::shared_ptr<TabRegionTab> pTabRegionTab = std::static_pointer_cast<TabRegionTab>(tab);
-                SetCurrentTabWindow(pTabRegionTab->pTabWindow);
-            }
-        }
-    }
 }
 
 std::string ZepEditor::GetCommandText() const
@@ -1257,43 +1275,53 @@ ZepTheme& ZepEditor::GetTheme() const
     return *m_spTheme;
 }
 
-bool ZepEditor::OnMouseMove(const NVec2f& mousePos, ZepMouseButton button, uint32_t mods)
+void ZepEditor::OnMouseMove(const NVec2f& mousePos, ZepMouseButton button, uint32_t mods)
 {
     m_mousePos = mousePos;
-    bool handled = Broadcast(std::make_shared<ZepMessage>(Msg::MouseMove, mousePos, button, mods));
+    auto message = std::make_shared<ZepMessage>(Msg::MouseMove, mousePos, button, mods);
+
+    DispatchMouseEvent(message);
     m_bPendingRefresh = true;
-    return handled;
 }
 
-bool ZepEditor::OnMouseDown(const NVec2f& mousePos, ZepMouseButton button, uint32_t mods, int clicks)
+void ZepEditor::OnMouseDown(const NVec2f& mousePos, ZepMouseButton button, uint32_t mods, int clicks)
 {
     m_mousePos = mousePos;
-    bool handled = Broadcast(std::make_shared<ZepMessage>(Msg::MouseDown, mousePos, button, mods, clicks));
+    auto message = std::make_shared<ZepMessage>(Msg::MouseDown, mousePos, button, mods, clicks);
+
+    DispatchMouseEvent(message);
     m_bPendingRefresh = true;
-    return handled;
 }
 
-bool ZepEditor::OnMouseUp(const NVec2f& mousePos, ZepMouseButton button, uint32_t mods)
+void ZepEditor::OnMouseUp(const NVec2f& mousePos, ZepMouseButton button, uint32_t mods)
 {
     m_mousePos = mousePos;
-    bool handled = Broadcast(std::make_shared<ZepMessage>(Msg::MouseUp, mousePos, button, mods));
+    auto message = std::make_shared<ZepMessage>(Msg::MouseUp, mousePos, button, mods);
+
+    DispatchMouseEvent(message);
     m_bPendingRefresh = true;
-    return handled;
 }
 
-bool ZepEditor::OnMouseWheel(const NVec2f& mousePos, float scrollAmount)
+void ZepEditor::OnMouseWheel(const NVec2f& mousePos, float scrollAmount)
 {
     m_mousePos = mousePos;
     auto message = std::make_shared<ZepMessage>(Msg::MouseScroll, mousePos);
     message->fval = scrollAmount;
-    bool handled = Broadcast(message);
+
+    DispatchMouseEvent(message);
     m_bPendingRefresh = true;
-    return handled;
 }
 
-const NVec2f ZepEditor::GetMousePos() const
+void ZepEditor::CaptureMouse(ZepComponent* pComponent, bool capture)
 {
-    return m_mousePos;
+    if (capture)
+    {
+        m_mouseCaptureComponent = pComponent;
+    }
+    else if (m_mouseCaptureComponent == pComponent)
+    {
+        m_mouseCaptureComponent = nullptr;
+    }
 }
 
 uint32_t ZepEditor::GetFlags() const
