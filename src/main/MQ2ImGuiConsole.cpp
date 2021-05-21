@@ -581,6 +581,8 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 
 		Zep::ChangeRecord changeRecord;
 		m_buffer->Insert(position, text, changeRecord);
+
+		PruneBuffer();
 	}
 
 	void InsertHyperlink(Zep::GlyphIterator position, std::string_view text, std::string_view hyperlinkData)
@@ -596,6 +598,8 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 
 		Zep::ChangeRecord changeRecord;
 		m_buffer->Insert(position, text, changeRecord);
+
+		PruneBuffer();
 	}
 
 	void AppendFormattedText(std::string_view text, uint32_t defaultColor = s_defaultColor, bool newline = false)
@@ -672,6 +676,24 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		if (cursorAtEnd)
 		{
 			m_deferredCursorToEnd = true;
+		}
+	}
+
+	void PruneBuffer()
+	{
+		int lineCount = m_buffer->GetLineCount();
+		if (lineCount > m_maxBufferLines + 1)
+		{
+			int linesToDelete = lineCount - (m_maxBufferLines + 1);
+
+			Zep::ByteRange range;
+			if (m_buffer->GetLineOffsets(linesToDelete, range))
+			{
+				Zep::GlyphIterator end(m_buffer, range.first);
+
+				Zep::ChangeRecord changeRecord;
+				m_buffer->Delete(m_buffer->Begin(), end, changeRecord);
+			}
 		}
 	}
 
