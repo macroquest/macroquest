@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <ImportGroup Label="PropertySheets">
+    <Import Project=".\Common.props" />
+  </ImportGroup>
+
+  <PropertyGroup>
+    <OutDir>$(MQ2BuildDirectory)bin\$(MQ2BinaryDirName)\launcher_plugins\</OutDir>
+  </PropertyGroup>
+
+  <ItemDefinitionGroup>
+    <!-- Debug only compiler settings props-->
+    <ClCompile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+
+    </ClCompile>
+
+    <!-- Release only compiler settings -->
+    <ClCompile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+
+    </ClCompile>
+
+    <!-- Shared compiler settings -->
+    <ClCompile>
+      <PreprocessorDefinitions>FMT_HEADER_ONLY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+
+    <!-- Debug only linker settings -->
+    <Link Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    </Link>
+
+    <!-- Release only linker settings -->
+    <Link Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup />
+</Project>
