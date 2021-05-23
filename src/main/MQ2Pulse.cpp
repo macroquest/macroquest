@@ -435,8 +435,11 @@ static void Pulse()
 		gbMoving = false;
 	}
 
-	if (!pTarget)
+	static PlayerClient* lastTarget = pTarget;
+	if (test_and_set(lastTarget, pTarget.get()))
+	{
 		gTargetbuffs = false;
+	}
 
 	if (pMerchantWnd && !pMerchantWnd->IsVisible())
 		gItemsReceived = false;
