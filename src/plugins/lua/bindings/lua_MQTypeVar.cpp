@@ -46,16 +46,19 @@ bool lua_MQTypeVar::EqualNil(const sol::lua_nil_t&) const
 	return EvaluateMember().Type == nullptr;
 }
 
-MQTypeVar& lua_MQTypeVar::EvaluateMember(char* index) const
+MQTypeVar lua_MQTypeVar::EvaluateMember(char* index) const
 {
-	// the ternary in index is because datatypes are all over the place on whether or not they can accept null pointers. They all seem to agree that an empty string is the same thing, though.
-	if (self->Type != nullptr && !member.empty() && !self->Type->GetMember(self->GetVarPtr(), &member[0], index ? index : "", *self))
-	{
-		// can't guarantee result didn't Get modified, but we want to return nil if GetMember was false
-		self->Type = nullptr;
-	}
+	if (self->Type == nullptr || member.empty())
+		return *self;
 
-	return *self;
+	// the ternary in index is because datatypes are all over the place on whether or not they can
+	// accept null pointers. They all seem to agree that an empty string is the same thing, though.
+	MQTypeVar var;
+	if (self->Type->GetMember(self->GetVarPtr(), member.c_str(), index ? index : "", var))
+		return std::move(var);
+
+	// can't guarantee result didn't Get modified, but we want to return nil if GetMember was false
+	return MQTypeVar();
 }
 
 std::string lua_MQTypeVar::ToString(const lua_MQTypeVar& obj)

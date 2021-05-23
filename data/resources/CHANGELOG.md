@@ -1,3 +1,6 @@
+May 23, 2021
+- Corrected a long standing issue where you couldn't store mq userdata in lua variabls (#252)
+
 May 17, 2021
 - Added specific updates in frame limiter to allow for scribing and memming with no rendering (#279 & #167)
 

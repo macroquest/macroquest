@@ -38,7 +38,7 @@ struct lua_MQTypeVar
 	bool operator==(const lua_MQTypeVar& right) const;
 	bool EqualData(const lua_MQDataItem& right) const;
 	bool EqualNil(const sol::lua_nil_t&) const;
-	MQTypeVar& EvaluateMember(char* index = nullptr) const;
+	MQTypeVar EvaluateMember(char* index = nullptr) const;
 	static std::string ToString(const lua_MQTypeVar& obj);
 	sol::object Call(std::string index, sol::this_state L) const;
 	sol::object CallInt(int index, sol::this_state L) const;
