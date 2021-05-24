@@ -88,6 +88,19 @@ static bool hasimgui(std::string_view name, sol::this_state s)
 	return false;
 }
 
+static std::unique_ptr<CTextureAnimation> gettextanim(std::string_view name, sol::this_state s)
+{
+	auto anim = std::make_unique<CTextureAnimation>();
+
+	if (pSidlMgr)
+	{
+		if (CTextureAnimation* temp = pSidlMgr->FindAnimation(CXStr(name)))
+			*anim = *temp;
+	}
+
+	return anim;
+}
+
 void ImGui_RegisterLua(sol::table& lua)
 {
 	lua["imgui"] = lua.create_with(
@@ -95,6 +108,13 @@ void ImGui_RegisterLua(sol::table& lua)
 		"destroy", &removeimgui,
 		"exists", &hasimgui
 	);
+
+	lua.new_usertype<CTextureAnimation>("CTextureAnimation",
+		sol::no_constructor,
+		"SetTextureCell", &CTextureAnimation::SetCurCell
+	);
+
+	lua["FindTextureAnimation"] = &gettextanim;
 }
 
 LuaImGui::LuaImGui(std::string_view name, const sol::thread& thread, const sol::function& callback)

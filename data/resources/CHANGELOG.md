@@ -1,3 +1,6 @@
+May 24, 2021
+- Added the ability to render EQ icons in lua imgui bindings
+
 May 23, 2021
 - Corrected a long standing issue where you couldn't store mq userdata in lua variabls (#252)
 

@@ -4,6 +4,7 @@
 #include <string>
 #include <sol/sol.hpp>
 #include <mq/Plugin.h>
+#include <main/MQ2DeveloperTools.h>
 
 namespace sol_ImGui
 {
@@ -1680,6 +1681,10 @@ namespace sol_ImGui
 	// Clipboard Utilities
 	inline std::string GetClipboardText()																{ return std::string(ImGui::GetClipboardText()); }
 	inline void SetClipboardText(const std::string& text)												{ ImGui::SetClipboardText(text.c_str()); }
+
+	// MQ-Specific functions
+	inline bool RenderTextureAnimation(const std::unique_ptr<CTextureAnimation>& anim, int x, int y)	{ return mq::RenderTextureAnimation(anim.get(), CXSize(x, y)); }
+	inline bool RenderTextureAnimation(const std::unique_ptr<CTextureAnimation>& anim)					{ return mq::RenderTextureAnimation(anim.get()); }
 	
 	inline void InitEnums(sol::state_view lua)
 	{
@@ -2924,5 +2929,13 @@ namespace sol_ImGui
 		ImGui.set_function("GetClipboardText"				, GetClipboardText);
 		ImGui.set_function("SetClipboardText"				, SetClipboardText);
 #pragma endregion Clipboard Utilities
+
+#pragma region MQ Specific Functions
+		ImGui.set_function("RenderTextureAnimation",		sol::overload(
+																sol::resolve<bool(const std::unique_ptr<CTextureAnimation>&, int, int)>(RenderTextureAnimation),
+																sol::resolve<bool(const std::unique_ptr<CTextureAnimation>&)>(RenderTextureAnimation)
+															));
+#pragma endregion
+
 	}
 }
