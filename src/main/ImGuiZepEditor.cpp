@@ -130,7 +130,8 @@ private:
 
 private:
 	float m_lastClick = -1.0f;
-	bool m_hasMouse = false;
+	bool m_mouseDrag = false;
+	bool m_mouseInside = false;
 	NVec2f m_screenPos;
 	NRectf m_clipRect;
 };
@@ -228,9 +229,19 @@ void ZepEditor_ImGui::HandleInput()
 		HandleKeyboardInput();
 	}
 
-	if (ImGui::IsWindowHovered() || m_hasMouse)
+	if (ImGui::IsWindowHovered() || m_mouseDrag)
 	{
+		m_mouseInside = true;
 		HandleMouseInput();
+	}
+	else if (m_mouseInside)
+	{
+		m_mouseInside = false;
+
+		// Send a move event outside the window
+		auto& io = ImGui::GetIO();
+		NVec2f mousePos = toNVec2f(io.MousePos) - m_screenPos;
+		OnMouseMove(mousePos, ImGuiMouseToZepButton(-1), 0);
 	}
 }
 
@@ -250,7 +261,7 @@ void ZepEditor_ImGui::HandleMouseInput()
 	}
 
 	int clickCount = 1;
-	m_hasMouse = false;
+	m_mouseDrag = false;
 
 	NVec2f mousePos = toNVec2f(io.MousePos) - m_screenPos;
 
@@ -286,11 +297,11 @@ void ZepEditor_ImGui::HandleMouseInput()
 		if (ImGui::IsMouseDragging(i) && ImGui::IsMouseDown(i))
 		{
 			OnMouseMove(mousePos, ImGuiMouseToZepButton(i), mod);
-			m_hasMouse = true;
+			m_mouseDrag = true;
 		}
 	}
 
-	if (!m_hasMouse)
+	if (!m_mouseDrag)
 	{
 		OnMouseMove(mousePos, ImGuiMouseToZepButton(-1), 0);
 	}

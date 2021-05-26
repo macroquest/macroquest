@@ -1855,9 +1855,9 @@ void ZepWindow::Display()
     }
 
     // Mouse cursor should be updated now.
-    if (m_mouseCursorIterator != oldMouseCursor)
+    if (m_mouseBufferLocation != oldMouseCursor)
     {
-        sigMouseCursorChanged(GetBuffer(), m_mouseCursorIterator);
+        sigMouseCursorChanged(GetBuffer(), m_mouseBufferLocation);
     }
 
     if (ZTestFlags(GetWindowFlags(), WindowFlags::GridStyle))

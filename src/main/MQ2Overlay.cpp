@@ -2332,6 +2332,7 @@ bool IsImGuiForeground()
 void InitializeMQ2Overlay()
 {
 	imgui::g_bRenderImGui = GetPrivateProfileBool("MacroQuest", "RenderImGui", imgui::g_bRenderImGui, mq::internal_paths::MQini);
+	bmPluginsUpdateImGui = AddMQ2Benchmark("PluginsUpdateImGui");
 
 	// TODO: application-wide keybinds could use an encapsulated interface. For now I'm just dumping his here since we need it to
 	// connect to the win32 hook and control the imgui console.
@@ -2417,6 +2418,7 @@ void ShutdownMQ2Overlay()
 	ShutdownOverlayInternal();
 
 	ImGui::DestroyContext();
+	RemoveMQ2Benchmark(bmPluginsUpdateImGui);
 }
 
 void ShutdownOverlayInternal()

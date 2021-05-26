@@ -30,8 +30,26 @@ namespace mq {
 
 extern bool gbToggleConsoleRequested;
 
-static const ImU32 s_defaultColor = IM_COL32(0xf0, 0xf0, 0xf0, 255);
+static const ImU32 s_defaultColor = Zep::ZepColor(240, 240, 240, 255);
 static ImGuiID s_dockspaceId = 0;
+
+// Some plain default colors
+static const ImU32 s_defaultLinkColor = Zep::ZepColor(0, 128, 255);
+static const ImU32 s_defaultLinkColorHover = Zep::ZepColor(255, 255, 128);
+
+// Some default color constants to patch eq style links
+static const ImU32 s_linkHoverColorDefault = Zep::ZepColor(0, 0, 255);
+static const ImU32 s_linkHoverColorSpam = Zep::ZepColor(0, 255, 0);
+static const ImU32 s_linkHoverColorPlayer = Zep::ZepColor(138, 163, 255);
+static const ImU32 s_linkColorDefault = Zep::ZepColor(0, 255, 255);
+static const ImU32 s_linkColorSpam = Zep::ZepColor(128, 128, 0);
+static const ImU32 s_linkColorPlayer = Zep::ZepColor(0, 0, 0, 0); // use current color
+
+static const int s_userColorItemtLink = USERCOLOR_LINK;
+static const int s_userColorAchievementLink = USERCOLOR_ACHIEVEMENT;
+static const int s_userColorDialogLink = USERCOLOR_DIALOG_LINK;
+static const int s_userColorCommandLink = USERCOLOR_DIALOG_LINK;
+static const int s_userColorFactionLink = USERCOLOR_FACTION_LINK;
 
 static bool s_dockspaceVisible = false;
 static bool s_resetDockspace = false;
@@ -235,7 +253,7 @@ public:
 		return Zep::ZepTheme::GetColor(themeColor);
 	}
 
-	// This overrides GetUniqueColor to treat any value over UniqueColorLast as an MQColor value.
+	// This overrides GetUniqueColor to treat any value over UniqueColorLast as a color value.
 	// It will be inserted into the user color map and the index + UserColorStart will be returned.
 	Zep::ThemeColor GetUserColor(Zep::ZepColor color)
 	{
@@ -276,7 +294,8 @@ struct ZepAttribute
 	struct HyperlinkAttributeData
 	{
 		std::string linkData;
-		uint32_t color = Zep::ZepColor(255, 0, 255);
+		uint32_t color = s_defaultLinkColor;
+		uint32_t hoverColor = s_defaultLinkColorHover;
 	};
 
 	using ZepAttributeData = std::variant<ColorAttributeData, HyperlinkAttributeData>;
@@ -367,18 +386,14 @@ public:
 
 	Zep::ThemeColor GetHyperlinkColor(uint32_t linkId, bool hovered) const
 	{
-		if (hovered)
-		{
-			// Yellow
-			return m_theme->GetUserColor(Zep::ZepColor(255, 255, 0));
-		}
-
 		// Get the color tied to this hyperlink.
 		auto iter = m_hyperlinkData.find(linkId);
 		if (iter != m_hyperlinkData.end())
-			return m_theme->GetUserColor(iter->second.color);
+		{
+			return m_theme->GetUserColor(hovered ? iter->second.hoverColor : iter->second.color);
+		}
 
-		return m_theme->GetUserColor(Zep::ZepColor(255, 0, 255));
+		return m_theme->GetUserColor(hovered ? s_defaultLinkColorHover : s_defaultLinkColor);
 	}
 
 	void Notify(std::shared_ptr<Zep::ZepMessage> spMsg)
@@ -468,6 +483,12 @@ public:
 
 				message->handled = true;
 			}
+		}
+		else if (message->messageId == Zep::Msg::MouseMove
+			&& message->button == Zep::ZepMouseButton::Left)
+		{
+			// Don't drag from links.
+			message->handled = true;
 		}
 	}
 
@@ -565,9 +586,9 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		m_buffer->Clear();
 	}
 
-	void InsertText(Zep::GlyphIterator position, std::string_view text, ImU32 color = 0)
+	Zep::GlyphIterator InsertText(Zep::GlyphIterator position, std::string_view text, ImU32 color = -1)
 	{
-		if (color != 0)
+		if (color != -1)
 		{
 			ZepTextAttribute attribute;
 			attribute.startIndex = 0;
@@ -582,26 +603,105 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		Zep::ChangeRecord changeRecord;
 		m_buffer->Insert(position, text, changeRecord);
 
-		PruneBuffer();
+		return position.Move(text.length());
 	}
 
-	void InsertHyperlink(Zep::GlyphIterator position, std::string_view text, std::string_view hyperlinkData)
+	void InsertFormattedText(Zep::GlyphIterator position, std::string_view text, ImU32 color)
+	{
+		// Parse hyperlink data
+		static TextTagInfo textTagInfo[MAX_EXTRACT_LINKS];
+		size_t linkCount = eqlib::ExtractLinks(text, textTagInfo, MAX_EXTRACT_LINKS);
+
+		if (linkCount > 0)
+		{
+			// Insert text in segments, broken up by the links.
+			size_t segPos = 0;
+
+			for (size_t curTag = 0; curTag < linkCount; ++curTag)
+			{
+				TextTagInfo& tagInfo = textTagInfo[curTag];
+
+				// Get text before.
+				std::string_view curSeg = text.substr(segPos, tagInfo.link.data() - text.data());
+				if (!curSeg.empty())
+				{
+					position = InsertText(position, curSeg, color);
+					segPos += curSeg.length();
+				}
+
+				// Insert hyperlink.
+				InsertHyperlink(position, tagInfo);
+				position = position.Move(tagInfo.text.length());
+				segPos = tagInfo.link.data() - text.data() + tagInfo.link.size();
+			}
+
+			// If there is anything at the end, do that too.
+			std::string_view endSeg = text.substr(segPos);
+			if (!endSeg.empty())
+			{
+				position = InsertText(position, endSeg, color);
+			}
+		}
+		else
+		{
+			InsertText(position, text, color);
+		}
+	}
+
+	void InsertHyperlink(Zep::GlyphIterator position, const TextTagInfo& tagInfo)
+	{
+		uint32_t color = s_linkColorDefault;
+		uint32_t hoverColor = s_linkHoverColorDefault;
+
+		switch (tagInfo.tagCode)
+		{
+		case ETAG_SPELL:
+		case ETAG_ITEM:
+			color = GetColorForChatColor(s_userColorItemtLink).ToABGR();
+			break;
+		case ETAG_PLAYER:
+			color = s_linkColorPlayer;
+			hoverColor = s_linkHoverColorPlayer;
+			break;
+		case ETAG_SPAM:
+			color = s_linkColorSpam;
+			color = s_linkHoverColorSpam;
+			break;
+		case ETAG_ACHIEVEMENT:
+			color = GetColorForChatColor(s_userColorAchievementLink).ToABGR();
+			break;
+		case ETAG_DIALOG_RESPONSE:
+			color = GetColorForChatColor(s_userColorDialogLink).ToABGR();
+			break;
+		case ETAG_COMMAND:
+			color = GetColorForChatColor(s_userColorCommandLink).ToABGR();
+			break;
+		case ETAG_FACTION:
+			color = GetColorForChatColor(s_userColorFactionLink).ToABGR();
+			break;
+		default:
+			break;
+		}
+
+		InsertHyperlink(position, tagInfo.text, std::string(tagInfo.link), color, hoverColor);
+	}
+
+	void InsertHyperlink(Zep::GlyphIterator position, std::string_view text, std::string hyperlinkData, uint32_t color, uint32_t hoverColor)
 	{
 		ZepTextAttribute attribute;
 		attribute.startIndex = 0;
 		attribute.endIndex = text.length();
 		attribute.attribute.type = ZepAttributeType::Hyperlink;
-		attribute.attribute.data = ZepAttribute::HyperlinkAttributeData{ std::string(hyperlinkData) };
+		attribute.attribute.data = ZepAttribute::HyperlinkAttributeData{ std::move(hyperlinkData), color, hoverColor };
 
 		ZepConsoleSyntax* syntax = static_cast<ZepConsoleSyntax*>(m_buffer->GetSyntax());
 		syntax->AddAttribute(position, std::move(attribute));
 
 		Zep::ChangeRecord changeRecord;
 		m_buffer->Insert(position, text, changeRecord);
-
-		PruneBuffer();
 	}
 
+	// This accepts color in ABGR.
 	void AppendFormattedText(std::string_view text, uint32_t defaultColor = s_defaultColor, bool newline = false)
 	{
 		Zep::GlyphIterator cursor = m_window->GetBufferCursor();
@@ -621,7 +721,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 			if (!beforeColor.empty())
 			{
 				// no color codes, write out with current color
-				InsertText(m_buffer->End(), beforeColor, currentColor);
+				InsertFormattedText(m_buffer->End(), beforeColor, currentColor);
 			}
 
 			// did we find a color?
@@ -644,6 +744,8 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		if (newline)
 			InsertText(m_buffer->End(), "\n");
 
+		PruneBuffer();
+
 		if (cursorAtEnd)
 		{
 			m_deferredCursorToEnd = true;
@@ -662,7 +764,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		attribute.startIndex = 0;
 		attribute.endIndex = text.length();
 		attribute.attribute.type = ZepAttributeType::Hyperlink;
-		attribute.attribute.data = ZepAttribute::HyperlinkAttributeData{ text + "'s data" };
+		attribute.attribute.data = ZepAttribute::HyperlinkAttributeData{ fmt::format("testlink:{}'s data", text) };
 
 		// Append to end of buffer
 		Zep::GlyphIterator position = m_buffer->End();
@@ -677,6 +779,12 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		{
 			m_deferredCursorToEnd = true;
 		}
+	}
+
+	void DoAchievementLinkTest()
+	{
+		std::string_view line = "You say to your guild, '\x12" "3TestToon^500010200^1^0^0^0^0^0^'Welcome to Crescent Reach (1+)\x12'";
+		AppendFormattedText(line, s_defaultColor, true);
 	}
 
 	void PruneBuffer()
@@ -713,9 +821,21 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 	{
 		if (message->messageId == UserEvent_HyperlinkLeftClick)
 		{
-			std::string text = fmt::format("Clicked hyperlink: {}\n", message->str);
+			if (starts_with(message->str, "testlink:"))
+			{
+				std::string text = fmt::format("Clicked hyperlink: {}\n", std::string_view{ message->str }.substr(9));
 
-			AppendFormattedText(text, MQColor(255, 255, 0));
+				AppendFormattedText(text, Zep::ZepColor(255, 255, 0));
+			}
+			else
+			{
+				TextTagInfo tagInfo = ExtractLink(message->str);
+
+				if (!ExecuteTextLink(tagInfo))
+				{
+					AppendFormattedText(fmt::format("Clicked link: {}", message->str));
+				}
+			}
 		}
 	}
 };
@@ -835,6 +955,10 @@ public:
 						{
 							m_zepEditor->DoHyperlinkTest();
 						}
+						if (ImGui::MenuItem("Achievement link Test"))
+						{
+							m_zepEditor->DoAchievementLinkTest();
+						}
 					}
 
 					ImGui::EndMenu();
@@ -912,7 +1036,7 @@ public:
 
 	void ExecCommand(const char* commandLine)
 	{
-		AddLog(MQColor(128, 128, 128), "> {0}\n", commandLine);
+		AddLog(Zep::ZepColor(128, 128, 128), "> {0}\n", commandLine);
 
 		// Inhsert into history. First find match and delete it so i can be pushed to the back. This isn't
 		// trying to be smart or optimal.
@@ -1234,7 +1358,7 @@ void ShutdownImGuiConsole()
 
 DWORD ImGuiConsoleAddText(const char* line, DWORD color, DWORD filter)
 {
-	ImU32 col = GetColorForChatColor(color).ToRGBA8();
+	ImU32 col = GetColorForChatColor(color).ToABGR();
 
 	if (!gImGuiConsole)
 		return 0;

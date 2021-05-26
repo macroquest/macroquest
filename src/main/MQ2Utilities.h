@@ -18,6 +18,9 @@
 
 namespace mq {
 
+struct bgr_tag {};
+
+
 struct MQColor
 {
 	// default is opaque black
@@ -33,6 +36,13 @@ struct MQColor
 		, Green(green)
 		, Red(red)
 		, Alpha(alpha)
+	{}
+
+	constexpr MQColor(bgr_tag, uint8_t blue, uint8_t green, uint8_t red)
+		: Blue(blue)
+		, Green(green)
+		, Red(red)
+		, Alpha(255)
 	{}
 
 	constexpr MQColor(const MQColor& other)
@@ -55,6 +65,14 @@ struct MQColor
 		: ARGB(argbcolor)
 	{}
 
+	constexpr MQColor(bgr_tag, uint32_t bgrcolor)
+		: Blue((bgrcolor >> 16) & 0xff)
+		, Green((bgrcolor >> 8) & 0xff)
+		, Red((bgrcolor >> 0) & 0xff)
+		, Alpha(255)
+	{
+	}
+
 	constexpr operator ARGBCOLOR() const
 	{
 		ARGBCOLOR color = { 0 };
@@ -72,7 +90,7 @@ struct MQColor
 		return ARGB;
 	}
 
-	constexpr uint32_t ToRGBA8() const
+	constexpr uint32_t ToABGR() const
 	{
 		return (((uint32_t)(Alpha) << 24)
 			| ((uint32_t)(Blue) << 16)

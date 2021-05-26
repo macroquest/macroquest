@@ -126,7 +126,7 @@ ZepEditor::~ZepEditor()
 {
     std::for_each(m_tabWindows.begin(), m_tabWindows.end(), [](ZepTabWindow* w) { delete w; });
     m_tabWindows.clear();
-    delete m_pDisplay;
+
     delete m_pFileSystem;
 }
 
