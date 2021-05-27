@@ -398,7 +398,10 @@ public:
 	bool DoRealRenderWorld()
 	{
 		if (!IsEnabled())
+		{
+			m_pauseForZone = false;
 			return true;
+		}
 
 		// The render function was called, don't need to wait anymore.
 		m_needWaitRender = false;
@@ -416,7 +419,6 @@ public:
 		if (!IsEnabled() || m_needWaitRender)
 		{
 			RecordSimulationSample();
-			m_pauseForZone = false;
 			return true;
 		}
 
