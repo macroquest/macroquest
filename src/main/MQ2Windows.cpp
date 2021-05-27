@@ -17,7 +17,8 @@
 #include "CrashHandler.h"
 #include "MQ2DeveloperTools.h"
 
-#include "imgui/ImGuiUtils.h"
+#include <mq/imgui/ImGuiUtils.h>
+#include <mq/imgui/Widgets.h>
 
 #include <algorithm>
 #include <string>
@@ -2058,7 +2059,7 @@ public:
 				ImGui::Text("%d", pInvSlot->Index);
 
 				ImGui::TableNextColumn(); // icon
-				RenderTextureAnimation(pInvSlot->pInvSlotAnimation, CXSize(16, 16));
+				imgui::DrawTextureAnimation(pInvSlot->pInvSlotAnimation, CXSize(16, 16));
 
 				ItemGlobalIndex globalIndex = pInvSlot->pInvSlotWnd ? pInvSlot->pInvSlotWnd->ItemLocation : ItemGlobalIndex();
 				ItemPtr pItem = pLocalPC->GetItemByGlobalIndex(globalIndex);
@@ -2078,7 +2079,7 @@ public:
 				ImGui::TableNextColumn(); // Item Name
 				if (pItem)
 				{
-					if (ItemLinkText(pItem->GetName()))
+					if (imgui::ItemLinkText(pItem->GetName()))
 						pItemDisplayManager->ShowItem(pItem);
 				}
 

@@ -19,6 +19,8 @@
 #include "imgui/fonts/IconsFontAwesome.h"
 #include "imgui/implot/implot.h"
 
+#include <mq/imgui/Widgets.h>
+
 #include <algorithm>
 #include <memory>
 #include <string>
@@ -47,6 +49,9 @@ static MQModule s_developerToolsModule = {
 	DeveloperTools_UpdateImGui,
 };
 DECLARE_MODULE_INITIALIZER(s_developerToolsModule);
+
+static bool RenderTexturePiece(const CUITexturePiece& texturePiece, const CXRect& srcRect, const CXSize& imageSize = CXSize());
+static bool RenderTexturePiece(const CUITexturePiece& texturePiece, const CXSize& imageSize = CXSize());
 
 //----------------------------------------------------------------------------
 
@@ -163,6 +168,41 @@ void ImGuiWindowBase::SetWindowTitle(std::string_view windowTitle)
 
 //----------------------------------------------------------------------------
 
+namespace imgui {
+
+// TODO: Move to a helper for CTextureAnimation that can draw with imgui.
+bool DrawTextureAnimation(const CTextureAnimation* pAnim, const CXSize& size)
+{
+	CXSize theSize = size.cx != 0 && size.cy != 0 ? size : (pAnim->bGrid ? pAnim->CellRect.GetSize() : pAnim->Size);
+
+	if (pAnim->Frames.IsEmpty())
+	{
+		ImGui::ItemSize(ImVec2(static_cast<float>(theSize.cx), static_cast<float>(theSize.cy)));
+		// TODO: Draw box with the current size.
+		return false;
+	}
+
+	int frameNum = pAnim->GetCurFrame();
+	if (frameNum < 0 || frameNum >= pAnim->Frames.GetLength())
+		return false;
+
+	const STextureAnimationFrame& frame = pAnim->Frames[frameNum];
+
+	if (pAnim->bGrid)
+	{
+		if (pAnim->CurCell != -1)
+		{
+			return RenderTexturePiece(frame.Piece, pAnim->CellRect, theSize);
+		}
+	}
+	else
+	{
+		return RenderTexturePiece(frame.Piece, theSize);
+	}
+
+	return false;
+}
+
 bool ItemLinkTextV(const char* fmt, va_list args)
 {
 	ImVec2 pos = ImGui::GetCursorPos();
@@ -191,6 +231,7 @@ bool ItemLinkText(const char* fmt, ...)
 	return result;
 }
 
+} // namespace imgui
 
 const char* UITypeToScreenPieceTemplateType(UIType type)
 {
@@ -276,11 +317,11 @@ static bool ColumnLinkValue(const char* fmt, va_list args)
 		if (IsEmptyValue(str))
 			ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), str);
 		else
-			clicked = ItemLinkText("%s", str);
+			clicked = imgui::ItemLinkText("%s", str);
 	}
 	else
 	{
-		clicked = ItemLinkTextV(fmt, args);
+		clicked = imgui::ItemLinkTextV(fmt, args);
 	}
 
 	return clicked;
@@ -583,47 +624,14 @@ bool RenderUITextureInfoTexture(const CUITextureInfo& textureInfo, const CXRect&
 	return true;
 }
 
-bool RenderTexturePiece(const CUITexturePiece& texturePiece, const CXRect& srcRect, const CXSize& imageSize = CXSize())
+bool RenderTexturePiece(const CUITexturePiece& texturePiece, const CXRect& srcRect, const CXSize& imageSize)
 {
 	return RenderUITextureInfoTexture(texturePiece.GetTextureInfo(), srcRect, imageSize);
 }
 
-bool RenderTexturePiece(const CUITexturePiece& texturePiece, const CXSize& imageSize = CXSize())
+bool RenderTexturePiece(const CUITexturePiece& texturePiece, const CXSize& imageSize)
 {
 	return RenderTexturePiece(texturePiece, texturePiece.GetRect(), imageSize);
-}
-
-// TODO: Move to a helper for CTextureAnimation that can draw with imgui.
-bool RenderTextureAnimation(const CTextureAnimation* pAnim, const CXSize& size)
-{
-	CXSize theSize = size.cx != 0 && size.cy != 0 ? size : (pAnim->bGrid ? pAnim->CellRect.GetSize() : pAnim->Size);
-
-	if (pAnim->Frames.IsEmpty())
-	{
-		ImGui::ItemSize(ImVec2(static_cast<float>(theSize.cx), static_cast<float>(theSize.cy)));
-		// TODO: Draw box with the current size.
-		return false;
-	}
-
-	int frameNum = pAnim->GetCurFrame();
-	if (frameNum < 0 || frameNum >= pAnim->Frames.GetLength())
-		return false;
-
-	const STextureAnimationFrame& frame = pAnim->Frames[frameNum];
-
-	if (pAnim->bGrid)
-	{
-		if (pAnim->CurCell != -1)
-		{
-			return RenderTexturePiece(frame.Piece, pAnim->CellRect, theSize);
-		}
-	}
-	else
-	{
-		return RenderTexturePiece(frame.Piece, theSize);
-	}
-
-	return false;
 }
 
 void ColumnTextureAnimationPreview(const char* Label, const CTextureAnimation* pAnim)
@@ -634,7 +642,7 @@ void ColumnTextureAnimationPreview(const char* Label, const CTextureAnimation* p
 		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(null)");
 	else
 	{
-		if (!RenderTextureAnimation(pAnim))
+		if (!imgui::DrawTextureAnimation(pAnim))
 		{
 			ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(empty)");
 		}
@@ -2791,7 +2799,7 @@ public:
 		// Icon
 		ImGui::TableNextColumn();
 		m_pTASpellIcon->SetCurCell(spell->SpellIcon);
-		RenderTextureAnimation(m_pTASpellIcon);
+		imgui::DrawTextureAnimation(m_pTASpellIcon);
 		//m_pTASpellIcon->SetCurCell(spell->GemIcon);
 		//RenderTextureAnimation(m_pTASpellIcon);
 		//m_pTASpellIcon->SetCurCell(spell->BookIcon);

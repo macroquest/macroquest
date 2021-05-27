@@ -140,12 +140,5 @@ private:
 	ImVec2 m_defaultSize;
 };
 
-// TODO: Clean up interface to these helpers
-
-MQLIB_API bool RenderTextureAnimation(const CTextureAnimation* pAnim, const CXSize& size = CXSize());
-
-MQLIB_API bool ItemLinkText(const char* fmt, ...);
-MQLIB_API bool ItemLinkTextV(const char* fmt, va_list);
-
 } // namespace mq
 

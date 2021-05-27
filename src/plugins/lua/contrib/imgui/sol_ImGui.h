@@ -1,10 +1,14 @@
+
 #pragma once
+
+#include <mq/Plugin.h>
+#include <mq/imgui/Widgets.h>
+
 #include <imgui/imgui.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
-#include <string>
 #include <sol/sol.hpp>
-#include <mq/Plugin.h>
-#include <main/MQ2DeveloperTools.h>
+
+#include <string>
 
 namespace sol_ImGui
 {
@@ -21,7 +25,7 @@ namespace sol_ImGui
 			ImGui::End();
 			return std::make_tuple(false, false);
 		}
-		
+
 		return std::make_tuple(open, shouldDraw);
 	}
 	inline std::tuple<bool, bool> Begin(const std::string& name, bool open, int flags)
@@ -34,11 +38,11 @@ namespace sol_ImGui
 			ImGui::End();
 			return std::make_tuple(false, false);
 		}
-		
+
 		return std::make_tuple(open, shouldDraw);
 	}
 	inline void End()																					{ ImGui::End(); }
-	
+
 	// Child Windows
 	inline bool BeginChild(const std::string& name)														{ return ImGui::BeginChild(name.c_str()); }
 	inline bool BeginChild(const std::string& name, float sizeX)										{ return ImGui::BeginChild(name.c_str(), { sizeX, 0 }); }
@@ -1683,9 +1687,9 @@ namespace sol_ImGui
 	inline void SetClipboardText(const std::string& text)												{ ImGui::SetClipboardText(text.c_str()); }
 
 	// MQ-Specific functions
-	inline bool RenderTextureAnimation(const std::unique_ptr<CTextureAnimation>& anim, int x, int y)	{ return mq::RenderTextureAnimation(anim.get(), CXSize(x, y)); }
-	inline bool RenderTextureAnimation(const std::unique_ptr<CTextureAnimation>& anim)					{ return mq::RenderTextureAnimation(anim.get()); }
-	
+	inline bool RenderTextureAnimation(const std::unique_ptr<CTextureAnimation>& anim, int x, int y)	{ return mq::imgui::DrawTextureAnimation(anim.get(), CXSize(x, y)); }
+	inline bool RenderTextureAnimation(const std::unique_ptr<CTextureAnimation>& anim)					{ return mq::imgui::DrawTextureAnimation(anim.get()); }
+
 	inline void InitEnums(sol::state_view lua)
 	{
 #pragma region Window Flags
