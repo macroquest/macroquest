@@ -1202,7 +1202,7 @@ static void DrawMapSettings_Options()
 
 			if (!isRequirementMet)
 			{
-				ImGui::PushStyleColor(ImGuiCol_Text, MQColor(255, 255, 255, 100).ToRGBA8());
+				ImGui::PushStyleColor(ImGuiCol_Text, MQColor(255, 255, 255, 100).ToABGR());
 			}
 
 			if (ImGui::Checkbox(option.szName, &option.Enabled))
@@ -1314,7 +1314,7 @@ static void DrawMapSettings_Colors()
 
 		ImGui::PushID(&option);
 
-		ImColor color = option.Color.ToRGBA8();
+		ImColor color = option.Color.ToABGR();
 
 		if (ImGui::ColorEdit3(option.szName, &color.Value.x))
 		{

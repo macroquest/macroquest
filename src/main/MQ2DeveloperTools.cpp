@@ -167,7 +167,7 @@ bool ItemLinkTextV(const char* fmt, va_list args)
 {
 	ImVec2 pos = ImGui::GetCursorPos();
 	MQColor textLinkColor = GetColorForChatColor(USERCOLOR_LINK);
-	ImGui::TextColoredV(ImColor(textLinkColor.ToRGBA8()), fmt, args);
+	ImGui::TextColoredV(ImColor(textLinkColor.ToABGR()), fmt, args);
 
 	bool clicked = ImGui::IsItemClicked(0);
 
@@ -176,7 +176,7 @@ bool ItemLinkTextV(const char* fmt, va_list args)
 		ImGui::SetCursorPos(pos);
 
 		// HACK: Render text again with different color.
-		ImGui::TextColoredV(ImColor(MQColor(0, 0, 128).ToRGBA8()), fmt, args);
+		ImGui::TextColoredV(ImColor(MQColor(0, 0, 128).ToABGR()), fmt, args);
 	}
 
 	return clicked;
@@ -3361,22 +3361,26 @@ bool DeveloperTools_HandleClick(int mouseButton, bool clicked)
 
 void DeveloperTools_RemoveWindow(CXWnd* pWnd)
 {
-	s_windowInspector->OnWindowRemoved(pWnd);
+	if (s_windowInspector)
+		s_windowInspector->OnWindowRemoved(pWnd);
 }
 
 void DeveloperTools_ShowWindowInspector(CXWnd* pWnd)
 {
-	s_windowInspector->ShowWindowInspector(pWnd);
+	if (s_windowInspector)
+		s_windowInspector->ShowWindowInspector(pWnd);
 }
 
 void DeveloperTools_SetSelectedWindow(CXWnd* pWnd)
 {
-	s_windowInspector->SetSelectedWindow(pWnd);
+	if (s_windowInspector)
+		s_windowInspector->SetSelectedWindow(pWnd);
 }
 
 void DeveloperTools_CloseLoginFrontend()
 {
-	s_windowInspector->Reset();
+	if (s_windowInspector)
+		s_windowInspector->Reset();
 }
 
 //----------------------------------------------------------------------------

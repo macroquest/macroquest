@@ -352,7 +352,6 @@ void InitializeMQ2Plugins()
 	bmPluginsReloadUI = AddMQ2Benchmark("PluginsReloadUI");
 	bmPluginsDrawHUD = AddMQ2Benchmark("PluginsDrawHUD");
 	bmPluginsSetGameState = AddMQ2Benchmark("PluginsSetGameState");
-	bmPluginsUpdateImGui = AddMQ2Benchmark("PluginsUpdateImGui");
 	bmCalculate = AddMQ2Benchmark("Calculate");
 	bmBeginZone = AddMQ2Benchmark("BeginZone");
 	bmEndZone = AddMQ2Benchmark("EndZone");

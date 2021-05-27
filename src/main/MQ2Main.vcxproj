@@ -302,6 +302,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="ImGuiZepEditor.cpp" />
     <ClCompile Include="MQ2Anonymize.cpp" />
     <ClCompile Include="MQ2Auth.cpp" />
     <ClCompile Include="MQ2AutoInventory.cpp" />
@@ -377,6 +378,7 @@
     <ClInclude Include="datatypes\DataTypeList.h" />
     <ClInclude Include="datatypes\MQ2DataTypes.h" />
     <ClInclude Include="CrashHandler.h" />
+    <ClInclude Include="ImGuiZepEditor.h" />
     <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQ2DataContainers.h" />
     <ClInclude Include="MQ2DeveloperTools.h" />
@@ -402,6 +404,9 @@
     <Natvis Include="..\MQ2.natvis" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\contrib\zep\zep.vcxproj">
+      <Project>{9c7402b4-f71e-41f8-bb17-320f47de02c8}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\eqlib\eqlib.vcxproj">
       <Project>{7cc5690f-593c-4938-922d-73a0ac84537a}</Project>
     </ProjectReference>

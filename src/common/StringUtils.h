@@ -325,6 +325,14 @@ struct ci_less
 	using is_transparent = void;
 };
 
+inline int find_substr(std::string_view haystack, std::string_view needle)
+{
+	auto iter = std::search(std::begin(haystack), std::end(haystack),
+		std::begin(needle), std::end(needle));
+	if (iter == std::end(haystack)) return -1;
+	return iter - std::begin(haystack);
+}
+
 inline int ci_find_substr(std::string_view haystack, std::string_view needle)
 {
 	auto iter = std::search(std::begin(haystack), std::end(haystack),
@@ -339,6 +347,11 @@ inline int ci_find_substr_w(std::wstring_view haystack, std::wstring_view needle
 		std::begin(needle), std::end(needle), ci_less::nocase_equals_w());
 	if (iter == std::end(haystack)) return -1;
 	return iter - std::begin(haystack);
+}
+
+inline bool starts_with(std::string_view haystack, std::string_view needle)
+{
+	return find_substr(haystack, needle) == 0;
 }
 
 // todo implement a better ci_starts_with that doesn't search past needle.length chars

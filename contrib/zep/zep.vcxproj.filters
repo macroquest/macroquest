@@ -1,0 +1,269 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\mcommon">
+      <UniqueIdentifier>{9d45a062-0353-4ede-96e4-150c8bbfcfbd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\mcommon">
+      <UniqueIdentifier>{7802156d-84a8-411c-958b-bb18fbfb2d01}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\buffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\commands.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\display.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\editor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\filesystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\glyph_iterator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\indexer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\keymap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\line_widgets.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mode_search.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mode_standard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mode_tree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mode_vim.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\range_markers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\regress.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scroller.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\splits.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\syntax.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\syntax_markdown.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\syntax_providers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\syntax_rainbow_brackets.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\syntax_tree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tab_window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\theme.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mcommon\animation\timer.cpp">
+      <Filter>Source Files\mcommon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mcommon\file\path.cpp">
+      <Filter>Source Files\mcommon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mcommon\string\stringutils.cpp">
+      <Filter>Source Files\mcommon</Filter>
+    </ClCompile>
+    <ClCompile Include="zep.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\zep.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\commands.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\display.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\editor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\filesystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\gap_buffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\glyph_iterator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\indexer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\keymap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\line_widgets.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mode_search.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mode_standard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mode_tree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mode_vim.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\range_markers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\regress.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\scroller.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\splits.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\syntax.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\syntax_markdown.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\syntax_providers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\syntax_rainbow_brackets.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\syntax_tree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\tab_window.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\theme.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\window.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\zep_config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\buffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mcommon\platform.h">
+      <Filter>Header Files\mcommon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mcommon\registrar.h">
+      <Filter>Header Files\mcommon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mcommon\signals.h">
+      <Filter>Header Files\mcommon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mcommon\threadpool.h">
+      <Filter>Header Files\mcommon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mcommon\threadutils.h">
+      <Filter>Header Files\mcommon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mcommon\utf8.h">
+      <Filter>Header Files\mcommon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mcommon\callback.h">
+      <Filter>Header Files\mcommon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mcommon\gsl-lite.hpp">
+      <Filter>Header Files\mcommon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mcommon\logger.h">
+      <Filter>Header Files\mcommon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mcommon\animation\timer.h">
+      <Filter>Header Files\mcommon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mcommon\file\fnmatch.h">
+      <Filter>Header Files\mcommon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mcommon\file\path.h">
+      <Filter>Header Files\mcommon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mcommon\file\cpptoml.h">
+      <Filter>Header Files\mcommon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mcommon\math\math.h">
+      <Filter>Header Files\mcommon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mcommon\string\stringutils.h">
+      <Filter>Header Files\mcommon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mcommon\utf8\cpp11.h">
+      <Filter>Header Files\mcommon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mcommon\utf8\unchecked.h">
+      <Filter>Header Files\mcommon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mcommon\utf8\checked.h">
+      <Filter>Header Files\mcommon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mcommon\utf8\core.h">
+      <Filter>Header Files\mcommon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mcommon\math\color.h">
+      <Filter>Header Files\mcommon</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="zep.natvis">
+      <Filter>Resource Files</Filter>
+    </Natvis>
+  </ItemGroup>
+</Project>

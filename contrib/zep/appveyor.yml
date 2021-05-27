@@ -1,0 +1,84 @@
+# Build worker image (VM template)
+image: Visual Studio 2019
+
+# scripts that are called at very beginning, before repo cloning
+init:
+  - date /T & time /T
+  - git config --global core.autocrlf input
+  - cmake --version
+
+clone_depth: 5
+
+version: '{build}'
+
+platform:
+  - x64
+
+configuration:
+  - Release
+  - Debug
+
+environment:
+  MSBUILD_FLAGS: /verbosity:minimal /maxcpucount
+  matrix:
+    - generator: "Visual Studio 16 2019"
+
+matrix:
+  fast_finish: true
+
+install:
+  - git submodule update --init --recursive
+  
+build_script:
+  # generate build script
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - cd ..
+  # create folder for an out-of-source-tree build: "c:\projects\build"
+  - git clone https://github.com/cmaughan/MUtils
+  - cd MUtils
+  - ./prebuild.bat
+  - config_all.bat
+  - build_all.bat
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - mkdir build
+  - cd build
+  - set QT_INSTALL_LOCATION=C:\Qt\5.15.0\msvc2019_64
+  - >
+    cmake %APPVEYOR_BUILD_FOLDER%
+    -G "%generator%"
+    -DBUILD_QT=YES
+    -DBUILD_IMGUI=YES
+    -DCMAKE_INSTALL_PREFIX=./zep
+  - cmake --build . --target ALL_BUILD --config %configuration% -- /nologo /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+
+test_script:
+    - ps: |
+        cd $env:APPVEYOR_BUILD_FOLDER\build\tests\$env:CONFIGURATION
+        .\unittests.exe --gtest_output=xml:unit_tests_report.xml
+        $wc = New-Object 'System.Net.WebClient'
+        $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path unit_tests_report.xml))
+
+after_build:
+  # set compiler var
+  - if "%generator%"=="Visual Studio 16" (set COMPILER="VC16")
+  # switch to project build folder and zip "tutorials" folder
+  - cd %APPVEYOR_BUILD_FOLDER%\build\demos
+  - 7z a -tzip -mx9 "zep-imgui-%configuration%-%APPVEYOR_BUILD_VERSION%.zip" demo_imgui\%configuration%
+  - appveyor PushArtifact "zep-imgui-%configuration%-%APPVEYOR_BUILD_VERSION%.zip"
+  - 7z a -tzip -mx9 "zep-qt-%configuration%-%APPVEYOR_BUILD_VERSION%.zip" demo_qt\%configuration%
+  - appveyor PushArtifact "zep-qt-%configuration%-%APPVEYOR_BUILD_VERSION%.zip"
+
+deploy:
+    appveyor_repo_tag: true
+    tag: $(APPVEYOR_REPO_TAG_NAME)
+    release: $(APPVEYOR_REPO_TAG_NAME) 
+    description: 'Binaries'
+    provider: GitHub
+    auth_token:
+        secure: gMvgHqsZgPbxCc91J0lU8FbV85i6qQBLUEhbXq7Nn0uD2Fk09lr6j44T2R0j5FrK
+    artifact: /.*\.zip/ 
+    draft: false
+    prerelease: true
+    on:
+      appveyor_repo_tag: true
+

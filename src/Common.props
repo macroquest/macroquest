@@ -6,7 +6,6 @@
     <MQ2BinaryDirName Condition="'$(Configuration)'=='Release'">release</MQ2BinaryDirName>
     <MQ2Root>$(MQ2SolutionDirectory)..\</MQ2Root>
     <MQ2BuildDirectory>$(MQ2Root)build\</MQ2BuildDirectory>
-
     <!-- vcpkg paths -->
     <VCPKG_IncludeDirs>$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\include</VCPKG_IncludeDirs>
     <VCPKG_LibraryDirs Condition="'$(Configuration)'=='Debug'">$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\debug\lib</VCPKG_LibraryDirs>
@@ -37,7 +36,7 @@
     </ClCompile>
     <!-- Shared compiler settings -->
     <ClCompile>
-      <AdditionalIncludeDirectories>$(MQ2Root)include;$(MQ2Root)contrib;$(MQ2Root)contrib\imgui;$(MQ2Root)contrib\imgui\misc\cpp;$(MQ2Root)contrib\tinyfsm\include;$(MQ2Root)src;$(VCPKG_IncludeDirs);$(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MQ2Root)include;$(MQ2Root)contrib;$(MQ2Root)contrib\imgui;$(MQ2Root)contrib\imgui\misc\cpp;$(MQ2Root)contrib\tinyfsm\include;$(MQ2Root)contrib\zep\include;$(MQ2Root)src;$(VCPKG_IncludeDirs);$(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <WarningLevel>Level3</WarningLevel>
       <CompileAs>CompileAsCpp</CompileAs>

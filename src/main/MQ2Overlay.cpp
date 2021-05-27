@@ -1581,22 +1581,14 @@ static void ImGui_EnableViewports(bool enable)
 
 #pragma region ImGui: Startup / Shutdown
 
+
 void InitializeImGui(IDirect3DDevice9* device)
 {
 	if (gbInitializedImGui)
 		return;
 
-	ImGui::CreateContext();
-
-	ImGuiIO& io = ImGui::GetIO();
-	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;             // Enable Docking
-
 	gbLastFullScreenState = IsFullScreen(device);
 	ImGui_EnableViewports(!gbLastFullScreenState);                // Enable Multi-Viewport / Platform Windows
-
-	fmt::format_to(ImGuiSettingsFile, "{}/MacroQuest_Overlay.ini", mq::internal_paths::Config);
-	io.IniFilename = &ImGuiSettingsFile[0];
 
 	// Retrieve window handle from device
 	D3DDEVICE_CREATION_PARAMETERS params;
@@ -1605,11 +1597,6 @@ void InitializeImGui(IDirect3DDevice9* device)
 	// Initialize the platform backend and renderer bindings
 	ImGui_ImplWin32_Init(params.hFocusWindow);
 	ImGui_ImplDX9_Init(device);
-
-	ImGui::StyleColorsDark();
-
-	mq::imgui::ConfigureStyle();
-	mq::imgui::ConfigureFonts();
 
 	gbInitializedImGui = true;
 }
@@ -1621,8 +1608,6 @@ void ShutdownImGui()
 
 	ImGui_ImplDX9_Shutdown();
 	ImGui_ImplWin32_Shutdown();
-
-	ImGui::DestroyContext();
 
 	g_pImguiDevice = nullptr;
 	g_pVB = nullptr;
@@ -2347,6 +2332,7 @@ bool IsImGuiForeground()
 void InitializeMQ2Overlay()
 {
 	imgui::g_bRenderImGui = GetPrivateProfileBool("MacroQuest", "RenderImGui", imgui::g_bRenderImGui, mq::internal_paths::MQini);
+	bmPluginsUpdateImGui = AddMQ2Benchmark("PluginsUpdateImGui");
 
 	// TODO: application-wide keybinds could use an encapsulated interface. For now I'm just dumping his here since we need it to
 	// connect to the win32 hook and control the imgui console.
@@ -2393,6 +2379,20 @@ void InitializeMQ2Overlay()
 	// Hook the reset device function
 	EzDetour(CRender__ResetDevice, &CRenderHook::ResetDevice_Detour, &CRenderHook::ResetDevice_Trampoline);
 
+	// Initialize ImGui context
+	ImGui::CreateContext();
+
+	ImGuiIO& io = ImGui::GetIO();
+	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;             // Enable Docking
+
+	fmt::format_to(ImGuiSettingsFile, "{}/MacroQuest_Overlay.ini", mq::internal_paths::Config);
+	io.IniFilename = &ImGuiSettingsFile[0];
+
+	ImGui::StyleColorsDark();
+	mq::imgui::ConfigureStyle();
+	mq::imgui::ConfigureFonts();
+
 	InitializeOverlayInternal();
 }
 
@@ -2416,6 +2416,9 @@ void ShutdownMQ2Overlay()
 	RemoveDetour(CParticleSystem__Render);
 
 	ShutdownOverlayInternal();
+
+	ImGui::DestroyContext();
+	RemoveMQ2Benchmark(bmPluginsUpdateImGui);
 }
 
 void ShutdownOverlayInternal()

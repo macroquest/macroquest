@@ -128,6 +128,9 @@ void ConfigureFonts()
 {
 	ConfigureDefaultFont();
 	ConfigureLargeFont();
+
+	ImGuiIO& io = ImGui::GetIO();
+	io.Fonts->Build();
 }
 
 void ConfigureStyle()

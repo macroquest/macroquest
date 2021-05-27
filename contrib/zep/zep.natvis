@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- natvis file for Visual Studio debugger (you can include this in a project file, or install in visual studio folder) -->
+
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+<Type Name="Zep::GlyphIterator">
+	<DisplayString>{{ index={m_index} }}</DisplayString>
+</Type>
+
+<Type Name="Zep::GlyphRange">
+	<DisplayString>{{ first={first.m_index} second={second.m_index} }}</DisplayString>
+</Type>
+
+</AutoVisualizer>

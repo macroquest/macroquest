@@ -172,14 +172,9 @@ public:
 					}
 				}
 			}
-			else
-			{
-				//DebugSpew("Unhandled InputBox message 0x%04x, value: 0x%04x", Message, data);
-			}
 		}
 		else if (Message == XWM_LINK)
 		{
-			//DebugSpewAlways("Link clicked: 0x%X, 0x%X, %Xh", pWnd, Message, data);
 			for (auto wnd : pChatManager->ChannelMap)
 			{
 				if (wnd)
@@ -189,10 +184,7 @@ public:
 					break;
 				}
 			}
-		}
-		else
-		{
-			//DebugSpew("MQ2ChatWnd: 0x%X, Msg: 0x%X, value: %Xh",pWnd,Message,data);
+			return 0;
 		}
 
 		return CSidlScreenWnd::WndNotification(pWnd, Message, data);
