@@ -375,7 +375,9 @@ public:
 
 	bool IsForeground() const { return m_lastInForeground.value_or(false); }
 
-	bool IsRendering() const { return m_lastInForeground.value_or(false) ? m_renderInForeground : m_renderInBackground; }
+	bool IsRendering() const { return m_lastInForeground.value_or(false)
+		? (m_renderInForeground && m_foregroundFPS > 0.f)
+		: (m_renderInBackground && m_backgroundFPS > 0.f); }
 
 	float CPUUsage() const { return static_cast<float>(m_cpuUsage.Average()) / 1000.f; }
 
@@ -537,6 +539,7 @@ public:
 	void UpdateThrottler()
 	{
 		float desiredRenderRate = m_lastInForeground.value_or(false) ? m_foregroundFPS : m_backgroundFPS;
+		if (desiredRenderRate == 0.f) desiredRenderRate = 0.001f; // prevent division by zero if someone forces the render rate
 		m_frameThrottler.SetMinDuration(std::chrono::microseconds(static_cast<int64_t>(1000000 / desiredRenderRate)));
 
 		// Cap the main loop at a minimum of m_minSimulationFPS.
@@ -575,6 +578,17 @@ public:
 		}
 		if (ImGui::SliderFloat("Target FPS", &m_backgroundFPS, 0.001f, 120.0f))
 		{
+			//if (m_backgroundFPS == 0.f)
+			//{
+			//	if (m_renderInBackground)
+			//	{
+			//		m_renderInBackground = false;
+			//		WriteSetting<LimiterSetting::RenderInBackground>(m_renderInBackground);
+			//	}
+            //
+			//	m_backgroundFPS = 0.001f;
+			//}
+
 			WriteSetting<LimiterSetting::BackgroundFPS>(m_backgroundFPS);
 			UpdateThrottler();
 		}
@@ -596,6 +610,17 @@ public:
 		}
 		if (ImGui::SliderFloat("Target FPS", &m_foregroundFPS, 5.0f, 120.0f))
 		{
+			//if (m_foregroundFPS == 0.f)
+			//{
+			//	if (m_renderInForeground)
+			//	{
+			//		m_renderInForeground = false;
+			//		WriteSetting<LimiterSetting::RenderInForeground>(m_renderInForeground);
+			//	}
+
+			//	m_foregroundFPS = 0.001f;
+			//}
+
 			WriteSetting<LimiterSetting::ForegroundFPS>(m_foregroundFPS);
 			UpdateThrottler();
 		}
