@@ -1687,8 +1687,8 @@ namespace sol_ImGui
 	inline void SetClipboardText(const std::string& text)												{ ImGui::SetClipboardText(text.c_str()); }
 
 	// MQ-Specific functions
-	inline bool RenderTextureAnimation(const std::unique_ptr<CTextureAnimation>& anim, int x, int y)	{ return mq::imgui::DrawTextureAnimation(anim.get(), CXSize(x, y)); }
-	inline bool RenderTextureAnimation(const std::unique_ptr<CTextureAnimation>& anim)					{ return mq::imgui::DrawTextureAnimation(anim.get()); }
+	inline bool DrawTextureAnimation(const std::unique_ptr<CTextureAnimation>& anim, int x, int y)	{ return mq::imgui::DrawTextureAnimation(anim.get(), CXSize(x, y)); }
+	inline bool DrawTextureAnimation(const std::unique_ptr<CTextureAnimation>& anim)					{ return mq::imgui::DrawTextureAnimation(anim.get()); }
 
 	inline void InitEnums(sol::state_view lua)
 	{
@@ -2935,9 +2935,9 @@ namespace sol_ImGui
 #pragma endregion Clipboard Utilities
 
 #pragma region MQ Specific Functions
-		ImGui.set_function("RenderTextureAnimation",		sol::overload(
-																sol::resolve<bool(const std::unique_ptr<CTextureAnimation>&, int, int)>(RenderTextureAnimation),
-																sol::resolve<bool(const std::unique_ptr<CTextureAnimation>&)>(RenderTextureAnimation)
+		ImGui.set_function("DrawTextureAnimation",			sol::overload(
+																sol::resolve<bool(const std::unique_ptr<CTextureAnimation>&, int, int)>(DrawTextureAnimation),
+																sol::resolve<bool(const std::unique_ptr<CTextureAnimation>&)>(DrawTextureAnimation)
 															));
 #pragma endregion
 
