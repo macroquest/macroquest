@@ -51,3 +51,6 @@ ipch/
 
 # ignore tools repo
 src/tools
+
+# ignore a specific sln file
+src/MacroQuestCustom.sln
