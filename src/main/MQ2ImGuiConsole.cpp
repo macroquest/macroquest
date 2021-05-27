@@ -247,8 +247,8 @@ public:
 
 		if (themeColor == Zep::ThemeColor::Background)
 			return Zep::ZepColor(0, 0, 0, 0);
-		//if (themeColor == Zep::ThemeColor::VisualSelectBackground)
-		//	return Zep::ZepColor(0, 0, 128, 128);
+		if (themeColor == Zep::ThemeColor::VisualSelectBackground)
+			return Zep::ZepColor(66, 150, 249, 89);
 
 		return Zep::ZepTheme::GetColor(themeColor);
 	}
@@ -1017,15 +1017,16 @@ public:
 
 		m_zepEditor->Render("##ZepConsole", contentSize);
 
-		ImGui::Separator();
-
 		// Command-line
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 4));
+		ImGui::Separator();
 
 		int textFlags = ImGuiInputTextFlags_EnterReturnsTrue
 			| ImGuiInputTextFlags_CallbackCompletion
 			| ImGuiInputTextFlags_CallbackHistory;
 
-		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 4);
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 6);
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 4);
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.00f, 0.00f, 0.00f));
 		ImGui::PushFont(mq::imgui::ConsoleFont);
@@ -1036,7 +1037,7 @@ public:
 
 		ImGui::PopFont();
 		ImGui::PopStyleColor();
-		ImGui::PopStyleVar();
+		ImGui::PopStyleVar(2);
 
 
 		if (bTextEdit)
