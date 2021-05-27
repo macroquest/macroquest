@@ -170,6 +170,9 @@ public:
     void DirtyLayout();
     void AdjustScroll(float delta);
     void ScrollByLine(int lines, bool ensureVisible = true);
+    void ScrollToBottom();
+
+    bool IsAtBottom() const;
 
     GlyphIterator GetMouseCursor() const
     {
@@ -193,6 +196,7 @@ private:
     void UpdateScrollers();
     void UpdateLineSpans();
     void UpdateVisibleLineRange();
+    void EnsureBottomVisible();
 
     bool IsLineFullyVisible(int lineNum) const;
     NVec2i BufferToDisplay(const GlyphIterator& location);
@@ -281,6 +285,7 @@ private:
     long m_maxDisplayLines = 0;
     int m_defaultLineSize = 0;
     float m_xPad = 0.0f;
+    bool m_scrollToBottom = false;
 
     // Tooltips
     timer m_toolTipTimer;                // Timer for when the tip is shown

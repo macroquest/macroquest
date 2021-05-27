@@ -728,7 +728,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 	void AppendFormattedText(std::string_view text, uint32_t defaultColor = s_defaultColor, bool newline = false)
 	{
 		Zep::GlyphIterator cursor = m_window->GetBufferCursor();
-		bool cursorAtEnd = cursor == m_buffer->End().Clamped();
+		bool cursorAtEnd = m_window->IsAtBottom();
 
 		std::string_view lineView = text;
 		ImU32 currentColor = defaultColor;
@@ -778,7 +778,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 	void DoHyperlinkTest()
 	{
 		Zep::GlyphIterator cursor = m_window->GetBufferCursor();
-		bool cursorAtEnd = cursor == m_buffer->End().Clamped();
+		bool cursorAtEnd = m_window->IsAtBottom();
 
 		static int hyperlinkNum = 1;
 		std::string text = fmt::format("This is hyperlink {}", hyperlinkNum++);
@@ -833,8 +833,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		if (m_deferredCursorToEnd)
 		{
 			m_deferredCursorToEnd = false;
-			m_window->SetBufferCursor(m_buffer->End());
-			m_window->ScrollToCursor();
+			m_window->ScrollToBottom();
 		}
 
 		ImGuiZepEditor::Render(id, displaySize);

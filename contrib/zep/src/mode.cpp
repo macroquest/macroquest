@@ -1331,7 +1331,6 @@ bool ZepMode::GetCommand(CommandContext& context)
             GetCurrentWindow()->SetBufferCursor(context.mouseCursor);
         return true;
     case id_MotionStandardMoveCursorSelect:
-        ZLOG(INFO, "MotionStandardMoveCursorSelect: " << context.mouseCursor.Index());
         if (context.mouseCursor.Valid())
         {
             context.commandResult.modeSwitch = EditorMode::Visual;

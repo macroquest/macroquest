@@ -211,7 +211,7 @@ void ZepWindow::Notify(std::shared_ptr<ZepMessage> payload)
     {
         if (payload->pComponent == m_vScroller.get())
         {
-            auto pScroller = dynamic_cast<Scroller*>(payload->pComponent);
+            auto pScroller = static_cast<Scroller*>(payload->pComponent);
             m_textOffsetPx = pScroller->vScrollPosition * m_textSizePx.y;
             UpdateVisibleLineRange();
             EnsureCursorVisible();
@@ -339,6 +339,21 @@ void ZepWindow::EnsureCursorVisible()
     }
 }
 
+void ZepWindow::EnsureBottomVisible()
+{
+    auto& cursorLine = *m_windowLines.back();
+    auto height = cursorLine.FullLineHeightPx();
+    float scrollDelta = 0;
+
+    if (m_textOffsetPx + m_textRegion->rect.Height() < cursorLine.yOffsetPx)
+    {
+        scrollDelta = cursorLine.yOffsetPx - (m_textOffsetPx + m_textRegion->rect.Height()) + height;
+    }
+
+    AdjustScroll(scrollDelta);
+    m_cursorMoved = false;
+}
+
 bool ZepWindow::IsLineFullyVisible(int lineNum) const
 {
     const SpanInfo& lineInfo = *m_windowLines[lineNum];
@@ -393,17 +408,29 @@ void ZepWindow::ScrollToCursor()
     float scrollDelta = 0;
 
     // If the buffer is beyond two lines above the cursor position, move it back by the difference
-    if (m_textOffsetPx > (cursorLine.yOffsetPx - two_lines))
+    if (m_textOffsetPx > (cursorLine.yOffsetPx/* - two_lines*/))
     {
-        scrollDelta = -(m_textOffsetPx - (cursorLine.yOffsetPx - two_lines));
+        scrollDelta = -(m_textOffsetPx - (cursorLine.yOffsetPx/* - two_lines*/));
     }
-    else if ((m_textOffsetPx + m_textRegion->rect.Height() - two_lines) < cursorLine.yOffsetPx)
+    else if ((m_textOffsetPx + m_textRegion->rect.Height()/* - two_lines*/) < cursorLine.yOffsetPx)
     {
-        scrollDelta = cursorLine.yOffsetPx - (m_textOffsetPx + m_textRegion->rect.Height() - two_lines);
+        scrollDelta = cursorLine.yOffsetPx - (m_textOffsetPx + m_textRegion->rect.Height()/* - two_lines*/);
     }
 
     AdjustScroll(scrollDelta);
     m_cursorMoved = false;
+}
+
+void ZepWindow::ScrollToBottom()
+{
+    m_scrollToBottom = true;
+}
+
+bool ZepWindow::IsAtBottom() const
+{
+    auto bottomOffset = std::max(0.0f, m_textSizePx.y - m_textRegion->rect.Height());
+    return m_textOffsetPx >= bottomOffset
+        || m_textSizePx.y < m_textRegion->rect.Height();
 }
 
 void ZepWindow::GetCharPointer(GlyphIterator loc, const uint8_t*& pBegin, const uint8_t*& pEnd, SpecialChar& special)
@@ -798,7 +825,10 @@ void ZepWindow::UpdateVisibleLineRange()
         m_visibleLineIndices.y = long(line);
     }
 
-    m_textSizePx.y = m_windowLines[m_windowLines.size() - 1]->yOffsetPx + GetEditor().GetDisplay().GetFont(ZepTextType::Text).GetPixelHeight() + DPI_Y(GetEditor().GetConfig().lineMargins.y) + DPI_Y(GetEditor().GetConfig().lineMargins.x);
+    m_textSizePx.y = m_windowLines[m_windowLines.size() - 1]->yOffsetPx
+        + GetEditor().GetDisplay().GetFont(ZepTextType::Text).GetPixelHeight()
+        + DPI_Y(GetEditor().GetConfig().lineMargins.y)
+        + DPI_Y(GetEditor().GetConfig().lineMargins.x);
 
     m_visibleLineIndices.y++;
     UpdateScrollers();
@@ -1769,6 +1799,8 @@ void ZepWindow::Display()
 
     // Ensure line spans are valid; updated if the text is changed or the window dimensions change
     UpdateLayout();
+    if (m_scrollToBottom)
+        EnsureBottomVisible();
     ScrollToCursor();
     UpdateScrollers();
     UpdateMarkers();
@@ -1779,11 +1811,15 @@ void ZepWindow::Display()
         m_layoutDirty = true;
         m_cursorMoved = true;
         UpdateLayout();
+        if (m_scrollToBottom)
+            EnsureBottomVisible();
         ScrollToCursor();
         UpdateScrollers();
 
         m_scrollVisibilityChanged = false;
     }
+
+    m_scrollToBottom = false;
 
     auto& display = GetEditor().GetDisplay();
     auto cursorCL = BufferToDisplay(m_bufferCursor);

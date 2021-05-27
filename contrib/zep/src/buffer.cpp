@@ -705,6 +705,7 @@ void ZepBuffer::Clear()
     m_lineEnds.clear();
     m_fileFlags = ZSetFlags(m_fileFlags, FileFlags::TerminatedWithZero);
     m_lineEnds.push_back(End().Index() + 1);
+    // TODO: Clear selection
 
     {
         MarkUpdate();
