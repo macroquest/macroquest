@@ -2589,6 +2589,7 @@ namespace sol_ImGui
 																sol::resolve<bool(const std::string&, int, const std::string&)>(TreeNodeEx)
 															));
 		ImGui.set_function("TreePush"						, TreePush);
+		ImGui.set_function("TreePop"						, TreePop);
 		ImGui.set_function("GetTreeNodeToLabelSpacing"		, GetTreeNodeToLabelSpacing);
 		ImGui.set_function("CollapsingHeader"				, sol::overload(
 																sol::resolve<bool(const std::string&)>(CollapsingHeader),
