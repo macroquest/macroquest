@@ -31,6 +31,7 @@ namespace mq {
 
 static bool gbShowSettingsWindow = false;
 imgui::ImGuiTreePanelWindow* gSettingsWindow = nullptr;
+std::map<const char*, fPanelDrawFunction> s_pendingPanels;
 
 static void InitializeMQ2ImGuiTools();
 static void ShutdownMQ2ImGuiTools();
@@ -56,7 +57,9 @@ MQModule* GetImGuiToolsModule() { return &gImGuiModule; }
 
 void AddSettingsPanel(const char* name, fPanelDrawFunction drawFunction)
 {
-	if (gSettingsWindow)
+	if (!gSettingsWindow)
+		s_pendingPanels.emplace(name, drawFunction);
+	else
 		gSettingsWindow->AddPanel(name, drawFunction);
 }
 
@@ -327,6 +330,12 @@ static void InitializeMQ2ImGuiTools()
 	gSettingsWindow = new imgui::ImGuiTreePanelWindow("MacroQuest Settings");
 
 	AddSettingsPanel("Key Bindings", DoKeybindSettings);
+	for (const auto& pair : s_pendingPanels)
+	{
+		AddSettingsPanel(pair.first, pair.second);
+	}
+	
+	s_pendingPanels.clear();
 
 	InitializeImGuiConsole();
 }
