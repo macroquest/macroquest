@@ -542,6 +542,25 @@ private:
 
 //----------------------------------------------------------------------------
 
+class ZepMode_ImGuiConsole : public Zep::ZepMode_Standard
+{
+public:
+	using ZepMode_Standard::ZepMode_Standard;
+
+	virtual Zep::CursorType GetCursorType() const override { return Zep::CursorType::None; }
+
+	static const char* StaticName()
+	{
+		return "Console";
+	}
+	virtual const char* Name() const override
+	{
+		return StaticName();
+	}
+};
+
+//----------------------------------------------------------------------------
+
 // This is the imgui container for the Zep component.
 struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 {
@@ -559,6 +578,9 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		SetFont(Zep::ZepTextType::Heading1, mq::imgui::DefaultFont, 28);
 		SetFont(Zep::ZepTextType::Heading2, mq::imgui::DefaultFont, 14);
 		SetFont(Zep::ZepTextType::Heading3, mq::imgui::DefaultFont, 20);
+
+		GetEditor().RegisterGlobalMode(std::make_shared<ZepMode_ImGuiConsole>(GetEditor()));
+		GetEditor().SetGlobalMode(ZepMode_ImGuiConsole::StaticName());
 
 		m_window = GetEditor().GetActiveTabWindow()->GetActiveWindow();
 		m_theme = std::make_shared<ZepConsoleTheme>();
