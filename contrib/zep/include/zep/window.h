@@ -97,6 +97,7 @@ namespace WindowFlags
         GridStyle              = 0x0200,
         ShowLineBackground     = 0x0400,
         ShowWrappedLineNumbers = 0x0800,
+        ShowAirLine            = 0x1000,
     };
 }
 

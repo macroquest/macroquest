@@ -897,7 +897,7 @@ public:
 	{
 		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar;
 
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 4));
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1, 0));
 
 		if (!ImGui::Begin("MacroQuest Console", pOpen, windowFlags))
 		{
@@ -988,6 +988,8 @@ public:
 			ImGui::EndPopup();
 		}
 
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+
 		ImVec2 contentSize = ImGui::GetContentRegionAvail();
 		contentSize.y -= footer_height_to_reserve;
 
@@ -1012,6 +1014,8 @@ public:
 
 		ImGui::PopFont();
 		ImGui::PopStyleColor();
+		ImGui::PopStyleVar();
+
 
 		if (bTextEdit)
 		{
