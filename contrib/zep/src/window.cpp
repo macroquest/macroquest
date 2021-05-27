@@ -747,6 +747,26 @@ void ZepWindow::UpdateLineSpans()
         }
     }
 
+    if (ZTestFlags(GetWindowFlags(), WindowFlags::HideTrailingNewline)
+        && !m_windowLines.empty())
+    {
+        SpanInfo* lastLine = m_windowLines.back();
+        if (lastLine->lineCodePoints.size() == 1)
+        {
+            uint8_t ch = lastLine->lineCodePoints[0].iterator.Char();
+            if (ch == '\n')
+            {
+                delete lastLine;
+                m_windowLines.pop_back();
+            }
+        }
+        else if (lastLine->lineCodePoints.empty())
+        {
+            delete lastLine;
+            m_windowLines.pop_back();
+        }
+    }
+
     UpdateVisibleLineRange();
     m_layoutDirty = true;
 }
@@ -758,6 +778,7 @@ void ZepWindow::UpdateVisibleLineRange()
     m_visibleLineIndices.x = (long)m_windowLines.size();
     m_visibleLineIndices.y = 0;
     m_textSizePx.x = 0;
+
     for (long line = 0; line < long(m_windowLines.size()); line++)
     {
         auto& windowLine = *m_windowLines[line];

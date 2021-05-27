@@ -98,6 +98,7 @@ namespace WindowFlags
         ShowLineBackground     = 0x0400,
         ShowWrappedLineNumbers = 0x0800,
         ShowAirLine            = 0x1000,
+        HideTrailingNewline    = 0x2000, // Don't show blank line at bottom of window
     };
 }
 
