@@ -341,16 +341,16 @@ void ZepWindow::EnsureCursorVisible()
 
 void ZepWindow::EnsureBottomVisible()
 {
-    auto& cursorLine = *m_windowLines.back();
-    auto height = cursorLine.FullLineHeightPx();
-    float scrollDelta = 0;
+    float old_offset = m_textOffsetPx;
+    m_textOffsetPx = m_textSizePx.y - m_textRegion->rect.Height() + 1;
 
-    if (m_textOffsetPx + m_textRegion->rect.Height() < cursorLine.yOffsetPx)
+    m_textOffsetPx = std::min(m_textOffsetPx, m_textSizePx.y - m_textRegion->rect.Height());
+    m_textOffsetPx = std::max(0.f, m_textOffsetPx);
+
+    if (old_offset != m_textOffsetPx)
     {
-        scrollDelta = cursorLine.yOffsetPx - (m_textOffsetPx + m_textRegion->rect.Height()) + height;
+        UpdateVisibleLineRange();
     }
-
-    AdjustScroll(scrollDelta);
     m_cursorMoved = false;
 }
 
