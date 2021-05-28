@@ -134,7 +134,7 @@ bool LuaImGui::Pulse() const
 		auto result = coroutine();
 		if (!result.valid())
 		{
-			LuaError("ImGui Failure:\n%s", sol::stack::get<std::string>(result.lua_state(), result.stack_index()));
+			LuaError("ImGui Failure:\n%s", sol::stack::get<std::string>(result.lua_state(), result.stack_index()).c_str());
 			result.abandon();
 			return false;
 		}

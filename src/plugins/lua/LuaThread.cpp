@@ -148,7 +148,7 @@ std::optional<sol::protected_function_result> RunCoroutine(sol::coroutine& co, c
 		if (result.valid())
 			return result;
 
-		LuaError("%s", sol::stack::get<std::string>(result.lua_state(), result.stack_index()));
+		LuaError("%s", sol::stack::get<std::string>(result.lua_state(), result.stack_index()).c_str());
 		DebugStackTrace(result.lua_state());
 		result.abandon();
 	}
