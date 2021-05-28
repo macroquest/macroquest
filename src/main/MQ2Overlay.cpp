@@ -1104,6 +1104,19 @@ LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 	switch (msg)
 	{
 	case WM_KEYDOWN:
+		// We need to send an AddInputCharacter because WM_CHAR does not get sent by EQ.
+		BYTE keyState[256];
+
+		if (GetKeyboardState(keyState) == 1)
+		{
+			uint16_t character = 0;
+
+			if (ToAscii(wParam, (lParam & 0x1ff0000) > 16, keyState, &character, 0) == 1)
+			{
+				io.AddInputCharacter(character);
+			}
+		}
+		// fallthrough
 	case WM_SYSKEYDOWN:
 		if (wParam < 256)
 			io.KeysDown[wParam] = true;
@@ -1113,12 +1126,6 @@ LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 	case WM_SYSKEYUP:
 		if (wParam < 256)
 			io.KeysDown[wParam] = false;
-		return 0;
-
-	case WM_CHAR:
-		// You can also use ToAscii()+GetKeyboardState() to retrieve characters.
-		if (wParam > 0 && wParam < 0x10000)
-			io.AddInputCharacter((unsigned int)wParam);
 		return 0;
 
 	case WM_SETCURSOR:
@@ -1952,24 +1959,6 @@ bool OverlayWndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, bo
 	{
 		if (imgui::ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam, fromLogin))
 			return true;
-
-		if (!fromLogin && msg == WM_KEYDOWN && ImGui::GetCurrentContext() != nullptr)
-		{
-			// We need to send an AddInputCharacter because WM_CHAR does not get sent by EQ.
-			BYTE keyState[256];
-
-			if (GetKeyboardState(keyState) == 1)
-			{
-				uint16_t character = 0;
-
-				if (ToAscii(wParam, (lParam & 0x1ff0000) > 16, keyState, &character, 0) == 1)
-				{
-					ImGuiIO& io = ImGui::GetIO();
-
-					io.AddInputCharacter(character);
-				}
-			}
-		}
 	}
 
 	return false;
