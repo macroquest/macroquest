@@ -207,7 +207,7 @@ bool ItemLinkTextV(const char* fmt, va_list args)
 {
 	ImVec2 pos = ImGui::GetCursorPos();
 	MQColor textLinkColor = GetColorForChatColor(USERCOLOR_LINK);
-	ImGui::TextColoredV(ImColor(textLinkColor.ToABGR()), fmt, args);
+	ImGui::TextColoredV(textLinkColor.ToImColor(), fmt, args);
 
 	bool clicked = ImGui::IsItemClicked(0);
 
@@ -216,7 +216,7 @@ bool ItemLinkTextV(const char* fmt, va_list args)
 		ImGui::SetCursorPos(pos);
 
 		// HACK: Render text again with different color.
-		ImGui::TextColoredV(ImColor(MQColor(0, 0, 128).ToABGR()), fmt, args);
+		ImGui::TextColoredV(MQColor(0, 0, 128).ToImColor(), fmt, args);
 	}
 
 	return clicked;

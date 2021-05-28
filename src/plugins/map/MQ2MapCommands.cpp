@@ -1314,7 +1314,7 @@ static void DrawMapSettings_Colors()
 
 		ImGui::PushID(&option);
 
-		ImColor color = option.Color.ToABGR();
+		ImColor color = option.Color.ToImColor();
 
 		if (ImGui::ColorEdit3(option.szName, &color.Value.x))
 		{

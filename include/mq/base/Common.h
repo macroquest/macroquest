@@ -35,3 +35,5 @@
 
 #define LODWORD(_qw)          ((uint32_t)(_qw))
 #define HIDWORD(_qw)          ((uint32_t)(((_qw) >> 32) & 0xffffffff))
+
+#include <cstdint>

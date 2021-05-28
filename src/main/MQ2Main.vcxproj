@@ -363,9 +363,12 @@
     <ClInclude Include="..\..\contrib\mini-yaml\yaml\Yaml.hpp" />
     <ClInclude Include="..\..\contrib\tinyfsm\include\tinyfsm.hpp" />
     <ClInclude Include="..\..\include\moveitem.h" />
+    <ClInclude Include="..\..\include\mq\base\Color.h" />
     <ClInclude Include="..\..\include\mq\base\Common.h" />
+    <ClInclude Include="..\..\include\mq\base\Deprecation.h" />
     <ClInclude Include="..\..\include\mq\base\Threading.h" />
     <ClInclude Include="..\..\include\mq\imgui\ImGuiUtils.h" />
+    <ClInclude Include="..\..\include\mq\imgui\Widgets.h" />
     <ClInclude Include="..\..\include\mq\Plugin.h" />
     <ClInclude Include="..\..\include\mq\utils\Args.h" />
     <ClInclude Include="..\..\include\mq\utils\Keybinds.h" />

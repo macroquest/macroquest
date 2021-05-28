@@ -115,7 +115,7 @@ void MapObject::Update(bool forced)
 
 	if (m_highlight)
 	{
-		m_label->Color = HighlightColor;
+		m_label->Color.ARGB = HighlightColor.ToARGB();
 	}
 
 	// If marker is still enabled, update the marker. Otherwise, remove the marker.
@@ -203,7 +203,7 @@ void MapObject::GenerateLabel()
 	m_label->Location.Z = m_pos.Z;
 	m_label->Layer = activeLayer;
 	m_label->Size = 3;
-	m_label->Color.ARGB = m_color;
+	m_label->Color.ARGB = m_color.ToARGB();
 	m_label->Width = 20;
 	m_label->Height = 14;
 	m_label->OffsetX = 0;
@@ -233,7 +233,7 @@ void MapObject::SetColor(MQColor color)
 	{
 		if (m_label)
 		{
-			m_label->Color = color;
+			m_label->Color.ARGB = color.ToARGB();
 		}
 	}
 }
@@ -582,11 +582,11 @@ MQColor MapObjectSpawn::GetSpawnColor() const
 	{
 	case PC:
 		if (IsOptionEnabled(MapFilter::PCConColor))
-			return ConColorToARGB(ConColor(m_spawn));
+			return MQColor{ MQColor::format_argb, ConColorToARGB(ConColor(m_spawn)) };
 		return GetMapFilterOption(MapFilter::PC).Color;
 	case NPC:
 		if (IsOptionEnabled(MapFilter::NPCConColor))
-			return ConColorToARGB(ConColor(m_spawn));
+			return MQColor{ MQColor::format_argb, ConColorToARGB(ConColor(m_spawn)) };
 		return GetMapFilterOption(MapFilter::NPC).Color;
 	case CORPSE:
 		if (m_spawn->Deity == 0)
@@ -1008,7 +1008,7 @@ void MapCircle::UpdateCircle(MQColor Color, float Radius, float X, float Y, floa
 			m_components[i]->Layer = activeLayer;
 		}
 
-		m_components[i]->Color = Color;
+		m_components[i]->Color.ARGB = Color.ToARGB();
 		m_components[i]->Start.Z = Z;
 		m_components[i]->End.Z = Z;
 		m_components[i]->Start.X = -X + Radius * cosf((float)Angle / 180.0f * (float)PI);
@@ -1140,7 +1140,7 @@ void MapObjectMapLoc::UpdateMapLoc()
 			// Backslash
 			line = InitLine();
 			line->Layer = activeLayer;
-			line->Color = m_color;
+			line->Color.ARGB = m_color.ToARGB();
 			line->Start.X = -m_pos.X - m_lineSize;
 			line->Start.Y = -m_pos.Y - m_lineSize;
 			line->Start.Z = m_pos.Z;
@@ -1152,7 +1152,7 @@ void MapObjectMapLoc::UpdateMapLoc()
 			// Forwardslash
 			line = InitLine();
 			line->Layer = activeLayer;
-			line->Color = m_color;
+			line->Color.ARGB = m_color.ToARGB();
 			line->Start.X = -m_pos.X - m_lineSize;
 			line->Start.Y = -m_pos.Y + m_lineSize;
 			line->Start.Z = m_pos.Z;
@@ -1166,7 +1166,7 @@ void MapObjectMapLoc::UpdateMapLoc()
 			// Backslash lower
 			line = InitLine();
 			line->Layer = activeLayer;
-			line->Color = m_color;
+			line->Color.ARGB = m_color.ToARGB();
 			line->Start.X = -m_pos.X - m_lineSize;
 			line->Start.Y = -m_pos.Y - m_lineSize + xWidth - 1;
 			line->Start.Z = m_pos.Z;
@@ -1178,7 +1178,7 @@ void MapObjectMapLoc::UpdateMapLoc()
 			// Forwardslash lower
 			line = InitLine();
 			line->Layer = activeLayer;
-			line->Color = m_color;
+			line->Color.ARGB = m_color.ToARGB();
 			line->Start.X = -m_pos.X - m_lineSize + xWidth - 1;
 			line->Start.Y = -m_pos.Y + m_lineSize;
 			line->Start.Z = m_pos.Z;
@@ -1190,7 +1190,7 @@ void MapObjectMapLoc::UpdateMapLoc()
 			// Backslash upper
 			line = InitLine();
 			line->Layer = activeLayer;
-			line->Color = m_color;
+			line->Color.ARGB = m_color.ToARGB();
 			line->Start.X = -m_pos.X - m_lineSize + xWidth - 1;
 			line->Start.Y = -m_pos.Y - m_lineSize;
 			line->Start.Z = m_pos.Z;
@@ -1202,7 +1202,7 @@ void MapObjectMapLoc::UpdateMapLoc()
 			// Forwardslash upper
 			line = InitLine();
 			line->Layer = activeLayer;
-			line->Color = m_color;
+			line->Color.ARGB = m_color.ToARGB();
 			line->Start.X = -m_pos.X - m_lineSize;
 			line->Start.Y = -m_pos.Y + m_lineSize - xWidth + 1;
 			line->Start.Z = m_pos.Z;

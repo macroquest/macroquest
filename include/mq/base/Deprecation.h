@@ -14,6 +14,12 @@
 
 #pragma once
 
-#include "MQ2MainBase.h"
+#if defined(DEPRECATE)
+#undef (DEPRECATE)
+#endif
 
-#include <mq/base/Color.h>
+#if defined(COMMENT_UPDATER)
+#define DEPRECATE(x)
+#else
+#define DEPRECATE(x) [[deprecated(x)]]
+#endif

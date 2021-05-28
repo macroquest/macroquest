@@ -7234,7 +7234,7 @@ MQColor GetColorForChatColor(uint32_t chatColor)
 		chatColor -= 256;
 
 		// Ensure that alpha is set to fully opaque
-		MQColor color{ bgr_tag{}, CDisplay::GetUserDefinedColor(chatColor) };
+		MQColor color{ MQColor::format_bgr, CDisplay::GetUserDefinedColor(chatColor) };
 		if ((color.ARGB & 0x00ffffff) == 0) {
 			// Hasn't been set yet. Use defaults.
 			color = gUserColors[chatColor];
@@ -7254,39 +7254,39 @@ MQColor GetColorForChatColor(uint32_t chatColor)
 	case CONCOLOR_BLUE:       // 4
 		return MQColor(0,   64,  255);
 	case COLOR_PURPLE:        // 5
-		return MQColor(0xf0, 0x00, 0xf0);
+		return MQColor(240, 0,   240);
 	case COLOR_LIGHTGREY:     // 6 - CONCOLOR_GREY
-		return MQColor(0x80, 0x80, 0x80);
+		return MQColor(128, 128, 128);
 	case 7: // light gray
-		return MQColor(0xe0, 0xe0, 0xe0);
+		return MQColor(224, 224, 224);
 
 	case CONCOLOR_WHITE:      // 10
-		return MQColor(0xf0, 0xf0, 0xf0);
+		return MQColor(240, 240, 240);
 
 	case 12: // light gray
-		return MQColor(0xa0, 0xa0, 0xa0);
+		return MQColor(160, 160, 160);
 	case CONCOLOR_RED:        // 13
-		return MQColor(0xf0, 0x00, 0x00);
+		return MQColor(240, 0,   0);
 	case 14: // light green
-		return MQColor(0x00, 0xf0, 0x00);
+		return MQColor(0,   240, 0);
 	case CONCOLOR_YELLOW:     // 15
-		return MQColor(0xf0, 0xf0, 0x00);
+		return MQColor(240, 240, 0);
 	case 16: // blue
-		return MQColor(0x00, 0x00, 0xf0);
+		return MQColor(0,   0,   240);
 	case 17: // dark blue
-		return MQColor(0x00, 0x00, 0xaf);
+		return MQColor(0,   0,   175);
 	case CONCOLOR_LIGHTBLUE:  // 18
-		return MQColor(0x00, 0xf0, 0xf0);
+		return MQColor(0,   240, 240);
 
 	case CONCOLOR_BLACK:      // 20
-		return MQColor(0, 0, 0);
+		return MQColor(0,   0,   0);
 	case 21: // orange
-		return MQColor(0xf0, 0xa0, 0x00);
+		return MQColor(240, 160, 0);
 	case 22: // brown
-		return MQColor(0x80, 0x60, 0x20);
+		return MQColor(128, 96,  32);
 
 	default:
-		return MQColor(0x60, 0x60, 0x60);
+		return MQColor(96,  96,  96);
 	}
 }
 

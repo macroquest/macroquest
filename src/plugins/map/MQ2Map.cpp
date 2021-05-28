@@ -325,7 +325,7 @@ PLUGIN_API void InitializePlugin()
 		}
 
 		// Lets see what color option was last saved as, if any. If none then use the default.
-		option.Color = GetPrivateProfileInt("Map Filters", fmt::format("{}-Color", option.szName), (uint32_t)option.DefaultColor, INIFileName);
+		option.Color.SetARGB(GetPrivateProfileInt("Map Filters", fmt::format("{}-Color", option.szName), option.DefaultColor.ToARGB(), INIFileName));
 		option.Color.Alpha = 255; // always enforce 255 alpha channel
 		option.MarkerSize = GetPrivateProfileInt("Marker Filters", fmt::format("{}-Size", option.szName), 0, INIFileName);
 

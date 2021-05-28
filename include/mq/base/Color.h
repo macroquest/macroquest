@@ -1,0 +1,200 @@
+/*
+ * MacroQuest: The extension platform for EverQuest
+ * Copyright (C) 2002-2021 MacroQuest Authors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+#pragma once
+
+#include <mq/base/Common.h>
+#include <eqlib/base/Color.h>
+
+#include <imgui/imgui.h>
+
+namespace mq {
+
+namespace detail
+{
+	struct InvalidHexChar {};
+
+	constexpr int hexToDec(const char c)
+	{
+		return (c >= '0' && c <= '9') ? c - '0' : ((c >= 'a' && c <= 'f') ? c - 'a' + 10 : (c >= 'A' && c <= 'F') ? c - 'A' + 10
+			: throw InvalidHexChar{});
+	}
+}
+
+// MQColor is a color type that appears like a uint32_t but represents internally
+// an ARGB color format. This is a color format commonly used by EQ.
+// uint32 constants share a similar structure to the common rgb hex encoding:
+// 0x00ff0000 would be red (0 alpha, 255 red, 0 green, 0 blue)
+
+class MQColor
+{
+public:
+	// default is opaque black
+	constexpr MQColor()
+		: Red(0)
+		, Green(0)
+		, Blue(0)
+		, Alpha(255)
+	{}
+
+	constexpr MQColor(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255)
+		: Blue(blue)
+		, Green(green)
+		, Red(red)
+		, Alpha(alpha)
+	{}
+
+	constexpr MQColor(const MQColor& other)
+		: ARGB(other.ARGB)
+	{}
+
+	struct bgr_t {};
+	static const inline bgr_t format_bgr;
+
+	struct bgra_t {};
+	static const inline bgra_t format_bgra;
+
+	struct argb_t {};
+	static const inline argb_t format_argb;
+
+	constexpr MQColor(bgr_t, uint32_t bgrcolor)
+		: Blue((bgrcolor >> 16) & 0xff)
+		, Green((bgrcolor >> 8) & 0xff)
+		, Red((bgrcolor >> 0) & 0xff)
+		, Alpha(255)
+	{
+	}
+
+	constexpr MQColor(bgra_t, uint32_t bgracolor)
+		: Alpha((bgracolor >> 24) & 0xff)
+		, Blue((bgracolor >> 16) & 0xff)
+		, Green((bgracolor >> 8) & 0xff)
+		, Red((bgracolor >> 0) & 0xff)
+	{
+	}
+
+	constexpr MQColor(argb_t, uint32_t argbcolor)
+		: ARGB(argbcolor)
+	{
+	}
+
+	constexpr MQColor(uint32_t argbcolor)
+		: ARGB(argbcolor)
+	{
+	}
+
+	constexpr MQColor(const char* str)
+		: Red(static_cast<uint8_t>(detail::hexToDec(str[1]) << 4 | detail::hexToDec(str[2])) & 0xff)
+		, Green(static_cast<uint8_t>(detail::hexToDec(str[3]) << 4 | detail::hexToDec(str[4])) & 0xff)
+		, Blue(static_cast<uint8_t>(detail::hexToDec(str[5]) << 4 | detail::hexToDec(str[6])) & 0xff)
+		, Alpha(255)
+	{
+		if (str[0] != '#') throw detail::InvalidHexChar();
+	}
+
+	constexpr MQColor& operator=(uint32_t argbcolor)
+	{
+		ARGB = argbcolor;
+		return *this;
+	}
+
+	constexpr MQColor& operator=(const MQColor& other)
+	{
+		ARGB = other.ARGB;
+		return *this;
+	}
+
+	constexpr operator eqlib::ARGBCOLOR() const
+	{
+		eqlib::ARGBCOLOR color = { 0 };
+		color.ARGB = ARGB;
+		return color;
+	}
+
+	// Explict because COLORREF is a typedef for unsigned long.
+	constexpr explicit operator COLORREF() const
+	{
+		return ToARGB();
+	}
+
+	constexpr explicit operator uint32_t() const
+	{
+		return ToARGB();
+	}
+
+	constexpr uint32_t ToABGR() const
+	{
+		return (((uint32_t)(Alpha) << 24)
+			| ((uint32_t)(Blue) << 16)
+			| ((uint32_t)(Green) << 8)
+			| ((uint32_t)(Red) << 0));
+	}
+
+	ImColor ToImColor() const
+	{
+		return ImColor(Red, Green, Blue, Alpha);
+	}
+
+	constexpr uint32_t ToARGB() const
+	{
+		return ARGB;
+	}
+
+	constexpr void SetARGB(uint32_t value)
+	{
+		ARGB = value;
+	}
+
+	constexpr uint32_t ToRGB() const
+	{
+		return ARGB & 0xffffff;
+	}
+
+	// Layout matches ARGBCOLOR
+	union
+	{
+		struct
+		{
+			uint8_t Blue;
+			uint8_t Green;
+			uint8_t Red;
+			uint8_t Alpha;
+		};
+
+		uint32_t ARGB = 0;
+	};
+};
+
+inline MQColor constexpr operator ""_color(const char* str)
+{
+	return MQColor(str);
+}
+
+inline bool operator==(const MQColor& left, const MQColor& right)
+{
+	return left.ARGB == right.ARGB;
+}
+
+inline bool operator!=(const MQColor& left, const MQColor& right)
+{
+	return left.ARGB != right.ARGB;
+}
+
+// Get the MQColor for a given chat color. Respects user preference if
+// it is available.
+MQLIB_OBJECT MQColor GetColorForChatColor(uint32_t chatColor);
+
+MQLIB_API uint32_t mqGetColorForChatColor(uint32_t chatColor);
+
+} // namespace mq

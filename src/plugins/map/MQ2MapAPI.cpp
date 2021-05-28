@@ -290,7 +290,7 @@ void MapUpdate()
 				pTargetLine->Layer = activeLayer;
 			}
 
-			pTargetLine->Color.ARGB = GetMapFilterOption(MapFilter::TargetLine).Color;
+			pTargetLine->Color.ARGB = GetMapFilterOption(MapFilter::TargetLine).Color.ToARGB();
 			pTargetLine->Start.X = -pLocalPlayer->X;
 			pTargetLine->Start.Y = -pLocalPlayer->Y;
 			pTargetLine->Start.Z = pLocalPlayer->Z;
