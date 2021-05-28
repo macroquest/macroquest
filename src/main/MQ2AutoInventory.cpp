@@ -809,7 +809,7 @@ public:
 					break;
 
 				case CBarterWnd::Column_Offering:
-					sortInfo->SortResult = CompareMoneyStrings(sortInfo, GetMoneyFromStringFormat::Long);
+					sortInfo->SortResult = CompareMoneyStrings(sortInfo, GetMoneyFromStringFormat::Short);
 					break;
 				}
 

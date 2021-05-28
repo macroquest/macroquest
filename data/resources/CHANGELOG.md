@@ -1,6 +1,7 @@
 May 28, 2021
 - Fixed issue with keyboard input not working on popped-out windows
 - Implemented new console editor with support for word wrap and item links.
+- Fixed buyer window sorting (#238)
 
 May 24, 2021
 - Added the ability to render EQ icons in lua imgui bindings
