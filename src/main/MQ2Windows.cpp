@@ -165,7 +165,7 @@ public:
 				WindowList.erase(windowListIter);
 			}
 
-			DeveloperTools_RemoveWindow(pWnd);
+			DeveloperTools_WindowInspector_RemoveWindow(pWnd);
 		}
 
 		return RemoveWnd_Trampoline(pWnd);

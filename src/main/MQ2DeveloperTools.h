@@ -20,10 +20,7 @@
 
 namespace mq {
 
-bool DeveloperTools_HandleClick(int mouseButton, bool clicked);
-
 void DeveloperTools_CloseLoginFrontend();
-
 void DeveloperTools_DrawMenu();
 
 class ImGuiWindowBase;
@@ -37,9 +34,11 @@ void DeveloperTools_RegisterMenuItem(ImGuiWindowBase* window, const char* itemNa
 void DeveloperTools_UnregisterMenuItem(ImGuiWindowBase* window);
 
 // Developer Tools - Window Inspector panel
-void DeveloperTools_ShowWindowInspector(CXWnd* pWnd);
-void DeveloperTools_RemoveWindow(CXWnd* pWnd);
-void DeveloperTools_SetSelectedWindow(CXWnd* pWnd);
+void DeveloperTools_WindowInspector_Show(CXWnd* pWnd);
+void DeveloperTools_WindowInspector_RemoveWindow(CXWnd* pWnd);
+void DeveloperTools_WindowInspector_SetSelectedWindow(CXWnd* pWnd);
+
+bool DeveloperTools_WindowInspector_HandleClick(int mouseButton, bool clicked);
 
 //----------------------------------------------------------------------------
 

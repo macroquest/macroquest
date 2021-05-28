@@ -18,9 +18,6 @@
     <Filter Include="Header Files\contrib">
       <UniqueIdentifier>{37f552ce-de79-4c09-bc69-6022bc7cedd3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\contrib\fmt">
-      <UniqueIdentifier>{e802e118-a7b2-4236-96b5-0f5ddce7bda0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Contrib\fmt">
       <UniqueIdentifier>{ae7f2c4e-8df7-487e-96e0-7725daa2921e}</UniqueIdentifier>
     </Filter>
@@ -347,6 +344,12 @@
     <ClCompile Include="ImGuiZepEditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MQ2WindowInspector.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MQ2ImguiWidgets.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
@@ -369,42 +372,6 @@
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\fmt\include\fmt\chrono.h">
-      <Filter>Header Files\contrib\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\fmt\include\fmt\color.h">
-      <Filter>Header Files\contrib\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\fmt\include\fmt\compile.h">
-      <Filter>Header Files\contrib\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\fmt\include\fmt\core.h">
-      <Filter>Header Files\contrib\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\fmt\include\fmt\format.h">
-      <Filter>Header Files\contrib\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\fmt\include\fmt\format-inl.h">
-      <Filter>Header Files\contrib\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\fmt\include\fmt\locale.h">
-      <Filter>Header Files\contrib\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\fmt\include\fmt\ostream.h">
-      <Filter>Header Files\contrib\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\fmt\include\fmt\posix.h">
-      <Filter>Header Files\contrib\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\fmt\include\fmt\printf.h">
-      <Filter>Header Files\contrib\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\fmt\include\fmt\ranges.h">
-      <Filter>Header Files\contrib\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\fmt\include\fmt\safe-duration-cast.h">
-      <Filter>Header Files\contrib\fmt</Filter>
     </ClInclude>
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>

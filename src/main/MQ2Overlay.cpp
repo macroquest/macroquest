@@ -182,7 +182,7 @@ static bool HandleMouseEvent(int mouseButton, bool pressed)
 	{
 		if (!io.WantCaptureMouse)
 		{
-			if (DeveloperTools_HandleClick(mouseButton, pressed))
+			if (DeveloperTools_WindowInspector_HandleClick(mouseButton, pressed))
 				consume = true;
 		}
 	}
