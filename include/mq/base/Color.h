@@ -103,6 +103,15 @@ public:
 		if (str[0] != '#') throw detail::InvalidHexChar();
 	}
 
+	constexpr MQColor(const ImColor& imColor)
+		: Red(static_cast<uint8_t>(imColor.Value.x * 255))
+		, Green(static_cast<uint8_t>(imColor.Value.y * 255))
+		, Blue(static_cast<uint8_t>(imColor.Value.z * 255))
+		, Alpha(static_cast<uint8_t>(imColor.Value.w * 255))
+	{
+	}
+
+
 	constexpr MQColor& operator=(uint32_t argbcolor)
 	{
 		ARGB = argbcolor;
@@ -139,6 +148,11 @@ public:
 			| ((uint32_t)(Blue) << 16)
 			| ((uint32_t)(Green) << 8)
 			| ((uint32_t)(Red) << 0));
+	}
+
+	constexpr ImU32 ToImU32() const
+	{
+		return ToABGR();
 	}
 
 	ImColor ToImColor() const

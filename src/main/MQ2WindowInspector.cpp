@@ -15,17 +15,29 @@
 #include "pch.h"
 #include "MQ2DeveloperTools.h"
 
+#include "ImGuiZepEditor.h"
+
 #include "imgui/fonts/IconsFontAwesome.h"
 #include "imgui/imgui_internal.h"
+#include "zep.h"
+
 #include "mq/imgui/ImGuiUtils.h"
 #include "mq/imgui/Widgets.h"
 
 #include <fmt/format.h>
+#include <fmt/chrono.h>
 #include <spdlog/spdlog.h>
 
 using namespace std::chrono_literals;
 
 namespace mq {
+
+class ImGuiWindowPropertyViewer;
+
+static void DisplayCustomWindowPropertyViewer(CSidlScreenWnd* pWindow, ImGuiWindowPropertyViewer* viewer);
+
+static void DeveloperTools_WindowInspector_ViewString(std::string_view name, const CXStr& string);
+static void DeveloperTools_WindowInspector_EditString(std::string_view name, CXStr* string);
 
 //============================================================================
 
@@ -123,6 +135,8 @@ static void ColumnValue(const char* fmt, va_list args)
 	{
 		ImGui::TextV(fmt, args);
 	}
+
+
 }
 
 static bool ColumnLinkValue(const char* fmt, va_list args)
@@ -228,6 +242,31 @@ static bool ColumnCheckBoxFlags(const char* Label, unsigned int* flags, unsigned
 	return result;
 }
 
+template <typename Rep, typename Period>
+static bool ColumnElapsedTimestamp(const char* Label, std::chrono::milliseconds ms, std::chrono::duration<Rep, Period> epoch)
+{
+	bool result = false;
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	ImGui::PushID(Label);
+	if (ms.count() > 0)
+	{
+		ms = (std::chrono::duration_cast<std::chrono::milliseconds>(epoch) - ms);
+
+		char szTemp[32] = { 0 };
+		fmt::format_to(szTemp, "{:%H:%M:%S}", ms);
+
+		ImGui::Text(szTemp);
+	}
+	else
+	{
+		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(none)");
+	}
+	ImGui::PopID();
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn();
+	return result;
+}
+
 static bool ColumnTreeNode(const char* Label, const char* fmt, ...)
 {
 	bool result = ImGui::TreeNode(Label); ImGui::TableNextColumn();
@@ -302,14 +341,54 @@ inline bool InputColorRef(const char* label, COLORREF& color)
 	return false;
 }
 
-inline void ColumnCXStr(const char* Label, const CXStr& str)
+inline void ColumnCXStr(const char* Label, CXStr* str)
 {
 	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+
+	ImGui::PushID(Label);
+	//ImGui::SetNextItemWidth(22);
+	bool view = ImGui::Button(ICON_FA_PENCIL);
+	ImGui::PopID();
+	if (view)
+	{
+		DeveloperTools_WindowInspector_EditString(Label, str);
+	}
+	ImGui::SameLine();
+
+	if (str->empty())
+		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(empty)");
+	else
+		ImGui::Text("%s", str->c_str());
+
+	ImGui::TableNextColumn();
+
+	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "CXStr");
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn();
+}
+
+inline void ColumnCXStr(const char* Label, const CXStr& str, bool expandable = true)
+{
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+
+	if (expandable)
+	{
+		ImGui::PushID(Label);
+		//ImGui::SetNextItemWidth(22);
+		bool view = ImGui::Button(ICON_FA_EYE);
+		ImGui::PopID();
+		if (view)
+		{
+			DeveloperTools_WindowInspector_ViewString(Label, str);
+		}
+		ImGui::SameLine();
+	}
 
 	if (str.empty())
 		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(empty)");
 	else
 		ImGui::Text("%s", str.c_str());
+
 	ImGui::TableNextColumn();
 
 	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "CXStr");
@@ -339,6 +418,75 @@ inline void ColumnCXRect(const char* Label, const CXRect& rect)
 	ImGui::TableNextColumn();
 }
 
+inline bool ColumnCXRect(const char* Label, CXRect* rect)
+{
+	bool changed = false;
+
+	if (ColumnTreeNodeType(Label, "CXRect",
+		"{ x=%d, y=%d, w=%d, h=%d }", rect->left, rect->top, rect->GetWidth(), rect->GetHeight()))
+	{
+		// x
+		ImGui::TreeAdvanceToLabelPos(); ImGui::Text("X"); ImGui::TableNextColumn();
+		ImGui::SetNextItemWidth(-1.0f);
+		int x = rect->left;
+		if (ImGui::InputInt("##x", &x))
+		{
+			changed = true;
+			rect->SetLeft(x);
+		}
+		ImGui::TableNextColumn();
+		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "int");
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+
+		// top
+		ImGui::TreeAdvanceToLabelPos(); ImGui::Text("Y"); ImGui::TableNextColumn();
+		ImGui::SetNextItemWidth(-1.0f);
+		int y = rect->top;
+		if (ImGui::InputInt("##y", &y))
+		{
+			changed = true;
+			rect->SetTop(y);
+		}
+		ImGui::TableNextColumn();
+		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "int");
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+
+		// width
+		ImGui::TreeAdvanceToLabelPos(); ImGui::Text("Width"); ImGui::TableNextColumn();
+		ImGui::SetNextItemWidth(-1.0f);
+		int width = rect->GetWidth();
+		if (ImGui::InputInt("##w", &width) && width > 0)
+		{
+			changed = true;
+			rect->SetWidth(width);
+		}
+		ImGui::TableNextColumn();
+		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "int");
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+
+		// height
+		ImGui::TreeAdvanceToLabelPos(); ImGui::Text("Height"); ImGui::TableNextColumn();
+		ImGui::SetNextItemWidth(-1.0f);
+		int height = rect->GetHeight();
+		if (ImGui::InputInt("##h", &height) && height > 0)
+		{
+			changed = true;
+			rect->SetHeight(height);
+		}
+		ImGui::TableNextColumn();
+		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "int");
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+
+		ImGui::TreePop();
+	}
+
+	return changed;
+}
+
 inline void ColumnCXPoint(const char* Label, const CXPoint& point)
 {
 	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
@@ -366,6 +514,75 @@ inline void ColumnColor(const char* Label, const COLORREF& color)
 	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "Color");
 	ImGui::TableNextRow();
 	ImGui::TableNextColumn();
+}
+
+inline void ColumnColor(const char* Label, COLORREF* color)
+{
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+
+	//ImGui::ColorButton(id, ImGui::ColorConvertU32ToFloat4(color),
+	//ColorButton(const char* desc_id, const ImVec4& col, ImGuiColorEditFlags flags = 0, ImVec2 size = ImVec2(0, 0));
+
+	ImGui::PushID(Label);
+	ImColor colors = MQColor{ MQColor::format_argb, *color }.ToImColor();
+
+	bool changed = ImGui::ColorEdit4("", (float*)&colors, ImGuiColorEditFlags_NoInputs); ImGui::TableNextColumn();
+	if (changed)
+		*color = MQColor(colors).ToARGB();
+	ImGui::PopID();
+
+	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "Color");
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn();
+}
+
+static bool FontComboGetter(void* data, int n, const char** out_str)
+{
+	if (n < 0 || n >= pWndMgr->GetNumFonts())
+		return false;
+	//CTextureFont* pFont = pWndMgr->GetFont(n);
+	//if (!pFont) return false;
+	//*out_str = pFont->GetName().c_str();
+	static char tempName[32];
+	sprintf_s(tempName, "Font %d", n + 1);
+	*out_str = tempName;
+	return true;
+}
+
+inline bool ColumnFont(const char* Label, CTextureFont** ppFont)
+{
+	bool changed = false;
+	// Label
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+
+	// Font ComboBox
+	if (pWndMgr)
+	{
+		// Find the current font.
+		CTextureFont* pFont = *ppFont;
+		int currentIndex = pWndMgr->GetFontIndex(pFont);
+
+		ImGui::SetNextItemWidth(-1.0f);
+		if (ImGui::Combo("##FontCombo", &currentIndex, FontComboGetter, nullptr, pWndMgr->GetNumFonts(), 10))
+		{
+			if (CTextureFont* pNewFont = pWndMgr->GetFont(currentIndex))
+			{
+				if (*ppFont != pNewFont)
+				{
+					*ppFont = pNewFont;
+					changed = true;
+				}
+			}
+		}
+	}
+	ImGui::TableNextColumn();
+
+	// DataType
+	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "CTextureFont*");
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn();
+
+	return changed;
 }
 
 //----------------------------------------------------------------------------
@@ -662,15 +879,15 @@ void ColumnWindow(const char* Label, CXWnd* window)
 	else
 	{
 		ImGui::PushID(window);
-		bool view = ImGui::Button("view");
+		//ImGui::SetNextItemWidth(21);
+		bool view = ImGui::Button(ICON_FA_EXTERNAL_LINK_SQUARE);
 		ImGui::PopID();
 		if (view)
 		{
 			DeveloperTools_WindowInspector_Show(window);
 		}
-		ImGui::SameLine();
 
-		// TODO: function for deciding on a name.
+		ImGui::SameLine();
 		ImGui::Text("%s", window->GetXMLName().c_str());
 	}
 	ImGui::TableNextColumn();
@@ -982,12 +1199,12 @@ void DisplayTemplate(const char* label, const char* type, const T* pTemplate)
 struct WindowPropertiesTable
 {
 	inline static ImU32 s_propertyColors[] = {
-		(ImU32)ImColor(4, 32, 39, 120),
-		(ImU32)ImColor(39, 32, 4, 120),
-		(ImU32)ImColor(70, 23, 10, 80),
-		(ImU32)ImColor(42, 20, 68, 80),
-		(ImU32)ImColor(66, 68, 20, 80),
-		(ImU32)ImColor(68, 20, 67, 80),
+		MQColor(4, 32, 39, 120).ToImU32(),
+		MQColor(39, 32, 4, 120).ToImU32(),
+		MQColor(70, 23, 10, 80).ToImU32(),
+		MQColor(42, 20, 68, 80).ToImU32(),
+		MQColor(66, 68, 20, 80).ToImU32(),
+		MQColor(68, 20, 67, 80).ToImU32(),
 	};
 
 	int m_currentColor = 0;
@@ -1065,6 +1282,122 @@ public:
 	}
 };
 
+class ImGuiWindowStringEditor
+{
+public:
+	ImGuiWindowStringEditor(std::string_view name, const CXStr& readOnlyString)
+		: m_string(const_cast<CXStr*>(&readOnlyString))
+		, m_readOnly(true)
+		, m_stringName(name)
+	{
+	}
+
+	ImGuiWindowStringEditor(std::string_view name, CXStr* mutableString)
+		: m_string(mutableString)
+		, m_readOnly(false)
+		, m_stringName(name)
+	{
+	}
+
+	ImGuiWindowStringEditor(ImGuiWindowStringEditor&& other)
+		: m_readOnly(other.m_readOnly)
+		, m_string(other.m_string)
+		, m_stringName(std::move(other.m_stringName))
+		, m_closeRequested(other.m_closeRequested)
+		, m_textEditor(std::move(other.m_textEditor))
+		, m_changed(other.m_changed)
+		, m_requestFocus(other.m_requestFocus)
+	{
+	}
+
+	~ImGuiWindowStringEditor()
+	{
+	}
+
+	ImGuiWindowStringEditor& operator=(ImGuiWindowStringEditor&& other)
+	{
+		m_readOnly = other.m_readOnly;
+		m_string = other.m_string;
+		m_stringName = std::move(other.m_stringName);
+		m_closeRequested = other.m_closeRequested;
+		m_textEditor = std::move(other.m_textEditor);
+		m_changed = other.m_changed;
+		m_requestFocus = other.m_requestFocus;
+		return *this;
+	}
+
+	void Render(bool* open)
+	{
+		if (m_requestFocus)
+		{
+			ImGui::SetNextWindowFocus();
+			m_requestFocus = false;
+		}
+
+		ImGui::SetNextWindowSize(ImVec2(320, 220), ImGuiCond_Appearing);
+		if (ImGui::Begin(m_stringName.c_str(), open, m_changed ? ImGuiWindowFlags_UnsavedDocument : 0))
+		{
+			ImGui::SetNextItemWidth(-1.0f);
+			if (m_readOnly)
+			{
+				ImGui::TextWrapped(m_string->c_str());
+			}
+			else
+			{
+				// TODO: Refactor into general purpose editor control
+				if (!m_textEditor)
+				{
+					m_textEditor = std::make_unique<imgui::ImGuiZepEditor>();
+					m_textEditor->SetFont(Zep::ZepTextType::UI, mq::imgui::DefaultFont, 16);
+					m_textEditor->SetFont(Zep::ZepTextType::Text, mq::imgui::DefaultFont, 16);
+
+					m_textEditor->GetEditor().SetGlobalMode(Zep::ZepMode_Standard::StaticName());
+					m_textEditor->GetEditor().GetActiveTabWindow()->GetActiveWindow()->SetWindowFlags(
+						Zep::WindowFlags::WrapText | Zep::WindowFlags::ShowLineNumbers);
+					m_textEditor->GetEditor().GetConfig().style = Zep::EditorStyle::Normal;
+
+					std::string s = "";
+
+					Zep::ZepBuffer* buffer = m_textEditor->GetEditor().InitWithText("", *m_string);
+				}
+
+				m_textEditor->Render("##StringEditor", ImVec2(0, ImGui::GetContentRegionAvail().y - 26));
+				auto& buffer = m_textEditor->GetEditor().GetActiveTabWindow()->GetActiveWindow()->GetBuffer();
+				if (buffer.HasFileFlags(Zep::FileFlags::Dirty))
+				{
+					m_changed = true;
+				}
+
+				if (ImGui::Button("Save"))
+				{
+					m_changed = false;
+					m_string->assign(buffer.GetBufferText());
+
+					buffer.ClearFileFlags(Zep::FileFlags::Dirty);
+				}
+
+				ImGui::SameLine();
+			}
+
+			if (ImGui::Button("Close"))
+			{
+				m_closeRequested = true;
+				*open = false;
+			}
+		}
+
+		ImGui::End();
+	}
+
+	CXStr* m_string;
+	std::string m_stringName;
+	std::unique_ptr<imgui::ImGuiZepEditor> m_textEditor;
+	bool m_readOnly = false;
+	bool m_closeRequested = false;
+	bool m_changed = false;
+	bool m_requestFocus = false;
+};
+
 class ImGuiWindowPropertyViewer
 {
 	CXWnd* m_window = nullptr;
@@ -1075,6 +1408,11 @@ class ImGuiWindowPropertyViewer
 	int m_instanceId = 0;
 	bool m_needDock = true;
 	bool m_needFocus = false;
+	std::vector<ImGuiWindowStringEditor> m_stringEditors;
+	inline static ImGuiWindowPropertyViewer* s_currentPropertyViewer = nullptr;
+
+public:
+	static ImGuiWindowPropertyViewer* GetCurrentViewer() { return s_currentPropertyViewer; }
 
 public:
 	ImGuiWindowPropertyViewer(int instanceId, CXWnd* pWnd = nullptr)
@@ -1143,11 +1481,60 @@ public:
 				return open;
 			}
 
+			s_currentPropertyViewer = this;
 			DisplayPropertiesPanel();
+			s_currentPropertyViewer = nullptr;
 		}
 
 		ImGui::End(); // Begin properties
+
+		DrawStringEditors();
+
 		return open;
+	}
+
+	void DrawStringEditors()
+	{
+		bool closeRequestedAny = false;
+		for (auto& stringEditor : m_stringEditors)
+		{
+			bool open = true;
+
+			stringEditor.Render(&open);
+
+			if (!open)
+			{
+				stringEditor.m_closeRequested = true;
+				closeRequestedAny = true;
+			}
+		}
+
+		// If a window was requested to be closed, remove it from the list of windows
+		if (closeRequestedAny)
+		{
+			m_stringEditors.erase(
+				std::remove_if(m_stringEditors.begin(), m_stringEditors.end(),
+					[](const auto& editor) { return editor.m_closeRequested; }),
+				m_stringEditors.end());
+		}
+	}
+
+	void AddStringEditor(ImGuiWindowStringEditor editor)
+	{
+		// Look for matching string already...
+		for (auto& ed : m_stringEditors)
+		{
+			if (ed.m_string == editor.m_string)
+			{
+				ed.m_requestFocus = true;
+				return;
+			}
+		}
+
+		editor.m_stringName = fmt::format("String {}: {} - {}",
+			editor.m_readOnly ? "Viewer" : "Editor", m_windowDisplayName, editor.m_stringName);
+		m_stringEditors.push_back(std::move(editor));
+		editor.m_requestFocus = true;
 	}
 
 	void DisplayPropertiesPanel()
@@ -1173,6 +1560,10 @@ public:
 			DisplayCSpellGemWndProperties(static_cast<CSpellGemWnd*>(m_window));
 			break;
 
+		case UI_Page:
+			DisplayCPageWndProperties(static_cast<CPageWnd*>(m_window));
+			break;
+
 		case UI_Label:
 			// All labels with UI_Label were created by XML. they are CLabels.
 			// Any other label with the WRT_LABEL type are only CLabelWnds.
@@ -1185,6 +1576,10 @@ public:
 
 		case UI_Gauge:
 			DisplayCGaugeWndProperties(static_cast<CGaugeWnd*>(m_window));
+			break;
+
+		case UI_STMLBox:
+			DisplayCStmlWndProperties(static_cast<CStmlWnd*>(m_window));
 			break;
 
 		case UI_HotButton:
@@ -1235,10 +1630,26 @@ public:
 				break;
 			}
 
+			if (m_window->IsType(WRT_TABWND))
+			{
+				DisplayCTabWndProperties(static_cast<CTabWnd*>(m_window));
+				break;
+			}
+
+			if (m_window->IsType(WRT_PAGEWND))
+			{
+				DisplayCPageWndProperties(static_cast<CPageWnd*>(m_window));
+				break;
+			}
+
+			if (m_window->IsType(WRT_STMLWND))
+			{
+				DisplayCStmlWndProperties(static_cast<CStmlWnd*>(m_window));
+				break;
+			}
+
 			//WRT_EDITWND,
 			//WRT_TREEWND,
-			//WRT_PAGEWND,
-			//WRT_TABWND,
 			//WRT_HTMLWND,
 			//WRT_EDITHOTKEYWND,
 			//WRT_RANGESLIDERWND,
@@ -1328,10 +1739,16 @@ public:
 				ImGui::TreePop();
 			}
 
-			ColumnCXRect("Position", pWnd->Location);
+			CXRect positionRect = pWnd->Location;
+			if (ColumnCXRect("Position", &positionRect))
+			{
+				if (positionRect != pWnd->Location)
+					pWnd->Move(positionRect);
+			}
+
 			ColumnCXRect("Client rect", pWnd->ClientRect);
-			ColumnCXStr("Text", pWnd->WindowText);
-			ColumnCXStr("Tooltip", pWnd->Tooltip);
+			ColumnCXStr("Text", &pWnd->WindowText);
+			ColumnCXStr("Tooltip", &pWnd->Tooltip);
 			ColumnWindow("Parent", pWnd->ParentWindow);
 
 			// Style
@@ -1368,6 +1785,12 @@ public:
 			ColumnCheckBox("Visible", &pWnd->dShow);
 			ColumnCheckBox("Enabled", &pWnd->Enabled);
 
+			CTextureFont* pFont = pWnd->pFont;
+			if (ColumnFont("Font", &pFont))
+			{
+				pWnd->SetFont(pFont);
+			}
+
 			if (ColumnTreeNode("Details", ""))
 			{
 				DisplayDynamicTemplateExpand("TitlePiece 1", pWnd->TitlePiece);
@@ -1390,9 +1813,9 @@ public:
 				// Background
 				ColumnText("Background type", XWndBackgroundTypeToString(static_cast<XWndBackgroundType>(pWnd->BGType)));
 				ColumnText("Background draw type", XWndBackgroundDrawTypeToString(static_cast<XWndBackgroundDrawType>(pWnd->BackgroundDrawType)));
-				ColumnColor("Normal color", pWnd->CRNormal);
-				ColumnColor("Background color", pWnd->BGColor);
-				ColumnColor("Disabled background color", pWnd->DisabledBackground);
+				ColumnColor("Normal color", &pWnd->CRNormal);
+				ColumnColor("Background color", &pWnd->BGColor);
+				ColumnColor("Disabled background color", &pWnd->DisabledBackground);
 
 				ColumnCXStr("XML Tooltip", pWnd->XMLToolTip);
 
@@ -1531,6 +1954,8 @@ public:
 			//ColumnText("Context menu id", "%d", pWnd->ContextMenuID);
 			//ColumnText("Context menu tip id", "%d", pWnd->ContextMenuTipID);
 		}
+
+		DisplayCustomWindowPropertyViewer(pWnd, this);
 	}
 
 	void DisplayCButtonWndProperties(CButtonWnd* pWnd, bool open = true)
@@ -1676,6 +2101,100 @@ public:
 		}
 	}
 
+	void DisplayCTabWndProperties(CTabWnd* pWnd, bool open = true)
+	{
+		DisplayCXWndProperties(pWnd, true);
+
+		if (BeginColorSection("CTabWnd Properties", open))
+		{
+			ColumnText("Current Tab Index", "%d", pWnd->CurTabIndex);
+			ColumnText("Tab Height", "%d", pWnd->TabHeight);
+			ColumnCXRect("Page Rect", pWnd->PageRect);
+			ColumnCheckBox("Show Tabs", pWnd->bShowTabs);
+			ColumnText("Tab Width", "%d", pWnd->TabWidth);
+			DisplayTAFrameDraw("Tab Border", *pWnd->pTabBorder);
+			DisplayTAFrameDraw("Page Border", *pWnd->pPageBorder);
+			if (pWnd->TabStyle == 0)
+				ColumnText("Tab Style", "Stretched");
+			else
+				ColumnText("Tab Style", "Fixed");
+
+			if (ColumnTreeNodeType("Pages", "CPageWnd[]", "%d", pWnd->PageArray.GetLength()))
+			{
+				for (int i = 0; i < pWnd->PageArray.GetLength(); ++i)
+				{
+					CPageWnd* pPageWnd = pWnd->PageArray[i];
+
+					char szTemp[32];
+					sprintf_s(szTemp, "Page %d", i + 1);
+
+					ColumnWindow(szTemp, pPageWnd);
+				}
+
+				ImGui::TreePop();
+			}
+		}
+	}
+
+	void DisplayCPageWndProperties(CPageWnd* pWnd, bool open = true)
+	{
+		DisplayCSidlScreenWndProperties(pWnd, true);
+
+		if (BeginColorSection("CPageWndProperties", open))
+		{
+			ColumnCXStr("Tab Text", pWnd->TabText);
+			ColumnCXStr("Original Tab Text", pWnd->OrigTabText);
+			ColumnColor("Tab Color", pWnd->CRTabText);
+			ColumnColor("Tab Color (Active)", pWnd->CRTabTextActive);
+			DisplayTextureAnimation("Tab Icon", pWnd->pTATabIcon, true);
+			DisplayTextureAnimation("Tab Icon (Active)", pWnd->pTATabIconActive, true);
+
+			ColumnColor("Flash Highlight Color", pWnd->CRHighlightFlashColor);
+
+
+			ColumnElapsedTimestamp("Last Flash Time", std::chrono::milliseconds(pWnd->LastFlashTime),
+				std::chrono::system_clock::now().time_since_epoch());
+
+			ColumnCheckBox("Flash On Message", pWnd->bHighlightOnNewMessages);
+			ColumnCheckBox("Flashing", &pWnd->bFlashing);
+		}
+	}
+
+	void DisplayCStmlWndProperties(CStmlWnd* pWnd, bool open = true)
+	{
+		DisplayCXWndProperties(static_cast<CXWnd*>(pWnd), open);
+
+		if (BeginColorSection("CStmlWnd Properties", open))
+		{
+			ColumnCXStr("STMLText", &pWnd->STMLText);
+			// TextLines
+			ColumnCXSize("Text Size", CXSize(pWnd->TextTotalWidth, pWnd->TextTotalHeight));
+			// Unknown0x224
+			// Links
+			// Tables
+			ColumnCheckBox("Reparse Requested", &pWnd->bReparseNow);
+			ColumnCheckBox("Resized", pWnd->bResized);
+			ColumnCheckBox("Center Aligned", pWnd->bAlignCenter);
+			ColumnText("Line Spacing", "%d", pWnd->LineSpacingAdjust);
+
+			ColumnText("Captured Link ID", "%d", pWnd->CapturedLinkID);
+			ColumnText("Hovered Link ID", "%d", pWnd->MousedOverLinkID);
+			ColumnColor("Background Color", &pWnd->BackGroundColor);
+			ColumnColor("Text Color", &pWnd->TextColor);
+			ColumnColor("Link Color", &pWnd->LinkColor);
+			ColumnColor("Link Color (Visited)", &pWnd->VLinkColor);
+			ColumnColor("Link Color (Active)", &pWnd->ALinkColor);
+			ColumnColor("Link Color (Hover)", &pWnd->MLinkColor);
+			// CurrentParseState
+			// HistoryArray
+			// HistoryIndex
+			// pStmlReport
+			ColumnText("Max Lines", "%d", pWnd->MaxLines);
+			// PlayerContextMenuIndex
+			// Unknowns
+		}
+	}
+
 	void DisplayInvSlotWndProperties(CInvSlotWnd* pWnd, bool open = true)
 	{
 		DisplayCXWndProperties(pWnd, true);
@@ -1718,7 +2237,46 @@ public:
 		if (BeginColorSection("CListWnd Properties", open))
 		{
 			ColumnText("Rows", "%d", pWnd->ItemsArray.GetLength());
-			ColumnText("Columns", "%d", pWnd->Columns.GetLength());
+
+			if (ColumnTreeNodeType("Columns", "SListWndColumn[]", "%d", pWnd->Columns.GetLength()))
+			{
+				for (int i = 0; i < pWnd->Columns.GetLength(); ++i)
+				{
+					const SListWndColumn& column = pWnd->Columns[i];
+
+					char label[32];
+					sprintf_s(label, "Column %d", i + 1);
+
+					const char* text = column.StrLabel.c_str();
+
+					if (ColumnTreeNodeType(label, "SListWndLine", "%s", text))
+					{
+						ColumnText("Width", "%d", column.Width);
+						ColumnText("Minimum Width", "%d", column.MinWidth);
+						ColumnCXSize("Texture Size", column.TextureSize);
+						ColumnCXPoint("Texture Offset", column.TextureOffset);
+						ColumnCXStr("Label", column.StrLabel);
+						ColumnText("Data", "0x%08x", column.Data);
+						ColumnText("Flags", "0x%08x", column.Flags);
+						switch (column.Type)
+						{
+						case CellTypeBasicText: ColumnText("Cell Type", "%s", "Text"); break;
+						case CellTypeBasicIcon: ColumnText("Cell Type", "%s", "Icon"); break;
+						case CellTypeTextIcon: ColumnText("Cell Type", "%s", "Text & Icon"); break;
+						default: ColumnText("Cell Type", "Unknown (%d)", column.Type); break;
+						}
+						DisplayTextureAnimation("Texture", column.pTextureAnim, true);
+						DisplayTextureAnimation("Selected Texture", column.pSelected, true);
+						DisplayTextureAnimation("MouseOver Texture", column.pMouseOver, true);
+						ColumnCXStr("Tooltip", column.Tooltip);
+						ColumnCheckBox("Resizable", column.bResizable);
+
+						ImGui::TreePop();
+					}
+				}
+
+				ImGui::TreePop();
+			}
 
 			if (ColumnTreeNodeType("Items", "SListWndLine[]", ""))
 			{
@@ -2058,6 +2616,9 @@ public:
 		{
 			m_picking = false; // can't pick if not showing picker
 			m_pSelectedWnd = nullptr;
+			m_pHoveredWnd = nullptr;
+			m_pPickingWnd = nullptr;
+			m_pLastSelected = nullptr;
 		}
 
 		// update last selected to remember selection for next iteration
@@ -2440,12 +3001,73 @@ static WindowInspector* s_windowInspector = nullptr;
 
 #pragma endregion
 
+#pragma region Window Property Customizations
+
+// We grant the ability to specialize the window property viewer for windows with specific names.
+using WindowPropertyViewerCustomization = void(*)(CSidlScreenWnd*, ImGuiWindowPropertyViewer*);
+std::unordered_map<std::string_view, WindowPropertyViewerCustomization> s_windowDisplayCustomizations;
+
+static void RegisterWindowPropertyViewer(const char* windowName, const WindowPropertyViewerCustomization& callback)
+{
+	s_windowDisplayCustomizations.emplace(windowName, callback);
+}
+
+static void DisplayCustomWindowPropertyViewer(CSidlScreenWnd* pWindow, ImGuiWindowPropertyViewer* viewer)
+{
+	if (!pWindow) return;
+
+	std::string_view windowName = pWindow->SidlPiece->strName;
+
+	auto iter = s_windowDisplayCustomizations.find(windowName);
+	if (iter == s_windowDisplayCustomizations.end())
+	{
+		return;
+	}
+
+	const WindowPropertyViewerCustomization& callback = iter->second;
+
+	char szSectionTitle[32] = { 0 };
+	sprintf_s(szSectionTitle, "%s Properties", pWindow->SidlPiece->strName.c_str());
+
+	if (viewer->BeginColorSection(szSectionTitle, true))
+	{
+		callback(pWindow, viewer);
+	}
+}
+
+// Property Viewer for ItemDisplayWindow
+void WindowProperties_ItemDisplayWindow(CSidlScreenWnd* pSidlWindow, ImGuiWindowPropertyViewer* viewer)
+{
+	CItemDisplayWnd* pWindow = static_cast<CItemDisplayWnd*>(pSidlWindow);
+
+	ColumnCXStr("ItemInfo", pWindow->ItemInfo);
+	ColumnCXStr("Unknown0x2ac", pWindow->Unknown0x2ac);
+	ColumnCXStr("Unknown0x2b0", pWindow->Unknown0x2b0);
+	ColumnCXStr("WindowTitle", pWindow->WindowTitle);
+	ColumnCXStr("ItemAdvancedLoreText", pWindow->ItemAdvancedLoreText);
+	ColumnCXStr("ItemMadeByText", pWindow->ItemMadeByText);
+	ColumnCXStr("SolventText", pWindow->SolventText);
+	ColumnCXStr("ItemInformationText", pWindow->ItemInformationText);
+	// Item pItem
+	ColumnCheckBox("Active Item", pWindow->bActiveItem);
+	ColumnCheckBox("Item Text Set", pWindow->bItemTextSet);
+
+	DisplayTextureAnimation("DragIcons", pWindow->DragIcons, true);
+	ColumnText("Tab Count", "%d", pWindow->TabCount);
+
+	ColumnText("Window Index", "%d", pWindow->ItemWndIndex);
+}
+
+#pragma endregion
+
 //============================================================================
 
 void DeveloperTools_WindowInspector_Initialize()
 {
 	s_windowInspector = new WindowInspector();
 	DeveloperTools_RegisterMenuItem(s_windowInspector, "Windows", s_menuNameInspectors);
+
+	RegisterWindowPropertyViewer("ItemDisplayWindow", WindowProperties_ItemDisplayWindow);
 }
 
 void DeveloperTools_WindowInspector_Shutdown()
@@ -2457,7 +3079,24 @@ void DeveloperTools_WindowInspector_Shutdown()
 void DeveloperTools_WindowInspector_SetGameState(uint32_t gameState)
 {
 	s_windowInspector->Reset();
+}
 
+void DeveloperTools_WindowInspector_ViewString(std::string_view name, const CXStr& string)
+{
+	ImGuiWindowPropertyViewer* currentPropertyViewer = ImGuiWindowPropertyViewer::GetCurrentViewer();
+	if (!currentPropertyViewer)
+		return;
+
+	currentPropertyViewer->AddStringEditor(ImGuiWindowStringEditor(name, string));
+}
+
+void DeveloperTools_WindowInspector_EditString(std::string_view name, CXStr* string)
+{
+	ImGuiWindowPropertyViewer* currentPropertyViewer = ImGuiWindowPropertyViewer::GetCurrentViewer();
+	if (!currentPropertyViewer)
+		return;
+
+	currentPropertyViewer->AddStringEditor(ImGuiWindowStringEditor(name, string));
 }
 
 //----------------------------------------------------------------------------

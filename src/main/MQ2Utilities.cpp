@@ -6560,7 +6560,7 @@ static BOOL CALLBACK EnumWindowsProc(HWND hWnd, LPARAM lParam)
 	if (enumData->processId == dwProcessId)
 	{
 		char szClass[24] = { 0 };
-		GetClassName(hWnd, szClass, 23);
+		::GetClassNameA(hWnd, szClass, 23);
 
 		// If its the EverQuest window class, return it.
 		if (strcmp(szClass, "_EverQuestwndclass") == 0)
