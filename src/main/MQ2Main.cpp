@@ -1133,3 +1133,7 @@ void InjectDisable()
 }
 
 } // namespace mq
+
+#if __has_include("../private/MQ2Main-private.cpp")
+#include "../private/MQ2Main-private.cpp"
+#endif

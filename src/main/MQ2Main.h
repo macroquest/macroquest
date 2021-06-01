@@ -1020,3 +1020,7 @@ MQLIB_API uint64_t GetMoneyFromString(const char* string, GetMoneyFromStringForm
 MQLIB_API void FormatMoneyString(char* szBuffer, size_t bufferLength, uint64_t moneyAmount, GetMoneyFromStringFormat format = GetMoneyFromStringFormat::Long);
 
 } // namespace mq
+
+#if __has_include("../private/MQ2Main-private.h")
+#include "../private/MQ2Main-private.h"
+#endif

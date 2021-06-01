@@ -760,3 +760,7 @@ bool ExecuteCmd(unsigned int command, bool keyDown, void* data)
 int gbGroundDeprecateCount = -1;
 
 } // namespace mq
+
+#if __has_include("../private/MQ2Globals-private.cpp")
+#include "../private/MQ2Globals-private.cpp"
+#endif

@@ -333,3 +333,7 @@ MQLIB_VAR bool gbDeviceHooksInstalled;
 MQLIB_VAR int gbGroundDeprecateCount;
 
 } // namespace mq
+
+#if __has_include("../private/MQ2Globals-private.h")
+#include "../private/MQ2Globals-private.h"
+#endif
