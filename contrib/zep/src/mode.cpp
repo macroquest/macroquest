@@ -517,7 +517,7 @@ void ZepMode::HandleMappedInput(const std::string& input)
         return;
     }
 
-    ZLOG(DBG, input);
+    //ZLOG(DBG, input);
 
     // Special case, dot command (do last edit again)
     // Dot command is complicated, this is my second attempt at implementing it and is less

@@ -238,7 +238,7 @@ public:
             m_pGapStart += sizeIncrease;
             return;
         }
-       
+
         // New total fixed_size and new gap fixed_size
         auto bufferSize = CurrentSizeWithGap() + sizeIncrease;
 
@@ -276,7 +276,7 @@ public:
             // We never shrink the gap
             return;
         }
-       
+
         // New total fixed_size and new gap fixed_size
         auto bufferSize = CurrentSizeWithGap() + sizeIncrease;
 
@@ -319,7 +319,8 @@ public:
     std::string string(bool showGap = false) const
     {
         std::string str;
-       
+        str.reserve(size());
+
         if (m_pGapStart - m_pStart)
         {
             str.append((const char*)m_pStart, (size_type)(m_pGapStart - m_pStart));
@@ -335,7 +336,8 @@ public:
         {
             str.append((const char*)m_pGapEnd, (size_type)(m_pEnd - m_pGapEnd));
         }
-        return str;
+
+        return std::string(str.c_str());
     }
 
     // Assign the whole buffer to this range of values

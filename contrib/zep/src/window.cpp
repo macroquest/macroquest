@@ -264,7 +264,8 @@ void ZepWindow::DispatchMouseEvent(std::shared_ptr<ZepMessage> message)
         else
         {
             // Give syntax a chance to handle the event
-            m_pBuffer->GetSyntax()->DispatchMouseEvent(message);
+            if (m_pBuffer->GetSyntax())
+                m_pBuffer->GetSyntax()->DispatchMouseEvent(message);
 
             if (!message->handled)
             {

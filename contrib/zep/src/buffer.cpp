@@ -643,6 +643,11 @@ bool ZepBuffer::Save(int64_t& size)
     return false;
 }
 
+std::string ZepBuffer::GetBufferText() const
+{
+    return GetWorkingBuffer().string();
+}
+
 std::string ZepBuffer::GetDisplayName() const
 {
     if (m_filePath.empty())
@@ -714,7 +719,7 @@ void ZepBuffer::Clear()
 }
 
 // Replace the buffer with the text
-void ZepBuffer::SetText(const std::string& text, bool initFromFile)
+void ZepBuffer::SetText(std::string_view text, bool initFromFile)
 {
     // First, clear it
     Clear();
@@ -781,7 +786,8 @@ void ZepBuffer::SetText(const std::string& text, bool initFromFile)
     // TODO: Why is a line end needed always?
     // TODO: Line ends 1 beyond, or just for end?  Can't remember this detail:
     // understand it, then write a unit test to ensure it.
-    m_lineEnds.push_back(End().Index() + 1);
+    if (!text.empty())
+        m_lineEnds.push_back(End().Index() + 1);
 
     MarkUpdate();
 
@@ -1410,7 +1416,7 @@ void ZepBuffer::SetFileFlags(uint32_t flags, bool set)
 
 void ZepBuffer::ClearFileFlags(uint32_t flags)
 {
-    m_fileFlags = ZSetFlags(m_fileFlags, flags, false);
+    m_fileFlags = ZClearFlags(m_fileFlags, flags);
 }
 
 bool ZepBuffer::HasFileFlags(uint32_t flags) const
@@ -1565,7 +1571,7 @@ void ZepBuffer::BeginFlash(float seconds, FlashType flashType, const GlyphRange&
     {
         return;
     }
-    
+
     auto spMarker = std::make_shared<RangeMarker>(*this);
     spMarker->SetRange(ByteRange(range.first.Index(), range.second.Index()));
     spMarker->SetBackgroundColor(ThemeColor::FlashColor);

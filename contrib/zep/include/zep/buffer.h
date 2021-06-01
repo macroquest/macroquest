@@ -118,7 +118,7 @@ public:
     virtual ~ZepBuffer();
 
     void Clear();
-    void SetText(const std::string& strText, bool initFromFile = false);
+    void SetText(std::string_view text, bool initFromFile = false);
     void Load(const ZepPath& path);
     bool Save(int64_t& size);
 
@@ -259,6 +259,8 @@ public:
 
     GlyphRange GetExpression(ExpressionType type, const GlyphIterator location, const std::vector<char>& beginExpression, const std::vector<char>& endExpression) const;
     std::string GetBufferText(const GlyphIterator& start, const GlyphIterator& end) const;
+
+    std::string GetBufferText() const;
 
     void SetPostKeyNotifier(fnKeyNotifier notifier);
     fnKeyNotifier GetPostKeyNotifier() const;

@@ -285,7 +285,7 @@ public:
 
     void Reset();
     ZepBuffer* InitWithFileOrDir(const std::string& str, bool setWorkingDir = false);
-    ZepBuffer* InitWithText(const std::string& strName, const std::string& strText);
+    ZepBuffer* InitWithText(const std::string& strName, std::string_view strText);
 
     ZepMode* GetGlobalMode();
     void RegisterGlobalMode(std::shared_ptr<ZepMode> spMode);

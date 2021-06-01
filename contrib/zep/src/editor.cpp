@@ -462,12 +462,12 @@ ZepBuffer* ZepEditor::InitWithFileOrDir(const std::string& str, bool setWorkingD
     return pFileBuffer;
 }
 
-ZepBuffer* ZepEditor::InitWithText(const std::string& strName, const std::string& strText)
+ZepBuffer* ZepEditor::InitWithText(const std::string& strName, std::string_view strText)
 {
     auto pTab = EnsureTab();
 
     auto pBuffer = GetEmptyBuffer(strName);
-    pBuffer->SetText(strText);
+    pBuffer->SetText(strText, true);
 
     pTab->AddWindow(pBuffer, nullptr, RegionLayoutType::HBox);
 

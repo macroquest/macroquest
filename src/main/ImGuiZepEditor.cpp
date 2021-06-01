@@ -486,6 +486,8 @@ void ImGuiZepEditor::Render(const char* id, const ImVec2& displaySize)
 	if (displaySize.y != 0)
 		actualSize.y = displaySize.y;
 
+	ImGuiIO& io = ImGui::GetIO();
+
 	if (ImGui::BeginChild(id, actualSize, false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground))
 	{
 		m_editor->SetScreenPosition(toNVec2f(ImGui::GetCursorScreenPos()));
@@ -496,6 +498,11 @@ void ImGuiZepEditor::Render(const char* id, const ImVec2& displaySize)
 		ImGui::PushAllowKeyboardFocus(true);
 
 		m_editor->SetHasFocus(ImGui::IsWindowFocused());
+		if (ImGui::IsWindowFocused())
+		{
+			io.WantCaptureKeyboard = true;
+			io.WantTextInput = true;
+		}
 		m_editor->Display();
 
 		ImGui::PopAllowKeyboardFocus();
