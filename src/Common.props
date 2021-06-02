@@ -68,4 +68,7 @@
     <Message Text="Checking vcpkg_mq manifest for $(MSBuildProjectName)..." Importance="High" />
     <Exec Command="if exist %22$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), tools\build_scripts\vcpkg_mq.ps1))\tools\build_scripts\vcpkg_mq.ps1%22 powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File %22$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), tools\build_scripts\vcpkg_mq.ps1))\tools\build_scripts\vcpkg_mq.ps1%22 -ProjectName %22$(MSBuildProjectName)%22 -ProjectDirectory %22$(MSBuildProjectDirectory)%22 -MQRoot %22$(MQ2Root.TrimEnd('\'))%22" StandardOutputImportance="High" />
   </Target>
+  <ImportGroup Label="PropertySheets">
+    <Import Project=".\private\Common-private.props" Condition="exists('.\private\Common-private.props')" />
+  </ImportGroup>
 </Project>

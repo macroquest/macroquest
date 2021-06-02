@@ -40,4 +40,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup />
+  <ImportGroup Label="PropertySheets">
+    <Import Project=".\private\Plugin-private.props" Condition="exists('.\private\Plugin-private.props')" />
+  </ImportGroup>
 </Project>

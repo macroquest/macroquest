@@ -18,3 +18,8 @@ Private includes for the EQLib project:
 - EQLib-private.cpp
 - EQClasses-private.h
 - EQClasses-private.cpp
+
+Additionally, if the following files are present, they will be included in the property
+sheets. This can be used for adjusting visual studio project settings:
+- Plugin-private.props
+- Common-private.props
