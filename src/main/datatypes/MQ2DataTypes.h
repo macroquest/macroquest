@@ -461,7 +461,7 @@ public:
 	static bool dataNearestSpawn(const char* szIndex, MQTypeVar& Ret);
 
 	// This is for use in retrieving the spawn that is pointed to by the MQVarPtr.
-	static SPAWNINFO* GetSpawnPtr(const MQVarPtr& VarPtr);
+	MQLIB_OBJECT static SPAWNINFO* GetSpawnPtr(const MQVarPtr& VarPtr);
 
 	static inline MQVarPtr MakeVarPtr(SPAWNINFO* pSpawn)
 	{
@@ -488,7 +488,7 @@ public:
 		return Dest;
 	}
 
-	bool GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index, MQTypeVar& Dest);
+	MQLIB_OBJECT bool GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index, MQTypeVar& Dest);
 };
 
 //============================================================================
