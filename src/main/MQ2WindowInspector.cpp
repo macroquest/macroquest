@@ -498,6 +498,36 @@ inline void ColumnCXPoint(const char* Label, const CXPoint& point)
 	ImGui::TableNextColumn();
 }
 
+inline void ColumnCVector3(const char* Label, const CVector3& point)
+{
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+
+	ImGui::Text("{ x=%.2f, y=%.2f, z=%.2f }", point.X, point.Y, point.Z); ImGui::TableNextColumn();
+
+	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "CVector3");
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn();
+}
+
+
+inline void ColumnColor(const char* Label, MQColor color)
+{
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+
+	//ImGui::ColorButton(id, ImGui::ColorConvertU32ToFloat4(color),
+	//ColorButton(const char* desc_id, const ImVec4& col, ImGuiColorEditFlags flags = 0, ImVec2 size = ImVec2(0, 0));
+
+	ImGui::PushID(Label);
+	ImColor colors = color.ToImColor();
+
+	ImGui::ColorEdit4("", (float*)&colors, ImGuiColorEditFlags_NoInputs); ImGui::TableNextColumn();
+	ImGui::PopID();
+
+	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "Color");
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn();
+}
+
 inline void ColumnColor(const char* Label, const COLORREF& color)
 {
 	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
@@ -3036,7 +3066,7 @@ static void DisplayCustomWindowPropertyViewer(CSidlScreenWnd* pWindow, ImGuiWind
 }
 
 // Property Viewer for ItemDisplayWindow
-void WindowProperties_ItemDisplayWindow(CSidlScreenWnd* pSidlWindow, ImGuiWindowPropertyViewer* viewer)
+static void WindowProperties_ItemDisplayWindow(CSidlScreenWnd* pSidlWindow, ImGuiWindowPropertyViewer* viewer)
 {
 	CItemDisplayWnd* pWindow = static_cast<CItemDisplayWnd*>(pSidlWindow);
 
@@ -3058,6 +3088,41 @@ void WindowProperties_ItemDisplayWindow(CSidlScreenWnd* pSidlWindow, ImGuiWindow
 	ColumnText("Window Index", "%d", pWindow->ItemWndIndex);
 }
 
+// Propert Viewer for CompassWindow
+static void WindowProperties_CompassWindow(CSidlScreenWnd* pSidlWindow, ImGuiWindowPropertyViewer* viewer)
+{
+	CCompassWnd* pWindow = static_cast<CCompassWnd*>(pSidlWindow);
+
+	DisplayTextureAnimation("Compass 1", pWindow->pStrip1 ? pWindow->pStrip1->ptaTextureAnimation : nullptr);
+	DisplayTextureAnimation("Compass 2", pWindow->pStrip2 ? pWindow->pStrip2->ptaTextureAnimation : nullptr);
+	ColumnText("Offset", "%d", pWindow->offset);
+	ColumnText("Speed", "%.2f", pWindow->speed);
+
+	if (ColumnTreeNodeType("Line Data", "CompassLineSource[]", "%d", pWindow->lineData.GetLength()))
+	{
+		for (int i = 0; i < pWindow->lineData.GetLength(); ++i)
+		{
+			char szTemp[32] = { 0 };
+			sprintf_s(szTemp, "%d", i + 1);
+
+			CompassLineSource& line = *pWindow->lineData[i];
+
+			if (ColumnTreeNodeType(szTemp, "CompassLineSource", ""))
+			{
+				MQColor lineColor(line.Red, line.Green, line.Blue);
+				ColumnColor("Color", lineColor);
+				CVector3 point(line.Y, line.X, line.Z);
+				ColumnCVector3("Point", point);
+				ColumnCheckBox("Visible", line.ShowLine);
+
+				ImGui::TreePop();
+			}
+		}
+
+		ImGui::TreePop();
+	}
+}
+
 #pragma endregion
 
 //============================================================================
@@ -3068,6 +3133,7 @@ void DeveloperTools_WindowInspector_Initialize()
 	DeveloperTools_RegisterMenuItem(s_windowInspector, "Windows", s_menuNameInspectors);
 
 	RegisterWindowPropertyViewer("ItemDisplayWindow", WindowProperties_ItemDisplayWindow);
+	RegisterWindowPropertyViewer("CompassWindow", WindowProperties_CompassWindow);
 }
 
 void DeveloperTools_WindowInspector_Shutdown()

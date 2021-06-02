@@ -364,6 +364,7 @@ struct MQBenchmark
 	uint64_t Count = 0;
 
 	MQBenchmark(const std::string& name) : Name(name) {}
+	MQBenchmark() {}
 };
 
 struct MQGroundPending

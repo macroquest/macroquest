@@ -120,6 +120,14 @@ public:
 		return FromData(VarPtr, (const MQTypeVar&)Source);
 	}
 
+	// There used to exist an old macro that would turn GETMEMBER into an actual function signature. This has been removed,
+	// so you need to update your signature yourself.
+	// It should be of the form:
+	// virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
+	virtual bool GETMEMBER() final {
+		return false;
+	}
+
 protected:
 	MQLIB_OBJECT bool AddMember(int id, const char* Name);
 	MQLIB_OBJECT bool RemoveMember(const char* Name);
