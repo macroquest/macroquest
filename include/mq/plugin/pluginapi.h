@@ -39,7 +39,7 @@ bool PluginMain(HANDLE hModule, DWORD dwReason, void* lpReserved);
 	extern __declspec(dllexport) float MQ2Version = static_cast<float>(Version);
 
 
-#if __has_include("../../private/pluginapi-private.h")
-#include "../../private/pluginapi-private.h"
+#if __has_include("../../../src/private/pluginapi-private.h")
+#include "../../../src/private/pluginapi-private.h"
 #endif
 

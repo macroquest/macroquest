@@ -44,4 +44,3 @@ PLUGIN_API const char EverQuestVersion[] = __ExpectedVersionDate " " __ExpectedV
 #if __has_include("../../private/pluginapi-private.cpp")
 #include "../../private/pluginapi-private.cpp"
 #endif
-
