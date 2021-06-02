@@ -19,7 +19,13 @@ Private includes for the EQLib project:
 - EQClasses-private.h
 - EQClasses-private.cpp
 
-Additionally, if the following files are present, they will be included in the property
+If the following files are present, they will be included in the property
 sheets. This can be used for adjusting visual studio project settings:
 - Plugin-private.props
 - Common-private.props
+
+If these files are added, they will be included into pluginapi and made
+available as code linked into and available to all plugins. This is different
+than the MQ2Main includes as these sources will be compiled directly into the plugin.
+- pluginapi-private.cpp
+- pluginapi-private.h
