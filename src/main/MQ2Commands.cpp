@@ -1624,7 +1624,7 @@ void Identify(SPAWNINFO* pChar, char* szLine)
 
 	if (pItemInfo->LoreName[0] == '*')
 		strcat_s(szMsg, "LORE ");
-	if (!pItemInfo->NoDrop)
+	if (!pItemInfo->IsDroppable)
 		strcat_s(szMsg, "NODROP ");
 	if (!pItemInfo->NoRent)
 		strcat_s(szMsg, "NORENT ");

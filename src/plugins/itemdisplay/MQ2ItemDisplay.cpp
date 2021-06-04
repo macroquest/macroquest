@@ -1921,13 +1921,13 @@ static void UpdateCompareWindow(ItemClient* pCont, ItemClient* pEquipped)
 
 	if (pItem->Lore)
 		strcpy_s(szTemp2, "[Lore]");
-	if (pItem->NoDrop)
+	if (!pItem->IsDroppable)
 	{
 		if (pItem->Lore)
 			strcat_s(szTemp2, " ");
 		strcat_s(szTemp2, "[No Drop]");
 	}
-	if (pItem->NoDrop || pItem->Lore)
+	if (!pItem->IsDroppable || pItem->Lore)
 		strcat_s(szTemp2, "<br>");
 	pCompareTipWnd->Display->AppendSTML(szTemp2);
 

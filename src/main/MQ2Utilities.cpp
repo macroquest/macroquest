@@ -1583,7 +1583,7 @@ bool ItemMatchesSearch(MQItemSearch& SearchItem, ItemClient* pContents)
 
 	RequireFlag(Lore, pItem->Lore);
 	RequireFlag(NoRent, pItem->NoRent);
-	RequireFlag(NoDrop, pItem->NoDrop);
+	RequireFlag(NoDrop, pItem->IsDroppable);
 	RequireFlag(Magic, pItem->Magic);
 	RequireFlag(Pack, pItem->Type == ITEMTYPE_PACK);
 	RequireFlag(Book, pItem->Type == ITEMTYPE_BOOK);
@@ -5214,7 +5214,7 @@ ItemClient* FindItemByGlobalIndex(const ItemGlobalIndex& idx)
 }
 
 template <typename T>
-static ItemClient* FindItem(T&& callback)
+static ItemClient* FindItem(T&& callback, bool checkKeyRings = true, int fromSlot = -1, int toSlot = -1)
 {
 	auto pProfile = GetPcProfile();
 	if (!pProfile) return nullptr;
@@ -5231,15 +5231,18 @@ static ItemClient* FindItem(T&& callback)
 		return false;
 	};
 
-	// Prioritize checking the cursor slot first.
-	pProfile->InventoryContainer.FindItem(InvSlot_Cursor, InvSlot_Cursor, -1, itemVisitor);
-
-	if (!foundItem)
+	if (InvSlot_Cursor >= fromSlot && (InvSlot_Cursor <= toSlot || toSlot == -1))
 	{
-		pProfile->InventoryContainer.FindItem(itemVisitor);
+		// Prioritize checking the cursor slot first.
+		pProfile->InventoryContainer.FindItem(InvSlot_Cursor, InvSlot_Cursor, -1, itemVisitor);
 	}
 
 	if (!foundItem)
+	{
+		pProfile->InventoryContainer.FindItem(fromSlot, toSlot, -1, itemVisitor);
+	}
+
+	if (!foundItem && checkKeyRings)
 	{
 		// Check the different keyrings
 		for (
@@ -5318,6 +5321,12 @@ int FindInventoryItemCountByName(const char* pName, StringMatchType matchType, i
 		[pName, matchType](const ItemPtr& pItem, const ItemIndex&)
 		{ return StringCompare(pItem->GetName(), pName, matchType); },
 		slotBegin, slotEnd);
+}
+
+ItemClient* FindInventoryItemByName(const char* pName, StringMatchType matchType, int slotBegin, int slotEnd)
+{
+	return FindItem([pName, matchType](const ItemPtr& pItem, const ItemIndex&)
+		{ return StringCompare(pItem->GetName(), pName, matchType); }, false, slotBegin, slotEnd);
 }
 
 int FindInventoryItemCountByID(int ItemID, int slotBegin, int slotEnd)

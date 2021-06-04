@@ -654,6 +654,8 @@ MQLIB_API int         FindItemCountByName(const char* pName);
 MQLIB_API int         FindItemCountByID(int ItemID);
 MQLIB_API int         FindInventoryItemCountByName(const char* pName, StringMatchType matchType = StringMatchType::CaseInsensitive,
                                                    int slotBegin = -1, int slotEnd = -1);
+MQLIB_API ItemClient* FindInventoryItemByName(const char* pName, StringMatchType matchType = StringMatchType::CaseInsensitive,
+                                              int slotBegin = -1, int slotEnd = -1);
 MQLIB_API int         FindInventoryItemCountByID(int ItemID, int slobBegin = -1, int slotEnd = -1);
 MQLIB_API ItemClient*   FindBankItemByName(const char* pName, bool bExact);
 MQLIB_API ItemClient*   FindBankItemByID(int ItemID);

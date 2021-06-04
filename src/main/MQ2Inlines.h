@@ -606,7 +606,7 @@ inline bool StringCompare(std::string_view haystack, std::string_view needle,
 	}
 }
 
-DEPRECATE("Access CXStr directly instead of calling GetCXStr")
+DEPRECATE("GetCXStr: This function is no longer needed. CXStr can now be used like a std::string")
 inline DWORD GetCXStr(CXStr* pCXStr, char* szBuffer, uint32_t length = MAX_STRING)
 {
 	if (!szBuffer)
@@ -628,7 +628,14 @@ inline DWORD GetCXStr(CXStr* pCXStr, char* szBuffer, uint32_t length = MAX_STRIN
 	return length;
 }
 
-DEPRECATE("Set CXStr directly instead of using SetCXStr")
+DEPRECATE("GetCXStr: This function is no longer needed. CXStr can now be used normally like a std::string")
+inline DWORD GetCXStr(CXStr& str, char* szBuffer, uint32_t length = MAX_STRING)
+{
+#pragma warning(suppress: 4996)
+	return GetCXStr(&str, szBuffer, length);
+}
+
+DEPRECATE("SetCXStr: This function is no longer needed. CXStr can now be used normally like a std::string")
 inline void SetCXStr(CXStr* pCXStr, const char* text)
 {
 	if (pCXStr)
@@ -637,7 +644,14 @@ inline void SetCXStr(CXStr* pCXStr, const char* text)
 	}
 }
 
-DEPRECATE("modify CXStr directly instead of using AppendCXStr")
+DEPRECATE("SetCXStr: This function is no longer needed. CXStr can now be used normally like a std::string")
+inline void SetCXStr(CXStr& str, const char* text)
+{
+#pragma warning(suppress: 4996)
+	return SetCXStr(&str, text);
+}
+
+DEPRECATE("AppendCXStr: This function is no longer needed. CXStr can now be used normally like a std::string")
 inline void AppendCXStr(CXStr* pCXStr, const char* text)
 {
 	if (pCXStr)
