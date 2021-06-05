@@ -26,13 +26,11 @@ using namespace mq::datatypes;
 
 PreSetup("MQ2ItemDisplay");
 
-// starting position of link text found in MQ2Web__ParseItemLink_x
-constexpr int LINK_LEN = 90;
 constexpr int MAX_ITEMDISPLAY_WINDOWS = 6;
 
 char ConvertFrom[MAX_STRING] = { 0 };
 char ConvertTo[MAX_STRING] = { 0 };
-bool bDisabledComparetip = false;
+bool bDisabledCompareTip = false;
 bool gCompareTip = false;
 bool gLootButton = true;
 bool gLucyButton = true;
@@ -46,6 +44,38 @@ struct ButtonInfo
 };
 
 std::map<CButtonWnd*, ButtonInfo> ButtonMap;
+
+struct ItemDisplayExtension
+{
+	CItemDisplayWnd* parentWnd = nullptr;
+	CPageWnd*        extrasPage = nullptr;
+	CButtonWnd*      lucyButton = nullptr;
+
+	~ItemDisplayExtension()
+	{
+		if (lucyButton)
+		{
+			lucyButton->Destroy();
+			lucyButton = nullptr;
+		}
+
+		if (extrasPage)
+		{
+			parentWnd->ItemDescriptionTabBox->RemovePage(extrasPage);
+			extrasPage->Destroy();
+			extrasPage = nullptr;
+		}
+	}
+};
+
+// This is sized to match the max number of windows.
+static std::vector<ItemDisplayExtension> ItemDisplayExtensions;
+
+// Initialize from the ItemDisplayWindowManager, not valid until ui is loaded.
+static uint32_t MaxItemDisplayWindows = 0;
+
+static void InitializeWindowExtension(CItemDisplayWnd* pItemDisplayWnd);
+static ItemDisplayExtension* GetWindowExtension(CItemDisplayWnd* pItemDisplayWnd);
 
 void Comment(SPAWNINFO* pChar, char* szLine);
 
@@ -246,11 +276,6 @@ bool dataLastItem(const char* szName, MQTypeVar& Ret)
 	return true;
 }
 
-// ***************************************************************************
-// Function:    ItemDisplayHook
-// Description: Our Item display hook
-// ***************************************************************************
-
 // Don't ever directly reference this. We don't know when it might get deleted. We only use
 // this to check if the current tooltip item has changed.
 ItemClient* gpOldTooltipItem = nullptr;
@@ -339,9 +364,6 @@ class ItemDisplayHook
 {
 	enum SEffectType { None = 0, Clicky, Proc, Worn, Focus, Scroll, Focus2, Mount, Illusion, Familiar };
 
-	static bool bNoSpellTramp;
-	static SEffectType eEffectType;
-
 public:
 	int GetDmgBonus(const CXStr& Str) const
 	{
@@ -386,68 +408,66 @@ public:
 		return dmgbonus;
 	}
 
-	static void GetEffectInfo(const SEffectType effect, std::string& Color, std::string& Name)
+	static void GetEffectInfo(SEffectType eEffectType, std::string& Color, std::string& Name)
 	{
-			if(Color.empty())
-			{
-				Color = "FF0000";
-			}
-			if(Name.empty())
-			{
-				// Is "Blub" significant or just known nonsense?
-				Name = "Blub";
-			}
+		if (Color.empty())
+		{
+			Color = "FF0000";
+		}
+		if (Name.empty())
+		{
+			// Is "Blub" significant or just known nonsense?
+			Name = "Blub";
+		}
 
-			switch (eEffectType)
-			{
-			case Clicky:
-				Color = "00FF00";
-				Name = "Clicky";
-				break;
-			case Proc:
-				Color = "FF00FF";
-				Name = "Proc";
-				break;
-			case Worn:
-				Color = "FFFF00";
-				Name = "Worn";
-				break;
-			case Focus:
-			case Focus2:
-				Color = "9F9F00";
-				Name = "Focus";
-				break;
-			case Scroll:
-				Color = "9F9F9F";
-				Name = "Scroll";
-				break;
-			case Mount:
-				Color = "00FF00";
-				Name = "Mount";
-				break;
-			case Illusion:
-				Color = "00FF00";
-				Name = "Illusion";
-				break;
-			case Familiar:
-				Color = "00FF00";
-				Name = "Familiar";
-				break;
-			case None:
-				Name = "None";
-				break;
-			default:
-				break;
-			}
+		switch (eEffectType)
+		{
+		case Clicky:
+			Color = "00FF00";
+			Name = "Clicky";
+			break;
+		case Proc:
+			Color = "FF00FF";
+			Name = "Proc";
+			break;
+		case Worn:
+			Color = "FFFF00";
+			Name = "Worn";
+			break;
+		case Focus:
+		case Focus2:
+			Color = "9F9F00";
+			Name = "Focus";
+			break;
+		case Scroll:
+			Color = "9F9F9F";
+			Name = "Scroll";
+			break;
+		case Mount:
+			Color = "00FF00";
+			Name = "Mount";
+			break;
+		case Illusion:
+			Color = "00FF00";
+			Name = "Illusion";
+			break;
+		case Familiar:
+			Color = "00FF00";
+			Name = "Familiar";
+			break;
+		case None:
+			Name = "None";
+			break;
+		default:
+			break;
+		}
 	}
 
 	void SetSpell_Trampoline(int SpellID, bool bFullInfo);
 	void SetSpell_Detour(int SpellID, bool bFullInfo)
 	{
 		CSpellDisplayWnd* pThis = reinterpret_cast<CSpellDisplayWnd*>(this);
-		CHARINFO* pCharInfo = GetCharInfo();
-
-		if (pCharInfo == nullptr) return;
+		if (!pLocalPC) return;
 
 		EQ_Spell* pSpell = GetSpellByID(SpellID);
 		if (pSpell == nullptr)
@@ -458,36 +478,25 @@ public:
 		char out[MAX_STRING * 2] = { 0 };
 		char temp[MAX_STRING] = { 0 };
 
-		if (!bNoSpellTramp)
-		{
-			SetSpell_Trampoline(SpellID, bFullInfo);
-			strcat_s(out, "<BR><c \"#00FFFF\">");
-		}
-		else
-		{
-			std::string cColour = "FF0000";
-			std::string cName = "Blub";
-			GetEffectInfo(eEffectType, cColour, cName);
-			sprintf_s(temp, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour.data(), cName.data(), pSpell->Name);
-			strcat_s(out, temp);
-		}
+		SetSpell_Trampoline(SpellID, bFullInfo);
+		strcat_s(out, "<BR><c \"#00FFFF\">");
 
 		sprintf_s(temp, "ID: %04d&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", pSpell->ID);
 		strcat_s(out, temp);
 
-		DWORD Tics = GetSpellDuration(pSpell, pLocalPlayer);
-		if (Tics == 0xFFFFFFFF)
+		int Ticks = GetSpellDuration(pSpell, pLocalPlayer);
+		if (Ticks == -1)
 			strcat_s(out, "Duration: Permanent<br>");
-		else if (Tics == 0xFFFFFFFE)
+		else if (Ticks == -2)
 			strcat_s(out, "Duration: Unknown<br>");
-		else if (Tics == 0)
+		else if (Ticks == 0)
 		{
 			// It's "instant", who cares?
 			strcat_s(out, "<br>");
 		}
 		else
 		{
-			sprintf_s(temp, "Duration: %1.1f minutes<br>", (float)((Tics * 6.0f) / 60.0f));
+			sprintf_s(temp, "Duration: %1.1f minutes<br>", (float)((Ticks * 6.0f) / 60.0f));
 			strcat_s(out, temp);
 		}
 
@@ -631,7 +640,7 @@ public:
 		}
 	}
 
-	void ItemSetSpell_Detour(ITEMSPELLS Effect)
+	void ItemSetSpell(SEffectType eEffectType, const ITEMSPELLS& Effect)
 	{
 		CItemDisplayWnd* pThis = reinterpret_cast<CItemDisplayWnd*>(this);
 		CHARINFO* pCharInfo = GetCharInfo();
@@ -647,44 +656,39 @@ public:
 		char out[MAX_STRING * 2] = { 0 };
 		char temp[MAX_STRING] = { 0 };
 
-		if (!bNoSpellTramp)
-		{
-			SetSpell_Trampoline(Effect.SpellID, false);
-			strcat_s(out, "<BR><c \"#00FFFF\">");
-		}
-		else
-		{
-			std::string cColour = "FF0000";
-			std::string cName = "Blub";
 
-            GetEffectInfo(eEffectType, cColour, cName);
-			char aliased[MAX_STRING] = { 0 };
-			sprintf_s(aliased, "%s%s", Effect.OtherName, " (aliased)");
-			sprintf_s(temp, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour.data(), cName.data(), Effect.OtherName[0] ? aliased : pSpell->Name);
-			strcat_s(out, temp);
+		std::string cColour = "FF0000";
+		std::string cName = "Blub";
 
-			if (strstr(pThis->ItemInfo.c_str(), out))
-			{
-				return;
-			}
+		GetEffectInfo(eEffectType, cColour, cName);
+
+		char aliased[MAX_STRING] = { 0 };
+		sprintf_s(aliased, "%s%s", Effect.OtherName, " (aliased)");
+
+		sprintf_s(temp, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour.data(), cName.data(), Effect.OtherName[0] ? aliased : pSpell->Name);
+		strcat_s(out, temp);
+
+		if (strstr(pThis->ItemInfo.c_str(), out))
+		{
+			return;
 		}
 
 		sprintf_s(temp, "ID: %04d&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", pSpell->ID);
 		strcat_s(out, temp);
 
-		DWORD Tics = GetSpellDuration(pSpell, pLocalPlayer);
-		if (Tics == 0xFFFFFFFF)
+		int Ticks = GetSpellDuration(pSpell, pLocalPlayer);
+		if (Ticks == -1)
 			strcat_s(out, "Duration: Permanent<br>");
-		else if (Tics == 0xFFFFFFFE)
+		else if (Ticks == -2)
 			strcat_s(out, "Duration: Unknown<br>");
-		else if (Tics == 0)
+		else if (Ticks == 0)
 		{
 			// It's "instant", who cares?
 			strcat_s(out, "<br>");
 		}
 		else
 		{
-			sprintf_s(temp, "Duration: %1.1f minutes<br>", (float)((Tics * 6.0f) / 60.0f));
+			sprintf_s(temp, "Duration: %1.1f minutes<br>", (float)((Ticks * 6.0f) / 60.0f));
 			strcat_s(out, temp);
 		}
 
@@ -806,17 +810,33 @@ public:
 	void UpdateStrings_Detour()
 	{
 		CItemDisplayWnd* pThis = reinterpret_cast<CItemDisplayWnd*>(this);
-		int index = pThis->ItemWndIndex;
-		if (index >= MAX_ITEMDISPLAY_WINDOWS || index < 0)
+		uint32_t index = pThis->ItemWndIndex;
+
+		if (index >= MaxItemDisplayWindows)
 		{
-			index = 0;
-			WriteChatf("Tell eqmule his PEQITEMWINDOW struct is wrong");
+			WriteChatf("[MQ2ItemDisplay] \arPlugin encountered an out of bounds window in UpdateStrings (%d) -- plugin probably needs to be updated!", index);
+			UpdateStrings_Trampoline();
+			return;
 		}
 
 		ItemPtr& item = pThis->pItem;
 		ItemDefinition* Item = item->GetItemDefinition();
 
+		ItemDisplayExtension* pExt = GetWindowExtension(pThis);
+		if (pExt && pExt->extrasPage)
+		{
+			// If we already created a new tab. We need to remove it here. UpdateStrings may modify the tab box,
+			// so we want to avoid getting in the way so that our page comes after it.
+			pThis->ItemDescriptionTabBox->RemovePage(pExt->extrasPage);
+		}
+
 		UpdateStrings_Trampoline();
+
+		if (pExt && pExt->extrasPage)
+		{
+			pThis->ItemDescriptionTabBox->InsertPage(pExt->extrasPage);
+		}
+
 		std::scoped_lock lock(s_mutex);
 
 		// add the strings to our map
@@ -1104,25 +1124,20 @@ public:
 	int WndNotification_Trampoline(CXWnd*, uint32_t, void*);
 	int WndNotification_Detour(CXWnd* pWnd, uint32_t Message, void* pData)
 	{
-		if (Message == XWM_RCLICK)
-		{
-			auto iter = ButtonMap.find(static_cast<CButtonWnd*>(pWnd));
-			if (iter != ButtonMap.end())
-			{
-				ButtonInfo& buttonInfo = iter->second;
+		CItemDisplayWnd* pThis = (CItemDisplayWnd*)this;
 
-				// open in lucy
-				if (buttonInfo.ID == 6)
+		if (Message == XWM_LCLICK)
+		{
+			if (ItemDisplayExtension* ext = GetWindowExtension(pThis))
+			{
+				if (ext->lucyButton == pWnd)
 				{
-					HandleLucyButton(buttonInfo.ItemDisplayWnd->pItem);
+					HandleLucyButton(pThis->pItem);
 					return 0;
 				}
 			}
-		}
-		else if (Message == XWM_LCLICK)
-		{
-			auto iter = ButtonMap.find(static_cast<CButtonWnd*>(pWnd));
 
+			auto iter = ButtonMap.find(static_cast<CButtonWnd*>(pWnd));
 			if (iter != ButtonMap.end())
 			{
 				auto& [pButton, buttonInfo] = *iter;
@@ -1435,80 +1450,10 @@ public:
 		return WndNotification_Trampoline(pWnd, Message, pData);
 	};
 
-	bool AboutToShow_Trampoline();
-	bool AboutToShow_Detour()
+	void InitializeButtons()
 	{
 		CItemDisplayWnd* pThis = (CItemDisplayWnd*)this;
-		int index = pThis->ItemWndIndex;
-		if (index > 5 || index < 0)
-		{
-			index = 0;
-			WriteChatf("Tell eqmule his PEQITEMWINDOW struct is wrong");
-		}
-
-		ItemClient* item = pThis->pItem.get();
-		ItemDefinition* Item = item->GetItemDefinition();
-
-		// Ziggy - Items showing their spell details:
-		bNoSpellTramp = true;
-		if (Item->Clicky.SpellID > 0 && Item->Clicky.SpellID != -1)
-		{
-			eEffectType = Clicky;
-			ItemSetSpell_Detour(Item->Clicky);
-		}
-
-		if (Item->Proc.SpellID > 0 && Item->Proc.SpellID != -1)
-		{
-			eEffectType = Proc;
-			ItemSetSpell_Detour(Item->Proc);
-		}
-
-		if (Item->Worn.SpellID > 0 && Item->Worn.SpellID != -1)
-		{
-			eEffectType = Worn;
-			ItemSetSpell_Detour(Item->Worn);
-		}
-
-		if (Item->Focus.SpellID > 0 && Item->Focus.SpellID != -1)
-		{
-			eEffectType = Focus;
-			ItemSetSpell_Detour(Item->Focus);
-		}
-
-		if (Item->Scroll.SpellID > 0 && Item->Scroll.SpellID != -1)
-		{
-			eEffectType = Scroll;
-			ItemSetSpell_Detour(Item->Scroll);
-		}
-
-		if (Item->Focus2.SpellID > 0 && Item->Focus2.SpellID != -1)
-		{
-			eEffectType = Focus2;
-			ItemSetSpell_Detour(Item->Focus2);
-		}
-
-		if (Item->Mount.SpellID > 0 && Item->Mount.SpellID != -1)
-		{
-			eEffectType = Mount;
-			ItemSetSpell_Detour(Item->Mount);
-		}
-
-		if (Item->Illusion.SpellID > 0 && Item->Illusion.SpellID != -1)
-		{
-			eEffectType = Illusion;
-			ItemSetSpell_Detour(Item->Illusion);
-		}
-
-		if (Item->Familiar.SpellID > 0 && Item->Familiar.SpellID != -1)
-		{
-			eEffectType = Familiar;
-			ItemSetSpell_Detour(Item->Familiar);
-		}
-
-		bNoSpellTramp = false;
-		eEffectType = None;
-
-		bool doit = false;
+		uint32_t index = pThis->ItemWndIndex;
 
 		// get rid of old buttons. we really should destroy them in abouttohide but i dont want another detour.
 		for (auto i = ButtonMap.begin(); i != ButtonMap.end();)
@@ -1674,6 +1619,72 @@ public:
 			}
 		}
 
+		InitializeWindowExtension(pThis);
+	}
+
+	bool AboutToShow_Trampoline();
+	bool AboutToShow_Detour()
+	{
+		CItemDisplayWnd* pThis = (CItemDisplayWnd*)this;
+		uint32_t index = pThis->ItemWndIndex;
+
+		if (index >= MaxItemDisplayWindows)
+		{
+			WriteChatf("[MQ2ItemDisplay] \arPlugin encountered an out of bounds window in AboutToShow (%d) -- plugin probably needs to be updated!", index);
+			return AboutToShow_Trampoline();
+		}
+
+		ItemClient* item = pThis->pItem.get();
+		ItemDefinition* Item = item->GetItemDefinition();
+
+		// Ziggy - Items showing their spell details:
+		if (Item->Clicky.SpellID > 0 && Item->Clicky.SpellID != -1)
+		{
+			ItemSetSpell(Clicky, Item->Clicky);
+		}
+
+		if (Item->Proc.SpellID > 0 && Item->Proc.SpellID != -1)
+		{
+			ItemSetSpell(Proc, Item->Proc);
+		}
+
+		if (Item->Worn.SpellID > 0 && Item->Worn.SpellID != -1)
+		{
+			ItemSetSpell(Worn, Item->Worn);
+		}
+
+		if (Item->Focus.SpellID > 0 && Item->Focus.SpellID != -1)
+		{
+			ItemSetSpell(Focus, Item->Focus);
+		}
+
+		if (Item->Scroll.SpellID > 0 && Item->Scroll.SpellID != -1)
+		{
+			ItemSetSpell(Scroll, Item->Scroll);
+		}
+
+		if (Item->Focus2.SpellID > 0 && Item->Focus2.SpellID != -1)
+		{
+			ItemSetSpell(Focus2, Item->Focus2);
+		}
+
+		if (Item->Mount.SpellID > 0 && Item->Mount.SpellID != -1)
+		{
+			ItemSetSpell(Mount, Item->Mount);
+		}
+
+		if (Item->Illusion.SpellID > 0 && Item->Illusion.SpellID != -1)
+		{
+			ItemSetSpell(Illusion, Item->Illusion);
+		}
+
+		if (Item->Familiar.SpellID > 0 && Item->Familiar.SpellID != -1)
+		{
+			ItemSetSpell(Familiar, Item->Familiar);
+		}
+
+		InitializeButtons();
+
 		return AboutToShow_Trampoline();
 	}
 
@@ -1707,9 +1718,6 @@ public:
 		return CInvSlotWnd_DrawTooltipTramp(pwnd);
 	}
 };
-
-ItemDisplayHook::SEffectType ItemDisplayHook::eEffectType = None;
-bool ItemDisplayHook::bNoSpellTramp = false;
 
 DETOUR_TRAMPOLINE_EMPTY(int ItemDisplayHook::CInvSlotWnd_DrawTooltipTramp(const CXWnd* pwnd) const);
 DETOUR_TRAMPOLINE_EMPTY(int ItemDisplayHook::WndNotification_Trampoline(CXWnd*, uint32_t, void*));
@@ -2603,34 +2611,98 @@ void Comment(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-void DestroyCompareTipWnd()
+static void InitializeWindowExtension(CItemDisplayWnd* pItemDisplayWnd)
 {
+	ItemDisplayExtension* pExt = GetWindowExtension(pItemDisplayWnd);
+
+	if (pExt->parentWnd == nullptr)
+	{
+		pExt->parentWnd = pItemDisplayWnd;
+
+		// Create the Extras tab
+		if (CControlTemplate* pageTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("IDW_ItemLoreTab"))
+		{
+			pExt->extrasPage = (CPageWnd*)pSidlMgr->CreateXWndFromTemplate(pItemDisplayWnd->ItemDescriptionTabBox, pageTemplate);
+			pExt->extrasPage->TabText = "Extras";
+			pExt->extrasPage->SidlText = "IDW_ExtraInfoTab";
+			pItemDisplayWnd->ItemDescriptionTabBox->InsertPage(pExt->extrasPage);
+
+			// Create the lucy button
+			if (gLucyButton)
+			{
+				if (CButtonTemplate* btnTemplate = (CButtonTemplate*)pSidlMgr->FindScreenPieceTemplate("IDW_ModButton"))
+				{
+					CButtonWnd* pBtn = (CButtonWnd*)pSidlMgr->CreateXWndFromTemplate(pExt->extrasPage, btnTemplate);
+					//pBtn->SetCRNormal(MQColor(255, 255, 0));
+					pBtn->SetLocation({ CXPoint(240, 20), CXSize(125, 30) });
+					pBtn->SetWindowText("View On Lucy");
+					//pBtn->SetBGColor(MQColor(0, 0, 255));
+					//pBtn->SetDecalTint(MQColor(0, 255, 255));
+					//pBtn->SetFont(pWndMgr->GetFont(1));
+					pExt->lucyButton = pBtn;
+				}
+			}
+		}
+	}
+}
+
+static ItemDisplayExtension* GetWindowExtension(CItemDisplayWnd* pItemDisplayWnd)
+{
+	if (!pItemDisplayWnd) return nullptr;
+
+	uint32_t windowIndex = pItemDisplayWnd->ItemWndIndex;
+	if (windowIndex < ItemDisplayExtensions.size())
+	{
+		return &ItemDisplayExtensions[windowIndex];
+	}
+
+	return nullptr;
+}
+
+static void InitializeCustomUI()
+{
+	if (!bDisabledCompareTip && !pCompareTipWnd)
+	{
+		if (IsScreenPieceLoaded("CompareTipWnd"))
+		{
+			pCompareTipWnd = new CCompareTipWnd();
+			if (!pCompareTipWnd)
+			{
+				WriteChatf("[MQ2ItemDisplay] Unable to Create Tip Window.");
+			}
+		}
+		else
+		{
+			bDisabledCompareTip = true;
+			WriteChatf("[MQ2ItemDisplay] Unable to create CompareTipWnd. Please do /reloadui");
+		}
+	}
+
+	// Initialize list of custom window extensions
+	MaxItemDisplayWindows = pItemDisplayManager->GetMaxWindows();
+	ItemDisplayExtensions.resize(MaxItemDisplayWindows);
+
+	// If we already have windows, initialize them now.
+	for (int i = 0; i < pItemDisplayManager->GetCount(); ++i)
+	{
+		CItemDisplayWnd* pWnd = pItemDisplayManager->GetWindow(i);
+		InitializeWindowExtension(pWnd);
+	}
+}
+
+static void DestroyCustomUI()
+{
+	for (auto& btn : ButtonMap)
+		btn.first->Destroy();
+	ButtonMap.clear();
+
+	ItemDisplayExtensions.clear();
+	MaxItemDisplayWindows = 0;
+
 	if (pCompareTipWnd)
 	{
 		delete pCompareTipWnd;
 		pCompareTipWnd = nullptr;
-	}
-}
-
-void CreateCompareTipWnd()
-{
-	if (pCompareTipWnd || bDisabledComparetip)
-	{
-		return;
-	}
-
-	if (IsScreenPieceLoaded("CompareTipWnd"))
-	{
-		pCompareTipWnd = new CCompareTipWnd();
-		if (!pCompareTipWnd)
-		{
-			WriteChatf("[MQ2ItemDisplay] Unable to Create Tip Window.");
-		}
-	}
-	else
-	{
-		bDisabledComparetip = true;
-		WriteChatf("[MQ2ItemDisplay] Unable to create CompareTipWnd. Please do /reloadui");
 	}
 }
 
@@ -2695,7 +2767,7 @@ PLUGIN_API void InitializePlugin()
 
 	if (gGameState == GAMESTATE_INGAME)
 	{
-		CreateCompareTipWnd();
+		InitializeCustomUI();
 	}
 }
 
@@ -2711,12 +2783,6 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveDetour(CItemDisplayWnd__AboutToShow);
 	RemoveDetour(CItemDisplayWnd__WndNotification);
 
-	for (auto i = ButtonMap.begin(); i != ButtonMap.end(); i++)
-	{
-		i->first->Destroy();
-	}
-	ButtonMap.clear();
-
 	RemoveMQ2Data("DisplayItem");
 	RemoveCommand("/inote");
 	RemoveCommand("/addlootfilter");
@@ -2726,40 +2792,28 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveCommand("/removeaug");
 
 	delete pDisplayItemType;
-	DestroyCompareTipWnd();
+	DestroyCustomUI();
 }
 
 PLUGIN_API void OnCleanUI()
 {
-	for (auto i = ButtonMap.begin(); i != ButtonMap.end(); i++)
-	{
-		i->first->Destroy();
-	}
-	ButtonMap.clear();
-
-	DestroyCompareTipWnd();
+	DestroyCustomUI();
 }
 
 PLUGIN_API void OnReloadUI()
 {
-	for (auto i = ButtonMap.begin(); i != ButtonMap.end(); i++)
+	if (GetGameState() == GAMESTATE_INGAME)
 	{
-		i->first->Destroy();
-	}
-	ButtonMap.clear();
-
-	if (GetGameState() == GAMESTATE_INGAME && pControlledPlayer)
-	{
-		bDisabledComparetip = false;
-		CreateCompareTipWnd();
+		bDisabledCompareTip = false;
+		InitializeCustomUI();
 	}
 }
 
-PLUGIN_API void OnPulse()
+PLUGIN_API void SetGameState(int gameState)
 {
-	if (GetGameState() == GAMESTATE_INGAME)
+	if (gameState == GAMESTATE_INGAME)
 	{
-		CreateCompareTipWnd();
+		InitializeCustomUI();
 	}
 }
 

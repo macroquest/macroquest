@@ -2454,6 +2454,7 @@ class WindowInspector : public ImGuiWindowBase
 	ImGuiID m_bottomNode = 0;
 	bool m_firstTime = true;
 	ImGuiID m_mainDockId = 0;
+	bool m_showXMLDataBrowser = false;
 
 public:
 	WindowInspector()
@@ -2524,10 +2525,22 @@ public:
 
 		if (m_open)
 		{
-			bool doShow = ImGui::Begin("Window Inspector", m_open.get_ptr());
+			bool doShow = ImGui::Begin("Window Inspector", m_open.get_ptr(), ImGuiWindowFlags_MenuBar);
 			m_open.Update();
 			if (doShow)
 			{
+				if (ImGui::BeginMenuBar())
+				{
+					if (ImGui::BeginMenu("Tools"))
+					{
+						ImGui::MenuItem("XML Data Browser", nullptr, &m_showXMLDataBrowser);
+
+						ImGui::EndMenu();
+					}
+
+					ImGui::EndMenuBar();
+				}
+
 				if (m_picking)
 				{
 					// Don't pick anything if the mouse is out of the viewport. This check
@@ -2668,6 +2681,11 @@ public:
 
 		// Update background overlay showing whats currently highlighted or selected
 		DrawBackgroundWindowHighlights();
+
+		if (m_showXMLDataBrowser)
+		{
+			DrawXMLDataBrowser();
+		}
 	}
 
 	void ShowWindowInspector(CXWnd* pWnd, bool isSelected = false)
@@ -3025,6 +3043,251 @@ public:
 	void SetSelectedWindow(CXWnd* pWnd)
 	{
 		m_pSelectedWnd = pWnd;
+	}
+
+	void DrawXMLDataBrowser()
+	{
+		ImGui::SetNextWindowSize(ImVec2(640, 480), ImGuiCond_Appearing);
+		if (ImGui::Begin("XML Data Browser", &m_showXMLDataBrowser))
+		{
+			if (!pSidlMgr)
+			{
+				ImGui::TextColored(ImColor(1.0f, 0.0f, 0.0f), "No SIDL Manager Present");
+			}
+			else
+			{
+				CXMLDataManager& xmlDataMgr = pSidlMgr->XMLDataMgr;
+
+				if (ImGui::CollapsingHeader("Item Finder"))
+				{
+					static char szSearchClassText[256] = { 0 };
+					ImGui::InputText("Class Name", szSearchClassText, 256);
+					static char szSearchItemText[256] = { 0 };
+					ImGui::InputText("Item Name", szSearchItemText, 256);
+
+					if (szSearchClassText[0] != 0 && szSearchItemText[0] != 0)
+					{
+						CParam* param = pSidlMgr->XMLDataMgr.GetParam(szSearchClassText, szSearchItemText);
+						if (param)
+						{
+							ImGui::TextColored(ImColor(0.0f, 1.0f, 0.0f), "Found match: %d", param->GetItemIndex());
+						}
+						else
+						{
+							ImGui::TextColored(ImColor(1.0f, 0.0f, 0.0f), "No match");
+						}
+					}
+					else
+					{
+						ImGui::Text("Enter search parameters to look up an item");
+					}
+				}
+
+				if (ImGui::CollapsingHeader("Items"))
+				{
+					ImGuiTableFlags tableFlags = 0
+						| ImGuiTableFlags_BordersV
+						| ImGuiTableFlags_BordersH
+						| ImGuiTableFlags_Resizable
+						| ImGuiTableFlags_RowBg
+						;
+					if (ImGui::BeginTable("##ClassItems", 2, tableFlags))
+					{
+						ImGui::TableSetupScrollFreeze(0, 1);
+						ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide);
+						ImGui::TableSetupColumn("Id", ImGuiTableColumnFlags_NoHide);
+						ImGui::TableHeadersRow();
+
+						for (const auto& kv : xmlDataMgr.dataArray)
+						{
+							ImGui::TableNextRow();
+
+							ImGui::TableNextColumn();
+							bool doNodes = false;
+							if (kv.items.empty())
+							{
+								ImGui::TreeAdvanceToLabelPos();
+								ImGui::Text("%s (%d)", kv.className.c_str(), kv.classIdx);
+							}
+							else
+							{
+								doNodes = ImGui::TreeNode((void*)kv.classIdx, "%s (%d)", kv.className.c_str(), kv.classIdx);
+							}
+
+							ImGui::TableNextColumn();
+							ImGui::Text((kv.items.size() == 1 ? "%d Item" : "%d Items"), kv.items.size());
+
+							if (doNodes)
+							{
+
+								for (const auto& item : kv.items)
+								{
+									ImGui::TableNextRow();
+
+									ImGui::TableNextColumn();
+									ImGui::TreeAdvanceToLabelPos();
+									ImGui::Text("%s", item->GetItemName().c_str());
+
+									ImGui::TableNextColumn();
+									ImGui::Text("%d", item->GetItemIndex());
+								}
+
+								ImGui::TreePop();
+							}
+
+						}
+
+						ImGui::EndTable();
+					}
+				}
+
+				if (ImGui::CollapsingHeader("Item Hash Table"))
+				{
+					ImGuiTableFlags tableFlags = 0
+						| ImGuiTableFlags_BordersV
+						| ImGuiTableFlags_BordersH
+						| ImGuiTableFlags_Resizable
+						| ImGuiTableFlags_RowBg
+						;
+					if (ImGui::BeginTable("##ItemsHash", 5, tableFlags))
+					{
+						ImGui::TableSetupScrollFreeze(0, 1);
+						ImGui::TableSetupColumn("Key", ImGuiTableColumnFlags_NoHide);
+						ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_NoHide);
+						ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_NoHide);
+						ImGui::TableSetupColumn("Item Id", ImGuiTableColumnFlags_NoHide);
+						ImGui::TableSetupColumn("Object Id", ImGuiTableColumnFlags_NoHide);
+						ImGui::TableHeadersRow();
+
+						for (const auto& kv : xmlDataMgr.classItemHashes)
+						{
+							ImGui::TableNextRow();
+
+							ImGui::TableNextColumn();
+							ImGui::Text("%s", kv.key.c_str());
+
+							ImGui::TableNextColumn();
+							ImGui::Text("%s", kv.value->GetClassName().c_str());
+
+							ImGui::TableNextColumn();
+							ImGui::Text("%s", kv.value->GetItemName().c_str());
+
+							ImGui::TableNextColumn();
+							ImGui::Text("%d", kv.value->GetItemIndex());
+
+							ImGui::TableNextColumn();
+							ImGui::Text("%08x", kv.value->GetObjectId());
+						}
+
+						ImGui::EndTable();
+					}
+				}
+
+				if (ImGui::CollapsingHeader("Symbol Table"))
+				{
+					ImGuiTableFlags tableFlags = 0
+						| ImGuiTableFlags_BordersV
+						| ImGuiTableFlags_BordersH
+						| ImGuiTableFlags_Resizable
+						| ImGuiTableFlags_RowBg
+						;
+					if (ImGui::BeginTable("##SymbolTable", 3, tableFlags))
+					{
+						ImGui::TableSetupScrollFreeze(0, 1);
+						ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoHide);
+						ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoHide);
+						ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoHide);
+						ImGui::TableHeadersRow();
+
+						ImGui::TableNextRow();
+						ImGui::TableNextColumn();
+						if (ImGui::TreeNode("Classes###SymbolTable-Classes"))
+						{
+							for (const CXMLSymbolClass& symbol : xmlDataMgr.symbolTable.classes)
+							{
+								if (!symbol.valid)
+									continue;
+
+								ImGui::TableNextRow();
+								ImGui::TableNextColumn();
+								bool doNodes = ImGui::TreeNode(symbol.sClass.c_str());
+
+								ImGui::TableNextColumn();
+								ImGui::Text(symbol.items.size() == 1 ? "%d Item" : "%d Items", symbol.items.size());
+
+								if (doNodes)
+								{
+									ImGui::TableNextRow();
+									ImGui::TableNextColumn();
+									if (ImGui::TreeNode("Items"))
+									{
+										for (const CXMLSymbolItem& item : symbol.items)
+										{
+											if (!item.valid)
+												continue;
+
+											ImGui::TableNextRow();
+											ImGui::TableNextColumn();
+											ImGui::TreeAdvanceToLabelPos();
+											ImGui::Text("%s", item.itemString.c_str());
+
+											ImGui::TableNextColumn();
+											ImGui::Text("valid=%d declared=%d", item.valid, item.declared);
+										}
+
+										ImGui::TreePop();
+									}
+
+									ImGui::TableNextRow();
+									ImGui::TableNextColumn();
+									if (ImGui::TreeNode("Hashes"))
+									{
+										for (const auto& kv : symbol.itemsHashes)
+										{
+											ImGui::TableNextRow();
+
+											ImGui::TableNextColumn();
+											ImGui::TreeAdvanceToLabelPos();
+											ImGui::Text("%s", kv.key.c_str());
+
+											ImGui::TableNextColumn();
+											ImGui::Text("%d", kv.value);
+										}
+
+										ImGui::TreePop();
+									}
+
+									ImGui::TreePop();
+								}
+							}
+							ImGui::TreePop();
+						}
+
+						ImGui::TableNextRow();
+						ImGui::TableNextColumn();
+						if (ImGui::TreeNode("Hashes###SymbolTable-Hashes"))
+						{
+							for (const auto& kv : xmlDataMgr.symbolTable.hashes)
+							{
+								ImGui::TableNextRow();
+
+								ImGui::TableNextColumn();
+								ImGui::TreeAdvanceToLabelPos();
+								ImGui::Text("%s", kv.key.c_str());
+
+								ImGui::TableNextColumn();
+								ImGui::Text("%d", kv.value);
+							}
+
+							ImGui::TreePop();
+						}
+
+						ImGui::EndTable();
+					}
+				}
+			}
+		}
+		ImGui::End();
 	}
 };
 static WindowInspector* s_windowInspector = nullptr;
