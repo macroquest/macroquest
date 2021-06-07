@@ -364,7 +364,7 @@ void AutoLoginDebug(std::string_view svLogMessage, const bool bDebugOn /* = AUTO
 			SYSTEMTIME t;
 			GetLocalTime(&t);
 
-			const std::string strLogMessage = fmt::format("[{Year:0=4d}-{Month:0=2d}-{Day:0=2d} {Hour:0=2d}:{Minute:0=2d}:{Second:0=2d}] {LogMessage}",
+			const std::string strLogMessage = fmt::format("[{Year:04d}-{Month:02d}-{Day:02d} {Hour:02d}:{Minute:02d}:{Second:02d}] {LogMessage}",
 				fmt::arg("Year", t.wYear),
 				fmt::arg("Month", t.wMonth),
 				fmt::arg("Day", t.wDay),
