@@ -173,18 +173,21 @@ public:
 				}
 			}
 		}
-		else if (Message == XWM_LINK)
+		else if (pWnd == OutputBox)
 		{
-			for (auto wnd : pChatManager->ChannelMap)
+			if (Message == XWM_LINK || Message == XWM_SPELL_LINK
+				|| Message == XWM_ACHIEVEMENTLINK || Message == XWM_DIALOGRESPONSELINK)
 			{
-				if (wnd)
+				for (auto wnd : pChatManager->ChannelMap)
 				{
-					//DebugSpewAlways("Found wnd %Xh : %s", wnd, wnd->GetWindowName()->c_str());
-					wnd->WndNotification(wnd->OutputWnd, Message, data);
-					break;
+					if (wnd)
+					{
+						wnd->WndNotification(wnd->OutputWnd, Message, data);
+						break;
+					}
 				}
+				return 0;
 			}
-			return 0;
 		}
 
 		return CSidlScreenWnd::WndNotification(pWnd, Message, data);
