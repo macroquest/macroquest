@@ -464,10 +464,7 @@ public:
 	bool DoRenderSceneHook()
 	{
 		bool doRender = !IsEnabled() || m_doRender;
-		if (m_pauseForZone)
-		{
-			m_pauseForZone = false;
-		}
+		m_pauseForZone = false;
 
 		if (doRender)
 		{
