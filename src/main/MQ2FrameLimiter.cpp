@@ -371,7 +371,7 @@ public:
 	// for the game simulation rate. If the render rate is set below that, then
 	// we will skip frames while maintaining a m_minSimulationFPS game simulation.
 
-	bool IsEnabled() const { return !m_pauseForZone && m_enabled && gbInZone; }
+	bool IsEnabled() const { return !m_pauseForZone && m_enabled && gGameState == GAMESTATE_INGAME; }
 
 	bool IsForeground() const { return m_lastInForeground.value_or(false); }
 
@@ -401,7 +401,6 @@ public:
 	{
 		if (!IsEnabled())
 		{
-			m_pauseForZone = false;
 			return true;
 		}
 
@@ -465,6 +464,10 @@ public:
 	bool DoRenderSceneHook()
 	{
 		bool doRender = !IsEnabled() || m_doRender;
+		if (m_pauseForZone)
+		{
+			m_pauseForZone = false;
+		}
 
 		if (doRender)
 		{
