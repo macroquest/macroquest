@@ -646,7 +646,7 @@ void Doors(SPAWNINFO* pChar, char* szLine)
 	{
 		DOOR* pDoor = pDoorTable->pDoor[Count];
 
-		if (szLine[0] == 0 || ci_find_substr(pDoor->Name, szLine))
+		if (szLine[0] == 0 || ci_find_substr(pDoor->Name, szLine) != -1)
 		{
 			float distance = Get3DDistance(pChar->X, pChar->Y, pChar->Z, pDoor->X, pDoor->Y, pDoor->Z);
 			int angle = static_cast<int>((atan2f(pChar->X - pDoor->X, pChar->Y - pDoor->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
