@@ -25,14 +25,15 @@ extern char INIFileName[MAX_STRING];
 namespace mqplugin {
 
 extern const char* PluginName;
+extern HINSTANCE ghPluginModule;
 
-bool PluginMain(HANDLE hModule, DWORD dwReason, void* lpReserved);
+bool PluginMain(HINSTANCE hModule, DWORD dwReason, void* lpReserved);
 
 } // namespace mqplugin
 
 #define PreSetup(pluginName) \
 	const char* mqplugin::PluginName = pluginName; \
-	BOOL APIENTRY DllMain(HANDLE hModule, DWORD dwReason, void* lpReserved) \
+	BOOL APIENTRY DllMain(HINSTANCE hModule, DWORD dwReason, void* lpReserved) \
 	{ return mqplugin::PluginMain(hModule, dwReason, lpReserved); }
 
 #define PLUGIN_VERSION(Version) \

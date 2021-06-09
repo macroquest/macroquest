@@ -18,10 +18,13 @@ char INIFileName[MAX_STRING] = { 0 };
 
 namespace mqplugin {
 
-bool PluginMain(HANDLE hModule, DWORD dwReason, void* lpReserved)
+HINSTANCE ghPluginModule = nullptr;
+
+bool PluginMain(HINSTANCE hModule, DWORD dwReason, void* lpReserved)
 {
 	if (dwReason == DLL_PROCESS_ATTACH)
 	{
+		ghPluginModule = hModule;
 		mq::DebugSpewAlways("%s Module Loaded", mqplugin::PluginName);
 		sprintf_s(INIFileName, "%s\\%s.ini", mq::gPathConfig, mqplugin::PluginName);
 	}
