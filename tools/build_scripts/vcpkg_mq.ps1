@@ -167,7 +167,7 @@ if ($vcpkgList -gt 1 -Or -Not ($vcpkgList -Like "No packages are installed*")) {
 
 # If we did a bootstrap and we already had installed packages
 if ($performBootstrap -And $vcpkgTable.Count -ne 0) {
-    & ./vcpkg.exe upgrade
+    & ./vcpkg.exe upgrade --no-dry-run
 }
 
 $vcpkgInstallTable = @{}
