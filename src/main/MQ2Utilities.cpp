@@ -6967,7 +6967,7 @@ SPAWNINFO* GetRaidMember(int index)
 
 inline SPAWNINFO* GetGroupMember(int index)
 {
-	if (index >= MAX_GROUP_SIZE)
+	if (index >= MAX_GROUP_SIZE || index <= 0)
 		return nullptr;
 
 	if (!pLocalPC || !pLocalPC->Group)
