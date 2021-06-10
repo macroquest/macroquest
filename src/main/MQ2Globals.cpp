@@ -194,7 +194,7 @@ static MQGroundObject FromGroundSpawn(const MQGroundSpawn& ground)
 		ret.GroundItem.DropSubID = placed->RealEstateID;
 		ret.GroundItem.Expires = 0;
 		ret.GroundItem.Heading = placed->Heading;
-		ret.GroundItem.pContents = nullptr;
+		ret.GroundItem.Item = nullptr;
 		strcpy_s(ret.GroundItem.Name, GetFriendlyNameForPlacedItem(placed).c_str());
 		ret.GroundItem.Pitch = placed->Angle;
 		ret.GroundItem.pNext = nullptr;

@@ -521,7 +521,7 @@ void Items(SPAWNINFO* pChar, char* szLine)
 		{
 			auto name = GetFriendlyNameForGroundItem(pItem);
 
-			DebugSpew("   Item found - %d: DropID %d %s (%s)", pItem->pContents, pItem->DropID, name.c_str(), pItem->Name);
+			DebugSpew("   Item found - %d: DropID %d %s (%s)", pItem->Item, pItem->DropID, name.c_str(), pItem->Name);
 
 			if (szLine[0] == 0 || ci_find_substr(name, szLine) != -1)
 			{
