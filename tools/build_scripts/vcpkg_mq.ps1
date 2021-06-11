@@ -18,13 +18,25 @@ Param (
         ValueFromPipeLine = $true,
         ValueFromPipelineByPropertyName = $true
     )]
-    [string]$MQRoot
+    [string]$MQRoot,
+
+    [Parameter(
+        Mandatory = $true,
+        ValueFromPipeline = $true,
+        ValueFromPipelineByPropertyName = $true
+    )]
+    [string]$Platform
 )
 
 $vcpkg_root = "$MQRoot\contrib\vcpkg"
-$vcpkg_triplet = "x86-windows-static"
+$vcpkg_triplet = "$Platform-windows-static"
 $vcpkg_mq_file = "vcpkg_mq.txt"
-$vcpkg_last_bootstrap_file = "vcpkg_mq_last_bootstrap.txt"
+if ($Platform -ne "x86")
+{
+    $vcpkg_mq_file = "vcpkg_mq_$Platform.txt"
+}
+
+$vcpkg_last_bootstrap_file = "vcpkg_mq_last_bootstrap-$Platform.txt"
 
 function Wait-Process {
     [CmdletBinding()]
@@ -74,7 +86,7 @@ if (-Not (Test-Path -Path "$ProjectDirectory\$vcpkg_mq_file")) {
 
 if (-Not (Test-Path -Path "$vcpkg_root" -PathType Container))
 {
-    Write-Error "VCPKG directory not found:  $vcpkg_root"
+    Write-Error "VCPKG directory not found: $vcpkg_root"
     exit 1
 }
 

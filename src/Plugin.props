@@ -27,10 +27,12 @@
 
     <!-- Debug only linker settings -->
     <Link Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      <AdditionalDependencies>fmtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
 
     <!-- Release only linker settings -->
     <Link Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      <AdditionalDependencies>fmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
 
     <!-- Shared linker settings -->
