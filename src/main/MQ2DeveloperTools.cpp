@@ -18,6 +18,7 @@
 #include "imgui/ImGuiUtils.h"
 #include "imgui/fonts/IconsFontAwesome.h"
 #include "imgui/implot/implot.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
 
 #include <mq/imgui/Widgets.h>
 
@@ -794,6 +795,64 @@ static StringInspector* s_stringInspector = nullptr;
 
 #pragma endregion
 
+#pragma region Macro Expression Evaluator
+
+class MacroExpressionEvaluator : public ImGuiWindowBase
+{
+	using CharBuffer = std::unique_ptr<char[]>;
+public:
+	MacroExpressionEvaluator() : ImGuiWindowBase("Macro Expression Evaluator")
+	{
+		SetDefaultSize(ImVec2(480, 60));
+	}
+
+	~MacroExpressionEvaluator()
+	{
+	}
+
+protected:
+	void Draw() override
+	{
+		int deleteRow = -1;
+		for (size_t i = 0; i < m_expressions.size(); ++i)
+		{
+			ImGui::PushID(i);
+			ImGui::SetNextItemWidth(-20);
+			ImGui::InputText("##Expression", m_expressions[i].get(), MAX_STRING);
+			ImGui::SameLine();
+			if (ImGui::Button("X"))
+				deleteRow = i;
+
+			// Evaluate the row
+			static char szTemp[MAX_STRING];
+			strcpy_s(szTemp, m_expressions[i].get());
+			ParseMacroParameter(nullptr, szTemp);
+
+			ImGui::Text("%s", szTemp);
+			ImGui::Separator();
+
+			ImGui::PopID();
+		}
+		if (deleteRow != -1)
+			m_expressions.erase(m_expressions.begin() + deleteRow);
+		if (ImGui::Button("Add"))
+		{
+			auto buf = std::make_unique<char[]>(MAX_STRING);
+			buf[0] = 0;
+
+			m_expressions.push_back(std::move(buf));
+		}
+	}
+
+private:
+	std::vector<CharBuffer> m_expressions;
+};
+
+static MacroExpressionEvaluator* s_macroEvaluator = nullptr;
+
+
+#pragma endregion
+
 //============================================================================
 //============================================================================
 
@@ -886,7 +945,10 @@ static void DeveloperTools_Initialize()
 	DeveloperTools_RegisterMenuItem(s_spellsInspector, "Spells", s_menuNameInspectors);
 
 	s_stringInspector = new StringInspector();
-	DeveloperTools_RegisterMenuItem(s_stringInspector, "CXStr Metrics", s_menuNameTools);
+	DeveloperTools_RegisterMenuItem(s_stringInspector, "CXStr Metrics", s_menuNameInspectors);
+
+	s_macroEvaluator = new MacroExpressionEvaluator();
+	DeveloperTools_RegisterMenuItem(s_macroEvaluator, "Macro Expression Evluator", s_menuNameTools);
 
 	DeveloperTools_WindowInspector_Initialize();
 }
@@ -901,6 +963,9 @@ static void DeveloperTools_Shutdown()
 
 	DeveloperTools_UnregisterMenuItem(s_stringInspector);
 	delete s_stringInspector; s_stringInspector = nullptr;
+
+	DeveloperTools_UnregisterMenuItem(s_macroEvaluator);
+	delete s_macroEvaluator; s_macroEvaluator = nullptr;
 
 	DeveloperTools_WindowInspector_Shutdown();
 }

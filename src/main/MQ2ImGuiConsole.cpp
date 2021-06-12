@@ -854,7 +854,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 
 				if (!ExecuteTextLink(tagInfo))
 				{
-					AppendFormattedText(fmt::format("Clicked link: {}", message->str));
+					AppendFormattedText(fmt::format("Clicked link: {}\n", message->str));
 				}
 			}
 		}
