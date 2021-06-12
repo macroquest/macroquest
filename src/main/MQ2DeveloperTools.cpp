@@ -811,6 +811,13 @@ public:
 	}
 
 protected:
+	// Seems to be crashing MQ2Overlay when done from login window. Need to figure out why...
+	virtual bool IsEnabled() const override
+	{
+		return GetGameState() == GAMESTATE_CHARSELECT
+			|| GetGameState() == GAMESTATE_INGAME;
+	}
+
 	void Draw() override
 	{
 		int deleteRow = -1;
