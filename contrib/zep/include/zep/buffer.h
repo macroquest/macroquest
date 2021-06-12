@@ -55,7 +55,8 @@ enum : uint32_t
     DefaultBuffer = (1 << 8), // Default startup buffer
     HasTabs = (1 << 9),
     HasSpaceTabs = (1 << 10),
-    InsertTabs = (1 << 11)
+    InsertTabs = (1 << 11),
+    CrudeUtf8Vaidate = (1 << 12), // Strip chars > 127
 };
 }
 

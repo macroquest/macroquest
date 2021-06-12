@@ -600,8 +600,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		m_buffer->SetTheme(m_theme);
 		m_window->SetBufferCursor(m_buffer->End());
 		m_window->ToggleFlag(Zep::WindowFlags::HideTrailingNewline);
-		m_buffer->SetFileFlags(Zep::FileFlags::ReadOnly);
-
+		m_buffer->SetFileFlags(Zep::FileFlags::ReadOnly | Zep::FileFlags::CrudeUtf8Vaidate);
 	}
 
 	void Clear()

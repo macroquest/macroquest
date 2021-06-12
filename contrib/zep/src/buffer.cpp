@@ -1008,6 +1008,20 @@ bool ZepBuffer::Insert(const GlyphIterator& startIndex, std::string_view str, Ch
     changeRecord.strInserted = str;
     m_workingBuffer.insert(m_workingBuffer.begin() + startIndex.Index(), str.begin(), str.end());
 
+    if (HasFileFlags(FileFlags::CrudeUtf8Vaidate))
+    {
+        // Crude validation of utf8. Zep expects utf8 code sequences, but we might have some
+        // invalid encodings due to the /echo command's ability to escape arbitrary characters.
+        // So, find any characters with the upper bit set and replace it with a '?'
+        size_t len = str.length();
+        for (size_t pos = 0; pos < str.length(); ++pos)
+        {
+            uint8_t& ch = m_workingBuffer[startIndex.Index() + pos];
+            if (ch & 0x80)
+                ch = '?';
+        }
+    }
+
     MarkUpdate();
 
     // This is the range we added (not valid any more in the buffer)
