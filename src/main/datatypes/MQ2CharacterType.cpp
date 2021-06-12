@@ -332,6 +332,9 @@ enum class CharacterMembers
 	AbilityTimer,
 	CastTimeLeft,
 	MaxLevel,
+	AirSupply,
+	MaxAirSupply,
+	PctAirSupply,
 };
 
 enum class CharacterMethods
@@ -655,6 +658,9 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, AbilityTimer);
 	ScopedTypeMember(CharacterMembers, CastTimeLeft);
 	ScopedTypeMember(CharacterMembers, MaxLevel);
+	ScopedTypeMember(CharacterMembers, AirSupply);
+	ScopedTypeMember(CharacterMembers, MaxAirSupply);
+	ScopedTypeMember(CharacterMembers, PctAirSupply);
 
 	ScopedTypeMethod(CharacterMethods, Stand);
 	ScopedTypeMethod(CharacterMethods, Sit);
@@ -3899,6 +3905,21 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	case CharacterMembers::MaxLevel:
 		Dest.Type = pIntType;
 		Dest.Set(GetCharMaxLevel());
+		return true;
+
+	case CharacterMembers::AirSupply:
+		Dest.Type = pIntType;
+		Dest.Set(pLocalPC->GetAirSupply());
+		return true;
+
+	case CharacterMembers::MaxAirSupply:
+		Dest.Type = pIntType;
+		Dest.Set(pLocalPC->GetMaxAirSupply());
+		return true;
+
+	case CharacterMembers::PctAirSupply:
+		Dest.Type = pIntType;
+		Dest.Set((int)((pLocalPC->GetAirSupply()) * 100) / (pLocalPC->GetMaxAirSupply()));
 		return true;
 
 	default:

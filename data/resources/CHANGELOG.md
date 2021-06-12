@@ -1,3 +1,8 @@
+June 12, 2021
+- Added Macro Expression Evaluator tool. Can be used to display the result of a macro expression
+  in real time. Find it underneath the Tools menu in the console.
+- Added the following int members to Me: AirSupply, MaxAirSupply, PctAirSupply.
+
 June 11, 2021
 - Fix issue where invalid escape sequences would crash when printing to console (#322).
 - Fix /doors not searching text properly
