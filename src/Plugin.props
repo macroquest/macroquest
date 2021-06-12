@@ -22,7 +22,7 @@
 
     <!-- Shared compiler settings -->
     <ClCompile>
-      <PreprocessorDefinitions>FMT_HEADER_ONLY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!-- <PreprocessorDefinitions>FMT_HEADER_ONLY;%(PreprocessorDefinitions)</PreprocessorDefinitions> -->
     </ClCompile>
 
     <!-- Debug only linker settings -->
