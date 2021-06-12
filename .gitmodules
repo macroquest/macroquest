@@ -234,6 +234,3 @@
 	url = https://github.com/jessebevil/CWTN.git
 [submodule "src/eqlib"]
 	url = https://gitlab.com/macroquest/next/eqlib.git
-[submodule "MQ2TSTrophy"]
-	path = MQ2TSTrophy
-	url = https://gitlab.com/redguides/plugins/MQ2TSTrophy
