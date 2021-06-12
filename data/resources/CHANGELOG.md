@@ -1,6 +1,8 @@
 June 11, 2021
 - Fix issue where invalid escape sequences would crash when printing to console (#322).
 - Fix /doors not searching text properly
+- static library build outputs are now written to build/lib in order to remove them from the
+  output folder and also separate 32-bit and 64-bit versions.
 
 May 28, 2021
 - Fixed issue with keyboard input not working on popped-out windows

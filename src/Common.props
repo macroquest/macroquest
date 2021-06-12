@@ -6,6 +6,7 @@
     <MQ2BinaryDirName Condition="'$(Configuration)'=='Release'">release</MQ2BinaryDirName>
     <MQ2Root>$(MQ2SolutionDirectory)..\</MQ2Root>
     <MQ2BuildDirectory>$(MQ2Root)build\</MQ2BuildDirectory>
+    <MQ2LibDir>$(MQ2BuildDirectory)lib\$(Platform)\$(MQ2BinaryDirName)\</MQ2LibDir>
     <!-- vcpkg paths -->
     <VCPKG_IncludeDirs Condition="'$(Platform)'=='Win32'">$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\include</VCPKG_IncludeDirs>
     <VCPKG_IncludeDirs Condition="'$(Platform)'=='x64'">$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\include</VCPKG_IncludeDirs>
@@ -15,9 +16,9 @@
     <VCPKG_LibraryDirs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\lib;$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\lib\manual-link</VCPKG_LibraryDirs>
   </PropertyGroup>
   <PropertyGroup>
-    <IntDir Condition="'$(Platform)'=='Win32'">$(MQ2BuildDirectory)obj\$(MQ2BinaryDirName)\$(ProjectName)\</IntDir>
-    <IntDir Condition="'$(Platform)'=='x64'">$(MQ2BuildDirectory)obj\x64\$(MQ2BinaryDirName)\$(ProjectName)\</IntDir>
-    <OutDir>$(MQ2BuildDirectory)bin\$(MQ2BinaryDirName)\</OutDir>
+    <IntDir>$(MQ2BuildDirectory)obj\$(Platform)\$(MQ2BinaryDirName)\$(ProjectName)\</IntDir>
+    <OutDir Condition="'$(ConfigurationType)'!='StaticLibrary'">$(MQ2BuildDirectory)bin\$(MQ2BinaryDirName)\</OutDir>
+    <OutDir Condition="'$(ConfigurationType)'=='StaticLibrary'">$(MQ2LibDir)</OutDir>
     <LinkIncremental Condition="'$(Configuration)'=='Debug'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)'=='Release'">false</LinkIncremental>
   </PropertyGroup>
@@ -57,7 +58,7 @@
     <!-- Shared linker settings -->
     <Link>
       <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(MQ2Root)contrib\detours\lib;$(VCPKG_LibraryDirs);$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(MQ2LibDir);$(MQ2Root)contrib\detours\lib;$(VCPKG_LibraryDirs);$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
