@@ -2,6 +2,8 @@ June 12, 2021
 - Added Macro Expression Evaluator tool. Can be used to display the result of a macro expression
   in real time. Find it underneath the Tools menu in the console.
 - Added the following int members to Me: AirSupply, MaxAirSupply, PctAirSupply.
+- Fix GetSpellByName returning wrong spell when multiple options are available with the same name
+  by preferring a spell with a category over one that does not. (#321).
 
 June 11, 2021
 - Fix issue where invalid escape sequences would crash when printing to console (#322).

@@ -191,28 +191,58 @@ static EQ_Spell* GetSpellFromMap(std::string_view name)
 	if (std::distance(range.first, range.second) == 1)
 		return range.first->second;
 
+	// Find the preferred spell for this class.
 	if (IsPlayerClass(profile->Class))
 	{
-		auto compare = [profile](int level, const std::pair<std::string_view, EQ_Spell*>& spell) -> bool {
-			return level < spell.second->ClassLevel[profile->Class];
-		};
+		EQ_Spell* classUsableSpell = nullptr;
 
-		auto it = std::upper_bound(range.first, range.second, profile->Level, compare);
-		if (it != range.first)
-			return (--it)->second;
+		for (auto iter = range.first; iter != range.second; ++iter)
+		{
+			EQ_Spell* testSpell = iter->second;
+			if (profile->Level >= testSpell->ClassLevel[profile->Class])
+			{
+				if (!classUsableSpell)
+					classUsableSpell = testSpell;
+				else
+				{
+					// we found a 2nd spell with the same name that is usable by this class.
+					// Check if one of these spells has a category and the other doesn't.
+					// The assumption is, learnable spells will have a category. Unusable ones wont.
+					if (classUsableSpell->Category == 0 && testSpell->Category != 0)
+						classUsableSpell = testSpell;
+				}
+			}
+		}
+
+		// If we found a preferred spell, return it.
+		if (classUsableSpell)
+			return classUsableSpell;
 
 		// otherwise, I can't have this spell
 	}
 
+
 	// if we got here, the spell the user is after isnt one his character can cast, so
 	// we will have to roll through it again and see if its usable by any other class
-	auto is_usable = [](const std::pair<std::string_view, EQ_Spell*>& spell) -> bool {
-		return IsSpellClassUsable(spell.second);
-	};
 
-	auto it = std::find_if(range.first, range.second, is_usable);
-	if (it != range.second)
-		return it->second;
+	EQ_Spell* usableSpell = nullptr;
+	for (auto iter = range.first; iter != range.second; ++iter)
+	{
+		EQ_Spell* testSpell = iter->second;
+		if (IsSpellClassUsable(testSpell))
+		{
+			if (!usableSpell)
+				usableSpell = testSpell;
+			else
+			{
+				if (usableSpell->Category == 0 && testSpell->Category != 0)
+					usableSpell = testSpell;
+			}
+		}
+	}
+
+	if (usableSpell)
+		return usableSpell;
 
 	// couldn't find a good match, return the first spell that came back.
 	return range.first->second;
