@@ -1182,7 +1182,8 @@ void ImGui_ImplWin32_EnableDpiAwareness()
 	// if (IsWindows10OrGreater()) // FIXME-DPI: This needs a manifest to succeed. Instead we try to grab the function pointer.
 	{
 		static HINSTANCE user32_dll = ::LoadLibraryA("user32.dll"); // Reference counted per-process
-		if (PFN_SetThreadDpiAwarenessContext SetThreadDpiAwarenessContextFn = (PFN_SetThreadDpiAwarenessContext)::GetProcAddress(user32_dll, "SetThreadDpiAwarenessContext"))
+		static PFN_SetThreadDpiAwarenessContext SetThreadDpiAwarenessContextFn = (PFN_SetThreadDpiAwarenessContext)::GetProcAddress(user32_dll, "SetThreadDpiAwarenessContext");
+		if (SetThreadDpiAwarenessContextFn)
 		{
 			SetThreadDpiAwarenessContextFn(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 			return;
@@ -1192,7 +1193,8 @@ void ImGui_ImplWin32_EnableDpiAwareness()
 	if (IsWindows8Point1OrGreater())
 	{
 		static HINSTANCE shcore_dll = ::LoadLibraryA("shcore.dll"); // Reference counted per-process
-		if (PFN_SetProcessDpiAwareness SetProcessDpiAwarenessFn = (PFN_SetProcessDpiAwareness)::GetProcAddress(shcore_dll, "SetProcessDpiAwareness"))
+		static PFN_SetProcessDpiAwareness SetProcessDpiAwarenessFn = (PFN_SetProcessDpiAwareness)::GetProcAddress(shcore_dll, "SetProcessDpiAwareness");
+		if (SetProcessDpiAwarenessFn)
 			SetProcessDpiAwarenessFn(PROCESS_PER_MONITOR_DPI_AWARE);
 	}
 	else
@@ -1208,7 +1210,8 @@ float ImGui_ImplWin32_GetDpiScaleForMonitor(void* monitor)
 	if (IsWindows8Point1OrGreater())
 	{
 		static HINSTANCE shcore_dll = ::LoadLibraryA("shcore.dll"); // Reference counted per-process
-		if (PFN_GetDpiForMonitor GetDpiForMonitorFn = (PFN_GetDpiForMonitor)::GetProcAddress(shcore_dll, "GetDpiForMonitor"))
+		static PFN_GetDpiForMonitor GetDpiForMonitorFn = (PFN_GetDpiForMonitor)::GetProcAddress(shcore_dll, "GetDpiForMonitor");
+		if (GetDpiForMonitorFn)
 			GetDpiForMonitorFn((HMONITOR)monitor, MDT_EFFECTIVE_DPI, &xdpi, &ydpi);
 	}
 	else

@@ -580,6 +580,7 @@ static HeartbeatState Heartbeat()
 	static bool bFirstHeartBeat = true;
 	static uint64_t TickDiff = 0;
 	static fMQPulse pEQPlayNicePulse = nullptr;
+	static HMODULE hmEQPlayNice = GetModuleHandle("EQPlayNice.dll");
 	static DWORD BeatCount = 0;
 
 	uint64_t Tick = MQGetTickCount64();
@@ -645,8 +646,7 @@ static HeartbeatState Heartbeat()
 	}
 	else
 	{
-		HMODULE hmEQPlayNice;
-		if (((BeatCount % 63) == 0) && (hmEQPlayNice = GetModuleHandle("EQPlayNice.dll")))
+		if (hmEQPlayNice && ((BeatCount % 63) == 0))
 		{
 			if (pEQPlayNicePulse = (fMQPulse)GetProcAddress(hmEQPlayNice, "Compat_ProcessFrame"))
 				pEQPlayNicePulse();
