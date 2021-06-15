@@ -116,8 +116,10 @@ sol::object lua_MQTypeVar::CallEmpty(sol::this_state L) const
 		// by default run it through the tostring conversion because we are assuming calling with empty parens means
 		// to actualize the data in the native lua space
 		char buf[MAX_STRING] = { 0 };
-		result.Type->ToString(result.GetVarPtr(), buf);
-		return sol::object(L, sol::in_place, buf);
+		if (result.Type->ToString(result.GetVarPtr(), buf))
+			return sol::object(L, sol::in_place, buf);
+
+		return sol::object(L, sol::in_place, sol::lua_nil);
 	}
 }
 
