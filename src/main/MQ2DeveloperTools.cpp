@@ -955,7 +955,7 @@ static void DeveloperTools_Initialize()
 	DeveloperTools_RegisterMenuItem(s_stringInspector, "CXStr Metrics", s_menuNameInspectors);
 
 	s_macroEvaluator = new MacroExpressionEvaluator();
-	DeveloperTools_RegisterMenuItem(s_macroEvaluator, "Macro Expression Evluator", s_menuNameTools);
+	DeveloperTools_RegisterMenuItem(s_macroEvaluator, "Macro Expression Evaluator", s_menuNameTools);
 
 	DeveloperTools_WindowInspector_Initialize();
 }

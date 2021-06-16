@@ -39,6 +39,8 @@ static void DisplayCustomWindowPropertyViewer(CSidlScreenWnd* pWindow, ImGuiWind
 static void DeveloperTools_WindowInspector_ViewString(std::string_view name, const CXStr& string);
 static void DeveloperTools_WindowInspector_EditString(std::string_view name, CXStr* string);
 
+static void DeveloperTools_windowInspector_SetHoveredWindow(CXWnd* pWnd);
+
 //============================================================================
 
 void CopyWindowChildTLO(CXWnd* pWindow)
@@ -64,9 +66,24 @@ void CopyWindowChildTLO(CXWnd* pWindow)
 	WriteChatf("Copied: \ay%s", buffer);
 }
 
+const char* GetTeleportName(DWORD id)
+{
+	DWORD TableSize = *(DWORD*)Teleport_Table_Size;
+	tp_coords* tp = (tp_coords*)Teleport_Table;
+
+	if (id < TableSize)
+	{
+		DWORD zoneId = tp[id].ZoneId & 0x7fff;
+
+		return GetShortZone(zoneId);
+	}
+
+	return "UNKNOWN";
+}
+
 //----------------------------------------------------------------------------
 
-#pragma region Common Tools
+#pragma region Datatype Serializers
 
 const char* UITypeToScreenPieceTemplateType(UIType type)
 {
@@ -108,6 +125,39 @@ const char* UITypeToScreenPieceTemplateType(UIType type)
 	}
 }
 
+inline const char* UIDirectoryToString(enDir dir)
+{
+	switch (dir)
+	{
+	case cUIDirectory: return "UI Directory";
+	case cUIDirectoryAtlas: return "Altas Directory";
+	case cUIDirectoryTexture: return "Texture Directory";
+	case cUIDirectoryMaps: return "Maps Directory";
+	default: return "Unknown Directory";
+	}
+}
+
+inline const char* FindLocationTypeToString(FindLocationType type)
+{
+	switch (type)
+	{
+	case FindLocation_Player: return "Player";
+	case FindLocation_POI: return "POI";
+	case FindLocation_RealEstateItem: return "RealEstateItem";
+	case FindLocation_RealEstatePlot: return "RealEstatePlot";
+	case FindLocation_MapPoint: return "MapPoint";
+	case FindLocation_Switch: return "Switch";
+	case FindLocation_Location: return "Location";
+	case FindLocation_Unknown:
+	default:
+		return "Unknown";
+	}
+}
+
+#pragma endregion
+
+#pragma region Column Widgets
+
 bool IsEmptyValue(const char* val)
 {
 	return val[0] == '('
@@ -135,8 +185,6 @@ static void ColumnValue(const char* fmt, va_list args)
 	{
 		ImGui::TextV(fmt, args);
 	}
-
-
 }
 
 static bool ColumnLinkValue(const char* fmt, va_list args)
@@ -267,6 +315,35 @@ static bool ColumnElapsedTimestamp(const char* Label, std::chrono::milliseconds 
 	return result;
 }
 
+static bool ColumnElapsedTimestamp(const char* Label, int32_t ms)
+{
+	bool result = false;
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	ImGui::PushID(Label);
+	if (ms != 0)
+	{
+		auto ms2 = std::chrono::milliseconds(std::abs(ms));
+
+		char szTemp[32] = { 0 };
+		fmt::format_to(szTemp, "{:%H:%M:%S}", ms2);
+
+		if (ms < 0)
+		{
+			strcat_s(szTemp, " ago");
+		}
+
+		ImGui::Text(szTemp);
+	}
+	else
+	{
+		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(none)");
+	}
+	ImGui::PopID();
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn();
+	return result;
+}
+
 static bool ColumnTreeNode(const char* Label, const char* fmt, ...)
 {
 	bool result = ImGui::TreeNode(Label); ImGui::TableNextColumn();
@@ -311,6 +388,41 @@ static bool ColumnTreeNodeType2(const void* Id, const char* Label, const char* T
 	ImGui::TableNextRow();
 	ImGui::TableNextColumn();
 	return result;
+}
+
+template <typename Iter, typename ContentsCb, typename SummaryCb = nullptr_t>
+static void ColumnArrayList(const char* Label, const char* Type, int count,
+	Iter begin, Iter end, ContentsCb contentsCb, SummaryCb summaryCb = nullptr)
+{
+	char szTypeLabel[32] = { 0 };
+	sprintf_s(szTypeLabel, "%s[]", Type);
+
+	if (ColumnTreeNodeType(Label, szTypeLabel, "%d", count))
+	{
+		int index = 0;
+		for (Iter it = begin; it != end; ++it)
+		{
+			char szIndexLabel[32] = { 0 };
+			sprintf_s(szIndexLabel, "%d", index + 1);
+
+			char szSummaryLabel[256];
+			szSummaryLabel[0] = 0;
+			if constexpr (!std::is_same_v<SummaryCb, nullptr_t>) {
+				summaryCb(szSummaryLabel, 64, *it);
+			}
+
+			if (ColumnTreeNodeType(szIndexLabel, Type, szSummaryLabel))
+			{
+				contentsCb(*it);
+
+				ImGui::TreePop();
+			}
+
+			++index;
+		}
+
+		ImGui::TreePop();
+	}
 }
 
 static bool InputCXRect(const char* label, CXRect& rect)
@@ -615,19 +727,11 @@ inline bool ColumnFont(const char* Label, CTextureFont** ppFont)
 	return changed;
 }
 
-//----------------------------------------------------------------------------
+#pragma endregion
 
-inline const char* UIDirectoryToString(enDir dir)
-{
-	switch (dir)
-	{
-	case cUIDirectory: return "UI Directory";
-	case cUIDirectoryAtlas: return "Altas Directory";
-	case cUIDirectoryTexture: return "Texture Directory";
-	case cUIDirectoryMaps: return "Maps Directory";
-	default: return "Unknown Directory";
-	}
-}
+#pragma region Widgets - UI Textures
+
+//----------------------------------------------------------------------------
 
 void ColumnTextureAnimationPreview(const char* Label, const CTextureAnimation* pAnim)
 {
@@ -798,6 +902,10 @@ void DisplayTAFrameDraw(const char* Label, const CTAFrameDraw& frameDraw)
 	}
 }
 
+#pragma endregion
+
+#pragma region Widgets - Templates
+
 void DisplayDrawTemplate(const char* label, const CButtonDrawTemplate& drawTemplate)
 {
 
@@ -880,96 +988,6 @@ void DisplayDrawTemplate(const char* label, const CXWndDrawTemplate* drawTemplat
 		ImGui::TreePop();
 	}
 }
-
-void DisplayTextObject(const char* label, CTextObjectInterface* pTextObjectInterface)
-{
-	if (!pTextObjectInterface)
-	{
-		ColumnTextType(label, "CTextObject*", "(null)");
-		return;
-	}
-
-	CTextObjectBase* pTextObject = static_cast<CTextObjectBase*>(pTextObjectInterface);
-
-	if (ColumnTreeNodeType2(pTextObject, label, "CTextObject*", "%s", pTextObject->GetText().c_str()))
-	{
-		ColumnCXStr("Text", pTextObject->GetText());
-		ColumnColor("Color", pTextObject->GetColor());
-
-		ImGui::TreePop();
-	}
-}
-
-void ColumnWindow(const char* Label, CXWnd* window)
-{
-	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
-
-	if (!window)
-		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(null)");
-	else
-	{
-		ImGui::PushID(window);
-		//ImGui::SetNextItemWidth(21);
-		bool view = ImGui::Button(ICON_FA_EXTERNAL_LINK_SQUARE);
-		ImGui::PopID();
-		if (view)
-		{
-			DeveloperTools_WindowInspector_Show(window);
-		}
-
-		ImGui::SameLine();
-		ImGui::Text("%s", window->GetXMLName().c_str());
-	}
-	ImGui::TableNextColumn();
-
-	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "CXWnd");
-	ImGui::TableNextRow();
-	ImGui::TableNextColumn();
-}
-
-void ColumnItemContainerInstance(const char* Label, ItemContainerInstance instance)
-{
-	ColumnTextType(Label, "ItemContainerInstance", GetNameForContainerInstance(instance));
-}
-
-void ColumnItemIndex(const char* Label, const ItemIndex& index)
-{
-	char indexStr[32];
-	index.FormatItemIndex(indexStr, lengthof(indexStr));
-
-	ColumnTextType(Label, "ItemIndex", "%s", indexStr);
-}
-
-void ColumnItemGlobalIndex(const char* Label, const ItemGlobalIndex& index)
-{
-	char globIndexStr[32];
-
-	strcpy_s(globIndexStr, GetNameForContainerInstance(index.GetLocation()));
-	strcat_s(globIndexStr, ": ");
-
-	char indexStr[32];
-	index.GetIndex().FormatItemIndex(indexStr, lengthof(indexStr));
-	strcat_s(globIndexStr, indexStr);
-
-	// Maybe in future this can be used to look up the item in another inspector.
-	if (ColumnTreeNodeType2(&index, Label, "ItemGlobalIndex", "%s", globIndexStr))
-	{
-		ColumnItemContainerInstance("Container", index.GetLocation());
-		ColumnItemIndex("Index", index.GetIndex());
-
-		ImGui::TreePop();
-	}
-}
-
-void ColumnItem(const char* Label, const ItemPtr& pItem)
-{
-	if (ColumnLinkTextType(Label, "ItemPtr", "%s", pItem ? pItem->GetName() : "(null)"))
-	{
-		if (pItemDisplayManager) pItemDisplayManager->ShowItem(pItem);
-	}
-}
-
-//----------------------------------------------------------------------------
 
 void DisplayDynamicTemplateExpand(const char* label, const CScreenPieceTemplate* pTemplate);
 
@@ -1224,7 +1242,110 @@ void DisplayTemplate(const char* label, const char* type, const T* pTemplate)
 
 #pragma endregion
 
+#pragma region Widgets - Misc References
+
+void DisplayTextObject(const char* label, CTextObjectInterface* pTextObjectInterface)
+{
+	if (!pTextObjectInterface)
+	{
+		ColumnTextType(label, "CTextObject*", "(null)");
+		return;
+	}
+
+	CTextObjectBase* pTextObject = static_cast<CTextObjectBase*>(pTextObjectInterface);
+
+	if (ColumnTreeNodeType2(pTextObject, label, "CTextObject*", "%s", pTextObject->GetText().c_str()))
+	{
+		ColumnCXStr("Text", pTextObject->GetText());
+		ColumnColor("Color", pTextObject->GetColor());
+
+		ImGui::TreePop();
+	}
+}
+
+void ColumnWindow(const char* Label, CXWnd* window)
+{
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+
+	if (!window)
+		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(null)");
+	else
+	{
+		ImGui::PushID(window);
+		//ImGui::SetNextItemWidth(21);
+		bool view = ImGui::Button(ICON_FA_EXTERNAL_LINK_SQUARE);
+		ImGui::PopID();
+		if (view)
+		{
+			DeveloperTools_WindowInspector_Show(window);
+		}
+
+		ImGui::SameLine();
+
+		CXStr name = window->GetXMLName();
+		if (name.empty())
+			ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .75f), "(Unnamed)");
+		else
+			ImGui::Text("%s", name.c_str());
+
+		if (ImGui::IsItemHovered())
+		{
+			DeveloperTools_windowInspector_SetHoveredWindow(window);
+		}
+	}
+	ImGui::TableNextColumn();
+
+	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "CXWnd");
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn();
+}
+
+void ColumnItemContainerInstance(const char* Label, ItemContainerInstance instance)
+{
+	ColumnTextType(Label, "ItemContainerInstance", GetNameForContainerInstance(instance));
+}
+
+void ColumnItemIndex(const char* Label, const ItemIndex& index)
+{
+	char indexStr[32];
+	index.FormatItemIndex(indexStr, lengthof(indexStr));
+
+	ColumnTextType(Label, "ItemIndex", "%s", indexStr);
+}
+
+void ColumnItemGlobalIndex(const char* Label, const ItemGlobalIndex& index)
+{
+	char globIndexStr[32];
+
+	strcpy_s(globIndexStr, GetNameForContainerInstance(index.GetLocation()));
+	strcat_s(globIndexStr, ": ");
+
+	char indexStr[32];
+	index.GetIndex().FormatItemIndex(indexStr, lengthof(indexStr));
+	strcat_s(globIndexStr, indexStr);
+
+	// Maybe in future this can be used to look up the item in another inspector.
+	if (ColumnTreeNodeType2(&index, Label, "ItemGlobalIndex", "%s", globIndexStr))
+	{
+		ColumnItemContainerInstance("Container", index.GetLocation());
+		ColumnItemIndex("Index", index.GetIndex());
+
+		ImGui::TreePop();
+	}
+}
+
+void ColumnItem(const char* Label, const ItemPtr& pItem)
+{
+	if (ColumnLinkTextType(Label, "ItemPtr", "%s", pItem ? pItem->GetName() : "(null)"))
+	{
+		if (pItemDisplayManager) pItemDisplayManager->ShowItem(pItem);
+	}
+}
+
+#pragma endregion
+
 #pragma region Property Viewer
+#pragma region Property Viewer - Table
 
 struct WindowPropertiesTable
 {
@@ -1311,6 +1432,9 @@ public:
 		return expand;
 	}
 };
+
+#pragma endregion
+#pragma region Property Viewer - String Viewer
 
 class ImGuiWindowStringEditor
 {
@@ -1427,6 +1551,9 @@ public:
 	bool m_changed = false;
 	bool m_requestFocus = false;
 };
+
+#pragma endregion
+#pragma region Property Viewer - ImGuiWindowPropertyViewer
 
 class ImGuiWindowPropertyViewer
 {
@@ -1567,6 +1694,11 @@ public:
 		editor.m_requestFocus = true;
 	}
 
+	bool BeginColorSection(const char* properties, bool open)
+	{
+		return m_table.StartNewSection(properties, open);
+	}
+
 	void DisplayPropertiesPanel()
 	{
 		if (!m_window)
@@ -1592,6 +1724,22 @@ public:
 
 		case UI_Page:
 			DisplayCPageWndProperties(static_cast<CPageWnd*>(m_window));
+			break;
+
+		case UI_LayoutBox:
+			DisplayLayoutWndProperties(static_cast<CLayoutWnd*>(m_window));
+			break;
+
+		case UI_HorizontalLayoutBox:
+			DisplayHorizontalLayoutWndProperties(static_cast<CHorizontalLayoutWnd*>(m_window));
+			break;
+
+		case UI_VerticalLayoutBox:
+			DisplayVerticalLayoutWndProperties(static_cast<CVerticalLayoutWnd*>(m_window));
+			break;
+
+		case UI_TileLayoutBox:
+			DisplayTileLayoutWndProperties(static_cast<CTileLayoutWnd*>(m_window));
 			break;
 
 		case UI_Label:
@@ -1684,7 +1832,6 @@ public:
 			//WRT_EDITHOTKEYWND,
 			//WRT_RANGESLIDERWND,
 			//WRT_STMLWND,
-			//WRT_BROWSERWND,
 			//WRT_MODALMESSAGEWND,
 			//WRT_CHECKBOXWND,
 			//WRT_SLIDERWND,
@@ -1702,11 +1849,6 @@ public:
 		}
 
 		m_table.End();
-	}
-
-	bool BeginColorSection(const char* properties, bool open)
-	{
-		return m_table.StartNewSection(properties, open);
 	}
 
 	void DisplayCXMLDataProperties(CXWnd* pWnd, bool open = true)
@@ -2222,6 +2364,119 @@ public:
 			ColumnText("Max Lines", "%d", pWnd->MaxLines);
 			// PlayerContextMenuIndex
 			// Unknowns
+		}
+	}
+
+	void DisplayLayoutWndProperties(CLayoutWnd* pWnd, bool open = true)
+	{
+		DisplayCSidlScreenWndProperties(pWnd, true);
+
+		if (BeginColorSection("CLayoutWnd Properties", open))
+		{
+			ColumnText("Spacing", "%d", pWnd->spacing);
+			ColumnText("Padding Left", "%d", pWnd->paddingLeft);
+			ColumnText("Padding Right", "%d", pWnd->paddingRight);
+			ColumnText("Padding Top", "%d", pWnd->paddingTop);
+			ColumnText("Padding Bottom", "%d", pWnd->paddingBottom);
+			ColumnCheckBox("Expand Last", pWnd->expandLast);
+		}
+	}
+
+	void DisplayHorizontalLayoutWndProperties(CHorizontalLayoutWnd* pWnd, bool open = true)
+	{
+		DisplayLayoutWndProperties(pWnd, true);
+
+		if (BeginColorSection("CHorizontalLayoutWnd Properties", open))
+		{
+			// visibleChildren
+			if (ColumnTreeNodeType("Visible Children", "ArrayClass<CXWnd*>", "%d", pWnd->visibleChildren.GetCount()))
+			{
+				for (int i = 0; i < pWnd->visibleChildren.GetCount(); ++i)
+				{
+					char szIndexLabel[32] = { 0 };
+					sprintf_s(szIndexLabel, "%d", i + 1);
+					ColumnWindow(szIndexLabel, pWnd->visibleChildren[i]);
+				}
+
+				ImGui::TreePop();
+			}
+
+			// dividerRects
+			if (ColumnTreeNodeType("Divider Rects", "ArrayClass<CXRect>", "%d", pWnd->dividerRects.GetCount()))
+			{
+
+				for (int i = 0; i < pWnd->dividerRects.GetCount(); ++i)
+				{
+					char szIndexLabel[32] = { 0 };
+					sprintf_s(szIndexLabel, "%d", i + 1);
+					ColumnCXRect(szIndexLabel, pWnd->dividerRects[i]);
+				}
+
+				ImGui::TreePop();
+			}
+
+			ColumnText("Active Divider", "%d", pWnd->activeDivider);
+			ColumnCheckBox("Divider Hovered", pWnd->dividerHover);
+			ColumnCheckBox("Divider Moving", pWnd->dividerMoving);
+			ColumnText("Divider X Pos", "%d", pWnd->oldPosCoord);
+			ColumnCheckBox("Style: Dividers", pWnd->bStyle_Dividers);
+		}
+	}
+
+	void DisplayVerticalLayoutWndProperties(CVerticalLayoutWnd* pWnd, bool open = true)
+	{
+		DisplayLayoutWndProperties(pWnd, true);
+
+		if (BeginColorSection("CVerticalLayoutWnd Properties", open))
+		{
+			// visibleChildren
+			if (ColumnTreeNodeType("Visible Children", "ArrayClass<CXWnd*>", "%d", pWnd->visibleChildren.GetCount()))
+			{
+				for (int i = 0; i < pWnd->visibleChildren.GetCount(); ++i)
+				{
+					char szIndexLabel[32] = { 0 };
+					sprintf_s(szIndexLabel, "%d", i + 1);
+					ColumnWindow(szIndexLabel, pWnd->visibleChildren[i]);
+				}
+
+				ImGui::TreePop();
+			}
+
+			// dividerRects
+			if (ColumnTreeNodeType("Divider Rects", "ArrayClass<CXRect>", "%d", pWnd->dividerRects.GetCount()))
+			{
+
+				for (int i = 0; i < pWnd->dividerRects.GetCount(); ++i)
+				{
+					char szIndexLabel[32] = { 0 };
+					sprintf_s(szIndexLabel, "%d", i + 1);
+					ColumnCXRect(szIndexLabel, pWnd->dividerRects[i]);
+				}
+
+				ImGui::TreePop();
+			}
+
+			ColumnText("Active Divider", "%d", pWnd->activeDivider);
+			ColumnCheckBox("Divider Hovered", pWnd->dividerHover);
+			ColumnCheckBox("Divider Moving", pWnd->dividerMoving);
+			ColumnText("Divider Y Pos", "%d", pWnd->oldPosCoord);
+			ColumnCheckBox("Style: Dividers", pWnd->bStyle_Dividers);
+		}
+	}
+
+	void DisplayTileLayoutWndProperties(CTileLayoutWnd* pWnd, bool open = true)
+	{
+		DisplayLayoutWndProperties(pWnd, true);
+
+		if (BeginColorSection("CTileLayoutWnd Properties", open))
+		{
+			ColumnCheckBox("Horizontal First", pWnd->horizontalFirst);
+			ColumnCheckBox("Anchor to Top", pWnd->anchorToTop);
+			ColumnCheckBox("Anchor to Left", pWnd->anchorToLeft);
+			ColumnText("Secondary Spacing", "%d", pWnd->secondarySpacing);
+			ColumnCheckBox("First Piece Template", pWnd->firstPieceTemplate);
+			ColumnCheckBox("Snap to Children", pWnd->snapToChildren);
+			ColumnWindow("Autostretch Window", pWnd->autoStretchWindow);
 		}
 	}
 
@@ -3026,6 +3281,11 @@ public:
 	{
 		m_pSelectedWnd = pWnd;
 	}
+
+	void SetHoveredWindow(CXWnd* pWnd)
+	{
+		m_pHoveredWnd = pWnd;
+	}
 };
 static WindowInspector* s_windowInspector = nullptr;
 
@@ -3098,29 +3358,164 @@ static void WindowProperties_CompassWindow(CSidlScreenWnd* pSidlWindow, ImGuiWin
 	ColumnText("Offset", "%d", pWindow->offset);
 	ColumnText("Speed", "%.2f", pWindow->speed);
 
-	if (ColumnTreeNodeType("Line Data", "CompassLineSource[]", "%d", pWindow->lineData.GetLength()))
+	ColumnArrayList("Line Data", "CompassLineSource", pWindow->lineData.GetLength(),
+		pWindow->lineData.begin(), pWindow->lineData.end(), [](CompassLineSource* line)
 	{
-		for (int i = 0; i < pWindow->lineData.GetLength(); ++i)
+		MQColor lineColor(line->Red, line->Green, line->Blue);
+		ColumnColor("Color", lineColor);
+		CVector3 point(line->Y, line->X, line->Z);
+		ColumnCVector3("Point", point);
+		ColumnCheckBox("Visible", line->ShowLine);
+	});
+}
+
+// Property Viewer for FindLocationWnd
+static void WindowProperties_FindLocationWnd(CSidlScreenWnd* pSidlWindow, ImGuiWindowPropertyViewer* viewer)
+{
+	CFindLocationWnd* pWnd = (CFindLocationWnd*)pSidlWindow;
+
+	ColumnElapsedTimestamp("Last Update Time", pWnd->lastUpdateTime - pDisplay->TimeStamp);
+	ColumnElapsedTimestamp("Last Find Request Time", pWnd->lastFindRequestTime - pDisplay->TimeStamp);
+	ColumnCheckBox("Did Find Request", pWnd->didFindRequest);
+
+	auto doPlayerData = [](const CFindLocationWnd::FindPlayerData& data)
+	{
+		ColumnText("Spawn ID", "%d", data.spawnId);
+		ColumnCXStr("Name", data.name);
+		ColumnCXStr("Description", data.description);
+		ColumnText("Race", "%d", data.race);
+		ColumnText("Class", "%d", data.Class);
+	};
+	auto doPlayerLabel = [](char* szLabel, size_t len, const CFindLocationWnd::FindPlayerData& data)
+	{
+		strcpy_s(szLabel, len, data.name.c_str());
+	};
+
+	ColumnArrayList("Unfiltered Players", "FindPlayerData", pWnd->unfilteredPlayerList.GetLength(),
+		pWnd->unfilteredPlayerList.begin(), pWnd->unfilteredPlayerList.end(), doPlayerData, doPlayerLabel);
+	ColumnArrayList("Filtered Group Players", "FindPlayerData", pWnd->filteredGroupPlayerList.GetLength(),
+		pWnd->filteredGroupPlayerList.begin(), pWnd->filteredGroupPlayerList.end(), doPlayerData, doPlayerLabel);
+	ColumnArrayList("Unfiltered Raid Players", "FindPlayerData", pWnd->unfilteredRaidPlayerList.GetLength(),
+		pWnd->unfilteredRaidPlayerList.begin(), pWnd->unfilteredRaidPlayerList.end(), doPlayerData, doPlayerLabel);
+
+	ColumnArrayList("Unfiltered POIs", "FindPOIData", pWnd->unfilteredPOIDataList.GetLength(),
+		pWnd->unfilteredPOIDataList.begin(), pWnd->unfilteredPOIDataList.end(),
+		[](const CFindLocationWnd::FindPOIData& data)
+	{
+		ColumnText("ID", "%d", data.id);
+		ColumnCXStr("Name", data.name, false);
+		ColumnCXStr("Description", data.description, false);
+	}, [](char* szLabel, size_t len, const CFindLocationWnd::FindPOIData& data)
+	{
+		strcpy_s(szLabel, len, data.name.c_str());
+	});
+
+	ColumnArrayList("Zone Connections", "ZoneConnectionData", pWnd->unfilteredZoneConnectionList.GetLength(),
+		pWnd->unfilteredZoneConnectionList.begin(), pWnd->unfilteredZoneConnectionList.end(),
+		[](const CFindLocationWnd::FindZoneConnectionData& data)
+	{
+		ColumnText("Type", "%s", FindLocationTypeToString(data.type));
+		ColumnText("ID", "%d", data.id);
+		ColumnText("SubID", "%d", data.subId);
+		ColumnText("ZoneID", "%d", data.zoneId);
+		ColumnText("Zone Identifier", "%d", data.zoneIdentifier);
+		ColumnCVector3("Location", data.location);
+	}, [](char* szLabel, size_t len, const CFindLocationWnd::FindZoneConnectionData& data)
+	{
+		strcpy_s(szLabel, len, GetFullZone(data.zoneId));
+		if (data.zoneIdentifier)
 		{
-			char szTemp[32] = { 0 };
-			sprintf_s(szTemp, "%d", i + 1);
+			char szTemp[10];
+			sprintf_s(szTemp, " - %d", data.zoneIdentifier);
+			strcat_s(szLabel, len, szTemp);
+		}
+	});
 
-			CompassLineSource& line = *pWindow->lineData[i];
+	ColumnArrayList("Reference List", "FindableReference", pWnd->referenceList.size(),
+		pWnd->referenceList.begin(), pWnd->referenceList.end(),
+		[pWnd](const std::pair<CFindLocationWnd::FindableReference, int>& data)
+	{
+		ColumnText("Reference Key", "%d", data.second);
+		ColumnText("Type", "%s", FindLocationTypeToString(data.first.type));
 
-			if (ColumnTreeNodeType(szTemp, "CompassLineSource", ""))
+		if (data.first.type == FindLocation_Player)
+		{
+			ColumnText("Spawn ID", "%d", data.first.index);
+			if (PlayerClient* pPlayer = GetSpawnByID(data.first.index))
 			{
-				MQColor lineColor(line.Red, line.Green, line.Blue);
-				ColumnColor("Color", lineColor);
-				CVector3 point(line.Y, line.X, line.Z);
-				ColumnCVector3("Point", point);
-				ColumnCheckBox("Visible", line.ShowLine);
-
-				ImGui::TreePop();
+				if (pPlayer->Lastname[0] && pPlayer->Type == SPAWN_NPC)
+					ColumnText("Name", "%s (%s)", pPlayer->DisplayedName, pPlayer->Lastname);
+				else
+					ColumnText("Name", "%s", pPlayer->DisplayedName);
+				ColumnCVector3("Location", *(CVector3*)&pPlayer->Y);
 			}
+			return;
 		}
 
-		ImGui::TreePop();
-	}
+		ColumnText("Index", "%d", data.first.index);
+
+		switch (data.first.type)
+		{
+		case FindLocation_Switch: {
+			const CFindLocationWnd::FindZoneConnectionData& connData = pWnd->unfilteredZoneConnectionList[data.first.index];
+			ColumnText("Zone Connection", "%s", GetFullZone(connData.zoneId));
+			ColumnCVector3("Location", connData.location);
+
+			ColumnText("Switch ID", "%d", connData.id);
+			if (EQSwitch* pSwitch = pSwitchMgr->GetSwitchById(connData.id))
+			{
+				ColumnText("Switch", "%s", pSwitch->Name);
+			}
+			break;
+		}
+
+		case FindLocation_Location: {
+			const CFindLocationWnd::FindZoneConnectionData& connData = pWnd->unfilteredZoneConnectionList[data.first.index];
+			ColumnText("Zone Connection", "%s", GetFullZone(connData.zoneId));
+			ColumnCVector3("Location", connData.location);
+			break;
+		}
+
+		default: break;
+		}
+	},
+		[pWnd](char* szLabel, size_t len, const std::pair<CFindLocationWnd::FindableReference, int>& data)
+	{
+		sprintf_s(szLabel, len, "%s: ", FindLocationTypeToString(data.first.type));
+
+		if (data.first.type == FindLocation_Player)
+		{
+			if (PlayerClient* pPlayer = GetSpawnByID(data.first.index))
+			{
+				char szTemp[64] = { 0 };
+				if (pPlayer->Lastname[0] && pPlayer->Type == SPAWN_NPC)
+					sprintf_s(szTemp, "%s (%s)", pPlayer->DisplayedName, pPlayer->Lastname);
+				else
+					sprintf_s(szTemp, "%s", pPlayer->DisplayedName);
+				strcat_s(szLabel, len, szTemp);
+			}
+		}
+		else if (data.first.type == FindLocation_Switch || data.first.type == FindLocation_Location)
+		{
+			const CFindLocationWnd::FindZoneConnectionData& connData = pWnd->unfilteredZoneConnectionList[data.first.index];
+			strcat_s(szLabel, len, GetFullZone(connData.zoneId));
+		}
+		else
+		{
+			strcat_s(szLabel, len, "Unknown");
+		}
+	});
+
+	ColumnText("Last ID", "%d", pWnd->lastId);
+	ColumnCheckBox("Data Requested", pWnd->dataRequested);
+	ColumnCheckBox("Player List Dirty", pWnd->playerListDirty);
+	ColumnCheckBox("Zone Connections Received", pWnd->zoneConnectionsRcvd);
+}
+
+// Property Viewer for ZoneGuideWnd
+static void WindowProperties_ZoneGuideWnd(CSidlScreenWnd* pSidlWindow, ImGuiWindowPropertyViewer* viewer)
+{
+
 }
 
 #pragma endregion
@@ -3134,6 +3529,8 @@ void DeveloperTools_WindowInspector_Initialize()
 
 	RegisterWindowPropertyViewer("ItemDisplayWindow", WindowProperties_ItemDisplayWindow);
 	RegisterWindowPropertyViewer("CompassWindow", WindowProperties_CompassWindow);
+	RegisterWindowPropertyViewer("FindLocationWnd", WindowProperties_FindLocationWnd);
+	RegisterWindowPropertyViewer("ZoneGuideWnd", WindowProperties_ZoneGuideWnd);
 }
 
 void DeveloperTools_WindowInspector_Shutdown()
@@ -3201,6 +3598,12 @@ void DeveloperTools_CloseLoginFrontend()
 {
 	if (s_windowInspector)
 		s_windowInspector->Reset();
+}
+
+void DeveloperTools_windowInspector_SetHoveredWindow(CXWnd* pWnd)
+{
+	if (s_windowInspector)
+		s_windowInspector->SetHoveredWindow(pWnd);
 }
 
 } // namespace mq
