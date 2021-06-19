@@ -7388,7 +7388,7 @@ void FormatMoneyString(char* szBuffer, size_t bufferLength, uint64_t moneyAmount
 	uint64_t pp = gp / 10; gp = gp % 10;
 
 	szBuffer[0] = 0;
-	char szTemp[16];
+	char szTemp[32];
 
 	if (pp > 0)
 	{
