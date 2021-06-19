@@ -463,6 +463,9 @@
     <ClInclude Include="ImGuiZepEditor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MQ2SpellSearch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\include\mq\imgui\Widgets.h">
       <Filter>Header Files\mq\imgui</Filter>
     </ClInclude>
@@ -470,6 +473,9 @@
       <Filter>Header Files\mq\base</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\base\Deprecation.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\SimpleLexer.h">
       <Filter>Header Files\mq\base</Filter>
     </ClInclude>
   </ItemGroup>

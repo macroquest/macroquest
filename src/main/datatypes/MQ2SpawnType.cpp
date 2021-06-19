@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
+#include "MQ2SpellSearch.h"
+
 namespace mq::datatypes {
 
 enum class SpawnMembers
@@ -170,6 +172,7 @@ enum class SpawnMembers
 	BuffCount,
 	BuffDuration,
 	BuffsPopulated,
+	FindBuff,
 	MyBuff,
 	MyBuffCount,
 	MyBuffDuration,
@@ -337,6 +340,7 @@ MQ2SpawnType::MQ2SpawnType() : MQ2Type("spawn")
 	ScopedTypeMember(SpawnMembers, BuffCount);
 	ScopedTypeMember(SpawnMembers, BuffDuration);
 	ScopedTypeMember(SpawnMembers, BuffsPopulated);
+	ScopedTypeMember(SpawnMembers, FindBuff);
 	ScopedTypeMember(SpawnMembers, MyBuff);
 	ScopedTypeMember(SpawnMembers, MyBuffCount);
 	ScopedTypeMember(SpawnMembers, MyBuffDuration);
@@ -1595,6 +1599,24 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		}
 
 		return Dest.HighPart >= 0;
+
+	case SpawnMembers::FindBuff:
+	{
+		if (!Index[0])
+			return false;
+
+		Dest.Type = pCachedBuffType;
+		Dest.Ptr = pSpawn;
+
+		auto attrib = EvaluateCachedBuffPredicate(Index);
+		Dest.HighPart = GetCachedBuff(pSpawn,
+			[&attrib](const CachedBuff& buff)
+			{
+				return attrib(buff);
+			});
+
+		return true;
+	}
 
 	case SpawnMembers::MyBuff:
 		Dest.Type = pCachedBuffType;
