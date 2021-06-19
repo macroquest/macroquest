@@ -7016,13 +7016,24 @@ uint64_t GetMoneyFromString(const char* str, GetMoneyFromStringFormat format)
 
 void FormatMoneyString(char* szBuffer, size_t bufferLength, uint64_t moneyAmount, GetMoneyFromStringFormat format)
 {
+	szBuffer[0] = 0;
+
+	if (moneyAmount == 0)
+	{
+		if (format == GetMoneyFromStringFormat::Long)
+			strcat_s(szBuffer, bufferLength, "0cp");
+		else if (format == GetMoneyFromStringFormat::Short)
+			strcat_s(szBuffer, bufferLength, "0c");
+
+		return;
+	}
+
 	uint64_t cp = moneyAmount;
 	uint64_t sp = cp / 10; cp = cp % 10;
 	uint64_t gp = sp / 10; sp = sp % 10;
 	uint64_t pp = gp / 10; gp = gp % 10;
 
-	szBuffer[0] = 0;
-	char szTemp[32];
+	char szTemp[64];
 
 	if (pp > 0)
 	{
@@ -7060,7 +7071,7 @@ void FormatMoneyString(char* szBuffer, size_t bufferLength, uint64_t moneyAmount
 		if (szBuffer[0] != 0)
 			strcat_s(szBuffer, bufferLength, " ");
 		if (format == GetMoneyFromStringFormat::Long)
-			sprintf_s(szTemp, "%I64dcp", sp);
+			sprintf_s(szTemp, "%I64dcp", cp);
 		else if (format == GetMoneyFromStringFormat::Short)
 			sprintf_s(szTemp, "%I64dc", cp);
 		strcat_s(szBuffer, bufferLength, szTemp);
