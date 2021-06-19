@@ -16,6 +16,7 @@
 #include "MQ2DataTypes.h"
 
 #include "MQ2Mercenaries.h"
+#include "MQ2SpellSearch.h"
 
 namespace mq::datatypes {
 
@@ -38,6 +39,7 @@ enum class CharacterMembers
 	PctMana,
 	Buff,
 	Song,
+	FindBuff,
 	Book,
 	Skill,
 	Ability,
@@ -362,6 +364,7 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, PctMana);
 	ScopedTypeMember(CharacterMembers, Buff);
 	ScopedTypeMember(CharacterMembers, Song);
+	ScopedTypeMember(CharacterMembers, FindBuff);
 	ScopedTypeMember(CharacterMembers, Book);
 	ScopedTypeMember(CharacterMembers, Skill);
 	ScopedTypeMember(CharacterMembers, Ability);
@@ -951,6 +954,31 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 
 		return false;
+
+	case CharacterMembers::FindBuff:
+	{
+		if (!Index[0])
+			return false;
+
+		Dest.Type = pBuffType;
+
+		auto attrib = EvaluateBuffPredicate(Index);
+		int buff = GetSelfBuff([&attrib](const EQ_Affect& buff)
+			{
+				return attrib(buff);
+			});
+
+		if (buff < 0)
+			return false;
+
+		Dest.Int = buff;
+		if (buff >= NUM_LONG_BUFFS)
+			Dest.HighPart = SpellDisplayType_None;
+		else
+			Dest.HighPart = SpellDisplayType_BuffWnd;
+
+		return true;
+	}
 
 	case CharacterMembers::HPBonus:
 		Dest.DWord = pLocalPC->HPBonus;

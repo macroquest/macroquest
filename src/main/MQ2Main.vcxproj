@@ -356,6 +356,7 @@
     <ClInclude Include="..\..\include\mq\base\Color.h" />
     <ClInclude Include="..\..\include\mq\base\Common.h" />
     <ClInclude Include="..\..\include\mq\base\Deprecation.h" />
+    <ClInclude Include="..\..\include\mq\base\SimpleLexer.h" />
     <ClInclude Include="..\..\include\mq\base\Threading.h" />
     <ClInclude Include="..\..\include\mq\imgui\ImGuiUtils.h" />
     <ClInclude Include="..\..\include\mq\imgui\Widgets.h" />
@@ -384,6 +385,7 @@
     <ClInclude Include="MQ2MainBase.h" />
     <ClInclude Include="MQ2Mercenaries.h" />
     <ClInclude Include="MQ2Prototypes.h" />
+    <ClInclude Include="MQ2SpellSearch.h" />
     <ClInclude Include="MQ2Utilities.h" />
     <ClInclude Include="MQVersionInfo.h" />
     <ClInclude Include="pch.h" />

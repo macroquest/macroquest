@@ -107,6 +107,7 @@ enum class PetMembers
 	BuffDuration,
 	Name,
 	Focus,
+	FindBuff,
 };
 
 MQ2PetType::MQ2PetType() : MQ2Type("pet")
@@ -123,6 +124,7 @@ MQ2PetType::MQ2PetType() : MQ2Type("pet")
 	ScopedTypeMember(PetMembers, BuffDuration);
 	ScopedTypeMember(PetMembers, Name);
 	ScopedTypeMember(PetMembers, Focus);
+	ScopedTypeMember(PetMembers, FindBuff);
 }
 
 bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -285,6 +287,31 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		Dest.Set(pPetInfoWnd->Focus);
 		Dest.Type = pBoolType;
 		return true;
+
+	case PetMembers::FindBuff:
+	{
+		if (!Index[0])
+			return false;
+
+		Dest.Type = pBuffType;
+
+		auto attrib = EvaluatePetBuffPredicate(Index);
+		int buff = GetSelfBuff([&attrib](const EQ_Affect& buff)
+			{
+				return attrib(buff);
+			});
+
+		if (buff < 0)
+			return false;
+
+		Dest.Int = buff;
+		if (buff >= NUM_LONG_BUFFS)
+			Dest.HighPart = SpellDisplayType_None;
+		else
+			Dest.HighPart = SpellDisplayType_BuffWnd;
+
+		return true;
+	}
 	}
 
 	return false;
