@@ -106,11 +106,11 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 			Dest.Set(false);
 
 			if (!pTaskWnd || !pTask->TaskTitle[0])
-				return false;
+				return true;
 
 			auto clist = static_cast<CListWnd*>(pTaskWnd->GetChildItem("TASK_TaskList"));
 			if (!clist)
-				return false;
+				return true;
 
 			for (int i = 0; i < clist->ItemsArray.Count; ++i)
 			{
@@ -121,7 +121,7 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 				}
 			}
 
-			return false;
+			return true;
 		}
 
 		default:
@@ -223,7 +223,9 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		if (!taskStatus)
 			return false;
 
-		Dest.UInt64 = std::max(0UL, taskStatus->MovingStartTime + pTask->DurationSeconds - GetFastTime());
+		int seconds = pTask->DurationSeconds - GetFastTime();
+
+		Dest.UInt64 = (uint64_t)std::max(0, (taskStatus->MovingStartTime + seconds) * 1000);
 		Dest.Type = pTimeStampType;
 		return true;
 	}
