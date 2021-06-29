@@ -97,6 +97,18 @@
 		</Expand>
 	</Type>
 
+	<Type Name="eqlib::SoeUtil::Array&lt;*&gt;">
+		<DisplayString>{{size={m_size}}}</DisplayString>
+		<Expand>
+			<Item Name="[size]">m_size</Item>
+			<Item Name="[capacity]">m_alloc</Item>
+			<ArrayItems>
+				<Size>m_size</Size>
+				<ValuePointer>m_array</ValuePointer>
+			</ArrayItems>
+		</Expand>
+	</Type>
+
 	<Type Name="eqlib::CTextureAnimation">
 		<DisplayString>Texture Name={Name} Cell={CurCell}</DisplayString>
 	</Type>
