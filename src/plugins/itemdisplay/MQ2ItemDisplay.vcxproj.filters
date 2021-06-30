@@ -30,7 +30,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="MQUI_CompareTipWnd.xml">
+    <Xml Include="resources\uifiles\default\MQUI_CompareTipWnd.xml">
       <Filter>Resource Files</Filter>
     </Xml>
   </ItemGroup>
