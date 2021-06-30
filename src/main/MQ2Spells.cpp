@@ -811,7 +811,7 @@ static void PopulateTriggeredmap(EQ_Spell* pSpell)
 	{
 		if (!IsRecursiveEffect(GetSpellAttrib(pSpell, i)))
 			continue;
-		
+
 		int triggeredSpellID = GetSpellBase2(pSpell, i);
 		if (i > 0)
 			s_triggeredSpells[triggeredSpellID] = pSpell->ID;
@@ -932,8 +932,7 @@ static EQ_Spell* GetSpellFromMap(std::string_view name)
 		// otherwise, I can't have this spell
 	}
 
-
-	// if we got here, the spell the user is after isnt one his character can cast, so
+	// if we got here, the spell the user is after isn't one his character can cast, so
 	// we will have to roll through it again and see if its usable by any other class
 
 	EQ_Spell* usableSpell = nullptr;
