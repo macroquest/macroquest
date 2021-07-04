@@ -1,3 +1,6 @@
+July 3, 2021
+- Fix chat events in other languages not being able to use .equal for the matched text (#333)
+
 June 24, 2021
 - Fix crash that would occur for some characters while zoning
 - Fix Task.Select and Task.Timer (#329)

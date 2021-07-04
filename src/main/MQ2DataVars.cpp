@@ -861,101 +861,81 @@ void CheckChatForEvent(const char* szMsg)
 	MQMacroBlockPtr pBlock = GetCurrentMacroBlock();
 	if ((pBlock && !pBlock->Line.empty()) && (!pBlock->Paused) && (!gbUnload) && (!gZoning))
 	{
-		char Arg1[MAX_STRING] = { 0 };
-		char Arg2[MAX_STRING] = { 0 };
-		char Arg3[MAX_STRING] = { 0 };
+		char SpeakerName[MAX_STRING] = { 0 };
+		char Content[MAX_STRING] = { 0 };
+		char Channel[MAX_STRING] = { 0 };
 		char* pDest = nullptr;
+
+		int StartCopyAt = 0;
 
 		if ((CHATEVENT(CHAT_GUILD)) && (pDest = strstr(szClean, " tells the guild, ")))
 		{
-			strncpy_s(Arg1, szClean, (DWORD)(pDest - szClean));
-			strcpy_s(Arg2, pDest + 19);
-			Arg2[strlen(Arg2) - 1] = 0;
-			AddEvent(EVENT_CHAT, "guild", Arg1, Arg2, NULL);
+			strcpy_s(Channel, "guild");
 		}
 		else if ((CHATEVENT(CHAT_GROUP)) && (pDest = strstr(szClean, " tells the group, ")))
 		{
-			strncpy_s(Arg1, szClean, (DWORD)(pDest - szClean));
-			strcpy_s(Arg2, pDest + 19);
-			Arg2[strlen(Arg2) - 1] = 0;
-			AddEvent(EVENT_CHAT, "group", Arg1, Arg2, NULL);
+			strcpy_s(Channel, "group");
 		}
 		else if ((CHATEVENT(CHAT_TELL)) && (pDest = strstr(szClean, " tells you, ")))
 		{
-			strncpy_s(Arg1, szClean, (DWORD)(pDest - szClean));
-			strcpy_s(Arg2, pDest + 13);
-			Arg2[strlen(Arg2) - 1] = 0;
-			AddEvent(EVENT_CHAT, "tell", Arg1, Arg2, NULL);
+			strcpy_s(Channel, "tell");
 		}
 		else if ((CHATEVENT(CHAT_TELL)) && (pDest = strstr(szClean, " told you, ")))
 		{
-			strncpy_s(Arg1, szClean, (DWORD)(pDest - szClean));
-			strcpy_s(Arg2, pDest + 12);
-			Arg2[strlen(Arg2) - 1] = 0;
-			AddEvent(EVENT_CHAT, "tell", Arg1, Arg2, NULL);
+			strcpy_s(Channel, "tell");
 		}
+		// Cannot be said in another language, so we can match through the single quote here
 		else if ((CHATEVENT(CHAT_OOC)) && (pDest = strstr(szClean, " says out of character, '")))
 		{
-			strncpy_s(Arg1, szClean, (DWORD)(pDest - szClean));
-			strcpy_s(Arg2, pDest + 25);
-			Arg2[strlen(Arg2) - 1] = 0;
-			AddEvent(EVENT_CHAT, "ooc", Arg1, Arg2, NULL);
+			strcpy_s(Channel, "ooc");
 		}
 		else if ((CHATEVENT(CHAT_SHOUT)) && (pDest = strstr(szClean, " shouts, ")))
 		{
-			strncpy_s(Arg1, szClean, (DWORD)(pDest - szClean));
-			strcpy_s(Arg2, pDest + 10);
-			Arg2[strlen(Arg2) - 1] = 0;
-			AddEvent(EVENT_CHAT, "shout", Arg1, Arg2, NULL);
+			strcpy_s(Channel, "shout");
 		}
 		else if ((CHATEVENT(CHAT_AUC)) && (pDest = strstr(szClean, " auctions, ")))
 		{
-			strncpy_s(Arg1, szClean, (DWORD)(pDest - szClean));
-			strcpy_s(Arg2, pDest + 12);
-			Arg2[strlen(Arg2) - 1] = 0;
-			AddEvent(EVENT_CHAT, "auc", Arg1, Arg2, NULL);
+			strcpy_s(Channel, "auc");
 		}
+		// What scenario misses the comma?  This is the only reason we require the StartCopyAt check
 		else if ((CHATEVENT(CHAT_SAY)) && (pDest = strstr(szClean, " says '")))
 		{
-			strncpy_s(Arg1, szClean, (DWORD)(pDest - szClean));
-			strcpy_s(Arg2, pDest + 7);
-			Arg2[strlen(Arg2) - 1] = 0;
-			AddEvent(EVENT_CHAT, "say", Arg1, Arg2, NULL);
+			StartCopyAt = 7;
+			strcpy_s(Channel, "say");
 		}
 		else if ((CHATEVENT(CHAT_SAY)) && (pDest = strstr(szClean, " says, ")))
 		{
-			strncpy_s(Arg1, szClean, (DWORD)(pDest - szClean));
-			strcpy_s(Arg2, pDest + 8);
-			Arg2[strlen(Arg2) - 1] = 0;
-			AddEvent(EVENT_CHAT, "say", Arg1, Arg2, NULL);
+			strcpy_s(Channel, "say");
 		}
 		else if ((CHATEVENT(CHAT_RAID)) && (pDest = strstr(szClean, " tells the raid, ")))
 		{
-			strncpy_s(Arg1, szClean, (DWORD)(pDest -szClean));
-			strcpy_s(Arg2, pDest + 18);
-			Arg2[strlen(Arg2) - 1] = 0;
-			AddEvent(EVENT_CHAT, "raid", Arg1, Arg2, NULL);
+			strcpy_s(Channel, "raid");
 		}
 		else if ((CHATEVENT(CHAT_CHAT)) && (strstr(szClean, "You told ") == nullptr)
 			&& (pDest = strstr(szClean, " tells "))
 			&& (strstr(szClean, ":"))
 			&& (strstr(szClean, ", '")))
 		{
-			strncpy_s(Arg1, szClean, (DWORD)(pDest - szClean));
-			strcpy_s(Arg3, pDest + 7);
-			Arg3[strlen(Arg3) - 1] = 0;
-			if (pDest = strstr(Arg3, ", '"))
-			{
-				strcpy_s(Arg2, pDest + 3);
-			}
-			const char* colPos = strstr(Arg3, ":");
+			strcpy_s(Channel, pDest + 7);
+			Channel[strlen(Channel) - 1] = 0;
 
-			if (colPos != nullptr)
+			if (const char* colPos = strstr(Channel, ":"))
 			{
-				Arg3[colPos - Arg3] = 0;
+				Channel[colPos - Channel] = 0;
 			}
+		}
 
-			AddEvent(EVENT_CHAT, Arg3, Arg1, Arg2, NULL);
+		if (pDest != nullptr)
+		{
+			strncpy_s(SpeakerName, szClean, pDest - szClean);
+			if (StartCopyAt == 0)
+			{
+				StartCopyAt = strstr(szClean, ", '") - pDest + 3;
+			}
+			strcpy_s(Content, pDest + StartCopyAt);
+			Content[strlen(Content) - 1] = 0;
+
+			AddEvent(EVENT_CHAT, Channel, SpeakerName, Content, NULL);
 		}
 
 		strncpy_s(EventMsg, szClean, MAX_STRING - 1);
