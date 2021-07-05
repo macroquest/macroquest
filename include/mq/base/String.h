@@ -322,7 +322,7 @@ inline int find_substr(std::string_view haystack, std::string_view needle)
 	auto iter = std::search(std::begin(haystack), std::end(haystack),
 		std::begin(needle), std::end(needle));
 	if (iter == std::end(haystack)) return -1;
-	return iter - std::begin(haystack);
+	return static_cast<int>(iter - std::begin(haystack));
 }
 
 inline int ci_find_substr(std::string_view haystack, std::string_view needle)
@@ -330,7 +330,7 @@ inline int ci_find_substr(std::string_view haystack, std::string_view needle)
 	auto iter = std::search(std::begin(haystack), std::end(haystack),
 		std::begin(needle), std::end(needle), ci_less::nocase_equals());
 	if (iter == std::end(haystack)) return -1;
-	return iter - std::begin(haystack);
+	return static_cast<int>(iter - std::begin(haystack));
 }
 
 inline int ci_find_substr_w(std::wstring_view haystack, std::wstring_view needle)
@@ -338,7 +338,7 @@ inline int ci_find_substr_w(std::wstring_view haystack, std::wstring_view needle
 	auto iter = std::search(std::begin(haystack), std::end(haystack),
 		std::begin(needle), std::end(needle), ci_less::nocase_equals_w());
 	if (iter == std::end(haystack)) return -1;
-	return iter - std::begin(haystack);
+	return static_cast<int>(iter - std::begin(haystack));
 }
 
 inline bool starts_with(std::string_view haystack, std::string_view needle)
