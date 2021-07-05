@@ -1,30 +1,23 @@
 
 #pragma once
 
-#include <mq/Plugin.h>
-#include <mq/imgui/Widgets.h>
-
 #include <imgui/imgui.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
 #include <sol/sol.hpp>
 
 #include <string>
 
+#define SOL_IMGUI_USE_COLOR_U32
+
 namespace sol_ImGui
 {
+	// Main
+	inline ImGuiStyle* GetStyle()																		{ return &ImGui::GetStyle(); }
 	// Windows
 	inline bool Begin(const std::string& name)															{ return ImGui::Begin(name.c_str()); }
 	inline std::tuple<bool, bool> Begin(const std::string& name, bool open)
 	{
-		if (!open) return std::make_tuple(false, false);
-
 		bool shouldDraw = ImGui::Begin(name.c_str(), &open);
-
-		if(!open)
-		{
-			ImGui::End();
-			return std::make_tuple(false, false);
-		}
 
 		return std::make_tuple(open, shouldDraw);
 	}
@@ -128,6 +121,7 @@ namespace sol_ImGui
 	inline void PopStyleColor(int count)																{ ImGui::PopStyleColor(count); }
 	inline void PushStyleVar(int idx, float val)														{ ImGui::PushStyleVar(static_cast<ImGuiStyleVar>(idx), val); }
 	inline void PushStyleVar(int idx, float valX, float valY)											{ ImGui::PushStyleVar(static_cast<ImGuiStyleVar>(idx), { valX, valY }); }
+	inline void PushStyleVar(int idx, const ImVec2& val)												{ ImGui::PushStyleVar(static_cast<ImGuiStyleVar>(idx), val); }
 	inline void PopStyleVar()																			{ ImGui::PopStyleVar(); }
 	inline void PopStyleVar(int count)																	{ ImGui::PopStyleVar(count); }
 	inline std::tuple<float, float, float, float> GetStyleColorVec4(int idx)							{ const auto col{ ImGui::GetStyleColorVec4(static_cast<ImGuiCol>(idx)) };	return std::make_tuple(col.x, col.y, col.z, col.w); }
@@ -139,7 +133,7 @@ namespace sol_ImGui
 	inline int GetColorU32(float colR, float colG, float colB, float colA)								{ return ImGui::GetColorU32({ colR, colG, colB, colA }); }
 	inline int GetColorU32(int col)																		{ return ImGui::GetColorU32(ImU32(col)); }
 #endif
-	
+
 	// Parameters stacks (current window)
 	inline void PushItemWidth(float itemWidth)															{ ImGui::PushItemWidth(itemWidth); }
 	inline void PopItemWidth()																			{ ImGui::PopItemWidth(); }
@@ -185,8 +179,8 @@ namespace sol_ImGui
 	// ID stack / scopes
 	inline void PushID(const std::string& stringID)														{ ImGui::PushID(stringID.c_str()); }
 	inline void PushID(const std::string& stringIDBegin, const std::string& stringIDEnd)				{ ImGui::PushID(stringIDBegin.c_str(), stringIDEnd.c_str()); }
-	inline void PushID(const void*)																		{ /* TODO: PushID(void*) ==> UNSUPPORTED */ }
 	inline void PushID(int intID)																		{ ImGui::PushID(intID); }
+	inline void PushID(sol::object object)																{ ImGui::PushID(object.pointer()); }
 	inline void PopID()																					{ ImGui::PopID(); }
 	inline int GetID(const std::string& stringID)														{ return ImGui::GetID(stringID.c_str()); }
 	inline int GetID(const std::string& stringIDBegin, const std::string& stringIDEnd)					{ return ImGui::GetID(stringIDBegin.c_str(), stringIDEnd.c_str()); }
@@ -217,7 +211,13 @@ namespace sol_ImGui
 
 		return std::make_tuple(value, pressed);
 	}
-	inline bool CheckboxFlags()																			{ return false; /* TODO: CheckboxFlags(...) ==> UNSUPPORTED */ }
+	inline std::tuple<uint32_t, bool> CheckboxFlags(const std::string& label, uint32_t flags, uint32_t flagsValue)
+	{
+		uint32_t mutableFlags = flags;
+		bool pressed = ImGui::CheckboxFlags(label.c_str(), &mutableFlags, flagsValue);
+
+		return std::make_tuple(mutableFlags, pressed);
+	}
 	inline bool RadioButton(const std::string& label, bool active)										{ return ImGui::RadioButton(label.c_str(), active); }
 	inline std::tuple<int, bool> RadioButton(const std::string& label, int v, int vButton)				{ bool ret{ ImGui::RadioButton(label.c_str(), &v, vButton) }; return std::make_tuple(v, ret); }
 	inline void ProgressBar(float fraction)																{ ImGui::ProgressBar(fraction); }
@@ -1480,6 +1480,42 @@ namespace sol_ImGui
 	inline bool IsPopupOpen(const std::string& str_id)													{ return ImGui::IsPopupOpen(str_id.c_str()); }
 	inline bool IsPopupOpen(const std::string& str_id, int popup_flags)									{ return ImGui::IsPopupOpen(str_id.c_str(), popup_flags); }
 
+	// Tables
+	inline bool BeginTable(const std::string& str_id, int columns_count)                                                                     { return ImGui::BeginTable(str_id.c_str(), columns_count); }
+	inline bool BeginTable(const std::string& str_id, int columns_count, int flags)                                                          { return ImGui::BeginTable(str_id.c_str(), columns_count, static_cast<ImGuiTableFlags>(flags)); }
+	inline bool BeginTable(const std::string& str_id, int columns_count, int flags, float outer_sizeX, float outer_sizeY)                    { return ImGui::BeginTable(str_id.c_str(), columns_count, static_cast<ImGuiTableFlags>(flags), ImVec2(outer_sizeX, outer_sizeY)); }
+	inline bool BeginTable(const std::string& str_id, int columns_count, int flags, float outer_sizeX, float outer_sizeY, float inner_width) { return ImGui::BeginTable(str_id.c_str(), columns_count, static_cast<ImGuiTableFlags>(flags), ImVec2(outer_sizeX, outer_sizeY), inner_width); }
+	inline void EndTable()                                                                              { ImGui::EndTable(); }
+	inline void TableNextRow()                                                                          { ImGui::TableNextRow(); }
+	inline void TableNextRow(int row_flags)                                                             { ImGui::TableNextRow(static_cast<ImGuiTableRowFlags>(row_flags)); }
+	inline void TableNextRow(int row_flags, float min_row_height)                                       { ImGui::TableNextRow(static_cast<ImGuiTableRowFlags>(row_flags), min_row_height); }
+	inline void TableNextColumn()                                                                       { ImGui::TableNextColumn(); }
+	inline bool TableSetColumnIndex(int column_n)                                                       { return ImGui::TableSetColumnIndex(column_n); }
+
+	inline void TableSetupColumn(const std::string& label)                                              { ImGui::TableSetupColumn(label.c_str()); }
+	inline void TableSetupColumn(const std::string& label, int flags)                                   { ImGui::TableSetupColumn(label.c_str(), static_cast<ImGuiTableColumnFlags>(flags)); }
+	inline void TableSetupColumn(const std::string& label, int flags, float init_width_or_weight)       { ImGui::TableSetupColumn(label.c_str(), static_cast<ImGuiTableColumnFlags>(flags), init_width_or_weight); }
+	inline void TableSetupColumn(const std::string& label, int flags, float init_width_or_weight, uint32_t user_id)       { ImGui::TableSetupColumn(label.c_str(), static_cast<ImGuiTableColumnFlags>(flags), init_width_or_weight, user_id); }
+	inline void TableSetupScrollFreeze(int cols, int rows)                                              { ImGui::TableSetupScrollFreeze(cols, rows); }
+	inline void TableHeadersRow()                                                                       { ImGui::TableHeadersRow(); }
+	inline void TableHeader(const std::string& label)                                                   { ImGui::TableHeader(label.c_str()); }
+
+	inline int TableGetColumnCount()                                                                    { return ImGui::TableGetColumnCount(); }
+	inline std::string TableGetColumnName()                                                             { const char* name = ImGui::TableGetColumnName(); if (name) return std::string(name); return std::string(); }
+	inline std::string TableGetColumnName(int column_n)                                                 { const char* name = ImGui::TableGetColumnName(column_n); if (name) return std::string(name); return std::string(); }
+	inline bool TableGetColumnIsVisible()                                                               { return ImGui::TableGetColumnIsVisible(); }
+	inline bool TableGetColumnIsVisible(int column_n)                                                   { return ImGui::TableGetColumnIsVisible(column_n); }
+	inline bool TableGetColumnIsSorted()                                                                { return ImGui::TableGetColumnIsSorted(); }
+	inline bool TableGetColumnIsSorted(int column_n)                                                    { return ImGui::TableGetColumnIsSorted(column_n); }
+	inline int TableGetHoveredColumn()                                                                  { return ImGui::TableGetHoveredColumn(); }
+	inline ImGuiTableSortSpecs* TableGetSortSpecs()                                                     { return ImGui::TableGetSortSpecs(); }
+#ifdef SOL_IMGUI_USE_COLOR_U32
+	inline void TableSetBgColor(int bg_target, int col)                                                 { ImGui::TableSetBgColor(static_cast<ImGuiTableBgTarget>(bg_target), ImU32(col)); }
+	inline void TableSetBgColor(int bg_target, int col, int column_n)                                   { ImGui::TableSetBgColor(static_cast<ImGuiTableBgTarget>(bg_target), ImU32(col), column_n); }
+#endif
+	inline void TableSetBgColor(int bg_target, float colR, float colG, float colB, float colA)          { ImGui::TableSetBgColor(static_cast<ImGuiTableBgTarget>(bg_target), ImGui::GetColorU32({ colR, colG, colB, colA })); }
+	inline void TableSetBgColor(int bg_target, float colR, float colG, float colB, float colA, int column_n)          { ImGui::TableSetBgColor(static_cast<ImGuiTableBgTarget>(bg_target), ImGui::GetColorU32({ colR, colG, colB, colA }), column_n); }
+
 	// Columns
 	inline void Columns()																				{ ImGui::Columns(); }
 	inline void Columns(int count)																		{ ImGui::Columns(count); }
@@ -1515,7 +1551,7 @@ namespace sol_ImGui
 	inline void SetNextWindowClass()																	{  /* TODO: SetNextWindowClass(...) ==> UNSUPPORTED */ }
 	inline unsigned int GetWindowDockID()																{ return ImGui::GetWindowDockID(); }
 	inline bool IsWindowDocked()																		{ return ImGui::IsWindowDocked(); }
-	
+
 	// Logging
 	inline void LogToTTY()																				{ ImGui::LogToTTY(); }
 	inline void LogToTTY(int auto_open_depth)															{ ImGui::LogToTTY(auto_open_depth); }
@@ -1685,10 +1721,6 @@ namespace sol_ImGui
 	// Clipboard Utilities
 	inline std::string GetClipboardText()																{ return std::string(ImGui::GetClipboardText()); }
 	inline void SetClipboardText(const std::string& text)												{ ImGui::SetClipboardText(text.c_str()); }
-
-	// MQ-Specific functions
-	inline bool DrawTextureAnimation(const std::unique_ptr<CTextureAnimation>& anim, int x, int y)	{ return mq::imgui::DrawTextureAnimation(anim.get(), CXSize(x, y)); }
-	inline bool DrawTextureAnimation(const std::unique_ptr<CTextureAnimation>& anim)					{ return mq::imgui::DrawTextureAnimation(anim.get()); }
 
 	inline void InitEnums(sol::state_view lua)
 	{
@@ -1887,6 +1919,14 @@ namespace sol_ImGui
 		);
 #pragma endregion Dir
 
+#pragma region Sort Direction
+		lua.new_enum("ImGuiSortDirection",
+			"None"						, ImGuiSortDirection_None,
+			"Ascending"					, ImGuiSortDirection_Ascending,
+			"Descending"				, ImGuiSortDirection_Descending
+		);
+#pragma endregion
+
 #pragma region Combo Flags
 		lua.new_enum("ImGuiComboFlags",
 			"None"					, ImGuiComboFlags_None,
@@ -2042,6 +2082,82 @@ namespace sol_ImGui
 		);
 #pragma endregion TabItem Flags
 
+#pragma region Table Flags
+		lua.new_enum("ImGuiTableFlags",
+			"None"                          , ImGuiTableFlags_None,
+			"Resizable"                     , ImGuiTableFlags_Resizable,
+			"Reorderable"                   , ImGuiTableFlags_Reorderable,
+			"Hideable"                      , ImGuiTableFlags_Hideable,
+			"Sortable"                      , ImGuiTableFlags_Sortable,
+			"MultiSortable"                 , ImGuiTableFlags_MultiSortable,
+			"NoSavedSettings"               , ImGuiTableFlags_NoSavedSettings,
+			"ContextMenuInBody"             , ImGuiTableFlags_ContextMenuInBody,
+			"RowBg"                         , ImGuiTableFlags_RowBg,
+			"BordersInnerH"                 , ImGuiTableFlags_BordersInnerH,
+			"BordersOuterH"                 , ImGuiTableFlags_BordersOuterH,
+			"BordersInnerV"                 , ImGuiTableFlags_BordersInnerV,
+			"BordersOuterV"                 , ImGuiTableFlags_BordersOuterV,
+			"BordersH"                      , ImGuiTableFlags_BordersH,
+			"BordersV"                      , ImGuiTableFlags_BordersV,
+			"BordersInner"                  , ImGuiTableFlags_BordersInner,
+			"BordersOuter"                  , ImGuiTableFlags_BordersOuter,
+			"Borders"                       , ImGuiTableFlags_Borders,
+			"NoBordersInBody"               , ImGuiTableFlags_NoBordersInBody,
+			"NoBordersInBodyUntilResize"    , ImGuiTableFlags_NoBordersInBodyUntilResize,
+			"SizingPolicyFixedX"            , ImGuiTableFlags_SizingPolicyFixedX,
+			"SizingPolicyStretchX"          , ImGuiTableFlags_SizingPolicyStretchX,
+			"NoHeadersWidth"                , ImGuiTableFlags_NoHeadersWidth,
+			"NoHostExtendY"                 , ImGuiTableFlags_NoHostExtendY,
+			"NoKeepColumnsVisible"          , ImGuiTableFlags_NoKeepColumnsVisible,
+			"NoClip"                        , ImGuiTableFlags_NoClip,
+			"ScrollX"                       , ImGuiTableFlags_ScrollX,
+			"ScrollY"                       , ImGuiTableFlags_ScrollY,
+			"Scroll"                        , ImGuiTableFlags_Scroll
+		);
+#pragma endregion
+
+#pragma region TableColumn Flags
+		lua.new_enum("ImGuiTableColumnFlags",
+			"None"                          , ImGuiTableColumnFlags_None,
+			"DefaultHide"                   , ImGuiTableColumnFlags_DefaultHide,
+			"DefaultSort"                   , ImGuiTableColumnFlags_DefaultSort,
+			"WidthFixed"                    , ImGuiTableColumnFlags_WidthFixed,
+			"WidthStretch"                  , ImGuiTableColumnFlags_WidthStretch,
+			"WidthAlwaysAutoResize"         , ImGuiTableColumnFlags_WidthAlwaysAutoResize,
+			"NoResize"                      , ImGuiTableColumnFlags_NoResize,
+			"NoClipX"                       , ImGuiTableColumnFlags_NoClipX,
+			"NoSort"                        , ImGuiTableColumnFlags_NoSort,
+			"NoSortAscending"               , ImGuiTableColumnFlags_NoSortAscending,
+			"NoSortDescending"              , ImGuiTableColumnFlags_NoSortDescending,
+			"NoHide"                        , ImGuiTableColumnFlags_NoHide,
+			"NoHeaderWidth"                 , ImGuiTableColumnFlags_NoHeaderWidth,
+			"PreferSortAscending"           , ImGuiTableColumnFlags_PreferSortAscending,
+			"PreferSortDescending"          , ImGuiTableColumnFlags_PreferSortDescending,
+			"IndentEnable"                  , ImGuiTableColumnFlags_IndentEnable,
+			"IndentDisable"                 , ImGuiTableColumnFlags_IndentDisable,
+			"NoReorder"                     , ImGuiTableColumnFlags_NoReorder
+		);
+#pragma endregion
+
+#pragma region TableRow Flags
+		lua.new_enum("ImGuiTableRowFlags",
+			"None"                          , ImGuiTableRowFlags_None,
+			"Headers"                       , ImGuiTableRowFlags_Headers
+		);
+#pragma endregion
+
+#pragma region Table Bg Target Flags
+		lua.new_enum("ImGuiTableBgTarget",
+			"None"                          , ImGuiTableBgTarget_None,
+			"ColumnBg0"                     , ImGuiTableBgTarget_ColumnBg0,
+			"ColumnBg1"                     , ImGuiTableBgTarget_ColumnBg1,
+			"RowBg0"                        , ImGuiTableBgTarget_RowBg0,
+			"RowBg1"                        , ImGuiTableBgTarget_RowBg1,
+			"RowBg0"                        , ImGuiTableBgTarget_RowBg0,
+			"CellBg"                        , ImGuiTableBgTarget_CellBg
+		);
+#pragma endregion
+
 #pragma region DockNode Flags
 		lua.new_enum("ImGuiDockNodeFlags",
 			"None"							, ImGuiDockNodeFlags_None,
@@ -2118,12 +2234,99 @@ namespace sol_ImGui
 		);
 #pragma endregion MouseCursor
 	}
-	
-	inline void Init(sol::state_view lua)
+
+	inline void InitUserTypes(sol::state_view lua)
+	{
+#pragma region ImVec2
+		lua.new_usertype<ImVec2>(
+			"ImVec2"										, sol::constructors<ImVec2(), ImVec2(float, float)>(),
+			"x"												, &ImVec2::x,
+			"y"												, &ImVec2::y
+		);
+#pragma endregion
+
+#pragma region ImVec4
+		lua.new_usertype<ImVec4>(
+			"ImVec4"										, sol::constructors<ImVec4(), ImVec4(float, float, float, float)>(),
+			"x"												, &ImVec4::x,
+			"y"												, &ImVec4::y,
+			"z"												, &ImVec4::z,
+			"w"												, &ImVec4::w
+		);
+#pragma endregion
+
+#pragma region ImGuiStyle
+		lua.new_usertype<ImGuiStyle>(
+			"ImGuiStyle"									, sol::no_constructor,
+			"Alpha"											, &ImGuiStyle::Alpha,
+			"WindowPadding"									, &ImGuiStyle::WindowPadding,
+			"WindowRounding"								, &ImGuiStyle::WindowRounding,
+			"WindowBorderSize"								, &ImGuiStyle::WindowBorderSize,
+			"WindowMinSize"									, &ImGuiStyle::WindowMinSize,
+			"WindowTitleAlign"								, &ImGuiStyle::WindowTitleAlign,
+			"WindowMenuButtonPosition"						, &ImGuiStyle::WindowMenuButtonPosition,
+			"ChildRounding"									, &ImGuiStyle::ChildRounding,
+			"ChildBorderSize"								, &ImGuiStyle::ChildBorderSize,
+			"PopupRounding"									, &ImGuiStyle::PopupRounding,
+			"PopupBorderSize"								, &ImGuiStyle::PopupBorderSize,
+			"FramePadding"									, &ImGuiStyle::FramePadding,
+			"FrameRounding"									, &ImGuiStyle::FrameRounding,
+			"FrameBorderSize"								, &ImGuiStyle::FrameBorderSize,
+			"ItemSpacing"									, &ImGuiStyle::ItemSpacing,
+			"ItemInnerSpacing"								, &ImGuiStyle::ItemInnerSpacing,
+			"CellPadding"									, &ImGuiStyle::CellPadding,
+			"TouchExtraPadding"								, &ImGuiStyle::TouchExtraPadding,
+			"IndentSpacing"									, &ImGuiStyle::IndentSpacing,
+			"ColumnsMinSpacing"								, &ImGuiStyle::ColumnsMinSpacing,
+			"ScrollbarSize"									, &ImGuiStyle::ScrollbarSize,
+			"ScrollbarRounding"								, &ImGuiStyle::ScrollbarRounding,
+			"GrabMinSize"									, &ImGuiStyle::GrabMinSize,
+			"GrabRounding"									, &ImGuiStyle::GrabRounding,
+			"LogSliderDeadzone"								, &ImGuiStyle::LogSliderDeadzone,
+			"TabRounding"									, &ImGuiStyle::TabRounding,
+			"TabBorderSize"									, &ImGuiStyle::TabBorderSize,
+			"TabMinWidthForCloseButton"						, &ImGuiStyle::TabMinWidthForCloseButton,
+			"ColorButtonPosition"							, &ImGuiStyle::ColorButtonPosition,
+			"ButtonTextAlign"								, &ImGuiStyle::ButtonTextAlign,
+			"SelectableTextAlign"							, &ImGuiStyle::SelectableTextAlign,
+			"DisplayWindowPadding"							, &ImGuiStyle::DisplayWindowPadding,
+			"DisplaySafeAreaPadding"						, &ImGuiStyle::DisplaySafeAreaPadding,
+			"MouseCursorScale"								, &ImGuiStyle::MouseCursorScale,
+			"AntiAliasedLines"								, &ImGuiStyle::AntiAliasedLines,
+			"AntiAliasedLinesUseTex"						, &ImGuiStyle::AntiAliasedLinesUseTex,
+			"AntiAliasedFill"								, &ImGuiStyle::AntiAliasedFill,
+			"CurveTessellationTol"							, &ImGuiStyle::CurveTessellationTol,
+			"CircleSegmentMaxError"							, &ImGuiStyle::CircleSegmentMaxError,
+			"TabBorderSize"									, &ImGuiStyle::TabBorderSize,
+			"Colors"										, &ImGuiStyle::Colors
+		);
+#pragma endregion
+
+#pragma region ImGuiListClipper
+		lua.new_usertype<ImGuiListClipper>(
+			"ImGuiListClipper"								,
+			"Begin"											, sol::overload(
+																[](ImGuiListClipper& mthis, int items_count) { mthis.Begin(items_count); },
+																&ImGuiListClipper::Begin),
+			"End"											, &ImGuiListClipper::End,
+			"Step"											, &ImGuiListClipper::Step,
+			"DisplayStart"									, &ImGuiListClipper::DisplayStart,
+			"DisplayEnd"									, &ImGuiListClipper::DisplayEnd);
+#pragma endregion
+	}
+
+	inline sol::table Init(sol::state_view lua)
 	{
 		InitEnums(lua);
-		
+		InitUserTypes(lua);
+
 		sol::table ImGui = lua.create_named_table("ImGui");
+
+#pragma region Main
+		// GetIO()
+		ImGui.set_function("GetStyle"						, GetStyle);
+
+#pragma endregion
 
 #pragma region Windows
 		ImGui.set_function("Begin"							, sol::overload(
@@ -2253,6 +2456,15 @@ namespace sol_ImGui
 																sol::resolve<void()>(PopStyleColor),
 																sol::resolve<void(int)>(PopStyleColor)
 															));
+		ImGui.set_function("PushStyleVar"					, sol::overload(
+																sol::resolve<void(int, float)>(PushStyleVar),
+																sol::resolve<void(int, float, float)>(PushStyleVar),
+																sol::resolve<void(int, const ImVec2&)>(PushStyleVar)
+															));
+		ImGui.set_function("PopStyleVar"					, sol::overload(
+																sol::resolve<void()>(PopStyleVar),
+																sol::resolve<void(int)>(PopStyleVar)
+															));
 		ImGui.set_function("GetStyleColorVec4"				, GetStyleColorVec4);
 		ImGui.set_function("GetFont"						, GetFont);
 		ImGui.set_function("GetFontSize"					, GetFontSize);
@@ -2319,9 +2531,10 @@ namespace sol_ImGui
 		
 #pragma region ID stack / scopes
 		ImGui.set_function("PushID"							, sol::overload(
-																sol::resolve<void(const std::string&)>(PushID), 
-																sol::resolve<void(const std::string&, const std::string&)>(PushID), 
-																sol::resolve<void(int)>(PushID)
+																sol::resolve<void(const std::string&)>(PushID),
+																sol::resolve<void(const std::string&, const std::string&)>(PushID),
+																sol::resolve<void(int)>(PushID),
+																sol::resolve<void(sol::object)>(PushID)
 															));
 		ImGui.set_function("PopID"							, PopID);
 		ImGui.set_function("GetID"							, sol::overload(
@@ -2352,6 +2565,7 @@ namespace sol_ImGui
 		ImGui.set_function("InvisibleButton"				, InvisibleButton);
 		ImGui.set_function("ArrowButton"					, ArrowButton);
 		ImGui.set_function("Checkbox"						, Checkbox);
+		ImGui.set_function("CheckboxFlags"					, CheckboxFlags);
 		ImGui.set_function("RadioButton"					, sol::overload(
 																sol::resolve<bool(const std::string&, bool)>(RadioButton), 
 																sol::resolve<std::tuple<int, bool>(const std::string&, int, int)>(RadioButton)
@@ -2601,6 +2815,7 @@ namespace sol_ImGui
 																sol::resolve<void(bool)>(SetNextItemOpen),
 																sol::resolve<void(bool, int)>(SetNextItemOpen)
 															));
+		ImGui.set_function("TreeAdvanceToLabelPos"			, ImGui::TreeAdvanceToLabelPos);
 #pragma endregion Widgets: Trees
 
 #pragma region Widgets: Selectables
@@ -2700,6 +2915,73 @@ namespace sol_ImGui
 																sol::resolve<bool(const std::string&, int)>(IsPopupOpen)
 															));
 #pragma endregion Popups, Modals
+
+#pragma region Tables
+		ImGui.set_function("BeginTable"						, sol::overload(
+																sol::resolve<bool(const std::string&, int)>(BeginTable),
+																sol::resolve<bool(const std::string&, int, int)>(BeginTable),
+																sol::resolve<bool(const std::string&, int, int, float, float)>(BeginTable),
+																sol::resolve<bool(const std::string&, int, int, float, float, float)>(BeginTable)
+															));
+		ImGui.set_function("EndTable"						, EndTable);
+		ImGui.set_function("TableNextRow"					, sol::overload(
+																sol::resolve<void()>(TableNextRow),
+																sol::resolve<void(int)>(TableNextRow),
+																sol::resolve<void(int, float)>(TableNextRow)
+															));
+		ImGui.set_function("TableNextColumn"				, TableNextColumn);
+		ImGui.set_function("TableSetColumnIndex"			, TableSetColumnIndex);
+
+		ImGui.set_function("TableSetupColumn"				, sol::overload(
+																sol::resolve<void(const std::string&)>(TableSetupColumn),
+																sol::resolve<void(const std::string&, int)>(TableSetupColumn),
+																sol::resolve<void(const std::string&, int, float)>(TableSetupColumn),
+																sol::resolve<void(const std::string&, int, float, uint32_t)>(TableSetupColumn)
+															));
+		ImGui.set_function("TableSetupScrollFreeze"			, TableSetupScrollFreeze);
+		ImGui.set_function("TableHeadersRow"				, TableHeadersRow);
+		ImGui.set_function("TableHeader"					, TableHeader);
+
+		ImGui.set_function("TableGetColumnCount"			, TableGetColumnCount);
+		ImGui.set_function("TableGetColumnName"				, sol::overload(
+																sol::resolve<std::string()>(TableGetColumnName),
+																sol::resolve<std::string(int)>(TableGetColumnName)
+															));
+		ImGui.set_function("TableGetColumnIsVisible"		, sol::overload(
+																sol::resolve<bool()>(TableGetColumnIsVisible),
+																sol::resolve<bool(int)>(TableGetColumnIsVisible)
+															));
+		ImGui.set_function("TableGetColumnIsSorted"			, sol::overload(
+																sol::resolve<bool()>(TableGetColumnIsSorted),
+																sol::resolve<bool(int)>(TableGetColumnIsSorted)
+															));
+		ImGui.set_function("TableGetHoveredColumn"			, TableGetHoveredColumn);
+
+		lua.new_usertype<ImGuiTableSortSpecsColumn>(
+			"ImGuiTableSortSpecsColumn"     , sol::no_constructor,
+			"ColumnUserID"                  , sol::readonly(&ImGuiTableSortSpecsColumn::ColumnUserID),
+			"ColumnIndex"                   , sol::readonly(&ImGuiTableSortSpecsColumn::ColumnIndex),
+			"SortOrder"                     , sol::readonly(&ImGuiTableSortSpecsColumn::SortOrder),
+			"SortDirection"                 , sol::property([](ImGuiTableSortSpecsColumn* spec) { return spec->SortDirection;})
+		);
+		lua.new_usertype<ImGuiTableSortSpecs>(
+			"ImGuiTableSortSpecs"           , sol::no_constructor,
+			"Specs"                         , [](ImGuiTableSortSpecs* spec, int index) -> ImGuiTableSortSpecsColumn* { if (index > 0 && index <= spec->SpecsCount) return (ImGuiTableSortSpecsColumn*)&spec->Specs[index - 1]; return nullptr; },
+			"SpecsCount"                    , sol::readonly(&ImGuiTableSortSpecs::SpecsCount),
+			"SpecsDirty"                    , &ImGuiTableSortSpecs::SpecsDirty,
+			"ColumnsMask"                   , sol::readonly(&ImGuiTableSortSpecs::ColumnsMask)
+		);
+		ImGui.set_function("TableGetSortSpecs"				, TableGetSortSpecs);
+
+		ImGui.set_function("TableSetBgColor"				, sol::overload(
+#ifdef SOL_IMGUI_USE_COLOR_U32
+																sol::resolve<void(int, int)>(TableSetBgColor),
+																sol::resolve<void(int, int, int)>(TableSetBgColor),
+#endif
+																sol::resolve<void(int, float, float, float, float)>(TableSetBgColor),
+																sol::resolve<void(int, float, float, float, float, int)>(TableSetBgColor)
+		));
+#pragma endregion
 
 #pragma region Columns
 		ImGui.set_function("Columns"						, sol::overload(
@@ -2929,18 +3211,12 @@ namespace sol_ImGui
 																sol::resolve<void(bool)>(CaptureMouseFromApp)
 															));
 #pragma endregion Inputs Utilities: Mouse
-		
+
 #pragma region Clipboard Utilities
 		ImGui.set_function("GetClipboardText"				, GetClipboardText);
 		ImGui.set_function("SetClipboardText"				, SetClipboardText);
 #pragma endregion Clipboard Utilities
 
-#pragma region MQ Specific Functions
-		ImGui.set_function("DrawTextureAnimation",			sol::overload(
-																sol::resolve<bool(const std::unique_ptr<CTextureAnimation>&, int, int)>(DrawTextureAnimation),
-																sol::resolve<bool(const std::unique_ptr<CTextureAnimation>&)>(DrawTextureAnimation)
-															));
-#pragma endregion
-
+		return ImGui;
 	}
 }
