@@ -35,6 +35,8 @@ bool lua_isyieldable(lua_State* L)
 }
 #endif
 
+void RegisterBitwiseOps(sol::state_view state);
+
 namespace mq::lua {
 
 // this is the special sauce that lets us execute everything on the main thread without blocking
@@ -394,6 +396,8 @@ static int LoadMQRequire(lua_State* L)
 void LuaThread::RegisterLuaState(std::shared_ptr<LuaThread> self_ptr, bool injectMQ)
 {
 	auto& state = thread.state();
+
+	RegisterBitwiseOps(state);
 
 	state["_old_dofile"] = state["dofile"];
 	state["dofile"] = [this](std::string_view file, sol::variadic_args args)

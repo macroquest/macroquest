@@ -90,6 +90,7 @@
     <ClCompile Include="LuaEvent.cpp" />
     <ClCompile Include="LuaImGui.cpp" />
     <ClCompile Include="LuaThread.cpp" />
+    <ClCompile Include="lua_Bit32.cpp" />
     <ClCompile Include="MQ2Lua.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
