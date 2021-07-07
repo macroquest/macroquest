@@ -1,3 +1,10 @@
+July 3, 2021
+- Fix chat events in other languages not being able to use .equal for the matched text (#333)
+
+June 24, 2021
+- Fix crash that would occur for some characters while zoning
+- Fix Task.Select and Task.Timer (#329)
+
 June 12, 2021
 - Added Macro Expression Evaluator tool. Can be used to display the result of a macro expression
   in real time. Find it underneath the Tools menu in the console.

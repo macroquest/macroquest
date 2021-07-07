@@ -3567,7 +3567,9 @@ void DeveloperTools_WindowInspector_EditString(std::string_view name, CXStr* str
 bool DeveloperTools_WindowInspector_HandleClick(int mouseButton, bool clicked)
 {
 	// If the picker is active, tell it that we clicked. Returns true (to consume the click) if this happens.
-	if (mouseButton == 0 && clicked && s_windowInspector->IsPicking())
+	if (mouseButton == 0 && clicked
+		&& s_windowInspector
+		&& s_windowInspector->IsPicking())
 	{
 		s_windowInspector->Pick();
 		return true;

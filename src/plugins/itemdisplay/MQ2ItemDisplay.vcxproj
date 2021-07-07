@@ -54,7 +54,7 @@
     <ResourceCompile Include="MQ2ItemDisplay.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="MQUI_CompareTipWnd.xml" />
+    <Xml Include="resources\uifiles\default\MQUI_CompareTipWnd.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

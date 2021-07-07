@@ -858,6 +858,8 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 				}
 			}
 		}
+
+		ImGuiZepEditor::Notify(message);
 	}
 };
 

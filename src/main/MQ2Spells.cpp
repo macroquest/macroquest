@@ -14,12 +14,723 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
+#include "MQ2SpellSearch.h"
+#include "mq/base/SimpleLexer.h"
 
 namespace mq {
 
 ci_unordered::multimap<std::string_view, EQ_Spell*> s_spellNameMap;
 std::map<int, int> s_triggeredSpells;
 std::recursive_mutex s_initializeSpellsMutex;
+
+static const ci_unordered::map<std::string_view, eEQSPELLCAT> s_spellCatLookup = {
+{ "Aegolism"            , SPELLCAT_AEGOLISM },
+{ "Agility"             , SPELLCAT_AGILITY },
+{ "Alliance"            , SPELLCAT_ALLIANCE },
+{ "Animal"              , SPELLCAT_ANIMAL },
+{ "Antonica"            , SPELLCAT_ANTONICA },
+{ "Armor Class"         , SPELLCAT_ARMOR_CLASS },
+{ "Attack"              , SPELLCAT_ATTACK },
+{ "Bane"                , SPELLCAT_BANE },
+{ "Blind"               , SPELLCAT_BLIND },
+{ "Block"               , SPELLCAT_BLOCK },
+{ "Calm"                , SPELLCAT_CALM },
+{ "Charisma"            , SPELLCAT_CHARISMA },
+{ "Charm"               , SPELLCAT_CHARM },
+{ "Cold"                , SPELLCAT_COLD },
+{ "Combat Abilities"    , SPELLCAT_COMBAT_ABILITIES },
+{ "Combat Innates"      , SPELLCAT_COMBAT_INNATES },
+{ "Conversions"         , SPELLCAT_CONVERSIONS },
+{ "Create Item"         , SPELLCAT_CREATE_ITEM },
+{ "Cure"                , SPELLCAT_CURE },
+{ "Damage Over Time"    , SPELLCAT_DAMAGE_OVER_TIME },
+{ "Damage Shield"       , SPELLCAT_DAMAGE_SHIELD },
+{ "Defensive"           , SPELLCAT_DEFENSIVE },
+{ "Destroy"             , SPELLCAT_DESTROY },
+{ "Dexterity"           , SPELLCAT_DEXTERITY },
+{ "Direct Damage"       , SPELLCAT_DIRECT_DAMAGE },
+{ "Disarm Traps"        , SPELLCAT_DISARM_TRAPS },
+{ "Disciplines"         , SPELLCAT_DISCIPLINES },
+{ "Discord"             , SPELLCAT_DISCORD },
+{ "Disease"             , SPELLCAT_DISEASE },
+{ "Disempowering"       , SPELLCAT_DISEMPOWERING },
+{ "Dispel"              , SPELLCAT_DISPEL },
+{ "Duration Heals"      , SPELLCAT_DURATION_HEALS },
+{ "Duration Tap"        , SPELLCAT_DURATION_TAP },
+{ "Enchant Metal"       , SPELLCAT_ENCHANT_METAL },
+{ "Enthrall"            , SPELLCAT_ENTHRALL },
+{ "Faydwer"             , SPELLCAT_FAYDWER },
+{ "Fear"                , SPELLCAT_FEAR },
+{ "Fire"                , SPELLCAT_FIRE },
+{ "Fizzle Rate"         , SPELLCAT_FIZZLE_RATE },
+{ "Fumble"              , SPELLCAT_FUMBLE },
+{ "Haste"               , SPELLCAT_HASTE },
+{ "Heals"               , SPELLCAT_HEALS },
+{ "Health"              , SPELLCAT_HEALTH },
+{ "Health/Mana"         , SPELLCAT_HEALTH_MANA },
+{ "HP Buffs"            , SPELLCAT_HP_BUFFS },
+{ "HP type one"         , SPELLCAT_HP_TYPE_ONE },
+{ "HP type two"         , SPELLCAT_HP_TYPE_TWO },
+{ "Illusion: Other"     , SPELLCAT_ILLUSION_OTHER },
+{ "Illusion: Adventurer", SPELLCAT_ILLUSION_ADVENTURER },
+{ "Imbue Gem"           , SPELLCAT_IMBUE_GEM },
+{ "Invisibility"        , SPELLCAT_INVISIBILITY },
+{ "Invulnerability"     , SPELLCAT_INVULNERABILITY },
+{ "Jolt"                , SPELLCAT_JOLT },
+{ "Kunark"              , SPELLCAT_KUNARK },
+{ "Levitate"            , SPELLCAT_LEVITATE },
+{ "Life Flow"           , SPELLCAT_LIFE_FLOW },
+{ "Luclin"              , SPELLCAT_LUCLIN },
+{ "Magic"               , SPELLCAT_MAGIC },
+{ "Mana"                , SPELLCAT_MANA },
+{ "Mana Drain"          , SPELLCAT_MANA_DRAIN },
+{ "Mana Flow"           , SPELLCAT_MANA_FLOW },
+{ "Melee Guard"         , SPELLCAT_MELEE_GUARD },
+{ "Memory Blur"         , SPELLCAT_MEMORY_BLUR },
+{ "Misc"                , SPELLCAT_MISC },
+{ "Movement"            , SPELLCAT_MOVEMENT },
+{ "Objects"             , SPELLCAT_OBJECTS },
+{ "Odus"                , SPELLCAT_ODUS },
+{ "Offensive"           , SPELLCAT_OFFENSIVE },
+{ "Pet"                 , SPELLCAT_PET },
+{ "Pet Haste"           , SPELLCAT_PET_HASTE },
+{ "Pet Misc Buffs"      , SPELLCAT_PET_MISC_BUFFS },
+{ "Physical"            , SPELLCAT_PHYSICAL },
+{ "Picklock"            , SPELLCAT_PICKLOCK },
+{ "Plant"               , SPELLCAT_PLANT },
+{ "Poison"              , SPELLCAT_POISON },
+{ "Power Tap"           , SPELLCAT_POWER_TAP },
+{ "Quick Heal"          , SPELLCAT_QUICK_HEAL },
+{ "Reflection"          , SPELLCAT_REFLECTION },
+{ "Regen"               , SPELLCAT_REGEN },
+{ "Resist Buff"         , SPELLCAT_RESIST_BUFF },
+{ "Resist Debuffs"      , SPELLCAT_RESIST_DEBUFFS },
+{ "Resurrection"        , SPELLCAT_RESURRECTION },
+{ "Root"                , SPELLCAT_ROOT },
+{ "Rune"                , SPELLCAT_RUNE },
+{ "Sense Trap"          , SPELLCAT_SENSE_TRAP },
+{ "Shadowstep"          , SPELLCAT_SHADOWSTEP },
+{ "Shielding"           , SPELLCAT_SHIELDING },
+{ "Slow"                , SPELLCAT_SLOW },
+{ "Snare"               , SPELLCAT_SNARE },
+{ "Special"             , SPELLCAT_SPECIAL },
+{ "Spell Focus"         , SPELLCAT_SPELL_FOCUS },
+{ "Spell Guard"         , SPELLCAT_SPELL_GUARD },
+{ "Spellshield"         , SPELLCAT_SPELLSHIELD },
+{ "Stamina"             , SPELLCAT_STAMINA },
+{ "Statistic Buffs"     , SPELLCAT_STATISTIC_BUFFS },
+{ "Strength"            , SPELLCAT_STRENGTH },
+{ "Stun"                , SPELLCAT_STUN },
+{ "Sum: Air"            , SPELLCAT_SUM_AIR },
+{ "Sum: Animation"      , SPELLCAT_SUM_ANIMATION },
+{ "Sum: Earth"          , SPELLCAT_SUM_EARTH },
+{ "Sum: Familiar"       , SPELLCAT_SUM_FAMILIAR },
+{ "Sum: Fire"           , SPELLCAT_SUM_FIRE },
+{ "Sum: Undead"         , SPELLCAT_SUM_UNDEAD },
+{ "Sum: Warder"         , SPELLCAT_SUM_WARDER },
+{ "Sum: Water"          , SPELLCAT_SUM_WATER },
+{ "Summon Armor"        , SPELLCAT_SUMMON_ARMOR },
+{ "Summon Focus"        , SPELLCAT_SUMMON_FOCUS },
+{ "Summon Food/Water"   , SPELLCAT_SUMMON_FOOD_WATER },
+{ "Summon Utility"      , SPELLCAT_SUMMON_UTILITY },
+{ "Summon Weapon"       , SPELLCAT_SUMMON_WEAPON },
+{ "Summoned"            , SPELLCAT_SUMMONED },
+{ "Symbol"              , SPELLCAT_SYMBOL },
+{ "Taelosia"            , SPELLCAT_TAELOSIA },
+{ "Taps"                , SPELLCAT_TAPS },
+{ "Techniques"          , SPELLCAT_TECHNIQUES },
+{ "The Planes"          , SPELLCAT_THE_PLANES },
+{ "Timer 1"             , SPELLCAT_TIMER_1 },
+{ "Timer 2"             , SPELLCAT_TIMER_2 },
+{ "Timer 3"             , SPELLCAT_TIMER_3 },
+{ "Timer 4"             , SPELLCAT_TIMER_4 },
+{ "Timer 5"             , SPELLCAT_TIMER_5 },
+{ "Timer 6"             , SPELLCAT_TIMER_6 },
+{ "Transport"           , SPELLCAT_TRANSPORT },
+{ "Undead"              , SPELLCAT_UNDEAD },
+{ "Utility Beneficial"  , SPELLCAT_UTILITY_BENEFICIAL },
+{ "Utility Detrimental" , SPELLCAT_UTILITY_DETRIMENTAL },
+{ "Velious"             , SPELLCAT_VELIOUS },
+{ "Visages"             , SPELLCAT_VISAGES },
+{ "Vision"              , SPELLCAT_VISION },
+{ "Wisdom/Intelligence" , SPELLCAT_WISDOM_INTELLIGENCE },
+{ "Traps"               , SPELLCAT_TRAPS },
+{ "Auras"               , SPELLCAT_AURAS },
+{ "Endurance"           , SPELLCAT_ENDURANCE },
+{ "Serpent's Spine"     , SPELLCAT_SERPENTS_SPINE },
+{ "Corruption"          , SPELLCAT_CORRUPTION },
+{ "Learning"            , SPELLCAT_LEARNING },
+{ "Chromatic"           , SPELLCAT_CHROMATIC },
+{ "Prismatic"           , SPELLCAT_PRISMATIC },
+{ "Sum: Swarm"          , SPELLCAT_SUM_SWARM },
+{ "Delayed"             , SPELLCAT_DELAYED },
+{ "Temporary"           , SPELLCAT_TEMPORARY },
+{ "Twincast"            , SPELLCAT_TWINCAST },
+{ "Sum: Bodyguard"      , SPELLCAT_SUM_BODYGUARD },
+{ "Humanoid"            , SPELLCAT_HUMANOID },
+{ "Haste/Spell Focus"   , SPELLCAT_HASTE_SPELL_FOCUS },
+{ "Timer 7"             , SPELLCAT_TIMER_7 },
+{ "Timer 8"             , SPELLCAT_TIMER_8 },
+{ "Timer 9"             , SPELLCAT_TIMER_9 },
+{ "Timer 10"            , SPELLCAT_TIMER_10 },
+{ "Timer 11"            , SPELLCAT_TIMER_11 },
+{ "Timer 12"            , SPELLCAT_TIMER_12 },
+{ "Hatred"              , SPELLCAT_HATRED },
+{ "Fast"                , SPELLCAT_FAST },
+{ "Illusion: Special"   , SPELLCAT_ILLUSION_SPECIAL },
+{ "Timer 13"            , SPELLCAT_TIMER_13 },
+{ "Timer 14"            , SPELLCAT_TIMER_14 },
+{ "Timer 15"            , SPELLCAT_TIMER_15 },
+{ "Timer 16"            , SPELLCAT_TIMER_16 },
+{ "Timer 17"            , SPELLCAT_TIMER_17 },
+{ "Timer 18"            , SPELLCAT_TIMER_18 },
+{ "Timer 19"            , SPELLCAT_TIMER_19 },
+{ "Timer 20"            , SPELLCAT_TIMER_20 },
+{ "Alaris"              , SPELLCAT_ALARIS },
+{ "Combination"         , SPELLCAT_COMBINATION },
+{ "Independent"         , SPELLCAT_INDEPENDENT },
+{ "Skill Attacks"       , SPELLCAT_SKILL_ATTACKS },
+{ "Incoming"            , SPELLCAT_INCOMING },
+{ "Curse"               , SPELLCAT_CURSE },
+{ "Timer 21"            , SPELLCAT_TIMER_21 },
+{ "Timer 22"            , SPELLCAT_TIMER_22 },
+{ "Timer 23"            , SPELLCAT_TIMER_23 },
+{ "Timer 24"            , SPELLCAT_TIMER_24 },
+{ "Timer 25"            , SPELLCAT_TIMER_25 },
+{ "Drunkenness"         , SPELLCAT_DRUNKENNESS },
+{ "Throwing"            , SPELLCAT_THROWING },
+{ "Melee Damage"        , SPELLCAT_MELEE_DAMAGE },
+};
+
+static const ci_unordered::map<std::string_view, eEQSPA> s_spaLookup = {
+{ "HP"                                , SPA_HP },
+{ "AC"                                , SPA_AC },
+{ "ATTACK_POWER"                      , SPA_ATTACK_POWER },
+{ "MOVEMENT_RATE"                     , SPA_MOVEMENT_RATE },
+{ "STR"                               , SPA_STR },
+{ "DEX"                               , SPA_DEX },
+{ "AGI"                               , SPA_AGI },
+{ "STA"                               , SPA_STA },
+{ "INT"                               , SPA_INT },
+{ "WIS"                               , SPA_WIS },
+{ "CHA"                               , SPA_CHA },
+{ "HASTE"                             , SPA_HASTE },
+{ "INVISIBILITY"                      , SPA_INVISIBILITY },
+{ "SEE_INVIS"                         , SPA_SEE_INVIS },
+{ "ENDURING_BREATH"                   , SPA_ENDURING_BREATH },
+{ "MANA"                              , SPA_MANA },
+{ "NPC_FRENZY"                        , SPA_NPC_FRENZY },
+{ "NPC_AWARENESS"                     , SPA_NPC_AWARENESS },
+{ "NPC_AGGRO"                         , SPA_NPC_AGGRO },
+{ "NPC_FACTION"                       , SPA_NPC_FACTION },
+{ "BLINDNESS"                         , SPA_BLINDNESS },
+{ "STUN"                              , SPA_STUN },
+{ "CHARM"                             , SPA_CHARM },
+{ "FEAR"                              , SPA_FEAR },
+{ "FATIGUE"                           , SPA_FATIGUE },
+{ "BIND_AFFINITY"                     , SPA_BIND_AFFINITY },
+{ "GATE"                              , SPA_GATE },
+{ "DISPEL_MAGIC"                      , SPA_DISPEL_MAGIC },
+{ "INVIS_VS_UNDEAD"                   , SPA_INVIS_VS_UNDEAD },
+{ "INVIS_VS_ANIMALS"                  , SPA_INVIS_VS_ANIMALS },
+{ "NPC_AGGRO_RADIUS"                  , SPA_NPC_AGGRO_RADIUS },
+{ "ENTHRALL"                          , SPA_ENTHRALL },
+{ "CREATE_ITEM"                       , SPA_CREATE_ITEM },
+{ "SUMMON_PET"                        , SPA_SUMMON_PET },
+{ "CONFUSE"                           , SPA_CONFUSE },
+{ "DISEASE"                           , SPA_DISEASE },
+{ "POISON"                            , SPA_POISON },
+{ "DETECT_HOSTILE"                    , SPA_DETECT_HOSTILE },
+{ "DETECT_MAGIC"                      , SPA_DETECT_MAGIC },
+{ "NO_TWINCAST"                       , SPA_NO_TWINCAST },
+{ "INVULNERABILITY"                   , SPA_INVULNERABILITY },
+{ "BANISH"                            , SPA_BANISH },
+{ "SHADOW_STEP"                       , SPA_SHADOW_STEP },
+{ "BERSERK"                           , SPA_BERSERK },
+{ "LYCANTHROPY"                       , SPA_LYCANTHROPY },
+{ "VAMPIRISM"                         , SPA_VAMPIRISM },
+{ "RESIST_FIRE"                       , SPA_RESIST_FIRE },
+{ "RESIST_COLD"                       , SPA_RESIST_COLD },
+{ "RESIST_POISON"                     , SPA_RESIST_POISON },
+{ "RESIST_DISEASE"                    , SPA_RESIST_DISEASE },
+{ "RESIST_MAGIC"                      , SPA_RESIST_MAGIC },
+{ "DETECT_TRAPS"                      , SPA_DETECT_TRAPS },
+{ "DETECT_UNDEAD"                     , SPA_DETECT_UNDEAD },
+{ "DETECT_SUMMONED"                   , SPA_DETECT_SUMMONED },
+{ "DETECT_ANIMALS"                    , SPA_DETECT_ANIMALS },
+{ "STONESKIN"                         , SPA_STONESKIN },
+{ "TRUE_NORTH"                        , SPA_TRUE_NORTH },
+{ "LEVITATION"                        , SPA_LEVITATION },
+{ "CHANGE_FORM"                       , SPA_CHANGE_FORM },
+{ "DAMAGE_SHIELD"                     , SPA_DAMAGE_SHIELD },
+{ "TRANSFER_ITEM"                     , SPA_TRANSFER_ITEM },
+{ "ITEM_LORE"                         , SPA_ITEM_LORE },
+{ "ITEM_IDENTIFY"                     , SPA_ITEM_IDENTIFY },
+{ "NPC_WIPE_HATE_LIST"                , SPA_NPC_WIPE_HATE_LIST },
+{ "SPIN_STUN"                         , SPA_SPIN_STUN },
+{ "INFRAVISION"                       , SPA_INFRAVISION },
+{ "ULTRAVISION"                       , SPA_ULTRAVISION },
+{ "EYE_OF_ZOMM"                       , SPA_EYE_OF_ZOMM },
+{ "RECLAIM_ENERGY"                    , SPA_RECLAIM_ENERGY },
+{ "MAX_HP"                            , SPA_MAX_HP },
+{ "CORPSE_BOMB"                       , SPA_CORPSE_BOMB },
+{ "CREATE_UNDEAD"                     , SPA_CREATE_UNDEAD },
+{ "PRESERVE_CORPSE"                   , SPA_PRESERVE_CORPSE },
+{ "BIND_SIGHT"                        , SPA_BIND_SIGHT },
+{ "FEIGN_DEATH"                       , SPA_FEIGN_DEATH },
+{ "VENTRILOQUISM"                     , SPA_VENTRILOQUISM },
+{ "SENTINEL"                          , SPA_SENTINEL },
+{ "LOCATE_CORPSE"                     , SPA_LOCATE_CORPSE },
+{ "SPELL_SHIELD"                      , SPA_SPELL_SHIELD },
+{ "INSTANT_HP"                        , SPA_INSTANT_HP },
+{ "ENCHANT_LIGHT"                     , SPA_ENCHANT_LIGHT },
+{ "RESURRECT"                         , SPA_RESURRECT },
+{ "SUMMON_TARGET"                     , SPA_SUMMON_TARGET },
+{ "PORTAL"                            , SPA_PORTAL },
+{ "HP_NPC_ONLY"                       , SPA_HP_NPC_ONLY },
+{ "MELEE_PROC"                        , SPA_MELEE_PROC },
+{ "NPC_HELP_RADIUS"                   , SPA_NPC_HELP_RADIUS },
+{ "MAGNIFICATION"                     , SPA_MAGNIFICATION },
+{ "EVACUATE"                          , SPA_EVACUATE },
+{ "HEIGHT"                            , SPA_HEIGHT },
+{ "IGNORE_PET"                        , SPA_IGNORE_PET },
+{ "SUMMON_CORPSE"                     , SPA_SUMMON_CORPSE },
+{ "HATE"                              , SPA_HATE },
+{ "WEATHER_CONTROL"                   , SPA_WEATHER_CONTROL },
+{ "FRAGILE"                           , SPA_FRAGILE },
+{ "SACRIFICE"                         , SPA_SACRIFICE },
+{ "SILENCE"                           , SPA_SILENCE },
+{ "MAX_MANA"                          , SPA_MAX_MANA },
+{ "BARD_HASTE"                        , SPA_BARD_HASTE },
+{ "ROOT"                              , SPA_ROOT },
+{ "HEALDOT"                           , SPA_HEALDOT },
+{ "COMPLETEHEAL"                      , SPA_COMPLETEHEAL },
+{ "PET_FEARLESS"                      , SPA_PET_FEARLESS },
+{ "CALL_PET"                          , SPA_CALL_PET },
+{ "TRANSLOCATE"                       , SPA_TRANSLOCATE },
+{ "NPC_ANTI_GATE"                     , SPA_NPC_ANTI_GATE },
+{ "BEASTLORD_PET"                     , SPA_BEASTLORD_PET },
+{ "ALTER_PET_LEVEL"                   , SPA_ALTER_PET_LEVEL },
+{ "FAMILIAR"                          , SPA_FAMILIAR },
+{ "CREATE_ITEM_IN_BAG"                , SPA_CREATE_ITEM_IN_BAG },
+{ "ARCHERY"                           , SPA_ARCHERY },
+{ "RESIST_ALL"                        , SPA_RESIST_ALL },
+{ "FIZZLE_SKILL"                      , SPA_FIZZLE_SKILL },
+{ "SUMMON_MOUNT"                      , SPA_SUMMON_MOUNT },
+{ "MODIFY_HATE"                       , SPA_MODIFY_HATE },
+{ "CORNUCOPIA"                        , SPA_CORNUCOPIA },
+{ "CURSE"                             , SPA_CURSE },
+{ "HIT_MAGIC"                         , SPA_HIT_MAGIC },
+{ "AMPLIFICATION"                     , SPA_AMPLIFICATION },
+{ "ATTACK_SPEED_MAX"                  , SPA_ATTACK_SPEED_MAX },
+{ "HEALMOD"                           , SPA_HEALMOD },
+{ "IRONMAIDEN"                        , SPA_IRONMAIDEN },
+{ "REDUCESKILL"                       , SPA_REDUCESKILL },
+{ "IMMUNITY"                          , SPA_IMMUNITY },
+{ "FOCUS_DAMAGE_MOD"                  , SPA_FOCUS_DAMAGE_MOD },
+{ "FOCUS_HEAL_MOD"                    , SPA_FOCUS_HEAL_MOD },
+{ "FOCUS_RESIST_MOD"                  , SPA_FOCUS_RESIST_MOD },
+{ "FOCUS_CAST_TIME_MOD"               , SPA_FOCUS_CAST_TIME_MOD },
+{ "FOCUS_DURATION_MOD"                , SPA_FOCUS_DURATION_MOD },
+{ "FOCUS_RANGE_MOD"                   , SPA_FOCUS_RANGE_MOD },
+{ "FOCUS_HATE_MOD"                    , SPA_FOCUS_HATE_MOD },
+{ "FOCUS_REAGENT_MOD"                 , SPA_FOCUS_REAGENT_MOD },
+{ "FOCUS_MANACOST_MOD"                , SPA_FOCUS_MANACOST_MOD },
+{ "FOCUS_STUNTIME_MOD"                , SPA_FOCUS_STUNTIME_MOD },
+{ "FOCUS_LEVEL_MAX"                   , SPA_FOCUS_LEVEL_MAX },
+{ "FOCUS_RESIST_TYPE"                 , SPA_FOCUS_RESIST_TYPE },
+{ "FOCUS_TARGET_TYPE"                 , SPA_FOCUS_TARGET_TYPE },
+{ "FOCUS_WHICH_SPA"                   , SPA_FOCUS_WHICH_SPA },
+{ "FOCUS_BENEFICIAL"                  , SPA_FOCUS_BENEFICIAL },
+{ "FOCUS_WHICH_SPELL"                 , SPA_FOCUS_WHICH_SPELL },
+{ "FOCUS_DURATION_MIN"                , SPA_FOCUS_DURATION_MIN },
+{ "FOCUS_INSTANT_ONLY"                , SPA_FOCUS_INSTANT_ONLY },
+{ "FOCUS_LEVEL_MIN"                   , SPA_FOCUS_LEVEL_MIN },
+{ "FOCUS_CASTTIME_MIN"                , SPA_FOCUS_CASTTIME_MIN },
+{ "FOCUS_CASTTIME_MAX"                , SPA_FOCUS_CASTTIME_MAX },
+{ "NPC_PORTAL_WARDER_BANISH"          , SPA_NPC_PORTAL_WARDER_BANISH },
+{ "PORTAL_LOCATIONS"                  , SPA_PORTAL_LOCATIONS },
+{ "PERCENT_HEAL"                      , SPA_PERCENT_HEAL },
+{ "STACKING_BLOCK"                    , SPA_STACKING_BLOCK },
+{ "STRIP_VIRTUAL_SLOT"                , SPA_STRIP_VIRTUAL_SLOT },
+{ "DIVINE_INTERVENTION"               , SPA_DIVINE_INTERVENTION },
+{ "POCKET_PET"                        , SPA_POCKET_PET },
+{ "PET_SWARM"                         , SPA_PET_SWARM },
+{ "HEALTH_BALANCE"                    , SPA_HEALTH_BALANCE },
+{ "CANCEL_NEGATIVE_MAGIC"             , SPA_CANCEL_NEGATIVE_MAGIC },
+{ "POP_RESURRECT"                     , SPA_POP_RESURRECT },
+{ "MIRROR"                            , SPA_MIRROR },
+{ "FEEDBACK"                          , SPA_FEEDBACK },
+{ "REFLECT"                           , SPA_REFLECT },
+{ "MODIFY_ALL_STATS"                  , SPA_MODIFY_ALL_STATS },
+{ "CHANGE_SOBRIETY"                   , SPA_CHANGE_SOBRIETY },
+{ "SPELL_GUARD"                       , SPA_SPELL_GUARD },
+{ "MELEE_GUARD"                       , SPA_MELEE_GUARD },
+{ "ABSORB_HIT"                        , SPA_ABSORB_HIT },
+{ "OBJECT_SENSE_TRAP"                 , SPA_OBJECT_SENSE_TRAP },
+{ "OBJECT_DISARM_TRAP"                , SPA_OBJECT_DISARM_TRAP },
+{ "OBJECT_PICKLOCK"                   , SPA_OBJECT_PICKLOCK },
+{ "FOCUS_PET"                         , SPA_FOCUS_PET },
+{ "DEFENSIVE"                         , SPA_DEFENSIVE },
+{ "CRITICAL_MELEE"                    , SPA_CRITICAL_MELEE },
+{ "CRITICAL_SPELL"                    , SPA_CRITICAL_SPELL },
+{ "CRIPPLING_BLOW"                    , SPA_CRIPPLING_BLOW },
+{ "EVASION"                           , SPA_EVASION },
+{ "RIPOSTE"                           , SPA_RIPOSTE },
+{ "DODGE"                             , SPA_DODGE },
+{ "PARRY"                             , SPA_PARRY },
+{ "DUAL_WIELD"                        , SPA_DUAL_WIELD },
+{ "DOUBLE_ATTACK"                     , SPA_DOUBLE_ATTACK },
+{ "MELEE_LIFETAP"                     , SPA_MELEE_LIFETAP },
+{ "PURETONE"                          , SPA_PURETONE },
+{ "SANCTIFICATION"                    , SPA_SANCTIFICATION },
+{ "FEARLESS"                          , SPA_FEARLESS },
+{ "HUNDRED_HANDS"                     , SPA_HUNDRED_HANDS },
+{ "SKILL_INCREASE_CHANCE"             , SPA_SKILL_INCREASE_CHANCE },
+{ "ACCURACY"                          , SPA_ACCURACY },
+{ "SKILL_DAMAGE_MOD"                  , SPA_SKILL_DAMAGE_MOD },
+{ "MIN_DAMAGE_DONE_MOD"               , SPA_MIN_DAMAGE_DONE_MOD },
+{ "MANA_BALANCE"                      , SPA_MANA_BALANCE },
+{ "BLOCK"                             , SPA_BLOCK },
+{ "ENDURANCE"                         , SPA_ENDURANCE },
+{ "INCREASE_MAX_ENDURANCE"            , SPA_INCREASE_MAX_ENDURANCE },
+{ "AMNESIA"                           , SPA_AMNESIA },
+{ "HATE_OVER_TIME"                    , SPA_HATE_OVER_TIME },
+{ "SKILL_ATTACK"                      , SPA_SKILL_ATTACK },
+{ "FADE"                              , SPA_FADE },
+{ "STUN_RESIST"                       , SPA_STUN_RESIST },
+{ "STRIKETHROUGH1"                    , SPA_STRIKETHROUGH1 },
+{ "SKILL_DAMAGE_TAKEN"                , SPA_SKILL_DAMAGE_TAKEN },
+{ "INSTANT_ENDURANCE"                 , SPA_INSTANT_ENDURANCE },
+{ "TAUNT"                             , SPA_TAUNT },
+{ "PROC_CHANCE"                       , SPA_PROC_CHANCE },
+{ "RANGE_ABILITY"                     , SPA_RANGE_ABILITY },
+{ "ILLUSION_OTHERS"                   , SPA_ILLUSION_OTHERS },
+{ "MASS_GROUP_BUFF"                   , SPA_MASS_GROUP_BUFF },
+{ "GROUP_FEAR_IMMUNITY"               , SPA_GROUP_FEAR_IMMUNITY },
+{ "RAMPAGE"                           , SPA_RAMPAGE },
+{ "AE_TAUNT"                          , SPA_AE_TAUNT },
+{ "FLESH_TO_BONE"                     , SPA_FLESH_TO_BONE },
+{ "PURGE_POISON"                      , SPA_PURGE_POISON },
+{ "CANCEL_BENEFICIAL"                 , SPA_CANCEL_BENEFICIAL },
+{ "SHIELD_CASTER"                     , SPA_SHIELD_CASTER },
+{ "DESTRUCTIVE_FORCE"                 , SPA_DESTRUCTIVE_FORCE },
+{ "FOCUS_FRENZIED_DEVASTATION"        , SPA_FOCUS_FRENZIED_DEVASTATION },
+{ "PET_PCT_MAX_HP"                    , SPA_PET_PCT_MAX_HP },
+{ "HP_MAX_HP"                         , SPA_HP_MAX_HP },
+{ "PET_PCT_AVOIDANCE"                 , SPA_PET_PCT_AVOIDANCE },
+{ "MELEE_ACCURACY"                    , SPA_MELEE_ACCURACY },
+{ "HEADSHOT"                          , SPA_HEADSHOT },
+{ "PET_CRIT_MELEE"                    , SPA_PET_CRIT_MELEE },
+{ "SLAY_UNDEAD"                       , SPA_SLAY_UNDEAD },
+{ "INCREASE_SKILL_DAMAGE"             , SPA_INCREASE_SKILL_DAMAGE },
+{ "REDUCE_WEIGHT"                     , SPA_REDUCE_WEIGHT },
+{ "BLOCK_BEHIND"                      , SPA_BLOCK_BEHIND },
+{ "DOUBLE_RIPOSTE"                    , SPA_DOUBLE_RIPOSTE },
+{ "ADD_RIPOSTE"                       , SPA_ADD_RIPOSTE },
+{ "GIVE_DOUBLE_ATTACK"                , SPA_GIVE_DOUBLE_ATTACK },
+{ "2H_BASH"                           , SPA_2H_BASH },
+{ "REDUCE_SKILL_TIMER"                , SPA_REDUCE_SKILL_TIMER },
+{ "ACROBATICS"                        , SPA_ACROBATICS },
+{ "CAST_THROUGH_STUN"                 , SPA_CAST_THROUGH_STUN },
+{ "EXTENDED_SHIELDING"                , SPA_EXTENDED_SHIELDING },
+{ "BASH_CHANCE"                       , SPA_BASH_CHANCE },
+{ "DIVINE_SAVE"                       , SPA_DIVINE_SAVE },
+{ "METABOLISM"                        , SPA_METABOLISM },
+{ "POISON_MASTERY"                    , SPA_POISON_MASTERY },
+{ "FOCUS_CHANNELING"                  , SPA_FOCUS_CHANNELING },
+{ "FREE_PET"                          , SPA_FREE_PET },
+{ "PET_AFFINITY"                      , SPA_PET_AFFINITY },
+{ "PERM_ILLUSION"                     , SPA_PERM_ILLUSION },
+{ "STONEWALL"                         , SPA_STONEWALL },
+{ "STRING_UNBREAKABLE"                , SPA_STRING_UNBREAKABLE },
+{ "IMPROVE_RECLAIM_ENERGY"            , SPA_IMPROVE_RECLAIM_ENERGY },
+{ "INCREASE_CHANGE_MEMWIPE"           , SPA_INCREASE_CHANGE_MEMWIPE },
+{ "ENHANCED_CHARM"                    , SPA_ENHANCED_CHARM },
+{ "ENHANCED_ROOT"                     , SPA_ENHANCED_ROOT },
+{ "TRAP_CIRCUMVENTION"                , SPA_TRAP_CIRCUMVENTION },
+{ "INCREASE_AIR_SUPPLY"               , SPA_INCREASE_AIR_SUPPLY },
+{ "INCREASE_MAX_SKILL"                , SPA_INCREASE_MAX_SKILL },
+{ "EXTRA_SPECIALIZATION"              , SPA_EXTRA_SPECIALIZATION },
+{ "OFFHAND_MIN_WEAPON_DAMAGE"         , SPA_OFFHAND_MIN_WEAPON_DAMAGE },
+{ "INCREASE_PROC_CHANCE"              , SPA_INCREASE_PROC_CHANCE },
+{ "ENDLESS_QUIVER"                    , SPA_ENDLESS_QUIVER },
+{ "BACKSTAB_FRONT"                    , SPA_BACKSTAB_FRONT },
+{ "CHAOTIC_STAB"                      , SPA_CHAOTIC_STAB },
+{ "NOSPELL"                           , SPA_NOSPELL },
+{ "SHIELDING_DURATION_MOD"            , SPA_SHIELDING_DURATION_MOD },
+{ "SHROUD_OF_STEALTH"                 , SPA_SHROUD_OF_STEALTH },
+{ "GIVE_PET_HOLD"                     , SPA_GIVE_PET_HOLD },
+{ "TRIPLE_BACKSTAB"                   , SPA_TRIPLE_BACKSTAB },
+{ "AC_LIMIT_MOD"                      , SPA_AC_LIMIT_MOD },
+{ "ADD_INSTRUMENT_MOD"                , SPA_ADD_INSTRUMENT_MOD },
+{ "SONG_MOD_CAP"                      , SPA_SONG_MOD_CAP },
+{ "INCREASE_STAT_CAP"                 , SPA_INCREASE_STAT_CAP },
+{ "TRADESKILL_MASTERY"                , SPA_TRADESKILL_MASTERY },
+{ "REDUCE_AA_TIMER"                   , SPA_REDUCE_AA_TIMER },
+{ "NO_FIZZLE"                         , SPA_NO_FIZZLE },
+{ "ADD_2H_ATTACK_CHANCE"              , SPA_ADD_2H_ATTACK_CHANCE },
+{ "ADD_PET_COMMANDS"                  , SPA_ADD_PET_COMMANDS },
+{ "ALCHEMY_FAIL_RATE"                 , SPA_ALCHEMY_FAIL_RATE },
+{ "FIRST_AID"                         , SPA_FIRST_AID },
+{ "EXTEND_SONG_RANGE"                 , SPA_EXTEND_SONG_RANGE },
+{ "BASE_RUN_MOD"                      , SPA_BASE_RUN_MOD },
+{ "INCREASE_CASTING_LEVEL"            , SPA_INCREASE_CASTING_LEVEL },
+{ "DOTCRIT"                           , SPA_DOTCRIT },
+{ "HEALCRIT"                          , SPA_HEALCRIT },
+{ "MENDCRIT"                          , SPA_MENDCRIT },
+{ "DUAL_WIELD_AMT"                    , SPA_DUAL_WIELD_AMT },
+{ "EXTRA_DI_CHANCE"                   , SPA_EXTRA_DI_CHANCE },
+{ "FINISHING_BLOW"                    , SPA_FINISHING_BLOW },
+{ "FLURRY"                            , SPA_FLURRY },
+{ "PET_FLURRY"                        , SPA_PET_FLURRY },
+{ "PET_FEIGN"                         , SPA_PET_FEIGN },
+{ "INCREASE_BANDAGE_AMT"              , SPA_INCREASE_BANDAGE_AMT },
+{ "WU_ATTACK"                         , SPA_WU_ATTACK },
+{ "IMPROVE_LOH"                       , SPA_IMPROVE_LOH },
+{ "NIMBLE_EVASION"                    , SPA_NIMBLE_EVASION },
+{ "FOCUS_DAMAGE_AMT"                  , SPA_FOCUS_DAMAGE_AMT },
+{ "FOCUS_DURATION_AMT"                , SPA_FOCUS_DURATION_AMT },
+{ "ADD_PROC_HIT"                      , SPA_ADD_PROC_HIT },
+{ "DOOM_EFFECT"                       , SPA_DOOM_EFFECT },
+{ "INCREASE_RUN_SPEED_CAP"            , SPA_INCREASE_RUN_SPEED_CAP },
+{ "PURIFY"                            , SPA_PURIFY },
+{ "STRIKETHROUGH"                     , SPA_STRIKETHROUGH },
+{ "STUN_RESIST2"                      , SPA_STUN_RESIST2 },
+{ "SPELL_CRIT_CHANCE"                 , SPA_SPELL_CRIT_CHANCE },
+{ "REDUCE_SPECIAL_TIMER"              , SPA_REDUCE_SPECIAL_TIMER },
+{ "FOCUS_DAMAGE_MOD_DETRIMENTAL"      , SPA_FOCUS_DAMAGE_MOD_DETRIMENTAL },
+{ "FOCUS_DAMAGE_AMT_DETRIMENTAL"      , SPA_FOCUS_DAMAGE_AMT_DETRIMENTAL },
+{ "TINY_COMPANION"                    , SPA_TINY_COMPANION },
+{ "WAKE_DEAD"                         , SPA_WAKE_DEAD },
+{ "DOPPELGANGER"                      , SPA_DOPPELGANGER },
+{ "INCREASE_RANGE_DMG"                , SPA_INCREASE_RANGE_DMG },
+{ "FOCUS_DAMAGE_MOD_CRIT"             , SPA_FOCUS_DAMAGE_MOD_CRIT },
+{ "FOCUS_DAMAGE_AMT_CRIT"             , SPA_FOCUS_DAMAGE_AMT_CRIT },
+{ "SECONDARY_RIPOSTE_MOD"             , SPA_SECONDARY_RIPOSTE_MOD },
+{ "DAMAGE_SHIELD_MOD"                 , SPA_DAMAGE_SHIELD_MOD },
+{ "WEAK_DEAD_2"                       , SPA_WEAK_DEAD_2 },
+{ "APPRAISAL"                         , SPA_APPRAISAL },
+{ "ZONE_SUSPEND_MINION"               , SPA_ZONE_SUSPEND_MINION },
+{ "TELEPORT_CASTERS_BINDPOINT"        , SPA_TELEPORT_CASTERS_BINDPOINT },
+{ "FOCUS_REUSE_TIMER"                 , SPA_FOCUS_REUSE_TIMER },
+{ "FOCUS_COMBAT_SKILL"                , SPA_FOCUS_COMBAT_SKILL },
+{ "OBSERVER"                          , SPA_OBSERVER },
+{ "FORAGE_MASTER"                     , SPA_FORAGE_MASTER },
+{ "IMPROVED_INVIS"                    , SPA_IMPROVED_INVIS },
+{ "IMPROVED_INVIS_UNDEAD"             , SPA_IMPROVED_INVIS_UNDEAD },
+{ "IMPROVED_INVIS_ANIMALS"            , SPA_IMPROVED_INVIS_ANIMALS },
+{ "INCREASE_WORN_HP_REGEN_CAP"        , SPA_INCREASE_WORN_HP_REGEN_CAP },
+{ "INCREASE_WORN_MANA_REGEN_CAP"      , SPA_INCREASE_WORN_MANA_REGEN_CAP },
+{ "CRITICAL_HP_REGEN"                 , SPA_CRITICAL_HP_REGEN },
+{ "SHIELD_BLOCK_CHANCE"               , SPA_SHIELD_BLOCK_CHANCE },
+{ "REDUCE_TARGET_HATE"                , SPA_REDUCE_TARGET_HATE },
+{ "GATE_STARTING_CITY"                , SPA_GATE_STARTING_CITY },
+{ "DEFENSIVE_PROC"                    , SPA_DEFENSIVE_PROC },
+{ "HP_FOR_MANA"                       , SPA_HP_FOR_MANA },
+{ "NO_BREAK_AE_SNEAK"                 , SPA_NO_BREAK_AE_SNEAK },
+{ "ADD_SPELL_SLOTS"                   , SPA_ADD_SPELL_SLOTS },
+{ "ADD_BUFF_SLOTS"                    , SPA_ADD_BUFF_SLOTS },
+{ "INCREASE_NEGATIVE_HP_LIMIT"        , SPA_INCREASE_NEGATIVE_HP_LIMIT },
+{ "MANA_ABSORB_PCT_DMG"               , SPA_MANA_ABSORB_PCT_DMG },
+{ "CRIT_ATTACK_MODIFIER"              , SPA_CRIT_ATTACK_MODIFIER },
+{ "FAIL_ALCHEMY_ITEM_RECOVERY"        , SPA_FAIL_ALCHEMY_ITEM_RECOVERY },
+{ "SUMMON_TO_CORPSE"                  , SPA_SUMMON_TO_CORPSE },
+{ "DOOM_RUNE_EFFECT"                  , SPA_DOOM_RUNE_EFFECT },
+{ "NO_MOVE_HP"                        , SPA_NO_MOVE_HP },
+{ "FOCUSED_IMMUNITY"                  , SPA_FOCUSED_IMMUNITY },
+{ "ILLUSIONARY_TARGET"                , SPA_ILLUSIONARY_TARGET },
+{ "INCREASE_EXP_MOD"                  , SPA_INCREASE_EXP_MOD },
+{ "EXPEDIENT_RECOVERY"                , SPA_EXPEDIENT_RECOVERY },
+{ "FOCUS_CASTING_PROC"                , SPA_FOCUS_CASTING_PROC },
+{ "CHANCE_SPELL"                      , SPA_CHANCE_SPELL },
+{ "WORN_ATTACK_CAP"                   , SPA_WORN_ATTACK_CAP },
+{ "NO_PANIC"                          , SPA_NO_PANIC },
+{ "SPELL_INTERRUPT"                   , SPA_SPELL_INTERRUPT },
+{ "ITEM_CHANNELING"                   , SPA_ITEM_CHANNELING },
+{ "ASSASSINATE_MAX_LEVEL"             , SPA_ASSASSINATE_MAX_LEVEL },
+{ "HEADSHOT_MAX_LEVEL"                , SPA_HEADSHOT_MAX_LEVEL },
+{ "DOUBLE_RANGED_ATTACK"              , SPA_DOUBLE_RANGED_ATTACK },
+{ "FOCUS_MANA_MIN"                    , SPA_FOCUS_MANA_MIN },
+{ "INCREASE_SHIELD_DMG"               , SPA_INCREASE_SHIELD_DMG },
+{ "MANABURN"                          , SPA_MANABURN },
+{ "SPAWN_INTERACTIVE_OBJECT"          , SPA_SPAWN_INTERACTIVE_OBJECT },
+{ "INCREASE_TRAP_COUNT"               , SPA_INCREASE_TRAP_COUNT },
+{ "INCREASE_SOI_COUNT"                , SPA_INCREASE_SOI_COUNT },
+{ "DEACTIVATE_ALL_TRAPS"              , SPA_DEACTIVATE_ALL_TRAPS },
+{ "LEARN_TRAP"                        , SPA_LEARN_TRAP },
+{ "CHANGE_TRIGGER_TYPE"               , SPA_CHANGE_TRIGGER_TYPE },
+{ "FOCUS_MUTE"                        , SPA_FOCUS_MUTE },
+{ "INSTANT_MANA"                      , SPA_INSTANT_MANA },
+{ "PASSIVE_SENSE_TRAP"                , SPA_PASSIVE_SENSE_TRAP },
+{ "PROC_ON_KILL_SHOT"                 , SPA_PROC_ON_KILL_SHOT },
+{ "PROC_ON_DEATH"                     , SPA_PROC_ON_DEATH },
+{ "POTION_BELT"                       , SPA_POTION_BELT },
+{ "BANDOLIER"                         , SPA_BANDOLIER },
+{ "ADD_TRIPLE_ATTACK_CHANCE"          , SPA_ADD_TRIPLE_ATTACK_CHANCE },
+{ "PROC_ON_SPELL_KILL_SHOT"           , SPA_PROC_ON_SPELL_KILL_SHOT },
+{ "GROUP_SHIELDING"                   , SPA_GROUP_SHIELDING },
+{ "MODIFY_BODY_TYPE"                  , SPA_MODIFY_BODY_TYPE },
+{ "MODIFY_FACTION"                    , SPA_MODIFY_FACTION },
+{ "CORRUPTION"                        , SPA_CORRUPTION },
+{ "RESIST_CORRUPTION"                 , SPA_RESIST_CORRUPTION },
+{ "SLOW"                              , SPA_SLOW },
+{ "GRANT_FORAGING"                    , SPA_GRANT_FORAGING },
+{ "DOOM_ALWAYS"                       , SPA_DOOM_ALWAYS },
+{ "TRIGGER_SPELL"                     , SPA_TRIGGER_SPELL },
+{ "CRIT_DOT_DMG_MOD"                  , SPA_CRIT_DOT_DMG_MOD },
+{ "FLING"                             , SPA_FLING },
+{ "DOOM_ENTITY"                       , SPA_DOOM_ENTITY },
+{ "RESIST_OTHER_SPA"                  , SPA_RESIST_OTHER_SPA },
+{ "DIRECTIONAL_TELEPORT"              , SPA_DIRECTIONAL_TELEPORT },
+{ "EXPLOSIVE_KNOCKBACK"               , SPA_EXPLOSIVE_KNOCKBACK },
+{ "FLING_TOWARD"                      , SPA_FLING_TOWARD },
+{ "SUPPRESSION"                       , SPA_SUPPRESSION },
+{ "FOCUS_CASTING_PROC_NORMALIZED"     , SPA_FOCUS_CASTING_PROC_NORMALIZED },
+{ "FLING_AT"                          , SPA_FLING_AT },
+{ "FOCUS_WHICH_GROUP"                 , SPA_FOCUS_WHICH_GROUP },
+{ "DOOM_DISPELLER"                    , SPA_DOOM_DISPELLER },
+{ "DOOM_DISPELLEE"                    , SPA_DOOM_DISPELLEE },
+{ "SUMMON_ALL_CORPSES"                , SPA_SUMMON_ALL_CORPSES },
+{ "REFRESH_SPELL_TIMER"               , SPA_REFRESH_SPELL_TIMER },
+{ "LOCKOUT_SPELL_TIMER"               , SPA_LOCKOUT_SPELL_TIMER },
+{ "FOCUS_MANA_MAX"                    , SPA_FOCUS_MANA_MAX },
+{ "FOCUS_HEAL_AMT"                    , SPA_FOCUS_HEAL_AMT },
+{ "FOCUS_HEAL_MOD_BENEFICIAL"         , SPA_FOCUS_HEAL_MOD_BENEFICIAL },
+{ "FOCUS_HEAL_AMT_BENEFICIAL"         , SPA_FOCUS_HEAL_AMT_BENEFICIAL },
+{ "FOCUS_HEAL_MOD_CRIT"               , SPA_FOCUS_HEAL_MOD_CRIT },
+{ "FOCUS_HEAL_AMT_CRIT"               , SPA_FOCUS_HEAL_AMT_CRIT },
+{ "ADD_PET_AC"                        , SPA_ADD_PET_AC },
+{ "FOCUS_SWARM_PET_DURATION"          , SPA_FOCUS_SWARM_PET_DURATION },
+{ "FOCUS_TWINCAST_CHANCE"             , SPA_FOCUS_TWINCAST_CHANCE },
+{ "HEALBURN"                          , SPA_HEALBURN },
+{ "MANA_IGNITE"                       , SPA_MANA_IGNITE },
+{ "ENDURANCE_IGNITE"                  , SPA_ENDURANCE_IGNITE },
+{ "FOCUS_SPELL_CLASS"                 , SPA_FOCUS_SPELL_CLASS },
+{ "FOCUS_SPELL_SUBCLASS"              , SPA_FOCUS_SPELL_SUBCLASS },
+{ "STAFF_BLOCK_CHANCE"                , SPA_STAFF_BLOCK_CHANCE },
+{ "DOOM_LIMIT_USE"                    , SPA_DOOM_LIMIT_USE },
+{ "DOOM_FOCUS_USED"                   , SPA_DOOM_FOCUS_USED },
+{ "LIMIT_HP"                          , SPA_LIMIT_HP },
+{ "LIMIT_MANA"                        , SPA_LIMIT_MANA },
+{ "LIMIT_ENDURANCE"                   , SPA_LIMIT_ENDURANCE },
+{ "FOCUS_LIMIT_CLASS"                 , SPA_FOCUS_LIMIT_CLASS },
+{ "FOCUS_LIMIT_RACE"                  , SPA_FOCUS_LIMIT_RACE },
+{ "FOCUS_BASE_EFFECTS"                , SPA_FOCUS_BASE_EFFECTS },
+{ "FOCUS_LIMIT_SKILL"                 , SPA_FOCUS_LIMIT_SKILL },
+{ "FOCUS_LIMIT_ITEM_CLASS"            , SPA_FOCUS_LIMIT_ITEM_CLASS },
+{ "AC2"                               , SPA_AC2 },
+{ "MANA2"                             , SPA_MANA2 },
+{ "FOCUS_INCREASE_SKILL_DMG_2"        , SPA_FOCUS_INCREASE_SKILL_DMG_2 },
+{ "PROC_EFFECT_2"                     , SPA_PROC_EFFECT_2 },
+{ "FOCUS_LIMIT_USE"                   , SPA_FOCUS_LIMIT_USE },
+{ "FOCUS_LIMIT_USE_AMT"               , SPA_FOCUS_LIMIT_USE_AMT },
+{ "FOCUS_LIMIT_USE_MIN"               , SPA_FOCUS_LIMIT_USE_MIN },
+{ "FOCUS_LIMIT_USE_TYPE"              , SPA_FOCUS_LIMIT_USE_TYPE },
+{ "GRAVITATE"                         , SPA_GRAVITATE },
+{ "FLY"                               , SPA_FLY },
+{ "ADD_EXTENDED_TARGET_SLOTS"         , SPA_ADD_EXTENDED_TARGET_SLOTS },
+{ "SKILL_PROC"                        , SPA_SKILL_PROC },
+{ "PROC_SKILL_MODIFIER"               , SPA_PROC_SKILL_MODIFIER },
+{ "SKILL_PROC_SUCCESS"                , SPA_SKILL_PROC_SUCCESS },
+{ "POST_EFFECT"                       , SPA_POST_EFFECT },
+{ "POST_EFFECT_DATA"                  , SPA_POST_EFFECT_DATA },
+{ "EXPAND_MAX_ACTIVE_TROPHY_BENEFITS" , SPA_EXPAND_MAX_ACTIVE_TROPHY_BENEFITS },
+{ "ADD_NORMALIZED_SKILL_MIN_DMG_AMT"  , SPA_ADD_NORMALIZED_SKILL_MIN_DMG_AMT },
+{ "ADD_NORMALIZED_SKILL_MIN_DMG_AMT_2", SPA_ADD_NORMALIZED_SKILL_MIN_DMG_AMT_2 },
+{ "FRAGILE_DEFENSE"                   , SPA_FRAGILE_DEFENSE },
+{ "FREEZE_BUFF_TIMER"                 , SPA_FREEZE_BUFF_TIMER },
+{ "TELEPORT_TO_ANCHOR"                , SPA_TELEPORT_TO_ANCHOR },
+{ "TRANSLOCATE_TO_ANCHOR"             , SPA_TRANSLOCATE_TO_ANCHOR },
+{ "ASSASSINATE"                       , SPA_ASSASSINATE },
+{ "FINISHING_BLOW_MAX"                , SPA_FINISHING_BLOW_MAX },
+{ "DISTANCE_REMOVAL"                  , SPA_DISTANCE_REMOVAL },
+{ "REQUIRE_TARGET_DOOM"               , SPA_REQUIRE_TARGET_DOOM },
+{ "REQUIRE_CASTER_DOOM"               , SPA_REQUIRE_CASTER_DOOM },
+{ "IMPROVED_TAUNT"                    , SPA_IMPROVED_TAUNT },
+{ "ADD_MERC_SLOT"                     , SPA_ADD_MERC_SLOT },
+{ "STACKER_A"                         , SPA_STACKER_A },
+{ "STACKER_B"                         , SPA_STACKER_B },
+{ "STACKER_C"                         , SPA_STACKER_C },
+{ "STACKER_D"                         , SPA_STACKER_D },
+{ "DOT_GUARD"                         , SPA_DOT_GUARD },
+{ "MELEE_THRESHOLD_GUARD"             , SPA_MELEE_THRESHOLD_GUARD },
+{ "SPELL_THRESHOLD_GUARD"             , SPA_SPELL_THRESHOLD_GUARD },
+{ "MELEE_THRESHOLD_DOOM"              , SPA_MELEE_THRESHOLD_DOOM },
+{ "SPELL_THRESHOLD_DOOM"              , SPA_SPELL_THRESHOLD_DOOM },
+{ "ADD_HATE_PCT"                      , SPA_ADD_HATE_PCT },
+{ "ADD_HATE_OVER_TIME_PCT"            , SPA_ADD_HATE_OVER_TIME_PCT },
+{ "RESOURCE_TAP"                      , SPA_RESOURCE_TAP },
+{ "FACTION_MOD"                       , SPA_FACTION_MOD },
+{ "SKILL_DAMAGE_MOD_2"                , SPA_SKILL_DAMAGE_MOD_2 },
+{ "OVERRIDE_NOT_FOCUSABLE"            , SPA_OVERRIDE_NOT_FOCUSABLE },
+{ "FOCUS_DAMAGE_MOD_2"                , SPA_FOCUS_DAMAGE_MOD_2 },
+{ "FOCUS_DAMAGE_AMT_2"                , SPA_FOCUS_DAMAGE_AMT_2 },
+{ "SHIELD"                            , SPA_SHIELD },
+{ "PC_PET_RAMPAGE"                    , SPA_PC_PET_RAMPAGE },
+{ "PC_PET_AE_RAMPAGE"                 , SPA_PC_PET_AE_RAMPAGE },
+{ "PC_PET_FLURRY"                     , SPA_PC_PET_FLURRY },
+{ "DAMAGE_SHIELD_MITIGATION_AMT"      , SPA_DAMAGE_SHIELD_MITIGATION_AMT },
+{ "DAMAGE_SHIELD_MITIGATION_PCT"      , SPA_DAMAGE_SHIELD_MITIGATION_PCT },
+{ "CHANCE_BEST_IN_SPELL_GROUP"        , SPA_CHANCE_BEST_IN_SPELL_GROUP },
+{ "TRIGGER_BEST_IN_SPELL_GROUP"       , SPA_TRIGGER_BEST_IN_SPELL_GROUP },
+{ "DOUBLE_MELEE_ATTACKS"              , SPA_DOUBLE_MELEE_ATTACKS },
+{ "AA_BUY_NEXT_RANK"                  , SPA_AA_BUY_NEXT_RANK },
+{ "DOUBLE_BACKSTAB_FRONT"             , SPA_DOUBLE_BACKSTAB_FRONT },
+{ "PET_MELEE_CRIT_DMG_MOD"            , SPA_PET_MELEE_CRIT_DMG_MOD },
+{ "TRIGGER_SPELL_NON_ITEM"            , SPA_TRIGGER_SPELL_NON_ITEM },
+{ "WEAPON_STANCE"                     , SPA_WEAPON_STANCE },
+{ "HATELIST_TO_TOP"                   , SPA_HATELIST_TO_TOP },
+{ "HATELIST_TO_TAIL"                  , SPA_HATELIST_TO_TAIL },
+{ "FOCUS_LIMIT_MIN_VALUE"             , SPA_FOCUS_LIMIT_MIN_VALUE },
+{ "FOCUS_LIMIT_MAX_VALUE"             , SPA_FOCUS_LIMIT_MAX_VALUE },
+{ "FOCUS_CAST_SPELL_ON_LAND"          , SPA_FOCUS_CAST_SPELL_ON_LAND },
+{ "SKILL_BASE_DAMAGE_MOD"             , SPA_SKILL_BASE_DAMAGE_MOD },
+{ "FOCUS_INCOMING_DMG_MOD"            , SPA_FOCUS_INCOMING_DMG_MOD },
+{ "FOCUS_INCOMING_DMG_AMT"            , SPA_FOCUS_INCOMING_DMG_AMT },
+{ "FOCUS_LIMIT_CASTER_CLASS"          , SPA_FOCUS_LIMIT_CASTER_CLASS },
+{ "FOCUS_LIMIT_SAME_CASTER"           , SPA_FOCUS_LIMIT_SAME_CASTER },
+{ "EXTEND_TRADESKILL_CAP"             , SPA_EXTEND_TRADESKILL_CAP },
+{ "DEFENDER_MELEE_FORCE_PCT"          , SPA_DEFENDER_MELEE_FORCE_PCT },
+{ "WORN_ENDURANCE_REGEN_CAP"          , SPA_WORN_ENDURANCE_REGEN_CAP },
+{ "FOCUS_MIN_REUSE_TIME"              , SPA_FOCUS_MIN_REUSE_TIME },
+{ "FOCUS_MAX_REUSE_TIME"              , SPA_FOCUS_MAX_REUSE_TIME },
+{ "FOCUS_ENDURANCE_MIN"               , SPA_FOCUS_ENDURANCE_MIN },
+{ "FOCUS_ENDURANCE_MAX"               , SPA_FOCUS_ENDURANCE_MAX },
+{ "PET_ADD_ATK"                       , SPA_PET_ADD_ATK },
+{ "FOCUS_DURATION_MAX"                , SPA_FOCUS_DURATION_MAX },
+{ "CRIT_MELEE_DMG_MOD_MAX"            , SPA_CRIT_MELEE_DMG_MOD_MAX },
+{ "FOCUS_CAST_PROC_NO_BYPASS"         , SPA_FOCUS_CAST_PROC_NO_BYPASS },
+{ "ADD_EXTRA_PRIMARY_ATTACK_PCT"      , SPA_ADD_EXTRA_PRIMARY_ATTACK_PCT },
+{ "ADD_EXTRA_SECONDARY_ATTACK_PCT"    , SPA_ADD_EXTRA_SECONDARY_ATTACK_PCT },
+{ "FOCUS_CAST_TIME_MOD2"              , SPA_FOCUS_CAST_TIME_MOD2 },
+{ "FOCUS_CAST_TIME_AMT"               , SPA_FOCUS_CAST_TIME_AMT },
+{ "FEARSTUN"                          , SPA_FEARSTUN },
+{ "MELEE_DMG_POSITION_MOD"            , SPA_MELEE_DMG_POSITION_MOD },
+{ "MELEE_DMG_POSITION_AMT"            , SPA_MELEE_DMG_POSITION_AMT },
+{ "DMG_TAKEN_POSITION_MOD"            , SPA_DMG_TAKEN_POSITION_MOD },
+{ "DMG_TAKEN_POSITION_AMT"            , SPA_DMG_TAKEN_POSITION_AMT },
+{ "AMPLIFY_MOD"                       , SPA_AMPLIFY_MOD },
+{ "AMPLIFY_AMT"                       , SPA_AMPLIFY_AMT },
+{ "HEALTH_TRANSFER"                   , SPA_HEALTH_TRANSFER },
+{ "FOCUS_RESIST_INCOMING"             , SPA_FOCUS_RESIST_INCOMING },
+{ "FOCUS_TIMER_MIN"                   , SPA_FOCUS_TIMER_MIN },
+{ "PROC_TIMER_MOD"                    , SPA_PROC_TIMER_MOD },
+{ "MANA_MAX"                          , SPA_MANA_MAX },
+{ "ENDURANCE_MAX"                     , SPA_ENDURANCE_MAX },
+{ "AC_AVOIDANCE_MAX"                  , SPA_AC_AVOIDANCE_MAX },
+{ "AC_MITIGATION_MAX"                 , SPA_AC_MITIGATION_MAX },
+{ "ATTACK_OFFENSE_MAX"                , SPA_ATTACK_OFFENSE_MAX },
+{ "ATTACK_ACCURACY_MAX"               , SPA_ATTACK_ACCURACY_MAX },
+{ "LUCK_AMT"                          , SPA_LUCK_AMT },
+{ "LUCK_PCT"                          , SPA_LUCK_PCT },
+{ "ENDURANCE_ABSORB_PCT_DMG"          , SPA_ENDURANCE_ABSORB_PCT_DMG },
+{ "INSTANT_MANA_PCT"                  , SPA_INSTANT_MANA_PCT },
+{ "INSTANT_ENDURANCE_PCT"             , SPA_INSTANT_ENDURANCE_PCT },
+{ "DURATION_HP_PCT"                   , SPA_DURATION_HP_PCT },
+{ "DURATION_MANA_PCT"                 , SPA_DURATION_MANA_PCT },
+{ "DURATION_ENDURANCE_PCT"            , SPA_DURATION_ENDURANCE_PCT },
+};
 
 static void InitializeSpells();
 static void ShutdownSpells();
@@ -100,7 +811,7 @@ static void PopulateTriggeredmap(EQ_Spell* pSpell)
 	{
 		if (!IsRecursiveEffect(GetSpellAttrib(pSpell, i)))
 			continue;
-		
+
 		int triggeredSpellID = GetSpellBase2(pSpell, i);
 		if (i > 0)
 			s_triggeredSpells[triggeredSpellID] = pSpell->ID;
@@ -221,8 +932,7 @@ static EQ_Spell* GetSpellFromMap(std::string_view name)
 		// otherwise, I can't have this spell
 	}
 
-
-	// if we got here, the spell the user is after isnt one his character can cast, so
+	// if we got here, the spell the user is after isn't one his character can cast, so
 	// we will have to roll through it again and see if its usable by any other class
 
 	EQ_Spell* usableSpell = nullptr;
@@ -2850,6 +3560,12 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 	case SPA_ATTACK_OFFENSE_MAX: //Attack Offense Max Percent
 	case SPA_LUCK_AMT: //Luck Amt
 	case SPA_LUCK_PCT: //Luck Percent
+	case SPA_ENDURANCE_ABSORB_PCT_DMG: // Endurance Absorb % Damage
+	case SPA_INSTANT_MANA_PCT: // Instant Mana %
+	case SPA_INSTANT_ENDURANCE_PCT: // Instant Endurance %
+	case SPA_DURATION_HP_PCT: // Duration HP %
+	case SPA_DURATION_MANA_PCT: // Duration Mana %
+	case SPA_DURATION_ENDURANCE_PCT: // Duration Endurance % 
 	default: //undefined effect
 		sprintf_s(szTemp, "%s (base=%d, base2=%d, max=%d, calc=%d, value=%d)", spelleffectname.c_str(), base, base2, max, calc, value);
 		strcat_s(szBuff, szTemp);
@@ -2888,7 +3604,7 @@ void SlotValueCalculate(char* szBuff, EQ_Spell* pSpell, int i, double mp)
 		CalcValue(GetSpellCalc(pSpell, i), GetSpellBase(pSpell, i), GetSpellMax(pSpell, i), pSpell->DurationCap));
 }
 
-int GetSpellCounters(eEQSPA spellAffect, const SPELLBUFF& buff)
+int GetSpellCounters(eEQSPA spellAffect, const EQ_Affect& buff)
 {
 	int count = 0;
 
@@ -2938,7 +3654,7 @@ int GetMySpellCounters(eEQSPA spellAffect)
 	return count;
 }
 
-int GetTotalSpellCounters(const SPELLBUFF& buff)
+int GetTotalSpellCounters(const EQ_Affect& buff)
 {
 	int count = 0;
 
@@ -3082,6 +3798,552 @@ int GetMeleeSpeedPctFromSpell(EQ_Spell* pSpell, bool bIncrease)
 	}
 
 	return 0;
+}
+
+//Usage: The spa is the spellaffect id, for example 11 for Melee Speed
+//       the bIncrease tells the function if we want spells that increase or decrease the SPA
+bool HasSPA(EQ_Spell* pSpell, eEQSPA eSPA, bool bIncrease)
+{
+	if (!pSpell)
+		return false;
+
+	// in general, if we have a base, then we have found the SPA and it exists on this spell
+	// however, we need to do a few other checks for things that might be an increase or decrease
+	int base = pSpell->SpellAffectBase(eSPA);
+	if (base == 0)
+		return false;
+
+	switch (eSPA)
+	{
+	case SPA_MOVEMENT_RATE: // Movement Rate
+		// below 0 means its a snare above its runspeed increase...
+		return (!bIncrease && base < 0) || (bIncrease && base > 0);
+
+	case SPA_HASTE: // Melee Speed
+		// below 100 means its a slow above its haste...
+		return (!bIncrease && base < 100) || (bIncrease && base > 100);
+
+	case SPA_DAMAGE_SHIELD: // Damage Shield
+		// decreased DS
+		return (!bIncrease && base > 0) || (bIncrease && base < 0);
+
+	case SPA_IRONMAIDEN: // Reverse Damage Shield
+		// decreased DS
+		return (!bIncrease && base > 0) || (bIncrease && base < 0);
+
+	default:
+		// has the SPA
+		return true;
+	}
+}
+bool HasSPA(const EQ_Affect& buff, eEQSPA eSPA, bool bIncrease) { return HasSPA(GetSpellByID(buff.SpellID), eSPA, bIncrease); }
+bool HasSPA(const CachedBuff& buff, eEQSPA eSPA, bool bIncrease) { return HasSPA(GetSpellByID(buff.spellId), eSPA, bIncrease); }
+
+int GetPlayerClass(const char* name)
+{
+	auto player_class = std::find_if(std::cbegin(ClassInfo), std::cend(ClassInfo),
+		[name](const SClassInfo& info)
+		{
+			return ci_equals(info.ShortName, name) || ci_equals(info.Name, name);
+		});
+
+	if (player_class != std::cend(ClassInfo))
+		return std::distance(std::cbegin(ClassInfo), player_class);
+
+	return 0;
+}
+
+bool IsSpellUsableForClass(EQ_Spell* pSpell, unsigned int classmask)
+{
+	if (!pSpell)
+		return false;
+
+	if (classmask != Unknown)
+	{
+		for (int N = 0; N < 16; N++)
+		{
+			if (classmask & (1 << N))
+			{
+				if (pSpell->ClassLevel[N] != 255)
+					return true;
+			}
+		}
+		return false;
+	}
+	return true;
+}
+bool IsSpellUsableForClass(const EQ_Affect& buff, unsigned int classmask) { return IsSpellUsableForClass(GetSpellByID(buff.SpellID), classmask); }
+bool IsSpellUsableForClass(CachedBuff buff, unsigned int classmask) { return IsSpellUsableForClass(GetSpellByID(buff.spellId), classmask); }
+
+int GetSpellCategory(EQ_Spell* pSpell)
+{
+	if (pSpell)
+	{
+		if (pSpell->CannotBeScribed)
+		{
+			if (SPELL* pTrigger = GetSpellParent(pSpell->ID))
+			{
+				return pTrigger->Category;
+			}
+		}
+		else
+		{
+			return pSpell->Category;
+		}
+	}
+
+	return 0;
+}
+int GetSpellCategory(const EQ_Affect& buff) { return GetSpellCategory(GetSpellByID(buff.SpellID)); }
+int GetSpellCategory(CachedBuff buff) { return GetSpellCategory(GetSpellByID(buff.spellId)); }
+
+int GetSpellSubcategory(EQ_Spell* pSpell)
+{
+	if (pSpell)
+	{
+		if (pSpell->CannotBeScribed)
+		{
+			if (SPELL* pTrigger = GetSpellParent(pSpell->ID))
+			{
+				return pTrigger->Subcategory;
+			}
+		}
+		else
+		{
+			return pSpell->Subcategory;
+		}
+	}
+
+	return 0;
+}
+int GetSpellSubcategory(const EQ_Affect& buff) { return GetSpellSubcategory(GetSpellByID(buff.SpellID)); }
+int GetSpellSubcategory(CachedBuff buff) { return GetSpellSubcategory(GetSpellByID(buff.spellId)); }
+
+DWORD GetSpellID(EQ_Spell* spell)
+{
+	if (spell == nullptr)
+		return false;
+
+	return spell->ID;
+}
+DWORD GetSpellID(const EQ_Affect& buff) { return buff.SpellID; }
+DWORD GetSpellID(const CachedBuff& buff) { return buff.spellId; }
+
+const char* GetSpellName(EQ_Spell* spell)
+{
+	if (spell == nullptr || spell->Name == nullptr || spell->Name[0] == '\0')
+		return false;
+
+	return spell->Name;
+}
+const char* GetSpellName(const EQ_Affect& buff) { return GetSpellNameByID(buff.SpellID); }
+const char* GetSpellName(const CachedBuff& buff) { return GetSpellNameByID(buff.spellId); }
+
+const char* GetSpellCaster(const EQ_Affect& buff)
+{
+	if (pBuffWnd != nullptr)
+	{
+		if (auto whocast = pBuffWnd->WhoCast.FindFirst(buff.SpellID); whocast != nullptr)
+			return whocast->c_str();
+	}
+
+	if (pSongWnd != nullptr)
+	{
+		if (auto whocast = pSongWnd->WhoCast.FindFirst(buff.SpellID); whocast != nullptr)
+			return whocast->c_str();
+	}
+	
+	return "";
+}
+
+const char* GetSpellCaster(const CachedBuff& buff)
+{
+	return buff.casterName;
+}
+
+const char* GetPetSpellCaster(const EQ_Affect& buff)
+{
+	if (pPetInfoWnd != nullptr)
+	{
+		if (auto whocast = pPetInfoWnd->WhoCast.FindFirst(buff.SpellID); whocast != nullptr)
+			return whocast->c_str();
+	}
+
+	return "";
+}
+
+eEQSPELLCAT GetSpellCategoryFromName(const char* category)
+{
+	if (auto it = s_spellCatLookup.find(category); it != s_spellCatLookup.end())
+		return it->second;
+
+	return static_cast<eEQSPELLCAT>(0);
+}
+
+eEQSPA GetSPAFromName(const char* spa)
+{
+	if (auto it = s_spaLookup.find(spa); it != s_spaLookup.end())
+		return it->second;
+
+	return static_cast<eEQSPA>(-1);
+}
+
+int GetTargetBuffByCategory(DWORD category, DWORD classmask, int startslot)
+{
+	return GetCachedBuff(pTarget, SpellCategory(static_cast<eEQSPELLCAT>(category)) && SpellClassMask(classmask));
+}
+
+int GetTargetBuffBySubCat(const char* subcat, DWORD classmask, int startslot)
+{
+	return GetCachedBuff(pTarget, [subcat, classmask](const CachedBuff& buff)
+		{
+			auto spell = GetSpellByID(buff.spellId);
+			if (!spell) return false;
+
+			if (const char* ptr = pCDBStr->GetString(GetSpellSubcategory(spell), eSpellCategory, NULL))
+			{
+				return !_stricmp(ptr, subcat) && IsSpellUsableForClass(spell, classmask);
+			}
+
+			return false;
+		});
+}
+
+int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot)
+{
+	return GetCachedBuff(pTarget, SpellAffect(static_cast<eEQSPA>(spa), bIncrease));
+}
+
+bool HasCachedTargetBuffSubCat(const char* subcat, SPAWNINFO* pSpawn, void*, DWORD classmask)
+{
+	return GetCachedBuffCount(pSpawn, [subcat, classmask](const CachedBuff& buff)
+		{
+			auto spell = GetSpellByID(buff.spellId);
+			if (!spell) return false;
+
+			if (const char* ptr = pCDBStr->GetString(GetSpellSubcategory(spell), eSpellCategory, NULL))
+			{
+				return !_stricmp(ptr, subcat) && IsSpellUsableForClass(spell, classmask);
+			}
+
+			return false;
+		}) > 0;
+}
+
+bool HasCachedTargetBuffSPA(int spa, bool bIncrease, SPAWNINFO* pSpawn, void*)
+{
+	return GetCachedBuffCount(pSpawn, [spa, bIncrease](const CachedBuff& buff)
+		{
+			return HasSPA(buff, static_cast<eEQSPA>(spa), bIncrease);
+		}) > 0;
+}
+
+int GetSelfBuff(const std::function<bool(const EQ_Affect&)>& fPredicate)
+{
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile)
+		return -1;
+
+	auto buff_it = std::find_if(std::cbegin(pProfile->Buff), std::cend(pProfile->Buff), fPredicate);
+	if (buff_it != std::cend(pProfile->Buff))
+		return std::distance(std::cbegin(pProfile->Buff), buff_it);
+
+	buff_it = std::find_if(std::cbegin(pProfile->ShortBuff), std::cend(pProfile->ShortBuff), fPredicate);
+	if (buff_it != std::cend(pProfile->ShortBuff))
+		return std::distance(std::cbegin(pProfile->ShortBuff), buff_it) + NUM_LONG_BUFFS;
+
+	return -1;
+}
+
+int GetSelfBuff(const std::function<bool(EQ_Spell*)>& fPredicate)
+{
+	auto predicate = [&fPredicate](const EQ_Affect& buff)
+	{
+		auto spell = GetSpellByID(buff.SpellID);
+		return spell && fPredicate(spell);
+	};
+
+	return GetSelfBuff(predicate);
+}
+
+int GetSelfBuffByCategory(DWORD category, DWORD classmask, int startslot)
+{
+	return GetSelfBuff(SpellCategory(static_cast<eEQSPELLCAT>(category)) && SpellClassMask(classmask));
+}
+
+int GetSelfBuffBySubCat(PCHAR subcat, DWORD classmask, int startslot)
+{
+	return GetSelfBuff([subcat, classmask](const EQ_Affect& buff)
+		{
+			auto spell = GetSpellByID(buff.SpellID);
+			if (!spell) return false;
+
+			if (const char* ptr = pCDBStr->GetString(GetSpellSubcategory(spell), eSpellCategory, NULL))
+			{
+				return !_stricmp(ptr, subcat) && IsSpellUsableForClass(spell, classmask);
+			}
+
+			return false;
+		});
+}
+
+int GetSelfBuffBySPA(int spa, bool bIncrease, int startslot)
+{
+	return GetSelfBuff(SpellAffect(static_cast<eEQSPA>(spa), bIncrease));
+}
+
+int GetSelfShortBuffBySPA(int spa, bool bIncrease, int startslot)
+{
+	return GetSelfBuff(SpellAffect(static_cast<eEQSPA>(spa), bIncrease));
+}
+
+int GetSpellRankByName(const char* SpellName)
+{
+	// uppercase the string
+	char szTemp[256];
+	strcpy_s(szTemp, SpellName);
+	_strupr_s(szTemp);
+
+	if (endsWith(szTemp, " II"))
+		return 2;
+	if (endsWith(szTemp, " III"))
+		return 3;
+	if (endsWith(szTemp, " IV"))
+		return 4;
+	if (endsWith(szTemp, " V"))
+		return 5;
+	if (endsWith(szTemp, " VI"))
+		return 6;
+	if (endsWith(szTemp, " VII"))
+		return 7;
+	if (endsWith(szTemp, " VIII"))
+		return 8;
+	if (endsWith(szTemp, " IX"))
+		return 9;
+	if (endsWith(szTemp, " X"))
+		return 10;
+	if (endsWith(szTemp, " XI"))
+		return 11;
+	if (endsWith(szTemp, " XII"))
+		return 12;
+	if (endsWith(szTemp, " XIII"))
+		return 13;
+	if (endsWith(szTemp, " XIV"))
+		return 14;
+	if (endsWith(szTemp, " XV"))
+		return 15;
+	if (endsWith(szTemp, " XVI"))
+		return 16;
+	if (endsWith(szTemp, " XVII"))
+		return 17;
+	if (endsWith(szTemp, " XVIII"))
+		return 18;
+	if (endsWith(szTemp, " XIX"))
+		return 19;
+	if (endsWith(szTemp, " XX"))
+		return 20;
+	if (endsWith(szTemp, " XXI"))
+		return 21;
+	if (endsWith(szTemp, " XXII"))
+		return 22;
+	if (endsWith(szTemp, " XXIII"))
+		return 23;
+	if (endsWith(szTemp, " XXIV"))
+		return 24;
+	if (endsWith(szTemp, " XXV"))
+		return 25;
+	if (endsWith(szTemp, " XXVI"))
+		return 26;
+	if (endsWith(szTemp, " XXVII"))
+		return 27;
+	if (endsWith(szTemp, " XXVIII"))
+		return 28;
+	if (endsWith(szTemp, " XXIX"))
+		return 29;
+	if (endsWith(szTemp, " XXX"))
+		return 30;
+
+	if (endsWith(szTemp, ".II"))
+		return 2;
+	if (endsWith(szTemp, ".III"))
+		return 3;
+
+	return 0;
+}
+
+void TruncateSpellRankName(char* SpellName)
+{
+	if (char* pch = strrchr(SpellName, '.'))
+	{
+		pch -= 3;
+		*pch = 0;
+	}
+}
+
+int FindBuffID(std::string_view Name)
+{
+	if (Name.empty())
+		return -1;
+
+	return GetSelfBuff([&Name](EQ_Spell* spell) { return MaybeExactCompare(spell->Name, Name); });
+}
+
+void RemoveBuff(EQ_Affect* buff, int slot)
+{
+	if (pLocalPC)
+	{
+		ArrayClass<LaunchSpellData*> arr;
+		pLocalPC->RemovePCAffectex(buff, true, arr, 0, 0, 0);
+
+		if (slot >= 0)
+			pLocalPC->NotifyPCAffectChange(slot, 1);
+	}
+}
+
+void RemoveBuffAt(int BuffID)
+{
+	if (BuffID >= 0 && pLocalPlayer)
+		pLocalPC->RemoveBuffEffect(BuffID, pLocalPlayer->SpawnID);
+}
+
+void RemoveBuff(SPAWNINFO* pChar, char* szLine)
+{
+	char szCmd[MAX_STRING] = { 0 };
+	GetArg(szCmd, szLine, 1);
+
+	if (!_stricmp(szCmd, "-pet"))
+	{
+		GetArg(szCmd, szLine, 2);
+		RemovePetBuff(pChar, szCmd);
+		return;
+	}
+
+	if (!_stricmp(szCmd, "-both"))
+	{
+		GetArg(szCmd, szLine, 2);
+		RemovePetBuff(pChar, szCmd);
+	}
+
+	if (szCmd != nullptr)
+	{
+		auto buff_id = FindBuffID(szCmd);
+		EQ_Affect* buff = &pLocalPC->GetEffect(buff_id);
+		RemoveBuff(buff, buff_id);
+	}
+}
+
+// TODO: can we just use cached buffs for pet buffs here? We should be getting the buffs packet from the server for them...
+void RemovePetBuff(SPAWNINFO* pChar, char* szLine)
+{
+	if (!pPetInfoWnd || !szLine || szLine[0] == '\0')
+		return;
+
+	for (int nBuff = 0; nBuff < NUM_BUFF_SLOTS; ++nBuff)
+	{
+		auto pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
+		if (pBuffSpell && MaybeExactCompare(pBuffSpell->Name, szLine))
+		{
+			pLocalPC->RemovePetEffect(nBuff);
+			return;
+		}
+	}
+}
+
+// --------------------------- Buff Find DSL --------------------------------
+
+template <typename Buff, typename Caster = SpellCasterAttribute>
+static SpellAttributePredicate<Buff> InternalBuffEvaluate(std::string_view dsl)
+{
+	using DSL = SimpleLexer<SpellAttributePredicate<Buff>>;
+
+	static auto spaDSL = DSL(
+		[]() -> SpellAttributePredicate<Buff>
+		{ return [](const Buff&) { return false; }; },
+		"spa", DSL::Term([](std::string_view arg) -> SpellAttributePredicate<Buff>
+			{
+				auto spa = GetIntFromString(arg, -1);
+				if (spa < 0)
+					spa = GetSPAFromName(std::string(arg).c_str());
+				return SpellAffect(static_cast<eEQSPA>(spa));
+			}),
+		"detspa", DSL::Term([](std::string_view arg) -> SpellAttributePredicate<Buff>
+			{
+				auto spa = GetIntFromString(arg, -1);
+				if (spa < 0)
+					spa = GetSPAFromName(std::string(arg).c_str());
+				return SpellAffect(static_cast<eEQSPA>(spa), false);
+			}),
+		"cat", DSL::Term([](std::string_view arg) -> SpellAttributePredicate<Buff>
+			{
+				auto cat = GetIntFromString(arg, 0);
+				if (cat == 0)
+					cat = GetSpellCategoryFromName(std::string(arg).c_str());
+				return SpellCategory(static_cast<eEQSPELLCAT>(cat));
+			}),
+		"subcat", DSL::Term([](std::string_view arg) -> SpellAttributePredicate<Buff>
+			{
+				auto cat = GetIntFromString(arg, 0);
+				if (cat == 0)
+					cat = GetSpellCategoryFromName(std::string(arg).c_str());
+				return SpellSubCat(static_cast<eEQSPELLCAT>(cat));
+			}),
+		"class", DSL::Term([](std::string_view arg) -> SpellAttributePredicate<Buff>
+			{
+				auto player_class = GetIntFromString(arg, 0);
+				if (player_class == 0)
+					player_class = GetPlayerClass(std::string(arg).c_str());
+				return SpellClass(static_cast<PlayerClass>(player_class));
+			}),
+		"id", DSL::Term([](std::string_view arg) -> SpellAttributePredicate<Buff>
+			{ return SpellIDAttribute(GetIntFromString(arg, 0)); }),
+		"name", DSL::Term([](std::string_view arg) -> SpellAttributePredicate<Buff>
+			{ return SpellNameAttribute(std::string(arg).c_str()); }),
+		"caster", DSL::Term([](std::string_view arg) -> SpellAttributePredicate<Buff>
+			{
+				auto id = GetIntFromString(arg, -1);
+				if (id >= 0)
+				{
+					auto name = GetSpawnByID(id);
+					if (name != nullptr)
+						return Caster(name->Name);
+					
+					return [](const Buff&) { return false; };
+				}
+
+				return Caster(std::string(arg).c_str());
+			}),
+		"and", DSL::Reducer([](SpellAttributePredicate<Buff>&& a, SpellAttributePredicate<Buff>&& b) -> SpellAttributePredicate<Buff>
+			{ return BothSpellAttribute<Buff>(std::move(a), std::move(b)); }),
+		"or", DSL::Reducer([](SpellAttributePredicate<Buff>&& a, SpellAttributePredicate<Buff>&& b) -> SpellAttributePredicate<Buff>
+			{ return EitherSpellAttribute<Buff>(std::move(a), std::move(b)); }),
+		"not", DSL::Modifier([](SpellAttributePredicate<Buff>&& a) -> SpellAttributePredicate<Buff>
+			{ return NotSpellAttribute<Buff>(std::move(a)); })
+	);
+
+	try
+	{
+		return spaDSL(dsl);
+	}
+	catch (SimpleLexerParseError& e)
+	{
+		WriteChatf("%s", e.msg().c_str());
+		return [](const Buff&) { return false; };
+	}
+}
+
+SpellAttributePredicate<EQ_Affect> mq::EvaluateBuffPredicate(std::string_view dsl)
+{
+    return InternalBuffEvaluate<EQ_Affect>(dsl);
+}
+
+SpellAttributePredicate<EQ_Affect> mq::EvaluatePetBuffPredicate(std::string_view dsl)
+{
+    return InternalBuffEvaluate<EQ_Affect, PetSpellCasterAttribute>(dsl);
+}
+
+SpellAttributePredicate<CachedBuff> mq::EvaluateCachedBuffPredicate(std::string_view dsl)
+{
+    return InternalBuffEvaluate<CachedBuff>(dsl);
 }
 
 //============================================================================
