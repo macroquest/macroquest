@@ -236,4 +236,4 @@
 	url = https://gitlab.com/macroquest/next/eqlib.git
 [submodule "plugins/MQ2TSTrophy"]
 	path = plugins/MQ2TSTrophy
-	url = https://gitlab.com/redguides/plugins/MQ2TSTrophy
+	url = https://gitlab.com/redguides/plugins/MQ2TSTrophy.git
