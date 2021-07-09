@@ -60,6 +60,7 @@ DATATYPE(MQ2CurrentZoneType, pCurrentZoneType, nullptr);
 DATATYPE(MQ2DeityType, pDeityType, nullptr);
 DATATYPE(MQ2DynamicZoneType, pDynamicZoneType, nullptr);
 DATATYPE(MQ2DZMemberType, pDZMemberType, nullptr);
+DATATYPE(MQ2DZTimerType, pDZTimerType, nullptr);
 DATATYPE(MQ2EvolvingItemType, pEvolvingItemType, nullptr);
 DATATYPE(MQ2FellowshipMemberType, pFellowshipMemberType, nullptr);
 DATATYPE(MQ2FellowshipType, pFellowshipType, nullptr);
