@@ -1197,7 +1197,7 @@ bool MQ2TimeStampType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	switch (static_cast<TimeStampMembers>(pMember->ID))
 	{
 	case TimeStampMembers::Days:
-		Dest.DWord = ((nTimeStamp / 1000) / 3600) / 24;
+		Dest.DWord = (uint32_t)((nTimeStamp / 1000) / 3600) / 24;
 		Dest.Type = pIntType;
 		return true;
 
