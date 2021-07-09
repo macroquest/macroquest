@@ -442,7 +442,8 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 	}
 	else
 	{
-		// TODO: Remove mq2ic from plugin list
+		// Ensure we never try to load mq2ic. It might still be compatible but we don't want
+		// to accidentally load it, incase somebody has an .ini or copies the dll, etc.
 		if (!ci_equals(szName, "mq2ic") && LoadMQ2Plugin(szName))
 		{
 			WriteChatf("Plugin '%s' loaded.", szName);
