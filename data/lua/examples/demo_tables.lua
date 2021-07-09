@@ -1,11 +1,13 @@
 ---@type Mq
 local mq = require('mq')
-ImGui = ImGui or {}
+require 'ImGui'
 
+-- Using those as a base value to create width/height that are factor of the size of our font
+local TEXT_BASE_WIDTH, _ = ImGui.CalcTextSize("A")
+local TEXT_BASE_HEIGHT = ImGui.GetTextLineHeightWithSpacing();
 
 local openGUI = true
 local shouldDrawGUI = true
-
 local disable_indent = false
 
 local function HelpMarker(desc)
@@ -17,6 +19,16 @@ local function HelpMarker(desc)
         ImGui.PopTextWrapPos()
         ImGui.EndTooltip()
     end
+end
+
+local function PushStyleCompact()
+    local style = ImGui.GetStyle()
+    ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImVec2.new(style.FramePadding.x, style.FramePadding.y * 0.70))
+    ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImVec2.new(style.ItemSpacing.x, style.ItemSpacing.y * 0.70))
+end
+
+local function PopStyleCompact()
+    ImGui.PopStyleVar(2)
 end
 
 local function dump(o)
@@ -31,6 +43,189 @@ local function dump(o)
        return tostring(o)
     end
 end
+
+local function class(base, init)
+    local c = {}    -- a new class instance
+    if not init and type(base) == 'function' then
+       init = base
+       base = nil
+    elseif type(base) == 'table' then
+     -- our new class is a shallow copy of the base class!
+       for i,v in pairs(base) do
+          c[i] = v
+       end
+       c._base = base
+    end
+    -- the class will be the metatable for all its objects,
+    -- and they will look up their methods in it.
+    c.__index = c
+ 
+    -- expose a constructor which can be called by <classname>(<args>)
+    local mt = {}
+    mt.__call = function(class_tbl, ...)
+    local obj = {}
+    setmetatable(obj,c)
+    if init then
+       init(obj,...)
+    else 
+       -- make sure that any stuff from the base class is initialized!
+       if base and base.init then
+       base.init(obj, ...)
+       end
+    end
+    return obj
+    end
+    c.init = init
+    c.is_a = function(self, klass)
+       local m = getmetatable(self)
+       while m do 
+          if m == klass then return true end
+          m = m._base
+       end
+       return false
+    end
+    setmetatable(c, mt)
+    return c
+ end
+
+------------------------------------------------------------------------------------------------------------------------
+
+local bgcolor_table_flags = ImGuiTableFlags.RowBg
+local row_bg_type = 1
+local row_bg_target = 1
+local cell_bg_type = 1
+
+local function ShowTableDemoBackgroundColor(open_action)
+    if open_action ~= -1 then
+        ImGui.SetNextItemOpen(open_action ~= 0)
+    end
+    if ImGui.TreeNode('Background color') then
+        PushStyleCompact()
+        bgcolor_table_flags = ImGui.CheckboxFlags('ImGuiTableFlags.Borders', bgcolor_table_flags, ImGuiTableFlags.Borders)
+        bgcolor_table_flags = ImGui.CheckboxFlags('ImGuiTableFlags.RowBg', bgcolor_table_flags, ImGuiTableFlags.RowBg)
+        ImGui.SameLine(); HelpMarker('ImGuiTableFlags_RowBg automatically sets RowBg0 to alternative colors pulled from the Style.')
+        row_bg_type = ImGui.Combo('row bg type', row_bg_type, 'None\0Red\0Gradient\0')
+        row_bg_target = ImGui.Combo('row bg target', row_bg_target, 'RowBg0\0RowBg1\0'); ImGui.SameLine(); HelpMarker('Target RowBg0 to override the alternating odd/even colors,\nTarget RowBg1 to blend with them.')
+        cell_bg_type = ImGui.Combo('cell bg type', cell_bg_type, 'None\0Blue\0'); ImGui.SameLine(); HelpMarker('We are colorizing cells to B1->C2 here.')
+        PopStyleCompact()
+
+        if ImGui.BeginTable('##Table', 5, bgcolor_table_flags) then
+            for row = 0, 5 do
+                ImGui.TableNextRow()
+
+
+                -- Demonstrate setting a row background color with 'ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBgX, ...)'
+                -- We use a transparent color so we can see the one behind in case our target is RowBg1 and RowBg0 was already targeted by the ImGuiTableFlags_RowBg flag.
+                if row_bg_type ~= 0 then
+                    if row_bg_type == 1 then
+                        ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0 + row_bg_target, 0.7, 0.3, 0.3, 0.65)
+                    else
+                        ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0 + row_bg_target, 0.2 + row * .1, 0.2, 0.2, 0.65)
+                    end
+                end
+
+                -- Fill cells
+                for column = 0, 4 do
+                    ImGui.TableSetColumnIndex(column)
+                    ImGui.Text(string.format('%c%c', string.byte('A') + row, string.byte('0') + column))
+
+                    -- Change background of Cells B1->C2
+                    -- Demonstrate setting a cell background color with 'ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, ...)'
+                    -- (the CellBg color will be blended over the RowBg and ColumnBg colors)
+                    -- We can also pass a column number as a third parameter to TableSetBgColor() and do this outside the column loop.
+                    if row >= 1 and row <= 2 and column >= 1 and column <= 2 and cell_bg_type == 1 then
+                        ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, 0.3, 0.3, 0.7, 0.65)
+                    end
+                end
+            end
+            ImGui.EndTable()
+        end
+        ImGui.TreePop()
+    end
+end
+
+------------------------------------------------------------------------------------------------------------------------
+
+local treeview_table_flags = bit32.bor(ImGuiTableFlags.BordersV, ImGuiTableFlags.BordersOuterH, ImGuiTableFlags.Resizable, ImGuiTableFlags.RowBg, ImGuiTableFlags.NoBordersInBody)
+
+MyTreeNode = class(function(inst, name, type, size, childIdx, childCount)
+    inst.Name = name
+    inst.Type = type
+    inst.Size = size
+    inst.ChildIdx = childIdx
+    inst.ChildCount = childCount
+end)
+
+function MyTreeNode:new(name, type, size, childIdx, childCount)
+    local o = {}
+    setmetatable(o, MyTreeNode)
+    o.Name = name
+    o.Type = type
+    o.Size = size
+    o.ChildIdx = childIdx
+    o.ChildCount = childCount
+    return o
+end
+
+function MyTreeNode:display(all_nodes)
+    ImGui.TableNextRow()
+    ImGui.TableNextColumn()
+
+    local is_folder = self.ChildCount > 0
+    if is_folder then
+        local open = ImGui.TreeNodeEx(self.Name, ImGuiTreeNodeFlags.SpanFullWidth)
+        ImGui.TableNextColumn()
+        ImGui.TextDisabled('--')
+        ImGui.TableNextColumn()
+        ImGui.Text(self.Type)
+        if open then
+            for child_n = 1, self.ChildCount do
+                all_nodes[self.ChildIdx + child_n]:display(all_nodes)
+            end
+            ImGui.TreePop()
+        end
+    else
+        ImGui.TreeNodeEx(self.Name, bit32.bor(ImGuiTreeNodeFlags.Leaf, ImGuiTreeNodeFlags.Bullet, ImGuiTreeNodeFlags.NoTreePushOnOpen, ImGuiTreeNodeFlags.SpanFullWidth))
+        ImGui.TableNextColumn()
+        ImGui.Text(string.format('%d', self.Size))
+        ImGui.TableNextColumn()
+        ImGui.Text(self.Type)
+    end
+end
+
+local treeview_nodes = {
+    MyTreeNode("Root",                          "Folder",      -1,      1, 3),
+    MyTreeNode("Music",                         "Folder",      -1,      4, 2),
+    MyTreeNode("Textures",                      "Folder",      -1,      6, 3),
+    MyTreeNode("desktop.ini",                   "System file", 1024,   -1,-1),
+    MyTreeNode("File1_a.wav",                   "Audio file",  123000, -1,-1),
+    MyTreeNode("File1_b.wav",                   "Audio file",  456000, -1,-1),
+    MyTreeNode("Image001.png",                  "Image file",  203128, -1,-1),
+    MyTreeNode("Copy of Image001.png",          "Image file",  203256, -1,-1),
+    MyTreeNode("Copy of Image001 (Final2).png", "Image file",  203512, -1,-1),
+}
+
+local function ShowTableDemoTreeView(open_action)
+    if open_action ~= -1 then
+        ImGui.SetNextItemOpen(open_action ~= 0)
+    end
+    if ImGui.TreeNode('Tree view') then
+        if ImGui.BeginTable('##3ways', 3, treeview_table_flags) then
+            -- The first column will use the default _WidthStretch when ScrollX is Off and _WidthFixed when ScrollX is On
+            ImGui.TableSetupColumn('Name', ImGuiTableColumnFlags.NoHide)
+            ImGui.TableSetupColumn('Size', ImGuiTableColumnFlags.WidthFixed, TEXT_BASE_WIDTH * 12.0)
+            ImGui.TableSetupColumn('Type', ImGuiTableColumnFlags.WidthFixed, TEXT_BASE_WIDTH * 18.0)
+
+            treeview_nodes[1]:display(treeview_nodes)
+
+            ImGui.EndTable()
+        end
+
+        ImGui.TreePop()
+    end
+end
+
+------------------------------------------------------------------------------------------------------------------------
 
 local template_items_names = {
     'Banana', 'Apple', 'Cherry', 'Watermelon', 'Grapefruit', 'Strawberry', 'Mango',
@@ -88,22 +283,7 @@ local function CompareWithSortSpecs(a, b)
     return a.ID - b.ID < 0
 end
 
-local function ShowTableDemoBackgroundColor(open_action)
-    -- Using those as a base value to create width/height that are factor of the size of our font
-    local TEXT_BASE_HEIGHT = ImGui.GetTextLineHeightWithSpacing();
-
-    if open_action ~= -1 then
-        ImGui.SetNextItemOpen(open_action ~= 0)
-    end
-    if ImGui.TreeNode('Background color') then
-        ImGui.TreePop()
-    end
-end
-
 local function ShowTableDemoSorting(open_action)
-    -- Using those as a base value to create width/height that are factor of the size of our font
-    local TEXT_BASE_HEIGHT = ImGui.GetTextLineHeightWithSpacing();
-
     -- This is a simplified version of the 'Advanced' example, where we mostly focus on the code necessaray to handle sorting.
     -- Note that the 'Advanced' example also showcases manually triggering sort (e.g. if item quantities have been modified)
     if open_action ~= -1 then
@@ -209,13 +389,13 @@ local function ShowDemoWindowTables()
     ImGui.SameLine()
 
     -- Options
-    local disable_indent, pressed = ImGui.Checkbox('Disable tree indentation', disable_indent)
+    disable_indent, pressed = ImGui.Checkbox('Disable tree indentation', disable_indent)
     ImGui.SameLine()
     HelpMarker('Disable the indenting of tree nodes so demo tables can use the full window width.')
     ImGui.Separator()
 
     if disable_indent then
-        ImGui.PushStyleVar(ImGui.ImGuiStyleVar.IndentSpacing, 0.0)
+        ImGui.PushStyleVar(ImGuiStyleVar.IndentSpacing, 0.0)
     end
 
     -- About Style of tables
@@ -283,6 +463,7 @@ local function ShowDemoWindowTables()
         ImGui.TreePop()
     end
 
+    --[[
     if open_action ~= -1 then
         ImGui.SetNextItemOpen(open_action ~= 0)
     end
@@ -373,16 +554,13 @@ local function ShowDemoWindowTables()
     if ImGui.TreeNode('Row height') then
         ImGui.TreePop()
     end
+    --]]
 
     ShowTableDemoBackgroundColor(open_action)
 
-    if open_action ~= -1 then
-        ImGui.SetNextItemOpen(open_action ~= 0)
-    end
-    if ImGui.TreeNode('Tree view') then
-        ImGui.TreePop()
-    end
+    ShowTableDemoTreeView(open_action)
 
+    --[[
     if open_action ~= -1 then
         ImGui.SetNextItemOpen(open_action ~= 0)
     end
@@ -396,15 +574,18 @@ local function ShowDemoWindowTables()
     if ImGui.TreeNode('Context menus') then
         ImGui.TreePop()
     end
+    --]]
 
     ShowTableDemoSorting(open_action)
 
+    --[[
     if open_action ~= -1 then
         ImGui.SetNextItemOpen(open_action ~= 0)
     end
     if ImGui.TreeNode('Advanced') then
         ImGui.TreePop()
     end
+    --]]
 
     if disable_indent then
         ImGui.PopStyleVar()
@@ -412,16 +593,16 @@ local function ShowDemoWindowTables()
     ImGui.PopID()
 end
 
-local function DemoTablesGUI()
+function DemoTablesGUI()
+    if not openGUI then return end
     openGUI, shouldDrawGUI = ImGui.Begin('Tables Demo', openGUI)
     if shouldDrawGUI then
         ShowDemoWindowTables()
-        ImGui.End()
     end
+    ImGui.End()
 end
+ImGui.Register('DemoTablesGUI', DemoTablesGUI)
 
-mq.imgui.init('DemoTablesGUI', DemoTablesGUI)
-
-while shouldDrawGUI do
+while openGUI do
     mq.delay(1000) -- equivalent to '1s'
 end
