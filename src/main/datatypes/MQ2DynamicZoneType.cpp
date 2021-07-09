@@ -392,7 +392,7 @@ bool MQ2DZTimerType::ToString(MQVarPtr VarPtr, char* destination)
 	if (!pTimerData)
 		return false;
 
-	sprintf_s(destination, MAX_STRING, "%s - %s", pTimerData->ExpeditionName, pTimerData->EventName);
+	sprintf_s(destination, MAX_STRING, "%s|%s", pTimerData->ExpeditionName, pTimerData->EventName);
 	return true;
 }
 
