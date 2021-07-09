@@ -2,7 +2,7 @@ July 9, 2021
 
 Updates to MQ2Lua:
 ** BREAKING CHANGE **
-- If you are a Lua script author, a change has made to ImGui.Begin: it must now
+- If you are a Lua script author, a change has been made to ImGui.Begin: it must now
   **always** be followed by a ImGui.End, even if it returns false values. This
   was necessary to resolve the issue where it was ambiguous whether End should be
   called or not. Now, we just always expect you to call it if you called Begin.
