@@ -493,12 +493,8 @@ public:
 			haystack++;
 		} while (1);
 
-
-
 		return 0;
 	}
-
-
 
 	void Reset()
 	{
@@ -514,22 +510,21 @@ public:
 		Cleanup();
 	}
 
-	template <unsigned int _Size>unsigned int Feed(char(&Input)[_Size])
+	unsigned int Feed(const char* text, size_t length)
 	{
-		BlechDebug("Feed(%s)", Input);
-		if (!Input || !Input[0])
+		if (!text || !text[0])
 			return 0;
-		unsigned int Root = (unsigned char)Input[0];
+		BlechDebug("Feed(%s)", text);
+		unsigned int Root = (unsigned char)text[0];
 
 #ifndef BLECH_CASE_SENSITIVE
 		if (Root >= 'a' && Root <= 'z')
 			Root -= 32;
 #endif
-		if (Root > 255) {
-			Sleep(0);
-		}
-		return Chew(Tree[Root], Input, _Size) + Chew(Tree[0], Input, _Size);
+		return Chew(Tree[Root], text, length) + Chew(Tree[0], text, length);
 	}
+
+	template <unsigned int Size> unsigned int Feed(char(&Input)[Size]) { return Feed(Input, (size_t)Size); }
 
 	inline bool IsExact(const char* Text)
 	{
