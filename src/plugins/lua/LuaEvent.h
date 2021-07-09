@@ -19,39 +19,63 @@
 #include <queue>
 
 class Blech;
+struct BLECHVALUE;
 
 namespace mq::lua {
 
-void Events_RegisterLua(sol::table& lua);
+void MQ_RegisterLua_Events(sol::table& lua);
 
 struct LuaThread;
-struct LuaEventProcessor;
+class LuaEventProcessor;
 struct ThreadState;
 
-struct LuaEvent
-{
-	const std::string name;
-	const std::string expression;
-	const sol::function function;
-	LuaEventProcessor* processor;
-	uint32_t id;
+//============================================================================
 
-	LuaEvent(std::string_view name, std::string_view expression, const sol::function& function, LuaEventProcessor* processor);
+class LuaEvent
+{
+public:
+	LuaEvent(std::string_view name,
+		std::string_view expression,
+		const sol::function& func,
+		LuaEventProcessor* processor,
+		Blech& blech);
 	~LuaEvent();
-};
 
-struct LuaBind
-{
-	const std::string name;
-	const sol::function function;
-	LuaEventProcessor* processor;
+	LuaEventProcessor* GetEventProcessor() { return m_processor; }
 
-	LuaBind(const std::string& name, const sol::function& function, LuaEventProcessor* processor);
-	~LuaBind();
+	std::string_view GetName() const { return m_name; }
+	const sol::function GetFunction() const { return m_function; }
 
 private:
-	std::unique_ptr<uint8_t[]> callback;
+	const std::string m_name;
+	const std::string m_expression;
+	const sol::function m_function;
+	LuaEventProcessor* m_processor;
+	Blech& m_blech;
+	uint32_t m_id;
 };
+
+//----------------------------------------------------------------------------
+
+class LuaBind
+{
+public:
+	LuaBind(const std::string& name, const sol::function& func, LuaEventProcessor* processor);
+	~LuaBind();
+
+	LuaEventProcessor* GetEventProcessor() { return m_processor; }
+
+	std::string_view GetName() const { return m_name; }
+	const sol::function GetFunction() const { return m_function; }
+
+private:
+	const std::string m_name;
+	const sol::function m_function;
+	LuaEventProcessor* m_processor;
+	std::unique_ptr<uint8_t[]> m_callback;
+};
+
+//----------------------------------------------------------------------------
 
 template <typename T>
 struct LuaEventInstance
@@ -72,19 +96,11 @@ struct LuaEventInstance
 	{}
 };
 
-struct LuaEventProcessor
+//----------------------------------------------------------------------------
+
+class LuaEventProcessor
 {
-	const LuaThread* thread;
-
-	std::unique_ptr<Blech> blech;
-	std::vector<std::unique_ptr<LuaEvent>> eventDefinitions;
-	std::vector<LuaEventInstance<LuaEvent>> eventsPending;
-	std::vector<std::pair<sol::coroutine, std::vector<std::string>>> eventsRunning;
-
-	std::vector<std::unique_ptr<LuaBind>> bindDefinitions;
-	std::vector<LuaEventInstance<LuaBind>> bindsPending;
-	std::vector<std::pair<sol::coroutine, std::vector<std::string>>> bindsRunning;
-
+public:
 	LuaEventProcessor(const LuaThread* thread);
 	~LuaEventProcessor();
 
@@ -103,6 +119,25 @@ struct LuaEventProcessor
 	void PrepareEvents(const std::vector<std::string>& events);
 	void RemoveEvents(const std::vector<std::string>& events);
 	void PrepareBinds();
+
+	const LuaThread* GetThread() const { return m_thread; }
+
+	void HandleBlechEvent(LuaEvent* event, BLECHVALUE* pValues);
+	void HandleBindCallback(LuaBind* bind, const char* args);
+
+private:
+	const LuaThread* m_thread;
+	std::unique_ptr<Blech> m_blech;
+
+	// Events
+	std::vector<std::unique_ptr<LuaEvent>> m_eventDefinitions;
+	std::vector<LuaEventInstance<LuaEvent>> m_eventsPending;
+	std::vector<std::pair<sol::coroutine, std::vector<std::string>>> m_eventsRunning;
+
+	// Binds
+	std::vector<std::unique_ptr<LuaBind>> m_bindDefinitions;
+	std::vector<LuaEventInstance<LuaBind>> m_bindsPending;
+	std::vector<std::pair<sol::coroutine, std::vector<std::string>>> m_bindsRunning;
 };
 
 } // namespace mq::lua

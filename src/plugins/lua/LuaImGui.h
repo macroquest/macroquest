@@ -20,19 +20,27 @@ namespace mq::lua {
 
 struct LuaThread;
 
-void ImGui_RegisterLua(sol::table& lua);
+// Register ImGui
+void ImGui_RegisterLua(sol::state_view state);
 
-struct LuaImGui
+// Register imgui commands in mq namespace
+void MQ_RegisterLua_ImGui(sol::table& lua);
+
+class LuaImGui
 {
-	std::string name;
-	sol::thread thread;
-	sol::function callback;
-	mutable sol::coroutine coroutine;
-
-	LuaImGui(std::string_view name, const sol::thread& thread, const sol::function& callback);
+public:
+	LuaImGui(std::string_view name, const sol::thread& parent_thread, const sol::function& callback);
 	~LuaImGui();
 
 	bool Pulse() const;
+	std::string_view GetName() { return m_name; }
+
+private:
+	std::string m_name;
+	sol::thread m_thread;
+	sol::function m_callback;
+	mutable sol::coroutine m_coroutine;
+	sol::thread m_parentThread;
 };
 
 struct LuaImGuiProcessor
