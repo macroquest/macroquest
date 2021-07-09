@@ -51,6 +51,7 @@ updates to DynamicZone:
 
 July 3, 2021
 - Fix chat events in other languages not being able to use .equal for the matched text (#333)
+- Fix ctrl+c to copy in the console window
 
 June 24, 2021
 - Fix crash that would occur for some characters while zoning
