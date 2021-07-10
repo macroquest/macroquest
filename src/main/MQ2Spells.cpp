@@ -3565,7 +3565,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 	case SPA_INSTANT_ENDURANCE_PCT: // Instant Endurance %
 	case SPA_DURATION_HP_PCT: // Duration HP %
 	case SPA_DURATION_MANA_PCT: // Duration Mana %
-	case SPA_DURATION_ENDURANCE_PCT: // Duration Endurance % 
+	case SPA_DURATION_ENDURANCE_PCT: // Duration Endurance %
 	default: //undefined effect
 		sprintf_s(szTemp, "%s (base=%d, base2=%d, max=%d, calc=%d, value=%d)", spelleffectname.c_str(), base, base2, max, calc, value);
 		strcat_s(szBuff, szTemp);
@@ -3952,7 +3952,7 @@ const char* GetSpellCaster(const EQ_Affect& buff)
 		if (auto whocast = pSongWnd->WhoCast.FindFirst(buff.SpellID); whocast != nullptr)
 			return whocast->c_str();
 	}
-	
+
 	return "";
 }
 
@@ -4228,10 +4228,10 @@ void RemoveBuff(SPAWNINFO* pChar, char* szLine)
 	{
 		int buff_id = FindBuffID(szCmd);
 		if (buff_id != -1)
-	{
-		EQ_Affect* buff = &pLocalPC->GetEffect(buff_id);
-		RemoveBuff(buff, buff_id);
-	}
+		{
+			EQ_Affect* buff = &pLocalPC->GetEffect(buff_id);
+			RemoveBuff(buff, buff_id);
+		}
 	}
 }
 
@@ -4312,7 +4312,7 @@ static SpellAttributePredicate<Buff> InternalBuffEvaluate(std::string_view dsl)
 					auto name = GetSpawnByID(id);
 					if (name != nullptr)
 						return Caster(name->Name);
-					
+
 					return [](const Buff&) { return false; };
 				}
 
