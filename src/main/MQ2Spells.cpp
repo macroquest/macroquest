@@ -4209,26 +4209,29 @@ void RemoveBuffAt(int BuffID)
 void RemoveBuff(SPAWNINFO* pChar, char* szLine)
 {
 	char szCmd[MAX_STRING] = { 0 };
-	GetArg(szCmd, szLine, 1);
+	GetMaybeQuotedArg(szCmd, MAX_STRING, szLine, 1);
 
-	if (!_stricmp(szCmd, "-pet"))
+	if (_strnicmp(szLine, "-pet", 4) == 0)
 	{
-		GetArg(szCmd, szLine, 2);
+		GetMaybeQuotedArg(szCmd, MAX_STRING, szLine, 2);
 		RemovePetBuff(pChar, szCmd);
 		return;
 	}
 
-	if (!_stricmp(szCmd, "-both"))
+	if (_strnicmp(szLine, "-both", 5) == 0)
 	{
-		GetArg(szCmd, szLine, 2);
+		GetMaybeQuotedArg(szCmd, MAX_STRING, szLine, 2);
 		RemovePetBuff(pChar, szCmd);
 	}
 
-	if (szCmd != nullptr)
+	if (szCmd[0] != '\0')
 	{
-		auto buff_id = FindBuffID(szCmd);
+		int buff_id = FindBuffID(szCmd);
+		if (buff_id != -1)
+	{
 		EQ_Affect* buff = &pLocalPC->GetEffect(buff_id);
 		RemoveBuff(buff, buff_id);
+	}
 	}
 }
 
@@ -4238,10 +4241,13 @@ void RemovePetBuff(SPAWNINFO* pChar, char* szLine)
 	if (!pPetInfoWnd || !szLine || szLine[0] == '\0')
 		return;
 
+	char szArg[MAX_STRING] = { 0 };
+	GetMaybeQuotedArg(szArg, MAX_STRING, szLine, 1);
+
 	for (int nBuff = 0; nBuff < NUM_BUFF_SLOTS; ++nBuff)
 	{
-		auto pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
-		if (pBuffSpell && MaybeExactCompare(pBuffSpell->Name, szLine))
+		EQ_Spell* pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
+		if (pBuffSpell && MaybeExactCompare(pBuffSpell->Name, szArg))
 		{
 			pLocalPC->RemovePetEffect(nBuff);
 			return;

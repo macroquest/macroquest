@@ -1,5 +1,5 @@
 July 9, 2021
-
+- Fixed /removebuff and /removepetbuff so they now accept quoted or unquoted strings (#184, #344, #345)
 Updates to MQ2Lua:
 ** BREAKING CHANGE **
 - If you are a Lua script author, a change has been made to ImGui.Begin: it must now

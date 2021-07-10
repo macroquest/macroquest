@@ -306,6 +306,7 @@ MQLIB_API void DebugSpewNoFile(const char* szFormat, ...);
 
 MQLIB_API const char* GetNextArg(const char* szLine, int dwNumber = 1, bool CSV = false, char Separator = 0);
 MQLIB_API const char* GetArg(char* szDest, const char* szSrc, int dwNumber, bool LeaveQuotes = false, bool ToParen = false, bool CSV = false, char Separator = 0, bool AnyNonAlphaNum = false);
+MQLIB_API const char* GetMaybeQuotedArg(char* szDest, int sizeDest, const char* szSrc, int expectedPos);
 
 // GetNextArg that takes a non-const szLine and returns non-const. always prefer to use the const version.
 inline char* GetNextArg(char* szLine, int dwNumber = 1, bool CSV = false, char Separator = 0)
