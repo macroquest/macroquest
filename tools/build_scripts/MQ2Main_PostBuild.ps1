@@ -73,7 +73,7 @@ try {
 			Copy-LatestFile $file "$Dst\$relative" $relative
 		}
 	}
-	
+
 	# Copy crash reporter
 	Copy-LatestFile "$Src\..\contrib\vcpkg\installed\x86-windows-static\tools\crashpad_handler.exe" "$Dst\mq_crash_handler.exe" "mq_crash_handler.exe"
 }
