@@ -11,6 +11,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemDefinitionGroup>
+    <PreBuildEvent>
+      <Command>if exist "$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), tools\build_scripts\MQ2Main_PreBuild.ps1))\tools\build_scripts\MQ2Main_PreBuild.ps1" powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), tools\build_scripts\MQ2Main_PreBuild.ps1))\tools\build_scripts\MQ2Main_PreBuild.ps1"</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup>
     <PostBuildEvent>
       <Command>if exist "$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), tools\build_scripts\MQ2Main_PostBuild.ps1))\tools\build_scripts\MQ2Main_PostBuild.ps1" powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), tools\build_scripts\MQ2Main_PostBuild.ps1))\tools\build_scripts\MQ2Main_PostBuild.ps1" "$(MQ2Root)data" "$(MQ2buildDirectory)bin\$(MQ2BinaryDirName)"</Command>
       <Message>Performing PostBuild for $(MSBuildProjectName)...</Message>
