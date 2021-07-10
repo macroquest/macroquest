@@ -22,16 +22,13 @@ bool dataSelect(const char* szIndex, MQTypeVar& Ret)
 	if (!szIndex[0])
 		return false;
 
-	// I hate this GetArg shit - Lax
 	char szArg[MAX_STRING] = { 0 };
 	char szArg1[MAX_STRING] = { 0 };
 	int N = 2;
-	// FIXME: const
-	GetArg(szArg1, (char*)szIndex, 1, false, false, true);
+	GetArg(szArg1, szIndex, 1, false, false, true);
 	while (true)
 	{
-		// FIXME: const
-		GetArg(szArg, (char*)szIndex, N, false, false, true);
+		GetArg(szArg, szIndex, N, false, false, true);
 		N++;
 		if (!szArg[0])
 		{
