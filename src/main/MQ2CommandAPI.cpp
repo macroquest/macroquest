@@ -763,6 +763,8 @@ void InitializeMQ2Commands()
 		else if (!strcmp(pCmdListOrig[i].szName, "/target"))
 		{
 			cmdTarget = (fEQCommand)pCmdListOrig[i].fAddress;
+			// Allow a method of using the original eq command since we've overloaded target
+			AddCommand("/eqtarget", pCmdListOrig[i].fAddress, false, true, true);
 		}
 		else if (!strcmp(pCmdListOrig[i].szName, "/charinfo"))
 		{
@@ -825,7 +827,9 @@ void InitializeMQ2Commands()
 		{ "/whotarget",         SuperWhoTarget,             true,  true  },
 		{ "/location",          Location,                   true,  true  },
 		{ "/help",              Help,                       true,  false },
+		// TODO:  Deprecate /target in favor of /mqtarget so that /target is the actual EQ Command.  Issue #298
 		{ "/target",            Target,                     true,  true  },
+		{ "/mqtarget",          Target,                     true,  true  },
 		{ "/alias",             Alias,                      false, false },
 		{ "/aa",                AltAbility,                 true,  true  },
 		{ "/substitute",        Substitute,                 false, false },

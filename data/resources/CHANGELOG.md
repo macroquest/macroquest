@@ -1,3 +1,8 @@
+July 17, 2021
+- Added /mqtarget and /eqtarget commands.  /mqtarget is the equivalent of the current /target commmand while
+/eqtarget will use the game's existing command.  Macro authors can begin migrating to /mqtarget when they want
+to use MacroQuest specific targeting.  Partially addresses #298
+
 July 9, 2021
 - Fixed /removebuff and /removepetbuff so they now accept quoted or unquoted strings (#184, #344, #345)
 Updates to MQ2Lua:
