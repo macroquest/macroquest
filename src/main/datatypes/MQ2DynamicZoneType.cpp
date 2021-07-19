@@ -26,6 +26,8 @@ enum class DynamicZoneMembers
 	Leader,
 	InRaid,
 	LeaderFlagged,
+	MaxTimers,
+	Timer,
 };
 
 MQ2DynamicZoneType::MQ2DynamicZoneType() : MQ2Type("dynamiczone")
@@ -37,6 +39,8 @@ MQ2DynamicZoneType::MQ2DynamicZoneType() : MQ2Type("dynamiczone")
 	ScopedTypeMember(DynamicZoneMembers, Leader);
 	ScopedTypeMember(DynamicZoneMembers, InRaid);
 	ScopedTypeMember(DynamicZoneMembers, LeaderFlagged);
+	ScopedTypeMember(DynamicZoneMembers, MaxTimers);
+	ScopedTypeMember(DynamicZoneMembers, Timer);
 }
 
 
@@ -47,7 +51,95 @@ bool MQ2DynamicZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		return false;
 
 	DynamicZoneMembers dataMember = static_cast<DynamicZoneMembers>(pMember->ID);
-	if (!pDZMember && dataMember != DynamicZoneMembers::LeaderFlagged)
+	if (pDynamicZone)
+	{
+		switch (dataMember)
+		{
+		case DynamicZoneMembers::LeaderFlagged:
+			Dest.Set(pDynamicZone->pFirstMember && pDynamicZone->pFirstMember->bFlagged);
+			Dest.Type = pBoolType;
+			return true;
+
+		case DynamicZoneMembers::MaxTimers: {
+			Dest.DWord = 0;
+			Dest.Type = pIntType;
+			DynamicZoneClientTimerData* pTimer = pDynamicZone->pFirstTimer;
+			while (pTimer)
+			{
+				++Dest.DWord;
+				pTimer = pTimer->pNext;
+			}
+			return true;
+		}
+
+		case DynamicZoneMembers::Timer:
+			if (Index[0])
+			{
+				DynamicZoneClientTimerData* pTimer = pDynamicZone->pFirstTimer;
+				if (IsNumber(Index))
+				{
+					int Count = GetIntFromString(Index, 0) - 1;
+					if (Count < 0)
+						return false;
+
+					Dest.Type = pDZTimerType;
+					Dest.Ptr = nullptr;
+
+					while (pTimer)
+					{
+						if (Count == 0)
+						{
+							Dest.Ptr = pTimer;
+							return true;
+						}
+
+						pTimer = pTimer->pNext;
+						--Count;
+					}
+				}
+				else
+				{
+					std::string_view svExpedition = Index;
+					std::string_view svEvent;
+
+					auto pos = svExpedition.find("|");
+					if (pos != std::string_view::npos)
+					{
+						svEvent = svExpedition.substr(pos + 1);
+						svExpedition = svExpedition.substr(0, pos);
+					}
+
+					// In the event of multiple matches we'll take the one that is unlocking next.
+					uint32_t bestTime = INT_MAX;
+					DynamicZoneClientTimerData* pBestTimer = nullptr;
+
+					while (pTimer)
+					{
+						if (ci_equals(pTimer->ExpeditionName, svExpedition)
+							&& (svEvent.empty() || ci_equals(svEvent, pTimer->EventName)))
+						{
+							if ((uint32_t)pTimer->TimeStamp < bestTime)
+							{
+								pBestTimer = pTimer;
+								bestTime = pTimer->TimeStamp;
+							}
+						}
+						pTimer = pTimer->pNext;
+					}
+
+					Dest.Type = pDZTimerType;
+					Dest.Ptr = pBestTimer;
+					return true;
+				}
+			}
+			return false;
+
+		default:
+			break;
+		}
+	}
+
+	if (!pDZMember || !pDynamicZone)
 		return false;
 
 	switch (dataMember)
@@ -72,8 +164,7 @@ bool MQ2DynamicZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 	}
 
 	case DynamicZoneMembers::LeaderFlagged:
-		Dest.Set(pDynamicZone && pDynamicZone->pFirstMember && pDynamicZone->pFirstMember->bFlagged);
-		Dest.Type = pBoolType;
+
 
 	case DynamicZoneMembers::MaxMembers:
 		Dest.DWord = pDynamicZone->MaxPlayers;
@@ -164,6 +255,8 @@ bool MQ2DynamicZoneType::dataDynamicZone(const char* szIndex, MQTypeVar& Ret)
 	return true;
 }
 
+//============================================================================
+
 enum class DZMemberTypeMembers
 {
 	Name = 1,
@@ -181,7 +274,7 @@ MQ2DZMemberType::MQ2DZMemberType() : MQ2Type("dzmember")
 bool MQ2DZMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	auto* pDynamicZoneMember = reinterpret_cast<DynamicZonePlayerInfo*>(VarPtr.Ptr);
-	if (pDynamicZoneMember)
+	if (!pDynamicZoneMember)
 		return false;
 
 	MQTypeMember* pMember = MQ2DZMemberType::FindMember(Member);
@@ -234,6 +327,72 @@ bool MQ2DZMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 bool MQ2DZMemberType::ToString(MQVarPtr VarPtr, char* Destination)
 {
 	strcpy_s(Destination, MAX_STRING, reinterpret_cast<DynamicZonePlayerInfo*>(VarPtr.Ptr)->Name);
+	return true;
+}
+
+//============================================================================
+
+enum class DZTimerTypeMembers
+{
+	ExpeditionName,
+	EventName,
+	Timer,
+	EventID,
+};
+
+MQ2DZTimerType::MQ2DZTimerType() : MQ2Type("dztimer")
+{
+	ScopedTypeMember(DZTimerTypeMembers, ExpeditionName);
+	ScopedTypeMember(DZTimerTypeMembers, EventName);
+	ScopedTypeMember(DZTimerTypeMembers, Timer);
+	ScopedTypeMember(DZTimerTypeMembers, EventID);
+}
+
+bool MQ2DZTimerType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
+{
+	auto* pTimerData = reinterpret_cast<DynamicZoneClientTimerData*>(VarPtr.Ptr);
+	if (!pTimerData)
+		return false;
+
+	MQTypeMember* pMember = MQ2DZTimerType::FindMember(Member);
+	if (!pMember)
+		return false;
+
+	switch (static_cast<DZTimerTypeMembers>(pMember->ID))
+	{
+	case DZTimerTypeMembers::ExpeditionName:
+		Dest.Type = pStringType;
+		strcpy_s(&DataTypeTemp[0], MAX_STRING, pTimerData->ExpeditionName);
+		Dest.Ptr = DataTypeTemp;
+		return true;
+
+	case DZTimerTypeMembers::EventName:
+		Dest.Type = pStringType;
+		strcpy_s(&DataTypeTemp[0], MAX_STRING, pTimerData->EventName);
+		Dest.Ptr = DataTypeTemp;
+		return true;
+
+	case DZTimerTypeMembers::Timer:
+		Dest.Type = pTimeStampType;
+		Dest.Int64 = std::max<int64_t>(0, (pTimerData->TimeStamp - (int64_t)GetFastTime()) * 1000); // seconds to ms
+		return true;
+
+	case DZTimerTypeMembers::EventID:
+		Dest.Type = pIntType;
+		Dest.Int = pTimerData->TimerID;
+		return true;
+	};
+
+	return false;
+}
+
+bool MQ2DZTimerType::ToString(MQVarPtr VarPtr, char* destination)
+{
+	auto* pTimerData = reinterpret_cast<DynamicZoneClientTimerData*>(VarPtr.Ptr);
+	if (!pTimerData)
+		return false;
+
+	sprintf_s(destination, MAX_STRING, "%s|%s", pTimerData->ExpeditionName, pTimerData->EventName);
 	return true;
 }
 

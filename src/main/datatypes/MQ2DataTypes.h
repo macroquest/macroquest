@@ -1113,6 +1113,18 @@ public:
 };
 
 //============================================================================
+// MQ2DZTimersType
+
+class MQ2DZTimerType : public MQ2Type
+{
+public:
+	MQ2DZTimerType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+};
+
+//============================================================================
 // MQ2FellowshipType
 
 class MQ2FellowshipType : public MQ2Type

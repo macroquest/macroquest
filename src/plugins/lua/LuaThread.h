@@ -19,7 +19,7 @@
 
 namespace mq::lua {
 
-struct LuaEventProcessor;
+class LuaEventProcessor;
 struct LuaImGuiProcessor;
 struct LuaThread;
 struct ThreadState;
@@ -91,11 +91,9 @@ struct LuaThread
 	}
 
 	LuaThread(std::string_view name, std::string_view luaDir, const std::vector<std::string>& luaRequire, const std::vector<std::string>& dllRequire);
-	LuaThread() = delete;
+
 	LuaThread(const LuaThread&) = delete;
-	LuaThread(LuaThread&&) = delete;
 	LuaThread& operator=(const LuaThread&) = delete;
-	LuaThread& operator=(LuaThread&&) = delete;
 
 	std::optional<LuaThreadInfo> StartFile(std::string_view luaDir, uint32_t turbo, const std::vector<std::string>& args);
 	std::optional<LuaThreadInfo> StartString(uint32_t turbo, std::string_view script);

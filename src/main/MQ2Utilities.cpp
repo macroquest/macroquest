@@ -443,6 +443,49 @@ const char* GetArg(char* szDest, const char* szSrc, int dwNumber, bool LeaveQuot
 	return szDest;
 }
 
+/**
+ * @fn GetMaybeQuotedArg
+ *
+ * @brief Gets the last argument that might or might not be quoted
+ *
+ * If the argument is quoted, it is returned without quotes, just like
+ * it would be in a normal GetArg call.  However, if the argument is
+ * unquoted, it returns the remainder of the string.  If anything goes
+ * wrong, returns nullptr.
+ *
+ * @param szDest   Where to put the result string
+ * @param sizeDest The size of szDest
+ * @param szSrc    The original string to parse
+ * @param expectedPos The expected position of the argument
+ *
+ * @return const char* The resulting string, or nullptr
+*/
+const char* GetMaybeQuotedArg(char* szDest, int sizeDest, const char* szSrc, int expectedPos)
+{
+	if (!szSrc)
+		return nullptr;
+
+	GetArg(szDest, szSrc, expectedPos, true);
+	if (szDest[0] == '"')
+	{
+		GetArg(szDest, szSrc, expectedPos);
+	}
+	else
+	{
+		const char* szTmp = GetNextArg(szSrc, expectedPos - 1);
+		if (szTmp)
+		{
+			strcpy_s(szDest, sizeDest, szTmp);
+		}
+		else
+		{
+			szDest = nullptr;
+		}
+	}
+
+	return szDest;
+}
+
 // Deprecated
 char* GetEQPath(char* szBuffer, size_t len)
 {

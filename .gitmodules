@@ -1,6 +1,9 @@
 [submodule "data/macros/TestSuite"]
 	path = data/macros/TestSuite
 	url = https://gitlab.com/macroquest/TestSuite.git
+[submodule "src/eqlib"]
+	path = src/eqlib
+    url = https://gitlab.com/macroquest/next/eqlib.git
 [submodule "contrib/vcpkg"]
 	path = contrib/vcpkg
 	url = https://gitlab.com/macroquest/next/vcpkg.git
@@ -237,3 +240,7 @@
 [submodule "plugins/MQ2TSTrophy"]
 	path = plugins/MQ2TSTrophy
 	url = https://gitlab.com/redguides/plugins/MQ2TSTrophy.git
+
+[submodule "data/lua/IntegrationTests"]
+	path = src/plugins/lua/lua/IntegrationTests
+	url = https://gitlab.com/macroquest/IntegrationTests.git

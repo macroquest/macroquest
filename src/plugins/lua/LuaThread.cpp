@@ -35,6 +35,8 @@ bool lua_isyieldable(lua_State* L)
 }
 #endif
 
+void RegisterBitwiseOps(sol::state_view state);
+
 namespace mq::lua {
 
 // this is the special sauce that lets us execute everything on the main thread without blocking
@@ -349,41 +351,72 @@ void exit(sol::this_state s)
 	}
 }
 
-static void RegisterMQNamespace(sol::table t)
+static std::unique_ptr<CTextureAnimation> gettextanim(std::string_view name, sol::this_state s)
 {
-	bindings::lua_MQCommand::RegisterBinding(t);
-	bindings::lua_MQDataItem::RegisterBinding(t);
-	bindings::lua_MQTypeVar::RegisterBinding(t);
+	auto anim = std::make_unique<CTextureAnimation>();
 
-	t["delay"] = &delay;
-	t["join"] = &lua_join;
-	t["exit"] = &exit;
-	t["configDir"] = gPathConfig;
-
-	if (auto thread_ptr = LuaThread::get_from(t.lua_state()))
+	if (pSidlMgr)
 	{
-		t["luaDir"] = std::filesystem::path(thread_ptr->path).parent_path().string();
+		if (CTextureAnimation* temp = pSidlMgr->FindAnimation(CXStr(name)))
+			*anim = *temp;
 	}
 
-	Events_RegisterLua(t);
-	ImGui_RegisterLua(t);
+	return anim;
 }
 
-static int LoadMQRequire(lua_State* L)
+static void MQ_RegisterLua(sol::table mq)
+{
+	bindings::lua_MQCommand::RegisterBinding(mq);
+	bindings::lua_MQDataItem::RegisterBinding(mq);
+	bindings::lua_MQTypeVar::RegisterBinding(mq);
+
+	mq["delay"] = &delay;
+	mq["join"] = &lua_join;
+	mq["exit"] = &exit;
+	mq["configDir"] = gPathConfig;
+
+	if (auto thread_ptr = LuaThread::get_from(mq.lua_state()))
+	{
+		mq["luaDir"] = std::filesystem::path(thread_ptr->path).parent_path().string();
+	}
+
+	MQ_RegisterLua_Events(mq);
+	MQ_RegisterLua_ImGui(mq);
+
+	mq.new_usertype<CTextureAnimation>("CTextureAnimation",
+		sol::no_constructor,
+		"SetTextureCell", &CTextureAnimation::SetCurCell
+	);
+
+	mq["FindTextureAnimation"] = &gettextanim;
+}
+
+static int MQPackageLoader(lua_State* L)
 {
 	auto path = sol::stack::get<std::string>(L);
-	if (path != "mq") return 0;
 
-	if (auto thread_ptr = LuaThread::get_from(L))
+	if (path == "mq")
+	{
+		if (auto thread_ptr = LuaThread::get_from(L))
+		{
+			sol::state_view sv{ L };
+
+			thread_ptr->globalTable = sv.create_table();
+			MQ_RegisterLua(*thread_ptr->globalTable);
+
+			sv.set("_mq_internal_table", *thread_ptr->globalTable);
+
+			std::string script("return _mq_internal_table");
+			luaL_loadbuffer(sv, script.data(), script.size(), path.c_str());
+			return 1;
+		}
+	}
+	else if (path == "ImGui")
 	{
 		sol::state_view sv{ L };
+		ImGui_RegisterLua(sv);
 
-		thread_ptr->globalTable = sv.create_table();
-		RegisterMQNamespace(*thread_ptr->globalTable);
-
-		sv.set("_mq_internal_table", *thread_ptr->globalTable);
-
-		std::string script("return _mq_internal_table");
+		std::string script("return nil");
 		luaL_loadbuffer(sv, script.data(), script.size(), path.c_str());
 		return 1;
 	}
@@ -394,6 +427,8 @@ static int LoadMQRequire(lua_State* L)
 void LuaThread::RegisterLuaState(std::shared_ptr<LuaThread> self_ptr, bool injectMQ)
 {
 	auto& state = thread.state();
+
+	RegisterBitwiseOps(state);
 
 	state["_old_dofile"] = state["dofile"];
 	state["dofile"] = [this](std::string_view file, sol::variadic_args args)
@@ -408,12 +443,12 @@ void LuaThread::RegisterLuaState(std::shared_ptr<LuaThread> self_ptr, bool injec
 		WriteChatColorf("%s", USERCOLOR_CHAT_CHANNEL, lua_join(s, "", va).c_str());
 	};
 
-	state.add_package_loader(LoadMQRequire);
+	state.add_package_loader(MQPackageLoader);
 
 	if (injectMQ)
 	{
 		sol::table mq_table = state.create_table();
-		RegisterMQNamespace(mq_table);
+		MQ_RegisterLua(mq_table);
 
 		state["mq"] = mq_table;
 	}

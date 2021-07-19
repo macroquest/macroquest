@@ -18,8 +18,11 @@
 #include "contrib/imgui/sol_ImGui.h"
 
 #include <mq/Plugin.h>
+#include <mq/imgui/Widgets.h>
 
 namespace mq::lua {
+
+//============================================================================
 
 LuaImGuiProcessor::LuaImGuiProcessor(const LuaThread* thread)
 	: thread(thread)
@@ -32,16 +35,14 @@ LuaImGuiProcessor::~LuaImGuiProcessor()
 
 void LuaImGuiProcessor::AddCallback(std::string_view name, sol::function callback)
 {
-	auto im_thread = sol::thread::create(thread->thread.state());
-	sol_ImGui::Init(im_thread.state());
-	imguis.emplace_back(new LuaImGui(name, im_thread, callback));
+	imguis.emplace_back(new LuaImGui(name, thread->thread, callback));
 }
 
 void LuaImGuiProcessor::RemoveCallback(std::string_view name)
 {
 	imguis.erase(std::remove_if(imguis.begin(), imguis.end(), [&name](const auto& im)
 		{
-			return im->name == name;
+			return im->GetName() == name;
 		}), imguis.end());
 }
 
@@ -49,7 +50,7 @@ bool LuaImGuiProcessor::HasCallback(std::string_view name)
 {
 	return std::find_if(imguis.cbegin(), imguis.cend(), [&name](const auto& im)
 		{
-			return im->name == name;
+			return im->GetName() == name;
 		}) != imguis.cend();
 }
 
@@ -59,8 +60,10 @@ void LuaImGuiProcessor::Pulse()
 	lua_sethook(thread->thread.lua_state(), nullptr, 0, 0);
 
 	for (auto& im : imguis)
-		if (!im->Pulse()) RemoveCallback(im->name);
+		if (!im->Pulse()) RemoveCallback(im->GetName());
 }
+
+//============================================================================
 
 static void addimgui(std::string_view name, sol::function function, sol::this_state s)
 {
@@ -88,39 +91,25 @@ static bool hasimgui(std::string_view name, sol::this_state s)
 	return false;
 }
 
-static std::unique_ptr<CTextureAnimation> gettextanim(std::string_view name, sol::this_state s)
-{
-	auto anim = std::make_unique<CTextureAnimation>();
-
-	if (pSidlMgr)
-	{
-		if (CTextureAnimation* temp = pSidlMgr->FindAnimation(CXStr(name)))
-			*anim = *temp;
-	}
-
-	return anim;
-}
-
-void ImGui_RegisterLua(sol::table& lua)
+void MQ_RegisterLua_ImGui(sol::table& lua)
 {
 	lua["imgui"] = lua.create_with(
 		"init", &addimgui,
 		"destroy", &removeimgui,
 		"exists", &hasimgui
 	);
-
-	lua.new_usertype<CTextureAnimation>("CTextureAnimation",
-		sol::no_constructor,
-		"SetTextureCell", &CTextureAnimation::SetCurCell
-	);
-
-	lua["FindTextureAnimation"] = &gettextanim;
 }
 
-LuaImGui::LuaImGui(std::string_view name, const sol::thread& thread, const sol::function& callback)
-	: name(name), thread(thread), callback(callback)
+//============================================================================
+
+LuaImGui::LuaImGui(std::string_view name, const sol::thread& parent_thread, const sol::function& callback)
+	: m_name(name)
+	, m_parentThread(parent_thread), m_callback(callback)
 {
-	coroutine = sol::coroutine(this->thread.state(), this->callback);
+	m_thread = sol::thread::create(m_parentThread.state());
+	ImGui_RegisterLua(m_thread.state());
+
+	m_coroutine = sol::coroutine(m_thread.state(), m_callback);
 }
 
 LuaImGui::~LuaImGui()
@@ -129,23 +118,64 @@ LuaImGui::~LuaImGui()
 
 bool LuaImGui::Pulse() const
 {
+	bool success = true;
 	try
 	{
-		auto result = coroutine();
+		auto result = m_coroutine();
 		if (!result.valid())
 		{
 			LuaError("ImGui Failure:\n%s", sol::stack::get<std::string>(result.lua_state(), result.stack_index()).c_str());
 			result.abandon();
-			return false;
+
+			success = false;
 		}
 	}
 	catch (std::runtime_error& e)
 	{
 		LuaError("ImGui Failure:\n%s", e.what());
-		return false;
+		success = false;
 	}
 
-	return true;
+	if (!success)
+	{
+		if (m_parentThread)
+		{
+			if (auto thread_ptr = LuaThread::get_from(m_parentThread.state()))
+			{
+				thread_ptr->YieldAt(0);
+				thread_ptr->thread.abandon();
+			}
+		}
+	}
+
+	return success;
 }
+
+//============================================================================
+
+// MQ-Specific functions
+inline bool DrawTextureAnimation(const std::unique_ptr<CTextureAnimation>& anim, int x, int y) { return mq::imgui::DrawTextureAnimation(anim.get(), CXSize(x, y)); }
+inline bool DrawTextureAnimation(const std::unique_ptr<CTextureAnimation>& anim) { return mq::imgui::DrawTextureAnimation(anim.get()); }
+
+void ImGui_RegisterLua(sol::state_view state)
+{
+	sol::table ImGui = state.get_or("ImGui", sol::lua_nil);
+
+	if (ImGui == sol::lua_nil)
+	{
+		ImGui = sol_ImGui::Init(state);
+
+#pragma region MQ Specific Functions
+		ImGui.set_function("DrawTextureAnimation", sol::overload(
+			sol::resolve<bool(const std::unique_ptr<CTextureAnimation>&, int, int)>(DrawTextureAnimation),
+			sol::resolve<bool(const std::unique_ptr<CTextureAnimation>&)>(DrawTextureAnimation)
+		));
+#pragma endregion
+
+		ImGui.set_function("Register", addimgui);
+		ImGui.set_function("Unregister", removeimgui);
+	}
+}
+
 
 } // namespace mq::lua

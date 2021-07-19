@@ -1,5 +1,62 @@
+July 17, 2021
+- Added /mqtarget and /eqtarget commands.  /mqtarget is the equivalent of the current /target commmand while
+/eqtarget will use the game's existing command.  Macro authors can begin migrating to /mqtarget when they want
+to use MacroQuest specific targeting.  Partially addresses #298
+
+July 9, 2021
+- Fixed /removebuff and /removepetbuff so they now accept quoted or unquoted strings (#184, #344, #345)
+Updates to MQ2Lua:
+** BREAKING CHANGE **
+- If you are a Lua script author, a change has been made to ImGui.Begin: it must now
+  **always** be followed by a ImGui.End, even if it returns false values. This
+  was necessary to resolve the issue where it was ambiguous whether End should be
+  called or not. Now, we just always expect you to call it if you called Begin.
+
+- Added bit32.bnot, bit32.band, bit32.bor, bit32.bxor, bit32.lshift, bit32.rshift, bit32.ror, and bit32.rol
+  These functions are provided to allow bitwise operations on 32bit integers.
+- Exposed the following general functions to lua:
+    PushStyleVar, PopStyleVar, TreeAdvanceToLabelPos, PushID (with arbitrary object), CheckboxFlags, GetStyle
+- Exposed the ImGui Tables API to lua. It includes access to the following functions:
+    BeginTable, EndTable, TableNextRow, TableNextColumn, TableSetColumnIndex, TableSetupColumn,
+    TableSetupScrollFreeze, TableHeadersRow, TableHeader, TableGetColumnCount, TableGetColumnName,
+    TableGetColumnIsVisible, TableGetColumnIsSorted, TableGetHoveredColumn, TableGetSortSpecs, TableSetBgColor
+- Added the following enum types to lua:
+    ImGuiSortDirection, ImGuiTableFlags, ImGuiTableColumnFlags, ImGuiTableRowFlags, ImGuiTableBgTarget, ImGuiStyle
+- Added the following user types to lua:
+    ImVec2, ImVec4, ImGuiListClipper, ImGuiTableSortSpecs, ImGuiTableSortSpecsColumn
+- Added new way to import and ui ImGui. This has the advantage of allowing the use of ImGui in
+  a global context
+
+    require 'ImGui'
+    local TEXT_BASE_WIDTH, _ = ImGui.CalcTextSize("A")
+    function DemoFeatureImGui()
+        -- do update
+    end
+    ImGui.Register('DemoFeature', DemoFeatureImGui)
+
+- For an example of how to use most of these new apis, see lua/examples/demo_tables.lua
+
+Updates to Timestamp type:
+- Added TimeDHM to Timestamp type to express Days:Hours:Minutes
+- Added Days to Timestamp type.
+- Added MaxTimers and Timer to DynamicZone. Timer returns a type dztimer:
+
+updates to DynamicZone:
+* ${DynamicZone.MaxTimers}
+  - returns the number of timers
+* ${DynamicZone.Timer[N]}
+  - access the timer by index
+* ${DynamicZone.Timer[ExpeditionName|EventName]}
+  - access a specific timer by its expedition and event name. Event
+    name is optional and it will return the next expedition timer to
+    expire if it is omitted.
+- Added dztimer type with the following members: ExpeditionName, EventName,
+  Timer, EventID.
+- Fixed DzMember access
+
 July 3, 2021
 - Fix chat events in other languages not being able to use .equal for the matched text (#333)
+- Fix ctrl+c to copy in the console window
 
 June 24, 2021
 - Fix crash that would occur for some characters while zoning

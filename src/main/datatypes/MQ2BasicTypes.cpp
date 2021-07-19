@@ -1156,6 +1156,7 @@ bool MQ2TicksType::FromString(MQVarPtr& VarPtr, const char* Source)
 
 enum class TimeStampMembers
 {
+	Days,
 	Hours,
 	Minutes,
 	Seconds,
@@ -1165,11 +1166,13 @@ enum class TimeStampMembers
 	Raw,
 	Ticks,
 	TimeHMS,
+	TimeDHM,
 	Float,
 };
 
 MQ2TimeStampType::MQ2TimeStampType() : MQ2Type("timestamp")
 {
+	ScopedTypeMember(TimeStampMembers, Days);
 	ScopedTypeMember(TimeStampMembers, Hours);
 	ScopedTypeMember(TimeStampMembers, Minutes);
 	ScopedTypeMember(TimeStampMembers, Seconds);
@@ -1179,6 +1182,7 @@ MQ2TimeStampType::MQ2TimeStampType() : MQ2Type("timestamp")
 	ScopedTypeMember(TimeStampMembers, Raw);
 	ScopedTypeMember(TimeStampMembers, Ticks);
 	ScopedTypeMember(TimeStampMembers, TimeHMS);
+	ScopedTypeMember(TimeStampMembers, TimeDHM);
 	ScopedTypeMember(TimeStampMembers, Float);
 }
 
@@ -1192,6 +1196,11 @@ bool MQ2TimeStampType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	switch (static_cast<TimeStampMembers>(pMember->ID))
 	{
+	case TimeStampMembers::Days:
+		Dest.DWord = (uint32_t)((nTimeStamp / 1000) / 3600) / 24;
+		Dest.Type = pIntType;
+		return true;
+
 	case TimeStampMembers::Hours:
 		Dest.UInt64 = (nTimeStamp / 1000) / 3600;
 		Dest.Type = pInt64Type;
@@ -1214,12 +1223,26 @@ bool MQ2TimeStampType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		uint64_t Hrs = (Secs / 3600);
 
 		Secs = Secs % 60;
-		if (Secs < 0)
-			sprintf_s(DataTypeTemp, "Perm");
-		else if (Hrs)
+		if (Hrs)
 			sprintf_s(DataTypeTemp, "%d:%02u:%02u", (unsigned int)Hrs, (unsigned int)Mins, (unsigned int)Secs);
 		else
 			sprintf_s(DataTypeTemp, "%d:%02u", (unsigned int)Mins, (unsigned int)Secs);
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
+	}
+
+	case TimeStampMembers::TimeDHM: {
+		Dest.Type = pStringType;
+		uint64_t Secs = nTimeStamp / 1000;
+		uint64_t Mins = (Secs / 60) % 60;
+		uint64_t Hours = (Secs / 3600) % 24;
+		uint64_t Days = (Secs / 86400);
+
+		if (Days)
+			sprintf_s(DataTypeTemp, "%d:%02u:%02u", (unsigned int)Days, (unsigned int)Hours, (unsigned int)Mins);
+		else
+			sprintf_s(DataTypeTemp, "%d:%02u",  (unsigned int)Hours, (unsigned int)Mins);
+
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 	}

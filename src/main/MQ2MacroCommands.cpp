@@ -192,8 +192,7 @@ char* GetFuncParam(const char* szMacroLine, int ParamNum, char* szParamName, siz
 	if (szSubParamNamePointer[0] != 0)
 	{
 		char Temp[MAX_STRING] = { 0 };
-		// FIXME: const
-		GetArg(Temp, (char*)szSubParamNamePointer, ParamNum + 1, true, true, true, ',');
+		GetArg(Temp, szSubParamNamePointer, ParamNum + 1, true, true, true, ',');
 
 		if (*Temp && Temp[strlen(Temp) - 1] == ')')
 			Temp[strlen(Temp) - 1] = 0;
@@ -1992,8 +1991,7 @@ void Continue(PSPAWNINFO pChar, char* szLine)
 		{
 			char for_var[MAX_STRING];
 
-			// FIXME: const
-			GetArg(for_var, (char*)line, 2);
+			GetArg(for_var, line, 2);
 
 			if (_stricmp(for_var, loop.forVariable.c_str()))
 				continue;
@@ -2050,8 +2048,7 @@ void Break(PSPAWNINFO pChar, char* szLine)
 		{
 			char for_var[MAX_STRING];
 
-			// FIXME: const
-			GetArg(for_var, (char*)line, 2);
+			GetArg(for_var, line, 2);
 
 			if (_stricmp(for_var, loop.forVariable.c_str()))
 				continue;

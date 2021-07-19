@@ -3565,7 +3565,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 	case SPA_INSTANT_ENDURANCE_PCT: // Instant Endurance %
 	case SPA_DURATION_HP_PCT: // Duration HP %
 	case SPA_DURATION_MANA_PCT: // Duration Mana %
-	case SPA_DURATION_ENDURANCE_PCT: // Duration Endurance % 
+	case SPA_DURATION_ENDURANCE_PCT: // Duration Endurance %
 	default: //undefined effect
 		sprintf_s(szTemp, "%s (base=%d, base2=%d, max=%d, calc=%d, value=%d)", spelleffectname.c_str(), base, base2, max, calc, value);
 		strcat_s(szBuff, szTemp);
@@ -3952,7 +3952,7 @@ const char* GetSpellCaster(const EQ_Affect& buff)
 		if (auto whocast = pSongWnd->WhoCast.FindFirst(buff.SpellID); whocast != nullptr)
 			return whocast->c_str();
 	}
-	
+
 	return "";
 }
 
@@ -4209,26 +4209,29 @@ void RemoveBuffAt(int BuffID)
 void RemoveBuff(SPAWNINFO* pChar, char* szLine)
 {
 	char szCmd[MAX_STRING] = { 0 };
-	GetArg(szCmd, szLine, 1);
+	GetMaybeQuotedArg(szCmd, MAX_STRING, szLine, 1);
 
-	if (!_stricmp(szCmd, "-pet"))
+	if (_strnicmp(szLine, "-pet", 4) == 0)
 	{
-		GetArg(szCmd, szLine, 2);
+		GetMaybeQuotedArg(szCmd, MAX_STRING, szLine, 2);
 		RemovePetBuff(pChar, szCmd);
 		return;
 	}
 
-	if (!_stricmp(szCmd, "-both"))
+	if (_strnicmp(szLine, "-both", 5) == 0)
 	{
-		GetArg(szCmd, szLine, 2);
+		GetMaybeQuotedArg(szCmd, MAX_STRING, szLine, 2);
 		RemovePetBuff(pChar, szCmd);
 	}
 
-	if (szCmd != nullptr)
+	if (szCmd[0] != '\0')
 	{
-		auto buff_id = FindBuffID(szCmd);
-		EQ_Affect* buff = &pLocalPC->GetEffect(buff_id);
-		RemoveBuff(buff, buff_id);
+		int buff_id = FindBuffID(szCmd);
+		if (buff_id != -1)
+		{
+			EQ_Affect* buff = &pLocalPC->GetEffect(buff_id);
+			RemoveBuff(buff, buff_id);
+		}
 	}
 }
 
@@ -4238,10 +4241,13 @@ void RemovePetBuff(SPAWNINFO* pChar, char* szLine)
 	if (!pPetInfoWnd || !szLine || szLine[0] == '\0')
 		return;
 
+	char szArg[MAX_STRING] = { 0 };
+	GetMaybeQuotedArg(szArg, MAX_STRING, szLine, 1);
+
 	for (int nBuff = 0; nBuff < NUM_BUFF_SLOTS; ++nBuff)
 	{
-		auto pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
-		if (pBuffSpell && MaybeExactCompare(pBuffSpell->Name, szLine))
+		EQ_Spell* pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
+		if (pBuffSpell && MaybeExactCompare(pBuffSpell->Name, szArg))
 		{
 			pLocalPC->RemovePetEffect(nBuff);
 			return;
@@ -4306,7 +4312,7 @@ static SpellAttributePredicate<Buff> InternalBuffEvaluate(std::string_view dsl)
 					auto name = GetSpawnByID(id);
 					if (name != nullptr)
 						return Caster(name->Name);
-					
+
 					return [](const Buff&) { return false; };
 				}
 
