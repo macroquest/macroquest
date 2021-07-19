@@ -7277,6 +7277,9 @@ EQSwitch* GetSwitchByID(int ID)
 
 EQSwitch* FindSwitchByName(const char* szName)
 {
+	if (!pSwitchMgr)
+		return nullptr;
+
 	EQSwitch* closestSwitch = nullptr;
 	float cDistance = FLT_MAX;
 

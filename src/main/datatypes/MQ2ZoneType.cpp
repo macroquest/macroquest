@@ -133,8 +133,10 @@ bool MQ2ZoneType::dataZone(const char* szIndex, MQTypeVar& Ret)
 				{
 					Ret.DWord = instEQZoneInfo;
 					Ret.Type = pCurrentZoneType;
+					return true;
 				}
-				else if (nIndex < MAX_ZONES)
+
+				if (nIndex < MAX_ZONES)
 				{
 					Ret.Ptr = pWorldData->ZoneArray[nIndex];
 					Ret.Type = pZoneType;

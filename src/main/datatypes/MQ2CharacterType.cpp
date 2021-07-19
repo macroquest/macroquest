@@ -3827,9 +3827,9 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 		// These non-player races can mount.
 		if (race != EQR_SKELETON
-			|| race != EQR_SKELETON_NEW
-			|| race != EQR_OEQ_SKELETON
-			|| race != EQR_SOL_SKELETON)
+			&& race != EQR_SKELETON_NEW
+			&& race != EQR_OEQ_SKELETON
+			&& race != EQR_SOL_SKELETON)
 		{
 			// FIXME: we can calculate this, don't need to look it up.
 			// The -1 means "use the current race of the player"

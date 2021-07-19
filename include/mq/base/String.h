@@ -124,7 +124,7 @@ inline std::vector<std::string> split(const std::string& s, char delim)
 	return elems;
 }
 
-inline std::vector<std::string_view> split_view(std::string_view s, char delim)
+inline std::vector<std::string_view> split_view(std::string_view s, char delim, bool skipAdjacent = false)
 {
 	std::vector<std::string_view> elems;
 
@@ -134,13 +134,21 @@ inline std::vector<std::string_view> split_view(std::string_view s, char delim)
 	{
 		if (s[i] == delim)
 		{
-			elems.emplace_back(s.data() + start_idx, i - start_idx);
+			std::string_view sv{ s.data() + start_idx, i - start_idx };
+			if (!sv.empty() || !skipAdjacent)
+			{
+				elems.push_back(sv);
+			}
 			start_idx = i + 1;
 		}
 		else if (i == s.size() - 1)
 		{
 			// get the last element, which needs to include the ith character since it's not a delimiter
-			elems.emplace_back(s.data() + start_idx, s.size() - start_idx);
+			std::string_view sv{ s.data() + start_idx, s.size() - start_idx };
+			if (!sv.empty() || !skipAdjacent)
+			{
+				elems.emplace_back(sv);
+			}
 		}
 	}
 
@@ -242,6 +250,20 @@ inline std::string replace(std::string_view str, std::vector<std::pair<std::stri
 			s.replace(p, r.first.length(), r.second);
 			p += r.second.length();
 		}
+	}
+
+	return s;
+}
+
+inline std::string replace(std::string_view str, std::string_view search, std::string_view replacement)
+{
+	std::string s(str);
+
+	std::string::size_type p = 0;
+	while ((p = s.find(search, p)) != std::string::npos)
+	{
+		s.replace(p, search.length(), replacement);
+		p += replacement.length();
 	}
 
 	return s;
