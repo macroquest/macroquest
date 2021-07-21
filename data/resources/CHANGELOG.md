@@ -1,3 +1,6 @@
+July 21, 2021
+- Updated for patch
+
 July 19, 2021
 - Comands executed from console are now deferred so that they do not inherit the
   temporary floating point state of the imgui renderer (#351).

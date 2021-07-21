@@ -617,10 +617,6 @@ public:
 			}
 		}
 
-		sprintf_s(temp, "Book Icon: %d<br>", pSpell->BookIcon);
-		strcat_s(out, temp);
-		sprintf_s(temp, "Gem Icon: %d<br>", pSpell->GemIcon);
-		strcat_s(out, temp);
 		sprintf_s(temp, "Spell Icon: %d<br>", pSpell->SpellIcon);
 		strcat_s(out, temp);
 
