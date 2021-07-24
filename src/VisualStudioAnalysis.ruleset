@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <RuleSet Name="Native Rules for MQ2" ToolsVersion="16.0">
   <Rules AnalyzerId="Microsoft.Analyzers.NativeCodeAnalysis" RuleNamespace="Microsoft.Rules.Native">
+    <!-- The enum '<enum>' is unscoped. Prefer 'enum class' over 'enum' (Enum.3). -->
+    <Rule Id="C26812" Action="None" /> 
+
     <Rule Id="C26100" Action="Warning" />
     <Rule Id="C26101" Action="Warning" />
     <Rule Id="C26110" Action="Warning" />

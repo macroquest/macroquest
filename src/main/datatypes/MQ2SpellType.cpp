@@ -979,17 +979,9 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpellMembers::BookIcon:
-		Dest.DWord = pSpell->BookIcon;
-		Dest.Type = pIntType;
-		return true;
-
 	case SpellMembers::SpellIcon:
-		Dest.DWord = pSpell->SpellIcon;
-		Dest.Type = pIntType;
-		return true;
-
 	case SpellMembers::GemIcon:
-		Dest.DWord = pSpell->GemIcon;
+		Dest.DWord = pSpell->SpellIcon;
 		Dest.Type = pIntType;
 		return true;
 

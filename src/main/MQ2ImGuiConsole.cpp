@@ -1101,7 +1101,7 @@ public:
 		}
 		else if (strlen(commandLine) > 1 && commandLine[0] == '/')
 		{
-			mq::EzCommand(commandLine);
+			mq::HideDoCommand(pLocalPlayer, commandLine, true);
 		}
 		else
 		{

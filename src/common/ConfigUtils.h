@@ -90,16 +90,38 @@ inline std::string GetPrivateProfileString(const char* Section, const char* Key,
 	return std::string{ szBuffer, length };
 }
 
+template <size_t BUFFER_SIZE = MAX_STRING>
 inline std::vector<std::string> GetPrivateProfileKeys(const std::string& section, const std::string& iniFileName)
 {
-	char keybuffer[MAX_STRING] = { 0 };
+	char keybuffer[BUFFER_SIZE] = { 0 };
 
-	const int bufferLen = ::GetPrivateProfileStringA(section.c_str(), nullptr, "", keybuffer, MAX_STRING, iniFileName.c_str());
+	const int bufferLen = ::GetPrivateProfileStringA(section.c_str(), nullptr, "", keybuffer, BUFFER_SIZE, iniFileName.c_str());
 	char* ptr = keybuffer;
 
 	std::vector<std::string> results;
 
 	while (ptr < keybuffer + bufferLen)
+	{
+		std::string keyName = ptr;
+		ptr += keyName.length() + 1;
+
+		results.push_back(std::move(keyName));
+	}
+
+	return results;
+}
+
+template <size_t BUFFER_SIZE = MAX_STRING>
+inline std::vector<std::string> GetPrivateProfileSections(const std::string& iniFileName)
+{
+	char sectionbuffer[BUFFER_SIZE] = { 0 };
+
+	const int bufferLen = ::GetPrivateProfileSectionNamesA(sectionbuffer, BUFFER_SIZE, iniFileName.c_str());
+	char* ptr = sectionbuffer;
+
+	std::vector<std::string> results;
+
+	while (ptr < sectionbuffer + bufferLen)
 	{
 		std::string keyName = ptr;
 		ptr += keyName.length() + 1;
