@@ -1,3 +1,6 @@
+July 24, 2021
+- Added back the String TLO after a 16 year hiatus. Usage: ${String[foo].Right[2]} etc.
+
 July 21, 2021
 - Updated for patch
 

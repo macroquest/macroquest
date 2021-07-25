@@ -809,7 +809,6 @@ void MQ2StringType::FreeVariable(MQVarPtr& VarPtr)
 	LocalFree(VarPtr.Ptr);
 }
 
-// TODO: This should be using the CXStr underlying type of VarPtr, but that is a very large change
 bool MQ2StringType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pStringType)
@@ -819,10 +818,20 @@ bool MQ2StringType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 	return true;
 }
 
-// TODO: This should be using the CXStr underlying type of VarPtr, but that is a very large change
 bool MQ2StringType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
 	strcpy_s(static_cast<char*>(VarPtr.Ptr), MAX_STRING, Source);
+	return true;
+}
+
+bool MQ2StringType::dataString(const char* szIndex, MQTypeVar& Ret)
+{
+	if (!szIndex)
+		return false;
+
+	strcpy_s(DataTypeTemp, szIndex);
+	Ret.Ptr = &DataTypeTemp[0];
+	Ret.Type = pStringType;
 	return true;
 }
 
