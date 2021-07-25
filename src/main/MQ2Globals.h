@@ -318,7 +318,6 @@ MQLIB_VAR bool gbFlashOnTells;
 MQLIB_VAR bool gbShowCurrentCamera;
 MQLIB_VAR int  gOldCameraType;
 MQLIB_VAR bool gbIgnoreAlertRecursion;
-MQLIB_VAR bool gbShowMacroQuestConsole;
 
 const std::string PARSE_PARAM_BEG = "${Parse[";
 const std::string PARSE_PARAM_END = "]}";

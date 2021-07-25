@@ -396,7 +396,6 @@ bool ParseINIFile(const std::string& iniFile)
 	gParserVersion           = GetPrivateProfileInt("MacroQuest", "ParserEngine", gParserVersion, iniFile); // 2 = new parser, everything else = old parser
 	gIfDelimiter             = GetPrivateProfileString("MacroQuest", "IfDelimiter", std::string(1, gIfDelimiter), iniFile)[0];
 	gIfAltDelimiter          = GetPrivateProfileString("MacroQuest", "IfAltDelimiter", std::string(1, gIfAltDelimiter), iniFile)[0];
-	gbShowMacroQuestConsole  = GetPrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", gbShowMacroQuestConsole, iniFile);
 
 	if (gbWriteAllConfig)
 	{
@@ -429,7 +428,6 @@ bool ParseINIFile(const std::string& iniFile)
 		WritePrivateProfileInt("MacroQuest", "ParserEngine", gParserVersion, iniFile);
 		WritePrivateProfileString("MacroQuest", "IfDelimiter", std::string(1, gIfDelimiter), iniFile);
 		WritePrivateProfileString("MacroQuest", "IfAltDelimiter", std::string(1, gIfAltDelimiter), iniFile);
-		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", gbShowMacroQuestConsole, iniFile);
 	}
 
 	GetPrivateProfileString("MacroQuest", "HUDMode", "UnderUI", szBuffer, MAX_STRING, iniFile);

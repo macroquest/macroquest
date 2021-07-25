@@ -749,8 +749,6 @@ bool gbIgnoreAlertRecursion = false;
 bool gbShowCurrentCamera = false;
 int  gOldCameraType = -1;
 
-bool gbShowMacroQuestConsole = false;
-
 fEQGetMelee get_melee_range = GetMeleeRange;
 fEQW_GetDisplayWindow EQW_GetDisplayWindow = nullptr;
 
