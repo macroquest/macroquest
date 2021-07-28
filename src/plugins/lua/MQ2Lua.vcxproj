@@ -84,6 +84,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="bindings\lua_MQBindings.cpp" />
     <ClCompile Include="bindings\lua_MQCommand.cpp" />
     <ClCompile Include="bindings\lua_MQDataItem.cpp" />
     <ClCompile Include="bindings\lua_MQTypeVar.cpp" />
@@ -109,6 +110,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="bindings\lua_MQBindings.h" />
     <ClInclude Include="bindings\lua_MQCommand.h" />
     <ClInclude Include="bindings\lua_MQDataItem.h" />
     <ClInclude Include="bindings\lua_MQTypeVar.h" />

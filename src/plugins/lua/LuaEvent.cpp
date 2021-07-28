@@ -88,7 +88,7 @@ void LuaEventProcessor::RemoveBind(std::string_view name)
 
 void LuaEventProcessor::Process(std::string_view line) const
 {
-	if (!m_thread->thread.valid())
+	if (!m_thread->IsValid())
 		return;
 	if (m_eventDefinitions.empty())
 		return;
@@ -111,7 +111,7 @@ void LuaEventProcessor::Process(std::string_view line) const
 	// since we initialized to 0, we know that any remaining members will be 0, so just in case we Get an overflow, re-set the last character to 0
 	line_char[MAX_STRING - 1] = 0;
 
-	auto& state = m_thread->thread.state();
+	sol::state_view state = m_thread->GetState();
 
 	state["_mq_event_line"] = line_char;
 	m_blech->Feed(line_char);
@@ -125,7 +125,7 @@ static void loop_and_run(const LuaThread& thread,
 		[&thread](auto& co) -> bool
 	{
 		// return false for everything else because we need to yield to the frame
-		if (thread.yieldToFrame) return false;
+		if (thread.ShouldYield()) return false;
 
 		auto result = RunCoroutine(co.first, co.second);
 
@@ -140,7 +140,7 @@ static void loop_and_run(const LuaThread& thread,
 void LuaEventProcessor::RunEvents(const LuaThread& thread)
 {
 	loop_and_run(thread, m_bindsRunning);
-	if (!thread.yieldToFrame) loop_and_run(thread, m_eventsRunning);
+	if (!thread.ShouldYield()) loop_and_run(thread, m_eventsRunning);
 }
 
 template <typename RVec, typename R>
@@ -205,10 +205,10 @@ void LuaEventProcessor::PrepareBinds()
 
 void LuaEventProcessor::HandleBlechEvent(LuaEvent* pEvent, PBLECHVALUE pValues)
 {
-	sol::thread event_thread = sol::thread::create(m_thread->thread.state());
+	sol::thread event_thread = sol::thread::create(m_thread->GetState());
 	std::vector<std::pair<uint32_t, std::string>> args;
 
-	std::optional<std::string> line = m_thread->thread.state()["_mq_event_line"];
+	std::optional<std::string> line = m_thread->GetState()["_mq_event_line"];
 	args.emplace_back(0, line.value_or(""));
 
 	auto value = pValues;
@@ -238,7 +238,7 @@ void LuaEventProcessor::HandleBlechEvent(LuaEvent* pEvent, PBLECHVALUE pValues)
 
 void LuaEventProcessor::HandleBindCallback(LuaBind* bind, const char* args)
 {
-	auto bind_thread = sol::thread::create(m_thread->thread.state());
+	auto bind_thread = sol::thread::create(m_thread->GetState());
 
 	auto& args_view = tokenize_args(args);
 	if (args_view.empty())
@@ -330,7 +330,7 @@ LuaBind::~LuaBind()
 
 //----------------------------------------------------------------------------
 
-static void doevents(sol::variadic_args va, sol::this_state s)
+static void lua_doevents(sol::variadic_args va, sol::this_state s)
 {
 	if (auto thread_ptr = LuaThread::get_from(s))
 	{
@@ -341,12 +341,12 @@ static void doevents(sol::variadic_args va, sol::this_state s)
 			if (arg) args.emplace_back(*arg);
 		}
 
-		thread_ptr->eventProcessor->PrepareEvents(args);
-		thread_ptr->YieldAt(0); // doevents needs to yield, event processing will pick up next frame
+		thread_ptr->GetEventProcessor()->PrepareEvents(args);
+		thread_ptr->DoYield(); // doevents needs to yield, event processing will pick up next frame
 	}
 }
 
-static void flushevents(sol::variadic_args va, sol::this_state s)
+static void lua_flushevents(sol::variadic_args va, sol::this_state s)
 {
 	if (auto thread_ptr = LuaThread::get_from(s))
 	{
@@ -357,50 +357,50 @@ static void flushevents(sol::variadic_args va, sol::this_state s)
 			if (arg) args.emplace_back(*arg);
 		}
 
-		thread_ptr->eventProcessor->RemoveEvents(args);
+		thread_ptr->GetEventProcessor()->RemoveEvents(args);
 	}
 }
 
-static void addevent(std::string_view name, std::string_view expression, sol::function function, sol::this_state s)
+static void lua_addevent(std::string_view name, std::string_view expression, sol::function function, sol::this_state s)
 {
-	if (auto thread_ptr = LuaThread::get_from(s))
+	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
-		thread_ptr->eventProcessor->AddEvent(name, expression, function);
+		thread_ptr->GetEventProcessor()->AddEvent(name, expression, function);
 	}
 }
 
-static void removeevent(std::string_view name, sol::this_state s)
+static void lua_removeevent(std::string_view name, sol::this_state s)
 {
-	if (auto thread_ptr = LuaThread::get_from(s))
+	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
-		thread_ptr->eventProcessor->RemoveEvent(name);
+		thread_ptr->GetEventProcessor()->RemoveEvent(name);
 	}
 }
 
-static void addbind(std::string_view name, sol::function function, sol::this_state s)
+static void lua_addbind(std::string_view name, sol::function function, sol::this_state s)
 {
-	if (auto thread_ptr = LuaThread::get_from(s))
+	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
-		thread_ptr->eventProcessor->AddBind(name, function);
+		thread_ptr->GetEventProcessor()->AddBind(name, function);
 	}
 }
 
-static void removebind(std::string_view name, sol::this_state s)
+static void lua_removebind(std::string_view name, sol::this_state s)
 {
-	if (auto thread_ptr = LuaThread::get_from(s))
+	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
-		thread_ptr->eventProcessor->RemoveBind(name);
+		thread_ptr->GetEventProcessor()->RemoveBind(name);
 	}
 }
 
 void MQ_RegisterLua_Events(sol::table& lua)
 {
-	lua["doevents"] = &doevents;
-	lua["flushevents"] = &flushevents;
-	lua["event"] = &addevent;
-	lua["unevent"] = &removeevent;
-	lua["bind"] = &addbind;
-	lua["unbind"] = &removebind;
+	lua["doevents"] = &lua_doevents;
+	lua["flushevents"] = &lua_flushevents;
+	lua["event"] = &lua_addevent;
+	lua["unevent"] = &lua_removeevent;
+	lua["bind"] = &lua_addbind;
+	lua["unbind"] = &lua_removebind;
 }
 
 } // namespace mq::lua

@@ -38,7 +38,7 @@ void lua_MQCommand::operator()(sol::variadic_args va, sol::this_state s)
 	{
 		if (auto thread_ptr = LuaThread::get_from(s))
 		{
-			thread_ptr->YieldAt(0);
+			thread_ptr->DoYield();
 		}
 	}
 }

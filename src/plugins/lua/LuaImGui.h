@@ -18,7 +18,7 @@
 
 namespace mq::lua {
 
-struct LuaThread;
+class LuaThread;
 
 // Register ImGui
 void ImGui_RegisterLua(sol::state_view state);
@@ -43,11 +43,9 @@ private:
 	sol::thread m_parentThread;
 };
 
-struct LuaImGuiProcessor
+class LuaImGuiProcessor
 {
-	const LuaThread* thread;
-	std::vector<std::unique_ptr<LuaImGui>> imguis;
-
+public:
 	LuaImGuiProcessor(const LuaThread* thread);
 	~LuaImGuiProcessor();
 
@@ -55,6 +53,10 @@ struct LuaImGuiProcessor
 	void RemoveCallback(std::string_view name);
 	bool HasCallback(std::string_view name);
 	void Pulse();
+
+private:
+	const LuaThread* m_thread;
+	std::vector<std::unique_ptr<LuaImGui>> m_imguis;
 };
 
 } // namespace mq::lua
