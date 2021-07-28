@@ -665,6 +665,7 @@ static HeartbeatState Heartbeat()
 
 	if (gGameState == -1)
 	{
+		PulseCommands();
 		return HeartbeatNormal;
 	}
 
