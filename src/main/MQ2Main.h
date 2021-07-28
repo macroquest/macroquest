@@ -111,6 +111,7 @@ MQLIB_API void ShutdownMQ2Overlay();
 MQLIB_API void PulseMQ2Overlay();
 MQLIB_API void SetOverlayEnabled(bool visible);
 MQLIB_API bool IsOverlayEnabled();
+MQLIB_API void ResetOverlay();
 
 struct MQRenderCallbacks
 {

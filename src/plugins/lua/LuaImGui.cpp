@@ -146,6 +146,9 @@ bool LuaImGui::Pulse() const
 				thread_ptr->Exit();
 			}
 		}
+
+		// Critical error occurred, reset the overlay to prevent bad state from killing the whole process.
+		ResetOverlay();
 	}
 
 	return success;
