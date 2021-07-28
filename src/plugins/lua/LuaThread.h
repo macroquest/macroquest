@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include "LuaCommon.h"
+
 #include <sol/sol.hpp>
 #include <stack>
 
@@ -25,7 +27,8 @@ class LuaThread;
 
 struct ThreadState;
 
-std::optional<sol::protected_function_result> RunCoroutine(sol::coroutine& co, const std::vector<std::string>& args = {});
+using CoroutineResult = std::optional<sol::protected_function_result>;
+CoroutineResult RunCoroutine(sol::coroutine& co, const std::vector<std::string>& args = {});
 
 enum class LuaThreadStatus
 {
@@ -45,6 +48,7 @@ struct LuaThreadInfo
 	std::time_t endTime;
 	std::vector<std::string> returnValues;
 	LuaThreadStatus status;
+	bool isString;
 
 	std::string_view status_string() const
 	{
@@ -71,41 +75,37 @@ struct LuaThreadInfo
 
 class LuaThread : public std::enable_shared_from_this<LuaThread>
 {
-protected:
+private:
 	struct this_is_private {};
+
+public:
+	LuaThread(this_is_private&&, LuaEnvironmentSettings* environment);
+	static std::shared_ptr<LuaThread> Create(LuaEnvironmentSettings* environment);
 
 	LuaThread(const LuaThread&) = delete;
 	LuaThread& operator=(const LuaThread&) = delete;
-
-	void Initialize(bool injectMQ);
-
-public:
-	LuaThread(this_is_private&&, std::string_view name, std::string_view luaDir, const std::vector<std::string>& luaRequire,
-		const std::vector<std::string>& dllRequire);
-
-	static std::shared_ptr<LuaThread> Create(
-		std::string_view name,
-		std::string_view luaDir,
-		const std::vector<std::string>& luaRequire,
-		const std::vector<std::string>& dllRequire,
-		bool injectMQ);
 
 	static std::shared_ptr<LuaThread> get_from(sol::state_view s);
 
 	bool IsPaused() const { return m_paused; }
 	bool IsValid() const;
+	bool IsString() const { return m_isString; }
 	int GetPID() const { return m_pid; }
 	const std::string& GetName() const { return m_name; }
 	sol::state_view GetState() const;
 	sol::thread GetLuaThread() const { return m_thread; }
 
-	std::optional<LuaThreadInfo> StartFile(std::string_view luaDir, uint32_t turbo, const std::vector<std::string>& args);
-	std::optional<LuaThreadInfo> StartString(uint32_t turbo, std::string_view script);
+	void InjectMQNamespace();
+	void SetTurbo(uint32_t turboVal) { m_turboNum = turboVal; }
+
+	std::optional<LuaThreadInfo> StartFile(std::string_view filename, const std::vector<std::string>& args);
+	std::optional<LuaThreadInfo> StartString(std::string_view script, std::string_view name = "");
 
 	// Execute a time slice
-	using RunResult = std::pair<sol::thread_status, std::optional<sol::protected_function_result>>;
-	RunResult Run(uint32_t turbo);
-	LuaThreadStatus Pause(uint32_t turbo);
+	using RunResult = std::pair<sol::thread_status, CoroutineResult>;
+	RunResult Run();
+
+	LuaThreadStatus Pause();
 
 	bool ShouldYield() const { return m_yieldToFrame; }
 	void DoYield() { YieldAt(0); }
@@ -115,14 +115,15 @@ public:
 	LuaEventProcessor* GetEventProcessor() const { return m_eventProcessor.get(); }
 
 private:
-	RunResult RunOnce(uint32_t turbo);
+	RunResult RunOnce();
 
 	void RegisterLuaBindings(sol::table mq);
+	void Initialize();
 
 	void YieldAt(int count) const;
 	bool CheckCondition(std::optional<sol::function>& func);
 	void Delay(sol::object delayObj, sol::object conditionObj);
-	bool ShouldRun(uint32_t turbo);
+	bool ShouldRun();
 	void SetDelay(uint64_t time, std::optional<sol::function> condition = std::nullopt);
 
 	int PackageLoader(const std::string& pkg, lua_State* L);
@@ -133,6 +134,8 @@ private:
 	static void lua_forceYield(lua_State* L, lua_Debug* D);
 
 private:
+	LuaEnvironmentSettings* m_luaEnvironmentSettings = nullptr;
+
 	// this needs to be first in initialization order because other things depend on it
 	sol::state m_globalState;
 	sol::thread m_thread;
@@ -144,9 +147,10 @@ private:
 	std::string m_path;
 	std::unique_ptr<LuaEventProcessor> m_eventProcessor;
 	std::unique_ptr<LuaImGuiProcessor> m_imguiProcessor;
-	uint32_t m_pid;
+	uint32_t m_pid = 0;
+	uint32_t m_turboNum = 500;
 	bool m_yieldToFrame = false;
-
+	bool m_isString = false;
 	bool m_paused = false;
 	uint64_t m_delayTime = 0L;
 	std::optional<sol::function> m_delayCondition = std::nullopt;

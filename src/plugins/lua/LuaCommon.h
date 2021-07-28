@@ -45,4 +45,22 @@ void ErrorMessage(ColorWriter writer, const char* format, int color, Args&&... a
 
 std::string lua_join(sol::this_state L, std::string delim, sol::variadic_args va);
 
+class LuaEnvironmentSettings
+{
+public:
+	LuaEnvironmentSettings();
+	~LuaEnvironmentSettings();
+
+	void ConfigureLuaState(sol::state_view sv);
+
+	std::string luaDir;
+	std::vector<std::string> luaRequirePaths;
+	std::vector<std::string> dllRequirePaths;
+
+private:
+	bool m_initialized = false;
+	std::string m_packagePath;
+	std::string m_packageCPath;
+};
+
 } // namespace mq::lua

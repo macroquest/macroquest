@@ -49,7 +49,7 @@ static uint32_t NextID()
 	return ++current;
 }
 
-std::optional<sol::protected_function_result> RunCoroutine(sol::coroutine& co, const std::vector<std::string>& args)
+CoroutineResult RunCoroutine(sol::coroutine& co, const std::vector<std::string>& args)
 {
 	try
 	{
@@ -99,49 +99,37 @@ void LuaThreadInfo::EndRun()
 //============================================================================
 //============================================================================
 
-LuaThread::LuaThread(this_is_private&&, std::string_view name, std::string_view luaDir,
-	const std::vector<std::string>& luaRequire, const std::vector<std::string>& dllRequire)
-	: m_name(name)
+LuaThread::LuaThread(this_is_private&&, LuaEnvironmentSettings* environment)
+	: m_luaEnvironmentSettings(environment)
+	, m_name("(unnamed)")
 	, m_eventProcessor(std::make_unique<LuaEventProcessor>(this))
 	, m_imguiProcessor(std::make_unique<LuaImGuiProcessor>(this))
 	, m_pid(NextID())
 {
 	m_globalState.open_libraries();
-
-	// always search the local dir first, then anything specified by the user, then the default paths
-	static auto package_path = m_globalState["package"]["path"].get<std::string>(); // make this static so we always have the _original_ package paths
-	m_globalState["package"]["path"] = fmt::format("{}\\?.lua;{}{}", luaDir, luaRequire.empty() ? "" : join(luaRequire, ";") + ";", package_path);
-
-	static auto package_cpath = m_globalState["package"]["cpath"].get<std::string>();
-	m_globalState["package"]["cpath"] = fmt::format("{}\\?.dll;{}{}", luaDir, dllRequire.empty() ? "" : join(dllRequire, ";") + ";", package_cpath);
+	m_luaEnvironmentSettings->ConfigureLuaState(m_globalState);
 
 	m_environment = sol::environment(m_globalState, sol::create, m_globalState.globals());
-
 	m_thread = sol::thread::create(m_globalState);
 	m_environment.set_on(m_thread);
 }
 
-/*static*/ std::shared_ptr<LuaThread> LuaThread::Create(
-	std::string_view name,
-	std::string_view luaDir,
-	const std::vector<std::string>& luaRequire,
-	const std::vector<std::string>& dllRequire,
-	bool injectMQ)
+/*static*/ std::shared_ptr<LuaThread> LuaThread::Create(LuaEnvironmentSettings* environment)
 {
-	std::shared_ptr<LuaThread> luaThread = std::make_shared<LuaThread>(this_is_private{}, name, luaDir, luaRequire, dllRequire);
-	luaThread->Initialize(injectMQ);
+	std::shared_ptr<LuaThread> luaThread = std::make_shared<LuaThread>(this_is_private{}, environment);
+	luaThread->Initialize();
 
 	return luaThread;
 }
 
-void LuaThread::Initialize(bool injectMQ)
+void LuaThread::Initialize()
 {
 	RegisterBitwiseOps(m_globalState);
 
 	m_globalState["_old_dofile"] = m_globalState["dofile"];
 	m_globalState["dofile"] = [this](std::string_view file, sol::variadic_args args)
 	{
-		std::filesystem::path file_path = std::filesystem::path(m_path).parent_path() / file;
+		std::filesystem::path file_path = std::filesystem::path(m_luaEnvironmentSettings->luaDir) / file;
 		return m_globalState["_old_dofile"](file_path.string(), args);
 	};
 
@@ -151,21 +139,21 @@ void LuaThread::Initialize(bool injectMQ)
 	};
 
 	m_globalState.add_package_loader(LuaThread::lua_PackageLoader);
+}
 
-	if (injectMQ)
-	{
-		sol::table mq_table = m_globalState.create_table();
-		RegisterLuaBindings(mq_table);
+void LuaThread::InjectMQNamespace()
+{
+	sol::table mq_table = m_globalState.create_table();
+	RegisterLuaBindings(mq_table);
 
-		m_globalState["mq"] = mq_table;
-	}
+	m_globalState["mq"] = mq_table;
 }
 
 void LuaThread::Delay(sol::object delayObj, sol::object conditionObj)
 {
 	using namespace std::chrono_literals;
 
-	auto delay_int = delayObj.as<std::optional<const __int64>>();
+	auto delay_int = delayObj.as<std::optional<const int64_t>>();
 	if (!delay_int)
 	{
 		auto delay_str = delayObj.as<std::optional<std::string_view>>();
@@ -229,7 +217,7 @@ void LuaThread::RegisterLuaBindings(sol::table mq)
 
 	mq["delay"] = &LuaThread::lua_delay;
 	mq["exit"] = &LuaThread::lua_exit;
-	mq["luaDir"] = std::filesystem::path(m_path).parent_path().string();
+	mq["luaDir"] = m_luaEnvironmentSettings->luaDir;
 
 	MQ_RegisterLua_Events(mq);
 	MQ_RegisterLua_ImGui(mq);
@@ -290,11 +278,12 @@ sol::state_view LuaThread::GetState() const
 //----------------------------------------------------------------------------
 
 std::optional<LuaThreadInfo> LuaThread::StartFile(
-	std::string_view luaDir, uint32_t turbo, const std::vector<std::string>& args)
+	std::string_view filename, const std::vector<std::string>& args)
 {
-	std::filesystem::path script_path = std::filesystem::path{ luaDir } / m_name;
+	std::filesystem::path script_path = std::filesystem::path{ m_path } / filename;
 	if (!script_path.has_extension()) script_path.replace_extension(".lua");
 
+	m_name = filename;
 	m_path = script_path.string();
 
 	std::error_code ec;
@@ -313,12 +302,12 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(
 	}
 
 	m_coroutine = co;
-	YieldAt(turbo);
+	YieldAt(m_turboNum);
 
 	auto start_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-	auto result = RunCoroutine(m_coroutine, args);
+	CoroutineResult result = RunCoroutine(m_coroutine, args);
 
-	auto ret = LuaThreadInfo{
+	LuaThreadInfo ret{
 		m_pid,
 		m_name,
 		script_path.string(),
@@ -326,7 +315,8 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(
 		start_time,
 		0ULL,
 		{},
-		LuaThreadStatus::Starting
+		LuaThreadStatus::Starting,
+		false
 	};
 
 	if (result)
@@ -337,8 +327,11 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(
 	return ret;
 }
 
-std::optional<LuaThreadInfo> LuaThread::StartString(uint32_t turbo, std::string_view script)
+std::optional<LuaThreadInfo> LuaThread::StartString(std::string_view script,
+	std::string_view name /* = "" */)
 {
+	m_isString = true;
+
 	auto co = m_thread.state().load(script);
 
 	if (!co.valid())
@@ -348,13 +341,18 @@ std::optional<LuaThreadInfo> LuaThread::StartString(uint32_t turbo, std::string_
 		return std::nullopt;
 	}
 
+	if (!name.empty())
+	{
+		m_name = name;
+	}
+
 	m_coroutine = co;
-	YieldAt(turbo);
+	YieldAt(m_turboNum);
 
 	auto start_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-	auto result = RunCoroutine(m_coroutine);
+	CoroutineResult result = RunCoroutine(m_coroutine);
 
-	auto ret = LuaThreadInfo{
+	LuaThreadInfo ret{
 		m_pid,
 		m_name,
 		std::string(script),
@@ -362,7 +360,8 @@ std::optional<LuaThreadInfo> LuaThread::StartString(uint32_t turbo, std::string_
 		start_time,
 		0ULL,
 		{},
-		LuaThreadStatus::Starting
+		LuaThreadStatus::Starting,
+		true
 	};
 
 	if (result)
@@ -373,17 +372,17 @@ std::optional<LuaThreadInfo> LuaThread::StartString(uint32_t turbo, std::string_
 	return ret;
 }
 
-LuaThread::RunResult LuaThread::Run(uint32_t turbo)
+LuaThread::RunResult LuaThread::Run()
 {
 	if (m_coroutine.status() == sol::call_status::yielded)
 	{
-		return RunOnce(turbo);
+		return RunOnce();
 	}
 
 	return { static_cast<sol::thread_status>(m_coroutine.status()), std::nullopt };
 }
 
-LuaThread::RunResult LuaThread::RunOnce(uint32_t turbo)
+LuaThread::RunResult LuaThread::RunOnce()
 {
 	if (!m_thread.valid())
 		return { sol::thread_status::dead, std::nullopt };
@@ -393,21 +392,23 @@ LuaThread::RunResult LuaThread::RunOnce(uint32_t turbo)
 		return { m_thread.status(), std::nullopt };
 	}
 
-	if (!ShouldRun(turbo))
+	if (!ShouldRun())
+	{
 		return { m_thread.status(), std::nullopt };
+	}
 
 	// TODO: allow the user to set "aggressive" events (which gets prepared here) and "passive" binds (which would Get prepared in `doevents`)
 	m_eventProcessor->PrepareBinds();
 
-	YieldAt(turbo);
+	YieldAt(m_turboNum);
 
 	m_yieldToFrame = false;
 	m_eventProcessor->RunEvents(*this);
 
 	if (!m_yieldToFrame)
 	{
-		auto result = RunCoroutine(m_coroutine);
-		auto status = result ? static_cast<sol::thread_status>(result->status()) : sol::thread_status::dead;
+		CoroutineResult result = RunCoroutine(m_coroutine);
+		sol::thread_status status = result ? static_cast<sol::thread_status>(result->status()) : sol::thread_status::dead;
 		return std::make_pair(std::move(status), std::move(result));
 	}
 
@@ -419,15 +420,17 @@ LuaThread::RunResult LuaThread::RunOnce(uint32_t turbo)
 	return { m_thread.status(), std::nullopt };
 }
 
-bool LuaThread::ShouldRun(uint32_t turbo)
+bool LuaThread::ShouldRun()
 {
 	if (m_paused)
+	{
 		return false;
+	}
 
 	// check delayed status
 	if (m_delayTime <= MQGetTickCount64() || CheckCondition(m_delayCondition))
 	{
-		YieldAt(turbo);
+		YieldAt(m_turboNum);
 		m_delayTime = 0;
 		m_delayCondition = std::nullopt;
 		return true;
@@ -449,11 +452,11 @@ void LuaThread::SetDelay(uint64_t time, std::optional<sol::function> condition /
 	}
 }
 
-LuaThreadStatus LuaThread::Pause(uint32_t turbo)
+LuaThreadStatus LuaThread::Pause()
 {
 	if (m_paused)
 	{
-		YieldAt(turbo);
+		YieldAt(m_turboNum);
 
 		WriteChatStatus("Resuming paused lua script '%s' with PID %d", m_name.c_str(), m_pid);
 		m_paused = false;
@@ -479,7 +482,7 @@ bool LuaThread::CheckCondition(std::optional<sol::function>& func)
 
 	try
 	{
-		auto check = sol::function(m_globalState, *func);
+		sol::function check(m_globalState, *func);
 		m_environment.set_on(check);
 		return check();
 	}
@@ -497,7 +500,7 @@ bool LuaThread::CheckCondition(std::optional<sol::function>& func)
 {
 	if (lua_isyieldable(L))
 	{
-		if (auto thread_ptr = get_from(L))
+		if (std::shared_ptr<LuaThread> thread_ptr = get_from(L))
 		{
 			thread_ptr->m_yieldToFrame = true;
 		}
