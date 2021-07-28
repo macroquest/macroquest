@@ -2183,6 +2183,12 @@ namespace sol_ImGui
 
 #pragma region MouseButton
 		lua.new_enum("ImGuiMouseButton",
+			"Left"							, ImGuiMouseButton_Left,
+			"Right"							, ImGuiMouseButton_Right,
+			"Middle"						, ImGuiMouseButton_Middle,
+			"COUNT"							, ImGuiMouseButton_COUNT,
+
+			// BAD:
 			"ImGuiMouseButton_Left"			, ImGuiMouseButton_Left,
 			"ImGuiMouseButton_Right"		, ImGuiMouseButton_Right,
 			"ImGuiMouseButton_Middle"		, ImGuiMouseButton_Middle,
