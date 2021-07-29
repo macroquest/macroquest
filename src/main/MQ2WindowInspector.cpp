@@ -2534,7 +2534,7 @@ public:
 
 					const char* text = column.StrLabel.c_str();
 
-					if (ColumnTreeNodeType(label, "SListWndLine", "%s", text))
+					if (ColumnTreeNodeType(label, "SListWndColumn", "%s", text))
 					{
 						ColumnText("Width", "%d", column.Width);
 						ColumnText("Minimum Width", "%d", column.MinWidth);
@@ -2643,11 +2643,10 @@ public:
 							}
 						}
 
-						// I think these are all wrong.
-						ColumnText("Selected", line.bSelected ? "true" : "false");
-						ColumnText("Enabled", line.bEnabled ? "true" : "false");
-						ColumnText("Visible", line.bVisible ? "true" : "false");
-						//ColumnText("Tooltip", "%s", line.TooltipText);
+						ColumnText("Data", "%llu", line.Data);
+						ColumnCheckBox("Selected", line.bSelected);
+						ColumnCheckBox("Enabled", line.bEnabled);
+						ColumnCheckBox("Visible", line.bVisible);
 
 						ImGui::TreePop();
 					}
@@ -3481,7 +3480,7 @@ static void WindowProperties_FindLocationWnd(CSidlScreenWnd* pSidlWindow, ImGuiW
 	},
 		[pWnd](char* szLabel, size_t len, const std::pair<CFindLocationWnd::FindableReference, int>& data)
 	{
-		sprintf_s(szLabel, len, "%s: ", FindLocationTypeToString(data.first.type));
+		sprintf_s(szLabel, len, "%d - %s: ", data.second, FindLocationTypeToString(data.first.type));
 
 		if (data.first.type == FindLocation_Player)
 		{

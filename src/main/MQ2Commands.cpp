@@ -3082,9 +3082,12 @@ void Target(SPAWNINFO* pChar, char* szLine)
 {
 	gTargetbuffs = false;
 
-	if (!pSpawnManager) return;
-	if (!pSpawnList) return;
-	if (!pLocalPlayer) return;
+	if (!pSpawnManager)
+		return;
+	if (!pSpawnList)
+		return;
+	if (!pLocalPlayer)
+		return;
 
 	bRunNextCommand = true;
 

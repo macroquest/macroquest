@@ -106,11 +106,11 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
-			if (CGroupMember* pMember = pLocalPC->Group->GetGroupMember(i))
+			if (CGroupMember* pGroupMember = pLocalPC->Group->GetGroupMember(i))
 			{
 				Dest.DWord++;
 				char Name[MAX_STRING] = { 0 };
-				strcpy_s(Name, pMember->GetName());
+				strcpy_s(Name, pGroupMember->GetName());
 
 				CleanupName(Name, sizeof(Name), false, false); // we do this to fix the mercenaryname bug
 
@@ -156,9 +156,9 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.DWord = 0;
 		Dest.Type = pGroupMemberType;
 
-		if (CGroupMember* pMember = pLocalPC->Group->GetGroupMemberByRole(GroupRoleTank))
+		if (CGroupMember* pGroupMember = pLocalPC->Group->GetGroupMemberByRole(GroupRoleTank))
 		{
-			Dest.DWord = pLocalPC->Group->GetGroupMemberIndex(pMember);
+			Dest.DWord = pLocalPC->Group->GetGroupMemberIndex(pGroupMember);
 			return true;
 		}
 		return false;
@@ -167,9 +167,9 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.DWord = 0;
 		Dest.Type = pGroupMemberType;
 
-		if (CGroupMember* pMember = pLocalPC->Group->GetGroupMemberByRole(GroupRoleAssist))
+		if (CGroupMember* pGroupMember = pLocalPC->Group->GetGroupMemberByRole(GroupRoleAssist))
 		{
-			Dest.DWord = pLocalPC->Group->GetGroupMemberIndex(pMember);
+			Dest.DWord = pLocalPC->Group->GetGroupMemberIndex(pGroupMember);
 			return true;
 		}
 		return false;
@@ -178,9 +178,9 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.DWord = 0;
 		Dest.Type = pGroupMemberType;
 
-		if (CGroupMember* pMember = pLocalPC->Group->GetGroupMemberByRole(GroupRolePuller))
+		if (CGroupMember* pGroupMember = pLocalPC->Group->GetGroupMemberByRole(GroupRolePuller))
 		{
-			Dest.DWord = pLocalPC->Group->GetGroupMemberIndex(pMember);
+			Dest.DWord = pLocalPC->Group->GetGroupMemberIndex(pGroupMember);
 			return true;
 		}
 		return false;
@@ -189,9 +189,9 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.DWord = 0;
 		Dest.Type = pGroupMemberType;
 
-		if (CGroupMember* pMember = pLocalPC->Group->GetGroupMemberByRole(GroupRoleMarkNPC))
+		if (CGroupMember* pGroupMember = pLocalPC->Group->GetGroupMemberByRole(GroupRoleMarkNPC))
 		{
-			Dest.DWord = pLocalPC->Group->GetGroupMemberIndex(pMember);
+			Dest.DWord = pLocalPC->Group->GetGroupMemberIndex(pGroupMember);
 			return true;
 		}
 		return false;
@@ -200,9 +200,9 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.DWord = 0;
 		Dest.Type = pGroupMemberType;
 
-		if (CGroupMember* pMember = pLocalPC->Group->GetGroupMemberByRole(GroupRoleMasterLooter))
+		if (CGroupMember* pGroupMember = pLocalPC->Group->GetGroupMemberByRole(GroupRoleMasterLooter))
 		{
-			Dest.DWord = pLocalPC->Group->GetGroupMemberIndex(pMember);
+			Dest.DWord = pLocalPC->Group->GetGroupMemberIndex(pGroupMember);
 			return true;
 		}
 		return false;
@@ -213,14 +213,14 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
-			CGroupMember* pMember = pLocalPC->Group->GetGroupMember(i);
+			CGroupMember* pGroupMember = pLocalPC->Group->GetGroupMember(i);
 
-			if (pMember
-				&& (pMember->IsOffline()
-					|| (!pMember->IsOffline()
-						&& pMember->GetPlayer() == nullptr)
-					|| (pMember->GetPlayer()
-						&& pMember->GetPlayer()->Type == SPAWN_CORPSE)))
+			if (pGroupMember
+				&& (pGroupMember->IsOffline()
+					|| (!pGroupMember->IsOffline()
+						&& pGroupMember->GetPlayer() == nullptr)
+					|| (pGroupMember->GetPlayer()
+						&& pGroupMember->GetPlayer()->Type == SPAWN_CORPSE)))
 			{
 				Dest.Set(true);
 				break;
@@ -234,12 +234,12 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
-			CGroupMember* pMember = pLocalPC->Group->GetGroupMember(i);
+			CGroupMember* pGroupMember = pLocalPC->Group->GetGroupMember(i);
 
-			// TODO: GroupMembers: pMember has a type field as well
-			if (pMember
-				&& pMember->GetPlayer()
-				&& pMember->GetPlayer()->Type != SPAWN_CORPSE)
+			// TODO: GroupMembers: pGroupMember has a type field as well.
+			if (pGroupMember
+				&& pGroupMember->GetPlayer()
+				&& pGroupMember->GetPlayer()->Type != SPAWN_CORPSE)
 			{
 				Dest.DWord++;
 			}
@@ -286,13 +286,13 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
-			CGroupMember* pMember = pLocalPC->Group->GetGroupMember(i);
+			CGroupMember* pGroupMember = pLocalPC->Group->GetGroupMember(i);
 
-			if (pMember
-				&& pMember->GetPlayer()
-				&& pMember->GetPlayer()->Type != SPAWN_CORPSE)
+			if (pGroupMember
+				&& pGroupMember->GetPlayer()
+				&& pGroupMember->GetPlayer()->Type != SPAWN_CORPSE)
 			{
-				hps += pMember->GetPlayer()->HPCurrent;
+				hps += pGroupMember->GetPlayer()->HPCurrent;
 				nummembers++;
 			}
 		}
@@ -313,26 +313,26 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			int64_t hps = 0;
 			for (int i = 0; i < MAX_GROUP_SIZE; i++)
 			{
-				CGroupMember* pMember = pLocalPC->Group->GetGroupMember(i);
+				CGroupMember* pGroupMember = pLocalPC->Group->GetGroupMember(i);
 
-				if (pMember
-					&& pMember->GetPlayer()
-					&& pMember->GetPlayer()->Type != SPAWN_CORPSE
-					&& !pMember->IsOffline())
+				if (pGroupMember
+					&& pGroupMember->GetPlayer()
+					&& pGroupMember->GetPlayer()->Type != SPAWN_CORPSE
+					&& !pGroupMember->IsOffline())
 				{
 					if (i == 0)
 					{
-						if (pMember->GetPlayer()->HPCurrent
-							&& pMember->GetPlayer()->HPMax)
+						if (pGroupMember->GetPlayer()->HPCurrent
+							&& pGroupMember->GetPlayer()->HPMax)
 						{
-							float fhpc = (float)pMember->GetPlayer()->HPCurrent;
-							float fhpm = (float)pMember->GetPlayer()->HPMax;
+							float fhpc = (float)pGroupMember->GetPlayer()->HPCurrent;
+							float fhpm = (float)pGroupMember->GetPlayer()->HPMax;
 							hps = (int64_t)(fhpc * 100 / fhpm);
 						}
 					}
 					else
 					{
-						hps = pMember->GetPlayer()->HPCurrent;
+						hps = pGroupMember->GetPlayer()->HPCurrent;
 					}
 
 					if (hps > 0 && hps < threshold)
