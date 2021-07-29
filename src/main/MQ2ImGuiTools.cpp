@@ -340,7 +340,7 @@ static void InitializeMQ2ImGuiTools()
 	{
 		AddSettingsPanel(pair.first, pair.second);
 	}
-	
+
 	s_pendingPanels.clear();
 
 	InitializeImGuiConsole();
