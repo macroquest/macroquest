@@ -1518,7 +1518,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		else
 		{
 			// name
-			for (unsigned long nCombatAbility = 0; nCombatAbility < NUM_COMBAT_ABILITIES; nCombatAbility++)
+			for (int nCombatAbility = 0; nCombatAbility < NUM_COMBAT_ABILITIES; nCombatAbility++)
 			{
 				if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(nCombatAbility))
 				{
