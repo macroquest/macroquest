@@ -43,7 +43,7 @@ void ErrorMessage(ColorWriter writer, const char* format, int color, Args&&... a
 	writer(format, color, std::forward<Args>(args)...);
 }
 
-std::string lua_join(sol::this_state L, std::string delim, sol::variadic_args va);
+std::string lua_join(sol::this_state L, std::string_view delim, sol::variadic_args va);
 
 class LuaEnvironmentSettings
 {

@@ -17,7 +17,6 @@
 #include "LuaEvent.h"
 #include "LuaImGui.h"
 #include "bindings/lua_MQBindings.h"
-#include "bindings/lua_MQCommand.h"
 #include "bindings/lua_MQDataItem.h"
 #include "bindings/lua_MQTypeVar.h"
 
@@ -210,7 +209,6 @@ void LuaThread::Exit()
 
 void LuaThread::RegisterLuaBindings(sol::table mq)
 {
-	bindings::lua_MQCommand::RegisterBinding(mq);
 	bindings::lua_MQDataItem::RegisterBinding(mq);
 	bindings::lua_MQTypeVar::RegisterBinding(mq);
 	MQ_RegisterLua_MQBindings(mq);

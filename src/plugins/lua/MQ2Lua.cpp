@@ -19,7 +19,6 @@
 #include "LuaImGui.h"
 #include "bindings/lua_MQTypeVar.h"
 #include "bindings/lua_MQDataItem.h"
-#include "bindings/lua_MQCommand.h"
 
 #include <mq/Plugin.h>
 #pragma comment(lib, "imgui")
