@@ -1375,6 +1375,11 @@ void UpdateImGuiConsole()
 
 void InitializeImGuiConsole()
 {
+	s_dockspaceVisible = GetPrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", false, mq::internal_paths::MQini);
+	if (gbWriteAllConfig)
+	{
+		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_dockspaceVisible, mq::internal_paths::MQini);
+	}
 	gImGuiConsole = new ImGuiConsole();
 }
 
