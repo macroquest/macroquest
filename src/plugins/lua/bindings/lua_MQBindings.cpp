@@ -236,10 +236,25 @@ sol::object lua_MQTypeVar::CallVA(sol::this_state L, sol::variadic_args args) co
 
 sol::object lua_MQTypeVar::CallEmpty(sol::this_state L) const
 {
-	auto result = EvaluateMember();
+	MQTypeVar result = EvaluateMember();
 
 	if (result.Type == nullptr)
 		return sol::object(L, sol::in_place, sol::lua_nil);
+
+	if (result.Type == mq::datatypes::pBoolType)
+		return sol::object(L, sol::in_place, result.Get<bool>());
+	if (result.Type == mq::datatypes::pIntType)
+		return sol::object(L, sol::in_place, result.Get<int>());
+	if (result.Type == mq::datatypes::pInt64Type)
+		return sol::object(L, sol::in_place, result.Get<int64_t>());
+	if (result.Type == mq::datatypes::pByteType)
+		return sol::object(L, sol::in_place, result.Get<uint8_t>());
+	if (result.Type == mq::datatypes::pFloatType)
+		return sol::object(L, sol::in_place, result.Get<float>());
+	if (result.Type == mq::datatypes::pDoubleType)
+		return sol::object(L, sol::in_place, result.Get<double>());
+	if (result.Type == mq::datatypes::pStringType)
+		return sol::object(L, sol::in_place, (const char*)result.Ptr);
 
 	// There are seven basic types in Lua: nil, number, string, function, CFunction, userdata, and table.
 	// We only care about nil, number, and string, but multiple MQ types decay into the various types, so
