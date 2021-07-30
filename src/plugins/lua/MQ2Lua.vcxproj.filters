@@ -68,5 +68,8 @@
     <ClInclude Include="bindings\lua_MQBindings.h">
       <Filter>Header Files\bindings</Filter>
     </ClInclude>
+    <ClInclude Include="LuaInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -393,14 +393,14 @@ static void lua_removebind(std::string_view name, sol::this_state s)
 	}
 }
 
-void MQ_RegisterLua_Events(sol::table& lua)
+void MQ_RegisterLua_Events(sol::table& mq)
 {
-	lua["doevents"] = &lua_doevents;
-	lua["flushevents"] = &lua_flushevents;
-	lua["event"] = &lua_addevent;
-	lua["unevent"] = &lua_removeevent;
-	lua["bind"] = &lua_addbind;
-	lua["unbind"] = &lua_removebind;
+	mq.set_function("doevents",                  &lua_doevents);
+	mq.set_function("flushevents",               &lua_flushevents);
+	mq.set_function("event",                     &lua_addevent);
+	mq.set_function("unevent",                   &lua_removeevent);
+	mq.set_function("bind",                      &lua_addbind);
+	mq.set_function("unbind",                    &lua_removebind);
 }
 
 } // namespace mq::lua

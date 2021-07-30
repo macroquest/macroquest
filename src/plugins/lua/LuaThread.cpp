@@ -140,10 +140,13 @@ void LuaThread::Initialize()
 
 void LuaThread::InjectMQNamespace()
 {
-	sol::table mq_table = m_globalState.create_table();
-	RegisterLuaBindings(mq_table);
+	if (m_mqTable.has_value())
+		return;
 
-	m_globalState["mq"] = mq_table;
+	m_mqTable = m_globalState.create_table();
+	RegisterLuaBindings(*m_mqTable);
+
+	m_globalState["mq"] = *m_mqTable;
 }
 
 void LuaThread::Delay(sol::object delayObj, sol::object conditionObj)
@@ -209,9 +212,9 @@ void LuaThread::RegisterLuaBindings(sol::table mq)
 {
 	MQ_RegisterLua_MQBindings(mq);
 
-	mq["delay"] = &LuaThread::lua_delay;
-	mq["exit"] = &LuaThread::lua_exit;
-	mq["luaDir"] = m_luaEnvironmentSettings->luaDir;
+	mq.set_function("delay",                     &LuaThread::lua_delay);
+	mq.set_function("exit",                      &LuaThread::lua_exit);
+	mq.set("luaDir",                             m_luaEnvironmentSettings->luaDir);
 
 	MQ_RegisterLua_Events(mq);
 	MQ_RegisterLua_ImGui(mq);
@@ -223,8 +226,11 @@ int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 
 	if (pkg == "mq")
 	{
-		m_mqTable = sv.create_table();
-		RegisterLuaBindings(*m_mqTable);
+		if (!m_mqTable.has_value())
+		{
+			m_mqTable = sv.create_table();
+			RegisterLuaBindings(*m_mqTable);
+		}
 
 		m_globalState.set("_mq_internal_table", *m_mqTable);
 
@@ -274,7 +280,7 @@ sol::state_view LuaThread::GetState() const
 std::optional<LuaThreadInfo> LuaThread::StartFile(
 	std::string_view filename, const std::vector<std::string>& args)
 {
-	std::filesystem::path script_path = std::filesystem::path{ m_path } / filename;
+	std::filesystem::path script_path = std::filesystem::path{ m_luaEnvironmentSettings->luaDir } / filename;
 	if (!script_path.has_extension()) script_path.replace_extension(".lua");
 
 	m_name = filename;

@@ -145,8 +145,6 @@ private:
 
 	std::string m_name;
 	std::string m_path;
-	std::unique_ptr<LuaEventProcessor> m_eventProcessor;
-	std::unique_ptr<LuaImGuiProcessor> m_imguiProcessor;
 	uint32_t m_pid = 0;
 	uint32_t m_turboNum = 500;
 	bool m_yieldToFrame = false;
@@ -154,6 +152,9 @@ private:
 	bool m_paused = false;
 	uint64_t m_delayTime = 0L;
 	std::optional<sol::function> m_delayCondition = std::nullopt;
+
+	std::unique_ptr<LuaEventProcessor> m_eventProcessor;
+	std::unique_ptr<LuaImGuiProcessor> m_imguiProcessor;
 };
 
 //============================================================================
