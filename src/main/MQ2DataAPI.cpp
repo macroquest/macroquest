@@ -445,6 +445,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("Heading", datatypes::MQ2HeadingType::dataHeading);
 	AddMQ2Data("Int", datatypes::MQ2IntType::dataInt);
 	AddMQ2Data("Range", datatypes::MQ2RangeType::dataRange);
+	AddMQ2Data("String", datatypes::MQ2StringType::dataString);
 	AddMQ2Data("Time", datatypes::MQ2TimeType::dataTime);
 	AddMQ2Data("Type", datatypes::MQ2TypeType::dataType);
 

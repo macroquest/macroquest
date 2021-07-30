@@ -274,6 +274,8 @@ public:
 	void FreeVariable(MQVarPtr& VarPtr) override;
 	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
+
+	static bool dataString(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================

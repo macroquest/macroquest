@@ -100,6 +100,10 @@ void UpdateOverlayUI()
 	UpdateImGuiConsole();
 }
 
+void MQSettingsCommand(PSPAWNINFO pLPlayer, char* szLine) {
+	gbShowSettingsWindow = !gbShowSettingsWindow;
+}
+
 //============================================================================
 // KeyBinds Settings
 //============================================================================
@@ -325,6 +329,8 @@ static void InitializeMQ2ImGuiTools()
 	// Add keybind to toggle imgui
 	AddMQ2KeyBind("TOGGLE_IMGUI_OVERLAY", DoToggleImGuiOverlay);
 
+	AddCommand("/mqsettings", MQSettingsCommand);
+
 	AddCascadeMenuItem("Settings", []() { gbShowSettingsWindow = true; }, 2);
 
 	gSettingsWindow = new imgui::ImGuiTreePanelWindow("MacroQuest Settings");
@@ -334,7 +340,7 @@ static void InitializeMQ2ImGuiTools()
 	{
 		AddSettingsPanel(pair.first, pair.second);
 	}
-	
+
 	s_pendingPanels.clear();
 
 	InitializeImGuiConsole();
@@ -348,6 +354,7 @@ static void ShutdownMQ2ImGuiTools()
 	gSettingsWindow = nullptr;
 
 	RemoveMQ2KeyBind("TOGGLE_IMGUI_OVERLAY");
+	RemoveCommand("/mqsettings");
 }
 
 static void PulseMQ2ImGuiTools()
