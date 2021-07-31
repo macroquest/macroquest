@@ -517,7 +517,7 @@ bool ParseINIFile(const std::string& iniFile)
 
 		if (!filter.empty() && filter != "NOBODY")
 		{
-			AddFilter(szBuffer, -1, gFilterCustom);
+			AddFilter(filter.c_str(), -1, gFilterCustom);
 		}
 
 		pFilterList += strlen(pFilterList) + 1;
