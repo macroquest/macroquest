@@ -374,6 +374,35 @@ struct MQGroundPending
 	MQGroundPending* pNext = nullptr;
 };
 
+// Base Class for all Plugin interface subclasses
+class MQLIB_OBJECT PluginInterface
+{
+public:
+	virtual ~PluginInterface() {}
+};
+
+// Plugin Function Types
+using fMQWriteChatColor      = DWORD  (*)(const char*, DWORD, DWORD);
+using fMQPulse               = void   (*)();
+using fMQIncomingChat        = bool   (*)(const char* Line, DWORD Color);
+using fMQInitializePlugin    = void   (*)();
+using fMQShutdownPlugin      = void   (*)();
+using fMQZoned               = void   (*)();
+using fMQReloadUI            = void   (*)();
+using fMQCleanUI             = void   (*)();
+using fMQDrawHUD             = void   (*)();
+using fMQSetGameState        = void   (*)(DWORD GameState);
+using fMQSpawn               = void   (*)(SPAWNINFO*);
+using fMQGroundItem          = void   (*)(GROUNDITEM*);
+using fMQBeginZone           = void   (*)();
+using fMQEndZone             = void   (*)();
+using fMQUpdateImGui         = void   (*)();
+using fMQMacroStart          = void   (*)(const char*);
+using fMQMacroStop           = void   (*)(const char*);
+using fMQLoadPlugin          = void   (*)(const char*);
+using fMQUnloadPlugin        = void   (*)(const char*);
+using fMQGetPluginInterface  = PluginInterface* (*)();
+
 struct MQPlugin
 {
 	char                 szFilename[MAX_PATH] = { 0 };
@@ -401,12 +430,15 @@ struct MQPlugin
 	fMQMacroStop         MacroStop = 0;
 	fMQLoadPlugin        LoadPlugin = 0;
 	fMQUnloadPlugin      UnloadPlugin = 0;
+	fMQGetPluginInterface GetPluginInterface = 0;
 
 	MQPlugin* pLast = nullptr;
 	MQPlugin* pNext = nullptr;
 };
 using PMQPLUGIN DEPRECATE("Use MQPlugin* instead of PMQPLUGIN") = MQPlugin*;
 using MQPLUGIN DEPRECATE("Use MQPlugin instead of MQPLUGIN") = MQPlugin;
+
+
 
 // Like lightweight plugins, but these are internal to mq2main
 struct MQModule

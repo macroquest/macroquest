@@ -14,17 +14,21 @@
 
 #pragma once
 
+#include "LuaCommon.h"
+
 #include <sol/sol.hpp>
 #include <stack>
 
 namespace mq::lua {
 
 class LuaEventProcessor;
-struct LuaImGuiProcessor;
-struct LuaThread;
+class LuaImGuiProcessor;
+class LuaThread;
+
 struct ThreadState;
 
-std::optional<sol::protected_function_result> RunCoroutine(sol::coroutine& co, const std::vector<std::string>& args = {});
+using CoroutineResult = std::optional<sol::protected_function_result>;
+CoroutineResult RunCoroutine(sol::coroutine& co, const std::vector<std::string>& args = {});
 
 enum class LuaThreadStatus
 {
@@ -44,6 +48,7 @@ struct LuaThreadInfo
 	std::time_t endTime;
 	std::vector<std::string> returnValues;
 	LuaThreadStatus status;
+	bool isString;
 
 	std::string_view status_string() const
 	{
@@ -66,44 +71,93 @@ struct LuaThreadInfo
 	void EndRun();
 };
 
-struct LuaThread
+//============================================================================
+
+class LuaThread : public std::enable_shared_from_this<LuaThread>
 {
-	// this needs to be first in initialization order because other things depend on it
-	sol::state globalState;
+private:
+	struct this_is_private {};
 
-	sol::thread thread;
-	sol::coroutine coroutine;
-	sol::environment environment;
-	std::optional<sol::table> globalTable;
-	std::string name;
-	std::string path;
-	std::unique_ptr<ThreadState> state;
-	std::unique_ptr<LuaEventProcessor> eventProcessor;
-	std::unique_ptr<LuaImGuiProcessor> imguiProcessor;
-	uint32_t pid;
-	bool yieldToFrame;
-
-	static uint32_t NextID()
-	{
-		// no need to do anything special, this will be fine
-		static uint32_t current = 0;
-		return ++current;
-	}
-
-	LuaThread(std::string_view name, std::string_view luaDir, const std::vector<std::string>& luaRequire, const std::vector<std::string>& dllRequire);
+public:
+	LuaThread(this_is_private&&, LuaEnvironmentSettings* environment);
+	static std::shared_ptr<LuaThread> Create(LuaEnvironmentSettings* environment);
 
 	LuaThread(const LuaThread&) = delete;
 	LuaThread& operator=(const LuaThread&) = delete;
 
-	std::optional<LuaThreadInfo> StartFile(std::string_view luaDir, uint32_t turbo, const std::vector<std::string>& args);
-	std::optional<LuaThreadInfo> StartString(uint32_t turbo, std::string_view script);
-	std::pair<sol::thread_status, std::optional<sol::protected_function_result>> Run(uint32_t turbo);
-	void YieldAt(int count) const;
-
-	void RegisterLuaState(std::shared_ptr<LuaThread> self_ptr, bool injectMQ = false);
-
 	static std::shared_ptr<LuaThread> get_from(sol::state_view s);
+
+	bool IsPaused() const { return m_paused; }
+	bool IsValid() const;
+	bool IsString() const { return m_isString; }
+	int GetPID() const { return m_pid; }
+	const std::string& GetName() const { return m_name; }
+	sol::state_view GetState() const;
+	sol::thread GetLuaThread() const { return m_thread; }
+
+	void InjectMQNamespace();
+	void SetTurbo(uint32_t turboVal) { m_turboNum = turboVal; }
+
+	std::optional<LuaThreadInfo> StartFile(std::string_view filename, const std::vector<std::string>& args);
+	std::optional<LuaThreadInfo> StartString(std::string_view script, std::string_view name = "");
+
+	// Execute a time slice
+	using RunResult = std::pair<sol::thread_status, CoroutineResult>;
+	RunResult Run();
+
+	LuaThreadStatus Pause();
+
+	bool ShouldYield() const { return m_yieldToFrame; }
+	void DoYield() { YieldAt(0); }
+	void Exit();
+
+	LuaImGuiProcessor* GetImGuiProcessor() const { return m_imguiProcessor.get(); }
+	LuaEventProcessor* GetEventProcessor() const { return m_eventProcessor.get(); }
+
+private:
+	RunResult RunOnce();
+
+	void RegisterLuaBindings(sol::table mq);
+	void Initialize();
+
+	void YieldAt(int count) const;
+	bool CheckCondition(std::optional<sol::function>& func);
+	void Delay(sol::object delayObj, sol::object conditionObj);
+	bool ShouldRun();
+	void SetDelay(uint64_t time, std::optional<sol::function> condition = std::nullopt);
+
+	int PackageLoader(const std::string& pkg, lua_State* L);
+
+	static int lua_PackageLoader(lua_State* L);
+	static void lua_exit(sol::this_state s);
+	static void lua_delay(sol::object delayObj, sol::object conditionObj, sol::this_state s);
+	static void lua_forceYield(lua_State* L, lua_Debug* D);
+
+private:
+	LuaEnvironmentSettings* m_luaEnvironmentSettings = nullptr;
+
+	// this needs to be first in initialization order because other things depend on it
+	sol::state m_globalState;
+	sol::thread m_thread;
+	sol::coroutine m_coroutine;
+	sol::environment m_environment;
+	std::optional<sol::table> m_mqTable;
+
+	std::string m_name;
+	std::string m_path;
+	uint32_t m_pid = 0;
+	uint32_t m_turboNum = 500;
+	bool m_yieldToFrame = false;
+	bool m_isString = false;
+	bool m_paused = false;
+	uint64_t m_delayTime = 0L;
+	std::optional<sol::function> m_delayCondition = std::nullopt;
+
+	std::unique_ptr<LuaEventProcessor> m_eventProcessor;
+	std::unique_ptr<LuaImGuiProcessor> m_imguiProcessor;
 };
+
+//============================================================================
 
 // Create a discrete type for this weak pointer.
 struct LuaThreadRef : public std::weak_ptr<LuaThread>
@@ -116,35 +170,5 @@ inline std::shared_ptr<LuaThread> LuaThread::get_from(sol::state_view s)
 	std::optional<LuaThreadRef> thread = s["mqthread"];
 	return thread.value_or(LuaThreadRef()).lock();
 }
-
-struct ThreadState
-{
-	virtual bool ShouldRun(const LuaThread& thread, uint32_t turbo) = 0;
-	virtual bool IsPaused() = 0;
-	virtual void SetDelay(const LuaThread& thread, uint64_t time, std::optional<sol::function> condition = std::nullopt) = 0;
-	virtual LuaThreadStatus Pause(LuaThread& thread, uint32_t turbo) = 0;
-
-	static bool CheckCondition(const LuaThread& thread, std::optional<sol::function>& func);
-};
-
-struct RunningState : public ThreadState
-{
-	bool ShouldRun(const LuaThread& thread, uint32_t turbo) override;
-	bool IsPaused() override { return false; }
-	void SetDelay(const LuaThread& thread, uint64_t time, std::optional<sol::function> condition = std::nullopt) override;
-	LuaThreadStatus Pause(LuaThread&, uint32_t) override;
-
-private:
-	uint64_t m_delayTime = 0L;
-	std::optional<sol::function> m_delayCondition = std::nullopt;
-};
-
-struct PausedState : public ThreadState
-{
-	bool ShouldRun(const LuaThread&, uint32_t) override { return false; }
-	bool IsPaused() override { return true; }
-	void SetDelay(const LuaThread& thread, uint64_t time, std::optional<sol::function> condition = std::nullopt) override {}
-	LuaThreadStatus Pause(LuaThread& thread, uint32_t turbo) override;
-};
 
 } // namespace mq::lua

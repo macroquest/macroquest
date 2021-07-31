@@ -1,3 +1,11 @@
+July 30, 2021
+- Adding missing imgui mouse button enum values (#354).
+- Reset the imgui overlay when a lua exception occurs on the imgui thread (#355). This will
+  help prevent crashes when encounding lua errors, but not in all cases.
+- Fixed some issues with type conversions in lua (#359).
+- Fixed console commands not working at login.
+- Refactored of MQ2Lua, please report any new bugs that might come up as a result!
+
 July 24, 2021
 - Added back the String TLO after a 16 year hiatus. Usage: ${String[foo].Right[2]} etc.
 

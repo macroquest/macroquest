@@ -25,9 +25,8 @@ namespace mq::lua {
 
 void MQ_RegisterLua_Events(sol::table& lua);
 
-struct LuaThread;
+class LuaThread;
 class LuaEventProcessor;
-struct ThreadState;
 
 //============================================================================
 

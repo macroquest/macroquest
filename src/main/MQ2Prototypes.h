@@ -27,26 +27,6 @@ using fCascadeItemFunction   = void   (*)();
 struct TokenTextParam;
 using fMQTokenMessageCmd     = void   (*)(const TokenTextParam&);
 
-// Plugin Function Types
-using fMQWriteChatColor      = DWORD  (*)(const char*, DWORD, DWORD);
-using fMQPulse               = void   (*)();
-using fMQIncomingChat        = bool   (*)(const char* Line, DWORD Color);
-using fMQInitializePlugin    = void   (*)();
-using fMQShutdownPlugin      = void   (*)();
-using fMQZoned               = void   (*)();
-using fMQReloadUI            = void   (*)();
-using fMQCleanUI             = void   (*)();
-using fMQDrawHUD             = void   (*)();
-using fMQSetGameState        = void   (*)(DWORD GameState);
-using fMQSpawn               = void   (*)(SPAWNINFO*);
-using fMQGroundItem          = void   (*)(GROUNDITEM*);
-using fMQBeginZone           = void   (*)();
-using fMQEndZone             = void   (*)();
-using fMQUpdateImGui         = void   (*)();
-using fMQMacroStart          = void   (*)(const char*);
-using fMQMacroStop           = void   (*)(const char*);
-using fMQLoadPlugin          = void   (*)(const char*);
-using fMQUnloadPlugin        = void   (*)(const char*);
 
 // Misc Function types
 using fEQW_GetDisplayWindow  = HWND(CALLBACK*)();

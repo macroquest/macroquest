@@ -25,7 +25,7 @@ namespace mq::lua {
 //============================================================================
 
 LuaImGuiProcessor::LuaImGuiProcessor(const LuaThread* thread)
-	: thread(thread)
+	: m_thread(thread)
 {
 }
 
@@ -35,57 +35,57 @@ LuaImGuiProcessor::~LuaImGuiProcessor()
 
 void LuaImGuiProcessor::AddCallback(std::string_view name, sol::function callback)
 {
-	imguis.emplace_back(new LuaImGui(name, thread->thread, callback));
+	m_imguis.emplace_back(new LuaImGui(name, m_thread->GetLuaThread(), callback));
 }
 
 void LuaImGuiProcessor::RemoveCallback(std::string_view name)
 {
-	imguis.erase(std::remove_if(imguis.begin(), imguis.end(), [&name](const auto& im)
-		{
-			return im->GetName() == name;
-		}), imguis.end());
+	m_imguis.erase(std::remove_if(m_imguis.begin(), m_imguis.end(),
+		[&name](const std::unique_ptr<LuaImGui>& im) { return im->GetName() == name; }), m_imguis.end());
 }
 
 bool LuaImGuiProcessor::HasCallback(std::string_view name)
 {
-	return std::find_if(imguis.cbegin(), imguis.cend(), [&name](const auto& im)
-		{
-			return im->GetName() == name;
-		}) != imguis.cend();
+	return std::find_if(m_imguis.cbegin(), m_imguis.cend(),
+		[&name](const std::unique_ptr<LuaImGui>& im) { return im->GetName() == name; }
+	) != m_imguis.cend();
 }
 
 void LuaImGuiProcessor::Pulse()
 {
 	// remove any existing hooks, they will be re-installed when running in onpulse
-	lua_sethook(thread->thread.lua_state(), nullptr, 0, 0);
+	lua_sethook(m_thread->GetLuaThread().lua_state(), nullptr, 0, 0);
 
-	for (auto& im : imguis)
-		if (!im->Pulse()) RemoveCallback(im->GetName());
+	for (std::unique_ptr<LuaImGui>& im : m_imguis)
+	{
+		if (!im->Pulse())
+			RemoveCallback(im->GetName());
+	}
 }
 
 //============================================================================
 
-static void addimgui(std::string_view name, sol::function function, sol::this_state s)
+static void lua_addimgui(std::string_view name, sol::function function, sol::this_state s)
 {
-	if (auto thread_ptr = LuaThread::get_from(s))
+	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
-		thread_ptr->imguiProcessor->AddCallback(name, function);
+		thread_ptr->GetImGuiProcessor()->AddCallback(name, function);
 	}
 }
 
-static void removeimgui(std::string_view name, sol::this_state s)
+static void lua_removeimgui(std::string_view name, sol::this_state s)
 {
-	if (auto thread_ptr = LuaThread::get_from(s))
+	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
-		thread_ptr->imguiProcessor->RemoveCallback(name);
+		thread_ptr->GetImGuiProcessor()->RemoveCallback(name);
 	}
 }
 
-static bool hasimgui(std::string_view name, sol::this_state s)
+static bool lua_hasimgui(std::string_view name, sol::this_state s)
 {
-	if (auto thread_ptr = LuaThread::get_from(s))
+	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
-		return thread_ptr->imguiProcessor->HasCallback(name);
+		return thread_ptr->GetImGuiProcessor()->HasCallback(name);
 	}
 
 	return false;
@@ -94,9 +94,9 @@ static bool hasimgui(std::string_view name, sol::this_state s)
 void MQ_RegisterLua_ImGui(sol::table& lua)
 {
 	lua["imgui"] = lua.create_with(
-		"init", &addimgui,
-		"destroy", &removeimgui,
-		"exists", &hasimgui
+		"init", &lua_addimgui,
+		"destroy", &lua_removeimgui,
+		"exists", &lua_hasimgui
 	);
 }
 
@@ -138,14 +138,17 @@ bool LuaImGui::Pulse() const
 
 	if (!success)
 	{
+		// ImGui failure: terminate the script
 		if (m_parentThread)
 		{
-			if (auto thread_ptr = LuaThread::get_from(m_parentThread.state()))
+			if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(m_parentThread.state()))
 			{
-				thread_ptr->YieldAt(0);
-				thread_ptr->thread.abandon();
+				thread_ptr->Exit();
 			}
 		}
+
+		// Critical error occurred, reset the overlay to prevent bad state from killing the whole process.
+		ResetOverlay();
 	}
 
 	return success;
@@ -172,8 +175,8 @@ void ImGui_RegisterLua(sol::state_view state)
 		));
 #pragma endregion
 
-		ImGui.set_function("Register", addimgui);
-		ImGui.set_function("Unregister", removeimgui);
+		ImGui.set_function("Register", lua_addimgui);
+		ImGui.set_function("Unregister", lua_removeimgui);
 	}
 }
 

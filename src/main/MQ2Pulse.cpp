@@ -665,6 +665,8 @@ static HeartbeatState Heartbeat()
 
 	if (gGameState == -1)
 	{
+		PulseCommands();
+
 		return HeartbeatNormal;
 	}
 
@@ -818,7 +820,7 @@ void DoLoginPulse()
 {
 	DebugTryBegin();
 
-	return DoGameEventsPulse(nullptr);
+	DoGameEventsPulse(nullptr);
 
 	DebugTryEnd()
 }

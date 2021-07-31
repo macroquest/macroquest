@@ -231,6 +231,7 @@ int LoadMQ2Plugin(const char* pszFilename, bool bCustom /* = false */)
 	pPlugin->MacroStop         = (fMQMacroStop)GetProcAddress(hmod, "OnMacroStop");
 	pPlugin->LoadPlugin        = (fMQLoadPlugin)GetProcAddress(hmod, "OnLoadPlugin");
 	pPlugin->UnloadPlugin      = (fMQUnloadPlugin)GetProcAddress(hmod, "OnUnloadPlugin");
+	pPlugin->GetPluginInterface = (fMQGetPluginInterface)GetProcAddress(hmod, "GetPluginInterface");
 
 	float* ftmp = (float*)GetProcAddress(hmod, "?MQ2Version@@3MA");
 	if (ftmp)
@@ -983,14 +984,26 @@ void* GetPluginProc(const char* plugin, const char* proc)
 
 MQPlugin* GetPlugin(std::string_view PluginName)
 {
-	auto pLook = pPlugins;
-	while (pLook && !ci_equals(PluginName, pLook->szFilename)) pLook = pLook->pNext;
-	return pLook;
+	MQPlugin* pPlugin = pPlugins;
+	while (pPlugin && !ci_equals(PluginName, pPlugin->szFilename)) pPlugin = pPlugin->pNext;
+	return pPlugin;
 }
 
 bool IsPluginLoaded(std::string_view PluginName)
 {
 	return GetPlugin(PluginName) != nullptr;
 }
+
+PluginInterface* GetPluginInterface(std::string_view PluginName)
+{
+	if (MQPlugin* pPlugin = GetPlugin(PluginName))
+	{
+		if (pPlugin->GetPluginInterface)
+			return pPlugin->GetPluginInterface();
+	}
+
+	return nullptr;
+}
+
 
 } // namespace mq

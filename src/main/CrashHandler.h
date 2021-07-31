@@ -19,7 +19,7 @@
 
 #pragma warning (disable : 4509)
 
-#define DEBUG_TRY_ENABLED 1
+#define DEBUG_TRY_ENABLED 0
 
 namespace mq {
 
@@ -102,7 +102,7 @@ void Debug_TryExecuteEx(const char* func_name, int line, const char* stmt, const
 #define DebugTryBeginRet()
 #define DebugTryEndRet()
 
-#define DegugTryEx(x) x
+#define DebugTryEx(x) x
 
 #endif
 
