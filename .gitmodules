@@ -240,10 +240,10 @@
 [submodule "plugins/MQ2TSTrophy"]
 	path = plugins/MQ2TSTrophy
 	url = https://gitlab.com/redguides/plugins/MQ2TSTrophy.git
-
+	branch = mqnext
 [submodule "data/lua/IntegrationTests"]
 	path = src/plugins/lua/lua/IntegrationTests
 	url = https://gitlab.com/macroquest/IntegrationTests.git
-[submodule "MQ2EasyFind"]
-	path = MQ2EasyFind
-	url = https://github.com/brainiac/MQ2EasyFind
+[submodule "plugins/MQ2EasyFind"]
+	path = plugins/MQ2EasyFind
+	url = https://github.com/brainiac/MQ2EasyFind.git
