@@ -11,6 +11,12 @@ PreSetup("MQ2PluginTemplate");
 PLUGIN_VERSION(0.1);
 
 /**
+ * Avoid Globals if at all possible, since they persist throughout your program.
+ * But if you must have them, here is the place to put them.
+ */
+// bool ShowMQ2PluginTemplateWindow = true;
+
+/**
  * @fn InitializePlugin
  *
  * This is called once on plugin initialization and can be considered the startup
@@ -306,14 +312,18 @@ PLUGIN_API void OnUpdateImGui()
 /*
 	if (GetGameState() == GAMESTATE_INGAME)
 	{
-		static bool ShowMQ2PluginTemplateWindow = true;
-		ImGui::Begin("MQ2PluginTemplate", &ShowMQ2PluginTemplateWindow, ImGuiWindowFlags_MenuBar);
-		if (ImGui::BeginMenuBar())
+		if (ShowMQ2PluginTemplateWindow)
 		{
-			ImGui::Text("MQ2PluginTemplate is loaded!");
-			ImGui::EndMenuBar();
+			if (ImGui::Begin("MQ2PluginTemplate", &ShowMQ2PluginTemplateWindow, ImGuiWindowFlags_MenuBar))
+			{
+				if (ImGui::BeginMenuBar())
+				{
+					ImGui::Text("MQ2PluginTemplate is loaded!");
+					ImGui::EndMenuBar();
+				}
+			}
+			ImGui::End();
 		}
-		ImGui::End();
 	}
 */
 }

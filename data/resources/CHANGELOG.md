@@ -1,3 +1,9 @@
+July 31, 2021
+- Added /mqsettings command to toggle the MacroQuest Settings window (you can still get to it from the EQ button as well)
+- Added ShowMacroQuestConsole option to the MacroQuest.ini which allows you to default the Console to On if you'd like
+- Fixed custom filters not being added properly (#327)
+- Fixed /itemnotify (by name) choosing the wrong item when the item name started with a number, even though it was quoted ("1 lb. Cragbeast Meat" for example)
+
 July 30, 2021
 - Adding missing imgui mouse button enum values (#354).
 - Reset the imgui overlay when a lua exception occurs on the imgui thread (#355). This will
