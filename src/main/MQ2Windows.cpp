@@ -1544,12 +1544,16 @@ void ItemNotify(PSPAWNINFO pChar, char* szLine)
 	{
 		// user didnt specify "in" so it should be outside a container
 		// OR it's an item, either way we can "click" it
-		const int slotNum = GetIntFromString(szArg1, -1);
-
-		// Check if slotNum falls into the range of inventory slots.
-		if (slotNum >= 0 && slotNum < InvSlot_NumInvSlots)
+		int slotNum = -1;
+		if (IsNumber(szArg1))
 		{
-			pSlot = pInvSlotMgr->FindInvSlot(slotNum, -1, eItemContainerPossessions, false);
+			slotNum = GetIntFromString(szArg1, -1);
+
+			// Check if slotNum falls into the range of inventory slots.
+			if (slotNum >= 0 && slotNum < InvSlot_NumInvSlots)
+			{
+				pSlot = pInvSlotMgr->FindInvSlot(slotNum, -1, eItemContainerPossessions, false);
+			}
 		}
 
 		// The argument wasn't a number. Check if it is a named slot
