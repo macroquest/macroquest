@@ -136,6 +136,7 @@ private:
 	}
 
 public:
+	const std::string classShortName = pEverQuest->GetClassThreeLetterCode(((PSPAWNINFO)pCharSpawn)->mActorClient.Class);
 	anon_replacer(std::string_view name, Anonymization strategy, std::string_view target = "")
 		: name(name), strategy(strategy), target(target)
 	{
@@ -218,11 +219,8 @@ public:
 		{
 			SPAWNINFO* spawn = GetSpawnByName(name.c_str());
 			if (spawn)
-				return fmt::format("[{}] {} {} {}",
-					spawn->Level,
-					pEverQuest->GetRaceDesc(spawn->mActorClient.Race),
-					GetClassDesc(spawn->GetClass()),
-					GetTypeDesc(GetSpawnType(spawn)));
+				return fmt::format("{}",
+						classShortName);
 			else
 				return asterisk_name(name);
 		}
@@ -231,10 +229,8 @@ public:
 		{
 			auto profile = GetPcProfile();
 			if (profile)
-				return fmt::format("[{}] {} {} PC",
-					profile->Level,
-					pEverQuest->GetRaceDesc(profile->Race),
-					GetClassDesc(profile->Class));
+				return fmt::format("{}",
+						classShortName);
 			else
 				return asterisk_name(name);
 		}

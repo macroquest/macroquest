@@ -1,7 +1,10 @@
-Sub Main
-    /echo Testing on Door ID=${Param0}
+| --------------------------------------------------------------------------------------------
+| SUB: Main
+| --------------------------------------------------------------------------------------------
+	Sub Main
+	/echo Testing on Door ID=${Param0}
 	/doortarget id ${Param0}
-        /echo note: /doortarget will not change your target anymore!!!!
+	/echo note: /doortarget will not change your target anymore!!!!
 	/face nolook door
 	/delay 6
 	/echo Target Door Information: id=${Switch.ID} name=${Switch.Name} state=${Switch.Open} loc=${Switch.Y}, ${Switch.X}, ${Switch.Z} heading=${Switch.Heading}
@@ -9,7 +12,8 @@ Sub Main
 	/echo             (continued): headingto=${Switch.HeadingTo} distance=${Switch.Distance}
 	/keypress u hold
 	/delay 2
-	/keypress u 
+	/keypress u
 	/delay 5
 	/echo             (after use): state=${Switch.Open} loc=${Switch.Y}, ${Switch.X}, ${Switch.Z} heading=${Switch.Heading}
-/return
+	/return
+|  [+++  Formatted by MQ2fusing tabs for indents +++]
