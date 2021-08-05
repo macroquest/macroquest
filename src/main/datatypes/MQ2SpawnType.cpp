@@ -1339,7 +1339,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		return true;
 
 	case SpawnMembers::bShowHelm:
-		Dest.Set(pSpawn->bShowHelm);
+		Dest.Set(pSpawn->mActorClient.bShowHelm);
 		Dest.Type = pBoolType;
 		return true;
 
