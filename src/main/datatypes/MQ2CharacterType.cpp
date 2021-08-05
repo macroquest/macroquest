@@ -1324,7 +1324,10 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::CashBank:
-		Dest.Int64 = static_cast<uint64_t>(pProfile->Plat) * 1000 + static_cast<uint64_t>(pProfile->Gold) * 100 + static_cast<uint64_t>(pProfile->Silver) * 10 + pProfile->Copper;
+		Dest.Int64 = static_cast<uint64_t>(pLocalPC->BankPlat) * 1000
+			+ static_cast<uint64_t>(pLocalPC->BankGold) * 100
+			+ static_cast<uint64_t>(pLocalPC->BankSilver) * 10
+			+ pLocalPC->BankCopper;
 		Dest.Type = pInt64Type;
 		return true;
 
