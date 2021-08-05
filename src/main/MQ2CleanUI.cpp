@@ -61,14 +61,6 @@ void DrawNetStatus_Detour(uint16_t x, uint16_t y, void* udpConnection, uint32_t 
 
 	DrawNetStatus_Trampoline(x, y, udpConnection, bps);
 	Benchmark(bmPluginsDrawHUD, PluginsDrawHUD());
-
-	// just do this check once. it won't change during execution.
-	static HMODULE hmEQPlayNice = GetModuleHandle("EQPlayNice.dll");
-	if (hmEQPlayNice)
-	{
-		if (fMQPulse pEQPlayNicePulse = (fMQPulse)GetProcAddress(hmEQPlayNice, "Compat_DrawIndicator"))
-			pEQPlayNicePulse();
-	}
 }
 
 void DrawHUD()
@@ -85,13 +77,6 @@ void DrawHUD()
 			}
 
 			Benchmark(bmPluginsDrawHUD, PluginsDrawHUD());
-
-			static HMODULE hmEQPlayNice = GetModuleHandle("EQPlayNice.dll");
-			if (hmEQPlayNice)
-			{
-				if (fMQPulse pEQPlayNicePulse = (fMQPulse)GetProcAddress(hmEQPlayNice, "Compat_DrawIndicator"))
-					pEQPlayNicePulse();
-			}
 		}
 		else
 		{

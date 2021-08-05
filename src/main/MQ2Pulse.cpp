@@ -579,8 +579,6 @@ static HeartbeatState Heartbeat()
 	static uint64_t LastGetTick = 0;
 	static bool bFirstHeartBeat = true;
 	static uint64_t TickDiff = 0;
-	static fMQPulse pEQPlayNicePulse = nullptr;
-	static HMODULE hmEQPlayNice = GetModuleHandle("EQPlayNice.dll");
 	static DWORD BeatCount = 0;
 
 	uint64_t Tick = MQGetTickCount64();
@@ -639,19 +637,6 @@ static HeartbeatState Heartbeat()
 	bRunNextCommand = true;
 	DebugTry(Pulse());
 	DebugTry(Benchmark(bmPluginsPulse, DebugTry(PulsePlugins())));
-
-	if (pEQPlayNicePulse)
-	{
-		pEQPlayNicePulse();
-	}
-	else
-	{
-		if (hmEQPlayNice && ((BeatCount % 63) == 0))
-		{
-			if (pEQPlayNicePulse = (fMQPulse)GetProcAddress(hmEQPlayNice, "Compat_ProcessFrame"))
-				pEQPlayNicePulse();
-		}
-	}
 
 	static bool ShownNews = false;
 	if (gGameState == GAMESTATE_CHARSELECT && !ShownNews)
