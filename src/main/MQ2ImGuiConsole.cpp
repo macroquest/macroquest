@@ -570,6 +570,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 	std::shared_ptr<ZepConsoleTheme> m_theme;
 	std::shared_ptr<ZepConsoleSyntax> m_syntax;
 	int m_maxBufferLines = 10000;
+	bool m_autoScroll = true;
 
 	ImGuiZepConsole()
 	{
@@ -768,7 +769,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 
 		PruneBuffer();
 
-		if (cursorAtEnd)
+		if (cursorAtEnd && m_autoScroll)
 		{
 			m_deferredCursorToEnd = true;
 		}
@@ -797,7 +798,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		Zep::ChangeRecord changeRecord;
 		m_buffer->Insert(position, text + "\n", changeRecord);
 
-		if (cursorAtEnd)
+		if (cursorAtEnd && m_autoScroll)
 		{
 			m_deferredCursorToEnd = true;
 		}
@@ -861,6 +862,13 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 
 		ImGuiZepEditor::Notify(message);
 	}
+
+	bool GetAutoScroll() const { return m_autoScroll; }
+
+	void SetAutoScroll(bool autoScroll)
+	{
+		m_autoScroll = autoScroll;
+	}
 };
 
 #pragma endregion
@@ -876,7 +884,6 @@ public:
 	ImVector<const char*> m_commands;
 	std::vector<std::string> m_history;
 	int m_historyPos = -1;    // -1: new line, 0..History.Size-1 browsing history.
-	bool m_autoScroll = true;
 	bool m_scrollToBottom = true;
 	std::unique_ptr<ImGuiZepConsole> m_zepEditor;
 
@@ -940,7 +947,9 @@ public:
 		{
 			if (ImGui::BeginMenu("Options"))
 			{
-				ImGui::MenuItem("Auto-scroll", nullptr, &m_autoScroll);
+				bool autoScroll = m_zepEditor->GetAutoScroll();
+				if (ImGui::MenuItem("Auto-scroll", nullptr, &autoScroll))
+					m_zepEditor->SetAutoScroll(autoScroll);
 
 				ImGui::Separator();
 
