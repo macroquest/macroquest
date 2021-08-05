@@ -879,7 +879,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 				{
 					if (item && item->GetID() == itemToFind)
 					{
-						Dest.DWord += pBagItem->GetItemCount();
+						Dest.DWord += item->GetItemCount();
 					}
 				}
 			}
