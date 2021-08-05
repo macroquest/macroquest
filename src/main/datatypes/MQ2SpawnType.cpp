@@ -148,7 +148,6 @@ enum class SpawnMembers
 	DragNames,
 	DraggingPlayer,
 	bStationary,
-	BearingToTarget,
 	bTempPet,
 	HoldingAnimation,
 	Blind,
@@ -316,7 +315,6 @@ MQ2SpawnType::MQ2SpawnType() : MQ2Type("spawn")
 	ScopedTypeMember(SpawnMembers, DragNames);
 	ScopedTypeMember(SpawnMembers, DraggingPlayer);
 	ScopedTypeMember(SpawnMembers, bStationary);
-	ScopedTypeMember(SpawnMembers, BearingToTarget);
 	ScopedTypeMember(SpawnMembers, bTempPet);
 	ScopedTypeMember(SpawnMembers, HoldingAnimation);
 	ScopedTypeMember(SpawnMembers, Blind);
@@ -1430,11 +1428,6 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 	case SpawnMembers::bStationary:
 		Dest.Set(pSpawn->bStationary);
 		Dest.Type = pBoolType;
-		return true;
-
-	case SpawnMembers::BearingToTarget:
-		Dest.Float = pSpawn->BearingToTarget;
-		Dest.Type = pFloatType;
 		return true;
 
 	case SpawnMembers::bTempPet:
