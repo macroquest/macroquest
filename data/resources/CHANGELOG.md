@@ -1,3 +1,16 @@
+August 5, 2021
+- Removed some old hooks for EQPlayNice. Consider using the built-in performance tools instead.
+- Fix Target.bShowHelm (#331).
+- Remove Spawn.BearingToTarget (#330). This is an internal state that is only updated when using /follow
+  and its purpose or usage is extremely unclear.
+- Fix Item.StackCount (#342).
+- Fix Indexing group members in Group TLO (#346).
+- Parse array index in Macro.Variable (#347).
+- Fix Me.CashBank (#360).
+- Fix Initialization of the lua directory (#361).
+- dev tools: Added ZoneGuideWnd and ZonePathWnd customizations to WindowInspector
+- dev tools: Added friendly tooltip to zone names in WindowInspector
+
 July 31, 2021
 - Added /mqsettings command to toggle the MacroQuest Settings window (you can still get to it from the EQ button as well)
 - Added ShowMacroQuestConsole option to the MacroQuest.ini which allows you to default the Console to On if you'd like
