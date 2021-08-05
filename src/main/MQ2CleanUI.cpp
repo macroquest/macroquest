@@ -25,15 +25,26 @@ public:
 	void CleanUI_Trampoline();
 	void CleanUI_Detour()
 	{
-		Benchmark(bmPluginsCleanUI, DebugTry(PluginsCleanUI()));
-		DebugTry(CleanUI_Trampoline());
+		{
+			MQScopedBenchmark bm(bmPluginsCleanUI);
+			PluginsCleanUI();
+		}
+
+		CleanUI_Trampoline();
 	}
 
 	void ReloadUI_Trampoline(bool, bool);
 	void ReloadUI_Detour(bool UseINI, bool bUnknown)
 	{
-		DebugTry(ReloadUI_Trampoline(UseINI, bUnknown));
-		Benchmark(bmPluginsReloadUI, DebugTry(PluginsReloadUI()));
+		ReloadUI_Trampoline(UseINI, bUnknown);
+
+		InitializeInGameUI();
+
+		{
+			MQScopedBenchmark bm(bmPluginsReloadUI);
+
+			PluginsReloadUI();
+		}
 	}
 };
 
@@ -170,6 +181,11 @@ void InitializeDisplayHook()
 
 	AddCommand("/netstatusxpos", Cmd_NetStatusXPos);
 	AddCommand("/netstatusypos", Cmd_NetStatusYPos);
+
+	if (GetGameState() == GAMESTATE_INGAME)
+	{
+		InitializeInGameUI();
+	}
 }
 
 void ShutdownDisplayHook()
