@@ -10,6 +10,8 @@ August 5, 2021
 - Fix Initialization of the lua directory (#361).
 - dev tools: Added ZoneGuideWnd and ZonePathWnd customizations to WindowInspector
 - dev tools: Added friendly tooltip to zone names in WindowInspector
+- Evaluating Spawn.ID on a NULL Spawn will now return 0 instead of a parse error. This is intended as
+  a convenience for utilizing Spawn variables that are set via ID.
 
 July 31, 2021
 - Added /mqsettings command to toggle the MacroQuest Settings window (you can still get to it from the EQ button as well)

@@ -358,7 +358,19 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	if (!pLocalPlayer || !pLocalPC || !pSpawn)
+	{
+		MQTypeMember* pMember = MQ2SpawnType::FindMember(Member);
+
+		// Special case for easily handling Ids on null spawns
+		if (pMember && static_cast<SpawnMembers>(pMember->ID) == SpawnMembers::ID)
+		{
+			Dest.Type = pIntType;
+			Dest.DWord = 0;
+			return true;
+		}
+
 		return false;
+	}
 
 	//----------------------------------------------------------------------------
 	// methods
