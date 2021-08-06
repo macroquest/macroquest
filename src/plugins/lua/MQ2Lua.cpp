@@ -490,6 +490,10 @@ static uint32_t LuaParseCommand(const std::string& script, std::string_view name
 	std::shared_ptr<LuaThread> entry = LuaThread::Create(&s_environment);
 	entry->SetTurbo(s_turboNum);
 	entry->InjectMQNamespace();
+	if (name == "lua parse")
+	{
+		entry->SetEvaluateResult(true);
+	}
 
 	s_running.emplace_back(entry);
 
@@ -1407,7 +1411,7 @@ PLUGIN_API void OnPulse()
 			if (fin_it != s_infoMap.end())
 			{
 				if (result.second)
-					fin_it->second.SetResult(*result.second);
+					fin_it->second.SetResult(*result.second, thread->GetEvaluateResult());
 				else
 					fin_it->second.EndRun();
 			}

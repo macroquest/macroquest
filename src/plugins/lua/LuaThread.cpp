@@ -69,19 +69,35 @@ CoroutineResult RunCoroutine(sol::coroutine& co, const std::vector<std::string>&
 
 //============================================================================
 
-void LuaThreadInfo::SetResult(const sol::protected_function_result& result)
+void LuaThreadInfo::SetResult(const sol::protected_function_result& result, bool evaluate)
 {
 	if (result.status() != sol::call_status::yielded)
 	{
 		EndRun();
 
-		if (result.return_count() > 1)
+		if (result.return_count() >= 1)
 		{
-			returnValues = std::vector<std::string>(result.return_count() - 1);
+			returnValues = std::vector<std::string>(result.return_count());
+
 			// need to skip the first "return" (which is not a return, it's at index + 0) which is the function itself
-			for (int i = 1; i < result.return_count(); ++i)
+			for (int i = 0; i < result.return_count(); ++i)
 			{
-				returnValues[i - 1] = luaL_tolstring(result.lua_state(), result.stack_index() + i, nullptr);
+				returnValues[i] = luaL_tolstring(result.lua_state(), result.stack_index() + i, nullptr);
+			}
+
+			if (evaluate)
+			{
+				std::string results;
+
+				for (const std::string& returnValue : returnValues)
+				{
+					if (!results.empty())
+						results.append("\t");
+
+					results.append(returnValue);
+				}
+
+				WriteChatColor(results.c_str(), USERCOLOR_CHAT_CHANNEL);
 			}
 		}
 	}
@@ -320,7 +336,7 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(
 	};
 
 	if (result)
-		ret.SetResult(*result);
+		ret.SetResult(*result, m_evaluateResult);
 	else if (m_coroutine.status() != sol::call_status::yielded)
 		ret.EndRun();
 
@@ -332,21 +348,39 @@ std::optional<LuaThreadInfo> LuaThread::StartString(std::string_view script,
 {
 	m_isString = true;
 
-	auto co = m_thread.state().load(script);
-
-	if (!co.valid())
-	{
-		sol::error err = co;
-		LuaError("Failed to load script with error: %s", err.what());
-		return std::nullopt;
-	}
-
 	if (!name.empty())
 	{
 		m_name = name;
 	}
 
-	m_coroutine = co;
+	if (m_evaluateResult)
+	{
+		std::string evalScript = fmt::format("return {}", script);
+		sol::load_result co = m_thread.state().load(evalScript);
+
+		if (co.valid())
+		{
+			m_coroutine = co;
+		}
+	}
+
+	if (!m_coroutine.valid())
+	{
+		// Failed to evaluate as an expression.
+		m_evaluateResult = false;
+		sol::load_result co = m_thread.state().load(script);
+		if (!co.valid())
+		{
+			sol::error err = co;
+			LuaError("Failed to load script with error: %s", err.what());
+			return std::nullopt;
+		}
+		else
+		{
+			m_coroutine = co;
+		}
+	}
+
 	YieldAt(m_turboNum);
 
 	auto start_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
@@ -365,7 +399,7 @@ std::optional<LuaThreadInfo> LuaThread::StartString(std::string_view script,
 	};
 
 	if (result)
-		ret.SetResult(*result);
+		ret.SetResult(*result, m_evaluateResult);
 	else if (m_coroutine.status() != sol::call_status::yielded)
 		ret.EndRun();
 
