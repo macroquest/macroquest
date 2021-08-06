@@ -451,6 +451,8 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 
 	std::shared_ptr<LuaThread> entry = LuaThread::Create(&s_environment);
 	entry->SetTurbo(s_turboNum);
+	entry->EnableEvents();
+	entry->EnableImGui();
 	s_running.emplace_back(entry);
 
 	WriteChatStatus("Running lua script '%s' with PID %d", script.c_str(), entry->GetPID());
@@ -1460,7 +1462,8 @@ PLUGIN_API void OnUpdateImGui()
 	// update any script-defined windows first
 	for (const std::shared_ptr<LuaThread>& thread : s_running)
 	{
-		thread->GetImGuiProcessor()->Pulse();
+		if (LuaImGuiProcessor* imgui = thread->GetImGuiProcessor())
+			imgui->Pulse();
 	}
 
 	if (!s_showMenu)
@@ -1754,7 +1757,8 @@ PLUGIN_API void OnWriteChatColor(const char* Line, int Color, int Filter)
 	{
 		if (!thread->IsPaused())
 		{
-			thread->GetEventProcessor()->Process(Line);
+			if (lua::LuaEventProcessor* events = thread->GetEventProcessor())
+				events->Process(Line);
 		}
 	}
 }
@@ -1780,7 +1784,8 @@ PLUGIN_API bool OnIncomingChat(const char* Line, DWORD Color)
 	{
 		if (!thread->IsPaused())
 		{
-			thread->GetEventProcessor()->Process(Line);
+			if (lua::LuaEventProcessor* events = thread->GetEventProcessor())
+				events->Process(Line);
 		}
 	}
 

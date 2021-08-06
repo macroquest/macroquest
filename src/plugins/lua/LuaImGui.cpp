@@ -69,7 +69,8 @@ static void lua_addimgui(std::string_view name, sol::function function, sol::thi
 {
 	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
-		thread_ptr->GetImGuiProcessor()->AddCallback(name, function);
+		if (LuaImGuiProcessor* imgui = thread_ptr->GetImGuiProcessor())
+			imgui->AddCallback(name, function);
 	}
 }
 
@@ -77,7 +78,8 @@ static void lua_removeimgui(std::string_view name, sol::this_state s)
 {
 	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
-		thread_ptr->GetImGuiProcessor()->RemoveCallback(name);
+		if (LuaImGuiProcessor* imgui = thread_ptr->GetImGuiProcessor())
+			imgui->RemoveCallback(name);
 	}
 }
 
@@ -85,7 +87,8 @@ static bool lua_hasimgui(std::string_view name, sol::this_state s)
 {
 	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
-		return thread_ptr->GetImGuiProcessor()->HasCallback(name);
+		if (LuaImGuiProcessor* imgui = thread_ptr->GetImGuiProcessor())
+			return imgui->HasCallback(name);
 	}
 
 	return false;

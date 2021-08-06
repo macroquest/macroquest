@@ -115,8 +115,6 @@ void LuaThreadInfo::EndRun()
 LuaThread::LuaThread(this_is_private&&, LuaEnvironmentSettings* environment)
 	: m_luaEnvironmentSettings(environment)
 	, m_name("(unnamed)")
-	, m_eventProcessor(std::make_unique<LuaEventProcessor>(this))
-	, m_imguiProcessor(std::make_unique<LuaImGuiProcessor>(this))
 	, m_pid(NextID())
 {
 	m_globalState.open_libraries();
@@ -152,6 +150,22 @@ void LuaThread::Initialize()
 	};
 
 	m_globalState.add_package_loader(LuaThread::lua_PackageLoader);
+}
+
+void LuaThread::EnableImGui()
+{
+	if (!m_imguiProcessor)
+	{
+		m_imguiProcessor = std::make_unique<LuaImGuiProcessor>(this);
+	}
+}
+
+void LuaThread::EnableEvents()
+{
+	if (!m_eventProcessor)
+	{
+		m_eventProcessor = std::make_unique<LuaEventProcessor>(this);
+	}
 }
 
 void LuaThread::InjectMQNamespace()
@@ -431,13 +445,19 @@ LuaThread::RunResult LuaThread::RunOnce()
 		return { m_thread.status(), std::nullopt };
 	}
 
-	// TODO: allow the user to set "aggressive" events (which gets prepared here) and "passive" binds (which would Get prepared in `doevents`)
-	m_eventProcessor->PrepareBinds();
+	if (m_eventProcessor)
+	{
+		// TODO: allow the user to set "aggressive" events (which gets prepared here) and "passive" binds (which would Get prepared in `doevents`)
+		m_eventProcessor->PrepareBinds();
+	}
 
 	YieldAt(m_turboNum);
-
 	m_yieldToFrame = false;
-	m_eventProcessor->RunEvents(*this);
+
+	if (m_eventProcessor)
+	{
+		m_eventProcessor->RunEvents(*this);
+	}
 
 	if (!m_yieldToFrame)
 	{

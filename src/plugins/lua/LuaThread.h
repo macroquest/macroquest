@@ -100,6 +100,9 @@ public:
 	void SetEvaluateResult(bool evaluate) { m_evaluateResult = evaluate; }
 	bool GetEvaluateResult() const { return m_evaluateResult; }
 
+	void EnableImGui();
+	void EnableEvents();
+
 	std::optional<LuaThreadInfo> StartFile(std::string_view filename, const std::vector<std::string>& args);
 	std::optional<LuaThreadInfo> StartString(std::string_view script, std::string_view name = "");
 
