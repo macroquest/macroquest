@@ -1,3 +1,8 @@
+August 6, 2021
+- lua: /lua parse now prints the result of an expression to the console. (#365)
+- lua: Empty/Invalid Macro data objects will now evaluate to nil, instead of "null" (#362)
+- lua: os.exit will no longer crash the client and will instead exit the script (#297)
+
 August 5, 2021
 - Removed some old hooks for EQPlayNice. Consider using the built-in performance tools instead.
 - Fix Target.bShowHelm (#331).
