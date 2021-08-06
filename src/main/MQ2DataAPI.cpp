@@ -208,9 +208,29 @@ bool RemoveMQ2TypeExtension(const char* szName, MQ2Type* extension)
 	return true;
 }
 
+bool FindMacroDataMember(MQ2Type* Type, const std::string& strMember)
+{
+	// search for extensions on this type
+	auto extIter = MQ2DataExtensions.find(Type->GetName());
+	if (extIter != MQ2DataExtensions.end())
+	{
+		// we have at least one extension. process each one until a match is found
+		for (MQ2Type* ext : extIter->second)
+		{
+			if (ext->FindMember(strMember) || ext->InheritedMember(strMember))
+			{
+				return true;
+			}
+		}
+	}
+
+	return Type->FindMember(strMember) || Type->InheritedMember(strMember);
+}
+
+
 // -1 = no exists, 0 = fail, 1 = success
-int FindMacroDataMember(MQ2Type* type, MQTypeVar& Result, const char* pStart, char* pIndex,
-	bool checkFirst = false)
+int EvaluateMacroDataMember(MQ2Type* type, MQVarPtr& VarPtr, MQTypeVar& Result, const std::string& Member, char* pIndex,
+	bool checkFirst)
 {
 	// search for extensions on this type
 	auto extIter = MQ2DataExtensions.find(type->GetName());
@@ -220,7 +240,7 @@ int FindMacroDataMember(MQ2Type* type, MQTypeVar& Result, const char* pStart, ch
 		for (MQ2Type* ext : extIter->second)
 		{
 			// optimize for failure case, check if exists first
-			int result = FindMacroDataMember(ext, Result, pStart, pIndex, true);
+			int result = EvaluateMacroDataMember(ext, VarPtr, Result, Member, pIndex, true);
 			if (result != -1)
 				return result;
 		}
@@ -232,18 +252,20 @@ int FindMacroDataMember(MQ2Type* type, MQTypeVar& Result, const char* pStart, ch
 
 	if (checkFirst)
 	{
-		if (!type->FindMember(pStart) && !type->InheritedMember(pStart))
+		if (!type->FindMember(Member) && !type->InheritedMember(Member))
 		{
 			return -1;
 		}
 
-		return type->GetMember(Result.VarPtr, pStart, pIndex, Result) ? 1 : 0;
+		return type->GetMember(std::move(VarPtr), Member.c_str(), pIndex, Result) ? 1 : 0;
 	}
 
-	if (type->GetMember(Result.VarPtr, pStart, pIndex, Result))
+	if (type->GetMember(std::move(VarPtr), Member.c_str(), pIndex, Result))
+	{
 		return 1;
+	}
 
-	if (!type->FindMember(pStart) && !type->InheritedMember(pStart))
+	if (!type->FindMember(Member) && !type->InheritedMember(Member))
 	{
 		return -1;
 	}
@@ -424,10 +446,13 @@ bool EvaluateDataExpression(MQTypeVar& Result, const char* pStart, char* pIndex,
 	}
 	else
 	{
-		int result = FindMacroDataMember(Result.Type, Result, pStart, pIndex);
+		MQVarPtr VarPtr = Result;
+		MQ2Type* pType = Result.Type;
+
+		int result = EvaluateMacroDataMember(pType, std::move(VarPtr), Result, pStart, pIndex, false);
 		if (result < 0)
 		{
-			MQ2DataError("No such '%s' member '%s'", Result.Type->GetName(), pStart);
+			MQ2DataError("No such '%s' member '%s'", pType->GetName(), pStart);
 		}
 
 		if (result <= 0)
@@ -435,6 +460,11 @@ bool EvaluateDataExpression(MQTypeVar& Result, const char* pStart, char* pIndex,
 	}
 
 	return true;
+}
+
+int EvaluateMacroDataMember(MQ2Type* pType, MQVarPtr VarPtr, MQTypeVar& Result, const char* Member, char* pIndex)
+{
+	return EvaluateMacroDataMember(pType, std::move(VarPtr), Result, Member, pIndex, false);
 }
 
 void InitializeMQ2Data()
