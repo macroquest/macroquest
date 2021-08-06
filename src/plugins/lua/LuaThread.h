@@ -38,6 +38,12 @@ enum class LuaThreadStatus
 	Exited
 };
 
+enum class LuaThreadExitReason
+{
+	Unspecified = 0,
+	Exit = 1,
+};
+
 struct LuaThreadInfo
 {
 	uint32_t pid;
@@ -114,7 +120,7 @@ public:
 
 	bool ShouldYield() const { return m_yieldToFrame; }
 	void DoYield() { YieldAt(0); }
-	void Exit();
+	void Exit(LuaThreadExitReason reason = LuaThreadExitReason::Unspecified);
 
 	LuaImGuiProcessor* GetImGuiProcessor() const { return m_imguiProcessor.get(); }
 	LuaEventProcessor* GetEventProcessor() const { return m_eventProcessor.get(); }
@@ -158,6 +164,7 @@ private:
 	bool m_evaluateResult = false;
 	uint64_t m_delayTime = 0L;
 	std::optional<sol::function> m_delayCondition = std::nullopt;
+	LuaThreadExitReason m_exitReason = LuaThreadExitReason::Unspecified;
 
 	std::unique_ptr<LuaEventProcessor> m_eventProcessor;
 	std::unique_ptr<LuaImGuiProcessor> m_imguiProcessor;

@@ -144,6 +144,9 @@ void LuaThread::Initialize()
 		return m_globalState["_old_dofile"](file_path.string(), args);
 	};
 
+	// Replace os.exit with mq.exit
+	m_globalState["os"]["exit"] = LuaThread::lua_exit;
+
 	m_globalState["mqthread"] = LuaThreadRef(shared_from_this());
 	m_globalState["print"] = [](sol::variadic_args va, sol::this_state s) {
 		WriteChatColorf("%s", USERCOLOR_CHAT_CHANNEL, lua_join(s, "", va).c_str());
@@ -223,8 +226,9 @@ void LuaThread::Delay(sol::object delayObj, sol::object conditionObj)
 	}
 }
 
-void LuaThread::Exit()
+void LuaThread::Exit(LuaThreadExitReason reason)
 {
+	m_exitReason = reason;
 	YieldAt(0);
 	m_thread.abandon();
 }
@@ -233,8 +237,7 @@ void LuaThread::Exit()
 {
 	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
-		WriteChatStatus("Exit() called in Lua script %s with PID %d", thread_ptr->m_name.c_str(), thread_ptr->m_pid);
-		thread_ptr->Exit();
+		thread_ptr->Exit(LuaThreadExitReason::Exit);
 	}
 }
 
