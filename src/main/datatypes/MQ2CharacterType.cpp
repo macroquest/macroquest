@@ -1479,15 +1479,16 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 		if (IsNumber(Index))
 		{
+			// Decremeting the given ID by 1 to get zero based index for pulling skill from languages array
 			nLang = GetIntFromString(Index, nLang) - 1;
-			if (nLang < 0)
-				return false;
 		}
 		else
 		{
+			// Grabbing ID by Name and decremeting ID by 1 to get zero based index for pulling skill from languages array
 			nLang = GetLanguageIDByName(Index) - 1;
 		}
-		if (nLang < 0 || nLang >= 25)
+
+		if (nLang < 0 || nLang >= 27)
 			return false;
 
 		Dest.DWord = pLocalPC->languages[nLang];
@@ -2531,8 +2532,9 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 		if (IsNumber(Index))
 		{
+			// Decremeting the given ID by 1 to get zero based index for GetLangDesc
 			nLang = GetIntFromString(Index, 0) - 1;
-			if (nLang < 0)
+			if (nLang < 0 || nLang >= 27)
 				return false;
 			strcpy_s(DataTypeTemp, pEverQuest->GetLangDesc(nLang));
 			Dest.Ptr = &DataTypeTemp[0];
@@ -2541,10 +2543,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 		else
 		{
-			nLang = GetLanguageIDByName(Index) - 1;
+			// Not decrementing as we are returning the ID by Name
+			nLang = GetLanguageIDByName(Index);
 		}
 
-		if (nLang < 0 || nLang >= 25)
+		if (nLang < 0 || nLang >= 27)
 			return false;
 		Dest.DWord = nLang;
 		return true;
