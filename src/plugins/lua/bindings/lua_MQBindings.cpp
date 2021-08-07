@@ -168,7 +168,7 @@ public:
 	bool operator==(const lua_MQTypeVar& right) const;
 	bool EqualData(const lua_MQDataItem& right) const;
 	bool EqualNil(const sol::lua_nil_t&) const;
-	MQTypeVar EvaluateMember(char* index = nullptr) const;
+	MQTypeVar EvaluateMember(const char* index = nullptr) const;
 	static std::string ToString(const lua_MQTypeVar& obj);
 	sol::object Call(std::string index, sol::this_state L) const;
 	sol::object CallInt(int index, sol::this_state L) const;
@@ -203,7 +203,7 @@ bool lua_MQTypeVar::EqualNil(const sol::lua_nil_t&) const
 	return EvaluateMember().Type == nullptr;
 } 
 
-MQTypeVar lua_MQTypeVar::EvaluateMember(char* index) const
+MQTypeVar lua_MQTypeVar::EvaluateMember(const char* index) const
 {
 	if (m_self->Type == nullptr || m_member.empty())
 		return *m_self;
@@ -234,7 +234,7 @@ std::string lua_MQTypeVar::ToString(const lua_MQTypeVar& obj)
 
 sol::object lua_MQTypeVar::Call(std::string index, sol::this_state L) const
 {
-	return sol::object(L, sol::in_place, lua_MQTypeVar(EvaluateMember(&index[0])));
+	return sol::object(L, sol::in_place, lua_MQTypeVar(EvaluateMember(index.c_str())));
 }
 
 sol::object lua_MQTypeVar::CallInt(int index, sol::this_state L) const
@@ -281,13 +281,13 @@ sol::object lua_MQTypeVar::CallEmpty(sol::this_state L) const
 sol::object lua_MQTypeVar::Get(sol::stack_object key, sol::this_state L) const
 {
 	lua_MQTypeVar var = EvaluateMember();
-	std::optional<std::string_view> maybe_key = key.as<std::optional<std::string_view>>();
 
-	if (!m_self->Type)
+	if (!var.m_self->Type)
 	{
 		return sol::object(L, sol::in_place, sol::lua_nil);
 	}
 
+	std::optional<std::string_view> maybe_key = key.as<std::optional<std::string_view>>();
 	if (maybe_key)
 	{
 		var.m_member = *maybe_key;
