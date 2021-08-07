@@ -1479,12 +1479,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 		if (IsNumber(Index))
 		{
+			// Decrement given ID by 1 to get Zero Based Index for languages array
 			nLang = GetIntFromString(Index, nLang) - 1;
-			if (nLang < 0)
-				return false;
 		}
 		else
 		{
+			// Decrement given ID by 1 to get Zero Based Index for languages array
 			nLang = GetLanguageIDByName(Index) - 1;
 		}
 		if (nLang < 0 || nLang >= 25)
@@ -2531,8 +2531,9 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 		if (IsNumber(Index))
 		{
+			// Decrement given ID by 1 to get Zero Based Index for GetLangDesc
 			nLang = GetIntFromString(Index, 0) - 1;
-			if (nLang < 0)
+			if (nLang < 0 || nLang >= 25)
 				return false;
 			strcpy_s(DataTypeTemp, pEverQuest->GetLangDesc(nLang));
 			Dest.Ptr = &DataTypeTemp[0];
@@ -2541,7 +2542,8 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 		else
 		{
-			nLang = GetLanguageIDByName(Index) - 1;
+			// No Decrement as we are returning the ID by Name
+			nLang = GetLanguageIDByName(Index);
 		}
 
 		if (nLang < 0 || nLang >= 25)
