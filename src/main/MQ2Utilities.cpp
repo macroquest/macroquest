@@ -3880,8 +3880,10 @@ bool GetClosestAlert(SPAWNINFO* pChar, uint32_t id)
 		{
 			if (SPAWNINFO* pSpawn = SearchThroughSpawns(&s, pChar))
 			{
-				if (Distance3DToSpawn(pChar, pSpawn) < ClosestDistance)
+				const float SpawnDistance = Distance3DToSpawn(pChar, pSpawn);
+				if (SpawnDistance < ClosestDistance)
 				{
+					ClosestDistance = SpawnDistance;
 					pClosest = pSpawn;
 				}
 			}
