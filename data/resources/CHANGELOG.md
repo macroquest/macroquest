@@ -1,3 +1,6 @@
+August 7, 2021
+- lua: Further fixes for evaluating TLO object data members.
+
 August 6, 2021
 - lua: /lua parse now prints the result of an expression to the console. (#365)
 - lua: Empty/Invalid Macro data objects will now evaluate to nil, instead of "null" (#362)

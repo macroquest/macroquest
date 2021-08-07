@@ -181,7 +181,8 @@ public:
 		if (!m_self || m_self->Type == nullptr)
 			return true;
 
-		return EvaluateMember().Type == nullptr;
+		// Make sure that the macro data member even exists.
+		return !(m_member.empty() || FindMacroDataMember(m_self->Type, m_member));
 	}
 
 private:
@@ -196,7 +197,10 @@ bool lua_MQTypeVar::operator==(const lua_MQTypeVar& right) const
 
 bool lua_MQTypeVar::EqualNil(const sol::lua_nil_t&) const
 {
-	return IsNil();
+	if (!m_self || m_self->Type == nullptr)
+		return true;
+
+	return EvaluateMember().Type == nullptr;
 } 
 
 MQTypeVar lua_MQTypeVar::EvaluateMember(char* index) const
