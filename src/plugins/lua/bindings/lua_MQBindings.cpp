@@ -176,15 +176,6 @@ public:
 	sol::object CallEmpty(sol::this_state L) const;
 	sol::object Get(sol::stack_object key, sol::this_state L) const;
 
-	bool IsNil() const
-	{
-		if (!m_self || m_self->Type == nullptr)
-			return true;
-
-		// Make sure that the macro data member even exists.
-		return !(m_member.empty() || FindMacroDataMember(m_self->Type, m_member));
-	}
-
 private:
 	std::unique_ptr<MQTypeVar> m_self;
 	std::string m_member;
@@ -282,18 +273,13 @@ sol::object lua_MQTypeVar::Get(sol::stack_object key, sol::this_state L) const
 {
 	lua_MQTypeVar var = EvaluateMember();
 
-	if (!var.m_self->Type)
-	{
-		return sol::object(L, sol::in_place, sol::lua_nil);
-	}
-
 	std::optional<std::string_view> maybe_key = key.as<std::optional<std::string_view>>();
 	if (maybe_key)
 	{
 		var.m_member = *maybe_key;
 
-		// Make sure that the macro data member even exists.
-		if (!FindMacroDataMember(var.m_self->Type, var.m_member))
+		// Make sure that the macro data member even exists if we have the type info
+		if (var.m_self->Type && !FindMacroDataMember(var.m_self->Type, var.m_member))
 		{
 			return sol::object(L, sol::in_place, sol::lua_nil);
 		}
@@ -460,17 +446,6 @@ lua_MQTypeVar sol_lua_get(sol::types<lua_MQTypeVar>, lua_State* L, int index, so
 	return lua_MQTypeVar(MQTypeVar()); // this will eventually evaluate to a nil, but we need it to stay in userdata until actual evaluation
 }
 
-int sol_lua_push(lua_State* L, lua_MQTypeVar typeVar)
-{
-	if (typeVar.IsNil())
-		return sol::stack::push(L, nullptr);
-
-	using Tu = sol::detail::as_value_tag<lua_MQTypeVar>;
-
-	sol::stack::unqualified_pusher<Tu> p{};
-	return p.push(L, std::move(typeVar));
-}
-
 struct lua_MQTLO
 {
 	sol::object Get(sol::stack_object key, sol::this_state L) const
@@ -574,6 +549,7 @@ void MQ_RegisterLua_MQBindings(sol::table& mq)
 		"tlo",                                   sol::no_constructor,
 		sol::meta_function::index,               &lua_MQTLO::Get);
 	mq.set("TLO",                                lua_MQTLO());
+	mq.set("null",                               lua_MQTypeVar(MQTypeVar()));
 
 	//----------------------------------------------------------------------------
 
