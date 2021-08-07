@@ -1479,14 +1479,15 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 		if (IsNumber(Index))
 		{
-			// Decrement given ID by 1 to get Zero Based Index for languages array
+			// Decremeting the given ID by 1 to get zero based index for pulling skill from languages array
 			nLang = GetIntFromString(Index, nLang) - 1;
 		}
 		else
 		{
-			// Decrement given ID by 1 to get Zero Based Index for languages array
+			// Grabbing ID by Name and decremeting ID by 1 to get zero based index for pulling skill from languages array
 			nLang = GetLanguageIDByName(Index) - 1;
 		}
+
 		if (nLang < 0 || nLang >= 25)
 			return false;
 
@@ -2531,7 +2532,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 		if (IsNumber(Index))
 		{
-			// Decrement given ID by 1 to get Zero Based Index for GetLangDesc
+			// Decremeting the given ID by 1 to get zero based index for GetLangDesc
 			nLang = GetIntFromString(Index, 0) - 1;
 			if (nLang < 0 || nLang >= 25)
 				return false;
@@ -2542,7 +2543,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 		else
 		{
-			// No Decrement as we are returning the ID by Name
+			// Not decrementing as we are returning the ID by Name
 			nLang = GetLanguageIDByName(Index);
 		}
 
