@@ -71,6 +71,8 @@ public:
 	MQLIB_OBJECT MQTypeMember* FindMethod(const char* Name);
 	MQLIB_OBJECT MQTypeMember* FindMethod(const std::string& Name);
 
+	MQLIB_OBJECT bool CanEvaluateMethodOrMember(const std::string& Name);
+
 	inline bool InheritsFrom(MQ2Type* testType)
 	{
 		MQ2Type* parentType = m_parent;
@@ -94,6 +96,7 @@ public:
 	{
 		m_parent = pNewInherit;
 	}
+	inline  MQ2Type* GetParent() const { return m_parent; }
 
 	// Override this function to convert this type to the requested type. Return true if the conversion is successful. The
 	// Result should be placed in VarPtr and its type should match that of toType.

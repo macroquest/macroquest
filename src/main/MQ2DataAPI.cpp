@@ -217,14 +217,27 @@ bool FindMacroDataMember(MQ2Type* Type, const std::string& strMember)
 		// we have at least one extension. process each one until a match is found
 		for (MQ2Type* ext : extIter->second)
 		{
-			if (ext->FindMember(strMember) || ext->InheritedMember(strMember))
-			{
+			if (ext->CanEvaluateMethodOrMember(strMember))
 				return true;
+
+			if (MQ2Type* pParent = ext->GetParent())
+			{
+				if (pParent->CanEvaluateMethodOrMember(strMember))
+					return true;
 			}
 		}
 	}
 
-	return Type->FindMember(strMember) || Type->InheritedMember(strMember);
+	if (Type->CanEvaluateMethodOrMember(strMember))
+		return true;
+
+	if (MQ2Type* pParent = Type->GetParent())
+	{
+		if (pParent->CanEvaluateMethodOrMember(strMember))
+			return true;
+	}
+
+	return false;
 }
 
 
