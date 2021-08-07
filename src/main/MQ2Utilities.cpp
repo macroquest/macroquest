@@ -1287,6 +1287,8 @@ int GetLanguageIDByName(const char* szName)
 	if (!_stricmp(szName, "Elder Dragon")) return 23;
 	if (!_stricmp(szName, "Dark Speech")) return 24;
 	if (!_stricmp(szName, "Vah Shir")) return 25;
+	if (!_stricmp(szName, "Alaran")) return 26;
+	if (!_stricmp(szName, "Hadal")) return 27;
 	return -1;
 }
 
