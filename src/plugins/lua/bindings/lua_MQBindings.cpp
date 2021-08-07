@@ -175,6 +175,7 @@ public:
 	sol::object CallVA(sol::this_state L, sol::variadic_args args) const;
 	sol::object CallEmpty(sol::this_state L) const;
 	sol::object Get(sol::stack_object key, sol::this_state L) const;
+	MQ2Type* GetType() const;
 
 private:
 	std::unique_ptr<MQTypeVar> m_self;
@@ -207,6 +208,11 @@ MQTypeVar lua_MQTypeVar::EvaluateMember(const char* index) const
 
 	// can't guarantee result didn't Get modified, but we want to return nil if GetMember was false
 	return MQTypeVar();
+}
+
+MQ2Type* lua_MQTypeVar::GetType() const
+{
+	return EvaluateMember().Type;
 }
 
 std::string lua_MQTypeVar::ToString(const lua_MQTypeVar& obj)
@@ -314,6 +320,8 @@ public:
 	sol::object CallEmpty(sol::this_state L) const;
 	sol::object Get(sol::stack_object key, sol::this_state L) const;
 
+	MQ2Type* GetType() const;
+
 private:
 	const MQDataItem* const self = nullptr;
 };
@@ -345,6 +353,11 @@ bool lua_MQDataItem::EqualNil(const sol::lua_nil_t&) const
 std::string lua_MQDataItem::ToString(const lua_MQDataItem& data)
 {
 	return lua_MQTypeVar::ToString(data.EvaluateSelf());
+}
+
+MQ2Type* lua_MQDataItem::GetType() const
+{
+	return EvaluateSelf().m_self->Type;
 }
 
 sol::object lua_MQDataItem::Call(const std::string& index, sol::this_state L) const
@@ -477,6 +490,24 @@ std::string to_string(const lua_MQTLO& item)
 	return "TLO";
 }
 
+std::optional<std::string> mq_gettype_MQDataItem(const lua_MQDataItem& item)
+{
+	MQ2Type* type = item.GetType();
+	if (!type)
+		return std::nullopt;
+
+	return std::string(type->GetName());
+}
+
+std::optional<std::string> mq_gettype_MQTypeVar(const lua_MQTypeVar& item)
+{
+	MQ2Type* type = item.GetType();
+	if (!type)
+		return std::nullopt;
+
+	return std::string(type->GetName());
+}
+
 #pragma endregion
 
 //============================================================================
@@ -550,6 +581,9 @@ void MQ_RegisterLua_MQBindings(sol::table& mq)
 		sol::meta_function::index,               &lua_MQTLO::Get);
 	mq.set("TLO",                                lua_MQTLO());
 	mq.set("null",                               lua_MQTypeVar(MQTypeVar()));
+	mq.set("gettype",                            sol::overload(
+		                                             mq_gettype_MQDataItem,
+		                                             mq_gettype_MQTypeVar));
 
 	//----------------------------------------------------------------------------
 
