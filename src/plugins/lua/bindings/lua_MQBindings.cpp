@@ -265,31 +265,13 @@ sol::object lua_MQTypeVar::CallEmpty(sol::this_state L) const
 	if (result.Type == mq::datatypes::pStringType)
 		return sol::object(L, sol::in_place, (const char*)result.Ptr);
 
-	// There are seven basic types in Lua: nil, number, string, function, CFunction, userdata, and table.
-	// We only care about nil, number, and string, but multiple MQ types decay into the various types, so
-	// we need to capture that.
-	switch (result.GetType())
-	{
-	case MQVarPtr::VariantIdx::Float:
-	case MQVarPtr::VariantIdx::Double:
-		// lua's number type is the same for integral and floating, but sol handles them each slightly differently
-		return sol::object(L, sol::in_place, result.Get<double>());
-	case MQVarPtr::VariantIdx::UInt64:
-		return sol::object(L, sol::in_place, result.Get<int64_t>());
-	case MQVarPtr::VariantIdx::Bool:
-		return sol::object(L, sol::in_place, result.Get<bool>());
-	case MQVarPtr::VariantIdx::String:
-		// if we know it's a string, let's Get a string explicitly
-		return sol::object(L, sol::in_place, result.Get<CXStr>().c_str());
-	default:
-		// by default run it through the tostring conversion because we are assuming calling with empty parens means
-		// to actualize the data in the native lua space
-		char buf[MAX_STRING] = { 0 };
-		if (result.Type->ToString(result.GetVarPtr(), buf))
-			return sol::object(L, sol::in_place, buf);
+	// by default run it through the tostring conversion because we are assuming calling with empty parens means
+	// to actualize the data in the native lua space
+	char buf[MAX_STRING] = { 0 };
+	if (result.Type->ToString(result.GetVarPtr(), buf))
+		return sol::object(L, sol::in_place, buf);
 
-		return sol::object(L, sol::in_place, sol::lua_nil);
-	}
+	return sol::object(L, sol::in_place, sol::lua_nil);
 }
 
 sol::object lua_MQTypeVar::Get(sol::stack_object key, sol::this_state L) const
