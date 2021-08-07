@@ -289,7 +289,7 @@ sol::object lua_MQTypeVar::Get(sol::stack_object key, sol::this_state L) const
 		var.m_member = *maybe_key;
 
 		// Make sure that the macro data member even exists.
-		if (!FindMacroDataMember(m_self->Type, var.m_member))
+		if (!FindMacroDataMember(var.m_self->Type, var.m_member))
 		{
 			return sol::object(L, sol::in_place, sol::lua_nil);
 		}
