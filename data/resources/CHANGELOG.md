@@ -1,5 +1,7 @@
 August 7, 2021
 - lua: Further fixes for evaluating TLO object data members.
+- lua: Partially reverted nil changes. see comments in https://gitlab.com/macroquest/next/mqnext/-/issues/362.
+- lua: added mq.gettype to inspect the underlying data type of a data member usertype.
 
 August 6, 2021
 - lua: /lua parse now prints the result of an expression to the console. (#365)
