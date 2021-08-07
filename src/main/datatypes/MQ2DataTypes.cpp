@@ -159,6 +159,14 @@ mq::MQTypeMember* MQ2Type::FindMethod(const std::string& Name)
 	return Methods[index].get();
 }
 
+bool MQ2Type::CanEvaluateMethodOrMember(const std::string& Name)
+{
+	std::scoped_lock lock(m_mutex);
+
+	// exists in method map?
+	return MemberMap.count(Name) != 0 || MethodMap.count(Name) != 0;
+}
+
 bool MQ2Type::AddMember(int id, const char* Name)
 {
 	std::scoped_lock lock(m_mutex);
