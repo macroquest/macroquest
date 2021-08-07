@@ -273,6 +273,11 @@ MQLIB_API bool ParseMQ2DataPortion(char* szOriginal, MQTypeVar& Result);
 MQLIB_API bool AddMQ2TypeExtension(const char* typeName, MQ2Type* extension);
 MQLIB_API bool RemoveMQ2TypeExtension(const char* typeName, MQ2Type* extension);
 
+// Returns -1 if member doesn't exist. 0 if it fails, and 1 if it succeeds.
+MQLIB_API int EvaluateMacroDataMember(MQ2Type* Type, MQVarPtr VarPtr, MQTypeVar& Result, const char* Member, char* pIndex);
+// Returns false if the given name is neither a member nor a method of the given type.
+MQLIB_OBJECT bool FindMacroDataMember(MQ2Type* Type, const std::string& Member);
+
 // Compatibility shims
 DEPRECATE("The data function's signature must be updated to bool functionName(const char* szIndex, MQTypeVar& ret)")
 inline bool AddMQ2Data(const char* szName, fMQDataOld Function)

@@ -38,6 +38,12 @@ enum class LuaThreadStatus
 	Exited
 };
 
+enum class LuaThreadExitReason
+{
+	Unspecified = 0,
+	Exit = 1,
+};
+
 struct LuaThreadInfo
 {
 	uint32_t pid;
@@ -67,7 +73,7 @@ struct LuaThreadInfo
 		}
 	}
 
-	void SetResult(const sol::protected_function_result& result);
+	void SetResult(const sol::protected_function_result& result, bool evaluate);
 	void EndRun();
 };
 
@@ -97,6 +103,11 @@ public:
 
 	void InjectMQNamespace();
 	void SetTurbo(uint32_t turboVal) { m_turboNum = turboVal; }
+	void SetEvaluateResult(bool evaluate) { m_evaluateResult = evaluate; }
+	bool GetEvaluateResult() const { return m_evaluateResult; }
+
+	void EnableImGui();
+	void EnableEvents();
 
 	std::optional<LuaThreadInfo> StartFile(std::string_view filename, const std::vector<std::string>& args);
 	std::optional<LuaThreadInfo> StartString(std::string_view script, std::string_view name = "");
@@ -109,7 +120,7 @@ public:
 
 	bool ShouldYield() const { return m_yieldToFrame; }
 	void DoYield() { YieldAt(0); }
-	void Exit();
+	void Exit(LuaThreadExitReason reason = LuaThreadExitReason::Unspecified);
 
 	LuaImGuiProcessor* GetImGuiProcessor() const { return m_imguiProcessor.get(); }
 	LuaEventProcessor* GetEventProcessor() const { return m_eventProcessor.get(); }
@@ -150,8 +161,10 @@ private:
 	bool m_yieldToFrame = false;
 	bool m_isString = false;
 	bool m_paused = false;
+	bool m_evaluateResult = false;
 	uint64_t m_delayTime = 0L;
 	std::optional<sol::function> m_delayCondition = std::nullopt;
+	LuaThreadExitReason m_exitReason = LuaThreadExitReason::Unspecified;
 
 	std::unique_ptr<LuaEventProcessor> m_eventProcessor;
 	std::unique_ptr<LuaImGuiProcessor> m_imguiProcessor;

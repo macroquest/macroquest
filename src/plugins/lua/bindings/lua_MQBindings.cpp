@@ -154,7 +154,7 @@ public:
 		auto* const type = FindMQ2DataType(str.c_str());
 		if (type != nullptr)
 		{
-			self->Type = type;
+			m_self->Type = type;
 		}
 	}
 
@@ -163,7 +163,7 @@ public:
 	 * \param self the MQ type var data source to be represented in lua
 	 */
 	lua_MQTypeVar(const MQTypeVar& self)
-		: self(std::make_unique<MQTypeVar>(self)) {}
+		: m_self(std::make_unique<MQTypeVar>(self)) {}
 
 	bool operator==(const lua_MQTypeVar& right) const;
 	bool EqualData(const lua_MQDataItem& right) const;
@@ -176,9 +176,17 @@ public:
 	sol::object CallEmpty(sol::this_state L) const;
 	sol::object Get(sol::stack_object key, sol::this_state L) const;
 
+	bool IsNil() const
+	{
+		if (!m_self || m_self->Type == nullptr)
+			return true;
+
+		return EvaluateMember().Type == nullptr;
+	}
+
 private:
-	std::unique_ptr<MQTypeVar> self;
-	std::string member;
+	std::unique_ptr<MQTypeVar> m_self;
+	std::string m_member;
 };
 
 bool lua_MQTypeVar::operator==(const lua_MQTypeVar& right) const
@@ -188,18 +196,18 @@ bool lua_MQTypeVar::operator==(const lua_MQTypeVar& right) const
 
 bool lua_MQTypeVar::EqualNil(const sol::lua_nil_t&) const
 {
-	return EvaluateMember().Type == nullptr;
-}
+	return IsNil();
+} 
 
 MQTypeVar lua_MQTypeVar::EvaluateMember(char* index) const
 {
-	if (self->Type == nullptr || member.empty())
-		return *self;
+	if (m_self->Type == nullptr || m_member.empty())
+		return *m_self;
 
 	// the ternary in index is because datatypes are all over the place on whether or not they can
 	// accept null pointers. They all seem to agree that an empty string is the same thing, though.
 	MQTypeVar var;
-	if (self->Type->GetMember(self->GetVarPtr(), member.c_str(), index ? index : "", var))
+	if (EvaluateMacroDataMember(m_self->Type, m_self->GetVarPtr(), var, m_member.c_str(), index ? index : "") == 1)
 		return std::move(var);
 
 	// can't guarantee result didn't Get modified, but we want to return nil if GetMember was false
@@ -208,15 +216,16 @@ MQTypeVar lua_MQTypeVar::EvaluateMember(char* index) const
 
 std::string lua_MQTypeVar::ToString(const lua_MQTypeVar& obj)
 {
-	auto var = obj.EvaluateMember();
+	MQTypeVar var = obj.EvaluateMember();
+
 	if (var.Type != nullptr)
 	{
-		char buf[2048] = { 0 };
-		var.Type->ToString(var, buf);
-		return std::string(std::move(buf));
+		char buf[MAX_STRING] = { 0 };
+		if (var.Type->ToString(var, buf))
+			return std::string(buf);
 	}
 
-	return "null";
+	return "NULL";
 }
 
 sol::object lua_MQTypeVar::Call(std::string index, sol::this_state L) const
@@ -256,40 +265,35 @@ sol::object lua_MQTypeVar::CallEmpty(sol::this_state L) const
 	if (result.Type == mq::datatypes::pStringType)
 		return sol::object(L, sol::in_place, (const char*)result.Ptr);
 
-	// There are seven basic types in Lua: nil, number, string, function, CFunction, userdata, and table.
-	// We only care about nil, number, and string, but multiple MQ types decay into the various types, so
-	// we need to capture that.
-	switch (result.GetType())
-	{
-	case MQVarPtr::VariantIdx::Float:
-	case MQVarPtr::VariantIdx::Double:
-		// lua's number type is the same for integral and floating, but sol handles them each slightly differently
-		return sol::object(L, sol::in_place, result.Get<double>());
-	case MQVarPtr::VariantIdx::UInt64:
-		return sol::object(L, sol::in_place, result.Get<int64_t>());
-	case MQVarPtr::VariantIdx::Bool:
-		return sol::object(L, sol::in_place, result.Get<bool>());
-	case MQVarPtr::VariantIdx::String:
-		// if we know it's a string, let's Get a string explicitly
-		return sol::object(L, sol::in_place, result.Get<CXStr>().c_str());
-	default:
-		// by default run it through the tostring conversion because we are assuming calling with empty parens means
-		// to actualize the data in the native lua space
-		char buf[MAX_STRING] = { 0 };
-		if (result.Type->ToString(result.GetVarPtr(), buf))
-			return sol::object(L, sol::in_place, buf);
+	// by default run it through the tostring conversion because we are assuming calling with empty parens means
+	// to actualize the data in the native lua space
+	char buf[MAX_STRING] = { 0 };
+	if (result.Type->ToString(result.GetVarPtr(), buf))
+		return sol::object(L, sol::in_place, buf);
 
-		return sol::object(L, sol::in_place, sol::lua_nil);
-	}
+	return sol::object(L, sol::in_place, sol::lua_nil);
 }
 
 sol::object lua_MQTypeVar::Get(sol::stack_object key, sol::this_state L) const
 {
-	auto var = lua_MQTypeVar(EvaluateMember());
-	auto maybe_key = key.as<std::optional<std::string_view>>();
+	lua_MQTypeVar var = EvaluateMember();
+	std::optional<std::string_view> maybe_key = key.as<std::optional<std::string_view>>();
+
+	if (!m_self->Type)
+	{
+		return sol::object(L, sol::in_place, sol::lua_nil);
+	}
 
 	if (maybe_key)
-		var.member = *maybe_key;
+	{
+		var.m_member = *maybe_key;
+
+		// Make sure that the macro data member even exists.
+		if (!FindMacroDataMember(m_self->Type, var.m_member))
+		{
+			return sol::object(L, sol::in_place, sol::lua_nil);
+		}
+	}
 
 	return sol::object(L, sol::in_place, std::move(var));
 }
@@ -311,7 +315,9 @@ public:
 	bool operator==(const lua_MQDataItem& right) const;
 	bool EqualVar(const lua_MQTypeVar& right) const;
 	bool EqualNil(const sol::lua_nil_t&) const;
+
 	static std::string ToString(const lua_MQDataItem& data);
+
 	sol::object Call(const std::string& index, sol::this_state L) const;
 	sol::object CallInt(int index, sol::this_state L) const;
 	sol::object CallVA(sol::this_state L, sol::variadic_args args) const;
@@ -343,7 +349,7 @@ bool lua_MQDataItem::EqualVar(const lua_MQTypeVar& right) const
 
 bool lua_MQDataItem::EqualNil(const sol::lua_nil_t&) const
 {
-	return EvaluateSelf().self->Type == nullptr;
+	return EvaluateSelf().m_self->Type == nullptr;
 }
 
 std::string lua_MQDataItem::ToString(const lua_MQDataItem& data)
@@ -450,6 +456,17 @@ lua_MQTypeVar sol_lua_get(sol::types<lua_MQTypeVar>, lua_State* L, int index, so
 	return lua_MQTypeVar(MQTypeVar()); // this will eventually evaluate to a nil, but we need it to stay in userdata until actual evaluation
 }
 
+int sol_lua_push(lua_State* L, lua_MQTypeVar typeVar)
+{
+	if (typeVar.IsNil())
+		return sol::stack::push(L, nullptr);
+
+	using Tu = sol::detail::as_value_tag<lua_MQTypeVar>;
+
+	sol::stack::unqualified_pusher<Tu> p{};
+	return p.push(L, std::move(typeVar));
+}
+
 struct lua_MQTLO
 {
 	sol::object Get(sol::stack_object key, sol::this_state L) const
@@ -466,17 +483,21 @@ struct lua_MQTLO
 	}
 };
 
-std::ostream& operator<<(std::ostream& os, const lua_MQDataItem& item)
+std::string to_string(const lua_MQDataItem& item)
 {
-	os << lua_MQDataItem::ToString(item);
-	return os;
+	return lua_MQDataItem::ToString(item);
 }
 
-std::ostream& operator<<(std::ostream& os, const lua_MQTypeVar& item)
+std::string to_string(const lua_MQTypeVar& item)
 {
-	os << lua_MQTypeVar::ToString(item);
-	return os;
+	return lua_MQTypeVar::ToString(item);
 }
+
+std::string to_string(const lua_MQTLO& item)
+{
+	return "TLO";
+}
+
 #pragma endregion
 
 //============================================================================
@@ -549,7 +570,6 @@ void MQ_RegisterLua_MQBindings(sol::table& mq)
 		"tlo",                                   sol::no_constructor,
 		sol::meta_function::index,               &lua_MQTLO::Get);
 	mq.set("TLO",                                lua_MQTLO());
-	mq.set("null",                               lua_MQTypeVar(MQTypeVar()));
 
 	//----------------------------------------------------------------------------
 

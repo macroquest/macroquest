@@ -134,7 +134,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		if (!pLeader)
 			return false;
 
-		Dest.DWord = pLocalPC->Group->GetGroupMemberIndex(pLeader);
+		Dest.DWord = pLocalPC->Group->GetGroupMemberVisualIndex(pLeader);
 		return true;
 	}
 
@@ -158,7 +158,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 		if (CGroupMember* pGroupMember = pLocalPC->Group->GetGroupMemberByRole(GroupRoleTank))
 		{
-			Dest.DWord = pLocalPC->Group->GetGroupMemberIndex(pGroupMember);
+			Dest.DWord = pLocalPC->Group->GetGroupMemberVisualIndex(pGroupMember);
 			return true;
 		}
 		return false;
@@ -169,7 +169,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 		if (CGroupMember* pGroupMember = pLocalPC->Group->GetGroupMemberByRole(GroupRoleAssist))
 		{
-			Dest.DWord = pLocalPC->Group->GetGroupMemberIndex(pGroupMember);
+			Dest.DWord = pLocalPC->Group->GetGroupMemberVisualIndex(pGroupMember);
 			return true;
 		}
 		return false;
@@ -180,7 +180,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 		if (CGroupMember* pGroupMember = pLocalPC->Group->GetGroupMemberByRole(GroupRolePuller))
 		{
-			Dest.DWord = pLocalPC->Group->GetGroupMemberIndex(pGroupMember);
+			Dest.DWord = pLocalPC->Group->GetGroupMemberVisualIndex(pGroupMember);
 			return true;
 		}
 		return false;
@@ -191,7 +191,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 		if (CGroupMember* pGroupMember = pLocalPC->Group->GetGroupMemberByRole(GroupRoleMarkNPC))
 		{
-			Dest.DWord = pLocalPC->Group->GetGroupMemberIndex(pGroupMember);
+			Dest.DWord = pLocalPC->Group->GetGroupMemberVisualIndex(pGroupMember);
 			return true;
 		}
 		return false;
@@ -202,7 +202,7 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 		if (CGroupMember* pGroupMember = pLocalPC->Group->GetGroupMemberByRole(GroupRoleMasterLooter))
 		{
-			Dest.DWord = pLocalPC->Group->GetGroupMemberIndex(pGroupMember);
+			Dest.DWord = pLocalPC->Group->GetGroupMemberVisualIndex(pGroupMember);
 			return true;
 		}
 		return false;

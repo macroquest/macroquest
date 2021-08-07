@@ -300,6 +300,7 @@ int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description, bool isDebu
 		{
 			sprintf_s(szTemp,
 				"MacroQuest caught a crash:\n"
+				"Version: " MQMAIN_VERSION  "\n"
 				"Location: %s+%d @ %s:%d (%s+%p)\n",
 				pSymbol->Name, dwDisplacement, line.FileName, line.LineNumber, szSymSearchPath, (void*)(line.Address - (DWORD)hModule));
 		}
@@ -307,6 +308,7 @@ int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description, bool isDebu
 		{
 			sprintf_s(szTemp,
 				"MacroQuest caught a crash:\n"
+				"Version: " MQMAIN_VERSION  "\n"
 				"Location: %s+%d (%s+%p)\n",
 				pSymbol->Name, dwDisplacement, szSymSearchPath, (void*)(pSymbol->Address - (DWORD)hModule));
 		}
@@ -315,6 +317,7 @@ int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description, bool isDebu
 	{
 		sprintf_s(szTemp,
 			"MacroQuest caught a crash:\n"
+			"Version: " MQMAIN_VERSION  "\n"
 			"Location: %s+%p\n",
 			szSymSearchPath, (void*)(dwAddress - (DWORD)hModule));
 	}

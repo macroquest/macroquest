@@ -67,7 +67,9 @@ public:
 	MQLIB_OBJECT bool GetMemberID(const char* Name, int& Result) const;
 
 	MQLIB_OBJECT MQTypeMember* FindMember(const char* Name);
+	MQLIB_OBJECT MQTypeMember* FindMember(const std::string& Name);
 	MQLIB_OBJECT MQTypeMember* FindMethod(const char* Name);
+	MQLIB_OBJECT MQTypeMember* FindMethod(const std::string& Name);
 
 	inline bool InheritsFrom(MQ2Type* testType)
 	{
@@ -85,10 +87,8 @@ public:
 		return false;
 	}
 
-	inline bool InheritedMember(const char* Name)
-	{
-		return m_parent && m_parent->FindMember(Name);
-	}
+	inline bool InheritedMember(const char* Name) { return m_parent && m_parent->FindMember(Name); }
+	inline bool InheritedMember(const std::string& Name) { return m_parent && m_parent->FindMember(Name); }
 
 	inline void SetInheritance(MQ2Type* pNewInherit)
 	{

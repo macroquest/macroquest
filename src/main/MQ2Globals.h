@@ -262,6 +262,9 @@ MQLIB_VAR const char* szLights[];
 MQLIB_VAR BYTE LightBrightness[];
 MQLIB_VAR const char* szSkills[];
 MQLIB_VAR const char* szInnates[];
+MQLIB_VAR const char* szZoneExpansionName[];
+
+MQLIB_API const char* GetZoneExpansionName(int expansion);
 
 MQLIB_VAR const char* szWornLoc[];
 

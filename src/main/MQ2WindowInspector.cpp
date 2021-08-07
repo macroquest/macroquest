@@ -408,6 +408,29 @@ static void ColumnArrayList(const char* Label, const char* Type, int count,
 	}
 }
 
+template <typename Iter, typename ContentsCb>
+static void ColumnArrayList2(const char* Label, const char* Type, int count,
+	Iter begin, Iter end, ContentsCb contentsCb)
+{
+	char szTypeLabel[32] = { 0 };
+	sprintf_s(szTypeLabel, "%s[]", Type);
+
+	if (ColumnTreeNodeType(Label, szTypeLabel, "%d", count))
+	{
+		int index = 0;
+		for (Iter it = begin; it != end; ++it)
+		{
+			char szIndexLabel[32] = { 0 };
+			sprintf_s(szIndexLabel, "%d", index + 1);
+
+			contentsCb(szIndexLabel, *it);
+			++index;
+		}
+
+		ImGui::TreePop();
+	}
+}
+
 static bool InputCXRect(const char* label, CXRect& rect)
 {
 	return ImGui::InputInt4(label, (int*)&rect);
@@ -1323,6 +1346,51 @@ void ColumnItem(const char* Label, const ItemPtr& pItem)
 	{
 		if (pItemDisplayManager) pItemDisplayManager->ShowItem(pItem);
 	}
+}
+
+bool ColumnEQZoneIndex(const char* Label, EQZoneIndex zoneId, bool treeNode = false, const char* type = nullptr)
+{
+	bool result = true;
+
+	if (treeNode)
+	{
+		result = ImGui::TreeNode((void*)zoneId, Label); ImGui::TableNextColumn();
+	}
+	else
+	{
+		ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	}
+
+	EQZoneInfo* pZoneInfo = pWorldData->GetZone(zoneId);
+	if (pZoneInfo && pZoneInfo->Id > 0)
+	{
+		ImGui::TextColored(MQColor(0, 255, 255).ToImColor(), "%s", pZoneInfo->LongName);
+
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::TextColored(MQColor(0, 255, 255).ToImColor(), pZoneInfo->LongName);
+			ImGui::Separator();
+
+			ImGui::TextUnformatted("Short name:"); ImGui::SameLine(0.0f, 4.0f); ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "%s", pZoneInfo->ShortName);
+			ImGui::TextUnformatted("Zone ID:"); ImGui::SameLine(0.0f, 4.0f); ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "%d", zoneId);
+			ImGui::TextUnformatted("Expansion:"); ImGui::SameLine(0.0f, 4.0f); ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "%s", GetZoneExpansionName(pZoneInfo->EQExpansion));
+
+			ImGui::EndTooltip();
+		}
+	}
+	else
+	{
+		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(none)");
+	}
+
+	ImGui::TableNextColumn();
+	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), type ? type : "EQZoneIndex");
+
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn();
+
+	return result;
 }
 
 #pragma endregion
@@ -2989,7 +3057,7 @@ public:
 
 	void DrawBackgroundWindowHighlights()
 	{
-		if (m_pSelectedWnd)
+		if (m_pSelectedWnd && m_pSelectedWnd->IsVisible())
 		{
 			ImGuiViewport* viewport = ImGui::GetMainViewport();
 			ImDrawList* drawList = ImGui::GetBackgroundDrawList(viewport);
@@ -3392,24 +3460,19 @@ static void WindowProperties_FindLocationWnd(CSidlScreenWnd* pSidlWindow, ImGuiW
 		strcpy_s(szLabel, len, data.name.c_str());
 	});
 
-	ColumnArrayList("Zone Connections", "ZoneConnectionData", pWnd->unfilteredZoneConnectionList.GetLength(),
+	ColumnArrayList2("Zone Connections", "ZoneConnectionData", pWnd->unfilteredZoneConnectionList.GetLength(),
 		pWnd->unfilteredZoneConnectionList.begin(), pWnd->unfilteredZoneConnectionList.end(),
-		[](const CFindLocationWnd::FindZoneConnectionData& data)
+		[](const char* szLabel, const CFindLocationWnd::FindZoneConnectionData& data)
 	{
-		ColumnText("Type", "%s", FindLocationTypeToString(data.type));
-		ColumnText("ID", "%d", data.id);
-		ColumnText("SubID", "%d", data.subId);
-		ColumnText("ZoneID", "%d", data.zoneId);
-		ColumnText("Zone Identifier", "%d", data.zoneIdentifier);
-		ColumnCVector3("Location", data.location);
-	}, [](char* szLabel, size_t len, const CFindLocationWnd::FindZoneConnectionData& data)
-	{
-		strcpy_s(szLabel, len, GetFullZone(data.zoneId));
-		if (data.zoneIdentifier)
+		if (ColumnEQZoneIndex(szLabel, data.zoneId, true))
 		{
-			char szTemp[10];
-			sprintf_s(szTemp, " - %d", data.zoneIdentifier);
-			strcat_s(szLabel, len, szTemp);
+			ColumnText("Type", "%s", FindLocationTypeToString(data.type));
+			ColumnText("ID", "%d", data.id);
+			ColumnText("SubID", "%d", data.subId);
+			ColumnText("ZoneID", "%d", data.zoneId);
+			ColumnText("Zone Identifier", "%d", data.zoneIdentifier);
+			ColumnCVector3("Location", data.location);
+			ImGui::TreePop();
 		}
 	});
 
@@ -3440,7 +3503,7 @@ static void WindowProperties_FindLocationWnd(CSidlScreenWnd* pSidlWindow, ImGuiW
 		{
 		case FindLocation_Switch: {
 			const CFindLocationWnd::FindZoneConnectionData& connData = pWnd->unfilteredZoneConnectionList[data.first.index];
-			ColumnText("Zone Connection", "%s", GetFullZone(connData.zoneId));
+			ColumnEQZoneIndex("Zone Connection", connData.zoneId);
 			ColumnCVector3("Location", connData.location);
 
 			ColumnText("Switch ID", "%d", connData.id);
@@ -3453,7 +3516,7 @@ static void WindowProperties_FindLocationWnd(CSidlScreenWnd* pSidlWindow, ImGuiW
 
 		case FindLocation_Location: {
 			const CFindLocationWnd::FindZoneConnectionData& connData = pWnd->unfilteredZoneConnectionList[data.first.index];
-			ColumnText("Zone Connection", "%s", GetFullZone(connData.zoneId));
+			ColumnEQZoneIndex("Zone Connection", connData.zoneId);
 			ColumnCVector3("Location", connData.location);
 			break;
 		}
@@ -3494,10 +3557,190 @@ static void WindowProperties_FindLocationWnd(CSidlScreenWnd* pSidlWindow, ImGuiW
 	ColumnCheckBox("Zone Connections Received", pWnd->zoneConnectionsRcvd);
 }
 
-// Property Viewer for ZoneGuideWnd
+//----------------------------------------------------------------------------
+// Property Viewer for ZoneGuideWnd and ZoneGuideManagerClient
+
+
 static void WindowProperties_ZoneGuideWnd(CSidlScreenWnd* pSidlWindow, ImGuiWindowPropertyViewer* viewer)
 {
+	CZoneGuideWnd* pWnd = (CZoneGuideWnd*)pSidlWindow;
 
+	ColumnElapsedTimestamp("Next button refresh time", pWnd->NextButtonRefreshTime - pDisplay->TimeStamp);
+
+	EQZoneInfo* pZone = pWorldData->GetZone(pWnd->CurrentZone);
+	ColumnText("Current zone", "%s", pZone ? pZone->ShortName : "(null)");
+
+	ColumnCheckBox("Filter active", pWnd->bFilterActive);
+	ColumnText("Filter level", "%d", pWnd->FilterLevel);
+	ColumnText("Filter continent", "%d", pWnd->FilterContinentIndex);     // maps to zone guide continents
+	ColumnText("Filter zone type", "%d", pWnd->FilterZoneTypeIndex);
+	ColumnCheckBox("Select current zone", pWnd->bSelectCurrentZone);
+	ColumnText("Zone search string", "%s", pWnd->ZoneSearchString.c_str());
+	ColumnText("Current connections view", "%d", pWnd->eCurrConnectionsView);
+	ColumnCheckBox("Preview path changed", pWnd->bCurrentConnectionsViewPreviewPathChanged);
+	ColumnCheckBox("Active path changed", pWnd->bCurrentConnectionsViewActivePathChanged);
+
+	pZone = pWorldData->GetZone(pWnd->StartZone);
+	ColumnText("Start zone", "%s", pZone ? pZone->ShortName : "(null)");
+	pZone = pWorldData->GetZone(pWnd->EndZone);
+	ColumnText("End zone", "%s", pZone ? pZone->ShortName : "(null)");
+
+	ColumnCheckBox("Zone guide data changed", pWnd->bZoneGuideDataChanged);
+	ColumnCheckBox("Zone list changed", pWnd->bZoneListChanged);
+	ColumnCheckBox("Zone connections list changed", pWnd->bZoneConnectionsListChanged);
+	ColumnText("Context Menu ID", "%d", pWnd->RightClickMenuID);
+
+	// TODO: Maybe this should be its own viewer?
+	if (ColumnTreeNode("Zone guide data", ""))
+	{
+		ZoneGuideManagerClient& zoneGuide = ZoneGuideManagerClient::Instance();
+
+		// List of continents
+		ColumnArrayList("Continents", "ZoneGuideContinent", zoneGuide.continents.size(),
+			zoneGuide.continents.begin(), zoneGuide.continents.end(),
+			[](const ZoneGuideContinent& continent)
+		{
+			ColumnCXStr("Name", continent.name, false);
+			ColumnText("ID", "%d", continent.id);
+			ColumnText("Display sequence", "%d", continent.displaySequence);
+		},
+			[](char* szLabel, size_t len, const ZoneGuideContinent& continent)
+		{
+			strcpy_s(szLabel, len, continent.name.c_str());
+		});
+
+		// List of zone types
+		ColumnArrayList("Zone types", "ZoneGuideZoneType", zoneGuide.zoneTypes.size(),
+			zoneGuide.zoneTypes.begin(), zoneGuide.zoneTypes.end(),
+			[](const ZoneGuideZoneType& zoneType)
+		{
+			ColumnCXStr("Name", zoneType.name, false);
+			ColumnText("ID", "%d", zoneType.id);
+			ColumnText("Display sequence", "%d", zoneType.displaySequence);
+		},
+			[](char* szLabel, size_t len, const ZoneGuideZoneType& zoneType)
+		{
+			strcpy_s(szLabel, len, zoneType.name.c_str());
+		});
+
+		// List Zones
+		static int zoneCount = 0;
+		if (zoneCount == 0)
+		{
+			for (int i = 1; i < ZONE_COUNT; ++i)
+			{
+				if (zoneGuide.zones[i].zoneId != 0)
+					++zoneCount;
+			}
+
+		}
+
+		if (ColumnTreeNodeType("Zone Data", "ZoneGuideZone[]", "%d", zoneCount))
+		{
+			for (int index = 0; index < ZONE_COUNT; ++index)
+			{
+				if (zoneGuide.zones[index].zoneId == 0)
+					continue;
+				char szLabel[32] = { 0 };
+				sprintf_s(szLabel, "%d", index);
+
+				ZoneGuideZone& zone = zoneGuide.zones[index];
+
+				if (ColumnEQZoneIndex(szLabel, zone.zoneId, true, "ZoneGuideZone"))
+				{
+					if (!zone.name.empty())
+					{
+						ColumnCXStr("Name", zone.name, false);
+					}
+					ColumnText("Continent", "%s (%d)", zoneGuide.GetContinentNameByIndex(zone.continentIndex).c_str(), zone.continentIndex);
+					ColumnText("Level range", "%d - %d", zone.minLevel, zone.maxLevel);
+
+					// zone types
+					if (ColumnTreeNode("Types", ""))
+					{
+						int index = 0;
+						for (uint16_t bit = 0; bit < zone.types.GetNumBits(); ++bit)
+						{
+							if (zone.types.IsBitSet(bit))
+							{
+								++index;
+								char szIndexLabel[32] = { 0 };
+								sprintf_s(szIndexLabel, "%d", index);
+								ColumnCXStr(szIndexLabel, zoneGuide.GetZoneTypeNameByIndex(bit), false);
+							}
+						}
+
+						ImGui::TreePop();
+					}
+
+					// zone connections
+					ColumnArrayList2("Zone connections", "ZoneGuideConnection", zone.zoneConnections.size(),
+						zone.zoneConnections.begin(), zone.zoneConnections.end(),
+						[&zoneGuide](const char* szLabel, const ZoneGuideConnection& connection)
+					{
+						if (ColumnEQZoneIndex(szLabel, connection.destZoneId, true))
+						{
+							ColumnText("Transfer type", "%s", zoneGuide.GetZoneTransferTypeNameByIndex(connection.transferTypeIndex).c_str());
+							ColumnText("Required expansion", "%d", connection.requiredExpansions);
+							ColumnCheckBox("Disabled", connection.disabled);
+							ImGui::TreePop();
+						}
+					});
+
+					ImGui::TreePop();
+				}
+			}
+
+			ImGui::TreePop();
+		}
+
+		// List of transfer types
+		ColumnArrayList("Transfer types", "ZoneGuideTransferType", zoneGuide.transferTypes.size(),
+			zoneGuide.transferTypes.begin(), zoneGuide.transferTypes.end(),
+			[](const ZoneGuideTransferType& transferType)
+		{
+			ColumnCXStr("Name", transferType.description, false);
+			ColumnText("ID", "%d", transferType.id);
+		}, [](char* szLabel, size_t len, const ZoneGuideTransferType& transferType) { strcpy_s(szLabel, len, transferType.description.c_str()); });
+
+		ColumnArrayList2("Active path", "ZonePathData", zoneGuide.activePath.GetLength(),
+			zoneGuide.activePath.begin(), zoneGuide.activePath.end(),
+			[&zoneGuide](const char* szLabel, const ZonePathData& data)
+		{
+			if (ColumnEQZoneIndex(szLabel, data.zoneId, true))
+			{
+				ColumnText("Transfer type", "%s (%d)", zoneGuide.GetZoneTransferTypeNameByIndex(data.transferTypeIndex).c_str(), data.transferTypeIndex);
+				ImGui::TreePop();
+			}
+		});
+
+		ColumnArrayList2("Preview path", "ZonePathData", zoneGuide.previewPath.GetLength(),
+			zoneGuide.previewPath.begin(), zoneGuide.previewPath.end(),
+			[&zoneGuide](const char* szLabel, const ZonePathData& data)
+		{
+			if (ColumnEQZoneIndex(szLabel, data.zoneId, true))
+			{
+				ColumnText("Transfer type", "%s (%d)", zoneGuide.GetZoneTransferTypeNameByIndex(data.transferTypeIndex).c_str(), data.transferTypeIndex);
+				ImGui::TreePop();
+			}
+		});
+
+		ColumnText("Heroes journey index", "%d", zoneGuide.heroesJourneyIndex);
+		ColumnCheckBox("Zone guide data set", zoneGuide.zoneGuideDataSet);
+		ColumnCheckBox("Include bind zone in path", zoneGuide.includeBindZoneInPath);
+		ColumnCheckBox("Auto find active path", zoneGuide.autoFindActivePath);
+		ColumnCheckBox("Find active path", zoneGuide.findActivePath);
+
+		ImGui::TreePop();
+	}
+}
+
+static void WindowProperties_ZonePathWnd(CSidlScreenWnd* pSidlWindow, ImGuiWindowPropertyViewer* viewer)
+{
+	CZonePathWnd* pWnd = (CZonePathWnd*)pSidlWindow;
+
+	ColumnEQZoneIndex("Current zone", pWnd->currentZone);
+	ColumnCheckBox("Zone path dirty", pWnd->zonePathDirty);
 }
 
 #pragma endregion
@@ -3513,6 +3756,7 @@ void DeveloperTools_WindowInspector_Initialize()
 	RegisterWindowPropertyViewer("CompassWindow", WindowProperties_CompassWindow);
 	RegisterWindowPropertyViewer("FindLocationWnd", WindowProperties_FindLocationWnd);
 	RegisterWindowPropertyViewer("ZoneGuideWnd", WindowProperties_ZoneGuideWnd);
+	RegisterWindowPropertyViewer("ZonePathWnd", WindowProperties_ZonePathWnd);
 }
 
 void DeveloperTools_WindowInspector_Shutdown()

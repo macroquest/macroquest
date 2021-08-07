@@ -148,7 +148,6 @@ enum class SpawnMembers
 	DragNames,
 	DraggingPlayer,
 	bStationary,
-	BearingToTarget,
 	bTempPet,
 	HoldingAnimation,
 	Blind,
@@ -316,7 +315,6 @@ MQ2SpawnType::MQ2SpawnType() : MQ2Type("spawn")
 	ScopedTypeMember(SpawnMembers, DragNames);
 	ScopedTypeMember(SpawnMembers, DraggingPlayer);
 	ScopedTypeMember(SpawnMembers, bStationary);
-	ScopedTypeMember(SpawnMembers, BearingToTarget);
 	ScopedTypeMember(SpawnMembers, bTempPet);
 	ScopedTypeMember(SpawnMembers, HoldingAnimation);
 	ScopedTypeMember(SpawnMembers, Blind);
@@ -360,7 +358,19 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	if (!pLocalPlayer || !pLocalPC || !pSpawn)
+	{
+		MQTypeMember* pMember = MQ2SpawnType::FindMember(Member);
+
+		// Special case for easily handling Ids on null spawns
+		if (pMember && static_cast<SpawnMembers>(pMember->ID) == SpawnMembers::ID)
+		{
+			Dest.Type = pIntType;
+			Dest.DWord = 0;
+			return true;
+		}
+
 		return false;
+	}
 
 	//----------------------------------------------------------------------------
 	// methods
@@ -1341,7 +1351,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		return true;
 
 	case SpawnMembers::bShowHelm:
-		Dest.Set(pSpawn->bShowHelm);
+		Dest.Set(pSpawn->mActorClient.bShowHelm);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1430,11 +1440,6 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 	case SpawnMembers::bStationary:
 		Dest.Set(pSpawn->bStationary);
 		Dest.Type = pBoolType;
-		return true;
-
-	case SpawnMembers::BearingToTarget:
-		Dest.Float = pSpawn->BearingToTarget;
-		Dest.Type = pFloatType;
 		return true;
 
 	case SpawnMembers::bTempPet:

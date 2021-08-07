@@ -513,6 +513,16 @@ const char* szZoneExpansionName[] = {
 	"Claws of Veeshan",         //27
 };
 
+const char* GetZoneExpansionName(int expansion)
+{
+	if (expansion >= 0 && expansion < (int)lengthof(szZoneExpansionName))
+	{
+		return szZoneExpansionName[expansion];
+	}
+
+	return "Unknown";
+}
+
 const char* szDmgBonusType[] = {
 	"None",
 	"Magic",

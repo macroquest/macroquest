@@ -1,3 +1,24 @@
+August 6, 2021
+- lua: /lua parse now prints the result of an expression to the console. (#365)
+- lua: Empty/Invalid Macro data objects will now evaluate to nil, instead of "null" (#362)
+- lua: os.exit will no longer crash the client and will instead exit the script (#297)
+
+August 5, 2021
+- Removed some old hooks for EQPlayNice. Consider using the built-in performance tools instead.
+- Fix Target.bShowHelm (#331).
+- Remove Spawn.BearingToTarget (#330). This is an internal state that is only updated when using /follow
+  and its purpose or usage is extremely unclear.
+- Fix Item.StackCount (#342).
+- Fix Indexing group members in Group TLO (#346).
+- Parse array index in Macro.Variable (#347).
+- Fix Me.CashBank (#360).
+- Fix Initialization of the lua directory (#361).
+- dev tools: Added ZoneGuideWnd and ZonePathWnd customizations to WindowInspector
+- dev tools: Added friendly tooltip to zone names in WindowInspector
+- Evaluating Spawn.ID on a NULL Spawn will now return 0 instead of a parse error. This is intended as
+  a convenience for utilizing Spawn variables that are set via ID.
+- Fix auto scroll menu item in console window (#140).
+
 July 31, 2021
 - Added /mqsettings command to toggle the MacroQuest Settings window (you can still get to it from the EQ button as well)
 - Added ShowMacroQuestConsole option to the MacroQuest.ini which allows you to default the Console to On if you'd like

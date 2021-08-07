@@ -123,7 +123,31 @@ mq::MQTypeMember* MQ2Type::FindMember(const char* Name)
 	return Members[index].get();
 }
 
+mq::MQTypeMember* MQ2Type::FindMember(const std::string& Name)
+{
+	std::scoped_lock lock(m_mutex);
+
+	auto iter = MemberMap.find(Name);
+	if (iter == MemberMap.end())
+		return nullptr;
+
+	int index = MemberMap[Name];
+	return Members[index].get();
+}
+
 mq::MQTypeMember* MQ2Type::FindMethod(const char* Name)
+{
+	std::scoped_lock lock(m_mutex);
+
+	auto iter = MethodMap.find(Name);
+	if (iter == MethodMap.end())
+		return nullptr;
+
+	int index = iter->second;
+	return Methods[index].get();
+}
+
+mq::MQTypeMember* MQ2Type::FindMethod(const std::string& Name)
 {
 	std::scoped_lock lock(m_mutex);
 

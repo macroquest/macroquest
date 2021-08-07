@@ -69,19 +69,35 @@ CoroutineResult RunCoroutine(sol::coroutine& co, const std::vector<std::string>&
 
 //============================================================================
 
-void LuaThreadInfo::SetResult(const sol::protected_function_result& result)
+void LuaThreadInfo::SetResult(const sol::protected_function_result& result, bool evaluate)
 {
 	if (result.status() != sol::call_status::yielded)
 	{
 		EndRun();
 
-		if (result.return_count() > 1)
+		if (result.return_count() >= 1)
 		{
-			returnValues = std::vector<std::string>(result.return_count() - 1);
+			returnValues = std::vector<std::string>(result.return_count());
+
 			// need to skip the first "return" (which is not a return, it's at index + 0) which is the function itself
-			for (int i = 1; i < result.return_count(); ++i)
+			for (int i = 0; i < result.return_count(); ++i)
 			{
-				returnValues[i - 1] = luaL_tolstring(result.lua_state(), result.stack_index() + i, nullptr);
+				returnValues[i] = luaL_tolstring(result.lua_state(), result.stack_index() + i, nullptr);
+			}
+
+			if (evaluate)
+			{
+				std::string results;
+
+				for (const std::string& returnValue : returnValues)
+				{
+					if (!results.empty())
+						results.append("\t");
+
+					results.append(returnValue);
+				}
+
+				WriteChatColor(results.c_str(), USERCOLOR_CHAT_CHANNEL);
 			}
 		}
 	}
@@ -99,8 +115,6 @@ void LuaThreadInfo::EndRun()
 LuaThread::LuaThread(this_is_private&&, LuaEnvironmentSettings* environment)
 	: m_luaEnvironmentSettings(environment)
 	, m_name("(unnamed)")
-	, m_eventProcessor(std::make_unique<LuaEventProcessor>(this))
-	, m_imguiProcessor(std::make_unique<LuaImGuiProcessor>(this))
 	, m_pid(NextID())
 {
 	m_globalState.open_libraries();
@@ -130,12 +144,31 @@ void LuaThread::Initialize()
 		return m_globalState["_old_dofile"](file_path.string(), args);
 	};
 
+	// Replace os.exit with mq.exit
+	m_globalState["os"]["exit"] = LuaThread::lua_exit;
+
 	m_globalState["mqthread"] = LuaThreadRef(shared_from_this());
 	m_globalState["print"] = [](sol::variadic_args va, sol::this_state s) {
 		WriteChatColorf("%s", USERCOLOR_CHAT_CHANNEL, lua_join(s, "", va).c_str());
 	};
 
 	m_globalState.add_package_loader(LuaThread::lua_PackageLoader);
+}
+
+void LuaThread::EnableImGui()
+{
+	if (!m_imguiProcessor)
+	{
+		m_imguiProcessor = std::make_unique<LuaImGuiProcessor>(this);
+	}
+}
+
+void LuaThread::EnableEvents()
+{
+	if (!m_eventProcessor)
+	{
+		m_eventProcessor = std::make_unique<LuaEventProcessor>(this);
+	}
 }
 
 void LuaThread::InjectMQNamespace()
@@ -193,8 +226,9 @@ void LuaThread::Delay(sol::object delayObj, sol::object conditionObj)
 	}
 }
 
-void LuaThread::Exit()
+void LuaThread::Exit(LuaThreadExitReason reason)
 {
+	m_exitReason = reason;
 	YieldAt(0);
 	m_thread.abandon();
 }
@@ -203,8 +237,7 @@ void LuaThread::Exit()
 {
 	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
-		WriteChatStatus("Exit() called in Lua script %s with PID %d", thread_ptr->m_name.c_str(), thread_ptr->m_pid);
-		thread_ptr->Exit();
+		thread_ptr->Exit(LuaThreadExitReason::Exit);
 	}
 }
 
@@ -320,7 +353,7 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(
 	};
 
 	if (result)
-		ret.SetResult(*result);
+		ret.SetResult(*result, m_evaluateResult);
 	else if (m_coroutine.status() != sol::call_status::yielded)
 		ret.EndRun();
 
@@ -332,21 +365,39 @@ std::optional<LuaThreadInfo> LuaThread::StartString(std::string_view script,
 {
 	m_isString = true;
 
-	auto co = m_thread.state().load(script);
-
-	if (!co.valid())
-	{
-		sol::error err = co;
-		LuaError("Failed to load script with error: %s", err.what());
-		return std::nullopt;
-	}
-
 	if (!name.empty())
 	{
 		m_name = name;
 	}
 
-	m_coroutine = co;
+	if (m_evaluateResult)
+	{
+		std::string evalScript = fmt::format("return {}", script);
+		sol::load_result co = m_thread.state().load(evalScript);
+
+		if (co.valid())
+		{
+			m_coroutine = co;
+		}
+	}
+
+	if (!m_coroutine.valid())
+	{
+		// Failed to evaluate as an expression.
+		m_evaluateResult = false;
+		sol::load_result co = m_thread.state().load(script);
+		if (!co.valid())
+		{
+			sol::error err = co;
+			LuaError("Failed to load script with error: %s", err.what());
+			return std::nullopt;
+		}
+		else
+		{
+			m_coroutine = co;
+		}
+	}
+
 	YieldAt(m_turboNum);
 
 	auto start_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
@@ -365,7 +416,7 @@ std::optional<LuaThreadInfo> LuaThread::StartString(std::string_view script,
 	};
 
 	if (result)
-		ret.SetResult(*result);
+		ret.SetResult(*result, m_evaluateResult);
 	else if (m_coroutine.status() != sol::call_status::yielded)
 		ret.EndRun();
 
@@ -397,13 +448,19 @@ LuaThread::RunResult LuaThread::RunOnce()
 		return { m_thread.status(), std::nullopt };
 	}
 
-	// TODO: allow the user to set "aggressive" events (which gets prepared here) and "passive" binds (which would Get prepared in `doevents`)
-	m_eventProcessor->PrepareBinds();
+	if (m_eventProcessor)
+	{
+		// TODO: allow the user to set "aggressive" events (which gets prepared here) and "passive" binds (which would Get prepared in `doevents`)
+		m_eventProcessor->PrepareBinds();
+	}
 
 	YieldAt(m_turboNum);
-
 	m_yieldToFrame = false;
-	m_eventProcessor->RunEvents(*this);
+
+	if (m_eventProcessor)
+	{
+		m_eventProcessor->RunEvents(*this);
+	}
 
 	if (!m_yieldToFrame)
 	{

@@ -995,7 +995,7 @@ struct MQTypeVar : public MQVarPtr
 	}
 
 	MQVarPtr& GetVarPtr() { return *this; }
-	MQVarPtr& SetVarPtr(const MQVarPtr& VarPtr) { Data = VarPtr.Data; return *this; }
+	MQVarPtr& SetVarPtr(const MQVarPtr& VarPtr) { static_cast<MQVarPtr&>(*this) = VarPtr; return *this; }
 	__declspec(property(get = GetVarPtr, put = SetVarPtr)) MQVarPtr VarPtr;
 };
 using MQ2TYPEVAR DEPRECATE("Use MQTypeVar instead of MQ2TYPEVAR") = MQTypeVar;

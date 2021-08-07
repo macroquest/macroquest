@@ -239,14 +239,46 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case MacroMembers::Variable:
 	{
-		auto var = FindMQ2DataVariable(Index);
-		if (var != nullptr)
+		char szName[MAX_STRING] = { 0 };
+		GetArg(szName, Index, 1);
+
+		const char* szRest = GetNextArg(Index);
+		char szIndex[MAX_STRING] = { 0 };
+		if (char* pBracket = strchr(szName, '['))
 		{
-			Dest = var->Var;
-			return true;
+			*pBracket = 0;
+			strcpy_s(szIndex, &pBracket[1]);
 		}
 
-		return false;
+		MQDataVar* pVar = FindMQ2DataVariable(szName);
+		if (!pVar)
+		{
+			return false;
+		}
+
+		if (szIndex[0])
+		{
+			if (pVar->Var.Type != pArrayType)
+			{
+				return false;
+			}
+
+			CDataArray* pArray = (CDataArray*)pVar->Var.Ptr;
+			int index = pArray->GetElement(szIndex);
+			if (index == -1)
+			{
+				return false;
+			}
+
+			Dest.VarPtr = pArray->GetData(index);
+			Dest.Type = pArray->GetType();
+		}
+		else
+		{
+			Dest = pVar->Var;
+		}
+
+		return true;
 	}
 
 	default: break;

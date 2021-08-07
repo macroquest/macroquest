@@ -334,15 +334,18 @@ static void lua_doevents(sol::variadic_args va, sol::this_state s)
 {
 	if (auto thread_ptr = LuaThread::get_from(s))
 	{
-		std::vector<std::string> args;
-		for (auto& a : va)
+		if (LuaEventProcessor* events = thread_ptr->GetEventProcessor())
 		{
-			auto arg = a.as<std::optional<std::string>>();
-			if (arg) args.emplace_back(*arg);
-		}
+			std::vector<std::string> args;
+			for (auto& a : va)
+			{
+				auto arg = a.as<std::optional<std::string>>();
+				if (arg) args.emplace_back(*arg);
+			}
 
-		thread_ptr->GetEventProcessor()->PrepareEvents(args);
-		thread_ptr->DoYield(); // doevents needs to yield, event processing will pick up next frame
+			events->PrepareEvents(args);
+			thread_ptr->DoYield(); // doevents needs to yield, event processing will pick up next frame
+		}
 	}
 }
 
@@ -350,14 +353,17 @@ static void lua_flushevents(sol::variadic_args va, sol::this_state s)
 {
 	if (auto thread_ptr = LuaThread::get_from(s))
 	{
-		std::vector<std::string> args;
-		for (auto& a : va)
+		if (LuaEventProcessor* events = thread_ptr->GetEventProcessor())
 		{
-			auto arg = a.as<std::optional<std::string>>();
-			if (arg) args.emplace_back(*arg);
-		}
+			std::vector<std::string> args;
+			for (auto& a : va)
+			{
+				auto arg = a.as<std::optional<std::string>>();
+				if (arg) args.emplace_back(*arg);
+			}
 
-		thread_ptr->GetEventProcessor()->RemoveEvents(args);
+			events->RemoveEvents(args);
+		}
 	}
 }
 
@@ -365,7 +371,8 @@ static void lua_addevent(std::string_view name, std::string_view expression, sol
 {
 	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
-		thread_ptr->GetEventProcessor()->AddEvent(name, expression, function);
+		if (LuaEventProcessor* events = thread_ptr->GetEventProcessor())
+			events->AddEvent(name, expression, function);
 	}
 }
 
@@ -373,7 +380,8 @@ static void lua_removeevent(std::string_view name, sol::this_state s)
 {
 	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
-		thread_ptr->GetEventProcessor()->RemoveEvent(name);
+		if (LuaEventProcessor* events = thread_ptr->GetEventProcessor())
+			events->RemoveEvent(name);
 	}
 }
 
@@ -381,7 +389,8 @@ static void lua_addbind(std::string_view name, sol::function function, sol::this
 {
 	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
-		thread_ptr->GetEventProcessor()->AddBind(name, function);
+		if (LuaEventProcessor* events = thread_ptr->GetEventProcessor())
+			events->AddBind(name, function);
 	}
 }
 
@@ -389,7 +398,8 @@ static void lua_removebind(std::string_view name, sol::this_state s)
 {
 	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
-		thread_ptr->GetEventProcessor()->RemoveBind(name);
+		if (LuaEventProcessor* events = thread_ptr->GetEventProcessor())
+			events->RemoveBind(name);
 	}
 }
 

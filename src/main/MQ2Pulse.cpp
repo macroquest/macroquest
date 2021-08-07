@@ -579,8 +579,6 @@ static HeartbeatState Heartbeat()
 	static uint64_t LastGetTick = 0;
 	static bool bFirstHeartBeat = true;
 	static uint64_t TickDiff = 0;
-	static fMQPulse pEQPlayNicePulse = nullptr;
-	static HMODULE hmEQPlayNice = GetModuleHandle("EQPlayNice.dll");
 	static DWORD BeatCount = 0;
 
 	uint64_t Tick = MQGetTickCount64();
@@ -640,19 +638,6 @@ static HeartbeatState Heartbeat()
 	DebugTry(Pulse());
 	DebugTry(Benchmark(bmPluginsPulse, DebugTry(PulsePlugins())));
 
-	if (pEQPlayNicePulse)
-	{
-		pEQPlayNicePulse();
-	}
-	else
-	{
-		if (hmEQPlayNice && ((BeatCount % 63) == 0))
-		{
-			if (pEQPlayNicePulse = (fMQPulse)GetProcAddress(hmEQPlayNice, "Compat_ProcessFrame"))
-				pEQPlayNicePulse();
-		}
-	}
-
 	static bool ShownNews = false;
 	if (gGameState == GAMESTATE_CHARSELECT && !ShownNews)
 	{
@@ -693,61 +678,6 @@ static HeartbeatState Heartbeat()
 	PulseCommands();
 
 	return HeartbeatNormal;
-}
-
-template <unsigned int _Size>
-static void make_minidump(char* filename, EXCEPTION_POINTERS* e, char(&dumppath)[_Size])
-//void make_minidump(char*filename, EXCEPTION_POINTERS* e,char*dumppath)
-{
-	std::filesystem::path dumpFilePath = filename;
-	dumpFilePath = dumpFilePath.filename();
-
-	std::string dumpFileName = dumpFilePath.string();
-	if (dumpFileName.find('.') != std::string::npos)
-	{
-		dumpFileName = dumpFileName.substr(0, dumpFileName.find('.'));
-	}
-
-	SYSTEMTIME t;
-	GetSystemTime(&t);
-
-	dumpFileName = fmt::format("{FileName}_{Year:0=4d}{Month:0=2d}{Day:0=2d}_{Hour:0=2d}{Minute:0=2d}{Second:0=2d}.dmp",
-	              fmt::arg("FileName", dumpFileName),
-	                    fmt::arg("Year", t.wYear),
-	                    fmt::arg("Month", t.wMonth),
-	                    fmt::arg("Day", t.wDay),
-	                    fmt::arg("Hour", t.wHour),
-	                    fmt::arg("Minute", t.wMinute),
-	                    fmt::arg("Second", t.wSecond));
-	dumpFilePath = std::filesystem::path(mq::internal_paths::CrashDumps) / dumpFileName;
-
-	auto hFile = CreateFileA(dumpFilePath.string().c_str(),
-		GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-	if (hFile == INVALID_HANDLE_VALUE)
-		return;
-
-	MINIDUMP_EXCEPTION_INFORMATION exceptionInfo;
-	exceptionInfo.ThreadId = GetCurrentThreadId();
-	exceptionInfo.ExceptionPointers = e;
-	exceptionInfo.ClientPointers = false;
-
-	bool dumped = MiniDumpWriteDump(
-		GetCurrentProcess(),
-		GetCurrentProcessId(),
-		hFile,
-		MINIDUMP_TYPE(MiniDumpWithUnloadedModules | MiniDumpWithIndirectlyReferencedMemory | MiniDumpScanMemory),
-		e ? &exceptionInfo : nullptr,
-		nullptr,
-		nullptr);
-	if (dumped)
-		strcpy_s(dumppath, _Size, dumpFilePath.string().c_str());
-	CloseHandle(hFile);
-}
-
-bool DirectoryExists(LPCTSTR lpszPath)
-{
-	DWORD dw = ::GetFileAttributes(lpszPath);
-	return (dw != INVALID_FILE_ATTRIBUTES && (dw & FILE_ATTRIBUTE_DIRECTORY) != 0);
 }
 
 // ***************************************************************************

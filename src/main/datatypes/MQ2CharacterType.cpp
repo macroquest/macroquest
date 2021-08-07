@@ -1324,7 +1324,10 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::CashBank:
-		Dest.Int64 = static_cast<uint64_t>(pProfile->Plat) * 1000 + static_cast<uint64_t>(pProfile->Gold) * 100 + static_cast<uint64_t>(pProfile->Silver) * 10 + pProfile->Copper;
+		Dest.Int64 = static_cast<uint64_t>(pLocalPC->BankPlat) * 1000
+			+ static_cast<uint64_t>(pLocalPC->BankGold) * 100
+			+ static_cast<uint64_t>(pLocalPC->BankSilver) * 10
+			+ pLocalPC->BankCopper;
 		Dest.Type = pInt64Type;
 		return true;
 
@@ -1476,15 +1479,16 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 		if (IsNumber(Index))
 		{
+			// Decremeting the given ID by 1 to get zero based index for pulling skill from languages array
 			nLang = GetIntFromString(Index, nLang) - 1;
-			if (nLang < 0)
-				return false;
 		}
 		else
 		{
+			// Grabbing ID by Name and decremeting ID by 1 to get zero based index for pulling skill from languages array
 			nLang = GetLanguageIDByName(Index) - 1;
 		}
-		if (nLang < 0 || nLang >= 25)
+
+		if (nLang < 0 || nLang >= 27)
 			return false;
 
 		Dest.DWord = pLocalPC->languages[nLang];
@@ -2528,8 +2532,9 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 		if (IsNumber(Index))
 		{
+			// Decremeting the given ID by 1 to get zero based index for GetLangDesc
 			nLang = GetIntFromString(Index, 0) - 1;
-			if (nLang < 0)
+			if (nLang < 0 || nLang >= 27)
 				return false;
 			strcpy_s(DataTypeTemp, pEverQuest->GetLangDesc(nLang));
 			Dest.Ptr = &DataTypeTemp[0];
@@ -2538,10 +2543,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 		else
 		{
-			nLang = GetLanguageIDByName(Index) - 1;
+			// Not decrementing as we are returning the ID by Name
+			nLang = GetLanguageIDByName(Index);
 		}
 
-		if (nLang < 0 || nLang >= 25)
+		if (nLang < 0 || nLang >= 27)
 			return false;
 		Dest.DWord = nLang;
 		return true;

@@ -451,6 +451,8 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 
 	std::shared_ptr<LuaThread> entry = LuaThread::Create(&s_environment);
 	entry->SetTurbo(s_turboNum);
+	entry->EnableEvents();
+	entry->EnableImGui();
 	s_running.emplace_back(entry);
 
 	WriteChatStatus("Running lua script '%s' with PID %d", script.c_str(), entry->GetPID());
@@ -490,6 +492,10 @@ static uint32_t LuaParseCommand(const std::string& script, std::string_view name
 	std::shared_ptr<LuaThread> entry = LuaThread::Create(&s_environment);
 	entry->SetTurbo(s_turboNum);
 	entry->InjectMQNamespace();
+	if (name == "lua parse")
+	{
+		entry->SetEvaluateResult(true);
+	}
 
 	s_running.emplace_back(entry);
 
@@ -633,13 +639,11 @@ static void LuaPauseCommand(std::optional<std::string> script = std::nullopt)
 static void WriteSettings()
 {
 	std::fstream file(s_configPath, std::ios::out);
-	if (!s_configNode.IsNull())
-	{
-		YAML::Emitter y_out;
-		y_out << s_configNode;
 
-		file << y_out.c_str();
-	}
+	YAML::Emitter y_out;
+	y_out << s_configNode;
+
+	file << y_out.c_str();
 }
 
 static void ReadSettings()
@@ -656,9 +660,6 @@ static void ReadSettings()
 	}
 	catch (const YAML::BadFile&)
 	{
-		// if we can't read the file, then try to write it with an empty config
-		WriteSettings();
-		return;
 	}
 
 	if (mq::test_and_set(s_turboNum, s_configNode[turboNum].as<uint32_t>(s_turboNum)))
@@ -681,6 +682,8 @@ static void ReadSettings()
 			WriteChatf("Failed to open or create directory at %s. Scripts will not run.", s_environment.luaDir.c_str());
 			WriteChatf("Error was %s", ec.message().c_str());
 		}
+
+		s_configNode[luaDir] = s_luaDirName;
 	}
 
 	s_environment.luaRequirePaths.clear();
@@ -1410,7 +1413,7 @@ PLUGIN_API void OnPulse()
 			if (fin_it != s_infoMap.end())
 			{
 				if (result.second)
-					fin_it->second.SetResult(*result.second);
+					fin_it->second.SetResult(*result.second, thread->GetEvaluateResult());
 				else
 					fin_it->second.EndRun();
 			}
@@ -1459,7 +1462,8 @@ PLUGIN_API void OnUpdateImGui()
 	// update any script-defined windows first
 	for (const std::shared_ptr<LuaThread>& thread : s_running)
 	{
-		thread->GetImGuiProcessor()->Pulse();
+		if (LuaImGuiProcessor* imgui = thread->GetImGuiProcessor())
+			imgui->Pulse();
 	}
 
 	if (!s_showMenu)
@@ -1753,7 +1757,8 @@ PLUGIN_API void OnWriteChatColor(const char* Line, int Color, int Filter)
 	{
 		if (!thread->IsPaused())
 		{
-			thread->GetEventProcessor()->Process(Line);
+			if (lua::LuaEventProcessor* events = thread->GetEventProcessor())
+				events->Process(Line);
 		}
 	}
 }
@@ -1779,7 +1784,8 @@ PLUGIN_API bool OnIncomingChat(const char* Line, DWORD Color)
 	{
 		if (!thread->IsPaused())
 		{
-			thread->GetEventProcessor()->Process(Line);
+			if (lua::LuaEventProcessor* events = thread->GetEventProcessor())
+				events->Process(Line);
 		}
 	}
 
