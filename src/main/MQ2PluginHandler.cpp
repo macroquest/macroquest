@@ -535,7 +535,6 @@ void PluginsCleanUI()
 	PluginDebug("PluginsCleanUI()");
 
 	DeleteMQ2NewsWindow();
-	DeleteMMONewsWindow();
 	RemoveAutoBankMenu();
 
 	std::scoped_lock lock(s_pluginsMutex);

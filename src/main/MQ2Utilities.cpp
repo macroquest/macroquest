@@ -1941,7 +1941,7 @@ bool LoadCfgFile(const char* Filename, bool Delayed)
 	std::filesystem::path pathFilename = Filename;
 
 	// The original search order was: Configs\Filename.cfg, root\Filename.cfg, EQ\Filename.cfg, EQ\Filename
-	// The new search order is just Config\Filename.cfg.  If it needs to be the other way, use exists() to check.
+	// The new search order is Config\Autoexec\Filename.cfg then Config\Filename.cfg.
 	if (!strchr(Filename, '.'))
 		pathFilename = std::string(Filename) + ".cfg";
 
@@ -1949,7 +1949,12 @@ bool LoadCfgFile(const char* Filename, bool Delayed)
 
 	if (pathFilename.is_relative())
 	{
-		if (std::filesystem::exists(mq::internal_paths::Config / pathFilename, ec_exists))
+		const std::filesystem::path tmpPath = "Autoexec";
+		if (std::filesystem::exists(mq::internal_paths::Config / tmpPath / pathFilename, ec_exists))
+		{
+			pathFilename = mq::internal_paths::Config / tmpPath / pathFilename;
+		}
+		else if (std::filesystem::exists(mq::internal_paths::Config / pathFilename, ec_exists))
 		{
 			pathFilename = mq::internal_paths::Config / pathFilename;
 		}

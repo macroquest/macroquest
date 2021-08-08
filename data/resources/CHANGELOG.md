@@ -1,3 +1,7 @@
+August 8, 2021
+- Added InGame.cfg which will execute for all characters once they are in game (#189)
+- The cfg file search path will now search in Config\AutoExec before falling back to Config so that cfg files can be organized better (#170)
+
 August 7, 2021
 - lua: Further fixes for evaluating TLO object data members.
 - lua: Partially reverted nil changes. see comments in https://gitlab.com/macroquest/next/mqnext/-/issues/362.
