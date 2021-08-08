@@ -205,7 +205,7 @@ static bool IsFullScreen(IDirect3DDevice9* device)
 	// Detect full screen and disable viewports if we're in full screen mode.
 	bool fullscreen = true;
 	IDirect3DSwapChain9* pSwapChain = nullptr;
-	if (SUCCEEDED(gpD3D9Device->GetSwapChain(0, &pSwapChain)) && pSwapChain)
+	if (SUCCEEDED(device->GetSwapChain(0, &pSwapChain)) && pSwapChain)
 	{
 		D3DPRESENT_PARAMETERS params;
 		pSwapChain->GetPresentParameters(&params);
@@ -1712,7 +1712,7 @@ public:
 	HRESULT WINAPI EndScene_Detour()
 	{
 		// Don't try to use the device if it changed between BeginScene and EndScene.
-		if (GetThisDevice() != gpD3D9Device)
+		if (GetThisDevice() != gpD3D9Device || !gpD3D9Device)
 		{
 			return EndScene_Trampoline();
 		}
@@ -2424,11 +2424,7 @@ void ShutdownOverlayInternal()
 
 	imgui::ShutdownImGui();
 
-	if (gpD3D9Device)
-	{
-		gpD3D9Device = nullptr;
-	}
-
+	gpD3D9Device = nullptr;
 	gResetDeviceAddress = 0;
 	gMouseLocation = POINT{};
 	gbMouseBlocked = false;
@@ -2438,7 +2434,7 @@ void ShutdownOverlayInternal()
 	gbDeviceAcquired = false;
 }
 
-void ResetOverlay()
+void DoResetOverlay()
 {
 	if (!gbDeviceHooksInstalled)
 		return;
@@ -2453,12 +2449,14 @@ void ResetOverlay()
 
 	imgui::ShutdownImGui();
 
-	if (gpD3D9Device)
-	{
-		gpD3D9Device = nullptr;
-	}
-
+	gpD3D9Device = nullptr;
 	gResetDeviceAddress = 0;
+}
+
+// Exported - should defer to next pulse
+void ResetOverlay()
+{
+	gbNeedResetOverlay = true;
 }
 
 void PulseMQ2Overlay()
@@ -2470,11 +2468,11 @@ void PulseMQ2Overlay()
 		DebugSpewAlways("Game State Changed: %d, resetting device", gGameState);
 
 		gLastGameState = gGameState;
-		ResetOverlay();
+		DoResetOverlay();
 	}
 	else if (gbNeedResetOverlay)
 	{
-		ResetOverlay();
+		DoResetOverlay();
 
 		gbNeedResetOverlay = false;
 		gReInitFrameDelay = 1;

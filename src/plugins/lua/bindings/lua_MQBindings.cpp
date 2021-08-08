@@ -175,15 +175,7 @@ public:
 	sol::object CallVA(sol::this_state L, sol::variadic_args args) const;
 	sol::object CallEmpty(sol::this_state L) const;
 	sol::object Get(sol::stack_object key, sol::this_state L) const;
-
-	bool IsNil() const
-	{
-		if (!m_self || m_self->Type == nullptr)
-			return true;
-
-		// Make sure that the macro data member even exists.
-		return !(m_member.empty() || FindMacroDataMember(m_self->Type, m_member));
-	}
+	MQ2Type* GetType() const;
 
 private:
 	std::unique_ptr<MQTypeVar> m_self;
@@ -216,6 +208,11 @@ MQTypeVar lua_MQTypeVar::EvaluateMember(const char* index) const
 
 	// can't guarantee result didn't Get modified, but we want to return nil if GetMember was false
 	return MQTypeVar();
+}
+
+MQ2Type* lua_MQTypeVar::GetType() const
+{
+	return EvaluateMember().Type;
 }
 
 std::string lua_MQTypeVar::ToString(const lua_MQTypeVar& obj)
@@ -282,18 +279,13 @@ sol::object lua_MQTypeVar::Get(sol::stack_object key, sol::this_state L) const
 {
 	lua_MQTypeVar var = EvaluateMember();
 
-	if (!var.m_self->Type)
-	{
-		return sol::object(L, sol::in_place, sol::lua_nil);
-	}
-
 	std::optional<std::string_view> maybe_key = key.as<std::optional<std::string_view>>();
 	if (maybe_key)
 	{
 		var.m_member = *maybe_key;
 
-		// Make sure that the macro data member even exists.
-		if (!FindMacroDataMember(var.m_self->Type, var.m_member))
+		// Make sure that the macro data member even exists if we have the type info
+		if (var.m_self->Type && !FindMacroDataMember(var.m_self->Type, var.m_member))
 		{
 			return sol::object(L, sol::in_place, sol::lua_nil);
 		}
@@ -328,6 +320,8 @@ public:
 	sol::object CallEmpty(sol::this_state L) const;
 	sol::object Get(sol::stack_object key, sol::this_state L) const;
 
+	MQ2Type* GetType() const;
+
 private:
 	const MQDataItem* const self = nullptr;
 };
@@ -359,6 +353,11 @@ bool lua_MQDataItem::EqualNil(const sol::lua_nil_t&) const
 std::string lua_MQDataItem::ToString(const lua_MQDataItem& data)
 {
 	return lua_MQTypeVar::ToString(data.EvaluateSelf());
+}
+
+MQ2Type* lua_MQDataItem::GetType() const
+{
+	return EvaluateSelf().m_self->Type;
 }
 
 sol::object lua_MQDataItem::Call(const std::string& index, sol::this_state L) const
@@ -460,17 +459,6 @@ lua_MQTypeVar sol_lua_get(sol::types<lua_MQTypeVar>, lua_State* L, int index, so
 	return lua_MQTypeVar(MQTypeVar()); // this will eventually evaluate to a nil, but we need it to stay in userdata until actual evaluation
 }
 
-int sol_lua_push(lua_State* L, lua_MQTypeVar typeVar)
-{
-	if (typeVar.IsNil())
-		return sol::stack::push(L, nullptr);
-
-	using Tu = sol::detail::as_value_tag<lua_MQTypeVar>;
-
-	sol::stack::unqualified_pusher<Tu> p{};
-	return p.push(L, std::move(typeVar));
-}
-
 struct lua_MQTLO
 {
 	sol::object Get(sol::stack_object key, sol::this_state L) const
@@ -500,6 +488,24 @@ std::string to_string(const lua_MQTypeVar& item)
 std::string to_string(const lua_MQTLO& item)
 {
 	return "TLO";
+}
+
+std::optional<std::string> mq_gettype_MQDataItem(const lua_MQDataItem& item)
+{
+	MQ2Type* type = item.GetType();
+	if (!type)
+		return std::nullopt;
+
+	return std::string(type->GetName());
+}
+
+std::optional<std::string> mq_gettype_MQTypeVar(const lua_MQTypeVar& item)
+{
+	MQ2Type* type = item.GetType();
+	if (!type)
+		return std::nullopt;
+
+	return std::string(type->GetName());
 }
 
 #pragma endregion
@@ -574,6 +580,10 @@ void MQ_RegisterLua_MQBindings(sol::table& mq)
 		"tlo",                                   sol::no_constructor,
 		sol::meta_function::index,               &lua_MQTLO::Get);
 	mq.set("TLO",                                lua_MQTLO());
+	mq.set("null",                               lua_MQTypeVar(MQTypeVar()));
+	mq.set("gettype",                            sol::overload(
+		                                             mq_gettype_MQDataItem,
+		                                             mq_gettype_MQTypeVar));
 
 	//----------------------------------------------------------------------------
 
