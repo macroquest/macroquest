@@ -535,6 +535,7 @@ void PluginsCleanUI()
 	PluginDebug("PluginsCleanUI()");
 
 	DeleteMQ2NewsWindow();
+	DeleteMMONewsWindow();
 	RemoveAutoBankMenu();
 
 	std::scoped_lock lock(s_pluginsMutex);
@@ -612,6 +613,8 @@ void PluginsSetGameState(DWORD GameState)
 			char szBuffer[MAX_STRING] = { 0 };
 
 			DebugSpew("PluginsSetGameState(%s server)", EQADDR_SERVERNAME);
+
+			LoadCfgFile("InGame", false);
 
 			if (pLocalPC)
 			{
