@@ -747,7 +747,7 @@ void ColumnTextureAnimationPreview(const char* Label, const CTextureAnimation* p
 		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(null)");
 	else
 	{
-		if (!imgui::DrawTextureAnimation(pAnim))
+		if (!imgui::DrawTextureAnimation(pAnim, CXSize(), true))
 		{
 			ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(empty)");
 		}
@@ -761,7 +761,7 @@ bool ColumnTextureInfoPreview(const char* Label, const CUITextureInfo& textureIn
 {
 	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
 
-	bool result = imgui::DrawUITexture(textureInfo, rect);
+	bool result = imgui::DrawUITexture(textureInfo, rect, CXSize(), true);
 	ImGui::TableNextRow();
 	ImGui::TableNextColumn();
 	return result;

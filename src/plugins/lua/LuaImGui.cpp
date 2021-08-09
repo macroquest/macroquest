@@ -160,6 +160,7 @@ bool LuaImGui::Pulse() const
 //============================================================================
 
 // MQ-Specific functions
+inline bool DrawTextureAnimation(const std::unique_ptr<CTextureAnimation>& anim, int x, int y, bool drawBorder) { return mq::imgui::DrawTextureAnimation(anim.get(), CXSize(x, y), drawBorder); }
 inline bool DrawTextureAnimation(const std::unique_ptr<CTextureAnimation>& anim, int x, int y) { return mq::imgui::DrawTextureAnimation(anim.get(), CXSize(x, y)); }
 inline bool DrawTextureAnimation(const std::unique_ptr<CTextureAnimation>& anim) { return mq::imgui::DrawTextureAnimation(anim.get()); }
 
@@ -173,6 +174,7 @@ void ImGui_RegisterLua(sol::state_view state)
 
 #pragma region MQ Specific Functions
 		ImGui.set_function("DrawTextureAnimation", sol::overload(
+			sol::resolve<bool(const std::unique_ptr<CTextureAnimation>&, int, int, bool)>(DrawTextureAnimation),
 			sol::resolve<bool(const std::unique_ptr<CTextureAnimation>&, int, int)>(DrawTextureAnimation),
 			sol::resolve<bool(const std::unique_ptr<CTextureAnimation>&)>(DrawTextureAnimation)
 		));

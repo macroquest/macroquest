@@ -108,31 +108,23 @@
 			</ArrayItems>
 		</Expand>
 	</Type>
-
+	
 	<Type Name="eqlib::CTextureAnimation">
 		<DisplayString>Texture Name={Name} Cell={CurCell}</DisplayString>
 	</Type>
 
 	<Type Name="eqlib::HashTable&lt;*&gt;">
-		<DisplayString>{{Size={EntryCount}}}</DisplayString>
+		<DisplayString>{{Size={m_entryCount}}}</DisplayString>
 		<Expand>
 			<CustomListItems MaxItemsPerView="100">
-				<Variable Name="iBucket" InitialValue="-1" />
-				<Variable Name="pBucket" InitialValue="Table == nullptr ? nullptr : *Table" />
-				<Variable Name="iBucketIncrement" InitialValue="-1" />
-
-				<Size>EntryCount</Size>
-				<Exec>pBucket = nullptr</Exec>
+				<Variable Name="iBucket" InitialValue="0" />
+				<Size>m_entryCount</Size>
 				<Loop>
-					<If Condition="pBucket == nullptr">
-						<Exec>iBucket = iBucket + 1</Exec>
-						<Exec>iBucketIncrement = __findnonnull(Table + iBucket, EntryCount - iBucket)</Exec>
-						<Break Condition="iBucketIncrement == -1" />
-						<Exec>iBucket += iBucketIncrement</Exec>
-						<Exec>pBucket = Table[iBucket]</Exec>
+					<Break Condition="iBucket == m_tableSize" />
+					<If Condition="m_table != nullptr &amp;&amp; m_table[iBucket] != nullptr">
+						<Item>*($T1*)(m_table[iBucket])</Item>
 					</If>
-					<Item>*($T1*)(pBucket)</Item>
-					<Exec>pBucket = nullptr</Exec>
+					<Exec>iBucket = iBucket + 1</Exec>
 				</Loop>
 			</CustomListItems>
 		</Expand>

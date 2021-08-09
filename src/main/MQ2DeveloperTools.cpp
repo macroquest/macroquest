@@ -176,6 +176,942 @@ static ImPlotDemoWindow s_imPlotDemoWindow;
 
 #pragma endregion
 
+#pragma region Achievements Developer Tool
+
+static const MQColor achGoldColor{ 248, 189, 33 };
+static const MQColor achDarkGoldColor{ 176, 141, 66 };
+static const MQColor achCheckMarkColor{ 24, 255, 41 };
+static const MQColor achLightGoldColor{ 247, 220, 111 };
+static const MQColor achLockedColor{ 255, 64, 64 };
+
+class ImGuiAchievementViewer
+{
+	int m_instanceId = 0;
+	int m_achievementId = -1;
+	std::string m_windowDisplayName;
+	std::string m_viewerTitle;
+	bool m_needDock = true;
+	bool m_needFocus = false;
+	ImGuiID m_windowId = 0;
+
+	std::unique_ptr<CTextureAnimation> m_iconsTexture;
+
+	struct ComponentInfo {
+		const AchievementComponent* component;
+		bool completed = false;
+	};
+	std::vector<ComponentInfo> m_components;
+
+public:
+	ImGuiAchievementViewer()
+	{
+		static int nextInstanceId = 1;
+		m_instanceId = nextInstanceId++;
+	}
+
+	void SetNeedDock(bool dock) { m_needDock = dock; }
+	bool GetNeedDock() const { return m_needDock; }
+
+	void SetNeedFocus(bool needFocus) { m_needFocus = needFocus; }
+	const char* GetWindowIdStr() const { return m_viewerTitle.c_str(); }
+
+	void SetAchievementId(int achievementId)
+	{
+		if (!test_and_set(m_achievementId, achievementId))
+			return;
+
+		m_needFocus = true;
+		m_components.clear();
+
+		if (m_achievementId >= 0)
+		{
+			const Achievement* ach = AchievementManager::Instance().GetAchievementById(m_achievementId);
+			if (ach)
+			{
+				m_windowDisplayName = ach->name;
+			}
+			else
+			{
+				m_windowDisplayName = fmt::format("Achievement {}", m_achievementId);
+			}
+
+		}
+
+		m_viewerTitle = fmt::format("{}###AchievementViewer{}", m_windowDisplayName, m_instanceId);
+	}
+
+	int GetAchievementId() const { return m_achievementId; }
+	int GetInstanceId() const { return m_instanceId; }
+	ImGuiID GetWindowId() const { return m_windowId; }
+
+	bool Draw()
+	{
+		if (m_needFocus)
+		{
+			ImGui::SetNextWindowFocus();
+			m_needFocus = false;
+		}
+
+		bool open = true;
+
+		ImGui::SetNextWindowSize(ImVec2(480, 640), ImGuiCond_FirstUseEver);
+		if (ImGui::Begin(m_viewerTitle.c_str(), &open))
+		{
+			if (m_windowId == 0)
+				m_windowId = ImGui::GetCurrentWindow()->ID;
+
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 9);
+
+			DisplayAchievementData();
+		}
+		ImGui::End();
+
+		return open;
+	}
+
+	static void AchDisplayComponent(bool indent, bool checked, const AchievementComponent& component)
+	{
+		ImGui::PushID(component.description.c_str());
+
+		if (indent)
+			ImGui::Indent();
+
+		ImGui::PushStyleColor(ImGuiCol_Text, achDarkGoldColor.ToImU32());
+		ImGui::PushStyleColor(ImGuiCol_CheckMark, achCheckMarkColor.ToImU32());
+		ImGui::PushStyleColor(ImGuiCol_Border, achDarkGoldColor.ToImU32());
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, MQColor(0, 0, 0).ToImU32());
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, -1.0f));
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+
+		bool hovered = false;
+
+		ImGui::Checkbox("", &checked);
+		if (ImGui::IsItemHovered())
+			hovered = true;
+		ImGui::SameLine();
+
+		float widthAvail = ImGui::GetContentRegionAvailWidth();
+		ImGui::PushTextWrapPos(widthAvail - 60.0f);
+		ImGui::Text("%s", component.description.c_str());
+		if (ImGui::IsItemHovered())
+			hovered = true;
+		ImGui::PopTextWrapPos();
+
+
+		if (ImGui::BeginPopupContextItem("ComponentContextMenu"))
+		{
+			ImGui::TextColored(achGoldColor.ToImColor(), "%s", component.description.c_str());
+			ImGui::Separator();
+			ImGui::PushStyleColor(ImGuiCol_Text, MQColor(255, 255, 255).ToImU32());
+
+			if (ImGui::Selectable("Copy ID"))
+			{
+				char idText[32];
+				sprintf_s(idText, "%d", component.id);
+				ImGui::SetClipboardText(idText);
+			}
+			if (ImGui::Selectable("Copy description"))
+				ImGui::SetClipboardText(component.description.c_str());
+
+			ImGui::PopStyleColor();
+			ImGui::EndPopup();
+		}
+
+		if (component.requiredCount > 0)
+		{
+			ImGui::SameLine(widthAvail - 55.0f);
+			ImGui::Text("%d / %d", component.count, component.requiredCount);
+		}
+
+		ImGui::PopStyleVar(2);
+		ImGui::PopStyleColor(4);
+
+		if (indent)
+			ImGui::Unindent();
+
+		if (hovered)
+		{
+			ImGui::BeginTooltip();
+
+			ImGui::PushTextWrapPos(300.0f);
+			ImGui::TextColored(achGoldColor.ToImColor(), "%s", component.description.c_str());
+
+			ImGui::Separator();
+			ImGui::TextColored(achLightGoldColor.ToImColor(), "Component ID: %d", component.id);
+			ImGui::PopTextWrapPos();
+
+			ImGui::EndTooltip();
+		}
+
+		ImGui::PopID();
+	}
+
+	void DisplayAchievementData()
+	{
+		if (!m_iconsTexture)
+		{
+			if (CTextureAnimation* tex = pSidlMgr->FindAnimation("A_DragItem"))
+			{
+				m_iconsTexture = std::make_unique<CTextureAnimation>(*tex);
+			}
+		}
+
+		AchievementManager& mgr = AchievementManager::Instance();
+		int achievementIndex = mgr.GetAchievementIndexById(m_achievementId);
+		const Achievement* achievement = mgr.GetAchievementByIndex(achievementIndex);
+		if (!achievement)
+			return;
+
+		const SingleAchievementAndComponentsInfo* info = mgr.GetAchievementClientInfoByIndex(achievementIndex);
+		if (!info)
+			return;
+
+		bool showPopup = false;
+
+		if (m_iconsTexture)
+		{
+			m_iconsTexture->SetCurCell(achievement->iconId > 0 ? achievement->iconId - 500 : 336);
+			imgui::DrawTextureAnimation(m_iconsTexture.get());
+
+			if (ImGui::IsMouseReleased(ImGuiMouseButton_Right) && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup))
+				ImGui::OpenPopup("##AchievementPopup");
+		}
+		ImGui::PushFont(imgui::LargeTextFont);
+		ImGui::SameLine();
+		ImGui::Text("%s (%d Points)", achievement->name.c_str(), achievement->points);
+		ImGui::PopFont();
+		if (ImGui::IsMouseReleased(ImGuiMouseButton_Right) && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup))
+			ImGui::OpenPopup("##AchievementPopup");
+		ImGui::TextColored(achLightGoldColor.ToImColor(), "Achievement ID: %d", achievement->id);
+
+		if (ImGui::BeginPopup("##AchievementPopup", ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings))
+		{
+			ImGui::TextColored(achGoldColor.ToImColor(), "%s", achievement->name.c_str());
+			ImGui::Separator();
+
+			if (ImGui::Selectable("Copy ID"))
+			{
+				char idText[32];
+				sprintf_s(idText, "%d", achievement->id);
+				ImGui::SetClipboardText(idText);
+			}
+			if (ImGui::Selectable("Copy name"))
+				ImGui::SetClipboardText(achievement->name.c_str());
+
+			ImGui::EndPopup();
+		}
+
+		ImGui::PushStyleColor(ImGuiCol_Text, achGoldColor.ToImU32());
+		if (info->achievementState == AchievementComplete)
+		{
+			char completedTime[64];
+			_ctime32_s(completedTime, 64, &info->completionTimestamp);
+
+			ImGui::Text("Completed: %s", completedTime);
+		}
+		else if (info->achievementState == AchievementLocked)
+		{
+			ImGui::TextColored(achLockedColor.ToImColor(), "Locked");
+		}
+		else
+		{
+			ImGui::Text("Not Completed");
+		}
+
+		ImGui::TextWrapped("%s", achievement->description.c_str());
+
+		ImGui::Separator();
+
+		if (info->achievementState == AchievementLocked)
+		{
+			ImGui::Text("This achievement is locked because the following requirements are not met:");
+
+			ImGui::PushID(AchievementComponentUnlock);
+			for (int index = 0; index < achievement->componentsByType[AchievementComponentUnlock].GetCount(); ++index)
+			{
+				const AchievementComponent& component = achievement->componentsByType[AchievementComponentUnlock][index];
+				AchDisplayComponent(false, info->IsComponentComplete(AchievementComponentUnlock, index), component);
+			}
+			ImGui::PopID();
+
+			ImGui::Text("Once unlocked these are the requirements:");
+		}
+
+		// Now we list out the components
+		if (m_components.empty())
+		{
+			// build list of components
+			for (int index = 0; index < achievement->componentsByType[AchievementComponentCompletion].GetCount(); ++index)
+			{
+				const AchievementComponent& component = achievement->componentsByType[AchievementComponentCompletion][index];
+				m_components.push_back({ &component, info->IsComponentComplete(AchievementComponentCompletion, index) });
+			}
+			for (int index = 0; index < achievement->componentsByType[AchievementComponentIndirect].GetCount(); ++index)
+			{
+				const AchievementComponent& component = achievement->componentsByType[AchievementComponentIndirect][index];
+				m_components.push_back({ &component, info->IsComponentComplete(AchievementComponentIndirect, index) });
+			}
+
+			std::sort(m_components.begin(), m_components.end(),
+				[](const auto& a, const auto& b) { return a.component->sequenceNum < b.component->sequenceNum; });
+		}
+
+		for (const ComponentInfo& componentInfo : m_components)
+		{
+			const AchievementComponent* component = componentInfo.component;
+			bool completed = componentInfo.completed;
+
+			AchDisplayComponent(component->type == AchievementComponentIndirect, completed, *component);
+		}
+
+		if (!achievement->componentsByType[AchievementComponentDisplay].empty())
+		{
+			ImGui::Text("Hidden display requirements:");
+
+			// We aren't explicitly told if these conditions are met, but we can infer it by whether
+			// the achievement is hidden or not.
+			bool complete = (info->achievementState != AchievementNotVisible);
+			ImGui::PushID(AchievementComponentDisplay);
+			for (int index = 0; index < achievement->componentsByType[AchievementComponentDisplay].GetCount(); ++index)
+			{
+				const AchievementComponent& component = achievement->componentsByType[AchievementComponentDisplay][index];
+				AchDisplayComponent(false, complete, component);
+			}
+			ImGui::PopID();
+		}
+
+		ImGui::PopStyleColor();
+		ImGui::NewLine();
+
+		if (ImGui::CollapsingHeader("Achievement Details"))
+		{
+			ImGui::Text("Version: %d", achievement->version);
+			ImGui::Text("Persistent: %s", achievement->persistent ? "yes" : "no");
+			ImGui::Text("Reward Set: %d", achievement->rewardSet);
+			ImGui::Text("Unknown: %d", achievement->unknown0x60);
+
+			ImGui::Separator();
+			ImGui::Text("Components:");
+
+			ImGui::Indent();
+			for (int type = 0; type < AchievementComponentCount; ++type)
+			{
+				const AchievementComponentArray& componentArray = achievement->componentsByType[type];
+				for (const AchievementComponent& component : componentArray)
+				{
+					ImGui::Text("Component String: %s", component.description.c_str());
+					ImGui::Indent();
+					switch (component.type)
+					{
+					case AchievementComponentUnlock: ImGui::TextUnformatted("Unlock Components"); break;
+					case AchievementComponentCompletion: ImGui::TextUnformatted("Completion Components"); break;
+					case AchievementComponentIndirect: ImGui::TextUnformatted("Indirect Components"); break;
+					case AchievementComponentDisplay: ImGui::TextUnformatted("Display Components"); break;
+					case AchievementComponentNone:
+					default:
+						ImGui::TextUnformatted("None"); break;
+					}
+					ImGui::Text("Component Id: %d", component.id);
+					ImGui::Text("Sequence Num: %d", component.sequenceNum);
+					ImGui::Text("Count: %d", component.count);
+					ImGui::Text("Required Count: %d", component.requiredCount);
+					
+					ImGui::Unindent();
+				}
+			}
+			ImGui::Unindent();
+
+			ImGui::Separator();
+			ImGui::Text("Component Status:");
+
+			ImGui::Indent();
+				ImGui::Text("Completion component status:");
+				ImGui::Indent();
+					for (int i = 0; i < info->completionComponentStatusBitField.GetNumBits(); ++i)
+					{
+						ImGui::Text("%d: %s", i, info->completionComponentStatusBitField.IsBitSet(i) ? "yes" : "no");
+					}
+
+				ImGui::Unindent();
+				ImGui::Text("Indirect component Status:");
+				ImGui::Indent();
+					for (int i = 0; i < info->indirectComponentStatusBitField.GetNumBits(); ++i)
+					{
+						ImGui::Text("%d: %s", i, info->indirectComponentStatusBitField.IsBitSet(i) ? "yes" : "no");
+					}
+
+				ImGui::Unindent();
+				ImGui::Text("Unlocked component Status:");
+				ImGui::Indent();
+					for (int i = 0; i < info->unlockedComponentStatusBitField.GetNumBits(); ++i)
+					{
+						ImGui::Text("%d: %s", i, info->unlockedComponentStatusBitField.IsBitSet(i) ? "yes" : "no");
+					}
+
+				ImGui::Unindent();
+			ImGui::Unindent();
+		}
+	}
+};
+
+class AchievementsInspector : public ImGuiWindowBase
+{
+	std::vector<int> m_filteredAchievements;
+	int m_selectedAchievementId = -1;
+	int m_selectedAchivementCategoryId = -1;
+
+	std::map<int, ImGuiAchievementViewer> m_viewers;
+	ImGuiID m_topNode = 0;
+	ImGuiID m_bottomNode = 0;
+	bool m_firstTime = true;
+	ImGuiID m_mainDockID = 0;
+	bool m_selectionChanged = false;
+
+	PersistedBool m_showCompleted{ "AchievementsInspector", "ShowCompleted", true };
+	PersistedBool m_showOpen{ "AchievementsInspector", "ShowOpen", true };
+	PersistedBool m_showLocked{ "AchievementsInspector", "ShowLocked", true };
+	PersistedBool m_showHidden{ "AchievementsInspector", "ShowHidden", false };
+	PersistedBool m_showCategories{ "AchievementsInspector", "ShowCategories", true };
+
+public:
+	AchievementsInspector() : ImGuiWindowBase("Achievements Inspector")
+	{
+		SetDefaultSize(ImVec2(600, 400));
+	}
+	~AchievementsInspector() {}
+
+	void SetSelectedAchievementId(int achievementId)
+	{
+		if (test_and_set(m_selectedAchievementId, achievementId))
+			m_selectionChanged = true;
+		if (test_and_set(m_selectedAchivementCategoryId, -1))
+			m_selectionChanged = true;
+	}
+
+	void SetSelectedAchievementCategoryId(int achievementCategoryId)
+	{
+		if (test_and_set(m_selectedAchievementId, -1))
+			m_selectionChanged = true;
+		if (test_and_set(m_selectedAchivementCategoryId, achievementCategoryId))
+			m_selectionChanged = true;
+	}
+
+	void DrawAchievementTableRow(int achievementId, const AchievementManager& manager)
+	{
+		int achievementIndex = manager.GetAchievementIndexById(achievementId);
+		if (const Achievement* achievement = manager.GetAchievementByIndex(achievementIndex))
+		{
+			AchievementState state = manager.GetAchievementStateByIndex(achievementIndex);
+			if (state == AchievementComplete && !m_showCompleted)
+				return;
+			if (state == AchievementLocked && !m_showLocked)
+				return;
+			if (state == AchievementOpen && !m_showOpen)
+				return;
+			if (state == AchievementNotVisible && !m_showHidden)
+				return;
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+
+			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+			if (m_selectedAchievementId == achievementId)
+				flags |= ImGuiTreeNodeFlags_Selected;
+
+			if (state == AchievementComplete)
+				ImGui::PushStyleColor(ImGuiCol_Text, achGoldColor.ToImU32());
+			else if (state == AchievementLocked)
+				ImGui::PushStyleColor(ImGuiCol_Text, achLockedColor.ToImU32());
+			else if (state == AchievementNotVisible)
+				ImGui::PushStyleColor(ImGuiCol_Text, MQColor(127, 127, 127).ToImU32());
+			
+			ImGui::TreeNodeEx((void*)achievementId, flags, "%s (%d Points)", achievement->name.c_str(), achievement->points);
+
+			if (state == AchievementComplete || state == AchievementLocked || state == AchievementNotVisible)
+				ImGui::PopStyleColor();
+
+			if (ImGui::IsItemClicked())
+			{
+				if (ImGui::GetIO().KeyCtrl)
+					ShowAchievementViewer(achievementId, true);
+				else
+					SetSelectedAchievementId(achievementId);
+			}
+
+			if (ImGui::BeginPopupContextItem())
+			{
+				ImGui::TextColored(achGoldColor.ToImColor(), "%s", achievement->name.c_str());
+				ImGui::Separator();
+
+				if (ImGui::Selectable("Open in new viewer"))
+					ShowAchievementViewer(achievement->id, true);
+
+				if (ImGui::Selectable("Copy ID"))
+				{
+					char idText[32];
+					sprintf_s(idText, "%d", achievement->id);
+					ImGui::SetClipboardText(idText);
+				}
+				if (ImGui::Selectable("Copy name"))
+					ImGui::SetClipboardText(achievement->name.c_str());
+
+				ImGui::EndPopup();
+			}
+
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+
+				ImGui::PushTextWrapPos(300.0f);
+				ImGui::TextColored(achGoldColor.ToImColor(), "%s", achievement->name.c_str());
+
+				ImGui::Separator();
+				ImGui::TextColored(achLightGoldColor.ToImColor(), "Achievement ID: %d", achievement->id);
+
+				ImGui::Text("State:"); ImGui::SameLine(0.0f, 4.0f);
+				switch (state)
+				{
+				case AchievementComplete: ImGui::Text("Completed"); break;
+				case AchievementOpen: ImGui::Text("Open"); break;
+				case AchievementLocked: ImGui::Text("Locked"); break;
+				case AchievementNotVisible: ImGui::Text("Hidden"); break;
+				case AchievementNone:
+				default: ImGui::Text("None"); break;
+				}
+
+				ImGui::PopTextWrapPos();
+				ImGui::EndTooltip();
+			}
+
+			ImGui::TableNextColumn();
+			ImGui::Text("%s", achievement->description.c_str());
+
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+
+				ImGui::PushTextWrapPos(300.0f);
+				ImGui::TextColored(achGoldColor.ToImColor(), "%s", achievement->name.c_str());
+
+				ImGui::Separator();
+				ImGui::TextColored(achLightGoldColor.ToImColor(), "Achievement ID: %d", achievement->id);
+
+				ImGui::Text("%s", achievement->description.c_str());
+
+				ImGui::PopTextWrapPos();
+				ImGui::EndTooltip();
+			}
+		}
+	}
+
+	void DrawAchievementCategory(const AchievementCategory& category, const AchievementManager& manager)
+	{
+		ImGui::TableNextRow();
+
+		ImGui::TableNextColumn();
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth;
+
+		if (m_selectedAchivementCategoryId == category.id)
+			flags |= ImGuiTreeNodeFlags_Selected;
+
+		bool hovered = false;
+
+		CTextureAnimation* tex = pSidlMgr->FindAnimation(category.bitmapId);
+		if (tex)
+		{
+			flags |= ImGuiTreeNodeFlags_FramePadding;
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, (float)(tex->Size.cy / 2) - 8));
+		}
+
+		bool open = false;
+		if (category.HasChildren() || category.GetAchievementCount() > 0)
+		{
+			open = ImGui::TreeNodeEx(&category, flags, "%s", tex ? "" : category.name.c_str());
+		}
+		else
+		{
+			flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+			ImGui::TreeNodeEx(&category, flags, "%s", tex ? "" : category.name.c_str());
+		}
+
+		if (ImGui::IsItemHovered())
+			hovered = true;
+
+		if (ImGui::BeginPopupContextItem())
+		{
+			ImGui::TextColored(achGoldColor.ToImColor(), "%s", category.name.c_str());
+			ImGui::Separator();
+
+			if (ImGui::Selectable("Copy ID"))
+			{
+				char idText[32];
+				sprintf_s(idText, "%d", category.id);
+				ImGui::SetClipboardText(idText);
+			}
+			if (ImGui::Selectable("Copy name"))
+				ImGui::SetClipboardText(category.name.c_str());
+
+			ImGui::EndPopup();
+		}
+
+		if (tex)
+		{
+			ImGui::PopStyleVar();
+
+			ImGui::SameLine();
+			imgui::DrawTextureAnimation(tex);
+		}
+
+		if (ImGui::IsItemHovered())
+			hovered = true;
+
+		if (ImGui::IsItemClicked())
+		{
+			SetSelectedAchievementCategoryId(category.id);
+		}
+
+		ImGui::TableNextColumn();
+		ImGui::Text("%s", category.description.c_str());
+
+		if (ImGui::IsItemHovered())
+			hovered = true;
+
+		if (hovered)
+		{
+			ImGui::BeginTooltip();
+
+			ImGui::PushTextWrapPos(300.0f);
+			ImGui::TextColored(achGoldColor.ToImColor(), "%s", category.name.c_str());
+
+			ImGui::Separator();
+			ImGui::TextColored(achLightGoldColor.ToImColor(), "Category ID: %d", category.id);
+			ImGui::Text("Completed achievement score: %d", category.completedAchievementScore);
+
+			int totalAchievements = category.completedAchievementCount + category.openAchievementCount + category.lockedAchievementCount;
+			float completedPct = 0.0f;
+			if (totalAchievements > 0)
+				completedPct = 100.0f * ((float)category.completedAchievementCount / (float)totalAchievements);
+
+			ImGui::Text("Completed achivements: %d / %d (%.2f%%)", category.completedAchievementCount, totalAchievements, completedPct);
+			ImGui::PopTextWrapPos();
+
+			ImGui::EndTooltip();
+		}
+
+		if (open)
+		{
+			for (int index = 0; index < category.GetChildrenCount(); ++index)
+			{
+				int categoryId = category.GetChildCategoryId(index);
+
+				if (const AchievementCategory* childCategory = manager.GetAchievementCategoryById(categoryId))
+				{
+					DrawAchievementCategory(*childCategory, manager);
+				}
+			}
+
+			for (int index = 0; index < category.GetAchievementCount(); ++index)
+			{
+				int achievementId = category.GetAchievementId(index);
+
+				DrawAchievementTableRow(achievementId, manager);
+			}
+
+			ImGui::TreePop();
+		}
+	}
+
+	void DrawCategoriesTable(const AchievementManager& achievements)
+	{
+		if (ImGui::BeginTable("##AchievementsTable", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
+		{
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn("Description", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableHeadersRow();
+
+			for (const AchievementCategory& cat : achievements.categories)
+			{
+				if (!cat.HasParent())
+				{
+					DrawAchievementCategory(cat, achievements);
+				}
+			}
+
+			ImGui::EndTable();
+		}
+	}
+
+	void DrawFilteredAchievements(const AchievementManager& manager, std::string_view searchFilter, bool updateFilter)
+	{
+		if (updateFilter || m_filteredAchievements.empty())
+		{
+			m_filteredAchievements.clear();
+
+			std::vector<const Achievement*> achievements;
+
+			for (int index = 0; index < manager.GetAchievementCount(); ++index)
+			{
+				const Achievement* achievement = manager.GetAchievementByIndex(index);
+				AchievementState state = manager.GetAchievementStateByIndex(index);
+				if (state == AchievementComplete && !m_showCompleted)
+					continue;
+				if (state == AchievementLocked && !m_showLocked)
+					continue;
+				if (state == AchievementOpen && !m_showOpen)
+					continue;
+				if (state == AchievementNotVisible && !m_showHidden)
+					continue;
+
+				if (searchFilter.empty() || ci_find_substr(achievement->name, searchFilter) != -1)
+				{
+					achievements.push_back(achievement);
+				}
+			}
+
+			std::sort(std::begin(achievements), std::end(achievements),
+				[&](const Achievement* idA, const Achievement* idB)
+			{
+				return ci_less()(idA->name, idB->name);
+			});
+
+			m_filteredAchievements.reserve(achievements.size());
+
+			for (const Achievement* ach : achievements)
+				m_filteredAchievements.push_back(ach->id);
+		}
+
+		if (ImGui::BeginTable("##AchievementsFilteredList", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
+		{
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn("Description", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableHeadersRow();
+
+			ImGuiListClipper clipper;
+			clipper.Begin((int)m_filteredAchievements.size());
+
+			while (clipper.Step())
+			{
+				for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
+				{
+					int achievementId = m_filteredAchievements[row];
+
+					DrawAchievementTableRow(achievementId, manager);
+				}
+			}
+			ImGui::EndTable();
+		}
+	}
+
+	void DrawAchievementsInspectorWindow()
+	{
+		const AchievementManager& achievements = AchievementManager::Instance();
+
+		static char szSearchFilter[256] = { 0 };
+		ImGui::Text("Filter Achievements:"); ImGui::SameLine();
+		ImGui::SetNextItemWidth(-51);
+		bool changed = ImGui::InputText("##AchievementFilter", szSearchFilter, 256);
+		ImGui::SameLine();
+		if (ImGui::Button("Clear", ImVec2(50, 0)))
+		{
+			szSearchFilter[0] = 0;
+			changed = true;
+		}
+		ImGui::Text("Show:"); ImGui::SameLine();
+		if (ImGui::Checkbox("Categories", m_showCategories.get_ptr()))
+			changed = true;
+		ImGui::SameLine();
+		if (ImGui::Checkbox("Open", m_showOpen.get_ptr()))
+			changed = true;
+		ImGui::SameLine();
+		if (ImGui::Checkbox("Locked", m_showLocked.get_ptr()))
+			changed = true;
+		ImGui::SameLine();
+		if (ImGui::Checkbox("Completed", m_showCompleted.get_ptr()))
+			changed = true;
+		ImGui::SameLine();
+		if (ImGui::Checkbox("Hidden", m_showHidden.get_ptr()))
+			changed = true;
+
+		if (changed)
+		{
+			m_showCategories.Update();
+			m_showOpen.Update();
+			m_showLocked.Update();
+			m_showCompleted.Update();
+			m_showHidden.Update();
+		}
+
+		if (szSearchFilter[0] != 0 || !m_showCategories)
+		{
+			DrawFilteredAchievements(achievements, szSearchFilter, changed);
+		}
+		else
+		{
+			DrawCategoriesTable(achievements);
+		}
+	}
+
+	virtual bool IsEnabled() const override
+	{
+		return GetPcProfile() != nullptr && GetGameState() == GAMESTATE_INGAME;
+	}
+
+	virtual void Update() override
+	{
+		if (m_mainDockID == 0)
+		{
+			m_mainDockID = ImGui::GetID("AchievementInspector");
+		}
+
+		if (!IsEnabled())
+			return;
+
+		ImGuiDockNode* node = ImGui::DockBuilderGetNode(m_mainDockID);
+		if (!node || m_bottomNode == 0)
+		{
+			if (node)
+			{
+				ImGui::DockBuilderRemoveNodeChildNodes(m_mainDockID);
+			}
+			else
+			{
+				ImGui::DockBuilderRemoveNode(m_mainDockID);
+				ImGui::DockBuilderAddNode(m_mainDockID, ImGuiDockNodeFlags_None);
+				ImGui::DockBuilderSetNodeSize(m_mainDockID, ImVec2(480, 640));
+
+				ImGuiViewport* viewport = ImGui::GetMainViewport();
+				ImGui::DockBuilderSetNodePos(m_mainDockID, ImVec2(viewport->Pos.x + 100, viewport->Pos.y + 100));
+
+				node = ImGui::DockBuilderGetNode(m_mainDockID);
+			}
+
+			ImGuiDockNode* topNode = nullptr;
+
+			if (!node->IsSplitNode())
+			{
+				ImGui::DockBuilderSplitNode(m_mainDockID, ImGuiDir_Up, 0.5f, &m_topNode, &m_bottomNode);
+				topNode = ImGui::DockBuilderGetNode(m_topNode);
+			}
+			else
+			{
+				topNode = node->ChildNodes[0];
+				m_topNode = topNode->ID;
+			}
+
+			topNode->LocalFlags |= ImGuiDockNodeFlags_NoWindowMenuButton;
+
+			ImGui::DockBuilderDockWindow("Achievements Inspector", m_topNode);
+			ImGui::DockBuilderFinish(m_mainDockID);
+		}
+
+		if (m_open)
+		{
+			bool doShow = ImGui::Begin("Achievements Inspector", m_open.get_ptr());
+			m_open.Update();
+			if (doShow)
+			{
+				DrawAchievementsInspectorWindow();
+			}
+
+			ImGui::End();
+
+			if (!m_open)
+			{
+				for (auto iter = m_viewers.begin(); iter != m_viewers.end();)
+				{
+					const auto& [_, viewer] = *iter;
+
+					if (ImGuiWindow* window = ImGui::FindWindowByID(viewer.GetWindowId()))
+					{
+						if (window->DockId == m_bottomNode || window->DockId == m_topNode)
+						{
+							iter = m_viewers.erase(iter);
+							continue;
+						}
+					}
+
+					++iter;
+				}
+			}
+		}
+
+		if (m_selectionChanged)
+		{
+			if (m_selectedAchievementId != -1)
+				ShowAchievementViewer(m_selectedAchievementId, false);
+
+			m_selectionChanged = false;
+		}
+
+		DrawAchievementViewers();
+	}
+
+	void ShowAchievementViewer(int achievementId, bool createNew)
+	{
+		if (!createNew)
+		{
+			auto iter = std::find_if(std::begin(m_viewers), std::end(m_viewers),
+				[achievementId](const auto& p) { return p.second.GetAchievementId() == achievementId; });
+			if (iter != m_viewers.end())
+			{
+				iter->second.SetNeedFocus(true);
+				return;
+			}
+
+			// don't create new. Reuse the currently selected window (which is it?)
+			if (ImGuiDockNode* node = ImGui::DockBuilderGetNode(m_bottomNode))
+			{
+				ImGuiID selectedTabId = node->SelectedTabId;
+
+				iter = std::find_if(std::begin(m_viewers), std::end(m_viewers),
+					[selectedTabId](const auto& p) { return p.second.GetWindowId() == selectedTabId; });
+				if (iter != m_viewers.end())
+				{
+					iter->second.SetAchievementId(achievementId);
+					return;
+				}
+			}
+		}
+
+		auto [iter, _] = m_viewers.emplace(
+			std::piecewise_construct,
+			std::forward_as_tuple(achievementId),
+			std::forward_as_tuple());
+		iter->second.SetAchievementId(achievementId);
+	}
+
+	void RemoveAchievementViewers(int achievementId)
+	{
+		m_viewers.erase(achievementId);
+	}
+
+	void DrawAchievementViewers()
+	{
+		for (auto iter = m_viewers.begin(); iter != m_viewers.end();)
+		{
+			if (iter->second.GetNeedDock())
+			{
+				ImGui::DockBuilderDockWindow(iter->second.GetWindowIdStr(), m_bottomNode);
+				iter->second.SetNeedDock(false);
+			}
+
+			if (!iter->second.Draw())
+			{
+				iter = m_viewers.erase(iter);
+			}
+			else
+			{
+				++iter;
+			}
+		}
+	}
+};
+static AchievementsInspector* s_achievementsInspector = nullptr;
+
+#pragma endregion
+
 #pragma region Spells Developer Tool
 
 class SpellsInspector : public ImGuiWindowBase
@@ -948,6 +1884,9 @@ static void DeveloperTools_Initialize()
 	s_benchmarksInspector = new BenchmarksInspector();
 	DeveloperTools_RegisterMenuItem(s_benchmarksInspector, "Benchmarks", s_menuNameInspectors);
 
+	s_achievementsInspector = new AchievementsInspector();
+	DeveloperTools_RegisterMenuItem(s_achievementsInspector, "Achievements", s_menuNameInspectors);
+
 	s_spellsInspector = new SpellsInspector();
 	DeveloperTools_RegisterMenuItem(s_spellsInspector, "Spells", s_menuNameInspectors);
 
@@ -964,6 +1903,9 @@ static void DeveloperTools_Shutdown()
 {
 	DeveloperTools_UnregisterMenuItem(s_benchmarksInspector);
 	delete s_benchmarksInspector; s_benchmarksInspector = nullptr;
+
+	DeveloperTools_UnregisterMenuItem(s_achievementsInspector);
+	delete s_achievementsInspector; s_achievementsInspector = nullptr;
 
 	DeveloperTools_UnregisterMenuItem(s_spellsInspector);
 	delete s_spellsInspector; s_spellsInspector = nullptr;

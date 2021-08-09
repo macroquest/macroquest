@@ -1,3 +1,6 @@
+August 9, 2021
+- Developer Tools: implemented new achievements inspector. Accessible from inspectors menu on the console.
+
 August 8, 2021
 - Added InGame.cfg which will execute for all characters once they are in game (#189)
 - The cfg file search path will now search in Config\AutoExec before falling back to Config so that cfg files can be organized better (#170)
