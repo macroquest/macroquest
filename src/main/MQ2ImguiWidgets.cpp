@@ -21,7 +21,9 @@
 
 namespace mq::imgui {
 
-bool DrawUITexture(const CUITextureInfo& textureInfo, const CXRect& rect/* = CXRect(0, 0, -1, -1)*/, const CXSize& size /* = CXSize()*/)
+bool DrawUITexture(const CUITextureInfo& textureInfo, const CXRect& rect/* = CXRect(0, 0, -1, -1)*/,
+	const CXSize& size /* = CXSize()*/,
+	bool drawBorder /* = false */)
 {
 	if (textureInfo.TextureId == -1)
 	{
@@ -75,21 +77,26 @@ bool DrawUITexture(const CUITextureInfo& textureInfo, const CXRect& rect/* = CXR
 		textureSize.y = (float)rect.GetHeight();
 	}
 
-	ImGui::Image((ImTextureID)pEQGBitmap->pD3DTexture, imageSize, minUV, maxUV, ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 0.5f));
+	ImGui::Image(
+		(ImTextureID)pEQGBitmap->pD3DTexture, imageSize,
+		minUV, maxUV,
+		ImVec4(1, 1, 1, 1),
+		drawBorder ? ImVec4(1, 1, 1, 0.5f) : ImVec4()
+	);
 	return true;
 }
 
-bool DrawTexturePiece(const CUITexturePiece& texturePiece, const CXRect& srcRect, const CXSize& imageSize)
+bool DrawTexturePiece(const CUITexturePiece& texturePiece, const CXRect& srcRect, const CXSize& imageSize, bool drawBorder)
 {
-	return DrawUITexture(texturePiece.GetTextureInfo(), srcRect, imageSize);
+	return DrawUITexture(texturePiece.GetTextureInfo(), srcRect, imageSize, drawBorder);
 }
 
-bool DrawTexturePiece(const CUITexturePiece& texturePiece, const CXSize& imageSize)
+bool DrawTexturePiece(const CUITexturePiece& texturePiece, const CXSize& imageSize, bool drawBorder)
 {
-	return DrawTexturePiece(texturePiece, texturePiece.GetRect(), imageSize);
+	return DrawTexturePiece(texturePiece, texturePiece.GetRect(), imageSize, drawBorder);
 }
 
-bool DrawTextureAnimation(const CTextureAnimation* pAnim, const CXSize& size)
+bool DrawTextureAnimation(const CTextureAnimation* pAnim, const CXSize& size, bool drawBorder)
 {
 	CXSize theSize = size.cx != 0 && size.cy != 0 ? size : (pAnim->bGrid ? pAnim->CellRect.GetSize() : pAnim->Size);
 
@@ -110,12 +117,12 @@ bool DrawTextureAnimation(const CTextureAnimation* pAnim, const CXSize& size)
 	{
 		if (pAnim->CurCell != -1)
 		{
-			return DrawTexturePiece(frame.Piece, pAnim->CellRect, theSize);
+			return DrawTexturePiece(frame.Piece, pAnim->CellRect, theSize, drawBorder);
 		}
 	}
 	else
 	{
-		return DrawTexturePiece(frame.Piece, theSize);
+		return DrawTexturePiece(frame.Piece, theSize, drawBorder);
 	}
 
 	return false;
