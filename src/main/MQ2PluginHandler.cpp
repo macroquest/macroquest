@@ -613,6 +613,8 @@ void PluginsSetGameState(DWORD GameState)
 
 			DebugSpew("PluginsSetGameState(%s server)", EQADDR_SERVERNAME);
 
+			LoadCfgFile("InGame", false);
+
 			if (pLocalPC)
 			{
 				DebugSpew("PluginsSetGameState(%s name)", pLocalPC->Name);
