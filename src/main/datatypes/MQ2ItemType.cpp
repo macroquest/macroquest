@@ -183,7 +183,9 @@ enum class ItemMembers
 	LoreEquipped,
 	Luck,
 	MinLuck,
-	MaxLuck
+	MaxLuck,
+	IDFile,
+	IDFile2,
 };
 
 enum class ItemMethods
@@ -357,6 +359,8 @@ MQ2ItemType::MQ2ItemType() : MQ2Type("item")
 	ScopedTypeMember(ItemMembers, Luck);
 	ScopedTypeMember(ItemMembers, MinLuck);
 	ScopedTypeMember(ItemMembers, MaxLuck);
+	ScopedTypeMember(ItemMembers, IDFile);
+	ScopedTypeMember(ItemMembers, IDFile2);
 }
 
 bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -1789,6 +1793,16 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	case ItemMembers::MaxLuck:
 		Dest.DWord = GetItemFromContents(pItem)->MaxLuck;
+		Dest.Type = pIntType;
+		return true;
+
+	case ItemMembers::IDFile:
+		Dest.DWord = pItem->GetItemDefinition()->IDFile;
+		Dest.Type = pIntType;
+		return true;
+
+	case ItemMembers::IDFile2:
+		Dest.DWord = pItem->GetItemDefinition()->IDFile2;
 		Dest.Type = pIntType;
 		return true;
 
