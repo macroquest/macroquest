@@ -5501,7 +5501,7 @@ void MQCopyLayout(SPAWNINFO* pChar, char* szLine)
 	szRest = GetNextArg(szRest, 1);
 
 	char szServer[MAX_STRING] = { 0 };
-	GetArg(szServer, szLine, 1);
+	GetArg(szServer, szRest, 1);
 	szRest = GetNextArg(szRest, 1);
 
 	if (szChar[0] && szServer[0])
