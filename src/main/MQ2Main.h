@@ -693,9 +693,14 @@ MQLIB_API int         GetAvailableBankSlots();         // returns the number of 
 MQLIB_API int         GetAvailableSharedBankSlots();   // returns the number of shared bank slots that are enabled
 
 /* MQ2CACHEDBUFFS */
-class CachedBuff : public TargetBuff
+class CachedBuff
 {
 public:
+	int slot;
+	int spellId;
+	int duration;            // in ticks...
+	int count;
+	char casterName[64];
 	DWORD timeStamp;
 
 	DWORD Duration() const
