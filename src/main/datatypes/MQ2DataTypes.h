@@ -430,6 +430,57 @@ public:
 #pragma endregion
 
 #pragma region MQ Types
+
+//============================================================================
+// MQ2AchievementType
+
+class MQ2AchievementManagerType : public MQ2Type
+{
+public:
+	MQ2AchievementManagerType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
+	static bool dataAchievement(const char* szIndex, MQTypeVar& Ret);
+};
+
+class MQ2AchievementType : public MQ2Type
+{
+public:
+	MQ2AchievementType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
+	void InitVariable(MQVarPtr& VarPtr) override;
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
+	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
+};
+
+
+class MQ2AchievementCategoryType : public MQ2Type
+{
+public:
+	MQ2AchievementCategoryType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
+};
+
+class MQ2AchievementObjectiveType : public MQ2Type
+{
+public:
+	MQ2AchievementObjectiveType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
+};
+
 //============================================================================
 // MQ2AlertType
 

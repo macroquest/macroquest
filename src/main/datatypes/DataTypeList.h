@@ -43,7 +43,6 @@ DATATYPE(MQ2TypeType, pTypeType, nullptr);
 DATATYPE(MQ2EverQuestType, pEverQuestType, nullptr);
 DATATYPE(MQ2SpawnType, pSpawnType, nullptr);
 DATATYPE(MQ2SpellType, pSpellType, nullptr);
-// Define all inherited types first so that the SetInheritence works properly
 DATATYPE(MQ2AdvLootType, pAdvLootType, nullptr);
 DATATYPE(MQ2AdvLootItemType, pAdvLootItemType, nullptr);
 DATATYPE(MQ2ItemFilterDataType, pItemFilterDataType, nullptr);
@@ -106,6 +105,10 @@ DATATYPE(MQ2AuraType, pAuraType, nullptr);
 DATATYPE(MQ2BandolierItemType, pBandolierItemType, nullptr);
 DATATYPE(MQ2BandolierType, pBandolierType, nullptr);
 DATATYPE(MQ2FrameLimiterType, pFrameLimiterType, nullptr);
+DATATYPE(MQ2AchievementType, pAchievementType, nullptr);
+DATATYPE(MQ2AchievementManagerType, pAchievementManagerType, nullptr);
+DATATYPE(MQ2AchievementCategoryType, pAchievementCategoryType, nullptr);
+DATATYPE(MQ2AchievementObjectiveType, pAchievementObjectiveType, nullptr);
 
 #pragma warning(pop)
 #undef DATATYPE // In case the includer forgets

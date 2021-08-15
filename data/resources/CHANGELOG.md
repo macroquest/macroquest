@@ -1,3 +1,8 @@
+August 14, 2021
+- New TLO: ${Achievement} is now available for accessing achievements, achievement categories, and objectives.
+- New DataTypes: achievementmgr, achievement, achievementcat, achievementobj
+- For more details on these new types, please see the documentation at https://docs.macroquest.org
+
 August 9, 2021
 - Developer Tools: implemented new achievements inspector. Accessible from inspectors menu on the console.
 

@@ -15,7 +15,6 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
-#include <tinyfsm.hpp>
 #include <chrono>
 
 using namespace std::chrono_literals;

@@ -490,6 +490,7 @@ bool CDataArray::GetElement(char* Index, MQTypeVar& Dest)
 
 #include "MQ2BasicTypes.cpp"
 
+#include "MQ2AchievementType.cpp"
 #include "MQ2AdvLootType.cpp"
 #include "MQ2AlertListType.cpp"
 #include "MQ2AlertType.cpp"

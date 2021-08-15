@@ -57,6 +57,9 @@
     <Filter Include="Header Files\mq\imgui">
       <UniqueIdentifier>{8f31345f-2ba4-4984-aa8e-b458c3f5b577}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\mq\api">
+      <UniqueIdentifier>{5a764db5-6fa5-456d-b603-465edf27eec0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MQ2Auth.cpp">
@@ -350,6 +353,12 @@
     <ClCompile Include="MQ2ImguiWidgets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="datatypes\MQ2AchievementType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="MQAchievements.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
@@ -477,6 +486,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\mq\base\SimpleLexer.h">
       <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\Achievements.h">
+      <Filter>Header Files\mq\api</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

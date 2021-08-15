@@ -20,7 +20,6 @@
  * DSLs
  */
 
-#include "pch.h"
 #include "MQ2MainBase.h"
 
 using namespace eqlib;

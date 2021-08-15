@@ -693,9 +693,14 @@ MQLIB_API int         GetAvailableBankSlots();         // returns the number of 
 MQLIB_API int         GetAvailableSharedBankSlots();   // returns the number of shared bank slots that are enabled
 
 /* MQ2CACHEDBUFFS */
-class CachedBuff : public TargetBuff
+class CachedBuff
 {
 public:
+	int slot;
+	int spellId;
+	int duration;            // in ticks...
+	int count;
+	char casterName[64];
 	DWORD timeStamp;
 
 	DWORD Duration() const
@@ -905,6 +910,8 @@ MQLIB_API uint64_t GetMoneyFromString(const char* string, GetMoneyFromStringForm
 MQLIB_API void FormatMoneyString(char* szBuffer, size_t bufferLength, uint64_t moneyAmount, GetMoneyFromStringFormat format = GetMoneyFromStringFormat::Long);
 
 } // namespace mq
+
+#include <mq/api/Achievements.h>
 
 #if __has_include("../private/MQ2Main-private.h")
 #include "../private/MQ2Main-private.h"
