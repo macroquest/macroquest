@@ -906,6 +906,8 @@ MQLIB_API void FormatMoneyString(char* szBuffer, size_t bufferLength, uint64_t m
 
 } // namespace mq
 
+#include <mq/api/Achievements.h>
+
 #if __has_include("../private/MQ2Main-private.h")
 #include "../private/MQ2Main-private.h"
 #endif

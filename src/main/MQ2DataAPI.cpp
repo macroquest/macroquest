@@ -507,6 +507,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("SubDefined", datatypes::dataSubDefined);
 
 	// EQ Types
+	AddMQ2Data("Achievement", datatypes::MQ2AchievementManagerType::dataAchievement);
 	AddMQ2Data("AdvLoot", datatypes::MQ2AdvLootType::dataAdvLoot);
 	AddMQ2Data("AltAbility", datatypes::MQ2AltAbilityType::dataAltAbility);
 	AddMQ2Data("Corpse", datatypes::MQ2CorpseType::dataCorpse);
