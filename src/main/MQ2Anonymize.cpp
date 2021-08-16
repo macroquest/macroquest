@@ -666,13 +666,13 @@ CXStr Anonymize(const CXStr& Text)
 	return CXStr(new_text);
 }
 
-int GetGaugeValueFromEQ_Trampoline(int, CXStr&, bool*, unsigned long*);
-int GetGaugeValueFromEQ_Detour(int EQType, CXStr& Str, bool* arg3, unsigned long* Color)
+int GetGaugeValueFromEQ_Trampoline(int, CXStr*, bool*, unsigned long*);
+int GetGaugeValueFromEQ_Detour(int EQType, CXStr* Str, bool* arg3, unsigned long* Color)
 {
 	int ret = GetGaugeValueFromEQ_Trampoline(EQType, Str, arg3, Color);
-	if (MaybeAnonymize(Str))
+	if (Str && MaybeAnonymize(*Str))
 	{
-		Str = Anonymize(Str);
+		*Str = Anonymize(*Str);
 	}
 	return ret;
 }
@@ -714,7 +714,7 @@ public:
 	}
 };
 
-DETOUR_TRAMPOLINE_EMPTY(int GetGaugeValueFromEQ_Trampoline(int, CXStr&, bool*, unsigned long*));
+DETOUR_TRAMPOLINE_EMPTY(int GetGaugeValueFromEQ_Trampoline(int, CXStr*, bool*, unsigned long*));
 DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText_Trampoline(const CXStr&, int, int, int, const CXRect&, COLORREF, uint16_t, int) const);
 DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText1_Trampoline(const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const);
 DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText2_Trampoline(CTextObjectInterface*, const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const);
