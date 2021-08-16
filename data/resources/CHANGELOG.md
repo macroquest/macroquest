@@ -1,3 +1,7 @@
+August 15, 2021
+- Fix ImGui lua threads from yielding after calling a command. ImGui thread isn't designed to yield. (#373).
+- Fix MQCopyLayout command
+
 August 14, 2021
 - New TLO: ${Achievement} is now available for accessing achievements, achievement categories, and objectives.
 - New DataTypes: achievementmgr, achievement, achievementcat, achievementobj
