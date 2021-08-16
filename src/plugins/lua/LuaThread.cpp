@@ -573,7 +573,10 @@ bool LuaThread::CheckCondition(std::optional<sol::function>& func)
 
 void LuaThread::YieldAt(int count) const
 {
-	lua_sethook(m_thread.state(), &LuaThread::lua_forceYield, count == 0 ? LUA_MASKLINE : LUA_MASKCOUNT, count);
+	if (m_allowYield)
+	{
+		lua_sethook(m_thread.state(), &LuaThread::lua_forceYield, count == 0 ? LUA_MASKLINE : LUA_MASKCOUNT, count);
+	}
 }
 
 //============================================================================

@@ -54,6 +54,7 @@ bool LuaImGuiProcessor::HasCallback(std::string_view name)
 void LuaImGuiProcessor::Pulse()
 {
 	// remove any existing hooks, they will be re-installed when running in onpulse
+	// this is to help prevent us from yielding from the thread while we're running imgui stuff.
 	lua_sethook(m_thread->GetLuaThread().lua_state(), nullptr, 0, 0);
 
 	for (std::unique_ptr<LuaImGui>& im : m_imguis)
@@ -119,17 +120,56 @@ LuaImGui::~LuaImGui()
 {
 }
 
+class ScopedYieldDisabler
+{
+	bool m_origAllowYield = true;
+	std::shared_ptr<LuaThread> m_threadPtr;
+
+public:
+	ScopedYieldDisabler(const std::shared_ptr<LuaThread>& thread_ptr)
+		: m_threadPtr(thread_ptr)
+	{
+		if (m_threadPtr)
+		{
+			m_origAllowYield = m_threadPtr->GetAllowYield();
+			thread_ptr->SetAllowYield(false);
+		}
+	}
+
+	~ScopedYieldDisabler()
+	{
+		if (m_threadPtr)
+		{
+			m_threadPtr->SetAllowYield(m_origAllowYield);
+		}
+	}
+};
+
 bool LuaImGui::Pulse() const
 {
 	bool success = true;
 	try
 	{
-		auto result = m_coroutine();
-		if (!result.valid())
-		{
-			LuaError("ImGui Failure:\n%s", sol::stack::get<std::string>(result.lua_state(), result.stack_index()).c_str());
-			result.abandon();
+		int yield_count = 0;
+		constexpr int max_yields = 20;
+		ScopedYieldDisabler disableYield(LuaThread::get_from(m_thread.state()));
 
+		sol::protected_function_result result;
+		do
+		{
+			result = m_coroutine();
+			if (!result.valid())
+			{
+				LuaError("ImGui Failure:\n%s", sol::stack::get<std::string>(result.lua_state(), result.stack_index()).c_str());
+				result.abandon();
+
+				success = false;
+			}
+			++yield_count;
+		} while (success && result.status() == sol::call_status::yielded && yield_count <= max_yields);
+		if (yield_count > max_yields)
+		{
+			LuaError("ImGui thread tried to yield %d or more times!", max_yields);
 			success = false;
 		}
 	}

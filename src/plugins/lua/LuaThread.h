@@ -118,6 +118,9 @@ public:
 
 	LuaThreadStatus Pause();
 
+	void SetAllowYield(bool allowYield) { m_allowYield = allowYield; }
+	bool GetAllowYield() const { return m_allowYield; }
+
 	bool ShouldYield() const { return m_yieldToFrame; }
 	void DoYield() { YieldAt(0); }
 	void Exit(LuaThreadExitReason reason = LuaThreadExitReason::Unspecified);
@@ -162,6 +165,7 @@ private:
 	bool m_isString = false;
 	bool m_paused = false;
 	bool m_evaluateResult = false;
+	bool m_allowYield = true;
 	uint64_t m_delayTime = 0L;
 	std::optional<sol::function> m_delayCondition = std::nullopt;
 	LuaThreadExitReason m_exitReason = LuaThreadExitReason::Unspecified;
