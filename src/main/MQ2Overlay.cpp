@@ -1036,69 +1036,65 @@ void ImGui_ImplWin32_NewFrame()
 // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
 // PS: In this Win32 handler, we use the capture API (GetCapture/SetCapture/ReleaseCapture) to be able to read mouse coordinates when dragging mouse outside of our window bounds.
 // PS: We treat DBLCLK messages as regular mouse down messages, so this code will work on windows classes that have the CS_DBLCLKS flag set. Our own example app code doesn't set this flag.
-LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, bool fromLogin)
+LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	if (ImGui::GetCurrentContext() == nullptr)
 		return 0;
 
 	ImGuiIO& io = ImGui::GetIO();
-	fromLogin = true;
 
-	if (fromLogin)
+	switch (msg)
 	{
-		switch (msg)
-		{
-		case WM_ACTIVATE:
-			// Clear any delayed mouse inputs. Don't use HandleMouseEvent to avoid triggering
-			for (bool& n : io.MouseDown)
-				HandleMouseEvent(n, false);
-			// Clear any delayed keyboard inputs
-			for (bool& n : io.KeysDown)
-				n = false;
-			break;
+	case WM_ACTIVATE:
+		// Clear any delayed mouse inputs.
+		for (size_t i = 0; i < lengthof(io.MouseDown); ++i)
+			HandleMouseEvent(i, false);
+		// Clear any delayed keyboard inputs
+		for (bool& n : io.KeysDown)
+			n = false;
+		break;
 
-		case WM_LBUTTONDOWN: case WM_LBUTTONDBLCLK:
-		case WM_RBUTTONDOWN: case WM_RBUTTONDBLCLK:
-		case WM_MBUTTONDOWN: case WM_MBUTTONDBLCLK:
-		case WM_XBUTTONDOWN: case WM_XBUTTONDBLCLK:
-		{
-			int button = 0;
-			if (msg == WM_LBUTTONDOWN || msg == WM_LBUTTONDBLCLK) { button = 0; }
-			if (msg == WM_RBUTTONDOWN || msg == WM_RBUTTONDBLCLK) { button = 1; }
-			if (msg == WM_MBUTTONDOWN || msg == WM_MBUTTONDBLCLK) { button = 2; }
-			if (msg == WM_XBUTTONDOWN || msg == WM_XBUTTONDBLCLK) { button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? 3 : 4; }
-			if (!ImGui::IsAnyMouseDown() && ::GetCapture() == nullptr)
-				::SetCapture(hWnd);
-			if (HandleMouseEvent(button, true))
-				return 1;
+	case WM_LBUTTONDOWN: case WM_LBUTTONDBLCLK:
+	case WM_RBUTTONDOWN: case WM_RBUTTONDBLCLK:
+	case WM_MBUTTONDOWN: case WM_MBUTTONDBLCLK:
+	case WM_XBUTTONDOWN: case WM_XBUTTONDBLCLK:
+	{
+		int button = 0;
+		if (msg == WM_LBUTTONDOWN || msg == WM_LBUTTONDBLCLK) { button = 0; }
+		if (msg == WM_RBUTTONDOWN || msg == WM_RBUTTONDBLCLK) { button = 1; }
+		if (msg == WM_MBUTTONDOWN || msg == WM_MBUTTONDBLCLK) { button = 2; }
+		if (msg == WM_XBUTTONDOWN || msg == WM_XBUTTONDBLCLK) { button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? 3 : 4; }
+		if (!ImGui::IsAnyMouseDown() && ::GetCapture() == nullptr)
+			::SetCapture(hWnd);
+		if (HandleMouseEvent(button, true))
+			return 1;
 
-			return io.WantCaptureMouse ? 1 : 0;
-		}
-		case WM_LBUTTONUP:
-		case WM_RBUTTONUP:
-		case WM_MBUTTONUP:
-		case WM_XBUTTONUP:
-		{
-			int button = 0;
-			if (msg == WM_LBUTTONUP) { button = 0; }
-			if (msg == WM_RBUTTONUP) { button = 1; }
-			if (msg == WM_MBUTTONUP) { button = 2; }
-			if (msg == WM_XBUTTONUP) { button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? 3 : 4; }
-			bool capture = HandleMouseEvent(button, false);
+		return io.WantCaptureMouse ? 1 : 0;
+	}
+	case WM_LBUTTONUP:
+	case WM_RBUTTONUP:
+	case WM_MBUTTONUP:
+	case WM_XBUTTONUP:
+	{
+		int button = 0;
+		if (msg == WM_LBUTTONUP) { button = 0; }
+		if (msg == WM_RBUTTONUP) { button = 1; }
+		if (msg == WM_MBUTTONUP) { button = 2; }
+		if (msg == WM_XBUTTONUP) { button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? 3 : 4; }
+		bool capture = HandleMouseEvent(button, false);
 
-			if (!ImGui::IsAnyMouseDown() && ::GetCapture() == hWnd)
-				::ReleaseCapture();
+		if (!ImGui::IsAnyMouseDown() && ::GetCapture() == hWnd)
+			::ReleaseCapture();
 
-			return (capture || io.WantCaptureMouse) ? 1 : 0;
-		}
-		case WM_MOUSEWHEEL:
-			io.MouseWheel += (float)GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA;
-			return io.WantCaptureMouse ? 1 : 0;
+		return (capture || io.WantCaptureMouse) ? 1 : 0;
+	}
+	case WM_MOUSEWHEEL:
+		io.MouseWheel += (float)GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA;
+		return io.WantCaptureMouse ? 1 : 0;
 
-		case WM_MOUSEHWHEEL:
-			io.MouseWheelH += (float)GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA;
-			return io.WantCaptureMouse ? 1 : 0;
-		}
+	case WM_MOUSEHWHEEL:
+		io.MouseWheelH += (float)GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA;
+		return io.WantCaptureMouse ? 1 : 0;
 	}
 
 	switch (msg)
@@ -1459,7 +1455,7 @@ static void ImGui_ImplWin32_OnChangedViewport(ImGuiViewport* viewport)
 
 static LRESULT CALLBACK ImGui_ImplWin32_WndProcHandler_PlatformWindow(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam, true))
+	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
 		return true;
 
 	if (ImGuiViewport* viewport = ImGui::FindViewportByPlatformHandle((void*)hWnd))
@@ -1941,7 +1937,7 @@ uint32_t ProcessKeyboardEvents_Detour()
 	return ProcessKeyboardEvents_Trampoline();
 }
 
-bool OverlayWndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, bool fromLogin)
+bool OverlayWndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	if (msg == WM_KEYDOWN
 		&& gbToggleConsoleHotkeyReady)
@@ -1960,7 +1956,7 @@ bool OverlayWndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, bo
 
 	if (imgui::g_pImguiDevice)
 	{
-		if (imgui::ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam, fromLogin))
+		if (imgui::ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
 			return true;
 	}
 
@@ -1971,7 +1967,7 @@ bool OverlayWndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, bo
 DETOUR_TRAMPOLINE_EMPTY(LRESULT WINAPI WndProc_Trampoline(HWND, UINT, WPARAM, LPARAM));
 LRESULT WINAPI WndProc_Detour(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	if (OverlayWndProcHandler(hWnd, msg, wParam, lParam, false))
+	if (OverlayWndProcHandler(hWnd, msg, wParam, lParam))
 		return 1;
 
 	return WndProc_Trampoline(hWnd, msg, wParam, lParam);
