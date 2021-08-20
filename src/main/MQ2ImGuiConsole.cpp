@@ -1402,7 +1402,7 @@ void InitializeImGuiConsole()
 		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_dockspaceVisible, mq::internal_paths::MQini);
 	}
 	gImGuiConsole = new ImGuiConsole();
-	AddCommand("/mqconsole", MQConsoleCommand, false, false, false);
+	AddCommand("/mqconsole", MQConsoleCommand);
 }
 
 void ShutdownImGuiConsole()
