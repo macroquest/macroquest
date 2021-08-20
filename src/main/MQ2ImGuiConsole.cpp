@@ -1382,6 +1382,18 @@ void UpdateImGuiConsole()
 	}
 }
 
+void MQConsoleCommand(SPAWNINFO* pChar, char* Line)
+{
+	char szCommand[MAX_STRING] = { 0 };
+	GetArg(szCommand, Line, 1);
+
+	if (!_stricmp("clear", szCommand))
+	{
+		if (gImGuiConsole != nullptr)
+			gImGuiConsole->ClearLog();
+	}
+}
+
 void InitializeImGuiConsole()
 {
 	s_dockspaceVisible = GetPrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", false, mq::internal_paths::MQini);
@@ -1390,12 +1402,14 @@ void InitializeImGuiConsole()
 		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_dockspaceVisible, mq::internal_paths::MQini);
 	}
 	gImGuiConsole = new ImGuiConsole();
+	AddCommand("/mqconsole", MQConsoleCommand, false, false, false);
 }
 
 void ShutdownImGuiConsole()
 {
 	delete gImGuiConsole;
 	gImGuiConsole = nullptr;
+	RemoveCommand("/mqconsole");
 }
 
 DWORD ImGuiConsoleAddText(const char* line, DWORD color, DWORD filter)
