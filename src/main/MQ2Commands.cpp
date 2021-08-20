@@ -4842,20 +4842,25 @@ void AdvLootCmd(SPAWNINFO* pChar, char* szLine)
 
 							if (szEntity[0] != '\0')
 							{
-								if (pLocalPC && pLocalPC->Group)
+								if (pLocalPC)
 								{
 									CXStr out;
 
-									for (auto& member : *pLocalPC->Group)
+									// check if in group here, not above - so master looter can hand 
+									// things out while ungrouped in a raid setting
+									if (pLocalPC->Group)
 									{
-										if (member
-											&& member->Type == EQP_PC
-											&& !member->Name.empty())
+										for (auto& member : *pLocalPC->Group)
 										{
-											if (!_stricmp(member->GetName(), szEntity))
+											if (member
+												&& member->Type == EQP_PC
+												&& !member->Name.empty())
 											{
-												out = member->Name;
-												break;
+												if (!_stricmp(member->GetName(), szEntity))
+												{
+													out = member->Name;
+													break;
+												}
 											}
 										}
 									}
