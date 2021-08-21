@@ -18,12 +18,10 @@
 
 #include <commdlg.h>
 #include <shellapi.h>
-#include <tlhelp32.h>
 #pragma comment(lib, "Crypt32.lib")
 
 #include <wil/resource.h>
 #include <filesystem>
-#include <sstream>
 #include <regex>
 
 #include <fmt/format.h>

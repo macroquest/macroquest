@@ -91,6 +91,9 @@ static std::optional<ProfileRecord> UseStationNames(CEditWnd* pEditWnd, std::str
 		record.accountPassword = GetPrivateProfileString(account, "Password", "", INIFileName);
 		record.serverName = GetPrivateProfileString(account, "Server", "", INIFileName);
 		record.characterName = GetPrivateProfileString(account, "Character", "", INIFileName);
+		// Override the character select settings if specified
+		Login::m_settings.EndAfterSelect = GetPrivateProfileBool(account, "EndAfterSelect", Login::m_settings.EndAfterSelect, INIFileName);
+		Login::m_settings.CharSelectDelay = GetPrivateProfileInt(account, "CharSelectDelay", Login::m_settings.CharSelectDelay, INIFileName);
 
 		return record;
 	}
@@ -124,6 +127,9 @@ static std::optional<ProfileRecord> UseSessions(CEditWnd* pEditWnd)
 	record.accountPassword = GetPrivateProfileString(sessionName, "Password", "", INIFileName);
 	record.serverName = GetPrivateProfileString(sessionName, "Server", "", INIFileName);
 	record.characterName = GetPrivateProfileString(sessionName, "Character", "", INIFileName);
+	// Override the character select delay if specified
+	Login::m_settings.EndAfterSelect = GetPrivateProfileBool(sessionName, "EndAfterSelect", Login::m_settings.EndAfterSelect, INIFileName);
+	Login::m_settings.CharSelectDelay = GetPrivateProfileInt(sessionName, "CharSelectDelay", Login::m_settings.CharSelectDelay, INIFileName);
 
 	return record;
 }
@@ -383,44 +389,40 @@ public:
 		if (!m_record || m_record->serverName.empty())
 		{
 			AutoLoginDebug("ServerSelect: server name is empty");
-			dispatch(StopLogin()); // no server to select, pause
+			dispatch(StopLogin()); // no server to select, stop
 			return false;
 		}
-		else
+
+		// get server
+		std::string serverName = m_record->serverName;
+		ServerID serverId = GetServerIDFromServerName(m_record->serverName.c_str());
+		if (serverId == ServerID::Invalid)
 		{
-			// get server
-			std::string serverName = m_record->serverName;
-			ServerID serverId = GetServerIDFromServerName(m_record->serverName.c_str());
-			if (serverId == ServerID::Invalid)
-			{
-				// Try looking up a name from the custom server list.
-				serverName = GetServerLongName(m_record->serverName);
-
-			}
-
-			auto server = GetServer([&serverName, &serverId](EQLS::EQClientServerData* s)
-				{
-					return (serverId != ServerID::Invalid && s->ID == serverId) || ci_equals(s->ServerName, serverName);
-				});
-
-			if (!server)
-			{
-				// no server found, wait
-				AutoLoginDebug(fmt::format("ServerSelect: Could not find server {}", m_record ? m_record->serverName : ""));
-				return false;
-			}
-			else if (server->StatusFlags & (EQLS::eServerStatus_Down | EQLS::eServerStatus_Locked))
-			{
-				return true;
-			}
-			else
-			{
-				action();
-				// join server (both server and Info are already guaranteed to be non-null)
-				g_pLoginServerAPI->JoinServer((int)server->ID);
-				return false;
-			}
+			// Try looking up a name from the custom server list.
+			serverName = GetServerLongName(m_record->serverName);
 		}
+
+		auto server = GetServer([&serverName, &serverId](EQLS::EQClientServerData* s)
+			{
+				return (serverId != ServerID::Invalid && s->ID == serverId) || ci_equals(s->ServerName, serverName);
+			});
+
+		if (!server)
+		{
+			// no server found, wait
+			AutoLoginDebug(fmt::format("ServerSelect: Could not find server {}", m_record ? m_record->serverName : ""));
+			return false;
+		}
+
+		if (server->StatusFlags & (EQLS::eServerStatus_Down | EQLS::eServerStatus_Locked))
+		{
+			return true;
+		}
+
+		action();
+		// join server (both server and Info are already guaranteed to be non-null)
+		g_pLoginServerAPI->JoinServer((int)server->ID);
+		return false;
 	}
 
 	void entry() override
@@ -550,7 +552,7 @@ public:
 	{
 		if (auto pCharList = GetChildWindow<CListWnd>(m_currentWindow, "Character_List"))
 		{
-			if (!EQADDR_SERVERNAME || !m_record || !ci_equals(EQADDR_SERVERNAME, m_record->serverName))
+			if (EQADDR_SERVERNAME[0] == '\0' || !m_record || (!m_record->serverName.empty() && !ci_equals(EQADDR_SERVERNAME, m_record->serverName)))
 			{
 				// wrong server, need to quit character select to get to the server select window
 				if (pCharacterListWnd)
@@ -584,8 +586,8 @@ public:
 					if (pCharacterListWnd != nullptr)
 						pCharacterListWnd->SelectCharacter(index);
 
-					m_delayTime = MQGetTickCount64() + 3000;
-					WriteChatf(fmt::format("Selecting \ag{}\ax in 3 seconds. Please Wait... or press the END key to abort", pCharList->GetItemText(index, 2)).c_str());
+					m_delayTime = MQGetTickCount64() + m_settings.CharSelectDelay * 1000;
+					WriteChatf(fmt::format("Selecting \ag{}\ax in {} seconds. Please Wait... or press the END key to abort", pCharList->GetItemText(index, 2), m_settings.CharSelectDelay).c_str());
 					transit<CharacterSelectWait>();
 				}
 			}
@@ -604,8 +606,8 @@ public:
 		if (m_paused)
 		{
 			// we need to restart the login timer here
-			m_delayTime = MQGetTickCount64() + 3000;
-			WriteChatf(fmt::format("Re-Enabling login and selecting \ag{}\ax in 3 seconds. Please Wait... or press the END key to abort", m_record ? m_record->characterName : "").c_str());
+			m_delayTime = MQGetTickCount64() + m_settings.CharSelectDelay * 1000;
+			WriteChatf(fmt::format("Re-Enabling login and selecting \ag{}\ax in {} seconds. Please Wait... or press the END key to abort", m_record ? m_record->characterName : "character", m_settings.CharSelectDelay).c_str());
 		}
 
 		// and set the correct pause value, don't call the base because we don't want to repeat messaging
@@ -650,12 +652,12 @@ class InGame : public Wait
 public:
 	void entry() override
 	{
-		dispatch(StopLogin());
+		// State machine stops when we get in game, but state machine only got us here if the last state was char select.
+		if (m_lastState == LoginState::CharacterSelect)
+		{
+			dispatch(StopLogin());
+		}
 	}
-
-	// override these events to do nothing in game
-	void react(const PauseLogin&) override {}
-	void react(const UnpauseLogin&) override {}
 };
 
 std::optional<ProfileRecord> Login::m_record = std::nullopt;
