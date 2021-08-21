@@ -1,3 +1,7 @@
+August 19, 2021
+- Potential fix for mouse buttons getting stuck and causing issues with imgui
+- Fix crash when performing /lua commands from within an imgui window.
+
 August 15, 2021
 - Fix ImGui lua threads from yielding after calling a command. ImGui thread isn't designed to yield. (#373).
 - Fix MQCopyLayout command

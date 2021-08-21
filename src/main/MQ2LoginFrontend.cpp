@@ -30,7 +30,7 @@ namespace mq {
 void DoLoginPulse();
 
 // From MQ2Overlay.cpp
-bool OverlayWndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, bool fromLogin);
+bool OverlayWndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 static uintptr_t __FreeLibrary = 0;
 static bool gbDetoursInstalled = false;
@@ -136,7 +136,7 @@ DETOUR_TRAMPOLINE_EMPTY(void LoginController_Hook::GiveTime_Trampoline());
 DETOUR_TRAMPOLINE_EMPTY(LRESULT WINAPI EQMain__WndProc_Trampoline(HWND, UINT, WPARAM, LPARAM));
 LRESULT WINAPI EQMain__WndProc_Detour(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	if (OverlayWndProcHandler(hWnd, msg, wParam, lParam, true))
+	if (OverlayWndProcHandler(hWnd, msg, wParam, lParam))
 		return 1;
 
 	return EQMain__WndProc_Trampoline(hWnd, msg, wParam, lParam);

@@ -48,6 +48,19 @@ std::string lua_join(sol::this_state L, std::string_view delim, sol::variadic_ar
 
 #pragma region Command Bindings
 
+void ExecuteCommand(const std::string& cmdString, sol::this_state s)
+{
+	bool delayed = false;
+	std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s);
+	if (thread_ptr && !thread_ptr->GetAllowYield())
+		delayed = true;
+
+	HideDoCommand(pLocalPlayer, cmdString.c_str(), delayed);
+
+	if (thread_ptr && thread_ptr->GetAllowYield() && !bRunNextCommand)
+		thread_ptr->DoYield();
+}
+
 struct lua_MQCommand
 {
 	std::string command;
@@ -69,15 +82,7 @@ struct lua_MQCommand
 				fmt::format_to(cmd, " {}", value);
 		}
 
-		HideDoCommand(pLocalPlayer, fmt::to_string(cmd).c_str(), false);
-
-		if (!bRunNextCommand)
-		{
-			if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
-			{
-				thread_ptr->DoYield();
-			}
-		}
+		ExecuteCommand(fmt::to_string(cmd).c_str(), s);
 	}
 };
 
@@ -104,15 +109,7 @@ struct lua_MQDoCommand
 		sol::function string_format = sol::state_view(s)["string"]["format"];
 		std::string command = string_format(va);
 
-		HideDoCommand(pLocalPlayer, command.c_str(), false);
-
-		if (!bRunNextCommand)
-		{
-			if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
-			{
-				thread_ptr->DoYield();
-			}
-		}
+		ExecuteCommand(command, s);
 	}
 
 	static void command(sol::variadic_args va, sol::this_state s)
@@ -120,15 +117,7 @@ struct lua_MQDoCommand
 		// replicate string.format
 		std::string command = lua_join(s, " ", va);
 
-		HideDoCommand(pLocalPlayer, command.c_str(), false);
-
-		if (!bRunNextCommand)
-		{
-			if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
-			{
-				thread_ptr->DoYield();
-			}
-		}
+		ExecuteCommand(command, s);
 	}
 
 	// Provide direct access to DoCommand
