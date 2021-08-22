@@ -1,3 +1,7 @@
+August 20, 2021
+- Added command for clearing mq console - /mqconsole clear
+- Fix issue where /advloot shared # giveto name would not work when master looter was ungrouped in a raid
+
 August 19, 2021
 - Potential fix for mouse buttons getting stuck and causing issues with imgui
 - Fix crash when performing /lua commands from within an imgui window.
