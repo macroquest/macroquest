@@ -523,6 +523,34 @@ const char* GetZoneExpansionName(int expansion)
 	return "Unknown";
 }
 
+uint32_t GetExpansionNumber(std::string_view expansionName)
+{
+	if (ci_equals(expansionName, "EverQuest"))
+		return 0;
+
+	for (size_t i = 0; i < lengthof(szZoneExpansionName); ++i)
+	{
+		if (ci_equals(szZoneExpansionName[i], expansionName))
+			return i;
+	}
+
+	return 0;
+}
+
+const char* GetHighestExpansionOwnedName(EQExpansionOwned expansionOwned)
+{
+	if (expansionOwned == EQExpansionNoneOwned)
+		return GetZoneExpansionName(0);
+
+	for (int num = NUM_EXPANSIONS; num >= 1; --num)
+	{
+		if ((EQ_EXPANSION(num) & expansionOwned) != 0)
+			return GetZoneExpansionName(num);
+	}
+
+	return "Unknown";
+}
+
 const char* szDmgBonusType[] = {
 	"None",
 	"Magic",
