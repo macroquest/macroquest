@@ -574,8 +574,8 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 
 	ImGuiZepConsole()
 	{
-		SetFont(Zep::ZepTextType::UI, mq::imgui::DefaultFont, 18);
-		SetFont(Zep::ZepTextType::Text, mq::imgui::ConsoleFont, 18);
+		SetFont(Zep::ZepTextType::UI, mq::imgui::DefaultFont, 16);
+		SetFont(Zep::ZepTextType::Text, mq::imgui::ConsoleFont, 13);
 		SetFont(Zep::ZepTextType::Heading1, mq::imgui::DefaultFont, 28);
 		SetFont(Zep::ZepTextType::Heading2, mq::imgui::DefaultFont, 14);
 		SetFont(Zep::ZepTextType::Heading3, mq::imgui::DefaultFont, 20);
@@ -1025,7 +1025,6 @@ public:
 		ImVec2 contentSize = ImGui::GetContentRegionAvail();
 		contentSize.y -= footer_height_to_reserve;
 
-		//ImGui::SetWindowFontScale(1.20f);
 		m_zepEditor->Render("##ZepConsole", contentSize);
 
 		// Command-line
