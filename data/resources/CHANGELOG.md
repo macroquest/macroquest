@@ -1,3 +1,8 @@
+August 25, 2021
+- lua: **breaking** ImGui.Begin with flags now always requires a ImGui.End, unconditionally. Sorry, I
+  missed this one the last time I was updating ImGui.Begin
+- imgui: Fix a crash when too many End() calls occur
+
 August 24, 2021
 - Added some error handling to catch imgui errors before they crash the game. These errors will
   suspend plugin ImGui usage. Fix the error and then run the command "/mqoverlay resume" 
