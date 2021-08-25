@@ -62,7 +62,7 @@ IMGUI_API bool CollapsingSubHeader(const char* label, ImGuiTreeNodeFlags flags =
 // Font/Style configuration
 
 // Configure fonts. Only needs to be called when imgui is initialized
-IMGUI_API void ConfigureFonts();
+IMGUI_API void ConfigureFonts(ImFontAtlas* atlas);
 
 // Our fonts. You can push/pop fonts to change fonts.
 IMGUI_API extern ImFont* DefaultFont;

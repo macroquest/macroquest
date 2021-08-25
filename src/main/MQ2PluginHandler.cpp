@@ -35,6 +35,7 @@ static std::recursive_mutex s_pluginsMutex;
 static const char EverQuestVersion[] = __ExpectedVersionDate " " __ExpectedVersionTime;
 MQPlugin* pPlugins = nullptr;
 
+extern bool gbManualResetRequired;
 char szPluginLoadFailure[MAX_STRING];
 
 std::vector<MQModule*> gInternalModules;
@@ -878,17 +879,20 @@ void PluginsUpdateImGui()
 		}
 	}
 
-	std::scoped_lock lock(s_pluginsMutex);
-
-	MQPlugin* pPlugin = pPlugins;
-	while (pPlugin)
+	if (!gbManualResetRequired)
 	{
-		if (pPlugin->UpdateImGui)
-		{
-			pPlugin->UpdateImGui();
-		}
+		std::scoped_lock lock(s_pluginsMutex);
 
-		pPlugin = pPlugin->pNext;
+		MQPlugin* pPlugin = pPlugins;
+		while (pPlugin)
+		{
+			if (pPlugin->UpdateImGui)
+			{
+				pPlugin->UpdateImGui();
+			}
+
+			pPlugin = pPlugin->pNext;
+		}
 	}
 }
 

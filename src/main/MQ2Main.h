@@ -117,7 +117,6 @@ struct MQRenderCallbacks
 {
 	fMQCreateDeviceObjects CreateDeviceObjects = nullptr;
 	fMQInvalidateDeviceObjects InvalidateDeviceObjects = nullptr;
-	fMQImGuiRender ImGuiRender = nullptr;
 	fMQGraphicsSceneRender GraphicsSceneRender = nullptr;
 };
 MQLIB_API int AddRenderCallbacks(const MQRenderCallbacks& callbacks);
