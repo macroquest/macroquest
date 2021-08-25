@@ -2197,18 +2197,19 @@ static bool RenderImGui()
 	auto round = fegetround();
 	fesetround(FE_TONEAREST);
 
-	// Begin a new frame
-	ImGui_ImplDX9_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
-
 	ImGuiIO& io = ImGui::GetIO();
 
 	IDirect3DStateBlock9* stateBlock = nullptr;
 	gpD3D9Device->CreateStateBlock(D3DSBT_ALL, &stateBlock);
 
+	// Begin a new frame
+	ImGui_ImplDX9_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+
 	try
 	{
+		ImGui::NewFrame();
+
 		{
 			MQScopedBenchmark bm(bmPluginsUpdateImGui);
 
