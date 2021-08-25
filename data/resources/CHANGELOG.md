@@ -2,6 +2,13 @@ August 25, 2021
 - lua: **breaking** ImGui.Begin with flags now always requires a ImGui.End, unconditionally. Sorry, I
   missed this one the last time I was updating ImGui.Begin
 - imgui: Fix a crash when too many End() calls occur
+- autologin: Clean up duplicate logic and fix /switchchar (Fixes #311)
+- autologin: Allow /switchchar and /switchserver to work if you didn't initally log in with Autologin
+- autologin: Update Pause and Unpause to only work if the state machine is on (Fixes #151)
+- autologin: Add Override for stopping at character select for Sessions and Station names (Partially addresses #145)
+- autologin: Add new setting for CharSelectDelay with override for Sessions and Station names (Fixes #146)
+- autologin: Change /relog command to only be available when logged in (it previously only WORKED when logged in)
+- autologin: Add writing of global config when WriteAllConfig is set to true
 
 August 24, 2021
 - Added some error handling to catch imgui errors before they crash the game. These errors will
