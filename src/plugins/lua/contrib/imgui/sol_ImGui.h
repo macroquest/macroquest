@@ -25,7 +25,7 @@ namespace sol_ImGui
 	{
 		bool shouldDraw = ImGui::Begin(name.c_str(), &open, static_cast<ImGuiWindowFlags_>(flags));
 
-		return std::make_tuple(open, shouldDraw && open);
+		return std::make_tuple(open, shouldDraw);
 	}
 	inline void End()																					{ ImGui::End(); }
 
