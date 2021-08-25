@@ -24,7 +24,7 @@
 #include <imgui_internal.h>
 
 #include <map>
-#include <tlhelp32.h>
+#include <TlHelp32.h>
 #pragma comment(lib, "Crypt32.lib")
 
 #include <filesystem>
@@ -36,11 +36,42 @@ PLUGIN_VERSION(4.0);
 PreSetup("MQ2AutoLogin");
 
 fs::path CustomIni;
+// TODO: std::chrono
 uint64_t ReenableTime = 0;
 
 // save off class and level so we know when to push updates
 int Level = -1;
 int Class = -1;
+
+void PerformSwitch(const std::string& ServerName, const std::string& CharacterName)
+{
+	pipeclient::NotifyCharacterUnload(
+		std::string(Login::profile()).c_str(),
+		std::string(Login::account()).c_str(),
+		std::string(Login::server()).c_str(),
+		std::string(Login::character()).c_str()
+	);
+
+	if (GetGameState() == GAMESTATE_INGAME)
+	{
+		if (pLocalPlayer != nullptr && pLocalPlayer->StandState == STANDSTATE_FEIGN)
+		{
+			// using DoMappable here doesn't create enough of a delay for camp to work
+			EzCommand("/stand");
+		}
+
+		EzCommand("/camp");
+	}
+
+	Login::dispatch(SetLoginInformation(ServerName, CharacterName));
+
+	pipeclient::NotifyCharacterLoad(
+		std::string(Login::profile()).c_str(),
+		std::string(Login::account()).c_str(),
+		std::string(Login::server()).c_str(),
+		std::string(Login::character()).c_str()
+	);
+}
 
 void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
 {
@@ -57,10 +88,9 @@ void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
 	}
 
 	// this is just a validity check, that's the only reason we have that set of server names
-	if (GetServerIDFromServerName(szServer) != ServerID::Invalid && GetPrivateProfileString("Servers", szServer, "", INIFileName).empty())
+	if (GetServerIDFromServerName(szServer) == ServerID::Invalid && GetPrivateProfileString("Servers", szServer, "", INIFileName).empty())
 	{
 		WriteChatf("Invalid server name \ag%s\ax.  Valid server names are:", szServer);
-
 
 		std::vector<std::string_view> server_names;
 		std::transform(std::begin(eqlib::ServerIDArray), std::end(eqlib::ServerIDArray),
@@ -69,101 +99,42 @@ void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
 
 		server_names.insert(server_names.end(), custom_server_names.cbegin(), custom_server_names.cend());
 		WriteChatColor(join(server_names, ", ").c_str());
-
-		return;
 	}
-
-	if (GetGameState() == GAMESTATE_INGAME)
+	else if (GetGameState() == GAMESTATE_INGAME && pChar && ci_equals(EQADDR_SERVERNAME, szServer) && ci_equals(pChar->DisplayedName, szCharacter))
 	{
-		if (pChar && ci_equals(EQADDR_SERVERNAME, szServer) && ci_equals(pChar != nullptr ? pChar->DisplayedName : "", szCharacter))
-		{
-			WriteChatf("\ayYou're already logged into '%s' on '%s'\ax", szCharacter, szServer);
-		}
-		else
-		{
-			pipeclient::NotifyCharacterUnload(
-				std::string(Login::profile()).c_str(),
-				std::string(Login::account()).c_str(),
-				std::string(Login::server()).c_str(),
-				std::string(Login::character()).c_str()
-			);
-
-			Login::dispatch(SetLoginInformation(szServer, szCharacter));
-
-			WriteChatf("Switching to \ag%s\ax on server \ag%s\ax", szCharacter, szServer);
-
-			if (pChar != nullptr && pChar->StandState == STANDSTATE_FEIGN)
-			{
-				// using DoMappable here doesn't create enough of a delay for camp to work
-				EzCommand("/stand");
-			}
-
-			EzCommand("/camp");
-
-			pipeclient::NotifyCharacterLoad(
-				std::string(Login::profile()).c_str(),
-				std::string(Login::account()).c_str(),
-				std::string(Login::server()).c_str(),
-				std::string(Login::character()).c_str()
-			);
-		}
+		WriteChatf("\ayYou're already logged into '%s' on '%s'\ax", szCharacter, szServer);
+	}
+	else
+	{
+		PerformSwitch(szServer, szCharacter);
+		WriteChatf("Switching to \ag%s\ax on server \ag%s\ax.", szCharacter, szServer);
 	}
 }
 
 void Cmd_SwitchCharacter(SPAWNINFO* pChar, char* szLine)
 {
-	char szArg1[MAX_STRING] = { 0 };
-
 	if (!szLine[0])
 	{
 		WriteChatf("\ayUsage:\ax /switchchar <name>");
 		return;
 	}
 
-	pipeclient::NotifyCharacterUnload(
-		std::string(Login::profile()).c_str(),
-		std::string(Login::account()).c_str(),
-		std::string(Login::server()).c_str(),
-		std::string(Login::character()).c_str()
-	);
-
+	char szArg1[MAX_STRING] = { 0 };
 	GetArg(szArg1, szLine, 1);
 
-	Login::dispatch(SetLoginInformation(szArg1));
-
-	if (GetGameState() == GAMESTATE_INGAME)
+	if (GetGameState() == GAMESTATE_INGAME && pChar && ci_equals(pChar->DisplayedName, szArg1))
 	{
-		if (pChar && ci_equals(pChar->DisplayedName, szArg1))
-		{
-			WriteChatf("\ayYou're already logged onto '%s'\ax", szArg1);
-		}
-		else
-		{
-			if (pChar != nullptr && pChar->StandState == STANDSTATE_FEIGN)
-			{
-				// using DoMappable here doesn't create enough of a delay for camp to work
-				EzCommand("/stand");
-			}
-
-			EzCommand("/camp");
-		}
+		WriteChatf("\ayYou're already logged onto '%s'\ax", szArg1);
 	}
-
-	pipeclient::NotifyCharacterLoad(
-		std::string(Login::profile()).c_str(),
-		std::string(Login::account()).c_str(),
-		std::string(Login::server()).c_str(),
-		std::string(Login::character()).c_str()
-	);
-
-	WriteChatf("Switch to \ag%s\ax is now active and will commence at character select.", szArg1);
+	else
+	{
+		PerformSwitch(EQADDR_SERVERNAME, szArg1);
+		WriteChatf("Switch to \ag%s\ax is now active and will commence at character select.", szArg1);
+	}
 }
 
 void Cmd_Relog(SPAWNINFO* pChar, char* szLine)
 {
-	if (GetGameState() != GAMESTATE_INGAME)
-		return;
-
 	if (!szLine[0])
 	{
 		WriteChatf("\ayUsage:\ax /relog [#s|#m]");
@@ -196,15 +167,16 @@ void Cmd_Relog(SPAWNINFO* pChar, char* szLine)
 	if (ReenableTime)
 		ReenableTime += 30000; // add 30 seconds for camp time
 
-	Login::dispatch(SetLoginInformation(EQADDR_SERVERNAME, pChar != nullptr ? pChar->DisplayedName : ""));
-
-	if (pChar != nullptr && pChar->StandState == STANDSTATE_FEIGN)
+	if (GetGameState() == GAMESTATE_INGAME && pLocalPlayer && EQADDR_SERVERNAME[0] != '\0')
 	{
-		// using DoMappable here doesn't create enough of a delay for camp to work
-		EzCommand("/stand");
+		PerformSwitch(EQADDR_SERVERNAME, pLocalPlayer->DisplayedName);
+		// TODO:  After std::chrono change, update this to actual time.  It will currently show whatever multiple arguments the user typed in.
+		WriteChatf("Relog into \ag%s\ax on server \ag%s\ax will activate after %s.", pLocalPlayer->DisplayedName, EQADDR_SERVERNAME, szLine);
 	}
-
-	EzCommand("/camp");
+	else
+	{
+		WriteChatf("\arError:\ax /relog could not get your server or character name.");
+	}
 }
 
 void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
@@ -394,7 +366,17 @@ void ReadINI()
 	Login::m_settings.NotifyOnServerUp = static_cast<Login::Settings::ServerUpNotification>(GetPrivateProfileInt("Settings", "NotifyOnServerUp", 0, INIFileName));
 	Login::m_settings.KickActiveCharacter = GetPrivateProfileBool("Settings", "KickActiveCharacter", true, INIFileName);
 	Login::m_settings.EndAfterSelect = GetPrivateProfileBool("Settings", "EndAfterCharSelect", false, INIFileName);
+	Login::m_settings.CharSelectDelay = GetPrivateProfileInt("Settings", "CharSelectDelay", 3, INIFileName);
 	Login::m_settings.ConnectRetries = GetPrivateProfileInt("Settings", "ConnectRetries", 0, INIFileName);
+
+	if (gbWriteAllConfig)
+	{
+		WritePrivateProfileInt("Settings", "NotifyOnServerUp", static_cast<int>(Login::m_settings.NotifyOnServerUp), INIFileName);
+		WritePrivateProfileBool("Settings", "KickActiveCharacter", Login::m_settings.KickActiveCharacter, INIFileName);
+		WritePrivateProfileBool("Settings", "EndAfterSelect", Login::m_settings.EndAfterSelect, INIFileName);
+		WritePrivateProfileInt("Settings", "CharSelectDelay", Login::m_settings.CharSelectDelay, INIFileName);
+		WritePrivateProfileInt("Settings", "ConnectRetries", Login::m_settings.ConnectRetries, INIFileName);
+	}
 
 	bool bUseMQ2Login = GetPrivateProfileBool("Settings", "UseMQ2Login", false, INIFileName);
 	bool bUseStationNamesInsteadOfSessions = GetPrivateProfileBool("Settings", "UseStationNamesInsteadOfSessions", false, INIFileName);
@@ -421,7 +403,7 @@ PLUGIN_API void InitializePlugin()
 
 	AddCommand("/switchserver", Cmd_SwitchServer);
 	AddCommand("/switchcharacter", Cmd_SwitchCharacter);
-	AddCommand("/relog", Cmd_Relog);
+	AddCommand("/relog", Cmd_Relog, false, true, true);
 	AddCommand("/loginchar", Cmd_Loginchar);
 
 	if (GetPrivateProfileBool("Settings", "EnableCustomClientIni", false, INIFileName))
@@ -466,11 +448,6 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveDetour(pfnWritePrivateProfileStringA);
 
 	LoginReset();
-}
-
-PLUGIN_API void SetGameState(DWORD GameState)
-{
-	Login::m_settings.EndAfterSelect = GetPrivateProfileInt("Settings", "EndAfterCharSelect", 0, INIFileName) == 1;
 }
 
 PLUGIN_API void OnPulse()
