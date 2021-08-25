@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include <stdexcept>
+
 //---- Define assertion handler. Defaults to calling assert().
 // If your macro uses multiple statements, make sure is enclosed in a 'do { .. } while (0)' block so it can be used as a single statement.
 //#define IM_ASSERT(_EXPR)  MyAssert(_EXPR)
@@ -30,6 +32,14 @@
 #endif
 
 #define IMGUI_IMPL_API
+
+class ImGuiException : public std::exception {
+public:
+    ImGuiException(const char* what) : std::exception(what) {}
+};
+
+#define IM_ASSERT_USER_ERROR(exp, msg) \
+    do { if (!(exp)) { throw ImGuiException(msg); } } while (0)
 
 //---- Don't define obsolete functions/enums/behaviors. Consider enabling from time to time after updating to avoid using soon-to-be obsolete function/names.
 //#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS

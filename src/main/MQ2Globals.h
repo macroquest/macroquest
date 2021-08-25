@@ -265,6 +265,8 @@ MQLIB_VAR const char* szInnates[];
 MQLIB_VAR const char* szZoneExpansionName[];
 
 MQLIB_API const char* GetZoneExpansionName(int expansion);
+MQLIB_API const char* GetHighestExpansionOwnedName(EQExpansionOwned expansionOwned);
+MQLIB_API uint32_t GetExpansionNumber(std::string_view expansionName);
 
 MQLIB_VAR const char* szWornLoc[];
 

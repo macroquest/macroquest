@@ -28,9 +28,9 @@ using namespace eqlib;
 
 #define VersionString          __ExpectedVersionDate
 #define TimeString             __ExpectedVersionTime
-#define LoadedString           "MQ2 Loaded."
-#define ToUnloadString         "MQ2 Unloading..."
-#define UnloadedString         "MQ2 Unloaded."
+#define LoadedString           "MacroQuest Loaded."
+#define ToUnloadString         "MacroQuest Unloading..."
+#define UnloadedString         "MacroQuest Unloaded."
 
 //
 // EQ Version selection
@@ -117,7 +117,6 @@ struct MQRenderCallbacks
 {
 	fMQCreateDeviceObjects CreateDeviceObjects = nullptr;
 	fMQInvalidateDeviceObjects InvalidateDeviceObjects = nullptr;
-	fMQImGuiRender ImGuiRender = nullptr;
 	fMQGraphicsSceneRender GraphicsSceneRender = nullptr;
 };
 MQLIB_API int AddRenderCallbacks(const MQRenderCallbacks& callbacks);
