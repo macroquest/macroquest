@@ -176,6 +176,13 @@ public:
 			m_record->characterName = e.Character;
 			if (!e.Server.empty()) m_record->serverName = e.Server;
 		}
+		else
+		{
+			ProfileRecord record;
+			record.serverName = e.Server;
+			record.characterName = e.Character;
+			dispatch(SetLoginProfile(record));
+		}
 	}
 
 	virtual void react(const SetLoginProfile& ev)
@@ -186,23 +193,31 @@ public:
 
 	virtual void react(const UnpauseLogin& ev)
 	{
-		if (m_paused && ev.ShowMessage)
-			WriteChatf("\agHOME key pressed. AutoLogin Re-Enabled.");
-		m_paused = false;
-		m_retries = 0;
+		if (m_record)
+		{
+			if (m_paused && ev.ShowMessage)
+				WriteChatf("\agHOME key pressed. AutoLogin Re-Enabled.");
+			m_paused = false;
+			m_retries = 0;
+		}
 	}
 
 	virtual void react(const PauseLogin& ev)
 	{
-		if (!m_paused && ev.ShowMessage)
-			WriteChatf("END key pressed. Login of %s aborted.", m_record ? m_record->characterName.c_str() : "");
-		m_paused = true;
+		if (m_record)
+		{
+			if (!m_paused && ev.ShowMessage)
+				WriteChatf("END key pressed. Login of %s paused.", m_record ? m_record->characterName.c_str() : "characters");
+			m_paused = true;
+		}
 	}
 
 	virtual void react(const StopLogin&)
 	{
 		m_paused = true;
 		m_record.reset();
+		// Once Autologin has performed or failed, this is no longer relevant and will only break future commands.
+		m_settings.EndAfterSelect = false;
 	}
 
 	virtual void entry() {}
@@ -224,6 +239,7 @@ public:
 	{
 		bool KickActiveCharacter;
 		bool EndAfterSelect;
+		int CharSelectDelay;
 		unsigned char ConnectRetries;
 
 		enum class ServerUpNotification {

@@ -1,3 +1,8 @@
+August 24, 2021
+- Added some error handling to catch imgui errors before they crash the game. These errors will
+  suspend plugin ImGui usage. Fix the error and then run the command "/mqoverlay resume" 
+- lua: Added missing overload for ImGui.SameLine(number, number)
+
 August 20, 2021
 - Added command for clearing mq console - /mqconsole clear
 - Fix issue where /advloot shared # giveto name would not work when master looter was ungrouped in a raid

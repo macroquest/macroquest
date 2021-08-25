@@ -42,15 +42,13 @@ ImFont* ConsoleFont = nullptr;
 ImFont* LargeIconFont = nullptr;
 ImFont* LargeTextFont = nullptr;
 
-void ConfigureDefaultFont()
+void ConfigureDefaultFont(ImFontAtlas* atlas)
 {
-	ImGuiIO& io = ImGui::GetIO();
-
 	// font: Roboto Regular @ 16px
 	ImFontConfig rrConfig;
 	strcpy_s(rrConfig.Name, "RobotoRegular");
 	rrConfig.OversampleH = rrConfig.OversampleV = 3;
-	DefaultFont = io.Fonts->AddFontFromMemoryCompressedTTF(GetRobotoRegularCompressedData(), GetRobotoRegularCompressedSize(), 16.0, &rrConfig);
+	DefaultFont = atlas->AddFontFromMemoryCompressedTTF(GetRobotoRegularCompressedData(), GetRobotoRegularCompressedSize(), 16.0, &rrConfig);
 
 	// font: FontAwesome
 	ImFontConfig faConfig;
@@ -60,7 +58,7 @@ void ConfigureDefaultFont()
 	faConfig.GlyphMinAdvanceX = 13.0f;
 	faConfig.GlyphOffset.x = 0.0f;
 	static const ImWchar icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
-	io.Fonts->AddFontFromMemoryCompressedTTF(GetFontAwesomeCompressedData(), GetFontAwesomeCompressedSize(), 14.0f, &faConfig, icon_ranges);
+	atlas->AddFontFromMemoryCompressedTTF(GetFontAwesomeCompressedData(), GetFontAwesomeCompressedSize(), 14.0f, &faConfig, icon_ranges);
 
 	// font: Material Design Icons
 	ImFontConfig mdConfig;
@@ -70,12 +68,12 @@ void ConfigureDefaultFont()
 	mdConfig.GlyphOffset.y = 3.f;
 	strcpy_s(mdConfig.Name, "MaterialDesignIcons");
 	static const ImWchar md_icon_ranges[] = { ICON_MIN_MD, ICON_MAX_MD, 0 };
-	io.Fonts->AddFontFromMemoryCompressedTTF(GetMaterialIconsCompressedData(), GetMaterialIconsCompressedSize(), 16.0f, &mdConfig, md_icon_ranges);
+	atlas->AddFontFromMemoryCompressedTTF(GetMaterialIconsCompressedData(), GetMaterialIconsCompressedSize(), 16.0f, &mdConfig, md_icon_ranges);
 
 	// console font: Lucida Console @ 13px
 	ImFontConfig consoleFontConfig;
 	consoleFontConfig.OversampleH = consoleFontConfig.OversampleV = 3;
-	ConsoleFont = io.Fonts->AddFontFromFileTTF(R"(c:\windows\fonts\lucon.ttf)", 13.0f, &consoleFontConfig);
+	ConsoleFont = atlas->AddFontFromFileTTF(R"(c:\windows\fonts\lucon.ttf)", 13.0f, &consoleFontConfig);
 
 	// TODO: Provide some options
 #if 0
@@ -85,22 +83,20 @@ void ConfigureDefaultFont()
 		ImFontConfig rmConfig;
 		rmConfig.OversampleH = rmConfig.OversampleV = 3;
 		strcpy_s(rmConfig.Name, "RobotoMono Regular");
-		ConsoleFont = io.Fonts->AddFontFromMemoryCompressedTTF(GetRobotoMonoRegularCompressedData(), GetRobotoMonoRegularCompressedSize(), 16.0, &rmConfig);
+		ConsoleFont = atlas->AddFontFromMemoryCompressedTTF(GetRobotoMonoRegularCompressedData(), GetRobotoMonoRegularCompressedSize(), 16.0, &rmConfig);
 	}
 
 	// console font: Proggy Clean @ 13px
-	//ConsoleFont = io.Fonts->AddFontDefault();
+	//ConsoleFont = atlas->AddFontDefault();
 #endif
 }
 
-void ConfigureLargeFont()
+void ConfigureLargeFont(ImFontAtlas* atlas)
 {
-	ImGuiIO& io = ImGui::GetIO();
-
 	// font: Roboto Regular @ 22px
 	ImFontConfig rrConfig;
 	strcpy_s(rrConfig.Name, "RobotoRegular (Large)");
-	LargeTextFont = io.Fonts->AddFontFromMemoryCompressedTTF(GetRobotoRegularCompressedData(), GetRobotoRegularCompressedSize(), 22.0, &rrConfig);
+	LargeTextFont = atlas->AddFontFromMemoryCompressedTTF(GetRobotoRegularCompressedData(), GetRobotoRegularCompressedSize(), 22.0, &rrConfig);
 
 	// font: FontAwesome @ 22px
 	ImFontConfig faConfig;
@@ -109,7 +105,7 @@ void ConfigureLargeFont()
 	strcpy_s(faConfig.Name, "FontAwesome (Large)");
 	faConfig.GlyphOffset.x = 1.0f;
 	static const ImWchar icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
-	io.Fonts->AddFontFromMemoryCompressedTTF(GetFontAwesomeCompressedData(), GetFontAwesomeCompressedSize(), 20.0f, &faConfig, icon_ranges);
+	atlas->AddFontFromMemoryCompressedTTF(GetFontAwesomeCompressedData(), GetFontAwesomeCompressedSize(), 20.0f, &faConfig, icon_ranges);
 
 	// font: Material Design Icons @ 22px
 	ImFontConfig mdConfig;
@@ -119,18 +115,17 @@ void ConfigureLargeFont()
 	mdConfig.GlyphOffset.y = 4.f;
 	strcpy_s(mdConfig.Name, "MaterialDesignIcons (Large)");
 	static const ImWchar md_icon_ranges[] = { ICON_MIN_MD, ICON_MAX_MD, 0 };
-	io.Fonts->AddFontFromMemoryCompressedTTF(GetMaterialIconsCompressedData(), GetMaterialIconsCompressedSize(), 22.0f, &mdConfig, md_icon_ranges);
+	atlas->AddFontFromMemoryCompressedTTF(GetMaterialIconsCompressedData(), GetMaterialIconsCompressedSize(), 22.0f, &mdConfig, md_icon_ranges);
 
 	LargeIconFont = LargeTextFont;
 }
 
-void ConfigureFonts()
+void ConfigureFonts(ImFontAtlas* atlas)
 {
-	ConfigureDefaultFont();
-	ConfigureLargeFont();
+	ConfigureDefaultFont(atlas);
+	ConfigureLargeFont(atlas);
 
-	ImGuiIO& io = ImGui::GetIO();
-	io.Fonts->Build();
+	atlas->Build();
 }
 
 void ConfigureStyle()

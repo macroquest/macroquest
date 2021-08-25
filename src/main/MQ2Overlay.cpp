@@ -67,6 +67,9 @@ bool gbLastFullScreenState = false;
 // Number of frames to wait before initializing
 int gReInitFrameDelay = 0;
 
+// Critical error occurred and imgui needs to be reset
+bool gbManualResetRequired = false;
+
 //----------------------------------------------------------------------------
 // statics
 
@@ -2199,30 +2202,37 @@ static bool RenderImGui()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
-	for (const auto& pCallbacks : gRenderCallbacks)
-	{
-		if (pCallbacks && pCallbacks->callbacks.ImGuiRender)
-		{
-			pCallbacks->callbacks.ImGuiRender();
-		}
-	}
-
-	Benchmark(bmPluginsUpdateImGui, DebugTryEx(PluginsUpdateImGui()));
+	ImGuiIO& io = ImGui::GetIO();
 
 	IDirect3DStateBlock9* stateBlock = nullptr;
 	gpD3D9Device->CreateStateBlock(D3DSBT_ALL, &stateBlock);
 
-	// Render the ui
-	ImGui::Render();
-	ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
-
-	ImGui::UpdatePlatformWindows();
-	ImGuiIO& io = ImGui::GetIO();
-
-	// Update and Render additional Platform Windows
-	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+	try
 	{
-		ImGui::RenderPlatformWindowsDefault();
+		{
+			MQScopedBenchmark bm(bmPluginsUpdateImGui);
+
+			PluginsUpdateImGui();
+		}
+
+		// Render the ui
+		ImGui::Render();
+		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+
+		ImGui::UpdatePlatformWindows();
+
+		// Update and Render additional Platform Windows
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			ImGui::RenderPlatformWindowsDefault();
+		}
+	}
+	catch (const ImGuiException& ex)
+	{
+		gbManualResetRequired = true;
+
+		WriteChatf("\arImGui Critical Failure: %s", ex.what());
+		WriteChatf("\arFix the error and then run: \ay/mqoverlay resume\ar");
 	}
 
 	stateBlock->Apply();
@@ -2317,6 +2327,60 @@ bool IsImGuiForeground()
 	return false;
 }
 
+static ImFontAtlas* s_fontAtlas = nullptr;
+
+void CreateImGuiContext()
+{
+	if (s_fontAtlas == nullptr)
+	{
+		s_fontAtlas = new ImFontAtlas();
+
+		mq::imgui::ConfigureFonts(s_fontAtlas);
+	}
+	
+	// Initialize ImGui context
+	ImGui::CreateContext(s_fontAtlas);
+
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;             // Enable Docking
+
+	fmt::format_to(ImGuiSettingsFile, "{}/MacroQuest_Overlay.ini", mq::internal_paths::Config);
+	io.IniFilename = &ImGuiSettingsFile[0];
+
+	ImGui::StyleColorsDark();
+	mq::imgui::ConfigureStyle();
+}
+
+void DestroyImGuiContext()
+{
+	ImGui::DestroyContext();
+
+	delete s_fontAtlas;
+	s_fontAtlas = nullptr;
+}
+
+void ReloadImGuiContext()
+{
+	if (ImGui::GetCurrentContext() != nullptr)
+	{
+		ImGui::DestroyContext();
+	}
+
+	CreateImGuiContext();
+}
+
+void MQOverlayCommand(SPAWNINFO* pSpawh, char* szLine)
+{
+	if (ci_equals(szLine, "reload"))
+	{
+		gbNeedResetOverlay = true;
+	}
+	else if (ci_equals(szLine, "resume"))
+	{
+		gbManualResetRequired = false;
+	}
+}
+
 void InitializeMQ2Overlay()
 {
 	imgui::g_bRenderImGui = GetPrivateProfileBool("MacroQuest", "RenderImGui", imgui::g_bRenderImGui, mq::internal_paths::MQini);
@@ -2367,19 +2431,9 @@ void InitializeMQ2Overlay()
 	// Hook the reset device function
 	EzDetour(CRender__ResetDevice, &CRenderHook::ResetDevice_Detour, &CRenderHook::ResetDevice_Trampoline);
 
-	// Initialize ImGui context
-	ImGui::CreateContext();
+	AddCommand("/mqoverlay", MQOverlayCommand);
 
-	ImGuiIO& io = ImGui::GetIO();
-	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;             // Enable Docking
-
-	fmt::format_to(ImGuiSettingsFile, "{}/MacroQuest_Overlay.ini", mq::internal_paths::Config);
-	io.IniFilename = &ImGuiSettingsFile[0];
-
-	ImGui::StyleColorsDark();
-	mq::imgui::ConfigureStyle();
-	mq::imgui::ConfigureFonts();
+	CreateImGuiContext();
 
 	InitializeOverlayInternal();
 }
@@ -2403,9 +2457,11 @@ void ShutdownMQ2Overlay()
 	RemoveDetour(__WndProc);
 	RemoveDetour(CParticleSystem__Render);
 
-	ShutdownOverlayInternal();
+	RemoveCommand("/mqoverlay");
 
-	ImGui::DestroyContext();
+	ShutdownOverlayInternal();
+	DestroyImGuiContext();
+	
 	RemoveMQ2Benchmark(bmPluginsUpdateImGui);
 }
 
@@ -2444,6 +2500,7 @@ void DoResetOverlay()
 	}
 
 	imgui::ShutdownImGui();
+	ReloadImGuiContext();
 
 	gpD3D9Device = nullptr;
 	gResetDeviceAddress = 0;
