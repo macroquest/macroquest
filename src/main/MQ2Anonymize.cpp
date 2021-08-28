@@ -217,14 +217,30 @@ public:
 		case Anonymization::Class:
 		{
 			SPAWNINFO* spawn = GetSpawnByName(name.c_str());
-			if (spawn)
+			// If no spawn is found, check to see if we have regex whitespace in our name.  This can collide, but that's acceptable for our use case.
+			if (spawn == nullptr)
+			{
+				int pos = find_substr(name, "\\s");
+				if (pos != -1)
+				{
+					spawn = GetSpawnByName(name.substr(0, pos).c_str());
+				}
+			}
+			if (spawn != nullptr)
+			{
+				return fmt::format("[{}] {}",
+					spawn->Level,
+					pEverQuest->GetClassThreeLetterCode(spawn->GetClass()));
+				/*
 				return fmt::format("[{}] {} {} {}",
 					spawn->Level,
 					pEverQuest->GetRaceDesc(spawn->mActorClient.Race),
 					GetClassDesc(spawn->GetClass()),
 					GetTypeDesc(GetSpawnType(spawn)));
-			else
-				return asterisk_name(name);
+				*/
+			}
+
+			return asterisk_name(name);
 		}
 
 		case Anonymization::Me:
@@ -235,8 +251,8 @@ public:
 					profile->Level,
 					pEverQuest->GetRaceDesc(profile->Race),
 					GetClassDesc(profile->Class));
-			else
-				return asterisk_name(name);
+
+			return asterisk_name(name);
 		}
 
 		case Anonymization::Custom:
@@ -244,7 +260,7 @@ public:
 
 		default:
 			return std::string(name);
-		};
+		}
 	}
 
 	std::string replace_text(std::string_view text) const
@@ -744,7 +760,6 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 		{
 			args::Group arguments(parser, "", args::Group::Validators::All);
 			args::Positional<std::string> name(arguments, "name", "the name to anonymize");
-			MQ2HelpArgument h(arguments);
 			parser.Parse();
 			if (name) AddAnonymization(name.Get(), Anonymization::Asterisk);
 		});
@@ -754,7 +769,6 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 		{
 			args::Group arguments(parser, "", args::Group::Validators::All);
 			args::Positional<std::string> name(arguments, "name", "the name to anonymize");
-			MQ2HelpArgument h(arguments);
 			parser.Parse();
 			if (name) AddAnonymization(name.Get(), Anonymization::Class);
 		});
@@ -765,7 +779,6 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 			args::Group arguments(parser, "", args::Group::Validators::All);
 			args::Positional<std::string> name(arguments, "name", "the name to anonymize");
 			args::PositionalList<std::string> replacers(arguments, "replacers", "the text to anonymize with");
-			MQ2HelpArgument h(arguments);
 			parser.Parse();
 			if (name && replacers) AddAnonymization(name.Get(), Anonymization::Custom, join(replacers.Get(), " "));
 		});
@@ -775,7 +788,6 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 		{
 			args::Group arguments(parser, "", args::Group::Validators::All);
 			args::Positional<std::string> name(arguments, "name", "the name to de-anonymize");
-			MQ2HelpArgument h(arguments);
 			parser.Parse();
 			if (name) DropAnonymization(name.Get());
 		});
@@ -786,7 +798,6 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 			args::Group arguments(parser, "", args::Group::Validators::All);
 			args::Positional<std::string> name(arguments, "name", "the name entry to alias");
 			args::Positional<std::string> alias(arguments, "alias", "the alias to also search for when replacing the name");
-			MQ2HelpArgument h(arguments);
 			parser.Parse();
 			if (name && alias) AddAlternate(name.Get(), alias.Get());
 		});
@@ -797,7 +808,6 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 			args::Group arguments(parser, "", args::Group::Validators::AtLeastOne);
 			args::Positional<std::string> name(arguments, "name", "the name entry to unalias");
 			args::Positional<std::string> alias(arguments, "alias", "the alias to also stop searching for when replacing the name");
-			MQ2HelpArgument h(arguments);
 			parser.Parse();
 			if (name && alias) DropAlternate(name.Get(), alias.Get()); else if (name) DropAlternate(name.Get());
 		});
@@ -807,7 +817,6 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 		{
 			args::Group arguments(parser, "", args::Group::Validators::All);
 			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
-			MQ2HelpArgument h(arguments);
 			parser.Parse();
 			if (anon_type) SetAnonymization(AnonymizationClasses::Group, anon_type.Get());
 		});
@@ -817,7 +826,6 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 		{
 			args::Group arguments(parser, "", args::Group::Validators::All);
 			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
-			MQ2HelpArgument h(arguments);
 			parser.Parse();
 			if (anon_type) SetAnonymization(AnonymizationClasses::Fellowship, anon_type.Get());
 		});
@@ -827,7 +835,6 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 		{
 			args::Group arguments(parser, "", args::Group::Validators::All);
 			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
-			MQ2HelpArgument h(arguments);
 			parser.Parse();
 			if (anon_type) SetAnonymization(AnonymizationClasses::Guild, anon_type.Get());
 		});
@@ -836,19 +843,18 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 		[](args::Subparser& parser) {
 			args::Group arguments(parser, "", args::Group::Validators::All);
 			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
-			MQ2HelpArgument h(arguments);
 			parser.Parse();
 			if (anon_type) SetAnonymization(AnonymizationClasses::Raid, anon_type.Get());
 		});
 
-	args::Command all(commands, "all", "sets group/fellowship/guild/raid anonymization in one command",
+	args::Command all(commands, "all", "sets me/group/fellowship/guild/raid anonymization in one command",
 		[](args::Subparser& parser) {
 			args::Group arguments(parser, "", args::Group::Validators::All);
 			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
-			MQ2HelpArgument h(arguments);
 			parser.Parse();
 			if (anon_type)
 			{
+				SetAnonymization(AnonymizationClasses::Self, anon_type.Get());
 				SetAnonymization(AnonymizationClasses::Group, anon_type.Get());
 				SetAnonymization(AnonymizationClasses::Fellowship, anon_type.Get());
 				SetAnonymization(AnonymizationClasses::Guild, anon_type.Get());
@@ -861,7 +867,6 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 		{
 			args::Group arguments(parser, "", args::Group::Validators::DontCare);
 			args::MapPositional<std::string_view, Anonymization> anon_type(arguments, "anon_type", "Anonymization type", anonymization_map);
-			MQ2HelpArgument h(arguments);
 			parser.Parse();
 			if (anon_type) SetAnonymization(AnonymizationClasses::Self, anon_type.Get()); else SetAnonymization(AnonymizationClasses::Self, Anonymization::Me);
 		});
@@ -871,7 +876,6 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 		[](args::Subparser& parser)
 		{
 			args::Group arguments(parser, "", args::Group::Validators::DontCare);
-			MQ2HelpArgument h(arguments);
 			parser.Parse();
 			Serialize();
 		});
@@ -880,7 +884,6 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 		[](args::Subparser& parser)
 		{
 			args::Group arguments(parser, "", args::Group::Validators::DontCare);
-			MQ2HelpArgument h(arguments);
 			parser.Parse();
 			Deserialize();
 		});
@@ -889,7 +892,6 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 		[](args::Subparser& parser)
 		{
 			args::Group arguments(parser, "", args::Group::Validators::DontCare);
-			MQ2HelpArgument h(arguments);
 			parser.Parse();
 			SetAnon(true);
 		});
@@ -898,7 +900,6 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 		[](args::Subparser& parser)
 		{
 			args::Group arguments(parser, "", args::Group::Validators::DontCare);
-			MQ2HelpArgument h(arguments);
 			parser.Parse();
 			SetAnon(false);
 		});
