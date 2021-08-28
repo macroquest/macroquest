@@ -1,3 +1,8 @@
+August 27, 2021
+- Updated /mqanon command so that commands now work.  (Fixes #277, #280)
+- Shortened the /mqanon "class" strategy to just the level and the class short name (Partially addresses #282)
+- Added self (me) to the /mqanon all strategy for quick setup
+
 August 25, 2021
 - lua: **breaking** ImGui.Begin with flags now always requires a ImGui.End, unconditionally. Sorry, I
   missed this one the last time I was updating ImGui.Begin
