@@ -792,7 +792,7 @@ public:
 			if (totalAchievements > 0)
 				completedPct = 100.0f * ((float)category.completedAchievementCount / (float)totalAchievements);
 
-			ImGui::Text("Completed achivements: %d / %d (%.2f%%)", category.completedAchievementCount, totalAchievements, completedPct);
+			ImGui::Text("Completed achievements: %d / %d (%.2f%%)", category.completedAchievementCount, totalAchievements, completedPct);
 			ImGui::PopTextWrapPos();
 
 			ImGui::EndTooltip();
