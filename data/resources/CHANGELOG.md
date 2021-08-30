@@ -1,3 +1,9 @@
+August 29, 2021
+- Added the following members to Window type for accessing tabs in a tabbed window: (#369)
+   - TabCount, Tab, CurrentTab, CurrentTabIndex
+- Added SetCurrentTab method to Window type for changing the current tab.
+- More details on these can be found in the datatype docs at docs.macroquest.org
+
 August 27, 2021
 - Updated /mqanon command so that commands now work.  (Fixes #277, #280)
 - Shortened the /mqanon "class" strategy to just the level and the class short name (Partially addresses #282)
