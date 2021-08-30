@@ -56,6 +56,10 @@ enum class WindowMembers
 	Address,
 	Size,
 	Value,
+	TabCount,
+	Tab,
+	CurrentTab,
+	CurrentTabIndex,
 };
 
 enum class WindowMethods
@@ -74,7 +78,8 @@ enum class WindowMethods
 	Move,
 	SetBGColor,
 	SetAlpha,
-	SetFadeAlpha
+	SetFadeAlpha,
+	SetCurrentTab,
 };
 
 MQ2WindowType::MQ2WindowType() : MQ2Type("window")
@@ -116,6 +121,10 @@ MQ2WindowType::MQ2WindowType() : MQ2Type("window")
 	ScopedTypeMember(WindowMembers, Address);
 	ScopedTypeMember(WindowMembers, Size);
 	ScopedTypeMember(WindowMembers, Value);
+	ScopedTypeMember(WindowMembers, TabCount);
+	ScopedTypeMember(WindowMembers, Tab);
+	ScopedTypeMember(WindowMembers, CurrentTab);
+	ScopedTypeMember(WindowMembers, CurrentTabIndex);
 
 	ScopedTypeMethod(WindowMethods, LeftMouseDown);
 	ScopedTypeMethod(WindowMethods, LeftMouseUp);
@@ -132,6 +141,7 @@ MQ2WindowType::MQ2WindowType() : MQ2Type("window")
 	ScopedTypeMethod(WindowMethods, SetBGColor);
 	ScopedTypeMethod(WindowMethods, SetAlpha);
 	ScopedTypeMethod(WindowMethods, SetFadeAlpha);
+	ScopedTypeMethod(WindowMethods, SetCurrentTab);
 }
 
 bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -303,6 +313,33 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			}
 			return true;
 
+		case WindowMethods::SetCurrentTab:
+			if (pWnd->GetType() == UI_TabBox && Index[0])
+			{
+				CTabWnd* pTabWnd = static_cast<CTabWnd*>(pWnd);
+
+				if (IsNumber(Index))
+				{
+					int tabIndex = GetIntFromString(Index, 0) - 1;
+					if (tabIndex >= 0 && tabIndex < pTabWnd->PageArray.GetCount())
+					{
+						pTabWnd->SetPage(tabIndex);
+					}
+				}
+				else
+				{
+					for (int tabIndex = 0; tabIndex < pTabWnd->PageArray.GetCount(); ++tabIndex)
+					{
+						if (ci_equals(pTabWnd->PageArray[tabIndex]->TabText, Index))
+						{
+							pTabWnd->SetPage(tabIndex);
+							break;
+						}
+					}
+				}
+			}
+			return true;
+
 		default: break;
 		}
 
@@ -456,10 +493,16 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			CStmlWnd* cstmlwnd = static_cast<CStmlWnd*>(pWnd);
 			strcpy_s(DataTypeTemp, cstmlwnd->GetSTMLText().c_str());
 		}
+		else if (pWnd->GetType() == UI_Page)
+		{
+			CPageWnd* pPageWnd = static_cast<CPageWnd*>(pWnd);
+			strcpy_s(DataTypeTemp, pPageWnd->TabText.c_str());
+		}
 		else
 		{
 			strcpy_s(DataTypeTemp, pWnd->GetWindowText().c_str());
 		}
+
 		DataTypeTemp[MAX_STRING - 1] = '\0';
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
@@ -477,13 +520,8 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		return true;
 
 	case WindowMembers::Highlighted: // if the window in question has focus...
-		Dest.Set(false);
 		Dest.Type = pBoolType;
-		if (pWndMgr)
-		{
-			if (pWnd == pWndMgr->FocusWindow)
-				Dest.Set(true);
-		}
+		Dest.Set(pWndMgr && pWnd == pWndMgr->FocusWindow);
 		return true;
 
 	case WindowMembers::Enabled:
@@ -697,6 +735,74 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		}
 
 		return false;
+
+	case WindowMembers::TabCount:
+		Dest.Type = pIntType;
+		Dest.DWord = 0;
+
+		if (pWnd->GetType() == UI_TabBox)
+		{
+			CTabWnd* pTabWnd = static_cast<CTabWnd*>(pWnd);
+			Dest.DWord = pTabWnd->PageArray.GetCount();
+		}
+		return true;
+
+	case WindowMembers::Tab:
+		Dest.Type = pWindowType;
+		Dest.Ptr = nullptr;
+
+		if (pWnd->GetType() == UI_TabBox && Index[0])
+		{
+			CTabWnd* pTabWnd = static_cast<CTabWnd*>(pWnd);
+			
+			if (IsNumber(Index))
+			{
+				int tabIndex = GetIntFromString(Index, 0) - 1;
+				if (tabIndex >= 0 && tabIndex < pTabWnd->PageArray.GetCount())
+				{
+					Dest.Ptr = pTabWnd->PageArray[tabIndex];
+				}
+			}
+			else
+			{
+				for (int i = 0; i < pTabWnd->PageArray.GetCount(); ++i)
+				{
+					if (ci_equals(pTabWnd->PageArray[i]->TabText, Index))
+					{
+						Dest.Ptr = pTabWnd->PageArray[i];
+						break;
+					}
+				}
+			}
+		}
+		return true;
+
+	case WindowMembers::CurrentTab:
+		Dest.Type = pWindowType;
+		Dest.Ptr = nullptr;
+
+		if (pWnd->GetType() == UI_TabBox)
+		{
+			CTabWnd* pTabWnd = static_cast<CTabWnd*>(pWnd);
+
+			int tabIndex = pTabWnd->CurTabIndex;
+			if (tabIndex >= 0 && tabIndex < pTabWnd->PageArray.GetCount())
+			{
+				Dest.Ptr = pTabWnd->PageArray[tabIndex];
+			}
+		}
+		return true;
+
+	case WindowMembers::CurrentTabIndex:
+		Dest.Type = pIntType;
+		Dest.Int = 0;
+
+		if (pWnd->GetType() == UI_TabBox)
+		{
+			CTabWnd* pTabWnd = static_cast<CTabWnd*>(pWnd);
+			Dest.Int = pTabWnd->CurTabIndex + 1;
+		}
+		return true;
 
 	default: break;
 	}
