@@ -366,23 +366,43 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		return true;
 
 	case WindowMembers::Child:
-		Dest.Type = pWindowType;
-		Dest.Ptr = pWnd->GetChildItem(Index);
+		if (Dest.Ptr = pWnd->GetChildItem(Index))
+		{
+			Dest.Type = pWindowType;
+			return true;
+		}
+		Dest.DWord = 0;
+		Dest.Type = pIntType;
 		return true;
 
 	case WindowMembers::Parent:
-		Dest.Type = pWindowType;
-		Dest.Ptr = pWnd->GetParentWindow();
+		if (Dest.Ptr = pWnd->GetParentWindow())
+		{
+			Dest.Type = pWindowType;
+			return true;
+		}
+		Dest.DWord = 0;
+		Dest.Type = pIntType;
 		return true;
 
 	case WindowMembers::FirstChild:
-		Dest.Type = pWindowType;
-		Dest.Ptr = pWnd->GetFirstChildWnd();
+		if (Dest.Ptr = pWnd->GetFirstChildWnd())
+		{
+			Dest.Type = pWindowType;
+			return true;
+		}
+		Dest.DWord = 0;
+		Dest.Type = pIntType;
 		return true;
 
 	case WindowMembers::Next:
-		Dest.Type = pWindowType;
-		Dest.Ptr = pWnd->GetNextSiblingWnd();
+		if (Dest.Ptr = pWnd->GetNextSiblingWnd())
+		{
+			Dest.Type = pWindowType;
+			return true;
+		}
+		Dest.DWord = 0;
+		Dest.Type = pIntType;
 		return true;
 
 	case WindowMembers::VScrollMax:
