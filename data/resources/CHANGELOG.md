@@ -1,3 +1,6 @@
+August 30, 2021
+- Fix incompatibility with Innerspace/WinEQ when loaded at startup (#304)
+
 August 29, 2021
 - Added the following members to Window type for accessing tabs in a tabbed window: (#369)
    - TabCount, Tab, CurrentTab, CurrentTabIndex
