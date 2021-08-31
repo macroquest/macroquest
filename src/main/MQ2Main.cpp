@@ -664,7 +664,11 @@ bool MQ2Initialize()
 					foundWindowHandle = true;
 				}
 			}
-		};
+		}
+
+		// The lavish dlls steal our detour so that our GetProcAddress never sees the eqmain.dll load.  Delaying here
+		// gives eqmain.dll time to load so that we're not waiting for that trigger when we inject at startup.
+		std::this_thread::sleep_for(std::chrono::seconds(1));
 
 		if (!foundHooks)
 		{

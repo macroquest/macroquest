@@ -294,7 +294,7 @@ void InitializeLoginFrontend()
 
 	gbWaitingForFrontend = true;
 
-	// Try to initialize login detours. This will succeed is eqmain.dll is already loaded. If it isn't,
+	// Try to initialize login detours. This will succeed if eqmain.dll is already loaded. If it isn't,
 	// well try again in LoadFrontend_Detour(), which is called when eqmain.dll is actually loaded.
 	TryInitializeLogin();
 }
