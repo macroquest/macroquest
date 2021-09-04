@@ -31,10 +31,7 @@
 #include <fmt/format.h>
 #include <fmt/chrono.h>
 
-#pragma warning( push )
-#pragma warning( disable:4996 )
 #include <yaml-cpp/yaml.h>
-#pragma warning( pop )
 
 #include <string>
 #include <fstream>
