@@ -113,9 +113,6 @@
     <ClCompile Include="..\..\contrib\imgui\imgui_widgets.cpp">
       <Filter>Source Files\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\contrib\imgui\misc\cpp\imgui_stdlib.cpp">
-      <Filter>Source Files\imgui</Filter>
-    </ClCompile>
     <ClCompile Include="ImGuiTextEditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
