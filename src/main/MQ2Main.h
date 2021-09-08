@@ -354,7 +354,8 @@ MQLIB_API int GetCurrencyIDByName(char* szName);
 MQLIB_API const char* GetSpellNameByID(int dwSpellID);
 MQLIB_API EQ_Spell* GetSpellByName(std::string_view name);
 MQLIB_API EQ_Spell* GetSpellByAAName(const char* szName);
-MQLIB_API ALTABILITY* GetAAByIdWrapper(int nAbilityId, int playerLevel = -1);
+MQLIB_API CAltAbilityData* GetAAById(int nAbilityId, int playerLevel = -1);
+inline CAltAbilityData* GetAAByIdWrapper(int nAbilityId, int playerLevel = -1) { return GetAAById(nAbilityId, playerLevel); }
 MQLIB_API int GetSpellRankByName(const char* SpellName);
 MQLIB_API void TruncateSpellRankName(char* SpellName);
 MQLIB_OBJECT int FindBuffID(std::string_view Name);
