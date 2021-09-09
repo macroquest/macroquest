@@ -1,3 +1,10 @@
+September 8, 2021
+- eqlib: New code supporting mercenary aa's added, making mercenary aa access available to plugins.
+- devtools: New alt ability inspector added for viewing data from player aa's and merc aa's.
+- plugins: Added GetAAById to replace GetAAByIdWrapper.
+- AltAbility type: Added Category (string), ShortName2 (string), GroupID (int)
+- Switch type: Added state (int).
+
 August 30, 2021
 - Fix incompatibility with Innerspace/WinEQ when loaded at startup (#304)
 

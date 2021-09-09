@@ -1705,7 +1705,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				// numeric
 				for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 				{
-					if (ALTABILITY* pAbility = GetAAByIdWrapper(pLocalPC->GetAlternateAbilityId(nAbility)))
+					if (CAltAbilityData* pAbility = GetAAById(pLocalPC->GetAlternateAbilityId(nAbility)))
 					{
 						if (pAbility->ID == GetIntFromString(Index, 0))
 						{
@@ -1729,9 +1729,9 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 				for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 				{
-					if (ALTABILITY* pAbility = GetAAByIdWrapper(pLocalPC->GetAlternateAbilityId(nAbility), level))
+					if (CAltAbilityData* pAbility = GetAAById(pLocalPC->GetAlternateAbilityId(nAbility), level))
 					{
-						if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
+						if (const char* pName = pDBStr->GetString(pAbility->nName, eAltAbilityName))
 						{
 							if (!_stricmp(Index, pName))
 							{
@@ -1763,7 +1763,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				// numeric
 				for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 				{
-					if (ALTABILITY* pAbility = GetAAByIdWrapper(pLocalPC->GetAlternateAbilityId(nAbility)))
+					if (CAltAbilityData* pAbility = GetAAById(pLocalPC->GetAlternateAbilityId(nAbility)))
 					{
 						if (pAbility->ID == GetIntFromString(Index, 0))
 						{
@@ -1782,9 +1782,9 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 				for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 				{
-					if (ALTABILITY* pAbility = GetAAByIdWrapper(pLocalPC->GetAlternateAbilityId(nAbility), level))
+					if (CAltAbilityData* pAbility = GetAAById(pLocalPC->GetAlternateAbilityId(nAbility), level))
 					{
-						if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
+						if (const char* pName = pDBStr->GetString(pAbility->nName, eAltAbilityName))
 						{
 							if (!_stricmp(Index, pName))
 							{
@@ -1809,7 +1809,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				// numeric
 				for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 				{
-					if (ALTABILITY* pAbility = GetAAByIdWrapper(pLocalPC->GetAlternateAbilityId(nAbility)))
+					if (CAltAbilityData* pAbility = GetAAById(pLocalPC->GetAlternateAbilityId(nAbility)))
 					{
 						if (pAbility->ID == GetIntFromString(Index, 0))
 						{
@@ -1826,9 +1826,9 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 				for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 				{
-					if (ALTABILITY* pAbility = GetAAByIdWrapper(pLocalPC->GetAlternateAbilityId(nAbility), level))
+					if (CAltAbilityData* pAbility = GetAAById(pLocalPC->GetAlternateAbilityId(nAbility), level))
 					{
-						if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
+						if (const char* pName = pDBStr->GetString(pAbility->nName, eAltAbilityName))
 						{
 							if (!_stricmp(Index, pName))
 							{

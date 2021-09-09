@@ -515,7 +515,7 @@ public:
 					ImGui::Text("Sequence Num: %d", component.sequenceNum);
 					ImGui::Text("Count: %d", component.count);
 					ImGui::Text("Required Count: %d", component.requiredCount);
-					
+
 					ImGui::Unindent();
 				}
 			}
@@ -624,7 +624,7 @@ public:
 				ImGui::PushStyleColor(ImGuiCol_Text, achLockedColor.ToImU32());
 			else if (state == AchievementNotVisible)
 				ImGui::PushStyleColor(ImGuiCol_Text, MQColor(127, 127, 127).ToImU32());
-			
+
 			ImGui::TreeNodeEx((void*)achievementId, flags, "%s (%d Points)", achievement->name.c_str(), achievement->points);
 
 			if (state == AchievementComplete || state == AchievementLocked || state == AchievementNotVisible)
@@ -1111,6 +1111,629 @@ public:
 static AchievementsInspector* s_achievementsInspector = nullptr;
 
 #pragma endregion
+
+#pragma region Alt Ability Inspector
+
+class AltAbilityInspector : public ImGuiWindowBase
+{
+	CAltAbilityData* m_selectedAbility = nullptr;
+	bool m_foundSelected = false;
+	bool m_showVisable = true;
+
+public:
+	AltAbilityInspector() : ImGuiWindowBase("Alt Abilities Inspector")
+	{
+		SetDefaultSize(ImVec2(600, 400));
+	}
+
+	~AltAbilityInspector()
+	{
+	}
+
+	bool IsEnabled() const override
+	{
+		return GetPcProfile() != nullptr && GetGameState() == GAMESTATE_INGAME && pAltAdvManager != nullptr;
+	}
+
+	void Update() override
+	{
+		if (!IsEnabled())
+		{
+			// Clear cached data
+			m_selectedAbility = nullptr;
+		}
+
+		ImGuiWindowBase::Update();
+	}
+
+	void DrawAltAbilityTableRow(CAltAbilityData* altAbility)
+	{
+		DatabaseStringTable* dbStr = pDBStr;
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+
+		const char* AAName = dbStr->GetString(altAbility->nName, eAltAbilityName);
+		if (!AAName)
+			AAName = "Unknown";
+
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+		if (m_selectedAbility == altAbility)
+			flags |= ImGuiTreeNodeFlags_Selected;
+
+		ImGui::TreeNodeEx((void*)altAbility, flags, "%s", AAName);
+
+		if (ImGui::IsItemClicked())
+		{
+			m_selectedAbility = altAbility;
+		}
+
+		ImGui::TableNextColumn();
+		if (altAbility->DisplayCategory > 0)
+		{
+			if (const char* CategoryName = dbStr->GetString(altAbility->DisplayCategory, eAltAbilityCategory))
+			{
+				ImGui::Text("%s (%d)", CategoryName, altAbility->DisplayCategory);
+			}
+			else
+			{
+				ImGui::Text("UNKNOWN (%d)", altAbility->DisplayCategory);
+			}
+		}
+		else
+		{
+			if (const char* CategoryName = dbStr->GetString(altAbility->Expansion, eExpansionName))
+			{
+				ImGui::Text("%s (%d)", CategoryName, altAbility->Expansion);
+			}
+			else
+			{
+				ImGui::Text("UNKNOWN (%d)", altAbility->Expansion);
+			}
+		}
+
+		ImGui::TableNextColumn();
+		if (const char* AADescription = dbStr->GetString(altAbility->nDesc, eAltAbilityDescription))
+		{
+			ImGui::Text("%s", AADescription);
+		}
+	}
+
+
+	void DrawPlayerAbilities()
+	{
+		ImVec2 size(0, 0);
+		if (m_selectedAbility)
+			size.y = 400;
+
+		CAltAbilityData* nextSelection = nullptr;
+
+		ImGui::Checkbox("Show Visible Only", &m_showVisable);
+
+		if (ImGui::BeginTable("##AltAbilityTable", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, size))
+		{
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn("Category", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn("Description", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableHeadersRow();
+
+			// Range-based For loop isn't working here for some reason. Need to figure it out.
+			const auto& abilities = *pAltAdvManager->abilities;
+			m_foundSelected = false;
+
+			CAltAbilityData** ppAltAbility = abilities.WalkFirst();
+			while (ppAltAbility)
+			{
+				CAltAbilityData* altAbility = *ppAltAbility;
+				if (!m_showVisable || pAltAdvManager->CanSeeAbility(pLocalPC, altAbility))
+				{
+					DrawAltAbilityTableRow(altAbility);
+				}
+
+				if (altAbility == m_selectedAbility)
+					m_foundSelected = true;
+
+				ppAltAbility = abilities.WalkNext(ppAltAbility);
+			}
+
+			if (!m_foundSelected)
+			{
+				m_selectedAbility = nullptr;
+			}
+
+			ImGui::EndTable();
+		}
+
+		if (m_selectedAbility)
+		{
+			if (ImGui::BeginChild("##AltAbilityDisplay"))
+			{
+				ImGui::Text("Name: %s", pDBStr->GetString(m_selectedAbility->nName, eAltAbilityName));
+				ImGui::Text("ID: %d", m_selectedAbility->Index);
+				ImGui::TextWrapped("Description: %s", m_selectedAbility->GetDescriptionString());
+				ImGui::Text("Expansion: %s", m_selectedAbility->GetExpansionString());
+				ImGui::Text("Category: %s", m_selectedAbility->GetCategoryString());
+
+				if (m_selectedAbility->nShortName != -1)
+					ImGui::Text("Button 1: %s", m_selectedAbility->GetShortName1());
+				if (m_selectedAbility->nShortName2 != -1)
+					ImGui::Text("Button 2: %s", m_selectedAbility->GetShortName2());
+
+				ImGui::Text("Level Requirement: %d", m_selectedAbility->MinLevel);
+				ImGui::Text("Cost: %d", m_selectedAbility->Cost);
+				ImGui::Text("Group ID: %d", m_selectedAbility->GroupID);
+				ImGui::Text("Group Level: %d", m_selectedAbility->CurrentRank);
+				ImGui::Text("Type: %d", m_selectedAbility->Type);
+				ImGui::Text("Spell ID: %d", m_selectedAbility->SpellID);
+				if (m_selectedAbility->bRefund)
+					ImGui::Text("Refund: %d", m_selectedAbility->bRefund);
+
+				if (!m_selectedAbility->RequiredGroups.empty() && (m_selectedAbility->RequiredGroups.size() > 1 || m_selectedAbility->RequiredGroups[0] != 0))
+				{
+					ImGui::Separator();
+					ImGui::Text("Group Requirements:");
+					for (size_t i = 0; i < m_selectedAbility->RequiredGroups.size(); ++i)
+					{
+						int groupId = m_selectedAbility->RequiredGroups[i];
+						int groupRank = m_selectedAbility->RequiredGroupLevels[i];
+
+						if (groupRank != 0 && groupId != 0)
+						{
+							CAltAbilityData* pFoundRequirement = nullptr;
+
+							// Find something with that group id
+							for (CAltAbilityData** pRequirement = pAltAdvManager->abilities->WalkFirst();
+								pRequirement != nullptr; pRequirement = pAltAdvManager->abilities->WalkNext(pRequirement))
+							{
+								if ((*pRequirement)->ID == groupId)
+								{
+									pFoundRequirement = *pRequirement;
+									break;
+								}
+							}
+
+							if (pFoundRequirement)
+							{
+								ImGui::Text("%s (%d): Rank %d", pDBStr->GetString(pFoundRequirement->nName, eAltAbilityName),
+									groupId, groupRank);
+								ImGui::SameLine();
+								if (ImGui::Button("View"))
+								{
+									nextSelection = pFoundRequirement;
+								}
+							}
+							else
+							{
+								ImGui::Text("Unknown (%d): Rank %d", groupId, groupRank);
+							}
+						}
+					}
+				}
+
+				if (!m_selectedAbility->TimerIds.empty() && (m_selectedAbility->TimerIds.size() > 1 || m_selectedAbility->TimerIds[0] != 0))
+				{
+					ImGui::Separator();
+					ImGui::Text("Timers:");
+
+					for (int i : m_selectedAbility->TimerIds)
+					{
+						if (i > 0)
+							ImGui::Text("%d", i);
+					}
+				}
+
+				ImGui::Separator();
+
+				ImGui::Text("Reuse Timer: %d", m_selectedAbility->ReuseTimer);
+
+				char szClasses[256] = { 0 };
+				for (int classIndex = Warrior; classIndex <= Berserker; ++classIndex)
+				{
+					if ((m_selectedAbility->Classes & (1 << classIndex)) != 0)
+					{
+						if (szClasses[0] != 0)
+							strcat_s(szClasses, ", ");
+						strcat_s(szClasses, ClassInfo[classIndex].UCShortName);
+					}
+				}
+				ImGui::Text("Usable Classes: %s", szClasses);
+
+				ImGui::Text("Max Rank: %d", m_selectedAbility->MaxRank);
+				ImGui::Text("Total Points: %d", m_selectedAbility->TotalPoints);
+
+				if (m_selectedAbility->PreviousGroupAbilityId != -1)
+				{
+					CAltAbilityData* previousAbility = pAltAdvManager->GetAAById(m_selectedAbility->PreviousGroupAbilityId);
+					if (previousAbility)
+					{
+						ImGui::Text("Previous Ability:"); ImGui::SameLine();
+
+						char szName[256];
+						sprintf_s(szName, "%s (%d)", pDBStr->GetString(previousAbility->nName, eAltAbilityName), previousAbility->Index);
+						if (ImGui::Button(szName))
+						{
+							nextSelection = previousAbility;
+						}
+					}
+				}
+
+				if (m_selectedAbility->NextGroupAbilityId != -1)
+				{
+					CAltAbilityData* nextAbility = pAltAdvManager->GetAAById(m_selectedAbility->NextGroupAbilityId);
+					if (nextAbility)
+					{
+						ImGui::Text("Next Ability:"); ImGui::SameLine();
+
+						char szName[256];
+						sprintf_s(szName, "%s (%d)", pDBStr->GetString(nextAbility->nName, eAltAbilityName), nextAbility->Index);
+						if (ImGui::Button(szName))
+						{
+							nextSelection = nextAbility;
+						}
+					}
+				}
+
+				ImGui::Text("Quest: %s", m_selectedAbility->QuestOnly ? "Yes" : "No");
+				ImGui::Text("Charges: %d", m_selectedAbility->Charges);
+				ImGui::Text("Ignored De-level: %s", m_selectedAbility->bIgnoreDeLevel ? "Yes" : "No");
+				ImGui::Text("AutoGrant: %s", m_selectedAbility->bAutogrant ? "Yes" : "No");
+
+				if (!m_selectedAbility->PersistentEffects.empty())
+				{
+					ImGui::Separator();
+					ImGui::Text("Persistent Effects:");
+					for (const AltAbilityEffectData& data : m_selectedAbility->PersistentEffects)
+					{
+						ImGui::Text("Attrib=%d Base1=%d Base2=%d Slot=%d",
+							data.effectType, data.baseEffect1, data.baseEffect2, data.slot);
+					}
+				}
+			}
+
+			ImGui::EndChild();
+		}
+
+		if (nextSelection)
+			m_selectedAbility = nextSelection;
+	}
+
+	void DrawMercenaryAbilityRow(const MercenaryAbilitiesData* mercData, const char* szLabel = nullptr,
+		bool colorCanTrain = false)
+	{
+		auto& data = MercenaryAlternateAdvancementManagerClient::Instance();
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+
+		if (colorCanTrain)
+		{
+			bool canTrain = data.CanTrainAbility(mercData->AbilityID);
+			ImGui::PushStyleColor(ImGuiCol_Text,
+				canTrain ? MQColor(0, 255, 0).ToImU32() : MQColor(255, 0, 0).ToImU32());
+		}
+
+		char label[256];
+		if (szLabel)
+			sprintf_s(label, "%s##%p", szLabel, (void*)mercData);
+		else
+			sprintf_s(label, "%s (Rank %d)##%p", mercData->GetNameString(), mercData->GroupRank, (void*)mercData);
+		bool expand = ImGui::TreeNode(label);
+
+		if (colorCanTrain)
+		{
+			ImGui::PopStyleColor();
+		}
+
+		ImGui::TableNextColumn();
+		ImGui::Text("%s", mercData->GetDescriptionString());
+
+		if (expand)
+		{
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn(); ImGui::Text("Ability ID");
+			ImGui::TableNextColumn(); ImGui::Text("%d", mercData->AbilityID);
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn(); ImGui::Text("Name");
+			ImGui::TableNextColumn(); ImGui::Text("%s", mercData->GetNameString());
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn(); ImGui::Text("Description");
+			ImGui::TableNextColumn(); ImGui::TextWrapped("%s", mercData->GetDescriptionString());
+
+			ImGui::TableNextRow();
+			if (colorCanTrain)
+			{
+				ImGui::PushStyleColor(ImGuiCol_Text,
+					(pLocalPC->MercAAPoints >= mercData->Cost) ? MQColor(0, 255, 0).ToImU32() : MQColor(255, 0, 0).ToImU32());
+			}
+
+			ImGui::TableNextColumn(); ImGui::Text("Cost");
+			ImGui::TableNextColumn(); ImGui::Text("%d", mercData->Cost);
+
+			if (colorCanTrain)
+			{
+				ImGui::PopStyleColor();
+			}
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn(); ImGui::Text("Group ID");
+			ImGui::TableNextColumn(); ImGui::Text("%d", mercData->GroupID);
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn(); ImGui::Text("Group Rank");
+			ImGui::TableNextColumn(); ImGui::Text("%d", mercData->GroupRank);
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn(); ImGui::Text("Type");
+			ImGui::TableNextColumn(); ImGui::Text("%s (%d)",
+				pDBStr->GetString(mercData->Type, eMercenaryAbilityType), mercData->Type);
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn(); ImGui::Text("Min Level");
+			ImGui::TableNextColumn(); ImGui::Text("%d", mercData->MinPlayerLevel);
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn(); ImGui::Text("Requirement ID");
+			ImGui::TableNextColumn(); ImGui::Text("%d", mercData->RequirementAssociationID);
+
+			if (mercData->Refund != 0)
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Refund");
+				ImGui::TableNextColumn(); ImGui::Text("%d", mercData->Refund);
+			}
+
+			if (!mercData->AbilityReqs.empty())
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				ImGui::PushStyleColor(ImGuiCol_Text,
+					mercData->IsRequirementsMet() ? MQColor(0, 255, 0).ToImU32() : MQColor(255, 0, 0).ToImU32());
+
+				if (ImGui::TreeNode("Ability Requirements"))
+				{
+					for (int i = 0; i < mercData->AbilityReqs.GetCount(); ++i)
+					{
+						const MercenaryAbilityReq& req = mercData->AbilityReqs[i];
+
+						const int* entry = data.GetFirstMercenaryAbilityIdByGroupId(req.ReqGroupID);
+						while (entry)
+						{
+							const MercenaryAbilitiesData* mercAbility = data.GetMercenaryAbility(*entry);
+							if (mercAbility && mercAbility->GroupRank >= req.ReqGroupRank)
+							{
+								ImGui::TableNextRow();
+								ImGui::TableNextColumn();
+								ImGui::Text("%s (Rank %d)", mercAbility->GetNameString(), req.ReqGroupRank);
+								break;
+							}
+
+							entry = data.GetNextMercenaryAbilityIdByGroupId(entry);
+						}
+					}
+
+					ImGui::TreePop();
+				}
+
+				ImGui::PopStyleColor();
+			}
+
+			ImGui::TreePop();
+		}
+	}
+
+	void DrawMercenaryAbilities()
+	{
+
+		if (ImGui::BeginTable("MercenaryAbilities", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
+		{
+			ImGui::TableSetupColumn("Name");
+			ImGui::TableSetupColumn("Value");
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableHeadersRow();
+
+			auto& data = MercenaryAlternateAdvancementManagerClient::Instance();
+
+			//----------------------------------------------------------------------------
+			// Mercenary Types
+			if (!data.MercenaryTypes.empty())
+			{
+				auto& types = data.MercenaryTypes;
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				if (ImGui::TreeNode("Mercenary Types"))
+				{
+					auto pValue = types.GetFirst();
+					while (pValue)
+					{
+						auto* pNode = types.NodeGet(pValue);
+
+						ImGui::TableNextRow();
+
+						ImGui::TableNextColumn();
+						ImGui::Text("%d", pNode->key());
+
+						ImGui::TableNextColumn();
+						ImGui::Text("%s (%d)", pDBStr->GetString(pNode->value(), eMercenaryAbilityType), pNode->value());
+
+						pValue = types.GetNext(pValue);
+					}
+
+					ImGui::TreePop();
+				}
+			}
+
+			//----------------------------------------------------------------------------
+			// Mercenary Abilities
+			if (!data.MercenaryAbilities.empty())
+			{
+				auto& abilities = data.MercenaryAbilities;
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				if (ImGui::TreeNode("Mercenary Abilities"))
+				{
+					const MercenaryAbilitiesData* mercData = abilities.GetFirst();
+					while (mercData != nullptr)
+					{
+						DrawMercenaryAbilityRow(mercData);
+
+						mercData = abilities.GetNext(mercData);
+					}
+					ImGui::TreePop();
+				}
+			}
+
+			//----------------------------------------------------------------------------
+			// Mercenary Ability Groups
+			if (!data.MercenaryAbilityGroups.empty())
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				if (ImGui::TreeNode("Mercenary Ability Groups"))
+				{
+					MercenaryAbilityGroup* group = data.MercenaryAbilityGroups.GetFirst();
+					while (group)
+					{
+						int groupId = data.MercenaryAbilityGroups.GetKey(group);
+
+						if (const int* abilityId = data.GetFirstMercenaryAbilityIdByGroupId(groupId))
+						{
+							if (const MercenaryAbilitiesData* mercData = data.GetMercenaryAbility(*abilityId))
+							{
+								ImGui::TableNextRow();
+								ImGui::TableNextColumn();
+
+								char label[256];
+								sprintf_s(label, "%s", mercData->GetNameString());
+
+								bool expand = ImGui::TreeNode(label);
+
+								ImGui::TableNextColumn();
+								ImGui::Text("%s", mercData->GetTypeString());
+
+								if (expand)
+								{
+									while (mercData)
+									{
+										DrawMercenaryAbilityRow(mercData);
+
+										if (abilityId = data.GetNextMercenaryAbilityIdByGroupId(abilityId))
+										{
+											mercData = data.GetMercenaryAbility(*abilityId);
+										}
+										else
+										{
+											mercData = nullptr;
+										}
+									}
+
+									ImGui::TreePop();
+								}
+							}
+						}
+
+						group = data.MercenaryAbilityGroups.GetNext(group);
+					}
+
+					ImGui::TreePop();
+				}
+			}
+
+			//----------------------------------------------------------------------------
+			// Mercenary Ability Groups (Owned)
+			if (!data.MercenaryAbilitiesOwnedByGroupID.empty())
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				if (ImGui::TreeNode("Mercenary Abilities (Owned)"))
+				{
+					int* abilityId = data.MercenaryAbilitiesOwnedByGroupID.GetFirst();
+					while (abilityId)
+					{
+						if (const MercenaryAbilitiesData* mercData = data.GetMercenaryAbility(*abilityId))
+						{
+							int maxRanks = data.GetMercenaryMaxGroupRank(*abilityId);
+							int curRank = data.GetMercenaryMaxOwnedGroupRank(*abilityId);
+
+							char label[256];
+							sprintf_s(label, "%s (%d/%d)", mercData->GetNameString(), curRank, maxRanks);
+
+							DrawMercenaryAbilityRow(mercData, label);
+						}
+
+						abilityId = data.MercenaryAbilitiesOwnedByGroupID.GetNext(abilityId);
+					}
+
+					ImGui::TreePop();
+				}
+			}
+
+			//----------------------------------------------------------------------------
+			// Mercenary Ability Groups (Unowned)
+			if (!data.MercenaryAbilityGroups.empty())
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				if (ImGui::TreeNode("Mercenary Abilities (Unowned)"))
+				{
+					MercenaryAbilityGroup* group = data.MercenaryAbilityGroups.GetFirst();
+					while (group)
+					{
+						int groupId = data.MercenaryAbilityGroups.GetKey(group);
+
+						if (const MercenaryAbilitiesData* unownedAbility = data.GetFirstUnownedAbilityByGroupId(groupId))
+						{
+							int curRank = data.GetMercenaryMaxOwnedGroupRank(unownedAbility->AbilityID) + 1;
+							int maxRank = data.GetMercenaryMaxGroupRank(unownedAbility->AbilityID);
+
+							char label[256];
+							sprintf_s(label, "%s (%d/%d)", unownedAbility->GetNameString(), curRank, maxRank);
+
+							DrawMercenaryAbilityRow(unownedAbility, label, true);
+						}
+
+						group = data.MercenaryAbilityGroups.GetNext(group);
+					}
+
+					ImGui::TreePop();
+				}
+			}
+
+			ImGui::EndTable();
+		}
+	}
+
+	void Draw() override
+	{
+		if (ImGui::BeginTabBar("##AbilitySections"))
+		{
+			if (ImGui::BeginTabItem("Player AA"))
+			{
+				DrawPlayerAbilities();
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("Mercenary AA"))
+			{
+				DrawMercenaryAbilities();
+				ImGui::EndTabItem();
+			}
+
+			ImGui::EndTabBar();
+		}
+	}
+};
+static AltAbilityInspector* a_altAbilityInspector = nullptr;
 
 #pragma region Spells Developer Tool
 
@@ -1887,6 +2510,9 @@ static void DeveloperTools_Initialize()
 	s_achievementsInspector = new AchievementsInspector();
 	DeveloperTools_RegisterMenuItem(s_achievementsInspector, "Achievements", s_menuNameInspectors);
 
+	a_altAbilityInspector = new AltAbilityInspector();
+	DeveloperTools_RegisterMenuItem(a_altAbilityInspector, "Alt Abilities", s_menuNameInspectors);
+
 	s_spellsInspector = new SpellsInspector();
 	DeveloperTools_RegisterMenuItem(s_spellsInspector, "Spells", s_menuNameInspectors);
 
@@ -1906,6 +2532,9 @@ static void DeveloperTools_Shutdown()
 
 	DeveloperTools_UnregisterMenuItem(s_achievementsInspector);
 	delete s_achievementsInspector; s_achievementsInspector = nullptr;
+
+	DeveloperTools_UnregisterMenuItem(a_altAbilityInspector);
+	delete a_altAbilityInspector; a_altAbilityInspector = nullptr;
 
 	DeveloperTools_UnregisterMenuItem(s_spellsInspector);
 	delete s_spellsInspector; s_spellsInspector = nullptr;

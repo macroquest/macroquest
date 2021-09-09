@@ -1069,11 +1069,11 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		// alt ability
 		for (int i = 0; i < NUM_ALT_ABILITIES; ++i)
 		{
-			auto pAbility = GetAAByIdWrapper(i, level);
+			auto pAbility = GetAAById(i, level);
 			if (!pAbility)
 				continue;
 
-			const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName);
+			const char* pName = pAbility->GetNameString();
 			if (!pName || _strnicmp(pSpell->Name, pName, strlen(pSpell->Name)) || pAbility->SpellID == -1)
 				continue;
 

@@ -34,7 +34,8 @@ enum class SwitchMembers
 	HeadingTo,
 	Name,
 	LineOfSight,
-	IsTargeted
+	IsTargeted,
+	State,
 };
 
 enum class SwitchMethods
@@ -62,6 +63,7 @@ MQ2SwitchType::MQ2SwitchType() : MQ2Type("switch")
 	ScopedTypeMember(SwitchMembers, Name);
 	ScopedTypeMember(SwitchMembers, LineOfSight);
 	ScopedTypeMember(SwitchMembers, IsTargeted);
+	ScopedTypeMember(SwitchMembers, State);
 
 	ScopedTypeMethod(SwitchMethods, Toggle);
 	ScopedTypeMethod(SwitchMethods, Target);
@@ -266,6 +268,11 @@ bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 	case SwitchMembers::IsTargeted:
 		Dest.Set(pTheSwitch == pSwitchTarget);
 		Dest.Type = pBoolType;
+		return true;
+
+	case SwitchMembers::State:
+		Dest.Type = pIntType;
+		Dest.DWord = pTheSwitch->State;
 		return true;
 
 	default: break;

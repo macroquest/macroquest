@@ -1342,7 +1342,7 @@ int GetCurrencyIDByName(char* szName)
 }
 
 // This wrapper is here to deal with older plugins and to preserve bacwards compatability with older clients (emu)
-ALTABILITY* GetAAByIdWrapper(int nAbilityId, int playerLevel)
+CAltAbilityData* GetAAById(int nAbilityId, int playerLevel)
 {
 	return pAltAdvManager->GetAAById(nAbilityId, playerLevel);
 }
@@ -1353,7 +1353,7 @@ SPELL* GetSpellByAAName(const char* szName)
 
 	for (int nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++)
 	{
-		if (ALTABILITY* pAbility = GetAAByIdWrapper(nAbility, level))
+		if (CAltAbilityData* pAbility = GetAAById(nAbility, level))
 		{
 			if (pAbility->SpellID != -1)
 			{
@@ -2480,26 +2480,6 @@ bool PlayerHasAAAbility(int AAIndex)
 	return false;
 }
 
-#if 0
-const char* GetAANameByIndex(int AAIndex)
-{
-	for (int nAbility = 0; nAbility < NUM_ALT_ABILITIES_ARRAY; nAbility++)
-	{
-		if (((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
-		{
-			if (ALTABILITY* pAbility = ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability)
-			{
-				if (pAbility->Index == AAIndex)
-				{
-					return pStringTable->getString(pAbility->nName, 0);
-				}
-			}
-		}
-	}
-	return "AA Not Found";
-}
-#endif
-
 int GetAAIndexByName(const char* AAName)
 {
 	int level = pLocalPlayer ? pLocalPlayer->Level : -1;
@@ -2507,7 +2487,7 @@ int GetAAIndexByName(const char* AAName)
 	// check bought aa's first
 	for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 	{
-		if (ALTABILITY* pAbility = GetAAByIdWrapper(pLocalPC->GetAlternateAbilityId(nAbility), level))
+		if (CAltAbilityData* pAbility = GetAAById(pLocalPC->GetAlternateAbilityId(nAbility), level))
 		{
 			if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
 			{
@@ -2522,7 +2502,7 @@ int GetAAIndexByName(const char* AAName)
 	// not found? fine lets check them all then...
 	for (int nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++)
 	{
-		if (ALTABILITY* pAbility = GetAAByIdWrapper(nAbility, level))
+		if (CAltAbilityData* pAbility = GetAAById(nAbility, level))
 		{
 			if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
 			{
@@ -2542,7 +2522,7 @@ int GetAAIndexByID(int ID)
 	// check our bought aa's first
 	for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 	{
-		if (ALTABILITY* pAbility = GetAAByIdWrapper(pLocalPC->GetAlternateAbilityId(nAbility)))
+		if (CAltAbilityData* pAbility = GetAAById(pLocalPC->GetAlternateAbilityId(nAbility)))
 		{
 			if (pAbility->ID == ID)
 			{
@@ -2554,7 +2534,7 @@ int GetAAIndexByID(int ID)
 	// didnt find it? fine we go through them all then...
 	for (int nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++)
 	{
-		if (ALTABILITY* pAbility = GetAAByIdWrapper(nAbility))
+		if (CAltAbilityData* pAbility = GetAAById(nAbility))
 		{
 			if (pAbility->ID == ID)
 			{
@@ -5112,6 +5092,7 @@ int GetAvailableSharedBankSlots()
 	return HasExpansion(EXPANSION_TBL) ? 6 : HasExpansion(EXPANSION_CotF) ? 4 : 2;
 }
 
+#if 0
 // Just a Function that needs more work
 // I use this to test merc aa struct -eqmule
 void ListMercAltAbilities()
@@ -5140,6 +5121,7 @@ void ListMercAltAbilities()
 		}
 	}
 }
+#endif
 
 ItemContainer* GetItemContainerByType(ItemContainerInstance type)
 {
@@ -5753,9 +5735,9 @@ bool IsActiveAA(const char* pSpellName)
 
 	for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
 	{
-		if (ALTABILITY* pAbility = GetAAByIdWrapper(pLocalPC->GetAlternateAbilityId(nAbility), level))
+		if (CAltAbilityData* pAbility = GetAAById(pLocalPC->GetAlternateAbilityId(nAbility), level))
 		{
-			if (!_stricmp(pSpellName, pCDBStr->GetString(pAbility->nName, eAltAbilityName)))
+			if (!_stricmp(pSpellName, pDBStr->GetString(pAbility->nName, eAltAbilityName)))
 			{
 				if (pAbility->SpellID <= 0)
 				{

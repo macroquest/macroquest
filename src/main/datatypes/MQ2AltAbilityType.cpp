@@ -20,8 +20,10 @@ namespace mq::datatypes {
 enum class AltAbilityMembers
 {
 	Name = 1,
-	ShortName,
 	Description,
+	Category,
+	ShortName,
+	ShortName2,
 	MinLevel,
 	Cost,
 	RequiresAbility,
@@ -32,6 +34,7 @@ enum class AltAbilityMembers
 	Type,
 	ReuseTime,
 	ID,
+	GroupID,
 	MyReuseTime,
 	Flags,
 	Expansion,
@@ -46,8 +49,10 @@ enum class AltAbilityMembers
 MQ2AltAbilityType::MQ2AltAbilityType() : MQ2Type("altability")
 {
 	ScopedTypeMember(AltAbilityMembers, Name);
-	ScopedTypeMember(AltAbilityMembers, ShortName);
 	ScopedTypeMember(AltAbilityMembers, Description);
+	ScopedTypeMember(AltAbilityMembers, Category);
+	ScopedTypeMember(AltAbilityMembers, ShortName);
+	ScopedTypeMember(AltAbilityMembers, ShortName2);
 	ScopedTypeMember(AltAbilityMembers, MinLevel);
 	ScopedTypeMember(AltAbilityMembers, Cost);
 	ScopedTypeMember(AltAbilityMembers, RequiresAbility);
@@ -58,6 +63,7 @@ MQ2AltAbilityType::MQ2AltAbilityType() : MQ2Type("altability")
 	ScopedTypeMember(AltAbilityMembers, Type);
 	ScopedTypeMember(AltAbilityMembers, ReuseTime);
 	ScopedTypeMember(AltAbilityMembers, ID);
+	ScopedTypeMember(AltAbilityMembers, GroupID);
 	ScopedTypeMember(AltAbilityMembers, MyReuseTime);
 	ScopedTypeMember(AltAbilityMembers, Flags);
 	ScopedTypeMember(AltAbilityMembers, Expansion);
@@ -71,7 +77,7 @@ MQ2AltAbilityType::MQ2AltAbilityType() : MQ2Type("altability")
 
 bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar & Dest)
 {
-	ALTABILITY* pAbility = static_cast<ALTABILITY*>(VarPtr.Ptr);
+	CAltAbilityData* pAbility = static_cast<CAltAbilityData*>(VarPtr.Ptr);
 	if (!pAbility)
 		return false;
 
@@ -83,37 +89,37 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 	{
 	case AltAbilityMembers::Name:
 		Dest.Type = pStringType;
-		if (const char* ptr = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
-		{
-			strcpy_s(DataTypeTemp, ptr);
-			Dest.Ptr = &DataTypeTemp[0];
-			return true;
-		}
-		return false;
-
-	case AltAbilityMembers::ShortName:
-		// What is this even for? Need to check -eqmule
-		Dest.Type = pStringType;
-		if (const char* ptr = pCDBStr->GetString(pAbility->nName, eAltAbilityButton1))
-		{
-			strcpy_s(DataTypeTemp, ptr);
-			Dest.Ptr = &DataTypeTemp[0];
-			return true;
-		}
-		return false;
+		strcpy_s(DataTypeTemp, pAbility->GetNameString());
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
 
 	case AltAbilityMembers::Description:
 		Dest.Type = pStringType;
-		if (const char* ptr = pCDBStr->GetString(pAbility->nName, eAltAbilityDescription))
-		{
-			strcpy_s(DataTypeTemp, ptr);
-			Dest.Ptr = &DataTypeTemp[0];
-			return true;
-		}
-		return false;
+		strcpy_s(DataTypeTemp, pAbility->GetDescriptionString());
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
+
+	case AltAbilityMembers::Category:
+		Dest.Type = pStringType;
+		strcpy_s(DataTypeTemp, pAbility->GetCategoryString());
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
+
+	case AltAbilityMembers::ShortName:
+		Dest.Type = pStringType;
+		strcpy_s(DataTypeTemp, pAbility->GetShortName1());
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
+
+	case AltAbilityMembers::ShortName2:
+		Dest.Type = pStringType;
+		strcpy_s(DataTypeTemp, pAbility->GetShortName2());
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
 
 	case AltAbilityMembers::ID:
-		Dest.DWord = pAbility->ID;
+	case AltAbilityMembers::GroupID:
+		Dest.DWord = pAbility->GroupID;
 		Dest.Type = pIntType;
 		return true;
 
@@ -147,31 +153,32 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 
 	case AltAbilityMembers::RequiresAbility:
 		Dest.Type = pAltAbilityType;
-		if (pAbility->RequiredGroupLevels && *pAbility->RequiredGroupLevels > 0)
+		if (!pAbility->RequiredGroups.empty() && !pAbility->RequiredGroupLevels.empty())
 		{
-			for (int nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++)
+			int requiredGroup = pAbility->RequiredGroups[0];
+			int requiredGroupRank = pAbility->RequiredGroupLevels[0];
+
+			if (requiredGroup > 0 && requiredGroupRank > 0)
 			{
-				if (ALTABILITY* tmppAbility = GetAAByIdWrapper(nAbility))
+				for (int nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++)
 				{
-					if (tmppAbility->ID == *pAbility->RequiredGroupLevels)
+					CAltAbilityData* tmpAbility = GetAAById(nAbility);
+					if (tmpAbility && tmpAbility->GroupID == requiredGroup)
 					{
-						Dest.Ptr = tmppAbility;
+						Dest.Ptr = tmpAbility;
 						return true;
 					}
 				}
 			}
 		}
-
-		if (pAbility)
-			DebugSpew("ability %d not found\n", pAbility->RequiredGroupLevels);
 		return false;
 
 	case AltAbilityMembers::RequiresAbilityPoints:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (pAbility->RequiresAbilityPoints)
+		if (!pAbility->RequiredGroups.empty() && !pAbility->RequiredGroupLevels.empty())
 		{
-			Dest.DWord = *pAbility->RequiresAbilityPoints;
+			Dest.DWord = pAbility->RequiredGroupLevels[0];
 			return true;
 		}
 		return false;
@@ -225,14 +232,13 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		Dest.Type = pIntType;
 		return true;
 
-	case AltAbilityMembers::CanTrain: {
-		if (ALTABILITY* pNextAbility = GetAAByIdWrapper(pAbility->NextGroupAbilityId))
+	case AltAbilityMembers::CanTrain:
+		if (CAltAbilityData* pNextAbility = GetAAById(pAbility->NextGroupAbilityId))
 			pAbility = pNextAbility;
 
 		Dest.Set(pAltAdvManager->CanTrainAbility(pLocalPC, pAbility, false, false, false));
 		Dest.Type = pBoolType;
 		return true;
-	}
 
 	case AltAbilityMembers::NextIndex:
 		Dest.DWord = pAbility->NextGroupAbilityId;
@@ -247,11 +253,11 @@ bool MQ2AltAbilityType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 
 bool MQ2AltAbilityType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	ALTABILITY* pAbility = static_cast<ALTABILITY*>(VarPtr.Ptr);
+	CAltAbilityData* pAbility = static_cast<CAltAbilityData*>(VarPtr.Ptr);
 	if (!pAbility)
 		return false;
 
-	_itoa_s(pAbility->ID, Destination, MAX_STRING, 10);
+	_itoa_s(pAbility->GroupID, Destination, MAX_STRING, 10);
 	return true;
 }
 
@@ -272,9 +278,9 @@ bool MQ2AltAbilityType::dataAltAbility(const char* szIndex, MQTypeVar& Ret)
 	{
 		for (int nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++)
 		{
-			if (ALTABILITY* pAbility = GetAAByIdWrapper(nAbility))
+			if (CAltAbilityData* pAbility = GetAAById(nAbility))
 			{
-				if (pAbility->ID == GetIntFromString(szIndex, 0))
+				if (pAbility->GroupID == GetIntFromString(szIndex, 0))
 				{
 					Ret.Ptr = pAbility;
 					Ret.Type = pAltAbilityType;
@@ -290,16 +296,14 @@ bool MQ2AltAbilityType::dataAltAbility(const char* szIndex, MQTypeVar& Ret)
 
 		for (int nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++)
 		{
-			if (PALTABILITY pAbility = GetAAByIdWrapper(nAbility, level))
+			if (CAltAbilityData* pAbility = GetAAById(nAbility, level))
 			{
-				if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
+				const char* pName = pAbility->GetNameString();
+				if (!_stricmp(szIndex, pName))
 				{
-					if (!_stricmp(szIndex, pName))
-					{
-						Ret.Ptr = pAbility;
-						Ret.Type = pAltAbilityType;
-						return true;
-					}
+					Ret.Ptr = pAbility;
+					Ret.Type = pAltAbilityType;
+					return true;
 				}
 			}
 		}
