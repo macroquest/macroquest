@@ -5092,6 +5092,7 @@ int GetAvailableSharedBankSlots()
 	return HasExpansion(EXPANSION_TBL) ? 6 : HasExpansion(EXPANSION_CotF) ? 4 : 2;
 }
 
+#if 0
 // Just a Function that needs more work
 // I use this to test merc aa struct -eqmule
 void ListMercAltAbilities()
@@ -5120,6 +5121,7 @@ void ListMercAltAbilities()
 		}
 	}
 }
+#endif
 
 ItemContainer* GetItemContainerByType(ItemContainerInstance type)
 {
