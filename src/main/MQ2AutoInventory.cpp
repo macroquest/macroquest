@@ -180,7 +180,7 @@ public:
 							pCheck->SetTooltip(szTemp3);
 
 							list->SetItemWnd(i, MarkCol, pCheck);
-
+#if defined(LIVE)
 							if (ItemGlobalIndex* gi = pFIWnd->gi[(int)pCheck->GetData()])
 							{
 								if (ItemPtr ptr = pLocalPC->GetItemByGlobalIndex(*gi))
@@ -209,6 +209,7 @@ public:
 									list->SetItemText(i, ValueCol, szTemp3);
 								}
 							}
+#endif
 						}
 					}
 
@@ -413,11 +414,13 @@ public:
 
 							if (pMerchantWnd && pMerchantWnd->IsVisible() && list->CurSel >= 0)
 							{
+#if defined(LIVE)
 								int dta = (int)list->GetItemData(list->CurSel);
 								if (ItemGlobalIndex* igg = pThis->gi[dta])
 								{
 									pMerchantWnd->SelectBuySellSlot(*igg, igg->GetTopSlot());
 								}
+#endif
 							}
 
 							int Checked = 0;
@@ -560,6 +563,7 @@ public:
 									{
 										if (button->bChecked)
 										{
+#if defined(LIVE)
 											CXStr str = list->GetItemText(i, 1);
 											int dta = (int)list->GetItemData(i);
 
@@ -567,6 +571,7 @@ public:
 											{
 												gDeleteList.push_back(*igg);
 											}
+#endif
 										}
 									}
 								}
@@ -600,6 +605,7 @@ public:
 										{
 											int dta = (int)list->GetItemData(i);
 
+#if defined(LIVE)
 											if (ItemGlobalIndex* gi = pThis->gi[dta])
 											{
 												if (ItemPtr ptr = pLocalPC->GetItemByGlobalIndex(*gi))
@@ -621,6 +627,7 @@ public:
 													}
 												}
 											}
+#endif
 										}
 									}
 								}
