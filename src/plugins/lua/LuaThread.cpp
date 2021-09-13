@@ -322,7 +322,7 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(
 	std::error_code ec;
 	if (!std::filesystem::exists(script_path, ec))
 	{
-		LuaError("Could not find script at path %s", script_path.c_str());
+		LuaError("Could not find script at path %s", script_path.string().c_str());
 		return std::nullopt;
 	}
 
