@@ -2687,7 +2687,9 @@ PLUGIN_API void InitializePlugin()
 	}
 
 	AddXMLFile(TipWndXML);
+#if !defined(TEST)
 	EzDetourwName(CInvSlotWnd__DrawTooltip, &ItemDisplayHook::CInvSlotWnd_DrawTooltipDetour, &ItemDisplayHook::CInvSlotWnd_DrawTooltipTramp,"CInvSlotWnd__DrawTooltip");
+#endif
 
 	if (gGameState == GAMESTATE_INGAME)
 	{
@@ -2701,7 +2703,9 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveXMLFile(TipWndXML);
 
 	// Remove commands, macro parameters, hooks, etc.
+#if !defined(TEST)
 	RemoveDetour(CInvSlotWnd__DrawTooltip);
+#endif
 	RemoveDetour(CItemDisplayWnd__SetSpell);
 	RemoveDetour(CItemDisplayWnd__UpdateStrings);
 	RemoveDetour(CItemDisplayWnd__AboutToShow);
