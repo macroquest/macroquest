@@ -90,6 +90,9 @@
     <ClInclude Include="dirent\dirent.h">
       <Filter>Header Files\dirent</Filter>
     </ClInclude>
+    <ClInclude Include="ImGuiMemoryEditor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">

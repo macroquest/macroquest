@@ -154,6 +154,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="ImGuiFileDialog.h" />
     <ClInclude Include="ImGuiFileDialogConfig.h" />
+    <ClInclude Include="ImGuiMemoryEditor.h" />
     <ClInclude Include="ImGuiTextEditor.h" />
     <ClInclude Include="ImGuiTreePanelWindow.h" />
     <ClInclude Include="ImGuiUtils.h" />

@@ -19,6 +19,7 @@
 
 #include "imgui/fonts/IconsFontAwesome.h"
 #include "imgui/imgui_internal.h"
+#include "imgui/ImGuiMemoryEditor.h"
 #include "zep.h"
 
 #include "mq/imgui/ImGuiUtils.h"
@@ -82,6 +83,39 @@ const char* GetTeleportName(DWORD id)
 }
 
 //----------------------------------------------------------------------------
+
+#pragma region Memory Viewer
+
+struct WindowMemoryViewer : public MemoryEditor
+{
+	using MemoryEditor::MemoryEditor;
+
+	CXWnd* window;
+	size_t size;
+	std::string name;
+};
+std::vector<WindowMemoryViewer> s_memoryEditors;
+
+void AddMemoryEditor(CXWnd* window, size_t size)
+{
+	auto& editor = s_memoryEditors.emplace_back();
+	editor.ReadOnly = true;
+	editor.Cols = 16;
+	editor.OptShowDataPreview = true;
+	editor.window = window;
+	editor.size = ((size + 4095) / 4096) * 4096;
+	editor.name = std::string("Memory Editor: ") + (window->GetWindowName() ? window->GetWindowName()->c_str() : "?");
+}
+
+void DrawMemoryEditors()
+{
+	s_memoryEditors.erase(std::remove_if(s_memoryEditors.begin(), s_memoryEditors.end(),
+		[](auto& editor) {
+			editor.DrawWindow(editor.name.c_str(), editor.window, editor.size /*,(size_t)editor.window*/);
+			return !editor.Open; }), s_memoryEditors.end());
+}
+
+#pragma endregion
 
 #pragma region Datatype Serializers
 
@@ -2945,6 +2979,8 @@ public:
 					++iter;
 				}
 			}
+
+			DrawMemoryEditors();
 		}
 
 		if (!m_open)
@@ -3230,6 +3266,8 @@ public:
 			ImGui::Separator();
 			if (ImGui::Selectable("Copy Window Child TLO"))
 				CopyWindowChildTLO(pWnd);
+			if (ImGui::Selectable("View Memory"))
+				AddMemoryEditor(pWnd, sizeof(CXWnd));
 
 			ImGui::EndPopup();
 		}
