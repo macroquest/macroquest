@@ -180,10 +180,11 @@ public:
 							pCheck->SetTooltip(szTemp3);
 
 							list->SetItemWnd(i, MarkCol, pCheck);
-#if defined(LIVE)
-							if (ItemGlobalIndex* gi = pFIWnd->gi[(int)pCheck->GetData()])
+
+							ItemGlobalIndex itemIndex = pFIWnd->GetItemGlobalIndex((int)pCheck->GetData());
+							if (itemIndex.IsValidIndex())
 							{
-								if (ItemPtr ptr = pLocalPC->GetItemByGlobalIndex(*gi))
+								if (ItemPtr ptr = pLocalPC->GetItemByGlobalIndex(itemIndex))
 								{
 									ItemDefinition* pItem = ptr->GetItemDefinition();
 									if (gbColorsFeatureEnabled)
@@ -209,7 +210,6 @@ public:
 									list->SetItemText(i, ValueCol, szTemp3);
 								}
 							}
-#endif
 						}
 					}
 
@@ -414,13 +414,11 @@ public:
 
 							if (pMerchantWnd && pMerchantWnd->IsVisible() && list->CurSel >= 0)
 							{
-#if defined(LIVE)
-								int dta = (int)list->GetItemData(list->CurSel);
-								if (ItemGlobalIndex* igg = pThis->gi[dta])
+								ItemGlobalIndex itemIndex = pThis->GetItemGlobalIndex((int)list->GetItemData(list->CurSel));
+								if (itemIndex.IsValidIndex())
 								{
-									pMerchantWnd->SelectBuySellSlot(*igg, igg->GetTopSlot());
+									pMerchantWnd->SelectBuySellSlot(itemIndex, itemIndex.GetTopSlot());
 								}
-#endif
 							}
 
 							int Checked = 0;
@@ -563,15 +561,11 @@ public:
 									{
 										if (button->bChecked)
 										{
-#if defined(LIVE)
-											CXStr str = list->GetItemText(i, 1);
-											int dta = (int)list->GetItemData(i);
-
-											if (ItemGlobalIndex* igg = (ItemGlobalIndex*)pThis->gi[dta])
+											ItemGlobalIndex itemIndex = pThis->GetItemGlobalIndex((int)list->GetItemData(i));
+											if (itemIndex.IsValidIndex())
 											{
-												gDeleteList.push_back(*igg);
+												gDeleteList.push_back(itemIndex);
 											}
-#endif
 										}
 									}
 								}
@@ -603,31 +597,25 @@ public:
 									{
 										if (button->bChecked)
 										{
-											int dta = (int)list->GetItemData(i);
-
-#if defined(LIVE)
-											if (ItemGlobalIndex* gi = pThis->gi[dta])
+											ItemGlobalIndex itemIndex = pThis->GetItemGlobalIndex((int)list->GetItemData(0));
+											if (ItemPtr ptr = pLocalPC->GetItemByGlobalIndex(itemIndex))
 											{
-												if (ItemPtr ptr = pLocalPC->GetItemByGlobalIndex(*gi))
-												{
-													ItemDefinition* pItem = ptr->GetItemDefinition();
+												ItemDefinition* pItem = ptr->GetItemDefinition();
 
-													if (pMerchantWnd && pMerchantWnd->IsVisible())
+												if (pMerchantWnd && pMerchantWnd->IsVisible())
+												{
+													WriteChatf("[%d] Adding %s to Sell List", i, ptr->GetName());
+													gSellList.push_back(itemIndex);
+												}
+												else
+												{
+													WriteChatf("[%d] Marking %s as Never Loot", i, ptr->GetName());
+													if (pLootFiltersManager)
 													{
-														WriteChatf("[%d] Adding %s to Sell List", i, ptr->GetName());
-														gSellList.push_back(*gi);
-													}
-													else
-													{
-														WriteChatf("[%d] Marking %s as Never Loot", i, ptr->GetName());
-														if (pLootFiltersManager)
-														{
-															pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 8, false, false);
-														}
+														pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 8, false, false);
 													}
 												}
 											}
-#endif
 										}
 									}
 								}
