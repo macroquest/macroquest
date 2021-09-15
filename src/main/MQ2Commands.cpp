@@ -543,21 +543,17 @@ void Items(SPAWNINFO* pChar, char* szLine)
 
 	for (EQPlacedItem* pObj = pPIM.Top; pObj != nullptr; pObj = pObj->pNext)
 	{
-		const RealEstateItemClient* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
+		const RealEstateItem* pRealEstateItem = manager.GetItemByRealEstateAndItemIds(pObj->RealEstateID, pObj->RealEstateItemID);
 		if (!pRealEstateItem)
 			continue;
 
-		ItemClient* pCont = pRealEstateItem->Object.pItemBase.get();
-		if (!pCont)
-			continue;
-
-		ItemDefinition* pItem = pCont->GetItemDefinition();
+		ItemPtr pItem = pRealEstateItem->GetItem();
 		if (!pItem)
 			continue;
 
-		DebugSpew("   Item found - %d: DropID %d %s", pObj->RealEstateID, pObj->RealEstateItemID, pItem->Name);
+		DebugSpew("   Item found - %d: DropID %d %s", pObj->RealEstateID, pObj->RealEstateItemID, pItem->GetName());
 
-		if (szLine[0] == 0 || ci_find_substr(pItem->Name, szLine) != -1)
+		if (szLine[0] == 0 || ci_find_substr(pItem->GetName(), szLine) != -1)
 		{
 			float Distance = Get3DDistance(
 				pChar->X, pChar->Y, pChar->Z,
@@ -566,7 +562,7 @@ void Items(SPAWNINFO* pChar, char* szLine)
 			int Angle = static_cast<int>((atan2f(pChar->X - pObj->X, pChar->Y - pObj->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
 
 			std::string name = fmt::format("[{0}] {1} {2} ({3})",
-				pObj->RealEstateItemID, pItem->Name, pObj->Name, pRealEstateItem->OwnerInfo.OwnerName);
+				pObj->RealEstateItemID, pItem->GetName(), pObj->Name, pRealEstateItem->GetOwnerName());
 
 			itemsMap.emplace(Distance, iteminfo{ std::move(name), Angle });
 		}

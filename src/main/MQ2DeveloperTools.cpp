@@ -1199,7 +1199,6 @@ public:
 		}
 	}
 
-
 	void DrawPlayerAbilities()
 	{
 		ImVec2 size(0, 0);
@@ -1733,7 +1732,620 @@ public:
 		}
 	}
 };
-static AltAbilityInspector* a_altAbilityInspector = nullptr;
+static AltAbilityInspector* s_altAbilityInspector = nullptr;
+
+#pragma endregion
+
+#pragma region Real Estate Inspector
+
+class RealEstateInspector : public ImGuiWindowBase
+{
+public:
+	RealEstateInspector() : ImGuiWindowBase("RealEstate Inspector")
+	{
+		SetDefaultSize(ImVec2(600, 400));
+	}
+
+	~RealEstateInspector()
+	{
+	}
+
+	bool IsEnabled() const override
+	{
+		return GetPcProfile() != nullptr && GetGameState() == GAMESTATE_INGAME;
+	}
+
+	void DrawRealEstateItemRow(const RealEstateItem* item)
+	{
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("Real Estate ID");
+		ImGui::TableNextColumn(); ImGui::Text("%d", item->GetRealEstateId());
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("Real Estate Item ID");
+		ImGui::TableNextColumn(); ImGui::Text("%d", item->GetRealEstateItemId());
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("Item");
+		if (ItemPtr pItem = item->GetItem())
+		{
+			ImGui::TableNextColumn();
+			if (imgui::ItemLinkText(pItem->GetName(), GetColorForChatColor(USERCOLOR_LINK)))
+				pItemDisplayManager->ShowItem(pItem);
+		}
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("Owner Name");
+		ImGui::TableNextColumn(); ImGui::Text("%s", item->GetOwnerName().c_str());
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("Owner Handle");
+		ImGui::TableNextColumn(); ImGui::Text("%s", item->GetOwnerHandle().c_str());
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("Owner Name Hash Key");
+		ImGui::TableNextColumn(); ImGui::Text("%d", item->GetOwnerNameHashKey());
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("Is Placed");
+		ImGui::TableNextColumn(); ImGui::Text("%s", item->IsPlaced() ? "true" : "false");
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("Upkeep Expired Time");
+		ImGui::TableNextColumn(); ImGui::Text("%d", item->GetUpkeepExpiredTime());
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("Position");
+		ImGui::TableNextColumn(); ImGui::Text("%.2f %.2f %.2f", item->GetX(), item->GetY(), item->GetZ());
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("Heading");
+		ImGui::TableNextColumn(); ImGui::Text("%.2f", item->GetHeading());
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("Pitch");
+		ImGui::TableNextColumn(); ImGui::Text("%.2f", item->GetPitch());
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("Roll");
+		ImGui::TableNextColumn(); ImGui::Text("%.2f", item->GetRoll());
+	}
+
+	void DrawRealEstateAccessListRow(const RealEstateAccess* access)
+	{
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		if (ImGui::TreeNode("Access Groups"))
+		{
+			for (int i = 0; i < RealEstateAccessGroup::eNumGroups; ++i)
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				char szLabel[64];
+				sprintf_s(szLabel, "%s (%d)", RealEstateAccessGroupToString(static_cast<RealEstateAccessGroups>(i)), i);
+
+				if (ImGui::TreeNode(szLabel))
+				{
+					const RealEstateAccessGroup& group = access->accessGroups[i];
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Group");
+					ImGui::TableNextColumn(); ImGui::Text("%s (%d)", RealEstateAccessGroupToString(group.group), group.group);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::TreeNode("Capabilities"))
+					{
+						for (int bit = 0; bit < group.capabilities.GetNumBits(); ++bit)
+						{
+							if (group.capabilities.IsBitSet(bit))
+							{
+								ImGui::TableNextRow();
+								ImGui::TableNextColumn();
+								ImGui::Text("%s (%d)", RealEstateCapabilityToString(static_cast<RealEstateCapabilities>(bit)), bit);
+							}
+						}
+
+						ImGui::TreePop();
+					}
+
+					ImGui::TreePop();
+				}
+			}
+
+			ImGui::TreePop();
+		}
+
+		if (ImGui::TreeNode("Members"))
+		{
+			for (auto& p : access->playersToGroups)
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("%s", p.second.c_str());
+				ImGui::TableNextColumn(); ImGui::Text("%s (%d)",
+					RealEstateAccessGroupToString(static_cast<RealEstateAccessGroups>(p.first)), p.first);
+			}
+
+			ImGui::TreePop();
+		}
+	}
+
+	void DrawRealEstateItemsRow(const RealEstateItems* items)
+	{
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("realEstateId");
+		ImGui::TableNextColumn(); ImGui::Text("%d", items->realEstateId);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("nonRealEstateItemCount");
+		ImGui::TableNextColumn(); ImGui::Text("%d", items->nonRealEstateItemCount);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("npcItemCount");
+		ImGui::TableNextColumn(); ImGui::Text("%d", items->npcItemCount);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("upkeepItemCount");
+		ImGui::TableNextColumn(); ImGui::Text("%d", items->upkeepItemCount);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		if (ImGui::TreeNode("realEstateItems"))
+		{
+			for (const auto& [item, id] : *items)
+			{
+				char label[256];
+				sprintf_s(label, "%s (%d)", item->GetItem()->GetName(), item->GetRealEstateItemId());
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				if (ImGui::TreeNode(label))
+				{
+					DrawRealEstateItemRow(item);
+
+					ImGui::TreePop();
+				}
+			}
+
+			ImGui::TreePop();
+		}
+	}
+
+	void DrawRealEstateDefinitionRow(const RealEstateDefinition* definition)
+	{
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("id");
+		ImGui::TableNextColumn(); ImGui::Text("%d", definition->id);
+
+		if (!definition->name.empty())
+		{
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn(); ImGui::Text("name");
+			ImGui::TableNextColumn(); ImGui::Text("%s", definition->name.c_str());
+		}
+
+		if (!definition->description.empty())
+		{
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn(); ImGui::Text("description");
+			ImGui::TableNextColumn(); ImGui::Text("%s", definition->description.c_str());
+		}
+
+		if (!definition->address.empty())
+		{
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn(); ImGui::Text("address");
+			ImGui::TableNextColumn(); ImGui::Text("%s", definition->address.c_str());
+		}
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("zoneInCoords");
+		ImGui::TableNextColumn(); ImGui::Text("%.2f %.2f %.2f", definition->zoneInCoords.x,
+			definition->zoneInCoords.y, definition->zoneInCoords.z);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("areaId");
+		ImGui::TableNextColumn(); ImGui::Text("%d", definition->areaId);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("costDefinition");
+		ImGui::TableNextColumn(); ImGui::Text("%d", definition->costDefinition);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("upkeepDefinition");
+		ImGui::TableNextColumn(); ImGui::Text("%d", definition->upkeepDefinition);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("maxItems");
+		ImGui::TableNextColumn(); ImGui::Text("%d", definition->maxItems);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("maxNonRealEstateItems");
+		ImGui::TableNextColumn(); ImGui::Text("%d", definition->maxNonRealEstateItems);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("maxChildren");
+		ImGui::TableNextColumn(); ImGui::Text("%d", definition->maxChildren);
+
+		// 35642 = guildhall3
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("zoneId");
+		ImGui::TableNextColumn(); ImGui::Text("%d", definition->zoneId);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("dzId");
+		ImGui::TableNextColumn(); ImGui::Text("%d", definition->dzId);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("type");
+		ImGui::TableNextColumn(); ImGui::Text("%s (%d)", RealEstateTypeToString(definition->type), definition->type);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("groupId");
+		ImGui::TableNextColumn(); ImGui::Text("%d", definition->groupId);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("icon");
+		ImGui::TableNextColumn(); ImGui::Text("%d", definition->icon);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("maxNpcItems");
+		ImGui::TableNextColumn(); ImGui::Text("%d", definition->maxNpcItems);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("switchCoords");
+		ImGui::TableNextColumn(); ImGui::Text("%.2f %.2f %.2f", definition->switchCoords.x,
+			definition->switchCoords.y, definition->switchCoords.z);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("switchHeading");
+		ImGui::TableNextColumn(); ImGui::Text("%.2f", definition->switchHeading);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		if (ImGui::TreeNode("Child Definitions"))
+		{
+			for (int i = 0; i < definition->childDefinitions.GetCount(); ++i)
+			{
+				int definitionId = definition->childDefinitions[i];
+
+				char label[64];
+				sprintf_s(label, "%d", definitionId);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+				if (ImGui::TreeNode(label))
+				{
+					RealEstateDefinition* pDefinition = pRealEstate->definitions->definitions.FindFirst(definitionId);
+					if (pDefinition)
+					{
+						DrawRealEstateDefinitionRow(pDefinition);
+					}
+
+					ImGui::TreePop();
+				}
+			}
+
+			ImGui::TreePop();
+		}
+	}
+
+	void DrawRealEstateTableRow(RealEstate* realEstate)
+	{
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("id");
+		ImGui::TableNextColumn(); ImGui::Text("%d", realEstate->GetId());
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("staticId");
+		ImGui::TableNextColumn(); ImGui::Text("%d", realEstate->GetStaticId());
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("parentId");
+		ImGui::TableNextColumn(); ImGui::Text("%d", realEstate->GetParentId());
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		bool expandDefinition = ImGui::TreeNode("definition");
+		ImGui::TableNextColumn(); ImGui::Text("%d", realEstate->definitionId);
+		if (expandDefinition)
+		{
+			if (const RealEstateDefinition* pDefinition = pRealEstate->definitions->GetDefinition(realEstate->definitionId))
+			{
+				DrawRealEstateDefinitionRow(pDefinition);
+			}
+
+			ImGui::TreePop();
+		}
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("guildId");
+		ImGui::TableNextColumn(); ImGui::Text("%d", realEstate->guildId.UniqueEntityID);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("fellowshipId");
+		ImGui::TableNextColumn(); ImGui::Text("%d", realEstate->fellowshipId);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("primaryOwner");
+		ImGui::TableNextColumn(); ImGui::Text("%s", realEstate->primaryOwner.c_str());
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("primaryHandle");
+		ImGui::TableNextColumn(); ImGui::Text("%s", realEstate->primaryHandle.c_str());
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("defaultPermissionLevel");
+		ImGui::TableNextColumn(); ImGui::Text("%d", realEstate->defaultPermissionLevel);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("dynamicName");
+		ImGui::TableNextColumn(); ImGui::Text("%s", realEstate->dynamicName.c_str());
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("defaultUpkeepId");
+		ImGui::TableNextColumn(); ImGui::Text("%d", realEstate->defaultUpkeepId);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("upkeepExpiredTime");
+		ImGui::TableNextColumn(); ImGui::Text("%d", realEstate->upkeepExpiredTime);
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn(); ImGui::Text("votingOptedOut");
+		ImGui::TableNextColumn(); ImGui::Text("%s", realEstate->votingOptedOut ? "true" : "false");
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		if (ImGui::TreeNode("Escrow Account"))
+		{
+			for (auto [id, amount] : realEstate->escrowAccount)
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Type %d", id);
+				ImGui::TableNextColumn(); ImGui::Text("%.2f", amount);
+			}
+
+			ImGui::TreePop();
+		}
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		if (ImGui::TreeNode("Children"))
+		{
+			for (int i = 0; i < realEstate->childIds.GetCount(); ++i)
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("%d", i + 1);
+				ImGui::TableNextColumn(); ImGui::Text("%d", realEstate->childIds[i].UniqueEntityID);
+			}
+
+			ImGui::TreePop();
+		}
+	}
+
+	void Draw() override
+	{
+		RealEstateManagerClient* pMgr = pRealEstate;
+
+		if (ImGui::BeginTable("##RealEstateTable", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
+		{
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn("Data", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableHeadersRow();
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+
+			//----------------------------------------------------------------------------
+			// realEstates - RealEstate by realEstateId
+
+			if (ImGui::TreeNode("realEstates"))
+			{
+				for (const auto& p : pMgr->realEstates)
+				{
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+
+					char label[64];
+					sprintf_s(label, "%d##%p", p.second, (void*)&p);
+
+					if (ImGui::TreeNode(label))
+					{
+						RealEstate* realEstate = p.first;
+
+						DrawRealEstateTableRow(realEstate);
+
+						ImGui::TreePop();
+					}
+				}
+
+				ImGui::TreePop();
+			}
+
+			//----------------------------------------------------------------------------
+			// realEstatesByOwnerName
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+
+			if (ImGui::TreeNode("realEstatesByOwnerName"))
+			{
+				for (const auto& p : pMgr->realEstatesByOwnerName)
+				{
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+
+					char label[64];
+					sprintf_s(label, "%s##%p", p.second.c_str(), (void*)&p);
+
+					if (ImGui::TreeNode(label))
+					{
+						RealEstate* realEstate = p.first;
+
+						DrawRealEstateTableRow(realEstate);
+
+						ImGui::TreePop();
+					}
+				}
+
+				ImGui::TreePop();
+			}
+
+			//----------------------------------------------------------------------------
+			// guildPlotsByGuildId
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+
+			if (ImGui::TreeNode("guildPlotsByGuildId"))
+			{
+				RealEstateManager::RealEstateHolder* ppRealEstate = pMgr->guildPlotsByGuildId.GetFirst();
+				if (ppRealEstate)
+				{
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+
+					RealEstate* realEstate = ppRealEstate->realEstate;
+					EqGuid key = pMgr->guildPlotsByGuildId.GetKey(ppRealEstate);
+
+
+					char label[64];
+					sprintf_s(label, "%d##%p", key.UniqueEntityID, (void*)ppRealEstate);
+
+					if (ImGui::TreeNode(label))
+					{
+						DrawRealEstateTableRow(realEstate);
+
+						ImGui::TreePop();
+					}
+
+					ppRealEstate = pMgr->guildPlotsByGuildId.GetNext(ppRealEstate);
+				}
+
+				ImGui::TreePop();
+			}
+
+			//----------------------------------------------------------------------------
+			// realEstateAccessLists
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+
+			if (ImGui::TreeNode("accessLists"))
+			{
+				for (auto& [accessList, realEstateId] : pMgr->accessLists)
+				{
+					char label[64];
+					sprintf_s(label, "%d", realEstateId);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+
+					if (ImGui::TreeNode(label))
+					{
+						DrawRealEstateAccessListRow(accessList);
+
+						ImGui::TreePop();
+					}
+				}
+
+				ImGui::TreePop();
+			}
+
+
+			//----------------------------------------------------------------------------
+			// realEstateItemLists
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+
+			if (ImGui::TreeNode("itemLists"))
+			{
+				for (auto& [itemsClient, realEstateId] : pMgr->itemLists)
+				{
+					char label[64];
+					sprintf_s(label, "%d", realEstateId);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+
+					if (ImGui::TreeNode(label))
+					{
+						DrawRealEstateItemsRow(itemsClient);
+
+						ImGui::TreePop();
+					}
+				}
+
+				ImGui::TreePop();
+			}
+
+			//----------------------------------------------------------------------------
+			// definitions
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+
+			if (ImGui::TreeNode("definitions"))
+			{
+				for (const auto& p : pMgr->definitions->definitions)
+				{
+					const RealEstateDefinition& def = p.first;
+
+					char label[64];
+					sprintf_s(label, "%d", def.id);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+
+					if (ImGui::TreeNode(label))
+					{
+						DrawRealEstateDefinitionRow(&def);
+
+						ImGui::TreePop();
+					}
+
+				}
+				ImGui::TreePop();
+			}
+
+			//----------------------------------------------------------------------------
+			// RealEstateManager data
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn(); ImGui::Text("zoneRealEstateId");
+			ImGui::TableNextColumn(); ImGui::Text("%d", pMgr->zoneRealEstateId);
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn(); ImGui::Text("zoneRealEstateType");
+			ImGui::TableNextColumn(); ImGui::Text("%s (%d)", RealEstateTypeToString(pMgr->zoneRealEstateType), pMgr->zoneRealEstateType);
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn(); ImGui::Text("currentRealEstateId");
+			ImGui::TableNextColumn(); ImGui::Text("%d", pMgr->currentRealEstateId);
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn(); ImGui::Text("currentYardId");
+			ImGui::TableNextColumn(); ImGui::Text("%d", pMgr->currentYardId);
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn(); ImGui::Text("currentHouseId");
+			ImGui::TableNextColumn(); ImGui::Text("%d", pMgr->currentHouseId);
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn(); ImGui::Text("currentMovingCrateId");
+			ImGui::TableNextColumn(); ImGui::Text("%d", pMgr->currentMovingCrateId);
+
+			ImGui::EndTable();
+		}
+	}
+};
+static RealEstateInspector* s_realEstateInspector = nullptr;
+
+#pragma endregion
 
 #pragma region Spells Developer Tool
 
@@ -2510,8 +3122,11 @@ static void DeveloperTools_Initialize()
 	s_achievementsInspector = new AchievementsInspector();
 	DeveloperTools_RegisterMenuItem(s_achievementsInspector, "Achievements", s_menuNameInspectors);
 
-	a_altAbilityInspector = new AltAbilityInspector();
-	DeveloperTools_RegisterMenuItem(a_altAbilityInspector, "Alt Abilities", s_menuNameInspectors);
+	s_altAbilityInspector = new AltAbilityInspector();
+	DeveloperTools_RegisterMenuItem(s_altAbilityInspector, "Alt Abilities", s_menuNameInspectors);
+
+	s_realEstateInspector = new RealEstateInspector();
+	DeveloperTools_RegisterMenuItem(s_realEstateInspector, "Real Estate", s_menuNameInspectors);
 
 	s_spellsInspector = new SpellsInspector();
 	DeveloperTools_RegisterMenuItem(s_spellsInspector, "Spells", s_menuNameInspectors);
@@ -2533,8 +3148,11 @@ static void DeveloperTools_Shutdown()
 	DeveloperTools_UnregisterMenuItem(s_achievementsInspector);
 	delete s_achievementsInspector; s_achievementsInspector = nullptr;
 
-	DeveloperTools_UnregisterMenuItem(a_altAbilityInspector);
-	delete a_altAbilityInspector; a_altAbilityInspector = nullptr;
+	DeveloperTools_UnregisterMenuItem(s_altAbilityInspector);
+	delete s_altAbilityInspector; s_altAbilityInspector = nullptr;
+
+	DeveloperTools_UnregisterMenuItem(s_realEstateInspector);
+	delete s_realEstateInspector; s_realEstateInspector = nullptr;
 
 	DeveloperTools_UnregisterMenuItem(s_spellsInspector);
 	delete s_spellsInspector; s_spellsInspector = nullptr;

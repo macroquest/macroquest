@@ -467,9 +467,9 @@ CXStr GetFriendlyNameForPlacedItem(const EQPlacedItem* pItem)
 
 	const RealEstateManagerClient& real_estate = RealEstateManagerClient::Instance();
 	auto pRealEstateItem = real_estate.GetItemByRealEstateAndItemIds(pItem->RealEstateID, pItem->RealEstateItemID);
-	if (pRealEstateItem && pRealEstateItem->Object.pItemBase)
+	if (pRealEstateItem && pRealEstateItem->GetItem())
 	{
-		ItemDefinition* placed = pRealEstateItem->Object.pItemBase->GetItemDefinition();
+		ItemDefinition* placed = pRealEstateItem->GetItem()->GetItemDefinition();
 		if (placed)
 			return placed->Name;
 	}
