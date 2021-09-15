@@ -697,7 +697,7 @@ const char* szEquipmentSlot[] = {
 	nullptr
 };
 
-const char* szItemSlot[] = {
+const char* szItemSlot[InvSlot_Max + 1] = {
 	"charm",        // 0
 	"leftear",      // 1
 	"head",
@@ -731,11 +731,13 @@ const char* szItemSlot[] = {
 	"pack8",        // 30
 	"pack9",
 	"pack10",
+	"pack11",
+	"pack12",
 	"cursor",
 	nullptr         // 34
 };
 
-const char* szExpansions[] = {
+const char* szExpansions[NUM_EXPANSIONS + 1] = {
 	"The Ruins of Kunark",
 	"The Scars of Velious",
 	"The Shadows of Luclin",
