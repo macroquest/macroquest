@@ -299,9 +299,9 @@ MQLIB_VAR bool IsResEffectSpell(int);
 MQLIB_VAR const char* szDmgBonusType[];
 MQLIB_VAR const char* szBodyType[];
 MQLIB_VAR const char* szAugRestrictions[];
-MQLIB_VAR const char* szItemSlot[];
+MQLIB_VAR const char* szItemSlot[InvSlot_Max + 1];
 MQLIB_VAR const char* szEquipmentSlot[];
-MQLIB_VAR const char* szExpansions[];
+MQLIB_VAR const char* szExpansions[NUM_EXPANSIONS + 1];
 
 MQLIB_VAR std::map<std::string, MQDataVar*> VariableMap;
 MQLIB_VAR std::unordered_map<std::string, std::unique_ptr<MQDataItem>> MQ2DataMap;
