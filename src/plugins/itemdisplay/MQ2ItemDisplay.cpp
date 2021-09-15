@@ -32,12 +32,9 @@ constexpr int MAX_ITEMDISPLAY_WINDOWS = 6;
 
 char ConvertFrom[MAX_STRING] = { 0 };
 char ConvertTo[MAX_STRING] = { 0 };
-bool bDisabledComparetip = false;
-bool gCompareTip = false;
 bool gLootButton = true;
 bool gLucyButton = true;
 std::recursive_mutex s_mutex;
-const char* TipWndXML = "MQUI_CompareTipWnd.xml";
 
 struct ButtonInfo
 {
@@ -251,40 +248,6 @@ bool dataLastItem(const char* szName, MQTypeVar& Ret)
 // Description: Our Item display hook
 // ***************************************************************************
 
-// Don't ever directly reference this. We don't know when it might get deleted. We only use
-// this to check if the current tooltip item has changed.
-ItemClient* gpOldTooltipItem = nullptr;
-
-class CCompareTipWnd : public CSidlScreenWnd
-{
-public:
-	CCompareTipWnd() : CSidlScreenWnd(nullptr, "CompareTipWnd", -1, 1, nullptr)
-	{
-		CreateChildrenFromSidl();
-		SetEscapable(false);
-		SetFaded(true);
-		SetZLayer(100);
-		SetAlpha(0xfa);
-		SetBGColor(0xFF000000);
-		SetBGType(1);
-		SetClickThrough(true);
-
-		Display = (CStmlWnd*)GetChildItem("CT_Display");
-	}
-
-	~CCompareTipWnd()
-	{
-	}
-
-	int WndNotification(CXWnd* pWnd, unsigned int Message, void* data) override
-	{
-		return CSidlScreenWnd::WndNotification(pWnd, Message, data);
-	}
-
-/*0x218*/ CStmlWnd* Display;
-};
-CCompareTipWnd* pCompareTipWnd = nullptr;
-
 int CanIUseThisItem(ItemDefinition* pItem)
 {
 	if (PcProfile* pProfile = GetPcProfile())
@@ -332,8 +295,6 @@ ItemPtr GetItemEquippedInSlot(const ItemPtr& pItem)
 
 	return nullptr;
 }
-
-static void UpdateCompareWindow(ItemClient* pCont, ItemClient* pEquipped);
 
 class ItemDisplayHook
 {
@@ -1672,42 +1633,11 @@ public:
 
 		return AboutToShow_Trampoline();
 	}
-
-	int CInvSlotWnd_DrawTooltipTramp(const CXWnd* pwnd) const;
-	int CInvSlotWnd_DrawTooltipDetour(const CXWnd* pwnd) const
-	{
-		if (!gCompareTip)
-		{
-			return CInvSlotWnd_DrawTooltipTramp(pwnd);
-		}
-
-		CInvSlotWnd* wnd = (CInvSlotWnd*)this;
-		ItemPtr pItem = wnd->pInvSlot ? wnd->pInvSlot->GetItem() : nullptr;
-
-		if (pItem && pItem.get() != gpOldTooltipItem)
-		{
-			gpOldTooltipItem = pItem.get();
-
-			if (pCompareTipWnd && pCompareTipWnd->Display)
-			{
-				if (ItemPtr pEquipped = GetItemEquippedInSlot(pItem))
-				{
-					if (pItem != pEquipped)
-					{
-						UpdateCompareWindow(pItem.get(), pEquipped.get());
-					}
-				}
-			}
-		}
-
-		return CInvSlotWnd_DrawTooltipTramp(pwnd);
-	}
 };
 
 ItemDisplayHook::SEffectType ItemDisplayHook::eEffectType = None;
 bool ItemDisplayHook::bNoSpellTramp = false;
 
-DETOUR_TRAMPOLINE_EMPTY(int ItemDisplayHook::CInvSlotWnd_DrawTooltipTramp(const CXWnd* pwnd) const);
 DETOUR_TRAMPOLINE_EMPTY(int ItemDisplayHook::WndNotification_Trampoline(CXWnd*, uint32_t, void*));
 DETOUR_TRAMPOLINE_EMPTY(bool ItemDisplayHook::AboutToShow_Trampoline());
 DETOUR_TRAMPOLINE_EMPTY(void ItemDisplayHook::SetSpell_Trampoline(int SpellID, bool bFullInfo));
@@ -1834,441 +1764,6 @@ void ItemDisplayCmd(SPAWNINFO* pChar, char* szLine)
 			}
 		}
 	}
-	else if (!_stricmp(szArg1, "Compare"))
-	{
-		if (bToggle)
-		{
-			gCompareTip = !gCompareTip;
-		}
-		else
-		{
-			gCompareTip = bon;
-		}
-
-		WriteChatf("Display of Compare Tip is now \ay%s\ax.", (gCompareTip ? "Enabled" : "Disabled"));
-		_itoa_s(gCompareTip, szArg1, 10);
-		WritePrivateProfileString("Settings", "CompareTip", szArg1, INIFileName);
-	}
-}
-
-static void AddCompareTableData(char* buffer, size_t length, const char* statname, unsigned long statcolor, float statvalue)
-{
-	char szBuffer[256] = { 0 };
-	if (statvalue != 0.00f)
-	{
-		sprintf_s(szBuffer, "<TD><c \"#FFFFFF\">%s</c></TD><TD><c \"#%06X\">%+2.3f</c></TD>", statname, statcolor, statvalue);
-		strcat_s(buffer, length, szBuffer);
-	}
-	else
-	{
-		strcat_s(buffer, length, "<TD></TD><TD></TD>");
-	}
-}
-
-static void AddCompareTableData(char* buffer, size_t length, const char* statname, unsigned long statcolor, int statvalue)
-{
-	char szBuffer[256] = { 0 };
-	if (statvalue != 0)
-	{
-		sprintf_s(szBuffer, "<TD><c \"#FFFFFF\">%s</c></TD><TD><c \"#%06X\">%+d</c></TD>", statname, statcolor, statvalue);
-		strcat_s(buffer, length, szBuffer);
-	}
-	else
-	{
-		strcat_s(buffer, length, "<TD></TD><TD></TD>");
-	}
-}
-
-static void UpdateCompareWindow(ItemClient* pCont, ItemClient* pEquipped)
-{
-	ItemDefinition* pItem = GetItemFromContents(pCont);
-	ItemDefinition* pItem2 = GetItemFromContents(pEquipped);
-	if (!pItem || !pItem2 || !CanIUseThisItem(pItem))
-		return;
-
-	PSPAWNINFO pSpawn = (PSPAWNINFO)pLocalPlayer;
-	if (!pSpawn)
-		return;
-
-	// Set the location for the window to the mouse cursor
-	CXPoint pt;
-	pt.x = EQADDR_MOUSE->X + 5;
-	pt.y = EQADDR_MOUSE->Y + 5;
-	pCompareTipWnd->Move(pt);
-
-	// Set the layer of the window to display
-	pCompareTipWnd->SetZLayer(105);        // Bags are z-index 100
-	pCompareTipWnd->SetBringToTopWhenClicked(true);
-	pCompareTipWnd->SetEscapable(true);
-
-	pCompareTipWnd->Display->SetSTMLText("", false);
-	pCompareTipWnd->Display->ForceParseNow();
-
-	char szTemp[MAX_STRING] = { 0 };
-	char szTable[MAX_STRING] = { 0 };
-	char szTemp2[256] = { 0 };
-	unsigned int color_red = 0xFF0000;
-	unsigned int color_green = 0x00FF00;
-	unsigned int color_yellow = 0xFFFF00;
-
-	// Display Name/Lore/NoDrop tags.
-	sprintf_s(szTemp, "<c \"#ffff00\">%s</c><c \"#FFFFFF\">&NBSP;&NBSP;Vs</c>&NBSP;&NBSP;<c \"#00FF00\">%s(equipped)</c><br>", pItem->Name, pItem2->Name);
-	pCompareTipWnd->Display->SetSTMLText(szTemp, false);
-
-	if (pItem->Lore)
-		strcpy_s(szTemp2, "[Lore]");
-	if (!pItem->IsDroppable)
-	{
-		if (pItem->Lore)
-			strcat_s(szTemp2, " ");
-		strcat_s(szTemp2, "[No Drop]");
-	}
-	if (!pItem->IsDroppable || pItem->Lore)
-		strcat_s(szTemp2, "<br>");
-	pCompareTipWnd->Display->AppendSTML(szTemp2);
-
-	// Display all the slots - No table, need it to word wrap
-	szTemp2[0] = 0;
-	sprintf_s(szTemp, "<c \"#ffff00\">%s<br></c>", GetSlots(pItem, szTemp2));
-	pCompareTipWnd->Display->AppendSTML(szTemp);
-
-	// Begin table
-	strcat_s(szTable, "<TABLE>");
-
-	// Row -- Size          AC
-	{
-		int ACStat = pItem->AC - pItem2->AC;
-		unsigned int ACcolor = (ACStat >= 0) ? color_green : color_red;
-
-		int dmgStat = pItem->Damage - pItem2->Damage;
-		unsigned int dmgColor = (dmgStat >= 0) ? color_green : color_red;
-
-		sprintf_s(szTemp, "<TR><TD><c \"#FFFFFF\">Size: </c></TD><TD><c \"#00FF00\">%s</c></TD>", szSize[pItem->Size]);
-		AddCompareTableData(szTemp, MAX_STRING, "AC:", ACcolor, ACStat);
-		AddCompareTableData(szTemp, MAX_STRING, "Damage:", dmgColor, dmgStat);
-		strcat_s(szTemp, "</TR>");
-		strcat_s(szTable, szTemp);
-	}
-
-	// Row -- Weight         HP:          Elemental:
-	{
-		float weightstat = (float)((int)pItem->Weight - (int)pItem2->Weight) / 10.f;
-
-		// If item weighs more, make it red.
-		unsigned int weightcolor = (weightstat > 0) ? color_red : color_green;
-
-		// compute HP and color
-		int HPStat = pItem->HP - pItem2->HP;
-		unsigned int hpcolor = (HPStat >= 0) ? color_green : color_red;
-
-		// FIXME: this is not working for all weapons (Fabled Rune Etched Bamboo Bo for example has
-		// 4 fire damage, but it is no showing up here)
-		// compute ele dmg and color
-		int eleDmgStat = pItem->ElementalDamage - pItem2->ElementalDamage;
-		unsigned int eleDmgColor = (eleDmgStat >= 0) ? color_green : color_red;
-
-		// FIXME: Also missing, is damage bonus
-
-		strcpy_s(szTemp, "<TR>");
-		AddCompareTableData(szTemp, MAX_STRING, "Weight:", weightcolor, weightstat);
-		AddCompareTableData(szTemp, MAX_STRING, "HP:", hpcolor, HPStat);
-		AddCompareTableData(szTemp, MAX_STRING, "Elemental:", eleDmgColor, eleDmgStat);
-		strcat_s(szTemp, "</TR>");
-		strcat_s(szTable, szTemp);
-	}
-
-	// Row -- RecLevel       Mana:
-	{
-		// We're just going to display the rec level, but let's choose a color.
-		// Yellow if we can use it, but not greater than or equal to the rec level.
-		unsigned int recLevelColor = color_red;
-		if (pItem->RecommendedLevel < pSpawn->Level)
-			recLevelColor = color_green;     // My level is higher than recommended level, so it's green.
-		else if (pItem->RecommendedLevel > pSpawn->Level)
-			recLevelColor = color_yellow;    // recommended level is higher than mine, so it's yellow.
-
-		int manastat = pItem->Mana - pItem2->Mana;
-		unsigned int manaColor = (manastat >= 0) ? color_green : color_red;
-
-		int bsstat = pItem->BackstabDamage - pItem2->BackstabDamage;
-		unsigned int bscolor = (bsstat >= 0) ? color_green : color_red;
-
-		strcpy_s(szTemp, "<TR>");
-		AddCompareTableData(szTemp, MAX_STRING, "Recommended:", recLevelColor, pItem->RecommendedLevel);
-		AddCompareTableData(szTemp, MAX_STRING, "Mana:", manaColor, manastat);
-		AddCompareTableData(szTemp, MAX_STRING, "Backstab:", bscolor, bsstat);
-		strcat_s(szTemp, "</TR>");
-		strcat_s(szTable, szTemp);
-	}
-
-	// Row -- ReqLevel       Endurance:
-	{
-		unsigned int reqLevelColor = color_red;
-		if (pItem->RequiredLevel < pSpawn->Level)
-			reqLevelColor = color_green;      // My level is higher than recommended level, so it's green.
-
-		int endstat = pItem->Endurance - pItem2->Endurance;
-		unsigned int endColor = (endstat >= 0) ? color_green : color_red;
-
-		int delaystat = (int)pItem->Delay - pItem2->Delay;
-		unsigned int delaycolor = (delaystat >= 0) ? color_red : color_green;
-
-		strcpy_s(szTemp, "<TR>");
-		AddCompareTableData(szTemp, MAX_STRING, "Required:", reqLevelColor, pItem->RequiredLevel);
-		AddCompareTableData(szTemp, MAX_STRING, "Endurance:", endColor, endstat);
-		AddCompareTableData(szTemp, MAX_STRING, "Delay:", delaycolor, delaystat);
-		strcat_s(szTemp, "</TR>");
-		strcat_s(szTable, szTemp);
-	}
-
-	// Row -- Skill          (Blank)        Haste:
-	{
-		int hastestat = pItem->Haste - pItem2->Haste;
-		unsigned int hasteColor = (hastestat >= 0) ? color_green : color_red;
-
-		// FIXME: Skill does no make much sense for all items. Probably only needs to be displayed for weapons.
-
-		sprintf_s(szTemp, "<TR><TD>Skill:</TD><TD><c \"#%06X\">%s</c></TD>", color_green, szItemClasses[pItem->ItemType]);
-		AddCompareTableData(szTemp, MAX_STRING, "Haste:", hasteColor, hastestat);
-		strcat_s(szTemp, "</TR>");
-		strcat_s(szTable, szTemp);
-	}
-
-	// Row -- Efficiency       OffhandEff          Ratio
-	{
-		// Avoid division by zero
-		float item1ratio = (pItem->Damage != 0) ? ((float)pItem->Delay / (float)pItem->Damage) : 0.0f;
-		float item2ratio = (pItem2->Damage != 0) ? ((float)pItem2->Delay / (float)pItem2->Damage) : 0.0f;
-		float ratiostat = item1ratio - item2ratio;
-		unsigned int ratiocolor = (ratiostat >= 0) ? color_red : color_green;
-
-		float effstat = (pItem->Delay != 0) ? (((((float)pItem->Damage * 2) + pItem->DmgBonusValue) / (float)pItem->Delay) * 50) : 0.0f;
-		float eff2stat = (pItem2->Delay != 0) ? (((((float)pItem2->Damage * 2) + pItem2->DmgBonusValue) / (float)pItem2->Delay) * 50) : 0.0f;
-		effstat -= eff2stat;
-		unsigned int effcolor = (effstat >= 0) ? color_green : color_red;
-
-		float offeffstat = (pItem->Delay != 0) ? (((((float)pItem->Damage * 2) / (float)pItem->Delay) * 50.0f) * 0.62f) : 0.0f;
-		float offeff2stat = (pItem2->Delay != 0) ? (((((float)pItem2->Damage * 2) / (float)pItem2->Delay) * 50.0f) * 0.62f) : 0.0f;
-		offeffstat -= offeff2stat;
-		unsigned int offeffcolor = (offeffstat >= 0) ? color_green : color_red;
-
-		strcpy_s(szTemp, "<TR>");
-		AddCompareTableData(szTemp, MAX_STRING, "Efficiency:", effcolor, (int)effstat);
-		if (pItem->EquipSlots & 16384 || pItem2->EquipSlots & 16384)
-			AddCompareTableData(szTemp, MAX_STRING, "Offhand Eff:", offeffcolor, (int)offeffstat);
-		else
-			strcat_s(szTemp, "<TD></TD><TD></TD>");
-		AddCompareTableData(szTemp, MAX_STRING, "Ratio:", ratiocolor, ratiostat);
-		strcat_s(szTemp, "</TR>");
-		strcat_s(szTable, szTemp);
-	}
-
-	// Row -- Luck
-	{
-		int luckstat = pCont->Luck - pEquipped->Luck;
-		unsigned int luckcolor = (luckstat >= 0) ? color_green : color_red;
-
-		strcpy_s(szTemp, "<TR><TD></TD><TD></TD><TD></TD><TD></TD>");
-		AddCompareTableData(szTemp, MAX_STRING, "Luck:", luckcolor, luckstat);
-		strcat_s(szTemp, "</TR>");
-		strcat_s(szTable, szTemp);
-	}
-
-	// Finish this table and start a new one
-	strcat_s(szTable, "</TABLE><br>");
-	pCompareTipWnd->Display->AppendSTML(szTable);
-
-	strcpy_s(szTable, "<TABLE>");
-
-	// Row -- Strength:        Magic:        Attack:
-	{
-		int strstat = pItem->STR - pItem2->STR;
-		unsigned int strcolor = (strstat >= 0) ? color_green : color_red;
-
-		int hstrstat = pItem->HeroicSTR - pItem2->HeroicSTR;
-		unsigned int hstrcolor = (hstrstat >= 0) ? color_green : color_red;
-
-		int MRstat = pItem->SvMagic - pItem2->SvMagic;
-		unsigned int mrcolor = (MRstat >= 0) ? color_green : color_red;
-
-		int atkstat = pItem->Attack - pItem2->Attack;
-		unsigned int atkcolor = (atkstat >= 0) ? color_green : color_red;
-
-		strcpy_s(szTemp, "<TR>");
-		AddCompareTableData(szTemp, MAX_STRING, "Strength:", strcolor, strstat);
-		AddCompareTableData(szTemp, MAX_STRING, "<c \"#d6b228\">HStr:</c>", hstrcolor, hstrstat);
-		AddCompareTableData(szTemp, MAX_STRING, "Magic:", mrcolor, MRstat);
-		AddCompareTableData(szTemp, MAX_STRING, "Attack:", atkcolor, atkstat);
-		strcat_s(szTemp, "</TR>");
-		strcat_s(szTable, szTemp);
-	}
-
-	// Row -- Stamina:              Fire:            HP Regen:
-	{
-		int stastat = pItem->STA - pItem2->STA;
-		unsigned int stacolor = (stastat >= 0) ? color_green : color_red;
-
-		int hstastat = pItem->HeroicSTA - pItem2->HeroicSTA;
-		unsigned int hstacolor = (hstastat >= 0) ? color_green : color_red;
-
-		int frstat = pItem->SvFire - pItem2->SvFire;
-		unsigned int frcolor = (frstat >= 0) ? color_green : color_red;
-
-		int hpregenstat = pItem->HPRegen - pItem2->HPRegen;
-		unsigned int hpregencolor = (hpregenstat >= 0) ? color_green : color_red;
-
-		strcpy_s(szTemp, "<TR>");
-		AddCompareTableData(szTemp, MAX_STRING, "Stamina:", stacolor, stastat);
-		AddCompareTableData(szTemp, MAX_STRING, "<c \"#d6b228\">HSta:</c>", hstacolor, hstastat);
-		AddCompareTableData(szTemp, MAX_STRING, "Fire:", frcolor, frstat);
-		AddCompareTableData(szTemp, MAX_STRING, "HP Regen:", hpregencolor, hpregenstat);
-		strcat_s(szTemp, "</TR>");
-		strcat_s(szTable, szTemp);
-	}
-
-	// Row -- Intelligence:          Cold:            Mana Regen:
-	{
-		int intstat = pItem->INT - pItem2->INT;
-		unsigned int intcolor = (intstat >= 0) ? color_green : color_red;
-
-		int hintstat = pItem->HeroicINT - pItem2->HeroicINT;
-		unsigned int hintcolor = (hintstat >= 0) ? color_green : color_red;
-
-		int crstat = pItem->SvCold - pItem2->SvCold;
-		unsigned int crcolor = (crstat >= 0) ? color_green : color_red;
-
-		int manaregenstat = pItem->ManaRegen - pItem2->ManaRegen;
-		unsigned int manaregencolor = (manaregenstat >= 0) ? color_green : color_red;
-
-		strcpy_s(szTemp, "<TR>");
-		AddCompareTableData(szTemp, MAX_STRING, "Intelligence:", intcolor, intstat);
-		AddCompareTableData(szTemp, MAX_STRING, "<c \"#d6b228\">HInt:</c>", hintcolor, hintstat);
-		AddCompareTableData(szTemp, MAX_STRING, "Cold:", crcolor, crstat);
-		AddCompareTableData(szTemp, MAX_STRING, "Mana Regen:", manaregencolor, manaregenstat);
-		strcat_s(szTemp, "</TR>");
-		strcat_s(szTable, szTemp);
-	}
-
-	// Row -- Wisdom:               Disease:           Heal Amount:
-	{
-		int wisstat = pItem->WIS - pItem2->WIS;
-		unsigned int wiscolor = (wisstat >= 0) ? color_green : color_red;
-
-		int hwisstat = pItem->HeroicWIS - pItem2->HeroicWIS;
-		unsigned int hwiscolor = (hwisstat >= 0) ? color_green : color_red;
-
-		int drstat = pItem->SvDisease - pItem2->SvDisease;
-		unsigned int drcolor = (drstat >= 0) ? color_green : color_red;
-
-		int healstat = pItem->HealAmount - pItem2->HealAmount;
-		unsigned int healcolor = (healstat >= 0) ? color_green : color_red;
-
-		strcpy_s(szTemp, "<TR>");
-		AddCompareTableData(szTemp, MAX_STRING, "Wisdom:", wiscolor, wisstat);
-		AddCompareTableData(szTemp, MAX_STRING, "<c \"#d6b228\">HWis:</c>", hwiscolor, hwisstat);
-		AddCompareTableData(szTemp, MAX_STRING, "Disease:", drcolor, drstat);
-		AddCompareTableData(szTemp, MAX_STRING, "Heal Amt:", healcolor, healstat);
-		strcat_s(szTemp, "</TR>");
-		strcat_s(szTable, szTemp);
-	}
-
-	// Row -- Agility:              Poison:             Spell Dmg:
-	{
-		int agistat = pItem->AGI - pItem2->AGI;
-		unsigned int agicolor = (agistat >= 0) ? color_green : color_red;
-
-		int hagistat = pItem->HeroicAGI - pItem2->HeroicAGI;
-		unsigned int hagicolor = (hagistat >= 0) ? color_green : color_red;
-
-		int prstat = pItem->SvPoison - pItem2->SvPoison;
-		unsigned int prcolor = (prstat >= 0) ? color_green : color_red;
-
-		int spelldmgstat = pItem->SpellDamage - pItem2->SpellDamage;
-		unsigned int spelldmgcolor = (spelldmgstat >= 0) ? color_green : color_red;
-
-		strcpy_s(szTemp, "<TR>");
-		AddCompareTableData(szTemp, MAX_STRING, "Agility:", agicolor, agistat);
-		AddCompareTableData(szTemp, MAX_STRING, "<c \"#d6b228\">HAgi:</c>", hagicolor, hagistat);
-		AddCompareTableData(szTemp, MAX_STRING, "Poison:", prcolor, prstat);
-		AddCompareTableData(szTemp, MAX_STRING, "Spell Dmg:", spelldmgcolor, spelldmgstat);
-		strcat_s(szTemp, "</TR>");
-		strcat_s(szTable, szTemp);
-	}
-
-	// Row -- Dexterity:               Corrupt:           Clairvoyance:
-	{
-		int dexstat = pItem->DEX - pItem2->DEX;
-		unsigned int dexcolor = (dexstat >= 0) ? color_green : color_red;
-
-		int hdexstat = pItem->HeroicDEX - pItem2->HeroicDEX;
-		unsigned int hdexcolor = (hdexstat >= 0) ? color_green : color_red;
-
-		int corstat = pItem->SvCorruption - pItem2->SvCorruption;
-		unsigned int corcolor = (corstat >= 0) ? color_green : color_red;
-
-		int clairstat = pItem->Clairvoyance - pItem2->Clairvoyance;
-		unsigned int claircolor = (clairstat >= 0) ? color_green : color_red;
-
-		strcpy_s(szTemp, "<TR>");
-		AddCompareTableData(szTemp, MAX_STRING, "Dexterity:", dexcolor, dexstat);
-		AddCompareTableData(szTemp, MAX_STRING, "<c \"#d6b228\">HDex:</c>", hdexcolor, hdexstat);
-		AddCompareTableData(szTemp, MAX_STRING, "Corruption:", corcolor, corstat);
-		AddCompareTableData(szTemp, MAX_STRING, "Clairvoyance:", claircolor, clairstat);
-		strcat_s(szTemp, "</TR>");
-		strcat_s(szTable, szTemp);
-	}
-
-	// Row -- Charisma:               (blank)                 FlyingKick (or any other dmgbonus skill)
-	{
-		int chastat = pItem->CHA - pItem2->CHA;
-		unsigned int chacolor = (chastat >= 0) ? color_green : color_red;
-
-		int hchastat = pItem->HeroicCHA - pItem2->HeroicCHA;
-		unsigned int hchacolor = (hchastat >= 0) ? color_green : color_red;
-
-		strcpy_s(szTemp, "<TR>");
-		AddCompareTableData(szTemp, MAX_STRING, "Charisma:", chacolor, chastat);
-		AddCompareTableData(szTemp, MAX_STRING, "<c \"#d6b228\">HCha:</c>", hchacolor, hchastat);
-		strcat_s(szTemp, "<TD></TD><TD></TD>");
-
-		if ((pItem->DmgBonusValue || pItem2->DmgBonusValue) && pItem->DmgBonusSkill == pItem2->DmgBonusSkill)
-		{
-			// If both have skills and the skills match.
-			int dmgstat = pItem->DmgBonusValue - pItem2->DmgBonusValue;
-			unsigned int dmgstatcolor = (dmgstat >= 0) ? color_green : color_red;
-
-			AddCompareTableData(szTemp, MAX_STRING, szSkills[pItem->DmgBonusSkill], dmgstatcolor, dmgstat);
-		}
-		else if (pItem->DmgBonusSkill != pItem2->DmgBonusSkill)
-		{
-			// If both have skills, but they don't match.
-			if (pItem->DmgBonusValue)
-			{
-				sprintf_s(szTemp2, "<TD>%s:</c></TD><TD><c \"#%06X\">%+d</c></TD>", szSkills[pItem->DmgBonusSkill], color_green, pItem->DmgBonusValue);
-				strcat_s(szTemp, szTemp2);
-			}
-
-			if (pItem2->DmgBonusValue)
-			{
-				if (pItem->DmgBonusValue)
-				{
-					// If there's a second skill, end the row, move over 6 columns.
-					strcat_s(szTemp, "</TR><TR> <TD></TD> <TD></TD> <TD></TD> <TD></TD> <TD></TD> <TD></TD>");
-				}
-
-				sprintf_s(szTemp2, "<TD>%s:</c></TD><TD><c \"#%06X\">%+d</c></TD>", szSkills[pItem2->DmgBonusSkill], color_red, -(int)pItem2->DmgBonusValue);
-				strcat_s(szTemp, szTemp2);
-			}
-		}
-
-		strcat_s(szTemp, "</TR></TABLE>");
-		strcat_s(szTable, szTemp);
-	}
-
-	// We're done generating the STML so we can force an update now.
-	pCompareTipWnd->Display->AppendSTML(szTable);
-	pCompareTipWnd->Display->ForceParseNow();
-	pCompareTipWnd->SetVisible(true);
 }
 
 void RequestConvertItem(SPAWNINFO* pSpawn, char* szLine)
@@ -2599,43 +2094,11 @@ void Comment(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-void DestroyCompareTipWnd()
-{
-	if (pCompareTipWnd)
-	{
-		delete pCompareTipWnd;
-		pCompareTipWnd = nullptr;
-	}
-}
-
-void CreateCompareTipWnd()
-{
-	if (pCompareTipWnd || bDisabledComparetip)
-	{
-		return;
-	}
-
-	if (IsScreenPieceLoaded("CompareTipWnd"))
-	{
-		pCompareTipWnd = new CCompareTipWnd();
-		if (!pCompareTipWnd)
-		{
-			WriteChatf("[MQ2ItemDisplay] Unable to Create Tip Window.");
-		}
-	}
-	else
-	{
-		bDisabledComparetip = true;
-		WriteChatf("[MQ2ItemDisplay] Unable to create CompareTipWnd. Please do /reloadui");
-	}
-}
-
 // Called once, when the plugin is to initialize
 PLUGIN_API void InitializePlugin()
 {
 	gLootButton = 1 == GetPrivateProfileInt("Settings", "LootButton", 1, INIFileName);
 	gLucyButton = 1 == GetPrivateProfileInt("Settings", "LucyButton", 1, INIFileName);
-	gCompareTip = 1 == GetPrivateProfileInt("Settings", "CompareTip", 0, INIFileName);
 
 	EzDetourwName(CItemDisplayWnd__WndNotification, &ItemDisplayHook::WndNotification_Detour, &ItemDisplayHook::WndNotification_Trampoline, "CItemDisplayWnd__WndNotification");
 	EzDetourwName(CItemDisplayWnd__AboutToShow, &ItemDisplayHook::AboutToShow_Detour, &ItemDisplayHook::AboutToShow_Trampoline, "CItemDisplayWnd__AboutToShow");
@@ -2651,61 +2114,12 @@ PLUGIN_API void InitializePlugin()
 
 	pDisplayItemType = new MQ2DisplayItemType;
 	AddMQ2Data("DisplayItem", dataLastItem);
-
-	// The XML only needs to exist in the default UI for AddXML to load it
-	std::filesystem::path pathXML = gPathResources;
-	pathXML = pathXML / "uifiles" / "default" / TipWndXML;
-
-	std::error_code ec_fs;
-
-	if (!std::filesystem::exists(pathXML, ec_fs))
-	{
-		HMODULE hMe = nullptr;
-
-		GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-			(LPCTSTR)InitializePlugin, &hMe);
-
-		// need to unpack our resource.
-		if (const HRSRC hRes = FindResource(hMe, MAKEINTRESOURCE(IDR_XML1), "XML"))
-		{
-			if (const HGLOBAL bin = LoadResource(hMe, hRes))
-			{
-				if (const void* pMyBinaryData = LockResource(bin))
-				{
-					if (std::filesystem::exists(pathXML.parent_path(), ec_fs) || std::filesystem::create_directories(pathXML.parent_path(), ec_fs))
-					{
-						const std::size_t ressize = SizeofResource(hMe, hRes);
-						std::ofstream outFile(pathXML, std::ios::binary);
-						if (outFile)
-						{
-							outFile.write(static_cast<const char*>(pMyBinaryData), ressize);
-						}
-					}
-				}
-			}
-		}
-	}
-
-	AddXMLFile(TipWndXML);
-#if !defined(TEST)
-	EzDetourwName(CInvSlotWnd__DrawTooltip, &ItemDisplayHook::CInvSlotWnd_DrawTooltipDetour, &ItemDisplayHook::CInvSlotWnd_DrawTooltipTramp,"CInvSlotWnd__DrawTooltip");
-#endif
-
-	if (gGameState == GAMESTATE_INGAME)
-	{
-		CreateCompareTipWnd();
-	}
 }
 
 // Called once, when the plugin is to shutdown
 PLUGIN_API void ShutdownPlugin()
 {
-	RemoveXMLFile(TipWndXML);
-
 	// Remove commands, macro parameters, hooks, etc.
-#if !defined(TEST)
-	RemoveDetour(CInvSlotWnd__DrawTooltip);
-#endif
 	RemoveDetour(CItemDisplayWnd__SetSpell);
 	RemoveDetour(CItemDisplayWnd__UpdateStrings);
 	RemoveDetour(CItemDisplayWnd__AboutToShow);
@@ -2726,7 +2140,6 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveCommand("/removeaug");
 
 	delete pDisplayItemType;
-	DestroyCompareTipWnd();
 }
 
 PLUGIN_API void OnCleanUI()
@@ -2736,8 +2149,6 @@ PLUGIN_API void OnCleanUI()
 		i->first->Destroy();
 	}
 	ButtonMap.clear();
-
-	DestroyCompareTipWnd();
 }
 
 PLUGIN_API void OnReloadUI()
@@ -2747,20 +2158,10 @@ PLUGIN_API void OnReloadUI()
 		i->first->Destroy();
 	}
 	ButtonMap.clear();
-
-	if (GetGameState() == GAMESTATE_INGAME && pControlledPlayer)
-	{
-		bDisabledComparetip = false;
-		CreateCompareTipWnd();
-	}
 }
 
 PLUGIN_API void OnPulse()
 {
-	if (GetGameState() == GAMESTATE_INGAME)
-	{
-		CreateCompareTipWnd();
-	}
 }
 
 PLUGIN_API void OnBeginZone()
