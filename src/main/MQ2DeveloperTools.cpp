@@ -1942,8 +1942,8 @@ public:
 
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn(); ImGui::Text("zoneInCoords");
-		ImGui::TableNextColumn(); ImGui::Text("%.2f %.2f %.2f", definition->zoneInCoords.x,
-			definition->zoneInCoords.y, definition->zoneInCoords.z);
+		ImGui::TableNextColumn(); ImGui::Text("%.2f %.2f %.2f", definition->zoneInCoords.X,
+			definition->zoneInCoords.Y, definition->zoneInCoords.Z);
 
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn(); ImGui::Text("areaId");
@@ -1996,8 +1996,8 @@ public:
 
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn(); ImGui::Text("switchCoords");
-		ImGui::TableNextColumn(); ImGui::Text("%.2f %.2f %.2f", definition->switchCoords.x,
-			definition->switchCoords.y, definition->switchCoords.z);
+		ImGui::TableNextColumn(); ImGui::Text("%.2f %.2f %.2f", definition->switchCoords.X,
+			definition->switchCoords.Y, definition->switchCoords.Z);
 
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn(); ImGui::Text("switchHeading");
