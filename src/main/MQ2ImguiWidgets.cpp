@@ -130,33 +130,105 @@ bool DrawTextureAnimation(const CTextureAnimation* pAnim, const CXSize& size, bo
 
 //----------------------------------------------------------------------------
 
-bool ItemLinkTextV(const char* fmt, va_list args)
+MQColor DefaultLinkHoverColor = MQColor(0, 0, 255);
+
+bool ItemLinkTextV_Internal(ImGuiID id, MQColor color, const char* fmt, va_list args)
 {
-	ImVec2 pos = ImGui::GetCursorPos();
-	MQColor textLinkColor = GetColorForChatColor(USERCOLOR_LINK);
+	ImGui::PushID(id);
+
+	static ImGuiID hoveredID = 0;
+	ImGuiID thisID = ImGui::GetItemID();
+
+	bool isHovered = (hoveredID == thisID);
+	MQColor textLinkColor = isHovered ? DefaultLinkHoverColor : color;
+
 	ImGui::TextColoredV(textLinkColor.ToImColor(), fmt, args);
 
 	bool clicked = ImGui::IsItemClicked(0);
 
 	if (ImGui::IsItemHovered())
 	{
-		ImGui::SetCursorPos(pos);
-
-		// HACK: Render text again with different color.
-		ImGui::TextColoredV(MQColor(0, 0, 128).ToImColor(), fmt, args);
+		hoveredID = thisID;
 	}
+	else if (isHovered)
+	{
+		hoveredID = 0;
+	}
+
+	ImGui::PopID();
 
 	return clicked;
 }
 
-bool ItemLinkText(const char* fmt, ...)
+bool ItemLinkText(std::string_view sv, MQColor color, MQColor colorHovered)
+{
+	const char* str_begin = sv.data();
+	const char* str_end = sv.data() + sv.length();
+
+	ImGuiID thisID = ImGui::GetID(str_begin, str_end);
+	ImGui::PushOverrideID(thisID);
+
+	static ImGuiID hoveredID = 0;
+
+	bool isHovered = (hoveredID == thisID);
+	MQColor textLinkColor = isHovered ? colorHovered : color;
+
+	ImGui::PushStyleColor(ImGuiCol_Text, textLinkColor.ToImU32());
+
+	ImGui::TextUnformatted(str_begin, str_end);
+
+	bool clicked = ImGui::IsItemClicked();
+
+	if (ImGui::IsItemHovered())
+		hoveredID = thisID;
+	else if (isHovered)
+		hoveredID = 0;
+
+	ImGui::PopStyleColor();
+	ImGui::PopID();
+
+	return clicked;
+}
+
+bool ItemLinkTextV_Internal(const char* str_id, MQColor color, MQColor colorHovered, const char* fmt, va_list args)
+{
+	ImGui::PushID(str_id);
+
+	static ImGuiID hoveredID = 0;
+	ImGuiID thisID = ImGui::GetItemID();
+
+	bool isHovered = (hoveredID == thisID);
+	MQColor textLinkColor = isHovered ? colorHovered : color;
+
+	ImGui::PushStyleColor(ImGuiCol_Text, textLinkColor.ToImU32());
+
+	ImGui::TextV(fmt, args);
+
+	bool clicked = ImGui::IsItemClicked();
+
+	if (ImGui::IsItemHovered())
+		hoveredID = thisID;
+	else if (isHovered)
+		hoveredID = 0;
+
+	ImGui::PopStyleColor();
+	ImGui::PopID();
+
+	return clicked;
+}
+
+bool ItemLinkTextV(const char* str_id, MQColor color, const char* fmt, va_list args)
+{
+	return ItemLinkTextV_Internal(str_id, color, DefaultLinkHoverColor, fmt, args);
+}
+
+bool ItemLinkText(const char* str_id, MQColor color, const char* fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	bool result = ItemLinkTextV(fmt, args);
+	bool result = ItemLinkTextV_Internal(str_id, color, DefaultLinkHoverColor, fmt, args);
 	va_end(args);
 	return result;
 }
-
 
 } // namespace mq::imgui

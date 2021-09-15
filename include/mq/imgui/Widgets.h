@@ -39,8 +39,12 @@ MQLIB_OBJECT bool DrawUITexture(const eqlib::CUITextureInfo& textureInfo, const 
 MQLIB_OBJECT bool DrawTexturePiece(const eqlib::CUITexturePiece& texturePiece, const CXRect& srcRect, const CXSize& imageSize, bool drawBorder = false);
 MQLIB_OBJECT bool DrawTexturePiece(const eqlib::CUITexturePiece& texturePiece, const CXSize& imageSize, bool drawBorder = false);
 
+MQLIB_VAR MQColor DefaultLinkHoverColor;
+
 // Draws a text link styled like an item link. Returns true if the link has been clicked.
-MQLIB_API bool ItemLinkText(const char* fmt, ...);
-MQLIB_API bool ItemLinkTextV(const char* fmt, va_list);
+MQLIB_OBJECT bool ItemLinkText(std::string_view str, MQColor color, MQColor colorHovered = DefaultLinkHoverColor);
+
+MQLIB_OBJECT bool ItemLinkTextV(const char* str_id, MQColor color, const char* fmt, va_list args);
+MQLIB_OBJECT bool ItemLinkText(const char* str_id, MQColor color, const char* fmt, ...);
 
 } // namespace mq::imgui

@@ -2083,8 +2083,10 @@ public:
 				ImGui::TableNextColumn(); // Item Name
 				if (pItem)
 				{
-					if (imgui::ItemLinkText(pItem->GetName()))
+					ImGui::PushID((void*)pItem.get());
+					if (imgui::ItemLinkText(pItem->GetName(), GetColorForChatColor(USERCOLOR_LINK)))
 						pItemDisplayManager->ShowItem(pItem);
+					ImGui::PopID();
 				}
 
 				ImGui::TableNextColumn(); // Template

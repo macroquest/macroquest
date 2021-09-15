@@ -36,10 +36,6 @@ using namespace eqlib;
 // EQ Version selection
 //
 
-// If this is a test branch, define TEST so that certain differences are enabled
-//#define TEST
-#define LIVE
-
 // This is the MQNEXT build, it is here to help plugins conditionally compile against
 // the new interfaces
 #define MQNEXT

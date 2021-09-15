@@ -19,6 +19,7 @@
 
 #include "imgui/fonts/IconsFontAwesome.h"
 #include "imgui/imgui_internal.h"
+#include "imgui/ImGuiMemoryEditor.h"
 #include "zep.h"
 
 #include "mq/imgui/ImGuiUtils.h"
@@ -82,6 +83,39 @@ const char* GetTeleportName(DWORD id)
 }
 
 //----------------------------------------------------------------------------
+
+#pragma region Memory Viewer
+
+struct WindowMemoryViewer : public MemoryEditor
+{
+	using MemoryEditor::MemoryEditor;
+
+	CXWnd* window;
+	size_t size;
+	std::string name;
+};
+std::vector<WindowMemoryViewer> s_memoryEditors;
+
+void AddMemoryEditor(CXWnd* window, size_t size)
+{
+	auto& editor = s_memoryEditors.emplace_back();
+	editor.ReadOnly = true;
+	editor.Cols = 16;
+	editor.OptShowDataPreview = true;
+	editor.window = window;
+	editor.size = ((size + 4095) / 4096) * 4096;
+	editor.name = std::string("Memory Editor: ") + (window->GetWindowName() ? window->GetWindowName()->c_str() : "?");
+}
+
+void DrawMemoryEditors()
+{
+	s_memoryEditors.erase(std::remove_if(s_memoryEditors.begin(), s_memoryEditors.end(),
+		[](auto& editor) {
+			editor.DrawWindow(editor.name.c_str(), editor.window, editor.size /*,(size_t)editor.window*/);
+			return !editor.Open; }), s_memoryEditors.end());
+}
+
+#pragma endregion
 
 #pragma region Datatype Serializers
 
@@ -170,7 +204,7 @@ static void ColumnValue(const char* fmt, va_list args)
 	}
 }
 
-static bool ColumnLinkValue(const char* fmt, va_list args)
+static bool ColumnLinkValue(const char* str_id, MQColor color, const char* fmt, va_list args)
 {
 	bool clicked = false;
 
@@ -185,11 +219,11 @@ static bool ColumnLinkValue(const char* fmt, va_list args)
 		if (IsEmptyValue(str))
 			ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), str);
 		else
-			clicked = imgui::ItemLinkText("%s", str);
+			clicked = imgui::ItemLinkText(str_id, color, "%s", str);
 	}
 	else
 	{
-		clicked = imgui::ItemLinkTextV(fmt, args);
+		clicked = imgui::ItemLinkTextV(str_id, color, fmt, args);
 	}
 
 	return clicked;
@@ -229,7 +263,7 @@ static bool ColumnLinkTextType(const char* Label, const char* Type, const char* 
 
 	va_list args;
 	va_start(args, fmt);
-	bool clicked = ColumnLinkValue(fmt, args);
+	bool clicked = ColumnLinkValue(Label, GetColorForChatColor(USERCOLOR_LINK), fmt, args);
 	va_end(args);
 	ImGui::TableNextColumn();
 
@@ -1435,9 +1469,9 @@ public:
 		if (!m_started)
 		{
 			ImGui::TableSetupScrollFreeze(0, 1);
-			ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch, .4f);
-			ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch, .4f);
-			ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthFixed, 100.f);
+			ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 20.0f);
 			ImGui::TableHeadersRow();
 		}
 
@@ -2945,6 +2979,8 @@ public:
 					++iter;
 				}
 			}
+
+			DrawMemoryEditors();
 		}
 
 		if (!m_open)
@@ -3230,6 +3266,8 @@ public:
 			ImGui::Separator();
 			if (ImGui::Selectable("Copy Window Child TLO"))
 				CopyWindowChildTLO(pWnd);
+			if (ImGui::Selectable("View Memory"))
+				AddMemoryEditor(pWnd, sizeof(CXWnd));
 
 			ImGui::EndPopup();
 		}
