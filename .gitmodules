@@ -250,3 +250,6 @@
 [submodule "plugins/MQItemColor"]
 	path = plugins/MQItemColor
 	url = https://gitlab.com/Ortster/MQItemColor
+[submodule "MQ2LootManager"]
+	path = MQ2LootManager
+	url = https://github.com/jessebevil/MQ2LootManager
