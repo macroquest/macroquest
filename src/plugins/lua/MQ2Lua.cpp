@@ -1752,7 +1752,7 @@ PLUGIN_API void OnWriteChatColor(const char* Line, int Color, int Filter)
 {
 	for (const std::shared_ptr<mq::lua::LuaThread>& thread : mq::lua::s_running)
 	{
-		if (!thread->IsPaused())
+		if (thread && !thread->IsPaused())
 		{
 			if (lua::LuaEventProcessor* events = thread->GetEventProcessor())
 				events->Process(Line);
@@ -1779,7 +1779,7 @@ PLUGIN_API bool OnIncomingChat(const char* Line, DWORD Color)
 {
 	for (const std::shared_ptr<mq::lua::LuaThread>& thread : mq::lua::s_running)
 	{
-		if (!thread->IsPaused())
+		if (thread && !thread->IsPaused())
 		{
 			if (lua::LuaEventProcessor* events = thread->GetEventProcessor())
 				events->Process(Line);

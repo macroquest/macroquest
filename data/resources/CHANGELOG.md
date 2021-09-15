@@ -1,6 +1,8 @@
 September 15, 2021
 - Updated for patch. Released before servers are up, there could be issues!
+- Fixed issue with RankName returning the incorrect spell (#383)
 - lua: fixed error message when script file doesn't exist
+- lua: fix crash when checking for paused threads during OnWriteChat calls
 - devtools: Added initial version RealEstate inspector that shows raw data about real estate
   plots and items. More work real estate capabilities coming in the future.
 - devtools: added memory viewer to window inspector. Right click a window in the tree to access it.

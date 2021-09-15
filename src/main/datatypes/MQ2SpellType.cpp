@@ -1105,16 +1105,15 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		if (!pPC)
 			return true; // just return this spell here
 
-		// I guess we can't assume that this loop and the next loop aren't mutually exclusive?
-		// ie, prefer an exact spell match to a spell group match, even though both might be there?
 		for (int spellID : pPC->SpellBook)
 		{
 			auto pFoundSpell = GetSpellByID(spellID);
 			if (!pFoundSpell)
 				continue;
 
-			if (pFoundSpell->ID == pSpell->ID || (pFoundSpell->SpellGroup == pSpell->SpellGroup &&
-				!_strnicmp(pSpell->Name, pFoundSpell->Name, strlen(pSpell->Name))))
+            if (pFoundSpell->ID == pSpell->ID
+				|| (pSpell->SpellGroup != 0 && pFoundSpell->SpellGroup == pSpell->SpellGroup
+					&& starts_with(pSpell->Name, pFoundSpell->Name)))
 			{
 				Dest.Ptr = pFoundSpell;
 				return true;
