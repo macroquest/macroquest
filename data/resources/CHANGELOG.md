@@ -1,3 +1,11 @@
+September 15, 2021
+- Updated for patch. Released before servers are up, there could be issues!
+- lua: fixed error message when script file doesn't exist
+- devtools: Added initial version RealEstate inspector that shows raw data about real estate
+  plots and items. More work real estate capabilities coming in the future.
+- devtools: added memory viewer to window inspector. Right click a window in the tree to access it.
+- itemdisplay: Remove compare window. Use the one that is built in!
+
 September 8, 2021
 - eqlib: New code supporting mercenary aa's added, making mercenary aa access available to plugins.
 - devtools: New alt ability inspector added for viewing data from player aa's and merc aa's.
