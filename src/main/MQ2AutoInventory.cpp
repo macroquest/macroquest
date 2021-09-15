@@ -1507,12 +1507,12 @@ void InitializeMQ2AutoInventory()
 	EzDetour(CBankWnd__WndNotification,
 		&AutoInventory::BankWnd_Hook::WndNotification_Detour,
 		&AutoInventory::BankWnd_Hook::WndNotification_Trampoline);
-	EzDetour(CFindItemWnd__WndNotification,
-		&AutoInventory::FindItemWnd_Hook::WndNotification_Detour,
-		&AutoInventory::FindItemWnd_Hook::WndNotification_Trampoline);
-	EzDetour(CFindItemWnd__Update,
-		&AutoInventory::FindItemWnd_Hook::Update_Detour,
-		&AutoInventory::FindItemWnd_Hook::Update_Trampoline);
+	//EzDetour(CFindItemWnd__WndNotification,
+	//	&AutoInventory::FindItemWnd_Hook::WndNotification_Detour,
+	//	&AutoInventory::FindItemWnd_Hook::WndNotification_Trampoline);
+	//EzDetour(CFindItemWnd__Update,
+	//	&AutoInventory::FindItemWnd_Hook::Update_Detour,
+	//	&AutoInventory::FindItemWnd_Hook::Update_Trampoline);
 	EzDetour(CBarterSearchWnd__WndNotification,
 		&AutoInventory::CBarterSearchWnd_Hook::WndNotification_Detour,
 		&AutoInventory::CBarterSearchWnd_Hook::WndNotification_Trampoline);
@@ -1529,8 +1529,8 @@ void ShutdownMQ2AutoInventory()
 	RemoveDetour(CBarterWnd__WndNotification);
 	RemoveDetour(CBarterSearchWnd__UpdateInventoryList);
 	RemoveDetour(CBarterSearchWnd__WndNotification);
-	RemoveDetour(CFindItemWnd__WndNotification);
-	RemoveDetour(CFindItemWnd__Update);
+	//RemoveDetour(CFindItemWnd__WndNotification);
+	//RemoveDetour(CFindItemWnd__Update);
 	RemoveDetour(CBankWnd__WndNotification);
 	RemoveAutoBankMenu();
 }
