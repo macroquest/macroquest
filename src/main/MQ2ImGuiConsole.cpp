@@ -45,7 +45,7 @@ static const ImU32 s_linkColorDefault = Zep::ZepColor(0, 255, 255);
 static const ImU32 s_linkColorSpam = Zep::ZepColor(128, 128, 0);
 static const ImU32 s_linkColorPlayer = Zep::ZepColor(0, 0, 0, 0); // use current color
 
-static const int s_userColorItemtLink = USERCOLOR_LINK;
+static const int s_userColorItemLink = USERCOLOR_LINK;
 static const int s_userColorAchievementLink = USERCOLOR_ACHIEVEMENT;
 static const int s_userColorDialogLink = USERCOLOR_DIALOG_LINK;
 static const int s_userColorCommandLink = USERCOLOR_DIALOG_LINK;
@@ -680,7 +680,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		{
 		case ETAG_SPELL:
 		case ETAG_ITEM:
-			color = GetColorForChatColor(s_userColorItemtLink).ToABGR();
+			color = GetColorForChatColor(s_userColorItemLink).ToABGR();
 			break;
 		case ETAG_PLAYER:
 			color = s_linkColorPlayer;

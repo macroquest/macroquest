@@ -204,7 +204,7 @@ static void ColumnValue(const char* fmt, va_list args)
 	}
 }
 
-static bool ColumnLinkValue(const char* fmt, va_list args)
+static bool ColumnLinkValue(const char* str_id, MQColor color, const char* fmt, va_list args)
 {
 	bool clicked = false;
 
@@ -219,11 +219,11 @@ static bool ColumnLinkValue(const char* fmt, va_list args)
 		if (IsEmptyValue(str))
 			ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), str);
 		else
-			clicked = imgui::ItemLinkText("%s", str);
+			clicked = imgui::ItemLinkText(str_id, color, "%s", str);
 	}
 	else
 	{
-		clicked = imgui::ItemLinkTextV(fmt, args);
+		clicked = imgui::ItemLinkTextV(str_id, color, fmt, args);
 	}
 
 	return clicked;
@@ -263,7 +263,7 @@ static bool ColumnLinkTextType(const char* Label, const char* Type, const char* 
 
 	va_list args;
 	va_start(args, fmt);
-	bool clicked = ColumnLinkValue(fmt, args);
+	bool clicked = ColumnLinkValue(Label, GetColorForChatColor(USERCOLOR_LINK), fmt, args);
 	va_end(args);
 	ImGui::TableNextColumn();
 
@@ -1469,9 +1469,9 @@ public:
 		if (!m_started)
 		{
 			ImGui::TableSetupScrollFreeze(0, 1);
-			ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch, .4f);
-			ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch, .4f);
-			ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthFixed, 100.f);
+			ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 20.0f);
 			ImGui::TableHeadersRow();
 		}
 
