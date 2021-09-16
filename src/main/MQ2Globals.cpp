@@ -794,6 +794,8 @@ fEQW_GetDisplayWindow EQW_GetDisplayWindow = nullptr;
 
 bool ExecuteCmd(unsigned int command, bool keyDown, void* data)
 {
+	if (!pLocalPC)
+		return false;
 	return eqlib::EQExecuteCmd(command, keyDown, data, nullptr);
 }
 

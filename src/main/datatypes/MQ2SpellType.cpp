@@ -1111,9 +1111,9 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			if (!pFoundSpell)
 				continue;
 
-            if (pFoundSpell->ID == pSpell->ID
+			if (pFoundSpell->ID == pSpell->ID
 				|| (pSpell->SpellGroup != 0 && pFoundSpell->SpellGroup == pSpell->SpellGroup
-					&& starts_with(pSpell->Name, pFoundSpell->Name)))
+					&& starts_with(pFoundSpell->Name, pSpell->Name)))
 			{
 				Dest.Ptr = pFoundSpell;
 				return true;
