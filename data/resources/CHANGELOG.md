@@ -5,7 +5,7 @@ September 16, 2021
 - Fix a crash that might occur if a plugin tries to execute a keypress when
   not in game.
 - Fix a crash when /unload causes nav to unload before easyfind.
-
+- Fix issue with RankName returning incorrect spell (#383) - really this time.
 
 September 15, 2021
 - Updated for patch. Released before servers are up, there could be issues!
