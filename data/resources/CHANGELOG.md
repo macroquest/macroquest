@@ -6,6 +6,7 @@ September 16, 2021
   not in game.
 - Fix a crash when /unload causes nav to unload before easyfind.
 - Fix issue with RankName returning incorrect spell (#383) - really this time.
+- Fix framelimiter not properly replacing the built-in throttler (#385).
 
 September 15, 2021
 - Updated for patch. Released before servers are up, there could be issues!
