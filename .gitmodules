@@ -3,7 +3,7 @@
 	url = https://gitlab.com/macroquest/TestSuite.git
 [submodule "src/eqlib"]
 	path = src/eqlib
-    url = https://gitlab.com/macroquest/next/eqlib.git
+    	url = https://gitlab.com/macroquest/next/eqlib.git
 [submodule "contrib/vcpkg"]
 	path = contrib/vcpkg
 	url = https://gitlab.com/macroquest/next/vcpkg.git
