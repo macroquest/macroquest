@@ -30,25 +30,14 @@ bool InitOffsets()
 HANDLE ghInitializeSpellDbThread = nullptr;
 
 /* BENCHMARKS */
-DWORD bmWriteChatColor = 0;
-DWORD bmPluginsIncomingChat = 0;
-DWORD bmPluginsPulse = 0;
-DWORD bmPluginsOnZoned = 0;
-DWORD bmPluginsCleanUI = 0;
-DWORD bmPluginsReloadUI = 0;
-DWORD bmPluginsDrawHUD = 0;
-DWORD bmPluginsSetGameState = 0;
-DWORD bmPluginsUpdateImGui = 0;
-DWORD bmRenderScene = 0;
-DWORD bmParseMacroParameter = 0;
-DWORD bmUpdateSpawnSort = 0;
-DWORD bmUpdateSpawnCaptions = 0;
-DWORD bmCalculate = 0;
-DWORD bmBeginZone = 0;
-DWORD bmEndZone = 0;
-DWORD bmSpellLoad = 0;
-DWORD bmSpellAccess = 0;
-DWORD bmAnonymizer = 0;
+uint32_t bmPluginsUpdateImGui = 0;
+uint32_t bmRenderScene = 0;
+uint32_t bmParseMacroParameter = 0;
+uint32_t bmUpdateSpawnSort = 0;
+uint32_t bmUpdateSpawnCaptions = 0;
+uint32_t bmSpellLoad = 0;
+uint32_t bmSpellAccess = 0;
+uint32_t bmAnonymizer = 0;
 
 MQDataVar* pGlobalVariables = nullptr;
 MQDataVar* pMacroVariables = nullptr;

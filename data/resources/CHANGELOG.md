@@ -1,3 +1,12 @@
+September 16, 2021
+- Plugins can now be loaded via commands without requiring a MQ2 or MQ prefix.
+  For example: "/plugin easyfind toggle" works to toggle the easyfind plugin.
+- Fix /cleanup making inventory window appear instead of disappear
+- Fix a crash that might occur if a plugin tries to execute a keypress when
+  not in game.
+- Fix a crash when /unload causes nav to unload before easyfind.
+
+
 September 15, 2021
 - Updated for patch. Released before servers are up, there could be issues!
 - Fixed issue with RankName returning the incorrect spell (#383)

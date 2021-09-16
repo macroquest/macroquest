@@ -916,7 +916,6 @@ void InitializeMQ2Commands()
 		{ "/engine",            EngineCommand,              true,  false },
 		{ "/cachedbuffs",       CachedBuffsCommand,         true,  true  },
 		{ "/mqcopylayout",      MQCopyLayout,               true,  false },
-		{ "/plugin",            PluginCommand,              false, false },
 		{ "/who",               SuperWho,                   true,  true  },
 		{ "/macro",             Macro,                      true,  false },
 		{ "/endmacro",          EndMacro,                   true,  false },
