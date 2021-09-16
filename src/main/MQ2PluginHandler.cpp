@@ -952,9 +952,6 @@ void PluginsLoadPlugin(const char* Name)
 
 void PluginsUnloadPlugin(const char* Name)
 {
-	if (!s_pluginsInitialized)
-		return;
-
 	PluginDebug("PluginsUnloadPlugin");
 
 	std::scoped_lock lock(s_pluginsMutex);
