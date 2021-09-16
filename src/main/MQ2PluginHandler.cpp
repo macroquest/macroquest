@@ -514,7 +514,7 @@ void PluginsWriteChatColor(const char* Line, int Color, int Filter)
 	if (gFilterMQ)
 		return;
 
-	SPDLOG_DEBUG("Begin WriteChatColor()");
+	//SPDLOG_DEBUG("Begin WriteChatColor()");
 
 	MQScopedBenchmark bm(bmWriteChatColor);
 
