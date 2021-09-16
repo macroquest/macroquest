@@ -406,6 +406,7 @@ using fMQGetPluginInterface  = PluginInterface* (*)();
 struct MQPlugin
 {
 	char                 szFilename[MAX_PATH] = { 0 };
+	std::string          name;
 	HMODULE              hModule = nullptr;
 	float                fpVersion = 1.0;
 	bool                 bCustom = false;

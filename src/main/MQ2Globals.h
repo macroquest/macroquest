@@ -41,25 +41,25 @@ bool InitOffsets();
 
 /* BENCHMARK HANDLES */
 
-MQLIB_API DWORD bmWriteChatColor;
-MQLIB_API DWORD bmPluginsIncomingChat;
-MQLIB_API DWORD bmPluginsPulse;
-MQLIB_API DWORD bmPluginsOnZoned;
-MQLIB_API DWORD bmPluginsCleanUI;
-MQLIB_API DWORD bmPluginsReloadUI;
-MQLIB_API DWORD bmPluginsDrawHUD;
-MQLIB_API DWORD bmPluginsSetGameState;
-MQLIB_API DWORD bmParseMacroParameter;
-MQLIB_API DWORD bmUpdateSpawnSort;
-MQLIB_API DWORD bmUpdateSpawnCaptions;
-MQLIB_API DWORD bmCalculate;
-MQLIB_API DWORD bmBeginZone;
-MQLIB_API DWORD bmEndZone;
-MQLIB_API DWORD bmPluginsUpdateImGui;
-MQLIB_API DWORD bmRenderScene;
-MQLIB_API DWORD bmSpellLoad;
-MQLIB_API DWORD bmSpellAccess;
-MQLIB_API DWORD bmAnonymizer;
+MQLIB_API uint32_t bmWriteChatColor;
+MQLIB_API uint32_t bmPluginsIncomingChat;
+MQLIB_API uint32_t bmPluginsPulse;
+MQLIB_API uint32_t bmPluginsOnZoned;
+MQLIB_API uint32_t bmPluginsCleanUI;
+MQLIB_API uint32_t bmPluginsReloadUI;
+MQLIB_API uint32_t bmPluginsDrawHUD;
+MQLIB_API uint32_t bmPluginsSetGameState;
+MQLIB_API uint32_t bmParseMacroParameter;
+MQLIB_API uint32_t bmUpdateSpawnSort;
+MQLIB_API uint32_t bmUpdateSpawnCaptions;
+MQLIB_API uint32_t bmCalculate;
+MQLIB_API uint32_t bmBeginZone;
+MQLIB_API uint32_t bmEndZone;
+MQLIB_API uint32_t bmPluginsUpdateImGui;
+MQLIB_API uint32_t bmRenderScene;
+MQLIB_API uint32_t bmSpellLoad;
+MQLIB_API uint32_t bmSpellAccess;
+MQLIB_API uint32_t bmAnonymizer;
 
 /* OTHER */
 

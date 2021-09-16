@@ -23,7 +23,6 @@ MQLIB_API void SetError                            (PSPAWNINFO pChar, char* szLi
 MQLIB_API void SuperWho                            (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void NewIf                               (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void WhileCmd                            (PSPAWNINFO pChar, char* szLine);
-MQLIB_API void PluginCommand                       (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void Call                                (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void DeclareVar                          (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void DumpStack                           (PSPAWNINFO pChar, char* szLine);
