@@ -199,7 +199,7 @@ static bool RenderScene_Hook();
 static bool UseEQRenderer();
 static bool UpdateDisplay_Hook();
 static bool ShouldDoRealRenderWorld();
-static bool ShouldDoThrottle();
+static bool DoThrottleFrameRate();
 
 class CXWndManagerHook
 {
@@ -282,9 +282,13 @@ DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::RealRender_World_Trampoline());
 DETOUR_TRAMPOLINE_EMPTY(static void Throttler_Trampoline());
 __declspec(naked) static void Throttler_Detour()
 {
+	// If DoThrottleFrameRate returns false, then it is disabled and we
+	// want to just call the original code. If it returns true then we
+	// are engaged with the frame limiter and we want to skip past the
+	// built-in throttling.
 	__asm
 	{
-		call ShouldDoThrottle;
+		call DoThrottleFrameRate;
 		cmp eax, eax;
 		jz call_to_trampoline
 		mov eax, __ThrottleFrameRateEnd;
@@ -415,9 +419,12 @@ public:
 
 	bool DoThrottleFrameRate()
 	{
+		if (!IsEnabled())
+			return false;
+
 		// If we didn't get a call to DoRealRenderWorld, then we don't do anything. This is because sometimes
 		// the game won't call it right after starting up the engine.
-		if (!IsEnabled() || m_needWaitRender)
+		if (m_needWaitRender)
 		{
 			RecordSimulationSample();
 			return true;
@@ -456,7 +463,7 @@ public:
 		std::this_thread::sleep_until(m_prevFrame + m_gameLoopDuration);
 		m_prevFrame += m_gameLoopDuration;
 
-		return false;
+		return true;
 	}
 
 	// this function performs the actual graphics render. If we don't want to do it then
@@ -874,7 +881,7 @@ static bool ShouldDoRealRenderWorld()
 	return s_frameLimiter.DoRealRenderWorld();
 }
 
-static bool ShouldDoThrottle()
+static bool DoThrottleFrameRate()
 {
 	return s_frameLimiter.DoThrottleFrameRate();
 }
