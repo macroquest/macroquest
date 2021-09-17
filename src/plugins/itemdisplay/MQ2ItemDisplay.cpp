@@ -298,7 +298,7 @@ ItemPtr GetItemEquippedInSlot(const ItemPtr& pItem)
 
 class ItemDisplayHook
 {
-	enum SEffectType { None = 0, Clicky, Proc, Worn, Focus, Scroll, Focus2, Mount, Illusion, Familiar };
+	enum SEffectType { None = 0, Clicky, Proc, Worn, Focus, Scroll, Focus2, Keyring };
 
 	static bool bNoSpellTramp;
 	static SEffectType eEffectType;
@@ -349,14 +349,13 @@ public:
 
 	static void GetEffectInfo(const SEffectType effect, std::string& Color, std::string& Name)
 	{
-			if(Color.empty())
+			if (Color.empty())
 			{
 				Color = "FF0000";
 			}
-			if(Name.empty())
+			if (Name.empty())
 			{
-				// Is "Blub" significant or just known nonsense?
-				Name = "Blub";
+				Name = "Unknown";
 			}
 
 			switch (eEffectType)
@@ -382,17 +381,9 @@ public:
 				Color = "9F9F9F";
 				Name = "Scroll";
 				break;
-			case Mount:
+			case Keyring:
 				Color = "00FF00";
-				Name = "Mount";
-				break;
-			case Illusion:
-				Color = "00FF00";
-				Name = "Illusion";
-				break;
-			case Familiar:
-				Color = "00FF00";
-				Name = "Familiar";
+				Name = "Keyring";
 				break;
 			case None:
 				Name = "None";
@@ -614,7 +605,7 @@ public:
 			std::string cColour = "FF0000";
 			std::string cName = "Blub";
 
-            GetEffectInfo(eEffectType, cColour, cName);
+			GetEffectInfo(eEffectType, cColour, cName);
 			char aliased[MAX_STRING] = { 0 };
 			sprintf_s(aliased, "%s%s", Effect.OtherName, " (aliased)");
 			sprintf_s(temp, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour.data(), cName.data(), Effect.OtherName[0] ? aliased : pSpell->Name);
@@ -1444,22 +1435,10 @@ public:
 			ItemSetSpell_Detour(Item->Focus2);
 		}
 
-		if (Item->Mount.SpellID > 0 && Item->Mount.SpellID != -1)
+		if (Item->Keyring.SpellID > 0 && Item->Keyring.SpellID != -1)
 		{
-			eEffectType = Mount;
+			eEffectType = Keyring;
 			ItemSetSpell_Detour(Item->Mount);
-		}
-
-		if (Item->Illusion.SpellID > 0 && Item->Illusion.SpellID != -1)
-		{
-			eEffectType = Illusion;
-			ItemSetSpell_Detour(Item->Illusion);
-		}
-
-		if (Item->Familiar.SpellID > 0 && Item->Familiar.SpellID != -1)
-		{
-			eEffectType = Familiar;
-			ItemSetSpell_Detour(Item->Familiar);
 		}
 
 		bNoSpellTramp = false;
