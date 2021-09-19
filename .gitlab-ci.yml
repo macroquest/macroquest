@@ -2,6 +2,7 @@ variables:
   GIT_STRATEGY: fetch
   GIT_DEPTH: 10
   GIT_CLEAN_FLAGS: none
+  GIT_SUBMODULE_PATHS: :(exclude)src/eqlib
 
 stages:
   - build

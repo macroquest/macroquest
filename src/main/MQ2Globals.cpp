@@ -721,7 +721,9 @@ const char* szItemSlot[InvSlot_Max + 1] = {
 	"pack9",
 	"pack10",
 	"pack11",
+#ifndef TEST
 	"pack12",
+#endif
 	"cursor",
 	nullptr         // 34
 };
