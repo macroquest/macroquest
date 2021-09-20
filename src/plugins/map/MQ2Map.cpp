@@ -383,7 +383,7 @@ PLUGIN_API void InitializePlugin()
 	ClearSearchSpawn(&MapFilterNamed);
 	ParseSearchSpawn("#", &MapFilterNamed);
 
-	AddSettingsPanel("plugins/MQ2Map", DrawMapSettingsPanel);
+	AddSettingsPanel("plugins/Map", DrawMapSettingsPanel);
 }
 
 // Called once, when the plugin is to shutdown
@@ -409,7 +409,7 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveCommand("/mapactivelayer");
 	RemoveCommand("/maploc");
 
-	RemoveSettingsPanel("plugins/MQ2Map");
+	RemoveSettingsPanel("plugins/Map");
 }
 
 // This is called every time MQ pulses
