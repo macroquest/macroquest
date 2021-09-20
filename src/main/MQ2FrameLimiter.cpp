@@ -467,7 +467,9 @@ public:
 			RecordSimulationSample();
 
 			pDisplay.get_as<CDisplayHook>()->RealRender_World_Trampoline();
-			if (!IsRendering() && m_tieUiToSimulation && pWndMgr && (pScreenMode == nullptr || *pScreenMode != 3))
+
+			int screenMode = pScreenMode ? *pScreenMode : 0;
+			if (m_tieUiToSimulation && pWndMgr && (screenMode != 3))
 				pWndMgr.get_as<CXWndManagerHook>()->DrawWindows_Trampoline();
 		}
 
