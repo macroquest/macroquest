@@ -2,6 +2,8 @@ September 19, 2021:
 - lua: Fix plugin not initializing properly when an exception occurs while loading settings
 - framelimiter: Fix UI not drawing when blind. (#285)
 - framelimiter: Fix UI not drawing correctly when tied to simulation rate.
+- framelimiter: Fix crash when logging out while in the background
+- overlay: Fix edge case crash when graphics device is null (#363).
 
 September 16, 2021
 - Plugins can now be loaded via commands without requiring a MQ2 or MQ prefix.
