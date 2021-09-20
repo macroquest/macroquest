@@ -230,10 +230,26 @@ public:
 		if (RenderScene_Hook())
 		{
 			MQScopedBenchmark bm(bmRenderScene);
+
 			// call the UI DrawWindows function here to explicitly tie the framerates, but only do it if we have the limiter enabled
 			if (!UseEQRenderer() && pWndMgr && (pScreenMode == nullptr || *pScreenMode != 3))
 				pWndMgr.get_as<CXWndManagerHook>()->DrawWindows_Trampoline();
 			RenderScene_Trampoline();
+		}
+	}
+
+	// Same logic as above, but this is for when the player is blind.
+	void RenderBlind_Trampoline();
+	void RenderBlind_Detour()
+	{
+		if (RenderScene_Hook())
+		{
+			MQScopedBenchmark bm(bmRenderScene);
+
+			// call the UI DrawWindows function here to explicitly tie the framerates, but only do it if we have the limiter enabled
+			if (!UseEQRenderer() && pWndMgr && (pScreenMode == nullptr || *pScreenMode != 3))
+				pWndMgr.get_as<CXWndManagerHook>()->DrawWindows_Trampoline();
+			RenderBlind_Trampoline();
 		}
 	}
 
@@ -259,6 +275,7 @@ public:
 	}
 };
 DETOUR_TRAMPOLINE_EMPTY(void CRenderHook::RenderScene_Trampoline());
+DETOUR_TRAMPOLINE_EMPTY(void CRenderHook::RenderBlind_Trampoline());
 DETOUR_TRAMPOLINE_EMPTY(void CRenderHook::UpdateDisplay_Trampoline());
 
 class CDisplayHook
@@ -320,6 +337,7 @@ class FrameLimiter
 	bool m_didTryRender = false;      // real render function was called
 	bool m_doRender = false;          // if set to false, we won't render (per frame).
 	bool m_pauseForZone = true;
+	int m_updateDisplayCount = 0;
 
 	// Settings
 	bool m_enabled;
@@ -450,7 +468,9 @@ public:
 			RecordSimulationSample();
 
 			pDisplay.get_as<CDisplayHook>()->RealRender_World_Trampoline();
-			if (!IsRendering() && m_tieUiToSimulation && pWndMgr && (pScreenMode == nullptr || *pScreenMode != 3))
+
+			int screenMode = pScreenMode ? *pScreenMode : 0;
+			if (m_tieUiToSimulation && pWndMgr && (screenMode != 3))
 				pWndMgr.get_as<CXWndManagerHook>()->DrawWindows_Trampoline();
 		}
 
@@ -487,7 +507,11 @@ public:
 
 	bool DoUpdateDisplayHook()
 	{
-		return !IsEnabled() || m_doRender || m_tieUiToSimulation;
+		++m_updateDisplayCount;
+
+		return !IsEnabled() || m_doRender || m_tieUiToSimulation
+			|| gGameState != GAMESTATE_INGAME         // always call UpdateDisplay when we're not in game
+			|| m_updateDisplayCount >= 2;             // if this is the 2nd+ call this frame. This happens when logging out.
 	}
 
 	void PauseForZone()
@@ -498,6 +522,7 @@ public:
 	void OnPulse()
 	{
 		m_needWaitRender = mq::test_and_set(m_lastGameState, gGameState);
+		m_updateDisplayCount = 0;
 
 		m_cpuUsage.AddSample(static_cast<int64_t>(m_cpuUsageCalc.GetCurrentValue() * 1000));
 
@@ -1013,6 +1038,7 @@ static void InitializeFrameLimiter()
 
 	// Hook main render function
 	EzDetour(CRender__RenderScene, &CRenderHook::RenderScene_Detour, &CRenderHook::RenderScene_Trampoline);
+	EzDetour(CRender__RenderBlind, &CRenderHook::RenderBlind_Detour, &CRenderHook::RenderBlind_Trampoline);
 
 	// Hook update function (will begin scene if render isn't called)
 	EzDetour(CRender__UpdateDisplay, &CRenderHook::UpdateDisplay_Detour, &CRenderHook::UpdateDisplay_Trampoline);

@@ -2192,6 +2192,8 @@ static bool RenderImGui()
 
 	if (gbNeedResetOverlay)
 		return false;
+	if (!gpD3D9Device)
+		return false;
 
 	// we can't expect that the rounding mode is valid, and imgui respects the rounding mode so set it here and ensure that we reset it before the return
 	auto round = fegetround();
@@ -2338,7 +2340,7 @@ void CreateImGuiContext()
 
 		mq::imgui::ConfigureFonts(s_fontAtlas);
 	}
-	
+
 	// Initialize ImGui context
 	ImGui::CreateContext(s_fontAtlas);
 
@@ -2462,7 +2464,7 @@ void ShutdownMQ2Overlay()
 
 	ShutdownOverlayInternal();
 	DestroyImGuiContext();
-	
+
 	RemoveMQ2Benchmark(bmPluginsUpdateImGui);
 }
 
