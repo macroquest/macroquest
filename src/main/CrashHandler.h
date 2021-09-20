@@ -19,82 +19,7 @@
 
 #pragma warning (disable : 4509)
 
-#define DEBUG_TRY_ENABLED 0
-
 namespace mq {
-
-MQLIB_API int MQ2DebugTryFilter(EXCEPTION_POINTERS* ex, const char* description, ...);
-
-#if DEBUG_TRY_ENABLED
-
-namespace internal {
-
-template <typename T>
-using IsVoid = std::is_same<std::invoke_result_t<T()>, void>;
-
-// overload for expressions that return a type
-template <typename T,
-          typename std::enable_if<!internal::IsVoid<T>::value, void>::type* = nullptr>
-auto Debug_TryExecute(const char* func_name, int line, const T& func) -> decltype(func())
-{
-	__try
-	{
-		return func();
-	}
-	__except(MQ2DebugTryFilter(GetExceptionInformation(), "%s: Line %i", func_name, line))
-	{
-		decltype(func()) v{};
-		return v;
-	}
-}
-
-// overload for expressions that return void
-template <typename T,
-	typename std::enable_if<internal::IsVoid<T>::value, void>::type* = nullptr>
-void Debug_TryExecute(const char* func_name, int line, const T& func)
-{
-	__try
-	{
-		func();
-	}
-	__except (MQ2DebugTryFilter(GetExceptionInformation(), "%s: Line %i", func_name, line))
-	{
-	}
-}
-
-template <typename T>
-void Debug_TryExecuteEx(const char* func_name, int line, const char* stmt, const T& func)
-{
-	__try
-	{
-		func();
-	}
-	__except (MQ2DebugTryFilter(GetExceptionInformation(), "%s@%i: %s", func_name, line, stmt))
-	{
-	}
-}
-
-} // namespace internal
-
-// construct a lambda to wrap the exception filter call, this allows us to invoke the __try/__except block
-// with a function scope in between, which will prevent error C2712: Cannot use __try in functions that require
-// object unwinding.
-#define DebugTryBegin() \
-	mq::internal::Debug_TryExecute(__FUNCTION__, __LINE__, [&]() {
-#define DebugTryEnd() \
-	});
-
-// use this pair of macros in combination with a block that returns, to forward that return value
-// out of the function.
-#define DebugTryBeginRet() \
-	{ int result = mq::internal::Debug_TryExecute(__FUNCTION__, __LINE__, [&]() {
-#define DebugTryEndRet() \
-	}); return result; }
-
-#define DebugTryEx(x) \
-	mq::internal::Debug_TryExecuteEx(__FUNCTION__, __LINE__, #x, [&]() { x; });
-
-#else // DEBUG_TRY_ENABLED
 
 #define DebugTryBegin()
 #define DebugTryEnd()
@@ -103,8 +28,6 @@ void Debug_TryExecuteEx(const char* func_name, int line, const char* stmt, const
 #define DebugTryEndRet()
 
 #define DebugTryEx(x) x
-
-#endif
 
 //============================================================================
 

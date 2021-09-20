@@ -255,14 +255,8 @@ static std::string MakeMiniDump(const std::string& filename, EXCEPTION_POINTERS*
 	return dumped ? dumpFilename : std::string();
 }
 
-int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description, bool isDebugTry)
+int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description)
 {
-	// FIXME
-	if (isDebugTry)
-	{
-		return EXCEPTION_CONTINUE_SEARCH;
-	}
-
 	SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
 	HANDLE hProcess = GetCurrentProcess();
 
@@ -376,24 +370,13 @@ int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description, bool isDebu
 	return EXCEPTION_CONTINUE_SEARCH;
 }
 
-int MQ2DebugTryFilter(EXCEPTION_POINTERS* ex, const char* description, ...)
-{
-	va_list vl;
-	va_start(vl, description);
-
-	char szTemp[MAX_STRING] = { 0 };
-	vsprintf_s(szTemp, description, vl);
-
-	return MQ2CrashHandler(ex, szTemp, true);
-}
-
 //============================================================================
 
 LONG WINAPI OurCrashHandler(EXCEPTION_POINTERS* ex)
 {
 	__try
 	{
-		return MQ2CrashHandler(ex, nullptr, false);
+		return MQ2CrashHandler(ex, nullptr);
 	}
 	__except (EXCEPTION_EXECUTE_HANDLER)
 	{

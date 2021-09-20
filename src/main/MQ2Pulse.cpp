@@ -735,21 +735,13 @@ bool DoGameEventsPulse(int (*pEventFunc)())
 int Trampoline_ProcessGameEvents();
 int Detour_ProcessGameEvents()
 {
-	DebugTryBeginRet();
-
 	return DoGameEventsPulse(Trampoline_ProcessGameEvents);
-
-	DebugTryEndRet();
 }
 DETOUR_TRAMPOLINE_EMPTY(int Trampoline_ProcessGameEvents());
 
 void DoLoginPulse()
 {
-	DebugTryBegin();
-
 	DoGameEventsPulse(nullptr);
-
-	DebugTryEnd()
 }
 
 class CEverQuestHook
