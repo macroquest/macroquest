@@ -230,10 +230,26 @@ public:
 		if (RenderScene_Hook())
 		{
 			MQScopedBenchmark bm(bmRenderScene);
+
 			// call the UI DrawWindows function here to explicitly tie the framerates, but only do it if we have the limiter enabled
 			if (!UseEQRenderer() && pWndMgr && (pScreenMode == nullptr || *pScreenMode != 3))
 				pWndMgr.get_as<CXWndManagerHook>()->DrawWindows_Trampoline();
 			RenderScene_Trampoline();
+		}
+	}
+
+	// Same logic as above, but this is for when the player is blind.
+	void RenderBlind_Trampoline();
+	void RenderBlind_Detour()
+	{
+		if (RenderScene_Hook())
+		{
+			MQScopedBenchmark bm(bmRenderScene);
+
+			// call the UI DrawWindows function here to explicitly tie the framerates, but only do it if we have the limiter enabled
+			if (!UseEQRenderer() && pWndMgr && (pScreenMode == nullptr || *pScreenMode != 3))
+				pWndMgr.get_as<CXWndManagerHook>()->DrawWindows_Trampoline();
+			RenderBlind_Trampoline();
 		}
 	}
 
@@ -259,6 +275,7 @@ public:
 	}
 };
 DETOUR_TRAMPOLINE_EMPTY(void CRenderHook::RenderScene_Trampoline());
+DETOUR_TRAMPOLINE_EMPTY(void CRenderHook::RenderBlind_Trampoline());
 DETOUR_TRAMPOLINE_EMPTY(void CRenderHook::UpdateDisplay_Trampoline());
 
 class CDisplayHook
@@ -1013,6 +1030,7 @@ static void InitializeFrameLimiter()
 
 	// Hook main render function
 	EzDetour(CRender__RenderScene, &CRenderHook::RenderScene_Detour, &CRenderHook::RenderScene_Trampoline);
+	EzDetour(CRender__RenderBlind, &CRenderHook::RenderBlind_Detour, &CRenderHook::RenderBlind_Trampoline);
 
 	// Hook update function (will begin scene if render isn't called)
 	EzDetour(CRender__UpdateDisplay, &CRenderHook::UpdateDisplay_Detour, &CRenderHook::UpdateDisplay_Trampoline);
