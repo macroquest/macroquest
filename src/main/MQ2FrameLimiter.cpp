@@ -337,6 +337,7 @@ class FrameLimiter
 	bool m_didTryRender = false;      // real render function was called
 	bool m_doRender = false;          // if set to false, we won't render (per frame).
 	bool m_pauseForZone = true;
+	int m_updateDisplayCount = 0;
 
 	// Settings
 	bool m_enabled;
@@ -506,7 +507,11 @@ public:
 
 	bool DoUpdateDisplayHook()
 	{
-		return !IsEnabled() || m_doRender || m_tieUiToSimulation;
+		++m_updateDisplayCount;
+
+		return !IsEnabled() || m_doRender || m_tieUiToSimulation
+			|| gGameState != GAMESTATE_INGAME         // always call UpdateDisplay when we're not in game
+			|| m_updateDisplayCount >= 2;             // if this is the 2nd+ call this frame. This happens when logging out.
 	}
 
 	void PauseForZone()
@@ -517,6 +522,7 @@ public:
 	void OnPulse()
 	{
 		m_needWaitRender = mq::test_and_set(m_lastGameState, gGameState);
+		m_updateDisplayCount = 0;
 
 		m_cpuUsage.AddSample(static_cast<int64_t>(m_cpuUsageCalc.GetCurrentValue() * 1000));
 
