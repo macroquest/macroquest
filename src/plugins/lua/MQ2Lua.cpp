@@ -729,10 +729,7 @@ static void ReadSettings()
 	}
 
 	s_squelchStatus = s_configNode[squelchStatus].as<bool>(s_squelchStatus);
-
 	s_showMenu = s_configNode[showMenu].as<bool>(s_showMenu);
-
-	WriteSettings();
 }
 
 static void LuaConfCommand(const std::string& setting, const std::string& value)
