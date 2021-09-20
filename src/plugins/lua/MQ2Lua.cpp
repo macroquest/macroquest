@@ -652,8 +652,7 @@ static void ReadSettings()
 	catch (const YAML::ParserException& e)
 	{
 		// failed to parse, notify and return
-		WriteChatf("Failed to parse YAML in %s with %s", s_configPath.c_str(), e.what());
-		return;
+		WriteChatf("Failed to parse settings file: %s", e.what());
 	}
 	catch (const YAML::BadFile&)
 	{
@@ -729,10 +728,7 @@ static void ReadSettings()
 	}
 
 	s_squelchStatus = s_configNode[squelchStatus].as<bool>(s_squelchStatus);
-
 	s_showMenu = s_configNode[showMenu].as<bool>(s_showMenu);
-
-	WriteSettings();
 }
 
 static void LuaConfCommand(const std::string& setting, const std::string& value)
@@ -854,7 +850,7 @@ static void LuaGuiCommand()
 
 void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 {
-	MQ2Args arg_parser("MQ2Lua: A lua script binding plugin.");
+	MQ2Args arg_parser("Lua: A lua script binding plugin.");
 	arg_parser.Prog("/lua");
 	arg_parser.RequireCommand(false);
 	args::Group commands(arg_parser, "", args::Group::Validators::AtMostOne);
@@ -1335,8 +1331,7 @@ static void DrawLuaSettings()
 PLUGIN_API void InitializePlugin()
 {
 	using namespace mq::lua;
-
-	DebugSpewAlways("MQ2Lua::Initializing version %f", MQ2Version);
+	DebugSpewAlways("Lua Initializing version %f", MQ2Version);
 
 	ReadSettings();
 
@@ -1346,8 +1341,8 @@ PLUGIN_API void InitializePlugin()
 	pLuaType = new MQ2LuaType;
 	AddMQ2Data("Lua", &MQ2LuaType::dataLua);
 
-	AddCascadeMenuItem("MQ2Lua", LuaGuiCommand, -1);
-	AddSettingsPanel("plugins/MQ2Lua", DrawLuaSettings);
+	AddCascadeMenuItem("Lua", LuaGuiCommand, -1);
+	AddSettingsPanel("plugins/Lua", DrawLuaSettings);
 
 	s_pluginInterface = new LuaPluginInterfaceImpl();
 }
@@ -1362,18 +1357,16 @@ PLUGIN_API void ShutdownPlugin()
 {
 	using namespace mq::lua;
 
-	DebugSpewAlways("MQ2Lua::Shutting down");
-
 	RemoveCommand("/lua");
 
 	RemoveMQ2Data("Lua");
 	delete pLuaType;
 	delete pLuaInfoType;
 
-	RemoveCascadeMenuItem("MQ2Lua");
+	RemoveCascadeMenuItem("Lua");
 	if (s_scriptLaunchDialog != nullptr) IGFD_Destroy(s_scriptLaunchDialog);
 
-	RemoveSettingsPanel("plugins/MQ2Lua");
+	RemoveSettingsPanel("plugins/Lua");
 	if (s_luaDirDialog != nullptr) IGFD_Destroy(s_luaDirDialog);
 
 	delete s_pluginInterface;

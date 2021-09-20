@@ -1693,7 +1693,7 @@ public:
 		}
 
 		SPDLOG_INFO("IDirect3DDevice9::Reset hook: device instance is the acquired device.");
-		DebugTryEx(InvalidateDeviceObjects());
+		InvalidateDeviceObjects();
 
 		return Reset_Trampoline(pPresentationParameters);
 	}
@@ -1752,10 +1752,10 @@ public:
 
 					if (DetectResetDeviceHook())
 					{
-						DebugTryEx(InvalidateDeviceObjects());
+						InvalidateDeviceObjects();
 					}
 
-					DebugTryEx(CreateDeviceObjects());
+					CreateDeviceObjects();
 				}
 			}
 			else
@@ -1768,7 +1768,7 @@ public:
 		// rest of the rendering pipeline
 		if (gbDeviceAcquired)
 		{
-			DebugTryEx(RenderImGui());
+			RenderImGui();
 		}
 
 		HRESULT result = EndScene_Trampoline();
@@ -1791,7 +1791,7 @@ public:
 	{
 		if (gbDeviceAcquired)
 		{
-			DebugTryEx(UpdateGraphicsScene());
+			UpdateGraphicsScene();
 		}
 
 		Render_Trampoline();
@@ -1814,7 +1814,7 @@ public:
 		if (!success)
 		{
 			SPDLOG_DEBUG("CRender::ResetDevice: Reset failed, invalidating device objects and trying again.");
-			DebugTryEx(InvalidateDeviceObjects());
+			InvalidateDeviceObjects();
 
 			success = ResetDevice_Trampoline(a);
 		}
