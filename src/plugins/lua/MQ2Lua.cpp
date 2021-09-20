@@ -652,8 +652,7 @@ static void ReadSettings()
 	catch (const YAML::ParserException& e)
 	{
 		// failed to parse, notify and return
-		WriteChatf("Failed to parse YAML in %s with %s", s_configPath.c_str(), e.what());
-		return;
+		WriteChatf("Failed to parse settings file: %s", e.what());
 	}
 	catch (const YAML::BadFile&)
 	{
