@@ -1,3 +1,8 @@
+September 19, 2021:
+- lua: Fix plugin not initializing properly when an exception occurs while loading settings
+- framelimiter: Fix UI not drawing when blind. (#285)
+- framelimiter: Fix UI not drawing correctly when tied to simulation rate.
+
 September 16, 2021
 - Plugins can now be loaded via commands without requiring a MQ2 or MQ prefix.
   For example: "/plugin easyfind toggle" works to toggle the easyfind plugin.
