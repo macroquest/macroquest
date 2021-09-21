@@ -882,8 +882,11 @@ void PluginsEndZone()
 			}
 		});
 
-	LoadCfgFile("zoned", true);
-	LoadCfgFile(pZoneInfo->ShortName, false);
+	if (GetGameState() == GAMESTATE_INGAME)
+	{
+		LoadCfgFile("zoned", true);
+		LoadCfgFile(pZoneInfo->ShortName, false);
+	}
 }
 
 void PluginsUpdateImGui()

@@ -1,3 +1,6 @@
+September 21, 2021:
+- zoned.cfg and any of the Zone ShortName cfg files will no longer activate unles you're in game (#214)
+
 September 19, 2021:
 - lua: Fix plugin not initializing properly when an exception occurs while loading settings
 - framelimiter: Fix UI not drawing when blind. (#285)
