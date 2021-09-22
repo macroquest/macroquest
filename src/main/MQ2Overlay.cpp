@@ -485,8 +485,6 @@ static bool ImGui_ImplDX9_Init(IDirect3DDevice9* device)
 
 	ImGui_ImplDX9_InitPlatformInterface();
 
-	io.ConfigDockingWithShift = true;
-
 	return true;
 }
 

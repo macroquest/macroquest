@@ -500,9 +500,6 @@
     <Natvis Include="..\MQ2.natvis">
       <Filter>Resource Files</Filter>
     </Natvis>
-    <Natvis Include="..\..\contrib\imgui\misc\natvis\imgui.natvis">
-      <Filter>Resource Files</Filter>
-    </Natvis>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\data\resources\GPL.txt">

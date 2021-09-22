@@ -2366,26 +2366,26 @@ public:
 
 	void DoSpellBuffTableHeaders()
 	{
-		ImGui::TableSetupColumn("Index", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
-		ImGui::TableSetupColumn("Icon", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
-		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
-		ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
-		ImGui::TableSetupColumn("Level", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
-		ImGui::TableSetupColumn("Duration", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
-		ImGui::TableSetupColumn("InitialDuration", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
-		ImGui::TableSetupColumn("HitCount", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
-		ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
-		ImGui::TableSetupColumn("ChargesRemaining", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
-		ImGui::TableSetupColumn("ViralTimer", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
-		ImGui::TableSetupColumn("Flags", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
-		ImGui::TableSetupColumn("Modifier", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
-		ImGui::TableSetupColumn("Activatable", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
+		ImGui::TableSetupColumn("Index");
+		ImGui::TableSetupColumn("Icon");
+		ImGui::TableSetupColumn("Name");
+		ImGui::TableSetupColumn("ID");
+		ImGui::TableSetupColumn("Level");
+		ImGui::TableSetupColumn("Duration");
+		ImGui::TableSetupColumn("InitialDuration");
+		ImGui::TableSetupColumn("HitCount");
+		ImGui::TableSetupColumn("Type");
+		ImGui::TableSetupColumn("ChargesRemaining");
+		ImGui::TableSetupColumn("ViralTimer");
+		ImGui::TableSetupColumn("Flags");
+		ImGui::TableSetupColumn("Modifier");
+		ImGui::TableSetupColumn("Activatable");
 
 		for (int i = 0; i < NUM_SLOTDATA; ++i)
 		{
 			char temp[20];
 			sprintf_s(temp, "Slot%d", i);
-			ImGui::TableSetupColumn(temp, ImGuiTableColumnFlags_WidthAlwaysAutoResize);
+			ImGui::TableSetupColumn(temp);
 		}
 
 		ImGui::TableHeadersRow();
@@ -2490,8 +2490,8 @@ public:
 	int DoSpellAffectTable(const char* name, EQ_Affect* affect, int numAffects, bool showEmpty = false)
 	{
 		ImGuiTableFlags tableFlags = 0
-			| ImGuiTableFlags_SizingPolicyFixedX
-			| ImGuiTableFlags_Scroll
+			| ImGuiTableFlags_SizingFixedFit
+			| ImGuiTableFlags_ScrollY
 			| ImGuiTableFlags_NoHostExtendY
 			| ImGuiTableFlags_RowBg
 			| ImGuiTableFlags_Borders

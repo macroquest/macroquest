@@ -2,6 +2,7 @@
 #pragma once
 
 #include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
 #include <sol/sol.hpp>
 
@@ -1496,10 +1497,10 @@ namespace sol_ImGui
 	inline int TableGetColumnCount()                                                                    { return ImGui::TableGetColumnCount(); }
 	inline std::string TableGetColumnName()                                                             { const char* name = ImGui::TableGetColumnName(); if (name) return std::string(name); return std::string(); }
 	inline std::string TableGetColumnName(int column_n)                                                 { const char* name = ImGui::TableGetColumnName(column_n); if (name) return std::string(name); return std::string(); }
-	inline bool TableGetColumnIsVisible()                                                               { return ImGui::TableGetColumnIsVisible(); }
-	inline bool TableGetColumnIsVisible(int column_n)                                                   { return ImGui::TableGetColumnIsVisible(column_n); }
-	inline bool TableGetColumnIsSorted()                                                                { return ImGui::TableGetColumnIsSorted(); }
-	inline bool TableGetColumnIsSorted(int column_n)                                                    { return ImGui::TableGetColumnIsSorted(column_n); }
+	inline bool TableGetColumnIsVisible()                                                               { return (ImGui::TableGetColumnFlags() & ImGuiTableColumnFlags_IsVisible) != 0; }
+	inline bool TableGetColumnIsVisible(int column_n)                                                   { return (ImGui::TableGetColumnFlags(column_n) & ImGuiTableColumnFlags_IsVisible) != 0; }
+	inline bool TableGetColumnIsSorted()                                                                { return (ImGui::TableGetColumnFlags() & ImGuiTableColumnFlags_IsSorted) != 0; }
+	inline bool TableGetColumnIsSorted(int column_n)                                                    { return (ImGui::TableGetColumnFlags(column_n) & ImGuiTableColumnFlags_IsSorted) != 0; }
 	inline int TableGetHoveredColumn()                                                                  { return ImGui::TableGetHoveredColumn(); }
 	inline ImGuiTableSortSpecs* TableGetSortSpecs()                                                     { return ImGui::TableGetSortSpecs(); }
 #ifdef SOL_IMGUI_USE_COLOR_U32
@@ -1989,12 +1990,18 @@ namespace sol_ImGui
 			"InputRGB"				, ImGuiColorEditFlags_InputRGB,
 			"InputHSV"				, ImGuiColorEditFlags_InputHSV,
 
-			"_OptionsDefault"		, ImGuiColorEditFlags__OptionsDefault,
+			"DefaultOptions_"		, ImGuiColorEditFlags_DefaultOptions_,
+			"DisplayMask_"			, ImGuiColorEditFlags_DisplayMask_,
+			"DataTypeMask_"			, ImGuiColorEditFlags_DataTypeMask_,
+			"PickerMask_"			, ImGuiColorEditFlags_PickerMask_,
+			"InputMask_"			, ImGuiColorEditFlags_InputMask_,
 
-			"_DisplayMask"			, ImGuiColorEditFlags__DisplayMask,
-			"_DataTypeMask"			, ImGuiColorEditFlags__DataTypeMask,
-			"_PickerMask"			, ImGuiColorEditFlags__PickerMask,
-			"_InputMask"			, ImGuiColorEditFlags__InputMask,
+			// Deprecated
+			"_OptionsDefault"		, ImGuiColorEditFlags_DefaultOptions_,
+			"_DisplayMask"			, ImGuiColorEditFlags_DisplayMask_,
+			"_DataTypeMask"			, ImGuiColorEditFlags_DataTypeMask_,
+			"_PickerMask"			, ImGuiColorEditFlags_PickerMask_,
+			"_InputMask"			, ImGuiColorEditFlags_InputMask_,
 
 			"RGB"					, ImGuiColorEditFlags_RGB
 		);
@@ -2082,7 +2089,7 @@ namespace sol_ImGui
 			"Reorderable"                   , ImGuiTableFlags_Reorderable,
 			"Hideable"                      , ImGuiTableFlags_Hideable,
 			"Sortable"                      , ImGuiTableFlags_Sortable,
-			"MultiSortable"                 , ImGuiTableFlags_MultiSortable,
+			"SortMulti"                     , ImGuiTableFlags_SortMulti,
 			"NoSavedSettings"               , ImGuiTableFlags_NoSavedSettings,
 			"ContextMenuInBody"             , ImGuiTableFlags_ContextMenuInBody,
 			"RowBg"                         , ImGuiTableFlags_RowBg,
@@ -2097,15 +2104,21 @@ namespace sol_ImGui
 			"Borders"                       , ImGuiTableFlags_Borders,
 			"NoBordersInBody"               , ImGuiTableFlags_NoBordersInBody,
 			"NoBordersInBodyUntilResize"    , ImGuiTableFlags_NoBordersInBodyUntilResize,
-			"SizingPolicyFixedX"            , ImGuiTableFlags_SizingPolicyFixedX,
-			"SizingPolicyStretchX"          , ImGuiTableFlags_SizingPolicyStretchX,
-			"NoHeadersWidth"                , ImGuiTableFlags_NoHeadersWidth,
+			"SizingFixedFit"                , ImGuiTableFlags_SizingFixedFit,
+			"SizingStretchProp"             , ImGuiTableFlags_SizingStretchProp,
+
 			"NoHostExtendY"                 , ImGuiTableFlags_NoHostExtendY,
 			"NoKeepColumnsVisible"          , ImGuiTableFlags_NoKeepColumnsVisible,
 			"NoClip"                        , ImGuiTableFlags_NoClip,
 			"ScrollX"                       , ImGuiTableFlags_ScrollX,
 			"ScrollY"                       , ImGuiTableFlags_ScrollY,
-			"Scroll"                        , ImGuiTableFlags_Scroll
+			"Scroll"                        , (ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY),
+
+			// Deprecated
+			"MultiSortable"                 , ImGuiTableFlags_SortMulti,
+			"SizingPolicyFixedX"            , ImGuiTableFlags_SizingFixedFit,
+			"SizingPolicyStretchX"          , ImGuiTableFlags_SizingStretchProp,
+			"NoHeadersWidth"                , 0 // removed
 		);
 #pragma endregion
 
@@ -2116,9 +2129,9 @@ namespace sol_ImGui
 			"DefaultSort"                   , ImGuiTableColumnFlags_DefaultSort,
 			"WidthFixed"                    , ImGuiTableColumnFlags_WidthFixed,
 			"WidthStretch"                  , ImGuiTableColumnFlags_WidthStretch,
-			"WidthAlwaysAutoResize"         , ImGuiTableColumnFlags_WidthAlwaysAutoResize,
+			"WidthAuto"                     , (ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize),
 			"NoResize"                      , ImGuiTableColumnFlags_NoResize,
-			"NoClipX"                       , ImGuiTableColumnFlags_NoClipX,
+			"NoClip"                        , ImGuiTableColumnFlags_NoClip,
 			"NoSort"                        , ImGuiTableColumnFlags_NoSort,
 			"NoSortAscending"               , ImGuiTableColumnFlags_NoSortAscending,
 			"NoSortDescending"              , ImGuiTableColumnFlags_NoSortDescending,
@@ -2128,7 +2141,11 @@ namespace sol_ImGui
 			"PreferSortDescending"          , ImGuiTableColumnFlags_PreferSortDescending,
 			"IndentEnable"                  , ImGuiTableColumnFlags_IndentEnable,
 			"IndentDisable"                 , ImGuiTableColumnFlags_IndentDisable,
-			"NoReorder"                     , ImGuiTableColumnFlags_NoReorder
+			"NoReorder"                     , ImGuiTableColumnFlags_NoReorder,
+
+			// Deprecated
+			"WidthAlwaysAutoResize"         , ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize,
+			"NoClipX"                       , ImGuiTableColumnFlags_NoClip
 		);
 #pragma endregion
 
@@ -2142,12 +2159,14 @@ namespace sol_ImGui
 #pragma region Table Bg Target Flags
 		lua.new_enum("ImGuiTableBgTarget",
 			"None"                          , ImGuiTableBgTarget_None,
-			"ColumnBg0"                     , ImGuiTableBgTarget_ColumnBg0,
-			"ColumnBg1"                     , ImGuiTableBgTarget_ColumnBg1,
 			"RowBg0"                        , ImGuiTableBgTarget_RowBg0,
 			"RowBg1"                        , ImGuiTableBgTarget_RowBg1,
 			"RowBg0"                        , ImGuiTableBgTarget_RowBg0,
-			"CellBg"                        , ImGuiTableBgTarget_CellBg
+			"CellBg"                        , ImGuiTableBgTarget_CellBg,
+
+			// Deprecated
+			"ColumnBg0"                     , 0,
+			"ColumnBg1"                     , 0
 		);
 #pragma endregion
 
@@ -2295,9 +2314,12 @@ namespace sol_ImGui
 			"AntiAliasedLinesUseTex"						, &ImGuiStyle::AntiAliasedLinesUseTex,
 			"AntiAliasedFill"								, &ImGuiStyle::AntiAliasedFill,
 			"CurveTessellationTol"							, &ImGuiStyle::CurveTessellationTol,
-			"CircleSegmentMaxError"							, &ImGuiStyle::CircleSegmentMaxError,
+			"CircleSegmentMaxError"							, &ImGuiStyle::CircleTessellationMaxError,
 			"TabBorderSize"									, &ImGuiStyle::TabBorderSize,
-			"Colors"										, &ImGuiStyle::Colors
+			"Colors"										, &ImGuiStyle::Colors,
+
+			// Deprecated
+			"CircleSegmentMaxError"							, &ImGuiStyle::CircleTessellationMaxError
 		);
 #pragma endregion
 
@@ -2957,19 +2979,18 @@ namespace sol_ImGui
 															));
 		ImGui.set_function("TableGetHoveredColumn"			, TableGetHoveredColumn);
 
-		lua.new_usertype<ImGuiTableSortSpecsColumn>(
+		lua.new_usertype<ImGuiTableColumnSortSpecs>(
 			"ImGuiTableSortSpecsColumn"     , sol::no_constructor,
-			"ColumnUserID"                  , sol::readonly(&ImGuiTableSortSpecsColumn::ColumnUserID),
-			"ColumnIndex"                   , sol::readonly(&ImGuiTableSortSpecsColumn::ColumnIndex),
-			"SortOrder"                     , sol::readonly(&ImGuiTableSortSpecsColumn::SortOrder),
-			"SortDirection"                 , sol::property([](ImGuiTableSortSpecsColumn* spec) { return spec->SortDirection;})
+			"ColumnUserID"                  , sol::readonly(&ImGuiTableColumnSortSpecs::ColumnUserID),
+			"ColumnIndex"                   , sol::readonly(&ImGuiTableColumnSortSpecs::ColumnIndex),
+			"SortOrder"                     , sol::readonly(&ImGuiTableColumnSortSpecs::SortOrder),
+			"SortDirection"                 , sol::property([](ImGuiTableColumnSortSpecs* spec) { return spec->SortDirection;})
 		);
 		lua.new_usertype<ImGuiTableSortSpecs>(
 			"ImGuiTableSortSpecs"           , sol::no_constructor,
-			"Specs"                         , [](ImGuiTableSortSpecs* spec, int index) -> ImGuiTableSortSpecsColumn* { if (index > 0 && index <= spec->SpecsCount) return (ImGuiTableSortSpecsColumn*)&spec->Specs[index - 1]; return nullptr; },
+			"Specs"                         , [](ImGuiTableSortSpecs* spec, int index) -> ImGuiTableColumnSortSpecs* { if (index > 0 && index <= spec->SpecsCount) return (ImGuiTableColumnSortSpecs*)&spec->Specs[index - 1]; return nullptr; },
 			"SpecsCount"                    , sol::readonly(&ImGuiTableSortSpecs::SpecsCount),
-			"SpecsDirty"                    , &ImGuiTableSortSpecs::SpecsDirty,
-			"ColumnsMask"                   , sol::readonly(&ImGuiTableSortSpecs::ColumnsMask)
+			"SpecsDirty"                    , &ImGuiTableSortSpecs::SpecsDirty
 		);
 		ImGui.set_function("TableGetSortSpecs"				, TableGetSortSpecs);
 

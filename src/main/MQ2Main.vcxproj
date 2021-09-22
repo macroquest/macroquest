@@ -406,7 +406,6 @@
     <ResourceCompile Include="MQ2Main.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Natvis Include="..\..\contrib\imgui\misc\natvis\imgui.natvis" />
     <Natvis Include="..\MQ2.natvis" />
   </ItemGroup>
   <ItemGroup>

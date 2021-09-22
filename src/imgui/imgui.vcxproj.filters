@@ -93,6 +93,9 @@
     <ClInclude Include="ImGuiMemoryEditor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\contrib\imgui\misc\freetype\imgui_freetype.h">
+      <Filter>Header Files\imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -137,8 +140,14 @@
     <ClCompile Include="ImGuiFileDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\contrib\imgui\misc\freetype\imgui_freetype.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\imgui\imgui_tables.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Natvis Include="..\..\contrib\imgui\misc\natvis\imgui.natvis" />
+    <Natvis Include="..\..\contrib\imgui\misc\debuggers\imgui.natvis" />
   </ItemGroup>
 </Project>
