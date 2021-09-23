@@ -339,7 +339,7 @@
     <ClCompile Include="MQ2MacroCommands.cpp" />
     <ClCompile Include="MQ2Main.cpp" />
     <ClCompile Include="MQ2Mouse.cpp" />
-    <ClCompile Include="MQ2Overlay.cpp" />
+    <ClCompile Include="ImGuiOverlay.cpp" />
     <ClCompile Include="MQ2ParseAPI.cpp" />
     <ClCompile Include="MQ2PipeClient.cpp" />
     <ClCompile Include="MQ2PluginHandler.cpp" />

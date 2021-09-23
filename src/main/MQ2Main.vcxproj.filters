@@ -137,7 +137,7 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2Overlay.cpp">
+    <ClCompile Include="ImGuiOverlay.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2LoginFrontend.cpp">
