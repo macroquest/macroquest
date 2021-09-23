@@ -47,7 +47,6 @@ static MQModule gImGuiModule = {
 	ShutdownMQ2ImGuiTools,        // Shutdown
 	PulseMQ2ImGuiTools,           // Pulse
 	nullptr,                      // SetGameState
-	UpdateOverlayUI,              // UpdateImGui
 	nullptr,                      // Zoned
 	WriteChatColorImGuiAPI,       // WriteChatColor
 };
@@ -89,15 +88,13 @@ static void DoToggleImGuiOverlay(const char* name, bool down)
 	}
 }
 
-void UpdateOverlayUI()
+void UpdateSettingsUI()
 {
 	if (gbShowSettingsWindow)
 	{
 		if (gSettingsWindow)
 			gSettingsWindow->Draw(&gbShowSettingsWindow);
 	}
-
-	UpdateImGuiConsole();
 }
 
 void MQSettingsCommand(PSPAWNINFO pLPlayer, char* szLine) {

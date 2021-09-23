@@ -1091,7 +1091,6 @@ static MQModule s_FrameLimiterModule = {
 	ShutdownFrameLimiter,          // Shutdown
 	PulseFrameLimiter,             // Pulse
 	SetGameStateFrameLimiter,      // SetGameState
-	nullptr,                       // UpdateImGui
 	nullptr,                       // Zoned
 	nullptr                        // WriteChatColor
 };

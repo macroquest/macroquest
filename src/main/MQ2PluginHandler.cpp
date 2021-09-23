@@ -894,20 +894,11 @@ void PluginsUpdateImGui()
 	if (!s_pluginsInitialized)
 		return;
 
-	ForEachModule([](const MQModule* module)
+	ForEachPlugin([](const MQPlugin* plugin)
 		{
-			if (module->UpdateImGui)
-				module->UpdateImGui();
+			if (plugin->UpdateImGui)
+				plugin->UpdateImGui();
 		});
-
-	if (!gbManualResetRequired)
-	{
-		ForEachPlugin([](const MQPlugin* plugin)
-			{
-				if (plugin->UpdateImGui)
-					plugin->UpdateImGui();
-			});
-	}
 }
 
 void PluginsMacroStart(const char* Name)

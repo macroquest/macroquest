@@ -38,7 +38,7 @@ namespace mq {
 static void DeveloperTools_Initialize();
 static void DeveloperTools_Shutdown();
 static void DeveloperTools_SetGameState(DWORD gameState);
-static void DeveloperTools_UpdateImGui();
+void DeveloperTools_UpdateImGui();
 
 static MQModule s_developerToolsModule = {
 	"DeveloperTools",              // Name
@@ -47,9 +47,10 @@ static MQModule s_developerToolsModule = {
 	DeveloperTools_Shutdown,
 	nullptr,
 	DeveloperTools_SetGameState,
-	DeveloperTools_UpdateImGui,
 };
 DECLARE_MODULE_INITIALIZER(s_developerToolsModule);
+
+extern std::vector<std::unique_ptr<MQBenchmark>> gBenchmarks;
 
 //----------------------------------------------------------------------------
 
@@ -3171,7 +3172,7 @@ static void DeveloperTools_SetGameState(DWORD gameState)
 	DeveloperTools_WindowInspector_SetGameState(gameState);
 }
 
-static void DeveloperTools_UpdateImGui()
+void DeveloperTools_UpdateImGui()
 {
 	ImGuiWindowBase* baseWindow = s_imguiBaseWindows;
 	while (baseWindow)

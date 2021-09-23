@@ -23,15 +23,21 @@
 #include <imgui/imgui_internal.h>
 
 #include "zep.h"
+#include <optional>
 
 namespace mq {
 
 //----------------------------------------------------------------------------
 
-extern bool gbToggleConsoleRequested;
+// Indicates that there has been a request to toggle the console.
+bool gbToggleConsoleRequested = false;
+
+// Indicates that there has been a request to hide/show the console
+std::optional<bool> gbSetConsoleVisibilityRequest = std::nullopt;
 
 static const ImU32 s_defaultColor = Zep::ZepColor(240, 240, 240, 255);
 static ImGuiID s_dockspaceId = 0;
+static ImGuiID s_dockspaceTopSegmentId = 0;
 
 // Some plain default colors
 static const ImU32 s_defaultLinkColor = Zep::ZepColor(0, 128, 255);
@@ -51,8 +57,9 @@ static const int s_userColorDialogLink = USERCOLOR_DIALOG_LINK;
 static const int s_userColorCommandLink = USERCOLOR_DIALOG_LINK;
 static const int s_userColorFactionLink = USERCOLOR_FACTION_LINK;
 
-static bool s_dockspaceVisible = false;
-static bool s_resetDockspace = false;
+static bool s_dockspaceVisible = true;
+static bool s_consoleVisible = false;
+static bool s_resetConsolePosition = false;
 static bool s_setFocus = false;
 
 class ImGuiConsole;
@@ -956,7 +963,7 @@ public:
 				if (ImGui::MenuItem("Close Console"))
 					*pOpen = false;
 				if (ImGui::MenuItem("Reset Position"))
-					s_resetDockspace = true;
+					s_resetConsolePosition = true;
 
 				ImGui::Separator();
 
@@ -1231,91 +1238,74 @@ public:
 
 //============================================================================
 
-ImGuiID MyDockSpaceOverViewport(ImGuiViewport* viewport, ImGuiDockNodeFlags dockspace_flags, const ImGuiWindowClass* window_class = nullptr)
+void DrawDockSpace(bool* p_open)
 {
-	using namespace ImGui;
-
-	if (viewport == nullptr)
-		viewport = GetMainViewport();
-
-	SetNextWindowPos(viewport->Pos);
-	SetNextWindowSize(viewport->Size);
-	SetNextWindowViewport(viewport->ID);
-
-	ImGuiWindowFlags host_window_flags = 0;
-	host_window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDocking;
-	host_window_flags |= ImGuiWindowFlags_NoNavFocus;
-	if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-		host_window_flags |= ImGuiWindowFlags_NoBackground;
-	host_window_flags |= ImGuiWindowFlags_NoInputs;
-
-	char label[32];
-	ImFormatString(label, IM_ARRAYSIZE(label), "DockSpaceViewport_%08X", viewport->ID);
-
-	PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-	PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-	PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-	PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.9f));
-	Begin(label, nullptr, host_window_flags);
-
-	ImGuiID dockspace_id = GetID("DockSpace");
-	DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags, window_class);
-
-	PopStyleVar(3);
-	PopStyleColor();
-	End();
-
-	return dockspace_id;
-}
-
-void DrawDockSpace()
-{
-	// when using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
-	// and handle the pass-thru hole, so we ask Begin() to not render a background.
-	ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_None
-		| ImGuiDockNodeFlags_PassthruCentralNode
-		| ImGuiDockNodeFlags_NoDockingInCentralNode;
+	static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None | ImGuiDockNodeFlags_NoDockingInCentralNode;
+	dockspace_flags |= ImGuiDockNodeFlags_PassthruCentralNode;
 
 	if (!s_dockspaceVisible)
 	{
-		dockspaceFlags |= ImGuiDockNodeFlags_KeepAliveOnly;
+		dockspace_flags |= ImGuiDockNodeFlags_KeepAliveOnly;
 	}
 
-	if (s_setFocus)
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
+	const ImGuiViewport* viewport = ImGui::GetMainViewport();
+	ImGui::SetNextWindowPos(viewport->WorkPos);
+	ImGui::SetNextWindowSize(viewport->WorkSize);
+	ImGui::SetNextWindowViewport(viewport->ID);
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+	window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+	window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground;
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+	ImGui::Begin("Hidden DockSpace Window", nullptr, window_flags);
+
+	ImGui::PopStyleVar(3);
+
+	// Submit the DockSpace
+	ImGuiIO& io = ImGui::GetIO();
+
+	s_dockspaceId = ImGui::GetID("Main DockSpace");
+	ImGui::DockSpace(s_dockspaceId, ImVec2(0.0f, 0.0f), dockspace_flags);
+
+	if (s_dockspaceTopSegmentId == 0)
 	{
-		ImGui::SetNextWindowFocus();
+		//ImGuiDockNode* node = ImGui::DockBuilderGetNode(s_dockspaceId);
+
+		//if (node == nullptr || s_resetDockspace || (!node->Windows.empty() && node->ChildNodes[0] == nullptr && node->ChildNodes[1] == nullptr))
+		//{
+		//	s_resetDockspace = false;
+
+		//	// Preserve the windows
+		//	ImVector<ImGuiWindow*> Windows;
+		//	if (node)
+		//	{
+		//		Windows = node->Windows;
+		//	}
+
+		//	ImGuiViewport* viewport = ImGui::GetMainViewport();
+		//	// Reset layout
+		//	ImGui::DockBuilderRemoveNode(s_dockspaceId);
+		//	ImGui::DockBuilderAddNode(s_dockspaceId, ImGuiDockNodeFlags_DockSpace);
+		//	ImGui::DockBuilderSetNodeSize(s_dockspaceId, viewport->Size);
+
+		//	// This variable will track the document node, however we are not using it
+		//	// here as we aren't docking anything into it.
+		//	ImGuiID dock_main_id = s_dockspaceId;
+
+		//	ImGuiID dock_id_console = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Up, 0.25f, nullptr, &dock_main_id);
+		//	ImGui::DockBuilderDockWindow("MacroQuest Console", dock_id_console);
+		//	for (ImGuiWindow* window : Windows)
+		//		ImGui::DockBuilderDockWindow(window->Name, dock_id_console);
+
+		//	
+		//}
+		//ImGui::DockBuilderFinish(s_dockspaceId);
 	}
-	s_dockspaceId = MyDockSpaceOverViewport(nullptr, dockspaceFlags);
 
-	ImGuiDockNode* node = ImGui::DockBuilderGetNode(s_dockspaceId);
-	if (node == nullptr || s_resetDockspace || (!node->Windows.empty() && node->ChildNodes[0] == nullptr && node->ChildNodes[1] == nullptr))
-	{
-		s_resetDockspace = false;
-
-		// Preserve the windows
-		ImVector<ImGuiWindow*> Windows;
-		if (node)
-		{
-			Windows = node->Windows;
-		}
-
-		ImGuiViewport* viewport = ImGui::GetMainViewport();
-		// Reset layout
-		ImGui::DockBuilderRemoveNode(s_dockspaceId);
-		ImGui::DockBuilderAddNode(s_dockspaceId, ImGuiDockNodeFlags_DockSpace);
-		ImGui::DockBuilderSetNodeSize(s_dockspaceId, viewport->Size);
-
-		// This variable will track the document node, however we are not using it
-		// here as we aren't docking anything into it.
-		ImGuiID dock_main_id = s_dockspaceId;
-
-		ImGuiID dock_id_console = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Up, 0.25f, nullptr, &dock_main_id);
-		ImGui::DockBuilderDockWindow("MacroQuest Console", dock_id_console);
-		for (ImGuiWindow* window : Windows)
-			ImGui::DockBuilderDockWindow(window->Name, dock_id_console);
-
-		ImGui::DockBuilderFinish(s_dockspaceId);
-	}
+	ImGui::End(); 
 }
 
 static void MakeColorGradient(float frequency1, float frequency2, float frequency3,
@@ -1352,33 +1342,62 @@ static void MakeColorGradient(float frequency1, float frequency2, float frequenc
 
 void UpdateImGuiConsole()
 {
+	// Initialize dockspace first so other windows can utilize it.
+	if (s_dockspaceVisible)
+		DrawDockSpace(&s_dockspaceVisible);
+
+	bool shouldSetFocusToMainViewport = false;
+
+	if (gbSetConsoleVisibilityRequest)
+	{
+		if (gbSetConsoleVisibilityRequest.value() != s_consoleVisible)
+			gbToggleConsoleRequested = true;
+
+		gbSetConsoleVisibilityRequest.reset();
+	}
+
 	if (gbToggleConsoleRequested)
 	{
 		gbToggleConsoleRequested = false;
 
-		s_dockspaceVisible = !s_dockspaceVisible;
-		if (s_dockspaceVisible)
+		s_consoleVisible = !s_consoleVisible;
+		if (s_consoleVisible)
 		{
 			s_setFocus = true;
+			shouldSetFocusToMainViewport = true;
+		}
+	}
 
-			// activate main viewport
+	if (s_consoleVisible)
+	{
+		if (s_setFocus)
+		{
+			ImGui::SetNextWindowFocus();
+		}
+
+		if (s_resetConsolePosition)
+		{
+			s_resetConsolePosition = false;
+			ImGui::SetNextWindowDockID(s_dockspaceId);
+		}
+		else
+		{
+			ImGui::SetNextWindowDockID(s_dockspaceId, ImGuiCond_FirstUseEver);
+		}
+
+		gImGuiConsole->Draw(&s_consoleVisible);
+
+		if (shouldSetFocusToMainViewport)
+		{
+			// activate main viewport in case it isn't currently in focus
 			ImGuiViewport* mainViewport = ImGui::GetMainViewport();
 
-			if (ImGui::GetCurrentWindow()->Viewport->ID != mainViewport->ID)
+			if (ImGui::GetCurrentWindowRead()->Viewport->ID != mainViewport->ID)
 			{
 				// Activate the main viewport window.
 				::SetActiveWindow((HWND)mainViewport->PlatformHandle);
 			}
 		}
-	}
-
-	// Initialize dockspace first so other windows can utilize it.+
-	DrawDockSpace();
-
-	if (s_dockspaceVisible)
-	{
-		ImGui::SetNextWindowDockID(s_dockspaceId, ImGuiCond_FirstUseEver);
-		gImGuiConsole->Draw(&s_dockspaceVisible);
 	}
 }
 
@@ -1391,16 +1410,40 @@ void MQConsoleCommand(SPAWNINFO* pChar, char* Line)
 	{
 		if (gImGuiConsole != nullptr)
 			gImGuiConsole->ClearLog();
+
+		return;
 	}
+
+	if (!_stricmp("toggle", szCommand))
+	{
+		gbToggleConsoleRequested = true;
+		return;
+	}
+
+	if (!_stricmp("show", szCommand))
+	{
+		gbSetConsoleVisibilityRequest = true;
+		return;
+	}
+
+	if (!_stricmp("hide", szCommand))
+	{
+		gbSetConsoleVisibilityRequest = false;
+		return;
+	}
+
+	WriteChatf("Usage: /mqconsole [command]");
+	WriteChatf("  Commands: clear, toggle, show, hide");
 }
 
 void InitializeImGuiConsole()
 {
-	s_dockspaceVisible = GetPrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", false, mq::internal_paths::MQini);
+	s_consoleVisible = GetPrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", false, mq::internal_paths::MQini);
 	if (gbWriteAllConfig)
 	{
-		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_dockspaceVisible, mq::internal_paths::MQini);
+		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisible, mq::internal_paths::MQini);
 	}
+
 	gImGuiConsole = new ImGuiConsole();
 	AddCommand("/mqconsole", MQConsoleCommand);
 }
@@ -1409,6 +1452,7 @@ void ShutdownImGuiConsole()
 {
 	delete gImGuiConsole;
 	gImGuiConsole = nullptr;
+
 	RemoveCommand("/mqconsole");
 }
 
@@ -1416,10 +1460,8 @@ DWORD ImGuiConsoleAddText(const char* line, DWORD color, DWORD filter)
 {
 	ImU32 col = GetColorForChatColor(color).ToABGR();
 
-	if (!gImGuiConsole)
-		return 0;
-
-	gImGuiConsole->AddWriteChatColorLog(line, col, true);
+	if (gImGuiConsole)
+		gImGuiConsole->AddWriteChatColorLog(line, col, true);
 
 	return 0;
 }

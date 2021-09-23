@@ -16,6 +16,7 @@
 #include "MQ2Main.h"
 #include "MQ2DeveloperTools.h"
 #include "CrashHandler.h"
+#include "ImGuiManager.h"
 
 #include "common/HotKeys.h"
 #include "imgui/ImGuiUtils.h"
@@ -55,9 +56,6 @@ bool gbDeviceAcquired = false;
 // Indicates that the graphics device hooks are installed
 bool gbDeviceHooksInstalled = false;
 
-// Indicates that there has been a request to toggle the console.
-bool gbToggleConsoleRequested = false;
-
 // Indicates that we need to reset the overlay next frame
 bool gbNeedResetOverlay = false;
 
@@ -67,8 +65,8 @@ bool gbLastFullScreenState = false;
 // Number of frames to wait before initializing
 int gReInitFrameDelay = 0;
 
-// Critical error occurred and imgui needs to be reset
-bool gbManualResetRequired = false;
+
+extern bool gbToggleConsoleRequested;
 
 //----------------------------------------------------------------------------
 // statics
@@ -82,10 +80,6 @@ static bool gbRetryHooks = false;
 static bool gbInitializationFailed = false;
 static bool gbInitializedImGui = false;
 static int gLastGameState = GAMESTATE_PRECHARSELECT;
-
-static mq::PlatformHotkey gToggleConsoleHotkey;
-static const char gToggleConsoleDefaultBind[] = "ctrl+`";
-static bool gbToggleConsoleHotkeyReady = false;
 
 // Mouse state, pointed to by EQADDR_DIMOUSECOPY
 struct MouseStateData
@@ -263,7 +257,6 @@ static LPDIRECT3DTEXTURE9       g_FontTexture = nullptr;
 static int                      g_VertexBufferSize = 5000;
 static int                      g_IndexBufferSize = 10000;
 static bool                     g_bImGuiReady = false;
-static bool                     g_bRenderImGui = true;
 
 struct CUSTOMVERTEX
 {
@@ -339,7 +332,7 @@ static void ImGui_ImplDX9_SetupRenderState(ImDrawData* drawData)
 
 // Render function.
 // (this used to be set in io.RenderDrawListsFn and called by ImGui::Render(), but you can now call this directly from your main loop)
-static void ImGui_ImplDX9_RenderDrawData(ImDrawData* drawData)
+void ImGui_ImplDX9_RenderDrawData(ImDrawData* drawData)
 {
 	// Avoid rendering when minimized
 	if (drawData->DisplaySize.x <= 0.0f || drawData->DisplaySize.y <= 0.0f)
@@ -574,7 +567,7 @@ static void ImGui_ImplDX9_InvalidateDeviceObjects()
 	ImGui_ImplDX9_InvalidateDeviceObjectsForPlatformWindows();
 }
 
-static void ImGui_ImplDX9_NewFrame()
+void ImGui_ImplDX9_NewFrame()
 {
 	if (!g_FontTexture)
 		ImGui_ImplDX9_CreateDeviceObjects();
@@ -1456,6 +1449,8 @@ static void ImGui_ImplWin32_OnChangedViewport(ImGuiViewport* viewport)
 
 static LRESULT CALLBACK ImGui_ImplWin32_WndProcHandler_PlatformWindow(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+	if (ImGuiManager_HandleWndProc(msg, wParam, lParam))
+		return true;
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
 		return true;
 
@@ -1940,20 +1935,8 @@ uint32_t ProcessKeyboardEvents_Detour()
 
 bool OverlayWndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	if (msg == WM_KEYDOWN
-		&& gbToggleConsoleHotkeyReady)
-	{
-		// Match the vkey and modifiers
-		if (wParam == gToggleConsoleHotkey.virtualKey)
-		{
-			// Check the modifiers, don't allow repeats.
-			if ((HIWORD(lParam) & KF_REPEAT) == 0
-				&& mq::IsHotKeyModifiersPressed(gToggleConsoleHotkey))
-			{
-				gbToggleConsoleRequested = true;
-			}
-		}
-	}
+	if (ImGuiManager_HandleWndProc(msg, wParam, lParam))
+		return true;
 
 	if (imgui::g_pImguiDevice)
 	{
@@ -2164,82 +2147,24 @@ void RemoveRenderCallbacks(uint32_t id)
 	}
 }
 
-void SetOverlayEnabled(bool visible)
-{
-	imgui::g_bRenderImGui = visible;
-}
-
-bool IsOverlayEnabled()
-{
-	return imgui::g_bRenderImGui;
-}
-
 static bool RenderImGui()
 {
 	using namespace imgui;
 
 	if (!g_bImGuiReady)
 		return false;
-
-	if (!g_bRenderImGui)
+	if (gbNeedResetOverlay)
+		return false;
+	if (!gpD3D9Device)
 		return false;
 
 	// This is loading/transitioning screen
 	if (gGameState == GAMESTATE_LOGGINGIN)
 		return false;
 
-	if (gbNeedResetOverlay)
-		return false;
-	if (!gpD3D9Device)
-		return false;
 
-	// we can't expect that the rounding mode is valid, and imgui respects the rounding mode so set it here and ensure that we reset it before the return
-	auto round = fegetround();
-	fesetround(FE_TONEAREST);
 
-	ImGuiIO& io = ImGui::GetIO();
-
-	IDirect3DStateBlock9* stateBlock = nullptr;
-	gpD3D9Device->CreateStateBlock(D3DSBT_ALL, &stateBlock);
-
-	// Begin a new frame
-	ImGui_ImplDX9_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-
-	try
-	{
-		ImGui::NewFrame();
-
-		{
-			MQScopedBenchmark bm(bmPluginsUpdateImGui);
-
-			PluginsUpdateImGui();
-		}
-
-		// Render the ui
-		ImGui::Render();
-		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
-
-		ImGui::UpdatePlatformWindows();
-
-		// Update and Render additional Platform Windows
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			ImGui::RenderPlatformWindowsDefault();
-		}
-	}
-	catch (const ImGuiException& ex)
-	{
-		gbManualResetRequired = true;
-
-		WriteChatf("\arImGui Critical Failure: %s", ex.what());
-		WriteChatf("\arFix the error and then run: \ay/mqoverlay resume\ar");
-	}
-
-	stateBlock->Apply();
-	stateBlock->Release();
-
-	fesetround(round);
+	ImGuiManager_DrawFrame();
 
 	return true;
 }
@@ -2384,36 +2309,6 @@ void MQOverlayCommand(SPAWNINFO* pSpawh, char* szLine)
 
 void InitializeMQ2Overlay()
 {
-	imgui::g_bRenderImGui = GetPrivateProfileBool("MacroQuest", "RenderImGui", imgui::g_bRenderImGui, mq::internal_paths::MQini);
-	bmPluginsUpdateImGui = AddMQ2Benchmark("PluginsUpdateImGui");
-
-	// TODO: application-wide keybinds could use an encapsulated interface. For now I'm just dumping his here since we need it to
-	// connect to the win32 hook and control the imgui console.
-	::GetPrivateProfileStringA("MacroQuest", "ToggleConsoleKey", gToggleConsoleDefaultBind,
-		gToggleConsoleHotkey.keybind, lengthof(gToggleConsoleHotkey.keybind), mq::internal_paths::MQini.c_str());
-
-	if (!gbToggleConsoleHotkeyReady)
-	{
-		if (mq::ConvertStringToModifiersAndVirtualKey(gToggleConsoleHotkey.keybind,
-			gToggleConsoleHotkey.modifiers, gToggleConsoleHotkey.virtualKey))
-		{
-			SPDLOG_INFO("Toggle console keybind: {0}", gToggleConsoleHotkey.keybind);
-			gbToggleConsoleHotkeyReady = true;
-		}
-		else if (strlen(gToggleConsoleHotkey.keybind) > 0)
-		{
-			SPDLOG_WARN("Unable to parse toggle console keybind: {0}", gToggleConsoleHotkey.keybind);
-			strcpy_s(gToggleConsoleHotkey.keybind, "");
-
-			gbToggleConsoleHotkeyReady = false;
-		}
-	}
-
-	if (gbWriteAllConfig)
-	{
-		WritePrivateProfileBool("MacroQuest", "RenderImGui", imgui::g_bRenderImGui, mq::internal_paths::MQini);
-	}
-
 	// Intercept mouse events
 	EzDetour(__ProcessMouseEvents, ProcessMouseEvents_Detour, ProcessMouseEvents_Trampoline);
 
@@ -2437,6 +2332,7 @@ void InitializeMQ2Overlay()
 	CreateImGuiContext();
 
 	InitializeOverlayInternal();
+	ImGuiManager_Initialize();
 }
 
 void InitializeOverlayInternal()
@@ -2463,7 +2359,7 @@ void ShutdownMQ2Overlay()
 	ShutdownOverlayInternal();
 	DestroyImGuiContext();
 
-	RemoveMQ2Benchmark(bmPluginsUpdateImGui);
+	ImGuiManager_Shutdown();
 }
 
 void ShutdownOverlayInternal()

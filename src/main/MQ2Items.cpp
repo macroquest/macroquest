@@ -25,7 +25,6 @@ static void Items_Initialize();
 static void Items_Shutdown();
 static void Items_Pulse();
 static void Items_SetGameState(DWORD gameState);
-static void Items_UpdateImGui();
 
 static MQModule gItemsModule = {
 	"Items",                      // Name
@@ -34,7 +33,6 @@ static MQModule gItemsModule = {
 	Items_Shutdown,               // Shutdown
 	Items_Pulse,                  // Pulse
 	Items_SetGameState,           // SetGameState
-	Items_UpdateImGui,            // UpdateImGui
 };
 MQModule* GetItemsModule() { return &gItemsModule; }
 
@@ -129,10 +127,6 @@ static void Items_SetGameState(DWORD gameState)
 {
 	if (gameState == GAMESTATE_INGAME)
 		gbDidUpdateKeyRing = false;
-}
-
-static void Items_UpdateImGui()
-{
 }
 
 } // namespace mq

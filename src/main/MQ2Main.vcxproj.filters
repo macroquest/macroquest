@@ -359,6 +359,9 @@
     <ClCompile Include="MQAchievements.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ImGuiManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
@@ -489,6 +492,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\mq\api\Achievements.h">
       <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGuiManager.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\utils\Benchmarks.h">
       <Filter>Header Files\mq\utils</Filter>

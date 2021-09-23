@@ -14,24 +14,15 @@
 
 #pragma once
 
-#include "MQ2MainBase.h"
-
-#include <imgui.h>
-
 namespace mq {
 
-// Toggles the ImGui overlay
-MQLIB_API void ToggleImGuiOverlay();
+void ImGuiManager_Initialize();
+void ImGuiManager_Shutdown();
 
-//----------------------------------------------------------------------------
+void ImGuiManager_DrawFrame();
+bool ImGuiManager_HandleWndProc(uint32_t msg, uintptr_t wparam, intptr_t lparam);
 
-void ImGuiTools_DrawWindowsMenu();
-
-void InitializeImGuiConsole();
-void ShutdownImGuiConsole();
-void UpdateImGuiConsole();
-void UpdateSettingsUI();
-
-DWORD ImGuiConsoleAddText(const char* line, DWORD color, DWORD filter);
+// Set to true to put imgui into partial recovery mode.
+extern bool gbManualResetRequired;
 
 } // namespace mq
