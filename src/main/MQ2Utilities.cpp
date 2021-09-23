@@ -3188,18 +3188,12 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 
 	if (SpawnType == PET && (pSearchSpawn->SpawnType == PCPET || pSearchSpawn->SpawnType == NPCPET))
 	{
+		SpawnType = NPCPET;
 		if (SPAWNINFO* pTheMaster = GetSpawnByID(pSpawn->MasterID))
 		{
-			if (pTheMaster != nullptr)
+			if (pTheMaster->Type == SPAWN_PLAYER)
 			{
-				if (pTheMaster->Type == SPAWN_NPC)
-				{
-					SpawnType = NPCPET;
-				}
-				else if (pTheMaster->Type == SPAWN_PLAYER)
-				{
-					SpawnType = PCPET;
-				}
+				SpawnType = PCPET;
 			}
 		}
 	}
