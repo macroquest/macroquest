@@ -355,18 +355,6 @@ struct MQFilter
 using FILTER DEPRECATE("use MQFilter instead FILTER") = MQFilter;
 using PFILTER DEPRECATE("use MQFilter* instead of PFILTER") = MQFilter*;
 
-struct MQBenchmark
-{
-	std::string Name;
-	std::chrono::steady_clock::time_point Entry;
-	std::chrono::microseconds LastTime = std::chrono::microseconds::zero();
-	std::chrono::microseconds TotalTime = std::chrono::microseconds::zero();
-	uint64_t Count = 0;
-
-	MQBenchmark(const std::string& name) : Name(name) {}
-	MQBenchmark() {}
-};
-
 struct MQGroundPending
 {
 	GROUNDITEM* pGroundItem = nullptr;
@@ -450,7 +438,6 @@ struct MQModule
 	fMQShutdownPlugin    Shutdown = 0;
 	fMQPulse             Pulse = 0;
 	fMQSetGameState      SetGameState = 0;
-	fMQUpdateImGui       UpdateImGui = 0;
 	fMQZoned             Zoned = 0;
 	fMQWriteChatColor    WriteChatColor = 0;
 	fMQSpawn             SpawnAdded = 0;

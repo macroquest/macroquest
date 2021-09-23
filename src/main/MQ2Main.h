@@ -67,33 +67,15 @@ using namespace eqlib;
 
 // TODO: Move these to mq/Plugin.h so that they are not globally included -- include them
 // only where they are needed.
+
+#include <mq/utils/Benchmarks.h>
 #include <mq/utils/Keybinds.h>
 
 namespace mq {
 
 /* BENCHMARKING */
-#ifdef DISABLE_BENCHMARKS
-#define Benchmark(BMHandle, code) code
-#else
-#define Benchmark(BMHandle, code) { EnterMQ2Benchmark(BMHandle); code; ExitMQ2Benchmark(BMHandle); }
-#endif
-MQLIB_API void ShutdownMQ2Benchmarks();
-MQLIB_API void InitializeMQ2Benchmarks();
-MQLIB_API bool GetMQ2Benchmark(uint32_t BMHandle, MQBenchmark& Dest);
-MQLIB_API void ExitMQ2Benchmark(uint32_t BMHandle);
-MQLIB_API void EnterMQ2Benchmark(uint32_t BMHandle);
-MQLIB_API void RemoveMQ2Benchmark(uint32_t BMHandle);
-MQLIB_API uint32_t AddMQ2Benchmark(const char* Name);
-
-struct MQScopedBenchmark
-{
-	MQScopedBenchmark(uint32_t bmId) : m_benchmark(bmId) { EnterMQ2Benchmark(m_benchmark); }
-	~MQScopedBenchmark() { ExitMQ2Benchmark(m_benchmark); }
-
-private:
-	uint32_t m_benchmark;
-};
-
+void ShutdownMQ2Benchmarks();
+void InitializeMQ2Benchmarks();
 
 /* SPAWN HANDLING */
 MQLIB_API bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show);
