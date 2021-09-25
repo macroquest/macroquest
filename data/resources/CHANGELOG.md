@@ -1,3 +1,7 @@
+September 22, 2021:
+- SpawnSearch:  Pets without PC masters will be assumed to be NPC Pets.  This fixes an issue where a
+  spawn search for npcpet would fail to find a pet whose master was killed.
+
 September 21, 2021:
 - zoned.cfg and any of the Zone ShortName cfg files will no longer activate unles you're in game (#214)
 
