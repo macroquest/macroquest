@@ -253,6 +253,3 @@
 [submodule "plugins/MQ2LootManager"]
 	path = plugins/MQ2LootManager
 	url = https://github.com/jessebevil/MQ2LootManager
-[submodule "plugins/MQ2FarmTest"]
-	path = plugins/MQ2FarmTest
-	url = https://gitlab.com/redguides/plugins/MQ2FarmTest.git
