@@ -143,6 +143,8 @@ float gCurrentCPU = 0.0f;
 
 static DWORD bmRealRenderWorld = 0;
 static DWORD bmThrottleTime = 0;
+
+std::string INIFileName;
 #pragma endregion
 
 #pragma region throttler
@@ -800,54 +802,47 @@ private:
 	template <> static constexpr float GetDefault<float, LimiterSetting::ForegroundFPS>() { return 60.f; }
 	template <> static constexpr float GetDefault<float, LimiterSetting::MinSimulationFPS>() { return 30.f; }
 
-	static std::string GetINIFileName()
-	{
-		return fmt::format("{}\\FrameLimiter.ini", gPathConfig);
-	}
-
-	static std::string GetINISectionName(std::string settingName)
+	static std::string GetINIFileName(std::string_view settingName)
 	{
 		// SaveByChar should only ever be saved under global settings
-		if (!settingName.compare("SaveByChar"))
+		if (settingName == "SaveByChar")
 		{
-			return "FrameLimiter";
+			return mq::internal_paths::MQini;
 		}
 		// Lookup SaveByChar value to determine whether to read/write setting globally or not
-		bool saveByChar = GetPrivateProfileBool("FrameLimiter", "SaveByChar", false, GetINIFileName());
-		std::string sectionName;
-		if (saveByChar && pLocalPlayer)
+		bool saveByChar = GetPrivateProfileBool("FrameLimiter", "SaveByChar", false, mq::internal_paths::MQini);
+		if (saveByChar && GetCharInfo())
 		{
-			sectionName = fmt::format("{}.{}", EQADDR_SERVERNAME, pCharData->Name);
+			return INIFileName;
 		}
 		else
 		{
-			sectionName = "FrameLimiter";
+			return mq::internal_paths::MQini;
 		}
-		return sectionName;
 	}
 
 	template <typename T, LimiterSetting Value>
 	static std::enable_if_t<std::is_same_v<T, bool>, bool> GetSetting()
 	{
-		return GetPrivateProfileBool(GetINISectionName(SettingName<Value>()), SettingName<Value>(), GetDefault<T, Value>(), GetINIFileName());
+		return GetPrivateProfileBool("FrameLimiter", SettingName<Value>(), GetDefault<T, Value>(), GetINIFileName(SettingName<Value>()));
 	}
 
 	template <typename T, LimiterSetting Value>
 	static std::enable_if_t<std::is_same_v<T, float>, float> GetSetting()
 	{
-		return GetPrivateProfileFloat(GetINISectionName(SettingName<Value>()), SettingName<Value>(), GetDefault<T, Value>(), GetINIFileName());
+		return GetPrivateProfileFloat("FrameLimiter", SettingName<Value>(), GetDefault<T, Value>(), GetINIFileName(SettingName<Value>()));
 	}
 
 	template <LimiterSetting Value>
 	static bool WriteSetting(bool NewValue)
 	{
-		return WritePrivateProfileBool(GetINISectionName(SettingName<Value>()), SettingName<Value>(), NewValue, GetINIFileName());
+		return WritePrivateProfileBool("FrameLimiter", SettingName<Value>(), NewValue, GetINIFileName(SettingName<Value>()));
 	}
 
 	template <LimiterSetting Value>
 	static float WriteSetting(float NewValue)
 	{
-		return WritePrivateProfileFloat(GetINISectionName(SettingName<Value>()), SettingName<Value>(), NewValue, GetINIFileName());
+		return WritePrivateProfileFloat("FrameLimiter", SettingName<Value>(), NewValue, GetINIFileName(SettingName<Value>()));
 	}
 
 	void ResetDefaults()
@@ -1023,6 +1018,8 @@ void FrameLimiterCommand(SPAWNINFO* pChar, char* szLine)
 
 	args::Command toggle(commands, "toggle", "set/toggle the framelimiter functionality", SetFrameLimiterBool<FrameLimiter::LimiterSetting::Enable>);
 
+	args::Command savebychar(commands, "savebychar", "set/toggle saving settings by character", SetFrameLimiterBool<FrameLimiter::LimiterSetting::SaveByChar>);
+
 	args::Command bgrender(commands, "bgrender", "set/toggle rendering when client is in background", SetFrameLimiterBool<FrameLimiter::LimiterSetting::RenderInBackground>);
 
 	args::Command fgrender(commands, "fgrender", "set/toggle rendering when client is in foreground", SetFrameLimiterBool<FrameLimiter::LimiterSetting::RenderInForeground>);
@@ -1125,8 +1122,9 @@ static void SetGameStateFrameLimiter(DWORD GameState)
 {
 	s_frameLimiter.PauseForZone();
 	// Read settings on INGAME state in order to pickup character specific settings
-	if (GameState == GAMESTATE_INGAME)
+	if (GameState == GAMESTATE_INGAME && GetCharInfo())
 	{
+		INIFileName = fmt::format("{}\\{}_{}.ini", gPathConfig, EQADDR_SERVERNAME, GetCharInfo()->Name);
 		s_frameLimiter.ReadSettings();
 	}
 }
@@ -1152,6 +1150,7 @@ namespace datatypes {
 enum class FrameLimiterTypeMembers
 {
 	Enabled,
+	SaveByChar,
 	Status,
 	CPU,
 	RenderFPS,
@@ -1167,6 +1166,7 @@ enum class FrameLimiterTypeMembers
 MQ2FrameLimiterType::MQ2FrameLimiterType() : MQ2Type("framelimiter")
 {
 	ScopedTypeMember(FrameLimiterTypeMembers, Enabled);
+	ScopedTypeMember(FrameLimiterTypeMembers, SaveByChar);
 	ScopedTypeMember(FrameLimiterTypeMembers, Status);
 	ScopedTypeMember(FrameLimiterTypeMembers, CPU);
 	ScopedTypeMember(FrameLimiterTypeMembers, RenderFPS);
@@ -1190,6 +1190,11 @@ bool MQ2FrameLimiterType::GetMember(MQVarPtr VarPtr, const char* Member, char* I
 	case FrameLimiterTypeMembers::Enabled:
 		Dest.Type = pBoolType;
 		Dest.Set(s_frameLimiter.IsEnabled());
+		return true;
+
+	case FrameLimiterTypeMembers::SaveByChar:
+		Dest.Type = pBoolType;
+		Dest.Set(s_frameLimiter.SaveByChar());
 		return true;
 
 	case FrameLimiterTypeMembers::Status:
