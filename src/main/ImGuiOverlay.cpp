@@ -2177,6 +2177,8 @@ void ProcessMouseEvents_Detour()
 {
 	if (ImGui::GetCurrentContext() != nullptr)
 	{
+		auto pMouse = (*EQADDR_DIMOUSE);
+
 		ImGuiIO& io = ImGui::GetIO();
 		bool consumeMouse = io.WantCaptureMouse;
 
@@ -2184,7 +2186,7 @@ void ProcessMouseEvents_Detour()
 		DIDEVICEOBJECTDATA data[128];
 		DWORD num = 128;
 
-		HRESULT hr = (*EQADDR_DIMOUSE)->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), data, &num, DIGDD_PEEK);
+		HRESULT hr = pMouse->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), data, &num, DIGDD_PEEK);
 
 		if (SUCCEEDED(hr))
 		{
@@ -2219,20 +2221,26 @@ void ProcessMouseEvents_Detour()
 			gbFlushNextMouse = true;
 
 			// Consume the mouse state. This won't be very effective for sustained mouse clicks though.
-			(*EQADDR_DIMOUSE)->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), data, &num, 0);
-
+			pMouse->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), data, &num, 0);
 			return;
 		}
 	}
 
+	// Its time to detour GetDeviceState and have it return the inputs from WndProc that we didn't handle.
+
 	if (gbFlushNextMouse)
 	{
+		auto pMouse = (*EQADDR_DIMOUSE);
+
 		// Flush the direct input device state so that the wheel data doesn't get
 		// picked up by the game later.
 		DIDEVICEOBJECTDATA data[128];
 		DWORD num = 128;
 
-		(*EQADDR_DIMOUSE)->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), data, &num, 0);
+		pMouse->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), data, &num, 0);
+
+		DIMOUSESTATE2 dims;
+		pMouse->GetDeviceState(sizeof(DIMOUSESTATE2), &dims);
 	}
 
 	ProcessMouseEvents_Trampoline();
