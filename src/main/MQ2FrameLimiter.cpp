@@ -341,6 +341,7 @@ class FrameLimiter
 
 	// Settings
 	bool m_enabled;
+	bool m_saveByChar;
 	bool m_renderInBackground;
 	bool m_renderInForeground;
 	bool m_tieImGuiToSimulation;
@@ -362,6 +363,7 @@ public:
 	void ReadSettings()
 	{
 		m_enabled = GetSetting<bool, LimiterSetting::Enable>();
+		m_saveByChar = GetSetting<bool, LimiterSetting::SaveByChar>();
 		m_renderInBackground = GetSetting<bool, LimiterSetting::RenderInBackground>();
 		m_renderInForeground = GetSetting<bool, LimiterSetting::RenderInForeground>();
 		m_tieImGuiToSimulation = GetSetting<bool, LimiterSetting::TieImGuiToSimulation>();
@@ -394,6 +396,8 @@ public:
 	// we will skip frames while maintaining a m_minSimulationFPS game simulation.
 
 	bool IsEnabled() const { return !m_pauseForZone && m_enabled && gGameState == GAMESTATE_INGAME; }
+
+	bool SaveByChar() const { return m_saveByChar; }
 
 	bool IsForeground() const { return m_lastInForeground.value_or(false); }
 
@@ -599,6 +603,12 @@ public:
 			WriteSetting<LimiterSetting::Enable>(m_enabled);
 			UpdateThrottler();
 		}
+		if (ImGui::Checkbox("Save settings by character", &m_saveByChar))
+		{
+			WriteSetting<LimiterSetting::SaveByChar>(m_saveByChar);
+			// Re-read settings after changing SaveByChar to load the correct character or global settings
+			ReadSettings();
+		}
 
 		ImGui::Indent();
 		// Background options
@@ -750,6 +760,7 @@ public:
 	enum class LimiterSetting
 	{
 		Enable,
+		SaveByChar,
 		RenderInBackground,
 		RenderInForeground,
 		TieImGuiToSimulation,
@@ -764,6 +775,7 @@ public:
 	static constexpr const char* SettingName() { static_assert(false, "Unsupported SettingName in FrameLimiter"); }
 
 	template <> static constexpr const char* SettingName<LimiterSetting::Enable>() { return "Enable"; }
+	template <> static constexpr const char* SettingName<LimiterSetting::SaveByChar>() { return "SaveByChar"; }
 	template <> static constexpr const char* SettingName<LimiterSetting::RenderInBackground>() { return "RenderInBackground"; }
 	template <> static constexpr const char* SettingName<LimiterSetting::RenderInForeground>() { return "RenderInForeground"; }
 	template <> static constexpr const char* SettingName<LimiterSetting::TieImGuiToSimulation>() { return "TieImGuiToSimulation"; }
@@ -778,6 +790,7 @@ private:
 	static constexpr T GetDefault() { static_assert(false, "Unsupported bool FrameLimiter setting type"); }
 
 	template <> static constexpr bool GetDefault<bool, LimiterSetting::Enable>() { return false; }
+	template <> static constexpr bool GetDefault<bool, LimiterSetting::SaveByChar>() { return false; }
 	template <> static constexpr bool GetDefault<bool, LimiterSetting::RenderInBackground>() { return false; }
 	template <> static constexpr bool GetDefault<bool, LimiterSetting::RenderInForeground>() { return true; }
 	template <> static constexpr bool GetDefault<bool, LimiterSetting::TieImGuiToSimulation>() { return false; }
@@ -787,28 +800,54 @@ private:
 	template <> static constexpr float GetDefault<float, LimiterSetting::ForegroundFPS>() { return 60.f; }
 	template <> static constexpr float GetDefault<float, LimiterSetting::MinSimulationFPS>() { return 30.f; }
 
+	static std::string GetINIFileName()
+	{
+		return fmt::format("{}\\FrameLimiter.ini", gPathConfig);
+	}
+
+	static std::string GetINISectionName(std::string settingName)
+	{
+		// SaveByChar should only ever be saved under global settings
+		if (!settingName.compare("SaveByChar"))
+		{
+			return "FrameLimiter";
+		}
+		// Lookup SaveByChar value to determine whether to read/write setting globally or not
+		bool saveByChar = GetPrivateProfileBool("FrameLimiter", "SaveByChar", false, GetINIFileName());
+		std::string sectionName;
+		if (saveByChar && pLocalPlayer)
+		{
+			sectionName = fmt::format("{}.{}", EQADDR_SERVERNAME, pCharData->Name);
+		}
+		else
+		{
+			sectionName = "FrameLimiter";
+		}
+		return sectionName;
+	}
+
 	template <typename T, LimiterSetting Value>
 	static std::enable_if_t<std::is_same_v<T, bool>, bool> GetSetting()
 	{
-		return GetPrivateProfileBool("FrameLimiter", SettingName<Value>(), GetDefault<T, Value>(), internal_paths::MQini);
+		return GetPrivateProfileBool(GetINISectionName(SettingName<Value>()), SettingName<Value>(), GetDefault<T, Value>(), GetINIFileName());
 	}
 
 	template <typename T, LimiterSetting Value>
 	static std::enable_if_t<std::is_same_v<T, float>, float> GetSetting()
 	{
-		return GetPrivateProfileFloat("FrameLimiter", SettingName<Value>(), GetDefault<T, Value>(), internal_paths::MQini);
+		return GetPrivateProfileFloat(GetINISectionName(SettingName<Value>()), SettingName<Value>(), GetDefault<T, Value>(), GetINIFileName());
 	}
 
 	template <LimiterSetting Value>
 	static bool WriteSetting(bool NewValue)
 	{
-		return WritePrivateProfileBool("FrameLimiter", SettingName<Value>(), NewValue, internal_paths::MQini);
+		return WritePrivateProfileBool(GetINISectionName(SettingName<Value>()), SettingName<Value>(), NewValue, GetINIFileName());
 	}
 
 	template <LimiterSetting Value>
 	static float WriteSetting(float NewValue)
 	{
-		return WritePrivateProfileFloat("FrameLimiter", SettingName<Value>(), NewValue, internal_paths::MQini);
+		return WritePrivateProfileFloat(GetINISectionName(SettingName<Value>()), SettingName<Value>(), NewValue, GetINIFileName());
 	}
 
 	void ResetDefaults()
@@ -816,6 +855,8 @@ private:
 		// could alternately delete all keys here, but it's more valuable to be able to write out all defaults
 		m_enabled = GetDefault<bool, LimiterSetting::Enable>();
 		WriteSetting<LimiterSetting::Enable>(m_enabled);
+		m_saveByChar = GetDefault<bool, LimiterSetting::SaveByChar>();
+		WriteSetting<LimiterSetting::SaveByChar>(m_saveByChar);
 		m_renderInBackground = GetDefault<bool, LimiterSetting::RenderInBackground>();
 		WriteSetting<LimiterSetting::RenderInBackground>(m_renderInBackground);
 		m_renderInForeground = GetDefault<bool, LimiterSetting::RenderInForeground>();
@@ -847,6 +888,7 @@ public:
 	bool Set(bool Value) { static_assert(false, "Attempting to set a bool setting that doesn't exist in FrameLimiter"); }
 
 	template<> bool Set<LimiterSetting::Enable>(bool Value) { return InternalSet<bool, LimiterSetting::Enable>(m_enabled, Value); }
+	template<> bool Set<LimiterSetting::SaveByChar>(bool Value) { return InternalSet<bool, LimiterSetting::SaveByChar>(m_saveByChar, Value); }
 	template<> bool Set<LimiterSetting::RenderInBackground>(bool Value) { return InternalSet<bool, LimiterSetting::RenderInBackground>(m_renderInBackground, Value); }
 	template<> bool Set<LimiterSetting::ClearScreen>(bool Value) { return InternalSet<bool, LimiterSetting::ClearScreen>(m_clearScreen, Value); }
 
@@ -1082,6 +1124,11 @@ static void PulseFrameLimiter()
 static void SetGameStateFrameLimiter(DWORD GameState)
 {
 	s_frameLimiter.PauseForZone();
+	// Read settings on INGAME state in order to pickup character specific settings
+	if (GameState == GAMESTATE_INGAME)
+	{
+		s_frameLimiter.ReadSettings();
+	}
 }
 
 static MQModule s_FrameLimiterModule = {
