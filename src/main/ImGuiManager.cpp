@@ -15,7 +15,7 @@
 #include "pch.h"
 #include "ImGuiManager.h"
 
-#include "MQ2DeveloperTools.h"
+#include "ImGuiBackend.h"
 #include "MQ2ImGuiTools.h"
 
 #include <imgui/imgui.h>
@@ -51,14 +51,6 @@ extern bool gbToggleConsoleRequested;
 void InitializeMQ2Overlay();
 void ShutdownMQ2Overlay();
 void PulseMQ2Overlay();
-
-namespace imgui
-{
-	// Imported from MQ2Overlay.cpp
-	void ImGui_ImplDX9_NewFrame();
-	void ImGui_ImplWin32_NewFrame();
-	void ImGui_ImplDX9_RenderDrawData(ImDrawData* drawData);
-}
 
 void SetOverlayEnabled(bool visible)
 {
@@ -131,8 +123,8 @@ void ImGuiManager_DrawFrame()
 	gpD3D9Device->CreateStateBlock(D3DSBT_ALL, &stateBlock);
 
 	// Prepare the new frame
-	imgui::ImGui_ImplDX9_NewFrame();
-	imgui::ImGui_ImplWin32_NewFrame();
+	ImGui_ImplDX9_NewFrame();
+	ImGui_ImplWin32_NewFrame();
 
 	try
 	{
@@ -157,7 +149,7 @@ void ImGuiManager_DrawFrame()
 
 		// Render the ui
 		ImGui::Render();
-		imgui::ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
 
 		ImGui::UpdatePlatformWindows();
 
@@ -201,6 +193,49 @@ bool ImGuiManager_HandleWndProc(uint32_t msg, uintptr_t wparam, intptr_t lparam)
 	}
 
 	return false;
+}
+
+void* ImGuiManager_GetCursorForImGui(ImGuiMouseCursor imguiCursor)
+{
+	if (pWndMgr)
+	{
+		const CursorClass* cc = pWndMgr->GetCursorClass();
+
+		// Show OS mouse cursor
+		CursorClass::eCursorTypes cursorType = CursorClass::eArrow;
+
+		switch (imguiCursor)
+		{
+		case ImGuiMouseCursor_ResizeEW:
+			cursorType = CursorClass::eEastWest;
+			break;
+		case ImGuiMouseCursor_ResizeNS:
+			cursorType = CursorClass::eNorthSouth;
+			break;
+		case ImGuiMouseCursor_ResizeNESW:
+			cursorType = CursorClass::eNorthEastSouthWest;
+			break;
+		case ImGuiMouseCursor_ResizeNWSE:
+			cursorType = CursorClass::eNorthWestSouthEast;
+			break;
+		case ImGuiMouseCursor_TextInput:
+			cursorType = CursorClass::eBeam;
+			break;
+		case ImGuiMouseCursor_Arrow:
+			break;
+		case ImGuiMouseCursor_ResizeAll:
+			cursorType = CursorClass::eMove;
+			break;
+
+		case ImGuiMouseCursor_Hand:
+		default:
+			return nullptr;
+		}
+
+		return cc->CursorList[cursorType];
+	}
+
+	return nullptr;
 }
 
 void MQOverlayCommand(SPAWNINFO* pSpawh, char* szLine)

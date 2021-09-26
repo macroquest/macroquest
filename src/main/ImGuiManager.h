@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include <imgui.h>
+
 namespace mq {
 
 void ImGuiManager_Initialize();
@@ -22,6 +24,9 @@ void ImGuiManager_Pulse();
 
 void ImGuiManager_DrawFrame();
 bool ImGuiManager_HandleWndProc(uint32_t msg, uintptr_t wparam, intptr_t lparam);
+
+// Returns HCURSOR
+void* ImGuiManager_GetCursorForImGui(ImGuiMouseCursor imguiCursor);
 
 // Set to true to put imgui into partial recovery mode.
 extern bool gbManualResetRequired;

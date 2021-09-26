@@ -362,6 +362,9 @@
     <ClCompile Include="ImGuiManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ImGuiBackend.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
@@ -498,6 +501,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\mq\utils\Benchmarks.h">
       <Filter>Header Files\mq\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGuiBackend.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
