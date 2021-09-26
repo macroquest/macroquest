@@ -30,6 +30,7 @@ static MQModule gSpawnsModule = {
 	Spawns_Shutdown,              // Shutdown
 	Spawns_Pulse,                 // Pulse
 	nullptr,                      // SetGameState
+	nullptr,                      // UpdateImGui
 	nullptr,                      // Zoned
 	nullptr,                      // WriteChatColor
 	nullptr,                      // SpawnAdded

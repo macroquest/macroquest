@@ -438,6 +438,7 @@ struct MQModule
 	fMQShutdownPlugin    Shutdown = 0;
 	fMQPulse             Pulse = 0;
 	fMQSetGameState      SetGameState = 0;
+	fMQUpdateImGui       UpdateImGui = 0;
 	fMQZoned             Zoned = 0;
 	fMQWriteChatColor    WriteChatColor = 0;
 	fMQSpawn             SpawnAdded = 0;

@@ -37,6 +37,7 @@ uint32_t bmPluginsUpdateImGui = 0;
 
 // global imgui toggle
 bool gbRenderImGui = true;
+bool gbOverlayDebug = false;
 
 static mq::PlatformHotkey gToggleConsoleHotkey;
 static const char gToggleConsoleDefaultBind[] = "ctrl+`";
@@ -46,6 +47,10 @@ static bool gbToggleConsoleHotkeyReady = false;
 bool gbManualResetRequired = false;
 
 extern bool gbToggleConsoleRequested;
+
+void InitializeMQ2Overlay();
+void ShutdownMQ2Overlay();
+void PulseMQ2Overlay();
 
 namespace imgui
 {
@@ -65,12 +70,52 @@ bool IsOverlayEnabled()
 	return gbRenderImGui;
 }
 
+static void StartupOverlayComponents()
+{
+	InitializeMQ2Overlay();
+	InitializeImGuiConsole();
+}
+
+static void ShutdownOverlayComponents()
+{
+	ShutdownMQ2Overlay();
+	ShutdownImGuiConsole();
+}
+
 void DoImGuiUpdateInternal()
 {
+	// This updates the dockspace first, then the console.
+	// TODO: Move dockspace management here.
 	UpdateImGuiConsole();
 
-	DeveloperTools_UpdateImGui();
-	UpdateSettingsUI();
+	// After the dockspace is set up, run the imgui update on all modules.
+	ModulesUpdateImGui();
+}
+
+void UpdateImGuiDebugInfo()
+{
+	ImGuiIO& io = ImGui::GetIO();
+
+	// Display ImGuiIO output flags
+	ImGui::Text("WantCaptureMouse: %d", io.WantCaptureMouse);
+	ImGui::Text("WantCaptureMouseUnlessPopupClose: %d", io.WantCaptureMouseUnlessPopupClose);
+	ImGui::Text("WantCaptureKeyboard: %d", io.WantCaptureKeyboard);
+	ImGui::Text("WantTextInput: %d", io.WantTextInput);
+	ImGui::Text("WantSetMousePos: %d", io.WantSetMousePos);
+	ImGui::Text("NavActive: %d, NavVisible: %d", io.NavActive, io.NavVisible);
+
+	// Display Mouse state
+	if (ImGui::IsMousePosValid())
+		ImGui::Text("Mouse pos: (%g, %g)", io.MousePos.x, io.MousePos.y);
+	else
+		ImGui::Text("Mouse pos: <INVALID>");
+	ImGui::Text("Mouse delta: (%g, %g)", io.MouseDelta.x, io.MouseDelta.y);
+	ImGui::Text("Mouse down:");     for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) if (ImGui::IsMouseDown(i)) { ImGui::SameLine(); ImGui::Text("b%d (%.02f secs)", i, io.MouseDownDuration[i]); }
+	ImGui::Text("Mouse clicked:");  for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) if (ImGui::IsMouseClicked(i)) { ImGui::SameLine(); ImGui::Text("b%d", i); }
+	ImGui::Text("Mouse dblclick:"); for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) if (ImGui::IsMouseDoubleClicked(i)) { ImGui::SameLine(); ImGui::Text("b%d", i); }
+	ImGui::Text("Mouse released:"); for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) if (ImGui::IsMouseReleased(i)) { ImGui::SameLine(); ImGui::Text("b%d", i); }
+	ImGui::Text("Mouse wheel: %.1f", io.MouseWheel);
+	ImGui::Text("Pen Pressure: %.1f", io.PenPressure); // Note: currently unused
 }
 
 void ImGuiManager_DrawFrame()
@@ -97,10 +142,16 @@ void ImGuiManager_DrawFrame()
 			MQScopedBenchmark bm1(bmUpdateImGui);
 			DoImGuiUpdateInternal();
 
+			// Plugins will get disabled if an error occurs.
 			if (!gbManualResetRequired)
 			{
 				MQScopedBenchmark bm2(bmPluginsUpdateImGui);
 				PluginsUpdateImGui();
+			}
+
+			if (gbOverlayDebug)
+			{
+				UpdateImGuiDebugInfo();
 			}
 		}
 
@@ -122,7 +173,7 @@ void ImGuiManager_DrawFrame()
 		gbManualResetRequired = true;
 
 		WriteChatf("\arImGui Critical Failure: %s", ex.what());
-		WriteChatf("\arFix the error and then run: \ay/mqoverlay resume\ar");
+		WriteChatf("\arPlugin ImGui has been temporarily paused. To resume imgui, run: \ay/mqoverlay resume\ar");
 	}
 
 	stateBlock->Apply();
@@ -152,12 +203,43 @@ bool ImGuiManager_HandleWndProc(uint32_t msg, uintptr_t wparam, intptr_t lparam)
 	return false;
 }
 
+void MQOverlayCommand(SPAWNINFO* pSpawh, char* szLine)
+{
+	if (ci_equals(szLine, "reload"))
+	{
+		ResetOverlay();
+	}
+	else if (ci_equals(szLine, "resume"))
+	{
+		gbManualResetRequired = false;
+	}
+	else if (ci_equals(szLine, "stop"))
+	{
+		ShutdownOverlayComponents();
+	}
+	else if (ci_equals(szLine, "debug"))
+	{
+		gbOverlayDebug = !gbOverlayDebug;
+		WriteChatf("Overlay debug info is now: %s", gbOverlayDebug ? "\agOn" : "\arOff");
+		WritePrivateProfileBool("MacroQuest", "OverlayDebug", gbOverlayDebug, mq::internal_paths::MQini);
+	}
+	else if (ci_equals(szLine, "start"))
+	{
+		StartupOverlayComponents();
+	}
+	else
+	{
+		WriteChatf("Usage: /mqoverlay [reload | resume | debug | stop | start]");
+	}
+}
+
 void ImGuiManager_Initialize()
 {
 	bmUpdateImGui = AddMQ2Benchmark("UpdateImGui");
 	bmPluginsUpdateImGui = AddMQ2Benchmark("UpdateImGuiPlugins");
 
 	gbRenderImGui = GetPrivateProfileBool("MacroQuest", "RenderImGui", gbRenderImGui, mq::internal_paths::MQini);
+	gbOverlayDebug = GetPrivateProfileBool("MacroQuest", "OverlayDebug", gbOverlayDebug, mq::internal_paths::MQini);
 
 	// TODO: application-wide keybinds could use an encapsulated interface. For now I'm just dumping his here since we need it to
 	// connect to the win32 hook and control the imgui console.
@@ -184,13 +266,27 @@ void ImGuiManager_Initialize()
 	if (gbWriteAllConfig)
 	{
 		WritePrivateProfileBool("MacroQuest", "RenderImGui", gbRenderImGui, mq::internal_paths::MQini);
+		WritePrivateProfileBool("MacroQuest", "OverlayDebug", gbOverlayDebug, mq::internal_paths::MQini);
 	}
+
+	AddCommand("/mqoverlay", MQOverlayCommand);
+
+	StartupOverlayComponents();
 }
 
 void ImGuiManager_Shutdown()
 {
+	RemoveCommand("/mqoverlay");
+
 	RemoveMQ2Benchmark(bmUpdateImGui);
 	RemoveMQ2Benchmark(bmPluginsUpdateImGui);
+
+	ShutdownOverlayComponents();
+}
+
+void ImGuiManager_Pulse()
+{
+	PulseMQ2Overlay();
 }
 
 } // namespace mq

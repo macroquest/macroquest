@@ -889,6 +889,15 @@ void PluginsEndZone()
 	}
 }
 
+void ModulesUpdateImGui()
+{
+	ForEachModule([](const MQModule* module)
+		{
+			if (module->UpdateImGui)
+				module->UpdateImGui();
+		});
+}
+
 void PluginsUpdateImGui()
 {
 	if (!s_pluginsInitialized)

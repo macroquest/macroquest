@@ -18,6 +18,7 @@ namespace mq {
 
 void ImGuiManager_Initialize();
 void ImGuiManager_Shutdown();
+void ImGuiManager_Pulse();
 
 void ImGuiManager_DrawFrame();
 bool ImGuiManager_HandleWndProc(uint32_t msg, uintptr_t wparam, intptr_t lparam);

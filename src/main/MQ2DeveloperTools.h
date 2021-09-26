@@ -23,8 +23,6 @@ namespace mq {
 void DeveloperTools_CloseLoginFrontend();
 void DeveloperTools_DrawMenu();
 
-void DeveloperTools_UpdateImGui();
-
 class ImGuiWindowBase;
 
 // Some constants for creating menus.

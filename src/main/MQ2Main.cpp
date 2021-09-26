@@ -17,6 +17,7 @@
 #include "CrashHandler.h"
 
 #include "MQ2KeyBinds.h"
+#include "ImGuiManager.h"
 
 #include <date/date.h>
 #include <fmt/format.h>
@@ -67,7 +68,9 @@ MQModule* GetGroundSpawnsModule();
 MQModule* GetSpawnsModule();
 MQModule* GetItemsModule();
 MQModule* GetWindowsModule();
-MQModule* GetDetoursModule();
+
+void InitializeDetours();
+void ShutdownDetours();
 
 DWORD WINAPI MQ2Start(void* lpParameter);
 HANDLE hMQ2StartThread = nullptr;
@@ -581,22 +584,29 @@ void SetMainThreadId()
 }
 
 // Perform first time initialization on the main thread.
-void DoInitialization()
+void DoMainThreadInitialization()
 {
 	InitializeMQ2PipeClient();
+	InitializeMQ2Commands();
+	InitializeDisplayHook();
+	InitializeMouseHooks();
+	ImGuiManager_Initialize();
 
 	// this needs to be done before anything that would need to add a callback to string message parsing
 	InitializeStringDB();
 
-	InitializeAnonymizer();
-	InitializeMQ2Commands();
-	AddInternalModule(GetWindowsModule());
-	InitializeMQ2AutoInventory();
+	InitializeChatHook();
 	InitializeMQ2CrashHandler();
-
-	MQ2MouseHooks(true);
-	Sleep(100);
-
+	InitializeAnonymizer();
+	InitializeInternalModules();
+	AddInternalModule(GetWindowsModule());
+	AddInternalModule(GetImGuiToolsModule());
+	AddInternalModule(GetSpellsModule());
+	AddInternalModule(GetDataAPIModule());
+	AddInternalModule(GetGroundSpawnsModule());
+	AddInternalModule(GetSpawnsModule());
+	AddInternalModule(GetItemsModule());
+	InitializeMQ2AutoInventory();
 	InitializeMQ2KeyBinds();
 	InitializeMQ2Plugins();
 	InitializeCachedBuffs();
@@ -756,23 +766,13 @@ bool MQ2Initialize()
 	szEQMappableCommands[nEQMappableCommands -  2] = "UNKNOWN0x220";
 	szEQMappableCommands[nEQMappableCommands -  1] = "UNKNOWN0x221";
 
-	AddInternalModule(GetDetoursModule(), true);
-	InitializeMQ2Overlay();
-
+	InitializeDetours();
 	InitializeMQ2Benchmarks();
 	InitializeParser();
-	InitializeDisplayHook();
-	InitializeChatHook();
+
+	// These two sub-systems will get us onto the main thread.
 	InitializeMQ2Pulse();
 	InitializeLoginFrontend();
-
-	InitializeInternalModules();
-	AddInternalModule(GetImGuiToolsModule());
-	AddInternalModule(GetSpellsModule());
-	AddInternalModule(GetDataAPIModule());
-	AddInternalModule(GetGroundSpawnsModule());
-	AddInternalModule(GetSpawnsModule());
-	AddInternalModule(GetItemsModule());
 
 	// We will wait for pulse from the game to init on main thread.
 	g_hLoadComplete.wait();
@@ -793,15 +793,15 @@ void MQ2Shutdown()
 	ShutdownMQ2Pulse();
 	ShutdownLoginFrontend();
 	ShutdownMQ2AutoInventory();
-	MQ2MouseHooks(false);
+	ShutdownMouseHooks();
 	ShutdownMQ2CrashHandler();
 	ShutdownParser();
 	ShutdownMQ2Commands();
 	ShutdownAnonymizer();
 	ShutdownMQ2Plugins();
-	ShutdownMQ2Overlay();
+	ImGuiManager_Shutdown();
 	ShutdownStringDB();
-	RemoveInternalModule(GetDetoursModule());
+	ShutdownDetours();
 	ShutdownMQ2Benchmarks();
 	ShutdownMQ2PipeClient();
 }

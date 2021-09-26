@@ -36,7 +36,7 @@ std::map<const char*, fPanelDrawFunction> s_pendingPanels;
 static void InitializeMQ2ImGuiTools();
 static void ShutdownMQ2ImGuiTools();
 static void PulseMQ2ImGuiTools();
-static void UpdateOverlayUI();
+static void UpdateSettingsUI();
 
 static DWORD WriteChatColorImGuiAPI(const char* line, DWORD color, DWORD filter);
 
@@ -47,6 +47,7 @@ static MQModule gImGuiModule = {
 	ShutdownMQ2ImGuiTools,        // Shutdown
 	PulseMQ2ImGuiTools,           // Pulse
 	nullptr,                      // SetGameState
+	UpdateSettingsUI,             // UpdateImGui
 	nullptr,                      // Zoned
 	WriteChatColorImGuiAPI,       // WriteChatColor
 };
@@ -339,14 +340,10 @@ static void InitializeMQ2ImGuiTools()
 	}
 
 	s_pendingPanels.clear();
-
-	InitializeImGuiConsole();
 }
 
 static void ShutdownMQ2ImGuiTools()
 {
-	ShutdownImGuiConsole();
-
 	delete gSettingsWindow;
 	gSettingsWindow = nullptr;
 

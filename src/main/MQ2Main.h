@@ -84,9 +84,6 @@ MQLIB_API bool AreNameSpritesCustomized();
 
 /* OVERLAY */
 MQLIB_API bool IsImGuiForeground();
-MQLIB_API void InitializeMQ2Overlay();
-MQLIB_API void ShutdownMQ2Overlay();
-MQLIB_API void PulseMQ2Overlay();
 MQLIB_API void SetOverlayEnabled(bool visible);
 MQLIB_API bool IsOverlayEnabled();
 MQLIB_API void ResetOverlay();
@@ -160,22 +157,23 @@ MQLIB_API void ShutdownMQ2Plugins();
 MQLIB_API DEPRECATE("This is handled on load/unload without the direct call.")
 void SaveMQ2PluginLoadStatus(const char* Name, bool bLoad);
 
-MQLIB_API void PulsePlugins();
-MQLIB_API void PluginsZoned();
-MQLIB_API bool PluginsIncomingChat(const char* Line, DWORD Color);
-MQLIB_API void PluginsCleanUI();
-MQLIB_API void PluginsReloadUI();
-MQLIB_API void PluginsSetGameState(DWORD GameState);
-MQLIB_API void PluginsDrawHUD();
-MQLIB_API void PluginsAddSpawn(SPAWNINFO* pNewSpawn);
-MQLIB_API void PluginsRemoveSpawn(SPAWNINFO* pSpawn);
-MQLIB_API void PluginsAddGroundItem(GROUNDITEM* pNewGroundItem);
-MQLIB_API void PluginsRemoveGroundItem(GROUNDITEM* pGroundItem);
-MQLIB_API void PluginsBeginZone();
-MQLIB_API void PluginsEndZone();
-MQLIB_API void PluginsUpdateImGui();
-MQLIB_API void PluginsMacroStart(const char* Name);
-MQLIB_API void PluginsMacroStop(const char* Name);
+void PulsePlugins();
+void PluginsZoned();
+bool PluginsIncomingChat(const char* Line, DWORD Color);
+void PluginsCleanUI();
+void PluginsReloadUI();
+void PluginsSetGameState(DWORD GameState);
+void PluginsDrawHUD();
+void PluginsAddSpawn(SPAWNINFO* pNewSpawn);
+void PluginsRemoveSpawn(SPAWNINFO* pSpawn);
+void PluginsAddGroundItem(GROUNDITEM* pNewGroundItem);
+void PluginsRemoveGroundItem(GROUNDITEM* pGroundItem);
+void PluginsBeginZone();
+void PluginsEndZone();
+void PluginsUpdateImGui();
+void ModulesUpdateImGui();
+void PluginsMacroStart(const char* Name);
+void PluginsMacroStop(const char* Name);
 
 MQLIB_API bool IsPluginsInitialized();
 MQLIB_API void* GetPluginProc(const char* plugin, const char* proc);
@@ -264,7 +262,8 @@ inline bool AddMQ2Data(const char* szName, fMQDataOld Function)
 /* MOUSE */
 MQLIB_API bool IsMouseWaiting();
 MQLIB_API bool IsMouseWaitingForButton();
-MQLIB_API void MQ2MouseHooks(bool bFlag);
+void InitializeMouseHooks();
+void ShutdownMouseHooks();
 MQLIB_API bool MoveMouse(int x, int y, bool bClick = false);
 MQLIB_API bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick = false);
 MQLIB_API bool ClickMouseItem(const MQGroundSpawn& pGroundSpawn, bool left);

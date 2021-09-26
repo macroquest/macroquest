@@ -38,7 +38,7 @@ namespace mq {
 static void DeveloperTools_Initialize();
 static void DeveloperTools_Shutdown();
 static void DeveloperTools_SetGameState(DWORD gameState);
-void DeveloperTools_UpdateImGui();
+static void DeveloperTools_UpdateImGui();
 
 static MQModule s_developerToolsModule = {
 	"DeveloperTools",              // Name
@@ -47,6 +47,7 @@ static MQModule s_developerToolsModule = {
 	DeveloperTools_Shutdown,
 	nullptr,
 	DeveloperTools_SetGameState,
+	DeveloperTools_UpdateImGui,
 };
 DECLARE_MODULE_INITIALIZER(s_developerToolsModule);
 
@@ -2983,13 +2984,6 @@ public:
 	}
 
 protected:
-	// Seems to be crashing MQ2Overlay when done from login window. Need to figure out why...
-	virtual bool IsEnabled() const override
-	{
-		return GetGameState() == GAMESTATE_CHARSELECT
-			|| GetGameState() == GAMESTATE_INGAME;
-	}
-
 	void Draw() override
 	{
 		int deleteRow = -1;
@@ -3172,7 +3166,7 @@ static void DeveloperTools_SetGameState(DWORD gameState)
 	DeveloperTools_WindowInspector_SetGameState(gameState);
 }
 
-void DeveloperTools_UpdateImGui()
+static void DeveloperTools_UpdateImGui()
 {
 	ImGuiWindowBase* baseWindow = s_imguiBaseWindows;
 	while (baseWindow)

@@ -31,6 +31,7 @@ namespace mq {
 static void Windows_Initialize();
 static void Windows_Shutdown();
 static void Windows_Pulse();
+static void Windows_UpdateImGui();
 
 static MQModule gWindowsModule = {
 	"Windows",                  // Name
@@ -39,6 +40,7 @@ static MQModule gWindowsModule = {
 	Windows_Shutdown,
 	Windows_Pulse,
 	nullptr,
+	Windows_UpdateImGui,
 };
 MQModule* GetWindowsModule() { return &gWindowsModule; }
 
@@ -2291,6 +2293,10 @@ static void Windows_Pulse()
 	{
 		UpdateCascadeMenu();
 	}
+}
+
+static void Windows_UpdateImGui()
+{
 }
 
 } // namespace mq

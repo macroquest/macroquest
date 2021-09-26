@@ -69,8 +69,14 @@ bool gbDeviceAcquired = false;
 // Indicates that the graphics device hooks are installed
 bool gbDeviceHooksInstalled = false;
 
+// Indicates that we've initialized the overlay
+bool gbOverlayInitialized = false;
+
 // Indicates that we need to reset the overlay next frame
 bool gbNeedResetOverlay = false;
+
+// If true, overlay functionality is disabled
+bool gbDisableOverlay = false;
 
 // Last known full screen state
 bool gbLastFullScreenState = false;
@@ -2651,20 +2657,11 @@ void ReloadImGuiContext()
 	CreateImGuiContext();
 }
 
-void MQOverlayCommand(SPAWNINFO* pSpawh, char* szLine)
-{
-	if (ci_equals(szLine, "reload"))
-	{
-		gbNeedResetOverlay = true;
-	}
-	else if (ci_equals(szLine, "resume"))
-	{
-		gbManualResetRequired = false;
-	}
-}
-
 void InitializeMQ2Overlay()
 {
+	if (gbOverlayInitialized)
+		return;
+
 	// Intercept mouse events
 	EzDetour(__ProcessMouseEvents, ProcessMouseEvents_Detour, ProcessMouseEvents_Trampoline);
 
@@ -2683,12 +2680,11 @@ void InitializeMQ2Overlay()
 	// Hook the reset device function
 	EzDetour(CRender__ResetDevice, &CRenderHook::ResetDevice_Detour, &CRenderHook::ResetDevice_Trampoline);
 
-	AddCommand("/mqoverlay", MQOverlayCommand);
-
 	CreateImGuiContext();
 
 	InitializeOverlayInternal();
-	ImGuiManager_Initialize();
+
+	gbOverlayInitialized = true;
 }
 
 void InitializeOverlayInternal()
@@ -2704,18 +2700,19 @@ void InitializeOverlayInternal()
 
 void ShutdownMQ2Overlay()
 {
+	if (!gbOverlayInitialized)
+		return;
+
 	RemoveDetour(__ProcessMouseEvents);
 	RemoveDetour(__HandleMouseWheel);
 	RemoveDetour(__ProcessKeyboardEvents);
 	RemoveDetour(__WndProc);
 	RemoveDetour(CParticleSystem__Render);
 
-	RemoveCommand("/mqoverlay");
-
 	ShutdownOverlayInternal();
 	DestroyImGuiContext();
 
-	ImGuiManager_Shutdown();
+	gbOverlayInitialized = false;
 }
 
 void ShutdownOverlayInternal()
@@ -2767,6 +2764,9 @@ void ResetOverlay()
 
 void PulseMQ2Overlay()
 {
+	if (!gbOverlayInitialized)
+		return;
+
 	// Reset the device hooks between game states. Some of them may alter
 	// the device and we might need to start over.
 	if (gGameState != gLastGameState)
