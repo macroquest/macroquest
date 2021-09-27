@@ -67,33 +67,15 @@ using namespace eqlib;
 
 // TODO: Move these to mq/Plugin.h so that they are not globally included -- include them
 // only where they are needed.
+
+#include <mq/utils/Benchmarks.h>
 #include <mq/utils/Keybinds.h>
 
 namespace mq {
 
 /* BENCHMARKING */
-#ifdef DISABLE_BENCHMARKS
-#define Benchmark(BMHandle, code) code
-#else
-#define Benchmark(BMHandle, code) { EnterMQ2Benchmark(BMHandle); code; ExitMQ2Benchmark(BMHandle); }
-#endif
-MQLIB_API void ShutdownMQ2Benchmarks();
-MQLIB_API void InitializeMQ2Benchmarks();
-MQLIB_API bool GetMQ2Benchmark(uint32_t BMHandle, MQBenchmark& Dest);
-MQLIB_API void ExitMQ2Benchmark(uint32_t BMHandle);
-MQLIB_API void EnterMQ2Benchmark(uint32_t BMHandle);
-MQLIB_API void RemoveMQ2Benchmark(uint32_t BMHandle);
-MQLIB_API uint32_t AddMQ2Benchmark(const char* Name);
-
-struct MQScopedBenchmark
-{
-	MQScopedBenchmark(uint32_t bmId) : m_benchmark(bmId) { EnterMQ2Benchmark(m_benchmark); }
-	~MQScopedBenchmark() { ExitMQ2Benchmark(m_benchmark); }
-
-private:
-	uint32_t m_benchmark;
-};
-
+void ShutdownMQ2Benchmarks();
+void InitializeMQ2Benchmarks();
 
 /* SPAWN HANDLING */
 MQLIB_API bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show);
@@ -102,9 +84,6 @@ MQLIB_API bool AreNameSpritesCustomized();
 
 /* OVERLAY */
 MQLIB_API bool IsImGuiForeground();
-MQLIB_API void InitializeMQ2Overlay();
-MQLIB_API void ShutdownMQ2Overlay();
-MQLIB_API void PulseMQ2Overlay();
 MQLIB_API void SetOverlayEnabled(bool visible);
 MQLIB_API bool IsOverlayEnabled();
 MQLIB_API void ResetOverlay();
@@ -178,22 +157,23 @@ MQLIB_API void ShutdownMQ2Plugins();
 MQLIB_API DEPRECATE("This is handled on load/unload without the direct call.")
 void SaveMQ2PluginLoadStatus(const char* Name, bool bLoad);
 
-MQLIB_API void PulsePlugins();
-MQLIB_API void PluginsZoned();
-MQLIB_API bool PluginsIncomingChat(const char* Line, DWORD Color);
-MQLIB_API void PluginsCleanUI();
-MQLIB_API void PluginsReloadUI();
-MQLIB_API void PluginsSetGameState(DWORD GameState);
-MQLIB_API void PluginsDrawHUD();
-MQLIB_API void PluginsAddSpawn(SPAWNINFO* pNewSpawn);
-MQLIB_API void PluginsRemoveSpawn(SPAWNINFO* pSpawn);
-MQLIB_API void PluginsAddGroundItem(GROUNDITEM* pNewGroundItem);
-MQLIB_API void PluginsRemoveGroundItem(GROUNDITEM* pGroundItem);
-MQLIB_API void PluginsBeginZone();
-MQLIB_API void PluginsEndZone();
-MQLIB_API void PluginsUpdateImGui();
-MQLIB_API void PluginsMacroStart(const char* Name);
-MQLIB_API void PluginsMacroStop(const char* Name);
+void PulsePlugins();
+void PluginsZoned();
+bool PluginsIncomingChat(const char* Line, DWORD Color);
+void PluginsCleanUI();
+void PluginsReloadUI();
+void PluginsSetGameState(DWORD GameState);
+void PluginsDrawHUD();
+void PluginsAddSpawn(SPAWNINFO* pNewSpawn);
+void PluginsRemoveSpawn(SPAWNINFO* pSpawn);
+void PluginsAddGroundItem(GROUNDITEM* pNewGroundItem);
+void PluginsRemoveGroundItem(GROUNDITEM* pGroundItem);
+void PluginsBeginZone();
+void PluginsEndZone();
+void PluginsUpdateImGui();
+void ModulesUpdateImGui();
+void PluginsMacroStart(const char* Name);
+void PluginsMacroStop(const char* Name);
 
 MQLIB_API bool IsPluginsInitialized();
 MQLIB_API void* GetPluginProc(const char* plugin, const char* proc);
@@ -282,7 +262,8 @@ inline bool AddMQ2Data(const char* szName, fMQDataOld Function)
 /* MOUSE */
 MQLIB_API bool IsMouseWaiting();
 MQLIB_API bool IsMouseWaitingForButton();
-MQLIB_API void MQ2MouseHooks(bool bFlag);
+void InitializeMouseHooks();
+void ShutdownMouseHooks();
 MQLIB_API bool MoveMouse(int x, int y, bool bClick = false);
 MQLIB_API bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick = false);
 MQLIB_API bool ClickMouseItem(const MQGroundSpawn& pGroundSpawn, bool left);

@@ -69,16 +69,14 @@ public:
 
 DETOUR_TRAMPOLINE_EMPTY(CActorInterface* FakeCDisplay::GetClickedActor_Tramp(int X, int Y, bool bFlag, CVector3& Vector1, CVector3& Vector2));
 
-void MQ2MouseHooks(bool bFlag)
+void InitializeMouseHooks()
 {
-	if (bFlag)
-	{
-		EzDetour(CDisplay__GetClickedActor, &FakeCDisplay::GetClickedActor_Detour, &FakeCDisplay::GetClickedActor_Tramp);
-	}
-	else
-	{
-		RemoveDetour(CDisplay__GetClickedActor);
-	}
+	EzDetour(CDisplay__GetClickedActor, &FakeCDisplay::GetClickedActor_Detour, &FakeCDisplay::GetClickedActor_Tramp);
+}
+
+void ShutdownMouseHooks()
+{
+	RemoveDetour(CDisplay__GetClickedActor);
 }
 
 // ***************************************************************************

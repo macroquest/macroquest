@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "MQ2Main.h"
 #include "CrashHandler.h"
+#include "ImGuiManager.h"
 
 #include "common/NamedPipes.h"
 
@@ -643,7 +644,7 @@ static HeartbeatState Heartbeat()
 			CreateMQ2NewsWindow();
 	}
 
-	DebugTry(PulseMQ2Overlay());
+	ImGuiManager_Pulse();
 
 	if (gGameState == -1)
 	{
@@ -683,7 +684,7 @@ static HeartbeatState Heartbeat()
 // ***************************************************************************
 
 void SetMainThreadId();
-void DoInitialization();
+void DoMainThreadInitialization();
 
 bool DoGameEventsPulse(int (*pEventFunc)())
 {
@@ -704,7 +705,7 @@ bool DoGameEventsPulse(int (*pEventFunc)())
 		OutputDebugString("I am loading in ProcessGameEvents");
 
 		DWORD oldscreenmode = std::exchange(ScreenMode, 3);
-		DoInitialization();
+		DoMainThreadInitialization();
 		ScreenMode = oldscreenmode;
 
 		g_hLoadComplete.SetEvent();

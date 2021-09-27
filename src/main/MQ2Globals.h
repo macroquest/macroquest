@@ -55,7 +55,6 @@ MQLIB_API uint32_t bmUpdateSpawnCaptions;
 MQLIB_API uint32_t bmCalculate;
 MQLIB_API uint32_t bmBeginZone;
 MQLIB_API uint32_t bmEndZone;
-MQLIB_API uint32_t bmPluginsUpdateImGui;
 MQLIB_API uint32_t bmRenderScene;
 MQLIB_API uint32_t bmSpellLoad;
 MQLIB_API uint32_t bmSpellAccess;
@@ -313,7 +312,6 @@ MQLIB_VAR int gSpawnCount;
 
 // internal to mq2 only
 extern std::vector<MQSpawnArrayItem> gSpawnsArray;
-extern std::vector<std::unique_ptr<MQBenchmark>> gBenchmarks;
 
 MQLIB_VAR size_t g_eqgameimagesize;
 
