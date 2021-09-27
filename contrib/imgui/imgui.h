@@ -1274,12 +1274,14 @@ enum ImGuiTableColumnFlags_
     ImGuiTableColumnFlags_WidthMask_            = ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_WidthFixed,
     ImGuiTableColumnFlags_IndentMask_           = ImGuiTableColumnFlags_IndentEnable | ImGuiTableColumnFlags_IndentDisable,
     ImGuiTableColumnFlags_StatusMask_           = ImGuiTableColumnFlags_IsEnabled | ImGuiTableColumnFlags_IsVisible | ImGuiTableColumnFlags_IsSorted | ImGuiTableColumnFlags_IsHovered,
-    ImGuiTableColumnFlags_NoDirectResize_       = 1 << 30   // [Internal] Disable user resizing this column directly (it may however we resized indirectly from its left edge)
+    ImGuiTableColumnFlags_NoDirectResize_       = 1 << 30,   // [Internal] Disable user resizing this column directly (it may however we resized indirectly from its left edge)
 
     // Obsolete names (will be removed soon)
 #ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
     //ImGuiTableColumnFlags_WidthAuto           = ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize, // Column will not stretch and keep resizing based on submitted contents.
 #endif
+    // FIXME: Flag this as deprecated
+    ImGuiTableColumnFlags_WidthAlwaysAutoResize = (ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize),
 };
 
 // Flags for ImGui::TableNextRow()
