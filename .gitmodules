@@ -88,10 +88,6 @@
 	path = plugins/MQ2CPULoad
 	url = https://gitlab.com/redguides/plugins/MQ2CPULoad.git
 	branch = mqnext
-[submodule "plugins/MQ2DamageMeter"]
-	path = plugins/MQ2DamageMeter
-	url = https://gitlab.com/redguides/plugins/MQ2DamageMeter.git
-	branch = mqnext
 [submodule "plugins/MQ2Debuffs"]
 	path = plugins/MQ2Debuffs
 	url = https://gitlab.com/redguides/plugins/MQ2Debuffs.git
