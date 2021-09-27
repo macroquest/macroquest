@@ -37,7 +37,15 @@ uint32_t bmPluginsUpdateImGui = 0;
 
 // global imgui toggle
 bool gbRenderImGui = true;
-bool gbOverlayDebug = false;
+
+enum class DebugTab {
+	MouseInput = 0,
+	Graphics = 1,
+
+	None = -1,
+};
+static DebugTab s_selectDebugTab = DebugTab::None;
+static bool s_bOverlayDebug = false;
 
 static mq::PlatformHotkey gToggleConsoleHotkey;
 static const char gToggleConsoleDefaultBind[] = "ctrl+`";
@@ -84,30 +92,58 @@ void DoImGuiUpdateInternal()
 	ModulesUpdateImGui();
 }
 
+//============================================================================
+
 void UpdateImGuiDebugInfo()
 {
-	ImGuiIO& io = ImGui::GetIO();
+	ImGui::SetNextWindowSize(ImVec2(640, 480), ImGuiCond_FirstUseEver);
+	if (ImGui::Begin("ImGui Debug", &s_bOverlayDebug))
+	{
+		if (ImGui::BeginTabBar("#DebugTabs"))
+		{
+			if (ImGui::BeginTabItem("Mouse", nullptr, (s_selectDebugTab == DebugTab::MouseInput) ? ImGuiTabItemFlags_SetSelected : 0))
+			{
+				ImGuiIO& io = ImGui::GetIO();
 
-	// Display ImGuiIO output flags
-	ImGui::Text("WantCaptureMouse: %d", io.WantCaptureMouse);
-	ImGui::Text("WantCaptureMouseUnlessPopupClose: %d", io.WantCaptureMouseUnlessPopupClose);
-	ImGui::Text("WantCaptureKeyboard: %d", io.WantCaptureKeyboard);
-	ImGui::Text("WantTextInput: %d", io.WantTextInput);
-	ImGui::Text("WantSetMousePos: %d", io.WantSetMousePos);
-	ImGui::Text("NavActive: %d, NavVisible: %d", io.NavActive, io.NavVisible);
+				// Display ImGuiIO output flags
+				ImGui::Text("WantCaptureMouse: %d", io.WantCaptureMouse);
+				ImGui::Text("WantCaptureMouseUnlessPopupClose: %d", io.WantCaptureMouseUnlessPopupClose);
+				ImGui::Text("WantCaptureKeyboard: %d", io.WantCaptureKeyboard);
+				ImGui::Text("WantTextInput: %d", io.WantTextInput);
+				ImGui::Text("WantSetMousePos: %d", io.WantSetMousePos);
+				ImGui::Text("NavActive: %d, NavVisible: %d", io.NavActive, io.NavVisible);
 
-	// Display Mouse state
-	if (ImGui::IsMousePosValid())
-		ImGui::Text("Mouse pos: (%g, %g)", io.MousePos.x, io.MousePos.y);
-	else
-		ImGui::Text("Mouse pos: <INVALID>");
-	ImGui::Text("Mouse delta: (%g, %g)", io.MouseDelta.x, io.MouseDelta.y);
-	ImGui::Text("Mouse down:");     for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) if (ImGui::IsMouseDown(i)) { ImGui::SameLine(); ImGui::Text("b%d (%.02f secs)", i, io.MouseDownDuration[i]); }
-	ImGui::Text("Mouse clicked:");  for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) if (ImGui::IsMouseClicked(i)) { ImGui::SameLine(); ImGui::Text("b%d", i); }
-	ImGui::Text("Mouse dblclick:"); for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) if (ImGui::IsMouseDoubleClicked(i)) { ImGui::SameLine(); ImGui::Text("b%d", i); }
-	ImGui::Text("Mouse released:"); for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) if (ImGui::IsMouseReleased(i)) { ImGui::SameLine(); ImGui::Text("b%d", i); }
-	ImGui::Text("Mouse wheel: %.1f", io.MouseWheel);
-	ImGui::Text("Pen Pressure: %.1f", io.PenPressure); // Note: currently unused
+				// Display Mouse state
+				if (ImGui::IsMousePosValid())
+					ImGui::Text("Mouse pos: (%g, %g)", io.MousePos.x, io.MousePos.y);
+				else
+					ImGui::Text("Mouse pos: <INVALID>");
+				ImGui::Text("Mouse delta: (%g, %g)", io.MouseDelta.x, io.MouseDelta.y);
+				ImGui::Text("Mouse down:");     for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) if (ImGui::IsMouseDown(i)) { ImGui::SameLine(); ImGui::Text("b%d (%.02f secs)", i, io.MouseDownDuration[i]); }
+				ImGui::Text("Mouse clicked:");  for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) if (ImGui::IsMouseClicked(i)) { ImGui::SameLine(); ImGui::Text("b%d", i); }
+				ImGui::Text("Mouse dblclick:"); for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) if (ImGui::IsMouseDoubleClicked(i)) { ImGui::SameLine(); ImGui::Text("b%d", i); }
+				ImGui::Text("Mouse released:"); for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) if (ImGui::IsMouseReleased(i)) { ImGui::SameLine(); ImGui::Text("b%d", i); }
+				ImGui::Text("Mouse wheel: %.1f", io.MouseWheel);
+
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("Graphics", nullptr, (s_selectDebugTab == DebugTab::Graphics) ? ImGuiTabItemFlags_SetSelected : 0))
+			{
+				ImGuiRenderDebug_UpdateImGui();
+				ImGui::EndTabItem();
+			}
+
+			s_selectDebugTab = DebugTab::None;
+
+			ImGui::EndTabBar();
+		}
+	}
+	if (!s_bOverlayDebug)
+	{
+		WritePrivateProfileBool("MacroQuest", "OverlayDebug", false, mq::internal_paths::MQini);
+	}
+	ImGui::End();
 }
 
 void ImGuiManager_DrawFrame()
@@ -141,7 +177,7 @@ void ImGuiManager_DrawFrame()
 				PluginsUpdateImGui();
 			}
 
-			if (gbOverlayDebug)
+			if (s_bOverlayDebug)
 			{
 				UpdateImGuiDebugInfo();
 			}
@@ -238,25 +274,51 @@ void* ImGuiManager_GetCursorForImGui(ImGuiMouseCursor imguiCursor)
 	return nullptr;
 }
 
-void MQOverlayCommand(SPAWNINFO* pSpawh, char* szLine)
+void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 {
-	if (ci_equals(szLine, "reload"))
+	char szArg[MAX_STRING] = { 0 };
+	GetArg(szArg, szLine, 1);
+
+	if (ci_equals(szArg, "reload"))
 	{
 		ResetOverlay();
 	}
-	else if (ci_equals(szLine, "resume"))
+	else if (ci_equals(szArg, "resume"))
 	{
 		gbManualResetRequired = false;
 	}
-	else if (ci_equals(szLine, "stop"))
+	else if (ci_equals(szArg, "stop"))
 	{
 		ShutdownOverlayComponents();
 	}
-	else if (ci_equals(szLine, "debug"))
+	else if (ci_equals(szArg, "debug"))
 	{
-		gbOverlayDebug = !gbOverlayDebug;
-		WriteChatf("Overlay debug info is now: %s", gbOverlayDebug ? "\agOn" : "\arOff");
-		WritePrivateProfileBool("MacroQuest", "OverlayDebug", gbOverlayDebug, mq::internal_paths::MQini);
+		char szParam[MAX_STRING] = { 0 };
+		GetArg(szParam, szLine, 2);
+
+		bool newOverlayDebug = s_bOverlayDebug;
+
+		if (szParam[0] == 0)
+		{
+			newOverlayDebug = !newOverlayDebug;
+		}
+		else if (ci_equals(szParam, "mouse"))
+		{
+			s_selectDebugTab = DebugTab::MouseInput;
+			s_bOverlayDebug = true;
+		}
+		else if (ci_equals(szParam, "graphics"))
+		{
+			s_selectDebugTab = DebugTab::Graphics;
+			s_bOverlayDebug = true;
+		}
+
+		if (newOverlayDebug != s_bOverlayDebug)
+		{
+			s_bOverlayDebug = newOverlayDebug;
+			WriteChatf("Overlay debug info is now: %s", s_bOverlayDebug ? "\agOn" : "\arOff");
+			WritePrivateProfileBool("MacroQuest", "OverlayDebug", s_bOverlayDebug, mq::internal_paths::MQini);
+		}
 	}
 	else if (ci_equals(szLine, "start"))
 	{
@@ -274,7 +336,7 @@ void ImGuiManager_Initialize()
 	bmPluginsUpdateImGui = AddMQ2Benchmark("UpdateImGuiPlugins");
 
 	gbRenderImGui = GetPrivateProfileBool("MacroQuest", "RenderImGui", gbRenderImGui, mq::internal_paths::MQini);
-	gbOverlayDebug = GetPrivateProfileBool("MacroQuest", "OverlayDebug", gbOverlayDebug, mq::internal_paths::MQini);
+	s_bOverlayDebug = GetPrivateProfileBool("MacroQuest", "OverlayDebug", s_bOverlayDebug, mq::internal_paths::MQini);
 
 	// TODO: application-wide keybinds could use an encapsulated interface. For now I'm just dumping his here since we need it to
 	// connect to the win32 hook and control the imgui console.
@@ -301,7 +363,7 @@ void ImGuiManager_Initialize()
 	if (gbWriteAllConfig)
 	{
 		WritePrivateProfileBool("MacroQuest", "RenderImGui", gbRenderImGui, mq::internal_paths::MQini);
-		WritePrivateProfileBool("MacroQuest", "OverlayDebug", gbOverlayDebug, mq::internal_paths::MQini);
+		WritePrivateProfileBool("MacroQuest", "OverlayDebug", s_bOverlayDebug, mq::internal_paths::MQini);
 	}
 
 	AddCommand("/mqoverlay", MQOverlayCommand);

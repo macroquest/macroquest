@@ -65,8 +65,6 @@ int gReInitFrameDelay = 0;
 
 bool gbImGuiReady = false;
 
-extern bool gbToggleConsoleRequested;
-
 //----------------------------------------------------------------------------
 // statics
 
@@ -79,6 +77,8 @@ static bool gbRetryHooks = false;
 static bool gbInitializationFailed = false;
 static bool gbInitializedImGui = false;
 static int gLastGameState = GAMESTATE_PRECHARSELECT;
+
+static int s_numBeginSceneCalls = 0;
 
 // Mouse state, pointed to by EQADDR_DIMOUSECOPY
 struct MouseStateData
@@ -95,13 +95,21 @@ static DIMOUSESTATE** gDIMouseState = (DIMOUSESTATE**)&EQADDR_DIMOUSECHECK;
 
 using D3D9CREATEEXPROC = HRESULT(WINAPI*)(UINT, IDirect3D9Ex**);
 
+// Record for tracking renderer callbacks
+struct MQRenderCallbackRecord
+{
+	MQRenderCallbacks callbacks;
+	int id;
+};
+static std::vector<std::unique_ptr<MQRenderCallbackRecord>> s_renderCallbacks;
+
 // Forward declarations
 LRESULT  ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-static void UpdateGraphicsScene();
-static void InvalidateDeviceObjects();
-static bool CreateDeviceObjects();
-static bool RenderImGui();
+void ImGuiRenderDebug_UpdateRenderTargets();
+
+//============================================================================
+// Detour helpers
 
 // Some of our hooks are determined dynamically. Rather than have a variable
 // for each one, we store them in a collection of these HookInfo objects.
@@ -126,18 +134,8 @@ static void InstallHook(HookInfo hi)
 
 	if (iter != std::end(gHooks))
 	{
-#if 0
-		// hook already installed. Remove it.
-		if (iter->address != 0)
-		{
-			RemoveDetour(iter->address);
-		}
-
-		gHooks.erase(iter);
-#else
 		// hook already installed. just skip.
 		return;
-#endif
 	}
 
 	hi.patch(hi);
@@ -171,7 +169,119 @@ static void RemoveDetours()
 	}
 }
 
-// Returns true if this event should be "erased" from eq.
+//============================================================================
+
+// Exported
+int AddRenderCallbacks(const MQRenderCallbacks& callbacks)
+{
+	// Find an unused index.
+	int index = -1;
+	for (size_t i = 0; i < s_renderCallbacks.size(); ++i)
+	{
+		if (s_renderCallbacks[i] == nullptr)
+		{
+			index = i;
+			break;
+		}
+	}
+
+	if (index == -1)
+	{
+		s_renderCallbacks.emplace_back();
+		index = s_renderCallbacks.size() - 1;
+	}
+
+	auto pCallbacks = std::make_unique<MQRenderCallbackRecord>();
+	pCallbacks->callbacks = callbacks;
+	pCallbacks->id = index;
+
+	// Make sure that we initialize if we're already acquired by
+	// calling CreateDeviceObjects.
+	if (gbDeviceAcquired && pCallbacks->callbacks.CreateDeviceObjects)
+	{
+		pCallbacks->callbacks.CreateDeviceObjects();
+	}
+
+	s_renderCallbacks[index] = std::move(pCallbacks);
+	return index;
+}
+
+// Exported
+void RemoveRenderCallbacks(uint32_t id)
+{
+	if (id >= 0 && id < s_renderCallbacks.size())
+	{
+		// not sure if we should do this here or in the calling plugin...
+		if (s_renderCallbacks[id] && s_renderCallbacks[id]->callbacks.InvalidateDeviceObjects)
+		{
+			s_renderCallbacks[id]->callbacks.InvalidateDeviceObjects();
+		}
+
+		s_renderCallbacks[id].reset();
+	}
+}
+
+static void Renderer_InvalidateDeviceObjects()
+{
+	SPDLOG_DEBUG("MQ2Overlay: InvalidateDeviceObjects");
+
+	gbDeviceAcquired = false;
+	ImGui_ImplDX9_InvalidateDeviceObjects();
+	gbImGuiReady = false;
+
+	for (const auto& pCallbacks : s_renderCallbacks)
+	{
+		if (pCallbacks && pCallbacks->callbacks.InvalidateDeviceObjects)
+		{
+			pCallbacks->callbacks.InvalidateDeviceObjects();
+		}
+	}
+}
+
+static bool Renderer_CreateDeviceObjects()
+{
+	SPDLOG_DEBUG("MQ2Overlay: CreateDeviceObjects");
+
+	gbDeviceAcquired = true;
+	gbImGuiReady = ImGui_ImplDX9_CreateDeviceObjects();
+
+	for (const auto& pCallbacks : s_renderCallbacks)
+	{
+		if (pCallbacks && pCallbacks->callbacks.CreateDeviceObjects)
+		{
+			pCallbacks->callbacks.CreateDeviceObjects();
+		}
+	}
+
+	return gbImGuiReady;
+}
+
+static void Renderer_UpdateScene()
+{
+	if (s_renderCallbacks.empty())
+		return;
+
+	// Perform the render within a stateblock so we don't upset the rest
+	// of the rendering pipeline
+	IDirect3DStateBlock9* stateBlock = nullptr;
+	gpD3D9Device->CreateStateBlock(D3DSBT_ALL, &stateBlock);
+
+	for (const auto& pCallbacks : s_renderCallbacks)
+	{
+		if (pCallbacks && pCallbacks->callbacks.GraphicsSceneRender)
+		{
+			pCallbacks->callbacks.GraphicsSceneRender();
+		}
+	}
+
+	stateBlock->Apply();
+	stateBlock->Release();
+}
+
+//============================================================================
+
+// Returns true if this event should be "erased" from eq while not within the imgui
+// capture. This lets us intercepts clicks into the game world.
 bool ImGuiOverlay_HandleMouseEvent(int mouseButton, bool pressed)
 {
 	ImGuiIO& io = ImGui::GetIO();
@@ -248,6 +358,27 @@ void ShutdownImGui()
 	gbInitializedImGui = false;
 }
 
+static bool RenderImGui()
+{
+	using namespace imgui;
+
+	if (!gbImGuiReady)
+		return false;
+	if (gbNeedResetOverlay)
+		return false;
+	if (!gpD3D9Device)
+		return false;
+
+	// This is loading/transitioning screen
+	if (gGameState == GAMESTATE_LOGGINGIN)
+		return false;
+
+	ImGuiManager_DrawFrame();
+
+	return true;
+}
+
+//============================================================================
 //============================================================================
 
 class RenderHooks
@@ -297,7 +428,7 @@ public:
 		}
 
 		SPDLOG_INFO("IDirect3DDevice9::Reset hook: device instance is the acquired device.");
-		InvalidateDeviceObjects();
+		Renderer_InvalidateDeviceObjects();
 
 		return Reset_Trampoline(pPresentationParameters);
 	}
@@ -307,6 +438,7 @@ public:
 	{
 		// Whenever a BeginScene occurs, we know that this is the device we want to use.
 		gpD3D9Device = GetThisDevice();
+		s_numBeginSceneCalls++;
 
 		return BeginScene_Trampoline();
 	}
@@ -327,57 +459,82 @@ public:
 			return EndScene_Trampoline();
 		}
 
+		bool isMainRenderTarget = false;
+
+		// Make sure that we're hooking the main render target
+		IDirect3DSurface9* backBuffer = nullptr;
+		HRESULT hr = gpD3D9Device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
+		if (hr == D3D_OK)
+		{
+			IDirect3DSurface9* renderTarget = nullptr;
+			HRESULT hr = gpD3D9Device->GetRenderTarget(0, &renderTarget);
+			if (hr == D3D_OK)
+			{
+				isMainRenderTarget = renderTarget == backBuffer;
+				renderTarget->Release();
+			}
+			backBuffer->Release();
+		}
+
 		sbInEndSceneDetour = true;
 
-		// Check if a full screen mode change occurred before this frame.
-		// If it did, we should not render, and instead re-initialize imgui.
-		if (test_and_set(gbLastFullScreenState, IsFullScreen(gpD3D9Device)))
+		if (isMainRenderTarget)
 		{
-			// For some reason, maybe due to a bug, toggling viewports off and
-			// then calling CreateDeviceObjects will cause it to still create
-			// the additional swap chains, which causes errors. So instead of
-			// disabling viewports, we are simply rebooting imgui.
-			gbNeedResetOverlay = true;
-		}
-		// When TestCooperativeLevel returns all good, then we can reinitialize.
-		// This will let the renderer control our flow instead of having to
-		// poll for the state ourselves.
-		else if (!gbDeviceAcquired)
-		{
-			if (gReInitFrameDelay == 0)
+			// Check if a full screen mode change occurred before this frame.
+			// If it did, we should not render, and instead re-initialize imgui.
+			if (test_and_set(gbLastFullScreenState, IsFullScreen(gpD3D9Device)))
 			{
-				HRESULT result = GetThisDevice()->TestCooperativeLevel();
-
-				if (result == D3D_OK)
+				// For some reason, maybe due to a bug, toggling viewports off and
+				// then calling CreateDeviceObjects will cause it to still create
+				// the additional swap chains, which causes errors. So instead of
+				// disabling viewports, we are simply rebooting imgui.
+				gbNeedResetOverlay = true;
+			}
+			// When TestCooperativeLevel returns all good, then we can reinitialize.
+			// This will let the renderer control our flow instead of having to
+			// poll for the state ourselves.
+			else if (!gbDeviceAcquired)
+			{
+				if (gReInitFrameDelay == 0)
 				{
-					SPDLOG_INFO("IDirect3DDevice9::EndScene: TestCooperativeLevel was successful, reacquiring device.");
+					HRESULT result = GetThisDevice()->TestCooperativeLevel();
 
-					InitializeImGui(gpD3D9Device);
-
-					if (DetectResetDeviceHook())
+					if (result == D3D_OK)
 					{
-						InvalidateDeviceObjects();
-					}
+						SPDLOG_INFO("IDirect3DDevice9::EndScene: TestCooperativeLevel was successful, reacquiring device.");
 
-					CreateDeviceObjects();
+						InitializeImGui(gpD3D9Device);
+
+						if (DetectResetDeviceHook())
+						{
+							Renderer_InvalidateDeviceObjects();
+						}
+
+						Renderer_CreateDeviceObjects();
+					}
+				}
+				else
+				{
+					--gReInitFrameDelay;
 				}
 			}
-			else
-			{
-				--gReInitFrameDelay;
-			}
-		}
 
-		// Perform the render within a stateblock so we don't upset the
-		// rest of the rendering pipeline
-		if (gbDeviceAcquired)
-		{
-			RenderImGui();
+			// Perform the render within a stateblock so we don't upset the
+			// rest of the rendering pipeline
+			if (gbDeviceAcquired)
+			{
+				RenderImGui();
+			}
 		}
 
 		HRESULT result = EndScene_Trampoline();
-		sbInEndSceneDetour = false;
 
+		if (isMainRenderTarget && gbDeviceAcquired)
+		{
+			ImGuiRenderDebug_UpdateRenderTargets();
+		}
+
+		sbInEndSceneDetour = false;
 		return result;
 	}
 };
@@ -395,7 +552,7 @@ public:
 	{
 		if (gbDeviceAcquired)
 		{
-			UpdateGraphicsScene();
+			Renderer_UpdateScene();
 		}
 
 		Render_Trampoline();
@@ -418,7 +575,7 @@ public:
 		if (!success)
 		{
 			SPDLOG_DEBUG("CRender::ResetDevice: Reset failed, invalidating device objects and trying again.");
-			InvalidateDeviceObjects();
+			Renderer_InvalidateDeviceObjects();
 
 			success = ResetDevice_Trampoline(a);
 		}
@@ -705,140 +862,291 @@ static eOverlayHookStatus InitializeOverlayHooks()
 
 //============================================================================
 
-struct MQRenderCallbackRecord
+class ImGuiRenderDebug
 {
-	MQRenderCallbacks callbacks;
-	int id;
+	static inline D3DCAPS9 s_caps;
+
+	struct RenderTargetInfo
+	{
+		IDirect3DTexture9* texture = nullptr;
+
+		void* surface = nullptr;         // just the address of the target surface
+		bool isBackBuffer = false;
+		D3DSURFACE_DESC surfaceDesc;
+
+		bool active = false;
+		HRESULT status = S_OK;
+
+		RenderTargetInfo()
+		{
+		}
+
+		~RenderTargetInfo()
+		{
+			if (texture != nullptr)
+				texture->Release();
+		}
+	};
+	std::vector<RenderTargetInfo> m_renderTargets;
+	bool m_active = false;
+
+public:
+	ImGuiRenderDebug()
+	{
+	}
+
+	~ImGuiRenderDebug()
+	{
+		m_renderTargets.clear();
+	}
+
+	void CreateObjects()
+	{
+	}
+
+	void InvalidateObjects()
+	{
+		m_renderTargets.clear();
+	}
+
+	void Render()
+	{
+	}
+
+	void NewFrame()
+	{
+		for (RenderTargetInfo& info : m_renderTargets)
+		{
+			info.active = false;
+		}
+	}
+
+	void RenderImGui()
+	{
+		m_active = true;
+		ImGui::Text("Num BeginScene Calls: %d", s_numBeginSceneCalls);
+
+		auto& io = ImGui::GetIO();
+		ImVec2 pos = ImGui::GetCursorScreenPos();
+
+		for (RenderTargetInfo& info : m_renderTargets)
+		{
+			char szLabel[256];
+			sprintf_s(szLabel, "%s: %p (%d x %d)", info.isBackBuffer ? "Back Buffer" : "Render Target", info.surface, info.surfaceDesc.Width, info.surfaceDesc.Height);
+			if (!info.active)
+				strcat_s(szLabel, " (Inactive)");
+
+			char szId[256];
+			sprintf_s(szId, "##%p", info.surface);
+			strcat_s(szLabel, szId);
+
+			if (ImGui::CollapsingHeader(szLabel))
+			{
+				ImGui::Text("Format: %d", info.surfaceDesc.Format);
+				ImGui::Text("Type: %d", info.surfaceDesc.Type);
+				ImGui::Text("Usage: %d", info.surfaceDesc.Usage);
+
+				char poolName[32];
+				switch (info.surfaceDesc.Pool)
+				{
+				case D3DPOOL_DEFAULT: strcpy_s(poolName, "D3DPOOL_DEFAULT"); break;
+				case D3DPOOL_MANAGED: strcpy_s(poolName, "D3DPOOL_MANAGED"); break;
+				case D3DPOOL_SYSTEMMEM: strcpy_s(poolName, "D3DPOOL_SYSTEMMEM"); break;
+				case D3DPOOL_SCRATCH: strcpy_s(poolName, "D3DPOOL_SCRATCH"); break;
+				default: sprintf_s(poolName, "Unknown (%d)", info.surfaceDesc.Pool); break;
+				}
+				ImGui::Text("Pool: %s", poolName);
+
+				if (info.surfaceDesc.MultiSampleType)
+					ImGui::Text("MultiSampleType: %d", info.surfaceDesc.MultiSampleType);
+				if (info.surfaceDesc.MultiSampleQuality)
+					ImGui::Text("MultiSampleQuality: %d", info.surfaceDesc.MultiSampleQuality);
+				if (info.status != 0)
+					ImGui::Text("Status: %x", info.status);
+
+				if (info.texture)
+				{
+					ImTextureID my_tex_id = (ImTextureID)info.texture;
+					ImVec2 pos = ImGui::GetCursorScreenPos();
+					float my_tex_w = (float)info.surfaceDesc.Width;
+					float my_tex_h = (float)info.surfaceDesc.Height;
+					ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);   // No tint
+					ImVec4 border_col = ImVec4(1.0f, 1.0f, 1.0f, 0.5f); // 50% opaque white
+					const float preview_w = std::min(my_tex_w, 256.f);
+					const float preview_h = (preview_w / my_tex_w) * my_tex_h;
+					ImGui::Image(my_tex_id, ImVec2(preview_w, preview_h), ImVec2(0, 0), ImVec2(1, 1), tint_col,
+						border_col);
+					float region_sz = 256.0f;
+
+					if (ImGui::IsItemHovered()
+						&& my_tex_w >= region_sz
+						&& my_tex_h >= region_sz)
+					{
+						ImGui::BeginTooltip();
+
+						float region_x = ((io.MousePos.x - pos.x) * (my_tex_w / preview_w)) - region_sz * 0.5f;
+						float region_y = ((io.MousePos.y - pos.y) * (my_tex_h / preview_h)) - region_sz * 0.5f;
+
+						if (region_x < 0.0f) { region_x = 0.0f; }
+						else if (region_x > my_tex_w - region_sz) { region_x = my_tex_w - region_sz; }
+						if (region_y < 0.0f) { region_y = 0.0f; }
+						else if (region_y > my_tex_h - region_sz) { region_y = my_tex_h - region_sz; }
+
+						ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
+						ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
+						ImVec2 uv0 = ImVec2((region_x + 0) / my_tex_w, (region_y + 0) / my_tex_h);
+						ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
+
+						float zoom = 1.0f;
+						ImGui::Image(my_tex_id, ImVec2(region_sz * zoom, region_sz * zoom), uv0, uv1, tint_col, border_col);
+						ImGui::EndTooltip();
+					}
+				}
+			}
+		}
+
+		if (ImGui::Button("Clear Inactive"))
+		{
+			m_renderTargets.erase(
+				std::remove_if(m_renderTargets.begin(), m_renderTargets.end(),
+					[](const auto& v) { return !v.active; }), m_renderTargets.end());
+		}
+
+		NewFrame();
+	}
+
+	RenderTargetInfo* GetRenderTargetInfo(IDirect3DSurface9* surface)
+	{
+		for (RenderTargetInfo& info : m_renderTargets)
+		{
+			if (info.surface == surface)
+				return &info;
+		}
+
+		RenderTargetInfo info;
+		info.surface = surface;
+		surface->GetDesc(&info.surfaceDesc);
+
+		m_renderTargets.push_back(info);
+		return &m_renderTargets[m_renderTargets.size() - 1];
+	}
+
+	void UpdateSurface(IDirect3DSurface9* surface, bool backBuffer)
+	{
+		RenderTargetInfo* info = GetRenderTargetInfo(surface);
+		info->isBackBuffer = backBuffer;
+		if (info->active)
+			return; // already processed this surface this frame
+		info->active = true;
+
+		HRESULT hr = S_OK;
+
+		if (info->texture == nullptr)
+		{
+			hr = gpD3D9Device->CreateTexture(info->surfaceDesc.Width, info->surfaceDesc.Height, 1, D3DUSAGE_RENDERTARGET,
+				info->surfaceDesc.Format, D3DPOOL_DEFAULT, &info->texture, 0);
+			info->status = hr;
+
+			if (hr != S_OK)
+				return;
+		}
+		// should have texture now.
+
+		IDirect3DSurface9* texSurface = nullptr;
+		hr = info->texture->GetSurfaceLevel(0, &texSurface);
+		info->status = hr;
+		if (hr != S_OK)
+			return;
+
+		hr = gpD3D9Device->StretchRect(surface, nullptr, texSurface, nullptr, D3DTEXF_LINEAR);
+		info->status = hr;
+
+		texSurface->Release();
+	}
+
+	void UpdateRenderTargets()
+	{
+		if (!m_active)
+			return;
+
+		gpD3D9Device->GetDeviceCaps(&s_caps);
+		for (int i = 0; i < (int)s_caps.NumSimultaneousRTs; ++i)
+		{
+			IDirect3DSurface9* surface = nullptr;
+
+			HRESULT hr = gpD3D9Device->GetRenderTarget(i, &surface);
+			if (hr == S_OK)
+			{
+				UpdateSurface(surface, false);
+				surface->Release();
+			}
+		}
+
+		UINT numSwapchains = gpD3D9Device->GetNumberOfSwapChains();
+		for (UINT i = 0; i < numSwapchains; ++i)
+		{
+			IDirect3DSwapChain9* swapChain = nullptr;
+
+			HRESULT hr = gpD3D9Device->GetSwapChain(i, &swapChain);
+			if (hr == S_OK)
+			{
+				IDirect3DSurface9* surface = nullptr;
+				hr = swapChain->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &surface);
+
+				if (hr == S_OK)
+				{
+					UpdateSurface(surface, false);
+					surface->Release();
+				}
+
+				swapChain->Release();
+			}
+		}
+
+		IDirect3DSurface9* surface = nullptr;
+		HRESULT hr = gpD3D9Device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &surface);
+		if (hr == S_OK)
+		{
+			UpdateSurface(surface, true);
+			surface->Release();
+		}
+	}
 };
+static ImGuiRenderDebug* s_renderDebug = nullptr;
+static int s_renderCallbacksId = -1;
 
-static std::vector<std::unique_ptr<MQRenderCallbackRecord>> gRenderCallbacks;
-
-int AddRenderCallbacks(const MQRenderCallbacks& callbacks)
+void ImGuiRenderDebug_UpdateImGui()
 {
-	// Find an unused index.
-	int index = -1;
-	for (size_t i = 0; i < gRenderCallbacks.size(); ++i)
-	{
-		if (gRenderCallbacks[i] == nullptr)
-		{
-			index = i;
-			break;
-		}
-	}
-
-	if (index == -1)
-	{
-		gRenderCallbacks.emplace_back();
-		index = gRenderCallbacks.size() - 1;
-	}
-
-	auto pCallbacks = std::make_unique<MQRenderCallbackRecord>();
-	pCallbacks->callbacks = callbacks;
-	pCallbacks->id = index;
-
-	// Make sure that we initialize if we're already acquired by
-	// calling CreateDeviceObjects.
-	if (gbDeviceAcquired && pCallbacks->callbacks.CreateDeviceObjects)
-	{
-		pCallbacks->callbacks.CreateDeviceObjects();
-	}
-
-	gRenderCallbacks[index] = std::move(pCallbacks);
-	return index;
+	if (s_renderDebug)
+		s_renderDebug->RenderImGui();
 }
 
-void RemoveRenderCallbacks(uint32_t id)
+void ImGuiRenderDebug_CreateObjects()
 {
-	if (id >= 0 && id < gRenderCallbacks.size())
-	{
-		// not sure if we should do this here or in the calling plugin...
-		if (gRenderCallbacks[id] && gRenderCallbacks[id]->callbacks.InvalidateDeviceObjects)
-		{
-			gRenderCallbacks[id]->callbacks.InvalidateDeviceObjects();
-		}
-
-		gRenderCallbacks[id].reset();
-	}
+	if (s_renderDebug)
+		s_renderDebug->CreateObjects();
 }
 
-static bool RenderImGui()
+void ImGuiRenderDebug_InvalidateObjects()
 {
-	using namespace imgui;
-
-	if (!gbImGuiReady)
-		return false;
-	if (gbNeedResetOverlay)
-		return false;
-	if (!gpD3D9Device)
-		return false;
-
-	// This is loading/transitioning screen
-	if (gGameState == GAMESTATE_LOGGINGIN)
-		return false;
-
-	ImGuiManager_DrawFrame();
-
-	return true;
+	if (s_renderDebug)
+		s_renderDebug->InvalidateObjects();
 }
 
-static void UpdateGraphicsScene()
+void ImGuiRenderDebug_Render()
 {
-	if (gRenderCallbacks.empty())
-		return;
-
-	// Perform the render within a stateblock so we don't upset the rest
-	// of the rendering pipeline
-	IDirect3DStateBlock9* stateBlock = nullptr;
-	gpD3D9Device->CreateStateBlock(D3DSBT_ALL, &stateBlock);
-
-	for (const auto& pCallbacks : gRenderCallbacks)
-	{
-		if (pCallbacks && pCallbacks->callbacks.GraphicsSceneRender)
-		{
-			pCallbacks->callbacks.GraphicsSceneRender();
-		}
-	}
-
-	stateBlock->Apply();
-	stateBlock->Release();
+	if (s_renderDebug)
+		s_renderDebug->Render();
 }
 
-static void InvalidateDeviceObjects()
+void ImGuiRenderDebug_UpdateRenderTargets()
 {
-	SPDLOG_DEBUG("MQ2Overlay: InvalidateDeviceObjects");
-
-	gbDeviceAcquired = false;
-	ImGui_ImplDX9_InvalidateDeviceObjects();
-	gbImGuiReady = false;
-
-	for (const auto& pCallbacks : gRenderCallbacks)
-	{
-		if (pCallbacks && pCallbacks->callbacks.InvalidateDeviceObjects)
-		{
-			pCallbacks->callbacks.InvalidateDeviceObjects();
-		}
-	}
-}
-
-static bool CreateDeviceObjects()
-{
-	SPDLOG_DEBUG("MQ2Overlay: CreateDeviceObjects");
-
-	gbDeviceAcquired = true;
-	gbImGuiReady = ImGui_ImplDX9_CreateDeviceObjects();
-
-	for (const auto& pCallbacks : gRenderCallbacks)
-	{
-		if (pCallbacks && pCallbacks->callbacks.CreateDeviceObjects)
-		{
-			pCallbacks->callbacks.CreateDeviceObjects();
-		}
-	}
-
-	return gbImGuiReady;
+	if (s_renderDebug)
+		s_renderDebug->UpdateRenderTargets();
 }
 
 //============================================================================
+
 
 static void InitializeOverlayInternal();
 static void ShutdownOverlayInternal();
@@ -912,6 +1220,10 @@ void InitializeMQ2Overlay()
 
 	InitializeOverlayInternal();
 
+	s_renderDebug = new ImGuiRenderDebug();
+	s_renderCallbacksId = AddRenderCallbacks(
+		{ ImGuiRenderDebug_CreateObjects, ImGuiRenderDebug_InvalidateObjects, ImGuiRenderDebug_Render });
+
 	gbOverlayInitialized = true;
 }
 
@@ -930,6 +1242,10 @@ void ShutdownMQ2Overlay()
 {
 	if (!gbOverlayInitialized)
 		return;
+
+	RemoveRenderCallbacks(s_renderCallbacksId);
+	s_renderCallbacksId = -1;
+	delete s_renderDebug; s_renderDebug = nullptr;
 
 	RemoveDetour(__ProcessMouseEvents);
 	RemoveDetour(__HandleMouseWheel);
@@ -973,7 +1289,7 @@ void DoResetOverlay()
 
 	if (gbDeviceAcquired)
 	{
-		InvalidateDeviceObjects();
+		Renderer_InvalidateDeviceObjects();
 		gbDeviceAcquired = false;
 	}
 
@@ -994,6 +1310,8 @@ void PulseMQ2Overlay()
 {
 	if (!gbOverlayInitialized)
 		return;
+
+	s_numBeginSceneCalls = 0;
 
 	// Reset the device hooks between game states. Some of them may alter
 	// the device and we might need to start over.
