@@ -600,16 +600,16 @@ public:
 		ImGui::Text("Simulation FPS: %.2f", SimulationFPS());
 
 		ImGui::Separator();
-		if (ImGui::Checkbox("Enable frame limiting", &m_enabled))
-		{
-			WriteSetting<LimiterSetting::Enable>(m_enabled);
-			UpdateThrottler();
-		}
 		if (ImGui::Checkbox("Save settings by character", &m_saveByChar))
 		{
 			WriteSetting<LimiterSetting::SaveByChar>(m_saveByChar);
 			// Re-read settings after changing SaveByChar to load the correct character or global settings
 			ReadSettings();
+		}
+		if (ImGui::Checkbox("Enable frame limiting", &m_enabled))
+		{
+			WriteSetting<LimiterSetting::Enable>(m_enabled);
+			UpdateThrottler();
 		}
 
 		ImGui::Indent();
@@ -850,8 +850,6 @@ private:
 		// could alternately delete all keys here, but it's more valuable to be able to write out all defaults
 		m_enabled = GetDefault<bool, LimiterSetting::Enable>();
 		WriteSetting<LimiterSetting::Enable>(m_enabled);
-		m_saveByChar = GetDefault<bool, LimiterSetting::SaveByChar>();
-		WriteSetting<LimiterSetting::SaveByChar>(m_saveByChar);
 		m_renderInBackground = GetDefault<bool, LimiterSetting::RenderInBackground>();
 		WriteSetting<LimiterSetting::RenderInBackground>(m_renderInBackground);
 		m_renderInForeground = GetDefault<bool, LimiterSetting::RenderInForeground>();
