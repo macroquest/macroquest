@@ -25,6 +25,8 @@ void ImGuiManager_Pulse();
 void ImGuiManager_DrawFrame();
 bool ImGuiManager_HandleWndProc(uint32_t msg, uintptr_t wparam, intptr_t lparam);
 
+void ImGuiManager_BuildFonts(ImFontAtlas* fontAtlas);
+
 // Returns HCURSOR
 void* ImGuiManager_GetCursorForImGui(ImGuiMouseCursor imguiCursor);
 

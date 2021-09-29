@@ -1159,7 +1159,7 @@ void CreateImGuiContext()
 	{
 		s_fontAtlas = new ImFontAtlas();
 
-		mq::imgui::ConfigureFonts(s_fontAtlas);
+		ImGuiManager_BuildFonts(s_fontAtlas);
 	}
 
 	// Initialize ImGui context
