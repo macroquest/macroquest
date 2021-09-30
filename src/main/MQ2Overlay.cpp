@@ -1723,52 +1723,72 @@ public:
 			return EndScene_Trampoline();
 		}
 
+		bool isMainRenderTarget = false;
+
+		// Make sure that we're hooking the main render target
+		IDirect3DSurface9* backBuffer = nullptr;
+		HRESULT hr = gpD3D9Device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
+		if (hr == D3D_OK)
+		{
+			IDirect3DSurface9* renderTarget = nullptr;
+			HRESULT hr = gpD3D9Device->GetRenderTarget(0, &renderTarget);
+			if (hr == D3D_OK)
+			{
+				isMainRenderTarget = renderTarget == backBuffer;
+				renderTarget->Release();
+			}
+			backBuffer->Release();
+		}
+
 		sbInEndSceneDetour = true;
 
-		// Check if a full screen mode change occurred before this frame.
-		// If it did, we should not render, and instead re-initialize imgui.
-		if (test_and_set(gbLastFullScreenState, IsFullScreen(gpD3D9Device)))
+		if (isMainRenderTarget)
 		{
-			// For some reason, maybe due to a bug, toggling viewports off and
-			// then calling CreateDeviceObjects will cause it to still create
-			// the additional swap chains, which causes errors. So instead of
-			// disabling viewports, we are simply rebooting imgui.
-			gbNeedResetOverlay = true;
-		}
-		// When TestCooperativeLevel returns all good, then we can reinitialize.
-		// This will let the renderer control our flow instead of having to
-		// poll for the state ourselves.
-		else if (!gbDeviceAcquired)
-		{
-			if (gReInitFrameDelay == 0)
+			// Check if a full screen mode change occurred before this frame.
+			// If it did, we should not render, and instead re-initialize imgui.
+			if (test_and_set(gbLastFullScreenState, IsFullScreen(gpD3D9Device)))
 			{
-				HRESULT result = GetThisDevice()->TestCooperativeLevel();
-
-				if (result == D3D_OK)
+				// For some reason, maybe due to a bug, toggling viewports off and
+				// then calling CreateDeviceObjects will cause it to still create
+				// the additional swap chains, which causes errors. So instead of
+				// disabling viewports, we are simply rebooting imgui.
+				gbNeedResetOverlay = true;
+			}
+			// When TestCooperativeLevel returns all good, then we can reinitialize.
+			// This will let the renderer control our flow instead of having to
+			// poll for the state ourselves.
+			else if (!gbDeviceAcquired)
+			{
+				if (gReInitFrameDelay == 0)
 				{
-					SPDLOG_INFO("IDirect3DDevice9::EndScene: TestCooperativeLevel was successful, reacquiring device.");
+					HRESULT result = GetThisDevice()->TestCooperativeLevel();
 
-					imgui::InitializeImGui(gpD3D9Device);
-
-					if (DetectResetDeviceHook())
+					if (result == D3D_OK)
 					{
-						InvalidateDeviceObjects();
-					}
+						SPDLOG_INFO("IDirect3DDevice9::EndScene: TestCooperativeLevel was successful, reacquiring device.");
 
-					CreateDeviceObjects();
+						imgui::InitializeImGui(gpD3D9Device);
+
+						if (DetectResetDeviceHook())
+						{
+							InvalidateDeviceObjects();
+						}
+
+						CreateDeviceObjects();
+					}
+				}
+				else
+				{
+					--gReInitFrameDelay;
 				}
 			}
-			else
-			{
-				--gReInitFrameDelay;
-			}
-		}
 
-		// Perform the render within a stateblock so we don't upset the
-		// rest of the rendering pipeline
-		if (gbDeviceAcquired)
-		{
-			RenderImGui();
+			// Perform the render within a stateblock so we don't upset the
+			// rest of the rendering pipeline
+			if (gbDeviceAcquired)
+			{
+				RenderImGui();
+			}
 		}
 
 		HRESULT result = EndScene_Trampoline();
