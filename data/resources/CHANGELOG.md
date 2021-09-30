@@ -1,3 +1,11 @@
+September 29, 2021:
+- Added per-character settings for frame limiter. per-character settings are stored in
+  servername_charactername.ini (#210).
+- Added `/framelimiter reloadsettings` to re-read settings from ini.
+- Fix ResetDevice crash after reloading mq
+- Fix mouse scroll in imgui leaking into eq (#242).
+- Fix imgui leaking into other render targets and causing issues (#286).
+
 September 22, 2021:
 - SpawnSearch:  Pets without PC masters will be assumed to be NPC Pets.  This fixes an issue where a
   spawn search for npcpet would fail to find a pet whose master was killed.
