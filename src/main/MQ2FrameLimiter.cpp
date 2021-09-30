@@ -802,7 +802,7 @@ private:
 	template <> static constexpr float GetDefault<float, LimiterSetting::ForegroundFPS>() { return 60.f; }
 	template <> static constexpr float GetDefault<float, LimiterSetting::MinSimulationFPS>() { return 30.f; }
 
-	static std::string GetINIFileName(std::string_view settingName)
+	static std::string& GetINIFileName(std::string_view settingName)
 	{
 		// SaveByChar should only ever be saved under global settings
 		if (settingName == "SaveByChar")
