@@ -19,150 +19,103 @@ namespace mq::datatypes {
 
 enum class KeyRingTypeMembers
 {
-	Index = 1,
-	Name,
-	Item,
+	Count = 1,
+	Stat = 2,
 };
 
 MQ2KeyRingType::MQ2KeyRingType() : MQ2Type("keyring")
 {
-	ScopedTypeMember(KeyRingTypeMembers, Index);
-	ScopedTypeMember(KeyRingTypeMembers, Name);
-	ScopedTypeMember(KeyRingTypeMembers, Item);
+	ScopedTypeMember(KeyRingTypeMembers, Count);
+	ScopedTypeMember(KeyRingTypeMembers, Stat);
 }
 
 bool MQ2KeyRingType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	MQTypeMember* pMember = MQ2KeyRingType::FindMember(Member);
+	if (!pLocalPC)
+		return false;
+	MQTypeMember* pMember = FindMember(Member);
 	if (!pMember)
 		return false;
 
+	KeyRingType type = static_cast<KeyRingType>(VarPtr.DWord);
+
 	switch (static_cast<KeyRingTypeMembers>(pMember->ID))
 	{
-	case KeyRingTypeMembers::Index:
-		// We want the index of the item that is in the UI list, so we need to map back from the item
-		// to the UI index.
+	case KeyRingTypeMembers::Count: {
+		ItemContainer& keyRingContainer = pLocalPC->GetKeyRingItems(type);
+		Dest.DWord = keyRingContainer.GetCount();
 		Dest.Type = pIntType;
-		if (pLocalPC && pKeyRingWnd)
+		return true;
+	}
+
+	case KeyRingTypeMembers::Stat:
+		if (pLocalPC->GetStatKeyRingItemIndex(type).IsValid())
 		{
-			int16_t n = LOWORD(VarPtr.DWord);
-			KeyRingType type = static_cast<KeyRingType>(HIWORD(VarPtr.DWord));
-
-			RefreshKeyRingWindow();
-
-			if (CListWnd* pListWnd = pKeyRingWnd->GetKeyRingList(type))
-			{
-				for (int i = 0; i < pListWnd->ItemsArray.GetCount(); ++i)
-				{
-					int slotNum = (int)pListWnd->GetItemData(i);
-					if (slotNum == n)
-					{
-						Dest.DWord = i + 1;
-						return true;
-					}
-				}
-			}
+			Dest = pKeyRingItemType->MakeTypeVar(type, pLocalPC->GetStatKeyRingItemIndex(type).GetTopSlot());
+			return true;
 		}
-		return false;
-
-	case KeyRingTypeMembers::Name:
-		Dest.Type = pStringType;
-		if (pLocalPC)
-		{
-			int16_t n = LOWORD(VarPtr.DWord);
-			KeyRingType type = static_cast<KeyRingType>(HIWORD(VarPtr.DWord));
-
-			ItemPtr item = pLocalPC->GetKeyRingItems(type).GetItem(n);
-			if (item)
-			{
-				strcpy_s(DataTypeTemp, item->GetItemDefinition()->Name);
-				Dest.Ptr = &DataTypeTemp[0];
-				return true;
-			}
-		}
-		return false;
-
-	case KeyRingTypeMembers::Item:
-		Dest.Type = pItemType;
-		if (pLocalPC)
-		{
-			int16_t n = LOWORD(VarPtr.DWord);
-			KeyRingType type = static_cast<KeyRingType>(HIWORD(VarPtr.DWord));
-
-			ItemPtr item = pLocalPC->GetKeyRingItems(type).GetItem(n);
-			if (item)
-			{
-				Dest.Ptr = item.get();
-				return true;
-			}
-		}
-		return false;
+		break;
 	}
 
 	return false;
 }
 
-bool MQ2KeyRingType::ToString(MQVarPtr VarPtr, char* Destination)
+MQTypeVar MQ2KeyRingType::MakeTypeVar(int keyRingType)
 {
-	if (!pLocalPC)
-		return false;
+	MQTypeVar Ret;
 
-	KeyRingType type = static_cast<KeyRingType>(HIWORD(VarPtr.DWord));
-	int16_t n = LOWORD(VarPtr.DWord);
-
-	ItemPtr item = pLocalPC->GetKeyRingItems(type).GetItem(n);
-	if (item)
-	{
-		strcpy_s(Destination, MAX_STRING, item->GetItemDefinition()->Name);
-		return true;
-	}
-
-	return false;
+	Ret.DWord = keyRingType;
+	Ret.Type = pKeyRingType;
+	return Ret;
 }
 
 static bool dataGetKeyRing(KeyRingType keyRingType, const char* szIndex, MQTypeVar& Ret)
 {
-	if (!szIndex[0])
-		return false;
-
 	if (!pLocalPC)
 		return false;
 
-	if (IsNumber(szIndex))
+	// If an index is provided, we immediately convert into a KeyRingItem type
+	if (szIndex[0])
 	{
-		int n = GetIntFromString(szIndex, 0) - 1;
-		if (n < 0)
-			return false;
-
-		if (!pKeyRingWnd)
-			return false;
-
-		// We want to use order given by the keyrings window.
-		RefreshKeyRingWindow();
-
-		if (CListWnd* pListWnd = pKeyRingWnd->GetKeyRingList(keyRingType))
+		if (IsNumber(szIndex))
 		{
-			int itemIndex = (int)pListWnd->GetItemData(n);
-			if (itemIndex >= 0)
+			int n = GetIntFromString(szIndex, 0) - 1;
+			if (n < 0)
+				return false;
+
+			if (!pKeyRingWnd)
+				return false;
+
+			// We want to use order given by the keyrings window.
+			RefreshKeyRingWindow();
+
+			if (CListWnd* pListWnd = pKeyRingWnd->GetKeyRingList(keyRingType))
 			{
-				Ret.DWord = MAKELPARAM((int)itemIndex, keyRingType);
-				Ret.Type = pKeyRingType;
+				int itemIndex = (int)pListWnd->GetItemData(n);
+				if (itemIndex >= 0)
+				{
+					Ret = pKeyRingItemType->MakeTypeVar(keyRingType, (int)itemIndex);
+					return true;
+				}
+			}
+		}
+		else
+		{
+			// handle string.
+			const char* pName = szIndex;
+			bool exact = pName[0] == '=' && pName++;
+
+			ItemIndex index = pLocalPC->GetKeyRingItems(keyRingType).FindItem(0, FindItemByNamePred(pName, exact));
+			if (index.IsValid())
+			{
+				Ret = pKeyRingItemType->MakeTypeVar(keyRingType, index.GetTopSlot());
 				return true;
 			}
 		}
-
-		return false;
 	}
-
-	// handle string.
-	const char* pName = szIndex;
-	bool exact = pName[0] == '=' && pName++;
-
-	ItemIndex index = pLocalPC->GetKeyRingItems(keyRingType).FindItem(0, FindItemByNamePred(pName, exact));
-	if (index.IsValid())
+	else
 	{
-		Ret.DWord = MAKELPARAM(index.GetTopSlot(), keyRingType);
-		Ret.Type = pKeyRingType;
+		Ret = pKeyRingType->MakeTypeVar(keyRingType);
 		return true;
 	}
 
@@ -182,6 +135,108 @@ bool MQ2KeyRingType::dataIllusion(const char* szIndex, MQTypeVar& Ret)
 bool MQ2KeyRingType::dataFamiliar(const char* szIndex, MQTypeVar& Ret)
 {
 	return dataGetKeyRing(eFamiliar, szIndex, Ret);
+}
+
+//============================================================================
+// MQ2KeyRingItemType
+
+enum class KeyRingItemTypeMembers
+{
+	Index = 1,
+	Name,
+	Item,
+};
+
+MQ2KeyRingItemType::MQ2KeyRingItemType() : MQ2Type("keyringitem")
+{
+	ScopedTypeMember(KeyRingItemTypeMembers, Index);
+	ScopedTypeMember(KeyRingItemTypeMembers, Name);
+	ScopedTypeMember(KeyRingItemTypeMembers, Item);
+}
+
+bool MQ2KeyRingItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
+{
+	if (!pLocalPC)
+		return false;
+	MQTypeMember* pMember = MQ2KeyRingItemType::FindMember(Member);
+	if (!pMember)
+		return false;
+
+	int16_t n = LOWORD(VarPtr.DWord);
+	KeyRingType type = static_cast<KeyRingType>(HIWORD(VarPtr.DWord));
+
+	switch (static_cast<KeyRingItemTypeMembers>(pMember->ID))
+	{
+	case KeyRingItemTypeMembers::Index:
+		// We want the index of the item that is in the UI list, so we need to map back from the item
+		// to the UI index.
+		Dest.Type = pIntType;
+
+		if (pKeyRingWnd)
+		{
+			RefreshKeyRingWindow();
+
+			if (CListWnd* pListWnd = pKeyRingWnd->GetKeyRingList(type))
+			{
+				for (int i = 0; i < pListWnd->ItemsArray.GetCount(); ++i)
+				{
+					int slotNum = (int)pListWnd->GetItemData(i);
+					if (slotNum == n)
+					{
+						Dest.DWord = i + 1;
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+
+	case KeyRingItemTypeMembers::Name:
+		Dest.Type = pStringType;
+		if (ItemPtr item = pLocalPC->GetKeyRingItems(type).GetItem(n))
+		{
+			strcpy_s(DataTypeTemp, item->GetItemDefinition()->Name);
+			Dest.Ptr = &DataTypeTemp[0];
+		}
+		return true;
+
+	case KeyRingItemTypeMembers::Item:
+		Dest.Type = pItemType;
+		if (ItemPtr item = pLocalPC->GetKeyRingItems(type).GetItem(n))
+		{
+			Dest.Ptr = item.get();
+		}
+		return true;
+	}
+
+	return false;
+}
+
+bool MQ2KeyRingItemType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (!pLocalPC)
+		return false;
+
+	KeyRingType type = static_cast<KeyRingType>(HIWORD(VarPtr.DWord));
+	int16_t n = LOWORD(VarPtr.DWord);
+
+	if (ItemPtr item = pLocalPC->GetKeyRingItems(type).GetItem(n))
+	{
+		strcpy_s(Destination, MAX_STRING, item->GetItemDefinition()->Name);
+		return true;
+	}
+
+	return false;
+}
+
+
+MQTypeVar MQ2KeyRingItemType::MakeTypeVar(int keyRingType, int itemIndex)
+{
+	MQTypeVar Ret;
+
+	Ret.DWord = MAKELPARAM(itemIndex, keyRingType);
+	Ret.Type = pKeyRingItemType;
+	return Ret;
 }
 
 } // namespace mq::datatypes

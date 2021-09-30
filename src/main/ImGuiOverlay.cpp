@@ -1252,6 +1252,7 @@ void ShutdownMQ2Overlay()
 	RemoveDetour(__ProcessKeyboardEvents);
 	RemoveDetour(__WndProc);
 	RemoveDetour(CParticleSystem__Render);
+	RemoveDetour(CRender__ResetDevice);
 
 	ShutdownOverlayInternal();
 	DestroyImGuiContext();
