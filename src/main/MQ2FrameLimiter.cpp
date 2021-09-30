@@ -143,6 +143,8 @@ float gCurrentCPU = 0.0f;
 
 static DWORD bmRealRenderWorld = 0;
 static DWORD bmThrottleTime = 0;
+
+std::string INIFileName;
 #pragma endregion
 
 #pragma region throttler
@@ -341,6 +343,7 @@ class FrameLimiter
 
 	// Settings
 	bool m_enabled;
+	bool m_saveByChar;
 	bool m_renderInBackground;
 	bool m_renderInForeground;
 	bool m_tieImGuiToSimulation;
@@ -362,6 +365,7 @@ public:
 	void ReadSettings()
 	{
 		m_enabled = GetSetting<bool, LimiterSetting::Enable>();
+		m_saveByChar = GetSetting<bool, LimiterSetting::SaveByChar>();
 		m_renderInBackground = GetSetting<bool, LimiterSetting::RenderInBackground>();
 		m_renderInForeground = GetSetting<bool, LimiterSetting::RenderInForeground>();
 		m_tieImGuiToSimulation = GetSetting<bool, LimiterSetting::TieImGuiToSimulation>();
@@ -394,6 +398,8 @@ public:
 	// we will skip frames while maintaining a m_minSimulationFPS game simulation.
 
 	bool IsEnabled() const { return !m_pauseForZone && m_enabled && gGameState == GAMESTATE_INGAME; }
+
+	bool SaveByChar() const { return m_saveByChar; }
 
 	bool IsForeground() const { return m_lastInForeground.value_or(false); }
 
@@ -594,6 +600,12 @@ public:
 		ImGui::Text("Simulation FPS: %.2f", SimulationFPS());
 
 		ImGui::Separator();
+		if (ImGui::Checkbox("Save settings by character", &m_saveByChar))
+		{
+			WriteSetting<LimiterSetting::SaveByChar>(m_saveByChar);
+			// Re-read settings after changing SaveByChar to load the correct character or global settings
+			ReadSettings();
+		}
 		if (ImGui::Checkbox("Enable frame limiting", &m_enabled))
 		{
 			WriteSetting<LimiterSetting::Enable>(m_enabled);
@@ -750,6 +762,7 @@ public:
 	enum class LimiterSetting
 	{
 		Enable,
+		SaveByChar,
 		RenderInBackground,
 		RenderInForeground,
 		TieImGuiToSimulation,
@@ -764,6 +777,7 @@ public:
 	static constexpr const char* SettingName() { static_assert(false, "Unsupported SettingName in FrameLimiter"); }
 
 	template <> static constexpr const char* SettingName<LimiterSetting::Enable>() { return "Enable"; }
+	template <> static constexpr const char* SettingName<LimiterSetting::SaveByChar>() { return "SaveByChar"; }
 	template <> static constexpr const char* SettingName<LimiterSetting::RenderInBackground>() { return "RenderInBackground"; }
 	template <> static constexpr const char* SettingName<LimiterSetting::RenderInForeground>() { return "RenderInForeground"; }
 	template <> static constexpr const char* SettingName<LimiterSetting::TieImGuiToSimulation>() { return "TieImGuiToSimulation"; }
@@ -778,6 +792,7 @@ private:
 	static constexpr T GetDefault() { static_assert(false, "Unsupported bool FrameLimiter setting type"); }
 
 	template <> static constexpr bool GetDefault<bool, LimiterSetting::Enable>() { return false; }
+	template <> static constexpr bool GetDefault<bool, LimiterSetting::SaveByChar>() { return false; }
 	template <> static constexpr bool GetDefault<bool, LimiterSetting::RenderInBackground>() { return false; }
 	template <> static constexpr bool GetDefault<bool, LimiterSetting::RenderInForeground>() { return true; }
 	template <> static constexpr bool GetDefault<bool, LimiterSetting::TieImGuiToSimulation>() { return false; }
@@ -787,28 +802,47 @@ private:
 	template <> static constexpr float GetDefault<float, LimiterSetting::ForegroundFPS>() { return 60.f; }
 	template <> static constexpr float GetDefault<float, LimiterSetting::MinSimulationFPS>() { return 30.f; }
 
+	static std::string& GetINIFileName(std::string_view settingName)
+	{
+		// SaveByChar should only ever be saved under global settings
+		if (settingName == "SaveByChar")
+		{
+			return mq::internal_paths::MQini;
+		}
+		// Lookup SaveByChar value to determine whether to read/write setting globally or not
+		bool saveByChar = GetPrivateProfileBool("FrameLimiter", "SaveByChar", false, mq::internal_paths::MQini);
+		if (saveByChar && GetCharInfo())
+		{
+			return INIFileName;
+		}
+		else
+		{
+			return mq::internal_paths::MQini;
+		}
+	}
+
 	template <typename T, LimiterSetting Value>
 	static std::enable_if_t<std::is_same_v<T, bool>, bool> GetSetting()
 	{
-		return GetPrivateProfileBool("FrameLimiter", SettingName<Value>(), GetDefault<T, Value>(), internal_paths::MQini);
+		return GetPrivateProfileBool("FrameLimiter", SettingName<Value>(), GetDefault<T, Value>(), GetINIFileName(SettingName<Value>()));
 	}
 
 	template <typename T, LimiterSetting Value>
 	static std::enable_if_t<std::is_same_v<T, float>, float> GetSetting()
 	{
-		return GetPrivateProfileFloat("FrameLimiter", SettingName<Value>(), GetDefault<T, Value>(), internal_paths::MQini);
+		return GetPrivateProfileFloat("FrameLimiter", SettingName<Value>(), GetDefault<T, Value>(), GetINIFileName(SettingName<Value>()));
 	}
 
 	template <LimiterSetting Value>
 	static bool WriteSetting(bool NewValue)
 	{
-		return WritePrivateProfileBool("FrameLimiter", SettingName<Value>(), NewValue, internal_paths::MQini);
+		return WritePrivateProfileBool("FrameLimiter", SettingName<Value>(), NewValue, GetINIFileName(SettingName<Value>()));
 	}
 
 	template <LimiterSetting Value>
 	static float WriteSetting(float NewValue)
 	{
-		return WritePrivateProfileFloat("FrameLimiter", SettingName<Value>(), NewValue, internal_paths::MQini);
+		return WritePrivateProfileFloat("FrameLimiter", SettingName<Value>(), NewValue, GetINIFileName(SettingName<Value>()));
 	}
 
 	void ResetDefaults()
@@ -847,6 +881,7 @@ public:
 	bool Set(bool Value) { static_assert(false, "Attempting to set a bool setting that doesn't exist in FrameLimiter"); }
 
 	template<> bool Set<LimiterSetting::Enable>(bool Value) { return InternalSet<bool, LimiterSetting::Enable>(m_enabled, Value); }
+	template<> bool Set<LimiterSetting::SaveByChar>(bool Value) { return InternalSet<bool, LimiterSetting::SaveByChar>(m_saveByChar, Value); }
 	template<> bool Set<LimiterSetting::RenderInBackground>(bool Value) { return InternalSet<bool, LimiterSetting::RenderInBackground>(m_renderInBackground, Value); }
 	template<> bool Set<LimiterSetting::ClearScreen>(bool Value) { return InternalSet<bool, LimiterSetting::ClearScreen>(m_clearScreen, Value); }
 
@@ -981,6 +1016,8 @@ void FrameLimiterCommand(SPAWNINFO* pChar, char* szLine)
 
 	args::Command toggle(commands, "toggle", "set/toggle the framelimiter functionality", SetFrameLimiterBool<FrameLimiter::LimiterSetting::Enable>);
 
+	args::Command savebychar(commands, "savebychar", "set/toggle saving settings by character", SetFrameLimiterBool<FrameLimiter::LimiterSetting::SaveByChar>);
+
 	args::Command bgrender(commands, "bgrender", "set/toggle rendering when client is in background", SetFrameLimiterBool<FrameLimiter::LimiterSetting::RenderInBackground>);
 
 	args::Command fgrender(commands, "fgrender", "set/toggle rendering when client is in foreground", SetFrameLimiterBool<FrameLimiter::LimiterSetting::RenderInForeground>);
@@ -1082,6 +1119,12 @@ static void PulseFrameLimiter()
 static void SetGameStateFrameLimiter(DWORD GameState)
 {
 	s_frameLimiter.PauseForZone();
+	// Read settings on INGAME state in order to pickup character specific settings
+	if (GameState == GAMESTATE_INGAME && GetCharInfo())
+	{
+		INIFileName = fmt::format("{}\\{}_{}.ini", gPathConfig, EQADDR_SERVERNAME, GetCharInfo()->Name);
+		s_frameLimiter.ReadSettings();
+	}
 }
 
 static MQModule s_FrameLimiterModule = {
@@ -1105,6 +1148,7 @@ namespace datatypes {
 enum class FrameLimiterTypeMembers
 {
 	Enabled,
+	SaveByChar,
 	Status,
 	CPU,
 	RenderFPS,
@@ -1120,6 +1164,7 @@ enum class FrameLimiterTypeMembers
 MQ2FrameLimiterType::MQ2FrameLimiterType() : MQ2Type("framelimiter")
 {
 	ScopedTypeMember(FrameLimiterTypeMembers, Enabled);
+	ScopedTypeMember(FrameLimiterTypeMembers, SaveByChar);
 	ScopedTypeMember(FrameLimiterTypeMembers, Status);
 	ScopedTypeMember(FrameLimiterTypeMembers, CPU);
 	ScopedTypeMember(FrameLimiterTypeMembers, RenderFPS);
@@ -1143,6 +1188,11 @@ bool MQ2FrameLimiterType::GetMember(MQVarPtr VarPtr, const char* Member, char* I
 	case FrameLimiterTypeMembers::Enabled:
 		Dest.Type = pBoolType;
 		Dest.Set(s_frameLimiter.IsEnabled());
+		return true;
+
+	case FrameLimiterTypeMembers::SaveByChar:
+		Dest.Type = pBoolType;
+		Dest.Set(s_frameLimiter.SaveByChar());
 		return true;
 
 	case FrameLimiterTypeMembers::Status:
