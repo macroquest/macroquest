@@ -252,3 +252,6 @@
 [submodule "plugins/MQ2FarmTest"]
 	path = plugins/MQ2FarmTest
 	url = https://gitlab.com/redguides/plugins/MQ2FarmTest.git
+[submodule "plugins/MQ2RaidUtils"]
+	path = plugins/MQ2RaidUtils
+	url = https://gitlab.com/redguides/plugins/MQ2RaidUtils
