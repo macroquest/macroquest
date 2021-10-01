@@ -311,7 +311,8 @@ void ReloadUI(PSPAWNINFO pChar, char* szLine);
 #define WSF_CLOSEBOX        0x00000008
 #define WSF_TITLEBAR        0x00000004
 
-void UpdateUISkin() {
+void UpdateUISkin()
+{
 	if (pLocalPC != nullptr)
 	{
 		const std::string pathUIConfig = fmt::format("{BasePath}\\UI_{CharName}_{ServerName}.ini",
@@ -2200,6 +2201,8 @@ InvSlotInspector* s_invSlotInspector = nullptr;
 static void Windows_Initialize()
 {
 	DebugSpew("Initializing MQ2 Windows");
+
+	UpdateUISkin(); 
 
 	s_invSlotInspector = new InvSlotInspector();
 	DeveloperTools_RegisterMenuItem(s_invSlotInspector, "Inventory Slots", s_menuNameInspectors);
