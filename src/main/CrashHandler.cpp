@@ -48,8 +48,6 @@ namespace fs = std::filesystem;
 namespace mq {
 
 // CrashHandler TODO:
-// - Provide a means to retrieve the client UUID so that a user can inform developers of which
-//   crash reports are theirs.
 // - Improved crash notification to include information about what kind of unhandled exception occurred.
 // - Stretch: Create a way to notify the user that a process has crashed from the launcher.
 
@@ -71,6 +69,12 @@ static LPTOP_LEVEL_EXCEPTION_FILTER lpCrashpadTopLevelExceptionFilter = nullptr;
 
 // The original unhandled exception filter. We need to hold this so we can put it back if we unload.
 static LPTOP_LEVEL_EXCEPTION_FILTER lpOrigTopLevelExceptionFilter = nullptr;
+
+// Annotations that should be added to crash reports
+static crashpad::StringAnnotation<32> buildTypeAnnotation("buildType");
+static crashpad::StringAnnotation<32> buildTimestampAnnotation("eqVersion");
+static crashpad::StringAnnotation<32> buildVersionAnnotation("mqVersion");
+static crashpad::StringAnnotation<36> buildCrashIdAnnotation("crashId");
 
 static LONG WINAPI OurCrashHandler(EXCEPTION_POINTERS* ex);
 static void ReplaceCrashpadUnhandledExceptionFilter()
@@ -255,6 +259,15 @@ static std::string MakeMiniDump(const std::string& filename, EXCEPTION_POINTERS*
 	return dumped ? dumpFilename : std::string();
 }
 
+std::string GetSetCrashId()
+{
+	crashpad::UUID uuid;
+	// TODO:  Check return on this and use another method to generate an ID upon failure
+	uuid.InitializeWithNew();
+	buildCrashIdAnnotation.Set(uuid.ToString());
+	return uuid.ToString();
+}
+
 int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description)
 {
 	SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
@@ -295,16 +308,18 @@ int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description)
 			sprintf_s(szTemp,
 				"MacroQuest caught a crash:\n"
 				"Version: " MQMAIN_VERSION  "\n"
-				"Location: %s+%d @ %s:%d (%s+%p)\n",
-				pSymbol->Name, dwDisplacement, line.FileName, line.LineNumber, szSymSearchPath, (void*)(line.Address - (DWORD)hModule));
+				"Location: %s+%d @ %s:%d (%s+%p)\n"
+				"\nCrashID: %s\n",
+				pSymbol->Name, dwDisplacement, line.FileName, line.LineNumber, szSymSearchPath, (void*)(line.Address - (DWORD)hModule), GetSetCrashId().c_str());
 		}
 		else
 		{
 			sprintf_s(szTemp,
 				"MacroQuest caught a crash:\n"
 				"Version: " MQMAIN_VERSION  "\n"
-				"Location: %s+%d (%s+%p)\n",
-				pSymbol->Name, dwDisplacement, szSymSearchPath, (void*)(pSymbol->Address - (DWORD)hModule));
+				"Location: %s+%d (%s+%p)\n"
+				"\nCrashID: %s\n",
+				pSymbol->Name, dwDisplacement, szSymSearchPath, (void*)(pSymbol->Address - (DWORD)hModule), GetSetCrashId().c_str());
 		}
 	}
 	else
@@ -312,8 +327,9 @@ int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description)
 		sprintf_s(szTemp,
 			"MacroQuest caught a crash:\n"
 			"Version: " MQMAIN_VERSION  "\n"
-			"Location: %s+%p\n",
-			szSymSearchPath, (void*)(dwAddress - (DWORD)hModule));
+			"Location: %s+%p\n"
+			"\nCrashID: %s\n",
+			szSymSearchPath, (void*)(dwAddress - (DWORD)hModule), GetSetCrashId().c_str());
 	}
 
 	SymCleanup(hProcess);
@@ -335,7 +351,7 @@ int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description)
 		" * [CANCEL] Write a crash dump and terminate EverQuest.\n",
 		szTemp);
 
-	int mbRet = ::MessageBoxA(nullptr, szMessage, "EverQuest Crash Detected", MB_RETRYCANCEL | MB_DEFBUTTON2 | MB_ICONERROR | MB_SYSTEMMODAL);
+	const int mbRet = ::MessageBoxA(nullptr, szMessage, "EverQuest Crash Detected", MB_RETRYCANCEL | MB_DEFBUTTON2 | MB_ICONERROR | MB_SYSTEMMODAL);
 
 	if (mbRet == IDRETRY)
 	{
@@ -349,7 +365,7 @@ int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description)
 	}
 
 	// We got here which means there is no crashpad handler available, so we gotta do a dump ourselves.
-	std::string path = MakeMiniDump("eqgame.exe", ex);
+	const std::string path = MakeMiniDump("eqgame.exe", ex);
 
 	if (!path.empty())
 	{
@@ -417,10 +433,6 @@ void UninstallUnhandledExceptionFilter()
 }
 
 //============================================================================
-
-static crashpad::StringAnnotation<32> buildTypeAnnotation("buildType");
-static crashpad::StringAnnotation<32> buildTimestampAnnotation("eqVersion");
-static crashpad::StringAnnotation<32> buildVersionAnnotation("mqVersion");
 
 void InitializeCrashHandler()
 {
