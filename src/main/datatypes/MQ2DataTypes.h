@@ -1278,11 +1278,26 @@ public:
 	MQ2KeyRingType();
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
-	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
+	MQLIB_OBJECT MQTypeVar MakeTypeVar(int keyRingType);
 
 	static bool dataMount(const char* szIndex, MQTypeVar& Ret);
 	static bool dataIllusion(const char* szIndex, MQTypeVar& Ret);
 	static bool dataFamiliar(const char* szIndex, MQTypeVar& Ret);
+};
+
+//============================================================================
+// MQ2KeyRingItemType
+
+class MQ2KeyRingItemType : public MQ2Type
+{
+public:
+	MQ2KeyRingItemType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
+	MQLIB_OBJECT MQTypeVar MakeTypeVar(int keyRingType, int itemIndex);
 };
 
 //============================================================================

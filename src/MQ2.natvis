@@ -201,34 +201,34 @@
 		</Expand>
 	</Type>
 
-  <Type Name="eqstd::map&lt;*&gt;" ExcludeView="ShowElementsByIndex" Priority="MediumHigh">
-    <AlternativeType Name="std::multimap&lt;*&gt;" />
-    <DisplayString>{{ size={_Mypair._Myval2._Myval2._Mysize} }}</DisplayString>
-    <Expand>
-      <Item Name="[comparator]" ExcludeView="simple">_Mypair</Item>
-      <Item Name="[allocator]" ExcludeView="simple">_Mypair._Myval2</Item>
-      <TreeItems>
-        <Size>_Mypair._Myval2._Myval2._Mysize</Size>
-        <HeadPointer>_Mypair._Myval2._Myval2._Myhead-&gt;_Parent</HeadPointer>
-        <LeftPointer>_Left</LeftPointer>
-        <RightPointer>_Right</RightPointer>
-        <ValueNode Condition="_Isnil == 0" Name="[{_Myval.first}]">_Myval,view(MapHelper)</ValueNode>
-      </TreeItems>
-    </Expand>
-  </Type>
+	<!-- eqstd::map -->
+	<Type Name="eqstd::map&lt;*&gt;" ExcludeView="ShowElementsByIndex" Priority="MediumHigh">
+		<AlternativeType Name="std::multimap&lt;*&gt;" />
+		<DisplayString>{{ size={_Mypair._Myval2._Myval2._Mysize} }}</DisplayString>
+		<Expand>
+			<Item Name="[comparator]" ExcludeView="simple">_Mypair</Item>
+			<Item Name="[allocator]" ExcludeView="simple">_Mypair._Myval2</Item>
+			<TreeItems>
+				<Size>_Mypair._Myval2._Myval2._Mysize</Size>
+				<HeadPointer>_Mypair._Myval2._Myval2._Myhead-&gt;_Parent</HeadPointer>
+				<LeftPointer>_Left</LeftPointer>
+				<RightPointer>_Right</RightPointer>
+				<ValueNode Condition="_Isnil == 0" Name="[{_Myval.first}]">_Myval,view(MapHelper)</ValueNode>
+			</TreeItems>
+		</Expand>
+	</Type>
 
-  <Type Name="eqstd::_Compressed_pair&lt;*,*,1&gt;">
-      <DisplayString>{*($T1 *)this}</DisplayString>
-      <Expand>
-          <ExpandedItem>*($T1 *)this</ExpandedItem>
-      </Expand>
-  </Type>
+	<Type Name="eqstd::_Compressed_pair&lt;*,*,1&gt;">
+		<DisplayString>{*($T1 *)this}</DisplayString>
+		<Expand>
+			<ExpandedItem>*($T1 *)this</ExpandedItem>
+		</Expand>
+	</Type>
 
-  <!-- VC 2015 -->
-  <Type Name="eqstd::_Compressed_pair&lt;*,*,0&gt;">
-      <DisplayString>{_Myval1}</DisplayString>
-      <Expand>
-          <ExpandedItem>_Myval1</ExpandedItem>
-      </Expand>
-  </Type>
+	<Type Name="eqstd::_Compressed_pair&lt;*,*,0&gt;">
+		<DisplayString>{_Myval1}</DisplayString>
+		<Expand>
+			<ExpandedItem>_Myval1</ExpandedItem>
+		</Expand>
+	</Type>
 </AutoVisualizer>
