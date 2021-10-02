@@ -96,6 +96,7 @@ DATATYPE(MQ2MenuType, pMenuType, nullptr);
 DATATYPE(MQ2XTargetType, pXTargetType, pSpawnType);
 DATATYPE(MQ2ZoneType, pZoneType, nullptr);
 DATATYPE(MQ2KeyRingType, pKeyRingType, nullptr);
+DATATYPE(MQ2KeyRingItemType, pKeyRingItemType, nullptr);
 DATATYPE(MQ2CharSelectListType, pCharSelectListType, nullptr);
 DATATYPE(MQ2WorldLocationType, pWorldLocationType, nullptr);
 DATATYPE(MQ2SolventType, pSolventType, nullptr);

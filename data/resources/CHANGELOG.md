@@ -1,3 +1,8 @@
+October 1, 2021:
+- Fix EverQuest.CurrentUI not getting updated after reinjection (#388).
+- Add Stat and Count members to Keyring types (Mount, Familiar, Illusion) (#393).
+- macros: keyring datatype renamed to keyringitem.
+
 September 29, 2021:
 - Added per-character settings for frame limiter. per-character settings are stored in
   servername_charactername.ini (#210).
