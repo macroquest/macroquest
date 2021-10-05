@@ -14,7 +14,8 @@
 
 #pragma once
 
-#include <cstdint>
+#include <mq/base/Common.h>
+
 #include <algorithm>
 #include <charconv>
 #include <string>
@@ -26,15 +27,6 @@
 #include <unordered_set>
 
 #include <Windows.h>
-
-
-constexpr int MAX_STRING = 2048;
-
-template <typename T, size_t N>
-constexpr size_t lengthof(const T(&)[N])
-{
-	return N;
-}
 
 namespace mq {
 

@@ -14,6 +14,8 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
+
+#include "ImGuiBackend.h"
 #include "MQ2DeveloperTools.h"
 
 #include <mq/utils/Args.h>
@@ -557,7 +559,7 @@ public:
 		if (!IsEnabled())
 			return;
 
-		bool updateForeground = mq::test_and_set(m_lastInForeground, gbInForeground || IsImGuiForeground());
+		bool updateForeground = mq::test_and_set(m_lastInForeground, gbInForeground || ImGui_IsImGuiForeground());
 		if (updateForeground)
 		{
 			UpdateForegroundState();

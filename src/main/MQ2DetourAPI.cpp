@@ -19,18 +19,6 @@ namespace mq {
 
 //============================================================================
 
-static void Detours_Initialize();
-static void Detours_Shutdown();
-static void Detours_Zoned();
-
-static MQModule gDetoursModule = {
-	"Detours",                         // Name
-	false,                             // CanUnload
-	Detours_Initialize,                // Initialize
-	Detours_Shutdown,                  // Shutdown
-};
-MQModule* GetDetoursModule() { return &gDetoursModule; }
-
 struct DetourRecord
 {
 /*0x00*/ uint32_t      addr;
@@ -655,7 +643,7 @@ BOOL WINAPI FindModules_Detour(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWOR
 	return result;
 }
 
-static void Detours_Initialize()
+void InitializeDetours()
 {
 	// hit the debugger if we don't hook this. take no chances
 	if (!__MemChecker0
@@ -677,7 +665,7 @@ static void Detours_Initialize()
 	EzDetour(__ModuleList, FindModules_Detour, FindModules_Trampoline);
 }
 
-static void Detours_Shutdown()
+void ShutdownDetours()
 {
 	DWORD GetProcAddress_Addr = (DWORD)&::GetProcAddress;
 	RemoveDetour(GetProcAddress_Addr);

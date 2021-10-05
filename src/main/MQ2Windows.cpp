@@ -2032,7 +2032,7 @@ public:
 
 	void Draw_InvSlotList()
 	{
-		ImGuiTableFlags tableFlags = ImGuiTableFlags_SizingPolicyFixedX
+		ImGuiTableFlags tableFlags = ImGuiTableFlags_SizingFixedFit
 			| ImGuiTableFlags_ScrollY
 			| ImGuiTableFlags_BordersV
 			| ImGuiTableFlags_BordersOuterH
@@ -2106,7 +2106,7 @@ public:
 
 	void Draw_InvSlotMapping()
 	{
-		ImGuiTableFlags tableFlags = ImGuiTableFlags_SizingPolicyFixedX
+		ImGuiTableFlags tableFlags = ImGuiTableFlags_SizingFixedFit
 			| ImGuiTableFlags_ScrollY
 			| ImGuiTableFlags_Sortable
 			| ImGuiTableFlags_BordersV
@@ -2136,7 +2136,7 @@ public:
 			{
 				for (int n = 0; n < sort_specs->SpecsCount; n++)
 				{
-					const ImGuiTableSortSpecsColumn* sort_spec = &sort_specs->Specs[n];
+					const ImGuiTableColumnSortSpecs* sort_spec = &sort_specs->Specs[n];
 					int delta = 0;
 
 					switch (sort_spec->ColumnUserID)

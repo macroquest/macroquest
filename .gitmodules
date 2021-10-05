@@ -1,10 +1,257 @@
+[submodule "data/macros/TestSuite"]
+	path = data/macros/TestSuite
+	url = https://gitlab.com/macroquest/TestSuite.git
 [submodule "src/eqlib"]
 	path = src/eqlib
-    url = https://gitlab.com/macroquest/next/eqlib.git
+    	url = https://gitlab.com/macroquest/next/eqlib.git
 [submodule "contrib/vcpkg"]
 	path = contrib/vcpkg
 	url = https://gitlab.com/macroquest/next/vcpkg.git
 	branch = macroquest
+[submodule "plugins/MQ2Camera"]
+	path = plugins/MQ2Camera
+	url = https://github.com/brainiac/MQ2Camera.git
+	branch = mqnext
+[submodule "plugins/MQ2Collections"]
+	path = plugins/MQ2Collections
+	url = https://gitlab.com/redguides/plugins/MQ2Collections.git
+	branch = mqnext
+[submodule "plugins/MQ2Dan"]
+	path = plugins/MQ2Dan
+	url = https://github.com/dannuic/MQ2Dan.git
+	branch = mqnext
+[submodule "plugins/MQ2Discord"]
+	path = plugins/MQ2Discord
+	url = https://gitlab.com/alynel/MQ2Discord.git
+	branch = mqnext
+[submodule "plugins/MQ2Nav"]
+	path = plugins/MQ2Nav
+	url = https://github.com/brainiac/MQ2Nav.git
+	branch = mqnext
+[submodule "plugins/MQ2ShellCmd"]
+	path = plugins/MQ2ShellCmd
+	url = https://gitlab.com/Knightly1/MQ2ShellCmd.git
+	branch = mqnext
+[submodule "plugins/MQ2SQLite"]
+	path = plugins/MQ2SQLite
+	url = https://gitlab.com/Knightly1/MQ2SQLite.git
+	branch = mqnext
+[submodule "plugins/MQ2AASpend"]
+	path = plugins/MQ2AASpend
+	url = https://gitlab.com/redguides/plugins/MQ2AASpend.git
+	branch = mqnext
+[submodule "plugins/MQ2AdvPath"]
+	path = plugins/MQ2AdvPath
+	url = https://gitlab.com/redguides/plugins/MQ2AdvPath.git
+	branch = mqnext
+[submodule "plugins/MQ2AutoAccept"]
+	path = plugins/MQ2AutoAccept
+	url = https://gitlab.com/redguides/plugins/MQ2AutoAccept.git
+	branch = mqnext
+[submodule "plugins/MQ2AutoClaim"]
+	path = plugins/MQ2AutoClaim
+	url = https://gitlab.com/redguides/plugins/MQ2AutoClaim.git
+	branch = mqnext
+[submodule "plugins/MQ2AutoForage"]
+	path = plugins/MQ2AutoForage
+	url = https://gitlab.com/redguides/plugins/MQ2AutoForage.git
+	branch = mqnext
+[submodule "plugins/MQ2AutoGroup"]
+	path = plugins/MQ2AutoGroup
+	url = https://gitlab.com/redguides/plugins/MQ2AutoGroup.git
+	branch = mqnext
+[submodule "plugins/MQ2AutoLoot"]
+	path = plugins/MQ2AutoLoot
+	url = https://gitlab.com/redguides/plugins/MQ2AutoLoot.git
+	branch = mqnext
+[submodule "plugins/MQ2AutoLootSort"]
+	path = plugins/MQ2AutoLootSort
+	url = https://gitlab.com/redguides/plugins/MQ2AutoLootSort.git
+	branch = mqnext
+[submodule "plugins/MQ2AutoSize"]
+	path = plugins/MQ2AutoSize
+	url = https://gitlab.com/redguides/plugins/MQ2AutoSize.git
+	branch = mqnext
+[submodule "plugins/MQ2BardSwap"]
+	path = plugins/MQ2BardSwap
+	url = https://gitlab.com/redguides/plugins/MQ2BardSwap.git
+	branch = mqnext
+[submodule "plugins/MQ2Cast"]
+	path = plugins/MQ2Cast
+	url = https://gitlab.com/redguides/plugins/MQ2Cast.git
+	branch = mqnext
+[submodule "plugins/MQ2Clipboard"]
+	path = plugins/MQ2Clipboard
+	url = https://gitlab.com/redguides/plugins/MQ2Clipboard.git
+	branch = mqnext
+[submodule "plugins/MQ2CPULoad"]
+	path = plugins/MQ2CPULoad
+	url = https://gitlab.com/redguides/plugins/MQ2CPULoad.git
+	branch = mqnext
+[submodule "plugins/MQ2Debuffs"]
+	path = plugins/MQ2Debuffs
+	url = https://gitlab.com/redguides/plugins/MQ2Debuffs.git
+	branch = mqnext
+[submodule "plugins/MQ2DPSAdv"]
+	path = plugins/MQ2DPSAdv
+	url = https://gitlab.com/redguides/plugins/MQ2DPSAdv.git
+	branch = mqnext
+[submodule "plugins/MQ2EQBC"]
+	path = plugins/MQ2EQBC
+	url = https://gitlab.com/redguides/plugins/MQ2EQBC.git
+	branch = mqnext
+[submodule "plugins/MQ2Events"]
+	path = plugins/MQ2Events
+	url = https://gitlab.com/redguides/plugins/MQ2Events.git
+	branch = mqnext
+[submodule "plugins/MQ2Exchange"]
+	path = plugins/MQ2Exchange
+	url = https://gitlab.com/redguides/plugins/MQ2Exchange.git
+	branch = mqnext
+[submodule "plugins/MQ2FeedMe"]
+	path = plugins/MQ2FeedMe
+	url = https://gitlab.com/redguides/plugins/MQ2FeedMe.git
+	branch = mqnext
+[submodule "plugins/MQ2GMCheck"]
+	path = plugins/MQ2GMCheck
+	url = https://gitlab.com/redguides/plugins/MQ2GMCheck.git
+	branch = mqnext
+[submodule "plugins/MQ2GroupInfo"]
+	path = plugins/MQ2GroupInfo
+	url = https://gitlab.com/redguides/plugins/MQ2GroupInfo.git
+	branch = mqnext
+[submodule "plugins/MQ2HUDMove"]
+	path = plugins/MQ2HUDMove
+	url = https://gitlab.com/redguides/plugins/MQ2HUDMove.git
+	branch = mqnext
+[submodule "plugins/MQ2KillTracker"]
+	path = plugins/MQ2KillTracker
+	url = https://gitlab.com/redguides/plugins/MQ2KillTracker.git
+	branch = mqnext
+[submodule "plugins/MQ2LinkDB"]
+	path = plugins/MQ2LinkDB
+	url = https://gitlab.com/redguides/plugins/MQ2LinkDB.git
+	branch = mqnext
+[submodule "plugins/MQ2Log"]
+	path = plugins/MQ2Log
+	url = https://gitlab.com/redguides/plugins/MQ2Log.git
+	branch = mqnext
+[submodule "plugins/MQ2Melee"]
+	path = plugins/MQ2Melee
+	url = https://gitlab.com/redguides/plugins/MQ2Melee.git
+	branch = mqnext
+[submodule "plugins/MQ2MoveUtils"]
+	path = plugins/MQ2MoveUtils
+	url = https://gitlab.com/redguides/plugins/MQ2MoveUtils.git
+	branch = mqnext
+[submodule "plugins/MQ2MyButtons"]
+	path = plugins/MQ2MyButtons
+	url = https://gitlab.com/redguides/plugins/MQ2MyButtons.git
+	branch = mqnext
+[submodule "plugins/MQ2NetBots"]
+	path = plugins/MQ2NetBots
+	url = https://gitlab.com/redguides/plugins/MQ2NetBots.git
+	branch = mqnext
+[submodule "plugins/MQ2OTD"]
+	path = plugins/MQ2OTD
+	url = https://gitlab.com/redguides/plugins/MQ2OTD.git
+	branch = mqnext
+[submodule "plugins/MQ2Paranoid"]
+	path = plugins/MQ2Paranoid
+	url = https://gitlab.com/redguides/plugins/MQ2Paranoid.git
+	branch = mqnext
+[submodule "plugins/MQ2PlatTracker"]
+	path = plugins/MQ2PlatTracker
+	url = https://gitlab.com/redguides/plugins/MQ2PlatTracker.git
+	branch = mqnext
+[submodule "plugins/MQ2PluginManager"]
+	path = plugins/MQ2PluginManager
+	url = https://gitlab.com/redguides/plugins/MQ2PluginManager.git
+	branch = mqnext
+[submodule "plugins/MQ2PortalSetter"]
+	path = plugins/MQ2PortalSetter
+	url = https://gitlab.com/redguides/plugins/MQ2PortalSetter.git
+	branch = mqnext
+[submodule "plugins/MQ2Posse"]
+	path = plugins/MQ2Posse
+	url = https://gitlab.com/redguides/plugins/MQ2Posse.git
+	branch = mqnext
+[submodule "plugins/MQ2React"]
+	path = plugins/MQ2React
+	url = https://gitlab.com/redguides/plugins/MQ2React.git
+	branch = mqnext
+[submodule "plugins/MQ2Relocate"]
+	path = plugins/MQ2Relocate
+	url = https://gitlab.com/redguides/plugins/MQ2Relocate.git
+	branch = mqnext
+[submodule "plugins/MQ2Rewards"]
+	path = plugins/MQ2Rewards
+	url = https://gitlab.com/redguides/plugins/MQ2Rewards.git
+	branch = mqnext
+[submodule "plugins/MQ2Rez"]
+	path = plugins/MQ2Rez
+	url = https://gitlab.com/redguides/plugins/MQ2Rez.git
+	branch = mqnext
+[submodule "plugins/MQ2Say"]
+	path = plugins/MQ2Say
+	url = https://gitlab.com/redguides/plugins/MQ2Say.git
+	branch = mqnext
+[submodule "plugins/MQ2SpawnMaster"]
+	path = plugins/MQ2SpawnMaster
+	url = https://gitlab.com/redguides/plugins/MQ2SpawnMaster.git
+	branch = mqnext
+[submodule "plugins/MQ2SpawnSort"]
+	path = plugins/MQ2SpawnSort
+	url = https://gitlab.com/redguides/plugins/MQ2SpawnSort.git
+	branch = mqnext
+[submodule "plugins/MQ2Status"]
+	path = plugins/MQ2Status
+	url = https://gitlab.com/redguides/plugins/MQ2Status.git
+	branch = mqnext
+[submodule "plugins/MQ2TributeManager"]
+	path = plugins/MQ2TributeManager
+	url = https://gitlab.com/redguides/plugins/MQ2TributeManager.git
+	branch = mqnext
+[submodule "plugins/MQ2Twist"]
+	path = plugins/MQ2Twist
+	url = https://gitlab.com/redguides/plugins/MQ2Twist.git
+	branch = mqnext
+[submodule "plugins/MQ2WorstHurt"]
+	path = plugins/MQ2WorstHurt
+	url = https://gitlab.com/redguides/plugins/MQ2WorstHurt.git
+	branch = mqnext
+[submodule "plugins/MQ2XAssist"]
+	path = plugins/MQ2XAssist
+	url = https://gitlab.com/redguides/plugins/MQ2XAssist.git
+	branch = mqnext
+[submodule "plugins/MQ2XPTracker"]
+	path = plugins/MQ2XPTracker
+	url = https://gitlab.com/redguides/plugins/MQ2XPTracker.git
+	branch = mqnext
+[submodule "plugins/CWTN"]
+	path = plugins/CWTN
+	url = https://github.com/jessebevil/CWTN.git
+[submodule "src/eqlib"]
+	url = https://gitlab.com/macroquest/next/eqlib.git
+[submodule "plugins/MQ2TSTrophy"]
+	path = plugins/MQ2TSTrophy
+	url = https://gitlab.com/redguides/plugins/MQ2TSTrophy.git
+	branch = mqnext
 [submodule "data/lua/IntegrationTests"]
 	path = src/plugins/lua/lua/IntegrationTests
 	url = https://gitlab.com/macroquest/IntegrationTests.git
+[submodule "plugins/MQ2EasyFind"]
+	path = plugins/MQ2EasyFind
+	url = https://github.com/brainiac/MQ2EasyFind.git
+[submodule "plugins/MQItemColor"]
+	path = plugins/MQItemColor
+	url = https://gitlab.com/Ortster/MQItemColor
+[submodule "plugins/MQ2LootManager"]
+	path = plugins/MQ2LootManager
+	url = https://github.com/jessebevil/MQ2LootManager
+[submodule "plugins/MQ2FarmTest"]
+	path = plugins/MQ2FarmTest
+	url = https://gitlab.com/redguides/plugins/MQ2FarmTest.git
+[submodule "plugins/MQ2RaidUtils"]
+	path = plugins/MQ2RaidUtils
+	url = https://gitlab.com/redguides/plugins/MQ2RaidUtils

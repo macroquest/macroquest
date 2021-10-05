@@ -311,6 +311,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="ImGuiBackend.cpp" />
     <ClCompile Include="ImGuiZepEditor.cpp" />
     <ClCompile Include="MQ2Anonymize.cpp" />
     <ClCompile Include="MQ2Auth.cpp" />
@@ -339,7 +340,7 @@
     <ClCompile Include="MQ2MacroCommands.cpp" />
     <ClCompile Include="MQ2Main.cpp" />
     <ClCompile Include="MQ2Mouse.cpp" />
-    <ClCompile Include="MQ2Overlay.cpp" />
+    <ClCompile Include="ImGuiOverlay.cpp" />
     <ClCompile Include="MQ2ParseAPI.cpp" />
     <ClCompile Include="MQ2PipeClient.cpp" />
     <ClCompile Include="MQ2PluginHandler.cpp" />
@@ -373,6 +374,7 @@
     <ClInclude Include="..\..\include\mq\imgui\Widgets.h" />
     <ClInclude Include="..\..\include\mq\Plugin.h" />
     <ClInclude Include="..\..\include\mq\utils\Args.h" />
+    <ClInclude Include="..\..\include\mq\utils\Benchmarks.h" />
     <ClInclude Include="..\..\include\mq\utils\Keybinds.h" />
     <ClInclude Include="..\common\Common.h" />
     <ClInclude Include="..\common\ConfigUtils.h" />
@@ -383,6 +385,9 @@
     <ClInclude Include="datatypes\DataTypeList.h" />
     <ClInclude Include="datatypes\MQ2DataTypes.h" />
     <ClInclude Include="CrashHandler.h" />
+    <ClCompile Include="ImGuiManager.cpp" />
+    <ClInclude Include="ImGuiBackend.h" />
+    <ClInclude Include="ImGuiManager.h" />
     <ClInclude Include="ImGuiZepEditor.h" />
     <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQ2DataContainers.h" />
@@ -406,7 +411,6 @@
     <ResourceCompile Include="MQ2Main.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Natvis Include="..\..\contrib\imgui\misc\natvis\imgui.natvis" />
     <Natvis Include="..\MQ2.natvis" />
   </ItemGroup>
   <ItemGroup>
