@@ -4180,7 +4180,7 @@ void TruncateSpellRankName(char* SpellName)
 	}
 }
 
-int FindBuffID(std::string_view Name)
+int FindBuffIndex(std::string_view Name)
 {
 	if (Name.empty())
 		return -1;
@@ -4188,22 +4188,100 @@ int FindBuffID(std::string_view Name)
 	return GetSelfBuff([&Name](EQ_Spell* spell) { return MaybeExactCompare(spell->Name, Name); });
 }
 
-void RemoveBuff(EQ_Affect* buff, int slot)
+bool RemoveBuffByName(std::string_view buffName)
 {
-	if (pLocalPC)
-	{
-		ArrayClass<LaunchSpellData*> arr;
-		pLocalPC->RemovePCAffectex(buff, true, arr, 0, 0, 0);
+	if (!pLocalPC) return false;
 
-		if (slot >= 0)
-			pLocalPC->NotifyPCAffectChange(slot, 1);
-	}
+	auto checkBuffWnd = [&buffName](CBuffWindow* pBuffWnd) -> bool
+	{
+		if (!pBuffWnd) return false;
+
+		for (int nBuff = pBuffWnd->firstEffectSlot; nBuff <= pBuffWnd->lastEffectSlot; ++nBuff)
+		{
+			int spellId = pBuffWnd->spellIds[nBuff - pBuffWnd->firstEffectSlot];
+			if (spellId <= 0) continue;
+
+			EQ_Spell* pSpell = GetSpellByID(spellId);
+			if (!pSpell) continue;
+
+			if (ci_equals(buffName, pSpell->Name))
+			{
+				pLocalPC->RemoveBuffEffect(nBuff, pLocalPlayer->SpawnID);
+				return true;
+			}
+		}
+
+		return false;
+	};
+
+	if (checkBuffWnd(pBuffWnd)) return true;
+	if (checkBuffWnd(pSongWnd)) return true;
+
+	return false;
 }
 
-void RemoveBuffAt(int BuffID)
+bool RemoveBuffBySpellID(int spellId)
 {
-	if (BuffID >= 0 && pLocalPlayer)
-		pLocalPC->RemoveBuffEffect(BuffID, pLocalPlayer->SpawnID);
+	if (!pLocalPC) return false;
+	if (spellId <= 0) return false;
+
+	auto checkBuffWnd = [spellId](CBuffWindow* pBuffWnd) -> bool
+	{
+		if (!pBuffWnd) return false;
+
+		for (int nBuff = pBuffWnd->firstEffectSlot; nBuff <= pBuffWnd->lastEffectSlot; ++nBuff)
+		{
+			if (spellId == pBuffWnd->spellIds[nBuff - pBuffWnd->firstEffectSlot])
+			{
+				pLocalPC->RemoveBuffEffect(nBuff, pLocalPlayer->SpawnID);
+				return true;
+			}
+		}
+
+		return false;
+	};
+
+	if (checkBuffWnd(pBuffWnd)) return true;
+	if (checkBuffWnd(pSongWnd)) return true;
+
+	return false;
+}
+
+bool RemoveBuffByIndex(int buffIndex)
+{
+	if (buffIndex < 0 && buffIndex >= NUM_LONG_BUFFS + NUM_SHORT_BUFFS)
+		return false;
+
+	// the Buff index for this function is defined to be based on the local PC data.
+	const EQ_Affect& affect = pLocalPC->GetEffect(buffIndex);
+
+	auto checkBuffWnd = [buffIndex, &affect](CBuffWindow* pBuffWnd) -> bool
+	{
+		if (!pBuffWnd) return false;
+
+		// Do a simple range check to ensure we're in the proper window
+		if (buffIndex < pBuffWnd->firstEffectSlot || buffIndex > pBuffWnd->lastEffectSlot)
+			return false;
+
+		// Indices might not be in the correct order, so always use the order of the buff window
+		for (int nBuff = pBuffWnd->firstEffectSlot; nBuff <= pBuffWnd->lastEffectSlot; ++nBuff)
+		{
+			// If the spell id matches then remove it.
+			int spellId = pBuffWnd->spellIds[nBuff - pBuffWnd->firstEffectSlot];
+			if (spellId == affect.SpellID)
+			{
+				pLocalPC->RemoveBuffEffect(nBuff, pLocalPlayer->SpawnID);
+				return true;
+			}
+		}
+
+		return false;
+	};
+
+	if (checkBuffWnd(pBuffWnd)) return true;
+	if (checkBuffWnd(pSongWnd)) return true;
+
+	return false;
 }
 
 void RemoveBuff(SPAWNINFO* pChar, char* szLine)
@@ -4226,16 +4304,14 @@ void RemoveBuff(SPAWNINFO* pChar, char* szLine)
 
 	if (szCmd[0] != '\0')
 	{
-		int buff_id = FindBuffID(szCmd);
-		if (buff_id != -1)
+		int buffIndex = FindBuffIndex(szCmd);
+		if (buffIndex != -1)
 		{
-			EQ_Affect* buff = &pLocalPC->GetEffect(buff_id);
-			RemoveBuff(buff, buff_id);
+			RemoveBuffByIndex(buffIndex);
 		}
 	}
 }
 
-// TODO: can we just use cached buffs for pet buffs here? We should be getting the buffs packet from the server for them...
 void RemovePetBuff(SPAWNINFO* pChar, char* szLine)
 {
 	if (!pPetInfoWnd || !szLine || szLine[0] == '\0')
@@ -4244,7 +4320,7 @@ void RemovePetBuff(SPAWNINFO* pChar, char* szLine)
 	char szArg[MAX_STRING] = { 0 };
 	GetMaybeQuotedArg(szArg, MAX_STRING, szLine, 1);
 
-	for (int nBuff = 0; nBuff < NUM_BUFF_SLOTS; ++nBuff)
+	for (int nBuff = 0; nBuff < MAX_TOTAL_BUFFS; ++nBuff)
 	{
 		EQ_Spell* pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
 		if (pBuffSpell && MaybeExactCompare(pBuffSpell->Name, szArg))

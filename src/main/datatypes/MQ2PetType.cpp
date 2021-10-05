@@ -62,7 +62,7 @@ bool MQ2PetBuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 	case PetBuffMembers::Duration: {
 		// Find the index of this spell id.
 		int buffIndex = -1;
-		for (int index = 0; index < NUM_BUFF_SLOTS; ++index)
+		for (int index = 0; index < MAX_TOTAL_BUFFS; ++index)
 		{
 			if (pPetInfoWnd->Buff[index] == pSpell->ID)
 			{
@@ -173,10 +173,7 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		if (IsNumber(Index))
 		{
 			int nBuff = GetIntFromString(Index, 0) - 1;
-			if (nBuff < 0)
-				return false;
-
-			if (nBuff >= NUM_BUFF_SLOTS)
+			if (nBuff < 0 || nBuff > MAX_TOTAL_BUFFS)
 				return false;
 
 			if (pPetInfoWnd->Buff[nBuff] == -1 || pPetInfoWnd->Buff[nBuff] == 0)
@@ -190,7 +187,7 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		}
 		else
 		{
-			for (int nBuff = 0; nBuff < NUM_BUFF_SLOTS; nBuff++)
+			for (int nBuff = 0; nBuff < MAX_TOTAL_BUFFS; nBuff++)
 			{
 				if (SPELL* pSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
 				{
@@ -214,10 +211,7 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		if (IsNumber(Index))
 		{
 			int nBuff = GetIntFromString(Index, 0) - 1;
-			if (nBuff < 0)
-				return false;
-
-			if (nBuff >= NUM_BUFF_SLOTS)
+			if (nBuff < 0 || nBuff > MAX_TOTAL_BUFFS)
 				return false;
 
 			if (pPetInfoWnd->Buff[nBuff] == -1 || pPetInfoWnd->Buff[nBuff] == 0)
@@ -227,7 +221,7 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 			return true;
 		}
 
-		for (int nBuff = 0; nBuff < NUM_BUFF_SLOTS; nBuff++)
+		for (int nBuff = 0; nBuff < MAX_TOTAL_BUFFS; nBuff++)
 		{
 			if (SPELL* pSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
 			{

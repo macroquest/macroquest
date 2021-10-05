@@ -3404,7 +3404,7 @@ static void DisplayCustomWindowPropertyViewer(CSidlScreenWnd* pWindow, ImGuiWind
 
 	const WindowPropertyViewerCustomization& callback = iter->second;
 
-	char szSectionTitle[32] = { 0 };
+	char szSectionTitle[64] = { 0 };
 	sprintf_s(szSectionTitle, "%s Properties", pWindow->SidlPiece->strName.c_str());
 
 	if (viewer->BeginColorSection(szSectionTitle, true))
@@ -3434,6 +3434,70 @@ static void WindowProperties_ItemDisplayWindow(CSidlScreenWnd* pSidlWindow, ImGu
 	ColumnText("Tab Count", "%d", pWindow->TabCount);
 
 	ColumnText("Window Index", "%d", pWindow->ItemWndIndex);
+}
+
+// Property Viewer for Buffwindow
+static void WindowProperties_BuffWindow(CSidlScreenWnd* pSidlWindow, ImGuiWindowPropertyViewer* viewer)
+{
+	CBuffWindow* pWindow = static_cast<CBuffWindow*>(pSidlWindow);
+
+	DisplayTextureAnimation("Blue Icon Background", pWindow->ptaBlueIconBackground);
+	DisplayTextureAnimation("Red Icon Background", pWindow->ptaRedIconBackground);
+	DisplayTextureAnimation("Yellow Icon Background", pWindow->ptaYellowIconBackground);
+
+	int count = 0;
+	for (int i = 0; i < MAX_BUFF_ICONS; ++i)
+	{
+		if (pWindow->spellIds[count] > 0)
+			count++;
+	}
+
+	if (ColumnTreeNode("Buffs", "%d", count))
+	{
+		for (int i = 0; i < MAX_BUFF_ICONS; ++i)
+		{
+			if (pWindow->spellIds[i] <= 0)
+				continue;
+
+			EQ_Spell* pSpell = GetSpellByID(pWindow->spellIds[i]);
+
+			char szName[32];
+			sprintf_s(szName, "Buff %d", i + 1);
+
+			if (ColumnTreeNode(szName, "%s", pSpell->Name))
+			{
+				ColumnTextType("SpellId", "int", "%d", pWindow->spellIds[i]);
+				ColumnTextType("Name", "char[64]", "%s", pSpell->Name);
+				if (pWindow->buffTimers[i] == -1)
+					ColumnText("Buff Timer", "Permanent");
+				else
+					ColumnElapsedTimestamp("Buff Timer", pWindow->buffTimers[i]);
+				DisplayTextureAnimation("Buff Icon", pWindow->ptaBuffIcons[i]);
+				ColumnWindow("Button", pWindow->pBuffButtons[i]);
+				DisplayTextObject("Time Remaining", pWindow->pTimeRemainingTexts[i]);
+				DisplayTextObject("Counter", pWindow->pCounterTexts[i]);
+				DisplayTextObject("Limited Uses", pWindow->pLimitedUseTexts[i]);
+				if (CXStr* pWhoCast = pWindow->whoCastHash.FindFirst(pWindow->spellIds[i]))
+				{
+					ColumnCXStr("Caster", *pWhoCast, false);
+				}
+
+				ImGui::TreePop();
+			}
+		}
+
+		ImGui::TreePop();
+	}
+
+	ColumnElapsedTimestamp("Next Refresh Time", pWindow->nextRefreshTime - pDisplay->TimeStamp);
+	ColumnText("Init Window Size", "%d, %d", pWindow->initWindowWidth, pWindow->initWindowHeight);
+	ColumnText("WindowType", "%s (%d)", pWindow->buffWindowType == BuffWindowStandard ? "Buffs" : "ShortBuffs", pWindow->buffWindowType);
+	ColumnText("First Effect Slot", "%d", pWindow->firstEffectSlot);
+	ColumnText("Last Effect Slot", "%d", pWindow->lastEffectSlot);
+	ColumnText("Max Buff Buttons", "%d", pWindow->maxBuffButtons);
+	ColumnText("Context Menu ID", "%d", pWindow->ContextMenuID);
+	//ColumnWindow("Select Button", pWindow->selectedButtonWnd);
+	ColumnElapsedTimestamp("Last Buff Refresh Time", pWindow->lastBuffRefreshTime);
 }
 
 // Propert Viewer for CompassWindow
@@ -3791,6 +3855,8 @@ void DeveloperTools_WindowInspector_Initialize()
 	DeveloperTools_RegisterMenuItem(s_windowInspector, "Windows", s_menuNameInspectors);
 
 	RegisterWindowPropertyViewer("ItemDisplayWindow", WindowProperties_ItemDisplayWindow);
+	RegisterWindowPropertyViewer("BuffWindow", WindowProperties_BuffWindow);
+	RegisterWindowPropertyViewer("ShortDurationBuffWindow", WindowProperties_BuffWindow);
 	RegisterWindowPropertyViewer("CompassWindow", WindowProperties_CompassWindow);
 	RegisterWindowPropertyViewer("FindLocationWnd", WindowProperties_FindLocationWnd);
 	RegisterWindowPropertyViewer("ZoneGuideWnd", WindowProperties_ZoneGuideWnd);

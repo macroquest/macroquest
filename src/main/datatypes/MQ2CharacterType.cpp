@@ -918,7 +918,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 
 		{
-			int buffID = FindBuffID(Index);
+			int buffID = FindBuffIndex(Index);
 			if (buffID >= 0 && buffID < NUM_LONG_BUFFS)
 			{
 				Dest.Int = buffID;
@@ -945,7 +945,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 
 		{
-			int buffID = FindBuffID(Index);
+			int buffID = FindBuffIndex(Index);
 			if (buffID >= NUM_LONG_BUFFS && buffID < NUM_LONG_BUFFS + NUM_SHORT_BUFFS)
 			{
 				Dest.Int = buffID;
@@ -2266,9 +2266,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		if (IsNumber(Index))
 		{
 			int nBuff = GetIntFromString(Index, 0) - 1;
-			if (nBuff < 0)
-				return false;
-			if (nBuff > NUM_BUFF_SLOTS)
+			if (nBuff < 0 || nBuff > MAX_TOTAL_BUFFS)
 				return false;
 
 			if (pPetInfoWnd->Buff[nBuff] == -1 || pPetInfoWnd->Buff[nBuff] == 0)
@@ -2282,7 +2280,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 		else
 		{
-			for (int nBuff = 0; nBuff < NUM_BUFF_SLOTS; nBuff++)
+			for (int nBuff = 0; nBuff < MAX_TOTAL_BUFFS; nBuff++)
 			{
 				if (SPELL* pSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
 				{
