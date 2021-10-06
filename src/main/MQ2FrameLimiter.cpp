@@ -199,6 +199,7 @@ private:
 
 static bool RenderScene_Hook();
 static bool UseEQRenderer();
+static bool IsTieUiToSimulation();
 static bool UpdateDisplay_Hook();
 static bool ShouldDoRealRenderWorld();
 static bool DoThrottleFrameRate();
@@ -242,6 +243,9 @@ public:
 		{
 			if (g_bRenderSceneCalled)
 				*g_bRenderSceneCalled = TRUE;
+
+			if (IsTieUiToSimulation())
+				RenderBlind_Trampoline();
 		}
 	}
 
@@ -429,6 +433,8 @@ public:
 	float MinImGuiFPS() const { return m_tieImGuiToSimulation ? m_minSimulationFPS : 0.f; }
 
 	float MinUiFPS() const { return m_tieUiToSimulation ? m_minSimulationFPS : 0.f; }
+
+	bool IsTieUiToSimulation() const { return m_tieUiToSimulation; }
 
 	bool DoClearScreen() const { return m_clearScreen; }
 
@@ -948,6 +954,11 @@ static bool RenderScene_Hook()
 static bool UseEQRenderer()
 {
 	return !s_frameLimiter.IsEnabled();
+}
+
+static bool IsTieUiToSimulation()
+{
+	return s_frameLimiter.IsTieUiToSimulation();
 }
 
 static bool UpdateDisplay_Hook()
