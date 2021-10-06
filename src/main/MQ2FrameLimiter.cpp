@@ -238,6 +238,11 @@ public:
 				pWndMgr.get_as<CXWndManagerHook>()->DrawWindows_Trampoline();
 			RenderScene_Trampoline();
 		}
+		else
+		{
+			if (g_bRenderSceneCalled)
+				*g_bRenderSceneCalled = TRUE;
+		}
 	}
 
 	// Same logic as above, but this is for when the player is blind.
