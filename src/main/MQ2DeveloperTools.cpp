@@ -2399,6 +2399,8 @@ public:
 		if (!spell)
 			return;
 
+		ImGui::PushID((void*)&buff);
+
 		if (!m_pTASpellIcon)
 		{
 			m_pTASpellIcon = new CTextureAnimation();
@@ -2430,6 +2432,34 @@ public:
 		else
 		{
 			ImGui::Text("null");
+		}
+
+		if (ImGui::BeginPopupContextItem("BuffContextMenu"))
+		{
+			if (ImGui::Selectable("Inspect (NYI)"))
+			{
+				// TODO: trigger spell/buff viewer
+			}
+
+			ImGui::Separator();
+
+			if (ImGui::Selectable("Remove by Index"))
+			{
+				int nBuff = pLocalPC->GetEffectSlot(&buff);
+				RemoveBuffByIndex(nBuff);
+			}
+
+			if (spell && ImGui::Selectable("Remove by Name"))
+			{
+				RemoveBuffByName(spell->Name);
+			}
+
+			if (ImGui::Selectable("Remove by Spell ID"))
+			{
+				RemoveBuffBySpellID(buff.SpellID);
+			}
+
+			ImGui::EndPopup();
 		}
 
 		// ID
@@ -2487,6 +2517,8 @@ public:
 			if (Slot != -1)
 				ImGui::Text("%d: %d", Slot, Value);
 		}
+
+		ImGui::PopID();
 	}
 
 	int DoSpellAffectTable(const char* name, EQ_Affect* affect, int numAffects, bool showEmpty = false)
@@ -2494,11 +2526,9 @@ public:
 		ImGuiTableFlags tableFlags = 0
 			| ImGuiTableFlags_SizingFixedFit
 			| ImGuiTableFlags_ScrollY
-			| ImGuiTableFlags_NoHostExtendY
 			| ImGuiTableFlags_RowBg
 			| ImGuiTableFlags_Borders
-			| ImGuiTableFlags_Resizable
-			| ImGuiTableFlags_Reorderable;
+			| ImGuiTableFlags_Resizable;
 
 		int count = 2; // start with space for header and possible scroll bar
 
@@ -2511,10 +2541,9 @@ public:
 
 			count++;
 		}
-		ImVec2 size = ImVec2(0, ImGui::GetTextLineHeightWithSpacing() * count);
 		count = 0;
 
-		if (ImGui::BeginTable(name, 17 + NUM_SLOTDATA, tableFlags, size))
+		if (ImGui::BeginTable(name, 17 + NUM_SLOTDATA, tableFlags))
 		{
 			ImGui::TableSetupScrollFreeze(2, 1);
 			DoSpellBuffTableHeaders();
@@ -2526,7 +2555,7 @@ public:
 				if (buff.SpellID == 0 && !showEmpty)
 					continue;
 
-				DoSpellBuffTableRow(count + 1, buff);
+				DoSpellBuffTableRow(i + 1, buff);
 				count++;
 			}
 
@@ -2546,6 +2575,105 @@ public:
 		return true;
 	}
 
+	void DoSpellStackingTests()
+	{
+		static bool bCheckSpellBuffs = true;
+		ImGui::Checkbox("Check buff stacking against active buffs", &bCheckSpellBuffs);
+
+		if (bCheckSpellBuffs)
+		{
+			ImGui::Text("Enter the name of a spell to test buff stacking:");
+		}
+		else
+		{
+			ImGui::TextWrapped("Enter the name of two spells to test buff stacking. The test will check the second spell against the first.");
+		}
+
+		static char searchText[256] = { 0 };
+		static char searchText2[256] = { 0 };
+
+		if (bCheckSpellBuffs)
+		{
+			ImGui::InputText("Spell Name", searchText2, 256);
+		}
+		else
+		{
+			ImGui::InputText("Spell 1", searchText, 256);
+			ImGui::InputText("Spell 2", searchText2, 256);
+		}
+
+		SPELL* pSpell = nullptr;
+		SPELL* pSpell2 = nullptr;
+
+		if (searchText[0])
+		{
+			pSpell = GetSpellByName(searchText);
+			if (!pSpell)
+			{
+				ImGui::TextColored(ImColor(255, 0, 0), "No spell named '%s' found", searchText);
+			}
+		}
+
+		if (searchText2[0])
+		{
+			pSpell2 = GetSpellByName(searchText2);
+			if (!pSpell2)
+			{
+				ImGui::TextColored(ImColor(255, 0, 0), "No spell named '%s' found", searchText2);
+			}
+		}
+
+		if (!bCheckSpellBuffs && ImGui::Button("Swap"))
+		{
+			char temp[256];
+			strcpy_s(temp, searchText);
+			strcpy_s(searchText, searchText2);
+			strcpy_s(searchText2, temp);
+		}
+
+		if (pSpell2)
+		{
+			SPAWNINFO* pPlayer = pLocalPlayer;
+			PcClient* pPcClient = pPlayer->GetPcClient();
+
+			EQ_Affect affect;
+			affect.Type = 2;
+			EQ_Affect* affectToPass = nullptr;
+			if (pSpell)
+			{
+				affect.SpellID = pSpell->ID;
+				affectToPass = &affect;
+			}
+			int slotIndex = -1;
+
+			EQ_Affect* ret = pPcClient->FindAffectSlot(pSpell2->ID, pPlayer, &slotIndex,
+				true, -1, affectToPass ? affectToPass : nullptr, affectToPass ? 1 : 0);
+
+			if (ret)
+			{
+				if (pSpell)
+				{
+					ImGui::TextColored(ImColor(0, 255, 0), "%s stacks with %s", pSpell2->Name, pSpell->Name);
+				}
+				else
+				{
+					ImGui::TextColored(ImColor(0, 255, 0), "%s stacks", pSpell2->Name);
+				}
+			}
+			else
+			{
+				if (pSpell)
+				{
+					ImGui::TextColored(ImColor(255, 0, 0), "%s doesn't stack with %s", pSpell2->Name, pSpell->Name);
+				}
+				else
+				{
+					ImGui::TextColored(ImColor(255, 0, 0), "%s doesn't stack", pSpell2->Name);
+				}
+			}
+		}
+	}
+
 	virtual void Draw() override
 	{
 		PcProfile* pcProfile = GetPcProfile();
@@ -2555,115 +2683,60 @@ public:
 			return;
 		}
 
-		if (ImGui::CollapsingHeader("Spell Buffs"))
+		if (ImGui::BeginTabBar("##SpellTabs"))
 		{
-			int count = DoSpellAffectTable("SpellAffectBuffsTable", pcProfile->Buff, lengthof(pcProfile->Buff));
-			ImGui::Text("%d Buff(s)", count);
-		}
-
-		if (ImGui::CollapsingHeader("Short Buffs"))
-		{
-			int count = DoSpellAffectTable("SpellAffectShortBuffsTable", pcProfile->ShortBuff, lengthof(pcProfile->ShortBuff));
-			ImGui::Text("%d Short Buff(s)", count);
-		}
-
-		if (ImGui::CollapsingHeader("Stacks Test"))
-		{
-			static bool bCheckSpellBuffs = true;
-			ImGui::Checkbox("Check buff stacking against active buffs", &bCheckSpellBuffs);
-
-			if (bCheckSpellBuffs)
 			{
-				ImGui::Text("Enter the name of a spell to test buff stacking:");
-			}
-			else
-			{
-				ImGui::TextWrapped("Enter the name of two spells to test buff stacking. The test will check the second spell against the first.");
-			}
+				size_t arrayLength = lengthof(pcProfile->Buff);
+				int count = 0;
 
-			static char searchText[256] = { 0 };
-			static char searchText2[256] = { 0 };
-
-			if (bCheckSpellBuffs)
-			{
-				ImGui::InputText("Spell Name", searchText2, 256);
-			}
-			else
-			{
-				ImGui::InputText("Spell 1", searchText, 256);
-				ImGui::InputText("Spell 2", searchText2, 256);
-			}
-
-			SPELL* pSpell = nullptr;
-			SPELL* pSpell2 = nullptr;
-
-			if (searchText[0])
-			{
-				pSpell = GetSpellByName(searchText);
-				if (!pSpell)
+				// calculate the size
+				for (size_t i = 0; i < arrayLength; ++i)
 				{
-					ImGui::TextColored(ImColor(255, 0, 0), "No spell named '%s' found", searchText);
+					EQ_Affect& buff = pcProfile->Buff[i];
+					if (buff.SpellID != 0)
+						count++;
+				}
+
+				char szLabel[64];
+				sprintf_s(szLabel, "Spell Buffs (%d)###SpellBuffs", count);
+
+				if (ImGui::BeginTabItem(szLabel))
+				{
+					DoSpellAffectTable("SpellAffectBuffsTable", pcProfile->Buff, arrayLength);
+					ImGui::EndTabItem();
 				}
 			}
 
-			if (searchText2[0])
 			{
-				pSpell2 = GetSpellByName(searchText2);
-				if (!pSpell2)
+				size_t arrayLength = lengthof(pcProfile->ShortBuff);
+				int count = 0;
+
+				// calculate the size
+				for (size_t i = 0; i < arrayLength; ++i)
 				{
-					ImGui::TextColored(ImColor(255, 0, 0), "No spell named '%s' found", searchText2);
+					EQ_Affect& buff = pcProfile->ShortBuff[i];
+					if (buff.SpellID != 0)
+						count++;
+				}
+
+				char szLabel[64];
+				sprintf_s(szLabel, "Short Buffs (%d)###ShortBuffs", count);
+
+				if (ImGui::BeginTabItem(szLabel))
+				{
+					DoSpellAffectTable("SpellAffectBuffsTable", pcProfile->ShortBuff, arrayLength);
+					ImGui::EndTabItem();
 				}
 			}
 
-			if (!bCheckSpellBuffs && ImGui::Button("Swap"))
+			if (ImGui::BeginTabItem("Stacking Tests"))
 			{
-				char temp[256];
-				strcpy_s(temp, searchText);
-				strcpy_s(searchText, searchText2);
-				strcpy_s(searchText2, temp);
+				DoSpellStackingTests();
+
+				ImGui::EndTabItem();
 			}
 
-			if (pSpell2)
-			{
-				SPAWNINFO* pPlayer = pLocalPlayer;
-				PcClient* pPcClient = pPlayer->GetPcClient();
-
-				EQ_Affect affect;
-				affect.Type = 2;
-				EQ_Affect* affectToPass = nullptr;
-				if (pSpell)
-				{
-					affect.SpellID = pSpell->ID;
-					affectToPass = &affect;
-				}
-				int slotIndex = -1;
-
-				EQ_Affect* ret = pPcClient->FindAffectSlot(pSpell2->ID, pPlayer, &slotIndex,
-					true, -1, affectToPass ? affectToPass : nullptr, affectToPass ? 1 : 0);
-
-				if (ret)
-				{
-					if (pSpell)
-					{
-						ImGui::TextColored(ImColor(0, 255, 0), "%s stacks with %s", pSpell2->Name, pSpell->Name);
-					}
-					else
-					{
-						ImGui::TextColored(ImColor(0, 255, 0), "%s stacks", pSpell2->Name);
-					}
-				}
-				else
-				{
-					if (pSpell)
-					{
-						ImGui::TextColored(ImColor(255, 0, 0), "%s doesn't stack with %s", pSpell2->Name, pSpell->Name);
-					}
-					else
-					{
-						ImGui::TextColored(ImColor(255, 0, 0), "%s doesn't stack", pSpell2->Name);
-					}
-				}
-			}
+			ImGui::EndTabBar();
 		}
 	}
 };

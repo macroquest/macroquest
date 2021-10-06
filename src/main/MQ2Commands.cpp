@@ -5318,12 +5318,11 @@ void RemoveLevCmd(SPAWNINFO* pChar, char* szLine)
 	// Check long buffs
 	for (int i = 0; i < NUM_LONG_BUFFS; ++i)
 	{
-		if (SPELL* pBuff = GetSpellByID(pcProfile->Buff[i].SpellID))
+		if (EQ_Spell* pBuff = GetSpellByID(pcProfile->Buff[i].SpellID))
 		{
 			if (HasLevSPA(pBuff))
 			{
-				pLocalPC->RemoveBuffEffect(i, pLocalPlayer->SpawnID);
-
+				RemoveBuffByIndex(i);
 				WriteChatf("\arRemoving: \ap%s", pBuff->Name);
 			}
 		}
@@ -5332,11 +5331,11 @@ void RemoveLevCmd(SPAWNINFO* pChar, char* szLine)
 	// Check short buffs
 	for (int i = 0; i < NUM_SHORT_BUFFS; ++i)
 	{
-		if (SPELL* pBuff = GetSpellByID(pcProfile->ShortBuff[i].SpellID))
+		if (EQ_Spell* pBuff = GetSpellByID(pcProfile->ShortBuff[i].SpellID))
 		{
 			if (HasLevSPA(pBuff))
 			{
-				pLocalPC->RemoveBuffEffect(i + NUM_LONG_BUFFS, pLocalPlayer->SpawnID);
+				RemoveBuffByIndex(NUM_LONG_BUFFS + i);
 				WriteChatf("\arRemoving: \ap%s", pBuff->Name);
 			}
 		}

@@ -334,14 +334,11 @@ MQLIB_API CAltAbilityData* GetAAById(int nAbilityId, int playerLevel = -1);
 inline CAltAbilityData* GetAAByIdWrapper(int nAbilityId, int playerLevel = -1) { return GetAAById(nAbilityId, playerLevel); }
 MQLIB_API int GetSpellRankByName(const char* SpellName);
 MQLIB_API void TruncateSpellRankName(char* SpellName);
-MQLIB_OBJECT int FindBuffID(std::string_view Name);
-MQLIB_OBJECT void RemoveBuff(EQ_Affect* buff, int slot);
-MQLIB_OBJECT void RemoveBuffAt(int BuffID);
-MQLIB_API void RemoveBuff(SPAWNINFO* pChar, char* szLine);
-MQLIB_API void RemovePetBuff(SPAWNINFO* pChar, char* szLine);
+MQLIB_API int FindBuffIndex(std::string_view Name);
+MQLIB_API bool RemoveBuffByName(std::string_view buffName);
+MQLIB_API bool RemoveBuffBySpellID(int buffName);
+MQLIB_API bool RemoveBuffByIndex(int buffIndex);
 MQLIB_API bool StripQuotes(char* str);
-MQLIB_API void MakeMeVisible(SPAWNINFO* pChar, char* szLine);
-MQLIB_API void RemoveAura(SPAWNINFO* pChar, char* szLine);
 MQLIB_API int GetKeyRingCount(KeyRingType keyRingType);
 MQLIB_API int GetMountCount();
 MQLIB_API int GetIllusionCount();
@@ -463,11 +460,6 @@ MQLIB_API bool AddMQ2DataVariableFromData(const char* Name, const char* Index, M
 MQLIB_API MQDataVar** FindVariableScope(const char* Name);
 MQLIB_API bool DeleteMQ2DataVariable(const char* Name);
 MQLIB_API void ClearMQ2DataVariables(MQDataVar** ppHead);
-MQLIB_API void NewDeclareVar(SPAWNINFO* pChar, char* szLine);
-MQLIB_API void NewDeleteVarCmd(SPAWNINFO* pChar, char* szLine);
-MQLIB_API void NewVarset(SPAWNINFO* pChar, char* szLine);
-MQLIB_API void NewVarcalc(SPAWNINFO* pChar, char* szLine);
-MQLIB_API void NewVardata(SPAWNINFO* pChar, char* szLine);
 MQLIB_API void DropTimers();
 
 /*                 */

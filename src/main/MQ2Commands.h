@@ -132,4 +132,15 @@ MQLIB_API void CachedBuffsCommand                  (PSPAWNINFO pChar, char* szLi
 MQLIB_API void MQCopyLayout                        (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void ListModulesCommand                  (PSPAWNINFO pChar, char* szLine);
 
+MQLIB_API void RemoveBuff                          (SPAWNINFO* pChar, char* szLine);
+MQLIB_API void RemovePetBuff                       (SPAWNINFO* pChar, char* szLine);
+MQLIB_API void MakeMeVisible                       (SPAWNINFO* pChar, char* szLine);
+MQLIB_API void RemoveAura                          (SPAWNINFO* pChar, char* szLine);
+
+MQLIB_API void NewDeclareVar                       (SPAWNINFO* pChar, char* szLine);
+MQLIB_API void NewDeleteVarCmd                     (SPAWNINFO* pChar, char* szLine);
+MQLIB_API void NewVarset                           (SPAWNINFO* pChar, char* szLine);
+MQLIB_API void NewVarcalc                          (SPAWNINFO* pChar, char* szLine);
+MQLIB_API void NewVardata                          (SPAWNINFO* pChar, char* szLine);
+
 } // namespace mq

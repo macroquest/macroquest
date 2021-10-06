@@ -76,6 +76,8 @@ static crashpad::StringAnnotation<32> buildTimestampAnnotation("eqVersion");
 static crashpad::StringAnnotation<32> buildVersionAnnotation("mqVersion");
 static crashpad::StringAnnotation<36> buildCrashIdAnnotation("crashId");
 
+static crashpad::UUID s_sessionUuid;
+
 static LONG WINAPI OurCrashHandler(EXCEPTION_POINTERS* ex);
 static void ReplaceCrashpadUnhandledExceptionFilter()
 {
@@ -261,11 +263,7 @@ static std::string MakeMiniDump(const std::string& filename, EXCEPTION_POINTERS*
 
 std::string GetSetCrashId()
 {
-	crashpad::UUID uuid;
-	// TODO:  Check return on this and use another method to generate an ID upon failure
-	uuid.InitializeWithNew();
-	buildCrashIdAnnotation.Set(uuid.ToString());
-	return uuid.ToString();
+	return s_sessionUuid.ToString();
 }
 
 int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description)
@@ -502,6 +500,9 @@ void DoCrash(SPAWNINFO* pChar, char* szLine)
 void InitializeMQ2CrashHandler()
 {
 	AddCommand("/crash", DoCrash);
+
+	s_sessionUuid.InitializeWithNew();
+	buildCrashIdAnnotation.Set(s_sessionUuid.ToString());
 }
 
 void ShutdownMQ2CrashHandler()

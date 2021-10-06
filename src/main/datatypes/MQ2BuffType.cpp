@@ -62,7 +62,7 @@ MQ2BuffType::MQ2BuffType() : MQ2Type("buff")
 
 bool MQ2BuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	if (VarPtr.Int < 0 || VarPtr.Int >= NUM_LONG_BUFFS + NUM_SHORT_BUFFS)
+	if (VarPtr.Int < 0 || VarPtr.Int > NUM_LONG_BUFFS + NUM_SHORT_BUFFS)
 		return false;
 
 	auto pPCProfile = GetPcProfile();
@@ -88,7 +88,7 @@ bool MQ2BuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		{
 		case BuffMethods::Remove:
 		{
-			RemoveBuff(buff, VarPtr.Int);
+			RemoveBuffByIndex(VarPtr.Int);
 			return true;
 		}
 

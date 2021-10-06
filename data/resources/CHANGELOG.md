@@ -1,3 +1,9 @@
+October 5, 2021:
+- Improved buff removal handling (#182).
+- plugins: Added RemoveBuffByName, RemoveBuffBySpellID
+- plugins: Renamed FindBuffID to FindBuffIndex, renamed RemoveBuffAt to RemoveBuffByIndex
+- plugins: Removed RemoveBuff
+
 October 1, 2021:
 - Fix EverQuest.CurrentUI not getting updated after reinjection (#388).
 - Add Stat and Count members to Keyring types (Mount, Familiar, Illusion) (#393).
