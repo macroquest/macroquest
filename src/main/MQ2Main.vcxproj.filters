@@ -137,7 +137,7 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2Overlay.cpp">
+    <ClCompile Include="ImGuiOverlay.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2LoginFrontend.cpp">
@@ -359,6 +359,12 @@
     <ClCompile Include="MQAchievements.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ImGuiManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGuiBackend.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
@@ -490,6 +496,15 @@
     <ClInclude Include="..\..\include\mq\api\Achievements.h">
       <Filter>Header Files\mq\api</Filter>
     </ClInclude>
+    <ClInclude Include="ImGuiManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\utils\Benchmarks.h">
+      <Filter>Header Files\mq\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGuiBackend.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MQ2Main.rc">
@@ -498,9 +513,6 @@
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\MQ2.natvis">
-      <Filter>Resource Files</Filter>
-    </Natvis>
-    <Natvis Include="..\..\contrib\imgui\misc\natvis\imgui.natvis">
       <Filter>Resource Files</Filter>
     </Natvis>
   </ItemGroup>

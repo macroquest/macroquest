@@ -889,25 +889,25 @@ void PluginsEndZone()
 	}
 }
 
-void PluginsUpdateImGui()
+void ModulesUpdateImGui()
 {
-	if (!s_pluginsInitialized)
-		return;
-
 	ForEachModule([](const MQModule* module)
 		{
 			if (module->UpdateImGui)
 				module->UpdateImGui();
 		});
+}
 
-	if (!gbManualResetRequired)
-	{
-		ForEachPlugin([](const MQPlugin* plugin)
-			{
-				if (plugin->UpdateImGui)
-					plugin->UpdateImGui();
-			});
-	}
+void PluginsUpdateImGui()
+{
+	if (!s_pluginsInitialized)
+		return;
+
+	ForEachPlugin([](const MQPlugin* plugin)
+		{
+			if (plugin->UpdateImGui)
+				plugin->UpdateImGui();
+		});
 }
 
 void PluginsMacroStart(const char* Name)

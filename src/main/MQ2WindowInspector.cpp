@@ -3274,7 +3274,7 @@ public:
 
 		if (selectPicking)
 		{
-			ImGui::SetScrollHere();
+			ImGui::SetScrollHereY();
 		}
 
 		if (ImGui::IsItemHovered())

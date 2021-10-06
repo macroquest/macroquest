@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 #ifdef MQ2MAIN_EXPORTS
 #define MQLIB_API extern "C" __declspec(dllexport)
 #define MQLIB_VAR extern "C" __declspec(dllexport)
@@ -38,4 +40,10 @@
 #define LODWORD(_qw)          ((uint32_t)(_qw))
 #define HIDWORD(_qw)          ((uint32_t)(((_qw) >> 32) & 0xffffffff))
 
-#include <cstdint>
+constexpr int MAX_STRING = 2048;
+
+template <typename T, size_t N>
+constexpr size_t lengthof(const T(&)[N])
+{
+	return N;
+}

@@ -228,8 +228,7 @@ public:
 			}
 			if (spawn != nullptr)
 			{
-				return fmt::format("[{}] {}",
-					spawn->Level,
+				return fmt::format("{}",
 					pEverQuest->GetClassThreeLetterCode(spawn->GetClass()));
 				/*
 				return fmt::format("[{}] {} {} {}",
