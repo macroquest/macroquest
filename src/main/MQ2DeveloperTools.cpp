@@ -2693,7 +2693,7 @@ public:
 				for (size_t i = 0; i < arrayLength; ++i)
 				{
 					EQ_Affect& buff = pcProfile->Buff[i];
-					if (buff.SpellID != 0)
+					if (buff.SpellID > 0)
 						count++;
 				}
 
@@ -2715,7 +2715,7 @@ public:
 				for (size_t i = 0; i < arrayLength; ++i)
 				{
 					EQ_Affect& buff = pcProfile->ShortBuff[i];
-					if (buff.SpellID != 0)
+					if (buff.SpellID > 0)
 						count++;
 				}
 
