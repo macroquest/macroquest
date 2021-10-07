@@ -1,4 +1,5 @@
 October 7, 2021:
+- eqbugfix: Possible fix for "Mage" crash when casting spells from items.
 - Upgrade ImGui to 1.84 with new font renderer (FreeType) enabled
 - Implemented new revision of the ImGui overlay, hopefully squashing a bunch of
   issues and not creating very many new ones...
@@ -7,7 +8,6 @@ October 7, 2021:
 - framelimiter: Restructured the framelimiter settings. Added some help tooltips too.
 - framelimiter: Moved some options to only take effect when the frame limiter is active in the background.
 - framelimiter: Added separate option for enabling frame limiting when in the foreground.
-
 
 October 5, 2021:
 - Improved buff removal handling (#182).
