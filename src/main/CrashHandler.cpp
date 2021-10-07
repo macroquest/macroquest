@@ -76,7 +76,7 @@ static crashpad::StringAnnotation<32> buildTimestampAnnotation("eqVersion");
 static crashpad::StringAnnotation<32> buildVersionAnnotation("mqVersion");
 static crashpad::StringAnnotation<36> buildCrashIdAnnotation("crashId");
 
-static crashpad::UUID s_sessionUuid;
+static std::string s_sessionUuid;
 
 static LONG WINAPI OurCrashHandler(EXCEPTION_POINTERS* ex);
 static void ReplaceCrashpadUnhandledExceptionFilter()
@@ -261,9 +261,13 @@ static std::string MakeMiniDump(const std::string& filename, EXCEPTION_POINTERS*
 	return dumped ? dumpFilename : std::string();
 }
 
-std::string GetSetCrashId()
+void SetCrashId()
 {
-	return s_sessionUuid.ToString();
+	crashpad::UUID uuid;
+	// TODO:  Check return on this and use another method to generate an ID upon failure
+	uuid.InitializeWithNew();
+	s_sessionUuid = uuid.ToString();
+	buildCrashIdAnnotation.Set(s_sessionUuid);
 }
 
 int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description)
@@ -308,7 +312,7 @@ int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description)
 				"Version: " MQMAIN_VERSION  "\n"
 				"Location: %s+%d @ %s:%d (%s+%p)\n"
 				"\nCrashID: %s\n",
-				pSymbol->Name, dwDisplacement, line.FileName, line.LineNumber, szSymSearchPath, (void*)(line.Address - (DWORD)hModule), GetSetCrashId().c_str());
+				pSymbol->Name, dwDisplacement, line.FileName, line.LineNumber, szSymSearchPath, (void*)(line.Address - (DWORD)hModule), s_sessionUuid.c_str());
 		}
 		else
 		{
@@ -317,7 +321,7 @@ int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description)
 				"Version: " MQMAIN_VERSION  "\n"
 				"Location: %s+%d (%s+%p)\n"
 				"\nCrashID: %s\n",
-				pSymbol->Name, dwDisplacement, szSymSearchPath, (void*)(pSymbol->Address - (DWORD)hModule), GetSetCrashId().c_str());
+				pSymbol->Name, dwDisplacement, szSymSearchPath, (void*)(pSymbol->Address - (DWORD)hModule), s_sessionUuid.c_str());
 		}
 	}
 	else
@@ -327,7 +331,7 @@ int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description)
 			"Version: " MQMAIN_VERSION  "\n"
 			"Location: %s+%p\n"
 			"\nCrashID: %s\n",
-			szSymSearchPath, (void*)(dwAddress - (DWORD)hModule), GetSetCrashId().c_str());
+			szSymSearchPath, (void*)(dwAddress - (DWORD)hModule), s_sessionUuid.c_str());
 	}
 
 	SymCleanup(hProcess);
@@ -471,6 +475,7 @@ void InitializeCrashHandler()
 #pragma warning(suppress: 4996)
 	buildVersionAnnotation.Set(MQMAIN_VERSION);
 	buildTimestampAnnotation.Set(__ExpectedVersionDate " " __ExpectedVersionTime);
+	SetCrashId();
 }
 
 //----------------------------------------------------------------------------
@@ -500,9 +505,6 @@ void DoCrash(SPAWNINFO* pChar, char* szLine)
 void InitializeMQ2CrashHandler()
 {
 	AddCommand("/crash", DoCrash);
-
-	s_sessionUuid.InitializeWithNew();
-	buildCrashIdAnnotation.Set(s_sessionUuid.ToString());
 }
 
 void ShutdownMQ2CrashHandler()

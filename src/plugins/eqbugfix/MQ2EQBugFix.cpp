@@ -16,22 +16,6 @@
 
 PreSetup("MQ2EQBugFix");
 
-class CDisplay_Hook
-{
-public:
-	int is_3dON_Trampoline();
-	int is_3dON_Detour()
-	{
-		if (!this)
-		{
-			DebugSpew("MQ2EQBugFix: Crash avoided in is_3dON");
-			return 0;
-		}
-		return is_3dON_Trampoline();
-	}
-};
-DETOUR_TRAMPOLINE_EMPTY(int CDisplay_Hook::is_3dON_Trampoline());
-
 // This class implementation is specifically for the bug fix.
 class CUnSerializeBuffer_BugFix
 {
@@ -65,10 +49,6 @@ PLUGIN_API void InitializePlugin()
 {
 	DebugSpewAlways("Initializing MQ2EQBugFix");
 
-	// Check against a null `this` pointer. This has been here for ages. We'ren ot even sure
-	// that this is still needed.
-	EzDetour(CDisplay__is3dON, &CDisplay_Hook::is_3dON_Detour, &CDisplay_Hook::is_3dON_Trampoline);
-
 	// Avoid a buffer over-read in CUnSerializeBuffer::GetString. This function will call strlen on
 	// a network message that may already have been read to the end, resulting in a buffer over-read.
 	// In some cases this will read past the end of the page boundary. If this happens, and the next
@@ -83,6 +63,21 @@ PLUGIN_API void ShutdownPlugin()
 {
 	DebugSpewAlways("Shutting down MQ2EQBugFix");
 
-	RemoveDetour(CDisplay__is3dON);
 	RemoveDetour(CUnSerializeBuffer__GetString);
+}
+
+PLUGIN_API void OnPulse()
+{
+	if (gGameState == GAMESTATE_INGAME)
+	{
+		// If an ItemLocation is set on the CastingData, a Label might try to
+		// render its name. If the item doesn't exist, it'll crash.
+		if (pLocalPC && pLocalPC->me->CastingData.ItemLocation.IsValidIndex())
+		{
+			if (pLocalPC->GetItemByGlobalIndex(pLocalPC->me->CastingData.ItemLocation) == nullptr)
+			{
+				pLocalPC->me->CastingData.ItemLocation = ItemGlobalIndex();
+			}
+		}
+	}
 }
