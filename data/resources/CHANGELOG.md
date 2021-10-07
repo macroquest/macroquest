@@ -1,3 +1,6 @@
+October 7, 2021:
+- eqbugfix: Possible fix for "Mage" crash when casting spells from items.
+
 October 5, 2021:
 - Improved buff removal handling (#182).
 - plugins: Added RemoveBuffByName, RemoveBuffBySpellID
