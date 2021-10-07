@@ -65,3 +65,19 @@ PLUGIN_API void ShutdownPlugin()
 
 	RemoveDetour(CUnSerializeBuffer__GetString);
 }
+
+PLUGIN_API void OnPulse()
+{
+	if (gGameState == GAMESTATE_INGAME)
+	{
+		// If an ItemLocation is set on the CastingData, a Label might try to
+		// render its name. If the item doesn't exist, it'll crash.
+		if (pLocalPC && pLocalPC->me->CastingData.ItemLocation.IsValidIndex())
+		{
+			if (pLocalPC->GetItemByGlobalIndex(pLocalPC->me->CastingData.ItemLocation) == nullptr)
+			{
+				pLocalPC->me->CastingData.ItemLocation = ItemGlobalIndex();
+			}
+		}
+	}
+}
