@@ -31,7 +31,7 @@
 #include <fmt/format.h>
 #include <atomic>
 #include <vector>
-
+#include <wil/com.h>
 
 namespace mq {
 
@@ -263,7 +263,7 @@ static void Renderer_UpdateScene()
 
 	// Perform the render within a stateblock so we don't upset the rest
 	// of the rendering pipeline
-	IDirect3DStateBlock9* stateBlock = nullptr;
+	wil::com_ptr_nothrow<IDirect3DStateBlock9> stateBlock;
 	gpD3D9Device->CreateStateBlock(D3DSBT_ALL, &stateBlock);
 
 	for (const auto& pCallbacks : s_renderCallbacks)
@@ -275,7 +275,6 @@ static void Renderer_UpdateScene()
 	}
 
 	stateBlock->Apply();
-	stateBlock->Release();
 }
 
 //============================================================================
@@ -313,15 +312,13 @@ static bool IsFullScreen(IDirect3DDevice9* device)
 
 	// Detect full screen and disable viewports if we're in full screen mode.
 	bool fullscreen = true;
-	IDirect3DSwapChain9* pSwapChain = nullptr;
-	if (SUCCEEDED(device->GetSwapChain(0, &pSwapChain)) && pSwapChain)
+	wil::com_ptr_nothrow<IDirect3DSwapChain9> pSwapChain;
+	if (SUCCEEDED(device->GetSwapChain(0, &pSwapChain)) && pSwapChain != nullptr)
 	{
 		D3DPRESENT_PARAMETERS params;
 		pSwapChain->GetPresentParameters(&params);
 
 		fullscreen = !params.Windowed;
-
-		pSwapChain->Release();
 	}
 
 	return fullscreen;
@@ -462,18 +459,16 @@ public:
 		bool isMainRenderTarget = false;
 
 		// Make sure that we're hooking the main render target
-		IDirect3DSurface9* backBuffer = nullptr;
+		wil::com_ptr_nothrow<IDirect3DSurface9> backBuffer;
 		HRESULT hr = gpD3D9Device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
 		if (hr == D3D_OK)
 		{
-			IDirect3DSurface9* renderTarget = nullptr;
+			wil::com_ptr_nothrow<IDirect3DSurface9> renderTarget = nullptr;
 			HRESULT hr = gpD3D9Device->GetRenderTarget(0, &renderTarget);
 			if (hr == D3D_OK)
 			{
 				isMainRenderTarget = renderTarget == backBuffer;
-				renderTarget->Release();
 			}
-			backBuffer->Release();
 		}
 
 		sbInEndSceneDetour = true;
@@ -761,7 +756,7 @@ static bool InstallD3D9Hooks()
 			return false;
 		}
 
-		IDirect3D9Ex* d3d9ex;
+		wil::com_ptr_nothrow<IDirect3D9Ex> d3d9ex;
 		HRESULT hResult = (*d3d9CreateEx)(D3D_SDK_VERSION, &d3d9ex);
 
 		if (!SUCCEEDED(hResult))
@@ -782,7 +777,7 @@ static bool InstallD3D9Hooks()
 		// For some reason, CreateDeviceEx seems to tamper with it.
 		int round = fegetround();
 
-		IDirect3DDevice9* device = nullptr;
+		wil::com_ptr_nothrow<IDirect3DDevice9> device;
 		hResult = d3d9ex->CreateDeviceEx(
 			D3DADAPTER_DEFAULT,
 			D3DDEVTYPE_NULLREF,
@@ -802,23 +797,16 @@ static bool InstallD3D9Hooks()
 			success = true;
 
 			// IDirect3DDevice9 virtual function hooks
-			DWORD* d3dDevice_vftable = *(DWORD**)device;
+			DWORD* d3dDevice_vftable = *(DWORD**)device.get();
 
 			InstallDetour(d3dDevice_vftable[0x29], &RenderHooks::BeginScene_Detour,
 				&RenderHooks::BeginScene_Trampoline, "d3dDevice_BeginScene");
 			InstallDetour(d3dDevice_vftable[0x2a], &RenderHooks::EndScene_Detour,
 				&RenderHooks::EndScene_Trampoline, "d3dDevice_EndScene");
-
-			device->Release();
 		}
 
 		// restore floating point rounding state
 		fesetround(round);
-
-		if (d3d9ex)
-		{
-			d3d9ex->Release();
-		}
 	}
 
 	return success;
@@ -868,7 +856,7 @@ class ImGuiRenderDebug
 
 	struct RenderTargetInfo
 	{
-		IDirect3DTexture9* texture = nullptr;
+		wil::com_ptr_nothrow<IDirect3DTexture9> texture;
 
 		void* surface = nullptr;         // just the address of the target surface
 		bool isBackBuffer = false;
@@ -883,8 +871,6 @@ class ImGuiRenderDebug
 
 		~RenderTargetInfo()
 		{
-			if (texture != nullptr)
-				texture->Release();
 		}
 	};
 	std::vector<RenderTargetInfo> m_renderTargets;
@@ -918,6 +904,43 @@ public:
 		for (RenderTargetInfo& info : m_renderTargets)
 		{
 			info.active = false;
+		}
+	}
+
+	void DrawSurfaceTexture(ImTextureID my_tex_id, float my_tex_w, float my_tex_h)
+	{
+		auto& io = ImGui::GetIO();
+		ImVec2 pos = ImGui::GetCursorScreenPos();
+		ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);   // No tint
+		ImVec4 border_col = ImVec4(1.0f, 1.0f, 1.0f, 0.5f); // 50% opaque white
+		const float preview_w = std::min(my_tex_w, 256.f);
+		const float preview_h = (preview_w / my_tex_w) * my_tex_h;
+		ImGui::Image(my_tex_id, ImVec2(preview_w, preview_h), ImVec2(0, 0), ImVec2(1, 1), tint_col,
+			border_col);
+		float region_sz = 256.0f;
+
+		if (ImGui::IsItemHovered()
+			&& my_tex_w >= region_sz
+			&& my_tex_h >= region_sz)
+		{
+			ImGui::BeginTooltip();
+
+			float region_x = ((io.MousePos.x - pos.x) * (my_tex_w / preview_w)) - region_sz * 0.5f;
+			float region_y = ((io.MousePos.y - pos.y) * (my_tex_h / preview_h)) - region_sz * 0.5f;
+
+			if (region_x < 0.0f) { region_x = 0.0f; }
+			else if (region_x > my_tex_w - region_sz) { region_x = my_tex_w - region_sz; }
+			if (region_y < 0.0f) { region_y = 0.0f; }
+			else if (region_y > my_tex_h - region_sz) { region_y = my_tex_h - region_sz; }
+
+			ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
+			ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
+			ImVec2 uv0 = ImVec2((region_x + 0) / my_tex_w, (region_y + 0) / my_tex_h);
+			ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
+
+			float zoom = 1.0f;
+			ImGui::Image(my_tex_id, ImVec2(region_sz * zoom, region_sz * zoom), uv0, uv1, tint_col, border_col);
+			ImGui::EndTooltip();
 		}
 	}
 
@@ -966,41 +989,7 @@ public:
 
 				if (info.texture)
 				{
-					ImTextureID my_tex_id = (ImTextureID)info.texture;
-					ImVec2 pos = ImGui::GetCursorScreenPos();
-					float my_tex_w = (float)info.surfaceDesc.Width;
-					float my_tex_h = (float)info.surfaceDesc.Height;
-					ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);   // No tint
-					ImVec4 border_col = ImVec4(1.0f, 1.0f, 1.0f, 0.5f); // 50% opaque white
-					const float preview_w = std::min(my_tex_w, 256.f);
-					const float preview_h = (preview_w / my_tex_w) * my_tex_h;
-					ImGui::Image(my_tex_id, ImVec2(preview_w, preview_h), ImVec2(0, 0), ImVec2(1, 1), tint_col,
-						border_col);
-					float region_sz = 256.0f;
-
-					if (ImGui::IsItemHovered()
-						&& my_tex_w >= region_sz
-						&& my_tex_h >= region_sz)
-					{
-						ImGui::BeginTooltip();
-
-						float region_x = ((io.MousePos.x - pos.x) * (my_tex_w / preview_w)) - region_sz * 0.5f;
-						float region_y = ((io.MousePos.y - pos.y) * (my_tex_h / preview_h)) - region_sz * 0.5f;
-
-						if (region_x < 0.0f) { region_x = 0.0f; }
-						else if (region_x > my_tex_w - region_sz) { region_x = my_tex_w - region_sz; }
-						if (region_y < 0.0f) { region_y = 0.0f; }
-						else if (region_y > my_tex_h - region_sz) { region_y = my_tex_h - region_sz; }
-
-						ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
-						ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
-						ImVec2 uv0 = ImVec2((region_x + 0) / my_tex_w, (region_y + 0) / my_tex_h);
-						ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
-
-						float zoom = 1.0f;
-						ImGui::Image(my_tex_id, ImVec2(region_sz * zoom, region_sz * zoom), uv0, uv1, tint_col, border_col);
-						ImGui::EndTooltip();
-					}
+					DrawSurfaceTexture((ImTextureID)info.texture.get(), (float)info.surfaceDesc.Width, (float)info.surfaceDesc.Height);
 				}
 			}
 		}
@@ -1031,9 +1020,9 @@ public:
 		return &m_renderTargets[m_renderTargets.size() - 1];
 	}
 
-	void UpdateSurface(IDirect3DSurface9* surface, bool backBuffer)
+	void UpdateSurface(const wil::com_ptr_nothrow<IDirect3DSurface9>& surface, bool backBuffer)
 	{
-		RenderTargetInfo* info = GetRenderTargetInfo(surface);
+		RenderTargetInfo* info = GetRenderTargetInfo(surface.get());
 		info->isBackBuffer = backBuffer;
 		if (info->active)
 			return; // already processed this surface this frame
@@ -1052,16 +1041,14 @@ public:
 		}
 		// should have texture now.
 
-		IDirect3DSurface9* texSurface = nullptr;
+		wil::com_ptr_nothrow<IDirect3DSurface9> texSurface;
 		hr = info->texture->GetSurfaceLevel(0, &texSurface);
 		info->status = hr;
 		if (hr != S_OK)
 			return;
 
-		hr = gpD3D9Device->StretchRect(surface, nullptr, texSurface, nullptr, D3DTEXF_LINEAR);
+		hr = gpD3D9Device->StretchRect(surface.get(), nullptr, texSurface.get(), nullptr, D3DTEXF_LINEAR);
 		info->status = hr;
-
-		texSurface->Release();
 	}
 
 	void UpdateRenderTargets()
@@ -1072,43 +1059,38 @@ public:
 		gpD3D9Device->GetDeviceCaps(&s_caps);
 		for (int i = 0; i < (int)s_caps.NumSimultaneousRTs; ++i)
 		{
-			IDirect3DSurface9* surface = nullptr;
+			wil::com_ptr_nothrow<IDirect3DSurface9> surface;
 
 			HRESULT hr = gpD3D9Device->GetRenderTarget(i, &surface);
 			if (hr == S_OK)
 			{
 				UpdateSurface(surface, false);
-				surface->Release();
 			}
 		}
 
 		UINT numSwapchains = gpD3D9Device->GetNumberOfSwapChains();
 		for (UINT i = 0; i < numSwapchains; ++i)
 		{
-			IDirect3DSwapChain9* swapChain = nullptr;
+			wil::com_ptr_nothrow<IDirect3DSwapChain9> swapChain = nullptr;
 
 			HRESULT hr = gpD3D9Device->GetSwapChain(i, &swapChain);
 			if (hr == S_OK)
 			{
-				IDirect3DSurface9* surface = nullptr;
+				wil::com_ptr_nothrow<IDirect3DSurface9> surface;
 				hr = swapChain->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &surface);
 
 				if (hr == S_OK)
 				{
 					UpdateSurface(surface, false);
-					surface->Release();
 				}
-
-				swapChain->Release();
 			}
 		}
 
-		IDirect3DSurface9* surface = nullptr;
+		wil::com_ptr_nothrow<IDirect3DSurface9> surface;
 		HRESULT hr = gpD3D9Device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &surface);
 		if (hr == S_OK)
 		{
 			UpdateSurface(surface, true);
-			surface->Release();
 		}
 	}
 };
