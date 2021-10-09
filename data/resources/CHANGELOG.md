@@ -1,3 +1,15 @@
+October 9, 2021:
+- Upgrade ImGui to 1.84 with new font renderer (FreeType) enabled
+- overlay: VIEWPORTS feature is now OFF by default. Visit the overlay settings (/mqsettings)
+  to turn it on.
+- overlay: Implemented new revision of the ImGui overlay, hopefully squashing a bunch of
+  issues and not creating very many new ones...
+- overlay: /mqoverlay command has a couple new arguments: reload, resume, debug, stop, start
+- Fix flickering issue caused by frame limiter when rendering UI at sim rate
+- framelimiter: Restructured the framelimiter settings. Added some help tooltips too.
+- framelimiter: Moved some options to only take effect when the frame limiter is active in the background.
+- framelimiter: Added separate option for enabling frame limiting when in the foreground.
+
 October 7, 2021:
 - eqbugfix: Possible fix for "Mage" crash when casting spells from items.
 

@@ -31,6 +31,8 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
+#include <filesystem>
+
 
 namespace mq {
 namespace imgui {
@@ -71,24 +73,18 @@ void ConfigureDefaultFont(ImFontAtlas* atlas)
 	atlas->AddFontFromMemoryCompressedTTF(GetMaterialIconsCompressedData(), GetMaterialIconsCompressedSize(), 16.0f, &mdConfig, md_icon_ranges);
 
 	// console font: Lucida Console @ 13px
-	ImFontConfig consoleFontConfig;
-	consoleFontConfig.OversampleH = consoleFontConfig.OversampleV = 3;
-	ConsoleFont = atlas->AddFontFromFileTTF(R"(c:\windows\fonts\lucon.ttf)", 13.0f, &consoleFontConfig);
-
-	// TODO: Provide some options
-#if 0
-	if (!ConsoleFont)
+	std::error_code ec;
+	std::string consoleFont = R"(c:\windows\fonts\lucon.ttf)";
+	if (std::filesystem::is_regular_file(consoleFont))
 	{
-		// console font: Roboto Mono Regular @ 16px
-		ImFontConfig rmConfig;
-		rmConfig.OversampleH = rmConfig.OversampleV = 3;
-		strcpy_s(rmConfig.Name, "RobotoMono Regular");
-		ConsoleFont = atlas->AddFontFromMemoryCompressedTTF(GetRobotoMonoRegularCompressedData(), GetRobotoMonoRegularCompressedSize(), 16.0, &rmConfig);
+		ImFontConfig consoleFontConfig;
+		consoleFontConfig.OversampleH = consoleFontConfig.OversampleV = 3;
+		ConsoleFont = atlas->AddFontFromFileTTF(R"(c:\windows\fonts\lucon.ttf)", 13.0f, &consoleFontConfig);
 	}
-
-	// console font: Proggy Clean @ 13px
-	//ConsoleFont = atlas->AddFontDefault();
-#endif
+	else
+	{
+		ConsoleFont = atlas->AddFontDefault();
+	}
 }
 
 void ConfigureLargeFont(ImFontAtlas* atlas)

@@ -1213,9 +1213,9 @@ public:
 
 		if (ImGui::BeginTable("##AltAbilityTable", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, size))
 		{
-			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed);
-			ImGui::TableSetupColumn("Category", ImGuiTableColumnFlags_WidthFixed);
-			ImGui::TableSetupColumn("Description", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupColumn("Category");
+			ImGui::TableSetupColumn("Description");
 			ImGui::TableSetupScrollFreeze(0, 1);
 			ImGui::TableHeadersRow();
 
@@ -2355,7 +2355,10 @@ class SpellsInspector : public ImGuiWindowBase
 {
 	CTextureAnimation* m_pTASpellIcon = nullptr;
 public:
-	SpellsInspector() : ImGuiWindowBase("Spells Developer Tools") {}
+	SpellsInspector() : ImGuiWindowBase("Spells Developer Tools")
+	{
+		SetDefaultSize(ImVec2(700, 400));
+	}
 
 	~SpellsInspector()
 	{
@@ -2524,8 +2527,8 @@ public:
 	int DoSpellAffectTable(const char* name, EQ_Affect* affect, int numAffects, bool showEmpty = false)
 	{
 		ImGuiTableFlags tableFlags = 0
-			| ImGuiTableFlags_SizingPolicyFixedX
-			| ImGuiTableFlags_Scroll
+			| ImGuiTableFlags_SizingFixedFit
+			| ImGuiTableFlags_ScrollY | ImGuiTableFlags_ScrollX
 			| ImGuiTableFlags_RowBg
 			| ImGuiTableFlags_Borders
 			| ImGuiTableFlags_Resizable;
@@ -2693,7 +2696,7 @@ public:
 				for (size_t i = 0; i < arrayLength; ++i)
 				{
 					EQ_Affect& buff = pcProfile->Buff[i];
-					if (buff.SpellID != 0)
+					if (buff.SpellID > 0)
 						count++;
 				}
 
@@ -2715,7 +2718,7 @@ public:
 				for (size_t i = 0; i < arrayLength; ++i)
 				{
 					EQ_Affect& buff = pcProfile->ShortBuff[i];
-					if (buff.SpellID != 0)
+					if (buff.SpellID > 0)
 						count++;
 				}
 
@@ -2787,6 +2790,7 @@ class BenchmarksInspector : public ImGuiWindowBase
 public:
 	BenchmarksInspector() : ImGuiWindowBase("Benchmarks")
 	{
+		SetDefaultSize(ImVec2(1000, 600));
 	}
 
 	void ResetLastTimes()

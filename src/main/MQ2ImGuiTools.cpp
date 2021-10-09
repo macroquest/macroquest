@@ -185,131 +185,140 @@ void DoKeybindSettings()
 {
 	ImGui::Text("Clicking a binding will allow you change it.");
 
-	char label[64];
-	sprintf_s(label, "MacroQuest Key Bindings (%d)", GetKeyBindsCount());
-
 	std::string clickedName;
 	bool clickedAlt = false;
 	bool clickedEQ = false;
 	std::string clickedCombo;
 	bool clicked = false;
 
-	if (ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::BeginTabBar("Keybinds"))
 	{
-		static int sHoveredIndex = -1;
-		static bool sHoveredAlt = false;
-		bool isAnyHovered = false;
+		char label[64];
+		sprintf_s(label, "MacroQuest Key Bindings (%d)###MQKeyBindings", GetKeyBindsCount());
 
-		if (ImGui::BeginTable("##MQKeybindTable", 3, ImGuiTableFlags_Resizable))
+		if (ImGui::BeginTabItem(label))
 		{
-			ImGui::TableSetupScrollFreeze(0, 1);
-			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
-			ImGui::TableSetupColumn("Bind", ImGuiTableColumnFlags_WidthFixed, .20f);
-			ImGui::TableSetupColumn("Alt", ImGuiTableColumnFlags_WidthFixed, .20f);
-			ImGui::TableHeadersRow();
+			static int sHoveredIndex = -1;
+			static bool sHoveredAlt = false;
+			bool isAnyHovered = false;
 
-			bool hovered = false;
-
-			EnumerateKeyBinds(
-				[&](const mq::MQKeyBind& keyBind)
+			if (ImGui::BeginTable("##MQKeybindTable", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollY))
 			{
-				char keyComboDesc[64];
+				ImGui::TableSetupScrollFreeze(0, 1);
+				ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+				ImGui::TableSetupColumn("Bind", ImGuiTableColumnFlags_WidthFixed);
+				ImGui::TableSetupColumn("Alt", ImGuiTableColumnFlags_WidthFixed);
+				ImGui::TableSetupScrollFreeze(0, 1);
+				ImGui::TableHeadersRow();
 
-				ImGui::TableNextRow();
+				bool hovered = false;
 
-				ImGui::TableNextColumn();
-				ImGui::Text(keyBind.Name.c_str());
+				EnumerateKeyBinds(
+					[&](const mq::MQKeyBind& keyBind)
+					{
+						char keyComboDesc[64];
 
-				ImGui::TableNextColumn();
+						ImGui::TableNextRow();
 
-				DescribeKeyCombo(keyBind.Normal, keyComboDesc, sizeof(keyComboDesc));
-				hovered = (sHoveredIndex == keyBind.Id && sHoveredAlt == false);
-				ImGui::TextColored(GetKeyBindColor(ci_equals("clear", keyComboDesc), hovered), "%s", keyComboDesc);
-				if (ImGui::IsItemHovered()) { sHoveredAlt = false; sHoveredIndex = keyBind.Id; isAnyHovered = true; }
-				if (ImGui::IsItemClicked()) { clickedName = keyBind.Name; clickedAlt = false; clickedEQ = false; clickedCombo = keyComboDesc; clicked = true; }
+						ImGui::TableNextColumn();
+						ImGui::Text(keyBind.Name.c_str());
 
-				ImGui::TableNextColumn();
-				DescribeKeyCombo(keyBind.Alt, keyComboDesc, sizeof(keyComboDesc));
-				hovered = (sHoveredIndex == keyBind.Id && sHoveredAlt == true);
-				ImGui::TextColored(GetKeyBindColor(ci_equals("clear", keyComboDesc), hovered), "%s", keyComboDesc);
-				if (ImGui::IsItemHovered()) { sHoveredAlt = true; sHoveredIndex = keyBind.Id; isAnyHovered = true; }
-				if (ImGui::IsItemClicked()) { clickedName = keyBind.Name; clickedAlt = true; clickedEQ = false; clickedCombo = keyComboDesc; clicked = true; }
-			});
-		}
+						ImGui::TableNextColumn();
 
-		if (!isAnyHovered)
-		{
-			sHoveredIndex = -1;
-			sHoveredAlt = false;
-		}
+						DescribeKeyCombo(keyBind.Normal, keyComboDesc, sizeof(keyComboDesc));
+						hovered = (sHoveredIndex == keyBind.Id && sHoveredAlt == false);
+						ImGui::TextColored(GetKeyBindColor(ci_equals("clear", keyComboDesc), hovered), "%s", keyComboDesc);
+						if (ImGui::IsItemHovered()) { sHoveredAlt = false; sHoveredIndex = keyBind.Id; isAnyHovered = true; }
+						if (ImGui::IsItemClicked()) { clickedName = keyBind.Name; clickedAlt = false; clickedEQ = false; clickedCombo = keyComboDesc; clicked = true; }
 
-		ImGui::EndTable();
-	}
-
-	// Count the keybinds.
-	int eqCount = 0;
-	for (auto& szEQMappableCommand : szEQMappableCommands)
-	{
-		if (szEQMappableCommand == nullptr)
-			continue;
-
-		eqCount++;
-	}
-
-	sprintf_s(label, "EverQuest Key Bindings (%d)", eqCount);
-
-	if (ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen))
-	{
-		static int sHoveredIndex = -1;
-		static bool sHoveredAlt = false;
-		bool isAnyHovered = false;
-
-		if (ImGui::BeginTable("##EQKeybindTable", 3, ImGuiTableFlags_Resizable))
-		{
-			ImGui::TableSetupScrollFreeze(0, 1);
-			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, .60f);
-			ImGui::TableSetupColumn("Bind", ImGuiTableColumnFlags_WidthFixed, .20f);
-			ImGui::TableSetupColumn("Alt", ImGuiTableColumnFlags_WidthFixed, .20f);
-			ImGui::TableHeadersRow();
-
-			bool hovered = false;
-
-			for (int i = 0; i < nEQMappableCommands; ++i)
-			{
-				if (szEQMappableCommands[i] == nullptr)
-					continue;
-
-				char keyComboDesc[64];
-
-				ImGui::TableNextRow();
-
-				ImGui::TableNextColumn();
-				ImGui::Text(szEQMappableCommands[i]);
-
-				ImGui::TableNextColumn();
-
-				DescribeKeyCombo(pKeypressHandler->NormalKey[i], keyComboDesc, sizeof(keyComboDesc));
-				hovered = (sHoveredIndex == i && sHoveredAlt == false);
-				ImGui::TextColored(GetKeyBindColor(ci_equals("clear", keyComboDesc), hovered), "%s", keyComboDesc);
-				if (ImGui::IsItemHovered()) { sHoveredAlt = false; sHoveredIndex = i; isAnyHovered = true; }
-				if (ImGui::IsItemClicked()) { clickedName = szEQMappableCommands[i]; clickedAlt = false; clickedEQ = true; clickedCombo = keyComboDesc; clicked = true; }
-
-				ImGui::TableNextColumn();
-				DescribeKeyCombo(pKeypressHandler->AltKey[i], keyComboDesc, sizeof(keyComboDesc));
-				hovered = (sHoveredIndex == i && sHoveredAlt == true);
-				ImGui::TextColored(GetKeyBindColor(ci_equals("clear", keyComboDesc), hovered), "%s", keyComboDesc);
-				if (ImGui::IsItemHovered()) { sHoveredAlt = true; sHoveredIndex = i; isAnyHovered = true; }
-				if (ImGui::IsItemClicked()) { clickedName = szEQMappableCommands[i]; clickedAlt = true; clickedEQ = true; clickedCombo = keyComboDesc; clicked = true; }
+						ImGui::TableNextColumn();
+						DescribeKeyCombo(keyBind.Alt, keyComboDesc, sizeof(keyComboDesc));
+						hovered = (sHoveredIndex == keyBind.Id && sHoveredAlt == true);
+						ImGui::TextColored(GetKeyBindColor(ci_equals("clear", keyComboDesc), hovered), "%s", keyComboDesc);
+						if (ImGui::IsItemHovered()) { sHoveredAlt = true; sHoveredIndex = keyBind.Id; isAnyHovered = true; }
+						if (ImGui::IsItemClicked()) { clickedName = keyBind.Name; clickedAlt = true; clickedEQ = false; clickedCombo = keyComboDesc; clicked = true; }
+					});
 			}
+
+			if (!isAnyHovered)
+			{
+				sHoveredIndex = -1;
+				sHoveredAlt = false;
+			}
+
+			ImGui::EndTable();
+
+			ImGui::EndTabItem();
 		}
 
-		if (!isAnyHovered)
+		// Count the keybinds.
+		int eqCount = 0;
+		for (auto& szEQMappableCommand : szEQMappableCommands)
 		{
-			sHoveredIndex = -1;
-			sHoveredAlt = false;
+			if (szEQMappableCommand == nullptr)
+				continue;
+
+			eqCount++;
+		}
+		sprintf_s(label, "EverQuest Key Bindings (%d)###EQKeyBindings", eqCount);
+
+		if (ImGui::BeginTabItem(label))
+		{
+			static int sHoveredIndex = -1;
+			static bool sHoveredAlt = false;
+			bool isAnyHovered = false;
+
+			if (ImGui::BeginTable("##EQKeybindTable", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollY))
+			{
+				ImGui::TableSetupScrollFreeze(0, 1);
+				ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+				ImGui::TableSetupColumn("Bind", ImGuiTableColumnFlags_WidthFixed);
+				ImGui::TableSetupColumn("Alt", ImGuiTableColumnFlags_WidthFixed);
+				ImGui::TableSetupScrollFreeze(0, 1);
+				ImGui::TableHeadersRow();
+
+				bool hovered = false;
+
+				for (int i = 0; i < nEQMappableCommands; ++i)
+				{
+					if (szEQMappableCommands[i] == nullptr)
+						continue;
+
+					char keyComboDesc[64];
+
+					ImGui::TableNextRow();
+
+					ImGui::TableNextColumn();
+					ImGui::Text(szEQMappableCommands[i]);
+
+					ImGui::TableNextColumn();
+
+					DescribeKeyCombo(pKeypressHandler->NormalKey[i], keyComboDesc, sizeof(keyComboDesc));
+					hovered = (sHoveredIndex == i && sHoveredAlt == false);
+					ImGui::TextColored(GetKeyBindColor(ci_equals("clear", keyComboDesc), hovered), "%s", keyComboDesc);
+					if (ImGui::IsItemHovered()) { sHoveredAlt = false; sHoveredIndex = i; isAnyHovered = true; }
+					if (ImGui::IsItemClicked()) { clickedName = szEQMappableCommands[i]; clickedAlt = false; clickedEQ = true; clickedCombo = keyComboDesc; clicked = true; }
+
+					ImGui::TableNextColumn();
+					DescribeKeyCombo(pKeypressHandler->AltKey[i], keyComboDesc, sizeof(keyComboDesc));
+					hovered = (sHoveredIndex == i && sHoveredAlt == true);
+					ImGui::TextColored(GetKeyBindColor(ci_equals("clear", keyComboDesc), hovered), "%s", keyComboDesc);
+					if (ImGui::IsItemHovered()) { sHoveredAlt = true; sHoveredIndex = i; isAnyHovered = true; }
+					if (ImGui::IsItemClicked()) { clickedName = szEQMappableCommands[i]; clickedAlt = true; clickedEQ = true; clickedCombo = keyComboDesc; clicked = true; }
+				}
+			}
+
+			if (!isAnyHovered)
+			{
+				sHoveredIndex = -1;
+				sHoveredAlt = false;
+			}
+
+			ImGui::EndTable();
+			ImGui::EndTabItem();
 		}
 
-		ImGui::EndTable();
+		ImGui::EndTabBar();
 	}
 
 	if (clicked)
@@ -331,7 +340,7 @@ static void InitializeMQ2ImGuiTools()
 
 	AddCascadeMenuItem("Settings", []() { gbShowSettingsWindow = true; }, 2);
 
-	gSettingsWindow = new imgui::ImGuiTreePanelWindow("MacroQuest Settings");
+	gSettingsWindow = new imgui::ImGuiTreePanelWindow("MacroQuest Settings", ImVec2(600, 650));
 
 	AddSettingsPanel("Key Bindings", DoKeybindSettings);
 	for (const auto& pair : s_pendingPanels)

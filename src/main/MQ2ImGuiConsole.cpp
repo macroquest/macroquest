@@ -934,6 +934,7 @@ public:
 	{
 		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar;
 
+		ImGui::SetNextWindowSize(ImVec2(640, 240), ImGuiCond_FirstUseEver);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1, 0));
 
 		if (!ImGui::Begin("MacroQuest Console", pOpen, windowFlags))
@@ -1238,11 +1239,13 @@ public:
 
 //============================================================================
 
+static ImGuiDockNodeFlags s_dockspace_flags = ImGuiDockNodeFlags_None
+	| ImGuiDockNodeFlags_NoDockingInCentralNode
+	| ImGuiDockNodeFlags_PassthruCentralNode;
+
 void DrawDockSpace(bool* p_open)
 {
-	static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None | ImGuiDockNodeFlags_NoDockingInCentralNode;
-	dockspace_flags |= ImGuiDockNodeFlags_PassthruCentralNode;
-
+	ImGuiDockNodeFlags dockspace_flags = s_dockspace_flags;
 	if (!s_dockspaceVisible)
 	{
 		dockspace_flags |= ImGuiDockNodeFlags_KeepAliveOnly;
@@ -1269,43 +1272,7 @@ void DrawDockSpace(bool* p_open)
 
 	s_dockspaceId = ImGui::GetID("Main DockSpace");
 	ImGui::DockSpace(s_dockspaceId, ImVec2(0.0f, 0.0f), dockspace_flags);
-
-	if (s_dockspaceTopSegmentId == 0)
-	{
-		//ImGuiDockNode* node = ImGui::DockBuilderGetNode(s_dockspaceId);
-
-		//if (node == nullptr || s_resetDockspace || (!node->Windows.empty() && node->ChildNodes[0] == nullptr && node->ChildNodes[1] == nullptr))
-		//{
-		//	s_resetDockspace = false;
-
-		//	// Preserve the windows
-		//	ImVector<ImGuiWindow*> Windows;
-		//	if (node)
-		//	{
-		//		Windows = node->Windows;
-		//	}
-
-		//	ImGuiViewport* viewport = ImGui::GetMainViewport();
-		//	// Reset layout
-		//	ImGui::DockBuilderRemoveNode(s_dockspaceId);
-		//	ImGui::DockBuilderAddNode(s_dockspaceId, ImGuiDockNodeFlags_DockSpace);
-		//	ImGui::DockBuilderSetNodeSize(s_dockspaceId, viewport->Size);
-
-		//	// This variable will track the document node, however we are not using it
-		//	// here as we aren't docking anything into it.
-		//	ImGuiID dock_main_id = s_dockspaceId;
-
-		//	ImGuiID dock_id_console = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Up, 0.25f, nullptr, &dock_main_id);
-		//	ImGui::DockBuilderDockWindow("MacroQuest Console", dock_id_console);
-		//	for (ImGuiWindow* window : Windows)
-		//		ImGui::DockBuilderDockWindow(window->Name, dock_id_console);
-
-		//	
-		//}
-		//ImGui::DockBuilderFinish(s_dockspaceId);
-	}
-
-	ImGui::End(); 
+	ImGui::End();
 }
 
 static void MakeColorGradient(float frequency1, float frequency2, float frequency3,
@@ -1375,15 +1342,64 @@ void UpdateImGuiConsole()
 			ImGui::SetNextWindowFocus();
 		}
 
-		if (s_resetConsolePosition)
+		ImGuiWindow* consoleWindow = ImGui::FindWindowByName("MacroQuest Console");
+		ImGuiDockNode* dockspaceNode = ImGui::DockBuilderGetNode(s_dockspaceId);
+
+		if ((s_resetConsolePosition || !consoleWindow) && dockspaceNode)
 		{
-			s_resetConsolePosition = false;
-			ImGui::SetNextWindowDockID(s_dockspaceId);
+			ImGuiDockNode* topNode = nullptr;
+
+			if (dockspaceNode->IsSplitNode())
+			{
+				if (dockspaceNode->SplitAxis == ImGuiAxis_Y)
+					topNode = dockspaceNode->ChildNodes[0];
+				else
+				{
+					// Check central node?
+					if (ImGuiDockNode* centralNode = ImGui::DockNodeGetRootNode(dockspaceNode)->CentralNode)
+					{
+						if (centralNode->IsSplitNode())
+						{
+							if (centralNode->SplitAxis == ImGuiAxis_Y)
+								topNode = centralNode->ChildNodes[0];
+						}
+						else
+						{
+							ImGuiID topId;
+							ImGui::DockBuilderSplitNode(centralNode->ID, ImGuiDir_Up, 0.30f, &topId, nullptr);
+							topNode = ImGui::DockBuilderGetNode(topId);
+						}
+					}
+				}
+
+				// reset layout
+				if (!topNode)
+				{
+					ImGui::DockBuilderRemoveNodeChildNodes(dockspaceNode->ID);
+					ImGui::DockBuilderRemoveNodeDockedWindows(dockspaceNode->ID, true);
+				}
+			}
+
+			if (!topNode)
+			{
+				ImGuiID topId;
+				ImGui::DockBuilderSplitNode(dockspaceNode->ID, ImGuiDir_Up, 0.30f, &topId, nullptr);
+				topNode = ImGui::DockBuilderGetNode(topId);
+			}
+
+			if (consoleWindow)
+			{
+				ImGui::SetWindowDock(consoleWindow, topNode->ID, ImGuiCond_Always);
+				consoleWindow->DockOrder = -1;
+			}
+			else
+			{
+				ImGui::SetNextWindowDockID(topNode->ID, ImGuiCond_FirstUseEver);
+			}
+
+			ImGui::DockBuilderFinish(s_dockspaceId);
 		}
-		else
-		{
-			ImGui::SetNextWindowDockID(s_dockspaceId, ImGuiCond_FirstUseEver);
-		}
+		s_resetConsolePosition = false;
 
 		gImGuiConsole->Draw(&s_consoleVisible);
 
