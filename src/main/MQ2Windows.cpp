@@ -2004,7 +2004,9 @@ class InvSlotInspector : public ImGuiWindowBase
 public:
 	InvSlotInspector()
 		: ImGuiWindowBase("InvSlot Inspector")
-	{}
+	{
+		SetDefaultSize(ImVec2(640, 450));
+	}
 
 	bool IsEnabled() const override
 	{

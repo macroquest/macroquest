@@ -934,6 +934,7 @@ public:
 	{
 		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar;
 
+		ImGui::SetNextWindowSize(ImVec2(640, 240), ImGuiCond_FirstUseEver);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1, 0));
 
 		if (!ImGui::Begin("MacroQuest Console", pOpen, windowFlags))

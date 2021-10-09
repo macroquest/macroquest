@@ -36,9 +36,12 @@ namespace imgui {
 
 class ImGuiTreePanelWindow
 {
+	ImVec2 m_defaultSize;
+
 public:
-	ImGuiTreePanelWindow(const char* title)
+	ImGuiTreePanelWindow(const char* title, const ImVec2& size = ImVec2(520, 600))
 		: m_title(title)
+		, m_defaultSize(size)
 	{
 	}
 
@@ -64,7 +67,7 @@ public:
 
 	void Draw(bool* pOpen)
 	{
-		ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowSize(m_defaultSize, ImGuiCond_FirstUseEver);
 		if (!ImGui::Begin(m_title.c_str(), pOpen))
 		{
 			ImGui::End();
