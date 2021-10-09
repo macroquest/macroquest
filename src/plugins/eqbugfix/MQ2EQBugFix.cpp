@@ -72,9 +72,10 @@ PLUGIN_API void OnPulse()
 	{
 		// If an ItemLocation is set on the CastingData, a Label might try to
 		// render its name. If the item doesn't exist, it'll crash.
-		if (pLocalPC && pLocalPC->me->CastingData.ItemLocation.IsValidIndex())
+		if (pLocalPC && pLocalPC->me->CastingData.SpellID != -1)
 		{
-			if (pLocalPC->GetItemByGlobalIndex(pLocalPC->me->CastingData.ItemLocation) == nullptr)
+			if (pLocalPC->me->CastingData.ItemLocation.IsValidIndex()
+				&& pLocalPC->GetItemByGlobalIndex(pLocalPC->me->CastingData.ItemLocation) == nullptr)
 			{
 				pLocalPC->me->CastingData.ItemLocation = ItemGlobalIndex();
 			}
