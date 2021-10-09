@@ -1711,6 +1711,20 @@ void ImGui_EnableViewports(bool enable)
 	}
 }
 
+void ImGui_EnableDocking(bool enable)
+{
+	ImGuiIO& io = ImGui::GetIO();
+
+	if (!enable)
+	{
+		io.ConfigFlags &= ~ImGuiConfigFlags_DockingEnable;
+	}
+	else
+	{
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	}
+}
+
 bool ImGui_IsImGuiForeground()
 {
 	if (ImGui::GetCurrentContext() == NULL)

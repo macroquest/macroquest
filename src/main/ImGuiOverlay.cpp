@@ -108,6 +108,10 @@ LRESULT  ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPAR
 
 void ImGuiRenderDebug_UpdateRenderTargets();
 
+static bool s_enableImGuiViewports = false;
+static bool s_enableImGuiDocking = true;
+static bool s_deferredClearSettings = false;
+
 //============================================================================
 // Detour helpers
 
@@ -329,8 +333,12 @@ static void InitializeImGui(IDirect3DDevice9* device)
 	if (gbInitializedImGui)
 		return;
 
+	// Enable Multi-Viewport / Platform Windows
 	gbLastFullScreenState = IsFullScreen(device);
-	ImGui_EnableViewports(!gbLastFullScreenState);                // Enable Multi-Viewport / Platform Windows
+	ImGui_EnableViewports(!gbLastFullScreenState && s_enableImGuiViewports);
+
+	// Enable Docking
+	ImGui_EnableDocking(s_enableImGuiDocking);
 
 	// Retrieve window handle from device
 	D3DDEVICE_CREATION_PARAMETERS params;
@@ -1148,9 +1156,15 @@ void CreateImGuiContext()
 	ImGui::CreateContext(s_fontAtlas);
 
 	ImGuiIO& io = ImGui::GetIO();
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;             // Enable Docking
 
 	fmt::format_to(ImGuiSettingsFile, "{}/MacroQuest_Overlay.ini", mq::internal_paths::Config);
+
+	if (s_deferredClearSettings)
+	{
+		std::error_code ec;
+		if (std::filesystem::is_regular_file(ImGuiSettingsFile, ec))
+			std::filesystem::remove(ImGuiSettingsFile, ec);
+	}
 	io.IniFilename = &ImGuiSettingsFile[0];
 
 	ImGui::StyleColorsDark();
@@ -1175,10 +1189,47 @@ void ReloadImGuiContext()
 	CreateImGuiContext();
 }
 
+static void OverlaySettings()
+{
+	//if (ImGui::Checkbox("Enable Docking", &gbEnableImGuiDocking))
+	//{
+	//	WritePrivateProfileBool("Overlay", "EnableDocking", gbEnableImGuiDocking, mq::internal_paths::MQini);
+	//	ResetOverlay();
+	//}
+
+	if (ImGui::Checkbox("Enable Viewports", &s_enableImGuiViewports))
+	{
+		WritePrivateProfileBool("Overlay", "EnableViewports", s_enableImGuiViewports, mq::internal_paths::MQini);
+		ResetOverlay();
+	}
+
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("The viewports feature allows ImGui windows to be dragged out of the window into "
+		"their own floating windows. This feature is BETA quality and has some known issues.\n"
+		"\n"
+		"Viewports are disabled when running in full screen mode.");
+
+	ImGui::NewLine();
+
+	if (ImGui::Button("Clear Saved ImGui Window Settings"))
+	{
+		s_deferredClearSettings = true;
+		gbNeedResetOverlay = true;
+	}
+}
+
 void InitializeMQ2Overlay()
 {
 	if (gbOverlayInitialized)
 		return;
+
+	s_enableImGuiViewports = GetPrivateProfileBool("Overlay", "EnableViewports", false, mq::internal_paths::MQini);
+	//gbEnableImGuiDocking = GetPrivateProfileBool("Overlay", "EnableDocking", true, mq::internal_paths::MQini);
+	if (gbWriteAllConfig)
+	{
+		WritePrivateProfileBool("Overlay", "EnableViewports", s_enableImGuiViewports, mq::internal_paths::MQini);
+		//WritePrivateProfileBool("Overlay", "EnableDocking", gbEnableImGuiDocking, mq::internal_paths::MQini);
+	}
 
 	// Intercept mouse events
 	EzDetour(__ProcessMouseEvents, ProcessMouseEvents_Detour, ProcessMouseEvents_Trampoline);
@@ -1206,6 +1257,8 @@ void InitializeMQ2Overlay()
 	s_renderCallbacksId = AddRenderCallbacks(
 		{ ImGuiRenderDebug_CreateObjects, ImGuiRenderDebug_InvalidateObjects, ImGuiRenderDebug_Render });
 
+	AddSettingsPanel("Overlay", OverlaySettings);
+
 	gbOverlayInitialized = true;
 }
 
@@ -1224,6 +1277,8 @@ void ShutdownMQ2Overlay()
 {
 	if (!gbOverlayInitialized)
 		return;
+
+	RemoveSettingsPanel("Overlay");
 
 	RemoveRenderCallbacks(s_renderCallbacksId);
 	s_renderCallbacksId = -1;
