@@ -1,8 +1,10 @@
 October 9, 2021:
 - Upgrade ImGui to 1.84 with new font renderer (FreeType) enabled
-- Implemented new revision of the ImGui overlay, hopefully squashing a bunch of
+- overlay: VIEWPORTS feature is now OFF by default. Visit the overlay settings (/mqsettings)
+  to turn it on.
+- overlay: Implemented new revision of the ImGui overlay, hopefully squashing a bunch of
   issues and not creating very many new ones...
-- /mqoverlay command has a couple new arguments: reload, resume, debug, stop, start
+- overlay: /mqoverlay command has a couple new arguments: reload, resume, debug, stop, start
 - Fix flickering issue caused by frame limiter when rendering UI at sim rate
 - framelimiter: Restructured the framelimiter settings. Added some help tooltips too.
 - framelimiter: Moved some options to only take effect when the frame limiter is active in the background.
