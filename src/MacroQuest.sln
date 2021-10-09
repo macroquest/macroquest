@@ -423,6 +423,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2War", "..\plugins\CWTN\MQ2War\MQ2War.vcxproj", "{2208D880-81DB-452F-A7F5-7FF7C6BEA648}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Unreleased", "Unreleased", "{9A14434A-67D7-410F-B312-239BD7DFA3DF}"
+	ProjectSection(SolutionItems) = preProject
+		..\plugins\CWTN\CWTNChanges.txt = ..\plugins\CWTN\CWTNChanges.txt
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Druid", "..\plugins\CWTN\Unreleased\MQ2Druid\MQ2Druid.vcxproj", "{20C24742-BAEB-4256-934A-02C7B3172433}"
 EndProject
