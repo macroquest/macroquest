@@ -399,6 +399,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Debuffs", "..\plugins\MQ2Debuffs\MQ2Debuffs.vcxproj", "{D6D73914-3D30-4DBE-984F-A18B1CB27213}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CWTN", "CWTN", "{7B0E3785-2437-4570-9FD3-57D3876EA3A6}"
+	ProjectSection(SolutionItems) = preProject
+		..\plugins\CWTN\CWTNChanges.txt = ..\plugins\CWTN\CWTNChanges.txt
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CWTNCommons", "..\plugins\CWTN\CWTNCommons\CWTNCommons.vcxproj", "{4FAA37C1-3D7E-4048-8DD8-F80F1052735F}"
 EndProject
@@ -423,9 +426,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2War", "..\plugins\CWTN\MQ2War\MQ2War.vcxproj", "{2208D880-81DB-452F-A7F5-7FF7C6BEA648}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Unreleased", "Unreleased", "{9A14434A-67D7-410F-B312-239BD7DFA3DF}"
-	ProjectSection(SolutionItems) = preProject
-		..\plugins\CWTN\CWTNChanges.txt = ..\plugins\CWTN\CWTNChanges.txt
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Druid", "..\plugins\CWTN\Unreleased\MQ2Druid\MQ2Druid.vcxproj", "{20C24742-BAEB-4256-934A-02C7B3172433}"
 EndProject
@@ -468,6 +468,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQItemColor", "..\plugins\MQItemColor\MQItemColor.vcxproj", "{4F34F777-3BE6-445F-B0D7-275FA05766CC}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2GroundSpawns", "..\plugins\CWTN\MQ2GroundSpawns\MQ2GroundSpawns.vcxproj", "{5B1E3E66-8D45-4558-AA38-FEA0B25338D3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4FAA37C1-3D7E-4048-8DD8-F80F1052735F} = {4FAA37C1-3D7E-4048-8DD8-F80F1052735F}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2LootManager", "..\plugins\MQ2LootManager\MQ2LootManager.vcxproj", "{C66293EF-B4D9-4570-BED9-6FE3165778EE}"
 EndProject
