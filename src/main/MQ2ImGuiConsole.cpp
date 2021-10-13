@@ -1481,7 +1481,7 @@ void InitializeImGuiConsole()
 		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
 	}
 
-	AddSettingsPanel("MQ Console", ConsoleSettings);
+	AddSettingsPanel("Console", ConsoleSettings);
 
 	gImGuiConsole = new ImGuiConsole();
 	AddCommand("/mqconsole", MQConsoleCommand);
@@ -1492,7 +1492,7 @@ void ShutdownImGuiConsole()
 	delete gImGuiConsole;
 	gImGuiConsole = nullptr;
 
-	RemoveSettingsPanel("MQ Console");
+	RemoveSettingsPanel("Console");
 	RemoveCommand("/mqconsole");
 }
 
