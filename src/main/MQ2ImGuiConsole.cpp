@@ -1454,10 +1454,10 @@ void MQConsoleCommand(SPAWNINFO* pChar, char* Line)
 
 static void ConsoleSettings()
 {
-	if (ImGui::Checkbox("Show Console on Load", &s_consoleVisible))
+	if (ImGui::Checkbox("Show Console on Load", &s_dockspaceVisible))
 	{
-		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisible, mq::internal_paths::MQini);
-		ResetOverlay();
+		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_dockspaceVisible, mq::internal_paths::MQini);
+
 	}
 
 	ImGui::SameLine();
