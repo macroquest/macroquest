@@ -59,6 +59,7 @@ static const int s_userColorFactionLink = USERCOLOR_FACTION_LINK;
 
 static bool s_dockspaceVisible = true;
 static bool s_consoleVisible = false;
+static bool s_consoleVisibleOnStartup = false;
 static bool s_resetConsolePosition = false;
 static bool s_setFocus = false;
 
@@ -1452,13 +1453,35 @@ void MQConsoleCommand(SPAWNINFO* pChar, char* Line)
 	WriteChatf("  Commands: clear, toggle, show, hide");
 }
 
+static void ConsoleSettings()
+{
+	if (ImGui::Checkbox("Show Console on Load", &s_consoleVisibleOnStartup))
+	{
+		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
+	}
+
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("This feature allows you to automatically show the MacroQuest Console upon load.");
+
+	ImGui::NewLine();
+
+	if (ImGui::Button("Clear Saved Console Settings"))
+	{
+		s_consoleVisibleOnStartup = false;
+		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
+	}
+}
+
 void InitializeImGuiConsole()
 {
-	s_consoleVisible = GetPrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", false, mq::internal_paths::MQini);
+	s_consoleVisibleOnStartup = GetPrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", false, mq::internal_paths::MQini);
+	s_consoleVisible = s_consoleVisibleOnStartup;
 	if (gbWriteAllConfig)
 	{
-		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisible, mq::internal_paths::MQini);
+		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
 	}
+
+	AddSettingsPanel("Console", ConsoleSettings);
 
 	gImGuiConsole = new ImGuiConsole();
 	AddCommand("/mqconsole", MQConsoleCommand);
@@ -1469,6 +1492,7 @@ void ShutdownImGuiConsole()
 	delete gImGuiConsole;
 	gImGuiConsole = nullptr;
 
+	RemoveSettingsPanel("Console");
 	RemoveCommand("/mqconsole");
 }
 
