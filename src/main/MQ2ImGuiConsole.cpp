@@ -1465,7 +1465,7 @@ static void ConsoleSettings()
 
 	ImGui::NewLine();
 
-	if (ImGui::Button("Clear Saved MQ Console Settings"))
+	if (ImGui::Button("Clear Saved Console Settings"))
 	{
 		s_consoleVisibleOnStartup = false;
 		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
