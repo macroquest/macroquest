@@ -1452,6 +1452,26 @@ void MQConsoleCommand(SPAWNINFO* pChar, char* Line)
 	WriteChatf("  Commands: clear, toggle, show, hide");
 }
 
+static void ConsoleSettings()
+{
+	if (ImGui::Checkbox("Show Console on Load", &s_consoleVisible))
+	{
+		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisible, mq::internal_paths::MQini);
+		ResetOverlay();
+	}
+
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("This feature allows you to automatically show the MacroQuest Console upon load.");
+
+	ImGui::NewLine();
+
+	if (ImGui::Button("Clear Saved MQ Console Settings"))
+	{
+		s_consoleVisible = false;
+		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisible, mq::internal_paths::MQini);
+	}
+}
+
 void InitializeImGuiConsole()
 {
 	s_consoleVisible = GetPrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", false, mq::internal_paths::MQini);
@@ -1459,6 +1479,8 @@ void InitializeImGuiConsole()
 	{
 		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisible, mq::internal_paths::MQini);
 	}
+
+	AddSettingsPanel("MQ Console", ConsoleSettings);
 
 	gImGuiConsole = new ImGuiConsole();
 	AddCommand("/mqconsole", MQConsoleCommand);
@@ -1469,6 +1491,7 @@ void ShutdownImGuiConsole()
 	delete gImGuiConsole;
 	gImGuiConsole = nullptr;
 
+	RemoveSettingsPanel("MQ Console");
 	RemoveCommand("/mqconsole");
 }
 
