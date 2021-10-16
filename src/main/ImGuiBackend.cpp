@@ -18,6 +18,7 @@
 #include "ImGuiManager.h"
 #include "../common/Common.h"
 
+#include <wil/com.h>
 #include <imgui.h>
 #include <d3d9.h>
 
@@ -94,18 +95,15 @@ extern "C" HINSTANCE ghInstance;
 
 struct ImGui_ImplDX9_Data
 {
-	LPDIRECT3DDEVICE9       pd3dDevice;
-	LPDIRECT3DVERTEXBUFFER9 pVB;
-	LPDIRECT3DINDEXBUFFER9  pIB;
-	LPDIRECT3DTEXTURE9      FontTexture;
-	int                     VertexBufferSize;
-	int                     IndexBufferSize;
+	wil::com_ptr_nothrow<IDirect3DDevice9>         pd3dDevice;
+	wil::com_ptr_nothrow<IDirect3DVertexBuffer9>   pVB;
+	wil::com_ptr_nothrow<IDirect3DIndexBuffer9>    pIB;
+	wil::com_ptr_nothrow<IDirect3DTexture9>        FontTexture;
+	int                                            VertexBufferSize = 5000;
+	int                                            IndexBufferSize = 10000;
 
 	ImGui_ImplDX9_Data()
 	{
-		memset(this, 0, sizeof(ImGui_ImplDX9_Data));
-		VertexBufferSize = 5000;
-		IndexBufferSize = 10000;
 	}
 };
 
@@ -218,31 +216,36 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* drawData)
 	ImGui_ImplDX9_Data* bd = ImGui_ImplDX9_GetBackendData();
 	if (!bd->pVB || bd->VertexBufferSize < drawData->TotalVtxCount)
 	{
-		if (bd->pVB) { bd->pVB->Release(); bd->pVB = nullptr; }
-
 		bd->VertexBufferSize = drawData->TotalVtxCount + 5000;
-		if (bd->pd3dDevice->CreateVertexBuffer(bd->VertexBufferSize * sizeof(CUSTOMVERTEX), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_CUSTOMVERTEX, D3DPOOL_DEFAULT, &bd->pVB, nullptr) < 0)
+
+		if (bd->pd3dDevice->CreateVertexBuffer(
+			bd->VertexBufferSize * sizeof(CUSTOMVERTEX),
+			D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY,
+			D3DFVF_CUSTOMVERTEX, D3DPOOL_DEFAULT, &bd->pVB, nullptr) < 0)
+		{
 			return;
+		}
 	}
 
 	if (!bd->pIB || bd->IndexBufferSize < drawData->TotalIdxCount)
 	{
-		if (bd->pIB) { bd->pIB->Release(); bd->pIB = nullptr; }
-
 		bd->IndexBufferSize = drawData->TotalIdxCount + 10000;
-		if (bd->pd3dDevice->CreateIndexBuffer(bd->IndexBufferSize * sizeof(ImDrawIdx), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, sizeof(ImDrawIdx) == 2 ? D3DFMT_INDEX16 : D3DFMT_INDEX32, D3DPOOL_DEFAULT, &bd->pIB, nullptr) < 0)
+
+		if (bd->pd3dDevice->CreateIndexBuffer(
+			bd->IndexBufferSize * sizeof(ImDrawIdx),
+			D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY,
+			sizeof(ImDrawIdx) == 2 ? D3DFMT_INDEX16 : D3DFMT_INDEX32, D3DPOOL_DEFAULT, &bd->pIB, nullptr) < 0)
+		{
 			return;
+		}
 	}
 
 	// Backup the DX9 state
-	IDirect3DStateBlock9* d3d9StateBlock = nullptr;
+	wil::com_ptr_nothrow<IDirect3DStateBlock9> d3d9StateBlock;
 	if (bd->pd3dDevice->CreateStateBlock(D3DSBT_ALL, &d3d9StateBlock) < 0)
 		return;
 	if (d3d9StateBlock->Capture() < 0)
-	{
-		d3d9StateBlock->Release();
 		return;
-	}
 
 	// Backup the DX9 transform (DX9 documentation suggests that it is included in the StateBlock but it doesn't appear to)
 	D3DMATRIX lastWorld, lastView, lastProjection;
@@ -254,14 +257,11 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* drawData)
 	CUSTOMVERTEX* vtxDst;
 	ImDrawIdx* idxDst;
 	if (bd->pVB->Lock(0, (UINT)(drawData->TotalVtxCount * sizeof(CUSTOMVERTEX)), (void**)&vtxDst, D3DLOCK_DISCARD) < 0)
-	{
-		d3d9StateBlock->Release();
 		return;
-	}
+
 	if (bd->pIB->Lock(0, (UINT)(drawData->TotalIdxCount * sizeof(ImDrawIdx)), (void**)&idxDst, D3DLOCK_DISCARD) < 0)
 	{
 		bd->pVB->Unlock();
-		d3d9StateBlock->Release();
 		return;
 	}
 
@@ -292,8 +292,8 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* drawData)
 
 	bd->pVB->Unlock();
 	bd->pIB->Unlock();
-	bd->pd3dDevice->SetStreamSource(0, bd->pVB, 0, sizeof(CUSTOMVERTEX));
-	bd->pd3dDevice->SetIndices(bd->pIB);
+	bd->pd3dDevice->SetStreamSource(0, bd->pVB.get(), 0, sizeof(CUSTOMVERTEX));
+	bd->pd3dDevice->SetIndices(bd->pIB.get());
 	bd->pd3dDevice->SetFVF(D3DFVF_CUSTOMVERTEX);
 
 	// Setup desired DX state
@@ -352,7 +352,6 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* drawData)
 
 	// Restore the DX9 state
 	d3d9StateBlock->Apply();
-	d3d9StateBlock->Release();
 }
 
 bool ImGui_ImplDX9_Init(IDirect3DDevice9* device)
@@ -361,14 +360,13 @@ bool ImGui_ImplDX9_Init(IDirect3DDevice9* device)
 	IM_ASSERT(io.BackendRendererUserData == nullptr && "Already initialized a renderer backend!");
 
 	// Setup back-end capabilities flags
-	ImGui_ImplDX9_Data* bd = IM_NEW(ImGui_ImplDX9_Data)();
+	ImGui_ImplDX9_Data* bd = new ImGui_ImplDX9_Data();
 	io.BackendRendererUserData = (void*)bd;
 	io.BackendRendererName = "imgui_impl_dx9";
 	io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;  // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
 	io.BackendFlags |= ImGuiBackendFlags_RendererHasViewports;  // We can create multi-viewports on the Renderer side (optional)
 
 	bd->pd3dDevice = device;
-	bd->pd3dDevice->AddRef();
 
 	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		ImGui_ImplDX9_InitPlatformInterface();
@@ -387,10 +385,10 @@ void ImGui_ImplDX9_Shutdown()
 
 	ImGui_ImplDX9_ShutdownPlatformInterface();
 	ImGui_ImplDX9_InvalidateDeviceObjects();
-	if (bd->pd3dDevice) { bd->pd3dDevice->Release(); }
+
 	io.BackendRendererName = nullptr;
 	io.BackendRendererUserData = nullptr;
-	IM_DELETE(bd);
+	delete bd;
 }
 
 bool ImGui_ImplDX9_CreateFontsTexture()
@@ -415,18 +413,19 @@ bool ImGui_ImplDX9_CreateFontsTexture()
 #endif
 
 	// Upload texture to graphics system
-	bd->FontTexture = nullptr;
 	if (bd->pd3dDevice->CreateTexture(width, height, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &bd->FontTexture, nullptr) < 0)
 		return false;
+
 	D3DLOCKED_RECT tex_locked_rect;
 	if (bd->FontTexture->LockRect(0, &tex_locked_rect, nullptr, 0) != D3D_OK)
 		return false;
+
 	for (int y = 0; y < height; y++)
 		memcpy((unsigned char*)tex_locked_rect.pBits + (size_t)tex_locked_rect.Pitch * y, pixels + (size_t)width * bytes_per_pixel * y, (size_t)width * bytes_per_pixel);
 	bd->FontTexture->UnlockRect(0);
 
 	// Store our identifier
-	io.Fonts->SetTexID((ImTextureID)bd->FontTexture);
+	io.Fonts->SetTexID((ImTextureID)bd->FontTexture.get());
 
 #ifndef IMGUI_USE_BGRA_PACKED_COLOR
 	if (io.Fonts->TexPixelsUseColors)
@@ -450,20 +449,15 @@ bool ImGui_ImplDX9_CreateDeviceObjects()
 void ImGui_ImplDX9_InvalidateDeviceObjects()
 {
 	ImGui_ImplDX9_Data* bd = ImGui_ImplDX9_GetBackendData();
-	if (!bd || !bd->pd3dDevice)
-		return;
-
-	if (bd->pVB) { bd->pVB->Release(); bd->pVB = nullptr; }
-	if (bd->pIB) { bd->pIB->Release(); bd->pIB = nullptr; }
-
-	if (bd->FontTexture)
+	if (bd)
 	{
-		bd->FontTexture->Release();
-		bd->FontTexture = nullptr;
-
-		// We copied g_pFontTextureView to io.Fonts->TexID so let's clear that as well.
-		ImGui::GetIO().Fonts->SetTexID(nullptr);
+		bd->pVB.reset();
+		bd->pIB.reset();
+		bd->FontTexture.reset();
 	}
+
+	// We copied g_pFontTextureView to io.Fonts->TexID so let's clear that as well.
+	ImGui::GetIO().Fonts->SetTexID(nullptr);
 
 	ImGui_ImplDX9_InvalidateDeviceObjectsForPlatformWindows();
 }
@@ -490,17 +484,17 @@ void ImGui_ImplDX9_NewFrame()
 
 struct ImGuiViewportDataDx9
 {
-	IDirect3DSwapChain9* SwapChain;
+	wil::com_ptr_nothrow<IDirect3DSwapChain9> SwapChain;
 	D3DPRESENT_PARAMETERS   d3dpp;
 
-	ImGuiViewportDataDx9() { SwapChain = nullptr; ZeroMemory(&d3dpp, sizeof(D3DPRESENT_PARAMETERS)); }
+	ImGuiViewportDataDx9() { ZeroMemory(&d3dpp, sizeof(D3DPRESENT_PARAMETERS)); }
 	~ImGuiViewportDataDx9() { IM_ASSERT(SwapChain == nullptr); }
 };
 
 static void ImGui_ImplDX9_CreateWindow(ImGuiViewport* viewport)
 {
 	ImGui_ImplDX9_Data* bd = ImGui_ImplDX9_GetBackendData();
-	ImGuiViewportDataDx9* vd = IM_NEW(ImGuiViewportDataDx9)();
+	ImGuiViewportDataDx9* vd = new ImGuiViewportDataDx9();
 	viewport->RendererUserData = vd;
 
 	// PlatformHandleRaw should always be a HWND, whereas PlatformHandle might be a higher-level handle (e.g. GLFWWindow*, SDL_Window*).
@@ -527,15 +521,9 @@ static void ImGui_ImplDX9_CreateWindow(ImGuiViewport* viewport)
 static void ImGui_ImplDX9_DestroyWindow(ImGuiViewport* viewport)
 {
 	// The main viewport (owned by the application) will always have RendererUserData == NULL since we didn't create the data for it.
-	if (ImGuiViewportDataDx9* vd = (ImGuiViewportDataDx9*)viewport->RendererUserData)
-	{
-		if (vd->SwapChain)
-			vd->SwapChain->Release();
-
-		vd->SwapChain = nullptr;
-		ZeroMemory(&vd->d3dpp, sizeof(D3DPRESENT_PARAMETERS));
-		IM_DELETE(vd);
-	}
+	ImGuiViewportDataDx9* vd = (ImGuiViewportDataDx9*)viewport->RendererUserData;
+	if (vd) vd->SwapChain.reset();
+	delete vd;
 
 	viewport->RendererUserData = nullptr;
 }
@@ -556,8 +544,7 @@ static void ImGui_ImplDX9_SetWindowSize(ImGuiViewport* viewport, ImVec2 size)
 
 		if (hr == D3D_OK)
 		{
-			vd->SwapChain->Release();
-			vd->SwapChain = std::exchange(newData.SwapChain, nullptr);
+			vd->SwapChain = std::move(newData.SwapChain);
 			vd->d3dpp = newData.d3dpp;
 		}
 	}
@@ -569,13 +556,14 @@ static void ImGui_ImplDX9_RenderWindow(ImGuiViewport* viewport, void*)
 	ImGuiViewportDataDx9* vd = (ImGuiViewportDataDx9*)viewport->RendererUserData;
 	ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
 
-	LPDIRECT3DSURFACE9 render_target = nullptr;
-	LPDIRECT3DSURFACE9 last_render_target = nullptr;
-	LPDIRECT3DSURFACE9 last_depth_stencil = nullptr;
+	wil::com_ptr_nothrow<IDirect3DSurface9> render_target;
+	wil::com_ptr_nothrow<IDirect3DSurface9> last_render_target;
+	wil::com_ptr_nothrow<IDirect3DSurface9> last_depth_stencil;
+
 	vd->SwapChain->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &render_target);
 	bd->pd3dDevice->GetRenderTarget(0, &last_render_target);
 	bd->pd3dDevice->GetDepthStencilSurface(&last_depth_stencil);
-	bd->pd3dDevice->SetRenderTarget(0, render_target);
+	bd->pd3dDevice->SetRenderTarget(0, render_target.get());
 	bd->pd3dDevice->SetDepthStencilSurface(nullptr);
 
 	if (!(viewport->Flags & ImGuiViewportFlags_NoRendererClear))
@@ -587,11 +575,8 @@ static void ImGui_ImplDX9_RenderWindow(ImGuiViewport* viewport, void*)
 	ImGui_ImplDX9_RenderDrawData(viewport->DrawData);
 
 	// Restore render target
-	bd->pd3dDevice->SetRenderTarget(0, last_render_target);
-	bd->pd3dDevice->SetDepthStencilSurface(last_depth_stencil);
-	render_target->Release();
-	last_render_target->Release();
-	if (last_depth_stencil) last_depth_stencil->Release();
+	bd->pd3dDevice->SetRenderTarget(0, last_render_target.get());
+	bd->pd3dDevice->SetDepthStencilSurface(last_depth_stencil.get());
 }
 
 static void ImGui_ImplDX9_SwapBuffers(ImGuiViewport* viewport, void*)
@@ -744,7 +729,7 @@ bool ImGui_ImplWin32_Init(void* hWnd_)
 		return false;
 
 	// Setup backend-end capabilities flags
-	ImGui_ImplWin32_Data* bd = IM_NEW(ImGui_ImplWin32_Data)();
+	ImGui_ImplWin32_Data* bd = new ImGui_ImplWin32_Data();
 	io.BackendPlatformUserData = (void*)bd;
 	io.BackendPlatformName = "imgui_impl_win32";
 	io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;         // We can honor GetMouseCursor() values (optional)
@@ -829,7 +814,7 @@ void ImGui_ImplWin32_Shutdown()
 
 	io.BackendPlatformName = nullptr;
 	io.BackendPlatformUserData = nullptr;
-	IM_DELETE(bd);
+	delete bd;
 }
 
 static bool ImGui_ImplWin32_UpdateMouseCursor()
@@ -1368,7 +1353,7 @@ static void ImGui_ImplWin32_GetWin32StyleFromViewportFlags(ImGuiViewportFlags fl
 
 static void ImGui_ImplWin32_CreateWindow(ImGuiViewport* viewport)
 {
-	ImGui_ImplWin32_ViewportData* vd = IM_NEW(ImGui_ImplWin32_ViewportData)();
+	ImGui_ImplWin32_ViewportData* vd = new ImGui_ImplWin32_ViewportData();
 	viewport->PlatformUserData = vd;
 
 	// Select style and parent window
@@ -1405,7 +1390,7 @@ static void ImGui_ImplWin32_DestroyWindow(ImGuiViewport* viewport)
 		if (vd->Hwnd && vd->HwndOwned)
 			::DestroyWindow(vd->Hwnd);
 		vd->Hwnd = nullptr;
-		IM_DELETE(vd);
+		delete vd;
 	}
 
 	viewport->PlatformUserData = viewport->PlatformHandle = nullptr;
@@ -1647,7 +1632,7 @@ static void ImGui_ImplWin32_InitPlatformInterface()
 	// This is mostly for simplicity and consistency, so that our code (e.g. mouse handling etc.) can use same logic for main and secondary viewports.
 	ImGuiViewport* main_viewport = ImGui::GetMainViewport();
 	ImGui_ImplWin32_Data* bd = ImGui_ImplWin32_GetBackendData();
-	ImGui_ImplWin32_ViewportData* vd = IM_NEW(ImGui_ImplWin32_ViewportData)();
+	ImGui_ImplWin32_ViewportData* vd = new ImGui_ImplWin32_ViewportData();
 	vd->Hwnd = bd->hWnd;
 	vd->HwndOwned = false;
 	main_viewport->PlatformUserData = vd;
