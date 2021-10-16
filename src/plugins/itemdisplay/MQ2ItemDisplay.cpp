@@ -13,6 +13,8 @@
  */
 
 #include <mq/Plugin.h>
+
+#include "eqlib/WindowOverride.h"
 #include "resource.h"
 
 #include <shellapi.h>
@@ -26,2007 +28,1674 @@ using namespace mq::datatypes;
 
 PreSetup("MQ2ItemDisplay");
 
-// starting position of link text found in MQ2Web__ParseItemLink_x
-constexpr int LINK_LEN = 90;
-constexpr int MAX_ITEMDISPLAY_WINDOWS = 6;
-
-char ConvertFrom[MAX_STRING] = { 0 };
-char ConvertTo[MAX_STRING] = { 0 };
-bool gLootButton = true;
-bool gLucyButton = true;
-std::recursive_mutex s_mutex;
-
-struct ButtonInfo
-{
-	CItemDisplayWnd* ItemDisplayWnd;
-	int              ID;
-};
-
-std::map<CButtonWnd*, ButtonInfo> ButtonMap;
-
-void Comment(SPAWNINFO* pChar, char* szLine);
-
-struct DisplayItemStrings
-{
-	// this item is placeable in yards, guild yard, etc, This item can be used in tradeskills
-	std::string ItemInfo;
-	std::string WindowTitle;
-	std::string ItemAdvancedLoreText;
-	std::string ItemMadeByText;
-
-	// Item Information: Placing this augment into <*>, this armor can only be used in <*>
-	std::string ItemInformationText;
-	bool bCollected = false;
-	bool bCollectedRecieved = false;
-	bool bScribed = false;
-	bool bScribedRecieved = false;
-};
-
-// Keep data about the last 6 items displayed
-ItemPtr gContents[MAX_ITEMDISPLAY_WINDOWS];
-DisplayItemStrings gContentsItemStrings[MAX_ITEMDISPLAY_WINDOWS];
-int gLastIndex = 5;
+// Keep data about the recent items that have been displayed.
+static int s_lastWindowIndex = -1;
 
 class MQ2DisplayItemType;
 MQ2DisplayItemType* pDisplayItemType = nullptr;
 
-class MQ2DisplayItemType : public MQ2Type
-{
-public:
-	enum DisplayItemMembers
-	{
-		Info = 1,
-		WindowTitle = 2,
-		AdvancedLore = 3,
-		MadeBy = 4,
-		CollectedRecieved = 5,
-		Collected = 6,
-		ScribedRecieved = 7,
-		Scribed = 8,
-		Information = 9,
-		DisplayIndex = 10,
-	};
+const int BUTTON_SPACING = 22;
+const int BUTTON_GROUP_HEIGHT = 34;
 
-	enum DisplayItemMethods
-	{
-		AddLootFilter = 1,
-	};
+static bool s_refreshItemDisplay = false;
+static bool s_refreshSpellDisplay = false;
 
-	MQ2DisplayItemType() : MQ2Type("DisplayItem")
-	{
-		TypeMember(Info);
-		TypeMember(WindowTitle);
-		TypeMember(AdvancedLore);
-		TypeMember(MadeBy);
-		TypeMember(CollectedRecieved);
-		TypeMember(Collected);
-		TypeMember(ScribedRecieved);
-		TypeMember(Scribed);
-		TypeMember(Information);
-		TypeMember(DisplayIndex);
-
-		TypeMethod(AddLootFilter);
-	}
-
-	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
-	{
-		const int index = std::clamp<int>(VarPtr.DWord, 0, MAX_ITEMDISPLAY_WINDOWS - 1);
-		ItemPtr pContents = gContents[index];
-
-		if (!pContents)
-			return false;
-
-		MQTypeMember* pMethod = MQ2DisplayItemType::FindMethod(Member);
-
-		if (pMethod)
-		{
-			Dest.Set(false);
-			Dest.Type = pBoolType;
-
-			switch (static_cast<DisplayItemMethods>(pMethod->ID))
-			{
-			case AddLootFilter:
-				if (ItemDefinition* pItem = pContents->GetItemDefinition())
-				{
-					pLootFiltersManager->AddItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 5);
-
-					WriteChatf("Added %s to AG and Roll LootFilters.", pItem->Name);
-					Dest.Set(true);
-				}
-				break;
-
-			default: break;
-			}
-			return true;
-		}
-
-		MQTypeMember* pMember = MQ2DisplayItemType::FindMember(Member);
-		if (!pMember)
-		{
-			MQVarPtr varPtr;
-			varPtr.Ptr = pContents.get();
-
-			return pItemType->GetMember(varPtr, Member, Index, Dest);
-		}
-
-		if (pMember)
-		{
-			switch ((DisplayItemMembers)pMember->ID)
-			{
-			case Info:
-				strcpy_s(DataTypeTemp, gContentsItemStrings[index].ItemInfo.c_str());
-				Dest.Ptr = &DataTypeTemp[0];
-				Dest.Type = pStringType;
-				return true;
-			case WindowTitle:
-				strcpy_s(DataTypeTemp, gContentsItemStrings[index].WindowTitle.c_str());
-				Dest.Ptr = &DataTypeTemp[0];
-				Dest.Type = pStringType;
-				return true;
-			case AdvancedLore:
-				strcpy_s(DataTypeTemp, gContentsItemStrings[index].ItemAdvancedLoreText.c_str());
-				Dest.Ptr = &DataTypeTemp[0];
-				Dest.Type = pStringType;
-				return true;
-			case MadeBy:
-				strcpy_s(DataTypeTemp, gContentsItemStrings[index].ItemMadeByText.c_str());
-				Dest.Ptr = &DataTypeTemp[0];
-				Dest.Type = pStringType;
-				return true;
-			case Collected:
-				Dest.Set(gContentsItemStrings[index].bCollected);
-				Dest.Type = pBoolType;
-				return true;
-			case CollectedRecieved:
-				Dest.Set(gContentsItemStrings[index].bCollectedRecieved);
-				Dest.Type = pBoolType;
-				return true;
-			case Scribed:
-				Dest.Set(gContentsItemStrings[index].bScribed);
-				Dest.Type = pBoolType;
-				return true;
-			case ScribedRecieved:
-				Dest.Set(gContentsItemStrings[index].bScribedRecieved);
-				Dest.Type = pBoolType;
-				return true;
-			case Information:
-				strcpy_s(DataTypeTemp, gContentsItemStrings[index].ItemInformationText.c_str());
-				Dest.Ptr = &DataTypeTemp[0];
-				Dest.Type = pStringType;
-				return true;
-			case DisplayIndex:
-				Dest.DWord = gLastIndex;
-				Dest.Type = pIntType;
-				return true;
-			}
-		}
-		return false;
-	}
-
-	bool ToString(MQVarPtr VarPtr, char* Destination) override
-	{
-		const int index = std::clamp<int>(VarPtr.DWord, 0, MAX_ITEMDISPLAY_WINDOWS - 1);
-		ItemPtr pContents = gContents[index];
-
-		if (pContents)
-		{
-			if (ItemDefinition* pItem = pContents->GetItemDefinition())
-			{
-				strcpy_s(Destination, 128, pItem->Name);
-				return true;
-			}
-		}
-
-		strcpy_s(Destination, 128, gContentsItemStrings[index].WindowTitle.c_str());
-		return true;
-	}
+struct ItemEffectConfig {
+	ItemSpellTypes effectType;
+	MQColor color;
+	std::string_view label;
 };
 
-bool dataLastItem(const char* szName, MQTypeVar& Ret)
+ItemEffectConfig s_itemEffectConfigs[ItemSpellType_Max] = {
+	{ ItemSpellType_Clicky,   MQColor(0,   255, 0),   "Clicky"   },
+	{ ItemSpellType_Proc,     MQColor(255, 0,   255), "Proc"     },
+	{ ItemSpellType_Worn,     MQColor(255, 255, 0),   "Worn"     },
+	{ ItemSpellType_Focus,    MQColor(160, 160, 0),   "Focus"    },
+	{ ItemSpellType_Scroll,   MQColor(160, 160, 160), "Scroll"   },
+	{ ItemSpellType_Focus2,   MQColor(160, 160, 0),   "Focus2"   },
+	{ ItemSpellType_Blessing, MQColor(88,  214, 141), "Blessing" }
+};
+
+static std::pair<MQColor, std::string_view> GetEffectInfo(ItemSpellTypes effectType, bool useCustom = true);
+
+//----------------------------------------------------------------------------
+// this class holds persisted settings for this plugin.
+class Settings
 {
-	std::scoped_lock lock(s_mutex);
+public:
+	static constexpr inline bool default_lootButtonsEnabled = true;
+	static constexpr inline bool default_lucyButtonEnabled = true;
+	static constexpr inline bool default_showSpellInfoOnItems = true;
+	static constexpr inline bool default_showSpellInfoOnSpells = true;
+	static constexpr inline MQColor default_spellColor = "#00ffff";
+	static constexpr inline MQColor default_itemColor = "#00ffff";
 
-	int index = gLastIndex;
+	inline bool IsLootButtonsEnabled() const { return m_lootButtonsEnabled; }
+	void SetLootButtonsEnabled(bool enabled);
 
-	if (szName[0])
+	inline bool IsLucyButtonEnabled() const { return m_lucyButtonEnabled; }
+	void SetLucyButtonEnabled(bool enabled);
+
+	inline bool IsShowSpellInfoOnItemsEnabled() const { return m_showSpellInfoOnItems; }
+	void SetShowSpellInfoOnItemsEnabled(bool enabled);
+
+	inline bool IsShowSpellInfoOnSpellsEnabled() const { return m_showSpellInfoOnSpells; }
+	void SetShowSpellInfoOnSpellsEnabled(bool enabled);
+
+	std::optional<MQColor> GetItemSpellColor(ItemSpellTypes effectType) const;
+	void SetItemSpellColor(ItemSpellTypes effectType, MQColor color);
+	void ResetItemSpellColor(ItemSpellTypes effectType);
+
+	inline MQColor GetSpellColor() const { return m_spellColor; }
+	void SetSpellColor(MQColor color);
+	void ResetSpellColor();
+
+	inline MQColor GetItemColor() const { return m_itemColor; }
+	void SetItemColor(MQColor color);
+	void ResetItemColor();
+
+	void Load();
+	void Reset();
+
+private:
+	bool m_lootButtonsEnabled = default_lootButtonsEnabled;
+	bool m_lucyButtonEnabled = default_lucyButtonEnabled;
+	bool m_showSpellInfoOnItems = default_showSpellInfoOnItems;
+	bool m_showSpellInfoOnSpells = default_showSpellInfoOnSpells;
+	std::map<ItemSpellTypes, MQColor> m_customColors;
+
+	MQColor m_spellColor = default_spellColor;
+	MQColor m_itemColor = default_itemColor;
+};
+Settings s_settings;
+
+void Settings::Load()
+{
+	DeletePrivateProfileKey("Settings", "CompareTip", INIFileName); // Unused
+
+	m_lootButtonsEnabled = GetPrivateProfileBool("Settings", "LootButton", default_lootButtonsEnabled, INIFileName);
+	m_lucyButtonEnabled = GetPrivateProfileBool("Settings", "LucyButton", default_lucyButtonEnabled, INIFileName);
+	m_showSpellInfoOnItems = GetPrivateProfileBool("Settings", "ShowSpellsInfoOnItems", default_showSpellInfoOnItems, INIFileName);
+	m_showSpellInfoOnSpells = GetPrivateProfileBool("Settings", "ShowSpellInfoOnSpells", default_showSpellInfoOnSpells, INIFileName);
+
+	for (const auto& conf : s_itemEffectConfigs)
 	{
-		if (IsNumber(szName))
+		std::string setting = GetPrivateProfileString("Settings", fmt::format("CustomColor_{}", conf.label), std::string(), INIFileName);
+		if (setting.size() == 7 && setting[0] == '#') // #rrggbb
 		{
-			index = atoi(szName);
-			if (index < 0 || index >= MAX_ITEMDISPLAY_WINDOWS)
-				return false;
+			m_customColors[conf.effectType] = MQColor(setting.c_str());
 		}
 	}
 
-	Ret.DWord = index;
-	Ret.Type = pDisplayItemType;
-	return true;
-}
-
-// ***************************************************************************
-// Function:    ItemDisplayHook
-// Description: Our Item display hook
-// ***************************************************************************
-
-int CanIUseThisItem(ItemDefinition* pItem)
-{
-	if (PcProfile* pProfile = GetPcProfile())
+	std::string itemColor = GetPrivateProfileString("Settings", "CustomColor_Item", std::string(), INIFileName);
+	if (itemColor.size() == 7 && itemColor[0] == '#')
 	{
-		if (!pProfile->Class)
-			return -1;
-		DWORD ClassMask = (1 << (pProfile->Class - 1));
-		if ((ClassMask & pItem->Classes) == 0)
-			return -2;
-		return 1;
+		m_itemColor = MQColor(itemColor.c_str());
 	}
-	return -1;
+
+	std::string spellColor = GetPrivateProfileString("Settings", "CustomColor_Spell", std::string(), INIFileName);
+	if (spellColor.size() == 7 && spellColor[0] == '#')
+	{
+		m_spellColor = MQColor(spellColor.c_str());
+	}
 }
 
-template <unsigned int _Size>
-char* GetSlots(ItemDefinition* pItem, char(&_Buffer)[_Size])
+void Settings::Reset()
 {
-	DWORD cmp = pItem->EquipSlots;
-	for (int N = 0; N < 32; N++)
+	m_customColors.clear();
+	m_lootButtonsEnabled = default_lootButtonsEnabled;
+	m_lucyButtonEnabled = default_lucyButtonEnabled;
+	m_showSpellInfoOnItems = default_showSpellInfoOnItems;
+	m_showSpellInfoOnSpells = default_showSpellInfoOnSpells;
+
+	DeletePrivateProfileKey("Settings", "LootButton", INIFileName);
+	DeletePrivateProfileKey("Settings", "LucyButton", INIFileName);
+	DeletePrivateProfileKey("Settings", "ShowSpellsInfoOnItems", INIFileName);
+	DeletePrivateProfileKey("Settings", "ShowSpellInfoOnSpells", INIFileName);
+
+	for (const auto& conf : s_itemEffectConfigs)
 	{
-		if (cmp & (1 << N))
+		DeletePrivateProfileKey("Settings", fmt::format("CustomColor_{}", conf.label), INIFileName);
+	}
+
+	ResetItemColor();
+	ResetSpellColor();
+}
+
+std::optional<MQColor> Settings::GetItemSpellColor(ItemSpellTypes effectType) const
+{
+	auto iter = m_customColors.find(effectType);
+	if (iter == m_customColors.end())
+		return {};
+
+	return iter->second;
+}
+
+void Settings::SetItemSpellColor(ItemSpellTypes effectType, MQColor color)
+{
+	m_customColors[effectType] = color;
+
+	auto [_, name] = GetEffectInfo(effectType);
+
+	WritePrivateProfileString("Settings", fmt::format("CustomColor_{}", name),
+		fmt::format("#{:6X}", color.ToRGB()), INIFileName);
+
+	s_refreshItemDisplay = true;
+}
+
+void Settings::ResetItemSpellColor(ItemSpellTypes effectType)
+{
+	m_customColors.erase(effectType);
+	for (const auto& conf : s_itemEffectConfigs)
+	{
+		if (conf.effectType == effectType)
 		{
-			strcat_s(_Buffer, _Size, szItemSlot[N]);
-			strcat_s(_Buffer, _Size, " ");
+			DeletePrivateProfileKey("Settings", fmt::format("CustomColor_{}", conf.label), INIFileName);
+			break;
 		}
 	}
-	return _Buffer;
+
+	s_refreshItemDisplay = true;
 }
 
-// Returns an item that is equipped in the same slot as this item. Does not
-// account for cases where the item could be placed into multiple slots.
-ItemPtr GetItemEquippedInSlot(const ItemPtr& pItem)
+void Settings::SetSpellColor(MQColor color)
 {
-	PcProfile* pProfile = GetPcProfile();
-	ItemDefinition* pItemDef = pItem->GetItemDefinition();
+	m_spellColor = color;
 
-	for (int slot = InvSlot_FirstWornItem; slot <= InvSlot_LastWornItem; slot++)
+	WritePrivateProfileString("Settings", "CustomColor_Spell",
+		fmt::format("#{:06X}", color.ToRGB()), INIFileName);
+
+	s_refreshSpellDisplay = true;
+}
+
+void Settings::ResetSpellColor()
+{
+	m_spellColor = default_spellColor;
+
+	DeletePrivateProfileKey("Settings", "CustomColor_Spell", INIFileName);
+
+	s_refreshSpellDisplay = true;
+}
+
+void Settings::SetItemColor(MQColor color)
+{
+	m_itemColor = color;
+
+	WritePrivateProfileString("Settings", "CustomColor_Item",
+		fmt::format("#{:6X}", color.ToRGB()), INIFileName);
+
+	s_refreshItemDisplay = true;
+}
+
+void Settings::ResetItemColor()
+{
+	m_itemColor = default_itemColor;
+
+	DeletePrivateProfileKey("Settings", "CustomColor_Item", INIFileName);
+
+	s_refreshItemDisplay = true;
+}
+
+void Settings::SetLootButtonsEnabled(bool enabled)
+{
+	if (enabled == m_lootButtonsEnabled)
+		return;
+
+	m_lootButtonsEnabled = enabled;
+	WritePrivateProfileBool("Settings", "LootButton", m_lootButtonsEnabled, INIFileName);
+
+	s_refreshItemDisplay = true;
+}
+
+void Settings::SetLucyButtonEnabled(bool enabled)
+{
+	if (enabled == m_lucyButtonEnabled)
+		return;
+
+	m_lucyButtonEnabled = enabled;
+	WritePrivateProfileBool("Settings", "LucyButton", m_lucyButtonEnabled, INIFileName);
+
+	s_refreshItemDisplay = true;
+}
+
+void Settings::SetShowSpellInfoOnItemsEnabled(bool enabled)
+{
+	if (enabled == m_showSpellInfoOnItems)
+		return;
+
+	m_showSpellInfoOnItems = enabled;
+	WritePrivateProfileBool("Settings", "ShowSpellsInfoOnItems", m_showSpellInfoOnItems, INIFileName);
+
+	s_refreshItemDisplay = true;
+}
+
+void Settings::SetShowSpellInfoOnSpellsEnabled(bool enabled)
+{
+	if (enabled == m_showSpellInfoOnSpells)
+		return;
+
+	m_showSpellInfoOnSpells = enabled;
+	WritePrivateProfileBool("Settings", "ShowSpellInfoOnSpells", m_showSpellInfoOnSpells, INIFileName);
+
+	s_refreshSpellDisplay = true;
+}
+
+static std::pair<MQColor, std::string_view> GetEffectInfo(ItemSpellTypes effectType, bool useCustom)
+{
+	for (ItemEffectConfig& config : s_itemEffectConfigs)
 	{
-		if (pItemDef->EquipSlots & (1 << slot))
+		if (config.effectType == effectType)
 		{
-			if (ItemPtr pSlotItem = pProfile->GetInventorySlot(slot))
-				return pSlotItem;
+			std::optional<MQColor> customColor;
+			if (useCustom)
+				customColor = s_settings.GetItemSpellColor(effectType);
+
+			return { customColor.value_or(config.color), config.label };
+		}
+	}
+
+	return { MQColor(255, 0, 0), "Unknown" };
+}
+
+//----------------------------------------------------------------------------
+// This structure holds all the extra information that we associate with an
+// instance of CItemDisplayWnd
+
+struct ItemDisplayExtraInfo
+{
+	// this item is placeable in yards, guild yard, etc, This item can be used in tradeskills
+	std::string itemInfo;
+	std::string windowTitle;
+	std::string itemAdvancedLoreText;
+	std::string itemMadeByText;
+
+	// Item Information: Placing this augment into <*>, this armor can only be used in <*>
+	std::string itemInformationText;
+
+	// Our Extra item information
+	std::string extraItemInfo;
+	std::string extraSpellInfo;
+
+	bool collected = false;
+	bool collectedReceived = false;
+	bool scribed = false;
+	bool scribedReceived = false;
+
+	// Our extra buttons
+	std::unique_ptr<CButtonWnd> pLucyButton = nullptr;
+	std::unique_ptr<CLabelWnd> pHeader = nullptr;         // Loot buttons header
+	std::unique_ptr<CButtonWnd> pAlwaysNeedBtn = nullptr;
+	std::unique_ptr<CButtonWnd> pAlwaysGreedBtn = nullptr;
+	std::unique_ptr<CButtonWnd> pNeverBtn = nullptr;
+	std::unique_ptr<CButtonWnd> pAutoRollBtn = nullptr;
+
+
+	ItemDisplayExtraInfo() = default;
+	~ItemDisplayExtraInfo() { Reset(); }
+
+	ItemDisplayExtraInfo(ItemDisplayExtraInfo&&) = default;
+	ItemDisplayExtraInfo(const ItemDisplayExtraInfo&) = delete;
+
+	ItemDisplayExtraInfo& operator=(const ItemDisplayExtraInfo&) = delete;
+	ItemDisplayExtraInfo& operator=(ItemDisplayExtraInfo&&) = default;
+
+	void Reset();
+	void ResetLootButtons();
+	void ResetItem();
+
+	void SetLootButtonsPosition(const CXPoint& labelPos);
+};
+
+void ItemDisplayExtraInfo::ResetItem()
+{
+	itemInfo.clear();
+	windowTitle.clear();
+	itemAdvancedLoreText.clear();
+	itemMadeByText.clear();
+	itemInformationText.clear();
+
+	extraItemInfo.clear();
+	extraSpellInfo.clear();
+
+	collected = false;
+	collectedReceived = false;
+	scribed = false;
+	scribedReceived = false;
+}
+
+void ItemDisplayExtraInfo::Reset()
+{
+	ResetItem();
+
+	pLucyButton.reset();
+	ResetLootButtons();
+}
+
+void ItemDisplayExtraInfo::ResetLootButtons()
+{
+	// or destroy?
+	pHeader.reset();
+	pAlwaysNeedBtn.reset();
+	pAlwaysGreedBtn.reset();
+	pNeverBtn.reset();
+	pAutoRollBtn.reset();
+}
+
+void ItemDisplayExtraInfo::SetLootButtonsPosition(const CXPoint& labelPos)
+{
+	CXRect headerRect{ labelPos, CXSize(80, 12) };
+
+	if (pHeader)
+	{
+		pHeader->SetLocation(headerRect);
+
+		// always need
+		CXRect buttonRect = headerRect;
+		buttonRect.SetTop(buttonRect.bottom + 4);
+		buttonRect.SetWidth(14);
+		buttonRect.SetHeight(14);
+		pAlwaysNeedBtn->SetLocation(buttonRect);
+
+		// always greed
+		buttonRect.SetLeft(buttonRect.left + BUTTON_SPACING);
+		pAlwaysGreedBtn->SetLocation(buttonRect);
+
+		// never
+		buttonRect.SetLeft(buttonRect.left + BUTTON_SPACING);
+		pNeverBtn->SetLocation(buttonRect);
+
+		// autoroll
+		buttonRect.SetLeft(buttonRect.left + BUTTON_SPACING);
+		pAutoRollBtn->SetLocation(buttonRect);
+	}
+
+	if (pLucyButton)
+	{
+		const CXSize lucyButtonSize(36, 20);
+
+		CXRect buttonRect = headerRect;
+		buttonRect.SetTop(buttonRect.top + 10);
+
+		if (!pHeader)
+		{
+			buttonRect.SetSize(lucyButtonSize);
+
+			pLucyButton->SetLocation(buttonRect);
+		}
+		else
+		{
+			// offset to the right
+			buttonRect.SetLeft(buttonRect.left + buttonRect.GetWidth() + 6);
+			buttonRect.SetSize(lucyButtonSize);
+
+			pLucyButton->SetLocation(buttonRect);
+		}
+	}
+}
+
+static std::map<CItemDisplayWnd*, ItemDisplayExtraInfo> s_itemDisplayExtraInfo;
+
+//----------------------------------------------------------------------------
+
+static CItemDisplayWnd* GetItemWndPtr(const MQVarPtr& VarPtr)
+{
+	if (!pItemDisplayManager)
+		return nullptr;
+
+	const int index = (int)VarPtr.DWord;
+	return pItemDisplayManager->GetWindow(index);
+}
+
+static CItemDisplayWnd* GetNextItemWnd(CItemDisplayWnd* pCurWindow)
+{
+	if (!pItemDisplayManager || !pCurWindow)
+		return nullptr;
+
+	// Do a full rotation around the container looking for
+	// the next non-null item window.
+	int count = pItemDisplayManager->GetCount();
+	int index = pCurWindow->ItemWndIndex;
+
+	for (int offset = 0; offset < count; ++offset)
+	{
+		index = (index + 1) % count;
+
+		if (CItemDisplayWnd* pWnd = pItemDisplayManager->GetWindow(index))
+			return pWnd;
+	}
+
+	return nullptr;
+}
+
+static CItemDisplayWnd* FindItemWndByString(std::string_view search)
+{
+	if (!pItemDisplayManager)
+		return nullptr;
+
+	if (search.empty())
+		return nullptr;
+
+	int searchId = -1;
+	if (ci_starts_with(search, "id "))
+	{
+		search = search.substr(3);
+		searchId = GetIntFromString(search, -1);
+
+		if (searchId <= 0)
+			return nullptr;
+	}
+
+	for (int i = 0; i < pItemDisplayManager->GetCount(); ++i)
+	{
+		// Closed windows will clear the item ptr.
+		CItemDisplayWnd* pWnd = pItemDisplayManager->GetWindow(i);
+		if (pWnd && pWnd->pItem)
+		{
+			if (searchId != -1)
+			{
+				if (pWnd->pItem->GetID() == searchId)
+					return pWnd;
+			}
+			else if (ci_equals(search, pWnd->pItem->GetName()))
+			{
+				return pWnd;
+			}
 		}
 	}
 
 	return nullptr;
 }
 
-class ItemDisplayHook
+//----------------------------------------------------------------------------
+
+class MQ2DisplayItemType : public MQ2Type
 {
-	enum SEffectType { None = 0, Clicky, Proc, Worn, Focus, Scroll, Focus2, Keyring };
-
-	static bool bNoSpellTramp;
-	static SEffectType eEffectType;
-
 public:
-	int GetDmgBonus(const CXStr& Str) const
+	enum class DisplayItemMembers
 	{
-		size_t dmgbonuspos = std::string_view::npos;
-		int dmgbonus = 0;
-		size_t badcharpos = std::string_view::npos;
-
-		char ActualDmgBonus[3];
-		std::string_view ItemDisplay = Str;
-
-		dmgbonuspos = ItemDisplay.find("Dmg Bonus:");
-
-		if (dmgbonuspos != std::string_view::npos)
-		{
-			dmgbonuspos = dmgbonuspos + 11;
-			ItemDisplay = ItemDisplay.substr(dmgbonuspos, 3);
-
-			badcharpos = ItemDisplay.find(" ");
-
-			if (badcharpos != std::string_view::npos)
-			{
-				// found blank
-				ItemDisplay = ItemDisplay.substr(0, 2);
-			}
-			else
-			{
-				// badcharpos = tmpActualDmgBonus.find("<");
-				badcharpos = ItemDisplay.find("<");
-				if (badcharpos != std::string_view::npos)
-				{
-					// found <
-					ItemDisplay = ItemDisplay.substr(0, 2);
-				}
-			}
-
-			std::string displayCopy{ ItemDisplay };
-			strcpy_s(ActualDmgBonus, displayCopy.c_str());
-
-			dmgbonus = GetIntFromString(ActualDmgBonus, 0);
-		}
-
-		return dmgbonus;
-	}
-
-	static void GetEffectInfo(const SEffectType effect, std::string& Color, std::string& Name)
-	{
-			if (Color.empty())
-			{
-				Color = "FF0000";
-			}
-			if (Name.empty())
-			{
-				Name = "Unknown";
-			}
-
-			switch (eEffectType)
-			{
-			case Clicky:
-				Color = "00FF00";
-				Name = "Clicky";
-				break;
-			case Proc:
-				Color = "FF00FF";
-				Name = "Proc";
-				break;
-			case Worn:
-				Color = "FFFF00";
-				Name = "Worn";
-				break;
-			case Focus:
-			case Focus2:
-				Color = "9F9F00";
-				Name = "Focus";
-				break;
-			case Scroll:
-				Color = "9F9F9F";
-				Name = "Scroll";
-				break;
-			case Keyring:
-				Color = "00FF00";
-				Name = "Keyring";
-				break;
-			case None:
-				Name = "None";
-				break;
-			default:
-				break;
-			}
-	}
-
-	void SetSpell_Trampoline(int SpellID, bool bFullInfo);
-	void SetSpell_Detour(int SpellID, bool bFullInfo)
-	{
-		CSpellDisplayWnd* pThis = reinterpret_cast<CSpellDisplayWnd*>(this);
-		CHARINFO* pCharInfo = GetCharInfo();
-
-		if (pCharInfo == nullptr) return;
-
-		EQ_Spell* pSpell = GetSpellByID(SpellID);
-		if (pSpell == nullptr)
-		{
-			return;
-		}
-
-		char out[MAX_STRING * 2] = { 0 };
-		char temp[MAX_STRING] = { 0 };
-
-		if (!bNoSpellTramp)
-		{
-			SetSpell_Trampoline(SpellID, bFullInfo);
-			strcat_s(out, "<BR><c \"#00FFFF\">");
-		}
-		else
-		{
-			std::string cColour = "FF0000";
-			std::string cName = "Blub";
-			GetEffectInfo(eEffectType, cColour, cName);
-			sprintf_s(temp, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour.data(), cName.data(), pSpell->Name);
-			strcat_s(out, temp);
-		}
-
-		sprintf_s(temp, "ID: %04d&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", pSpell->ID);
-		strcat_s(out, temp);
-
-		DWORD Tics = GetSpellDuration(pSpell, pLocalPlayer);
-		if (Tics == 0xFFFFFFFF)
-			strcat_s(out, "Duration: Permanent<br>");
-		else if (Tics == 0xFFFFFFFE)
-			strcat_s(out, "Duration: Unknown<br>");
-		else if (Tics == 0)
-		{
-			// It's "instant", who cares?
-			strcat_s(out, "<br>");
-		}
-		else
-		{
-			sprintf_s(temp, "Duration: %1.1f minutes<br>", (float)((Tics * 6.0f) / 60.0f));
-			strcat_s(out, temp);
-		}
-
-		sprintf_s(temp, "RecoveryTime: %1.2f&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RecastTime: %1.2f <br>", (float)(pSpell->RecoveryTime / 1000.0f), (float)(pSpell->RecastTime / 1000.0f));
-		strcat_s(out, temp);
-
-		if (pSpell->Range > 0.0f)
-		{
-			sprintf_s(temp, "Range: %1.0f", pSpell->Range);
-			strcat_s(out, temp);
-			if (pSpell->PushBack == 0.0f && pSpell->AERange == 0.0f)
-				strcat_s(out, "<br>");
-		}
-
-		if (pSpell->PushBack != 0.0f)
-		{
-			if (pSpell->Range > 0.0f)
-				strcat_s(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
-			sprintf_s(temp, "PushBack: %1.1f", pSpell->PushBack);
-			strcat_s(out, temp);
-			if (pSpell->AERange == 0.0f || pSpell->Range > 0.0f)
-				strcat_s(out, "<br>");
-		}
-
-		if (pSpell->AERange > 0.0f)
-		{
-			if (pSpell->Range > 0.0f)
-				strcat_s(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
-			else if (pSpell->PushBack > 0.0f)
-				strcat_s(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
-			sprintf_s(temp, "AERange: %1.0f<br>", pSpell->AERange);
-			strcat_s(out, temp);
-		}
-
-		if (pSpell->TargetType != 0x06 && pSpell->TargetType != 0x0e && pSpell->TargetType != 0x03 && pSpell->TargetType != 0x28 && pSpell->TargetType != 0x29)
-		{
-			if (pSpell->SpellType == 0)
-			{
-				// Ziggy: Only show resist type for detrimental spells
-				switch (pSpell->Resist)
-				{
-				case 9: strcat_s(out, "Resist: Corruption"); break;
-				case 7: strcat_s(out, "Resist: Prismatic[Avg]"); break; // Ziggy - Added Reminder which..
-				case 6: strcat_s(out, "Resist: Chromatic[Low]"); break; // ..is what type of resist
-				case 5: strcat_s(out, "Resist: Disease"); break;
-				case 4: strcat_s(out, "Resist: Poison"); break;
-				case 3: strcat_s(out, "Resist: Cold/Ice"); break;
-				case 2: strcat_s(out, "Resist: Fire"); break;
-				case 1: strcat_s(out, "Resist: Magic"); break;
-				case 0: strcat_s(out, "Resist: Unresistable"); break;
-				default: break;
-				}
-
-				if (pSpell->ResistAdj != 0)
-				{
-					sprintf_s(temp, "&nbsp;&nbsp;&nbsp;(Resist Adj.: %d)<br>", pSpell->ResistAdj);
-					strcat_s(out, temp);
-				}
-				else
-				{
-					strcat_s(out, "<br>");
-				}
-			}
-		}
-
-		if (pSpell->HateGenerated)
-		{
-			sprintf_s(temp, "Hate Generated: %d<br>", pSpell->HateGenerated);
-			strcat_s(out, temp);
-		}
-
-		strcat_s(out, "<br>");
-		int outlen = strlen(out);
-		ShowSpellSlotInfo(pSpell, &out[outlen], sizeof(out) - outlen);
-
-		// show usable classes routine by Koad//
-		bool bUseableClasses = false;
-		strcat_s(out, "<br>");
-		for (int j = Warrior; j <= Berserker; j++)
-		{
-			// Ziggy - output will word wrap properly now
-			if (pSpell->GetSpellLevelNeeded(j) > 0 && pSpell->GetSpellLevelNeeded(j) <= MAX_PC_LEVEL)
-			{
-				if (bUseableClasses) strcat_s(out, ", ");
-
-				sprintf_s(temp, "%s(%d)", GetClassDesc(j), pSpell->GetSpellLevelNeeded(j));
-				strcat_s(out, temp);
-				bUseableClasses = true;
-			}
-		}
-
-		if (bUseableClasses) strcat_s(out, "<br><br>");
-
-		if (const char* str = GetSpellString(pSpell->ID, 2))
-		{
-			sprintf_s(temp, "Cast on you: %s<br>", str);
-			strcat_s(out, temp);
-		}
-
-		if (const char* str = GetSpellString(pSpell->ID, 3))
-		{
-			sprintf_s(temp, "Cast on another: %s<br>", str);
-			strcat_s(out, temp);
-		}
-
-		if (const char* str = GetSpellString(pSpell->ID, 4))
-		{
-			sprintf_s(temp, "Wears off: %s<br>", str);
-			strcat_s(out, temp);
-		}
-
-		if (int cat = GetSpellCategory(pSpell))
-		{
-			if (const char* ptr = pCDBStr->GetString(cat, eSpellCategory))
-			{
-				sprintf_s(temp, "Category: %s<br>", ptr);
-				strcat_s(out, temp);
-			}
-		}
-
-		if (int cat = GetSpellSubcategory(pSpell))
-		{
-			if (const char* ptr = pCDBStr->GetString(cat, eSpellCategory))
-			{
-				sprintf_s(temp, "Subcategory: %s<br>", ptr);
-				strcat_s(out, temp);
-			}
-		}
-
-		sprintf_s(temp, "Spell Icon: %d<br>", pSpell->SpellIcon);
-		strcat_s(out, temp);
-
-		if (out[0] != 17)
-		{
-			strcat_s(out, "</c>");
-			pThis->DescriptionText.Append(out);
-		}
-	}
-
-	void ItemSetSpell_Detour(ITEMSPELLS Effect)
-	{
-		CItemDisplayWnd* pThis = reinterpret_cast<CItemDisplayWnd*>(this);
-		CHARINFO* pCharInfo = GetCharInfo();
-
-		if (!pCharInfo) return;
-
-		SPELL* pSpell = GetSpellByID(Effect.SpellID);
-		if (pSpell == nullptr)
-		{
-			return;
-		}
-
-		char out[MAX_STRING * 2] = { 0 };
-		char temp[MAX_STRING] = { 0 };
-
-		if (!bNoSpellTramp)
-		{
-			SetSpell_Trampoline(Effect.SpellID, false);
-			strcat_s(out, "<BR><c \"#00FFFF\">");
-		}
-		else
-		{
-			std::string cColour = "FF0000";
-			std::string cName = "Blub";
-
-			GetEffectInfo(eEffectType, cColour, cName);
-			char aliased[MAX_STRING] = { 0 };
-			sprintf_s(aliased, "%s%s", Effect.OtherName, " (aliased)");
-			sprintf_s(temp, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour.data(), cName.data(), Effect.OtherName[0] ? aliased : pSpell->Name);
-			strcat_s(out, temp);
-
-			if (strstr(pThis->ItemInfo.c_str(), out))
-			{
-				return;
-			}
-		}
-
-		sprintf_s(temp, "ID: %04d&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", pSpell->ID);
-		strcat_s(out, temp);
-
-		DWORD Tics = GetSpellDuration(pSpell, pLocalPlayer);
-		if (Tics == 0xFFFFFFFF)
-			strcat_s(out, "Duration: Permanent<br>");
-		else if (Tics == 0xFFFFFFFE)
-			strcat_s(out, "Duration: Unknown<br>");
-		else if (Tics == 0)
-		{
-			// It's "instant", who cares?
-			strcat_s(out, "<br>");
-		}
-		else
-		{
-			sprintf_s(temp, "Duration: %1.1f minutes<br>", (float)((Tics * 6.0f) / 60.0f));
-			strcat_s(out, temp);
-		}
-
-		sprintf_s(temp, "RecoveryTime: %1.2f&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RecastTime: %1.2f <br>", (float)(pSpell->RecoveryTime / 1000.0f), (float)(pSpell->RecastTime / 1000.0f));
-		strcat_s(out, temp);
-
-		if (pSpell->Range > 0.0f)
-		{
-			sprintf_s(temp, "Range: %1.0f", pSpell->Range);
-			strcat_s(out, temp);
-			if (pSpell->PushBack == 0.0f && pSpell->AERange == 0.0f)
-				strcat_s(out, "<br>");
-		}
-
-		if (pSpell->PushBack != 0.0f)
-		{
-			if (pSpell->Range > 0.0f)
-				strcat_s(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
-			sprintf_s(temp, "PushBack: %1.1f", pSpell->PushBack);
-			strcat_s(out, temp);
-			if (pSpell->AERange == 0.0f || pSpell->Range > 0.0f)
-				strcat_s(out, "<br>");
-		}
-
-		if (pSpell->AERange > 0.0f)
-		{
-			if (pSpell->Range > 0.0f)
-				strcat_s(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
-			else if (pSpell->PushBack > 0.0f)
-				strcat_s(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
-			sprintf_s(temp, "AERange: %1.0f<br>", pSpell->AERange);
-			strcat_s(out, temp);
-		}
-
-		if (pSpell->TargetType != 0x06 && pSpell->TargetType != 0x0e && pSpell->TargetType != 0x03 && pSpell->TargetType != 0x28 && pSpell->TargetType != 0x29)
-		{
-			if (pSpell->SpellType == 0)
-			{
-				// Ziggy: Only show resist type for detrimental spells
-				switch (pSpell->Resist)
-				{
-				case 9: strcat_s(out, "Resist: Corruption"); break;
-				case 7: strcat_s(out, "Resist: Prismatic[Avg]"); break; // Ziggy - Added Reminder which..
-				case 6: strcat_s(out, "Resist: Chromatic[Low]"); break; // ..is what type of resist
-				case 5: strcat_s(out, "Resist: Disease"); break;
-				case 4: strcat_s(out, "Resist: Poison"); break;
-				case 3: strcat_s(out, "Resist: Cold/Ice"); break;
-				case 2: strcat_s(out, "Resist: Fire"); break;
-				case 1: strcat_s(out, "Resist: Magic"); break;
-				case 0: strcat_s(out, "Resist: Unresistable"); break;
-				}
-
-				if (pSpell->ResistAdj != 0)
-				{
-					sprintf_s(temp, "&nbsp;&nbsp;&nbsp;(Resist Adj.: %d)<br>", pSpell->ResistAdj);
-					strcat_s(out, temp);
-				}
-				else
-				{
-					strcat_s(out, "<br>");
-				}
-			}
-		}
-
-		if (pSpell->HateGenerated)
-		{
-			sprintf_s(temp, "Hate Generated: %d<br>", pSpell->HateGenerated);
-			strcat_s(out, temp);
-		}
-
-		strcat_s(out, "<br>");
-		int outlen = strlen(out);
-		ShowSpellSlotInfo(pSpell, &out[outlen], sizeof(out) - outlen);
-
-		// show usable classes routine by Koad//
-		bool bUseableClasses = false;
-		strcat_s(out, "<br>");
-		for (int j = Warrior; j <= Berserker; j++)
-		{
-			// Ziggy - output will word wrap properly now
-			if (pSpell->GetSpellLevelNeeded(j) > 0 && pSpell->GetSpellLevelNeeded(j) <= MAX_PC_LEVEL)
-			{
-				if (bUseableClasses) strcat_s(out, ", ");
-
-				sprintf_s(temp, "%s(%d)", GetClassDesc(j), pSpell->GetSpellLevelNeeded(j));
-				strcat_s(out, temp);
-				bUseableClasses = true;
-			}
-		}
-
-		if (bUseableClasses) strcat_s(out, "<br><br>");
-
-		if (const char* str = GetSpellString(pSpell->ID, 2))
-		{
-			sprintf_s(temp, "Cast on you: %s<br>", str);
-			strcat_s(out, temp);
-		}
-
-		if (const char* str = GetSpellString(pSpell->ID, 3))
-		{
-			sprintf_s(temp, "Cast on another: %s<br>", str);
-			strcat_s(out, temp);
-		}
-
-		if (const char* str = GetSpellString(pSpell->ID, 4))
-		{
-			sprintf_s(temp, "Wears off: %s<br>", str);
-			strcat_s(out, temp);
-		}
-
-		if (out[0] != 17)
-		{
-			strcat_s(out, "</c>");
-			pThis->ItemInfo += out;
-		}
-	}
-
-	void UpdateStrings_Trampoline();
-	void UpdateStrings_Detour()
-	{
-		CItemDisplayWnd* pThis = reinterpret_cast<CItemDisplayWnd*>(this);
-		int index = pThis->ItemWndIndex;
-		if (index >= MAX_ITEMDISPLAY_WINDOWS || index < 0)
-		{
-			index = 0;
-			WriteChatf("Tell eqmule his PEQITEMWINDOW struct is wrong");
-		}
-
-		ItemPtr& item = pThis->pItem;
-		ItemDefinition* Item = item->GetItemDefinition();
-
-		UpdateStrings_Trampoline();
-		std::scoped_lock lock(s_mutex);
-
-		// add the strings to our map
-		gContentsItemStrings[index].ItemInformationText  = STMLToText(pThis->ItemInformationText);
-		gContentsItemStrings[index].ItemInfo             = STMLToText(pThis->ItemInfo);
-		gContentsItemStrings[index].ItemMadeByText       = STMLToText(pThis->ItemMadeByText);
-		gContentsItemStrings[index].ItemAdvancedLoreText = STMLToText(pThis->ItemAdvancedLoreText);
-		gContentsItemStrings[index].WindowTitle          = STMLToText(pThis->WindowTitle);
-
-		if (pThis->bCollectedReceived)
-		{
-			gContentsItemStrings[index].bCollectedRecieved = true;
-			gContentsItemStrings[index].bCollected = pThis->bCollected;
-		}
-		else
-		{
-			gContentsItemStrings[index].bCollectedRecieved = false;
-			gContentsItemStrings[index].bCollected = false;
-		}
-
-		if (pThis->bScribedReceived)
-		{
-			gContentsItemStrings[index].bScribedRecieved = true;
-			gContentsItemStrings[index].bScribed = pThis->bScribed;
-		}
-		else
-		{
-			gContentsItemStrings[index].bScribedRecieved = false;
-			gContentsItemStrings[index].bScribed = false;
-		}
-
-		gContents[index] = item;
-		gLastIndex = index;
-
-		char out[MAX_STRING * 2] = { 0 };
-		strcpy_s(out, "<BR><c \"#00FFFF\">");
-
-		char temp[MAX_STRING] = { 0 };
-
-		if (Item->ItemNumber > 0)
-		{
-			sprintf_s(temp, "Item ID: %d<br>", Item->ItemNumber);
-			strcat_s(out, temp);
-		}
-
-		if (Item->ItemNumber > 0)
-		{
-			sprintf_s(temp, "Icon ID: %d<br>", Item->IconNumber);
-			strcat_s(out, temp);
-		}
-
-		// TODO: Add injection point for additional stats
-
-		if (item->IsStackable())
-		{
-			if (Item->StackSize > 0)
-			{
-				sprintf_s(temp, "Stackable Count: %d<br>", Item->StackSize);
-				strcat_s(out, temp);
-			}
-		}
-
-		if (Item->Cost > 0)
-		{
-			int cp = Item->Cost;
-			int sp = cp / 10; cp = cp % 10;
-			int gp = sp / 10; sp = sp % 10;
-			int pp = gp / 10; gp = gp % 10;
-
-			strcat_s(out, "Value:");
-			if (pp > 0)
-			{
-				sprintf_s(temp, " %dpp", pp);
-				strcat_s(out, temp);
-			}
-
-			if (gp > 0)
-			{
-				sprintf_s(temp, " %dgp", gp);
-				strcat_s(out, temp);
-			}
-
-			if (sp > 0)
-			{
-				sprintf_s(temp, " %dsp", sp);
-				strcat_s(out, temp);
-			}
-
-			if (cp > 0)
-			{
-				sprintf_s(temp, " %dcp", cp);
-				strcat_s(out, temp);
-			}
-
-			strcat_s(out, "<BR>");
-		}
-
-		if (Item->Favor > 0)
-		{
-			sprintf_s(temp, "Tribute Value: %d<br>", Item->Favor);
-			strcat_s(out, temp);
-		}
-
-		if (Item->GuildFavor > 0)
-		{
-			sprintf_s(temp, "Guild Tribute Value: %d<br>", Item->GuildFavor);
-			strcat_s(out, temp);
-		}
-
-		if (Item->Clicky.TimerID != 0)
-		{
-			int Secs = GetItemTimer(item.get());
-
-			if (!Secs)
-			{
-				sprintf_s(temp, "Item Timer: <c \"#20FF20\">Ready</c><br>");
-			}
-			else
-			{
-				int Mins = (Secs / 60) % 60;
-				int Hrs = (Secs / 3600);
-				Secs = Secs % 60;
-
-				if (Hrs)
-					sprintf_s(temp, "Item Timer: %d:%02d:%02d<br>", Hrs, Mins, Secs);
-				else
-					sprintf_s(temp, "Item Timer: %d:%02d<br>", Mins, Secs);
-			}
-
-			strcat_s(out, temp);
-		}
-
-		// Outlaw (AKA CheckinThingsOut) (02/24/2005)
-		if (Item->ItemType != 27)
-		{
-			// Arrows..they have dmg/dly but we don't want them
-			if (Item->Delay > 0)
-			{
-				if (Item->Damage > 0)
-				{
-					sprintf_s(temp, "Ratio: %5.3f<br>", (float)Item->Delay / (float)Item->Damage);
-					strcat_s(out, temp);
-
-					// Calculate Efficiency
-					int dmgbonus = 0;
-
-					if (PcProfile* pProfile = GetPcProfile())
-					{
-						if (pProfile->Level > 27 && !pThis->ItemInfo.empty())
-						{
-							// bonus is 0 for anything below 28
-							dmgbonus = GetDmgBonus(pThis->ItemInfo);
-						}
-					}
-
-					sprintf_s(temp, "Efficiency: %3.0f<br>", ((((float)Item->Damage * 2) + dmgbonus) / (float)Item->Delay) * 50);
-					strcat_s(out, temp);
-
-					if (Item->EquipSlots & 16384)
-					{
-						// Equipable In Secondary Slot
-						sprintf_s(temp, "Offhand Efficiency: %3.0f<br>", ((((float)Item->Damage * 2) / (float)Item->Delay) * 50) * 0.62);
-						strcat_s(out, temp);
-					}
-
-					sprintf_s(temp, "<br>");
-					strcat_s(out, temp);
-				}
-			}
-		}
-
-		char* lore = Item->LoreName;
-		if (lore[0] == '*') lore++;
-
-		if (strcmp(lore, Item->Name))
-		{
-			sprintf_s(temp, "Item Lore: %s<BR>", Item->LoreName);
-			strcat_s(out, temp);
-		}
-
-		// Ziggy - for item level highlights
-		// Will be 0 for no effect or -1 if other effects present
-		if (Item->Proc.SpellID && Item->Proc.SpellID != -1)
-		{
-			if (Item->Proc.RequiredLevel == 0)
-			{
-				sprintf_s(temp, "Procs at level 1 (Proc rate modifier: %d)<BR>", Item->Proc.ProcRate);
-			}
-			else
-			{
-				if (PcProfile* pProfile = GetPcProfile())
-				{
-					sprintf_s(temp, "%sProcs at level %d%s (Proc rate modifier: %d)<BR>", (Item->Proc.RequiredLevel > pProfile->Level ? "<c \"#FF4040\">" : ""), Item->Proc.RequiredLevel, (Item->Proc.RequiredLevel > pProfile->Level ? "</C>" : ""), Item->Proc.ProcRate);
-				}
-			}
-			strcat_s(out, temp);
-		}
-
-		// Just in case...
-		if (!strstr(pThis->ItemInfo.c_str(), "(Combat)") && Item->Proc.ProcRate > 0)
-		{
-			sprintf_s(temp, "Proc rate Modifier: %d<BR>", Item->Proc.ProcRate);
-			strcat_s(out, temp);
-		}
-
-		// Teh_Ish (02/08/2004)
-		if (Item->Clicky.EffectType == 4 || Item->Clicky.EffectType == 1 || Item->Clicky.EffectType == 5)
-		{
-			if (Item->Clicky.RequiredLevel == 0)
-			{
-				sprintf_s(temp, "Clickable at level 1<br>");
-			}
-			else
-			{
-				if (PcProfile* pProfile = GetPcProfile())
-				{
-					sprintf_s(temp, "%sClickable at level %d%s<BR>", (Item->Clicky.RequiredLevel > pProfile->Level ? "<c \"#FF4040\">" : ""), Item->Clicky.RequiredLevel, (Item->Clicky.RequiredLevel > pProfile->Level ? "</C>" : ""));
-				}
-			}
-
-			strcat_s(out, temp);
-		}
-
-		// TheColonel (12/24/2003)
-		if (Item->LDType == 1)
-		{
-			if (Item->LDCost == 0)
-				sprintf_s(temp, "This drops in %s dungeons<BR>", GetLDoNTheme(Item->LDTheme));
-			else
-				sprintf_s(temp, "LDoN Cost: %d from %s<BR>", Item->LDCost, GetLDoNTheme(Item->LDTheme));
-			strcat_s(out, temp);
-		}
-
-		if (Item->LDType == 2 && Item->LDCost > 0)
-		{
-			sprintf_s(temp, "Discord Cost: %d points<BR>", Item->LDCost);
-			strcat_s(out, temp);
-		}
-
-		if (Item->LDType == 4 && Item->LDCost > 0)
-		{
-			sprintf_s(temp, "DoN Cost: %d Radiant Crystals<BR>", Item->LDCost);
-			strcat_s(out, temp);
-		}
-
-		if (Item->LDType == 5 && Item->LDCost > 0)
-		{
-			sprintf_s(temp, "DoN Cost: %d Ebon Crystals<BR>", Item->LDCost);
-			strcat_s(out, temp);
-		}
-
-		// TheColonel (1/18/2004)
-		if (Item->Type == ITEMTYPE_PACK)
-		{
-			sprintf_s(temp, "Container Type: %s<BR>", szCombineTypes[Item->Combine]);
-			strcat_s(out, temp);
-		}
-
-		sprintf_s(temp, "%07d", Item->ItemNumber);
-
-		char temp2[MAX_STRING] = { 0 };
-		GetPrivateProfileString("Notes", temp, "", temp2, MAX_STRING, INIFileName);
-		if (strlen(temp2) > 0)
-		{
-			sprintf_s(temp, "Note: %s<br>", temp2);
-			strcat_s(out, temp);
-		}
-
-		if (out[0] != 17)
-		{
-			strcat_s(out, "</c>");
-			pThis->Description->AppendSTML(out);
-		}
-	}
-
-	void HandleLucyButton(const ItemPtr& pItem)
-	{
-		if (pItem)
-		{
-			std::string url = fmt::format("https://lucy.allakhazam.com/item.html?id={}", pItem->GetID());
-			ShellExecute(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
-		}
-	}
-
-	int WndNotification_Trampoline(CXWnd*, uint32_t, void*);
-	int WndNotification_Detour(CXWnd* pWnd, uint32_t Message, void* pData)
-	{
-		if (Message == XWM_RCLICK)
-		{
-			auto iter = ButtonMap.find(static_cast<CButtonWnd*>(pWnd));
-			if (iter != ButtonMap.end())
-			{
-				ButtonInfo& buttonInfo = iter->second;
-
-				// open in lucy
-				if (buttonInfo.ID == 6)
-				{
-					HandleLucyButton(buttonInfo.ItemDisplayWnd->pItem);
-					return 0;
-				}
-			}
-		}
-		else if (Message == XWM_LCLICK)
-		{
-			auto iter = ButtonMap.find(static_cast<CButtonWnd*>(pWnd));
-
-			if (iter != ButtonMap.end())
-			{
-				auto& [pButton, buttonInfo] = *iter;
-
-				// FIXME: What do these numbers mean??
-				switch (buttonInfo.ID)
-				{
-				case 2: // Toggle the Need Loot Filter
-				{
-					if (pButton->bChecked)
-					{
-						// check need
-						// uncheck 3 and 4
-						for (auto& [pButton2, buttonInfo2] : ButtonMap)
-						{
-							if (buttonInfo2.ItemDisplayWnd == buttonInfo.ItemDisplayWnd)
-							{
-								if (buttonInfo2.ID == 3 || buttonInfo2.ID == 4)
-								{
-									pButton2->bChecked = false;
-								}
-							}
-						}
-
-						if (ItemDefinition* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
-						{
-							if (pLootFiltersManager)
-							{
-								pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 2, true, true);
-							}
-						}
-					}
-					else
-					{
-						// uncheck need
-						bool bAutoRollIsChecked = false;
-						for (auto& [pButton2, buttonInfo2] : ButtonMap)
-						{
-							if (buttonInfo2.ItemDisplayWnd == buttonInfo.ItemDisplayWnd)
-							{
-								if (buttonInfo2.ID == 5)
-								{
-									bAutoRollIsChecked = pButton2->bChecked;
-									break;
-								}
-							}
-						}
-
-						if (ItemDefinition* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
-						{
-							if (pLootFiltersManager)
-							{
-								if (const ItemFilterData* pData = pLootFiltersManager->GetItemFilterData(pItem->ItemNumber))
-								{
-									bool bAutoRoll = (pData->Types & (1 << 0)) != 0;
-									if (bAutoRoll)
-									{
-										pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 2);
-									}
-									else
-									{
-										pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 0);
-									}
-								}
-								else
-								{
-									// its not currently in lootfilters
-									if (bAutoRollIsChecked)
-									{
-										pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 2);
-									}
-									else
-									{
-										pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 0);
-									}
-								}
-							}
-						}
-					}
-
-					return 0;
-				}
-
-				case 3: // Toggle the Greed Loot Filter
-				{
-					if (pButton->bChecked)
-					{
-						// check greed
-						// uncheck 2 and 4
-						bool bAutoRollIsChecked = false;
-						for (auto& [pButton2, buttonInfo2] : ButtonMap)
-						{
-							if (buttonInfo2.ItemDisplayWnd == buttonInfo.ItemDisplayWnd)
-							{
-								if (buttonInfo2.ID == 2 || buttonInfo2.ID == 4)
-								{
-									pButton2->bChecked = false;
-								}
-								else if (buttonInfo2.ID == 5)
-								{
-									bAutoRollIsChecked = pButton2->bChecked;
-								}
-							}
-						}
-
-						if (ItemDefinition* pItem = iter->second.ItemDisplayWnd->pItem->GetItemDefinition())
-						{
-							if (pLootFiltersManager)
-							{
-								pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 4, true, true);
-							}
-						}
-					}
-					else
-					{
-						// uncheck greed
-						bool bAutoRollIsChecked = false;
-
-						for (auto& [pButton2, buttonInfo2] : ButtonMap)
-						{
-							if (buttonInfo2.ItemDisplayWnd == buttonInfo.ItemDisplayWnd)
-							{
-								if (buttonInfo2.ID == 5)
-								{
-									bAutoRollIsChecked = pButton2->bChecked;
-									break;
-								}
-							}
-						}
-
-						if (ItemDefinition* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
-						{
-							if (pLootFiltersManager)
-							{
-								if (const ItemFilterData* pData = pLootFiltersManager->GetItemFilterData(pItem->ItemNumber))
-								{
-									bool bAutoRoll = (pData->Types & (1 << 0)) != 0;
-
-									if (bAutoRoll)
-									{
-										pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 4);
-									}
-									else
-									{
-										pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 0);
-									}
-								}
-								else
-								{
-									// its not currently in lootfilters
-									if (bAutoRollIsChecked)
-									{
-										pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 4);
-									}
-									else
-									{
-										pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 0);
-									}
-								}
-							}
-						}
-					}
-					return 0;
-				}
-
-				case 4: // Toggle the Never Loot Filter
-				{
-					if (pButton->bChecked)
-					{
-						// check never
-						// uncheck 2 and 3
-						bool bAutoRollIsChecked = false;
-
-						for (auto& [pButton2, buttonInfo2] : ButtonMap)
-						{
-							if (buttonInfo2.ItemDisplayWnd == buttonInfo.ItemDisplayWnd)
-							{
-								if (buttonInfo2.ID == 2 || buttonInfo2.ID == 3)
-								{
-									pButton2->bChecked = false;
-								}
-								else if (buttonInfo2.ID == 5)
-								{
-									bAutoRollIsChecked = pButton2->bChecked;
-								}
-							}
-						}
-
-						if (ItemDefinition* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
-						{
-							if (pLootFiltersManager)
-							{
-								pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 8, true, true);
-							}
-						}
-					}
-					else
-					{
-						// uncheck never
-						bool bAutoRollIsChecked = false;
-
-						for (auto& [pButton2, buttonInfo2] : ButtonMap)
-						{
-							if (buttonInfo2.ItemDisplayWnd == buttonInfo.ItemDisplayWnd)
-							{
-								if (buttonInfo2.ID == 5)
-								{
-									bAutoRollIsChecked = pButton2->bChecked;
-									break;
-								}
-							}
-						}
-
-						if (ItemDefinition* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
-						{
-							if (pLootFiltersManager)
-							{
-								if (const ItemFilterData* pData = pLootFiltersManager->GetItemFilterData(pItem->ItemNumber))
-								{
-									bool bAutoRoll = (pData->Types & (1 << 0)) != 0;
-
-									if (bAutoRoll)
-									{
-										pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 8);
-									}
-									else
-									{
-										pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 0);
-									}
-								}
-								else
-								{
-									// its not currently in lootfilters
-									if (bAutoRollIsChecked)
-									{
-										pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 8);
-									}
-									else
-									{
-										pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 0);
-									}
-								}
-							}
-						}
-					}
-					return 0;
-				}
-
-				case 5: // Toggle the Auto Roll Loot Filter
-				{
-					if (pButton->bChecked)
-					{
-						// check autoroll
-						if (ItemDefinition* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
-						{
-							if (pLootFiltersManager)
-							{
-								if (const ItemFilterData* pData = pLootFiltersManager->GetItemFilterData(pItem->ItemNumber))
-								{
-									bool bNeed = (pData->Types & (1 << 1)) != 0;
-									bool bGreed = (pData->Types & (1 << 2)) != 0;
-									bool bNever = (pData->Types & (1 << 3)) != 0;
-
-									if (bNeed)
-									{
-										pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 3, false, true);
-									}
-									else if (bGreed)
-									{
-										pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 5, false, true);
-									}
-									else if (bNever)
-									{
-										pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 9, false, true);
-									}
-									else
-									{
-										pLootFiltersManager->AddItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 1);
-									}
-								}
-								else
-								{
-									pLootFiltersManager->AddItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 1);
-								}
-							}
-						}
-					}
-					else
-					{
-						// uncheck autoroll
-						if (ItemDefinition* pItem = buttonInfo.ItemDisplayWnd->pItem->GetItemDefinition())
-						{
-							pLootFiltersManager->RemoveItemLootFilter(pItem->ItemNumber, 1);
-						}
-					}
-					return 0;
-				}
-
-				case 6: // open in lucy
-				{
-					HandleLucyButton(buttonInfo.ItemDisplayWnd->pItem);
-					return 0;
-				}
-
-				default: break;
-				}
-			}
-		}
-
-		return WndNotification_Trampoline(pWnd, Message, pData);
+		Info = 1,
+		WindowTitle,
+		AdvancedLore,
+		MadeBy,
+		CollectedReceived,
+		Collected,
+		ScribedReceived,
+		Scribed,
+		Information,
+		DisplayIndex,
+		Window,
+		Item,
+		Next,
+
+		// Typos... really??
+		CollectedRecieved,
+		ScribedRecieved,
 	};
 
-	bool AboutToShow_Trampoline();
-	bool AboutToShow_Detour()
+	MQ2DisplayItemType() : MQ2Type("DisplayItem")
 	{
-		CItemDisplayWnd* pThis = (CItemDisplayWnd*)this;
-		int index = pThis->ItemWndIndex;
-		if (index > 5 || index < 0)
+		ScopedTypeMember(DisplayItemMembers, Info);
+		ScopedTypeMember(DisplayItemMembers, WindowTitle);
+		ScopedTypeMember(DisplayItemMembers, AdvancedLore);
+		ScopedTypeMember(DisplayItemMembers, MadeBy);
+		ScopedTypeMember(DisplayItemMembers, CollectedReceived);
+		ScopedTypeMember(DisplayItemMembers, Collected);
+		ScopedTypeMember(DisplayItemMembers, ScribedReceived);
+		ScopedTypeMember(DisplayItemMembers, Scribed);
+		ScopedTypeMember(DisplayItemMembers, Information);
+		ScopedTypeMember(DisplayItemMembers, DisplayIndex);
+		ScopedTypeMember(DisplayItemMembers, Window);
+		ScopedTypeMember(DisplayItemMembers, Item);
+		ScopedTypeMember(DisplayItemMembers, Next);
+
+		ScopedTypeMember(DisplayItemMembers, CollectedRecieved);
+		ScopedTypeMember(DisplayItemMembers, ScribedRecieved);
+	}
+
+public:
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
+	{
+		CItemDisplayWnd* pWindow = GetItemWndPtr(VarPtr);
+		if (!pWindow)
+			return false;
+
+		ItemPtr pItem = pWindow->pItem;
+		if (!pItem)
+			return false;
+
+		uint32_t windowIndex = pWindow->ItemWndIndex;
+		const ItemDisplayExtraInfo& extraInfo = s_itemDisplayExtraInfo[pWindow];
+
+		// Fall back to members of Item if we couldn't find anything.
+		MQTypeMember* pMember = MQ2DisplayItemType::FindMember(Member);
+		if (!pMember)
 		{
-			index = 0;
-			WriteChatf("Tell eqmule his PEQITEMWINDOW struct is wrong");
+			MQVarPtr varPtr;
+			varPtr.Ptr = pItem.get();
+
+			return pItemType->GetMember(varPtr, Member, Index, Dest);
 		}
 
-		ItemClient* item = pThis->pItem.get();
-		ItemDefinition* Item = item->GetItemDefinition();
-
-		// Ziggy - Items showing their spell details:
-		bNoSpellTramp = true;
-		if (Item->Clicky.SpellID > 0 && Item->Clicky.SpellID != -1)
+		switch (static_cast<DisplayItemMembers>(pMember->ID))
 		{
-			eEffectType = Clicky;
-			ItemSetSpell_Detour(Item->Clicky);
+		case DisplayItemMembers::Info:
+			strcpy_s(DataTypeTemp, extraInfo.itemInfo.c_str());
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = pStringType;
+			return true;
+		case DisplayItemMembers::WindowTitle:
+			strcpy_s(DataTypeTemp, extraInfo.windowTitle.c_str());
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = pStringType;
+			return true;
+		case DisplayItemMembers::AdvancedLore:
+			strcpy_s(DataTypeTemp, extraInfo.itemAdvancedLoreText.c_str());
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = pStringType;
+			return true;
+		case DisplayItemMembers::MadeBy:
+			strcpy_s(DataTypeTemp, extraInfo.itemMadeByText.c_str());
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = pStringType;
+			return true;
+		case DisplayItemMembers::Collected:
+			Dest.Set(extraInfo.collected);
+			Dest.Type = pBoolType;
+			return true;
+		case DisplayItemMembers::CollectedRecieved:
+		case DisplayItemMembers::CollectedReceived:
+			Dest.Set(extraInfo.collectedReceived);
+			Dest.Type = pBoolType;
+			return true;
+		case DisplayItemMembers::Scribed:
+			Dest.Set(extraInfo.scribed);
+			Dest.Type = pBoolType;
+			return true;
+		case DisplayItemMembers::ScribedRecieved:
+		case DisplayItemMembers::ScribedReceived:
+			Dest.Set(extraInfo.scribedReceived);
+			Dest.Type = pBoolType;
+			return true;
+		case DisplayItemMembers::Information:
+			strcpy_s(DataTypeTemp, extraInfo.itemInformationText.c_str());
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = pStringType;
+			return true;
+		case DisplayItemMembers::DisplayIndex:
+			Dest.DWord = pWindow->ItemWndIndex + 1;
+			Dest.Type = pIntType;
+			return true;
+		case DisplayItemMembers::Window:
+			Dest.Ptr = pWindow;
+			Dest.Type = pWindowType;
+			return true;
+		case DisplayItemMembers::Item:
+			Dest.Ptr = pWindow->pItem;
+			Dest.Type = pItemType;
+			return true;
+		case DisplayItemMembers::Next: {
+			Dest.Type = pDisplayItemType;
+			CItemDisplayWnd* pNextWnd = GetNextItemWnd(pWindow);
+			Dest.DWord = pNextWnd ? pNextWnd->ItemWndIndex : -1;
+			return true;
+		}
+		default: break;
 		}
 
-		if (Item->Proc.SpellID > 0 && Item->Proc.SpellID != -1)
+		return false;
+	}
+
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
+	{
+		CItemDisplayWnd* pWindow = GetItemWndPtr(VarPtr);
+		if (!pWindow)
+			return false;
+
+		if (ItemPtr pItem = pWindow->pItem)
 		{
-			eEffectType = Proc;
-			ItemSetSpell_Detour(Item->Proc);
+			strcpy_s(Destination, MAX_STRING, pItem->GetName());
+			return true;
 		}
 
-		if (Item->Worn.SpellID > 0 && Item->Worn.SpellID != -1)
+		const ItemDisplayExtraInfo& extraInfo = s_itemDisplayExtraInfo[pWindow];
+		strcpy_s(Destination, MAX_STRING, extraInfo.windowTitle.c_str());
+		return true;
+	}
+
+	bool Downcast(const MQVarPtr& fromVar, MQVarPtr& toVar, MQ2Type* toType) override
+	{
+		CItemDisplayWnd* pWindow = GetItemWndPtr(fromVar);
+
+		if (toType == pItemType)
 		{
-			eEffectType = Worn;
-			ItemSetSpell_Detour(Item->Worn);
+			toVar.Ptr = pWindow ? pWindow->pItem.get() : nullptr;
+			return true;
 		}
 
-		if (Item->Focus.SpellID > 0 && Item->Focus.SpellID != -1)
+		if (toType == pWindowType)
 		{
-			eEffectType = Focus;
-			ItemSetSpell_Detour(Item->Focus);
+			toVar.Ptr = pWindow;
+			return true;
 		}
 
-		if (Item->Scroll.SpellID > 0 && Item->Scroll.SpellID != -1)
+		return false;
+	}
+
+	static bool dataDisplayItem(const char* szIndex, MQTypeVar& Ret)
+	{
+		if (!pItemDisplayManager)
+			return false;
+
+		if (szIndex[0])
 		{
-			eEffectType = Scroll;
-			ItemSetSpell_Detour(Item->Scroll);
-		}
-
-		if (Item->Focus2.SpellID > 0 && Item->Focus2.SpellID != -1)
-		{
-			eEffectType = Focus2;
-			ItemSetSpell_Detour(Item->Focus2);
-		}
-
-		if (Item->Keyring.SpellID > 0 && Item->Keyring.SpellID != -1)
-		{
-			eEffectType = Keyring;
-			ItemSetSpell_Detour(Item->Mount);
-		}
-
-		bNoSpellTramp = false;
-		eEffectType = None;
-
-		bool doit = false;
-
-		// get rid of old buttons. we really should destroy them in abouttohide but i dont want another detour.
-		for (auto i = ButtonMap.begin(); i != ButtonMap.end();)
-		{
-			if (i->second.ItemDisplayWnd == pThis)
+			int index = GetIntFromString(szIndex, 0) - 1;
+			if (index >= 0 && index < pItemDisplayManager->GetCount())
 			{
-				i->first->Destroy();
-				ButtonMap.erase(i++);
+				if (CItemDisplayWnd* pWnd = pItemDisplayManager->GetWindow(index))
+				{
+					if (pWnd->IsVisible() && pWnd->pItem)
+					{
+						Ret.DWord = index;
+						Ret.Type = pDisplayItemType;
+						return true;
+					}
+				}
+
+				return false;
+			}
+			
+			// Search by string.
+			CItemDisplayWnd* pWnd = FindItemWndByString(szIndex);
+			Ret.DWord = pWnd ? pWnd->ItemWndIndex : -1;
+			Ret.Type = pDisplayItemType;
+			return true;
+		}
+
+		// Use the last known window index. Which could also be invalid.
+		if (s_lastWindowIndex >= 0)
+		{
+			Ret.DWord = s_lastWindowIndex;
+			Ret.Type = pDisplayItemType;
+			return true;
+		}
+
+		return false;
+	}
+};
+
+static int GetDmgBonus(const CXStr& Str)
+{
+	size_t dmgbonuspos = std::string_view::npos;
+	int dmgbonus = 0;
+	size_t badcharpos = std::string_view::npos;
+
+	char ActualDmgBonus[3];
+	std::string_view ItemDisplay = Str;
+
+	dmgbonuspos = ItemDisplay.find("Dmg Bonus:");
+
+	if (dmgbonuspos != std::string_view::npos)
+	{
+		dmgbonuspos = dmgbonuspos + 11;
+		ItemDisplay = ItemDisplay.substr(dmgbonuspos, 3);
+
+		badcharpos = ItemDisplay.find(" ");
+
+		if (badcharpos != std::string_view::npos)
+		{
+			// found blank
+			ItemDisplay = ItemDisplay.substr(0, 2);
+		}
+		else
+		{
+			// badcharpos = tmpActualDmgBonus.find("<");
+			badcharpos = ItemDisplay.find("<");
+			if (badcharpos != std::string_view::npos)
+			{
+				// found <
+				ItemDisplay = ItemDisplay.substr(0, 2);
+			}
+		}
+
+		std::string displayCopy{ ItemDisplay };
+		strcpy_s(ActualDmgBonus, displayCopy.c_str());
+
+		dmgbonus = GetIntFromString(ActualDmgBonus, 0);
+	}
+
+	return dmgbonus;
+}
+
+static void CreateSpellTextDetails(fmt::memory_buffer& out, EQ_Spell* pSpell);
+
+static CXStr CreateItemSpellTag(ItemSpellData::SpellData* Effect, EQ_Spell* pSpell)
+{
+	fmt::memory_buffer buf;
+	fmt::format_to(buf, "{:d}^{:d}^{:d}", 3, pSpell->ID, Effect->EffectType);
+
+	return CStmlWnd::MakeWndNotificationTag(XWM_SPELL_LINK, Effect->OverrideName[0] ? Effect->OverrideName : pSpell->Name,
+		CXStr{ buf.data(), buf.size() });
+}
+
+static std::string CreateItemSpellText(eItemSpellType spellType, ItemSpellData::SpellData* Effect)
+{
+	EQ_Spell* pSpell = GetSpellByID(Effect->SpellID);
+	if (pSpell == nullptr)
+		return {};
+
+	auto [color, name] = GetEffectInfo(spellType);
+
+	auto buf = fmt::memory_buffer();
+	fmt::format_to(buf, "<BR><c \"#{:06X}\">Spell Info for {} effect: ", color.ToRGB(), name);
+
+	CXStr spellLink = CreateItemSpellTag(Effect, pSpell);
+	fmt::format_to(buf, "{}<BR>", std::string_view{ spellLink });
+
+	CreateSpellTextDetails(buf, pSpell);
+
+	fmt::format_to(std::back_inserter(buf), "</c>");
+
+	return to_string(buf);
+}
+
+static std::string CreateSpellText(EQ_Spell* pSpell)
+{
+	if (!pSpell)
+		return {};
+
+	auto buf = fmt::memory_buffer();
+	fmt::format_to(buf, "<BR><c \"#{:06X}\">", s_settings.GetSpellColor().ToRGB());
+
+	CreateSpellTextDetails(buf, pSpell);
+
+	if (int cat = GetSpellCategory(pSpell))
+	{
+		if (const char* str = pDBStr->GetString(cat, eSpellCategory))
+		{
+			fmt::format_to(std::back_inserter(buf), "Category: {}<br>", str);
+		}
+	}
+
+	if (int cat = GetSpellSubcategory(pSpell))
+	{
+		if (const char* str = pDBStr->GetString(cat, eSpellCategory))
+		{
+			fmt::format_to(std::back_inserter(buf), "Subcategory: {}<br>", str);
+		}
+	}
+
+	fmt::format_to(std::back_inserter(buf), "Spell Icon: {}<br>", pSpell->SpellIcon);
+	fmt::format_to(std::back_inserter(buf), "</c>");
+
+	return to_string(buf);
+}
+
+struct repeated_text {
+	int n;
+	std::string_view sv;
+};
+repeated_text rep(int n, std::string_view sv) { return { n, sv }; }
+
+template <>
+struct fmt::formatter<repeated_text> : fmt::formatter<std::string_view> {
+	template <typename FormatContext>
+	auto format(const repeated_text& r, FormatContext& ctx) {
+		auto it = ctx.out();
+		for (int i = 0; i < r.n; ++i)
+			it = fmt::formatter<std::string_view>::format(r.sv, ctx);
+		return it;
+	}
+};
+
+struct class_name_level {
+	int class_id;
+	int level;
+};
+
+template <>
+struct fmt::formatter<class_name_level> : fmt::formatter<string_view> {
+	template <typename FormatContext>
+	auto format(const class_name_level& r, FormatContext& ctx) {
+		return format_to(ctx.out(), "{}({})", GetClassDesc(r.class_id), r.level);
+	}
+};
+
+static void CreateSpellTextDetails(fmt::memory_buffer& out, EQ_Spell* pSpell)
+{
+	auto buffer = std::back_inserter(out);
+
+	//----------------------------------------------------------------------------
+	// Basic Info
+
+	fmt::format_to(buffer, "ID: {:04d}{}", pSpell->ID, rep(28, "&nbsp;"));
+
+	int Ticks = GetSpellDuration(pSpell, pLocalPlayer);
+	if (Ticks == -1)
+		fmt::format_to(buffer, "Duration: Permanent<br>");
+	else if (Ticks == -2)
+		fmt::format_to(buffer, "Duration: Unknown<br>");
+	else if (Ticks == 0)
+		fmt::format_to(buffer, "<br>");
+	else
+		fmt::format_to(buffer, "Duration: {:1.1f} minutes<br>", (float)((Ticks * 6.0f) / 60.0f));
+
+	fmt::format_to(buffer, "RecoveryTime: {0:1.2f}{2}RecastTime: {1:1.2f}<br>",
+		(float)(pSpell->RecoveryTime / 1000.0f), (float)(pSpell->RecastTime / 1000.0f), rep(7, "&nbsp;"));
+
+	if (pSpell->Range > 0.0f)
+	{
+		fmt::format_to(buffer, "Range: {:1.0f}", pSpell->Range);
+
+		if (pSpell->PushBack == 0.0f && pSpell->AERange == 0.0f)
+			fmt::format_to(buffer, "<br>");
+	}
+
+	if (pSpell->PushBack != 0.0f)
+	{
+		if (pSpell->Range > 0.0f)
+			fmt::format_to(buffer, "{}", rep(22, "&nbsp;"));
+		fmt::format_to(buffer, "PushBack: {:1.1f}", pSpell->PushBack);
+
+		if (pSpell->AERange == 0.0f || pSpell->Range > 0.0f)
+			fmt::format_to(buffer, "<br>");
+	}
+
+	if (pSpell->AERange > 0.0f)
+	{
+		if (pSpell->Range > 0.0f)
+			fmt::format_to(buffer, "{}", rep(22, "&nbsp;"));
+		else if (pSpell->PushBack > 0.0f)
+			fmt::format_to(buffer, "{}", rep(17, "&nbsp;"));
+
+		fmt::format_to(buffer, "AERange: {:1.0f}<br>", pSpell->AERange);
+	}
+
+	if (pSpell->TargetType != TargetType_Self
+		&& pSpell->TargetType != TargetType_Pet
+		&& pSpell->TargetType != TargetType_Group_v1
+		&& pSpell->TargetType != TargetType_AEPC_v2
+		&& pSpell->TargetType != TargetType_Group_v2)
+	{
+		if (pSpell->SpellType == SpellType_Detrimental)
+		{
+			switch (pSpell->Resist)
+			{
+			case ResistType_Corruption: fmt::format_to(buffer, "Resist: Corruption"); break;
+			case ResistType_Prismatic:  fmt::format_to(buffer, "Resist: Prismatic[Avg]"); break;
+			case ResistType_Chromatic:  fmt::format_to(buffer, "Resist: Chromatic[Low]"); break;
+			case ResistType_Disease:    fmt::format_to(buffer, "Resist: Disease"); break;
+			case ResistType_Poison:     fmt::format_to(buffer, "Resist: Poison"); break;
+			case ResistType_Cold:       fmt::format_to(buffer, "Resist: Cold"); break;
+			case ResistType_Fire:       fmt::format_to(buffer, "Resist: Fire"); break;
+			case ResistType_Magic:      fmt::format_to(buffer, "Resist: Magic"); break;
+			case ResistType_None:       fmt::format_to(buffer, "Resist: Unresistable"); break;
+			}
+
+			if (pSpell->ResistAdj != 0)
+				fmt::format_to(buffer, "{1}(Resist Adj.: {0}", pSpell->ResistAdj, rep(3, "&nbsp;"));
+
+			fmt::format_to(buffer, "<br>");
+		}
+	}
+
+	if (pSpell->HateGenerated)
+		fmt::format_to(buffer, "Hate Generated: {}<br>", pSpell->HateGenerated);
+
+	fmt::format_to(buffer, "<br>");
+
+	//----------------------------------------------------------------------------
+	// Spell Slots
+
+	char szSpellSlotInfo[MAX_STRING] = { 0 };
+	ShowSpellSlotInfo(pSpell, szSpellSlotInfo, MAX_STRING);
+
+	fmt::format_to(buffer, "{}<br>", szSpellSlotInfo);
+
+	//----------------------------------------------------------------------------
+	// Usable classes
+
+	class_name_level class_levels[TotalPlayerClasses];
+	int numClassLevels = 0;
+
+	for (int j = Warrior; j <= Berserker; j++)
+	{
+		int levelNeeded = pSpell->GetSpellLevelNeeded(j);
+
+		if (levelNeeded > 0 && levelNeeded <= MAX_PC_LEVEL)
+			class_levels[numClassLevels++] = class_name_level{ j, levelNeeded };
+	}
+	if (numClassLevels)
+		fmt::format_to(buffer, "{}<br><br>", fmt::join(class_levels, class_levels + numClassLevels, ", "));
+
+	//----------------------------------------------------------------------------
+	// Messages
+
+	if (const char* str = GetSpellString(pSpell->ID, 2))
+	{
+		fmt::format_to(buffer, "Cast on you: {}<br>", str);
+	}
+
+	if (const char* str = GetSpellString(pSpell->ID, 3))
+	{
+		fmt::format_to(buffer, "Cast on another: {}<br>", str);
+	}
+
+	if (const char* str = GetSpellString(pSpell->ID, 4))
+	{
+		fmt::format_to(buffer, "Wears off: {}<br>", str);
+	}
+}
+
+// TODO: Find a way to remove origMsg by calculating the bonus dmg.
+static void CreateItemText(fmt::memory_buffer& buffer_, const ItemPtr& item, const CXStr& origMsg)
+{
+	auto buffer = std::back_inserter(buffer_);
+
+	if (item->GetID() > 0)
+	{
+		fmt::format_to(buffer, "Item ID: {}<br>", item->GetID());
+	}
+
+	if (item->GetIconID() > 0)
+	{
+		fmt::format_to(buffer, "Icon ID: {}<br>", item->GetIconID());
+	}
+
+	if (item->IsStackable())
+	{
+		fmt::format_to(buffer, "Stackable Count: {}<br>", item->GetMaxItemCount());
+	}
+
+	if (item->GetMoneyValue() > 0)
+	{
+		int cp = item->GetMoneyValue();
+		int sp = cp / 10; cp = cp % 10;
+		int gp = sp / 10; sp = sp % 10;
+		int pp = gp / 10; gp = gp % 10;
+
+		fmt::format_to(buffer, "Value:");
+		if (pp > 0)
+		{
+			fmt::format_to(buffer, " {}pp", pp);
+		}
+
+		if (gp > 0)
+		{
+			fmt::format_to(buffer, " {}gp", gp);
+		}
+
+		if (sp > 0)
+		{
+			fmt::format_to(buffer, " {}sp", sp);
+		}
+
+		if (cp > 0)
+		{
+			fmt::format_to(buffer, " {}cp", cp);
+		}
+
+		fmt::format_to(buffer, "<br>");
+	}
+
+	if (item->GetTributeValue() > 0)
+	{
+		fmt::format_to(buffer, "Tribute Value: {}<br>", item->GetTributeValue());
+	}
+
+	if (item->GetGuildTributeValue() > 0)
+	{
+		fmt::format_to(buffer, "Guild Tribute Value: {}<br>", item->GetGuildTributeValue());
+	}
+
+	if (item->GetSpellRecastTime(ItemSpellType_Clicky))
+	{
+		int Secs = GetItemTimer(item.get());
+
+		if (!Secs)
+		{
+			fmt::format_to(buffer, "Item Timer: <c \"#20FF20\">Ready</c><br>");
+		}
+		else
+		{
+			int Mins = (Secs / 60) % 60;
+			int Hrs = (Secs / 3600);
+			Secs = Secs % 60;
+
+			if (Hrs)
+				fmt::format_to(buffer, "Item Timer: {}:{:02d}:{:02d}<br>", Hrs, Mins, Secs);
+			else
+				fmt::format_to(buffer, "Item Timer: {}:{:02d}<br>", Mins, Secs);
+		}
+	}
+
+	// Arrows..they have dmg/dly but we don't want them
+	if (item->GetItemClass() != ItemClass_Arrow
+		&& item->GetDelay() > 0
+		&& item->GetDamage() > 0)
+	{
+		float delay = static_cast<float>(item->GetDelay());
+		float damage = static_cast<float>(item->GetDamage());
+
+		fmt::format_to(buffer, "Ratio: {:5.3f}<br>", delay / damage);
+
+		// Calculate Efficiency
+		int dmgbonus = 0;
+
+		// Read this from the already generated text, we don't have CalculateDisplayedMinItemDamage yet.
+		if (PcProfile* pProfile = GetPcProfile())
+		{
+			if (pProfile->Level > 27 && !origMsg.empty())
+			{
+				// bonus is 0 for anything below 28
+				dmgbonus = GetDmgBonus(origMsg);
+			}
+		}
+
+		float efficiency = (((damage * 2) + dmgbonus) / delay) * 50;
+		fmt::format_to(buffer, "Efficiency: {:3.0f}<br>", efficiency);
+
+		if (item->CanWear(InvSlot_Secondary))
+		{
+			// Equipable In Secondary Slot
+			float offhandEfficiency = (((damage * 2) / delay) * 50) * .62f;
+			fmt::format_to(buffer, "Offhand Efficiency: {:3.0f}<br>", offhandEfficiency);
+		}
+
+		fmt::format_to(buffer, "<br>");
+	}
+
+	char* lore = item->GetItemDefinition()->LoreName;
+	if (lore[0])
+	{
+		if (lore[0] == '*') lore++;
+
+		if (strcmp(lore, item->GetName()) != 0)
+		{
+			fmt::format_to(buffer, "Item Lore: {}<br>", lore);
+		}
+	}
+
+	// TODO: Refactor this into the CreateItemSpellText function instead.
+
+	// Will be 0 for no effect or -1 if other effects present
+	auto procEffect = item->GetSpellData(ItemSpellType_Proc);
+	if (procEffect->SpellID > 0)
+	{
+		if (procEffect->RequiredLevel == 0)
+		{
+			fmt::format_to(buffer, "Procs at level 1", procEffect->ProcRate);
+		}
+		else
+		{
+			if (procEffect->RequiredLevel > pLocalPC->GetLevel())
+			{
+				fmt::format_to(buffer, "<c \"#FF4040\">Procs at level {}</c>", procEffect->RequiredLevel);
 			}
 			else
 			{
-				i++;
+				fmt::format_to(buffer, "Procs at level {}", procEffect->RequiredLevel);
 			}
 		}
 
-		// create add to loot filters button
-		if (gLootButton)
+		if (procEffect->ProcRate != 0)
+		{
+			fmt::format_to(buffer, " (Proc rate modifier: {})", procEffect->ProcRate);
+		}
+		else
+		{
+			fmt::format_to(buffer, "<BR>");
+		}
+	}
+
+	auto clickEffect = item->GetSpellData(ItemSpellType_Clicky);
+	switch (clickEffect->EffectType)
+	{
+	case ItemEffectClicky:
+	case ItemEffectClickyWorn:
+	case ItemEffectClickyRestricted:
+	case ItemEffectConsumable:
+		if (clickEffect->RequiredLevel == 0)
+		{
+			fmt::format_to(buffer, "Clickable at level 1<br>", procEffect->ProcRate);
+		}
+		else
+		{
+			if (clickEffect->RequiredLevel > pLocalPC->GetLevel())
+			{
+				fmt::format_to(buffer, "<c \"#FF4040\">sClickable at level {}</c><br>", clickEffect->RequiredLevel);
+			}
+			else
+			{
+				fmt::format_to(buffer, "Clickable at level {}<br>", clickEffect->RequiredLevel);
+			}
+		}
+		break;
+	default: break;
+	}
+
+	// Old "Points" system
+	if (int pointCost = item->GetPointCost())
+	{
+		switch (item->GetPointType())
+		{
+		case 1: // LDoN Adventures
+			fmt::format_to(buffer, "LDoN Cost: {} from {}<BR>", pointCost, GetLDoNTheme(item->GetPointTheme()));
+			break;
+		case 2: // Discord/PvP
+			fmt::format_to(buffer, "Discord Cost: {} points<BR>", pointCost);
+			break;
+		case 4: // Radiant Crystals
+			fmt::format_to(buffer, "DoN Cost: {} Radiant Crystals<BR>", pointCost);
+			break;
+		case 5: // Ebon Crystals
+			fmt::format_to(buffer, "DoN Cost: {} Ebon Crystals<BR>", pointCost);
+			break;
+		}
+	}
+
+	if (item->IsContainer())
+	{
+		fmt::format_to(buffer, "Container Type: {}<BR>", szCombineTypes[item->GetItemDefinition()->ContainerType]);
+	}
+
+	std::string notes = GetPrivateProfileString("Notes", fmt::format("{:07d}", item->GetID()), {}, INIFileName);
+	if (!notes.empty())
+	{
+		fmt::format_to(buffer, "Note: {}<br>", notes);
+	}
+}
+
+//============================================================================
+
+void HandleLucyButton(const ItemPtr& pItem)
+{
+	if (pItem)
+	{
+		std::string url = fmt::format("https://lucy.allakhazam.com/item.html?id={}", pItem->GetID());
+		ShellExecute(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+	}
+}
+
+class CItemDisplayWndOverride : public WindowOverride<CItemDisplayWndOverride, CItemDisplayWnd>
+{
+	static inline bool s_inSetItem = false;
+
+public:
+	static void OnHooked(CItemDisplayWndOverride* pWnd) { pWnd->OnHooked(); }
+	static void OnAboutToUnhook(CItemDisplayWndOverride* pWnd) { pWnd->OnAboutToUnhook(); }
+
+	static inline bool s_needUpdateLastWindowIndex = false;
+
+	//----------------------------------------------------------------------------
+	// overrides
+
+	virtual int WndNotification(CXWnd* sender, uint32_t message, void* data) override
+	{
+		// If no item then bail immediately.
+		if (!pItem) return Super::WndNotification(sender, message, data);
+
+		if (message == XWM_LCLICK)
+		{
+			ItemDisplayExtraInfo& extraInfo = s_itemDisplayExtraInfo[this];
+
+			if (extraInfo.pLucyButton.get() == sender)
+			{
+				HandleLucyButton(pItem);
+				return 0;
+			}
+
+			bool updateFilters = false;
+			if (extraInfo.pAlwaysNeedBtn.get() == sender
+				|| extraInfo.pAlwaysGreedBtn.get() == sender
+				|| extraInfo.pNeverBtn.get() == sender)
+			{
+				CButtonWnd* pSender = (CButtonWnd*)sender;
+				if (pSender->Checked)
+				{
+					extraInfo.pAlwaysNeedBtn->Checked = extraInfo.pAlwaysNeedBtn.get() == sender;
+					extraInfo.pAlwaysGreedBtn->Checked = extraInfo.pAlwaysGreedBtn.get() == sender;
+					extraInfo.pNeverBtn->Checked = extraInfo.pNeverBtn.get() == sender;
+				}
+				updateFilters = true;
+			}
+			else if (extraInfo.pAutoRollBtn.get() == sender)
+			{
+				updateFilters = true;
+			}
+
+			if (updateFilters)
+			{
+				int filterTypes = 0;
+				if (extraInfo.pAutoRollBtn->Checked)
+					filterTypes |= LootFilterBit(LootFilterType_AutoRoll);
+				if (extraInfo.pAlwaysNeedBtn->Checked)
+					filterTypes |= LootFilterBit(LootFilterType_AlwaysNeed);
+				if (extraInfo.pAlwaysGreedBtn->Checked)
+					filterTypes |= LootFilterBit(LootFilterType_AlwaysGreed);
+				if (extraInfo.pNeverBtn->Checked)
+					filterTypes |= LootFilterBit(LootFilterType_NeverLoot);
+
+				pLootFiltersManager->SetItemLootFilter(pItem->GetID(), pItem->GetIconID(), pItem->GetName(), filterTypes);
+			}
+		}
+
+		return Super::WndNotification(sender, message, data);
+	}
+
+	// ItemDisplay sequence:
+	//
+	// CItemDisplayManager::ShowItem
+	//     CItemDisplayWnd::SetItem
+	//         --> Requests additional information
+	//         CItemDisplayWnd::UpdateStrings
+	//     CItemDisplayWnd::Activate
+	//         CXWnd::Show
+	//             CItemDisplayWnd::AboutToShow
+	//                 CItemDisplayWnd::UpdateStrings
+	// Various events:
+	//     CItemDisplayWnd::UpdateStrings
+	//
+	// Basically, everything wants to call UpdateStrings,
+	// so try to do less work in UpdateStrings and do most of what we can in SetItem
+
+	void UpdateButtons()
+	{
+		ItemDisplayExtraInfo& extraInfo = s_itemDisplayExtraInfo[this];
+
+		if (!extraInfo.pLucyButton && s_settings.IsLucyButtonEnabled())
+		{
+			// create lucy button
+			if (CControlTemplate* btnTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("IDW_ModButton"))
+			{
+				uint32_t oldfont = std::exchange(btnTemplate->nFont, 1);
+
+				CXWnd* pAnchor = this;
+				if (CXWnd* pDescriptionTab = GetChildItem("ItemDescriptionTab"))
+					pAnchor = pDescriptionTab;
+
+				CButtonWnd* pBtn = (CButtonWnd*)pSidlMgr->CreateXWndFromTemplate(pAnchor, btnTemplate);
+				pBtn->SetCRNormal(MQColor(255, 255, 0));
+				pBtn->SetWindowText("Lucy");
+				pBtn->SetDecalTint(MQColor(0, 255, 255));
+				extraInfo.pLucyButton.reset(pBtn);
+
+				btnTemplate->nFont = oldfont;
+			}
+		}
+		else if (extraInfo.pLucyButton && !s_settings.IsLucyButtonEnabled())
+		{
+			extraInfo.pLucyButton.reset();
+		}
+
+		// create loot filter buttons
+		if (!extraInfo.pHeader && s_settings.IsLootButtonsEnabled())
 		{
 			CControlTemplate* btntemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("ADLW_CheckBoxTemplate");
 			CControlTemplate* labeltemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("IDW_ModButtonLabel");
 
 			if (btntemplate && labeltemplate)
 			{
-				uint32_t oldfont = std::exchange(labeltemplate->nFont, 1u);
+				CXWnd* pAnchor = this;
+				if (CXWnd* pDescriptionTab = GetChildItem("ItemDescriptionTab"))
+					pAnchor = pDescriptionTab;
 
-				//labeltemplate->TextColor = 0xFF0094FF;
-				CLabelWnd* pHeader = (CLabelWnd*)pSidlMgr->CreateXWndFromTemplate(pThis, labeltemplate);
-				pHeader->SetCRNormal(0xFF0094FF);
-				CButtonWnd* pAlwaysNeedBtn = (CButtonWnd*)pSidlMgr->CreateXWndFromTemplate(pThis, btntemplate);
-				CButtonWnd* pAlwaysGreedBtn = (CButtonWnd*)pSidlMgr->CreateXWndFromTemplate(pThis, btntemplate);
-				CButtonWnd* pNeverBtn = (CButtonWnd*)pSidlMgr->CreateXWndFromTemplate(pThis, btntemplate);
-				CButtonWnd* pAutoRollBtn = (CButtonWnd*)pSidlMgr->CreateXWndFromTemplate(pThis, btntemplate);
+				// header
+				uint32_t oldfont = std::exchange(labeltemplate->nFont, 1);
 
-				if (pAlwaysNeedBtn && pAlwaysGreedBtn && pNeverBtn && pAutoRollBtn && pHeader)
-				{
-					pHeader->SetWindowText("AN | AG | NV | AR");
-					pAlwaysNeedBtn->SetTooltip("Always roll need on this item");
-					pAlwaysGreedBtn->SetTooltip("Always roll greed on this item");
-					pNeverBtn->SetTooltip("Never loot this item");
-					pAutoRollBtn->SetTooltip("Always roll on this item");
-
-					if (CXWnd* orgbutton = pThis->GetChildItem("IDW_ModButtonLabel"))
-					{
-						int spacing = 22;
-						// header
-						int pheader_top = orgbutton->GetLocation().top + 12;
-						int pheader_bottom = pheader_top + 12;
-						int pheader_left = orgbutton->GetLocation().left;
-
-						if (CXWnd* fusebutton = pThis->GetChildItem("IDW_FuseButtonLabel"))
-						{
-							if (fusebutton->IsVisible())
-							{
-								pheader_left += 240;
-							}
-							else
-							{
-								pheader_left += 80;
-							}
-						}
-						int pheader_right = pheader_left + 80;
-
-						pHeader->SetLocation({ pheader_left, pheader_top, pheader_right, pheader_bottom });
-						int pAlwaysNeedBtn_Location_top = orgbutton->GetLocation().top + 28;
-						int pAlwaysNeedBtn_Location_bottom = pAlwaysNeedBtn_Location_top + 14;
-						int pAlwaysNeedBtn_Location_left = pHeader->GetLocation().left;
-						int pAlwaysNeedBtn_Location_right = pAlwaysNeedBtn_Location_left + 14;
-
-						// always need
-						pAlwaysNeedBtn->SetLocation({ pAlwaysNeedBtn_Location_left, pAlwaysNeedBtn_Location_top, pAlwaysNeedBtn_Location_right, pAlwaysNeedBtn_Location_bottom });
-
-						// always greed
-						pAlwaysGreedBtn->SetLocation({ pAlwaysNeedBtn->GetLocation().left + spacing, pAlwaysNeedBtn->GetLocation().top, pAlwaysNeedBtn->GetLocation().right + spacing, pAlwaysNeedBtn->GetLocation().bottom });
-
-						// never
-						//left top right bottom
-						pNeverBtn->SetLocation({ pAlwaysGreedBtn->GetLocation().left + spacing, pAlwaysGreedBtn->GetLocation().top, pAlwaysGreedBtn->GetLocation().right + spacing, pAlwaysGreedBtn->GetLocation().bottom });
-
-						// autoroll
-						pAutoRollBtn->SetLocation({ pNeverBtn->GetLocation().left + spacing, pNeverBtn->GetLocation().top, pNeverBtn->GetLocation().right + spacing, pNeverBtn->GetLocation().bottom });
-					}
-
-					pHeader->SetData(1);
-					ButtonMap[(CButtonWnd*)pHeader] = { pThis, 1 }; // wtf?
-
-					pAlwaysNeedBtn->SetData(2);
-					ButtonMap[pAlwaysNeedBtn] = { pThis, 2 };
-
-					pAlwaysGreedBtn->SetData(3);
-					ButtonMap[pAlwaysGreedBtn] = { pThis, 3 };
-
-					pNeverBtn->SetData(4);
-					ButtonMap[pNeverBtn] = { pThis, 4 };
-
-					pAutoRollBtn->SetData(5);
-					ButtonMap[pAutoRollBtn] = { pThis, 5 };
-
-					if (ItemDefinition* pItem = pThis->pItem->GetItemDefinition())
-					{
-						if (pLootFiltersManager)
-						{
-							if (const ItemFilterData* pData = pLootFiltersManager->GetItemFilterData(pItem->ItemNumber))
-							{
-								bool bAutoRoll = (pData->Types & (1 << 0)) != 0;
-								bool bNeed = (pData->Types & (1 << 1)) != 0;
-								bool bGreed = (pData->Types & (1 << 2)) != 0;
-								bool bNever = (pData->Types & (1 << 3)) != 0;
-
-								if (bNeed)
-								{
-									pAlwaysNeedBtn->bChecked = true;
-								}
-
-								if (bGreed)
-								{
-									pAlwaysGreedBtn->bChecked = true;
-								}
-
-								if (bNever)
-								{
-									pNeverBtn->bChecked = true;
-								}
-
-								if (bAutoRoll)
-								{
-									pAutoRollBtn->bChecked = true;
-								}
-							}
-							else
-							{
-								pAlwaysNeedBtn->bChecked = false;
-								pAlwaysGreedBtn->bChecked = false;
-								pNeverBtn->bChecked = false;
-								pAutoRollBtn->bChecked = false;
-							}
-						}
-					}
-				}
+				std::unique_ptr<CLabelWnd> pHeader{ (CLabelWnd*)pSidlMgr->CreateXWndFromTemplate(pAnchor, labeltemplate) };
+				pHeader->SetCRNormal(MQColor(0, 148, 255));
+				pHeader->SetWindowText("AN | AG | NV | AR");
 
 				labeltemplate->nFont = oldfont;
+
+				std::unique_ptr<CButtonWnd> pAlwaysNeedBtn{ (CButtonWnd*)pSidlMgr->CreateXWndFromTemplate(pAnchor, btntemplate) };
+				pAlwaysNeedBtn->SetTooltip("Always roll need on this item");
+
+				std::unique_ptr<CButtonWnd> pAlwaysGreedBtn{ (CButtonWnd*)pSidlMgr->CreateXWndFromTemplate(pAnchor, btntemplate) };
+				pAlwaysGreedBtn->SetTooltip("Always roll greed on this item");
+
+				std::unique_ptr<CButtonWnd> pNeverBtn{ (CButtonWnd*)pSidlMgr->CreateXWndFromTemplate(pAnchor, btntemplate) };
+				pNeverBtn->SetTooltip("Never loot this item");
+
+				std::unique_ptr<CButtonWnd> pAutoRollBtn{ (CButtonWnd*)pSidlMgr->CreateXWndFromTemplate(pAnchor, btntemplate) };
+				pAutoRollBtn->SetTooltip("Always roll on this item");
+
+				extraInfo.pHeader = std::move(pHeader);
+				extraInfo.pAlwaysNeedBtn = std::move(pAlwaysNeedBtn);
+				extraInfo.pAlwaysGreedBtn = std::move(pAlwaysGreedBtn);
+				extraInfo.pNeverBtn = std::move(pNeverBtn);
+				extraInfo.pAutoRollBtn = std::move(pAutoRollBtn);
 			}
 		}
-
-		// ok now create the lucy button
-		if (gLucyButton)
+		else if (extraInfo.pHeader && !s_settings.IsLootButtonsEnabled())
 		{
-			if (CControlTemplate* btnTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("IDW_ModButton"))
+			extraInfo.pHeader.reset();
+			extraInfo.pAlwaysNeedBtn.reset();
+			extraInfo.pAlwaysGreedBtn.reset();
+			extraInfo.pNeverBtn.reset();
+			extraInfo.pAutoRollBtn.reset();
+		}
+
+		if (extraInfo.pHeader || extraInfo.pLucyButton)
+		{
+			//------------------------------------------------------------------------
+			// Update position of labels
+
+			// Define the position of everything in terms of the upper left corner of
+			// the header label.
+
+			// Try to show it in the 2nd column, if it isn't taken.
+			CXWnd* tempWnd = GetChildItem("IDW_Row1Col2Value");
+			if (tempWnd && !tempWnd->IsVisible())
 			{
-				uint32_t oldfont = std::exchange(btnTemplate->nFont, 1);
-
-				if (CButtonWnd* pBtn = (CButtonWnd*)pSidlMgr->CreateXWndFromTemplate(pThis, btnTemplate))
+				extraInfo.SetLootButtonsPosition(tempWnd->GetLocation().TopLeft());
+			}
+			else
+			{
+				// Try third column.
+				tempWnd = GetChildItem("IDW_Row1Col3Value");
+				if (tempWnd)
 				{
-					pBtn->SetCRNormal(0xFFFFFF00);
-					pBtn->SetLocation({ 20, 10, 60, 30 });
-					pBtn->SetWindowText("Lucy");
-					pBtn->SetData(6);
-					pBtn->SetBGColor(0xFF0000FF);
-					pBtn->DecalTint = 0xFF00FFFF;
-					ButtonMap[pBtn] = { pThis, 6 };
+					if (!tempWnd->IsVisible())
+					{
+						// position in third column if its not being used.
+						extraInfo.SetLootButtonsPosition(tempWnd->GetLocation().TopLeft());
+					}
+					else
+					{
+						// position above third column if it is.
+						CXPoint pos = tempWnd->GetLocation().TopLeft();
+						pos.y -= BUTTON_GROUP_HEIGHT;
+						extraInfo.SetLootButtonsPosition(pos);
+					}
 				}
-
-				btnTemplate->nFont = oldfont;
 			}
 		}
 
-		return AboutToShow_Trampoline();
+		if (extraInfo.pHeader)
+		{
+			//----------------------------------------------------------------------------
+			// update button states
+
+			const ItemFilterData* filterData = pLootFiltersManager->GetItemFilterData(pItem->GetID());
+			if (filterData)
+			{
+				extraInfo.pAutoRollBtn->Checked = (filterData->Types & LootFilterBit(LootFilterType_AutoRoll)) != 0;
+				extraInfo.pAlwaysNeedBtn->Checked = (filterData->Types & LootFilterBit(LootFilterType_AlwaysNeed)) != 0;
+				extraInfo.pAlwaysGreedBtn->Checked = (filterData->Types & LootFilterBit(LootFilterType_AlwaysGreed)) != 0;
+				extraInfo.pNeverBtn->Checked = (filterData->Types & LootFilterBit(LootFilterType_NeverLoot)) != 0;
+			}
+			else
+			{
+				extraInfo.pAutoRollBtn->Checked = false;
+				extraInfo.pAlwaysNeedBtn->Checked = false;
+				extraInfo.pAlwaysGreedBtn->Checked = false;
+				extraInfo.pNeverBtn->Checked = false;
+			}
+		}
+	}
+
+	bool AboutToHide() override
+	{
+		auto iter = s_itemDisplayExtraInfo.find(this);
+		if (iter != s_itemDisplayExtraInfo.end())
+		{
+			ItemDisplayExtraInfo& extraInfo = iter->second;
+
+			extraInfo.Reset();
+		}
+
+		s_needUpdateLastWindowIndex = true;
+
+		return Super::AboutToHide();
+	}
+
+	bool AboutToShow() override
+	{
+		Update();
+
+		return Super::AboutToShow();
+	}
+
+	// Updates the s_lastWindowIndex after a change in visibility. Needs to be done
+	// from OnPulse because the times get updated *after* our detours return.
+	static void UpdateLastWindowIndex()
+	{
+		int lastWindowIndex = -1;
+		int latestTime = 0;
+
+		if (pItemDisplayManager)
+		{
+			for (int i = 0; i < pItemDisplayManager->GetCount(); ++i)
+			{
+				CItemDisplayWnd* pWnd = pItemDisplayManager->GetWindow(i);
+				int updateTime = pItemDisplayManager->GetLastUpdateTime(i);
+
+				if (pWnd && pWnd->IsVisible() && pWnd->pItem && updateTime > latestTime)
+				{
+					lastWindowIndex = i;
+					latestTime = updateTime;
+				}
+			}
+		}
+
+		WriteChatf("  Update Last Window Index: %d", lastWindowIndex);
+
+		s_lastWindowIndex = lastWindowIndex;
+	}
+
+	void SetExtraItemText()
+	{
+		ItemDisplayExtraInfo& extraInfo = s_itemDisplayExtraInfo[this];
+
+		// Update item info
+		auto buf = fmt::memory_buffer();
+		fmt::format_to(buf, "<BR><c \"#{:6X}\">", s_settings.GetItemColor().ToRGB());
+		CreateItemText(buf, pItem, ItemInfo);
+		fmt::format_to(std::back_inserter(buf), "</c>");
+		extraInfo.extraItemInfo = to_string(buf);
+
+		// Update spell info
+		std::string spellInfo;
+		if (s_settings.IsShowSpellInfoOnItemsEnabled())
+		{
+			static eItemSpellType spellTypes[] = {
+				ItemSpellType_Clicky,
+				ItemSpellType_Proc,
+				ItemSpellType_Worn,
+				ItemSpellType_Focus,
+				ItemSpellType_Scroll,
+				ItemSpellType_Focus2,
+				ItemSpellType_Blessing,
+			};
+
+			for (eItemSpellType spellType : spellTypes)
+			{
+				ItemSpellData::SpellData* spellData = pItem->GetSpellData(spellType);
+				if (spellData->SpellID > 0)
+				{
+					spellInfo.append(CreateItemSpellText(spellType, spellData));
+				}
+			}
+		}
+
+		extraInfo.extraSpellInfo = std::move(spellInfo);
+	}
+
+	void Update()
+	{
+		if (!pItem)
+		{
+			s_itemDisplayExtraInfo.erase(this);
+			return;
+		}
+
+		// Refresh/Update buttons
+		UpdateButtons();
+	}
+
+	void ForceUpdate()
+	{
+		s_inSetItem = true;
+
+		// This will update our controls and strings like an initial load of the window
+		UpdateStrings_Detour();
+
+		s_inSetItem = false;
+	}
+
+	//============================================================================
+
+	void UpdateStrings_Trampoline();
+	void UpdateStrings_Detour()
+	{
+		if (s_inSetItem)
+		{
+			s_needUpdateLastWindowIndex = true;
+
+			SetExtraItemText();
+		}
+
+		UpdateStrings_Trampoline();
+
+		// update our strings
+		ItemDisplayExtraInfo& extraInfo = s_itemDisplayExtraInfo[this];
+		extraInfo.itemInformationText = STMLToText(this->ItemInformationText);
+		extraInfo.itemInfo = STMLToText(this->ItemInfo);
+		extraInfo.itemMadeByText = STMLToText(this->ItemMadeByText);
+		extraInfo.itemAdvancedLoreText = STMLToText(this->ItemAdvancedLoreText);
+		extraInfo.windowTitle = STMLToText(this->WindowTitle);
+
+		extraInfo.collectedReceived = this->bCollectedReceived;
+		extraInfo.collected = this->bCollected && this->bCollectedReceived;
+		extraInfo.scribedReceived = this->bScribedReceived;
+		extraInfo.scribed = this->bScribed && this->bScribedReceived;
+
+		Description->AppendSTML(CXStr(extraInfo.extraItemInfo));
+		Description->AppendSTML(CXStr(extraInfo.extraSpellInfo));
+
+		if (s_inSetItem)
+		{
+			Update();
+		}
+	}
+
+	void SetItem_Trampoline(const ItemPtr& pItem, int flags);
+	void SetItem_Detour(const ItemPtr& pItem, int flags)
+	{
+		ItemDisplayExtraInfo& extraInfo = s_itemDisplayExtraInfo[this];
+		extraInfo.ResetItem();
+
+		s_inSetItem = true;
+
+		// This will call into UpdateStrings too.
+		SetItem_Trampoline(pItem, flags);
+
+		s_inSetItem = false;
+	}
+
+	//----------------------------------------------------------------------------
+private:
+
+	void OnHooked()
+	{
+		if (IsVisible() && pItem)
+		{
+			ForceUpdate();
+		}
+	}
+
+	void OnAboutToUnhook()
+	{
+		// Reset strings back to the way they were before.
+		UpdateStrings_Trampoline();
 	}
 };
+DETOUR_TRAMPOLINE_EMPTY(void CItemDisplayWndOverride::UpdateStrings_Trampoline())
+DETOUR_TRAMPOLINE_EMPTY(void CItemDisplayWndOverride::SetItem_Trampoline(const ItemPtr& pItem, int flags));
 
-ItemDisplayHook::SEffectType ItemDisplayHook::eEffectType = None;
-bool ItemDisplayHook::bNoSpellTramp = false;
 
-DETOUR_TRAMPOLINE_EMPTY(int ItemDisplayHook::WndNotification_Trampoline(CXWnd*, uint32_t, void*));
-DETOUR_TRAMPOLINE_EMPTY(bool ItemDisplayHook::AboutToShow_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(void ItemDisplayHook::SetSpell_Trampoline(int SpellID, bool bFullInfo));
-DETOUR_TRAMPOLINE_EMPTY(void ItemDisplayHook::UpdateStrings_Trampoline());
-
-enum eAugTypes
+class SpellDisplayHook : public CSpellDisplayWnd
 {
-	AT_1 = 0x00000001,
-	AT_2 = 0x00000002,
-	AT_3 = 0x00000004,
-	AT_4 = 0x00000008,
-	AT_5 = 0x00000010,
-	AT_6 = 0x00000020,
-	AT_7 = 0x00000040,
-	AT_8 = 0x00000080,
-	AT_9 = 0x00000100,
-	AT_10 = 0x00000200,
-	AT_11 = 0x00000400,
-	AT_12 = 0x00000800,
-	AT_13 = 0x00001000,
-	AT_14 = 0x00002000,
-	AT_15 = 0x00004000,
-	AT_16 = 0x00008000,
-	AT_17 = 0x00010000,
-	AT_18 = 0x00020000,
-	AT_19 = 0x00040000,
-	AT_20 = 0x00080000,
-	AT_21 = 0x00100000,
-	AT_22 = 0x00200000,
-	AT_23 = 0x00400000,
-	AT_24 = 0x00800000,
-	AT_25 = 0x01000000,
-	AT_26 = 0x02000000,
-	AT_27 = 0x04000000,
-	AT_28 = 0x08000000,
-	AT_29 = 0x10000000,
-	AT_30 = 0x20000000,
-	AT_31 = 0x40000000,
-	AT_32 = 0x80000000
+public:
+	void UpdateStrings_Trampoline();
+	void UpdateStrings_Detour()
+	{
+		UpdateStrings_Trampoline();
+
+		if (s_settings.IsShowSpellInfoOnSpellsEnabled())
+		{
+			EQ_Spell* pSpell = GetSpellByID(SpellID);
+			if (pSpell == nullptr)
+			{
+				return;
+			}
+
+			std::string spellText = CreateSpellText(pSpell);
+			if (!spellText.empty())
+			{
+				if (CStmlWnd* description = (CStmlWnd*)GetChildItem("SDW_SpellDescription"))
+				{
+					description->AppendSTML(CXStr(spellText));
+				}
+			}
+		}
+	}
 };
+DETOUR_TRAMPOLINE_EMPTY(void SpellDisplayHook::UpdateStrings_Trampoline());
 
 void ItemDisplayCmd(SPAWNINFO* pChar, char* szLine)
 {
 	if (szLine && szLine[0] == '\0')
 	{
-		WriteChatf("Usage: /itemdisplay LootButton optional:off/on");
-		WriteChatf("Usage: /itemdisplay LucyButton optional:off/on");
+		WriteChatf("Usage:");
+		WriteChatf("    /itemdisplay LootButton [on|off]");
+		WriteChatf("    /itemdisplay LucyButton [on|off]");
+		WriteChatf("    /itemdisplay reload");
 		return;
 	}
 
 	char szArg1[MAX_STRING] = { 0 };
 	char szArg2[MAX_STRING] = { 0 };
 	GetArg(szArg1, szLine, 1);
-	GetArg(szArg2, szLine, 2);
-	bool bon = true;
-	bool bToggle = true;
 
-	if (szArg2 && szArg2[0] != '\0')
+	if (ci_equals(szArg1, "lootbutton") || ci_equals(szArg1, "lucybutton"))
 	{
-		if (!_stricmp(szArg2, "off"))
+		GetArg(szArg2, szLine, 2);
+		bool bOn = true;
+		bool bToggle = true;
+
+		if (szArg2 && szArg2[0] != '\0')
 		{
-			bToggle = false;
-			bon = false;
+			if (ci_equals(szArg2, "off"))
+			{
+				bToggle = false;
+				bOn = false;
+			}
+			else if (ci_equals(szArg2, "on"))
+			{
+				bToggle = false;
+			}
 		}
-		else if (!_stricmp(szArg2, "on"))
+
+		if (ci_equals(szArg1, "lootbutton"))
 		{
-			bToggle = false;
+			s_settings.SetLootButtonsEnabled(bToggle ? !s_settings.IsLootButtonsEnabled() : bOn);
+			WriteChatf("Display of the loot filter buttons is now %s.", (s_settings.IsLootButtonsEnabled() ? "\agEnabled\ax" : "\arDisabled\ax"));
+		}
+		else if (ci_equals(szArg1, "lucybutton"))
+		{
+			s_settings.SetLucyButtonEnabled(bToggle ? !s_settings.IsLucyButtonEnabled() : bOn);
+			WriteChatf("Display of the lucy button is now \ay%s\ax.", (s_settings.IsLucyButtonEnabled() ? "\agEnabled\ax" : "\agDisabled\ax"));
 		}
 	}
-
-	if (!_stricmp(szArg1, "LootButton"))
+	else if (ci_equals(szArg1, "reload"))
 	{
-		if (bToggle)
-		{
-			gLootButton = !gLootButton;
-		}
-		else
-		{
-			gLootButton = bon;
-		}
-
-		WriteChatf("Display of the %s is now \ay%s\ax.", szArg1, (gLootButton ? "Enabled" : "Disabled"));
-		_itoa_s(gLootButton, szArg1, 10);
-		WritePrivateProfileString("Settings", "LootButton", szArg1, INIFileName);
-
-		for (auto i = ButtonMap.begin(); i != ButtonMap.end();)
-		{
-			if (i->second.ID == 1)
-			{
-				i->first->Destroy();
-				ButtonMap.erase(i++);
-			}
-			else
-			{
-				i++;
-			}
-		}
-	}
-	else if (!_stricmp(szArg1, "LucyButton"))
-	{
-		if (bToggle)
-		{
-			gLucyButton = !gLucyButton;
-		}
-		else
-		{
-			gLucyButton = bon;
-		}
-
-		WriteChatf("Display of the %s is now \ay%s\ax.", szArg1, (gLucyButton ? "Enabled" : "Disabled"));
-		_itoa_s(gLucyButton, szArg1, 10);
-		WritePrivateProfileString("Settings", "LucyButton", szArg1, INIFileName);
-
-		for (auto i = ButtonMap.begin(); i != ButtonMap.end();)
-		{
-			if (i->second.ID == 2)
-			{
-				i->first->Destroy();
-				ButtonMap.erase(i++);
-			}
-			else
-			{
-				i++;
-			}
-		}
+		s_settings.Load();
 	}
 }
 
-void RequestConvertItem(SPAWNINFO* pSpawn, char* szLine)
-{
-	if (!pItemDisplayManager) return;
-
-	if (szLine && szLine[0] != '\0')
-	{
-		GetArg(ConvertFrom, szLine, 1);
-
-		if (ItemPtr pItem = FindItemByName(ConvertFrom))
-		{
-			int index = pItemDisplayManager->FindWindow(true);
-			if (index == -1)
-			{
-				index = pItemDisplayManager->CreateWindowInstance();
-			}
-
-			if (auto itemDis = pItemDisplayManager->GetWindow(index))
-			{
-				itemDis->SetItem(pItem, 0);
-				itemDis->RequestConvertItem();
-			}
-			return;
-		}
-	}
-
-	WriteChatf("\agUSAGE:\ax /convertitem \ay\"<item name>\"\ax");
-	WriteChatf("\agExample:\ax /convertitem \ay\"Wishing Lamp:\"\ax");
-}
-
-void AddLootFilter(SPAWNINFO* pChar, char* szLine)
-{
-	if (!pLootFiltersManager)
-		return;
-
-	if (szLine[0] == '\0')
-	{
-		WriteChatf("AddLootFilter Usage: /AddLootFilter <itemID> <ItemIconID> \"Item Name\"");
-		return;
-	}
-
-	char szArg1[MAX_STRING] = { 0 };
-	char szArg2[MAX_STRING] = { 0 };
-	char szArg3[MAX_STRING] = { 0 };
-	GetArg(szArg1, szLine, 1);
-	GetArg(szArg2, szLine, 2);
-	GetArg(szArg3, szLine, 3);
-
-	if (szArg1[0] == '\0' || szArg2[0] == '\0' || szArg3[0] == '\0')
-	{
-		WriteChatf("AddLootFilter Usage: /AddLootFilter <itemID> <ItemIconID> \"Item Name\"");
-		return;
-	}
-
-	int itemid = GetIntFromString(szArg1, 0);
-	int itemicon = GetIntFromString(szArg2, 0);
-
-	pLootFiltersManager->AddItemLootFilter(itemid, itemicon, szArg3, 5);
-	WriteChatf("Added %s to AG and Roll LootFilters.", szArg3);
-}
-
-void InsertAug(SPAWNINFO* pChar, char* szLine)
-{
-	PcProfile* pProfile = GetPcProfile();
-	if (!pProfile) return;
-	if (!pItemDisplayManager) return;
-
-	char szArg1[MAX_STRING] = { 0 };
-	char szArg2[MAX_STRING] = { 0 };
-	GetArg(szArg1, szLine, 1);
-	GetArg(szArg2, szLine, 2);
-
-	ItemPtr pTargetItem;
-
-	if (szArg1[0] != '\0' && IsNumber(szArg1))
-	{
-		if (szArg2[0] == '\0')
-		{
-			// its an itemid...
-			int iID = GetIntFromString(szArg1, -1);
-			pTargetItem = FindItemByID(iID);
-		}
-		else
-		{
-			// it must be a slot then...
-			int slot1 = GetIntFromString(szArg1, -1);
-			int slot2 = -1;
-
-			if (szArg2[0] != '\0')
-			{
-				slot2 = GetIntFromString(szArg2, -1);
-			}
-			pTargetItem = FindItemBySlot(slot1, slot2);
-		}
-	}
-	else if (szArg1[0] != '\0')
-	{
-		// its a itemname....
-		pTargetItem = FindItemByName(szArg1);
-	}
-
-	if (!pTargetItem)
-	{
-		WriteChatColor("/insertaug USAGE: /insertaug \ay#######\ax where ####### is the itemid OR \ay\"Item Name in Quotes\"\ax OR \ay## ##\ax where ## ## are slotnumbers the item is in.", CONCOLOR_WHITE);
-		WriteChatColor("Example1: /insertaug \ay41302\ax", CONCOLOR_WHITE);
-		WriteChatColor("Example2: /insertaug \ay\"Darkened Thick Banded Belt\"\ax", CONCOLOR_WHITE);
-		WriteChatColor("Example3: /insertaug \ay20 -1\ax", CONCOLOR_WHITE);
-		return;
-	}
-
-	if (ItemPtr pAugItem = pProfile->GetInventorySlot(InvSlot_Cursor))
-	{
-		int Slot = 0;
-		bool bFits = false;
-
-		for (; Slot < MAX_AUG_SOCKETS; Slot++)
-		{
-			int fit = pTargetItem->CanGemFitInSlot(pAugItem, Slot);
-			if (fit == 0)
-			{
-				bFits = true;
-				break;
-			}
-		}
-
-		if (!bFits)
-		{
-			WriteChatf("\ayCould NOT insert the\ax \at%s\ax into the \ag%s\ax",
-				pAugItem->GetName(), pTargetItem->GetName());
-			return;
-		}
-
-		int index = pItemDisplayManager->FindWindow(true);
-		if (index == -1)
-		{
-			index = pItemDisplayManager->CreateWindowInstance();
-		}
-
-		if (CItemDisplayWnd* itemDis = pItemDisplayManager->GetWindow(index))
-		{
-			itemDis->SetItem(pTargetItem, 0);
-
-			ItemDefinition* pAugDef = pAugItem->GetItemDefinition();
-
-			// hack to bypass popupdialog...
-			int oldsolv = std::exchange(pAugDef->SolventItemID, 0);
-			bool oldattn = std::exchange(pAugDef->Attuneable, false);
-
-			// now the actual function call...
-			itemDis->InsertAugmentRequest(Slot);
-
-			// ok so lets restore the org values...
-			pAugDef->SolventItemID = oldsolv;
-			pAugDef->Attuneable = oldattn;
-		}
-	}
-}
-
-void RemoveAug(SPAWNINFO* pChar, char* szLine)
-{
-	PcProfile* pProfile = GetPcProfile();
-	if (!pProfile) return;
-	if (!pItemDisplayManager) return;
-
-	if (pProfile->GetInventorySlot(InvSlot_Cursor))
-	{
-		// You cannot remove the augment while you are holding something.
-		WriteChatf("\ay%s", pStringTable->getString(5478));
-		return;
-	}
-
-	char szArg1[MAX_STRING] = { 0 };
-	char szArg2[MAX_STRING] = { 0 };
-	GetArg(szArg1, szLine, 1);
-	GetArg(szArg2, szLine, 2);
-
-	ItemPtr pTargetItem;
-	if (szArg2[0] != '\0' && IsNumber(szArg2))
-	{
-		// its an id
-		int itemId = GetIntFromString(szArg2, -1);
-		if (itemId > 0)
-			pTargetItem = FindItemByID(itemId);
-	}
-	else if (szArg2[0] != '\0')
-	{
-		// its a name...
-		pTargetItem = FindItemByName(szArg2, true);
-	}
-
-	if (!pTargetItem || szArg1[0] == '\0')
-	{
-		WriteChatColor("/removeaug USAGE: /removeaug \ay<augid>\ax <#####> OR \ay<augname>\ax \"Name in quotes\" \ay<itemid>\ax <#####> OR \ay<itemname>\ax \"Name in quotes\"", CONCOLOR_WHITE);
-		WriteChatColor("NOTE! /removeaug \ayIS A CASE SENSITIVE FUNCTION\ax", CONCOLOR_WHITE);
-		WriteChatColor("Example1: /removeaug \ay50502\ax \ay41302\ax", CONCOLOR_WHITE);
-		WriteChatColor("Example2: /removeaug \ay\"Crude Defiant Ruby Shard\"\ax \"Darkened Thick Banded Belt\"", CONCOLOR_WHITE);
-		WriteChatColor("Example2: /removeaug \ay\"Crude Defiant Ruby Shard\"\ax \ay41302\ax", CONCOLOR_WHITE);
-		WriteChatColor("Example2: /removeaug \ay50502\ax \"Darkened Thick Banded Belt\"", CONCOLOR_WHITE);
-		return;
-	}
-
-	ItemIndex foundAugment;
-	if (IsNumber(szArg1))
-	{
-		int itemId = GetIntFromString(szArg1, 0);
-		if (itemId > 0)
-		{
-			foundAugment = pTargetItem->GetHeldItems().FindItem(0, FindItemByIdPred(itemId));
-		}
-	}
-	else
-	{
-		foundAugment = pTargetItem->GetHeldItems().FindItem(0, FindItemByNamePred(szArg1));
-	}
-
-	ItemPtr pAugItem;
-	if (foundAugment.IsValid())
-	{
-		pAugItem = pTargetItem->GetHeldItem(foundAugment.GetDeepestSlot());
-	}
-
-	if (pAugItem)
-	{
-		int index = pItemDisplayManager->FindWindow(true);
-		if (index == -1)
-		{
-			index = pItemDisplayManager->CreateWindowInstance();
-		}
-
-		if (index >= 0 && index < pItemDisplayManager->GetCount())
-		{
-			auto itemDis = pItemDisplayManager->GetWindow(index);
-
-			itemDis->SetItem(pTargetItem, 0);
-
-			if (pAugItem)
-			{
-				ItemPtr pItemSolvent;
-				int realID = 0;
-
-				// we need to check for all distillers
-				int minreqid = pAugItem->GetItemDefinition()->SolventItemID;
-
-				CDistillerInfo& pDistillerInfo = CDistillerInfo::Instance();
-
-				for (int i = minreqid; i <= 21; i++)
-				{
-					realID = pDistillerInfo.GetIDFromRecordNum(i, false);
-
-					pItemSolvent = pLocalPC->GetItemByID(realID);
-					if (pItemSolvent)
-					{
-						// found a distiller that will work...
-						break;
-					}
-				}
-
-				if (!pItemSolvent)
-				{
-					// Universal Augment Solvent... aka perfect distiller...
-					pItemSolvent = pLocalPC->GetItemByItemClass(ItemClass_PerfectedDistiller);
-				}
-
-				if (pItemSolvent)
-				{
-					// we shouldnt do the solvent thing for removals, people who macro this can click the ok button on the confirmation window...
-					itemDis->RemoveAugmentRequest(foundAugment.GetDeepestSlot());
-				}
-				else
-				{
-					// The augment cannot be removed because your inventory does not contain the required solvent.
-					WriteChatf("\ay%s", pStringTable->getString(5474));
-				}
-			}
-		}
-	}
-	else
-	{
-		WriteChatf("\ayCould NOT remove the\ax \at%s\ax from the \ag%s\ax", szArg1, pTargetItem->GetName());
-	}
-}
-
-void Comment(SPAWNINFO* pChar, char* szLine)
+void ItemNoteCmd(SPAWNINFO* pChar, char* szLine)
 {
 	char Arg[MAX_STRING] = { 0 };
 	char ItemNo[MAX_STRING] = { 0 };
@@ -2073,78 +1742,264 @@ void Comment(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
+void DrawItemDisplaySettingsPanel()
+{
+	bool showLootButtons = s_settings.IsLootButtonsEnabled();
+	if (ImGui::Checkbox("Show Loot Filter Buttons", &showLootButtons))
+	{
+		s_settings.SetLootButtonsEnabled(showLootButtons);
+	}
+
+	bool showLucyButton = s_settings.IsLucyButtonEnabled();
+	if (ImGui::Checkbox("Show Lucy Button", &showLucyButton))
+	{
+		s_settings.SetLucyButtonEnabled(showLucyButton);
+	}
+
+	bool showItemSpells = s_settings.IsShowSpellInfoOnItemsEnabled();
+	if (ImGui::Checkbox("Show Spell Info on Items", &showItemSpells))
+	{
+		s_settings.SetShowSpellInfoOnItemsEnabled(showItemSpells);
+	}
+
+	bool showSpells = s_settings.IsShowSpellInfoOnSpellsEnabled();
+	if (ImGui::Checkbox("Show Spell Info on Spells", &showSpells))
+	{
+		s_settings.SetShowSpellInfoOnSpellsEnabled(showSpells);
+	}
+
+	{
+		ImColor imColor = s_settings.GetItemColor().ToImColor();
+
+		ImGui::SetNextItemWidth(-120.f);
+		if (ImGui::ColorEdit3("Item Text", &imColor.Value.x))
+		{
+			MQColor newColor;
+			newColor.Blue = static_cast<uint8_t>(imColor.Value.z * 255);
+			newColor.Green = static_cast<uint8_t>(imColor.Value.y * 255);
+			newColor.Red = static_cast<uint8_t>(imColor.Value.x * 255);
+			newColor.Alpha = 255;
+
+			s_settings.SetItemColor(newColor);
+		}
+
+		if (s_settings.GetItemColor() != s_settings.default_itemColor)
+		{
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(20.f);
+			if (ImGui::Button("Reset"))
+			{
+				s_settings.ResetItemColor();
+			}
+		}
+	}
+
+	{
+		ImColor imColor = s_settings.GetSpellColor().ToImColor();
+
+		ImGui::SetNextItemWidth(-120.f);
+
+		if (ImGui::ColorEdit3("Spell Text", &imColor.Value.x))
+		{
+			MQColor newColor;
+			newColor.Blue = static_cast<uint8_t>(imColor.Value.z * 255);
+			newColor.Green = static_cast<uint8_t>(imColor.Value.y * 255);
+			newColor.Red = static_cast<uint8_t>(imColor.Value.x * 255);
+			newColor.Alpha = 255;
+
+			s_settings.SetSpellColor(newColor);
+		}
+
+		if (s_settings.GetSpellColor() != s_settings.default_spellColor)
+		{
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(20.f);
+
+			if (ImGui::Button("Reset"))
+			{
+				s_settings.ResetSpellColor();
+			}
+		}
+	}
+
+	ImGui::NewLine();
+	ImGui::Text("Item Spell Text Colors");
+	ImGui::Separator();
+
+	for (const auto& config : s_itemEffectConfigs)
+	{
+		ImGui::PushID((int)config.effectType);
+
+		auto [color, text] = GetEffectInfo(config.effectType, false);
+		std::optional<MQColor> customColor = s_settings.GetItemSpellColor(config.effectType);
+		ImColor imColor = customColor.value_or(color).ToImColor();
+
+		ImGui::SetNextItemWidth(-120.f);
+		if (ImGui::ColorEdit3(text.data(), &imColor.Value.x))
+		{
+			MQColor newColor;
+			newColor.Blue = static_cast<uint8_t>(imColor.Value.z * 255);
+			newColor.Green = static_cast<uint8_t>(imColor.Value.y * 255);
+			newColor.Red = static_cast<uint8_t>(imColor.Value.x * 255);
+			newColor.Alpha = 255;
+
+			s_settings.SetItemSpellColor(config.effectType, newColor);
+		}
+
+		if (customColor.has_value())
+		{
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(20.f);
+			if (ImGui::Button("Reset"))
+			{
+				s_settings.ResetItemSpellColor(config.effectType);
+			}
+		}
+
+		ImGui::PopID();
+	}
+
+	ImGui::Separator();
+
+	if (ImGui::Button("Reload Settings"))
+	{
+		s_settings.Load();
+	}
+
+	ImGui::SameLine();
+	if (ImGui::Button("Reset Settings"))
+	{
+		s_settings.Reset();
+	}
+}
+
 // Called once, when the plugin is to initialize
 PLUGIN_API void InitializePlugin()
 {
-	gLootButton = 1 == GetPrivateProfileInt("Settings", "LootButton", 1, INIFileName);
-	gLucyButton = 1 == GetPrivateProfileInt("Settings", "LucyButton", 1, INIFileName);
-
-	EzDetourwName(CItemDisplayWnd__WndNotification, &ItemDisplayHook::WndNotification_Detour, &ItemDisplayHook::WndNotification_Trampoline, "CItemDisplayWnd__WndNotification");
-	EzDetourwName(CItemDisplayWnd__AboutToShow, &ItemDisplayHook::AboutToShow_Detour, &ItemDisplayHook::AboutToShow_Trampoline, "CItemDisplayWnd__AboutToShow");
-	EzDetourwName(CItemDisplayWnd__SetSpell, &ItemDisplayHook::SetSpell_Detour, &ItemDisplayHook::SetSpell_Trampoline, "CItemDisplayWnd__SetSpell");
-	EzDetourwName(CItemDisplayWnd__UpdateStrings, &ItemDisplayHook::UpdateStrings_Detour, &ItemDisplayHook::UpdateStrings_Trampoline, "CItemDisplayWnd__UpdateStrings");
+	EzDetour(CSpellDisplayWnd__UpdateStrings, &SpellDisplayHook::UpdateStrings_Detour, &SpellDisplayHook::UpdateStrings_Trampoline);
+	EzDetour(CItemDisplayWnd__UpdateStrings, &CItemDisplayWndOverride::UpdateStrings_Detour, &CItemDisplayWndOverride::UpdateStrings_Trampoline);
+	EzDetour(CItemDisplayWnd__SetItem, &CItemDisplayWndOverride::SetItem_Detour, &CItemDisplayWndOverride::SetItem_Trampoline);
 
 	AddCommand("/itemdisplay", ItemDisplayCmd);
-	AddCommand("/convertitem", RequestConvertItem);
-	AddCommand("/addlootfilter", AddLootFilter);
-	AddCommand("/insertaug", InsertAug);
-	AddCommand("/removeaug", RemoveAug);
-	AddCommand("/inote", Comment);
+	AddCommand("/inote", ItemNoteCmd);
 
 	pDisplayItemType = new MQ2DisplayItemType;
-	AddMQ2Data("DisplayItem", dataLastItem);
+	AddMQ2Data("DisplayItem", MQ2DisplayItemType::dataDisplayItem);
+
+	AddSettingsPanel("plugins/ItemDisplay", DrawItemDisplaySettingsPanel);
+
+	s_settings.Load();
+	s_refreshSpellDisplay = true;
 }
 
 // Called once, when the plugin is to shutdown
 PLUGIN_API void ShutdownPlugin()
 {
 	// Remove commands, macro parameters, hooks, etc.
-	RemoveDetour(CItemDisplayWnd__SetSpell);
 	RemoveDetour(CItemDisplayWnd__UpdateStrings);
-	RemoveDetour(CItemDisplayWnd__AboutToShow);
-	RemoveDetour(CItemDisplayWnd__WndNotification);
+	RemoveDetour(CItemDisplayWnd__SetItem);
+	RemoveDetour(CSpellDisplayWnd__UpdateStrings);
 
-	for (auto i = ButtonMap.begin(); i != ButtonMap.end(); i++)
-	{
-		i->first->Destroy();
-	}
-	ButtonMap.clear();
+	s_itemDisplayExtraInfo.clear();
 
 	RemoveMQ2Data("DisplayItem");
 	RemoveCommand("/inote");
-	RemoveCommand("/addlootfilter");
-	RemoveCommand("/convertitem");
 	RemoveCommand("/itemdisplay");
-	RemoveCommand("/insertaug");
-	RemoveCommand("/removeaug");
+
+	RemoveSettingsPanel("plugins/ItemDisplay");
 
 	delete pDisplayItemType;
 }
 
 PLUGIN_API void OnCleanUI()
 {
-	for (auto i = ButtonMap.begin(); i != ButtonMap.end(); i++)
-	{
-		i->first->Destroy();
-	}
-	ButtonMap.clear();
-}
+	s_itemDisplayExtraInfo.clear();
 
-PLUGIN_API void OnReloadUI()
-{
-	for (auto i = ButtonMap.begin(); i != ButtonMap.end(); i++)
+	if (pItemDisplayManager && pItemDisplayManager->GetCount() > 0)
 	{
-		i->first->Destroy();
+		for (int i = 1; i < pItemDisplayManager->GetCount(); ++i)
+		{
+			CItemDisplayWndOverride::RestoreVFTable(pItemDisplayManager->GetWindow(i));
+		}
+
+		CItemDisplayWndOverride::RemoveHooks(pItemDisplayManager->GetWindow(0));
 	}
-	ButtonMap.clear();
+
+	if (pSpellDisplayManager)
+	{
+		for (int i = 0; i < pSpellDisplayManager->GetCount(); ++i)
+		{
+			SpellDisplayHook* pWindow = (SpellDisplayHook*)pSpellDisplayManager->GetWindow(i);
+			if (pWindow && pWindow->IsVisible())
+			{
+				pWindow->UpdateStrings_Trampoline();
+			}
+		}
+	}
 }
 
 PLUGIN_API void OnPulse()
 {
-}
+	if (gGameState == GAMESTATE_INGAME)
+	{
+		// Check if we're able to hook the ItemDisplayWnd yet. We only need one instance.
+		// These are created dynamically so we need to wait for it to exist before we can hook it.
+		if (!CItemDisplayWndOverride::IsHooked()
+			&& pItemDisplayManager
+			&& pItemDisplayManager->GetCount() > 0)
+		{
+			CItemDisplayWndOverride::InstallHooks(pItemDisplayManager->GetWindow(0));
+		}
 
-PLUGIN_API void OnBeginZone()
-{
-	for (ItemPtr& ptr : gContents)
-		ptr.reset();
+		if (CItemDisplayWndOverride::IsHooked()
+			&& pItemDisplayManager
+			&& pItemDisplayManager->GetCount() > 1)
+		{
+			// Replacate hooks to other windows
+			for (int i = 1; i < pItemDisplayManager->GetCount(); ++i)
+			{
+				CItemDisplayWndOverride::InstallAdditionalHook(pItemDisplayManager->GetWindow(i));
+			}
+		}
+
+		if (CItemDisplayWndOverride::s_needUpdateLastWindowIndex)
+		{
+			CItemDisplayWndOverride::s_needUpdateLastWindowIndex = false;
+			CItemDisplayWndOverride::UpdateLastWindowIndex();
+		}
+
+		if (s_refreshItemDisplay)
+		{
+			s_refreshItemDisplay = false;
+
+			if (pItemDisplayManager)
+			{
+				for (int i = 0; i < pItemDisplayManager->GetCount(); ++i)
+				{
+					CItemDisplayWndOverride* pOverride = (CItemDisplayWndOverride*)pItemDisplayManager->GetWindow(i);
+					if (pOverride && pOverride->IsVisible())
+					{
+						pOverride->ForceUpdate();
+					}
+				}
+			}
+		}
+
+		if (s_refreshSpellDisplay)
+		{
+			s_refreshSpellDisplay = false;
+
+			if (pSpellDisplayManager)
+			{
+				for (int i = 0; i < pSpellDisplayManager->GetCount(); ++i)
+				{
+					SpellDisplayHook* pWindow = (SpellDisplayHook*)pSpellDisplayManager->GetWindow(i);
+					if (pWindow && pWindow->IsVisible())
+					{
+						pWindow->UpdateStrings_Detour();
+					}
+				}
+			}
+		}
+	}
 }

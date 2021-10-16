@@ -1,3 +1,27 @@
+October 26, 2021:
+- ItemDisplay plugin has been rewritten with a focus on improving existing features:
+  - Loot and Lucy buttons have been relocated nearby to an area that shouldn't overlap with existing controls
+  - Spell and Item display information now updates correctly when the last window is recycled. This info
+    will also be properly removed when the plugin is unloaded.
+  - ${DisplayItem} will now track the most recently opened item display window, and will
+    fall back to the next-most-recently-opened window if that one is closed, and so on.
+  - ${DisplayItem[x]} is now 1-based, with valid values ranging from 1-6 representing one
+    of the six possible item display window.
+  - ${DisplayItem[<itemname>]} is now supported and will return the Item display window for
+    the specified item name, if one exists.
+  - Added Item and Window members to DisplayItem, which will return the related item and window.
+    This can be used to do something like /invoke ${DisplayItem.Window.DoClose}
+  - A settings menu in /mqsettings has been added with a whole bunch of options.
+  - Added /itemdisplay reload to reload settings from ini.
+  - Spell links in item display text will now link to spells. (Note, spell names in spell slots is not yet supported).
+- /convertitem, /insertaug, /removeaug moved to main from ItemDisplay
+- core: Removed reliance on undefined behavior from AddDetourf, now uses a type-checked implementation
+  that can detect errors in setting up detours, and supports proper pointer-to-member and class hierarchies.
+  If type-checking is problematic, an EzDetourUnchecked has been added.
+- core: moved detour api declarations to include/mq/base/Detours.h
+- spell display: Improved the behavior of finding spell names by category.
+
+
 October 21, 2021:
 - Update for latest patch
 

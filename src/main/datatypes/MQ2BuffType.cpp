@@ -19,7 +19,6 @@ namespace mq::datatypes {
 
 enum class BuffMembers
 {
-	Address = 1,
 	ID,
 	Level,
 	Spell,
@@ -42,7 +41,6 @@ enum class BuffMethods
 
 MQ2BuffType::MQ2BuffType() : MQ2Type("buff")
 {
-	ScopedTypeMember(BuffMembers, Address);
 	ScopedTypeMember(BuffMembers, ID);
 	ScopedTypeMember(BuffMembers, Level);
 	ScopedTypeMember(BuffMembers, Spell);
@@ -116,11 +114,6 @@ bool MQ2BuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	switch (static_cast<BuffMembers>(pMember->ID))
 	{
-	case BuffMembers::Address:
-		Dest.DWord = (DWORD)VarPtr.Ptr;
-		Dest.Type = pIntType;
-		return true;
-
 	case BuffMembers::ID:
 		Dest.Type = pIntType;
 		Dest.Int = 0;

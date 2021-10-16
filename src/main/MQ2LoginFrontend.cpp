@@ -187,7 +187,7 @@ void InitializeLoginDetours()
 		}
 	}
 
-	EzDetour(EQMain__LoginController__GiveTime, &LoginController_Hook::GiveTime_Detour, pLoginController_GiveTime_Trampoline);
+	EzDetourUnchecked(EQMain__LoginController__GiveTime, &LoginController_Hook::GiveTime_Detour, pLoginController_GiveTime_Trampoline);
 	EzDetour(EQMain__WndProc, EQMain__WndProc_Detour, EQMain__WndProc_Trampoline);
 
 	if (EQMain__CXWndManager__GetCursorToDisplay)

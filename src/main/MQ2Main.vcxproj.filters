@@ -505,6 +505,9 @@
     <ClInclude Include="ImGuiBackend.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\Detours.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MQ2Main.rc">

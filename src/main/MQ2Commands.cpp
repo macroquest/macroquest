@@ -5489,4 +5489,258 @@ void ListModulesCommand(PSPAWNINFO pChar, char* szLine)
 	}
 }
 
+//----------------------------------------------------------------------------
+
+void ConvertItemCmd(SPAWNINFO* pSpawn, char* szLine)
+{
+	if (!pItemDisplayManager) return;
+
+	if (szLine && szLine[0] != '\0')
+	{
+		char ConvertFrom[MAX_STRING] = { 0 };
+		GetArg(ConvertFrom, szLine, 1);
+
+		if (ItemPtr pItem = FindItemByName(ConvertFrom))
+		{
+			int index = pItemDisplayManager->FindWindow(true);
+			if (index == -1)
+			{
+				index = pItemDisplayManager->CreateWindowInstance();
+			}
+
+			if (auto itemDis = pItemDisplayManager->GetWindow(index))
+			{
+				itemDis->SetItem(pItem, 0);
+				itemDis->RequestConvertItem();
+			}
+			return;
+		}
+	}
+
+	WriteChatf("\agUSAGE:\ax /convertitem \ay\"<item name>\"\ax");
+	WriteChatf("\agExample:\ax /convertitem \ay\"Wishing Lamp:\"\ax");
+}
+
+void InsertAugCmd(SPAWNINFO* pChar, char* szLine)
+{
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile) return;
+	if (!pItemDisplayManager) return;
+
+	char szArg1[MAX_STRING] = { 0 };
+	char szArg2[MAX_STRING] = { 0 };
+	GetArg(szArg1, szLine, 1);
+	GetArg(szArg2, szLine, 2);
+
+	ItemPtr pTargetItem;
+
+	if (szArg1[0] != '\0' && IsNumber(szArg1))
+	{
+		if (szArg2[0] == '\0')
+		{
+			// its an itemid...
+			int iID = GetIntFromString(szArg1, -1);
+			pTargetItem = FindItemByID(iID);
+		}
+		else
+		{
+			// it must be a slot then...
+			int slot1 = GetIntFromString(szArg1, -1);
+			int slot2 = -1;
+
+			if (szArg2[0] != '\0')
+			{
+				slot2 = GetIntFromString(szArg2, -1);
+			}
+			pTargetItem = FindItemBySlot(slot1, slot2);
+		}
+	}
+	else if (szArg1[0] != '\0')
+	{
+		// its a itemname....
+		pTargetItem = FindItemByName(szArg1);
+	}
+
+	if (!pTargetItem)
+	{
+		WriteChatColor("/insertaug USAGE: /insertaug \ay#######\ax where ####### is the itemid OR \ay\"Item Name in Quotes\"\ax OR \ay## ##\ax where ## ## are slotnumbers the item is in.", CONCOLOR_WHITE);
+		WriteChatColor("Example1: /insertaug \ay41302\ax", CONCOLOR_WHITE);
+		WriteChatColor("Example2: /insertaug \ay\"Darkened Thick Banded Belt\"\ax", CONCOLOR_WHITE);
+		WriteChatColor("Example3: /insertaug \ay20 -1\ax", CONCOLOR_WHITE);
+		return;
+	}
+
+	if (ItemPtr pAugItem = pProfile->GetInventorySlot(InvSlot_Cursor))
+	{
+		int Slot = 0;
+		bool bFits = false;
+
+		for (; Slot < MAX_AUG_SOCKETS; Slot++)
+		{
+			int fit = pTargetItem->CanGemFitInSlot(pAugItem, Slot);
+			if (fit == 0)
+			{
+				bFits = true;
+				break;
+			}
+		}
+
+		if (!bFits)
+		{
+			WriteChatf("\ayCould NOT insert the\ax \at%s\ax into the \ag%s\ax",
+				pAugItem->GetName(), pTargetItem->GetName());
+			return;
+		}
+
+		int index = pItemDisplayManager->FindWindow(true);
+		if (index == -1)
+		{
+			index = pItemDisplayManager->CreateWindowInstance();
+		}
+
+		if (CItemDisplayWnd* itemDis = pItemDisplayManager->GetWindow(index))
+		{
+			itemDis->SetItem(pTargetItem, 0);
+
+			ItemDefinition* pAugDef = pAugItem->GetItemDefinition();
+
+			// hack to bypass popupdialog...
+			int oldsolv = std::exchange(pAugDef->SolventItemID, 0);
+			bool oldattn = std::exchange(pAugDef->Attuneable, false);
+
+			// now the actual function call...
+			itemDis->InsertAugmentRequest(Slot);
+
+			// ok so lets restore the org values...
+			pAugDef->SolventItemID = oldsolv;
+			pAugDef->Attuneable = oldattn;
+		}
+	}
+}
+
+void RemoveAugCmd(SPAWNINFO* pChar, char* szLine)
+{
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile) return;
+	if (!pItemDisplayManager) return;
+
+	if (pProfile->GetInventorySlot(InvSlot_Cursor))
+	{
+		// You cannot remove the augment while you are holding something.
+		WriteChatf("\ay%s", pStringTable->getString(5478));
+		return;
+	}
+
+	char szArg1[MAX_STRING] = { 0 };
+	char szArg2[MAX_STRING] = { 0 };
+	GetArg(szArg1, szLine, 1);
+	GetArg(szArg2, szLine, 2);
+
+	ItemPtr pTargetItem;
+	if (szArg2[0] != '\0' && IsNumber(szArg2))
+	{
+		// its an id
+		int itemId = GetIntFromString(szArg2, -1);
+		if (itemId > 0)
+			pTargetItem = FindItemByID(itemId);
+	}
+	else if (szArg2[0] != '\0')
+	{
+		// its a name...
+		pTargetItem = FindItemByName(szArg2, true);
+	}
+
+	if (!pTargetItem || szArg1[0] == '\0')
+	{
+		WriteChatColor("/removeaug USAGE: /removeaug \ay<augid>\ax <#####> OR \ay<augname>\ax \"Name in quotes\" \ay<itemid>\ax <#####> OR \ay<itemname>\ax \"Name in quotes\"", CONCOLOR_WHITE);
+		WriteChatColor("NOTE! /removeaug \ayIS A CASE SENSITIVE FUNCTION\ax", CONCOLOR_WHITE);
+		WriteChatColor("Example1: /removeaug \ay50502\ax \ay41302\ax", CONCOLOR_WHITE);
+		WriteChatColor("Example2: /removeaug \ay\"Crude Defiant Ruby Shard\"\ax \"Darkened Thick Banded Belt\"", CONCOLOR_WHITE);
+		WriteChatColor("Example2: /removeaug \ay\"Crude Defiant Ruby Shard\"\ax \ay41302\ax", CONCOLOR_WHITE);
+		WriteChatColor("Example2: /removeaug \ay50502\ax \"Darkened Thick Banded Belt\"", CONCOLOR_WHITE);
+		return;
+	}
+
+	ItemIndex foundAugment;
+	if (IsNumber(szArg1))
+	{
+		int itemId = GetIntFromString(szArg1, 0);
+		if (itemId > 0)
+		{
+			foundAugment = pTargetItem->GetHeldItems().FindItem(0, FindItemByIdPred(itemId));
+		}
+	}
+	else
+	{
+		foundAugment = pTargetItem->GetHeldItems().FindItem(0, FindItemByNamePred(szArg1));
+	}
+
+	ItemPtr pAugItem;
+	if (foundAugment.IsValid())
+	{
+		pAugItem = pTargetItem->GetHeldItem(foundAugment.GetDeepestSlot());
+	}
+
+	if (pAugItem)
+	{
+		int index = pItemDisplayManager->FindWindow(true);
+		if (index == -1)
+		{
+			index = pItemDisplayManager->CreateWindowInstance();
+		}
+
+		if (index >= 0 && index < pItemDisplayManager->GetCount())
+		{
+			auto itemDis = pItemDisplayManager->GetWindow(index);
+
+			itemDis->SetItem(pTargetItem, 0);
+
+			if (pAugItem)
+			{
+				ItemPtr pItemSolvent;
+				int realID = 0;
+
+				// we need to check for all distillers
+				int minreqid = pAugItem->GetItemDefinition()->SolventItemID;
+
+				CDistillerInfo& pDistillerInfo = CDistillerInfo::Instance();
+
+				for (int i = minreqid; i <= 21; i++)
+				{
+					realID = pDistillerInfo.GetIDFromRecordNum(i, false);
+
+					pItemSolvent = pLocalPC->GetItemByID(realID);
+					if (pItemSolvent)
+					{
+						// found a distiller that will work...
+						break;
+					}
+				}
+
+				if (!pItemSolvent)
+				{
+					// Universal Augment Solvent... aka perfect distiller...
+					pItemSolvent = pLocalPC->GetItemByItemClass(ItemClass_PerfectedDistiller);
+				}
+
+				if (pItemSolvent)
+				{
+					// we shouldnt do the solvent thing for removals, people who macro this can click the ok button on the confirmation window...
+					itemDis->RemoveAugmentRequest(foundAugment.GetDeepestSlot());
+				}
+				else
+				{
+					// The augment cannot be removed because your inventory does not contain the required solvent.
+					WriteChatf("\ay%s", pStringTable->getString(5474));
+				}
+			}
+		}
+	}
+	else
+	{
+		WriteChatf("\ayCould NOT remove the\ax \at%s\ax from the \ag%s\ax", szArg1, pTargetItem->GetName());
+	}
+}
+
+
 } // namespace mq

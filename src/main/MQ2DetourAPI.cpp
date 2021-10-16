@@ -38,7 +38,7 @@ std::recursive_mutex gDetourMutex;
 bool gbDoingSpellChecks = false;
 int gbInMemCheck4 = 0;
 
-DetourRecord* FindDetour(DWORD address)
+DetourRecord* FindDetour(uintptr_t address)
 {
 	DetourRecord* pDetour = gDetours;
 	while (pDetour)
@@ -51,23 +51,24 @@ DetourRecord* FindDetour(DWORD address)
 	return nullptr;
 }
 
-bool AddDetour(DWORD address, BYTE* pfDetour, BYTE* pfTrampoline, DWORD Count, const char* Name)
+bool AddDetour(uintptr_t address, uint8_t* pfDetour, uint8_t* pfTrampoline, uint32_t dwSize, const char* szDetourName)
 {
 	std::scoped_lock lock(gDetourMutex);
 
 	char szName[MAX_STRING] = { 0 };
 
-	if (Name && Name[0] != '\0')
+	if (szDetourName && szDetourName[0] != '\0')
 	{
-		strcpy_s(szName, Name);
+		strcpy_s(szName, szDetourName);
 	}
 	else
 	{
-		strcpy_s(szName, "Unknown");
+		sprintf_s(szName, "Unknown(%p)", pfDetour);
 	}
 
 	bool Ret = true;
-	DebugSpew("AddDetour(%s, 0x%X, 0x%X, 0x%X, 0x%X)", szName, address, pfDetour, pfTrampoline, Count);
+	DebugSpew("AddDetour(%s, 0x%X, 0x%X, 0x%X, 0x%X)", szName, address, pfDetour, pfTrampoline, dwSize);
+
 	if (FindDetour(address))
 	{
 		DebugSpew("Address for %s (0x%x) already detoured.", szName, address);
@@ -77,8 +78,8 @@ bool AddDetour(DWORD address, BYTE* pfDetour, BYTE* pfTrampoline, DWORD Count, c
 	DetourRecord* detour = new DetourRecord;
 	strcpy_s(detour->Name, szName);
 	detour->addr = address;
-	detour->count = Count;
-	memcpy(detour->array, (char*)address, Count);
+	detour->count = dwSize;
+	memcpy(detour->array, (char*)address, dwSize);
 	detour->pNext = gDetours;
 	if (gDetours)
 		gDetours->pLast = detour;
@@ -120,41 +121,7 @@ bool AddDetour(DWORD address, BYTE* pfDetour, BYTE* pfTrampoline, DWORD Count, c
 	return Ret;
 }
 
-void AddDetourf(DWORD address, ...)
-{
-	va_list marker;
-	int i = 0;
-
-	va_start(marker, address);
-	DWORD Parameters[4] = { 0 };
-	DWORD nParameters = 0;
-	while (i != -1)
-	{
-		if (nParameters < 4)
-		{
-			Parameters[nParameters] = i;
-			nParameters++;
-		}
-		else
-		{
-			// we can break out now...
-			break;
-		}
-		i = va_arg(marker, int);
-	}
-	va_end(marker);
-
-	if (nParameters == 4)
-	{
-		AddDetour(address, (BYTE*)Parameters[1], (BYTE*)Parameters[2], 20, (char*)Parameters[3]);
-	}
-	else
-	{
-		DebugSpew("Illegal AddDetourf call");
-	}
-}
-
-void RemoveDetour(DWORD address)
+void RemoveDetour(uintptr_t address)
 {
 	std::scoped_lock lock(gDetourMutex);
 
@@ -211,7 +178,7 @@ void RemoveDetour(DWORD address)
 		DebugSpewAlways("Detour for (%s [0x%08X]) not found in RemoveDetour()", szFilename, address - myaddress + 0x10000000);
 }
 
-void DeleteDetour(DWORD address)
+void DeleteDetour(uintptr_t address)
 {
 	std::scoped_lock lock(gDetourMutex);
 
@@ -397,7 +364,7 @@ int WINAPI memcheck4(unsigned char* buffer, size_t* count);
 // ***************************************************************************
 
 DETOUR_TRAMPOLINE_EMPTY(int memcheck0_tramp(unsigned char* buffer, size_t count));
-DETOUR_TRAMPOLINE_EMPTY(int memcheck1_tramp(unsigned char* buffer, size_t count, int key));
+DETOUR_TRAMPOLINE_EMPTY(int memcheck1_tramp(unsigned char* buffer, size_t count, mckey key));
 DETOUR_TRAMPOLINE_EMPTY(int memcheck2_tramp(unsigned char* buffer, size_t count, mckey key));
 DETOUR_TRAMPOLINE_EMPTY(int memcheck3_tramp(unsigned char* buffer, size_t count, mckey key));
 DETOUR_TRAMPOLINE_EMPTY(int WINAPI memcheck4_tramp(unsigned char* buffer, size_t* count));

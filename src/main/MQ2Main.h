@@ -40,9 +40,6 @@ using namespace eqlib;
 // the new interfaces
 #define MQNEXT
 
-#define EzDetour(offset, detour, trampoline) AddDetourf((DWORD)offset, detour, trampoline, STRINGIFY(offset))
-#define EzDetourwName(offset, detour, trampoline, name) AddDetourf((DWORD)offset, detour, trampoline, name)
-
 #ifdef DEBUG_TRY
 #define DebugTry(x) DebugSpew("Trying %s",#x);x;DebugSpew("%s complete",#x)
 #else
@@ -70,6 +67,8 @@ using namespace eqlib;
 
 #include <mq/utils/Benchmarks.h>
 #include <mq/utils/Keybinds.h>
+
+#include <mq/base/Detours.h>
 
 namespace mq {
 
@@ -133,12 +132,6 @@ MQLIB_API void DeleteMQ2NewsWindow();
 MQLIB_API void InitializeChatHook();
 MQLIB_API void ShutdownChatHook();
 MQLIB_API void dsp_chat_no_events(const char* Text, int Color, bool EqLog = true, bool dopercentsubst = true);
-
-/* DETOURING API */
-MQLIB_API bool AddDetour(DWORD address, BYTE* pfDetour = nullptr, BYTE* pfTrampoline = nullptr, DWORD Count = 20, const char* Name = nullptr);
-MQLIB_API void AddDetourf(DWORD address, ...);
-MQLIB_API void RemoveDetour(DWORD address);
-MQLIB_API void DeleteDetour(DWORD address);
 
 MQLIB_API void WriteChatColor(const char* Line, int Color = USERCOLOR_DEFAULT, int Filter = 0);
 MQLIB_API void WriteChatf(const char* Format, ...);

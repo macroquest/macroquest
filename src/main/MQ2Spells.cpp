@@ -767,12 +767,32 @@ EQ_Spell* GetHighestLearnedSpellByGroupID(int dwSpellGroupID)
 	return result;
 }
 
-const char* GetSpellNameBySpellGroupID(int dwSpellID)
+static const char* GetSpellNameBySpellGroupID(int dwSpellGroupID)
 {
-	auto pSpell = GetHighestLearnedSpellByGroupID(dwSpellID);
+	// Look up spell group
+	if (pSpellMgr)
+	{
+		EQ_Spell* fallbackSpell = nullptr;
 
-	if (pSpell && pSpell->Name && pSpell->Name[0] != 0)
-		return pSpell->Name;
+		int* pSpellID = pSpellMgr->SpellGroups.FindFirst(dwSpellGroupID);
+		while (pSpellID)
+		{
+			EQ_Spell* pSpell = pSpellMgr->GetSpellByID(*pSpellID);
+			if (pSpell)
+			{
+				if (pSpell->SpellSubGroup == 0)
+					return pSpell->Name;
+
+				if (!fallbackSpell)
+					fallbackSpell = pSpell;
+			}
+
+			pSpellMgr->SpellGroups.FindNext(pSpellID);
+		}
+
+		if (fallbackSpell)
+			return fallbackSpell->Name;
+	}
 
 	return "Unknown Spell";
 }
@@ -1758,9 +1778,10 @@ static char* FormatCount(const char* szEffectName, int value, char(&szBuffer)[Si
 }
 
 template <unsigned int Size>
-static char* FormatExtra(const char* szEffectName, const char* extra, char(&szBuffer)[Size], const char* trigger = "", const char* colon = ":")
+static char* FormatExtra(std::string_view szEffectName, std::string_view extra, char(&szBuffer)[Size], std::string_view trigger = "", std::string_view colon = ":")
 {
-	sprintf_s(szBuffer, "%s%s %s%s", szEffectName, colon, extra, trigger);
+	auto [out, _] = fmt::format_to_n(szBuffer, Size, "{}{} {}{}", szEffectName, colon, extra, trigger);
+	*out = '\0';
 	return szBuffer;
 }
 
@@ -1946,12 +1967,19 @@ static char* FormatSpellChance(const char* szEffectName, int value, int base, ch
 }
 
 template <unsigned int Size>
-static char* FormatSpellGroupChance(const char* szEffectName, int value, int base, char(&szBuffer)[Size])
+static char* FormatSpellGroupChance(std::string_view szEffectName, int value, int base, char(&szBuffer)[Size])
 {
 	if (value < 100)
-		sprintf_s(szBuffer, " (%d%% Chance, Spell: %s)", value, GetSpellNameBySpellGroupID(base));
+	{
+		auto [out, _] = fmt::format_to_n(szBuffer, Size, " ({:d}% Chance, Spell: {:s})", value, GetSpellNameBySpellGroupID(base));
+		*out = '\0';
+	}
 	else
-		sprintf_s(szBuffer, " (Spell: %s)", GetSpellNameBySpellGroupID(base));
+	{
+		auto [out, _] = fmt::format_to_n(szBuffer, Size, " (Spell: {:s})", GetSpellNameBySpellGroupID(base));
+		*out = '\0';
+	}
+
 	return szBuffer;
 }
 
@@ -2348,10 +2376,10 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		else {
 			sprintf_s(szTemp, "[%5d] (Qty:%d)", base, calc);
 		}
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), szTemp, szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, szTemp, szTemp2));
 		break;
 	case SPA_SUMMON_PET:          // Summon Pet
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), extra.c_str(), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, extra.c_str(), szTemp2));
 		break;
 	case SPA_CONFUSE:             // Confuse
 		strcat_s(szBuff, spelleffectname.c_str());
@@ -2395,7 +2423,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
 		break;
 	case SPA_CHANGE_FORM: //Illusion: Base=Race
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), pEverQuest->GetRaceDesc(base), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, pEverQuest->GetRaceDesc(base), szTemp2));
 		break;
 	case SPA_DAMAGE_SHIELD: //Damage Shield
 		// Damage Shield's use the reverse sign from normal base values
@@ -2424,7 +2452,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, spelleffectname.c_str());
 		break;
 	case SPA_CREATE_UNDEAD: //Create Undead Pet
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), extra.c_str(), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, extra.c_str(), szTemp2));
 		break;
 	case SPA_PRESERVE_CORPSE: //Preserve Corpse (no spells currently)
 	case SPA_BIND_SIGHT: //Bind Sight
@@ -2467,7 +2495,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), abs(base), base >= 0 ? " Down" : " Up", szTemp2));
 		break;
 	case SPA_MELEE_PROC: //Add Proc
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), FormatRateMod(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, FormatRateMod(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
 		break;
 	case SPA_NPC_HELP_RADIUS: //Reaction Radius(c/level)
 		// Reaction Radius' use the reverse sign from normal base values
@@ -2529,13 +2557,13 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
 		break;
 	case SPA_BEASTLORD_PET: //Summon Warder
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), extra.c_str(), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, extra.c_str(), szTemp2));
 		break;
 	case SPA_ALTER_PET_LEVEL: //Alter NPC Level (no spells currently)
 		strcat_s(szBuff, spelleffectname.c_str());
 		break;
 	case SPA_FAMILIAR: //Summon Familiar
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), extra.c_str(), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, extra.c_str(), szTemp2));
 		break;
 	case SPA_CREATE_ITEM_IN_BAG: //Summon Into Bag
 		while ((ItemDB) && (base != ItemDB->ID)) {
@@ -2547,7 +2575,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		else {
 			sprintf_s(szTemp, "[%5d]", base);
 		}
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), szTemp, szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, szTemp, szTemp2));
 		break;
 	case SPA_ARCHERY: //Increase Archery (no spells currently)
 		strcat_s(szBuff, FormatCount(spelleffectname.c_str(), value, szTemp2));
@@ -2560,7 +2588,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatCount(spelleffectname.c_str(), value, szTemp2));
 		break;
 	case SPA_SUMMON_MOUNT: //Summon Mount
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), extra.c_str(), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, extra.c_str(), szTemp2));
 		break;
 	case SPA_MODIFY_HATE: //aggro multiplier
 		strcat_s(szBuff, FormatPercent(spelleffectname.c_str(), value, finish, szTemp2));
@@ -2662,15 +2690,15 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		break;
 	case SPA_DIVINE_INTERVENTION: //Death Save - Restore Full Health
 		sprintf_s(szTemp, "Restore %s Health", base == 1 ? "Partial" : base == 2 ? "Full" : "Unknown");
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), szTemp, szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, szTemp, szTemp2));
 		break;
 	case SPA_POCKET_PET: //Suspended Minion (no current spells)
 		sprintf_s(szTemp, "(%s)", base == 0 ? "Current HP Only" : base == 1 ? "Current HP, Buffs, Weapons" : "Unknown");
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), szTemp, szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, szTemp, szTemp2));
 		break;
 	case SPA_PET_SWARM: //Summon Pets (swarm)
 		sprintf_s(szTemp, "%s x%d for %dsec", extra.c_str(), value, finish);
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), szTemp, szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, szTemp, szTemp2));
 		break;
 	case SPA_HEALTH_BALANCE: //Balance Party Health
 		strcat_s(szBuff, FormatPenaltyChance(spelleffectname.c_str(), value, szTemp2, "Penalty"));
@@ -2792,7 +2820,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatRange(spelleffectname.c_str(), value, extendedrange.c_str(), szTemp2));
 		break;
 	case SPA_RANGE_ABILITY: //Ranged Proc
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), FormatRateMod(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, FormatRateMod(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
 		break;
 	case SPA_ILLUSION_OTHERS: //Illusion Other
 	case SPA_MASS_GROUP_BUFF: //Mass Group Buff
@@ -2979,7 +3007,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
 		break;
 	case SPA_DOOM_EFFECT: //Trigger on Fade
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), GetSpellNameByID(base), szTemp2, " on Fade"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Fade"));
 		break;
 	case SPA_INCREASE_RUN_SPEED_CAP: //Increase Movement Cap (no spells currently)
 	case SPA_PURIFY: //Purify
@@ -3059,7 +3087,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, spelleffectname.c_str());
 		break;
 	case SPA_DEFENSIVE_PROC: //Add Defensive Proc
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), FormatRateMod(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, FormatRateMod(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
 		break;
 	case SPA_HP_FOR_MANA: //Spirit Channel
 		strcat_s(szBuff, FormatBasePercent(spelleffectname.c_str(), base, szTemp2));
@@ -3085,7 +3113,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, spelleffectname.c_str());
 		break;
 	case SPA_DOOM_RUNE_EFFECT: //Trigger on fade
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), GetSpellNameByID(base), szTemp2, " on Fade"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Fade"));
 		break;
 	case SPA_NO_MOVE_HP: //Song DoT
 		strcat_s(szBuff, FormatRange(spelleffectname.c_str(), value, extendedrange.c_str(), szTemp2));
@@ -3106,7 +3134,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		break;
 	case SPA_FOCUS_CASTING_PROC: //Trigger DoT on cast
 	case SPA_CHANCE_SPELL: //Trigger DD on cast
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), FormatSpellChance(spelleffectname.c_str(), base, base2, szTemp), szTemp2, " on Cast"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, FormatSpellChance(spelleffectname.c_str(), base, base2, szTemp), szTemp2, " on Cast"));
 		break;
 	case SPA_WORN_ATTACK_CAP: //Worn Attack Cap
 		strcat_s(szBuff, FormatCount(spelleffectname.c_str(), value, szTemp2));
@@ -3130,7 +3158,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatCount(spelleffectname.c_str(), value * 4, szTemp2, "for"));
 		break;
 	case SPA_SPAWN_INTERACTIVE_OBJECT: //Persistent Effect
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), GetSpellNameByID(id + (spellgroup ? 3 : 1)), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(id + (spellgroup ? 3 : 1)), szTemp2));
 		break;
 	case SPA_INCREASE_TRAP_COUNT: //Increase Trap Count
 	case SPA_INCREASE_SOI_COUNT: //Increase SOI Count
@@ -3152,7 +3180,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		break;
 	case SPA_PROC_ON_KILL_SHOT: //Killshot Triggers
 	case SPA_PROC_ON_DEATH: //Proc On Death
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), FormatSpellChance(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, FormatSpellChance(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
 		break;
 	case SPA_POTION_BELT: //Potion Belt (no spells currently)
 	case SPA_BANDOLIER: //Bandolier (no spells currently)
@@ -3162,7 +3190,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatPercent(spelleffectname.c_str(), value, finish, szTemp2));
 		break;
 	case SPA_PROC_ON_SPELL_KILL_SHOT: //Trigger on Kill Shot
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), FormatSpellChance(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, FormatSpellChance(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
 		break;
 	case SPA_GROUP_SHIELDING: //Group Shielding
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
@@ -3172,7 +3200,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatString(spelleffectname.c_str(), szTemp, szTemp2));
 		break;
 	case SPA_MODIFY_FACTION: //Modify Faction
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), GetFactionName(base, szTemp), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetFactionName(base, szTemp), szTemp2));
 		break;
 	case SPA_CORRUPTION: //Corruption Counters
 	case SPA_RESIST_CORRUPTION: //Corruption Resists
@@ -3185,10 +3213,10 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
 		break;
 	case SPA_DOOM_ALWAYS: //Trigger Effect
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), GetSpellNameByID(base), szTemp2, " on Fade"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Fade"));
 		break;
 	case SPA_TRIGGER_SPELL: //Trigger Spell
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), FormatSpellChance(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, FormatSpellChance(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
 		break;
 	case SPA_CRIT_DOT_DMG_MOD: //Critical DoT Damage Mod
 		strcat_s(szBuff, FormatPercent(spelleffectname.c_str(), value, finish, szTemp2));
@@ -3197,10 +3225,10 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
 		break;
 	case SPA_DOOM_ENTITY: //Trigger Effect
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), GetSpellNameByID(base), szTemp2, " on Fade"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Fade"));
 		break;
 	case SPA_RESIST_OTHER_SPA: //Resist
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), FormatResists(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, FormatResists(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
 		break;
 	case SPA_DIRECTIONAL_TELEPORT: //Directional Shadowstep
 		strcat_s(szBuff, FormatCount(spelleffectname.c_str(), value, szTemp2));
@@ -3216,23 +3244,23 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 	{
 		char szString[MAX_STRING] = { 0 };
 		sprintf_s(szTemp, " %s Effect", GetSpellEffectNameByID(base2, szString, MAX_STRING));
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), szTemp, szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, szTemp, szTemp2));
 		break;
 	}
 	case SPA_FOCUS_CASTING_PROC_NORMALIZED: //Trigger Spell
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), FormatSpellChance(spelleffectname.c_str(), base, base2, szTemp), szTemp2, " on Cast"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, FormatSpellChance(spelleffectname.c_str(), base, base2, szTemp), szTemp2, " on Cast"));
 		break;
 	case SPA_FLING_AT: //Fling to Target
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
 		break;
 	case SPA_FOCUS_WHICH_GROUP: //Limit: SpellGroup
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), GetSpellNameBySpellGroupID(base), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameBySpellGroupID(base), szTemp2));
 		break;
 	case SPA_DOOM_DISPELLER: //Trigger Effect
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), GetSpellNameByID(base), szTemp2, " on Curer"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Curer"));
 		break;
 	case SPA_DOOM_DISPELLEE: //Trigger Effect
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), GetSpellNameByID(base), szTemp2, " on Fade"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Fade"));
 		break;
 	case SPA_SUMMON_ALL_CORPSES: //Summon All Corpses
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
@@ -3282,10 +3310,10 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
 		break;
 	case SPA_DOOM_LIMIT_USE: //Trigger Effect
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), GetSpellNameByID(base), szTemp2, " on Max Hits"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Max Hits"));
 		break;
 	case SPA_DOOM_FOCUS_USED: //Trigger Effect
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), GetSpellNameByID(base), szTemp2, " on Focus Used"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Focus Used"));
 		break;
 	case SPA_LIMIT_HP: //Limit HP
 	case SPA_LIMIT_MANA: //Limit Mana
@@ -3293,7 +3321,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatCount(spelleffectname.c_str(), value, szTemp2, "to"));
 		break;
 	case SPA_FOCUS_LIMIT_CLASS: //Limit: PlayerClass
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), GetClassesFromMask(base).c_str(), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetClassesFromMask(base).c_str(), szTemp2));
 		break;
 	case SPA_FOCUS_LIMIT_RACE: //Limit: Race (no spells currently)
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2)); // needs work (base2 bitmask of races)
@@ -3313,7 +3341,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatCount(spelleffectname.c_str(), value, szTemp2));
 		break;
 	case SPA_PROC_EFFECT_2: //Add Proc
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), FormatRateMod(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, FormatRateMod(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
 		break;
 	case SPA_FOCUS_LIMIT_USE: //Fc_Limit Use (no spells currently)
 	case SPA_FOCUS_LIMIT_USE_AMT: //Fc_Limit Use Amt (no spells currently)
@@ -3332,13 +3360,13 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
 		break;
 	case SPA_SKILL_PROC: //Skill Proc
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), FormatRateMod(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, FormatRateMod(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
 		break;
 	case SPA_PROC_SKILL_MODIFIER: //Limit Skill
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), base >= 0 ? szSkills[base] : "All Skills", szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, base >= 0 ? szSkills[base] : "All Skills", szTemp2));
 		break;
 	case SPA_SKILL_PROC_SUCCESS: //Skill Proc Success
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), FormatRateMod(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, FormatRateMod(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
 		break;
 	case SPA_POST_EFFECT: //PostEffect
 	case SPA_POST_EFFECT_DATA: //PostEffectData
@@ -3346,7 +3374,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
 		break;
 	case SPA_ADD_NORMALIZED_SKILL_MIN_DMG_AMT: //Skill Min Damage
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), FormatRateMod(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, FormatRateMod(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
 		break;
 	case SPA_ADD_NORMALIZED_SKILL_MIN_DMG_AMT_2: //Skill Min Damage
 	case SPA_FRAGILE_DEFENSE: //Fragile Defense
@@ -3367,7 +3395,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		break;
 	case SPA_REQUIRE_TARGET_DOOM: //Doom Req Target
 	case SPA_REQUIRE_CASTER_DOOM: //Doom Req Caster
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), GetSpellNameByID(base), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2));
 		if (base2) {
 			GetSpellRestrictions(pSpell, i, szTemp, sizeof(szTemp));
 			strcat_s(szBuff, " -- Restrictions: ");
@@ -3396,11 +3424,11 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		break;
 	case SPA_MELEE_THRESHOLD_DOOM: //Doom Melee Threshold
 		sprintf_s(szTemp, " on %d Melee Damage Taken", base2);
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), GetSpellNameByID(base), szTemp2, szTemp));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, szTemp));
 		break;
 	case SPA_SPELL_THRESHOLD_DOOM: //Doom Spell Threshold
 		sprintf_s(szTemp, " on %d Spell Damage Taken", base2);
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), GetSpellNameByID(base), szTemp2, szTemp));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, szTemp));
 		break;
 	case SPA_ADD_HATE_PCT: //Add Hate %
 	case SPA_ADD_HATE_OVER_TIME_PCT: //Add Hate Over Time %
@@ -3437,7 +3465,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		break;
 	case SPA_CHANCE_BEST_IN_SPELL_GROUP: //Chance Best in Spell Group
 	case SPA_TRIGGER_BEST_IN_SPELL_GROUP: //Trigger Best in Spell Group
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), FormatSpellGroupChance(spelleffectname.c_str(), base, base2, szTemp), szTemp2, " on Cast"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, FormatSpellGroupChance(spelleffectname, base, base2, szTemp), szTemp2, " on Cast"));
 		break;
 	case SPA_DOUBLE_MELEE_ATTACKS: //Double Melee Round (PC Only)
 		strcat_s(szBuff, FormatPercent(spelleffectname.c_str(), value, finish, szTemp2));
@@ -3450,14 +3478,14 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
 		break;
 	case SPA_TRIGGER_SPELL_NON_ITEM: //Trigger Spell Non-Item
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), GetSpellNameByID(base), szTemp2, " on Cast"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Cast"));
 		break;
 	case SPA_WEAPON_STANCE: //Weapon Stance (no spells currently)
 	case SPA_HATELIST_TO_TOP: //Move to Top of Hatelist (no spells currently)
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
 		break;
 	case SPA_HATELIST_TO_TAIL: //Move to Bottom of Hatelist
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), GetSpellNameByID(base), szTemp2, " on Cast"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Cast"));
 		break;
 	case SPA_FOCUS_LIMIT_MIN_VALUE: //Value Min
 		sprintf_s(szTemp, "%s %s", spelleffectname.c_str(), base < 0 ? "Max" : "Min");
@@ -3468,7 +3496,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatMinMaxBase(szTemp, base, base2, szTemp2));
 		break;
 	case SPA_FOCUS_CAST_SPELL_ON_LAND: //Cast Spell on Land
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), GetSpellNameByID(base2), szTemp2, " on Land and conditions are met"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base2), szTemp2, " on Land and conditions are met"));
 		break;
 	case SPA_SKILL_BASE_DAMAGE_MOD: //Skill Base Damage Mod
 		strcat_s(szBuff, FormatPercent(spelleffectname.c_str(), value, finish, szTemp2));
@@ -3478,10 +3506,10 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatRange(spelleffectname.c_str(), value, extendedrange.c_str(), szTemp2, " (after crit)"));
 		break;
 	case SPA_FOCUS_LIMIT_CASTER_CLASS: //CasterClass
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), GetClassesFromMask(base).c_str(), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetClassesFromMask(base).c_str(), szTemp2));
 		break;
 	case SPA_FOCUS_LIMIT_SAME_CASTER: //Same Caster
-		strcat_s(szBuff, FormatExtra(spelleffectname.c_str(), base ? "(Same)" : "(Different)", szTemp2, "", ""));
+		strcat_s(szBuff, FormatExtra(spelleffectname, base ? "(Same)" : "(Different)", szTemp2, "", ""));
 		break;
 	case SPA_EXTEND_TRADESKILL_CAP: //Extend Tradeskill Cap
 		sprintf_s(szTemp, "%s (%d, %d, %d)", spelleffectname.c_str(), base, base2, max);

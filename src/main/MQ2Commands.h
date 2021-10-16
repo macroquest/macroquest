@@ -131,6 +131,9 @@ MQLIB_API void EngineCommand                       (PSPAWNINFO pChar, char* szLi
 MQLIB_API void CachedBuffsCommand                  (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void MQCopyLayout                        (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void ListModulesCommand                  (PSPAWNINFO pChar, char* szLine);
+MQLIB_API void ConvertItemCmd                      (PSPAWNINFO pChar, char* szLine);
+MQLIB_API void InsertAugCmd                        (PSPAWNINFO pChar, char* szLine);
+MQLIB_API void RemoveAugCmd                        (PSPAWNINFO pChar, char* szLine);
 
 MQLIB_API void RemoveBuff                          (SPAWNINFO* pChar, char* szLine);
 MQLIB_API void RemovePetBuff                       (SPAWNINFO* pChar, char* szLine);
