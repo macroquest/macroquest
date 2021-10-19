@@ -146,6 +146,20 @@ if (-Not (Test-Path "./vcpkg.exe")) {
     exit 1
 }
 
+$vcpkg_drive = Split-Path (Get-Item "./vcpkg.exe").FullName -Qualifier
+$vcpkg_drive_fixed = $false
+if (-Not [string]::IsNullOrWhiteSpace($vcpkg_drive)) {
+    [System.IO.DriveInfo]::GetDrives() | Where-Object { $_.DriveType -eq "Fixed" } | ForEach-Object {
+        if (-Not $vcpkg_drive_fixed -And $_.Name -Like "$vcpkg_drive*")
+        {
+            $vcpkg_drive_fixed = $true
+        }
+    }
+}
+if (-Not $vcpkg_drive_fixed) {
+    Write-Warning "vcpkg may have issues building from a non-fixed drive (usb/network) - if you have issues compiling, switch to a fixed drive."
+}
+
 if ($performBootstrap) {
     Write-Host "Searching for all $vcpkg_mq_file files..."
     $vcpkg_file_list = Get-ChildItem -Directory -Path $MQRoot -Exclude .git,.vs,build,contrib,data,docs,extras,include | Get-ChildItem -Recurse -Filter $vcpkg_mq_file
