@@ -485,10 +485,10 @@ inline int GetIntFromString(const std::string_view svString, int iReturnOnFail)
 /**
  * @fn GetInt64FromString
  *
- * @brief Gets the long value from a well formatted string
+ * @brief Gets the int64 value from a well formatted string
  *
  * Takes the input of a string and a value that should be returned if conversion fails.
- * Attempts to convert the string to a long and returns the converted value on success
+ * Attempts to convert the string to a int64 and returns the converted value on success
  * or the failure value on fail.
  *
  * Suitable replacement for atol (removing the undefined behavior) and faster than strtol.
@@ -497,10 +497,10 @@ inline int GetIntFromString(const std::string_view svString, int iReturnOnFail)
  * @see GetDoubleFromString
  * @see GetFloatFromString
  *
- * @param svString The string to convert to a long
- * @param iReturnOnFail The long that should be returned if conversion fails
+ * @param svString The string to convert to an int64
+ * @param iReturnOnFail The int64 that should be returned if conversion fails
  *
- * @return long The converted long or the "failure" value
+ * @return int64_t The converted int64 or the "failure" value
  **/
 inline int64_t GetInt64FromString(const std::string_view svString, int64_t lReturnOnFail)
 {
