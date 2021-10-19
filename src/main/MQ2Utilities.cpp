@@ -6085,14 +6085,20 @@ bool CanItemMergeInPack(ItemClient* pPack, ItemClient* pItem)
 
 bool CanItemGoInPack(ItemClient* pPack_, ItemClient* pItem)
 {
-	// so CanGoInBag doesnt actually check if there is any room, all it checks
-	// is IF there where room, could the item go in it.
-	ItemPtr pPack{ pPack_ };
+	// so CanGoInBag doesn't actually check if there is any room, all it checks
+	// is IF there were room, could the item fit in it.
+	const ItemPtr pPack{ pPack_ };
 
 	if (!pItem->CanGoInBag(pPack))
 		return false;
 
-	for (const ItemPtr& pItemInBag : pPack->GetHeldItems())
+	const ItemContainer& heldItems = pPack->GetHeldItems();
+	if (heldItems.IsEmpty())
+	{
+		return true;
+	}
+
+	for (const ItemPtr& pItemInBag : heldItems)
 	{
 		// If this slot is empty, then the bag has room.
 		if (!pItemInBag)
