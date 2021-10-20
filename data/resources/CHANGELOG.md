@@ -1,3 +1,6 @@
+October 20, 2021:
+- Update for latest patch
+
 October 9, 2021:
 - Upgrade ImGui to 1.84 with new font renderer (FreeType) enabled
 - overlay: VIEWPORTS feature is now OFF by default. Visit the overlay settings (/mqsettings)
