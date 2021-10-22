@@ -1,3 +1,6 @@
+October 21, 2021:
+- Update for latest patch
+
 October 20, 2021:
 - Update for latest patch
 - Fixed Map
