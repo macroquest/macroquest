@@ -448,6 +448,16 @@ public:
 				// this is the longwait condition, so add a delay
 				m_delayTime = MQGetTickCount64() + 185000; // TODO: configure longwait
 			}
+			else if (str.find("this server is not a free-play server.") != CXStr::npos)
+			{
+				dispatch(StopLogin());
+				return;
+			}
+			else
+			{
+				// slow things down a little bit
+				m_delayTime = MQGetTickCount64() + 1000;
+			}
 
 			// some potential error messages -- (no need to check for the text, we are just going to click)
 			//std::vector<const char*> ErrorMessages = {

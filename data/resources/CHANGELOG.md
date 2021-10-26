@@ -20,6 +20,7 @@ October 26, 2021:
   If type-checking is problematic, an EzDetourUnchecked has been added.
 - core: moved detour api declarations to include/mq/base/Detours.h
 - spell display: Improved the behavior of finding spell names by category.
+- autologin: Cancel autologin if cannot enter premium server due to free-to-play status. (#401).
 
 
 October 21, 2021:
