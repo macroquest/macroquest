@@ -786,7 +786,7 @@ static bool CanDisplaySpawnObject(eSpawnType type, SPAWNINFO* spawn)
 
 bool MapObjectSpawn::CanDisplayObject() const
 {
-	if (MapObject::CanDisplayObject())
+	if (m_explicit || MapObject::CanDisplayObject())
 	{
 		return true;
 	}

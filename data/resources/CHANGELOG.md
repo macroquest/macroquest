@@ -3,6 +3,7 @@ October 26, 2021:
 - Removed debug message from ItemDisplay
 - Bzsrch: Fixed berserkers and searching for things that start with numbers (#398).
 - Bzsrch: Better handling of queries that return no results (#335).
+- Map: fix /mapshow not displaying map objects properly (#225)
 
 October 26, 2021:
 - ItemDisplay plugin has been rewritten with a focus on improving existing features:
