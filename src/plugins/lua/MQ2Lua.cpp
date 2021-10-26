@@ -367,7 +367,7 @@ public:
 			{
 				std::string script(Index);
 				it = std::find_if(s_infoMap.begin(), s_infoMap.end(),
-					[&script](const auto& kv) { return kv.second.name == script; });
+					[&script](const auto& kv) { return ci_equals(kv.second.name, script); });
 			}
 
 			if (it != s_infoMap.end())
@@ -523,7 +523,7 @@ static void LuaStopCommand(std::optional<std::string> script = std::nullopt)
 		else
 		{
 			thread_it = std::find_if(s_running.begin(), s_running.end(),
-				[&script](const std::shared_ptr<LuaThread>& thread) { return thread->GetName() == *script; });
+				[&script](const std::shared_ptr<LuaThread>& thread) { return ci_equals(thread->GetName(), *script); });
 		}
 
 		if (thread_it != s_running.end())
@@ -567,7 +567,7 @@ static void LuaPauseCommand(std::optional<std::string> script = std::nullopt)
 		else
 		{
 			thread_it = std::find_if(s_running.begin(), s_running.end(),
-				[&script](const std::shared_ptr<LuaThread>& thread) { return thread->GetName() == *script; });
+				[&script](const std::shared_ptr<LuaThread>& thread) { return ci_equals(thread->GetName(), *script); });
 		}
 
 		if (thread_it != s_running.end())
@@ -797,7 +797,7 @@ static void LuaInfoCommand(const std::optional<std::string>& script = std::nullo
 		else
 		{
 			thread_it = std::find_if(s_infoMap.begin(), s_infoMap.end(),
-				[&script](const auto& kv) { return kv.second.name == *script; });
+				[&script](const auto& kv) { return ci_equals(kv.second.name, *script); });
 		}
 
 		if (thread_it != s_infoMap.end())

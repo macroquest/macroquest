@@ -1,4 +1,8 @@
 October 26, 2021:
+- Lua command is no longer case sensitive about script names (#403).
+- Removed debug message from ItemDisplay
+
+October 26, 2021:
 - ItemDisplay plugin has been rewritten with a focus on improving existing features:
   - Loot and Lucy buttons have been relocated nearby to an area that shouldn't overlap with existing controls
   - Spell and Item display information now updates correctly when the last window is recycled. This info
