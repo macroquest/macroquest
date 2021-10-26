@@ -1479,8 +1479,6 @@ public:
 			}
 		}
 
-		WriteChatf("  Update Last Window Index: %d", lastWindowIndex);
-
 		s_lastWindowIndex = lastWindowIndex;
 	}
 
