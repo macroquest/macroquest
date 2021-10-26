@@ -1,6 +1,8 @@
 October 26, 2021:
 - Lua command is no longer case sensitive about script names (#403).
 - Removed debug message from ItemDisplay
+- Bzsrch: Fixed berserkers and searching for things that start with numbers (#398).
+- Bzsrch: Better handling of queries that return no results (#335).
 
 October 26, 2021:
 - ItemDisplay plugin has been rewritten with a focus on improving existing features:

@@ -34,7 +34,7 @@ struct
 	"any",              -1,
 	"bard",             8,
 	"beastlord",        15,
-	"berserkers",       16,
+	"berserker",        16,
 	"cleric",           2,
 	"druid",            6,
 	"enchanter",        14,
@@ -74,8 +74,6 @@ struct
 	"wood elf",         4,
 	"drakkin",          522,
 };
-
-ItemDefinition* pg_Item = nullptr;                          // dependent on MQ2ItemDisplay
 
 enum class BazaarSearchSortColumn
 {
@@ -131,6 +129,7 @@ std::vector<BazaarSearchItem> BazaarItemsArray;
 bool BazaarSearchDone = false;
 bool WaitingForSearch = false;
 uint64_t NextSearchCheck = 0;
+uint64_t SearchCompleteCheck = 0;
 
 // attn: dannuic, I need a state machine
 enum class SearchCheckState
@@ -339,8 +338,6 @@ public:
 		Count,
 		Done,
 		Item,
-		Pricecheckdone,
-		Pricecheck,
 		SortedItem,
 	};
 
@@ -349,8 +346,6 @@ public:
 		ScopedTypeMember(BazaarMembers, Count);
 		ScopedTypeMember(BazaarMembers, Done);
 		ScopedTypeMember(BazaarMembers, Item);
-		ScopedTypeMember(BazaarMembers, Pricecheckdone);
-		ScopedTypeMember(BazaarMembers, Pricecheck);
 		ScopedTypeMember(BazaarMembers, SortedItem);
 	}
 
@@ -378,20 +373,9 @@ public:
 		case BazaarMembers::Item:
 			if (Index[0])
 			{
-				bool isNumber = true;
-
 				// check if the index is an array index
 				// or an item name
-				for (uint32_t i = 0; i < strlen(Index); i++)
-				{
-					if (!isdigit(Index[i]))
-					{
-						isNumber = false;
-						break;
-					}
-				}
-
-				if (isNumber)
+				if (IsNumber(Index))
 				{
 					int N = GetIntFromString(Index, 0) - 1;
 					if (N < 0 || N >= (int)BazaarItemsArray.size())
@@ -469,17 +453,7 @@ public:
 			}
 			return false;
 
-		case BazaarMembers::Pricecheckdone:
-			Dest.Set(pg_Item && pg_Item->ItemNumber);
-			Dest.Type = pBoolType;
-			return true;
-
-		case BazaarMembers::Pricecheck:
-			if (!pg_Item)
-				return false;
-			Dest.DWord = pg_Item->Cost;
-			Dest.Type = pIntType;
-			return true;
+		default: break;
 		}
 
 		return false;
@@ -692,7 +666,7 @@ void DoCombo(CComboWnd* pCombo, const char* szArg, const char* key)
 	int index = -1;
 	char szValue[255] = { 0 };
 
-	if (isdigit(szArg[0]))
+	if (IsNumber(szArg))
 	{
 		index = GetIntFromString(szArg, index) - 1;
 	}
@@ -909,12 +883,17 @@ void DoWaitingForSearchChecks()
 	if (NextSearchCheck != 0 && MQGetTickCount64() > NextSearchCheck)
 	{
 		if (SearchState == SearchCheckState::WaitForQueryButton)
+		{
 			MacroError("Timed out waiting for BZR_QueryButton to be enabled to start the search. The query may not be valid.");
-		else
-			MacroError("Timed out waiting for /bzsrch to complete");
 
-		WaitingForSearch = false;
-		return;
+			WaitingForSearch = false;
+			return;
+		}
+		else if (SearchState == SearchCheckState::WaitForQueryComplete
+			&& MQGetTickCount64() > SearchCompleteCheck)
+		{
+			BazaarSearchDone = true; // Assume empty search result
+		}
 	}
 
 	switch (SearchState)
@@ -936,6 +915,7 @@ void DoWaitingForSearchChecks()
 
 			SearchState = SearchCheckState::WaitForQueryComplete;
 			NextSearchCheck = MQGetTickCount64() + 2000; // 2 seconds arbitrarily
+			SearchCompleteCheck = MQGetTickCount64() + 5000; // 5 seconds arbitrarily
 		}
 		break;
 
@@ -945,6 +925,7 @@ void DoWaitingForSearchChecks()
 			WaitingForSearch = false;
 			SearchState = SearchCheckState::None;
 			NextSearchCheck = 0;
+			SearchCompleteCheck = 0;
 		}
 		break;
 	}
@@ -953,26 +934,13 @@ void DoWaitingForSearchChecks()
 // Called once, when the plugin is to initialize
 PLUGIN_API void InitializePlugin()
 {
-	// FIXME: MQ2ItemDisplay doesn't provide this functionality anymore.
-#if 0
-	LoadMQ2Plugin("MQ2ItemDisplay");
-	if (HMODULE h = GetModuleHandle("MQ2ItemDisplay.dll"))
-	{
-		pg_Item = (ITEMINFO*)GetProcAddress(h, "g_Item");
-	}
-	else
-	{
-		pg_Item = nullptr;
-	}
-#endif
-
 	AddCommand("/bzquery", BZQuery);
 	AddCommand("/bzsrch", BzSrchMe);
 	AddCommand("/breset", BzReset);
 	AddCommand("/mq2bzsrch", MQ2BzSrch);
 	AddMQ2Data("Bazaar", MQ2BazaarType::dataBazaar);
 
-	EzDetourwName(CBazaarSearchWnd__HandleSearchResults, &CBazaarSearchWnd_Hook::HandleSearchResults_Detour, &CBazaarSearchWnd_Hook::HandleSearchResults_Trampoline, "CBazaarSearchWnd__HandleBazaarMsg");
+	EzDetour(CBazaarSearchWnd__HandleSearchResults, &CBazaarSearchWnd_Hook::HandleSearchResults_Detour, &CBazaarSearchWnd_Hook::HandleSearchResults_Trampoline);
 	pBazaarType = new MQ2BazaarType;
 	pBazaarItemType = new MQ2BazaarItemType;
 }
