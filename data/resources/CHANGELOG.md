@@ -1,3 +1,6 @@
+October 27, 2021:
+- Restored hooks on Find Item window
+
 October 26, 2021:
 - Lua command is no longer case sensitive about script names (#403).
 - Removed debug message from ItemDisplay
