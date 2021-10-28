@@ -13,13 +13,16 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
+#include "PipeClient.h"
 #include "CrashHandler.h"
 
+#include "MQ2Main.h"
 #include "common/NamedPipes.h"
 
 namespace mq {
+
 NamedPipeClient gPipeClient{ mq::MQ2_PIPE_SERVER_PATH };
+DWORD dwLauncherProcessID = 0;
 
 // we can't use a MQModule here (at least not for init/shutdown) because initialization order matters.
 
@@ -42,19 +45,52 @@ public:
 				}
 				else
 				{
-					InitializeCrashpadPipe(message->get<const char>());
+					InitializeCrashpadPipe(pipeName);
 				}
 			}
 			break;
 
 		case MQMessageId::MSG_MAIN_REQ_UNLOAD:
-			EzCommand("/unload");
+			HideDoCommand(pLocalPlayer, "/unload", true);
+			break;
+
+		case MQMessageId::MSG_MAIN_PROCESS_LOADED: {
+			// This is the response to our connection message below.
+			if (message->size() >= sizeof(MQMessageProcessLoadedResponse))
+			{
+				const MQMessageProcessLoadedResponse* response = message->get<MQMessageProcessLoadedResponse>();
+				dwLauncherProcessID = response->processId;
+
+				SPDLOG_DEBUG("Launcher process ID: {}", dwLauncherProcessID);
+			}
 			break;
 		}
+
+		case MQMessageId::MSG_MAIN_FOCUS_ACTIVATE_WND:
+			if (message->size() >= sizeof(MQMessageActivateWnd))
+			{
+				const MQMessageActivateWnd* request = message->get<MQMessageActivateWnd>();
+
+				pipeclient::RequestActivateWindow((HWND)request->hWnd, false);
+			}
+			break;
+
+		default: break;
+		}
+	}
+
+	virtual void OnClientConnected() override
+	{
+		//SPDLOG_DEBUG("Connection to named pipe created, Sending process loaded message.");
+
+		MQMessageProcessLoadedFromMQ msg;
+		msg.processId = GetCurrentProcessId();
+		gPipeClient.SendMessage(MQMessageId::MSG_MAIN_PROCESS_LOADED, &msg, sizeof(msg));
 	}
 };
 
 namespace pipeclient {
+
 // mq::MQMessageId::MSG_AUTOLOGIN_PROFILE_LOADED:
 // mq::MQMessageId::MSG_AUTOLOGIN_PROFILE_UNLOADED:
 // mq::MQMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO:
@@ -102,18 +138,56 @@ void LoginProfile(const char* Profile, const char* Server, const char* Character
 	auto data = fmt::format("p:{}:{}:{}", Profile, Server, Character);
 	gPipeClient.SendMessage(MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data.c_str(), data.length());
 }
+
+uint32_t GetLauncherProcessID()
+{
+	if (gPipeClient.IsConnected())
+		return dwLauncherProcessID;
+
+	return 0;
 }
 
-void InitializeMQ2PipeClient()
+void NotifyIsForegroundWindow(bool isForeground)
+{
+	MQMessageFocusRequest request;
+	request.focusMode = MQMessageFocusRequest::FocusMode::HasFocus;
+	request.state = isForeground;
+	request.processId = GetCurrentProcessId();
+
+	gPipeClient.SendMessage(MQMessageId::MSG_MAIN_FOCUS_REQUEST, &request, sizeof(request));
+}
+
+void RequestActivateWindow(HWND hWnd, bool sendMessage)
+{
+	if (::SetForegroundWindow(hWnd))
+		return;
+
+	if (sendMessage && gPipeClient.IsConnected())
+	{
+		MQMessageFocusRequest request;
+		request.focusMode = MQMessageFocusRequest::FocusMode::WantFocus;
+		request.hWnd = hWnd;
+
+		gPipeClient.SendMessage(MQMessageId::MSG_MAIN_FOCUS_REQUEST, &request, sizeof(request));
+		return;
+	}
+
+	ShowWindow(hWnd, SW_MINIMIZE);
+	ShowWindow(hWnd, SW_RESTORE);
+}
+
+} // namespace pipeclient
+
+void InitializePipeClient()
 {
 	gPipeClient.SetHandler(std::make_shared<PipeEventsHandler>());
 	gPipeClient.Start();
 	::atexit([]() { gPipeClient.Stop(); });
 }
 
-void ShutdownMQ2PipeClient()
+void ShutdownPipeClient()
 {
 	gPipeClient.Stop();
 }
-}
 
+} // namespace mq

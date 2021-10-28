@@ -367,7 +367,10 @@ static void Pulse()
 	if (EQW_GetDisplayWindow)
 		EQhWnd = EQW_GetDisplayWindow();
 
-	gbInForeground = (GetForegroundWindow() == EQhWnd);
+	if (mq::test_and_set(gbInForeground, (GetForegroundWindow() == EQhWnd)))
+	{
+		pipeclient::NotifyIsForegroundWindow(gbInForeground);
+	}
 
 	// handle queued events.
 	ProcessQueuedEvents();

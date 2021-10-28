@@ -56,6 +56,7 @@ using namespace eqlib;
 #include "MQ2Commands.h"
 #include "MQ2DataContainers.h"
 #include "MQ2Utilities.h"
+#include "PipeClient.h"
 #include "datatypes/MQ2DataTypes.h"
 
 // Link up ImGui
@@ -742,19 +743,6 @@ MQLIB_OBJECT const char* GetSpellCaster(const CachedBuff& buff);
 MQLIB_API    const char* GetPetSpellCaster(const EQ_Affect& buff);
 MQLIB_API    eEQSPELLCAT GetSpellCategoryFromName(const char* category);
 MQLIB_API    eEQSPA      GetSPAFromName(const char* spa);
-
-/* MQ2PIPECLIENT */
-void InitializeMQ2PipeClient();
-void ShutdownMQ2PipeClient();
-
-namespace pipeclient {
-MQLIB_API void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character);
-MQLIB_API void NotifyCharacterUnload(const char* Profile, const char* Account, const char* Server, const char* Character);
-MQLIB_API void NotifyCharacterUpdate(const char* Class, const char* Level);
-MQLIB_API void LoginServer(const char* Login, const char* Pass, const char* Server);
-MQLIB_API void LoginCharacter(const char* Login, const char* Pass, const char* Server, const char* Character);
-MQLIB_API void LoginProfile(const char* Profile, const char* Server, const char* Character);
-}
 
 MQLIB_API HMODULE GetCurrentModule();
 MQLIB_API DWORD CALLBACK MQ2End(void* lpParameter);

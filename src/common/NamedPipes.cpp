@@ -955,6 +955,19 @@ std::vector<int> NamedPipeServer::GetConnectionIds() const
 	return connIds;
 }
 
+std::shared_ptr<PipeConnection> NamedPipeServer::GetConnectionForProcessId(uint32_t processId) const
+{
+	std::scoped_lock<std::mutex> lock(m_mutex);
+
+	for (const auto& conn : m_connections)
+	{
+		if (conn->GetProcessId() == processId)
+			return conn;
+	}
+
+	return nullptr;
+}
+
 void NamedPipeServer::PostToMainThread(std::function<void()> callback)
 {
 	NamedPipeEndpointBase::PostToMainThread(std::move(callback));
@@ -1046,6 +1059,11 @@ void NamedPipeClient::NamedPipeThread()
 				{
 					m_connection = std::make_shared<PipeConnection>(this, std::move(hPipe));
 					m_connection->StartRead();
+
+					if (m_handler)
+					{
+						m_handler->OnClientConnected();
+					}
 					break;
 				}
 			}

@@ -1,5 +1,8 @@
 October 27, 2021:
 - Restored hooks on Find Item window
+- Implement more robust method of window switching. This improves /foreground behavior and
+  profile keybinds from the launcher. This method utilizes the launcher to assist in foregrounding
+  background instances of EQ. If this method fails, then it falls back to the existing method (#380)
 
 October 26, 2021:
 - Lua command is no longer case sensitive about script names (#403).

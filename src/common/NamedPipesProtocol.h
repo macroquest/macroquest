@@ -30,10 +30,12 @@ enum class MQMessageId : uint16_t
 	// and just change it later.
 
 	// Messages to/from MQ2Main
-	MSG_MAIN_PROCESS_LOADED                = 1000,  // from mq: process has successfully injected
+	MSG_MAIN_PROCESS_LOADED                = 1000,  // to/from mq: process has successfully injected
 	MSG_MAIN_PROCESS_UNLOADED              = 1001,  // from mq: process is about to unload mq
 	MSG_MAIN_CRASHPAD_CONFIG               = 1002,  // to mq: sends named pipe used for crashpad.
 	MSG_MAIN_REQ_UNLOAD                    = 1003,  // to mq: ask mq to nicely unload.
+	MSG_MAIN_FOCUS_REQUEST                 = 1004,  // to/from mq: i have focus or i want focus.
+	MSG_MAIN_FOCUS_ACTIVATE_WND            = 1005,  // to mq: activate requested window
 
 	MSG_AUTOLOGIN_PROFILE_LOADED           = 2000,  // profile has been loaded
 	MSG_AUTOLOGIN_PROFILE_UNLOADED         = 2001,  // profile has been uploaded
@@ -77,6 +79,33 @@ struct MQMessageHeader
 };
 
 #pragma pack(pop)
+
+// MSG_MAIN_PROCESS_LOADED
+struct MQMessageProcessLoadedFromMQ
+{
+	uint32_t            processId;     // id of eqgame process
+};
+
+struct MQMessageProcessLoadedResponse
+{
+	uint32_t            processId;     // id of launcher process
+};
+
+// MSG_MAIN_FOCUS_REQUEST   -> from mq
+struct MQMessageFocusRequest
+{
+	enum class FocusMode : uint32_t { HasFocus, WantFocus };
+	FocusMode           focusMode;
+	bool                state = false;       // has focus
+	uint32_t            processId = 0;       // has focus
+	void*               hWnd = nullptr;      // want focus
+};
+
+// MSG_MAIN_FOCUS_ACTIVATE_WND -> to mq
+struct MQMessageActivateWnd
+{
+	void*               hWnd = nullptr;
+};
 
 //----------------------------------------------------------------------------
 

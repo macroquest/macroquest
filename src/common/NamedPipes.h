@@ -223,8 +223,11 @@ public:
 	// named pipe thread.
 	virtual void OnRequestProcessEvents() {}
 
-	// (optional) For NamedPipeserver, notification of an incoming connection.
+	// (optional) For NamedPipeServer: notification of an incoming connection.
 	virtual void OnIncomingConnection(int connectionId, int processid) {}
+
+	// (optional) For NamedPipeClient: Called when connection is established
+	virtual void OnClientConnected() {}
 };
 
 //============================================================================
@@ -300,6 +303,8 @@ public:
 
 	std::shared_ptr<PipeConnection> GetConnection(int connectionId) const;
 	std::vector<int> GetConnectionIds() const;
+
+	std::shared_ptr<PipeConnection> GetConnectionForProcessId(uint32_t processId) const;
 
 	virtual void PostToMainThread(std::function<void()> callback) override;
 

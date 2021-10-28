@@ -586,7 +586,7 @@ void SetMainThreadId()
 // Perform first time initialization on the main thread.
 void DoMainThreadInitialization()
 {
-	InitializeMQ2PipeClient();
+	InitializePipeClient();
 	InitializeMQ2Commands();
 	InitializeDisplayHook();
 	InitializeMouseHooks();
@@ -803,7 +803,7 @@ void MQ2Shutdown()
 	ShutdownStringDB();
 	ShutdownDetours();
 	ShutdownMQ2Benchmarks();
-	ShutdownMQ2PipeClient();
+	ShutdownPipeClient();
 }
 
 HMODULE GetCurrentModule()
