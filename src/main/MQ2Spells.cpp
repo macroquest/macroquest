@@ -787,7 +787,7 @@ static const char* GetSpellNameBySpellGroupID(int dwSpellGroupID)
 					fallbackSpell = pSpell;
 			}
 
-			pSpellMgr->SpellGroups.FindNext(pSpellID);
+			pSpellID = pSpellMgr->SpellGroups.FindNext(pSpellID);
 		}
 
 		if (fallbackSpell)
