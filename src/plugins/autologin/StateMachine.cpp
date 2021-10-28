@@ -139,9 +139,19 @@ class Wait : public Login
 protected:
 	bool transit_condition(const LoginStateSensor& e)
 	{
-		return !m_paused && (m_record.has_value() || e.State == LoginState::Connect) // the Connect state will set m_record, so it's valid to transit
-			&& (GetGameState() != GAMESTATE_PRECHARSELECT || g_pLoginClient) && // do nothing at precharselect if we don't have offsets
-			(e.State != m_lastState || m_delayTime < MQGetTickCount64());
+		if (GetGameState() == GAMESTATE_PRECHARSELECT && !g_pLoginClient)
+			return false; // do nothing at precharselect if we don't have offsets
+
+		if (e.State == m_lastState && m_delayTime > MQGetTickCount64())
+			return false; // do nothing if state hasn't changed and delay is still active
+
+		if (e.State == LoginState::SplashScreen)
+			return true; // always skip these splash screens
+
+		if (m_paused)
+			return false; // do not continue if we're paused
+
+		return m_record.has_value() || e.State == LoginState::Connect;
 	}
 
 public:
@@ -296,7 +306,14 @@ public:
 			}
 		}
 
-		transit<Wait>();
+		if (!m_record)
+		{
+			dispatch(StopLogin());
+		}
+		else
+		{
+			transit<Wait>();
+		}
 	}
 };
 
@@ -586,7 +603,7 @@ public:
 
 				if (index < 0)
 				{
-					WriteChatf("No character named \"%s\" found, stopping...", m_record->characterName.c_str());
+					WriteChatf("\ag[AutoLogin\ax] No character named \"%s\" found! Stopping...", m_record->characterName.c_str());
 
 					dispatch(StopLogin());
 					transit<Wait>();
@@ -597,7 +614,7 @@ public:
 						pCharacterListWnd->SelectCharacter(index);
 
 					m_delayTime = MQGetTickCount64() + m_settings.CharSelectDelay * 1000;
-					WriteChatf(fmt::format("Selecting \ag{}\ax in {} seconds. Please Wait... or press the END key to abort", pCharList->GetItemText(index, 2), m_settings.CharSelectDelay).c_str());
+					WriteChatf(fmt::format("\ag[AutoLogin]\ax Selecting \ag{}\ax in {} seconds. Press the \ayEND\ax key to pause.", pCharList->GetItemText(index, 2), m_settings.CharSelectDelay).c_str());
 					transit<CharacterSelectWait>();
 				}
 			}
@@ -617,7 +634,7 @@ public:
 		{
 			// we need to restart the login timer here
 			m_delayTime = MQGetTickCount64() + m_settings.CharSelectDelay * 1000;
-			WriteChatf(fmt::format("Re-Enabling login and selecting \ag{}\ax in {} seconds. Please Wait... or press the END key to abort", m_record ? m_record->characterName : "character", m_settings.CharSelectDelay).c_str());
+			WriteChatf(fmt::format("\ag[AutoLogin]\ax Login Resumed. Selecting \ag{}\ax in {} seconds. Press the \ayEND\ax key to abort.", m_record ? m_record->characterName : "character", m_settings.CharSelectDelay).c_str());
 		}
 
 		// and set the correct pause value, don't call the base because we don't want to repeat messaging

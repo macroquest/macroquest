@@ -196,7 +196,7 @@ public:
 		if (m_record)
 		{
 			if (m_paused && ev.ShowMessage)
-				WriteChatf("\agHOME key pressed. AutoLogin Re-Enabled.");
+				WriteChatf("\ag[AutoLogin]\ax \ayHOME\ax key pressed. AutoLogin Re-Enabled.");
 			m_paused = false;
 			m_retries = 0;
 		}
@@ -207,7 +207,7 @@ public:
 		if (m_record)
 		{
 			if (!m_paused && ev.ShowMessage)
-				WriteChatf("END key pressed. Login of %s paused.", m_record ? m_record->characterName.c_str() : "characters");
+				WriteChatf("\ag[AutoLogin]\ax \ayEND\ax key pressed. Login of \ag%s\ax paused.", m_record ? m_record->characterName.c_str() : "characters");
 			m_paused = true;
 		}
 	}
@@ -228,6 +228,7 @@ public:
 	static std::string_view server() { return m_record ? m_record->serverName.c_str() : ""; }
 	static std::string_view profile() { return m_record ? m_record->profileName.c_str() : ""; }
 	static std::string_view account() { return m_record ? m_record->accountName.c_str() : ""; }
+	static bool has_entry() { return m_record.has_value(); }
 	static const CXWnd* current_window() { return m_currentWindow; }
 	static const bool paused() { return m_paused; }
 	static const uint64_t delay_time() { return m_delayTime; }

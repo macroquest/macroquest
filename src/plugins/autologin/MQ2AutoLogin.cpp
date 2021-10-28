@@ -22,6 +22,7 @@
 #include <imgui.h>
 #include <imgui_stdlib.h>
 #include <imgui_internal.h>
+#include "imgui/ImGuiUtils.h"
 
 #include <map>
 #include <TlHelp32.h>
@@ -35,8 +36,9 @@ PLUGIN_VERSION(4.0);
 
 PreSetup("MQ2AutoLogin");
 
+constexpr int STEP_DELAY = 1000;
+
 fs::path CustomIni;
-// TODO: std::chrono
 uint64_t ReenableTime = 0;
 
 // save off class and level so we know when to push updates
@@ -422,6 +424,8 @@ PLUGIN_API void InitializePlugin()
 			SetupCustomIni();
 		}
 	}
+
+	ReenableTime = MQGetTickCount64() + STEP_DELAY;
 }
 
 PLUGIN_API void ShutdownPlugin()
@@ -464,7 +468,10 @@ PLUGIN_API void OnPulse()
 	else if (gbInForeground && GetAsyncKeyState(VK_END) & 1)
 		Login::dispatch(PauseLogin(true));
 	else if (GetGameState() == GAMESTATE_INGAME && MQGetTickCount64() > ReenableTime)
+	{
 		Login::dispatch(LoginStateSensor(LoginState::InGame, nullptr));
+		ReenableTime = MQGetTickCount64() + STEP_DELAY;
+	}
 	else if (GetGameState() == GAMESTATE_CHARSELECT && MQGetTickCount64() > ReenableTime)
 	{
 		auto pWnd = GetWindow<CSidlScreenWnd>("ConfirmationDialogBox");
@@ -479,6 +486,8 @@ PLUGIN_API void OnPulse()
 		}
 		else if (CXWnd* pWnd = GetWindow("CLW_CharactersScreen"))
 			Login::dispatch(LoginStateSensor(LoginState::CharacterSelect, pWnd));
+
+		ReenableTime = MQGetTickCount64() + STEP_DELAY;
 	}
 	else if (GetGameState() == GAMESTATE_PRECHARSELECT && g_pLoginClient && MQGetTickCount64() > ReenableTime)
 	{
@@ -522,6 +531,8 @@ PLUGIN_API void OnPulse()
 			else
 				Login::dispatch(LoginStateSensor(LoginState::ServerSelect, pServerWnd));
 		}
+
+		ReenableTime = MQGetTickCount64() + STEP_DELAY;
 	}
 }
 
@@ -560,38 +571,64 @@ static void ShowAutoLoginOverlay(bool* p_open)
 		ImGui::SetNextWindowViewport(viewport->ID);
 	}
 	ImGui::SetNextWindowBgAlpha(gameState == GAMESTATE_CHARSELECT ? .85f : .35f); // Transparent background
-	if (ImGui::Begin("MQ2AutoLogin Status", p_open, (corner != -1 ? ImGuiWindowFlags_NoMove : 0) | ImGuiWindowFlags_NoBringToFrontOnFocus  | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav))
+	if (ImGui::Begin("AutoLogin Status", p_open, (corner != -1 ? ImGuiWindowFlags_NoMove : 0) | ImGuiWindowFlags_NoBringToFrontOnFocus  | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav))
 	{
-		ImGui::Text("MQ2AutoLogin Method:");
-		RadioButton("MQ2Login", &Login::m_settings.LoginType, Login::Settings::Type::MQ2Login); ImGui::SameLine();
-		RadioButton("StationNames", &Login::m_settings.LoginType, Login::Settings::Type::StationNames); ImGui::SameLine();
-		RadioButton("Sessions", &Login::m_settings.LoginType, Login::Settings::Type::Sessions);
+		ImGui::PushFont(imgui::LargeTextFont);
+		ImGui::TextColored(ImColor(52, 152, 219), "AutoLogin Status");
+		ImGui::PopFont();
+		ImGui::Separator();
 
-		ImGui::Text("(right-click to hide)");
+		ImGui::Text("Login Method:");
+		ImGui::SameLine(0, 4.0f);
+		if (Login::m_settings.LoginType == Login::Settings::Type::MQ2Login)
+			ImGui::Text("Profiles (MQ2Login)");
+		else if (Login::m_settings.LoginType == Login::Settings::Type::StationNames)
+			ImGui::Text("StationNames");
+		else if (Login::m_settings.LoginType == Login::Settings::Type::Sessions)
+			ImGui::Text("Sessions");
+
 		ImGui::Separator();
 
 		bool bAutoLoginEnabled = !Login::paused();
-		if (ImGui::Checkbox("Auto Login Enabled", &bAutoLoginEnabled))
-		{
-			bAutoLoginEnabled ? Login::dispatch(UnpauseLogin()) : Login::dispatch(PauseLogin());
-		}
+		bool bAutoLoginRunning = Login::has_entry();
 
-		if (Login::m_settings.ConnectRetries > 0)
+		if (bAutoLoginRunning)
 		{
-			ImGui::Text("Retries: %d/%d", Login::retries(), Login::m_settings.ConnectRetries);
-		}
+			ImGui::Text("AutoLogin is");
+			ImGui::SameLine(0, 4.0f);
+			if (bAutoLoginEnabled)
+				ImGui::TextColored(ImColor(0, 255, 0), "running");
+			else
+				ImGui::TextColored(ImColor(255, 255, 0), "paused");
 
-		ImGui::Separator();
-		ImGui::Text("Current Destination:");
-
-		if (!Login::server().empty() && !Login::character().empty())
-		{
 			ImGui::Text("Server: %s", Login::server().data());
 			ImGui::Text("Character: %s", Login::character().data());
+
+			if (Login::m_settings.LoginType == Login::Settings::Type::MQ2Login)
+				ImGui::Text("Profile: %s", Login::profile().data());
+
+			if (bAutoLoginEnabled)
+			{
+				if (ImGui::Button("Pause"))
+					Login::dispatch(PauseLogin());
+			}
+			else
+			{
+				if (ImGui::Button("Resume"))
+					Login::dispatch(UnpauseLogin());
+			}
+
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel"))
+				Login::dispatch(StopLogin());
 		}
 		else
 		{
-			if (ImGui::Button("Click to Select"))
+			ImGui::Text("AutoLogin is");
+			ImGui::SameLine(0, 4.0f);
+			ImGui::TextColored(ImColor(255, 0, 0), "inactive");
+
+			if (ImGui::Button("Select Profile"))
 			{
 				Login::profiles() = LoadAutoLoginProfiles(INIFileName);
 				ImGui::OpenPopup("ProfileSelector");
@@ -644,6 +681,11 @@ static void ShowAutoLoginOverlay(bool* p_open)
 
 				ImGui::EndPopup();
 			}
+		}
+
+		if (Login::m_settings.ConnectRetries > 0)
+		{
+			ImGui::Text("Retries: %d/%d", Login::retries(), Login::m_settings.ConnectRetries);
 		}
 
 		ImGui::Spacing();
