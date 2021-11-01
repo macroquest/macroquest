@@ -465,8 +465,10 @@ public:
 				// this is the longwait condition, so add a delay
 				m_delayTime = MQGetTickCount64() + 185000; // TODO: configure longwait
 			}
-			else if (str.find("this server is not a free-play server.") != CXStr::npos)
+			else if (str.find("this server is not a free-play server.") != CXStr::npos
+				|| str.find("The request to remove the player was denied because a player is still actively playing.") != CXStr::npos)
 			{
+				WriteChatf("\ag[AutoLogin]\ax Stopping at server select due to message: %s", str.c_str());
 				dispatch(StopLogin());
 				return;
 			}

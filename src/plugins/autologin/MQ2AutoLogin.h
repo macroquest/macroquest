@@ -241,7 +241,7 @@ public:
 		bool KickActiveCharacter;
 		bool EndAfterSelect;
 		int CharSelectDelay;
-		unsigned char ConnectRetries;
+		int ConnectRetries;
 
 		enum class ServerUpNotification {
 			None = 0,
