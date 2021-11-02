@@ -3325,7 +3325,8 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 	{
 		if (pSpawn->mActorClient.Class != Shaman
 			&& pSpawn->mActorClient.Class != Enchanter
-			&& pSpawn->mActorClient.Class != Beastlord)
+			&& pSpawn->mActorClient.Class != Beastlord
+			&& pSpawn->mActorClient.Class != Bard)
 		{
 			return false;
 		}
