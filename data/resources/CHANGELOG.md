@@ -1,3 +1,8 @@
+November 2, 2021:
+- When performing a spawn search, NPC Pets are now also considered NPCs (use nopet if you do not want this when searching NPC)
+- The timestamp data type will now interpret correctly in Lua
+- Bards are now considered "Slowers"
+
 October 27, 2021:
 - Restored hooks on Find Item window
 - Implement more robust method of window switching. This improves /foreground behavior and
