@@ -1062,7 +1062,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		Dest.Type = pIntType;
 
 		// count bits
-		int cmp = GetItemFromContents(pItem)->Diety;
+		int cmp = GetItemFromContents(pItem)->Deity;
 		for (int num = 0; num < NUM_DEITIES; num++)
 		{
 			if (cmp & (1 << num))
@@ -1081,7 +1081,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 				int Count = GetIntFromString(Index, 0);
 				if (!Count)
 					return false;
-				int cmp = GetItemFromContents(pItem)->Diety;
+				int cmp = GetItemFromContents(pItem)->Deity;
 				for (int num = 0; num < NUM_DEITIES; num++)
 				{
 					if (cmp & (1 << num))
@@ -1098,7 +1098,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 			else
 			{
 				// by name
-				int cmp = GetItemFromContents(pItem)->Diety;
+				int cmp = GetItemFromContents(pItem)->Deity;
 				for (int num = 0; num < NUM_DEITIES; num++)
 				{
 					if (cmp & (1 << num))
