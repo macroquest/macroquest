@@ -1212,6 +1212,8 @@ static void DrawMapSettings_Options()
 
 			if (changed && option.IsRegenerateOnChange())
 				regenerate = true;
+			if (changed)
+				WritePrivateProfileBool("Map Filters", option.szName, option.Enabled, INIFileName);
 
 			if (!isRequirementMet)
 			{
