@@ -182,7 +182,7 @@ bool lua_MQTypeVar::EqualNil(const sol::lua_nil_t&) const
 		return true;
 
 	return EvaluateMember().Type == nullptr;
-} 
+}
 
 MQTypeVar lua_MQTypeVar::EvaluateMember(const char* index) const
 {
@@ -254,6 +254,8 @@ sol::object lua_MQTypeVar::CallEmpty(sol::this_state L) const
 		return sol::object(L, sol::in_place, result.Get<double>());
 	if (result.Type == mq::datatypes::pStringType)
 		return sol::object(L, sol::in_place, (const char*)result.Ptr);
+	if (result.Type == mq::datatypes::pTimeStampType)
+		return sol::object(L, sol::in_place, result.Get<int64_t>());
 
 	// by default run it through the tostring conversion because we are assuming calling with empty parens means
 	// to actualize the data in the native lua space
