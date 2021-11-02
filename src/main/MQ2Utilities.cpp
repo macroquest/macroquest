@@ -1279,7 +1279,10 @@ int GetLanguageIDByName(const char* szName)
 	if (!_stricmp(szName, "Goblin")) return 15;
 	if (!_stricmp(szName, "Gnoll")) return 16;
 	if (!_stricmp(szName, "Combine Tongue")) return 17;
+	// Incorrect spelling, but keeping for backwards compatibility
 	if (!_stricmp(szName, "Elder Tier'Dal")) return 18;
+	// Correct Spelling
+	if (!_stricmp(szName, "Elder Teir'Dal")) return 18;
 	if (!_stricmp(szName, "Lizardman")) return 19;
 	if (!_stricmp(szName, "Orcish")) return 20;
 	if (!_stricmp(szName, "Faerie")) return 21;
