@@ -147,6 +147,29 @@ inline std::vector<std::string_view> split_view(std::string_view s, char delim, 
 	return elems;
 }
 
+/**
+ * @fn strip_quotes
+ *
+ * @brief Strips the quotes from a string_view if it is quoted
+ *
+ * @warning This function is only valid as long as line remains in scope.
+ * Be sure to use the result of this function before line goes out of scope
+ * or create a copy as necessary.
+ *
+ * @param line  The line to be stripped
+ * @param quote Which quote character to search for
+ *
+ * @return string_view The string_view or substring after stripped quotes
+*/
+inline std::string_view strip_quotes(std::string_view line, const char quote)
+{
+	if (line[0] == quote && line.back() == quote)
+	{
+		return line.substr(1, line.length() - 2);
+	}
+	return line;
+}
+
 // returns a vector of arguments as string_views. This has the advantage
 // of not allocating any strings, but the result of this function will
 // only be valid inside the lifetime of the original line passed as an
@@ -162,56 +185,60 @@ inline std::vector<std::string_view> tokenize_args(std::string_view line)
 	auto b = std::begin(line); // "beginning" iterator
 	auto d = b; // progress this iterator as we consume words
 	std::string_view::size_type s = 0; // this will be the distance to the found character
-    char quote = '\0';
+	char quote = '\0';
+	char lastquote = '\0';
 
-    // fast-forward past any whitespace
-    for (; s < line.length() && (*(b + s) == ' ' || *(b + s) == '\t'); ++s);
+	// fast-forward past any whitespace
+	for (; s < line.length() && (*(b + s) == ' ' || *(b + s) == '\t'); ++s);
 	if (s >= line.length())
 		return args;
 
 	d += s;
 
-    while (s < line.length())
+	while (s < line.length())
 	{
 		auto c = b + s;
 		if ((*c == ' ' || *c == '\t') && quote == '\0' && (c == std::begin(line) || *(c - 1) != '\\'))
 		{
 			// hit a boundary, let's put it in the vector
-			args.emplace_back(std::string_view(&d[0], std::distance(d, c)));
-            for (; s < line.length() && (*(b + s) == ' ' || *(b + s) == '\t'); ++s);
+			args.emplace_back(strip_quotes(std::string_view(&d[0], std::distance(d, c)), lastquote));
+
+			lastquote = '\0';
+			for (; s < line.length() && (*(b + s) == ' ' || *(b + s) == '\t'); ++s);
 			d = b + s;
 		}
 		else if (((*c == '"' || *c == '\'') && (quote == *c || quote == '\0') && (c == std::begin(line) || *(c - 1) != '\\')))
 		{
-            if (quote == '\0')
-                quote = *c;
-            else
-                quote = '\0';
-            ++s;
+			if (quote == '\0')
+			{
+				quote = *c;
+				lastquote = *c;
+			}
+			else
+				quote = '\0';
+			++s;
 		}
-        else if (*c == '{' && c != std::begin(line) && *(c - 1) == '$')
-        {
-            // This is MQ2 specific handling, we want to allow passing of ${} arguments without needing quotes
-            int b_count = 1;
-            bool b_quote = false;
-            ++s;
-            for (; b_count > 0 && s < line.length(); ++s)
-            {
-                if (b_quote)
-                {
-                    if (*(b + s) == '"' && s + 1 < line.length() &&
-                        (*(b + s + 1) == ']' || *(b + s + 1) == ','))
-                        b_quote = false;
-                }
-                else if (*(b + s) == '}')
-                    --b_count;
-                else if (*(b + s) == '{')
-                    ++b_count;
-                else if (s + 1 < line.length() && *(b + s + 1) == '"' &&
-                    (*(b + s) == '[' || *(b + s) == ','))
-                    b_quote = true;
-            }
-        }
+		else if (*c == '{' && c != std::begin(line) && *(c - 1) == '$')
+		{
+			// This is MQ2 specific handling, we want to allow passing of ${} arguments without needing quotes
+			int b_count = 1;
+			bool b_quote = false;
+			++s;
+			for (; b_count > 0 && s < line.length(); ++s)
+			{
+				if (b_quote)
+				{
+					if (*(b + s) == '"' && s + 1 < line.length() && (*(b + s + 1) == ']' || *(b + s + 1) == ','))
+						b_quote = false;
+				}
+				else if (*(b + s) == '}')
+					--b_count;
+				else if (*(b + s) == '{')
+					++b_count;
+				else if (s + 1 < line.length() && *(b + s + 1) == '"' && (*(b + s) == '[' || *(b + s) == ','))
+					b_quote = true;
+			}
+		}
 		else
 			++s;
 	}
@@ -219,7 +246,7 @@ inline std::vector<std::string_view> tokenize_args(std::string_view line)
 	// hit the end of the string, assume this finishes off any current token
 	// we explicitly only want to tokenize if we have an argument
 	if (std::distance(d, std::end(line)) > 0)
-		args.emplace_back(std::string_view(&d[0], std::distance(d, std::end(line))));
+		args.emplace_back(strip_quotes(std::string_view(&d[0], std::distance(d, std::end(line))), lastquote));
 
 	return args;
 }
