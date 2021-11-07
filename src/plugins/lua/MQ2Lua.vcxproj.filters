@@ -72,4 +72,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="LuaJIT.natvis">
+      <Filter>Resource Files</Filter>
+    </Natvis>
+  </ItemGroup>
 </Project>
