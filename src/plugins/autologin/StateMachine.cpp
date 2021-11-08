@@ -280,7 +280,9 @@ public:
 				}
 			}
 
-			if (record)
+			if (record
+				&& !record->accountName.empty()
+				&& !record->accountPassword.empty())
 			{
 				m_record = record;
 
