@@ -125,6 +125,9 @@ public:
 	void DoYield() { YieldAt(0); }
 	void Exit(LuaThreadExitReason reason = LuaThreadExitReason::Unspecified);
 
+	std::pair<uint32_t, sol::thread> CreateThread();
+	void RemoveThread(uint32_t index);
+
 	LuaImGuiProcessor* GetImGuiProcessor() const { return m_imguiProcessor.get(); }
 	LuaEventProcessor* GetEventProcessor() const { return m_eventProcessor.get(); }
 
@@ -156,6 +159,8 @@ private:
 	sol::coroutine m_coroutine;
 	sol::environment m_environment;
 	std::optional<sol::table> m_mqTable;
+	sol::table m_threadTable;
+	uint32_t m_threadIndex = 0;
 
 	std::string m_name;
 	std::string m_path;

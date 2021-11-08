@@ -123,6 +123,8 @@ LuaThread::LuaThread(this_is_private&&, LuaEnvironmentSettings* environment)
 	m_environment = sol::environment(m_globalState, sol::create, m_globalState.globals());
 	m_thread = sol::thread::create(m_globalState);
 	m_environment.set_on(m_thread);
+
+	m_threadTable = m_globalState.create_table();
 }
 
 /*static*/ std::shared_ptr<LuaThread> LuaThread::Create(LuaEnvironmentSettings* environment)
@@ -231,6 +233,21 @@ void LuaThread::Exit(LuaThreadExitReason reason)
 	m_exitReason = reason;
 	YieldAt(0);
 	m_thread.abandon();
+}
+
+std::pair<uint32_t, sol::thread> LuaThread::CreateThread()
+{
+	auto thread = sol::thread::create(m_globalState);
+	m_environment.set_on(thread);
+	m_threadTable[m_threadIndex] = thread;
+
+	// note the mutation here, it's important that we mutate exactly once after we have done any work with it
+	return std::make_pair(m_threadIndex++, thread);
+}
+
+void LuaThread::RemoveThread(uint32_t index)
+{
+	m_threadTable[index] = sol::lua_nil;
 }
 
 /*static*/ void LuaThread::lua_exit(sol::this_state s)

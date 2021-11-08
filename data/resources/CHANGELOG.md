@@ -1,3 +1,6 @@
+November 8, 2021:
+- Fixed the lingering lua crash issues caused by events with delays
+
 November 2, 2021:
 - When performing a spawn search, NPC Pets are now also considered NPCs (use nopet if you do not want this when searching NPC)
 - The timestamp data type will now interpret correctly in Lua

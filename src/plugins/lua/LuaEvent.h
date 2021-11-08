@@ -81,18 +81,36 @@ struct LuaEventInstance
 {
 	T* definition;
 	std::vector<std::string> args;
-	sol::thread thread;
 
-	LuaEventInstance(T* definition, std::vector<std::string> args, sol::thread thread)
+	LuaEventInstance(T* definition, std::vector<std::string> args)
 		: definition(definition)
 		, args(std::move(args))
-		, thread(std::move(thread))
 	{}
 
-	LuaEventInstance(T* definition, sol::thread thread)
+	LuaEventInstance(T* definition)
 		: definition(definition)
-		, thread(std::move(thread))
 	{}
+};
+
+//----------------------------------------------------------------------------
+
+struct LuaEventFunction
+{
+	LuaThread* luaThread;
+
+	std::pair<uint32_t, sol::thread> solThreadInfo;
+	sol::coroutine coroutine;
+	std::vector<std::string>& args;
+
+	template<typename T>
+	LuaEventFunction(LuaEventInstance<T>& instance)
+		: luaThread(instance.definition->GetEventProcessor()->GetThread())
+		, solThreadInfo(luaThread->CreateThread())
+		, args(std::move(instance.args))
+		, coroutine(sol::coroutine(solThreadInfo.second.state(), instance.definition->GetFunction()))
+	{}
+
+	~LuaEventFunction();
 };
 
 //----------------------------------------------------------------------------
@@ -100,7 +118,7 @@ struct LuaEventInstance
 class LuaEventProcessor
 {
 public:
-	LuaEventProcessor(const LuaThread* thread);
+	LuaEventProcessor(LuaThread* thread);
 	~LuaEventProcessor();
 
 	void AddEvent(std::string_view name, std::string_view expression, const sol::function& function);
@@ -112,31 +130,31 @@ public:
 	void Process(std::string_view line) const;
 
 	// this is guaranteed to always run at the exact same time, so we can run binds and events in it
-	void RunEvents(const LuaThread& thread);
+	void RunEvents(LuaThread& thread);
 
 	// we need two separate functions here because we need to be able to run these at separate points, independently
 	void PrepareEvents(const std::vector<std::string>& events);
 	void RemoveEvents(const std::vector<std::string>& events);
 	void PrepareBinds();
 
-	const LuaThread* GetThread() const { return m_thread; }
+	LuaThread* GetThread() const { return m_thread; }
 
 	void HandleBlechEvent(LuaEvent* event, BLECHVALUE* pValues);
 	void HandleBindCallback(LuaBind* bind, const char* args);
 
 private:
-	const LuaThread* m_thread;
+	LuaThread* m_thread;
 	std::unique_ptr<Blech> m_blech;
 
 	// Events
 	std::vector<std::unique_ptr<LuaEvent>> m_eventDefinitions;
 	std::vector<LuaEventInstance<LuaEvent>> m_eventsPending;
-	std::vector<std::pair<sol::coroutine, std::vector<std::string>>> m_eventsRunning;
+	std::vector<std::shared_ptr<LuaEventFunction>> m_eventsRunning;
 
 	// Binds
 	std::vector<std::unique_ptr<LuaBind>> m_bindDefinitions;
 	std::vector<LuaEventInstance<LuaBind>> m_bindsPending;
-	std::vector<std::pair<sol::coroutine, std::vector<std::string>>> m_bindsRunning;
+	std::vector<std::shared_ptr<LuaEventFunction>> m_bindsRunning;
 };
 
 } // namespace mq::lua

@@ -31,7 +31,7 @@ unsigned int CALLBACK LuaVarProcess(char* VarName, char* Value, size_t ValueLen)
 
 //----------------------------------------------------------------------------
 
-LuaEventProcessor::LuaEventProcessor(const LuaThread* thread)
+LuaEventProcessor::LuaEventProcessor(LuaThread* thread)
 	: m_thread(thread)
 	, m_blech(std::make_unique<Blech>('#', '|', LuaVarProcess))
 {
@@ -118,38 +118,37 @@ void LuaEventProcessor::Process(std::string_view line) const
 	state["_mq_event_line"] = sol::lua_nil;
 }
 
-static void loop_and_run(const LuaThread& thread,
-	std::vector<std::pair<sol::coroutine, std::vector<std::string>>>& vec)
+static void loop_and_run(LuaThread& thread, std::vector<std::shared_ptr<LuaEventFunction>>& vec)
 {
 	vec.erase(std::remove_if(vec.begin(), vec.end(),
-		[&thread](auto& co) -> bool
+		[&thread](std::shared_ptr<LuaEventFunction> co) -> bool
 	{
 		// return false for everything else because we need to yield to the frame
 		if (thread.ShouldYield()) return false;
 
-		auto result = RunCoroutine(co.first, co.second);
+		// in case we have a nullptr (how?)
+		if (!co) return true;
+
+		auto result = RunCoroutine(co->coroutine, co->args);
 
 		// a bit of mutation here, but we can only submit a non-empty args the first time
-		if (!co.second.empty()) co.second.clear();
+		if (!co->args.empty()) co->args.clear();
 
-			// now just erase events that finished
+		// now just erase events that finished
 		return !result || result->status() != sol::call_status::yielded;
 	}), vec.end());
 }
 
-void LuaEventProcessor::RunEvents(const LuaThread& thread)
+void LuaEventProcessor::RunEvents(LuaThread& thread)
 {
 	loop_and_run(thread, m_bindsRunning);
 	if (!thread.ShouldYield()) loop_and_run(thread, m_eventsRunning);
 }
 
-template <typename RVec, typename R>
-static void emplace_running(RVec& running_vec, R& to_run)
+template <typename R>
+static void emplace_running(std::vector<std::shared_ptr<LuaEventFunction>>& running_vec, LuaEventInstance<R>& to_run)
 {
-	running_vec.emplace_back(
-		std::piecewise_construct,
-		std::forward_as_tuple(to_run.thread.state(), to_run.definition->GetFunction()),
-		std::forward_as_tuple(std::move(to_run.args)));
+	running_vec.emplace_back(std::make_shared<LuaEventFunction>(to_run));
 }
 
 void LuaEventProcessor::PrepareEvents(const std::vector<std::string>& events)
@@ -203,9 +202,8 @@ void LuaEventProcessor::PrepareBinds()
 	m_bindsPending.clear();
 }
 
-void LuaEventProcessor::HandleBlechEvent(LuaEvent* pEvent, PBLECHVALUE pValues)
+void LuaEventProcessor::HandleBlechEvent(LuaEvent* pEvent, BLECHVALUE* pValues)
 {
-	sol::thread event_thread = sol::thread::create(m_thread->GetState());
 	std::vector<std::pair<uint32_t, std::string>> args;
 
 	std::optional<std::string> line = m_thread->GetState()["_mq_event_line"];
@@ -222,7 +220,7 @@ void LuaEventProcessor::HandleBlechEvent(LuaEvent* pEvent, PBLECHVALUE pValues)
 
 	if (args.empty())
 	{
-		m_eventsPending.emplace_back(pEvent, std::move(event_thread));
+		m_eventsPending.emplace_back(pEvent);
 	}
 	else
 	{
@@ -232,23 +230,21 @@ void LuaEventProcessor::HandleBlechEvent(LuaEvent* pEvent, PBLECHVALUE pValues)
 		for (const auto& a : args)
 			ordered_args[a.first] = a.second;
 
-		m_eventsPending.emplace_back(pEvent, std::move(ordered_args), std::move(event_thread));
+		m_eventsPending.emplace_back(pEvent, std::move(ordered_args));
 	}
 }
 
 void LuaEventProcessor::HandleBindCallback(LuaBind* bind, const char* args)
 {
-	auto bind_thread = sol::thread::create(m_thread->GetState());
-
 	auto& args_view = tokenize_args(args);
 	if (args_view.empty())
 	{
-		m_bindsPending.emplace_back(bind, std::move(bind_thread));
+		m_bindsPending.emplace_back(bind);
 	}
 	else
 	{
 		std::vector<std::string> args_vector(args_view.begin(), args_view.end());
-		m_bindsPending.emplace_back(bind, std::move(args_vector), std::move(bind_thread));
+		m_bindsPending.emplace_back(bind, std::move(args_vector));
 	}
 }
 
@@ -411,6 +407,11 @@ void MQ_RegisterLua_Events(sol::table& mq)
 	mq.set_function("unevent",                   &lua_removeevent);
 	mq.set_function("bind",                      &lua_addbind);
 	mq.set_function("unbind",                    &lua_removebind);
+}
+
+LuaEventFunction::~LuaEventFunction()
+{
+	luaThread->RemoveThread(solThreadInfo.first);
 }
 
 } // namespace mq::lua
