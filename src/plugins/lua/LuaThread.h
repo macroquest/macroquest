@@ -24,11 +24,9 @@ namespace mq::lua {
 class LuaEventProcessor;
 class LuaImGuiProcessor;
 class LuaThread;
+struct LuaCoroutine;
 
 struct ThreadState;
-
-using CoroutineResult = std::optional<sol::protected_function_result>;
-CoroutineResult RunCoroutine(sol::coroutine& co, const std::vector<std::string>& args = {});
 
 enum class LuaThreadStatus
 {
@@ -99,12 +97,15 @@ public:
 	int GetPID() const { return m_pid; }
 	const std::string& GetName() const { return m_name; }
 	sol::state_view GetState() const;
-	sol::thread GetLuaThread() const { return m_thread; }
+	sol::thread GetLuaThread() const;
 
 	void InjectMQNamespace();
 	void SetTurbo(uint32_t turboVal) { m_turboNum = turboVal; }
 	void SetEvaluateResult(bool evaluate) { m_evaluateResult = evaluate; }
 	bool GetEvaluateResult() const { return m_evaluateResult; }
+
+	void SetCurrentCoroutine(LuaCoroutine* co = nullptr) { m_currentCoroutine = co; }
+	LuaCoroutine* GetCurrentCoroutine() { return m_currentCoroutine; }
 
 	void EnableImGui();
 	void EnableEvents();
@@ -138,10 +139,6 @@ private:
 	void Initialize();
 
 	void YieldAt(int count) const;
-	bool CheckCondition(std::optional<sol::function>& func);
-	void Delay(sol::object delayObj, sol::object conditionObj);
-	bool ShouldRun();
-	void SetDelay(uint64_t time, std::optional<sol::function> condition = std::nullopt);
 
 	int PackageLoader(const std::string& pkg, lua_State* L);
 
@@ -155,8 +152,7 @@ private:
 
 	// this needs to be first in initialization order because other things depend on it
 	sol::state m_globalState;
-	sol::thread m_thread;
-	sol::coroutine m_coroutine;
+	std::shared_ptr<LuaCoroutine> m_coroutine;
 	sol::environment m_environment;
 	std::optional<sol::table> m_mqTable;
 	sol::table m_threadTable;
@@ -171,12 +167,11 @@ private:
 	bool m_paused = false;
 	bool m_evaluateResult = false;
 	bool m_allowYield = true;
-	uint64_t m_delayTime = 0L;
-	std::optional<sol::function> m_delayCondition = std::nullopt;
 	LuaThreadExitReason m_exitReason = LuaThreadExitReason::Unspecified;
 
 	std::unique_ptr<LuaEventProcessor> m_eventProcessor;
 	std::unique_ptr<LuaImGuiProcessor> m_imguiProcessor;
+	LuaCoroutine* m_currentCoroutine = nullptr;
 };
 
 //============================================================================

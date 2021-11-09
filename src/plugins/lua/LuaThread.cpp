@@ -14,6 +14,7 @@
 
 #include "pch.h"
 #include "LuaThread.h"
+#include "LuaCoroutine.h"
 #include "LuaEvent.h"
 #include "LuaImGui.h"
 #include "bindings/lua_MQBindings.h"
@@ -44,27 +45,6 @@ static uint32_t NextID()
 	// no need to do anything special, this will be fine
 	static uint32_t current = 0;
 	return ++current;
-}
-
-CoroutineResult RunCoroutine(sol::coroutine& co, const std::vector<std::string>& args)
-{
-	try
-	{
-		auto result = co(sol::as_args(args));
-		if (result.valid())
-			return result;
-
-		LuaError("%s", sol::stack::get<std::string>(result.lua_state(), result.stack_index()).c_str());
-		DebugStackTrace(result.lua_state());
-		result.abandon();
-	}
-	catch (const sol::error& ex)
-	{
-		LuaError("%s", ex.what());
-		DebugStackTrace(co.lua_state());
-	}
-
-	return std::nullopt;
 }
 
 //============================================================================
@@ -116,13 +96,13 @@ LuaThread::LuaThread(this_is_private&&, LuaEnvironmentSettings* environment)
 	: m_luaEnvironmentSettings(environment)
 	, m_name("(unnamed)")
 	, m_pid(NextID())
+	, m_coroutine(LuaCoroutine::Create(sol::thread::create(m_globalState), this))
 {
 	m_globalState.open_libraries();
 	m_luaEnvironmentSettings->ConfigureLuaState(m_globalState);
 
 	m_environment = sol::environment(m_globalState, sol::create, m_globalState.globals());
-	m_thread = sol::thread::create(m_globalState);
-	m_environment.set_on(m_thread);
+	m_environment.set_on(m_coroutine->thread);
 
 	m_threadTable = m_globalState.create_table();
 }
@@ -184,47 +164,14 @@ void LuaThread::InjectMQNamespace()
 	m_globalState["mq"] = *m_mqTable;
 }
 
-void LuaThread::Delay(sol::object delayObj, sol::object conditionObj)
-{
-	using namespace std::chrono_literals;
-
-	auto delay_int = delayObj.as<std::optional<const int64_t>>();
-	if (!delay_int)
-	{
-		auto delay_str = delayObj.as<std::optional<std::string_view>>();
-		if (delay_str)
-		{
-			if (delay_str->length() > 1 && delay_str->compare(delay_str->length() - 1, 1, "m") == 0)
-			{
-				delay_int.emplace(std::chrono::duration_cast<std::chrono::milliseconds>(
-					std::chrono::minutes(GetIntFromString(*delay_str, 0))).count());
-			}
-			else if (delay_str->length() > 2 && delay_str->compare(delay_str->length() - 2, 2, "ms") == 0)
-			{
-				delay_int.emplace(std::chrono::milliseconds(GetIntFromString(*delay_str, 0)).count());
-			}
-			else if (delay_str->length() > 1 && delay_str->compare(delay_str->length() - 1, 1, "s") == 0)
-			{
-				delay_int.emplace(std::chrono::duration_cast<std::chrono::milliseconds>(
-					std::chrono::seconds(GetIntFromString(*delay_str, 0))).count());
-			}
-		}
-	}
-
-	if (delay_int.has_value())
-	{
-		uint64_t delay_ms = std::max(0ms, std::chrono::milliseconds(*delay_int)).count();
-		std::optional<sol::function> condition = conditionObj.as<std::optional<sol::function>>();
-
-		SetDelay(delay_ms + MQGetTickCount64(), condition);
-	}
-}
-
 /*static*/ void LuaThread::lua_delay(sol::object delayObj, sol::object conditionObj, sol::this_state s)
 {
 	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
-		thread_ptr->Delay(delayObj, conditionObj);
+		if (auto co_ptr = thread_ptr->GetCurrentCoroutine())
+		{
+			co_ptr->Delay(delayObj, conditionObj);
+		}
 	}
 }
 
@@ -232,7 +179,7 @@ void LuaThread::Exit(LuaThreadExitReason reason)
 {
 	m_exitReason = reason;
 	YieldAt(0);
-	m_thread.abandon();
+	m_coroutine->thread.abandon();
 }
 
 std::pair<uint32_t, sol::thread> LuaThread::CreateThread()
@@ -317,12 +264,17 @@ int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 
 bool LuaThread::IsValid() const
 {
-	return m_thread.valid();
+	return m_coroutine->thread.valid();
 }
 
 sol::state_view LuaThread::GetState() const
 {
 	return m_globalState;
+}
+
+sol::thread LuaThread::GetLuaThread() const
+{
+	return m_coroutine->thread;
 }
 
 //----------------------------------------------------------------------------
@@ -343,7 +295,7 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(
 		return std::nullopt;
 	}
 
-	auto co = m_thread.state().load_file(script_path.string());
+	auto co = m_coroutine->thread.state().load_file(script_path.string());
 	if (!co.valid())
 	{
 		sol::error err = co;
@@ -351,11 +303,11 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(
 		return std::nullopt;
 	}
 
-	m_coroutine = co;
+	m_coroutine->coroutine = co;
 	YieldAt(m_turboNum);
 
 	auto start_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-	CoroutineResult result = RunCoroutine(m_coroutine, args);
+	CoroutineResult result = m_coroutine->RunCoroutine(args);
 
 	LuaThreadInfo ret{
 		m_pid,
@@ -371,7 +323,7 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(
 
 	if (result)
 		ret.SetResult(*result, m_evaluateResult);
-	else if (m_coroutine.status() != sol::call_status::yielded)
+	else if (m_coroutine->coroutine.status() != sol::call_status::yielded)
 		ret.EndRun();
 
 	return ret;
@@ -390,19 +342,19 @@ std::optional<LuaThreadInfo> LuaThread::StartString(std::string_view script,
 	if (m_evaluateResult)
 	{
 		std::string evalScript = fmt::format("return {}", script);
-		sol::load_result co = m_thread.state().load(evalScript);
+		sol::load_result co = m_coroutine->thread.state().load(evalScript);
 
 		if (co.valid())
 		{
-			m_coroutine = co;
+			m_coroutine->coroutine = co;
 		}
 	}
 
-	if (!m_coroutine.valid())
+	if (!m_coroutine->coroutine.valid())
 	{
 		// Failed to evaluate as an expression.
 		m_evaluateResult = false;
-		sol::load_result co = m_thread.state().load(script);
+		sol::load_result co = m_coroutine->thread.state().load(script);
 		if (!co.valid())
 		{
 			sol::error err = co;
@@ -411,14 +363,14 @@ std::optional<LuaThreadInfo> LuaThread::StartString(std::string_view script,
 		}
 		else
 		{
-			m_coroutine = co;
+			m_coroutine->coroutine = co;
 		}
 	}
 
 	YieldAt(m_turboNum);
 
 	auto start_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-	CoroutineResult result = RunCoroutine(m_coroutine);
+	CoroutineResult result = m_coroutine->RunCoroutine();
 
 	LuaThreadInfo ret{
 		m_pid,
@@ -434,7 +386,7 @@ std::optional<LuaThreadInfo> LuaThread::StartString(std::string_view script,
 
 	if (result)
 		ret.SetResult(*result, m_evaluateResult);
-	else if (m_coroutine.status() != sol::call_status::yielded)
+	else if (m_coroutine->coroutine.status() != sol::call_status::yielded)
 		ret.EndRun();
 
 	return ret;
@@ -442,27 +394,22 @@ std::optional<LuaThreadInfo> LuaThread::StartString(std::string_view script,
 
 LuaThread::RunResult LuaThread::Run()
 {
-	if (m_coroutine.status() == sol::call_status::yielded)
+	if (m_coroutine->coroutine.status() == sol::call_status::yielded)
 	{
 		return RunOnce();
 	}
 
-	return { static_cast<sol::thread_status>(m_coroutine.status()), std::nullopt };
+	return { static_cast<sol::thread_status>(m_coroutine->coroutine.status()), std::nullopt };
 }
 
 LuaThread::RunResult LuaThread::RunOnce()
 {
-	if (!m_thread.valid())
+	if (!m_coroutine->thread.valid())
 		return { sol::thread_status::dead, std::nullopt };
 
-	if (m_thread.status() != sol::thread_status::ok && m_thread.status() != sol::thread_status::yielded)
+	if (m_coroutine->thread.status() != sol::thread_status::ok && m_coroutine->thread.status() != sol::thread_status::yielded)
 	{
-		return { m_thread.status(), std::nullopt };
-	}
-
-	if (!ShouldRun())
-	{
-		return { m_thread.status(), std::nullopt };
+		return { m_coroutine->thread.status(), std::nullopt };
 	}
 
 	if (m_eventProcessor)
@@ -479,51 +426,24 @@ LuaThread::RunResult LuaThread::RunOnce()
 		m_eventProcessor->RunEvents(*this);
 	}
 
+	if (!m_coroutine->ShouldRun())
+	{
+		return { m_coroutine->thread.status(), std::nullopt };
+	}
+
 	if (!m_yieldToFrame)
 	{
-		CoroutineResult result = RunCoroutine(m_coroutine);
+		CoroutineResult result = m_coroutine->RunCoroutine();
 		sol::thread_status status = result ? static_cast<sol::thread_status>(result->status()) : sol::thread_status::dead;
 		return std::make_pair(std::move(status), std::move(result));
 	}
 
-	if (!m_thread.valid())
+	if (!m_coroutine->thread.valid())
 	{
 		return { sol::thread_status::dead, std::nullopt };
 	}
 
-	return { m_thread.status(), std::nullopt };
-}
-
-bool LuaThread::ShouldRun()
-{
-	if (m_paused)
-	{
-		return false;
-	}
-
-	// check delayed status
-	if (m_delayTime <= MQGetTickCount64() || CheckCondition(m_delayCondition))
-	{
-		YieldAt(m_turboNum);
-		m_delayTime = 0;
-		m_delayCondition = std::nullopt;
-		return true;
-	}
-
-	return false;
-}
-
-void LuaThread::SetDelay(uint64_t time, std::optional<sol::function> condition /* = std::nullopt */)
-{
-	if (m_paused)
-		return;
-
-	if (time > MQGetTickCount64() && !CheckCondition(condition))
-	{
-		YieldAt(0);
-		m_delayTime = time;
-		m_delayCondition = condition;
-	}
+	return { m_coroutine->thread.status(), std::nullopt };
 }
 
 LuaThreadStatus LuaThread::Pause()
@@ -534,8 +454,7 @@ LuaThreadStatus LuaThread::Pause()
 
 		WriteChatStatus("Resuming paused lua script '%s' with PID %d", m_name.c_str(), m_pid);
 		m_paused = false;
-		m_delayTime = 0L;
-		m_delayCondition = std::nullopt;
+		m_coroutine->ClearDelay();
 
 		return LuaThreadStatus::Running;
 	}
@@ -547,26 +466,6 @@ LuaThreadStatus LuaThread::Pause()
 	m_paused = true;
 
 	return LuaThreadStatus::Paused;
-}
-
-bool LuaThread::CheckCondition(std::optional<sol::function>& func)
-{
-	if (!func)
-		return false;
-
-	try
-	{
-		sol::function check(m_globalState, *func);
-		m_environment.set_on(check);
-		return check();
-	}
-	catch (sol::error& ex)
-	{
-		LuaError("Failed to check delay condition check with error '%s'", ex.what());
-		func = std::nullopt;
-	}
-
-	return false;
 }
 
 // this is the special sauce that lets us execute everything on the main thread without blocking
@@ -592,7 +491,7 @@ void LuaThread::YieldAt(int count) const
 {
 	if (m_allowYield)
 	{
-		lua_sethook(m_thread.state(), &LuaThread::lua_forceYield, count == 0 ? LUA_MASKLINE : LUA_MASKCOUNT, count);
+		lua_sethook(m_coroutine->thread.state(), &LuaThread::lua_forceYield, count == 0 ? LUA_MASKLINE : LUA_MASKCOUNT, count);
 	}
 }
 

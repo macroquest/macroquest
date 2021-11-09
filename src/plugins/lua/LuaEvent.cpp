@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "LuaEvent.h"
 #include "LuaThread.h"
+#include "LuaCoroutine.h"
 
 #include <mq/Plugin.h>
 
@@ -131,7 +132,10 @@ static void loop_and_run(LuaThread& thread, std::vector<std::shared_ptr<LuaEvent
 		// in case we have a nullptr (how?)
 		if (!co) return true;
 
-		auto result = RunCoroutine(co->coroutine, co->args);
+		// check if we are paused or if this thread is delayed
+		if (!co->coroutine->ShouldRun()) return false;
+
+		auto result = co->coroutine->RunCoroutine(co->args);
 
 		// a bit of mutation here, but we can only submit a non-empty args the first time
 		if (!co->args.empty()) co->args.clear();
@@ -423,6 +427,24 @@ void MQ_RegisterLua_Events(sol::table& mq)
 	mq.set_function("unevent",                   &lua_removeevent);
 	mq.set_function("bind",                      &lua_addbind);
 	mq.set_function("unbind",                    &lua_removebind);
+}
+
+template<> LuaEventFunction::LuaEventFunction(LuaEventInstance<LuaBind>& instance)
+	: luaThread(instance.definition->GetEventProcessor()->GetThread())
+	, solThreadInfo(luaThread->CreateThread())
+	, args(std::move(instance.args))
+	, coroutine(LuaCoroutine::Create(solThreadInfo.second, luaThread))
+{
+	coroutine->coroutine = sol::coroutine(solThreadInfo.second.state(), instance.definition->GetFunction());
+}
+
+template<> LuaEventFunction::LuaEventFunction(LuaEventInstance<LuaEvent>& instance)
+	: luaThread(instance.definition->GetEventProcessor()->GetThread())
+	, solThreadInfo(luaThread->CreateThread())
+	, args(std::move(instance.args))
+	, coroutine(LuaCoroutine::Create(solThreadInfo.second, luaThread))
+{
+	coroutine->coroutine = sol::coroutine(solThreadInfo.second.state(), instance.definition->GetFunction());
 }
 
 LuaEventFunction::~LuaEventFunction()
