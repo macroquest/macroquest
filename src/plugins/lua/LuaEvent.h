@@ -136,6 +136,7 @@ public:
 	void PrepareEvents(const std::vector<std::string>& events);
 	void RemoveEvents(const std::vector<std::string>& events);
 	void PrepareBinds();
+	void RemoveBinds(const std::vector<std::string>& binds);
 
 	LuaThread* GetThread() const { return m_thread; }
 

@@ -49,6 +49,7 @@ void LuaEventProcessor::AddEvent(std::string_view name, std::string_view express
 
 void LuaEventProcessor::RemoveEvent(std::string_view name)
 {
+	RemoveEvents({ std::string(name) });
 	auto it = std::find_if(m_eventDefinitions.begin(), m_eventDefinitions.end(),
 		[&name](const std::unique_ptr<LuaEvent>& event) { return event->GetName() == name; });
 	if (it != m_eventDefinitions.end())
@@ -76,6 +77,7 @@ void LuaEventProcessor::AddBind(std::string_view name, const sol::function& func
 
 void LuaEventProcessor::RemoveBind(std::string_view name)
 {
+	RemoveBinds({ std::string(name) });
 	auto it = std::find_if(m_bindDefinitions.begin(), m_bindDefinitions.end(),
 		[&name](const std::unique_ptr<LuaBind>& bind)
 		{
@@ -200,6 +202,20 @@ void LuaEventProcessor::PrepareBinds()
 	}
 
 	m_bindsPending.clear();
+}
+
+void LuaEventProcessor::RemoveBinds(const std::vector<std::string>& binds)
+{
+	if (binds.empty())
+		m_bindsPending.clear();
+	else
+	{
+		m_bindsPending.erase(std::remove_if(m_bindsPending.begin(), m_bindsPending.end(),
+			[this, &binds](LuaEventInstance<LuaBind>& b)
+		{
+			return std::find(binds.cbegin(), binds.cend(), b.definition->GetName()) != binds.cend();
+		}), m_bindsPending.end());
+	}
 }
 
 void LuaEventProcessor::HandleBlechEvent(LuaEvent* pEvent, BLECHVALUE* pValues)
