@@ -100,7 +100,7 @@ struct LuaEventFunction
 
 	std::pair<uint32_t, sol::thread> solThreadInfo;
 	sol::coroutine coroutine;
-	std::vector<std::string>& args;
+	std::vector<std::string> args;
 
 	template<typename T>
 	LuaEventFunction(LuaEventInstance<T>& instance)
