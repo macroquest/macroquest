@@ -27,6 +27,7 @@ void MQ_RegisterLua_Events(sol::table& lua);
 
 class LuaThread;
 class LuaEventProcessor;
+struct LuaCoroutine;
 
 //============================================================================
 
@@ -99,17 +100,11 @@ struct LuaEventFunction
 	LuaThread* luaThread;
 
 	std::pair<uint32_t, sol::thread> solThreadInfo;
-	sol::coroutine coroutine;
+	std::shared_ptr<LuaCoroutine> coroutine;
 	std::vector<std::string> args;
 
 	template<typename T>
-	LuaEventFunction(LuaEventInstance<T>& instance)
-		: luaThread(instance.definition->GetEventProcessor()->GetThread())
-		, solThreadInfo(luaThread->CreateThread())
-		, args(std::move(instance.args))
-		, coroutine(sol::coroutine(solThreadInfo.second.state(), instance.definition->GetFunction()))
-	{}
-
+	LuaEventFunction(LuaEventInstance<T>& instance);
 	~LuaEventFunction();
 };
 

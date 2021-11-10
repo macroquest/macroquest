@@ -70,6 +70,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="bindings\lua_MQBindings.cpp" />
+    <ClCompile Include="LuaCoroutine.cpp" />
     <ClCompile Include="LuaEvent.cpp" />
     <ClCompile Include="LuaImGui.cpp" />
     <ClCompile Include="LuaThread.cpp" />
@@ -92,6 +93,7 @@
     <ClInclude Include="contrib\imgui\sol_ImGui.h" />
     <ClInclude Include="LuaCommon.h" />
     <ClInclude Include="LuaEvent.h" />
+    <ClInclude Include="LuaCoroutine.h" />
     <ClInclude Include="LuaImGui.h" />
     <ClInclude Include="LuaThread.h" />
     <ClInclude Include="LuaInterface.h" />

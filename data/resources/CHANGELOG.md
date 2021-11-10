@@ -1,3 +1,6 @@
+November 10, 2021:
+- Changed the operation of delays in lua so that a delay will no longer block the entire script, only the running thread
+
 November 8, 2021:
 - Fixed the lingering lua crash issues caused by events with delays
 
