@@ -312,10 +312,8 @@ public:
 		{
 			dispatch(StopLogin());
 		}
-		else
-		{
-			transit<Wait>();
-		}
+
+		transit<Wait>();
 	}
 };
 

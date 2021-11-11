@@ -671,6 +671,7 @@ static void ShowAutoLoginOverlay(bool* p_open)
 
 								if (ImGui::MenuItem(buffer))
 								{
+									Login::m_settings.LoginType = Login::Settings::Type::Profile;
 									Login::dispatch(SetLoginProfile(record));
 								}
 							}
