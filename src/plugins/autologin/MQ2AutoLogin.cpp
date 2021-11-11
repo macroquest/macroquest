@@ -383,7 +383,7 @@ void ReadINI()
 	bool bUseMQ2Login = GetPrivateProfileBool("Settings", "UseMQ2Login", false, INIFileName);
 	bool bUseStationNamesInsteadOfSessions = GetPrivateProfileBool("Settings", "UseStationNamesInsteadOfSessions", false, INIFileName);
 	if (bUseMQ2Login)
-		Login::m_settings.LoginType = Login::Settings::Type::MQ2Login;
+		Login::m_settings.LoginType = Login::Settings::Type::Profile;
 	else if (bUseStationNamesInsteadOfSessions)
 		Login::m_settings.LoginType = Login::Settings::Type::StationNames;
 	else
@@ -580,10 +580,10 @@ static void ShowAutoLoginOverlay(bool* p_open)
 
 		ImGui::Text("Login Method:");
 		ImGui::SameLine(0, 4.0f);
-		if (Login::m_settings.LoginType == Login::Settings::Type::MQ2Login)
-			ImGui::Text("Profiles (MQ2Login)");
+		if (Login::m_settings.LoginType == Login::Settings::Type::Profile)
+			ImGui::Text("Login Profiles");
 		else if (Login::m_settings.LoginType == Login::Settings::Type::StationNames)
-			ImGui::Text("StationNames");
+			ImGui::Text("Station Names");
 		else if (Login::m_settings.LoginType == Login::Settings::Type::Sessions)
 			ImGui::Text("Sessions");
 
@@ -604,7 +604,7 @@ static void ShowAutoLoginOverlay(bool* p_open)
 			ImGui::Text("Server: %s", Login::server().data());
 			ImGui::Text("Character: %s", Login::character().data());
 
-			if (Login::m_settings.LoginType == Login::Settings::Type::MQ2Login)
+			if (Login::m_settings.LoginType == Login::Settings::Type::Profile)
 				ImGui::Text("Profile: %s", Login::profile().data());
 
 			if (bAutoLoginEnabled)
@@ -636,6 +636,7 @@ static void ShowAutoLoginOverlay(bool* p_open)
 
 			if (ImGui::BeginPopup("ProfileSelector"))
 			{
+#if 0
 				if (ImGui::MenuItem("Manual Login..."))
 				{
 					// TODO: Display a prompt to enter the info directly.
@@ -647,6 +648,7 @@ static void ShowAutoLoginOverlay(bool* p_open)
 				}
 
 				ImGui::Separator();
+#endif
 
 				if (Login::profiles().empty())
 				{

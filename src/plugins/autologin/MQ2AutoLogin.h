@@ -251,7 +251,7 @@ public:
 		ServerUpNotification NotifyOnServerUp;
 
 		enum class Type {
-			MQ2Login,
+			Profile,
 			StationNames,
 			Sessions
 		};

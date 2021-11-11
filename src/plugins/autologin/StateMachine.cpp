@@ -266,7 +266,7 @@ public:
 			{
 				switch (m_settings.LoginType)
 				{
-				case Settings::Type::MQ2Login:
+				case Settings::Type::Profile:
 					record = UseMQ2Login(pUsernameEditWnd);
 					break;
 				case Settings::Type::StationNames:
