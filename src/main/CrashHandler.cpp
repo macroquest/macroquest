@@ -90,6 +90,11 @@ static void ReplaceCrashpadUnhandledExceptionFilter()
 	}
 }
 
+bool ShouldUploadCrash()
+{
+	return gEnableCrashSubmissions && !gCrashpadSubmissionURL.empty() && MQMAIN_VERSION_BUILD != 0;
+}
+
 // Use this function to start crashpad with a new crashpad process.
 bool InitializeCrashpad()
 {
@@ -128,7 +133,7 @@ bool InitializeCrashpad()
 		return false;
 	}
 
-	if (gEnableCrashSubmissions && !gCrashpadSubmissionURL.empty())
+	if (ShouldUploadCrash())
 	{
 		database->GetSettings()->SetUploadsEnabled(true);
 		SPDLOG_INFO("Crash report submission is: enabled");
@@ -312,7 +317,7 @@ int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description)
 				"Version: " MQMAIN_VERSION  "\n"
 				"Location: %s+%d @ %s:%d (%s+%p)\n"
 				"\nCrashID: %s\n",
-				pSymbol->Name, dwDisplacement, line.FileName, line.LineNumber, szSymSearchPath, (void*)(line.Address - (DWORD)hModule), s_sessionUuid.c_str());
+				pSymbol->Name, dwDisplacement, line.FileName, line.LineNumber, szSymSearchPath, (void*)(line.Address - (DWORD)hModule), ShouldUploadCrash() ? s_sessionUuid.c_str() : "Not reported");
 		}
 		else
 		{
@@ -321,7 +326,7 @@ int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description)
 				"Version: " MQMAIN_VERSION  "\n"
 				"Location: %s+%d (%s+%p)\n"
 				"\nCrashID: %s\n",
-				pSymbol->Name, dwDisplacement, szSymSearchPath, (void*)(pSymbol->Address - (DWORD)hModule), s_sessionUuid.c_str());
+				pSymbol->Name, dwDisplacement, szSymSearchPath, (void*)(pSymbol->Address - (DWORD)hModule), ShouldUploadCrash() ? s_sessionUuid.c_str() : "Not reported");
 		}
 	}
 	else
@@ -331,7 +336,7 @@ int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description)
 			"Version: " MQMAIN_VERSION  "\n"
 			"Location: %s+%p\n"
 			"\nCrashID: %s\n",
-			szSymSearchPath, (void*)(dwAddress - (DWORD)hModule), s_sessionUuid.c_str());
+			szSymSearchPath, (void*)(dwAddress - (DWORD)hModule), ShouldUploadCrash() ? s_sessionUuid.c_str() : "Not reported");
 	}
 
 	SymCleanup(hProcess);
