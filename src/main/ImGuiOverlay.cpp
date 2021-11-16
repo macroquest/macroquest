@@ -1102,6 +1102,7 @@ public:
 		}
 	}
 };
+
 static ImGuiRenderDebug* s_renderDebug = nullptr;
 static int s_renderCallbacksId = -1;
 
@@ -1134,6 +1135,22 @@ void ImGuiRenderDebug_UpdateRenderTargets()
 	if (s_renderDebug)
 		s_renderDebug->UpdateRenderTargets();
 }
+
+//============================================================================
+
+class C2DPrimitiveManager_Hook
+{
+public:
+	void AddCachedText_Detour(CTextObjectBase* obj)
+	{
+		if (this == nullptr)
+			return;
+
+		AddCachedText_Trampoline(obj);
+	}
+	void AddCachedText_Trampoline(CTextObjectBase* obj);
+};
+DETOUR_TRAMPOLINE_EMPTY(void C2DPrimitiveManager_Hook::AddCachedText_Trampoline(CTextObjectBase*));
 
 //============================================================================
 
@@ -1249,6 +1266,8 @@ void InitializeMQ2Overlay()
 	// Hook the reset device function
 	EzDetour(CRender__ResetDevice, &CRenderHook::ResetDevice_Detour, &CRenderHook::ResetDevice_Trampoline);
 
+	EzDetour(C2DPrimitiveManager__AddCachedText, &C2DPrimitiveManager_Hook::AddCachedText_Detour, &C2DPrimitiveManager_Hook::AddCachedText_Trampoline);
+
 	CreateImGuiContext();
 
 	InitializeOverlayInternal();
@@ -1290,6 +1309,7 @@ void ShutdownMQ2Overlay()
 	RemoveDetour(__WndProc);
 	RemoveDetour(CParticleSystem__Render);
 	RemoveDetour(CRender__ResetDevice);
+	RemoveDetour(C2DPrimitiveManager__AddCachedText);
 
 	ShutdownOverlayInternal();
 	DestroyImGuiContext();
