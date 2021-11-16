@@ -103,6 +103,7 @@ enum class SpellMembers
 	SlowPct,
 	HastePct,
 	MyDuration,
+	BaseEffectsFocusCap,
 };
 
 enum class SpellMethods
@@ -195,6 +196,8 @@ MQ2SpellType::MQ2SpellType() : MQ2Type("spell")
 	ScopedTypeMember(SpellMembers, SlowPct);
 	ScopedTypeMember(SpellMembers, HastePct);
 	ScopedTypeMember(SpellMembers, MyDuration);
+	ScopedTypeMember(SpellMembers, BaseEffectsFocusCap);
+	AddMember(static_cast<int>(SpellMembers::BaseEffectsFocusCap), "SongCap");
 }
 
 bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -1251,6 +1254,11 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	case SpellMembers::HastePct:
 		Dest.Int = GetMeleeSpeedPctFromSpell(pSpell, true);
 		Dest.Type = pIntType;
+		return true;
+
+	case SpellMembers::BaseEffectsFocusCap:
+		Dest.Type = pIntType;
+		Dest.Set(pSpell->BaseEffectsFocusCap);
 		return true;
 	}
 
