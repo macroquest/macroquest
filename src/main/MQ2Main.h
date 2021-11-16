@@ -328,7 +328,7 @@ MQLIB_API CAltAbilityData* GetAAById(int nAbilityId, int playerLevel = -1);
 inline CAltAbilityData* GetAAByIdWrapper(int nAbilityId, int playerLevel = -1) { return GetAAById(nAbilityId, playerLevel); }
 MQLIB_API int GetSpellRankByName(const char* SpellName);
 MQLIB_API void TruncateSpellRankName(char* SpellName);
-MQLIB_API int FindBuffIndex(std::string_view Name);
+MQLIB_API int FindBuffIndex(std::string_view Name, int minSlot = 0, int maxSlot = -1);
 MQLIB_API bool RemoveBuffByName(std::string_view buffName);
 MQLIB_API bool RemoveBuffBySpellID(int buffName);
 MQLIB_API bool RemoveBuffByIndex(int buffIndex);
@@ -704,8 +704,8 @@ MQLIB_API DEPRECATE("Use GetCachedBuff with predicates instead") bool HasCachedT
 MQLIB_API bool HasBuffCastByPlayer(SPAWNINFO* pBuffOwner, const char* szBuffName, const char* casterName);
 MQLIB_API DEPRECATE("Use HasBuffCastByPlayer instead of TargetBuffCastByMe") bool TargetBuffCastByMe(const char* szBuffName);
 
-MQLIB_API    int      GetSelfBuff(const std::function<bool(const EQ_Affect&)>& fPredicate);
-MQLIB_OBJECT int      GetSelfBuff(const std::function<bool(EQ_Spell*)>& fPredicate);
+MQLIB_OBJECT int      GetSelfBuff(const std::function<bool(const EQ_Affect&)>& fPredicate, int minSlot = 0, int maxSlot = -1);
+MQLIB_OBJECT int      GetSelfBuff(const std::function<bool(EQ_Spell*)>& fPredicate, int minSlot = 0, int maxSlot = -1);
 
 MQLIB_API DEPRECATE("Use GetSelfBuff with predicates instead") int GetSelfBuffByCategory(DWORD category, DWORD classmask = 0, int startslot = 0);
 MQLIB_API DEPRECATE("Use GetSelfBuff with predicates instead") int GetSelfBuffBySubCat(PCHAR subcat, DWORD classmask = 0, int startslot = 0);

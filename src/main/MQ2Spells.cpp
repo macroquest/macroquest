@@ -4066,24 +4066,37 @@ bool HasCachedTargetBuffSPA(int spa, bool bIncrease, SPAWNINFO* pSpawn, void*)
 		}) > 0;
 }
 
-int GetSelfBuff(const std::function<bool(const EQ_Affect&)>& fPredicate)
+int GetSelfBuff(const std::function<bool(const EQ_Affect&)>& fPredicate, int minSlot /* = 0 */, int maxSlot /* = -1 */)
 {
 	PcProfile* pProfile = GetPcProfile();
 	if (!pProfile)
 		return -1;
 
-	auto buff_it = std::find_if(std::cbegin(pProfile->Buff), std::cend(pProfile->Buff), fPredicate);
-	if (buff_it != std::cend(pProfile->Buff))
-		return std::distance(std::cbegin(pProfile->Buff), buff_it);
+	if (minSlot <= 0)
+		minSlot = 0;
+	if (maxSlot < 0)
+		maxSlot = NUM_LONG_BUFFS + NUM_SHORT_BUFFS;
 
-	buff_it = std::find_if(std::cbegin(pProfile->ShortBuff), std::cend(pProfile->ShortBuff), fPredicate);
-	if (buff_it != std::cend(pProfile->ShortBuff))
-		return std::distance(std::cbegin(pProfile->ShortBuff), buff_it) + NUM_LONG_BUFFS;
+	for (int i = minSlot; i < std::min(NUM_LONG_BUFFS, maxSlot); ++i)
+	{
+		EQ_Affect& buff = pProfile->Buff[i];
+
+		if (fPredicate(buff))
+			return i;
+	}
+
+	for (int i = std::max(minSlot, NUM_LONG_BUFFS); i < std::min(NUM_LONG_BUFFS + NUM_SHORT_BUFFS, maxSlot); ++i)
+	{
+		EQ_Affect& buff = pProfile->ShortBuff[i - NUM_LONG_BUFFS];
+
+		if (fPredicate(buff))
+			return i;
+	}
 
 	return -1;
 }
 
-int GetSelfBuff(const std::function<bool(EQ_Spell*)>& fPredicate)
+int GetSelfBuff(const std::function<bool(EQ_Spell*)>& fPredicate, int minSlot, int maxSlot)
 {
 	auto predicate = [&fPredicate](const EQ_Affect& buff)
 	{
@@ -4091,12 +4104,12 @@ int GetSelfBuff(const std::function<bool(EQ_Spell*)>& fPredicate)
 		return spell && fPredicate(spell);
 	};
 
-	return GetSelfBuff(predicate);
+	return GetSelfBuff(predicate, minSlot, maxSlot);
 }
 
 int GetSelfBuffByCategory(DWORD category, DWORD classmask, int startslot)
 {
-	return GetSelfBuff(SpellCategory(static_cast<eEQSPELLCAT>(category)) && SpellClassMask(classmask));
+	return GetSelfBuff(SpellCategory(static_cast<eEQSPELLCAT>(category)) && SpellClassMask(classmask), startslot);
 }
 
 int GetSelfBuffBySubCat(PCHAR subcat, DWORD classmask, int startslot)
@@ -4112,17 +4125,17 @@ int GetSelfBuffBySubCat(PCHAR subcat, DWORD classmask, int startslot)
 			}
 
 			return false;
-		});
+		}, startslot);
 }
 
 int GetSelfBuffBySPA(int spa, bool bIncrease, int startslot)
 {
-	return GetSelfBuff(SpellAffect(static_cast<eEQSPA>(spa), bIncrease));
+	return GetSelfBuff(SpellAffect(static_cast<eEQSPA>(spa), bIncrease), startslot);
 }
 
 int GetSelfShortBuffBySPA(int spa, bool bIncrease, int startslot)
 {
-	return GetSelfBuff(SpellAffect(static_cast<eEQSPA>(spa), bIncrease));
+	return GetSelfBuff(SpellAffect(static_cast<eEQSPA>(spa), bIncrease), startslot);
 }
 
 int GetSpellRankByName(const char* SpellName)
@@ -4208,12 +4221,12 @@ void TruncateSpellRankName(char* SpellName)
 	}
 }
 
-int FindBuffIndex(std::string_view Name)
+int FindBuffIndex(std::string_view Name, int minSlot, int maxSlot)
 {
 	if (Name.empty())
 		return -1;
 
-	return GetSelfBuff([&Name](EQ_Spell* spell) { return MaybeExactCompare(spell->Name, Name); });
+	return GetSelfBuff([&Name](EQ_Spell* spell) { return MaybeExactCompare(spell->Name, Name); }, minSlot, maxSlot);
 }
 
 bool RemoveBuffByName(std::string_view buffName)

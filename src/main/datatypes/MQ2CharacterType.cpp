@@ -918,7 +918,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 
 		{
-			int buffID = FindBuffIndex(Index);
+			int buffID = FindBuffIndex(Index, 0, NUM_LONG_BUFFS);
 			if (buffID >= 0 && buffID < NUM_LONG_BUFFS)
 			{
 				Dest.Int = buffID;
@@ -945,8 +945,8 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 
 		{
-			int buffID = FindBuffIndex(Index);
-			if (buffID >= NUM_LONG_BUFFS && buffID < NUM_LONG_BUFFS + NUM_SHORT_BUFFS)
+			int buffID = FindBuffIndex(Index, NUM_LONG_BUFFS, MAX_TOTAL_BUFFS);
+			if (buffID >= NUM_LONG_BUFFS && buffID < MAX_TOTAL_BUFFS)
 			{
 				Dest.Int = buffID;
 				return true;
