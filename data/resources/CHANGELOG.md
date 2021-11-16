@@ -1,5 +1,6 @@
 November 16, 2021:
 - Add a potential workaround for a graphics engine crash
+- Fix typo in XTARGET_MY_MERCENTARY_TARGET. Use XTARGET_MY_MERCENARY_TARGET instead (#409)
 
 November 10, 2021:
 - Changed the operation of delays in lua so that a delay will no longer block the entire script, only the running thread
