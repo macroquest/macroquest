@@ -735,12 +735,12 @@ bool DoGameEventsPulse(int (*pEventFunc)())
 	return processGameEventsResult;
 }
 
-int Trampoline_ProcessGameEvents();
+static Detour<int(*)()>* ProcessGameEventsOvr;
+int Trampoline_ProcessGameEvents() { return (ProcessGameEventsOvr->Trampoline())(); }
 int Detour_ProcessGameEvents()
 {
 	return DoGameEventsPulse(Trampoline_ProcessGameEvents);
 }
-DETOUR_TRAMPOLINE_EMPTY(int Trampoline_ProcessGameEvents());
 
 void DoLoginPulse()
 {
@@ -750,16 +750,14 @@ void DoLoginPulse()
 class CEverQuestHook
 {
 public:
-	void SetGameState_Trampoline(DWORD GameState);
-	void SetGameState_Detour(DWORD GameState)
+	DetourClassDef(SetGameState, CEverQuestHook, void, DWORD GameState)
 	{
 		SetGameState_Trampoline(GameState);
 
 		Benchmark(bmPluginsSetGameState, PluginsSetGameState(GameState));
 	}
 
-	void CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline();
-	void CMerchantWnd__PurchasePageHandler__UpdateList_Detour()
+	DetourClassDef(CMerchantWnd__PurchasePageHandler__UpdateList, CEverQuestHook, void)
 	{
 		gItemsReceived = false;
 
@@ -769,19 +767,15 @@ public:
 	}
 };
 
-DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::SetGameState_Trampoline(DWORD));
-DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline());
-
 void InitializeMQ2Pulse()
 {
 	DebugSpew("Initializing Pulse");
 
 	std::scoped_lock lock(s_pulseMutex);
 
-	//EzDetour(__GameLoop, GameLoop_Detour, GameLoop_Tramp);
-	EzDetour(ProcessGameEvents, Detour_ProcessGameEvents, Trampoline_ProcessGameEvents);
-	EzDetour(CEverQuest__SetGameState, &CEverQuestHook::SetGameState_Detour, &CEverQuestHook::SetGameState_Trampoline);
-	EzDetour(CMerchantWnd__PurchasePageHandler__UpdateList, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Detour, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline);
+	ProcessGameEventsOvr = Detour<fEQProcGameEvts>::Add(reinterpret_cast<uintptr_t>(&ProcessGameEvents), Detour_ProcessGameEvents).get();
+	EasyClassDetour(CEverQuest__SetGameState, CEverQuestHook, SetGameState);
+	EasyClassDetour(CMerchantWnd__PurchasePageHandler__UpdateList, CEverQuestHook, CMerchantWnd__PurchasePageHandler__UpdateList);
 
 	if (HMODULE EQWhMod = GetModuleHandle("eqw.dll"))
 	{

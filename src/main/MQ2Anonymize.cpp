@@ -686,8 +686,7 @@ CXStr Anonymize(const CXStr& Text)
 	return CXStr(new_text);
 }
 
-int GetGaugeValueFromEQ_Trampoline(int, CXStr*, bool*, unsigned long*);
-int GetGaugeValueFromEQ_Detour(int EQType, CXStr* Str, bool* arg3, unsigned long* Color)
+DetourDef(GetGaugeValueFromEQ, int, int EQType, CXStr* Str, bool* arg3, unsigned long* Color)
 {
 	int ret = GetGaugeValueFromEQ_Trampoline(EQType, Str, arg3, Color);
 	if (Str && MaybeAnonymize(*Str))
@@ -700,8 +699,7 @@ int GetGaugeValueFromEQ_Detour(int EQType, CXStr* Str, bool* arg3, unsigned long
 class CTextureFontHook
 {
 public:
-	int DrawWrappedText_Trampoline(const CXStr&, int, int, int, const CXRect&, COLORREF, uint16_t, int) const;
-	int DrawWrappedText_Detour(const CXStr& Str, int x, int y, int z, const CXRect& BoundRect, COLORREF Color, uint16_t Flags = 0, int StartX = 0) const
+	DetourClassDef(DrawWrappedText, CTextureFontHook, int, const CXStr& Str, int x, int y, int z, const CXRect& BoundRect, COLORREF Color, uint16_t Flags, int StartX)
 	{
 		if (MaybeAnonymize(Str))
 		{
@@ -711,8 +709,7 @@ public:
 		return DrawWrappedText_Trampoline(Str, x, y, z, BoundRect, Color, Flags, StartX);
 	}
 
-	int DrawWrappedText1_Trampoline(const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const;
-	int DrawWrappedText1_Detour(const CXStr& Str, const CXRect& Rect, const CXRect& BoundRect, COLORREF Color, uint16_t Flags = 0, int StartX = 0) const
+	DetourClassDef(DrawWrappedText1, CTextureFontHook, int, const CXStr& Str, const CXRect& Rect, const CXRect& BoundRect, COLORREF Color, uint16_t Flags, int StartX)
 	{
 		if (MaybeAnonymize(Str))
 		{
@@ -722,8 +719,7 @@ public:
 		return DrawWrappedText1_Trampoline(Str, Rect, BoundRect, Color, Flags, StartX);
 	}
 
-	int DrawWrappedText2_Trampoline(CTextObjectInterface*, const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const;
-	int DrawWrappedText2_Detour(CTextObjectInterface* Interface, const CXStr& Str, const CXRect& Rect, const CXRect& BoundRect, COLORREF Color, uint16_t Flags = 0, int StartX = 0) const
+	DetourClassDef(DrawWrappedText2, CTextureFontHook, int, CTextObjectInterface* Interface, const CXStr& Str, const CXRect& Rect, const CXRect& BoundRect, COLORREF Color, uint16_t Flags, int StartX)
 	{
 		if (MaybeAnonymize(Str))
 		{
@@ -734,10 +730,6 @@ public:
 	}
 };
 
-DETOUR_TRAMPOLINE_EMPTY(int GetGaugeValueFromEQ_Trampoline(int, CXStr*, bool*, unsigned long*));
-DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText_Trampoline(const CXStr&, int, int, int, const CXRect&, COLORREF, uint16_t, int) const);
-DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText1_Trampoline(const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const);
-DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText2_Trampoline(CTextObjectInterface*, const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const);
 
 // ***************************************************************************
 // Function:    MQAnon
@@ -934,10 +926,10 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 
 static void InstallAnonDetours()
 {
-	EzDetour(__GetGaugeValueFromEQ, &GetGaugeValueFromEQ_Detour, &GetGaugeValueFromEQ_Trampoline);
-	EzDetour(CTextureFont__DrawWrappedText, &CTextureFontHook::DrawWrappedText_Detour, &CTextureFontHook::DrawWrappedText_Trampoline);
-	EzDetour(CTextureFont__DrawWrappedText1, &CTextureFontHook::DrawWrappedText1_Detour, &CTextureFontHook::DrawWrappedText1_Trampoline);
-	EzDetour(CTextureFont__DrawWrappedText2, &CTextureFontHook::DrawWrappedText2_Detour, &CTextureFontHook::DrawWrappedText2_Trampoline);
+	EasyDetour(__GetGaugeValueFromEQ, GetGaugeValueFromEQ);
+	EasyClassDetour(CTextureFont__DrawWrappedText, CTextureFontHook, DrawWrappedText);
+	EasyClassDetour(CTextureFont__DrawWrappedText1, CTextureFontHook, DrawWrappedText1);
+	EasyClassDetour(CTextureFont__DrawWrappedText2, CTextureFontHook, DrawWrappedText2);
 }
 
 static void RemoveAnonDetours()

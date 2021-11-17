@@ -149,7 +149,7 @@ bool MQ2HandleKeyUp(const KeyCombo& combo)
 class KeypressHandlerHook
 {
 public:
-	void ClearCommandStateArray_Hook()
+	DetourClassDef(ClearCommandStateArray, KeypressHandlerHook, void)
 	{
 		for (auto& pKeybind : gKeyBinds)
 		{
@@ -161,18 +161,16 @@ public:
 
 		ZeroMemory(&pKeypressHandler->CommandState[0], sizeof(pKeypressHandler->CommandState));
 	}
-	void ClearCommandStateArray_Trampoline();
 
-	bool HandleKeyDown_Hook(const KeyCombo& combo)
+	DetourClassDef(HandleKeyDown, KeypressHandlerHook, bool, const KeyCombo& combo)
 	{
 		if (!pWndMgr->HandleKeyboardMsg(combo.Data[3], true))
 			return true;
 
 		return (MQ2HandleKeyDown(combo) != 0);
 	}
-	bool HandleKeyDown_Trampoline(const KeyCombo&);
 
-	bool HandleKeyUp_Hook(const KeyCombo& combo)
+	DetourClassDef(HandleKeyUp, KeypressHandlerHook, bool, const KeyCombo& combo)
 	{
 		bool ret = false;
 		if (!pWndMgr->HandleKeyboardMsg(combo.Data[3], false))
@@ -180,12 +178,7 @@ public:
 
 		return MQ2HandleKeyUp(combo) || ret;
 	}
-	bool HandleKeyUp_Trampoline(const KeyCombo&);
 };
-
-DETOUR_TRAMPOLINE_EMPTY(void KeypressHandlerHook::ClearCommandStateArray_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(bool KeypressHandlerHook::HandleKeyDown_Trampoline(const KeyCombo&));
-DETOUR_TRAMPOLINE_EMPTY(bool KeypressHandlerHook::HandleKeyUp_Trampoline(const KeyCombo&));
 
 static void DoRangedBind(const char* Name, bool Down);
 
@@ -193,9 +186,9 @@ void InitializeMQ2KeyBinds()
 {
 	AddMQ2KeyBind("RANGED", DoRangedBind);
 
-	EzDetour(KeypressHandler__ClearCommandStateArray, &KeypressHandlerHook::ClearCommandStateArray_Hook, &KeypressHandlerHook::ClearCommandStateArray_Trampoline);
-	EzDetour(KeypressHandler__HandleKeyDown, &KeypressHandlerHook::HandleKeyDown_Hook, &KeypressHandlerHook::HandleKeyDown_Trampoline);
-	EzDetour(KeypressHandler__HandleKeyUp, &KeypressHandlerHook::HandleKeyUp_Hook, &KeypressHandlerHook::HandleKeyUp_Trampoline);
+	EasyClassDetour(KeypressHandler__ClearCommandStateArray, KeypressHandlerHook, ClearCommandStateArray);
+	EasyClassDetour(KeypressHandler__HandleKeyDown, KeypressHandlerHook, HandleKeyDown);
+	EasyClassDetour(KeypressHandler__HandleKeyUp, KeypressHandlerHook, HandleKeyUp);
 }
 
 void ShutdownMQ2KeyBinds()

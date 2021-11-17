@@ -379,8 +379,7 @@ public:
 		__asm pop eax;
 	}
 
-	void PlayerClient_Trampoline(void*, int, int, int, char*, char*, char*);
-	void PlayerClient_Detour(void* pNetPlayer, int Sex, int Race, int Class, char* PlayerName, char* GroupName, char* ReplaceName)
+	DetourClassDef(EQPlayer, EQPlayerHook, void, void* pNetPlayer, int Sex, int Race, int Class, char* PlayerName, char* GroupName, char* ReplaceName)
 	{
 		SPAWNINFO* pSpawn = (SPAWNINFO*)this;
 
@@ -390,8 +389,7 @@ public:
 		PlayerClient_ExtraDetour(pSpawn);
 	}
 
-	void dPlayerClient_Trampoline();
-	void dPlayerClient_Detour()
+	DetourClassDef(dEQPlayer, EQPlayerHook, void)
 	{
 		void (PlayerClientHook::*tmp)() = &PlayerClientHook::dPlayerClient_Trampoline;
 
@@ -408,8 +406,7 @@ public:
 		};
 	}
 
-	int SetNameSpriteState_Trampoline(bool Show);
-	int SetNameSpriteState_Detour(bool Show)
+	DetourClassDef(SetNameSpriteState, EQPlayerHook, int, bool Show)
 	{
 		if (gGameState != GAMESTATE_INGAME || !Show || !gMQCaptions)
 			return SetNameSpriteState_Trampoline(Show);
@@ -417,8 +414,7 @@ public:
 		return 1;
 	}
 
-	bool SetNameSpriteTint_Trampoline();
-	bool SetNameSpriteTint_Detour()
+	DetourClassDef(SetNameSpriteTint, EQPlayerHook, bool)
 	{
 		if (gGameState != GAMESTATE_INGAME || !gMQCaptions)
 			return SetNameSpriteTint_Trampoline();
@@ -644,11 +640,6 @@ static void UpdateSpawnCaptions()
 	}
 }
 
-DETOUR_TRAMPOLINE_EMPTY(bool PlayerClientHook::SetNameSpriteTint_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(int PlayerClientHook::SetNameSpriteState_Trampoline(bool Show));
-DETOUR_TRAMPOLINE_EMPTY(void PlayerClientHook::dPlayerClient_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(void PlayerClientHook::PlayerClient_Trampoline(void*, int, int, int, char*, char*, char*));
-
 static void LoadCaptionSettings()
 {
 	const auto& iniFile = mq::internal_paths::MQini;
@@ -758,8 +749,7 @@ class MyEQGroundItemListManager
 public:
 	GROUNDITEM* m_pGroundItemList;
 
-	void FreeItemList_Trampoline();
-	void FreeItemList_Detour()
+	DetourClassDef(FreeItemList, MyEQGroundItemListManager, void)
 	{
 		EQGroundItem* pItem = pItemList->Top;
 
@@ -773,8 +763,7 @@ public:
 		FreeItemList_Trampoline();
 	}
 
-	void Add_Trampoline(EQGroundItem*);
-	void Add_Detour(EQGroundItem* pItem)
+	DetourClassDef(Add, MyEQGroundItemListManager, void, EQGroundItem* pItem)
 	{
 		if (m_pGroundItemList)
 		{
@@ -790,16 +779,12 @@ public:
 		AddGroundItem();
 	}
 
-	void DeleteItem_Trampoline(EQGroundItem*);
-	void DeleteItem_Detour(EQGroundItem* pItem)
+	DetourClassDef(DeleteItem, MyEQGroundItemListManager, void, EQGroundItem* pItem)
 	{
 		RemoveGroundItem(pItem);
 		return DeleteItem_Trampoline(pItem);
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::FreeItemList_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::Add_Trampoline(EQGroundItem*));
-DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::DeleteItem_Trampoline(EQGroundItem*));
 
 static void ProcessPendingGroundItems()
 {
@@ -873,13 +858,13 @@ static void Spawns_Initialize()
 	bmUpdateSpawnSort = AddMQ2Benchmark("UpdateSpawnSort");
 	bmUpdateSpawnCaptions = AddMQ2Benchmark("UpdateSpawnCaptions");
 
-	EzDetour(PlayerClient__PlayerClient, &PlayerClientHook::PlayerClient_Detour, &PlayerClientHook::PlayerClient_Trampoline);
-	EzDetour(PlayerClient__dPlayerClient, &PlayerClientHook::dPlayerClient_Detour, &PlayerClientHook::dPlayerClient_Trampoline);
-	EzDetour(PlayerClient__SetNameSpriteState, &PlayerClientHook::SetNameSpriteState_Detour, &PlayerClientHook::SetNameSpriteState_Trampoline);
-	EzDetour(PlayerClient__SetNameSpriteTint, &PlayerClientHook::SetNameSpriteTint_Detour, &PlayerClientHook::SetNameSpriteTint_Trampoline);
-	EzDetour(EQItemList__FreeItemList, &MyEQGroundItemListManager::FreeItemList_Detour, &MyEQGroundItemListManager::FreeItemList_Trampoline);
-	EzDetour(EQItemList__add_item, &MyEQGroundItemListManager::Add_Detour, &MyEQGroundItemListManager::Add_Trampoline);
-	EzDetour(EQItemList__delete_item, &MyEQGroundItemListManager::DeleteItem_Detour, &MyEQGroundItemListManager::DeleteItem_Trampoline);
+	EasyClassDetour(EQPlayer__EQPlayer, EQPlayerHook, EQPlayer);
+	EasyClassDetour(EQPlayer__dEQPlayer, EQPlayerHook, dEQPlayer);
+	EasyClassDetour(EQPlayer__SetNameSpriteState, EQPlayerHook, SetNameSpriteState);
+	EasyClassDetour(EQPlayer__SetNameSpriteTint, EQPlayerHook, SetNameSpriteTint);
+	EasyClassDetour(EQItemList__FreeItemList, MyEQGroundItemListManager, FreeItemList);
+	EasyClassDetour(EQItemList__add_item, MyEQGroundItemListManager, Add);
+	EasyClassDetour(EQItemList__delete_item, MyEQGroundItemListManager, DeleteItem);
 
 	// Load Settings
 	LoadCaptionSettings();

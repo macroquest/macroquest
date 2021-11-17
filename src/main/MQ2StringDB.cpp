@@ -76,8 +76,7 @@ mq::TokenTextParam::TokenTextParam(const char* Data, DWORD Length)
 	}
 }
 
-void msgTokenTextParam__Trampoline(const char*, DWORD);
-void msgTokenTextParam__Detour(const char* Data, DWORD Length)
+DetourDef(msgTokenTextParam, void, const char* Data, DWORD Length)
 {
 	if (Data)
 	{
@@ -93,13 +92,12 @@ void msgTokenTextParam__Detour(const char* Data, DWORD Length)
 		}
 	}
 
-	msgTokenTextParam__Trampoline(Data, Length);
+	msgTokenTextParam_Trampoline(Data, Length);
 }
-DETOUR_TRAMPOLINE_EMPTY(void msgTokenTextParam__Trampoline(const char*, DWORD))
 
 void mq::InitializeStringDB()
 {
-	EzDetour(__msgTokenTextParam, msgTokenTextParam__Detour, msgTokenTextParam__Trampoline);
+	EasyDetour(__msgTokenTextParam, msgTokenTextParam);
 }
 
 void mq::ShutdownStringDB()

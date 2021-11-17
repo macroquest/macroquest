@@ -18,216 +18,60 @@
 namespace mq {
 
 //============================================================================
+std::map<uintptr_t, std::shared_ptr<DetourAny>> s_detourMap;
 
-struct DetourRecord
+// 20 bytes replicates functionality of collision detection from before. It's possible this number can be tweaked or removed
+#define DETOUR_COUNT 20
+
+void DetourAny::AddToMap()
 {
-/*0x00*/ uint32_t      addr;
-/*0x04*/ uint32_t      count;
-/*0x08*/ char          Name[0x64];
-/*0x6c*/ uint8_t       array[0x40];
-/*0xac*/ uint8_t*      pfDetour;
-/*0xb0*/ uint8_t*      pfTrampoline;
-/*0xb4*/ DetourRecord* pNext;
-/*0xb8*/ DetourRecord* pLast;
-/*0xbc*/
-};
+	// TODO: is there better collision detection?
+	auto address = this->Address();
+	for (const auto& [key, _] : s_detourMap)
+	{
+		if (address >= key && address < key + DETOUR_COUNT)
+			return;
+	}
 
-DetourRecord* gDetours = nullptr;
-std::recursive_mutex gDetourMutex;
+	s_detourMap.insert_or_assign(this->Address(), shared_from_this());
+}
+
+void DetourAny::RemoveFromMap()
+{
+	s_detourMap.erase(this->Address());
+}
+
+void DetourAny::Attach(PVOID* ppPointer, PVOID pDetour)
+{
+	DetourRestoreAfterWith();
+
+	DetourTransactionBegin();
+	DetourUpdateThread(GetCurrentThread());
+	DetourAttach(ppPointer, pDetour);
+	DetourTransactionCommit();
+}
+
+void DetourAny::Detach(PVOID* ppPointer, PVOID pDetour)
+{
+	DetourTransactionBegin();
+	DetourUpdateThread(GetCurrentThread());
+	DetourDetach(ppPointer, pDetour);
+	DetourTransactionCommit();
+}
+
+DetourAny::~DetourAny() {}
+
+void RemoveDetour(uintptr_t address)
+{
+	s_detourMap.erase(address);
+}
 
 bool gbDoingSpellChecks = false;
 int gbInMemCheck4 = 0;
 
-DetourRecord* FindDetour(uintptr_t address)
-{
-	DetourRecord* pDetour = gDetours;
-	while (pDetour)
-	{
-		if (pDetour->addr == address)
-			return pDetour;
-		pDetour = pDetour->pNext;
-	}
-
-	return nullptr;
-}
-
-bool AddDetour(uintptr_t address, uint8_t* pfDetour, uint8_t* pfTrampoline, uint32_t dwSize, const char* szDetourName)
-{
-	std::scoped_lock lock(gDetourMutex);
-
-	char szName[MAX_STRING] = { 0 };
-
-	if (szDetourName && szDetourName[0] != '\0')
-	{
-		strcpy_s(szName, szDetourName);
-	}
-	else
-	{
-		sprintf_s(szName, "Unknown(%p)", pfDetour);
-	}
-
-	bool Ret = true;
-	DebugSpew("AddDetour(%s, 0x%X, 0x%X, 0x%X, 0x%X)", szName, address, pfDetour, pfTrampoline, dwSize);
-
-	if (FindDetour(address))
-	{
-		DebugSpew("Address for %s (0x%x) already detoured.", szName, address);
-		return false;
-	}
-
-	DetourRecord* detour = new DetourRecord;
-	strcpy_s(detour->Name, szName);
-	detour->addr = address;
-	detour->count = dwSize;
-	memcpy(detour->array, (char*)address, dwSize);
-	detour->pNext = gDetours;
-	if (gDetours)
-		gDetours->pLast = detour;
-	detour->pLast = nullptr;
-
-	if (pfTrampoline)
-	{
-		// its an indirect jump, likely due to incremental linking. The actual
-		// function body is at the other end of the jump. We need to follow it.
-		if (pfTrampoline[0] == 0xe9)
-		{
-			pfTrampoline = pfTrampoline + *(DWORD*)&pfTrampoline[1] + 5;
-		}
-		if (pfTrampoline[0] && pfTrampoline[1])
-		{
-			DWORD oldperm = 0, tmp;
-			VirtualProtectEx(GetCurrentProcess(), (void*)pfTrampoline, 2, PAGE_EXECUTE_READWRITE, &oldperm);
-			pfTrampoline[0] = 0x90;
-			pfTrampoline[1] = 0x90;
-			VirtualProtectEx(GetCurrentProcess(), (void*)pfTrampoline, 2, oldperm, &tmp);
-		}
-	}
-
-	if (pfDetour && !DetourFunctionWithEmptyTrampoline(pfTrampoline, (BYTE*)address, pfDetour))
-	{
-		detour->pfDetour = nullptr;
-		detour->pfTrampoline = nullptr;
-		Ret = false;
-		DebugSpew("Detour of %s failed.", szName);
-	}
-	else
-	{
-		detour->pfDetour = pfDetour;
-		detour->pfTrampoline = pfTrampoline;
-		DebugSpew("Detour of %s was successful.", szName);
-	}
-
-	gDetours = detour;
-	return Ret;
-}
-
-void RemoveDetour(uintptr_t address)
-{
-	std::scoped_lock lock(gDetourMutex);
-
-	DetourRecord* detour = gDetours;
-	char szFilename[MAX_STRING] = { 0 };
-	HMODULE hModule = nullptr;
-	DWORD myaddress = 0;
-
-	while (detour)
-	{
-		if (detour->addr == address)
-		{
-			if (detour->pfDetour)
-			{
-				if (hModule == nullptr)
-				{
-					GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)address, &hModule);
-					myaddress = (DWORD)hModule;
-					GetModuleFileName(hModule, szFilename, MAX_STRING);
-					_strlwr_s(szFilename);
-
-					if (char* pDest = strrchr(szFilename, '\\'))
-					{
-						pDest[0] = '\0';
-						strcpy_s(szFilename, &pDest[1]);
-					}
-				}
-
-				if (strstr(szFilename, "eqgame"))
-					DebugSpewAlways("DetourRemove %s (%s [0x%08X])", detour->Name, szFilename, address - myaddress + 0x400000);
-				else
-					DebugSpewAlways("DetourRemove %s (%s [0x%08X])", detour->Name, szFilename, address - myaddress + 0x10000000);
-
-				DetourRemove(detour->pfTrampoline, detour->pfDetour);
-			}
-
-			if (detour->pLast)
-				detour->pLast->pNext = detour->pNext;
-			else
-				gDetours = detour->pNext;
-
-			if (detour->pNext)
-				detour->pNext->pLast = detour->pLast;
-
-			delete detour;
-			return;
-		}
-		detour = detour->pNext;
-	}
-
-	if (strstr(szFilename, "eqgame"))
-		DebugSpewAlways("Detour for (%s [0x%08X]) not found in RemoveDetour()", szFilename, address - myaddress + 0x400000);
-	else
-		DebugSpewAlways("Detour for (%s [0x%08X]) not found in RemoveDetour()", szFilename, address - myaddress + 0x10000000);
-}
-
-void DeleteDetour(uintptr_t address)
-{
-	std::scoped_lock lock(gDetourMutex);
-
-	DetourRecord* detour = gDetours;
-	while (detour)
-	{
-		if (detour->addr == address)
-		{
-			DebugSpew("Deleted %s (%X)", detour->Name, ((DWORD)GetModuleHandle(nullptr) - address + 0x400000));
-			if (detour->pLast)
-				detour->pLast->pNext = detour->pNext;
-			else
-				gDetours = detour->pNext;
-
-			if (detour->pNext)
-				detour->pNext->pLast = detour->pLast;
-			delete detour;
-			return;
-		}
-		detour = detour->pNext;
-	}
-	DebugSpew("Failed Deleting (%X)", ((DWORD)GetModuleHandle(nullptr) - address + 0x400000));
-}
-
 void RemoveDetours()
 {
-	std::scoped_lock lock(gDetourMutex);
-	DebugSpew("RemoveOurDetours()");
-
-	if (!gDetours)
-		return;
-
-	while (gDetours)
-	{
-		if (gDetours->pfDetour)
-		{
-			DebugSpew("RemoveOurDetours() -- Removing %s (%X)", gDetours->Name, gDetours->addr);
-			RemoveDetour(gDetours->addr);
-		}
-
-		if (gDetours)
-		{
-			DetourRecord* pNext = gDetours->pNext;
-			delete gDetours;
-			gDetours = pNext;
-		}
-	}
-
-	gDetours = nullptr;
+	s_detourMap.clear();
 }
 
 void SetAssist(BYTE* address)
@@ -246,10 +90,8 @@ void SetAssist(BYTE* address)
 class CPacketScrambler_Detours
 {
 public:
-	int ntoh_Trampoline(int);
-	int ntoh_Detour(int nopcode);
+	DetourClassDef(ntoh, CPacketScrambler_Detours, int, int nopcode);
 };
-DETOUR_TRAMPOLINE_EMPTY(int CPacketScrambler_Detours::ntoh_Trampoline(int));
 
 // ntoh_detour actually climbs into the stack and pulls data out from the caller's
 // stack frame. Because of this we need to avoid optimizing this function as it
@@ -287,8 +129,7 @@ int CPacketScrambler_Detours::ntoh_Detour(int nopcode)
 class SpellManager_Detours
 {
 public:
-	bool LoadTextSpells_Trampoline(char*, char*, EQ_Spell*, SpellAffectData*);
-	bool LoadTextSpells_Detour(char* FileName, char* AssocFileName, EQ_Spell* SpellArray, SpellAffectData* EffectArray)
+	DetourClassDef(LoadTextSpells, SpellManager_Detours, bool, char* FileName, char* AssocFileName, EQ_Spell* SpellArray, SpellAffectData* EffectArray)
 	{
 		gbDoingSpellChecks = true;
 		bool ret = LoadTextSpells_Trampoline(FileName, AssocFileName, SpellArray, EffectArray);
@@ -296,15 +137,13 @@ public:
 		return ret;
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(bool SpellManager_Detours::LoadTextSpells_Trampoline(char*, char*, EQ_Spell*, SpellAffectData*));
 
 //============================================================================
 
 class CDisplay_Detours
 {
 public:
-	void ZoneMainUI_Trampoline();
-	void ZoneMainUI_Detour()
+	DetourClassDef(ZoneMainUI, CDisplay_Detours, void)
 	{
 		if (GetServerIDFromServerName(EQADDR_SERVERNAME) == ServerID::Invalid)
 		{
@@ -317,15 +156,12 @@ public:
 		ZoneMainUI_Trampoline();
 	}
 
-	void PreZoneMainUI_Trampoline();
-	void PreZoneMainUI_Detour()
+	DetourClassDef(PreZoneMainUI, CDisplay_Detours, void)
 	{
 		PluginsBeginZone();
 		PreZoneMainUI_Trampoline();
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(void CDisplay_Detours::PreZoneMainUI_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(void CDisplay_Detours::ZoneMainUI_Trampoline());
 
 //============================================================================
 
@@ -353,38 +189,32 @@ struct mckey
 // pointer to encryption pad for memory checker
 unsigned int* extern_array0 = nullptr;
 
-int memcheck0(unsigned char* buffer, size_t count);
-int memcheck1(unsigned char* buffer, size_t count, mckey key);
-int memcheck2(unsigned char* buffer, size_t count, mckey key);
-int WINAPI memcheck4(unsigned char* buffer, size_t* count);
+DetourDef_cdecl(memcheck0, int, unsigned char*, size_t);
+DetourDef_cdecl(memcheck1, int, unsigned char*, size_t, mckey);
+DetourDef_cdecl(memcheck2, int, unsigned char*, size_t, mckey);
+DetourDef_cdecl(memcheck3, int, unsigned char*, size_t, mckey);
+DetourDef(memcheck4, int, unsigned char*, size_t*);
 
 // ***************************************************************************
 // Function:    HookMemChecker
 // Description: Hook MemChecker
 // ***************************************************************************
-
-DETOUR_TRAMPOLINE_EMPTY(int memcheck0_tramp(unsigned char* buffer, size_t count));
-DETOUR_TRAMPOLINE_EMPTY(int memcheck1_tramp(unsigned char* buffer, size_t count, mckey key));
-DETOUR_TRAMPOLINE_EMPTY(int memcheck2_tramp(unsigned char* buffer, size_t count, mckey key));
-DETOUR_TRAMPOLINE_EMPTY(int memcheck3_tramp(unsigned char* buffer, size_t count, mckey key));
-DETOUR_TRAMPOLINE_EMPTY(int WINAPI memcheck4_tramp(unsigned char* buffer, size_t* count));
-
 void HookMemChecker(bool Patch)
 {
 	DebugSpew("HookMemChecker - %satching", (Patch) ? "P" : "Unp");
 
 	if (Patch)
 	{
-		EzDetour(__MemChecker0, memcheck0, memcheck0_tramp);
-		EzDetour(__MemChecker1, memcheck1, memcheck1_tramp);
-		EzDetour(__MemChecker2, memcheck2, memcheck2_tramp);
-		EzDetour(__MemChecker3, memcheck2, memcheck3_tramp); // shares same impl as memcheck2.
-		EzDetour(__MemChecker4, memcheck4, memcheck4_tramp);
+		EasyDetour(__MemChecker0, memcheck0);
+		EasyDetour(__MemChecker1, memcheck1);
+		EasyDetour(__MemChecker2, memcheck2);
+		EasyDetour(__MemChecker3, memcheck2);
+		EasyDetour(__MemChecker4, memcheck4);
 
-		EzDetour(CPacketScrambler__ntoh, &CPacketScrambler_Detours::ntoh_Detour, &CPacketScrambler_Detours::ntoh_Trampoline);
-		EzDetour(Spellmanager__LoadTextSpells, &SpellManager_Detours::LoadTextSpells_Detour, &SpellManager_Detours::LoadTextSpells_Trampoline);
-		EzDetour(CDisplay__ZoneMainUI, &CDisplay_Detours::ZoneMainUI_Detour, &CDisplay_Detours::ZoneMainUI_Trampoline);
-		EzDetour(CDisplay__PreZoneMainUI, &CDisplay_Detours::PreZoneMainUI_Detour, &CDisplay_Detours::PreZoneMainUI_Trampoline);
+		EasyClassDetour(CPacketScrambler__ntoh, CPacketScrambler_Detours, ntoh);
+		EasyClassDetour(Spellmanager__LoadTextSpells, SpellManager_Detours, LoadTextSpells);
+		EasyClassDetour(CDisplay__ZoneMainUI, CDisplay_Detours, ZoneMainUI);
+		EasyClassDetour(CDisplay__PreZoneMainUI, CDisplay_Detours, PreZoneMainUI);
 	}
 	else
 	{
@@ -407,44 +237,40 @@ enum class AddressDetourState {
 	KnownSkippable = 2,
 };
 
-AddressDetourState IsAddressDetoured(uint32_t address, size_t count)
+AddressDetourState IsAddressDetoured(uintptr_t address, size_t count)
 {
 	if (gbDoingSpellChecks || gbInMemCheck4 > 0)
 		return AddressDetourState::KnownSkippable;
 
 	// Executables start with a header that has 'MZ\x90\x00'. This is checking for this
 	// magic value and skipping the crc32 of an executable since we don't care about those.
-	if (address && count >= 4 &&  *(DWORD*)address == 0x00905a4d)
+	if (address && count >= 4 && *(DWORD*)address == 0x00905a4d)
 		return AddressDetourState::KnownSkippable;
 
-	DetourRecord* detour = gDetours;
-	while (detour)
+	for (const auto& [key, _] : s_detourMap)
 	{
-		if (detour->count && address <= detour->addr && detour->addr <= (address + count))
+		if (address <= key && key <= address + count)
 			return AddressDetourState::CodeDetour;
-
-		detour = detour->pNext;
 	}
 
 	return AddressDetourState::None;
 }
 
-inline uint8_t GetDetouredByte(uint32_t address, uint8_t original)
+inline uint8_t GetDetouredByte(uintptr_t address, uint8_t original)
 {
-	DetourRecord* detour = gDetours;
-	while (detour)
+	for (const auto& [key, detour] : s_detourMap)
 	{
-		if (detour->count && (address >= detour->addr) && (address < detour->addr + detour->count))
+		if (address >= key && address < key + DETOUR_COUNT)
 		{
-			return detour->array[address - detour->addr];
+			uint8_t* bytes = reinterpret_cast<uint8_t*>(detour->Address());
+			return *(bytes + address - key);
 		}
-		detour = detour->pNext;
 	}
 
 	return original;
 }
 
-int memcheck0(unsigned char* buffer, size_t count)
+int memcheck0_Detour(unsigned char* buffer, size_t count)
 {
 	uint32_t addr = reinterpret_cast<uint32_t>(buffer);
 
@@ -452,7 +278,7 @@ int memcheck0(unsigned char* buffer, size_t count)
 	AddressDetourState detourState = IsAddressDetoured(addr, count);
 	if (detourState != AddressDetourState::CodeDetour)
 	{
-		return memcheck0_tramp(buffer, count);
+		return memcheck0_Trampoline(buffer, count);
 	}
 
 	unsigned int crc32 = 0xffffffff;
@@ -472,7 +298,7 @@ int memcheck0(unsigned char* buffer, size_t count)
 	return crc32;
 }
 
-int memcheck1(unsigned char* buffer, size_t count, mckey key)
+int memcheck1_Detour(unsigned char* buffer, size_t count, mckey key)
 {
 	uint32_t addr = reinterpret_cast<uint32_t>(buffer);
 	unsigned int ebx, eax, edx;
@@ -512,7 +338,7 @@ int memcheck1(unsigned char* buffer, size_t count, mckey key)
 	return ebx;
 }
 
-int memcheck2(unsigned char* buffer, size_t count, mckey key)
+int memcheck2_Detour(unsigned char* buffer, size_t count, mckey key)
 {
 	uint32_t addr = reinterpret_cast<uint32_t>(buffer);
 	unsigned int ebx, edx, eax;
@@ -549,7 +375,13 @@ int memcheck2(unsigned char* buffer, size_t count, mckey key)
 	return eax;
 }
 
-int WINAPI memcheck4(unsigned char* buffer, size_t* count_)
+int memcheck3_Detour(unsigned char* buffer, size_t count, mckey key)
+{
+	// shares same impl as memcheck2.
+	return memcheck2_Detour(buffer, count, key);
+}
+
+int WINAPI memcheck4_Detour(unsigned char* buffer, size_t* count_)
 {
 	uint32_t addr = reinterpret_cast<uint32_t>(buffer);
 	size_t count = *count_ & 0xff;
@@ -559,7 +391,7 @@ int WINAPI memcheck4(unsigned char* buffer, size_t* count_)
 	if (detourState != AddressDetourState::CodeDetour)
 	{
 		gbInMemCheck4 = 1;
-		int result = memcheck4_tramp(buffer, count_);
+		int result = memcheck4_Trampoline(buffer, count_);
 		gbInMemCheck4 = 0;
 		return result;
 	}
@@ -583,10 +415,9 @@ int WINAPI memcheck4(unsigned char* buffer, size_t* count_)
 
 void TryInitializeLogin();
 
-DETOUR_TRAMPOLINE_EMPTY(void* WINAPI GetProcAddress_Trampoline(HMODULE, LPCSTR));
-void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
+DetourDef(GetProcAddressOverride, void*, HMODULE hModule, LPCSTR lpProcName)
 {
-	if (void* result = GetProcAddress_Trampoline(hModule, lpProcName))
+	if (void* result = GetProcAddressOverride_Trampoline(hModule, lpProcName))
 	{
 		// This is the trigger for loading the eqmain.dll
 		if (hModule == *ghEQMainInstance && std::string_view{ lpProcName } == "new_dll_main")
@@ -598,8 +429,7 @@ void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
 	return nullptr;
 }
 
-DETOUR_TRAMPOLINE_EMPTY(BOOL WINAPI FindModules_Trampoline(HANDLE, HMODULE*, DWORD, DWORD*));
-BOOL WINAPI FindModules_Detour(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWORD* lpcbNeeded)
+DetourDef(FindModules, bool, HANDLE hProcess, HMODULE* hModule, DWORD cb, DWORD* lpcbNeeded)
 {
 	if (gbInMemCheck4 != 1) return FindModules_Trampoline(hProcess, hModule, cb, lpcbNeeded);
 	++gbInMemCheck4;
@@ -628,8 +458,8 @@ void InitializeDetours()
 	HookMemChecker(true);
 
 	DWORD GetProcAddress_Addr = (DWORD)&::GetProcAddress;
-	EzDetour(GetProcAddress_Addr, &GetProcAddress_Detour, &GetProcAddress_Trampoline);
-	EzDetour(__ModuleList, FindModules_Detour, FindModules_Trampoline);
+	EasyDetour(GetProcAddress_Addr, GetProcAddressOverride);
+	EasyDetour(__ModuleList, FindModules);
 }
 
 void ShutdownDetours()

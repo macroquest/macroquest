@@ -36,8 +36,7 @@ ItemClickStatus itemClickStatus = ItemClickStatus::None;
 class FakeCDisplay
 {
 public:
-	CActorInterface* GetClickedActor_Tramp(int, int, bool, CVector3&, CVector3&);
-	CActorInterface* GetClickedActor_Detour(int X, int Y, bool bFlag, CVector3& Vector1, CVector3& Vector2)
+	DetourClassDef(GetClickedActor, FakeCDisplay, CActorInterface*, int X, int Y, bool bFlag, CVector3& Vector1, CVector3& Vector2)
 	{
 		if (itemClickStatus != ItemClickStatus::None)
 		{
@@ -55,7 +54,7 @@ public:
 			}
 		}
 
-		return GetClickedActor_Tramp(X, Y, bFlag, Vector1, Vector2);
+		return GetClickedActor_Trampoline(X, Y, bFlag, Vector1, Vector2);
 	}
 
 	HRESULT GetViewport(void* This, void* pViewport);
@@ -67,11 +66,9 @@ public:
 	/*0xec8*/ void* pDevice; // device pointer see 100019B4                 mov     ecx, [ecx+0F08h] in 2015 02 20
 };
 
-DETOUR_TRAMPOLINE_EMPTY(CActorInterface* FakeCDisplay::GetClickedActor_Tramp(int X, int Y, bool bFlag, CVector3& Vector1, CVector3& Vector2));
-
 void InitializeMouseHooks()
 {
-	EzDetour(CDisplay__GetClickedActor, &FakeCDisplay::GetClickedActor_Detour, &FakeCDisplay::GetClickedActor_Tramp);
+	EasyClassDetour(CDisplay__GetClickedActor, FakeCDisplay, GetClickedActor);
 }
 
 void ShutdownMouseHooks()

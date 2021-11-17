@@ -2,3 +2,4 @@ crashpad-backtrace
 fmt
 wil
 date
+detours

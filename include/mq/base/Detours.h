@@ -18,55 +18,131 @@
 
 namespace mq {
 
-MQLIB_API bool AddDetour(uintptr_t address,
-	uint8_t* pfDetour = nullptr,
-	uint8_t* pfTrampoline = nullptr,
-	uint32_t dwSize = 20,
-	const char* szName = nullptr);
-
-namespace detail
+class DetourAny : public std::enable_shared_from_this<DetourAny>
 {
-	template <typename Fn, size_t width = sizeof(Fn)>
-	uintptr_t extract_fn_addr(Fn fn)
+public:
+	uintptr_t Address() const { return m_address; }
+
+	void Drop() { RemoveFromMap(); }
+
+	DetourAny(const std::string_view handle, const std::string_view procedure)
+		: m_module(GetModuleHandle(std::string(handle).c_str()))
+		, m_address(m_module == 0 ? 0 : reinterpret_cast<uintptr_t>(GetProcAddress(m_module, std::string(procedure).c_str())))
+	{}
+
+	DetourAny(const uintptr_t address)
+		: m_module(GetModuleFromAddress(address))
+		, m_address(address)
+	{}
+
+	virtual ~DetourAny() = 0;
+
+protected:
+	void AddToMap();
+	void RemoveFromMap();
+
+	static inline HMODULE GetModuleFromAddress(const uintptr_t address)
 	{
-		static_assert(width == 4u || width == 8u || width == 12u);
+		HMODULE mod;
+		GetModuleHandleEx(
+			GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+			GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+			(LPCTSTR)address,
+			&mod);
 
-		if constexpr (width == 4u || width == 8u)
-			return reinterpret_cast<uintptr_t*>(&fn)[0];
-
-		if constexpr (width == 12u)
-			return reinterpret_cast<uintptr_t*>(&fn)[1];
-
-		return 0;
+		return mod;
 	}
-}
 
-template <typename Detour, typename Trampoline>
-void AddDetourUnchecked(uintptr_t address, Detour detour, Trampoline trampoline, const char* name = nullptr) {
-	AddDetour(address,
-		(uint8_t*)detail::extract_fn_addr(detour),
-		(uint8_t*)detail::extract_fn_addr(trampoline), 20, name);
-}
+	static void Attach(PVOID *ppPointer, PVOID pDetour);
+	static void Detach(PVOID *ppPointer, PVOID pDetour);
 
-template <typename Detour, typename Trampoline>
-void AddDetourChecked(uintptr_t address, Detour detour, Trampoline trampoline, const char* name = nullptr) {
-	static_assert(std::is_same_v<Detour, Trampoline>, "AddDetour: Detour and Trampoline types must match!");
-	AddDetourUnchecked(address, detour, trampoline, name);
-}
+	const HMODULE m_module;
+	const uintptr_t m_address;
+};
 
-template <typename Detour, typename Trampoline>
-void AddDetourf(uintptr_t address, Detour detour, Trampoline trampoline, const char* name = nullptr) {
-	AddDetourChecked(address, detour, trampoline, name);
-}
+template <typename Sig>
+class Detour : public DetourAny
+{
+public:
+	const Sig Trampoline() const
+	{
+		return m_target;
+	}
 
+	static std::shared_ptr<Detour<Sig>> Add(const std::string_view handle, const std::string_view procedure, const Sig detour)
+	{
+		return std::make_shared<Detour<Sig>>(handle, procedure , detour);
+	}
+
+	static std::shared_ptr<Detour<Sig>> Add(const uintptr_t address, const Sig detour)
+	{
+		return std::make_shared<Detour<Sig>>(address, detour);
+	}
+
+	Detour(const std::string_view handle, const std::string_view procedure, const Sig detour)
+		: DetourAny(handle, procedure)
+		, m_target(*(Sig*)&m_address)
+		, m_detour(detour)
+	{
+		Attach(&(PVOID&)m_target, *(PVOID*)&m_detour);
+		AddToMap();
+	}
+
+	Detour(const uintptr_t address, const Sig detour)
+		: DetourAny(address)
+		, m_target(*(Sig*)&address)
+		, m_detour(detour)
+	{
+		Attach(&(PVOID&)m_target, *(PVOID*)&m_detour);
+		AddToMap();
+	}
+
+	virtual ~Detour()
+	{
+		Detach(&(PVOID&)m_target, *(PVOID*)&m_detour);
+	}
+
+private:
+	const Sig m_target;
+	const Sig m_detour;
+};
+
+template <typename Sig>
+std::shared_ptr<Detour<Sig>> AddDetour(const uintptr_t address, const Sig detour)
+{
+	return Detour<Sig>::Add(address, detour);
+}
 
 MQLIB_API void RemoveDetour(uintptr_t address);
-MQLIB_API void DeleteDetour(uintptr_t address);
 
-#define EzDetour(offset, detour, trampoline) AddDetourChecked((uintptr_t)offset, detour, trampoline, STRINGIFY(offset))
-#define EzDetourwName(offset, detour, trampoline, name) AddDetourChecked((uintptr_t)offset, detour, trampoline, name)
+#define DetourDef(name, ret, ...) \
+static Detour<ret(__stdcall*)(__VA_ARGS__)>* name = nullptr; \
+template <typename ...Args> ret __stdcall name##_Trampoline(Args&&... args) { return (name->Trampoline())(std::forward<Args>(args)...); } \
+ret __stdcall name##_Detour(__VA_ARGS__)
+
+#define DetourDef_cdecl(name, ret, ...) \
+static Detour<ret(__cdecl*)(__VA_ARGS__)>* name = nullptr; \
+template <typename ...Args> ret __cdecl name##_Trampoline(Args&&... args) { return (name->Trampoline())(std::forward<Args>(args)...); } \
+ret __cdecl name##_Detour(__VA_ARGS__)
+
+#define DetourClassDef(name, classname, ret, ...) \
+inline static Detour<ret(classname::*)(__VA_ARGS__)>* name = nullptr; \
+template <typename ...Args> ret name##_Trampoline(Args&&... args) { return (*this.*classname::name->Trampoline())(std::forward<Args>(args)...); } \
+ret name##_Detour(__VA_ARGS__)
+
+#define DetourClassDef_WINAPI(name, classname, ret, ...) \
+inline static Detour<ret(WINAPI classname::*)(__VA_ARGS__)>* name = nullptr; \
+template <typename ...Args> ret WINAPI name##_Trampoline(Args&&... args) { return (*this.*name->Trampoline())(std::forward<Args>(args)...); } \
+ret WINAPI name##_Detour(__VA_ARGS__)
+
+#define EasyDetour(address, name) name = AddDetour(address, &name##_Detour).get()
+#define EasyClassDetour(address, classname, name) classname::name = AddDetour(address, &classname::name##_Detour).get()
+
+// TODO: deprecate these (and DETOUR_TRAMPOLINE_EMPTY) to point to a wiki page with the new detours API
+//#define EzDetour(offset, detour, trampoline) AddDetourChecked((uintptr_t)offset, detour, trampoline, STRINGIFY(offset))
+//#define EzDetourwName(offset, detour, trampoline, name) AddDetourChecked((uintptr_t)offset, detour, trampoline, name)
 
 // For those use cases where the answer is: "I know what I'm doing."
-#define EzDetourUnchecked(offset, detour, trampoline) AddDetourUnchecked((uintptr_t)offset, detour, trampoline, STRINGIFY(offset))
+//#define EzDetourUnchecked(offset, detour, trampoline) AddDetourUnchecked((uintptr_t)offset, detour, trampoline, STRINGIFY(offset))
 
 } // namespace mq
