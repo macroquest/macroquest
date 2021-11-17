@@ -77,6 +77,7 @@ static imgui::TextEditor* s_luaCodeViewer = nullptr;
 
 // use a vector for s_running because we need to iterate it every pulse, and find only if a command is issued
 std::vector<std::shared_ptr<LuaThread>> s_running;
+std::vector<std::shared_ptr<LuaThread>> s_pending;
 
 std::unordered_map<uint32_t, LuaThreadInfo> s_infoMap;
 
@@ -450,7 +451,7 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 	entry->SetTurbo(s_turboNum);
 	entry->EnableEvents();
 	entry->EnableImGui();
-	s_running.emplace_back(entry);
+	s_pending.emplace_back(entry);
 
 	WriteChatStatus("Running lua script '%s' with PID %d", script.c_str(), entry->GetPID());
 
@@ -494,7 +495,7 @@ static uint32_t LuaParseCommand(const std::string& script, std::string_view name
 		entry->SetEvaluateResult(true);
 	}
 
-	s_running.emplace_back(entry);
+	s_pending.emplace_back(entry);
 
 	//WriteChatStatus("Running lua string with PID %d", entry->GetPID());
 
@@ -1020,7 +1021,7 @@ public:
 	{
 		LuaScriptPtr entry = LuaThread::Create(&s_environment);
 		entry->SetTurbo(s_turboNum);
-		s_running.emplace_back(entry);
+		s_pending.emplace_back(entry);
 
 		return entry;
 	}
@@ -1385,6 +1386,11 @@ PLUGIN_API void ShutdownPlugin()
 PLUGIN_API void OnPulse()
 {
 	using namespace mq::lua;
+
+	for (auto pending : s_pending)
+		s_running.emplace_back(pending);
+
+	s_pending.clear();
 
 	s_running.erase(std::remove_if(s_running.begin(), s_running.end(),
 		[](const std::shared_ptr<LuaThread>& thread) -> bool
