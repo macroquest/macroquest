@@ -149,6 +149,7 @@ bool MQ2HandleKeyUp(const KeyCombo& combo)
 class KeypressHandlerHook
 {
 public:
+	DETOUR_TRAMPOLINE_DEF(void, ClearCommandStateArray_Trampoline, ())
 	void ClearCommandStateArray_Hook()
 	{
 		for (auto& pKeybind : gKeyBinds)
@@ -161,8 +162,8 @@ public:
 
 		ZeroMemory(&pKeypressHandler->CommandState[0], sizeof(pKeypressHandler->CommandState));
 	}
-	void ClearCommandStateArray_Trampoline();
 
+	DETOUR_TRAMPOLINE_DEF(bool, HandleKeyDown_Trampoline, (const KeyCombo&))
 	bool HandleKeyDown_Hook(const KeyCombo& combo)
 	{
 		if (!pWndMgr->HandleKeyboardMsg(combo.Data[3], true))
@@ -170,8 +171,8 @@ public:
 
 		return (MQ2HandleKeyDown(combo) != 0);
 	}
-	bool HandleKeyDown_Trampoline(const KeyCombo&);
 
+	DETOUR_TRAMPOLINE_DEF(bool, HandleKeyUp_Trampoline, (const KeyCombo&))
 	bool HandleKeyUp_Hook(const KeyCombo& combo)
 	{
 		bool ret = false;
@@ -180,12 +181,7 @@ public:
 
 		return MQ2HandleKeyUp(combo) || ret;
 	}
-	bool HandleKeyUp_Trampoline(const KeyCombo&);
 };
-
-DETOUR_TRAMPOLINE_EMPTY(void KeypressHandlerHook::ClearCommandStateArray_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(bool KeypressHandlerHook::HandleKeyDown_Trampoline(const KeyCombo&));
-DETOUR_TRAMPOLINE_EMPTY(bool KeypressHandlerHook::HandleKeyUp_Trampoline(const KeyCombo&));
 
 static void DoRangedBind(const char* Name, bool Down);
 

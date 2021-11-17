@@ -379,7 +379,7 @@ public:
 		__asm pop eax;
 	}
 
-	void PlayerClient_Trampoline(void*, int, int, int, char*, char*, char*);
+	DETOUR_TRAMPOLINE_DEF(void, PlayerClient_Trampoline, (void*, int, int, int, char*, char*, char*))
 	void PlayerClient_Detour(void* pNetPlayer, int Sex, int Race, int Class, char* PlayerName, char* GroupName, char* ReplaceName)
 	{
 		SPAWNINFO* pSpawn = (SPAWNINFO*)this;
@@ -390,7 +390,7 @@ public:
 		PlayerClient_ExtraDetour(pSpawn);
 	}
 
-	void dPlayerClient_Trampoline();
+	DETOUR_TRAMPOLINE_DEF(void, dPlayerClient_Trampoline, ())
 	void dPlayerClient_Detour()
 	{
 		void (PlayerClientHook::*tmp)() = &PlayerClientHook::dPlayerClient_Trampoline;
@@ -408,7 +408,7 @@ public:
 		};
 	}
 
-	int SetNameSpriteState_Trampoline(bool Show);
+	DETOUR_TRAMPOLINE_DEF(int, SetNameSpriteState_Trampoline, (bool Show))
 	int SetNameSpriteState_Detour(bool Show)
 	{
 		if (gGameState != GAMESTATE_INGAME || !Show || !gMQCaptions)
@@ -417,7 +417,7 @@ public:
 		return 1;
 	}
 
-	bool SetNameSpriteTint_Trampoline();
+	DETOUR_TRAMPOLINE_DEF(bool, SetNameSpriteTint_Trampoline, ())
 	bool SetNameSpriteTint_Detour()
 	{
 		if (gGameState != GAMESTATE_INGAME || !gMQCaptions)
@@ -644,11 +644,6 @@ static void UpdateSpawnCaptions()
 	}
 }
 
-DETOUR_TRAMPOLINE_EMPTY(bool PlayerClientHook::SetNameSpriteTint_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(int PlayerClientHook::SetNameSpriteState_Trampoline(bool Show));
-DETOUR_TRAMPOLINE_EMPTY(void PlayerClientHook::dPlayerClient_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(void PlayerClientHook::PlayerClient_Trampoline(void*, int, int, int, char*, char*, char*));
-
 static void LoadCaptionSettings()
 {
 	const auto& iniFile = mq::internal_paths::MQini;
@@ -758,7 +753,7 @@ class MyEQGroundItemListManager
 public:
 	GROUNDITEM* m_pGroundItemList;
 
-	void FreeItemList_Trampoline();
+	DETOUR_TRAMPOLINE_DEF(void, FreeItemList_Trampoline, ())
 	void FreeItemList_Detour()
 	{
 		EQGroundItem* pItem = pItemList->Top;
@@ -773,7 +768,7 @@ public:
 		FreeItemList_Trampoline();
 	}
 
-	void Add_Trampoline(EQGroundItem*);
+	DETOUR_TRAMPOLINE_DEF(void, Add_Trampoline, (EQGroundItem*))
 	void Add_Detour(EQGroundItem* pItem)
 	{
 		if (m_pGroundItemList)
@@ -790,16 +785,13 @@ public:
 		AddGroundItem();
 	}
 
-	void DeleteItem_Trampoline(EQGroundItem*);
+	DETOUR_TRAMPOLINE_DEF(void, DeleteItem_Trampoline, (EQGroundItem*))
 	void DeleteItem_Detour(EQGroundItem* pItem)
 	{
 		RemoveGroundItem(pItem);
 		return DeleteItem_Trampoline(pItem);
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::FreeItemList_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::Add_Trampoline(EQGroundItem*));
-DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::DeleteItem_Trampoline(EQGroundItem*));
 
 static void ProcessPendingGroundItems()
 {

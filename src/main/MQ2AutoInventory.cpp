@@ -103,6 +103,7 @@ static int CompareMoneyStrings(SListWndSortInfo* sInfo, GetMoneyFromStringFormat
 class AutoInventory::FindItemWnd_Hook
 {
 public:
+	DETOUR_TRAMPOLINE_DEF(void, Update_Trampoline, ())
 	void Update_Detour()
 	{
 		CFindItemWnd* pFIWnd = (CFindItemWnd*)this;
@@ -226,8 +227,8 @@ public:
 			}
 		}
 	}
-	void Update_Trampoline();
 
+	DETOUR_TRAMPOLINE_DEF(int, WndNotification_Trampoline, (CXWnd*, uint32_t, void*))
 	int WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
 	{
 		CFindItemWnd* pThis = (CFindItemWnd*)this;
@@ -645,15 +646,13 @@ public:
 
 		return WndNotification_Trampoline(pWnd, uiMessage, pData);
 	}
-	int WndNotification_Trampoline(CXWnd*, uint32_t, void*);
 };
-DETOUR_TRAMPOLINE_EMPTY(void AutoInventory::FindItemWnd_Hook::Update_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(int AutoInventory::FindItemWnd_Hook::WndNotification_Trampoline(CXWnd*, uint32_t, void*));
 
 // CBankWnd hooks
 class AutoInventory::BankWnd_Hook
 {
 public:
+	DETOUR_TRAMPOLINE_DEF(int, WndNotification_Trampoline, (CXWnd*, uint32_t, void*))
 	int WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
 	{
 		CBankWnd* pThis = (CBankWnd*)this;
@@ -764,15 +763,13 @@ public:
 
 		return WndNotification_Trampoline(pWnd, uiMessage, pData);
 	}
-	int WndNotification_Trampoline(CXWnd*, uint32_t, void*);
 };
-DETOUR_TRAMPOLINE_EMPTY(int AutoInventory::BankWnd_Hook::WndNotification_Trampoline(CXWnd*, uint32_t, void*));
 
 // CBarterWnd hooks
 class AutoInventory::CBarterWnd_Hook
 {
 public:
-	int WndNotification_Trampoline(CXWnd* pWnd, uint32_t uiMessage, void* pData);
+	DETOUR_TRAMPOLINE_DEF(int, WndNotification_Trampoline, (CXWnd* pWnd, uint32_t uiMessage, void* pData))
 	int WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
 	{
 		CBarterWnd* pThis = (CBarterWnd*)this;
@@ -815,7 +812,6 @@ public:
 		return WndNotification_Trampoline(pWnd, uiMessage, pData);
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(int AutoInventory::CBarterWnd_Hook::WndNotification_Trampoline(CXWnd* pWnd, uint32_t uiMessage, void* pData));
 
 class AutoInventory::CBarterSearchWnd_Hook
 {
@@ -824,7 +820,7 @@ class AutoInventory::CBarterSearchWnd_Hook
 	static inline bool BarterLastSortDirection = true;
 
 public:
-	int WndNotification_Trampoline(CXWnd* pWnd, uint32_t uiMessage, void* pData);
+	DETOUR_TRAMPOLINE_DEF(int, WndNotification_Trampoline, (CXWnd* pWnd, uint32_t uiMessage, void* pData))
 	int WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
 	{
 		CBarterSearchWnd* pThis = (CBarterSearchWnd*)this;
@@ -882,7 +878,7 @@ public:
 		return WndNotification_Trampoline(pWnd, uiMessage, pData);
 	}
 
-	void UpdateInventoryList_Trampoline();
+	DETOUR_TRAMPOLINE_DEF(void, UpdateInventoryList_Trampoline, ())
 	void UpdateInventoryList_Detour()
 	{
 		UpdateInventoryList_Trampoline();
@@ -952,8 +948,6 @@ public:
 		}
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(int AutoInventory::CBarterSearchWnd_Hook::WndNotification_Trampoline(CXWnd* pWnd, uint32_t uiMessage, void* pData));
-DETOUR_TRAMPOLINE_EMPTY(void AutoInventory::CBarterSearchWnd_Hook::UpdateInventoryList_Trampoline());
 
 static void AddAutoBankMenu()
 {
@@ -1342,7 +1336,7 @@ static void AutoBankPulse()
 		if (gAutoInventoryList.empty() && (gbAutoBankTradeSkillItems || gbAutoBankCollectibleItems || gbAutoBankQuestItems))
 		{
 			pLocalPC->BankItems.VisitContainers(
-				[&](const ItemPtr& pItem, const ItemIndex& index)
+			[&](const ItemPtr& pItem, const ItemIndex& index)
 			{
 				// dont add bags that have items inside of them.
 				if (pItem->IsContainer() && !pItem->IsEmpty())

@@ -70,7 +70,7 @@
 #include <ctime>
 #include <winsock.h>
 
-#include <detours/inc/detours.h>
+#include <detours/detours.h>
 #include <spdlog/spdlog.h>
 #include <fmt/format.h>
 
