@@ -1,3 +1,6 @@
+November 17, 2021:
+- Updated for latest patch
+
 November 16, 2021:
 - Add a potential workaround for a graphics engine crash
 - Fix typo in XTARGET_MY_MERCENTARY_TARGET. Use XTARGET_MY_MERCENARY_TARGET instead (#409)
