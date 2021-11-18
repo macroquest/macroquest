@@ -451,7 +451,7 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 	entry->SetTurbo(s_turboNum);
 	entry->EnableEvents();
 	entry->EnableImGui();
-	s_pending.emplace_back(entry);
+	s_pending.push_back(entry);
 
 	WriteChatStatus("Running lua script '%s' with PID %d", script.c_str(), entry->GetPID());
 
@@ -495,7 +495,7 @@ static uint32_t LuaParseCommand(const std::string& script, std::string_view name
 		entry->SetEvaluateResult(true);
 	}
 
-	s_pending.emplace_back(entry);
+	s_pending.push_back(entry);
 
 	//WriteChatStatus("Running lua string with PID %d", entry->GetPID());
 
@@ -1021,7 +1021,7 @@ public:
 	{
 		LuaScriptPtr entry = LuaThread::Create(&s_environment);
 		entry->SetTurbo(s_turboNum);
-		s_pending.emplace_back(entry);
+		s_pending.push_back(entry);
 
 		return entry;
 	}
@@ -1387,10 +1387,11 @@ PLUGIN_API void OnPulse()
 {
 	using namespace mq::lua;
 
-	for (auto pending : s_pending)
-		s_running.emplace_back(pending);
-
-	s_pending.clear();
+	if (!s_pending.empty())
+	{
+		std::move(s_pending.begin(), s_pending.end(), std::back_inserter(s_running));
+		s_pending.clear();
+	}
 
 	s_running.erase(std::remove_if(s_running.begin(), s_running.end(),
 		[](const std::shared_ptr<LuaThread>& thread) -> bool
