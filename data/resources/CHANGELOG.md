@@ -1,5 +1,6 @@
 November 17, 2021:
 - Updated for latest patch
+- Fixed crash where the running vector is modified during execution and invalidated the iterator
 
 November 16, 2021:
 - Add a potential workaround for a graphics engine crash
