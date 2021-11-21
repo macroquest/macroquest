@@ -594,7 +594,7 @@ DETOUR_TRAMPOLINE_EMPTY(bool CRenderHook::ResetDevice_Trampoline(bool));
 DETOUR_TRAMPOLINE_EMPTY(void ProcessMouseEvents_Trampoline());
 void ProcessMouseEvents_Detour()
 {
-	if (ImGui::GetCurrentContext() != nullptr)
+	if (ImGui::GetCurrentContext() != nullptr && *EQADDR_DIMOUSE != nullptr)
 	{
 		auto pMouse = (*EQADDR_DIMOUSE);
 
@@ -647,7 +647,7 @@ void ProcessMouseEvents_Detour()
 
 	// Its time to detour GetDeviceState and have it return the inputs from WndProc that we didn't handle.
 
-	if (gbFlushNextMouse)
+	if (gbFlushNextMouse && *EQADDR_DIMOUSE != nullptr)
 	{
 		auto pMouse = (*EQADDR_DIMOUSE);
 
