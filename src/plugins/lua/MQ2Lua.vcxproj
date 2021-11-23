@@ -12,7 +12,7 @@
   </ItemGroup>
   <ItemDefinitionGroup>
     <PreBuildEvent>
-      <Command>if exist "$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), tools\build_scripts\Plugin_Versioning.ps1))\tools\build_scripts\Plugin_Versioning.ps1" powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), tools\build_scripts\Plugin_Versioning.ps1))\tools\build_scripts\Plugin_Versioning.ps1" -ProjectName "$(MSBuildProjectName)" -ProjectDirectory "$(MSBuildThisFileDirectory)"</Command>
+      <Command>if exist "$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), tools\build_scripts\Plugin_Versioning.ps1))\tools\build_scripts\Plugin_Versioning.ps1" powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), tools\build_scripts\Plugin_Versioning.ps1))\tools\build_scripts\Plugin_Versioning.ps1" -ProjectName "$(MSBuildProjectName)" -ProjectDirectory "$([MSBuild]::EnsureTrailingSlash('$(MSBuildThisFileDirectory)'))\"</Command>
       <Message>Updating version resource for $(MSBuildProjectName)...</Message>
     </PreBuildEvent>
   </ItemDefinitionGroup>
