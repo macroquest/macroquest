@@ -115,7 +115,7 @@ void MapObject::Update(bool forced)
 
 	if (m_highlight)
 	{
-		m_label->Color.ARGB = HighlightColor.ToARGB();
+		SetColor(HighlightColor);
 	}
 
 	// If marker is still enabled, update the marker. Otherwise, remove the marker.
