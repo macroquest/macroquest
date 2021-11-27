@@ -85,6 +85,7 @@ bool bDisablePluginDueToBadUI = false;
 bool gBUsePerCharSettings = false;
 bool gBShowDistance = true;
 bool gbShowPlaceholder = true;
+bool gbShowRoleplaying = true;
 bool gbShowSight = true;
 bool gbShowTargetInfo = true;
 
@@ -397,6 +398,7 @@ void HandleINI(eINIOptions Operation)
 		gBShowDistance = GetPrivateProfileBool(szSettingINISection, "ShowDistance", gBShowDistance, INIFileName);
 		gbShowTargetInfo = GetPrivateProfileBool(szSettingINISection, "ShowTargetInfo", gbShowTargetInfo, INIFileName);
 		gbShowPlaceholder = GetPrivateProfileBool(szSettingINISection, "ShowPlaceholder", gbShowPlaceholder, INIFileName);
+		gbShowRoleplaying = GetPrivateProfileBool(szSettingINISection, "ShowRoleplaying", gbShowRoleplaying, INIFileName);
 		gbShowSight = GetPrivateProfileBool(szSettingINISection, "ShowSight", gbShowSight, INIFileName);
 
 		DistanceLabelToolTip = GetPrivateProfileString(szSettingINISection, "DistanceLabelToolTip", DistanceLabelToolTip, INIFileName);
@@ -424,6 +426,7 @@ void HandleINI(eINIOptions Operation)
 		WritePrivateProfileBool(szSettingINISection, "ShowDistance", gBShowDistance, INIFileName);
 		WritePrivateProfileBool(szSettingINISection, "ShowTargetInfo", gbShowTargetInfo, INIFileName);
 		WritePrivateProfileBool(szSettingINISection, "ShowPlaceholder", gbShowPlaceholder, INIFileName);
+		WritePrivateProfileBool(szSettingINISection, "ShowRoleplaying", gbShowRoleplaying, INIFileName);
 		WritePrivateProfileBool(szSettingINISection, "ShowSight", gbShowSight, INIFileName);
 
 		WritePrivateProfileString(szSettingINISection, "DistanceLabelToolTip", DistanceLabelToolTip, INIFileName);
@@ -649,6 +652,7 @@ void ShowHelp()
 	WriteChatf("     \ay/targetinfo distance [%sOn\ay|%sOff\ay]\aw will toggle showing distance to target.", gBShowDistance ? "\ag" : "", gBShowDistance ? "" : "\ag");
 	WriteChatf("     \ay/targetinfo info [%sOn\ay|%sOff\ay]\aw will toggle showing detailed target info.", gbShowTargetInfo ? "\ag" : "", gbShowTargetInfo ? "" : "\ag");
 	WriteChatf("     \ay/targetinfo placeholder [%sOn\ay|%sOff\ay]\aw will toggle showing placeholder/named info.", gbShowPlaceholder ? "\ag" : "", gbShowPlaceholder ? "" : "\ag");
+	WriteChatf("     \ay/targetinfo roleplaying [%sOn\ay|%sOff\ay]\aw will toggle showing roleplaying/anon in the target display.", gbShowRoleplaying ? "\ag" : "", gbShowRoleplaying ? "" : "\ag");
 	WriteChatf("     \ay/targetinfo sight [%sOn\ay|%sOff\ay]\aw will toggle showing O/X based on your line of sight to target.", gbShowSight ? "\ag" : "", gbShowSight ? "" : "\ag");
 	WriteChatf("     \ay/targetinfo reset\aw will reset all settings to default.");
 	WriteChatf("     \ay/targetinfo reload\aw will reload all settings.");
@@ -683,6 +687,12 @@ void CMD_TargetInfo(SPAWNINFO* pPlayer, char* szLine)
 	{
 		GetArg(szArg1, szLine, 2);
 		gbShowPlaceholder = GetBoolFromString(szArg1, !gbShowPlaceholder);
+		WriteIni = true;
+	}
+	else if (ci_equals(szArg1, "roleplaying"))
+	{
+		GetArg(szArg1, szLine, 2);
+		gbShowRoleplaying = GetBoolFromString(szArg1, !gbShowRoleplaying);
 		WriteIni = true;
 	}
 	else if (ci_equals(szArg1, "sight"))
@@ -818,11 +828,17 @@ PLUGIN_API void OnPulse()
 						switch (pTarget->Anon)
 						{
 							case 1:
-								strcpy_s(szTargetDist, "Anonymous");
-								break;
+								if (gbShowRoleplaying)
+								{
+									strcpy_s(szTargetDist, "Anonymous");
+									break;
+								}
 							case 2:
-								strcpy_s(szTargetDist, "Roleplaying");
-								break;
+								if (gbShowRoleplaying)
+								{
+									strcpy_s(szTargetDist, "Roleplaying");
+									break;
+								}
 							default:
 							{
 								if (pTarget->Type == SPAWN_PLAYER)
