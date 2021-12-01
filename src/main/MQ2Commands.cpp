@@ -2889,6 +2889,10 @@ void Cast(SPAWNINFO* pChar, char* szLine)
 				}
 			}
 		}
+		else {
+			// Display the MQ help in addition to the EQ help
+			WriteChatColor("/cast [list|#|\"name of spell\"|item \"name of item\"] optional:<loc x y z> (spash location)");
+		}
 
 		cmdCast(pChar, szLine);
 		return;
