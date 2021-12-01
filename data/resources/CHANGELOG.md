@@ -1,3 +1,6 @@
+November 30, 2021:
+- Added ShowAnon setting to TargetInfo - this will allow toggling displaying "ANON" or "ROLEPLAYING" in the window
+
 November 17, 2021:
 - Updated for latest patch
 - Fixed crash where the running vector is modified during execution and invalidated the iterator
