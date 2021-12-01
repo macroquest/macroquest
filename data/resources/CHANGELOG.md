@@ -1,4 +1,6 @@
 November 30, 2021:
+- MacroQuest tray utility will now check Application Compatibility layers on startup.  To disable this check set
+  DisableAppCompatCheck=true in the MacroQuest section of your MacroQuest.ini
 - Added ShowAnon setting to TargetInfo - this will allow toggling displaying "ANON" or "ROLEPLAYING" in the window
 
 November 17, 2021:
