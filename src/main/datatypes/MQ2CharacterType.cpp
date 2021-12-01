@@ -253,6 +253,8 @@ enum class CharacterMembers
 	OverseerTetradrachm,
 	WarforgedEmblem,
 	RestlessMark,
+	ScarletMarks,
+	MedalsOfConflict,
 	LoyaltyTokens,
 	SpellInCooldown,
 	Slowed,
@@ -580,6 +582,8 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, OverseerTetradrachm);
 	ScopedTypeMember(CharacterMembers, WarforgedEmblem);
 	ScopedTypeMember(CharacterMembers, RestlessMark);
+	ScopedTypeMember(CharacterMembers, ScarletMarks);
+	ScopedTypeMember(CharacterMembers, MedalsOfConflict);
 	ScopedTypeMember(CharacterMembers, LoyaltyTokens);
 	ScopedTypeMember(CharacterMembers, SpellInCooldown);
 	ScopedTypeMember(CharacterMembers, Slowed);
@@ -2933,6 +2937,16 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case CharacterMembers::RestlessMark:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_RESTLESSMARK);
+		Dest.Type = pIntType;
+		return true;
+
+	case CharacterMembers::ScarletMarks:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_SCARLETMARKS);
+		Dest.Type = pIntType;
+		return true;
+
+	case CharacterMembers::MedalsOfConflict:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_MEDALSOFCONFLICT);
 		Dest.Type = pIntType;
 		return true;
 
