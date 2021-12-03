@@ -82,8 +82,8 @@ public:
 	// This is called continually during the login mainloop so we can use it as our pulse when the MAIN
 	// gameloop pulse is not active but login is.
 	// that will allow plugins to work and execute commands all the way back pre login and server select etc.
-	inline static Detour<void(LoginController_Hook::*)()>* GiveTimeOvr = nullptr;
-	void GiveTime_Trampoline() { return (*this.*GiveTimeOvr->Trampoline())(); }
+	inline static Detour<void(LoginController_Hook::*)()>* GiveTime_Trampoline_Ptr = nullptr;
+	void GiveTime_Trampoline() { return (*this.*GiveTime_Trampoline_Ptr->Trampoline())(); }
 	void GiveTime_Detour()
 	{
 		if (!gbInFrontend)
@@ -133,12 +133,13 @@ public:
 //----------------------------------------------------------------------------
 
 // Forwards events to ImGui. If ImGui consumes the event, we won't pass it to the game.
-DetourDef(EQMain__WndProcOvr, LRESULT, HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+DETOUR_TRAMPOLINE_DEF(LRESULT WINAPI, EQMain__WndProc_Trampoline, (HWND, UINT, WPARAM, LPARAM))
+LRESULT WINAPI EQMain__WndProc_Detour(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	if (OverlayWndProcHandler(hWnd, msg, wParam, lParam))
 		return 1;
 
-	return EQMain__WndProcOvr_Trampoline(hWnd, msg, wParam, lParam);
+	return EQMain__WndProc_Trampoline(hWnd, msg, wParam, lParam);
 }
 
 // LoginViewController will continuously override the cursor. Do not let it change the cursor
@@ -146,7 +147,8 @@ DetourDef(EQMain__WndProcOvr, LRESULT, HWND hWnd, UINT msg, WPARAM wParam, LPARA
 class CXWndManager_Hook
 {
 public:
-	DetourClassDef(GetCursorToDisplay, CXWndManager_Hook, HCURSOR)
+	DETOUR_TRAMPOLINE_DEF(HCURSOR, GetCursorToDisplay_Trampoline, ())
+	HCURSOR GetCursorToDisplay_Detour()
 	{
 		if (ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantCaptureMouse)
 		{
@@ -184,12 +186,13 @@ void InitializeLoginDetours()
 		}
 	}
 
-	LoginController_Hook::GiveTimeOvr = AddDetour(EQMain__LoginController__GiveTime, &LoginController_Hook::GiveTime_Detour).get();
-	EasyDetour(EQMain__WndProc, EQMain__WndProcOvr);
+	LoginController_Hook::GiveTime_Trampoline_Ptr = AddDetour(EQMain__LoginController__GiveTime, &LoginController_Hook::GiveTime_Detour).get();
+	EzDetour(EQMain__WndProc, EQMain__WndProc_Detour, EQMain__WndProc_Trampoline);
 
 	if (EQMain__CXWndManager__GetCursorToDisplay)
 	{
-		EasyClassDetour(EQMain__CXWndManager__GetCursorToDisplay, CXWndManager_Hook, GetCursorToDisplay);
+		EzDetour(EQMain__CXWndManager__GetCursorToDisplay, &CXWndManager_Hook::GetCursorToDisplay_Detour,
+			&CXWndManager_Hook::GetCursorToDisplay_Trampoline);
 	}
 
 	gbDetoursInstalled = true;
@@ -269,7 +272,8 @@ void TryRemoveLogin()
 
 // Right after leaving the frontend, we get a call to FlushDxKeyboard in ExecuteEverQuest(). We
 // hook this function and use it to determine that we've exited the frontend.
-DetourDef(FlushDxKeyboard, int)
+DETOUR_TRAMPOLINE_DEF(int, FlushDxKeyboard_Trampoline, ())
+int FlushDxKeyboard_Detour()
 {
 	TryRemoveLogin();
 	return FlushDxKeyboard_Trampoline();
@@ -277,7 +281,7 @@ DetourDef(FlushDxKeyboard, int)
 
 void InitializeLoginFrontend()
 {
-	EasyDetour(__FlushDxKeyboard, FlushDxKeyboard);
+	EzDetour(__FlushDxKeyboard, FlushDxKeyboard_Detour, FlushDxKeyboard_Trampoline);
 
 	gbWaitingForFrontend = true;
 

@@ -149,7 +149,8 @@ bool MQ2HandleKeyUp(const KeyCombo& combo)
 class KeypressHandlerHook
 {
 public:
-	DetourClassDef(ClearCommandStateArray, KeypressHandlerHook, void)
+	DETOUR_TRAMPOLINE_DEF(void, ClearCommandStateArray_Trampoline, ())
+	void ClearCommandStateArray_Hook()
 	{
 		for (auto& pKeybind : gKeyBinds)
 		{
@@ -162,7 +163,8 @@ public:
 		ZeroMemory(&pKeypressHandler->CommandState[0], sizeof(pKeypressHandler->CommandState));
 	}
 
-	DetourClassDef(HandleKeyDown, KeypressHandlerHook, bool, const KeyCombo& combo)
+	DETOUR_TRAMPOLINE_DEF(bool, HandleKeyDown_Trampoline, (const KeyCombo&))
+	bool HandleKeyDown_Hook(const KeyCombo& combo)
 	{
 		if (!pWndMgr->HandleKeyboardMsg(combo.Data[3], true))
 			return true;
@@ -170,7 +172,8 @@ public:
 		return (MQ2HandleKeyDown(combo) != 0);
 	}
 
-	DetourClassDef(HandleKeyUp, KeypressHandlerHook, bool, const KeyCombo& combo)
+	DETOUR_TRAMPOLINE_DEF(bool, HandleKeyUp_Trampoline, (const KeyCombo&))
+	bool HandleKeyUp_Hook(const KeyCombo& combo)
 	{
 		bool ret = false;
 		if (!pWndMgr->HandleKeyboardMsg(combo.Data[3], false))
@@ -186,9 +189,9 @@ void InitializeMQ2KeyBinds()
 {
 	AddMQ2KeyBind("RANGED", DoRangedBind);
 
-	EasyClassDetour(KeypressHandler__ClearCommandStateArray, KeypressHandlerHook, ClearCommandStateArray);
-	EasyClassDetour(KeypressHandler__HandleKeyDown, KeypressHandlerHook, HandleKeyDown);
-	EasyClassDetour(KeypressHandler__HandleKeyUp, KeypressHandlerHook, HandleKeyUp);
+	EzDetour(KeypressHandler__ClearCommandStateArray, &KeypressHandlerHook::ClearCommandStateArray_Hook, &KeypressHandlerHook::ClearCommandStateArray_Trampoline);
+	EzDetour(KeypressHandler__HandleKeyDown, &KeypressHandlerHook::HandleKeyDown_Hook, &KeypressHandlerHook::HandleKeyDown_Trampoline);
+	EzDetour(KeypressHandler__HandleKeyUp, &KeypressHandlerHook::HandleKeyUp_Hook, &KeypressHandlerHook::HandleKeyUp_Trampoline);
 }
 
 void ShutdownMQ2KeyBinds()

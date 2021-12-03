@@ -110,19 +110,13 @@ private:
 	const Sig m_detour;
 };
 
-template <typename Sig>
-std::shared_ptr<Detour<Sig>> AddDetour(const uintptr_t address, const Sig detour, const std::string_view name = "")
-{
-	return Detour<Sig>::Add(address, detour, name);
-}
-
 MQLIB_API void RemoveDetour(uintptr_t address);
 
 // this defines a trampoline for the user, based on the detour signature
 #define DETOUR_TRAMPOLINE_DEF(ret, name, argtypes) \
 ret name##_Placeholder##argtypes; \
 using name##_Type = decltype(&name##_Placeholder); \
-inline static Detour<name##_Type>* name##_Ptr; \
+inline static mq::Detour<name##_Type>* name##_Ptr; \
 template <typename... Args> \
 ret name(Args&&... args) { \
 	if constexpr (std::is_member_function_pointer_v<name##_Type>) \
@@ -131,32 +125,26 @@ ret name(Args&&... args) { \
 		return (name##_Ptr->Trampoline())(std::forward<Args>(args)...); \
 }
 
-#define DetourDef(name, ret, ...) \
-static Detour<ret(__stdcall*)(__VA_ARGS__)>* name = nullptr; \
-template <typename ...Args> ret __stdcall name##_Trampoline(Args&&... args) { return (name->Trampoline())(std::forward<Args>(args)...); } \
-ret __stdcall name##_Detour(__VA_ARGS__)
+template <typename Sig>
+std::shared_ptr<Detour<Sig>> AddDetour(const uintptr_t address, const Sig detour, const std::string_view name = "")
+{
+	return Detour<Sig>::Add(address, detour, name);
+}
 
-#define DetourDef_cdecl(name, ret, ...) \
-static Detour<ret(__cdecl*)(__VA_ARGS__)>* name = nullptr; \
-template <typename ...Args> ret __cdecl name##_Trampoline(Args&&... args) { return (name->Trampoline())(std::forward<Args>(args)...); } \
-ret __cdecl name##_Detour(__VA_ARGS__)
+template <typename T>
+void AddDetour(uintptr_t offset, T detour, Detour<T>* ptr, std::string_view name)
+{
+	ptr = AddDetour(offset, detour, name).get();
+}
 
-#define DetourClassDef(name, classname, ret, ...) \
-inline static Detour<ret(classname::*)(__VA_ARGS__)>* name = nullptr; \
-template <typename ...Args> ret name##_Trampoline(Args&&... args) { return (*this.*classname::name->Trampoline())(std::forward<Args>(args)...); } \
-ret name##_Detour(__VA_ARGS__)
+template <typename T>
+void AddDetour(uintptr_t offset, T detour, Detour<T>** ptr, std::string_view name)
+{
+	*ptr = AddDetour(offset, detour, name).get();
+}
 
-#define DetourClassDef_WINAPI(name, classname, ret, ...) \
-inline static Detour<ret(WINAPI classname::*)(__VA_ARGS__)>* name = nullptr; \
-template <typename ...Args> ret WINAPI name##_Trampoline(Args&&... args) { return (*this.*name->Trampoline())(std::forward<Args>(args)...); } \
-ret WINAPI name##_Detour(__VA_ARGS__)
+#define EzDetour(offset, detour, trampoline) AddDetour(static_cast<uintptr_t>(offset), detour, trampoline##_Ptr, STRINGIFY(offset))
 
-#define EasyDetour(address, name) name = AddDetour(static_cast<uintptr_t>(address), &name##_Detour, #address).get()
-#define EasyClassDetour(address, classname, name) classname::name = AddDetour(static_cast<uintptr_t>(address), &classname::name##_Detour, #address).get()
-
-// TODO: deprecate this (and DETOUR_TRAMPOLINE_EMPTY) to point to a wiki page with the new detours API
-//#define EzDetour(offset, detour, trampoline) AddDetourChecked((uintptr_t)offset, detour, trampoline, STRINGIFY(offset))
-#define EzDetour(offset, detour, trampoline) \
-{ auto offset##_Ptr = trampoline##_Ptr; *offset##_Ptr = AddDetour(static_cast<uintptr_t>(offset), detour, STRINGIFY(offset)).get(); }
+// TODO: deprecate DETOUR_TRAMPOLINE_EMPTY to point to a wiki page with the new detours API
 
 } // namespace mq

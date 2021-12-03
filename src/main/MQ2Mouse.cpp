@@ -36,7 +36,8 @@ ItemClickStatus itemClickStatus = ItemClickStatus::None;
 class FakeCDisplay
 {
 public:
-	DetourClassDef(GetClickedActor, FakeCDisplay, CActorInterface*, int X, int Y, bool bFlag, CVector3& Vector1, CVector3& Vector2)
+	DETOUR_TRAMPOLINE_DEF(CActorInterface*, GetClickedActor_Tramp, (int, int, bool, CVector3&, CVector3&))
+	CActorInterface* GetClickedActor_Detour(int X, int Y, bool bFlag, CVector3& Vector1, CVector3& Vector2)
 	{
 		if (itemClickStatus != ItemClickStatus::None)
 		{
@@ -54,7 +55,7 @@ public:
 			}
 		}
 
-		return GetClickedActor_Trampoline(X, Y, bFlag, Vector1, Vector2);
+		return GetClickedActor_Tramp(X, Y, bFlag, Vector1, Vector2);
 	}
 
 	HRESULT GetViewport(void* This, void* pViewport);
@@ -68,7 +69,7 @@ public:
 
 void InitializeMouseHooks()
 {
-	EasyClassDetour(CDisplay__GetClickedActor, FakeCDisplay, GetClickedActor);
+	EzDetour(CDisplay__GetClickedActor, &FakeCDisplay::GetClickedActor_Detour, &FakeCDisplay::GetClickedActor_Tramp);
 }
 
 void ShutdownMouseHooks()

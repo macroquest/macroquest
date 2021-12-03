@@ -29,7 +29,8 @@ static bool gbInDInput = false;
 // Description: Our DirectInput GetDeviceState Hook
 // ***************************************************************************
 
-DetourDef(DInputData, HRESULT, IDirectInputDevice8A* This, DWORD cbObjectData, LPDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD dwFlags)
+DETOUR_TRAMPOLINE_DEF(HRESULT CALLBACK, DInputDataTrampoline, (IDirectInputDevice8A* This, DWORD cbObjectData, LPDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD dwFlags))
+HRESULT CALLBACK DInputDataDetour(IDirectInputDevice8A* This, DWORD cbObjectData, LPDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD dwFlags)
 {
 	gbInDInput = true;
 	HRESULT hResult = 0;
@@ -132,7 +133,7 @@ DetourDef(DInputData, HRESULT, IDirectInputDevice8A* This, DWORD cbObjectData, L
 
 	// If we didn't add any keyboard data, and we aren't waiting for a click,
 	// and we didn't add any mouse data
-	hResult = DInputData_Trampoline(This, cbObjectData, rgdod, pdwInOut, dwFlags);
+	hResult = DInputDataTrampoline(This, cbObjectData, rgdod, pdwInOut, dwFlags);
 
 	if (gbUnload)
 	{
@@ -144,14 +145,15 @@ DetourDef(DInputData, HRESULT, IDirectInputDevice8A* This, DWORD cbObjectData, L
 	return hResult;
 }
 
-DetourDef(DInputState, HRESULT, IDirectInputDevice8A* This, DWORD cbData, void* lpvData)
+DETOUR_TRAMPOLINE_DEF(HRESULT CALLBACK, DInputStateTrampoline, (IDirectInputDevice8A* This, DWORD cbData, void* lpvData))
+HRESULT CALLBACK DInputStateDetour(IDirectInputDevice8A* This, DWORD cbData, void* lpvData)
 {
 	HRESULT hResult = S_OK;
 	DWORD dwBuffSize = 0;
 	bool bOneTime = false;
 
 	gbInDState = true;
-	hResult = DInputState_Trampoline(This, cbData, lpvData);
+	hResult = DInputStateTrampoline(This, cbData, lpvData);
 
 	// We could alter the return here if so desired, if a macro is executing that requires keyboard and mouse input.
 	// by setting hResult to DI_OK;
@@ -179,13 +181,14 @@ DetourDef(DInputState, HRESULT, IDirectInputDevice8A* This, DWORD cbData, void* 
 	return hResult;
 }
 
-DetourDef(DInputAcquire, HRESULT, IDirectInputDevice8A* This)
+DETOUR_TRAMPOLINE_DEF(HRESULT CALLBACK, DInputAcquireTrampoline, (IDirectInputDevice8A* This))
+HRESULT CALLBACK DInputAcquireDetour(IDirectInputDevice8A* This)
 {
 	HRESULT hResult = S_OK;
 	DWORD dwBuffSize = 0;
 
 	gbInDAcquire = true;
-	hResult = DInputAcquire_Trampoline(This);
+	hResult = DInputAcquireTrampoline(This);
 
 	// Could alter the return here to allow background macro execution with keyboard and mouse input
 	if (hResult != DI_OK && hResult != S_FALSE) // Mouse wasn't acquired successfully
@@ -232,15 +235,15 @@ void InitializeMQ2DInput()
 
 		// GetDeviceData = (unsigned int)IDIDevice->lpVtbl->GetDeviceData;
 		GetDeviceData = (unsigned int)vtable[10];//GetDeviceData
-		EasyDetour(GetDeviceData, DInputData);
+		EzDetour(GetDeviceData, DInputDataDetour, DInputDataTrampoline);
 
 		// GetDeviceState = (unsigned int)IDIDevice->lpVtbl->GetDeviceState;
 		GetDeviceState = (unsigned int)vtable[9];//GetDeviceState
-		EasyDetour(GetDeviceState, DInputState);
+		EzDetour(GetDeviceState, DInputStateDetour, DInputStateTrampoline);
 
 		// Acquire = (unsigned int)IDIDevice->lpVtbl->Acquire;
 		Acquire = (unsigned int)vtable[7];//Acquire
-		EasyDetour(Acquire, DInputAcquire);
+		EzDetour(Acquire, DInputAcquireDetour, DInputAcquireTrampoline);
 	}
 }
 

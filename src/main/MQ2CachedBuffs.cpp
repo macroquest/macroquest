@@ -94,7 +94,8 @@ static std::map<int, std::unique_ptr<SpawnBuffs>> gCachedBuffMap;
 class CEverQuestHook
 {
 public:
-	DetourClassDef(CTargetWnd__RefreshTargetBuffs, CEverQuestHook, void, CUnSerializeBuffer& buffer)
+	DETOUR_TRAMPOLINE_DEF(void, CTargetWnd__RefreshTargetBuffs_Trampoline, (CUnSerializeBuffer&))
+	void CTargetWnd__RefreshTargetBuffs_Detour(CUnSerializeBuffer& buffer)
 	{
 		gTargetbuffs = false;
 		CTargetWnd__RefreshTargetBuffs_Trampoline(buffer);
@@ -291,7 +292,7 @@ void CachedBuffsCommand(SPAWNINFO* pChar, char* szLine)
 
 void InitializeCachedBuffs()
 {
-	EasyClassDetour(CTargetWnd__RefreshTargetBuffs, CEverQuestHook, CTargetWnd__RefreshTargetBuffs);
+	EzDetour(CTargetWnd__RefreshTargetBuffs, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Detour, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline);
 }
 
 void ShutdownCachedBuffs()

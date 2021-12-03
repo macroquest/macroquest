@@ -22,7 +22,8 @@ const char* g_customCaption = "MQ2: Think of it as evolution in action.";
 class CDisplayHook
 {
 public:
-	DetourClassDef(CleanUI, CDisplayHook, void)
+	DETOUR_TRAMPOLINE_DEF(void, CleanUI_Trampoline, ())
+	void CleanUI_Detour()
 	{
 		{
 			MQScopedBenchmark bm(bmPluginsCleanUI);
@@ -32,7 +33,8 @@ public:
 		CleanUI_Trampoline();
 	}
 
-	DetourClassDef(ReloadUI, CDisplayHook, void, bool UseINI, bool bUnknown)
+	DETOUR_TRAMPOLINE_DEF(void, ReloadUI_Trampoline, (bool, bool))
+	void ReloadUI_Detour(bool UseINI, bool bUnknown)
 	{
 		ReloadUI_Trampoline(UseINI, bUnknown);
 		InitializeInGameUI();
@@ -52,7 +54,8 @@ public:
 	}
 };
 
-DetourDef(DrawNetStatusOvr, void, uint16_t x, uint16_t y, void* udpConnection, uint32_t bps)
+DETOUR_TRAMPOLINE_DEF(void, DrawNetStatus_Trampoline, (uint16_t x, uint16_t y, void* udpConnection, uint32_t bps))
+void DrawNetStatus_Detour(uint16_t x, uint16_t y, void* udpConnection, uint32_t bps)
 {
 	DrawHUDParams[0] = x + gNetStatusXPos;
 	DrawHUDParams[1] = y + gNetStatusYPos;
@@ -62,7 +65,7 @@ DetourDef(DrawNetStatusOvr, void, uint16_t x, uint16_t y, void* udpConnection, u
 	if (gbHUDUnderUI || gbAlwaysDrawMQHUD)
 		return;
 
-	DrawNetStatusOvr_Trampoline(x, y, udpConnection, bps);
+	DrawNetStatus_Trampoline(x, y, udpConnection, bps);
 	Benchmark(bmPluginsDrawHUD, PluginsDrawHUD());
 }
 
@@ -75,7 +78,7 @@ void DrawHUD()
 		{
 			if (DrawHUDParams[0] && gGameState == GAMESTATE_INGAME && gbShowNetStatus)
 			{
-				DrawNetStatusOvr_Trampoline((unsigned short)DrawHUDParams[0], (unsigned short)DrawHUDParams[1], (void*)DrawHUDParams[2], DrawHUDParams[3]);
+				DrawNetStatus_Trampoline((unsigned short)DrawHUDParams[0], (unsigned short)DrawHUDParams[1], (void*)DrawHUDParams[2], DrawHUDParams[3]);
 				DrawHUDParams[0] = 0;
 			}
 
@@ -103,7 +106,8 @@ void DrawHUDText(const char* Text, int X, int Y, unsigned int Argb, int Font)
 class EQ_LoadingSHook
 {
 public:
-	DetourClassDef(SetProgressBar, EQ_LoadingSHook, void, int A, char const* B)
+	DETOUR_TRAMPOLINE_DEF(void, SetProgressBar_Trampoline, (int, char const*))
+	void SetProgressBar_Detour(int A, char const* B)
 	{
 		if (gbMQ2LoadingMsg)
 			SetProgressBar_Trampoline(A, g_customCaption);
@@ -157,9 +161,9 @@ void InitializeDisplayHook()
 	}
 #endif
 
-	EasyClassDetour(CDisplay__CleanGameUI, CDisplayHook, CleanUI);
-	EasyClassDetour(CDisplay__ReloadUI, CDisplayHook, ReloadUI);
-	EasyDetour(DrawNetStatus, DrawNetStatusOvr);
+	EzDetour(CDisplay__CleanGameUI, &CDisplayHook::CleanUI_Detour, &CDisplayHook::CleanUI_Trampoline);
+	EzDetour(CDisplay__ReloadUI, &CDisplayHook::ReloadUI_Detour, &CDisplayHook::ReloadUI_Trampoline);
+	EzDetour(DrawNetStatus, DrawNetStatus_Detour, DrawNetStatus_Trampoline);
 
 	AddCommand("/netstatusxpos", Cmd_NetStatusXPos);
 	AddCommand("/netstatusypos", Cmd_NetStatusYPos);

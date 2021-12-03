@@ -21,7 +21,8 @@ class CChatHook
 {
 public:
 	// ChatManagerClient::DisplaychatText(
-	DetourClassDef(DisplaychatText, CChatHook, void, const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, CXStr* SomeStr)
+	DETOUR_TRAMPOLINE_DEF(void, Trampoline, (const char* szMsg, DWORD dwColor, bool, bool, CXStr* SomeStr))
+	void Detour(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, CXStr* SomeStr)
 	{
 		gbInChat = true;
 		if (dwColor != 269)
@@ -57,7 +58,7 @@ public:
 
 			if (!SkipTrampoline)
 			{
-				DisplaychatText_Trampoline(szMsg, dwColor, EqLog, dopercentsubst, SomeStr);
+				Trampoline(szMsg, dwColor, EqLog, dopercentsubst, SomeStr);
 			}
 		}
 
@@ -65,7 +66,8 @@ public:
 	}
 
 	// ChatManagerClient::DisplayTellText
-	DetourClassDef(TellWnd, CChatHook, void, const char* message, const char* from, const char* windowtitle, const char* text, int color, bool bLogOk)
+	DETOUR_TRAMPOLINE_DEF(void, TellWnd_Trampoline, (const char* message, const char* from, const char* windowtitle, const char* text, int color, bool bLogOk))
+	void TellWnd_Detour(const char* message, const char* from, const char* windowtitle, const char* text, int color, bool bLogOk)
 	{
 		gbInChat = true;
 		bool SkipTrampoline = false;
@@ -91,7 +93,8 @@ public:
 	}
 
 	// CEverQuest::UniversalChatProxyNotificationFlush
-	DetourClassDef(UPCNotificationFlush, CChatHook, void)
+	DETOUR_TRAMPOLINE_DEF(void, UPCNotificationFlush_Trampoline, ())
+	void UPCNotificationFlush_Detour()
 	{
 		EVERQUEST* eq = (EVERQUEST*)this;
 
@@ -127,7 +130,7 @@ public:
 
 void dsp_chat_no_events(const char* Text, int Color, bool doLog, bool doPercentConvert)
 {
-	pEverQuest.get_as<CChatHook>()->DisplaychatText_Trampoline(Text, Color, doLog, doPercentConvert, nullptr);
+	pEverQuest.get_as<CChatHook>()->Trampoline(Text, Color, doLog, doPercentConvert, nullptr);
 }
 
 unsigned int CALLBACK MQ2DataVariableLookup(char* VarName, char* Value, size_t ValueLen)
@@ -204,9 +207,9 @@ void InitializeChatHook()
 	pEventBlech = new Blech('#', '|', MQ2DataVariableLookup);
 	pMQ2Blech = new Blech('#', '|', MQ2DataVariableLookup);
 
-	EasyClassDetour(CEverQuest__dsp_chat, CChatHook, DisplaychatText);
-	EasyClassDetour(CEverQuest__DoTellWindow, CChatHook, TellWnd);
-	EasyClassDetour(CEverQuest__UPCNotificationFlush, CChatHook, UPCNotificationFlush);
+	EzDetour(CEverQuest__dsp_chat, &CChatHook::Detour, &CChatHook::Trampoline);
+	EzDetour(CEverQuest__DoTellWindow, &CChatHook::TellWnd_Detour, &CChatHook::TellWnd_Trampoline);
+	EzDetour(CEverQuest__UPCNotificationFlush, &CChatHook::UPCNotificationFlush_Detour, &CChatHook::UPCNotificationFlush_Trampoline);
 	AddCommand("/beepontells", BeepOnTells);
 	AddCommand("/flashontells", FlashOnTells);
 }

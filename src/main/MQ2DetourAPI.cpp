@@ -159,7 +159,7 @@ public:
 		ZoneMainUI_Trampoline();
 	}
 
-  DETOUR_TRAMPOLINE_DEF(void, ZoneMainUI_Trampoline, ())
+	DETOUR_TRAMPOLINE_DEF(void, ZoneMainUI_Trampoline, ())
 
 	void PreZoneMainUI_Detour()
 	{
@@ -167,7 +167,7 @@ public:
 		PreZoneMainUI_Trampoline();
 	}
 
-  DETOUR_TRAMPOLINE_DEF(void, PreZoneMainUI_Trampoline, ())
+	DETOUR_TRAMPOLINE_DEF(void, PreZoneMainUI_Trampoline, ())
 };
 
 //============================================================================
@@ -217,11 +217,11 @@ void HookMemChecker(bool Patch)
 
 	if (Patch)
 	{
-		EzDetour(__MemChecker0, &memcheck0, &memcheck0_tramp);
-		EzDetour(__MemChecker1, &memcheck1, &memcheck1_tramp);
-		EzDetour(__MemChecker2, &memcheck2, &memcheck2_tramp);
-		EzDetour(__MemChecker3, &memcheck2, &memcheck3_tramp); // shares same impl as memcheck2.
-		EzDetour(__MemChecker4, &memcheck4, &memcheck4_tramp);
+		EzDetour(__MemChecker0, memcheck0, memcheck0_tramp);
+		EzDetour(__MemChecker1, memcheck1, memcheck1_tramp);
+		EzDetour(__MemChecker2, memcheck2, memcheck2_tramp);
+		EzDetour(__MemChecker3, memcheck2, memcheck3_tramp); // shares same impl as memcheck2.
+		EzDetour(__MemChecker4, memcheck4, memcheck4_tramp);
 
 		EzDetour(CPacketScrambler__ntoh, &CPacketScrambler_Detours::ntoh_Detour, &CPacketScrambler_Detours::ntoh_Trampoline);
 		EzDetour(Spellmanager__LoadTextSpells, &SpellManager_Detours::LoadTextSpells_Detour, &SpellManager_Detours::LoadTextSpells_Trampoline);
@@ -467,7 +467,7 @@ void InitializeDetours()
 
 	DWORD GetProcAddress_Addr = (DWORD)&::GetProcAddress;
 	EzDetour(GetProcAddress_Addr, &GetProcAddress_Detour, &GetProcAddress_Trampoline);
-	EzDetour(__ModuleList, &FindModules_Detour, &FindModules_Trampoline);
+	EzDetour(__ModuleList, FindModules_Detour, FindModules_Trampoline);
 }
 
 void ShutdownDetours()

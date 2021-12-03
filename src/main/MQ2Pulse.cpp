@@ -735,8 +735,8 @@ bool DoGameEventsPulse(int (*pEventFunc)())
 	return processGameEventsResult;
 }
 
-static Detour<int(*)()>* ProcessGameEventsOvr;
-int Trampoline_ProcessGameEvents() { return (ProcessGameEventsOvr->Trampoline())(); }
+static Detour<int(*)()>* ProcessGameEvents_Trampoline_Ptr;
+int Trampoline_ProcessGameEvents() { return (ProcessGameEvents_Trampoline_Ptr->Trampoline())(); }
 int Detour_ProcessGameEvents()
 {
 	return DoGameEventsPulse(Trampoline_ProcessGameEvents);
@@ -750,14 +750,16 @@ void DoLoginPulse()
 class CEverQuestHook
 {
 public:
-	DetourClassDef(SetGameState, CEverQuestHook, void, DWORD GameState)
+	DETOUR_TRAMPOLINE_DEF(void, SetGameState_Trampoline, (DWORD GameState))
+	void SetGameState_Detour(DWORD GameState)
 	{
 		SetGameState_Trampoline(GameState);
 
 		Benchmark(bmPluginsSetGameState, PluginsSetGameState(GameState));
 	}
 
-	DetourClassDef(CMerchantWnd__PurchasePageHandler__UpdateList, CEverQuestHook, void)
+	DETOUR_TRAMPOLINE_DEF(void, CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline, ())
+	void CMerchantWnd__PurchasePageHandler__UpdateList_Detour()
 	{
 		gItemsReceived = false;
 
@@ -773,9 +775,9 @@ void InitializeMQ2Pulse()
 
 	std::scoped_lock lock(s_pulseMutex);
 
-	ProcessGameEventsOvr = Detour<fEQProcGameEvts>::Add(reinterpret_cast<uintptr_t>(&ProcessGameEvents), Detour_ProcessGameEvents, "").get();
-	EasyClassDetour(CEverQuest__SetGameState, CEverQuestHook, SetGameState);
-	EasyClassDetour(CMerchantWnd__PurchasePageHandler__UpdateList, CEverQuestHook, CMerchantWnd__PurchasePageHandler__UpdateList);
+	ProcessGameEvents_Trampoline_Ptr = Detour<fEQProcGameEvts>::Add(reinterpret_cast<uintptr_t>(&ProcessGameEvents), Detour_ProcessGameEvents, "ProcessGameEvents").get();
+	EzDetour(CEverQuest__SetGameState, &CEverQuestHook::SetGameState_Detour, &CEverQuestHook::SetGameState_Trampoline);
+	EzDetour(CMerchantWnd__PurchasePageHandler__UpdateList, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Detour, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline);
 
 	if (HMODULE EQWhMod = GetModuleHandle("eqw.dll"))
 	{

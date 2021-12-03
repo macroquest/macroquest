@@ -103,7 +103,8 @@ static int CompareMoneyStrings(SListWndSortInfo* sInfo, GetMoneyFromStringFormat
 class AutoInventory::FindItemWnd_Hook
 {
 public:
-	DetourClassDef(Update, AutoInventory::FindItemWnd_Hook, void)
+	DETOUR_TRAMPOLINE_DEF(void, Update_Trampoline, ())
+	void Update_Detour()
 	{
 		CFindItemWnd* pFIWnd = (CFindItemWnd*)this;
 		Update_Trampoline();
@@ -227,7 +228,8 @@ public:
 		}
 	}
 
-	DetourClassDef(WndNotification, AutoInventory::FindItemWnd_Hook, int, CXWnd* pWnd, uint32_t uiMessage, void* pData)
+	DETOUR_TRAMPOLINE_DEF(int, WndNotification_Trampoline, (CXWnd*, uint32_t, void*))
+	int WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
 	{
 		CFindItemWnd* pThis = (CFindItemWnd*)this;
 
@@ -650,7 +652,8 @@ public:
 class AutoInventory::BankWnd_Hook
 {
 public:
-	DetourClassDef(WndNotification, AutoInventory::BankWnd_Hook, int, CXWnd* pWnd, uint32_t uiMessage, void* pData)
+	DETOUR_TRAMPOLINE_DEF(int, WndNotification_Trampoline, (CXWnd*, uint32_t, void*))
+	int WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
 	{
 		CBankWnd* pThis = (CBankWnd*)this;
 		PcProfile* pProfile = GetPcProfile();
@@ -766,7 +769,8 @@ public:
 class AutoInventory::CBarterWnd_Hook
 {
 public:
-	DetourClassDef(WndNotification, AutoInventory::CBarterWnd_Hook, int, CXWnd* pWnd, uint32_t uiMessage, void* pData)
+	DETOUR_TRAMPOLINE_DEF(int, WndNotification_Trampoline, (CXWnd* pWnd, uint32_t uiMessage, void* pData))
+	int WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
 	{
 		CBarterWnd* pThis = (CBarterWnd*)this;
 
@@ -816,7 +820,8 @@ class AutoInventory::CBarterSearchWnd_Hook
 	static inline bool BarterLastSortDirection = true;
 
 public:
-	DetourClassDef(WndNotification, AutoInventory::CBarterSearchWnd_Hook, int, CXWnd* pWnd, uint32_t uiMessage, void* pData)
+	DETOUR_TRAMPOLINE_DEF(int, WndNotification_Trampoline, (CXWnd* pWnd, uint32_t uiMessage, void* pData))
+	int WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
 	{
 		CBarterSearchWnd* pThis = (CBarterSearchWnd*)this;
 
@@ -873,7 +878,8 @@ public:
 		return WndNotification_Trampoline(pWnd, uiMessage, pData);
 	}
 
-	DetourClassDef(UpdateInventoryList, AutoInventory::CBarterSearchWnd_Hook, void)
+	DETOUR_TRAMPOLINE_DEF(void, UpdateInventoryList_Trampoline, ())
+	void UpdateInventoryList_Detour()
 	{
 		UpdateInventoryList_Trampoline();
 
@@ -1330,7 +1336,7 @@ static void AutoBankPulse()
 		if (gAutoInventoryList.empty() && (gbAutoBankTradeSkillItems || gbAutoBankCollectibleItems || gbAutoBankQuestItems))
 		{
 			pLocalPC->BankItems.VisitContainers(
-				[&](const ItemPtr& pItem, const ItemIndex& index)
+			[&](const ItemPtr& pItem, const ItemIndex& index)
 			{
 				// dont add bags that have items inside of them.
 				if (pItem->IsContainer() && !pItem->IsEmpty())
@@ -1494,18 +1500,24 @@ static void AutoBankPulse()
 
 void InitializeMQ2AutoInventory()
 {
-	AddDetour(CBankWnd__WndNotification,
-		&AutoInventory::BankWnd_Hook::WndNotification_Detour);
-	AddDetour(CFindItemWnd__WndNotification,
-		&AutoInventory::FindItemWnd_Hook::WndNotification_Detour);
-	AddDetour(CFindItemWnd__Update,
-		&AutoInventory::FindItemWnd_Hook::Update_Detour);
-	AddDetour(CBarterSearchWnd__WndNotification,
-		&AutoInventory::CBarterSearchWnd_Hook::WndNotification_Detour);
-	AddDetour(CBarterSearchWnd__UpdateInventoryList,
-		&AutoInventory::CBarterSearchWnd_Hook::UpdateInventoryList_Detour);
-	AddDetour(CBarterWnd__WndNotification,
-		&AutoInventory::CBarterWnd_Hook::WndNotification_Detour);
+	EzDetour(CBankWnd__WndNotification,
+		&AutoInventory::BankWnd_Hook::WndNotification_Detour,
+		&AutoInventory::BankWnd_Hook::WndNotification_Trampoline);
+	EzDetour(CFindItemWnd__WndNotification,
+		&AutoInventory::FindItemWnd_Hook::WndNotification_Detour,
+		&AutoInventory::FindItemWnd_Hook::WndNotification_Trampoline);
+	EzDetour(CFindItemWnd__Update,
+		&AutoInventory::FindItemWnd_Hook::Update_Detour,
+		&AutoInventory::FindItemWnd_Hook::Update_Trampoline);
+	EzDetour(CBarterSearchWnd__WndNotification,
+		&AutoInventory::CBarterSearchWnd_Hook::WndNotification_Detour,
+		&AutoInventory::CBarterSearchWnd_Hook::WndNotification_Trampoline);
+	EzDetour(CBarterSearchWnd__UpdateInventoryList,
+		&AutoInventory::CBarterSearchWnd_Hook::UpdateInventoryList_Detour,
+		&AutoInventory::CBarterSearchWnd_Hook::UpdateInventoryList_Trampoline);
+	EzDetour(CBarterWnd__WndNotification,
+		&AutoInventory::CBarterWnd_Hook::WndNotification_Detour,
+		&AutoInventory::CBarterWnd_Hook::WndNotification_Trampoline);
 }
 
 void ShutdownMQ2AutoInventory()

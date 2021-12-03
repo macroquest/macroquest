@@ -155,7 +155,7 @@ static void InstallDetour(uintptr_t address, T detour, PCHAR name)
 	hookInfo.patch = [&detour, address](HookInfo& hi)
 	{
 		hi.address = address;
-		AddDetour(hi.address, detour);
+		AddDetour(hi.address, detour, hi.name);
 	};
 
 	InstallHook(hookInfo);
@@ -422,7 +422,8 @@ public:
 		return changed;
 	}
 
-	DetourClassDef_WINAPI(Reset, RenderHooks, HRESULT, D3DPRESENT_PARAMETERS* pPresentationParameters)
+	DETOUR_TRAMPOLINE_DEF(HRESULT WINAPI, Reset_Trampoline, (D3DPRESENT_PARAMETERS*))
+	HRESULT WINAPI Reset_Detour(D3DPRESENT_PARAMETERS* pPresentationParameters)
 	{
 		if (gpD3D9Device != GetThisDevice())
 		{
@@ -436,7 +437,8 @@ public:
 		return Reset_Trampoline(pPresentationParameters);
 	}
 
-	DetourClassDef_WINAPI(BeginScene, RenderHooks, HRESULT)
+	DETOUR_TRAMPOLINE_DEF(HRESULT WINAPI, BeginScene_Trampoline, ())
+	HRESULT WINAPI BeginScene_Detour()
 	{
 		// Whenever a BeginScene occurs, we know that this is the device we want to use.
 		gpD3D9Device = GetThisDevice();
@@ -445,7 +447,8 @@ public:
 		return BeginScene_Trampoline();
 	}
 
-	DetourClassDef_WINAPI(EndScene, RenderHooks, HRESULT)
+	DETOUR_TRAMPOLINE_DEF(HRESULT WINAPI, EndScene_Trampoline, ())
+	HRESULT WINAPI EndScene_Detour()
 	{
 		// Don't try to use the device if it changed between BeginScene and EndScene.
 		if (GetThisDevice() != gpD3D9Device || !gpD3D9Device)
@@ -543,7 +546,8 @@ public:
 class CParticleSystemHook
 {
 public:
-	DetourClassDef(Render, CParticleSystemHook, void)
+	DETOUR_TRAMPOLINE_DEF(void, Render_Trampoline, ())
+	void Render_Detour()
 	{
 		if (gbDeviceAcquired)
 		{
@@ -559,7 +563,8 @@ class CRenderHook
 public:
 	// This hooks the ResetDevice function which is called when we want to reset the device. Hooking
 	// this function ensures that even if our hook of the Direct3D device fails, we can still release our objects.
-	DetourClassDef(ResetDevice, CRenderHook, bool, bool a)
+	DETOUR_TRAMPOLINE_DEF(bool, ResetDevice_Trampoline, (bool))
+	bool ResetDevice_Detour(bool a)
 	{
 		SPDLOG_DEBUG("CRender::ResetDevice: Resetting device");
 
@@ -580,7 +585,8 @@ public:
 
 // Mouse hook prevents mouse events from reaching EQ when imgui captures
 // the mouse. Needed because ImGui uses win32 events but EQ uses direct input.
-DetourDef(ProcessMouseEvents, void)
+DETOUR_TRAMPOLINE_DEF(void, ProcessMouseEvents_Trampoline, ())
+void ProcessMouseEvents_Detour()
 {
 	if (ImGui::GetCurrentContext() != nullptr && *EQADDR_DIMOUSE != nullptr)
 	{
@@ -659,7 +665,8 @@ DetourDef(ProcessMouseEvents, void)
 
 // The mouse wheel hook prevents EQ from handling scroll events while imgui has the
 // mouse captured.
-DetourDef(HandleMouseWheel, void, int offset)
+DETOUR_TRAMPOLINE_DEF(void, HandleMouseWheel_Trampoline, (int))
+void HandleMouseWheel_Detour(int offset)
 {
 	if (ImGui::GetCurrentContext() != nullptr)
 	{
@@ -679,7 +686,8 @@ DetourDef(HandleMouseWheel, void, int offset)
 
 // Keyboard hook prevents keyboard events from reaching EQ when imgui captures
 // the keyboard. Needed because ImGui uses win32 events but EQ uses direct input.
-DetourDef(ProcessKeyboardEvents, uint32_t)
+DETOUR_TRAMPOLINE_DEF(uint32_t, ProcessKeyboardEvents_Trampoline, ())
+uint32_t ProcessKeyboardEvents_Detour()
 {
 	if (ImGui::GetCurrentContext() != nullptr)
 	{
@@ -709,7 +717,8 @@ bool OverlayWndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 // Forwards events to ImGui. If ImGui consumes the event, we won't pass it to the game.
-DetourDef(WndProc, LRESULT, HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+DETOUR_TRAMPOLINE_DEF(LRESULT WINAPI, WndProc_Trampoline, (HWND, UINT, WPARAM, LPARAM))
+LRESULT WINAPI WndProc_Detour(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	if (OverlayWndProcHandler(hWnd, msg, wParam, lParam))
 		return 1;
@@ -1124,7 +1133,8 @@ void ImGuiRenderDebug_UpdateRenderTargets()
 class C2DPrimitiveManager_Hook
 {
 public:
-	DetourClassDef(AddCachedText, C2DPrimitiveManager_Hook, void, CTextObjectBase* obj)
+	DETOUR_TRAMPOLINE_DEF(void, AddCachedText_Trampoline, (CTextObjectBase* obj))
+	void AddCachedText_Detour(CTextObjectBase* obj)
 	{
 		if (this == nullptr)
 			return;
@@ -1230,24 +1240,24 @@ void InitializeMQ2Overlay()
 	}
 
 	// Intercept mouse events
-	EasyDetour(__ProcessMouseEvents, ProcessMouseEvents);
+	EzDetour(__ProcessMouseEvents, ProcessMouseEvents_Detour, ProcessMouseEvents_Trampoline);
 
 	// Intercept mouse wheel events
-	EasyDetour(__HandleMouseWheel, HandleMouseWheel);
+	EzDetour(__HandleMouseWheel, HandleMouseWheel_Detour, HandleMouseWheel_Trampoline);
 
 	// Intercept keyboard events
-	EasyDetour(__ProcessKeyboardEvents, ProcessKeyboardEvents);
+	EzDetour(__ProcessKeyboardEvents, ProcessKeyboardEvents_Detour, ProcessKeyboardEvents_Trampoline);
 
 	// Hook the main window proc.
-	EasyDetour(__WndProc, WndProc);
+	EzDetour(__WndProc, WndProc_Detour, WndProc_Trampoline);
 
 	// Hook particle render function
-	EasyClassDetour(CParticleSystem__Render, CParticleSystemHook, Render);
+	EzDetour(CParticleSystem__Render, &CParticleSystemHook::Render_Detour, &CParticleSystemHook::Render_Trampoline);
 
 	// Hook the reset device function
-	EasyClassDetour(CRender__ResetDevice, CRenderHook, ResetDevice);
+	EzDetour(CRender__ResetDevice, &CRenderHook::ResetDevice_Detour, &CRenderHook::ResetDevice_Trampoline);
 
-	EasyClassDetour(C2DPrimitiveManager__AddCachedText, C2DPrimitiveManager_Hook, AddCachedText);
+	EzDetour(C2DPrimitiveManager__AddCachedText, &C2DPrimitiveManager_Hook::AddCachedText_Detour, &C2DPrimitiveManager_Hook::AddCachedText_Trampoline);
 
 	CreateImGuiContext();
 

@@ -278,7 +278,8 @@ void DoCommandf(const char* szFormat, ...)
 class CCommandHook
 {
 public:
-	DetourClassDef(InterpretCommand, CCommandHook, void, SPAWNINFO* pChar, const char* szFullLine)
+	DETOUR_TRAMPOLINE_DEF(void, Trampoline, (SPAWNINFO* pChar, const char* szFullLine))
+	void Detour(SPAWNINFO* pChar, const char* szFullLine)
 	{
 		std::scoped_lock lock(s_commandMutex);
 		DebugSpew("CCommandHook::Detour(%s)", szFullLine);
@@ -413,7 +414,7 @@ public:
 					{
 						strcat_s(szCommand, " ");
 						strcat_s(szCommand, szArgs);
-						InterpretCommand_Trampoline(pChar, szCommand);
+						Trampoline(pChar, szCommand);
 					}
 					else
 					{
@@ -482,7 +483,7 @@ public:
 			}
 		}
 
-		InterpretCommand_Trampoline(pChar, szFullLine);
+		Trampoline(pChar, szFullLine);
 		strcpy_s(szLastCommand, szFullCommand);
 	}
 };
@@ -733,7 +734,7 @@ void InitializeMQ2Commands()
 {
 	DebugSpew("Initializing Commands");
 
-	EasyClassDetour(CEverQuest__InterpretCmd, CCommandHook, InterpretCommand);
+	EzDetour(CEverQuest__InterpretCmd, &CCommandHook::Detour, &CCommandHook::Trampoline);
 
 	// Import EQ commands
 	CMDLIST* pCmdListOrig = (CMDLIST*)EQADDR_CMDLIST;
