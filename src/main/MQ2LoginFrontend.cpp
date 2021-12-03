@@ -82,7 +82,7 @@ public:
 	// This is called continually during the login mainloop so we can use it as our pulse when the MAIN
 	// gameloop pulse is not active but login is.
 	// that will allow plugins to work and execute commands all the way back pre login and server select etc.
-	static Detour<void(LoginController_Hook::*)()>* GiveTimeOvr;
+	inline static Detour<void(LoginController_Hook::*)()>* GiveTimeOvr = nullptr;
 	void GiveTime_Trampoline() { return (*this.*GiveTimeOvr->Trampoline())(); }
 	void GiveTime_Detour()
 	{

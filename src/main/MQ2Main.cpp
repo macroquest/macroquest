@@ -37,6 +37,7 @@
 #include <Psapi.h>
 #pragma comment(lib, "Psapi.lib")
 #pragma comment(lib, "version.lib")
+#pragma comment(lib, "detours.lib")
 
 #define CLIENT_OVERRIDE 0
 

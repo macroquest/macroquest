@@ -25,14 +25,16 @@ public:
 
 	void Drop() { RemoveFromMap(); }
 
-	DetourAny(const std::string_view handle, const std::string_view procedure)
+	DetourAny(const std::string_view handle, const std::string_view procedure, const std::string_view name)
 		: m_module(GetModuleHandle(std::string(handle).c_str()))
 		, m_address(m_module == 0 ? 0 : reinterpret_cast<uintptr_t>(GetProcAddress(m_module, std::string(procedure).c_str())))
+		, m_name(name)
 	{}
 
-	DetourAny(const uintptr_t address)
+	DetourAny(const uintptr_t address, const std::string_view name)
 		: m_module(GetModuleFromAddress(address))
 		, m_address(address)
+		, m_name(name)
 	{}
 
 	virtual ~DetourAny() = 0;
@@ -58,6 +60,7 @@ protected:
 
 	const HMODULE m_module;
 	const uintptr_t m_address;
+	const std::string m_name;
 };
 
 template <typename Sig>
@@ -69,18 +72,18 @@ public:
 		return m_target;
 	}
 
-	static std::shared_ptr<Detour<Sig>> Add(const std::string_view handle, const std::string_view procedure, const Sig detour)
+	static std::shared_ptr<Detour<Sig>> Add(const std::string_view handle, const std::string_view procedure, const Sig detour, const std::string_view name)
 	{
-		return std::make_shared<Detour<Sig>>(handle, procedure , detour);
+		return std::make_shared<Detour<Sig>>(handle, procedure, detour, name);
 	}
 
-	static std::shared_ptr<Detour<Sig>> Add(const uintptr_t address, const Sig detour)
+	static std::shared_ptr<Detour<Sig>> Add(const uintptr_t address, const Sig detour, const std::string_view name)
 	{
-		return std::make_shared<Detour<Sig>>(address, detour);
+		return std::make_shared<Detour<Sig>>(address, detour, name);
 	}
 
-	Detour(const std::string_view handle, const std::string_view procedure, const Sig detour)
-		: DetourAny(handle, procedure)
+	Detour(const std::string_view handle, const std::string_view procedure, const Sig detour, const std::string_view name)
+		: DetourAny(handle, procedure, name)
 		, m_target(*(Sig*)&m_address)
 		, m_detour(detour)
 	{
@@ -88,8 +91,8 @@ public:
 		AddToMap();
 	}
 
-	Detour(const uintptr_t address, const Sig detour)
-		: DetourAny(address)
+	Detour(const uintptr_t address, const Sig detour, const std::string_view name)
+		: DetourAny(address, name)
 		, m_target(*(Sig*)&address)
 		, m_detour(detour)
 	{
@@ -108,12 +111,25 @@ private:
 };
 
 template <typename Sig>
-std::shared_ptr<Detour<Sig>> AddDetour(const uintptr_t address, const Sig detour)
+std::shared_ptr<Detour<Sig>> AddDetour(const uintptr_t address, const Sig detour, const std::string_view name = "")
 {
-	return Detour<Sig>::Add(address, detour);
+	return Detour<Sig>::Add(address, detour, name);
 }
 
 MQLIB_API void RemoveDetour(uintptr_t address);
+
+// this defines a trampoline for the user, based on the detour signature
+#define DETOUR_TRAMPOLINE_DEF(ret, name, argtypes) \
+ret name##_Placeholder##argtypes; \
+using name##_Type = decltype(&name##_Placeholder); \
+inline static Detour<name##_Type>* name##_Ptr; \
+template <typename... Args> \
+ret name(Args&&... args) { \
+	if constexpr (std::is_member_function_pointer_v<name##_Type>) \
+		return (this->*name##_Ptr->Trampoline())(std::forward<Args>(args)...); \
+	else \
+		return (name##_Ptr->Trampoline())(std::forward<Args>(args)...); \
+}
 
 #define DetourDef(name, ret, ...) \
 static Detour<ret(__stdcall*)(__VA_ARGS__)>* name = nullptr; \
@@ -135,14 +151,12 @@ inline static Detour<ret(WINAPI classname::*)(__VA_ARGS__)>* name = nullptr; \
 template <typename ...Args> ret WINAPI name##_Trampoline(Args&&... args) { return (*this.*name->Trampoline())(std::forward<Args>(args)...); } \
 ret WINAPI name##_Detour(__VA_ARGS__)
 
-#define EasyDetour(address, name) name = AddDetour(address, &name##_Detour).get()
-#define EasyClassDetour(address, classname, name) classname::name = AddDetour(address, &classname::name##_Detour).get()
+#define EasyDetour(address, name) name = AddDetour(static_cast<uintptr_t>(address), &name##_Detour, #address).get()
+#define EasyClassDetour(address, classname, name) classname::name = AddDetour(static_cast<uintptr_t>(address), &classname::name##_Detour, #address).get()
 
-// TODO: deprecate these (and DETOUR_TRAMPOLINE_EMPTY) to point to a wiki page with the new detours API
+// TODO: deprecate this (and DETOUR_TRAMPOLINE_EMPTY) to point to a wiki page with the new detours API
 //#define EzDetour(offset, detour, trampoline) AddDetourChecked((uintptr_t)offset, detour, trampoline, STRINGIFY(offset))
-//#define EzDetourwName(offset, detour, trampoline, name) AddDetourChecked((uintptr_t)offset, detour, trampoline, name)
-
-// For those use cases where the answer is: "I know what I'm doing."
-//#define EzDetourUnchecked(offset, detour, trampoline) AddDetourUnchecked((uintptr_t)offset, detour, trampoline, STRINGIFY(offset))
+#define EzDetour(offset, detour, trampoline) \
+{ auto offset##_Ptr = trampoline##_Ptr; *offset##_Ptr = AddDetour(static_cast<uintptr_t>(offset), detour, STRINGIFY(offset)).get(); }
 
 } // namespace mq

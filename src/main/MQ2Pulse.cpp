@@ -773,7 +773,7 @@ void InitializeMQ2Pulse()
 
 	std::scoped_lock lock(s_pulseMutex);
 
-	ProcessGameEventsOvr = Detour<fEQProcGameEvts>::Add(reinterpret_cast<uintptr_t>(&ProcessGameEvents), Detour_ProcessGameEvents).get();
+	ProcessGameEventsOvr = Detour<fEQProcGameEvts>::Add(reinterpret_cast<uintptr_t>(&ProcessGameEvents), Detour_ProcessGameEvents, "").get();
 	EasyClassDetour(CEverQuest__SetGameState, CEverQuestHook, SetGameState);
 	EasyClassDetour(CMerchantWnd__PurchasePageHandler__UpdateList, CEverQuestHook, CMerchantWnd__PurchasePageHandler__UpdateList);
 

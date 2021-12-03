@@ -90,7 +90,8 @@ void SetAssist(BYTE* address)
 class CPacketScrambler_Detours
 {
 public:
-	DetourClassDef(ntoh, CPacketScrambler_Detours, int, int nopcode);
+	int ntoh_Detour(int nopcode);
+	DETOUR_TRAMPOLINE_DEF(int, ntoh_Trampoline, (int))
 };
 
 // ntoh_detour actually climbs into the stack and pulls data out from the caller's
@@ -129,13 +130,15 @@ int CPacketScrambler_Detours::ntoh_Detour(int nopcode)
 class SpellManager_Detours
 {
 public:
-	DetourClassDef(LoadTextSpells, SpellManager_Detours, bool, char* FileName, char* AssocFileName, EQ_Spell* SpellArray, SpellAffectData* EffectArray)
+	bool LoadTextSpells_Detour(char* FileName, char* AssocFileName, EQ_Spell* SpellArray, SpellAffectData* EffectArray)
 	{
 		gbDoingSpellChecks = true;
 		bool ret = LoadTextSpells_Trampoline(FileName, AssocFileName, SpellArray, EffectArray);
 		gbDoingSpellChecks = false;
 		return ret;
 	}
+
+	DETOUR_TRAMPOLINE_DEF(bool, LoadTextSpells_Trampoline, (char*, char*, EQ_Spell*, SpellAffectData*))
 };
 
 //============================================================================
@@ -143,7 +146,7 @@ public:
 class CDisplay_Detours
 {
 public:
-	DetourClassDef(ZoneMainUI, CDisplay_Detours, void)
+	void ZoneMainUI_Detour()
 	{
 		if (GetServerIDFromServerName(EQADDR_SERVERNAME) == ServerID::Invalid)
 		{
@@ -156,11 +159,15 @@ public:
 		ZoneMainUI_Trampoline();
 	}
 
-	DetourClassDef(PreZoneMainUI, CDisplay_Detours, void)
+  DETOUR_TRAMPOLINE_DEF(void, ZoneMainUI_Trampoline, ())
+
+	void PreZoneMainUI_Detour()
 	{
 		PluginsBeginZone();
 		PreZoneMainUI_Trampoline();
 	}
+
+  DETOUR_TRAMPOLINE_DEF(void, PreZoneMainUI_Trampoline, ())
 };
 
 //============================================================================
@@ -189,32 +196,37 @@ struct mckey
 // pointer to encryption pad for memory checker
 unsigned int* extern_array0 = nullptr;
 
-DetourDef_cdecl(memcheck0, int, unsigned char*, size_t);
-DetourDef_cdecl(memcheck1, int, unsigned char*, size_t, mckey);
-DetourDef_cdecl(memcheck2, int, unsigned char*, size_t, mckey);
-DetourDef_cdecl(memcheck3, int, unsigned char*, size_t, mckey);
-DetourDef(memcheck4, int, unsigned char*, size_t*);
+int memcheck0(unsigned char* buffer, size_t count);
+int memcheck1(unsigned char* buffer, size_t count, mckey key);
+int memcheck2(unsigned char* buffer, size_t count, mckey key);
+int WINAPI memcheck4(unsigned char* buffer, size_t* count);
 
 // ***************************************************************************
 // Function:    HookMemChecker
 // Description: Hook MemChecker
 // ***************************************************************************
+DETOUR_TRAMPOLINE_DEF(int, memcheck0_tramp, (unsigned char* buffer, size_t count))
+DETOUR_TRAMPOLINE_DEF(int, memcheck1_tramp, (unsigned char* buffer, size_t count, mckey key))
+DETOUR_TRAMPOLINE_DEF(int, memcheck2_tramp, (unsigned char* buffer, size_t count, mckey key))
+DETOUR_TRAMPOLINE_DEF(int, memcheck3_tramp, (unsigned char* buffer, size_t count, mckey key))
+DETOUR_TRAMPOLINE_DEF(int WINAPI, memcheck4_tramp, (unsigned char* buffer, size_t* count))
+
 void HookMemChecker(bool Patch)
 {
 	DebugSpew("HookMemChecker - %satching", (Patch) ? "P" : "Unp");
 
 	if (Patch)
 	{
-		EasyDetour(__MemChecker0, memcheck0);
-		EasyDetour(__MemChecker1, memcheck1);
-		EasyDetour(__MemChecker2, memcheck2);
-		EasyDetour(__MemChecker3, memcheck2);
-		EasyDetour(__MemChecker4, memcheck4);
+		EzDetour(__MemChecker0, &memcheck0, &memcheck0_tramp);
+		EzDetour(__MemChecker1, &memcheck1, &memcheck1_tramp);
+		EzDetour(__MemChecker2, &memcheck2, &memcheck2_tramp);
+		EzDetour(__MemChecker3, &memcheck2, &memcheck3_tramp); // shares same impl as memcheck2.
+		EzDetour(__MemChecker4, &memcheck4, &memcheck4_tramp);
 
-		EasyClassDetour(CPacketScrambler__ntoh, CPacketScrambler_Detours, ntoh);
-		EasyClassDetour(Spellmanager__LoadTextSpells, SpellManager_Detours, LoadTextSpells);
-		EasyClassDetour(CDisplay__ZoneMainUI, CDisplay_Detours, ZoneMainUI);
-		EasyClassDetour(CDisplay__PreZoneMainUI, CDisplay_Detours, PreZoneMainUI);
+		EzDetour(CPacketScrambler__ntoh, &CPacketScrambler_Detours::ntoh_Detour, &CPacketScrambler_Detours::ntoh_Trampoline);
+		EzDetour(Spellmanager__LoadTextSpells, &SpellManager_Detours::LoadTextSpells_Detour, &SpellManager_Detours::LoadTextSpells_Trampoline);
+		EzDetour(CDisplay__ZoneMainUI, &CDisplay_Detours::ZoneMainUI_Detour, &CDisplay_Detours::ZoneMainUI_Trampoline);
+		EzDetour(CDisplay__PreZoneMainUI, &CDisplay_Detours::PreZoneMainUI_Detour, &CDisplay_Detours::PreZoneMainUI_Trampoline);
 	}
 	else
 	{
@@ -270,7 +282,7 @@ inline uint8_t GetDetouredByte(uintptr_t address, uint8_t original)
 	return original;
 }
 
-int memcheck0_Detour(unsigned char* buffer, size_t count)
+int memcheck0(unsigned char* buffer, size_t count)
 {
 	uint32_t addr = reinterpret_cast<uint32_t>(buffer);
 
@@ -278,7 +290,7 @@ int memcheck0_Detour(unsigned char* buffer, size_t count)
 	AddressDetourState detourState = IsAddressDetoured(addr, count);
 	if (detourState != AddressDetourState::CodeDetour)
 	{
-		return memcheck0_Trampoline(buffer, count);
+		return memcheck0_tramp(buffer, count);
 	}
 
 	unsigned int crc32 = 0xffffffff;
@@ -298,7 +310,7 @@ int memcheck0_Detour(unsigned char* buffer, size_t count)
 	return crc32;
 }
 
-int memcheck1_Detour(unsigned char* buffer, size_t count, mckey key)
+int memcheck1(unsigned char* buffer, size_t count, mckey key)
 {
 	uint32_t addr = reinterpret_cast<uint32_t>(buffer);
 	unsigned int ebx, eax, edx;
@@ -338,7 +350,7 @@ int memcheck1_Detour(unsigned char* buffer, size_t count, mckey key)
 	return ebx;
 }
 
-int memcheck2_Detour(unsigned char* buffer, size_t count, mckey key)
+int memcheck2(unsigned char* buffer, size_t count, mckey key)
 {
 	uint32_t addr = reinterpret_cast<uint32_t>(buffer);
 	unsigned int ebx, edx, eax;
@@ -375,13 +387,7 @@ int memcheck2_Detour(unsigned char* buffer, size_t count, mckey key)
 	return eax;
 }
 
-int memcheck3_Detour(unsigned char* buffer, size_t count, mckey key)
-{
-	// shares same impl as memcheck2.
-	return memcheck2_Detour(buffer, count, key);
-}
-
-int WINAPI memcheck4_Detour(unsigned char* buffer, size_t* count_)
+int WINAPI memcheck4(unsigned char* buffer, size_t* count_)
 {
 	uint32_t addr = reinterpret_cast<uint32_t>(buffer);
 	size_t count = *count_ & 0xff;
@@ -391,7 +397,7 @@ int WINAPI memcheck4_Detour(unsigned char* buffer, size_t* count_)
 	if (detourState != AddressDetourState::CodeDetour)
 	{
 		gbInMemCheck4 = 1;
-		int result = memcheck4_Trampoline(buffer, count_);
+		int result = memcheck4_tramp(buffer, count_);
 		gbInMemCheck4 = 0;
 		return result;
 	}
@@ -415,9 +421,10 @@ int WINAPI memcheck4_Detour(unsigned char* buffer, size_t* count_)
 
 void TryInitializeLogin();
 
-DetourDef(GetProcAddressOverride, void*, HMODULE hModule, LPCSTR lpProcName)
+DETOUR_TRAMPOLINE_DEF(void* WINAPI, GetProcAddress_Trampoline, (HMODULE, LPCSTR))
+void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
 {
-	if (void* result = GetProcAddressOverride_Trampoline(hModule, lpProcName))
+	if (void* result = GetProcAddress_Trampoline(hModule, lpProcName))
 	{
 		// This is the trigger for loading the eqmain.dll
 		if (hModule == *ghEQMainInstance && std::string_view{ lpProcName } == "new_dll_main")
@@ -429,7 +436,8 @@ DetourDef(GetProcAddressOverride, void*, HMODULE hModule, LPCSTR lpProcName)
 	return nullptr;
 }
 
-DetourDef(FindModules, bool, HANDLE hProcess, HMODULE* hModule, DWORD cb, DWORD* lpcbNeeded)
+DETOUR_TRAMPOLINE_DEF(BOOL WINAPI, FindModules_Trampoline, (HANDLE, HMODULE*, DWORD, DWORD*))
+BOOL WINAPI FindModules_Detour(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWORD* lpcbNeeded)
 {
 	if (gbInMemCheck4 != 1) return FindModules_Trampoline(hProcess, hModule, cb, lpcbNeeded);
 	++gbInMemCheck4;
@@ -458,8 +466,8 @@ void InitializeDetours()
 	HookMemChecker(true);
 
 	DWORD GetProcAddress_Addr = (DWORD)&::GetProcAddress;
-	EasyDetour(GetProcAddress_Addr, GetProcAddressOverride);
-	EasyDetour(__ModuleList, FindModules);
+	EzDetour(GetProcAddress_Addr, &GetProcAddress_Detour, &GetProcAddress_Trampoline);
+	EzDetour(__ModuleList, &FindModules_Detour, &FindModules_Trampoline);
 }
 
 void ShutdownDetours()
