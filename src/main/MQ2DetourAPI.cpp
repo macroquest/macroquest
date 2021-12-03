@@ -59,8 +59,6 @@ void DetourAny::Detach(PVOID* ppPointer, PVOID pDetour)
 	DetourTransactionCommit();
 }
 
-DetourAny::~DetourAny() {}
-
 void RemoveDetour(uintptr_t address)
 {
 	s_detourMap.erase(address);

@@ -117,7 +117,7 @@ class MyCTargetWnd
 public:
 	// we can safely use this as its always called when a user leftclicks the target window.
 	// also the upside here is that we dont collide with the trade with target detour in mq2windows...
-	void HandleBuffRemoveRequest_Tramp(CXWnd*);
+	DETOUR_TRAMPOLINE_DEF(void, HandleBuffRemoveRequest_Tramp, (CXWnd*))
 	void HandleBuffRemoveRequest_Detour(CXWnd* pWnd)
 	{
 		if (PHButton && pWnd == PHButton)
@@ -134,7 +134,6 @@ public:
 		HandleBuffRemoveRequest_Tramp(pWnd);
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(void MyCTargetWnd::HandleBuffRemoveRequest_Tramp(CXWnd*));
 
 void LoadPHs(char* szMyName)
 {

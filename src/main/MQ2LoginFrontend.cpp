@@ -40,50 +40,13 @@ static bool gbInFrontend = false;
 //----------------------------------------------------------------------------
 // Login Pulse detour
 
-// Dynamic trampoline allocated for the login pulse. We create this on the process heap, and then
-// intentionally leak it. This allows us to exit mq2 from the login pulse. Basically, we end up
-// leaving this detour trampoline behind so that the call can unwind after we leave.
-void* pLoginController_GiveTime_Trampoline = nullptr;
-
-// 0x20 bytes to create the trampoline. These are the same bytes created by a
-// DETOUR_WITH_EMPTY_TRAMPOLINE macro
-static uint8_t TrampolineData[] = {
-	0x90, 0x90, 0x33, 0xc0, 0x8b, 0x00, 0xc3, 0x90,  0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
-	0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,  0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
-};
-
-// A helper to turn a pointer-to-member into a pointer-to-void.
-template <typename T>
-T CoerceImpl(int dummy, ...)
-{
-	va_list marker;
-	va_start(marker, dummy);
-
-	void* ptr = va_arg(marker, void*);
-	va_end(marker);
-	return ptr;
-}
-
-template <typename T, typename U>
-T Coerce(U thing) { return CoerceImpl<T>(0, thing); }
-
-static __declspec(naked) void GiveTime_JumpToTrampoline(void* LoginController_Hook)
-{
-	__asm {
-		mov ecx, [esp+4]
-		mov eax, [pLoginController_GiveTime_Trampoline]
-		jmp eax
-	}
-}
-
 class LoginController_Hook
 {
 public:
 	// This is called continually during the login mainloop so we can use it as our pulse when the MAIN
 	// gameloop pulse is not active but login is.
 	// that will allow plugins to work and execute commands all the way back pre login and server select etc.
-	inline static Detour<void(LoginController_Hook::*)()>* GiveTime_Trampoline_Ptr = nullptr;
-	void GiveTime_Trampoline() { return (*this.*GiveTime_Trampoline_Ptr->Trampoline())(); }
+	inline static void (LoginController_Hook::* GiveTime_Trampoline)() = nullptr;
 	void GiveTime_Detour()
 	{
 		if (!gbInFrontend)
@@ -125,7 +88,7 @@ public:
 			}
 		}
 
-		GiveTime_JumpToTrampoline(this);
+		(this->*GiveTime_Trampoline)();
 	}
 };
 
@@ -166,27 +129,8 @@ void InitializeLoginDetours()
 
 	DebugSpewAlways("Initializing Login Detours");
 
-	// Create this trampoline on the process heap so that we can abandon it after we exit.
-	// If for whatever reason we can't allocate on the heap, just use the old trampoline. It'll
-	// crash if we unload but at least we can get further along (and maybe the user won't try to
-	// unload...)
-	if (!pLoginController_GiveTime_Trampoline)
-	{
-		HANDLE hProcessHeap = GetProcessHeap();
-		pLoginController_GiveTime_Trampoline = HeapAlloc(hProcessHeap, 0, lengthof(TrampolineData));
+	LoginController_Hook::GiveTime_Trampoline = AddDetour(EQMain__LoginController__GiveTime, &LoginController_Hook::GiveTime_Detour, "GiveTime")->Trampoline();
 
-		if (!pLoginController_GiveTime_Trampoline)
-		{
-			pLoginController_GiveTime_Trampoline = Coerce<void*>(&LoginController_Hook::GiveTime_Trampoline);
-		}
-		else
-		{
-			// Initialize the trampoline with the expected payload.
-			memcpy(pLoginController_GiveTime_Trampoline, TrampolineData, lengthof(TrampolineData));
-		}
-	}
-
-	LoginController_Hook::GiveTime_Trampoline_Ptr = AddDetour(EQMain__LoginController__GiveTime, &LoginController_Hook::GiveTime_Detour).get();
 	EzDetour(EQMain__WndProc, EQMain__WndProc_Detour, EQMain__WndProc_Trampoline);
 
 	if (EQMain__CXWndManager__GetCursorToDisplay)
@@ -213,6 +157,8 @@ void RemoveLoginDetours()
 
 	for (DWORD detour : detours)
 		RemoveDetour(detour);
+
+	detail::set_fn_ptr(LoginController_Hook::GiveTime_Trampoline, EQMain__LoginController__GiveTime);
 
 	gbDetoursInstalled = false;
 }
