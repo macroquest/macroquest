@@ -219,12 +219,13 @@ foreach ($file in $vcpkg_file_list) {
             if (-Not $vcpkgTable.ContainsKey($packageName) -And -Not $vcpkgInstallTable.ContainsKey($packageName)) {
                 $vcpkgInstallTable[$packageName] = New-Object System.Collections.Generic.List[System.Object]
             }
+
             foreach ($feature in $packageFeatures) {
                 if (-Not $vcpkgTable.ContainsKey($packageName)) {
                     $vcpkgInstallTable[$packageName].Add("$feature")
                 } else {
-                    if (-Not $vcpkgTable[$packageName] -Contains $feature)
-                    {
+                    # core would not show up in a feature list and the package is already installed so only add additional features that aren't core
+                    if (-Not $vcpkgTable[$packageName] -Contains $feature -And "core" -ne $feature) {
                         if (-Not $vcpkgInstallTable.ContainsKey($packageName)) {
                             $vcpkgInstallTable[$packageName] = New-Object System.Collections.Generic.List[System.Object]
                         }
