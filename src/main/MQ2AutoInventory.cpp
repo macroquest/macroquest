@@ -1214,6 +1214,7 @@ static void AutoBankPulse()
 				if (pNLMarkedButton)
 				{
 					pNLMarkedButton->SetWindowText("Sell Marked");
+					pNLMarkedButton->SetTooltip("Click to sell marked items.");
 					bChangedNL = true;
 				}
 			}
@@ -1225,6 +1226,7 @@ static void AutoBankPulse()
 				if (pNLMarkedButton)
 				{
 					pNLMarkedButton->SetWindowText("Never Loot");
+					pNLMarkedButton->SetTooltip("Click to tag all marked items as NEVER LOOT in advloot filters.");
 					bChangedNL = false;
 				}
 			}
