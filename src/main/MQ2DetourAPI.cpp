@@ -25,14 +25,6 @@ std::map<uintptr_t, std::shared_ptr<DetourAny>> s_detourMap;
 
 void DetourAny::AddToMap()
 {
-	// TODO: is there better collision detection?
-	auto address = this->Address();
-	for (const auto& [key, _] : s_detourMap)
-	{
-		if (address >= key && address < key + DETOUR_COUNT)
-			return;
-	}
-
 	s_detourMap.insert_or_assign(this->Address(), shared_from_this());
 }
 
