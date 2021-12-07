@@ -3717,13 +3717,15 @@ void UseItemCmd(SPAWNINFO* pChar, char* szLine)
 	{
 		// Check if this item qualifies to be on a keyring
 		KeyRingType keyRingType;
-		switch (pItem->GetItemClass())
-		{
-		case ItemClass_Mount: keyRingType = eMount; break;
-		case ItemClass_Illusion: keyRingType = eIllusion; break;
-		case ItemClass_Familiar: keyRingType = eFamiliar; break;
-			break;
 
+		switch (itemLocation.GetLocation())
+		{
+		case eItemContainerMountKeyRingItems: keyRingType = eMount; break;
+		case eItemContainerIllusionKeyRingItems: keyRingType = eIllusion; break;
+		case eItemContainerFamiliarKeyRingItems: keyRingType = eFamiliar; break;
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
+		case eItemContainerTeleportationKeyRingItems: keyRingType = eTeleportationItem; break;
+#endif
 		default: return;
 		}
 

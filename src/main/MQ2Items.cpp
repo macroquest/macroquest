@@ -51,6 +51,9 @@ int GetKeyRingCount(KeyRingType keyRingType)
 	case eIllusion:
 	case eFamiliar:
 	case eHeroForge:
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
+	case eTeleportationItem:
+#endif
 		break;
 	default: return 0;
 	}
@@ -62,6 +65,9 @@ int GetMountCount() { return GetKeyRingCount(eMount); }
 int GetIllusionCount() { return GetKeyRingCount(eIllusion); }
 int GetFamiliarCount() { return GetKeyRingCount(eFamiliar); }
 int GetHeroForgeCount() { return GetKeyRingCount(eHeroForge); }
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
+int GetTeleportationItemCount() { return GetKeyRingCount(eTeleportationItem); }
+#endif
 
 static bool gbDidUpdateKeyRing = false;
 static uint64_t gLastKeyRingUpdate = 0;

@@ -548,6 +548,9 @@ void InitializeMQ2Data()
 	AddMQ2Data("SwitchTarget", datatypes::MQ2SwitchType::dataSwitchTarget);
 	AddMQ2Data("Target", datatypes::MQ2TargetType::dataTarget);
 	AddMQ2Data("Task", datatypes::MQ2TaskType::dataTask);
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
+	AddMQ2Data("TeleportationItem", datatypes::MQ2KeyRingType::dataTeleportationItem);
+#endif
 	AddMQ2Data("Window", datatypes::MQ2WindowType::dataWindow);
 	AddMQ2Data("Zone", datatypes::MQ2ZoneType::dataZone);
 }

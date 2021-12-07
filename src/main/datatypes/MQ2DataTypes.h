@@ -1284,6 +1284,9 @@ public:
 	static bool dataMount(const char* szIndex, MQTypeVar& Ret);
 	static bool dataIllusion(const char* szIndex, MQTypeVar& Ret);
 	static bool dataFamiliar(const char* szIndex, MQTypeVar& Ret);
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
+	static bool dataTeleportationItem(const char* szIndex, MQTypeVar& Ret);
+#endif
 };
 
 //============================================================================

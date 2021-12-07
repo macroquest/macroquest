@@ -2,6 +2,7 @@ December 7, 2021:
 - Happy Terror of Luclin Day!
 - Added full support for the merchant perk and bag slot 11 and 12.
 - Added ${Me.NumBagSlots} which returns the number of bag slots enabled in main inventory.
+- Added ${TeleportationItem} TLO to access the teleportation item keyring.
 
 November 30, 2021:
 - MacroQuest tray utility will now check Application Compatibility layers on startup.  To disable this check set

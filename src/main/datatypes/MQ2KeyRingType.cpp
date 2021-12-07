@@ -137,6 +137,13 @@ bool MQ2KeyRingType::dataFamiliar(const char* szIndex, MQTypeVar& Ret)
 	return dataGetKeyRing(eFamiliar, szIndex, Ret);
 }
 
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
+bool MQ2KeyRingType::dataTeleportationItem(const char* szIndex, MQTypeVar& Ret)
+{
+	return dataGetKeyRing(eTeleportationItem, szIndex, Ret);
+}
+#endif
+
 //============================================================================
 // MQ2KeyRingItemType
 

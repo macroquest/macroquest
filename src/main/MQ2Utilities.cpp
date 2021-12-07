@@ -5200,6 +5200,10 @@ ItemContainer* GetItemContainerByType(ItemContainerInstance type)
 		return &pLocalPC->FamiliarKeyRingItems;
 	case eItemContainerHeroForgeKeyRingItems:
 		return &pLocalPC->HeroForgeKeyRingItems;
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
+	case eItemContainerTeleportationKeyRingItems:
+		return &pLocalPC->TeleportationKeyRingItems;
+#endif
 	case eItemContainerOverflow:
 		return &pLocalPC->OverflowBufferItems;
 	case eItemContainerDragonHoard:
