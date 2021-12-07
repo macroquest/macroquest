@@ -18,22 +18,22 @@
 namespace mq {
 
 //============================================================================
-std::map<uintptr_t, std::shared_ptr<DetourAny>> s_detourMap;
+std::map<uintptr_t, std::shared_ptr<Detour>> s_detourMap;
 
 // 20 bytes replicates functionality of collision detection from before. It's possible this number can be tweaked or removed
 #define DETOUR_COUNT 20
 
-void DetourAny::AddToMap()
+void Detour::AddToMap()
 {
 	s_detourMap.insert_or_assign(this->Address(), shared_from_this());
 }
 
-void DetourAny::RemoveFromMap()
+void Detour::RemoveFromMap()
 {
 	s_detourMap.erase(this->Address());
 }
 
-void DetourAny::Attach(PVOID* ppPointer, PVOID pDetour)
+void Detour::Attach(void** ppPointer, void* pDetour)
 {
 	DetourRestoreAfterWith();
 
@@ -43,7 +43,7 @@ void DetourAny::Attach(PVOID* ppPointer, PVOID pDetour)
 	DetourTransactionCommit();
 }
 
-void DetourAny::Detach(PVOID* ppPointer, PVOID pDetour)
+void Detour::Detach(void** ppPointer, void* pDetour)
 {
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());

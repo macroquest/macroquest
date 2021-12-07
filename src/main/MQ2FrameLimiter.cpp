@@ -316,8 +316,8 @@ public:
 	}
 };
 
-static Detour<void(*)()>* Throttler_Trampoline_Ptr;
-static void Throttler_Trampoline() { (Throttler_Trampoline_Ptr->Trampoline())(); }
+static void(*Throttler_Trampoline_Ptr)();
+static void Throttler_Trampoline() { Throttler_Trampoline_Ptr(); }
 __declspec(naked) static void Throttler_Detour()
 {
 	// If DoThrottleFrameRate returns false, then it is disabled and we

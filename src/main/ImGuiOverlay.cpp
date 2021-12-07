@@ -147,7 +147,7 @@ static void InstallHook(HookInfo hi)
 }
 
 template <typename T>
-static void InstallDetour(uintptr_t address, T detour, Detour<T>** trampoline_ptr, PCHAR name)
+static void InstallDetour(uintptr_t address, T detour, T* trampoline_ptr, PCHAR name)
 {
 	HookInfo hookInfo;
 	hookInfo.name = name;
@@ -155,7 +155,7 @@ static void InstallDetour(uintptr_t address, T detour, Detour<T>** trampoline_pt
 	hookInfo.patch = [&detour, address, trampoline_ptr](HookInfo& hi)
 	{
 		hi.address = address;
-		*trampoline_ptr = AddDetour(hi.address, detour, hi.name).get();
+		*trampoline_ptr = AddDetour(hi.address, detour, hi.name);
 	};
 
 	InstallHook(hookInfo);
