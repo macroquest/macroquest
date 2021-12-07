@@ -3478,7 +3478,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
 		break;
 	case SPA_TRIGGER_SPELL_NON_ITEM: //Trigger Spell Non-Item
-		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Cast"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base2), szTemp2, " on Cast"));
 		break;
 	case SPA_WEAPON_STANCE: //Weapon Stance (no spells currently)
 	case SPA_HATELIST_TO_TOP: //Move to Top of Hatelist (no spells currently)
