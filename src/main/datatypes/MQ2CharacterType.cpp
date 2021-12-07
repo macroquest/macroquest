@@ -339,6 +339,7 @@ enum class CharacterMembers
 	AirSupply,
 	MaxAirSupply,
 	PctAirSupply,
+	NumBagSlots,
 };
 
 enum class CharacterMethods
@@ -668,6 +669,7 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, AirSupply);
 	ScopedTypeMember(CharacterMembers, MaxAirSupply);
 	ScopedTypeMember(CharacterMembers, PctAirSupply);
+	ScopedTypeMember(CharacterMembers, NumBagSlots);
 
 	ScopedTypeMethod(CharacterMethods, Stand);
 	ScopedTypeMethod(CharacterMethods, Sit);
@@ -3878,7 +3880,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.Type = pIntType;
 		if (pLocalPC)
 		{
-			int value = pLocalPC->GetGameFeature(eSpellRankFeature);
+			int value = pLocalPC->GetGameFeature(GameFeature_SpellRank);
 			if (value == -1 || value >= 10)
 				Dest.DWord = 3;
 			else if (value >= 5)
@@ -3965,7 +3967,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case CharacterMembers::PctAirSupply:
 		Dest.Type = pIntType;
-		Dest.Set((int)((pLocalPC->GetAirSupply()) * 100) / (pLocalPC->GetMaxAirSupply()));
+		Dest.Set(((pLocalPC->GetAirSupply()) * 100) / (pLocalPC->GetMaxAirSupply()));
+		return true;
+
+	case CharacterMembers::NumBagSlots:
+		Dest.Type = pIntType;
+		Dest.Set<int>(GetHighestAvailableBagSlot() - InvSlot_FirstBagSlot + 1);
 		return true;
 
 	default:

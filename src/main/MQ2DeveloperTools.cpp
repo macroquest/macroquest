@@ -1738,6 +1738,68 @@ static AltAbilityInspector* s_altAbilityInspector = nullptr;
 
 #pragma endregion
 
+#pragma region Character Data Inspector
+
+class CharacterDataInspector : public ImGuiWindowBase
+{
+public:
+	CharacterDataInspector() : ImGuiWindowBase("Character Data Inspector")
+	{
+		SetDefaultSize(ImVec2(600, 400));
+	}
+
+	~CharacterDataInspector()
+	{
+	}
+
+	bool IsEnabled() const override
+	{
+		return pLocalPC != nullptr && GetGameState() == GAMESTATE_INGAME;
+	}
+
+	void Draw() override
+	{
+		if (ImGui::BeginTable("##CharacterData", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
+		{
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn("Data", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableHeadersRow();
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+
+			//----------------------------------------------------------------------------
+			// realEstates - RealEstate by realEstateId
+
+			if (ImGui::TreeNode("Consumable Features"))
+			{
+				for (const auto& ClaimData : pLocalPC->ConsumableFeatures.claimData)
+				{
+					ImGui::TableNextRow();
+
+					ImGui::TableNextColumn(); ImGui::Text("%d", ClaimData.featureId);
+					ImGui::TableNextColumn(); ImGui::Text("%d", ClaimData.count);
+				}
+
+				ImGui::TreePop();
+			}
+
+			if (ImGui::TreeNode("Game Features"))
+			{
+
+
+				ImGui::TreePop();
+			}
+
+			ImGui::EndTable();
+		}
+	}
+};
+static CharacterDataInspector* s_characterDataInspector = nullptr;
+
+#pragma endregion
+
 #pragma region Real Estate Inspector
 
 class RealEstateInspector : public ImGuiWindowBase
@@ -3197,6 +3259,9 @@ static void DeveloperTools_Initialize()
 	s_altAbilityInspector = new AltAbilityInspector();
 	DeveloperTools_RegisterMenuItem(s_altAbilityInspector, "Alt Abilities", s_menuNameInspectors);
 
+	s_characterDataInspector = new CharacterDataInspector();
+	DeveloperTools_RegisterMenuItem(s_characterDataInspector, "Character Data", s_menuNameInspectors);
+
 	s_realEstateInspector = new RealEstateInspector();
 	DeveloperTools_RegisterMenuItem(s_realEstateInspector, "Real Estate", s_menuNameInspectors);
 
@@ -3222,6 +3287,9 @@ static void DeveloperTools_Shutdown()
 
 	DeveloperTools_UnregisterMenuItem(s_altAbilityInspector);
 	delete s_altAbilityInspector; s_altAbilityInspector = nullptr;
+
+	DeveloperTools_UnregisterMenuItem(s_characterDataInspector);
+	delete s_characterDataInspector; s_characterDataInspector = nullptr;
 
 	DeveloperTools_UnregisterMenuItem(s_realEstateInspector);
 	delete s_realEstateInspector; s_realEstateInspector = nullptr;

@@ -5093,7 +5093,21 @@ int GetAvailableBagSlots()
 
 int GetHighestAvailableBagSlot()
 {
-	return HasExpansion(EXPANSION_HoT) ? InvSlot_Bag10 : InvSlot_Bag8;
+	// If no char info, return smallest number available.
+	if (!pLocalPC)
+		return InvSlot_Bag8;
+
+	int highestInvSlot = InvSlot_Bag12;
+
+	// If no HoT, subtract two slots.
+	if (!HasExpansion(EXPANSION_HoT))
+		highestInvSlot -= 2;
+
+	// If no merchant perk, subtract two more bag slots.
+	if (!pLocalPC->ConsumableFeatures.CanConsumeFeature(EQFeature_MerchantPerk))
+		highestInvSlot -= 2;
+
+	return highestInvSlot;
 }
 
 int GetAvailableBankSlots()
