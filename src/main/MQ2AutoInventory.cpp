@@ -597,7 +597,7 @@ public:
 									{
 										if (button->bChecked)
 										{
-											ItemGlobalIndex itemIndex = pThis->GetItemGlobalIndex((int)list->GetItemData(0));
+											ItemGlobalIndex itemIndex = pThis->GetItemGlobalIndex((int)list->GetItemData(i));
 											if (ItemPtr ptr = pLocalPC->GetItemByGlobalIndex(itemIndex))
 											{
 												ItemDefinition* pItem = ptr->GetItemDefinition();
