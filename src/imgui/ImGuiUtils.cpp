@@ -72,16 +72,24 @@ void ConfigureDefaultFont(ImFontAtlas* atlas)
 	static const ImWchar md_icon_ranges[] = { ICON_MIN_MD, ICON_MAX_MD, 0 };
 	atlas->AddFontFromMemoryCompressedTTF(GetMaterialIconsCompressedData(), GetMaterialIconsCompressedSize(), 16.0f, &mdConfig, md_icon_ranges);
 
-	// console font: Lucida Console @ 13px
-	std::error_code ec;
-	std::string consoleFont = R"(c:\windows\fonts\lucon.ttf)";
-	if (std::filesystem::is_regular_file(consoleFont))
+	char szWindowsPath[MAX_PATH] = { 0 };
+	if (::GetWindowsDirectoryA(szWindowsPath, MAX_PATH) != 0)
 	{
-		ImFontConfig consoleFontConfig;
-		consoleFontConfig.OversampleH = consoleFontConfig.OversampleV = 3;
-		ConsoleFont = atlas->AddFontFromFileTTF(R"(c:\windows\fonts\lucon.ttf)", 13.0f, &consoleFontConfig);
+		// console font: Lucida Console @ 13px
+		std::error_code ec;
+
+		char szConsoleFont[MAX_PATH];
+		sprintf_s(szConsoleFont, "%s\\fonts\\lucon.ttf", szWindowsPath);
+
+		if (std::filesystem::is_regular_file(szConsoleFont, ec))
+		{
+			ImFontConfig consoleFontConfig;
+			consoleFontConfig.OversampleH = consoleFontConfig.OversampleV = 3;
+			ConsoleFont = atlas->AddFontFromFileTTF(szConsoleFont, 13.0f, &consoleFontConfig);
+		}
 	}
-	else
+
+	if (!ConsoleFont)
 	{
 		ConsoleFont = atlas->AddFontDefault();
 	}
