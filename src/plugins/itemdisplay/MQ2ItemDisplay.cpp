@@ -1162,7 +1162,7 @@ static void CreateItemText(fmt::memory_buffer& buffer_, const ItemPtr& item, con
 		{
 			if (clickEffect->RequiredLevel > pLocalPC->GetLevel())
 			{
-				fmt::format_to(buffer, "<c \"#FF4040\">sClickable at level {}</c><br>", clickEffect->RequiredLevel);
+				fmt::format_to(buffer, "<c \"#FF4040\">Clickable at level {}</c><br>", clickEffect->RequiredLevel);
 			}
 			else
 			{

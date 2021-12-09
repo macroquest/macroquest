@@ -1,3 +1,6 @@
+December 9, 2021:
+- Updated for patch
+
 December 7, 2021:
 - Happy Terror of Luclin Day!
 - Added full support for the merchant perk and bag slot 11 and 12.
