@@ -20,8 +20,32 @@ namespace mq {
 //============================================================================
 std::map<uintptr_t, std::shared_ptr<Detour>> s_detourMap;
 
-// 20 bytes replicates functionality of collision detection from before. It's possible this number can be tweaked or removed
-#define DETOUR_COUNT 20
+Detour::Detour(uintptr_t address, void** target, void* detour, const std::string_view name)
+	: m_address(address)
+	, m_name(name)
+	, m_target(target)
+	, m_detour(detour)
+{
+	memcpy(m_bytes, reinterpret_cast<uint8_t*>(address), DETOUR_COUNT);
+	*m_target = reinterpret_cast<void*>(address);
+
+	DetourRestoreAfterWith();
+
+	DetourTransactionBegin();
+	DetourUpdateThread(GetCurrentThread());
+	DetourAttach(m_target, m_detour);
+	DetourTransactionCommit();
+}
+
+Detour::~Detour()
+{
+	DetourRestoreAfterWith();
+
+	DetourTransactionBegin();
+	DetourUpdateThread(GetCurrentThread());
+	DetourDetach(m_target, m_detour);
+	DetourTransactionCommit();
+}
 
 void Detour::AddToMap()
 {
@@ -31,24 +55,6 @@ void Detour::AddToMap()
 void Detour::RemoveFromMap()
 {
 	s_detourMap.erase(this->Address());
-}
-
-void Detour::Attach(void** ppPointer, void* pDetour)
-{
-	DetourRestoreAfterWith();
-
-	DetourTransactionBegin();
-	DetourUpdateThread(GetCurrentThread());
-	DetourAttach(ppPointer, pDetour);
-	DetourTransactionCommit();
-}
-
-void Detour::Detach(void** ppPointer, void* pDetour)
-{
-	DetourTransactionBegin();
-	DetourUpdateThread(GetCurrentThread());
-	DetourDetach(ppPointer, pDetour);
-	DetourTransactionCommit();
 }
 
 void RemoveDetour(uintptr_t address)
@@ -264,7 +270,7 @@ inline uint8_t GetDetouredByte(uintptr_t address, uint8_t original)
 	{
 		if (address >= key && address < key + DETOUR_COUNT)
 		{
-			uint8_t* bytes = reinterpret_cast<uint8_t*>(detour->Address());
+			uint8_t* bytes = detour->Bytes();
 			return *(bytes + address - key);
 		}
 	}
@@ -455,14 +461,14 @@ void InitializeDetours()
 
 	HookMemChecker(true);
 
-	DWORD GetProcAddress_Addr = (DWORD)&::GetProcAddress;
+	uintptr_t GetProcAddress_Addr = (uintptr_t)&::GetProcAddress;
 	EzDetour(GetProcAddress_Addr, &GetProcAddress_Detour, &GetProcAddress_Trampoline);
 	EzDetour(__ModuleList, FindModules_Detour, FindModules_Trampoline);
 }
 
 void ShutdownDetours()
 {
-	DWORD GetProcAddress_Addr = (DWORD)&::GetProcAddress;
+	uintptr_t GetProcAddress_Addr = (uintptr_t)&::GetProcAddress;
 	RemoveDetour(GetProcAddress_Addr);
 	RemoveDetour(__ModuleList);
 

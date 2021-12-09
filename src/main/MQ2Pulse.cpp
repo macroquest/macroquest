@@ -735,8 +735,7 @@ bool DoGameEventsPulse(int (*pEventFunc)())
 	return processGameEventsResult;
 }
 
-static int(*ProcessGameEvents_Trampoline_Ptr)();
-int Trampoline_ProcessGameEvents() { return ProcessGameEvents_Trampoline_Ptr(); }
+static int(*Trampoline_ProcessGameEvents)();
 int Detour_ProcessGameEvents()
 {
 	return DoGameEventsPulse(Trampoline_ProcessGameEvents);
@@ -775,7 +774,7 @@ void InitializeMQ2Pulse()
 
 	std::scoped_lock lock(s_pulseMutex);
 
-	ProcessGameEvents_Trampoline_Ptr = AddDetour(reinterpret_cast<uintptr_t>(&ProcessGameEvents), Detour_ProcessGameEvents, "ProcessGameEvents");
+	AddDetour(reinterpret_cast<uintptr_t>(ProcessGameEvents), Detour_ProcessGameEvents, Trampoline_ProcessGameEvents, "ProcessGameEvents");
 	EzDetour(CEverQuest__SetGameState, &CEverQuestHook::SetGameState_Detour, &CEverQuestHook::SetGameState_Trampoline);
 	EzDetour(CMerchantWnd__PurchasePageHandler__UpdateList, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Detour, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline);
 

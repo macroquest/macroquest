@@ -152,10 +152,10 @@ static void InstallDetour(uintptr_t address, T detour, T* trampoline_ptr, PCHAR 
 	HookInfo hookInfo;
 	hookInfo.name = name;
 	hookInfo.address = 0;
-	hookInfo.patch = [&detour, address, trampoline_ptr](HookInfo& hi)
+	hookInfo.patch = [&detour, address, &trampoline_ptr](HookInfo& hi)
 	{
 		hi.address = address;
-		*trampoline_ptr = AddDetour(hi.address, detour, hi.name);
+		AddDetour(hi.address, detour, trampoline_ptr, hi.name);
 	};
 
 	InstallHook(hookInfo);

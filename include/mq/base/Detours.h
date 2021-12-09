@@ -15,8 +15,12 @@
 #pragma once
 
 #include <mq/base/Common.h>
+#pragma comment(lib, "detours.lib")
 
 namespace mq {
+
+// 20 bytes replicates functionality of collision detection from before. It's possible this number can be tweaked or removed
+#define DETOUR_COUNT 20
 
 namespace detail
 {
@@ -50,60 +54,53 @@ class Detour : public std::enable_shared_from_this<Detour>
 {
 public:
 	uintptr_t Address() const { return m_address; }
+	uint8_t* Bytes() { return reinterpret_cast<uint8_t*>(m_bytes); }
 
 	void Drop() { RemoveFromMap(); }
 
-	template <typename Sig>
-	const Sig Trampoline()
+	template <typename T>
+	static std::enable_if_t<!std::is_member_pointer_v<T>, void> Add(uintptr_t address, T& detour, T*& target, std::string_view name)
 	{
-		//return *(Sig*)&m_target;
-		return *reinterpret_cast<Sig*>(&m_target);
-	}
-
-	template <typename Sig>
-	static Sig Add(const std::string_view handle, const std::string_view procedure, Sig detour, const std::string_view name)
-	{
-		auto ptr = std::make_shared<Detour>(handle, procedure, *reinterpret_cast<void**>(&detour), name);
+		auto ptr = std::make_shared<Detour>(address, &(void*&)target, detour, name);
 		ptr->AddToMap();
-		return ptr->Trampoline<Sig>();
 	}
 
-	template <typename Sig>
-	static Sig Add(const uintptr_t address, Sig detour, const std::string_view name)
+	template <typename T>
+	static std::enable_if_t<std::is_member_pointer_v<T>, void> Add(uintptr_t address, T& detour, T* target, std::string_view name)
 	{
-		auto ptr = std::make_shared<Detour>(address, *reinterpret_cast<void**>(&detour), name);
+		auto ptr = std::make_shared<Detour>(address, (void**)target, detour, name);
 		ptr->AddToMap();
-		return ptr->Trampoline<Sig>();
 	}
 
-	Detour(const std::string_view handle, const std::string_view procedure, void* detour, const std::string_view name)
-		: m_module(GetModuleHandle(std::string(handle).c_str()))
-		, m_address(m_module == 0 ? 0 : reinterpret_cast<uintptr_t>(GetProcAddress(m_module, std::string(procedure).c_str())))
-		, m_name(name)
-		, m_target(*(void**)&m_address)
-		, m_detour(detour)
+	template <typename T>
+	static std::enable_if_t<std::is_member_pointer_v<T>, void> Add(uintptr_t address, T&& detour, T* target, std::string_view name)
 	{
-		Attach(&m_target, m_detour);
+		auto ptr = std::make_shared<Detour>(address, (void**)target, *(void**)&detour, name);
+		ptr->AddToMap();
 	}
 
-	Detour(const uintptr_t address, void* detour, const std::string_view name)
-		: m_module(GetModuleFromAddress(address))
-		, m_address(address)
-		, m_name(name)
-		, m_target(*(void**)&address)
-		, m_detour(detour)
+	template <typename T>
+	static std::enable_if_t<std::is_pointer_v<T>, void> Add(uintptr_t address, T&& detour, T* target, std::string_view name)
 	{
-		Attach(&m_target, m_detour);
+		auto ptr = std::make_shared<Detour>(address, &(void*&)*target, detour, name);
+		ptr->AddToMap();
 	}
 
-	virtual ~Detour()
-	{
-		Detach(&m_target, m_detour);
-	}
+	MQLIB_OBJECT Detour(uintptr_t address, void** target, void* detour, const std::string_view name);
+	MQLIB_OBJECT virtual ~Detour();
 
 protected:
 	MQLIB_OBJECT void AddToMap();
 	MQLIB_OBJECT void RemoveFromMap();
+
+	static inline uintptr_t GetAddressFromProc(const char* handle, const char* procedure)
+	{
+		auto mod = GetModuleHandle(handle);
+		if (mod != 0)
+			return reinterpret_cast<uintptr_t>(GetProcAddress(mod, procedure));
+
+		return {};
+	}
 
 	static inline HMODULE GetModuleFromAddress(const uintptr_t address)
 	{
@@ -117,16 +114,15 @@ protected:
 		return mod;
 	}
 
-	MQLIB_OBJECT static void Attach(void* *ppPointer, void* pDetour);
-	MQLIB_OBJECT static void Detach(void* *ppPointer, void* pDetour);
-
-	const HMODULE m_module;
+private:
 	const uintptr_t m_address;
-	const std::string m_name;
+	const std::string_view m_name;
+	uint8_t m_bytes[DETOUR_COUNT];
 
-	void* m_target; // void** ?
-	void* m_detour;
+	void** m_target;
+	void*  m_detour;
 };
+
 
 MQLIB_API void RemoveDetour(uintptr_t address);
 
@@ -134,7 +130,7 @@ MQLIB_API void RemoveDetour(uintptr_t address);
 #define DETOUR_TRAMPOLINE_DEF(ret, name, argtypes) \
 ret name##_Placeholder##argtypes; \
 using name##_Type = decltype(&name##_Placeholder); \
-inline static name##_Type name##_Ptr = nullptr; \
+inline static decltype(&name##_Placeholder) name##_Ptr = nullptr; \
 template <typename... Args> \
 ret name(Args&&... args) { \
 	if constexpr (std::is_member_function_pointer_v<name##_Type>) \
@@ -143,25 +139,56 @@ ret name(Args&&... args) { \
 		return (name##_Ptr)(std::forward<Args>(args)...); \
 }
 
-template <typename Sig>
-Sig AddDetour(const uintptr_t address, Sig detour, const std::string_view name)
+// TODO: Remove these functions, there are here for testing of setting detours. The final API is above in the Detour class
+template <typename T>
+std::enable_if_t<!std::is_member_pointer_v<T>, void> AddDetour(uintptr_t offset, T& detour, T*& ptr, std::string_view name)
 {
-	return Detour::Add<Sig>(address, detour, name);
+	ptr = reinterpret_cast<T*>(offset);
+	DetourRestoreAfterWith();
+
+	DetourTransactionBegin();
+	DetourUpdateThread(GetCurrentThread());
+	DetourAttach(&(void*&)ptr, detour);
+	DetourTransactionCommit();
 }
 
 template <typename T>
-void AddDetour(uintptr_t offset, T detour, T &ptr, std::string_view name)
+std::enable_if_t<std::is_member_pointer_v<T>, void> AddDetour(uintptr_t offset, T& detour, T* ptr, std::string_view name)
 {
-	ptr = AddDetour(offset, detour, name);
+	*ptr = *reinterpret_cast<T*>(&offset);
+	DetourRestoreAfterWith();
+
+	DetourTransactionBegin();
+	DetourUpdateThread(GetCurrentThread());
+	DetourAttach((void**)ptr, *(void**)&detour);
+	DetourTransactionCommit();
 }
 
 template <typename T>
-void AddDetour(uintptr_t offset, T detour, T* ptr, std::string_view name)
+std::enable_if_t<std::is_member_pointer_v<T>, void> AddDetour(uintptr_t offset, T&& detour, T* ptr, std::string_view name)
 {
-	*ptr = AddDetour(offset, detour, name);
+	*ptr = *reinterpret_cast<T*>(&offset);
+	DetourRestoreAfterWith();
+
+	DetourTransactionBegin();
+	DetourUpdateThread(GetCurrentThread());
+	DetourAttach((void**)ptr, *(void**)&detour);
+	DetourTransactionCommit();
 }
 
-#define EzDetour(offset, detour, trampoline) AddDetour(static_cast<uintptr_t>(offset), detour, trampoline##_Ptr, STRINGIFY(offset))
+template <typename T>
+std::enable_if_t<std::is_pointer_v<T>, void> AddDetour(uintptr_t offset, T&& detour, T* ptr, std::string_view name)
+{
+	*ptr = *reinterpret_cast<T*>(&offset);
+	DetourRestoreAfterWith();
+
+	DetourTransactionBegin();
+	DetourUpdateThread(GetCurrentThread());
+	DetourAttach(&(void*&)*ptr, detour);
+	DetourTransactionCommit();
+}
+
+#define EzDetour(address, detour, trampoline) Detour::Add(static_cast<uintptr_t>(address), detour, trampoline##_Ptr, STRINGIFY(offset))
 
 // TODO: deprecate DETOUR_TRAMPOLINE_EMPTY to point to a wiki page with the new detours API
 
