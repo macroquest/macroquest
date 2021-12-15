@@ -16,6 +16,7 @@
 
 #include <fmt/format.h>
 #include <Windows.h>
+#include <algorithm>
 
 #define HOTKEYF_SHIFT           0x01
 #define HOTKEYF_CONTROL         0x02
