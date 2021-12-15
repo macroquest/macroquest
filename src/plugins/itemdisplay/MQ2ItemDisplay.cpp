@@ -771,7 +771,7 @@ static void CreateSpellTextDetails(fmt::memory_buffer& out, EQ_Spell* pSpell);
 static CXStr CreateItemSpellTag(ItemSpellData::SpellData* Effect, EQ_Spell* pSpell)
 {
 	fmt::memory_buffer buf;
-	fmt::format_to(buf, "{:d}^{:d}^{:d}", 3, pSpell->ID, Effect->EffectType);
+	fmt::format_to(fmt::appender(buf), "{:d}^{:d}^{:d}", 3, pSpell->ID, Effect->EffectType);
 
 	return CStmlWnd::MakeWndNotificationTag(XWM_SPELL_LINK, Effect->OverrideName[0] ? Effect->OverrideName : pSpell->Name,
 		CXStr{ buf.data(), buf.size() });
@@ -786,10 +786,10 @@ static std::string CreateItemSpellText(eItemSpellType spellType, ItemSpellData::
 	auto [color, name] = GetEffectInfo(spellType);
 
 	auto buf = fmt::memory_buffer();
-	fmt::format_to(buf, "<BR><c \"#{:06X}\">Spell Info for {} effect: ", color.ToRGB(), name);
+	fmt::format_to(fmt::appender(buf), "<BR><c \"#{:06X}\">Spell Info for {} effect: ", color.ToRGB(), name);
 
 	CXStr spellLink = CreateItemSpellTag(Effect, pSpell);
-	fmt::format_to(buf, "{}<BR>", std::string_view{ spellLink });
+	fmt::format_to(fmt::appender(buf), "{}<BR>", std::string_view{ spellLink });
 
 	CreateSpellTextDetails(buf, pSpell);
 
@@ -804,7 +804,7 @@ static std::string CreateSpellText(EQ_Spell* pSpell)
 		return {};
 
 	auto buf = fmt::memory_buffer();
-	fmt::format_to(buf, "<BR><c \"#{:06X}\">", s_settings.GetSpellColor().ToRGB());
+	fmt::format_to(fmt::appender(buf), "<BR><c \"#{:06X}\">", s_settings.GetSpellColor().ToRGB());
 
 	CreateSpellTextDetails(buf, pSpell);
 
@@ -1488,7 +1488,7 @@ public:
 
 		// Update item info
 		auto buf = fmt::memory_buffer();
-		fmt::format_to(buf, "<BR><c \"#{:6X}\">", s_settings.GetItemColor().ToRGB());
+		fmt::format_to(fmt::appender(buf), "<BR><c \"#{:6X}\">", s_settings.GetItemColor().ToRGB());
 		CreateItemText(buf, pItem, ItemInfo);
 		fmt::format_to(std::back_inserter(buf), "</c>");
 		extraInfo.extraItemInfo = to_string(buf);

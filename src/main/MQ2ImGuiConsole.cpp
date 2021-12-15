@@ -915,7 +915,7 @@ public:
 	void AddLog(ImU32 color, std::string_view fmt, const Args&... args)
 	{
 		fmt::basic_memory_buffer<char> buf;
-		fmt::format_to(buf, fmt, args...);
+		fmt::format_to(fmt::appender(buf), fmt, args...);
 
 		m_zepEditor->AppendFormattedText(std::string_view(buf.data(), buf.size()), color, false);
 	}

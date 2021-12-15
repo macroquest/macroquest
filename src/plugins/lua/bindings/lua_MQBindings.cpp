@@ -33,7 +33,7 @@ std::string lua_join(sol::this_state L, std::string_view delim, sol::variadic_ar
 			auto value = luaL_tolstring(arg.lua_state(), arg.stack_index(), nullptr);
 			if (value != nullptr && strlen(value) > 0)
 			{
-				fmt::format_to(str, "{}{}", del, value);
+				fmt::format_to(fmt::appender(str), "{}{}", del, value);
 				del = delim;
 			}
 		}
@@ -73,13 +73,13 @@ struct lua_MQCommand
 	void operator()(sol::variadic_args va, sol::this_state s)
 	{
 		fmt::memory_buffer cmd;
-		fmt::format_to(cmd, "{}", command);
+		fmt::format_to(fmt::appender(cmd), "{}", command);
 
 		for (const auto& a : va)
 		{
 			auto value = luaL_tolstring(a.lua_state(), a.stack_index(), nullptr);
 			if (value != nullptr && strlen(value) > 0)
-				fmt::format_to(cmd, " {}", value);
+				fmt::format_to(fmt::appender(cmd), " {}", value);
 		}
 
 		ExecuteCommand(fmt::to_string(cmd).c_str(), s);

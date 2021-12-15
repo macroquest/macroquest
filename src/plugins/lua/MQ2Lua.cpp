@@ -772,7 +772,7 @@ static void LuaPSCommand(const std::vector<std::string>& filters = {})
 		if (predicate(info))
 		{
 			fmt::memory_buffer line;
-			fmt::format_to(line, "|{:^7}|{:^12}|{:^13}|{:^13}|{:^12}|",
+			fmt::format_to(fmt::appender(line), "|{:^7}|{:^12}|{:^13}|{:^13}|{:^12}|",
 				pid,
 				info.name.length() > 12 ? info.name.substr(0, 9) + "..." : info.name,
 				info.startTime,
@@ -807,7 +807,7 @@ static void LuaInfoCommand(const std::optional<std::string>& script = std::nullo
 
 			fmt::memory_buffer line;
 			fmt::format_to(
-				line,
+				fmt::appender(line),
 				"pid: {}\nname: {}\npath: {}\narguments: {}\nstartTime: {}\nendTime: {}\nreturnValues: {}\nstatus: {}",
 				info.pid,
 				info.name,
@@ -832,7 +832,7 @@ static void LuaInfoCommand(const std::optional<std::string>& script = std::nullo
 		for (const auto& [pid, info] : s_infoMap)
 		{
 			fmt::memory_buffer line;
-			fmt::format_to(line, "|{:^7}|{:^12}|{:^13}|{:^13}|{:^12}|",
+			fmt::format_to(fmt::appender(line), "|{:^7}|{:^12}|{:^13}|{:^13}|{:^12}|",
 				pid,
 				info.name.length() > 12 ? info.name.substr(0, 9) + "..." : info.name,
 				info.startTime,
