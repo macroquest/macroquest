@@ -297,8 +297,10 @@ enum class CharacterMembers
 	ItemReady,
 	NumGems,
 	Vitality,
+	VitalityCap,
 	PctVitality,
 	AAVitality,
+	AAVitalityCap,
 	PctAAVitality,
 	GuildID,
 	ExpansionFlags,
@@ -627,8 +629,10 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, ItemReady);
 	ScopedTypeMember(CharacterMembers, NumGems);
 	ScopedTypeMember(CharacterMembers, Vitality);
+	ScopedTypeMember(CharacterMembers, VitalityCap);
 	ScopedTypeMember(CharacterMembers, PctVitality);
 	ScopedTypeMember(CharacterMembers, AAVitality);
+	ScopedTypeMember(CharacterMembers, AAVitalityCap);
 	ScopedTypeMember(CharacterMembers, PctAAVitality);
 	ScopedTypeMember(CharacterMembers, GuildID);
 	ScopedTypeMember(CharacterMembers, ExpansionFlags);
@@ -769,6 +773,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.Type = pInt64Type;
 		return true;
 
+	case CharacterMembers::VitalityCap:
+		Dest.Int64 = pInventoryWnd->VitalityCap;
+		Dest.Type = pInt64Type;
+		return true;
+
 	case CharacterMembers::PctVitality: {
 		Dest.Float = 0;
 		Dest.Type = pFloatType;
@@ -783,6 +792,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case CharacterMembers::AAVitality:
 		Dest.Int64 = pLocalPC->AAVitality;
+		Dest.Type = pInt64Type;
+		return true;
+
+	case CharacterMembers::AAVitalityCap:
+		Dest.Int64 = pInventoryWnd->AAVitalityCap;
 		Dest.Type = pInt64Type;
 		return true;
 
