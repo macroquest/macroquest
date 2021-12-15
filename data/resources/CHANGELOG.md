@@ -1,3 +1,7 @@
+December 15, 2021:
+- Fix an issue where ${Me.Moving} reported false when moving backwards
+- Added ${Me.VitalityCap} and ${Me.AAVitalityCap} for parity of numerical output
+
 December 9, 2021:
 - Updated for patch
 

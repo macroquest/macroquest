@@ -1696,12 +1696,13 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return false;
 
 	case CharacterMembers::Moving:
-		// FIXME: Use pControlledPlayer
+		// FIXME: Use pControlledPlayer - there are edge cases with Eye of Zomm and pControlledPlayer that would change
+		//        also look at an edge case where you are levitating in water but not moving
 		Dest.Set(
 			((gbMoving
 				&& (pLocalPlayer->SpeedRun == 0.0f)
 				&& (pLocalPlayer->Mount == nullptr))
-			|| (fabs(FindSpeed(pLocalPlayer) > 0.0f))));
+			|| (FindSpeed(pLocalPlayer) != 0.0f)));
 		Dest.Type = pBoolType;
 		return true;
 
