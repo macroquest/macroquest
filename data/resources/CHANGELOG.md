@@ -1,4 +1,5 @@
 December 15, 2021:
+- Fix ${Me.Invis[SOS]} showing true for rogues who have Rk 2 of SoS (#416)
 - Fix an issue where ${Me.Moving} reported false when moving backwards
 - Added ${Me.VitalityCap} and ${Me.AAVitalityCap} for parity of numerical output
 

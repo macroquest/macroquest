@@ -617,7 +617,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 			Regular = 1,
 			Undead = 2,
 			Animal = 3,
-			SoS = 4
+			SoS = 4,
 		};
 		InvisModes mode = InvisModes::Any;
 
@@ -661,7 +661,8 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 			if (PcProfile* pProfile = GetPcProfile())
 			{
 				int skill = pLocalPC->GetAdjustedSkill(EQSKILL_HIDE);
-				if ((pProfile->bHide + pLocalPC->TotalEffect(SPA_SHROUD_OF_STEALTH) >= 2) && skill >= 100)
+				// SOS has additional ranks that add additional effects.  Level 105 would return 2 total effects.
+				if (pProfile->bHide && pLocalPC->TotalEffect(SPA_SHROUD_OF_STEALTH) > 0 && skill >= 100)
 					Dest.Set(true);
 			}
 			break;
