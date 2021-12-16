@@ -171,9 +171,6 @@
 [submodule "plugins/MQ2DanInterface"]
 	path = plugins/MQ2DanInterface
 	url = https://github.com/jessebevil/MQ2DanInterface.git
-[submodule "plugins/MQ2DanNet"]
-	path = plugins/MQ2DanNet
-	url = https://github.com/dannuic/MQ2Dan.git
 [submodule "plugins/MQ2LootManager"]
 	path = plugins/MQ2LootManager
 	url = https://github.com/jessebevil/MQ2LootManager.git
@@ -228,3 +225,6 @@
 [submodule "plugins/MQ2DamageMeter"]
 	path = plugins/MQ2DamageMeter
 	url = https://gitlab.com/redguides/plugins/mq2damagemeter.git
+[submodule "plugins/MQ2Dan"]
+	path = plugins/MQ2Dan
+	url = https://github.com/dannuic/MQ2Dan
