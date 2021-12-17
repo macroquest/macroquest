@@ -1,3 +1,8 @@
+December 16, 2021:
+- Fixed ${Me.SpellRankCap} (#430)
+- Added Option to toggle Local Echo to the MacroQuest Console (#117)
+- Toggling AutoScroll in the MacroQuest Console will now persist through subsequent loads
+
 December 15, 2021:
 - Fix ${Me.Invis[SOS]} showing true for rogues who have Rk 2 of SoS (#416)
 - Fix an issue where ${Me.Moving} reported false when moving backwards
