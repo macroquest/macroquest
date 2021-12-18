@@ -579,6 +579,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 	std::shared_ptr<ZepConsoleSyntax> m_syntax;
 	int m_maxBufferLines = 10000;
 	bool m_autoScroll = true;
+	bool m_localEcho = true;
 
 	ImGuiZepConsole()
 	{
@@ -610,6 +611,8 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		m_window->SetBufferCursor(m_buffer->End());
 		m_window->ToggleFlag(Zep::WindowFlags::HideTrailingNewline);
 		m_buffer->SetFileFlags(Zep::FileFlags::ReadOnly | Zep::FileFlags::CrudeUtf8Vaidate);
+		m_autoScroll = GetPrivateProfileBool("Console", "AutoScroll", m_autoScroll, internal_paths::MQini);
+		m_localEcho = GetPrivateProfileBool("Console", "LocalEcho", m_localEcho, internal_paths::MQini);
 	}
 
 	void Clear()
@@ -876,6 +879,15 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 	void SetAutoScroll(bool autoScroll)
 	{
 		m_autoScroll = autoScroll;
+		WritePrivateProfileBool("Console", "AutoScroll", m_autoScroll, internal_paths::MQini);
+	}
+
+	bool GetLocalEcho() const { return m_localEcho; }
+
+	void SetLocalEcho(bool localEcho)
+	{
+		m_localEcho = localEcho;
+		WritePrivateProfileBool("Console", "LocalEcho", m_localEcho, internal_paths::MQini);
 	}
 };
 
@@ -959,6 +971,10 @@ public:
 				bool autoScroll = m_zepEditor->GetAutoScroll();
 				if (ImGui::MenuItem("Auto-scroll", nullptr, &autoScroll))
 					m_zepEditor->SetAutoScroll(autoScroll);
+
+				bool localEcho = m_zepEditor->GetLocalEcho();
+				if (ImGui::MenuItem("Local Echo", nullptr, &localEcho))
+					m_zepEditor->SetLocalEcho(localEcho);
 
 				ImGui::Separator();
 
@@ -1082,7 +1098,8 @@ public:
 
 	void ExecCommand(const char* commandLine)
 	{
-		AddLog(Zep::ZepColor(128, 128, 128), "> {0}\n", commandLine);
+		if (m_zepEditor->GetLocalEcho())
+			AddLog(Zep::ZepColor(128, 128, 128), "> {0}\n", commandLine);
 
 		// Inhsert into history. First find match and delete it so i can be pushed to the back. This isn't
 		// trying to be smart or optimal.
