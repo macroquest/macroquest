@@ -165,8 +165,8 @@
 [submodule "plugins/MQ2EasyFind"]
 	path = plugins/MQ2EasyFind
 	url = https://github.com/brainiac/MQ2EasyFind.git
-[submodule "plugins/MQ2ItemColor"]
-	path = plugins/MQ2ItemColor
+[submodule "plugins/MQItemColor"]
+	path = plugins/MQItemColor
 	url = https://gitlab.com/Ortster/MQItemColor.git
 [submodule "plugins/MQ2DanInterface"]
 	path = plugins/MQ2DanInterface
