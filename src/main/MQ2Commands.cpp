@@ -511,23 +511,33 @@ void ItemTarget(SPAWNINFO* pChar, char* szLine)
 {
 	bRunNextCommand = true;
 
-	if (!szLine) return;
+	if (!szLine)
+		return;
 
 	if (!pItemList)
 		return;
 
 	char Arg1[MAX_STRING] = { 0 };
 	GetArg(Arg1, szLine, 1);
-	SetGroundSpawn(Arg1);
 
-	auto result = CurrentGroundSpawn();
-	if (result)
+	if (ci_equals(Arg1, "clear"))
 	{
-		WriteChatf("Item '%s' targeted.", result.DisplayName().c_str());
+		ClearGroundSpawn();
+		WriteChatf("Item target cleared.");
 	}
 	else
 	{
-		MacroError("Couldn't find '%s' to target.", szLine);
+		SetGroundSpawn(Arg1);
+
+		auto result = CurrentGroundSpawn();
+		if (result)
+		{
+			WriteChatf("Item '%s' targeted.", result.DisplayName().c_str());
+		}
+		else
+		{
+			MacroError("Couldn't find '%s' to target.", szLine);
+		}
 	}
 }
 
@@ -602,41 +612,48 @@ void DoorTarget(SPAWNINFO* pChar, char* szLine)
 	char Arg1[MAX_STRING] = { 0 };
 	GetArg(Arg1, szLine, 1);
 
-	char Arg2[MAX_STRING] = { 0 };
-	GetArg(Arg2, szLine, 2);
-
-	EQSwitch* pNewSwitch = nullptr;
-
-	if (!_stricmp(Arg1, "id"))
+	if (ci_equals(Arg1, "clear"))
 	{
-		if (Arg2[0] == 0)
+		WriteChatf("Switch target cleared.");
+	}
+	else
+	{
+		char Arg2[MAX_STRING] = { 0 };
+		GetArg(Arg2, szLine, 2);
+
+		EQSwitch* pNewSwitch = nullptr;
+
+		if (!_stricmp(Arg1, "id"))
 		{
-			MacroError("DoorTarget: id specified but no number provided.");
-			return;
+			if (Arg2[0] == 0)
+			{
+				MacroError("DoorTarget: id specified but no number provided.");
+				return;
+			}
+
+			int ID = GetIntFromString(Arg2, 0);
+			GetArg(Arg2, szLine, 3);
+
+			pNewSwitch = GetSwitchByID(ID);
+		}
+		else
+		{
+			pNewSwitch = FindSwitchByName(Arg1);
 		}
 
-		int ID = GetIntFromString(Arg2, 0);
-		GetArg(Arg2, szLine, 3);
+		if (pNewSwitch)
+		{
+			SetSwitchTarget(pNewSwitch);
+		}
 
-		pNewSwitch = GetSwitchByID(ID);
-	}
-	else
-	{
-		pNewSwitch = FindSwitchByName(Arg1);
-	}
-
-	if (pNewSwitch)
-	{
-		SetSwitchTarget(pNewSwitch);
-	}
-
-	if (pSwitchTarget)
-	{
-		WriteChatf("Switch %d '%s' targeted.", pSwitchTarget->ID, pSwitchTarget->Name);
-	}
-	else
-	{
-		MacroError("Couldn't find switch '%s' to target.", szLine);
+		if (pSwitchTarget)
+		{
+			WriteChatf("Switch %d '%s' targeted.", pSwitchTarget->ID, pSwitchTarget->Name);
+		}
+		else
+		{
+			MacroError("Couldn't find switch '%s' to target.", szLine);
+		}
 	}
 }
 

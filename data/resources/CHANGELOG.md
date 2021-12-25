@@ -1,3 +1,6 @@
+December 25, 2021:
+- Added "clear" to /itemtarget and /doortarget to individually remove those targets
+
 December 16, 2021:
 - Fixed ${Me.SpellRankCap} (#430)
 - Added Option to toggle Local Echo to the MacroQuest Console (#117)
