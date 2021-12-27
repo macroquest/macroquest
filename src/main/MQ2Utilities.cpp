@@ -4882,7 +4882,7 @@ bool IsSpellTooPowerful(PlayerClient* caster, PlayerClient* target, EQ_Spell* sp
 		return false;
 
 	uint8_t spellLevel = spell->GetSpellLevelNeeded(caster->GetClass());
-	if (spellLevel == 0 || spellLevel > 120)
+	if (spellLevel == 0 || spellLevel > MAX_PC_LEVEL)
 		return false;
 
 	uint8_t targetLevel = target->GetLevel();
@@ -6366,7 +6366,11 @@ int GetCharMaxLevel()
 {
 	int MaxLevel = 50;
 
-	if (HasExpansion(EXPANSION_COV) || HasExpansion(EXPANSION_TOV))
+	if (HasExpansion(EXPANSION_TOL))
+	{
+		MaxLevel = 120;
+	}
+	else if (HasExpansion(EXPANSION_COV) || HasExpansion(EXPANSION_TOV))
 	{
 		MaxLevel = 115;
 	}
