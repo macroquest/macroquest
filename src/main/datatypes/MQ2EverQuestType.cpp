@@ -401,7 +401,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		GetArg(szLoc.get(), Index, 3);
 		float Z = GetFloatFromString(szLoc.get(), 0);
 
-		Dest.Set(pLocalPlayer->IsValidTeleport(Y, X, Z, 0, 0));
+		Dest.Set(pLocalPlayer ? pLocalPlayer->IsValidTeleport(Y, X, Z, 0, 0) : false);
 		Dest.Type = pBoolType;
 		return true;
 	}
