@@ -4867,6 +4867,41 @@ bool WillStackWith(const EQ_Spell* testSpell, const EQ_Spell* existingSpell)
 	return ret && SlotIndex != -1;
 }
 
+bool IsSpellTooPowerful(PlayerClient* caster, PlayerClient* target, EQ_Spell* spell)
+{
+	if (!caster || !target || !spell)
+		return true;
+
+	if (caster->Type > 0 && !caster->Mercenary)
+		return false;
+
+	if (caster == target)
+		return false;
+
+	if (spell->TargetType == TargetType_Self || spell->SpellType == SpellType_Detrimental || spell->DurationType == 0)
+		return false;
+
+	uint8_t spellLevel = spell->GetSpellLevelNeeded(caster->GetClass());
+	if (spellLevel == 0 || spellLevel > 120)
+		return false;
+
+	uint8_t targetLevel = target->GetLevel();
+	if (target->Type == 1 && target->MasterID != 0)
+	{
+		auto master = GetSpawnByID(target->MasterID);
+		if (master)
+			targetLevel = master->GetLevel();
+	}
+
+	if (spellLevel > 65 && targetLevel < 61)
+		return true;
+
+	if (spellLevel > 50 && targetLevel < floor(spellLevel / 2) + 15)
+		return true;
+
+	return false;
+}
+
 float GetMeleeRange(PlayerClient* pSpawn1, PlayerClient* pSpawn2)
 {
 	if (pSpawn1 && pSpawn2)

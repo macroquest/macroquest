@@ -1,3 +1,6 @@
+December 27, 2021:
+- Added IsSpellTooPowerful utility function that mimics client logic and incorporated it into StacksTarget and StacksSpawn
+
 December 25, 2021:
 - Added "clear" to /itemtarget and /doortarget to individually remove those targets
 

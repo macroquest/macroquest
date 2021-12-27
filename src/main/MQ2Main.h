@@ -444,6 +444,7 @@ MQLIB_API const char* GetLDoNTheme(int LDTheme);
 MQLIB_API bool TriggeringEffectSpell(SPELL* aSpell, int i);
 MQLIB_API bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects = false, bool bTriggeredEffectCheck = false);
 MQLIB_API bool WillStackWith(const EQ_Spell* testSpell, const EQ_Spell* existingSpell);
+MQLIB_API bool IsSpellTooPowerful(PlayerClient* caster, PlayerClient* target, EQ_Spell* spell);
 MQLIB_API uint32_t GetItemTimer(ItemClient* pItem);
 MQLIB_API ItemClient* GetItemContentsByName(const char* ItemName);
 MQLIB_API DWORD GetAvailableSlots(ItemClient* pContainer, ItemClient* pItem, int *firstavailableslot);

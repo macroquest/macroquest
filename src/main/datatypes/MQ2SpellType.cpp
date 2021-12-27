@@ -707,7 +707,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			return false;
 
 		Dest.Type = pBoolType;
-		Dest.Set(GetCachedBuff(pSpawn, [&pSpell](CachedBuff buff) -> bool {
+		Dest.Set(!IsSpellTooPowerful(pLocalPlayer, pSpawn, pSpell) && GetCachedBuff(pSpawn, [&pSpell](CachedBuff buff) -> bool {
 			auto pBuff = GetSpellByID(buff.spellId);
 			return pBuff && !WillStackWith(pSpell, pBuff);
 		}) < 0);
@@ -720,7 +720,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			return false;
 
 		Dest.Type = pBoolType;
-		Dest.Set(GetCachedBuff(pTarget, [&pSpell](CachedBuff buff) -> bool {
+		Dest.Set(!IsSpellTooPowerful(pLocalPlayer, pTarget, pSpell) && GetCachedBuff(pTarget, [&pSpell](CachedBuff buff) -> bool {
 			auto pBuff = GetSpellByID(buff.spellId);
 			return pBuff && !WillStackWith(pSpell, pBuff);
 		}) < 0);
