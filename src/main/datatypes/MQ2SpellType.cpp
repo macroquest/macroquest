@@ -1220,12 +1220,17 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.Type = pSpellType;
 
 		int spaFound = GetTriggerSPA(pSpell);
-		if (!Index[0] || spaFound == 0)
+		int autoCast = pSpell->Autocast;
+		int index = !Index[0] ? -1 : GetIntFromString(Index, 0) - 1;
+
+		if (spaFound == 0 && autoCast == 0)
 			return false;
 
-		int index = GetIntFromString(Index, 0) - 1;
-		if (index < 0 || index >= pSpell->NumEffects)
-			return false;
+		if (spaFound == 0 || index < 0 || index >= pSpell->NumEffects)
+		{
+			Dest.Ptr = GetSpellByID(autoCast);
+			return Dest.Ptr != nullptr;
+		}
 
 		int base2 = GetSpellBase2(pSpell, index);
 		if (base2 == 0)
