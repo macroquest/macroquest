@@ -129,7 +129,7 @@ void InitializeLoginDetours()
 
 	DebugSpewAlways("Initializing Login Detours");
 
-	AddDetour(EQMain__LoginController__GiveTime, &LoginController_Hook::GiveTime_Detour, &LoginController_Hook::GiveTime_Trampoline, "GiveTime");
+	Detour::Add(EQMain__LoginController__GiveTime, &LoginController_Hook::GiveTime_Detour, &LoginController_Hook::GiveTime_Trampoline, "GiveTime");
 	EzDetour(EQMain__WndProc, EQMain__WndProc_Detour, EQMain__WndProc_Trampoline);
 
 	if (EQMain__CXWndManager__GetCursorToDisplay)
@@ -156,8 +156,6 @@ void RemoveLoginDetours()
 
 	for (DWORD detour : detours)
 		RemoveDetour(detour);
-
-	detail::set_fn_ptr(LoginController_Hook::GiveTime_Trampoline, EQMain__LoginController__GiveTime);
 
 	gbDetoursInstalled = false;
 }

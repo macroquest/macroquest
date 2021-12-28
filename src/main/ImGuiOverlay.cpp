@@ -147,7 +147,7 @@ static void InstallHook(HookInfo hi)
 }
 
 template <typename T>
-static void InstallDetour(uintptr_t address, T detour, T* trampoline_ptr, PCHAR name)
+static void InstallDetour(uintptr_t address, T detour, T& trampoline_ptr, PCHAR name)
 {
 	HookInfo hookInfo;
 	hookInfo.name = name;
@@ -155,7 +155,8 @@ static void InstallDetour(uintptr_t address, T detour, T* trampoline_ptr, PCHAR 
 	hookInfo.patch = [&detour, address, &trampoline_ptr](HookInfo& hi)
 	{
 		hi.address = address;
-		AddDetour(hi.address, detour, trampoline_ptr, hi.name);
+		auto ptr = std::make_shared<Detour>(hi.address, &(void*&)trampoline_ptr, *(void**)&detour, hi.name);
+		ptr->Add();
 	};
 
 	InstallHook(hookInfo);
@@ -414,7 +415,7 @@ public:
 
 			gResetDeviceAddress = resetDevice;
 
-			InstallDetour(d3dDevice_vftable[0x10], &RenderHooks::Reset_Detour, &RenderHooks::Reset_Trampoline_Ptr, "d3dDevice_Reset");
+			InstallDetour(d3dDevice_vftable[0x10], &RenderHooks::Reset_Detour, RenderHooks::Reset_Trampoline_Ptr, "d3dDevice_Reset");
 
 			changed = true;
 		}
@@ -801,8 +802,8 @@ static bool InstallD3D9Hooks()
 			// IDirect3DDevice9 virtual function hooks
 			DWORD* d3dDevice_vftable = *(DWORD**)device.get();
 
-			InstallDetour(d3dDevice_vftable[0x29], &RenderHooks::BeginScene_Detour, &RenderHooks::BeginScene_Trampoline_Ptr, "d3dDevice_BeginScene");
-			InstallDetour(d3dDevice_vftable[0x2a], &RenderHooks::EndScene_Detour, &RenderHooks::EndScene_Trampoline_Ptr, "d3dDevice_EndScene");
+			InstallDetour(d3dDevice_vftable[0x29], &RenderHooks::BeginScene_Detour, RenderHooks::BeginScene_Trampoline_Ptr, "d3dDevice_BeginScene");
+			InstallDetour(d3dDevice_vftable[0x2a], &RenderHooks::EndScene_Detour, RenderHooks::EndScene_Trampoline_Ptr, "d3dDevice_EndScene");
 		}
 
 		// restore floating point rounding state

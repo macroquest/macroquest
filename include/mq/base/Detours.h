@@ -56,6 +56,7 @@ public:
 	uintptr_t Address() const { return m_address; }
 	uint8_t* Bytes() { return reinterpret_cast<uint8_t*>(m_bytes); }
 
+	void Add() { AddToMap(); }
 	void Drop() { RemoveFromMap(); }
 
 	template <typename T>
@@ -137,55 +138,6 @@ ret name(Args&&... args) { \
 		return (this->*name##_Ptr)(std::forward<Args>(args)...); \
 	else \
 		return (name##_Ptr)(std::forward<Args>(args)...); \
-}
-
-// TODO: Remove these functions, there are here for testing of setting detours. The final API is above in the Detour class
-template <typename T>
-std::enable_if_t<!std::is_member_pointer_v<T>, void> AddDetour(uintptr_t offset, T& detour, T*& ptr, std::string_view name)
-{
-	ptr = reinterpret_cast<T*>(offset);
-	DetourRestoreAfterWith();
-
-	DetourTransactionBegin();
-	DetourUpdateThread(GetCurrentThread());
-	DetourAttach(&(void*&)ptr, detour);
-	DetourTransactionCommit();
-}
-
-template <typename T>
-std::enable_if_t<std::is_member_pointer_v<T>, void> AddDetour(uintptr_t offset, T& detour, T* ptr, std::string_view name)
-{
-	*ptr = *reinterpret_cast<T*>(&offset);
-	DetourRestoreAfterWith();
-
-	DetourTransactionBegin();
-	DetourUpdateThread(GetCurrentThread());
-	DetourAttach((void**)ptr, *(void**)&detour);
-	DetourTransactionCommit();
-}
-
-template <typename T>
-std::enable_if_t<std::is_member_pointer_v<T>, void> AddDetour(uintptr_t offset, T&& detour, T* ptr, std::string_view name)
-{
-	*ptr = *reinterpret_cast<T*>(&offset);
-	DetourRestoreAfterWith();
-
-	DetourTransactionBegin();
-	DetourUpdateThread(GetCurrentThread());
-	DetourAttach((void**)ptr, *(void**)&detour);
-	DetourTransactionCommit();
-}
-
-template <typename T>
-std::enable_if_t<std::is_pointer_v<T>, void> AddDetour(uintptr_t offset, T&& detour, T* ptr, std::string_view name)
-{
-	*ptr = *reinterpret_cast<T*>(&offset);
-	DetourRestoreAfterWith();
-
-	DetourTransactionBegin();
-	DetourUpdateThread(GetCurrentThread());
-	DetourAttach(&(void*&)*ptr, detour);
-	DetourTransactionCommit();
 }
 
 #define EzDetour(address, detour, trampoline) Detour::Add(static_cast<uintptr_t>(address), detour, trampoline##_Ptr, STRINGIFY(offset))
