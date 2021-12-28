@@ -316,8 +316,7 @@ public:
 	}
 };
 
-static void(*Throttler_Trampoline_Ptr)();
-static void Throttler_Trampoline() { Throttler_Trampoline_Ptr(); }
+static void(*Throttler_Trampoline)();
 __declspec(naked) static void Throttler_Detour()
 {
 	// If DoThrottleFrameRate returns false, then it is disabled and we
@@ -1203,7 +1202,7 @@ static void InitializeFrameLimiter()
 
 	// Hook the main loop throttle function
 	if constexpr (__ThrottleFrameRate_x && __ThrottleFrameRateEnd_x)
-		EzDetour(__ThrottleFrameRate, &Throttler_Detour, &Throttler_Trampoline);
+		AddDetour(__ThrottleFrameRate, Throttler_Detour, Throttler_Trampoline, "ThrottleFrameRate");
 
 	// Hook CDisplay::RealRender_World to control render loop
 	EzDetour(CDisplay__RealRender_World, &CDisplayHook::RealRender_World_Detour, &CDisplayHook::RealRender_World_Trampoline);
@@ -1221,11 +1220,15 @@ static void ShutdownFrameLimiter()
 
 	RemoveDetour(CXWndManager__DrawWindows);
 	RemoveDetour(CRender__RenderScene);
+	RemoveDetour(CRender__RenderBlind);
 	RemoveDetour(CRender__UpdateDisplay);
 	RemoveDetour(CDisplay__RealRender_World);
 
 	if constexpr (__ThrottleFrameRate_x && __ThrottleFrameRateEnd_x)
+	{
 		RemoveDetour(__ThrottleFrameRate);
+		detail::set_fn_ptr(Throttler_Trampoline, __ThrottleFrameRate);
+	}
 
 	RemoveMQ2Benchmark(bmRenderScene);
 	RemoveMQ2Benchmark(bmRealRenderWorld);
