@@ -14,4 +14,4 @@
 
 #pragma message("WARNING: MQ2Plugin.h is deprecated. please include <mq/Plugin.h> instead")
 
-#include <mq/plugin.h>
+#include <mq/Plugin.h>
