@@ -90,7 +90,9 @@ inline std::string GetPrivateProfileString(const char* Section, const char* Key,
 	return std::string{ szBuffer, length };
 }
 
+// GetPrivateProfileValue provides overloads to allow dispatching by type (selected by the type of default value)
 inline int GetPrivateProfileValue(const char* Section, const char* Key, int defaultValue, const char* IniFileName) { return GetPrivateProfileInt(Section, Key, defaultValue, IniFileName); }
+inline unsigned int GetPrivateProfileValue(const char* Section, const char* Key, unsigned int defaultValue, const char* IniFileName) { return static_cast<unsigned int>(GetPrivateProfileInt(Section, Key, static_cast<int>(defaultValue), IniFileName)); }
 inline float GetPrivateProfileValue(const char* Section, const char* Key, float defaultValue, const char* IniFileName) { return GetPrivateProfileFloat(Section, Key, defaultValue, IniFileName); }
 inline bool GetPrivateProfileValue(const char* Section, const char* Key, bool defaultValue, const char* IniFileName) { return GetPrivateProfileBool(Section, Key, defaultValue, IniFileName); }
 inline std::string GetPrivateProfileValue(const char* Section, const char* Key, const char* defaultValue, const char* IniFileName) { return GetPrivateProfileString(Section, Key, defaultValue, IniFileName); }
