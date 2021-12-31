@@ -98,8 +98,22 @@ void UpdateSettingsUI()
 	}
 }
 
-void MQSettingsCommand(PSPAWNINFO pLPlayer, char* szLine) {
-	gbShowSettingsWindow = !gbShowSettingsWindow;
+void MQSettingsCommand(PSPAWNINFO pLPlayer, char* szLine)
+{
+	std::string_view arg{ szLine };
+	if (!arg.empty())
+	{
+		gbShowSettingsWindow = true;
+
+		if (gSettingsWindow)
+		{
+			gSettingsWindow->FocusPanel(arg);
+		}
+	}
+	else
+	{
+		gbShowSettingsWindow = !gbShowSettingsWindow;
+	}
 }
 
 //============================================================================

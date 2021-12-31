@@ -56,6 +56,8 @@ public:
 
 		using Function = void(*)();
 		Function func = nullptr;
+
+		bool selectRequested = false;
 	};
 
 	void Clear()
@@ -153,6 +155,18 @@ public:
 		m_dirtyTree = true;
 	}
 
+	void FocusPanel(std::string_view id)
+	{
+		for (auto& panel : m_panels)
+		{
+			if (ci_equals(panel->name, id))
+			{
+				panel->selectRequested = true;
+				break;
+			}
+		}
+	}
+
 private:
 	void RegenerateTree()
 	{
@@ -233,13 +247,26 @@ private:
 		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth;
 		bool isLeaf = node->children.empty();
 
-		if (m_selectedPanel == nullptr && node->def != nullptr)
+		if (node->def != nullptr && (m_selectedPanel == nullptr || node->def->selectRequested))
+		{
 			m_selectedPanel = node->def;
+			node->def->selectRequested = false;
+		}
 
 		if (isLeaf)
 			flags |= ImGuiTreeNodeFlags_Leaf;
 		if (node->def == m_selectedPanel)
 			flags |= ImGuiTreeNodeFlags_Selected;
+
+		// Check if we need to force open a node due to a child.
+		for (const auto& child : node->children)
+		{
+			if (child->def && child->def->selectRequested)
+			{
+				ImGui::SetNextItemOpen(true);
+				break;
+			}
+		}
 
 		bool nodeOpen = ImGui::TreeNodeEx((void*)node, flags, "%.*s", node->displayName.length(), node->displayName.data());
 
