@@ -370,6 +370,7 @@
     <ClInclude Include="..\..\include\mq\base\Config.h" />
     <ClInclude Include="..\..\include\mq\base\Deprecation.h" />
     <ClInclude Include="..\..\include\mq\base\Detours.h" />
+    <ClInclude Include="..\..\include\mq\base\Signal.h" />
     <ClInclude Include="..\..\include\mq\base\SimpleLexer.h" />
     <ClInclude Include="..\..\include\mq\base\Threading.h" />
     <ClInclude Include="..\..\include\mq\imgui\ImGuiUtils.h" />
