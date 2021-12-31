@@ -2084,14 +2084,15 @@ namespace sol_ImGui
 
 #pragma region Table Flags
 		lua.new_enum("ImGuiTableFlags",
+			// Features
 			"None"                          , ImGuiTableFlags_None,
 			"Resizable"                     , ImGuiTableFlags_Resizable,
 			"Reorderable"                   , ImGuiTableFlags_Reorderable,
 			"Hideable"                      , ImGuiTableFlags_Hideable,
 			"Sortable"                      , ImGuiTableFlags_Sortable,
-			"SortMulti"                     , ImGuiTableFlags_SortMulti,
 			"NoSavedSettings"               , ImGuiTableFlags_NoSavedSettings,
 			"ContextMenuInBody"             , ImGuiTableFlags_ContextMenuInBody,
+			// Decorations
 			"RowBg"                         , ImGuiTableFlags_RowBg,
 			"BordersInnerH"                 , ImGuiTableFlags_BordersInnerH,
 			"BordersOuterH"                 , ImGuiTableFlags_BordersOuterH,
@@ -2104,20 +2105,34 @@ namespace sol_ImGui
 			"Borders"                       , ImGuiTableFlags_Borders,
 			"NoBordersInBody"               , ImGuiTableFlags_NoBordersInBody,
 			"NoBordersInBodyUntilResize"    , ImGuiTableFlags_NoBordersInBodyUntilResize,
+			// Sizing Policy
 			"SizingFixedFit"                , ImGuiTableFlags_SizingFixedFit,
+			"SizingFixedSame"               , ImGuiTableFlags_SizingFixedSame,
 			"SizingStretchProp"             , ImGuiTableFlags_SizingStretchProp,
-
+			"SizingStretchSame"             , ImGuiTableFlags_SizingStretchSame,
+			// Sizing Extra Options
+			"NoHostExtendX"                 , ImGuiTableFlags_NoHostExtendX,
 			"NoHostExtendY"                 , ImGuiTableFlags_NoHostExtendY,
 			"NoKeepColumnsVisible"          , ImGuiTableFlags_NoKeepColumnsVisible,
+			"PreciseWidths"                 , ImGuiTableFlags_PreciseWidths,
+			// Clipping
 			"NoClip"                        , ImGuiTableFlags_NoClip,
+			// Padding
+			"PadOuterX"                     , ImGuiTableFlags_PadOuterX,
+			"NoPadOuterX"                   , ImGuiTableFlags_NoPadOuterX,
+			"NoPadInnerX"                   , ImGuiTableFlags_NoPadInnerX,
+			// Scrolling
 			"ScrollX"                       , ImGuiTableFlags_ScrollX,
 			"ScrollY"                       , ImGuiTableFlags_ScrollY,
-			"Scroll"                        , (ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY),
+			// Sorting
+			"SortMulti"                     , ImGuiTableFlags_SortMulti,
+			"SortTristate"                  , ImGuiTableFlags_SortTristate,
 
 			// Deprecated
 			"MultiSortable"                 , ImGuiTableFlags_SortMulti,
 			"SizingPolicyFixedX"            , ImGuiTableFlags_SizingFixedFit,
 			"SizingPolicyStretchX"          , ImGuiTableFlags_SizingStretchProp,
+			"Scroll"                        , (ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY),
 			"NoHeadersWidth"                , 0 // removed
 		);
 #pragma endregion
