@@ -3107,6 +3107,621 @@ static StringInspector* s_stringInspector = nullptr;
 
 #pragma endregion
 
+#pragma region Switch Inspector
+
+// FIXME: Pull these helpers out
+inline bool IsSwitchStationary(EQSwitch* pSwitch)
+{
+	int typeId = pSwitch->Type;
+
+	return (typeId != 53 && typeId >= 50 && typeId < 59)
+		|| (typeId >= 153 && typeId <= 155);
+}
+
+inline bool IsSwitchTeleporter(EQSwitch* pSwitch)
+{
+	int typeId = pSwitch->Type;
+	DWORD TableSize = *(DWORD*)Teleport_Table_Size;
+
+	return (typeId == 57 || typeId == 58) && pSwitch->SpellID > -1 && (pSwitch->SpellID < (int)TableSize);
+}
+
+class ImGuiSwitchViewer
+{
+	int m_instanceId = 0;
+	std::string m_windowDisplayName;
+	std::string m_viewerTitle;
+	bool m_needDock = true;
+	bool m_needFocus = false;
+	ImGuiID m_windowId = 0;
+
+	int m_id = -1;
+
+public:
+	ImGuiSwitchViewer()
+	{
+		static int nextInstanceId = 1;
+		m_instanceId = nextInstanceId++;
+	}
+
+	void SetNeedDock(bool dock) { m_needDock = dock; }
+	bool GetNeedDock() const { return m_needDock; }
+
+	void SetNeedFocus(bool needFocus) { m_needFocus = needFocus; }
+	const char* GetWindowIdStr() const { return m_viewerTitle.c_str(); }
+
+	int GetInstanceId() const { return m_instanceId; }
+	ImGuiID GetWindowId() const { return m_windowId; }
+
+	void SetSwitchId(int id)
+	{
+		if (!test_and_set(m_id, id))
+			return;
+
+		m_needFocus = true;
+
+		if (m_id >= 0)
+		{
+			const EQSwitch* pSwitch = pSwitchMgr->GetSwitchById(m_id);
+			if (pSwitch)
+			{
+				m_windowDisplayName = fmt::format("{} ({})", pSwitch->Name, pSwitch->ID);
+			}
+			else
+			{
+				m_windowDisplayName = fmt::format("Switch {}", m_id);
+			}
+
+		}
+
+		m_viewerTitle = fmt::format("{}###SwitchViewer{}", m_windowDisplayName, m_instanceId);
+	}
+	int GetSwitchId() const { return m_id; }
+
+	bool Draw()
+	{
+		if (m_needFocus)
+		{
+			ImGui::SetNextWindowFocus();
+			m_needFocus = false;
+		}
+
+		bool open = true;
+		ImGui::SetNextWindowSize(ImVec2(480, 640), ImGuiCond_FirstUseEver);
+		if (ImGui::Begin(m_viewerTitle.c_str(), &open))
+		{
+			if (m_windowId == 0)
+				m_windowId = ImGui::GetCurrentWindow()->ID;
+
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 9);
+
+			DisplaySwitchData();
+		}
+		ImGui::End();
+
+		return open;
+	}
+
+	void DisplaySwitchData()
+	{
+		if (!pSwitchMgr) return;
+		EQSwitch* pSwitch = pSwitchMgr->GetSwitchById(m_id);
+
+		if (ImGui::SmallButton("Click"))
+		{
+			pSwitch->UseSwitch(pLocalPlayer->SpawnID, -1, 0, nullptr);
+		}
+		ImGui::SameLine();
+		if (ImGui::SmallButton("Target"))
+		{
+			DoCommandf("/doortarget id %d", pSwitch->ID);
+		}
+
+		if (ImGui::BeginTable("##SwitchPropertiesTable", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
+		{
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableHeadersRow();
+
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("ID"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->ID);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Name"); ImGui::TableNextColumn(); ImGui::Text("%s", pSwitch->Name);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Type"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->Type);
+
+			if (IsSwitchTeleporter(pSwitch))
+			{
+				ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Zone Point"); ImGui::TableNextColumn();
+
+				DWORD TableSize = *(DWORD*)Teleport_Table_Size;
+
+				const char* zone = GetTeleportName(pSwitch->SpellID);
+				ImGui::TextColored(ImColor(0, 255, 0), "%s (%d)", zone, pSwitch->SpellID);
+				if (pSwitch->SpellID < (int)TableSize)
+				{
+					tp_coords* tp = ((tp_coords*)Teleport_Table) + pSwitch->SpellID;
+
+					ImGui::SameLine();
+					ImGui::Text("(%.2f, %.2f, %.2f)", tp->Y, tp->X, tp->Z);
+				}
+			}
+
+			if (pSwitch->AdventureDoorID > 0)
+			{
+				ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Adventure Switch ID"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->AdventureDoorID);
+			}
+
+			if (pSwitch->DynDoorID > 0)
+			{
+				ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Dynamic Switch ID"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->DynDoorID);
+			}
+
+			if (pSwitch->RealEstateDoorID > 0)
+			{
+				ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Real Estate Door ID"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->RealEstateDoorID);
+			}
+
+
+			ImGui::Separator();
+
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("State"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->State);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Position"); ImGui::TableNextColumn(); ImGui::Text("%.2f, %.2f, %.2f",
+				pSwitch->Y, pSwitch->X, pSwitch->Z);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Heading"); ImGui::TableNextColumn(); ImGui::Text("%.2f", pSwitch->Heading);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Angle"); ImGui::TableNextColumn(); ImGui::Text("%.2f", pSwitch->DoorAngle);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Scale"); ImGui::TableNextColumn(); ImGui::Text("%.2f",
+				static_cast<float>(pSwitch->ScaleFactor) / 100.0f);
+
+			ImGui::Separator();
+
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Default State"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->DefaultState);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Default Position"); ImGui::TableNextColumn(); ImGui::Text("%.2f, %.2f, %.2f",
+				pSwitch->DefaultY, pSwitch->DefaultX, pSwitch->DefaultZ);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Default Heading"); ImGui::TableNextColumn(); ImGui::Text("%.2f", pSwitch->DefaultHeading);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Default Angle"); ImGui::TableNextColumn(); ImGui::Text("%.2f", pSwitch->DefaultDoorAngle);
+
+			ImGui::Separator();
+
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Top Speed"); ImGui::TableNextColumn(); ImGui::Text("%.2f, %.2f",
+				pSwitch->TopSpeed1, pSwitch->TopSpeed2);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Self Activated"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->SelfActivated);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Dependent"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->Dependent);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Template"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->bTemplate);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Difficulty"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->Difficulty);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Key"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->Key);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Custom Data"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->SpellID);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Script"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->Script);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("TimeStamp"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->TimeStamp);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Always Active"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->AlwaysActive);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Return Position"); ImGui::TableNextColumn(); ImGui::Text("%.2f, %.2f, %.2f",
+				pSwitch->ReturnY, pSwitch->ReturnX, pSwitch->ReturnZ);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Has Script"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->bHasScript);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Filter ID"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->SomeID);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Usable"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->bUsable);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Remain Open"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->bRemainOpen);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Visible"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->bVisible);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Heading Changed"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->bHeadingChanged);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Allow Corpse Drag"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->bAllowCorpseDrag);
+
+			ImGui::Separator();
+
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Target Slots"); ImGui::TableNextColumn(); ImGui::Text("%d %d %d %d %d", pSwitch->AffectSlots[0], pSwitch->AffectSlots[1], pSwitch->AffectSlots[2], pSwitch->AffectSlots[3], pSwitch->AffectSlots[4]);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Target"); ImGui::TableNextColumn(); ImGui::Text("%d %d %d %d %d", pSwitch->TargetID[0], pSwitch->TargetID[1], pSwitch->TargetID[2], pSwitch->TargetID[3], pSwitch->TargetID[4]);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Current Combo"); ImGui::TableNextColumn(); ImGui::Text("%d %d %d %d %d", pSwitch->CurrentCombination[0], pSwitch->CurrentCombination[1], pSwitch->CurrentCombination[2], pSwitch->CurrentCombination[3], pSwitch->CurrentCombination[4]);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Required Combo"); ImGui::TableNextColumn(); ImGui::Text("%d %d %d %d %d", pSwitch->ReqCombination[0], pSwitch->ReqCombination[1], pSwitch->ReqCombination[2], pSwitch->ReqCombination[3], pSwitch->ReqCombination[4]);
+			ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("Random Combo"); ImGui::TableNextColumn(); ImGui::Text("%d", pSwitch->RandomCombo);
+
+			ImGui::EndTable();
+		}
+	}
+};
+
+class SwitchInspector : public ImGuiWindowBase
+{
+	std::unordered_map<int, float> m_distanceCache;
+	glm::vec3 m_lastPos;
+	std::vector<EQSwitch*> m_switches;
+	const EQSwitch* m_lastFirstSwitch = nullptr;
+	bool m_sortingByDistance = false;
+	bool m_positionChanged = false;
+	int m_lastDoorTargetId = -1;
+
+	int m_selectedSwitchId = -1;
+	bool m_selectionChanged = false;
+
+	std::map<int, ImGuiSwitchViewer> m_viewers;
+	ImGuiID m_topNode = 0;
+	ImGuiID m_bottomNode = 0;
+	ImGuiID m_mainDockID = 0;
+
+public:
+	SwitchInspector() : ImGuiWindowBase("Switch Inspector")
+	{
+		SetDefaultSize(ImVec2(600, 400));
+	}
+
+	~SwitchInspector()
+	{
+	}
+
+	bool IsEnabled() const override
+	{
+		return pSwitchMgr != nullptr;
+	}
+
+	void UpdateSwitches()
+	{
+		if (!pSwitchMgr)
+		{
+			m_switches.clear();
+			m_distanceCache.clear();
+		}
+
+		glm::vec3 myPos{ pLocalPlayer->X, pLocalPlayer->Y, pLocalPlayer->Z };
+		if (myPos != m_lastPos)
+		{
+			m_lastPos = myPos;
+			m_positionChanged = true;
+			m_distanceCache.clear();
+		}
+
+		if (m_switches.size() != pSwitchMgr->NumEntries
+			|| m_lastFirstSwitch != pSwitchMgr->GetSwitch(0))
+		{
+			m_switches.resize(pSwitchMgr->NumEntries);
+			m_lastFirstSwitch = pSwitchMgr->GetSwitch(0);
+			m_distanceCache.clear();
+
+			for (int i = 0; i < pSwitchMgr->NumEntries; ++i)
+			{
+				m_switches[i] = pSwitchMgr->GetSwitch(i);
+			}
+		}
+
+		m_lastDoorTargetId = pSwitchTarget ? pSwitchTarget->ID : -1;
+	}
+
+	void SetSelectedSwitchId(int switchId)
+	{
+		if (test_and_set(m_selectedSwitchId, switchId))
+			m_selectionChanged = true;
+	}
+
+	void DrawSwitchesInspectorWindow()
+	{
+		if (!pSwitchMgr || !pLocalPlayer) return;
+
+		UpdateSwitches();
+
+		ImGui::Text("%d switch objects", m_switches.size());
+
+		enum MyItemColumnID
+		{
+			ColumnID_ID,
+			ColumnID_Name,
+			ColumnID_Type,
+			ColumnID_Distance,
+			ColumnID_Extras,
+		};
+
+		if (ImGui::BeginTable("##SwitchTable", 5, ImGuiTableFlags_Resizable | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti
+			| ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
+		{
+			ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultSort | ImGuiTableColumnFlags_PreferSortAscending, 40.f);
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 50.f);
+			ImGui::TableSetupColumn("Distance", ImGuiTableColumnFlags_WidthFixed, 100.f);
+			ImGui::TableSetupColumn("##Extras", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_NoSort);
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableHeadersRow();
+
+			ImGuiTableSortSpecs* sort_specs = ImGui::TableGetSortSpecs();
+
+			if (sort_specs->SpecsDirty || (m_sortingByDistance && m_positionChanged))
+			{
+				std::sort(m_switches.begin(), m_switches.end(),
+					[&](const EQSwitch* a, const EQSwitch* b)
+				{
+					m_sortingByDistance = false;
+					for (int n = 0; n < sort_specs->SpecsCount; ++n)
+					{
+						const ImGuiTableColumnSortSpecs* sort_spec = &sort_specs->Specs[n];
+						int delta = 0;
+
+						switch (sort_spec->ColumnIndex)
+						{
+						case ColumnID_ID: delta = a->ID - b->ID; break;
+						case ColumnID_Name: delta = _stricmp(a->Name, b->Name); break;
+						case ColumnID_Type: delta = a->Type - b->Type; break;
+						case ColumnID_Distance: {
+							float deltaF = GetDistance(a) - GetDistance(b);
+							m_sortingByDistance = true;
+							if (deltaF < 0)
+								return sort_spec->SortDirection == ImGuiSortDirection_Ascending;
+							if (deltaF > 0)
+								return sort_spec->SortDirection == ImGuiSortDirection_Descending;
+							continue;
+						};
+						default: break;
+						}
+
+						if (delta < 0)
+							return sort_spec->SortDirection == ImGuiSortDirection_Ascending;
+						if (delta > 0)
+							return sort_spec->SortDirection == ImGuiSortDirection_Descending;
+					}
+
+					return a->ID < b->ID;
+				});
+
+				sort_specs->SpecsDirty = false;
+				m_positionChanged = false;
+			}
+
+			for (EQSwitch* pSwitch : m_switches)
+			{
+				bool targetted = (m_lastDoorTargetId == pSwitch->ID);
+				bool selected = (m_selectedSwitchId == pSwitch->ID);
+
+				ImGui::PushID(pSwitch->ID);
+				ImGui::TableNextRow();
+
+				if (targetted)
+					ImGui::PushStyleColor(ImGuiCol_Text, MQColor(0, 255, 0).ToImU32());
+
+				ImGui::TableNextColumn();
+
+				char label[32];
+				sprintf_s(label, "%d", pSwitch->ID);
+
+				if (ImGui::Selectable(label, selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap))
+				{
+					if (ImGui::GetIO().KeyCtrl)
+						ShowSwitchViewer(pSwitch->ID, true);
+					else
+						SetSelectedSwitchId(pSwitch->ID);
+				}
+
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", pSwitch->Name);
+
+				if (ImGui::BeginPopupContextItem(""))
+				{
+					ImGui::TextColored(achGoldColor.ToImColor(), "%s", pSwitch->Name);
+					ImGui::Separator();
+
+					if (ImGui::Selectable("Open in new viewer"))
+						ShowSwitchViewer(pSwitch->ID, true);
+					if (ImGui::Selectable("Copy ID"))
+					{
+						char idText[32];
+						sprintf_s(idText, "%d", pSwitch->ID);
+
+						ImGui::SetClipboardText(idText);
+					}
+					if (ImGui::Selectable("Copy Name"))
+						ImGui::SetClipboardText(pSwitch->Name);
+
+					ImGui::EndPopup();
+				}
+
+				ImGui::TableNextColumn();
+				ImGui::Text("%d", pSwitch->Type);
+
+				ImGui::TableNextColumn();
+				ImGui::Text("%.2f", GetDistance(pSwitch));
+
+				ImGui::TableNextColumn();
+
+				if (targetted)
+					ImGui::PopStyleColor();
+
+				if (ImGui::SmallButton("Click"))
+				{
+					pSwitch->UseSwitch(pLocalPlayer->SpawnID, -1, 0, nullptr);
+				}
+
+				if (targetted)
+				{
+					ImGui::SameLine();
+					ImGui::Text("<target>");
+				}
+				else
+				{
+					ImGui::SameLine();
+					if (ImGui::SmallButton("Target"))
+					{
+						DoCommandf("/doortarget id %d", pSwitch->ID);
+					}
+				}
+
+				if (IsSwitchStationary(pSwitch))
+				{
+					ImGui::SameLine();
+					ImGui::Text("*stationary*");
+				}
+
+				if (IsSwitchTeleporter(pSwitch))
+				{
+					ImGui::SameLine();
+
+					const char* dest = GetTeleportName(pSwitch->SpellID);
+					ImGui::Text("*teleporter: %s*", dest);
+				}
+
+				ImGui::PopID();
+			}
+
+			ImGui::EndTable();
+		}
+	}
+
+	void Update() override
+	{
+		if (m_mainDockID == 0)
+		{
+			m_mainDockID = ImGui::GetID("SwitchInspector");
+		}
+
+		if (!IsEnabled())
+			return;
+
+		ImGuiDockNode* node = ImGui::DockBuilderGetNode(m_mainDockID);
+		if (!node || m_bottomNode == 0)
+		{
+			if (node)
+			{
+				ImGui::DockBuilderRemoveNodeChildNodes(m_mainDockID);
+			}
+			else
+			{
+				ImGui::DockBuilderRemoveNode(m_mainDockID);
+				ImGui::DockBuilderAddNode(m_mainDockID, ImGuiDockNodeFlags_None);
+				ImGui::DockBuilderSetNodeSize(m_mainDockID, ImVec2(480, 640));
+
+				ImGuiViewport* viewport = ImGui::GetMainViewport();
+				ImGui::DockBuilderSetNodePos(m_mainDockID, ImVec2(viewport->Pos.x + 100, viewport->Pos.y + 100));
+
+				node = ImGui::DockBuilderGetNode(m_mainDockID);
+			}
+
+			ImGuiDockNode* topNode = nullptr;
+
+			if (!node->IsSplitNode())
+			{
+				ImGui::DockBuilderSplitNode(m_mainDockID, ImGuiDir_Up, 0.5f, &m_topNode, &m_bottomNode);
+				topNode = ImGui::DockBuilderGetNode(m_topNode);
+			}
+			else
+			{
+				topNode = node->ChildNodes[0];
+				m_topNode = topNode->ID;
+			}
+
+			topNode->LocalFlags |= ImGuiDockNodeFlags_NoWindowMenuButton;
+
+			ImGui::DockBuilderDockWindow(m_windowId.c_str(), m_topNode);
+			ImGui::DockBuilderFinish(m_mainDockID);
+		}
+
+		if (m_open)
+		{
+			bool doShow = ImGui::Begin("Switch Inspector", m_open.get_ptr());
+			m_open.Update();
+			if (doShow)
+			{
+				DrawSwitchesInspectorWindow();
+			}
+
+			ImGui::End();
+
+			if (!m_open)
+			{
+				for (auto iter = m_viewers.begin(); iter != m_viewers.end();)
+				{
+					const auto& [_, viewer] = *iter;
+
+					if (ImGuiWindow* window = ImGui::FindWindowByID(viewer.GetWindowId()))
+					{
+						if (window->DockId == m_bottomNode || window->DockId == m_topNode)
+						{
+							iter = m_viewers.erase(iter);
+							continue;
+						}
+					}
+
+					++iter;
+				}
+			}
+		}
+
+		if (m_selectionChanged)
+		{
+			if (m_selectedSwitchId != -1)
+				ShowSwitchViewer(m_selectedSwitchId, false);
+
+			m_selectionChanged = false;
+		}
+
+		DrawSwitchViewers();
+	}
+
+	void ShowSwitchViewer(int switchId, bool createNew)
+	{
+		if (!createNew)
+		{
+			auto iter = std::find_if(std::begin(m_viewers), std::end(m_viewers),
+				[switchId](const auto& p) { return p.second.GetSwitchId() == switchId; });
+			if (iter != m_viewers.end())
+			{
+				iter->second.SetNeedFocus(true);
+				return;
+			}
+
+			// don't create new. Reuse the currently selected window (which is it?)
+			if (ImGuiDockNode* node = ImGui::DockBuilderGetNode(m_bottomNode))
+			{
+				ImGuiID selectedTabId = node->SelectedTabId;
+
+				iter = std::find_if(std::begin(m_viewers), std::end(m_viewers),
+					[selectedTabId](const auto& p) { return p.second.GetWindowId() == selectedTabId; });
+				if (iter != m_viewers.end())
+				{
+					iter->second.SetSwitchId(switchId);
+					return;
+				}
+			}
+		}
+
+		auto [iter, _] = m_viewers.emplace(
+			std::piecewise_construct,
+			std::forward_as_tuple(switchId),
+			std::forward_as_tuple());
+		iter->second.SetSwitchId(switchId);
+	}
+
+	void RemoveAchievementViewers(int achievementId)
+	{
+		m_viewers.erase(achievementId);
+	}
+
+	void DrawSwitchViewers()
+	{
+		for (auto iter = m_viewers.begin(); iter != m_viewers.end();)
+		{
+			if (iter->second.GetNeedDock())
+			{
+				ImGui::DockBuilderDockWindow(iter->second.GetWindowIdStr(), m_bottomNode);
+				iter->second.SetNeedDock(false);
+			}
+
+			if (!iter->second.Draw())
+			{
+				iter = m_viewers.erase(iter);
+			}
+			else
+			{
+				++iter;
+			}
+		}
+	}
+
+	float GetDistance(const EQSwitch* pSwitch)
+	{
+		auto iter = m_distanceCache.find(static_cast<int>(pSwitch->ID));
+		if (iter != m_distanceCache.end())
+			return iter->second;
+
+		glm::vec3 switchPos{ pSwitch->DefaultX, pSwitch->DefaultY, pSwitch->DefaultZ };
+		float distance = glm::distance(m_lastPos, switchPos);
+
+		m_distanceCache[static_cast<int>(pSwitch->ID)] = distance;
+		return distance;
+	}
+};
+static SwitchInspector* s_switchInspector = nullptr;
+
+#pragma endregion
+
 #pragma region Macro Expression Evaluator
 
 class MacroExpressionEvaluator : public ImGuiWindowBase
@@ -3268,6 +3883,9 @@ static void DeveloperTools_Initialize()
 	s_spellsInspector = new SpellsInspector();
 	DeveloperTools_RegisterMenuItem(s_spellsInspector, "Spells", s_menuNameInspectors);
 
+	s_switchInspector = new SwitchInspector();
+	DeveloperTools_RegisterMenuItem(s_switchInspector, "Switches", s_menuNameInspectors);
+
 	s_stringInspector = new StringInspector();
 	DeveloperTools_RegisterMenuItem(s_stringInspector, "CXStr Metrics", s_menuNameInspectors);
 
@@ -3299,6 +3917,9 @@ static void DeveloperTools_Shutdown()
 
 	DeveloperTools_UnregisterMenuItem(s_stringInspector);
 	delete s_stringInspector; s_stringInspector = nullptr;
+
+	DeveloperTools_UnregisterMenuItem(s_switchInspector);
+	delete s_switchInspector; s_switchInspector = nullptr;
 
 	DeveloperTools_UnregisterMenuItem(s_macroEvaluator);
 	delete s_macroEvaluator; s_macroEvaluator = nullptr;

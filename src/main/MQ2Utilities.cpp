@@ -7430,4 +7430,19 @@ bool GetFilteredModules(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWORD* lpcb
 	return result;
 }
 
+const char* GetTeleportName(DWORD id)
+{
+	DWORD TableSize = *(DWORD*)Teleport_Table_Size;
+	tp_coords* tp = (tp_coords*)Teleport_Table;
+
+	if (id < TableSize)
+	{
+		DWORD zoneId = tp[id].ZoneId & 0x7fff;
+
+		return GetShortZone(zoneId);
+	}
+
+	return "UNKNOWN";
+}
+
 } // namespace mq
