@@ -1713,7 +1713,11 @@ namespace sol_ImGui
 	inline void CaptureMouseFromApp(bool want_capture_mouse_value)										{ ImGui::CaptureMouseFromApp(want_capture_mouse_value); }
 
 	// Clipboard Utilities
-	inline std::string GetClipboardText()																{ return std::string(ImGui::GetClipboardText()); }
+	inline std::string GetClipboardText()
+	{
+		const char* text = ImGui::GetClipboardText();
+		return text ? std::string(text) : std::string();
+	}
 	inline void SetClipboardText(const std::string& text)												{ ImGui::SetClipboardText(text.c_str()); }
 
 	inline void InitEnums(sol::state_view lua)
