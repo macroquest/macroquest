@@ -283,6 +283,17 @@ local function CompareWithSortSpecs(a, b)
     return a.ID - b.ID < 0
 end
 
+local tableSorting_flags = bit32.bor(ImGuiTableFlags.Resizable,
+                                     ImGuiTableFlags.Reorderable,
+                                     ImGuiTableFlags.Hideable,
+                                     ImGuiTableFlags.Sortable,
+                                     ImGuiTableFlags.SortMulti,
+                                     ImGuiTableFlags.RowBg,
+                                     ImGuiTableFlags.BordersOuter,
+                                     ImGuiTableFlags.BordersV,
+                                     ImGuiTableFlags.NoBordersInBody,
+                                     ImGuiTableFlags.ScrollY)
+
 local function ShowTableDemoSorting(open_action)
     -- This is a simplified version of the 'Advanced' example, where we mostly focus on the code necessaray to handle sorting.
     -- Note that the 'Advanced' example also showcases manually triggering sort (e.g. if item quantities have been modified)
@@ -306,9 +317,14 @@ local function ShowTableDemoSorting(open_action)
             end
         end
 
-        local flags = bit32.bor(ImGuiTableFlags.Resizable, ImGuiTableFlags.Reorderable, ImGuiTableFlags.Hideable, ImGuiTableFlags.MultiSortable,
-            ImGuiTableFlags.RowBg, ImGuiTableFlags.BordersOuter, ImGuiTableFlags.BordersV, ImGuiTableFlags.NoBordersInBody, ImGuiTableFlags.ScrollY)
-        if ImGui.BeginTable('##table', 4, flags, 0, TEXT_BASE_HEIGHT * 15, 0.0) then
+        PushStyleCompact()
+        tableSorting_flags = ImGui.CheckboxFlags('ImGuiTableFlags.SortMulti', tableSorting_flags, ImGuiTableFlags.SortMulti)
+        ImGui.SameLine(); HelpMarker('When sorting is enabled: hold shift when clicking headers to sort on multiple column. TableGetSortSpecs() may return specs where (SpecsCount > 1).')
+        tableSorting_flags = ImGui.CheckboxFlags('ImGuiTableFlags.SortTristate', tableSorting_flags, ImGuiTableFlags.SortTristate)
+        ImGui.SameLine(); HelpMarker('When sorting is enabled: allow no sorting, disable default sorting. TableGetSortSpecs() may return specs where (SpecsCount == 0).')
+        PopStyleCompact()
+
+        if ImGui.BeginTable('table_sorting', 4, tableSorting_flags, 0, TEXT_BASE_HEIGHT * 15, 0.0) then
             -- Declare columns
             -- We use the 'user_id' parameter of TableSetupColumn() to specify a user id that will be stored in the sort specifications.
             -- This is so our sort function can identify a column given our own identifier. We could also identify them based on their index.

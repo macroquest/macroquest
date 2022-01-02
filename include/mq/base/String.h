@@ -30,14 +30,38 @@
 
 namespace mq {
 
-inline void MakeLower(std::string& str)
+inline void to_lower(std::string& str)
 {
 	std::transform(str.begin(), str.end(), str.begin(), ::tolower);
 }
 
-inline void MakeUpper(std::string& str)
+inline std::string to_lower_copy(const std::string& str)
+{
+	std::string tmp = str;
+	to_lower(tmp);
+	return tmp;
+}
+
+inline void MakeLower(std::string& str)
+{
+	to_lower(str);
+}
+
+inline void to_upper(std::string& str)
 {
 	std::transform(str.begin(), str.end(), str.begin(), ::toupper);
+}
+
+inline std::string to_upper_copy(const std::string& str)
+{
+	std::string tmp = str;
+	to_upper(tmp);
+	return tmp;
+}
+
+inline void MakeUpper(std::string& str)
+{
+	to_upper(str);
 }
 
 // trim from start (in place)

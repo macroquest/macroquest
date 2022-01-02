@@ -748,6 +748,8 @@ MQLIB_API    const char* GetPetSpellCaster(const EQ_Affect& buff);
 MQLIB_API    eEQSPELLCAT GetSpellCategoryFromName(const char* category);
 MQLIB_API    eEQSPA      GetSPAFromName(const char* spa);
 
+MQLIB_API    const char* GetTeleportName(DWORD id);
+
 MQLIB_API HMODULE GetCurrentModule();
 MQLIB_API DWORD CALLBACK MQ2End(void* lpParameter);
 MQLIB_API DWORD CALLBACK GetlocalPlayerOffset();

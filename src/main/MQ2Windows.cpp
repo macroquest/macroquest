@@ -1666,7 +1666,7 @@ void ItemNotify(PSPAWNINFO pChar, char* szLine)
 
 						CInvSlot* pInvSlot = GetInvSlot(pItem->GetItemLocation());
 
-						if (!pInvSlot || !pSlot->pInvSlotWnd || !SendWndClick2(pSlot->pInvSlotWnd, szNotification))
+						if (!pInvSlot || !pInvSlot->pInvSlotWnd || !SendWndClick2(pSlot->pInvSlotWnd, szNotification))
 						{
 							WriteChatf("Could not mem spell, most likely cause bag wasnt open and i didnt find it");
 						}

@@ -1,3 +1,12 @@
+December 31, 2021:
+- lua: Fix crash when using format string with ImGui.Text (hint: Format your string in lua instead)
+- lua: Update table flags from latest integration of imgui
+- lua: Fix ImGui.GetClipboardText bug
+- main: /mqsettings now takes an optional parameter, the name of a section to focus.
+    example: /mqsettings plugins/lua
+- devtools: implement new switch inspector. This is a work in progress but is fully functional. Working on
+    bringing over functionality that was originally implemented in Nav
+
 December 27, 2021:
 - Added IsSpellTooPowerful utility function that mimics client logic and incorporated it into StacksTarget and StacksSpawn
 
