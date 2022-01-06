@@ -145,6 +145,7 @@ private:
 	static int lua_PackageLoader(lua_State* L);
 	static void lua_exit(sol::this_state s);
 	static void lua_delay(sol::object delayObj, sol::object conditionObj, sol::this_state s);
+	static uint64_t lua_gettime(sol::this_state s);
 	static void lua_forceYield(lua_State* L, lua_Debug* D);
 
 private:

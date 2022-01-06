@@ -21,6 +21,7 @@
 
 #include <mq/Plugin.h>
 #include <luajit.h>
+#include <chrono>
 
 #if LUAJIT_VERSION_NUM == 20005
 bool lua_isyieldable(lua_State* L)
@@ -175,6 +176,12 @@ void LuaThread::InjectMQNamespace()
 	}
 }
 
+/*static*/ uint64_t LuaThread::lua_gettime(sol::this_state s)
+{
+	auto t = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch());
+	return t.count();
+}
+
 void LuaThread::Exit(LuaThreadExitReason reason)
 {
 	m_exitReason = reason;
@@ -209,6 +216,7 @@ void LuaThread::RegisterLuaBindings(sol::table mq)
 {
 	MQ_RegisterLua_MQBindings(mq);
 
+	mq.set_function("gettime",                   &LuaThread::lua_gettime);
 	mq.set_function("delay",                     &LuaThread::lua_delay);
 	mq.set_function("exit",                      &LuaThread::lua_exit);
 	mq.set("luaDir",                             m_luaEnvironmentSettings->luaDir);

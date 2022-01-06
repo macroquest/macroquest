@@ -1428,11 +1428,8 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	}
 
 	case CharacterMembers::AmIGroupLeader:
-		Dest.Type = pStringType;
-		if (!pLocalPC->Group) return false;
-
-		strcpy_s(DataTypeTemp, pLocalPC->Group->IsGroupLeader(pLocalPC->me) ? "TRUE" : "FALSE");
-		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pBoolType;
+		Dest.DWord = pLocalPC->Group != nullptr && pLocalPC->Group->IsGroupLeader(pLocalPC->me);
 		return true;
 
 	case CharacterMembers::MaxBuffSlots:
