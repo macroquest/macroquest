@@ -838,14 +838,13 @@ void ChatWndImGuiSettingsPanel()
 	}
 
 	ImGui::SetNextItemWidth(-125);
-
-	if (ImGui::InputInt("FontSize", &MQChatWnd->FontSize)) {
+	if (ImGui::InputInt("Font 0 - 10", &MQChatWnd->FontSize)) {
 		int iFontSize = std::clamp(MQChatWnd->FontSize, 0, 10);
 		MQChatWnd->SetChatFont(iFontSize);
 		WritePrivateProfileInt("Settings", "FontSize", iFontSize, INIFileName);
 	}
 	ImGui::SameLine();
-	mq::imgui::HelpMarker("ChatWnd Font. Note: font sizes in EQ aren't linear in growth.\n\nINISetting: FontSize");
+	mq::imgui::HelpMarker("Font 0 - 10. These are 10 font faces of various styles and sizes from EQ.\n\nINISetting: FontSize");
 }
 
 PLUGIN_API void InitializePlugin()
