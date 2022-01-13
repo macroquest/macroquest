@@ -17,6 +17,7 @@
 #include <vector>
 #include <list>
 #include <string>
+#include <mq/imgui/ImGuiUtils.h>
 
 // MQ2ChatWnd: Single-window MQ Chat
 
@@ -529,6 +530,10 @@ void MQChat(SPAWNINFO* pChar, char* Line)
 			WriteChatf("Usage: /mqchat SaveByChar [on | off]\n IE: /mqchat SaveByChar on");
 		}
 	}
+	else if (!_stricmp(Arg, "ui") || !_stricmp(Arg, "gui"))
+	{
+		EzCommand("/mqsettings ChatWnd");
+	}
 	else
 	{
 		WriteChatf("%s was not a valid option. Valid options are: reset, autoscroll, nocharselect, and savebychar", Arg);
@@ -806,6 +811,43 @@ bool dataChatWnd(const char* szName, MQTypeVar& Dest)
 	return true;
 }
 
+struct PluginCheckbox {
+	const char* name;
+	const char* visiblename;
+	bool* value;
+	const char* helptext;
+};
+
+static const PluginCheckbox checkboxes[] = {
+	{ "AutoScroll", "Scroll text", &bAutoScroll, "Scroll with new text or not.\n\nINI Setting: AutoScroll" },
+	{ "NoCharSelect", "Disable at char select", &bNoCharSelect, "Disable the ChatWnd at character select or not.\n\nINI Setting: NoCharSelect" },
+	{ "SaveByChar", "Individual character settings", &bSaveByChar, "Use individual character settings.\n\nINI Setting: SaveByChar" },
+};
+
+void ChatWndImGuiSettingsPanel()
+{
+	for (const PluginCheckbox& cb : checkboxes)
+	{
+		// the visible name is not necessarily the name of the INI setting
+		if (ImGui::Checkbox(cb.visiblename, cb.value))
+		{
+			WritePrivateProfileBool("Settings", cb.name, *cb.value, INIFileName);
+		}
+		ImGui::SameLine();
+		mq::imgui::HelpMarker(cb.helptext);
+	}
+
+	ImGui::SetNextItemWidth(-125);
+
+	if (ImGui::InputInt("FontSize", &MQChatWnd->FontSize)) {
+		int iFontSize = std::clamp(MQChatWnd->FontSize, 0, 10);
+		MQChatWnd->SetChatFont(iFontSize);
+		WritePrivateProfileInt("Settings", "FontSize", iFontSize, INIFileName);
+	}
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("ChatWnd Font. Note: font sizes in EQ aren't linear in growth.\n\nINISetting: FontSize");
+}
+
 PLUGIN_API void InitializePlugin()
 {
 	// Add commands, macro parameters, hooks, etc.
@@ -818,6 +860,7 @@ PLUGIN_API void InitializePlugin()
 	AddCommand("/mqmin", MQChatMin);
 	AddCommand("/mqclear", MQChatClear);
 	AddCommand("/setchattitle", SetChatTitle);
+	AddSettingsPanel("plugins/ChatWnd", ChatWndImGuiSettingsPanel);
 
 	AddMQ2KeyBind("MQ2CHAT", DoMQ2ChatBind);
 	LoadChatSettings();
