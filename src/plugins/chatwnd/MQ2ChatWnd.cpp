@@ -881,4 +881,5 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveMQ2Data("ChatWnd");
 	delete pChatWndType;
 	DestroyChatWnd();
+	RemoveSettingsPanel("plugins/ChatWnd");
 }
