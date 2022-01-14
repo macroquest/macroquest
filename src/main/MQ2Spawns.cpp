@@ -356,10 +356,10 @@ static void CaptionColorCmd(SPAWNINFO* pChar, char* szLine)
 
 void SetNameSpriteTint(SPAWNINFO* pSpawn);
 
-class EQPlayerHook
+class PlayerClientHook
 {
 public:
-	void EQPlayer_ExtraDetour(SPAWNINFO* pSpawn)
+	void PlayerClient_ExtraDetour(SPAWNINFO* pSpawn)
 	{
 		// note: we need to keep the original registers.
 		__asm push eax;
@@ -379,21 +379,21 @@ public:
 		__asm pop eax;
 	}
 
-	void EQPlayer_Trampoline(void*, int, int, int, char*, char*, char*);
-	void EQPlayer_Detour(void* pNetPlayer, int Sex, int Race, int Class, char* PlayerName, char* GroupName, char* ReplaceName)
+	void PlayerClient_Trampoline(void*, int, int, int, char*, char*, char*);
+	void PlayerClient_Detour(void* pNetPlayer, int Sex, int Race, int Class, char* PlayerName, char* GroupName, char* ReplaceName)
 	{
 		SPAWNINFO* pSpawn = (SPAWNINFO*)this;
 
 		__asm mov [pSpawn], ecx;
 
-		EQPlayer_Trampoline(pNetPlayer, Sex, Race, Class, PlayerName, GroupName, ReplaceName);
-		EQPlayer_ExtraDetour(pSpawn);
+		PlayerClient_Trampoline(pNetPlayer, Sex, Race, Class, PlayerName, GroupName, ReplaceName);
+		PlayerClient_ExtraDetour(pSpawn);
 	}
 
-	void dEQPlayer_Trampoline();
-	void dEQPlayer_Detour()
+	void dPlayerClient_Trampoline();
+	void dPlayerClient_Detour()
 	{
-		void (EQPlayerHook::*tmp)() = &EQPlayerHook::dEQPlayer_Trampoline;
+		void (PlayerClientHook::*tmp)() = &PlayerClientHook::dPlayerClient_Trampoline;
 
 		__asm {
 			push ecx;
@@ -445,7 +445,7 @@ static void SetNameSpriteTint(SPAWNINFO* pSpawn)
 		return;
 
 	DWORD NewColor;
-	EQPlayerHook* pHook = (EQPlayerHook*)pSpawn;
+	PlayerClientHook* pHook = (PlayerClientHook*)pSpawn;
 
 	switch (GetSpawnType(pSpawn))
 	{
@@ -569,7 +569,7 @@ bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
 	//DebugSpew("SetNameSpriteState(%s) --race %d body %d)",pSpawn->Name,pSpawn->Race,GetBodyType(pSpawn));
 	if (!Show || !gMQCaptions)
 	{
-		return reinterpret_cast<EQPlayerHook*>(pSpawn)->SetNameSpriteState_Trampoline(Show) != 0;
+		return reinterpret_cast<PlayerClientHook*>(pSpawn)->SetNameSpriteState_Trampoline(Show) != 0;
 	}
 
 	if (!pSpawn->mActorClient.pcactorex || !static_cast<CActorEx*>(pSpawn->mActorClient.pcactorex)->CanSetName(0))
@@ -617,7 +617,7 @@ bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
 		break;
 	}
 
-	return reinterpret_cast<EQPlayerHook*>(pSpawn)->SetNameSpriteState_Trampoline(Show) != 0;
+	return reinterpret_cast<PlayerClientHook*>(pSpawn)->SetNameSpriteState_Trampoline(Show) != 0;
 }
 
 static void UpdateSpawnCaptions()
@@ -644,10 +644,10 @@ static void UpdateSpawnCaptions()
 	}
 }
 
-DETOUR_TRAMPOLINE_EMPTY(bool EQPlayerHook::SetNameSpriteTint_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(int EQPlayerHook::SetNameSpriteState_Trampoline(bool Show));
-DETOUR_TRAMPOLINE_EMPTY(void EQPlayerHook::dEQPlayer_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(void EQPlayerHook::EQPlayer_Trampoline(void*, int, int, int, char*, char*, char*));
+DETOUR_TRAMPOLINE_EMPTY(bool PlayerClientHook::SetNameSpriteTint_Trampoline());
+DETOUR_TRAMPOLINE_EMPTY(int PlayerClientHook::SetNameSpriteState_Trampoline(bool Show));
+DETOUR_TRAMPOLINE_EMPTY(void PlayerClientHook::dPlayerClient_Trampoline());
+DETOUR_TRAMPOLINE_EMPTY(void PlayerClientHook::PlayerClient_Trampoline(void*, int, int, int, char*, char*, char*));
 
 static void LoadCaptionSettings()
 {
@@ -873,10 +873,10 @@ static void Spawns_Initialize()
 	bmUpdateSpawnSort = AddMQ2Benchmark("UpdateSpawnSort");
 	bmUpdateSpawnCaptions = AddMQ2Benchmark("UpdateSpawnCaptions");
 
-	EzDetour(EQPlayer__EQPlayer, &EQPlayerHook::EQPlayer_Detour, &EQPlayerHook::EQPlayer_Trampoline);
-	EzDetour(EQPlayer__dEQPlayer, &EQPlayerHook::dEQPlayer_Detour, &EQPlayerHook::dEQPlayer_Trampoline);
-	EzDetour(EQPlayer__SetNameSpriteState, &EQPlayerHook::SetNameSpriteState_Detour, &EQPlayerHook::SetNameSpriteState_Trampoline);
-	EzDetour(EQPlayer__SetNameSpriteTint, &EQPlayerHook::SetNameSpriteTint_Detour, &EQPlayerHook::SetNameSpriteTint_Trampoline);
+	EzDetour(PlayerClient__PlayerClient, &PlayerClientHook::PlayerClient_Detour, &PlayerClientHook::PlayerClient_Trampoline);
+	EzDetour(PlayerClient__dPlayerClient, &PlayerClientHook::dPlayerClient_Detour, &PlayerClientHook::dPlayerClient_Trampoline);
+	EzDetour(PlayerClient__SetNameSpriteState, &PlayerClientHook::SetNameSpriteState_Detour, &PlayerClientHook::SetNameSpriteState_Trampoline);
+	EzDetour(PlayerClient__SetNameSpriteTint, &PlayerClientHook::SetNameSpriteTint_Detour, &PlayerClientHook::SetNameSpriteTint_Trampoline);
 	EzDetour(EQItemList__FreeItemList, &MyEQGroundItemListManager::FreeItemList_Detour, &MyEQGroundItemListManager::FreeItemList_Trampoline);
 	EzDetour(EQItemList__add_item, &MyEQGroundItemListManager::Add_Detour, &MyEQGroundItemListManager::Add_Trampoline);
 	EzDetour(EQItemList__delete_item, &MyEQGroundItemListManager::DeleteItem_Detour, &MyEQGroundItemListManager::DeleteItem_Trampoline);
@@ -944,10 +944,10 @@ static void Spawns_Shutdown()
 	RemoveCommand("/caption");
 	RemoveCommand("/captioncolor");
 
-	RemoveDetour(EQPlayer__EQPlayer);
-	RemoveDetour(EQPlayer__dEQPlayer);
-	RemoveDetour(EQPlayer__SetNameSpriteState);
-	RemoveDetour(EQPlayer__SetNameSpriteTint);
+	RemoveDetour(PlayerClient__PlayerClient);
+	RemoveDetour(PlayerClient__dPlayerClient);
+	RemoveDetour(PlayerClient__SetNameSpriteState);
+	RemoveDetour(PlayerClient__SetNameSpriteTint);
 	RemoveDetour(EQItemList__FreeItemList);
 	RemoveDetour(EQItemList__add_item);
 	RemoveDetour(EQItemList__delete_item);
@@ -1005,7 +1005,7 @@ static void Spawns_Pulse()
 	if (pTarget)
 	{
 		LastTarget = pTarget->SpawnID;
-		pTarget.get_as<EQPlayerHook>()->SetNameSpriteTint_Trampoline();
+		pTarget.get_as<PlayerClientHook>()->SetNameSpriteTint_Trampoline();
 		SetNameSpriteState(pTarget, true);
 	}
 

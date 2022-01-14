@@ -2674,7 +2674,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.Type = pIntType;
 		if (*pTributeActive)
 		{
-			Dest.Int = pEQMisc->GetActiveFavorCost();
+			Dest.Int = pTribute->GetActiveFavorCost();
 			return true;
 		}
 		return false;
