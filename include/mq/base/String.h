@@ -42,6 +42,7 @@ inline std::string to_lower_copy(const std::string& str)
 	return tmp;
 }
 
+// Deprecated: MakeLower uses an older naming convention. Prefer to use one of the above functions instead.
 inline void MakeLower(std::string& str)
 {
 	to_lower(str);
@@ -59,6 +60,7 @@ inline std::string to_upper_copy(const std::string& str)
 	return tmp;
 }
 
+// Deprecated: MakeUpper uses an older naming convention. Prefer to use one of the above functions instead.
 inline void MakeUpper(std::string& str)
 {
 	to_upper(str);
