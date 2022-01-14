@@ -19,6 +19,8 @@
 #include "MQ2KeyBinds.h"
 #include "ImGuiManager.h"
 
+#include "EQLib/Logging.h"
+
 #include <date/date.h>
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
@@ -88,7 +90,7 @@ void InitializeLogging()
 			std::chrono::system_clock::now())))).string();
 
 	// create color multi threaded logger
-	auto logger = spdlog::create<spdlog::sinks::basic_file_sink_mt>("MQ2", filename, true);
+	auto logger = spdlog::create<spdlog::sinks::basic_file_sink_mt>("mq", filename, true);
 	if (IsDebuggerPresent())
 		logger->sinks().push_back(std::make_shared<spdlog::sinks::msvc_sink_mt>());
 	logger->sinks().push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
@@ -103,6 +105,13 @@ void InitializeLogging()
 	spdlog::set_level(spdlog::level::trace);
 
 	SPDLOG_DEBUG("Logging Initialized");
+	eqlib::InitializeLogging(logger);
+}
+
+void ShutdownLogging()
+{
+	eqlib::ShutdownLogging();
+	spdlog::shutdown();
 }
 
 extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void* lpReserved)
@@ -804,6 +813,9 @@ void MQ2Shutdown()
 	ShutdownDetours();
 	ShutdownMQ2Benchmarks();
 	ShutdownPipeClient();
+
+	DebugSpew("Shutdown completed");
+	ShutdownLogging();
 }
 
 HMODULE GetCurrentModule()
@@ -866,9 +878,7 @@ void ForceUnload()
 
 	MQ2Shutdown();
 
-	DebugSpew("Shutdown completed");
 	g_Loaded = false;
-
 	ScreenMode = 2;
 }
 

@@ -37,7 +37,6 @@ public:
 	void ReloadUI_Detour(bool UseINI, bool bUnknown)
 	{
 		ReloadUI_Trampoline(UseINI, bUnknown);
-
 		InitializeInGameUI();
 
 		{
@@ -45,6 +44,13 @@ public:
 
 			PluginsReloadUI();
 		}
+	}
+
+	void InitCharSelectUI_Trampoline();
+	void InitCharSelectUI_Detour()
+	{
+		InitCharSelectUI_Trampoline();
+		InitializeInGameUI();
 	}
 };
 
@@ -112,6 +118,7 @@ public:
 
 DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::CleanUI_Trampoline());
 DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::ReloadUI_Trampoline(bool, bool));
+DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::InitCharSelectUI_Trampoline());
 DETOUR_TRAMPOLINE_EMPTY(void DrawNetStatus_Trampoline(unsigned short, unsigned short, void*, unsigned int));
 DETOUR_TRAMPOLINE_EMPTY(void EQ_LoadingSHook::SetProgressBar_Trampoline(int, char const*));
 
@@ -162,6 +169,7 @@ void InitializeDisplayHook()
 
 	EzDetour(CDisplay__CleanGameUI, &CDisplayHook::CleanUI_Detour, &CDisplayHook::CleanUI_Trampoline);
 	EzDetour(CDisplay__ReloadUI, &CDisplayHook::ReloadUI_Detour, &CDisplayHook::ReloadUI_Trampoline);
+	EzDetour(CDisplay__InitCharSelectUI, &CDisplayHook::InitCharSelectUI_Detour, &CDisplayHook::InitCharSelectUI_Trampoline);
 	EzDetour(DrawNetStatus, DrawNetStatus_Detour, DrawNetStatus_Trampoline);
 
 	AddCommand("/netstatusxpos", Cmd_NetStatusXPos);
@@ -198,6 +206,7 @@ void ShutdownDisplayHook()
 
 	RemoveDetour(CDisplay__CleanGameUI);
 	RemoveDetour(CDisplay__ReloadUI);
+	RemoveDetour(CDisplay__InitCharSelectUI);
 	RemoveDetour(DrawNetStatus);
 }
 
