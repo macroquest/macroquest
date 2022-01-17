@@ -726,7 +726,6 @@ bool DoGameEventsPulse(int (*pEventFunc)())
 		//UnloadMQ2Plugins();
 
 		MQ2Shutdown();
-		DebugSpew("Shutdown completed");
 
 		g_Loaded = false;
 		ScreenMode = oldscreenmode;
