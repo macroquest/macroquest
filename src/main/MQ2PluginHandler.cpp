@@ -1130,7 +1130,7 @@ void SaveMQ2PluginLoadStatus(const char* Name, bool bLoad)
 
 void InitializeMQ2Plugins()
 {
-	AddCommand("/plugin", PluginCommand, false, false, false);
+	AddCommand("/plugin", PluginCommand, false, true, false);
 
 	bmWriteChatColor = AddMQ2Benchmark("WriteChatColor");
 	bmPluginsIncomingChat = AddMQ2Benchmark("PluginsIncomingChat");
