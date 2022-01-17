@@ -532,7 +532,7 @@ void MQChat(SPAWNINFO* pChar, char* Line)
 	}
 	else if (!_stricmp(Arg, "ui") || !_stricmp(Arg, "gui"))
 	{
-		EzCommand("/mqsettings ChatWnd");
+		EzCommand("/mqsettings plugins/ChatWnd");
 	}
 	else
 	{
