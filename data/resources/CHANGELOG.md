@@ -1,3 +1,13 @@
+Januay 19, 2022:
+- Updated for patch.
+- Add missing ToL entry to GetZoneExpansionName() (#444)
+- Fix Me.AmIGroupLeader not returning a proper bool.
+- Fix a bug with /itemnotify and rightmouseup
+- Fix /plugin command so that it parses the command line
+- Add settings panel for ChatWnd
+
+- lua: Added mq.gettime() which returns current time in microseconds
+
 December 31, 2021:
 - lua: Fix crash when using format string with ImGui.Text (hint: Format your string in lua instead)
 - lua: Update table flags from latest integration of imgui
