@@ -2582,10 +2582,9 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		{
 			if (IsNumber(Index))
 			{
-				int n = GetIntFromString(Index, pAuraMgr->Auras.GetLength() + 1);
-				if (n > pAuraMgr->Auras.GetLength())
+				int n = GetIntFromString(Index, 0) - 1;
+				if (n < 0 || n >= pAuraMgr->Auras.GetLength())
 					return false;
-				n--;
 				Dest.Ptr = &pAuraMgr->Auras[n];
 				Dest.HighPart = n;
 				return true;
