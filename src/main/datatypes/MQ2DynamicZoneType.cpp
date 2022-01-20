@@ -22,6 +22,7 @@ enum class DynamicZoneMembers
 	Name = 1,
 	Members,
 	MaxMembers,
+	MinMembers,
 	Member,
 	Leader,
 	InRaid,
@@ -35,6 +36,7 @@ MQ2DynamicZoneType::MQ2DynamicZoneType() : MQ2Type("dynamiczone")
 	ScopedTypeMember(DynamicZoneMembers, Name);
 	ScopedTypeMember(DynamicZoneMembers, Members);
 	ScopedTypeMember(DynamicZoneMembers, MaxMembers);
+	ScopedTypeMember(DynamicZoneMembers, MinMembers);
 	ScopedTypeMember(DynamicZoneMembers, Member);
 	ScopedTypeMember(DynamicZoneMembers, Leader);
 	ScopedTypeMember(DynamicZoneMembers, InRaid);
@@ -168,6 +170,11 @@ bool MQ2DynamicZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 
 	case DynamicZoneMembers::MaxMembers:
 		Dest.DWord = pDynamicZone->MaxPlayers;
+		Dest.Type = pIntType;
+		return true;
+
+	case DynamicZoneMembers::MinMembers:
+		Dest.DWord = pDynamicZone->MinPlayers;
 		Dest.Type = pIntType;
 		return true;
 
