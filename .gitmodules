@@ -1,6 +1,6 @@
 [submodule "src/eqlib"]
 	path = src/eqlib
-    url = https://gitlab.com/macroquest/next/eqlib.git
+    	url = https://gitlab.com/macroquest/next/eqlib.git
 [submodule "contrib/vcpkg"]
 	path = contrib/vcpkg
 	url = https://gitlab.com/macroquest/next/vcpkg.git
@@ -152,9 +152,6 @@
 [submodule "plugins/MQ2XPTracker"]
 	path = plugins/MQ2XPTracker
 	url = https://gitlab.com/redguides/plugins/MQ2XPTracker.git
-[submodule "plugins/CWTN"]
-	path = plugins/CWTN
-	url = https://github.com/jessebevil/CWTN.git
 [submodule "plugins/CWTN/Unreleased"]
 	path = plugins/CWTN/Unreleased
 	url = https://github.com/jessebevil/Unreleased.git
@@ -228,3 +225,6 @@
 [submodule "plugins/MQ2Dan"]
 	path = plugins/MQ2Dan
 	url = https://github.com/dannuic/MQ2Dan
+[submodule "plugins/CWTN"]
+	path = plugins/CWTN
+	url = https://github.com/jessebevil/CWTN
