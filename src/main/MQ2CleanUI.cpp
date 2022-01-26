@@ -46,7 +46,7 @@ public:
 		}
 	}
 
-	void InitCharSelectUI_Trampoline();
+	DETOUR_TRAMPOLINE_DEF(void, InitCharSelectUI_Trampoline, ())
 	void InitCharSelectUI_Detour()
 	{
 		InitCharSelectUI_Trampoline();
@@ -163,6 +163,7 @@ void InitializeDisplayHook()
 
 	EzDetour(CDisplay__CleanGameUI, &CDisplayHook::CleanUI_Detour, &CDisplayHook::CleanUI_Trampoline);
 	EzDetour(CDisplay__ReloadUI, &CDisplayHook::ReloadUI_Detour, &CDisplayHook::ReloadUI_Trampoline);
+	EzDetour(CDisplay__InitCharSelectUI, &CDisplayHook::InitCharSelectUI_Detour, &CDisplayHook::InitCharSelectUI_Trampoline);
 	EzDetour(DrawNetStatus, DrawNetStatus_Detour, DrawNetStatus_Trampoline);
 
 	AddCommand("/netstatusxpos", Cmd_NetStatusXPos);

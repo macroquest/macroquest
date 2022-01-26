@@ -379,8 +379,8 @@ public:
 		__asm pop eax;
 	}
 
-	DETOUR_TRAMPOLINE_DEF(void, EQPlayer_Trampoline, (void*, int, int, int, char*, char*, char*))
-	void EQPlayer_Detour(void* pNetPlayer, int Sex, int Race, int Class, char* PlayerName, char* GroupName, char* ReplaceName)
+	DETOUR_TRAMPOLINE_DEF(void, PlayerClient_Trampoline, (void*, int, int, int, char*, char*, char*))
+	void PlayerClient_Detour(void* pNetPlayer, int Sex, int Race, int Class, char* PlayerName, char* GroupName, char* ReplaceName)
 	{
 		SPAWNINFO* pSpawn = (SPAWNINFO*)this;
 
@@ -390,8 +390,8 @@ public:
 		PlayerClient_ExtraDetour(pSpawn);
 	}
 
-	DETOUR_TRAMPOLINE_DEF(void, dEQPlayer_Trampoline, ())
-	void dEQPlayer_Detour()
+	DETOUR_TRAMPOLINE_DEF(void, dPlayerClient_Trampoline, ())
+	void dPlayerClient_Detour()
 	{
 		void (PlayerClientHook::*tmp)() = &PlayerClientHook::dPlayerClient_Trampoline;
 
@@ -865,10 +865,10 @@ static void Spawns_Initialize()
 	bmUpdateSpawnSort = AddMQ2Benchmark("UpdateSpawnSort");
 	bmUpdateSpawnCaptions = AddMQ2Benchmark("UpdateSpawnCaptions");
 
-	EzDetour(EQPlayer__EQPlayer, &EQPlayerHook::EQPlayer_Detour, &EQPlayerHook::EQPlayer_Trampoline);
-	EzDetour(EQPlayer__dEQPlayer, &EQPlayerHook::dEQPlayer_Detour, &EQPlayerHook::dEQPlayer_Trampoline);
-	EzDetour(EQPlayer__SetNameSpriteState, &EQPlayerHook::SetNameSpriteState_Detour, &EQPlayerHook::SetNameSpriteState_Trampoline);
-	EzDetour(EQPlayer__SetNameSpriteTint, &EQPlayerHook::SetNameSpriteTint_Detour, &EQPlayerHook::SetNameSpriteTint_Trampoline);
+	EzDetour(PlayerClient__PlayerClient, &PlayerClientHook::PlayerClient_Detour, &PlayerClientHook::PlayerClient_Trampoline);
+	EzDetour(PlayerClient__dPlayerClient, &PlayerClientHook::dPlayerClient_Detour, &PlayerClientHook::dPlayerClient_Trampoline);
+	EzDetour(PlayerClient__SetNameSpriteState, &PlayerClientHook::SetNameSpriteState_Detour, &PlayerClientHook::SetNameSpriteState_Trampoline);
+	EzDetour(PlayerClient__SetNameSpriteTint, &PlayerClientHook::SetNameSpriteTint_Detour, &PlayerClientHook::SetNameSpriteTint_Trampoline);
 	EzDetour(EQItemList__FreeItemList, &MyEQGroundItemListManager::FreeItemList_Detour, &MyEQGroundItemListManager::FreeItemList_Trampoline);
 	EzDetour(EQItemList__add_item, &MyEQGroundItemListManager::Add_Detour, &MyEQGroundItemListManager::Add_Trampoline);
 	EzDetour(EQItemList__delete_item, &MyEQGroundItemListManager::DeleteItem_Detour, &MyEQGroundItemListManager::DeleteItem_Trampoline);
