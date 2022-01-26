@@ -1195,7 +1195,23 @@ static void CreateItemText(fmt::memory_buffer& buffer_, const ItemPtr& item, con
 
 	if (item->IsContainer())
 	{
-		fmt::format_to(buffer, "Container Type: {}<BR>", szCombineTypes[item->GetItemDefinition()->ContainerType]);
+		uint8_t containerType = item->GetItemDefinition()->ContainerType;
+
+		if (item->GetItemDefinition()->ContainerType > MAX_COMBINES)
+		{
+			fmt::format_to(buffer, "Container Type: Unknown ({})<BR>", containerType);
+		}
+		else
+		{
+			if (const char* containerTypeName = szCombineTypes[containerType])
+			{
+				fmt::format_to(buffer, "Container Type: {}<BR>", containerTypeName);
+			}
+			else
+			{
+				fmt::format_to(buffer, "Container Type: Unknown ({})<BR>", containerType);
+			}
+		}
 	}
 
 	std::string notes = GetPrivateProfileString("Notes", fmt::format("{:07d}", item->GetID()), {}, INIFileName);
