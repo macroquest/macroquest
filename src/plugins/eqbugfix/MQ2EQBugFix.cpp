@@ -24,7 +24,7 @@ class CUnSerializeBuffer_BugFix
 	size_t      m_offset = 0;
 
 public:
-	bool GetString_Trampoline(char* dest, unsigned int destSize);
+	DETOUR_TRAMPOLINE_DEF(bool, GetString_Trampoline, (char* dest, unsigned int destSize))
 	bool GetString_Detour(char* dest, unsigned int destSize)
 	{
 		// Use our own implementation which does not have the bug.
@@ -43,7 +43,6 @@ public:
 		return true;
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(bool CUnSerializeBuffer_BugFix::GetString_Trampoline(char*, unsigned int));
 
 PLUGIN_API void InitializePlugin()
 {

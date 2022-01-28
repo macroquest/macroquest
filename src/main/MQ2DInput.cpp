@@ -29,7 +29,7 @@ static bool gbInDInput = false;
 // Description: Our DirectInput GetDeviceState Hook
 // ***************************************************************************
 
-HRESULT (CALLBACK* DInputDataTrampoline)(IDirectInputDevice8A* This, DWORD cbObjectData, LPDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD dwFlags);
+DETOUR_TRAMPOLINE_DEF(HRESULT CALLBACK, DInputDataTrampoline, (IDirectInputDevice8A* This, DWORD cbObjectData, LPDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD dwFlags))
 HRESULT CALLBACK DInputDataDetour(IDirectInputDevice8A* This, DWORD cbObjectData, LPDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD dwFlags)
 {
 	gbInDInput = true;
@@ -133,10 +133,7 @@ HRESULT CALLBACK DInputDataDetour(IDirectInputDevice8A* This, DWORD cbObjectData
 
 	// If we didn't add any keyboard data, and we aren't waiting for a click,
 	// and we didn't add any mouse data
-	if (DInputDataTrampoline)
-	{
-		hResult = DInputDataTrampoline(This, cbObjectData, rgdod, pdwInOut, dwFlags);
-	}
+	hResult = DInputDataTrampoline(This, cbObjectData, rgdod, pdwInOut, dwFlags);
 
 	if (gbUnload)
 	{
@@ -148,7 +145,7 @@ HRESULT CALLBACK DInputDataDetour(IDirectInputDevice8A* This, DWORD cbObjectData
 	return hResult;
 }
 
-HRESULT (CALLBACK* DInputStateTrampoline)(IDirectInputDevice8A* This, DWORD cbData, void* lpvData);
+DETOUR_TRAMPOLINE_DEF(HRESULT CALLBACK, DInputStateTrampoline, (IDirectInputDevice8A* This, DWORD cbData, void* lpvData))
 HRESULT CALLBACK DInputStateDetour(IDirectInputDevice8A* This, DWORD cbData, void* lpvData)
 {
 	HRESULT hResult = S_OK;
@@ -184,7 +181,7 @@ HRESULT CALLBACK DInputStateDetour(IDirectInputDevice8A* This, DWORD cbData, voi
 	return hResult;
 }
 
-HRESULT (CALLBACK* DInputAcquireTrampoline)(IDirectInputDevice8A* This);
+DETOUR_TRAMPOLINE_DEF(HRESULT CALLBACK, DInputAcquireTrampoline, (IDirectInputDevice8A* This))
 HRESULT CALLBACK DInputAcquireDetour(IDirectInputDevice8A* This)
 {
 	HRESULT hResult = S_OK;
@@ -238,65 +235,23 @@ void InitializeMQ2DInput()
 
 		// GetDeviceData = (unsigned int)IDIDevice->lpVtbl->GetDeviceData;
 		GetDeviceData = (unsigned int)vtable[10];//GetDeviceData
-		AddDetour(GetDeviceData);
+		EzDetour(GetDeviceData, DInputDataDetour, DInputDataTrampoline);
 
 		// GetDeviceState = (unsigned int)IDIDevice->lpVtbl->GetDeviceState;
 		GetDeviceState = (unsigned int)vtable[9];//GetDeviceState
-		AddDetour(GetDeviceState);
+		EzDetour(GetDeviceState, DInputStateDetour, DInputStateTrampoline);
 
 		// Acquire = (unsigned int)IDIDevice->lpVtbl->Acquire;
 		Acquire = (unsigned int)vtable[7];//Acquire
-		AddDetour(Acquire);
-
-		// Grab GetDeviceData
-		(*(BYTE**)& DInputDataTrampoline) = DetourFunction((BYTE*)GetDeviceData, (BYTE*)DInputDataDetour);
-		// Grab GetDeviceState
-		(*(BYTE**)&DInputStateTrampoline) = DetourFunction((BYTE*)GetDeviceState, (BYTE*)DInputStateDetour);
-		// Grab Acquire
-		(*(BYTE**)&DInputAcquireTrampoline) = DetourFunction((BYTE*)Acquire, (BYTE*)DInputAcquireDetour);
+		EzDetour(Acquire, DInputAcquireDetour, DInputAcquireTrampoline);
 	}
 }
 
 void ShutdownMQ2DInput()
 {
-	if (DInputDataTrampoline && DetourRemove((BYTE*)DInputDataTrampoline, (BYTE*)DInputDataDetour))
-	{
-		RemoveDetour(GetDeviceData);
-		DInputDataTrampoline = nullptr;
-	}
-	else
-	{
-		if (DInputDataTrampoline)
-		{
-			DebugSpewAlways("Failed to unhook DInputData");
-		}
-	}
-
-	if (DInputStateTrampoline && DetourRemove((BYTE*)DInputStateTrampoline, (BYTE*)DInputStateDetour))
-	{
-		RemoveDetour(GetDeviceState);
-		DInputStateTrampoline = nullptr;
-	}
-	else
-	{
-		if (DInputStateTrampoline)
-		{
-			DebugSpewAlways("Failed to unhook DInputState");
-		}
-	}
-
-	if (DInputAcquireTrampoline && DetourRemove((BYTE*)DInputAcquireTrampoline, (BYTE*)DInputAcquireDetour))
-	{
-		RemoveDetour(Acquire);
-		DInputAcquireTrampoline = nullptr;
-	}
-	else
-	{
-		if (DInputAcquireTrampoline)
-		{
-			DebugSpewAlways("Failed to unhook DInputAcquire");
-		}
-	}
+	RemoveDetour(GetDeviceData);
+	RemoveDetour(GetDeviceState);
+	RemoveDetour(Acquire);
 }
 
 } // namespace mq

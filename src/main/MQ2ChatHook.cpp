@@ -21,7 +21,7 @@ class CChatHook
 {
 public:
 	// ChatManagerClient::DisplaychatText(
-	void Trampoline(const char* szMsg, DWORD dwColor, bool, bool, CXStr* SomeStr);
+	DETOUR_TRAMPOLINE_DEF(void, Trampoline, (const char* szMsg, DWORD dwColor, bool, bool, CXStr* SomeStr))
 	void Detour(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, CXStr* SomeStr)
 	{
 		gbInChat = true;
@@ -66,7 +66,7 @@ public:
 	}
 
 	// ChatManagerClient::DisplayTellText
-	void TellWnd_Trampoline(const char* message, const char* from, const char* windowtitle, const char* text, int color, bool bLogOk);
+	DETOUR_TRAMPOLINE_DEF(void, TellWnd_Trampoline, (const char* message, const char* from, const char* windowtitle, const char* text, int color, bool bLogOk))
 	void TellWnd_Detour(const char* message, const char* from, const char* windowtitle, const char* text, int color, bool bLogOk)
 	{
 		gbInChat = true;
@@ -93,7 +93,7 @@ public:
 	}
 
 	// CEverQuest::UniversalChatProxyNotificationFlush
-	void UPCNotificationFlush_Trampoline();
+	DETOUR_TRAMPOLINE_DEF(void, UPCNotificationFlush_Trampoline, ())
 	void UPCNotificationFlush_Detour()
 	{
 		EVERQUEST* eq = (EVERQUEST*)this;
@@ -127,10 +127,6 @@ public:
 		UPCNotificationFlush_Trampoline();
 	}
 };
-
-DETOUR_TRAMPOLINE_EMPTY(void CChatHook::Trampoline(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, CXStr* outStr));
-DETOUR_TRAMPOLINE_EMPTY(void CChatHook::TellWnd_Trampoline(const char* message, const char* from, const char* windowtitle, const char* text, int color, bool bLogOk));
-DETOUR_TRAMPOLINE_EMPTY(void CChatHook::UPCNotificationFlush_Trampoline());
 
 void dsp_chat_no_events(const char* Text, int Color, bool doLog, bool doPercentConvert)
 {

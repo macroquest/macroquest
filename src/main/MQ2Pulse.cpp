@@ -735,12 +735,11 @@ bool DoGameEventsPulse(int (*pEventFunc)())
 	return processGameEventsResult;
 }
 
-int Trampoline_ProcessGameEvents();
+static int(*Trampoline_ProcessGameEvents)();
 int Detour_ProcessGameEvents()
 {
 	return DoGameEventsPulse(Trampoline_ProcessGameEvents);
 }
-DETOUR_TRAMPOLINE_EMPTY(int Trampoline_ProcessGameEvents());
 
 void DoLoginPulse()
 {
@@ -750,7 +749,7 @@ void DoLoginPulse()
 class CEverQuestHook
 {
 public:
-	void SetGameState_Trampoline(DWORD GameState);
+	DETOUR_TRAMPOLINE_DEF(void, SetGameState_Trampoline, (DWORD GameState))
 	void SetGameState_Detour(DWORD GameState)
 	{
 		SetGameState_Trampoline(GameState);
@@ -758,7 +757,7 @@ public:
 		Benchmark(bmPluginsSetGameState, PluginsSetGameState(GameState));
 	}
 
-	void CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline();
+	DETOUR_TRAMPOLINE_DEF(void, CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline, ())
 	void CMerchantWnd__PurchasePageHandler__UpdateList_Detour()
 	{
 		gItemsReceived = false;
@@ -769,17 +768,13 @@ public:
 	}
 };
 
-DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::SetGameState_Trampoline(DWORD));
-DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline());
-
 void InitializeMQ2Pulse()
 {
 	DebugSpew("Initializing Pulse");
 
 	std::scoped_lock lock(s_pulseMutex);
 
-	//EzDetour(__GameLoop, GameLoop_Detour, GameLoop_Tramp);
-	EzDetour(ProcessGameEvents, Detour_ProcessGameEvents, Trampoline_ProcessGameEvents);
+	Detour::Add(reinterpret_cast<uintptr_t>(ProcessGameEvents), Detour_ProcessGameEvents, Trampoline_ProcessGameEvents, "ProcessGameEvents");
 	EzDetour(CEverQuest__SetGameState, &CEverQuestHook::SetGameState_Detour, &CEverQuestHook::SetGameState_Trampoline);
 	EzDetour(CMerchantWnd__PurchasePageHandler__UpdateList, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Detour, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline);
 

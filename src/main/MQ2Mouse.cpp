@@ -36,7 +36,7 @@ ItemClickStatus itemClickStatus = ItemClickStatus::None;
 class FakeCDisplay
 {
 public:
-	CActorInterface* GetClickedActor_Tramp(int, int, bool, CVector3&, CVector3&);
+	DETOUR_TRAMPOLINE_DEF(CActorInterface*, GetClickedActor_Tramp, (int, int, bool, CVector3&, CVector3&))
 	CActorInterface* GetClickedActor_Detour(int X, int Y, bool bFlag, CVector3& Vector1, CVector3& Vector2)
 	{
 		if (itemClickStatus != ItemClickStatus::None)
@@ -66,8 +66,6 @@ public:
 	/*0x000*/ BYTE Unknown0x0[0xec8];
 	/*0xec8*/ void* pDevice; // device pointer see 100019B4                 mov     ecx, [ecx+0F08h] in 2015 02 20
 };
-
-DETOUR_TRAMPOLINE_EMPTY(CActorInterface* FakeCDisplay::GetClickedActor_Tramp(int X, int Y, bool bFlag, CVector3& Vector1, CVector3& Vector2));
 
 void InitializeMouseHooks()
 {

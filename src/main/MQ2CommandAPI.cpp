@@ -278,6 +278,7 @@ void DoCommandf(const char* szFormat, ...)
 class CCommandHook
 {
 public:
+	DETOUR_TRAMPOLINE_DEF(void, Trampoline, (SPAWNINFO* pChar, const char* szFullLine))
 	void Detour(SPAWNINFO* pChar, const char* szFullLine)
 	{
 		std::scoped_lock lock(s_commandMutex);
@@ -485,10 +486,7 @@ public:
 		Trampoline(pChar, szFullLine);
 		strcpy_s(szLastCommand, szFullCommand);
 	}
-
-	void Trampoline(SPAWNINFO* pChar, const char* szFullLine);
 };
-DETOUR_TRAMPOLINE_EMPTY(void CCommandHook::Trampoline(SPAWNINFO* pChar, const char* szFullLine));
 
 void AddCommand(const char* Command, fEQCommand Function, bool EQ /* = false */, bool Parse /* = true */, bool InGame /* = false */)
 {

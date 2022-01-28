@@ -116,7 +116,7 @@ void AddWindowToList(const CXStr& WindowName, CXWnd* pWnd)
 class CSidlInitHook
 {
 public:
-	void Init_Trampoline(const CXStr& Name, int A);
+	DETOUR_TRAMPOLINE_DEF(void, Init_Trampoline, (const CXStr& Name, int A))
 	void Init_Detour(const CXStr& Name, int A)
 	{
 		AddWindowToList(Name, reinterpret_cast<CXWnd*>(this));
@@ -125,7 +125,7 @@ public:
 	}
 
 	// FIXME: Maybe this should go elsewhere? Isn't really related to what we're doing here...
-	int CTargetWnd__WndNotification_Tramp(CXWnd*, uint32_t, void*);
+	DETOUR_TRAMPOLINE_DEF(int, CTargetWnd__WndNotification_Tramp, (CXWnd*, uint32_t, void*))
 	int CTargetWnd__WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
 	{
 		if (gUseTradeOnTarget && pTarget && uiMessage == XWM_LCLICK)
@@ -145,15 +145,13 @@ public:
 		return CTargetWnd__WndNotification_Tramp(pWnd, uiMessage, pData);
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(void CSidlInitHook::Init_Trampoline(const CXStr&, int));
-DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CTargetWnd__WndNotification_Tramp(CXWnd*, uint32_t, void*));
 
 class CXWndManagerHook
 {
 public:
 	// This serves as the effective destructor of the window. Every CXWnd will call this in its
 	// destructor, so this means we do not need to detour the destructor, too.
-	int RemoveWnd_Trampoline(CXWnd*);
+	DETOUR_TRAMPOLINE_DEF(int, RemoveWnd_Trampoline, (CXWnd*))
 	int RemoveWnd_Detour(CXWnd* pWnd)
 	{
 		if (pWnd)
@@ -171,7 +169,6 @@ public:
 		return RemoveWnd_Trampoline(pWnd);
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(int CXWndManagerHook::RemoveWnd_Trampoline(class CXWnd*));
 
 static void InitializeWindowList()
 {
@@ -206,6 +203,7 @@ void ReinitializeWindowList()
 class CXMLSOMDocumentBaseHook
 {
 public:
+	DETOUR_TRAMPOLINE_DEF(bool, XMLRead_Trampoline, (const CXStr& A, const CXStr& B, const CXStr& C, const CXStr& D))
 	bool XMLRead(
 		const CXStr& strPath,
 		const CXStr& strDefaultPath,
@@ -232,10 +230,9 @@ public:
 
 		return XMLRead_Trampoline(strPath, strDefaultPath, strFileName, strDefaultPath2);
 	}
-	bool XMLRead_Trampoline(const CXStr& A, const CXStr& B, const CXStr& C, const CXStr& D);
 };
-DETOUR_TRAMPOLINE_EMPTY(bool CXMLSOMDocumentBaseHook::XMLRead_Trampoline(const CXStr& A, const CXStr& B, const CXStr& C, const CXStr& D));
 
+DETOUR_TRAMPOLINE_DEF(bool, DoesFileExist_Trampoline, (const char*))
 bool DoesFileExist(const char* filename)
 {
 	const std::filesystem::path localfile = filename;
@@ -246,11 +243,11 @@ bool DoesFileExist(const char* filename)
 
 	return std::filesystem::exists(localfile, ec_exists);
 }
-DETOUR_TRAMPOLINE_EMPTY(bool DoesFileExist_Trampoline(const char*));
 
 class CMemoryMappedFile
 {
 public:
+	DETOUR_TRAMPOLINE_DEF(bool, SetFile_Trampoline, (const char*, bool, unsigned int))
 	bool SetFile_Detour(const char* filename, bool unk8, unsigned int unkC)
 	{
 		std::filesystem::path localfile = filename;
@@ -265,12 +262,10 @@ public:
 		return SetFile_Trampoline(filename, unk8, unkC);
 	}
 
-	bool SetFile_Trampoline(const char*, bool, unsigned int);
 };
-DETOUR_TRAMPOLINE_EMPTY(bool CMemoryMappedFile::SetFile_Trampoline(const char*, bool, unsigned int));
 
 // Hook for fopen in eqgraphics.dll
-DETOUR_TRAMPOLINE_EMPTY(FILE* fopen_eqgraphics_trampoline(const char* filename, const char* mode));
+DETOUR_TRAMPOLINE_DEF(FILE*, fopen_eqgraphics_trampoline, (const char* filename, const char* mode))
 FILE* fopen_eqgraphics_detour(const char* filename, const char* mode)
 {
 	// Only intercept reads
@@ -1922,7 +1917,7 @@ static CascadeItemSubMenu* GetOrCreateSubMenuFromName(CascadeItemSubMenu* root, 
 	return GetOrCreateSubMenuFromName(found, tail);
 }
 
-DETOUR_TRAMPOLINE_EMPTY(CascadeItemArray* CreateCascadeMenuItems_Trampoline());
+DETOUR_TRAMPOLINE_DEF(CascadeItemArray*, CreateCascadeMenuItems_Trampoline, ())
 CascadeItemArray* CreateCascadeMenuItems_Detour()
 {
 	CascadeItemArray* array = CreateCascadeMenuItems_Trampoline();

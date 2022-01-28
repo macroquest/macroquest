@@ -291,7 +291,7 @@ public:
 class CMapViewWndHook
 {
 public:
-	CMapViewWnd* Constructor_Trampoline(CXWnd*);
+	DETOUR_TRAMPOLINE_DEF(CMapViewWnd*, Constructor_Trampoline, (CXWnd*))
 	CMapViewWnd* Constructor_Detour(CXWnd* pParent)
 	{
 		CMapViewWnd* pThis = Constructor_Trampoline(pParent);
@@ -301,7 +301,6 @@ public:
 		return pThis;
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(CMapViewWnd* CMapViewWndHook::Constructor_Trampoline(CXWnd*));
 
 // Called once, when the plugin is to initialize
 PLUGIN_API void InitializePlugin()
