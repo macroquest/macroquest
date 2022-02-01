@@ -64,6 +64,8 @@ enum class SpawnMembers
 	Casting,
 	Mount,
 	FeetWet,
+	BodyWet,
+	HeadWet,
 	Underwater,
 	Animation,
 	Holding,
@@ -231,6 +233,8 @@ MQ2SpawnType::MQ2SpawnType() : MQ2Type("spawn")
 	ScopedTypeMember(SpawnMembers, Casting);
 	ScopedTypeMember(SpawnMembers, Mount);
 	ScopedTypeMember(SpawnMembers, FeetWet);
+	ScopedTypeMember(SpawnMembers, BodyWet);
+	ScopedTypeMember(SpawnMembers, HeadWet);
 	ScopedTypeMember(SpawnMembers, Underwater);
 	ScopedTypeMember(SpawnMembers, Animation);
 	ScopedTypeMember(SpawnMembers, Holding);
@@ -908,7 +912,17 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		return true;
 
 	case SpawnMembers::FeetWet:
-		Dest.Set(pSpawn->FeetWet == 5);
+		Dest.Set(pSpawn->FeetWet == ELT_Water || pSpawn->FeetWet == ELT_Slime || pSpawn->FeetWet == ELT_Lava);
+		Dest.Type = pBoolType;
+		return true;
+
+	case SpawnMembers::BodyWet:
+		Dest.Set(pSpawn->BodyWet == ELT_Water || pSpawn->BodyWet == ELT_Slime || pSpawn->BodyWet == ELT_Lava);
+		Dest.Type = pBoolType;
+		return true;
+
+	case SpawnMembers::HeadWet:
+		Dest.Set(pSpawn->HeadWet == ELT_Water || pSpawn->HeadWet == ELT_Slime || pSpawn->HeadWet == ELT_Lava);
 		Dest.Type = pBoolType;
 		return true;
 
