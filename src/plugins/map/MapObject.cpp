@@ -959,17 +959,6 @@ MapObject* FindMapObject(EQGroundItem* pGroundItem)
 	return nullptr;
 }
 
-void MapObjects_Clear()
-{
-	GroundItemMap.clear();
-	SpawnMap.clear();
-
-	while (gpActiveMapObjects)
-	{
-		delete gpActiveMapObjects;    // deleting the object will remove it from the list
-	}
-}
-
 //============================================================================
 
 MapCircle::MapCircle()
@@ -1320,4 +1309,19 @@ void MakeMapLoc(const MapLocParams& params, const std::string& label, const std:
 	newLoc->SetIndex(static_cast<int>(sMapLocs.size()));
 
 	newLoc->PostInit();
+}
+
+//----------------------------------------------------------------------------
+
+void MapObjects_Clear()
+{
+	GroundItemMap.clear();
+	SpawnMap.clear();
+	sLocationsMap.clear();
+	sMapLocs.clear();
+
+	while (gpActiveMapObjects)
+	{
+		delete gpActiveMapObjects;    // deleting the object will remove it from the list
+	}
 }
