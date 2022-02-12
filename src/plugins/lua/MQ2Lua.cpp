@@ -777,7 +777,7 @@ static void LuaPSCommand(const std::vector<std::string>& filters = {})
 				info.name.length() > 12 ? info.name.substr(0, 9) + "..." : info.name,
 				info.startTime,
 				info.endTime,
-				info.status);
+				static_cast<int>(info.status));
 			WriteChatStatus("%.*s", line.size(), line.data());
 		}
 	}
@@ -816,7 +816,7 @@ static void LuaInfoCommand(const std::optional<std::string>& script = std::nullo
 				info.startTime,
 				info.endTime,
 				join(info.returnValues, ", "),
-				info.status);
+				static_cast<int>(info.status));
 
 			WriteChatStatus("%.*s", line.size(), line.data());
 		}
@@ -837,7 +837,7 @@ static void LuaInfoCommand(const std::optional<std::string>& script = std::nullo
 				info.name.length() > 12 ? info.name.substr(0, 9) + "..." : info.name,
 				info.startTime,
 				info.endTime,
-				info.status);
+				static_cast<int>(info.status));
 			WriteChatStatus("%.*s", line.size(), line.data());
 		}
 	}

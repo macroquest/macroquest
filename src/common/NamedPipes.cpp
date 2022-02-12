@@ -1003,7 +1003,7 @@ void NamedPipeServer::SendMessage(int connectionId, MQMessageId messageId, const
 	}
 	else
 	{
-		SPDLOG_WARN("Tried to send message on closed connection: connectionId={} messageId={}", connectionId, messageId);
+		SPDLOG_WARN("Tried to send message on closed connection: connectionId={} messageId={}", connectionId, static_cast<int>(messageId));
 	}
 }
 
@@ -1176,7 +1176,7 @@ void NamedPipeClient::SendMessage(MQMessageId messageId, const void* data, size_
 	}
 	else
 	{
-		SPDLOG_WARN("Tried to send a message with id {0} on a null connection.", messageId);
+		SPDLOG_WARN("Tried to send a message with id {0} on a null connection.", static_cast<int>(messageId));
 	}
 }
 
@@ -1189,7 +1189,7 @@ void NamedPipeClient::SendMessageWithResponse(MQMessageId messageId, const void*
 	}
 	else
 	{
-		SPDLOG_WARN("Tried to send a message with id {0} on a null connection.", messageId);
+		SPDLOG_WARN("Tried to send a message with id {0} on a null connection.", static_cast<int>(messageId));
 	}
 }
 
