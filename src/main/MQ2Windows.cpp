@@ -807,6 +807,7 @@ bool SendListSelect(const char* WindowName, const char* ScreenID, int Value)
 			listWnd->SetCurSel(Value);
 
 			int index = listWnd->GetCurSel();
+#pragma warning(suppress : 4312)
 			listWnd->ParentWndNotification(listWnd, XWM_LCLICK, (void*)index);
 
 			// Make the new selection visible for the user.
@@ -823,6 +824,7 @@ bool SendListSelect(const char* WindowName, const char* ScreenID, int Value)
 
 			CListWnd* listWnd = comboWnd->pListWnd;
 			int index = listWnd->GetCurSel();
+#pragma warning(suppress : 4312)
 			listWnd->ParentWndNotification(listWnd, XWM_LCLICK, (void*)index);
 
 			WeDidStuff();
@@ -854,6 +856,7 @@ bool SendListSelect2(CXWnd* pWnd, int ListIndex)
 			listWnd->SetCurSel(ListIndex);
 
 			int index = listWnd->GetCurSel();
+#pragma warning(suppress : 4312)
 			listWnd->ParentWndNotification(listWnd, XWM_LCLICK, (void*)index);
 
 			// Make the new selection visible for the user.
@@ -880,6 +883,7 @@ bool SendListSelect2(CXWnd* pWnd, int ListIndex)
 
 				CListWnd* listWnd = comboWnd->pListWnd;
 				int index = listWnd->GetCurSel();
+#pragma warning(suppress : 4312)
 				listWnd->ParentWndNotification(listWnd, XWM_LCLICK, (void*)index);
 
 				WeDidStuff();
@@ -938,6 +942,7 @@ bool SendComboSelect(const char* WindowName, const char* ScreenID, int Value)
 
 			CListWnd* listWnd = comboWnd->pListWnd;
 			int index = listWnd->GetCurSel();
+#pragma warning(suppress : 4312)
 			listWnd->ParentWndNotification(listWnd, XWM_LCLICK, (void*)index);
 
 			WeDidStuff();
@@ -1022,6 +1027,7 @@ bool SendWndNotification(const char* WindowName, const char* ScreenID, int Notif
 	if (Notification == XWM_NEWVALUE && pChild)
 	{
 		CSliderWnd* sliderWnd = static_cast<CSliderWnd*>(pChild);
+#pragma warning(suppress : 4311 4302)
 		sliderWnd->SetValue(reinterpret_cast<int>(Data));
 	}
 
@@ -1259,6 +1265,7 @@ void WndNotify(PSPAWNINFO pChar, char* szLine)
 						if (!Str.empty() && ci_find_substr(Str, szArg1) != -1)
 						{
 							WriteChatf("\ay[/notify] SUCCESS\ax: Clicking \"%s\" at position %d in the menu.", Str.c_str(), i);
+#pragma warning(suppress : 4312)
 							pContextMenuManager->WndNotification(menu, XWM_LMOUSEUP, reinterpret_cast<void*>(i));
 							return;
 						}
@@ -1285,7 +1292,7 @@ void WndNotify(PSPAWNINFO pChar, char* szLine)
 	if (IsNumber(szArg1))
 	{
 		// we have a number. it means the user want us to click a window he has found the address for...
-		const int addr = GetIntFromString(szArg1, 0);
+		const uintptr_t addr = GetInt64FromString(szArg1, 0);
 		if (ci_equals(szArg2, "listselect"))
 		{
 			SendListSelect2(reinterpret_cast<CXWnd*>(addr), GetIntFromString(szArg3, 0));
@@ -1352,11 +1359,13 @@ void WndNotify(PSPAWNINFO pChar, char* szLine)
 			}
 			else if (szArg2[0] == '0')
 			{
+#pragma warning(suppress : 4312)
 				if (!SendWndNotification(szArg1, nullptr, i, reinterpret_cast<void*>(Data)))
 				{
 					MacroError("Could not send notification to %s %s", szArg1, szArg2);
 				}
 			}
+#pragma warning(suppress : 4312)
 			else if (!SendWndNotification(szArg1, szArg2, i, reinterpret_cast<void*>(Data)))
 			{
 				MacroError("Could not send notification to %s %s", szArg1, szArg2);

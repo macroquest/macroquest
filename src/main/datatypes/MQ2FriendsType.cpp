@@ -79,9 +79,8 @@ bool MQ2FriendsType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 bool MQ2FriendsType::ToString(MQVarPtr VarPtr, char* Destination)
 {
 	// return the number of friends here...
-	if (((EVERQUEST*)pEverQuest)->ChatService)
+	if (UniversalChatProxy* pChat = pEverQuest->chatService)
 	{
-		UniversalChatProxy* pChat = ((EVERQUEST*)pEverQuest)->ChatService;
 		sprintf_s(Destination, MAX_STRING, "%d", pChat->GetNumberOfFriends());
 		return true;
 	}

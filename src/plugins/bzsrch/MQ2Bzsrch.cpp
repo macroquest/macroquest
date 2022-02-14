@@ -360,7 +360,7 @@ public:
 		switch ((BazaarMembers)pMember->ID)
 		{
 		case BazaarMembers::Count:
-			Dest.DWord = BazaarItemsArray.size();
+			Dest.DWord = static_cast<uint32_t>(BazaarItemsArray.size());
 			Dest.Type = pIntType;
 			return true;
 
@@ -386,11 +386,11 @@ public:
 				}
 				else
 				{
-					for (size_t i = 0; i < BazaarItemsArray.size(); i++)
+					for (uint32_t i = 0; i < BazaarItemsArray.size(); i++)
 					{
 						BazaarSearchItem& item = BazaarItemsArray[i];
 
-						int len = strrchr(&item.ItemName[0], '(') - &item.ItemName[0];
+						size_t len = strrchr(&item.ItemName[0], '(') - &item.ItemName[0];
 						if (!strncmp(Index, &item.ItemName[0], len))
 						{
 							Dest.DWord = i;
@@ -437,7 +437,7 @@ public:
 					{
 						const BazaarSearchResults* pResults = &pBazaarSearchWnd->searchResults[i];
 
-						int len = strrchr(&pResults->itemName[0], '(') - &pResults->itemName[0];
+						size_t len = strrchr(&pResults->itemName[0], '(') - &pResults->itemName[0];
 						if (!strncmp(Index, &pResults->itemName[0], len))
 						{
 							int index = FindBazaarItemsArrayIndex(pResults);

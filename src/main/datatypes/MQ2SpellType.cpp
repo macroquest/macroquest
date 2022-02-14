@@ -48,7 +48,6 @@ enum class SpellMembers
 	WillLandPet,
 	WillStack,
 	MyRange,
-	Address,
 	EnduranceCost,
 	MaxLevel,
 	Category,
@@ -141,7 +140,6 @@ MQ2SpellType::MQ2SpellType() : MQ2Type("spell")
 	ScopedTypeMember(SpellMembers, WillLandPet);
 	ScopedTypeMember(SpellMembers, WillStack);
 	ScopedTypeMember(SpellMembers, MyRange);
-	ScopedTypeMember(SpellMembers, Address);
 	ScopedTypeMember(SpellMembers, EnduranceCost);
 	ScopedTypeMember(SpellMembers, MaxLevel);
 	ScopedTypeMember(SpellMembers, Category);
@@ -735,11 +733,6 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 	}
 
-	case SpellMembers::Address:
-		Dest.DWord = (DWORD)VarPtr.Ptr;
-		Dest.Type = pIntType;
-		return true;
-
 	case SpellMembers::EnduranceCost:
 		Dest.DWord = pSpell->EnduranceCost;
 		Dest.Type = pIntType;
@@ -1036,7 +1029,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case SpellMembers::Rank:
 		// well I haven't checked all spells, but im pretty sure if it's 0 its not a spell a
-		// player can scribe/or not intentional, i.e a eq bug, time will tell - eqmule
+		// player can scribe/or not intentional
 
 		Dest.DWord = pSpell->SpellRank;
 		Dest.Type = pIntType;

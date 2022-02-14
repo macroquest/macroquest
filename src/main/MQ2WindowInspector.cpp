@@ -214,6 +214,19 @@ static bool ColumnLinkValue(const char* str_id, MQColor color, const char* fmt, 
 	return clicked;
 }
 
+static void ColumnNumber(const char* Label, int* number)
+{
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+
+	ImGui::PushID(Label);
+	ImGui::SetNextItemWidth(-1);
+	ImGui::InputInt("##", number);
+	ImGui::PopID();
+
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn();
+}
+
 static void ColumnText(const char* Label, const char* fmt, ...)
 {
 	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
@@ -933,7 +946,6 @@ void DisplayTAFrameDraw(const char* Label, const CTAFrameDraw& frameDraw)
 
 void DisplayDrawTemplate(const char* label, const CButtonDrawTemplate& drawTemplate)
 {
-
 	bool show = ColumnTreeNodeType2((const void*)&drawTemplate, label, "CButtonDrawTemplate", "%s", drawTemplate.strName.c_str());
 	if (show)
 	{
@@ -1052,8 +1064,8 @@ void DisplayScreenPieceTemplate(const CScreenPieceTemplate* pTemplate)
 	{
 		for (int i = 0; i < pTemplate->arRuntimeTypes.GetLength(); ++i)
 		{
-			char szLabel[10];
-			fmt::format_to(szLabel, "#{}\0", i + 1);
+			char szLabel[10] = { 0 };
+			fmt::format_to(szLabel, "#{}", i + 1);
 			ColumnText(szLabel, "%s (%d)", UITypeToString(static_cast<UIType>(pTemplate->arRuntimeTypes[i])), pTemplate->arRuntimeTypes[i]);
 		}
 
@@ -1373,6 +1385,7 @@ bool ColumnEQZoneIndex(const char* Label, EQZoneIndex zoneId, bool treeNode = fa
 
 	if (treeNode)
 	{
+#pragma warning(suppress : 4312)
 		result = ImGui::TreeNode((void*)zoneId, Label); ImGui::TableNextColumn();
 	}
 	else
@@ -1510,7 +1523,7 @@ class ImGuiWindowStringEditor
 {
 public:
 	ImGuiWindowStringEditor(std::string_view name, const CXStr& readOnlyString)
-		: m_string(const_cast<CXStr*>(&readOnlyString))
+		: m_readOnlyString(readOnlyString)
 		, m_readOnly(true)
 		, m_stringName(name)
 	{
@@ -1526,6 +1539,7 @@ public:
 	ImGuiWindowStringEditor(ImGuiWindowStringEditor&& other)
 		: m_readOnly(other.m_readOnly)
 		, m_string(other.m_string)
+		, m_readOnlyString(other.m_readOnlyString)
 		, m_stringName(std::move(other.m_stringName))
 		, m_closeRequested(other.m_closeRequested)
 		, m_textEditor(std::move(other.m_textEditor))
@@ -1542,6 +1556,7 @@ public:
 	{
 		m_readOnly = other.m_readOnly;
 		m_string = other.m_string;
+		m_readOnlyString = std::move(other.m_readOnlyString);
 		m_stringName = std::move(other.m_stringName);
 		m_closeRequested = other.m_closeRequested;
 		m_textEditor = std::move(other.m_textEditor);
@@ -1562,9 +1577,10 @@ public:
 		if (ImGui::Begin(m_stringName.c_str(), open, m_changed ? ImGuiWindowFlags_UnsavedDocument : 0))
 		{
 			ImGui::SetNextItemWidth(-1.0f);
+
 			if (m_readOnly)
 			{
-				ImGui::TextWrapped(m_string->c_str());
+				ImGui::TextWrapped(m_readOnlyString.c_str());
 			}
 			else
 			{
@@ -1614,6 +1630,7 @@ public:
 	}
 
 	CXStr* m_string;
+	CXStr m_readOnlyString;
 	std::string m_stringName;
 	std::unique_ptr<imgui::ImGuiZepEditor> m_textEditor;
 	bool m_readOnly = false;
@@ -1971,8 +1988,8 @@ public:
 			{
 				for (int i = 0; i < pWnd->RuntimeTypes.GetLength(); ++i)
 				{
-					char szLabel[10];
-					fmt::format_to(szLabel, "#{}\0", i + 1);
+					char szLabel[10] = { 0 };
+					fmt::format_to(szLabel, "#{}", i + 1);
 					ColumnText(szLabel, "%s (%d)",
 						EWndRuntimeTypeToString(static_cast<EWndRuntimeType>(pWnd->RuntimeTypes[i])),
 						pWnd->RuntimeTypes[i]);
@@ -2263,7 +2280,12 @@ public:
 
 		if (BeginColorSection("CLabelWnd Properties", open))
 		{
-			ColumnCXStr("Text", pWnd->Text);
+			bool changed = false;
+			ColumnCXStr("Prepend Text", &pWnd->PrependText);
+			ColumnCXStr("Text###LabelText", &pWnd->Text);
+			ColumnCXStr("Append Text", &pWnd->AppendText);
+			if (ColumnCheckBox("Text Dirty", &pWnd->bTextDirty) && pWnd->bTextDirty)
+				pWnd->UpdateText();
 			ColumnCheckBox("No wrap", &pWnd->bNoWrap);
 			ColumnCheckBox("Right align", &pWnd->bAlignRight);
 			ColumnCheckBox("Center align", &pWnd->bAlignCenter);
@@ -2278,7 +2300,7 @@ public:
 
 		if (BeginColorSection("CLabel Properties", open))
 		{
-			ColumnText("EQ Type", "%d", pWnd->EQType);
+			ColumnNumber("EQ Type", &pWnd->EQType);
 		}
 	}
 
@@ -2673,7 +2695,7 @@ public:
 							ColumnWindow("Window", cell.pWnd);
 
 							ColumnText("Texture only", cell.bOnlyDrawTexture ? "true" : "false");
-							ColumnText("Unknown0x14", "%d", cell.Unknown0x14);
+							ColumnText("Unknown1", "%p", cell.Unknown1);
 						};
 
 						if (cells > 0)
@@ -3161,7 +3183,7 @@ public:
 					DisplayWindowTreeNode(pWnd);
 				}
 
-				m_lastWindowCount = m_windows.size();
+				m_lastWindowCount = static_cast<int>(m_windows.size());
 			}
 
 			ImGui::EndTable();
@@ -3563,7 +3585,7 @@ static void WindowProperties_FindLocationWnd(CSidlScreenWnd* pSidlWindow, ImGuiW
 		}
 	});
 
-	ColumnArrayList("Reference List", "FindableReference", pWnd->referenceList.size(),
+	ColumnArrayList("Reference List", "FindableReference", static_cast<int>(pWnd->referenceList.size()),
 		pWnd->referenceList.begin(), pWnd->referenceList.end(),
 		[pWnd](const std::pair<CFindLocationWnd::FindableReference, int>& data)
 	{
@@ -3683,7 +3705,7 @@ static void WindowProperties_ZoneGuideWnd(CSidlScreenWnd* pSidlWindow, ImGuiWind
 		ZoneGuideManagerClient& zoneGuide = ZoneGuideManagerClient::Instance();
 
 		// List of continents
-		ColumnArrayList("Continents", "ZoneGuideContinent", zoneGuide.continents.size(),
+		ColumnArrayList("Continents", "ZoneGuideContinent", static_cast<int>(zoneGuide.continents.size()),
 			zoneGuide.continents.begin(), zoneGuide.continents.end(),
 			[](const ZoneGuideContinent& continent)
 		{
@@ -3697,7 +3719,7 @@ static void WindowProperties_ZoneGuideWnd(CSidlScreenWnd* pSidlWindow, ImGuiWind
 		});
 
 		// List of zone types
-		ColumnArrayList("Zone types", "ZoneGuideZoneType", zoneGuide.zoneTypes.size(),
+		ColumnArrayList("Zone types", "ZoneGuideZoneType", static_cast<int>(zoneGuide.zoneTypes.size()),
 			zoneGuide.zoneTypes.begin(), zoneGuide.zoneTypes.end(),
 			[](const ZoneGuideZoneType& zoneType)
 		{
@@ -3761,7 +3783,7 @@ static void WindowProperties_ZoneGuideWnd(CSidlScreenWnd* pSidlWindow, ImGuiWind
 					}
 
 					// zone connections
-					ColumnArrayList2("Zone connections", "ZoneGuideConnection", zone.zoneConnections.size(),
+					ColumnArrayList2("Zone connections", "ZoneGuideConnection", static_cast<int>(zone.zoneConnections.size()),
 						zone.zoneConnections.begin(), zone.zoneConnections.end(),
 						[&zoneGuide](const char* szLabel, const ZoneGuideConnection& connection)
 					{
@@ -3782,7 +3804,7 @@ static void WindowProperties_ZoneGuideWnd(CSidlScreenWnd* pSidlWindow, ImGuiWind
 		}
 
 		// List of transfer types
-		ColumnArrayList("Transfer types", "ZoneGuideTransferType", zoneGuide.transferTypes.size(),
+		ColumnArrayList("Transfer types", "ZoneGuideTransferType", static_cast<int>(zoneGuide.transferTypes.size()),
 			zoneGuide.transferTypes.begin(), zoneGuide.transferTypes.end(),
 			[](const ZoneGuideTransferType& transferType)
 		{

@@ -40,7 +40,7 @@ int StrToBlob(const std::string& stringIn, DATA_BLOB* BlobOut)
 	MakeLower(temp);
 
 	uint8_t* pbData = (uint8_t*)LocalAlloc(LPTR, temp.length() + 1);
-	size_t out = 0;
+	DWORD out = 0;
 
 	for (int count = 0; temp[count]; count += 2, out++)
 	{

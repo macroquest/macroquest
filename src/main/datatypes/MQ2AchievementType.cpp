@@ -428,7 +428,7 @@ bool MQ2AchievementType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 			{
 				tm* time = (tm*)&DataTypeTemp[0];
 				ZeroMemory(time, sizeof(tm));
-				_localtime32_s(time, &clientInfo->completionTimestamp);
+				eq_localtime(time, &clientInfo->completionTimestamp);
 				Dest.Ptr = time;
 			}
 		}

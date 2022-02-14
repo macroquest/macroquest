@@ -838,7 +838,7 @@ static void TellCheck(const char* szClean)
 
 void CheckChatForEvent(const char* szMsg)
 {
-	int len = strlen(szMsg);
+	size_t len = strlen(szMsg);
 
 	auto pszCleanOrg = std::make_unique<char[]>(len + 64);
 	char* szClean = pszCleanOrg.get();
@@ -866,7 +866,7 @@ void CheckChatForEvent(const char* szMsg)
 		char Channel[MAX_STRING] = { 0 };
 		char* pDest = nullptr;
 
-		int StartCopyAt = 0;
+		size_t StartCopyAt = 0;
 
 		if ((CHATEVENT(CHAT_GUILD)) && (pDest = strstr(szClean, " tells the guild, ")))
 		{

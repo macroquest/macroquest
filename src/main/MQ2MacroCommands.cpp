@@ -133,7 +133,7 @@ void Delay(SPAWNINFO* pChar, char* szLine)
 	strcpy_s(gDelayCondition, GetNextArg(szLine));
 
 	int VarValue = GetIntFromString(szVal, 0);
-	int len = strlen(szVal);
+	size_t len = strlen(szVal);
 
 	// Measured in deciseconds...
 	if (::tolower(szVal[len - 1]) == 'm')
@@ -723,7 +723,7 @@ MQMacroBlockPtr GetCurrentMacroBlock()
 
 int GetMacroBlockCount()
 {
-	return MacroBlockMap.size();
+	return static_cast<int>(MacroBlockMap.size());
 }
 
 // ***************************************************************************
@@ -1267,7 +1267,7 @@ static int GetNumArgsFromSub(const std::string& Sub)
 	if (size_t hasparams = std::count(Sub.begin(), Sub.end(), '('))
 	{
 		size_t n = std::count(Sub.begin(), Sub.end(), ',');
-		return n + 1;
+		return static_cast<int>(n) + 1;
 	}
 	return 0;
 }
@@ -1519,10 +1519,6 @@ static void MarkWhile(const char* szCommand, MQLoop& loop)
 	}
 	else
 	{
-		// its a /while (something) /dosomething
-		// we cant support that kind of /while cause I cant figure out how to do it -eqmule
-		// feel free to enlighten me.
-		// so we loop to same line over and over i guess...
 		FatalError("You have a /while block that's not enclosed in {}");
 	}
 }

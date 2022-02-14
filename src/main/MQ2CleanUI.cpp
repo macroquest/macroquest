@@ -59,7 +59,7 @@ void DrawNetStatus_Detour(uint16_t x, uint16_t y, void* udpConnection, uint32_t 
 {
 	DrawHUDParams[0] = x + gNetStatusXPos;
 	DrawHUDParams[1] = y + gNetStatusYPos;
-	DrawHUDParams[2] = (DWORD)udpConnection;
+	DrawHUDParams[2] = (uintptr_t)udpConnection;
 	DrawHUDParams[3] = bps;
 
 	if (gbHUDUnderUI || gbAlwaysDrawMQHUD)
@@ -78,7 +78,7 @@ void DrawHUD()
 		{
 			if (DrawHUDParams[0] && gGameState == GAMESTATE_INGAME && gbShowNetStatus)
 			{
-				DrawNetStatus_Trampoline((unsigned short)DrawHUDParams[0], (unsigned short)DrawHUDParams[1], (void*)DrawHUDParams[2], DrawHUDParams[3]);
+				DrawNetStatus_Trampoline((uint16_t)DrawHUDParams[0], (uint16_t)DrawHUDParams[1], (void*)DrawHUDParams[2], (uint32_t)DrawHUDParams[3]);
 				DrawHUDParams[0] = 0;
 			}
 

@@ -18,7 +18,19 @@
 namespace mq {
 
 //============================================================================
-std::map<uintptr_t, std::shared_ptr<Detour>> s_detourMap;
+
+using DetourMap = std::unordered_map<uintptr_t, std::shared_ptr<Detour>>;
+static DetourMap* s_detourMap = nullptr;
+
+inline DetourMap& get_detours()
+{
+	if (!s_detourMap)
+	{
+		s_detourMap = new DetourMap();
+	}
+
+	return *s_detourMap;
+}
 
 Detour::Detour(uintptr_t address, void** target, void* detour, const std::string_view name)
 	: m_address(address)
@@ -49,17 +61,17 @@ Detour::~Detour()
 
 void Detour::AddToMap()
 {
-	s_detourMap.insert_or_assign(this->Address(), shared_from_this());
+	get_detours().insert_or_assign(this->Address(), shared_from_this());
 }
 
 void Detour::RemoveFromMap()
 {
-	s_detourMap.erase(this->Address());
+	get_detours().erase(this->Address());
 }
 
 void RemoveDetour(uintptr_t address)
 {
-	s_detourMap.erase(address);
+	get_detours().erase(address);
 }
 
 bool gbDoingSpellChecks = false;
@@ -67,7 +79,7 @@ int gbInMemCheck4 = 0;
 
 void RemoveDetours()
 {
-	s_detourMap.clear();
+	get_detours().clear();
 }
 
 void SetAssist(BYTE* address)
@@ -80,6 +92,9 @@ void SetAssist(BYTE* address)
 	if (SPAWNINFO* pSpawn = GetSpawnByID(Assistee))
 		gbAssistComplete = AS_AssistSent;
 }
+
+// Defined in AssemblyFunctions.asm, need the forward declare
+void GetAssistParam();
 
 //============================================================================
 
@@ -94,6 +109,7 @@ public:
 // stack frame. Because of this we need to avoid optimizing this function as it
 // changes the layout of the stack. Keep optimizations off for this function or
 // it will break.
+
 #pragma optimize("", off)
 int CPacketScrambler_Detours::ntoh_Detour(int nopcode)
 {
@@ -101,20 +117,7 @@ int CPacketScrambler_Detours::ntoh_Detour(int nopcode)
 
 	if (hopcode == EQ_ASSIST)
 	{
-		__asm {
-			push eax;
-			mov eax, dword ptr[ebp];
-			test eax, eax;
-			jz emptyassist;
-			mov eax, dword ptr[eax + 0x10];
-			test eax, eax;
-			jz emptyassist;
-			push eax;
-			call SetAssist;
-			pop eax;
-		emptyassist:
-			pop eax;
-		};
+		GetAssistParam();
 	}
 
 	return hopcode;
@@ -255,7 +258,7 @@ AddressDetourState IsAddressDetoured(uintptr_t address, size_t count)
 	if (address && count >= 4 && *(DWORD*)address == 0x00905a4d)
 		return AddressDetourState::KnownSkippable;
 
-	for (const auto& [key, _] : s_detourMap)
+	for (const auto& [key, _] : get_detours())
 	{
 		if (address <= key && key <= address + count)
 			return AddressDetourState::CodeDetour;
@@ -266,7 +269,7 @@ AddressDetourState IsAddressDetoured(uintptr_t address, size_t count)
 
 inline uint8_t GetDetouredByte(uintptr_t address, uint8_t original)
 {
-	for (const auto& [key, detour] : s_detourMap)
+	for (const auto& [key, detour] : get_detours())
 	{
 		if (address >= key && address < key + DETOUR_COUNT)
 		{
@@ -280,7 +283,7 @@ inline uint8_t GetDetouredByte(uintptr_t address, uint8_t original)
 
 int memcheck0(unsigned char* buffer, size_t count)
 {
-	uint32_t addr = reinterpret_cast<uint32_t>(buffer);
+	uintptr_t addr = reinterpret_cast<uintptr_t>(buffer);
 
 	// If we are not detouring memory that overlaps this region, just let it pass through.
 	AddressDetourState detourState = IsAddressDetoured(addr, count);
@@ -308,7 +311,7 @@ int memcheck0(unsigned char* buffer, size_t count)
 
 int memcheck1(unsigned char* buffer, size_t count, mckey key)
 {
-	uint32_t addr = reinterpret_cast<uint32_t>(buffer);
+	uintptr_t addr = reinterpret_cast<uintptr_t>(buffer);
 	unsigned int ebx, eax, edx;
 
 	if (key.x != 0) {
@@ -348,7 +351,7 @@ int memcheck1(unsigned char* buffer, size_t count, mckey key)
 
 int memcheck2(unsigned char* buffer, size_t count, mckey key)
 {
-	uint32_t addr = reinterpret_cast<uint32_t>(buffer);
+	uintptr_t addr = reinterpret_cast<uintptr_t>(buffer);
 	unsigned int ebx, edx, eax;
 
 	eax = ~key.a[0] & 0xff;
@@ -385,7 +388,7 @@ int memcheck2(unsigned char* buffer, size_t count, mckey key)
 
 int WINAPI memcheck4(unsigned char* buffer, size_t* count_)
 {
-	uint32_t addr = reinterpret_cast<uint32_t>(buffer);
+	uintptr_t addr = reinterpret_cast<uintptr_t>(buffer);
 	size_t count = *count_ & 0xff;
 
 	// If we are not detouring memory that overlaps this region, just let it pass through.
@@ -474,6 +477,9 @@ void ShutdownDetours()
 
 	HookMemChecker(false);
 	RemoveDetours();
+
+	delete s_detourMap;
+	s_detourMap = nullptr;
 }
 
 } // namespace mq

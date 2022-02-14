@@ -40,79 +40,49 @@ MQ2CharSelectListType::MQ2CharSelectListType() : MQ2Type("charselectlist")
 bool MQ2CharSelectListType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	MQTypeMember* pMember = MQ2CharSelectListType::FindMember(Member);
-	if (!pMember)
+	if (!pMember || !pEverQuest)
 		return false;
 
-	EVERQUEST* pEQ = pEverQuest;
+	if (static_cast<CharSelectListMembers>(pMember->ID) == CharSelectListMembers::Count)
+	{
+		Dest.Type = pIntType;
+		Dest.DWord = pEverQuest->charSelectPlayerArray.GetCount();
+		return true;
+	}
+
+	if (VarPtr.Int < 0 || VarPtr.Int >= pEverQuest->charSelectPlayerArray.GetCount())
+		return false;
+
+	CSINFO& csInfo = pEverQuest->charSelectPlayerArray[VarPtr.Int];
 
 	switch (static_cast<CharSelectListMembers>(pMember->ID))
 	{
 	case CharSelectListMembers::Name:
 		Dest.Type = pStringType;
-		if (pEQ && VarPtr.Int < pEQ->pCharSelectPlayerArray.Count)
-		{
-			strcpy_s(DataTypeTemp, pEQ->pCharSelectPlayerArray[VarPtr.Int].Name);
-			Dest.Ptr = &DataTypeTemp[0];
-			return true;
-		}
-		return false;
+		strcpy_s(DataTypeTemp, csInfo.Name);
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
 
 	case CharSelectListMembers::Level:
-		Dest.DWord = 0;
 		Dest.Type = pIntType;
-
-		if (pEQ && VarPtr.Int < pEQ->pCharSelectPlayerArray.Count)
-		{
-			Dest.DWord = pEQ->pCharSelectPlayerArray[VarPtr.Int].Level;
-			return true;
-		}
-		return false;
+		Dest.DWord = csInfo.Level;
+		return true;
 
 	case CharSelectListMembers::Class:
-		Dest.DWord = 0;
 		Dest.Type = pStringType;
-
-		if (pEQ && VarPtr.Int < pEQ->pCharSelectPlayerArray.Count)
-		{
-			strcpy_s(DataTypeTemp, GetClassDesc(pEQ->pCharSelectPlayerArray[VarPtr.Int].Class));
-			Dest.Ptr = &DataTypeTemp[0];
-			return true;
-		}
-		return false;
+		strcpy_s(DataTypeTemp, GetClassDesc(csInfo.Class));
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
 
 	case CharSelectListMembers::Race:
-		Dest.DWord = 0;
 		Dest.Type = pStringType;
-
-		if (pEQ && VarPtr.Int < pEQ->pCharSelectPlayerArray.Count)
-		{
-			strcpy_s(DataTypeTemp, pEverQuest->GetRaceDesc(pEQ->pCharSelectPlayerArray[VarPtr.Int].Race));
-			Dest.Ptr = &DataTypeTemp[0];
-			return true;
-		}
-		return false;
+		strcpy_s(DataTypeTemp, pEverQuest->GetRaceDesc(csInfo.Race));
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
 
 	case CharSelectListMembers::ZoneID:
-		Dest.DWord = 0;
 		Dest.Type = pIntType;
-
-		if (pEQ && VarPtr.Int < pEQ->pCharSelectPlayerArray.Count)
-		{
-			int zoneid = pEQ->pCharSelectPlayerArray[VarPtr.Int].CurZoneID;
-			Dest.DWord = (zoneid & 0x7FFF);
-
-			return true;
-		}
-		return false;
-
-	case CharSelectListMembers::Count:
-		Dest.DWord = 0;
-		Dest.Type = pIntType;
-
-		if (pEQ)
-		{
-			Dest.DWord = pEQ->pCharSelectPlayerArray.Count;
-		}
+		Dest.DWord = (csInfo.CurZoneID & 0x7FFF);
 		return true;
 
 	default: break;

@@ -133,7 +133,7 @@ enum class SpawnMembers
 	Aggressive,
 	CanSplashLand,
 	IsBerserk,
-	pTouchingSwitch,
+	IsTouchingSwitch,
 	bShowHelm,
 	CorpseDragCount,
 	bBetaBuffed,
@@ -300,7 +300,7 @@ MQ2SpawnType::MQ2SpawnType() : MQ2Type("spawn")
 	ScopedTypeMember(SpawnMembers, Aggressive);
 	ScopedTypeMember(SpawnMembers, CanSplashLand);
 	ScopedTypeMember(SpawnMembers, IsBerserk);
-	ScopedTypeMember(SpawnMembers, pTouchingSwitch);
+	ScopedTypeMember(SpawnMembers, IsTouchingSwitch);
 	ScopedTypeMember(SpawnMembers, bShowHelm);
 	ScopedTypeMember(SpawnMembers, CorpseDragCount);
 	ScopedTypeMember(SpawnMembers, bBetaBuffed);
@@ -997,7 +997,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 			ClearSearchSpawn(&ssSpawn);
 			ssSpawn.FRadius = 999999.0f;
 
-			size_t nth = 0;
+			int nth = 0;
 
 			if (char* pSearch = strchr(Index, ','))
 			{
@@ -1346,9 +1346,9 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		Dest.Type = pIntType;
 		return true;
 
-	case SpawnMembers::pTouchingSwitch:
-		Dest.DWord = (DWORD)pSpawn->pTouchingSwitch;
-		Dest.Type = pIntType;
+	case SpawnMembers::IsTouchingSwitch:
+		Dest.Set(pSpawn->pTouchingSwitch != nullptr);
+		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::bShowHelm:

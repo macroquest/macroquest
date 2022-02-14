@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+#include <d3dx9math.h>
+
 namespace mq {
 
 static void MouseButtonUp(DWORD x, DWORD y, char* szButton);
@@ -29,11 +31,8 @@ enum class ItemClickStatus
 
 ItemClickStatus itemClickStatus = ItemClickStatus::None;
 
-// ***************************************************************************
-// EqMule Mar 08 2014
-// Adding a detour here
-// ***************************************************************************
-class FakeCDisplay
+
+class CDisplay_Detour
 {
 public:
 	DETOUR_TRAMPOLINE_DEF(CActorInterface*, GetClickedActor_Tramp, (int, int, bool, CVector3&, CVector3&))
@@ -57,19 +56,11 @@ public:
 
 		return GetClickedActor_Tramp(X, Y, bFlag, Vector1, Vector2);
 	}
-
-	HRESULT GetViewport(void* This, void* pViewport);
-	HRESULT GetTransform(void* This, DWORD State, void* pMatrix);
-	void SetCursorPosition(void* This, int X, int Y, DWORD Flags);//0x2c
-	bool ShowCursor(void* This, bool bShow); // 0x30
-
-	/*0x000*/ BYTE Unknown0x0[0xec8];
-	/*0xec8*/ void* pDevice; // device pointer see 100019B4                 mov     ecx, [ecx+0F08h] in 2015 02 20
 };
 
 void InitializeMouseHooks()
 {
-	EzDetour(CDisplay__GetClickedActor, &FakeCDisplay::GetClickedActor_Detour, &FakeCDisplay::GetClickedActor_Tramp);
+	EzDetour(CDisplay__GetClickedActor, &CDisplay_Detour::GetClickedActor_Detour, &CDisplay_Detour::GetClickedActor_Tramp);
 }
 
 void ShutdownMouseHooks()
@@ -103,7 +94,7 @@ static bool ExtractValue(char* szFile, char* szStart, char* szEnd, char* szValue
 		return false;
 	}
 
-	DWORD lenStart = strlen(szStart);
+	size_t lenStart = strlen(szStart);
 	char* fence = strstr(szFile, "ScreenID"); // needed to make sure we don't start into another element
 
 	char* sub = strstr(szFile, szStart);
@@ -155,23 +146,6 @@ bool MoveMouse(int x, int y, bool bClick)
 
 static bool ParseMouseLoc(const char* szMouseLoc)
 {
-
-	if (!_strnicmp(szMouseLoc, "target", 6))
-	{
-		if (!pTarget)
-		{
-			WriteChatColor("You must have a target selected for /mouseto target.", CONCOLOR_RED);
-			return false;
-		}
-
-		// insert code here to move mouse to target
-		// work in progress -eqmule july 18 2015
-		// this is comming in next zip, they ninja patched on me so im
-		// gonna have to add this like tomorrow...
-		WeDidStuff();
-		return true;
-	}
-
 	// determine mouse location - x and y given
 	if ((szMouseLoc[0] == '+') || (szMouseLoc[0] == '-') || ((szMouseLoc[0] >= '0') && (szMouseLoc[0] <= '9')))
 	{
@@ -323,11 +297,7 @@ bool ClickMouseItem(const MQGroundSpawn& GroundSpawn, bool left)
 	{
 		*((DWORD*)__LMouseHeldTime) = pDisplay->TimeStamp - 70;
 
-		// we "click" at -10000,-10000 because we know the user doesnt have any windows there...
-		// if its possible, i would like to figure out a pixel
-		// on the users screen that isnt covered by a window...
-		// the click need to be issued on the main UI...
-		// but for now this will work -eqmule 8 mar 2014
+		// we "click" at -10000,-10000 because we expect that the user doesnt have any windows there.
 
 		itemClickStatus = ItemClickStatus::MouseDown;
 		pEverQuest->LMouseUp(-10000, -10000);
@@ -443,9 +413,9 @@ void Click(SPAWNINFO* pChar, char* szLine)
 						// the distance needs to be calculated by the outer radius of the door and the characters reach...
 						float BoundingRadius = 0;
 
-						if (ActorBase* pBase = (ActorBase*)pSwitchTarget->pSwitch)
+						if (pSwitchTarget->pActor)
 						{
-							BoundingRadius = pBase->GetBoundingRadius();
+							BoundingRadius = pSwitchTarget->pActor->GetBoundingRadius();
 						}
 						else
 						{
@@ -550,103 +520,16 @@ void MouseTo(SPAWNINFO* pChar, char* szLine)
 	DebugSpew("Help invoked or Bad MouseTo command: %s", szLine);
 }
 
-// ok here goes... this is our custom directx implementation to allow us to
-// mess with directx functions without having to include d3d9.lib or any d3d9 headers
-// it was just easier than adding another dependency to the project and i dont like dependencies -eqmule
-/******************SUPA DUPA CODE AND CUSTOM DIRECTX STUFF BELOW*****************/
-
-//first some defines
-#define EQD3DTS_VIEW 2
-#define EQD3DTS_PROJECTION 3
-#define EQD3DTS_WORLD  256
-
-
-//Jul 18 2015 -eqmule
-typedef struct _EqViewPort9 {
-	DWORD       X;
-	DWORD       Y;            /* Viewport Top left */
-	DWORD       Width;
-	DWORD       Height;       /* Viewport Dimensions */
-	float       MinZ;         /* Min/max of clip Volume */
-	float       MaxZ;
-} EqViewPort9;
-//our D3DMATRIX implementation
-typedef struct _EQD3DMATRIX9
-{
-	union {
-		struct {
-			float        _11, _12, _13, _14;
-			float        _21, _22, _23, _24;
-			float        _31, _32, _33, _34;
-			float        _41, _42, _43, _44;
-
-		};
-		float m[4][4];
-	};
-} EQD3DMATRIX9, * LPEQD3DMATRIX9;
-//we are gonna need some pointers now for translating world coords to screen coords...
-FakeCDisplay* pRender = 0;
-void* pD3Ddevice = 0;
-ScreenVector3 g_vWorldLocation, v3ScreenCoord;
-EqViewPort9 g_viewPort;
-EQD3DMATRIX9 g_projection, g_view, g_world;
-
-//we also need a couple virtual functions defined and we can just put them FakeCDisplay
-FUNCTION_AT_VIRTUAL_ADDRESS(void FakeCDisplay::SetCursorPosition(void* This, int X, int Y, DWORD Flags), 0x2c);
-FUNCTION_AT_VIRTUAL_ADDRESS(bool FakeCDisplay::ShowCursor(void* This, bool bShow), 0x30);
-FUNCTION_AT_VIRTUAL_ADDRESS(HRESULT FakeCDisplay::GetViewport(void*, void* pViewport), 0xc0);
-FUNCTION_AT_VIRTUAL_ADDRESS(HRESULT FakeCDisplay::GetTransform(void*, DWORD State, void* pMatrix), 0xB4);
-
-//ok magictime!
-EQD3DMATRIX9* WINAPI EQD3DXMatrixMultiply(EQD3DMATRIX9* pout, CONST EQD3DMATRIX9* pm1, CONST EQD3DMATRIX9* pm2)
-{
-	int i, j;
-	for (i = 0; i < 4; i++) {
-		for (j = 0; j < 4; j++) {
-			pout->m[i][j] = pm1->m[i][0] * pm2->m[0][j] + pm1->m[i][1] * pm2->m[1][j] + pm1->m[i][2] * pm2->m[2][j] + pm1->m[i][3] * pm2->m[3][j];
-		}
-	}
-	return pout;
-}
-
-ScreenVector3* WINAPI EQD3DXVec3TransformCoord(ScreenVector3* pout, CONST ScreenVector3* pv, CONST EQD3DMATRIX9* pm)
-{
-	float norm;
-	norm = pm->m[0][3] * pv->x + pm->m[1][3] * pv->y + pm->m[2][3] * pv->z + pm->m[3][3];
-	if (norm) {
-		pout->x = (pm->m[0][0] * pv->x + pm->m[1][0] * pv->y + pm->m[2][0] * pv->z + pm->m[3][0]) / norm;
-		pout->y = (pm->m[0][1] * pv->x + pm->m[1][1] * pv->y + pm->m[2][1] * pv->z + pm->m[3][1]) / norm;
-		pout->z = (pm->m[0][2] * pv->x + pm->m[1][2] * pv->y + pm->m[2][2] * pv->z + pm->m[3][2]) / norm;
-	}
-	else {
-		pout->x = 0.0f;
-		pout->y = 0.0f;
-		pout->z = 0.0f;
-	}
-	return pout;
-}
-
-ScreenVector3* WINAPI EQD3DXVec3Project(ScreenVector3* pout, CONST ScreenVector3* pv, CONST EqViewPort9* pviewport,
-	CONST EQD3DMATRIX9* pprojection, CONST EQD3DMATRIX9* pview, CONST EQD3DMATRIX9* pworld)
-{
-	EQD3DMATRIX9 m1, m2;
-	ScreenVector3 vec;
-
-	EQD3DXMatrixMultiply(&m1, pworld, pview);
-	EQD3DXMatrixMultiply(&m2, &m1, pprojection);
-	EQD3DXVec3TransformCoord(&vec, pv, &m2);
-	pout->x = pviewport->X + (1.0f + vec.x) * pviewport->Width / 2.0f;
-	pout->y = pviewport->Y + (1.0f - vec.y) * pviewport->Height / 2.0f;
-	pout->z = pviewport->MinZ + vec.z * (pviewport->MaxZ - pviewport->MinZ);
-	return pout;
-}
+D3DXVECTOR3 g_vWorldLocation;
+D3DVIEWPORT9 g_viewPort;
+D3DXMATRIX g_projection, g_view, g_world;
 
 // ok now the function that use all the stuff above
 bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick)
 {
 	if (pPlayer)
 	{
-		if (pRender = g_pDrawHandler.get_as<FakeCDisplay>())
+		if (g_pDrawHandler)
 		{
 			g_vWorldLocation.x = pPlayer->Y;
 			g_vWorldLocation.y = pPlayer->X;
@@ -664,14 +547,15 @@ bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick)
 				g_vWorldLocation.z = pPlayer->FloorHeight;
 			}
 
-			ScreenVector3 v3ScreenCoord = { 0 };
-			pD3Ddevice = pRender->pDevice;
-			((FakeCDisplay*)pD3Ddevice)->GetTransform(pD3Ddevice, EQD3DTS_VIEW, &g_view);
-			((FakeCDisplay*)pD3Ddevice)->GetTransform(pD3Ddevice, EQD3DTS_PROJECTION, &g_projection);
-			((FakeCDisplay*)pD3Ddevice)->GetTransform(pD3Ddevice, EQD3DTS_WORLD, &g_world);
-			((FakeCDisplay*)pD3Ddevice)->GetViewport(pD3Ddevice, &g_viewPort);
+			IDirect3DDevice9* pDevice = g_pDrawHandler->pD3DDevice;
 
-			EQD3DXVec3Project(&v3ScreenCoord, &g_vWorldLocation, &g_viewPort, &g_projection, &g_view, &g_world);
+			D3DXVECTOR3 v3ScreenCoord;
+			pDevice->GetTransform(D3DTS_VIEW, &g_view);
+			pDevice->GetTransform(D3DTS_PROJECTION, &g_projection);
+			pDevice->GetTransform(D3DTS_WORLD, &g_world);
+			pDevice->GetViewport(&g_viewPort);
+
+			D3DXVec3Project(&v3ScreenCoord, &g_vWorldLocation, &g_viewPort, &g_projection, &g_view, &g_world);
 
 			if (v3ScreenCoord.z >= 1)
 			{
@@ -683,8 +567,6 @@ bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick)
 
 			int x = (int)v3ScreenCoord.x;
 			int y = (int)v3ScreenCoord.y;
-			//((FakeCDisplay*)pD3Ddevice)->ShowCursor(pD3Ddevice,1);
-			//((FakeCDisplay*)pD3Ddevice)->SetCursorPosition(pD3Ddevice,pt.x,pt.y,1);//D3DCURSOR_IMMEDIATE_UPDATE
 
 			MoveMouse(x, y, bClick);
 			WriteChatf("%s is at %d, %d, %.2f after adjustment and mouse is at %d, %d",

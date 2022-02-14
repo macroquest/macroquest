@@ -19,8 +19,7 @@ namespace mq::datatypes {
 
 enum class MenuMembers
 {
-	Address = 1,
-	NumVisibleMenus,
+	NumVisibleMenus = 1,
 	CurrMenu,
 	Name,
 	NumItems,
@@ -34,7 +33,6 @@ enum class MenuMethods
 
 MQ2MenuType::MQ2MenuType() : MQ2Type("menu")
 {
-	ScopedTypeMember(MenuMembers, Address);
 	ScopedTypeMember(MenuMembers, NumVisibleMenus);
 	ScopedTypeMember(MenuMembers, CurrMenu);
 	ScopedTypeMember(MenuMembers, Name);
@@ -77,6 +75,7 @@ bool MQ2MenuType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 									{
 										WriteChatf("\ay[${Menu.Select}] SUCCESS\ax: Clicking \"%s\" at position %d in the menu.", Str.c_str(), i);
 
+#pragma warning(suppress : 4312)
 										pMgr->WndNotification(menu, XWM_LMOUSEUP, (void*)i);
 										Dest.Set(true);
 										Dest.Type = pBoolType;
@@ -122,19 +121,6 @@ bool MQ2MenuType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	switch (static_cast<MenuMembers>(pMember->ID))
 	{
-	case MenuMembers::Address:
-		Dest.DWord = 0;
-		Dest.Type = pIntType;
-		if (pMgr->NumVisibleMenus == 1)
-		{
-			if (CContextMenu* pMenu = pMgr->pCurrMenus[pMgr->CurrMenu])
-			{
-				Dest.DWord = (uint32_t)pMenu;
-				return true;
-			}
-		}
-		return false;
-
 	case MenuMembers::NumVisibleMenus:
 		Dest.DWord = pMgr->NumVisibleMenus;
 		Dest.Type = pIntType;

@@ -141,7 +141,7 @@ void LoadPHs(char* szMyName)
 	// Chief Librarian Lars^a shissar arbiter, a shissar defiler^tds^kattacastrumdeluge^https://tds.eqresource.com/chieflibrarianlars.php
 	PHInfo phinf;
 	std::string phs;
-	int commapos = 0;
+	size_t commapos = 0;
 	char szBuffer[MAX_STRING] = { 0 };
 	FILE* fp = nullptr;
 	errno_t err = fopen_s(&fp, szMyName, "rb");

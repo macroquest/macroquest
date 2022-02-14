@@ -27,7 +27,7 @@ unsigned int CALLBACK LuaVarProcess(char* VarName, char* Value, size_t ValueLen)
 {
 	// TODO: do we need to evaluate lua code in `Value` here? it should come to us as a string, not sure how to detect string vs lua code similar to the delay condition code
 	strcpy_s(Value, ValueLen, VarName);
-	return strlen(Value);
+	return static_cast<int>(strlen(Value));
 }
 
 //----------------------------------------------------------------------------
@@ -298,45 +298,15 @@ LuaEvent::~LuaEvent()
 
 //============================================================================
 
-// TODO: make this work (tokenize args into vector, queue the bind in an instance, etc)
-static void BindHelper(LuaBind* bind, const char* args)
-{
-	bind->GetEventProcessor()->HandleBindCallback(bind, args);
-}
-
-// 55 8b ec ff 75 0c 68 00 00 00 00 e8 00 00 00 00 c9 c3
-constexpr int s_callbackBufferSize = 18;
-
 LuaBind::LuaBind(const std::string& name, const sol::function& func, LuaEventProcessor* processor)
 	: m_name(name)
 	, m_function(func)
-	, m_callback(new uint8_t[s_callbackBufferSize])
 	, m_processor(processor)
 {
-	// TODO: gut all this when core commands are fixed to allow generic callbacks
-
-	static constexpr uint8_t callback_template[] =
+	AddFunction(m_name.c_str(), [this](PlayerClient*, char* args) -> void
 	{
-		0x55,                         // push ebp
-		0x8b, 0xec,                   // mov ebp, esp
-		0xff, 0x75, 0x0c,             // push dword ptr [ebp + 0xc] ; push Buffer
-		0x68, 0x00, 0x00, 0x00, 0x00, // push LuaBind
-		0xe8, 0x00, 0x00, 0x00, 0x00, // Call BindHelper
-		0xc9,                         // leave
-		0xc3                          // return
-	};
-	static_assert(lengthof(callback_template) == s_callbackBufferSize,
-	              "Size of callback_template mismatch");
-
-	memcpy(m_callback.get(), callback_template, s_callbackBufferSize);
-
-	*(reinterpret_cast<uint32_t*>(m_callback.get() + 7)) = reinterpret_cast<uint32_t>(this);
-	int diff = reinterpret_cast<int>(&BindHelper) - reinterpret_cast<int>(m_callback.get() + 16);
-	*(reinterpret_cast<int*>(m_callback.get() + 12)) = diff;
-	DWORD old_protect;
-	VirtualProtectEx(GetCurrentProcess(), reinterpret_cast<LPVOID>(m_callback.get()), 18, PAGE_EXECUTE_READWRITE, &old_protect);
-
-	AddCommand(m_name.c_str(), reinterpret_cast<fEQCommand>(m_callback.get()));
+		this->GetEventProcessor()->HandleBindCallback(this, args);
+	});
 }
 
 LuaBind::~LuaBind()

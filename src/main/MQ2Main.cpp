@@ -41,11 +41,11 @@
 #define CLIENT_OVERRIDE 0
 
 #if defined(LIVE)
-#pragma message("Building MQ2 for LIVE")
+#pragma message("Building MacroQuest for LIVE")
 #define MacroQuestWinClassName "__MacroQuestTray(Live)"
 #define MacroQuestWinName "MacroQuest(Live)"
 #elif defined(TEST)
-#pragma message("Building MQ2 for TEST")
+#pragma message("Building MacroQuest for TEST")
 #define MacroQuestWinClassName "__MacroQuestTray(Test)"
 #define MacroQuestWinName "MacroQuest(Test)"
 #endif
@@ -359,10 +359,13 @@ bool ParseINIFile(const std::string& iniFile)
 	DebugSpew("Expected Client version: %s %s", __ExpectedVersionDate, __ExpectedVersionTime);
 	DebugSpew("    Real Client version: %s %s", __ActualVersionDate, __ActualVersionTime);
 
+	const char* actualVersionDate = (const char*)__ActualVersionDate;
+	const char* actualVersionTime = (const char*)__ActualVersionTime;
+
 	// note: CLIENT_OVERRIDE is always #defined as 1 or 0
 #if !CLIENT_OVERRIDE
-	if (strncmp(__ExpectedVersionDate, (const char*)__ActualVersionDate, strlen(__ExpectedVersionDate)) ||
-		strncmp(__ExpectedVersionTime, (const char*)__ActualVersionTime, strlen(__ExpectedVersionTime)))
+	if (strncmp(__ExpectedVersionDate, actualVersionDate, strlen(__ExpectedVersionDate)) ||
+		strncmp(__ExpectedVersionTime, actualVersionTime, strlen(__ExpectedVersionTime)))
 	{
 		MessageBox(nullptr, "Incorrect client version", "MacroQuest", MB_OK);
 		return false;
@@ -628,7 +631,7 @@ bool MQ2Initialize()
 	HMODULE hEQGameModule = GetModuleHandle(nullptr);
 
 	GetModuleInformation(GetCurrentProcess(), hEQGameModule, &EQGameModuleInfo, sizeof(MODULEINFO));
-	g_eqgameimagesize = (DWORD)hEQGameModule + EQGameModuleInfo.SizeOfImage;
+	g_eqgameimagesize = (uintptr_t)hEQGameModule + EQGameModuleInfo.SizeOfImage;
 
 	if (GetModuleHandle("Lavish.dll") || GetModuleHandle("InnerSpace.dll"))
 	{
@@ -738,7 +741,7 @@ bool MQ2Initialize()
 	ZeroMemory(szEQMappableCommands, sizeof(szEQMappableCommands));
 	for (int i = 0; i < nEQMappableCommands; i++)
 	{
-		if ((DWORD)EQMappableCommandList[i] == 0)
+		if ((uintptr_t)EQMappableCommandList[i] == 0)
 		{
 			continue;
 		}

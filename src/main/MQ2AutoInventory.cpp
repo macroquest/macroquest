@@ -251,6 +251,7 @@ public:
 		}
 		else if (uiMessage == XWM_MENUSELECT)
 		{
+#pragma warning(suppress : 4311 4302)
 			int ItemID = (int)pData;
 			int iItemID = 0;
 
@@ -323,7 +324,7 @@ public:
 					{
 						CXPoint Loc = pWndMgr->MousePoint;
 
-						// work in progress -eqmule
+						// work in progress
 						pContextMenuManager->PopupMenu(OurCheckBoxMenuIndex, Loc, pThis);
 					}
 
@@ -336,6 +337,7 @@ public:
 			if (uiMessage == XWM_LCLICK)
 			{
 				// for our checkboxes, they should parent notify to this func...
+#pragma warning(suppress : 4311 4302)
 				int itemclicked = (int)pData;
 				if (CListWnd* list = (CListWnd*)pThis->GetChildItem("FIW_ItemList"))
 				{
@@ -454,6 +456,7 @@ public:
 			}
 			else if (uiMessage == XWM_COLUMNCLICK)
 			{
+#pragma warning(suppress : 4311 4302)
 				int colindex = (int)pData;
 
 				if (colindex == Column_CheckBox)
@@ -539,6 +542,7 @@ public:
 			else if (uiMessage == XWM_LMOUSEUP)
 			{
 				CButtonWnd* FIW_DestroyItem = (CButtonWnd*)pThis->GetChildItem("FIW_DestroyItem");
+#pragma warning(suppress : 4311 4302)
 				int clickedrow = (int)pData;
 
 				if (CListWnd* list = (CListWnd*)pThis->GetChildItem("FIW_ItemList"))
@@ -716,7 +720,7 @@ public:
 					{
 						CXPoint Loc = pWndMgr->MousePoint;
 
-						// work in progress -eqmule
+						// work in progress
 						pContextMenuManager->PopupMenu(OurDefaultMenuIndex, Loc, pThis);
 					}
 					break;
@@ -726,6 +730,7 @@ public:
 		else if (uiMessage == XWM_MENUSELECT)
 		{
 			CContextMenu* pContextMenu = (CContextMenu*)pWnd;
+#pragma warning(suppress : 4311 4302)
 			int ItemID = (int)pData;
 			int iItemID = pContextMenu->GetItemAtPoint(pWndMgr->MousePoint);
 
@@ -778,6 +783,7 @@ public:
 		{
 			if (uiMessage == XWM_COLUMNCLICK)
 			{
+#pragma warning(suppress : 4311 4302)
 				int columnIndex = (int)pData;
 
 				pThis->plistBuyLines->SetSortColumn(columnIndex);
@@ -849,6 +855,7 @@ public:
 			}
 			else if (uiMessage == XWM_COLUMNCLICK)
 			{
+#pragma warning(suppress : 4311 4302)
 				int columnIndex = (int)pData;
 				pThis->plistInventory->SetSortColumn(columnIndex);
 

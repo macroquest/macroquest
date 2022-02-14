@@ -472,17 +472,17 @@ inline bool IsMobFleeing(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
 }
 
 // TODO: Move this elsewhere
-inline DWORD FixOffset(DWORD nOffset)
+inline uintptr_t FixOffset(uintptr_t nOffset)
 {
-	return ((nOffset - 0x400000) + eqlib::EQGameBaseAddress);
+	return ((nOffset - EQGamePreferredAddress) + eqlib::EQGameBaseAddress);
 }
 
 inline bool endsWith(const char* base, const char* str)
 {
 	if (!base || !str)
 		return false;
-	int blen = strlen(base);
-	int slen = strlen(str);
+	size_t blen = strlen(base);
+	size_t slen = strlen(str);
 	return (blen >= slen) && (0 == strcmp(base + blen - slen, str));
 }
 
@@ -607,7 +607,7 @@ inline bool StringCompare(std::string_view haystack, std::string_view needle,
 }
 
 DEPRECATE("GetCXStr: This function is no longer needed. CXStr can now be used like a std::string")
-inline DWORD GetCXStr(CXStr* pCXStr, char* szBuffer, uint32_t length = MAX_STRING)
+inline CXStr::size_type GetCXStr(CXStr* pCXStr, char* szBuffer, uint32_t length = MAX_STRING)
 {
 	if (!szBuffer)
 		return 0;
@@ -629,7 +629,7 @@ inline DWORD GetCXStr(CXStr* pCXStr, char* szBuffer, uint32_t length = MAX_STRIN
 }
 
 DEPRECATE("GetCXStr: This function is no longer needed. CXStr can now be used normally like a std::string")
-inline DWORD GetCXStr(CXStr& str, char* szBuffer, uint32_t length = MAX_STRING)
+inline CXStr::size_type GetCXStr(CXStr& str, char* szBuffer, uint32_t length = MAX_STRING)
 {
 #pragma warning(suppress: 4996)
 	return GetCXStr(&str, szBuffer, length);

@@ -555,7 +555,7 @@ DWORD MQToSTML(const char* in, char* out, size_t maxlen, uint32_t ColorOverride)
 	//char szCmd[MAX_STRING] = { 0 };
 	//strcpy_s(szCmd, out);
 
-	int outlen = maxlen;
+	size_t outlen = maxlen;
 	if (maxlen > 14)
 		maxlen -= 14; // make room for this: <c "#123456">
 
@@ -814,7 +814,7 @@ DWORD MQToSTML(const char* in, char* out, size_t maxlen, uint32_t ColorOverride)
 	}
 
 	out[pchar_out_string_position++] = 0;
-	return pchar_out_string_position;
+	return static_cast<DWORD>(pchar_out_string_position);
 }
 
 static bool ItemFitsInSlot(ItemClient* pCont, std::string_view search)
@@ -3814,7 +3814,7 @@ const char* ParseSearchSpawnArgs(char* szArg, const char* szRest, MQSpawnSearch*
 		}
 		else
 		{
-			for (size_t index = 1; index < lengthof(ClassInfo) - 1; index++)
+			for (int index = 1; index < lengthof(ClassInfo) - 1; index++)
 			{
 				if (!_stricmp(szArg, ClassInfo[index].Name) || !_stricmp(szArg, ClassInfo[index].ShortName))
 				{
@@ -5156,37 +5156,6 @@ int GetAvailableSharedBankSlots()
 {
 	return HasExpansion(EXPANSION_TBL) ? 6 : HasExpansion(EXPANSION_CotF) ? 4 : 2;
 }
-
-#if 0
-// Just a Function that needs more work
-// I use this to test merc aa struct -eqmule
-void ListMercAltAbilities()
-{
-	if (pMercAltAbilities)
-	{
-		int mercaapoints = pLocalPC->MercAAPoints;
-
-		for (int i = 0; i < MERC_ALT_ABILITY_COUNT; i++)
-		{
-			EQMERCALTABILITIES* pinfo = pMercAltAbilities;
-			if (pinfo->MercAAInfo[i])
-			{
-				if (pinfo->MercAAInfo[i]->Ptr)
-				{
-					int nName = pinfo->MercAAInfo[i]->Ptr->nName;
-					int maxpoints = pinfo->MercAAInfo[i]->Max;
-
-					if (nName)
-					{
-						WriteChatf("You have %d mercaapoints to spend on %s (max is %d)",
-							mercaapoints, pCDBStr->GetString(nName, eMercenaryAbilityName), maxpoints);
-					}
-				}
-			}
-		}
-	}
-}
-#endif
 
 ItemContainer* GetItemContainerByType(ItemContainerInstance type)
 {
@@ -6845,7 +6814,7 @@ void PrettifyNumber(char* string, size_t bufferSize, int decimals /* = 0 */)
 		temp,
 		&fmt,
 		string,
-		bufferSize);
+		static_cast<int>(bufferSize));
 }
 
 //============================================================================
@@ -7227,7 +7196,7 @@ MQGameObject ToGameObject(const EQGroundItem& groundItem)
 	temp.x = groundItem.X;
 	temp.z = groundItem.Z;
 	temp.heading = groundItem.Heading * 0.703125f;
-	temp.actor = (CActorInterface*)groundItem.pSwitch;
+	temp.actor = groundItem.pActor;
 
 	return temp;
 }
@@ -7317,7 +7286,7 @@ MQGameObject ToGameObject(const EQSwitch* pSwitch)
 	temp.x = pSwitch->X;
 	temp.z = pSwitch->Z;
 	temp.heading = pSwitch->Heading;
-	temp.actor = (CActorInterface*)pSwitch->pSwitch;
+	temp.actor = pSwitch->pActor;
 	temp.valid = true;
 
 	return temp;
@@ -7422,7 +7391,7 @@ bool GetFilteredModules(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWORD* lpcb
 		if (iter != a2)
 		{
 			a2 = iter;
-			*lpcbNeeded = std::distance(a1, a2) * sizeof(HMODULE);
+			*lpcbNeeded = static_cast<DWORD>(std::distance(a1, a2)) * sizeof(HMODULE);
 			std::fill(a2, a3, nullptr);
 		}
 	}

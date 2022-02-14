@@ -21,16 +21,16 @@
 #include <sstream>
 
 extern MapObject* gpActiveMapObjects;
-extern MAPLABEL* gpLabelList;
-extern MAPLABEL* gpLabelListTail;
+extern MapViewLabel* gpLabelList;
+extern MapViewLabel* gpLabelListTail;
 
-MAPLINE*  pLineList = nullptr;
-MAPLINE*  pLineListTail = nullptr;
-MAPLABEL* pActualLineList = nullptr;
+MapViewLine*  pLineList = nullptr;
+MapViewLine*  pLineListTail = nullptr;
+MapViewLabel* pActualLineList = nullptr;
 
 MapObject* pLastTarget = nullptr;
 
-MAPLINE* pTargetLine = nullptr;
+MapViewLine* pTargetLine = nullptr;
 
 MapCircle CastCircle;
 MapCircle SpellCircle;
@@ -47,9 +47,9 @@ static MapObject* GetCurrentMapObject()
 	return GetMapObjectForLabel(pCurrentMapLabel);
 }
 
-MAPLINE* InitLine()
+MapViewLine* InitLine()
 {
-	MAPLINE* pLine = new MAPLINE;
+	MapViewLine* pLine = new MapViewLine;
 	pLine->pPrev = nullptr;
 	pLine->pNext = pLineList;
 
@@ -62,7 +62,7 @@ MAPLINE* InitLine()
 	return pLine;
 }
 
-void DeleteLine(MAPLINE* pLine)
+void DeleteLine(MapViewLine* pLine)
 {
 	if (!pLine)
 		return;
@@ -88,6 +88,8 @@ void MapInit()
 	TargetMeleeCircle.Clear();
 	CampCircle.Clear();
 	PullCircle.Clear();
+
+	MapGenerate();
 }
 
 MapObject* AddSpawn(SPAWNINFO* pNewSpawn, bool ExplicitAllow)

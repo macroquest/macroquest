@@ -70,14 +70,14 @@ private:
 protected:
 	CXStr                 m_text;           // holds ownership of the text stored in m_label
 	MQColor               m_color;
-	MAPLABEL*             m_label = nullptr;
-	MAPLINE*              m_vector = nullptr;
+	MapViewLabel*         m_label = nullptr;
+	MapViewLine*          m_vector = nullptr;
 	bool                  m_highlight = false;
 
 private:
 	MarkerType            m_marker = MarkerType::None;
 	uint32_t              m_markerSize = 0;
-	std::vector<MAPLINE*> m_markerLines;
+	std::vector<MapViewLine*> m_markerLines;
 	MapObject*            m_pLast = nullptr;
 	MapObject*            m_pNext = nullptr;
 };
@@ -166,7 +166,7 @@ public:
 
 private:
 	bool m_initialized = false;
-	MAPLINE* m_components[CIRCLE_NUM_SEGMENTS];
+	MapViewLine* m_components[CIRCLE_NUM_SEGMENTS];
 };
 
 //============================================================================
@@ -220,7 +220,7 @@ private:
 	float                 m_lineSize;
 	float                 m_width;
 	MQColor               m_color;
-	std::vector<MAPLINE*> m_lines;
+	std::vector<MapViewLine*> m_lines;
 	float                 m_circleRadius;
 	MQColor               m_circleColor;
 	MapCircle             m_circle;

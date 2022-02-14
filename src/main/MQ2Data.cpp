@@ -162,7 +162,7 @@ bool dataIni(const char* szIndex, MQTypeVar& Ret)
 	{
 		if (i[0] == ',' && i + 1 != sTemp.end() && i[1] != ' ')
 		{
-			argMap[count] = std::distance(sTemp.begin(), i);
+			argMap[count] = static_cast<DWORD>(std::distance(sTemp.begin(), i));
 			count++;
 		}
 	}

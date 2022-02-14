@@ -53,7 +53,6 @@ enum class WindowMembers
 	HisTradeReady,
 	MyTradeReady,
 	GetCurSel,
-	Address,
 	Size,
 	Value,
 	TabCount,
@@ -118,7 +117,6 @@ MQ2WindowType::MQ2WindowType() : MQ2Type("window")
 	ScopedTypeMember(WindowMembers, HisTradeReady);
 	ScopedTypeMember(WindowMembers, MyTradeReady);
 	ScopedTypeMember(WindowMembers, GetCurSel);
-	ScopedTypeMember(WindowMembers, Address);
 	ScopedTypeMember(WindowMembers, Size);
 	ScopedTypeMember(WindowMembers, Value);
 	ScopedTypeMember(WindowMembers, TabCount);
@@ -355,11 +353,6 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 
 	switch (static_cast<WindowMembers>(pMember->ID))
 	{
-	case WindowMembers::Address:
-		Dest.DWord = reinterpret_cast<uint32_t>(pWnd);
-		Dest.Type = pIntType;
-		return true;
-
 	case WindowMembers::Open:
 		Dest.Set(pWnd->IsVisible());
 		Dest.Type = pBoolType;

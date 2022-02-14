@@ -214,7 +214,7 @@ private:
     template <class T, template <typename> class Indexer>
     static inline constexpr value_type tail(value_type h, const IntegralByteView<T, Indexer>& s)
     {
-        return s.size() ^ h ^ (rotl<15>(get_tail(s, s.size() - (s.size() & 3)) * C1) * C2);
+        return static_cast<value_type>(s.size() ^ h ^ (rotl<15>(get_tail(s, s.size() - (s.size() & 3)) * C1) * C2));
     }
 
     value_type _value;

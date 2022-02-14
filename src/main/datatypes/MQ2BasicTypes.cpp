@@ -424,7 +424,7 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 	switch (static_cast<StringMembers>(pMember->ID))
 	{
 	case StringMembers::Length:
-		Dest.DWord = strlen(szString);
+		Dest.DWord = static_cast<uint32_t>(strlen(szString));
 		Dest.Type = pIntType;
 		return true;
 
@@ -447,7 +447,7 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			if (Len > 0)
 			{
 				if (static_cast<size_t>(Len) > StrLen)
-					Len = StrLen;
+					Len = static_cast<int>(StrLen);
 
 				memmove(DataTypeTemp, szString, Len);
 
@@ -499,7 +499,7 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 				}
 
 				pStart = &pStart[Len];
-				Len = StrLen - Len;
+				Len = static_cast<int>(StrLen) - Len;
 
 				memmove(DataTypeTemp, pStart, Len + 1);
 				Dest.Ptr = &DataTypeTemp[0];
@@ -623,7 +623,7 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 				nStart = 0;
 			}
 
-			int StrLen = strlen(pStr);
+			int StrLen = static_cast<int>(strlen(pStr));
 			int Len = GetIntFromString(pComma, StrLen);
 
 			if (nStart >= StrLen)

@@ -20,7 +20,7 @@ namespace mq {
 const double DegToRad = 57.295779513082320876846364344191;
 const double PI = 3.1415926535;
 
-DWORD baseAddress = (DWORD)GetModuleHandle(nullptr);
+uintptr_t baseAddress = (uintptr_t)GetModuleHandle(nullptr);
 bool InitOffsets()
 {
 	return true;
@@ -109,8 +109,8 @@ char gszLastNormalError[MAX_STRING] = { 0 };
 char gszLastSyntaxError[MAX_STRING] = { 0 };
 char gszLastMQ2DataError[MAX_STRING] = { 0 };
 
-// TODO: This is a rect, for drawing the hud.
-DWORD DrawHUDParams[4] = { 0, 0, 0, 0 };
+// TODO: uintptr is the biggest actual type, but this should be a struct
+uintptr_t DrawHUDParams[4] = { 0, 0, 0, 0 };
 
 Blech *pMQ2Blech = nullptr;
 char EventMsg[MAX_STRING] = { 0 };
@@ -187,7 +187,7 @@ static MQGroundObject FromGroundSpawn(const MQGroundSpawn& ground)
 		ret.GroundItem.Pitch = placed->Angle;
 		ret.GroundItem.pNext = nullptr;
 		ret.GroundItem.pPrev = nullptr;
-		ret.GroundItem.pSwitch = (PEQSWITCH)placed->pActor;
+		ret.GroundItem.pActor = placed->pActor;
 		ret.GroundItem.Roll = placed->Roll;
 		ret.GroundItem.Scale = placed->Scale;
 		ret.GroundItem.Weight = 0;
@@ -517,7 +517,7 @@ uint32_t GetExpansionNumber(std::string_view expansionName)
 	if (ci_equals(expansionName, "EverQuest"))
 		return 0;
 
-	for (size_t i = 0; i < lengthof(szZoneExpansionName); ++i)
+	for (uint32_t i = 0; i < lengthof(szZoneExpansionName); ++i)
 	{
 		if (ci_equals(szZoneExpansionName[i], expansionName))
 			return i;

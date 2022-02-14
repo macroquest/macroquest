@@ -203,7 +203,6 @@ static bool IsLimiterEnabled();
 static bool IsTieUiToSimulation();
 static bool UpdateDisplay_Hook();
 static bool ShouldDoRealRenderWorld();
-static bool DoThrottleFrameRate();
 
 class CXWndManagerHook
 {
@@ -316,24 +315,9 @@ public:
 	}
 };
 
-static void(*Throttler_Trampoline)();
-__declspec(naked) static void Throttler_Detour()
-{
-	// If DoThrottleFrameRate returns false, then it is disabled and we
-	// want to just call the original code. If it returns true then we
-	// are engaged with the frame limiter and we want to skip past the
-	// built-in throttling.
-	__asm
-	{
-		call DoThrottleFrameRate;
-		cmp eax, eax;
-		jz call_to_trampoline
-		mov eax, __ThrottleFrameRateEnd;
-		jmp eax;
-	call_to_trampoline:
-		jmp Throttler_Trampoline;
-	}
-}
+// Defined in AssemblyFunctions.asm, need the forward declare
+void Throttler_Detour();
+void(*Throttler_Trampoline)();
 
 #pragma endregion
 
@@ -1046,7 +1030,7 @@ static bool ShouldDoRealRenderWorld()
 	return s_frameLimiter.DoRealRenderWorld();
 }
 
-static bool DoThrottleFrameRate()
+bool DoThrottleFrameRate()
 {
 	return s_frameLimiter.DoThrottleFrameRate();
 }

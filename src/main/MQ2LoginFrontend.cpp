@@ -148,13 +148,13 @@ void RemoveLoginDetours()
 
 	DebugSpewAlways("Removing Login Detours");
 
-	DWORD detours[] = {
+	uintptr_t detours[] = {
 		EQMain__LoginController__GiveTime,
 		EQMain__WndProc,
 		EQMain__CXWndManager__GetCursorToDisplay
 	};
 
-	for (DWORD detour : detours)
+	for (uintptr_t detour : detours)
 		RemoveDetour(detour);
 
 	gbDetoursInstalled = false;

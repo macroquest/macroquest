@@ -347,7 +347,6 @@ PLUGIN_API void InitializePlugin()
 
 	GetPrivateProfileString("Map Filters", "Mapshow", "", mapshowStr, MAX_STRING, INIFileName);
 	GetPrivateProfileString("Map Filters", "Maphide", "", maphideStr, MAX_STRING, INIFileName);
-	MapInit();
 	GetPrivateProfileString("Naming Schemes", "Normal", "%N", MapNameString, MAX_STRING, INIFileName);
 	GetPrivateProfileString("Naming Schemes", "Target", "%N", MapTargetNameString, MAX_STRING, INIFileName);
 
@@ -383,6 +382,8 @@ PLUGIN_API void InitializePlugin()
 	ParseSearchSpawn("#", &MapFilterNamed);
 
 	AddSettingsPanel("plugins/Map", DrawMapSettingsPanel);
+
+	MapInit();
 }
 
 // Called once, when the plugin is to shutdown
@@ -513,12 +514,12 @@ PLUGIN_API void OnRemoveGroundItem(PGROUNDITEM pGroundItem)
 	RemoveGroundItem(pGroundItem);
 }
 
-PLUGIN_API PMAPLINE MQ2MapAddLine()
+PLUGIN_API MapViewLine* MQ2MapAddLine()
 {
 	return InitLine();
 }
 
-PLUGIN_API void MQ2MapDeleteLine(PMAPLINE pLine)
+PLUGIN_API void MQ2MapDeleteLine(MapViewLine* pLine)
 {
 	DeleteLine(pLine);
 }

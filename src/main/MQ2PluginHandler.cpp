@@ -977,7 +977,7 @@ static void PluginsUnloadPlugin(const char* Name)
 
 void* GetPluginProc(const char* plugin, const char* proc)
 {
-	unsigned int uiLength = strlen(plugin) + 1;
+	size_t uiLength = strlen(plugin) + 1;
 	auto pLook = pPlugins;
 	while (pLook)
 	{

@@ -227,7 +227,7 @@ bool AddMQ2KeyBind(const char* name, fMQExecuteCmd function)
 
 	// Find an unused index.
 	int index = -1;
-	for (size_t i = 0; i < gKeyBinds.size(); ++i)
+	for (int i = 0; i < gKeyBinds.size(); ++i)
 	{
 		if (gKeyBinds[i] == nullptr)
 		{
@@ -239,7 +239,7 @@ bool AddMQ2KeyBind(const char* name, fMQExecuteCmd function)
 	if (index == -1)
 	{
 		gKeyBinds.emplace_back();
-		index = gKeyBinds.size() - 1;
+		index = static_cast<int>(gKeyBinds.size()) - 1;
 	}
 
 	pKeybind->Id = index;

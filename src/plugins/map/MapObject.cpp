@@ -284,7 +284,7 @@ void MapObject::GenerateMarker()
 
 	for (int i = 0; i < sides; i++)
 	{
-		MAPLINE* pNewLine = InitLine();
+		MapViewLine* pNewLine = InitLine();
 		pNewLine->Start.X = 0;
 		pNewLine->Start.Y = 0;
 		pNewLine->Start.Z = m_pos.Z;
@@ -305,7 +305,7 @@ void MapObject::RemoveMarker()
 	if (m_marker == MarkerType::None)
 		return;
 
-	for (MAPLINE* line : m_markerLines)
+	for (MapViewLine* line : m_markerLines)
 		DeleteLine(line);
 
 	m_markerLines.clear();
@@ -798,7 +798,7 @@ bool MapObjectSpawn::CanDisplayObject() const
 
 void MapObjectSpawn::GenerateVector()
 {
-	MAPLINE* newLine = InitLine();
+	MapViewLine* newLine = InitLine();
 
 	UpdateVector();
 
@@ -1100,7 +1100,7 @@ MapLocParams MapObjectMapLoc::GetParams() const
 
 void MapObjectMapLoc::RemoveMapLoc()
 {
-	for (MAPLINE* markerLine : m_lines)
+	for (MapViewLine* markerLine : m_lines)
 	{
 		DeleteLine(markerLine);
 	}
@@ -1130,7 +1130,7 @@ void MapObjectMapLoc::UpdateMapLoc()
 {
 	RemoveMapLoc();
 
-	MAPLINE* line = nullptr;
+	MapViewLine* line = nullptr;
 
 	// Create the X
 	for (int xWidth = 1; xWidth <= m_width; xWidth++)
@@ -1290,7 +1290,7 @@ void DeleteAllMapLocs()
 
 void UpdateMapLocIndexes()
 {
-	for (size_t i = 0; i < sMapLocs.size(); ++i)
+	for (int i = 0; i < sMapLocs.size(); ++i)
 	{
 		sMapLocs[i]->SetIndex(i + 1);
 	}
@@ -1317,7 +1317,7 @@ void MakeMapLoc(const MapLocParams& params, const std::string& label, const std:
 
 	sMapLocs.push_back(newLoc);
 	sLocationsMap.emplace(tag, newLoc);
-	newLoc->SetIndex(sMapLocs.size());
+	newLoc->SetIndex(static_cast<int>(sMapLocs.size()));
 
 	newLoc->PostInit();
 }

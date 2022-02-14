@@ -226,7 +226,7 @@ DWORD GetCachedBuffCount(SPAWNINFO* pSpawn, const std::function<bool(const Cache
 		if (buffs != std::end(gCachedBuffMap))
 		{
 			buffs->second->Audit();
-			return std::count_if(std::begin(buffs->second->cachedBuffs), std::end(buffs->second->cachedBuffs), predicate);
+			return static_cast<DWORD>(std::count_if(std::begin(buffs->second->cachedBuffs), std::end(buffs->second->cachedBuffs), predicate));
 		}
 	}
 
@@ -241,7 +241,7 @@ DWORD GetCachedBuffCount(SPAWNINFO* pSpawn)
 		if (buffs != std::end(gCachedBuffMap))
 		{
 			buffs->second->Audit();
-			return buffs->second->cachedBuffs.size();
+			return static_cast<DWORD>(buffs->second->cachedBuffs.size());
 		}
 	}
 

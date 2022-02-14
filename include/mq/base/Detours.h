@@ -87,6 +87,12 @@ public:
 		ptr->AddToMap();
 	}
 
+	template <typename T, typename U>
+	static std::enable_if_t<!std::is_same_v<T, U>, void> Add(uintptr_t address, T&& detour, U* target, std::string_view name)
+	{
+		static_assert(false, "Detour and Trampoline types differ in their signatures!");
+	}
+
 	MQLIB_OBJECT Detour(uintptr_t address, void** target, void* detour, const std::string_view name);
 	MQLIB_OBJECT virtual ~Detour();
 
@@ -96,7 +102,7 @@ protected:
 
 	static inline uintptr_t GetAddressFromProc(const char* handle, const char* procedure)
 	{
-		auto mod = GetModuleHandle(handle);
+		auto mod = ::GetModuleHandleA(handle);
 		if (mod != 0)
 			return reinterpret_cast<uintptr_t>(GetProcAddress(mod, procedure));
 
@@ -106,10 +112,10 @@ protected:
 	static inline HMODULE GetModuleFromAddress(const uintptr_t address)
 	{
 		HMODULE mod;
-		GetModuleHandleEx(
+		::GetModuleHandleExA(
 			GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
 			GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-			(LPCTSTR)address,
+			(const char*)address,
 			&mod);
 
 		return mod;
@@ -143,5 +149,7 @@ ret name(Args&&... args) { \
 #define EzDetour(address, detour, trampoline) Detour::Add(static_cast<uintptr_t>(address), detour, trampoline##_Ptr, STRINGIFY(offset))
 
 // TODO: deprecate DETOUR_TRAMPOLINE_EMPTY to point to a wiki page with the new detours API
+#define DETOUR_TRAMPOLINE_EMPTY(...) \
+	static_assert(false, "DETOUR_TRAMPOLINE_EMPTY is no longer supported. Use DETOUR_TRAMPOLINE_DEF and the new Detours API instead.");
 
 } // namespace mq

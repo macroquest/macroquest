@@ -1474,7 +1474,7 @@ bool ParseMacroData(char* szOriginal, size_t BufferSize)
 		}
 
 		size_t NewLength = strlen(szCurrent);
-		int endlen = strlen(&pEnd[1]) + 1;
+		size_t endlen = strlen(&pEnd[1]) + 1;
 
 		memmove(&pBrace[NewLength], &pEnd[1], endlen);
 

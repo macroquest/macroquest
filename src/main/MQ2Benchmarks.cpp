@@ -25,7 +25,7 @@ uint32_t AddMQ2Benchmark(const char* Name)
 
 	// find an unused index from members.
 	int index = -1;
-	for (size_t i = 0; i < gBenchmarks.size(); ++i)
+	for (int i = 0; i < gBenchmarks.size(); ++i)
 	{
 		if (gBenchmarks[i] == nullptr)
 		{
@@ -37,7 +37,7 @@ uint32_t AddMQ2Benchmark(const char* Name)
 	if (index == -1)
 	{
 		gBenchmarks.emplace_back();
-		index = gBenchmarks.size() - 1;
+		index = static_cast<int>(gBenchmarks.size()) - 1;
 	}
 
 	gBenchmarks[index] = std::make_unique<MQBenchmark>(Name);

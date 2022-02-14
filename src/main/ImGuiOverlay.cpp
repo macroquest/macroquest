@@ -68,7 +68,7 @@ bool gbImGuiReady = false;
 //----------------------------------------------------------------------------
 // statics
 
-static DWORD gResetDeviceAddress = 0;
+static uintptr_t gResetDeviceAddress = 0;
 static POINT gMouseLocation;
 static bool gbMouseBlocked = false;
 static char ImGuiSettingsFile[MAX_PATH] = { 0 };
@@ -181,7 +181,7 @@ int AddRenderCallbacks(const MQRenderCallbacks& callbacks)
 {
 	// Find an unused index.
 	int index = -1;
-	for (size_t i = 0; i < s_renderCallbacks.size(); ++i)
+	for (int i = 0; i < s_renderCallbacks.size(); ++i)
 	{
 		if (s_renderCallbacks[i] == nullptr)
 		{
@@ -193,7 +193,7 @@ int AddRenderCallbacks(const MQRenderCallbacks& callbacks)
 	if (index == -1)
 	{
 		s_renderCallbacks.emplace_back();
-		index = s_renderCallbacks.size() - 1;
+		index = static_cast<int>(s_renderCallbacks.size()) - 1;
 	}
 
 	auto pCallbacks = std::make_unique<MQRenderCallbackRecord>();
@@ -402,9 +402,9 @@ public:
 		bool changed = false;
 
 		// IDirect3DDevice9 virtual function hooks
-		DWORD* d3dDevice_vftable = *(DWORD**)this;
+		uintptr_t* d3dDevice_vftable = *(uintptr_t**)this;
 
-		DWORD resetDevice = d3dDevice_vftable[0x10];
+		uintptr_t resetDevice = d3dDevice_vftable[0x10];
 
 		if (resetDevice != gResetDeviceAddress)
 		{
@@ -800,7 +800,7 @@ static bool InstallD3D9Hooks()
 			success = true;
 
 			// IDirect3DDevice9 virtual function hooks
-			DWORD* d3dDevice_vftable = *(DWORD**)device.get();
+			uintptr_t* d3dDevice_vftable = *(uintptr_t**)device.get();
 
 			InstallDetour(d3dDevice_vftable[0x29], &RenderHooks::BeginScene_Detour, RenderHooks::BeginScene_Trampoline_Ptr, "d3dDevice_BeginScene");
 			InstallDetour(d3dDevice_vftable[0x2a], &RenderHooks::EndScene_Detour, RenderHooks::EndScene_Trampoline_Ptr, "d3dDevice_EndScene");

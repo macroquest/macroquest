@@ -2030,7 +2030,7 @@ int GetSpellAttrib(EQ_Spell* pSpell, int index)
 	{
 		int numeff = GetSpellNumEffects(pSpell);
 		if (numeff == 0)
-			return 0; // this is so stupid, it didnt use to do this prior to test on may 7 2018, what changed? we need to check that. -eqmule
+			return 0;
 
 		if (numeff > index)
 		{
@@ -3611,7 +3611,7 @@ char* ShowSpellSlotInfo(EQ_Spell* pSpell, char* szBuffer, size_t BufferSize, con
 {
 	char szTemp[MAX_STRING] = { 0 };
 	char szBuff[MAX_STRING] = { 0 };
-	int count = 0;
+	size_t count = 0;
 	for (int i = 0; i < GetSpellNumEffects(pSpell); i++)
 	{
 		szBuff[0] = szTemp[0] = '\0';
@@ -3876,7 +3876,7 @@ int GetPlayerClass(const char* name)
 		});
 
 	if (player_class != std::cend(ClassInfo))
-		return std::distance(std::cbegin(ClassInfo), player_class);
+		return static_cast<int>(std::distance(std::cbegin(ClassInfo), player_class));
 
 	return 0;
 }

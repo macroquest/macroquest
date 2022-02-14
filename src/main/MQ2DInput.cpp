@@ -206,9 +206,9 @@ HRESULT CALLBACK DInputAcquireDetour(IDirectInputDevice8A* This)
 	return hResult;
 }
 
-DWORD GetDeviceData = 0;
-DWORD GetDeviceState = 0;
-DWORD Acquire = 0;
+uintptr_t GetDeviceData = 0;
+uintptr_t GetDeviceState = 0;
+uintptr_t Acquire = 0;
 
 void InitializeMQ2DInput()
 {
@@ -229,20 +229,20 @@ void InitializeMQ2DInput()
 		IDIDevice = *EQADDR_DIKEYBOARD;
 
 		// typedef HRESULT    (__cdecl *fGetDeviceData)(DWORD,LPDIDEVICEOBJECTDATA,LPDWORD,DWORD);
-		int* vptr = *(int**)&IDIDevice;
-		int* vtable = (int*)*vptr;
+		uintptr_t* vptr = *(uintptr_t**)&IDIDevice;
+		uintptr_t* vtable = (uintptr_t*)*vptr;
 		//fGetDeviceData fp = (fGetDeviceData)vtable[10];//GetDeviceData
 
-		// GetDeviceData = (unsigned int)IDIDevice->lpVtbl->GetDeviceData;
-		GetDeviceData = (unsigned int)vtable[10];//GetDeviceData
+		// GetDeviceData = IDIDevice->lpVtbl->GetDeviceData;
+		GetDeviceData = vtable[10];//GetDeviceData
 		EzDetour(GetDeviceData, DInputDataDetour, DInputDataTrampoline);
 
-		// GetDeviceState = (unsigned int)IDIDevice->lpVtbl->GetDeviceState;
-		GetDeviceState = (unsigned int)vtable[9];//GetDeviceState
+		// GetDeviceState = IDIDevice->lpVtbl->GetDeviceState;
+		GetDeviceState = vtable[9];//GetDeviceState
 		EzDetour(GetDeviceState, DInputStateDetour, DInputStateTrampoline);
 
-		// Acquire = (unsigned int)IDIDevice->lpVtbl->Acquire;
-		Acquire = (unsigned int)vtable[7];//Acquire
+		// Acquire = IDIDevice->lpVtbl->Acquire;
+		Acquire = vtable[7];//Acquire
 		EzDetour(Acquire, DInputAcquireDetour, DInputAcquireTrampoline);
 	}
 }

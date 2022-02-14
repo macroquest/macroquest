@@ -191,7 +191,6 @@ static bool DoNextCommand(MQMacroBlockPtr pBlock)
 	return false;
 }
 
-// added these so I can work on making face look natural - eqmule
 void NaturalTurnOld(PSPAWNINFO pCharOrMount, PSPAWNINFO pChar)
 {
 	if (abs((INT)(pCharOrMount->Heading - gFaceAngle)) < 10.0f)
@@ -536,10 +535,9 @@ static void Pulse()
 // Trims trailing whitespace from strings in the string table.
 static void FixStringTable()
 {
-	EQSTRINGTABLE* pTable = pStringTable;
-	for (int index = 0; index < pTable->Count; index++)
+	for (int index = 0; index < pStringTable->Count; index++)
 	{
-		if (EQSTRING* pStr = pTable->StringItems[index])
+		if (StringItem* pStr = pStringTable->StringItems[index])
 		{
 			if (char* p = pStr->String)
 			{
@@ -603,7 +601,7 @@ static HeartbeatState Heartbeat()
 		DropTimers();
 	}
 
-	if (!gStringTableFixed && pStringTable) // Please dont remove the second condition
+	if (!gStringTableFixed && pStringTable)
 	{
 		FixStringTable();
 		gStringTableFixed = true;
@@ -788,7 +786,7 @@ void ShutdownMQ2Pulse()
 {
 	std::scoped_lock lock(s_pulseMutex);
 
-	RemoveDetour((DWORD)ProcessGameEvents);
+	RemoveDetour(reinterpret_cast<uintptr_t>(ProcessGameEvents));
 	RemoveDetour(CEverQuest__SetGameState);
 	RemoveDetour(CMerchantWnd__PurchasePageHandler__UpdateList);
 }

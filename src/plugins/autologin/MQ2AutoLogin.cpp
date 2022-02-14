@@ -408,13 +408,13 @@ PLUGIN_API void InitializePlugin()
 
 	if (GetPrivateProfileBool("Settings", "EnableCustomClientIni", false, INIFileName))
 	{
-		DWORD pfnGetPrivateProfileIntA = (DWORD) & ::GetPrivateProfileIntA;
+		uintptr_t pfnGetPrivateProfileIntA = (uintptr_t) & ::GetPrivateProfileIntA;
 		EzDetour(pfnGetPrivateProfileIntA, GetPrivateProfileIntA_Detour, GetPrivateProfileIntA_Tramp);
 
-		DWORD pfnGetPrivateProfileStringA = (DWORD) & ::GetPrivateProfileStringA;
+		uintptr_t pfnGetPrivateProfileStringA = (uintptr_t) & ::GetPrivateProfileStringA;
 		EzDetour(pfnGetPrivateProfileStringA, GetPrivateProfileStringA_Detour, GetPrivateProfileStringA_Trampoline);
 
-		DWORD pfnWritePrivateProfileStringA = (DWORD) & ::WritePrivateProfileStringA;
+		uintptr_t pfnWritePrivateProfileStringA = (uintptr_t) & ::WritePrivateProfileStringA;
 		EzDetour(pfnWritePrivateProfileStringA, WritePrivateProfileStringA_Detour, WritePrivateProfileStringA_Trampoline);
 
 		if (Login::m_settings.LoginType == Login::Settings::Type::StationNames)
@@ -440,13 +440,13 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveCommand("/relog");
 	RemoveCommand("/loginchar");
 
-	DWORD pfnGetPrivateProfileIntA = (DWORD) & ::GetPrivateProfileIntA;
+	uintptr_t pfnGetPrivateProfileIntA = (uintptr_t) & ::GetPrivateProfileIntA;
 	RemoveDetour(pfnGetPrivateProfileIntA);
 
-	DWORD pfnGetPrivateProfileStringA = (DWORD) & ::GetPrivateProfileStringA;
+	uintptr_t pfnGetPrivateProfileStringA = (uintptr_t) & ::GetPrivateProfileStringA;
 	RemoveDetour(pfnGetPrivateProfileStringA);
 
-	DWORD pfnWritePrivateProfileStringA = (DWORD) & ::WritePrivateProfileStringA;
+	uintptr_t pfnWritePrivateProfileStringA = (uintptr_t) & ::WritePrivateProfileStringA;
 	RemoveDetour(pfnWritePrivateProfileStringA);
 
 	LoginReset();

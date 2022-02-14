@@ -15,6 +15,7 @@
 #include "pch.h"
 
 #if __has_include("../../MQ2Auth.h")
+#pragma warning( disable : 4312 )
 DWORD gh;
 LRESULT CALLBACK proc(int nCode, WPARAM wParam, LPARAM lParam)
 {
@@ -28,11 +29,14 @@ namespace mq
 }
 
 #define MQ2AUTH(z)                                                    \
+__pragma( warning(push) )                                             \
+__pragma( warning(disable : 4312 4311 4302) )                         \
     extern "C" __declspec(dllexport) void z(DWORD x)                  \
     {                                                                 \
         FNCB f = (FNCB)x;                                             \
         f((DWORD)proc, mq::ghInstance, gh);                           \
-    }
+    }                                                                 \
+__pragma( warning(pop) )
 
 #include "../../MQ2Auth.h"
 
