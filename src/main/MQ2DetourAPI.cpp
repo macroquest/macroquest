@@ -19,24 +19,15 @@ namespace mq {
 
 //============================================================================
 
-using DetourMap = std::unordered_map<uintptr_t, std::shared_ptr<Detour>>;
-static DetourMap* s_detourMap = nullptr;
-
-inline DetourMap& get_detours()
-{
-	if (!s_detourMap)
-	{
-		s_detourMap = new DetourMap();
-	}
-
-	return *s_detourMap;
-}
+static Detour* s_detourMap = nullptr;
 
 Detour::Detour(uintptr_t address, void** target, void* detour, const std::string_view name)
 	: m_address(address)
 	, m_name(name)
 	, m_target(target)
 	, m_detour(detour)
+	, next(nullptr)
+	, prev(nullptr)
 {
 	memcpy(m_bytes, reinterpret_cast<uint8_t*>(address), DETOUR_COUNT);
 	*m_target = reinterpret_cast<void*>(address);
@@ -61,17 +52,38 @@ Detour::~Detour()
 
 void Detour::AddToMap()
 {
-	get_detours().insert_or_assign(this->Address(), shared_from_this());
+	prev = nullptr;
+	next = s_detourMap;
+	s_detourMap = this;
+	if (next != nullptr)
+		next->prev = this;
 }
 
 void Detour::RemoveFromMap()
 {
-	get_detours().erase(this->Address());
+	if (prev != nullptr)
+		prev->next = next;
+	else
+		s_detourMap = next;
+
+	if (next != nullptr)
+		next->prev = prev;
 }
 
 void RemoveDetour(uintptr_t address)
 {
-	get_detours().erase(address);
+	auto detour = s_detourMap;
+	while (detour != nullptr)
+	{
+		if (detour->Address() == address)
+		{
+			detour->Drop();
+			delete detour;
+			return;
+		}
+		
+		detour = detour->next;
+	}
 }
 
 bool gbDoingSpellChecks = false;
@@ -79,7 +91,13 @@ int gbInMemCheck4 = 0;
 
 void RemoveDetours()
 {
-	get_detours().clear();
+	auto detour = s_detourMap;
+	while (detour != nullptr)
+	{
+		auto next = detour->next;
+		delete detour;
+		detour = next;
+	}
 }
 
 void SetAssist(BYTE* address)
@@ -258,10 +276,13 @@ AddressDetourState IsAddressDetoured(uintptr_t address, size_t count)
 	if (address && count >= 4 && *(DWORD*)address == 0x00905a4d)
 		return AddressDetourState::KnownSkippable;
 
-	for (const auto& [key, _] : get_detours())
+	auto detour = s_detourMap;
+	while (detour != nullptr)
 	{
-		if (address <= key && key <= address + count)
+		if (address <= detour->Address() && detour->Address() <= address + count)
 			return AddressDetourState::CodeDetour;
+
+		detour = detour->next;
 	}
 
 	return AddressDetourState::None;
@@ -269,13 +290,16 @@ AddressDetourState IsAddressDetoured(uintptr_t address, size_t count)
 
 inline uint8_t GetDetouredByte(uintptr_t address, uint8_t original)
 {
-	for (const auto& [key, detour] : get_detours())
+	auto detour = s_detourMap;
+	while (detour != nullptr)
 	{
-		if (address >= key && address < key + DETOUR_COUNT)
+		if (address >= detour->Address() && address < detour->Address() + DETOUR_COUNT)
 		{
 			uint8_t* bytes = detour->Bytes();
-			return *(bytes + address - key);
+			return *(bytes + address - detour->Address());
 		}
+
+		detour = detour->next;
 	}
 
 	return original;
@@ -478,7 +502,6 @@ void ShutdownDetours()
 	HookMemChecker(false);
 	RemoveDetours();
 
-	delete s_detourMap;
 	s_detourMap = nullptr;
 }
 

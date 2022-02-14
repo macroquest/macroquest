@@ -50,7 +50,7 @@ namespace detail
 	}
 }
 
-class Detour : public std::enable_shared_from_this<Detour>
+class Detour
 {
 public:
 	uintptr_t Address() const { return m_address; }
@@ -62,28 +62,28 @@ public:
 	template <typename T>
 	static std::enable_if_t<!std::is_member_pointer_v<T>, void> Add(uintptr_t address, T& detour, T*& target, std::string_view name)
 	{
-		auto ptr = std::make_shared<Detour>(address, &(void*&)target, detour, name);
+		auto ptr = new Detour(address, &(void*&)target, detour, name);
 		ptr->AddToMap();
 	}
 
 	template <typename T>
 	static std::enable_if_t<std::is_member_pointer_v<T>, void> Add(uintptr_t address, T& detour, T* target, std::string_view name)
 	{
-		auto ptr = std::make_shared<Detour>(address, (void**)target, detour, name);
+		auto ptr = new Detour(address, (void**)target, detour, name);
 		ptr->AddToMap();
 	}
 
 	template <typename T>
 	static std::enable_if_t<std::is_member_pointer_v<T>, void> Add(uintptr_t address, T&& detour, T* target, std::string_view name)
 	{
-		auto ptr = std::make_shared<Detour>(address, (void**)target, *(void**)&detour, name);
+		auto ptr = new Detour(address, (void**)target, *(void**)&detour, name);
 		ptr->AddToMap();
 	}
 
 	template <typename T>
 	static std::enable_if_t<std::is_pointer_v<T>, void> Add(uintptr_t address, T&& detour, T* target, std::string_view name)
 	{
-		auto ptr = std::make_shared<Detour>(address, &(void*&)*target, detour, name);
+		auto ptr = new Detour(address, &(void*&)*target, detour, name);
 		ptr->AddToMap();
 	}
 
@@ -128,6 +128,10 @@ private:
 
 	void** m_target;
 	void*  m_detour;
+
+public:
+	Detour* next;
+	Detour* prev;
 };
 
 
@@ -146,7 +150,7 @@ ret name(Args&&... args) { \
 		return (name##_Ptr)(std::forward<Args>(args)...); \
 }
 
-#define EzDetour(address, detour, trampoline) Detour::Add(static_cast<uintptr_t>(address), detour, trampoline##_Ptr, STRINGIFY(offset))
+#define EzDetour(address, detour, trampoline) Detour::Add(static_cast<uintptr_t>(address), detour, trampoline##_Ptr, STRINGIFY(address))
 
 // TODO: deprecate DETOUR_TRAMPOLINE_EMPTY to point to a wiki page with the new detours API
 #define DETOUR_TRAMPOLINE_EMPTY(...) \
