@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+#include <detours/detours.h>
+
 namespace mq {
 
 //============================================================================

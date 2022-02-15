@@ -1,3 +1,6 @@
+February 15, 2022:
+- Updated for patch. Welcome to 64-bit MacroQuest.
+
 January 25, 2022:
 - Fix crash in ItemDisplay when viewing new merchant perk bag.
 
