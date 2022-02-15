@@ -42,6 +42,17 @@ Detour::Detour(uintptr_t address, void** target, void* detour, const std::string
 	DetourTransactionCommit();
 }
 
+Detour::Detour(uintptr_t address, const std::string_view name)
+	: m_address(address)
+	, m_name(name)
+	, m_target(nullptr)
+	, m_detour(nullptr)
+	, next(nullptr)
+	, prev(nullptr)
+{
+	memcpy(m_bytes, reinterpret_cast<uint8_t*>(address), DETOUR_COUNT);
+}
+
 Detour::~Detour()
 {
 	DetourRestoreAfterWith();

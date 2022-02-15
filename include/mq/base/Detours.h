@@ -93,7 +93,14 @@ public:
 		static_assert(false, "Detour and Trampoline types differ in their signatures!");
 	}
 
+	static void Add(uintptr_t address, const std::string_view name)
+	{
+		auto ptr = new Detour(address, name);
+		ptr->AddToMap();
+	}
+
 	MQLIB_OBJECT Detour(uintptr_t address, void** target, void* detour, const std::string_view name);
+	MQLIB_OBJECT Detour(uintptr_t address, const std::string_view name);
 	MQLIB_OBJECT virtual ~Detour();
 
 protected:
@@ -151,6 +158,7 @@ ret name(Args&&... args) { \
 }
 
 #define EzDetour(address, detour, trampoline) Detour::Add(static_cast<uintptr_t>(address), detour, trampoline##_Ptr, STRINGIFY(address))
+#define PatchDetour(address) Detour::Add(reinterpret_cast<uintptr_t>(address), STRINGIFY(address))
 
 // TODO: deprecate DETOUR_TRAMPOLINE_EMPTY to point to a wiki page with the new detours API
 #define DETOUR_TRAMPOLINE_EMPTY(...) \
