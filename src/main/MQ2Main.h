@@ -61,7 +61,7 @@ using namespace eqlib;
 
 // Link up ImGui
 #include <imgui/imgui.h>
-#if defined(_WIN64)
+#if defined(_M_AMD64)
 #pragma comment(lib, "imgui-64.lib")
 #else
 #pragma comment(lib, "imgui.lib")

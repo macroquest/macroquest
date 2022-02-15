@@ -25,12 +25,6 @@
 #include "imgui/ImGuiTextEditor.h"
 
 #include <mq/Plugin.h>
-#if defined(_WIN64)
-#pragma comment(lib, "imgui-64.lib")
-#else
-#pragma comment(lib, "imgui.lib")
-#endif // defined(_WIN64)
-
 #include <mq/utils/Args.h>
 #include <fmt/format.h>
 #include <fmt/chrono.h>

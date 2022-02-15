@@ -602,7 +602,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <NASM Include="AssemblyFunctions64.asm" />
+    <NASM Include="AssemblyFunctions64.asm">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </NASM>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\data\resources\CHANGELOG.md" />

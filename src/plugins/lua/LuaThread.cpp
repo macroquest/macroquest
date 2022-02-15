@@ -26,7 +26,7 @@
 #if LUAJIT_VERSION_NUM == 20005
 bool lua_isyieldable(lua_State* L)
 {
-#if _WIN64
+#if _M_AMD64
 	constexpr int offset = 0x30;
 #else
 	constexpr int offset = 0x28;

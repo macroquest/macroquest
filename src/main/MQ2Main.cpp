@@ -41,11 +41,19 @@
 #define CLIENT_OVERRIDE 0
 
 #if defined(LIVE)
-#pragma message("Building MacroQuest for LIVE")
+#if defined(_M_AMD64)
+#pragma message("Building MacroQuest for LIVE (x64)")
+#else
+#pragma message("Building MacroQuest for LIVE (x86)")
+#endif
 #define MacroQuestWinClassName "__MacroQuestTray(Live)"
 #define MacroQuestWinName "MacroQuest(Live)"
 #elif defined(TEST)
-#pragma message("Building MacroQuest for TEST")
+#if defined(_M_AMD64)
+#pragma message("Building MacroQuest for TEST (x64)")
+#else
+#pragma message("Building MacroQuest for TEST (x86)")
+#endif
 #define MacroQuestWinClassName "__MacroQuestTray(Test)"
 #define MacroQuestWinName "MacroQuest(Test)"
 #endif
