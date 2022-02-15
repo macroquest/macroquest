@@ -2014,7 +2014,3 @@ PLUGIN_API void OnPulse()
 		}
 	}
 }
-
-// This is the easiest way to ensure that the specialized window override templates are
-// optimized so they don't clobber the stack or this
-FUNCTION_CHECKS_OFF()
