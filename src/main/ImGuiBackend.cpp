@@ -1131,7 +1131,7 @@ LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 		{
 			uint16_t character = 0;
 
-			if (ToAscii(wParam, (lParam & 0x1ff0000) > 16, keyState, &character, 0) == 1)
+			if (ToAscii(static_cast<UINT>(wParam), static_cast<UINT>(lParam & 0x1ff0000) > 16, keyState, &character, 0) == 1)
 			{
 				io.AddInputCharacter(character);
 			}
@@ -1178,7 +1178,7 @@ LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 
 	case WM_ACTIVATE:
 		// Clear any delayed mouse inputs.
-		for (size_t i = 0; i < lengthof(io.MouseDown); ++i)
+		for (int i = 0; i < lengthof(io.MouseDown); ++i)
 			ImGuiOverlay_HandleMouseEvent(i, false);
 		// Clear any delayed keyboard inputs
 		for (bool& n : io.KeysDown)

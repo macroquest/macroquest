@@ -3339,7 +3339,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		// TODO: Fix this. Its a struct not an int*
 		if (EQADDR_SUBSCRIPTIONTYPE && *EQADDR_SUBSCRIPTIONTYPE)
 		{
-			int dwsubtype = *(int*)EQADDR_SUBSCRIPTIONTYPE;
+			uintptr_t dwsubtype = *EQADDR_SUBSCRIPTIONTYPE;
 			if (dwsubtype)
 			{
 				uint8_t subtype = *(uint8_t*)dwsubtype;
@@ -3643,7 +3643,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		{
 			std::vector<MercDesc> descs = GetAllMercDesc();
 
-			for (size_t index = 0; index < descs.size(); ++index)
+			for (uint32_t index = 0; index < descs.size(); ++index)
 			{
 				auto& desc = descs[index];
 

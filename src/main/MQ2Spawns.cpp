@@ -356,59 +356,33 @@ static void CaptionColorCmd(SPAWNINFO* pChar, char* szLine)
 
 void SetNameSpriteTint(SPAWNINFO* pSpawn);
 
+class PlayerManagerBaseHook
+{
+public:
+	DETOUR_TRAMPOLINE_DEF(PlayerClient*, PrepForDestroyPlayer_Trampoline, (PlayerClient*))
+	PlayerClient* PrepForDestroyPlayer_Detour(PlayerClient* spawn)
+	{
+		PluginsRemoveSpawn(spawn);
+		return PrepForDestroyPlayer_Trampoline(spawn);
+	}
+};
+
+class PlayerManagerClientHook
+{
+public:
+	DETOUR_TRAMPOLINE_DEF(PlayerClient*, CreatePlayer_Trampoline, (CUnSerializeBuffer*, void*, void*, void*, void*, void*, void*, void*, void*))
+	PlayerClient* CreatePlayer_Detour(CUnSerializeBuffer* buf, void* a, void* b, void* c, void* d, void* e, void* f, void* g, void* h)
+	{
+		PlayerClient* spawn = CreatePlayer_Trampoline(buf, a, b, c, d, e, f, g, h);
+		PluginsAddSpawn(spawn);
+		return spawn;
+	}
+};
+
 class PlayerClientHook
 {
 public:
-	void PlayerClient_ExtraDetour(SPAWNINFO* pSpawn)
-	{
-		// note: we need to keep the original registers.
-		__asm push eax;
-		__asm push ebx;
-		__asm push ecx;
-		__asm push edx;
-		__asm push esi;
-		__asm push edi;
-
-		PluginsAddSpawn(pSpawn);
-
-		__asm pop edi;
-		__asm pop esi;
-		__asm pop edx;
-		__asm pop ecx;
-		__asm pop ebx;
-		__asm pop eax;
-	}
-
-	void PlayerClient_Trampoline(void*, int, int, int, char*, char*, char*);
-	void PlayerClient_Detour(void* pNetPlayer, int Sex, int Race, int Class, char* PlayerName, char* GroupName, char* ReplaceName)
-	{
-		SPAWNINFO* pSpawn = (SPAWNINFO*)this;
-
-		__asm mov [pSpawn], ecx;
-
-		PlayerClient_Trampoline(pNetPlayer, Sex, Race, Class, PlayerName, GroupName, ReplaceName);
-		PlayerClient_ExtraDetour(pSpawn);
-	}
-
-	void dPlayerClient_Trampoline();
-	void dPlayerClient_Detour()
-	{
-		void (PlayerClientHook::*tmp)() = &PlayerClientHook::dPlayerClient_Trampoline;
-
-		__asm {
-			push ecx;
-			push ecx;
-
-			call PluginsRemoveSpawn;
-
-			pop ecx;
-			pop ecx;
-
-			call [tmp];
-		};
-	}
-
-	int SetNameSpriteState_Trampoline(bool Show);
+	DETOUR_TRAMPOLINE_DEF(int, SetNameSpriteState_Trampoline, (bool Show))
 	int SetNameSpriteState_Detour(bool Show)
 	{
 		if (gGameState != GAMESTATE_INGAME || !Show || !gMQCaptions)
@@ -417,7 +391,7 @@ public:
 		return 1;
 	}
 
-	bool SetNameSpriteTint_Trampoline();
+	DETOUR_TRAMPOLINE_DEF(bool, SetNameSpriteTint_Trampoline, ())
 	bool SetNameSpriteTint_Detour()
 	{
 		if (gGameState != GAMESTATE_INGAME || !gMQCaptions)
@@ -426,18 +400,6 @@ public:
 		return true;
 	}
 };
-
-class CActorEx
-{
-public:
-	bool CanSetName(DWORD);
-	void SetNameColor(DWORD& Color);
-	void ChangeBoneStringSprite(int, int, char*);
-};
-
-FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::ChangeBoneStringSprite(int, int, char*), 0x190);
-FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::SetNameColor(DWORD& Color), 0x194);
-FUNCTION_AT_VIRTUAL_ADDRESS(bool CActorEx::CanSetName(DWORD), 0x1a8);
 
 static void SetNameSpriteTint(SPAWNINFO* pSpawn)
 {
@@ -455,7 +417,7 @@ static void SetNameSpriteTint(SPAWNINFO* pSpawn)
 		else if (CaptionColors[CC_PCGroupColor].Enabled && IsGroupMember(pSpawn))
 			NewColor = CaptionColors[CC_PCGroupColor].Color;
 		else if (CaptionColors[CC_PCClassColor].Enabled)
-			NewColor = pRaidWnd->ClassColors[ClassInfo[pSpawn->mActorClient.Class].RaidColorOrder];
+			NewColor = pRaidWnd->ClassColors[ClassInfo[pSpawn->GetClass()].RaidColorOrder];
 		else if (CaptionColors[CC_PCRaidColor].Enabled && IsRaidMember(pSpawn))
 			NewColor = CaptionColors[CC_PCRaidColor].Color;
 		else if (CaptionColors[CC_PCPVPTeamColor].Enabled)
@@ -478,12 +440,12 @@ static void SetNameSpriteTint(SPAWNINFO* pSpawn)
 			NewColor = CaptionColors[CC_NPCMark].Color;
 		if (CaptionColors[CC_NPCAssist].Enabled && IsAssistNPC(pSpawn))
 			NewColor = CaptionColors[CC_NPCAssist].Color;
-		else if (CaptionColors[CC_NPCBanker].Enabled && pSpawn->mActorClient.Class == 40)
+		else if (CaptionColors[CC_NPCBanker].Enabled && pSpawn->GetClass() == Class_Banker)
 			NewColor = CaptionColors[CC_NPCBanker].Color;
-		else if (CaptionColors[CC_NPCMerchant].Enabled && (pSpawn->mActorClient.Class == 41 || pSpawn->mActorClient.Class == 61))
+		else if (CaptionColors[CC_NPCMerchant].Enabled && (pSpawn->GetClass() == Class_Merchant || pSpawn->GetClass() == Class_AdventureMerchant))
 			NewColor = CaptionColors[CC_NPCMerchant].Color;
-		else if (CaptionColors[CC_NPCClassColor].Enabled && pSpawn->mActorClient.Class < 0x10)
-			NewColor = pRaidWnd->ClassColors[ClassInfo[pSpawn->mActorClient.Class].RaidColorOrder];
+		else if (CaptionColors[CC_NPCClassColor].Enabled && pSpawn->GetClass() < TotalPlayerClasses)
+			NewColor = pRaidWnd->ClassColors[ClassInfo[pSpawn->GetClass()].RaidColorOrder];
 		else if (CaptionColors[CC_NPCConColor].Enabled)
 			NewColor = ConColorToARGB(ConColor(pSpawn));
 		else if (CaptionColors[CC_NPC].Enabled)
@@ -497,7 +459,7 @@ static void SetNameSpriteTint(SPAWNINFO* pSpawn)
 
 	case CORPSE:
 		if (CaptionColors[CC_CorpseClassColor].Enabled)
-			NewColor = pRaidWnd->ClassColors[ClassInfo[pSpawn->mActorClient.Class].RaidColorOrder];
+			NewColor = pRaidWnd->ClassColors[ClassInfo[pSpawn->GetClass()].RaidColorOrder];
 		else if (CaptionColors[CC_Corpse].Enabled)
 			NewColor = CaptionColors[CC_Corpse].Color;
 		else
@@ -509,7 +471,7 @@ static void SetNameSpriteTint(SPAWNINFO* pSpawn)
 
 	case PET:
 		if (CaptionColors[CC_PetClassColor].Enabled)
-			NewColor = pRaidWnd->ClassColors[ClassInfo[pSpawn->mActorClient.Class].RaidColorOrder];
+			NewColor = pRaidWnd->ClassColors[ClassInfo[pSpawn->GetClass()].RaidColorOrder];
 		else if (CaptionColors[CC_PetConColor].Enabled)
 			NewColor = ConColorToARGB(ConColor(pSpawn));
 		else if (CaptionColors[CC_PetNPC].Enabled && GetSpawnByID(pSpawn->MasterID)->Type == SPAWN_NPC)
@@ -530,14 +492,8 @@ static void SetNameSpriteTint(SPAWNINFO* pSpawn)
 		return;
 	}
 
-	if (pSpawn->mActorClient.pcactorex)
-		DebugTry(((CActorEx*)pSpawn->mActorClient.pcactorex)->SetNameColor(NewColor));
-	else
-	{
-#ifdef _DEBUG
-		WriteChatf("We got an Empty pSpawn->pcactorex at %x class = 0x%x ", pSpawn, pSpawn->mActorClient.Class);
-#endif
-	}
+	if (pSpawn->GetActor())
+		pSpawn->GetActor()->SetStringSpriteTint((RGB*)&NewColor);
 }
 
 static bool SetCaption(SPAWNINFO* pSpawn, const char* CaptionString)
@@ -572,7 +528,7 @@ bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
 		return reinterpret_cast<PlayerClientHook*>(pSpawn)->SetNameSpriteState_Trampoline(Show) != 0;
 	}
 
-	if (!pSpawn->mActorClient.pcactorex || !static_cast<CActorEx*>(pSpawn->mActorClient.pcactorex)->CanSetName(0))
+	if (!pSpawn->GetActor() || !pSpawn->GetActor()->IsBoneSet(0))
 	{
 		return true;
 	}
@@ -643,11 +599,6 @@ static void UpdateSpawnCaptions()
 			break;
 	}
 }
-
-DETOUR_TRAMPOLINE_EMPTY(bool PlayerClientHook::SetNameSpriteTint_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(int PlayerClientHook::SetNameSpriteState_Trampoline(bool Show));
-DETOUR_TRAMPOLINE_EMPTY(void PlayerClientHook::dPlayerClient_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(void PlayerClientHook::PlayerClient_Trampoline(void*, int, int, int, char*, char*, char*));
 
 static void LoadCaptionSettings()
 {
@@ -758,7 +709,7 @@ class MyEQGroundItemListManager
 public:
 	GROUNDITEM* m_pGroundItemList;
 
-	void FreeItemList_Trampoline();
+	DETOUR_TRAMPOLINE_DEF(void, FreeItemList_Trampoline, ())
 	void FreeItemList_Detour()
 	{
 		EQGroundItem* pItem = pItemList->Top;
@@ -773,7 +724,7 @@ public:
 		FreeItemList_Trampoline();
 	}
 
-	void Add_Trampoline(EQGroundItem*);
+	DETOUR_TRAMPOLINE_DEF(void, Add_Trampoline, (EQGroundItem*))
 	void Add_Detour(EQGroundItem* pItem)
 	{
 		if (m_pGroundItemList)
@@ -790,16 +741,13 @@ public:
 		AddGroundItem();
 	}
 
-	void DeleteItem_Trampoline(EQGroundItem*);
+	DETOUR_TRAMPOLINE_DEF(void, DeleteItem_Trampoline, (EQGroundItem*))
 	void DeleteItem_Detour(EQGroundItem* pItem)
 	{
 		RemoveGroundItem(pItem);
 		return DeleteItem_Trampoline(pItem);
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::FreeItemList_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::Add_Trampoline(EQGroundItem*));
-DETOUR_TRAMPOLINE_EMPTY(void MyEQGroundItemListManager::DeleteItem_Trampoline(EQGroundItem*));
 
 static void ProcessPendingGroundItems()
 {
@@ -850,7 +798,7 @@ void UpdateMQ2SpawnSort()
 
 	std::sort(std::begin(gSpawnsArray), std::end(gSpawnsArray), MQRankFloatCompare);
 
-	gSpawnCount = gSpawnsArray.size();
+	gSpawnCount = static_cast<int>(gSpawnsArray.size());
 	EQP_DistArray = gSpawnCount > 0 ? &gSpawnsArray[0] : nullptr;
 
 	ExitMQ2Benchmark(bmUpdateSpawnSort);
@@ -873,8 +821,8 @@ static void Spawns_Initialize()
 	bmUpdateSpawnSort = AddMQ2Benchmark("UpdateSpawnSort");
 	bmUpdateSpawnCaptions = AddMQ2Benchmark("UpdateSpawnCaptions");
 
-	EzDetour(PlayerClient__PlayerClient, &PlayerClientHook::PlayerClient_Detour, &PlayerClientHook::PlayerClient_Trampoline);
-	EzDetour(PlayerClient__dPlayerClient, &PlayerClientHook::dPlayerClient_Detour, &PlayerClientHook::dPlayerClient_Trampoline);
+	EzDetour(PlayerManagerClient__CreatePlayer, &PlayerManagerClientHook::CreatePlayer_Detour, &PlayerManagerClientHook::CreatePlayer_Trampoline);
+	EzDetour(PlayerManagerBase__PrepForDestroyPlayer, &PlayerManagerBaseHook::PrepForDestroyPlayer_Detour, &PlayerManagerBaseHook::PrepForDestroyPlayer_Trampoline);
 	EzDetour(PlayerClient__SetNameSpriteState, &PlayerClientHook::SetNameSpriteState_Detour, &PlayerClientHook::SetNameSpriteState_Trampoline);
 	EzDetour(PlayerClient__SetNameSpriteTint, &PlayerClientHook::SetNameSpriteTint_Detour, &PlayerClientHook::SetNameSpriteTint_Trampoline);
 	EzDetour(EQItemList__FreeItemList, &MyEQGroundItemListManager::FreeItemList_Detour, &MyEQGroundItemListManager::FreeItemList_Trampoline);
@@ -944,8 +892,8 @@ static void Spawns_Shutdown()
 	RemoveCommand("/caption");
 	RemoveCommand("/captioncolor");
 
-	RemoveDetour(PlayerClient__PlayerClient);
-	RemoveDetour(PlayerClient__dPlayerClient);
+	RemoveDetour(PlayerManagerClient__CreatePlayer);
+	RemoveDetour(PlayerManagerBase__PrepForDestroyPlayer);
 	RemoveDetour(PlayerClient__SetNameSpriteState);
 	RemoveDetour(PlayerClient__SetNameSpriteTint);
 	RemoveDetour(EQItemList__FreeItemList);
@@ -998,8 +946,10 @@ static void Spawns_Pulse()
 
 	if (nCaptions > CAPTION_UPDATE_FRAMES)
 	{
+		MQScopedBenchmark bm(bmUpdateSpawnCaptions);
 		nCaptions = 0;
-		Benchmark(bmUpdateSpawnCaptions, UpdateSpawnCaptions());
+		
+		UpdateSpawnCaptions();
 	}
 
 	if (pTarget)

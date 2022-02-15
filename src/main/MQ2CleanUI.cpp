@@ -22,7 +22,7 @@ const char* g_customCaption = "MQ2: Think of it as evolution in action.";
 class CDisplayHook
 {
 public:
-	void CleanUI_Trampoline();
+	DETOUR_TRAMPOLINE_DEF(void, CleanUI_Trampoline, ())
 	void CleanUI_Detour()
 	{
 		{
@@ -33,7 +33,7 @@ public:
 		CleanUI_Trampoline();
 	}
 
-	void ReloadUI_Trampoline(bool, bool);
+	DETOUR_TRAMPOLINE_DEF(void, ReloadUI_Trampoline, (bool, bool))
 	void ReloadUI_Detour(bool UseINI, bool bUnknown)
 	{
 		ReloadUI_Trampoline(UseINI, bUnknown);
@@ -46,7 +46,7 @@ public:
 		}
 	}
 
-	void InitCharSelectUI_Trampoline();
+	DETOUR_TRAMPOLINE_DEF(void, InitCharSelectUI_Trampoline, ())
 	void InitCharSelectUI_Detour()
 	{
 		InitCharSelectUI_Trampoline();
@@ -54,12 +54,12 @@ public:
 	}
 };
 
-void DrawNetStatus_Trampoline(uint16_t x, uint16_t y, void* udpConnection, uint32_t bps);
+DETOUR_TRAMPOLINE_DEF(void, DrawNetStatus_Trampoline, (uint16_t x, uint16_t y, void* udpConnection, uint32_t bps))
 void DrawNetStatus_Detour(uint16_t x, uint16_t y, void* udpConnection, uint32_t bps)
 {
 	DrawHUDParams[0] = x + gNetStatusXPos;
 	DrawHUDParams[1] = y + gNetStatusYPos;
-	DrawHUDParams[2] = (DWORD)udpConnection;
+	DrawHUDParams[2] = (uintptr_t)udpConnection;
 	DrawHUDParams[3] = bps;
 
 	if (gbHUDUnderUI || gbAlwaysDrawMQHUD)
@@ -78,7 +78,7 @@ void DrawHUD()
 		{
 			if (DrawHUDParams[0] && gGameState == GAMESTATE_INGAME && gbShowNetStatus)
 			{
-				DrawNetStatus_Trampoline((unsigned short)DrawHUDParams[0], (unsigned short)DrawHUDParams[1], (void*)DrawHUDParams[2], DrawHUDParams[3]);
+				DrawNetStatus_Trampoline((uint16_t)DrawHUDParams[0], (uint16_t)DrawHUDParams[1], (void*)DrawHUDParams[2], (uint32_t)DrawHUDParams[3]);
 				DrawHUDParams[0] = 0;
 			}
 
@@ -106,7 +106,7 @@ void DrawHUDText(const char* Text, int X, int Y, unsigned int Argb, int Font)
 class EQ_LoadingSHook
 {
 public:
-	void SetProgressBar_Trampoline(int, char const*);
+	DETOUR_TRAMPOLINE_DEF(void, SetProgressBar_Trampoline, (int, char const*))
 	void SetProgressBar_Detour(int A, char const* B)
 	{
 		if (gbMQ2LoadingMsg)
@@ -115,12 +115,6 @@ public:
 			SetProgressBar_Trampoline(A, B);
 	}
 };
-
-DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::CleanUI_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::ReloadUI_Trampoline(bool, bool));
-DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::InitCharSelectUI_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(void DrawNetStatus_Trampoline(unsigned short, unsigned short, void*, unsigned int));
-DETOUR_TRAMPOLINE_EMPTY(void EQ_LoadingSHook::SetProgressBar_Trampoline(int, char const*));
 
 static void Cmd_NetStatusXPos(SPAWNINFO* pChar, char* szLine)
 {

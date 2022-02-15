@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<ItemGroup>
+		<PropertyPageSchema
+			Include="$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml" />
+		<AvailableItemName
+			Include="ProtocolBuffer">
+			<Targets>_ProtocolBuffer</Targets>
+		</AvailableItemName>
+	</ItemGroup>
+	<UsingTask
+		TaskName="ProtocolBuffer"
+		TaskFactory="XamlTaskFactory"
+		AssemblyName="Microsoft.Build.Tasks.v4.0">
+		<Task>$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml</Task>
+	</UsingTask>
+	<Target
+		Name="_ProtocolBuffer"
+		BeforeTargets="$(ProtocolBufferBeforeTargets)"
+		AfterTargets="$(ProtocolBufferAfterTargets)"
+		Condition="'@(ProtocolBuffer)' != ''"
+		DependsOnTargets="$(ProtocolBufferDependsOn);ComputeProtocolBufferOutput"
+		Outputs="%(ProtocolBuffer.Outputs)"
+		Inputs="%(ProtocolBuffer.Identity);%(ProtocolBuffer.AdditionalDependencies);$(MSBuildProjectFile)">
+		<ItemGroup
+			Condition="'@(SelectedFiles)' != ''">
+			<ProtocolBuffer
+				Remove="@(ProtocolBuffer)"
+				Condition="'%(Identity)' != '@(SelectedFiles)'" />
+		</ItemGroup>
+		<ItemGroup>
+			<ProtocolBuffer_tlog
+				Include="%(ProtocolBuffer.Outputs)"
+				Condition="'%(ProtocolBuffer.Outputs)' != '' and '%(ProtocolBuffer.ExcludedFromBuild)' != 'true'">
+				<Source>@(ProtocolBuffer, '|')</Source>
+			</ProtocolBuffer_tlog>
+		</ItemGroup>
+		<Message
+			Importance="High"
+			Text="%(ProtocolBuffer.ExecutionDescription)" />
+		<WriteLinesToFile
+			Condition="'@(ProtocolBuffer_tlog)' != '' and '%(ProtocolBuffer_tlog.ExcludedFromBuild)' != 'true'"
+			File="$(IntDir)$(ProjectName).write.1.tlog"
+			Lines="^%(ProtocolBuffer_tlog.Source);@(ProtocolBuffer_tlog-&gt;'%(Fullpath)')" />
+		<ProtocolBuffer
+			Condition="'@(ProtocolBuffer)' != '' and '%(ProtocolBuffer.ExcludedFromBuild)' != 'true'"
+			CommandLineTemplate="%(ProtocolBuffer.CommandLineTemplate)"
+			AdditionalOptions="%(ProtocolBuffer.AdditionalOptions)"
+			StandardOutputImportance="High"
+			StandardErrorImportance="High"
+			EchoOff="true"
+			Inputs="%(ProtocolBuffer.Identity)" />
+	</Target>
+	<PropertyGroup>
+		<ComputeLinkInputsTargets>
+			$(ComputeLinkInputsTargets);
+			ComputeProtocolBufferOutput;
+		</ComputeLinkInputsTargets>
+		<ComputeLibInputsTargets>
+			$(ComputeLibInputsTargets);
+			ComputeProtocolBufferOutput;
+		</ComputeLibInputsTargets>
+	</PropertyGroup>
+	<Target
+		Name="ComputeProtocolBufferOutput"
+		Condition="'@(ProtocolBuffer)' != ''">
+		<ItemGroup>
+			<ProtocolBufferDirsToMake
+				Condition="'@(ProtocolBuffer)' != '' and '%(ProtocolBuffer.ExcludedFromBuild)' != 'true'"
+				Include="%(ProtocolBuffer.Outputs)" />
+			<Link
+				Include="%(ProtocolBufferDirsToMake.Identity)"
+				Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" />
+			<Lib
+				Include="%(ProtocolBufferDirsToMake.Identity)"
+				Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" />
+			<ImpLib
+				Include="%(ProtocolBufferDirsToMake.Identity)"
+				Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" />
+		</ItemGroup>
+		<MakeDir
+			Directories="@(ProtocolBufferDirsToMake-&gt;'%(RootDir)%(Directory)')" />
+	</Target>
+</Project>

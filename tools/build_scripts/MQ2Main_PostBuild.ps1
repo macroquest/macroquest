@@ -58,7 +58,8 @@ function Copy-Latestfile {
 try {
 	$Src = $args[0]
 	$Dst = $args[1]
-	#Write-Output $Src $Dst
+	$Arch = $args[2]
+	#Write-Output $Src $Dst $Arch
 
 	$ListFile = "$Src\BinCopy.txt"
 	Set-Location $Src
@@ -75,7 +76,17 @@ try {
 	}
 
 	# Copy crash reporter
-	Copy-LatestFile "$Src\..\contrib\vcpkg\installed\x86-windows-static\tools\crashpad_handler.exe" "$Dst\mq_crash_handler.exe" "mq_crash_handler.exe"
+	Copy-LatestFile "$Src\..\contrib\vcpkg\installed\$Arch-windows-static\tools\crashpad_handler.exe" "$Dst\mq_crash_handler.exe" "mq_crash_handler.exe"
+	$DstLeaf = $Dst|Split-Path -leaf
+	# Copy DX files
+	if ($Dst -like '*debug*')
+	{
+		Copy-LatestFile "$Src\..\contrib\vcpkg\installed\$Arch-windows\debug\bin\D3DX9d_43.dll" "$Dst\D3DX9d_43.dll" "D3DX9d_43.dll"
+	}
+	else
+	{
+		Copy-LatestFile "$Src\..\contrib\vcpkg\installed\$Arch-windows\bin\D3DX9d_43.dll" "$Dst\D3DX9d_43.dll" "D3DX9d_43.dll"
+	}
 }
 catch {
 	Write-Output $_

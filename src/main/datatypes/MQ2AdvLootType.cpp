@@ -198,7 +198,6 @@ bool MQ2AdvLootType::dataAdvLoot(const char* szIndex, MQTypeVar& Ret)
 
 enum class AdvLootItemMembers
 {
-	Address,
 	Index,
 	Name,
 	ID,
@@ -217,7 +216,6 @@ enum class AdvLootItemMembers
 
 MQ2AdvLootItemType::MQ2AdvLootItemType() : MQ2Type("advlootitem")
 {
-	ScopedTypeMember(AdvLootItemMembers, Address);
 	ScopedTypeMember(AdvLootItemMembers, Index);
 	ScopedTypeMember(AdvLootItemMembers, Name);
 	ScopedTypeMember(AdvLootItemMembers, ID);

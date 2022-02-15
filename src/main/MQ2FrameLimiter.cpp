@@ -203,7 +203,6 @@ static bool IsLimiterEnabled();
 static bool IsTieUiToSimulation();
 static bool UpdateDisplay_Hook();
 static bool ShouldDoRealRenderWorld();
-static bool DoThrottleFrameRate();
 
 class CXWndManagerHook
 {
@@ -211,7 +210,7 @@ public:
 	// This hooks the UI draw function. Completely disable the UI draw if we have limiting enabled because
 	// we are going to want to tie the UI draw to the render scene, otherwise it will potentially draw out
 	// of order since the DrawWindows call happens outside of and before the RealRender_World call
-	void DrawWindows_Trampoline();
+	DETOUR_TRAMPOLINE_DEF(void, DrawWindows_Trampoline, ())
 	void DrawWindows_Detour()
 	{
 		if (!IsLimiterEnabled())
@@ -229,14 +228,13 @@ public:
 		}
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(void CXWndManagerHook::DrawWindows_Trampoline());
 
 class CRenderHook
 {
 public:
 	// This hooks the main render function. We can use it to toggle rendering of the main game scene.
 	// If we disable rendering, we should still draw imgui.
-	void RenderScene_Trampoline();
+	DETOUR_TRAMPOLINE_DEF(void, RenderScene_Trampoline, ())
 	void RenderScene_Detour()
 	{
 		if (RenderScene_Hook())
@@ -260,7 +258,7 @@ public:
 	}
 
 	// Same logic as above, but this is for when the player is blind.
-	void RenderBlind_Trampoline();
+	DETOUR_TRAMPOLINE_DEF(void, RenderBlind_Trampoline, ())
 	void RenderBlind_Detour()
 	{
 		if (RenderScene_Hook())
@@ -279,7 +277,7 @@ public:
 	// RenderScene. If RenderScene didn't call BeginScene, this will, and since our simulation update
 	// is explicitly different than the draw update and the simulation update calls this at various
 	// points, we need to explicitly throttle this as well if we have enabled the frame limiter
-	void UpdateDisplay_Trampoline();
+	DETOUR_TRAMPOLINE_DEF(void, UpdateDisplay_Trampoline, ())
 	void UpdateDisplay_Detour()
 	{
 		if (UpdateDisplay_Hook())
@@ -299,16 +297,13 @@ public:
 		}
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(void CRenderHook::RenderScene_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(void CRenderHook::RenderBlind_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(void CRenderHook::UpdateDisplay_Trampoline());
 
 class CDisplayHook
 {
 public:
 	// This hooks the main world update function. We will never skip running it, but we change
 	// when it is called based on our frame limiting scheme.
-	void RealRender_World_Trampoline();
+	DETOUR_TRAMPOLINE_DEF(void, RealRender_World_Trampoline, ())
 	void RealRender_World_Detour()
 	{
 		// This will only be true if we the frame limiter is disabled, but there are side effects to do the simulation step later
@@ -319,26 +314,10 @@ public:
 		}
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::RealRender_World_Trampoline());
 
-DETOUR_TRAMPOLINE_EMPTY(static void Throttler_Trampoline());
-__declspec(naked) static void Throttler_Detour()
-{
-	// If DoThrottleFrameRate returns false, then it is disabled and we
-	// want to just call the original code. If it returns true then we
-	// are engaged with the frame limiter and we want to skip past the
-	// built-in throttling.
-	__asm
-	{
-		call DoThrottleFrameRate;
-		cmp eax, eax;
-		jz call_to_trampoline
-		mov eax, __ThrottleFrameRateEnd;
-		jmp eax;
-	call_to_trampoline:
-		jmp Throttler_Trampoline;
-	}
-}
+// Defined in AssemblyFunctions.asm, need the forward declare
+void Throttler_Detour();
+void(*Throttler_Trampoline)();
 
 #pragma endregion
 
@@ -1051,7 +1030,7 @@ static bool ShouldDoRealRenderWorld()
 	return s_frameLimiter.DoRealRenderWorld();
 }
 
-static bool DoThrottleFrameRate()
+bool DoThrottleFrameRate()
 {
 	return s_frameLimiter.DoThrottleFrameRate();
 }
@@ -1207,7 +1186,7 @@ static void InitializeFrameLimiter()
 
 	// Hook the main loop throttle function
 	if constexpr (__ThrottleFrameRate_x && __ThrottleFrameRateEnd_x)
-		EzDetour(__ThrottleFrameRate, &Throttler_Detour, &Throttler_Trampoline);
+		Detour::Add(__ThrottleFrameRate, Throttler_Detour, Throttler_Trampoline, "ThrottleFrameRate");
 
 	// Hook CDisplay::RealRender_World to control render loop
 	EzDetour(CDisplay__RealRender_World, &CDisplayHook::RealRender_World_Detour, &CDisplayHook::RealRender_World_Trampoline);
@@ -1225,6 +1204,7 @@ static void ShutdownFrameLimiter()
 
 	RemoveDetour(CXWndManager__DrawWindows);
 	RemoveDetour(CRender__RenderScene);
+	RemoveDetour(CRender__RenderBlind);
 	RemoveDetour(CRender__UpdateDisplay);
 	RemoveDetour(CDisplay__RealRender_World);
 

@@ -54,7 +54,7 @@ bool MQ2AlertType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case AlertTypeMembers::Size:
 		Dest.Type = pIntType;
-		Dest.DWord = CAlerts.GetCount(VarPtr.DWord);
+		Dest.DWord = static_cast<int>(CAlerts.GetCount(VarPtr.DWord));
 		return true;
 
 	default: break;
@@ -69,7 +69,7 @@ bool MQ2AlertType::ToString(MQVarPtr VarPtr, char* Destination)
 
 	if (CAlerts.GetAlert(VarPtr.DWord, ss))
 	{
-		_itoa_s(ss.size(), Destination, MAX_STRING, 10);
+		_itoa_s(static_cast<int>(ss.size()), Destination, MAX_STRING, 10);
 		return true;
 	}
 

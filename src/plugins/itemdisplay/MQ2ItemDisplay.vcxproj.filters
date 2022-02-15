@@ -34,4 +34,9 @@
       <Filter>Resource Files</Filter>
     </Xml>
   </ItemGroup>
+  <ItemGroup>
+    <NASM Include="AssemblyFunctions64.asm">
+      <Filter>Source Files</Filter>
+    </NASM>
+  </ItemGroup>
 </Project>

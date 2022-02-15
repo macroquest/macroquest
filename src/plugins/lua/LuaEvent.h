@@ -72,7 +72,6 @@ private:
 	const std::string m_name;
 	const sol::function m_function;
 	LuaEventProcessor* m_processor;
-	std::unique_ptr<uint8_t[]> m_callback;
 };
 
 //----------------------------------------------------------------------------

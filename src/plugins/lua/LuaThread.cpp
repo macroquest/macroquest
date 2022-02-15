@@ -26,12 +26,18 @@
 #if LUAJIT_VERSION_NUM == 20005
 bool lua_isyieldable(lua_State* L)
 {
+#if _M_AMD64
+	constexpr int offset = 0x30;
+#else
+	constexpr int offset = 0x28;
+#endif
+
 	// this is defined in luajit 2.1, but not in 2.0.5 -- this is a hack that is steady because
 	// it's a single version, and it's preferable to pulling in 2 internal luajit headers to do
 	// this nicely (lj_obj.h and lj_frame.h)
 
 	// return ((intptr_t)(L->cframe) & CFRAME_RESUME);
-	return (*(intptr_t*)((char*)L + 0x28) & 1);
+	return (*(intptr_t*)((char*)L + offset) & 1);
 }
 #endif
 

@@ -112,7 +112,7 @@ bool MQ2DynamicZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 					}
 
 					// In the event of multiple matches we'll take the one that is unlocking next.
-					uint32_t bestTime = INT_MAX;
+					eqtime_t bestTime = INT_MAX;
 					DynamicZoneClientTimerData* pBestTimer = nullptr;
 
 					while (pTimer)
@@ -120,7 +120,7 @@ bool MQ2DynamicZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 						if (ci_equals(pTimer->ExpeditionName, svExpedition)
 							&& (svEvent.empty() || ci_equals(svEvent, pTimer->EventName)))
 						{
-							if ((uint32_t)pTimer->TimeStamp < bestTime)
+							if (pTimer->TimeStamp < bestTime)
 							{
 								pBestTimer = pTimer;
 								bestTime = pTimer->TimeStamp;

@@ -31,10 +31,6 @@ Param (
 $vcpkg_root = "$MQRoot\contrib\vcpkg"
 $vcpkg_triplet = "$Platform-windows-static"
 $vcpkg_mq_file = "vcpkg_mq.txt"
-if ($Platform -ne "x86")
-{
-    $vcpkg_mq_file = "vcpkg_mq_$Platform.txt"
-}
 
 $vcpkg_last_bootstrap_file = "vcpkg_mq_last_bootstrap-$Platform.txt"
 
@@ -168,24 +164,29 @@ if ($performBootstrap) {
 
 $vcpkgTable = @{}
 $vcpkgList = ./vcpkg.exe list
-if ($vcpkgList -gt 1 -Or -Not ($vcpkgList -Like "No packages are installed*")) {
+if (-Not ($vcpkgList -Like "No packages are installed*") -Or $vcpkgList.Count -gt 1) {
     foreach ($line in $vcpkgList) {
         $fullPackage = $line.Split(" ")[0]
         $packageParts = $fullPackage.Split(":")
-        if ($packageParts[1] -eq $vcpkg_triplet) {
-            $packageName = $packageParts[0]
-            $packageFeature = ""
-            if ($packageName -Match "(?<package>.+)\[(?<feature>.*)\]") {
-                $packageName = $Matches.package
-                $packageFeature = $Matches.feature
+        $packageName = $packageParts[0]
+        $packageTriplet = $packageParts[1]
+        $packageFeature = ""
+        if ($packageName -Match "(?<package>.+)\[(?<feature>.*)\]") {
+            $packageName = $Matches.package
+            $packageFeature = $Matches.feature
+        }
+        # Ignore the built-in packages
+        if ($packageName -NotLike 'vcpkg-cmake*') {
+            if (-Not $vcpkgTable.ContainsKey($packageTriplet)) {
+                $vcpkgTable.Add($packageTriplet,@{})
             }
 
-            if (-Not $vcpkgTable.ContainsKey($packageName)) {
-                $vcpkgTable[$packageName] = New-Object System.Collections.Generic.List[System.Object]
+            if (-Not $vcpkgTable[$packageTriplet].ContainsKey($packageName)) {
+                $vcpkgTable[$packageTriplet][$packageName] = New-Object System.Collections.Generic.List[System.Object]
             }
 
-            if ($packageFeature -ne "" -And -Not ($vcpkgTable[$packageName] -Contains $packageFeature)) {
-                $vcpkgTable[$packageName].Add("$packageFeature")
+            if ($packageFeature -ne "" -And -Not ($vcpkgTable[$packageTriplet][$packageName] -Contains $packageFeature)) {
+                $vcpkgTable[$packageTriplet][$packageName].Add("$packageFeature")
             }
         }
     }
@@ -204,9 +205,12 @@ foreach ($file in $vcpkg_file_list) {
         $line = $line.Trim()
         # Hash is a comment
         if (-Not $line.StartsWith("#")) {
-            # Future work may want to allow for multiple triplets, but right now we only use the one.
-            # Can change this later if needed to accept what the user puts in as the triplet.
-            $packageName = $line.Split(":")[0]
+            $packageLine = $line.Split(":")
+            $packageName = $packageLine[0]
+            $packageTriplet = $vcpkg_triplet
+            if ($packageLine.Count -gt 1) {
+                $packageTriplet = $packageLine[1]
+            }
             $packageFeatures = New-Object System.Collections.Generic.List[System.Object]
             if ($packageName -Match "(?<package>.+)\[(?<features>.*)\]") {
                 $packageName = $Matches.package
@@ -216,21 +220,25 @@ foreach ($file in $vcpkg_file_list) {
                 }
             }
 
-            if (-Not $vcpkgTable.ContainsKey($packageName) -And -Not $vcpkgInstallTable.ContainsKey($packageName)) {
-                $vcpkgInstallTable[$packageName] = New-Object System.Collections.Generic.List[System.Object]
+            #TODO: This logic got convoluted.  Clean it up.
+            if (-Not $vcpkgTable.ContainsKey($packageTriplet) -Or (-Not $vcpkgTable[$packageTriplet].ContainsKey($packageName) -And (-Not $vcpkgInstallTable.ContainsKey($packageTriplet) -Or -Not $vcpkgInstallTable[$packageTriplet].ContainsKey($packageName)))) {
+                if (-Not $vcpkgInstallTable.ContainsKey($packageTriplet)) {
+                    $vcpkgInstallTable.Add($packageTriplet,@{})
+                }
+                $vcpkgInstallTable[$packageTriplet][$packageName] = New-Object System.Collections.Generic.List[System.Object]
             }
 
             foreach ($feature in $packageFeatures) {
-                if (-Not $vcpkgTable.ContainsKey($packageName)) {
-                    $vcpkgInstallTable[$packageName].Add("$feature")
+                if (-Not $vcpkgTable.ContainsKey($packageTriplet) -Or -Not $vcpkgTable[$packageTriplet].ContainsKey($packageName)) {
+                    $vcpkgInstallTable[$packageTriplet][$packageName].Add("$feature")
                 } else {
                     # core would not show up in a feature list and the package is already installed so only add additional features that aren't core
-                    if ("core" -ne $feature -And -Not $vcpkgTable[$packageName] -Contains $feature) {
-                        if (-Not $vcpkgInstallTable.ContainsKey($packageName)) {
-                            $vcpkgInstallTable[$packageName] = New-Object System.Collections.Generic.List[System.Object]
+                    if ("core" -ne $feature -And -Not $vcpkgTable[$packageTriplet][$packageName] -Contains $feature) {
+                        if (-Not $vcpkgInstallTable[$packageTriplet].ContainsKey($packageName)) {
+                            $vcpkgInstallTable[$packageTriplet][$packageName] = New-Object System.Collections.Generic.List[System.Object]
                         }
-                        if (-Not $vcpkgInstallTable[$packageName] -Contains $feature) {
-                            $vcpkgInstallTable[$packageName].Add("$feature")
+                        if (-Not $vcpkgInstallTable[$packageTriplet][$packageName] -Contains $feature) {
+                            $vcpkgInstallTable[$packageTriplet][$packageName].Add("$feature")
                         }
                     }
                 }
@@ -241,22 +249,29 @@ foreach ($file in $vcpkg_file_list) {
 
 if ($vcpkgInstallTable.Count -ne 0) {
     $vcpkg_command = "install --x-wait-for-lock"
-    foreach ($node in $vcpkgInstallTable.GetEnumerator()) {
-        $vcpkg_command += " $($node.Name)"
-        if ($node.Value.Count -ne 0) {
-            $vcpkg_command += "["
-            foreach ($feature in $node.Value) {
-                $vcpkg_command += "$feature,"
+    foreach ($triplet in $vcpkgInstallTable.GetEnumerator()) {
+        if ($triplet.Value.Count -ne 0) {
+            foreach ($node in $triplet.Value.GetEnumerator()) {
+                $vcpkg_command += " $($node.Name)"
+                if ($node.Value.Count -ne 0) {
+                    $vcpkg_command += "["
+                    foreach ($feature in $node.Value) {
+                        $vcpkg_command += "$feature,"
+                    }
+                    # Strip the trailing comma
+                    $vcpkg_command = $vcpkg_command.Substring(0,$vcpkg_command.Length-1)
+                    $vcpkg_command += "]"
+                }
+                $vcpkg_command += ":$($triplet.Name)"
             }
-            # Strip the trailing comma
-            $vcpkg_command = $vcpkg_command.Substring(0,$vcpkg_command.Length-1)
-            $vcpkg_command += "]"
         }
-        $vcpkg_command += ":$vcpkg_triplet"
     }
-    # For simultaneous runs, if vcpkg.exe is currently running, wait until it finishes.
-    Wait-Process -Name "vcpkg.exe"
-    & ./vcpkg.exe $vcpkg_command.Split(" ")
+
+    if ($vcpkg_command -ne "install --x-wait-for-lock") {
+        # For simultaneous runs, if vcpkg.exe is currently running, wait until it finishes.
+        Wait-Process -Name "vcpkg.exe"
+        & ./vcpkg.exe $vcpkg_command.Split(" ")
+    }
 }
 
 Set-Location $startingDirectory

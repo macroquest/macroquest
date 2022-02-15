@@ -90,7 +90,7 @@ void AddElement(char* IniString)
 	Color.A = 0xFF;
 
 	// x,y,color,string
-	size_t Size = 0;
+	int Size = 0;
 
 	char* pComma = strchr(IniString, ',');
 	if (!pComma)

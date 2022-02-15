@@ -216,7 +216,7 @@ namespace ImGui
 			return false;
 
 		const ImGuiStyle& style = ImGui::GetStyle();
-		int items_count = items.size();
+		int items_count = static_cast<int>(items.size());
 
 		// Call the getter to obtain the preview string which is a parameter to BeginCombo()
 		const char* preview_value = NULL;
@@ -304,7 +304,7 @@ namespace ImGui
 				std::sort(itemScoreVector.begin(), itemScoreVector.end(), sortbysec_desc);
 			}
 
-			int show_count = isNeedFilter ? itemScoreVector.size() : items_count;
+			int show_count = isNeedFilter ? static_cast<int>(itemScoreVector.size()) : items_count;
 			if (ImGui::ListBoxHeader("##ComboWithFilter_itemList", show_count))
 			{
 				for (int i = 0; i < show_count; i++)
@@ -725,7 +725,7 @@ void ImGuiManager_Initialize()
 	// TODO: application-wide keybinds could use an encapsulated interface. For now I'm just dumping his here since we need it to
 	// connect to the win32 hook and control the imgui console.
 	::GetPrivateProfileStringA("MacroQuest", "ToggleConsoleKey", gToggleConsoleDefaultBind,
-		gToggleConsoleHotkey.keybind, lengthof(gToggleConsoleHotkey.keybind), mq::internal_paths::MQini.c_str());
+		gToggleConsoleHotkey.keybind, static_cast<DWORD>(lengthof(gToggleConsoleHotkey.keybind)), mq::internal_paths::MQini.c_str());
 
 	if (!gbToggleConsoleHotkeyReady)
 	{

@@ -114,7 +114,7 @@ GlyphIterator ZepCommand_ReplaceRange::GetCursorAfter() const
         if (m_cursorBefore.Valid()
             && GlyphRange(m_startIndex, m_endIndex).ContainsInclusiveLocation(m_cursorBefore))
         {
-            tempIter.Move(m_strReplace.length());
+            tempIter.Move(static_cast<long>(m_strReplace.length()));
         }
 
         return tempIter;

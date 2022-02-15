@@ -151,7 +151,6 @@ enum class ItemMembers
 	Tradeskills,
 	ItemSlot,
 	ItemSlot2,
-	Address,
 	PctPower,
 	Prestige,
 	FirstFreeSlot,
@@ -326,7 +325,6 @@ MQ2ItemType::MQ2ItemType() : MQ2Type("item")
 	ScopedTypeMember(ItemMembers, Tradeskills);
 	ScopedTypeMember(ItemMembers, ItemSlot);
 	ScopedTypeMember(ItemMembers, ItemSlot2);
-	ScopedTypeMember(ItemMembers, Address);
 	ScopedTypeMember(ItemMembers, PctPower);
 	ScopedTypeMember(ItemMembers, Prestige);
 	ScopedTypeMember(ItemMembers, FirstFreeSlot);
@@ -1676,16 +1674,6 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	case ItemMembers::Tradeskills:
 		Dest.Set(GetItemFromContents(pItem)->TradeSkills);
 		Dest.Type = pBoolType;
-		return true;
-
-	case ItemMembers::Address:
-		Dest.DWord = (DWORD)GetItemFromContents(pItem);
-		Dest.Type = pIntType;
-		return true;
-
-	case ItemMembers::ContAddress:
-		Dest.DWord = (DWORD)pItem;
-		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::Prestige:

@@ -66,12 +66,12 @@ inline int GetPrivateProfileInt(const char* Section, const char* Key, const int 
 
 inline int GetPrivateProfileString(const std::string& Section, const std::string& Key, const std::string& DefaultValue, char* Return, const size_t Size, const std::string& iniFileName)
 {
-	return ::GetPrivateProfileStringA(Section.empty() ? nullptr : Section.c_str(), Key.empty() ? nullptr : Key.c_str(), DefaultValue.c_str(), Return, Size, iniFileName.c_str());
+	return ::GetPrivateProfileStringA(Section.empty() ? nullptr : Section.c_str(), Key.empty() ? nullptr : Key.c_str(), DefaultValue.c_str(), Return, static_cast<DWORD>(Size), iniFileName.c_str());
 }
 
 inline int GetPrivateProfileString(const char* Section, const char* Key, const char* DefaultValue, char* Return, const size_t Size, const char* iniFileName)
 {
-	return ::GetPrivateProfileStringA(Section, Key, DefaultValue, Return, Size, iniFileName);
+	return ::GetPrivateProfileStringA(Section, Key, DefaultValue, Return, static_cast<DWORD>(Size), iniFileName);
 }
 
 inline std::string GetPrivateProfileString(const std::string& Section, const std::string& Key, const std::string& DefaultValue, const std::string& iniFileName)

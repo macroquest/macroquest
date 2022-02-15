@@ -407,7 +407,7 @@ public:
 		if (info->achievementState == AchievementComplete)
 		{
 			char completedTime[64];
-			_ctime32_s(completedTime, 64, &info->completionTimestamp);
+			eq_ctime(completedTime, 64, &info->completionTimestamp);
 
 			ImGui::Text("Completed: %s", completedTime);
 		}
@@ -627,6 +627,7 @@ public:
 			else if (state == AchievementNotVisible)
 				ImGui::PushStyleColor(ImGuiCol_Text, MQColor(127, 127, 127).ToImU32());
 
+#pragma warning(suppress : 4312)
 			ImGui::TreeNodeEx((void*)achievementId, flags, "%s (%d Points)", achievement->name.c_str(), achievement->points);
 
 			if (state == AchievementComplete || state == AchievementLocked || state == AchievementNotVisible)
@@ -1274,7 +1275,7 @@ public:
 				{
 					ImGui::Separator();
 					ImGui::Text("Group Requirements:");
-					for (size_t i = 0; i < m_selectedAbility->RequiredGroups.size(); ++i)
+					for (int i = 0; i < m_selectedAbility->RequiredGroups.size(); ++i)
 					{
 						int groupId = m_selectedAbility->RequiredGroups[i];
 						int groupRank = m_selectedAbility->RequiredGroupLevels[i];
@@ -2586,7 +2587,7 @@ public:
 		ImGui::PopID();
 	}
 
-	int DoSpellAffectTable(const char* name, EQ_Affect* affect, int numAffects, bool showEmpty = false)
+	int DoSpellAffectTable(const char* name, EQ_Affect* affect, size_t numAffects, bool showEmpty = false)
 	{
 		ImGuiTableFlags tableFlags = 0
 			| ImGuiTableFlags_SizingFixedFit
@@ -3741,7 +3742,7 @@ protected:
 	void Draw() override
 	{
 		int deleteRow = -1;
-		for (size_t i = 0; i < m_expressions.size(); ++i)
+		for (int i = 0; i < m_expressions.size(); ++i)
 		{
 			ImGui::PushID(i);
 			ImGui::SetNextItemWidth(-20);

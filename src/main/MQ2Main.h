@@ -61,7 +61,11 @@ using namespace eqlib;
 
 // Link up ImGui
 #include <imgui/imgui.h>
+#if defined(_M_AMD64)
+#pragma comment(lib, "imgui-64.lib")
+#else
 #pragma comment(lib, "imgui.lib")
+#endif // defined(_WIN64)
 
 // TODO: Move these to mq/Plugin.h so that they are not globally included -- include them
 // only where they are needed.
@@ -72,6 +76,13 @@ using namespace eqlib;
 #include <mq/base/Detours.h>
 
 namespace mq {
+
+/* DETOURS */
+MQLIB_OBJECT void SetAssist(BYTE* address);
+
+/* FRAMELIMITER */
+MQLIB_OBJECT bool DoThrottleFrameRate();
+MQLIB_OBJECT extern void(*Throttler_Trampoline)();
 
 /* BENCHMARKING */
 void ShutdownMQ2Benchmarks();
@@ -198,6 +209,8 @@ MQLIB_API void PulseCommands();
 MQLIB_API void TimedCommand(const char* Command, int msDelay);
 MQLIB_API bool IsCommand(const char* command);
 MQLIB_API bool IsAlias(const char* alias);
+
+MQLIB_OBJECT void AddFunction(const char* Command, std::function<void(SPAWNINFO*, char*)> Function, bool EQ = false, bool Parse = true, bool InGame = false);
 
 /* MACRO COMMANDS */
 MQLIB_API void DumpStack(SPAWNINFO*, char*);

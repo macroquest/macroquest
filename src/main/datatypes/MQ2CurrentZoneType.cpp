@@ -33,7 +33,6 @@ enum class CurrentZoneMembers
 	SafeN,
 	SafeW,
 	SafeU,
-	Address,
 	ZoneType,
 	Dungeon,
 	Indoor,
@@ -57,7 +56,6 @@ MQ2CurrentZoneType::MQ2CurrentZoneType() : MQ2Type("currentzone")
 	ScopedTypeMember(CurrentZoneMembers, SafeN);
 	ScopedTypeMember(CurrentZoneMembers, SafeW);
 	ScopedTypeMember(CurrentZoneMembers, SafeU);
-	ScopedTypeMember(CurrentZoneMembers, Address);
 	ScopedTypeMember(CurrentZoneMembers, ZoneType);
 	ScopedTypeMember(CurrentZoneMembers, Dungeon);
 	ScopedTypeMember(CurrentZoneMembers, Indoor);
@@ -90,11 +88,6 @@ bool MQ2CurrentZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 
 	switch (static_cast<CurrentZoneMembers>(pMember->ID))
 	{
-	case CurrentZoneMembers::Address:
-		Dest.DWord = (uint32_t)VarPtr.Ptr;
-		Dest.Type = pIntType;
-		return true;
-
 	case CurrentZoneMembers::ID:
 		Dest.Int = pLocalPC ? (pLocalPC->zoneId & 0x7FFF) : 0;
 		Dest.Type = pIntType;

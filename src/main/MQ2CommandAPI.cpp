@@ -30,11 +30,11 @@ struct MQTimedCommand
 
 struct MQCommand
 {
-	char       Command[64];
-	fEQCommand Function;
-	bool       EQ;
-	bool       Parse;
-	bool       InGameOnly;
+	char                                      Command[64];
+	std::function<void(PlayerClient*, char*)> Function;
+	bool                                      EQ;
+	bool                                      Parse;
+	bool                                      InGameOnly;
 
 	MQCommand* pLast;
 	MQCommand* pNext;
@@ -278,6 +278,7 @@ void DoCommandf(const char* szFormat, ...)
 class CCommandHook
 {
 public:
+	DETOUR_TRAMPOLINE_DEF(void, Trampoline, (SPAWNINFO* pChar, const char* szFullLine))
 	void Detour(SPAWNINFO* pChar, const char* szFullLine)
 	{
 		std::scoped_lock lock(s_commandMutex);
@@ -485,12 +486,9 @@ public:
 		Trampoline(pChar, szFullLine);
 		strcpy_s(szLastCommand, szFullCommand);
 	}
-
-	void Trampoline(SPAWNINFO* pChar, const char* szFullLine);
 };
-DETOUR_TRAMPOLINE_EMPTY(void CCommandHook::Trampoline(SPAWNINFO* pChar, const char* szFullLine));
 
-void AddCommand(const char* Command, fEQCommand Function, bool EQ /* = false */, bool Parse /* = true */, bool InGame /* = false */)
+void AddFunction(const char* Command, std::function<void(SPAWNINFO*, char*)> Function, bool EQ /* = false */, bool Parse /* = true */, bool InGame /* = false */)
 {
 	DebugSpew("AddCommand(%s, 0x%X)", Command, Function);
 
@@ -534,6 +532,11 @@ void AddCommand(const char* Command, fEQCommand Function, bool EQ /* = false */,
 	// End of list
 	pLast->pNext = pCommand;
 	pCommand->pLast = pLast;
+}
+
+void AddCommand(const char* Command, fEQCommand Function, bool EQ /* = false */, bool Parse /* = true */, bool InGame /* = false */)
+{
+	AddFunction(Command, Function, EQ, Parse, InGame);
 }
 
 bool RemoveCommand(const char* Command)
@@ -1277,7 +1280,7 @@ void Alias(SPAWNINFO* pChar, char* szLine)
 		}
 		else
 		{
-			sprintf_s(szName, "%d alias%s displayed.", mAliases.size(), (mAliases.size() == 1) ? "" : "es");
+			sprintf_s(szName, "%d alias%s displayed.", static_cast<int>(mAliases.size()), (mAliases.size() == 1) ? "" : "es");
 			WriteChatColor(szName, USERCOLOR_WHO);
 		}
 

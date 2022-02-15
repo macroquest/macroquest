@@ -317,7 +317,7 @@ int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description)
 				"Version: " MQMAIN_VERSION  "\n"
 				"Location: %s+%d @ %s:%d (%s+%p)\n"
 				"\nCrashID: %s\n",
-				pSymbol->Name, dwDisplacement, line.FileName, line.LineNumber, szSymSearchPath, (void*)(line.Address - (DWORD)hModule), ShouldUploadCrash() ? s_sessionUuid.c_str() : "Not reported");
+				pSymbol->Name, dwDisplacement, line.FileName, line.LineNumber, szSymSearchPath, (void*)(line.Address - (uintptr_t)hModule), ShouldUploadCrash() ? s_sessionUuid.c_str() : "Not reported");
 		}
 		else
 		{
@@ -326,7 +326,7 @@ int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description)
 				"Version: " MQMAIN_VERSION  "\n"
 				"Location: %s+%d (%s+%p)\n"
 				"\nCrashID: %s\n",
-				pSymbol->Name, dwDisplacement, szSymSearchPath, (void*)(pSymbol->Address - (DWORD)hModule), ShouldUploadCrash() ? s_sessionUuid.c_str() : "Not reported");
+				pSymbol->Name, dwDisplacement, szSymSearchPath, (void*)(pSymbol->Address - (uintptr_t)hModule), ShouldUploadCrash() ? s_sessionUuid.c_str() : "Not reported");
 		}
 	}
 	else
@@ -336,7 +336,7 @@ int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description)
 			"Version: " MQMAIN_VERSION  "\n"
 			"Location: %s+%p\n"
 			"\nCrashID: %s\n",
-			szSymSearchPath, (void*)(dwAddress - (DWORD)hModule), ShouldUploadCrash() ? s_sessionUuid.c_str() : "Not reported");
+			szSymSearchPath, (void*)(dwAddress - (uintptr_t)hModule), ShouldUploadCrash() ? s_sessionUuid.c_str() : "Not reported");
 	}
 
 	SymCleanup(hProcess);

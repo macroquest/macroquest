@@ -600,12 +600,13 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 
 	case GroupMemberMembers::PctAggro:
 		Dest.Type = pIntType;
-		if (GROUPAGGRO* pAggrp = (GROUPAGGRO*)EQADDR_GROUPAGGRO)
+		if (g_labelCache && nMember >= 0 && nMember < 6)
 		{
-			if (nMember == 0) // Player is always nMember 0 but in the GroupMemberAggro struct its always 5..
-				Dest.DWord = pAggrp->GroupMemberAggro[5];
+			if (nMember == 0)
+				Dest.DWord = g_labelCache->AggroHatePct[AD_Player];
 			else
-				Dest.DWord = pAggrp->GroupMemberAggro[nMember - 1];
+				Dest.DWord = g_labelCache->AggroHatePct[AD_Group1 + nMember - 1];
+
 			return true;
 		}
 		return false;

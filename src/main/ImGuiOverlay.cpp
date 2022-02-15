@@ -68,7 +68,7 @@ bool gbImGuiReady = false;
 //----------------------------------------------------------------------------
 // statics
 
-static DWORD gResetDeviceAddress = 0;
+static uintptr_t gResetDeviceAddress = 0;
 static POINT gMouseLocation;
 static bool gbMouseBlocked = false;
 static char ImGuiSettingsFile[MAX_PATH] = { 0 };
@@ -120,7 +120,7 @@ static bool s_deferredClearSettings = false;
 struct HookInfo
 {
 	std::string name;
-	DWORD address = 0;
+	uintptr_t address = 0;
 
 	std::function<void(HookInfo&)> patch = nullptr;
 };
@@ -147,15 +147,16 @@ static void InstallHook(HookInfo hi)
 }
 
 template <typename T>
-static void InstallDetour(DWORD address, const T& detour, const T& trampoline, PCHAR name)
+static void InstallDetour(uintptr_t address, T detour, T& trampoline_ptr, PCHAR name)
 {
 	HookInfo hookInfo;
 	hookInfo.name = name;
 	hookInfo.address = 0;
-	hookInfo.patch = [&detour, &trampoline, address](HookInfo& hi)
+	hookInfo.patch = [&detour, address, &trampoline_ptr](HookInfo& hi)
 	{
 		hi.address = address;
-		AddDetourf(hi.address, detour, trampoline, hi.name.c_str());
+		auto ptr = new Detour(hi.address, &(void*&)trampoline_ptr, *(void**)&detour, hi.name);
+		ptr->Add();
 	};
 
 	InstallHook(hookInfo);
@@ -180,7 +181,7 @@ int AddRenderCallbacks(const MQRenderCallbacks& callbacks)
 {
 	// Find an unused index.
 	int index = -1;
-	for (size_t i = 0; i < s_renderCallbacks.size(); ++i)
+	for (int i = 0; i < s_renderCallbacks.size(); ++i)
 	{
 		if (s_renderCallbacks[i] == nullptr)
 		{
@@ -192,7 +193,7 @@ int AddRenderCallbacks(const MQRenderCallbacks& callbacks)
 	if (index == -1)
 	{
 		s_renderCallbacks.emplace_back();
-		index = s_renderCallbacks.size() - 1;
+		index = static_cast<int>(s_renderCallbacks.size()) - 1;
 	}
 
 	auto pCallbacks = std::make_unique<MQRenderCallbackRecord>();
@@ -401,9 +402,9 @@ public:
 		bool changed = false;
 
 		// IDirect3DDevice9 virtual function hooks
-		DWORD* d3dDevice_vftable = *(DWORD**)this;
+		uintptr_t* d3dDevice_vftable = *(uintptr_t**)this;
 
-		DWORD resetDevice = d3dDevice_vftable[0x10];
+		uintptr_t resetDevice = d3dDevice_vftable[0x10];
 
 		if (resetDevice != gResetDeviceAddress)
 		{
@@ -414,8 +415,7 @@ public:
 
 			gResetDeviceAddress = resetDevice;
 
-			InstallDetour(d3dDevice_vftable[0x10], &RenderHooks::Reset_Detour,
-				&RenderHooks::Reset_Trampoline, "d3dDevice_Reset");
+			InstallDetour(d3dDevice_vftable[0x10], &RenderHooks::Reset_Detour, RenderHooks::Reset_Trampoline_Ptr, "d3dDevice_Reset");
 
 			changed = true;
 		}
@@ -423,7 +423,7 @@ public:
 		return changed;
 	}
 
-	HRESULT WINAPI Reset_Trampoline(D3DPRESENT_PARAMETERS* pPresentationParameters);
+	DETOUR_TRAMPOLINE_DEF(HRESULT WINAPI, Reset_Trampoline, (D3DPRESENT_PARAMETERS*))
 	HRESULT WINAPI Reset_Detour(D3DPRESENT_PARAMETERS* pPresentationParameters)
 	{
 		if (gpD3D9Device != GetThisDevice())
@@ -438,7 +438,7 @@ public:
 		return Reset_Trampoline(pPresentationParameters);
 	}
 
-	HRESULT WINAPI BeginScene_Trampoline();
+	DETOUR_TRAMPOLINE_DEF(HRESULT WINAPI, BeginScene_Trampoline, ())
 	HRESULT WINAPI BeginScene_Detour()
 	{
 		// Whenever a BeginScene occurs, we know that this is the device we want to use.
@@ -448,7 +448,7 @@ public:
 		return BeginScene_Trampoline();
 	}
 
-	HRESULT WINAPI EndScene_Trampoline();
+	DETOUR_TRAMPOLINE_DEF(HRESULT WINAPI, EndScene_Trampoline, ())
 	HRESULT WINAPI EndScene_Detour()
 	{
 		// Don't try to use the device if it changed between BeginScene and EndScene.
@@ -541,16 +541,13 @@ public:
 		return result;
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(HRESULT RenderHooks::Reset_Trampoline(D3DPRESENT_PARAMETERS* pPresentationParameters));
-DETOUR_TRAMPOLINE_EMPTY(HRESULT RenderHooks::BeginScene_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(HRESULT RenderHooks::EndScene_Trampoline());
 
 // This hooks into an area of the rendering pipeline that is suitable to perform
 // our own 3d rendering before the scene is completed.
 class CParticleSystemHook
 {
 public:
-	void Render_Trampoline();
+	DETOUR_TRAMPOLINE_DEF(void, Render_Trampoline, ())
 	void Render_Detour()
 	{
 		if (gbDeviceAcquired)
@@ -561,14 +558,13 @@ public:
 		Render_Trampoline();
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(void CParticleSystemHook::Render_Trampoline());
 
 class CRenderHook
 {
 public:
 	// This hooks the ResetDevice function which is called when we want to reset the device. Hooking
 	// this function ensures that even if our hook of the Direct3D device fails, we can still release our objects.
-	bool ResetDevice_Trampoline(bool);
+	DETOUR_TRAMPOLINE_DEF(bool, ResetDevice_Trampoline, (bool))
 	bool ResetDevice_Detour(bool a)
 	{
 		SPDLOG_DEBUG("CRender::ResetDevice: Resetting device");
@@ -587,11 +583,10 @@ public:
 		return success;
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(bool CRenderHook::ResetDevice_Trampoline(bool));
 
 // Mouse hook prevents mouse events from reaching EQ when imgui captures
 // the mouse. Needed because ImGui uses win32 events but EQ uses direct input.
-DETOUR_TRAMPOLINE_EMPTY(void ProcessMouseEvents_Trampoline());
+DETOUR_TRAMPOLINE_DEF(void, ProcessMouseEvents_Trampoline, ())
 void ProcessMouseEvents_Detour()
 {
 	if (ImGui::GetCurrentContext() != nullptr && *EQADDR_DIMOUSE != nullptr)
@@ -671,7 +666,7 @@ void ProcessMouseEvents_Detour()
 
 // The mouse wheel hook prevents EQ from handling scroll events while imgui has the
 // mouse captured.
-DETOUR_TRAMPOLINE_EMPTY(void HandleMouseWheel_Trampoline(int))
+DETOUR_TRAMPOLINE_DEF(void, HandleMouseWheel_Trampoline, (int))
 void HandleMouseWheel_Detour(int offset)
 {
 	if (ImGui::GetCurrentContext() != nullptr)
@@ -692,7 +687,7 @@ void HandleMouseWheel_Detour(int offset)
 
 // Keyboard hook prevents keyboard events from reaching EQ when imgui captures
 // the keyboard. Needed because ImGui uses win32 events but EQ uses direct input.
-DETOUR_TRAMPOLINE_EMPTY(uint32_t ProcessKeyboardEvents_Trampoline())
+DETOUR_TRAMPOLINE_DEF(uint32_t, ProcessKeyboardEvents_Trampoline, ())
 uint32_t ProcessKeyboardEvents_Detour()
 {
 	if (ImGui::GetCurrentContext() != nullptr)
@@ -723,7 +718,7 @@ bool OverlayWndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 // Forwards events to ImGui. If ImGui consumes the event, we won't pass it to the game.
-DETOUR_TRAMPOLINE_EMPTY(LRESULT WINAPI WndProc_Trampoline(HWND, UINT, WPARAM, LPARAM));
+DETOUR_TRAMPOLINE_DEF(LRESULT WINAPI, WndProc_Trampoline, (HWND, UINT, WPARAM, LPARAM))
 LRESULT WINAPI WndProc_Detour(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	if (OverlayWndProcHandler(hWnd, msg, wParam, lParam))
@@ -805,12 +800,10 @@ static bool InstallD3D9Hooks()
 			success = true;
 
 			// IDirect3DDevice9 virtual function hooks
-			DWORD* d3dDevice_vftable = *(DWORD**)device.get();
+			uintptr_t* d3dDevice_vftable = *(uintptr_t**)device.get();
 
-			InstallDetour(d3dDevice_vftable[0x29], &RenderHooks::BeginScene_Detour,
-				&RenderHooks::BeginScene_Trampoline, "d3dDevice_BeginScene");
-			InstallDetour(d3dDevice_vftable[0x2a], &RenderHooks::EndScene_Detour,
-				&RenderHooks::EndScene_Trampoline, "d3dDevice_EndScene");
+			InstallDetour(d3dDevice_vftable[0x29], &RenderHooks::BeginScene_Detour, RenderHooks::BeginScene_Trampoline_Ptr, "d3dDevice_BeginScene");
+			InstallDetour(d3dDevice_vftable[0x2a], &RenderHooks::EndScene_Detour, RenderHooks::EndScene_Trampoline_Ptr, "d3dDevice_EndScene");
 		}
 
 		// restore floating point rounding state
@@ -1141,6 +1134,7 @@ void ImGuiRenderDebug_UpdateRenderTargets()
 class C2DPrimitiveManager_Hook
 {
 public:
+	DETOUR_TRAMPOLINE_DEF(void, AddCachedText_Trampoline, (CTextObjectBase* obj))
 	void AddCachedText_Detour(CTextObjectBase* obj)
 	{
 		if (this == nullptr)
@@ -1148,9 +1142,7 @@ public:
 
 		AddCachedText_Trampoline(obj);
 	}
-	void AddCachedText_Trampoline(CTextObjectBase* obj);
 };
-DETOUR_TRAMPOLINE_EMPTY(void C2DPrimitiveManager_Hook::AddCachedText_Trampoline(CTextObjectBase*));
 
 //============================================================================
 

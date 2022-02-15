@@ -1560,7 +1560,7 @@ public:
 
 	//============================================================================
 
-	void UpdateStrings_Trampoline();
+	DETOUR_TRAMPOLINE_DEF(void, UpdateStrings_Trampoline, ())
 	void UpdateStrings_Detour()
 	{
 		if (s_inSetItem)
@@ -1594,7 +1594,7 @@ public:
 		}
 	}
 
-	void SetItem_Trampoline(const ItemPtr& pItem, int flags);
+	DETOUR_TRAMPOLINE_DEF(void, SetItem_Trampoline, (const ItemPtr& pItem, int flags))
 	void SetItem_Detour(const ItemPtr& pItem, int flags)
 	{
 		ItemDisplayExtraInfo& extraInfo = s_itemDisplayExtraInfo[this];
@@ -1625,14 +1625,12 @@ private:
 		UpdateStrings_Trampoline();
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(void CItemDisplayWndOverride::UpdateStrings_Trampoline())
-DETOUR_TRAMPOLINE_EMPTY(void CItemDisplayWndOverride::SetItem_Trampoline(const ItemPtr& pItem, int flags));
 
 
 class SpellDisplayHook : public CSpellDisplayWnd
 {
 public:
-	void UpdateStrings_Trampoline();
+	DETOUR_TRAMPOLINE_DEF(void, UpdateStrings_Trampoline, ())
 	void UpdateStrings_Detour()
 	{
 		UpdateStrings_Trampoline();
@@ -1656,7 +1654,6 @@ public:
 		}
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(void SpellDisplayHook::UpdateStrings_Trampoline());
 
 void ItemDisplayCmd(SPAWNINFO* pChar, char* szLine)
 {

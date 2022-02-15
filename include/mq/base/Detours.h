@@ -15,14 +15,12 @@
 #pragma once
 
 #include <mq/base/Common.h>
+#pragma comment(lib, "detours.lib")
 
 namespace mq {
 
-MQLIB_API bool AddDetour(uintptr_t address,
-	uint8_t* pfDetour = nullptr,
-	uint8_t* pfTrampoline = nullptr,
-	uint32_t dwSize = 20,
-	const char* szName = nullptr);
+// 20 bytes replicates functionality of collision detection from before. It's possible this number can be tweaked or removed
+#define DETOUR_COUNT 20
 
 namespace detail
 {
@@ -39,34 +37,123 @@ namespace detail
 
 		return 0;
 	}
+
+	template <typename Fn, size_t width = sizeof(Fn)>
+	void set_fn_ptr(Fn& fn, uintptr_t ptr)
+	{
+		static_assert(width == 4u || width == 8u || width == 12u);
+
+		if constexpr (width == 4u || width == 8u)
+			reinterpret_cast<uintptr_t*>(&fn)[0] = ptr;
+		else // width == 12u
+			reinterpret_cast<uintptr_t*>(&fn)[1] = ptr;
+	}
 }
 
-template <typename Detour, typename Trampoline>
-void AddDetourUnchecked(uintptr_t address, Detour detour, Trampoline trampoline, const char* name = nullptr) {
-	AddDetour(address,
-		(uint8_t*)detail::extract_fn_addr(detour),
-		(uint8_t*)detail::extract_fn_addr(trampoline), 20, name);
-}
+class Detour
+{
+public:
+	uintptr_t Address() const { return m_address; }
+	uint8_t* Bytes() { return reinterpret_cast<uint8_t*>(m_bytes); }
 
-template <typename Detour, typename Trampoline>
-void AddDetourChecked(uintptr_t address, Detour detour, Trampoline trampoline, const char* name = nullptr) {
-	static_assert(std::is_same_v<Detour, Trampoline>, "AddDetour: Detour and Trampoline types must match!");
-	AddDetourUnchecked(address, detour, trampoline, name);
-}
+	void Add() { AddToMap(); }
+	void Drop() { RemoveFromMap(); }
 
-template <typename Detour, typename Trampoline>
-void AddDetourf(uintptr_t address, Detour detour, Trampoline trampoline, const char* name = nullptr) {
-	AddDetourChecked(address, detour, trampoline, name);
-}
+	template <typename T>
+	static std::enable_if_t<!std::is_member_pointer_v<T>, void> Add(uintptr_t address, T& detour, T*& target, std::string_view name)
+	{
+		auto ptr = new Detour(address, &(void*&)target, detour, name);
+		ptr->AddToMap();
+	}
+
+	template <typename T>
+	static std::enable_if_t<std::is_member_pointer_v<T>, void> Add(uintptr_t address, T& detour, T* target, std::string_view name)
+	{
+		auto ptr = new Detour(address, (void**)target, detour, name);
+		ptr->AddToMap();
+	}
+
+	template <typename T>
+	static std::enable_if_t<std::is_member_pointer_v<T>, void> Add(uintptr_t address, T&& detour, T* target, std::string_view name)
+	{
+		auto ptr = new Detour(address, (void**)target, *(void**)&detour, name);
+		ptr->AddToMap();
+	}
+
+	template <typename T>
+	static std::enable_if_t<std::is_pointer_v<T>, void> Add(uintptr_t address, T&& detour, T* target, std::string_view name)
+	{
+		auto ptr = new Detour(address, &(void*&)*target, detour, name);
+		ptr->AddToMap();
+	}
+
+	template <typename T, typename U>
+	static std::enable_if_t<!std::is_same_v<T, U>, void> Add(uintptr_t address, T&& detour, U* target, std::string_view name)
+	{
+		static_assert(false, "Detour and Trampoline types differ in their signatures!");
+	}
+
+	MQLIB_OBJECT Detour(uintptr_t address, void** target, void* detour, const std::string_view name);
+	MQLIB_OBJECT virtual ~Detour();
+
+protected:
+	MQLIB_OBJECT void AddToMap();
+	MQLIB_OBJECT void RemoveFromMap();
+
+	static inline uintptr_t GetAddressFromProc(const char* handle, const char* procedure)
+	{
+		auto mod = ::GetModuleHandleA(handle);
+		if (mod != 0)
+			return reinterpret_cast<uintptr_t>(GetProcAddress(mod, procedure));
+
+		return {};
+	}
+
+	static inline HMODULE GetModuleFromAddress(const uintptr_t address)
+	{
+		HMODULE mod;
+		::GetModuleHandleExA(
+			GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+			GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+			(const char*)address,
+			&mod);
+
+		return mod;
+	}
+
+private:
+	const uintptr_t m_address;
+	const std::string_view m_name;
+	uint8_t m_bytes[DETOUR_COUNT];
+
+	void** m_target;
+	void*  m_detour;
+
+public:
+	Detour* next;
+	Detour* prev;
+};
 
 
 MQLIB_API void RemoveDetour(uintptr_t address);
-MQLIB_API void DeleteDetour(uintptr_t address);
 
-#define EzDetour(offset, detour, trampoline) AddDetourChecked((uintptr_t)offset, detour, trampoline, STRINGIFY(offset))
-#define EzDetourwName(offset, detour, trampoline, name) AddDetourChecked((uintptr_t)offset, detour, trampoline, name)
+// this defines a trampoline for the user, based on the detour signature
+#define DETOUR_TRAMPOLINE_DEF(ret, name, argtypes) \
+ret name##_Placeholder##argtypes; \
+using name##_Type = decltype(&name##_Placeholder); \
+inline static decltype(&name##_Placeholder) name##_Ptr = nullptr; \
+template <typename... Args> \
+ret name(Args&&... args) { \
+	if constexpr (std::is_member_function_pointer_v<name##_Type>) \
+		return (this->*name##_Ptr)(std::forward<Args>(args)...); \
+	else \
+		return (name##_Ptr)(std::forward<Args>(args)...); \
+}
 
-// For those use cases where the answer is: "I know what I'm doing."
-#define EzDetourUnchecked(offset, detour, trampoline) AddDetourUnchecked((uintptr_t)offset, detour, trampoline, STRINGIFY(offset))
+#define EzDetour(address, detour, trampoline) Detour::Add(static_cast<uintptr_t>(address), detour, trampoline##_Ptr, STRINGIFY(address))
+
+// TODO: deprecate DETOUR_TRAMPOLINE_EMPTY to point to a wiki page with the new detours API
+#define DETOUR_TRAMPOLINE_EMPTY(...) \
+	static_assert(false, "DETOUR_TRAMPOLINE_EMPTY is no longer supported. Use DETOUR_TRAMPOLINE_DEF and the new Detours API instead.");
 
 } // namespace mq

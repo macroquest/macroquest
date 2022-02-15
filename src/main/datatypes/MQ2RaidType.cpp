@@ -384,7 +384,7 @@ bool MQ2RaidMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 	if (!pRaid->RaidMemberUsed[nRaidMember])
 		return false;
 
-	RaidPlayer& raidMember = pRaid->RaidMember[nRaidMember];
+	RaidMember& raidMember = pRaid->RaidMember[nRaidMember];
 	MQTypeMember* pMember = MQ2RaidMemberType::FindMember(Member);
 
 	if (!pMember)

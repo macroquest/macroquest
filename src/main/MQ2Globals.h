@@ -35,7 +35,7 @@ namespace mq {
 MQLIB_VAR const double DegToRad;
 MQLIB_VAR const double PI;
 
-MQLIB_API DWORD baseAddress DEPRECATE("baseAddress is deprecated; use EQGameBaseAddress instead");
+MQLIB_API uintptr_t baseAddress DEPRECATE("baseAddress is deprecated; use EQGameBaseAddress instead");
 
 bool InitOffsets();
 
@@ -141,7 +141,7 @@ MQLIB_VAR char gszLastNormalError[MAX_STRING];// QUIT USING THIS DIRECTLY, USE M
 MQLIB_VAR char gszLastSyntaxError[MAX_STRING];
 MQLIB_VAR char gszLastMQ2DataError[MAX_STRING];
 
-MQLIB_VAR DWORD DrawHUDParams[4];
+MQLIB_VAR uintptr_t DrawHUDParams[4];
 
 MQLIB_VAR DWORD gEventChat;
 MQLIB_VAR uint64_t gRunning;

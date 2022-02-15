@@ -21,7 +21,7 @@ class CChatHook
 {
 public:
 	// ChatManagerClient::DisplaychatText(
-	void Trampoline(const char* szMsg, DWORD dwColor, bool, bool, CXStr* SomeStr);
+	DETOUR_TRAMPOLINE_DEF(void, Trampoline, (const char* szMsg, DWORD dwColor, bool, bool, CXStr* SomeStr))
 	void Detour(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, CXStr* SomeStr)
 	{
 		gbInChat = true;
@@ -66,13 +66,13 @@ public:
 	}
 
 	// ChatManagerClient::DisplayTellText
-	void TellWnd_Trampoline(const char* message, const char* from, const char* windowtitle, const char* text, int color, bool bLogOk);
+	DETOUR_TRAMPOLINE_DEF(void, TellWnd_Trampoline, (const char* message, const char* from, const char* windowtitle, const char* text, int color, bool bLogOk))
 	void TellWnd_Detour(const char* message, const char* from, const char* windowtitle, const char* text, int color, bool bLogOk)
 	{
 		gbInChat = true;
 		bool SkipTrampoline = false;
 
-		int len = strlen(message) + 64;
+		size_t len = strlen(message) + 64;
 		auto pBuffer = std::make_unique<char[]>(len);
 		char* szMsg = pBuffer.get();
 
@@ -93,29 +93,28 @@ public:
 	}
 
 	// CEverQuest::UniversalChatProxyNotificationFlush
-	void UPCNotificationFlush_Trampoline();
+	DETOUR_TRAMPOLINE_DEF(void, UPCNotificationFlush_Trampoline, ())
 	void UPCNotificationFlush_Detour()
 	{
-		EVERQUEST* eq = (EVERQUEST*)this;
-
+		CEverQuest* eq = (CEverQuest*)this;
 		char szBuf[128] = { 0 };
 
-		if (eq->ChannelQty > 0)
+		if (eq->ucNotificationCount > 0)
 		{
-			sprintf_s(szBuf, "* %s has %s channel ", eq->ChannelPlayerName, eq->bJoinedChannel ? "entered" : "left");
+			sprintf_s(szBuf, "* %s has %s channel ", eq->ucNotificationPlayerName, eq->ucNotificationEntering ? "entered" : "left");
 
 			char szTemp[MAX_STRING] = { 0 };
-			int max = std::min<int>(eq->ChannelQty, 9);
+			int max = std::min<int>(eq->ucNotificationCount, 9);
 
 			for (int index = 0; index < max; index++)
 			{
 				if (index)
 				{
-					sprintf_s(szTemp, ", %s:%d", eq->ChannelName[index], eq->ChannelNumber[index] + 1);
+					sprintf_s(szTemp, ", %s:%d", eq->ucNotificationChannelName[index], eq->ucNotificationChannelNumber[index] + 1);
 				}
 				else
 				{
-					sprintf_s(szTemp, "%s:%d", eq->ChannelName[index], eq->ChannelNumber[index] + 1);
+					sprintf_s(szTemp, "%s:%d", eq->ucNotificationChannelName[index], eq->ucNotificationChannelNumber[index] + 1);
 				}
 
 				strcat_s(szBuf, szTemp);
@@ -128,10 +127,6 @@ public:
 	}
 };
 
-DETOUR_TRAMPOLINE_EMPTY(void CChatHook::Trampoline(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, CXStr* outStr));
-DETOUR_TRAMPOLINE_EMPTY(void CChatHook::TellWnd_Trampoline(const char* message, const char* from, const char* windowtitle, const char* text, int color, bool bLogOk));
-DETOUR_TRAMPOLINE_EMPTY(void CChatHook::UPCNotificationFlush_Trampoline());
-
 void dsp_chat_no_events(const char* Text, int Color, bool doLog, bool doPercentConvert)
 {
 	pEverQuest.get_as<CChatHook>()->Trampoline(Text, Color, doLog, doPercentConvert, nullptr);
@@ -143,10 +138,10 @@ unsigned int CALLBACK MQ2DataVariableLookup(char* VarName, char* Value, size_t V
 
 	if (pLocalPlayer)
 	{
-		return strlen(ParseMacroParameter(pLocalPlayer, Value, ValueLen));
+		return static_cast<uint32_t>(strlen(ParseMacroParameter(pLocalPlayer, Value, ValueLen)));
 	}
 
-	return strlen(Value);
+	return static_cast<uint32_t>(strlen(Value));
 }
 
 void FlashOnTells(SPAWNINFO* pChar, char* szLine)

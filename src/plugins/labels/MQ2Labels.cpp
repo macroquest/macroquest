@@ -84,7 +84,7 @@ struct {
 class CSidlManagerHook
 {
 public:
-	CXWnd* CreateXWnd_Trampoline(CXWnd*, CControlTemplate*, bool bValue);
+	DETOUR_TRAMPOLINE_DEF(CXWnd*, CreateXWnd_Trampoline, (CXWnd*, CControlTemplate*, bool bValue))
 	CXWnd* CreateXWnd_Detour(CXWnd* pParent, CControlTemplate* pTemplate, bool bValue)
 	{
 		CXWnd* newXWnd = CreateXWnd_Trampoline(pParent, pTemplate, bValue);
@@ -98,12 +98,11 @@ public:
 		return newXWnd;
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(CXWnd* CSidlManagerHook::CreateXWnd_Trampoline(CXWnd*, CControlTemplate*, bool));
 
 class CLabelHook
 {
 public:
-	void UpdateText_Trampoline();
+	DETOUR_TRAMPOLINE_DEF(void, UpdateText_Trampoline, ())
 	void UpdateText_Detour()
 	{
 		UpdateText_Trampoline();
@@ -152,7 +151,6 @@ public:
 		}
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(void CLabelHook::UpdateText_Trampoline());
 
 // Called once, when the plugin is to initialize
 PLUGIN_API void InitializePlugin()

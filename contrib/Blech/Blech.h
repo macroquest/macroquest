@@ -847,7 +847,7 @@ private:
 							PBLECHVALUE pNewValue = new BLECHVALUE;
 							pNewValue->Name = pCurrentScanVar->pString;
 
-							uint32_t Length = End - Pos;
+							size_t Length = End - Pos;
 							pNewValue->Value = std::string_view{ Pos, Length };
 
 							// TODO: Check this
@@ -893,7 +893,7 @@ private:
 				}
 				else
 				{
-					unsigned int NonVariableLength = strlen(NonVariable);
+					size_t NonVariableLength = strlen(NonVariable);
 					if (STRNCMP(NonVariable, Pos, NonVariableLength))
 					{
 						// not a real match. goodbye!
@@ -918,7 +918,7 @@ private:
 			if (NonVariable[0])
 			{
 				const char* End = &Input[InputLength] - strlen(NonVariable);
-				unsigned int Length = End - Pos;
+				size_t Length = End - Pos;
 				if (STRCMP(&Pos[Length], NonVariable))
 				{
 					goto queueeventscleanup;

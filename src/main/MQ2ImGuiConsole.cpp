@@ -276,7 +276,7 @@ public:
 			return (Zep::ThemeColor)(m_userColors.size() - 1 + UserColorStart);
 		}
 
-		int index = std::distance(std::begin(m_userColors), iter);
+		int index = static_cast<int>(std::distance(std::begin(m_userColors), iter));
 		return (Zep::ThemeColor)(index + UserColorStart);
 	}
 
@@ -626,7 +626,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		{
 			ZepTextAttribute attribute;
 			attribute.startIndex = 0;
-			attribute.endIndex = text.length();
+			attribute.endIndex = static_cast<int>(text.length());
 			attribute.attribute.type = ZepAttributeType::Color;
 			attribute.attribute.data = ZepAttribute::ColorAttributeData{ color };
 
@@ -637,7 +637,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		Zep::ChangeRecord changeRecord;
 		m_buffer->Insert(position, text, changeRecord);
 
-		return position.Move(text.length());
+		return position.Move(static_cast<long>(text.length()));
 	}
 
 	void InsertFormattedText(Zep::GlyphIterator position, std::string_view text, ImU32 color)
@@ -665,7 +665,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 
 				// Insert hyperlink.
 				InsertHyperlink(position, tagInfo);
-				position = position.Move(tagInfo.text.length());
+				position = position.Move(static_cast<long>(tagInfo.text.length()));
 				segPos = tagInfo.link.data() - text.data() + tagInfo.link.size();
 			}
 
@@ -724,7 +724,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 	{
 		ZepTextAttribute attribute;
 		attribute.startIndex = 0;
-		attribute.endIndex = text.length();
+		attribute.endIndex = static_cast<int>(text.length());
 		attribute.attribute.type = ZepAttributeType::Hyperlink;
 		attribute.attribute.data = ZepAttribute::HyperlinkAttributeData{ std::move(hyperlinkData), color, hoverColor };
 
@@ -796,7 +796,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 
 		ZepTextAttribute attribute;
 		attribute.startIndex = 0;
-		attribute.endIndex = text.length();
+		attribute.endIndex = static_cast<int>(text.length());
 		attribute.attribute.type = ZepAttributeType::Hyperlink;
 		attribute.attribute.data = ZepAttribute::HyperlinkAttributeData{ fmt::format("testlink:{}'s data", text) };
 
@@ -1129,7 +1129,7 @@ public:
 		}
 		else if (ci_equals(commandLine, "history"))
 		{
-			int first = m_history.size() - 10;
+			int first = static_cast<int>(m_history.size()) - 10;
 
 			for (size_t i = first > 0 ? first : 0; i < m_history.size(); i++)
 				AddLog("{0:3d}: {1}\n", i, m_history[i].c_str());
@@ -1229,7 +1229,7 @@ public:
 			if (data->EventKey == ImGuiKey_UpArrow)
 			{
 				if (m_historyPos == -1)
-					m_historyPos = m_history.size() - 1;
+					m_historyPos = static_cast<int>(m_history.size()) - 1;
 				else if (m_historyPos > 0)
 					m_historyPos--;
 			}

@@ -38,7 +38,7 @@ static void CustomBindCmd(SPAWNINFO* pChar, char* szLine);
 
 static int FindCustomBind(const char* Name)
 {
-	for (size_t index = 0; index < sCustomBinds.size(); ++index)
+	for (int index = 0; index < sCustomBinds.size(); ++index)
 	{
 		if (CustomBind* pBind = sCustomBinds[index].get())
 		{
@@ -64,7 +64,7 @@ static CustomBind* AddCustomBind(
 
 		// Find unused index.
 		int index = -1;
-		for (size_t i = 0; i < sCustomBinds.size(); ++i)
+		for (int i = 0; i < sCustomBinds.size(); ++i)
 		{
 			if (sCustomBinds[i] == nullptr)
 			{
@@ -76,7 +76,7 @@ static CustomBind* AddCustomBind(
 		if (index == -1)
 		{
 			sCustomBinds.emplace_back();
-			index = sCustomBinds.size() - 1;
+			index = static_cast<int>(sCustomBinds.size()) - 1;
 		}
 
 		sCustomBinds[index] = std::move(pBind);

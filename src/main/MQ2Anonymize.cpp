@@ -562,6 +562,9 @@ CXStr Anonymize(const CXStr& Text)
 	if (!MaybeAnonymize(Text))
 		return Text;
 
+	if (!pLocalPlayer || !pLocalPC)
+		return Text;
+
 	EnterMQ2Benchmark(bmAnonymizer);
 
 	auto new_text = std::accumulate(std::cbegin(replacers), std::cend(replacers), std::string(Text),
@@ -569,7 +572,7 @@ CXStr Anonymize(const CXStr& Text)
 			return r ? r->replace_text(text) : text;
 		});
 
-	if (anon_self != Anonymization::None && pLocalPlayer)
+	if (anon_self != Anonymization::None)
 	{
 		if (!self_replacer || ci_find_substr(self_replacer->name, pLocalPlayer->Name) != 0)
 			self_replacer = std::make_unique<anon_replacer>(pLocalPlayer, anon_self);
@@ -577,7 +580,7 @@ CXStr Anonymize(const CXStr& Text)
 		new_text = self_replacer->replace_text(new_text);
 	}
 
-	if (anon_group != Anonymization::None && pLocalPC && pLocalPC->Group)
+	if (anon_group != Anonymization::None && pLocalPC->Group)
 	{
 		new_text = std::accumulate(
 			std::cbegin(*pLocalPC->Group),
@@ -602,7 +605,7 @@ CXStr Anonymize(const CXStr& Text)
 		);
 	}
 
-	if (anon_fellowship != Anonymization::None && pLocalPlayer)
+	if (anon_fellowship != Anonymization::None)
 	{
 		auto& fellowship = pLocalPlayer->Fellowship;
 		new_text = std::accumulate(
@@ -628,26 +631,22 @@ CXStr Anonymize(const CXStr& Text)
 		);
 	}
 
-	if (anon_guild != Anonymization::None && pGuildList)
+	if (anon_guild != Anonymization::None && pGuild)
 	{
-		if (pGuild && pLocalPC)
+		const char* guild_name = pGuild->GetGuildName(pLocalPC->GuildID.GUID);
+		if (guild_name[0] != '\0' && ci_equals(new_text, guild_name, false))
 		{
-			const char* guild_name = pGuild->GetGuildName(pLocalPC->GuildID.GUID);
-			if (guild_name[0] != '\0' && ci_equals(new_text, guild_name, false))
-			{
-				auto memoized = guild_memoization.find(guild_name);
-				if (memoized == guild_memoization.end())
-					memoized = guild_memoization.emplace(
-						guild_name,
-						std::make_unique<anon_replacer>(guild_name, Anonymization::Asterisk)
-					).first;
+			auto memoized = guild_memoization.find(guild_name);
+			if (memoized == guild_memoization.end())
+				memoized = guild_memoization.emplace(
+					guild_name,
+					std::make_unique<anon_replacer>(guild_name, Anonymization::Asterisk)
+				).first;
 
-				new_text = memoized->second->replace_text(new_text);
-			}
+			new_text = memoized->second->replace_text(new_text);
 		}
 
-		// pGuildList is just "current guild"
-		for (auto pMember = pGuildList->pMember; pMember; pMember = pMember->pNext)
+		for (GuildMember* pMember = pGuild->pFirstGuildMember; pMember; pMember = pMember->pNext)
 		{
 			if (pMember->Name[0] != '\0' && ci_equals(new_text, pMember->Name, false))
 			{
@@ -663,9 +662,9 @@ CXStr Anonymize(const CXStr& Text)
 		}
 	}
 
-	if (anon_raid != Anonymization::None && pLocalPC)
+	if (anon_raid != Anonymization::None)
 	{
-		for (auto pMember : pRaid->RaidMember)
+		for (RaidMember& pMember : pRaid->RaidMember)
 		{
 			if (pMember.Name[0] != '\0' && ci_equals(new_text, pMember.Name, false))
 			{
@@ -686,7 +685,7 @@ CXStr Anonymize(const CXStr& Text)
 	return CXStr(new_text);
 }
 
-int GetGaugeValueFromEQ_Trampoline(int, CXStr*, bool*, unsigned long*);
+DETOUR_TRAMPOLINE_DEF(int, GetGaugeValueFromEQ_Trampoline, (int, CXStr*, bool*, unsigned long*))
 int GetGaugeValueFromEQ_Detour(int EQType, CXStr* Str, bool* arg3, unsigned long* Color)
 {
 	int ret = GetGaugeValueFromEQ_Trampoline(EQType, Str, arg3, Color);
@@ -700,8 +699,8 @@ int GetGaugeValueFromEQ_Detour(int EQType, CXStr* Str, bool* arg3, unsigned long
 class CTextureFontHook
 {
 public:
-	int DrawWrappedText_Trampoline(const CXStr&, int, int, int, const CXRect&, COLORREF, uint16_t, int) const;
-	int DrawWrappedText_Detour(const CXStr& Str, int x, int y, int z, const CXRect& BoundRect, COLORREF Color, uint16_t Flags = 0, int StartX = 0) const
+	DETOUR_TRAMPOLINE_DEF(int, DrawWrappedText_Trampoline, (const CXStr&, int, int, int, const CXRect&, COLORREF, uint16_t, int))
+	int DrawWrappedText_Detour(const CXStr& Str, int x, int y, int z, const CXRect& BoundRect, COLORREF Color, uint16_t Flags = 0, int StartX = 0)
 	{
 		if (MaybeAnonymize(Str))
 		{
@@ -711,8 +710,8 @@ public:
 		return DrawWrappedText_Trampoline(Str, x, y, z, BoundRect, Color, Flags, StartX);
 	}
 
-	int DrawWrappedText1_Trampoline(const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const;
-	int DrawWrappedText1_Detour(const CXStr& Str, const CXRect& Rect, const CXRect& BoundRect, COLORREF Color, uint16_t Flags = 0, int StartX = 0) const
+	DETOUR_TRAMPOLINE_DEF(int, DrawWrappedText1_Trampoline, (const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int))
+	int DrawWrappedText1_Detour(const CXStr& Str, const CXRect& Rect, const CXRect& BoundRect, COLORREF Color, uint16_t Flags = 0, int StartX = 0)
 	{
 		if (MaybeAnonymize(Str))
 		{
@@ -722,8 +721,8 @@ public:
 		return DrawWrappedText1_Trampoline(Str, Rect, BoundRect, Color, Flags, StartX);
 	}
 
-	int DrawWrappedText2_Trampoline(CTextObjectInterface*, const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const;
-	int DrawWrappedText2_Detour(CTextObjectInterface* Interface, const CXStr& Str, const CXRect& Rect, const CXRect& BoundRect, COLORREF Color, uint16_t Flags = 0, int StartX = 0) const
+	DETOUR_TRAMPOLINE_DEF(int, DrawWrappedText2_Trampoline, (CTextObjectInterface*, const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int))
+	int DrawWrappedText2_Detour(CTextObjectInterface* Interface, const CXStr& Str, const CXRect& Rect, const CXRect& BoundRect, COLORREF Color, uint16_t Flags = 0, int StartX = 0)
 	{
 		if (MaybeAnonymize(Str))
 		{
@@ -734,10 +733,6 @@ public:
 	}
 };
 
-DETOUR_TRAMPOLINE_EMPTY(int GetGaugeValueFromEQ_Trampoline(int, CXStr*, bool*, unsigned long*));
-DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText_Trampoline(const CXStr&, int, int, int, const CXRect&, COLORREF, uint16_t, int) const);
-DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText1_Trampoline(const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const);
-DETOUR_TRAMPOLINE_EMPTY(int CTextureFontHook::DrawWrappedText2_Trampoline(CTextObjectInterface*, const CXStr&, const CXRect&, const CXRect&, COLORREF, uint16_t, int) const);
 
 // ***************************************************************************
 // Function:    MQAnon

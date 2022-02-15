@@ -203,5 +203,5 @@ inline bool RequirementsMet(MapFilter Option)
 
 MarkerType FindMarker(std::string_view szMark, MarkerType fallback = MarkerType::Unknown);
 
-PLUGIN_API PMAPLINE InitLine();
-PLUGIN_API void DeleteLine(PMAPLINE pLine);
+PLUGIN_API MapViewLine* InitLine();
+PLUGIN_API void DeleteLine(MapViewLine* pLine);

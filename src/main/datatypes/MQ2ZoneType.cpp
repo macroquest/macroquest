@@ -22,7 +22,6 @@ enum class ZoneMembers
 	Name = 1,
 	ShortName,
 	ID,
-	Address,
 	ZoneFlags,
 };
 
@@ -31,7 +30,6 @@ MQ2ZoneType::MQ2ZoneType() : MQ2Type("zone")
 	ScopedTypeMember(ZoneMembers, Name);
 	ScopedTypeMember(ZoneMembers, ShortName);
 	ScopedTypeMember(ZoneMembers, ID);
-	ScopedTypeMember(ZoneMembers, Address);
 	ScopedTypeMember(ZoneMembers, ZoneFlags);
 }
 
@@ -47,11 +45,6 @@ bool MQ2ZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	switch (static_cast<ZoneMembers>(pMember->ID))
 	{
-	case ZoneMembers::Address:
-		Dest.DWord = (DWORD)VarPtr.Ptr;
-		Dest.Type = pIntType;
-		return true;
-
 	case ZoneMembers::Name:
 		strcpy_s(DataTypeTemp, pZone->LongName);
 		Dest.Ptr = &DataTypeTemp;
@@ -116,7 +109,6 @@ bool MQ2ZoneType::dataZone(const char* szIndex, MQTypeVar& Ret)
 {
 	if (!szIndex[0])
 	{
-		Ret.DWord = instEQZoneInfo;
 		Ret.Type = pCurrentZoneType;
 		return true;
 	}
@@ -131,7 +123,6 @@ bool MQ2ZoneType::dataZone(const char* szIndex, MQTypeVar& Ret)
 			{
 				if ((pLocalPC->zoneId & 0x7FFF) == nIndex)
 				{
-					Ret.DWord = instEQZoneInfo;
 					Ret.Type = pCurrentZoneType;
 					return true;
 				}
@@ -160,7 +151,6 @@ bool MQ2ZoneType::dataZone(const char* szIndex, MQTypeVar& Ret)
 		{
 			if ((pLocalPC->zoneId & 0x7FFF) == nIndex)
 			{
-				Ret.DWord = instEQZoneInfo;
 				Ret.Type = pCurrentZoneType;
 			}
 			else if (nIndex < MAX_ZONES)

@@ -190,7 +190,7 @@ namespace comment_update
             // Custom attributes aren't included in the AST, so search for it manually
             record.Location.GetFileLocation(out var classFile, out var classLine, out _, out _);
             var match = Regex.Match(File.ReadAllLines(classFile.ToString())[classLine - 1],
-                @"\[\[offsetcomments(?:\((?<base>0x[0-9a-fA-F]+|\d+)\))?\]\]");
+                @"\[\[offsetcomments(?:\((?<base>-?0x[0-9a-fA-F]+|\d+)\))?\]\]");
 
             if (!match.Success)
                 yield break;
@@ -273,8 +273,8 @@ namespace comment_update
             {
                 // It could be in an anonymous union/struct, in which case we want it after that rather than after the member
                 Cursor actualLastMember = lastMember.Field;
-                while (actualLastMember.CursorParent != record)
-                    actualLastMember = actualLastMember.CursorParent;
+                while (actualLastMember.SemanticParentCursor != record)
+                    actualLastMember = actualLastMember.SemanticParentCursor;
 
                 actualLastMember.Extent.End.GetFileLocation(out var file, out var line, out _, out _);
 
@@ -311,11 +311,11 @@ namespace comment_update
         {
             // Returns e.g. eqlib::someclass::nestedstruct
             var nsPath = "";
-            var parent = record.CursorParent;
+            var parent = record.SemanticParentCursor;
             while (parent != null && new[] { CXCursorKind.CXCursor_Namespace, CXCursorKind.CXCursor_ClassDecl, CXCursorKind.CXCursor_StructDecl }.Contains(parent.CursorKind))
             {
                 nsPath = $"{parent}::{nsPath}";
-                parent = parent.CursorParent;
+                parent = parent.SemanticParentCursor;
             }
 
             return nsPath == "" ? record.ToString() : $"{nsPath}{record}";

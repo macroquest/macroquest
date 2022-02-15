@@ -20,16 +20,16 @@ PreSetup("MQ2EQBugFix");
 class CUnSerializeBuffer_BugFix
 {
 	const char* m_buffer = nullptr;
-	size_t      m_length = 0;
-	size_t      m_offset = 0;
+	uint32_t    m_length = 0;
+	uint32_t    m_offset = 0;
 
 public:
-	bool GetString_Trampoline(char* dest, unsigned int destSize);
+	DETOUR_TRAMPOLINE_DEF(bool, GetString_Trampoline, (char* dest, unsigned int destSize))
 	bool GetString_Detour(char* dest, unsigned int destSize)
 	{
 		// Use our own implementation which does not have the bug.
-		size_t size = strnlen(m_buffer + m_offset, m_length - m_offset) + 1;
-		size_t readAmount = std::min(destSize - 1, size);
+		uint32_t size = (uint32_t)strnlen(m_buffer + m_offset, m_length - m_offset) + 1;
+		uint32_t readAmount = std::min(static_cast<uint32_t>(destSize) - 1, size);
 
 		if (m_offset + readAmount > m_length)
 		{
@@ -43,7 +43,6 @@ public:
 		return true;
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(bool CUnSerializeBuffer_BugFix::GetString_Trampoline(char*, unsigned int));
 
 PLUGIN_API void InitializePlugin()
 {

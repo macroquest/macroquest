@@ -204,9 +204,9 @@ bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 
 	case SwitchMembers::Distance: {
 		float BoundingRadius = 0;
-		if (ActorBase* pBase = (ActorBase*)pTheSwitch->pSwitch)
+		if (pTheSwitch->pActor)
 		{
-			BoundingRadius = pBase->GetBoundingRadius();
+			BoundingRadius = pTheSwitch->pActor->GetBoundingRadius();
 		}
 		else
 		{
@@ -236,9 +236,9 @@ bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		float BoundingRadius = 0;
 		float thedist = 0;
 
-		if (ActorBase* pBase = (ActorBase*)pTheSwitch->pSwitch)
+		if (pTheSwitch->pActor)
 		{
-			BoundingRadius = pBase->GetBoundingRadius();
+			BoundingRadius = pTheSwitch->pActor->GetBoundingRadius();
 		}
 		else
 		{

@@ -199,7 +199,7 @@ public:
 					{
 						auto& pGround = *std::get<EQGroundItemPtr>(ground.Object);
 						if (pGround)
-							return Get3DDistanceSquared(pSpawn->X, pSpawn->Y, pSpawn->Z, pGround->X, pGround->Y, pGround->pSwitch->Z);
+							return Get3DDistanceSquared(pSpawn->X, pSpawn->Y, pSpawn->Z, pGround->X, pGround->Y, pGround->pActor->GetPosition().Z); // why pActor?
 					}
 					else if (ground.Type == MQGroundSpawnType::Placed)
 					{
@@ -271,7 +271,7 @@ public:
 
 	int Count()
 	{
-		return m_searchResults.size();
+		return static_cast<int>(m_searchResults.size());
 	}
 };
 
@@ -352,7 +352,7 @@ CActorInterface* MQGroundSpawn::Actor() const
 	{
 		auto ground = Get<EQGroundItem>();
 		if (ground)
-			return reinterpret_cast<CActorInterface*>(ground->pSwitch);
+			return ground->pActor;
 	}
 	else if (Type == MQGroundSpawnType::Placed)
 	{
@@ -406,7 +406,7 @@ CVector3 MQGroundSpawn::Position() const
 	{
 		auto ground = Get<EQGroundItem>();
 		if (ground)
-			return CVector3(ground->X, ground->Y, ground->pSwitch ? ground->pSwitch->Z : ground->Z);
+			return CVector3(ground->X, ground->Y, ground->pActor ? ground->pActor->GetPosition().Z : ground->Z); // Why pActor??
 	}
 	else if (Type == MQGroundSpawnType::Placed)
 	{
@@ -511,7 +511,7 @@ float MQGroundSpawn::Distance3D(SPAWNINFO* pSpawn) const
 	{
 		EQGroundItem* ground = Get<EQGroundItem>();
 		if (ground)
-			return Distance3DToPoint(pSpawn, ground->X, ground->Y, ground->pSwitch ? ground->pSwitch->Z : ground->Z);
+			return Distance3DToPoint(pSpawn, ground->X, ground->Y, ground->pActor ? ground->pActor->GetPosition().Z : ground->Z); // why pActor?
 	}
 	else if (Type == MQGroundSpawnType::Placed)
 	{

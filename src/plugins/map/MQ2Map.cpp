@@ -291,7 +291,7 @@ public:
 class CMapViewWndHook
 {
 public:
-	CMapViewWnd* Constructor_Trampoline(CXWnd*);
+	DETOUR_TRAMPOLINE_DEF(CMapViewWnd*, Constructor_Trampoline, (CXWnd*))
 	CMapViewWnd* Constructor_Detour(CXWnd* pParent)
 	{
 		CMapViewWnd* pThis = Constructor_Trampoline(pParent);
@@ -301,7 +301,6 @@ public:
 		return pThis;
 	}
 };
-DETOUR_TRAMPOLINE_EMPTY(CMapViewWnd* CMapViewWndHook::Constructor_Trampoline(CXWnd*));
 
 // Called once, when the plugin is to initialize
 PLUGIN_API void InitializePlugin()
@@ -348,7 +347,6 @@ PLUGIN_API void InitializePlugin()
 
 	GetPrivateProfileString("Map Filters", "Mapshow", "", mapshowStr, MAX_STRING, INIFileName);
 	GetPrivateProfileString("Map Filters", "Maphide", "", maphideStr, MAX_STRING, INIFileName);
-	MapInit();
 	GetPrivateProfileString("Naming Schemes", "Normal", "%N", MapNameString, MAX_STRING, INIFileName);
 	GetPrivateProfileString("Naming Schemes", "Target", "%N", MapTargetNameString, MAX_STRING, INIFileName);
 
@@ -384,6 +382,8 @@ PLUGIN_API void InitializePlugin()
 	ParseSearchSpawn("#", &MapFilterNamed);
 
 	AddSettingsPanel("plugins/Map", DrawMapSettingsPanel);
+
+	MapInit();
 }
 
 // Called once, when the plugin is to shutdown
@@ -514,12 +514,12 @@ PLUGIN_API void OnRemoveGroundItem(PGROUNDITEM pGroundItem)
 	RemoveGroundItem(pGroundItem);
 }
 
-PLUGIN_API PMAPLINE MQ2MapAddLine()
+PLUGIN_API MapViewLine* MQ2MapAddLine()
 {
 	return InitLine();
 }
 
-PLUGIN_API void MQ2MapDeleteLine(PMAPLINE pLine)
+PLUGIN_API void MQ2MapDeleteLine(MapViewLine* pLine)
 {
 	DeleteLine(pLine);
 }

@@ -1934,7 +1934,7 @@ void Alert(SPAWNINFO* pChar, char* szLine)
 						char Buffer[MAX_STRING] = { 0 };
 						FormatSearchSpawn(Buffer, sizeof(Buffer), &(*i));
 
-						int dist = std::distance(ss.begin(), i);
+						int dist = static_cast<int>(std::distance(ss.begin(), i));
 						WriteChatf("[%d] %s", dist, Buffer);
 					}
 
@@ -2803,7 +2803,7 @@ static void CastSplash(int Index, SPELL* pSpell, const CVector3* pos)
 	pEverQuest->CreateTargetIndicator(Index, pSpell, ItemGlobalIndex(), eActivatableSpell);
 	SPAWNINFO* pMySpawn = pLocalPlayer;
 
-	if (CTargetRing* pTR = (CTargetRing*)((EVERQUEST*)pEverQuest)->pFreeTargetRing)
+	if (pEverQuest->freeTargetTracker)
 	{
 		CVector3 vec3;
 
@@ -2832,9 +2832,9 @@ static void CastSplash(int Index, SPELL* pSpell, const CVector3* pos)
 		{
 			float dist = Get3DDistance(vec3.Y, vec3.X, vec3.Z, pMySpawn->X, pMySpawn->Y, pMySpawn->Z);
 
-			if (dist < pTR->thespell->Range)
+			if (dist < pEverQuest->freeTargetTracker->spell->Range)
 			{
-				pTR->Cast(vec3);
+				pEverQuest->freeTargetTracker->CastSpell(vec3);
 			}
 			else
 			{
@@ -3444,8 +3444,7 @@ void DoMappable(SPAWNINFO* pChar, char* szLine)
 		int nCmd = FindMappableCommand(szArg1);
 		if (nCmd >= 0)
 		{
-			// ok if the user issues a movement keypress like "FORWARD" here and at charselect he ctd
-			// lets see if we can fix that -eqmule
+			// fix case where user tries to do a keypress that isn't available.
 			if (EQbCommandStates[nCmd] == false)
 			{
 				MacroError("%s is disabled right now Gamestate is %d", szArg1, GetGameState());
@@ -3880,13 +3879,13 @@ void DoHotButton(PSPAWNINFO pChar, char* pBuffer)
 		// we have a color
 		iColor = atoi(szNext);
 		// that means the rest of the buffer IS Text
-		int len = strlen(szName) + offset + strlen(szNext) + 1;
+		size_t len = strlen(szName) + offset + strlen(szNext) + 1;
 		strcpy_s(szText, &pBuffer[len]);
 	}
 	else
 	{
 		// no color detected, that means the rest of the buffer IS Text
-		int len = strlen(szName) + offset;
+		size_t len = strlen(szName) + offset;
 		strcpy_s(szText, &pBuffer[len]);
 	}
 
@@ -4509,7 +4508,7 @@ void MercSwitchCmd(SPAWNINFO* pChar, char* szLine)
 
 	std::vector<MercDesc> descs = GetAllMercDesc();
 
-	for (size_t index = 0; index < descs.size(); ++index)
+	for (int index = 0; index < descs.size(); ++index)
 	{
 		auto& desc = descs[index];
 
@@ -4938,6 +4937,7 @@ DWORD CALLBACK openpickzonewnd(void* pData)
 {
 	std::scoped_lock lock(s_openPickZoneWndMutex);
 
+#pragma warning(suppress : 4311 4302)
 	int nInst = (int)pData;
 	char szInst[32] = { 0 };
 	_itoa_s(nInst, szInst, 10);
@@ -5021,6 +5021,7 @@ void PickZoneCmd(SPAWNINFO* pChar, char* szLine)
 	}
 
 	int index = GetIntFromString(szLine, 0);
+#pragma warning(suppress : 4312)
 	CreateThread(nullptr, 0, openpickzonewnd, (void*)index, 0, nullptr);
 }
 
@@ -5164,7 +5165,7 @@ void UserCameraCmd(SPAWNINFO* pChar, char* szLine)
 	char szArg2[MAX_STRING] = { 0 };
 	GetArg(szArg2, szLine, 2);
 
-	EQCAMERABASE* pUserCam1 = (EQCAMERABASE*)((DWORD*)EverQuest__Cameras)[EQ_USER_CAM_1];
+	EQCAMERABASE* pUserCam1 = (EQCAMERABASE*)((uintptr_t*)EverQuest__Cameras)[EQ_USER_CAM_1];
 
 	if (!_stricmp(szArg1, "0"))
 	{
@@ -5485,7 +5486,7 @@ void ListModulesCommand(PSPAWNINFO pChar, char* szLine)
 	std::wstring search = mq::utf8_to_wstring(szLine);
 
 	DWORD cbNeeded = 0;
-	BOOL result = GetFilteredModules(hProcess, hModules.data(), hModules.size() * sizeof(HMODULE), &cbNeeded,
+	BOOL result = GetFilteredModules(hProcess, hModules.data(), static_cast<DWORD>(hModules.size()) * sizeof(HMODULE), &cbNeeded,
 		[&](HMODULE hModule) -> bool { return IsMacroQuestModule(hModule) || (!search.empty() && !IsModuleSubstring(hModule, search)); });
 	hModules.resize(cbNeeded / sizeof(HMODULE));
 

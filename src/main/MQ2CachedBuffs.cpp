@@ -94,7 +94,7 @@ static std::map<int, std::unique_ptr<SpawnBuffs>> gCachedBuffMap;
 class CEverQuestHook
 {
 public:
-	void CTargetWnd__RefreshTargetBuffs_Trampoline(CUnSerializeBuffer&);
+	DETOUR_TRAMPOLINE_DEF(void, CTargetWnd__RefreshTargetBuffs_Trampoline, (CUnSerializeBuffer&))
 	void CTargetWnd__RefreshTargetBuffs_Detour(CUnSerializeBuffer& buffer)
 	{
 		gTargetbuffs = false;
@@ -147,8 +147,6 @@ public:
 			gbAssistComplete = AS_AssistReceived;
 	}
 };
-
-DETOUR_TRAMPOLINE_EMPTY(void CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline(CUnSerializeBuffer&));
 
 std::optional<CachedBuff> GetCachedBuffAtSlot(SPAWNINFO* pSpawn, int slot)
 {
@@ -228,7 +226,7 @@ DWORD GetCachedBuffCount(SPAWNINFO* pSpawn, const std::function<bool(const Cache
 		if (buffs != std::end(gCachedBuffMap))
 		{
 			buffs->second->Audit();
-			return std::count_if(std::begin(buffs->second->cachedBuffs), std::end(buffs->second->cachedBuffs), predicate);
+			return static_cast<DWORD>(std::count_if(std::begin(buffs->second->cachedBuffs), std::end(buffs->second->cachedBuffs), predicate));
 		}
 	}
 
@@ -243,7 +241,7 @@ DWORD GetCachedBuffCount(SPAWNINFO* pSpawn)
 		if (buffs != std::end(gCachedBuffMap))
 		{
 			buffs->second->Audit();
-			return buffs->second->cachedBuffs.size();
+			return static_cast<DWORD>(buffs->second->cachedBuffs.size());
 		}
 	}
 

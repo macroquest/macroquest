@@ -148,10 +148,13 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 
 	case TargetMembers::AggroHolder: {
 		// who the Target has the MOST aggro on
-		char* pTargetAggroHolder = EQADDR_TARGETAGGROHOLDER;
-		if (pTargetAggroHolder[0] != '\0')
+		if (!g_labelCache)
+			return false;
+
+		char* targetAggroHolder = g_labelCache->AggroMostHatedNameNoLock;
+		if (targetAggroHolder[0] != '\0')
 		{
-			if (SPAWNINFO* pAggroHolder = GetSpawnByName(pTargetAggroHolder))
+			if (SPAWNINFO* pAggroHolder = GetSpawnByName(targetAggroHolder))
 			{
 				Dest = pSpawnType->MakeTypeVar(pAggroHolder);
 				return true;
@@ -161,7 +164,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			MQSpawnSearch SearchSpawn;
 			ClearSearchSpawn(&SearchSpawn);
 			SearchSpawn.FRadius = 999999.0f;
-			strcpy_s(SearchSpawn.szName, pTargetAggroHolder);
+			strcpy_s(SearchSpawn.szName, targetAggroHolder);
 
 			if (SPAWNINFO* pAggroHolder = SearchThroughSpawns(&SearchSpawn, pLocalPlayer))
 			{
@@ -169,21 +172,18 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 				return true;
 			}
 		}
-		else
+		else if (pTarget)
 		{
-			// it could be me...
-			// lets check
-			if (pTarget && EQADDR_GROUPAGGRO)
+			// is it me?
+			if (g_labelCache->AggroMyHatePct >= 100)
 			{
-				if (*(DWORD*)(EQADDR_GROUPAGGRO + 120) >= 100)
+				if (Dest.Ptr = GetSpawnByID(pLocalPlayer->TargetOfTarget))
 				{
-					if (Dest.Ptr = GetSpawnByID(pLocalPlayer->TargetOfTarget))
-					{
-						return true;
-					}
+					return true;
 				}
 			}
 		}
+
 		return false;
 	}
 

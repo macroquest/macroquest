@@ -106,7 +106,7 @@ public:
 					else
 					{
 						sprintf_s(buff, "PRIVMSG %s :%s\n\0", *mychan, InputBox->InputText.c_str());
-						send(theSocket, buff, strlen(buff), 0);
+						send(theSocket, buff, static_cast<int>(strlen(buff)), 0);
 						sprintf_s(buff, "\ag<\aw%s\ag>\a-w %s\0", IrcNick, InputBox->InputText.c_str());
 						ircout(buff);
 					}
@@ -184,11 +184,11 @@ DWORD WINAPI IRCConnectThread(void* lpParam)
 		Sleep((clock_t)2 * CLOCKS_PER_SEC / 2);
 
 		sprintf_s(buff, "NICK %s\n\0", IrcNick);
-		send(theSocket, buff, strlen(buff), 0);
+		send(theSocket, buff, static_cast<int>(strlen(buff)), 0);
 		sprintf_s(buff, "USER %s %s %s :%s\n\0", Username, IrcNick, IrcNick, Realname);
-		send(theSocket, buff, strlen(buff), 0);
+		send(theSocket, buff, static_cast<int>(strlen(buff)), 0);
 		sprintf_s(buff, "JOIN %s\n\0", IrcChan);
-		send(theSocket, buff, strlen(buff), 0);
+		send(theSocket, buff, static_cast<int>(strlen(buff)), 0);
 		bConnected = true;
 	}
 
@@ -375,7 +375,7 @@ void IrcCmd(SPAWNINFO* pChar, char* szLine)
 	if (!strcmp(szArg1, "NICK"))
 	{
 		sprintf_s(buff, "NICK %s\n\0", z[1]);
-		send(theSocket, buff, strlen(buff), 0);
+		send(theSocket, buff, static_cast<int>(strlen(buff)), 0);
 		WritePrivateProfileString("Last Connect", "Nick", IrcNick, INIFileName);
 		WritePrivateProfileString(IrcServer, "Nick", IrcNick, INIFileName);
 		return;
@@ -384,7 +384,7 @@ void IrcCmd(SPAWNINFO* pChar, char* szLine)
 	if (!strcmp(szArg1, "JOIN"))
 	{
 		sprintf_s(buff, "JOIN %s\n\0", z[1]);
-		send(theSocket, buff, strlen(buff), 0);
+		send(theSocket, buff, static_cast<int>(strlen(buff)), 0);
 		WritePrivateProfileString("Last Connect", "Chan", IrcChan, INIFileName);
 		WritePrivateProfileString(IrcServer, "Chan", IrcChan, INIFileName);
 		return;
@@ -393,14 +393,14 @@ void IrcCmd(SPAWNINFO* pChar, char* szLine)
 	if (!strcmp(szArg1, "PART"))
 	{
 		sprintf_s(buff, "PART %s\n\0", *mychan);
-		send(theSocket, buff, strlen(buff), 0);
+		send(theSocket, buff, static_cast<int>(strlen(buff)), 0);
 		return;
 	}
 
 	if (!strcmp(szArg1, "WHOIS"))
 	{
 		sprintf_s(buff, "WHOIS %s\n\0", z[1]);
-		send(theSocket, buff, strlen(buff), 0);
+		send(theSocket, buff, static_cast<int>(strlen(buff)), 0);
 		return;
 	}
 
@@ -414,7 +414,7 @@ void IrcCmd(SPAWNINFO* pChar, char* szLine)
 	if (!strcmp(szArg1, "QUIT"))
 	{
 		sprintf_s(buff, "QUIT :%s\n\0", z[1]);
-		send(theSocket, buff, strlen(buff), 0);
+		send(theSocket, buff, static_cast<int>(strlen(buff)), 0);
 		bConnected = false;
 		ircout("\ar#\ax Connection Closed, you can unload MQ2Irc now.");
 		return;
@@ -423,7 +423,7 @@ void IrcCmd(SPAWNINFO* pChar, char* szLine)
 	if (!strcmp(szArg1, "RAW"))
 	{
 		sprintf_s(buff, "%s\n\0", z[1]);
-		send(theSocket, buff, strlen(buff), 0);
+		send(theSocket, buff, static_cast<int>(strlen(buff)), 0);
 		sprintf_s(buff, "\ab[\a-yraw\ab(\ay%s\ab)]\a-w %s\0", IrcServer, z[1]);
 		ircout(buff);
 		return;
@@ -438,7 +438,7 @@ void IrcCmd(SPAWNINFO* pChar, char* szLine)
 		}
 
 		sprintf_s(buff, "PRIVMSG %s :%s\n\0", *mychan, z[1]);
-		send(theSocket, buff, strlen(buff), 0);
+		send(theSocket, buff, static_cast<int>(strlen(buff)), 0);
 		sprintf_s(buff, "\ag<\aw%s\ag>\a-w %s\0", IrcNick, z[1]);
 		ircout(buff);
 		return;
@@ -447,7 +447,7 @@ void IrcCmd(SPAWNINFO* pChar, char* szLine)
 	if (!strcmp(szArg1, "NAMES"))
 	{
 		sprintf_s(buff, "NAMES %s\n\0", IrcChan);
-		send(theSocket, buff, strlen(buff), 0);
+		send(theSocket, buff, static_cast<int>(strlen(buff)), 0);
 		return;
 	}
 
@@ -482,7 +482,7 @@ void IrcCmd(SPAWNINFO* pChar, char* szLine)
 		}
 		// FIXME:  z[2] is out of bounds (probably wrong above too).
 		sprintf_s(buff, "PRIVMSG %s :%s\n\0", z[1], z[2]);
-		send(theSocket, buff, strlen(buff), 0);
+		send(theSocket, buff, static_cast<int>(strlen(buff)), 0);
 		sprintf_s(buff, "\ab[\a-rmsg\ab(\ar%s\ab)]\a-w %s\0", z[1], z[2]);
 		ircout(buff);
 		return;
@@ -583,7 +583,7 @@ char* parse(char* rawmsg)
 	if (!strcmp(command, "PING"))
 	{
 		sprintf_s(buff, "PONG %s\n\0", param[0]);
-		send(theSocket, buff, strlen(buff), 0);
+		send(theSocket, buff, static_cast<int>(strlen(buff)), 0);
 
 		return nullptr;
 	}
@@ -687,7 +687,7 @@ char* parse(char* rawmsg)
 		if (!strcmp(param[1], "\001VERSION\001"))
 		{
 			sprintf_s(buff, "NOTICE %s :\001VERSION %s\001\n\0", prefix, Version);
-			send(theSocket, buff, strlen(buff), 0);
+			send(theSocket, buff, static_cast<int>(strlen(buff)), 0);
 			sprintf_s(buff, "\ab[\ao%s\ab(\a-octcp\ab)]\a-w VERSION", prefix);
 			return buff;
 		}

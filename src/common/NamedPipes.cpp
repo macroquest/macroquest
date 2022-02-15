@@ -87,7 +87,7 @@ bool PipeMessage::Parse(const std::vector<std::pair<std::unique_ptr<uint8_t[]>, 
 {
 	// calculate length
 	size_t length = std::accumulate(std::begin(buffers), std::end(buffers),
-		0, [](size_t v, const auto& p) { return v + p.second; });
+		static_cast<size_t>(0), [](size_t v, const auto& p) { return v + p.second; });
 	if (length == 0)
 		return false;
 
@@ -120,7 +120,7 @@ void PipeMessage::Init(MQMessageId messageId, const void* data, size_t length)
 		memcpy(m_buffer.get() + m_dataOffset, data, length);
 	}
 
-	m_header->messageLength = length;
+	m_header->messageLength = static_cast<uint32_t>(length);
 	m_header->protoVersion = MQProtoVersion::V0;
 	m_header->messageId = messageId;
 	m_valid = true;
@@ -253,7 +253,7 @@ void PipeConnection::InternalBeginRead()
 	}
 
 	// Start the read operation
-	bool readStarted = ::ReadFileEx(m_hPipe.get(), m_readBuffer.get(), m_readBufferSize, &m_overlapped,
+	bool readStarted = ::ReadFileEx(m_hPipe.get(), m_readBuffer.get(), static_cast<DWORD>(m_readBufferSize), &m_overlapped,
 		[](DWORD dwErrorCode, DWORD dwNumberOfBytesTransferred, LPOVERLAPPED lpOverlapped)
 	{
 		PipeConnection* connection = reinterpret_cast<PipeConnection*>(lpOverlapped->hEvent);
@@ -462,7 +462,7 @@ void PipeConnection::InternalBeginSend()
 	op->overlapped.hEvent = reinterpret_cast<HANDLE>(op);
 	m_pendingWrite = true;
 
-	bool writeStarted = ::WriteFileEx(m_hPipe.get(), op->message->buffer(), op->message->buffer_size(), &op->overlapped,
+	bool writeStarted = ::WriteFileEx(m_hPipe.get(), op->message->buffer(), static_cast<DWORD>(op->message->buffer_size()), &op->overlapped,
 		[](DWORD dwErrorCode, DWORD dwNumberOfBytesTransferred, LPOVERLAPPED lpOverlapped)
 	{
 		QueuedOp* op = reinterpret_cast<QueuedOp*>(lpOverlapped->hEvent);
@@ -922,7 +922,7 @@ void NamedPipeServer::CloseConnection(PipeConnection* connection)
 int NamedPipeServer::GetConnectionCount() const
 {
 	std::scoped_lock<std::mutex> lock(m_mutex);
-	return m_connections.size();
+	return static_cast<int>(m_connections.size());
 }
 
 std::shared_ptr<PipeConnection> NamedPipeServer::GetConnection(int connectionId) const
@@ -1003,7 +1003,7 @@ void NamedPipeServer::SendMessage(int connectionId, MQMessageId messageId, const
 	}
 	else
 	{
-		SPDLOG_WARN("Tried to send message on closed connection: connectionId={} messageId={}", connectionId, messageId);
+		SPDLOG_WARN("Tried to send message on closed connection: connectionId={} messageId={}", connectionId, static_cast<int>(messageId));
 	}
 }
 
@@ -1121,7 +1121,7 @@ void NamedPipeClient::NamedPipeThread()
 		// Second loop will try to process events on the connection
 		while (m_connection && IsRunning())
 		{
-			DWORD dwWait = WaitForMultipleObjectsEx(lengthof(waitEvents), waitEvents, FALSE, INFINITE, TRUE);
+			DWORD dwWait = WaitForMultipleObjectsEx(static_cast<DWORD>(lengthof(waitEvents)), waitEvents, FALSE, INFINITE, TRUE);
 
 			switch (dwWait)
 			{
@@ -1176,7 +1176,7 @@ void NamedPipeClient::SendMessage(MQMessageId messageId, const void* data, size_
 	}
 	else
 	{
-		SPDLOG_WARN("Tried to send a message with id {0} on a null connection.", messageId);
+		SPDLOG_WARN("Tried to send a message with id {0} on a null connection.", static_cast<int>(messageId));
 	}
 }
 
@@ -1189,7 +1189,7 @@ void NamedPipeClient::SendMessageWithResponse(MQMessageId messageId, const void*
 	}
 	else
 	{
-		SPDLOG_WARN("Tried to send a message with id {0} on a null connection.", messageId);
+		SPDLOG_WARN("Tried to send a message with id {0} on a null connection.", static_cast<int>(messageId));
 	}
 }
 

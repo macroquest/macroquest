@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup
+		Condition="'$(ProtocolBufferBeforeTargets)' == '' and '$(ProtocolBufferAfterTargets)' == '' and '$(ConfigurationType)' != 'Makefile'">
+		<ProtocolBufferBeforeTargets>ClCompile</ProtocolBufferBeforeTargets>    
+	</PropertyGroup>
+	<PropertyGroup>
+		<ProtocolBufferDependsOn
+			Condition="'$(ConfigurationType)' != 'Makefile'">_SelectedFiles;$(ProtocolBufferDependsOn)</ProtocolBufferDependsOn>
+		<ProtoImportPath>$(MQ2Root)contrib\vcpkg\installed\x64-windows\include</ProtoImportPath>
+	</PropertyGroup>
+	<ItemDefinitionGroup>
+		<ProtocolBuffer>
+			<CommandLineTemplate>"$(MQ2Root)contrib\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe" --cpp_out="%(RootDir)%(Directory)." --proto_path="%(RootDir)%(Directory)." --proto_path="$(ProtoImportPath)" "%(FullPath)"
+			</CommandLineTemplate>
+			<Outputs>$(MSBuildProjectDirectory)\%(RelativeDir)%(Filename).pb.cc;$(MSBuildProjectDirectory)\%(RelativeDir)%(Filename).pb.h</Outputs>
+			<ExecutionDescription> proto: %(FullPath)</ExecutionDescription>
+			<ShowOnlyRuleProperties>false</ShowOnlyRuleProperties>
+			<AdditionalDependencies></AdditionalDependencies>
+		</ProtocolBuffer>
+	</ItemDefinitionGroup>
+</Project>

@@ -469,7 +469,11 @@ struct ModuleInitializer
 	MQModule* module = nullptr;
 };
 
+#if _M_AMD64
+#define FORCE_UNDEFINED_SYMBOL(x) __pragma(comment (linker, "/export:" #x))
+#else
 #define FORCE_UNDEFINED_SYMBOL(x) __pragma(comment (linker, "/export:_" #x))
+#endif
 
 #define DECLARE_MODULE_INITIALIZER(moduleRecord) \
 		extern "C" ModuleInitializer s_moduleInitializer ## moduleRecord { &moduleRecord } \

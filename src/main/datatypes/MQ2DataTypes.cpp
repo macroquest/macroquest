@@ -176,7 +176,7 @@ bool MQ2Type::AddMember(int id, const char* Name)
 
 	// find an unused index from members.
 	int index = -1;
-	for (size_t i = 0; i < Members.size(); ++i)
+	for (int i = 0; i < Members.size(); ++i)
 	{
 		if (Members[i] == nullptr)
 		{
@@ -188,7 +188,7 @@ bool MQ2Type::AddMember(int id, const char* Name)
 	if (index == -1)
 	{
 		Members.emplace_back();
-		index = Members.size() - 1;
+		index = static_cast<int>(Members.size()) - 1;
 	}
 
 	auto pMember = std::make_unique<MQTypeMember>();
@@ -226,7 +226,7 @@ bool MQ2Type::AddMethod(int ID, const char* Name)
 
 	// find an unused index from members.
 	int index = -1;
-	for (size_t i = 0; i < Methods.size(); ++i)
+	for (int i = 0; i < Methods.size(); ++i)
 	{
 		if (Methods[i] == nullptr)
 		{
@@ -238,7 +238,7 @@ bool MQ2Type::AddMethod(int ID, const char* Name)
 	if (index == -1)
 	{
 		Methods.emplace_back();
-		index = Methods.size() - 1;
+		index = static_cast<int>(Methods.size()) - 1;
 	}
 
 	auto pMethod = std::make_unique<MQTypeMember>();

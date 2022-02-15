@@ -93,16 +93,14 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	if (!pMember)
 		return false;
 
-	EVERQUEST* pEQ = (EVERQUEST*)pEverQuest;
-
 	switch (static_cast<EverQuestMembers>(pMember->ID))
 	{
 	case EverQuestMembers::HWND:
 		if (EQW_GetDisplayWindow)
-			Dest.DWord = (DWORD)EQW_GetDisplayWindow();
+			Dest.Int64 = (uintptr_t)EQW_GetDisplayWindow();
 		else
-			Dest.DWord = *(DWORD*)EQADDR_HWND;
-		Dest.Type = pIntType;
+			Dest.Int64 = *(uintptr_t*)EQADDR_HWND;
+		Dest.Type = pInt64Type;
 		return true;
 
 	case EverQuestMembers::GameState:
@@ -181,24 +179,25 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	case EverQuestMembers::ChatChannels:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (pEQ->ChatService)
+		if (pEverQuest && pEverQuest->chatService)
 		{
-			Dest.DWord = pEQ->ChatService->ActiveChannels;
+			Dest.DWord = pEverQuest->chatService->ActiveChannels;
 			return true;
 		}
 		return false;
 
 	case EverQuestMembers::ChatChannel:
 		Dest.Type = pStringType;
-		if (pEQ->ChatService)
+		if (pEverQuest && pEverQuest->chatService)
 		{
-			UniversalChatProxy* pChat = pEQ->ChatService;
 			if (IsNumber(Index))
 			{
 				int index = GetIntFromString(Index, 0) - 1;
-				if (pChat->ActiveChannels && index >= 0 && index < pChat->ActiveChannels)
+				if (pEverQuest->chatService->ActiveChannels
+					&& index >= 0
+					&& index < pEverQuest->chatService->ActiveChannels)
 				{
-					strcpy_s(DataTypeTemp, pChat->ChannelList[index]);
+					strcpy_s(DataTypeTemp, pEverQuest->chatService->ChannelList[index]);
 					Dest.Ptr = &DataTypeTemp[0];
 					Dest.Type = pStringType;
 					return true;
@@ -209,9 +208,9 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				char Name[MAX_STRING] = { 0 };
 				strcpy_s(Name, Index);
 
-				for (int i = 0; i < pChat->ActiveChannels; i++)
+				for (int i = 0; i < pEverQuest->chatService->ActiveChannels; i++)
 				{
-					if (!_stricmp(Name, pChat->ChannelList[i]))
+					if (!_stricmp(Name, pEverQuest->chatService->ChannelList[i]))
 					{
 						Dest.Set(true);
 						Dest.Type = pBoolType;
@@ -339,7 +338,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.DWord = 0;
 		Dest.Type = pCharSelectListType;
 
-		if (Index[0])
+		if (Index[0] && pEverQuest)
 		{
 			if (IsNumber(Index))
 			{
@@ -347,28 +346,20 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				if (num < 0)
 					num = 0;
 
-				if (pEQ)
+				if (num <= pEverQuest->charSelectPlayerArray.GetCount())
 				{
-					if (num <= pEQ->pCharSelectPlayerArray.Count)
-					{
-						Dest.DWord = num;
-						return true;
-					}
+					Dest.DWord = num;
+					return true;
 				}
 			}
 			else
 			{
-				char szName[256] = { 0 };
-				if (pEQ)
+				for (int i = 0; i < pEverQuest->charSelectPlayerArray.GetCount(); i++)
 				{
-					for (int i = 0; i < pEQ->pCharSelectPlayerArray.Count; i++)
+					if (!_stricmp(Index, pEverQuest->charSelectPlayerArray[i].Name))
 					{
-						strcpy_s(szName, pEQ->pCharSelectPlayerArray[i].Name);
-						if (!_stricmp(Index, szName))
-						{
-							Dest.DWord = i;
-							return true;
-						}
+						Dest.DWord = i;
+						return true;
 					}
 				}
 			}

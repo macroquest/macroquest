@@ -26,11 +26,17 @@
     </ClCompile>
 
     <!-- Debug only linker settings -->
+    <Link Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      <AdditionalDependencies>fmtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
     <Link Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       <AdditionalDependencies>fmtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
 
     <!-- Release only linker settings -->
+    <Link Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      <AdditionalDependencies>fmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
     <Link Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       <AdditionalDependencies>fmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
