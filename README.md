@@ -7,25 +7,25 @@ MacroQuest is an open source scripting and plugin platform for EverQuest.
 
 ### Prererequisites
 
-* [Visual Studio 2019 Community](https://visualstudio.microsoft.com/downloads/)
+* [Visual Studio 2019/2022 Community](https://visualstudio.microsoft.com/downloads/)
 * [Git for Windows](https://git-scm.com/)
 
 The recommended way to build MacroQuest is from a source code checkout using Git. There are many how to guides for installing and setting up git. [Here is one of them](https://docs.gitlab.com/ee/gitlab-basics/start-using-git.html)
 
 ### Check out the latest source code
 
-Create the checkout. **ACTUAL URL TBD**
+Create the checkout. This will create the subfolder **mqnext** that containes a copy of the project.  **ACTUAL URL TBD**
 
 ```
 git clone git@gitlab.com:macroquest/next/mqnext.git
 ```
 
-Make sure that submodules are initialized. If you have run this step already, you can skip it
+Make sure that submodules are initialized. Move (cd) to the newly created **mqnext** folder before executing this command.  If you have run this step already, you can skip it
 ```
 git submodule init
 ```
 
-Update the submodules to the correct version
+Update the submodules to the correct version. Ensure you are in the newly created **mqnext** folder before executing this command.
 ```
 git submodule update
 ```
@@ -50,8 +50,9 @@ At this point, the source should be ready to compile. Proceed to building.
 
 ### Build Steps
 
-1. Open the `MacroQuest.sln` file in src
-1. Select the `Release` configuration from the drop-down menu near the top of the window
+1. Open the `MacroQuest.sln` file in src.
+1. Select the `Release` and `(x64)` configuration from the drop-down menu near the top of the window.
+1. Since the project moved to 64-bit, ensure all project configurations are set to `(x64)` in the **Solution Macroquest** Property Pages.  You can check this by right-clicking on **Solution Macroquest**, select Properties from the pull down menu, click the Configuration Manager button, then ensure the Platform colum for each project is set to `(x64)`. 
 1. Select `Build -> Build Solution` from the menu.
 
 The built files will be placed in `build/bin/Release`. To start MacroQuest, run `MacroQuest.exe`. This will launch the application to the tray, and install MacroQuest into any running EverQuest processes.
