@@ -52,7 +52,7 @@ At this point, the source should be ready to compile. Proceed to building.
 
 1. Open the `MacroQuest.sln` file in src.
 1. Select the `Release` and `(x64)` configuration from the drop-down menu near the top of the window.
-1. Since the project moved to 64-bit, ensure all project configurations are set to `(x64)` in the **Solution Macroquest** Property Pages.  From the Visual Studio main menu, select **Build** then **Configuration Manager** then ensure the Platform colum for each project is set to `(x64)`. 
+1. Since the project moved to 64-bit, ensure all project configurations are set to `(x64)` in the **Solution Macroquest** Property Pages.  From the Visual Studio main menu, select **Build** then **Configuration Manager** then ensure the Platform column for each project is set to `(x64)`. 
 1. Select `Build -> Build Solution` from the menu.
 
 The built files will be placed in `build/bin/Release`. To start MacroQuest, run `MacroQuest.exe`. This will launch the application to the tray, and install MacroQuest into any running EverQuest processes.
