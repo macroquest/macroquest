@@ -25,6 +25,7 @@ global ?GetAssistParam@mq@@YAXXZ
 	pop rax
 emptyassist:
 	pop rax
+	ret
 
 ;---------------------------------------------------------------------------------------
 
