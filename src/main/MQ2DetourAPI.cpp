@@ -118,10 +118,13 @@ void SetAssist(BYTE* address)
 	gbAssistComplete = AS_AssistReceived;
 
 	if (!address) return;
-	DWORD Assistee = *(DWORD*)address;
+	int Assistee = *(int*)address;
 
 	if (SPAWNINFO* pSpawn = GetSpawnByID(Assistee))
+	{
+		//DebugSpew("Assist Result: %d => %s", Assistee, pSpawn->Name);
 		gbAssistComplete = AS_AssistSent;
+	}
 }
 
 // Defined in AssemblyFunctions.asm, need the forward declare
