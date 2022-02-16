@@ -487,6 +487,18 @@ BOOL WINAPI FindModules_Detour(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWOR
 	return result;
 }
 
+DETOUR_TRAMPOLINE_DEF(BOOL WINAPI, FindProcesses_Trampoline, (DWORD*, DWORD, DWORD*))
+BOOL WINAPI FindProcesses_Detour(DWORD* lpidProcess, DWORD cb, DWORD* lpcbNeeded)
+{
+	if (gbInMemCheck4 != 1) return FindProcesses_Trampoline(lpidProcess, cb, lpcbNeeded);
+	++gbInMemCheck4;
+	bool getMacroQuestProcesses = true;
+	BOOL result = GetFilteredProcesses(lpidProcess, cb, lpcbNeeded,
+		[&getMacroQuestProcesses](char process_name[MAX_PATH]) -> bool { return IsMacroQuestProcess(process_name, getMacroQuestProcesses); }) ? TRUE : FALSE;
+	--gbInMemCheck4;
+	return result;
+}
+
 void InitializeDetours()
 {
 	// hit the debugger if we don't hook this. take no chances
@@ -507,6 +519,7 @@ void InitializeDetours()
 	uintptr_t GetProcAddress_Addr = (uintptr_t)&::GetProcAddress;
 	EzDetour(GetProcAddress_Addr, &GetProcAddress_Detour, &GetProcAddress_Trampoline);
 	EzDetour(__ModuleList, FindModules_Detour, FindModules_Trampoline);
+	EzDetour(__ProcessList, FindProcesses_Detour, FindProcesses_Trampoline);
 }
 
 void ShutdownDetours()
@@ -514,6 +527,7 @@ void ShutdownDetours()
 	uintptr_t GetProcAddress_Addr = (uintptr_t)&::GetProcAddress;
 	RemoveDetour(GetProcAddress_Addr);
 	RemoveDetour(__ModuleList);
+	RemoveDetour(__ProcessList);
 
 	HookMemChecker(false);
 	RemoveDetours();

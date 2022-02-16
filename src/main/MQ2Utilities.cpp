@@ -7364,6 +7364,40 @@ bool IsMacroQuestModule(HMODULE hModule, bool getMacroQuestModules)
 	return !getMacroQuestModules ? (substr_pos == -1) : (substr_pos == 0);
 }
 
+bool IsMacroQuestProcess(char path[MAX_PATH], bool getMacroQuestProcesses)
+{
+	static wchar_t szMacroQuestDir[MAX_PATH] = { 0 };
+	if (szMacroQuestDir[0] == 0)
+	{
+		::GetModuleFileNameW(ghModule, szMacroQuestDir, MAX_PATH);
+		PathCchRemoveFileSpec(szMacroQuestDir, MAX_PATH);
+	}
+
+	std::wstring wpath = mq::utf8_to_wstring(path);
+	int substr_pos = ci_find_substr_w(wpath, szMacroQuestDir);
+
+	auto keys = GetPrivateProfileKeys("LauncherExtras", internal_paths::MQini);
+	std::vector<std::string> extras;
+	std::transform(keys.begin(), keys.end(), std::back_inserter(extras), [](const std::string& key)
+		{
+			auto path = std::filesystem::path(GetPrivateProfileString("LauncherExtras", key.c_str(), "", internal_paths::MQini));
+			if (path.has_filename())
+				return path.filename().string();
+
+			return std::string();
+		});
+
+	extras.erase(std::remove_if(extras.begin(), extras.end(), [](const std::string& extra) { return extra.empty(); }), extras.end());
+
+	auto basename = std::filesystem::path(path).filename().string();
+	auto inlist = std::find_if(extras.begin(), extras.end(), [&basename](const std::string& extra) -> bool
+		{
+			return ci_equals(basename, extra);
+		}) != extras.end();
+
+	return !getMacroQuestProcesses ? (substr_pos == -1 && !inlist) : (substr_pos == 0 || inlist);
+}
+
 bool IsModuleSubstring(HMODULE hModule, std::wstring_view searchString)
 {
 	if (searchString.empty()) return true;
@@ -7397,6 +7431,67 @@ bool GetFilteredModules(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWORD* lpcb
 	}
 
 	return result;
+}
+
+bool GetFilteredProcesses(DWORD* lpidProcess, DWORD cb, DWORD* lpcbNeeded, const std::function<bool(char[MAX_PATH])>& filter)
+{
+	BOOL result = ((BOOL(WINAPI*)(DWORD*, DWORD, DWORD*))__ProcessList)(lpidProcess, cb, lpcbNeeded);
+
+	if (result)
+	{
+		DWORD size = std::min(cb, *lpcbNeeded);
+
+		auto a1 = lpidProcess;
+		auto a2 = lpidProcess + (size / sizeof(DWORD));
+		auto a3 = lpidProcess + (cb / sizeof(DWORD));
+
+		auto iter = std::remove_if(a1, a2, [&filter](DWORD lpidProcess)
+			{
+				HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, lpidProcess);
+				if (hProcess != NULL)
+				{
+					char process_name[MAX_PATH] = "";
+					DWORD size = MAX_PATH;
+					if (QueryFullProcessImageNameA(hProcess, 0, process_name, &size))
+					{
+						CloseHandle(hProcess);
+						return filter(process_name);
+					}
+					CloseHandle(hProcess);
+				}
+
+				return true;
+			});
+
+		if (iter != a2)
+		{
+			a2 = iter;
+			*lpcbNeeded = static_cast<DWORD>(std::distance(a1, a2)) * sizeof(DWORD);
+			std::fill(a2, a3, 0);
+		}
+	}
+
+	return result;
+}
+
+std::string GetProcessName(DWORD processID)
+{
+	HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processID);
+	if (hProcess != INVALID_HANDLE_VALUE)
+	{
+		char process_name[MAX_PATH] = "";
+		DWORD size = MAX_PATH;
+		BOOL result = QueryFullProcessImageNameA(hProcess, 0, process_name, &size);
+
+		if (!result)
+			sprintf_s(process_name, "%d", GetLastError());
+
+		CloseHandle(hProcess);
+
+		return std::string(process_name);
+	}
+
+	return "";
 }
 
 const char* GetTeleportName(DWORD id)

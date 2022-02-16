@@ -5510,6 +5510,42 @@ void ListModulesCommand(PSPAWNINFO pChar, char* szLine)
 	}
 }
 
+// ***************************************************************************
+// Function:    ListProcessesCommand
+// Description: List running processes that the MQ launcher cares about to help debug stuck
+//              and/or broken dependencies/plugins.
+// Usage:       /mqlistprocesses [name]
+// Author:      dannuic
+// ***************************************************************************
+void ListProcessesCommand(PSPAWNINFO pChar, char* szLine)
+{
+	std::vector<DWORD> processIDs;
+	processIDs.resize(1024);
+
+	DWORD cbNeeded = 0;
+	BOOL result = GetFilteredProcesses(processIDs.data(), static_cast<DWORD>(processIDs.size()) * sizeof(DWORD), &cbNeeded,
+		[&](char process_name[MAX_PATH]) -> bool
+		{
+			return IsMacroQuestProcess(process_name) || (szLine != nullptr && szLine[0] != '\0' && ci_find_substr(process_name, szLine) == -1);
+		});
+	processIDs.resize(cbNeeded / sizeof(DWORD));
+
+	if (result)
+	{
+		WriteChatColor("List of matching processes", USERCOLOR_WHO);
+		WriteChatColor("--------------------------------", USERCOLOR_WHO);
+
+		for (const auto& processID : processIDs)
+		{
+			WriteChatColorf("%d: %s", USERCOLOR_WHO, processID, GetProcessName(processID).c_str());
+		}
+	}
+	else
+	{
+		WriteChatf("\arFailed to list processes: %x", GetLastError());
+	}
+}
+
 //----------------------------------------------------------------------------
 
 void ConvertItemCmd(SPAWNINFO* pSpawn, char* szLine)

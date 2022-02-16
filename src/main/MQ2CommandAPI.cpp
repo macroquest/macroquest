@@ -946,6 +946,7 @@ void InitializeMQ2Commands()
 		{ "/clearerrors",       ClearErrorsCmd,             true,  false },
 		{ "/invoke",            InvokeCmd,                  true,  false },
 		{ "/mqlistmodules",     ListModulesCommand,         false, false },
+		{ "/mqlistprocesses",   ListProcessesCommand,       false, false },
 		{ "/convertitem",       ConvertItemCmd,             true,  true  },
 		{ "/insertaug",         InsertAugCmd,               true,  true  },
 		{ "/removeaug",         RemoveAugCmd,               true,  true  },
