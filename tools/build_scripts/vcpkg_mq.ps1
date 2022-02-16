@@ -55,7 +55,7 @@ function Wait-Process {
             ValueFromPipeLine = $true,
             ValueFromPipelineByPropertyName = $true
         )]
-        [int]$SleepInterval = 30,
+        [int]$SleepInterval = 60,
         [Parameter(
             Mandatory = $false,
             ValueFromPipeLine = $true,
@@ -65,8 +65,8 @@ function Wait-Process {
     )
 
     while ($Timeout -gt 0 -And @(Get-CimInstance Win32_Process -Filter "name = '$Name'" | Where-Object {$_.CommandLine -like $Filter}).Count -gt 0) {
-        Write-Host "$ProjectName waiting for another $Name process to complete, timeout in $Timeout seconds..."
-        $Timeout -= $SleepInterval
+        Write-Host "$ProjectName waiting for another $Name process to complete" #timeout in $Timeout seconds..."
+        #$Timeout -= $SleepInterval
         Start-Sleep $SleepInterval
     }
     if ($Timeout -lt 1)
