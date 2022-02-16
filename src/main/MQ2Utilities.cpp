@@ -7477,14 +7477,11 @@ bool GetFilteredProcesses(DWORD* lpidProcess, DWORD cb, DWORD* lpcbNeeded, const
 std::string GetProcessName(DWORD processID)
 {
 	HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processID);
-	if (hProcess != INVALID_HANDLE_VALUE)
+	if (hProcess != NULL)
 	{
 		char process_name[MAX_PATH] = "";
 		DWORD size = MAX_PATH;
 		BOOL result = QueryFullProcessImageNameA(hProcess, 0, process_name, &size);
-
-		if (!result)
-			sprintf_s(process_name, "%d", GetLastError());
 
 		CloseHandle(hProcess);
 
