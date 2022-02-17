@@ -372,7 +372,10 @@ bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineN
 				optional = true;
 			}
 
-			while (szLine[0] == ' ') szLine++;
+			while (szLine[0] == ' ')
+			{
+				szLine++;
+			}
 			ParseMacroData(szLine, Linelen);
 
 			std::filesystem::path incFilePath = szLine;
@@ -383,7 +386,7 @@ bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineN
 
 			std::error_code ec_exists;
 			// If the file exists, use it, but if not try inc, then mac, then settle on inc
-			if (!incFilePath.has_extension() && !exists(incFilePath))
+			if (!incFilePath.has_extension() && !exists(incFilePath, ec_exists))
 			{
 				if (!exists(incFilePath.replace_extension("inc"), ec_exists))
 				{
