@@ -65,13 +65,20 @@ function Wait-Process {
     )
 
     while ($Timeout -gt 0 -And @(Get-CimInstance Win32_Process -Filter "name = '$Name'" | Where-Object {$_.CommandLine -like $Filter}).Count -gt 0) {
-        Write-Host "$ProjectName waiting for another $Name process to complete" #timeout in $Timeout seconds..."
+        Write-Host "$ProjectName waiting for another $Name process to complete..." #, timeout in $Timeout seconds..."
         #$Timeout -= $SleepInterval
         Start-Sleep $SleepInterval
     }
     if ($Timeout -lt 1)
     {
         Write-Host "$ProjectName timed out waiting for another $Name process to complete."
+    }
+}
+
+function RunPreCheck {
+    $PrecheckScript = "$PSScriptRoot\MQ2Main_PreBuild.ps1"
+    if (Test-Path $PrecheckScript -PathType Leaf) {
+        & $PrecheckScript
     }
 }
 
@@ -130,6 +137,7 @@ elseif ($gitAvailable) {
 }
 
 if ($performBootstrap) {
+    RunPreCheck
     & "./bootstrap-vcpkg.bat"
     if ($gitAvailable -AND $LASTEXITCODE -eq 0) {
         $currentCommit | Out-File "./$vcpkg_last_bootstrap_file" -NoNewline
@@ -248,6 +256,7 @@ foreach ($file in $vcpkg_file_list) {
 }
 
 if ($vcpkgInstallTable.Count -ne 0) {
+    RunPreCheck
     $vcpkg_command = "install --x-wait-for-lock"
     foreach ($triplet in $vcpkgInstallTable.GetEnumerator()) {
         if ($triplet.Value.Count -ne 0) {

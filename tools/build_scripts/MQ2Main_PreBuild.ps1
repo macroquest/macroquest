@@ -1,3 +1,6 @@
+# This script is referenced from vcpkg_mq.ps1 for pre-flight checks as well as being the prebuild for MQ2Main.
+# Any modifications should take this into account.
+
 # This will have to be modified when VS2022 comes out (64 bit)
 $vswherePath = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 
