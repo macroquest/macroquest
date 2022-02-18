@@ -17,11 +17,248 @@
 
 #include "MQ2KeyBinds.h"
 
+#include <fstream>
 #include <regex>
 
 namespace mq {
 
 static std::map<std::string, MQMacroBlockPtr> MacroBlockMap;
+uint64_t s_commandCount = 0;
+
+void format_args(fmt::appender& buffer, const std::vector<std::string>& args)
+{
+	if (args.empty())
+		return;
+
+	fmt::format_to(buffer, "\"{}\"", mq::replace(args[0], "\"", "\"\""));
+	for (size_t i = 1; i < args.size(); ++i)
+		fmt::format_to(buffer, ",\"{}\"", mq::replace(args[0], "\"", "\"\""));
+}
+
+class StackFrame
+{
+public:
+	StackFrame(std::string&& subroutine, std::vector<std::string>&& arguments)
+		: m_subroutine(std::move(subroutine))
+		, m_args(std::move(arguments))
+		, m_startTime(std::chrono::high_resolution_clock::now())
+		, m_startCommandCount(s_commandCount)
+	{
+	}
+
+	void AddChild(std::unique_ptr<StackFrame> child)
+	{
+		m_children.push_back(std::move(child));
+	}
+
+	void End(std::string&& returnValue)
+	{
+		m_endTime = std::chrono::high_resolution_clock::now();
+		m_endCommandCount = s_commandCount;
+
+		m_returnValue = std::move(returnValue);
+		m_returned = true;
+	}
+
+	std::chrono::microseconds GetMicrosecondsInclusive() const
+	{
+		return std::chrono::duration_cast<std::chrono::microseconds>(m_endTime - m_startTime);
+	}
+
+	std::chrono::microseconds GetMicrosecondsExclusive() const
+	{
+		std::chrono::microseconds total = GetMicrosecondsInclusive();
+
+		for (const std::unique_ptr<StackFrame>& child : m_children)
+			total -= child->GetMicrosecondsInclusive();
+
+		return total;
+	}
+
+	uint64_t GetCommandCountInclusive() const
+	{
+		return m_endCommandCount - m_startCommandCount;
+	}
+
+	uint64_t GetCommandCountExclusive() const
+	{
+		uint64_t total = GetCommandCountInclusive();
+
+		for (const std::unique_ptr<StackFrame>& child : m_children)
+			total -= child->GetCommandCountInclusive();
+
+		return total;
+	}
+
+	std::string format_csv(int depth, std::chrono::high_resolution_clock::time_point beginTime) const
+	{
+		fmt::memory_buffer mem;
+		fmt::appender buffer(mem);
+
+		format_csv(buffer, depth, beginTime);
+
+		return fmt::to_string(mem);
+	}
+
+	void format_csv(fmt::appender& buffer, int depth, std::chrono::high_resolution_clock::time_point beginTime) const
+	{
+		fmt::format_to(buffer, "{},{},{},{},",
+			m_startCommandCount,
+			std::chrono::duration_cast<std::chrono::microseconds>(m_startTime - beginTime).count() / 1000000.0,
+			depth,
+			m_subroutine);
+
+		for (int i = 1; i < depth; i++)
+			fmt::format_to(buffer, "  ");
+
+		fmt::format_to(buffer, "{},{},{},{},{},{},\"{}\",",
+			m_subroutine,
+			GetCommandCountInclusive(),
+			GetCommandCountExclusive(),
+			GetMicrosecondsInclusive().count() / 1000.0f,
+			GetMicrosecondsExclusive().count() / 1000.0f,
+			m_children.size(),
+			m_returnValue);
+		format_args(buffer, m_args);
+		fmt::format_to(buffer, "\n");
+
+		for (const std::unique_ptr<StackFrame>& child : m_children)
+			child->format_csv(buffer, depth + 1, beginTime);
+	}
+
+private:
+	std::string m_subroutine;
+	std::vector<std::string> m_args;
+	std::string m_returnValue;
+	bool m_returned = false;
+
+	uint64_t m_startCommandCount;
+	uint64_t m_endCommandCount;
+	std::chrono::high_resolution_clock::time_point m_startTime;
+	std::chrono::high_resolution_clock::time_point m_endTime;
+	std::vector<std::unique_ptr<StackFrame>> m_children;
+};
+
+class ProfileSession
+{
+public:
+	ProfileSession(std::string&& name)
+		: m_name(std::move(name))
+		, m_startTime(std::chrono::high_resolution_clock::now())
+	{
+	}
+
+	void Call(std::string&& subroutine, std::vector<std::string>&& args)
+	{
+		m_callStack.emplace_back(new StackFrame(std::move(subroutine), std::move(args)));
+	}
+
+	void Return(std::string returnValue)
+	{
+		if (m_callStack.empty())
+			return;
+
+		// End the current stack frame, and add it to the parent's children.
+		std::unique_ptr<StackFrame>& top = m_callStack.back();
+		top->End(std::move(returnValue));
+
+		if (m_callStack.size() > 1)
+		{
+			m_callStack[m_callStack.size() - 2]->AddChild(std::move(top));
+			m_callStack.pop_back();
+		}
+	}
+
+	void End()
+	{
+		while (m_callStack.size() > 1)
+			Return("#N/A");
+
+		m_callStack.back()->End("#N/A");
+	}
+
+	const std::string& GetName() const {
+		return m_name;
+	}
+
+	std::string to_string() const
+	{
+		fmt::memory_buffer mem;
+		fmt::appender buf(mem);
+
+		fmt::format_to(buf, "Command Count,Seconds Since Start,Stack Depth,Subroutine,Subroutine (tabbed),Commands (inc Children),Commands (ex Children),ms inc, ms ex,Called Children,Return Value,Arguments\n");
+
+		if (m_callStack.size() == 1)
+			m_callStack.back()->format_csv(buf, 1, m_startTime);
+
+		return fmt::to_string(mem);
+	}
+
+private:
+	std::string m_name;
+	std::deque<std::unique_ptr<StackFrame>> m_callStack;
+
+	uint64_t m_startCommandCount;
+	std::chrono::high_resolution_clock::time_point m_startTime;
+};
+
+ProfileSession* g_pProfile = nullptr;
+
+static std::vector<std::string> ArgsToVector(const char* szLine)
+{
+	std::vector<std::string> args;
+
+	int i = 1;
+	while (true)
+	{
+		char szArg[MAX_STRING] = { 0 };
+		GetArg(szArg, szLine, i);
+
+		if (!szArg[0])
+			break;
+
+		if (i > 0)
+			args.emplace_back(szArg);
+
+		++i;
+	}
+
+	return args;
+}
+
+void ProfileCommand(PlayerClient* pPlayer, char* szLine)
+{
+	Macro(pPlayer, szLine);
+
+	if (g_pProfile)
+	{
+		WriteChatf("\ar[Profiler]\ax Macro started when a profiling session is already underway!");
+		return;
+	}
+
+	if (!gMacroBlock)
+		return;
+
+	std::vector<std::string> args = ArgsToVector(szLine);
+
+	auto time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	std::tm now = {};
+	localtime_s(&now, &time);
+	char dateTime[32] = { 0 };
+	std::strftime(dateTime, 32, "%Y%m%d_%H%M%S", &now);
+
+	s_commandCount = 0;
+
+	// strip directories if any
+	char* pMacroName = strrchr(gszMacroName, '\\') + 1;
+	if (pMacroName == (char*)1) pMacroName = strrchr(gszMacroName, '//') + 1;
+	if (pMacroName == (char*)1) pMacroName = gszMacroName;
+
+	WriteChatf("\ag[Profiler]\ax Profiling session started!");
+
+	g_pProfile = new ProfileSession(fmt::format("{}_{}", pMacroName, dateTime));
+	g_pProfile->Call("Main", std::move(args));
+}
 
 void FailIf(SPAWNINFO* pChar, const char* szCommand, int StartLine, bool All)
 {
@@ -1263,6 +1500,25 @@ void EndMacro(PSPAWNINFO pChar, char* szLine)
 
 	PluginsMacroStop(MacroName);
 	gbGroundDeprecateCount = -1;
+
+	if (g_pProfile)
+	{
+		g_pProfile->End();
+
+		std::string profileDirectoryPath = fmt::format("{}\\profiles\\", gPathMacros);
+		std::error_code ec;
+
+		if (!std::filesystem::exists(profileDirectoryPath, ec))
+			std::filesystem::create_directory(profileDirectoryPath, ec);
+
+		std::ofstream logFile(profileDirectoryPath + g_pProfile->GetName() + ".csv");
+		logFile << g_pProfile->to_string();
+
+		WriteChatf("\ag[Profiler]\ax Saved profile to: %s", g_pProfile->GetName().c_str());
+
+		delete g_pProfile;
+		g_pProfile = nullptr;
+	}
 }
 
 static int GetNumArgsFromSub(const std::string& Sub)
@@ -1343,7 +1599,7 @@ void Call(PSPAWNINFO pChar, char* szLine)
 	MQMacroLine& ml = gMacroBlock->Line.at(MacroLine);
 	int numsubargs = GetNumArgsFromSub(ml.Command);
 
-	if ((SubParam && SubParam[0] != '\0') || numsubargs)
+	if (SubParam[0] != 0 || numsubargs)
 	{
 		// FIXME: These don't need to all be 2k bytes long...
 		char szParamName[MAX_STRING] = { 0 };
@@ -1364,6 +1620,14 @@ void Call(PSPAWNINFO pChar, char* szLine)
 			AddMQ2DataVariable(szParamName, "", pType, &gMacroStack->Parameters, szNewValue);
 			SubParam = GetNextArg(SubParam);
 		}
+	}
+
+	if (g_pProfile)
+	{
+		std::string subroutine;
+		std::vector<std::string> args = ArgsToVector(szLine);
+
+		g_pProfile->Call(SubName, std::move(args));
 	}
 }
 
@@ -1740,6 +2004,51 @@ void DoEvents(PSPAWNINFO pChar, char* szLine)
 
 	delete pEvent;
 	bRunNextCommand = true;
+
+	if (g_pProfile)
+	{
+		std::string eventName;
+
+		switch (pEvent->Type)
+		{
+		case EVENT_CHAT:
+			eventName = "Event_Chat";
+			break;
+		case EVENT_TIMER:
+			eventName = "Event_Timer";
+			break;
+		case EVENT_CUSTOM:
+			if (pEvent->pEventList)
+			{
+				std::string_view sv = pEvent->pEventList->szName;
+				if (ci_starts_with(sv, "Sub "))
+				{
+					eventName = sv.substr(4);
+					break;
+				}
+			}
+			// fallthrough
+		default:
+			eventName = fmt::format("** Unknown Event ({}) **", locationIndex);
+			break;
+		}
+
+		MQDataVar* parameters = gMacroStack->Parameters;
+		std::vector<std::string> args;
+		char szArg[MAX_STRING] = { 0 };
+
+		while (parameters)
+		{
+			if (parameters->Var.Type->ToString(pParam->Var.VarPtr, szArg))
+				args.emplace_back(szArg);
+			else
+				args.emplace_back("NULL");
+
+			parameters = parameters->pNext;
+		}
+
+		g_pProfile->Call(std::move(eventName), std::move(args));
+	}
 }
 
 // ***************************************************************************
@@ -1778,6 +2087,11 @@ void Return(PSPAWNINFO pChar, char* szLine)
 	gMacroStack = pStack->pNext;
 
 	delete pStack;
+
+	if (g_pProfile)
+	{
+		g_pProfile->Return(szLine);
+	}
 }
 
 // ***************************************************************************

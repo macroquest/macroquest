@@ -147,4 +147,6 @@ MQLIB_API void NewVarset                           (SPAWNINFO* pChar, char* szLi
 MQLIB_API void NewVarcalc                          (SPAWNINFO* pChar, char* szLine);
 MQLIB_API void NewVardata                          (SPAWNINFO* pChar, char* szLine);
 
+void ProfileCommand(PlayerClient* pPlayer, char* szLine);
+
 } // namespace mq

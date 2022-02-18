@@ -615,7 +615,7 @@ void NewVardata(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-static void AddEvent(int Event, const char* FirstArg, ...)
+static void AddEvent(MQEventType Event, const char* FirstArg, ...)
 {
 	MQEventQueue* pEvent = nullptr;
 	if (!gEventFunc[Event])

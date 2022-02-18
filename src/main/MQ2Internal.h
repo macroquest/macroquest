@@ -1123,14 +1123,27 @@ struct MQMacroStack
 using PMACROSTACK DEPRECATE("Use MQMacroStack* instead of PMACROSTACK") = MQMacroStack *;
 using MACROSTACK DEPRECATE("Use MQMacroStack instead of MACROSTACK") = MQMacroStack;
 
+enum MQEventType {
+	EVENT_CHAT = 0,
+	EVENT_TIMER,
+	EVENT_CUSTOM,
+	EVENT_EVAL,
+	EVENT_EXEC,
+	EVENT_PULSE,
+	EVENT_SHUTDOWN,
+	EVENT_BREAK,
+
+	NUM_EVENTS
+};
+
 struct MQEventQueue
 {
 	MQEventQueue* pPrev = nullptr;
 	MQEventQueue* pNext = nullptr;
-	int           Type = 0; // one of EVENT_xxx defines
+	MQEventType   Type = EVENT_CHAT;
 	std::string   Name;
 	MQEventList*  pEventList = nullptr;
-	MQDataVar*      Parameters = nullptr;
+	MQDataVar*    Parameters = nullptr;
 };
 using EVENTQUEUE DEPRECATE("Use MQEventQueue instead of EVENTQUEUE") = MQEventQueue;
 using PEVENTQUEUE DEPRECATE("Use MQEventQueue* instead of PEVENTQUEUE") = MQEventQueue *;

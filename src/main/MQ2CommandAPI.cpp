@@ -950,6 +950,7 @@ void InitializeMQ2Commands()
 		{ "/convertitem",       ConvertItemCmd,             true,  true  },
 		{ "/insertaug",         InsertAugCmd,               true,  true  },
 		{ "/removeaug",         RemoveAugCmd,               true,  true  },
+		{ "/profile",           ProfileCommand,             true,  false },
 
 		{ nullptr,              nullptr,                    false, true  },
 	};

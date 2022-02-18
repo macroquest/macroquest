@@ -62,6 +62,7 @@ static void ProcessQueuedEvents()
 }
 
 //----------------------------------------------------------------------------
+extern uint64_t s_commandCount;
 
 static bool DoNextCommand(MQMacroBlockPtr pBlock)
 {
@@ -184,6 +185,7 @@ static bool DoNextCommand(MQMacroBlockPtr pBlock)
 				}
 			}
 
+			s_commandCount++;
 			return true;
 		}
 	}
