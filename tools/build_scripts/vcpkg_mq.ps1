@@ -31,6 +31,7 @@ Param (
 $vcpkg_root = "$MQRoot\contrib\vcpkg"
 $vcpkg_triplet = "$Platform-windows-static"
 $vcpkg_mq_file = "vcpkg_mq.txt"
+$vcpkg_mq_file_platform = "vcpkg_mq_$Platform.txt"
 
 $vcpkg_last_bootstrap_file = "vcpkg_mq_last_bootstrap-$Platform.txt"
 
@@ -82,8 +83,8 @@ function RunPreCheck {
     }
 }
 
-# If there is not a vcpkg_mq_file, then no reason to continue
-if (-Not (Test-Path -Path "$ProjectDirectory\$vcpkg_mq_file")) {
+# If there is not a vcpkg_mq_file and vcpkg_mq_file_platform, then no reason to continue
+if (-Not (Test-Path -Path "$ProjectDirectory\$vcpkg_mq_file") -And -Not (Test-Path -Path "$ProjectDirectory\$vcpkg_mq_file_platform")) {
     exit 0
 }
 
@@ -96,7 +97,9 @@ if (-Not (Test-Path -Path "$vcpkg_root" -PathType Container))
 $startingDirectory = Get-Location
 Set-Location $vcpkg_root
 
-$vcpkg_file_list = Get-ChildItem -Path "$ProjectDirectory\$vcpkg_mq_file"
+$vcpkg_file_list = @()
+$vcpkg_file_list = @(Get-ChildItem -Path "$ProjectDirectory\$vcpkg_mq_file" -ErrorAction SilentlyContinue)
+$vcpkg_file_list += @(Get-ChildItem -Path "$ProjectDirectory\$vcpkg_mq_file_platform" -ErrorAction SilentlyContinue)
 
 $gitAvailable = $true
 try
@@ -166,7 +169,10 @@ if (-Not $vcpkg_drive_fixed) {
 
 if ($performBootstrap) {
     Write-Host "Searching for all $vcpkg_mq_file files..."
-    $vcpkg_file_list = Get-ChildItem -Directory -Path $MQRoot -Exclude .git,.vs,build,contrib,data,docs,extras,include | Get-ChildItem -Recurse -Filter $vcpkg_mq_file
+    $folderList = Get-ChildItem -Directory -Path $MQRoot -Exclude .git,.vs,build,contrib,data,docs,extras,include
+    $vcpkg_file_list = @($folderList | Get-ChildItem -Recurse -Filter $vcpkg_mq_file)
+    $vcpkg_file_list += @($folderList | Get-ChildItem -Recurse -Filter $vcpkg_mq_file_platform)
+
     Write-Host "Search complete"
 }
 
@@ -208,7 +214,7 @@ if ($performBootstrap -And $vcpkgTable.Count -ne 0) {
 $vcpkgInstallTable = @{}
 foreach ($file in $vcpkg_file_list) {
     Write-Host "$ProjectName checking vcpkgs from $($file.FullName)"
-    $fileContents = Get-Content -Path $file.FullName
+    $fileContents = Get-Content -Path "$($file.FullName)"
     foreach ($line in $fileContents) {
         $line = $line.Trim()
         # Hash is a comment
