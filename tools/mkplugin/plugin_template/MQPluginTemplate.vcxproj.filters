@@ -12,7 +12,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MQ2PluginTemplate.cpp">
+    <ClCompile Include="MQPluginTemplate.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -22,7 +22,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="MQ2PluginTemplate.rc">
+    <ResourceCompile Include="MQPluginTemplate.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

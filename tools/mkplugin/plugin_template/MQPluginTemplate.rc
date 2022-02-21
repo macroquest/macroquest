@@ -69,14 +69,14 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "MacroQuest"
 #ifdef _DEBUG
-            VALUE "FileDescription", "MQ2PluginTemplate Debug Version"
+            VALUE "FileDescription", "MQPluginTemplate Debug Version"
 #else
-            VALUE "FileDescription", "MQ2PluginTemplate Release Version"
+            VALUE "FileDescription", "MQPluginTemplate Release Version"
 #endif
             VALUE "FileVersion", "0.0"
-            VALUE "InternalName", "MQ2PluginTemplate.dll"
-            VALUE "OriginalFilename", "MQ2PluginTemplate.dll"
-            VALUE "ProductName", "MQ2PluginTemplate"
+            VALUE "InternalName", "MQPluginTemplate.dll"
+            VALUE "OriginalFilename", "MQPluginTemplate.dll"
+            VALUE "ProductName", "MQPluginTemplate"
             VALUE "ProductVersion", "0.0"
         END
     END

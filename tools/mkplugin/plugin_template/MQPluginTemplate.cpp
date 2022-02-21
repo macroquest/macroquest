@@ -1,4 +1,4 @@
-// MQ2PluginTemplate.cpp : Defines the entry point for the DLL application.
+// MQPluginTemplate.cpp : Defines the entry point for the DLL application.
 //
 
 // PLUGIN_API is only to be used for callbacks.  All existing callbacks at this time
@@ -7,14 +7,14 @@
 
 #include <mq/Plugin.h>
 
-PreSetup("MQ2PluginTemplate");
+PreSetup("MQPluginTemplate");
 PLUGIN_VERSION(0.1);
 
 /**
  * Avoid Globals if at all possible, since they persist throughout your program.
  * But if you must have them, here is the place to put them.
  */
-// bool ShowMQ2PluginTemplateWindow = true;
+// bool ShowMQPluginTemplateWindow = true;
 
 /**
  * @fn InitializePlugin
@@ -24,7 +24,7 @@ PLUGIN_VERSION(0.1);
  */
 PLUGIN_API void InitializePlugin()
 {
-	DebugSpewAlways("MQ2PluginTemplate::Initializing version %f", MQ2Version);
+	DebugSpewAlways("MQPluginTemplate::Initializing version %f", MQ2Version);
 
 	// Examples:
 	// AddCommand("/mycommand", MyCommand);
@@ -40,7 +40,7 @@ PLUGIN_API void InitializePlugin()
  */
 PLUGIN_API void ShutdownPlugin()
 {
-	DebugSpewAlways("MQ2PluginTemplate::Shutting down");
+	DebugSpewAlways("MQPluginTemplate::Shutting down");
 
 	// Examples:
 	// RemoveCommand("/mycommand");
@@ -61,7 +61,7 @@ PLUGIN_API void ShutdownPlugin()
  */
 PLUGIN_API void OnCleanUI()
 {
-	// DebugSpewAlways("MQ2PluginTemplate::OnCleanUI()");
+	// DebugSpewAlways("MQPluginTemplate::OnCleanUI()");
 }
 
 /**
@@ -76,7 +76,7 @@ PLUGIN_API void OnCleanUI()
  */
 PLUGIN_API void OnReloadUI()
 {
-	// DebugSpewAlways("MQ2PluginTemplate::OnReloadUI()");
+	// DebugSpewAlways("MQPluginTemplate::OnReloadUI()");
 }
 
 /**
@@ -101,7 +101,7 @@ PLUGIN_API void OnDrawHUD()
 	{
 		// Wait half a second before running again
 		DrawHUDTimer = std::chrono::steady_clock::now() + std::chrono::milliseconds(500);
-		DebugSpewAlways("MQ2PluginTemplate::OnDrawHUD()");
+		DebugSpewAlways("MQPluginTemplate::OnDrawHUD()");
 	}
 */
 }
@@ -124,7 +124,7 @@ PLUGIN_API void OnDrawHUD()
  */
 PLUGIN_API void SetGameState(int GameState)
 {
-	// DebugSpewAlways("MQ2PluginTemplate::SetGameState(%d)", GameState);
+	// DebugSpewAlways("MQPluginTemplate::SetGameState(%d)", GameState);
 }
 
 
@@ -146,7 +146,7 @@ PLUGIN_API void OnPulse()
 	{
 		// Wait 5 seconds before running again
 		PulseTimer = std::chrono::steady_clock::now() + std::chrono::seconds(5);
-		DebugSpewAlways("MQ2PluginTemplate::OnPulse()");
+		DebugSpewAlways("MQPluginTemplate::OnPulse()");
 	}
 */
 }
@@ -173,7 +173,7 @@ PLUGIN_API void OnPulse()
  */
 PLUGIN_API void OnWriteChatColor(const char* Line, int Color, int Filter)
 {
-	// DebugSpewAlways("MQ2PluginTemplate::OnWriteChatColor(%s, %d, %d)", Line, Color, Filter);
+	// DebugSpewAlways("MQPluginTemplate::OnWriteChatColor(%s, %d, %d)", Line, Color, Filter);
 }
 
 /**
@@ -193,7 +193,7 @@ PLUGIN_API void OnWriteChatColor(const char* Line, int Color, int Filter)
  */
 PLUGIN_API bool OnIncomingChat(const char* Line, DWORD Color)
 {
-	// DebugSpewAlways("MQ2PluginTemplate::OnIncomingChat(%s, %d)", Line, Color);
+	// DebugSpewAlways("MQPluginTemplate::OnIncomingChat(%s, %d)", Line, Color);
 	return false;
 }
 
@@ -210,7 +210,7 @@ PLUGIN_API bool OnIncomingChat(const char* Line, DWORD Color)
  */
 PLUGIN_API void OnAddSpawn(PSPAWNINFO pNewSpawn)
 {
-	// DebugSpewAlways("MQ2PluginTemplate::OnAddSpawn(%s)", pNewSpawn->Name);
+	// DebugSpewAlways("MQPluginTemplate::OnAddSpawn(%s)", pNewSpawn->Name);
 }
 
 /**
@@ -226,7 +226,7 @@ PLUGIN_API void OnAddSpawn(PSPAWNINFO pNewSpawn)
  */
 PLUGIN_API void OnRemoveSpawn(PSPAWNINFO pSpawn)
 {
-	// DebugSpewAlways("MQ2PluginTemplate::OnRemoveSpawn(%s)", pSpawn->Name);
+	// DebugSpewAlways("MQPluginTemplate::OnRemoveSpawn(%s)", pSpawn->Name);
 }
 
 /**
@@ -242,7 +242,7 @@ PLUGIN_API void OnRemoveSpawn(PSPAWNINFO pSpawn)
  */
 PLUGIN_API void OnAddGroundItem(PGROUNDITEM pNewGroundItem)
 {
-	// DebugSpewAlways("MQ2PluginTemplate::OnAddGroundItem(%d)", pNewGroundItem->DropID);
+	// DebugSpewAlways("MQPluginTemplate::OnAddGroundItem(%d)", pNewGroundItem->DropID);
 }
 
 /**
@@ -258,7 +258,7 @@ PLUGIN_API void OnAddGroundItem(PGROUNDITEM pNewGroundItem)
  */
 PLUGIN_API void OnRemoveGroundItem(PGROUNDITEM pGroundItem)
 {
-	// DebugSpewAlways("MQ2PluginTemplate::OnRemoveGroundItem(%d)", pGroundItem->DropID);
+	// DebugSpewAlways("MQPluginTemplate::OnRemoveGroundItem(%d)", pGroundItem->DropID);
 }
 
 /**
@@ -268,7 +268,7 @@ PLUGIN_API void OnRemoveGroundItem(PGROUNDITEM pGroundItem)
  */
 PLUGIN_API void OnBeginZone()
 {
-	// DebugSpewAlways("MQ2PluginTemplate::OnBeginZone()");
+	// DebugSpewAlways("MQPluginTemplate::OnBeginZone()");
 }
 
 /**
@@ -282,7 +282,7 @@ PLUGIN_API void OnBeginZone()
  */
 PLUGIN_API void OnEndZone()
 {
-	// DebugSpewAlways("MQ2PluginTemplate::OnEndZone()");
+	// DebugSpewAlways("MQPluginTemplate::OnEndZone()");
 }
 
 /**
@@ -295,7 +295,7 @@ PLUGIN_API void OnEndZone()
  */
 PLUGIN_API void OnZoned()
 {
-	// DebugSpewAlways("MQ2PluginTemplate::OnZoned()");
+	// DebugSpewAlways("MQPluginTemplate::OnZoned()");
 }
 
 /**
@@ -312,13 +312,13 @@ PLUGIN_API void OnUpdateImGui()
 /*
 	if (GetGameState() == GAMESTATE_INGAME)
 	{
-		if (ShowMQ2PluginTemplateWindow)
+		if (ShowMQPluginTemplateWindow)
 		{
-			if (ImGui::Begin("MQ2PluginTemplate", &ShowMQ2PluginTemplateWindow, ImGuiWindowFlags_MenuBar))
+			if (ImGui::Begin("MQPluginTemplate", &ShowMQPluginTemplateWindow, ImGuiWindowFlags_MenuBar))
 			{
 				if (ImGui::BeginMenuBar())
 				{
-					ImGui::Text("MQ2PluginTemplate is loaded!");
+					ImGui::Text("MQPluginTemplate is loaded!");
 					ImGui::EndMenuBar();
 				}
 			}
@@ -338,7 +338,7 @@ PLUGIN_API void OnUpdateImGui()
  */
 PLUGIN_API void OnMacroStart(const char* Name)
 {
-	// DebugSpewAlways("MQ2PluginTemplate::OnMacroStart(%s)", Name);
+	// DebugSpewAlways("MQPluginTemplate::OnMacroStart(%s)", Name);
 }
 
 /**
@@ -350,7 +350,7 @@ PLUGIN_API void OnMacroStart(const char* Name)
  */
 PLUGIN_API void OnMacroStop(const char* Name)
 {
-	// DebugSpewAlways("MQ2PluginTemplate::OnMacroStop(%s)", Name);
+	// DebugSpewAlways("MQPluginTemplate::OnMacroStop(%s)", Name);
 }
 
 /**
@@ -367,7 +367,7 @@ PLUGIN_API void OnMacroStop(const char* Name)
  */
 PLUGIN_API void OnLoadPlugin(const char* Name)
 {
-	// DebugSpewAlways("MQ2PluginTemplate::OnLoadPlugin(%s)", Name);
+	// DebugSpewAlways("MQPluginTemplate::OnLoadPlugin(%s)", Name);
 }
 
 /**
@@ -384,5 +384,5 @@ PLUGIN_API void OnLoadPlugin(const char* Name)
  */
 PLUGIN_API void OnUnloadPlugin(const char* Name)
 {
-	// DebugSpewAlways("MQ2PluginTemplate::OnUnloadPlugin(%s)", Name);
+	// DebugSpewAlways("MQPluginTemplate::OnUnloadPlugin(%s)", Name);
 }

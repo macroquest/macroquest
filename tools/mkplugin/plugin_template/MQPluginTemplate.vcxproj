@@ -72,13 +72,13 @@
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
   </PropertyGroup>
   <ItemGroup>
-    <ClCompile Include="MQ2PluginTemplate.cpp" />
+    <ClCompile Include="MQPluginTemplate.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="MQ2PluginTemplate.rc" />
+    <ResourceCompile Include="MQPluginTemplate.rc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

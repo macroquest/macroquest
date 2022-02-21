@@ -1,5 +1,5 @@
 /******************************************************************************
- * mkplugin - MQ2 Plugin Template Quickstart Program
+ * mkplugin - MQ Plugin Template Quickstart Program
  * Original Author: Knightly
  ******************************************************************************
  * This is free and unencumbered software released into the public domain.
@@ -224,12 +224,12 @@ static bool save_resource_to_file_with_output(int ResourceID, const std::string&
 
 static std::string get_plugin_name(std::string pluginName)
 {
-    // append MQ2 if it doesn't exist
-    if (pluginName.length() < 3 || !str_equal_ci("MQ2", pluginName.substr(0, 3))) {
-        pluginName = "MQ2" + pluginName;
+    // append MQ if it doesn't exist
+    if (pluginName.length() < 2 || !str_equal_ci("MQ", pluginName.substr(0, 2))) {
+        pluginName = "MQ" + pluginName;
     }
     else {
-        pluginName = "MQ2" + pluginName.substr(3, pluginName.length() -3);
+        pluginName = "MQ" + pluginName.substr(2, pluginName.length() - 2);
     }
     // Remove non-alphanumeric characters
     pluginName.erase(std::remove_if(pluginName.begin(), pluginName.end(), std::not_fn(static_cast<int(*)(int)>(std::isalnum))), pluginName.end());
@@ -243,10 +243,10 @@ static void show_usage(const std::filesystem::path& appFullPath)
               << std::endl
               << "Description:" << std::endl
               << "\tCreates a plugin folder and project using the default template.  If the" << std::endl
-              << "\tplugin name isn't prefixed with MQ2, this program will add that prefix." << std::endl
+              << "\tplugin name isn't prefixed with MQ, this program will add that prefix." << std::endl
               << std::endl
               << "Example:" << std::endl
-              << "\t" << appFullPath.filename().string() << " MQ2AwesomeThing" << std::endl
+              << "\t" << appFullPath.filename().string() << " MQAwesomeThing" << std::endl
               << std::endl;
 }
 
@@ -271,13 +271,13 @@ int main(int argc, char* argv[]) // NOLINT
                     std::cerr << "ERROR: Plugin directory already exists: " << strPluginName << std::endl;
                 }
                 else {
-                    if (save_resource_to_file_with_output(IDR_PLUGIN_TEMPLATE_CPP, "TEXT", pluginDir / std::filesystem::path(strPluginName + ".cpp"), true, "MQ2PluginTemplate", strPluginName) &&
-                        save_resource_to_file_with_output(IDR_PLUGIN_TEMPLATE_README, "TEXT", pluginDir / "README.md", true, "MQ2PluginTemplate", strPluginName) &&
-                        save_resource_to_file_with_output(IDR_PLUGIN_TEMPLATE_VCXPROJ, "XML", pluginDir / std::filesystem::path(strPluginName + ".vcxproj"), true, "MQ2PluginTemplate", strPluginName) &&
-                        save_resource_to_file_with_output(IDR_PLUGIN_TEMPLATE_VCXPROJ_FILTERS, "XML", pluginDir / std::filesystem::path(strPluginName + ".vcxproj.filters"), true, "MQ2PluginTemplate", strPluginName, "vcxproj.filters file") &&
-                        save_resource_to_file_with_output(IDR_PLUGIN_TEMPLATE_RESOURCEH, "TEXT", pluginDir / "resource.h", true, "MQ2PluginTemplate", strPluginName) &&
-                        save_resource_to_file_with_output(IDR_PLUGIN_TEMPLATE_RC, "TEXT", pluginDir / std::filesystem::path(strPluginName + ".rc"), true, "MQ2PluginTemplate", strPluginName) &&
-                        save_resource_to_file_with_output(IDR_PLUGIN_TEMPLATE_GITIGNORE, "TEXT", pluginDir / ".gitignore", true, "MQ2PluginTemplate", strPluginName))
+                    if (save_resource_to_file_with_output(IDR_PLUGIN_TEMPLATE_CPP, "TEXT", pluginDir / std::filesystem::path(strPluginName + ".cpp"), true, "MQPluginTemplate", strPluginName) &&
+                        save_resource_to_file_with_output(IDR_PLUGIN_TEMPLATE_README, "TEXT", pluginDir / "README.md", true, "MQPluginTemplate", strPluginName) &&
+                        save_resource_to_file_with_output(IDR_PLUGIN_TEMPLATE_VCXPROJ, "XML", pluginDir / std::filesystem::path(strPluginName + ".vcxproj"), true, "MQPluginTemplate", strPluginName) &&
+                        save_resource_to_file_with_output(IDR_PLUGIN_TEMPLATE_VCXPROJ_FILTERS, "XML", pluginDir / std::filesystem::path(strPluginName + ".vcxproj.filters"), true, "MQPluginTemplate", strPluginName, "vcxproj.filters file") &&
+                        save_resource_to_file_with_output(IDR_PLUGIN_TEMPLATE_RESOURCEH, "TEXT", pluginDir / "resource.h", true, "MQPluginTemplate", strPluginName) &&
+                        save_resource_to_file_with_output(IDR_PLUGIN_TEMPLATE_RC, "TEXT", pluginDir / std::filesystem::path(strPluginName + ".rc"), true, "MQPluginTemplate", strPluginName) &&
+                        save_resource_to_file_with_output(IDR_PLUGIN_TEMPLATE_GITIGNORE, "TEXT", pluginDir / ".gitignore", true, "MQPluginTemplate", strPluginName))
                     {
                         std::cout << "Plugin Template created for " << strPluginName << std::endl;
                     }

@@ -36,7 +36,7 @@
     <ClInclude Include="plugin_template\resource.h">
       <Filter>Template Files</Filter>
     </ClInclude>
-    <ClCompile Include="plugin_template\MQ2PluginTemplate.cpp">
+    <ClCompile Include="plugin_template\MQPluginTemplate.cpp">
       <Filter>Template Files</Filter>
     </ClCompile>
     <None Include="plugin_template\README.MD">
@@ -45,10 +45,10 @@
     <None Include="plugin_template\.gitignore">
       <Filter>Template Files</Filter>
     </None>
-    <None Include="plugin_template\MQ2PluginTemplate.vcxproj">
+    <None Include="plugin_template\MQPluginTemplate.vcxproj">
       <Filter>Template Files</Filter>
     </None>
-    <None Include="plugin_template\MQ2PluginTemplate.vcxproj.filters">
+    <None Include="plugin_template\MQPluginTemplate.vcxproj.filters">
       <Filter>Template Files</Filter>
     </None>
   </ItemGroup>
