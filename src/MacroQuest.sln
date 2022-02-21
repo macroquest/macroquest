@@ -42,6 +42,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "core", "core", "{5BB58FDF-3760-4BAD-A147-D71E4EC66BE8}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pluginapi", "plugins\pluginapi\pluginapi.vcxproj", "{70752189-B826-4E5D-816B-61B9147881CB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7CC5690F-593C-4938-922D-73A0AC84537A} = {7CC5690F-593C-4938-922D-73A0AC84537A}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Lua", "plugins\lua\MQ2Lua.vcxproj", "{CF3A1DD3-1DC4-4238-A4B5-B3159599FCC0}"
 EndProject
