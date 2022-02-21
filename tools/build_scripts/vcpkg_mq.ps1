@@ -127,6 +127,12 @@ if ($ProcessList.Count -gt 1) {
 # For simultaneous runs, if bootstrap is currently running, wait until it finishes
 Wait-Process -Name "powershell.exe" -Filter "*scripts\bootstrap.ps1*"
 
+if (Test-Path env:VCPKG_ROOT)
+{
+    Write-Warning "VCPKG_ROOT environment variable is set which means another installation of vcpkg is trying to override this one.  Temporarily resolving this issue, but there may be other issues with global vcpkg config."
+    $env:VCPKG_ROOT = $vcpkg_root
+}
+
 # Only bootstrap if we have no vcpkg or an old vcpkg
 $performBootstrap = $false
 if (-Not (Test-Path "./vcpkg.exe")) {
