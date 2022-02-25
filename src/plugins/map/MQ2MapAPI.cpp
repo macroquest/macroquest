@@ -88,8 +88,6 @@ void MapInit()
 	TargetMeleeCircle.Clear();
 	CampCircle.Clear();
 	PullCircle.Clear();
-
-	MapGenerate();
 }
 
 MapObject* AddSpawn(SPAWNINFO* pNewSpawn, bool ExplicitAllow)
