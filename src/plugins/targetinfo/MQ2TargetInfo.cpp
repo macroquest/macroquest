@@ -842,11 +842,11 @@ PLUGIN_API void OnPulse()
 							{
 								if (pTarget->Type == SPAWN_PLAYER)
 								{
-									sprintf_s(szTargetDist, "%d %s %s", pTarget->Level, pEverQuest->GetRaceDesc(pTarget->mActorClient.Race), pEverQuest->GetClassThreeLetterCode(pTarget->mActorClient.Class));
+									sprintf_s(szTargetDist, "%d %s %s", pTarget->Level, pTarget->GetRaceString(), pTarget->GetClassThreeLetterCode());
 								}
 								else
 								{
-									sprintf_s(szTargetDist, "%d %s %s", pTarget->Level, pEverQuest->GetRaceDesc(pTarget->mActorClient.Race), GetClassDesc(pTarget->mActorClient.Class));
+									sprintf_s(szTargetDist, "%d %s %s", pTarget->Level, pTarget->GetRaceString(),pTarget->GetClassString());
 								}
 							}
 						}

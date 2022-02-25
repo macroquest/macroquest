@@ -2621,7 +2621,7 @@ bool IsInRaid(SPAWNINFO* pSpawn, bool bCorpse)
 		if (!bCorpse)
 		{
 			if (!_strnicmp(member.Name, pSpawn->Name, l + 1)
-				&& member.nClass == pSpawn->mActorClient.Class)
+				&& member.nClass == pSpawn->GetClass())
 			{
 				return true;
 			}
@@ -2634,7 +2634,7 @@ bool IsInRaid(SPAWNINFO* pSpawn, bool bCorpse)
 
 			size_t l = strlen(szSearch);
 			if (!_strnicmp(szSearch, pSpawn->Name, l)
-				&& member.nClass == pSpawn->mActorClient.Class)
+				&& member.nClass == pSpawn->GetClass())
 			{
 				return true;
 			}
@@ -2670,7 +2670,7 @@ bool IsInFellowship(SPAWNINFO* pSpawn, bool bCorpse)
 			strcat_s(szSearch, "'s corpse");
 
 			if (!_strnicmp(szSearch, pSpawn->Name, strlen(szSearch))
-				&& Fellowship.FellowshipMember[i].Class == pSpawn->mActorClient.Class)
+				&& Fellowship.FellowshipMember[i].Class == pSpawn->GetClass())
 			{
 				return true;
 			}
@@ -2690,25 +2690,25 @@ bool IsNamed(SPAWNINFO* pSpawn)
 			return false;
 		if (!IsTargetable(pSpawn))
 			return false;
-		if (pSpawn->mActorClient.Class >= 20 && pSpawn->mActorClient.Class <= 35)  // NPC GMs
+		if (pSpawn->GetClass() >= 20 && pSpawn->GetClass() <= 35)  // NPC GMs
 			return false;
-		if (pSpawn->mActorClient.Class == 40)  // NPC bankers
+		if (pSpawn->GetClass() == 40)  // NPC bankers
 			return false;
-		if (pSpawn->mActorClient.Class == 41 || pSpawn->mActorClient.Class == 70)  // NPC/Quest/TBS merchants
+		if (pSpawn->GetClass() == 41 || pSpawn->GetClass() == 70)  // NPC/Quest/TBS merchants
 			return false;
-		if (pSpawn->mActorClient.Class == 60 || pSpawn->mActorClient.Class == 61)  //Ldon Merchants/Recruiters
+		if (pSpawn->GetClass() == 60 || pSpawn->GetClass() == 61)  //Ldon Merchants/Recruiters
 			return false;
-		if (pSpawn->mActorClient.Class == 62)  // Destructible Objects
+		if (pSpawn->GetClass() == 62)  // Destructible Objects
 			return false;
-		if (pSpawn->mActorClient.Class == 63 || pSpawn->mActorClient.Class == 64 || pSpawn->mActorClient.Class == 74)  // Tribute Master/Guild Tribute Master/Personal Tribute Master
+		if (pSpawn->GetClass() == 63 || pSpawn->GetClass() == 64 || pSpawn->GetClass() == 74)  // Tribute Master/Guild Tribute Master/Personal Tribute Master
 			return false;
-		if (pSpawn->mActorClient.Class == 66)  // Guild Banker
+		if (pSpawn->GetClass() == 66)  // Guild Banker
 			return false;
-		if (pSpawn->mActorClient.Class == 67 || pSpawn->mActorClient.Class == 68)  //Don Merchants (Norrath's Keepers/Dark Reign)
+		if (pSpawn->GetClass() == 67 || pSpawn->GetClass() == 68)  //Don Merchants (Norrath's Keepers/Dark Reign)
 			return false;
-		if (pSpawn->mActorClient.Class == 69)  // Fellowship Registrar
+		if (pSpawn->GetClass() == 69)  // Fellowship Registrar
 			return false;
-		if (pSpawn->mActorClient.Class == 71)  // Mercenary Liason
+		if (pSpawn->GetClass() == 71)  // Mercenary Liason
 			return false;
 
 		strcpy_s(szTemp, pSpawn->Name);
@@ -3268,25 +3268,25 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 
 	if (pSearchSpawn->bGM && pSearchSpawn->SpawnType == NPC)
 	{
-		if (pSpawn->mActorClient.Class < 20 || pSpawn->mActorClient.Class > 35)
+		if (pSpawn->GetClass() < 20 || pSpawn->GetClass() > 35)
 			return false;
 	}
 
 	if (pSearchSpawn->bNamed && !IsNamed(pSpawn))
 		return false;
-	if (pSearchSpawn->bMerchant && pSpawn->mActorClient.Class != 41)
+	if (pSearchSpawn->bMerchant && pSpawn->GetClass() != 41)
 		return false;
-	if (pSearchSpawn->bBanker && pSpawn->mActorClient.Class != 40)
+	if (pSearchSpawn->bBanker && pSpawn->GetClass() != 40)
 		return false;
-	if (pSearchSpawn->bTributeMaster && pSpawn->mActorClient.Class != 63)
+	if (pSearchSpawn->bTributeMaster && pSpawn->GetClass() != 63)
 		return false;
 	if (pSearchSpawn->bNoGuild && (pSpawn->GuildID != -1 && pSpawn->GuildID != 0))
 		return false;
 
 	if (pSearchSpawn->bKnight && pSearchSpawn->SpawnType != NPC)
 	{
-		if (pSpawn->mActorClient.Class != Paladin
-			&& pSpawn->mActorClient.Class != Shadowknight)
+		if (pSpawn->GetClass() != Paladin
+			&& pSpawn->GetClass() != Shadowknight)
 		{
 			return false;
 		}
@@ -3294,9 +3294,9 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 
 	if (pSearchSpawn->bTank && pSearchSpawn->SpawnType != NPC)
 	{
-		if (pSpawn->mActorClient.Class != Paladin
-			&& pSpawn->mActorClient.Class != Shadowknight
-			&& pSpawn->mActorClient.Class != Warrior)
+		if (pSpawn->GetClass() != Paladin
+			&& pSpawn->GetClass() != Shadowknight
+			&& pSpawn->GetClass() != Warrior)
 		{
 			return false;
 		}
@@ -3304,9 +3304,9 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 
 	if (pSearchSpawn->bHealer && pSearchSpawn->SpawnType != NPC)
 	{
-		if (pSpawn->mActorClient.Class != Cleric
-			&& pSpawn->mActorClient.Class != Druid
-			&& pSpawn->mActorClient.Class != Shaman)
+		if (pSpawn->GetClass() != Cleric
+			&& pSpawn->GetClass() != Druid
+			&& pSpawn->GetClass() != Shaman)
 		{
 			return false;
 		}
@@ -3314,10 +3314,10 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 
 	if (pSearchSpawn->bDps && pSearchSpawn->SpawnType != NPC)
 	{
-		if (pSpawn->mActorClient.Class != Ranger
-			&& pSpawn->mActorClient.Class != Rogue
-			&& pSpawn->mActorClient.Class != Wizard
-			&& pSpawn->mActorClient.Class != Berserker)
+		if (pSpawn->GetClass() != Ranger
+			&& pSpawn->GetClass() != Rogue
+			&& pSpawn->GetClass() != Wizard
+			&& pSpawn->GetClass() != Berserker)
 		{
 			return false;
 		}
@@ -3325,10 +3325,10 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 
 	if (pSearchSpawn->bSlower && pSearchSpawn->SpawnType != NPC)
 	{
-		if (pSpawn->mActorClient.Class != Shaman
-			&& pSpawn->mActorClient.Class != Enchanter
-			&& pSpawn->mActorClient.Class != Beastlord
-			&& pSpawn->mActorClient.Class != Bard)
+		if (pSpawn->GetClass() != Shaman
+			&& pSpawn->GetClass() != Enchanter
+			&& pSpawn->GetClass() != Beastlord
+			&& pSpawn->GetClass() != Bard)
 		{
 			return false;
 		}
@@ -3428,11 +3428,11 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 		return false;
 	if (pSearchSpawn->bNearAlert && !GetClosestAlert(pSpawn, pSearchSpawn->NearAlertList))
 		return false;
-	if (pSearchSpawn->szClass[0] && _stricmp(pSearchSpawn->szClass, GetClassDesc(pSpawn->mActorClient.Class)))
+	if (pSearchSpawn->szClass[0] && _stricmp(pSearchSpawn->szClass, GetClassDesc(pSpawn->GetClass())))
 		return false;
 	if (pSearchSpawn->szBodyType[0] && _stricmp(pSearchSpawn->szBodyType, GetBodyTypeDesc(GetBodyType(pSpawn))))
 		return false;
-	if (pSearchSpawn->szRace[0] && _stricmp(pSearchSpawn->szRace, pEverQuest->GetRaceDesc(pSpawn->mActorClient.Race)))
+	if (pSearchSpawn->szRace[0] && _stricmp(pSearchSpawn->szRace, pEverQuest->GetRaceDesc(pSpawn->GetRace())))
 		return false;
 	if (pSearchSpawn->bLoS && !pControlledPlayer->CanSee(*pSpawn))
 		return false;
@@ -4166,7 +4166,7 @@ void SuperWhoDisplay(SPAWNINFO* pSpawn, DWORD Color)
 
 		if (gFilterSWho.Race)
 		{
-			strcat_s(szMsg, pEverQuest->GetRaceDesc(pSpawn->mActorClient.Race));
+			strcat_s(szMsg, pEverQuest->GetRaceDesc(pSpawn->GetRace()));
 			strcat_s(szMsg, " ");
 		}
 
@@ -4178,7 +4178,7 @@ void SuperWhoDisplay(SPAWNINFO* pSpawn, DWORD Color)
 
 		if (gFilterSWho.Class)
 		{
-			strcat_s(szMsg, GetClassDesc(pSpawn->mActorClient.Class));
+			strcat_s(szMsg, GetClassDesc(pSpawn->GetClass()));
 			strcat_s(szMsg, " ");
 		}
 
@@ -4312,10 +4312,10 @@ struct SuperWhoSortPredicate
 			return _stricmp(SpawnA->DisplayedName, SpawnB->DisplayedName) < 0;
 
 		case SearchSortBy::Race:
-			return _stricmp(pEverQuest->GetRaceDesc(SpawnA->mActorClient.Race), pEverQuest->GetRaceDesc(SpawnB->mActorClient.Race)) < 0;
+			return _stricmp(SpawnA->GetRaceString(), SpawnB->GetRaceString()) < 0;
 
 		case SearchSortBy::Class:
-			return _stricmp(GetClassDesc(SpawnA->mActorClient.Class), GetClassDesc(SpawnB->mActorClient.Class)) < 0;
+			return _stricmp(SpawnA->GetClassString(), SpawnB->GetClassString()) < 0;
 
 		case SearchSortBy::Distance:
 			return GetDistanceSquared(m_pOrigin, SpawnA) < GetDistanceSquared(m_pOrigin, SpawnB);
@@ -6223,7 +6223,7 @@ int GetGroupMemberClassByIndex(int index)
 
 	if (pMember && pMember->GetPlayer())
 	{
-		return pMember->GetPlayer()->mActorClient.Class;
+		return pMember->GetPlayer()->GetClass();
 	}
 
 	return 0;
@@ -6446,14 +6446,15 @@ eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 		switch (GetBodyType(pSpawn))
 		{
 		case 0:
-			if (pSpawn->mActorClient.Class == 62)
+			if (pSpawn->GetClass() == Class_Object)
 				return OBJECT;
 			return NPC;
 
 		case 1:
-			if (pSpawn->mActorClient.Race == 567)
+			if (pSpawn->GetRace() == EQR_CAMPSITE)
 				return CAMPFIRE;
-			if (pSpawn->mActorClient.Race == 500|| (pSpawn->mActorClient.Race >= 553 && pSpawn->mActorClient.Race <= 557) || pSpawn->mActorClient.Race == 586)
+			if (pSpawn->GetRace() == EQR_BANNER
+				|| (pSpawn->GetRace() >= EQR_BANNER0 && pSpawn->GetRace() <= EQR_BANNER4) || pSpawn->GetRace() == EQR_TCGBANNER)
 				return BANNER;
 			return NPC;
 
@@ -6463,12 +6464,12 @@ eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 		case 5:
 			if (strstr(pSpawn->Name, "Idol") || strstr(pSpawn->Name, "Poison") || strstr(pSpawn->Name, "Rune"))
 				return AURA;
-			if (pSpawn->mActorClient.Class == 62)
+			if (pSpawn->GetClass() == Class_Object)
 				return OBJECT;
 			return NPC;
 
 		case 7:
-			if (pSpawn->mActorClient.Class == 62)
+			if (pSpawn->GetClass() == Class_Object)
 				return OBJECT;
 			return NPC;
 
@@ -6658,7 +6659,7 @@ int GetGroupMercenaryCount(uint32_t ClassMASK)
 		if (CGroupMember* pMember = pLocalPC->Group->GetGroupMember(index))
 		{
 			if (pMember->Type == EQP_NPC && pMember->GetPlayer()
-				&& (ClassMASK & (1 << (pMember->GetPlayer()->mActorClient.Class - 1))))
+				&& (ClassMASK & (1 << (pMember->GetPlayer()->GetClass() - 1))))
 			{
 				count++;
 			}

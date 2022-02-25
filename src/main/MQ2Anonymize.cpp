@@ -234,7 +234,7 @@ public:
 				/*
 				return fmt::format("[{}] {} {} {}",
 					spawn->Level,
-					pEverQuest->GetRaceDesc(spawn->mActorClient.Race),
+					pEverQuest->GetRaceDesc(spawn->GetRace()),
 					GetClassDesc(spawn->GetClass()),
 					GetTypeDesc(GetSpawnType(spawn)));
 				*/

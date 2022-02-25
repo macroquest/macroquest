@@ -757,7 +757,7 @@ void MemSpell(SPAWNINFO* pSpawn, char* szLine)
 	if (!pSpell)
 		return; // did not find spell
 
-	if (pSpell->ClassLevel[pSpawn->mActorClient.Class] > pSpawn->Level)
+	if (pSpell->ClassLevel[pSpawn->GetClass()] > pSpawn->Level)
 		return; // level requirement not met
 
 	int loadout[NUM_SPELL_GEMS];
@@ -2573,8 +2573,8 @@ void Where(SPAWNINFO* pChar, char* szLine)
 		WriteChatColorf("The closest '%s' is a level %d %s %s and %1.2f away to the %s, Z difference = %1.2f", USERCOLOR_WHO,
 			pSpawnClosest->DisplayedName,
 			pSpawnClosest->Level,
-			pEverQuest->GetRaceDesc(pSpawnClosest->mActorClient.Race),
-			GetClassDesc(pSpawnClosest->mActorClient.Class),
+			pSpawnClosest->GetRaceString(),
+			GetClassDesc(pSpawnClosest->GetClass()),
 			Distance3DToSpawn(pChar, pSpawnClosest),
 			szHeading[Angle],
 			pSpawnClosest->Z - pChar->Z);

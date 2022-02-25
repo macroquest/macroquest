@@ -659,15 +659,15 @@ void MapObjectSpawn::HandleFormatSpecifier(char spec, CXStr& sOutput)
 		return;
 
 	case 'R':
-		sOutput.append(pEverQuest->GetRaceDesc(m_spawn->mActorClient.Race));
+		sOutput.append(m_spawn->GetRaceString());
 		return;
 
 	case 'C':
-		sOutput.append(GetClassDesc(m_spawn->mActorClient.Class));
+		sOutput.append(m_spawn->GetClassString());
 		return;
 
 	case 'c':
-		sOutput.append(pEverQuest->GetClassThreeLetterCode(m_spawn->mActorClient.Class));
+		sOutput.append(m_spawn->GetClassThreeLetterCode());
 		return;
 
 	case 'l':

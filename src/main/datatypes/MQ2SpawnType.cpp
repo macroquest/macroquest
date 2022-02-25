@@ -553,7 +553,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		return true;
 
 	case SpawnMembers::Gender:
-		strcpy_s(DataTypeTemp, szGender[pSpawn->mActorClient.Gender]);
+		strcpy_s(DataTypeTemp, szGender[pSpawn->GetGender()]);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
@@ -569,7 +569,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 
 		if (GetSpawnType(pSpawn) != AURA && GetSpawnType(pSpawn) != BANNER && GetSpawnType(pSpawn) != CAMPFIRE)
 		{
-			Dest.DWord = pSpawn->mActorClient.Class;
+			Dest.DWord = pSpawn->GetClass();
 		}
 		else
 		{
@@ -1352,7 +1352,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		return true;
 
 	case SpawnMembers::bShowHelm:
-		Dest.Set(pSpawn->mActorClient.bShowHelm);
+		Dest.Set(pSpawn->GetShowHelm());
 		Dest.Type = pBoolType;
 		return true;
 
