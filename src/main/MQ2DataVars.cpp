@@ -930,7 +930,18 @@ void CheckChatForEvent(const char* szMsg)
 			strncpy_s(SpeakerName, szClean, pDest - szClean);
 			if (StartCopyAt == 0)
 			{
-				StartCopyAt = strstr(szClean, ", '") - pDest + 3;
+				// Almost all strings have , ' in them to denote the starting text
+				StartCopyAt = find_substr(szClean, ", '");
+				if (StartCopyAt == -1)
+				{
+					// (SPAM) will not have this, so fall back to comma space
+					StartCopyAt = find_substr(szClean, ", ");
+				}
+				// If StartCopyAt is still not found, just give the whole thing
+				if (StartCopyAt == -1)
+				{
+					StartCopyAt = 0;
+				}
 			}
 			strcpy_s(Content, pDest + StartCopyAt);
 			Content[strlen(Content) - 1] = 0;

@@ -7,6 +7,7 @@ February 25, 2022:
   to PlayerClient (SPAWNINFO) as convenience helpers for plugin code.
 - Reverted an earlier change to MQ2Map during 64-bit conversion to potentially address an
   issue with the map.
+- Fixed an event crash when text is marked as Spam
 
 February 15, 2022:
 - Updated for patch. Welcome to 64-bit MacroQuest.
