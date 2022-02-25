@@ -1,3 +1,13 @@
+February 25, 2022:
+- Fixed some potential issues with detours. Possibly fixes issue with unloading/reloading
+  causing problems with commands
+- Moved GetSubscriptionLevel to core. If you have a copy of this function in your plugin,
+  you can remove it now.
+- Added GetClass(), GetClassString(), GetRace(), GetRaceString(), GetClassThreeLetterCode()
+  to PlayerClient (SPAWNINFO) as convenience helpers for plugin code.
+- Reverted an earlier change to MQ2Map during 64-bit conversion to potentially address an
+  issue with the map.
+
 February 15, 2022:
 - Updated for patch. Welcome to 64-bit MacroQuest.
 
