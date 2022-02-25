@@ -7506,4 +7506,15 @@ const char* GetTeleportName(DWORD id)
 	return "UNKNOWN";
 }
 
+int GetSubscriptionLevel()
+{
+	if (EQADDR_SUBSCRIPTIONTYPE) {
+		if (uintptr_t dwsubtype = *(uintptr_t*)EQADDR_SUBSCRIPTIONTYPE) {
+			BYTE subtype = *(BYTE*)dwsubtype;
+			return subtype;
+		}
+	}
+	return 0;
+}
+
 } // namespace mq
