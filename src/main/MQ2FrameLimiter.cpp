@@ -1186,7 +1186,7 @@ static void InitializeFrameLimiter()
 
 	// Hook the main loop throttle function
 	if constexpr (__ThrottleFrameRate_x && __ThrottleFrameRateEnd_x)
-		Detour::Add(__ThrottleFrameRate, Throttler_Detour, Throttler_Trampoline, "ThrottleFrameRate");
+		AddDetour(__ThrottleFrameRate, Throttler_Detour, Throttler_Trampoline, "ThrottleFrameRate");
 
 	// Hook CDisplay::RealRender_World to control render loop
 	EzDetour(CDisplay__RealRender_World, &CDisplayHook::RealRender_World_Detour, &CDisplayHook::RealRender_World_Trampoline);

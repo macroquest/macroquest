@@ -155,8 +155,7 @@ static void InstallDetour(uintptr_t address, T detour, T& trampoline_ptr, PCHAR 
 	hookInfo.patch = [&detour, address, &trampoline_ptr](HookInfo& hi)
 	{
 		hi.address = address;
-		auto ptr = new Detour(hi.address, &(void*&)trampoline_ptr, *(void**)&detour, hi.name);
-		ptr->Add();
+		mq::detail::CreateDetour(hi.address, &(void*&)trampoline_ptr, *(void**)&detour, hi.name);
 	};
 
 	InstallHook(hookInfo);

@@ -21,76 +21,136 @@ namespace mq {
 
 //============================================================================
 
-static Detour* s_detourMap = nullptr;
+bool gbDoingSpellChecks = false;
+int gbInMemCheck4 = 0;
 
-Detour::Detour(uintptr_t address, void** target, void* detour, const std::string_view name)
-	: m_address(address)
-	, m_name(name)
-	, m_target(target)
-	, m_detour(detour)
-	, next(nullptr)
-	, prev(nullptr)
+class Detour;
+static Detour* s_detourList = nullptr;
+
+class Detour final
 {
-	memcpy(m_bytes, reinterpret_cast<uint8_t*>(address), DETOUR_COUNT);
-	*m_target = reinterpret_cast<void*>(address);
+public:
+	Detour(uintptr_t address, void** target, void* detour, std::string_view name)
+		: m_address(address)
+		, m_name(name)
+		, m_target(target)
+		, m_detour(detour)
+	{
+		memcpy(m_bytes, reinterpret_cast<uint8_t*>(address), DETOUR_BYTES_COUNT);
+		*m_target = reinterpret_cast<void*>(address);
 
-	DetourRestoreAfterWith();
+		//SPDLOG_DEBUG("Add detour: {} at {}: {} -> {}", m_name, (void*)m_address,
+		//	(void*)m_target, (void*)m_detour);
 
-	DetourTransactionBegin();
-	DetourUpdateThread(GetCurrentThread());
-	DetourAttach(m_target, m_detour);
-	DetourTransactionCommit();
+		DetourTransactionBegin();
+		DetourAttach(m_target, m_detour);
+		LONG result = DetourTransactionCommit();
+		if (result != NO_ERROR)
+		{
+			SPDLOG_ERROR("Failed to commit detour: {} -> {}", m_name, result);
+		}
+	}
+
+	Detour(uintptr_t address, std::string_view name)
+		: m_address(address)
+		, m_name(name)
+	{
+		memcpy(m_bytes, reinterpret_cast<uint8_t*>(address), DETOUR_BYTES_COUNT);
+
+		//SPDLOG_DEBUG("Add detour (patch): {} at {}", m_name, (void*)m_address);
+	}
+
+	~Detour()
+	{
+		//SPDLOG_DEBUG("Remove detour: {} at {}", m_name, (void*)m_address);
+
+		DetourTransactionBegin();
+		DetourDetach(m_target, m_detour);
+		DetourTransactionCommit();
+	}
+
+	uintptr_t Address() const { return m_address; }
+	uint8_t* Bytes() { return reinterpret_cast<uint8_t*>(m_bytes); }
+
+protected:
+	static inline uintptr_t GetAddressFromProc(const char* handle, const char* procedure)
+	{
+		auto mod = ::GetModuleHandleA(handle);
+		if (mod != 0)
+			return reinterpret_cast<uintptr_t>(GetProcAddress(mod, procedure));
+
+		return {};
+	}
+
+	static inline HMODULE GetModuleFromAddress(const uintptr_t address)
+	{
+		HMODULE mod;
+		::GetModuleHandleExA(
+			GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+			GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+			(const char*)address,
+			&mod);
+
+		return mod;
+	}
+
+private:
+	const uintptr_t m_address;
+	const std::string m_name;
+	uint8_t m_bytes[DETOUR_BYTES_COUNT];
+
+	void** m_target = nullptr;
+	void* m_detour = nullptr;
+
+public:
+	Detour* next = nullptr;
+	Detour* prev = nullptr;
+};
+
+//============================================================================
+
+static void AddDetourToList(Detour*& head, Detour* detour)
+{
+	detour->prev = nullptr;
+	detour->next = head;
+	head = detour;
+
+	if (detour->next != nullptr)
+		detour->next->prev = detour;
 }
 
-Detour::Detour(uintptr_t address, const std::string_view name)
-	: m_address(address)
-	, m_name(name)
-	, m_target(nullptr)
-	, m_detour(nullptr)
-	, next(nullptr)
-	, prev(nullptr)
+static void RemoveDetourFromList(Detour*& head, Detour* detour)
 {
-	memcpy(m_bytes, reinterpret_cast<uint8_t*>(address), DETOUR_COUNT);
-}
-
-Detour::~Detour()
-{
-	DetourRestoreAfterWith();
-
-	DetourTransactionBegin();
-	DetourUpdateThread(GetCurrentThread());
-	DetourDetach(m_target, m_detour);
-	DetourTransactionCommit();
-}
-
-void Detour::AddToMap()
-{
-	prev = nullptr;
-	next = s_detourMap;
-	s_detourMap = this;
-	if (next != nullptr)
-		next->prev = this;
-}
-
-void Detour::RemoveFromMap()
-{
-	if (prev != nullptr)
-		prev->next = next;
+	if (detour->prev != nullptr)
+		detour->prev->next = detour->next;
 	else
-		s_detourMap = next;
+		head = detour->next;
 
-	if (next != nullptr)
-		next->prev = prev;
+	if (detour->next != nullptr)
+		detour->next->prev = detour->prev;
+}
+
+void detail::CreateDetour(uintptr_t address, void** target, void* detour, const std::string_view name)
+{
+	Detour* newDetour = new Detour(address, target, detour, name);
+	AddDetourToList(s_detourList, newDetour);
+}
+
+void detail::CreateDetour(uintptr_t address, std::string_view name)
+{
+	Detour* newDetour = new Detour(address, name);
+	AddDetourToList(s_detourList, newDetour);
 }
 
 void RemoveDetour(uintptr_t address)
 {
-	auto detour = s_detourMap;
+	Detour* detour = s_detourList;
+
 	while (detour != nullptr)
 	{
 		if (detour->Address() == address)
 		{
-			detour->Drop();
+			RemoveDetourFromList(s_detourList, detour);
 			delete detour;
 			return;
 		}
@@ -99,12 +159,9 @@ void RemoveDetour(uintptr_t address)
 	}
 }
 
-bool gbDoingSpellChecks = false;
-int gbInMemCheck4 = 0;
-
 void RemoveDetours()
 {
-	auto detour = s_detourMap;
+	auto detour = s_detourList;
 	while (detour != nullptr)
 	{
 		auto next = detour->next;
@@ -292,7 +349,7 @@ AddressDetourState IsAddressDetoured(uintptr_t address, size_t count)
 	if (address && count >= 4 && *(DWORD*)address == 0x00905a4d)
 		return AddressDetourState::KnownSkippable;
 
-	auto detour = s_detourMap;
+	auto detour = s_detourList;
 	while (detour != nullptr)
 	{
 		if (address <= detour->Address() && detour->Address() <= address + count)
@@ -306,10 +363,10 @@ AddressDetourState IsAddressDetoured(uintptr_t address, size_t count)
 
 inline uint8_t GetDetouredByte(uintptr_t address, uint8_t original)
 {
-	auto detour = s_detourMap;
+	auto detour = s_detourList;
 	while (detour != nullptr)
 	{
-		if (address >= detour->Address() && address < detour->Address() + DETOUR_COUNT)
+		if (address >= detour->Address() && address < detour->Address() + DETOUR_BYTES_COUNT)
 		{
 			uint8_t* bytes = detour->Bytes();
 			return *(bytes + address - detour->Address());
@@ -532,7 +589,7 @@ void ShutdownDetours()
 	HookMemChecker(false);
 	RemoveDetours();
 
-	s_detourMap = nullptr;
+	s_detourList = nullptr;
 }
 
 } // namespace mq
