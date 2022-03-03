@@ -17,7 +17,7 @@
 
 namespace mq {
 
-const char* g_customCaption = "MQ2: Think of it as evolution in action.";
+const char* g_customCaption = "MacroQuest: Even when you're loading.";
 
 class CDisplayHook
 {
