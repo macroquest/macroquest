@@ -907,22 +907,22 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		return false;
 
 	case SpawnMembers::Underwater:
-		Dest.Set(pSpawn->UnderWater == 5);
+		Dest.Set(pSpawn->UnderWater == LiquidType_Water);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::FeetWet:
-		Dest.Set(pSpawn->FeetWet == ELT_Water || pSpawn->FeetWet == ELT_Slime || pSpawn->FeetWet == ELT_Lava);
+		Dest.Set(pSpawn->FeetWet != LiquidType_None);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::BodyWet:
-		Dest.Set(pSpawn->BodyWet == ELT_Water || pSpawn->BodyWet == ELT_Slime || pSpawn->BodyWet == ELT_Lava);
+		Dest.Set(pSpawn->BodyWet != LiquidType_None);
 		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::HeadWet:
-		Dest.Set(pSpawn->HeadWet == ELT_Water || pSpawn->HeadWet == ELT_Slime || pSpawn->HeadWet == ELT_Lava);
+		Dest.Set(pSpawn->HeadWet != LiquidType_None);
 		Dest.Type = pBoolType;
 		return true;
 

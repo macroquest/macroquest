@@ -1,3 +1,9 @@
+March 2, 2022:
+- Fixed an issue with chat events cutting off chat
+- Added Spawn types for BodyWet and HeadWet to complimenet FeetWet
+- Updated FeetWet to include when standing in other liquids like lava or slime.  Underwater is still just water.
+- Added WritePrivateProfileValue for plugin authors
+
 February 25, 2022:
 - Fixed some potential issues with detours. Possibly fixes issue with unloading/reloading
   causing problems with commands
