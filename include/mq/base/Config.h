@@ -205,4 +205,18 @@ inline bool DeletePrivateProfileKey(const std::string& Section, const std::strin
 	return ::WritePrivateProfileStringA(Section.c_str(), Key.c_str(), nullptr, iniFileName.c_str());
 }
 
+// WritePrivateProfileValue provides overloads to allow dispatching by type (selected by the type of default value)
+inline bool WritePrivateProfileValue(const char* Section, const char* Key, int Value, const char* IniFileName) { return WritePrivateProfileInt(Section, Key, Value, IniFileName); }
+inline bool WritePrivateProfileValue(const char* Section, const char* Key, unsigned int Value, const char* IniFileName) { return WritePrivateProfileInt(Section, Key, static_cast<int>(Value), IniFileName); }
+inline bool WritePrivateProfileValue(const char* Section, const char* Key, float Value, const char* IniFileName) { return WritePrivateProfileFloat(Section, Key, Value, IniFileName); }
+inline bool WritePrivateProfileValue(const char* Section, const char* Key, bool Value, const char* IniFileName) { return WritePrivateProfileBool(Section, Key, Value, IniFileName); }
+inline bool WritePrivateProfileValue(const char* Section, const char* Key, const char* Value, const char* IniFileName) { return WritePrivateProfileString(Section, Key, Value, IniFileName); }
+inline bool WritePrivateProfileValue(const char* Section, const char* Key, const std::string& Value, const char* IniFileName) { return WritePrivateProfileString(Section, Key, Value.c_str(), IniFileName); }
+
+template <typename T>
+inline auto WritePrivateProfileValue(const std::string& Section, const std::string& Key, T Value, const char* IniFileName)
+{
+	return WritePrivateProfileValue(Section.c_str(), Key.c_str(), Value, IniFileName);
+}
+
 } // namespace mq
