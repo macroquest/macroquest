@@ -71,7 +71,7 @@ char buff[512];
 std::list<char*> channels;
 std::list<char*>::iterator mychan;
 void* pchan = nullptr;
-unsigned long IRCChatColor = 111111;
+int IRCChatColor = USERCOLOR_DEFAULT;
 bool bConnecting = false;
 bool bTriedConnect = false;
 bool bConnected = false;
