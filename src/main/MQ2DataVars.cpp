@@ -866,7 +866,7 @@ void CheckChatForEvent(const char* szMsg)
 		char Channel[MAX_STRING] = { 0 };
 		char* pDest = nullptr;
 
-		size_t StartCopyAt = 0;
+		int StartCopyAt = 0;
 
 		if ((CHATEVENT(CHAT_GUILD)) && (pDest = strstr(szClean, " tells the guild, ")))
 		{
@@ -931,21 +931,33 @@ void CheckChatForEvent(const char* szMsg)
 			if (StartCopyAt == 0)
 			{
 				// Almost all strings have , ' in them to denote the starting text
-				StartCopyAt = find_substr(szClean, ", '");
-				if (StartCopyAt == -1)
+				StartCopyAt = find_substr(pDest, ", '");
+				if (StartCopyAt != -1)
+				{
+					StartCopyAt += 3;
+				}
+				else
 				{
 					// (SPAM) will not have this, so fall back to comma space
-					StartCopyAt = find_substr(szClean, ", ");
+					StartCopyAt = find_substr(pDest, ", ");
+					if (StartCopyAt != -1)
+					{
+						StartCopyAt += 2;
+					}
 				}
 				// If StartCopyAt is still not found, just give the whole thing
-				if (StartCopyAt == -1)
+				if (StartCopyAt < 0)
 				{
 					StartCopyAt = 0;
 				}
 			}
 			strcpy_s(Content, pDest + StartCopyAt);
-			Content[strlen(Content) - 1] = 0;
-
+			// Only strip the last character if it is the closing quote that was expected
+			const size_t lastChar = strlen(Content) - 1;
+			if (Content[lastChar] == '\'')
+			{
+				Content[lastChar] = 0;
+			}
 			AddEvent(EVENT_CHAT, Channel, SpeakerName, Content, NULL);
 		}
 
