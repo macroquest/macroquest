@@ -154,8 +154,8 @@ bool MQ2BuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case BuffMembers::Dar:
-		Dest.DWord = 0;
-		Dest.Type = pIntType;
+		Dest.Int64 = 0;
+		Dest.Type = pInt64Type;
 
 		if (SPELL* pSpell = GetSpellByID(buff->SpellID))
 		{
@@ -171,7 +171,7 @@ bool MQ2BuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 						{
 							if (slotData.Slot == i)
 							{
-								Dest.DWord += slotData.Value;
+								Dest.Int64 += slotData.Value;
 							}
 						}
 					}
@@ -182,28 +182,28 @@ bool MQ2BuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return false;
 
 	case BuffMembers::TotalCounters:
-		Dest.DWord = GetTotalSpellCounters(*buff);
-		Dest.Type = pIntType;
+		Dest.Int64 = GetTotalSpellCounters(*buff);
+		Dest.Type = pInt64Type;
 		return true;
 
 	case BuffMembers::CountersDisease:
-		Dest.DWord = GetSpellCounters(SPA_DISEASE, *buff);
-		Dest.Type = pIntType;
+		Dest.Int64 = GetSpellCounters(SPA_DISEASE, *buff);
+		Dest.Type = pInt64Type;
 		return true;
 
 	case BuffMembers::CountersPoison:
-		Dest.DWord = GetSpellCounters(SPA_POISON, *buff);
-		Dest.Type = pIntType;
+		Dest.Int64 = GetSpellCounters(SPA_POISON, *buff);
+		Dest.Type = pInt64Type;
 		return true;
 
 	case BuffMembers::CountersCurse:
-		Dest.DWord = GetSpellCounters(SPA_CURSE, *buff);
-		Dest.Type = pIntType;
+		Dest.Int64 = GetSpellCounters(SPA_CURSE, *buff);
+		Dest.Type = pInt64Type;
 		return true;
 
 	case BuffMembers::CountersCorruption:
-		Dest.DWord = GetSpellCounters(SPA_CURSE, *buff);
-		Dest.Type = pIntType;
+		Dest.Int64 = GetSpellCounters(SPA_CURSE, *buff);
+		Dest.Type = pInt64Type;
 		return true;
 
 	case BuffMembers::HitCount:

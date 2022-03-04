@@ -743,10 +743,10 @@ MQLIB_API    int         GetSpellSubcategory(EQ_Spell* pSpell);
 MQLIB_OBJECT int         GetSpellSubcategory(const EQ_Affect& buff);
 MQLIB_OBJECT int         GetSpellSubcategory(CachedBuff buff);
 MQLIB_API    EQ_Spell*   GetSpellParent(int id);
-MQLIB_API    int         GetSpellCounters(eEQSPA spa, const EQ_Affect& buff); // Get spell counters of given spa for the given buff.
-MQLIB_API    int         GetMySpellCounters(eEQSPA spa);                      // Get spell counters of given spa on my character.
-MQLIB_API    int         GetTotalSpellCounters(const EQ_Affect& buff);        // Get total count of spell counters for the given buff.
-MQLIB_API    int         GetMyTotalSpellCounters();                           // Get total count of spell counters for my character.
+MQLIB_API    int64_t     GetSpellCounters(eEQSPA spa, const EQ_Affect& buff); // Get spell counters of given spa for the given buff.
+MQLIB_API    int64_t     GetMySpellCounters(eEQSPA spa);                      // Get spell counters of given spa on my character.
+MQLIB_API    int64_t     GetTotalSpellCounters(const EQ_Affect& buff);        // Get total count of spell counters for the given buff.
+MQLIB_API    int64_t     GetMyTotalSpellCounters();                           // Get total count of spell counters for my character.
 MQLIB_API    int         GetMeleeSpeedPctFromSpell(EQ_Spell* pSpell, bool increase);
 MQLIB_API    EQ_Spell*   GetHighestLearnedSpellByGroupID(int dwSpellGroupID);
 MQLIB_API    DWORD       GetSpellID(EQ_Spell* spell);

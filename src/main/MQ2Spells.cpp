@@ -3632,9 +3632,9 @@ void SlotValueCalculate(char* szBuff, EQ_Spell* pSpell, int i, double mp)
 		CalcValue(GetSpellCalc(pSpell, i), GetSpellBase(pSpell, i), GetSpellMax(pSpell, i), pSpell->DurationCap));
 }
 
-int GetSpellCounters(eEQSPA spellAffect, const EQ_Affect& buff)
+int64_t GetSpellCounters(eEQSPA spellAffect, const EQ_Affect& buff)
 {
-	int count = 0;
+	int64_t count = 0;
 
 	EQ_Spell* pSpell = GetSpellByID(buff.SpellID);
 	if (!pSpell || pSpell->SpellType != SpellType_Detrimental)
@@ -3661,13 +3661,13 @@ int GetSpellCounters(eEQSPA spellAffect, const EQ_Affect& buff)
 	return count;
 }
 
-int GetMySpellCounters(eEQSPA spellAffect)
+int64_t GetMySpellCounters(eEQSPA spellAffect)
 {
 	const PcProfile* pProfile = GetPcProfile();
 	if (!pProfile)
 		return 0;
 
-	int count = 0;
+	int64_t count = 0;
 
 	for (const auto& buff : pProfile->Buff)
 	{
@@ -3682,9 +3682,9 @@ int GetMySpellCounters(eEQSPA spellAffect)
 	return count;
 }
 
-int GetTotalSpellCounters(const EQ_Affect& buff)
+int64_t GetTotalSpellCounters(const EQ_Affect& buff)
 {
-	int count = 0;
+	int64_t count = 0;
 
 	EQ_Spell* pSpell = GetSpellByID(buff.SpellID);
 	if (!pSpell || pSpell->SpellType != SpellType_Detrimental)
@@ -3711,13 +3711,13 @@ int GetTotalSpellCounters(const EQ_Affect& buff)
 	return count;
 }
 
-int GetMyTotalSpellCounters()
+int64_t GetMyTotalSpellCounters()
 {
 	const PcProfile* pProfile = GetPcProfile();
 	if (!pProfile)
 		return 0;
 
-	int total = 0;
+	int64_t total = 0;
 
 	for (const auto& buff : pProfile->Buff)
 	{

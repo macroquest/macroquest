@@ -2982,7 +2982,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		// should probably split these into spell vs melee
 	case CharacterMembers::Dar:
 		Dest.DWord = 0;
-		Dest.Type = pIntType;
+		Dest.Type = pInt64Type;
 
 		for (const auto& buff : pProfile->Buff)
 		{
@@ -3002,7 +3002,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 							{
 								if (buffData.Slot == i)
 								{
-									Dest.DWord += buffData.Value;
+									Dest.Int64 += buffData.Value;
 								}
 							}
 						}
@@ -3015,28 +3015,28 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		// this case adds all resist Counters and returns that, why is this useful?
 		// should we split these into 4? one for each debuff?
 	case CharacterMembers::TotalCounters:
-		Dest.DWord = GetMyTotalSpellCounters();
-		Dest.Type = pIntType;
+		Dest.Int64 = GetMyTotalSpellCounters();
+		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::CountersDisease:
-		Dest.DWord = GetMySpellCounters(SPA_DISEASE);
-		Dest.Type = pIntType;
+		Dest.Int64 = GetMySpellCounters(SPA_DISEASE);
+		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::CountersPoison:
-		Dest.DWord = GetMySpellCounters(SPA_POISON);
-		Dest.Type = pIntType;
+		Dest.Int64 = GetMySpellCounters(SPA_POISON);
+		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::CountersCurse:
-		Dest.DWord = GetMySpellCounters(SPA_CURSE);
-		Dest.Type = pIntType;
+		Dest.Int64 = GetMySpellCounters(SPA_CURSE);
+		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::CountersCorruption:
-		Dest.DWord = GetMySpellCounters(SPA_CORRUPTION);
-		Dest.Type = pIntType;
+		Dest.Int64 = GetMySpellCounters(SPA_CORRUPTION);
+		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::Mercenary:

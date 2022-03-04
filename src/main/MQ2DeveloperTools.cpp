@@ -2578,10 +2578,10 @@ public:
 			ImGui::TableNextColumn();
 
 			int Slot = slotData.Slot;
-			int Value = slotData.Value;
+			int64_t Value = slotData.Value;
 
 			if (Slot != -1)
-				ImGui::Text("%d: %d", Slot, Value);
+				ImGui::Text("%d: %I64", Slot, Value);
 		}
 
 		ImGui::PopID();
