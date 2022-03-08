@@ -1,3 +1,13 @@
+March 8, 2022:
+- Spell SPA data for base, base2, and max are now 64 bit values.
+- Spell Buff counters are now 64 bit values.
+- GetSpellBase, GetSpellBase2, GetSpellMax, CalcValue all return int64_t now.
+- GetSpellCounters, GetMySpellCounters, GetTotalSpellCounters, GetMyTotalSpellCounters all return int64_t now
+- The associated macro data members for these return Int64 instead of Int datatypes.
+- Plugins may exhibit warnings due to int64_t -> int conversions. These warnings ought to be addressed
+  as appropriate by utilizing int64_t where arbitrary values may occur (like damage or healing values)
+  and cast to int where they do not (like SPA or spell id values).
+
 March 2, 2022:
 - Fixed an issue with chat events cutting off chat
 - Added Spawn types for BodyWet and HeadWet to complimenet FeetWet

@@ -822,7 +822,7 @@ static bool IsRecursiveEffect(int spa)
 	return false;
 }
 
-static void PopulateTriggeredmap(EQ_Spell* pSpell)
+static void PopulateTriggeredMap(EQ_Spell* pSpell)
 {
 	if (!pSpell || pSpell->CannotBeScribed)
 		return;
@@ -832,7 +832,7 @@ static void PopulateTriggeredmap(EQ_Spell* pSpell)
 		if (!IsRecursiveEffect(GetSpellAttrib(pSpell, i)))
 			continue;
 
-		int triggeredSpellID = GetSpellBase2(pSpell, i);
+		int triggeredSpellID = (int)GetSpellBase2(pSpell, i);
 		if (i > 0)
 			s_triggeredSpells[triggeredSpellID] = pSpell->ID;
 	}
@@ -861,7 +861,7 @@ void PopulateSpellMap()
 		if (!pSpell || !pSpell->Name[0])
 			continue;
 
-		PopulateTriggeredmap(pSpell);
+		PopulateTriggeredMap(pSpell);
 
 		s_spellNameMap.emplace(pSpell->Name, pSpell);
 	}
@@ -1259,7 +1259,7 @@ char* GetSpellRestrictions(EQ_Spell* pSpell, unsigned int nIndex, char* szBuffer
 	case 38312: strcat_s(szBuffer, BufferSize, "Mana Below 10%"); break;
 	default: {
 		char szTemp[MAX_STRING] = { 0 };
-		sprintf_s(szTemp, "Unknown[%d]", GetSpellBase2(pSpell, nIndex));
+		sprintf_s(szTemp, "Unknown[%lld]", GetSpellBase2(pSpell, nIndex));
 		strcat_s(szBuffer, BufferSize, szTemp); break;
 	}
 	}
@@ -1468,7 +1468,7 @@ static int CalcDuration(int calc, int max, int level)
 	return value;
 }
 
-int CalcValue(int calc, int base, int max, int tick, int minlevel, int level)
+int64_t CalcValue(int calc, int64_t base, int64_t max, int tick, int minlevel, int level)
 {
 	if (calc == 0)
 		return base;
@@ -1480,8 +1480,8 @@ int CalcValue(int calc, int base, int max, int tick, int minlevel, int level)
 		return base;
 	}
 
-	int change = 0;
-	int adjustment = 0;
+	int64_t change = 0;
+	int64_t adjustment = 0;
 
 	switch (calc)
 	{
@@ -1631,7 +1631,7 @@ int CalcValue(int calc, int base, int max, int tick, int minlevel, int level)
 			change = level * (calc - 2000);
 	}
 
-	int value = abs(base) + adjustment + change;
+	int64_t value = abs(base) + adjustment + change;
 
 	if (max != 0 && value > abs(max))
 		value = abs(max);
@@ -1642,15 +1642,15 @@ int CalcValue(int calc, int base, int max, int tick, int minlevel, int level)
 	return value;
 }
 
-static int CalcMaxSpellLevel(int calc, int base, int max, int tick, int minlevel, int level)
+static int CalcMaxSpellLevel(int calc, int64_t base, int64_t max, int tick, int minlevel, int level)
 {
 	if (abs(max) > 0)
 	{
 		for (int maxlevel = 1; maxlevel <= level; maxlevel++)
 		{
-			int value = CalcValue(calc, base, max, tick, minlevel, maxlevel);
+			int value = (int)CalcValue(calc, base, max, tick, minlevel, maxlevel);
 
-			if (abs(CalcValue(calc, base, max, tick, minlevel, maxlevel)) >= abs(max))
+			if (abs(value) >= abs(max))
 				return maxlevel;
 		}
 
@@ -1676,10 +1676,10 @@ static int CalcMinSpellLevel(EQ_Spell* pSpell)
 	return minspelllvl;
 }
 
-static char* CalcValueRange(int calc, int base, int max, int duration, int minlevel, int level, char* szBuffer, size_t BufferSize, const char* szPercent)
+static char* CalcValueRange(int calc, int64_t base, int64_t max, int duration, int minlevel, int level, char* szBuffer, size_t BufferSize, const char* szPercent)
 {
-	int start = CalcValue(calc, base, max, 1, minlevel, minlevel);
-	int finish = CalcValue(calc, base, max, duration, minlevel, level);
+	int64_t start = CalcValue(calc, base, max, 1, minlevel, minlevel);
+	int64_t finish = CalcValue(calc, base, max, duration, minlevel, level);
 	char type[MAX_STRING] = { 0 };
 
 	sprintf_s(type, "%s", abs(start) < abs(finish) ? "Growing" : "Decaying");
@@ -1687,93 +1687,94 @@ static char* CalcValueRange(int calc, int base, int max, int duration, int minle
 	switch (calc)
 	{
 	case SpellValueRangeCalc_DecayTick1:
-		sprintf_s(szBuffer, BufferSize, " (%s to %d @ 1/tick)", type, finish);
+		sprintf_s(szBuffer, BufferSize, " (%s to %lld @ 1/tick)", type, finish);
 		break;
 	case SpellValueRangeCalc_DecayTick2:
-		sprintf_s(szBuffer, BufferSize, " (%s to %d @ 2/tick)", type, finish);
+		sprintf_s(szBuffer, BufferSize, " (%s to %lld @ 2/tick)", type, finish);
 		break;
 	case SpellValueRangeCalc_DecayTick5:
-		sprintf_s(szBuffer, BufferSize, " (%s to %d @ 5/tick)", type, finish);
+		sprintf_s(szBuffer, BufferSize, " (%s to %lld @ 5/tick)", type, finish);
 		break;
 	case SpellValueRangeCalc_DecayTick12:
-		sprintf_s(szBuffer, BufferSize, " (%s to %d @ 12/tick)", type, finish);
+		sprintf_s(szBuffer, BufferSize, " (%s to %lld @ 12/tick)", type, finish);
 		break;
 	case SpellValueRangeCalc_Random:
-		sprintf_s(szBuffer, BufferSize, " (Random: %d to %d)", start, finish* ((start >= 0) ? 1 : -1));
+		sprintf_s(szBuffer, BufferSize, " (Random: %lld to %lld)", start, finish * ((start >= 0) ? 1 : -1));
 		break;
 	default:
 		if (calc > 0 && calc < 1000)
-			sprintf_s(szBuffer, BufferSize, " to %d%s", start, szPercent);
+			sprintf_s(szBuffer, BufferSize, " to %lld%s", start, szPercent);
 		if (calc >= 1000 && calc < 2000)
-			sprintf_s(szBuffer, BufferSize, " (%s to %d @ %d/tick)", type, finish, calc - 1000);
+			sprintf_s(szBuffer, BufferSize, " (%s to %lld @ %d/tick)", type, finish, calc - 1000);
 	}
 	return szBuffer;
 }
 
-static char* CalcExtendedRange(int calc, int start, int finish, int minlevel, int maxlevel, char* szBuffer, size_t BufferSize, const char* szPercent, bool ACMod = false)
+static char* CalcExtendedRange(int calc, int64_t start, int64_t finish, int minlevel, int maxlevel,
+	char* szBuffer, size_t BufferSize, const char* szPercent, bool ACMod = false)
 {
 	switch (calc)
 	{
 	case SpellValueRangeCalc_Random:
-		sprintf_s(szBuffer, BufferSize, " (Random: %d to %d)", start, finish* ((start >= 0) ? 1 : -1));
+		sprintf_s(szBuffer, BufferSize, " (Random: %lld to %lld)", start, finish * ((start >= 0) ? 1 : -1));
 		break;
 
 	default:
 		if (abs(start) < abs(finish))
-			sprintf_s(szBuffer, BufferSize, " by %d%s (L%d) to %d%s (L%d)", ACMod ? (int)(abs(start) / (10.0f / 3.0f)) : abs(start), szPercent, minlevel, ACMod ? (int)(abs(finish) / (10.0f / 3.0f)) : abs(finish), szPercent, maxlevel);
+			sprintf_s(szBuffer, BufferSize, " by %lld%s (L%d) to %lld%s (L%d)", ACMod ? (int)(abs(start) / (10.0f / 3.0f)) : abs(start), szPercent, minlevel, ACMod ? (int)(abs(finish) / (10.0f / 3.0f)) : abs(finish), szPercent, maxlevel);
 		else
-			sprintf_s(szBuffer, BufferSize, " by %d%s", ACMod ? (int)(abs(finish) / (10.0f / 3.0f)) : abs(finish), szPercent);
+			sprintf_s(szBuffer, BufferSize, " by %lld%s", ACMod ? (int)(abs(finish) / (10.0f / 3.0f)) : abs(finish), szPercent);
 	}
 
 	return szBuffer;
 }
 
 template <unsigned int Size>
-static char* FormatAT(const char* szEffectName, int value, char(&szBuffer)[Size], const char* preposition = "by", const char* szPercent = "")
+static char* FormatAT(const char* szEffectName, int64_t value, char(&szBuffer)[Size], const char* preposition = "by", const char* szPercent = "")
 {
-	sprintf_s(szBuffer, "%s %s %d%s", szEffectName, preposition, abs(value), szPercent);
+	sprintf_s(szBuffer, "%s %s %lld%s", szEffectName, preposition, abs(value), szPercent);
 	return szBuffer;
 }
 
 template <unsigned int Size>
-static char* FormatBase(const char* szEffectName, int base, char(&szBuffer)[Size])
+static char* FormatBase(const char* szEffectName, int64_t base, char(&szBuffer)[Size])
 {
-	sprintf_s(szBuffer, "%s (%d)", szEffectName, base);
+	sprintf_s(szBuffer, "%s (%lld)", szEffectName, base);
 	return szBuffer;
 }
 
 template <unsigned int Size>
-static char* FormatBase(const char* szEffectName, int base, int max, char(&szBuffer)[Size])
+static char* FormatBase(const char* szEffectName, int64_t base, int64_t max, char(&szBuffer)[Size])
 {
-	sprintf_s(szBuffer, "%s (%d,%d)", szEffectName, base, max);
+	sprintf_s(szBuffer, "%s (%lld,%lld)", szEffectName, base, max);
 	return szBuffer;
 }
 
 template <unsigned int Size>
-static char* FormatBase(const char* szEffectName, int base, const char* szOptional, char(&szBuffer)[Size])
+static char* FormatBase(const char* szEffectName, int64_t base, const char* szOptional, char(&szBuffer)[Size])
 {
-	sprintf_s(szBuffer, "%s %s (%d)", szEffectName, szOptional, base);
+	sprintf_s(szBuffer, "%s %s (%lld)", szEffectName, szOptional, base);
 	return szBuffer;
 }
 
 template <unsigned int Size>
-static char* FormatBasePercent(const char* szEffectName, int base, char(&szBuffer)[Size])
+static char* FormatBasePercent(const char* szEffectName, int64_t base, char(&szBuffer)[Size])
 {
-	sprintf_s(szBuffer, "%s (%d%%)", szEffectName, base);
+	sprintf_s(szBuffer, "%s (%lld%%)", szEffectName, base);
 	return szBuffer;
 }
 
 template <unsigned int Size>
-static char* FormatMinMaxBase(const char* szEffectName, int base, int spa, char(&szBuffer)[Size])
+static char* FormatMinMaxBase(const char* szEffectName, int64_t base, int spa, char(&szBuffer)[Size])
 {
-	sprintf_s(szBuffer, "%s (%d %s)", szEffectName, abs(base), szSPATypes[spa]);
+	sprintf_s(szBuffer, "%s (%lld %s)", szEffectName, abs(base), szSPATypes[spa]);
 	return szBuffer;
 }
 
 template <unsigned int Size>
-static char* FormatCount(const char* szEffectName, int value, char(&szBuffer)[Size], const char* preposition = "by", const char* szPercent = "")
+static char* FormatCount(const char* szEffectName, int64_t value, char(&szBuffer)[Size], const char* preposition = "by", const char* szPercent = "")
 {
-	sprintf_s(szBuffer, "%s %s %s %d%s", value < 0 ? "Decrease" : "Increase", szEffectName, preposition, abs(value), szPercent);
+	sprintf_s(szBuffer, "%s %s %s %lld%s", value < 0 ? "Decrease" : "Increase", szEffectName, preposition, abs(value), szPercent);
 	return szBuffer;
 }
 
@@ -1786,49 +1787,49 @@ static char* FormatExtra(std::string_view szEffectName, std::string_view extra, 
 }
 
 template <unsigned int Size>
-static char* FormatLimits(const char* szEffectName, int value, const char* extra, char(&szBuffer)[Size])
+static char* FormatLimits(const char* szEffectName, int64_t value, const char* extra, char(&szBuffer)[Size])
 {
 	sprintf_s(szBuffer, "%s (%s %s)", szEffectName, extra, value < 0 ? "excluded" : "allowed");
 	return szBuffer;
 }
 
 template <unsigned int Size>
-static char* FormatMax(const char* szEffectName, int value, int max, char(&szBuffer)[Size])
+static char* FormatMax(const char* szEffectName, int64_t value, int64_t max, char(&szBuffer)[Size])
 {
-	sprintf_s(szBuffer, "%s %s by %d (%d%% max)", max < 0 ? "Decrease" : "Increase", szEffectName, abs(max), value);
+	sprintf_s(szBuffer, "%s %s by %lld (%lld%% max)", max < 0 ? "Decrease" : "Increase", szEffectName, abs(max), value);
 	return szBuffer;
 }
 
 template <unsigned int Size>
-static char* FormatPenaltyChance(const char* szEffectName, int value, char(&szBuffer)[Size], const char* penaltychance)
+static char* FormatPenaltyChance(const char* szEffectName, int64_t value, char(&szBuffer)[Size], const char* penaltychance)
 {
 	if (value < 100)
-		sprintf_s(szBuffer, "%s (%d%% %s)", szEffectName, value, penaltychance);
+		sprintf_s(szBuffer, "%s (%lld%% %s)", szEffectName, value, penaltychance);
 	else
 		sprintf_s(szBuffer, "%s", szEffectName);
 	return szBuffer;
 }
 
 template <unsigned int Size>
-static char* FormatPercent(const char* szEffectName, int value, int max, char(&szBuffer)[Size], bool scaling = true, bool hundreds = false, bool usepercent = true)
+static char* FormatPercent(const char* szEffectName, int64_t value, int64_t max, char(&szBuffer)[Size], bool scaling = true, bool hundreds = false, bool usepercent = true)
 {
-	std::string szPercent = [&usepercent]() { if (usepercent) return std::string("%"); else return std::string();  }();
+	const char* szPercent = usepercent ? "%" : "";
 
 	if (hundreds)
 	{
 		if (value == max)
 		{
 			if (scaling)
-				sprintf_s(szBuffer, "%s %s by %.2f%s", max < 0 ? "Decrease" : "Increase", szEffectName, abs(max / 100.0f), szPercent.c_str());
+				sprintf_s(szBuffer, "%s %s by %.2f%s", max < 0 ? "Decrease" : "Increase", szEffectName, abs(max / 100.0f), szPercent);
 			else
-				sprintf_s(szBuffer, "%s by %.2f%s", szEffectName, abs(max / 100.0f), szPercent.c_str());
+				sprintf_s(szBuffer, "%s by %.2f%s", szEffectName, abs(max / 100.0f), szPercent);
 		}
 		else
 		{
 			if (scaling)
-				sprintf_s(szBuffer, "%s %s by %.2f%s to %.2f%s", max < 0 ? "Decrease" : "Increase", szEffectName, abs(value / 100.0f), szPercent.c_str(), abs(max / 100.0f), szPercent.c_str());
+				sprintf_s(szBuffer, "%s %s by %.2f%s to %.2f%s", max < 0 ? "Decrease" : "Increase", szEffectName, abs(value / 100.0f), szPercent, abs(max / 100.0f), szPercent);
 			else
-				sprintf_s(szBuffer, "%s by %.2f%s to %.2f%s", szEffectName, abs(value / 100.0f), szPercent.c_str(), abs(max / 100.0f), szPercent.c_str());
+				sprintf_s(szBuffer, "%s by %.2f%s to %.2f%s", szEffectName, abs(value / 100.0f), szPercent, abs(max / 100.0f), szPercent);
 		}
 	}
 	else
@@ -1836,16 +1837,16 @@ static char* FormatPercent(const char* szEffectName, int value, int max, char(&s
 		if (value == max)
 		{
 			if (scaling)
-				sprintf_s(szBuffer, "%s %s by %d%s", max < 0 ? "Decrease" : "Increase", szEffectName, abs(max), szPercent.c_str());
+				sprintf_s(szBuffer, "%s %s by %lld%s", max < 0 ? "Decrease" : "Increase", szEffectName, abs(max), szPercent);
 			else
-				sprintf_s(szBuffer, "%s by %d%s", szEffectName, abs(max), szPercent.c_str());
+				sprintf_s(szBuffer, "%s by %lld%s", szEffectName, abs(max), szPercent);
 		}
 		else
 		{
 			if (scaling)
-				sprintf_s(szBuffer, "%s %s by %d%s to %d%s", max < 0 ? "Decrease" : "Increase", szEffectName, abs(value), szPercent.c_str(), abs(max), szPercent.c_str());
+				sprintf_s(szBuffer, "%s %s by %lld%s to %lld%s", max < 0 ? "Decrease" : "Increase", szEffectName, abs(value), szPercent, abs(max), szPercent);
 			else
-				sprintf_s(szBuffer, "%s by %d%s to %d%s", szEffectName, abs(value), szPercent.c_str(), abs(max), szPercent.c_str());
+				sprintf_s(szBuffer, "%s by %lld%s to %lld%s", szEffectName, abs(value), szPercent, abs(max), szPercent);
 		}
 	}
 
@@ -1853,51 +1854,51 @@ static char* FormatPercent(const char* szEffectName, int value, int max, char(&s
 }
 
 template <unsigned int Size>
-static char* FormatPercent(const char* szEffectName, int value, char(&szBuffer)[Size], bool scaling = true, bool hundreds = false, bool usepercent = true)
+static char* FormatPercent(const char* szEffectName, int64_t value, char(&szBuffer)[Size], bool scaling = true, bool hundreds = false, bool usepercent = true)
 {
 	return FormatPercent(szEffectName, value, value, szBuffer, scaling, hundreds, usepercent);
 }
 
 template <unsigned int Size>
-static char* FormatRange(const char* szEffectName, int value, const char* range, char(&szBuffer)[Size], const char* extra = "")
+static char* FormatRange(const char* szEffectName, int64_t value, const char* range, char(&szBuffer)[Size], const char* extra = "")
 {
 	sprintf_s(szBuffer, "%s %s%s%s", value < 0 ? "Decrease" : "Increase", szEffectName, range, extra);
 	return szBuffer;
 }
 
 template <unsigned int Size>
-static char* FormatRateMod(const char* szEffectName, int value, int base, char(&szBuffer)[Size])
+static char* FormatRateMod(const char* szEffectName, int64_t value, int64_t base, char(&szBuffer)[Size])
 {
 	if (base > 0)
-		sprintf_s(szBuffer, "%s (rate mod %d)", GetSpellNameByID(value), base);
+		sprintf_s(szBuffer, "%s (rate mod %lld)", GetSpellNameByID((int)value), base);
 	else
-		strcat_s(szBuffer, GetSpellNameByID(value));
+		strcat_s(szBuffer, GetSpellNameByID((int)value));
 	return szBuffer;
 }
 
 template <unsigned int Size>
-static char* FormatRefreshTimer(const char* szEffectName, int value, int max, int skill, char(&szBuffer)[Size], const char* preposition = "with")
+static char* FormatRefreshTimer(const char* szEffectName, int64_t value, int64_t max, int64_t skill, char(&szBuffer)[Size], const char* preposition = "with")
 {
 	if (value == max)
-		sprintf_s(szBuffer, "%s %s by %d sec %s %s", max < 0 ? "Decrease" : "Increase", szEffectName, abs(max), preposition, skill >= 0 ? szSkills[skill] : "All Skills");
+		sprintf_s(szBuffer, "%s %s by %lld sec %s %s", max < 0 ? "Decrease" : "Increase", szEffectName, abs(max), preposition, skill >= 0 ? szSkills[skill] : "All Skills");
 	else
-		sprintf_s(szBuffer, "%s %s by %d sec to %d sec %s %s", max < 0 ? "Decrease" : "Increase", szEffectName, abs(value), abs(max), preposition, skill >= 0 ? szSkills[skill] : "All Skills");
+		sprintf_s(szBuffer, "%s %s by %lld sec to %lld sec %s %s", max < 0 ? "Decrease" : "Increase", szEffectName, abs(value), abs(max), preposition, skill >= 0 ? szSkills[skill] : "All Skills");
 	return szBuffer;
 }
 
 template <unsigned int Size>
-static char* FormatRefreshTimer(const char* szEffectName, int value, int skill, char(&szBuffer)[Size], const char* preposition = "with")
+static char* FormatRefreshTimer(const char* szEffectName, int64_t value, int skill, char(&szBuffer)[Size], const char* preposition = "with")
 {
 	return FormatRefreshTimer(szEffectName, value, value, skill, szBuffer, preposition);
 }
 
 template <unsigned int Size>
-static char* FormatResists(const char* szEffectName, int value, int base, char(&szBuffer)[Size])
+static char* FormatResists(const char* szEffectName, int64_t value, int64_t base, char(&szBuffer)[Size])
 {
 	if (value < 100)
 	{
 		char szTemp[MAX_STRING] = { 0 };
-		sprintf_s(szBuffer, "%s (%d%% Chance)", GetSpellEffectNameByID(base, szTemp, MAX_STRING), value);
+		sprintf_s(szBuffer, "%s (%lld%% Chance)", GetSpellEffectNameByID((int)base, szTemp, MAX_STRING), value);
 	}
 	else
 	{
@@ -1907,12 +1908,12 @@ static char* FormatResists(const char* szEffectName, int value, int base, char(&
 }
 
 template <unsigned int Size>
-static char* FormatSeconds(const char* szEffectName, int value, char(&szBuffer)[Size], bool tens = false)
+static char* FormatSeconds(const char* szEffectName, int64_t value, char(&szBuffer)[Size], bool tens = false)
 {
 	if (tens)
-		sprintf_s(szBuffer, "%s (%d0.00 sec)", szEffectName, value);
+		sprintf_s(szBuffer, "%s (%lld0.00 sec)", szEffectName, value);
 	else
-		sprintf_s(szBuffer, "%s (%d sec)", szEffectName, value);
+		sprintf_s(szBuffer, "%s (%lld sec)", szEffectName, value);
 	return szBuffer;
 }
 
@@ -1931,52 +1932,52 @@ static char* FormatSecondsCount(const char* szEffectName, float value, char(&szB
 }
 
 template <unsigned int Size>
-static char* FormatSkillAttack(const char* szEffectName, int value, int max, int base2, int skill, char(&szBuffer)[Size], const char* preposition = "with")
+static char* FormatSkillAttack(const char* szEffectName, int64_t value, int64_t max, int64_t base2, int skill, char(&szBuffer)[Size], const char* preposition = "with")
 {
-	sprintf_s(szBuffer, "%s %s %s for %d damage", FormatPercent(szEffectName, value, max, szBuffer), preposition, skill >= 0 ? szSkills[skill] : "All Skills", base2);
+	sprintf_s(szBuffer, "%s %s %s for %lld damage", FormatPercent(szEffectName, value, max, szBuffer), preposition, skill >= 0 ? szSkills[skill] : "All Skills", base2);
 	return szBuffer;
 }
 
 template <unsigned int Size>
-static char* FormatSkillAttack(const char* szEffectName, int value, int base2, int skill, char(&szBuffer)[Size], const char* preposition = "with")
+static char* FormatSkillAttack(const char* szEffectName, int64_t value, int64_t base2, int skill, char(&szBuffer)[Size], const char* preposition = "with")
 {
 	return FormatSkillAttack(szEffectName, base2, base2, value, skill, szBuffer, preposition);
 }
 
 template <unsigned int Size>
-static char* FormatSkills(const char* szEffectName, int value, int max, int skill, char(&szBuffer)[Size], bool usepercent = true, const char* preposition = "with")
+static char* FormatSkills(const char* szEffectName, int64_t value, int64_t max, int64_t skill, char(&szBuffer)[Size], bool usepercent = true, const char* preposition = "with")
 {
 	sprintf_s(szBuffer, "%s %s %s", FormatPercent(szEffectName, value, max, szBuffer, true, false, usepercent), preposition, skill >= 0 ? szSkills[skill] : "All Skills");
 	return szBuffer;
 }
 
 template <unsigned int Size>
-static char* FormatSkills(const char* szEffectName, int value, int skill, char(&szBuffer)[Size], bool percent = true, const char* preposition = "with")
+static char* FormatSkills(const char* szEffectName, int64_t value, int skill, char(&szBuffer)[Size], bool percent = true, const char* preposition = "with")
 {
 	return FormatSkills(szEffectName, value, value, skill, szBuffer, usepercent, preposition);
 }
 
 template <unsigned int Size>
-static char* FormatSpellChance(const char* szEffectName, int value, int base, char(&szBuffer)[Size])
+static char* FormatSpellChance(const char* szEffectName, int64_t value, int64_t base, char(&szBuffer)[Size])
 {
 	if (value < 100)
-		sprintf_s(szBuffer, " (%d%% Chance, Spell: %s)", value, GetSpellNameByID(base));
+		sprintf_s(szBuffer, " (%lld%% Chance, Spell: %s)", value, GetSpellNameByID((int)base));
 	else
-		sprintf_s(szBuffer, " (Spell: %s)", GetSpellNameByID(base));
+		sprintf_s(szBuffer, " (Spell: %s)", GetSpellNameByID((int)base));
 	return szBuffer;
 }
 
 template <unsigned int Size>
-static char* FormatSpellGroupChance(std::string_view szEffectName, int value, int base, char(&szBuffer)[Size])
+static char* FormatSpellGroupChance(std::string_view szEffectName, int64_t value, int groupId /* base */, char(&szBuffer)[Size])
 {
 	if (value < 100)
 	{
-		auto [out, _] = fmt::format_to_n(szBuffer, Size, " ({:d}% Chance, Spell: {:s})", value, GetSpellNameBySpellGroupID(base));
+		auto [out, _] = fmt::format_to_n(szBuffer, Size, " ({:d}% Chance, Spell: {:s})", value, GetSpellNameBySpellGroupID(groupId));
 		*out = '\0';
 	}
 	else
 	{
-		auto [out, _] = fmt::format_to_n(szBuffer, Size, " (Spell: {:s})", GetSpellNameBySpellGroupID(base));
+		auto [out, _] = fmt::format_to_n(szBuffer, Size, " (Spell: {:s})", GetSpellNameBySpellGroupID(groupId));
 		*out = '\0';
 	}
 
@@ -1984,17 +1985,18 @@ static char* FormatSpellGroupChance(std::string_view szEffectName, int value, in
 }
 
 template <unsigned int Size>
-static char* FormatStacking(const char* szEffectName, int slot, int value, int max, int spa, const char* extra, char(&szBuffer)[Size])
+static char* FormatStacking(const char* szEffectName, int slot, int64_t value, int64_t max, int spa, const char* extra, char(&szBuffer)[Size])
 {
 	if (max > 0)
-		sprintf_s(szBuffer, "%s %s spell if slot %d is effect '%s' and < %d", szEffectName, spa == 148 ? "new" : "existing", slot, extra, value);
+		sprintf_s(szBuffer, "%s %s spell if slot %d is effect '%s' and < %lld", szEffectName, spa == SPA_STACKING_BLOCK ? "new" : "existing", slot, extra, value);
 	else
-		sprintf_s(szBuffer, "%s %s spell if slot %d is effect '%s'", szEffectName, spa == 148 ? "new" : "existing", slot, extra);
+		sprintf_s(szBuffer, "%s %s spell if slot %d is effect '%s'", szEffectName, spa == SPA_STACKING_BLOCK ? "new" : "existing", slot, extra);
+
 	return szBuffer;
 }
 
 template <unsigned int Size>
-static char* FormatStatsCapRange(const char* szEffectName, int value, const char* stat, const char* range, char(&szBuffer)[Size])
+static char* FormatStatsCapRange(const char* szEffectName, int64_t value, const char* stat, const char* range, char(&szBuffer)[Size])
 {
 	sprintf_s(szBuffer, "%s %s %s%s", value < 0 ? "Decrease" : "Increase", stat, szEffectName, range);
 	return szBuffer;
@@ -2008,9 +2010,9 @@ static char* FormatString(const char* szEffectName, const char* extra, char(&szB
 }
 
 template <unsigned int Size>
-static char* FormatTimer(const char* szEffectName, int value, char(&szBuffer)[Size])
+static char* FormatTimer(const char* szEffectName, int64_t value, char(&szBuffer)[Size])
 {
-	sprintf_s(szBuffer, "%s by %d.00 sec", szEffectName, value);
+	sprintf_s(szBuffer, "%s by %lld.00 sec", szEffectName, value);
 	return szBuffer;
 }
 
@@ -2034,38 +2036,10 @@ int GetSpellAttrib(EQ_Spell* pSpell, int index)
 
 		if (numeff > index)
 		{
-			if (PSPELLCALCINFO pCalcInfo = pSpellMgr->GetSpellAffect(pSpell->CalcIndex + index))
+			SpellAffectData* affectData = pSpellMgr->GetSpellAffect(pSpell->CalcIndex + index);
+			if (affectData)
 			{
-				return pCalcInfo->Attrib;
-			}
-		}
-		else
-		{
-			DebugSpewAlways("Bad usage of GetSpellAttrib: index=%d", index);
-		}
-	}
-	return 0;
-}
-
-int GetSpellBase(EQ_Spell* pSpell, int index)
-{
-	if (index < 0)
-		index = 0;
-
-	if (pSpell)
-	{
-		int numeff = GetSpellNumEffects(pSpell);
-		if (numeff == 0)
-			return 0;
-
-		if (numeff > index)
-		{
-			if (pSpellMgr)
-			{
-				if (SPELLCALCINFO* pCalcInfo = pSpellMgr->GetSpellAffect(pSpell->CalcIndex + index))
-				{
-					return pCalcInfo->Base;
-				}
+				return affectData->Attrib;
 			}
 		}
 	}
@@ -2073,12 +2047,12 @@ int GetSpellBase(EQ_Spell* pSpell, int index)
 	return 0;
 }
 
-int GetSpellBase2(EQ_Spell* pSpell, int index)
+int64_t GetSpellBase(EQ_Spell* pSpell, int index)
 {
 	if (index < 0)
 		index = 0;
 
-	if (pSpell)
+	if (pSpell && pSpellMgr)
 	{
 		int numeff = GetSpellNumEffects(pSpell);
 		if (numeff == 0)
@@ -2086,12 +2060,10 @@ int GetSpellBase2(EQ_Spell* pSpell, int index)
 
 		if (numeff > index)
 		{
-			if (pSpellMgr)
+			SpellAffectData* affectData = pSpellMgr->GetSpellAffect(pSpell->CalcIndex + index);
+			if (affectData)
 			{
-				if (SPELLCALCINFO* pCalcInfo = pSpellMgr->GetSpellAffect(pSpell->CalcIndex + index))
-				{
-					return pCalcInfo->Base2;
-				}
+				return affectData->Base;
 			}
 		}
 	}
@@ -2099,12 +2071,12 @@ int GetSpellBase2(EQ_Spell* pSpell, int index)
 	return 0;
 }
 
-int GetSpellMax(EQ_Spell* pSpell, int index)
+int64_t GetSpellBase2(EQ_Spell* pSpell, int index)
 {
 	if (index < 0)
 		index = 0;
 
-	if (pSpell)
+	if (pSpell && pSpellMgr)
 	{
 		int numeff = GetSpellNumEffects(pSpell);
 		if (numeff == 0)
@@ -2112,12 +2084,34 @@ int GetSpellMax(EQ_Spell* pSpell, int index)
 
 		if (numeff > index)
 		{
-			if (pSpellMgr)
+			SpellAffectData* affectData = pSpellMgr->GetSpellAffect(pSpell->CalcIndex + index);
+			if (affectData)
 			{
-				if (SPELLCALCINFO* pCalcInfo = pSpellMgr->GetSpellAffect(pSpell->CalcIndex + index))
-				{
-					return pCalcInfo->Max;
-				}
+				return affectData->Base2;
+			}
+		}
+	}
+
+	return 0;
+}
+
+int64_t GetSpellMax(EQ_Spell* pSpell, int index)
+{
+	if (index < 0)
+		index = 0;
+
+	if (pSpell && pSpellMgr)
+	{
+		int numeff = GetSpellNumEffects(pSpell);
+		if (numeff == 0)
+			return 0;
+
+		if (numeff > index)
+		{
+			SpellAffectData* affectData = pSpellMgr->GetSpellAffect(pSpell->CalcIndex + index);
+			if (affectData)
+			{
+				return affectData->Max;
 			}
 		}
 	}
@@ -2130,7 +2124,7 @@ int GetSpellCalc(EQ_Spell* pSpell, int index)
 	if (index < 0)
 		index = 0;
 
-	if (pSpell)
+	if (pSpell && pSpellMgr)
 	{
 		int numeff = GetSpellNumEffects(pSpell);
 		if (numeff == 0)
@@ -2138,12 +2132,10 @@ int GetSpellCalc(EQ_Spell* pSpell, int index)
 
 		if (numeff > index)
 		{
-			if (pSpellMgr)
+			SpellAffectData* affectData = pSpellMgr->GetSpellAffect(pSpell->CalcIndex + index);
+			if (affectData)
 			{
-				if (SPELLCALCINFO* pCalcInfo = pSpellMgr->GetSpellAffect(pSpell->CalcIndex + index))
-				{
-					return pCalcInfo->Calc;
-				}
+				return affectData->Calc;
 			}
 		}
 	}
@@ -2165,9 +2157,9 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 
 	int id = pSpell->ID;
 	int spa = GetSpellAttrib(pSpell, i);
-	int base = GetSpellBase(pSpell, i);
-	int base2 = GetSpellBase2(pSpell, i);
-	int max = GetSpellMax(pSpell, i);
+	int64_t base = GetSpellBase(pSpell, i);
+	int64_t base2 = GetSpellBase2(pSpell, i);
+	int64_t max = GetSpellMax(pSpell, i);
 	int calc = GetSpellCalc(pSpell, i);
 	int spellgroup = pSpell->SpellGroup;
 	int ticks = pSpell->DurationCap;
@@ -2218,8 +2210,8 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 
 	int minspelllvl = CalcMinSpellLevel(pSpell);
 	int maxspelllvl = CalcMaxSpellLevel(calc, base, max, ticks, minspelllvl, level);
-	int value = CalcValue(calc, (spa == SPA_STACKING_BLOCK) ? max : base, max, 1, minspelllvl, minspelllvl);
-	int finish = CalcValue(calc, (spa == SPA_FOCUS_INCOMING_DMG_MOD) ? base2 : base, max, ticks, minspelllvl, level);
+	int64_t value = CalcValue(calc, (spa == SPA_STACKING_BLOCK) ? max : base, max, 1, minspelllvl, minspelllvl);
+	int64_t finish = CalcValue(calc, (spa == SPA_FOCUS_INCOMING_DMG_MOD) ? base2 : base, max, ticks, minspelllvl, level);
 
 	bool usePercent =
 		(spa == SPA_MOVEMENT_RATE
@@ -2374,7 +2366,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 			sprintf_s(szTemp, "%s (Qty:%d)", ItemDB->szName, (int)ItemDB->StackSize < calc ? ItemDB->StackSize : calc);
 		}
 		else {
-			sprintf_s(szTemp, "[%5d] (Qty:%d)", base, calc);
+			sprintf_s(szTemp, "[%5lld] (Qty:%d)", base, calc);
 		}
 		strcat_s(szBuff, FormatExtra(spelleffectname, szTemp, szTemp2));
 		break;
@@ -2423,7 +2415,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
 		break;
 	case SPA_CHANGE_FORM: //Illusion: Base=Race
-		strcat_s(szBuff, FormatExtra(spelleffectname, pEverQuest->GetRaceDesc(base), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, pEverQuest->GetRaceDesc((int)base), szTemp2));
 		break;
 	case SPA_DAMAGE_SHIELD: //Damage Shield
 		// Damage Shield's use the reverse sign from normal base values
@@ -2475,7 +2467,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, spelleffectname.c_str());
 		break;
 	case SPA_RESURRECT: //Resurrect
-		sprintf_s(szTemp, " and restore %d%% experience", value);
+		sprintf_s(szTemp, " and restore %lld%% experience", value);
 		strcat_s(szBuff, FormatString(spelleffectname.c_str(), szTemp, szTemp2));
 		if (!maxtargets.empty()) strcat_s(szBuff, maxtargets.c_str());
 		break;
@@ -2484,10 +2476,12 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		break;
 	case SPA_PORTAL: //zone portal spells
 		if (targettype == 6) {
-			sprintf_s(szTemp, " Self to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra.c_str())), szHeadingNormal[EQSpellHeading(GetSpellBase(pSpell, 3))]);
+			sprintf_s(szTemp, " Self to %lld, %lld, %lld in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1),
+				GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra.c_str())), szHeadingNormal[EQSpellHeading(GetSpellBase(pSpell, 3))]);
 		}
 		else {
-			sprintf_s(szTemp, " Group to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra.c_str())), szHeadingNormal[EQSpellHeading(GetSpellBase(pSpell, 3))]);
+			sprintf_s(szTemp, " Group to %lld, %lld, %lld in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1),
+				GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra.c_str())), szHeadingNormal[EQSpellHeading(GetSpellBase(pSpell, 3))]);
 		}
 		strcat_s(szBuff, FormatString(spelleffectname.c_str(), szTemp, szTemp2));
 		break;
@@ -2507,7 +2501,8 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatPercent(spelleffectname.c_str(), value, finish, szTemp2));
 		break;
 	case SPA_EVACUATE: //evac portal spells
-		sprintf_s(szTemp, " to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), extra.c_str(), szHeadingNormal[EQSpellHeading(GetSpellBase(pSpell, 3))]);
+		sprintf_s(szTemp, " to %lld, %lld, %lld in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1),
+			GetSpellBase(pSpell, 2), extra.c_str(), szHeadingNormal[EQSpellHeading(GetSpellBase(pSpell, 3))]);
 		strcat_s(szBuff, FormatString(spelleffectname.c_str(), szTemp, szTemp2));
 		break;
 	case SPA_HEIGHT: //Player Size
@@ -2548,7 +2543,8 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		break;
 	case SPA_TRANSLOCATE: //zone translocate spells
 		if (!extra.empty() && !extra.rfind('0', 0))
-			sprintf_s(szTemp, " to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra.c_str())), szHeadingNormal[EQSpellHeading(GetSpellBase(pSpell, 3))]);
+			sprintf_s(szTemp, " to %lld, %lld, %lld in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1),
+				GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra.c_str())), szHeadingNormal[EQSpellHeading(GetSpellBase(pSpell, 3))]);
 		else
 			strcat_s(szTemp, " to Bind Point");
 		strcat_s(szBuff, FormatString(spelleffectname.c_str(), szTemp, szTemp2));
@@ -2573,7 +2569,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 			sprintf_s(szTemp, "%s", ItemDB->szName);
 		}
 		else {
-			sprintf_s(szTemp, "[%5d]", base);
+			sprintf_s(szTemp, "[%5lld]", base);
 		}
 		strcat_s(szBuff, FormatExtra(spelleffectname, szTemp, szTemp2));
 		break;
@@ -2639,25 +2635,25 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		break;
 	case SPA_FOCUS_LEVEL_MAX: //limit max level
 		if (base2 > 0)
-			sprintf_s(szTemp, "%s (%d) (lose %d%% per level over cap)", spelleffectname.c_str(), base, base2);
+			sprintf_s(szTemp, "%s (%lld) (lose %lld%% per level over cap)", spelleffectname.c_str(), base, base2);
 		else
 			strcpy_s(szTemp, FormatBase(spelleffectname.c_str(), base, szTemp2));
 		strcat_s(szBuff, szTemp);
 		break;
 	case SPA_FOCUS_RESIST_TYPE: //Limit: Resist
-		strcat_s(szBuff, FormatLimits(spelleffectname.c_str(), value, GetResistTypeName(base, szTemp), szTemp2));
+		strcat_s(szBuff, FormatLimits(spelleffectname.c_str(), value, GetResistTypeName((int)base, szTemp), szTemp2));
 		break;
 	case SPA_FOCUS_TARGET_TYPE: //limit target types this affects
-		strcat_s(szBuff, FormatLimits(spelleffectname.c_str(), value, GetTargetTypeLimitsName(base, szTemp), szTemp2));
+		strcat_s(szBuff, FormatLimits(spelleffectname.c_str(), value, GetTargetTypeLimitsName((int)base, szTemp), szTemp2));
 		break;
 	case SPA_FOCUS_WHICH_SPA: //limit effect types this affects
-		strcat_s(szBuff, FormatLimits(spelleffectname.c_str(), value, GetSpellEffectName(base, szTemp, sizeof(szTemp)), szTemp2));
+		strcat_s(szBuff, FormatLimits(spelleffectname.c_str(), value, GetSpellEffectName((int)base, szTemp, sizeof(szTemp)), szTemp2));
 		break;
 	case SPA_FOCUS_BENEFICIAL: //limit spelltype this affects
-		strcat_s(szBuff, FormatLimits(spelleffectname.c_str(), value, GetSpellTypeName(base, szTemp), szTemp2));
+		strcat_s(szBuff, FormatLimits(spelleffectname.c_str(), value, GetSpellTypeName((int)base, szTemp), szTemp2));
 		break;
 	case SPA_FOCUS_WHICH_SPELL: //limit spell this affects
-		strcat_s(szBuff, FormatLimits(spelleffectname.c_str(), value, GetSpellNameByID(base), szTemp2));
+		strcat_s(szBuff, FormatLimits(spelleffectname.c_str(), value, GetSpellNameByID((int)base), szTemp2));
 		break;
 	case SPA_FOCUS_DURATION_MIN: //limit min duration of spells this affects (base= #ticks)
 		strcat_s(szBuff, FormatSeconds(spelleffectname.c_str(), value * 6, szTemp2));
@@ -2673,7 +2669,8 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatSeconds(spelleffectname.c_str(), value / 1000.0f, szTemp2));
 		break;
 	case SPA_NPC_PORTAL_WARDER_BANISH: //Teleportv2
-		sprintf_s(szTemp, " to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra.c_str())), szHeadingNormal[EQSpellHeading(GetSpellBase(pSpell, 3))]);
+		sprintf_s(szTemp, " to %lld, %lld, %lld in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1),
+			GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra.c_str())), szHeadingNormal[EQSpellHeading(GetSpellBase(pSpell, 3))]);
 		strcat_s(szBuff, FormatString(spelleffectname.c_str(), szTemp, szTemp2));
 		break;
 	case SPA_PORTAL_LOCATIONS: //Resist Electricity
@@ -2683,10 +2680,10 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatMax(spelleffectname.c_str(), value, max, szTemp2));
 		break;
 	case SPA_STACKING_BLOCK: //Stacking: Block
-		strcat_s(szBuff, FormatStacking(spelleffectname.c_str(), base2, value, /*(max>1000 ? max - 1000 : max)*/ max, spa, GetSpellEffectName(base, szTemp, sizeof(szTemp)), szTemp2));
+		strcat_s(szBuff, FormatStacking(spelleffectname.c_str(), (int)base2, value, max, spa, GetSpellEffectName((int)base, szTemp, sizeof(szTemp)), szTemp2));
 		break;
 	case SPA_STRIP_VIRTUAL_SLOT: //Stacking: Overwrite
-		strcat_s(szBuff, FormatStacking(spelleffectname.c_str(), calc - 200, value, (max > 1000 ? max - 1000 : max), spa, GetSpellEffectName(base, szTemp, sizeof(szTemp)), szTemp2));
+		strcat_s(szBuff, FormatStacking(spelleffectname.c_str(), calc - 200, value, (max > 1000 ? max - 1000 : max), spa, GetSpellEffectName((int)base, szTemp, sizeof(szTemp)), szTemp2));
 		break;
 	case SPA_DIVINE_INTERVENTION: //Death Save - Restore Full Health
 		sprintf_s(szTemp, "Restore %s Health", base == 1 ? "Partial" : base == 2 ? "Full" : "Unknown");
@@ -2697,7 +2694,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatExtra(spelleffectname, szTemp, szTemp2));
 		break;
 	case SPA_PET_SWARM: //Summon Pets (swarm)
-		sprintf_s(szTemp, "%s x%d for %dsec", extra.c_str(), value, finish);
+		sprintf_s(szTemp, "%s x%lld for %lldsec", extra.c_str(), value, finish);
 		strcat_s(szBuff, FormatExtra(spelleffectname, szTemp, szTemp2));
 		break;
 	case SPA_HEALTH_BALANCE: //Balance Party Health
@@ -2726,11 +2723,11 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 	case SPA_MELEE_GUARD: //Mitigate Melee Damage
 		strcat_s(szBuff, FormatPercent(spelleffectname.c_str(), value, szTemp2, false));
 		if (max > 0)
-			sprintf_s(szTemp, " until %d absorbed", max);
+			sprintf_s(szTemp, " until %lld absorbed", max);
 		strcat_s(szBuff, szTemp);
 		break;
 	case SPA_ABSORB_HIT: //Absorb Damage
-		sprintf_s(szTemp, " up to %d from the next %d melee strikes or direct damage spells", max, value);
+		sprintf_s(szTemp, " up to %lld from the next %lld melee strikes or direct damage spells", max, value);
 		strcat_s(szBuff, FormatString(spelleffectname.c_str(), szTemp, szTemp2));
 		break;
 	case SPA_OBJECT_SENSE_TRAP: //Attempt Sense (Cursed) Trap
@@ -2947,7 +2944,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatBasePercent(spelleffectname.c_str(), base, szTemp2));
 		break;
 	case SPA_INCREASE_STAT_CAP: //Stats Cap
-		strcat_s(szBuff, FormatStatsCapRange(spelleffectname.c_str(), value, GetStatShortName(base2, szTemp), extendedrange.c_str(), szTemp2));
+		strcat_s(szBuff, FormatStatsCapRange(spelleffectname.c_str(), value, GetStatShortName((int)base2, szTemp), extendedrange.c_str(), szTemp2));
 		break;
 	case SPA_TRADESKILL_MASTERY: //Tradeskill Masteries (no spells currently)
 	case SPA_REDUCE_AA_TIMER: //Reduce AATimer
@@ -3007,7 +3004,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
 		break;
 	case SPA_DOOM_EFFECT: //Trigger on Fade
-		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Fade"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID((int)base), szTemp2, " on Fade"));
 		break;
 	case SPA_INCREASE_RUN_SPEED_CAP: //Increase Movement Cap (no spells currently)
 	case SPA_PURIFY: //Purify
@@ -3113,7 +3110,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, spelleffectname.c_str());
 		break;
 	case SPA_DOOM_RUNE_EFFECT: //Trigger on fade
-		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Fade"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID((int)base), szTemp2, " on Fade"));
 		break;
 	case SPA_NO_MOVE_HP: //Song DoT
 		strcat_s(szBuff, FormatRange(spelleffectname.c_str(), value, extendedrange.c_str(), szTemp2));
@@ -3200,7 +3197,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatString(spelleffectname.c_str(), szTemp, szTemp2));
 		break;
 	case SPA_MODIFY_FACTION: //Modify Faction
-		strcat_s(szBuff, FormatExtra(spelleffectname, GetFactionName(base, szTemp), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetFactionName((int)base, szTemp), szTemp2));
 		break;
 	case SPA_CORRUPTION: //Corruption Counters
 	case SPA_RESIST_CORRUPTION: //Corruption Resists
@@ -3213,7 +3210,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
 		break;
 	case SPA_DOOM_ALWAYS: //Trigger Effect
-		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Fade"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID((int)base), szTemp2, " on Fade"));
 		break;
 	case SPA_TRIGGER_SPELL: //Trigger Spell
 		strcat_s(szBuff, FormatExtra(spelleffectname, FormatSpellChance(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
@@ -3225,7 +3222,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
 		break;
 	case SPA_DOOM_ENTITY: //Trigger Effect
-		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Fade"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID((int)base), szTemp2, " on Fade"));
 		break;
 	case SPA_RESIST_OTHER_SPA: //Resist
 		strcat_s(szBuff, FormatExtra(spelleffectname, FormatResists(spelleffectname.c_str(), base, base2, szTemp), szTemp2));
@@ -3234,7 +3231,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatCount(spelleffectname.c_str(), value, szTemp2));
 		break;
 	case SPA_EXPLOSIVE_KNOCKBACK: //Knockback Explosive
-		sprintf_s(szTemp, " (%d) and Toss Up (%d)", base, base2);
+		sprintf_s(szTemp, " (%lld) and Toss Up (%lld)", base, base2);
 		strcat_s(szBuff, FormatString(spelleffectname.c_str(), szTemp, szTemp2));
 		break;
 	case SPA_FLING_TOWARD: //Fling to Self
@@ -3243,7 +3240,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 	case SPA_SUPPRESSION: //Negate: Effect
 	{
 		char szString[MAX_STRING] = { 0 };
-		sprintf_s(szTemp, " %s Effect", GetSpellEffectNameByID(base2, szString, MAX_STRING));
+		sprintf_s(szTemp, " %s Effect", GetSpellEffectNameByID((int)base2, szString, MAX_STRING));
 		strcat_s(szBuff, FormatExtra(spelleffectname, szTemp, szTemp2));
 		break;
 	}
@@ -3254,13 +3251,13 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
 		break;
 	case SPA_FOCUS_WHICH_GROUP: //Limit: SpellGroup
-		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameBySpellGroupID(base), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameBySpellGroupID((int)base), szTemp2));
 		break;
 	case SPA_DOOM_DISPELLER: //Trigger Effect
-		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Curer"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID((int)base), szTemp2, " on Curer"));
 		break;
 	case SPA_DOOM_DISPELLEE: //Trigger Effect
-		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Fade"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID((int)base), szTemp2, " on Fade"));
 		break;
 	case SPA_SUMMON_ALL_CORPSES: //Summon All Corpses
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
@@ -3297,7 +3294,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatPercent(spelleffectname.c_str(), value, finish, szTemp2));
 		break;
 	case SPA_HEALBURN: //Healburn
-		sprintf_s(szTemp, " use up to %d mana to heal your group", value);
+		sprintf_s(szTemp, " use up to %lld mana to heal your group", value);
 		strcat_s(szBuff, FormatString(spelleffectname.c_str(), szTemp, szTemp2));
 		break;
 	case SPA_MANA_IGNITE: //Mana/HP
@@ -3310,10 +3307,10 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
 		break;
 	case SPA_DOOM_LIMIT_USE: //Trigger Effect
-		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Max Hits"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID((int)base), szTemp2, " on Max Hits"));
 		break;
 	case SPA_DOOM_FOCUS_USED: //Trigger Effect
-		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Focus Used"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID((int)base), szTemp2, " on Focus Used"));
 		break;
 	case SPA_LIMIT_HP: //Limit HP
 	case SPA_LIMIT_MANA: //Limit Mana
@@ -3321,7 +3318,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatCount(spelleffectname.c_str(), value, szTemp2, "to"));
 		break;
 	case SPA_FOCUS_LIMIT_CLASS: //Limit: PlayerClass
-		strcat_s(szBuff, FormatExtra(spelleffectname, GetClassesFromMask(base).c_str(), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetClassesFromMask((int)base).c_str(), szTemp2));
 		break;
 	case SPA_FOCUS_LIMIT_RACE: //Limit: Race (no spells currently)
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2)); // needs work (base2 bitmask of races)
@@ -3395,7 +3392,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		break;
 	case SPA_REQUIRE_TARGET_DOOM: //Doom Req Target
 	case SPA_REQUIRE_CASTER_DOOM: //Doom Req Caster
-		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID((int)base), szTemp2));
 		if (base2) {
 			GetSpellRestrictions(pSpell, i, szTemp, sizeof(szTemp));
 			strcat_s(szBuff, " -- Restrictions: ");
@@ -3403,7 +3400,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		}
 		break;
 	case SPA_IMPROVED_TAUNT: //Improved Taunt
-		sprintf_s(szTemp, " up to L%d and Reduce Ally Hate Generation by %d%%", base, base2);
+		sprintf_s(szTemp, " up to L%lld and Reduce Ally Hate Generation by %lld%%", base, base2);
 		strcat_s(szBuff, FormatString(spelleffectname.c_str(), szTemp, szTemp2));
 		break;
 	case SPA_ADD_MERC_SLOT: //Add Merc Slot
@@ -3414,21 +3411,22 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
 		break;
 	case SPA_DOT_GUARD: //DoT Guard
-		sprintf_s(szTemp, " absorbing %d%% damage to a total of %d", value, max);
+		sprintf_s(szTemp, " absorbing %lld%% damage to a total of %lld", value, max);
 		strcat_s(szBuff, FormatString(spelleffectname.c_str(), szTemp, szTemp2));
 		break;
 	case SPA_MELEE_THRESHOLD_GUARD: //Melee Threshold Guard
 	case SPA_SPELL_THRESHOLD_GUARD: //Spell Threshold Guard
-		sprintf_s(szTemp, " absorbing %d%% of incoming %s damage in excess of %d to a total of %d", value, spa == 451 ? "melee" : "spell", base2, max);
+		sprintf_s(szTemp, " absorbing %lld%% of incoming %s damage in excess of %lld to a total of %lld", value,
+			spa == SPA_MELEE_THRESHOLD_GUARD ? "melee" : "spell", base2, max);
 		strcat_s(szBuff, FormatString(spelleffectname.c_str(), szTemp, szTemp2));
 		break;
 	case SPA_MELEE_THRESHOLD_DOOM: //Doom Melee Threshold
-		sprintf_s(szTemp, " on %d Melee Damage Taken", base2);
-		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, szTemp));
+		sprintf_s(szTemp, " on %lld Melee Damage Taken", base2);
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID((int)base), szTemp2, szTemp));
 		break;
 	case SPA_SPELL_THRESHOLD_DOOM: //Doom Spell Threshold
-		sprintf_s(szTemp, " on %d Spell Damage Taken", base2);
-		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, szTemp));
+		sprintf_s(szTemp, " on %lld Spell Damage Taken", base2);
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID((int)base), szTemp2, szTemp));
 		break;
 	case SPA_ADD_HATE_PCT: //Add Hate %
 	case SPA_ADD_HATE_OVER_TIME_PCT: //Add Hate Over Time %
@@ -3465,7 +3463,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		break;
 	case SPA_CHANCE_BEST_IN_SPELL_GROUP: //Chance Best in Spell Group
 	case SPA_TRIGGER_BEST_IN_SPELL_GROUP: //Trigger Best in Spell Group
-		strcat_s(szBuff, FormatExtra(spelleffectname, FormatSpellGroupChance(spelleffectname, base, base2, szTemp), szTemp2, " on Cast"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, FormatSpellGroupChance(spelleffectname, base, (int)base2, szTemp), szTemp2, " on Cast"));
 		break;
 	case SPA_DOUBLE_MELEE_ATTACKS: //Double Melee Round (PC Only)
 		strcat_s(szBuff, FormatPercent(spelleffectname.c_str(), value, finish, szTemp2));
@@ -3478,25 +3476,25 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
 		break;
 	case SPA_TRIGGER_SPELL_NON_ITEM: //Trigger Spell Non-Item
-		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base2), szTemp2, " on Cast"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID((int)base2), szTemp2, " on Cast"));
 		break;
 	case SPA_WEAPON_STANCE: //Weapon Stance (no spells currently)
 	case SPA_HATELIST_TO_TOP: //Move to Top of Hatelist (no spells currently)
 		strcat_s(szBuff, FormatBase(spelleffectname.c_str(), base, szTemp2));
 		break;
 	case SPA_HATELIST_TO_TAIL: //Move to Bottom of Hatelist
-		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Cast"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID((int)base), szTemp2, " on Cast"));
 		break;
 	case SPA_FOCUS_LIMIT_MIN_VALUE: //Value Min
 		sprintf_s(szTemp, "%s %s", spelleffectname.c_str(), base < 0 ? "Max" : "Min");
-		strcat_s(szBuff, FormatMinMaxBase(szTemp, base, base2, szTemp2));
+		strcat_s(szBuff, FormatMinMaxBase(szTemp, base, (int)base2, szTemp2));
 		break;
 	case SPA_FOCUS_LIMIT_MAX_VALUE: //Value Max
 		sprintf_s(szTemp, "%s %s", spelleffectname.c_str(), base < 0 ? "Min" : "Max");
-		strcat_s(szBuff, FormatMinMaxBase(szTemp, base, base2, szTemp2));
+		strcat_s(szBuff, FormatMinMaxBase(szTemp, base, (int)base2, szTemp2));
 		break;
 	case SPA_FOCUS_CAST_SPELL_ON_LAND: //Cast Spell on Land
-		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base2), szTemp2, " on Land and conditions are met"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID((int)base2), szTemp2, " on Land and conditions are met"));
 		break;
 	case SPA_SKILL_BASE_DAMAGE_MOD: //Skill Base Damage Mod
 		strcat_s(szBuff, FormatPercent(spelleffectname.c_str(), value, finish, szTemp2));
@@ -3506,13 +3504,13 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatRange(spelleffectname.c_str(), value, extendedrange.c_str(), szTemp2, " (after crit)"));
 		break;
 	case SPA_FOCUS_LIMIT_CASTER_CLASS: //CasterClass
-		strcat_s(szBuff, FormatExtra(spelleffectname, GetClassesFromMask(base).c_str(), szTemp2));
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetClassesFromMask((int)base).c_str(), szTemp2));
 		break;
 	case SPA_FOCUS_LIMIT_SAME_CASTER: //Same Caster
 		strcat_s(szBuff, FormatExtra(spelleffectname, base ? "(Same)" : "(Different)", szTemp2, "", ""));
 		break;
 	case SPA_EXTEND_TRADESKILL_CAP: //Extend Tradeskill Cap
-		sprintf_s(szTemp, "%s (%d, %d, %d)", spelleffectname.c_str(), base, base2, max);
+		sprintf_s(szTemp, "%s (%lld, %lld, %lld)", spelleffectname.c_str(), base, base2, max);
 		strcat_s(szBuff, szTemp);
 		break;
 	case SPA_DEFENDER_MELEE_FORCE_PCT: //Push Taken
@@ -3538,7 +3536,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, " of Base Damage (Non Stacking)");
 		break;
 	case SPA_FOCUS_CAST_PROC_NO_BYPASS: //NoProc
-		sprintf_s(szTemp, "%s (%d, %d, %d)", spelleffectname.c_str(), base, base2, max);
+		sprintf_s(szTemp, "%s (%lld, %lld, %lld)", spelleffectname.c_str(), base, base2, max);
 		strcat_s(szBuff, szTemp);
 		break;
 	case SPA_ADD_EXTRA_PRIMARY_ATTACK_PCT: //Extra Attack % (1H Primary)
@@ -3570,7 +3568,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 		strcat_s(szBuff, FormatCount(spelleffectname.c_str(), value, szTemp2));
 		break;
 	case SPA_HEALTH_TRANSFER: //Health Transfer
-		sprintf_s(szTemp, "%s (%d, %d, %d)", spelleffectname.c_str(), base, base2, max);
+		sprintf_s(szTemp, "%s (%lld, %lld, %lld)", spelleffectname.c_str(), base, base2, max);
 		strcat_s(szBuff, szTemp);
 		break;
 	case SPA_FOCUS_RESIST_INCOMING: //Resist Incoming
@@ -3595,7 +3593,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 	case SPA_DURATION_MANA_PCT: // Duration Mana %
 	case SPA_DURATION_ENDURANCE_PCT: // Duration Endurance %
 	default: //undefined effect
-		sprintf_s(szTemp, "%s (base=%d, base2=%d, max=%d, calc=%d, value=%d)", spelleffectname.c_str(), base, base2, max, calc, value);
+		sprintf_s(szTemp, "%s (base=%lld, base2=%lld, max=%lld, calc=%d, value=%lld)", spelleffectname.c_str(), base, base2, max, calc, value);
 		strcat_s(szBuff, szTemp);
 		break;
 	}
@@ -3628,7 +3626,7 @@ char* ShowSpellSlotInfo(EQ_Spell* pSpell, char* szBuffer, size_t BufferSize, con
 
 void SlotValueCalculate(char* szBuff, EQ_Spell* pSpell, int i, double mp)
 {
-	sprintf_s(szBuff, 12, "%d",
+	sprintf_s(szBuff, 12, "%lld",
 		CalcValue(GetSpellCalc(pSpell, i), GetSpellBase(pSpell, i), GetSpellMax(pSpell, i), pSpell->DurationCap));
 }
 
@@ -3761,7 +3759,7 @@ int GetMeleeSpeedFromTriggers(EQ_Spell* pSpell, bool bIncrease)
 	int numEffects = GetSpellNumEffects(pSpell);
 	for (int index = 0; index < numEffects; index++)
 	{
-		if (int groupId = GetSpellBase2(pSpell, index))
+		if (int groupId = (int)GetSpellBase2(pSpell, index))
 		{
 			EQ_Spell* pTrigger = nullptr;
 
@@ -3804,7 +3802,6 @@ int GetMeleeSpeedPctFromSpell(EQ_Spell* pSpell, bool bIncrease)
 
 	if (!pLocalPlayer)
 		return 0;
-	SPAWNINFO* pSpawn = pLocalPlayer;
 
 	int numEffects = GetSpellNumEffects(pSpell);
 	for (int index = 0; index < numEffects; index++)
@@ -3812,14 +3809,14 @@ int GetMeleeSpeedPctFromSpell(EQ_Spell* pSpell, bool bIncrease)
 		int spa = GetSpellAttrib(pSpell, index);
 		if (spa == SPA_HASTE)
 		{
-			int base = GetSpellBase(pSpell, index) - 100;
+			int64_t base = GetSpellBase(pSpell, index) - 100;
 			if ((!bIncrease && base < 0) || (bIncrease && base > 0))
 			{
-				int max = GetSpellMax(pSpell, index) - 100;
+				int64_t max = GetSpellMax(pSpell, index) - 100;
 				int calc = GetSpellCalc(pSpell, index);
 				int minSpellLevel = CalcMinSpellLevel(pSpell);
 
-				int finish = CalcValue(calc, base, max, 0, minSpellLevel, pSpawn->Level);
+				int finish = (int)CalcValue(calc, base, max, 0, minSpellLevel, pLocalPlayer->Level);
 				return abs(finish);
 			}
 		}

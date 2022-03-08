@@ -575,12 +575,12 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case SpellMembers::CounterNumber:
 		Dest.DWord = 0;
-		Dest.Type = pIntType;
+		Dest.Type = pInt64Type;
 		for (int i = 0; i < GetSpellNumEffects(pSpell); i++)
 		{
 			if (IsSpellCountersSPA(GetSpellAttrib(pSpell, i)))
 			{
-				Dest.DWord = GetSpellBase(pSpell, i);
+				Dest.Int64 = GetSpellBase(pSpell, i);
 				return true;
 			}
 		}
@@ -739,8 +739,8 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SpellMembers::MaxLevel:
-		Dest.DWord = GetSpellMax(pSpell, 0);
-		Dest.Type = pIntType;
+		Dest.Type = pInt64Type;
+		Dest.Int64 = GetSpellMax(pSpell, 0);
 		return true;
 
 	case SpellMembers::Category:
@@ -792,7 +792,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case SpellMembers::Base:
 	{
-		Dest.Type = pIntType;
+		Dest.Type = pInt64Type;
 
 		if (!Index[0])
 			return false;
@@ -801,14 +801,14 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		if (nIndex < 0)
 			return false;
 
-		Dest.Int = GetSpellBase(pSpell, nIndex);
+		Dest.Int64 = GetSpellBase(pSpell, nIndex);
 
 		return true;
 	}
 
 	case SpellMembers::Base2:
 	{
-		Dest.Type = pIntType;
+		Dest.Type = pInt64Type;
 
 		if (!Index[0])
 			return false;
@@ -817,14 +817,14 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		if (nIndex < 0)
 			return false;
 
-		Dest.Int = GetSpellBase2(pSpell, nIndex);
+		Dest.Int64 = GetSpellBase2(pSpell, nIndex);
 
 		return true;
 	}
 
 	case SpellMembers::Max:
 	{
-		Dest.Type = pIntType;
+		Dest.Type = pInt64Type;
 
 		if (!Index[0])
 			return false;
@@ -833,7 +833,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		if (nIndex < 0)
 			return false;
 
-		Dest.Int = GetSpellMax(pSpell, nIndex);
+		Dest.Int64 = GetSpellMax(pSpell, nIndex);
 
 		return true;
 	}
@@ -1184,7 +1184,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		if (!pSpellAffect)
 			return false;
 
-		Dest.Set(pLocalPlayer->LegalPlayerRace(pSpellAffect->Base) ||
+		Dest.Set(pLocalPlayer->LegalPlayerRace((int)pSpellAffect->Base) ||
 			pSpellAffect->Base == EQR_SKELETON ||
 			pSpellAffect->Base == EQR_SKELETON_NEW ||
 			pSpellAffect->Base == EQR_OEQ_SKELETON ||
@@ -1225,7 +1225,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			return Dest.Ptr != nullptr;
 		}
 
-		int base2 = GetSpellBase2(pSpell, index);
+		int base2 = (int)GetSpellBase2(pSpell, index);
 		if (base2 == 0)
 			return false;
 

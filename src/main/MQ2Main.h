@@ -433,13 +433,13 @@ MQLIB_API char* ShowSpellSlotInfo(EQ_Spell* pSpell, char* szBuffer, size_t Buffe
 MQLIB_API char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSize, int level = 100);
 
 MQLIB_API int GetSpellAttrib(EQ_Spell* pSpell, int index);
-MQLIB_API int GetSpellBase(EQ_Spell* pSpell, int index);
-MQLIB_API int GetSpellBase2(EQ_Spell* pSpell, int index);
-MQLIB_API int GetSpellMax(EQ_Spell* pSpell, int index);
+MQLIB_API int64_t GetSpellBase(EQ_Spell* pSpell, int index);
+MQLIB_API int64_t GetSpellBase2(EQ_Spell* pSpell, int index);
+MQLIB_API int64_t GetSpellMax(EQ_Spell* pSpell, int index);
 MQLIB_API int GetSpellCalc(EQ_Spell* pSpell, int index);
 
 MQLIB_API void SlotValueCalculate(char* szBuff, EQ_Spell* pSpell, int i, double mp = 1.0);
-MQLIB_API int CalcValue(int calc, int base, int max, int tick, int minlevel = MAX_PC_LEVEL, int level = MAX_PC_LEVEL);
+MQLIB_API int64_t CalcValue(int calc, int64_t base, int64_t max, int tick, int minlevel = MAX_PC_LEVEL, int level = MAX_PC_LEVEL);
 MQLIB_API char* GetSpellEffectName(int EffectID, char* szBuffer, size_t BufferSize);
 MQLIB_API void GetGameDate(int* Month, int* Day, int* Year);
 MQLIB_API void GetGameTime(int* Hour, int* Minute, int* Night);

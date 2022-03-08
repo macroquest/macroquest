@@ -4736,7 +4736,7 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
 		// have equal attribute values. If the do, they don't stack.
 
 		int aAttrib = SPA_NOSPELL, bAttrib = SPA_NOSPELL; // Default to placeholder ...
-		int aBase = 0, bBase = 0, aBase2 = 0, bBase2 = 0;
+		int64_t aBase = 0, bBase = 0, aBase2 = 0, bBase2 = 0;
 
 		if (GetSpellNumEffects(aSpell) > i)
 		{
@@ -4760,8 +4760,8 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
 
 		if (bTriggerA || bTriggerB)
 		{
-			SPELL* pRetSpellA = GetSpellByID(bTriggerA ? (aAttrib == SPA_TRIGGER_SPELL ? aBase2 : aBase) : aSpell->ID);
-			SPELL* pRetSpellB = GetSpellByID(bTriggerB ? (bAttrib == SPA_TRIGGER_SPELL ? bBase2 : bBase) : bSpell->ID);
+			SPELL* pRetSpellA = GetSpellByID(bTriggerA ? (aAttrib == SPA_TRIGGER_SPELL ? (int)aBase2 : (int)aBase) : aSpell->ID);
+			SPELL* pRetSpellB = GetSpellByID(bTriggerB ? (bAttrib == SPA_TRIGGER_SPELL ? (int)bBase2 : (int)bBase) : bSpell->ID);
 
 			if (!pRetSpellA || !pRetSpellB)
 			{
@@ -4805,18 +4805,18 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
 		if (bAttrib == SPA_STACKING_BLOCK || bAttrib == SPA_STRIP_VIRTUAL_SLOT)
 		{
 			// in this branch we know bSpell has enough slots
-			int tmpSlot = (bAttrib == SPA_STACKING_BLOCK ? bBase2 - 1 : GetSpellCalc(bSpell, i) - 200 - 1);
-			int tmpAttrib = bBase;
+			int tmpSlot = (bAttrib == SPA_STACKING_BLOCK ? (int)(bBase2 - 1) : (int)(GetSpellCalc(bSpell, i) - 200 - 1));
+			int tmpAttrib = (int)bBase;
 
 			if (GetSpellNumEffects(aSpell) > tmpSlot)
 			{
-				StackingDebugLog("aSpell->Attrib[%d]=%d, aSpell->Base[%d]=%d, tmpAttrib=%d, tmpVal=%d",
+				StackingDebugLog("aSpell->Attrib[%d]=%d, aSpell->Base[%d]=%lld, tmpAttrib=%d, tmpVal=%lld",
 					tmpSlot, GetSpellAttrib(aSpell, tmpSlot), tmpSlot, GetSpellBase(aSpell, tmpSlot), tmpAttrib, abs(GetSpellMax(bSpell, i)));
 
 				// verify aSpell has that slot
 				if (GetSpellMax(bSpell, i) > 0)
 				{
-					int tmpVal = abs(GetSpellMax(bSpell, i));
+					int64_t tmpVal = abs(GetSpellMax(bSpell, i));
 					if (GetSpellAttrib(aSpell, tmpSlot) == tmpAttrib && GetSpellBase(aSpell, tmpSlot) < tmpVal)
 					{
 						StackingDebugLog("returning false #3");
