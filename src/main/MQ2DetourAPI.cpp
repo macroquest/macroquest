@@ -206,10 +206,12 @@ int CPacketScrambler_Detours::ntoh_Detour(int nopcode)
 {
 	int hopcode = ntoh_Trampoline(nopcode);
 
+#if 0
 	if (hopcode == EQ_ASSIST)
 	{
 		GetAssistParam();
 	}
+#endif
 
 	return hopcode;
 }

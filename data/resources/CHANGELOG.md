@@ -1,3 +1,8 @@
+March 9, 2022:
+- Updated for patch.
+- Me.AssistComplete is temporarily disabled. Its been broken since x64 but
+  the disabling is purposeful now to avoid crashing.
+
 March 8, 2022:
 - Spell SPA data for base, base2, and max are now 64 bit values.
 - Spell Buff counters are now 64 bit values.
