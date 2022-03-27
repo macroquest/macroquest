@@ -38,6 +38,7 @@ enum class GroupMembers
 	MouseOver,
 	AvgHPs,
 	Injured,
+	LowMana,
 	Cleric,
 };
 
@@ -62,6 +63,7 @@ MQ2GroupType::MQ2GroupType() : MQ2Type("group")
 	ScopedTypeMember(GroupMembers, MouseOver);
 	ScopedTypeMember(GroupMembers, AvgHPs);
 	ScopedTypeMember(GroupMembers, Injured);
+	ScopedTypeMember(GroupMembers, LowMana);
 	ScopedTypeMember(GroupMembers, Cleric);
 }
 
@@ -349,6 +351,47 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 					}
 
 					if (hps > 0 && hps < threshold)
+					{
+						Dest.DWord++;
+					}
+				}
+			}
+
+		}
+		return true;
+
+	case GroupMembers::LowMana:
+		Dest.DWord = 0;
+		Dest.Type = pIntType;
+
+		if (int threshold = GetIntFromString(Index, 0))
+		{
+			int64_t manalvl = 0;
+			for (int i = 0; i < MAX_GROUP_SIZE; i++)
+			{
+				CGroupMember* pGroupMember = pLocalPC->Group->GetGroupMember(i);
+
+				if (pGroupMember
+					&& pGroupMember->GetPlayer()
+					&& pGroupMember->GetPlayer()->Type != SPAWN_CORPSE
+					&& !pGroupMember->IsOffline())
+				{
+					if (i == 0)
+					{
+						if (pGroupMember->GetPlayer()->ManaCurrent
+							&& pGroupMember->GetPlayer()->ManaMax)
+						{
+							float fmanac = (float)pGroupMember->GetPlayer()->ManaCurrent;
+							float fmanam = (float)pGroupMember->GetPlayer()->ManaMax;
+							manalvl = (int64_t)(fmanac * 100 / fmanam);
+						}
+					}
+					else
+					{
+						manalvl = pGroupMember->GetPlayer()->ManaCurrent;
+					}
+
+					if (manalvl > 0 && manalvl < threshold)
 					{
 						Dest.DWord++;
 					}
