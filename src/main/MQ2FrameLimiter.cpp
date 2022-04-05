@@ -203,6 +203,7 @@ static bool IsLimiterEnabled();
 static bool IsTieUiToSimulation();
 static bool UpdateDisplay_Hook();
 static bool ShouldDoRealRenderWorld();
+bool DoThrottleFrameRate();
 
 class CXWndManagerHook
 {
@@ -315,9 +316,22 @@ public:
 	}
 };
 
+#if defined(_M_AMD64)
 // Defined in AssemblyFunctions.asm, need the forward declare
 void Throttler_Detour();
 void(*Throttler_Trampoline)();
+#else
+DETOUR_TRAMPOLINE_DEF(void, Throttler_Trampoline, ());
+void Throttler_Detour()
+{
+	// If DoThrottleFrameRate returns false, then it is disabled and we
+	// want to just call the original code. If it returns true then we
+	// are engaged with the frame limiter and we want to skip past the
+	// built-in throttling.
+	if (!DoThrottleFrameRate())
+		Throttler_Trampoline();
+}
+#endif
 
 #pragma endregion
 
@@ -1185,8 +1199,12 @@ static void InitializeFrameLimiter()
 	EzDetour(CRender__UpdateDisplay, &CRenderHook::UpdateDisplay_Detour, &CRenderHook::UpdateDisplay_Trampoline);
 
 	// Hook the main loop throttle function
+#if defined(_M_AMD64)
 	if constexpr (__ThrottleFrameRate_x && __ThrottleFrameRateEnd_x)
 		AddDetour(__ThrottleFrameRate, Throttler_Detour, Throttler_Trampoline, "ThrottleFrameRate");
+#else
+	EzDetour(__ThrottleFrameRate, Throttler_Detour, Throttler_Trampoline);
+#endif
 
 	// Hook CDisplay::RealRender_World to control render loop
 	EzDetour(CDisplay__RealRender_World, &CDisplayHook::RealRender_World_Detour, &CDisplayHook::RealRender_World_Trampoline);
@@ -1207,9 +1225,7 @@ static void ShutdownFrameLimiter()
 	RemoveDetour(CRender__RenderBlind);
 	RemoveDetour(CRender__UpdateDisplay);
 	RemoveDetour(CDisplay__RealRender_World);
-
-	if constexpr (__ThrottleFrameRate_x && __ThrottleFrameRateEnd_x)
-		RemoveDetour(__ThrottleFrameRate);
+	RemoveDetour(__ThrottleFrameRate);
 
 	RemoveMQ2Benchmark(bmRenderScene);
 	RemoveMQ2Benchmark(bmRealRenderWorld);

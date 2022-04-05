@@ -176,7 +176,7 @@ bool MQ2Type::AddMember(int id, const char* Name)
 
 	// find an unused index from members.
 	int index = -1;
-	for (int i = 0; i < Members.size(); ++i)
+	for (int i = 0; i < (int)Members.size(); ++i)
 	{
 		if (Members[i] == nullptr)
 		{
@@ -226,7 +226,7 @@ bool MQ2Type::AddMethod(int ID, const char* Name)
 
 	// find an unused index from members.
 	int index = -1;
-	for (int i = 0; i < Methods.size(); ++i)
+	for (int i = 0; i < (int)Methods.size(); ++i)
 	{
 		if (Methods[i] == nullptr)
 		{
@@ -491,7 +491,6 @@ bool CDataArray::GetElement(char* Index, MQTypeVar& Dest)
 #include "MQ2BasicTypes.cpp"
 
 #include "MQ2AchievementType.cpp"
-#include "MQ2AdvLootType.cpp"
 #include "MQ2AlertListType.cpp"
 #include "MQ2AlertType.cpp"
 #include "MQ2AltAbilityType.cpp"
@@ -515,10 +514,8 @@ bool CDataArray::GetElement(char* Index, MQTypeVar& Dest)
 #include "MQ2GroundType.cpp"
 #include "MQ2GroupType.cpp"
 #include "MQ2InvSlotType.cpp"
-#include "MQ2ItemFilterDataType.cpp"
 #include "MQ2ItemSpellType.cpp"
 #include "MQ2ItemType.cpp"
-#include "MQ2KeyRingType.cpp"
 #include "MQ2MacroQuestType.cpp"
 #include "MQ2MacroType.cpp"
 #include "MQ2MathType.cpp"
@@ -542,3 +539,11 @@ bool CDataArray::GetElement(char* Index, MQTypeVar& Dest)
 #include "MQ2WorldLocationType.cpp"
 #include "MQ2XTargetType.cpp"
 #include "MQ2ZoneType.cpp"
+
+#if HAS_ADVANCED_LOOT
+#include "MQ2AdvLootType.cpp"
+#include "MQ2ItemFilterDataType.cpp"
+#endif
+#if HAS_KEYRING_WINDOW
+#include "MQ2KeyRingType.cpp"
+#endif

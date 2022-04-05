@@ -80,10 +80,6 @@ namespace mq {
 /* DETOURS */
 MQLIB_OBJECT void SetAssist(BYTE* address);
 
-/* FRAMELIMITER */
-MQLIB_OBJECT bool DoThrottleFrameRate();
-MQLIB_OBJECT extern void(*Throttler_Trampoline)();
-
 /* BENCHMARKING */
 void ShutdownMQ2Benchmarks();
 void InitializeMQ2Benchmarks();

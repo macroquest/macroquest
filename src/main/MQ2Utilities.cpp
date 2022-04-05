@@ -3826,7 +3826,7 @@ const char* ParseSearchSpawnArgs(char* szArg, const char* szRest, MQSpawnSearch*
 		}
 		else
 		{
-			for (int index = 1; index < lengthof(ClassInfo) - 1; index++)
+			for (int index = 1; index < (int)lengthof(ClassInfo) - 1; index++)
 			{
 				if (!_stricmp(szArg, ClassInfo[index].Name) || !_stricmp(szArg, ClassInfo[index].ShortName))
 				{
@@ -5146,15 +5146,17 @@ int GetHighestAvailableBagSlot()
 	if (!pLocalPC)
 		return InvSlot_Bag8;
 
-	int highestInvSlot = InvSlot_Bag12;
+	int highestInvSlot = InvSlot_LastBonusBagSlot;
 
 	// If no HoT, subtract two slots.
 	if (!HasExpansion(EXPANSION_HoT))
 		highestInvSlot -= 2;
 
+#if HAS_MERCHANTS_PERK
 	// If no merchant perk, subtract two more bag slots.
 	if (!pLocalPC->ConsumableFeatures.CanConsumeFeature(EQFeature_MerchantPerk))
 		highestInvSlot -= 2;
+#endif
 
 	return highestInvSlot;
 }

@@ -43,9 +43,6 @@ DATATYPE(MQ2TypeType, pTypeType, nullptr);
 DATATYPE(MQ2EverQuestType, pEverQuestType, nullptr);
 DATATYPE(MQ2SpawnType, pSpawnType, nullptr);
 DATATYPE(MQ2SpellType, pSpellType, nullptr);
-DATATYPE(MQ2AdvLootType, pAdvLootType, nullptr);
-DATATYPE(MQ2AdvLootItemType, pAdvLootItemType, nullptr);
-DATATYPE(MQ2ItemFilterDataType, pItemFilterDataType, nullptr);
 DATATYPE(MQ2AlertType, pAlertType, nullptr);
 DATATYPE(MQ2AlertListType, pAlertListType, nullptr);
 DATATYPE(MQ2AltAbilityType, pAltAbilityType, nullptr);
@@ -95,8 +92,6 @@ DATATYPE(MQ2WindowType, pWindowType, nullptr);
 DATATYPE(MQ2MenuType, pMenuType, nullptr);
 DATATYPE(MQ2XTargetType, pXTargetType, pSpawnType);
 DATATYPE(MQ2ZoneType, pZoneType, nullptr);
-DATATYPE(MQ2KeyRingType, pKeyRingType, nullptr);
-DATATYPE(MQ2KeyRingItemType, pKeyRingItemType, nullptr);
 DATATYPE(MQ2CharSelectListType, pCharSelectListType, nullptr);
 DATATYPE(MQ2WorldLocationType, pWorldLocationType, nullptr);
 DATATYPE(MQ2SolventType, pSolventType, nullptr);
@@ -110,6 +105,16 @@ DATATYPE(MQ2AchievementType, pAchievementType, nullptr);
 DATATYPE(MQ2AchievementManagerType, pAchievementManagerType, nullptr);
 DATATYPE(MQ2AchievementCategoryType, pAchievementCategoryType, nullptr);
 DATATYPE(MQ2AchievementObjectiveType, pAchievementObjectiveType, nullptr);
+
+#if HAS_ADVANCED_LOOT
+DATATYPE(MQ2AdvLootType, pAdvLootType, nullptr);
+DATATYPE(MQ2AdvLootItemType, pAdvLootItemType, nullptr);
+DATATYPE(MQ2ItemFilterDataType, pItemFilterDataType, nullptr);
+#endif
+#if HAS_KEYRING_WINDOW
+DATATYPE(MQ2KeyRingType, pKeyRingType, nullptr);
+DATATYPE(MQ2KeyRingItemType, pKeyRingItemType, nullptr);
+#endif
 
 #pragma warning(pop)
 #undef DATATYPE // In case the includer forgets

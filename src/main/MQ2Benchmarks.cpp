@@ -25,7 +25,7 @@ uint32_t AddMQ2Benchmark(const char* Name)
 
 	// find an unused index from members.
 	int index = -1;
-	for (int i = 0; i < gBenchmarks.size(); ++i)
+	for (int i = 0; i < (int)gBenchmarks.size(); ++i)
 	{
 		if (gBenchmarks[i] == nullptr)
 		{

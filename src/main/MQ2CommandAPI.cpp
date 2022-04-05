@@ -805,10 +805,12 @@ void InitializeMQ2Commands()
 		{
 			cmdMercSwitch = (fEQCommand)pCmdListOrig[i].fAddress;
 		}
+#if HAS_ADVANCED_LOOT
 		else if (!strcmp(pCmdListOrig[i].szName, "/advloot"))
 		{
 			cmdAdvLoot = (fEQCommand)pCmdListOrig[i].fAddress;
 		}
+#endif
 		else if (!strcmp(pCmdListOrig[i].szName, "/pickzone"))
 		{
 			cmdPickZone = (fEQCommand)pCmdListOrig[i].fAddress;
@@ -907,7 +909,9 @@ void InitializeMQ2Commands()
 		{ "/pet",               PetCmd,                     true,  true  },
 		{ "/mercswitch",        MercSwitchCmd,              true,  true  },
 		{ "/removeaura",        RemoveAura,                 false, true  },
+#if HAS_ADVANCED_LOOT
 		{ "/advloot",           AdvLootCmd,                 true,  true  },
+#endif
 		{ "/pickzone",          PickZoneCmd,                true,  true  },
 		{ "/assist",            AssistCmd,                  true,  true  },
 		{ "/setprio",           SetProcessPriority,         true,  false },
@@ -947,7 +951,9 @@ void InitializeMQ2Commands()
 		{ "/invoke",            InvokeCmd,                  true,  false },
 		{ "/mqlistmodules",     ListModulesCommand,         false, false },
 		{ "/mqlistprocesses",   ListProcessesCommand,       false, false },
+#if HAS_ITEM_CONVERT_BUTTON
 		{ "/convertitem",       ConvertItemCmd,             true,  true  },
+#endif
 		{ "/insertaug",         InsertAugCmd,               true,  true  },
 		{ "/removeaug",         RemoveAugCmd,               true,  true  },
 		{ "/profile",           ProfileCommand,             true,  false },

@@ -39,6 +39,9 @@ static MQModule gItemsModule = {
 MQModule* GetItemsModule() { return &gItemsModule; }
 
 //----------------------------------------------------------------------------
+// Keyring Handling
+//----------------------------------------------------------------------------
+#if HAS_KEYRING_WINDOW
 
 int GetKeyRingCount(KeyRingType keyRingType)
 {
@@ -107,6 +110,7 @@ void RefreshKeyRingWindow()
 	gbDidUpdateKeyRing = true;
 	gLastKeyRingUpdate = MQGetTickCount64();
 }
+#endif // HAS_KEYRING_WINDOW
 
 //----------------------------------------------------------------------------
 
@@ -120,6 +124,7 @@ static void Items_Shutdown()
 
 static void Items_Pulse()
 {
+#if HAS_KEYRING_WINDOW
 	// This may not be necessary if the data cannot be manipulated without the UI.
 	// This resets the check for gbDidUpdateKeyRing 5 seconds after it is set.
 	if (gbDidUpdateKeyRing)
@@ -129,12 +134,15 @@ static void Items_Pulse()
 			gbDidUpdateKeyRing = false;
 		}
 	}
+#endif // HAS_KEYRING_WINDOW
 }
 
 static void Items_SetGameState(DWORD gameState)
 {
+#if HAS_KEYRING_WINDOW
 	if (gameState == GAMESTATE_INGAME)
 		gbDidUpdateKeyRing = false;
+#endif // HAS_KEYRING_WINDOW
 }
 
 static void Items_UpdateImGui()

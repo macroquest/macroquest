@@ -508,14 +508,12 @@ void InitializeMQ2Data()
 
 	// EQ Types
 	AddMQ2Data("Achievement", datatypes::MQ2AchievementManagerType::dataAchievement);
-	AddMQ2Data("AdvLoot", datatypes::MQ2AdvLootType::dataAdvLoot);
 	AddMQ2Data("AltAbility", datatypes::MQ2AltAbilityType::dataAltAbility);
 	AddMQ2Data("Corpse", datatypes::MQ2CorpseType::dataCorpse);
 	AddMQ2Data("Cursor", datatypes::MQ2ItemType::dataCursor);
 	AddMQ2Data("DoorTarget", datatypes::MQ2SwitchType::dataSwitchTarget);
 	AddMQ2Data("DynamicZone", datatypes::MQ2DynamicZoneType::dataDynamicZone);
 	AddMQ2Data("EverQuest", datatypes::MQ2EverQuestType::dataEverQuest);
-	AddMQ2Data("Familiar", datatypes::MQ2KeyRingType::dataFamiliar);
 	AddMQ2Data("FindItem", datatypes::MQ2ItemType::dataFindItem);
 	AddMQ2Data("FindItemBank", datatypes::MQ2ItemType::dataFindItemBank);
 	AddMQ2Data("FindItemBankCount", datatypes::MQ2ItemType::dataFindItemBankCount);
@@ -525,7 +523,6 @@ void InitializeMQ2Data()
 	AddMQ2Data("Ground", datatypes::MQ2GroundType::dataGroundItem);
 	AddMQ2Data("GroundItemCount", datatypes::MQ2GroundType::dataGroundItemCount);
 	AddMQ2Data("Group", datatypes::MQ2GroupType::dataGroup);
-	AddMQ2Data("Illusion", datatypes::MQ2KeyRingType::dataIllusion);
 	AddMQ2Data("InvSlot", datatypes::MQ2InvSlotType::dataInvSlot);
 	AddMQ2Data("ItemTarget", datatypes::MQ2GroundType::dataItemTarget);
 	AddMQ2Data("LastSpawn", datatypes::MQ2SpawnType::dataLastSpawn);
@@ -534,7 +531,6 @@ void InitializeMQ2Data()
 	AddMQ2Data("Menu", datatypes::MQ2MenuType::dataMenu);
 	AddMQ2Data("Mercenary", datatypes::MQ2MercenaryType::dataMercenary);
 	AddMQ2Data("Merchant", datatypes::MQ2MerchantType::dataMerchant);
-	AddMQ2Data("Mount", datatypes::MQ2KeyRingType::dataMount);
 	AddMQ2Data("NearestSpawn", datatypes::MQ2SpawnType::dataNearestSpawn);
 	AddMQ2Data("Pet", datatypes::MQ2PetType::dataPet);
 	AddMQ2Data("PointMerchant", datatypes::MQ2PointMerchantType::dataPointMerchant);
@@ -548,11 +544,20 @@ void InitializeMQ2Data()
 	AddMQ2Data("SwitchTarget", datatypes::MQ2SwitchType::dataSwitchTarget);
 	AddMQ2Data("Target", datatypes::MQ2TargetType::dataTarget);
 	AddMQ2Data("Task", datatypes::MQ2TaskType::dataTask);
+	AddMQ2Data("Window", datatypes::MQ2WindowType::dataWindow);
+	AddMQ2Data("Zone", datatypes::MQ2ZoneType::dataZone);
+
+#if HAS_ADVANCED_LOOT
+	AddMQ2Data("AdvLoot", datatypes::MQ2AdvLootType::dataAdvLoot);
+#endif
+#if HAS_KEYRING_WINDOW
+	AddMQ2Data("Familiar", datatypes::MQ2KeyRingType::dataFamiliar);
+	AddMQ2Data("Illusion", datatypes::MQ2KeyRingType::dataIllusion);
+	AddMQ2Data("Mount", datatypes::MQ2KeyRingType::dataMount);
 #if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
 	AddMQ2Data("TeleportationItem", datatypes::MQ2KeyRingType::dataTeleportationItem);
 #endif
-	AddMQ2Data("Window", datatypes::MQ2WindowType::dataWindow);
-	AddMQ2Data("Zone", datatypes::MQ2ZoneType::dataZone);
+#endif // HAS_KEYRING_WINDOW
 }
 
 void ShutdownMQ2Data()

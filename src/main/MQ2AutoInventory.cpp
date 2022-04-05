@@ -22,50 +22,47 @@
 
 namespace mq {
 
-static std::list<ItemGlobalIndex> gSellList;
-static std::list<ItemGlobalIndex> gDeleteList;
 static std::list<ItemGlobalIndex> gAutoBankList;
 static std::list<ItemGlobalIndex> gAutoInventoryList;
-bool gbStartAutoBanking = false;
-bool gbStartDeleting = false;
-bool gbStartSelling = false;
-bool gbAutoBankInProgress = false;
-bool gbAutoInventoryInProgress = false;
-bool gbAutoBankTradeSkillItems = false;
-bool gbCheckBoxFeatureEnabled = true;
-bool gbColorsFeatureEnabled = true;
-bool gbAutoBankCollectibleItems = false;
-bool gbAutoBankQuestItems = false;
-bool gbAutoInventoryItems = false;
-CContextMenu* AutoBankMenu = nullptr;
-CContextMenu* CheckBoxMenu = nullptr;
-int CoolCheckBoxoptionID = 0;
-int CoolColorsoptionID = 0;
-int tradeskilloptionID = 0;
-int collectibleoptionID = 0;
-int questoptionID = 0;
-int separatoroptionID = 0;
-int autoinventoryoptionID = 0;
-int OurCheckBoxMenuIndex = 0;
-int OurDefaultMenuIndex = 0;
-int OurDefaultBGItem = 0;
-int OurDefaultHelpItem = 0;
-int OurDefaultLockItem = 0;
-int OurDefaultEscapeItem = 0;
-int OurDefaultMinItem = 0;
-int OurDefaultCloseItem = 0;
+static bool gbStartAutoBanking = false;
+static bool gbAutoBankInProgress = false;
+static bool gbAutoInventoryInProgress = false;
+static bool gbAutoBankTradeSkillItems = false;
+static bool gbAutoBankCollectibleItems = false;
+static bool gbAutoBankQuestItems = false;
+static bool gbAutoInventoryItems = false;
 
-CTextureAnimation* pChecked = nullptr;
-CTextureAnimation* pUnChecked = nullptr;
-CButtonWnd* gAutoBankButton = nullptr;
-CButtonWnd* pNLMarkedButton = nullptr;
-CLabelWnd* pCountLabel = nullptr;
+static CContextMenu* AutoBankMenu = nullptr;
+static CButtonWnd* gAutoBankButton = nullptr;
+static int s_bankCustomMenu = 0;
 
 // BankWnd context menu items
 constexpr int ContextMenu_TradeskillItemsId = 50;
 constexpr int ContextMenu_CollectibleItemsId = 51;
 constexpr int ContextMenu_QuestItemsId = 52;
 constexpr int ContextMenu_CheckedItemsId = 53;
+
+#if HAS_FIND_ITEM_WINDOW
+CContextMenu* CheckBoxMenu = nullptr;
+static int s_findItemCheckBoxMenu = 0;
+
+CTextureAnimation* pChecked = nullptr;
+CTextureAnimation* pUnChecked = nullptr;
+CLabelWnd* pCountLabel = nullptr;
+CButtonWnd* pNLMarkedButton = nullptr;
+bool bChangedNL = false;
+
+static std::list<ItemGlobalIndex> gDeleteList;
+static bool gbStartDeleting = false;
+
+static std::list<ItemGlobalIndex> gSellList;
+static bool gbStartSelling = false;
+uint64_t SellTimer = 0;
+
+static bool gbCheckBoxFeatureEnabled = true;
+bool gbColorsFeatureEnabled = true;
+
+static int s_lastSelectedItem = -1;
 
 // CFindItemWnd context menu items
 constexpr int ContextMenu_CheckboxFeatureEnabled = 50;
@@ -80,13 +77,13 @@ constexpr int Column_Value = 7;
 int MarkCol = 0;
 int ValueCol = 0;
 
-int lastsel = -1;
-CCheckBoxWnd* pCheck = nullptr;
-bool bChangedNL = false;
-ULONGLONG SellTimer = 0;
-
 namespace AutoInventory {
 	class FindItemWnd_Hook;
+}
+
+#endif // HAS_FIND_ITEM_WINDOW
+
+namespace AutoInventory {
 	class BankWnd_Hook;
 	class CBarterWnd_Hook;
 	class CBarterSearchWnd_Hook;
@@ -98,6 +95,8 @@ static int CompareMoneyStrings(SListWndSortInfo* sInfo, GetMoneyFromStringFormat
 	int64_t value2 = static_cast<int64_t>(!sInfo->StrLabel2.empty() ? GetMoneyFromString(sInfo->StrLabel2.c_str(), format) : -1);
 	return static_cast<int>(value1 - value2);
 }
+
+#if HAS_FIND_ITEM_WINDOW
 
 // CFindItemWnd hooks
 class AutoInventory::FindItemWnd_Hook
@@ -161,7 +160,7 @@ public:
 						pDisableConnectionTemplate->strName = szTemp2;
 						pDisableConnectionTemplate->strScreenId = szTemp2;
 
-						if (pCheck = (CCheckBoxWnd*)pSidlMgr->CreateXWndFromTemplate(pFIWnd, pDisableConnectionTemplate))
+						if (CCheckBoxWnd* pCheck = (CCheckBoxWnd*)pSidlMgr->CreateXWndFromTemplate(pFIWnd, pDisableConnectionTemplate))
 						{
 							pCheck->SetEnabled(true);
 							pCheck->SetCheck(false);
@@ -325,7 +324,7 @@ public:
 						CXPoint Loc = pWndMgr->MousePoint;
 
 						// work in progress
-						pContextMenuManager->PopupMenu(OurCheckBoxMenuIndex, Loc, pThis);
+						pContextMenuManager->PopupMenu(s_findItemCheckBoxMenu, Loc, pThis);
 					}
 
 					return 0;
@@ -406,13 +405,13 @@ public:
 							{
 								if (itemclicked == list->CurSel)
 								{
-									if (lastsel == itemclicked)
+									if (s_lastSelectedItem == itemclicked)
 									{
 										list->ItemsArray[itemclicked].bSelected = false;
 										list->CurSel = -1;
 									}
 								}
-								lastsel = list->CurSel;
+								s_lastSelectedItem = list->CurSel;
 							}
 
 							if (pMerchantWnd && pMerchantWnd->IsVisible() && list->CurSel >= 0)
@@ -541,7 +540,6 @@ public:
 			}
 			else if (uiMessage == XWM_LMOUSEUP)
 			{
-				CButtonWnd* FIW_DestroyItem = (CButtonWnd*)pThis->GetChildItem("FIW_DestroyItem");
 #pragma warning(suppress : 4311 4302)
 				int clickedrow = (int)pData;
 
@@ -549,6 +547,7 @@ public:
 				{
 					if (list->Columns.Count > Column_CheckBox)
 					{
+						CButtonWnd* FIW_DestroyItem = (CButtonWnd*)pThis->GetChildItem("FIW_DestroyItem");
 						if (FIW_DestroyItem && FIW_DestroyItem == pWnd)
 						{
 							if (!gDeleteList.empty())
@@ -614,6 +613,7 @@ public:
 												}
 												else
 												{
+													// FIXME: emu
 													WriteChatf("[%d] Marking %s as Never Loot", i, ptr->GetName());
 													if (pLootFiltersManager)
 													{
@@ -651,6 +651,8 @@ public:
 		return WndNotification_Trampoline(pWnd, uiMessage, pData);
 	}
 };
+
+#endif // HAS_FIND_ITEM_WINDOW
 
 // CBankWnd hooks
 class AutoInventory::BankWnd_Hook
@@ -721,7 +723,7 @@ public:
 						CXPoint Loc = pWndMgr->MousePoint;
 
 						// work in progress
-						pContextMenuManager->PopupMenu(OurDefaultMenuIndex, Loc, pThis);
+						pContextMenuManager->PopupMenu(s_bankCustomMenu, Loc, pThis);
 					}
 					break;
 				};
@@ -960,33 +962,35 @@ static void AddAutoBankMenu()
 {
 	AutoInventory::CBarterSearchWnd_Hook::AddInventoryValueColumn();
 
-	if (OurCheckBoxMenuIndex == 0)
+#if HAS_FIND_ITEM_WINDOW
+	if (s_findItemCheckBoxMenu == 0)
 	{
-		if (CContextMenuManager* pMgr = pContextMenuManager)
+		if (pContextMenuManager)
 		{
 			// save orig values
-			int DefaultMenuIndex = pMgr->DefaultMenuIndex;
-			int DefaultBGItem = pMgr->DefaultBGItem;
-			int DefaultHelpItem = pMgr->DefaultHelpItem;
-			int DefaultLockItem = pMgr->DefaultLockItem;
-			int DefaultEscapeItem = pMgr->DefaultEscapeItem;
-			int DefaultMinItem = pMgr->DefaultMinItem;
-			int DefaultCloseItem = pMgr->DefaultCloseItem;
+			int DefaultMenuIndex = pContextMenuManager->DefaultMenuIndex;
+			int DefaultBGItem = pContextMenuManager->DefaultBGItem;
+			int DefaultHelpItem = pContextMenuManager->DefaultHelpItem;
+			int DefaultLockItem = pContextMenuManager->DefaultLockItem;
+			int DefaultEscapeItem = pContextMenuManager->DefaultEscapeItem;
+			int DefaultMinItem = pContextMenuManager->DefaultMinItem;
+			int DefaultCloseItem = pContextMenuManager->DefaultCloseItem;
 
 			// create our menu
-			pMgr->CreateDefaultMenu();
-			OurCheckBoxMenuIndex = pMgr->DefaultMenuIndex;
+			pContextMenuManager->CreateDefaultMenu();  // FIXME: Don't rely on CreateDefaultMenu
+
+			s_findItemCheckBoxMenu = pContextMenuManager->DefaultMenuIndex;
 
 			// set orig values back, we now have a menu that's ours...
-			pMgr->DefaultMenuIndex = DefaultMenuIndex;
-			pMgr->DefaultBGItem = DefaultBGItem;
-			pMgr->DefaultHelpItem = DefaultHelpItem;
-			pMgr->DefaultLockItem = DefaultLockItem;
-			pMgr->DefaultEscapeItem = DefaultEscapeItem;
-			pMgr->DefaultMinItem = DefaultMinItem;
-			pMgr->DefaultCloseItem = DefaultCloseItem;
+			pContextMenuManager->DefaultMenuIndex = DefaultMenuIndex;
+			pContextMenuManager->DefaultBGItem = DefaultBGItem;
+			pContextMenuManager->DefaultHelpItem = DefaultHelpItem;
+			pContextMenuManager->DefaultLockItem = DefaultLockItem;
+			pContextMenuManager->DefaultEscapeItem = DefaultEscapeItem;
+			pContextMenuManager->DefaultMinItem = DefaultMinItem;
+			pContextMenuManager->DefaultCloseItem = DefaultCloseItem;
 
-			CheckBoxMenu = pContextMenuManager->GetMenu(OurCheckBoxMenuIndex);
+			CheckBoxMenu = pContextMenuManager->GetMenu(s_findItemCheckBoxMenu);
 			CheckBoxMenu->RemoveAllMenuItems();
 
 			gbCheckBoxFeatureEnabled = GetPrivateProfileBool("CoolBoxes", "CheckBoxFeatureEnabled", true, mq::internal_paths::MQini);
@@ -998,8 +1002,8 @@ static void AddAutoBankMenu()
 				WritePrivateProfileBool("CoolBoxes", "ColorsFeatureEnabled", gbColorsFeatureEnabled, mq::internal_paths::MQini);
 			}
 
-			CoolCheckBoxoptionID = CheckBoxMenu->AddMenuItem("Cool Checkbox Feature", ContextMenu_CheckboxFeatureEnabled, gbCheckBoxFeatureEnabled);
-			CoolColorsoptionID = CheckBoxMenu->AddMenuItem("Cool Colors Feature", ContextMenu_ColorsFeatureEnabled, gbColorsFeatureEnabled);
+			CheckBoxMenu->AddMenuItem("Cool Checkbox Feature", ContextMenu_CheckboxFeatureEnabled, gbCheckBoxFeatureEnabled);
+			CheckBoxMenu->AddMenuItem("Cool Colors Feature", ContextMenu_ColorsFeatureEnabled, gbColorsFeatureEnabled);
 		}
 
 		if (CFindItemWnd* pFIWnd = pFindItemWnd)
@@ -1090,42 +1094,37 @@ static void AddAutoBankMenu()
 			pFindItemWnd->Update();
 		}
 	}
+#endif // HAS_FIND_ITEM_WINDOW
 
-	if (OurDefaultMenuIndex == 0)
+	if (s_bankCustomMenu == 0)
 	{
-		if (CContextMenuManager* pMgr = pContextMenuManager)
+		if (pContextMenuManager)
 		{
 			// save orig values
-			int DefaultMenuIndex = pMgr->DefaultMenuIndex;
-			int DefaultBGItem = pMgr->DefaultBGItem;
-			int DefaultHelpItem = pMgr->DefaultHelpItem;
-			int DefaultLockItem = pMgr->DefaultLockItem;
-			int DefaultEscapeItem = pMgr->DefaultEscapeItem;
-			int DefaultMinItem = pMgr->DefaultMinItem;
-			int DefaultCloseItem = pMgr->DefaultCloseItem;
+			int DefaultMenuIndex = pContextMenuManager->DefaultMenuIndex;
+			int DefaultBGItem = pContextMenuManager->DefaultBGItem;
+			int DefaultHelpItem = pContextMenuManager->DefaultHelpItem;
+			int DefaultLockItem = pContextMenuManager->DefaultLockItem;
+			int DefaultEscapeItem = pContextMenuManager->DefaultEscapeItem;
+			int DefaultMinItem = pContextMenuManager->DefaultMinItem;
+			int DefaultCloseItem = pContextMenuManager->DefaultCloseItem;
 
 			// create our menu
-			pMgr->CreateDefaultMenu();
+			pContextMenuManager->CreateDefaultMenu();  // FIXME: Don't rely on CreateDefaultMenu
 
 			// set our values
-			OurDefaultMenuIndex = pMgr->DefaultMenuIndex;
-			OurDefaultBGItem = pMgr->DefaultBGItem;
-			OurDefaultHelpItem = pMgr->DefaultHelpItem;
-			OurDefaultLockItem = pMgr->DefaultLockItem;
-			OurDefaultEscapeItem = pMgr->DefaultEscapeItem;
-			OurDefaultMinItem = pMgr->DefaultMinItem;
-			OurDefaultCloseItem = pMgr->DefaultCloseItem;
+			s_bankCustomMenu = pContextMenuManager->DefaultMenuIndex;
 
 			// set orig values back, we now have a menu that's ours...
-			pMgr->DefaultMenuIndex = DefaultMenuIndex;
-			pMgr->DefaultBGItem = DefaultBGItem;
-			pMgr->DefaultHelpItem = DefaultHelpItem;
-			pMgr->DefaultLockItem = DefaultLockItem;
-			pMgr->DefaultEscapeItem = DefaultEscapeItem;
-			pMgr->DefaultMinItem = DefaultMinItem;
-			pMgr->DefaultCloseItem = DefaultCloseItem;
+			pContextMenuManager->DefaultMenuIndex = DefaultMenuIndex;
+			pContextMenuManager->DefaultBGItem = DefaultBGItem;
+			pContextMenuManager->DefaultHelpItem = DefaultHelpItem;
+			pContextMenuManager->DefaultLockItem = DefaultLockItem;
+			pContextMenuManager->DefaultEscapeItem = DefaultEscapeItem;
+			pContextMenuManager->DefaultMinItem = DefaultMinItem;
+			pContextMenuManager->DefaultCloseItem = DefaultCloseItem;
 
-			AutoBankMenu = pContextMenuManager->GetMenu(OurDefaultMenuIndex);
+			AutoBankMenu = pContextMenuManager->GetMenu(s_bankCustomMenu);
 			AutoBankMenu->RemoveAllMenuItems();
 
 			gbAutoBankTradeSkillItems = GetPrivateProfileBool("AutoBank", "AutoBankTradeSkillItems", false, mq::internal_paths::MQini);
@@ -1141,11 +1140,11 @@ static void AddAutoBankMenu()
 				WritePrivateProfileBool("AutoBank", "AutoInventoryItems", gbAutoInventoryItems, mq::internal_paths::MQini);
 			}
 
-			tradeskilloptionID = AutoBankMenu->AddMenuItem("Tradeskill Items", ContextMenu_TradeskillItemsId, gbAutoBankTradeSkillItems);
-			collectibleoptionID = AutoBankMenu->AddMenuItem("Collectible Items", ContextMenu_CollectibleItemsId, gbAutoBankCollectibleItems);
-			questoptionID = AutoBankMenu->AddMenuItem("Quest Items", ContextMenu_QuestItemsId, gbAutoBankQuestItems);
-			separatoroptionID = AutoBankMenu->AddSeparator();
-			questoptionID = AutoBankMenu->AddMenuItem("AutoInventory Checked Items", ContextMenu_CheckedItemsId, gbAutoInventoryItems);
+			AutoBankMenu->AddMenuItem("Tradeskill Items", ContextMenu_TradeskillItemsId, gbAutoBankTradeSkillItems);
+			AutoBankMenu->AddMenuItem("Collectible Items", ContextMenu_CollectibleItemsId, gbAutoBankCollectibleItems);
+			AutoBankMenu->AddMenuItem("Quest Items", ContextMenu_QuestItemsId, gbAutoBankQuestItems);
+			AutoBankMenu->AddSeparator();
+			AutoBankMenu->AddMenuItem("AutoInventory Checked Items", ContextMenu_CheckedItemsId, gbAutoInventoryItems);
 		}
 	}
 }
@@ -1154,18 +1153,19 @@ void RemoveAutoBankMenu()
 {
 	AutoInventory::CBarterSearchWnd_Hook::RemoveInventoryValueColumn();
 
-	if (CContextMenuManager* pMgr = pContextMenuManager)
+#if HAS_FIND_ITEM_WINDOW
+	if (pContextMenuManager)
 	{
-		if (OurDefaultMenuIndex != 0)
+		if (s_bankCustomMenu != 0)
 		{
-			pMgr->RemoveMenu(OurDefaultMenuIndex, true);
-			OurDefaultMenuIndex = 0;
+			pContextMenuManager->RemoveMenu(s_bankCustomMenu, true);
+			s_bankCustomMenu = 0;
 		}
 
-		if (OurCheckBoxMenuIndex != 0)
+		if (s_findItemCheckBoxMenu != 0)
 		{
-			pMgr->RemoveMenu(OurCheckBoxMenuIndex, true);
-			OurCheckBoxMenuIndex = 0;
+			pContextMenuManager->RemoveMenu(s_findItemCheckBoxMenu, true);
+			s_findItemCheckBoxMenu = 0;
 			if (pNLMarkedButton)
 			{
 				pNLMarkedButton->Destroy();
@@ -1198,6 +1198,7 @@ void RemoveAutoBankMenu()
 			}
 		}
 	}
+#endif
 }
 
 static void AutoBankPulse()
@@ -1206,6 +1207,7 @@ static void AutoBankPulse()
 		return;
 	PcProfile* pProfile = GetPcProfile();
 
+#if HAS_FIND_ITEM_WINDOW
 	if (pMerchantWnd)
 	{
 		if (pMerchantWnd->IsVisible())
@@ -1316,6 +1318,7 @@ static void AutoBankPulse()
 
 		return;
 	}
+#endif
 
 	if (!gbStartAutoBanking)
 	{
@@ -1510,12 +1513,14 @@ void InitializeMQ2AutoInventory()
 	EzDetour(CBankWnd__WndNotification,
 		&AutoInventory::BankWnd_Hook::WndNotification_Detour,
 		&AutoInventory::BankWnd_Hook::WndNotification_Trampoline);
+#if HAS_FIND_ITEM_WINDOW
 	EzDetour(CFindItemWnd__WndNotification,
 		&AutoInventory::FindItemWnd_Hook::WndNotification_Detour,
 		&AutoInventory::FindItemWnd_Hook::WndNotification_Trampoline);
 	EzDetour(CFindItemWnd__Update,
 		&AutoInventory::FindItemWnd_Hook::Update_Detour,
 		&AutoInventory::FindItemWnd_Hook::Update_Trampoline);
+#endif // HAS_FIND_ITEM_WINDOW
 	EzDetour(CBarterSearchWnd__WndNotification,
 		&AutoInventory::CBarterSearchWnd_Hook::WndNotification_Detour,
 		&AutoInventory::CBarterSearchWnd_Hook::WndNotification_Trampoline);
@@ -1532,8 +1537,10 @@ void ShutdownMQ2AutoInventory()
 	RemoveDetour(CBarterWnd__WndNotification);
 	RemoveDetour(CBarterSearchWnd__UpdateInventoryList);
 	RemoveDetour(CBarterSearchWnd__WndNotification);
+#if HAS_FIND_ITEM_WINDOW
 	RemoveDetour(CFindItemWnd__WndNotification);
 	RemoveDetour(CFindItemWnd__Update);
+#endif
 	RemoveDetour(CBankWnd__WndNotification);
 	RemoveAutoBankMenu();
 }

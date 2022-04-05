@@ -272,7 +272,9 @@ fEQCommand cmdHotbutton = nullptr;
 fEQCommand cmdTaskQuit = nullptr;
 fEQCommand cmdPet = nullptr;
 fEQCommand cmdMercSwitch = nullptr;
+#if HAS_ADVANCED_LOOT
 fEQCommand cmdAdvLoot = nullptr;
+#endif
 fEQCommand cmdPickZone = nullptr;
 fEQCommand cmdAssist = nullptr;
 fEQCommand cmdQuit = nullptr;
@@ -720,8 +722,8 @@ const char* szItemSlot[InvSlot_Max + 1] = {
 	"pack8",        // 30
 	"pack9",
 	"pack10",
+#if HAS_MERCHANTS_PERK
 	"pack11",
-#ifndef TEST
 	"pack12",
 #endif
 	"cursor",
