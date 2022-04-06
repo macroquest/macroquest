@@ -27,7 +27,11 @@
 #include <mq/Plugin.h>
 #include <mq/utils/Args.h>
 #include <fmt/format.h>
+
+#pragma warning(push)
+#pragma warning(disable: 4244)
 #include <fmt/chrono.h>
+#pragma warning(pop)
 
 #include <yaml-cpp/yaml.h>
 
@@ -36,6 +40,8 @@
 
 PreSetup("MQ2Lua");
 PLUGIN_VERSION(0.1);
+
+using namespace std::chrono_literals;
 
 // TODO: Add aggressive bind/event options that scriptwriters can set with functions
 // TODO: Add OnExit callbacks (potentially both as an explicit argument to exit and a set callback)
@@ -60,7 +66,7 @@ static const std::string showMenu = "showMenu";
 static uint32_t s_turboNum = 500;
 static std::string s_luaDirName = "lua";
 static LuaEnvironmentSettings s_environment;
-static uint64_t s_infoGC = 3600000; // 1 hour
+static std::chrono::milliseconds s_infoGC = 3600s; // 1 hour
 static bool s_squelchStatus = false;
 
 // this is static and will never change
@@ -195,17 +201,20 @@ public:
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 
-		case Members::StartTime:
+		case Members::StartTime: {
 			Dest.Type = pStringType;
-			ctime_s(DataTypeTemp, MAX_STRING, &info->startTime);
+			time_t startTime = std::chrono::system_clock::to_time_t(info->startTime);
+			ctime_s(DataTypeTemp, MAX_STRING, &startTime);
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
+		}
 
 		case Members::EndTime:
-			if (info->endTime > 0)
+			if (info->endTime != std::chrono::system_clock::time_point{})
 			{
 				Dest.Type = pStringType;
-				ctime_s(DataTypeTemp, MAX_STRING, &info->endTime);
+				time_t endTime = std::chrono::system_clock::to_time_t(info->endTime);
+				ctime_s(DataTypeTemp, MAX_STRING, &endTime);
 				return true;
 			}
 
@@ -342,11 +351,14 @@ public:
 				auto latest = s_infoMap.cbegin();
 				for (auto it = s_infoMap.cbegin(); it != s_infoMap.cend(); ++it)
 				{
-					if (it->second.endTime > 0 && it->second.startTime > latest->second.startTime)
+					if (it->second.endTime != std::chrono::system_clock::time_point{}
+						&& it->second.startTime > latest->second.startTime)
+					{
 						latest = it;
+					}
 				}
 
-				if (latest->second.endTime > 0)
+				if (latest->second.endTime != std::chrono::system_clock::time_point{})
 				{
 					Dest.Set(latest->second);
 					return true;
@@ -470,7 +482,8 @@ static uint32_t LuaParseCommand(const std::string& script, std::string_view name
 		[&](const std::pair<uint32_t, mq::lua::LuaThreadInfo>& kv)
 		{ return kv.second.name == name && kv.second.isString; });
 
-	if (info_it != s_infoMap.end() && info_it->second.endTime == 0ULL
+	if (info_it != s_infoMap.end()
+		&& info_it->second.endTime == std::chrono::system_clock::time_point{}
 		&& name == "lua parse")
 	{
 		// parsed script is currently running, inform and exit
@@ -701,29 +714,38 @@ static void ReadSettings()
 		}
 	}
 
-	auto GC_interval = s_configNode[infoGC].as<std::string>(std::to_string(s_infoGC));
+	auto GC_interval = s_configNode[infoGC].as<std::string>(std::to_string(s_infoGC.count()));
 	trim(GC_interval);
+
 	if (GC_interval.length() > 1 && GC_interval.find_first_not_of("0123456789") == std::string::npos)
-		std::from_chars(GC_interval.data(), GC_interval.data() + GC_interval.size(), s_infoGC);
+	{
+		auto result = 0ULL;
+		std::from_chars(GC_interval.data(), GC_interval.data() + GC_interval.size(), result);
+		s_infoGC = std::chrono::milliseconds(result);
+	}
 	else if (GC_interval.length() > 1 && GC_interval.compare(GC_interval.length() - 1, 1, "h") == 0)
 	{
 		auto result = 0ULL;
 		std::from_chars(GC_interval.data(), GC_interval.data() + GC_interval.size() - 1, result);
-		if (result >= 0) s_infoGC = result * 3600000;
+		if (result >= 0) s_infoGC = std::chrono::hours{ result };
 	}
 	else if (GC_interval.length() > 1 && GC_interval.compare(GC_interval.length() - 1, 1, "m") == 0)
 	{
 		auto result = 0ULL;
 		std::from_chars(GC_interval.data(), GC_interval.data() + GC_interval.size() - 1, result);
-		if (result >= 0) s_infoGC = result * 60000;
+		if (result >= 0) s_infoGC = std::chrono::minutes{ result };
 	}
 	else if (GC_interval.length() > 2 && GC_interval.compare(GC_interval.length() - 2, 2, "ms") == 0)
-		std::from_chars(GC_interval.data(), GC_interval.data() + GC_interval.size() - 2, s_infoGC);
+	{
+		auto result = 0ULL;
+		std::from_chars(GC_interval.data(), GC_interval.data() + GC_interval.size() - 2, result);
+		s_infoGC = std::chrono::milliseconds{ result };
+	}
 	else if (GC_interval.length() > 1 && GC_interval.compare(GC_interval.length() - 1, 1, "s") == 0)
 	{
 		auto result = 0ULL;
 		std::from_chars(GC_interval.data(), GC_interval.data() + GC_interval.size() - 1, result);
-		if (result >= 0) s_infoGC = result * 1000;
+		if (result >= 0) s_infoGC = std::chrono::seconds{ result };
 	}
 
 	s_squelchStatus = s_configNode[squelchStatus].as<bool>(s_squelchStatus);
@@ -1193,11 +1215,14 @@ static void DrawLuaSettings()
 	ImGui::NewLine();
 
 	ImGui::Text("Process Info Garbage Collect Time:");
-	float gc_selected = s_configNode[infoGC].as<uint64_t>(s_infoGC) / 60000.f;
+	float gc_selected = s_configNode[infoGC].as<uint64_t>(s_infoGC.count()) / 60000.f;
 	if (ImGui::SliderFloat("##infoGCslider", &gc_selected, 0.f, 300.f, "%.3f minutes", ImGuiSliderFlags_None))
 	{
-		s_infoGC = static_cast<uint64_t>(gc_selected * 60000);
-		s_configNode[infoGC] = s_infoGC;
+		using float_minutes = std::chrono::duration<float, std::ratio<60>>;
+
+		float_minutes fmins = float_minutes{ gc_selected };
+		s_infoGC = std::chrono::duration_cast<std::chrono::milliseconds>(fmins);
+		s_configNode[infoGC] = s_infoGC.count();
 	}
 
 	ImGui::NewLine();
@@ -1419,18 +1444,19 @@ PLUGIN_API void OnPulse()
 		return false;
 	}), s_running.end());
 
-	if (s_infoGC > 0)
+	if (s_infoGC.count() > 0)
 	{
-		auto now_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-
+		auto now_time = std::chrono::system_clock::now();
 		static auto last_check_time = now_time;
-		if (now_time >= last_check_time + static_cast<time_t>(s_infoGC))
+
+		if (now_time >= last_check_time + s_infoGC)
 		{
 			// this doesn't need to be super tight, no one should be depending on this clearing objects at exactly the GC
 			// interval, so just clear out anything that existed last time we checked.
 			for (auto it = s_infoMap.begin(); it != s_infoMap.end();)
 			{
-				if (it->second.endTime > 0 && it->second.endTime <= last_check_time)
+				if (it->second.endTime != std::chrono::system_clock::time_point{}
+					&& it->second.endTime <= last_check_time)
 					it = s_infoMap.erase(it);
 				else
 					++it;
@@ -1579,14 +1605,11 @@ PLUGIN_API void OnUpdateImGui()
 				ImGui::LabelText("Return Values", "%s", join(info.returnValues, ", ").c_str());
 			}
 
-			tm ts;
-			localtime_s(&ts, &info.startTime);
-			ImGui::LabelText("Start Time", "%s", fmt::format("{:%a, %b %d @ %I:%M:%S %p}", ts).c_str());
+			ImGui::LabelText("Start Time", "%s", fmt::format("{:%a, %b %d @ %I:%M:%S %p}", info.startTime).c_str());
 
-			if (info.endTime > 0)
+			if (info.endTime != std::chrono::system_clock::time_point{})
 			{
-				localtime_s(&ts, &info.endTime);
-				ImGui::LabelText("End Time", "%s", fmt::format("{:%a, %b %d @ %I:%M:%S %p}", ts).c_str());
+				ImGui::LabelText("End Time", "%s", fmt::format("{:%a, %b %d @ %I:%M:%S %p}", info.endTime).c_str());
 			}
 
 			if (info.isString)

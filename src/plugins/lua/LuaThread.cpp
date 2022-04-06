@@ -93,7 +93,7 @@ void LuaThreadInfo::SetResult(const sol::protected_function_result& result, bool
 void LuaThreadInfo::EndRun()
 {
 	status = LuaThreadStatus::Exited;
-	endTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	endTime = std::chrono::system_clock::now();
 }
 
 //============================================================================
@@ -320,7 +320,7 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(
 	m_coroutine->coroutine = co;
 	YieldAt(m_turboNum);
 
-	auto start_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	auto start_time = std::chrono::system_clock::now();
 	CoroutineResult result = m_coroutine->RunCoroutine(args);
 
 	LuaThreadInfo ret{
@@ -329,7 +329,7 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(
 		script_path.string(),
 		args,
 		start_time,
-		0ULL,
+		{},
 		{},
 		LuaThreadStatus::Starting,
 		false
@@ -383,7 +383,7 @@ std::optional<LuaThreadInfo> LuaThread::StartString(std::string_view script,
 
 	YieldAt(m_turboNum);
 
-	auto start_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	auto start_time = std::chrono::system_clock::now();
 	CoroutineResult result = m_coroutine->RunCoroutine();
 
 	LuaThreadInfo ret{
@@ -392,7 +392,7 @@ std::optional<LuaThreadInfo> LuaThread::StartString(std::string_view script,
 		std::string(script),
 		{},
 		start_time,
-		0ULL,
+		{},
 		{},
 		LuaThreadStatus::Starting,
 		true

@@ -17,6 +17,8 @@
 #include "LuaCommon.h"
 
 #include <sol/sol.hpp>
+
+#include <chrono>
 #include <stack>
 
 namespace mq::lua {
@@ -48,8 +50,8 @@ struct LuaThreadInfo
 	std::string name;
 	std::string path;
 	std::vector<std::string> arguments;
-	std::time_t startTime;
-	std::time_t endTime;
+	std::chrono::system_clock::time_point startTime;
+	std::chrono::system_clock::time_point endTime;
 	std::vector<std::string> returnValues;
 	LuaThreadStatus status;
 	bool isString;
