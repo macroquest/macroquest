@@ -53,7 +53,9 @@ ItemEffectConfig s_itemEffectConfigs[ItemSpellType_Max] = {
 	{ ItemSpellType_Focus,    MQColor(160, 160, 0),   "Focus"    },
 	{ ItemSpellType_Scroll,   MQColor(160, 160, 160), "Scroll"   },
 	{ ItemSpellType_Focus2,   MQColor(160, 160, 0),   "Focus2"   },
+#if IS_CLIENT_DATE(20210907)
 	{ ItemSpellType_Blessing, MQColor(88,  214, 141), "Blessing" }
+#endif
 };
 
 static std::pair<MQColor, std::string_view> GetEffectInfo(ItemSpellTypes effectType, bool useCustom = true);

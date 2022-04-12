@@ -527,7 +527,7 @@ inline int EQGetMySpellDuration(EQ_Spell* pSpell)
 
 inline int GetSpellNumEffects(SPELL* pSpell)
 {
-	return pSpell ? pSpell->NumEffects : 0;
+	return pSpell ? pSpell->GetNumEffects() : 0;
 }
 
 inline bool IsPlayerClass(int Class)

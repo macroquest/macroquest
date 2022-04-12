@@ -2025,122 +2025,37 @@ static char* FormatTimer(const char* szEffectName, float value, char(&szBuffer)[
 
 int GetSpellAttrib(EQ_Spell* pSpell, int index)
 {
-	if (index < 0)
-		index = 0;
+	if (index < 0) index = 0;
 
-	if (pSpell && pSpellMgr)
-	{
-		int numeff = GetSpellNumEffects(pSpell);
-		if (numeff == 0)
-			return 0;
-
-		if (numeff > index)
-		{
-			SpellAffectData* affectData = pSpellMgr->GetSpellAffect(pSpell->CalcIndex + index);
-			if (affectData)
-			{
-				return affectData->Attrib;
-			}
-		}
-	}
-
-	return 0;
+	return pSpell ? pSpell->GetEffectAttrib(index) : 0;
 }
 
 int64_t GetSpellBase(EQ_Spell* pSpell, int index)
 {
-	if (index < 0)
-		index = 0;
+	if (index < 0) index = 0;
 
-	if (pSpell && pSpellMgr)
-	{
-		int numeff = GetSpellNumEffects(pSpell);
-		if (numeff == 0)
-			return 0;
-
-		if (numeff > index)
-		{
-			SpellAffectData* affectData = pSpellMgr->GetSpellAffect(pSpell->CalcIndex + index);
-			if (affectData)
-			{
-				return affectData->Base;
-			}
-		}
-	}
-
-	return 0;
+	return pSpell ? pSpell->GetEffectBase(index) : 0;
 }
 
 int64_t GetSpellBase2(EQ_Spell* pSpell, int index)
 {
-	if (index < 0)
-		index = 0;
+	if (index < 0) index = 0;
 
-	if (pSpell && pSpellMgr)
-	{
-		int numeff = GetSpellNumEffects(pSpell);
-		if (numeff == 0)
-			return 0;
-
-		if (numeff > index)
-		{
-			SpellAffectData* affectData = pSpellMgr->GetSpellAffect(pSpell->CalcIndex + index);
-			if (affectData)
-			{
-				return affectData->Base2;
-			}
-		}
-	}
-
-	return 0;
+	return pSpell ? pSpell->GetEffectBase2(index) : 0;
 }
 
 int64_t GetSpellMax(EQ_Spell* pSpell, int index)
 {
-	if (index < 0)
-		index = 0;
+	if (index < 0) index = 0;
 
-	if (pSpell && pSpellMgr)
-	{
-		int numeff = GetSpellNumEffects(pSpell);
-		if (numeff == 0)
-			return 0;
-
-		if (numeff > index)
-		{
-			SpellAffectData* affectData = pSpellMgr->GetSpellAffect(pSpell->CalcIndex + index);
-			if (affectData)
-			{
-				return affectData->Max;
-			}
-		}
-	}
-
-	return 0;
+	return pSpell ? pSpell->GetEffectMax(index) : 0;
 }
 
 int GetSpellCalc(EQ_Spell* pSpell, int index)
 {
-	if (index < 0)
-		index = 0;
+	if (index < 0) index = 0;
 
-	if (pSpell && pSpellMgr)
-	{
-		int numeff = GetSpellNumEffects(pSpell);
-		if (numeff == 0)
-			return 0;
-
-		if (numeff > index)
-		{
-			SpellAffectData* affectData = pSpellMgr->GetSpellAffect(pSpell->CalcIndex + index);
-			if (affectData)
-			{
-				return affectData->Calc;
-			}
-		}
-	}
-
-	return 0;
+	return pSpell ? pSpell->GetEffectCalc(index) : 0;
 }
 
 template <typename T>

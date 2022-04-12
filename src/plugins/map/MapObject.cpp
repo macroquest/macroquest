@@ -1290,7 +1290,7 @@ void DeleteAllMapLocs()
 
 void UpdateMapLocIndexes()
 {
-	for (int i = 0; i < sMapLocs.size(); ++i)
+	for (int i = 0; i < (int)sMapLocs.size(); ++i)
 	{
 		sMapLocs[i]->SetIndex(i + 1);
 	}
