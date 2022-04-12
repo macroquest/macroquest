@@ -104,11 +104,11 @@ void LuaEventProcessor::Process(std::string_view line) const
 	{
 		CXStr line_str(line);
 		line_str = CleanItemTags(line_str, false);
-		strcpy_s(line_char, line_str.c_str());
+		StripMQChat(line_str, line_char);
 	}
 	else
 	{
-		strncpy_s(line_char, line.data(), line.size());
+		StripMQChat(line, line_char);
 	}
 
 	// since we initialized to 0, we know that any remaining members will be 0, so just in case we Get an overflow, re-set the last character to 0

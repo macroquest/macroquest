@@ -504,16 +504,11 @@ char* GetEQPath(char* szBuffer, size_t len)
 	return szBuffer;
 }
 
-#define InsertColor(text, color) sprintf(text,"<c \"#%06X\">", color); TotalColors++;
-#define InsertColorSafe(text, len, color) sprintf_s(text, len, "<c \"#%06X\">", color); TotalColors++;
-#define InsertStopColor(text)   sprintf(text, "</c>"); TotalColors--;
-#define InsertStopColorSafe(text, len) sprintf_s(text, len, "</c>"); TotalColors--;
-
-void StripMQChat(const char* in, char* out)
+void StripMQChat(std::string_view in, char* out)
 {
 	int i = 0;
 	int o = 0;
-	while (in[i])
+	while (i < in.size() && in[i])
 	{
 		if (in[i] == '\a')
 		{
@@ -539,6 +534,11 @@ void StripMQChat(const char* in, char* out)
 	out[o] = 0;
 }
 
+void StripMQChat(const char* in, char* out)
+{
+	StripMQChat(std::string_view{ in }, out);
+}
+
 static bool ReplaceSafely(char** out, size_t* pchar_out_string_position, char chr, size_t maxlen)
 {
 	if ((*pchar_out_string_position) + 1 > maxlen)
@@ -554,6 +554,11 @@ DWORD MQToSTML(const char* in, char* out, size_t maxlen, uint32_t ColorOverride)
 	// <c "#123456">
 	//char szCmd[MAX_STRING] = { 0 };
 	//strcpy_s(szCmd, out);
+
+#define InsertColor(text, color) sprintf(text,"<c \"#%06X\">", color); TotalColors++;
+#define InsertColorSafe(text, len, color) sprintf_s(text, len, "<c \"#%06X\">", color); TotalColors++;
+#define InsertStopColor(text)   sprintf(text, "</c>"); TotalColors--;
+#define InsertStopColorSafe(text, len) sprintf_s(text, len, "</c>"); TotalColors--;
 
 	size_t outlen = maxlen;
 	if (maxlen > 14)
@@ -815,6 +820,11 @@ DWORD MQToSTML(const char* in, char* out, size_t maxlen, uint32_t ColorOverride)
 
 	out[pchar_out_string_position++] = 0;
 	return static_cast<DWORD>(pchar_out_string_position);
+
+#undef InsertColor
+#undef InsertColorSafe
+#undef InsertStopColor
+#undef InsertStopColorSafe
 }
 
 static bool ItemFitsInSlot(ItemClient* pCont, std::string_view search)
