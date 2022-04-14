@@ -21,6 +21,8 @@
 #include <DbgHelp.h>
 #include <PathCch.h>
 
+#include <random>
+
 #ifdef _DEBUG
 #define DBG_SPEW // enable DebugSpew messages in debug builds
 #endif
@@ -6250,17 +6252,27 @@ int GetRaidMemberClassByIndex(int index)
 	return 0;
 }
 
-// this function performs a better rand since it removes the random bias
-// towards the low end if the range of rand() isn't divisible by max - min + 1
+
+struct random_number_generator {
+	random_number_generator()
+		: mt(random_device()) {}
+
+	~random_number_generator() {}
+
+	template <typename T> T generate(T min, T max) const {
+		std::uniform_int_distribution<T> dist(min, max);
+
+		return dist(mt);
+	}
+
+	std::random_device random_device;
+	mutable std::mt19937 mt;
+};
+static random_number_generator s_rng;
+
 int RangeRandom(int min, int max)
 {
-	int n = max - min + 1;
-	int remainder = RAND_MAX % n;
-	int x;
-	do {
-		x = rand();
-	} while (x >= RAND_MAX - remainder);
-	return min + x % n;
+	return s_rng.generate(min, max);
 }
 
 //============================================================================
