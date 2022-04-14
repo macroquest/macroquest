@@ -11,6 +11,7 @@ April 13, 2022:
 - Fix /mqanon cause hp bars to be empty (#483).
 - Fix errant deprecation message when using ${Ground} (#445).
 - Fix MacroQuest.LastTell (#463).
+- Fix passing nil to mq.event or mq.bind causing crash. A lua error will be generated instead (#451).
 - Add double click to select file in imgui file dialog (#453).
 - Add Group.LowMana to report group member with lowest mana below threshold. Works like
   Group.Injured (#477).
