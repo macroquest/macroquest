@@ -638,6 +638,41 @@ void WriteAliasToIni(const char* Name, const char* Command)
 	WritePrivateProfileString("Aliases", Name, Command, mq::internal_paths::MQini);
 }
 
+void LoadAliases()
+{
+	/* ALIASES FOR OUT OF ORDER SHORTHAND COMMANDS */
+	AddAlias("/d", "/duel");
+	AddAlias("/t", "/tell");
+	AddAlias("/w", "/who");
+	AddAlias("/a", "/anonymous");
+	AddAlias("/ta", "/tap");
+	AddAlias("/c", "/consider");
+	AddAlias("/cha", "/channel");
+	AddAlias("/f", "/feedback");
+	AddAlias("/fa", "/fastdrop");
+	AddAlias("/m", "/msg");
+	AddAlias("/load", "/loadspells");
+	AddAlias("/b", "/bazaar");
+	AddAlias("/ba", "/bazaar");
+	AddAlias("/g", "/gsay");
+	AddAlias("/gu", "/guildsay");
+	AddAlias("/key", "/keys");
+	AddAlias("/r", "/reply");
+	AddAlias("/newif", "/if");
+
+	std::vector<std::string> aliases = GetPrivateProfileKeys<MAX_STRING * 10>("Aliases", mq::internal_paths::MQini);
+
+	// Now, import the user's alias list, their modifications override existing.
+	for (const std::string& alias : aliases)
+	{
+		std::string value = GetPrivateProfileString("Aliases", alias, std::string(), mq::internal_paths::MQini);
+		if (!value.empty())
+		{
+			AddAlias(alias.c_str(), value.c_str());
+		}
+	}
+}
+
 //============================================================================
 
 void AddSubstitute(const char* Original, const char* Substitution)
@@ -729,6 +764,22 @@ void RewriteSubstitutions()
 	{
 		WritePrivateProfileString("Substitutions", pSubLoop->szOrig, pSubLoop->szSub, mq::internal_paths::MQini);
 		pSubLoop = pSubLoop->pNext;
+	}
+}
+
+void LoadSubstitutions()
+{
+	// Importing the User's Substitution List from .ini file
+	std::vector<std::string> subs = GetPrivateProfileKeys<MAX_STRING * 10>("Substitutions", mq::internal_paths::MQini);
+
+	for (const std::string& sub : subs)
+	{
+		std::string value = GetPrivateProfileString("Substitutions", sub, std::string(), mq::internal_paths::MQini);
+
+		if (!value.empty())
+		{
+			AddSubstitute(sub.c_str(), value.c_str());
+		}
 	}
 }
 
@@ -968,57 +1019,9 @@ void InitializeMQ2Commands()
 		AddCommand(NewCommands[i].szCommand, NewCommands[i].pFunc, false, NewCommands[i].Parse, NewCommands[i].InGame);
 	}
 
-	/* ALIASES FOR OUT OF ORDER SHORTHAND COMMANDS */
-	AddAlias("/d", "/duel");
-	AddAlias("/t", "/tell");
-	AddAlias("/w", "/who");
-	AddAlias("/a", "/anonymous");
-	AddAlias("/ta", "/tap");
-	AddAlias("/c", "/consider");
-	AddAlias("/cha", "/channel");
-	AddAlias("/f", "/feedback");
-	AddAlias("/fa", "/fastdrop");
-	AddAlias("/m", "/msg");
-	AddAlias("/load", "/loadspells");
-	AddAlias("/b", "/bazaar");
-	AddAlias("/ba", "/bazaar");
-	AddAlias("/g", "/gsay");
-	AddAlias("/gu", "/guildsay");
-	AddAlias("/key", "/keys");
-	AddAlias("/r", "/reply");
-	AddAlias("/newif", "/if");
+	LoadAliases();
 
-	auto largeBuffer = std::make_unique<char[]>(MAX_STRING * 10);
-	char szBuffer[MAX_STRING] = { 0 };
-
-	/* NOW IMPORT THE USER'S ALIAS LIST, THEIR MODIFICATIONS OVERRIDE EXISTING. */
-	GetPrivateProfileString("Aliases", "", "", largeBuffer.get(), MAX_STRING * 10, mq::internal_paths::MQini);
-	char* pAliasList = largeBuffer.get();
-
-	while (pAliasList[0] != 0)
-	{
-		GetPrivateProfileString("Aliases", pAliasList, "", szBuffer, MAX_STRING, mq::internal_paths::MQini);
-		if (szBuffer[0] != 0)
-		{
-			AddAlias(pAliasList, szBuffer);
-		}
-		pAliasList += strlen(pAliasList) + 1;
-	}
-
-	// Importing the User's Substitution List from .ini file
-	GetPrivateProfileString("Substitutions", "", "", largeBuffer.get(), MAX_STRING * 10, mq::internal_paths::MQini);
-
-	char* pSubsList = largeBuffer.get();
-	while (pSubsList[0] != 0)
-	{
-		GetPrivateProfileString("Substitutions", pSubsList, "", szBuffer, MAX_STRING, mq::internal_paths::MQini);
-		if (szBuffer[0] != 0)
-		{
-			AddSubstitute(pSubsList, szBuffer);
-		}
-
-		pSubsList += strlen(pSubsList) + 1;
-	}
+	LoadSubstitutions();
 }
 
 void ShutdownMQ2Commands()
@@ -1266,10 +1269,9 @@ void Alias(SPAWNINFO* pChar, char* szLine)
 	char szName[MAX_STRING] = { 0 };
 	GetArg(szName, szLine, 1);
 
-	char szBuffer[MAX_STRING] = { 0 };
-
 	const char* szCommand = GetNextArg(szLine);
-	if (!_stricmp(szName, "list"))
+
+	if (ci_equals(szName, "list"))
 	{
 		int Count = 0;
 
@@ -1295,13 +1297,22 @@ void Alias(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	if ((szName[0] == 0) || (szCommand[0] == 0))
+	if (ci_equals(szName, "reload"))
 	{
-		SyntaxError("Usage: /alias name [delete|command], or /alias list");
+		mAliases.clear();
+
+		LoadAliases();
+		WriteChatf("%d aliases loaded.", mAliases.size());
 		return;
 	}
 
-	if (!_stricmp(szCommand, "delete"))
+	if ((szName[0] == 0) || (szCommand[0] == 0))
+	{
+		SyntaxError("Usage: /alias name [delete|command], /alias list, or /alias reload");
+		return;
+	}
+
+	if (ci_equals(szCommand, "delete"))
 	{
 		if (RemoveAlias(szName))
 		{
@@ -1311,15 +1322,15 @@ void Alias(SPAWNINFO* pChar, char* szLine)
 		{
 			WriteChatf("Alias '%s' not found.", szName);
 		}
-	}
-	else
-	{
-		bool New = !RemoveAlias(szName);
-		AddAlias(szName, szCommand);
-		WriteAliasToIni(szName, szCommand);
 
-		WriteChatf("Alias '%s' %s.", szName, (New) ? "added" : "updated");
+		return;
 	}
+
+	bool New = !RemoveAlias(szName);
+	AddAlias(szName, szCommand);
+	WriteAliasToIni(szName, szCommand);
+
+	WriteChatf("Alias '%s' %s.", szName, (New) ? "added" : "updated");
 }
 
 } // namespace mq

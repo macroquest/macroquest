@@ -12,6 +12,7 @@ April 13, 2022:
 - Add double click to select file in imgui file dialog (#453).
 - Add Group.LowMana to report group member with lowest mana below threshold. Works like
   Group.Injured (#477).
+- Add /alias reload (#478).
 - lua: event text will now have mq color codes stripped (#486).
 
 March 9, 2022:
