@@ -355,6 +355,12 @@ static void lua_flushevents(sol::variadic_args va, sol::this_state s)
 
 static void lua_addevent(std::string_view name, std::string_view expression, sol::function function, sol::this_state s)
 {
+	if (function == sol::nil)
+	{
+		luaL_error(s, "nil function passed as event callback");
+		return;
+	}
+
 	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
 		if (LuaEventProcessor* events = thread_ptr->GetEventProcessor())
@@ -373,6 +379,12 @@ static void lua_removeevent(std::string_view name, sol::this_state s)
 
 static void lua_addbind(std::string_view name, sol::function function, sol::this_state s)
 {
+	if (function == sol::nil)
+	{
+		luaL_error(s, "nil function passed as bind callback");
+		return;
+	}
+
 	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
 		if (LuaEventProcessor* events = thread_ptr->GetEventProcessor())

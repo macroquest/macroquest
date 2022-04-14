@@ -25,7 +25,7 @@ namespace mq::lua {
 
 using CoroutineResult = std::optional<sol::protected_function_result>;
 
-void DebugStackTrace(lua_State* L);
+void DebugStackTrace(lua_State* L, const char* message);
 bool DoStatus();
 
 using Writer = void(*)(const char*, ...);
