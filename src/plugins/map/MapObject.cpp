@@ -17,6 +17,11 @@
 extern MapObject* pLastTarget;
 MapObject* gpActiveMapObjects = nullptr;
 
+MapLocParams gDefaultMapLocParams;
+static std::map<std::string, MapObjectMapLoc*> sLocationsMap;
+static std::vector<MapObjectMapLoc*> sMapLocs;
+
+
 //============================================================================
 
 MAPLABEL* gpLabelList = nullptr;
@@ -1023,10 +1028,6 @@ void MapCircle::UpdateCircle(MQColor Color, float Radius, float X, float Y, floa
 }
 
 //============================================================================
-
-MapLocParams gDefaultMapLocParams;
-static std::map<std::string, MapObjectMapLoc*> sLocationsMap;
-static std::vector<MapObjectMapLoc*> sMapLocs;
 
 void UpdateDefaultMapLocParams()
 {
