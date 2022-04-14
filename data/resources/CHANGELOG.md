@@ -5,6 +5,8 @@ April 13, 2022:
   minimum value must not be greater than the maximum.
 - Fix Spell.Stacks to now only consider a duration if a nonzero value is provdied,
   otherwise the stacks check will ignore duration. Also applies to StacksPet.
+- Fix crash in MapObject.cpp (#455).
+- Add double click to select file in imgui file dialog (#453).
 - Add Group.LowMana to report group member with lowest mana below threshold. Works like
   Group.Injured (#477).
 - lua: event text will now have mq color codes stripped (#486).
