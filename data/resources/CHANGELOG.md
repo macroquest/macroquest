@@ -10,6 +10,7 @@ April 13, 2022:
 - Fix non-functional /removeaug, and cleaned up the usage message (#485).
 - Fix /mqanon cause hp bars to be empty (#483).
 - Fix errant deprecation message when using ${Ground} (#445).
+- Fix MacroQuest.LastTell (#463).
 - Add double click to select file in imgui file dialog (#453).
 - Add Group.LowMana to report group member with lowest mana below threshold. Works like
   Group.Injured (#477).
