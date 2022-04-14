@@ -963,6 +963,8 @@ void MapObjects_Clear()
 {
 	GroundItemMap.clear();
 	SpawnMap.clear();
+	sLocationsMap.clear();
+	sMapLocs.clear();
 
 	while (gpActiveMapObjects)
 	{
