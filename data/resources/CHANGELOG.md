@@ -1,10 +1,12 @@
 April 13, 2022:
-- Fix Spell.Stacks to now only consider a duration if a nonzero value is provdied,
-  otherwise the stacks check will ignore duration. Also applies to StacksPet.
-- Empty group will now report 0 for Group.Members instead of nil/NULL (#481).
-- Replace Math.Rand with new number generator. There are no longer any limits on the
+- Fix Group.Members: Empty group will now report 0 instead of nil/NULL (#481).
+- Fix Math.Rand: Replace with new number generator. There are no longer any limits on the
   upper or lower bounds of the random number range. The only requirement is that the
   minimum value must not be greater than the maximum.
+- Fix Spell.Stacks to now only consider a duration if a nonzero value is provdied,
+  otherwise the stacks check will ignore duration. Also applies to StacksPet.
+- Add Group.LowMana to report group member with lowest mana below threshold. Works like
+  Group.Injured (#477).
 - lua: event text will now have mq color codes stripped (#486).
 
 
