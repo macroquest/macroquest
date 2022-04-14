@@ -7,6 +7,7 @@ April 13, 2022:
   otherwise the stacks check will ignore duration. Also applies to StacksPet.
 - Fix crash in MapObject.cpp (#455).
 - Fix Macro TLO to allow IsTLO and IsVariable while a macro is not running (#452).
+- Fix non-functional /removeaug, and cleaned up the usage message (#485).
 - Add double click to select file in imgui file dialog (#453).
 - Add Group.LowMana to report group member with lowest mana below threshold. Works like
   Group.Injured (#477).

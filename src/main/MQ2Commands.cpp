@@ -5743,12 +5743,13 @@ void RemoveAugCmd(SPAWNINFO* pChar, char* szLine)
 
 	if (!pTargetItem || szArg1[0] == '\0')
 	{
-		WriteChatColor("/removeaug USAGE: /removeaug \ay<augid>\ax <#####> OR \ay<augname>\ax \"Name in quotes\" \ay<itemid>\ax <#####> OR \ay<itemname>\ax \"Name in quotes\"", CONCOLOR_WHITE);
-		WriteChatColor("NOTE! /removeaug \ayIS A CASE SENSITIVE FUNCTION\ax", CONCOLOR_WHITE);
-		WriteChatColor("Example1: /removeaug \ay50502\ax \ay41302\ax", CONCOLOR_WHITE);
-		WriteChatColor("Example2: /removeaug \ay\"Crude Defiant Ruby Shard\"\ax \"Darkened Thick Banded Belt\"", CONCOLOR_WHITE);
-		WriteChatColor("Example2: /removeaug \ay\"Crude Defiant Ruby Shard\"\ax \ay41302\ax", CONCOLOR_WHITE);
-		WriteChatColor("Example2: /removeaug \ay50502\ax \"Darkened Thick Banded Belt\"", CONCOLOR_WHITE);
+		WriteChatf("/removeaug USAGE: /removeaug \ag<augment> \ay<item>");
+		WriteChatf("    Removes \ag<augment>\ax from \ay<item>");
+		WriteChatf("    \ag<augment>\ax and \ay<item>\ax can be either the numeric item id OR a quoted item name.");
+		WriteChatf("Example1: /removeaug \ag50502\ax \ay41302\ax");
+		WriteChatf("Example2: /removeaug \ag\"Crude Defiant Ruby Shard\"\ax \ay\"Darkened Thick Banded Belt\"");
+		WriteChatf("Example3: /removeaug \ag\"Crude Defiant Ruby Shard\"\ax \ay41302\ax");
+		WriteChatf("Example4: /removeaug \ag50502\ax \ay\"Darkened Thick Banded Belt\"");
 		return;
 	}
 
