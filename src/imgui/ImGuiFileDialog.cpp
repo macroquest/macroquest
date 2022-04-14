@@ -1010,8 +1010,8 @@ namespace IGFD
 
 				// draw dialog parts
 				DrawHeader(); // bookmark, directory, path
-				DrawContent(); // bookmark, files view, side pane 
-				res = DrawFooter(); // file field, filter combobox, ok/cancel buttons
+				DrawContent(); // bookmark, files view, side pane
+				res = DrawFooter() || m_IsOk; // file field, filter combobox, ok/cancel buttons
 
 				// for display in dialog center, the confirm to overwrite dlg
 				m_DialogCenterPos = ImGui::GetCurrentWindowRead()->ContentRegionRect.GetCenter();
@@ -1514,7 +1514,15 @@ namespace IGFD
 			}
 			else
 			{
-				SelectFileName(vInfos);
+				if (ImGui::IsMouseDoubleClicked(0)) // 0 -> left mouse button double click
+				{
+					m_IsOk = true;
+					return true; // needToBreakTheloop
+				}
+				else
+				{
+					SelectFileName(vInfos);
+				}
 			}
 		}
 
