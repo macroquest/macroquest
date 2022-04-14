@@ -1,6 +1,7 @@
 April 13, 2022:
 - Fix Spell.Stacks to now only consider a duration if a nonzero value is provdied,
   otherwise the stacks check will ignore duration. Also applies to StacksPet.
+- empty group will now report 0 for Group.Members instead of nil/NULL (#481).
 - lua: event text will now have mq color codes stripped (#486).
 
 

@@ -79,8 +79,21 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 {
 	MQTypeMember* pMember = MQ2GroupType::FindMember(Member);
 
-	if (!pMember || !pLocalPC || !pLocalPC->Group)
+	if (!pMember)
 		return false;
+
+	if (!pLocalPC || !pLocalPC->Group)
+	{
+		// special case for checking number of members in an empty group
+		if (static_cast<GroupMembers>(pMember->ID) == GroupMembers::Members)
+		{
+			Dest.DWord = 0;
+			Dest.Type = pIntType;
+			return true;
+		}
+
+		return false;
+	}
 
 	switch (static_cast<GroupMembers>(pMember->ID))
 	{
