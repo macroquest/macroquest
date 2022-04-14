@@ -63,21 +63,21 @@ MQ2MacroType::MQ2MacroType()
 
 bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	if (!gMacroStack)
-		return false;
-
 	//------------------------------------------------------------------------
 	// methods
 
 	MQTypeMember* pMethod = MQ2MacroType::FindMethod(Member);
 	if (pMethod)
 	{
+		if (!gMacroStack)
+			return false;
+
 		switch (static_cast<MacroMethods>(pMethod->ID))
 		{
 		case MacroMethods::Undeclared:
 			if (gMacroBlock && !gUndeclaredVars.empty())
 			{
-				WriteChatf("----------- Undeclared Variables (bad) -----------");
+				WriteChatf("----------- Undeclared Variables -----------");
 				int count = 1;
 
 				for (auto& [name, index] : gUndeclaredVars)
@@ -90,7 +90,7 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			}
 			else
 			{
-				WriteChatf("No Undeclared Variables Found. (good)");
+				WriteChatf("No Undeclared Variables Found.");
 			}
 			return true;
 
@@ -105,6 +105,19 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	MQTypeMember* pMember = MQ2MacroType::FindMember(Member);
 	if (!pMember)
 		return false;
+
+	if (!gMacroStack)
+	{
+		// The following members are allowed to be used if there is no active macro
+		switch (static_cast<MacroMembers>(pMember->ID))
+		{
+		case MacroMembers::IsTLO:
+		case MacroMembers::Variable:
+			break;
+
+		default: return false;
+		}
+	}
 
 	switch (static_cast<MacroMembers>(pMember->ID))
 	{
