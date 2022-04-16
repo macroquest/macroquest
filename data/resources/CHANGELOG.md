@@ -310,7 +310,7 @@ August 8, 2021
 
 August 7, 2021
 - lua: Further fixes for evaluating TLO object data members.
-- lua: Partially reverted nil changes. see comments in https://gitlab.com/macroquest/next/mqnext/-/issues/362.
+- lua: Partially reverted nil changes. see comments in #362 .
 - lua: added mq.gettype to inspect the underlying data type of a data member usertype.
 - Possible fix for a crash when the imgui overlay gets reset due to a lua exception.
 
