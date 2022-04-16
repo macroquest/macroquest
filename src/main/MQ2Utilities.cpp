@@ -21,6 +21,8 @@
 #include <DbgHelp.h>
 #include <PathCch.h>
 
+#include <random>
+
 #ifdef _DEBUG
 #define DBG_SPEW // enable DebugSpew messages in debug builds
 #endif
@@ -504,16 +506,11 @@ char* GetEQPath(char* szBuffer, size_t len)
 	return szBuffer;
 }
 
-#define InsertColor(text, color) sprintf(text,"<c \"#%06X\">", color); TotalColors++;
-#define InsertColorSafe(text, len, color) sprintf_s(text, len, "<c \"#%06X\">", color); TotalColors++;
-#define InsertStopColor(text)   sprintf(text, "</c>"); TotalColors--;
-#define InsertStopColorSafe(text, len) sprintf_s(text, len, "</c>"); TotalColors--;
-
-void StripMQChat(const char* in, char* out)
+void StripMQChat(std::string_view in, char* out)
 {
 	int i = 0;
 	int o = 0;
-	while (in[i])
+	while (i < in.size() && in[i])
 	{
 		if (in[i] == '\a')
 		{
@@ -539,6 +536,11 @@ void StripMQChat(const char* in, char* out)
 	out[o] = 0;
 }
 
+void StripMQChat(const char* in, char* out)
+{
+	StripMQChat(std::string_view{ in }, out);
+}
+
 static bool ReplaceSafely(char** out, size_t* pchar_out_string_position, char chr, size_t maxlen)
 {
 	if ((*pchar_out_string_position) + 1 > maxlen)
@@ -554,6 +556,11 @@ DWORD MQToSTML(const char* in, char* out, size_t maxlen, uint32_t ColorOverride)
 	// <c "#123456">
 	//char szCmd[MAX_STRING] = { 0 };
 	//strcpy_s(szCmd, out);
+
+#define InsertColor(text, color) sprintf(text,"<c \"#%06X\">", color); TotalColors++;
+#define InsertColorSafe(text, len, color) sprintf_s(text, len, "<c \"#%06X\">", color); TotalColors++;
+#define InsertStopColor(text)   sprintf(text, "</c>"); TotalColors--;
+#define InsertStopColorSafe(text, len) sprintf_s(text, len, "</c>"); TotalColors--;
 
 	size_t outlen = maxlen;
 	if (maxlen > 14)
@@ -815,6 +822,11 @@ DWORD MQToSTML(const char* in, char* out, size_t maxlen, uint32_t ColorOverride)
 
 	out[pchar_out_string_position++] = 0;
 	return static_cast<DWORD>(pchar_out_string_position);
+
+#undef InsertColor
+#undef InsertColorSafe
+#undef InsertStopColor
+#undef InsertStopColorSafe
 }
 
 static bool ItemFitsInSlot(ItemClient* pCont, std::string_view search)
@@ -3814,7 +3826,7 @@ const char* ParseSearchSpawnArgs(char* szArg, const char* szRest, MQSpawnSearch*
 		}
 		else
 		{
-			for (int index = 1; index < lengthof(ClassInfo) - 1; index++)
+			for (int index = 1; index < (int)lengthof(ClassInfo) - 1; index++)
 			{
 				if (!_stricmp(szArg, ClassInfo[index].Name) || !_stricmp(szArg, ClassInfo[index].ShortName))
 				{
@@ -5134,15 +5146,17 @@ int GetHighestAvailableBagSlot()
 	if (!pLocalPC)
 		return InvSlot_Bag8;
 
-	int highestInvSlot = InvSlot_Bag12;
+	int highestInvSlot = InvSlot_LastBonusBagSlot;
 
 	// If no HoT, subtract two slots.
 	if (!HasExpansion(EXPANSION_HoT))
 		highestInvSlot -= 2;
 
+#if HAS_MERCHANTS_PERK
 	// If no merchant perk, subtract two more bag slots.
 	if (!pLocalPC->ConsumableFeatures.CanConsumeFeature(EQFeature_MerchantPerk))
 		highestInvSlot -= 2;
+#endif
 
 	return highestInvSlot;
 }
@@ -6240,17 +6254,27 @@ int GetRaidMemberClassByIndex(int index)
 	return 0;
 }
 
-// this function performs a better rand since it removes the random bias
-// towards the low end if the range of rand() isn't divisible by max - min + 1
+
+struct random_number_generator {
+	random_number_generator()
+		: mt(random_device()) {}
+
+	~random_number_generator() {}
+
+	template <typename T> T generate(T min, T max) const {
+		std::uniform_int_distribution<T> dist(min, max);
+
+		return dist(mt);
+	}
+
+	std::random_device random_device;
+	mutable std::mt19937 mt;
+};
+static random_number_generator s_rng;
+
 int RangeRandom(int min, int max)
 {
-	int n = max - min + 1;
-	int remainder = RAND_MAX % n;
-	int x;
-	do {
-		x = rand();
-	} while (x >= RAND_MAX - remainder);
-	return min + x % n;
+	return s_rng.generate(min, max);
 }
 
 //============================================================================

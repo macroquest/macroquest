@@ -1,3 +1,23 @@
+April 13, 2022:
+- Fix Group.Members: Empty group will now report 0 instead of nil/NULL (#481).
+- Fix Math.Rand: Replace with new number generator. There are no longer any limits on the
+  upper or lower bounds of the random number range. The only requirement is that the
+  minimum value must not be greater than the maximum.
+- Fix Spell.Stacks to now only consider a duration if a nonzero value is provdied,
+  otherwise the stacks check will ignore duration. Also applies to StacksPet.
+- Fix crash in MapObject.cpp (#455).
+- Fix Macro TLO to allow IsTLO and IsVariable while a macro is not running (#452).
+- Fix non-functional /removeaug, and cleaned up the usage message (#485).
+- Fix /mqanon cause hp bars to be empty (#483).
+- Fix errant deprecation message when using ${Ground} (#445).
+- Fix MacroQuest.LastTell (#463).
+- Fix passing nil to mq.event or mq.bind causing crash. A lua error will be generated instead (#451).
+- Add double click to select file in imgui file dialog (#453).
+- Add Group.LowMana to report group member with lowest mana below threshold. Works like
+  Group.Injured (#477).
+- Add /alias reload (#478).
+- lua: event text will now have mq color codes stripped (#486).
+
 March 18, 2022:
 - Update for test patch on 2022-03-16
 
@@ -293,7 +313,7 @@ August 8, 2021
 
 August 7, 2021
 - lua: Further fixes for evaluating TLO object data members.
-- lua: Partially reverted nil changes. see comments in https://gitlab.com/macroquest/next/mqnext/-/issues/362.
+- lua: Partially reverted nil changes. see comments in #362 .
 - lua: added mq.gettype to inspect the underlying data type of a data member usertype.
 - Possible fix for a crash when the imgui overlay gets reset due to a lua exception.
 

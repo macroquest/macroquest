@@ -80,10 +80,6 @@ namespace mq {
 /* DETOURS */
 MQLIB_OBJECT void SetAssist(BYTE* address);
 
-/* FRAMELIMITER */
-MQLIB_OBJECT bool DoThrottleFrameRate();
-MQLIB_OBJECT extern void(*Throttler_Trampoline)();
-
 /* BENCHMARKING */
 void ShutdownMQ2Benchmarks();
 void InitializeMQ2Benchmarks();
@@ -320,6 +316,7 @@ inline void EzCommand(const char* szCommand) { DoCommand(pLocalPlayer, szCommand
 
 MQLIB_API DWORD MQToSTML(const char* in, char* out, size_t maxlen = MAX_STRING, uint32_t ColorOverride = 0xFFFFFF);
 MQLIB_API void StripMQChat(const char* in, char* out);
+MQLIB_OBJECT void StripMQChat(std::string_view in, char* out);
 MQLIB_API void STMLToPlainText(char* in, char* out);
 MQLIB_API char* GetSubFromLine(int Line, char* szSub, size_t Sublen);
 MQLIB_API const char* GetFilenameFromFullPath(const char* Filename);

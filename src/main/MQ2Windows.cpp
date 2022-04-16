@@ -1289,22 +1289,6 @@ void WndNotify(PSPAWNINFO pChar, char* szLine)
 		Data = 1;
 	}
 
-	if (IsNumber(szArg1))
-	{
-		// we have a number. it means the user want us to click a window he has found the address for...
-		const uintptr_t addr = GetInt64FromString(szArg1, 0);
-		if (ci_equals(szArg2, "listselect"))
-		{
-			SendListSelect2(reinterpret_cast<CXWnd*>(addr), GetIntFromString(szArg3, 0));
-		}
-		else
-		{
-			SendWndClick2(reinterpret_cast<CXWnd*>(addr), szArg2);
-		}
-
-		return;
-	}
-
 	if (!_stricmp(szArg3, "listselect"))
 	{
 		if (Data <= 0)

@@ -288,20 +288,22 @@ struct mckey
 // pointer to encryption pad for memory checker
 unsigned int* extern_array0 = nullptr;
 
-int memcheck0(unsigned char* buffer, size_t count);
-int memcheck1(unsigned char* buffer, size_t count, mckey key);
-int memcheck2(unsigned char* buffer, size_t count, mckey key);
-int WINAPI memcheck4(unsigned char* buffer, size_t* count);
-
 // ***************************************************************************
 // Function:    HookMemChecker
 // Description: Hook MemChecker
 // ***************************************************************************
 DETOUR_TRAMPOLINE_DEF(int, memcheck0_tramp, (unsigned char* buffer, size_t count))
+int memcheck0(unsigned char* buffer, size_t count);
 DETOUR_TRAMPOLINE_DEF(int, memcheck1_tramp, (unsigned char* buffer, size_t count, mckey key))
+int memcheck1(unsigned char* buffer, size_t count, mckey key);
 DETOUR_TRAMPOLINE_DEF(int, memcheck2_tramp, (unsigned char* buffer, size_t count, mckey key))
+int memcheck2(unsigned char* buffer, size_t count, mckey key);
 DETOUR_TRAMPOLINE_DEF(int, memcheck3_tramp, (unsigned char* buffer, size_t count, mckey key))
+
+#if defined(__MemChecker4_x)
 DETOUR_TRAMPOLINE_DEF(int WINAPI, memcheck4_tramp, (unsigned char* buffer, size_t* count))
+int WINAPI memcheck4(unsigned char* buffer, size_t* count);
+#endif
 
 void HookMemChecker(bool Patch)
 {
@@ -312,8 +314,10 @@ void HookMemChecker(bool Patch)
 		EzDetour(__MemChecker0, memcheck0, memcheck0_tramp);
 		EzDetour(__MemChecker1, memcheck1, memcheck1_tramp);
 		EzDetour(__MemChecker2, memcheck2, memcheck2_tramp);
-		EzDetour(__MemChecker3, memcheck2, memcheck3_tramp); // shares same impl as memcheck2.
+		EzDetour(__MemChecker3, memcheck2, memcheck3_tramp);
+#if defined(__MemChecker4_x)
 		EzDetour(__MemChecker4, memcheck4, memcheck4_tramp);
+#endif
 
 		EzDetour(CPacketScrambler__ntoh, &CPacketScrambler_Detours::ntoh_Detour, &CPacketScrambler_Detours::ntoh_Trampoline);
 		EzDetour(Spellmanager__LoadTextSpells, &SpellManager_Detours::LoadTextSpells_Detour, &SpellManager_Detours::LoadTextSpells_Trampoline);
@@ -326,7 +330,9 @@ void HookMemChecker(bool Patch)
 		RemoveDetour(__MemChecker1);
 		RemoveDetour(__MemChecker2);
 		RemoveDetour(__MemChecker3);
+#if defined(__MemChecker4_x)
 		RemoveDetour(__MemChecker4);
+#endif
 
 		RemoveDetour(CPacketScrambler__ntoh);
 		RemoveDetour(Spellmanager__LoadTextSpells);
@@ -485,6 +491,8 @@ int memcheck2(unsigned char* buffer, size_t count, mckey key)
 	return eax;
 }
 
+#if defined(__MemChecker4_x)
+
 int WINAPI memcheck4(unsigned char* buffer, size_t* count_)
 {
 	uintptr_t addr = reinterpret_cast<uintptr_t>(buffer);
@@ -516,6 +524,8 @@ int WINAPI memcheck4(unsigned char* buffer, size_t* count_)
 
 	return crc32;
 }
+
+#endif // defined(__MemChecker4_x)
 
 void TryInitializeLogin();
 
@@ -565,7 +575,9 @@ void InitializeDetours()
 		|| !__MemChecker1
 		|| !__MemChecker2
 		|| !__MemChecker3
+#if defined(__MemChecker4_x)
 		|| !__MemChecker4
+#endif
 		|| !__EncryptPad0)
 	{
 		__debugbreak();

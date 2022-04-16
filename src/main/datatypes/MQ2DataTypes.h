@@ -1272,6 +1272,7 @@ public:
 //============================================================================
 // MQ2KeyRingType
 
+#if HAS_KEYRING_WINDOW
 class MQ2KeyRingType : public MQ2Type
 {
 public:
@@ -1288,10 +1289,12 @@ public:
 	static bool dataTeleportationItem(const char* szIndex, MQTypeVar& Ret);
 #endif
 };
+#endif // HAS_KEYRING_WINDOW
 
 //============================================================================
 // MQ2KeyRingItemType
 
+#if HAS_KEYRING_WINDOW
 class MQ2KeyRingItemType : public MQ2Type
 {
 public:
@@ -1302,10 +1305,12 @@ public:
 
 	MQLIB_OBJECT MQTypeVar MakeTypeVar(int keyRingType, int itemIndex);
 };
+#endif // HAS_KEYRING_WINDOW
 
 //============================================================================
 // MQ2ItemFilterDataType
 
+#if HAS_ADVANCED_LOOT
 class MQ2ItemFilterDataType : public MQ2Type
 {
 public:
@@ -1316,10 +1321,12 @@ public:
 
 	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 };
+#endif // HAS_ADVANCED_LOOT
 
 //============================================================================
 // MQ2AdvLootType
 
+#if HAS_ADVANCED_LOOT
 class MQ2AdvLootType : public MQ2Type
 {
 public:
@@ -1330,10 +1337,12 @@ public:
 
 	static bool dataAdvLoot(const char* szIndex, MQTypeVar& Ret);
 };
+#endif // HAS_ADVANCED_LOOT
 
 //============================================================================
 // MQ2AdvLootItemType
 
+#if HAS_ADVANCED_LOOT
 class MQ2AdvLootItemType : public MQ2Type
 {
 public:
@@ -1344,6 +1353,7 @@ public:
 
 	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 };
+#endif // HAS_ADVANCED_LOOT
 
 //============================================================================
 // MQ2AlertListType

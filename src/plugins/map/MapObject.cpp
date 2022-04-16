@@ -17,6 +17,11 @@
 extern MapObject* pLastTarget;
 MapObject* gpActiveMapObjects = nullptr;
 
+MapLocParams gDefaultMapLocParams;
+static std::map<std::string, MapObjectMapLoc*> sLocationsMap;
+static std::vector<MapObjectMapLoc*> sMapLocs;
+
+
 //============================================================================
 
 MAPLABEL* gpLabelList = nullptr;
@@ -963,6 +968,8 @@ void MapObjects_Clear()
 {
 	GroundItemMap.clear();
 	SpawnMap.clear();
+	sLocationsMap.clear();
+	sMapLocs.clear();
 
 	while (gpActiveMapObjects)
 	{
@@ -1021,10 +1028,6 @@ void MapCircle::UpdateCircle(MQColor Color, float Radius, float X, float Y, floa
 }
 
 //============================================================================
-
-MapLocParams gDefaultMapLocParams;
-static std::map<std::string, MapObjectMapLoc*> sLocationsMap;
-static std::vector<MapObjectMapLoc*> sMapLocs;
 
 void UpdateDefaultMapLocParams()
 {
@@ -1290,7 +1293,7 @@ void DeleteAllMapLocs()
 
 void UpdateMapLocIndexes()
 {
-	for (int i = 0; i < sMapLocs.size(); ++i)
+	for (int i = 0; i < (int)sMapLocs.size(); ++i)
 	{
 		sMapLocs[i]->SetIndex(i + 1);
 	}

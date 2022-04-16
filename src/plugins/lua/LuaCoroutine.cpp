@@ -29,14 +29,12 @@ CoroutineResult LuaCoroutine::RunCoroutine(const std::vector<std::string>& args)
 		if (result.valid())
 			return result;
 
-		LuaError("%s", sol::stack::get<std::string>(result.lua_state(), result.stack_index()).c_str());
-		DebugStackTrace(result.lua_state());
+		DebugStackTrace(result.lua_state(), sol::stack::get<std::string>(result.lua_state(), result.stack_index()).c_str());
 		result.abandon();
 	}
 	catch (const sol::error& ex)
 	{
-		LuaError("%s", ex.what());
-		DebugStackTrace(coroutine.lua_state());
+		DebugStackTrace(coroutine.lua_state(), ex.what());
 	}
 
 	return std::nullopt;

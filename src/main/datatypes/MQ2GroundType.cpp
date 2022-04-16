@@ -344,12 +344,6 @@ bool MQ2GroundType::dataGroundItem(const char* szIndex, MQTypeVar& Ret)
 	}
 	else
 	{
-		// this is deprecated -- we don't want to be implicitly searching as a side effect of accessing `${Ground}`
-		if (gbGroundDeprecateCount < 1)
-			WriteChatf("\ay[\agMQ2GroundType\ay] Searching directly from the Ground TLO is deprecated and will be removed in a future version. Use \ag${Ground.Search}\ay.\ax", szIndex);
-		if (gbGroundDeprecateCount == 0)
-			++gbGroundDeprecateCount;
-
 		Ret.Set(GetNearestGroundSpawn());
 	}
 

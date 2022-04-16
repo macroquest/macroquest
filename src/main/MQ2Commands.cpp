@@ -18,7 +18,10 @@
 #include "MQ2KeyBinds.h"
 #include "MQ2Mercenaries.h"
 
+#pragma warning(push)
+#pragma warning(disable: 4244)
 #include <fmt/chrono.h>
+#pragma warning(pop)
 
 namespace mq {
 
@@ -2168,9 +2171,8 @@ void MacroLog(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	std::time_t t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-	std::tm now = {};
-	localtime_s(&now, &t);
+	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+
 	const std::string strLogMessage = fmt::format("[{DateTime:%m/%d/%Y %H:%M:%S}] {LogMessage}",
 		fmt::arg("DateTime", now),
 		fmt::arg("LogMessage", szLine));
@@ -3729,6 +3731,7 @@ void UseItemCmd(SPAWNINFO* pChar, char* szLine)
 
 		cmdUseItem(pChar, szTemp);
 	}
+#if HAS_KEYRING_WINDOW
 	else if (itemLocation.IsKeyRingLocation())
 	{
 		// Check if this item qualifies to be on a keyring
@@ -3747,6 +3750,7 @@ void UseItemCmd(SPAWNINFO* pChar, char* szLine)
 
 		CKeyRingWnd::ExecuteRightClick(keyRingType, pItem, itemLocation.GetTopSlot());
 	}
+#endif // HAS_KEYRING_WINDOW
 }
 
 // ***************************************************************************
@@ -4508,7 +4512,7 @@ void MercSwitchCmd(SPAWNINFO* pChar, char* szLine)
 
 	std::vector<MercDesc> descs = GetAllMercDesc();
 
-	for (int index = 0; index < descs.size(); ++index)
+	for (int index = 0; index < (int)descs.size(); ++index)
 	{
 		auto& desc = descs[index];
 
@@ -4525,6 +4529,7 @@ void MercSwitchCmd(SPAWNINFO* pChar, char* szLine)
 	cmdMercSwitch(pChar, szLine);
 }
 
+#if HAS_ADVANCED_LOOT
 // ***************************************************************************
 // Function:    AdvLootCmd
 // Description: '/advloot' command
@@ -4929,6 +4934,7 @@ void AdvLootCmd(SPAWNINFO* pChar, char* szLine)
 		cmdAdvLoot(pChar, szLine);
 	}
 }
+#endif // HAS_ADVANCED_LOOT
 
 static std::recursive_mutex s_openPickZoneWndMutex;
 
@@ -5548,6 +5554,7 @@ void ListProcessesCommand(PSPAWNINFO pChar, char* szLine)
 
 //----------------------------------------------------------------------------
 
+#if HAS_ITEM_CONVERT_BUTTON
 void ConvertItemCmd(SPAWNINFO* pSpawn, char* szLine)
 {
 	if (!pItemDisplayManager) return;
@@ -5577,6 +5584,7 @@ void ConvertItemCmd(SPAWNINFO* pSpawn, char* szLine)
 	WriteChatf("\agUSAGE:\ax /convertitem \ay\"<item name>\"\ax");
 	WriteChatf("\agExample:\ax /convertitem \ay\"Wishing Lamp:\"\ax");
 }
+#endif // HAS_ITEM_CONVERT_BUTTON
 
 void InsertAugCmd(SPAWNINFO* pChar, char* szLine)
 {
@@ -5675,6 +5683,32 @@ void InsertAugCmd(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
+static ItemPtr FindAugmentSolvent(const ItemPtr& pAugItem)
+{
+	int solventID = pAugItem->GetItemDefinition()->SolventItemID;
+
+#if defined(CDistillerInfo__Instance_x)
+
+	// we need to check for all distillers
+	CDistillerInfo& pDistillerInfo = CDistillerInfo::Instance();
+
+	for (int i = solventID; i <= 21; i++)
+	{
+		int realID = pDistillerInfo.GetIDFromRecordNum(i, false);
+
+		if (ItemPtr pItemSolvent = pLocalPC->GetItemByID(realID))
+		{
+			// found a distiller that will work...
+			return pItemSolvent;
+		}
+	}
+
+	return ItemPtr();
+#else
+	return pLocalPC->GetItemByID(solventID);
+#endif
+}
+
 void RemoveAugCmd(SPAWNINFO* pChar, char* szLine)
 {
 	PcProfile* pProfile = GetPcProfile();
@@ -5709,12 +5743,13 @@ void RemoveAugCmd(SPAWNINFO* pChar, char* szLine)
 
 	if (!pTargetItem || szArg1[0] == '\0')
 	{
-		WriteChatColor("/removeaug USAGE: /removeaug \ay<augid>\ax <#####> OR \ay<augname>\ax \"Name in quotes\" \ay<itemid>\ax <#####> OR \ay<itemname>\ax \"Name in quotes\"", CONCOLOR_WHITE);
-		WriteChatColor("NOTE! /removeaug \ayIS A CASE SENSITIVE FUNCTION\ax", CONCOLOR_WHITE);
-		WriteChatColor("Example1: /removeaug \ay50502\ax \ay41302\ax", CONCOLOR_WHITE);
-		WriteChatColor("Example2: /removeaug \ay\"Crude Defiant Ruby Shard\"\ax \"Darkened Thick Banded Belt\"", CONCOLOR_WHITE);
-		WriteChatColor("Example2: /removeaug \ay\"Crude Defiant Ruby Shard\"\ax \ay41302\ax", CONCOLOR_WHITE);
-		WriteChatColor("Example2: /removeaug \ay50502\ax \"Darkened Thick Banded Belt\"", CONCOLOR_WHITE);
+		WriteChatf("/removeaug USAGE: /removeaug \ag<augment> \ay<item>");
+		WriteChatf("    Removes \ag<augment>\ax from \ay<item>");
+		WriteChatf("    \ag<augment>\ax and \ay<item>\ax can be either the numeric item id OR a quoted item name.");
+		WriteChatf("Example1: /removeaug \ag50502\ax \ay41302\ax");
+		WriteChatf("Example2: /removeaug \ag\"Crude Defiant Ruby Shard\"\ax \ay\"Darkened Thick Banded Belt\"");
+		WriteChatf("Example3: /removeaug \ag\"Crude Defiant Ruby Shard\"\ax \ay41302\ax");
+		WriteChatf("Example4: /removeaug \ag50502\ax \ay\"Darkened Thick Banded Belt\"");
 		return;
 	}
 
@@ -5754,25 +5789,7 @@ void RemoveAugCmd(SPAWNINFO* pChar, char* szLine)
 
 			if (pAugItem)
 			{
-				ItemPtr pItemSolvent;
-				int realID = 0;
-
-				// we need to check for all distillers
-				int minreqid = pAugItem->GetItemDefinition()->SolventItemID;
-
-				CDistillerInfo& pDistillerInfo = CDistillerInfo::Instance();
-
-				for (int i = minreqid; i <= 21; i++)
-				{
-					realID = pDistillerInfo.GetIDFromRecordNum(i, false);
-
-					pItemSolvent = pLocalPC->GetItemByID(realID);
-					if (pItemSolvent)
-					{
-						// found a distiller that will work...
-						break;
-					}
-				}
+				ItemPtr pItemSolvent = FindAugmentSolvent(pAugItem);
 
 				if (!pItemSolvent)
 				{

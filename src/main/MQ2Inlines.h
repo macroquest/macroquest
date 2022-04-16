@@ -527,7 +527,7 @@ inline int EQGetMySpellDuration(EQ_Spell* pSpell)
 
 inline int GetSpellNumEffects(SPELL* pSpell)
 {
-	return pSpell ? pSpell->NumEffects : 0;
+	return pSpell ? pSpell->GetNumEffects() : 0;
 }
 
 inline bool IsPlayerClass(int Class)
@@ -550,6 +550,8 @@ inline bool CanTank(int Class)
 
 inline const char* GetSpellString(int ID, int SpellIndex)
 {
+	// FIXME: emu - move this to eqlib
+#if defined(pinstEQSpellStrings_x)
 	if (pEQSpellStrings)
 	{
 		if (const char* str = pEQSpellStrings->GetString(ID, SpellIndex))
@@ -560,7 +562,37 @@ inline const char* GetSpellString(int ID, int SpellIndex)
 			}
 		}
 	}
+#else
+	if (EQ_Spell* pSpell = GetSpellByID(ID))
+	{
+		switch (SpellIndex)
+		{
+		case SpellStringCastByMe:
+		//	if (pSpell->CastByMe[0])
+		//		return pSpell->CastByMe;
+		//	break;
+		//
+		case SpellStringCastByOther:
+		//	if (pSpell->CastByOther[0])
+		//		return pSpell->CastByOther;
 
+		case SpellStringCastOnYou:
+		//	if (pSpell->CastOnYou[0])
+		//		return pSpell->CastOnYou;
+		//	break;
+		case SpellStringCastOnAnother:
+		//	if (pSpell->CastOnAnother[0])
+		//		return pSpell->CastOnAnother;
+		//	break;
+		case SpellStringWearOff:
+		//	if (pSpell->WearOff[0])
+		//		return pSpell->WearOff;
+		//	break;
+		default:
+			break;
+		}
+	}
+#endif
 	return nullptr;
 }
 

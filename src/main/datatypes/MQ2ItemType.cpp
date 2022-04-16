@@ -551,7 +551,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		Dest.Type = pItemSpellType;
 		return true;
 
-	case ItemMembers::Mount:
+	case ItemMembers::Mount: // TODO: emu check
 		Dest.Ptr = &GetItemFromContents(pItem)->Mount;
 		Dest.Type = pItemSpellType;
 		return true;
@@ -1302,15 +1302,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::DamShield:
-		Dest.DWord = 0;
-		if (ItemDefinition* pII = GetItemFromContents(pItem))
-		{
-			if (pII->Type == ITEMTYPE_NORMAL)
-			{
-				// TODO: Fix this
-				Dest.DWord = 0;
-			}
-		}
+		Dest.DWord = pItem->GetDamShield();
 		Dest.Type = pIntType;
 		return true;
 
@@ -1446,106 +1438,42 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::Avoidance:
-		Dest.DWord = 0;
-		if (ItemDefinition* pII = GetItemFromContents(pItem))
-		{
-			if (pII->Type == ITEMTYPE_NORMAL)
-			{
-				// TODO: Fix this
-				Dest.DWord = 0;
-			}
-		}
+		Dest.DWord = pItem->GetAvoidance();
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::SpellShield:
-		Dest.DWord = 0;
-		if (ItemDefinition* pII = GetItemFromContents(pItem))
-		{
-			if (pII->Type == ITEMTYPE_NORMAL)
-			{
-				// TODO: Fix this
-				Dest.DWord = 0;
-			}
-		}
+		Dest.DWord = pItem->GetSpellShield();
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::StrikeThrough:
-		Dest.DWord = 0;
-		if (ItemDefinition* pII = GetItemFromContents(pItem))
-		{
-			if (pII->Type == ITEMTYPE_NORMAL)
-			{
-				// TODO: Fix this
-				Dest.DWord = 0;
-			}
-		}
+		Dest.DWord = pItem->GetStrikeThrough();
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::StunResist:
-		Dest.DWord = 0;
-		if (ItemDefinition* pII = GetItemFromContents(pItem))
-		{
-			if (pII->Type == ITEMTYPE_NORMAL)
-			{
-				// TODO: Fix this
-				Dest.DWord = 0;
-			}
-		}
+		Dest.DWord = pItem->GetStunResist();
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::Shielding:
-		Dest.DWord = 0;
-		if (ItemDefinition* pII = GetItemFromContents(pItem))
-		{
-			if (pII->Type == ITEMTYPE_NORMAL)
-			{
-				// TODO: Fix this
-				Dest.DWord = 0;
-			}
-		}
+		Dest.DWord = pItem->GetShielding();
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::Accuracy:
-		Dest.DWord = 0;
-		if (ItemDefinition* pII = GetItemFromContents(pItem))
-		{
-			if (pII->Type == ITEMTYPE_NORMAL)
-			{
-				// TODO: Fix this
-				Dest.DWord = 0;
-			}
-		}
+		Dest.DWord = pItem->GetAccuracy();
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::CombatEffects:
-		Dest.DWord = 0;
-		if (ItemDefinition* pII = GetItemFromContents(pItem))
-		{
-			if (pII->Type == ITEMTYPE_NORMAL)
-			{
-				// TODO: Fix this
-				Dest.DWord = 0;
-			}
-		}
+		Dest.DWord = pItem->GetCombatEffects();
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::DoTShielding:
-		Dest.DWord = 0;
-		if (ItemDefinition* pII = GetItemFromContents(pItem))
-		{
-			if (pII->Type == ITEMTYPE_NORMAL)
-			{
-				// TODO: Fix this
-				Dest.DWord = 0;
-			}
-		}
+		Dest.DWord = pItem->GetDoTShielding();
 		Dest.Type = pIntType;
 		return true;
 
@@ -1605,6 +1533,36 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		Dest.Type = pIntType;
 		return true;
 
+	case ItemMembers::HeroicSvMagic:
+		Dest.DWord = pItem->GetHeroicSvMagic();
+		Dest.Type = pIntType;
+		return true;
+
+	case ItemMembers::HeroicSvFire:
+		Dest.DWord = pItem->GetHeroicSvFire();
+		Dest.Type = pIntType;
+		return true;
+
+	case ItemMembers::HeroicSvCold:
+		Dest.DWord = pItem->GetHeroicSvCold();
+		Dest.Type = pIntType;
+		return true;
+
+	case ItemMembers::HeroicSvDisease:
+		Dest.DWord = pItem->GetHeroicSvDisease();
+		Dest.Type = pIntType;
+		return true;
+
+	case ItemMembers::HeroicSvPoison:
+		Dest.DWord = pItem->GetHeroicSvPoison();
+		Dest.Type = pIntType;
+		return true;
+
+	case ItemMembers::HeroicSvCorruption:
+		Dest.DWord = pItem->GetHeroicSvCorruption();
+		Dest.Type = pIntType;
+		return true;
+
 	case ItemMembers::EnduranceRegen:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
@@ -1630,15 +1588,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::DamageShieldMitigation:
-		Dest.DWord = 0;
-		if (ItemDefinition* pII = GetItemFromContents(pItem))
-		{
-			if (pII->Type == ITEMTYPE_NORMAL)
-			{
-				// TODO: Fix this
-				Dest.DWord = 0;
-			}
-		}
+		Dest.DWord = pItem->GetDamageShieldMitigation();
 		Dest.Type = pIntType;
 		return true;
 
@@ -1770,28 +1720,38 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::Luck:
-		Dest.DWord = pItem->Luck;
+		Dest.DWord = pItem->GetLuck();
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::MinLuck:
-		Dest.DWord = GetItemFromContents(pItem)->MinLuck;
+		Dest.DWord = pItem->GetMinLuck();
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::MaxLuck:
-		Dest.DWord = GetItemFromContents(pItem)->MaxLuck;
+		Dest.DWord = pItem->GetMaxLuck();
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::IDFile:
+#if IS_CLIENT_DATE(20200413)
 		Dest.DWord = pItem->GetItemDefinition()->IDFile;
 		Dest.Type = pIntType;
+#else
+		Dest.Ptr = pItem->GetItemDefinition()->IDFile;
+		Dest.Type = pStringType;
+#endif
 		return true;
 
 	case ItemMembers::IDFile2:
+#if IS_CLIENT_DATE(20200413)
 		Dest.DWord = pItem->GetItemDefinition()->IDFile2;
 		Dest.Type = pIntType;
+#else
+		Dest.Ptr = pItem->GetItemDefinition()->IDFile2;
+		Dest.Type = pStringType;
+#endif
 		return true;
 
 	default: break;

@@ -117,7 +117,9 @@ MQLIB_API void SetWinTitle                         (PSPAWNINFO pChar, char* szLi
 MQLIB_API void GetWinTitle                         (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void PetCmd                              (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void MercSwitchCmd                       (PSPAWNINFO pChar, char* szLine);
+#if HAS_ADVANCED_LOOT
 MQLIB_API void AdvLootCmd                          (PSPAWNINFO pChar, char* szLine);
+#endif
 MQLIB_API void PickZoneCmd                         (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void AssistCmd                           (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void InvokeCmd                           (PSPAWNINFO pChar, char* szLine);
@@ -132,7 +134,9 @@ MQLIB_API void CachedBuffsCommand                  (PSPAWNINFO pChar, char* szLi
 MQLIB_API void MQCopyLayout                        (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void ListModulesCommand                  (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void ListProcessesCommand                (PSPAWNINFO pChar, char* szLine);
+#if HAS_ITEM_CONVERT_BUTTON
 MQLIB_API void ConvertItemCmd                      (PSPAWNINFO pChar, char* szLine);
+#endif
 MQLIB_API void InsertAugCmd                        (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void RemoveAugCmd                        (PSPAWNINFO pChar, char* szLine);
 

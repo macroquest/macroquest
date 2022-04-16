@@ -593,18 +593,17 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.Set(false);
 		Dest.Type = pBoolType;
 
-		if (!pLocalPlayer)
+		if (!pLocalPC)
 			return false;
 
-		auto pPc = pLocalPlayer->GetPcClient();
-
 		int SlotIndex = -1;
-		EQ_Affect* ret = pPc->FindAffectSlot(pSpell->ID, pLocalPlayer, &SlotIndex, true, pLocalPlayer->Level);
-
-		Dest.Set(ret &&
-			SlotIndex != -1 &&
-			GetSpellDuration(pSpell, pLocalPlayer) >= -1 &&
-			ret->Duration <= GetIntFromString(Index, 0));
+		EQ_Affect* ret = pLocalPC->FindAffectSlot(pSpell->ID, pLocalPlayer, &SlotIndex, true, pLocalPC->GetLevel());
+		if (ret && SlotIndex != -1)
+		{
+			int duration = GetIntFromString(Index, 0);
+			if (duration == 0 || (duration > 0 && GetSpellDuration(pSpell, pLocalPlayer) >= 1 && ret->Duration < duration))
+				Dest.Set(true);
+		}
 
 		return true;
 	}
@@ -640,10 +639,14 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			if (!pBuffSpell)
 				continue;
 
+			if (WillStackWith(pSpell, pBuffSpell))
+				return true;
+
 			// if we have less duration than the duration argument, then this "will stack" so we need to keep checking
-			if (!WillStackWith(pSpell, pBuffSpell) && (
-				GetSpellDuration(pBuffSpell, pLocalPlayer) < -1 ||
-				ceil(pPetInfoWnd->PetBuffTimer[nBuff] / 6000) > GetIntFromString(Index, 0)))
+			int duration = GetIntFromString(Index, 0);
+			if (duration != 0
+				&& (GetSpellDuration(pBuffSpell, pLocalPlayer) < -1 ||
+				ceil(pPetInfoWnd->PetBuffTimer[nBuff] / 6000) > duration))
 			{
 				Dest.Set(false);
 				return true;

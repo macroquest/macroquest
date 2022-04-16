@@ -14,18 +14,18 @@ The recommended way to build MacroQuest is from a source code checkout using Git
 
 ### Check out the latest source code
 
-Create the checkout. This will create the subfolder **mqnext** that containes a copy of the project.  **ACTUAL URL TBD**
+Create the checkout. This will create the subfolder **macroquest** that containes a copy of the project.
 
 ```
-git clone git@gitlab.com:macroquest/next/mqnext.git
+git clone git@github.com:macroquest/macroquest.git
 ```
 
-Make sure that submodules are initialized. Move (cd) to the newly created **mqnext** folder before executing this command.  If you have run this step already, you can skip it
+Make sure that submodules are initialized. Move (cd) to the newly created **macroquest** folder before executing this command.  If you have run this step already, you can skip it
 ```
 git submodule init
 ```
 
-Update the submodules to the correct version. Ensure you are in the newly created **mqnext** folder before executing this command.
+Update the submodules to the correct version. Ensure you are in the newly created **macroquest** folder before executing this command.
 ```
 git submodule update
 ```

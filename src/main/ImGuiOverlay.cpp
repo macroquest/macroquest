@@ -180,7 +180,7 @@ int AddRenderCallbacks(const MQRenderCallbacks& callbacks)
 {
 	// Find an unused index.
 	int index = -1;
-	for (int i = 0; i < s_renderCallbacks.size(); ++i)
+	for (int i = 0; i < (int)s_renderCallbacks.size(); ++i)
 	{
 		if (s_renderCallbacks[i] == nullptr)
 		{

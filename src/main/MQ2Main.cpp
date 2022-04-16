@@ -41,21 +41,32 @@
 #define CLIENT_OVERRIDE 0
 
 #if defined(LIVE)
-#if defined(_M_AMD64)
-#pragma message("Building MacroQuest for LIVE (x64)")
-#else
-#pragma message("Building MacroQuest for LIVE (x86)")
+
+#if !defined(_M_AMD64)
+#error Live build is only for x64
 #endif
+#pragma message("Building MacroQuest for LIVE (x64)")
 #define MacroQuestWinClassName "__MacroQuestTray(Live)"
 #define MacroQuestWinName "MacroQuest(Live)"
+
 #elif defined(TEST)
-#if defined(_M_AMD64)
-#pragma message("Building MacroQuest for TEST (x64)")
-#else
-#pragma message("Building MacroQuest for TEST (x86)")
+
+#if !defined(_M_AMD64)
+#error Test build is only for x64
 #endif
+#pragma message("Building MacroQuest for TEST (x64)")
 #define MacroQuestWinClassName "__MacroQuestTray(Test)"
 #define MacroQuestWinName "MacroQuest(Test)"
+
+#elif defined(EMULATOR)
+
+#if defined(_M_AMD64)
+#error Emulator Build is only for x86
+#endif
+#pragma message("Building MacroQuest for EMULATOR (x86)")
+#define MacroQuestWinClassName "__MacroQuestTray(EQEmu)"
+#define MacroQuestWinName "MacroQuest(EQEmu)"
+
 #endif
 
 namespace fs = std::filesystem;
@@ -140,7 +151,7 @@ extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void*
 	szProcessName[0] = '\0';
 	szProcessName = strrchr(szFilename, '\\') + 1;
 
-	if (_stricmp(szProcessName, __ClientName) == 0)
+	if (_stricmp(szProcessName, "eqgame") == 0)
 	{
 		if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 		{

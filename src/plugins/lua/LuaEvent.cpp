@@ -104,11 +104,11 @@ void LuaEventProcessor::Process(std::string_view line) const
 	{
 		CXStr line_str(line);
 		line_str = CleanItemTags(line_str, false);
-		strcpy_s(line_char, line_str.c_str());
+		StripMQChat(line_str, line_char);
 	}
 	else
 	{
-		strncpy_s(line_char, line.data(), line.size());
+		StripMQChat(line, line_char);
 	}
 
 	// since we initialized to 0, we know that any remaining members will be 0, so just in case we Get an overflow, re-set the last character to 0
@@ -355,6 +355,12 @@ static void lua_flushevents(sol::variadic_args va, sol::this_state s)
 
 static void lua_addevent(std::string_view name, std::string_view expression, sol::function function, sol::this_state s)
 {
+	if (function == sol::nil)
+	{
+		luaL_error(s, "nil function passed as event callback");
+		return;
+	}
+
 	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
 		if (LuaEventProcessor* events = thread_ptr->GetEventProcessor())
@@ -373,6 +379,12 @@ static void lua_removeevent(std::string_view name, sol::this_state s)
 
 static void lua_addbind(std::string_view name, sol::function function, sol::this_state s)
 {
+	if (function == sol::nil)
+	{
+		luaL_error(s, "nil function passed as bind callback");
+		return;
+	}
+
 	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
 		if (LuaEventProcessor* events = thread_ptr->GetEventProcessor())

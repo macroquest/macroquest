@@ -38,7 +38,7 @@ static void CustomBindCmd(SPAWNINFO* pChar, char* szLine);
 
 static int FindCustomBind(const char* Name)
 {
-	for (int index = 0; index < sCustomBinds.size(); ++index)
+	for (int index = 0; index < (int)sCustomBinds.size(); ++index)
 	{
 		if (CustomBind* pBind = sCustomBinds[index].get())
 		{
@@ -64,7 +64,7 @@ static CustomBind* AddCustomBind(
 
 		// Find unused index.
 		int index = -1;
-		for (int i = 0; i < sCustomBinds.size(); ++i)
+		for (int i = 0; i < (int)sCustomBinds.size(); ++i)
 		{
 			if (sCustomBinds[i] == nullptr)
 			{

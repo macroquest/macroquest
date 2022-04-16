@@ -85,8 +85,6 @@ bool MQ2MathType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		Dest.Type = pIntType;
 		if (char* Arg = Index)
 		{
-			char szMin[MAX_STRING] = { 0 };
-			char szMax[MAX_STRING] = { 0 };
 			int Min = 0;
 			int Max = 0;
 
@@ -102,7 +100,7 @@ bool MQ2MathType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 				Max = GetIntFromString(Arg, Max);
 			}
 
-			if (Max == 0 || Max > RAND_MAX)
+			if (Min > Max)
 				return false;
 
 			Dest.DWord = RangeRandom(Min, Max);

@@ -1275,7 +1275,7 @@ public:
 				{
 					ImGui::Separator();
 					ImGui::Text("Group Requirements:");
-					for (int i = 0; i < m_selectedAbility->RequiredGroups.size(); ++i)
+					for (int i = 0; i < (int)m_selectedAbility->RequiredGroups.size(); ++i)
 					{
 						int groupId = m_selectedAbility->RequiredGroups[i];
 						int groupRank = m_selectedAbility->RequiredGroupLevels[i];
@@ -1400,6 +1400,7 @@ public:
 			m_selectedAbility = nextSelection;
 	}
 
+#if HAS_MERCENARY_AA
 	void DrawMercenaryAbilityRow(const MercenaryAbilitiesData* mercData, const char* szLabel = nullptr,
 		bool colorCanTrain = false)
 	{
@@ -1714,6 +1715,7 @@ public:
 			ImGui::EndTable();
 		}
 	}
+#endif // HAS_MERCENARY_AA
 
 	void Draw() override
 	{
@@ -1725,11 +1727,13 @@ public:
 				ImGui::EndTabItem();
 			}
 
+#if HAS_MERCENARY_AA
 			if (ImGui::BeginTabItem("Mercenary AA"))
 			{
 				DrawMercenaryAbilities();
 				ImGui::EndTabItem();
 			}
+#endif // HAS_MERCENARY_AA
 
 			ImGui::EndTabBar();
 		}
@@ -2587,7 +2591,7 @@ public:
 		ImGui::PopID();
 	}
 
-	int DoSpellAffectTable(const char* name, EQ_Affect* affect, size_t numAffects, bool showEmpty = false)
+	int DoSpellAffectTable(const char* name, EQ_Affect* affect, int numAffects, bool showEmpty = false)
 	{
 		ImGuiTableFlags tableFlags = 0
 			| ImGuiTableFlags_SizingFixedFit
@@ -2599,7 +2603,7 @@ public:
 		int count = 2; // start with space for header and possible scroll bar
 
 		// calculate the size
-		for (int i = 0; i < numAffects; ++i)
+		for (size_t i = 0; i < numAffects; ++i)
 		{
 			EQ_Affect& buff = affect[i];
 			if (buff.SpellID == 0 && !showEmpty)
@@ -2752,11 +2756,11 @@ public:
 		if (ImGui::BeginTabBar("##SpellTabs"))
 		{
 			{
-				size_t arrayLength = lengthof(pcProfile->Buff);
+				int arrayLength = (int)lengthof(pcProfile->Buff);
 				int count = 0;
 
 				// calculate the size
-				for (size_t i = 0; i < arrayLength; ++i)
+				for (int i = 0; i < arrayLength; ++i)
 				{
 					EQ_Affect& buff = pcProfile->Buff[i];
 					if (buff.SpellID > 0)
@@ -2774,11 +2778,11 @@ public:
 			}
 
 			{
-				size_t arrayLength = lengthof(pcProfile->ShortBuff);
+				int arrayLength = (int)lengthof(pcProfile->ShortBuff);
 				int count = 0;
 
 				// calculate the size
-				for (size_t i = 0; i < arrayLength; ++i)
+				for (int i = 0; i < arrayLength; ++i)
 				{
 					EQ_Affect& buff = pcProfile->ShortBuff[i];
 					if (buff.SpellID > 0)
@@ -3742,7 +3746,7 @@ protected:
 	void Draw() override
 	{
 		int deleteRow = -1;
-		for (int i = 0; i < m_expressions.size(); ++i)
+		for (int i = 0; i < (int)m_expressions.size(); ++i)
 		{
 			ImGui::PushID(i);
 			ImGui::SetNextItemWidth(-20);

@@ -53,7 +53,9 @@ ItemEffectConfig s_itemEffectConfigs[ItemSpellType_Max] = {
 	{ ItemSpellType_Focus,    MQColor(160, 160, 0),   "Focus"    },
 	{ ItemSpellType_Scroll,   MQColor(160, 160, 160), "Scroll"   },
 	{ ItemSpellType_Focus2,   MQColor(160, 160, 0),   "Focus2"   },
+#if IS_CLIENT_DATE(20210907)
 	{ ItemSpellType_Blessing, MQColor(88,  214, 141), "Blessing" }
+#endif
 };
 
 static std::pair<MQColor, std::string_view> GetEffectInfo(ItemSpellTypes effectType, bool useCustom = true);
@@ -1260,6 +1262,7 @@ public:
 				return 0;
 			}
 
+#if HAS_ADVANCED_LOOT
 			bool updateFilters = false;
 			if (extraInfo.pAlwaysNeedBtn.get() == sender
 				|| extraInfo.pAlwaysGreedBtn.get() == sender
@@ -1293,6 +1296,7 @@ public:
 
 				pLootFiltersManager->SetItemLootFilter(pItem->GetID(), pItem->GetIconID(), pItem->GetName(), filterTypes);
 			}
+#endif
 		}
 
 		return Super::WndNotification(sender, message, data);
@@ -1343,6 +1347,7 @@ public:
 			extraInfo.pLucyButton.reset();
 		}
 
+#if HAS_ADVANCED_LOOT
 		// create loot filter buttons
 		if (!extraInfo.pHeader && s_settings.IsLootButtonsEnabled())
 		{
@@ -1391,6 +1396,7 @@ public:
 			extraInfo.pNeverBtn.reset();
 			extraInfo.pAutoRollBtn.reset();
 		}
+#endif // HAS_ADVANCED_LOOT
 
 		if (extraInfo.pHeader || extraInfo.pLucyButton)
 		{
@@ -1428,6 +1434,7 @@ public:
 			}
 		}
 
+#if HAS_ADVANCED_LOOT
 		if (extraInfo.pHeader)
 		{
 			//----------------------------------------------------------------------------
@@ -1449,6 +1456,7 @@ public:
 				extraInfo.pNeverBtn->Checked = false;
 			}
 		}
+#endif
 	}
 
 	bool AboutToHide() override
