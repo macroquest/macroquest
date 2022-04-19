@@ -14,6 +14,7 @@
 
 #include <mq/Plugin.h>
 
+#include "eqlib/WindowOverride.h"
 #include "MQ2Map.h"
 #include "MapObject.h"
 
@@ -175,63 +176,17 @@ MapFilterOption MapFilterOptions[] =
 	MapFilterInvalidOption,
 };
 
-// This class inherits from MapViewMap to set up virtual functions, but we
-// do not ever actually instantiate this class. As a result, we can't store any
-// data members in it. We're using some tricks to use the compiler's generation
-// of the virtual function table to essentially inherit this class and override
-// virtuals.
-class CCustomMapViewMap : public MapViewMap
+class MapViewMapOverride : public WindowOverride<MapViewMapOverride, MapViewMap>
 {
 public:
-	inline static VirtualFunctionTable* s_mapViewWndTablePatched = nullptr;
-	inline static VirtualFunctionTable* s_mapViewWndTableOrig = nullptr;
-	inline static bool s_patchingVFTable = false;
-
-	// We need to do this *before* we patch the constructor.
-	static VirtualFunctionTable* GetPatchedVFTable()
-	{
-		static VirtualFunctionTable* table = nullptr;
-
-		if (table == nullptr)
-		{
-			// If we crash here, it means that the size of
-			// MapViewMap is off.
-			CCustomMapViewMap tempMap;
-			table = tempMap.GetVFTable();
-		}
-
-		return table;
-	}
-
-	static void HookVFTable(MapViewMap* pThis)
-	{
-		if (s_patchingVFTable)
-			return;
-		s_patchingVFTable = true;
-
-		// initialize the MapViewMap patched virtual function table
-		s_mapViewWndTablePatched = GetPatchedVFTable();
-
-		// save the original vftable in case we need to put it back
-		s_mapViewWndTableOrig = pThis->GetVFTable();
-
-		// now replace with the patched version
-		pThis->ReplaceVFTable(s_mapViewWndTablePatched);
-
-		s_patchingVFTable = false;
-	}
-
-	static void UnhookVFTable(MapViewMap* pThis)
-	{
-		// put the original table back
-		pThis->ReplaceVFTable(s_mapViewWndTableOrig);
-	}
+	static void OnHooked(MapViewMapOverride* pWnd) { pWnd->OnHooked(); }
+	static void OnAboutToUnhook(MapViewMapOverride* pWnd) { pWnd->OnAboutToUnhook(); }
 
 	virtual int PostDraw() override
 	{
 		MapUpdate();
 		MapAttach();
-		int result = MapViewMap::PostDraw();
+		int result = Super::PostDraw();
 		MapDetach();
 		return result;
 	}
@@ -261,7 +216,7 @@ public:
 
 		MapClickLocation(points.X, points.Y, z_hits);
 
-		return MapViewMap::HandleLButtonDown(pos, flags);
+		return Super::HandleLButtonDown(pos, flags);
 	}
 
 	virtual int HandleRButtonDown(const CXPoint& pos, uint32_t flags) override
@@ -279,26 +234,21 @@ public:
 
 		if (handleClick)
 		{
-			return MapViewMap::HandleRButtonDown(pos, flags);
+			return Super::HandleRButtonDown(pos, flags);
 		}
 
 		return 0;
 	}
-};
 
-// Note: Do not combine this with CCustomMapViewMap, as it will change the
-// layout of the function pointers used in the detour, which will break the detour.
-class CMapViewWndHook
-{
-public:
-	DETOUR_TRAMPOLINE_DEF(CMapViewWnd*, Constructor_Trampoline, (CXWnd*))
-	CMapViewWnd* Constructor_Detour(CXWnd* pParent)
+	//----------------------------------------------------------------------------
+private:
+
+	void OnHooked()
 	{
-		CMapViewWnd* pThis = Constructor_Trampoline(pParent);
-		// the global pMapViewWnd isn't set yet, access MapView from this pointer.
-		CCustomMapViewMap* pMapViewMap = static_cast<CCustomMapViewMap*>(&pThis->MapView);
-		CCustomMapViewMap::HookVFTable(pMapViewMap);
-		return pThis;
+	}
+
+	void OnAboutToUnhook()
+	{
 	}
 };
 
@@ -370,12 +320,10 @@ PLUGIN_API void InitializePlugin()
 	AddCommand("/mapactivelayer", MapActiveLayerCmd, false, true, true);
 	AddCommand("/maploc", MapSetLocationCmd, false, true, true);
 
-	// Hook the constructor. If window already exists then we just hook the vftable.
-	// If it does not exist then we need to hook the constructor to do the same thing when the window is created.
-	EzDetour(CMapViewWnd__CMapViewWnd, &CMapViewWndHook::Constructor_Detour, &CMapViewWndHook::Constructor_Trampoline);
+	// Hook the map window
 	if (pMapViewWnd)
 	{
-		CCustomMapViewMap::HookVFTable(&pMapViewWnd->MapView);
+		MapViewMapOverride::InstallHooks(&pMapViewWnd->MapView);
 	}
 
 	AddMQ2Data("MapSpawn", dataMapSpawn);
@@ -390,10 +338,6 @@ PLUGIN_API void ShutdownPlugin()
 {
 	RemoveMQ2Data("MapSpawn");
 
-	if (pMapViewWnd)
-	{
-		CCustomMapViewMap::UnhookVFTable(&pMapViewWnd->MapView);
-	}
 	RemoveDetour(CMapViewWnd__CMapViewWnd);
 
 	MapClear();
@@ -521,4 +465,20 @@ PLUGIN_API MapViewLine* MQ2MapAddLine()
 PLUGIN_API void MQ2MapDeleteLine(MapViewLine* pLine)
 {
 	DeleteLine(pLine);
+}
+
+PLUGIN_API void OnCleanUI()
+{
+	if (pMapViewWnd)
+	{
+		MapViewMapOverride::RemoveHooks(&pMapViewWnd->MapView);
+	}
+}
+
+PLUGIN_API void OnReloadUI()
+{
+	if (pMapViewWnd)
+	{
+		MapViewMapOverride::InstallHooks(&pMapViewWnd->MapView);
+	}
 }

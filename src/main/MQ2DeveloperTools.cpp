@@ -2591,7 +2591,8 @@ public:
 		ImGui::PopID();
 	}
 
-	int DoSpellAffectTable(const char* name, EQ_Affect* affect, int numAffects, bool showEmpty = false)
+	template <typename Iter>
+	int DoSpellAffectTable(const char* name, Iter first, Iter second, bool showEmpty = false)
 	{
 		ImGuiTableFlags tableFlags = 0
 			| ImGuiTableFlags_SizingFixedFit
@@ -2603,9 +2604,9 @@ public:
 		int count = 2; // start with space for header and possible scroll bar
 
 		// calculate the size
-		for (size_t i = 0; i < numAffects; ++i)
+		for (auto iter = first; iter != second; ++iter)
 		{
-			EQ_Affect& buff = affect[i];
+			EQ_Affect& buff = *iter;
 			if (buff.SpellID == 0 && !showEmpty)
 				continue;
 
@@ -2617,15 +2618,17 @@ public:
 		{
 			ImGui::TableSetupScrollFreeze(2, 1);
 			DoSpellBuffTableHeaders();
+			int i = 0;
 
-			for (int i = 0; i < numAffects; ++i)
+			for (auto iter = first; iter != second; ++iter)
 			{
-				EQ_Affect& buff = affect[i];
+				EQ_Affect& buff = *iter;
+				++i;
 
 				if (buff.SpellID == 0 && !showEmpty)
 					continue;
 
-				DoSpellBuffTableRow(i + 1, buff);
+				DoSpellBuffTableRow(i, buff);
 				count++;
 			}
 
@@ -2755,48 +2758,23 @@ public:
 
 		if (ImGui::BeginTabBar("##SpellTabs"))
 		{
+			int arrayLength = MAX_TOTAL_BUFFS;
+			int count = 0;
+
+			// calculate the size
+			for (int i = 0; i < arrayLength; ++i)
 			{
-				int arrayLength = (int)lengthof(pcProfile->Buff);
-				int count = 0;
-
-				// calculate the size
-				for (int i = 0; i < arrayLength; ++i)
-				{
-					EQ_Affect& buff = pcProfile->Buff[i];
-					if (buff.SpellID > 0)
-						count++;
-				}
-
-				char szLabel[64];
-				sprintf_s(szLabel, "Spell Buffs (%d)###SpellBuffs", count);
-
-				if (ImGui::BeginTabItem(szLabel))
-				{
-					DoSpellAffectTable("SpellAffectBuffsTable", pcProfile->Buff, arrayLength);
-					ImGui::EndTabItem();
-				}
+				if (pcProfile->GetEffect(i).SpellID > 0)
+					count++;
 			}
 
+			char szLabel[64];
+			sprintf_s(szLabel, "Spell Buffs (%d)###SpellBuffs", count);
+
+			if (ImGui::BeginTabItem(szLabel))
 			{
-				int arrayLength = (int)lengthof(pcProfile->ShortBuff);
-				int count = 0;
-
-				// calculate the size
-				for (int i = 0; i < arrayLength; ++i)
-				{
-					EQ_Affect& buff = pcProfile->ShortBuff[i];
-					if (buff.SpellID > 0)
-						count++;
-				}
-
-				char szLabel[64];
-				sprintf_s(szLabel, "Short Buffs (%d)###ShortBuffs", count);
-
-				if (ImGui::BeginTabItem(szLabel))
-				{
-					DoSpellAffectTable("SpellAffectBuffsTable", pcProfile->ShortBuff, arrayLength);
-					ImGui::EndTabItem();
-				}
+				DoSpellAffectTable("SpellAffectBuffsTable", pcProfile->Buffs.begin(), pcProfile->Buffs.end(), arrayLength);
+				ImGui::EndTabItem();
 			}
 
 			if (ImGui::BeginTabItem("Stacking Tests"))
@@ -3727,6 +3705,149 @@ static SwitchInspector* s_switchInspector = nullptr;
 
 #pragma endregion
 
+#pragma region Zone Inspector
+
+
+class ZoneInspector : public ImGuiWindowBase
+{
+public:
+	ZoneInspector() : ImGuiWindowBase("Zone Inspector")
+	{
+		SetDefaultSize(ImVec2(600, 400));
+	}
+
+	~ZoneInspector()
+	{
+	}
+
+	bool IsEnabled() const override
+	{
+		return GetPcProfile() != nullptr && GetGameState() == GAMESTATE_INGAME;
+	}
+
+	void Draw() override
+	{
+		if (ImGui::BeginTable("##ZoneDataTable", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
+		{
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn("Data", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableHeadersRow();
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+
+			if (ImGui::TreeNode("zone Header"))
+			{
+				zoneHeader* hdr = pZoneInfo;
+
+#define TableRow(label, format, ...) \
+	ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text(label); \
+	ImGui::TableNextColumn(); ImGui::Text(format, __VA_ARGS__);
+
+				TableRow("Short Name", "%s", hdr->ShortName);
+				TableRow("Long Name", "%s", hdr->LongName);
+				TableRow("Weather Type", "%s", hdr->WeatherType);
+				TableRow("Weather Type Override", "%s", hdr->WeatherTypeOverride);
+				TableRow("Sky Type", "%s", hdr->SkyType); // short name (lowercase?)
+				TableRow("Sky Type Override", "%s", hdr->SkyTypeOverride);
+				TableRow("OutDoor Type", "%d", hdr->OutDoor);
+				TableRow("Designer ZoneID", "%d", hdr->ZoneID);
+				TableRow("Zone XP Modifier", "%f", hdr->ZoneExpModifier);
+				TableRow("Fog Density", "%f", hdr->FogDensity);
+
+				const char* seasons[4] = {
+					"Winter",
+					"Spring",
+					"Summer",
+					"Fall"
+				};
+
+				for (int i = 0; i < 4; ++i)
+				{
+					char label[32];
+					sprintf_s(label, "%s Environment", seasons[i]);
+
+					ImGui::TableNextRow(); ImGui::TableNextColumn();
+					if (ImGui::TreeNode(label))
+					{
+						TableRow("Fog Start", "%f", hdr->FogStart[i]);
+						TableRow("Fog End", "%f", hdr->FogEnd[i]);
+
+						float colors[3] = {hdr->FogRed[i] / 255.f, hdr->FogGreen[i] / 255.f, hdr->FogBlue[i] / 255.f };
+						ImGui::ColorEdit3("Fog Color", colors);
+
+						TableRow("Rain Percentage", "%d%%", hdr->RainChance[i]);
+						TableRow("Rain Duration", "%d", hdr->RainDuration[i]);
+						TableRow("Snow Percentage", "%d%%", hdr->SnowPercentage[i]);
+						TableRow("Snow Duration", "%d", hdr->SnowChance[i]);
+
+						ImGui::TreePop();
+					}
+				}
+
+				TableRow("Precipitation Type", "%d", (int)hdr->PrecipitationType);
+				TableRow("Bloom Intensity", "%f", hdr->BloomIntensity);
+				TableRow("Zone Gravity", "%f", hdr->ZoneGravity);
+				TableRow("Lava Damage", "%d", hdr->LavaDamage);
+				TableRow("Lava Damage Min", "%d", hdr->MinLavaDamage);
+				TableRow("Time String ID", "%d", hdr->TimeStringID);
+				TableRow("Sky Lock", "%d", hdr->SkyLock);
+				TableRow("Sky Lock Override", "%d", hdr->SkyLockOverride);
+				TableRow("Safe Location", "(%.2f, %.2f, %.2f)", hdr->SafeYLoc, hdr->SafeXLoc, hdr->SafeZLoc);
+				TableRow("Safe Heading", "%.2f", hdr->SafeHeading);
+				TableRow("Floor/Ceiling", "%.2f, %.2f", hdr->Floor, hdr->Ceiling);
+				TableRow("Min/Max Clip", "%.2f, %.2f", hdr->MinClip, hdr->MaxClip);
+				TableRow("Fallthrough World Teleport ID", "%d", hdr->FallThroughWorldTeleportID);
+				TableRow("Fast Regen HP", "%d", hdr->FastRegenHP);
+				TableRow("Fast Regen Mana", "%d", hdr->FastRegenMana);
+				TableRow("Fast Regen Endurance", "%d", hdr->FastRegenEndurance);
+
+				TableRow("New Engine Zone", "%d", (int)hdr->NewEngineZone);
+				TableRow("Sky Enabled", "%d", (int)hdr->SkyEnabled);
+				TableRow("Fog On/Off", "%d", (int)hdr->FogOnOff);
+				TableRow("Climate Type", "%d", (int)hdr->ClimateType);
+				TableRow("No Player Light", "%d", (int)hdr->bNoPlayerLight);
+				TableRow("No Attack", "%d", (int)hdr->bNoAttack);
+				TableRow("PVP Enabled", "%d", (int)hdr->bAllowPVP);
+				TableRow("No Encumber", "%d", (int)hdr->bNoEncumber);
+				TableRow("No Levitate", "%d", (int)hdr->bNoLevitate);
+				TableRow("No Buff Expiration", "%d", (int)hdr->bNoBuffExpiration);
+				TableRow("No Manastone", "%d", (int)hdr->bDisallowManaStone);
+				TableRow("No Bind", "%d", (int)hdr->bNoBind);
+				TableRow("No Call of the Hero", "%d", (int)hdr->bNoCallOfTheHero);
+				TableRow("No Fear", "%d", (int)hdr->bNoFear);
+
+				TableRow("Unknown1", "%d", hdr->Unknown1);
+				TableRow("Unknown3", "%d", hdr->Unknown3);
+				TableRow("Unknown Flag 4a", "%d", (int)hdr->Unknown4);
+				TableRow("Unknown Flag 4b", "%d", (int)hdr->Unknown4b);
+				TableRow("Unknown Flag 4c", "%d", (int)hdr->Unknown4c);
+				TableRow("Unknown Flag 4d", "%d", (int)hdr->Unknown4d);
+				TableRow("Unknown Flag 5", "%d", (int)hdr->bUnknown5);
+
+				// 6[0] = 0
+				// 6[1] = 1, 0 in feerott - hold buffs?
+				TableRow("Unknown Flag 6[0]", "%d", (int)hdr->bUnknowns6[0]);
+				TableRow("Unknown Flag 6[1]", "%d", (int)hdr->bUnknowns6[1]);
+				TableRow("Unknown Flag 8", "%d", (int)hdr->bUnknown8); // no flux?
+
+				// 9 = 0 // disabled at startup?
+				TableRow("Unknown Flag 9", "%d", (int)hdr->bUnknown9);
+
+#undef TableRow
+				ImGui::TreePop();
+			}
+
+
+			ImGui::EndTable();
+		}
+	}
+};
+static ZoneInspector* s_zoneInspector = nullptr;
+
+#pragma endregion
+
 #pragma region Macro Expression Evaluator
 
 class MacroExpressionEvaluator : public ImGuiWindowBase
@@ -3891,6 +4012,9 @@ static void DeveloperTools_Initialize()
 	s_switchInspector = new SwitchInspector();
 	DeveloperTools_RegisterMenuItem(s_switchInspector, "Switches", s_menuNameInspectors);
 
+	s_zoneInspector = new ZoneInspector();
+	DeveloperTools_RegisterMenuItem(s_zoneInspector, "Zone", s_menuNameInspectors);
+
 	s_stringInspector = new StringInspector();
 	DeveloperTools_RegisterMenuItem(s_stringInspector, "CXStr Metrics", s_menuNameInspectors);
 
@@ -3925,6 +4049,9 @@ static void DeveloperTools_Shutdown()
 
 	DeveloperTools_UnregisterMenuItem(s_switchInspector);
 	delete s_switchInspector; s_switchInspector = nullptr;
+
+	DeveloperTools_UnregisterMenuItem(s_zoneInspector);
+	delete s_zoneInspector; s_zoneInspector = nullptr;
 
 	DeveloperTools_UnregisterMenuItem(s_macroEvaluator);
 	delete s_macroEvaluator; s_macroEvaluator = nullptr;

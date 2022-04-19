@@ -296,9 +296,15 @@ DETOUR_TRAMPOLINE_DEF(int, memcheck0_tramp, (unsigned char* buffer, size_t count
 int memcheck0(unsigned char* buffer, size_t count);
 DETOUR_TRAMPOLINE_DEF(int, memcheck1_tramp, (unsigned char* buffer, size_t count, mckey key))
 int memcheck1(unsigned char* buffer, size_t count, mckey key);
+
+#if defined(__MemChecker2)
 DETOUR_TRAMPOLINE_DEF(int, memcheck2_tramp, (unsigned char* buffer, size_t count, mckey key))
 int memcheck2(unsigned char* buffer, size_t count, mckey key);
+#endif
+#if defined(__MemChecker3)
+int memcheck2(unsigned char* buffer, size_t count, mckey key);
 DETOUR_TRAMPOLINE_DEF(int, memcheck3_tramp, (unsigned char* buffer, size_t count, mckey key))
+#endif
 
 #if defined(__MemChecker4_x)
 DETOUR_TRAMPOLINE_DEF(int WINAPI, memcheck4_tramp, (unsigned char* buffer, size_t* count))
@@ -313,8 +319,12 @@ void HookMemChecker(bool Patch)
 	{
 		EzDetour(__MemChecker0, memcheck0, memcheck0_tramp);
 		EzDetour(__MemChecker1, memcheck1, memcheck1_tramp);
+#if defined(__MemChecker2_x)
 		EzDetour(__MemChecker2, memcheck2, memcheck2_tramp);
+#endif
+#if defined(__MemChecker3_x)
 		EzDetour(__MemChecker3, memcheck2, memcheck3_tramp);
+#endif
 #if defined(__MemChecker4_x)
 		EzDetour(__MemChecker4, memcheck4, memcheck4_tramp);
 #endif
@@ -328,8 +338,12 @@ void HookMemChecker(bool Patch)
 	{
 		RemoveDetour(__MemChecker0);
 		RemoveDetour(__MemChecker1);
+#if defined(__MemChecker2_x)
 		RemoveDetour(__MemChecker2);
+#endif
+#if defined(__MemChecker3_x)
 		RemoveDetour(__MemChecker3);
+#endif
 #if defined(__MemChecker4_x)
 		RemoveDetour(__MemChecker4);
 #endif
@@ -454,6 +468,7 @@ int memcheck1(unsigned char* buffer, size_t count, mckey key)
 	return ebx;
 }
 
+#if defined(__MemChecker2) || defined(__MemChecker3)
 int memcheck2(unsigned char* buffer, size_t count, mckey key)
 {
 	uintptr_t addr = reinterpret_cast<uintptr_t>(buffer);
@@ -490,9 +505,9 @@ int memcheck2(unsigned char* buffer, size_t count, mckey key)
 	eax = ~edx;
 	return eax;
 }
+#endif // defined(__MemChecker2) || defined(__MemChecker3)
 
 #if defined(__MemChecker4_x)
-
 int WINAPI memcheck4(unsigned char* buffer, size_t* count_)
 {
 	uintptr_t addr = reinterpret_cast<uintptr_t>(buffer);
@@ -524,7 +539,6 @@ int WINAPI memcheck4(unsigned char* buffer, size_t* count_)
 
 	return crc32;
 }
-
 #endif // defined(__MemChecker4_x)
 
 void TryInitializeLogin();
@@ -573,8 +587,12 @@ void InitializeDetours()
 	// hit the debugger if we don't hook this. take no chances
 	if (!__MemChecker0
 		|| !__MemChecker1
+#if defined(__MemChecker2_x)
 		|| !__MemChecker2
+#endif
+#if defined(__MemChecker3_x)
 		|| !__MemChecker3
+#endif
 #if defined(__MemChecker4_x)
 		|| !__MemChecker4
 #endif

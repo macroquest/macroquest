@@ -294,7 +294,6 @@ MQLIB_VAR fEQGetMelee           get_melee_range;
 MQLIB_VAR fEQW_GetDisplayWindow EQW_GetDisplayWindow;
 
 MQLIB_VAR bool ExecuteCmd(unsigned int command, bool keydown = false, void* data = nullptr);
-MQLIB_VAR bool IsResEffectSpell(int);
 MQLIB_VAR const char* szDmgBonusType[];
 MQLIB_VAR const char* szBodyType[];
 MQLIB_VAR const char* szAugRestrictions[];
