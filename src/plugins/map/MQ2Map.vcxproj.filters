@@ -36,4 +36,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <NASM Include="AssemblyFunctions64.asm">
+      <Filter>Source Files</Filter>
+    </NASM>
+  </ItemGroup>
 </Project>

@@ -132,11 +132,13 @@ void InitializeLoginDetours()
 	AddDetour(EQMain__LoginController__GiveTime, &LoginController_Hook::GiveTime_Detour, &LoginController_Hook::GiveTime_Trampoline, "GiveTime");
 	EzDetour(EQMain__WndProc, EQMain__WndProc_Detour, EQMain__WndProc_Trampoline);
 
-	if (EQMain__CXWndManager__GetCursorToDisplay)
+#if defined(EQMain__CXWndManager__GetCursorToDisplay_x)
+	if (EQMain__CXWndManager__GetCursorToDisplay && EQMain__CXWndManager__GetCursorToDisplay_x != 0)
 	{
 		EzDetour(EQMain__CXWndManager__GetCursorToDisplay, &CXWndManager_Hook::GetCursorToDisplay_Detour,
 			&CXWndManager_Hook::GetCursorToDisplay_Trampoline);
 	}
+#endif
 
 	gbDetoursInstalled = true;
 }
@@ -151,7 +153,9 @@ void RemoveLoginDetours()
 	uintptr_t detours[] = {
 		EQMain__LoginController__GiveTime,
 		EQMain__WndProc,
+#if defined(EQMain__CXWndManager__GetCursorToDisplay_x)
 		EQMain__CXWndManager__GetCursorToDisplay
+#endif // defined(EQMain__CXWndManager__GetCursorToDisplay_x)
 	};
 
 	for (uintptr_t detour : detours)

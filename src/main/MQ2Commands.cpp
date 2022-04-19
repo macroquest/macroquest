@@ -1563,7 +1563,7 @@ void Identify(SPAWNINFO* pChar, char* szLine)
 
 	if (pItemInfo->Type == ITEMTYPE_NORMAL)
 	{
-		if (pItemInfo->Magic)
+		if (pItemInfo->IsMagic())
 			strcat_s(szMsg, "MAGIC ");
 
 		uint8_t Light = pItemInfo->Light;
@@ -5342,27 +5342,16 @@ void RemoveLevCmd(SPAWNINFO* pChar, char* szLine)
 	if (!pcProfile)
 		return;
 
-	// Check long buffs
-	for (int i = 0; i < NUM_LONG_BUFFS; ++i)
+	// Check all buffs
+	for (int i = 0; i < MAX_TOTAL_BUFFS; ++i)
 	{
-		if (EQ_Spell* pBuff = GetSpellByID(pcProfile->Buff[i].SpellID))
+		int spellID = pcProfile->GetEffect(i).SpellID;
+
+		if (EQ_Spell* pBuff = GetSpellByID(spellID))
 		{
 			if (HasLevSPA(pBuff))
 			{
 				RemoveBuffByIndex(i);
-				WriteChatf("\arRemoving: \ap%s", pBuff->Name);
-			}
-		}
-	}
-
-	// Check short buffs
-	for (int i = 0; i < NUM_SHORT_BUFFS; ++i)
-	{
-		if (EQ_Spell* pBuff = GetSpellByID(pcProfile->ShortBuff[i].SpellID))
-		{
-			if (HasLevSPA(pBuff))
-			{
-				RemoveBuffByIndex(NUM_LONG_BUFFS + i);
 				WriteChatf("\arRemoving: \ap%s", pBuff->Name);
 			}
 		}

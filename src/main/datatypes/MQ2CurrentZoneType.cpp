@@ -23,7 +23,7 @@ enum class CurrentZoneMembers
 	ShortName,
 	Type,
 	Gravity,
-	SkyType,
+	SkyEnabled,
 	SafeY,
 	SafeX,
 	SafeZ,
@@ -46,7 +46,7 @@ MQ2CurrentZoneType::MQ2CurrentZoneType() : MQ2Type("currentzone")
 	ScopedTypeMember(CurrentZoneMembers, ShortName);
 	ScopedTypeMember(CurrentZoneMembers, Type);
 	ScopedTypeMember(CurrentZoneMembers, Gravity);
-	ScopedTypeMember(CurrentZoneMembers, SkyType);
+	ScopedTypeMember(CurrentZoneMembers, SkyEnabled);
 	ScopedTypeMember(CurrentZoneMembers, SafeY);
 	ScopedTypeMember(CurrentZoneMembers, SafeX);
 	ScopedTypeMember(CurrentZoneMembers, SafeZ);
@@ -115,8 +115,8 @@ bool MQ2CurrentZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		Dest.Type = pFloatType;
 		return true;
 
-	case CurrentZoneMembers::SkyType:
-		Dest.DWord = pCurrentZone->SkyType;
+	case CurrentZoneMembers::SkyEnabled:
+		Dest.DWord = pCurrentZone->SkyEnabled;
 		Dest.Type = pIntType;
 		return true;
 

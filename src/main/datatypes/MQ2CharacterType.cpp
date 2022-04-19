@@ -853,12 +853,10 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
-		for (const auto& buff : pProfile->Buff)
+		for (int i = 0; i < NUM_LONG_BUFFS; ++i)
 		{
-			if (buff.SpellID > 0)
-			{
+			if (pProfile->GetEffect(i).SpellID > 0)
 				Dest.DWord++;
-			}
 		}
 		return true;
 
@@ -866,12 +864,10 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
-		for (const auto& buff : pProfile->ShortBuff)
+		for (int i = 0; i < NUM_SHORT_BUFFS; ++i)
 		{
-			if (buff.SpellID > 0)
-			{
+			if (pProfile->GetTempEffect(i).SpellID > 0)
 				Dest.DWord++;
-			}
 		}
 		return true;
 
@@ -930,7 +926,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		if (IsNumber(Index))
 		{
 			int nBuff = GetIntFromString(Index, 0) - 1;
-			if (nBuff < 0 || nBuff > NUM_LONG_BUFFS || pProfile->Buff[nBuff].SpellID <= 0)
+			if (nBuff < 0 || nBuff > NUM_LONG_BUFFS || pProfile->GetEffect(nBuff).SpellID <= 0)
 				return false;
 
 			Dest.Int = nBuff;
@@ -957,7 +953,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		if (IsNumber(Index))
 		{
 			int nBuff = GetIntFromString(Index, 0) - 1;
-			if (nBuff < 0 || nBuff >= NUM_SHORT_BUFFS || pProfile->ShortBuff[nBuff].SpellID <= 0)
+			if (nBuff < 0 || nBuff >= NUM_SHORT_BUFFS || pProfile->GetTempEffect(nBuff).SpellID <= 0)
 				return false;
 
 			Dest.Int = nBuff + NUM_LONG_BUFFS;
@@ -1441,9 +1437,9 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.DWord = GetCharMaxBuffSlots();
 		Dest.Type = pIntType;
 
-		for (const auto& buff : pProfile->Buff)
+		for (int i = 0; i < NUM_LONG_BUFFS; ++i)
 		{
-			if (buff.SpellID > 0)
+			if (pProfile->GetEffect(i).SpellID > 0)
 				Dest.DWord--;
 		}
 		return true;
@@ -2984,7 +2980,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.DWord = 0;
 		Dest.Type = pInt64Type;
 
-		for (const auto& buff : pProfile->Buff)
+		for (const auto& buff : pProfile->Buffs)
 		{
 			if (SPELL* pSpell = GetSpellByID(buff.SpellID))
 			{

@@ -663,6 +663,7 @@ void ProcessMouseEvents_Detour()
 	gbFlushNextMouse = false;
 }
 
+#if defined(__HandleMouseWheel_x)
 // The mouse wheel hook prevents EQ from handling scroll events while imgui has the
 // mouse captured.
 DETOUR_TRAMPOLINE_DEF(void, HandleMouseWheel_Trampoline, (int))
@@ -683,6 +684,7 @@ void HandleMouseWheel_Detour(int offset)
 		HandleMouseWheel_Trampoline(offset);
 	}
 }
+#endif // defined(__HandleMouseWheel_x)
 
 // Keyboard hook prevents keyboard events from reaching EQ when imgui captures
 // the keyboard. Needed because ImGui uses win32 events but EQ uses direct input.
@@ -1242,8 +1244,10 @@ void InitializeMQ2Overlay()
 	// Intercept mouse events
 	EzDetour(__ProcessMouseEvents, ProcessMouseEvents_Detour, ProcessMouseEvents_Trampoline);
 
+#if defined(__HandleMouseWheel_x)
 	// Intercept mouse wheel events
 	EzDetour(__HandleMouseWheel, HandleMouseWheel_Detour, HandleMouseWheel_Trampoline);
+#endif
 
 	// Intercept keyboard events
 	EzDetour(__ProcessKeyboardEvents, ProcessKeyboardEvents_Detour, ProcessKeyboardEvents_Trampoline);
@@ -1295,7 +1299,9 @@ void ShutdownMQ2Overlay()
 	delete s_renderDebug; s_renderDebug = nullptr;
 
 	RemoveDetour(__ProcessMouseEvents);
+#if defined(__HandleMouseWheel_x)
 	RemoveDetour(__HandleMouseWheel);
+#endif
 	RemoveDetour(__ProcessKeyboardEvents);
 	RemoveDetour(__WndProc);
 	RemoveDetour(CParticleSystem__Render);

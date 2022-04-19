@@ -68,10 +68,8 @@ bool MQ2BuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return false;
 
 	EQ_Affect* buff = nullptr;
-	if (VarPtr.Int < NUM_LONG_BUFFS)
-		buff = &pPCProfile->Buff[VarPtr.Int];
-	else if (VarPtr.Int < NUM_LONG_BUFFS + NUM_SHORT_BUFFS)
-		buff = &pPCProfile->ShortBuff[VarPtr.Int - NUM_LONG_BUFFS];
+	if (VarPtr.Int < MAX_TOTAL_BUFFS)
+		buff = &pPCProfile->GetEffect(VarPtr.Int);
 
 	// this is how we tell if there is a buff in that slot
 	if (buff == nullptr || buff->SpellID <= 0)
@@ -239,10 +237,8 @@ bool MQ2BuffType::ToString(MQVarPtr VarPtr, char* Destination)
 		return false;
 
 	EQ_Affect* buff = nullptr;
-	if (VarPtr.Int < NUM_LONG_BUFFS)
-		buff = &pPCProfile->Buff[VarPtr.Int];
-	else if (VarPtr.Int < NUM_LONG_BUFFS + NUM_SHORT_BUFFS)
-		buff = &pPCProfile->ShortBuff[VarPtr.Int - NUM_LONG_BUFFS];
+	if (VarPtr.Int < MAX_TOTAL_BUFFS)
+		buff = &pPCProfile->GetEffect(VarPtr.Int);
 	if (!buff)
 		return false;
 

@@ -1646,7 +1646,7 @@ bool ItemMatchesSearch(MQItemSearch& SearchItem, ItemClient* pContents)
 	RequireFlag(Lore, pItem->Lore);
 	RequireFlag(NoRent, pItem->NoRent);
 	RequireFlag(NoDrop, pItem->IsDroppable);
-	RequireFlag(Magic, pItem->Magic);
+	RequireFlag(Magic, pItem->IsMagic());
 	RequireFlag(Pack, pItem->Type == ITEMTYPE_PACK);
 	RequireFlag(Book, pItem->Type == ITEMTYPE_BOOK);
 	RequireFlag(Combinable, pItem->ItemType == 17);

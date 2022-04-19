@@ -3582,12 +3582,7 @@ int64_t GetMySpellCounters(eEQSPA spellAffect)
 
 	int64_t count = 0;
 
-	for (const auto& buff : pProfile->Buff)
-	{
-		count += GetSpellCounters(spellAffect, buff);
-	}
-
-	for (const auto& buff : pProfile->ShortBuff)
+	for (const auto& buff : pProfile->Buffs)
 	{
 		count += GetSpellCounters(spellAffect, buff);
 	}
@@ -3632,12 +3627,7 @@ int64_t GetMyTotalSpellCounters()
 
 	int64_t total = 0;
 
-	for (const auto& buff : pProfile->Buff)
-	{
-		total += GetTotalSpellCounters(buff);
-	}
-
-	for (const auto& buff : pProfile->ShortBuff)
+	for (const auto& buff : pProfile->Buffs)
 	{
 		total += GetTotalSpellCounters(buff);
 	}
@@ -3984,22 +3974,14 @@ int GetSelfBuff(const std::function<bool(const EQ_Affect&)>& fPredicate, int min
 	if (!pProfile)
 		return -1;
 
-	if (minSlot <= 0)
+	if (minSlot < 0)
 		minSlot = 0;
-	if (maxSlot < 0)
-		maxSlot = NUM_LONG_BUFFS + NUM_SHORT_BUFFS;
+	if (maxSlot < 0 || maxSlot > MAX_TOTAL_BUFFS)
+		maxSlot = MAX_TOTAL_BUFFS;
 
-	for (int i = minSlot; i < std::min(NUM_LONG_BUFFS, maxSlot); ++i)
+	for (int i = minSlot; i < maxSlot; ++i)
 	{
-		EQ_Affect& buff = pProfile->Buff[i];
-
-		if (fPredicate(buff))
-			return i;
-	}
-
-	for (int i = std::max(minSlot, NUM_LONG_BUFFS); i < std::min(NUM_LONG_BUFFS + NUM_SHORT_BUFFS, maxSlot); ++i)
-	{
-		EQ_Affect& buff = pProfile->ShortBuff[i - NUM_LONG_BUFFS];
+		EQ_Affect& buff = pProfile->GetEffect(i);
 
 		if (fPredicate(buff))
 			return i;

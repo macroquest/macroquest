@@ -65,7 +65,6 @@ enum class ItemMembers
 	Range,
 	DMGBonus,
 	RecommendedLevel,
-	RecommendedSkill,
 	Delay,
 	Light,
 	Level,
@@ -239,7 +238,6 @@ MQ2ItemType::MQ2ItemType() : MQ2Type("item")
 	ScopedTypeMember(ItemMembers, Range);
 	ScopedTypeMember(ItemMembers, DMGBonus);
 	ScopedTypeMember(ItemMembers, RecommendedLevel);
-	ScopedTypeMember(ItemMembers, RecommendedSkill);
 	ScopedTypeMember(ItemMembers, Delay);
 	ScopedTypeMember(ItemMembers, Light);
 	ScopedTypeMember(ItemMembers, Level);
@@ -405,7 +403,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::Magic:
-		Dest.Set(((GetItemFromContents(pItem)->Type == ITEMTYPE_NORMAL) && (GetItemFromContents(pItem)->Magic)));
+		Dest.Set(((pItem->GetType() == ITEMTYPE_NORMAL) && (pItem->GetItemDefinition()->IsMagic())));
 		Dest.Type = pBoolType;
 		return true;
 
