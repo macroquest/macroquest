@@ -1,3 +1,10 @@
+April 20, 2022:
+- Updated for live patch.
+- plugins: PcProfile.Buff and PcProfile.ShortBuff have been deprecated and replaced with
+  accessor functions GetEffect and GetTempEffect, respectively. Deprecation warnings have
+  been added for this change. For accessing all buffs, both short and long, GetEffect can
+  be used with MAX_TOTAL_BUFFS as the upper bound.
+
 April 13, 2022:
 - Fix Group.Members: Empty group will now report 0 instead of nil/NULL (#481).
 - Fix Math.Rand: Replace with new number generator. There are no longer any limits on the
