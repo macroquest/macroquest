@@ -215,6 +215,10 @@ if (-Not ($vcpkgList -Like "No packages are installed*") -Or $vcpkgList.Count -g
 # If we did a bootstrap and we already had installed packages
 if ($performBootstrap -And $vcpkgTable.Count -ne 0) {
     & ./vcpkg.exe upgrade --no-dry-run
+    if ($LASTEXITCODE -ne 0) {
+        # if the upgrade failed, the bootstrap file should show accodingly
+        "Upgrade Error" | Out-File "./$vcpkg_last_bootstrap_file" -NoNewline
+    }
 }
 
 $vcpkgInstallTable = @{}
