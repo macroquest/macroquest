@@ -2,6 +2,7 @@ April 20, 2022:
 - Updated for live patch.
 - Fix netstat/hud display
 - Fix /makemevisible
+- Fix issue with Me.CombatAbility (and maybe others) not returning the correct values.
 - plugins: PcProfile.Buff and PcProfile.ShortBuff have been deprecated and replaced with
   accessor functions GetEffect and GetTempEffect, respectively. Deprecation warnings have
   been added for this change. For accessing all buffs, both short and long, GetEffect can
