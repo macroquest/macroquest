@@ -1,5 +1,7 @@
 April 20, 2022:
 - Updated for live patch.
+- Fix netstat/hud displaya
+- Fix /makemevisible
 - plugins: PcProfile.Buff and PcProfile.ShortBuff have been deprecated and replaced with
   accessor functions GetEffect and GetTempEffect, respectively. Deprecation warnings have
   been added for this change. For accessing all buffs, both short and long, GetEffect can
