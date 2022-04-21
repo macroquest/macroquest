@@ -1,0 +1,19 @@
+name: Build MacroQuest Release
+
+on:
+  push:
+    tags:
+      - rel-*
+
+jobs:
+  build:
+    runs-on: [self-hosted, Windows, X64]
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: '10'
+          submodules: 'recursive'
+      - name: Run build script
+        shell: pwsh
+        run: /Development/build_next.ps1
