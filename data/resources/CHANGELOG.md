@@ -1,3 +1,7 @@
+April 25, 2022:
+- Updated for live hotfix patch.
+- Fix potential issue with pcnames.
+
 April 20, 2022:
 - Updated for live patch.
 - Fix netstat/hud display
