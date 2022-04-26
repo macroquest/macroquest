@@ -670,8 +670,17 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		for (int nBuff = 0; nBuff < MAX_TOTAL_BUFFS; nBuff++)
 		{
 			auto pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
+
+			// Spell does NOT stack (will NOT land)
 			if (pBuffSpell && !WillStackWith(pSpell, pBuffSpell))
 			{
+				// Exit with default value
+				return true;
+			}
+			// Invalid Spell, Empty Slot?
+			else if (!pBuffSpell)
+			{
+				// Exit with first empty slot value
 				Dest.Set(nBuff + 1);
 				return true;
 			}
