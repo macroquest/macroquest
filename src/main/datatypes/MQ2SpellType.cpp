@@ -674,10 +674,10 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			// Spell does NOT stack (will NOT land)
 			if (pBuffSpell && !WillStackWith(pSpell, pBuffSpell))
 			{
-				// Exit with default value
+				// Exit with default value (0 Will NOT Land)
 				return true;
 			}
-			// Invalid Spell, Empty Slot?
+			// Invalid Spell, Empty Slot
 			else if (!pBuffSpell)
 			{
 				// Exit with first empty slot value
