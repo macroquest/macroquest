@@ -14,7 +14,7 @@ The recommended way to build MacroQuest is from a source code checkout using Git
 
 ### Check out the latest source code
 
-Create the checkout. This will create the subfolder **macroquest** that containes a copy of the project.
+Create the checkout. This will create the subfolder **macroquest** that contains a copy of the project.
 
 ```
 git clone git@github.com:macroquest/macroquest.git
@@ -29,8 +29,6 @@ Update the submodules to the correct version. Ensure you are in the newly create
 ```
 git submodule update
 ```
-
-Run `MQ2Auth.exe` to generate the authorization file for your computer. Personal builds of MacroQuest are machine-locked, and can only be run on the machine the built it.
 
 ### Updating an existing checkout
 
@@ -94,8 +92,6 @@ src         | The source code for MacroQuest and its core plugins.
 tools       | Source code and additional tools that are used for MacroQuest development, but not part of the main project.
 
 ### Additional files of interest
-
-**MQ2Auth.exe** Generates MQ2Auth.h, run this first before building the solution
 
 **plugins/mkplugin.exe** Generates a new plugin from the template. Use this when creating a new plugin, or when converting an existing plugin from legacy MacroQuest.
 

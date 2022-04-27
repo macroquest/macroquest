@@ -62,9 +62,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MQ2Auth.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MQ2AutoInventory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -1,0 +1,7 @@
+crashpad-backtrace
+spdlog
+wil
+date
+curl[schannel]
+cpr
+pe-parse
