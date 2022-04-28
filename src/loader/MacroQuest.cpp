@@ -855,12 +855,12 @@ void HandleCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 		ShellExecute(hWnd, "open", "https://docs.macroquest.org", nullptr, lpModulePath, SW_SHOW);
 		break;
 
-	case ID_MQSITES_GITLAB:
-		ShellExecute(hWnd, "open", "https://gitlab.com/macroquest/next/mqnext", nullptr, lpModulePath, SW_SHOW);
+	case ID_MQSITES_GITHUB:
+		ShellExecute(hWnd, "open", "https://github.com/macroquest/macroquest", nullptr, lpModulePath, SW_SHOW);
 		break;
 
 	case ID_MQSITES_ISSUETRACKER:
-		ShellExecute(hWnd, "open", "https://gitlab.com/macroquest/next/mqnext/-/issues", nullptr, lpModulePath, SW_SHOW);
+		ShellExecute(hWnd, "open", "https://github.com/macroquest/macroquest/issues", nullptr, lpModulePath, SW_SHOW);
 		break;
 
 	case ID_MENU_CHANGELOG: {
