@@ -73,7 +73,7 @@ bool InitializeCrashpad()
 	// Crashpad has the ability to support crashes both in-process and out-of-process.
 	// The out-of-process handler is significantly more robust than traditional in-process
 	// crash handlers. This path may be relative.
-	std::string handlerPath(internal_paths::MQRoot + "\\mq_crash_handler.exe");
+	std::string handlerPath(internal_paths::MQRoot + "\\crashpad_handler.exe");
 
 	// This should point to your server dump submission port (labeled as "http/writer"
 	// in the listener configuration pane. Preferrably, the SSL enabled port should
