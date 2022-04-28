@@ -68,7 +68,7 @@
 #define ID_MENU_MQ2AUTOLOGIN            40032
 #define ID_MENU_EQBCS                   40033
 #define ID_MQSITES_ISSUETRACKER         40034
-#define ID_MQSITES_GITLAB               40035
+#define ID_MQSITES_GITHUB               40035
 #define ID_MENU_CHECKFORUPDATES         40050
 #define ID_MENU_CHECKAPPCOMPAT          40060
 
