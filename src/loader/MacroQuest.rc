@@ -115,7 +115,7 @@ BEGIN
         END
         POPUP "&MQ Sites"
         BEGIN
-            MENUITEM "GitLab",                      ID_MQSITES_GITLAB
+            MENUITEM "GitHub",                      ID_MQSITES_GITHUB
             MENUITEM "Issue Tracker",               ID_MQSITES_ISSUETRACKER
             MENUITEM SEPARATOR
             MENUITEM "&Website",                    ID_MENU_WEBSITE
