@@ -1,7 +1,7 @@
 # MacroQuest
 ---
 
-MacroQuest is an open source scripting and plugin platform for EverQuest.
+MacroQuest is an open source scripting and plugin platform for EverQuest.  Documentation can be found at [docs.macroquest.org](https://docs.macroquest.org).
 
 ## How To Build
 
@@ -84,7 +84,6 @@ Folder Name | Purpose
 build       | Build artifacts. This is where you can find the output when you compile MacroQuest and your plugins.
 contrib     | Third-Party source code.
 data        | Additional non-source code files used by MacroQuest.
-docs        | Documentation
 extras      | Optional files that aren't required but may be useful. This includes sources for plugins that are no longer maintained.
 include     | Public header files that are used for building MacroQuest and plugins.
 plugins     | This folder is reserved for you to add your own personal plugins.
