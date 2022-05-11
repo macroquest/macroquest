@@ -1,3 +1,7 @@
+May 5, 2022:
+- /exec no longer requires the fg or bg parameter.  The syntax has been updated and
+  the functionality corrected to match what the previous syntax showed.
+
 April 25, 2022:
 - Updated for live hotfix patch.
 - Fix potential issue with pcnames.

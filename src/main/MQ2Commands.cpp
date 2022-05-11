@@ -3388,39 +3388,65 @@ void Exec(SPAWNINFO* pChar, char* szLine)
 	char szTemp1[MAX_STRING] = { 0 };
 	GetArg(szTemp1, szLine, 1);
 
-	char szTemp2[MAX_STRING] = { 0 };
-	GetArg(szTemp2, szLine, 2);
+	bool ShowHelp = false;
 
-	char szTemp3[MAX_STRING] = { 0 };
-	GetArg(szTemp3, szLine, 3);
-
-	if (szTemp1[0] != 0 && szTemp2[0] != 0)
+	if (szTemp1[0] != '\0')
 	{
-		WriteChatf("Opening %s %s %s", szTemp1, szTemp2, szTemp3);
+		bool Foreground = true;
 
-		char exepath[MAX_STRING] = { 0 };
-		GetPrivateProfileString("Application Paths", szTemp1, szTemp1, exepath, MAX_STRING, mq::internal_paths::MQini);
+		char szTemp2[MAX_STRING] = { 0 };
+		GetArg(szTemp2, szLine, 2);
 
-		if (!strcmp(szTemp2, "bg"))
+		if (szTemp2[0] != '\0')
 		{
-			ShellExecute(nullptr, "open", exepath, nullptr, nullptr, SW_SHOWMINNOACTIVE);
+			if (ci_equals(szTemp2, "bg"))
+			{
+				Foreground = false;
+				szTemp2[0] = '\0';
+			}
+			// fg kept for legacy code
+			else if (ci_equals(szTemp2, "fg"))
+			{
+				szTemp2[0] = '\0';
+			}
+			else
+			{
+				char szTemp3[MAX_STRING] = { 0 };
+				GetArg(szTemp3, szLine, 3);
+
+				if (szTemp3[0] != '\0')
+				{
+					if (ci_equals(szTemp3, "bg"))
+					{
+						Foreground = false;
+					}
+					// fg kept for legacy code, but if it's NOT fg or bg in the 3rd parameter something is wrong.
+					else if (!ci_equals(szTemp3, "fg"))
+					{
+						ShowHelp = true;
+					}
+				}
+			}
 		}
-		else if (!strcmp(szTemp2, "fg"))
+
+		if (!ShowHelp)
 		{
-			ShellExecute(nullptr, "open", exepath, nullptr, nullptr, SW_SHOWNOACTIVATE);
-		}
-		else if (!strcmp(szTemp3, "bg"))
-		{
-			ShellExecute(nullptr, "open", exepath, szTemp2, nullptr, SW_SHOWMINNOACTIVE);
-		}
-		else if (!strcmp(szTemp3, "fg"))
-		{
-			ShellExecute(nullptr, "open", exepath, szTemp2, nullptr, SW_SHOWNOACTIVATE);
+			char exepath[MAX_STRING] = { 0 };
+			GetPrivateProfileString("Application Paths", szTemp1, szTemp1, exepath, MAX_STRING, mq::internal_paths::MQini);
+
+			WriteChatf("Opening %s %s in the %s", szTemp1, szTemp2, Foreground ? "foreground" : "background");
+
+			ShellExecute(nullptr, "open", exepath, szTemp2[0] != '\0' ? szTemp2 : nullptr, nullptr, Foreground ? SW_SHOWNOACTIVATE : SW_SHOWMINNOACTIVE);
 		}
 	}
 	else
 	{
-		WriteChatColor("/exec [application \"parameters\"] [fg | bg]", USERCOLOR_DEFAULT);
+		ShowHelp = true;
+	}
+
+	if (ShowHelp)
+	{
+		SyntaxError("Usage: /exec application [\"parameters\" | bg] [bg]");
 	}
 }
 
