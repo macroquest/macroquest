@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "../EQLib/EQLib.h"
+#include "../eqlib/EQLib.h"
 #include "MQ2Internal.h"
 
 #include <memory>
@@ -25,7 +25,7 @@ struct CaseInsensitiveLess
 	bool operator()(const std::string& lhs, const std::string& rhs) const noexcept
 	{
 		return (::_stricmp(lhs.c_str(), rhs.c_str()) < 0);
-	};
+	}
 };
 
 struct IDirect3DDevice9;
@@ -118,13 +118,12 @@ namespace internal_paths
 {
 	extern std::string MQRoot;
 	extern std::string Config;
-	extern std::string MQini;         // Config/MacroQuest.ini
+	extern std::string MQini;
 	extern std::string Macros;
 	extern std::string Logs;
 	extern std::string CrashDumps;
 	extern std::string Plugins;
 	extern std::string Resources;
-	extern std::string MQconfig;      // /MacroQuestConfig.ini
 	extern std::string EverQuest;
 }; // namespace internal_paths
 MQLIB_VAR char gPathMQRoot[MAX_PATH];
