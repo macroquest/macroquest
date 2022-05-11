@@ -60,7 +60,14 @@
   <ImportGroup Label="PropertySheets">
     <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), src\Common.props))\src\Common.props" Condition=" '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), src\Common.props))' != '' " />
   </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Label="UserMacros">
+    <LoaderAdditionalDeps Condition="'$(Configuration)|$(Platform)'=='Debug|Win32' And Exists('$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\debug\lib\libcrypto.lib')">libcrypto.lib;libssl.lib;</LoaderAdditionalDeps>
+    <LoaderAdditionalDeps Condition="'$(Configuration)|$(Platform)'=='Release|Win32' And Exists('$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\lib\libcrypto.lib')">libcrypto.lib;libssl.lib;</LoaderAdditionalDeps>
+    <LoaderAdditionalDeps Condition="'$(Configuration)|$(Platform)'=='Debug|x64' And Exists('$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\debug\lib\libcrypto.lib')">libcrypto.lib;libssl.lib;</LoaderAdditionalDeps>
+    <LoaderAdditionalDeps Condition="'$(Configuration)|$(Platform)'=='Release|x64' And Exists('$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\lib\libcrypto.lib')">libcrypto.lib;libssl.lib;</LoaderAdditionalDeps>
+    <LoaderDependenciesDebug>$(LoaderAdditionalDeps)pe-parse.lib;base.lib;client.lib;util.lib;libcurl-d.lib;cpr.lib;zlibd.lib;Ws2_32.lib;Wldap32.lib;version.lib;fmtd.lib</LoaderDependenciesDebug>
+    <LoaderDependenciesRelease>$(LoaderAdditionalDeps)pe-parse.lib;base.lib;client.lib;util.lib;libcurl.lib;cpr.lib;zlib.lib;Ws2_32.lib;Wldap32.lib;version.lib;fmt.lib</LoaderDependenciesRelease>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
@@ -73,7 +80,7 @@
     <Link />
     <Manifest />
     <Link>
-      <AdditionalDependencies>pe-parse.lib;base.lib;client.lib;util.lib;libcurl-d.lib;cpr.lib;zlibd.lib;Ws2_32.lib;Wldap32.lib;version.lib;fmtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(LoaderDependenciesDebug);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -85,7 +92,7 @@
     <Link />
     <Manifest />
     <Link>
-      <AdditionalDependencies>pe-parse.lib;base.lib;client.lib;util.lib;libcurl-d.lib;cpr.lib;zlibd.lib;Ws2_32.lib;Wldap32.lib;version.lib;fmtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(LoaderDependenciesDebug);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -100,7 +107,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>pe-parse.lib;base.lib;client.lib;util.lib;libcurl.lib;cpr.lib;zlib.lib;Ws2_32.lib;Wldap32.lib;version.lib;fmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(LoaderDependenciesRelease);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest />
   </ItemDefinitionGroup>
@@ -116,7 +123,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>pe-parse.lib;base.lib;client.lib;util.lib;libcurl.lib;cpr.lib;zlib.lib;Ws2_32.lib;Wldap32.lib;version.lib;fmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(LoaderDependenciesRelease);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest />
   </ItemDefinitionGroup>
