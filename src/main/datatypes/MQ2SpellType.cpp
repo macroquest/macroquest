@@ -633,7 +633,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		if (!pPetInfoWnd || !pLocalPlayer)
 			return false;
 
-		for (int nBuff = 0; nBuff < MAX_TOTAL_BUFFS; nBuff++)
+		for (int nBuff = 0; nBuff < pPetInfoWnd->GetMaxBuffs(); nBuff++)
 		{
 			auto pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
 			if (!pBuffSpell)
@@ -667,7 +667,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.Set(0);
 		Dest.Type = pIntType;
 
-		for (int nBuff = 0; nBuff < MAX_TOTAL_BUFFS; nBuff++)
+		for (int nBuff = 0; nBuff < pPetInfoWnd->GetMaxBuffs(); nBuff++)
 		{
 			auto pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
 
