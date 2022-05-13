@@ -687,7 +687,7 @@ void PluginsSetGameState(DWORD GameState)
 			CharSelect = false;
 			char szBuffer[MAX_STRING] = { 0 };
 
-			DebugSpew("PluginsSetGameState(%s server)", EQADDR_SERVERNAME);
+			DebugSpew("PluginsSetGameState(%s server)", GetServerShortName());
 
 			LoadCfgFile("InGame", false);
 
@@ -695,7 +695,7 @@ void PluginsSetGameState(DWORD GameState)
 			{
 				DebugSpew("PluginsSetGameState(%s name)", pLocalPC->Name);
 
-				sprintf_s(szBuffer, "%s_%s", EQADDR_SERVERNAME, pLocalPC->Name);
+				sprintf_s(szBuffer, "%s_%s", GetServerShortName(), pLocalPC->Name);
 				LoadCfgFile(szBuffer, false);
 			}
 

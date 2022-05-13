@@ -1240,10 +1240,8 @@ static void AutoBankPulse()
 	{
 		if (pMerchantWnd && pMerchantWnd->IsVisible())
 		{
-			if (EverQuestinfo__IsItemPending) {
-				DWORD wecantsell = *(DWORD*)EverQuestinfo__IsItemPending;
-				if (wecantsell)
-					return;
+			if (pEverQuestInfo->ItemPending > 0) {
+				return;
 			}
 
 			uint64_t now = GetTickCount64();

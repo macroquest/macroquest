@@ -105,8 +105,9 @@ bool MQ2CurrentZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		Dest.Type = pStringType;
 		return true;
 
+	case CurrentZoneMembers::ZoneType:
 	case CurrentZoneMembers::Type:
-		Dest.DWord = pCurrentZone->OutDoor;
+		Dest.DWord = pCurrentZone->ZoneType;
 		Dest.Type = pIntType;
 		return true;
 
@@ -130,24 +131,19 @@ bool MQ2CurrentZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		Dest.Type = pFloatType;
 		return true;
 
-	case CurrentZoneMembers::ZoneType:
-		Dest.DWord = (*EQADDR_ZONETYPE);
-		Dest.Type = pIntType;
-		return true;
-
 	case CurrentZoneMembers::Dungeon:
 	case CurrentZoneMembers::Indoor:
-		Dest.Set(indoor);
+		Dest.Set(pZoneInfo->IsIndoor());
 		Dest.Type = pBoolType;
 		return true;
 
 	case CurrentZoneMembers::Outdoor:
-		Dest.Set(outdoor);
+		Dest.Set(pZoneInfo->IsOutdoor());
 		Dest.Type = pBoolType;
 		return true;
 
 	case CurrentZoneMembers::NoBind:
-		Dest.Set(!bindable);
+		Dest.Set(!pZoneInfo->IsBindable());
 		Dest.Type = pBoolType;
 		return true;
 

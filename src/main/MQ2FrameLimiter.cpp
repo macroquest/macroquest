@@ -979,7 +979,7 @@ public:
 		{
 			m_saveByChar = GetPrivateProfileBool("FrameLimiter", "SaveByChar", false, mq::internal_paths::MQini);
 			if (pLocalPC)
-				m_characterIni = fmt::format("{}\\{}_{}.ini", gPathConfig, EQADDR_SERVERNAME, pLocalPC->Name);
+				m_characterIni = fmt::format("{}\\{}_{}.ini", gPathConfig, GetServerShortName(), pLocalPC->Name);
 			else // shouldn't happen
 				m_characterIni.clear();
 

@@ -170,10 +170,12 @@ HRESULT CALLBACK DInputStateDetour(IDirectInputDevice8A* This, DWORD cbData, voi
 
 	if ((cbData == sizeof(DIMOUSESTATE)) || (cbData == sizeof(DIMOUSESTATE2)))
 	{
-		if (IsMouseWaitingForButton() && (EQADDR_MOUSECLICK))
+		LPDIMOUSESTATE data = (LPDIMOUSESTATE)lpvData;
+
+		if (IsMouseWaitingForButton())
 		{
-			((LPDIMOUSESTATE)lpvData)->rgbButtons[0] = EQADDR_MOUSECLICK->Click[0];
-			((LPDIMOUSESTATE)lpvData)->rgbButtons[1] = EQADDR_MOUSECLICK->Click[1];
+			data->rgbButtons[0] = pEverQuestInfo->MouseButtons[0];
+			data->rgbButtons[1] = pEverQuestInfo->MouseButtons[1];
 		}
 	}
 

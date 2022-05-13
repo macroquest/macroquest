@@ -129,10 +129,15 @@ bool MQ2SkillType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		case SkillMembers::Auto: { // return a bool representing if a skill has /autoskill on or off.
 			Dest.Set(false);
 			Dest.Type = pBoolType;
+
 			int id = GetSkillIDFromName(pStringTable->getString(pSkill->nName));
-			if (gAutoSkill.Skill[0] == id || gAutoSkill.Skill[1] == id)
+			for (int i = 0; i < CONCURRENT_SKILLS; ++i)
 			{
-				Dest.Set(true);
+				if (pEverQuestInfo->AutoSkills[i] == id)
+				{
+					Dest.Set(true);
+					return true;
+				}
 			}
 			return true;
 		}

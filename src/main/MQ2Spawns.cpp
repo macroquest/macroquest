@@ -541,9 +541,9 @@ bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
 		break;
 
 	case PC:
-		if (!gPCNames && pSpawn != pTarget)
+		if (!pEverQuestInfo->gOpt.pcNames && pSpawn != pTarget)
 			return false;
-		if (SetCaption(pSpawn, gszSpawnPlayerName[IsAnonymized() ? 1 : gShowNames]))
+		if (SetCaption(pSpawn, gszSpawnPlayerName[IsAnonymized() ? 1 : pEverQuestInfo->iShowNamesLevel]))
 			return true;
 		break;
 

@@ -581,7 +581,8 @@ public:
 	{
 		if (auto pCharList = GetChildWindow<CListWnd>(m_currentWindow, "Character_List"))
 		{
-			if (EQADDR_SERVERNAME[0] == '\0' || !m_record || (!m_record->serverName.empty() && !ci_equals(EQADDR_SERVERNAME, m_record->serverName)))
+			if (GetServerShortName()[0] == 0 || !m_record
+				|| (!m_record->serverName.empty() && !ci_equals(GetServerShortName(), m_record->serverName)))
 			{
 				// wrong server, need to quit character select to get to the server select window
 				if (pCharacterListWnd)

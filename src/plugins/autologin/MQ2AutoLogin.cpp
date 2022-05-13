@@ -102,7 +102,9 @@ void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
 		server_names.insert(server_names.end(), custom_server_names.cbegin(), custom_server_names.cend());
 		WriteChatColor(join(server_names, ", ").c_str());
 	}
-	else if (GetGameState() == GAMESTATE_INGAME && pChar && ci_equals(EQADDR_SERVERNAME, szServer) && ci_equals(pChar->DisplayedName, szCharacter))
+	else if (GetGameState() == GAMESTATE_INGAME && pChar
+		&& ci_equals(GetServerShortName(), szServer)
+		&& ci_equals(pChar->DisplayedName, szCharacter))
 	{
 		WriteChatf("\ayYou're already logged into '%s' on '%s'\ax", szCharacter, szServer);
 	}
@@ -130,7 +132,7 @@ void Cmd_SwitchCharacter(SPAWNINFO* pChar, char* szLine)
 	}
 	else
 	{
-		PerformSwitch(EQADDR_SERVERNAME, szArg1);
+		PerformSwitch(GetServerShortName(), szArg1);
 		WriteChatf("Switch to \ag%s\ax is now active and will commence at character select.", szArg1);
 	}
 }
@@ -169,11 +171,12 @@ void Cmd_Relog(SPAWNINFO* pChar, char* szLine)
 	if (ReenableTime)
 		ReenableTime += 30000; // add 30 seconds for camp time
 
-	if (GetGameState() == GAMESTATE_INGAME && pLocalPlayer && EQADDR_SERVERNAME[0] != '\0')
+	if (GetGameState() == GAMESTATE_INGAME && pLocalPlayer && GetServerShortName()[0] != 0)
 	{
-		PerformSwitch(EQADDR_SERVERNAME, pLocalPlayer->DisplayedName);
+		PerformSwitch(GetServerShortName(), pLocalPlayer->DisplayedName);
 		// TODO:  After std::chrono change, update this to actual time.  It will currently show whatever multiple arguments the user typed in.
-		WriteChatf("Relog into \ag%s\ax on server \ag%s\ax will activate after %s.", pLocalPlayer->DisplayedName, EQADDR_SERVERNAME, szLine);
+		WriteChatf("Relog into \ag%s\ax on server \ag%s\ax will activate after %s.",
+			pLocalPlayer->DisplayedName, GetServerShortName(), szLine);
 	}
 	else
 	{

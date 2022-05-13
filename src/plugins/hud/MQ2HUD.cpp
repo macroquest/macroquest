@@ -447,7 +447,7 @@ PLUGIN_API void ShutdownPlugin()
 PLUGIN_API void SetGameState(DWORD GameState)
 {
 	if (GameState == GAMESTATE_INGAME)
-		sprintf_s(HUDSection, "%s_%s", GetCharInfo()->Name, EQADDR_SERVERNAME);
+		sprintf_s(HUDSection, "%s_%s", pLocalPC->Name, GetServerShortName());
 	else
 		strcpy_s(HUDSection, "MQ2HUD");
 	GetPrivateProfileString(HUDSection, "Last", "Elements", HUDNames, MAX_STRING, INIFileName);

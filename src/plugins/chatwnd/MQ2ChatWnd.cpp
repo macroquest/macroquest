@@ -606,14 +606,13 @@ PLUGIN_API void SetGameState(int GameState)
 	{
 		if (bSaveByChar && pLocalPlayer != nullptr)
 		{
-			std::string strChatINISection = EQADDR_SERVERNAME;
-			strChatINISection += ".";
-			strChatINISection += pLocalPlayer->Name;
+			std::string strChatINISection = fmt::format("{}.{}", GetServerShortName(), pLocalPlayer->Name);
+
 			// Only need to do anything at all if things have changed
-			if(!string_equals(szChatINISection, strChatINISection))
+			if (!string_equals(szChatINISection, strChatINISection))
 			{
 				// Destroy the window which will save the settings under the old character
-				if(MQChatWnd != nullptr)
+				if (MQChatWnd != nullptr)
 				{
 					DestroyChatWnd();
 				}

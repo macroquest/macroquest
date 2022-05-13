@@ -106,7 +106,7 @@ static bool DoNextCommand(MQMacroBlockPtr pBlock)
 		}
 	}
 
-	if (!gDelay && pBlock && !pBlock->Paused && (!gMQPauseOnChat || *EQADDR_NOTINCHATMODE) && gMacroStack)
+	if (!gDelay && pBlock && !pBlock->Paused && (!gMQPauseOnChat || pEverQuestInfo->KeyboardMode) && gMacroStack)
 	{
 		const MQMacroLine& ml = pBlock->Line.at(pBlock->CurrIndex);
 
@@ -412,7 +412,7 @@ static void Pulse()
 		SetSwitchTarget(nullptr);
 
 		// see if we're on a pvp server
-		if (!_strnicmp(EQADDR_SERVERNAME, "zek", 3))
+		if (!_strnicmp(GetServerShortName(), "zek", 3))
 		{
 			PVPServer = PVP_RALLOS;
 		}
@@ -463,7 +463,7 @@ static void Pulse()
 		szAutoRun[0] = 0;
 		pAutoRun = szAutoRun;
 		char szServerAndName[128] = { 0 };
-		sprintf_s(szServerAndName, "%s.%s", EQADDR_SERVERNAME, pLocalPC->Name);
+		sprintf_s(szServerAndName, "%s.%s", GetServerShortName(), pLocalPC->Name);
 		GetPrivateProfileString("AutoRun", szServerAndName, "", szAutoRun, MAX_STRING, mq::internal_paths::MQini);
 		while (pAutoRun[0] == ' ' || pAutoRun[0] == '\t') pAutoRun++;
 		if (szAutoRun[0] != 0)

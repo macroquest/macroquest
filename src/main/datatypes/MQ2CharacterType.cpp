@@ -1378,7 +1378,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::Combat:
-		Dest.Set(*EQADDR_ATTACK != 0);
+		Dest.Set(pEverQuestInfo->bAutoAttack);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -2053,7 +2053,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::RangedReady:
-		Dest.Set(gbRangedAttackReady != 0);
+		Dest.Set(pEverQuestInfo->PrimaryAttackReady != 0);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -2496,7 +2496,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::Running:
-		Dest.Set(*EQADDR_RUNWALKSTATE != 0);
+		Dest.Set(pEverQuestInfo->RunMode != 0);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -2530,7 +2530,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::AutoFire:
-		Dest.Set(gAutoFire != 0);
+		Dest.Set(pEverQuestInfo->bAutoRangeAttack != 0);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -3723,10 +3723,10 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			int index = GetIntFromString(Index, 0) - 1;
 			if (index < 0)
 				index = 0;
-			if (index > 1)
-				index = 1;
+			if (index >= CONCURRENT_SKILLS)
+				index = CONCURRENT_SKILLS - 1;
 
-			int skillid = gAutoSkill.Skill[index];
+			int skillid = pEverQuestInfo->AutoSkills[index];
 			if (skillid > 0 && skillid < NUM_SKILLS)
 			{
 				Dest.Ptr = &pSkillMgr->pSkill[skillid];
@@ -3864,15 +3864,8 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				return true;
 		}
 
-		// TODO: Check that these are correct. Then update or remove this comment.
-		switch (pZoneInfo->OutDoor)
-		{
-		case IndoorDungeon:
-		case IndoorCity:
-		case DungeonCity:
+		if (pZoneInfo->IsIndoor())
 			return true;
-		default: break;
-		}
 
 		if (pWorldData->IsFlagSet(pLocalPlayer->GetZoneID(), EQZoneFlag_NoMount))
 			return true;

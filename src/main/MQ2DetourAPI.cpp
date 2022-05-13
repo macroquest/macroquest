@@ -240,10 +240,10 @@ class CDisplay_Detours
 public:
 	void ZoneMainUI_Detour()
 	{
-		if (GetServerIDFromServerName(EQADDR_SERVERNAME) == ServerID::Invalid)
+		if (GetServerIDFromServerName(GetServerShortName()) == ServerID::Invalid)
 		{
 			// unload
-			WriteChatf("MQ2 does not function on this server: %s -- UNLOADING", EQADDR_SERVERNAME);
+			WriteChatf("MQ2 does not function on this server: %s -- UNLOADING", GetServerShortName());
 			EzCommand("/unload");
 		}
 
