@@ -342,6 +342,9 @@ enum class CharacterMembers
 	MaxAirSupply,
 	PctAirSupply,
 	NumBagSlots,
+	Inviter,
+	Invited,
+	IsBerserk,
 };
 
 enum class CharacterMethods
@@ -674,6 +677,9 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, MaxAirSupply);
 	ScopedTypeMember(CharacterMembers, PctAirSupply);
 	ScopedTypeMember(CharacterMembers, NumBagSlots);
+	ScopedTypeMember(CharacterMembers, Inviter);
+	ScopedTypeMember(CharacterMembers, Invited);
+	ScopedTypeMember(CharacterMembers, IsBerserk);
 
 	ScopedTypeMethod(CharacterMethods, Stand);
 	ScopedTypeMethod(CharacterMethods, Sit);
@@ -3973,6 +3979,22 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	case CharacterMembers::NumBagSlots:
 		Dest.Type = pIntType;
 		Dest.Set<int>(GetHighestAvailableBagSlot() - InvSlot_FirstBagSlot + 1);
+		return true;
+
+	case CharacterMembers::Inviter:
+		strcpy_s(DataTypeTemp, pEverQuestInfo->Inviter);
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
+
+	case CharacterMembers::Invited:
+		Dest.Set(pLocalPlayer->InvitedToGroup);
+		Dest.Type = pBoolType;
+		return true;
+
+	case CharacterMembers::IsBerserk:
+		Dest.DWord = pLocalPlayer->berserker;
+		Dest.Type = pIntType;
 		return true;
 
 	default:

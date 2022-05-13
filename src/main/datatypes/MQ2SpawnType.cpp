@@ -90,7 +90,6 @@ enum class SpawnMembers
 	Ducking,
 	Feigning,
 	Binding,
-	Invited,
 	NearestSpawn,
 	MaxRangeTo,
 	DisplayName,
@@ -122,7 +121,6 @@ enum class SpawnMembers
 	LocYXZ,
 	Owner,
 	Following,
-	Inviter,
 	MercID,
 	ContractorID,
 	PctMana,
@@ -134,7 +132,6 @@ enum class SpawnMembers
 	Stuck,
 	Aggressive,
 	CanSplashLand,
-	IsBerserk,
 	IsTouchingSwitch,
 	bShowHelm,
 	CorpseDragCount,
@@ -259,7 +256,6 @@ MQ2SpawnType::MQ2SpawnType() : MQ2Type("spawn")
 	ScopedTypeMember(SpawnMembers, Ducking);
 	ScopedTypeMember(SpawnMembers, Feigning);
 	ScopedTypeMember(SpawnMembers, Binding);
-	ScopedTypeMember(SpawnMembers, Invited);
 	ScopedTypeMember(SpawnMembers, NearestSpawn);
 	ScopedTypeMember(SpawnMembers, MaxRangeTo);
 	ScopedTypeMember(SpawnMembers, DisplayName);
@@ -291,7 +287,6 @@ MQ2SpawnType::MQ2SpawnType() : MQ2Type("spawn")
 	ScopedTypeMember(SpawnMembers, LocYXZ);
 	ScopedTypeMember(SpawnMembers, Owner);
 	ScopedTypeMember(SpawnMembers, Following);
-	ScopedTypeMember(SpawnMembers, Inviter);
 	ScopedTypeMember(SpawnMembers, MercID);
 	ScopedTypeMember(SpawnMembers, ContractorID);
 	ScopedTypeMember(SpawnMembers, PctMana);
@@ -303,7 +298,6 @@ MQ2SpawnType::MQ2SpawnType() : MQ2Type("spawn")
 	ScopedTypeMember(SpawnMembers, Stuck);
 	ScopedTypeMember(SpawnMembers, Aggressive);
 	ScopedTypeMember(SpawnMembers, CanSplashLand);
-	ScopedTypeMember(SpawnMembers, IsBerserk);
 	ScopedTypeMember(SpawnMembers, IsTouchingSwitch);
 	ScopedTypeMember(SpawnMembers, bShowHelm);
 	ScopedTypeMember(SpawnMembers, CorpseDragCount);
@@ -988,17 +982,6 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 
-	case SpawnMembers::Invited:
-		Dest.Set(pSpawn->InvitedToGroup);
-		Dest.Type = pBoolType;
-		return true;
-
-	case SpawnMembers::Inviter:
-		strcpy_s(DataTypeTemp, (char*)__Inviter);
-		Dest.Ptr = &DataTypeTemp[0];
-		Dest.Type = pStringType;
-		return true;
-
 	case SpawnMembers::NearestSpawn:
 		if (pSpawn == pControlledPlayer)
 		{
@@ -1354,11 +1337,6 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		Dest.Type = pBoolType;
 		return true;
 	}
-
-	case SpawnMembers::IsBerserk:
-		Dest.DWord = pSpawn->berserker;
-		Dest.Type = pIntType;
-		return true;
 
 	case SpawnMembers::IsTouchingSwitch:
 		Dest.Set(pSpawn->pTouchingSwitch != nullptr);
