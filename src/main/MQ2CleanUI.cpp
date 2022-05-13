@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2021 MacroQuest Authors
+ * Copyright (C) 2002-2022 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -74,9 +74,9 @@ void DrawHUD()
 	// no point in drawing hud anywhere else
 	if (gGameState == GAMESTATE_INGAME || gGameState == GAMESTATE_CHARSELECT)
 	{
-		if (gbAlwaysDrawMQHUD || (gGameState == GAMESTATE_INGAME && gbHUDUnderUI && gbShowNetStatus))
+		if (gbAlwaysDrawMQHUD || (gGameState == GAMESTATE_INGAME && gbHUDUnderUI && pEverQuestInfo->bNetstat))
 		{
-			if (DrawHUDParams[0] && gGameState == GAMESTATE_INGAME && gbShowNetStatus)
+			if (DrawHUDParams[0] && gGameState == GAMESTATE_INGAME && pEverQuestInfo->bNetstat)
 			{
 				DrawNetStatus_Trampoline((uint16_t)DrawHUDParams[0], (uint16_t)DrawHUDParams[1], (void*)DrawHUDParams[2], (uint32_t)DrawHUDParams[3]);
 				DrawHUDParams[0] = 0;

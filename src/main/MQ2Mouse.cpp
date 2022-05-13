@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2021 MacroQuest Authors
+ * Copyright (C) 2002-2022 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -124,12 +124,12 @@ bool MoveMouse(int x, int y, bool bClick)
 	ClientToScreen(EQhWnd, (LPPOINT)& pt);
 	SetCursorPos(pt.x, pt.y);
 
-	EQADDR_DIMOUSECOPY->y = y;
-	EQADDR_DIMOUSECOPY->x = x;
-	EQADDR_MOUSE->Y = EQADDR_DIMOUSECOPY->y;
-	EQADDR_DIMOUSECHECK->y = EQADDR_DIMOUSECOPY->y;
-	EQADDR_MOUSE->X = EQADDR_DIMOUSECOPY->x;
-	EQADDR_DIMOUSECHECK->x = EQADDR_DIMOUSECOPY->x;
+	pEverQuestInfo->MouseY = y;
+	pEverQuestInfo->MouseX = x;
+	EQADDR_MOUSE->Y = pEverQuestInfo->MouseY;
+	EQADDR_DIMOUSECHECK->y = pEverQuestInfo->MouseY;
+	EQADDR_MOUSE->X = pEverQuestInfo->MouseX;
+	EQADDR_DIMOUSECHECK->x = pEverQuestInfo->MouseX;
 
 	pWndMgr->MousePoint = pt;
 	pWndMgr->StoredMousePos = pt;
@@ -187,8 +187,8 @@ void ClickMouse(DWORD button)
 
 	DWORD mdType = (DWORD)MD_Button0 + button;
 
-	if (!((EQADDR_MOUSECLICK->Click[button] == 0x80) && (!EQADDR_MOUSECLICK->Confirm[button])))
-		EQADDR_MOUSECLICK->Click[button] = 0x80;
+	if (!((pEverQuestInfo->MouseButtons[button] == 0x80) && !pEverQuestInfo->OldMouseButtons[button]))
+		pEverQuestInfo->MouseButtons[button] = 0x80;
 
 	gMouseClickInProgress[button] = true;
 
@@ -224,7 +224,7 @@ void MouseButtonUp(DWORD x, DWORD y, char* szButton)
 	if (!_strnicmp(szButton, "left", 4))
 	{
 		// click will fail if this isn't set to a time less than TimeStamp minus 750ms
-		*((DWORD*)__LMouseHeldTime) = pDisplay->TimeStamp - 0x45;
+		pEverQuestInfo->LMouseDown = pDisplay->TimeStamp - 69;
 		pEverQuest->LMouseUp(x, y);
 
 		if (pDisplay->GetClickedActor(x, y, false, cv1, cv2))
@@ -284,7 +284,7 @@ bool ClickMouseItem(const MQGroundSpawn& GroundSpawn, bool left)
 
 	if (!left) // implied right click
 	{
-		*((DWORD*)__RMouseHeldTime) = pDisplay->TimeStamp - 70;
+		pEverQuestInfo->RMouseDown = pDisplay->TimeStamp - 70;
 
 		if (pWndMgr)
 		{
@@ -295,7 +295,7 @@ bool ClickMouseItem(const MQGroundSpawn& GroundSpawn, bool left)
 	}
 	else
 	{
-		*((DWORD*)__LMouseHeldTime) = pDisplay->TimeStamp - 70;
+		pEverQuestInfo->LMouseDown = pDisplay->TimeStamp - 70;
 
 		// we "click" at -10000,-10000 because we expect that the user doesnt have any windows there.
 
@@ -315,8 +315,8 @@ bool ClickMouseItem(const MQGroundSpawn& GroundSpawn, bool left)
 // ***************************************************************************
 bool IsMouseWaitingForButton()
 {
-	return ((EQADDR_MOUSECLICK->Click[1] == EQADDR_MOUSECLICK->Confirm[1])
-		&& (EQADDR_MOUSECLICK->Click[0] == EQADDR_MOUSECLICK->Confirm[0])) ? false : true;
+	return !((pEverQuestInfo->MouseButtons[1] == pEverQuestInfo->OldMouseButtons[1])
+		&& (pEverQuestInfo->MouseButtons[0] == pEverQuestInfo->OldMouseButtons[0]));
 }
 
 bool IsMouseWaiting()
@@ -331,14 +331,16 @@ bool IsMouseWaiting()
 
 		if (gMouseClickInProgress[0])
 		{
-			if (!((!EQADDR_MOUSECLICK->Click[0]) && (EQADDR_MOUSECLICK->Confirm[0] == 0x80))) EQADDR_MOUSECLICK->Click[0] = 0x0;
+			if (!((!pEverQuestInfo->MouseButtons[0])
+				&& (pEverQuestInfo->OldMouseButtons[0] == 0x80))) pEverQuestInfo->MouseButtons[0] = 0;
 			gMouseClickInProgress[0] = false;
 			Result = true;
 		}
 
 		if (gMouseClickInProgress[1])
 		{
-			if (!((!EQADDR_MOUSECLICK->Click[1]) && (EQADDR_MOUSECLICK->Confirm[1] == 0x80))) EQADDR_MOUSECLICK->Click[1] = 0x0;
+			if (!((!pEverQuestInfo->MouseButtons[1])
+				&& (pEverQuestInfo->OldMouseButtons[1] == 0x80))) pEverQuestInfo->MouseButtons[1] = 0;
 			gMouseClickInProgress[1] = false;
 			Result = true;
 		}

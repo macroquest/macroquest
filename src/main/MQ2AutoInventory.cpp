@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2021 MacroQuest Authors
+ * Copyright (C) 2002-2022 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -1240,10 +1240,8 @@ static void AutoBankPulse()
 	{
 		if (pMerchantWnd && pMerchantWnd->IsVisible())
 		{
-			if (EverQuestinfo__IsItemPending) {
-				DWORD wecantsell = *(DWORD*)EverQuestinfo__IsItemPending;
-				if (wecantsell)
-					return;
+			if (pEverQuestInfo->ItemPending > 0) {
+				return;
 			}
 
 			uint64_t now = GetTickCount64();

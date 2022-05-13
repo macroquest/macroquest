@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2021 MacroQuest Authors
+ * Copyright (C) 2002-2022 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -342,6 +342,9 @@ enum class CharacterMembers
 	MaxAirSupply,
 	PctAirSupply,
 	NumBagSlots,
+	Inviter,
+	Invited,
+	IsBerserk,
 };
 
 enum class CharacterMethods
@@ -674,6 +677,9 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, MaxAirSupply);
 	ScopedTypeMember(CharacterMembers, PctAirSupply);
 	ScopedTypeMember(CharacterMembers, NumBagSlots);
+	ScopedTypeMember(CharacterMembers, Inviter);
+	ScopedTypeMember(CharacterMembers, Invited);
+	ScopedTypeMember(CharacterMembers, IsBerserk);
 
 	ScopedTypeMethod(CharacterMethods, Stand);
 	ScopedTypeMethod(CharacterMethods, Sit);
@@ -1378,7 +1384,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::Combat:
-		Dest.Set(*EQADDR_ATTACK != 0);
+		Dest.Set(pEverQuestInfo->bAutoAttack);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -2053,7 +2059,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::RangedReady:
-		Dest.Set(gbRangedAttackReady != 0);
+		Dest.Set(pEverQuestInfo->PrimaryAttackReady != 0);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -2496,7 +2502,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::Running:
-		Dest.Set(*EQADDR_RUNWALKSTATE != 0);
+		Dest.Set(pEverQuestInfo->RunMode != 0);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -2530,7 +2536,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::AutoFire:
-		Dest.Set(gAutoFire != 0);
+		Dest.Set(pEverQuestInfo->bAutoRangeAttack != 0);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -3723,10 +3729,10 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			int index = GetIntFromString(Index, 0) - 1;
 			if (index < 0)
 				index = 0;
-			if (index > 1)
-				index = 1;
+			if (index >= CONCURRENT_SKILLS)
+				index = CONCURRENT_SKILLS - 1;
 
-			int skillid = gAutoSkill.Skill[index];
+			int skillid = pEverQuestInfo->AutoSkills[index];
 			if (skillid > 0 && skillid < NUM_SKILLS)
 			{
 				Dest.Ptr = &pSkillMgr->pSkill[skillid];
@@ -3864,15 +3870,8 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				return true;
 		}
 
-		// TODO: Check that these are correct. Then update or remove this comment.
-		switch (pZoneInfo->OutDoor)
-		{
-		case IndoorDungeon:
-		case IndoorCity:
-		case DungeonCity:
+		if (pZoneInfo->IsIndoor())
 			return true;
-		default: break;
-		}
 
 		if (pWorldData->IsFlagSet(pLocalPlayer->GetZoneID(), EQZoneFlag_NoMount))
 			return true;
@@ -3980,6 +3979,22 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	case CharacterMembers::NumBagSlots:
 		Dest.Type = pIntType;
 		Dest.Set<int>(GetHighestAvailableBagSlot() - InvSlot_FirstBagSlot + 1);
+		return true;
+
+	case CharacterMembers::Inviter:
+		strcpy_s(DataTypeTemp, pEverQuestInfo->Inviter);
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
+
+	case CharacterMembers::Invited:
+		Dest.Set(pLocalPlayer->InvitedToGroup);
+		Dest.Type = pBoolType;
+		return true;
+
+	case CharacterMembers::IsBerserk:
+		Dest.DWord = pLocalPlayer->berserker;
+		Dest.Type = pIntType;
 		return true;
 
 	default:

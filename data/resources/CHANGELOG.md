@@ -1,7 +1,28 @@
+May 13, 2022:
+- Add Fellowship.Exists
+- Move Inviter, Invited and IsBerserk from Spawn to Character (Me).
+- Removed a bunch of unused members from Spawn
+- plugins: Converted a bunch of globals into members of the pEverQuestInfo class. This
+  includes a lot of globals that start with EQADDR_ and a few that don't. See the commit
+  log for the full list.
+- plugins: the keyboard movement defines __pulForward, __pulBackward etc have been removed.
+  these are primarily used for movement. They are replaced with pEverQuestInfo->keyDown[cmd].
+  cmd is a member of the KeybindCommand enumeration. For example: __pulForward can be replaced
+  with pEverquestInfo->keyDown[CMD_FORWARD]
+
+May 5, 2022:
+- /exec no longer requires the fg or bg parameter.  The syntax has been updated and
+  the functionality corrected to match what the previous syntax showed.
+
+April 25, 2022:
+- Updated for live hotfix patch.
+- Fix potential issue with pcnames.
+
 April 20, 2022:
 - Updated for live patch.
 - Fix netstat/hud display
 - Fix /makemevisible
+- Fix issue with Me.CombatAbility (and maybe others) not returning the correct values.
 - plugins: PcProfile.Buff and PcProfile.ShortBuff have been deprecated and replaced with
   accessor functions GetEffect and GetTempEffect, respectively. Deprecation warnings have
   been added for this change. For accessing all buffs, both short and long, GetEffect can

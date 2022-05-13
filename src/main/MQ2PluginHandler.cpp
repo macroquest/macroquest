@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2021 MacroQuest Authors
+ * Copyright (C) 2002-2022 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -687,7 +687,7 @@ void PluginsSetGameState(DWORD GameState)
 			CharSelect = false;
 			char szBuffer[MAX_STRING] = { 0 };
 
-			DebugSpew("PluginsSetGameState(%s server)", EQADDR_SERVERNAME);
+			DebugSpew("PluginsSetGameState(%s server)", GetServerShortName());
 
 			LoadCfgFile("InGame", false);
 
@@ -695,7 +695,7 @@ void PluginsSetGameState(DWORD GameState)
 			{
 				DebugSpew("PluginsSetGameState(%s name)", pLocalPC->Name);
 
-				sprintf_s(szBuffer, "%s_%s", EQADDR_SERVERNAME, pLocalPC->Name);
+				sprintf_s(szBuffer, "%s_%s", GetServerShortName(), pLocalPC->Name);
 				LoadCfgFile(szBuffer, false);
 			}
 

@@ -129,9 +129,9 @@ void HandleINI(eINIOptions Operation)
 		gBUsePerCharSettings = GetPrivateProfileBool("Default", "UsePerCharSettings", gBUsePerCharSettings, INIFileName);
 	}
 
-	if (gBUsePerCharSettings && pLocalPlayer && EQADDR_SERVERNAME[0] != '\0')
+	if (gBUsePerCharSettings && pLocalPlayer && GetServerShortName()[0] != '\0')
 	{
-		sprintf_s(szSettingINISection, "%s_%s", EQADDR_SERVERNAME, pLocalPlayer->Name);
+		sprintf_s(szSettingINISection, "%s_%s", GetServerShortName(), pLocalPlayer->Name);
 	}
 
 	std::string strUISection = "UI_";

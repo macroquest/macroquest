@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2021 MacroQuest Authors
+ * Copyright (C) 2002-2022 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -639,17 +639,19 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			if (!pBuffSpell)
 				continue;
 
-			if (WillStackWith(pSpell, pBuffSpell))
-				return true;
-
-			// if we have less duration than the duration argument, then this "will stack" so we need to keep checking
-			int duration = GetIntFromString(Index, 0);
-			if (duration != 0
-				&& (GetSpellDuration(pBuffSpell, pLocalPlayer) < -1 ||
-				ceil(pPetInfoWnd->PetBuffTimer[nBuff] / 6000) > duration))
+			// Buff found that will NOT stack with Spell
+			if (!WillStackWith(pSpell, pBuffSpell))
 			{
-				Dest.Set(false);
-				return true;
+				// Spell "will NOT stack" if
+				// Duration argument is 0 (ignores duration check) OR
+				// Blocking buff duration is greater than duration argument
+				int duration = GetIntFromString(Index, 0);
+				if (duration == 0 ||
+					(GetSpellDuration(pBuffSpell, pLocalPlayer) < -1 || ceil(pPetInfoWnd->PetBuffTimer[nBuff] / 6000) > duration))
+				{
+					Dest.Set(false);
+					return true;
+				}
 			}
 		}
 
@@ -668,8 +670,17 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		for (int nBuff = 0; nBuff < MAX_TOTAL_BUFFS; nBuff++)
 		{
 			auto pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
+
+			// Spell does NOT stack (will NOT land)
 			if (pBuffSpell && !WillStackWith(pSpell, pBuffSpell))
 			{
+				// Exit with default value (0 Will NOT Land)
+				return true;
+			}
+			// Invalid Spell, Empty Slot
+			else if (!pBuffSpell)
+			{
+				// Exit with first empty slot value
 				Dest.Set(nBuff + 1);
 				return true;
 			}

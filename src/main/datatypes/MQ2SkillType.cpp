@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2021 MacroQuest Authors
+ * Copyright (C) 2002-2022 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -129,10 +129,15 @@ bool MQ2SkillType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		case SkillMembers::Auto: { // return a bool representing if a skill has /autoskill on or off.
 			Dest.Set(false);
 			Dest.Type = pBoolType;
+
 			int id = GetSkillIDFromName(pStringTable->getString(pSkill->nName));
-			if (gAutoSkill.Skill[0] == id || gAutoSkill.Skill[1] == id)
+			for (int i = 0; i < CONCURRENT_SKILLS; ++i)
 			{
-				Dest.Set(true);
+				if (pEverQuestInfo->AutoSkills[i] == id)
+				{
+					Dest.Set(true);
+					return true;
+				}
 			}
 			return true;
 		}

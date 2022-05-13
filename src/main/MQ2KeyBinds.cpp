@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2021 MacroQuest Authors
+ * Copyright (C) 2002-2022 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -192,6 +192,18 @@ void InitializeMQ2KeyBinds()
 	EzDetour(KeypressHandler__ClearCommandStateArray, &KeypressHandlerHook::ClearCommandStateArray_Hook, &KeypressHandlerHook::ClearCommandStateArray_Trampoline);
 	EzDetour(KeypressHandler__HandleKeyDown, &KeypressHandlerHook::HandleKeyDown_Hook, &KeypressHandlerHook::HandleKeyDown_Trampoline);
 	EzDetour(KeypressHandler__HandleKeyUp, &KeypressHandlerHook::HandleKeyUp_Hook, &KeypressHandlerHook::HandleKeyUp_Trampoline);
+
+	// Validate that our constants are correct
+	assert(ci_equals(szEQMappableCommands[CMD_AUTORUN], "autorun"));
+	assert(ci_equals(szEQMappableCommands[CMD_JUMP], "jump"));
+	assert(ci_equals(szEQMappableCommands[CMD_FORWARD], "forward"));
+	assert(ci_equals(szEQMappableCommands[CMD_BACK], "back"));
+	assert(ci_equals(szEQMappableCommands[CMD_RIGHT], "right"));
+	assert(ci_equals(szEQMappableCommands[CMD_LEFT], "left"));
+	assert(ci_equals(szEQMappableCommands[CMD_STRAFE_LEFT], "strafe_left"));
+	assert(ci_equals(szEQMappableCommands[CMD_STRAFE_RIGHT], "strafe_right"));
+	assert(ci_equals(szEQMappableCommands[CMD_DUCK], "duck"));
+	assert(ci_equals(szEQMappableCommands[CMD_RUN_WALK], "run_walk"));
 }
 
 void ShutdownMQ2KeyBinds()
@@ -484,10 +496,9 @@ void MQ2KeyBindCommand(SPAWNINFO* pChar, char* szLine)
 
 static void DoRangedBind(const char* Name, bool Down)
 {
-	if (Down && pTarget && gbRangedAttackReady)
+	if (Down)
 	{
-		pLocalPlayer->DoAttack(0x0B, 0, pTarget);
-		gbRangedAttackReady = 0;
+		AttackRanged(pTarget);
 	}
 }
 

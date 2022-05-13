@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2021 MacroQuest Authors
+ * Copyright (C) 2002-2022 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -979,7 +979,7 @@ public:
 		{
 			m_saveByChar = GetPrivateProfileBool("FrameLimiter", "SaveByChar", false, mq::internal_paths::MQini);
 			if (pLocalPC)
-				m_characterIni = fmt::format("{}\\{}_{}.ini", gPathConfig, EQADDR_SERVERNAME, pLocalPC->Name);
+				m_characterIni = fmt::format("{}\\{}_{}.ini", gPathConfig, GetServerShortName(), pLocalPC->Name);
 			else // shouldn't happen
 				m_characterIni.clear();
 

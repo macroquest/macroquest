@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2021 MacroQuest Authors
+ * Copyright (C) 2002-2022 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -79,19 +79,6 @@ static bool gbInitializedImGui = false;
 static int gLastGameState = GAMESTATE_PRECHARSELECT;
 
 static int s_numBeginSceneCalls = 0;
-
-// Mouse state, pointed to by EQADDR_DIMOUSECOPY
-struct MouseStateData
-{
-	DWORD x;
-	DWORD y;
-	DWORD Scroll;
-	DWORD relX;
-	DWORD relY;
-	DWORD InWindow;
-};
-static MouseStateData** gMouseState = (MouseStateData**)&EQADDR_DIMOUSECOPY;
-static DIMOUSESTATE** gDIMouseState = (DIMOUSESTATE**)&EQADDR_DIMOUSECHECK;
 
 using D3D9CREATEEXPROC = HRESULT(WINAPI*)(UINT, IDirect3D9Ex**);
 
@@ -299,11 +286,11 @@ bool ImGuiOverlay_HandleMouseEvent(int mouseButton, bool pressed)
 		}
 	}
 
-	if (consume)
+	if (consume && mouseButton < NUM_MOUSE_BUTTONS)
 	{
 		// Update EQ to act like we already handled this click
-		EQADDR_MOUSECLICK->Confirm[mouseButton] = pressed;
-		EQADDR_MOUSECLICK->Click[mouseButton] = pressed;
+		pEverQuestInfo->OldMouseButtons[mouseButton] = pressed;
+		pEverQuestInfo->MouseButtons[mouseButton] = pressed;
 	}
 
 	return consume;
@@ -630,7 +617,7 @@ void ProcessMouseEvents_Detour()
 
 		if (consumeMouse)
 		{
-			(*gMouseState)->InWindow = 0;
+			pEverQuestInfo->MouseInClientRect = 0;
 			gbFlushNextMouse = true;
 
 			// Consume the mouse state. This won't be very effective for sustained mouse clicks though.

@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2021 MacroQuest Authors
+ * Copyright (C) 2002-2022 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -111,7 +111,7 @@ bool InitializeCrashpad()
 	// Crashpad has the ability to support crashes both in-process and out-of-process.
 	// The out-of-process handler is significantly more robust than traditional in-process
 	// crash handlers. This path may be relative.
-	std::wstring handlerPath(utf8_to_wstring(mq::internal_paths::MQRoot + "\\mq_crash_handler.exe"));
+	std::wstring handlerPath(utf8_to_wstring(mq::internal_paths::MQRoot + "\\crashpad_handler.exe"));
 
 	// This should point to your server dump submission port (labeled as "http/writer"
 	// in the listener configuration pane. Preferrably, the SSL enabled port should

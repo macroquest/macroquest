@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2021 MacroQuest Authors
+ * Copyright (C) 2002-2022 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -2593,7 +2593,7 @@ void DoAbility(SPAWNINFO* pChar, char* szLine)
 {
 	if (!szLine[0] || !cmdDoAbility || !pLocalPC)
 		return;
-	if (IsNumber(szLine) || !EQADDR_DOABILITYLIST)
+	if (IsNumber(szLine))
 	{
 		cmdDoAbility(pChar, szLine);
 		return;
@@ -2655,7 +2655,7 @@ void DoAbility(SPAWNINFO* pChar, char* szLine)
 	}
 
 	int abilityNum = GetIntFromString(szBuffer, 0);
-	if (abilityNum > 0 || !EQADDR_DOABILITYLIST)
+	if (abilityNum > 0)
 	{
 		// Check if user wants us to activate an ability by its "real id" (?)
 		if (abilityNum > 6 && abilityNum < NUM_SKILLS)
@@ -3176,7 +3176,7 @@ void Skills(SPAWNINFO* pChar, char* szLine)
 void SetAutoRun(SPAWNINFO* pChar, char* szLine)
 {
 	char szServerAndName[256] = { 0 };
-	sprintf_s(szServerAndName, "%s.%s", EQADDR_SERVERNAME, pLocalPC->Name);
+	sprintf_s(szServerAndName, "%s.%s", GetServerShortName(), pLocalPC->Name);
 	WritePrivateProfileString("AutoRun", szServerAndName, szLine, mq::internal_paths::MQini);
 
 	WriteChatf("Set autorun to: '%s'", szLine);
@@ -3388,39 +3388,65 @@ void Exec(SPAWNINFO* pChar, char* szLine)
 	char szTemp1[MAX_STRING] = { 0 };
 	GetArg(szTemp1, szLine, 1);
 
-	char szTemp2[MAX_STRING] = { 0 };
-	GetArg(szTemp2, szLine, 2);
+	bool ShowHelp = false;
 
-	char szTemp3[MAX_STRING] = { 0 };
-	GetArg(szTemp3, szLine, 3);
-
-	if (szTemp1[0] != 0 && szTemp2[0] != 0)
+	if (szTemp1[0] != '\0')
 	{
-		WriteChatf("Opening %s %s %s", szTemp1, szTemp2, szTemp3);
+		bool Foreground = true;
 
-		char exepath[MAX_STRING] = { 0 };
-		GetPrivateProfileString("Application Paths", szTemp1, szTemp1, exepath, MAX_STRING, mq::internal_paths::MQini);
+		char szTemp2[MAX_STRING] = { 0 };
+		GetArg(szTemp2, szLine, 2);
 
-		if (!strcmp(szTemp2, "bg"))
+		if (szTemp2[0] != '\0')
 		{
-			ShellExecute(nullptr, "open", exepath, nullptr, nullptr, SW_SHOWMINNOACTIVE);
+			if (ci_equals(szTemp2, "bg"))
+			{
+				Foreground = false;
+				szTemp2[0] = '\0';
+			}
+			// fg kept for legacy code
+			else if (ci_equals(szTemp2, "fg"))
+			{
+				szTemp2[0] = '\0';
+			}
+			else
+			{
+				char szTemp3[MAX_STRING] = { 0 };
+				GetArg(szTemp3, szLine, 3);
+
+				if (szTemp3[0] != '\0')
+				{
+					if (ci_equals(szTemp3, "bg"))
+					{
+						Foreground = false;
+					}
+					// fg kept for legacy code, but if it's NOT fg or bg in the 3rd parameter something is wrong.
+					else if (!ci_equals(szTemp3, "fg"))
+					{
+						ShowHelp = true;
+					}
+				}
+			}
 		}
-		else if (!strcmp(szTemp2, "fg"))
+
+		if (!ShowHelp)
 		{
-			ShellExecute(nullptr, "open", exepath, nullptr, nullptr, SW_SHOWNOACTIVATE);
-		}
-		else if (!strcmp(szTemp3, "bg"))
-		{
-			ShellExecute(nullptr, "open", exepath, szTemp2, nullptr, SW_SHOWMINNOACTIVE);
-		}
-		else if (!strcmp(szTemp3, "fg"))
-		{
-			ShellExecute(nullptr, "open", exepath, szTemp2, nullptr, SW_SHOWNOACTIVATE);
+			char exepath[MAX_STRING] = { 0 };
+			GetPrivateProfileString("Application Paths", szTemp1, szTemp1, exepath, MAX_STRING, mq::internal_paths::MQini);
+
+			WriteChatf("Opening %s %s in the %s", szTemp1, szTemp2, Foreground ? "foreground" : "background");
+
+			ShellExecute(nullptr, "open", exepath, szTemp2[0] != '\0' ? szTemp2 : nullptr, nullptr, Foreground ? SW_SHOWNOACTIVATE : SW_SHOWMINNOACTIVE);
 		}
 	}
 	else
 	{
-		WriteChatColor("/exec [application \"parameters\"] [fg | bg]", USERCOLOR_DEFAULT);
+		ShowHelp = true;
+	}
+
+	if (ShowHelp)
+	{
+		SyntaxError("Usage: /exec application [\"parameters\" | bg] [bg]");
 	}
 }
 
@@ -3644,14 +3670,15 @@ void DoShiftCmd(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	bool Old = pWndMgr->KeyboardFlags[0];
+	bool old1 = pWndMgr->KeyboardFlags[0];
 	pWndMgr->KeyboardFlags[0] = true;
-	gShiftKeyDown = 1;
+	bool old2 = pEverQuestInfo->bIsPressedShift;
+	pEverQuestInfo->bIsPressedShift = true;
 
 	DoCommand(pChar, szLine);
 
-	gShiftKeyDown = 0;
-	pWndMgr->KeyboardFlags[0] = Old;
+	pWndMgr->KeyboardFlags[0] = old1;
+	pEverQuestInfo->bIsPressedShift = old2;
 }
 
 // /ctrl
@@ -3761,10 +3788,6 @@ void UseItemCmd(SPAWNINFO* pChar, char* szLine)
 // ***************************************************************************
 void DoSocial(SPAWNINFO* pChar, char* szLine)
 {
-	if (!pSocialList) return;
-
-	//DWORD SocialIndex = -1, LineIndex;
-	//DWORD SocialPage = 0, SocialNum = 0;
 	char szBuffer[MAX_STRING] = { 0 };
 	GetArg(szBuffer, szLine, 1);
 
@@ -3783,7 +3806,7 @@ void DoSocial(SPAWNINFO* pChar, char* szLine)
 			{
 				WriteChatColorf("(%2d,%2d) %s ", USERCOLOR_ECHO_EMOTE, SocialPage + 1, SocialNum + 1, pSocialList[SocialIndex].Name);
 
-				for (int LineIndex = 0; LineIndex < 5; LineIndex++)
+				for (int LineIndex = 0; LineIndex < SOCIAL_NUM_LINES; LineIndex++)
 				{
 					if (pSocialList[SocialIndex].Line[LineIndex][0] != 0)
 					{
@@ -3855,9 +3878,6 @@ void DoSocial(SPAWNINFO* pChar, char* szLine)
 // ***************************************************************************
 void DoHotButton(PSPAWNINFO pChar, char* pBuffer)
 {
-	if (!pSocialList || !pSocialChangedList)
-		return;
-
 	DWORD SocialIndex = -1, LineIndex;
 	DWORD SocialPage = 0, SocialNum = 0;
 	int iColor = -1;
@@ -3956,7 +3976,7 @@ void DoHotButton(PSPAWNINFO pChar, char* pBuffer)
 				}
 				strcpy_s(pSocialList[SocialIndex].Line[LineIndex], szText);
 
-				pSocialChangedList->bChanged[SocialPage][SocialNum] = true;
+				pEverQuestInfo->bSocialChanged[SocialPage][SocialNum] = true;
 
 				if (iCursor)
 				{
@@ -5171,39 +5191,37 @@ void UserCameraCmd(SPAWNINFO* pChar, char* szLine)
 	char szArg2[MAX_STRING] = { 0 };
 	GetArg(szArg2, szLine, 2);
 
-	EQCAMERABASE* pUserCam1 = (EQCAMERABASE*)((uintptr_t*)EverQuest__Cameras)[EQ_USER_CAM_1];
-
 	if (!_stricmp(szArg1, "0"))
 	{
-		*(DWORD*)CDisplay__cameraType = EQ_FIRST_PERSON_CAM;
+		*CDisplay::cameraType = EQ_FIRST_PERSON_CAM;
 	}
 	else if (!_stricmp(szArg1, "1"))
 	{
-		*(DWORD*)CDisplay__cameraType = EQ_OVERHEAD_CAM;
+		*CDisplay::cameraType = EQ_OVERHEAD_CAM;
 	}
 	else if (!_stricmp(szArg1, "2"))
 	{
-		*(DWORD*)CDisplay__cameraType = EQ_CHASE_CAM;
+		*CDisplay::cameraType = EQ_CHASE_CAM;
 	}
 	else if (!_stricmp(szArg1, "3"))
 	{
-		*(DWORD*)CDisplay__cameraType = EQ_USER_CAM_1;
+		*CDisplay::cameraType = EQ_USER_CAM_1;
 	}
 	else if (!_stricmp(szArg1, "4"))
 	{
-		*(DWORD*)CDisplay__cameraType = EQ_USER_CAM_2;
+		*CDisplay::cameraType = EQ_USER_CAM_2;
 	}
 	else if (!_stricmp(szArg1, "5"))
 	{
-		*(DWORD*)CDisplay__cameraType = 5;
+		*CDisplay::cameraType = 5;
 	}
 	else if (!_stricmp(szArg1, "6"))
 	{
-		*(DWORD*)CDisplay__cameraType = 6;
+		*CDisplay::cameraType = 6;
 	}
 	else if (!_stricmp(szArg1, "7"))
 	{
-		*(DWORD*)CDisplay__cameraType = 7;
+		*CDisplay::cameraType = 7;
 	}
 	else if (!_stricmp(szArg1, "on"))
 	{
@@ -5234,9 +5252,12 @@ void UserCameraCmd(SPAWNINFO* pChar, char* szLine)
 
 		if (szArg2 && szArg2[0] != '\0')
 		{
-			const std::string tmpFileName = std::string(EQADDR_SERVERNAME) + "_" + std::string(szArg2) + ".ini";
+			const std::string tmpFileName =
+				fmt::format("{}_{}.ini", GetServerShortName(), szArg2);
 			pathIniFile = (std::filesystem::path(mq::internal_paths::Config) / tmpFileName).string();
 		}
+
+		EQCamera* pUserCam1 = pEverQuestInfo->cameras[EQ_USER_CAM_1];
 
 		WritePrivateProfileBool("User Camera 1", "bAutoHeading", pUserCam1->bAutoHeading, pathIniFile);
 		WritePrivateProfileBool("User Camera 1", "bAutoPitch", pUserCam1->bAutoPitch, pathIniFile);
@@ -5261,9 +5282,11 @@ void UserCameraCmd(SPAWNINFO* pChar, char* szLine)
 
 		if (szArg2 && szArg2[0] != '\0')
 		{
-			const std::string tmpFileName = std::string(EQADDR_SERVERNAME) + "_" + std::string(szArg2) + ".ini";
+			const std::string tmpFileName = fmt::format("{}_{}.ini", GetServerShortName(), szArg2);
 			pathIniFile = (std::filesystem::path(mq::internal_paths::Config) / tmpFileName).string();
 		}
+
+		EQCamera* pUserCam1 = pEverQuestInfo->cameras[EQ_USER_CAM_1];
 
 		pUserCam1->bAutoHeading = GetPrivateProfileBool("User Camera 1", "bAutoHeading", pUserCam1->bAutoHeading, pathIniFile);
 		pUserCam1->bAutoPitch = GetPrivateProfileBool("User Camera 1", "bAutoPitch", pUserCam1->bAutoPitch, pathIniFile);
@@ -5282,7 +5305,7 @@ void UserCameraCmd(SPAWNINFO* pChar, char* szLine)
 		pUserCam1->SideMovement = GetPrivateProfileFloat("User Camera 1", "SideMovement", pUserCam1->SideMovement, pathIniFile);
 		pUserCam1->Zoom = GetPrivateProfileFloat("User Camera 1", "Zoom", pUserCam1->Zoom, pathIniFile);
 
-		*(DWORD*)CDisplay__cameraType = EQ_USER_CAM_1;
+		*CDisplay::cameraType = EQ_USER_CAM_1;
 	}
 }
 

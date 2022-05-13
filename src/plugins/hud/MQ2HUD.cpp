@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2021 MacroQuest Authors
+ * Copyright (C) 2002-2022 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -447,7 +447,7 @@ PLUGIN_API void ShutdownPlugin()
 PLUGIN_API void SetGameState(DWORD GameState)
 {
 	if (GameState == GAMESTATE_INGAME)
-		sprintf_s(HUDSection, "%s_%s", GetCharInfo()->Name, EQADDR_SERVERNAME);
+		sprintf_s(HUDSection, "%s_%s", pLocalPC->Name, GetServerShortName());
 	else
 		strcpy_s(HUDSection, "MQ2HUD");
 	GetPrivateProfileString(HUDSection, "Last", "Elements", HUDNames, MAX_STRING, INIFileName);

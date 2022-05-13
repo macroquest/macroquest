@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2021 MacroQuest Authors
+ * Copyright (C) 2002-2022 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -129,9 +129,9 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case EverQuestMembers::Server:
 		Dest.Type = pStringType;
-		if (EQADDR_SERVERNAME[0])
+		if (GetServerShortName()[0])
 		{
-			strcpy_s(DataTypeTemp, EQADDR_SERVERNAME);
+			strcpy_s(DataTypeTemp, GetServerShortName());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 		}
@@ -148,9 +148,9 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case EverQuestMembers::LastTell:
 		Dest.Type = pStringType;
-		if (EQADDR_LASTTELL[0])
+		if (pEverQuestInfo->LastTellFromList[0][0])
 		{
-			strcpy_s(DataTypeTemp, EQADDR_LASTTELL);
+			strcpy_s(DataTypeTemp, pEverQuestInfo->LastTellFromList[0]);
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 		}

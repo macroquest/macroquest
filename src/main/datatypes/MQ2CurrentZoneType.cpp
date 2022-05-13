@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2021 MacroQuest Authors
+ * Copyright (C) 2002-2022 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -105,8 +105,9 @@ bool MQ2CurrentZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		Dest.Type = pStringType;
 		return true;
 
+	case CurrentZoneMembers::ZoneType:
 	case CurrentZoneMembers::Type:
-		Dest.DWord = pCurrentZone->OutDoor;
+		Dest.DWord = pCurrentZone->ZoneType;
 		Dest.Type = pIntType;
 		return true;
 
@@ -130,24 +131,19 @@ bool MQ2CurrentZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		Dest.Type = pFloatType;
 		return true;
 
-	case CurrentZoneMembers::ZoneType:
-		Dest.DWord = (*EQADDR_ZONETYPE);
-		Dest.Type = pIntType;
-		return true;
-
 	case CurrentZoneMembers::Dungeon:
 	case CurrentZoneMembers::Indoor:
-		Dest.Set(indoor);
+		Dest.Set(pZoneInfo->IsIndoor());
 		Dest.Type = pBoolType;
 		return true;
 
 	case CurrentZoneMembers::Outdoor:
-		Dest.Set(outdoor);
+		Dest.Set(pZoneInfo->IsOutdoor());
 		Dest.Type = pBoolType;
 		return true;
 
 	case CurrentZoneMembers::NoBind:
-		Dest.Set(!bindable);
+		Dest.Set(!pZoneInfo->IsBindable());
 		Dest.Type = pBoolType;
 		return true;
 

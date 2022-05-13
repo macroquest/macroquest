@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2021 MacroQuest Authors
+ * Copyright (C) 2002-2022 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -5042,10 +5042,10 @@ uint32_t GetSpellBuffTimer(int SpellID)
 
 void AttackRanged(PlayerClient* pRangedTarget)
 {
-	if (pRangedTarget && gbRangedAttackReady)
+	if (pRangedTarget && pEverQuestInfo->PrimaryAttackReady)
 	{
 		pLocalPlayer->DoAttack(InvSlot_Range, 0, pRangedTarget);
-		gbRangedAttackReady = 0;
+		pEverQuestInfo->PrimaryAttackReady = 0;
 	}
 }
 
@@ -5053,6 +5053,9 @@ void UseAbility(const char* sAbility)
 {
 	char szBuffer[MAX_STRING] = { 0 };
 	strcpy_s(szBuffer, sAbility);
+
+	PcProfile* pProfile = GetPcProfile();
+	if (!pProfile) return;
 
 	if (!cmdDoAbility)
 	{
@@ -5070,62 +5073,57 @@ void UseAbility(const char* sAbility)
 	if (!cmdDoAbility)
 		return;
 
-	if (GetIntFromString(szBuffer, 0) || !EQADDR_DOABILITYLIST)
+	if (GetIntFromString(szBuffer, 0))
 	{
 		cmdDoAbility(pLocalPlayer, szBuffer);
 		return;
 	}
 
-	int DoIndex = -1;
-
-	for (int Index = 0; Index < 10; Index++)
+	// check combat abilities (7-10)
+	for (int i = 0; i < (int)lengthof(pEverQuestInfo->combatSkill); ++i)
 	{
-		if (EQADDR_DOABILITYLIST[Index] != -1)
+		if (pEverQuestInfo->combatSkill[i] == -1)
+			continue;
+
+		const char* skillName = szSkills[pEverQuestInfo->combatSkill[i]];
+		if (!_strnicmp(szBuffer, skillName, strlen(skillName)))
 		{
-			if (!_strnicmp(szBuffer, szSkills[EQADDR_DOABILITYLIST[Index]], strlen(szSkills[EQADDR_DOABILITYLIST[Index]])))
+			_itoa_s(i + 7, szBuffer, 10);
+			cmdDoAbility(pLocalPlayer, szBuffer);
+			return;
+		}
+	}
+
+	// check abilities (1-6)
+	for (int i = 0; i < (int)lengthof(pEverQuestInfo->abilities); ++i)
+	{
+		if (pEverQuestInfo->abilities[i] == -1)
+			continue;
+
+		const char* skillName = szSkills[pEverQuestInfo->abilities[i]];
+		if (!_strnicmp(szBuffer, skillName, strlen(skillName)))
+		{
+			_itoa_s(i + 1, szBuffer, 10);
+			cmdDoAbility(pLocalPlayer, szBuffer);
+			return;
+		}
+	}
+
+	for (int Index = 0; Index < NUM_COMBAT_ABILITIES; ++Index)
+	{
+		if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index))
+		{
+			EQ_Spell* pCA = GetSpellByID(pProfile->CombatAbilities[Index]);
+			if (pCA && !_stricmp(pCA->Name, szBuffer))
 			{
-				if (Index < 4)
-				{
-					DoIndex = Index + 7; // 0-3 = Combat abilities (7-10)
-				}
-				else
-				{
-					DoIndex = Index - 3; // 4-9 = Abilities (1-6)
-				}
+				// We got the cookie, let's try and do it
+				pLocalPC->DoCombatAbility(pCA->ID);
+				return;
 			}
 		}
 	}
 
-	if (DoIndex != -1)
-	{
-		_itoa_s(DoIndex, szBuffer, 10);
-		cmdDoAbility(pLocalPlayer, szBuffer);
-	}
-	else
-	{
-		int Index = 0;
-		if (PcProfile* pProfile = GetPcProfile())
-		{
-			for (; Index < NUM_COMBAT_ABILITIES; Index++)
-			{
-				if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index))
-				{
-					if (SPELL* pCA = GetSpellByID(pProfile->CombatAbilities[Index]))
-					{
-						if (!_stricmp(pCA->Name, szBuffer))
-						{
-							// We got the cookie, let's try and do it
-							pLocalPC->DoCombatAbility(pCA->ID);
-							break;
-						}
-					}
-				}
-			}
-		}
-
-		if (Index >= NUM_COMBAT_ABILITIES)
-			WriteChatColor("You do not seem to have that ability available", USERCOLOR_DEFAULT);
-	}
+	WriteChatf("You do not seem to have that ability available");
 }
 
 // Function to check if the account has a given expansion enabled.

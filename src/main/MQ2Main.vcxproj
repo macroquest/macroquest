@@ -485,7 +485,6 @@
     <ClCompile Include="ImGuiBackend.cpp" />
     <ClCompile Include="ImGuiZepEditor.cpp" />
     <ClCompile Include="MQ2Anonymize.cpp" />
-    <ClCompile Include="MQ2Auth.cpp" />
     <ClCompile Include="MQ2AutoInventory.cpp" />
     <ClCompile Include="MQ2Benchmarks.cpp" />
     <ClCompile Include="MQ2CachedBuffs.cpp" />

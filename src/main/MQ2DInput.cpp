@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2021 MacroQuest Authors
+ * Copyright (C) 2002-2022 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -170,10 +170,12 @@ HRESULT CALLBACK DInputStateDetour(IDirectInputDevice8A* This, DWORD cbData, voi
 
 	if ((cbData == sizeof(DIMOUSESTATE)) || (cbData == sizeof(DIMOUSESTATE2)))
 	{
-		if (IsMouseWaitingForButton() && (EQADDR_MOUSECLICK))
+		LPDIMOUSESTATE data = (LPDIMOUSESTATE)lpvData;
+
+		if (IsMouseWaitingForButton())
 		{
-			((LPDIMOUSESTATE)lpvData)->rgbButtons[0] = EQADDR_MOUSECLICK->Click[0];
-			((LPDIMOUSESTATE)lpvData)->rgbButtons[1] = EQADDR_MOUSECLICK->Click[1];
+			data->rgbButtons[0] = pEverQuestInfo->MouseButtons[0];
+			data->rgbButtons[1] = pEverQuestInfo->MouseButtons[1];
 		}
 	}
 

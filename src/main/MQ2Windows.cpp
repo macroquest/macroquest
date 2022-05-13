@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2021 MacroQuest Authors
+ * Copyright (C) 2002-2022 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -310,10 +310,8 @@ void UpdateUISkin()
 {
 	if (pLocalPC != nullptr)
 	{
-		const std::string pathUIConfig = fmt::format("{BasePath}\\UI_{CharName}_{ServerName}.ini",
-			fmt::arg("BasePath", mq::internal_paths::EverQuest),
-			fmt::arg("CharName", pLocalPC->Name),
-			fmt::arg("ServerName", EQADDR_SERVERNAME));
+		const std::string pathUIConfig = fmt::format("{}\\UI_{}_{}.ini",
+			mq::internal_paths::EverQuest, pLocalPC->Name, GetServerShortName());
 		GetPrivateProfileString("Main", "UISkin", "default", gUISkin, MAX_PATH, pathUIConfig);
 	}
 	else
@@ -403,7 +401,7 @@ bool IsXMLFilePresent(const char* filename)
 	{
 		char UISkin[256] = { 0 };
 
-		sprintf_s(szFilename, "%s\\UI_%s_%s.ini", mq::internal_paths::EverQuest.c_str(), pLocalPC->Name, EQADDR_SERVERNAME);
+		sprintf_s(szFilename, "%s\\UI_%s_%s.ini", mq::internal_paths::EverQuest.c_str(), pLocalPC->Name, GetServerShortName());
 		GetPrivateProfileString("Main", "UISkin", "default", UISkin, 256, szFilename);
 
 		sprintf_s(szFilename, "uifiles\\%s\\%s", UISkin, filename);
