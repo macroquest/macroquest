@@ -3171,7 +3171,7 @@ public:
 			int count = 0;
 
 			// calculate the size
-			for (int i = 0; i < arrayLength; ++i)
+			for (int i = 0; i < pcProfile->GetMaxEffects(); ++i)
 			{
 				if (pcProfile->GetEffect(i).SpellID > 0)
 					count++;

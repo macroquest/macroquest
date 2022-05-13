@@ -4255,7 +4255,7 @@ void RemovePetBuff(SPAWNINFO* pChar, char* szLine)
 	char szArg[MAX_STRING] = { 0 };
 	GetMaybeQuotedArg(szArg, MAX_STRING, szLine, 1);
 
-	for (int nBuff = 0; nBuff < MAX_TOTAL_BUFFS; ++nBuff)
+	for (int nBuff = 0; nBuff < pPetInfoWnd->GetMaxBuffs(); ++nBuff)
 	{
 		EQ_Spell* pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
 		if (pBuffSpell && MaybeExactCompare(pBuffSpell->Name, szArg))

@@ -2286,7 +2286,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		if (IsNumber(Index))
 		{
 			int nBuff = GetIntFromString(Index, 0) - 1;
-			if (nBuff < 0 || nBuff > MAX_TOTAL_BUFFS)
+			if (nBuff < 0 || nBuff >= pPetInfoWnd->GetMaxBuffs())
 				return false;
 
 			if (pPetInfoWnd->Buff[nBuff] == -1 || pPetInfoWnd->Buff[nBuff] == 0)
@@ -2300,7 +2300,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 		else
 		{
-			for (int nBuff = 0; nBuff < MAX_TOTAL_BUFFS; nBuff++)
+			for (int nBuff = 0; nBuff < pPetInfoWnd->GetMaxBuffs(); nBuff++)
 			{
 				if (SPELL* pSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
 				{
