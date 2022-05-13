@@ -31,6 +31,7 @@ enum class FellowshipTypeMembers
 	CampfireZone,
 	Campfire,
 	Sharing,
+	Exists,
 };
 
 MQ2FellowshipType::MQ2FellowshipType()
@@ -48,16 +49,24 @@ MQ2FellowshipType::MQ2FellowshipType()
 	ScopedTypeMember(FellowshipTypeMembers, CampfireZone);
 	ScopedTypeMember(FellowshipTypeMembers, Campfire);
 	ScopedTypeMember(FellowshipTypeMembers, Sharing);
+	ScopedTypeMember(FellowshipTypeMembers, Exists);
 }
 
 bool MQ2FellowshipType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	SFellowship* pFellowship = reinterpret_cast<SFellowship*>(VarPtr.Ptr);
-	if (!VarPtr.Ptr)
-		return false;
-
 	MQTypeMember* pMember = MQ2FellowshipType::FindMember(Member);
 	if (!pMember)
+		return false;
+
+	if (static_cast<FellowshipTypeMembers>(pMember->ID) == FellowshipTypeMembers::Exists)
+	{
+		Dest.Set(VarPtr.Ptr && static_cast<SFellowship*>(VarPtr.Ptr)->FellowshipID != 0);
+		Dest.Type = pBoolType;
+		return true;
+	}
+
+	SFellowship* pFellowship = reinterpret_cast<SFellowship*>(VarPtr.Ptr);
+	if (!VarPtr.Ptr)
 		return false;
 
 	SPAWNINFO* pMySpawn = pLocalPlayer;
@@ -262,12 +271,11 @@ bool MQ2FellowshipMemberType::GetMember(MQVarPtr VarPtr, const char* Member, cha
 		Dest.Set(false);
 		Dest.Type = pBoolType;
 
-		auto& fellowship = pLocalPlayer.get_as<SPAWNINFO>()->Fellowship;
-		for (int i = 0; i < fellowship.Members; ++i)
+		for (int i = 0; i < pLocalPlayer->Fellowship.Members; ++i)
 		{
-			if (pFellowshipMember->UniqueEntityID == fellowship.FellowshipMember[i].UniqueEntityID)
+			if (pFellowshipMember->UniqueEntityID == pLocalPlayer->Fellowship.FellowshipMember[i].UniqueEntityID)
 			{
-				Dest.Set(fellowship.bExpSharingEnabled[i]);
+				Dest.Set(pLocalPlayer->Fellowship.bExpSharingEnabled[i]);
 				break;
 			}
 		}
