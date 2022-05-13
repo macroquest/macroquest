@@ -104,7 +104,6 @@ bool MQ2BandolierType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				return false;
 
 			const int indexItem = std::clamp(GetIntFromString(Index, 0) - 1, 0, MAX_BANDOLIER_SLOTS - 1);
-			Dest.HighPart = indexItem;
 			Dest.Ptr = (void*)&pBand->Items[indexItem];
 			return true;
 		}
@@ -163,15 +162,13 @@ bool MQ2BandolierType::ToString(MQVarPtr VarPtr, char* Destination)
 
 enum class BandolierItemTypeMembers
 {
-	Index = 1,
-	ID,
+	ID = 1,
 	IconID,
 	Name,
 };
 
 MQ2BandolierItemType::MQ2BandolierItemType() : MQ2Type("bandolieritem")
 {
-	ScopedTypeMember(BandolierItemTypeMembers, Index);
 	ScopedTypeMember(BandolierItemTypeMembers, ID);
 	ScopedTypeMember(BandolierItemTypeMembers, IconID);
 	ScopedTypeMember(BandolierItemTypeMembers, Name);
@@ -186,11 +183,6 @@ bool MQ2BandolierItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 		{
 			switch (static_cast<BandolierItemTypeMembers>(pMember->ID))
 			{
-			case BandolierItemTypeMembers::Index:
-				Dest.DWord = VarPtr.HighPart;
-				Dest.Type = pIntType;
-				return true;
-
 			case BandolierItemTypeMembers::IconID:
 				Dest.DWord = ptr->IconID;
 				Dest.Type = pIntType;

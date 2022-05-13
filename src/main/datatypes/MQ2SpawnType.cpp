@@ -135,28 +135,16 @@ enum class SpawnMembers
 	IsTouchingSwitch,
 	bShowHelm,
 	CorpseDragCount,
-	bBetaBuffed,
 	CombatSkillTicks,
-	FD,
 	InPvPArea,
-	bAlwaysShowAura,
 	GMRank,
-	WarCry,
-	IsPassenger,
-	LastCastTime,
-	DragNames,
-	DraggingPlayer,
-	bStationary,
-	bTempPet,
+	TemporaryPet,
 	HoldingAnimation,
 	Blind,
-	LastCastNum,
-	CollisionCounter,
 	CeilingHeightAtCurrLocation,
 	AssistName,
 	SeeInvis,
 	SpawnStatus,
-	bWaitingForPort,
 	EQLoc,
 	MQLoc,
 	TimeBeenDead,
@@ -301,28 +289,16 @@ MQ2SpawnType::MQ2SpawnType() : MQ2Type("spawn")
 	ScopedTypeMember(SpawnMembers, IsTouchingSwitch);
 	ScopedTypeMember(SpawnMembers, bShowHelm);
 	ScopedTypeMember(SpawnMembers, CorpseDragCount);
-	ScopedTypeMember(SpawnMembers, bBetaBuffed);
 	ScopedTypeMember(SpawnMembers, CombatSkillTicks);
-	ScopedTypeMember(SpawnMembers, FD);
 	ScopedTypeMember(SpawnMembers, InPvPArea);
-	ScopedTypeMember(SpawnMembers, bAlwaysShowAura);
 	ScopedTypeMember(SpawnMembers, GMRank);
-	ScopedTypeMember(SpawnMembers, WarCry);
-	ScopedTypeMember(SpawnMembers, IsPassenger);
-	ScopedTypeMember(SpawnMembers, LastCastTime);
-	ScopedTypeMember(SpawnMembers, DragNames);
-	ScopedTypeMember(SpawnMembers, DraggingPlayer);
-	ScopedTypeMember(SpawnMembers, bStationary);
-	ScopedTypeMember(SpawnMembers, bTempPet);
+	ScopedTypeMember(SpawnMembers, TemporaryPet);
 	ScopedTypeMember(SpawnMembers, HoldingAnimation);
 	ScopedTypeMember(SpawnMembers, Blind);
-	ScopedTypeMember(SpawnMembers, LastCastNum);
-	ScopedTypeMember(SpawnMembers, CollisionCounter);
 	ScopedTypeMember(SpawnMembers, CeilingHeightAtCurrLocation);
 	ScopedTypeMember(SpawnMembers, AssistName);
 	ScopedTypeMember(SpawnMembers, SeeInvis);
 	ScopedTypeMember(SpawnMembers, SpawnStatus);
-	ScopedTypeMember(SpawnMembers, bWaitingForPort);
 	ScopedTypeMember(SpawnMembers, EQLoc);
 	ScopedTypeMember(SpawnMembers, MQLoc);
 	ScopedTypeMember(SpawnMembers, TimeBeenDead);
@@ -1353,11 +1329,6 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		Dest.Type = pIntType;
 		return true;
 
-	case SpawnMembers::bBetaBuffed:
-		Dest.Set(pSpawn->bBetaBuffed);
-		Dest.Type = pBoolType;
-		return true;
-
 	case SpawnMembers::CombatSkillTicks:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
@@ -1374,19 +1345,9 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		}
 		return false;
 
-	case SpawnMembers::FD:
-		Dest.DWord = pSpawn->FD;
-		Dest.Type = pIntType;
-		return true;
-
 	case SpawnMembers::InPvPArea:
 		Dest.DWord = pSpawn->InPvPArea;
 		Dest.Type = pIntType;
-		return true;
-
-	case SpawnMembers::bAlwaysShowAura:
-		Dest.Set(pSpawn->bAlwaysShowAura);
-		Dest.Type = pBoolType;
 		return true;
 
 	case SpawnMembers::GMRank:
@@ -1394,48 +1355,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		Dest.Type = pIntType;
 		return true;
 
-	case SpawnMembers::WarCry:
-		Dest.DWord = pSpawn->WarCry;
-		Dest.Type = pIntType;
-		return true;
-
-	case SpawnMembers::IsPassenger:
-		Dest.DWord = pSpawn->IsPassenger;
-		Dest.Type = pIntType;
-		return true;
-
-	case SpawnMembers::LastCastTime:
-		Dest.DWord = pSpawn->LastCastTime;
-		Dest.Type = pIntType;
-		return true;
-
-	case SpawnMembers::DragNames:
-		Dest.Type = pStringType;
-
-		if (IsNumber(Index))
-		{
-			int index = GetIntFromString(Index, 0);
-			if (index < 0)
-				index = 0;
-			if (index > 1)
-				index = 1;
-			strcpy_s(DataTypeTemp, pSpawn->DragNames[index]);
-			Dest.Ptr = DataTypeTemp;
-			return true;
-		}
-		return false;
-
-	case SpawnMembers::DraggingPlayer:
-		strcpy_s(DataTypeTemp, pSpawn->DraggingPlayer);
-		Dest.Ptr = DataTypeTemp;
-		Dest.Type = pStringType;
-
-	case SpawnMembers::bStationary:
-		Dest.Set(pSpawn->bStationary);
-		Dest.Type = pBoolType;
-		return true;
-
-	case SpawnMembers::bTempPet:
+	case SpawnMembers::TemporaryPet:
 		Dest.Set(pSpawn->bTempPet);
 		Dest.Type = pBoolType;
 		return true;
@@ -1447,16 +1367,6 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 
 	case SpawnMembers::Blind:
 		Dest.DWord = pSpawn->Blind;
-		Dest.Type = pIntType;
-		return true;
-
-	case SpawnMembers::LastCastNum:
-		Dest.DWord = pSpawn->LastCastNum;
-		Dest.Type = pIntType;
-		return true;
-
-	case SpawnMembers::CollisionCounter:
-		Dest.DWord = pSpawn->CollisionCounter;
 		Dest.Type = pIntType;
 		return true;
 
@@ -1502,11 +1412,6 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 			return true;
 		}
 		return false;
-
-	case SpawnMembers::bWaitingForPort:
-		Dest.Set(pSpawn->bWaitingForPort);
-		Dest.Type = pBoolType;
-		return true;
 
 	case SpawnMembers::ActorDef:
 		strcpy_s(DataTypeTemp, pSpawn->mActorClient.ActorDef);
