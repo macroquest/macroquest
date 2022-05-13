@@ -1,3 +1,12 @@
+May 13, 2022 (test):
+- Updated for test patch
+- Number of buffs has changed for player and target. Buff arrays are now dynamically sized,
+  and require some attention when using them in plugins:
+  - Use GetPcProfile()->GetMaxEffects() to get the total number of effects (short and
+    long buffs) for player
+  - Use pPetInfoWnd->GetMaxBuffs() for the max number of buffs on the pet window.
+  - Use pTargetWnd->GetMaxBuffs() for the max number of buffs on the target window.
+
 May 13, 2022:
 - Add Fellowship.Exists
 - Move Inviter, Invited and IsBerserk from Spawn to Character (Me).
