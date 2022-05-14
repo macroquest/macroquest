@@ -1,3 +1,6 @@
+May 14, 2022 (test):
+- Fix issues with frame limiter
+
 May 13, 2022 (test):
 - Updated for test patch
 - Number of buffs has changed for player and target. Buff arrays are now dynamically sized,
