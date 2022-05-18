@@ -51,97 +51,96 @@ bool MQ2DynamicZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 	MQTypeMember* pMember = MQ2DynamicZoneType::FindMember(Member);
 	if (!pMember)
 		return false;
+	if (!pDynamicZone)
+		return false;
 
 	DynamicZoneMembers dataMember = static_cast<DynamicZoneMembers>(pMember->ID);
-	if (pDynamicZone)
+	switch (dataMember)
 	{
-		switch (dataMember)
+	case DynamicZoneMembers::LeaderFlagged:
+		Dest.Set(pDynamicZone->pFirstMember && pDynamicZone->pFirstMember->bFlagged);
+		Dest.Type = pBoolType;
+		return true;
+
+	case DynamicZoneMembers::MaxTimers: {
+		Dest.DWord = 0;
+		Dest.Type = pIntType;
+		DynamicZoneClientTimerData* pTimer = pDynamicZone->pFirstTimer;
+		while (pTimer)
 		{
-		case DynamicZoneMembers::LeaderFlagged:
-			Dest.Set(pDynamicZone->pFirstMember && pDynamicZone->pFirstMember->bFlagged);
-			Dest.Type = pBoolType;
-			return true;
-
-		case DynamicZoneMembers::MaxTimers: {
-			Dest.DWord = 0;
-			Dest.Type = pIntType;
-			DynamicZoneClientTimerData* pTimer = pDynamicZone->pFirstTimer;
-			while (pTimer)
-			{
-				++Dest.DWord;
-				pTimer = pTimer->pNext;
-			}
-			return true;
+			++Dest.DWord;
+			pTimer = pTimer->pNext;
 		}
-
-		case DynamicZoneMembers::Timer:
-			if (Index[0])
-			{
-				DynamicZoneClientTimerData* pTimer = pDynamicZone->pFirstTimer;
-				if (IsNumber(Index))
-				{
-					int Count = GetIntFromString(Index, 0) - 1;
-					if (Count < 0)
-						return false;
-
-					Dest.Type = pDZTimerType;
-					Dest.Ptr = nullptr;
-
-					while (pTimer)
-					{
-						if (Count == 0)
-						{
-							Dest.Ptr = pTimer;
-							return true;
-						}
-
-						pTimer = pTimer->pNext;
-						--Count;
-					}
-				}
-				else
-				{
-					std::string_view svExpedition = Index;
-					std::string_view svEvent;
-
-					auto pos = svExpedition.find("|");
-					if (pos != std::string_view::npos)
-					{
-						svEvent = svExpedition.substr(pos + 1);
-						svExpedition = svExpedition.substr(0, pos);
-					}
-
-					// In the event of multiple matches we'll take the one that is unlocking next.
-					eqtime_t bestTime = INT_MAX;
-					DynamicZoneClientTimerData* pBestTimer = nullptr;
-
-					while (pTimer)
-					{
-						if (ci_equals(pTimer->ExpeditionName, svExpedition)
-							&& (svEvent.empty() || ci_equals(svEvent, pTimer->EventName)))
-						{
-							if (pTimer->TimeStamp < bestTime)
-							{
-								pBestTimer = pTimer;
-								bestTime = pTimer->TimeStamp;
-							}
-						}
-						pTimer = pTimer->pNext;
-					}
-
-					Dest.Type = pDZTimerType;
-					Dest.Ptr = pBestTimer;
-					return true;
-				}
-			}
-			return false;
-
-		default:
-			break;
-		}
+		return true;
 	}
 
-	if (!pDZMember || !pDynamicZone)
+	case DynamicZoneMembers::Timer:
+		if (Index[0])
+		{
+			DynamicZoneClientTimerData* pTimer = pDynamicZone->pFirstTimer;
+			if (IsNumber(Index))
+			{
+				int Count = GetIntFromString(Index, 0) - 1;
+				if (Count < 0)
+					return false;
+
+				Dest.Type = pDZTimerType;
+				Dest.Ptr = nullptr;
+
+				while (pTimer)
+				{
+					if (Count == 0)
+					{
+						Dest.Ptr = pTimer;
+						return true;
+					}
+
+					pTimer = pTimer->pNext;
+					--Count;
+				}
+			}
+			else
+			{
+				std::string_view svExpedition = Index;
+				std::string_view svEvent;
+
+				auto pos = svExpedition.find("|");
+				if (pos != std::string_view::npos)
+				{
+					svEvent = svExpedition.substr(pos + 1);
+					svExpedition = svExpedition.substr(0, pos);
+				}
+
+				// In the event of multiple matches we'll take the one that is unlocking next.
+				eqtime_t bestTime = INT_MAX;
+				DynamicZoneClientTimerData* pBestTimer = nullptr;
+
+				while (pTimer)
+				{
+					if (ci_equals(pTimer->ExpeditionName, svExpedition)
+						&& (svEvent.empty() || ci_equals(svEvent, pTimer->EventName)))
+					{
+						if (pTimer->TimeStamp < bestTime)
+						{
+							pBestTimer = pTimer;
+							bestTime = pTimer->TimeStamp;
+						}
+					}
+					pTimer = pTimer->pNext;
+				}
+
+				Dest.Type = pDZTimerType;
+				Dest.Ptr = pBestTimer;
+				return true;
+			}
+		}
+		return false;
+
+	default:
+		break;
+	}
+
+	if (!pDZMember)
 		return false;
 
 	switch (dataMember)
@@ -164,9 +163,6 @@ bool MQ2DynamicZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		}
 		return true;
 	}
-
-	case DynamicZoneMembers::LeaderFlagged:
-
 
 	case DynamicZoneMembers::MaxMembers:
 		Dest.DWord = pDynamicZone->MaxPlayers;
