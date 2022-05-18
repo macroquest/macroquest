@@ -36,10 +36,11 @@ public:
 		}
 	}
 
-	void Emplace(const CachedBuff& buff)
+	template <typename ...Args>
+	void Emplace(Args&& ... args)
 	{
 		// by virtue of how we add to this vector, we won't have duplicates since we always clear before
-		cachedBuffs.emplace_back(buff);
+		cachedBuffs.emplace_back(std::forward<Args>(args)...);
 	}
 
 	auto Drop(std::function<bool(CachedBuff)> predicate)
