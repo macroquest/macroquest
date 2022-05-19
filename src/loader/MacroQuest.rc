@@ -146,7 +146,7 @@ BEGIN
         MENUITEM SEPARATOR
         POPUP "&Advanced"
         BEGIN
-            MENUITEM "&Toggle Console",             ID_ADVANCED_TOGGLECONSOLE
+            MENUITEM "&Toggle Debug Console",       ID_ADVANCED_TOGGLECONSOLE
             MENUITEM "&Unload All Instances",       ID_FORCEUNLOADOFALLMQ2
             MENUITEM "&Check App Compatiblity",     ID_MENU_CHECKAPPCOMPAT
         END
