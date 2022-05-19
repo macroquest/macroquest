@@ -18,7 +18,7 @@
 #include <spdlog/spdlog.h>
 #include <cpr/cpr.h>
 
-bool IsProcessAlreadyRunning(const char* exeName)
+bool IsProcessRunning(const char* exeName)
 {
 	wil::unique_tool_help_snapshot hSnapshot(CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
 
@@ -74,6 +74,18 @@ std::string GetVersionStringRemote(const std::string& versionURL)
 		return r.text;
 	}
 	return "FAILED";
+}
+
+void ShowWarningBlocking(const std::string& Message)
+{
+	SPDLOG_WARN(Message);
+	MessageBox(nullptr, Message.c_str(), "MacroQuest", MB_OK | MB_ICONWARNING);
+}
+
+void ShowErrorBlocking(const std::string& Message)
+{
+	SPDLOG_ERROR(Message);
+	MessageBox(nullptr, Message.c_str(), "MacroQuest", MB_OK | MB_ICONERROR);
 }
 
 void ThreadedMessage(const std::string& Message, int MessageType)

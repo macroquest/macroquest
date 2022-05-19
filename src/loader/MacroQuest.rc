@@ -76,6 +76,7 @@ BEGIN
             VALUE "OriginalFilename", "MacroQuest.exe"
             VALUE "ProductName", "MacroQuest"
             VALUE "ProductVersion", "3.0.0.0"
+            VALUE "Publisher", "MacroQuest"
         END
     END
     BLOCK "VarFileInfo"

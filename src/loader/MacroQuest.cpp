@@ -110,6 +110,8 @@ void InitializeConsole()
 	coninfo.dwSize.Y = 500;
 	::SetConsoleScreenBufferSize(::GetStdHandle(STD_OUTPUT_HANDLE), coninfo.dwSize);
 
+	SetConsoleTitle("Debug Console");
+
 	gbConsoleVisible = true;
 	gbConsoleCreated = true;
 }
@@ -178,7 +180,7 @@ void InitializeLogging()
 
 	// create color multi threaded logger
 
-	auto logger = spdlog::create<spdlog::sinks::wincolor_stdout_sink_mt>("MQ2");
+	auto logger = spdlog::create<spdlog::sinks::wincolor_stdout_sink_mt>("MQ");
 	if (IsDebuggerPresent())
 	{
 		logger->sinks().push_back(std::make_shared<spdlog::sinks::msvc_sink_mt>());
@@ -922,7 +924,7 @@ void HandleCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case ID_STARTEQBCS:
-		if (IsProcessAlreadyRunning("eqbcs.exe"))
+		if (IsProcessRunning("eqbcs.exe"))
 		{
 			ThreadedMessage("EQBCS is already running.", MB_OK | MB_ICONWARNING);
 		}
@@ -1246,63 +1248,71 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 			thisProgramPath = absolute(thisProgramPath, ec);
 		}
 
-		// Clean up the old process file
+		std::filesystem::path ProgramPath;
+
 		const std::string oldProcessName = GetPrivateProfileValue("Internal", "SpawnedProcess", "", internal_paths::MQini.c_str());
-		if (!oldProcessName.empty())
+		if (oldProcessName.empty())
 		{
-			// Maybe this already is the renamed process (also allows for static names by setting SpawnedProcess to the name)
-			if (ci_equals(oldProcessName, thisProgramPath.filename().string()))
-			{
-				spawnedProcess = true;
-			}
-			else
-			{
-				const std::filesystem::path oldProgramPath = thisProgramPath.parent_path() / oldProcessName;
-				std::error_code ec;
-				if (exists(oldProgramPath, ec))
-				{
-					if (!remove(oldProgramPath))
-					{
-						SPDLOG_ERROR("Could not delete previous loader: {}", oldProgramPath.string());
-					}
-				}
-			}
+			ProgramPath = GetUniqueFileName(thisProgramPath.parent_path(), "exe");
+		}
+		else
+		{
+			ProgramPath = thisProgramPath.parent_path() / oldProcessName;
 		}
 
-		if (!spawnedProcess)
+		// Launch a new process if this process isn't the renamed process
+		if (!ci_equals(ProgramPath.filename().string(), thisProgramPath.filename().string()))
 		{
-			const std::filesystem::path newProgramPath = GetUniqueFileName(thisProgramPath.parent_path(), "exe");
-
 			std::error_code ec;
-			if (std::filesystem::copy_file(thisProgramPath, newProgramPath, ec))
+			if (exists(ProgramPath, ec))
 			{
-				fullCommandLine = fmt::format("\"{}\" {} /spawnedprocess", newProgramPath.string(), fullCommandLine);
-
-				STARTUPINFO si = {};
-				wil::unique_process_information pi;
-
-				if (CreateProcess(newProgramPath.string().c_str(), // Application Name - Null says use command line processor
-						&fullCommandLine[0], // Command line to run
-						nullptr,             // Process Attributes - handle not inheritable
-						nullptr,             // Thread Attributes - handle not inheritable
-						false,               // Set handle inheritance to FALSE
-						CREATE_NEW_CONSOLE,  // Creation Flags - Create a new console window instead of running in the existing console
-						nullptr,             // Use parent's environment block
-						nullptr,             // Use parent's starting directory
-						&si,                 // Pointer to STARTUPINFO structure
-						&pi)                 // Pointer to PROCESS_INFORMATION structure
-					)
+				if (IsProcessRunning(oldProcessName.c_str()))
 				{
-					WritePrivateProfileValue("Internal", "SpawnedProcess", newProgramPath.filename().string(), internal_paths::MQini.c_str());
+					if (!file_equals(thisProgramPath, ProgramPath))
+					{
+						ShowWarningBlocking("Please exit out of the alternate loader for an update: " + oldProcessName);
+					}
+					else
+					{
+						SPDLOG_WARN("Alternate loader is already running: " + ProgramPath.string());
+						exit(0);
+					}
 				}
-				else
+				if (!file_equals(thisProgramPath, ProgramPath) && !remove(ProgramPath, ec))
 				{
-					SPDLOG_ERROR("Could not launch copy of this program at: {}", newProgramPath.string());
+					ShowErrorBlocking("Could not delete alternate loader: " + ProgramPath.string());
+					exit(1);
 				}
+			}
+			if (!exists(ProgramPath, ec) && !std::filesystem::copy_file(thisProgramPath, ProgramPath, ec))
+			{
+				ShowErrorBlocking("Could not create duplicate of this program at: " + ProgramPath.string());
+				exit(1);
+			}
+
+			fullCommandLine = fmt::format("\"{}\" {} /spawnedprocess", ProgramPath.string(), fullCommandLine);
+
+			STARTUPINFO si = {};
+			wil::unique_process_information pi;
+
+			if (CreateProcess(ProgramPath.string().c_str(), // Application Name - Null says use command line processor
+					&fullCommandLine[0], // Command line to run
+					nullptr,             // Process Attributes - handle not inheritable
+					nullptr,             // Thread Attributes - handle not inheritable
+					false,               // Set handle inheritance to FALSE
+					CREATE_NEW_CONSOLE,  // Creation Flags - Create a new console window instead of running in the existing console
+					nullptr,             // Use parent's environment block
+					nullptr,             // Use parent's starting directory
+					&si,                 // Pointer to STARTUPINFO structure
+					&pi)                 // Pointer to PROCESS_INFORMATION structure
+				)
+			{
+				WritePrivateProfileValue("Internal", "SpawnedProcess", ProgramPath.filename().string(), internal_paths::MQini.c_str());
 			}
 			else
 			{
-				SPDLOG_ERROR("Could not create duplicate of this program at: {}", newProgramPath.string());
+				ShowErrorBlocking("Could not launch alternate loader at: " + ProgramPath.string());
+				exit(1);
 			}
 			exit(0);
 		}
