@@ -1,3 +1,6 @@
+Maya 20, 2022:
+- Fix /drop (#564)
+
 May 18, 2022:
 - Updated for patch
 - Number of buffs has changed for player and target. Buff arrays are now dynamically sized,
