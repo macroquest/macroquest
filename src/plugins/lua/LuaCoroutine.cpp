@@ -72,7 +72,7 @@ bool LuaCoroutine::CheckCondition(std::optional<sol::function>& func)
 	return false;
 }
 
-void LuaCoroutine::Delay(sol::object delayObj, sol::object conditionObj)
+void LuaCoroutine::Delay(sol::object delayObj, sol::object conditionObj, sol::state_view s)
 {
 	using namespace std::chrono_literals;
 
@@ -95,6 +95,11 @@ void LuaCoroutine::Delay(sol::object delayObj, sol::object conditionObj)
 			{
 				delay_int.emplace(std::chrono::duration_cast<std::chrono::milliseconds>(
 					std::chrono::seconds(GetIntFromString(*delay_str, 0))).count());
+			}
+			else
+			{
+				luaL_error(s, "Units are required when passing delay as a string.");
+				return;
 			}
 		}
 	}

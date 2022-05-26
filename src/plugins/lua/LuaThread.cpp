@@ -177,7 +177,7 @@ void LuaThread::InjectMQNamespace()
 	{
 		if (auto co_ptr = thread_ptr->GetCurrentCoroutine())
 		{
-			co_ptr->Delay(delayObj, conditionObj);
+			co_ptr->Delay(delayObj, conditionObj, s);
 		}
 	}
 }
