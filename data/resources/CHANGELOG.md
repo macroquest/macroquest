@@ -1,4 +1,7 @@
-Maya 20, 2022:
+May 26, 2022:
+- lua: Throw error if string argument to mq.delay contains no time unit.
+
+May 20, 2022:
 - Fix /drop (#564)
 
 May 18, 2022:
