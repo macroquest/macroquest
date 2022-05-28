@@ -30,6 +30,8 @@ enum class ItemSpellMembers
 	ProcRate,
 	OtherName,
 	OtherID,
+	OverrideName,
+	OverrideDescription,
 	Spell,
 };
 
@@ -47,6 +49,8 @@ MQ2ItemSpellType::MQ2ItemSpellType() : MQ2Type("itemspell")
 	ScopedTypeMember(ItemSpellMembers, OtherName);
 	ScopedTypeMember(ItemSpellMembers, OtherID);
 	ScopedTypeMember(ItemSpellMembers, Spell);
+	ScopedTypeMember(ItemSpellMembers, OverrideName);
+	ScopedTypeMember(ItemSpellMembers, OverrideDescription);
 };
 
 bool MQ2ItemSpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -106,6 +110,7 @@ bool MQ2ItemSpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.Type = pIntType;
 		return true;
 
+	case ItemSpellMembers::OverrideName:
 	case ItemSpellMembers::OtherName:
 		strcpy_s(DataTypeTemp, pItemSpell->OtherName);
 		Dest.Ptr = &DataTypeTemp[0];
@@ -115,6 +120,27 @@ bool MQ2ItemSpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	case ItemSpellMembers::OtherID:
 		Dest.DWord = pItemSpell->OtherID;
 		Dest.Type = pIntType;
+		return true;
+
+	case ItemSpellMembers::OverrideDescription:
+		if (pItemSpell->OtherID > 0)
+		{
+			if (const char* ptr = pDBStr->GetString(pItemSpell->OtherID, eSpellDescription))
+			{
+				strcpy_s(DataTypeTemp, ptr);
+			}
+			else
+			{
+				sprintf_s(DataTypeTemp, "UnknownDescription(%d)", pItemSpell->OtherID);
+			}
+		}
+		else
+		{
+			DataTypeTemp[0] = 0;
+		}
+
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
 		return true;
 
 	case ItemSpellMembers::Spell:

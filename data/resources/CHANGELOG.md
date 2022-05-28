@@ -1,3 +1,11 @@
+May 27, 20222:
+- datatype: ItemSpell: add members OverrideName, OverrideDescription.
+  - OverrideName replaces the OtherName member. This is a name that overrides the spell name
+    when the spell is on an item.
+  - OverrideDescription overrides the description string from the spell, similar to OverrideName.
+- datatype: Item: fixed off-by-one error with AugSlot. The Correct range is now 1-6 and now
+  matches the Slot value as expected.
+
 May 26, 2022:
 - lua: Throw error if string argument to mq.delay contains no time unit.
 

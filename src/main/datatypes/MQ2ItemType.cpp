@@ -159,7 +159,6 @@ enum class ItemMembers
 	NoDestroy,
 	Quest,
 	Expendable,
-	ContAddress,
 	ItemLink,
 	Icon,
 	SkillModMax,
@@ -332,7 +331,6 @@ MQ2ItemType::MQ2ItemType() : MQ2Type("item")
 	ScopedTypeMember(ItemMembers, NoDestroy);
 	ScopedTypeMember(ItemMembers, Quest);
 	ScopedTypeMember(ItemMembers, Expendable);
-	ScopedTypeMember(ItemMembers, ContAddress);
 	ScopedTypeMember(ItemMembers, ItemLink);
 	ScopedTypeMember(ItemMembers, Icon);
 	ScopedTypeMember(ItemMembers, SkillModMax);
@@ -1323,7 +1321,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	case ItemMembers::AugSlot:
 	{
 		Dest.Type = pAugType;
-		int index = GetIntFromString(Index, -1);
+		int index = GetIntFromString(Index, 0) - 1;
 		if (index >= 0 && index < MAX_AUG_SOCKETS
 			&& GetItemFromContents(pItem)->Type == ITEMTYPE_NORMAL)
 		{

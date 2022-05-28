@@ -349,116 +349,119 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		// TODO: Turn these into an enum class
 		switch (pSpell->TargetType)
 		{
-		case 50:
+		case TargetType_AreaDetrimental:
 			strcpy_s(DataTypeTemp, "Target_AE_No_Players_Pets");
 			break; // blanket of forgetfullness. beneficial, AE mem blur, with max targets
-		case 52:
+		case TargetType_TargetBeneficial:
 			strcpy_s(DataTypeTemp, "Single Friendly (or Target's Target");
 			break; // Introduced in Torment of Velious. Spell affects target if friendly, or target's target if the target is an unfriendly.
-		case 47:
+		case TargetType_PetOwner:
 			strcpy_s(DataTypeTemp, "Pet Owner");
 			break;
-		case 46:
+		case TargetType_TargetOfTarget:
 			strcpy_s(DataTypeTemp, "Target of Target");
 			break;
-		case 45:
+		case TargetType_FreeTarget:
 			strcpy_s(DataTypeTemp, "Free Target");
 			break;
-		case 44:
+		case TargetType_Beam:
 			strcpy_s(DataTypeTemp, "Beam");
 			break;
-		case 43:
+		case TargetType_SingleGrouped:
 			strcpy_s(DataTypeTemp, "Single in Group");
 			break;
-		case 42:
+		case TargetType_DirectionalCone:
 			strcpy_s(DataTypeTemp, "Directional AE");
 			break;
-		case 41:
+		case TargetType_Group_v2:
 			strcpy_s(DataTypeTemp, "Group v2");
 			break;
-		case 40:
+		case TargetType_AEPC_v2:
 			strcpy_s(DataTypeTemp, "AE PC v2");
 			break;
-		case 39:
+		case TargetType_TargetPC:
 			strcpy_s(DataTypeTemp, "No Pets");
 			break;
-		case 38:
+		case TargetType_Pet_v2:
 			strcpy_s(DataTypeTemp, "Pet2");
 			break;
-		case 37:
+		case TargetType_CasterAreaNPC:
 			strcpy_s(DataTypeTemp, "Caster PB NPC");
 			break;
-		case 36:
+		case TargetType_CasterAreaPC:
 			strcpy_s(DataTypeTemp, "Caster PB PC");
 			break;
-		case 35:
+		case TargetType_TargetMuramite:
 			strcpy_s(DataTypeTemp, "Special Muramites");
 			break;
-		case 34:
+		case TargetType_TargetCursed:
 			strcpy_s(DataTypeTemp, "Chest");
 			break;
-		case 33:
+		case TargetType_HateList_All:
 			strcpy_s(DataTypeTemp, "Hatelist2");
 			break;
-		case 32:
+		case TargetType_HateList:
 			strcpy_s(DataTypeTemp, "Hatelist");
 			break;
-		case 25:
+		case TargetType_TargetAESummoned:
 			strcpy_s(DataTypeTemp, "AE Summoned");
 			break;
-		case 24:
+		case TargetType_TargetAEUndead:
 			strcpy_s(DataTypeTemp, "AE Undead");
 			break;
-		case 20:
+		case TargetType_TargetAEDrain:
 			strcpy_s(DataTypeTemp, "Targeted AE Tap");
 			break;
-		case 18:
+		case TargetType_TargetDragons:
 			strcpy_s(DataTypeTemp, "Uber Dragons");
 			break;
-		case 17:
+		case TargetType_TargetGiants:
 			strcpy_s(DataTypeTemp, "Uber Giants");
 			break;
-		case 16:
+		case TargetType_TargetPlant:
 			strcpy_s(DataTypeTemp, "Plant");
 			break;
-		case 15:
+		case TargetType_TargetCorpse:
 			strcpy_s(DataTypeTemp, "Corpse");
 			break;
-		case 14:
+		case TargetType_Pet:
 			strcpy_s(DataTypeTemp, "Pet");
 			break;
-		case 13:
+		case TargetType_TargetDrain:
 			strcpy_s(DataTypeTemp, "LifeTap");
 			break;
-		case 11:
+		case TargetType_TargetSummoned:
 			strcpy_s(DataTypeTemp, "Summoned");
 			break;
-		case 10:
+		case TargetType_TargetUndead:
 			strcpy_s(DataTypeTemp, "Undead");
 			break;
-		case  9:
+		case TargetType_TargetAnimal:
 			strcpy_s(DataTypeTemp, "Animal");
 			break;
-		case  8:
+		case TargetType_TargetArea:
 			strcpy_s(DataTypeTemp, "Targeted AE");
 			break;
-		case  6:
+		case TargetType_Self:
 			strcpy_s(DataTypeTemp, "Self");
 			break;
-		case  5:
+		case TargetType_Single:
 			strcpy_s(DataTypeTemp, "Single");
 			break;
-		case  4:
+		case TargetType_PBAE:
 			strcpy_s(DataTypeTemp, "PB AE");
 			break;
-		case  3:
+		case TargetType_Group_v1:
 			strcpy_s(DataTypeTemp, "Group v1");
 			break;
-		case  2:
+		case TargetType_AEPC_v1:
 			strcpy_s(DataTypeTemp, "AE PC v1");
 			break;
-		case  1:
+		case TargetType_LineOfSight:
 			strcpy_s(DataTypeTemp, "Line of Sight");
+			break;
+		case TargetType_None:
+			strcpy_s(DataTypeTemp, "None");
 			break;
 		default:
 			strcpy_s(DataTypeTemp, "Unknown");
