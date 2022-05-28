@@ -1,8 +1,19 @@
-May 14, 2022 (test):
-- Fix issues with frame limiter
+May 27, 20222:
+- datatype: ItemSpell: add members OverrideName, OverrideDescription.
+  - OverrideName replaces the OtherName member. This is a name that overrides the spell name
+    when the spell is on an item.
+  - OverrideDescription overrides the description string from the spell, similar to OverrideName.
+- datatype: Item: fixed off-by-one error with AugSlot. The Correct range is now 1-6 and now
+  matches the Slot value as expected.
 
-May 13, 2022 (test):
-- Updated for test patch
+May 26, 2022:
+- lua: Throw error if string argument to mq.delay contains no time unit.
+
+May 20, 2022:
+- Fix /drop (#564)
+
+May 18, 2022:
+- Updated for patch
 - Number of buffs has changed for player and target. Buff arrays are now dynamically sized,
   and require some attention when using them in plugins:
   - Use GetPcProfile()->GetMaxEffects() to get the total number of effects (short and
@@ -59,9 +70,6 @@ April 13, 2022:
   Group.Injured (#477).
 - Add /alias reload (#478).
 - lua: event text will now have mq color codes stripped (#486).
-
-March 18, 2022:
-- Update for test patch on 2022-03-16
 
 March 9, 2022:
 - Updated for patch.

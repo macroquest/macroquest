@@ -22,17 +22,9 @@ enum class CurrentZoneMembers
 	Name = 1,
 	ShortName,
 	Type,
-	Gravity,
-	SkyEnabled,
-	SafeY,
-	SafeX,
-	SafeZ,
 	MinClip,
 	MaxClip,
 	ID,
-	SafeN,
-	SafeW,
-	SafeU,
 	ZoneType,
 	Dungeon,
 	Indoor,
@@ -45,17 +37,9 @@ MQ2CurrentZoneType::MQ2CurrentZoneType() : MQ2Type("currentzone")
 	ScopedTypeMember(CurrentZoneMembers, Name);
 	ScopedTypeMember(CurrentZoneMembers, ShortName);
 	ScopedTypeMember(CurrentZoneMembers, Type);
-	ScopedTypeMember(CurrentZoneMembers, Gravity);
-	ScopedTypeMember(CurrentZoneMembers, SkyEnabled);
-	ScopedTypeMember(CurrentZoneMembers, SafeY);
-	ScopedTypeMember(CurrentZoneMembers, SafeX);
-	ScopedTypeMember(CurrentZoneMembers, SafeZ);
 	ScopedTypeMember(CurrentZoneMembers, MinClip);
 	ScopedTypeMember(CurrentZoneMembers, MaxClip);
 	ScopedTypeMember(CurrentZoneMembers, ID);
-	ScopedTypeMember(CurrentZoneMembers, SafeN);
-	ScopedTypeMember(CurrentZoneMembers, SafeW);
-	ScopedTypeMember(CurrentZoneMembers, SafeU);
 	ScopedTypeMember(CurrentZoneMembers, ZoneType);
 	ScopedTypeMember(CurrentZoneMembers, Dungeon);
 	ScopedTypeMember(CurrentZoneMembers, Indoor);
@@ -108,16 +92,6 @@ bool MQ2CurrentZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 	case CurrentZoneMembers::ZoneType:
 	case CurrentZoneMembers::Type:
 		Dest.DWord = pCurrentZone->ZoneType;
-		Dest.Type = pIntType;
-		return true;
-
-	case CurrentZoneMembers::Gravity:
-		Dest.Float = pCurrentZone->ZoneGravity;
-		Dest.Type = pFloatType;
-		return true;
-
-	case CurrentZoneMembers::SkyEnabled:
-		Dest.DWord = pCurrentZone->SkyEnabled;
 		Dest.Type = pIntType;
 		return true;
 

@@ -68,4 +68,10 @@ inline std::filesystem::path GetUniqueFileName(const std::filesystem::path& base
 	return returnPath;
 }
 
+inline bool file_equals(const std::filesystem::path fileOne, const std::filesystem::path fileTwo)
+{
+	std::error_code ec;
+	return (file_size(fileOne, ec) == file_size(fileTwo, ec) && last_write_time(fileOne, ec) == last_write_time(fileTwo, ec));
+}
+
 } // namespace mq

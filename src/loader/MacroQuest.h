@@ -143,9 +143,11 @@ std::string GetInjecteePath();
 
 
 // Utility
-bool IsProcessAlreadyRunning(const char* exeName);
+bool IsProcessRunning(const char* exeName);
 std::string GetVersionStringLocal(const std::filesystem::path& filePath);
 std::string GetVersionStringRemote(const std::string& versionURL);
+void ShowWarningBlocking(const std::string& Message);
+void ShowErrorBlocking(const std::string& Message);
 void ThreadedMessage(const std::string& Message, int MessageType);
 
 // RemoteOps

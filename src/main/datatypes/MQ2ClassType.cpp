@@ -55,6 +55,8 @@ bool MQ2ClassType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	if (!pMember)
 		return false;
 
+	PlayerClass classVal = static_cast<PlayerClass>(VarPtr.DWord);
+
 	switch (static_cast<ClassMembers>(pMember->ID))
 	{
 	case ClassMembers::ID:
@@ -63,101 +65,61 @@ bool MQ2ClassType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case ClassMembers::Name:
-		strcpy_s(DataTypeTemp, GetClassDesc(VarPtr.DWord));
+		strcpy_s(DataTypeTemp, GetClassDesc(classVal));
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
 	case ClassMembers::ShortName:
-		strcpy_s(DataTypeTemp, pEverQuest->GetClassThreeLetterCode(VarPtr.DWord));
+		strcpy_s(DataTypeTemp, pEverQuest->GetClassThreeLetterCode(classVal));
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
 	case ClassMembers::CanCast:
-		Dest.Set(false);
+		Dest.Set(classVal <= TotalPlayerClasses && ClassInfo[classVal].CanCast);
 		Dest.Type = pBoolType;
-		if (VarPtr.DWord <= 16)
-		{
-			Dest.Set(ClassInfo[VarPtr.DWord].CanCast);
-			return true;
-		}
-		return false;
+		return true;
 
 	case ClassMembers::PureCaster:
-		Dest.Set(false);
+		Dest.Set(classVal <= TotalPlayerClasses && ClassInfo[classVal].PureCaster);
 		Dest.Type = pBoolType;
-		if (VarPtr.DWord <= 16)
-		{
-			Dest.Set(ClassInfo[VarPtr.DWord].PureCaster);
-			return true;
-		}
-		return false;
+		return true;
 
 	case ClassMembers::PetClass:
-		Dest.Set(false);
+		Dest.Set(classVal <= TotalPlayerClasses && ClassInfo[classVal].PetClass);
 		Dest.Type = pBoolType;
-		if (VarPtr.DWord <= 16)
-		{
-			Dest.Set(ClassInfo[VarPtr.DWord].PetClass);
-			return true;
-		}
-		return false;
+		return true;
 
 	case ClassMembers::DruidType:
-		Dest.Set(false);
+		Dest.Set(classVal <= TotalPlayerClasses && ClassInfo[classVal].DruidType);
 		Dest.Type = pBoolType;
-		if (VarPtr.DWord <= 16)
-		{
-			Dest.Set(ClassInfo[VarPtr.DWord].DruidType);
-			return true;
-		}
-		return false;
+		return true;
 
 	case ClassMembers::ShamanType:
-		Dest.Set(false);
+		Dest.Set(classVal <= TotalPlayerClasses && ClassInfo[classVal].ShamanType);
 		Dest.Type = pBoolType;
-		if (VarPtr.DWord <= 16)
-		{
-			Dest.Set(ClassInfo[VarPtr.DWord].ShamanType);
-			return true;
-		}
-		return false;
+		return true;
 
 	case ClassMembers::NecromancerType:
-		Dest.Set(false);
+		Dest.Set(classVal <= TotalPlayerClasses && ClassInfo[classVal].NecroType);
 		Dest.Type = pBoolType;
-		if (VarPtr.DWord <= 16)
-		{
-			Dest.Set(ClassInfo[VarPtr.DWord].NecroType);
-			return true;
-		}
-		return false;
+		return true;
 
 	case ClassMembers::ClericType:
-		Dest.Set(false);
+		Dest.Set(classVal <= TotalPlayerClasses && ClassInfo[classVal].ClericType);
 		Dest.Type = pBoolType;
-		if (VarPtr.DWord <= 16)
-		{
-			Dest.Set(ClassInfo[VarPtr.DWord].ClericType);
-			return true;
-		}
-		return false;
+		return true;
 
 	case ClassMembers::HealerType:
-		Dest.Set(VarPtr.DWord == 2 || VarPtr.DWord == 6 || VarPtr.DWord == 10);
+		Dest.Set(classVal == Cleric || classVal == Druid || classVal == Shaman);
 		Dest.Type = pBoolType;
 		return true;
 
 	case ClassMembers::MercType:
-		Dest.Set(false);
+		Dest.Set(classVal == Mercenary);
 		Dest.Type = pBoolType;
-		if (VarPtr.DWord <= 17)
-		{
-			Dest.Set(ClassInfo[VarPtr.DWord].MercType);
-			return true;
-		}
-		return false;
+		return true;
 
 	default: break;
 	}
