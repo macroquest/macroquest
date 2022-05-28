@@ -1,4 +1,7 @@
-May 27, 20222:
+May 27, 2022 (test):
+- Update for test patch
+
+May 27, 2022:
 - datatype: ItemSpell: add members OverrideName, OverrideDescription.
   - OverrideName replaces the OtherName member. This is a name that overrides the spell name
     when the spell is on an item.
