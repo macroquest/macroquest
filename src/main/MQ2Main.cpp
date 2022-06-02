@@ -920,7 +920,7 @@ DWORD WINAPI MQ2Start(void* lpParameter)
 
 	if (!MQ2Initialize())
 	{
-		MessageBox(nullptr, "Failed to Initialize MQ2.", "MQ2 Error", MB_OK);
+		MessageBox(nullptr, "Failed to Initialize MQ.", "MQ Error", MB_OK);
 
 		if (HMODULE h = GetCurrentModule())
 			FreeLibraryAndExitThread(h, 0);
