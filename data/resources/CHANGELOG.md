@@ -1,3 +1,6 @@
+Jun 1, 2022:
+- Fix ${Me.SkillCap} (#568)
+
 May 27, 2022:
 - datatype: ItemSpell: add members OverrideName, OverrideDescription.
   - OverrideName replaces the OtherName member. This is a name that overrides the spell name
