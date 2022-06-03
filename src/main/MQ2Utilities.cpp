@@ -508,7 +508,7 @@ char* GetEQPath(char* szBuffer, size_t len)
 
 void StripMQChat(std::string_view in, char* out)
 {
-	int i = 0;
+	size_t i = 0;
 	int o = 0;
 	while (i < in.size() && in[i])
 	{
