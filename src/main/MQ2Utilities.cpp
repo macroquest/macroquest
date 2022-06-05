@@ -6482,20 +6482,33 @@ eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 			//    return NPC;
 
 		case 5: // Construct
-			if (strstr(pSpawn->Name, "Idol") || strstr(pSpawn->Name, "Poison") || strstr(pSpawn->Name, "Rune"))
+			// "Invisible Man" Race containing "Aura" in the Name
+			if ((pSpawn->GetRace() == 127) && strstr(pSpawn->Name, "Aura"))
 				return AURA;
+			// "Spike Trap" Race containing "Poison" in the Name
+			if ((pSpawn->GetRace() == 513) && (strstr(pSpawn->Name, "poison") || strstr(pSpawn->Name, "Poison")))
+				return AURA;
+			// Contains "Rune" in the Name
+			if (strstr(pSpawn->Name, "Rune"))
+				return AURA;
+			// Object Class
 			if (pSpawn->GetClass() == Class_Object)
 				return OBJECT;
 			return NPC;
 
 		case 7: // Magical
+			// "Campfire" Race
 			if (pSpawn->GetRace() == EQR_CAMPSITE)
 				return CAMPFIRE;
+			// "Totem" Race containing "Idol" in the Name
+			if ((pSpawn->GetRace() == 514) && strstr(pSpawn->Name, "Idol"))
+				return AURA;
+			// Object Class
 			if (pSpawn->GetClass() == Class_Object)
 				return OBJECT;
 			return NPC;
 
-		case 11:
+		case 11: // Untargetable
 			if (strstr(pSpawn->Name, "Aura") || strstr(pSpawn->Name, "Circle_of") || strstr(pSpawn->Name, "Guardian_Circle") || strstr(pSpawn->Name, "Earthen_Strength"))
 				return AURA;
 			return UNTARGETABLE;
