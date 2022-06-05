@@ -6467,30 +6467,30 @@ eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 
 		switch (GetBodyType(pSpawn))
 		{
-		case 0:
+		case 0: // Object
 			if (pSpawn->GetClass() == Class_Object)
 				return OBJECT;
 			return NPC;
 
-		case 1:
-			if (pSpawn->GetRace() == EQR_CAMPSITE)
-				return CAMPFIRE;
+		case 1: // Humanoid
 			if (pSpawn->GetRace() == EQR_BANNER
 				|| (pSpawn->GetRace() >= EQR_BANNER0 && pSpawn->GetRace() <= EQR_BANNER4) || pSpawn->GetRace() == EQR_TCGBANNER)
 				return BANNER;
 			return NPC;
 
-			//case 3:
+			//case 3: // Undead
 			//    return NPC;
 
-		case 5:
+		case 5: // Construct
 			if (strstr(pSpawn->Name, "Idol") || strstr(pSpawn->Name, "Poison") || strstr(pSpawn->Name, "Rune"))
 				return AURA;
 			if (pSpawn->GetClass() == Class_Object)
 				return OBJECT;
 			return NPC;
 
-		case 7:
+		case 7: // Magical
+			if (pSpawn->GetRace() == EQR_CAMPSITE)
+				return CAMPFIRE;
 			if (pSpawn->GetClass() == Class_Object)
 				return OBJECT;
 			return NPC;
@@ -6500,33 +6500,33 @@ eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 				return AURA;
 			return UNTARGETABLE;
 
-			//case 21:
+			//case 21: // Animal
 			//    return NPC;
-			//case 23:
+			//case 23: // Monster
 			//    return NPC;
 
-		case 33:
+		case 33: // Cursed
 			return CHEST;
 
-			//case 34:
+			//case 34: // Muramite
 			//    return NPC;
-			//case 65:
+			//case 65: // Trap
 			//    return TRAP;
-			//case 66:
+			//case 66: // Timer
 			//    return TIMER;
-			//case 67:
+			//case 67: // Trigger
 			//    return TRIGGER;
 
-		case 100:
+		case 100: // Untargetable
 			return UNTARGETABLE
 				;
-		case 101:
+		case 101: // Property Trap
 			return TRAP;
 
-		case 102:
+		case 102: // Property Companion
 			return TIMER;
 
-		case 103:
+		case 103: // Property Suicide
 			return TRIGGER;
 
 		default: break;
