@@ -6531,8 +6531,8 @@ eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 			//    return TRIGGER;
 
 		case 100: // Untargetable
-			return UNTARGETABLE
-				;
+			return UNTARGETABLE;
+
 		case 101: // Property Trap
 			return TRAP;
 
