@@ -6483,10 +6483,10 @@ eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 
 		case 5: // Construct
 			// "Invisible Man" Race containing "Aura" in the Name
-			if ((pSpawn->GetRace() == 127) && strstr(pSpawn->Name, "Aura"))
+			if ((pSpawn->GetRace() == EQR_INVISIBLE_MAN) && strstr(pSpawn->Name, "Aura"))
 				return AURA;
 			// "Spike Trap" Race containing "Poison" in the Name
-			if ((pSpawn->GetRace() == 513) && (strstr(pSpawn->Name, "poison") || strstr(pSpawn->Name, "Poison")))
+			if ((pSpawn->GetRace() == EQR_SPIKE_TRAP) && (strstr(pSpawn->Name, "poison") || strstr(pSpawn->Name, "Poison")))
 				return AURA;
 			// Contains "Rune" in the Name
 			if (strstr(pSpawn->Name, "Rune"))
@@ -6501,7 +6501,7 @@ eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 			if (pSpawn->GetRace() == EQR_CAMPSITE)
 				return CAMPFIRE;
 			// "Totem" Race containing "Idol" in the Name
-			if ((pSpawn->GetRace() == 514) && strstr(pSpawn->Name, "Idol"))
+			if ((pSpawn->GetRace() == EQR_TOTEM) && strstr(pSpawn->Name, "Idol"))
 				return AURA;
 			// Object Class
 			if (pSpawn->GetClass() == Class_Object)
