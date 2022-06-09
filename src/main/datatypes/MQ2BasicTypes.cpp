@@ -150,7 +150,7 @@ bool MQ2IntType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 
 bool MQ2IntType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
-	VarPtr.Int = GetIntFromString(Source, 0);
+	VarPtr.Int = static_cast<int>(GetInt64FromString(Source, 0));
 	return true;
 }
 
@@ -159,7 +159,7 @@ bool MQ2IntType::dataInt(const char* szIndex, MQTypeVar& Ret)
 	if (!szIndex[0])
 		return false;
 
-	Ret.DWord = GetIntFromString(szIndex, 0);
+	Ret.DWord = static_cast<int>(GetInt64FromString(szIndex, 0));
 	Ret.Type = pIntType;
 	return true;
 }
