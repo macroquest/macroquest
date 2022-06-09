@@ -754,7 +754,7 @@ void PluginsAddSpawn(SPAWNINFO* pNewSpawn)
 	if (!s_pluginsInitialized)
 		return;
 
-	DWORD BodyType = GetBodyType(pNewSpawn);
+	int BodyType = GetBodyType(pNewSpawn);
 	PluginDebug("PluginsAddSpawn(%s,%d,%d)", pNewSpawn->Name, pNewSpawn->GetRace(), BodyType);
 
 	if (GetGameState() > GAMESTATE_CHARSELECT)
