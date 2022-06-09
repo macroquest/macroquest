@@ -6477,15 +6477,13 @@ eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 				return OBJECT;
 			return NPC;
 
-		case CharacterProperty_Humanoid: // Humanoid
-			if (pSpawn->GetRace() == EQR_BANNER
-				|| (pSpawn->GetRace() >= EQR_BANNER0 && pSpawn->GetRace() <= EQR_BANNER4) || pSpawn->GetRace() == EQR_TCGBANNER)
-				return BANNER;
+		case CharacterProperty_Humanoid:
 			return NPC;
 
 		case CharacterProperty_Construct:
-			// "Invisible Man" Race containing "Aura" in the Name
-			if ((pSpawn->GetRace() == EQR_INVISIBLE_MAN) && strstr(pSpawn->Name, "Aura"))
+			// "Invisible Man" Race containing "Aura" / "Circle_of" / "Guardian_Circle" / "Earthen_Strength" in the Name
+			if ((pSpawn->GetRace() == EQR_INVISIBLE_MAN) &&
+				(strstr(pSpawn->Name, "Aura") || strstr(pSpawn->Name, "Circle_of") || strstr(pSpawn->Name, "Guardian_Circle") || strstr(pSpawn->Name, "Earthen_Strength")))
 				return AURA;
 			// "Spike Trap" Race containing "Poison" in the Name
 			if ((pSpawn->GetRace() == EQR_SPIKE_TRAP) && (strstr(pSpawn->Name, "poison") || strstr(pSpawn->Name, "Poison")))
@@ -6502,6 +6500,9 @@ eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 			// "Campfire" Race
 			if (pSpawn->GetRace() == EQR_CAMPSITE)
 				return CAMPFIRE;
+			// "Banner" Race(s)
+			if (pSpawn->GetRace() == EQR_BANNER || (pSpawn->GetRace() >= EQR_BANNER0 && pSpawn->GetRace() <= EQR_BANNER4) || pSpawn->GetRace() == EQR_TCGBANNER)
+				return BANNER;
 			// "Totem" Race containing "Idol" in the Name
 			if ((pSpawn->GetRace() == EQR_TOTEM) && strstr(pSpawn->Name, "Idol"))
 				return AURA;
@@ -6511,11 +6512,9 @@ eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 			return NPC;
 
 		case CharacterProperty_Untargetable:
-			if (strstr(pSpawn->Name, "Aura") || strstr(pSpawn->Name, "Circle_of") || strstr(pSpawn->Name, "Guardian_Circle") || strstr(pSpawn->Name, "Earthen_Strength"))
-				return AURA;
 			return UNTARGETABLE;
 
-		case CharacterProperty_Cursed: // Cursed
+		case CharacterProperty_Cursed:
 			return CHEST;
 
 		case CharacterProperty_Utility:
