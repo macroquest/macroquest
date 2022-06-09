@@ -6477,9 +6477,6 @@ eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 				return OBJECT;
 			return NPC;
 
-		case CharacterProperty_Humanoid:
-			return NPC;
-
 		case CharacterProperty_Construct:
 			// "Invisible Man" Race containing "Aura" / "Circle_of" / "Guardian_Circle" / "Earthen_Strength" in the Name
 			if ((pSpawn->GetRace() == EQR_INVISIBLE_MAN) &&
