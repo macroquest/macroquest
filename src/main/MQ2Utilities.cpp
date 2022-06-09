@@ -6477,13 +6477,13 @@ eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 				return OBJECT;
 			return NPC;
 
-		case CharacterProperty_Humanoid: // Humanoid
-			if (pSpawn->GetRace() == EQR_BANNER
-				|| (pSpawn->GetRace() >= EQR_BANNER0 && pSpawn->GetRace() <= EQR_BANNER4) || pSpawn->GetRace() == EQR_TCGBANNER)
-				return BANNER;
+		case CharacterProperty_Humanoid:
 			return NPC;
 
 		case CharacterProperty_Construct:
+			// "Invisible Man" Race containing "Aura" / "Circle_of" / "Guardian_Circle" / "Earthen_Strength" in the Name
+			if ((pSpawn->GetRace() == EQR_INVISIBLE_MAN) &&
+				(strstr(pSpawn->Name, "Aura") || strstr(pSpawn->Name, "Circle_of") || strstr(pSpawn->Name, "Guardian_Circle") || strstr(pSpawn->Name, "Earthen_Strength")))
 			// "Invisible Man" Race containing "Aura" / "Circle_of" / "Guardian_Circle" / "Earthen_Strength" in the Name
 			if ((pSpawn->GetRace() == EQR_INVISIBLE_MAN) &&
 				(strstr(pSpawn->Name, "Aura") || strstr(pSpawn->Name, "Circle_of") || strstr(pSpawn->Name, "Guardian_Circle") || strstr(pSpawn->Name, "Earthen_Strength")))
@@ -6517,7 +6517,7 @@ eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 		case CharacterProperty_Untargetable:
 			return UNTARGETABLE;
 
-		case CharacterProperty_Cursed: // Cursed
+		case CharacterProperty_Cursed:
 			return CHEST;
 
 		case CharacterProperty_Utility:
