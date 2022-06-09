@@ -6502,6 +6502,9 @@ eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 			// "Campfire" Race
 			if (pSpawn->GetRace() == EQR_CAMPSITE)
 				return CAMPFIRE;
+			// "Banner" Race(s)
+			if (pSpawn->GetRace() == EQR_BANNER || (pSpawn->GetRace() >= EQR_BANNER0 && pSpawn->GetRace() <= EQR_BANNER4) || pSpawn->GetRace() == EQR_TCGBANNER)
+				return BANNER;
 			// "Totem" Race containing "Idol" in the Name
 			if ((pSpawn->GetRace() == EQR_TOTEM) && strstr(pSpawn->Name, "Idol"))
 				return AURA;
