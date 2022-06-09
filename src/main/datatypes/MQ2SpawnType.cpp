@@ -548,11 +548,11 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		else
 		{
 			if (GetSpawnType(pSpawn) == AURA)
-				Dest.DWord = 0xFF;
+				Dest.DWord = MQClass_Aura;
 			else if (GetSpawnType(pSpawn) == BANNER)
-				Dest.DWord = 0xFE;
+				Dest.DWord = MQClass_Banner;
 			else
-				Dest.DWord = 0xFD;
+				Dest.DWord = MQClass_CampFire;
 		}
 		return true;
 
