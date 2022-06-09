@@ -1,3 +1,8 @@
+Jun 8, 2022:
+- Fix detection of aura and campfire spawns
+- Fix ${Target.ID} now returns 0 instead of NULL to be consistent with
+  other spawn type objects.
+
 Jun 1, 2022:
 - Fix ${Me.SkillCap} (#568)
 
