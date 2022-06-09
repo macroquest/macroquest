@@ -6479,8 +6479,9 @@ eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 			//    return NPC;
 
 		case 5: // Construct
-			// "Invisible Man" Race containing "Aura" in the Name
-			if ((pSpawn->GetRace() == EQR_INVISIBLE_MAN) && strstr(pSpawn->Name, "Aura"))
+			// "Invisible Man" Race containing "Aura" / "Circle_of" / "Guardian_Circle" / "Earthen_Strength" in the Name
+			if ((pSpawn->GetRace() == EQR_INVISIBLE_MAN) &&
+				(strstr(pSpawn->Name, "Aura") || strstr(pSpawn->Name, "Circle_of") || strstr(pSpawn->Name, "Guardian_Circle") || strstr(pSpawn->Name, "Earthen_Strength")))
 				return AURA;
 			// "Spike Trap" Race containing "Poison" in the Name
 			if ((pSpawn->GetRace() == EQR_SPIKE_TRAP) && (strstr(pSpawn->Name, "poison") || strstr(pSpawn->Name, "Poison")))
@@ -6509,8 +6510,6 @@ eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 			return NPC;
 
 		case 11: // Untargetable
-			if (strstr(pSpawn->Name, "Aura") || strstr(pSpawn->Name, "Circle_of") || strstr(pSpawn->Name, "Guardian_Circle") || strstr(pSpawn->Name, "Earthen_Strength"))
-				return AURA;
 			return UNTARGETABLE;
 
 			//case 21: // Animal
