@@ -73,50 +73,52 @@ inline EQ_Spell* GetSpellByID(int spellID)
 
 inline const char* GetBodyTypeDesc(uint32_t BodyTypeID)
 {
-	if (BodyTypeID < 104 && BodyTypeID >= 0)
+	if (BodyTypeID < CharacterProperty_Last && BodyTypeID >= CharacterProperty_None)
 		return szBodyType[BodyTypeID];
 
 	return "*UNKNOWN BODYTYPE";
 }
 
-inline const char* GetClassDesc(DWORD ClassID)
+inline const char* GetClassDesc(int ClassID)
 {
 	switch (ClassID)
 	{
-	case 60:
+	case Class_Adventure:
 		return "LDoN Recruiter";
-	case 61:
+	case Class_AdventureMerchant:
 		return "LDoN Merchant";
-	case 62:
+	case Class_Object:
 		return "Destructible Object";
-	case 63:
+	case Class_TributeMaster:
+	case Class_TributeMaster2:
 		return "Tribute Master";
-	case 64:
+	case Class_GuildTributeMaster:
 		return "Guild Tribute Master";
-	case 66:
+	case Class_GuildBanker:
 		return "Guild Banker";
-	case 67:
+	case Class_GoodPointMerchant:
 		return "Good DoN Merchant";
-	case 68:
+	case Class_EvilPointMerchant:
 		return "Evil DoN Merchant";
-	case 69:
+	case Class_FellowshipMaster:
 		return "Fellowship Registrar";
-	case 70:
+	case Class_PointMerchant:
 		return "Merchant";
-	case 71:
+	case Class_MercenaryMerchant:
 		return "Mercenary Liaison";
-	case 72:
+	case Class_RealEstateMerchant:
 		return "Real Estate Merchant";
-	case 73:
+	case Class_LoyaltyMerchant:
 		return "Loyalty Merchant";
-	case 74:
-		return "Tribute Master";
-	case 0xFF:
+
+	// special mq-only magic values
+	case MQClass_Aura:
 		return "Aura";
-	case 0xFE:
+	case MQClass_Banner:
 		return "Banner";
-	case 0xFD:
+	case MQClass_CampFire:
 		return "Campfire";
+
 	default:
 		return pEverQuest->GetClassDesc(ClassID);
 	}

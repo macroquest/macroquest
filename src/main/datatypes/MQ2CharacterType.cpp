@@ -1963,7 +1963,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			{
 				if (pLocalPC)
 				{
-					Dest.DWord = pSkillMgr->GetSkillCap(pLocalPC, pProfile->Level, pProfile->Class, nSkill, true, true, true);
+					Dest.DWord = pLocalPC->GetPcSkillLimit(nSkill);
 					return true;
 				}
 			}

@@ -2702,26 +2702,31 @@ bool IsNamed(SPAWNINFO* pSpawn)
 			return false;
 		if (!IsTargetable(pSpawn))
 			return false;
-		if (pSpawn->GetClass() >= 20 && pSpawn->GetClass() <= 35)  // NPC GMs
+		if (pSpawn->GetClass() >= GM_First && pSpawn->GetClass() <= GM_Last)
 			return false;
-		if (pSpawn->GetClass() == 40)  // NPC bankers
+
+		switch (pSpawn->GetClass())
+		{
+		case Class_Banker:
+		case Class_Merchant:
+		case Class_PointMerchant:
+		case Class_Adventure:
+		case Class_AdventureMerchant:
+		case Class_Object:
+		case Class_TributeMaster:
+		case Class_GuildTributeMaster:
+		case Class_TributeMaster2:
+		case Class_GuildBanker:
+		case Class_GoodPointMerchant:
+		case Class_EvilPointMerchant:
+		case Class_FellowshipMaster:
+		case Class_MercenaryMerchant:
+		case Class_LoyaltyMerchant:
+		case Class_RealEstateMerchant:
+		case Class_TaskMerchant:
+		case Class_PvPMerchant:
 			return false;
-		if (pSpawn->GetClass() == 41 || pSpawn->GetClass() == 70)  // NPC/Quest/TBS merchants
-			return false;
-		if (pSpawn->GetClass() == 60 || pSpawn->GetClass() == 61)  //Ldon Merchants/Recruiters
-			return false;
-		if (pSpawn->GetClass() == 62)  // Destructible Objects
-			return false;
-		if (pSpawn->GetClass() == 63 || pSpawn->GetClass() == 64 || pSpawn->GetClass() == 74)  // Tribute Master/Guild Tribute Master/Personal Tribute Master
-			return false;
-		if (pSpawn->GetClass() == 66)  // Guild Banker
-			return false;
-		if (pSpawn->GetClass() == 67 || pSpawn->GetClass() == 68)  //Don Merchants (Norrath's Keepers/Dark Reign)
-			return false;
-		if (pSpawn->GetClass() == 69)  // Fellowship Registrar
-			return false;
-		if (pSpawn->GetClass() == 71)  // Mercenary Liason
-			return false;
+		}
 
 		strcpy_s(szTemp, pSpawn->Name);
 		char* Next_Token1 = nullptr;
@@ -6418,18 +6423,18 @@ int GetBodyType(SPAWNINFO* pSpawn)
 {
 	if (pSpawn != nullptr && pSpawn->BodyType != nullptr)
 	{
-		for (int i = 0; i < 104; i++)
+		for (int i = 0; i < CharacterProperty_Last; i++)
 		{
-			if (pSpawn != nullptr && pSpawn->HasProperty(i, 0, 0))
+			if (pSpawn->HasProperty(i))
 			{
-				if (i == 100)
+				if (i == CharacterProperty_Utility)
 				{
-					if (pSpawn->HasProperty(i, 101, 0))
-						return 101;
-					if (pSpawn->HasProperty(i, 102, 0))
-						return 102;
-					if (pSpawn->HasProperty(i, 103, 0))
-						return 103;
+					if (pSpawn->HasProperty(i, CharacterProperty_Trap))
+						return CharacterProperty_Trap;
+					if (pSpawn->HasProperty(i, CharacterProperty_Companion))
+						return CharacterProperty_Companion;
+					if (pSpawn->HasProperty(i, CharacterProperty_Suicide))
+						return CharacterProperty_Suicide;
 				}
 				return i;
 			}
@@ -6467,66 +6472,62 @@ eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 
 		switch (GetBodyType(pSpawn))
 		{
-		case 0:
+		case CharacterProperty_None: // Object
 			if (pSpawn->GetClass() == Class_Object)
 				return OBJECT;
 			return NPC;
 
-		case 1:
-			if (pSpawn->GetRace() == EQR_CAMPSITE)
-				return CAMPFIRE;
+		case CharacterProperty_Humanoid: // Humanoid
 			if (pSpawn->GetRace() == EQR_BANNER
 				|| (pSpawn->GetRace() >= EQR_BANNER0 && pSpawn->GetRace() <= EQR_BANNER4) || pSpawn->GetRace() == EQR_TCGBANNER)
 				return BANNER;
 			return NPC;
 
-			//case 3:
-			//    return NPC;
-
-		case 5:
-			if (strstr(pSpawn->Name, "Idol") || strstr(pSpawn->Name, "Poison") || strstr(pSpawn->Name, "Rune"))
+		case CharacterProperty_Construct:
+			// "Invisible Man" Race containing "Aura" in the Name
+			if ((pSpawn->GetRace() == EQR_INVISIBLE_MAN) && strstr(pSpawn->Name, "Aura"))
 				return AURA;
+			// "Spike Trap" Race containing "Poison" in the Name
+			if ((pSpawn->GetRace() == EQR_SPIKE_TRAP) && (strstr(pSpawn->Name, "poison") || strstr(pSpawn->Name, "Poison")))
+				return AURA;
+			// Contains "Rune" in the Name
+			if (strstr(pSpawn->Name, "Rune"))
+				return AURA;
+			// Object Class
 			if (pSpawn->GetClass() == Class_Object)
 				return OBJECT;
 			return NPC;
 
-		case 7:
+		case CharacterProperty_Magical:
+			// "Campfire" Race
+			if (pSpawn->GetRace() == EQR_CAMPSITE)
+				return CAMPFIRE;
+			// "Totem" Race containing "Idol" in the Name
+			if ((pSpawn->GetRace() == EQR_TOTEM) && strstr(pSpawn->Name, "Idol"))
+				return AURA;
+			// Object Class
 			if (pSpawn->GetClass() == Class_Object)
 				return OBJECT;
 			return NPC;
 
-		case 11:
+		case CharacterProperty_Untargetable:
 			if (strstr(pSpawn->Name, "Aura") || strstr(pSpawn->Name, "Circle_of") || strstr(pSpawn->Name, "Guardian_Circle") || strstr(pSpawn->Name, "Earthen_Strength"))
 				return AURA;
 			return UNTARGETABLE;
 
-			//case 21:
-			//    return NPC;
-			//case 23:
-			//    return NPC;
-
-		case 33:
+		case CharacterProperty_Cursed: // Cursed
 			return CHEST;
 
-			//case 34:
-			//    return NPC;
-			//case 65:
-			//    return TRAP;
-			//case 66:
-			//    return TIMER;
-			//case 67:
-			//    return TRIGGER;
+		case CharacterProperty_Utility:
+			return UNTARGETABLE;
 
-		case 100:
-			return UNTARGETABLE
-				;
-		case 101:
+		case CharacterProperty_Trap:
 			return TRAP;
 
-		case 102:
+		case CharacterProperty_Companion:
 			return TIMER;
 
-		case 103:
+		case CharacterProperty_Suicide:
 			return TRIGGER;
 
 		default: break;

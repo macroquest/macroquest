@@ -105,13 +105,15 @@ MQ2TargetType::MQ2TargetType() : MQ2Type("target")
 
 bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	if (!pTarget)
-		return false;
-
 	MQTypeMember* pMember = MQ2TargetType::FindMember(Member);
 	if (!pMember)
 	{
-		return pSpawnType->GetMember(pTarget.get_as<SPAWNINFO>(), Member, Index, Dest);
+		return pSpawnType->GetMember(pTarget, Member, Index, Dest);
+	}
+
+	if (!pTarget)
+	{
+		return false;
 	}
 
 	switch (static_cast<TargetMembers>(pMember->ID))
