@@ -6484,9 +6484,6 @@ eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 			// "Invisible Man" Race containing "Aura" / "Circle_of" / "Guardian_Circle" / "Earthen_Strength" in the Name
 			if ((pSpawn->GetRace() == EQR_INVISIBLE_MAN) &&
 				(strstr(pSpawn->Name, "Aura") || strstr(pSpawn->Name, "Circle_of") || strstr(pSpawn->Name, "Guardian_Circle") || strstr(pSpawn->Name, "Earthen_Strength")))
-			// "Invisible Man" Race containing "Aura" / "Circle_of" / "Guardian_Circle" / "Earthen_Strength" in the Name
-			if ((pSpawn->GetRace() == EQR_INVISIBLE_MAN) &&
-				(strstr(pSpawn->Name, "Aura") || strstr(pSpawn->Name, "Circle_of") || strstr(pSpawn->Name, "Guardian_Circle") || strstr(pSpawn->Name, "Earthen_Strength")))
 				return AURA;
 			// "Spike Trap" Race containing "Poison" in the Name
 			if ((pSpawn->GetRace() == EQR_SPIKE_TRAP) && (strstr(pSpawn->Name, "poison") || strstr(pSpawn->Name, "Poison")))
