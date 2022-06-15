@@ -1,3 +1,6 @@
+Jun 15, 2022:
+- Updated for live patch.
+
 Jun 9, 2022:
 - ${Int[x]} is now capable of parsing numbers up to 64-bits, and will truncate the result.
 - Fix reporting of spell buff counters.
