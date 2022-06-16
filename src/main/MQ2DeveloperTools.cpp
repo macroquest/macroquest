@@ -3182,7 +3182,7 @@ public:
 
 			if (ImGui::BeginTabItem(szLabel))
 			{
-				DoSpellAffectTable("SpellAffectBuffsTable", pcProfile->Buffs.begin(), pcProfile->Buffs.end(), arrayLength);
+				DoSpellAffectTable("SpellAffectBuffsTable", std::begin(pcProfile->Buffs), std::end(pcProfile->Buffs), arrayLength);
 				ImGui::EndTabItem();
 			}
 
