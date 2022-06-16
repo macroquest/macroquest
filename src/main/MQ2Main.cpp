@@ -652,13 +652,24 @@ bool MQ2Initialize()
 	GetModuleInformation(GetCurrentProcess(), hEQGameModule, &EQGameModuleInfo, sizeof(MODULEINFO));
 	g_eqgameimagesize = (uintptr_t)hEQGameModule + EQGameModuleInfo.SizeOfImage;
 
-	if (GetModuleHandle("Lavish.dll") || GetModuleHandle("InnerSpace.dll"))
+	// IsBoxer/InnerSpace
+	HMODULE hISModule = GetModuleHandle("InnerSpace.dll");
+	if (!hISModule)
+	{
+		// Joe MultiBoxer / WinEQ2022
+		hISModule = GetModuleHandle("JMB.dll");
+	}
+	if (!hISModule)
+	{
+		// WinEQ?
+		hISModule = GetModuleHandle("Lavish.dll");
+	}
+	if (hISModule)
 	{
 		uintptr_t baseAddressLS = 0;
 		uintptr_t endAddress = 0;
 
 		MODULEINFO moduleInfo;
-		HMODULE hISModule = GetModuleHandle("InnerSpace.dll");
 		HMODULE hKernelModule = GetModuleHandleA("kernel32.dll");
 
 		if (hISModule
@@ -679,7 +690,7 @@ bool MQ2Initialize()
 
 			if (!foundHooks)
 			{
-				// Wait for InnerSpace to finish loading before we try to continue. InnerSpace will modify our
+				// Wait for module to finish loading before we try to continue. Otherwise it will modify our
 				// import address table, resulting in our detours being ineffective if we go first.
 				uintptr_t fnGetProcAddress = (uintptr_t)&::GetProcAddress;
 				if (fnGetProcAddress >= baseAddressLS && fnGetProcAddress < endAddress)
@@ -915,8 +926,6 @@ DWORD WINAPI MQ2Start(void* lpParameter)
 	g_hLoadComplete.create(wil::EventOptions::ManualReset);
 
 	hUnloadComplete = CreateEvent(nullptr, TRUE, FALSE, nullptr);
-
-	char szBuffer[MAX_STRING] = { 0 };
 
 	if (!MQ2Initialize())
 	{
