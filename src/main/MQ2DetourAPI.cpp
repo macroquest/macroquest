@@ -317,6 +317,7 @@ void HookMemChecker(bool Patch)
 
 	if (Patch)
 	{
+#if !defined(EMULATOR)
 		EzDetour(__MemChecker0, memcheck0, memcheck0_tramp);
 		EzDetour(__MemChecker1, memcheck1, memcheck1_tramp);
 #if defined(__MemChecker2_x)
@@ -328,6 +329,7 @@ void HookMemChecker(bool Patch)
 #if defined(__MemChecker4_x)
 		EzDetour(__MemChecker4, memcheck4, memcheck4_tramp);
 #endif
+#endif
 
 		EzDetour(CPacketScrambler__ntoh, &CPacketScrambler_Detours::ntoh_Detour, &CPacketScrambler_Detours::ntoh_Trampoline);
 		EzDetour(Spellmanager__LoadTextSpells, &SpellManager_Detours::LoadTextSpells_Detour, &SpellManager_Detours::LoadTextSpells_Trampoline);
@@ -336,6 +338,7 @@ void HookMemChecker(bool Patch)
 	}
 	else
 	{
+#if !defined(EMULATOR)
 		RemoveDetour(__MemChecker0);
 		RemoveDetour(__MemChecker1);
 #if defined(__MemChecker2_x)
@@ -346,6 +349,7 @@ void HookMemChecker(bool Patch)
 #endif
 #if defined(__MemChecker4_x)
 		RemoveDetour(__MemChecker4);
+#endif
 #endif
 
 		RemoveDetour(CPacketScrambler__ntoh);
@@ -584,6 +588,7 @@ BOOL WINAPI FindProcesses_Detour(DWORD* lpidProcess, DWORD cb, DWORD* lpcbNeeded
 
 void InitializeDetours()
 {
+#if !defined(EMULATOR)
 	// hit the debugger if we don't hook this. take no chances
 	if (!__MemChecker0
 		|| !__MemChecker1
@@ -600,6 +605,7 @@ void InitializeDetours()
 	{
 		__debugbreak();
 	}
+#endif
 
 	extern_array0 = reinterpret_cast<uint32_t*>(__EncryptPad0);
 
