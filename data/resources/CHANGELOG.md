@@ -1,3 +1,6 @@
+Jun 25, 2022 (test):
+- Updated for test patch.
+
 Jun 15, 2022:
 - Updated for live patch.
 - Potential fix for WinEQ2022 interoperability
