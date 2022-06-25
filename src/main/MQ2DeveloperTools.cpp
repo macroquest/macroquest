@@ -4186,10 +4186,10 @@ public:
 						float colors[3] = {hdr->FogRed[i] / 255.f, hdr->FogGreen[i] / 255.f, hdr->FogBlue[i] / 255.f };
 						ImGui::ColorEdit3("Fog Color", colors);
 
-						TableRow("Rain Percentage", "%d%%", hdr->RainChance[i]);
+						TableRow("Rain Chance", "%d%%", hdr->RainChance[i]);
 						TableRow("Rain Duration", "%d", hdr->RainDuration[i]);
-						TableRow("Snow Percentage", "%d%%", hdr->SnowPercentage[i]);
-						TableRow("Snow Duration", "%d", hdr->SnowChance[i]);
+						TableRow("Snow Chance", "%d%%", hdr->SnowChance[i]);
+						TableRow("Snow Duration", "%d", hdr->SnowDuration[i]);
 
 						ImGui::TreePop();
 					}

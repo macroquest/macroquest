@@ -1,5 +1,5 @@
 # Original Source
-I took this from https://github.com/MSeys/sol2_ImGui_Bindings and modified it for MQ2
+I took this from https://github.com/MSeys/sol2_ImGui_Bindings and modified it for MacroQuest.
 
 # sol2_ImGui_Bindings
 
