@@ -748,26 +748,26 @@ Note: This binding does not give functions that can obtain an ImFont* from insid
 ## Widgets: Input with Keyboard
 ```lua
   -- ImGui.InputText(...)
-  -- Parameters: text (label), text (text), int (buf_size), ImGuiInputTextFlags (flags) [O]
+  -- Parameters: text (label), text (text), ImGuiInputTextFlags (flags) [O]
   -- Returns: text (text), bool (selected)
   -- Overloads
-  text, selected = ImGui.InputText("Label", text, 100)
-  text, selected = ImGui.InputText("Label", text, 100, ImGuiInputTextFlags.ReadOnly)
+  text, selected = ImGui.InputText("Label", text)
+  text, selected = ImGui.InputText("Label", text, ImGuiInputTextFlags.ReadOnly)
   
   -- ImGui.InputTextMultiline(...)
-  -- Parameters: text (label), text (text), int (buf_size), float (size_x) [O], float (size_y) [O], ImGuiInputTextFlags (flags) [O]
+  -- Parameters: text (label), text (text), float (size_x) [O], float (size_y) [O], ImGuiInputTextFlags (flags) [O]
   -- Returns: text (text), bool (selected)
   -- Overloads
-  text, selected = ImGui.InputTextMultiline("Label", text, 100)
-  text, selected = ImGui.InputTextMultiline("Label", text, 100, 200, 35)
-  text, selected = ImGui.InputTextMultiline("Label", text, 100, 200, 35, ImGuiInputTextFlags.ReadOnly)
+  text, selected = ImGui.InputTextMultiline("Label", text)
+  text, selected = ImGui.InputTextMultiline("Label", text, 200, 35)
+  text, selected = ImGui.InputTextMultiline("Label", text, 200, 35, ImGuiInputTextFlags.ReadOnly)
   
   -- ImGui.InputTextWithHint(...)
-  -- Parameters: text (label), text (hint), text (text), int (buf_size), ImGuiInputTextFlags (flags) [O]
+  -- Parameters: text (label), text (hint), text (text), ImGuiInputTextFlags (flags) [O]
   -- Returns: text (text), bool (selected)
   -- Overloads
-  text, selected = ImGui.InputTextWithHint("Label", "Hint", text, 100)
-  text, selected = ImGui.InputTextWithHint("Label", "Hint", text, 100, ImGuiInputTextFlags.ReadOnly)
+  text, selected = ImGui.InputTextWithHint("Label", "Hint", text)
+  text, selected = ImGui.InputTextWithHint("Label", "Hint", text, ImGuiInputTextFlags.ReadOnly)
   
   -- ImGui.InputFloat(...)
   -- Parameters: text (label), float (value), float (step) [O], float (step_fast) [O], text (format) [O], ImGuiInputTextFlags (flags) [O]
