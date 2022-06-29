@@ -1421,5 +1421,6 @@ std::string GetProcessName(DWORD processID);
 bool IsMacroQuestModule(HMODULE hModule, bool getMacroQuestModules = false);
 bool IsMacroQuestProcess(char path[MAX_PATH], bool getMacroQuestProcesses = false);
 bool IsModuleSubstring(HMODULE hModule, std::wstring_view searchString);
+CXStr GetCurrentUI();
 
 } // namespace mq

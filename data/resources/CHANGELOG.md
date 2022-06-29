@@ -1,4 +1,5 @@
 Jun 29, 2022:
+- Fix EQ Exiting when MQ is loaded and an invalid UI is loaded (#572)
 - Add parse function for lua scripts.  You can now parse any arbitrary macro data.
   - Usage Example:  mq.parse("${Me.Name}")
   - The return will always be a string and you will always be using the version 2 parser

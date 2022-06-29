@@ -7537,4 +7537,25 @@ int GetSubscriptionLevel()
 	return 0;
 }
 
+CXStr GetCurrentUI()
+{
+	if (pEQSuiteTextureLoader)
+	{
+		CXStr CurrentUI = pEQSuiteTextureLoader->UIPath[cUIDirectory];
+		if (CurrentUI.length() > 2)
+		{
+			std::error_code ec;
+			if (std::filesystem::is_directory(fmt::format("{}\\{}", mq::internal_paths::EverQuest, CurrentUI), ec))
+			{
+				const std::size_t rpos = CurrentUI.rfind('\\', CurrentUI.length() - 2);
+				if (rpos != std::string::npos)
+				{
+					return CurrentUI.substr(rpos + 1, CurrentUI.length() - rpos - 2);
+				}
+			}
+		}
+	}
+	return "Default";
+}
+
 } // namespace mq
