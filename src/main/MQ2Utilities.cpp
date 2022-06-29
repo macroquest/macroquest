@@ -7537,11 +7537,11 @@ int GetSubscriptionLevel()
 	return 0;
 }
 
-CXStr GetCurrentUI()
+std::string GetCurrentUI()
 {
 	if (pEQSuiteTextureLoader)
 	{
-		CXStr CurrentUI = pEQSuiteTextureLoader->UIPath[cUIDirectory];
+		const std::string CurrentUI = pEQSuiteTextureLoader->UIPath[cUIDirectory].data();
 		if (CurrentUI.length() > 2)
 		{
 			std::error_code ec;
