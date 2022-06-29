@@ -1,3 +1,11 @@
+Jun 29, 2022:
+- Add parse function for lua scripts.  You can now parse any arbitrary macro data.
+  - Usage Example:  mq.parse("${Me.Name}")
+  - The return will always be a string and you will always be using the version 2 parser
+  - It is still preferable to use the mq.TLO syntax when retrieving data from an existing TLO
+  - The purpose of this function is to allow you to perform more complex operations when doing
+    macro/ini conversions.
+
 Jun 15, 2022:
 - Updated for live patch.
 - Potential fix for WinEQ2022 interoperability
