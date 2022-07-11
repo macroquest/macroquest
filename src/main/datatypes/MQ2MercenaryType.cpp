@@ -87,7 +87,7 @@ bool MQ2MercenaryType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	switch (static_cast<MercenaryMembers>(pMember->ID))
 	{
 	case MercenaryMembers::AAPoints:
-		Dest.DWord = pLocalPC->MercAAPoints;
+		Dest.DWord = pLocalPC->GetMercAAPoints();
 		Dest.Type = pIntType;
 		return true;
 

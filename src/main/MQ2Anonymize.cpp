@@ -633,7 +633,7 @@ CXStr Anonymize(const CXStr& Text)
 
 	if (anon_guild != Anonymization::None && pGuild)
 	{
-		const char* guild_name = pGuild->GetGuildName(pLocalPC->GuildID.GUID);
+		const char* guild_name = pGuild->GetGuildName(pLocalPC->GuildID);
 		if (guild_name[0] != '\0' && ci_equals(new_text, guild_name, false))
 		{
 			auto memoized = guild_memoization.find(guild_name);

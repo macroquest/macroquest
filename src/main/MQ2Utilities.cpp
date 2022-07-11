@@ -5213,8 +5213,11 @@ ItemContainer* GetItemContainerByType(ItemContainerInstance type)
 		return &pLocalPC->ArchivedDeletedItems;
 	case eItemContainerMail:
 		return &pLocalPC->MailItems;
+#if HAS_MERCENARY_INVENTORY
 	case eItemContainerMercenaryItems:
 		return &pLocalPC->MercenaryItems;
+#endif
+#if HAS_KEYRING_WINDOW
 	case eItemContainerMountKeyRingItems:
 		return &pLocalPC->MountKeyRingItems;
 	case eItemContainerIllusionKeyRingItems:
@@ -5223,20 +5226,26 @@ ItemContainer* GetItemContainerByType(ItemContainerInstance type)
 		return &pLocalPC->FamiliarKeyRingItems;
 	case eItemContainerHeroForgeKeyRingItems:
 		return &pLocalPC->HeroForgeKeyRingItems;
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
+#endif
+#if HAS_TELEPORTATION_KEYRING
 	case eItemContainerTeleportationKeyRingItems:
 		return &pLocalPC->TeleportationKeyRingItems;
 #endif
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF) // not exactly sure when this was added.
 	case eItemContainerOverflow:
 		return &pLocalPC->OverflowBufferItems;
+#endif
+#if HAS_DRAGON_HOARD
 	case eItemContainerDragonHoard:
 		return &pLocalPC->DragonHoardItems;
+#endif
 
 	case eItemContainerRealEstate:   // todo
 	case eItemContainerKrono:        // this is a special value and doesn't actually exist as a container
 	case eItemContainerOther:        // can't do lookup by "other"
 	case eItemContainerMerchant:     // merchant window doesn't use item container
 	case eItemContainerDeleted:      // merchant buyback doesn't use item container
+	default:
 		break;
 	}
 
@@ -5331,6 +5340,7 @@ static ItemClient* FindItem(T&& callback, bool checkKeyRings = true, int fromSlo
 		pProfile->InventoryContainer.FindItem(fromSlot, toSlot, -1, itemVisitor);
 	}
 
+#if HAS_KEYRING_WINDOW
 	if (!foundItem && checkKeyRings)
 	{
 		// Check the different keyrings
@@ -5343,6 +5353,7 @@ static ItemClient* FindItem(T&& callback, bool checkKeyRings = true, int fromSlo
 			if (foundItem) break;
 		}
 	}
+#endif
 
 	return foundItem.get();
 }
@@ -5385,6 +5396,7 @@ int CountInventoryItems(T& checkItem, int minSlot, int maxSlot)
 template <typename T>
 int CountKeyringItems(T& checkItem)
 {
+#if HAS_KEYRING_WINDOW
 	if (!pLocalPC) return 0;
 	int count = 0;
 
@@ -5396,6 +5408,11 @@ int CountKeyringItems(T& checkItem)
 	}
 
 	return count;
+#else
+	UNUSED(checkItem);
+
+	return 0;
+#endif
 }
 
 template <typename T>
@@ -5818,6 +5835,7 @@ struct Personal_Loot
 
 CXWnd* GetAdvLootPersonalListItem(DWORD ListIndex, DWORD type)
 {
+#if HAS_ADVANCED_LOOT
 	if (CListWnd* clist = (CListWnd*)pAdvancedLootWnd->GetChildItem("ADLW_PLLList"))
 	{
 		Personal_Loot pPAdvLoot;
@@ -5890,6 +5908,7 @@ CXWnd* GetAdvLootPersonalListItem(DWORD ListIndex, DWORD type)
 			return ptr;
 		}
 	}
+#endif
 
 	return nullptr;
 }
@@ -5912,6 +5931,7 @@ struct Shared_Loot
 
 CXWnd* GetAdvLootSharedListItem(DWORD ListIndex, DWORD type)
 {
+#if HAS_ADVANCED_LOOT
 	if (CListWnd* clist = (CListWnd*)pAdvancedLootWnd->GetChildItem("ADLW_CLLList"))
 	{
 		Shared_Loot pSAdvLoot;
@@ -6010,12 +6030,14 @@ CXWnd* GetAdvLootSharedListItem(DWORD ListIndex, DWORD type)
 			return ptr;
 		}
 	}
+#endif
 
 	return nullptr;
 }
 
 bool LootInProgress(CAdvancedLootWnd* pAdvLoot, CListWnd* pPersonalList, CListWnd* pSharedList)
 {
+#if HAS_ADVANCED_LOOT
 	if (pPersonalList)
 	{
 		for (int i = 0; i < pPersonalList->ItemsArray.Count; i++)
@@ -6047,6 +6069,7 @@ bool LootInProgress(CAdvancedLootWnd* pAdvLoot, CListWnd* pPersonalList, CListWn
 			}
 		}
 	}
+#endif 
 
 	return false;
 }

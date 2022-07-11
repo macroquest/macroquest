@@ -2049,9 +2049,11 @@ public:
 				ImGui::TableNextColumn(); ImGui::Text("Attack On Assist");
 				ImGui::TableNextColumn(); ImGui::Text("%s", eq.AttackOnAssist ? "Yes" : "No");
 
+#if HAS_AUTOSKILLS
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Auto Skills");
 				ImGui::TableNextColumn(); ImGui::Text("%s", fmt::format("{}", fmt::join(eq.AutoSkills, ", ")).c_str());
+#endif
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
@@ -4186,10 +4188,10 @@ public:
 						float colors[3] = {hdr->FogRed[i] / 255.f, hdr->FogGreen[i] / 255.f, hdr->FogBlue[i] / 255.f };
 						ImGui::ColorEdit3("Fog Color", colors);
 
-						TableRow("Rain Percentage", "%d%%", hdr->RainChance[i]);
+						TableRow("Rain Chance", "%d%%", hdr->RainChance[i]);
 						TableRow("Rain Duration", "%d", hdr->RainDuration[i]);
-						TableRow("Snow Percentage", "%d%%", hdr->SnowPercentage[i]);
-						TableRow("Snow Duration", "%d", hdr->SnowChance[i]);
+						TableRow("Snow Chance", "%d%%", hdr->SnowChance[i]);
+						TableRow("Snow Duration", "%d", hdr->SnowDuration[i]);
 
 						ImGui::TreePop();
 					}
@@ -4226,23 +4228,6 @@ public:
 				TableRow("No Bind", "%d", (int)hdr->bNoBind);
 				TableRow("No Call of the Hero", "%d", (int)hdr->bNoCallOfTheHero);
 				TableRow("No Fear", "%d", (int)hdr->bNoFear);
-
-				TableRow("Unknown1", "%d", hdr->Unknown1);
-				TableRow("Unknown3", "%d", hdr->Unknown3);
-				TableRow("Unknown Flag 4a", "%d", (int)hdr->Unknown4);
-				TableRow("Unknown Flag 4b", "%d", (int)hdr->Unknown4b);
-				TableRow("Unknown Flag 4c", "%d", (int)hdr->Unknown4c);
-				TableRow("Unknown Flag 4d", "%d", (int)hdr->Unknown4d);
-				TableRow("Unknown Flag 5", "%d", (int)hdr->bUnknown5);
-
-				// 6[0] = 0
-				// 6[1] = 1, 0 in feerott - hold buffs?
-				TableRow("Unknown Flag 6[0]", "%d", (int)hdr->bUnknowns6[0]);
-				TableRow("Unknown Flag 6[1]", "%d", (int)hdr->bUnknowns6[1]);
-				TableRow("Unknown Flag 8", "%d", (int)hdr->bUnknown8); // no flux?
-
-				// 9 = 0 // disabled at startup?
-				TableRow("Unknown Flag 9", "%d", (int)hdr->bUnknown9);
 
 #undef TableRow
 				ImGui::TreePop();
