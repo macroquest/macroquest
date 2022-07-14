@@ -18,6 +18,7 @@
 
 #include <string>
 #include <vector>
+#include <filesystem>
 
 #include <windows.h>
 
@@ -217,6 +218,58 @@ template <typename T>
 inline auto WritePrivateProfileValue(const std::string& Section, const std::string& Key, T Value, const char* IniFileName)
 {
 	return WritePrivateProfileValue(Section.c_str(), Key.c_str(), Value, IniFileName);
+}
+
+inline std::string GetCreateMacroQuestIni(const std::filesystem::path& pathMQRoot, std::filesystem::path pathMQConfig, std::filesystem::path pathMQini)
+{
+		// If the ini path is relative, prepend the MQ path
+		if (pathMQini.is_relative())
+		{
+			pathMQini = pathMQRoot / pathMQini;
+		}
+		// If the Config path is relative, prepend the MQ path
+		if (pathMQConfig.is_relative())
+		{
+			pathMQConfig = pathMQRoot / pathMQConfig;
+		}
+
+		std::error_code ec;
+		if (!std::filesystem::exists(pathMQini, ec))
+		{
+			// Check if the ini file exists in the same directory as MQ
+			if (std::filesystem::exists(pathMQRoot / "MacroQuest.ini", ec))
+			{
+				pathMQini = pathMQRoot / "MacroQuest.ini";
+			}
+			else if (std::filesystem::exists(pathMQConfig / "MacroQuest_default.ini", ec))
+			{
+				// copy into the config directory and work from there.
+				std::filesystem::copy_file(
+					pathMQConfig / "MacroQuest_default.ini",
+					pathMQConfig / "MacroQuest.ini",
+					ec);
+			}
+		}
+
+		if (std::filesystem::exists(pathMQini, ec))
+		{
+			// Check to see if there is a different MacroQuest.ini we should be looking at
+			pathMQini = std::filesystem::path(GetPrivateProfileString("MacroQuest", "MQIniPath", pathMQini.string(), pathMQini.string()));
+
+			// If it's relative, make it absolute relative to MQ2
+			if (pathMQini.is_relative())
+			{
+				pathMQini = std::filesystem::absolute(pathMQRoot / pathMQini);
+			}
+
+			// If it's a folder append MacroQuest.ini
+			if (is_directory(pathMQini, ec))
+			{
+				pathMQini = pathMQini / "MacroQuest.ini";
+			}
+		}
+
+		return pathMQini.string();
 }
 
 } // namespace mq

@@ -14,28 +14,8 @@
 
 #include "MacroQuest.h"
 
-#include <wil/resource.h>
 #include <spdlog/spdlog.h>
 #include <cpr/cpr.h>
-
-bool IsProcessRunning(const char* exeName)
-{
-	wil::unique_tool_help_snapshot hSnapshot(CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
-
-	PROCESSENTRY32 proc = { sizeof(PROCESSENTRY32) };
-	if (Process32First(hSnapshot.get(), &proc))
-	{
-		do
-		{
-			if (!_stricmp(proc.szExeFile, exeName))
-			{
-				return true;
-			}
-		} while (Process32Next(hSnapshot.get(), &proc));
-	}
-
-	return false;
-}
 
 std::string GetVersionStringLocal(const std::filesystem::path& filePath)
 {
