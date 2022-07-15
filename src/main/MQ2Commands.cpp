@@ -31,11 +31,24 @@ CMQ2Alerts CAlerts;
 // Function:    Unload
 // Description: Our '/unload' command
 //              Triggers the DLL to unload itself
-// Usage:       /unload
+// Usage:       /unload [force]
 // ***************************************************************************
-
 void Unload(SPAWNINFO* pChar, char* szLine)
 {
+	if (const int failed_count = GetPluginUnloadFailedCount(); failed_count > 0)
+	{
+		if (ci_find_substr(szLine, "force") == -1)
+		{
+			WriteChatf("\ayWARNING\ax You have %i failed plugin(s) preventing proper unload.  It would be safer to exit the client than to try to unload at this time.  To see failed plugins use:", failed_count);
+			WriteChatf("      /plugin list failed");
+			WriteChatf("  To disregard this warning and \arUNSAFELY\ax unload use:");
+			WriteChatf("      /unload force");
+			return;
+		}
+
+		gbForceUnload = true;
+	}
+
 	if (!pChar)
 		pChar = pLocalPlayer;
 

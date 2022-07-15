@@ -36,6 +36,7 @@ enum class MQMessageId : uint16_t
 	MSG_MAIN_REQ_UNLOAD                    = 1003,  // to mq: ask mq to nicely unload.
 	MSG_MAIN_FOCUS_REQUEST                 = 1004,  // to/from mq: i have focus or i want focus.
 	MSG_MAIN_FOCUS_ACTIVATE_WND            = 1005,  // to mq: activate requested window
+	MSG_MAIN_REQ_FORCEUNLOAD               = 1006,  // to mq: ask mq to less nicely unload.
 
 	MSG_AUTOLOGIN_PROFILE_LOADED           = 2000,  // profile has been loaded
 	MSG_AUTOLOGIN_PROFILE_UNLOADED         = 2001,  // profile has been uploaded
