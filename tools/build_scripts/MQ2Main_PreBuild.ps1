@@ -20,7 +20,7 @@ else
         $vcvarsAllPath = "$vswhereResult\VC\Auxiliary\Build\vcvarsall.bat"
         if (-Not (Test-Path -Path $vcvarsAllPath -PathType Leaf))
         {
-            Write-Warning "Crashpad build relies on vcvarsall.bat which could not be found.  Check your Visual Studio installation.  Path searched: $vcvarsAllPath"
+            Write-Warning "Building relies on vcvarsall.bat which could not be found.  Check your Visual Studio installation for proper msvc c++ components.  Path searched: $vcvarsAllPath"
         }
     }
 }
