@@ -54,6 +54,10 @@ public:
 			HideDoCommand(pLocalPlayer, "/unload", true);
 			break;
 
+		case MQMessageId::MSG_MAIN_REQ_FORCEUNLOAD:
+			HideDoCommand(pLocalPlayer, "/unload force", true);
+			break;
+
 		case MQMessageId::MSG_MAIN_PROCESS_LOADED: {
 			// This is the response to our connection message below.
 			if (message->size() >= sizeof(MQMessageProcessLoadedResponse))
