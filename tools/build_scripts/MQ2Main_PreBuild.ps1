@@ -15,6 +15,14 @@ else
     {
         Write-Warning "Crashpad build relies on chromium which relies on vswhere for your path.  vswhere did not return a path.  Make sure a current build of Visual Studio (not Preview) is installed."
     }
+    else
+    {
+        $vcvarsAllPath = "$vswhereResult\VC\Auxiliary\Build\vcvarsall.bat"
+        if (-Not (Test-Path -Path $vcvarsAllPath -PathType Leaf))
+        {
+            Write-Warning "Crashpad build relies on vcvarsall.bat which could not be found.  Check your Visual Studio installation.  Path searched: $vcvarsAllPath"
+        }
+    }
 }
 
 $systemLocale = (Get-WinSystemLocale).Name
