@@ -1588,10 +1588,14 @@ public:
 		extraInfo.itemAdvancedLoreText = STMLToText(this->ItemAdvancedLoreText);
 		extraInfo.windowTitle = STMLToText(this->WindowTitle);
 
+#if IS_CLIENT_DATE(20160420)
 		extraInfo.collectedReceived = this->bCollectedReceived;
 		extraInfo.collected = this->bCollected && this->bCollectedReceived;
+#endif
+#if IS_CLIENT_DATE(20161116)
 		extraInfo.scribedReceived = this->bScribedReceived;
 		extraInfo.scribed = this->bScribed && this->bScribedReceived;
+#endif
 
 		Description->AppendSTML(CXStr(extraInfo.extraItemInfo));
 		Description->AppendSTML(CXStr(extraInfo.extraSpellInfo));

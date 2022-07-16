@@ -222,6 +222,17 @@ int CPacketScrambler_Detours::ntoh_Detour(int nopcode)
 class SpellManager_Detours
 {
 public:
+#if !IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
+	DETOUR_TRAMPOLINE_DEF(bool, LoadTextSpells_Trampoline, (char*, char*, EQ_Spell*))
+	bool LoadTextSpells_Detour(char* FileName, char* AssocFileName, EQ_Spell* SpellArray)
+	{
+		gbDoingSpellChecks = true;
+		bool ret = LoadTextSpells_Trampoline(FileName, AssocFileName, SpellArray);
+		gbDoingSpellChecks = false;
+		return ret;
+	}
+#else
+	DETOUR_TRAMPOLINE_DEF(bool, LoadTextSpells_Trampoline, (char*, char*, EQ_Spell*, SpellAffectData*))
 	bool LoadTextSpells_Detour(char* FileName, char* AssocFileName, EQ_Spell* SpellArray, SpellAffectData* EffectArray)
 	{
 		gbDoingSpellChecks = true;
@@ -229,8 +240,7 @@ public:
 		gbDoingSpellChecks = false;
 		return ret;
 	}
-
-	DETOUR_TRAMPOLINE_DEF(bool, LoadTextSpells_Trampoline, (char*, char*, EQ_Spell*, SpellAffectData*))
+#endif
 };
 
 //============================================================================
@@ -240,12 +250,14 @@ class CDisplay_Detours
 public:
 	void ZoneMainUI_Detour()
 	{
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
 		if (GetServerIDFromServerName(GetServerShortName()) == ServerID::Invalid)
 		{
 			// unload
 			WriteChatf("MQ2 does not function on this server: %s -- UNLOADING", GetServerShortName());
 			EzCommand("/unload");
 		}
+#endif
 
 		PluginsEndZone();
 		ZoneMainUI_Trampoline();

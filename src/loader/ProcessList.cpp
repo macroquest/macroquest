@@ -82,10 +82,10 @@ enum class AddressType {
 };
 
 bool convertAddress(ParsedPeRef& pe,
-	std::uint64_t address,
+	uintptr_t address,
 	AddressType source_type,
 	AddressType destination_type,
-	std::uint64_t& result) noexcept {
+	uintptr_t& result) noexcept {
 	if (source_type == destination_type) {
 		result = address;
 		return true;
@@ -211,7 +211,7 @@ bool convertAddress(ParsedPeRef& pe,
 
 		}
 		else if (destination_type == AddressType::VirtualAddress) {
-			std::uint64_t rva = 0U;
+			uintptr_t rva = 0U;
 			if (!convertAddress(pe,
 				address,
 				source_type,
@@ -309,11 +309,11 @@ bool convertAddress(ParsedPeRef& pe,
 }
 
 uint64_t convertAddress(ParsedPeRef& pe,
-	std::uint64_t address,
+	uintptr_t address,
 	AddressType source_type,
 	AddressType destination_type) noexcept
 {
-	uint64_t result = 0;
+	uintptr_t result = 0;
 	convertAddress(pe, address, source_type, destination_type, result);
 	return result;
 }
@@ -528,6 +528,9 @@ std::pair<std::string, std::string> GetEQGameVersionStrings(const std::string& P
 		return {};
 	}
 
+	std::string eqDate, eqTime;
+
+#if defined(_WIN64)
 	// figure out what the address to this reference in the data section should be, from the code section.
 	// a.k.a. convert offset to address.
 	uintptr_t versionStringVirtualAddress = 0;
@@ -537,9 +540,6 @@ std::pair<std::string, std::string> GetEQGameVersionStrings(const std::string& P
 		SPDLOG_ERROR("Failed to locate virtual address for version string");
 		return {};
 	}
-	std::string eqDate, eqTime;
-
-#if defined(_WIN64)
 
 	// lea     r8, __ActualVersionTime  ; "17:45:44"                           4C 8D 05 8A A6 54 00
 	// lea     rdx, __ActualVersionDate ; "Jan 11 2022"                        48 8D 15 93 A6 54 00
@@ -605,11 +605,18 @@ std::pair<std::string, std::string> GetEQGameVersionStrings(const std::string& P
 
 
 #else
+	// a.k.a. convert rva to address.
+	PIMAGE_SECTION_HEADER pImgSect = ImageRvaToSection(nthdrs, pBuf, (ULONG)versionStringPhysicalOffset);
+	int codeSize = nthdrs->OptionalHeader.SizeOfCode + nthdrs->OptionalHeader.SizeOfHeaders;
+
+	versionStringPhysicalOffset = versionStringPhysicalOffset - codeSize
+		+ pImgSect->VirtualAddress + nthdrs->OptionalHeader.ImageBase;
+
 	// find the one and only cross-reference to this string. This also happens to be in WinMain.
 	union int2byte {
 		intptr_t value; uint8_t b[4];
 	} i2b;
-	i2b.value = stringRva;
+	i2b.value = versionStringPhysicalOffset;
 
 	// push offset aStartingEverq ; 68 94 1e ae 00
 	uint8_t stringRef[5] = { 0x68, i2b.b[0], i2b.b[1], i2b.b[2], i2b.b[3] };

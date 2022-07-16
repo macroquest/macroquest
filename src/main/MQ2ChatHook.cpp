@@ -20,9 +20,13 @@ namespace mq {
 class CChatHook
 {
 public:
-	// ChatManagerClient::DisplaychatText(
-	DETOUR_TRAMPOLINE_DEF(void, Trampoline, (const char* szMsg, DWORD dwColor, bool, bool, CXStr* SomeStr))
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
+	DETOUR_TRAMPOLINE_DEF(void, Trampoline, (const char* szMsg, DWORD dwColor, bool, bool, CXStr* SomeStr = nullptr))
 	void Detour(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, CXStr* SomeStr)
+#else
+	DETOUR_TRAMPOLINE_DEF(void, Trampoline, (const char* szMsg, DWORD dwColor, bool, bool))
+	void Detour(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst)
+#endif
 	{
 		gbInChat = true;
 		if (dwColor != 269)
@@ -58,7 +62,11 @@ public:
 
 			if (!SkipTrampoline)
 			{
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
 				Trampoline(szMsg, dwColor, EqLog, dopercentsubst, SomeStr);
+#else
+				Trampoline(szMsg, dwColor, EqLog, dopercentsubst);
+#endif
 			}
 		}
 
@@ -129,7 +137,7 @@ public:
 
 void dsp_chat_no_events(const char* Text, int Color, bool doLog, bool doPercentConvert)
 {
-	pEverQuest.get_as<CChatHook>()->Trampoline(Text, Color, doLog, doPercentConvert, nullptr);
+	pEverQuest.get_as<CChatHook>()->Trampoline(Text, Color, doLog, doPercentConvert);
 }
 
 unsigned int CALLBACK MQ2DataVariableLookup(char* VarName, char* Value, size_t ValueLen)

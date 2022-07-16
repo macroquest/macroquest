@@ -370,6 +370,15 @@ public:
 class PlayerManagerClientHook
 {
 public:
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_ROF)
+	DETOUR_TRAMPOLINE_DEF(PlayerClient*, CreatePlayer_Trampoline, (CUnSerializeBuffer*, void*, void*, void*, void*, void*, void*, void*))
+	PlayerClient* CreatePlayer_Detour(CUnSerializeBuffer* buf, void* a, void* b, void* c, void* d, void* e, void* f, void* g)
+	{
+		PlayerClient* spawn = CreatePlayer_Trampoline(buf, a, b, c, d, e, f, g);
+		PluginsAddSpawn(spawn);
+		return spawn;
+	}
+#else
 	DETOUR_TRAMPOLINE_DEF(PlayerClient*, CreatePlayer_Trampoline, (CUnSerializeBuffer*, void*, void*, void*, void*, void*, void*, void*, void*))
 	PlayerClient* CreatePlayer_Detour(CUnSerializeBuffer* buf, void* a, void* b, void* c, void* d, void* e, void* f, void* g, void* h)
 	{
@@ -377,6 +386,7 @@ public:
 		PluginsAddSpawn(spawn);
 		return spawn;
 	}
+#endif
 };
 
 class PlayerClientHook
