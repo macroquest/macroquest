@@ -1,3 +1,7 @@
+Jul 17, 2022 (test):
+- Update for first and then second test patch.
+- Servers were locked every time we tried to test this, so hopefully it works.
+
 Jun 25, 2022 (test):
 - Updated for test patch.
 
