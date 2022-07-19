@@ -28,6 +28,7 @@ static bool gbStartAutoBanking = false;
 static bool gbAutoBankInProgress = false;
 static bool gbAutoInventoryInProgress = false;
 static bool gbAutoBankTradeSkillItems = false;
+static bool gbAutoBankTrophiesWithTradeskill = true;
 static bool gbAutoBankCollectibleItems = false;
 static bool gbAutoBankQuestItems = false;
 static bool gbAutoInventoryItems = false;
@@ -41,6 +42,7 @@ constexpr int ContextMenu_TradeskillItemsId = 50;
 constexpr int ContextMenu_CollectibleItemsId = 51;
 constexpr int ContextMenu_QuestItemsId = 52;
 constexpr int ContextMenu_CheckedItemsId = 53;
+constexpr int ContextMenu_TrophysId = 54;
 
 #if HAS_FIND_ITEM_WINDOW
 CContextMenu* CheckBoxMenu = nullptr;
@@ -765,6 +767,12 @@ public:
 
 				AutoBankMenu->CheckMenuItem(iItemID, gbAutoInventoryItems);
 				break;
+			case ContextMenu_TrophysId:
+				gbAutoBankTrophiesWithTradeskill = !gbAutoBankTrophiesWithTradeskill;
+				WritePrivateProfileBool("AutoBank", "AutoBankTrophiesWithTradeskill", gbAutoBankTrophiesWithTradeskill, mq::internal_paths::MQini);
+
+				AutoBankMenu->CheckMenuItem(iItemID, gbAutoBankTrophiesWithTradeskill);
+				break;
 			};
 		}
 
@@ -1128,6 +1136,7 @@ static void AddAutoBankMenu()
 			AutoBankMenu->RemoveAllMenuItems();
 
 			gbAutoBankTradeSkillItems = GetPrivateProfileBool("AutoBank", "AutoBankTradeSkillItems", false, mq::internal_paths::MQini);
+			gbAutoBankTrophiesWithTradeskill = GetPrivateProfileBool("AutoBank", "AutoBankTrophiesWithTradeskill", true, mq::internal_paths::MQini);
 			gbAutoBankCollectibleItems = GetPrivateProfileBool("AutoBank", "AutoBankCollectibleItems", false, mq::internal_paths::MQini);
 			gbAutoBankQuestItems = GetPrivateProfileInt("AutoBank", "AutoBankQuestItems", false, mq::internal_paths::MQini);
 			gbAutoInventoryItems = GetPrivateProfileInt("AutoBank", "AutoInventoryItems", false, mq::internal_paths::MQini);
@@ -1135,12 +1144,14 @@ static void AddAutoBankMenu()
 			if (gbWriteAllConfig)
 			{
 				WritePrivateProfileBool("AutoBank", "AutoBankTradeSkillItems", gbAutoBankTradeSkillItems, mq::internal_paths::MQini);
+				WritePrivateProfileBool("AutoBank", "AutoBankTrophiesWithTradeskill", gbAutoBankTrophiesWithTradeskill, mq::internal_paths::MQini);
 				WritePrivateProfileBool("AutoBank", "AutoBankCollectibleItems", gbAutoBankCollectibleItems, mq::internal_paths::MQini);
 				WritePrivateProfileBool("AutoBank", "AutoBankQuestItems", gbAutoBankQuestItems, mq::internal_paths::MQini);
 				WritePrivateProfileBool("AutoBank", "AutoInventoryItems", gbAutoInventoryItems, mq::internal_paths::MQini);
 			}
 
 			AutoBankMenu->AddMenuItem("Tradeskill Items", ContextMenu_TradeskillItemsId, gbAutoBankTradeSkillItems);
+			AutoBankMenu->AddMenuItem("Move mod items (trophies) with tradeskill items", ContextMenu_TrophysId, gbAutoBankTrophiesWithTradeskill);
 			AutoBankMenu->AddMenuItem("Collectible Items", ContextMenu_CollectibleItemsId, gbAutoBankCollectibleItems);
 			AutoBankMenu->AddMenuItem("Quest Items", ContextMenu_QuestItemsId, gbAutoBankQuestItems);
 			AutoBankMenu->AddSeparator();
@@ -1351,7 +1362,7 @@ static void AutoBankPulse()
 					return;
 
 				ItemDefinition* itemDef = pItem->GetItemDefinition();
-				if ((gbAutoBankTradeSkillItems && itemDef->TradeSkills)
+				if ((gbAutoBankTradeSkillItems && itemDef->TradeSkills && (itemDef->SkillModValue ? gbAutoBankTrophiesWithTradeskill : true))
 					|| (gbAutoBankCollectibleItems && itemDef->Collectible)
 					|| (gbAutoBankQuestItems && itemDef->QuestItem))
 				{
@@ -1390,7 +1401,7 @@ static void AutoBankPulse()
 					return;
 
 				ItemDefinition* itemDef = pItem->GetItemDefinition();
-				if ((gbAutoBankTradeSkillItems && itemDef->TradeSkills)
+				if ((gbAutoBankTradeSkillItems && itemDef->TradeSkills && (itemDef->SkillModValue ? gbAutoBankTrophiesWithTradeskill : true))
 					|| (gbAutoBankCollectibleItems && itemDef->Collectible)
 					|| (gbAutoBankQuestItems && itemDef->QuestItem))
 				{
