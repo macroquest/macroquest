@@ -1362,7 +1362,7 @@ static void AutoBankPulse()
 					return;
 
 				ItemDefinition* itemDef = pItem->GetItemDefinition();
-				if ((gbAutoBankTradeSkillItems && itemDef->TradeSkills && (itemDef->SkillModValue ? gbAutoBankTrophiesWithTradeskill : true))
+				if ((gbAutoBankTradeSkillItems && itemDef->TradeSkills && (!itemDef->SkillModValue || gbAutoBankTrophiesWithTradeskill))
 					|| (gbAutoBankCollectibleItems && itemDef->Collectible)
 					|| (gbAutoBankQuestItems && itemDef->QuestItem))
 				{
@@ -1401,7 +1401,7 @@ static void AutoBankPulse()
 					return;
 
 				ItemDefinition* itemDef = pItem->GetItemDefinition();
-				if ((gbAutoBankTradeSkillItems && itemDef->TradeSkills && (itemDef->SkillModValue ? gbAutoBankTrophiesWithTradeskill : true))
+				if ((gbAutoBankTradeSkillItems && itemDef->TradeSkills && (!itemDef->SkillModValue || gbAutoBankTrophiesWithTradeskill))
 					|| (gbAutoBankCollectibleItems && itemDef->Collectible)
 					|| (gbAutoBankQuestItems && itemDef->QuestItem))
 				{
