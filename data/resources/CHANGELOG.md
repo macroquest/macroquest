@@ -1,9 +1,24 @@
+Jul 19, 2022 (test):
+- Update for third test patch.
+
 Jul 17, 2022 (test):
 - Update for first and then second test patch.
 - Servers were locked every time we tried to test this, so hopefully it works.
 
 Jun 25, 2022 (test):
 - Updated for test patch.
+
+Jul 12, 2022:
+- Fix MyRange Spell member (#563)
+
+Jun 29, 2022:
+- Fix EQ Exiting when MQ is loaded and an invalid UI is loaded (#572)
+- Add parse function for lua scripts.  You can now parse any arbitrary macro data.
+  - Usage Example:  mq.parse("${Me.Name}")
+  - The return will always be a string and you will always be using the version 2 parser
+  - It is still preferable to use the mq.TLO syntax when retrieving data from an existing TLO
+  - The purpose of this function is to allow you to perform more complex operations when doing
+    macro/ini conversions.
 
 Jun 15, 2022:
 - Updated for live patch.

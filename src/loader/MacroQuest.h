@@ -143,7 +143,6 @@ std::string GetInjecteePath();
 
 
 // Utility
-bool IsProcessRunning(const char* exeName);
 std::string GetVersionStringLocal(const std::filesystem::path& filePath);
 std::string GetVersionStringRemote(const std::string& versionURL);
 void ShowWarningBlocking(const std::string& Message);

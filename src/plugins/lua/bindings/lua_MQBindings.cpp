@@ -503,6 +503,18 @@ std::optional<std::string> mq_gettype_MQTypeVar(const lua_MQTypeVar& item)
 
 //============================================================================
 
+static std::string lua_Parse(const char* text)
+{
+	char buffer[MAX_STRING] = { 0 };
+	strncpy_s(buffer, text, sizeof(buffer));
+	auto old_parser = std::exchange(gParserVersion, 2);
+	ParseMacroData(buffer, sizeof(buffer));
+	gParserVersion = old_parser;
+	return buffer;
+}
+
+//============================================================================
+
 static std::unique_ptr<CTextureAnimation> FindTextureAnimation(std::string_view name, sol::this_state s)
 {
 	auto anim = std::make_unique<CTextureAnimation>();
@@ -575,6 +587,10 @@ void MQ_RegisterLua_MQBindings(sol::table& mq)
 	mq.set("gettype",                            sol::overload(
 		                                             mq_gettype_MQDataItem,
 		                                             mq_gettype_MQTypeVar));
+
+	//----------------------------------------------------------------------------
+
+	mq.set("parse",                              &lua_Parse);
 
 	//----------------------------------------------------------------------------
 

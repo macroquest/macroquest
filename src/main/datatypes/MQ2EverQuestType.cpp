@@ -372,7 +372,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case EverQuestMembers::IsDefaultUILoaded:
-		Dest.Set(ci_equals(gUISkin, "default"));
+		Dest.Set(ci_equals(gUISkin, "Default"));
 		Dest.Type = pBoolType;
 		return true;
 
