@@ -1,3 +1,6 @@
+Jul 21, 2022:
+- Fix achievements
+
 Jul 20, 2022:
 - Updated for patch
 

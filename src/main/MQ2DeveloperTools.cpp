@@ -490,7 +490,8 @@ public:
 			ImGui::Text("Version: %d", achievement->version);
 			ImGui::Text("Persistent: %s", achievement->persistent ? "yes" : "no");
 			ImGui::Text("Reward Set: %d", achievement->rewardSet);
-			ImGui::Text("Unknown: %d", achievement->unknown0x60);
+			ImGui::Text("Unknown1: %d", achievement->unknown1);
+			ImGui::Text("Unknown2: %d", achievement->unknown2);
 
 			ImGui::Separator();
 			ImGui::Text("Components:");
