@@ -1,3 +1,6 @@
+Jul 20, 2022:
+- Updated for patch
+
 Jul 12, 2022:
 - Fix MyRange Spell member (#563)
 
