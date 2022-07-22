@@ -490,8 +490,10 @@ public:
 			ImGui::Text("Version: %d", achievement->version);
 			ImGui::Text("Persistent: %s", achievement->persistent ? "yes" : "no");
 			ImGui::Text("Reward Set: %d", achievement->rewardSet);
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
 			ImGui::Text("Unknown1: %d", achievement->unknown1);
 			ImGui::Text("Unknown2: %d", achievement->unknown2);
+#endif
 
 			ImGui::Separator();
 			ImGui::Text("Components:");

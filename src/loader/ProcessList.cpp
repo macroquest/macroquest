@@ -91,7 +91,7 @@ bool convertAddress(ParsedPeRef& pe,
 		return true;
 	}
 
-	std::uint64_t image_base_address = 0U;
+	uintptr_t image_base_address = 0U;
 	if (pe->peHeader.nt.FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64) {
 		image_base_address = pe->peHeader.nt.OptionalHeader64.ImageBase;
 	}
@@ -100,11 +100,11 @@ bool convertAddress(ParsedPeRef& pe,
 	}
 
 	struct SectionAddressLimits final {
-		std::uintptr_t lowest_rva;
-		std::uintptr_t lowest_offset;
+		uintptr_t lowest_rva;
+		uintptr_t lowest_offset;
 
-		std::uintptr_t highest_rva;
-		std::uintptr_t highest_offset;
+		uintptr_t highest_rva;
+		uintptr_t highest_offset;
 	};
 
 	auto L_getSectionAddressLimits = [](void* N,
@@ -121,13 +121,13 @@ bool convertAddress(ParsedPeRef& pe,
 
 			section_address_limits->lowest_rva =
 				std::min(section_address_limits->lowest_rva,
-					static_cast<std::uintptr_t>(s.VirtualAddress));
+					static_cast<uintptr_t>(s.VirtualAddress));
 
 			section_address_limits->lowest_offset =
 				std::min(section_address_limits->lowest_offset,
-					static_cast<std::uintptr_t>(s.PointerToRawData));
+					static_cast<uintptr_t>(s.PointerToRawData));
 
-			std::uintptr_t sectionSize;
+			uintptr_t sectionSize;
 			if (s.SizeOfRawData != 0) {
 				sectionSize = s.SizeOfRawData;
 			}
@@ -137,20 +137,20 @@ bool convertAddress(ParsedPeRef& pe,
 
 			section_address_limits->highest_rva =
 				std::max(section_address_limits->highest_rva,
-					static_cast<std::uintptr_t>(s.VirtualAddress + sectionSize));
+					static_cast<uintptr_t>(s.VirtualAddress + sectionSize));
 
 			section_address_limits->highest_offset =
 				std::max(section_address_limits->highest_offset,
-					static_cast<std::uintptr_t>(s.PointerToRawData + sectionSize));
+					static_cast<uintptr_t>(s.PointerToRawData + sectionSize));
 
 			return 0;
 	};
 
 	SectionAddressLimits section_address_limits = {
-		std::numeric_limits<std::uintptr_t>::max(),
-		std::numeric_limits<std::uintptr_t>::max(),
-		std::numeric_limits<std::uintptr_t>::min(),
-		std::numeric_limits<std::uintptr_t>::min() };
+		std::numeric_limits<uintptr_t>::max(),
+		std::numeric_limits<uintptr_t>::max(),
+		std::numeric_limits<uintptr_t>::min(),
+		std::numeric_limits<uintptr_t>::min() };
 
 	IterSec(pe.get(), L_getSectionAddressLimits, &section_address_limits);
 
@@ -163,8 +163,8 @@ bool convertAddress(ParsedPeRef& pe,
 		if (destination_type == AddressType::RelativeVirtualAddress) {
 			struct CallbackData final {
 				bool found;
-				std::uint64_t address;
-				std::uint64_t result;
+				uintptr_t address;
+				uintptr_t result;
 			};
 
 			auto L_inspectSection = [](void* N,
@@ -176,9 +176,9 @@ bool convertAddress(ParsedPeRef& pe,
 					static_cast<void>(secName);
 					static_cast<void>(data);
 
-					std::uintptr_t sectionBaseOffset = s.PointerToRawData;
+					uintptr_t sectionBaseOffset = s.PointerToRawData;
 
-					std::uintptr_t sectionEndOffset = sectionBaseOffset;
+					uintptr_t sectionEndOffset = sectionBaseOffset;
 					if (s.SizeOfRawData != 0) {
 						sectionEndOffset += s.SizeOfRawData;
 					}
@@ -239,8 +239,8 @@ bool convertAddress(ParsedPeRef& pe,
 		if (destination_type == AddressType::PhysicalOffset) {
 			struct CallbackData final {
 				bool found;
-				std::uint64_t address;
-				std::uint64_t result;
+				uintptr_t address;
+				uintptr_t result;
 			};
 
 			auto L_inspectSection = [](void* N,
@@ -252,8 +252,8 @@ bool convertAddress(ParsedPeRef& pe,
 					static_cast<void>(secName);
 					static_cast<void>(data);
 
-					std::uintptr_t sectionBaseAddress = s.VirtualAddress;
-					std::uintptr_t sectionEndAddress =
+					uintptr_t sectionBaseAddress = s.VirtualAddress;
+					uintptr_t sectionEndAddress =
 						sectionBaseAddress + s.Misc.VirtualSize;
 
 					auto callback_data = static_cast<CallbackData*>(N);
@@ -294,7 +294,7 @@ bool convertAddress(ParsedPeRef& pe,
 			return false;
 		}
 
-		std::uint64_t rva = address - image_base_address;
+		uintptr_t rva = address - image_base_address;
 		return convertAddress(pe,
 			rva,
 			AddressType::RelativeVirtualAddress,
@@ -308,7 +308,7 @@ bool convertAddress(ParsedPeRef& pe,
 	}
 }
 
-uint64_t convertAddress(ParsedPeRef& pe,
+uintptr_t convertAddress(ParsedPeRef& pe,
 	uintptr_t address,
 	AddressType source_type,
 	AddressType destination_type) noexcept
@@ -324,7 +324,7 @@ std::string ReadStringAtVA(peparse::parsed_pe* pe, peparse::VA v)
 
 	while (true)
 	{
-		std::uint8_t b;
+		uint8_t b;
 		if (!peparse::ReadByteAtVA(pe, v++, b))
 			break;
 
@@ -575,7 +575,7 @@ std::pair<std::string, std::string> GetEQGameVersionStrings(const std::string& P
 
 		// Get RVA of the version string.
 		uintptr_t stringRefDisplacement = *(int32_t*)&(pData[offsets[2]]);
-		uint64_t stringRefVirtualAddress = 0;
+		uintptr_t stringRefVirtualAddress = 0;
 
 		uintptr_t stringRefRVA = baseRva + offsets[2] + 4;
 
