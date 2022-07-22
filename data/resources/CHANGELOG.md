@@ -1,5 +1,24 @@
+Jul 21, 2022:
+- Fix achievements
+
+Jul 20, 2022:
+- Updated for patch
+
+Jul 12, 2022:
+- Fix MyRange Spell member (#563)
+
+Jun 29, 2022:
+- Fix EQ Exiting when MQ is loaded and an invalid UI is loaded (#572)
+- Add parse function for lua scripts.  You can now parse any arbitrary macro data.
+  - Usage Example:  mq.parse("${Me.Name}")
+  - The return will always be a string and you will always be using the version 2 parser
+  - It is still preferable to use the mq.TLO syntax when retrieving data from an existing TLO
+  - The purpose of this function is to allow you to perform more complex operations when doing
+    macro/ini conversions.
+
 Jun 15, 2022:
 - Updated for live patch.
+- Potential fix for WinEQ2022 interoperability
 
 Jun 9, 2022:
 - ${Int[x]} is now capable of parsing numbers up to 64-bits, and will truncate the result.

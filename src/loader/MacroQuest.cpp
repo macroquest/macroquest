@@ -35,6 +35,7 @@
 #include <fcntl.h>
 
 #include <mq/utils/Naming.h>
+#include <mq/utils/OS.h>
 
 #pragma comment(lib, "Psapi.lib")
 #pragma comment(lib, "Crypt32.lib")
@@ -263,59 +264,7 @@ bool InitializePaths()
 	// If the path to MQ2 doesn't exist none of our relative paths are going to work.
 	if (fs::exists(pathMQRoot, ec))
 	{
-		fs::path pathMQini = internal_paths::MQini;
-
-		/*
-		 *  ** NOTE ** This logic exists here and in MQ2Main2.cpp.  Changes should be applied in both
-		 *             until the code is shared.
-		 */
-
-		// If the ini path is relative, prepend the MQ2 path
-		if (pathMQini.is_relative())
-		{
-			pathMQini = pathMQRoot / pathMQini;
-		}
-
-		if (!fs::exists(pathMQini, ec))
-		{
-			// Check if the ini file exists in the same directory as MQ2
-			if (fs::exists(pathMQRoot / "MacroQuest.ini", ec))
-			{
-				pathMQini = pathMQRoot / "MacroQuest.ini";
-			}
-			else if (fs::exists(pathMQRoot / internal_paths::Config / "MacroQuest_default.ini", ec))
-			{
-				// copy into the config directory and work from there.
-				std::filesystem::copy_file(
-					pathMQRoot / internal_paths::Config / "MacroQuest_default.ini",
-					pathMQRoot / internal_paths::Config / "MacroQuest.ini",
-					ec);
-			}
-		}
-
-		if (fs::exists(pathMQini, ec))
-		{
-			// Check to see if there is a different MacroQuest.ini we should be looking at
-			pathMQini = std::filesystem::path(GetPrivateProfileString("MacroQuest", "MQIniPath", pathMQini.string(), pathMQini.string()));
-
-			// If it's relative, make it absolute relative to MQ2
-			if (pathMQini.is_relative())
-			{
-				pathMQini = std::filesystem::absolute(pathMQRoot / pathMQini);
-			}
-
-			// If it's a folder append MacroQuest.ini
-			if (is_directory(pathMQini, ec))
-			{
-				pathMQini = pathMQini / "MacroQuest.ini";
-			}
-		}
-
-		// Set the ini to whatever we ended up with.
-		internal_paths::MQini = pathMQini.string();
-		/*
-		 *  END SHARED LOGIC (See above note)
-		 */
+		internal_paths::MQini = GetCreateMacroQuestIni(pathMQRoot, internal_paths::Config, internal_paths::MQini);
 
 		// Init the Config directory based on the ini we found.
 		if (InitializeDirectory(internal_paths::Config, "ConfigPath", internal_paths::MQini, internal_paths::MQRoot))

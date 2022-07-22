@@ -408,17 +408,6 @@ inline int ci_find_substr_w(std::wstring_view haystack, std::wstring_view needle
 	return static_cast<int>(iter - std::begin(haystack));
 }
 
-inline bool starts_with(std::string_view haystack, std::string_view needle)
-{
-	return find_substr(haystack, needle) == 0;
-}
-
-// todo implement a better ci_starts_with that doesn't search past needle.length chars
-inline bool ci_starts_with(std::string_view haystack, std::string_view needle)
-{
-	return ci_find_substr(haystack, needle) == 0;
-}
-
 /**
  * @fn ci_equals
  *
@@ -459,6 +448,38 @@ inline bool string_equals(std::string_view sv1, std::string_view sv2)
 {
 	return sv1.size() == sv2.size()
 		&& std::equal(sv1.begin(), sv1.end(), sv2.begin());
+}
+
+inline bool starts_with(std::string_view a, std::string_view b)
+{
+	if (a.length() < b.length())
+		return false;
+
+	return a.substr(0, b.length()).compare(b) == 0;
+}
+
+inline bool ci_starts_with(std::string_view a, std::string_view b)
+{
+	if (a.length() < b.length())
+		return false;
+
+	return ci_equals(a.substr(0, b.length()), b);
+}
+
+inline bool ends_with(std::string_view a, std::string_view b)
+{
+	if (a.length() < b.length())
+		return false;
+
+	return a.substr(a.length() - b.length()).compare(b) == 0;
+}
+
+inline bool ci_ends_with(std::string_view a, std::string_view b)
+{
+	if (a.length() < b.length())
+		return false;
+
+	return ci_equals(a.substr(a.length() - b.length()), b);
 }
 
 struct ci_unordered
@@ -698,14 +719,6 @@ inline std::string wstring_to_utf8(const std::wstring& s)
 	r.resize(sizeNeeded, 0);
 	::WideCharToMultiByte(CP_UTF8, 0, s.c_str(), (int)s.size(), &r[0], sizeNeeded, nullptr, nullptr);
 	return r;
-}
-
-inline bool ends_with(std::string_view a, std::string_view b)
-{
-	if (a.length() < b.length())
-		return false;
-
-	return a.substr(a.length() - b.length()).compare(b) == 0;
 }
 
 } // namespace mq

@@ -249,59 +249,7 @@ bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& str
 	// If the path to MQ2 doesn't exist none of our relative paths are going to work
 	if (std::filesystem::exists(pathMQRoot, ec))
 	{
-		std::filesystem::path pathMQini = strMQini;
-
-		/*
-		 *  ** NOTE ** This logic exists here and in MacroQuest.cpp.  Changes should be applied in both
-		 *             until the code is shared.
-		 */
-
-		// If the ini path is relative, prepend the MQ2 path
-		if (pathMQini.is_relative())
-		{
-			pathMQini = pathMQRoot / pathMQini;
-		}
-
-		if (!std::filesystem::exists(pathMQini, ec))
-		{
-			// Check if the ini file exists in the same directory as MQ2
-			if (std::filesystem::exists(pathMQRoot / "MacroQuest.ini", ec))
-			{
-				pathMQini = pathMQRoot / "MacroQuest.ini";
-			}
-			else if (std::filesystem::exists(pathMQRoot / strConfig / "MacroQuest_default.ini", ec))
-			{
-				// copy into the config directory and work from there.
-				std::filesystem::copy_file(
-					pathMQRoot / strConfig / "MacroQuest_default.ini",
-					pathMQRoot / strConfig / "MacroQuest.ini",
-					ec);
-			}
-		}
-
-		if (std::filesystem::exists(pathMQini, ec))
-		{
-			// Check to see if there is a different MacroQuest.ini we should be looking at
-			pathMQini = std::filesystem::path(GetPrivateProfileString("MacroQuest", "MQIniPath", pathMQini.string(), pathMQini.string()));
-
-			// If it's relative, make it absolute relative to MQ2
-			if (pathMQini.is_relative())
-			{
-				pathMQini = std::filesystem::absolute(pathMQRoot / pathMQini);
-			}
-
-			// If it's a folder append MacroQuest.ini
-			if (is_directory(pathMQini, ec))
-			{
-				pathMQini = pathMQini / "MacroQuest.ini";
-			}
-		}
-
-		// Set the ini to whatever we ended up with.
-		strMQini = pathMQini.string();
-		/*
-		 *  END SHARED LOGIC (See above note)
-		 */
+		strMQini = GetCreateMacroQuestIni(pathMQRoot, strConfig, strMQini);
 
 		gbWriteAllConfig = GetPrivateProfileBool("MacroQuest", "WriteAllConfig", false, strMQini);
 		// Write the MQIniPath if we're writing all config.  This will be the full path and in the redirected ini
@@ -357,7 +305,6 @@ bool InitDirectories(const std::string& iniToRead)
 		strcpy_s(gPathLogs, mq::internal_paths::Logs.c_str());
 		strcpy_s(gPathCrashDumps, mq::internal_paths::CrashDumps.c_str());
 		strcpy_s(gPathPlugins, mq::internal_paths::Plugins.c_str());
-		strcpy_s(gPathResources, mq::internal_paths::Resources.c_str());
 		strcpy_s(gPathResources, mq::internal_paths::Resources.c_str());
 		strcpy_s(gPathEverQuest, mq::internal_paths::EverQuest.c_str());
 		return true;
@@ -652,13 +599,24 @@ bool MQ2Initialize()
 	GetModuleInformation(GetCurrentProcess(), hEQGameModule, &EQGameModuleInfo, sizeof(MODULEINFO));
 	g_eqgameimagesize = (uintptr_t)hEQGameModule + EQGameModuleInfo.SizeOfImage;
 
-	if (GetModuleHandle("Lavish.dll") || GetModuleHandle("InnerSpace.dll"))
+	// IsBoxer/InnerSpace
+	HMODULE hISModule = GetModuleHandle("InnerSpace.dll");
+	if (!hISModule)
+	{
+		// Joe MultiBoxer / WinEQ2022
+		hISModule = GetModuleHandle("JMB.dll");
+	}
+	if (!hISModule)
+	{
+		// WinEQ?
+		hISModule = GetModuleHandle("Lavish.dll");
+	}
+	if (hISModule)
 	{
 		uintptr_t baseAddressLS = 0;
 		uintptr_t endAddress = 0;
 
 		MODULEINFO moduleInfo;
-		HMODULE hISModule = GetModuleHandle("InnerSpace.dll");
 		HMODULE hKernelModule = GetModuleHandleA("kernel32.dll");
 
 		if (hISModule
@@ -679,7 +637,7 @@ bool MQ2Initialize()
 
 			if (!foundHooks)
 			{
-				// Wait for InnerSpace to finish loading before we try to continue. InnerSpace will modify our
+				// Wait for module to finish loading before we try to continue. Otherwise it will modify our
 				// import address table, resulting in our detours being ineffective if we go first.
 				uintptr_t fnGetProcAddress = (uintptr_t)&::GetProcAddress;
 				if (fnGetProcAddress >= baseAddressLS && fnGetProcAddress < endAddress)
@@ -915,8 +873,6 @@ DWORD WINAPI MQ2Start(void* lpParameter)
 	g_hLoadComplete.create(wil::EventOptions::ManualReset);
 
 	hUnloadComplete = CreateEvent(nullptr, TRUE, FALSE, nullptr);
-
-	char szBuffer[MAX_STRING] = { 0 };
 
 	if (!MQ2Initialize())
 	{

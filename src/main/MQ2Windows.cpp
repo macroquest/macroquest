@@ -61,8 +61,8 @@ std::vector<std::string> XmlFiles;
 
 int WinCount = 0;
 
-static bool GenerateMQUI();
-static void DestroyMQUI();
+static bool GenerateMQUI(const CXStr& strPath, const CXStr& strPathDefault);
+static void DestroyMQUI(const CXStr& strPath);
 
 static void DropWindowFromMap(std::string_view Name, CXWnd* pWnd)
 {
@@ -216,14 +216,14 @@ public:
 		// and redirect the read to that file.
 		if (!_stricmp("EQUI.xml", strFileName.c_str()))
 		{
-			if (GenerateMQUI())
+			if (GenerateMQUI(strPath, strDefaultPath))
 			{
 				const bool result = XMLRead_Trampoline(strPath,
 					strDefaultPath,
 					"MQUI.xml",
 					strDefaultPath2);
 
-				DestroyMQUI();
+				DestroyMQUI(strPath);
 				return result;
 			}
 		}
@@ -306,23 +306,9 @@ void ReloadUI(PSPAWNINFO pChar, char* szLine);
 #define WSF_CLOSEBOX        0x00000008
 #define WSF_TITLEBAR        0x00000004
 
-void UpdateUISkin()
+bool GenerateMQUI(const CXStr& strPath, const CXStr& strPathDefault)
 {
-	if (pLocalPC != nullptr)
-	{
-		const std::string pathUIConfig = fmt::format("{}\\UI_{}_{}.ini",
-			mq::internal_paths::EverQuest, pLocalPC->Name, GetServerShortName());
-		GetPrivateProfileString("Main", "UISkin", "default", gUISkin, MAX_PATH, pathUIConfig);
-	}
-	else
-	{
-		strcpy_s(gUISkin, "default");
-	}
-}
-
-bool GenerateMQUI()
-{
-	UpdateUISkin();
+	strcpy_s(gUISkin, GetCurrentUI().c_str());
 
 	if (XmlFiles.empty())
 	{
@@ -331,13 +317,13 @@ bool GenerateMQUI()
 	}
 
 	std::error_code ec;
-	std::filesystem::path pathEQUI = fmt::format("{}\\uifiles\\{}\\EQUI.xml", mq::internal_paths::EverQuest, gUISkin);
-	if (!std::filesystem::exists(pathEQUI, ec) && !ci_equals(gUISkin, "default"))
+	std::filesystem::path pathEQUI = fmt::format("{}\\{}EQUI.xml", mq::internal_paths::EverQuest, strPath);
+	if (!std::filesystem::exists(pathEQUI, ec))
 	{
-		pathEQUI = mq::internal_paths::EverQuest + "\\uifiles\\default\\EQUI.xml";
+		pathEQUI = fmt::format("{}\\{}{}", mq::internal_paths::EverQuest, strPathDefault, "EQUI.xml");
 	}
 
-	const std::filesystem::path pathMQUI = fmt::format("{}\\uifiles\\{}\\MQUI.xml", mq::internal_paths::Resources, gUISkin);
+	const std::filesystem::path pathMQUI = fmt::format("{}\\{}MQUI.xml", mq::internal_paths::Resources, strPath);
 
 	if (std::filesystem::exists(pathEQUI, ec) && (std::filesystem::exists(pathMQUI.parent_path(), ec) || std::filesystem::create_directories(pathMQUI.parent_path(), ec)))
 	{
@@ -413,10 +399,10 @@ bool IsXMLFilePresent(const char* filename)
 	return false;
 }
 
-void DestroyMQUI()
+void DestroyMQUI(const CXStr& strPath)
 {
 	// delete MQUI.xml files.
-	const std::filesystem::path pathMQUI = fmt::format("{}\\uifiles\\{}\\MQUI.xml", mq::internal_paths::Resources, gUISkin);
+	const std::filesystem::path pathMQUI = fmt::format("{}\\{}MQUI.xml", mq::internal_paths::Resources, strPath);
 	std::error_code ec;
 
 	DebugSpew("DestroyMQUI: removing file %s", pathMQUI.string().c_str());
@@ -2190,7 +2176,7 @@ static void Windows_Initialize()
 {
 	DebugSpew("Initializing MQ2 Windows");
 
-	UpdateUISkin(); 
+	strcpy_s(gUISkin, GetCurrentUI().c_str());
 
 	s_invSlotInspector = new InvSlotInspector();
 	DeveloperTools_RegisterMenuItem(s_invSlotInspector, "Inventory Slots", s_menuNameInspectors);
