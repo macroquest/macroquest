@@ -51,7 +51,7 @@ DATATYPE(MQ2BodyType, pBodyType, nullptr);
 DATATYPE(MQ2BuffType, pBuffType, pSpellType);
 DATATYPE(MQ2CharacterType, pCharacterType, pSpawnType);
 DATATYPE(MQ2ClassType, pClassType, nullptr);
-DATATYPE(MQ2CorpseType, pCorpseType, nullptr);
+DATATYPE(MQ2CorpseType, pCorpseType, pSpawnType);
 DATATYPE(MQ2CurrentZoneType, pCurrentZoneType, nullptr);
 DATATYPE(MQ2DeityType, pDeityType, nullptr);
 DATATYPE(MQ2DynamicZoneType, pDynamicZoneType, nullptr);
