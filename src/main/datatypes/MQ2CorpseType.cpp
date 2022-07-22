@@ -33,22 +33,24 @@ MQ2CorpseType::MQ2CorpseType() : MQ2Type("corpse")
 
 bool MQ2CorpseType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	if (!pActiveCorpse || !pLootWnd)
-		return false;
-
 	MQTypeMember* pMember = MQ2CorpseType::FindMember(Member);
 	if (!pMember)
 	{
 		return pSpawnType->GetMember(pActiveCorpse, Member, Index, Dest);
 	}
 
-	switch (static_cast<CorpseMembers>(pMember->ID))
+	if (pMember && static_cast<CorpseMembers>(pMember->ID) == CorpseMembers::Open)
 	{
-	case CorpseMembers::Open:
-		Dest.Set(true); // obviously, since we're this far
+		Dest.Set(pActiveCorpse != nullptr);
 		Dest.Type = pBoolType;
 		return true;
+	}
 
+	if (!pActiveCorpse || !pLootWnd)
+		return false;
+
+	switch (static_cast<CorpseMembers>(pMember->ID))
+	{
 	case CorpseMembers::Item:
 		Dest.Type = pItemType;
 		if (Index[0])

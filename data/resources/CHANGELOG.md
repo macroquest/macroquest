@@ -1,3 +1,7 @@
+Jul 22, 2022:
+- Fix Corpse type to properly inherit from Spawn. Support checking for .ID and .Open when no
+  corpse is currently active.
+
 Jul 21, 2022:
 - Fix achievements
 
