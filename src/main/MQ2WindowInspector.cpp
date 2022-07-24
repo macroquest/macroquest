@@ -2746,7 +2746,9 @@ public:
 							ColumnWindow("Window", cell.pWnd);
 
 							ColumnText("Texture only", cell.bOnlyDrawTexture ? "true" : "false");
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
 							ColumnText("Unknown1", "%p", cell.Unknown1);
+#endif
 						};
 
 						if (cells > 0)
