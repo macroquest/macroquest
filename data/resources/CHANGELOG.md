@@ -1,15 +1,12 @@
-Jul 20, 2022 (Test):
-- Fixed some issues with the last update.
+Jul 22, 2022:
+- Fix Corpse type to properly inherit from Spawn. Support checking for .ID and .Open when no
+  corpse is currently active.
 
-Jul 19, 2022 (test):
-- Update for third test patch.
+Jul 21, 2022:
+- Fix achievements
 
-Jul 17, 2022 (test):
-- Update for first and then second test patch.
-- Servers were locked every time we tried to test this, so hopefully it works.
-
-Jun 25, 2022 (test):
-- Updated for test patch.
+Jul 20, 2022:
+- Updated for patch
 
 Jul 12, 2022:
 - Fix MyRange Spell member (#563)
