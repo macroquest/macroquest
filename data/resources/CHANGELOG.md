@@ -1,3 +1,6 @@
+Jul 25, 2022 (test):
+- Updated for latest test patch
+
 Jul 22, 2022:
 - Fix Corpse type to properly inherit from Spawn. Support checking for .ID and .Open when no
   corpse is currently active.
