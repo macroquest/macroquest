@@ -62,9 +62,14 @@ static const int s_userColorFactionLink = USERCOLOR_FACTION_LINK;
 static bool s_dockspaceVisible = true;
 static bool s_consoleVisible = false;
 static bool s_consoleVisibleOnStartup = false;
+static bool s_alphaBool = false;
+static bool s_largeFont = false;
+static bool s_noTitleBar = false;
+static bool s_lockConsole = false;
 static bool s_resetConsolePosition = false;
 static bool s_setFocus = false;
 
+static int s_mouseHoveringConsoleTimer = 0;
 class ImGuiConsole;
 ImGuiConsole* gImGuiConsole = nullptr;
 
@@ -909,6 +914,7 @@ public:
 	std::vector<std::string> m_history;
 	int m_historyPos = -1;    // -1: new line, 0..History.Size-1 browsing history.
 	bool m_scrollToBottom = true;
+	bool AlphaBool = false;
 	std::unique_ptr<ImGuiZepConsole> m_zepEditor;
 
 	ImGuiConsole()
@@ -949,10 +955,15 @@ public:
 
 	void Draw(bool* pOpen)
 	{
-		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar;
+		ImGuiWindowFlags windowFlags = 0;
+		if (!s_noTitleBar || s_mouseHoveringConsoleTimer != 0) windowFlags |= ImGuiWindowFlags_MenuBar;
+		if (s_noTitleBar)  windowFlags |= ImGuiWindowFlags_NoTitleBar;
+		if (s_lockConsole) windowFlags |= ImGuiWindowFlags_NoMove;
+		if (s_lockConsole) windowFlags |= ImGuiWindowFlags_NoResize;
 
 		ImGui::SetNextWindowSize(ImVec2(640, 240), ImGuiCond_FirstUseEver);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1, 0));
+		AlphaSetting(AlphaBool);
 
 		if (!ImGui::Begin("MacroQuest Console", pOpen, windowFlags))
 		{
@@ -961,6 +972,7 @@ public:
 			ImGui::PopStyleVar();
 			return;
 		}
+		AlphaBool = MouseOverUpdate();
 
 		// Need to unpop this for the menu.
 		ImGui::PopStyleVar();
@@ -970,8 +982,11 @@ public:
 		// Here we create a context menu only available from the title bar.
 		if (ImGui::BeginMenuBar())
 		{
+			// ImGui::SetWindowFontScale(1.2);
+			AlphaBool = MouseOverUpdate();
 			if (ImGui::BeginMenu("Options"))
 			{
+				AlphaBool = MouseOverUpdate();
 				bool autoScroll = m_zepEditor->GetAutoScroll();
 				if (ImGui::MenuItem("Auto-scroll", nullptr, &autoScroll))
 					m_zepEditor->SetAutoScroll(autoScroll);
@@ -1020,7 +1035,18 @@ public:
 						{
 							m_zepEditor->DoAchievementLinkTest();
 						}
+						if (ImGui::MenuItem("Alpha Control"))
+						{
+							int textFlags = ImGuiInputTextFlags_EnterReturnsTrue
+								| ImGuiInputTextFlags_CallbackCompletion
+								| ImGuiInputTextFlags_CallbackHistory;
+							bool bTextEdit = ImGui::InputText("##Input", m_inputBuffer, IM_ARRAYSIZE(m_inputBuffer), textFlags,
+								[](ImGuiInputTextCallbackData* data)
+								{ return static_cast<ImGuiConsole*>(data->UserData)->TextEditCallback(data); }, this);
+						}
 					}
+
+
 
 					ImGui::EndMenu();
 				}
@@ -1328,6 +1354,41 @@ static void MakeColorGradient(float frequency1, float frequency2, float frequenc
 }
 
 //----------------------------------------------------------------------------
+void AlphaSetting(bool AlphaBool)
+{
+	if (AlphaBool || !s_alphaBool || s_mouseHoveringConsoleTimer != 0)
+	{
+		ImGui::SetNextWindowBgAlpha(1.0f);
+	}
+	else 
+	{
+		ImGui::SetNextWindowBgAlpha(.1f);
+	}
+}
+
+bool MouseOverUpdate()
+{
+	if (ImGui::IsWindowHovered())
+	{
+		// This may not be the MQ way of doing it Its just a timer for Mouse over window and drop down but makes it very slick giving a delay to fade
+		// This Actually Covers up another issue with Button Presses as with a button down you are not hoveringoverwindow
+		s_mouseHoveringConsoleTimer = 1200;
+		return true;
+	}
+	else
+	{
+		if (s_mouseHoveringConsoleTimer > 0)
+		{
+			s_mouseHoveringConsoleTimer = s_mouseHoveringConsoleTimer - 1;
+		}
+		else
+		{
+			s_mouseHoveringConsoleTimer = 0;
+		}
+
+		return false;
+	}
+}
 
 void UpdateImGuiConsole()
 {
@@ -1484,6 +1545,25 @@ static void ConsoleSettings()
 	ImGui::SameLine();
 	mq::imgui::HelpMarker("This feature allows you to automatically show the MacroQuest Console upon load.");
 
+	if (ImGui::Checkbox("No Titlebar", &s_noTitleBar))
+	{
+		WritePrivateProfileBool("MacroQuest", "NoTitlebar", s_noTitleBar, mq::internal_paths::MQini);
+	}
+
+	if (ImGui::Checkbox("Turn Alpha On", &s_alphaBool))
+	{
+		WritePrivateProfileBool("MacroQuest", "AlphaOn", s_alphaBool, mq::internal_paths::MQini);
+	}
+
+	if (ImGui::Checkbox("Large Font", &s_largeFont))
+	{
+		WritePrivateProfileBool("MacroQuest", "LargeFont", s_largeFont, mq::internal_paths::MQini);
+	}
+
+	if (ImGui::Checkbox("Lock Window", &s_lockConsole))
+	{
+		WritePrivateProfileBool("MacroQuest", "LockConsoleWindow", s_lockConsole, mq::internal_paths::MQini);
+	}
 	ImGui::NewLine();
 
 	if (ImGui::Button("Clear Saved Console Settings"))
@@ -1497,6 +1577,10 @@ void InitializeImGuiConsole()
 {
 	s_consoleVisibleOnStartup = GetPrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", false, mq::internal_paths::MQini);
 	s_consoleVisible = s_consoleVisibleOnStartup;
+	s_alphaBool = GetPrivateProfileBool("MacroQuest", "AlphaOn", false, mq::internal_paths::MQini);
+	s_largeFont = GetPrivateProfileBool("MacroQuest", "LargeFont", false, mq::internal_paths::MQini);
+	s_noTitleBar = GetPrivateProfileBool("MacroQuest", "NoTitleBar", false, mq::internal_paths::MQini);
+	s_lockConsole = GetPrivateProfileBool("MacroQuest", "LockConsoleWindow", false, mq::internal_paths::MQini);
 	if (gbWriteAllConfig)
 	{
 		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);

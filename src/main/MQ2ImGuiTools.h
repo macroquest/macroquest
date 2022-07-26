@@ -30,6 +30,8 @@ void ImGuiTools_DrawWindowsMenu();
 void InitializeImGuiConsole();
 void ShutdownImGuiConsole();
 void UpdateImGuiConsole();
+bool MouseOverUpdate();
+void AlphaSetting(bool);
 
 DWORD ImGuiConsoleAddText(const char* line, DWORD color, DWORD filter);
 
