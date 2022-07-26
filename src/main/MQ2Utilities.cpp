@@ -35,30 +35,6 @@ namespace mq {
 // Function:    DebugSpew
 // Description: Outputs text to debugger, usage is same as printf ;)
 //***************************************************************************
-
-static void LogToFile(const char* szOutput)
-{
-	FILE* fOut = nullptr;
-
-	const std::filesystem::path pathDebugSpew = std::filesystem::path(mq::internal_paths::Logs) / "DebugSpew.log";
-	const errno_t err = fopen_s(&fOut, pathDebugSpew.string().c_str(), "at");
-
-	if (err || !fOut)
-		return;
-
-#ifdef DBG_CHARNAME
-	char Name[256] = "Unknown";
-	if (pLocalPC)
-	{
-		strcpy_s(Name, pLocalPC->Name);
-	}
-	fprintf(fOut, "%s - ", Name);
-#endif
-
-	fprintf(fOut, "%s\r\n", szOutput);
-	fclose(fOut);
-}
-
 static void DebugSpewImpl(bool always, bool logToFile, const char* szFormat, va_list vaList)
 {
 	if (!always && gFilterDebug)
@@ -73,12 +49,11 @@ static void DebugSpewImpl(bool always, bool logToFile, const char* szFormat, va_
 
 	vsprintf_s(szOutput, theLen, szFormat, vaList);
 
-	strcat_s(szOutput, theLen, "\n");
 	OutputDebugString(szOutput);
 
 	if (logToFile)
 	{
-		LogToFile(szOutput);
+		SPDLOG_DEBUG(szOutput);
 	}
 }
 
