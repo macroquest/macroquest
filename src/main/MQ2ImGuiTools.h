@@ -32,6 +32,7 @@ void ShutdownImGuiConsole();
 void UpdateImGuiConsole();
 bool MouseOverUpdate();
 void AlphaSetting(bool);
+ImGuiWindowFlags ConsoleFlagSetup();
 
 DWORD ImGuiConsoleAddText(const char* line, DWORD color, DWORD filter);
 

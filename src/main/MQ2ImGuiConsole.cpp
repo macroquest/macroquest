@@ -955,11 +955,7 @@ public:
 
 	void Draw(bool* pOpen)
 	{
-		ImGuiWindowFlags windowFlags = 0;
-		if (!s_noTitleBar || s_mouseHoveringConsoleTimer != 0) windowFlags |= ImGuiWindowFlags_MenuBar;
-		if (s_noTitleBar)  windowFlags |= ImGuiWindowFlags_NoTitleBar;
-		if (s_lockConsole) windowFlags |= ImGuiWindowFlags_NoMove;
-		if (s_lockConsole) windowFlags |= ImGuiWindowFlags_NoResize;
+		ImGuiWindowFlags windowFlags = ConsoleFlagSetup();
 
 		ImGui::SetNextWindowSize(ImVec2(640, 240), ImGuiCond_FirstUseEver);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1, 0));
@@ -982,8 +978,6 @@ public:
 		// Here we create a context menu only available from the title bar.
 		if (ImGui::BeginMenuBar())
 		{
-			// ImGui::SetWindowFontScale(1.2);
-			AlphaBool = MouseOverUpdate();
 			if (ImGui::BeginMenu("Options"))
 			{
 				AlphaBool = MouseOverUpdate();
@@ -1354,6 +1348,15 @@ static void MakeColorGradient(float frequency1, float frequency2, float frequenc
 }
 
 //----------------------------------------------------------------------------
+ImGuiWindowFlags ConsoleFlagSetup()
+{
+	ImGuiWindowFlags windowFlags = 0;
+	if (!s_noTitleBar || s_mouseHoveringConsoleTimer != 0) windowFlags |= ImGuiWindowFlags_MenuBar;
+	if (s_noTitleBar)  windowFlags |= ImGuiWindowFlags_NoTitleBar;
+	if (s_lockConsole) windowFlags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
+	return windowFlags;
+}
+
 void AlphaSetting(bool AlphaBool)
 {
 	if (AlphaBool || !s_alphaBool || s_mouseHoveringConsoleTimer != 0)
@@ -1385,7 +1388,6 @@ bool MouseOverUpdate()
 		{
 			s_mouseHoveringConsoleTimer = 0;
 		}
-
 		return false;
 	}
 }
