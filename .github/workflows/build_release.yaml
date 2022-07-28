@@ -2,8 +2,8 @@ name: Build MacroQuest Release
 
 on:
   push:
-    tags:
-      - rel-*
+    branches:
+      - emu
 
 jobs:
   build:
@@ -11,8 +11,6 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v3
-        with:
-          fetch-depth: '10'
       - name: Checkout submodules excluding eqlib
         run: git -c submodule."src/eqlib".update=none submodule update --init --recursive
       - name: Run build script
