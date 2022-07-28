@@ -7,12 +7,15 @@ on:
 
 jobs:
   build:
-    runs-on: [windows-latest]
+    runs-on: [windows-2022]
     steps:
       - name: Check out code
         uses: actions/checkout@v3
-      - name: Checkout submodules excluding eqlib
-        run: git -c submodule."src/eqlib".update=none submodule update --init --recursive
-      - name: Run build script
-        shell: pwsh
-        run: /Development/build_next.ps1
+        with:
+          ref: emu
+          submodules: recursive
+      - name: setup-msbuild
+        uses: microsoft/setup-msbuild@v1.1
+      - name: Build
+        shell: msbuild src/MacroQuest.sln
+        
