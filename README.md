@@ -1,4 +1,4 @@
-# MacroQuest
+# MacroQuest 
 ---
 
 MacroQuest is an open source scripting and plugin platform for EverQuest.  Documentation can be found at [docs.macroquest.org](https://docs.macroquest.org).
