@@ -19,4 +19,8 @@ jobs:
       - name: Build
         shell: pwsh
         run: msbuild src/MacroQuest.sln
+      - uses: actions/upload-artifact@v3
+        with:
+          name: MacroQuest.exe
+          path: D:\a\macroquest\macroquest\build\bin\debug\MacroQuest.exe
         
