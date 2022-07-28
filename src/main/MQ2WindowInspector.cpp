@@ -2332,11 +2332,15 @@ public:
 		if (BeginColorSection("CLabelWnd Properties", open))
 		{
 			bool changed = false;
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COV)
 			ColumnCXStr("Prepend Text", &pWnd->PrependText);
 			ColumnCXStr("Text###LabelText", &pWnd->Text);
 			ColumnCXStr("Append Text", &pWnd->AppendText);
 			if (ColumnCheckBox("Text Dirty", &pWnd->bTextDirty) && pWnd->bTextDirty)
 				pWnd->UpdateText();
+#else
+			ColumnCXStr("Text###LabelText", pWnd->Text);
+#endif
 			ColumnCheckBox("No wrap", &pWnd->bNoWrap);
 			ColumnCheckBox("Right align", &pWnd->bAlignRight);
 			ColumnCheckBox("Center align", &pWnd->bAlignCenter);
