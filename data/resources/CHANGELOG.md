@@ -1,3 +1,6 @@
+Jul 27, 2022:
+- Fix item statistics not matching item
+
 Jul 25, 2022 (test):
 - Updated for latest test patch
 
