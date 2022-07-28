@@ -1,3 +1,6 @@
+Jul 27, 2022:
+- Fix item statistics not matching item
+
 Jul 22, 2022:
 - Fix Corpse type to properly inherit from Spawn. Support checking for .ID and .Open when no
   corpse is currently active.
