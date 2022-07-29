@@ -2,25 +2,34 @@ name: Build MacroQuest Release
 
 on:
   push:
-    branches:
-      - emu
+    branches: [ "emu" ]
+  pull_request:
+    branches: [ "emu" ]
+
+env:
+  config: Release
+  platform: Win32
 
 jobs:
   build:
     runs-on: [windows-2022]
+    
     steps:
       - name: Check out code
         uses: actions/checkout@v3
         with:
           ref: emu
           submodules: recursive
+
       - name: setup-msbuild
         uses: microsoft/setup-msbuild@v1.1
+        
       - name: Build
         shell: pwsh
-        run: msbuild src/MacroQuest.sln
+        run: msbuild src/MacroQuest.sln /p:Configuration=${{env.config}} /p:Platform=${{env.platform}}
+
       - uses: actions/upload-artifact@v3
         with:
-          name: MacroQuest
-          path: D:\a\macroquest\macroquest\build\bin\debug\*
+          name: MacroQuest.zip
+          path: D:\a\macroquest\macroquest\build\bin\${{env.config}}
         
