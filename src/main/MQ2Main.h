@@ -153,6 +153,7 @@ MQLIB_API void InitializeMQ2Plugins();
 MQLIB_API int LoadMQ2Plugin(const char* pszFilename, bool bCustom = false);
 MQLIB_API bool UnloadMQ2Plugin(const char* pszFilename);
 MQLIB_API void UnloadMQ2Plugins();
+MQLIB_API bool UnloadFailedPlugins();
 MQLIB_API void ShutdownMQ2Plugins();
 
 MQLIB_API DEPRECATE("This is handled on load/unload without the direct call.")
@@ -180,6 +181,8 @@ MQLIB_API bool IsPluginsInitialized();
 MQLIB_API void* GetPluginProc(const char* plugin, const char* proc);
 MQLIB_API MQPlugin* GetPlugin(std::string_view PluginName);
 MQLIB_API bool IsPluginLoaded(std::string_view PluginName);
+MQLIB_API bool IsPluginUnloadFailed(std::string_view PluginName);
+MQLIB_API int GetPluginUnloadFailedCount();
 MQLIB_API PluginInterface* GetPluginInterface(std::string_view PluginName);
 
 

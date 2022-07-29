@@ -18,6 +18,8 @@
 #include <spdlog/spdlog.h>
 #include <wil/resource.h>
 
+#include <mq/utils/OS.h>
+
 //#define DEBUG_PLUGINS
 
 namespace mq {
@@ -38,6 +40,7 @@ static std::recursive_mutex s_pluginsMutex;
 // MQPlugin instance.
 using PluginMap = ci_unordered::map<std::string_view, MQPlugin*>;
 static PluginMap g_pluginMap;
+static PluginMap g_pluginUnloadFailedMap;
 
 // String constant used to bake in the version of everquest when performing
 // version checks against plugins.
@@ -176,10 +179,41 @@ std::string_view GetCanonicalPluginName(std::string_view name, bool stripExtensi
 	return name;
 }
 
+void PrintModules()
+{
+	HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, GetCurrentProcessId());
+	if (hProcess)
+	{
+		HMODULE hMods[1024];
+		DWORD cbNeeded;
+		if(EnumProcessModules(hProcess, hMods, sizeof(hMods), &cbNeeded))
+		{
+			for (int i = 0; i < (cbNeeded / sizeof(HMODULE)); ++i)
+			{
+				char szModName[MAX_PATH];
+				if (GetModuleFileNameEx(hProcess, hMods[i], szModName, sizeof(szModName) / sizeof(char)))
+				{
+					WriteChatf("%s (0x%08X)", szModName, hMods[i]);
+				}
+			}
+		}
+	}
+}
+
 // Returns true if the plugin is loaded by checking its canonical name.
 bool IsPluginLoaded(std::string_view name)
 {
 	return g_pluginMap.count(GetCanonicalPluginName(name)) != 0;
+}
+
+bool IsPluginUnloadFailed(std::string_view name)
+{
+	return g_pluginUnloadFailedMap.count(GetCanonicalPluginName(name)) != 0;
+}
+
+int GetPluginUnloadFailedCount()
+{
+	return static_cast<int>(g_pluginUnloadFailedMap.size());
 }
 
 MQPlugin* GetPlugin(std::string_view name)
@@ -272,7 +306,7 @@ std::pair<wil::unique_hmodule, std::string> LoadPluginModule(std::string_view na
 		return {};
 	}
 
-	fs::path pathToPlugin = fs::path(mq::internal_paths::Plugins) / fileName;
+	const fs::path pathToPlugin = fs::path(mq::internal_paths::Plugins) / fileName;
 
 	if (s_hotReloadEnabled)
 	{
@@ -282,7 +316,17 @@ std::pair<wil::unique_hmodule, std::string> LoadPluginModule(std::string_view na
 	if (!hModule)
 	{
 		DWORD lastError = ::GetLastError();
-		sprintf_s(szPluginLoadFailure, "LoadLibrary failed with error 0x%08x", lastError);
+		char* szError = nullptr;
+
+		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+			nullptr,
+			lastError,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+			(LPTSTR)&szError,
+			0,
+			nullptr);
+
+		sprintf_s(szPluginLoadFailure, "LoadLibrary failed with error 0x%08x : %s", lastError, szError);
 
 		return {};
 	}
@@ -340,6 +384,10 @@ void RemovePluginFromList(MQPlugin* pPlugin)
 		pPlugin->pNext->pLast = pPlugin->pLast;
 }
 
+// 0 - failed
+// 1 - success
+// 2 - already loaded
+// 3 - previous load of plugin is still unloading
 int LoadMQ2Plugin(const char* pszFilename, bool)
 {
 	// Clear the load error message;
@@ -353,6 +401,14 @@ int LoadMQ2Plugin(const char* pszFilename, bool)
 		strcpy_s(szPluginLoadFailure, "Plugin is already loaded");
 
 		return 2;
+	}
+
+	if (IsPluginUnloadFailed(pluginName))
+	{
+		DebugSpew("LoadMQ2Plugin(%s) previous instance failed unload", pluginName.c_str());
+		strcpy_s(szPluginLoadFailure, "Plugin failed unload from a previous instance, cannot load");
+
+		return 3;
 	}
 
 	auto [hModule, pluginPath] = LoadPluginModule(pluginName);
@@ -443,22 +499,37 @@ int LoadMQ2Plugin(const char* pszFilename, bool)
 
 bool UnloadMQ2Plugin(const char* pszFilename)
 {
-	DebugSpew("UnloadMQ2Plugin");
+	DebugSpew("UnloadMQ2Plugin(%s)", pszFilename);
 
+	MQPlugin* pPlugin = nullptr;
 	std::string_view canonicalName = GetCanonicalPluginName(pszFilename);
 
-	auto iter = g_pluginMap.find(canonicalName);
-	if (iter == g_pluginMap.end())
-		return false;
+	if (IsPluginUnloadFailed(canonicalName))
+	{
+		auto iter = g_pluginUnloadFailedMap.find(canonicalName);
+		// We know this exists because we just checked it, but in case that changes later...
+		if (iter == g_pluginUnloadFailedMap.end())
+			return false;
 
-	MQPlugin* pPlugin = iter->second;
+		pPlugin = iter->second;
 
-	// Inform other plugins that this plugin is being removed
-	PluginsUnloadPlugin(pPlugin->szFilename);
+		g_pluginUnloadFailedMap.erase(iter);
+	}
+	else
+	{
+		auto iter = g_pluginMap.find(canonicalName);
+		if (iter == g_pluginMap.end())
+			return false;
 
-	// Remove it from the list so that it can no longer be accessed
-	RemovePluginFromList(pPlugin);
-	g_pluginMap.erase(iter);
+		pPlugin = iter->second;
+
+		// Inform other plugins that this plugin is being removed
+		PluginsUnloadPlugin(pPlugin->szFilename);
+
+		// Remove it from the list so that it can no longer be accessed
+		RemovePluginFromList(pPlugin);
+		g_pluginMap.erase(iter);
+	}
 
 	// call Plugin:CleanUI
 	if (pPlugin->CleanUI)
@@ -469,8 +540,36 @@ bool UnloadMQ2Plugin(const char* pszFilename)
 		pPlugin->Shutdown();
 
 	// Cleanup
-	FreeLibrary(pPlugin->hModule);
-	delete pPlugin;
+	if (FreeLibrary(pPlugin->hModule))
+	{
+		WriteChatf(pPlugin->szFilename);
+		if (IsInModuleList(pPlugin->szFilename))
+		{
+			sprintf_s(szPluginLoadFailure, "Plugin files still loaded.");
+			DebugSpew("UnloadMQ2Plugin(%s) failed: %s", pszFilename, szPluginLoadFailure);
+			g_pluginUnloadFailedMap.emplace(canonicalName, pPlugin);
+			return false;
+		}
+		delete pPlugin;
+	}
+	else
+	{
+		DWORD lastError = ::GetLastError();
+		char* szError = nullptr;
+
+		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+			nullptr,
+			lastError,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+			(LPTSTR)&szError,
+			0,
+			nullptr);
+
+		sprintf_s(szPluginLoadFailure, "FreeLibrary failed with error 0x%08x : %s", lastError, szError);
+		DebugSpew("UnloadMQ2Plugin(%s) failed: %s", pszFilename, szPluginLoadFailure);
+		g_pluginUnloadFailedMap.emplace(canonicalName, pPlugin);
+		return false;
+	}
 
 	return true;
 }
@@ -482,6 +581,19 @@ void UnloadMQ2Plugins()
 		DebugSpew("%s->Unload()", pPlugins->szFilename);
 		UnloadMQ2Plugin(pPlugins->szFilename);
 	}
+}
+
+bool UnloadFailedPlugins()
+{
+	// UnloadMQ2Plugin modifies the global map, so use a copy here.
+	const PluginMap pluginUnloadFailedCopy = g_pluginUnloadFailedMap;
+	for (auto iter = pluginUnloadFailedCopy.cbegin(); iter != pluginUnloadFailedCopy.cend(); ++iter)
+	{
+		const MQPlugin* pPlugin = iter->second;
+		DebugSpew("UnloadFailedPlugins(%s)", pPlugin->name.c_str());
+		UnloadMQ2Plugin(pPlugin->szFilename);
+	}
+	return GetPluginUnloadFailedCount() == 0;
 }
 
 template <typename Callback>
@@ -1002,118 +1114,179 @@ PluginInterface* GetPluginInterface(std::string_view PluginName)
 
 void PluginCommand(SPAWNINFO* pChar, char* szLine)
 {
-	char szBuffer[MAX_STRING] = { 0 };
+	bool show_usage = false;
 	char szName[MAX_STRING] = { 0 };
-
 	GetArg(szName, szLine, 1);
-	const char* szCommand = GetNextArg(szLine);
 
-	if (!_stricmp(szName, "list"))
+	char szCommand[MAX_STRING] = { 0 };
+	GetArg(szCommand, szLine, 2);
+
+	if (szName[0] == '\0')
 	{
-		MQPlugin* pLoop = pPlugins;
-		int Count = 0;
-
-		WriteChatColor("Active Plugins", USERCOLOR_WHO);
-		WriteChatColor("--------------------------", USERCOLOR_WHO);
-
-		while (pLoop)
+		show_usage = true;
+	}
+	else
+	{
+		if (!_stricmp(szName, "list"))
 		{
-			WriteChatColorf("%s", USERCOLOR_WHO, pLoop->szFilename);
-			Count++;
-			pLoop = pLoop->pNext;
-		}
-
-		if (Count == 0)
-		{
-			WriteChatColor("No Plugins defined.", USERCOLOR_WHO);
-		}
-		else
-		{
-			WriteChatColorf("%d Plugin%s displayed.", USERCOLOR_WHO, Count, (Count == 1) ? "" : "s");
-		}
-		return;
-	}
-
-	if (szName[0] == 0)
-	{
-		SyntaxError("Usage: /plugin name [load/unload/toggle] [noauto], or /plugin list");
-		return;
-	}
-
-	bool doload = true;
-	bool dounload = false;
-
-	// helps us check if this plugin is already loaded
-	MQPlugin* plugin = GetPlugin(szName);
-	std::string origPluginName;
-	if (plugin)
-		origPluginName = plugin->szFilename;
-
-	// why substring? oh.. because we're not actually parsing this part. could have auto...
-	if (ci_find_substr(szCommand, "toggle") == 0)
-	{
-		dounload = (plugin != nullptr);
-		doload = !dounload;
-	}
-	else if (ci_find_substr(szCommand, "unload") == 0)
-	{
-		dounload = true;
-		doload = false;
-	}
-	else if (ci_find_substr(szCommand, "load") == 0)
-	{
-		dounload = false;
-		doload = true;
-	}
-
-	if (dounload)
-	{
-		// Get the original plugin name in case we need to do something with it ...
-		if (plugin)
-		{
-			UnloadMQ2Plugin(szName);
-			WriteChatf("Plugin '%s' unloaded.", origPluginName.c_str());
-
-			// As below, this will capture MQ2NoAutomaticstuff as well.  As a long term fix, consider arg parsing.
-			if (ci_find_substr(szCommand, "noauto") == -1)
+			if (szCommand[0] == '\0' || ci_equals(szCommand, "active"))
 			{
-				WritePrivateProfileBool("Plugins", origPluginName, false, mq::internal_paths::MQini);
+				MQPlugin* pLoop = pPlugins;
+				int Count = 0;
+
+				WriteChatColor("Active Plugins", USERCOLOR_WHO);
+				WriteChatColor("-----------------------------", USERCOLOR_WHO);
+
+				while (pLoop)
+				{
+					WriteChatColorf("%s", USERCOLOR_WHO, pLoop->szFilename);
+					Count++;
+					pLoop = pLoop->pNext;
+				}
+
+				if (Count == 0)
+				{
+					WriteChatColor("No Plugins defined.", USERCOLOR_WHO);
+				}
+				else
+				{
+					WriteChatColorf("%d Plugin%s displayed.", USERCOLOR_WHO, Count, (Count == 1) ? "" : "s");
+				}
 			}
-		}
-		else
-		{
-			MacroError("Plugin '%s' not found.", szName);
-		}
-
-		return;
-	}
-
-	if (doload)
-	{
-		if (plugin)
-		{
-			WriteChatf("Plugin '%s' is already loaded.", plugin->szFilename);
-			return;
-		}
-
-		if (LoadMQ2Plugin(szName))
-		{
-			plugin = GetPlugin(szName);
-			WriteChatf("Plugin '%s' loaded.", plugin->szFilename);
-
-			// As above, this will capture MQ2NoAutomaticstuff as well.  As a long term fix, consider arg parsing.
-			if (ci_find_substr(szCommand, "noauto") == -1)
+			else if (ci_equals(szCommand, "failed"))
 			{
-				WritePrivateProfileBool("Plugins", plugin->szFilename, true, mq::internal_paths::MQini);
+				WriteChatColor("Plugins that Failed to Unload", USERCOLOR_WHO);
+				WriteChatColor("-----------------------------", USERCOLOR_WHO);
+				if (g_pluginUnloadFailedMap.empty())
+				{
+					WriteChatColor("No Failed Plugins.", USERCOLOR_WHO);
+				}
+				else
+				{
+					for (auto const& [key, plugin] : g_pluginUnloadFailedMap)
+					{
+						WriteChatColorf("%s", USERCOLOR_WHO, plugin->szFilename);
+					}
+					WriteChatColorf("%d Plugin(s) displayed. To try to unload again use /plugin <pluginame> unload", USERCOLOR_WHO, g_pluginUnloadFailedMap.size());
+				}
 			}
-		}
-		else
-		{
-			if (szPluginLoadFailure[0] != 0)
-				MacroError("Plugin '%s' could not be loaded: %s", szName, szPluginLoadFailure);
+			else if (ci_equals(szCommand, "dlls"))
+			{
+				PrintModules();
+			}
 			else
-				MacroError("Plugin '%s' could not be loaded.", szName);
+			{
+				show_usage = true;
+			}
 		}
+		else
+		{
+			bool dounload = false;
+			bool noauto = false;
+
+			// helps us check if this plugin is already loaded
+			MQPlugin* plugin = GetPlugin(szName);
+
+			if (szCommand[0] != '\0')
+			{
+				// /plugin MQStuff noauto
+				if (ci_equals(szCommand, "noauto"))
+				{
+					noauto = true;
+				}
+				// /plugin MQStuff toggle [noauto]
+				else if (ci_equals(szCommand, "toggle"))
+				{
+					dounload = (plugin != nullptr);
+				}
+				else if (ci_equals(szCommand, "unload"))
+				{
+					dounload = true;
+				}
+				// load is the default so if it's not any of the known keywords...
+				else if (!ci_equals(szCommand, "load"))
+				{
+					show_usage = true;
+				}
+			}
+
+			const char* szNoAuto = GetNextArg(szLine, 2);
+			if (szNoAuto && szNoAuto[0] != '\0')
+			{
+				if (ci_equals(szNoAuto, "noauto"))
+				{
+					noauto = true;
+				}
+				else
+				{
+					show_usage = true;
+				}
+			}
+
+			// If we're showing usage, then we had something syntactically wrong earlier
+			if (!show_usage)
+			{
+				if (dounload)
+				{
+					const std::string origPluginName = plugin ? plugin->szFilename : szName;
+					if (plugin || IsPluginUnloadFailed(origPluginName))
+					{
+						// Regardless of whether unload succeeds, turn it off in the ini if it exists.  This prevents a scenario where
+						// a plugin failing to unload keeps it enabled in the ini despite the user trying to turn it off.
+						if (!noauto && GetPrivateProfileKeyExists("Plugins", origPluginName, mq::internal_paths::MQini))
+						{
+							WritePrivateProfileBool("Plugins", origPluginName, false, mq::internal_paths::MQini);
+						}
+
+						if(UnloadMQ2Plugin(szName))
+						{
+							WriteChatf("Plugin '%s' unloaded.", origPluginName.c_str());
+						}
+						else if (szPluginLoadFailure[0] == '\0')
+						{
+							strcpy_s(szPluginLoadFailure, "Unknown Error");
+						}
+					}
+					else
+					{
+						MacroError("Plugin '%s' not found.", szName);
+					}
+				}
+				else
+				{
+					if (plugin)
+					{
+						WriteChatf("Plugin '%s' is already loaded.", plugin->szFilename);
+					}
+					else
+					{
+						if (LoadMQ2Plugin(szName) == 1)
+						{
+							plugin = GetPlugin(szName);
+							WriteChatf("Plugin '%s' loaded.", plugin->szFilename);
+
+							if (!noauto)
+							{
+								WritePrivateProfileBool("Plugins", plugin->szFilename, true, mq::internal_paths::MQini);
+							}
+						}
+						else if (szPluginLoadFailure[0] == '\0')
+						{
+							strcpy_s(szPluginLoadFailure, "Unknown Error");
+						}
+					}
+				}
+
+				if (szPluginLoadFailure[0] != 0)
+				{
+					MacroError("Plugin '%s' could not be %sloaded: %s", szName, dounload ? "un" : "", szPluginLoadFailure);
+				}
+			}
+		}
+	}
+	if (show_usage)
+	{
+		SyntaxError("Usage: /plugin <pluginName> [load/unload/toggle] [noauto], or /plugin list [active|failed|dlls]");
 	}
 }
 

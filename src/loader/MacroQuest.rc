@@ -146,9 +146,10 @@ BEGIN
         MENUITEM SEPARATOR
         POPUP "&Advanced"
         BEGIN
-            MENUITEM "&Toggle Debug Console",       ID_ADVANCED_TOGGLECONSOLE
-            MENUITEM "&Unload All Instances",       ID_FORCEUNLOADOFALLMQ2
-            MENUITEM "&Check App Compatiblity",     ID_MENU_CHECKAPPCOMPAT
+            MENUITEM "&Toggle Debug Console",          ID_ADVANCED_TOGGLECONSOLE
+            MENUITEM "&Unload All Instances",          ID_UNLOADALLMQ
+            MENUITEM "Unload All Instances (&Forced)", ID_FORCEUNLOADOFALLMQ2
+            MENUITEM "&Check App Compatiblity",        ID_MENU_CHECKAPPCOMPAT
         END
         MENUITEM "Refresh Injections",          ID_FILE_REFRESH
         MENUITEM SEPARATOR

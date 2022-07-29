@@ -88,6 +88,7 @@ MQLIB_VAR HMODULE ghModule;
 MQLIB_VAR HINSTANCE ghInstance;
 MQLIB_VAR HWND ghInjectorWnd;
 MQLIB_VAR bool gbUnload;
+MQLIB_VAR bool gbForceUnload;
 MQLIB_VAR bool gBindInProgress;
 MQLIB_VAR bool gbLoad;
 MQLIB_VAR DWORD gpHook;

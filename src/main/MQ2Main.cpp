@@ -788,6 +788,22 @@ void MQ2Shutdown()
 	ShutdownMQ2Commands();
 	ShutdownAnonymizer();
 	ShutdownMQ2Plugins();
+	if(!UnloadFailedPlugins() && !gbForceUnload)
+	{
+		int msgReturn = IDRETRY;
+		while (msgReturn == IDRETRY && !UnloadFailedPlugins())
+		{
+			msgReturn = MessageBox(nullptr, "You have plugins that failed to unload.  Unloading MacroQuest now would be unsafe.\n\n"
+			                                "RETRY to try unloading again.\n"
+			                                "ABORT to kill the game.\n"
+			                                "IGNORE to accept the risk and continue unloading.\n", "UNLOAD FAILURE", MB_ICONWARNING | MB_ABORTRETRYIGNORE);
+		}
+
+		if (msgReturn == IDABORT)
+		{
+			exit(1);
+		}
+	}
 	ImGuiManager_Shutdown();
 	ShutdownStringDB();
 	ShutdownDetours();
