@@ -120,7 +120,7 @@ if (-Not ($match.Matches.Success))
 }
 elseif (-Not ($Toolchain -eq $match.Matches.Groups[1]))
 {
-    Write-Warning "VCPKG toolchain mismatch: Expected ($Toolchain) Got $($match.Matches.Groups[1])"
+    Write-Warning "VCPKG toolchain mismatch: Visual Studio Expected ($Toolchain) VCPKG returned $($match.Matches.Groups[1])"
 }
 
 $startingDirectory = Get-Location
