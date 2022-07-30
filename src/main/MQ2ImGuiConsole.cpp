@@ -1550,9 +1550,9 @@ static void ConsoleSettings()
 	ImGui::SameLine();
 	mq::imgui::HelpMarker("Disables the MacroQuest Console's ability to be moved or resized.");
 
-	if (ImGui::Checkbox("Hide Titlebar", &s_isTitleBarShown))
+	if (ImGui::Checkbox("Hide Title Bar", &s_isTitleBarShown))
 	{
-		WritePrivateProfileBool("MQConsole", "NoTitlebar", s_isTitleBarShown, mq::internal_paths::MQini);
+		WritePrivateProfileBool("MQConsole", "HideTitleBar", s_isTitleBarShown, mq::internal_paths::MQini);
 	}
 	ImGui::SameLine();
 	mq::imgui::HelpMarker("Hides MacroQuest title bar and hide menu bar when mouse is not over Console");
@@ -1611,7 +1611,7 @@ static void ConsoleSettings()
 		s_isConsoleLocked = false;
 		WritePrivateProfileBool("MQConsole", "LockConsoleWindow", s_isConsoleLocked, mq::internal_paths::MQini);
 		s_isTitleBarShown = false;
-		WritePrivateProfileBool("MQConsole", "NoTitleBar", s_isTitleBarShown, mq::internal_paths::MQini);
+		WritePrivateProfileBool("MQConsole", "HideTitleBar", s_isTitleBarShown, mq::internal_paths::MQini);
 		s_alphaConsoleNormal = 100;
 		WritePrivateProfileInt("MQConsole", "AlphaNormalOnStartup", s_alphaConsoleNormal, mq::internal_paths::MQini);
 		s_alphaConsoleFade = 100;
@@ -1644,7 +1644,7 @@ void InitializeImGuiConsole()
 	s_consoleVisible = s_consoleVisibleOnStartup;
 	s_alphaConsoleFade = GetPrivateProfileInt("MQConsole", "AlphaFadeOnStartup", 100, mq::internal_paths::MQini);
 	s_alphaConsoleNormal = GetPrivateProfileInt("MQConsole", "AlphaNormalOnStartup", 100, mq::internal_paths::MQini);
-	s_isTitleBarShown = GetPrivateProfileBool("MQConsole", "NoTitleBar", false, mq::internal_paths::MQini);
+	s_isTitleBarShown = GetPrivateProfileBool("MQConsole", "HideTitleBar", false, mq::internal_paths::MQini);
 	s_isConsoleLocked = GetPrivateProfileBool("MQConsole", "LockConsoleWindow", false, mq::internal_paths::MQini);
 	// load saved font 
 	s_consoleFontName = GetPrivateProfileString("MQConsole", "ConsoleFontOnStartup", "Lucon.ttf, 13px", mq::internal_paths::MQini);
