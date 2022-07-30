@@ -936,8 +936,6 @@ public:
 	std::vector<std::string> m_history;
 	int m_historyPos = -1;    // -1: new line, 0..History.Size-1 browsing history.
 	bool m_scrollToBottom = true;
-	int m_alphaConsoleNormal = 100;
-	int m_alphaConsoleFade = 100;
 
 	std::unique_ptr<ImGuiZepConsole> m_zepEditor;
 
@@ -994,7 +992,7 @@ public:
 			ImGui::PopStyleVar();
 			return;
 		}
-//		s_isMouseInFadeDelay = TimedMouseHoveredEvent(ImGui::IsWindowHovered());
+		s_isMouseInFadeDelay = TimedMouseHoveredEvent(ImGui::IsWindowHovered());
 		// Need to unpop this for the menu.
 		ImGui::PopStyleVar();
 
