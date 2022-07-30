@@ -71,8 +71,8 @@ static bool s_isMouseInFadeDelay = false;
 static bool s_updateWindowAlpha = false;
 static int s_alphaConsoleNormal = 100;
 static int s_alphaConsoleFade = 100;
-static auto s_mouseHoverTimerSecondsDelay = std::chrono::seconds(10);
-static std::chrono::steady_clock::time_point s_mouseHoverStartTimePoint;
+
+
 
 class ImGuiConsole;
 ImGuiConsole* gImGuiConsole = nullptr;
@@ -581,16 +581,19 @@ public:
 bool TimedMouseHoveredEvent(bool isMouseHovered)
 {
 	using namespace std::chrono;
+	static steady_clock::time_point m_mouseHoverStartTimePoint;
+	static auto m_mouseHoverTimerSecondsDelay = seconds(10);
+	
 	if (isMouseHovered)
 	{
-		s_mouseHoverStartTimePoint = steady_clock::now();
+		m_mouseHoverStartTimePoint = steady_clock::now();
 		return true;
 	}
 	else
 	{
-		auto m_mouseOverDuration = duration_cast<seconds>(steady_clock::now() - s_mouseHoverStartTimePoint);
+		auto m_mouseOverDuration = duration_cast<seconds>(steady_clock::now() - m_mouseHoverStartTimePoint);
 		s_updateWindowAlpha = true;
-		return (m_mouseOverDuration < s_mouseHoverTimerSecondsDelay);
+		return (m_mouseOverDuration < m_mouseHoverTimerSecondsDelay);
 	}
 }
 
@@ -876,9 +879,6 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 			m_window->ScrollToBottom();
 		}
 		ImGuiZepEditor::Render(id, displaySize);
-		// I NEED access to ImGuiZepEditor::Render Value inside BeginChild -> EndChild for returning ImGui::IsWindowHovered 
-		// I tried to apply Accessor but i cant get it to work I dont know what im doing was trying to find examples but most are far to simple
-		//s_isMouseInFadeDelay = TimedMouseHoveredEvent(ImGuiZepEditor::m_getIsZepHovered);
 	}
 
 	void Notify(std::shared_ptr<Zep::ZepMessage> message) override
@@ -936,6 +936,8 @@ public:
 	std::vector<std::string> m_history;
 	int m_historyPos = -1;    // -1: new line, 0..History.Size-1 browsing history.
 	bool m_scrollToBottom = true;
+	int m_alphaConsoleNormal = 100;
+	int m_alphaConsoleFade = 100;
 
 	std::unique_ptr<ImGuiZepConsole> m_zepEditor;
 
@@ -984,7 +986,7 @@ public:
 
 		ImGui::SetNextWindowSize(ImVec2(640, 240), ImGuiCond_FirstUseEver);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1, 0));
-		if (s_updateWindowAlpha) ImGui::SetNextWindowBgAlpha(.01f * (s_isMouseInFadeDelay ? s_alphaConsoleNormal : s_alphaConsoleFade));
+		ImGui::SetNextWindowBgAlpha(.01f * (s_isMouseInFadeDelay ? s_alphaConsoleNormal : s_alphaConsoleFade));
 		if (!ImGui::Begin("MacroQuest Console", pOpen, windowFlags))
 		{
 			ImGui::End();
@@ -992,7 +994,7 @@ public:
 			ImGui::PopStyleVar();
 			return;
 		}
-		s_isMouseInFadeDelay = TimedMouseHoveredEvent(ImGui::IsWindowHovered());
+//		s_isMouseInFadeDelay = TimedMouseHoveredEvent(ImGui::IsWindowHovered());
 		// Need to unpop this for the menu.
 		ImGui::PopStyleVar();
 
@@ -1087,7 +1089,11 @@ public:
 		contentSize.y -= footer_height_to_reserve;
 
 		m_zepEditor->Render("##ZepConsole", contentSize);
-
+		// Is Mouse over Zep Editor
+		imgui::ImGuiZepEditor obj;
+//		s_isMouseInFadeDelay = TimedMouseHoveredEvent(obj.IsHovered());
+		s_isMouseInFadeDelay = TimedMouseHoveredEvent(ImGui::IsWindowHovered());
+		ImGui::EndChild();
 		// Command-line
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 4));
 		ImGui::Separator();
