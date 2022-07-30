@@ -64,15 +64,11 @@ static bool s_consoleVisible = false;
 static bool s_consoleVisibleOnStartup = false;
 static bool s_resetConsolePosition = false;
 static bool s_setFocus = false;
-static bool s_isConsoleLocked = false;
 
+static bool s_isConsoleLocked = false;
 static bool s_isTitleBarShown = false;
-static bool s_isMouseInFadeDelay = false;
-static bool s_updateWindowAlpha = false;
 static int s_alphaConsoleNormal = 100;
 static int s_alphaConsoleFade = 100;
-
-
 
 class ImGuiConsole;
 ImGuiConsole* gImGuiConsole = nullptr;
@@ -578,24 +574,7 @@ public:
 	}
 };
 
-bool TimedMouseHoveredEvent(bool isMouseHovered)
-{
-	using namespace std::chrono;
-	static steady_clock::time_point m_mouseHoverStartTimePoint;
-	static auto m_mouseHoverTimerSecondsDelay = seconds(10);
-	
-	if (isMouseHovered)
-	{
-		m_mouseHoverStartTimePoint = steady_clock::now();
-		return true;
-	}
-	else
-	{
-		auto m_mouseOverDuration = duration_cast<seconds>(steady_clock::now() - m_mouseHoverStartTimePoint);
-		s_updateWindowAlpha = true;
-		return (m_mouseOverDuration < m_mouseHoverTimerSecondsDelay);
-	}
-}
+
 
 //----------------------------------------------------------------------------
 
@@ -936,6 +915,7 @@ public:
 	std::vector<std::string> m_history;
 	int m_historyPos = -1;    // -1: new line, 0..History.Size-1 browsing history.
 	bool m_scrollToBottom = true;
+	bool m_isConsoleInFadeDelay;
 
 	std::unique_ptr<ImGuiZepConsole> m_zepEditor;
 
@@ -975,16 +955,34 @@ public:
 		m_zepEditor->AppendFormattedText(line, defaultColor, newline);
 	}
 
+	void TimedMouseHoveredFader(bool isMouseHovered)
+	{
+		using namespace std::chrono;
+		const auto s_mouseHoverTimerSecondsDelay = seconds(8);
+		static steady_clock::time_point s_mouseHoverStartTimePoint;
+		if (isMouseHovered)
+		{
+			s_mouseHoverStartTimePoint = steady_clock::now();
+			m_isConsoleInFadeDelay = true;
+		}
+		else
+		{
+			auto m_mouseOverDuration = duration_cast<seconds>(steady_clock::now() - s_mouseHoverStartTimePoint);
+			m_isConsoleInFadeDelay = (m_mouseOverDuration < s_mouseHoverTimerSecondsDelay);
+		}
+	}
+
 	void Draw(bool* pOpen)
 	{
 		ImGuiWindowFlags windowFlags = 0;
-		if (!s_isTitleBarShown || s_isMouseInFadeDelay) windowFlags |= ImGuiWindowFlags_MenuBar;
+		if (!s_isTitleBarShown || m_isConsoleInFadeDelay) windowFlags |= ImGuiWindowFlags_MenuBar;
 		if (s_isTitleBarShown)  windowFlags |= ImGuiWindowFlags_NoTitleBar;
 		if (s_isConsoleLocked) windowFlags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
 
 		ImGui::SetNextWindowSize(ImVec2(640, 240), ImGuiCond_FirstUseEver);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1, 0));
-		ImGui::SetNextWindowBgAlpha(.01f * (s_isMouseInFadeDelay ? s_alphaConsoleNormal : s_alphaConsoleFade));
+		ImGui::SetNextWindowBgAlpha(.01f * (m_isConsoleInFadeDelay ? s_alphaConsoleNormal : s_alphaConsoleFade));
+
 		if (!ImGui::Begin("MacroQuest Console", pOpen, windowFlags))
 		{
 			ImGui::End();
@@ -992,7 +990,7 @@ public:
 			ImGui::PopStyleVar();
 			return;
 		}
-		s_isMouseInFadeDelay = TimedMouseHoveredEvent(ImGui::IsWindowHovered());
+		TimedMouseHoveredFader(ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows));
 		// Need to unpop this for the menu.
 		ImGui::PopStyleVar();
 
@@ -1087,11 +1085,7 @@ public:
 		contentSize.y -= footer_height_to_reserve;
 
 		m_zepEditor->Render("##ZepConsole", contentSize);
-		// Is Mouse over Zep Editor
-		imgui::ImGuiZepEditor obj;
-//		s_isMouseInFadeDelay = TimedMouseHoveredEvent(obj.IsHovered());
-		s_isMouseInFadeDelay = TimedMouseHoveredEvent(ImGui::IsWindowHovered());
-		ImGui::EndChild();
+
 		// Command-line
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 4));
 		ImGui::Separator();
