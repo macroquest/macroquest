@@ -5625,6 +5625,7 @@ bool PickupItem(const ItemGlobalIndex& globalIndex)
 
 	bool isCtrl = pWndMgr->GetKeyboardFlags() & KeyboardFlags_Ctrl;
 
+#if HAS_MULTIPLE_ITEM_MOVE_MANAGER
 	MultipleItemMoveManager::MoveItemArray moveArray;
 	MultipleItemMoveManager::MoveItem moveItem;
 	moveItem.from = globalIndex;
@@ -5635,6 +5636,85 @@ bool PickupItem(const ItemGlobalIndex& globalIndex)
 
 	auto result = MultipleItemMoveManager::ProcessMove(pLocalPC, moveArray);
 	return result == MultipleItemMoveManager::ErrorOk;
+#else
+	// We don't have the MultipleItemMoveManager available to use, so do this the old fashioned way.
+
+	ItemGlobalIndex To = pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor);
+	ItemGlobalIndex From = globalIndex;
+
+	// This is just a a top level slot. We should have invslots for all of these.
+	if (globalIndex.GetIndex().GetSlot(1) == -1)
+	{
+		// If ctrl was pressed, and its a stackable item, we need to use the InvSlot in order to
+		// perform the move, otherwise we would need to know more about how to transfer partial stacks.
+		if (pItem->GetItemCount() > 1 && isCtrl)
+		{
+			CInvSlot* pInvSlot = pInvSlotMgr->FindInvSlot(From, false);
+
+			// This ctrl keypress will propogate through to the InvSlot and QuantityWnd that it will
+			// spawn, ultimiately leading to a transfer of a single item.
+			if (!pInvSlot || !pInvSlot->pInvSlotWnd || !SendWndClick2(pInvSlot->pInvSlotWnd, "leftmouseup"))
+			{
+				WriteChatf("Could not pick up '%s'", pItem->GetName());
+				return false;
+			}
+
+			return true;
+		}
+
+		// just move it from the slot to the cursor
+		return pInvSlotMgr->MoveItem(From, To, true, true);
+	}
+
+	// We're dealing with an item inside of a bag from this point forward.
+	if (pItem->GetItemCount() > 1 && isCtrl)
+	{
+		// We need an invslot to handle this case.
+		CInvSlot* pInvSlot = pInvSlotMgr->FindInvSlot(globalIndex, false);
+		ItemClient* pBag = nullptr;
+		bool needToClose = false;
+
+		if (!pInvSlot)
+		{
+			// Get index to parent container
+			if (pBag = FindItemByGlobalIndex(globalIndex.GetParent()))
+			{
+				needToClose = OpenContainer(pBag, true);
+				pInvSlot = pInvSlotMgr->FindInvSlot(globalIndex, false);
+			}
+		}
+
+		if (!pInvSlot || !pInvSlot->pInvSlotWnd || !SendWndClick2(pInvSlot->pInvSlotWnd, "leftmouseup"))
+		{
+			WriteChatf("Could not pick up '%s'", pItem->GetName());
+			return false;
+		}
+
+		if (needToClose)
+		{
+			CloseContainer(pBag);
+		}
+
+		return true;
+	}
+
+	// ctrl is not pressed, so this will move the whole stack.
+
+	pInvSlotMgr->MoveItem(From, To);
+
+	// Do we have an item in the cursor still? 
+	if (ItemPtr pCursorItem = pLocalPC->GetItemByGlobalIndex(To))
+	{
+		pCursorAttachment->AttachToCursor(nullptr, nullptr, eCursorAttachment_Item, -1,
+			pCursorItem->ItemGUID, pCursorItem->GetID(), nullptr, nullptr);
+	}
+	else
+	{
+		pCursorAttachment->Deactivate();
+	}
+
+	return true;
+#endif // !HAS_MULTIPLE_ITEM_MOVE_MANAGER
 }
 
 bool DropItem(const ItemGlobalIndex& globalIndex)
@@ -5672,6 +5752,7 @@ bool DropItem(const ItemGlobalIndex& globalIndex)
 		return true;
 	}
 
+#if HAS_MULTIPLE_ITEM_MOVE_MANAGER
 	MultipleItemMoveManager::MoveItemArray moveArray;
 	MultipleItemMoveManager::MoveItem moveItem;
 	moveItem.from = pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor);
@@ -5686,7 +5767,50 @@ bool DropItem(const ItemGlobalIndex& globalIndex)
 
 	auto result = MultipleItemMoveManager::ProcessMove(pLocalPC, moveArray);
 	return result == MultipleItemMoveManager::ErrorOk;
+#else
+	// We don't have the MultipleItemMoveManager available to use, so do this the old fashioned way.
+
+	ItemContainerInstance type = globalIndex.GetLocation();
+	short ToInvSlot = globalIndex.GetTopSlot();
+
+	// This is just a top level slot. We should have invslots for all of these.
+	if (globalIndex.GetSlot(1) == -1)
+	{
+		// they want to drop it to a toplevelslot
+		CInvSlot* pSlot = GetInvSlot(type, ToInvSlot);
+		if (!pSlot || !pSlot->pInvSlotWnd)
+		{
+			WriteChatf("Could not find the %d itemslot", ToInvSlot);
+			return false;
+		}
+		
+		// just move it from cursor to the slot
+		pInvSlotMgr->MoveItem(pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor), globalIndex);
+
+		return true;
+	}
+
+	// BagSlot is NOT -1 so they want to drop it INSIDE a bag
+	ItemGlobalIndex From = pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor);
+	ItemGlobalIndex To = globalIndex;
+
+	pInvSlotMgr->MoveItem(From, To);
+
+	// Do we have an item in the cursor still? 
+	if (ItemPtr pCursorItem = pLocalPC->GetItemByGlobalIndex(From))
+	{
+		pCursorAttachment->AttachToCursor(nullptr, nullptr, eCursorAttachment_Item, -1,
+			pCursorItem->ItemGUID, pCursorItem->GetID(), nullptr, nullptr);
+	}
+	else
+	{
+		pCursorAttachment->Deactivate();
+	}
+
+	return true;
+#endif // !HAS_MULTIPLE_ITEM_MOVE_MANAGER
 }
+
 
 bool StripQuotes(char* str)
 {
