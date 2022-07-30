@@ -45,7 +45,8 @@ public:
 
 	virtual Zep::ZepEditor& GetEditor() const override;
 	virtual void Render(const char* id, const ImVec2& displaySize = ImVec2());
-
+	bool IsHovered() const { return m_hovered; }
+	bool m_hovered = false;
 protected:
 	virtual void Notify(std::shared_ptr<Zep::ZepMessage> message) override;
 

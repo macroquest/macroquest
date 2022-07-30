@@ -436,7 +436,6 @@ void ZepEditor_ImGui::HandleKeyboardInput()
 }
 
 //----------------------------------------------------------------------------
-
 ImGuiZepEditor::ImGuiZepEditor()
 {
 	m_editor = new ZepEditor_ImGui(ZepPath(), ZepEditorFlags::DisableThreads);
@@ -507,8 +506,8 @@ void ImGuiZepEditor::Render(const char* id, const ImVec2& displaySize)
 
 		ImGui::PopAllowKeyboardFocus();
 	}
-
-	ImGui::EndChild();
+	m_hovered = ImGui::IsWindowHovered;
+//	ImGui::EndChild();
 }
 
 } // namespace mq::imgui
