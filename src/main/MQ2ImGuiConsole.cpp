@@ -65,6 +65,11 @@ static bool s_consoleVisibleOnStartup = false;
 static bool s_resetConsolePosition = false;
 static bool s_setFocus = false;
 
+static bool s_isConsoleLocked = false;
+static bool s_isTitleBarShown = false;
+static int s_alphaConsoleNormal = 100;
+static int s_alphaConsoleFade = 100;
+
 class ImGuiConsole;
 ImGuiConsole* gImGuiConsole = nullptr;
 
@@ -909,6 +914,7 @@ public:
 	std::vector<std::string> m_history;
 	int m_historyPos = -1;    // -1: new line, 0..History.Size-1 browsing history.
 	bool m_scrollToBottom = true;
+	bool m_isConsoleInFadeDelay;
 	std::unique_ptr<ImGuiZepConsole> m_zepEditor;
 
 	ImGuiConsole()
@@ -947,12 +953,35 @@ public:
 		m_zepEditor->AppendFormattedText(line, defaultColor, newline);
 	}
 
+	void TimedMouseHoveredFader(bool isMouseHovered)
+	{
+		using namespace std::chrono;
+		const auto s_mouseHoverTimerSecondsDelay = seconds(8);
+		static steady_clock::time_point s_mouseHoverStartTimePoint;
+		if (isMouseHovered)
+		{
+			s_mouseHoverStartTimePoint = steady_clock::now();
+			m_isConsoleInFadeDelay = true;
+		}
+		else
+		{
+			auto m_mouseOverDuration = duration_cast<seconds>(steady_clock::now() - s_mouseHoverStartTimePoint);
+			m_isConsoleInFadeDelay = (m_mouseOverDuration < s_mouseHoverTimerSecondsDelay);
+		}
+	}
+
+
 	void Draw(bool* pOpen)
 	{
-		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar;
+		ImGuiWindowFlags windowFlags = 0;
+		if (!s_isTitleBarShown || m_isConsoleInFadeDelay) windowFlags |= ImGuiWindowFlags_MenuBar;
+		if (s_isTitleBarShown)  windowFlags |= ImGuiWindowFlags_NoTitleBar;
+		if (s_isConsoleLocked) windowFlags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
+
 
 		ImGui::SetNextWindowSize(ImVec2(640, 240), ImGuiCond_FirstUseEver);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1, 0));
+		ImGui::SetNextWindowBgAlpha(.01f * (m_isConsoleInFadeDelay ? s_alphaConsoleNormal : s_alphaConsoleFade));
 
 		if (!ImGui::Begin("MacroQuest Console", pOpen, windowFlags))
 		{
@@ -961,6 +990,7 @@ public:
 			ImGui::PopStyleVar();
 			return;
 		}
+		TimedMouseHoveredFader(ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows));
 
 		// Need to unpop this for the menu.
 		ImGui::PopStyleVar();
@@ -1478,25 +1508,89 @@ static void ConsoleSettings()
 {
 	if (ImGui::Checkbox("Show Console on Load", &s_consoleVisibleOnStartup))
 	{
-		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
+		WritePrivateProfileBool("MQConsole", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
 	}
-
 	ImGui::SameLine();
 	mq::imgui::HelpMarker("This feature allows you to automatically show the MacroQuest Console upon load.");
+
+	if (ImGui::Checkbox("Lock Window", &s_isConsoleLocked))
+	{
+		WritePrivateProfileBool("MQConsole", "LockConsoleWindow", s_isConsoleLocked, mq::internal_paths::MQini);
+	}
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("Disables the MacroQuest Console's ability to be moved or resized.");
+
+	if (ImGui::Checkbox("Hide Titlebar", &s_isTitleBarShown))
+	{
+		WritePrivateProfileBool("MQConsole", "NoTitlebar", s_isTitleBarShown, mq::internal_paths::MQini);
+	}
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("Hides MacroQuest title bar and hide menu bar when mouse is not over Console");
+
+	// Setup Sliders 
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2.0f, 1.0f));
+	ImGui::PushItemWidth(150);
+
+	ImGui::Text("Alpha Normal");
+	if (ImGui::SliderInt("##Alpha Normal", &s_alphaConsoleNormal, 0, 100))
+	{
+		WritePrivateProfileInt("MQConsole", "AlphaNormalOnStartup", s_alphaConsoleNormal, mq::internal_paths::MQini);
+	}
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("Percent transparency of MacroQuest Console when mouse is over it");
+
+	ImGui::Text("Alpha Fade");
+	if (ImGui::SliderInt("##Alpha Fade", &s_alphaConsoleFade, 0, 100))
+	{
+		WritePrivateProfileInt("MQConsole", "AlphaFadeOnStartup", s_alphaConsoleFade, mq::internal_paths::MQini);
+	}
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("Percent transparency of MacroQuest Console when mouse is not over it");
+
+	ImGui::Text("Console Font Size");
+
+	ImGui::PopItemWidth();
+	ImGui::PopStyleVar();
 
 	ImGui::NewLine();
 
 	if (ImGui::Button("Clear Saved Console Settings"))
 	{
 		s_consoleVisibleOnStartup = false;
-		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
+		WritePrivateProfileBool("MQConsole", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
+		s_isConsoleLocked = false;
+		WritePrivateProfileBool("MQConsole", "LockConsoleWindow", s_isConsoleLocked, mq::internal_paths::MQini);
+		s_isTitleBarShown = false;
+		WritePrivateProfileBool("MQConsole", "NoTitleBar", s_isTitleBarShown, mq::internal_paths::MQini);
+		s_alphaConsoleNormal = 100;
+		WritePrivateProfileInt("MQConsole", "AlphaNormalOnStartup", s_alphaConsoleNormal, mq::internal_paths::MQini);
+		s_alphaConsoleFade = 100;
+		WritePrivateProfileInt("MQConsole", "AlphaFadeOnStartup", s_alphaConsoleFade, mq::internal_paths::MQini);
+
+	}
+}
+
+// Check MQini for Old location of ShowMacroQuestConsole and update it to new Location 
+void CheckForPastShowMacroQuestConsole()
+{
+	s_consoleVisibleOnStartup = GetPrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", false, mq::internal_paths::MQini);
+	if (s_consoleVisibleOnStartup)
+	{
+		WritePrivateProfileBool("MQConsole", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
+		DeletePrivateProfileKey("MacroQuest", "ShowMacroQuestConsole", mq::internal_paths::MQini);
 	}
 }
 
 void InitializeImGuiConsole()
 {
-	s_consoleVisibleOnStartup = GetPrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", false, mq::internal_paths::MQini);
+	CheckForPastShowMacroQuestConsole();
+	s_consoleVisibleOnStartup = GetPrivateProfileBool("MQConsole", "ShowMacroQuestConsole", false, mq::internal_paths::MQini);
 	s_consoleVisible = s_consoleVisibleOnStartup;
+	s_alphaConsoleFade = GetPrivateProfileInt("MQConsole", "AlphaFadeOnStartup", 100, mq::internal_paths::MQini);
+	s_alphaConsoleNormal = GetPrivateProfileInt("MQConsole", "AlphaNormalOnStartup", 100, mq::internal_paths::MQini);
+	s_isTitleBarShown = GetPrivateProfileBool("MQConsole", "NoTitleBar", false, mq::internal_paths::MQini);
+	s_isConsoleLocked = GetPrivateProfileBool("MQConsole", "LockConsoleWindow", false, mq::internal_paths::MQini);
+
 	if (gbWriteAllConfig)
 	{
 		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
