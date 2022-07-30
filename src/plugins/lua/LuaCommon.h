@@ -56,6 +56,7 @@ public:
 	void ConfigureLuaState(sol::state_view sv);
 
 	std::string luaDir;
+	std::string moduleDir;
 	std::vector<std::string> luaRequirePaths;
 	std::vector<std::string> dllRequirePaths;
 
@@ -63,6 +64,7 @@ private:
 	bool m_initialized = false;
 	std::string m_packagePath;
 	std::string m_packageCPath;
+	std::string m_version;
 };
 
 } // namespace mq::lua
