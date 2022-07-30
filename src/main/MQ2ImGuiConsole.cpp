@@ -64,6 +64,16 @@ static bool s_consoleVisible = false;
 static bool s_consoleVisibleOnStartup = false;
 static bool s_resetConsolePosition = false;
 static bool s_setFocus = false;
+static bool s_isConsoleLocked = false;
+static bool s_isTitleBarShown = false;
+static bool s_isMouseInFadeDelay = false;
+static bool s_updateConsoleFont = false;
+static int s_alphaConsoleNormal = 100;
+static int s_alphaConsoleFade = 100;
+static int s_consoleFontSize = 13;
+static auto s_mouseHoverTimerSecondsDelay = std::chrono::seconds(10);
+static std::chrono::steady_clock::time_point s_mouseHoverStartTimePoint;
+static std::string s_consoleFontName;
 
 class ImGuiConsole;
 ImGuiConsole* gImGuiConsole = nullptr;
@@ -569,6 +579,21 @@ public:
 	}
 };
 
+bool TimedMouseHoveredEvent(bool m_isMouseHovered)
+{
+	using namespace std::chrono;
+	if (m_isMouseHovered)
+	{
+		s_mouseHoverStartTimePoint = steady_clock::now();
+		return true;
+	}
+	else
+	{
+		auto m_mouseOverDuration = duration_cast<seconds>(steady_clock::now() - s_mouseHoverStartTimePoint);
+		return (m_mouseOverDuration < s_mouseHoverTimerSecondsDelay) ? true : false;
+	}
+}
+
 //----------------------------------------------------------------------------
 
 // This is the imgui container for the Zep component.
@@ -850,8 +875,10 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 			m_deferredCursorToEnd = false;
 			m_window->ScrollToBottom();
 		}
-
 		ImGuiZepEditor::Render(id, displaySize);
+		// I NEED access to ImGuiZepEditor::Render Value inside BeginChild -> EndChild for returning ImGui::IsWindowHovered 
+		// I tried to apply Accessor but i cant get it to work I dont know what im doing was trying to find examples but most are far to simple
+		//s_isMouseInFadeDelay = TimedMouseHoveredEvent(ImGuiZepEditor::m_getIsZepHovered);
 	}
 
 	void Notify(std::shared_ptr<Zep::ZepMessage> message) override
@@ -947,13 +974,23 @@ public:
 		m_zepEditor->AppendFormattedText(line, defaultColor, newline);
 	}
 
+	ImGuiWindowFlags GetConsoleFlags()
+	{
+		ImGuiWindowFlags windowFlags = 0;
+		if (!s_isTitleBarShown || s_isMouseInFadeDelay) windowFlags |= ImGuiWindowFlags_MenuBar;
+		if (s_isTitleBarShown)  windowFlags |= ImGuiWindowFlags_NoTitleBar;
+		if (s_isConsoleLocked) windowFlags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
+		return windowFlags;
+	}
+
+
 	void Draw(bool* pOpen)
 	{
-		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar;
+		ImGuiWindowFlags windowFlags = GetConsoleFlags();
 
 		ImGui::SetNextWindowSize(ImVec2(640, 240), ImGuiCond_FirstUseEver);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1, 0));
-
+		ImGui::SetNextWindowBgAlpha(.01f * (s_isMouseInFadeDelay ? s_alphaConsoleNormal : s_alphaConsoleFade));
 		if (!ImGui::Begin("MacroQuest Console", pOpen, windowFlags))
 		{
 			ImGui::End();
@@ -961,7 +998,7 @@ public:
 			ImGui::PopStyleVar();
 			return;
 		}
-
+		s_isMouseInFadeDelay = TimedMouseHoveredEvent(ImGui::IsWindowHovered());
 		// Need to unpop this for the menu.
 		ImGui::PopStyleVar();
 
@@ -970,6 +1007,7 @@ public:
 		// Here we create a context menu only available from the title bar.
 		if (ImGui::BeginMenuBar())
 		{
+			
 			if (ImGui::BeginMenu("Options"))
 			{
 				bool autoScroll = m_zepEditor->GetAutoScroll();
@@ -1054,6 +1092,12 @@ public:
 		ImVec2 contentSize = ImGui::GetContentRegionAvail();
 		contentSize.y -= footer_height_to_reserve;
 
+		// Set Font for ZepEditor
+		if (s_updateConsoleFont)
+		{
+			m_zepEditor->SetFont(Zep::ZepTextType::Text, ImGui::GetFont(), s_consoleFontSize);
+			s_updateConsoleFont = false;
+		}
 		m_zepEditor->Render("##ZepConsole", contentSize);
 
 		// Command-line
@@ -1068,13 +1112,11 @@ public:
 		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 4);
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.00f, 0.00f, 0.00f));
-		ImGui::PushFont(mq::imgui::ConsoleFont);
 
 		bool bTextEdit = ImGui::InputText("##Input", m_inputBuffer, IM_ARRAYSIZE(m_inputBuffer), textFlags,
 			[](ImGuiInputTextCallbackData* data)
 		{ return static_cast<ImGuiConsole*>(data->UserData)->TextEditCallback(data); }, this);
 
-		ImGui::PopFont();
 		ImGui::PopStyleColor();
 		ImGui::PopStyleVar(2);
 
@@ -1474,29 +1516,141 @@ void MQConsoleCommand(SPAWNINFO* pChar, char* Line)
 	WriteChatf("  Commands: clear, toggle, show, hide");
 }
 
+void SetDefaultFontFromDebugName(std::string fontString)
+{
+	ImGuiIO& io = ImGui::GetIO();
+	for (int i = 0; i < io.Fonts->Fonts.Size; i++)
+	{
+		if (ci_equals(fontString, io.Fonts->Fonts[i]->GetDebugName()))
+		{
+			io.FontDefault = io.Fonts->Fonts[i];
+			s_consoleFontSize = (int)ImGui::GetFontSize();
+			s_updateConsoleFont = true;
+			return;
+		}
+	}
+	io.FontDefault = mq::imgui::DefaultFont;
+	s_consoleFontSize = (int)ImGui::GetFontSize();
+	s_updateConsoleFont = true;
+}
+
 static void ConsoleSettings()
 {
 	if (ImGui::Checkbox("Show Console on Load", &s_consoleVisibleOnStartup))
 	{
-		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
+		WritePrivateProfileBool("MQConsole", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
 	}
-
 	ImGui::SameLine();
 	mq::imgui::HelpMarker("This feature allows you to automatically show the MacroQuest Console upon load.");
 
-	ImGui::NewLine();
+	if (ImGui::Checkbox("Lock Window", &s_isConsoleLocked))
+	{
+		WritePrivateProfileBool("MQConsole", "LockConsoleWindow", s_isConsoleLocked, mq::internal_paths::MQini);
+	}
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("Disables the MacroQuest Console's ability to be moved or resized.");
 
+	if (ImGui::Checkbox("Hide Titlebar", &s_isTitleBarShown))
+	{
+		WritePrivateProfileBool("MQConsole", "NoTitlebar", s_isTitleBarShown, mq::internal_paths::MQini);
+	}
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("Hides MacroQuest title bar and hide menu bar when mouse is not over Console");
+
+	// Setup Sliders 
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2.0f, 1.0f));
+	ImGui::PushItemWidth(150);
+
+	ImGui::Text("Alpha Normal");
+	if (ImGui::SliderInt("##Alpha Normal", &s_alphaConsoleNormal, 0, 100))
+	{
+		WritePrivateProfileInt("MQConsole", "AlphaNormalOnStartup", s_alphaConsoleNormal, mq::internal_paths::MQini);
+	}
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("Percent transparency of MacroQuest Console when mouse is over it");
+
+	ImGui::Text("Alpha Fade");
+	if (ImGui::SliderInt("##Alpha Fade", &s_alphaConsoleFade, 0, 100))
+	{
+		WritePrivateProfileInt("MQConsole", "AlphaFadeOnStartup", s_alphaConsoleFade, mq::internal_paths::MQini);
+	}
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("Percent transparency of MacroQuest Console when mouse is not over it");
+
+	ImGui::Text("Console Font Size");
+	if (ImGui::SliderInt("##ConsoleFontSize", &s_consoleFontSize, 8, 40))
+	{
+		WritePrivateProfileInt("MQConsole", "ConsoleFontSize", s_consoleFontSize, mq::internal_paths::MQini);
+		s_updateConsoleFont = true;
+	}
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("Increase MacroQuest font inside of Console");
+
+	ImGui::PopItemWidth();
+	ImGui::PopStyleVar();
+
+	// Select UI font for console
+	ImGui::Text("UI Fonts Selector");
+	ImGui::ShowFontSelector("##FontsSelector");
+
+	// Check If UI Font changes and save it
+	if (!ci_equals(s_consoleFontName, ImGui::GetFont()->GetDebugName()))
+	{
+		s_consoleFontName = ImGui::GetFont()->GetDebugName();
+		SetDefaultFontFromDebugName(s_consoleFontName);
+		WritePrivateProfileString("MQConsole", "ConsoleFontOnStartup", s_consoleFontName, mq::internal_paths::MQini);
+		WritePrivateProfileInt("MQConsole", "ConsoleFontSize", s_consoleFontSize, mq::internal_paths::MQini);
+	}
+
+	ImGui::NewLine();
+	ImGui::NewLine();
 	if (ImGui::Button("Clear Saved Console Settings"))
 	{
 		s_consoleVisibleOnStartup = false;
-		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
+		WritePrivateProfileBool("MQConsole", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
+		s_isConsoleLocked = false;
+		WritePrivateProfileBool("MQConsole", "LockConsoleWindow", s_isConsoleLocked, mq::internal_paths::MQini);
+		s_isTitleBarShown = false;
+		WritePrivateProfileBool("MQConsole", "NoTitleBar", s_isTitleBarShown, mq::internal_paths::MQini);
+		s_alphaConsoleNormal = 100;
+		WritePrivateProfileInt("MQConsole", "AlphaNormalOnStartup", s_alphaConsoleNormal, mq::internal_paths::MQini);
+		s_alphaConsoleFade = 100;
+		WritePrivateProfileInt("MQConsole", "AlphaFadeOnStartup", s_alphaConsoleFade, mq::internal_paths::MQini);
+		s_consoleFontSize = 13;
+		WritePrivateProfileInt("MQConsole", "ConsoleFontSize", s_consoleFontSize, mq::internal_paths::MQini);
+		s_consoleFontName = "lucon.ttf, 13px";
+		
+		SetDefaultFontFromDebugName(s_consoleFontName);
+
+		WritePrivateProfileString("MQConsole", "ConsoleFontOnStartup", s_consoleFontName, mq::internal_paths::MQini);
+	}
+}
+
+// Check MQini for Old location of ShowMacroQuestConsole and update it to new Location 
+void CheckForPastShowMacroQuestConsole()
+{
+	s_consoleVisibleOnStartup = GetPrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", false, mq::internal_paths::MQini);
+	if (s_consoleVisibleOnStartup)
+	{
+		WritePrivateProfileBool("MQConsole", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
+		DeletePrivateProfileKey("MacroQuest", "ShowMacroQuestConsole", mq::internal_paths::MQini);
 	}
 }
 
 void InitializeImGuiConsole()
 {
-	s_consoleVisibleOnStartup = GetPrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", false, mq::internal_paths::MQini);
+	CheckForPastShowMacroQuestConsole();
+	s_consoleVisibleOnStartup = GetPrivateProfileBool("MQConsole", "ShowMacroQuestConsole", false, mq::internal_paths::MQini);
 	s_consoleVisible = s_consoleVisibleOnStartup;
+	s_alphaConsoleFade = GetPrivateProfileInt("MQConsole", "AlphaFadeOnStartup", 100, mq::internal_paths::MQini);
+	s_alphaConsoleNormal = GetPrivateProfileInt("MQConsole", "AlphaNormalOnStartup", 100, mq::internal_paths::MQini);
+	s_isTitleBarShown = GetPrivateProfileBool("MQConsole", "NoTitleBar", false, mq::internal_paths::MQini);
+	s_isConsoleLocked = GetPrivateProfileBool("MQConsole", "LockConsoleWindow", false, mq::internal_paths::MQini);
+	// load saved font 
+	s_consoleFontName = GetPrivateProfileString("MQConsole", "ConsoleFontOnStartup", "Lucon.ttf, 13px", mq::internal_paths::MQini);
+	SetDefaultFontFromDebugName(s_consoleFontName);
+	s_consoleFontSize = GetPrivateProfileInt("MQConsole", "ConsoleFontSize", 13, mq::internal_paths::MQini);
+
 	if (gbWriteAllConfig)
 	{
 		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
