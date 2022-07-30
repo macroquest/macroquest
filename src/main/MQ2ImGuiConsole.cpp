@@ -65,15 +65,14 @@ static bool s_consoleVisibleOnStartup = false;
 static bool s_resetConsolePosition = false;
 static bool s_setFocus = false;
 static bool s_isConsoleLocked = false;
+
 static bool s_isTitleBarShown = false;
 static bool s_isMouseInFadeDelay = false;
-static bool s_updateConsoleFont = false;
+static bool s_updateWindowAlpha = false;
 static int s_alphaConsoleNormal = 100;
 static int s_alphaConsoleFade = 100;
-static int s_consoleFontSize = 13;
 static auto s_mouseHoverTimerSecondsDelay = std::chrono::seconds(10);
 static std::chrono::steady_clock::time_point s_mouseHoverStartTimePoint;
-static std::string s_consoleFontName;
 
 class ImGuiConsole;
 ImGuiConsole* gImGuiConsole = nullptr;
@@ -579,10 +578,10 @@ public:
 	}
 };
 
-bool TimedMouseHoveredEvent(bool m_isMouseHovered)
+bool TimedMouseHoveredEvent(bool isMouseHovered)
 {
 	using namespace std::chrono;
-	if (m_isMouseHovered)
+	if (isMouseHovered)
 	{
 		s_mouseHoverStartTimePoint = steady_clock::now();
 		return true;
@@ -590,7 +589,8 @@ bool TimedMouseHoveredEvent(bool m_isMouseHovered)
 	else
 	{
 		auto m_mouseOverDuration = duration_cast<seconds>(steady_clock::now() - s_mouseHoverStartTimePoint);
-		return (m_mouseOverDuration < s_mouseHoverTimerSecondsDelay) ? true : false;
+		s_updateWindowAlpha = true;
+		return (m_mouseOverDuration < s_mouseHoverTimerSecondsDelay);
 	}
 }
 
@@ -936,6 +936,7 @@ public:
 	std::vector<std::string> m_history;
 	int m_historyPos = -1;    // -1: new line, 0..History.Size-1 browsing history.
 	bool m_scrollToBottom = true;
+
 	std::unique_ptr<ImGuiZepConsole> m_zepEditor;
 
 	ImGuiConsole()
@@ -974,23 +975,16 @@ public:
 		m_zepEditor->AppendFormattedText(line, defaultColor, newline);
 	}
 
-	ImGuiWindowFlags GetConsoleFlags()
+	void Draw(bool* pOpen)
 	{
 		ImGuiWindowFlags windowFlags = 0;
 		if (!s_isTitleBarShown || s_isMouseInFadeDelay) windowFlags |= ImGuiWindowFlags_MenuBar;
 		if (s_isTitleBarShown)  windowFlags |= ImGuiWindowFlags_NoTitleBar;
 		if (s_isConsoleLocked) windowFlags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
-		return windowFlags;
-	}
-
-
-	void Draw(bool* pOpen)
-	{
-		ImGuiWindowFlags windowFlags = GetConsoleFlags();
 
 		ImGui::SetNextWindowSize(ImVec2(640, 240), ImGuiCond_FirstUseEver);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1, 0));
-		ImGui::SetNextWindowBgAlpha(.01f * (s_isMouseInFadeDelay ? s_alphaConsoleNormal : s_alphaConsoleFade));
+		if (s_updateWindowAlpha) ImGui::SetNextWindowBgAlpha(.01f * (s_isMouseInFadeDelay ? s_alphaConsoleNormal : s_alphaConsoleFade));
 		if (!ImGui::Begin("MacroQuest Console", pOpen, windowFlags))
 		{
 			ImGui::End();
@@ -1092,12 +1086,6 @@ public:
 		ImVec2 contentSize = ImGui::GetContentRegionAvail();
 		contentSize.y -= footer_height_to_reserve;
 
-		// Set Font for ZepEditor
-		if (s_updateConsoleFont)
-		{
-			m_zepEditor->SetFont(Zep::ZepTextType::Text, ImGui::GetFont(), s_consoleFontSize);
-			s_updateConsoleFont = false;
-		}
 		m_zepEditor->Render("##ZepConsole", contentSize);
 
 		// Command-line
@@ -1112,11 +1100,13 @@ public:
 		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 4);
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.00f, 0.00f, 0.00f));
+		ImGui::PushFont(mq::imgui::ConsoleFont);
 
 		bool bTextEdit = ImGui::InputText("##Input", m_inputBuffer, IM_ARRAYSIZE(m_inputBuffer), textFlags,
 			[](ImGuiInputTextCallbackData* data)
 		{ return static_cast<ImGuiConsole*>(data->UserData)->TextEditCallback(data); }, this);
 
+		ImGui::PopFont();
 		ImGui::PopStyleColor();
 		ImGui::PopStyleVar(2);
 
@@ -1516,23 +1506,6 @@ void MQConsoleCommand(SPAWNINFO* pChar, char* Line)
 	WriteChatf("  Commands: clear, toggle, show, hide");
 }
 
-void SetDefaultFontFromDebugName(std::string fontString)
-{
-	ImGuiIO& io = ImGui::GetIO();
-	for (int i = 0; i < io.Fonts->Fonts.Size; i++)
-	{
-		if (ci_equals(fontString, io.Fonts->Fonts[i]->GetDebugName()))
-		{
-			io.FontDefault = io.Fonts->Fonts[i];
-			s_consoleFontSize = (int)ImGui::GetFontSize();
-			s_updateConsoleFont = true;
-			return;
-		}
-	}
-	io.FontDefault = mq::imgui::DefaultFont;
-	s_consoleFontSize = (int)ImGui::GetFontSize();
-	s_updateConsoleFont = true;
-}
 
 static void ConsoleSettings()
 {
@@ -1577,32 +1550,9 @@ static void ConsoleSettings()
 	ImGui::SameLine();
 	mq::imgui::HelpMarker("Percent transparency of MacroQuest Console when mouse is not over it");
 
-	ImGui::Text("Console Font Size");
-	if (ImGui::SliderInt("##ConsoleFontSize", &s_consoleFontSize, 8, 40))
-	{
-		WritePrivateProfileInt("MQConsole", "ConsoleFontSize", s_consoleFontSize, mq::internal_paths::MQini);
-		s_updateConsoleFont = true;
-	}
-	ImGui::SameLine();
-	mq::imgui::HelpMarker("Increase MacroQuest font inside of Console");
-
 	ImGui::PopItemWidth();
 	ImGui::PopStyleVar();
 
-	// Select UI font for console
-	ImGui::Text("UI Fonts Selector");
-	ImGui::ShowFontSelector("##FontsSelector");
-
-	// Check If UI Font changes and save it
-	if (!ci_equals(s_consoleFontName, ImGui::GetFont()->GetDebugName()))
-	{
-		s_consoleFontName = ImGui::GetFont()->GetDebugName();
-		SetDefaultFontFromDebugName(s_consoleFontName);
-		WritePrivateProfileString("MQConsole", "ConsoleFontOnStartup", s_consoleFontName, mq::internal_paths::MQini);
-		WritePrivateProfileInt("MQConsole", "ConsoleFontSize", s_consoleFontSize, mq::internal_paths::MQini);
-	}
-
-	ImGui::NewLine();
 	ImGui::NewLine();
 	if (ImGui::Button("Clear Saved Console Settings"))
 	{
@@ -1616,13 +1566,6 @@ static void ConsoleSettings()
 		WritePrivateProfileInt("MQConsole", "AlphaNormalOnStartup", s_alphaConsoleNormal, mq::internal_paths::MQini);
 		s_alphaConsoleFade = 100;
 		WritePrivateProfileInt("MQConsole", "AlphaFadeOnStartup", s_alphaConsoleFade, mq::internal_paths::MQini);
-		s_consoleFontSize = 13;
-		WritePrivateProfileInt("MQConsole", "ConsoleFontSize", s_consoleFontSize, mq::internal_paths::MQini);
-		s_consoleFontName = "lucon.ttf, 13px";
-		
-		SetDefaultFontFromDebugName(s_consoleFontName);
-
-		WritePrivateProfileString("MQConsole", "ConsoleFontOnStartup", s_consoleFontName, mq::internal_paths::MQini);
 	}
 }
 
@@ -1646,10 +1589,6 @@ void InitializeImGuiConsole()
 	s_alphaConsoleNormal = GetPrivateProfileInt("MQConsole", "AlphaNormalOnStartup", 100, mq::internal_paths::MQini);
 	s_isTitleBarShown = GetPrivateProfileBool("MQConsole", "HideTitleBar", false, mq::internal_paths::MQini);
 	s_isConsoleLocked = GetPrivateProfileBool("MQConsole", "LockConsoleWindow", false, mq::internal_paths::MQini);
-	// load saved font 
-	s_consoleFontName = GetPrivateProfileString("MQConsole", "ConsoleFontOnStartup", "Lucon.ttf, 13px", mq::internal_paths::MQini);
-	SetDefaultFontFromDebugName(s_consoleFontName);
-	s_consoleFontSize = GetPrivateProfileInt("MQConsole", "ConsoleFontSize", 13, mq::internal_paths::MQini);
 
 	if (gbWriteAllConfig)
 	{

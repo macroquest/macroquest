@@ -86,8 +86,6 @@ void ConfigureDefaultFont(ImFontAtlas* atlas)
 			ImFontConfig consoleFontConfig;
 			consoleFontConfig.OversampleH = consoleFontConfig.OversampleV = 3;
 			ConsoleFont = atlas->AddFontFromFileTTF(szConsoleFont, 13.0f, &consoleFontConfig);
-			atlas->AddFontFromFileTTF(szConsoleFont, 15.0f, &consoleFontConfig);
-			atlas->AddFontFromFileTTF(szConsoleFont, 17.0f, &consoleFontConfig);
 		}
 	}
 
