@@ -226,6 +226,7 @@ void LuaThread::RegisterLuaBindings(sol::table mq)
 	mq.set_function("delay",                     &LuaThread::lua_delay);
 	mq.set_function("exit",                      &LuaThread::lua_exit);
 	mq.set("luaDir",                             m_luaEnvironmentSettings->luaDir);
+	mq.set("moduleDir",                          m_luaEnvironmentSettings->moduleDir);
 
 	MQ_RegisterLua_Events(mq);
 	MQ_RegisterLua_ImGui(mq);
