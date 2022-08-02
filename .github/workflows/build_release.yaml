@@ -20,13 +20,19 @@ jobs:
         with:
           ref: emu
           submodules: recursive
-
+      
+      - name: Add MQNav to submodules
+        run: git submodule add -f https://github.com/brainiac/MQ2Nav.git plugins/mq2nav
+      
       - name: setup-msbuild
         uses: microsoft/setup-msbuild@v1.1
         
-      - name: Build
+      - name: Build MQ
         shell: pwsh
         run: msbuild src/MacroQuest.sln /p:Configuration=${{env.config}} /p:Platform=${{env.platform}}
+
+      - name: Build MQNav
+        run: msbuild src/plugins/mq2nav/MQ2Nav.sln /p:Configuration=${{env.config}} /p:Platform=${{env.platform}}
 
       - uses: actions/upload-artifact@v3
         with:
