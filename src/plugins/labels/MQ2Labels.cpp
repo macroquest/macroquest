@@ -84,6 +84,7 @@ struct {
 class CSidlManagerHook
 {
 public:
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
 	DETOUR_TRAMPOLINE_DEF(CXWnd*, CreateXWnd_Trampoline, (CXWnd*, CControlTemplate*, bool bValue))
 	CXWnd* CreateXWnd_Detour(CXWnd* pParent, CControlTemplate* pTemplate, bool bValue)
 	{
@@ -97,6 +98,21 @@ public:
 
 		return newXWnd;
 	}
+#else
+	DETOUR_TRAMPOLINE_DEF(CXWnd*, CreateXWnd_Trampoline, (CXWnd*, CControlTemplate*))
+		CXWnd* CreateXWnd_Detour(CXWnd* pParent, CControlTemplate* pTemplate)
+	{
+		CXWnd* newXWnd = CreateXWnd_Trampoline(pParent, pTemplate);
+
+		if (pTemplate->GetUltimateType() == UI_Label)
+		{
+			CLabel* pLabel = static_cast<CLabel*>(newXWnd);
+			pLabel->EQType = GetIntFromString(pTemplate->strController, pLabel->EQType);
+		}
+
+		return newXWnd;
+	}
+#endif // IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
 };
 
 class CLabelHook

@@ -356,7 +356,7 @@ static void CaptionColorCmd(SPAWNINFO* pChar, char* szLine)
 
 void SetNameSpriteTint(SPAWNINFO* pSpawn);
 
-class PlayerManagerBaseHook
+class PlayerManagerBaseHook : public eqlib::PlayerManagerBase
 {
 public:
 	DETOUR_TRAMPOLINE_DEF(PlayerClient*, PrepForDestroyPlayer_Trampoline, (PlayerClient*))
@@ -365,11 +365,28 @@ public:
 		PluginsRemoveSpawn(spawn);
 		return PrepForDestroyPlayer_Trampoline(spawn);
 	}
+
+#if !IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
+	DETOUR_TRAMPOLINE_DEF(void, DestroyAllPlayers_Trampoline, ())
+		void DestroyAllPlayers_Detour()
+	{
+		SPAWNINFO* pSpawn = FirstSpawn;
+		while (pSpawn)
+		{
+			PluginsRemoveSpawn(pSpawn);
+			pSpawn = pSpawn->pNext;
+		}
+
+		return DestroyAllPlayers_Trampoline();
+	}
+#endif
 };
+
 
 class PlayerManagerClientHook
 {
 public:
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
 	DETOUR_TRAMPOLINE_DEF(PlayerClient*, CreatePlayer_Trampoline, (CUnSerializeBuffer*, void*, void*, void*, void*, void*, void*, void*, void*))
 	PlayerClient* CreatePlayer_Detour(CUnSerializeBuffer* buf, void* a, void* b, void* c, void* d, void* e, void* f, void* g, void* h)
 	{
@@ -377,6 +394,15 @@ public:
 		PluginsAddSpawn(spawn);
 		return spawn;
 	}
+#else
+	DETOUR_TRAMPOLINE_DEF(PlayerClient*, CreatePlayer_Trampoline, (CUnSerializeBuffer*, void*, void*, void*, void*, void*, void*, void*))
+		PlayerClient* CreatePlayer_Detour(CUnSerializeBuffer* buf, void* a, void* b, void* c, void* d, void* e, void* f, void* g)
+	{
+		PlayerClient* spawn = CreatePlayer_Trampoline(buf, a, b, c, d, e, f, g);
+		PluginsAddSpawn(spawn);
+		return spawn;
+	}
+#endif
 };
 
 class PlayerClientHook
@@ -786,7 +812,7 @@ void UpdateMQ2SpawnSort()
 	// we need to make sure the spawn manager is valid here because this can get called from login pulse before the spawn manager is valid
 	if (pSpawnManager)
 	{
-		SPAWNINFO* pSpawn = pSpawnList;
+		SPAWNINFO* pSpawn = pSpawnManager->FirstSpawn;
 		while (pSpawn)
 		{
 			float distSq = GetDistanceSquared(myX, myY, pSpawn->X, pSpawn->Y);
@@ -823,6 +849,9 @@ static void Spawns_Initialize()
 
 	EzDetour(PlayerManagerClient__CreatePlayer, &PlayerManagerClientHook::CreatePlayer_Detour, &PlayerManagerClientHook::CreatePlayer_Trampoline);
 	EzDetour(PlayerManagerBase__PrepForDestroyPlayer, &PlayerManagerBaseHook::PrepForDestroyPlayer_Detour, &PlayerManagerBaseHook::PrepForDestroyPlayer_Trampoline);
+#if !IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
+	EzDetour(PlayerManagerBase__DestroyAllPlayers, &PlayerManagerBaseHook::DestroyAllPlayers_Detour, &PlayerManagerBaseHook::DestroyAllPlayers_Trampoline);
+#endif
 	EzDetour(PlayerClient__SetNameSpriteState, &PlayerClientHook::SetNameSpriteState_Detour, &PlayerClientHook::SetNameSpriteState_Trampoline);
 	EzDetour(PlayerClient__SetNameSpriteTint, &PlayerClientHook::SetNameSpriteTint_Detour, &PlayerClientHook::SetNameSpriteTint_Trampoline);
 	EzDetour(EQItemList__FreeItemList, &MyEQGroundItemListManager::FreeItemList_Detour, &MyEQGroundItemListManager::FreeItemList_Trampoline);
@@ -894,6 +923,9 @@ static void Spawns_Shutdown()
 
 	RemoveDetour(PlayerManagerClient__CreatePlayer);
 	RemoveDetour(PlayerManagerBase__PrepForDestroyPlayer);
+#if !IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
+	RemoveDetour(PlayerManagerBase__DestroyAllPlayers);
+#endif
 	RemoveDetour(PlayerClient__SetNameSpriteState);
 	RemoveDetour(PlayerClient__SetNameSpriteTint);
 	RemoveDetour(EQItemList__FreeItemList);

@@ -295,6 +295,35 @@ static bool ColumnCheckBox(const char* Label, bool value)
 	return result;
 }
 
+template <typename T>
+static bool ColummCheckBox(const char* Label, T* ptr, bool (T::* getter)(), void (T::* setter)(bool))
+{
+	bool result = false;
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	bool value = ptr->getter();
+	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.6f);
+	ImGui::PushID(Label); result = ImGui::Checkbox("", &value); ImGui::PopID();
+	if (result) ptr->setter(value);
+	ImGui::PopStyleVar();
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn();
+	return result;
+}
+
+static bool ColummCheckBox(const char* Label, bool (* getter)(), void (* setter)(bool))
+{
+	bool result = false;
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	bool value = getter();
+	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.6f);
+	ImGui::PushID(Label); result = ImGui::Checkbox("", &value); ImGui::PopID();
+	if (result) setter(value);
+	ImGui::PopStyleVar();
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn();
+	return result;
+}
+
 static bool ColumnCheckBoxFlags(const char* Label, unsigned int* flags, unsigned int flags_value)
 {
 	bool result = false;
@@ -714,6 +743,26 @@ inline void ColumnColor(const char* Label, COLORREF* color)
 	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "Color");
 	ImGui::TableNextRow();
 	ImGui::TableNextColumn();
+}
+
+template <typename T>
+static bool ColumnColor(const char* Label, T* ptr, COLORREF(T::* getter)() const, void (T::* setter)(COLORREF))
+{
+	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+
+	ImGui::PushID(Label);
+	ImColor colors = MQColor{ MQColor::format_argb, (ptr->*getter)()}.ToImColor();
+
+	bool changed = ImGui::ColorEdit4("", (float*)&colors, ImGuiColorEditFlags_NoInputs); ImGui::TableNextColumn();
+	if (changed)
+		(ptr->*setter)(MQColor(colors).ToARGB());
+	ImGui::PopID();
+
+	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "Color");
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn();
+
+	return changed;
 }
 
 static bool FontComboGetter(void* data, int n, const char** out_str)
@@ -2074,7 +2123,7 @@ public:
 				ColumnText("Background draw type", XWndBackgroundDrawTypeToString(static_cast<XWndBackgroundDrawType>(pWnd->BackgroundDrawType)));
 				ColumnColor("Normal color", &pWnd->CRNormal);
 				ColumnColor("Background color", &pWnd->BGColor);
-				ColumnColor("Disabled background color", &pWnd->DisabledBackground);
+				ColumnColor<CXWnd>("Disabled background color", pWnd, &CXWnd::GetDisabledBackground, &CXWnd::SetDisabledBackground);
 
 				ColumnCXStr("XML Tooltip", pWnd->XMLToolTip);
 
@@ -2246,7 +2295,8 @@ public:
 
 			ColumnText("Cooldown time", "%d", pWnd->CoolDownBeginTime);
 			ColumnText("Cooldown duration", "%d", pWnd->CoolDownDuration);
-
+			
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COV)
 			ColumnCXStr("Indicator", pWnd->Indicator);
 			ColumnText("Indicator value", "%d", pWnd->IndicatorVal);
 			DisplayTextObject("Indicator", pWnd->pIndicatorTextObject);
@@ -2256,6 +2306,7 @@ public:
 			// bCoolDownDoDelayedStart
 			// bIsDrawLasso
 			//ColumnText("Button style", "0x%08x", pWnd->ButtonStyle);
+#endif
 
 			// CLabel
 		}
@@ -2281,11 +2332,15 @@ public:
 		if (BeginColorSection("CLabelWnd Properties", open))
 		{
 			bool changed = false;
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COV)
 			ColumnCXStr("Prepend Text", &pWnd->PrependText);
 			ColumnCXStr("Text###LabelText", &pWnd->Text);
 			ColumnCXStr("Append Text", &pWnd->AppendText);
 			if (ColumnCheckBox("Text Dirty", &pWnd->bTextDirty) && pWnd->bTextDirty)
 				pWnd->UpdateText();
+#else
+			ColumnCXStr("Text###LabelText", pWnd->Text);
+#endif
 			ColumnCheckBox("No wrap", &pWnd->bNoWrap);
 			ColumnCheckBox("Right align", &pWnd->bAlignRight);
 			ColumnCheckBox("Center align", &pWnd->bAlignCenter);
@@ -2695,7 +2750,9 @@ public:
 							ColumnWindow("Window", cell.pWnd);
 
 							ColumnText("Texture only", cell.bOnlyDrawTexture ? "true" : "false");
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
 							ColumnText("Unknown1", "%p", cell.Unknown1);
+#endif
 						};
 
 						if (cells > 0)
@@ -3426,8 +3483,10 @@ static void WindowProperties_ItemDisplayWindow(CSidlScreenWnd* pSidlWindow, ImGu
 	CItemDisplayWnd* pWindow = static_cast<CItemDisplayWnd*>(pSidlWindow);
 
 	ColumnCXStr("ItemInfo", pWindow->ItemInfo);
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COV)
 	ColumnCXStr("Unknown0x2ac", pWindow->Unknown0x2ac);
 	ColumnCXStr("Unknown0x2b0", pWindow->Unknown0x2b0);
+#endif
 	ColumnCXStr("WindowTitle", pWindow->WindowTitle);
 	ColumnCXStr("ItemAdvancedLoreText", pWindow->ItemAdvancedLoreText);
 	ColumnCXStr("ItemMadeByText", pWindow->ItemMadeByText);
@@ -3552,10 +3611,12 @@ static void WindowProperties_FindLocationWnd(CSidlScreenWnd* pSidlWindow, ImGuiW
 
 	ColumnArrayList("Unfiltered Players", "FindPlayerData", pWnd->unfilteredPlayerList.GetLength(),
 		pWnd->unfilteredPlayerList.begin(), pWnd->unfilteredPlayerList.end(), doPlayerData, doPlayerLabel);
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
 	ColumnArrayList("Filtered Group Players", "FindPlayerData", pWnd->filteredGroupPlayerList.GetLength(),
 		pWnd->filteredGroupPlayerList.begin(), pWnd->filteredGroupPlayerList.end(), doPlayerData, doPlayerLabel);
 	ColumnArrayList("Unfiltered Raid Players", "FindPlayerData", pWnd->unfilteredRaidPlayerList.GetLength(),
 		pWnd->unfilteredRaidPlayerList.begin(), pWnd->unfilteredRaidPlayerList.end(), doPlayerData, doPlayerLabel);
+#endif
 
 	ColumnArrayList("Unfiltered POIs", "FindPOIData", pWnd->unfilteredPOIDataList.GetLength(),
 		pWnd->unfilteredPOIDataList.begin(), pWnd->unfilteredPOIDataList.end(),

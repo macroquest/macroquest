@@ -222,6 +222,17 @@ int CPacketScrambler_Detours::ntoh_Detour(int nopcode)
 class SpellManager_Detours
 {
 public:
+#if !IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
+	DETOUR_TRAMPOLINE_DEF(bool, LoadTextSpells_Trampoline, (char*, char*, EQ_Spell*))
+	bool LoadTextSpells_Detour(char* FileName, char* AssocFileName, EQ_Spell* SpellArray)
+	{
+		gbDoingSpellChecks = true;
+		bool ret = LoadTextSpells_Trampoline(FileName, AssocFileName, SpellArray);
+		gbDoingSpellChecks = false;
+		return ret;
+	}
+#else
+	DETOUR_TRAMPOLINE_DEF(bool, LoadTextSpells_Trampoline, (char*, char*, EQ_Spell*, SpellAffectData*))
 	bool LoadTextSpells_Detour(char* FileName, char* AssocFileName, EQ_Spell* SpellArray, SpellAffectData* EffectArray)
 	{
 		gbDoingSpellChecks = true;
@@ -229,8 +240,7 @@ public:
 		gbDoingSpellChecks = false;
 		return ret;
 	}
-
-	DETOUR_TRAMPOLINE_DEF(bool, LoadTextSpells_Trampoline, (char*, char*, EQ_Spell*, SpellAffectData*))
+#endif
 };
 
 //============================================================================
@@ -240,12 +250,14 @@ class CDisplay_Detours
 public:
 	void ZoneMainUI_Detour()
 	{
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
 		if (GetServerIDFromServerName(GetServerShortName()) == ServerID::Invalid)
 		{
 			// unload
 			WriteChatf("MQ2 does not function on this server: %s -- UNLOADING", GetServerShortName());
 			EzCommand("/unload");
 		}
+#endif
 
 		PluginsEndZone();
 		ZoneMainUI_Trampoline();
@@ -317,6 +329,7 @@ void HookMemChecker(bool Patch)
 
 	if (Patch)
 	{
+#if !defined(EMULATOR)
 		EzDetour(__MemChecker0, memcheck0, memcheck0_tramp);
 		EzDetour(__MemChecker1, memcheck1, memcheck1_tramp);
 #if defined(__MemChecker2_x)
@@ -328,6 +341,7 @@ void HookMemChecker(bool Patch)
 #if defined(__MemChecker4_x)
 		EzDetour(__MemChecker4, memcheck4, memcheck4_tramp);
 #endif
+#endif
 
 		EzDetour(CPacketScrambler__ntoh, &CPacketScrambler_Detours::ntoh_Detour, &CPacketScrambler_Detours::ntoh_Trampoline);
 		EzDetour(Spellmanager__LoadTextSpells, &SpellManager_Detours::LoadTextSpells_Detour, &SpellManager_Detours::LoadTextSpells_Trampoline);
@@ -336,6 +350,7 @@ void HookMemChecker(bool Patch)
 	}
 	else
 	{
+#if !defined(EMULATOR)
 		RemoveDetour(__MemChecker0);
 		RemoveDetour(__MemChecker1);
 #if defined(__MemChecker2_x)
@@ -346,6 +361,7 @@ void HookMemChecker(bool Patch)
 #endif
 #if defined(__MemChecker4_x)
 		RemoveDetour(__MemChecker4);
+#endif
 #endif
 
 		RemoveDetour(CPacketScrambler__ntoh);
@@ -584,6 +600,7 @@ BOOL WINAPI FindProcesses_Detour(DWORD* lpidProcess, DWORD cb, DWORD* lpcbNeeded
 
 void InitializeDetours()
 {
+#if !defined(EMULATOR)
 	// hit the debugger if we don't hook this. take no chances
 	if (!__MemChecker0
 		|| !__MemChecker1
@@ -600,6 +617,7 @@ void InitializeDetours()
 	{
 		__debugbreak();
 	}
+#endif
 
 	extern_array0 = reinterpret_cast<uint32_t*>(__EncryptPad0);
 

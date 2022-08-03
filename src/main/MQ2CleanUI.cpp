@@ -33,18 +33,31 @@ public:
 		CleanUI_Trampoline();
 	}
 
-	DETOUR_TRAMPOLINE_DEF(void, ReloadUI_Trampoline, (bool, bool))
-	void ReloadUI_Detour(bool UseINI, bool bUnknown)
+	void ReloadUI_Hook()
 	{
-		ReloadUI_Trampoline(UseINI, bUnknown);
 		InitializeInGameUI();
 
 		{
 			MQScopedBenchmark bm(bmPluginsReloadUI);
-
 			PluginsReloadUI();
 		}
 	}
+
+#if !IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
+	DETOUR_TRAMPOLINE_DEF(void, ReloadUI_Trampoline, (bool))
+	void ReloadUI_Detour(bool UseINI)
+	{
+		ReloadUI_Trampoline(UseINI);
+		ReloadUI_Hook();
+	}
+#else
+	DETOUR_TRAMPOLINE_DEF(void, ReloadUI_Trampoline, (bool, bool))
+	void ReloadUI_Detour(bool UseINI, bool bUnknown)
+	{
+		ReloadUI_Trampoline(UseINI, bUnknown);
+		ReloadUI_Hook();
+	}
+#endif
 
 	DETOUR_TRAMPOLINE_DEF(void, InitCharSelectUI_Trampoline, ())
 	void InitCharSelectUI_Detour()
@@ -147,7 +160,7 @@ void InitializeDisplayHook()
 	DebugSpew("Initializing Display Hooks");
 
 	// TODO: Fix custom loading screen strings
-#if defined(EQ_LoadingS__Array_x) && 0
+#if defined(EQ_LoadingS__Array_x) && IS_EXPANSION_LEVEL(EXPANSION_LEVEL_ROF)
 	if (gbMQ2LoadingMsg)
 	{
 		s_oldStrings.clear();
@@ -180,7 +193,7 @@ void ShutdownDisplayHook()
 	DebugSpew("Shutting down Display Hooks");
 
 	// TODO: Fix custom loading screen strings
-#if defined(EQ_LoadingS__Array_x) && 0
+#if defined(EQ_LoadingS__Array_x) && IS_EXPANSION_LEVEL(EXPANSION_LEVEL_ROF)
 	if (gbMQ2LoadingMsg)
 	{
 		const char** ptr = (const char**)EQ_LoadingS__Array;

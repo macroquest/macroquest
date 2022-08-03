@@ -130,6 +130,7 @@ bool MQ2SkillType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			Dest.Set(false);
 			Dest.Type = pBoolType;
 
+#if HAS_AUTOSKILLS
 			int id = GetSkillIDFromName(pStringTable->getString(pSkill->nName));
 			for (int i = 0; i < CONCURRENT_SKILLS; ++i)
 			{
@@ -139,6 +140,7 @@ bool MQ2SkillType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 					return true;
 				}
 			}
+#endif
 			return true;
 		}
 

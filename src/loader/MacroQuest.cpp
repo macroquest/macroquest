@@ -1161,6 +1161,7 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 	else if (!gEnableCrashpad)
 		SPDLOG_INFO("Crashpad is disabled.");
 
+#if defined(_WIN64)
 	// TODO:  Allow argument processing of passing ini file so the file can be launched from anywhere
 	std::string fullCommandLine = "";
 	bool spawnedProcess = false;
@@ -1266,6 +1267,7 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 			exit(0);
 		}
 	}
+#endif // defined(_WIN64)
 
 	// Initialize COM
 	auto coCleanup = wil::CoInitializeEx();
