@@ -1189,25 +1189,25 @@ static void InitializeFrameLimiter()
 	bmThrottleTime = AddMQ2Benchmark("Render_Throttle");
 
 	// Hook UI render function
-	//EzDetour(CXWndManager__DrawWindows, &CXWndManagerHook::DrawWindows_Detour, &CXWndManagerHook::DrawWindows_Trampoline);
+	EzDetour(CXWndManager__DrawWindows, &CXWndManagerHook::DrawWindows_Detour, &CXWndManagerHook::DrawWindows_Trampoline);
 
 	// Hook main render function
-	//EzDetour(CRender__RenderScene, &CRenderHook::RenderScene_Detour, &CRenderHook::RenderScene_Trampoline);
-	//EzDetour(CRender__RenderBlind, &CRenderHook::RenderBlind_Detour, &CRenderHook::RenderBlind_Trampoline);
+	EzDetour(CRender__RenderScene, &CRenderHook::RenderScene_Detour, &CRenderHook::RenderScene_Trampoline);
+	EzDetour(CRender__RenderBlind, &CRenderHook::RenderBlind_Detour, &CRenderHook::RenderBlind_Trampoline);
 
 	// Hook update function (will begin scene if render isn't called)
-	//EzDetour(CRender__UpdateDisplay, &CRenderHook::UpdateDisplay_Detour, &CRenderHook::UpdateDisplay_Trampoline);
+	EzDetour(CRender__UpdateDisplay, &CRenderHook::UpdateDisplay_Detour, &CRenderHook::UpdateDisplay_Trampoline);
 
 	// Hook the main loop throttle function
 #if defined(_M_AMD64)
 	if constexpr (__ThrottleFrameRate_x && __ThrottleFrameRateEnd_x)
 		AddDetour(__ThrottleFrameRate, Throttler_Detour, Throttler_Trampoline, "ThrottleFrameRate");
 #else
-	//EzDetour(__ThrottleFrameRate, Throttler_Detour, Throttler_Trampoline);
+	EzDetour(__ThrottleFrameRate, Throttler_Detour, Throttler_Trampoline);
 #endif
 
 	// Hook CDisplay::RealRender_World to control render loop
-	//EzDetour(CDisplay__RealRender_World, &CDisplayHook::RealRender_World_Detour, &CDisplayHook::RealRender_World_Trampoline);
+	EzDetour(CDisplay__RealRender_World, &CDisplayHook::RealRender_World_Detour, &CDisplayHook::RealRender_World_Trampoline);
 
 	s_frameLimiter.ReadSettings();
 
