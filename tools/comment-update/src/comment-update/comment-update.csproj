@@ -69,13 +69,16 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="comment-update.config" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="ClangSharp">
       <Version>13.0.0-beta1</Version>
     </PackageReference>
     <PackageReference Include="Costura.Fody">
-      <Version>3.3.3</Version>
+      <Version>5.7.0</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>13.0.1</Version>

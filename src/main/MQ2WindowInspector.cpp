@@ -3483,8 +3483,10 @@ static void WindowProperties_ItemDisplayWindow(CSidlScreenWnd* pSidlWindow, ImGu
 	CItemDisplayWnd* pWindow = static_cast<CItemDisplayWnd*>(pSidlWindow);
 
 	ColumnCXStr("ItemInfo", pWindow->ItemInfo);
-	//ColumnCXStr("Unknown0x2ac", pWindow->Unknown0x2ac);
-	//ColumnCXStr("Unknown0x2b0", pWindow->Unknown0x2b0);
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COV)
+	ColumnCXStr("Unknown0x2ac", pWindow->Unknown0x2ac);
+	ColumnCXStr("Unknown0x2b0", pWindow->Unknown0x2b0);
+#endif
 	ColumnCXStr("WindowTitle", pWindow->WindowTitle);
 	ColumnCXStr("ItemAdvancedLoreText", pWindow->ItemAdvancedLoreText);
 	ColumnCXStr("ItemMadeByText", pWindow->ItemMadeByText);
@@ -3609,10 +3611,12 @@ static void WindowProperties_FindLocationWnd(CSidlScreenWnd* pSidlWindow, ImGuiW
 
 	ColumnArrayList("Unfiltered Players", "FindPlayerData", pWnd->unfilteredPlayerList.GetLength(),
 		pWnd->unfilteredPlayerList.begin(), pWnd->unfilteredPlayerList.end(), doPlayerData, doPlayerLabel);
-	//ColumnArrayList("Filtered Group Players", "FindPlayerData", pWnd->filteredGroupPlayerList.GetLength(),
-	//	pWnd->filteredGroupPlayerList.begin(), pWnd->filteredGroupPlayerList.end(), doPlayerData, doPlayerLabel);
-	//ColumnArrayList("Unfiltered Raid Players", "FindPlayerData", pWnd->unfilteredRaidPlayerList.GetLength(),
-	//	pWnd->unfilteredRaidPlayerList.begin(), pWnd->unfilteredRaidPlayerList.end(), doPlayerData, doPlayerLabel);
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
+	ColumnArrayList("Filtered Group Players", "FindPlayerData", pWnd->filteredGroupPlayerList.GetLength(),
+		pWnd->filteredGroupPlayerList.begin(), pWnd->filteredGroupPlayerList.end(), doPlayerData, doPlayerLabel);
+	ColumnArrayList("Unfiltered Raid Players", "FindPlayerData", pWnd->unfilteredRaidPlayerList.GetLength(),
+		pWnd->unfilteredRaidPlayerList.begin(), pWnd->unfilteredRaidPlayerList.end(), doPlayerData, doPlayerLabel);
+#endif
 
 	ColumnArrayList("Unfiltered POIs", "FindPOIData", pWnd->unfilteredPOIDataList.GetLength(),
 		pWnd->unfilteredPOIDataList.begin(), pWnd->unfilteredPOIDataList.end(),

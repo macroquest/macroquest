@@ -53,7 +53,7 @@ ItemEffectConfig s_itemEffectConfigs[ItemSpellType_Max] = {
 	{ ItemSpellType_Focus,    MQColor(160, 160, 0),   "Focus"    },
 	{ ItemSpellType_Scroll,   MQColor(160, 160, 160), "Scroll"   },
 	{ ItemSpellType_Focus2,   MQColor(160, 160, 0),   "Focus2"   },
-#if IS_CLIENT_DATE(20210907)
+#if HAS_ITEM_BLESSING_EFFECT
 	{ ItemSpellType_Blessing, MQColor(88,  214, 141), "Blessing" }
 #endif
 };
@@ -1588,11 +1588,11 @@ public:
 		extraInfo.itemAdvancedLoreText = STMLToText(this->ItemAdvancedLoreText);
 		extraInfo.windowTitle = STMLToText(this->WindowTitle);
 
-#if IS_CLIENT_DATE(20160420)
+#if HAS_ITEM_WINDOW_COLLECTED
 		extraInfo.collectedReceived = this->bCollectedReceived;
 		extraInfo.collected = this->bCollected && this->bCollectedReceived;
 #endif
-#if IS_CLIENT_DATE(20161116)
+#if HAS_ITEM_WINDOW_SCRIBED
 		extraInfo.scribedReceived = this->bScribedReceived;
 		extraInfo.scribed = this->bScribed && this->bScribedReceived;
 #endif

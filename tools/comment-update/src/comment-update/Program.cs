@@ -49,6 +49,32 @@ namespace comment_update
             var settingsFile = Path.Combine(currentDir, "comment-update.config");
             var settings = ProgramOptions.LoadJson(settingsFile);
 
+            bool archIs32bit = false;
+
+            if (args.Length > 0)
+            {
+                foreach (var item in args)
+                {
+                    if (item == "-x86")
+                    {
+                        archIs32bit = true;
+                        break;
+                    }
+                }
+            }
+
+            if (archIs32bit)
+            {
+                settings.includePaths.Append("contrib/vcpkg/installed/x86-windows-static/include");
+            }
+            else
+            {
+                settings.includePaths.Append("contrib/vcpkg/installed/x64-windows-static/include");
+                settings.compilerArguments.Append("-m64");
+                settings.compilerArguments.Append("-D_WIN64");
+            }
+
+
             if (settings == null)
             {
                 Console.WriteLine("Failed to load settings");
