@@ -589,7 +589,7 @@
     <ResourceCompile Include="MQ2Main.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Natvis Include="..\MQ2.natvis" />
+    <Natvis Include="..\MacroQuest.natvis" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\contrib\zep\zep.vcxproj">

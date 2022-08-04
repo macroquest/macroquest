@@ -60,6 +60,10 @@ try {
 	$Dst = $args[1]
 	$Arch = $args[2]
 	#Write-Output $Src $Dst $Arch
+	if ($Arch -like "Win32")
+	{
+		$Arch = "x86"
+	}
 
 	$ListFile = "$Src\BinCopy.txt"
 	Set-Location $Src

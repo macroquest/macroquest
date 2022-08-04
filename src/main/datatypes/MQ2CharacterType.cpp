@@ -1089,8 +1089,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::DamageShieldBonus: {
-		int DamageShieldCap = GetModCap(HEROIC_MOD_DAMAGE_SHIELDING);
-		Dest.DWord = (pLocalPC->DamageShieldBonus > DamageShieldCap ? DamageShieldCap : pLocalPC->DamageShieldBonus);
+		Dest.DWord = std::min(pLocalPC->GetDamageShieldBonus(), GetModCap(HEROIC_MOD_DAMAGE_SHIELDING));
 		Dest.Type = pIntType;
 		return true;
 	}
@@ -2412,42 +2411,42 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::STR:
-		Dest.DWord = pLocalPC->STR;
+		Dest.DWord = pLocalPC->GetStrength();
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::STA:
-		Dest.DWord = pLocalPC->STA;
+		Dest.DWord = pLocalPC->GetStamina();
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::AGI:
-		Dest.DWord = pLocalPC->AGI;
+		Dest.DWord = pLocalPC->GetAgility();
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::DEX:
-		Dest.DWord = pLocalPC->DEX;
+		Dest.DWord = pLocalPC->GetDexterity();
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::WIS:
-		Dest.DWord = pLocalPC->WIS;
+		Dest.DWord = pLocalPC->GetWisdom();
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::INT:
-		Dest.DWord = pLocalPC->INT;
+		Dest.DWord = pLocalPC->GetIntelligence();
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::CHA:
-		Dest.DWord = pLocalPC->CHA;
+		Dest.DWord = pLocalPC->GetCharisma();
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LCK:
-		Dest.DWord = pLocalPC->LCK;
+		Dest.DWord = pLocalPC->GetLuck();
 		Dest.Type = pIntType;
 		return true;
 
@@ -3320,13 +3319,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::PctMercAAExp:
-		// this is how it looks like the client is doing it in the disasm...
-		Dest.Float = (float)((pLocalPC->MercAAExp + 5) / 10.f);
+		Dest.Float = pLocalPC->GetMercAAExpPct();
 		Dest.Type = pFloatType;
 		return true;
 
 	case CharacterMembers::MercAAExp:
-		Dest.Int64 = pLocalPC->MercAAExp;
+		Dest.Int64 = pLocalPC->GetMercAAExp();
 		Dest.Type = pInt64Type;
 		return true;
 
@@ -3723,6 +3721,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return false;
 
 	case CharacterMembers::AutoSkill:
+#if HAS_AUTOSKILLS
 		Dest.Type = pSkillType;
 		if (IsNumber(Index))
 		{
@@ -3739,6 +3738,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				return true;
 			}
 		}
+#endif
 		return false;
 
 	case CharacterMembers::BaseSTR:
@@ -3788,12 +3788,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::MercAAPoints:
-		Dest.DWord = pLocalPC->MercAAPoints;
+		Dest.DWord = pLocalPC->GetMercAAPoints();
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::MercAAPointsSpent:
-		Dest.DWord = pLocalPC->MercAAPointsSpent;
+		Dest.DWord = pLocalPC->GetMercAAPointsSpent();
 		Dest.Type = pIntType;
 		return true;
 

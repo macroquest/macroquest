@@ -293,7 +293,9 @@ void CachedBuffsCommand(SPAWNINFO* pChar, char* szLine)
 
 void InitializeCachedBuffs()
 {
-	EzDetour(CTargetWnd__RefreshTargetBuffs, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Detour, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline);
+	EzDetour(CTargetWnd__RefreshTargetBuffs,
+		&CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Detour,
+		&CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline);
 }
 
 void ShutdownCachedBuffs()

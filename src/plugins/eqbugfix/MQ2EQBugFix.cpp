@@ -16,6 +16,7 @@
 
 PreSetup("MQ2EQBugFix");
 
+#if IS_CLIENT_DATE(20200521)
 // This class implementation is specifically for the bug fix.
 class CUnSerializeBuffer_BugFix
 {
@@ -43,11 +44,13 @@ public:
 		return true;
 	}
 };
+#endif
 
 PLUGIN_API void InitializePlugin()
 {
 	DebugSpewAlways("Initializing MQ2EQBugFix");
 
+#if IS_CLIENT_DATE(20200521)
 	// Avoid a buffer over-read in CUnSerializeBuffer::GetString. This function will call strlen on
 	// a network message that may already have been read to the end, resulting in a buffer over-read.
 	// In some cases this will read past the end of the page boundary. If this happens, and the next
@@ -56,13 +59,16 @@ PLUGIN_API void InitializePlugin()
 	// As of the 5/21/2020 live patch, this happens occasionally when receiving guild names, regardless
 	// of if MQ2 is loaded.
 	EzDetour(CUnSerializeBuffer__GetString, &CUnSerializeBuffer_BugFix::GetString_Detour, &CUnSerializeBuffer_BugFix::GetString_Trampoline);
+#endif
 }
 
 PLUGIN_API void ShutdownPlugin()
 {
 	DebugSpewAlways("Shutting down MQ2EQBugFix");
 
+#if IS_CLIENT_DATE(20200521)
 	RemoveDetour(CUnSerializeBuffer__GetString);
+#endif
 }
 
 PLUGIN_API void OnPulse()

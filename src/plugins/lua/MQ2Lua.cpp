@@ -56,6 +56,7 @@ namespace mq::lua {
 // provide option strings here
 static const std::string turboNum = "turboNum";
 static const std::string luaDir = "luaDir";
+static const std::string moduleDir = "moduleDir";
 static const std::string luaRequirePaths = "luaRequirePaths";
 static const std::string dllRequirePaths = "dllRequirePaths";
 static const std::string infoGC = "infoGC";
@@ -65,6 +66,7 @@ static const std::string showMenu = "showMenu";
 // configurable options, defaults provided where needed
 static uint32_t s_turboNum = 500;
 static std::string s_luaDirName = "lua";
+static std::string s_moduleDirName = "modules";
 static LuaEnvironmentSettings s_environment;
 static std::chrono::milliseconds s_infoGC = 3600s; // 1 hour
 static bool s_squelchStatus = false;
@@ -78,6 +80,7 @@ static YAML::Node s_configNode;
 static bool s_showMenu = false;
 static ImGuiFileDialog* s_scriptLaunchDialog = nullptr;
 static ImGuiFileDialog* s_luaDirDialog = nullptr;
+static ImGuiFileDialog* s_moduleDirDialog = nullptr;
 static imgui::TextEditor* s_luaCodeViewer = nullptr;
 
 // use a vector for s_running because we need to iterate it every pulse, and find only if a command is issued
@@ -341,8 +344,18 @@ public:
 		}
 		case Members::Dir:
 			Dest.Type = pStringType;
-			strcpy_s(DataTypeTemp, s_environment.luaDir.c_str());
-			Dest.Ptr = &DataTypeTemp[0];
+			if (!Index[0] || ci_equals(Index, "lua"))
+			{
+				Dest.Ptr = &s_environment.luaDir[0];
+			}
+			else if (ci_equals(Index, "modules"))
+			{
+				Dest.Ptr = &s_environment.moduleDir[0];
+			}
+			else
+			{
+				return false;
+			}
 			return true;
 
 		case Members::Turbo:
@@ -721,6 +734,21 @@ static void ReadSettings()
 		s_configNode[luaDir] = s_luaDirName;
 	}
 
+	if (mq::test_and_set(s_moduleDirName, s_configNode[moduleDir].as<std::string>(s_moduleDirName)) || s_environment.moduleDir.empty())
+	{
+		s_environment.moduleDir = (std::filesystem::path(gPathMQRoot) / s_moduleDirName).string();
+
+		std::error_code ec;
+		if (!std::filesystem::exists(s_environment.moduleDir, ec)
+			&& !std::filesystem::create_directories(s_environment.moduleDir, ec))
+		{
+			WriteChatf("Failed to open or create directory at %s. Modules will not load.", s_environment.moduleDir.c_str());
+			WriteChatf("Error was %s", ec.message().c_str());
+		}
+
+		s_configNode[moduleDir] = s_moduleDirName;
+	}
+
 	s_environment.luaRequirePaths.clear();
 	if (s_configNode[luaRequirePaths].IsSequence()) // if this is not a sequence, add nothing
 	{
@@ -1046,15 +1074,23 @@ void LuaEnvironmentSettings::ConfigureLuaState(sol::state_view sv)
 		m_packagePath = sv["package"]["path"].get<std::string>();
 		m_packageCPath = sv["package"]["cpath"].get<std::string>();
 
+		// Lua _VERSION is output as "Lua 5.1" -- could use regex to match, but all versions seem to be in this format
+		m_version = sv["_VERSION"].get<std::string>();
+		const size_t pos = m_version.rfind(' ');
+		if (pos != std::string::npos)
+		{
+			m_version = m_version.substr(pos + 1);
+		}
+
 		m_initialized = true;
 	}
 
-	// always search the local dir first, then anything specified by the user, then the default paths
-	sv["package"]["path"] = fmt::format("{}\\?.lua;{}{}",
-		luaDir, luaRequirePaths.empty() ? "" : join(luaRequirePaths, ";") + ";", m_packagePath);
+	// always search the local dir first, then luarocks in modules, then anything specified by the user, then the default paths
+	sv["package"]["path"] = fmt::format("{}\\?.lua;{}\\luarocks\\share\\lua\\{}\\?.lua;{}{}",
+		luaDir, moduleDir, m_version, luaRequirePaths.empty() ? "" : join(luaRequirePaths, ";") + ";", m_packagePath);
 
-	sv["package"]["cpath"] = fmt::format("{}\\?.dll;{}{}",
-		luaDir, dllRequirePaths.empty() ? "" : join(dllRequirePaths, ";") + ";", m_packageCPath);
+	sv["package"]["cpath"] = fmt::format("{}\\?.dll;{}\\luarocks\\lib\\lua\\{}\\?.dll;{}{}",
+		luaDir, moduleDir, m_version, dllRequirePaths.empty() ? "" : join(dllRequirePaths, ";") + ";", m_packageCPath);
 }
 
 #pragma endregion
@@ -1228,6 +1264,56 @@ static void DrawLuaSettings()
 		}
 
 		IGFD_CloseDialog(s_luaDirDialog);
+	}
+
+	ImGui::Text("Modules Directory:");
+	auto dirDisplayModules = s_configNode[moduleDir].as<std::string>(s_moduleDirName);
+	ImGui::SetNextItemWidth(-80.0f);
+	ImGui::InputText("##moduledirname", &dirDisplayModules[0], dirDisplayModules.size(), ImGuiInputTextFlags_ReadOnly);
+
+	if (!s_moduleDirDialog)
+	{
+		s_moduleDirDialog = IGFD_Create();
+	}
+
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(80.0f);
+	if (ImGui::Button("Choose...##modulebutton"))
+	{
+		IGFD_OpenDialog2(s_moduleDirDialog, "ChooseModuleDirKey", "Select Module Directory", nullptr,
+			(std::string(gPathMQRoot) + "/").c_str(), 1, nullptr, ImGuiFileDialogFlags_None);
+	}
+
+	if (IGFD_DisplayDialog(s_moduleDirDialog, "ChooseModuleDirKey", ImGuiWindowFlags_None, ImVec2(350, 350), ImVec2(FLT_MAX, FLT_MAX)))
+	{
+		if (IGFD_IsOk(s_moduleDirDialog))
+		{
+			std::shared_ptr<char> selected_path(IGFD_GetCurrentPath(s_moduleDirDialog), IGFD_DestroyString);
+
+			std::error_code ec;
+			if (selected_path && std::filesystem::exists(selected_path.get(), ec))
+			{
+				auto mq_path = std::filesystem::canonical(std::filesystem::path(gPathMQRoot), ec).string();
+				auto module_path = std::filesystem::canonical(std::filesystem::path(selected_path.get()), ec).string();
+
+				auto [mqEnd, luaEnd] = std::mismatch(mq_path.begin(), mq_path.end(), module_path.begin());
+
+				auto clean_name = [](std::string_view s)
+				{
+					s.remove_prefix(std::min(s.find_first_not_of("\\"), s.size()));
+					return std::string(s);
+				};
+
+				auto module_name = mqEnd != mq_path.end()
+					? module_path
+					: clean_name(std::string(luaEnd, module_path.end()));
+
+				s_moduleDirName = module_name;
+				s_configNode[moduleDir] = s_moduleDirName;
+			}
+		}
+
+		IGFD_CloseDialog(s_moduleDirDialog);
 	}
 
 	ImGui::Text("Process Info Garbage Collect Time");
@@ -1416,6 +1502,7 @@ PLUGIN_API void ShutdownPlugin()
 
 	RemoveSettingsPanel("plugins/Lua");
 	if (s_luaDirDialog != nullptr) IGFD_Destroy(s_luaDirDialog);
+	if (s_moduleDirDialog != nullptr) IGFD_Destroy(s_moduleDirDialog);
 
 	delete s_pluginInterface;
 	s_pluginInterface = nullptr;

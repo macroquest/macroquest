@@ -217,18 +217,34 @@ void TryRemoveLogin()
 	}
 }
 
-// Right after leaving the frontend, we get a call to FlushDxKeyboard in ExecuteEverQuest(). We
-// hook this function and use it to determine that we've exited the frontend.
-DETOUR_TRAMPOLINE_DEF(int, FlushDxKeyboard_Trampoline, ())
-int FlushDxKeyboard_Detour()
+namespace RemoveLoginHook
 {
-	TryRemoveLogin();
-	return FlushDxKeyboard_Trampoline();
+#if defined(__InitMouse_x) // If __InitMouse_x is defined, we use this hook instead of FlushDxKeyboard
+	DETOUR_TRAMPOLINE_DEF(int, Trampoline, (HWND, bool))
+		int Detour(HWND hWnd, bool b)
+	{
+		TryRemoveLogin();
+		return Trampoline(hWnd, b);
+	}
+
+	uintptr_t GetAddress() { return __InitMouse; }
+#else
+	// Right after leaving the frontend, we get a call to FlushDxKeyboard in ExecuteEverQuest(). We
+	// hook this function and use it to determine that we've exited the frontend.
+	DETOUR_TRAMPOLINE_DEF(int, Trampoline, ());
+	int Detour()
+	{
+		TryRemoveLogin();
+		return Trampoline();
+	}
+
+	uintptr_t GetAddress() { return __FlushDxKeyboard; }
+#endif
 }
 
 void InitializeLoginFrontend()
 {
-	EzDetour(__FlushDxKeyboard, FlushDxKeyboard_Detour, FlushDxKeyboard_Trampoline);
+	EzDetour(RemoveLoginHook::GetAddress(), RemoveLoginHook::Detour, RemoveLoginHook::Trampoline);
 
 	gbWaitingForFrontend = true;
 
@@ -239,7 +255,8 @@ void InitializeLoginFrontend()
 
 void ShutdownLoginFrontend()
 {
-	RemoveDetour(__FlushDxKeyboard);
+	RemoveDetour(RemoveLoginHook::GetAddress());
+
 	RemoveLoginDetours();
 }
 
