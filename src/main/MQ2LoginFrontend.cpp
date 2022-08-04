@@ -238,7 +238,7 @@ namespace RemoveLoginHook
 		return Trampoline();
 	}
 
-	uintptr_t GetAddress() { return __FlushDxKeyboard; }}
+	uintptr_t GetAddress() { return __FlushDxKeyboard; }
 #endif
 }
 

@@ -21,8 +21,8 @@ class CChatHook
 {
 public:
 #if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
-	DETOUR_TRAMPOLINE_DEF(void, Trampoline, (const char* szMsg, DWORD dwColor, bool, bool, CXStr* SomeStr = nullptr))
-	void Detour(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, CXStr* SomeStr)
+	DETOUR_TRAMPOLINE_DEF(void, Trampoline, (const char* szMsg, DWORD dwColor, bool, bool, bool))
+	void Detour(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, bool makeStmlSafe)
 #else
 	DETOUR_TRAMPOLINE_DEF(void, Trampoline, (const char* szMsg, DWORD dwColor, bool, bool))
 	void Detour(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst)
@@ -63,7 +63,7 @@ public:
 			if (!SkipTrampoline)
 			{
 #if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
-				Trampoline(szMsg, dwColor, EqLog, dopercentsubst, SomeStr);
+				Trampoline(szMsg, dwColor, EqLog, dopercentsubst, makeStmlSafe);
 #else
 				Trampoline(szMsg, dwColor, EqLog, dopercentsubst);
 #endif
@@ -137,7 +137,11 @@ public:
 
 void dsp_chat_no_events(const char* Text, int Color, bool doLog, bool doPercentConvert)
 {
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
+	pEverQuest.get_as<CChatHook>()->Trampoline(Text, Color, doLog, doPercentConvert, false);
+#else
 	pEverQuest.get_as<CChatHook>()->Trampoline(Text, Color, doLog, doPercentConvert);
+#endif
 }
 
 unsigned int CALLBACK MQ2DataVariableLookup(char* VarName, char* Value, size_t ValueLen)
@@ -217,6 +221,7 @@ void InitializeChatHook()
 	EzDetour(CEverQuest__dsp_chat, &CChatHook::Detour, &CChatHook::Trampoline);
 	EzDetour(CEverQuest__DoTellWindow, &CChatHook::TellWnd_Detour, &CChatHook::TellWnd_Trampoline);
 	EzDetour(CEverQuest__UPCNotificationFlush, &CChatHook::UPCNotificationFlush_Detour, &CChatHook::UPCNotificationFlush_Trampoline);
+
 	AddCommand("/beepontells", BeepOnTells);
 	AddCommand("/flashontells", FlashOnTells);
 }
