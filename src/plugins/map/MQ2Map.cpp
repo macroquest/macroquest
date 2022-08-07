@@ -263,15 +263,27 @@ PLUGIN_API void InitializePlugin()
 	{
 		MapFilterOption& option = MapFilterOptions[i];
 
-		// If it's the CampRadius or PullRadius, let's not get the last on/off state, lets assume it's off so we don't draw a circle at 0, 0.
-		if (_stricmp(option.szName, "CampRadius") && _stricmp(option.szName, "PullRadius"))
+		option.Enabled = GetPrivateProfileInt("Map Filters", option.szName, option.Default, INIFileName);
+		// If it's the CampRadius or PullRadius, set the radius value as well as the loc
+		if (!_stricmp(option.szName, "CampRadius"))
 		{
-			option.Enabled = GetPrivateProfileInt("Map Filters", option.szName, option.Default, INIFileName);
+			option.Radius = GetPrivateProfileFloat("Map Filters", option.szName, option.Default, INIFileName);
+			if (pLocalPlayer && option.Radius > 0.0f)
+			{
+				CampX = pLocalPlayer->X;
+				CampY = pLocalPlayer->Y;
+			}
 		}
-		else
+		if (!_stricmp(option.szName, "PullRadius"))
 		{
-			option.Enabled = 0;
+			option.Radius = GetPrivateProfileFloat("Map Filters", option.szName, option.Default, INIFileName);
+			if (pLocalPlayer && option.Radius > 0.0f)
+			{
+				PullX = pLocalPlayer->X;
+				PullY = pLocalPlayer->Y;
+			}
 		}
+		// How about spell radius or target radius?
 
 		// Lets see what color option was last saved as, if any. If none then use the default.
 		option.Color.SetARGB(GetPrivateProfileInt("Map Filters", fmt::format("{}-Color", option.szName), option.DefaultColor.ToARGB(), INIFileName));
