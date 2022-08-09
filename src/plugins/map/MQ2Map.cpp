@@ -263,7 +263,7 @@ PLUGIN_API void InitializePlugin()
 	{
 		MapFilterOption& option = MapFilterOptions[i];
 
-		option.Enabled = GetPrivateProfileInt("Map Filters", option.szName, option.Default, INIFileName);
+		option.Enabled = GetPrivateProfileBool("Map Filters", option.szName, option.Default, INIFileName);
 		// If it's the CampRadius or PullRadius, set the radius value as well as the loc
 		if (!_stricmp(option.szName, "CampRadius"))
 		{
@@ -283,7 +283,6 @@ PLUGIN_API void InitializePlugin()
 				PullY = pLocalPlayer->Y;
 			}
 		}
-		// How about spell radius or target radius?
 
 		// Lets see what color option was last saved as, if any. If none then use the default.
 		option.Color.SetARGB(GetPrivateProfileInt("Map Filters", fmt::format("{}-Color", option.szName), option.DefaultColor.ToARGB(), INIFileName));
