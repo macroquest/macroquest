@@ -154,7 +154,7 @@ void MapFilterSetting(SPAWNINFO* pChar, MapFilter nMapFilter, const char* szValu
 	}
 }
 
-void MapFilterColorSetting(MapFilter nMapFilter, const char* szValue /* = nullptr */)
+void MapFilterColorSetting(MapFilter nMapFilter, const char* szValue)
 {
 	char szArg[MAX_STRING] = { 0 };
 	MapFilterOption option = MapFilterOptions[static_cast<size_t>(nMapFilter)];
@@ -187,7 +187,7 @@ void MapFilterColorSetting(MapFilter nMapFilter, const char* szValue /* = nullpt
 	}
 }
 
-void MapFilterRadiusSetting(SPAWNINFO* pChar, MapFilter nMapFilter, const char* szValue /* = nullptr */)
+void MapFilterRadiusSetting(SPAWNINFO* pChar, MapFilter nMapFilter, const char* szValue)
 {
 	if (!pChar) return;
 	MapFilterOption* option = &MapFilterOptions[static_cast<size_t>(nMapFilter)];
@@ -205,7 +205,6 @@ void MapFilterRadiusSetting(SPAWNINFO* pChar, MapFilter nMapFilter, const char* 
 		PullX = pChar->X;
 		PullY = pChar->Y;
 	}
-	// How about spell radius or target radius?
 
 	WriteChatf("%s is now set to: %.2f", option->szName, option->Radius);
 	WritePrivateProfileFloat("Map Filters", option->szName, option->Radius, INIFileName);
