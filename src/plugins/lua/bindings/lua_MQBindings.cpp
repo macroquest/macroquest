@@ -530,6 +530,92 @@ static std::unique_ptr<CTextureAnimation> FindTextureAnimation(std::string_view 
 
 //============================================================================
 
+#pragma region MQ Data Bindings
+
+static sol::table lua_spawns(sol::this_state L, std::optional<sol::function> predicate)
+{
+	auto table = sol::state_view(L).create_table();
+
+	if (pSpawnManager)
+	{
+		auto spawn = pSpawnManager->FirstSpawn;
+		if (!predicate)
+		{
+			while (spawn != nullptr)
+			{
+				auto lua_spawn = lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
+				table.add(std::move(lua_spawn));
+
+				spawn = spawn->GetNext();
+			}
+		}
+		else
+		{
+			const auto& predicate_value = predicate.value();
+			while (spawn != nullptr)
+			{
+				auto lua_spawn = lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
+				if (predicate_value(lua_spawn))
+					table.add(std::move(lua_spawn));
+
+				spawn = spawn->GetNext();
+			}
+		}
+	}
+
+	return table;
+}
+
+static sol::object lua_spawns2(sol::this_state L, std::optional<sol::function> predicate)
+{
+	sol::state_view s = sol::state_view(L);
+
+	if (pSpawnManager)
+	{
+		std::optional<lua_MQTypeVar> last_spawn = s["spawnsearch__last_spawn"];
+		auto current_spawn = datatypes::pSpawnType->GetSpawnPtr(last_spawn.value().EvaluateMember());
+		if (current_spawn == nullptr)
+			current_spawn = pSpawnManager->FirstSpawn;
+
+		if (current_spawn != nullptr)
+		{
+			if (predicate)
+			{
+				const auto& predicate_value = predicate.value();
+				while (current_spawn != nullptr)
+				{
+					auto lua_spawn = lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(current_spawn));
+					if (predicate_value(lua_spawn))
+					{
+						s["spawnsearch__last_spawn"] = std::move(lua_spawn);
+						return s["spawnsearch__last_spawn"];
+					}
+
+					current_spawn = current_spawn->GetNext();
+				}
+			}
+			else
+			{
+				current_spawn = current_spawn->GetNext();
+				if (current_spawn != nullptr)
+				{
+					auto lua_spawn = lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(current_spawn));
+					s["spawnsearch__last_spawn"] = std::move(lua_spawn);
+					return s["spawnsearch__last_spawn"];
+				}
+
+			}
+		}
+	}
+	
+	s["spawnsearch__last_spawn"] = sol::nil;
+	return sol::nil;
+}
+
+#pragma endregion
+
+//============================================================================
+
 void MQ_RegisterLua_MQBindings(sol::table& mq)
 {
 	mq.set("configDir",                          gPathConfig);
@@ -600,6 +686,11 @@ void MQ_RegisterLua_MQBindings(sol::table& mq)
 	);
 
 	mq.set_function("FindTextureAnimation",      &FindTextureAnimation);
+
+	//----------------------------------------------------------------------------
+	// Direct Data Bindings
+	mq.set_function("spawns", &lua_spawns);
+	mq.set_function("spawns2", &lua_spawns2);
 }
 
 } // namespace mq::lua
