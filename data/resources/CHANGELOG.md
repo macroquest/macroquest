@@ -1,12 +1,12 @@
+August 10, 2022 (test):
+- Updated for latest test patch
+
 Jul 29, 2022:
 - Added a modules folder primarily for storing architecture dependent lua modules
 - mq.TLO.Lua.Dir now supports arguments (lua, and modules) to return the corresponding folder
 
 Jul 27, 2022:
 - Fix item statistics not matching item
-
-Jul 25, 2022 (test):
-- Updated for latest test patch
 
 Jul 22, 2022:
 - Fix Corpse type to properly inherit from Spawn. Support checking for .ID and .Open when no
