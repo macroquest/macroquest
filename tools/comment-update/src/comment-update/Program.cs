@@ -46,8 +46,21 @@ namespace comment_update
         static int Main(string[] args)
         {
             var currentDir = System.IO.Directory.GetCurrentDirectory();
+
+            // Load settings
             var settingsFile = Path.Combine(currentDir, "comment-update.config");
             var settings = ProgramOptions.LoadJson(settingsFile);
+            if (settings == null)
+            {
+                Console.WriteLine("Failed to load settings");
+                return 1;
+            }
+
+            var includePaths = new List<string>(settings.includePaths);
+            var compilerArguments = new List<string>(settings.compilerArguments);
+            var inputSources = new List<string>(settings.inputSources);
+            var sourceRoot = Path.Combine(currentDir, settings.sourceRoot);
+            var PdbFile = Path.Combine(sourceRoot, settings.inputSymbols);
 
             bool archIs32bit = false;
 
@@ -65,27 +78,18 @@ namespace comment_update
 
             if (archIs32bit)
             {
-                settings.includePaths.Append("contrib/vcpkg/installed/x86-windows-static/include");
+                Console.WriteLine("Updating comments for x86");
+                includePaths.Add("contrib/vcpkg/installed/x86-windows-static/include");
             }
             else
             {
-                settings.includePaths.Append("contrib/vcpkg/installed/x64-windows-static/include");
-                settings.compilerArguments.Append("-m64");
-                settings.compilerArguments.Append("-D_WIN64");
+                Console.WriteLine("Updating comments for x64");
+                includePaths.Add("contrib/vcpkg/installed/x64-windows-static/include");
+                compilerArguments.Add("-m64");
+                compilerArguments.Add("-D_WIN64");
             }
-
-
-            if (settings == null)
-            {
-                Console.WriteLine("Failed to load settings");
-                return 1;
-            }
-
-            var sourceRoot = Path.Combine(currentDir, settings.sourceRoot);
 
             // Get the Pdb
-            var PdbFile = Path.Combine(sourceRoot, settings.inputSymbols);
-
             if (!File.Exists(PdbFile))
             {
                 Console.WriteLine("ERROR: PDB file doesn't exist: {0}", PdbFile);
@@ -99,17 +103,17 @@ namespace comment_update
             List<string> clangArgs = new List<string>();
 
             // build include path arguments
-            foreach (string arg in settings.includePaths)
+            foreach (string arg in includePaths)
             {
                 clangArgs.Add("-I" + Path.Combine(sourceRoot, arg));
             }
 
             // add the rest of the arguments
-            clangArgs.AddRange(settings.compilerArguments);
+            clangArgs.AddRange(compilerArguments);
 
             // Get location in source files from clang
             HashSet<(string File, uint Line, string Offset)> offsetLocations = new HashSet<(string, uint, string)>();
-            foreach (var sourceFile in settings.inputSources)
+            foreach (var sourceFile in inputSources)
             {
                 CXTranslationUnit tuHandle;
 
