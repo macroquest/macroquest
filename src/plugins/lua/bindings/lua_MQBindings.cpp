@@ -532,34 +532,40 @@ static std::unique_ptr<CTextureAnimation> FindTextureAnimation(std::string_view 
 
 #pragma region MQ Data Bindings
 
-static sol::table lua_spawns(sol::this_state L, std::optional<sol::function> predicate)
+static sol::table lua_getAllSpawns(sol::this_state L)
 {
 	auto table = sol::state_view(L).create_table();
 
 	if (pSpawnManager)
 	{
 		auto spawn = pSpawnManager->FirstSpawn;
-		if (!predicate)
+		while (spawn != nullptr)
 		{
-			while (spawn != nullptr)
-			{
-				auto lua_spawn = lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
+			auto lua_spawn = lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
+			table.add(std::move(lua_spawn));
+
+			spawn = spawn->GetNext();
+		}
+	}
+
+	return table;
+}
+
+static sol::table lua_getFilteredSpawns(sol::this_state L, std::optional<sol::function> predicate)
+{
+	auto table = sol::state_view(L).create_table();
+
+	if (pSpawnManager && predicate)
+	{
+		auto spawn = pSpawnManager->FirstSpawn;
+		const auto& predicate_value = predicate.value();
+		while (spawn != nullptr)
+		{
+			auto lua_spawn = lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
+			if (predicate_value(lua_spawn))
 				table.add(std::move(lua_spawn));
 
-				spawn = spawn->GetNext();
-			}
-		}
-		else
-		{
-			const auto& predicate_value = predicate.value();
-			while (spawn != nullptr)
-			{
-				auto lua_spawn = lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
-				if (predicate_value(lua_spawn))
-					table.add(std::move(lua_spawn));
-
-				spawn = spawn->GetNext();
-			}
+			spawn = spawn->GetNext();
 		}
 	}
 
@@ -643,7 +649,8 @@ void MQ_RegisterLua_MQBindings(sol::table& mq)
 
 	//----------------------------------------------------------------------------
 	// Direct Data Bindings
-	mq.set_function("spawns", &lua_spawns);
+	mq.set_function("getAllSpawns", &lua_getAllSpawns);
+	mq.set_function("getFilteredSpawns", &lua_getFilteredSpawns);
 }
 
 } // namespace mq::lua
