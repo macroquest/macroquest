@@ -12,36 +12,32 @@
  * GNU General Public License for more details.
  */
 
-
 #include <mq/Plugin.h>
 
 PreSetup("MQ2AutoBank");
 PLUGIN_VERSION(0.1);
 
-namespace mq {
+static std::list<ItemGlobalIndex> gAutoBankList;
+static std::list<ItemGlobalIndex> gAutoInventoryList;
+static bool gbStartAutoBanking = false;
+static bool gbAutoBankInProgress = false;
+static bool gbAutoInventoryInProgress = false;
+static bool gbAutoBankTradeSkillItems = false;
+static bool gbAutoBankTrophiesWithTradeskill = true;
+static bool gbAutoBankCollectibleItems = false;
+static bool gbAutoBankQuestItems = false;
+static bool gbAutoInventoryItems = false;
 
-	static std::list<ItemGlobalIndex> gAutoBankList;
-	static std::list<ItemGlobalIndex> gAutoInventoryList;
-	static bool gbStartAutoBanking = false;
-	static bool gbAutoBankInProgress = false;
-	static bool gbAutoInventoryInProgress = false;
-	static bool gbAutoBankTradeSkillItems = false;
-	static bool gbAutoBankTrophiesWithTradeskill = true;
-	static bool gbAutoBankCollectibleItems = false;
-	static bool gbAutoBankQuestItems = false;
-	static bool gbAutoInventoryItems = false;
+static CContextMenu* AutoBankMenu = nullptr;
+static CButtonWnd* gAutoBankButton = nullptr;
+static int s_bankCustomMenu = 0;
 
-	static CContextMenu* AutoBankMenu = nullptr;
-	static CButtonWnd* gAutoBankButton = nullptr;
-	static int s_bankCustomMenu = 0;
-
-	// BankWnd context menu items
-	constexpr int ContextMenu_TradeskillItemsId = 50;
-	constexpr int ContextMenu_CollectibleItemsId = 51;
-	constexpr int ContextMenu_QuestItemsId = 52;
-	constexpr int ContextMenu_CheckedItemsId = 53;
-	constexpr int ContextMenu_TrophysId = 54;
-}
+// BankWnd context menu items
+constexpr int ContextMenu_TradeskillItemsId = 50;
+constexpr int ContextMenu_CollectibleItemsId = 51;
+constexpr int ContextMenu_QuestItemsId = 52;
+constexpr int ContextMenu_CheckedItemsId = 53;
+constexpr int ContextMenu_TrophysId = 54;
 
 namespace AutoBank {
 	class BankWnd_Hook;
