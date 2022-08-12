@@ -7,6 +7,7 @@ on:
 
 jobs:
   build:
+    if: github.repository == 'macroquest/macroquest'
     runs-on: [self-hosted, Windows, X64]
     steps:
       - name: Check out code
