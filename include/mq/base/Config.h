@@ -126,7 +126,7 @@ inline std::vector<std::string> GetPrivateProfileKeys(const std::string& section
 	return results;
 }
 
-inline bool GetPrivateProfileKeyExists(const std::string& section, const std::string& key, const std::string& iniFileName)
+inline bool PrivateProfileKeyExists(const std::string& section, const std::string& key, const std::string& iniFileName)
 {
 	const auto key_list = GetPrivateProfileKeys(section, iniFileName);
 	return std::any_of(key_list.begin(), key_list.end(), [key](const auto& this_key) { return ci_equals(this_key, key); });
