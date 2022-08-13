@@ -25,7 +25,14 @@ Param (
         ValueFromPipeline = $true,
         ValueFromPipelineByPropertyName = $true
     )]
-    [string]$Platform
+    [string]$Platform,
+
+    [Parameter(
+        Mandatory = $true,
+        ValueFromPipeline = $true,
+        ValueFromPipelineByPropertyName = $true
+    )]
+    [string]$Toolchain
 )
 
 $vcpkg_root = "$MQRoot\contrib\vcpkg"
@@ -92,6 +99,28 @@ if (-Not (Test-Path -Path "$vcpkg_root" -PathType Container))
 {
     Write-Error "VCPKG directory not found: $vcpkg_root"
     exit 1
+}
+
+# The vcpkg_mq file might override this, but at least check the defaults
+$tripletFile = "$vcpkg_root\triplets\$vcpkg_triplet.cmake"
+if (-Not (Test-Path -Path "$tripletFile" -PathType Leaf))
+{
+    $tripletFile = "$vcpkg_root\triplets\community\$vcpkg_triplet.cmake"
+    if (-Not (Test-Path -Path "$tripletFile" -PathType Leaf))
+    {
+        Write-Error "VCPKG Default Triplet not found: $vcpkg_triplet"
+        exit 1
+    }
+}
+
+$match = Get-Content "$tripletFile" | Select-String -Pattern "set\(VCPKG_PLATFORM_TOOLSET (.*)\)"
+if (-Not ($match.Matches.Success))
+{
+    Write-Warning "VCPKG not set to expected toolchain: $Toolchain"
+}
+elseif (-Not ($Toolchain -eq $match.Matches.Groups[1]))
+{
+    Write-Warning "VCPKG toolchain mismatch: Visual Studio Expected ($Toolchain) VCPKG returned $($match.Matches.Groups[1])"
 }
 
 $startingDirectory = Get-Location

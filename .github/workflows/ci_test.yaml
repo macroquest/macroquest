@@ -1,0 +1,19 @@
+name: CI Test
+
+on:
+  push:
+    branches:
+      - master
+    tags-ignore:
+      - rel-*
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  call_build:
+    uses: ./.github/workflows/ci_shared.yaml
+    with:
+      client_target: test
+    secrets: inherit

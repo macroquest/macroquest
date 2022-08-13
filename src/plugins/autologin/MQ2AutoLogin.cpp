@@ -512,7 +512,7 @@ PLUGIN_API void OnPulse()
 			}
 		}
 
-		if (IsWindowActive("dbgsplash"))
+		if (IsWindowActive("dbgsplash") || IsWindowActive("soesplash"))
 		{
 			Login::dispatch(LoginStateSensor(LoginState::SplashScreen, nullptr));
 		}

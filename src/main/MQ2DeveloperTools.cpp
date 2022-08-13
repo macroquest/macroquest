@@ -490,7 +490,10 @@ public:
 			ImGui::Text("Version: %d", achievement->version);
 			ImGui::Text("Persistent: %s", achievement->persistent ? "yes" : "no");
 			ImGui::Text("Reward Set: %d", achievement->rewardSet);
-			ImGui::Text("Unknown: %d", achievement->unknown0x60);
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
+			ImGui::Text("Unknown1: %d", achievement->unknown1);
+			ImGui::Text("Unknown2: %d", achievement->unknown2);
+#endif
 
 			ImGui::Separator();
 			ImGui::Text("Components:");
@@ -2049,9 +2052,11 @@ public:
 				ImGui::TableNextColumn(); ImGui::Text("Attack On Assist");
 				ImGui::TableNextColumn(); ImGui::Text("%s", eq.AttackOnAssist ? "Yes" : "No");
 
+#if HAS_AUTOSKILLS
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Auto Skills");
 				ImGui::TableNextColumn(); ImGui::Text("%s", fmt::format("{}", fmt::join(eq.AutoSkills, ", ")).c_str());
+#endif
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
@@ -3182,7 +3187,7 @@ public:
 
 			if (ImGui::BeginTabItem(szLabel))
 			{
-				DoSpellAffectTable("SpellAffectBuffsTable", pcProfile->Buffs.begin(), pcProfile->Buffs.end(), arrayLength);
+				DoSpellAffectTable("SpellAffectBuffsTable", std::begin(pcProfile->Buffs), std::end(pcProfile->Buffs), arrayLength);
 				ImGui::EndTabItem();
 			}
 
@@ -4226,23 +4231,6 @@ public:
 				TableRow("No Bind", "%d", (int)hdr->bNoBind);
 				TableRow("No Call of the Hero", "%d", (int)hdr->bNoCallOfTheHero);
 				TableRow("No Fear", "%d", (int)hdr->bNoFear);
-
-				TableRow("Unknown1", "%d", hdr->Unknown1);
-				TableRow("Unknown3", "%d", hdr->Unknown3);
-				TableRow("Unknown Flag 4a", "%d", (int)hdr->Unknown4);
-				TableRow("Unknown Flag 4b", "%d", (int)hdr->Unknown4b);
-				TableRow("Unknown Flag 4c", "%d", (int)hdr->Unknown4c);
-				TableRow("Unknown Flag 4d", "%d", (int)hdr->Unknown4d);
-				TableRow("Unknown Flag 5", "%d", (int)hdr->bUnknown5);
-
-				// 6[0] = 0
-				// 6[1] = 1, 0 in feerott - hold buffs?
-				TableRow("Unknown Flag 6[0]", "%d", (int)hdr->bUnknowns6[0]);
-				TableRow("Unknown Flag 6[1]", "%d", (int)hdr->bUnknowns6[1]);
-				TableRow("Unknown Flag 8", "%d", (int)hdr->bUnknown8); // no flux?
-
-				// 9 = 0 // disabled at startup?
-				TableRow("Unknown Flag 9", "%d", (int)hdr->bUnknown9);
 
 #undef TableRow
 				ImGui::TreePop();

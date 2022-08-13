@@ -1249,11 +1249,13 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		return false;
 
 	case SpawnMembers::MercID:
+		// FIXME: ROF2 emu does not have MercID
 		Dest.DWord = pSpawn->MercID;
 		Dest.Type = pIntType;
 		return true;
 
 	case SpawnMembers::ContractorID:
+		// FIXME: ROF2 emu does not have ContractorID
 		Dest.DWord = pSpawn->ContractorID;
 		Dest.Type = pIntType;
 		return true;
@@ -1387,12 +1389,8 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 
 		if (IsNumber(Index))
 		{
-			int index = GetIntFromString(Index, 0);
-			if (index < 0)
-				index = 0;
-			if (index > 2)
-				index = 2;
-			Dest.DWord = pSpawn->SeeInvis[index];
+			int index = std::clamp(GetIntFromString(Index, 0), 0, SeeInvisLevels_Count - 1);
+			Dest.DWord = pSpawn->GetSeeInvisLevel(index);
 			return true;
 		}
 		return false;

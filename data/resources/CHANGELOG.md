@@ -1,3 +1,20 @@
+Jul 29, 2022:
+- Added a modules folder primarily for storing architecture dependent lua modules
+- mq.TLO.Lua.Dir now supports arguments (lua, and modules) to return the corresponding folder
+
+Jul 27, 2022:
+- Fix item statistics not matching item
+
+Jul 22, 2022:
+- Fix Corpse type to properly inherit from Spawn. Support checking for .ID and .Open when no
+  corpse is currently active.
+
+Jul 21, 2022:
+- Fix achievements
+
+Jul 20, 2022:
+- Updated for patch
+
 Jul 12, 2022:
 - Fix MyRange Spell member (#563)
 
