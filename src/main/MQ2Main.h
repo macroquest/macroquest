@@ -153,8 +153,8 @@ MQLIB_API void InitializeMQ2Plugins();
 MQLIB_API int LoadMQ2Plugin(const char* pszFilename, bool bCustom = false);
 MQLIB_API bool UnloadMQ2Plugin(const char* pszFilename);
 MQLIB_API void UnloadMQ2Plugins();
-MQLIB_API bool UnloadFailedPlugins();
 MQLIB_API void ShutdownMQ2Plugins();
+MQLIB_API void ShutdownFailedPlugins();
 
 MQLIB_API DEPRECATE("This is handled on load/unload without the direct call.")
 void SaveMQ2PluginLoadStatus(const char* Name, bool bLoad);

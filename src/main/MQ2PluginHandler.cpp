@@ -596,6 +596,26 @@ bool UnloadFailedPlugins()
 	return GetPluginUnloadFailedCount() == 0;
 }
 
+void ShutdownFailedPlugins()
+{
+	if(!UnloadFailedPlugins() && !gbForceUnload)
+	{
+		int msgReturn = IDRETRY;
+		while (msgReturn == IDRETRY && !UnloadFailedPlugins())
+		{
+			msgReturn = MessageBox(nullptr, "You have plugins that failed to unload.  Unloading MacroQuest now would be unsafe.\n\n"
+			                                "RETRY to try unloading again.\n"
+			                                "ABORT to kill the game.\n"
+			                                "IGNORE to accept the risk and continue unloading.\n", "UNLOAD FAILURE", MB_ICONWARNING | MB_ABORTRETRYIGNORE);
+		}
+
+		if (msgReturn == IDABORT)
+		{
+			std::quick_exit(EXIT_FAILURE);
+		}
+	}
+}
+
 template <typename Callback>
 void ForEachModule(Callback& callback)
 {
@@ -1233,7 +1253,7 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 					{
 						// Regardless of whether unload succeeds, turn it off in the ini if it exists.  This prevents a scenario where
 						// a plugin failing to unload keeps it enabled in the ini despite the user trying to turn it off.
-						if (!noauto && GetPrivateProfileKeyExists("Plugins", origPluginName, mq::internal_paths::MQini))
+						if (!noauto && PrivateProfileKeyExists("Plugins", origPluginName, mq::internal_paths::MQini))
 						{
 							WritePrivateProfileBool("Plugins", origPluginName, false, mq::internal_paths::MQini);
 						}
