@@ -84,6 +84,9 @@ function Wait-Process {
 }
 
 function RunPreCheck {
+    if ($vcpkg_root -match ' ') {
+        Write-Warning "vcpkg may have issues building in paths with spaces - if you have issues compiling, remove spaces from your path."
+    }
     $PrecheckScript = "$PSScriptRoot\MQ2Main_PreBuild.ps1"
     if (Test-Path $PrecheckScript -PathType Leaf) {
         & $PrecheckScript
