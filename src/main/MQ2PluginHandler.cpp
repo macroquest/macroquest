@@ -542,7 +542,6 @@ bool UnloadMQ2Plugin(const char* pszFilename)
 	// Cleanup
 	if (FreeLibrary(pPlugin->hModule))
 	{
-		WriteChatf(pPlugin->szFilename);
 		if (IsInModuleList(pPlugin->szFilename))
 		{
 			sprintf_s(szPluginLoadFailure, "Plugin files still loaded.");
