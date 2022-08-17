@@ -71,6 +71,10 @@ void MapFilterSetting(SPAWNINFO* pChar, MapFilter nMapFilter, const char* szValu
 				sprintf_s(szBuffer, "%s: %s", pMapFilter->szName, FormatSearchSpawn(Buff, sizeof(Buff), &MapFilterCustom));
 			}
 		}
+		else if (pMapFilter->UsesRadius)
+		{
+			sprintf_s(szBuffer, "%s: %0.2f", pMapFilter->szName, pMapFilter->Radius);
+		}
 		else
 		{
 			sprintf_s(szBuffer, "%s: %d", pMapFilter->szName, pMapFilter->Enabled);
@@ -142,31 +146,68 @@ void MapFilterSetting(SPAWNINFO* pChar, MapFilter nMapFilter, const char* szValu
 				WriteChatf("%s %s", pMapFilter->szName, FormatMarker(szValue, Buff, sizeof(Buff)));
 			}
 		}
-		else
-		{
-			pMapFilter->Radius = GetFloatFromString(szValue, 0.0f);
-			pMapFilter->Enabled = pMapFilter->Radius > 0.0f;
-
-			if (pMapFilter->Radius > 0.0f && !_stricmp(pMapFilter->szName, "CampRadius"))
-			{
-				CampX = pChar->X;
-				CampY = pChar->Y;
-			}
-
-			if (pMapFilter->Radius > 0.0f && !_stricmp(pMapFilter->szName , "PullRadius"))
-			{
-				PullX = pChar->X;
-				PullY = pChar->Y;
-			}
-
-			WriteChatf("%s is now set to: %.2f", pMapFilter->szName, pMapFilter->Radius);
-		}
 	}
 
 	if (szValue)
 	{
 		WritePrivateProfileBool("Map Filters", pMapFilter->szName, pMapFilter->Enabled, INIFileName);
 	}
+}
+
+void MapFilterColorSetting(MapFilter nMapFilter, const char* szValue)
+{
+	char szArg[MAX_STRING] = { 0 };
+	MapFilterOption option = MapFilterOptions[static_cast<size_t>(nMapFilter)];
+
+	if (!option.HasColor())
+	{
+		WriteChatf("Option '%s' does not have a color.", option.szName);
+	}
+	else
+	{
+		char szBuffer2[MAX_STRING] = { 0 };
+		GetArg(szArg, szValue, 2);
+
+		MQColor& color = option.Color;
+
+		if (szArg[0] == 0)
+		{
+			option.Color = option.DefaultColor;
+		}
+		else
+		{
+			uint8_t R = std::clamp(GetIntFromString(szArg, 255), 0, 255);
+			uint8_t G = std::clamp(GetIntFromString(GetArg(szArg, szValue, 3), 255), 0, 255);
+			uint8_t B = std::clamp(GetIntFromString(GetArg(szArg, szValue, 4), 255), 0, 255);
+			color = MQColor(R, G, B);
+		}
+
+		WriteChatf("Option '%s' color set to: %d %d %d", option.szName, color.Red, color.Green, color.Blue);
+		WritePrivateProfileInt("Map Filters", fmt::format("{}-Color", option.szName), option.Color.ToRGB(), INIFileName);
+	}
+}
+
+void MapFilterRadiusSetting(SPAWNINFO* pChar, MapFilter nMapFilter, const char* szValue)
+{
+	if (!pChar) return;
+	MapFilterOption* option = &MapFilterOptions[static_cast<size_t>(nMapFilter)];
+	option->Radius = GetFloatFromString(szValue, 0.0f);
+	option->Enabled = option->Radius > 0.0f;
+
+	if (option->Radius > 0.0f && !_stricmp(option->szName, "CampRadius"))
+	{
+		CampX = pChar->X;
+		CampY = pChar->Y;
+	}
+
+	if (option->Radius > 0.0f && !_stricmp(option->szName, "PullRadius"))
+	{
+		PullX = pChar->X;
+		PullY = pChar->Y;
+	}
+
+	WriteChatf("%s is now set to: %.2f", option->szName, option->Radius);
+	WritePrivateProfileFloat("Map Filters", option->szName, option->Radius, INIFileName);
 }
 
 void MapFilters(SPAWNINFO* pChar, char* szLine)
@@ -212,32 +253,11 @@ void MapFilters(SPAWNINFO* pChar, char* szLine)
 			{
 				if (!_strnicmp(szRest, "color", 5))
 				{
-					if (!option.HasColor())
-					{
-						WriteChatf("Option '%s' does not have a color.", option.szName);
-					}
-					else
-					{
-						char szBuffer2[MAX_STRING] = { 0 };
-						GetArg(szArg, szRest, 2);
-
-						MQColor& color = option.Color;
-
-						if (szArg[0] == 0)
-						{
-							option.Color = option.DefaultColor;
-						}
-						else
-						{
-							uint8_t R = std::clamp(GetIntFromString(szArg, 255), 0, 255);
-							uint8_t G = std::clamp(GetIntFromString(GetArg(szArg, szRest, 3), 255), 0, 255);
-							uint8_t B = std::clamp(GetIntFromString(GetArg(szArg, szRest, 4), 255), 0, 255);
-							color = MQColor(R, G, B);
-						}
-
-						WriteChatf("Option '%s' color set to: %d %d %d", option.szName, color.Red, color.Green, color.Blue);
-						WritePrivateProfileInt("Map Filters", fmt::format("{}-Color", option.szName), option.Color.ToRGB(), INIFileName);
-					}
+					MapFilterColorSetting(static_cast<MapFilter>(i), szRest);
+				}
+				else if (option.UsesRadius)
+				{
+					MapFilterRadiusSetting(pChar, static_cast<MapFilter>(i), szRest);
 				}
 				else
 				{

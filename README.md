@@ -1,4 +1,7 @@
 # MacroQuest
+
+[![Live Build](https://github.com/macroquest/macroquest/actions/workflows/ci_live.yaml/badge.svg)](https://github.com/macroquest/macroquest/actions/workflows/ci_live.yaml) [![Test Build](https://github.com/macroquest/macroquest/actions/workflows/ci_test.yaml/badge.svg)](https://github.com/macroquest/macroquest/actions/workflows/ci_test.yaml) [![Emu Build](https://github.com/macroquest/macroquest/actions/workflows/ci_emu.yaml/badge.svg)](https://github.com/macroquest/macroquest/actions/workflows/ci_emu.yaml)
+
 ---
 
 MacroQuest is an open source scripting and plugin platform for EverQuest.  Documentation can be found at [docs.macroquest.org](https://docs.macroquest.org).

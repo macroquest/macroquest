@@ -788,6 +788,7 @@ void MQ2Shutdown()
 	ShutdownMQ2Commands();
 	ShutdownAnonymizer();
 	ShutdownMQ2Plugins();
+	ShutdownFailedPlugins();
 	ImGuiManager_Shutdown();
 	ShutdownStringDB();
 	ShutdownDetours();

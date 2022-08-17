@@ -1,0 +1,51 @@
+name: CI Shared
+
+on:
+  workflow_call:
+    inputs:
+      client_target:
+        required: true
+        type: string
+
+env:
+  platform: "${{ inputs.client_target == 'emu' && 'Win32' || 'x64' }}"
+
+jobs:
+  build:
+    if: github.repository == 'macroquest/macroquest'
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Checkout submodules excluding eqlib
+        run: git -c submodule."src/eqlib".update=none submodule update --init --recursive --depth=1
+
+      - name: Checkout ${{ inputs.client_target }} eqlib
+        run: |
+          git submodule update --init --remote "src\eqlib"
+          git -C src/eqlib checkout ${{ inputs.client_target }}
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1.1
+        with:
+          msbuild-architecture: x64
+
+      - name: vcpkg Cache
+        id: cache-vcpkg
+        uses: actions/cache@v3
+        with:
+          path: |
+            contrib/vcpkg/buildtrees
+            contrib/vcpkg/downloads
+            contrib/vcpkg/installed
+            contrib/vcpkg/packages
+            contrib/vcpkg/vcpkg.exe
+            contrib/vcpkg/vcpkg_mq_last_bootstrap*.txt
+          key: ${{ runner.os }}-vcpkg-${{ env.platform }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-${{ env.platform }}-
+            ${{ runner.os }}-vcpkg-
+
+      - name: Build ${{ env.platform }} Release
+        run: msbuild src/MacroQuest.sln /NoLogo /Verbosity:minimal /p:Configuration=Release /p:Platform=${{ env.platform }}
