@@ -1,3 +1,6 @@
+Aug 15, 2022 (live):
+- Updated for patch 
+
 Aug 12, 2022:
 - /mapfilter will now store Radius values instead of toggle information (Fixes #600)
 - Lua: Added mq.getAllSpawns and mq.getFilteredSpawns to return tables of spawns.
