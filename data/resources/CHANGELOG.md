@@ -1,4 +1,4 @@
-Aug 15, 2022 (live):
+Aug 17, 2022 (live):
 - Updated for patch 
 
 Aug 12, 2022:
