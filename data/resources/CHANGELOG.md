@@ -1,3 +1,16 @@
+Aug 12, 2022:
+- /mapfilter will now store Radius values instead of toggle information (Fixes #600)
+- Lua: Added mq.getAllSpawns and mq.getFilteredSpawns to return tables of spawns.
+- LuaRocks is now distributed with MQ for using prebuilt Lua Modules from the MQ repo
+- PackageMan is now distributed with MQ for a method of using LuaRocks in lua scripts
+- Plugins that fail to unload will now be flagged as having failed and will not allow reload
+  of the plugin or unload of MQ.  With this change, /unload now has the parameter "force"
+  which will try to force unload stuck plugins and prompt for action if that cannot be
+  accomplished.
+- The tray util has a new option to "Unload All Instances (Forced)" which will send the
+  "/unload force" command to all registered MQ instances.
+- More info can be found at docs.macroquest.org
+
 August 10, 2022 (test):
 - Updated for latest test patch
 

@@ -530,6 +530,52 @@ static std::unique_ptr<CTextureAnimation> FindTextureAnimation(std::string_view 
 
 //============================================================================
 
+#pragma region MQ Data Bindings
+
+static sol::table lua_getAllSpawns(sol::this_state L)
+{
+	auto table = sol::state_view(L).create_table();
+
+	if (pSpawnManager)
+	{
+		auto spawn = pSpawnManager->FirstSpawn;
+		while (spawn != nullptr)
+		{
+			auto lua_spawn = lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
+			table.add(std::move(lua_spawn));
+
+			spawn = spawn->GetNext();
+		}
+	}
+
+	return table;
+}
+
+static sol::table lua_getFilteredSpawns(sol::this_state L, std::optional<sol::function> predicate)
+{
+	auto table = sol::state_view(L).create_table();
+
+	if (pSpawnManager && predicate)
+	{
+		auto spawn = pSpawnManager->FirstSpawn;
+		const auto& predicate_value = predicate.value();
+		while (spawn != nullptr)
+		{
+			auto lua_spawn = lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
+			if (predicate_value(lua_spawn))
+				table.add(std::move(lua_spawn));
+
+			spawn = spawn->GetNext();
+		}
+	}
+
+	return table;
+}
+
+#pragma endregion
+
+//============================================================================
+
 void MQ_RegisterLua_MQBindings(sol::table& mq)
 {
 	mq.set("configDir",                          gPathConfig);
@@ -600,6 +646,11 @@ void MQ_RegisterLua_MQBindings(sol::table& mq)
 	);
 
 	mq.set_function("FindTextureAnimation",      &FindTextureAnimation);
+
+	//----------------------------------------------------------------------------
+	// Direct Data Bindings
+	mq.set_function("getAllSpawns", &lua_getAllSpawns);
+	mq.set_function("getFilteredSpawns", &lua_getFilteredSpawns);
 }
 
 } // namespace mq::lua

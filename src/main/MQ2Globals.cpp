@@ -62,6 +62,7 @@ HMODULE ghModule = nullptr;
 HINSTANCE ghInstance = nullptr;
 HWND ghInjectorWnd = nullptr;
 bool gbUnload = false;
+bool gbForceUnload = false;
 bool gBindInProgress = false;
 bool gbLoad = true;
 DWORD gpHook = 0;

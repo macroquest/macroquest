@@ -71,6 +71,7 @@
 #define ID_MQSITES_GITHUB               40035
 #define ID_MENU_CHECKFORUPDATES         40050
 #define ID_MENU_CHECKAPPCOMPAT          40060
+#define ID_UNLOADALLMQ                  40061
 
 // Next default values for new objects
 // 
