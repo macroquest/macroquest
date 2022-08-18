@@ -1,3 +1,6 @@
+Aug 17, 2022:
+- Fix autoskills not returning proper values
+
 Aug 17, 2022 (live):
 - Updated for patch 
 
