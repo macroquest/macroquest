@@ -93,7 +93,7 @@ bool convertAddress(ParsedPeRef& pe,
 
 	uintptr_t image_base_address = 0U;
 	if (pe->peHeader.nt.FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64) {
-		image_base_address = pe->peHeader.nt.OptionalHeader64.ImageBase;
+		image_base_address = (uintptr_t)pe->peHeader.nt.OptionalHeader64.ImageBase;
 	}
 	else {
 		image_base_address = pe->peHeader.nt.OptionalHeader.ImageBase;
