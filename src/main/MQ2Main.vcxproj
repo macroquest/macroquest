@@ -537,6 +537,7 @@
     <ClInclude Include="..\..\contrib\tinyfsm\include\tinyfsm.hpp" />
     <ClInclude Include="..\..\include\moveitem.h" />
     <ClInclude Include="..\..\include\mq\api\Achievements.h" />
+    <ClInclude Include="..\..\include\mq\base\BuildInfo.h" />
     <ClInclude Include="..\..\include\mq\base\Color.h" />
     <ClInclude Include="..\..\include\mq\base\Common.h" />
     <ClInclude Include="..\..\include\mq\base\Config.h" />

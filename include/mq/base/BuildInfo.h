@@ -14,10 +14,25 @@
 
 #pragma once
 
-#include "../common/Common.h"
+namespace mq {
 
-#include <mq/base/Common.h>
-#include <mq/base/Threading.h>
-#include <mq/base/BuildInfo.h>
+enum class BuildTarget : int {
+	Live = 1,
+	Test = 2,
+	Beta = 3,
+	Emu  = 4
+};
 
-#include <functional>
+inline const char* GetBuildTargetName(BuildTarget id)
+{
+	switch(id)
+	{
+		case BuildTarget::Live: return "Live";
+		case BuildTarget::Test: return "Test";
+		case BuildTarget::Beta: return "Beta";
+		case BuildTarget::Emu:  return "Emu";
+	}
+	return "unknown";
+}
+
+}

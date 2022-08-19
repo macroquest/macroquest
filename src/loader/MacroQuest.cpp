@@ -36,6 +36,7 @@
 
 #include <mq/utils/Naming.h>
 #include <mq/utils/OS.h>
+#include <mq/base/BuildInfo.h>
 
 #pragma comment(lib, "Psapi.lib")
 #pragma comment(lib, "Crypt32.lib")
@@ -1117,25 +1118,7 @@ void InitializeVersionInfo()
 	}
 	strcpy_s(gszMQVersion, szVersion);
 
-	DWORD dwBuildType = *(DWORD*)GetProcAddress(hModule.get(), "gBuild");
-
-	switch (dwBuildType)
-	{
-	case 1:
-		strcat_s(gszMQVersion, " (Live)");
-		break;
-	case 2:
-		strcat_s(gszMQVersion, " (Test)");
-		break;
-	case 3:
-		strcat_s(gszMQVersion, " (Beta)");
-		break;
-	case 4:
-		strcat_s(gszMQVersion, " (Emu)");
-		break;
-	default:
-		break;
-	}
+	sprintf_s(gszMQVersion, "%s (%s)", gszMQVersion, GetBuildTargetName(*reinterpret_cast<BuildTarget*>(GetProcAddress(hModule.get(), "gBuild"))));
 
 	sprintf_s(NID.szTip, "%s [%s]", gszWinName, gszMQVersion);
 	SPDLOG_INFO("Build: {0}", NID.szTip);
