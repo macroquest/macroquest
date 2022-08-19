@@ -1086,8 +1086,12 @@ void LuaEnvironmentSettings::ConfigureLuaState(sol::state_view sv)
 	}
 
 	// always search the local dir first, then luarocks in modules, then anything specified by the user, then the default paths
-	sv["package"]["path"] = fmt::format("{}\\?.lua;{}\\luarocks\\share\\lua\\{}\\?.lua;{}{}",
-		luaDir, moduleDir, m_version, luaRequirePaths.empty() ? "" : join(luaRequirePaths, ";") + ";", m_packagePath);
+	sv["package"]["path"] = fmt::format("{luaDir}\\?.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?\\init.lua;{additionalPaths}{originalPath}",
+		fmt::arg("luaDir", luaDir),
+		fmt::arg("moduleDir", moduleDir),
+		fmt::arg("luaVersion", m_version),
+		fmt::arg("additionalPaths", luaRequirePaths.empty() ? "" : join(luaRequirePaths, ";") + ";"),
+		fmt::arg("originalPath", m_packagePath));
 
 	sv["package"]["cpath"] = fmt::format("{}\\?.dll;{}\\luarocks\\lib\\lua\\{}\\?.dll;{}{}",
 		luaDir, moduleDir, m_version, dllRequirePaths.empty() ? "" : join(dllRequirePaths, ";") + ";", m_packageCPath);
