@@ -2659,7 +2659,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 	case SPA_CRITICAL_MELEE: //Chance to Critical Hit
 		strcat_s(szBuff, FormatSkills(spelleffectname.c_str(), value, finish, base2, szTemp2, true, "for"));
 		break;
-	case SPA_CRITICAL_SPELL: //Chance to Critical Cast
+	case SPA_CRITICAL_SPELL: //Critical Direct Damage
 	case SPA_CRIPPLING_BLOW: //Crippling Blow
 	case SPA_EVASION: //Melee Avoidance
 	case SPA_RIPOSTE: //Riposte
