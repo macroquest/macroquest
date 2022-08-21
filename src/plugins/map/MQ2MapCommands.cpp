@@ -255,7 +255,7 @@ void MapFilters(SPAWNINFO* pChar, char* szLine)
 				{
 					MapFilterColorSetting(static_cast<MapFilter>(i), szRest);
 				}
-				else if (option.UsesRadius)
+				else if (option.IsRadius())
 				{
 					MapFilterRadiusSetting(pChar, static_cast<MapFilter>(i), szRest);
 				}
