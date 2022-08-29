@@ -1311,7 +1311,7 @@ bool MQ2FrameLimiterType::GetMember(MQVarPtr VarPtr, const char* Member, char* I
 	case FrameLimiterTypeMembers::Status:
 		Dest.Type = pStringType;
 		strcpy_s(DataTypeTemp, s_frameLimiter.IsForeground() ? "Foreground" : "Background");
-		Dest.Set(&DataTypeTemp[0]);
+		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 
 	case FrameLimiterTypeMembers::CPU:
