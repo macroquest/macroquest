@@ -146,7 +146,217 @@ bool dataGameTime(const char* szIndex, MQTypeVar& Ret)
 	Ret.Type = pTimeType;
 	return true;
 }
+/// <summary>
+/// Used to access INI files with duplicate keys. 
+/// </summary>
+/// <param name="szIndex">string input descripted lower</param>
+/// <param name="Ret">return object</param>
+/// <returns></returns>
+bool dataIniExtKey(const char* szIndex, MQTypeVar& Ret)
+{
+	/* Example usage
+	return # of instances of the "Self Buff" key in the "Buffs" section
+	${IniExtKey[<Path>\Character.ini,Buffs,Self Buff]}
+	
+	return the first index in the Buffs section of keys named "Self Buff"
+	${IniExtKey[<Path>\Character.ini,Buffs,Self Buff,0]}
+	
+	return the second index in the Buffs section of keys named "Self Buff"
+	${IniExtKey[<Path>\Character.ini,Buffs,Self Buff,1]}
+	
+	return the third index in the Buffs section of keys named "Self Buff", with noparse
+	${IniExtKey[<Path>\Character.ini,Buffs,Self Buff,2,noparse]}
+	*/
 
+	//no valid input, exit
+	if (!szIndex || szIndex[0] == 0) return false;
+		
+	std::string sTemp = szIndex;
+
+	//map input of szIndex into variables
+	int count = 0;
+	std::map<int, DWORD> argMap;
+	// lets see how many commas are in the string
+	for (auto i = sTemp.begin(); i != sTemp.end(); i++)
+	{
+		if (i[0] == ',' && i + 1 != sTemp.end() && i[1] != ' ')
+		{
+			argMap[count] = static_cast<DWORD>(std::distance(sTemp.begin(), i));
+			count++;
+		}
+	}
+	std::string IniFile = sTemp;
+	std::string Section;
+	std::string Key;
+	std::string multiKeyIndexValue;
+	std::string Parse;
+	bool bNoParse = false;
+
+	//being actual input mapping into variables
+	if (!argMap.empty())
+	{
+		IniFile.erase(argMap[0]);
+		if (IniFile.empty()) return false;
+		
+		Section = sTemp.substr(argMap[0] + 1);
+		if (argMap.size() >= 2)
+		{
+			Section.erase(argMap[1] - argMap[0] - 1);
+			if (Section.empty()) return false;
+
+			Key = sTemp.substr(argMap[1] + 1);
+			if (argMap.size() >= 3)
+			{
+				Key.erase(argMap[2] - argMap[1] - 1);
+				if (Key.empty()) return false;
+
+				multiKeyIndexValue = sTemp.substr(argMap[2] + 1);
+				if (argMap.size() >= 4)
+				{
+					multiKeyIndexValue.erase(argMap[3] - argMap[2] - 1);
+					Parse = sTemp.substr(argMap[3] + 1);
+					if (Parse == "noparse")
+						bNoParse = true;
+				}
+			}
+		}
+	}
+	//end mapping of input
+
+	std::filesystem::path pathIniFile = IniFile;
+	if (!pathIniFile.has_extension())
+	{
+		pathIniFile += ".ini";
+	}
+
+	if (pathIniFile.is_relative())
+	{
+		// Config is the primary path, but fall back to the old path if needed
+		if (!exists(internal_paths::Config / pathIniFile) && exists(internal_paths::Macros / pathIniFile))
+		{
+			pathIniFile = internal_paths::Macros / pathIniFile;
+		}
+		else
+		{
+			pathIniFile = mq::internal_paths::Config / pathIniFile;
+		}
+	}
+
+	std::error_code ec_exists;
+	
+	//read in ini section
+	//normal size is around 1500 characters, 16k should fit it easily, in almost all cases
+	const int bufferSize = 16384;
+	char buffer[bufferSize] = "";
+	int charsRead = 0;
+
+	//GetPrivateProfileSection, microsoft documentation describes the return value as thus
+	//Note,call out to the return type in ****
+	//A pointer to a buffer that receives the key name and value pairs associated with the named section. 
+	//*****The buffer is filled with one or more null-terminated strings****; the last string is followed by a second null character.
+	charsRead = GetPrivateProfileSection(Section.c_str(),
+		buffer,
+		bufferSize,
+		pathIniFile.string().c_str());
+
+	//if somehow the buffer wasn't enough, just ignore this and return false
+	//most likely a malformed ini, missing section, etc.
+	if ((0 < charsRead) && ((bufferSize - 2) > charsRead)) {
+
+		//*****The buffer is filled with one or more null-terminated strings****
+		const char* pKeyValuePair = buffer;
+		//store the results in a key value pair, non unique
+		typedef std::pair<std::string, std::string> iniNameValuePair;
+		std::vector<iniNameValuePair> nameValuePairs;
+
+		// while we have non-empty substrings...
+		while (*pKeyValuePair != '\0') {
+			// length of key-value pair substring, as each key/value is null termanated. 
+			size_t stringCurrentSize = strlen(pKeyValuePair);
+
+			// split substring on '=' char
+			const char* equalLocation = strchr(pKeyValuePair, '=');
+			if (equalLocation != NULL) {
+
+				char name[256] = "";
+				char value[512] = "";
+
+				strncpy_s(name, _countof(name), pKeyValuePair, equalLocation - pKeyValuePair);
+				strncpy_s(value, _countof(value), equalLocation + 1, stringCurrentSize - (equalLocation - pKeyValuePair));
+
+				nameValuePairs.push_back(iniNameValuePair(name, value));
+			}
+
+			// jump over the current substring plus its null
+			pKeyValuePair += (stringCurrentSize + 1);
+		}
+
+		int indexOfMultiKey = -1;
+		//if the index is supplied use it
+		if (IsNumber(multiKeyIndexValue)) {
+			indexOfMultiKey = std::stoi(multiKeyIndexValue);
+		}
+		//define size for iniNameValuePair
+		typedef std::vector<iniNameValuePair>::size_type size_type;
+
+		if (indexOfMultiKey<0) {
+
+			//means we return the total # of the requested key
+			int totalCount = 0;
+			for (size_type index = 0; index < nameValuePairs.size(); index++) {
+				const iniNameValuePair nameValuePair = nameValuePairs[index];
+				//don't care about case sensitivity
+				if (ci_equals(nameValuePair.first, Key)) {
+
+					totalCount++;
+				}
+			}
+			Ret.Int = totalCount;
+			Ret.Type = pIntType;
+			return true;
+		}
+		else {
+			
+			//means we return the index requested if its available
+			int totalCount = 0;
+			for (size_type index = 0; index < nameValuePairs.size(); index++) {
+				const iniNameValuePair nameValuePair = nameValuePairs[index];
+				//don't care about case sensitivity
+				if (ci_equals(nameValuePair.first, Key)) {
+					//this is the index that has been requested, return response
+					if (indexOfMultiKey == totalCount) {
+						
+						strcpy_s(DataTypeTemp, nameValuePair.second.c_str());
+						
+						//check if no parse needs to be set since we have stored the value in DataTypeTemp
+						if (bNoParse)
+						{
+							if (gParserVersion == 2)
+							{
+								// If we are not supposed to parse and there is a ${
+								if (strstr(DataTypeTemp, "${"))
+								{
+									// Modify Macro String with parameter to wrap Parse Zero
+									strcpy_s(DataTypeTemp, ModifyMacroString(DataTypeTemp, true, ModifyMacroMode::Wrap).data());
+								}
+							}
+							else if (strchr(DataTypeTemp, '$'))
+							{
+								bAllowCommandParse = false;
+							}
+						}
+						//result found, kickout and return
+						Ret.Ptr = &DataTypeTemp[0];
+						Ret.Type = pStringType;
+						return true;
+					}
+					totalCount++;
+				}
+			}
+		}
+	}
+	return false;
+}
 bool dataIni(const char* szIndex, MQTypeVar& Ret)
 {
 	if (!szIndex || szIndex[0] == 0)

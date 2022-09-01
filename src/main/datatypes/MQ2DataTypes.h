@@ -1457,6 +1457,7 @@ public:
 bool dataIf(const char* szIndex, MQTypeVar& Ret);
 bool dataGameTime(const char* szIndex, MQTypeVar& Ret);
 bool dataIni(const char* szIndex, MQTypeVar& Ret);
+bool dataIniExtKey(const char* szIndex, MQTypeVar& Ret);
 bool dataDefined(const char* szIndex, MQTypeVar& Ret);
 bool dataSubDefined(const char* szIndex, MQTypeVar& Ret);
 bool dataLineOfSight(const char* szIndex, MQTypeVar& Ret);
