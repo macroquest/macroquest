@@ -4314,7 +4314,7 @@ static SpellAttributePredicate<Buff> InternalBuffEvaluate(std::string_view dsl)
 		"id", DSL::Term([](std::string_view arg) -> SpellAttributePredicate<Buff>
 			{ return SpellIDAttribute(GetIntFromString(arg, 0)); }),
 		"name", DSL::Term([](std::string_view arg) -> SpellAttributePredicate<Buff>
-			{ return SpellNameAttribute(std::string(arg).c_str()); }),
+			{ return SpellNameAttribute(arg); }),
 		"caster", DSL::Term([](std::string_view arg) -> SpellAttributePredicate<Buff>
 			{
 				auto id = GetIntFromString(arg, -1);
