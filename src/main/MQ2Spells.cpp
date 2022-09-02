@@ -3769,7 +3769,7 @@ bool HasSPA(EQ_Spell* pSpell, eEQSPA eSPA, bool bIncrease)
 bool HasSPA(const EQ_Affect& buff, eEQSPA eSPA, bool bIncrease) { return HasSPA(GetSpellByID(buff.SpellID), eSPA, bIncrease); }
 bool HasSPA(const CachedBuff& buff, eEQSPA eSPA, bool bIncrease) { return HasSPA(GetSpellByID(buff.spellId), eSPA, bIncrease); }
 
-int GetPlayerClass(const char* name)
+int GetPlayerClass(std::string_view name)
 {
 	auto player_class = std::find_if(std::cbegin(ClassInfo), std::cend(ClassInfo),
 		[name](const SClassInfo& info)
@@ -3781,6 +3781,11 @@ int GetPlayerClass(const char* name)
 		return static_cast<int>(std::distance(std::cbegin(ClassInfo), player_class));
 
 	return 0;
+}
+
+int GetPlayerClass(const char* name)
+{
+	return GetPlayerClass(std::string_view(name)); // explicit cast to disambiguate
 }
 
 bool IsSpellUsableForClass(EQ_Spell* pSpell, unsigned int classmask)
@@ -3902,7 +3907,7 @@ const char* GetPetSpellCaster(const EQ_Affect& buff)
 	return "";
 }
 
-eEQSPELLCAT GetSpellCategoryFromName(const char* category)
+eEQSPELLCAT GetSpellCategoryFromName(std::string_view category)
 {
 	if (auto it = s_spellCatLookup.find(category); it != s_spellCatLookup.end())
 		return it->second;
@@ -3910,12 +3915,22 @@ eEQSPELLCAT GetSpellCategoryFromName(const char* category)
 	return static_cast<eEQSPELLCAT>(0);
 }
 
-eEQSPA GetSPAFromName(const char* spa)
+eEQSPELLCAT GetSpellCategoryFromName(const char* category)
+{
+	return GetSpellCategoryFromName(std::string_view(category)); // explicit cast to disambiguate
+}
+
+eEQSPA GetSPAFromName(std::string_view spa)
 {
 	if (auto it = s_spaLookup.find(spa); it != s_spaLookup.end())
 		return it->second;
 
 	return static_cast<eEQSPA>(-1);
+}
+
+eEQSPA GetSPAFromName(const char* spa)
+{
+	return GetSPAFromName(std::string_view(spa)); // explicit cast to disambiguate
 }
 
 int GetTargetBuffByCategory(DWORD category, DWORD classmask, int startslot)
@@ -4280,35 +4295,35 @@ static SpellAttributePredicate<Buff> InternalBuffEvaluate(std::string_view dsl)
 			{
 				auto spa = GetIntFromString(arg, -1);
 				if (spa < 0)
-					spa = GetSPAFromName(std::string(arg).c_str());
+					spa = GetSPAFromName(arg);
 				return SpellAffect(static_cast<eEQSPA>(spa));
 			}),
 		"detspa", DSL::Term([](std::string_view arg) -> SpellAttributePredicate<Buff>
 			{
 				auto spa = GetIntFromString(arg, -1);
 				if (spa < 0)
-					spa = GetSPAFromName(std::string(arg).c_str());
+					spa = GetSPAFromName(arg);
 				return SpellAffect(static_cast<eEQSPA>(spa), false);
 			}),
 		"cat", DSL::Term([](std::string_view arg) -> SpellAttributePredicate<Buff>
 			{
 				auto cat = GetIntFromString(arg, 0);
 				if (cat == 0)
-					cat = GetSpellCategoryFromName(std::string(arg).c_str());
+					cat = GetSpellCategoryFromName(arg);
 				return SpellCategory(static_cast<eEQSPELLCAT>(cat));
 			}),
 		"subcat", DSL::Term([](std::string_view arg) -> SpellAttributePredicate<Buff>
 			{
 				auto cat = GetIntFromString(arg, 0);
 				if (cat == 0)
-					cat = GetSpellCategoryFromName(std::string(arg).c_str());
+					cat = GetSpellCategoryFromName(arg);
 				return SpellSubCat(static_cast<eEQSPELLCAT>(cat));
 			}),
 		"class", DSL::Term([](std::string_view arg) -> SpellAttributePredicate<Buff>
 			{
 				auto player_class = GetIntFromString(arg, 0);
 				if (player_class == 0)
-					player_class = GetPlayerClass(std::string(arg).c_str());
+					player_class = GetPlayerClass(arg);
 				return SpellClass(static_cast<PlayerClass>(player_class));
 			}),
 		"id", DSL::Term([](std::string_view arg) -> SpellAttributePredicate<Buff>
@@ -4327,7 +4342,7 @@ static SpellAttributePredicate<Buff> InternalBuffEvaluate(std::string_view dsl)
 					return [](const Buff&) { return false; };
 				}
 
-				return Caster(std::string(arg).c_str());
+				return Caster(arg);
 			}),
 		"and", DSL::Reducer([](SpellAttributePredicate<Buff>&& a, SpellAttributePredicate<Buff>&& b) -> SpellAttributePredicate<Buff>
 			{ return BothSpellAttribute<Buff>(std::move(a), std::move(b)); }),
