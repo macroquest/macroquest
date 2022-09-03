@@ -112,15 +112,6 @@ struct SpellAttributeValue
 	SpellAttributeValue(T value) : Value(value) {}
 	operator int() const { return Value; }
 	operator T() const { return Value; }
-
-	SpellAttributeValue() = delete;
-	SpellAttributeValue(const SpellAttributeValue& other) : Value(other.Value) {}
-	SpellAttributeValue& operator=(const SpellAttributeValue&) = delete;
-
-	SpellAttributeValue(SpellAttributeValue&&) = delete;
-	SpellAttributeValue& operator=(SpellAttributeValue&&) = delete;
-
-	~SpellAttributeValue() {}
 };
 
 // this is here to be able to strongly type the enum while still allowing easy integral values for eqgame functions
@@ -164,17 +155,17 @@ struct SpellClassMask : public SpellAttribute<SpellClassMask>, SpellAttributeVal
 	bool operator()(const Buff& buff) const { return IsSpellUsableForClass(buff, Value); }
 };
 
-struct SpellCasterAttribute : public SpellAttribute<SpellCasterAttribute>, SpellAttributeValue<std::string>
+struct SpellCasterAttribute : public SpellAttribute<SpellCasterAttribute>, SpellAttributeValue<std::string_view>
 {
-	SpellCasterAttribute(std::string_view value) : SpellAttributeValue(std::string(value)) {}
+	SpellCasterAttribute(std::string_view value) : SpellAttributeValue(value) {}
 
 	template <typename Buff>
 	bool operator()(const Buff& buff) const { return MaybeExactCompare(GetSpellCaster(buff), Value); }
 };
 
-struct PetSpellCasterAttribute : public SpellAttribute<PetSpellCasterAttribute>, SpellAttributeValue<std::string>
+struct PetSpellCasterAttribute : public SpellAttribute<PetSpellCasterAttribute>, SpellAttributeValue<std::string_view>
 {
-	PetSpellCasterAttribute(std::string_view value) : SpellAttributeValue(std::string(value)) {}
+	PetSpellCasterAttribute(std::string_view value) : SpellAttributeValue(value) {}
 
 	template <typename Buff>
 	bool operator()(const Buff& buff) const { return MaybeExactCompare(GetPetSpellCaster(buff), Value); }
@@ -196,9 +187,9 @@ struct SpellIDAttribute : public SpellAttribute<SpellIDAttribute>, SpellAttribut
 	bool operator()(const Buff& buff) const { return GetSpellID(buff) == Value; }
 };
 
-struct SpellNameAttribute : public SpellAttribute<SpellNameAttribute>, SpellAttributeValue<std::string>
+struct SpellNameAttribute : public SpellAttribute<SpellNameAttribute>, SpellAttributeValue<std::string_view>
 {
-	SpellNameAttribute(std::string_view value) : SpellAttributeValue(std::string(value)) {}
+	SpellNameAttribute(std::string_view value) : SpellAttributeValue(value) {}
 
 	template <typename Buff>
 	bool operator()(const Buff& buff) const { return MaybeExactCompare(GetSpellName(buff), Value); }

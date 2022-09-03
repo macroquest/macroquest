@@ -4352,9 +4352,24 @@ static SpellAttributePredicate<Buff> InternalBuffEvaluate(std::string_view dsl)
 			{ return NotSpellAttribute<Buff>(std::move(a)); })
 	);
 
+	static ci_unordered::map<std::string_view, SpellAttributePredicate<Buff>> s_dslMap;
+	static ci_unordered::set<std::string> s_dsls; // storing like this prevents allocating a string every time
+
 	try
 	{
-		return spaDSL(dsl);
+		auto maybe_predicate = s_dslMap.find(dsl);
+		if (maybe_predicate == s_dslMap.end())
+		{
+			auto [dsl_iter, _] = s_dsls.emplace(dsl);
+
+			// this guarantees ownership of the DSL string is in the set, so we are free to use string_view's for everything in the DSL
+			auto predicate = spaDSL(*dsl_iter);
+			s_dslMap[*dsl_iter] = predicate;
+
+			return predicate;
+		}
+
+		return maybe_predicate->second;
 	}
 	catch (SimpleLexerParseError& e)
 	{
