@@ -72,7 +72,7 @@ private:
 			map.emplace(*keyword, rule);
 	}
 
-	Reducible&& lexer(std::vector<std::string_view>::iterator& it, std::vector<std::string_view>::iterator& end)
+	Reducible lexer(std::vector<std::string_view>::iterator& it, std::vector<std::string_view>::iterator& end)
 	{
 		// the default will get completely replaced on the first successful term evaluation
 		Reducible&& parsed = std::move(m_error());
@@ -167,7 +167,7 @@ private:
 		else if (current_modifier || current_reducer)
 			throw SimpleLexerParseError("Parse error: dangling keyword.");
 
-		return std::move(parsed);
+		return parsed;
 	}
 
 	std::vector<std::string_view> explode(std::string_view line)
