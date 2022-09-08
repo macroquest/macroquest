@@ -909,7 +909,7 @@ static void Spawns_Initialize()
 	AddMQ2Data("NamingSpawn", dataNamingSpawn);
 
 	AddCommand("/caption", CaptionCmd, false, false);
-	AddCommand("/captioncolor", CaptionColorCmd, true, false);
+	AddCommand("/captioncolor", CaptionColorCmd, false, false);
 }
 
 static void Spawns_Shutdown()
