@@ -873,7 +873,7 @@ void LoadIt(ProfileInfo& pi, int id)
 			sei.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_WAITFORINPUTIDLE;
 			sei.lpVerb = "open";
 			sei.nShow = SW_SHOW;
-			auto params = fmt::format("patchme /login:{}_{}:{}", pi.profileName, server, character);
+			auto params = fmt::format("patchme /login:\"{}_{}:{}\"", pi.profileName, server, character);
 			sei.lpParameters = params.c_str();
 			sei.lpDirectory = eqpath.c_str();
 			auto file = fmt::format("{}\\eqgame.exe", eqpath);

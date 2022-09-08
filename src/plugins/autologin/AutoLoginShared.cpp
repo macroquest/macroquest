@@ -85,15 +85,15 @@ ProfileRecord ProfileRecord::FromString(const std::string& input)
 
 	// the first method of username format is underscores
 	// we expect here a format of `<profile>_<server>:<character>`
-	static std::regex blob_regex("(\\S+)_(\\w+):(\\S+)"); // TODO: do we need one of these for just server?
+	static std::regex blob_regex("(\\S+)_([^:]+):(\\S+)"); // TODO: do we need one of these for just server?
 	// <server>^<account>^<character>^<password>
-	static std::regex plain_regex("(\\S+)\\^(\\S+)\\^(\\S+)\\^(\\S+)");
+	static std::regex plain_regex("([^\\^]+)\\^(\\S+)\\^(\\S+)\\^(\\S+)");
 	// <server>^<account>^<password>
-	static std::regex plain2_regex("(\\S+)\\^(\\S+)\\^(\\S+)");
+	static std::regex plain2_regex("([^\\^])\\^(\\S+)\\^(\\S+)");
 	// <server>;<profile>:<character>
-	static std::regex special_regex("(\\S+);(\\S+):(\\S+);");
+	static std::regex special_regex("([^;]);(\\S+):(\\S+);");
 	// <server>:<character>
-	static std::regex blob2_regex("(\\w+):(\\S+)");
+	static std::regex blob2_regex("([^:]):(\\S+)");
 
 	ProfileRecord record;
 
