@@ -189,9 +189,9 @@ bool dataIni(const char* szIndex, MQTypeVar& Ret)
 				if (argMap.size() >= 4)
 				{
 					Default.erase(argMap[3] - argMap[2] - 1);
-					std::string Parse = sTemp.substr(argMap[3] + 1);
+					const std::string Parse = sTemp.substr(argMap[3] + 1);
 
-					if (Parse == "noparse")
+					if (ci_equals(Parse, "noparse"))
 						bNoParse = true;
 				}
 			}
