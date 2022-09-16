@@ -45,10 +45,12 @@ ePVPServer PVPServer = PVP_NONE;
 char gszVersion[32] = VersionString;
 char gszTime[32] = TimeString;
 
-#if defined(TEST)
-int gBuild = 2;               // TEST
+#if defined(EMULATOR)
+int gBuild = static_cast<int>(BuildTarget::Emu);                // EMU (ROF2)
+#elif defined(TEST)
+int gBuild = static_cast<int>(BuildTarget::Test);               // TEST
 #else
-int gBuild = 1;               // LIVE
+int gBuild = static_cast<int>(BuildTarget::Live);               // LIVE
 #endif
 
 DWORD gGameState = 0;

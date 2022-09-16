@@ -187,7 +187,7 @@
 	"Increase Pet Power",                   // 167
 	"Defensive",                            // 168
 	"Chance to Critical Melee",             // 169
-	"Chance to Critical Cast",              // 170
+	"Critical Direct Damage",               // 170
 	"Chance to Crippling Blow",             // 171
 	"Evasion",                              // 172
 	"Riposte",                              // 173
@@ -290,8 +290,8 @@
 	"Bard Song Range",                      // 270
 	"Base Run Speed",                       // 271
 	"Casting Level",                        // 272
-	"Critical DoT",                         // 273
-	"Critical Heal",                        // 274
+	"Critical DoT Chance",                  // 273
+	"Critical Heal Chance",                 // 274
 	"Critical Mend",                        // 275
 	"Dual Wield Amt",                       // 276
 	"Extra DI Chance",                      // 277
@@ -311,7 +311,7 @@
 	"Purify",                               // 291
 	"Strikethrough2",                       // 292
 	"StunResist2",                          // 293
-	"Spell Crit Chance",                    // 294
+	"Critical DD Chance",                   // 294
 	"Reduce Timer Special",                 // 295
 	"Incoming Spell Damage",                // 296
 	"Incoming Spell Damage Amt",            // 297

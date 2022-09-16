@@ -83,6 +83,9 @@
     <ClInclude Include="..\..\include\mq\utils\Naming.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\BuildInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="icon1.ico">

@@ -226,6 +226,30 @@ inline auto WritePrivateProfileValue(const std::string& Section, const std::stri
 	return WritePrivateProfileValue(Section.c_str(), Key.c_str(), Value, IniFileName);
 }
 
+inline std::string GetMacroIni(const std::filesystem::path& pathMQConfig, const std::filesystem::path& pathMacros, std::filesystem::path pathIniFile)
+{
+	if (!pathIniFile.has_extension())
+	{
+		pathIniFile += ".ini";
+	}
+
+	if (pathIniFile.is_relative())
+	{
+		std::error_code ec;
+		// Config is the primary path, but fall back to the old path if needed
+		if (!exists(pathMQConfig / pathIniFile, ec) && exists(pathMacros / pathIniFile, ec))
+		{
+			pathIniFile = pathMacros / pathIniFile;
+		}
+		else
+		{
+			pathIniFile = pathMQConfig / pathIniFile;
+		}
+	}
+
+	return pathIniFile.string();
+}
+
 inline std::string GetCreateMacroQuestIni(const std::filesystem::path& pathMQRoot, std::filesystem::path pathMQConfig, std::filesystem::path pathMQini)
 {
 		// If the ini path is relative, prepend the MQ path

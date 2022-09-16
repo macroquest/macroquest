@@ -464,19 +464,8 @@ void InitializeCrashHandler()
 
 	// Set some annotations.
 
-	// FIXME: Add enum values for gBuild.
-	const char* buildType = "UNKNOWN";
-	switch (gBuild)
-	{
-	case 1: buildType = "LIVE"; break;
-	case 2: buildType = "TEST"; break;
-	case 3: buildType = "BETA"; break;
-	case 4: buildType = "EMU(ROF2)"; break;
-	case 5: buildType = "EMU(UF)"; break;
-	}
-
 #pragma warning(suppress: 4996)
-	buildTypeAnnotation.Set(buildType);
+	buildTypeAnnotation.Set(GetBuildTargetName(static_cast<BuildTarget>(gBuild)));
 #pragma warning(suppress: 4996)
 	buildVersionAnnotation.Set(MQMAIN_VERSION);
 	buildTimestampAnnotation.Set(__ExpectedVersionDate " " __ExpectedVersionTime);

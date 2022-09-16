@@ -6625,9 +6625,9 @@ eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 			return NPC;
 
 		case CharacterProperty_Construct:
-			// "Invisible Man" Race containing "Aura" / "Circle_of" / "Guardian_Circle" / "Earthen_Strength" in the Name
+			// "Invisible Man" Race containing "Aura" / "Circle_of" / "Guardian_Circle" / "Earthen_Strength" / "Pact_of_the_Wolf" in the Name
 			if ((pSpawn->GetRace() == EQR_INVISIBLE_MAN) &&
-				(strstr(pSpawn->Name, "Aura") || strstr(pSpawn->Name, "Circle_of") || strstr(pSpawn->Name, "Guardian_Circle") || strstr(pSpawn->Name, "Earthen_Strength")))
+				(strstr(pSpawn->Name, "Aura") || strstr(pSpawn->Name, "Circle_of") || strstr(pSpawn->Name, "Guardian_Circle") || strstr(pSpawn->Name, "Earthen_Strength") || strstr(pSpawn->Name, "Pact_of_the_Wolf")))
 				return AURA;
 			// "Spike Trap" Race containing "Poison" in the Name
 			if ((pSpawn->GetRace() == EQR_SPIKE_TRAP) && (strstr(pSpawn->Name, "poison") || strstr(pSpawn->Name, "Poison")))
