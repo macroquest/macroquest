@@ -1,3 +1,6 @@
+September 16, 2022:
+- Updated for latest test patch
+
 September 7, 2022:
 - /captioncolor will work when typed in EQ chat windows again (#619)
 - Autologin profiles launched from MQ will now work properly for servers with spaces in
