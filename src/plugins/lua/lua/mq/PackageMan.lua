@@ -22,7 +22,7 @@ local Utils = require('Utils')
 -- Internal settings
 local mqRepoUrl = 'https://luarocks.macroquest.org/'
 local mqRepoName = 'MacroQuest'
---- luarocks --lua-version 5.1 --server "https://luarocks.macroquest.org/" install --tree modules\luarocks lsqlite3complete
+--- luarocks --lua-version 5.1 --server "https://luarocks.macroquest.org/" install --deps-mode none --tree modules\luarocks lsqlite3complete
 local cliVersionArg = Utils.String.Split(_VERSION, ' ')[2]
 local cliLuarocksPath = mq.TLO.MacroQuest.Path() .. '\\luarocks.exe'
 local cliInstallPath = mq.TLO.Lua.Dir('modules')() .. '\\luarocks'
@@ -63,8 +63,8 @@ PackageMan.Install = function(package_name)
         if result == 2 then
             return 2
         end
-        
-        local execute_string = string.format('""%s" --lua-version %s --server "%s" install --tree "%s" "%s""', cliLuarocksPath, cliVersionArg, PackageMan.repoUrl, cliInstallPath, package_name)
+
+        local execute_string = string.format('""%s" --lua-version %s --server "%s" install --deps-mode none --tree "%s" "%s""', cliLuarocksPath, cliVersionArg, PackageMan.repoUrl, cliInstallPath, package_name)
         if os.execute(execute_string) ~= 0 then
             return 3
         end
@@ -82,6 +82,30 @@ PackageMan.InstallAndLoad = function(package_name, require_name)
         end
     end
     return nil
+end
+
+PackageMan.Require = function(package_name, require_name, fail_message)
+    require_name = require_name or package_name
+
+    if not fail_message then
+        fail_message = "\arFailed to load package " .. package_name
+        if require_name ~= package_name then
+            fail_message = fail_message .. " with require " .. require_name
+        end
+    end
+
+    if package_name then
+        local package = Utils.Library.Include(require_name)
+        if not package then
+            package = PackageMan.InstallAndLoad(package_name, require_name)
+        end
+        if package then
+            return package
+        end
+    end
+
+    print(fail_message)
+    mq.exit()
 end
 
 return PackageMan

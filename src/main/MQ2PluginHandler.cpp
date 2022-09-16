@@ -188,7 +188,7 @@ void PrintModules()
 		DWORD cbNeeded;
 		if(EnumProcessModules(hProcess, hMods, sizeof(hMods), &cbNeeded))
 		{
-			for (int i = 0; i < (cbNeeded / sizeof(HMODULE)); ++i)
+			for (unsigned int i = 0; i < (cbNeeded / sizeof(HMODULE)); ++i)
 			{
 				char szModName[MAX_PATH];
 				if (GetModuleFileNameEx(hProcess, hMods[i], szModName, sizeof(szModName) / sizeof(char)))

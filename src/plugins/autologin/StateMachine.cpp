@@ -50,10 +50,15 @@ static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 		std::string cmdline(::GetCommandLineA());
 
 		// find the login argument if it exists, otherwise input will remain empty
-		auto startpos = cmdline.find("/login:");
-		if (startpos != std::string::npos)
+		const std::vector<std::string_view> args_tokens = tokenize_args(cmdline);
+		for (auto token: args_tokens)
 		{
-			input = cmdline.substr(startpos + 7, cmdline.find_first_of(' ', startpos + 7));
+			const size_t loc = token.find("/login:");
+			if (loc != std::string_view::npos)
+			{
+				input = strip_quotes(token.substr(loc + 7), '"');
+				break;
+			}
 		}
 
 		// fallback method, the only case where we would hit this is if we manually entered the login string after eqgame started.

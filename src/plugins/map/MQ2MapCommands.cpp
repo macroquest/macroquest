@@ -71,7 +71,7 @@ void MapFilterSetting(SPAWNINFO* pChar, MapFilter nMapFilter, const char* szValu
 				sprintf_s(szBuffer, "%s: %s", pMapFilter->szName, FormatSearchSpawn(Buff, sizeof(Buff), &MapFilterCustom));
 			}
 		}
-		else if (pMapFilter->UsesRadius)
+		else if (pMapFilter->IsRadius())
 		{
 			sprintf_s(szBuffer, "%s: %0.2f", pMapFilter->szName, pMapFilter->Radius);
 		}
@@ -255,7 +255,7 @@ void MapFilters(SPAWNINFO* pChar, char* szLine)
 				{
 					MapFilterColorSetting(static_cast<MapFilter>(i), szRest);
 				}
-				else if (option.UsesRadius)
+				else if (option.IsRadius())
 				{
 					MapFilterRadiusSetting(pChar, static_cast<MapFilter>(i), szRest);
 				}

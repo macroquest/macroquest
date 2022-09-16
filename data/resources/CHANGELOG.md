@@ -1,11 +1,18 @@
-Aug 29, 2022 (test):
-- Update for test patch
+September 7, 2022:
+- /captioncolor will work when typed in EQ chat windows again (#619)
+- Autologin profiles launched from MQ will now work properly for servers with spaces in
+  their shortname
+- Fixed a crash that would occur in macros when declaring an array of invalid size
+- The "noparse" parameter in the Ini TLO is no longer case sensitive
+
+Aug 19, 2022:
+- Add ${MacroQuest.BuildName} to get the name of the build target (Live/Test/Emu)
 
 Aug 17, 2022:
 - Fix autoskills not returning proper values
 
 Aug 17, 2022 (live):
-- Updated for patch 
+- Updated for patch
 
 Aug 12, 2022:
 - /mapfilter will now store Radius values instead of toggle information (Fixes #600)
@@ -19,9 +26,6 @@ Aug 12, 2022:
 - The tray util has a new option to "Unload All Instances (Forced)" which will send the
   "/unload force" command to all registered MQ instances.
 - More info can be found at docs.macroquest.org
-
-August 10, 2022 (test):
-- Updated for latest test patch
 
 Jul 29, 2022:
 - Added a modules folder primarily for storing architecture dependent lua modules

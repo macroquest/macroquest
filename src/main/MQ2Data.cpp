@@ -189,9 +189,9 @@ bool dataIni(const char* szIndex, MQTypeVar& Ret)
 				if (argMap.size() >= 4)
 				{
 					Default.erase(argMap[3] - argMap[2] - 1);
-					std::string Parse = sTemp.substr(argMap[3] + 1);
+					const std::string Parse = sTemp.substr(argMap[3] + 1);
 
-					if (Parse == "noparse")
+					if (ci_equals(Parse, "noparse"))
 						bNoParse = true;
 				}
 			}
@@ -201,24 +201,7 @@ bool dataIni(const char* szIndex, MQTypeVar& Ret)
 	if (IniFile.empty())
 		return false;
 
-	std::filesystem::path pathIniFile = IniFile;
-	if (!pathIniFile.has_extension())
-	{
-		pathIniFile += ".ini";
-	}
-
-	if (pathIniFile.is_relative())
-	{
-		// Config is the primary path, but fall back to the old path if needed
-		if (!exists(internal_paths::Config / pathIniFile) && exists(internal_paths::Macros / pathIniFile))
-		{
-			pathIniFile = internal_paths::Macros / pathIniFile;
-		}
-		else
-		{
-			pathIniFile = mq::internal_paths::Config / pathIniFile;
-		}
-	}
+	const std::filesystem::path pathIniFile = GetMacroIni(internal_paths::Config, internal_paths::Macros, IniFile);
 
 	std::error_code ec_exists;
 	if (std::filesystem::exists(pathIniFile, ec_exists))
