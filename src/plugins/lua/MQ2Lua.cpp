@@ -902,16 +902,16 @@ static void LuaInfoCommand(const std::optional<std::string>& script = std::nullo
 	}
 	else
 	{
-		WriteChatStatus("|  PID  |    NAME    |    START    |     END     |   STATUS   |");
+		WriteChatStatus("|  PID  |         NAME         |    START    |     END     |   STATUS   |");
 
 		for (const auto& [pid, info] : s_infoMap)
 		{
 			fmt::memory_buffer line;
-			fmt::format_to(fmt::appender(line), "|{:^7}|{:^12}|{:^13}|{:^13}|{:^12}|",
+			fmt::format_to(fmt::appender(line), "|{:^7}|{:^22}|{:^13}|{:^13}|{:^12}|",
 				pid,
-				info.name.length() > 12 ? info.name.substr(0, 9) + "..." : info.name,
-				info.startTime,
-				info.endTime,
+				info.name.length() > 22 ? info.name.substr(0, 19) + "..." : info.name,
+				(info.startTime != std::chrono::system_clock::time_point() ? fmt::format("{:%H:%M:%S}", info.startTime) : std::string()),
+				(info.endTime != std::chrono::system_clock::time_point() ? fmt::format("{:%H:%M:%S}", info.endTime) : std::string()),
 				static_cast<int>(info.status));
 			WriteChatStatus("%.*s", line.size(), line.data());
 		}
