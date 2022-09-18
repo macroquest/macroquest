@@ -3,6 +3,7 @@ September 18, 2022:
   to the mq settings window under a new "Chat" section. (#618)
 - emu: Fix title bar click events on MQ2ChatWnd. (#616)
 - emu: Fix tabselect crash. (#622)
+- emu: Fix crash when checking spell stacking. (#624)
 
 September 7, 2022:
 - /captioncolor will work when typed in EQ chat windows again (#619)
