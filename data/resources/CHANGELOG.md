@@ -1,6 +1,7 @@
 September 18, 2022:
 - emu: Added back /timestamp for emulator builds to add timestamps to chat. Added checkbox
   to the mq settings window under a new "Chat" section. (#618)
+- emu: Fix title bar click events on MQ2ChatWnd. (#616)
 
 September 7, 2022:
 - /captioncolor will work when typed in EQ chat windows again (#619)
