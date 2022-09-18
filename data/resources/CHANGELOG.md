@@ -1,4 +1,8 @@
-Sep 7, 2022:
+September 18, 2022:
+- emu: Added back /timestamp for emulator builds to add timestamps to chat. Added checkbox
+  to the mq settings window under a new "Chat" section. (#618)
+
+September 7, 2022:
 - /captioncolor will work when typed in EQ chat windows again (#619)
 - Autologin profiles launched from MQ will now work properly for servers with spaces in
   their shortname
