@@ -30,6 +30,13 @@ struct CaseInsensitiveLess
 
 struct IDirect3DDevice9;
 
+// Probably move these to eqlib but for now these are all contained within MQ
+#if defined(EMULATOR)
+#define HAS_CHAT_TIMESTAMPS 1
+#else
+#define HAS_CHAT_TIMESTAMPS 0
+#endif
+
 namespace mq {
 
 MQLIB_VAR const double DegToRad;
@@ -310,6 +317,9 @@ MQLIB_VAR int gSpawnCount;
 
 // internal to mq2 only
 extern std::vector<MQSpawnArrayItem> gSpawnsArray;
+#if HAS_CHAT_TIMESTAMPS
+extern bool gbTimeStampChat;
+#endif
 
 MQLIB_VAR size_t g_eqgameimagesize;
 

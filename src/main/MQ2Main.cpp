@@ -377,6 +377,9 @@ bool ParseINIFile(const std::string& iniFile)
 	gParserVersion           = GetPrivateProfileInt("MacroQuest", "ParserEngine", gParserVersion, iniFile); // 2 = new parser, everything else = old parser
 	gIfDelimiter             = GetPrivateProfileString("MacroQuest", "IfDelimiter", std::string(1, gIfDelimiter), iniFile)[0];
 	gIfAltDelimiter          = GetPrivateProfileString("MacroQuest", "IfAltDelimiter", std::string(1, gIfAltDelimiter), iniFile)[0];
+#if HAS_CHAT_TIMESTAMPS
+	gbTimeStampChat          = GetPrivateProfileBool("MacroQuest", "TimeStampChat", gbTimeStampChat, iniFile);
+#endif
 
 	if (gbWriteAllConfig)
 	{
@@ -409,6 +412,10 @@ bool ParseINIFile(const std::string& iniFile)
 		WritePrivateProfileInt("MacroQuest", "ParserEngine", gParserVersion, iniFile);
 		WritePrivateProfileString("MacroQuest", "IfDelimiter", std::string(1, gIfDelimiter), iniFile);
 		WritePrivateProfileString("MacroQuest", "IfAltDelimiter", std::string(1, gIfAltDelimiter), iniFile);
+#if HAS_CHAT_TIMESTAMPS
+		WritePrivateProfileBool("MacroQuest", "TimeStampChat", gbTimeStampChat, iniFile);
+#endif
+
 	}
 
 	GetPrivateProfileString("MacroQuest", "HUDMode", "UnderUI", szBuffer, MAX_STRING, iniFile);

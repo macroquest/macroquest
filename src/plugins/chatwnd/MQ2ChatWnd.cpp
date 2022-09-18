@@ -66,7 +66,6 @@ public:
 		InputBox->AddStyle(CWS_AUTOVSCROLL | CWS_RELATIVERECT | CWS_BORDER); // 0x800C0;
 		SetFaded(false);
 		SetEscapable(false);
-		SetClickable(true);
 		SetAlpha(0xFF);
 		SetBGType(1);
 

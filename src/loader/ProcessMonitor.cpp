@@ -387,6 +387,7 @@ void StartProcessMonitor(ProcessMonitorEvents* pEvents)
 {
 	gpProcessMonitorEvents = pEvents;
 
+#if 0
 	// Try to start a WmiProcess monitor
 	try
 	{
@@ -400,6 +401,7 @@ void StartProcessMonitor(ProcessMonitorEvents* pEvents)
 	{
 		SPDLOG_ERROR("Failed to start wmi process monitor: {}", err.what());
 	}
+#endif
 
 	// Try to start the tooltip process monitor
 	try

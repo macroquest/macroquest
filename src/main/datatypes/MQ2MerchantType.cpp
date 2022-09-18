@@ -74,15 +74,18 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 				int listIndex = 0;
 				ItemPtr pItem;
 
-				auto& itemContainer = pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer;
-				for (int i = 0; i < itemContainer.GetSize(); i++)
+				auto& page = pMerchantWnd->PageHandlers[RegularMerchantPage];
+
+				for (int i = 0; i < page->GetItemCount(); i++)
 				{
-					if (itemContainer[i].pItem)
+					ItemPtr pItemItr = page->GetItem(i);
+
+					if (pItemItr)
 					{
-						if (MaybeExactCompare(itemContainer[i].pItem->GetName(), Index))
+						if (MaybeExactCompare(pItemItr->GetName(), Index))
 						{
 							listIndex = i;
-							pItem = itemContainer[i].pItem;
+							pItem = pItemItr;
 							break;
 						}
 					}
@@ -204,7 +207,7 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 
 		if (Index[0])
 		{
-			VePointer<MerchantPageHandler>& page = pMerchantWnd->PageHandlers[RegularMerchantPage];
+			const auto& page = pMerchantWnd->PageHandlers[RegularMerchantPage];
 
 			if (IsNumber(Index))
 			{
@@ -213,28 +216,22 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 				if (nIndex < 0)
 					return false;
 
-				if (nIndex < page->ItemContainer.GetSize())
+				if (Dest.Ptr = page->GetItem(nIndex).get())
 				{
-					if (Dest.Ptr = page->ItemContainer[nIndex].pItem)
-					{
-						return true;
-					}
+					return true;
 				}
 			}
 			else
 			{
 				// by name
-				for (int nIndex = 0; nIndex < page->ItemContainer.GetSize(); nIndex++)
+				for (int i = 0; i < page->GetItemCount(); ++i)
 				{
-					if (ItemClient* pContents = page->ItemContainer[nIndex].pItem)
-					{
-						const char* itemName = GetItemFromContents(pContents)->Name;
+					ItemPtr pItem = page->GetItem(i);
 
-						if (MaybeExactCompare(itemName, Index))
-						{
-							Dest.Ptr = pContents;
-							return true;
-						}
+					if (pItem && MaybeExactCompare(pItem->GetName(), Index))
+					{
+						Dest.Ptr = pItem.get();
+						return true;
 					}
 				}
 			}
@@ -242,7 +239,7 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 		return false;
 
 	case MerchantMembers::Items:
-		Dest.DWord = pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer.GetSize();
+		Dest.DWord = pMerchantWnd->PageHandlers[RegularMerchantPage]->GetItemCount();
 		Dest.Type = pIntType;
 		return true;
 
@@ -259,8 +256,8 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 	case MerchantMembers::Full: {
 		Dest.Type = pBoolType;
 
-		VePointer<MerchantPageHandler>& page = pMerchantWnd->PageHandlers[RegularMerchantPage];
-		Dest.Set(page->ItemContainer.GetSize() >= page->MaxItems);
+		const CMerchantWnd::PageHandlerPtr& page = pMerchantWnd->PageHandlers[RegularMerchantPage];
+		Dest.Set(page->GetItemCount() >= page->MaxItems);
 		return true;
 	}
 

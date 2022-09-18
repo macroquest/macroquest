@@ -345,6 +345,12 @@ enum class CharacterMembers
 	Inviter,
 	Invited,
 	IsBerserk,
+	GroupLeaderExp,
+	GroupLeaderPoints,
+	PctGroupLeaderExp,
+	RaidLeaderExp,
+	RaidLeaderPoints,
+	PctRaidLeaderExp,
 };
 
 enum class CharacterMethods
@@ -680,6 +686,12 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, Inviter);
 	ScopedTypeMember(CharacterMembers, Invited);
 	ScopedTypeMember(CharacterMembers, IsBerserk);
+	ScopedTypeMember(CharacterMembers, GroupLeaderExp);
+	ScopedTypeMember(CharacterMembers, GroupLeaderPoints);
+	ScopedTypeMember(CharacterMembers, PctGroupLeaderExp);
+	ScopedTypeMember(CharacterMembers, RaidLeaderExp);
+	ScopedTypeMember(CharacterMembers, RaidLeaderPoints);
+	ScopedTypeMember(CharacterMembers, PctRaidLeaderExp);
 
 	ScopedTypeMethod(CharacterMethods, Stand);
 	ScopedTypeMethod(CharacterMethods, Sit);
@@ -2610,62 +2622,110 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return false;
 
 	case CharacterMembers::LAMarkNPC:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.MarkNPC;
+#else
 		Dest.DWord = 3;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LANPCHealth:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.NPCHealth;
+#else
 		Dest.DWord = 1;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LADelegateMA:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.DelegateMA;
+#else
 		Dest.DWord = 1;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LADelegateMarkNPC:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.DelegateMarkNPC;
+#else
 		Dest.DWord = 1;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LAInspectBuffs:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.InspectBuffs;
+#else
 		Dest.DWord = 2;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LASpellAwareness:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.SpellAwareness;
+#else
 		Dest.DWord = 1;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LAOffenseEnhancement:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.OffenseEnhancement;
+#else
 		Dest.DWord = 5;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LAManaEnhancement:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.ManaEnhancement;
+#else
 		Dest.DWord = 3;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LAHealthEnhancement:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.HealthEnhancement;
+#else
 		Dest.DWord = 3;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LAHealthRegen:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.HealthRegen;
+#else
 		Dest.DWord = 3;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LAFindPathPC:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.FindPathPC;
+#else
 		Dest.DWord = 1;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LAHoTT:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.HoTT;
+#else
 		Dest.DWord = 1;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
@@ -3995,6 +4055,55 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	case CharacterMembers::IsBerserk:
 		Dest.DWord = pLocalPlayer->berserker;
 		Dest.Type = pIntType;
+		return true;
+
+	case CharacterMembers::GroupLeaderExp:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.Float = static_cast<float>(pLocalPC->GroupLeadershipExp);
+#else
+		Dest.Float = 0.0f;
+#endif
+		Dest.Type = pFloatType;
+		return true;
+	case CharacterMembers::GroupLeaderPoints:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->GroupLeadershipPoints;
+#else
+		Dest.DWord = 0;
+#endif
+		Dest.Type = pIntType;
+		return true;
+	case CharacterMembers::PctGroupLeaderExp:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.Float = static_cast<float>(pLocalPC->GroupLeadershipExp) / 10.0f;
+#else
+		Dest.Float = 0.0f;
+#endif
+		Dest.Type = pFloatType;
+		return true;
+	case CharacterMembers::RaidLeaderExp:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.Float = static_cast<float>(pLocalPC->RaidLeadershipExp);
+#else
+		Dest.Float = 0.0f;
+#endif
+		Dest.Type = pFloatType;
+		return true;
+	case CharacterMembers::RaidLeaderPoints:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->RaidLeadershipPoints;
+#else
+		Dest.DWord = 0;
+#endif
+		Dest.Type = pIntType;
+		return true;
+	case CharacterMembers::PctRaidLeaderExp:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.Float = static_cast<float>(pLocalPC->RaidLeadershipExp) / 10.0f;
+#else
+		Dest.Float = 0.0f;
+#endif
+		Dest.Type = pFloatType;
 		return true;
 
 	default:
