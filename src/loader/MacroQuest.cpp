@@ -1175,7 +1175,6 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 		}
 	}
 
-#if defined(_WIN64) // Only relaunch if we're 64bit app.
 	if (!spawnedProcess)
 	{
 		char szFileName[MAX_PATH] = { 0 };
@@ -1257,7 +1256,6 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 			exit(0);
 		}
 	}
-#endif // defined(_WIN64)
 
 	// Initialize COM
 	auto coCleanup = wil::CoInitializeEx();
