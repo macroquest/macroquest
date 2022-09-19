@@ -205,8 +205,8 @@ static bool AddMQ2DataVariableBy(const char* Name, const char* Index, MQ2Type* p
 
 	if (Index[0])
 	{
-		// Arrays are 1 indexed
-		if (GetIntFromString(Index, -1) > 0)
+		// Allow for creation of size 0 arrays, but not less (functionality in use)
+		if (GetIntFromString(Index, -1) >= 0)
 		{
 			CDataArray* pArray = new CDataArray(pType, Index);
 			pVar->Var.Ptr = pArray;
