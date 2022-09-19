@@ -205,11 +205,19 @@ static bool AddMQ2DataVariableBy(const char* Name, const char* Index, MQ2Type* p
 
 	if (Index[0])
 	{
-		CDataArray* pArray = new CDataArray(pType, Index);
-		pVar->Var.Ptr = pArray;
-		pVar->Var.Type = pArrayType;
+		// Arrays are 1 indexed
+		if (GetIntFromString(Index, -1) > 0)
+		{
+			CDataArray* pArray = new CDataArray(pType, Index);
+			pVar->Var.Ptr = pArray;
+			pVar->Var.Type = pArrayType;
 
-		InitArrayValue(pArray, defaultValue);
+			InitArrayValue(pArray, defaultValue);
+		}
+		else
+		{
+			return false;
+		}
 	}
 	else
 	{
@@ -333,7 +341,7 @@ void NewDeclareVar(SPAWNINFO* pChar, char* szLine)
 		}
 		else
 		{
-			MacroError("/declare '%s' failed.  No macro in execution and no variable scope given", szName);
+			MacroError("/declare '%s' failed.  No macro in execution and variable scope invalid: %s", szName, Arg[0] != '\0' ? Arg : "NULL");
 			return;
 		}
 	}
@@ -347,11 +355,13 @@ void NewDeclareVar(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
+	bool hasArrayIndex = false;
 	if (char* pBracket = strchr(szName, '['))
 	{
 		*pBracket = 0;
 		strcpy_s(szIndex, &pBracket[1]);
 		szIndex[strlen(szIndex) - 1] = 0;
+		hasArrayIndex = true;
 	}
 
 	if (pType == pTimerType && szIndex[0])
@@ -362,7 +372,14 @@ void NewDeclareVar(SPAWNINFO* pChar, char* szLine)
 
 	if (!AddMQ2DataVariable(szName, szIndex, pType, pScope, pDefault))
 	{
-		MacroError("/declare '%s' failed.  Name already in use.", szName);
+		if (hasArrayIndex)
+		{
+			MacroError("/declare '%s' failed.  Name already in use or array index invalid: %s", szName, szIndex);
+		}
+		else
+		{
+			MacroError("/declare '%s' failed.  Name already in use.", szName);
+		}
 	}
 	else
 	{
