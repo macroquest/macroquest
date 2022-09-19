@@ -68,7 +68,7 @@ try {
 	$ListFile = "$Src\BinCopy.txt"
 	Set-Location $Src
 
-	$lines = Get-Content $ListFile 
+	$lines = Get-Content $ListFile
 	foreach ($line in $lines)
 	{
 		$files = Get-ChildItem -Path "$Src\$line" | % { $_.FullName }
@@ -90,6 +90,15 @@ try {
 	else
 	{
 		Copy-LatestFile "$Src\..\contrib\vcpkg\installed\$Arch-windows\bin\D3DX9d_43.dll" "$Dst\D3DX9d_43.dll" "D3DX9d_43.dll"
+	}
+	# Copy luarocks
+	if ($Arch -eq "x86")
+	{
+		Copy-LatestFile "$Src\..\data\luarocks32.exe" "$Dst\luarocks.exe" "luarocks.exe"
+	}
+	else
+	{
+		Copy-LatestFile "$Src\..\data\luarocks.exe" "$Dst\luarocks.exe" "luarocks.exe"
 	}
 }
 catch {

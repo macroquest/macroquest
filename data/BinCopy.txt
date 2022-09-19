@@ -4,4 +4,3 @@ resources/CHANGELOG.md
 resources/GPL.txt
 resources/ItemDB.txt
 resources/readme.chm
-luarocks.exe
