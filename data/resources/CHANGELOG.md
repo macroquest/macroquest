@@ -1,3 +1,6 @@
+September 21, 2022 (live):
+- Updated for live patch
+
 September 18, 2022:
 - emu: Added back /timestamp for emulator builds to add timestamps to chat. Added checkbox
   to the mq settings window under a new "Chat" section. (#618)
