@@ -1,4 +1,5 @@
 September 21, 2022 (live):
+- Fix achievement crash (#629).
 - Updated for live patch
 
 September 18, 2022:
