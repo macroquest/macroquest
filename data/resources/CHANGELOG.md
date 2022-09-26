@@ -1,3 +1,6 @@
+September 26, 2022:
+- Fix Me.Levitating (#632)
+
 September 21, 2022 (live):
 - Fix achievement crash (#629).
 - Updated for live patch
