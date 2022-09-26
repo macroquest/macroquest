@@ -482,6 +482,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="datatypes\MQIniType.cpp" />
     <ClCompile Include="ImGuiBackend.cpp" />
     <ClCompile Include="ImGuiZepEditor.cpp" />
     <ClCompile Include="MQ2Anonymize.cpp" />

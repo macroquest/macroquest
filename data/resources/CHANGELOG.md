@@ -1,5 +1,6 @@
 September 26, 2022:
 - Fix Me.Levitating (#632)
+- Add more robust ini handling options - see http://docs.macroquest.org/reference/data-types/datatype-inifilesectionkey
 
 September 21, 2022 (live):
 - Fix achievement crash (#629).
