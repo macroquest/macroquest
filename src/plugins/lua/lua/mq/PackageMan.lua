@@ -37,6 +37,7 @@ local cliInstallPath = mq.TLO.Lua.Dir('modules')() .. '\\luarocks'
 --    2 - user said no
 --    3 - package install failed
 --    4 - no package
+--    5 - prompt timed out
 PackageMan.Install = function(package_name)
     if not package_name then return 4 end
 
@@ -60,8 +61,13 @@ PackageMan.Install = function(package_name)
         text = string.format("%sThe script '%s' is asking for package '%s' to be installed on your system from the '%s' repository.\nIf you trust this script, click Install.  Otherwise click Cancel.", text, callString, package_name, PackageMan.repoName)
         title = string.format("LuaRocks Install::%s Repository", title)
         local result = ImguiHelper.Popup.Modal(title, text, { "Install", "Cancel" })
+        -- user said no
         if result == 2 then
             return 2
+        end
+        -- prompt timed out
+        if result == 0 then
+            return 5
         end
 
         local execute_string = string.format('""%s" --lua-version %s --server "%s" install --deps-mode none --tree "%s" "%s""', cliLuarocksPath, cliVersionArg, PackageMan.repoUrl, cliInstallPath, package_name)
