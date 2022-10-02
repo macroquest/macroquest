@@ -38,10 +38,10 @@ emptyassist:
 global ?Throttler_Detour@mq@@YAXXZ
 ?Throttler_Detour@mq@@YAXXZ:
 	call ?DoThrottleFrameRate@mq@@YA_NXZ
-	cmp rax, rax
+	test rax, rax
 	jz call_to_trampoline
-	mov rax, __imp___ThrottleFrameRateEnd
-	jmp rax
+	mov rax, [rel __imp___ThrottleFrameRateEnd]
+	jmp [rax]
 call_to_trampoline:
 	mov rax, [qword ?Throttler_Trampoline@mq@@3P6AXXZEA]
 	jmp rax
