@@ -498,7 +498,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("Defined", datatypes::dataDefined);
 	AddMQ2Data("FrameLimiter", datatypes::MQ2FrameLimiterType::dataFrameLimiter);
 	AddMQ2Data("If", datatypes::dataIf);
-	AddMQ2Data("Ini", datatypes::dataIni);
+	AddMQ2Data("Ini", datatypes::MQIniType::dataIni);
 	AddMQ2Data("Macro", datatypes::MQ2MacroType::dataMacro);
 	AddMQ2Data("MacroQuest", datatypes::MQ2MacroQuestType::dataMacroQuest);
 	AddMQ2Data("Math", datatypes::MQ2MathType::dataMath);

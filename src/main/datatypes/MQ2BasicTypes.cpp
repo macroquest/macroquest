@@ -387,7 +387,8 @@ enum class StringMembers
 	NotEqualCS,
 	Count,
 	Token,
-	Replace
+	Replace,
+	StripLinks,
 };
 
 MQ2StringType::MQ2StringType() : MQ2Type("string")
@@ -409,6 +410,7 @@ MQ2StringType::MQ2StringType() : MQ2Type("string")
 	ScopedTypeMember(StringMembers, Count);
 	ScopedTypeMember(StringMembers, Token);
 	ScopedTypeMember(StringMembers, Replace);
+	ScopedTypeMember(StringMembers, StripLinks);
 }
 
 bool MQ2StringType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -783,6 +785,12 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			}
 		}
 		return false;
+
+	case StringMembers::StripLinks:
+		Dest.Type = pStringType;
+		strcpy_s(DataTypeTemp, CleanItemTags(szString).c_str());
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
 
 	default:
 		return false;

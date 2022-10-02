@@ -254,7 +254,7 @@ public:
 		if (GetServerIDFromServerName(GetServerShortName()) == ServerID::Invalid)
 		{
 			// unload
-			WriteChatf("MQ2 does not function on this server: %s -- UNLOADING", GetServerShortName());
+			WriteChatf("MQ does not function on this server: %s -- UNLOADING", GetServerShortName());
 			EzCommand("/unload");
 		}
 #endif
