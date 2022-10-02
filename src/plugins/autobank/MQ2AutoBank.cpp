@@ -49,7 +49,7 @@ class AutoBank::BankWnd_Hook
 {
 public:
 	DETOUR_TRAMPOLINE_DEF(int, WndNotification_Trampoline, (CXWnd*, uint32_t, void*))
-	int WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
+		int WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
 	{
 		CBankWnd* pThis = (CBankWnd*)this;
 		PcProfile* pProfile = GetPcProfile();
@@ -64,58 +64,58 @@ public:
 			{
 				switch (uiMessage)
 				{
-					case XWM_LCLICK:
-						if (!pProfile->GetInventorySlot(InvSlot_Cursor))
+				case XWM_LCLICK:
+					if (!pProfile->GetInventorySlot(InvSlot_Cursor))
+					{
+						if (!gbAutoBankTradeSkillItems && !gbAutoBankCollectibleItems && !gbAutoBankQuestItems)
 						{
-							if (!gbAutoBankTradeSkillItems && !gbAutoBankCollectibleItems && !gbAutoBankQuestItems)
-							{
-								gAutoBankButton->bChecked = false;
-							}
-							else
-							{
-								gAutoBankButton->bChecked = true;
-							}
+							gAutoBankButton->bChecked = false;
 						}
-						break;
-
-					case XWM_LMOUSEUP:
-						if (!pProfile->GetInventorySlot(InvSlot_Cursor))
+						else
 						{
-							if (!gbAutoBankTradeSkillItems && !gbAutoBankCollectibleItems && !gbAutoBankQuestItems)
-							{
-								WriteChatf("\ay[AUTOBANK FILTER NOT CONFIGURED]\ax AutoBank Filters where empty there is nothing selected for moving, rightclick the autobank button to select filters.\n");
-								gAutoBankButton->bChecked = false;
-								break;
-							}
-
-							if (!gbStartAutoBanking)
-							{
-								// user leftclicked the autobank button and nothing on cursor
-								// we will autobank from inventory instead and pick items he wants
-								// by using his menu settings.
-								gbStartAutoBanking = true;
-
-								WriteChatf("\ay[Auto%s started. Please wait...]\ax",
-									gbAutoInventoryItems ? "Inventory" : "Bank");
-							}
-							else
-							{
-								WriteChatf("\ar[Auto%s ALREADY in Progress, please wait for it to finish...]\ax",
-									gbAutoInventoryItems ? "Inventory" : "Bank");
-								return 0;
-							}
+							gAutoBankButton->bChecked = true;
 						}
-						break;
+					}
+					break;
 
-					case XWM_RCLICK:
-						if (pContextMenuManager)
+				case XWM_LMOUSEUP:
+					if (!pProfile->GetInventorySlot(InvSlot_Cursor))
+					{
+						if (!gbAutoBankTradeSkillItems && !gbAutoBankCollectibleItems && !gbAutoBankQuestItems)
 						{
-							CXPoint Loc = pWndMgr->MousePoint;
-
-							// work in progress
-							pContextMenuManager->PopupMenu(s_bankCustomMenu, Loc, pThis);
+							WriteChatf("\ay[AUTOBANK FILTER NOT CONFIGURED]\ax AutoBank Filters where empty there is nothing selected for moving, rightclick the autobank button to select filters.\n");
+							gAutoBankButton->bChecked = false;
+							break;
 						}
-						break;
+
+						if (!gbStartAutoBanking)
+						{
+							// user leftclicked the autobank button and nothing on cursor
+							// we will autobank from inventory instead and pick items he wants
+							// by using his menu settings.
+							gbStartAutoBanking = true;
+
+							WriteChatf("\ay[Auto%s started. Please wait...]\ax",
+								gbAutoInventoryItems ? "Inventory" : "Bank");
+						}
+						else
+						{
+							WriteChatf("\ar[Auto%s ALREADY in Progress, please wait for it to finish...]\ax",
+								gbAutoInventoryItems ? "Inventory" : "Bank");
+							return 0;
+						}
+					}
+					break;
+
+				case XWM_RCLICK:
+					if (pContextMenuManager)
+					{
+						CXPoint Loc = pWndMgr->MousePoint;
+
+						// work in progress
+						pContextMenuManager->PopupMenu(s_bankCustomMenu, Loc, pThis);
+					}
+					break;
 				};
 			}
 		}
@@ -128,39 +128,39 @@ public:
 
 			switch (ItemID)
 			{
-				case ContextMenu_TradeskillItemsId:
-					gbAutoBankTradeSkillItems = !gbAutoBankTradeSkillItems;
-					WritePrivateProfileBool("AutoBank", "AutoBankTradeSkillItems", gbAutoBankTradeSkillItems, gPathConfig);
+			case ContextMenu_TradeskillItemsId:
+				gbAutoBankTradeSkillItems = !gbAutoBankTradeSkillItems;
+				WritePrivateProfileBool("AutoBank", "AutoBankTradeSkillItems", gbAutoBankTradeSkillItems, gPathConfig);
 
-					AutoBankMenu->CheckMenuItem(iItemID, gbAutoBankTradeSkillItems);
-					break;
+				AutoBankMenu->CheckMenuItem(iItemID, gbAutoBankTradeSkillItems);
+				break;
 
-				case ContextMenu_CollectibleItemsId:
-					gbAutoBankCollectibleItems = !gbAutoBankCollectibleItems;
-					WritePrivateProfileBool("AutoBank", "AutoBankCollectibleItems", gbAutoBankCollectibleItems, gPathConfig);
+			case ContextMenu_CollectibleItemsId:
+				gbAutoBankCollectibleItems = !gbAutoBankCollectibleItems;
+				WritePrivateProfileBool("AutoBank", "AutoBankCollectibleItems", gbAutoBankCollectibleItems, gPathConfig);
 
-					AutoBankMenu->CheckMenuItem(iItemID, gbAutoBankCollectibleItems);
-					break;
+				AutoBankMenu->CheckMenuItem(iItemID, gbAutoBankCollectibleItems);
+				break;
 
-				case ContextMenu_QuestItemsId:
-					gbAutoBankQuestItems = !gbAutoBankQuestItems;
-					WritePrivateProfileBool("AutoBank", "AutoBankQuestItems", gbAutoBankQuestItems, gPathConfig);
+			case ContextMenu_QuestItemsId:
+				gbAutoBankQuestItems = !gbAutoBankQuestItems;
+				WritePrivateProfileBool("AutoBank", "AutoBankQuestItems", gbAutoBankQuestItems, gPathConfig);
 
-					AutoBankMenu->CheckMenuItem(iItemID, gbAutoBankQuestItems);
-					break;
+				AutoBankMenu->CheckMenuItem(iItemID, gbAutoBankQuestItems);
+				break;
 
-				case ContextMenu_CheckedItemsId:
-					gbAutoInventoryItems = !gbAutoInventoryItems;
-					WritePrivateProfileBool("AutoBank", "AutoInventoryItems", gbAutoInventoryItems, gPathConfig);
+			case ContextMenu_CheckedItemsId:
+				gbAutoInventoryItems = !gbAutoInventoryItems;
+				WritePrivateProfileBool("AutoBank", "AutoInventoryItems", gbAutoInventoryItems, gPathConfig);
 
-					AutoBankMenu->CheckMenuItem(iItemID, gbAutoInventoryItems);
-					break;
-				case ContextMenu_TrophysId:
-					gbAutoBankTrophiesWithTradeskill = !gbAutoBankTrophiesWithTradeskill;
-					WritePrivateProfileBool("AutoBank", "AutoBankTrophiesWithTradeskill", gbAutoBankTrophiesWithTradeskill, gPathConfig);
+				AutoBankMenu->CheckMenuItem(iItemID, gbAutoInventoryItems);
+				break;
+			case ContextMenu_TrophysId:
+				gbAutoBankTrophiesWithTradeskill = !gbAutoBankTrophiesWithTradeskill;
+				WritePrivateProfileBool("AutoBank", "AutoBankTrophiesWithTradeskill", gbAutoBankTrophiesWithTradeskill, gPathConfig);
 
-					AutoBankMenu->CheckMenuItem(iItemID, gbAutoBankTrophiesWithTradeskill);
-					break;
+				AutoBankMenu->CheckMenuItem(iItemID, gbAutoBankTrophiesWithTradeskill);
+				break;
 			};
 		}
 

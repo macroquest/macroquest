@@ -1,3 +1,7 @@
+October 2, 2022:
+- Autobank and related functionality has been moved from mq2main into its own autobank plugin. (#580)
+- autobank: Added tradeskill item filter
+
 September 26, 2022:
 - Fix Me.Levitating (#632)
 - Add more robust ini handling options - see http://docs.macroquest.org/reference/data-types/datatype-inifilesectionkey
