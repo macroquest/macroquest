@@ -749,7 +749,7 @@ void PluginsCleanUI()
 	PluginDebug("PluginsCleanUI()");
 
 	DeleteMQ2NewsWindow();
-	RemoveAutoBankMenu();
+	RemoveFindItemMenu();
 
 	ForEachPlugin([](const MQPlugin* plugin)
 		{
