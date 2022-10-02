@@ -1,6 +1,10 @@
+October 2, 2022 (test):
+- Updated for test patch
+
 October 2, 2022:
 - Autobank and related functionality has been moved from mq2main into its own autobank plugin. (#580)
 - autobank: Added tradeskill item filter
+- framelimiter: Fix framelimiter not bypassing built-in limiter when it is enabled.
 
 September 26, 2022:
 - Fix Me.Levitating (#632)
