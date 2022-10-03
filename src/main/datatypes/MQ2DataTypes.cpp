@@ -539,6 +539,7 @@ bool CDataArray::GetElement(char* Index, MQTypeVar& Dest)
 #include "MQ2WorldLocationType.cpp"
 #include "MQ2XTargetType.cpp"
 #include "MQ2ZoneType.cpp"
+#include "MQIniType.cpp"
 
 #if HAS_ADVANCED_LOOT
 #include "MQ2AdvLootType.cpp"

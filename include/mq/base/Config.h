@@ -126,6 +126,36 @@ inline std::vector<std::string> GetPrivateProfileKeys(const std::string& section
 	return results;
 }
 
+template <size_t BUFFER_SIZE = MAX_STRING>
+inline std::vector<std::pair<std::string, std::string>> GetPrivateProfileKeyValues(const std::string& section, const std::string& iniFileName)
+{
+	char keybuffer[BUFFER_SIZE] = { 0 };
+
+	const int bufferLen = ::GetPrivateProfileSectionA(section.c_str(), keybuffer, BUFFER_SIZE, iniFileName.c_str());
+	char* ptr = keybuffer;
+
+	std::vector<std::pair<std::string, std::string>> results;
+
+	while (ptr < keybuffer + bufferLen)
+	{
+		const std::string keyLine = ptr;
+		std::string keyName = keyLine;
+		std::string keyValue = "";
+
+		const size_t pos = keyLine.find("=");
+		if (pos != std::string::npos)
+		{
+			keyName = keyLine.substr(0, pos);
+			keyValue = keyLine.substr(pos + 1, keyLine.length() - pos - 1);
+		}
+		ptr += keyLine.length() + 1;
+
+		results.emplace_back(std::make_pair(keyName, keyValue));
+	}
+
+	return results;
+}
+
 inline bool PrivateProfileKeyExists(const std::string& section, const std::string& key, const std::string& iniFileName)
 {
 	const auto key_list = GetPrivateProfileKeys(section, iniFileName);
@@ -151,6 +181,12 @@ inline std::vector<std::string> GetPrivateProfileSections(const std::string& ini
 	}
 
 	return results;
+}
+
+inline bool PrivateProfileSectionExists(const std::string& section, const std::string& iniFileName)
+{
+	const auto section_list = GetPrivateProfileSections(iniFileName);
+	return std::any_of(section_list.begin(), section_list.end(), [section](const auto& this_section) { return ci_equals(this_section, section); });
 }
 
 inline bool WritePrivateProfileSection(const std::string& Section, const std::string& KeysAndValues, const std::string& iniFileName)

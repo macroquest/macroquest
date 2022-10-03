@@ -105,6 +105,10 @@ DATATYPE(MQ2AchievementType, pAchievementType, nullptr);
 DATATYPE(MQ2AchievementManagerType, pAchievementManagerType, nullptr);
 DATATYPE(MQ2AchievementCategoryType, pAchievementCategoryType, nullptr);
 DATATYPE(MQ2AchievementObjectiveType, pAchievementObjectiveType, nullptr);
+DATATYPE(MQIniFileSectionKeyType, pIniFileSectionKeyType, nullptr);
+DATATYPE(MQIniFileSectionType, pIniFileSectionType, nullptr);
+DATATYPE(MQIniFileType, pIniFileType, nullptr);
+DATATYPE(MQIniType, pIniType, nullptr);
 
 #if HAS_ADVANCED_LOOT
 DATATYPE(MQ2AdvLootType, pAdvLootType, nullptr);

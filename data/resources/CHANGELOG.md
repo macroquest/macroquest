@@ -1,3 +1,17 @@
+October 2, 2022:
+- Autobank and related functionality has been moved from mq2main into its own autobank plugin. (#580)
+- autobank: Added tradeskill item filter
+- framelimiter: Fix framelimiter not bypassing built-in limiter when it is enabled.
+
+September 26, 2022:
+- Fix Me.Levitating (#632)
+- Add more robust ini handling options - see http://docs.macroquest.org/reference/data-types/datatype-inifilesectionkey
+- Add .StripLinks memember to string types which will return the plain text version of a string containing links
+
+September 21, 2022 (live):
+- Fix achievement crash (#629).
+- Updated for live patch
+
 September 18, 2022:
 - emu: Added back /timestamp for emulator builds to add timestamps to chat. Added checkbox
   to the mq settings window under a new "Chat" section. (#618)

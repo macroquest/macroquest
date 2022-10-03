@@ -1454,6 +1454,51 @@ public:
 
 //----------------------------------------------------------------------------
 
+//============================================================================
+// MQIniType
+
+class MQIniFileSectionKeyType : public MQ2Type
+{
+public:
+	MQIniFileSectionKeyType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+
+	static bool dataIniFileSectionKey(const char* szIndex, MQTypeVar& Ret);
+};
+
+class MQIniFileSectionType : public MQ2Type
+{
+public:
+	MQIniFileSectionType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+
+	static bool dataIniFileSection(const char* szIndex, MQTypeVar& Ret);
+};
+
+class MQIniFileType : public MQ2Type
+{
+public:
+	MQIniFileType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+
+	static bool dataIniFile(const char* szIndex, MQTypeVar& Ret);
+};
+
+class MQIniType : public MQ2Type
+{
+public:
+	MQIniType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+
+	static bool dataIni(const char* szIndex, MQTypeVar& Ret);
+};
+
+//----------------------------------------------------------------------------
+
 bool dataIf(const char* szIndex, MQTypeVar& Ret);
 bool dataGameTime(const char* szIndex, MQTypeVar& Ret);
 bool dataIni(const char* szIndex, MQTypeVar& Ret);

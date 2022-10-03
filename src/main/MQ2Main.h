@@ -833,7 +833,7 @@ constexpr int GAMESTATE_UNLOADING      = 255;
 
 MQLIB_API void memchecks_tramp(char*, DWORD, void*, DWORD, bool);
 MQLIB_API void memchecks(char*, DWORD, void*, DWORD, bool);
-MQLIB_API void RemoveAutoBankMenu();
+MQLIB_API void RemoveFindItemMenu();
 MQLIB_API bool WillFitInBank(ItemClient* pContent);
 MQLIB_API bool WillFitInInventory(ItemClient* pContent);
 
