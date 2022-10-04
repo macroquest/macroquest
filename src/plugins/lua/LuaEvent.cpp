@@ -51,12 +51,8 @@ void LuaEventProcessor::AddEvent(std::string_view name, std::string_view express
 void LuaEventProcessor::RemoveEvent(std::string_view name)
 {
 	RemoveEvents({ std::string(name) });
-	auto it = std::find_if(m_eventDefinitions.begin(), m_eventDefinitions.end(),
-		[&name](const std::unique_ptr<LuaEvent>& event) { return event->GetName() == name; });
-	if (it != m_eventDefinitions.end())
-	{
-		m_eventDefinitions.erase(it);
-	}
+	m_eventDefinitions.erase(std::remove_if(m_eventDefinitions.begin(), m_eventDefinitions.end(), 
+		[&name](const std::unique_ptr<LuaEvent>& event) { return event->GetName() == name; }));
 }
 
 void LuaEventProcessor::AddBind(std::string_view name, const sol::function& function)
