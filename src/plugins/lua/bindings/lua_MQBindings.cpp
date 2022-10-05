@@ -285,52 +285,60 @@ static void lua_flushevents(sol::variadic_args va, sol::this_state s)
 	}
 }
 
-static void lua_addevent(std::string_view name, std::string_view expression, sol::function function, sol::this_state s)
+static bool lua_addevent(std::string_view name, std::string_view expression, sol::function function, sol::this_state s)
 {
 	if (function == sol::nil)
 	{
 		luaL_error(s, "nil function passed as event callback");
-		return;
+		return false;
 	}
 
 	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
 		if (LuaEventProcessor* events = thread_ptr->GetEventProcessor())
-			events->AddEvent(name, expression, function);
+			return events->AddEvent(name, expression, function);
 	}
+
+	return false;
 }
 
-static void lua_removeevent(std::string_view name, sol::this_state s)
+static bool lua_removeevent(std::string_view name, sol::this_state s)
 {
 	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
 		if (LuaEventProcessor* events = thread_ptr->GetEventProcessor())
-			events->RemoveEvent(name);
+			return events->RemoveEvent(name);
 	}
+	
+	return false;
 }
 
-static void lua_addbind(std::string_view name, sol::function function, sol::this_state s)
+static bool lua_addbind(std::string_view name, sol::function function, sol::this_state s)
 {
 	if (function == sol::nil)
 	{
 		luaL_error(s, "nil function passed as bind callback");
-		return;
+		return false;
 	}
 
 	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
 		if (LuaEventProcessor* events = thread_ptr->GetEventProcessor())
-			events->AddBind(name, function);
+			return events->AddBind(name, function);
 	}
+
+	return false;
 }
 
-static void lua_removebind(std::string_view name, sol::this_state s)
+static bool lua_removebind(std::string_view name, sol::this_state s)
 {
 	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
 		if (LuaEventProcessor* events = thread_ptr->GetEventProcessor())
-			events->RemoveBind(name);
+			return events->RemoveBind(name);
 	}
+
+	return false;
 }
 
 #pragma endregion

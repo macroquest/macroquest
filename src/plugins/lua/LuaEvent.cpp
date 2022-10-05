@@ -43,12 +43,24 @@ LuaEventProcessor::~LuaEventProcessor()
 	m_eventDefinitions.clear();
 }
 
-void LuaEventProcessor::AddEvent(std::string_view name, std::string_view expression, const sol::function& function)
+bool LuaEventProcessor::AddEvent(std::string_view name, std::string_view expression, const sol::function& function)
 {
+	// the number of events will always be fairly small, and this is a manual operation.
+	// If this is deemed too slow, the event names can be memoized in a set of string_views.
+	auto it = std::find_if(m_eventDefinitions.begin(), m_eventDefinitions.end(),
+		[&name](const std::unique_ptr<LuaEvent>& event) { return event->GetName() == name; });
+
+	if (it != m_eventDefinitions.end())
+	{
+		LuaError("Cannot create event %.*s, it is already defined.", name.length(), name.data());
+		return false;
+	}
+
 	m_eventDefinitions.push_back(std::make_unique<LuaEvent>(name, expression, function, this, *m_blech));
+	return true;
 }
 
-void LuaEventProcessor::RemoveEvent(std::string_view name)
+bool LuaEventProcessor::RemoveEvent(std::string_view name)
 {
 	RemoveEvents({ std::string(name) });
 	auto it = std::find_if(m_eventDefinitions.begin(), m_eventDefinitions.end(),
@@ -56,27 +68,31 @@ void LuaEventProcessor::RemoveEvent(std::string_view name)
 	if (it != m_eventDefinitions.end())
 	{
 		m_eventDefinitions.erase(it);
+		return true;
 	}
+
+	return false;
 }
 
-void LuaEventProcessor::AddBind(std::string_view name, const sol::function& function)
+bool LuaEventProcessor::AddBind(std::string_view name, const sol::function& function)
 {
 	std::string bind_name(name);
 	if (IsCommand(bind_name.c_str()))
 	{
 		LuaError("Cannot bind %s, already bound in MQ.", bind_name.c_str());
+		return false;
 	}
 	else if (bind_name.empty() || bind_name[0] != '/')
 	{
 		LuaError("Cannot bind %s, not a valid command string.", bind_name.c_str());
+		return false;
 	}
-	else
-	{
-		m_bindDefinitions.push_back(std::make_unique<LuaBind>(bind_name, function, this));
-	}
+
+	m_bindDefinitions.push_back(std::make_unique<LuaBind>(bind_name, function, this));
+	return true;
 }
 
-void LuaEventProcessor::RemoveBind(std::string_view name)
+bool LuaEventProcessor::RemoveBind(std::string_view name)
 {
 	RemoveBinds({ std::string(name) });
 	auto it = std::find_if(m_bindDefinitions.begin(), m_bindDefinitions.end(),
@@ -86,7 +102,12 @@ void LuaEventProcessor::RemoveBind(std::string_view name)
 		});
 
 	if (it != m_bindDefinitions.end())
+	{
 		m_bindDefinitions.erase(it);
+		return true;
+	}
+
+	return false;
 }
 
 void LuaEventProcessor::Process(std::string_view line) const
