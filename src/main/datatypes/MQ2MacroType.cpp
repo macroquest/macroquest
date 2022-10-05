@@ -276,7 +276,7 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 				return false;
 			}
 
-			CDataArray* pArray = (CDataArray*)pVar->Var.Ptr;
+			auto pArray = pVar->Var.Get<CDataArray>();
 			int index = pArray->GetElement(szIndex);
 			if (index == -1)
 			{

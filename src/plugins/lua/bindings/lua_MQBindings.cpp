@@ -233,6 +233,30 @@ sol::object lua_MQTypeVar::CallVA(sol::this_state L, sol::variadic_args args) co
 	return Call(lua_join(L, ",", args), L);
 }
 
+static sol::table fill_extent(const std::shared_ptr<datatypes::CDataArray>& arr, int extent, int curr_index, sol::state_view s)
+{
+	auto local_size = arr->GetExtents(extent);
+	auto table = s.create_table(local_size);
+	if (extent + 1 == arr->GetNumExtents())
+	{
+		// this is the final extent, we need to build values
+		for (int index = 0; index < local_size; ++index)
+		{
+			MQTypeVar var;
+			var.Type = arr->GetType();
+			var.SetVarPtr(arr->GetData((curr_index * local_size) + index));
+			table.add(lua_MQTypeVar(var));
+		}
+	}
+	else
+	{
+		for (int index = 0; index < local_size; ++index)
+			table.add(fill_extent(arr, extent + 1, index, s));
+	}
+
+	return table;
+}
+
 sol::object lua_MQTypeVar::CallEmpty(sol::this_state L) const
 {
 	MQTypeVar result = EvaluateMember();
@@ -240,6 +264,8 @@ sol::object lua_MQTypeVar::CallEmpty(sol::this_state L) const
 	if (result.Type == nullptr)
 		return sol::object(L, sol::in_place, sol::lua_nil);
 
+	if (result.Type == mq::datatypes::pArrayType)
+		return sol::object(L, sol::in_place, fill_extent(result.Get<datatypes::CDataArray>(), 0, 0, sol::state_view(L)));
 	if (result.Type == mq::datatypes::pBoolType)
 		return sol::object(L, sol::in_place, result.Get<bool>());
 	if (result.Type == mq::datatypes::pIntType)

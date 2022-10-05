@@ -352,10 +352,6 @@ public:
 	MQ2ArrayType();
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
-	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-
-	void InitVariable(MQVarPtr& VarPtr) override;
-	void FreeVariable(MQVarPtr& VarPtr) override;
 };
 
 //============================================================================

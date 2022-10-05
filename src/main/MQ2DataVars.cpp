@@ -110,7 +110,7 @@ static bool InitVariableValue(MQTypeVar& TypeVar, const DefaultValueType& defaul
 	return false;
 }
 
-static bool InitArrayValue(CDataArray* pArray, const DefaultValueType& defaultValue)
+static bool InitArrayValue(std::shared_ptr<CDataArray> pArray, const DefaultValueType& defaultValue)
 {
 	switch (defaultValue.index())
 	{
@@ -158,8 +158,9 @@ static bool AddMQ2DataEventVariable(const char* Name, char* Index, MQ2Type* pTyp
 
 	if (Index[0])
 	{
-		CDataArray* pArray = new CDataArray(pType, Index);
-		pVar->Var.Ptr = pArray;
+		auto pArray = std::make_shared<CDataArray>(pType, Index);
+		pVar->Var.Set(pArray);
+		pVar->Var.Type = pArrayType;
 
 		InitArrayValue(pArray, defaultValue);
 	}
@@ -208,8 +209,8 @@ static bool AddMQ2DataVariableBy(const char* Name, const char* Index, MQ2Type* p
 		// Allow for creation of size 0 arrays, but not less (functionality in use)
 		if (GetIntFromString(Index, -1) >= 0)
 		{
-			CDataArray* pArray = new CDataArray(pType, Index);
-			pVar->Var.Ptr = pArray;
+			auto pArray = std::make_shared<CDataArray>(pType, Index);
+			pVar->Var.Set(pArray);
 			pVar->Var.Type = pArrayType;
 
 			InitArrayValue(pArray, defaultValue);
@@ -445,7 +446,7 @@ void NewVarset(SPAWNINFO* pChar, char* szLine)
 			return;
 		}
 
-		CDataArray* pArray = (CDataArray*)pVar->Var.Ptr;
+		auto pArray = pVar->Var.Get<CDataArray>();
 		int index = pArray->GetElement(szIndex);
 		if (index == -1)
 		{
@@ -517,8 +518,7 @@ void NewVarcalc(SPAWNINFO* pChar, char* szLine)
 			return;
 		}
 
-		CDataArray* pArray = (CDataArray*)pVar->Var.Ptr;
-
+		auto pArray = pVar->Var.Get<CDataArray>();
 		int index = pArray->GetElement(szIndex);
 		if (index == -1)
 		{
@@ -592,7 +592,7 @@ void NewVardata(SPAWNINFO* pChar, char* szLine)
 			return;
 		}
 
-		CDataArray* pArray = (CDataArray*)destVar->Var.Ptr;
+		auto pArray = destVar->Var.Get<CDataArray>();
 		num = pArray->GetElement(szIndex);
 		if (num == -1)
 		{
