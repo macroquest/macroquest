@@ -1606,6 +1606,7 @@ enum class TimeMembers
 	Hour,
 	Minute,
 	Second,
+	MilliSecond,
 	DayOfWeek,
 	Day,
 	Month,
@@ -1623,6 +1624,7 @@ MQ2TimeType::MQ2TimeType() : MQ2Type("time")
 	ScopedTypeMember(TimeMembers, Hour);
 	ScopedTypeMember(TimeMembers, Minute);
 	ScopedTypeMember(TimeMembers, Second);
+	ScopedTypeMember(TimeMembers, MilliSecond);
 	ScopedTypeMember(TimeMembers, DayOfWeek);
 	ScopedTypeMember(TimeMembers, Day);
 	ScopedTypeMember(TimeMembers, Month);
@@ -1669,6 +1671,13 @@ bool MQ2TimeType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	case TimeMembers::Second:
 		Dest.DWord = pTime->tm_sec;
+		Dest.Type = pIntType;
+		return true;
+
+	case TimeMembers::MilliSecond:
+		SYSTEMTIME nowMs;
+		GetSystemTime(&nowMs);
+		Dest.DWord = nowMs.wMilliseconds;
 		Dest.Type = pIntType;
 		return true;
 
