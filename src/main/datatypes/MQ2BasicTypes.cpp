@@ -1747,18 +1747,6 @@ bool MQ2TimeType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-void MQ2TimeType::InitVariable(MQVarPtr& VarPtr)
-{
-	VarPtr.Ptr = new SYSTEMTIME();
-	ZeroMemory(VarPtr.Ptr, sizeof(SYSTEMTIME));
-}
-
-void MQ2TimeType::FreeVariable(MQVarPtr& VarPtr)
-{
-	SYSTEMTIME* Now = static_cast<SYSTEMTIME*>(VarPtr.Ptr);
-	delete Now;
-}
-
 bool MQ2TimeType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pTimeType)
