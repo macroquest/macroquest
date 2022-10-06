@@ -110,7 +110,7 @@ static bool InitVariableValue(MQTypeVar& TypeVar, const DefaultValueType& defaul
 	return false;
 }
 
-static bool InitArrayValue(std::shared_ptr<CDataArray> pArray, const DefaultValueType& defaultValue)
+static bool InitArrayValue(const std::shared_ptr<CDataArray>& pArray, const DefaultValueType& defaultValue)
 {
 	switch (defaultValue.index())
 	{

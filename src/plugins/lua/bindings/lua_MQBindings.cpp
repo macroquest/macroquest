@@ -235,7 +235,7 @@ sol::object lua_MQTypeVar::CallVA(sol::this_state L, sol::variadic_args args) co
 
 static sol::table fill_extent(const std::shared_ptr<datatypes::CDataArray>& arr, int extent, int curr_index, sol::state_view s)
 {
-	auto local_size = arr->GetExtents(extent);
+	int local_size = arr->GetExtents(extent);
 	auto table = s.create_table(local_size);
 	if (extent + 1 == arr->GetNumExtents())
 	{
