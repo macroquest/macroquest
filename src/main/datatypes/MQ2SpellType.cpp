@@ -61,7 +61,6 @@ enum class SpellMembers
 	AutoCast,
 	Extra,
 	RecastTimerID,
-	SPA,
 	ReagentID,
 	ReagentCount,
 	CastByOther,
@@ -103,6 +102,8 @@ enum class SpellMembers
 	HastePct,
 	MyDuration,
 	BaseEffectsFocusCap,
+	CategoryID,
+	SubcategoryID,
 };
 
 enum class SpellMethods
@@ -153,7 +154,6 @@ MQ2SpellType::MQ2SpellType() : MQ2Type("spell")
 	ScopedTypeMember(SpellMembers, AutoCast);
 	ScopedTypeMember(SpellMembers, Extra);
 	ScopedTypeMember(SpellMembers, RecastTimerID);
-	ScopedTypeMember(SpellMembers, SPA);
 	ScopedTypeMember(SpellMembers, ReagentID);
 	ScopedTypeMember(SpellMembers, ReagentCount);
 	ScopedTypeMember(SpellMembers, CastByOther);
@@ -195,6 +195,8 @@ MQ2SpellType::MQ2SpellType() : MQ2Type("spell")
 	ScopedTypeMember(SpellMembers, HastePct);
 	ScopedTypeMember(SpellMembers, MyDuration);
 	ScopedTypeMember(SpellMembers, BaseEffectsFocusCap);
+	ScopedTypeMember(SpellMembers, CategoryID);
+	ScopedTypeMember(SpellMembers, SubcategoryID);
 	AddMember(static_cast<int>(SpellMembers::BaseEffectsFocusCap), "SongCap");
 }
 
@@ -774,6 +776,11 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.Type = pStringType;
 		return true;
 
+	case SpellMembers::CategoryID:
+		Dest.Type = pIntType;
+		Dest.DWord = GetSpellCategory(pSpell);
+		return true;
+
 	case SpellMembers::Subcategory:
 		strcpy_s(DataTypeTemp, "Unknown");
 		if (int cat = GetSpellSubcategory(pSpell))
@@ -786,6 +793,11 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
+		return true;
+
+	case SpellMembers::SubcategoryID:
+		Dest.Type = pIntType;
+		Dest.DWord = GetSpellSubcategory(pSpell);
 		return true;
 
 	case SpellMembers::Restrictions:
@@ -910,11 +922,6 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case SpellMembers::RecastTimerID:
 		Dest.DWord = pSpell->ReuseTimerIndex;
-		Dest.Type = pIntType;
-		return true;
-
-	case SpellMembers::SPA:
-		Dest.DWord = pSpell->spaindex;
 		Dest.Type = pIntType;
 		return true;
 

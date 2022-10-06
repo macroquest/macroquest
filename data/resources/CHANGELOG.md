@@ -1,3 +1,7 @@
+October 6, 2022:
+- Remove Spell.SPA - this wasn't actually a SPA and was some other meaningless value.
+- Add Spell.CategoryID and Spell.SubcategoryID - the integer values of Category and Subcategory
+
 October 2, 2022:
 - Autobank and related functionality has been moved from mq2main into its own autobank plugin. (#580)
 - autobank: Added tradeskill item filter
