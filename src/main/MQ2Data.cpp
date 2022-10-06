@@ -131,18 +131,17 @@ bool dataIf(const char* szIndex, MQTypeVar& Ret)
 
 bool dataGameTime(const char* szIndex, MQTypeVar& Ret)
 {
-	struct tm* pTime = (struct tm*)&DataTypeTemp[0];
-	ZeroMemory(pTime, sizeof(struct tm));
-	pTime->tm_sec = 0;
-	pTime->tm_min = pWorldData->Minute;
-	pTime->tm_hour = pWorldData->Hour - 1;
-	pTime->tm_mday = pWorldData->Day;
-	pTime->tm_mon = pWorldData->Month - 1;
-	pTime->tm_year = pWorldData->Year - 1900;
-	pTime->tm_wday = (pWorldData->Day - 1) % 7;
-	pTime->tm_isdst = 0;
+	SYSTEMTIME pTime;
+	ZeroMemory(&pTime, sizeof(SYSTEMTIME));
+	pTime.wSecond = 0;
+	pTime.wMinute = pWorldData->Minute;
+	pTime.wHour = pWorldData->Hour - 1;
+	pTime.wDay = pWorldData->Day;
+	pTime.wMonth = pWorldData->Month;
+	pTime.wYear = pWorldData->Year;
+	pTime.wDayOfWeek = (pWorldData->Day - 1) % 7;
 
-	Ret.Ptr = pTime;
+	Ret.Set(pTime);
 	Ret.Type = pTimeType;
 	return true;
 }
