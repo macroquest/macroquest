@@ -61,7 +61,6 @@ enum class SpellMembers
 	AutoCast,
 	Extra,
 	RecastTimerID,
-	SPA,
 	ReagentID,
 	ReagentCount,
 	CastByOther,
@@ -153,7 +152,6 @@ MQ2SpellType::MQ2SpellType() : MQ2Type("spell")
 	ScopedTypeMember(SpellMembers, AutoCast);
 	ScopedTypeMember(SpellMembers, Extra);
 	ScopedTypeMember(SpellMembers, RecastTimerID);
-	ScopedTypeMember(SpellMembers, SPA);
 	ScopedTypeMember(SpellMembers, ReagentID);
 	ScopedTypeMember(SpellMembers, ReagentCount);
 	ScopedTypeMember(SpellMembers, CastByOther);
@@ -910,11 +908,6 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case SpellMembers::RecastTimerID:
 		Dest.DWord = pSpell->ReuseTimerIndex;
-		Dest.Type = pIntType;
-		return true;
-
-	case SpellMembers::SPA:
-		Dest.DWord = pSpell->spaindex;
 		Dest.Type = pIntType;
 		return true;
 
