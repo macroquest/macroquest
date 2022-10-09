@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <mq/base/Color.h>
 #include <mq/base/String.h>
 
 #include <string>
@@ -90,6 +91,17 @@ inline std::string GetPrivateProfileString(const char* Section, const char* Key,
 	const DWORD length = ::GetPrivateProfileStringA(Section, Key, DefaultValue, szBuffer, MAX_STRING, iniFileName);
 	return std::string{ szBuffer, length };
 }
+
+inline mq::MQColor GetPrivateProfileColor(const std::string& Section, const std::string& Key, mq::MQColor color, const std::string& iniFileName)
+{
+	return (uint32_t)::GetPrivateProfileIntA(Section.c_str(), Key.c_str(), (int32_t)color.ToARGB(), iniFileName.c_str());
+}
+
+inline mq::MQColor GetPrivateProfileColor(const char* Section, const char* Key, mq::MQColor color, const char* iniFileName)
+{
+	return (uint32_t)::GetPrivateProfileIntA(Section, Key, (int32_t)color.ToARGB(), iniFileName);
+}
+
 
 // GetPrivateProfileValue provides overloads to allow dispatching by type (selected by the type of default value)
 inline int GetPrivateProfileValue(const char* Section, const char* Key, int defaultValue, const char* IniFileName) { return GetPrivateProfileInt(Section, Key, defaultValue, IniFileName); }
@@ -240,6 +252,18 @@ inline bool WritePrivateProfileFloat(const std::string& Section, const std::stri
 inline bool WritePrivateProfileFloat(const char* Section, const char* Key, float Value, const char* iniFileName)
 {
 	std::string ValueString = std::to_string(Value);
+	return ::WritePrivateProfileStringA(Section, Key, ValueString.c_str(), iniFileName);
+}
+
+inline bool WritePrivateProfileColor(const std::string& Section, const std::string& Key, mq::MQColor Value, const std::string& iniFileName)
+{
+	std::string ValueString = std::to_string(Value.ToARGB());
+	return ::WritePrivateProfileStringA(Section.c_str(), Key.c_str(), ValueString.c_str(), iniFileName.c_str());
+}
+
+inline bool WritePrivateProfileColor(const char* Section, const char* Key, mq::MQColor Value, const char* iniFileName)
+{
+	std::string ValueString = std::to_string(Value.ToARGB());
 	return ::WritePrivateProfileStringA(Section, Key, ValueString.c_str(), iniFileName);
 }
 
