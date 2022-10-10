@@ -506,4 +506,9 @@ void ShutdownMQ2CrashHandler()
 	RemoveCommand("/crash");
 }
 
+void InvokeExceptionHandler(EXCEPTION_POINTERS* p)
+{
+	OurCrashHandler(p);
+}
+
 } // namespace mq
