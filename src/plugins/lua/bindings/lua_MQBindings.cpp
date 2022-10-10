@@ -296,12 +296,35 @@ sol::object lua_MQTypeVar::Get(sol::stack_object key, sol::this_state L) const
 {
 	lua_MQTypeVar var = EvaluateMember();
 
-	std::optional<std::string_view> maybe_key = key.as<std::optional<std::string_view>>();
-	if (maybe_key)
+	if (var.m_self->Type && var.m_self->Type == datatypes::pArrayType)
 	{
+		auto arr = var.m_self->Get<datatypes::CDataArray>();
+		if (auto maybe_index = key.as<std::optional<int>>())
+		{
+			// we have an integer -- let's just assume single extent for now
+			// TODO: will need to keep track of extents to allow for access like this: arr[2][1]
+			// would rather return an array with a subset, but that would require slicing and copying the underlying array data
+			var.m_member = "";
+			var.m_self->Type = arr->GetType();
+			var.m_self->SetVarPtr(arr->GetData(*maybe_index));
+		}
+		else if (auto maybe_index = key.as<std::optional<std::string_view>>())
+		{
+			// we have a string, so we can use the array's internal string index parsing here
+			if (!arr->GetElement(*maybe_index, *var.m_self))
+			{
+				return sol::object(L, sol::in_place, sol::lua_nil);
+			}
+
+			var.m_member = "";
+		}
+	}
+	else if (auto maybe_key = key.as<std::optional<std::string_view>>())
+	{
+		// the nominal case is that the index is the key to the type member
 		var.m_member = *maybe_key;
 
-		// Make sure that the macro data member even exists if we have the type info
+		// make sure the macro data member even exists if we have the type info
 		if (var.m_self->Type && !FindMacroDataMember(var.m_self->Type, var.m_member))
 		{
 			return sol::object(L, sol::in_place, sol::lua_nil);
