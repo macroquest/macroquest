@@ -1,5 +1,9 @@
-October 9, 2022 (emu):
-- Fixed issue causing custom UIs to create instability and other problems (#639).
+October 10, 2022:
+- emu: Improved ability to capture crash reports.
+- emu: Fixed CharSelect data (#627).
+
+October 9, 2022:
+- emu: Fixed issue causing custom UIs to create instability and other problems (#639).
 
 October 6, 2022:
 - Remove Spell.SPA - this wasn't actually a SPA and was some other meaningless value.
