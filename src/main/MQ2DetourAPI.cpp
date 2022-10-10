@@ -14,6 +14,7 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
+#include "CrashHandler.h"
 
 #include <detours/detours.h>
 
@@ -598,6 +599,20 @@ BOOL WINAPI FindProcesses_Detour(DWORD* lpidProcess, DWORD cb, DWORD* lpcbNeeded
 	return result;
 }
 
+#if defined(__ExceptionFilter_x)
+// Exception filter hook for ROF2 emu. The game loop is wrapped in a __try/__except with this function
+// as its filter. We will capture the exception pointer and pass it to our UnhandledExceptionFilter function.
+DETOUR_TRAMPOLINE_DEF(void, ExceptionFilter_Trampoline, (EXCEPTION_POINTERS*, void*, void*));
+void ExceptionFilter_Detour(EXCEPTION_POINTERS* pointers, void* a, void* b)
+{
+	UNUSED(a);
+	UNUSED(b);
+
+	InvokeExceptionHandler(pointers);
+}
+
+#endif // defined(__ExceptionFilter_x)
+
 void InitializeDetours()
 {
 #if !defined(EMULATOR)
@@ -627,6 +642,10 @@ void InitializeDetours()
 	EzDetour(GetProcAddress_Addr, &GetProcAddress_Detour, &GetProcAddress_Trampoline);
 	EzDetour(__ModuleList, FindModules_Detour, FindModules_Trampoline);
 	EzDetour(__ProcessList, FindProcesses_Detour, FindProcesses_Trampoline);
+
+#if defined(__ExceptionFilter_x)
+	EzDetour(__ExceptionFilter, ExceptionFilter_Detour, ExceptionFilter_Trampoline);
+#endif
 }
 
 void ShutdownDetours()
@@ -635,6 +654,10 @@ void ShutdownDetours()
 	RemoveDetour(GetProcAddress_Addr);
 	RemoveDetour(__ModuleList);
 	RemoveDetour(__ProcessList);
+
+#if defined(__ExceptionFilter_x)
+	RemoveDetour(__ExceptionFilter);
+#endif
 
 	HookMemChecker(false);
 	RemoveDetours();

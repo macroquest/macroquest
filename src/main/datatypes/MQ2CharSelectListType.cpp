@@ -53,7 +53,7 @@ bool MQ2CharSelectListType::GetMember(MQVarPtr VarPtr, const char* Member, char*
 	if (VarPtr.Int < 0 || VarPtr.Int >= pEverQuest->charSelectPlayerArray.GetCount())
 		return false;
 
-	CSINFO& csInfo = pEverQuest->charSelectPlayerArray[VarPtr.Int];
+	CharSelectInfo& csInfo = pEverQuest->charSelectPlayerArray[VarPtr.Int];
 
 	switch (static_cast<CharSelectListMembers>(pMember->ID))
 	{

@@ -562,7 +562,7 @@ class AchievementsInspector : public ImGuiWindowBase
 {
 	std::vector<int> m_filteredAchievements;
 	int m_selectedAchievementId = -1;
-	int m_selectedAchivementCategoryId = -1;
+	int m_selectedAchievementCategoryId = -1;
 
 	std::map<int, ImGuiAchievementViewer> m_viewers;
 	ImGuiID m_topNode = 0;
@@ -588,7 +588,7 @@ public:
 	{
 		if (test_and_set(m_selectedAchievementId, achievementId))
 			m_selectionChanged = true;
-		if (test_and_set(m_selectedAchivementCategoryId, -1))
+		if (test_and_set(m_selectedAchievementCategoryId, -1))
 			m_selectionChanged = true;
 	}
 
@@ -596,7 +596,7 @@ public:
 	{
 		if (test_and_set(m_selectedAchievementId, -1))
 			m_selectionChanged = true;
-		if (test_and_set(m_selectedAchivementCategoryId, achievementCategoryId))
+		if (test_and_set(m_selectedAchievementCategoryId, achievementCategoryId))
 			m_selectionChanged = true;
 	}
 
@@ -716,7 +716,7 @@ public:
 		ImGui::TableNextColumn();
 		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth;
 
-		if (m_selectedAchivementCategoryId == category.id)
+		if (m_selectedAchievementCategoryId == category.id)
 			flags |= ImGuiTreeNodeFlags_Selected;
 
 		bool hovered = false;
