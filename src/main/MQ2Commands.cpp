@@ -1067,7 +1067,7 @@ void Filter(SPAWNINFO* pChar, char* szLine)
 	{
 		cmdFilter(pChar, szArg);
 		if (gFilterMacro != FILTERMACRO_NONE)
-			WriteChatColor("skills, target, money, encumber, food, name, zrange, macros, mq, debug");
+			WriteChatColor("skills, target, money, encumber, food, name, zrange, macros, mq, mq2data, debug");
 		return;
 	}
 
