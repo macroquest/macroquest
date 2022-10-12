@@ -1770,13 +1770,13 @@ bool MQ2TimeType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 bool MQ2TimeType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	auto pTimePoint = VarPtr.Get<TimePointType>();
+	auto pTimePoint = VarPtr.Get<TimeTypeData>();
 	if (!pTimePoint)
 		return false;
 
-	auto days = date::floor<date::days>(*pTimePoint);
-	auto time = date::make_time(*pTimePoint - days);
-	sprintf_s(DataTypeTemp, "%02d:%02d:%02d",
+	auto days = date::floor<date::days>(pTimePoint->timePoint);
+	auto time = date::make_time(pTimePoint->timePoint - days);
+	sprintf_s(Destination, MAX_STRING, "%02d:%02d:%02d",
 		(int)time.hours().count(), (int)time.minutes().count(), (int)time.seconds().count());
 
 	return true;
@@ -1787,13 +1787,13 @@ bool MQ2TimeType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 	if (Source.Type != pTimeType)
 		return false;
 
-	VarPtr.Set(Source.Get<TimePointType>());
+	VarPtr.Set(Source.Get<TimeTypeData>());
 	return true;
 }
 
 void MQ2TimeType::InitVariable(MQVarPtr& VarPtr)
 {
-	VarPtr.Set(std::chrono::system_clock::time_point{});
+	VarPtr.Set(TimeTypeData{});
 }
 
 bool MQ2TimeType::dataTime(const char* szIndex, MQTypeVar& Ret)
@@ -1809,9 +1809,10 @@ bool MQ2TimeType::dataTime(const char* szIndex, MQTypeVar& Ret)
 		+ (static_cast<int64_t>(ftime.dwHighDateTime) << 32LL)
 		- 116444736000000000LL;
 
-	TimePointType localTime{ std::chrono::milliseconds{ ftNow / 10000 } };
+	TimeTypeData data;
+	data.timePoint = TimePointType{ std::chrono::milliseconds{ ftNow / 10000 } };
 
-	Ret.Set(localTime);
+	Ret.Set(data);
 	Ret.Type = pTimeType;
 	return true;
 }
