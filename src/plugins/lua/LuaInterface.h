@@ -26,41 +26,40 @@
 namespace mq::lua {
 
 class LuaThread;
-using LuaScript = LuaThread;
-using LuaScriptPtr = std::shared_ptr<LuaScript>;
+using LuaThreadPtr = std::shared_ptr<LuaThread>;
 
 class LuaPluginInterface : public PluginInterface
 {
 public:
 	// Create a new lua thread that can be used to execute some lua.
-	virtual LuaScriptPtr CreateLuaScript() = 0;
+	virtual LuaThreadPtr CreateLuaScript() = 0;
 
 	// Terminate a lua thread
-	virtual void DestroyLuaScript(const LuaScriptPtr& scriptPtr) = 0;
+	virtual void DestroyLuaScript(const LuaThreadPtr& scriptPtr) = 0;
 
 	// Executes a lua script file
-	virtual void ExecuteFile(const LuaScriptPtr& scriptPtr, std::string_view filename, const std::vector<std::string>& arguments = {}) = 0;
+	virtual void ExecuteFile(const LuaThreadPtr& scriptPtr, std::string_view filename, const std::vector<std::string>& arguments = {}) = 0;
 
 	// Execute a lua script
-	virtual void ExecuteString(const LuaScriptPtr& scriptPtr, std::string_view script, std::string_view name = "") = 0;
+	virtual void ExecuteString(const LuaThreadPtr& scriptPtr, std::string_view script, std::string_view name = "") = 0;
 
 	// Change the turbo value for a thread
-	virtual void SetTurbo(const LuaScriptPtr& scriptPtr, uint32_t turbo) = 0;
+	virtual void SetTurbo(const LuaThreadPtr& scriptPtr, uint32_t turbo) = 0;
 
 	// Inject the mq namespace into the thread automatically
-	virtual void InjectMQNamespace(const LuaScriptPtr& scriptPtr) = 0;
+	virtual void InjectMQNamespace(const LuaThreadPtr& scriptPtr) = 0;
 
 	// Check if thread is paused
-	virtual bool IsPaused(const LuaScriptPtr& scriptPtr) = 0;
+	virtual bool IsPaused(const LuaThreadPtr& scriptPtr) = 0;
 
 	// Get the pid for a thread.
-	virtual int GetPid(const LuaScriptPtr& scriptPtr) = 0;
+	virtual int GetPid(const LuaThreadPtr& scriptPtr) = 0;
 
 	// Get the name for a thread.
-	virtual const std::string& GetName(const LuaScriptPtr& scriptPtr) = 0;
+	virtual const std::string& GetName(const LuaThreadPtr& scriptPtr) = 0;
 
 	// Get the lua state for a thread
-	virtual sol::state_view GetLuaState(const LuaScriptPtr& scriptPtr) = 0;
+	virtual sol::state_view GetLuaState(const LuaThreadPtr& scriptPtr) = 0;
 };
 
 } // namespace mq::lua

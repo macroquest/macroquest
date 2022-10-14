@@ -454,6 +454,7 @@ bool MQ2LuaType::dataLua(const char* Index, MQTypeVar& Dest)
 
 #pragma region Commands
 
+static void LuaStopCommand(std::optional<std::string>);
 static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::string>& args)
 {
 	namespace fs = std::filesystem;
@@ -471,7 +472,7 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 	}
 
 	// methodology for duplicate scripts:
-	//   if a script with the same name is _currently_ running, inform and exit
+	//   if a script with the same name is _currently_ running, stop it (and let it restart)
 	//   if a script with the same name _has previously_ run, drop from infoMap and run
 	//   otherwise, run script as normal
 	auto info_it = std::find_if(s_infoMap.begin(), s_infoMap.end(),
@@ -484,9 +485,8 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 
 	if (info_it != s_infoMap.end() && info_it->second.status != LuaThreadStatus::Exited)
 	{
-		// script is currently running, inform and exit
-		WriteChatStatus("Lua script %s is already running, not starting another instance.", script.c_str());
-		return 0;
+		// script is currently running, stop it
+		LuaStopCommand(std::to_string(info_it->first)); // stop the script by PID
 	}
 
 	if (info_it != s_infoMap.end())
@@ -1104,22 +1104,22 @@ void LuaEnvironmentSettings::ConfigureLuaState(sol::state_view sv)
 class LuaPluginInterfaceImpl : public LuaPluginInterface
 {
 public:
-	LuaScriptPtr CreateLuaScript() override
+	LuaThreadPtr CreateLuaScript() override
 	{
-		LuaScriptPtr entry = LuaThread::Create(&s_environment);
+		LuaThreadPtr entry = LuaThread::Create(&s_environment);
 		entry->SetTurbo(s_turboNum);
 		s_pending.push_back(entry);
 
 		return entry;
 	}
 
-	void DestroyLuaScript(const LuaScriptPtr& thread) override
+	void DestroyLuaScript(const LuaThreadPtr& thread) override
 	{
 		thread->Exit();
 		s_infoMap.erase(thread->GetPID());
 	}
 
-	void ExecuteFile(const LuaScriptPtr& thread, std::string_view filename, const std::vector<std::string>& arguments) override
+	void ExecuteFile(const LuaThreadPtr& thread, std::string_view filename, const std::vector<std::string>& arguments) override
 	{
 		std::optional<LuaThreadInfo> result = thread->StartFile(filename, arguments);
 		if (result)
@@ -1131,7 +1131,7 @@ public:
 		// TODO: Return value?
 	}
 
-	void ExecuteString(const LuaScriptPtr& thread, std::string_view script, std::string_view name = "") override
+	void ExecuteString(const LuaThreadPtr& thread, std::string_view script, std::string_view name = "") override
 	{
 		std::optional<LuaThreadInfo> result = thread->StartString(script, name);
 		if (result)
@@ -1143,32 +1143,32 @@ public:
 		// TODO: Return value?
 	}
 
-	void SetTurbo(const LuaScriptPtr& thread, uint32_t turbo) override
+	void SetTurbo(const LuaThreadPtr& thread, uint32_t turbo) override
 	{
 		thread->SetTurbo(turbo);
 	}
 
-	void InjectMQNamespace(const LuaScriptPtr& thread) override
+	void InjectMQNamespace(const LuaThreadPtr& thread) override
 	{
 		return thread->InjectMQNamespace();
 	}
 
-	bool IsPaused(const LuaScriptPtr& thread) override
+	bool IsPaused(const LuaThreadPtr& thread) override
 	{
 		return thread->IsPaused();
 	}
 
-	int GetPid(const LuaScriptPtr& thread) override
+	int GetPid(const LuaThreadPtr& thread) override
 	{
 		return thread->GetPID();
 	}
 
-	const std::string& GetName(const LuaScriptPtr& thread) override
+	const std::string& GetName(const LuaThreadPtr& thread) override
 	{
 		return thread->GetName();
 	}
 
-	sol::state_view GetLuaState(const LuaScriptPtr& thread) override
+	sol::state_view GetLuaState(const LuaThreadPtr& thread) override
 	{
 		return thread->GetState();
 	}
@@ -1513,6 +1513,33 @@ PLUGIN_API void ShutdownPlugin()
 }
 
 /**
+ * @fn SetGameState
+ *
+ * This is called when the GameState changes.  It is also called once after the
+ * plugin is initialized.
+ *
+ * For a list of known GameState values, see the constants that begin with
+ * GAMESTATE_.  The most commonly used of these is GAMESTATE_INGAME.
+ *
+ * When zoning, this is called once after @ref OnBeginZone @ref OnRemoveSpawn
+ * and @ref OnRemoveGroundItem are all done and then called once again after
+ * @ref OnEndZone and @ref OnAddSpawn are done but prior to @ref OnAddGroundItem
+ * and @ref OnZoned
+ *
+ * @param GameState int - The value of GameState at the time of the call
+ */
+PLUGIN_API void SetGameState(int GameState)
+{
+	// DebugSpewAlways("MQPluginTemplate::SetGameState(%d)", GameState);
+	using namespace mq::lua;
+
+	for (auto& thread : s_running)
+	{
+		thread->SetGameState(GameState);
+	}
+}
+
+/**
  * @fn OnPulse
  *
  * This is called each time MQ2 goes through its heartbeat (pulse) function.
@@ -1534,6 +1561,10 @@ PLUGIN_API void OnPulse()
 	s_running.erase(std::remove_if(s_running.begin(), s_running.end(),
 		[](const std::shared_ptr<LuaThread>& thread) -> bool
 	{
+		// first do the OnPulse callbacks if they exist
+		thread->OnPulse();
+
+		// Now do the "main" functions
 		LuaThread::RunResult result = thread->Run();
 
 		if (result.first != sol::thread_status::yielded)
@@ -1548,7 +1579,7 @@ PLUGIN_API void OnPulse()
 			if (fin_it != s_infoMap.end())
 			{
 				if (result.second)
-					fin_it->second.SetResult(*result.second, thread->GetEvaluateResult());
+					thread->SetResult(fin_it->second, *result.second, thread->GetEvaluateResult());
 				else
 					fin_it->second.EndRun();
 			}

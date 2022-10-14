@@ -15,6 +15,7 @@
 #pragma once
 
 #include "LuaCommon.h"
+#include "LuaScript.h"
 
 #include <sol/sol.hpp>
 
@@ -73,7 +74,7 @@ struct LuaThreadInfo
 		}
 	}
 
-	void SetResult(const sol::protected_function_result& result, bool evaluate);
+	std::optional<LuaScript> SetResult(const sol::protected_function_result& result, bool evaluate);
 	void EndRun();
 };
 
@@ -112,12 +113,14 @@ public:
 	void EnableImGui();
 	void EnableEvents();
 
+	std::optional<LuaThreadInfo> StartFunction(LuaThreadInfo& info, sol::coroutine function, const std::vector<std::string>& args);
 	std::optional<LuaThreadInfo> StartFile(std::string_view filename, const std::vector<std::string>& args);
 	std::optional<LuaThreadInfo> StartString(std::string_view script, std::string_view name = "");
 
 	// Execute a time slice
 	using RunResult = std::pair<sol::thread_status, CoroutineResult>;
 	RunResult Run();
+	void SetResult(LuaThreadInfo& info, const sol::protected_function_result& result, bool evaluate);
 
 	LuaThreadStatus Pause();
 
@@ -133,6 +136,11 @@ public:
 
 	LuaImGuiProcessor* GetImGuiProcessor() const { return m_imguiProcessor.get(); }
 	LuaEventProcessor* GetEventProcessor() const { return m_eventProcessor.get(); }
+
+	// callbacks
+	void OnPulse() { if (m_script && m_script->OnPulse) m_script->OnPulse(); }
+	void InitializePlugin() { if (m_script && m_script->InitializePlugin) m_script->InitializePlugin(); }
+	void SetGameState(int GameState) { if (m_script && m_script->SetGameState) m_script->SetGameState(GameState); }
 
 private:
 	RunResult RunOnce();
@@ -175,6 +183,8 @@ private:
 	std::unique_ptr<LuaEventProcessor> m_eventProcessor;
 	std::unique_ptr<LuaImGuiProcessor> m_imguiProcessor;
 	LuaCoroutine* m_currentCoroutine = nullptr;
+
+	std::shared_ptr<LuaScript> m_script; // TODO: this probably doesn't need to be a pointer at all...
 };
 
 //============================================================================

@@ -17,6 +17,7 @@
 
 #include "LuaCommon.h"
 #include "LuaThread.h"
+#include "LuaScript.h"
 
 #include <mq/Plugin.h>
 
@@ -633,6 +634,17 @@ void MQ_RegisterLua_MQBindings(sol::table& mq)
 	mq.set("gettype",                            sol::overload(
 		                                             mq_gettype_MQDataItem,
 		                                             mq_gettype_MQTypeVar));
+
+	//----------------------------------------------------------------------------
+	// Script Binding
+
+	mq.new_usertype<LuaScript>(
+		"Script",sol::constructors<LuaScript(sol::this_state)>(),
+		"Main", &LuaScript::Main,
+		"OnPulse", &LuaScript::OnPulse,
+		"InitializePlugin", &LuaScript::InitializePlugin,
+		"SetGameState", &LuaScript::SetGameState
+		);
 
 	//----------------------------------------------------------------------------
 
