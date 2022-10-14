@@ -420,19 +420,15 @@ bool MQ2AchievementType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 	}
 
 	case AchievementTypeMembers::CompletedTime:
-		Dest.Type = pTimeType;
-		Dest.Ptr = nullptr;
 		if (const SingleAchievementAndComponentsInfo* clientInfo = mgr.GetAchievementClientInfoByIndex(achievementIndex))
 		{
 			if (clientInfo->completionTimestamp != 0)
 			{
-				tm* time = (tm*)&DataTypeTemp[0];
-				ZeroMemory(time, sizeof(tm));
-				eq_localtime(time, &clientInfo->completionTimestamp);
-				Dest.Ptr = time;
+				Dest = pTimeType->MakeTypeVar(clientInfo->completionTimestamp);
+				return true;
 			}
 		}
-		return true;
+		return false;
 
 	default: break;
 	}

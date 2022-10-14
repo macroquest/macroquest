@@ -403,11 +403,15 @@ public:
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 
-	void InitVariable(MQVarPtr& VarPtr) override;
-	void FreeVariable(MQVarPtr& VarPtr) override;
 	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
+	void InitVariable(MQVarPtr& VarPtr);
 
 	static bool dataTime(const char* szIndex, MQTypeVar& Ret);
+	static bool dataGameTime(const char* szIndex, MQTypeVar& Ret);
+
+	MQLIB_OBJECT MQTypeVar MakeTypeVar(int year, int month, int day, int hour, int minute,
+		int seconds, int milliseconds = 0, int dayOfWeek = -1);
+	MQLIB_OBJECT MQTypeVar MakeTypeVar(eqtime_t eqtime);
 };
 
 //============================================================================
