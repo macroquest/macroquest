@@ -42,6 +42,9 @@
     <ClCompile Include="LuaCoroutine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LuaPlugin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="bindings\lua_ImGuiCore.cpp">
       <Filter>Source Files\bindings</Filter>
     </ClCompile>
@@ -90,6 +93,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LuaCoroutine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaPlugin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bindings\lua_Bindings.h">

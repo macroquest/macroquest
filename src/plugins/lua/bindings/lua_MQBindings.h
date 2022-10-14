@@ -103,4 +103,7 @@ private:
 	const MQDataItem* const self = nullptr;
 };
 
+void MQ_Initialize_MQBindings();
+void MQ_Cleanup_MQBindings();
+
 } // namespace mq::lua::bindings

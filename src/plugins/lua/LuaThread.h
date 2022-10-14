@@ -46,6 +46,7 @@ enum class LuaThreadExitReason
 	Exit = 1,
 };
 
+class LuaPlugin;
 struct LuaThreadInfo
 {
 	uint32_t pid;

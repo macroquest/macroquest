@@ -17,6 +17,7 @@
 #include "LuaCoroutine.h"
 #include "LuaEvent.h"
 #include "LuaImGui.h"
+#include "LuaPlugin.h"
 #include "bindings/lua_Bindings.h"
 
 #include <mq/Plugin.h>
@@ -62,6 +63,14 @@ void LuaThreadInfo::SetResult(const sol::protected_function_result& result, bool
 
 		if (result.return_count() >= 1)
 		{
+			// first, lets see if we returned any plugins (run all of them, we should allow for multiple plugins in one file)
+			for (const auto& r : result)
+			{
+				if (r.is<sol::table>() && LuaPlugin::IsPlugin(r.as<sol::table>()))
+					LuaPlugin::Start(r.as<sol::table>());
+			}
+
+			// now we can do the normal stringification
 			returnValues = std::vector<std::string>(result.return_count());
 
 			// need to skip the first "return" (which is not a return, it's at index + 0) which is the function itself
@@ -85,6 +94,9 @@ void LuaThreadInfo::SetResult(const sol::protected_function_result& result, bool
 				WriteChatColor(results.c_str(), USERCOLOR_CHAT_CHANNEL);
 			}
 		}
+
+		// we need to make sure to clear any pending plugin pointers here to avoid dangling pointers
+		LuaPlugin::ClearPlugins(result.lua_state());
 	}
 }
 
@@ -197,6 +209,20 @@ int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 		std::string_view script("return _mq_internal_table");
 		luaL_loadbuffer(sv, script.data(), script.size(), pkg.c_str());
 		return 1;
+	}
+
+	if (ci_starts_with(pkg, "plugin."))
+	{
+		std::string_view plugin_name = std::string_view(pkg).substr(7);
+		if (auto plugin = LuaPlugin::Lookup(plugin_name))
+		{
+			m_globalState.set(fmt::format("_mq_internal_plugin_{}", plugin_name), plugin);
+			std::string script = fmt::format("return _mq_internal_plugin_{}", plugin_name);
+			luaL_loadbuffer(sv, script.data(), script.size(), pkg.c_str());
+			return 1;
+		}
+
+		return 0;
 	}
 
 	if (pkg == "ImGui")

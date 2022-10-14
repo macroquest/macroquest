@@ -20,6 +20,7 @@
 #include "LuaEvent.h"
 #include "LuaImGui.h"
 #include "LuaThread.h"
+#include "LuaPlugin.h"
 
 #include <mq/Plugin.h>
 
@@ -207,8 +208,11 @@ static std::unique_ptr<CTextureAnimation> FindTextureAnimation(std::string_view 
 
 #pragma region MQ Data Bindings
 
+uint32_t s_luaSpawnBenchmark = 0;
+
 static sol::table lua_getAllSpawns(sol::this_state L)
 {
+	MQScopedBenchmark bm(s_luaSpawnBenchmark);
 	auto table = sol::state_view(L).create_table();
 
 	if (pSpawnManager)
@@ -228,6 +232,7 @@ static sol::table lua_getAllSpawns(sol::this_state L)
 
 static sol::table lua_getFilteredSpawns(sol::this_state L, std::optional<sol::function> predicate)
 {
+	MQScopedBenchmark bm(s_luaSpawnBenchmark);
 	auto table = sol::state_view(L).create_table();
 
 	if (pSpawnManager && predicate)
@@ -241,6 +246,56 @@ static sol::table lua_getFilteredSpawns(sol::this_state L, std::optional<sol::fu
 				table.add(std::move(lua_spawn));
 
 			spawn = spawn->GetNext();
+		}
+	}
+
+	return table;
+}
+
+static sol::table lua_getAllSpawnInfo(sol::this_state L)
+{
+	MQScopedBenchmark bm(s_luaSpawnBenchmark);
+	auto table = sol::state_view(L).create_table();
+
+	for (int i = 0; i < gSpawnCount; ++i)
+	{
+		MQRank entry = EQP_DistArray[i];
+		PlayerClient* spawn = entry.VarPtr.Ptr;
+		if (spawn != nullptr)
+		{
+			auto lua_spawn = lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
+			table.add(sol::state_view(L).create_table_with(
+				"DistSquared", entry.Value.DistSq,
+				"SpawnVar", std::move(lua_spawn)
+			));
+		}
+	}
+
+	return table;
+}
+
+static sol::table lua_getFilteredSpawnInfo(sol::this_state L, std::optional<sol::function> predicate)
+{
+	MQScopedBenchmark bm(s_luaSpawnBenchmark);
+	auto table = sol::state_view(L).create_table();
+
+	if (predicate)
+	{
+		const auto& predicate_value = predicate.value();
+		for (int i = 0; i < gSpawnCount; ++i)
+		{
+			MQRank entry = EQP_DistArray[i];
+			PlayerClient* spawn = entry.VarPtr.Ptr;
+			if (spawn != nullptr)
+			{
+				auto lua_spawn = lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
+				bool result = predicate_value(lua_spawn);
+				if (result)
+					table.add(sol::state_view(L).create_table_with(
+						"DistSquared", entry.Value.DistSq,
+						"SpawnVar", std::move(lua_spawn)
+					));
+			}
 		}
 	}
 
@@ -557,6 +612,20 @@ void RegisterBindings_MQ(LuaThread* thread, sol::table& mq)
 	// Direct Data Bindings
 	mq.set_function("getAllSpawns", &lua_getAllSpawns);
 	mq.set_function("getFilteredSpawns", &lua_getFilteredSpawns);
+	mq.set_function("getAllSpawnInfo", &lua_getAllSpawnInfo);
+	mq.set_function("getFilteredSpawnInfo", &lua_getFilteredSpawnInfo);
+
+	LuaPlugin::RegisterLua(mq);
+}
+
+void MQ_Initialize_MQBindings()
+{
+	s_luaSpawnBenchmark = AddMQ2Benchmark("Lua Spawn Info");
+}
+
+void MQ_Cleanup_MQBindings()
+{
+	RemoveMQ2Benchmark(s_luaSpawnBenchmark);
 }
 
 } // namespace mq::lua::bindings

@@ -17,8 +17,10 @@
 #include "LuaInterface.h"
 #include "LuaCommon.h"
 #include "LuaThread.h"
+#include "LuaPlugin.h"
 #include "LuaEvent.h"
 #include "LuaImGui.h"
+#include "bindings/lua_MQBindings.h"
 #include "imgui/ImGuiUtils.h"
 
 #include "imgui/ImGuiFileDialog.h"
@@ -582,6 +584,12 @@ static void LuaStopCommand(std::optional<std::string> script = std::nullopt)
 			// this will force the coroutine to yield, and removing this thread from the vector will cause it to gc
 			thread->Exit();
 		}
+		else if (LuaPlugin::IsRunning(*script))
+		{
+			WriteChatStatus("Ending running lua plugin '%s'", script->c_str());
+
+			LuaPlugin::Stop(*script);
+		}
 		else
 		{
 			std::string script_name = LuaThread::GetCanonicalScriptName(*script, s_environment.luaDir);
@@ -908,12 +916,27 @@ static void LuaPSCommand(const std::vector<std::string>& filters = {})
 		if (predicate(info))
 		{
 			fmt::memory_buffer line;
-			fmt::format_to(fmt::appender(line), "|{:^7}|{:^12}|{:^13}|{:^13}|{:^12}|",
+			fmt::format_to(fmt::appender(line), "|{:^7}|{:^12}|{:%m/%d %I:%M%p}|{:^13}|{:^12}|",
 				pid,
 				info.name.length() > 12 ? info.name.substr(0, 9) + "..." : info.name,
 				info.startTime,
-				info.endTime,
+				info.status == LuaThreadStatus::Exited ? fmt::format("{:%m/%d %I:%M%p}", info.endTime) : "",
 				static_cast<int>(info.status));
+			WriteChatStatus("%.*s", line.size(), line.data());
+		}
+	}
+
+	if (filters.empty() || std::find(filters.begin(), filters.end(), "plugin") != filters.end())
+	{
+		for (const auto& plugin : LuaPlugin::GetRunning())
+		{
+			fmt::memory_buffer line;
+			fmt::format_to(fmt::appender(line), "|{:^7}|{:^12}|{:%m/%d %I:%M%p}|{:^13}|{:^12}|",
+				"plugin",
+				plugin->Name().length() > 12 ? plugin->Name().substr(0, 12) : plugin->Name(),
+				plugin->GetStartTime(),
+				"",
+				1);
 			WriteChatStatus("%.*s", line.size(), line.data());
 		}
 	}
@@ -1532,12 +1555,6 @@ static void DrawLuaSettings()
 #pragma endregion
 
 
-/**
- * @fn InitializePlugin
- *
- * This is called once on plugin initialization and can be considered the startup
- * routine for the plugin.
- */
 PLUGIN_API void InitializePlugin()
 {
 	using namespace mq::lua;
@@ -1555,17 +1572,16 @@ PLUGIN_API void InitializePlugin()
 	AddSettingsPanel("plugins/Lua", DrawLuaSettings);
 
 	s_pluginInterface = new LuaPluginInterfaceImpl();
+
+	bindings::MQ_Initialize_MQBindings();
 }
 
-/**
- * @fn ShutdownPlugin
- *
- * This is called once when the plugin has been asked to shutdown.  The plugin has
- * not actually shut down until this completes.
- */
 PLUGIN_API void ShutdownPlugin()
 {
 	using namespace mq::lua;
+
+	// shutdown any running plugins
+	LuaPlugin::StopAll();
 
 	RemoveCommand("/lua");
 
@@ -1582,17 +1598,30 @@ PLUGIN_API void ShutdownPlugin()
 
 	delete s_pluginInterface;
 	s_pluginInterface = nullptr;
+
+	bindings::MQ_Cleanup_MQBindings();
 }
 
-/**
- * @fn OnPulse
- *
- * This is called each time MQ2 goes through its heartbeat (pulse) function.
- *
- * Because this happens very frequently, it is recommended to have a timer or
- * counter at the start of this Call to limit the amount of times the code in
- * this section is executed.
- */
+PLUGIN_API void OnCleanUI()
+{
+	mq::lua::LuaPlugin::OnCleanUI();
+}
+
+PLUGIN_API void OnReloadUI()
+{
+	mq::lua::LuaPlugin::OnReloadUI();
+}
+
+PLUGIN_API void OnDrawHUD()
+{
+	mq::lua::LuaPlugin::OnDrawHUD();
+}
+
+PLUGIN_API void SetGameState(int GameState)
+{
+	mq::lua::LuaPlugin::SetGameState(GameState);
+}
+
 PLUGIN_API void OnPulse()
 {
 	using namespace mq::lua;
@@ -1631,6 +1660,8 @@ PLUGIN_API void OnPulse()
 		return false;
 	}), s_running.end());
 
+	LuaPlugin::OnPulse();
+
 	if (s_infoGC.count() > 0)
 	{
 		auto now_time = std::chrono::system_clock::now();
@@ -1654,15 +1685,69 @@ PLUGIN_API void OnPulse()
 	}
 }
 
-/**
- * @fn OnUpdateImGui
- *
- * This is called each time that the ImGui Overlay is rendered. Use this to render
- * and update plugin specific widgets.
- *
- * Because this happens extremely frequently, it is recommended to move any actual
- * work to a separate Call and use this only for updating the display.
- */
+PLUGIN_API void OnWriteChatColor(const char* Line, int Color, int Filter)
+{
+	for (const std::shared_ptr<mq::lua::LuaThread>& thread : mq::lua::s_running)
+	{
+		if (thread && !thread->IsPaused())
+		{
+			if (lua::LuaEventProcessor* events = thread->GetEventProcessor())
+				events->Process(Line);
+		}
+	}
+
+	mq::lua::LuaPlugin::OnWriteChatColor(Line, Color, Filter);
+}
+
+PLUGIN_API bool OnIncomingChat(const char* Line, DWORD Color)
+{
+	for (const std::shared_ptr<mq::lua::LuaThread>& thread : mq::lua::s_running)
+	{
+		if (thread && !thread->IsPaused())
+		{
+			if (lua::LuaEventProcessor* events = thread->GetEventProcessor())
+				events->Process(Line);
+		}
+	}
+
+	return mq::lua::LuaPlugin::OnIncomingChat(Line, Color);
+}
+
+PLUGIN_API void OnAddSpawn(PSPAWNINFO pNewSpawn)
+{
+	mq::lua::LuaPlugin::OnAddSpawn(pNewSpawn);
+}
+
+PLUGIN_API void OnRemoveSpawn(PSPAWNINFO pSpawn)
+{
+	mq::lua::LuaPlugin::OnRemoveSpawn(pSpawn);
+}
+
+PLUGIN_API void OnAddGroundItem(PGROUNDITEM pNewGroundItem)
+{
+	mq::lua::LuaPlugin::OnAddGroundItem(pNewGroundItem);
+}
+
+PLUGIN_API void OnRemoveGroundItem(PGROUNDITEM pGroundItem)
+{
+	mq::lua::LuaPlugin::OnRemoveGroundItem(pGroundItem);
+}
+
+PLUGIN_API void OnBeginZone()
+{
+	mq::lua::LuaPlugin::OnBeginZone();
+}
+
+PLUGIN_API void OnEndZone()
+{
+	mq::lua::LuaPlugin::OnEndZone();
+}
+
+PLUGIN_API void OnZoned()
+{
+	mq::lua::LuaPlugin::OnZoned();
+}
+
 PLUGIN_API void OnUpdateImGui()
 {
 	using namespace mq::lua;
@@ -1674,11 +1759,15 @@ PLUGIN_API void OnUpdateImGui()
 			imgui->Pulse();
 	}
 
+	// then update plugin-defined windows
+	LuaPlugin::OnUpdateImGui();
+
 	if (!s_showMenu)
 		return;
 
 	// now update the lua menu window
 	ImGui::SetNextWindowSize(ImVec2(500, 440), ImGuiCond_FirstUseEver);
+	// TODO: Need a Lua Plugin Manager section as well
 	if (ImGui::Begin("Lua Task Manager", &s_showMenu, ImGuiWindowFlags_None))
 	{
 		static bool show_running = true;
@@ -1936,66 +2025,24 @@ PLUGIN_API void OnUpdateImGui()
 	ImGui::End();
 }
 
-
-/**
- * @fn OnWriteChatColor
- *
- * This is called each time WriteChatColor is called (whether by MQ2Main or by any
- * plugin).  This can be considered the "when outputting text from MQ" callback.
- *
- * This ignores filters on display, so if they are needed either implement them in
- * this section or see @ref OnIncomingChat where filters are already handled.
- *
- * If CEverQuest::dsp_chat is not called, and events are required, they'll need to
- * be implemented here as well.  Otherwise, see @ref OnIncomingChat where that is
- * already handled.
- *
- * For a list of Color values, see the constants for USERCOLOR_.  The default is
- * USERCOLOR_DEFAULT.
- *
- * @param Line const char* - The line that was passed to WriteChatColor
- * @param Color int - The type of chat text this is to be sent as
- * @param Filter int - (default 0)
- */
-PLUGIN_API void OnWriteChatColor(const char* Line, int Color, int Filter)
+PLUGIN_API void OnMacroStart(const char* Name)
 {
-	for (const std::shared_ptr<mq::lua::LuaThread>& thread : mq::lua::s_running)
-	{
-		if (thread && !thread->IsPaused())
-		{
-			if (lua::LuaEventProcessor* events = thread->GetEventProcessor())
-				events->Process(Line);
-		}
-	}
+	mq::lua::LuaPlugin::OnMacroStart(Name);
 }
 
-/**
- * @fn OnIncomingChat
- *
- * This is called each time a line of chat is shown.  It occurs after MQ filters
- * and chat events have been handled.  If you need to know when MQ2 has sent chat,
- * consider using @ref OnWriteChatColor instead.
- *
- * For a list of Color values, see the constants for USERCOLOR_. The default is
- * USERCOLOR_DEFAULT.
- *
- * @param Line const char* - The line of text that was shown
- * @param Color int - The type of chat text this was sent as
- *
- * @return bool - whether something was done based on the incoming chat
- */
-PLUGIN_API bool OnIncomingChat(const char* Line, DWORD Color)
+PLUGIN_API void OnMacroStop(const char* Name)
 {
-	for (const std::shared_ptr<mq::lua::LuaThread>& thread : mq::lua::s_running)
-	{
-		if (thread && !thread->IsPaused())
-		{
-			if (lua::LuaEventProcessor* events = thread->GetEventProcessor())
-				events->Process(Line);
-		}
-	}
+	mq::lua::LuaPlugin::OnMacroStop(Name);
+}
 
-	return false;
+PLUGIN_API void OnLoadPlugin(const char* Name)
+{
+	mq::lua::LuaPlugin::OnLoadPlugin(Name);
+}
+
+PLUGIN_API void OnUnloadPlugin(const char* Name)
+{
+	mq::lua::LuaPlugin::OnUnloadPlugin(Name);
 }
 
 PLUGIN_API PluginInterface* GetPluginInterface()

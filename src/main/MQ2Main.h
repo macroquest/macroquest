@@ -240,6 +240,7 @@ MQLIB_API void ShutdownMQ2DataTypes();
 MQLIB_API void InitializeMQ2Data();
 MQLIB_API void ShutdownMQ2Data();
 MQLIB_API bool ParseMacroData(char* szOriginal, size_t BufferSize);
+MQLIB_OBJECT bool AddMQ2DataFunction(const char* szName, std::function<bool(const char*, MQTypeVar&)> Function);
 MQLIB_API bool AddMQ2Data(const char* szName, fMQData Function);
 MQLIB_API bool RemoveMQ2Data(const char* szName);
 MQLIB_API void AddObservedEQObject(const std::shared_ptr<MQTransient>& Object);

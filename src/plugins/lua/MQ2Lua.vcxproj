@@ -135,6 +135,7 @@
     <ClCompile Include="LuaImGui.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <ClCompile Include="LuaPlugin.cpp" />
     <ClCompile Include="LuaThread.cpp" />
     <ClCompile Include="MQ2Lua.cpp" />
     <ClCompile Include="pch.cpp">
@@ -156,6 +157,7 @@
     <ClInclude Include="LuaEvent.h" />
     <ClInclude Include="LuaCoroutine.h" />
     <ClInclude Include="LuaImGui.h" />
+    <ClInclude Include="LuaPlugin.h" />
     <ClInclude Include="LuaThread.h" />
     <ClInclude Include="LuaInterface.h" />
     <ClInclude Include="pch.h" />
