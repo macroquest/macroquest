@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+#include <date/date.h>
+
 namespace mq::datatypes {
 
 bool dataSelect(const char* szIndex, MQTypeVar& Ret)
@@ -126,25 +128,6 @@ bool dataIf(const char* szIndex, MQTypeVar& Ret)
 		}
 	}
 	return false;
-}
-
-
-bool dataGameTime(const char* szIndex, MQTypeVar& Ret)
-{
-	struct tm* pTime = (struct tm*)&DataTypeTemp[0];
-	ZeroMemory(pTime, sizeof(struct tm));
-	pTime->tm_sec = 0;
-	pTime->tm_min = pWorldData->Minute;
-	pTime->tm_hour = pWorldData->Hour - 1;
-	pTime->tm_mday = pWorldData->Day;
-	pTime->tm_mon = pWorldData->Month - 1;
-	pTime->tm_year = pWorldData->Year - 1900;
-	pTime->tm_wday = (pWorldData->Day - 1) % 7;
-	pTime->tm_isdst = 0;
-
-	Ret.Ptr = pTime;
-	Ret.Type = pTimeType;
-	return true;
 }
 
 bool dataDefined(const char* szIndex, MQTypeVar& Ret)

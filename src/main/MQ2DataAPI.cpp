@@ -519,7 +519,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("FindItemBankCount", datatypes::MQ2ItemType::dataFindItemBankCount);
 	AddMQ2Data("FindItemCount", datatypes::MQ2ItemType::dataFindItemCount);
 	AddMQ2Data("Friends", datatypes::MQ2FriendsType::dataFriends);
-	AddMQ2Data("GameTime", datatypes::dataGameTime);
+	AddMQ2Data("GameTime", datatypes::MQ2TimeType::dataGameTime);
 	AddMQ2Data("Ground", datatypes::MQ2GroundType::dataGroundItem);
 	AddMQ2Data("GroundItemCount", datatypes::MQ2GroundType::dataGroundItemCount);
 	AddMQ2Data("Group", datatypes::MQ2GroupType::dataGroup);

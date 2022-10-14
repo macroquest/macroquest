@@ -1250,7 +1250,7 @@ void GetGameTime(int* Hour, int* Minute, int* Night)
 	if (Minute)
 		*Minute = eqMinute;
 	if (Night)
-		*Night = ((eqHour < 7) || (eqHour > 18));
+		*Night = eqHour >= 19 || eqHour < 5; // [7pm, 5am)
 }
 
 // ***************************************************************************
