@@ -1,3 +1,8 @@
+October 14, 2022:
+- Add MaxFPS and MaxBGFPS to EverQuest TLO. Reports the settings found on the options window.
+- Improved Macro TLO functionality to be able to retrieve some values while a macro isn't running.
+- Fixed achievement categories not being found properly.
+
 October 10, 2022:
 - emu: Improved ability to capture crash reports.
 - emu: Fixed CharSelect data (#627).
