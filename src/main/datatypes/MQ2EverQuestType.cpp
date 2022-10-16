@@ -49,7 +49,9 @@ enum class EverQuestMembers
 	HWND,
 	Foreground,
 	ValidLoc,
-	Path
+	Path,
+	MaxFPS,
+	MaxBGFPS,
 };
 
 MQ2EverQuestType::MQ2EverQuestType() : MQ2Type("everquest")
@@ -85,6 +87,8 @@ MQ2EverQuestType::MQ2EverQuestType() : MQ2Type("everquest")
 	ScopedTypeMember(EverQuestMembers, Foreground);
 	ScopedTypeMember(EverQuestMembers, ValidLoc);
 	ScopedTypeMember(EverQuestMembers, Path);
+	ScopedTypeMember(EverQuestMembers, MaxFPS);
+	ScopedTypeMember(EverQuestMembers, MaxBGFPS);
 }
 
 bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -279,6 +283,16 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case EverQuestMembers::xScreenMode:
 		Dest.DWord = ScreenMode;
+		Dest.Type = pIntType;
+		return true;
+
+	case EverQuestMembers::MaxFPS:
+		Dest.DWord = pEverQuestInfo->gOpt.maxFPS;
+		Dest.Type = pIntType;
+		return true;
+
+	case EverQuestMembers::MaxBGFPS:
+		Dest.DWord = pEverQuestInfo->gOpt.maxBGFPS;
 		Dest.Type = pIntType;
 		return true;
 

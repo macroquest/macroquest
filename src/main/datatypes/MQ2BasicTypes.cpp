@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
+#include <date/date.h>
+
 namespace mq::datatypes {
 
 //============================================================================
@@ -1601,11 +1603,20 @@ bool MQ2TypeType::dataType(const char* szIndex, MQTypeVar& Ret)
 
 //============================================================================
 
+using TimePointType = date::local_time<std::chrono::system_clock::duration>;
+
+struct TimeTypeData
+{
+	TimePointType timePoint;
+	int dayOfWeek = -1;
+};
+
 enum class TimeMembers
 {
 	Hour,
 	Minute,
 	Second,
+	Millisecond,
 	DayOfWeek,
 	Day,
 	Month,
@@ -1615,7 +1626,9 @@ enum class TimeMembers
 	Date,
 	Night,
 	SecondsSinceMidnight,
+	MillisecondsSinceMidnight,
 	Hour12,
+	MillisecondsSinceEpoch,
 };
 
 MQ2TimeType::MQ2TimeType() : MQ2Type("time")
@@ -1623,6 +1636,7 @@ MQ2TimeType::MQ2TimeType() : MQ2Type("time")
 	ScopedTypeMember(TimeMembers, Hour);
 	ScopedTypeMember(TimeMembers, Minute);
 	ScopedTypeMember(TimeMembers, Second);
+	ScopedTypeMember(TimeMembers, Millisecond);
 	ScopedTypeMember(TimeMembers, DayOfWeek);
 	ScopedTypeMember(TimeMembers, Day);
 	ScopedTypeMember(TimeMembers, Month);
@@ -1632,96 +1646,120 @@ MQ2TimeType::MQ2TimeType() : MQ2Type("time")
 	ScopedTypeMember(TimeMembers, Date);
 	ScopedTypeMember(TimeMembers, Night);
 	ScopedTypeMember(TimeMembers, SecondsSinceMidnight);
+	ScopedTypeMember(TimeMembers, MillisecondsSinceMidnight);
 	ScopedTypeMember(TimeMembers, Hour12);
+	ScopedTypeMember(TimeMembers, MillisecondsSinceEpoch);
 }
 
 bool MQ2TimeType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	tm* pTime = reinterpret_cast<tm*>(VarPtr.Ptr);
-	if (!pTime)
+	auto pTimePoint = VarPtr.Get<TimeTypeData>();
+	if (!pTimePoint)
 		return false;
 
 	MQTypeMember* pMember = MQ2TimeType::FindMember(Member);
 	if (!pMember)
 		return false;
 
+	auto days = date::floor<date::days>(pTimePoint->timePoint);
+	auto ymd = date::year_month_day{ days };
+	auto time = date::make_time(pTimePoint->timePoint - days);
+
 	switch (static_cast<TimeMembers>(pMember->ID))
 	{
 	case TimeMembers::Hour:
-		Dest.DWord = pTime->tm_hour;
+		Dest.DWord = time.hours().count();
 		Dest.Type = pIntType;
 		return true;
 
 	case TimeMembers::Hour12: {
-		unsigned long Hour = pTime->tm_hour % 12;
-		if (!Hour)
-			Hour = 12;
-		sprintf_s(DataTypeTemp, "%d %s", Hour, pTime->tm_hour > 12 ? "PM" : "AM");
+		uint32_t Hour = date::make12(time.hours()).count();
+
+		sprintf_s(DataTypeTemp, "%d %s", Hour, time.hours().count() > 11 ? "PM" : "AM");
 		Dest.Ptr = &DataTypeTemp[0],
 			Dest.Type = pStringType;
+
 		return true;
 	}
 
 	case TimeMembers::Minute:
-		Dest.DWord = pTime->tm_min;
+		Dest.Int = (int)time.minutes().count();
 		Dest.Type = pIntType;
 		return true;
 
 	case TimeMembers::Second:
-		Dest.DWord = pTime->tm_sec;
+		Dest.Int = (int)time.seconds().count();
+		Dest.Type = pIntType;
+		return true;
+
+	case TimeMembers::Millisecond:
+		Dest.Int = (int)std::chrono::duration_cast<std::chrono::milliseconds>(time.subseconds()).count();
 		Dest.Type = pIntType;
 		return true;
 
 	case TimeMembers::DayOfWeek:
-		Dest.DWord = pTime->tm_wday + 1;
+		if (pTimePoint->dayOfWeek != -1)
+			Dest.DWord = pTimePoint->dayOfWeek + 1;
+		else
+			Dest.DWord = date::year_month_weekday{ days }.weekday().c_encoding() + 1;
 		Dest.Type = pIntType;
 		return true;
 
 	case TimeMembers::Day:
-		Dest.DWord = pTime->tm_mday;
+		Dest.DWord = (unsigned)ymd.day();
 		Dest.Type = pIntType;
 		return true;
 
 	case TimeMembers::Month:
-		Dest.DWord = pTime->tm_mon + 1;
+		Dest.DWord = (unsigned)ymd.month();
 		Dest.Type = pIntType;
 		return true;
 
 	case TimeMembers::Year:
-		Dest.DWord = pTime->tm_year + 1900;
+		Dest.Int = (int)ymd.year();
 		Dest.Type = pIntType;
 		return true;
 
 	case TimeMembers::Time12: {
-		uint32_t Hour = pTime->tm_hour % 12;
-		if (!Hour)
-			Hour = 12;
-
-		sprintf_s(DataTypeTemp, "%02d:%02d:%02d", Hour, pTime->tm_min, pTime->tm_sec);
+		sprintf_s(DataTypeTemp, "%02d:%02d:%02d",
+			(int)date::make12(time.hours()).count(), (int)time.minutes().count(), (int)time.seconds().count());
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 	}
 	case TimeMembers::Time24:
-		sprintf_s(DataTypeTemp, "%02d:%02d:%02d", pTime->tm_hour, pTime->tm_min, pTime->tm_sec);
+		sprintf_s(DataTypeTemp, "%02d:%02d:%02d",
+			(int)time.hours().count(), (int)time.minutes().count(), (int)time.seconds().count());
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
 	case TimeMembers::Date:
-		sprintf_s(DataTypeTemp, "%02d/%02d/%04d", pTime->tm_mon + 1, pTime->tm_mday, pTime->tm_year + 1900);
+		sprintf_s(DataTypeTemp, "%02d/%02d/%04d", (unsigned)ymd.month(), (unsigned)ymd.day(), (int)ymd.year());
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
-	case TimeMembers::Night:
-		Dest.Set(pTime->tm_hour < 7 || pTime->tm_hour > 20);
+	case TimeMembers::Night: {
+		uint32_t Hour = time.hours().count();
+		Dest.Set(Hour >= 19 || Hour < 5); // [7pm, 5am)
 		Dest.Type = pBoolType;
 		return true;
+	}
 
 	case TimeMembers::SecondsSinceMidnight:
-		Dest.DWord = pTime->tm_hour * 3600 + pTime->tm_min * 60 + pTime->tm_sec;
+		Dest.Int = (int)std::chrono::duration_cast<std::chrono::seconds>(time.to_duration()).count();
 		Dest.Type = pIntType;
+		return true;
+
+	case TimeMembers::MillisecondsSinceMidnight:
+		Dest.Int = (int)std::chrono::duration_cast<std::chrono::milliseconds>(time.to_duration()).count();
+		Dest.Type = pIntType;
+		return true;
+
+	case TimeMembers::MillisecondsSinceEpoch:
+		Dest.Int64 = std::chrono::duration_cast<std::chrono::milliseconds>(pTimePoint->timePoint.time_since_epoch()).count();
+		Dest.Type = pInt64Type;
 		return true;
 
 	default: break;
@@ -1732,24 +1770,16 @@ bool MQ2TimeType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 bool MQ2TimeType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	tm* Now = static_cast<tm*>(VarPtr.Ptr);
-	if (!Now)
+	auto pTimePoint = VarPtr.Get<TimeTypeData>();
+	if (!pTimePoint)
 		return false;
 
-	sprintf_s(Destination, MAX_STRING, "%02d:%02d:%02d", Now->tm_hour, Now->tm_min, Now->tm_sec);
+	auto days = date::floor<date::days>(pTimePoint->timePoint);
+	auto time = date::make_time(pTimePoint->timePoint - days);
+	sprintf_s(Destination, MAX_STRING, "%02d:%02d:%02d",
+		(int)time.hours().count(), (int)time.minutes().count(), (int)time.seconds().count());
+
 	return true;
-}
-
-void MQ2TimeType::InitVariable(MQVarPtr& VarPtr)
-{
-	VarPtr.Ptr = new tm();
-	ZeroMemory(VarPtr.Ptr, sizeof(tm));
-}
-
-void MQ2TimeType::FreeVariable(MQVarPtr& VarPtr)
-{
-	tm* Now = static_cast<tm*>(VarPtr.Ptr);
-	delete Now;
 }
 
 bool MQ2TimeType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
@@ -1757,20 +1787,95 @@ bool MQ2TimeType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 	if (Source.Type != pTimeType)
 		return false;
 
-	memcpy(VarPtr.Ptr, Source.Ptr, sizeof(tm));
+	VarPtr.Set(Source.Get<TimeTypeData>());
 	return true;
+}
+
+void MQ2TimeType::InitVariable(MQVarPtr& VarPtr)
+{
+	VarPtr.Set(TimeTypeData{});
 }
 
 bool MQ2TimeType::dataTime(const char* szIndex, MQTypeVar& Ret)
 {
-	time_t CurTime = { 0 };
-	time(&CurTime);
-	struct tm* pTime = (struct tm*)&DataTypeTemp[0];
-	ZeroMemory(pTime, sizeof(struct tm));
-	localtime_s(pTime, &CurTime);
-	Ret.Ptr = pTime;
+	// Get the local time as a time_point (chrono system_clock gives us utc time)
+	SYSTEMTIME time;
+	GetLocalTime(&time);
+
+	FILETIME ftime;
+	SystemTimeToFileTime(&time, &ftime);
+
+	int64_t ftNow = static_cast<int64_t>(ftime.dwLowDateTime)
+		+ (static_cast<int64_t>(ftime.dwHighDateTime) << 32LL)
+		- 116444736000000000LL;
+
+	TimeTypeData data;
+	data.timePoint = TimePointType{ std::chrono::milliseconds{ ftNow / 10000 } };
+
+	Ret.Set(data);
 	Ret.Type = pTimeType;
 	return true;
+}
+
+bool MQ2TimeType::dataGameTime(const char* szIndex, MQTypeVar& Ret)
+{
+	if (!pWorldData)
+		return false;
+
+	Ret = pTimeType->MakeTypeVar(
+		pWorldData->Year,
+		pWorldData->Month,
+		pWorldData->Day,
+		pWorldData->Hour - 1,
+		pWorldData->Minute,
+		0, 0,
+		(pWorldData->Day - 1) % 7);
+
+	return true;
+}
+
+MQTypeVar MQ2TimeType::MakeTypeVar(int year, int month, int day, int hour, int minute,
+	int seconds /* = 0 */, int milliseconds /* = 0 */, int dayOfWeek /*= -1*/)
+{
+	// Construct a time_point from the given components
+	date::year_month_day ymd{
+		date::year{ year },
+		date::month{ static_cast<unsigned int>(month) },
+		date::day{ static_cast<unsigned int>(day) }
+	};
+
+	date::local_days days{ ymd };
+
+	// add hms to days to get time_point
+	TimePointType timePoint =
+		std::chrono::time_point_cast<std::chrono::system_clock::duration>(days)
+		+ std::chrono::hours{ hour }
+		+ std::chrono::minutes{ minute }
+		+ std::chrono::seconds{ seconds }
+		+ std::chrono::milliseconds{ milliseconds };
+
+	TimeTypeData data;
+	data.timePoint = timePoint;
+	data.dayOfWeek = dayOfWeek;
+
+	MQTypeVar Dest;
+	Dest.Set(data);
+	Dest.Type = this;
+
+	return Dest;
+}
+
+MQTypeVar MQ2TimeType::MakeTypeVar(eqtime_t eqtime)
+{
+
+	TimeTypeData data;
+	data.timePoint = TimePointType{ std::chrono::seconds{eqtime} };
+
+	MQTypeVar Dest;
+	Dest.Set(data);
+	Dest.Type = this;
+
+	return Dest;
 }
 
 
