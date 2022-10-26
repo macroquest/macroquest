@@ -1,3 +1,6 @@
+October 26, 2022:
+- live: Updated for live patch
+
 October 14, 2022:
 - Add MaxFPS and MaxBGFPS to EverQuest TLO. Reports the settings found on the options window.
 - Improved Macro TLO functionality to be able to retrieve some values while a macro isn't running.
