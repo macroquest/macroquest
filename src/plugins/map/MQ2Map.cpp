@@ -302,6 +302,7 @@ PLUGIN_API void InitializePlugin()
 
 	HighlightSIDELEN = GetPrivateProfileInt("Map Filters", "HighSize", HighlightSIDELEN, INIFileName);
 	HighlightPulse = GetPrivateProfileBool("Map Filters", "HighPulse", HighlightPulse, INIFileName);
+	HighlightColor.SetARGB(GetPrivateProfileInt("Map Filters", "High-Color", MQColor(112, 0, 112).ToARGB(), INIFileName));
 	HighlightPulseIncreasing = true;
 	HighlightPulseIndex = 0;
 	HighlightPulseDiff = HighlightSIDELEN / 10;
