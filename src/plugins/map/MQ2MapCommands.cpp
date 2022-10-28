@@ -1184,136 +1184,69 @@ static void DrawMapSettings_Options()
 
 	ImGui::NewLine();
 
-	if (ImGui::CollapsingHeader("Object Filters", ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader("Filter Settings", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		ImGui::Indent();
 
-		constexpr MapFilter basicFilters[] = {
-			MapFilter::Target,
-			MapFilter::PC,
-			MapFilter::NPC,
-			MapFilter::Pet,
-			MapFilter::Group,
-			MapFilter::Mercenary,
-			MapFilter::Corpse,
-			MapFilter::PCCorpse,
-			MapFilter::NPCCorpse,
-			MapFilter::Ground,
-			MapFilter::Mount,
-			MapFilter::Chest,
-			MapFilter::Banner,
-			MapFilter::Campfire,
-			MapFilter::Object,
-			MapFilter::Trigger,
-			MapFilter::Trap,
-			MapFilter::Untargetable,
-			MapFilter::Timer,
-			MapFilter::Aura,
-		};
-
-		for (MapFilter filter : basicFilters)
+		for (int index = 0; MapFilterOptions[index].szName != nullptr; ++index)
 		{
-			MapFilterOption& option = GetMapFilterOption(filter);
-			ImGui::PushID(&option);
+			MapFilterOption& option = MapFilterOptions[index];
+
+			if (!option.IsToggle() && !option.IsRadius())
+				continue;
 
 			bool changed = false;
+			bool isRequirementMet = RequirementsMet(static_cast<MapFilter>(index));
 
-			bool isRequirementMet = RequirementsMet(filter);
+			ImGui::PushID(&option);
 
 			if (!isRequirementMet)
 			{
-				ImGui::PushStyleColor(ImGuiCol_Text, MQColor(255, 255, 255, 100).ToABGR());
+				ImGui::BeginDisabled();
 			}
 
-			if (ImGui::Checkbox(option.szName, &option.Enabled))
+			if (ImGui::Checkbox("", &option.Enabled))
 				changed = true;
-			ImGui::SameLine();
-			ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 0.5f), "- %s", option.szHelpString);
 
-			if (changed && option.IsRegenerateOnChange())
-				regenerate = true;
-			if (changed)
-				WritePrivateProfileBool("Map Filters", option.szName, option.Enabled, INIFileName);
+			ImGui::SameLine();
+			ImGui::Text("%s", option.szName);
+
+			if (option.IsRadius())
+			{
+				ImGui::SameLine();
+				ImGui::SetNextItemWidth(50);
+				if (ImGui::DragFloat("Radius", &option.Radius))
+					changed = true;
+			}
+
+			if (option.szHelpString)
+			{
+				ImGui::SameLine();
+				ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 0.5f), " - %s", option.szHelpString);
+			}
+
+			/*if (option.IsRadius())
+			{
+				ImGui::Indent();
+				ImGui::SetNextItemWidth(50);
+				if (ImGui::DragFloat("Radius", &option.Radius))
+					changed = true;
+				ImGui::Unindent();
+			}*/
 
 			if (!isRequirementMet)
 			{
-				ImGui::PopStyleColor();
+				ImGui::EndDisabled();
 			}
 
 			ImGui::PopID();
+
+			if (changed && option.IsRegenerateOnChange())
+				regenerate = true;
 		}
+
+		ImGui::Unindent();
 	}
-	ImGui::Unindent();
-
-	ImGui::Separator();
-
-	//MapFilterOption& allOption = GetMapFilterOption(MapFilter::PCConColor);
-	//MapFilterOption& allOption = GetMapFilterOption(MapFilter::NPCConColor);
-	//MapFilterOption& allOption = GetMapFilterOption(MapFilter::TargetLine);
-	//MapFilterOption& allOption = GetMapFilterOption(MapFilter::TargetRadius);
-	//MapFilterOption& allOption = GetMapFilterOption(MapFilter::TargetMelee);
-	//MapFilterOption& allOption = GetMapFilterOption(MapFilter::TargetPath);
-	//MapFilterOption& allOption = GetMapFilterOption(MapFilter::Vector);
-	//MapFilterOption& allOption = GetMapFilterOption(MapFilter::Custom);
-	//MapFilterOption& allOption = GetMapFilterOption(MapFilter::CastRadius);
-	//MapFilterOption& allOption = GetMapFilterOption(MapFilter::NormalLabels);
-	//MapFilterOption& allOption = GetMapFilterOption(MapFilter::ContextMenu);
-	//MapFilterOption& allOption = GetMapFilterOption(MapFilter::SpellRadius);
-	//MapFilterOption& allOption = GetMapFilterOption(MapFilter::Named);
-	//MapFilterOption& allOption = GetMapFilterOption(MapFilter::Marker);
-	//MapFilterOption& allOption = GetMapFilterOption(MapFilter::CampRadius);
-	//MapFilterOption& allOption = GetMapFilterOption(MapFilter::PullRadius);
-
-
-	//for (int index = 0; MapFilterOptions[index].szName != nullptr; ++index)
-	//{
-	//	MapFilterOption& option = MapFilterOptions[index];
-
-	//	if (!option.IsToggle() && !option.IsRadius())
-	//		continue;
-
-	//	bool changed = false;
-	//	ImGui::PushID(&option);
-
-	//	ImGui::Text("%s", option.szName);
-	//	if (option.szHelpString)
-	//	{
-	//		ImGui::SameLine();
-	//		ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 0.5f), " - %s", option.szHelpString);
-	//	}
-
-	//	bool isRequirementMet = RequirementsMet(static_cast<MapFilter>(index));
-
-	//	if (!isRequirementMet)
-	//	{
-	//		ImGui::PushStyleColor(ImGuiCol_Text, MQColor(255, 255, 255, 100).ToRGBA8());
-	//	}
-
-	//	if (option.IsToggle() || option.IsRadius())
-	//	{
-	//		if (ImGui::Checkbox("Enabled", &option.Enabled))
-	//			changed = true;
-	//	}
-
-	//	if (option.IsRadius())
-	//	{
-	//		ImGui::PushItemWidth(-1);
-	//		if (ImGui::DragFloat("Radius", &option.Radius))
-	//			changed = true;
-	//		ImGui::PopItemWidth();
-	//	}
-
-	//	if (!isRequirementMet)
-	//	{
-	//		ImGui::PopStyleColor();
-	//	}
-
-	//	ImGui::PopID();
-	//	ImGui::Separator();
-
-	//	if (changed && option.IsRegenerateOnChange())
-	//		regenerate = true;
-	//}
 
 	if (regenerate)
 	{
@@ -1377,13 +1310,17 @@ void DrawMapSettingsPanel()
 	{
 		if (ImGui::BeginTabItem("Options"))
 		{
+			ImGui::BeginChild("ColorsChild", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y));
 			DrawMapSettings_Options();
+			ImGui::EndChild();
 			ImGui::EndTabItem();
 		}
 
 		if (ImGui::BeginTabItem("Colors"))
 		{
+			ImGui::BeginChild("ColorsChild", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y));
 			DrawMapSettings_Colors();
+			ImGui::EndChild();
 			ImGui::EndTabItem();
 		}
 
