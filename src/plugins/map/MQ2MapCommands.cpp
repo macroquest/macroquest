@@ -752,6 +752,8 @@ void MapHighlightCmd(SPAWNINFO* pChar, char* szLine)
 		HighlightColor = MQColor(R, G, B);
 
 		WriteChatf("Highlight color: %d %d %d", R, G, B);
+
+		WritePrivateProfileInt("Map Filters", "High-Color", HighlightColor.ARGB, INIFileName);
 		return;
 	}
 	else if (!_stricmp(szArg, "reset"))
@@ -1180,7 +1182,10 @@ static void DrawMapSettings_Options()
 
 	MapFilterOption& allOption = GetMapFilterOption(MapFilter::All);
 	if (ImGui::Checkbox("Enable MQ2Map Labels", &allOption.Enabled))
+	{
 		regenerate = true;
+		WritePrivateProfileBool("Map Filters", allOption.szName, allOption.Enabled, INIFileName);
+	}
 
 	ImGui::NewLine();
 
@@ -1225,14 +1230,10 @@ static void DrawMapSettings_Options()
 				ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 0.5f), " - %s", option.szHelpString);
 			}
 
-			/*if (option.IsRadius())
-			{
-				ImGui::Indent();
-				ImGui::SetNextItemWidth(50);
-				if (ImGui::DragFloat("Radius", &option.Radius))
-					changed = true;
-				ImGui::Unindent();
-			}*/
+			if (changed && option.IsRegenerateOnChange())
+				regenerate = true;
+			if (changed)
+				WritePrivateProfileBool("Map Filters", option.szName, option.Enabled, INIFileName);
 
 			if (!isRequirementMet)
 			{
@@ -1240,11 +1241,45 @@ static void DrawMapSettings_Options()
 			}
 
 			ImGui::PopID();
-
-			if (changed && option.IsRegenerateOnChange())
-				regenerate = true;
 		}
 
+		ImGui::Unindent();
+	}
+
+	if (ImGui::CollapsingHeader("Highlight Settings", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		ImGui::Indent();
+
+		if (ImGui::Checkbox("Enable HighLight Pulse", &HighlightPulse))
+		{
+			WritePrivateProfileBool("Map Filters", "HighPulse", HighlightPulse, INIFileName);
+		}
+
+		ImGui::SetNextItemWidth(40);
+		if (ImGui::DragScalar("R", ImGuiDataType_U8, &HighlightColor.Red))
+		{
+			WritePrivateProfileInt("Map Filters", "High-Color", HighlightColor.ARGB, INIFileName);
+		}
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(40);
+		if (ImGui::DragScalar("G", ImGuiDataType_U8, &HighlightColor.Green))
+		{
+			WritePrivateProfileInt("Map Filters", "High-Color", HighlightColor.ARGB, INIFileName);
+		}
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(40);
+		if (ImGui::DragScalar("B", ImGuiDataType_U8, &HighlightColor.Blue))
+		{
+			WritePrivateProfileInt("Map Filters", "High-Color", HighlightColor.ARGB, INIFileName);
+		}
+
+		ImGui::SetNextItemWidth(40);
+		if (ImGui::DragInt("Size", &HighlightSIDELEN))
+		{
+			PulseReset();
+			WritePrivateProfileInt("Map Filters", "HighSize", HighlightSIDELEN, INIFileName);
+		}
+		
 		ImGui::Unindent();
 	}
 
