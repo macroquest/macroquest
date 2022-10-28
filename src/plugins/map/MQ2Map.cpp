@@ -134,7 +134,7 @@ MapFilterOption MapFilterOptions[] =
 	                  "Displays a line to your target" },
 	{ "TargetRadius", false, MQColor(128, 128, 128), MapFilter::Target,  MapFilterOption::UsesRadius,
 	                  "Sets radius of a circle around your target to # (omit or set to 0 to disable)" },
-	{ "TargetMelee",  false, MQColor(255, 128, 128), MapFilter::Target,  MapFilterOption::UsesRadius,
+	{ "TargetMelee",  false, MQColor(255, 128, 128), MapFilter::Target,  MapFilterOption::Toggle,
 	                  "Draws a melee-range circle around your target" },
 	{ "Vector",       false, MQColor(),              MapFilter::All,     MapFilterOption::NoColor | MapFilterOption::Toggle | MapFilterOption::Regenerate,
 	                  "Displays heading vectors" },
