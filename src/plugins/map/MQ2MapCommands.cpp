@@ -1176,6 +1176,58 @@ static void DrawMapSetting_SingleFilter(MapFilter filter)
 
 }
 
+/// <summary>
+/// Adds ImGui setting object
+/// </summary>
+/// <returns>true if needs to regenerate</returns>
+static bool AddImGuiSetting(int filterIndex, MapFilterOption option)
+{
+	bool changed = false;
+	bool regenerate = false;
+	bool isRequirementMet = RequirementsMet(static_cast<MapFilter>(filterIndex));
+
+	ImGui::PushID(&option);
+
+	if (!isRequirementMet)
+	{
+		ImGui::BeginDisabled();
+	}
+
+	if (ImGui::Checkbox("", &option.Enabled))
+		changed = true;
+
+	ImGui::SameLine();
+	ImGui::Text("%s", option.szName);
+
+	if (option.IsRadius())
+	{
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(50);
+		if (ImGui::DragFloat("Radius", &option.Radius))
+			changed = true;
+	}
+
+	if (option.szHelpString)
+	{
+		ImGui::SameLine();
+		ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 0.5f), " - %s", option.szHelpString);
+	}
+
+	if (changed && option.IsRegenerateOnChange())
+		regenerate = true;
+	if (changed)
+		WritePrivateProfileBool("Map Filters", option.szName, option.Enabled, INIFileName);
+
+	if (!isRequirementMet)
+	{
+		ImGui::EndDisabled();
+	}
+
+	ImGui::PopID();
+
+	return regenerate;
+}
+
 static void DrawMapSettings_Options()
 {
 	bool regenerate = false;
@@ -1189,7 +1241,7 @@ static void DrawMapSettings_Options()
 
 	ImGui::NewLine();
 
-	if (ImGui::CollapsingHeader("Filter Settings", ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader("Object Filters", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		ImGui::Indent();
 
@@ -1197,50 +1249,29 @@ static void DrawMapSettings_Options()
 		{
 			MapFilterOption& option = MapFilterOptions[index];
 
-			if (!option.IsToggle() && !option.IsRadius())
-				continue;
-
-			bool changed = false;
-			bool isRequirementMet = RequirementsMet(static_cast<MapFilter>(index));
-
-			ImGui::PushID(&option);
-
-			if (!isRequirementMet)
+			if ((option.IsToggle() || option.IsRadius()) && option.IsObject())
 			{
-				ImGui::BeginDisabled();
+				if (AddImGuiSetting(index, option))
+					regenerate = true;
 			}
+		}
 
-			if (ImGui::Checkbox("", &option.Enabled))
-				changed = true;
+		ImGui::Unindent();
+	}
 
-			ImGui::SameLine();
-			ImGui::Text("%s", option.szName);
+	if (ImGui::CollapsingHeader("Options", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		ImGui::Indent();
 
-			if (option.IsRadius())
+		for (int index = 0; MapFilterOptions[index].szName != nullptr; ++index)
+		{
+			MapFilterOption& option = MapFilterOptions[index];
+
+			if ((option.IsToggle() || option.IsRadius()) && !option.IsObject())
 			{
-				ImGui::SameLine();
-				ImGui::SetNextItemWidth(50);
-				if (ImGui::DragFloat("Radius", &option.Radius))
-					changed = true;
+				if (AddImGuiSetting(index, option))
+					regenerate = true;
 			}
-
-			if (option.szHelpString)
-			{
-				ImGui::SameLine();
-				ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 0.5f), " - %s", option.szHelpString);
-			}
-
-			if (changed && option.IsRegenerateOnChange())
-				regenerate = true;
-			if (changed)
-				WritePrivateProfileBool("Map Filters", option.szName, option.Enabled, INIFileName);
-
-			if (!isRequirementMet)
-			{
-				ImGui::EndDisabled();
-			}
-
-			ImGui::PopID();
 		}
 
 		ImGui::Unindent();

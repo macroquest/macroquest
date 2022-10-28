@@ -82,6 +82,7 @@ struct MapFilterOption
 		NoColor      = 0x02,       // option has no color property
 		Regenerate   = 0x04,       // map is regenerated if this option is changed
 		UsesRadius   = 0x08,       // option has a radius (draws a circle)
+		Object		 = 0x10,	   // option is an Object filter
 	};
 
 	const char*      szName = nullptr;
@@ -101,6 +102,7 @@ struct MapFilterOption
 	bool IsRegenerateOnChange() const { return Flags & Regenerate; }
 	bool IsRadius() const { return Flags & UsesRadius; }
 	bool HasColor() const { return !(Flags & NoColor); }
+	bool IsObject() const { return Flags & Object; }
 };
 
 extern uint32_t bmMapRefresh;
