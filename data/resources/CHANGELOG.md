@@ -1,3 +1,11 @@
+October 31, 2022:
+- Added upper bounds check on ReagentID, NoExpendReagentID, and ReagentCount. The max number 
+  of reagents for a spell is 4. ReagentCount[n] explains how many ReagentID[n] you need.
+  For NoExpendReagentID is always just need 1 of the item.
+
+October 26, 2022:
+- live: Updated for live patch
+
 October 16, 2022:
 - test: Updated for patch
 
