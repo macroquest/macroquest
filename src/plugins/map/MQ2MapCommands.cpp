@@ -1182,9 +1182,9 @@ static void BuildFilteredOptionArray(MapFilterOption* options[])
 {
 	for (int childIndex = 0; childIndex < maxOptionsSize; childIndex++)
 	{
-		if (options[childIndex] == nullptr) break;
+		if (options[childIndex] == nullptr)
+			break;
 		MapFilter parentFilter = options[childIndex]->RequiresOption;
-		bool wasAlreadyInPlace = false;
 		if (parentFilter != MapFilter::Invalid)
 		{
 			MapFilterOption parent = GetMapFilterOption(parentFilter);
