@@ -87,6 +87,7 @@ struct MapFilterOption
 
 	const char*      szName = nullptr;
 	bool             Default = false;
+	MapFilter		 ThisFilter = MapFilter::Invalid;
 	MQColor          DefaultColor;
 	MapFilter        RequiresOption = MapFilter::Invalid;
 	uint32_t         Flags = 0;
@@ -134,6 +135,9 @@ extern char MapSpecialClickString[MAX_CLICK_STRINGS][MAX_STRING];
 extern char MapLeftClickString[MAX_CLICK_STRINGS][MAX_STRING];
 extern bool repeatMapshow;
 extern bool repeatMaphide;
+
+extern MapFilterOption* mapfilterObjectOptions[100];
+extern MapFilterOption* mapFilterOptions[100];
 
 /* COMMANDS */
 void MapFilters(SPAWNINFO* pChar, char* szLine);
