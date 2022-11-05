@@ -166,7 +166,7 @@ void MapAttach();
 void MapDetach();
 
 void MapLocSyntaxOutput();
-void MapRemoveLocation(SPAWNINFO* pChar, char* szLine);
+void MapRemoveLocation(char* szLine);
 
 bool MapSelectTarget();
 void MapClickLocation(float x, float y, const std::vector<float>& z_hits);

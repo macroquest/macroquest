@@ -671,7 +671,7 @@ bool IsFloat(const std::string& in)
 	return !((sstr >> std::noskipws >> f).rdstate() ^ std::ios_base::eofbit);
 }
 
-void MapRemoveLocation(SPAWNINFO* pChar, char* szLine)
+void MapRemoveLocation(char* szLine)
 {
 	char arg[MAX_STRING];
 	std::stringstream ss(szLine);
