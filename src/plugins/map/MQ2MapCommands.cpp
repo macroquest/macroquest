@@ -1176,52 +1176,224 @@ static void DrawMapSetting_SingleFilter(MapFilter filter)
 
 }
 
+const int maxOptionsSize = 100;
+
+static void BuildFilteredOptionArray(MapFilterOption* options[])
+{
+	for (int childIndex = 0; childIndex < maxOptionsSize; childIndex++)
+	{
+		if (options[childIndex] == nullptr) break;
+		MapFilter parentFilter = options[childIndex]->RequiresOption;
+		bool wasAlreadyInPlace = false;
+		if (parentFilter != MapFilter::Invalid)
+		{
+			MapFilterOption parent = GetMapFilterOption(parentFilter);
+			for (int parentIndex = 0; parentIndex < maxOptionsSize; parentIndex++)
+			{
+				if (options[parentIndex] == nullptr) break;
+				if (std::strcmp(parent.szName, options[parentIndex]->szName) == 0)
+				{
+					// Shift child to be immediately after parent
+					MapFilterOption* childToMove = options[childIndex];
+					if (childIndex < parentIndex)
+					{
+						// Moving child right until after parent
+						for (int i = childIndex; i < parentIndex; i++)
+						{
+							options[i] = options[i + 1];
+						}
+						options[parentIndex--] = childToMove;
+					}
+					else if(childIndex != parentIndex + 1) // If child is already immediately after parent, don't move
+					{
+						// Moving child left until after parent
+						for (int k = childIndex; k > parentIndex + 1; k--)
+						{
+							options[k] = options[k - 1];
+						}
+						options[parentIndex + 1] = childToMove;
+					}
+
+					// Shift child right if next element is also a child and higher alphabetically
+					for (int movedChildIndex = parentIndex + 1;
+						movedChildIndex < maxOptionsSize - 1 && 
+						options[movedChildIndex]->RequiresOption == options[movedChildIndex + 1]->RequiresOption &&
+						std::strcmp(options[movedChildIndex]->szName, options[movedChildIndex + 1]->szName) > 0;
+						movedChildIndex++)
+					{
+						MapFilterOption* temp = options[movedChildIndex + 1];
+						options[movedChildIndex + 1] = options[movedChildIndex];
+						options[movedChildIndex] = temp;
+					}
+
+					// Adjust iterator for movement
+					if (childIndex < parentIndex)
+					{
+						// Current element was moved later and the next element was put in its place, so recheck current.
+						childIndex--;
+					} // else current element was moved earlier in the array, and the element that took its place is one we previously checked, so continue
+
+					continue; // we found the parent, move onto next i value and skip the rest of the j's
+				}
+			}
+		}
+	}
+}
+
+static void BuildOptionArrays()
+{
+	// Build the lists once, cache them for future use
+	if (mapFilterOptions[0] != nullptr)
+		return;
+
+	// Copy MapFilterOptions
+	MapFilterOption* allFilterOptions[maxOptionsSize] = { };
+	for (int i = 0; i < maxOptionsSize; i++)
+	{
+		if (MapFilterOptions[i].ThisFilter != MapFilter::Invalid && MapFilterOptions[i].ThisFilter != MapFilter::All)
+			allFilterOptions[i] = &MapFilterOptions[i];
+	}
+
+	// Sort copied array alphabetically
+	std::sort(allFilterOptions, allFilterOptions + maxOptionsSize,
+		[](MapFilterOption* a, MapFilterOption* b) -> bool
+		{
+			if (a == nullptr || a->szName == nullptr) return false;
+			if (b == nullptr || b->szName == nullptr) return true;
+			for (int i = 0; ; i++)
+			{
+				if (tolower(a->szName[i]) < tolower(b->szName[i]))
+					return true;
+				if (tolower(a->szName[i]) > tolower(b->szName[i]))
+					return false;
+			}
+			return 0;
+		}
+	);
+
+	// Build filtered arrays by type
+	int iObj = 0;
+	int iOpt = 0;
+	for (int i = 0; i < maxOptionsSize; i++)
+	{
+		if (allFilterOptions[i] == nullptr)
+			break;
+
+		if (allFilterOptions[i]->IsToggle() || allFilterOptions[i]->IsRadius())
+		{
+			if (allFilterOptions[i]->IsObject())
+			{
+				int temp = iObj;
+				mapfilterObjectOptions[iObj++] = allFilterOptions[i];
+			}
+			else
+			{
+				mapFilterOptions[iOpt++] = allFilterOptions[i];
+			}
+		}
+	}
+
+	// Put children under parents
+	BuildFilteredOptionArray(mapfilterObjectOptions);
+	BuildFilteredOptionArray(mapFilterOptions);
+}
+
+std::stack<MapFilterOption*> optionStack;
+
 /// <summary>
 /// Adds ImGui setting object
 /// </summary>
 /// <returns>true if needs to regenerate</returns>
-static bool AddImGuiSetting(int filterIndex, MapFilterOption option)
+static bool AddImGuiSetting(MapFilterOption* option)
 {
 	bool changed = false;
 	bool regenerate = false;
-	bool isRequirementMet = RequirementsMet(static_cast<MapFilter>(filterIndex));
+	bool isRequirementMet = RequirementsMet(option->ThisFilter);
 
-	ImGui::PushID(&option);
+	ImGui::PushID(option);
 
-	if (!isRequirementMet)
+	// if this requires previous, indent
+	// if this req is equal to previous req, no change
+	// if this requires something new, not previous, pop-loop (and unindent) until previous conditions are met or until stack empty
+	MapFilterOption* previousOption;
+	bool nested = false;
+	while (optionStack.size() > 0)
 	{
-		ImGui::BeginDisabled();
+		previousOption = optionStack.top();
+		if (previousOption->ThisFilter == option->RequiresOption)
+		{
+			ImGui::Indent();
+			nested = true;
+			break;
+		}
+		else if (previousOption->RequiresOption == option->RequiresOption)
+		{
+			optionStack.pop();
+			nested = true;
+			break;
+		}
+		else
+		{
+			optionStack.pop();
+			if (optionStack.size() < 1)
+				break;
+			ImGui::Unindent();
+		}
 	}
 
-	if (ImGui::Checkbox("", &option.Enabled))
+	optionStack.push(option);
+
+	if (!isRequirementMet)
+		ImGui::BeginDisabled();
+
+	if (ImGui::Checkbox(option->szName, &option->Enabled))
 		changed = true;
 
-	ImGui::SameLine();
-	ImGui::Text("%s", option.szName);
+	// Draw a tooltip (?) if this option has requirements from another option list
+	MapFilterOption& requirement = GetMapFilterOption(option->RequiresOption);
+	if (!nested && requirement.szName != nullptr && requirement.ThisFilter != MapFilter::All)
+	{
+		ImGui::SameLine();
+		ImGui::TextDisabled("(?)");
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+			
+			std::string requireString = "Requires: ";
+			if (requirement.IsObject() != option->IsObject())
+				requireString += requirement.IsObject() ? "Object Filters -> " : "Options -> ";
 
-	if (option.IsRadius())
+			requireString += std::string(requirement.szName);
+			char* requireArray = &requireString[0];
+
+			ImGui::TextUnformatted(requireArray);
+			ImGui::PopTextWrapPos();
+			ImGui::EndTooltip();
+		}
+	}
+
+	if (option->IsRadius())
 	{
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(50);
-		if (ImGui::DragFloat("Radius", &option.Radius))
+		if (ImGui::DragFloat("Radius", &option->Radius))
 			changed = true;
 	}
 
-	if (option.szHelpString)
+	if (option->szHelpString)
 	{
 		ImGui::SameLine();
-		ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 0.5f), " - %s", option.szHelpString);
+		ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 0.5f), " - %s", option->szHelpString);
 	}
 
-	if (changed && option.IsRegenerateOnChange())
+	if (changed && option->IsRegenerateOnChange())
 		regenerate = true;
 	if (changed)
-		WritePrivateProfileBool("Map Filters", option.szName, option.Enabled, INIFileName);
+		WritePrivateProfileBool("Map Filters", option->szName, option->Enabled, INIFileName);
 
 	if (!isRequirementMet)
-	{
 		ImGui::EndDisabled();
-	}
 
 	ImGui::PopID();
 
@@ -1231,6 +1403,7 @@ static bool AddImGuiSetting(int filterIndex, MapFilterOption option)
 static void DrawMapSettings_Options()
 {
 	bool regenerate = false;
+	BuildOptionArrays();
 
 	MapFilterOption& allOption = GetMapFilterOption(MapFilter::All);
 	if (ImGui::Checkbox("Enable MQ2Map Labels", &allOption.Enabled))
@@ -1245,15 +1418,11 @@ static void DrawMapSettings_Options()
 	{
 		ImGui::Indent();
 
-		for (int index = 0; MapFilterOptions[index].szName != nullptr; ++index)
+		for (int index = 0; mapfilterObjectOptions[index] != nullptr && mapfilterObjectOptions[index]->szName != nullptr; ++index)
 		{
-			MapFilterOption& option = MapFilterOptions[index];
-
-			if ((option.IsToggle() || option.IsRadius()) && option.IsObject())
-			{
-				if (AddImGuiSetting(index, option))
-					regenerate = true;
-			}
+			MapFilterOption* option = mapfilterObjectOptions[index];
+			if (option != nullptr && AddImGuiSetting(option))
+				regenerate = true;
 		}
 
 		ImGui::Unindent();
@@ -1263,15 +1432,11 @@ static void DrawMapSettings_Options()
 	{
 		ImGui::Indent();
 
-		for (int index = 0; MapFilterOptions[index].szName != nullptr; ++index)
+		for (int index = 0; mapFilterOptions[index] != nullptr && mapFilterOptions[index]->szName != nullptr; ++index)
 		{
-			MapFilterOption& option = MapFilterOptions[index];
-
-			if ((option.IsToggle() || option.IsRadius()) && !option.IsObject())
-			{
-				if (AddImGuiSetting(index, option))
-					regenerate = true;
-			}
+			MapFilterOption* option = mapFilterOptions[index];
+			if (AddImGuiSetting(option))
+				regenerate = true;
 		}
 
 		ImGui::Unindent();
