@@ -1494,7 +1494,8 @@ namespace sol_ImGui
 	inline void TableHeadersRow()                                                                       { ImGui::TableHeadersRow(); }
 	inline void TableHeader(const std::string& label)                                                   { ImGui::TableHeader(label.c_str()); }
 
-	inline int TableGetColumnCount()                                                                    { return ImGui::TableGetColumnCount(); }
+	inline int TableGetColumnCount()																	{ return ImGui::TableGetColumnCount(); }
+	inline int TableGetColumnFlags(int column_n)                                                        { return ImGui::TableGetColumnFlags(column_n); }
 	inline std::string TableGetColumnName()                                                             { const char* name = ImGui::TableGetColumnName(); if (name) return std::string(name); return std::string(); }
 	inline std::string TableGetColumnName(int column_n)                                                 { const char* name = ImGui::TableGetColumnName(column_n); if (name) return std::string(name); return std::string(); }
 	inline bool TableGetColumnIsVisible()                                                               { return (ImGui::TableGetColumnFlags() & ImGuiTableColumnFlags_IsVisible) != 0; }
