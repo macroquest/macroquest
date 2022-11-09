@@ -33,13 +33,23 @@ private:
 	sol::function m_fromString;
 
 public:
-	MQ2LuaGenericType(std::string_view typeName, sol::function toString, sol::function fromData, sol::function fromString)
+	MQ2LuaGenericType(std::string_view typeName, sol::table members, sol::function toString, sol::function fromData, sol::function fromString)
 		: m_typeName(typeName)
 		, m_toString(toString)
 		, m_fromData(fromData)
 		, m_fromString(fromString)
 		, MQ2Type(fmt::format("{}", typeName).c_str()) // not a huge fan of this, but the base class will init first, can't use m_typeName
-	{}
+	{
+		for (const auto& member : members)
+		{
+			auto maybe_name = member.first.as<std::optional<std::string_view>>();
+			auto maybe_val = member.second.as<std::optional<sol::function>>();
+			if (maybe_name && maybe_val)
+			{
+				m_memberMap.emplace(fmt::format("{}", *maybe_name).c_str(), *maybe_val);
+			}
+		}
+	}
 
 	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
 	{
@@ -127,11 +137,6 @@ public:
 		}
 
 		return false;
-	}
-
-	void AddMember(const char* memberName, sol::function evaluate)
-	{
-		m_memberMap.emplace(memberName, evaluate);
 	}
 };
 
@@ -271,16 +276,7 @@ public:
 		}
 		else
 		{
-			auto [it, _] = m_dataTypes.emplace(name, std::make_unique<MQ2LuaGenericType>(name, toString, fromData, fromString));
-			for (const auto& member : members)
-			{
-				auto maybe_name = member.first.as<std::optional<std::string_view>>();
-				auto maybe_val = member.second.as<std::optional<sol::function>>();
-				if (maybe_name && maybe_val)
-				{
-					it->second->AddMember(fmt::format("{}", *maybe_name).c_str(), *maybe_val);
-				}
-			}
+			m_dataTypes.emplace(name, std::make_unique<MQ2LuaGenericType>(name, members, toString, fromData, fromString));
 		}
 	}
 
