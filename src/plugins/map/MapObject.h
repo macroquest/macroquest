@@ -49,6 +49,11 @@ public:
 	virtual SPAWNINFO* GetSpawn() const { return nullptr; }
 	virtual GROUNDITEM* GetGroundItem() const { return nullptr; }
 
+	virtual char* GetLabelText() {
+		if (m_label == nullptr) return "";
+		return m_label->Label;
+	}
+
 protected:
 	virtual void HandleFormatSpecifier(char spec, CXStr& output);
 
@@ -178,6 +183,17 @@ struct MapLocParams
 	MQColor color = MQColor(255, 0, 0);
 	float   circleRadius = 0.f;
 	MQColor circleColor = MQColor(0, 0, 255);
+
+	MapLocParams GetClone()
+	{
+		MapLocParams result;
+		result.lineSize = lineSize;
+		result.width = width;
+		result.color = MQColor(color.Red, color.Green, color.Blue);
+		result.circleRadius = circleRadius;
+		result.circleColor = MQColor(circleColor.Red, circleColor.Green, circleColor.Blue);
+		return result;
+	}
 };
 extern MapLocParams gDefaultMapLocParams;
 
@@ -191,9 +207,10 @@ public:
 	virtual ~MapObjectMapLoc();
 
 	void UpdateFromParams(const MapLocParams& params);
-	MapLocParams GetParams() const;
+	MapLocParams GetParamsClone() const;
 
-	bool IsCreatedFromDefaults() const { return m_isCreatedFromDefaultLoc; }
+	bool IsCreatedFromDefaults() { return m_isCreatedFromDefaultLoc; }
+	void SetCreatedFromDefaults(bool isCreatedFromDefaults) { m_isCreatedFromDefaultLoc = isCreatedFromDefaults; }
 
 	int GetIndex() const { return m_index; }
 	void SetIndex(int index);
@@ -206,10 +223,11 @@ public:
 
 	virtual bool CanDisplayObject() const override { return true; }
 
+	bool				  m_isSelected; // exposed directly for imgui reference
+
 private:
 	void UpdateMapLoc();
 	void RemoveMapLoc();
-
 	void UpdateText();
 
 	bool                  m_isCreatedFromDefaultLoc;
@@ -217,17 +235,18 @@ private:
 	int                   m_index = 1;
 	std::string           m_tag;
 	std::string           m_labelText;
-	float                 m_lineSize;
-	float                 m_width;
-	MQColor               m_color;
 	std::vector<MapViewLine*> m_lines;
-	float                 m_circleRadius;
-	MQColor               m_circleColor;
 	MapCircle             m_circle;
+	MapLocParams		  m_mapLocParams;
 };
+
+extern std::map<std::string, MapObjectMapLoc*> sLocationsMap;
+extern std::vector<MapObjectMapLoc*> sMapLocs;
+extern MapLocParams gOverrideMapLocParams;
 
 void UpdateDefaultMapLocParams();
 void UpdateDefaultMapLocInstances();
+void ResetMapLocOverrides();
 
 void MakeMapLoc(const MapLocParams& params, const std::string& label,
 	const std::string& tag, const CVector3& pos, bool isDefault);
