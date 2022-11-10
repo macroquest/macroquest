@@ -1479,24 +1479,6 @@ static void DrawMapSettings_Options()
 		}
 
 		ImGui::SetNextItemWidth(40);
-		if (ImGui::DragScalar("R", ImGuiDataType_U8, &HighlightColor.Red))
-		{
-			WritePrivateProfileInt("Map Filters", "High-Color", HighlightColor.ARGB, INIFileName);
-		}
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(40);
-		if (ImGui::DragScalar("G", ImGuiDataType_U8, &HighlightColor.Green))
-		{
-			WritePrivateProfileInt("Map Filters", "High-Color", HighlightColor.ARGB, INIFileName);
-		}
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(40);
-		if (ImGui::DragScalar("B", ImGuiDataType_U8, &HighlightColor.Blue))
-		{
-			WritePrivateProfileInt("Map Filters", "High-Color", HighlightColor.ARGB, INIFileName);
-		}
-
-		ImGui::SetNextItemWidth(40);
 		if (ImGui::DragInt("Size", &HighlightSIDELEN))
 		{
 			PulseReset();
@@ -1535,6 +1517,8 @@ static void DrawMapSettings_Colors()
 			option.Color.Green = static_cast<uint8_t>(color.Value.y * 255);
 			option.Color.Red = static_cast<uint8_t>(color.Value.x * 255);
 			option.Color.Alpha = 255;
+
+			WritePrivateProfileInt("Map Filters", fmt::format("{}-Color", option.szName), option.Color.ToRGB(), INIFileName);
 			changed = true;
 		}
 
@@ -1544,6 +1528,8 @@ static void DrawMapSettings_Colors()
 			if (ImGui::Button("Reset"))
 			{
 				option.Color = option.DefaultColor;
+
+				WritePrivateProfileInt("Map Filters", fmt::format("{}-Color", option.szName), option.Color.ToRGB(), INIFileName);
 				changed = true;
 			}
 		}
@@ -1553,6 +1539,18 @@ static void DrawMapSettings_Colors()
 
 		if (changed && option.IsRegenerateOnChange())
 			regenerate = true;
+	}
+
+	ImColor color = HighlightColor.ToImColor();
+	if (ImGui::ColorEdit3("Highlight", &color.Value.x))
+	{
+		HighlightColor.Blue = static_cast<uint8_t>(color.Value.z * 255);
+		HighlightColor.Green = static_cast<uint8_t>(color.Value.y * 255);
+		HighlightColor.Red = static_cast<uint8_t>(color.Value.x * 255);
+		HighlightColor.Alpha = 255;
+
+		WritePrivateProfileInt("Map Filters", "High-Color", HighlightColor.ToRGB(), INIFileName);
+		regenerate = true;
 	}
 
 	if (regenerate)
