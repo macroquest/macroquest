@@ -23,6 +23,11 @@
 #include <sol/sol.hpp>
 
 namespace mq::lua {
+// TODO: This _really_ needs to be in an implementation file. Refactor this after testing
+// safe to key this with string_view since the plugin will have the string
+class LuaPlugin;
+static ci_unordered::map<std::string_view, std::shared_ptr<LuaPlugin>> s_pluginMap;
+		
 #pragma region Type Helper
 
 class MQ2LuaGenericType : public MQ2Type
@@ -144,7 +149,7 @@ public:
 
 #pragma endregion
 
-class LuaPlugin
+class LuaPlugin : public std::enable_shared_from_this<LuaPlugin>
 {
 	// TODO: move some of this into an implementation file
 #pragma region Callbacks
@@ -405,16 +410,51 @@ public:
 		, m_version(version)
 	{}
 
+	[[nodiscard]] static std::shared_ptr<LuaPlugin> Create(const std::string& name, const std::string& version)
+	{
+		return std::make_shared<LuaPlugin>(name, version);
+	}
+
+	void Start()
+	{
+		// this is where we would differ from a universal plugin interface. We can't just put it in a local map, we'd need to provide it to the larger interface
+		s_pluginMap.emplace(m_name, shared_from_this());
+	}
+
+	void Stop()
+	{
+		s_pluginMap.erase(m_name);
+	}
+
+	static std::shared_ptr<LuaPlugin> Lookup(const std::string& name)
+	{
+		auto it = s_pluginMap.find(name);
+		if (it != s_pluginMap.end())
+		{
+			return it->second;
+		}
+
+		return {};
+	}
+
 	static void RegisterLua(sol::table& mq)
 	{
 		LuaPlugin::RegisterCallbackEnum(mq.lua_state());
 
+		// create a plugin with local plugin = mq.plugin.new(name, version), then you can do plugin:callback(...) etc
+		// finally, you'd do plugin:start() to add it to the map and plugin:stop() will remove it from the map
+		// TODO: Need to tie `/lua run` and `/lua stop` to start/stop (especially the latter, we can require that the user start the plugin in the script)
 		mq.new_usertype<LuaPlugin>(
-			"plugin", sol::constructors<LuaPlugin(const std::string&, const std::string&)>(),
-			"register_callback", &LuaPlugin::RegisterCallback,
-			"register_command", &LuaPlugin::RegisterCommand,
-			"register_datatype", &LuaPlugin::RegisterDatatype,
-			"register_tlo", &LuaPlugin::RegisterData
+			"plugin",
+			sol::meta_function::construct, sol::factories(&LuaPlugin::Create),
+			sol::call_constructor, &LuaPlugin::Create,
+			"callback", &LuaPlugin::RegisterCallback,
+			"command", &LuaPlugin::RegisterCommand,
+			"datatype", &LuaPlugin::RegisterDatatype,
+			"tlo", &LuaPlugin::RegisterData,
+			"start", &LuaPlugin::Start,
+			"stop", &LuaPlugin::Stop,
+			"lookup", &LuaPlugin::Lookup
 			);
 	}
 
