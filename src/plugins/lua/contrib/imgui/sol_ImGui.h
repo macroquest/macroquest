@@ -1498,6 +1498,8 @@ namespace sol_ImGui
 	inline int TableGetColumnFlags(int column_n)                                                        { return ImGui::TableGetColumnFlags(column_n); }
 	inline std::string TableGetColumnName()                                                             { const char* name = ImGui::TableGetColumnName(); if (name) return std::string(name); return std::string(); }
 	inline std::string TableGetColumnName(int column_n)                                                 { const char* name = ImGui::TableGetColumnName(column_n); if (name) return std::string(name); return std::string(); }
+	inline bool TableGetColumnHasFlag(ImGuiTableColumnFlags flag)										{ return (ImGui::TableGetColumnFlags() & flag) != 0; }
+	inline bool TableGetColumnHasFlag(int column_n, ImGuiTableColumnFlags flag)							{ return (ImGui::TableGetColumnFlags(column_n) & flag) != 0; }
 	inline bool TableGetColumnIsVisible()                                                               { return (ImGui::TableGetColumnFlags() & ImGuiTableColumnFlags_IsVisible) != 0; }
 	inline bool TableGetColumnIsVisible(int column_n)                                                   { return (ImGui::TableGetColumnFlags(column_n) & ImGuiTableColumnFlags_IsVisible) != 0; }
 	inline bool TableGetColumnIsSorted()                                                                { return (ImGui::TableGetColumnFlags() & ImGuiTableColumnFlags_IsSorted) != 0; }
