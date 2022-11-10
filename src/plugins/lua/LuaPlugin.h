@@ -180,61 +180,147 @@ public:
 		OnUnloadPlugin
 	};
 
-	static void RegisterCallbackEnum(sol::state_view lua)
+	void InitializePlugin()
 	{
-		lua.new_enum("PluginCallback",
-			"InitializePlugin", Callback::InitializePlugin,
-			"ShutdownPlugin", Callback::ShutdownPlugin,
-			"OnCleanUI", Callback::OnCleanUI,
-			"OnReloadUI", Callback::OnReloadUI,
-			"OnDrawHUD", Callback::OnDrawHUD,
-			"SetGameState", Callback::SetGameState,
-			"OnPulse", Callback::OnPulse,
-			"OnWriteChatColor", Callback::OnWriteChatColor,
-			"OnIncomingChat", Callback::OnIncomingChat,
-			"OnAddSpawn", Callback::OnAddSpawn,
-			"OnRemoveSpawn", Callback::OnRemoveSpawn,
-			"OnAddGroundItem", Callback::OnAddGroundItem,
-			"OnRemoveGroundItem", Callback::OnRemoveGroundItem,
-			"OnBeginZone", Callback::OnBeginZone,
-			"OnEndZone", Callback::OnEndZone,
-			"OnZoned", Callback::OnZoned,
-			"OnUpdateImGui", Callback::OnUpdateImGui,
-			"OnMacroStart", Callback::OnMacroStart,
-			"OnMacroStop", Callback::OnMacroStop,
-			"OnLoadPlugin", Callback::OnLoadPlugin,
-			"OnUnloadPlugin", Callback::OnUnloadPlugin
-		);
+		if (m_InitializePlugin != sol::lua_nil) m_InitializePlugin(shared_from_this());
 	}
 
-	void RegisterCallback(const Callback callback, sol::function func)
+	void ShutdownPlugin()
 	{
-		auto callback_it = m_callbacks.find(callback);
-		if (callback_it != m_callbacks.end())
-		{
-			callback_it->second.emplace_back(func);
-		}
-		else
-		{
-			m_callbacks.emplace(callback, std::vector({ func }));
-		}
+		if (m_ShutdownPlugin != sol::lua_nil) m_ShutdownPlugin(shared_from_this());
 	}
 
-	template <typename... Args>
-	void RunCallback(const Callback callback, Args... args)
+	void OnCleanUI()
 	{
-		auto callback_it = m_callbacks.find(callback);
-		if (callback_it != m_callbacks.end())
+		if (m_OnCleanUI != sol::lua_nil) m_OnCleanUI(shared_from_this());
+	}
+
+	void OnReloadUI()
+	{
+		if (m_OnReloadUI != sol::lua_nil) m_OnReloadUI(shared_from_this());
+	}
+
+	void OnDrawHUD()
+	{
+		if (m_OnDrawHUD != sol::lua_nil) m_OnDrawHUD(shared_from_this());
+	}
+
+	void SetGameState(int GameState)
+	{
+		if (m_SetGameState != sol::lua_nil) m_SetGameState(shared_from_this(), GameState);
+	}
+
+	void OnPulse()
+	{
+		if (m_OnPulse != sol::lua_nil) m_OnPulse(shared_from_this());
+	}
+
+	void OnWriteChatColor(const char* Line, int Color, int Filter)
+	{
+		if (m_OnWriteChatColor != sol::lua_nil) m_OnWriteChatColor(shared_from_this(), Line, Color, Filter);
+	}
+
+	bool OnIncomingChat(const char* Line, unsigned long Color)
+	{
+		if (m_OnIncomingChat != sol::lua_nil)
 		{
-			for (auto f : callback_it->second)
+			auto result = m_OnIncomingChat(shared_from_this(), Line, Color);
+			if (result.valid() && result.return_count() > 0)
 			{
-				f(std::forward(args)...); // TODO: this should probably do some action on the result, and return a CoroutineResult
+				std::optional<bool> r = result;
+				if (r) return *r;
 			}
 		}
+
+		return false;
+	}
+
+	void OnAddSpawn(PlayerClient* pNewSpawn)
+	{
+		if (m_OnAddSpawn != sol::lua_nil && pNewSpawn != nullptr)
+			m_OnAddSpawn(shared_from_this(), pNewSpawn->SpawnID); // TODO: spawns could be userdata
+	}
+
+	void OnRemoveSpawn(PlayerClient* pSpawn)
+	{
+		if (m_OnRemoveSpawn != sol::lua_nil && pSpawn != nullptr)
+			m_OnRemoveSpawn(shared_from_this(), pSpawn->SpawnID); // TODO: spawns could be userdata
+	}
+
+	void OnAddGroundItem(EQGroundItem* pNewGroundItem)
+	{
+		if (m_OnAddGroundItem != sol::lua_nil && pNewGroundItem != nullptr && pNewGroundItem->Item)
+			m_OnAddGroundItem(shared_from_this(), pNewGroundItem->Item->ID); // TODO: needs to be userdata
+	}
+
+	void OnRemoveGroundItem(EQGroundItem* pGroundItem)
+	{
+		if (m_OnRemoveGroundItem != sol::lua_nil && pGroundItem != nullptr && pGroundItem->Item)
+			m_OnRemoveGroundItem(shared_from_this(), pGroundItem->Item->ID); // TODO: needs to be userdata
+	}
+
+	void OnBeginZone()
+	{
+		if (m_OnBeginZone != sol::lua_nil) m_OnBeginZone(shared_from_this());
+	}
+
+	void OnEndZone()
+	{
+		if (m_OnEndZone != sol::lua_nil) m_OnEndZone(shared_from_this());
+	}
+
+	void OnZoned()
+	{
+		if (m_OnZoned != sol::lua_nil) m_OnZoned(shared_from_this());
+	}
+
+	void OnUpdateImGui()
+	{
+		if (m_OnUpdateImGui != sol::lua_nil) m_OnUpdateImGui(shared_from_this());
+	}
+
+	void OnMacroStart(const char* Name)
+	{
+		if (m_OnMacroStart != sol::lua_nil) m_OnMacroStart(shared_from_this(), Name);
+	}
+
+	void OnMacroStop(const char* Name)
+	{
+		if (m_OnMacroStop != sol::lua_nil) m_OnMacroStop(shared_from_this(), Name);
+	}
+
+	void OnLoadPlugin(const char* Name)
+	{
+		if (m_OnLoadPlugin != sol::lua_nil) m_OnLoadPlugin(shared_from_this(), Name);
+	}
+
+	void OnUnloadPlugin(const char* Name)
+	{
+		if (m_OnUnloadPlugin != sol::lua_nil) m_OnUnloadPlugin(shared_from_this(), Name);
 	}
 
 private:
-	std::unordered_map<Callback, std::vector<sol::function>> m_callbacks;
+	sol::function m_InitializePlugin = sol::lua_nil;
+	sol::function m_ShutdownPlugin = sol::lua_nil;
+	sol::function m_OnCleanUI = sol::lua_nil;
+	sol::function m_OnReloadUI = sol::lua_nil;
+	sol::function m_OnDrawHUD = sol::lua_nil;
+	sol::function m_SetGameState = sol::lua_nil;
+	sol::function m_OnPulse = sol::lua_nil;
+	sol::function m_OnWriteChatColor = sol::lua_nil;
+	sol::function m_OnIncomingChat = sol::lua_nil;
+	sol::function m_OnAddSpawn = sol::lua_nil;
+	sol::function m_OnRemoveSpawn = sol::lua_nil;
+	sol::function m_OnAddGroundItem = sol::lua_nil;
+	sol::function m_OnRemoveGroundItem = sol::lua_nil;
+	sol::function m_OnBeginZone = sol::lua_nil;
+	sol::function m_OnEndZone = sol::lua_nil;
+	sol::function m_OnZoned = sol::lua_nil;
+	sol::function m_OnUpdateImGui = sol::lua_nil;
+	sol::function m_OnMacroStart = sol::lua_nil;
+	sol::function m_OnMacroStop = sol::lua_nil;
+	sol::function m_OnLoadPlugin = sol::lua_nil;
+	sol::function m_OnUnloadPlugin = sol::lua_nil;
 
 #pragma endregion
 
@@ -418,12 +504,14 @@ public:
 	void Start()
 	{
 		// this is where we would differ from a universal plugin interface. We can't just put it in a local map, we'd need to provide it to the larger interface
+		InitializePlugin();
 		s_pluginMap.emplace(m_name, shared_from_this());
 	}
 
 	void Stop()
 	{
 		s_pluginMap.erase(m_name);
+		ShutdownPlugin();
 	}
 
 	static std::shared_ptr<LuaPlugin> Lookup(const std::string& name)
@@ -436,11 +524,69 @@ public:
 
 		return {};
 	}
+	
+	void Set(const std::string& name, sol::object val, sol::this_state s)
+	{
+		if (name == "InitializePlugin" && val.is<sol::function>())
+			m_InitializePlugin = val.as<sol::function>();
+		else if (name == "ShutdownPlugin" && val.is<sol::function>())
+			m_ShutdownPlugin = val.as<sol::function>();
+		else if (name == "OnCleanUI" && val.is<sol::function>())
+			m_OnCleanUI = val.as<sol::function>();
+		else if (name == "OnReloadUI" && val.is<sol::function>())
+			m_OnReloadUI = val.as<sol::function>();
+		else if (name == "OnDrawHUD" && val.is<sol::function>())
+			m_OnDrawHUD = val.as<sol::function>();
+		else if (name == "SetGameState" && val.is<sol::function>())
+			m_SetGameState = val.as<sol::function>();
+		else if (name == "OnPulse" && val.is<sol::function>())
+			m_OnPulse = val.as<sol::function>();
+		else if (name == "OnWriteChatColor" && val.is<sol::function>())
+			m_OnWriteChatColor = val.as<sol::function>();
+		else if (name == "OnIncomingChat" && val.is<sol::function>())
+			m_OnIncomingChat = val.as<sol::function>();
+		else if (name == "OnAddSpawn" && val.is<sol::function>())
+			m_OnAddSpawn = val.as<sol::function>();
+		else if (name == "OnRemoveSpawn" && val.is<sol::function>())
+			m_OnRemoveSpawn = val.as<sol::function>();
+		else if (name == "OnAddGroundItem" && val.is<sol::function>())
+			m_OnAddGroundItem = val.as<sol::function>();
+		else if (name == "OnRemoveGroundItem" && val.is<sol::function>())
+			m_OnRemoveGroundItem = val.as<sol::function>();
+		else if (name == "OnBeginZone" && val.is<sol::function>())
+			m_OnBeginZone = val.as<sol::function>();
+		else if (name == "OnEndZone" && val.is<sol::function>())
+			m_OnEndZone = val.as<sol::function>();
+		else if (name == "OnZoned" && val.is<sol::function>())
+			m_OnZoned = val.as<sol::function>();
+		else if (name == "OnUpdateImGui" && val.is<sol::function>())
+			m_OnUpdateImGui = val.as<sol::function>();
+		else if (name == "OnMacroStart" && val.is<sol::function>())
+			m_OnMacroStart = val.as<sol::function>();
+		else if (name == "OnMacroStop" && val.is<sol::function>())
+			m_OnMacroStop = val.as<sol::function>();
+		else if (name == "OnLoadPlugin" && val.is<sol::function>())
+			m_OnLoadPlugin = val.as<sol::function>();
+		else if (name == "OnUnloadPlugin" && val.is<sol::function>())
+			m_OnUnloadPlugin = val.as<sol::function>();
+		else
+			m_blackboard.insert_or_assign(name, val);
+	}
+
+	sol::object Get(const std::string& name, sol::this_state s)
+	{
+		auto it = m_blackboard.find(name);
+		if (it != m_blackboard.end())
+		{
+			return it->second;
+		}
+
+		sol::state_view L(s);
+		return sol::object(s, sol::in_place, sol::nil);
+	}
 
 	static void RegisterLua(sol::table& mq)
 	{
-		LuaPlugin::RegisterCallbackEnum(mq.lua_state());
-
 		// create a plugin with local plugin = mq.plugin.new(name, version), then you can do plugin:callback(...) etc
 		// finally, you'd do plugin:start() to add it to the map and plugin:stop() will remove it from the map
 		// TODO: Need to tie `/lua run` and `/lua stop` to start/stop (especially the latter, we can require that the user start the plugin in the script)
@@ -448,19 +594,22 @@ public:
 			"plugin",
 			sol::meta_function::construct, sol::factories(&LuaPlugin::Create),
 			sol::call_constructor, &LuaPlugin::Create,
-			"callback", &LuaPlugin::RegisterCallback,
 			"command", &LuaPlugin::RegisterCommand,
 			"datatype", &LuaPlugin::RegisterDatatype,
 			"tlo", &LuaPlugin::RegisterData,
 			"start", &LuaPlugin::Start,
 			"stop", &LuaPlugin::Stop,
-			"lookup", &LuaPlugin::Lookup
+			"lookup", &LuaPlugin::Lookup,
+			sol::meta_function::index, &LuaPlugin::Get,
+			sol::meta_function::new_index, &LuaPlugin::Set
 			);
 	}
 
 private:
 	std::string m_name;
 	std::string m_version;
+
+	ci_unordered::map<std::string, sol::object> m_blackboard;
 #pragma endregion
 };
 } // namespace mq::lua
