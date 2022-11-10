@@ -27,26 +27,26 @@ class MQ2LuaGenericType : public MQ2Type
 {
 private:
 	std::string m_typeName;
-	ci_unordered::map<const char*, sol::function> m_memberMap;
+	ci_unordered::map<std::string, sol::function> m_memberMap;
 	sol::function m_toString;
 	sol::function m_fromData;
 	sol::function m_fromString;
 
 public:
-	MQ2LuaGenericType(std::string_view typeName, sol::table members, sol::function toString, sol::function fromData, sol::function fromString)
+	MQ2LuaGenericType(const std::string& typeName, sol::table members, sol::function toString, sol::function fromData, sol::function fromString)
 		: m_typeName(typeName)
 		, m_toString(toString)
 		, m_fromData(fromData)
 		, m_fromString(fromString)
-		, MQ2Type(fmt::format("{}", typeName).c_str()) // not a huge fan of this, but the base class will init first, can't use m_typeName
+		, MQ2Type(typeName.c_str())
 	{
 		for (const auto& member : members)
 		{
-			auto maybe_name = member.first.as<std::optional<std::string_view>>();
+			auto maybe_name = member.first.as<std::optional<std::string>>();
 			auto maybe_val = member.second.as<std::optional<sol::function>>();
 			if (maybe_name && maybe_val)
 			{
-				m_memberMap.emplace(fmt::format("{}", *maybe_name).c_str(), *maybe_val);
+				m_memberMap.emplace(*maybe_name, *maybe_val);
 			}
 		}
 	}
@@ -60,12 +60,12 @@ public:
 			auto result = member_it->second(*ptr, Index);
 			if (result.valid() && result.return_count() > 1)
 			{
-				std::tuple<std::optional<std::string_view>, sol::object> r = result;
-				std::optional<std::string_view> typeName = std::get<0>(r);
-				sol::object typeValue = std::get<1>(r);
+				std::tuple<std::optional<std::string>, sol::object> r = result;
+				auto& [typeName, typeValue] = r;
 				if (typeName)
 				{
-					MQ2Type* type = FindMQ2DataType(fmt::format("{}", *typeName).c_str());
+					// TODO: This should probably use template specializations for known MQ2Type conversions, then fall through to this really inefficient method
+					MQ2Type* type = FindMQ2DataType(typeName->c_str());
 					if (type != nullptr)
 					{
 						Dest.Type = type;
@@ -94,8 +94,8 @@ public:
 			auto result = m_toString(*ptr);
 			if (result.valid() && result.return_count() > 0)
 			{
-				std::optional<std::string_view> r = result;
-				fmt::format_to(Destination, "{}", r.value_or(""));
+				std::optional<std::string> r = result;
+				strcpy_s(Destination, MAX_STRING, r.value_or("").c_str());
 				return true;
 			}
 		}
