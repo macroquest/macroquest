@@ -287,6 +287,96 @@ public:
 
 private:
 	ci_unordered::map<std::string, std::unique_ptr<MQ2LuaGenericType>> m_dataTypes;
-	
+
+private:
+	// this is a hack because you can't capture in a function pointer, but we need to capture the lua function
+	struct FPtr
+	{
+		template <typename T>
+		static bool func_ptr_exec(const char* Index, MQTypeVar& Dest)
+		{
+			return (bool)(*(T*)fn<T>())(Index, Dest);
+		}
+
+		template <typename T>
+		static fMQData ptr(T& t)
+		{
+			fn<T>(&t);
+			return func_ptr_exec<T>;
+		}
+
+		template <typename T>
+		static void* fn(void* new_fn = nullptr)
+		{
+			static void* fn;
+			if (new_fn != nullptr) fn = new_fn;
+			return fn;
+		}
+	};
+
+	static fMQData CreateData(sol::function func)
+	{
+		auto ret_func = [&func](const char* Index, MQTypeVar& Dest) -> bool
+		{
+			auto result = func(Index);
+			if (result.valid() && result.return_count() > 1)
+			{
+				std::tuple<std::optional<std::string>, sol::object> r = result;
+				auto& [typeName, typeValue] = r;
+				if (typeName)
+				{
+					// TODO: This should probably use template specializations for known MQ2Type conversions, then fall through to this really inefficient method
+					MQ2Type* type = FindMQ2DataType(typeName->c_str());
+					if (type != nullptr)
+					{
+						Dest.Type = type;
+
+						// now take the value, stringify it, then use the type's fromstring to deser it
+						auto pp = sol::stack::push_pop(typeValue);
+						auto stack_val = sol::stack_object(typeValue.lua_state(), -1);
+						std::size_t len;
+						const char* val_str = lua_tolstring(stack_val.lua_state(), stack_val.stack_index(), &len);
+						lua_pop(stack_val.lua_state(), 1);
+
+						return type->FromString(Dest, val_str);
+					}
+				}
+			}
+
+			return false;
+		};
+
+		return FPtr::ptr(ret_func);
+	}
+
+public:
+	void RegisterData(const std::string& name, sol::function func)
+	{
+		if (FindMQ2Data(name.c_str()) != nullptr)
+		{
+			LuaError("Cannot create TLO %s, already a datatype in MQ.", name.c_str());
+		}
+		else if (name.empty())
+		{
+			LuaError("Cannot create TLO %s, not a valid name.", name.c_str());
+		}
+		else
+		{
+			m_dataTLOs.emplace(name, func);
+			AddMQ2Data(name.c_str(), CreateData(func));
+		}
+	}
+
+	void UnregisterData()
+	{
+		for (const auto& tlo : m_dataTLOs)
+		{
+			RemoveMQ2Data(tlo.first.c_str());
+		}
+		m_dataTLOs.clear();
+	}
+
+private:
+	ci_unordered::map<std::string, sol::function> m_dataTLOs;
 };
 } // namespace mq::lua
