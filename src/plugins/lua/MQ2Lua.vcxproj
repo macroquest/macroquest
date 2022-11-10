@@ -147,7 +147,6 @@
     <ClInclude Include="LuaCoroutine.h" />
     <ClInclude Include="LuaImGui.h" />
     <ClInclude Include="LuaPlugin.h" />
-    <ClInclude Include="LuaScript.h" />
     <ClInclude Include="LuaThread.h" />
     <ClInclude Include="LuaInterface.h" />
     <ClInclude Include="pch.h" />

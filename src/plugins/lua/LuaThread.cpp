@@ -14,10 +14,10 @@
 
 #include "pch.h"
 #include "LuaThread.h"
-#include "LuaScript.h"
 #include "LuaCoroutine.h"
 #include "LuaEvent.h"
 #include "LuaImGui.h"
+#include "LuaPlugin.h"
 #include "bindings/lua_MQBindings.h"
 
 #include <mq/Plugin.h>
@@ -57,9 +57,8 @@ static uint32_t NextID()
 
 //============================================================================
 
-std::optional<LuaScript> LuaThreadInfo::SetResult(const sol::protected_function_result& result, bool evaluate)
+void LuaThreadInfo::SetResult(const sol::protected_function_result& result, bool evaluate)
 {
-	std::optional<LuaScript> ret;
 	if (result.status() != sol::call_status::yielded)
 	{
 		EndRun();
@@ -68,17 +67,8 @@ std::optional<LuaScript> LuaThreadInfo::SetResult(const sol::protected_function_
 		{
 			returnValues = std::vector<std::string>(result.return_count());
 
-			int i = 0;
-			auto script = sol::stack::check_get<LuaScript>(result.lua_state(), result.stack_index());
-			if (script)
-			{
-				++i;
-				returnValues[0] = "script";
-				ret = *script; // need to do it like this so that we can convert from sol::optional to std::optional
-			}
-
 			// need to skip the first "return" (which is not a return, it's at index + 0) which is the function itself
-			for (; i < result.return_count(); ++i)
+			for (int i = 0; i < result.return_count(); ++i)
 			{
 				returnValues[i] = luaL_tolstring(result.lua_state(), result.stack_index() + i, nullptr);
 			}
@@ -99,7 +89,6 @@ std::optional<LuaScript> LuaThreadInfo::SetResult(const sol::protected_function_
 			}
 		}
 	}
-	return ret;
 }
 
 void LuaThreadInfo::EndRun()
@@ -242,6 +231,8 @@ void LuaThread::RegisterLuaBindings(sol::table mq)
 
 	MQ_RegisterLua_Events(mq);
 	MQ_RegisterLua_ImGui(mq);
+
+	LuaPlugin::RegisterLua(mq);
 }
 
 int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
@@ -306,25 +297,6 @@ sol::thread LuaThread::GetLuaThread() const
 
 //----------------------------------------------------------------------------
 
-std::optional<LuaThreadInfo> LuaThread::StartFunction(LuaThreadInfo& info, sol::coroutine function, const std::vector<std::string>& args)
-{
-	m_coroutine->coroutine = function;
-	YieldAt(m_turboNum);
-
-	info.startTime = std::chrono::system_clock::now();
-	CoroutineResult result = m_coroutine->RunCoroutine(args);
-
-	info.arguments = args;
-	info.status = LuaThreadStatus::Starting;
-
-	if (result)
-		SetResult(info, *result, m_evaluateResult); // TODO: this could technically recurse -- is that an issue?
-	else if (m_coroutine->coroutine.status() != sol::call_status::yielded)
-		info.EndRun();
-
-	return info;
-}
-
 std::optional<LuaThreadInfo> LuaThread::StartFile(
 	std::string_view filename, const std::vector<std::string>& args)
 {
@@ -368,7 +340,7 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(
 	};
 
 	if (result)
-		SetResult(ret, *result, m_evaluateResult);
+		ret.SetResult(*result, m_evaluateResult);
 	else if (m_coroutine->coroutine.status() != sol::call_status::yielded)
 		ret.EndRun();
 
@@ -431,7 +403,7 @@ std::optional<LuaThreadInfo> LuaThread::StartString(std::string_view script,
 	};
 
 	if (result)
-		SetResult(ret, *result, m_evaluateResult);
+		ret.SetResult(*result, m_evaluateResult);
 	else if (m_coroutine->coroutine.status() != sol::call_status::yielded)
 		ret.EndRun();
 
@@ -446,21 +418,6 @@ LuaThread::RunResult LuaThread::Run()
 	}
 
 	return { static_cast<sol::thread_status>(m_coroutine->coroutine.status()), std::nullopt };
-}
-
-void LuaThread::SetResult(LuaThreadInfo& info, const sol::protected_function_result& result, bool evaluate)
-{
-	std::optional<LuaScript> script = info.SetResult(result, evaluate);
-	if (script)
-	{
-		m_script = std::make_shared<LuaScript>(*script);
-
-		// this one is a bit strange, but this is essentially where we will initialize the lua "plugin"
-		InitializePlugin();
-
-		// only start main if it's not nullptr, after we have done initialization
-		if (m_script->Main) StartFunction(info, m_script->Main, {});
-	}
 }
 
 LuaThread::RunResult LuaThread::RunOnce()

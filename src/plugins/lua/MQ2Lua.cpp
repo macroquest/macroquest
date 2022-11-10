@@ -1104,22 +1104,22 @@ void LuaEnvironmentSettings::ConfigureLuaState(sol::state_view sv)
 class LuaPluginInterfaceImpl : public LuaPluginInterface
 {
 public:
-	LuaThreadPtr CreateLuaScript() override
+	LuaScriptPtr CreateLuaScript() override
 	{
-		LuaThreadPtr entry = LuaThread::Create(&s_environment);
+		LuaScriptPtr entry = LuaThread::Create(&s_environment);
 		entry->SetTurbo(s_turboNum);
 		s_pending.push_back(entry);
 
 		return entry;
 	}
 
-	void DestroyLuaScript(const LuaThreadPtr& thread) override
+	void DestroyLuaScript(const LuaScriptPtr& thread) override
 	{
 		thread->Exit();
 		s_infoMap.erase(thread->GetPID());
 	}
 
-	void ExecuteFile(const LuaThreadPtr& thread, std::string_view filename, const std::vector<std::string>& arguments) override
+	void ExecuteFile(const LuaScriptPtr& thread, std::string_view filename, const std::vector<std::string>& arguments) override
 	{
 		std::optional<LuaThreadInfo> result = thread->StartFile(filename, arguments);
 		if (result)
@@ -1131,7 +1131,7 @@ public:
 		// TODO: Return value?
 	}
 
-	void ExecuteString(const LuaThreadPtr& thread, std::string_view script, std::string_view name = "") override
+	void ExecuteString(const LuaScriptPtr& thread, std::string_view script, std::string_view name = "") override
 	{
 		std::optional<LuaThreadInfo> result = thread->StartString(script, name);
 		if (result)
@@ -1143,32 +1143,32 @@ public:
 		// TODO: Return value?
 	}
 
-	void SetTurbo(const LuaThreadPtr& thread, uint32_t turbo) override
+	void SetTurbo(const LuaScriptPtr& thread, uint32_t turbo) override
 	{
 		thread->SetTurbo(turbo);
 	}
 
-	void InjectMQNamespace(const LuaThreadPtr& thread) override
+	void InjectMQNamespace(const LuaScriptPtr& thread) override
 	{
 		return thread->InjectMQNamespace();
 	}
 
-	bool IsPaused(const LuaThreadPtr& thread) override
+	bool IsPaused(const LuaScriptPtr& thread) override
 	{
 		return thread->IsPaused();
 	}
 
-	int GetPid(const LuaThreadPtr& thread) override
+	int GetPid(const LuaScriptPtr& thread) override
 	{
 		return thread->GetPID();
 	}
 
-	const std::string& GetName(const LuaThreadPtr& thread) override
+	const std::string& GetName(const LuaScriptPtr& thread) override
 	{
 		return thread->GetName();
 	}
 
-	sol::state_view GetLuaState(const LuaThreadPtr& thread) override
+	sol::state_view GetLuaState(const LuaScriptPtr& thread) override
 	{
 		return thread->GetState();
 	}
@@ -1532,11 +1532,6 @@ PLUGIN_API void SetGameState(int GameState)
 {
 	// DebugSpewAlways("MQPluginTemplate::SetGameState(%d)", GameState);
 	using namespace mq::lua;
-
-	for (auto& thread : s_running)
-	{
-		thread->SetGameState(GameState);
-	}
 }
 
 /**
@@ -1561,8 +1556,7 @@ PLUGIN_API void OnPulse()
 	s_running.erase(std::remove_if(s_running.begin(), s_running.end(),
 		[](const std::shared_ptr<LuaThread>& thread) -> bool
 	{
-		// first do the OnPulse callbacks if they exist
-		thread->OnPulse();
+		// TODO: first do the OnPulse callbacks if they exist
 
 		// Now do the "main" functions
 		LuaThread::RunResult result = thread->Run();
@@ -1579,7 +1573,7 @@ PLUGIN_API void OnPulse()
 			if (fin_it != s_infoMap.end())
 			{
 				if (result.second)
-					thread->SetResult(fin_it->second, *result.second, thread->GetEvaluateResult());
+					fin_it->second.SetResult(*result.second, thread->GetEvaluateResult());
 				else
 					fin_it->second.EndRun();
 			}

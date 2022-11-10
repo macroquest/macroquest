@@ -23,6 +23,8 @@
 #include <sol/sol.hpp>
 
 namespace mq::lua {
+#pragma region Type Helper
+
 class MQ2LuaGenericType : public MQ2Type
 {
 private:
@@ -140,11 +142,13 @@ public:
 	}
 };
 
+#pragma endregion
+
 class LuaPlugin
 {
-	// TODO: need factory method for plugins
-	// TODO: need TLO methods
 	// TODO: move some of this into an implementation file
+#pragma region Callbacks
+
 public:
 	enum class Callback
 	{
@@ -171,7 +175,7 @@ public:
 		OnUnloadPlugin
 	};
 
-	void RegisterCallbackEnum(sol::state_view lua)
+	static void RegisterCallbackEnum(sol::state_view lua)
 	{
 		lua.new_enum("PluginCallback",
 			"InitializePlugin", Callback::InitializePlugin,
@@ -227,6 +231,10 @@ public:
 private:
 	std::unordered_map<Callback, std::vector<sol::function>> m_callbacks;
 
+#pragma endregion
+
+#pragma region Commands
+
 public:
 	void RegisterCommand(const std::string& name, sol::function func)
 	{
@@ -263,6 +271,10 @@ public:
 private:
 	ci_unordered::map<std::string, sol::function> m_commands;
 
+#pragma endregion
+
+#pragma region Datatypes
+
 public:
 	void RegisterDatatype(const std::string& name, sol::table members, sol::function toString, sol::function fromData, sol::function fromString)
 	{
@@ -287,6 +299,10 @@ public:
 
 private:
 	ci_unordered::map<std::string, std::unique_ptr<MQ2LuaGenericType>> m_dataTypes;
+
+#pragma endregion
+
+#pragma region TLOs
 
 private:
 	// this is a hack because you can't capture in a function pointer, but we need to capture the lua function
@@ -378,5 +394,33 @@ public:
 
 private:
 	ci_unordered::map<std::string, sol::function> m_dataTLOs;
+
+#pragma endregion
+
+#pragma region Interface
+
+public:
+	LuaPlugin(const std::string& name, const std::string& version)
+		: m_name(name)
+		, m_version(version)
+	{}
+
+	static void RegisterLua(sol::table& mq)
+	{
+		LuaPlugin::RegisterCallbackEnum(mq.lua_state());
+
+		mq.new_usertype<LuaPlugin>(
+			"plugin", sol::constructors<LuaPlugin(const std::string&, const std::string&)>(),
+			"register_callback", &LuaPlugin::RegisterCallback,
+			"register_command", &LuaPlugin::RegisterCommand,
+			"register_datatype", &LuaPlugin::RegisterDatatype,
+			"register_tlo", &LuaPlugin::RegisterData
+			);
+	}
+
+private:
+	std::string m_name;
+	std::string m_version;
+#pragma endregion
 };
 } // namespace mq::lua

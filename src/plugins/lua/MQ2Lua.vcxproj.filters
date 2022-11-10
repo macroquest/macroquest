@@ -77,9 +77,6 @@
     <ClInclude Include="LuaCoroutine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LuaScript.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="LuaPlugin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
