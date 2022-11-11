@@ -1906,7 +1906,7 @@ static void DrawMapSettings_MapLocs()
 
 			ImGui::TableNextColumn();
 			std::stringstream locStream;
-			locStream << sMapLocs[i]->GetPosition().X << ", " << sMapLocs[i]->GetPosition().Y << ", " << sMapLocs[i]->GetPosition().Z;
+			locStream << sMapLocs[i]->GetPosition().Y << ", " << sMapLocs[i]->GetPosition().X << ", " << sMapLocs[i]->GetPosition().Z;
 			ImGui::Text(locStream.str().c_str());
 
 			ImGui::TableNextColumn();
