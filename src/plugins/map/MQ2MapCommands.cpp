@@ -1758,7 +1758,7 @@ static void DrawMapSettings_MapLocs()
 	{
 		ImGui::Indent();
 
-		ImGui::TextWrapped("These options will override the Map Loc Defaults defined above for any newly created map locs in this section.");
+		ImGui::TextWrapped("These options will override the Map Loc Settings defined in the Options Tab for any newly created map locs in this section.");
 
 		if (!IsMapLocsStyleOverridden())
 		{
