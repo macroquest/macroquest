@@ -17,6 +17,7 @@
 #include "LuaInterface.h"
 #include "LuaCommon.h"
 #include "LuaThread.h"
+#include "LuaPlugin.h"
 #include "LuaEvent.h"
 #include "LuaImGui.h"
 #include "imgui/ImGuiUtils.h"
@@ -585,6 +586,12 @@ static void LuaStopCommand(std::optional<std::string> script = std::nullopt)
 			// this will force the coroutine to yield, and removing this thread from the vector will cause it to gc
 			thread->Exit();
 		}
+		else if (LuaPlugin::IsRunning(*script))
+		{
+			WriteChatStatus("Ending running lua plugin '%s'", script->c_str());
+
+			LuaPlugin::Stop(*script);
+		}
 		else
 		{
 			WriteChatStatus("No lua script '%s' to end", script->c_str());
@@ -853,6 +860,21 @@ static void LuaPSCommand(const std::vector<std::string>& filters = {})
 				info.startTime,
 				info.endTime,
 				static_cast<int>(info.status));
+			WriteChatStatus("%.*s", line.size(), line.data());
+		}
+	}
+
+	if (filters.empty() || std::find(filters.begin(), filters.end(), "plugin") != filters.end())
+	{
+		for (const auto& plugin : LuaPlugin::GetRunning())
+		{
+			fmt::memory_buffer line;
+			fmt::format_to(fmt::appender(line), "|{:^7}|{:^12}|{:^13}|{:^13}|{:^12}|",
+				"XXX",
+				plugin.length() > 12 ? plugin.substr(0, 12) : plugin,
+				"",
+				"",
+				"plugin");
 			WriteChatStatus("%.*s", line.size(), line.data());
 		}
 	}
@@ -1576,6 +1598,13 @@ PLUGIN_API void OnPulse()
 					fin_it->second.SetResult(*result.second, thread->GetEvaluateResult());
 				else
 					fin_it->second.EndRun();
+
+				for (auto plugin : fin_it->second.returnPlugins)
+				{
+					LuaPlugin::Start(plugin);
+				}
+
+				fin_it->second.returnPlugins.clear(); // if we don't clear this it crashes
 			}
 
 			return true;
@@ -1632,6 +1661,7 @@ PLUGIN_API void OnUpdateImGui()
 
 	// now update the lua menu window
 	ImGui::SetNextWindowSize(ImVec2(500, 440), ImGuiCond_FirstUseEver);
+	// TODO: Need a Lua Plugin Manager section as well
 	if (ImGui::Begin("Lua Task Manager", &s_showMenu, ImGuiWindowFlags_None))
 	{
 		static bool show_running = true;

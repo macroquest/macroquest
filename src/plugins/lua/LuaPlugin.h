@@ -32,21 +32,18 @@ private:
 
 public:
 	MQ2LuaGenericType(const std::string& typeName, sol::table members, sol::function toString, sol::function fromData, sol::function fromString);
-
 	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
-
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-
 	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source);
-
 	bool FromString(MQVarPtr& VarPtr, const char* Source);
+	void Abandon();
 };
 
 #pragma endregion
 
+class LuaThread;
 class LuaPlugin : public std::enable_shared_from_this<LuaPlugin>
 {
-	// TODO: move some of this into an implementation file
 #pragma region Callbacks
 
 public:
@@ -186,20 +183,23 @@ private:
 #pragma region Interface
 
 public:
-	LuaPlugin(const std::string& name, const std::string& version);
-	[[nodiscard]] static std::shared_ptr<LuaPlugin> Create(const std::string& name, const std::string& version);
-	void Start();
-	void Stop();
-	static std::shared_ptr<LuaPlugin> Lookup(const std::string& name);
+	LuaPlugin(const std::string& name, const std::string& version, sol::this_state s);
+	static sol::table Create(sol::table, const std::string& name, const std::string& version, sol::this_state s);
+	static void Start(sol::table plugin);
+	static void Stop(const std::string& name);
+	static sol::table Lookup(const std::string& name);
+	static bool IsRunning(const std::string& name);
+	static std::vector<std::string> GetRunning();
 	void Set(const std::string& name, sol::object val, sol::this_state s);
-	sol::object Get(const std::string& name, sol::this_state s);
 	static void RegisterLua(sol::table& mq);
+	std::string Name() { return m_name; }
+	static bool IsPlugin(sol::table table);
 
 private:
+	std::shared_ptr<LuaThread> m_thread;
+	sol::table m_pluginTable;
 	std::string m_name;
 	std::string m_version;
-
-	ci_unordered::map<std::string, sol::object> m_blackboard;
 #pragma endregion
 };
 } // namespace mq::lua

@@ -44,6 +44,7 @@ enum class LuaThreadExitReason
 	Exit = 1,
 };
 
+class LuaPlugin;
 struct LuaThreadInfo
 {
 	uint32_t pid;
@@ -53,6 +54,7 @@ struct LuaThreadInfo
 	std::chrono::system_clock::time_point startTime;
 	std::chrono::system_clock::time_point endTime;
 	std::vector<std::string> returnValues;
+	std::vector<sol::table> returnPlugins;
 	LuaThreadStatus status;
 	bool isString;
 

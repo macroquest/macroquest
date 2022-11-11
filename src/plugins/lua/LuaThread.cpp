@@ -65,6 +65,14 @@ void LuaThreadInfo::SetResult(const sol::protected_function_result& result, bool
 
 		if (result.return_count() >= 1)
 		{
+			// first, lets see if we returned any plugins (store all of them, we should allow for multiple plugins in one file)
+			for (const auto& r : result)
+			{
+				if (r.is<sol::table>() && LuaPlugin::IsPlugin(r.as<sol::table>()))
+					returnPlugins.push_back(r.as<sol::table>());
+			}
+
+			// now we can do the normal stringification
 			returnValues = std::vector<std::string>(result.return_count());
 
 			// need to skip the first "return" (which is not a return, it's at index + 0) which is the function itself
@@ -335,6 +343,7 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(
 		start_time,
 		{},
 		{},
+		{},
 		LuaThreadStatus::Starting,
 		false
 	};
@@ -396,6 +405,7 @@ std::optional<LuaThreadInfo> LuaThread::StartString(std::string_view script,
 		std::string(script),
 		{},
 		start_time,
+		{},
 		{},
 		{},
 		LuaThreadStatus::Starting,

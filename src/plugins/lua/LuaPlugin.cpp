@@ -15,11 +15,13 @@
 #include "pch.h"
 #include "common/StringUtils.h"
 #include "LuaPlugin.h"
+#include "LuaThread.h"
+
+#include <luajit.h>
 
 namespace mq::lua {
 
-// safe to key this with string_view since the plugin will have the string
-static ci_unordered::map<std::string_view, std::shared_ptr<LuaPlugin>> s_pluginMap;
+static ci_unordered::map<std::string, sol::table> s_pluginMap;
 
 #pragma region Type Helper
 
@@ -30,13 +32,13 @@ MQ2LuaGenericType::MQ2LuaGenericType(const std::string& typeName, sol::table mem
 	, m_fromString(fromString)
 	, MQ2Type(typeName.c_str())
 {
-	for (const auto& member : members)
+	for (const auto& [first, second] : members)
 	{
-		auto maybe_name = member.first.as<std::optional<std::string>>();
-		auto maybe_val = member.second.as<std::optional<sol::function>>();
+		auto maybe_name = first.as<std::optional<std::string>>();
+		auto maybe_val = second.as<std::optional<sol::function>>();
 		if (maybe_name && maybe_val)
 		{
-			m_memberMap.emplace(*maybe_name, *maybe_val);
+			m_memberMap[*maybe_name] = *maybe_val;
 		}
 	}
 }
@@ -64,7 +66,7 @@ bool MQ2LuaGenericType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 					auto pp = sol::stack::push_pop(typeValue);
 					auto stack_val = sol::stack_object(typeValue.lua_state(), -1);
 					std::size_t len;
-					const char* val_str = lua_tolstring(stack_val.lua_state(), stack_val.stack_index(), &len);
+					const char* val_str = luaL_tolstring(stack_val.lua_state(), stack_val.stack_index(), &len);
 					lua_pop(stack_val.lua_state(), 1);
 
 					return type->FromString(Dest, val_str);
@@ -129,55 +131,65 @@ bool MQ2LuaGenericType::FromString(MQVarPtr& VarPtr, const char* Source)
 	return false;
 }
 
+void MQ2LuaGenericType::Abandon()
+{
+	for (auto& [_, member] : m_memberMap)
+		member.abandon();
+
+	m_toString.abandon();
+	m_fromData.abandon();
+	m_fromString.abandon();
+}
+
 #pragma endregion
 
 #pragma region Callbacks
 
 void LuaPlugin::InitializePlugin()
 {
-	if (m_InitializePlugin != sol::lua_nil) m_InitializePlugin(shared_from_this());
+	if (m_InitializePlugin != sol::lua_nil) m_InitializePlugin(m_pluginTable);
 }
 
 void LuaPlugin::ShutdownPlugin()
 {
-	if (m_ShutdownPlugin != sol::lua_nil) m_ShutdownPlugin(shared_from_this());
+	if (m_ShutdownPlugin != sol::lua_nil) m_ShutdownPlugin(m_pluginTable);
 }
 
 void LuaPlugin::OnCleanUI()
 {
-	if (m_OnCleanUI != sol::lua_nil) m_OnCleanUI(shared_from_this());
+	if (m_OnCleanUI != sol::lua_nil) m_OnCleanUI(m_pluginTable);
 }
 
 void LuaPlugin::OnReloadUI()
 {
-	if (m_OnReloadUI != sol::lua_nil) m_OnReloadUI(shared_from_this());
+	if (m_OnReloadUI != sol::lua_nil) m_OnReloadUI(m_pluginTable);
 }
 
 void LuaPlugin::OnDrawHUD()
 {
-	if (m_OnDrawHUD != sol::lua_nil) m_OnDrawHUD(shared_from_this());
+	if (m_OnDrawHUD != sol::lua_nil) m_OnDrawHUD(m_pluginTable);
 }
 
 void LuaPlugin::SetGameState(int GameState)
 {
-	if (m_SetGameState != sol::lua_nil) m_SetGameState(shared_from_this(), GameState);
+	if (m_SetGameState != sol::lua_nil) m_SetGameState(m_pluginTable, GameState);
 }
 
 void LuaPlugin::OnPulse()
 {
-	if (m_OnPulse != sol::lua_nil) m_OnPulse(shared_from_this());
+	if (m_OnPulse != sol::lua_nil) m_OnPulse(m_pluginTable);
 }
 
 void LuaPlugin::OnWriteChatColor(const char* Line, int Color, int Filter)
 {
-	if (m_OnWriteChatColor != sol::lua_nil) m_OnWriteChatColor(shared_from_this(), Line, Color, Filter);
+	if (m_OnWriteChatColor != sol::lua_nil) m_OnWriteChatColor(m_pluginTable, Line, Color, Filter);
 }
 
 bool LuaPlugin::OnIncomingChat(const char* Line, unsigned long Color)
 {
 	if (m_OnIncomingChat != sol::lua_nil)
 	{
-		auto result = m_OnIncomingChat(shared_from_this(), Line, Color);
+		auto result = m_OnIncomingChat(m_pluginTable, Line, Color);
 		if (result.valid() && result.return_count() > 0)
 		{
 			std::optional<bool> r = result;
@@ -191,65 +203,65 @@ bool LuaPlugin::OnIncomingChat(const char* Line, unsigned long Color)
 void LuaPlugin::OnAddSpawn(PlayerClient* pNewSpawn)
 {
 	if (m_OnAddSpawn != sol::lua_nil && pNewSpawn != nullptr)
-		m_OnAddSpawn(shared_from_this(), pNewSpawn->SpawnID); // TODO: spawns could be userdata
+		m_OnAddSpawn(m_pluginTable, pNewSpawn->SpawnID); // TODO: spawns could be userdata
 }
 
 void LuaPlugin::OnRemoveSpawn(PlayerClient* pSpawn)
 {
 	if (m_OnRemoveSpawn != sol::lua_nil && pSpawn != nullptr)
-		m_OnRemoveSpawn(shared_from_this(), pSpawn->SpawnID); // TODO: spawns could be userdata
+		m_OnRemoveSpawn(m_pluginTable, pSpawn->SpawnID); // TODO: spawns could be userdata
 }
 
 void LuaPlugin::OnAddGroundItem(EQGroundItem* pNewGroundItem)
 {
 	if (m_OnAddGroundItem != sol::lua_nil && pNewGroundItem != nullptr && pNewGroundItem->Item)
-		m_OnAddGroundItem(shared_from_this(), pNewGroundItem->Item->ID); // TODO: needs to be userdata
+		m_OnAddGroundItem(m_pluginTable, pNewGroundItem->Item->ID); // TODO: needs to be userdata
 }
 
 void LuaPlugin::OnRemoveGroundItem(EQGroundItem* pGroundItem)
 {
 	if (m_OnRemoveGroundItem != sol::lua_nil && pGroundItem != nullptr && pGroundItem->Item)
-		m_OnRemoveGroundItem(shared_from_this(), pGroundItem->Item->ID); // TODO: needs to be userdata
+		m_OnRemoveGroundItem(m_pluginTable, pGroundItem->Item->ID); // TODO: needs to be userdata
 }
 
 void LuaPlugin::OnBeginZone()
 {
-	if (m_OnBeginZone != sol::lua_nil) m_OnBeginZone(shared_from_this());
+	if (m_OnBeginZone != sol::lua_nil) m_OnBeginZone(m_pluginTable);
 }
 
 void LuaPlugin::OnEndZone()
 {
-	if (m_OnEndZone != sol::lua_nil) m_OnEndZone(shared_from_this());
+	if (m_OnEndZone != sol::lua_nil) m_OnEndZone(m_pluginTable);
 }
 
 void LuaPlugin::OnZoned()
 {
-	if (m_OnZoned != sol::lua_nil) m_OnZoned(shared_from_this());
+	if (m_OnZoned != sol::lua_nil) m_OnZoned(m_pluginTable);
 }
 
 void LuaPlugin::OnUpdateImGui()
 {
-	if (m_OnUpdateImGui != sol::lua_nil) m_OnUpdateImGui(shared_from_this());
+	if (m_OnUpdateImGui != sol::lua_nil) m_OnUpdateImGui(m_pluginTable);
 }
 
 void LuaPlugin::OnMacroStart(const char* Name)
 {
-	if (m_OnMacroStart != sol::lua_nil) m_OnMacroStart(shared_from_this(), Name);
+	if (m_OnMacroStart != sol::lua_nil) m_OnMacroStart(m_pluginTable, Name);
 }
 
 void LuaPlugin::OnMacroStop(const char* Name)
 {
-	if (m_OnMacroStop != sol::lua_nil) m_OnMacroStop(shared_from_this(), Name);
+	if (m_OnMacroStop != sol::lua_nil) m_OnMacroStop(m_pluginTable, Name);
 }
 
 void LuaPlugin::OnLoadPlugin(const char* Name)
 {
-	if (m_OnLoadPlugin != sol::lua_nil) m_OnLoadPlugin(shared_from_this(), Name);
+	if (m_OnLoadPlugin != sol::lua_nil) m_OnLoadPlugin(m_pluginTable, Name);
 }
 
 void LuaPlugin::OnUnloadPlugin(const char* Name)
 {
-	if (m_OnUnloadPlugin != sol::lua_nil) m_OnUnloadPlugin(shared_from_this(), Name);
+	if (m_OnUnloadPlugin != sol::lua_nil) m_OnUnloadPlugin(m_pluginTable, Name);
 }
 
 #pragma endregion
@@ -338,7 +350,7 @@ fMQData LuaPlugin::CreateData(sol::function func)
 					auto pp = sol::stack::push_pop(typeValue);
 					auto stack_val = sol::stack_object(typeValue.lua_state(), -1);
 					std::size_t len;
-					const char* val_str = lua_tolstring(stack_val.lua_state(), stack_val.stack_index(), &len);
+					const char* val_str = luaL_tolstring(stack_val.lua_state(), stack_val.stack_index(), &len);
 					lua_pop(stack_val.lua_state(), 1);
 
 					return type->FromString(Dest, val_str);
@@ -382,31 +394,54 @@ void LuaPlugin::UnregisterData()
 
 #pragma region Interface
 
-LuaPlugin::LuaPlugin(const std::string& name, const std::string& version)
+LuaPlugin::LuaPlugin(const std::string& name, const std::string& version, sol::this_state s)
 	: m_name(name)
 	, m_version(version)
+	, m_thread(LuaThread::get_from(s))
 {}
 
-[[nodiscard]]
-std::shared_ptr<LuaPlugin> LuaPlugin::Create(const std::string & name, const std::string & version)
+// the first argument here is the self argument, which will always be the mq.plugin table
+sol::table LuaPlugin::Create(sol::table, const std::string& name, const std::string& version, sol::this_state s)
 {
-	return std::make_shared<LuaPlugin>(name, version);
+	auto ptr = std::make_shared<LuaPlugin>(name, version, s);
+	ptr->m_pluginTable = sol::state_view(s).create_table_with(
+		"__plugin", ptr,
+		"name", ptr->m_name,
+		"version", ptr->m_version
+	);
+
+	return ptr->m_pluginTable;
 }
 
-void LuaPlugin::Start()
+void LuaPlugin::Start(sol::table plugin)
 {
 	// this is where we would differ from a universal plugin interface. We can't just put it in a local map, we'd need to provide it to the larger interface
-	InitializePlugin();
-	s_pluginMap.emplace(m_name, shared_from_this());
+	if (IsPlugin(plugin))
+	{
+		auto ptr = plugin.get<std::shared_ptr<LuaPlugin>>("__plugin");
+		for (const auto& [k, v] : plugin)
+		{
+			if (k.is<std::string>() && v.get_type() == sol::type::function)
+				ptr->Set(k.as<const std::string&>(), v, plugin.lua_state());
+		}
+
+		ptr->InitializePlugin();
+		//ptr->m_pluginTable["InitializePlugin"](ptr->m_pluginTable);
+		s_pluginMap.insert_or_assign(ptr->Name(), plugin);
+		sol::state_view(plugin.lua_state()).collect_garbage(); // force gc in case we assigned instead of inserted to prevent dual definitions
+	}
 }
 
-void LuaPlugin::Stop()
+void LuaPlugin::Stop(const std::string& name)
 {
-	s_pluginMap.erase(m_name);
-	ShutdownPlugin();
+	auto it = s_pluginMap.find(name);
+	if (it != s_pluginMap.end())
+	{
+		s_pluginMap.erase(it);
+	}
 }
 
-std::shared_ptr<LuaPlugin> LuaPlugin::Lookup(const std::string& name)
+sol::table LuaPlugin::Lookup(const std::string& name)
 {
 	auto it = s_pluginMap.find(name);
 	if (it != s_pluginMap.end())
@@ -414,7 +449,19 @@ std::shared_ptr<LuaPlugin> LuaPlugin::Lookup(const std::string& name)
 		return it->second;
 	}
 
-	return {};
+	return sol::lua_nil;
+}
+
+bool LuaPlugin::IsRunning(const std::string& name)
+{
+	return s_pluginMap.find(name) != s_pluginMap.end();
+}
+
+std::vector<std::string> LuaPlugin::GetRunning()
+{
+	std::vector<std::string> keys(s_pluginMap.size());
+	std::transform(s_pluginMap.begin(), s_pluginMap.end(), keys.begin(), [](auto pair) { return pair.first; });
+	return keys;
 }
 
 void LuaPlugin::Set(const std::string& name, sol::object val, sol::this_state s)
@@ -461,42 +508,33 @@ void LuaPlugin::Set(const std::string& name, sol::object val, sol::this_state s)
 		m_OnLoadPlugin = val.as<sol::function>();
 	else if (name == "OnUnloadPlugin" && val.is<sol::function>())
 		m_OnUnloadPlugin = val.as<sol::function>();
-	else
-		m_blackboard.insert_or_assign(name, val);
-}
-
-sol::object LuaPlugin::Get(const std::string& name, sol::this_state s)
-{
-	auto it = m_blackboard.find(name);
-	if (it != m_blackboard.end())
-	{
-		return it->second;
-	}
-
-	sol::state_view L(s);
-	return sol::object(s, sol::in_place, sol::nil);
 }
 
 void LuaPlugin::RegisterLua(sol::table& mq)
 {
 	// create a plugin with local plugin = mq.plugin.new(name, version), then you can do plugin:callback(...) etc
 	// finally, you'd do plugin:start() to add it to the map and plugin:stop() will remove it from the map
-	// TODO: Need to tie `/lua run` and `/lua stop` to start/stop (especially the latter, we can require that the user start the plugin in the script)
-	mq.new_usertype<LuaPlugin>(
-		"plugin",
-		sol::meta_function::construct, sol::factories(&LuaPlugin::Create),
-		sol::call_constructor, &LuaPlugin::Create,
+	sol::usertype<LuaPlugin> plugin = mq.new_usertype<LuaPlugin>(
+		"__plugin",
+		sol::meta_function::construct, sol::no_constructor, //sol::constructors<LuaPlugin(const std::string&, const std::string&, sol::this_state)>(),
 		"command", &LuaPlugin::RegisterCommand,
 		"datatype", &LuaPlugin::RegisterDatatype,
-		"tlo", &LuaPlugin::RegisterData,
+		"tlo", &LuaPlugin::RegisterData
+	);
+
+	mq["plugin"] = sol::state_view(mq.lua_state()).create_table_with(
 		"start", &LuaPlugin::Start,
 		"stop", &LuaPlugin::Stop,
-		"lookup", &LuaPlugin::Lookup,
-		"name", sol::readonly(&LuaPlugin::m_name),
-		"version", sol::readonly(&LuaPlugin::m_version),
-		sol::meta_function::index, &LuaPlugin::Get,
-		sol::meta_function::new_index, &LuaPlugin::Set
-		);
+		sol::metatable_key, sol::state_view(mq.lua_state()).create_table_with(
+			"__call", &LuaPlugin::Create
+		)
+	);
+}
+
+bool LuaPlugin::IsPlugin(sol::table table)
+{
+	sol::object plugin = table["__plugin"];
+	return plugin.is<LuaPlugin>();
 }
 
 #pragma endregion
