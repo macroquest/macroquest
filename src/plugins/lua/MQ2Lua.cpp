@@ -1517,6 +1517,12 @@ PLUGIN_API void ShutdownPlugin()
 {
 	using namespace mq::lua;
 
+	// shutdown any running plugins
+	for (auto plugin : LuaPlugin::GetRunning())
+	{
+		LuaPlugin::Stop(plugin);
+	}
+
 	RemoveCommand("/lua");
 
 	RemoveMQ2Data("Lua");

@@ -187,7 +187,7 @@ public:
 	static sol::table Create(sol::table, const std::string& name, const std::string& version, sol::this_state s);
 	static void Start(sol::table plugin);
 	static void Stop(const std::string& name);
-	static sol::table Lookup(const std::string& name);
+	static std::shared_ptr<LuaPlugin> Lookup(const std::string& name);
 	static bool IsRunning(const std::string& name);
 	static std::vector<std::string> GetRunning();
 	void Set(const std::string& name, sol::object val, sol::this_state s);

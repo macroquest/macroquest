@@ -21,7 +21,7 @@
 
 namespace mq::lua {
 
-static ci_unordered::map<std::string, sol::table> s_pluginMap;
+static ci_unordered::map<std::string, std::shared_ptr<LuaPlugin>> s_pluginMap;
 
 #pragma region Type Helper
 
@@ -270,7 +270,7 @@ void LuaPlugin::OnUnloadPlugin(const char* Name)
 
 void LuaPlugin::RegisterCommand(const std::string& name, sol::function func)
 {
-	if (IsCommand(name.c_str()))
+	if (IsCommand(name.c_str()) || m_commands.find(name) != m_commands.end())
 	{
 		LuaError("Cannot create command %s, already a command in MQ.", name.c_str());
 	}
@@ -280,21 +280,15 @@ void LuaPlugin::RegisterCommand(const std::string& name, sol::function func)
 	}
 	else
 	{
-		m_commands.emplace(name, func);
-		AddFunction(name.c_str(), [&func](PlayerClient*, char* Buffer) -> void
-			{
-				// TODO: Does Buffer include the command? If so, drop the first arg
-				auto args = tokenize_args(Buffer);
-				func(sol::as_args(args)); // TODO: should probably do some action on the result, and make sure we don't crash if the command fails
-			}); // TODO: we might want to pass the optional booleans here
+		m_commands[name] = func;
 	}
 }
 
 void LuaPlugin::UnregisterCommands()
 {
-	for (auto& command : m_commands)
+	for (const auto& [command, _] : m_commands)
 	{
-		RemoveCommand(command.first.c_str());
+		RemoveCommand(command.c_str());
 	}
 
 	m_commands.clear();
@@ -406,9 +400,20 @@ sol::table LuaPlugin::Create(sol::table, const std::string& name, const std::str
 	auto ptr = std::make_shared<LuaPlugin>(name, version, s);
 	ptr->m_pluginTable = sol::state_view(s).create_table_with(
 		"__plugin", ptr,
+		"command", [](sol::table self, const std::string& command, sol::function func)
+			{ self.get<std::shared_ptr<LuaPlugin>>("__plugin")->RegisterCommand(command, func); },
 		"name", ptr->m_name,
 		"version", ptr->m_version
 	);
+
+	sol::function arginfo = sol::state_view(s).script(R"(
+		return function(f)
+			local info = debug.getinfo(f)
+			return info.nparams, info.isvararg
+		end
+	)");
+
+	ptr->m_pluginTable["__command_arginfo"] = arginfo;
 
 	return ptr->m_pluginTable;
 }
@@ -426,9 +431,39 @@ void LuaPlugin::Start(sol::table plugin)
 		}
 
 		ptr->InitializePlugin();
-		//ptr->m_pluginTable["InitializePlugin"](ptr->m_pluginTable);
-		s_pluginMap.insert_or_assign(ptr->Name(), plugin);
-		sol::state_view(plugin.lua_state()).collect_garbage(); // force gc in case we assigned instead of inserted to prevent dual definitions
+		s_pluginMap.insert_or_assign(ptr->Name(), ptr);
+
+		for (auto it = ptr->m_commands.begin(); it != ptr->m_commands.end();)
+		{
+			const auto& [command, func] = *it;
+			std::tuple<int, bool> arginfo = plugin["__command_arginfo"](func);
+			auto [numargs, vararg] = arginfo;
+			
+			if (vararg)
+			{
+				LuaError("Invalid command %s: commands do not support variadic arguments.", command.c_str());
+				it = ptr->m_commands.erase(it);
+			}
+			else if (numargs != 1 && numargs != 2)
+			{
+				LuaError("Invalid number of arguments (%d) for command %s", numargs, command.c_str());
+				it = ptr->m_commands.erase(it);
+			}
+			else
+			{
+				AddFunction(command.c_str(), [func = func, ptr, numargs = numargs](PlayerClient*, char* Buffer) -> void
+					{
+						if (numargs == 1)
+							func(Buffer);
+						else if (numargs == 2)
+							func(ptr->m_pluginTable, Buffer);
+					}); // TODO: we might want to pass the optional booleans here
+				++it;
+			}
+		}
+
+		// force gc in case we assigned instead of inserted to prevent dual definitions
+		sol::state_view(plugin.lua_state()).collect_garbage(); 
 	}
 }
 
@@ -437,11 +472,12 @@ void LuaPlugin::Stop(const std::string& name)
 	auto it = s_pluginMap.find(name);
 	if (it != s_pluginMap.end())
 	{
+		it->second->UnregisterCommands();
 		s_pluginMap.erase(it);
 	}
 }
 
-sol::table LuaPlugin::Lookup(const std::string& name)
+std::shared_ptr<LuaPlugin> LuaPlugin::Lookup(const std::string& name)
 {
 	auto it = s_pluginMap.find(name);
 	if (it != s_pluginMap.end())
@@ -449,7 +485,7 @@ sol::table LuaPlugin::Lookup(const std::string& name)
 		return it->second;
 	}
 
-	return sol::lua_nil;
+	return {};
 }
 
 bool LuaPlugin::IsRunning(const std::string& name)
@@ -516,8 +552,7 @@ void LuaPlugin::RegisterLua(sol::table& mq)
 	// finally, you'd do plugin:start() to add it to the map and plugin:stop() will remove it from the map
 	sol::usertype<LuaPlugin> plugin = mq.new_usertype<LuaPlugin>(
 		"__plugin",
-		sol::meta_function::construct, sol::no_constructor, //sol::constructors<LuaPlugin(const std::string&, const std::string&, sol::this_state)>(),
-		"command", &LuaPlugin::RegisterCommand,
+		sol::meta_function::construct, sol::no_constructor,
 		"datatype", &LuaPlugin::RegisterDatatype,
 		"tlo", &LuaPlugin::RegisterData
 	);
