@@ -74,25 +74,25 @@ public:
 
 	void InitializePlugin();
 	void ShutdownPlugin();
-	void OnCleanUI();
-	void OnReloadUI();
-	void OnDrawHUD();
-	void SetGameState(int GameState);
-	void OnPulse();
-	void OnWriteChatColor(const char* Line, int Color, int Filter);
-	bool OnIncomingChat(const char* Line, unsigned long Color);
-	void OnAddSpawn(PlayerClient* pNewSpawn);
-	void OnRemoveSpawn(PlayerClient* pSpawn);
-	void OnAddGroundItem(EQGroundItem* pNewGroundItem);
-	void OnRemoveGroundItem(EQGroundItem* pGroundItem);
-	void OnBeginZone();
-	void OnEndZone();
-	void OnZoned();
-	void OnUpdateImGui();
-	void OnMacroStart(const char* Name);
-	void OnMacroStop(const char* Name);
-	void OnLoadPlugin(const char* Name);
-	void OnUnloadPlugin(const char* Name);
+	static void OnCleanUI();
+	static void OnReloadUI();
+	static void OnDrawHUD();
+	static void SetGameState(int GameState);
+	static void OnPulse();
+	static void OnWriteChatColor(const char* Line, int Color, int Filter);
+	static bool OnIncomingChat(const char* Line, unsigned long Color);
+	static void OnAddSpawn(PlayerClient* pNewSpawn);
+	static void OnRemoveSpawn(PlayerClient* pSpawn);
+	static void OnAddGroundItem(EQGroundItem* pNewGroundItem);
+	static void OnRemoveGroundItem(EQGroundItem* pGroundItem);
+	static void OnBeginZone();
+	static void OnEndZone();
+	static void OnZoned();
+	static void OnUpdateImGui();
+	static void OnMacroStart(const char* Name);
+	static void OnMacroStop(const char* Name);
+	static void OnLoadPlugin(const char* Name);
+	static void OnUnloadPlugin(const char* Name);
 
 private:
 	sol::function m_InitializePlugin = sol::lua_nil;
@@ -123,6 +123,7 @@ private:
 
 public:
 	void RegisterCommand(const std::string& name, sol::function func);
+	void AddCommands();
 	void UnregisterCommands();
 
 private:
@@ -184,9 +185,11 @@ private:
 
 public:
 	LuaPlugin(const std::string& name, const std::string& version, sol::this_state s);
+	~LuaPlugin();
 	static sol::table Create(sol::table, const std::string& name, const std::string& version, sol::this_state s);
 	static void Start(sol::table plugin);
 	static void Stop(const std::string& name);
+	static void StopAll();
 	static std::shared_ptr<LuaPlugin> Lookup(const std::string& name);
 	static bool IsRunning(const std::string& name);
 	static std::vector<std::string> GetRunning();

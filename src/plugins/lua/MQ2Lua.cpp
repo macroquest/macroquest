@@ -1482,12 +1482,6 @@ static void DrawLuaSettings()
 #pragma endregion
 
 
-/**
- * @fn InitializePlugin
- *
- * This is called once on plugin initialization and can be considered the startup
- * routine for the plugin.
- */
 PLUGIN_API void InitializePlugin()
 {
 	using namespace mq::lua;
@@ -1507,21 +1501,12 @@ PLUGIN_API void InitializePlugin()
 	s_pluginInterface = new LuaPluginInterfaceImpl();
 }
 
-/**
- * @fn ShutdownPlugin
- *
- * This is called once when the plugin has been asked to shutdown.  The plugin has
- * not actually shut down until this completes.
- */
 PLUGIN_API void ShutdownPlugin()
 {
 	using namespace mq::lua;
 
 	// shutdown any running plugins
-	for (auto plugin : LuaPlugin::GetRunning())
-	{
-		LuaPlugin::Stop(plugin);
-	}
+	LuaPlugin::StopAll();
 
 	RemoveCommand("/lua");
 
@@ -1540,37 +1525,26 @@ PLUGIN_API void ShutdownPlugin()
 	s_pluginInterface = nullptr;
 }
 
-/**
- * @fn SetGameState
- *
- * This is called when the GameState changes.  It is also called once after the
- * plugin is initialized.
- *
- * For a list of known GameState values, see the constants that begin with
- * GAMESTATE_.  The most commonly used of these is GAMESTATE_INGAME.
- *
- * When zoning, this is called once after @ref OnBeginZone @ref OnRemoveSpawn
- * and @ref OnRemoveGroundItem are all done and then called once again after
- * @ref OnEndZone and @ref OnAddSpawn are done but prior to @ref OnAddGroundItem
- * and @ref OnZoned
- *
- * @param GameState int - The value of GameState at the time of the call
- */
-PLUGIN_API void SetGameState(int GameState)
+PLUGIN_API void OnCleanUI()
 {
-	// DebugSpewAlways("MQPluginTemplate::SetGameState(%d)", GameState);
-	using namespace mq::lua;
+	mq::lua::LuaPlugin::OnCleanUI();
 }
 
-/**
- * @fn OnPulse
- *
- * This is called each time MQ2 goes through its heartbeat (pulse) function.
- *
- * Because this happens very frequently, it is recommended to have a timer or
- * counter at the start of this Call to limit the amount of times the code in
- * this section is executed.
- */
+PLUGIN_API void OnReloadUI()
+{
+	mq::lua::LuaPlugin::OnReloadUI();
+}
+
+PLUGIN_API void OnDrawHUD()
+{
+	mq::lua::LuaPlugin::OnDrawHUD();
+}
+
+PLUGIN_API void SetGameState(int GameState)
+{
+	mq::lua::LuaPlugin::SetGameState(GameState);
+}
+
 PLUGIN_API void OnPulse()
 {
 	using namespace mq::lua;
@@ -1642,15 +1616,69 @@ PLUGIN_API void OnPulse()
 	}
 }
 
-/**
- * @fn OnUpdateImGui
- *
- * This is called each time that the ImGui Overlay is rendered. Use this to render
- * and update plugin specific widgets.
- *
- * Because this happens extremely frequently, it is recommended to move any actual
- * work to a separate Call and use this only for updating the display.
- */
+PLUGIN_API void OnWriteChatColor(const char* Line, int Color, int Filter)
+{
+	for (const std::shared_ptr<mq::lua::LuaThread>& thread : mq::lua::s_running)
+	{
+		if (thread && !thread->IsPaused())
+		{
+			if (lua::LuaEventProcessor* events = thread->GetEventProcessor())
+				events->Process(Line);
+		}
+	}
+
+	mq::lua::LuaPlugin::OnWriteChatColor(Line, Color, Filter);
+}
+
+PLUGIN_API bool OnIncomingChat(const char* Line, DWORD Color)
+{
+	for (const std::shared_ptr<mq::lua::LuaThread>& thread : mq::lua::s_running)
+	{
+		if (thread && !thread->IsPaused())
+		{
+			if (lua::LuaEventProcessor* events = thread->GetEventProcessor())
+				events->Process(Line);
+		}
+	}
+
+	return mq::lua::LuaPlugin::OnIncomingChat(Line, Color);
+}
+
+PLUGIN_API void OnAddSpawn(PSPAWNINFO pNewSpawn)
+{
+	mq::lua::LuaPlugin::OnAddSpawn(pNewSpawn);
+}
+
+PLUGIN_API void OnRemoveSpawn(PSPAWNINFO pSpawn)
+{
+	mq::lua::LuaPlugin::OnRemoveSpawn(pSpawn);
+}
+
+PLUGIN_API void OnAddGroundItem(PGROUNDITEM pNewGroundItem)
+{
+	mq::lua::LuaPlugin::OnAddGroundItem(pNewGroundItem);
+}
+
+PLUGIN_API void OnRemoveGroundItem(PGROUNDITEM pGroundItem)
+{
+	mq::lua::LuaPlugin::OnRemoveGroundItem(pGroundItem);
+}
+
+PLUGIN_API void OnBeginZone()
+{
+	mq::lua::LuaPlugin::OnBeginZone();
+}
+
+PLUGIN_API void OnEndZone()
+{
+	mq::lua::LuaPlugin::OnEndZone();
+}
+
+PLUGIN_API void OnZoned()
+{
+	mq::lua::LuaPlugin::OnZoned();
+}
+
 PLUGIN_API void OnUpdateImGui()
 {
 	using namespace mq::lua;
@@ -1661,6 +1689,9 @@ PLUGIN_API void OnUpdateImGui()
 		if (LuaImGuiProcessor* imgui = thread->GetImGuiProcessor())
 			imgui->Pulse();
 	}
+
+	// then update plugin-defined windows
+	LuaPlugin::OnUpdateImGui();
 
 	if (!s_showMenu)
 		return;
@@ -1925,66 +1956,24 @@ PLUGIN_API void OnUpdateImGui()
 	ImGui::End();
 }
 
-
-/**
- * @fn OnWriteChatColor
- *
- * This is called each time WriteChatColor is called (whether by MQ2Main or by any
- * plugin).  This can be considered the "when outputting text from MQ" callback.
- *
- * This ignores filters on display, so if they are needed either implement them in
- * this section or see @ref OnIncomingChat where filters are already handled.
- *
- * If CEverQuest::dsp_chat is not called, and events are required, they'll need to
- * be implemented here as well.  Otherwise, see @ref OnIncomingChat where that is
- * already handled.
- *
- * For a list of Color values, see the constants for USERCOLOR_.  The default is
- * USERCOLOR_DEFAULT.
- *
- * @param Line const char* - The line that was passed to WriteChatColor
- * @param Color int - The type of chat text this is to be sent as
- * @param Filter int - (default 0)
- */
-PLUGIN_API void OnWriteChatColor(const char* Line, int Color, int Filter)
+PLUGIN_API void OnMacroStart(const char* Name)
 {
-	for (const std::shared_ptr<mq::lua::LuaThread>& thread : mq::lua::s_running)
-	{
-		if (thread && !thread->IsPaused())
-		{
-			if (lua::LuaEventProcessor* events = thread->GetEventProcessor())
-				events->Process(Line);
-		}
-	}
+	mq::lua::LuaPlugin::OnMacroStart(Name);
 }
 
-/**
- * @fn OnIncomingChat
- *
- * This is called each time a line of chat is shown.  It occurs after MQ filters
- * and chat events have been handled.  If you need to know when MQ2 has sent chat,
- * consider using @ref OnWriteChatColor instead.
- *
- * For a list of Color values, see the constants for USERCOLOR_. The default is
- * USERCOLOR_DEFAULT.
- *
- * @param Line const char* - The line of text that was shown
- * @param Color int - The type of chat text this was sent as
- *
- * @return bool - whether something was done based on the incoming chat
- */
-PLUGIN_API bool OnIncomingChat(const char* Line, DWORD Color)
+PLUGIN_API void OnMacroStop(const char* Name)
 {
-	for (const std::shared_ptr<mq::lua::LuaThread>& thread : mq::lua::s_running)
-	{
-		if (thread && !thread->IsPaused())
-		{
-			if (lua::LuaEventProcessor* events = thread->GetEventProcessor())
-				events->Process(Line);
-		}
-	}
+	mq::lua::LuaPlugin::OnMacroStop(Name);
+}
 
-	return false;
+PLUGIN_API void OnLoadPlugin(const char* Name)
+{
+	mq::lua::LuaPlugin::OnLoadPlugin(Name);
+}
+
+PLUGIN_API void OnUnloadPlugin(const char* Name)
+{
+	mq::lua::LuaPlugin::OnUnloadPlugin(Name);
 }
 
 PLUGIN_API PluginInterface* GetPluginInterface()

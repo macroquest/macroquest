@@ -157,111 +157,148 @@ void LuaPlugin::ShutdownPlugin()
 
 void LuaPlugin::OnCleanUI()
 {
-	if (m_OnCleanUI != sol::lua_nil) m_OnCleanUI(m_pluginTable);
+	for (const auto& [_, plugin] : s_pluginMap)
+		if (plugin->m_OnCleanUI != sol::lua_nil)
+			plugin->m_OnCleanUI(plugin->m_pluginTable);
 }
 
 void LuaPlugin::OnReloadUI()
 {
-	if (m_OnReloadUI != sol::lua_nil) m_OnReloadUI(m_pluginTable);
+	for (const auto& [_, plugin] : s_pluginMap)
+		if (plugin->m_OnReloadUI != sol::lua_nil)
+			plugin->m_OnReloadUI(plugin->m_pluginTable);
 }
 
 void LuaPlugin::OnDrawHUD()
 {
-	if (m_OnDrawHUD != sol::lua_nil) m_OnDrawHUD(m_pluginTable);
+	for (const auto& [_, plugin] : s_pluginMap)
+		if (plugin->m_OnDrawHUD != sol::lua_nil)
+			plugin->m_OnDrawHUD(plugin->m_pluginTable);
 }
 
 void LuaPlugin::SetGameState(int GameState)
 {
-	if (m_SetGameState != sol::lua_nil) m_SetGameState(m_pluginTable, GameState);
+	for (const auto& [_, plugin] : s_pluginMap)
+		if (plugin->m_SetGameState != sol::lua_nil)
+			plugin->m_SetGameState(plugin->m_pluginTable, GameState);
 }
 
 void LuaPlugin::OnPulse()
 {
-	if (m_OnPulse != sol::lua_nil) m_OnPulse(m_pluginTable);
+	for (const auto& [_, plugin] : s_pluginMap)
+		if (plugin->m_OnPulse != sol::lua_nil)
+			plugin->m_OnPulse(plugin->m_pluginTable);
 }
 
 void LuaPlugin::OnWriteChatColor(const char* Line, int Color, int Filter)
 {
-	if (m_OnWriteChatColor != sol::lua_nil) m_OnWriteChatColor(m_pluginTable, Line, Color, Filter);
+	for (const auto& [_, plugin] : s_pluginMap)
+		if (plugin->m_OnWriteChatColor != sol::lua_nil)
+			plugin->m_OnWriteChatColor(plugin->m_pluginTable, Line, Color, Filter);
 }
 
 bool LuaPlugin::OnIncomingChat(const char* Line, unsigned long Color)
 {
-	if (m_OnIncomingChat != sol::lua_nil)
-	{
-		auto result = m_OnIncomingChat(m_pluginTable, Line, Color);
-		if (result.valid() && result.return_count() > 0)
+	return std::accumulate(s_pluginMap.begin(), s_pluginMap.end(), false,
+		[&Line, &Color](bool acc, const auto& pair)
 		{
-			std::optional<bool> r = result;
-			if (r) return *r;
-		}
-	}
+			const auto& plugin = pair.second;
+			if (plugin->m_OnIncomingChat != sol::lua_nil)
+			{
+				auto result = plugin->m_OnIncomingChat(plugin->m_pluginTable, Line, Color);
+				if (result.valid() && result.return_count() > 0)
+				{
+					std::optional<bool> r = result;
+					if (r) return *r || acc;
+				}
+			}
 
-	return false;
+			return acc;
+		});
 }
 
 void LuaPlugin::OnAddSpawn(PlayerClient* pNewSpawn)
 {
-	if (m_OnAddSpawn != sol::lua_nil && pNewSpawn != nullptr)
-		m_OnAddSpawn(m_pluginTable, pNewSpawn->SpawnID); // TODO: spawns could be userdata
+	for (const auto& [_, plugin] : s_pluginMap)
+		if (plugin->m_OnAddSpawn != sol::lua_nil && pNewSpawn != nullptr)
+			plugin->m_OnAddSpawn(plugin->m_pluginTable, pNewSpawn->SpawnID); // TODO: spawns could be userdata
 }
 
 void LuaPlugin::OnRemoveSpawn(PlayerClient* pSpawn)
 {
-	if (m_OnRemoveSpawn != sol::lua_nil && pSpawn != nullptr)
-		m_OnRemoveSpawn(m_pluginTable, pSpawn->SpawnID); // TODO: spawns could be userdata
+	for (const auto& [_, plugin] : s_pluginMap)
+		if (plugin->m_OnRemoveSpawn != sol::lua_nil && pSpawn != nullptr)
+			plugin->m_OnRemoveSpawn(plugin->m_pluginTable, pSpawn->SpawnID); // TODO: spawns could be userdata
 }
 
 void LuaPlugin::OnAddGroundItem(EQGroundItem* pNewGroundItem)
 {
-	if (m_OnAddGroundItem != sol::lua_nil && pNewGroundItem != nullptr && pNewGroundItem->Item)
-		m_OnAddGroundItem(m_pluginTable, pNewGroundItem->Item->ID); // TODO: needs to be userdata
+	for (const auto& [_, plugin] : s_pluginMap)
+		if (plugin->m_OnAddGroundItem != sol::lua_nil && pNewGroundItem != nullptr && pNewGroundItem->Item)
+			plugin->m_OnAddGroundItem(plugin->m_pluginTable, pNewGroundItem->Item->ID); // TODO: needs to be userdata
 }
 
 void LuaPlugin::OnRemoveGroundItem(EQGroundItem* pGroundItem)
 {
-	if (m_OnRemoveGroundItem != sol::lua_nil && pGroundItem != nullptr && pGroundItem->Item)
-		m_OnRemoveGroundItem(m_pluginTable, pGroundItem->Item->ID); // TODO: needs to be userdata
+	for (const auto& [_, plugin] : s_pluginMap)
+		if (plugin->m_OnRemoveGroundItem != sol::lua_nil && pGroundItem != nullptr && pGroundItem->Item)
+			plugin->m_OnRemoveGroundItem(plugin->m_pluginTable, pGroundItem->Item->ID); // TODO: needs to be userdata
 }
 
 void LuaPlugin::OnBeginZone()
 {
-	if (m_OnBeginZone != sol::lua_nil) m_OnBeginZone(m_pluginTable);
+	for (const auto& [_, plugin] : s_pluginMap)
+		if (plugin->m_OnBeginZone != sol::lua_nil)
+			plugin->m_OnBeginZone(plugin->m_pluginTable);
 }
 
 void LuaPlugin::OnEndZone()
 {
-	if (m_OnEndZone != sol::lua_nil) m_OnEndZone(m_pluginTable);
+	for (const auto& [_, plugin] : s_pluginMap)
+		if (plugin->m_OnEndZone != sol::lua_nil)
+			plugin->m_OnEndZone(plugin->m_pluginTable);
 }
 
 void LuaPlugin::OnZoned()
 {
-	if (m_OnZoned != sol::lua_nil) m_OnZoned(m_pluginTable);
+	for (const auto& [_, plugin] : s_pluginMap)
+		if (plugin->m_OnZoned != sol::lua_nil)
+			plugin->m_OnZoned(plugin->m_pluginTable);
 }
 
 void LuaPlugin::OnUpdateImGui()
 {
-	if (m_OnUpdateImGui != sol::lua_nil) m_OnUpdateImGui(m_pluginTable);
+	for (const auto& [_, plugin] : s_pluginMap)
+		if (plugin->m_OnUpdateImGui != sol::lua_nil)
+			plugin->m_OnUpdateImGui(plugin->m_pluginTable);
 }
 
 void LuaPlugin::OnMacroStart(const char* Name)
 {
-	if (m_OnMacroStart != sol::lua_nil) m_OnMacroStart(m_pluginTable, Name);
+	for (const auto& [_, plugin] : s_pluginMap)
+		if (plugin->m_OnMacroStart != sol::lua_nil)
+			plugin->m_OnMacroStart(plugin->m_pluginTable, Name);
 }
 
 void LuaPlugin::OnMacroStop(const char* Name)
 {
-	if (m_OnMacroStop != sol::lua_nil) m_OnMacroStop(m_pluginTable, Name);
+	for (const auto& [_, plugin] : s_pluginMap)
+		if (plugin->m_OnMacroStop != sol::lua_nil)
+			plugin->m_OnMacroStop(plugin->m_pluginTable, Name);
 }
 
 void LuaPlugin::OnLoadPlugin(const char* Name)
 {
-	if (m_OnLoadPlugin != sol::lua_nil) m_OnLoadPlugin(m_pluginTable, Name);
+	for (const auto& [_, plugin] : s_pluginMap)
+		if (plugin->m_OnLoadPlugin != sol::lua_nil)
+			plugin->m_OnLoadPlugin(plugin->m_pluginTable, Name);
 }
 
 void LuaPlugin::OnUnloadPlugin(const char* Name)
 {
-	if (m_OnUnloadPlugin != sol::lua_nil) m_OnUnloadPlugin(m_pluginTable, Name);
+	for (const auto& [_, plugin] : s_pluginMap)
+		if (plugin->m_OnUnloadPlugin != sol::lua_nil)
+			plugin->m_OnUnloadPlugin(plugin->m_pluginTable, Name);
 }
 
 #pragma endregion
@@ -281,6 +318,38 @@ void LuaPlugin::RegisterCommand(const std::string& name, sol::function func)
 	else
 	{
 		m_commands[name] = func;
+	}
+}
+
+void LuaPlugin::AddCommands()
+{
+	for (auto it = m_commands.begin(); it != m_commands.end();)
+	{
+		const auto& [command, func] = *it;
+		std::tuple<int, bool> arginfo = m_pluginTable["__command_arginfo"](func);
+		auto [numargs, vararg] = arginfo;
+
+		if (vararg)
+		{
+			LuaError("Invalid command %s: commands do not support variadic arguments.", command.c_str());
+			it = m_commands.erase(it);
+		}
+		else if (numargs != 1 && numargs != 2)
+		{
+			LuaError("Invalid number of arguments (%d) for command %s", numargs, command.c_str());
+			it = m_commands.erase(it);
+		}
+		else
+		{
+			AddFunction(command.c_str(), [func = func, this, numargs = numargs](PlayerClient*, char* Buffer) -> void
+				{
+					if (numargs == 1)
+						func(Buffer);
+					else if (numargs == 2)
+						func(m_pluginTable, Buffer);
+				}); // TODO: we might want to pass the optional booleans here
+			++it;
+		}
 	}
 }
 
@@ -394,13 +463,42 @@ LuaPlugin::LuaPlugin(const std::string& name, const std::string& version, sol::t
 	, m_thread(LuaThread::get_from(s))
 {}
 
+LuaPlugin::~LuaPlugin()
+{
+	m_InitializePlugin = sol::lua_nil;
+	m_ShutdownPlugin = sol::lua_nil;
+	m_OnCleanUI = sol::lua_nil;
+	m_OnReloadUI = sol::lua_nil;
+	m_OnDrawHUD = sol::lua_nil;
+	m_SetGameState = sol::lua_nil;
+	m_OnPulse = sol::lua_nil;
+	m_OnWriteChatColor = sol::lua_nil;
+	m_OnIncomingChat = sol::lua_nil;
+	m_OnAddSpawn = sol::lua_nil;
+	m_OnRemoveSpawn = sol::lua_nil;
+	m_OnAddGroundItem = sol::lua_nil;
+	m_OnRemoveGroundItem = sol::lua_nil;
+	m_OnBeginZone = sol::lua_nil;
+	m_OnEndZone = sol::lua_nil;
+	m_OnZoned = sol::lua_nil;
+	m_OnUpdateImGui = sol::lua_nil;
+	m_OnMacroStart = sol::lua_nil;
+	m_OnMacroStop = sol::lua_nil;
+	m_OnLoadPlugin = sol::lua_nil;
+	m_OnUnloadPlugin = sol::lua_nil;
+
+	UnregisterCommands();
+	UnregisterDatatypes();
+	UnregisterData();
+}
+
 // the first argument here is the self argument, which will always be the mq.plugin table
 sol::table LuaPlugin::Create(sol::table, const std::string& name, const std::string& version, sol::this_state s)
 {
 	auto ptr = std::make_shared<LuaPlugin>(name, version, s);
 	ptr->m_pluginTable = sol::state_view(s).create_table_with(
 		"__plugin", ptr,
-		"command", [](sol::table self, const std::string& command, sol::function func)
+		"bindcommand", [](sol::table self, const std::string& command, sol::function func)
 			{ self.get<std::shared_ptr<LuaPlugin>>("__plugin")->RegisterCommand(command, func); },
 		"name", ptr->m_name,
 		"version", ptr->m_version
@@ -431,36 +529,13 @@ void LuaPlugin::Start(sol::table plugin)
 		}
 
 		ptr->InitializePlugin();
+		ptr->AddCommands();
 		s_pluginMap.insert_or_assign(ptr->Name(), ptr);
 
-		for (auto it = ptr->m_commands.begin(); it != ptr->m_commands.end();)
-		{
-			const auto& [command, func] = *it;
-			std::tuple<int, bool> arginfo = plugin["__command_arginfo"](func);
-			auto [numargs, vararg] = arginfo;
-			
-			if (vararg)
-			{
-				LuaError("Invalid command %s: commands do not support variadic arguments.", command.c_str());
-				it = ptr->m_commands.erase(it);
-			}
-			else if (numargs != 1 && numargs != 2)
-			{
-				LuaError("Invalid number of arguments (%d) for command %s", numargs, command.c_str());
-				it = ptr->m_commands.erase(it);
-			}
-			else
-			{
-				AddFunction(command.c_str(), [func = func, ptr, numargs = numargs](PlayerClient*, char* Buffer) -> void
-					{
-						if (numargs == 1)
-							func(Buffer);
-						else if (numargs == 2)
-							func(ptr->m_pluginTable, Buffer);
-					}); // TODO: we might want to pass the optional booleans here
-				++it;
-			}
-		}
+		// we no longer need to hold the pointer to the LuaPlugin, and if we don't get rid of it, we'll always have one ref
+		// which will cause the state to hold pointer which in turn is held by the LuaPlugin, need to make sure to get rid
+		// of this circular dependency
+		plugin["__plugin"] = sol::nil;
 
 		// force gc in case we assigned instead of inserted to prevent dual definitions
 		sol::state_view(plugin.lua_state()).collect_garbage(); 
@@ -472,9 +547,13 @@ void LuaPlugin::Stop(const std::string& name)
 	auto it = s_pluginMap.find(name);
 	if (it != s_pluginMap.end())
 	{
-		it->second->UnregisterCommands();
 		s_pluginMap.erase(it);
 	}
+}
+
+void LuaPlugin::StopAll()
+{
+	s_pluginMap.clear();
 }
 
 std::shared_ptr<LuaPlugin> LuaPlugin::Lookup(const std::string& name)
