@@ -19,6 +19,8 @@
 
 #include <luajit.h>
 
+// TODO: tie into require
+// TODO: pull the data deser into a single function and do some primitive type specializations on it
 namespace mq::lua {
 
 static ci_unordered::map<std::string, std::shared_ptr<LuaPlugin>> s_pluginMap;
@@ -466,11 +468,11 @@ void LuaPlugin::UnregisterDatatypes()
 
 #pragma region TLOs
 
-fMQData LuaPlugin::CreateData(sol::function func)
+fMQData LuaPlugin::CreateData(sol::table plugin, sol::function func, int numargs)
 {
-	auto ret_func = [&func](const char* Index, MQTypeVar& Dest) -> bool
+	auto ret_func = [&plugin, &func, numargs](const char* Index, MQTypeVar& Dest) -> bool
 	{
-		auto result = func(Index);
+		auto result = numargs == 1 ? func(Index) : func(plugin, Index);
 		if (result.valid() && result.return_count() > 1)
 		{
 			std::tuple<std::optional<std::string>, sol::object> r = result;
@@ -514,16 +516,41 @@ void LuaPlugin::RegisterData(const std::string& name, sol::function func)
 	else
 	{
 		m_dataTLOs.emplace(name, func);
-		AddMQ2Data(name.c_str(), CreateData(func));
+	}
+}
+
+void LuaPlugin::AddData()
+{
+	for (auto it = m_dataTLOs.begin(); it != m_dataTLOs.end();)
+	{
+		const auto& [tlo, func] = *it;
+		auto [_1, _2, numargs, vararg] = GetArgInfo(m_pluginTable, func);
+
+		if (vararg)
+		{
+			LuaError("Invalid TLO %s: TLOs do not support variadic arguments.", tlo.c_str());
+			it = m_dataTLOs.erase(it);
+		}
+		else if (numargs != 1 && numargs != 2)
+		{
+			LuaError("Invalid number of arguments (%d) for TLO %s", numargs, tlo.c_str());
+			it = m_dataTLOs.erase(it);
+		}
+		else
+		{
+			AddMQ2Data(tlo.c_str(), CreateData(m_pluginTable, func, numargs));
+			++it;
+		}
 	}
 }
 
 void LuaPlugin::UnregisterData()
 {
-	for (const auto& tlo : m_dataTLOs)
+	for (const auto& [tlo, _] : m_dataTLOs)
 	{
-		RemoveMQ2Data(tlo.first.c_str());
+		RemoveMQ2Data(tlo.c_str());
 	}
+
 	m_dataTLOs.clear();
 }
 
@@ -576,6 +603,8 @@ sol::table LuaPlugin::Create(sol::table, const std::string& name, const std::str
 			{ self.get<std::shared_ptr<LuaPlugin>>("__plugin")->RegisterCommand(command, func); },
 		"bindtype", [](sol::table self, const std::string& name, sol::table datatype)
 			{ self.get<std::shared_ptr<LuaPlugin>>("__plugin")->RegisterDatatype(name, datatype); },
+		"bindtlo", [](sol::table self, const std::string& name, sol::function func)
+			{ self.get<std::shared_ptr<LuaPlugin>>("__plugin")->RegisterData(name, func); },
 		"name", ptr->m_name,
 		"version", ptr->m_version
 	);
@@ -606,6 +635,7 @@ void LuaPlugin::Start(sol::table plugin)
 
 		ptr->InitializePlugin();
 		ptr->AddCommands();
+		ptr->AddData();
 		s_pluginMap.insert_or_assign(ptr->Name(), ptr);
 
 		// we no longer need to hold the pointer to the LuaPlugin, and if we don't get rid of it, we'll always have one ref
@@ -657,12 +687,9 @@ std::vector<std::string> LuaPlugin::GetRunning()
 
 void LuaPlugin::RegisterLua(sol::table& mq)
 {
-	// create a plugin with local plugin = mq.plugin.new(name, version), then you can do plugin:callback(...) etc
-	// finally, you'd do plugin:start() to add it to the map and plugin:stop() will remove it from the map
 	sol::usertype<LuaPlugin> plugin = mq.new_usertype<LuaPlugin>(
 		"__plugin",
-		sol::meta_function::construct, sol::no_constructor,
-		"tlo", &LuaPlugin::RegisterData
+		sol::meta_function::construct, sol::no_constructor
 	);
 
 	mq["plugin"] = sol::state_view(mq.lua_state()).create_table_with(

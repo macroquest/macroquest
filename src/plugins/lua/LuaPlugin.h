@@ -146,10 +146,11 @@ private:
 		}
 	};
 
-	static fMQData CreateData(sol::function func);
+	static fMQData CreateData(sol::table plugin, sol::function func, int numargs);
 
 public:
 	void RegisterData(const std::string& name, sol::function func);
+	void AddData();
 	void UnregisterData();
 
 private:
