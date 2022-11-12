@@ -24,19 +24,19 @@ namespace mq::lua {
 class MQ2LuaGenericType : public MQ2Type
 {
 private:
+	sol::table m_pluginTable; // this is "self", which can be used for local data storage
 	std::string m_typeName;
 	ci_unordered::map<std::string, sol::function> m_memberMap;
-	sol::function m_toString;
-	sol::function m_fromData;
-	sol::function m_fromString;
+	std::tuple<int, sol::function> m_toString;
+	std::tuple<int, sol::function> m_fromData;
+	std::tuple<int, sol::function> m_fromString;
 
 public:
-	MQ2LuaGenericType(const std::string& typeName, sol::table members, sol::function toString, sol::function fromData, sol::function fromString);
+	MQ2LuaGenericType(sol::table plugin, const std::string& typeName, sol::table members, sol::function toString, sol::function fromData, sol::function fromString);
 	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source);
 	bool FromString(MQVarPtr& VarPtr, const char* Source);
-	void Abandon();
 };
 
 #pragma endregion
@@ -47,31 +47,7 @@ class LuaPlugin : public std::enable_shared_from_this<LuaPlugin>
 #pragma region Callbacks
 
 public:
-	enum class Callback
-	{
-		InitializePlugin,
-		ShutdownPlugin,
-		OnCleanUI,
-		OnReloadUI,
-		OnDrawHUD,
-		SetGameState,
-		OnPulse,
-		OnWriteChatColor,
-		OnIncomingChat,
-		OnAddSpawn,
-		OnRemoveSpawn,
-		OnAddGroundItem,
-		OnRemoveGroundItem,
-		OnBeginZone,
-		OnEndZone,
-		OnZoned,
-		OnUpdateImGui,
-		OnMacroStart,
-		OnMacroStop,
-		OnLoadPlugin,
-		OnUnloadPlugin
-	};
-
+	void SetCallback(const std::string& name, sol::object val, sol::this_state s);
 	void InitializePlugin();
 	void ShutdownPlugin();
 	static void OnCleanUI();
@@ -134,7 +110,7 @@ private:
 #pragma region Datatypes
 
 public:
-	void RegisterDatatype(const std::string& name, sol::table members, sol::function toString, sol::function fromData, sol::function fromString);
+	void RegisterDatatype(const std::string& name, sol::table datatype);
 	void UnregisterDatatypes();
 
 private:
@@ -193,7 +169,6 @@ public:
 	static std::shared_ptr<LuaPlugin> Lookup(const std::string& name);
 	static bool IsRunning(const std::string& name);
 	static std::vector<std::string> GetRunning();
-	void Set(const std::string& name, sol::object val, sol::this_state s);
 	static void RegisterLua(sol::table& mq);
 	std::string Name() { return m_name; }
 	static bool IsPlugin(sol::table table);

@@ -23,13 +23,36 @@ namespace mq::lua {
 
 static ci_unordered::map<std::string, std::shared_ptr<LuaPlugin>> s_pluginMap;
 
+static std::tuple<const std::string&, const std::string&, int, bool> GetArgInfo(sol::table plugin, sol::function func)
+{
+	return plugin["__command_arginfo"](func);
+}
+
+static std::tuple<int, sol::function> SetFunction(sol::table plugin, sol::function func, int local_args)
+{
+	auto [name, namewhat, numargs, vararg] = GetArgInfo(plugin, func);
+	if (vararg)
+	{
+		LuaError("Invalid function %s %s: no support for variadic arguments.", namewhat.c_str(), name.c_str());
+		return std::make_tuple(-1, sol::lua_nil);
+	}
+	else if (numargs != local_args && numargs != local_args + 1)
+	{
+		LuaError("Invalid number of arguments (%d) for function %s %s", numargs, namewhat.c_str(), name.c_str());
+		return std::make_tuple(-1, sol::lua_nil);
+	}
+
+	return std::make_tuple(numargs, func);
+}
+
 #pragma region Type Helper
 
-MQ2LuaGenericType::MQ2LuaGenericType(const std::string& typeName, sol::table members, sol::function toString, sol::function fromData, sol::function fromString)
-	: m_typeName(typeName)
-	, m_toString(toString)
-	, m_fromData(fromData)
-	, m_fromString(fromString)
+MQ2LuaGenericType::MQ2LuaGenericType(sol::table plugin, const std::string& typeName, sol::table members, sol::function toString, sol::function fromData, sol::function fromString)
+	: m_pluginTable(plugin)
+	, m_typeName(typeName)
+	, m_toString(SetFunction(m_pluginTable, toString, 1))
+	, m_fromData(SetFunction(m_pluginTable, fromData, 1))
+	, m_fromString(SetFunction(m_pluginTable, fromString, 1))
 	, MQ2Type(typeName.c_str())
 {
 	for (const auto& [first, second] : members)
@@ -81,26 +104,32 @@ bool MQ2LuaGenericType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 bool MQ2LuaGenericType::ToString(MQVarPtr VarPtr, char* Destination)
 {
 	auto ptr = VarPtr.Get<sol::object>();
-	if (ptr)
+	auto [numargs, func] = m_toString;
+	if (ptr && numargs >= 0)
 	{
-		auto result = m_toString(*ptr);
+		auto result = numargs == 1 ? func(*ptr) : func(m_pluginTable, *ptr);
 		if (result.valid() && result.return_count() > 0)
 		{
 			std::optional<std::string> r = result;
-			strcpy_s(Destination, MAX_STRING, r.value_or("").c_str());
-			return true;
+			if (r)
+			{
+				strcpy_s(Destination, MAX_STRING, r->c_str());
+				return true;
+			}
 		}
 	}
 
-	return false;
+	strcpy_s(Destination, MAX_STRING, m_typeName.c_str());
+	return true;
 }
 
 bool MQ2LuaGenericType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	auto ptr = Source.Get<sol::object>();
-	if (ptr)
+	auto [numargs, func] = m_fromData;
+	if (ptr && numargs >= 0)
 	{
-		auto result = m_fromData(*ptr);
+		auto result = numargs == 1 ? func(*ptr) : func(m_pluginTable, *ptr);
 		if (result.valid() && result.return_count() > 0)
 		{
 			sol::object r = result;
@@ -117,7 +146,8 @@ bool MQ2LuaGenericType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 
 bool MQ2LuaGenericType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
-	auto result = m_fromString(Source);
+	auto [numargs, func] = m_fromString;
+	auto result = numargs == 1 ? func(Source) : func(m_pluginTable, Source);
 	if (result.valid() && result.return_count() > 0)
 	{
 		sol::object r = result;
@@ -131,19 +161,55 @@ bool MQ2LuaGenericType::FromString(MQVarPtr& VarPtr, const char* Source)
 	return false;
 }
 
-void MQ2LuaGenericType::Abandon()
-{
-	for (auto& [_, member] : m_memberMap)
-		member.abandon();
-
-	m_toString.abandon();
-	m_fromData.abandon();
-	m_fromString.abandon();
-}
-
 #pragma endregion
 
 #pragma region Callbacks
+
+void LuaPlugin::SetCallback(const std::string& name, sol::object val, sol::this_state s)
+{
+	if (name == "InitializePlugin" && val.is<sol::function>())
+		m_InitializePlugin = val.as<sol::function>();
+	else if (name == "ShutdownPlugin" && val.is<sol::function>())
+		m_ShutdownPlugin = val.as<sol::function>();
+	else if (name == "OnCleanUI" && val.is<sol::function>())
+		m_OnCleanUI = val.as<sol::function>();
+	else if (name == "OnReloadUI" && val.is<sol::function>())
+		m_OnReloadUI = val.as<sol::function>();
+	else if (name == "OnDrawHUD" && val.is<sol::function>())
+		m_OnDrawHUD = val.as<sol::function>();
+	else if (name == "SetGameState" && val.is<sol::function>())
+		m_SetGameState = val.as<sol::function>();
+	else if (name == "OnPulse" && val.is<sol::function>())
+		m_OnPulse = val.as<sol::function>();
+	else if (name == "OnWriteChatColor" && val.is<sol::function>())
+		m_OnWriteChatColor = val.as<sol::function>();
+	else if (name == "OnIncomingChat" && val.is<sol::function>())
+		m_OnIncomingChat = val.as<sol::function>();
+	else if (name == "OnAddSpawn" && val.is<sol::function>())
+		m_OnAddSpawn = val.as<sol::function>();
+	else if (name == "OnRemoveSpawn" && val.is<sol::function>())
+		m_OnRemoveSpawn = val.as<sol::function>();
+	else if (name == "OnAddGroundItem" && val.is<sol::function>())
+		m_OnAddGroundItem = val.as<sol::function>();
+	else if (name == "OnRemoveGroundItem" && val.is<sol::function>())
+		m_OnRemoveGroundItem = val.as<sol::function>();
+	else if (name == "OnBeginZone" && val.is<sol::function>())
+		m_OnBeginZone = val.as<sol::function>();
+	else if (name == "OnEndZone" && val.is<sol::function>())
+		m_OnEndZone = val.as<sol::function>();
+	else if (name == "OnZoned" && val.is<sol::function>())
+		m_OnZoned = val.as<sol::function>();
+	else if (name == "OnUpdateImGui" && val.is<sol::function>())
+		m_OnUpdateImGui = val.as<sol::function>();
+	else if (name == "OnMacroStart" && val.is<sol::function>())
+		m_OnMacroStart = val.as<sol::function>();
+	else if (name == "OnMacroStop" && val.is<sol::function>())
+		m_OnMacroStop = val.as<sol::function>();
+	else if (name == "OnLoadPlugin" && val.is<sol::function>())
+		m_OnLoadPlugin = val.as<sol::function>();
+	else if (name == "OnUnloadPlugin" && val.is<sol::function>())
+		m_OnUnloadPlugin = val.as<sol::function>();
+}
 
 void LuaPlugin::InitializePlugin()
 {
@@ -326,8 +392,7 @@ void LuaPlugin::AddCommands()
 	for (auto it = m_commands.begin(); it != m_commands.end();)
 	{
 		const auto& [command, func] = *it;
-		std::tuple<int, bool> arginfo = m_pluginTable["__command_arginfo"](func);
-		auto [numargs, vararg] = arginfo;
+		auto [_1, _2, numargs, vararg] = GetArgInfo(m_pluginTable, func);
 
 		if (vararg)
 		{
@@ -343,10 +408,7 @@ void LuaPlugin::AddCommands()
 		{
 			AddFunction(command.c_str(), [func = func, this, numargs = numargs](PlayerClient*, char* Buffer) -> void
 				{
-					if (numargs == 1)
-						func(Buffer);
-					else if (numargs == 2)
-						func(m_pluginTable, Buffer);
+					numargs == 1 ? func(Buffer) : func(m_pluginTable, Buffer);
 				}); // TODO: we might want to pass the optional booleans here
 			++it;
 		}
@@ -367,7 +429,8 @@ void LuaPlugin::UnregisterCommands()
 
 #pragma region Datatypes
 
-void LuaPlugin::RegisterDatatype(const std::string& name, sol::table members, sol::function toString, sol::function fromData, sol::function fromString)
+//void LuaPlugin::RegisterDatatype(const std::string& name, sol::table members, sol::function toString, sol::function fromData, sol::function fromString)
+void LuaPlugin::RegisterDatatype(const std::string& name, sol::table datatype)
 {
 	if (FindMQ2DataType(name.c_str()) != nullptr)
 	{
@@ -379,7 +442,18 @@ void LuaPlugin::RegisterDatatype(const std::string& name, sol::table members, so
 	}
 	else
 	{
-		m_dataTypes.emplace(name, std::make_unique<MQ2LuaGenericType>(name, members, toString, fromData, fromString));
+		sol::table members = datatype.get_or("Members", sol::lua_nil);
+		sol::function toString = datatype.get_or("ToString", sol::lua_nil);
+		sol::function fromData = datatype.get_or("FromData", sol::lua_nil);
+		sol::function fromString = datatype.get_or("FromString", sol::lua_nil);
+
+		// This breaks symmetry because the ctor for all types automatically registers the type.
+		// We can't defer the registration to the plugin start.
+		// This means that the datatypes will get registered even if the user fails to return the plugin
+		// from the script. Theoretically, the LuaPlugin will destruct and the type will get unregistered
+		// in that process, but it seems a bit shaky.
+		// TODO: Test this hypothesis
+		m_dataTypes.emplace(name, std::make_unique<MQ2LuaGenericType>(m_pluginTable, name, members, toString, fromData, fromString));
 	}
 }
 
@@ -500,6 +574,8 @@ sol::table LuaPlugin::Create(sol::table, const std::string& name, const std::str
 		"__plugin", ptr,
 		"bindcommand", [](sol::table self, const std::string& command, sol::function func)
 			{ self.get<std::shared_ptr<LuaPlugin>>("__plugin")->RegisterCommand(command, func); },
+		"bindtype", [](sol::table self, const std::string& name, sol::table datatype)
+			{ self.get<std::shared_ptr<LuaPlugin>>("__plugin")->RegisterDatatype(name, datatype); },
 		"name", ptr->m_name,
 		"version", ptr->m_version
 	);
@@ -507,7 +583,7 @@ sol::table LuaPlugin::Create(sol::table, const std::string& name, const std::str
 	sol::function arginfo = sol::state_view(s).script(R"(
 		return function(f)
 			local info = debug.getinfo(f)
-			return info.nparams, info.isvararg
+			return info.name, info.namewhat, info.nparams, info.isvararg
 		end
 	)");
 
@@ -525,7 +601,7 @@ void LuaPlugin::Start(sol::table plugin)
 		for (const auto& [k, v] : plugin)
 		{
 			if (k.is<std::string>() && v.get_type() == sol::type::function)
-				ptr->Set(k.as<const std::string&>(), v, plugin.lua_state());
+				ptr->SetCallback(k.as<const std::string&>(), v, plugin.lua_state());
 		}
 
 		ptr->InitializePlugin();
@@ -579,52 +655,6 @@ std::vector<std::string> LuaPlugin::GetRunning()
 	return keys;
 }
 
-void LuaPlugin::Set(const std::string& name, sol::object val, sol::this_state s)
-{
-	if (name == "InitializePlugin" && val.is<sol::function>())
-		m_InitializePlugin = val.as<sol::function>();
-	else if (name == "ShutdownPlugin" && val.is<sol::function>())
-		m_ShutdownPlugin = val.as<sol::function>();
-	else if (name == "OnCleanUI" && val.is<sol::function>())
-		m_OnCleanUI = val.as<sol::function>();
-	else if (name == "OnReloadUI" && val.is<sol::function>())
-		m_OnReloadUI = val.as<sol::function>();
-	else if (name == "OnDrawHUD" && val.is<sol::function>())
-		m_OnDrawHUD = val.as<sol::function>();
-	else if (name == "SetGameState" && val.is<sol::function>())
-		m_SetGameState = val.as<sol::function>();
-	else if (name == "OnPulse" && val.is<sol::function>())
-		m_OnPulse = val.as<sol::function>();
-	else if (name == "OnWriteChatColor" && val.is<sol::function>())
-		m_OnWriteChatColor = val.as<sol::function>();
-	else if (name == "OnIncomingChat" && val.is<sol::function>())
-		m_OnIncomingChat = val.as<sol::function>();
-	else if (name == "OnAddSpawn" && val.is<sol::function>())
-		m_OnAddSpawn = val.as<sol::function>();
-	else if (name == "OnRemoveSpawn" && val.is<sol::function>())
-		m_OnRemoveSpawn = val.as<sol::function>();
-	else if (name == "OnAddGroundItem" && val.is<sol::function>())
-		m_OnAddGroundItem = val.as<sol::function>();
-	else if (name == "OnRemoveGroundItem" && val.is<sol::function>())
-		m_OnRemoveGroundItem = val.as<sol::function>();
-	else if (name == "OnBeginZone" && val.is<sol::function>())
-		m_OnBeginZone = val.as<sol::function>();
-	else if (name == "OnEndZone" && val.is<sol::function>())
-		m_OnEndZone = val.as<sol::function>();
-	else if (name == "OnZoned" && val.is<sol::function>())
-		m_OnZoned = val.as<sol::function>();
-	else if (name == "OnUpdateImGui" && val.is<sol::function>())
-		m_OnUpdateImGui = val.as<sol::function>();
-	else if (name == "OnMacroStart" && val.is<sol::function>())
-		m_OnMacroStart = val.as<sol::function>();
-	else if (name == "OnMacroStop" && val.is<sol::function>())
-		m_OnMacroStop = val.as<sol::function>();
-	else if (name == "OnLoadPlugin" && val.is<sol::function>())
-		m_OnLoadPlugin = val.as<sol::function>();
-	else if (name == "OnUnloadPlugin" && val.is<sol::function>())
-		m_OnUnloadPlugin = val.as<sol::function>();
-}
-
 void LuaPlugin::RegisterLua(sol::table& mq)
 {
 	// create a plugin with local plugin = mq.plugin.new(name, version), then you can do plugin:callback(...) etc
@@ -632,7 +662,6 @@ void LuaPlugin::RegisterLua(sol::table& mq)
 	sol::usertype<LuaPlugin> plugin = mq.new_usertype<LuaPlugin>(
 		"__plugin",
 		sol::meta_function::construct, sol::no_constructor,
-		"datatype", &LuaPlugin::RegisterDatatype,
 		"tlo", &LuaPlugin::RegisterData
 	);
 
