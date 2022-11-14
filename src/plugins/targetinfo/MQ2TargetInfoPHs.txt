@@ -784,7 +784,7 @@ Thall Xundraux Diabo^Kela Thall^tol^vexthaltwo^https://tol.eqresource.com/thallx
 Kaas Thox Xi Ans Dyek^Qua Kaas Thox^tol^vexthaltwo^https://tol.eqresource.com/kaasthoxxiansdyek.php
 Thox Xakra^Raux Xakra^tol^vexthaltwo^https://tol.eqresource.com/thoxxakra.php
 Congealed Shadow Mass^a tangible shadow^tol^basilica^https://tol.eqresource.com/congealedshadowmass.php
-Irate Servant of Luclin^a shrewd abettor of luclin^tol^basilica^https://tol.eqresource.com/irateservantofluclin.php
+Irate Servant of Luclin^a shrewd abettor of Luclin^tol^basilica^https://tol.eqresource.com/irateservantofluclin.php
 Xetheg, Luclin's Warden^a tekuel^tol^basilica^https://tol.eqresource.com/xethegluclinswarden.php
 Dark Agent of Luclin^a basilica secret keeper^tol^basilica^https://tol.eqresource.com/darkagentofluclin.php
 Itzal, Luclin's Hunter^a tekuels^tol^basilica^https://tol.eqresource.com/itzalluclinshunter.php
