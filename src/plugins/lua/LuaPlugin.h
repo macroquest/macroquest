@@ -165,15 +165,16 @@ private:
 public:
 	LuaPlugin(const std::string& name, const std::string& version, sol::this_state s);
 	~LuaPlugin();
+	const std::string& Name() const { return m_name; }
+	sol::object Get(sol::object key, sol::this_state s) const;
 	static sol::table Create(sol::table, const std::string& name, const std::string& version, sol::this_state s);
 	static void Start(sol::table plugin);
-	static void Stop(const std::string& name);
+	static void Stop(std::string_view name);
 	static void StopAll();
-	static std::shared_ptr<LuaPlugin> Lookup(const std::string& name);
-	static bool IsRunning(const std::string& name);
-	static std::vector<std::string> GetRunning();
+	static std::shared_ptr<LuaPlugin> Lookup(std::string_view name);
+	static bool IsRunning(std::string_view name);
+	static std::vector<std::string_view> GetRunning();
 	static void RegisterLua(sol::table& mq);
-	std::string Name() { return m_name; }
 	static bool IsPlugin(sol::table table);
 
 private:

@@ -19,11 +19,9 @@
 
 #include <luajit.h>
 
-// TODO: tie into require
-// TODO: write sample plugin
 namespace mq::lua {
 
-static ci_unordered::map<std::string, std::shared_ptr<LuaPlugin>> s_pluginMap;
+static ci_unordered::map<std::string_view, std::shared_ptr<LuaPlugin>> s_pluginMap;
 
 #pragma region Static Helpers
 
@@ -763,6 +761,22 @@ LuaPlugin::~LuaPlugin()
 	UnregisterData();
 }
 
+sol::object LuaPlugin::Get(sol::object key, sol::this_state s) const
+{
+	// this is not a very efficient indexer, but the only way to index this userdata
+	// is via a require, and we are forced to call into C and then do state copies
+	// of the result into the state that called this index
+
+	// this will handle primitive type conversions, but if m_pluginTable is indexed by a table or userdata,
+	// then we can't possibly get the value from the local table with a remote key, so this will fail
+	// inside lua.
+	auto local_key = CopyObject(key, m_pluginTable.lua_state());
+	sol::object local_obj = m_pluginTable[local_key];
+
+	// now that we have a local object, we need to copy it into the target state s
+	return CopyObject(local_obj, s.lua_state());
+}
+
 // the first argument here is the self argument, which will always be the mq.plugin table
 sol::table LuaPlugin::Create(sol::table, const std::string& name, const std::string& version, sol::this_state s)
 {
@@ -781,8 +795,8 @@ sol::table LuaPlugin::Create(sol::table, const std::string& name, const std::str
 
 	sol::function arginfo = sol::state_view(s).script(R"(
 		return function(f)
-			local info = debug.getinfo(f)
-			return info.name, info.namewhat, info.nparams, info.isvararg
+			local info = debug.getinfo(f, "nu")
+			return info.name or 'unknown', info.namewhat or 'unk', info.nparams or -1, info.isvararg or false
 		end
 	)");
 
@@ -818,7 +832,7 @@ void LuaPlugin::Start(sol::table plugin)
 	}
 }
 
-void LuaPlugin::Stop(const std::string& name)
+void LuaPlugin::Stop(std::string_view name)
 {
 	auto it = s_pluginMap.find(name);
 	if (it != s_pluginMap.end())
@@ -832,7 +846,7 @@ void LuaPlugin::StopAll()
 	s_pluginMap.clear();
 }
 
-std::shared_ptr<LuaPlugin> LuaPlugin::Lookup(const std::string& name)
+std::shared_ptr<LuaPlugin> LuaPlugin::Lookup(std::string_view name)
 {
 	auto it = s_pluginMap.find(name);
 	if (it != s_pluginMap.end())
@@ -843,15 +857,15 @@ std::shared_ptr<LuaPlugin> LuaPlugin::Lookup(const std::string& name)
 	return {};
 }
 
-bool LuaPlugin::IsRunning(const std::string& name)
+bool LuaPlugin::IsRunning(std::string_view name)
 {
 	return s_pluginMap.find(name) != s_pluginMap.end();
 }
 
-std::vector<std::string> LuaPlugin::GetRunning()
+std::vector<std::string_view> LuaPlugin::GetRunning()
 {
-	std::vector<std::string> keys(s_pluginMap.size());
-	std::transform(s_pluginMap.begin(), s_pluginMap.end(), keys.begin(), [](auto pair) { return pair.first; });
+	std::vector<std::string_view> keys(s_pluginMap.size());
+	std::transform(s_pluginMap.begin(), s_pluginMap.end(), keys.begin(), [](const auto& pair) { return pair.first; });
 	return keys;
 }
 
@@ -859,7 +873,8 @@ void LuaPlugin::RegisterLua(sol::table& mq)
 {
 	sol::usertype<LuaPlugin> plugin = mq.new_usertype<LuaPlugin>(
 		"__plugin",
-		sol::meta_function::construct, sol::no_constructor
+		sol::meta_function::construct, sol::no_constructor,
+		sol::meta_function::index, &LuaPlugin::Get
 	);
 
 	mq["plugin"] = sol::state_view(mq.lua_state()).create_table_with(

@@ -261,6 +261,19 @@ int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 		luaL_loadbuffer(sv, script.data(), script.size(), pkg.c_str());
 		return 1;
 	}
+	else if (ci_starts_with(pkg, "plugin."))
+	{
+		std::string_view plugin_name = std::string_view(pkg).substr(7);
+		if (auto plugin = LuaPlugin::Lookup(plugin_name))
+		{
+			m_globalState.set(fmt::format("_mq_internal_plugin_{}", plugin_name), plugin);
+			std::string script = fmt::format("return _mq_internal_plugin_{}", plugin_name);
+			luaL_loadbuffer(sv, script.data(), script.size(), pkg.c_str());
+			return 1;
+		}
+
+		return 0;
+	}
 	else if (pkg == "ImGui")
 	{
 		ImGui_RegisterLua(sv);
