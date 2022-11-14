@@ -26,7 +26,7 @@ class MQ2LuaGenericType : public MQ2Type
 private:
 	sol::table m_pluginTable; // this is "self", which can be used for local data storage
 	std::string m_typeName;
-	ci_unordered::map<std::string, sol::function> m_memberMap;
+	ci_unordered::map<std::string, std::tuple<int, sol::function>> m_memberMap;
 	std::tuple<int, sol::function> m_toString;
 	std::tuple<int, sol::function> m_fromData;
 	std::tuple<int, sol::function> m_fromString;
@@ -37,6 +37,7 @@ public:
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source);
 	bool FromString(MQVarPtr& VarPtr, const char* Source);
+	lua_State* GetState();
 };
 
 #pragma endregion
@@ -111,6 +112,7 @@ private:
 
 public:
 	void RegisterDatatype(const std::string& name, sol::table datatype);
+	static bool IsDatatype(const std::string& name);
 	void UnregisterDatatypes();
 
 private:

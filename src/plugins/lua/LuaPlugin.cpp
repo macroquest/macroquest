@@ -20,10 +20,12 @@
 #include <luajit.h>
 
 // TODO: tie into require
-// TODO: pull the data deser into a single function and do some primitive type specializations on it
+// TODO: write sample plugin
 namespace mq::lua {
 
 static ci_unordered::map<std::string, std::shared_ptr<LuaPlugin>> s_pluginMap;
+
+#pragma region Static Helpers
 
 static std::tuple<const std::string&, const std::string&, int, bool> GetArgInfo(sol::table plugin, sol::function func)
 {
@@ -47,6 +49,174 @@ static std::tuple<int, sol::function> SetFunction(sol::table plugin, sol::functi
 	return std::make_tuple(numargs, func);
 }
 
+static sol::object CopyObject(sol::object object, lua_State* state)
+{
+	sol::type type = object.get_type();
+	if (type == sol::type::string)
+	{
+		auto val = object.as<std::string>();
+		return sol::make_object(state, val);
+	}
+
+	if (type == sol::type::number)
+	{
+		auto val = object.as<double>();
+		return sol::make_object(state, val);
+	}
+
+	if (type == sol::type::boolean)
+	{
+		auto val = object.as<bool>();
+		return sol::make_object(state, val);
+	}
+
+	if (type == sol::type::function)
+	{
+		auto val = object.as<sol::function>();
+		sol::bytecode bc = val.dump();
+
+		auto result = sol::state_view(state).safe_script(bc.as_string_view(), sol::script_pass_on_error);
+		if (result.valid())
+		{
+			sol::function func = result;
+			return result;
+		}
+	}
+
+	if (type == sol::type::table)
+	{
+		auto val = object.as<sol::table>();
+		auto new_table = sol::state_view(state).create_table();
+		for (auto& [k, v] : val)
+		{
+			new_table.set(CopyObject(k, state), CopyObject(v, state));
+		}
+
+		return new_table;
+	}
+
+	// any type we don't support will automatically become nil (specifically thread, userdata, and lightuserdata)
+	// userdata could potentially be copyable if we require that there is a :copy() function on it, but that 
+	// can be added later if it is actually important. 
+	return sol::make_object(state, sol::lua_nil);
+}
+
+static bool EvaluateObject(MQ2Type* type, sol::object object, MQVarPtr& Dest)
+{
+	if (type == nullptr || object == sol::lua_nil)
+		return false;
+
+	// These all return false if the value doesn't come back as the correct type because we want
+	// to be able to assume that the user, who specified the type, correctly knows what they 
+	// wanted to get from the return value
+	if (type == mq::datatypes::pBoolType)
+	{
+		auto maybe = object.as<std::optional<bool>>();
+		if (maybe)
+		{
+			Dest.Set(*maybe);
+			return true;
+		}
+
+		return false;
+	}
+
+	if (type == mq::datatypes::pIntType)
+	{
+		auto maybe = object.as<std::optional<int>>();
+		if (maybe)
+		{
+			Dest.Set(*maybe);
+			return true;
+		}
+
+		return false;
+	}
+
+	if (type == mq::datatypes::pInt64Type)
+	{
+		auto maybe = object.as<std::optional<int64_t>>();
+		if (maybe)
+		{
+			Dest.Set(*maybe);
+			return true;
+		}
+
+		return false;
+	}
+
+	if (type == mq::datatypes::pByteType)
+	{
+		auto maybe = object.as<std::optional<uint8_t>>();
+		if (maybe)
+		{
+			Dest.Set(*maybe);
+			return true;
+		}
+
+		return false;
+	}
+
+	if (type == mq::datatypes::pFloatType)
+	{
+		auto maybe = object.as<std::optional<float>>();
+		if (maybe)
+		{
+			Dest.Set(*maybe);
+			return true;
+		}
+
+		return false;
+	}
+
+	if (type == mq::datatypes::pDoubleType)
+	{
+		auto maybe = object.as<std::optional<double>>();
+		if (maybe)
+		{
+			Dest.Set(*maybe);
+			return true;
+		}
+
+		return false;
+	}
+
+	if (type == mq::datatypes::pTimeStampType)
+	{
+		auto maybe = object.as<std::optional<int64_t>>();
+		if (maybe)
+		{
+			Dest.Set(*maybe);
+			return true;
+		}
+
+		return false;
+	}
+
+	// we want to specifically specialize the lua generic type because we need to serde from
+	// another lua state in general.
+	if (LuaPlugin::IsDatatype(type->GetName()))
+	{
+		Dest.Set(CopyObject(object, static_cast<MQ2LuaGenericType*>(type)->GetState()));
+		return true;
+	}
+
+	// no need to specialize string, we want to do the string conversion default on that anyway
+
+	// This is the generic handler. It is safe because it's copying a string into the local lua state
+	// as a way to serde values. It's not super efficient, but we can't make assumptions about
+	// non-primitiive types.
+	auto pp = sol::stack::push_pop(object);
+	auto stack_val = sol::stack_object(object.lua_state(), -1);
+	std::size_t len;
+	const char* val_str = luaL_tolstring(stack_val.lua_state(), stack_val.stack_index(), &len);
+	lua_pop(stack_val.lua_state(), 1);
+
+	return type->FromString(Dest, val_str);
+}
+
+#pragma endregion
+
 #pragma region Type Helper
 
 MQ2LuaGenericType::MQ2LuaGenericType(sol::table plugin, const std::string& typeName, sol::table members, sol::function toString, sol::function fromData, sol::function fromString)
@@ -63,7 +233,7 @@ MQ2LuaGenericType::MQ2LuaGenericType(sol::table plugin, const std::string& typeN
 		auto maybe_val = second.as<std::optional<sol::function>>();
 		if (maybe_name && maybe_val)
 		{
-			m_memberMap[*maybe_name] = *maybe_val;
+			m_memberMap[*maybe_name] = SetFunction(m_pluginTable, *maybe_val, 2);
 		}
 	}
 }
@@ -74,28 +244,17 @@ bool MQ2LuaGenericType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 	auto ptr = VarPtr.Get<sol::object>();
 	if (member_it != m_memberMap.end() && ptr)
 	{
-		auto result = member_it->second(*ptr, Index);
+		auto& [numargs, func] = member_it->second;
+		auto result = numargs == 2 ? func(*ptr, Index) : func(m_pluginTable, *ptr, Index);
 		if (result.valid() && result.return_count() > 1)
 		{
 			std::tuple<std::optional<std::string>, sol::object> r = result;
 			auto& [typeName, typeValue] = r;
-			if (typeName)
+			if (typeName && typeValue != sol::lua_nil)
 			{
-				// TODO: This should probably use template specializations for known MQ2Type conversions, then fall through to this really inefficient method
 				MQ2Type* type = FindMQ2DataType(typeName->c_str());
-				if (type != nullptr)
-				{
-					Dest.Type = type;
-
-					// now take the value, stringify it, then use the type's fromstring to deser it
-					auto pp = sol::stack::push_pop(typeValue);
-					auto stack_val = sol::stack_object(typeValue.lua_state(), -1);
-					std::size_t len;
-					const char* val_str = luaL_tolstring(stack_val.lua_state(), stack_val.stack_index(), &len);
-					lua_pop(stack_val.lua_state(), 1);
-
-					return type->FromString(Dest, val_str);
-				}
+				Dest.Type = type;
+				return EvaluateObject(type, typeValue, Dest);
 			}
 		}
 	}
@@ -127,18 +286,27 @@ bool MQ2LuaGenericType::ToString(MQVarPtr VarPtr, char* Destination)
 
 bool MQ2LuaGenericType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
-	auto ptr = Source.Get<sol::object>();
-	auto [numargs, func] = m_fromData;
-	if (ptr && numargs >= 0)
+	if (Source.Type != nullptr && LuaPlugin::IsDatatype(Source.Type->GetName()))
 	{
-		auto result = numargs == 1 ? func(*ptr) : func(m_pluginTable, *ptr);
-		if (result.valid() && result.return_count() > 0)
+		auto ptr = Source.Get<sol::object>();
+		auto [numargs, func] = m_fromData;
+		if (ptr && numargs >= 0)
 		{
-			sol::object r = result;
-			if (r != sol::lua_nil)
+			// we need to make sure to do this because we can't be sure the lua state is the same as
+			// the local lua state, we need to serde
+			sol::object val = CopyObject(*ptr, GetState());
+			MQTypeVar temp_var;
+			temp_var.Type = Source.Type;
+			auto result = numargs == 1 ? func(val) : func(m_pluginTable, val);
+			if (result.valid() && result.return_count() > 0)
 			{
-				VarPtr.Set(r);
-				return true;
+				sol::object r = result;
+				if (r != sol::lua_nil)
+				{
+					// we can directly set this here because the act of copying the source
+					// object into this state means that the result will be in this state
+					VarPtr.Set(r);
+				}
 			}
 		}
 	}
@@ -161,6 +329,11 @@ bool MQ2LuaGenericType::FromString(MQVarPtr& VarPtr, const char* Source)
 	}
 
 	return false;
+}
+
+lua_State* MQ2LuaGenericType::GetState()
+{
+	return m_pluginTable.lua_state();
 }
 
 #pragma endregion
@@ -459,6 +632,15 @@ void LuaPlugin::RegisterDatatype(const std::string& name, sol::table datatype)
 	}
 }
 
+bool LuaPlugin::IsDatatype(const std::string& name)
+{
+	return std::find_if(s_pluginMap.begin(), s_pluginMap.end(), [&name](const auto& it)
+		{
+			const auto& datatypes = it.second->m_dataTypes;
+			return datatypes.find(name) != datatypes.end();
+		}) != s_pluginMap.end();
+}
+
 void LuaPlugin::UnregisterDatatypes()
 {
 	m_dataTypes.clear();
@@ -477,23 +659,11 @@ fMQData LuaPlugin::CreateData(sol::table plugin, sol::function func, int numargs
 		{
 			std::tuple<std::optional<std::string>, sol::object> r = result;
 			auto& [typeName, typeValue] = r;
-			if (typeName)
+			if (typeName && typeValue != sol::lua_nil)
 			{
-				// TODO: This should probably use template specializations for known MQ2Type conversions, then fall through to this really inefficient method
 				MQ2Type* type = FindMQ2DataType(typeName->c_str());
-				if (type != nullptr)
-				{
-					Dest.Type = type;
-
-					// now take the value, stringify it, then use the type's fromstring to deser it
-					auto pp = sol::stack::push_pop(typeValue);
-					auto stack_val = sol::stack_object(typeValue.lua_state(), -1);
-					std::size_t len;
-					const char* val_str = luaL_tolstring(stack_val.lua_state(), stack_val.stack_index(), &len);
-					lua_pop(stack_val.lua_state(), 1);
-
-					return type->FromString(Dest, val_str);
-				}
+				Dest.Type = type;
+				return EvaluateObject(type, typeValue, Dest);
 			}
 		}
 
