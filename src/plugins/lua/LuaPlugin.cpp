@@ -19,7 +19,6 @@
 
 #include <luajit.h>
 
-// TODO: figure out why GetMember says "no such member" when returning nil. It shouldn't give any error and just gracefully return NULL
 namespace mq::lua {
 
 static ci_unordered::map<std::string_view, std::shared_ptr<LuaPlugin>> s_pluginMap;
@@ -240,6 +239,7 @@ static bool EvaluateObject(MQ2Type* type, sol::object object, MQVarPtr& Dest)
 
 void MQ2LuaGenericType::FillMembers(sol::table members)
 {
+	auto id = 0;
 	for (const auto& [key, value] : members)
 	{
 		auto maybe_name = key.as<std::optional<std::string>>();
@@ -279,6 +279,47 @@ void MQ2LuaGenericType::FillMembers(sol::table members)
 
 					return false;
 				};
+
+				AddMember(id++, maybe_name->c_str());
+			}
+		}
+	}
+}
+
+void MQ2LuaGenericType::FillMethods(sol::table methods)
+{
+	auto id = 0;
+	for (const auto& [key, value] : methods)
+	{
+		auto maybe_name = key.as<std::optional<std::string>>();
+		auto maybe_func = value.as<std::optional<sol::function>>();
+		if (maybe_name && maybe_func)
+		{
+			auto [_1, _2, numargs, vararg] = GetArgInfo(m_pluginTable, *maybe_func);
+
+			if (vararg)
+			{
+				LuaError("Invalid method function %s: functions do not support variadic arguments.", maybe_name->c_str());
+			}
+			else if (numargs != 2 && numargs != 3)
+			{
+				LuaError("Invalid number of arguments (%d) for method function %s", numargs, maybe_name->c_str());
+			}
+			else
+			{
+				m_methodMap[*maybe_name] = [func = *maybe_func, this, numargs = numargs](MQVarPtr VarPtr, char* Index)
+				{
+					auto ptr = VarPtr.Get<sol::object>();
+					if (ptr)
+					{
+						auto result = numargs == 2 ? func(*ptr, Index) : func(m_pluginTable, *ptr, Index);
+						return result.valid();
+					}
+
+					return false;
+				};
+
+				AddMethod(id++, maybe_name->c_str());
 			}
 		}
 	}
@@ -408,6 +449,8 @@ MQ2LuaGenericType::MQ2LuaGenericType(sol::table plugin, const std::string& typeN
 		{
 			if (ci_equals(*key, "Members") && v.is<sol::table>())
 				FillMembers(v.as<sol::table>());
+			else if (ci_equals(*key, "Methods") && v.is<sol::table>())
+				FillMethods(v.as<sol::table>());
 			else if (ci_equals(*key, "ToString") && v.is<sol::function>())
 				SetToString(v.as<sol::function>());
 			else if (ci_equals(*key, "FromData") && v.is<sol::function>())
@@ -420,11 +463,18 @@ MQ2LuaGenericType::MQ2LuaGenericType(sol::table plugin, const std::string& typeN
 
 bool MQ2LuaGenericType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
+	auto method_it = m_methodMap.find(Member);
+	if (method_it != m_methodMap.end())
+	{
+		return method_it->second(VarPtr, Index);
+	}
+
 	auto member_it = m_memberMap.find(Member);
 	if (member_it != m_memberMap.end())
 	{
 		return member_it->second(VarPtr, Index, Dest);
 	}
+
 
 	return false;
 }
@@ -905,6 +955,7 @@ bool LuaPlugin::IsDatatype(const std::string& name)
 
 void LuaPlugin::UnregisterDatatypes()
 {
+	m_dataTypeDefs.clear();
 	m_dataTypes.clear();
 }
 

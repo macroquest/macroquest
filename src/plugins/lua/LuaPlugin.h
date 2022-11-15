@@ -27,12 +27,14 @@ private:
 	sol::table m_pluginTable; // this is "self", which can be used for local data storage
 	std::string m_typeName;
 	ci_unordered::map<std::string, std::function<bool(MQVarPtr, char*, MQTypeVar&)>> m_memberMap;
+	ci_unordered::map<std::string, std::function<bool(MQVarPtr, char*)>> m_methodMap;
 	std::optional<std::function<bool(MQVarPtr, char*)>> m_toString;
 	std::optional<std::function<bool(MQVarPtr&, const MQTypeVar&)>> m_fromData;
 	std::optional<std::function<bool(MQVarPtr&, const char*)>> m_fromString;
 	
 	// add some helper functions for the ctor
 	void FillMembers(sol::table members);
+	void FillMethods(sol::table methods);
 	void SetToString(sol::function toString);
 	void SetFromData(sol::function fromData);
 	void SetFromString(sol::function fromString);
