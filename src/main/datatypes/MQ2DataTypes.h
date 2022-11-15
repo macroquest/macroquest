@@ -640,8 +640,54 @@ public:
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 
 	void InitVariable(MQVarPtr& VarPtr) override;
-	void FreeVariable(MQVarPtr& VarPtr) override;
 	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
+
+	struct Data
+	{
+		ItemPtr pItem;
+		ItemSpellTypes spellType;
+	};
+
+	static inline MQVarPtr MakeVarPtr(const ItemPtr& pItem, ItemSpellTypes spellType)
+	{
+		MQVarPtr VarPtr;
+		VarPtr.Set<Data>({ pItem, spellType });
+
+		return VarPtr;
+	}
+
+	inline MQTypeVar MakeTypeVar(const ItemPtr& pItem = nullptr, ItemSpellTypes spellType = ItemSpellType_Clicky)
+	{
+		MQTypeVar Dest;
+		Dest.Type = this;
+		Dest.Set<Data>({ pItem, spellType });
+
+		return Dest;
+	}
+
+	inline ItemPtr GetItem(const MQVarPtr& VarPtr) const
+	{
+		auto pData = VarPtr.Get<Data>();
+
+		return pData ? pData->pItem : nullptr;
+	}
+
+	inline ItemSpellTypes GetItemSpellType(const MQVarPtr& VarPtr) const
+	{
+		auto pData = VarPtr.Get<Data>();
+
+		return pData ? pData->spellType : ItemSpellType_Clicky;
+	}
+
+	ItemSpellData::SpellData* GetItemSpellData(const MQVarPtr& VarPtr) const
+	{
+		auto pData = VarPtr.Get<Data>();
+
+		if (!pData || !pData->pItem)
+			return nullptr;
+
+		return pData->pItem->GetSpellData(pData->spellType);
+	}
 };
 
 //============================================================================

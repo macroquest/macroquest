@@ -176,6 +176,7 @@ enum class ItemMembers
 	Mount,
 	Illusion,
 	Familiar,
+	Blessing,
 	CanUse,
 	LoreEquipped,
 	Luck,
@@ -348,6 +349,7 @@ MQ2ItemType::MQ2ItemType() : MQ2Type("item")
 	ScopedTypeMember(ItemMembers, Mount);
 	ScopedTypeMember(ItemMembers, Illusion);
 	ScopedTypeMember(ItemMembers, Familiar);
+	ScopedTypeMember(ItemMembers, Blessing);
 	ScopedTypeMember(ItemMembers, CanUse);
 	ScopedTypeMember(ItemMembers, LoreEquipped);
 	ScopedTypeMember(ItemMembers, Luck);
@@ -518,48 +520,43 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return false;
 
 	case ItemMembers::Clicky:
-		Dest.Ptr = &GetItemFromContents(pItem)->Clicky;
-		Dest.Type = pItemSpellType;
+		Dest = pItemSpellType->MakeTypeVar(pItem, ItemSpellType_Clicky);
 		return true;
 
 	case ItemMembers::Proc:
-		Dest.Ptr = &GetItemFromContents(pItem)->Proc;
-		Dest.Type = pItemSpellType;
+		Dest = pItemSpellType->MakeTypeVar(pItem, ItemSpellType_Proc);
 		return true;
 
 	case ItemMembers::Worn:
-		Dest.Ptr = &GetItemFromContents(pItem)->Worn;
-		Dest.Type = pItemSpellType;
+		Dest = pItemSpellType->MakeTypeVar(pItem, ItemSpellType_Worn);
 		return true;
 
 	case ItemMembers::Focus:
-		Dest.Ptr = &GetItemFromContents(pItem)->Focus;
-		Dest.Type = pItemSpellType;
+		Dest = pItemSpellType->MakeTypeVar(pItem, ItemSpellType_Focus);
 		return true;
 
 	case ItemMembers::Scroll:
-		Dest.Ptr = &GetItemFromContents(pItem)->Scroll;
-		Dest.Type = pItemSpellType;
+		Dest = pItemSpellType->MakeTypeVar(pItem, ItemSpellType_Scroll);
 		return true;
 
 	case ItemMembers::Focus2:
-		Dest.Ptr = &GetItemFromContents(pItem)->Focus2;
-		Dest.Type = pItemSpellType;
+		Dest = pItemSpellType->MakeTypeVar(pItem, ItemSpellType_Focus2);
 		return true;
 
-	case ItemMembers::Mount: // TODO: emu check
-		Dest.Ptr = &GetItemFromContents(pItem)->Mount;
-		Dest.Type = pItemSpellType;
+	case ItemMembers::Mount:
+		Dest = pItemSpellType->MakeTypeVar(pItem, ItemSpellType_Mount);
 		return true;
 
 	case ItemMembers::Illusion:
-		Dest.Ptr = &GetItemFromContents(pItem)->Illusion;
-		Dest.Type = pItemSpellType;
+		Dest = pItemSpellType->MakeTypeVar(pItem, ItemSpellType_Illusion);
 		return true;
 
 	case ItemMembers::Familiar:
-		Dest.Ptr = &GetItemFromContents(pItem)->Familiar;
-		Dest.Type = pItemSpellType;
+		Dest = pItemSpellType->MakeTypeVar(pItem, ItemSpellType_Familiar);
+		return true;
+
+	case ItemMembers::Blessing:
+		Dest = pItemSpellType->MakeTypeVar(pItem, ItemSpellType_Blessing);
 		return true;
 
 	case ItemMembers::Item: {
