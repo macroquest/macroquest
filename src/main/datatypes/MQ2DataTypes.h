@@ -665,6 +665,49 @@ public:
 	static bool dataFindItem(const char* szIndex, MQTypeVar& Ret);
 	static bool dataFindItemCount(const char* szIndex, MQTypeVar& Ret);
 	static bool dataFindItemBankCount(const char* szIndex, MQTypeVar& Ret);
+
+	static inline MQVarPtr MakeVarPtr(const ItemPtr& pItem)
+	{
+		MQVarPtr VarPtr;
+
+		if (pItem)
+		{
+			pItem->IncrementRefCount();
+			VarPtr.Ptr = pItem.get();
+		}
+		else
+			VarPtr.Ptr = nullptr;
+
+		return VarPtr;
+	}
+
+	inline MQTypeVar MakeTypeVar(const ItemPtr& pItem = nullptr)
+	{
+		MQTypeVar Dest;
+
+		Dest.Type = this;
+
+		if (pItem)
+		{
+			pItem->IncrementRefCount();
+			Dest.Ptr = pItem.get();
+		}
+		else
+			Dest.Ptr = nullptr;
+
+		return Dest;
+	}
+
+	inline ItemPtr GetItem(const MQVarPtr& VarPtr) const
+	{
+		if (VarPtr.Ptr == nullptr)
+			return ItemPtr();
+
+		ItemClient* pItem = static_cast<ItemClient*>(VarPtr.Ptr);
+		return ItemPtr(pItem);
+	}
+
+	inline bool IsValid(const MQVarPtr& VarPtr) const { return VarPtr.Ptr != nullptr; }
 };
 
 //============================================================================

@@ -129,8 +129,7 @@ bool MQ2SolventType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 		return true;
 
 	case SolventTypeMembers::Item: // do we have this solvent?
-		Dest.Type = pItemType;
-		Dest.Ptr = FindItemByID(itemid);
+		Dest = pItemType->MakeTypeVar(FindItemByID(itemid));
 		return true;
 
 	case SolventTypeMembers::Count: // do we have this solvent and if so how many?

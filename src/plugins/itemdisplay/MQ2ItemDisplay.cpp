@@ -572,9 +572,7 @@ public:
 		MQTypeMember* pMember = MQ2DisplayItemType::FindMember(Member);
 		if (!pMember)
 		{
-			MQVarPtr varPtr;
-			varPtr.Ptr = pItem.get();
-
+			MQVarPtr varPtr = pItemType->MakeVarPtr(pItem);
 			return pItemType->GetMember(varPtr, Member, Index, Dest);
 		}
 
@@ -632,8 +630,7 @@ public:
 			Dest.Type = pWindowType;
 			return true;
 		case DisplayItemMembers::Item:
-			Dest.Ptr = pWindow->pItem;
-			Dest.Type = pItemType;
+			Dest = pItemType->MakeTypeVar(pWindow->pItem);
 			return true;
 		case DisplayItemMembers::Next: {
 			Dest.Type = pDisplayItemType;
@@ -670,7 +667,7 @@ public:
 
 		if (toType == pItemType)
 		{
-			toVar.Ptr = pWindow ? pWindow->pItem.get() : nullptr;
+			toVar = pItemType->MakeVarPtr(pWindow ? pWindow->pItem : nullptr);
 			return true;
 		}
 

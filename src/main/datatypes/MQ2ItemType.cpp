@@ -359,7 +359,7 @@ MQ2ItemType::MQ2ItemType() : MQ2Type("item")
 
 bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	ItemClient* pItem = static_cast<ItemClient*>(VarPtr.Ptr);
+	ItemPtr pItem = GetItem(VarPtr);
 	if (!pItem)
 		return false;
 
@@ -563,20 +563,20 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::Item: {
-		Dest.Type = pItemType;
 		ItemDefinition* itemDef = pItem->GetItemDefinition();
 
 		if (!IsNumber(Index))
 			return false;
 
-		if (itemDef->Type == ITEMTYPE_PACK
-			|| itemDef->Type == ITEMTYPE_NORMAL)
+		Dest.Type = pItemType;
+
+		if (itemDef->Type == ITEMTYPE_PACK || itemDef->Type == ITEMTYPE_NORMAL)
 		{
 			int num = GetIntFromString(Index, 1) - 1;
-			if (Dest.Ptr = pItem->GetChildItemContainer()->GetItem(num).get())
-				return true;
+			Dest = pItemType->MakeTypeVar(pItem->GetChildItemContainer()->GetItem(num));
 		}
-		return false;
+
+		return true;
 	}
 	case ItemMembers::Stackable:
 		Dest.Set(pItem->IsStackable());
@@ -1812,28 +1812,14 @@ bool MQ2ItemType::dataCursor(const char* szIndex, MQTypeVar& Ret)
 	if (!pProfile)
 		return false;
 
-	if (Ret.Ptr = pProfile->GetInventorySlot(InvSlot_Cursor).get())
-	{
-		Ret.Type = pItemType;
-		return true;
-	}
-
-	return false;
+	Ret = pItemType->MakeTypeVar(pProfile->GetInventorySlot(InvSlot_Cursor));
+	return true;
 }
 
 bool MQ2ItemType::dataSelectedItem(const char* szIndex, MQTypeVar& Ret)
 {
-	if (pInvSlotMgr->pSelectedItem)
-	{
-		if (ItemPtr pItem = pInvSlotMgr->pSelectedItem->GetItem())
-		{
-			Ret.Ptr = pItem.get();
-			Ret.Type = pItemType;
-			return true;
-		}
-	}
-
-	return false;
+	Ret = pItemType->MakeTypeVar(pInvSlotMgr->pSelectedItem ? pInvSlotMgr->pSelectedItem->GetItem() : nullptr);
+	return true;
 }
 
 bool MQ2ItemType::dataFindItemBank(const char* szIndex, MQTypeVar& Ret)
@@ -1845,14 +1831,8 @@ bool MQ2ItemType::dataFindItemBank(const char* szIndex, MQTypeVar& Ret)
 
 	if (IsNumber(szIndex))
 	{
-		if ((pItem = FindBankItemByID(GetIntFromString(szIndex, 0))))
-		{
-			Ret.Ptr = pItem;
-			Ret.Type = pItemType;
-			return true;
-		}
-
-		return false;
+		Ret = pItemType->MakeTypeVar(FindBankItemByID(GetIntFromString(szIndex, 0)));
+		return true;
 	}
 
 	const char* pName = szIndex;
@@ -1864,13 +1844,8 @@ bool MQ2ItemType::dataFindItemBank(const char* szIndex, MQTypeVar& Ret)
 		pName++;
 	}
 
-	if (pItem = FindBankItemByName(pName, bExact))
-	{
-		Ret.Ptr = pItem;
-		Ret.Type = pItemType;
-		return true;
-	}
-	return false;
+	Ret = pItemType->MakeTypeVar(FindBankItemByName(pName, bExact));
+	return true;
 }
 
 bool MQ2ItemType::dataFindItem(const char* szIndex, MQTypeVar& Ret)
@@ -1880,13 +1855,8 @@ bool MQ2ItemType::dataFindItem(const char* szIndex, MQTypeVar& Ret)
 
 	if (IsNumber(szIndex))
 	{
-		if (ItemClient* pItem = FindItemByID(GetIntFromString(szIndex, 0)))
-		{
-			Ret.Ptr = pItem;
-			Ret.Type = pItemType;
-			return true;
-		}
-		return false;
+		Ret = pItemType->MakeTypeVar(FindItemByID(GetIntFromString(szIndex, 0)));
+		return true;
 	}
 
 	const char* pName = szIndex;
@@ -1898,14 +1868,8 @@ bool MQ2ItemType::dataFindItem(const char* szIndex, MQTypeVar& Ret)
 		pName++;
 	}
 
-	if (ItemClient* pItem = FindItemByName(pName, bExact))
-	{
-		Ret.Ptr = pItem;
-		Ret.Type = pItemType;
-		return true;
-	}
-
-	return false;
+	Ret = pItemType->MakeTypeVar(FindItemByName(pName, bExact));
+	return true;
 }
 
 bool MQ2ItemType::dataFindItemCount(const char* szIndex, MQTypeVar& Ret)
@@ -1951,6 +1915,5 @@ bool MQ2ItemType::dataFindItemBankCount(const char* szIndex, MQTypeVar& Ret)
 	Ret.Type = pIntType;
 	return true;
 }
-
 
 } // namespace mq::datatypes
