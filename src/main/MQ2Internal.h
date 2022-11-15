@@ -1009,7 +1009,7 @@ using fMQDataOld = BOOL(*)(char*, MQTypeVar&);
 struct MQDataItem
 {
 	char Name[64];
-	fMQData Function;
+	std::function<bool(const char*, MQTypeVar&)> Function;
 };
 using MQ2DATAITEM DEPRECATE("Use MQDataItem instead of MQ2DATAITEM") = MQDataItem;
 using PMQ2DATAITEM DEPRECATE("Use MQDataItem* instead of PMQ2DATAITEM") = MQDataItem*;

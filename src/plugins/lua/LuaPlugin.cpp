@@ -19,6 +19,8 @@
 
 #include <luajit.h>
 
+// TODO: Shore up unregistering of data/commands when a user loads the plugin without unloading it first (should perhaps not allow loading)
+// TODO: figure out why GetMember says "no such member" when returning nil. It shouldn't give any error and just gracefully return NULL
 namespace mq::lua {
 
 static ci_unordered::map<std::string_view, std::shared_ptr<LuaPlugin>> s_pluginMap;
@@ -45,6 +47,25 @@ static std::tuple<int, sol::function> SetFunction(sol::table plugin, sol::functi
 	}
 
 	return std::make_tuple(numargs, func);
+}
+
+static sol::function CheckCallback(sol::table plugin, sol::function func, int local_args)
+{
+	auto [name, namewhat, numargs, vararg] = GetArgInfo(plugin, func);
+	if (vararg)
+	{
+		LuaError("Invalid function %s %s: no support for variadic arguments.", namewhat.c_str(), name.c_str());
+		return sol::lua_nil;
+	}
+	else if (numargs != local_args && numargs != local_args + 1)
+	{
+		LuaError("Invalid number of arguments (%d) for function %s %s", numargs, namewhat.c_str(), name.c_str());
+		return sol::lua_nil;
+	}
+
+	return func;
+
+	plugin["InitializePlugin"] = [&func, &plugin, numargs = numargs]() { numargs == 0 ? func() : func(plugin); };
 }
 
 static sol::object CopyObject(sol::object object, lua_State* state)
@@ -210,6 +231,7 @@ static bool EvaluateObject(MQ2Type* type, sol::object object, MQVarPtr& Dest)
 	const char* val_str = luaL_tolstring(stack_val.lua_state(), stack_val.stack_index(), &len);
 	lua_pop(stack_val.lua_state(), 1);
 
+	type->InitVariable(Dest);
 	return type->FromString(Dest, val_str);
 }
 
@@ -340,100 +362,238 @@ lua_State* MQ2LuaGenericType::GetState()
 
 void LuaPlugin::SetCallback(const std::string& name, sol::object val, sol::this_state s)
 {
-	if (name == "InitializePlugin" && val.is<sol::function>())
-		m_InitializePlugin = val.as<sol::function>();
-	else if (name == "ShutdownPlugin" && val.is<sol::function>())
-		m_ShutdownPlugin = val.as<sol::function>();
-	else if (name == "OnCleanUI" && val.is<sol::function>())
-		m_OnCleanUI = val.as<sol::function>();
-	else if (name == "OnReloadUI" && val.is<sol::function>())
-		m_OnReloadUI = val.as<sol::function>();
-	else if (name == "OnDrawHUD" && val.is<sol::function>())
-		m_OnDrawHUD = val.as<sol::function>();
-	else if (name == "SetGameState" && val.is<sol::function>())
-		m_SetGameState = val.as<sol::function>();
-	else if (name == "OnPulse" && val.is<sol::function>())
-		m_OnPulse = val.as<sol::function>();
-	else if (name == "OnWriteChatColor" && val.is<sol::function>())
-		m_OnWriteChatColor = val.as<sol::function>();
-	else if (name == "OnIncomingChat" && val.is<sol::function>())
-		m_OnIncomingChat = val.as<sol::function>();
-	else if (name == "OnAddSpawn" && val.is<sol::function>())
-		m_OnAddSpawn = val.as<sol::function>();
-	else if (name == "OnRemoveSpawn" && val.is<sol::function>())
-		m_OnRemoveSpawn = val.as<sol::function>();
-	else if (name == "OnAddGroundItem" && val.is<sol::function>())
-		m_OnAddGroundItem = val.as<sol::function>();
-	else if (name == "OnRemoveGroundItem" && val.is<sol::function>())
-		m_OnRemoveGroundItem = val.as<sol::function>();
-	else if (name == "OnBeginZone" && val.is<sol::function>())
-		m_OnBeginZone = val.as<sol::function>();
-	else if (name == "OnEndZone" && val.is<sol::function>())
-		m_OnEndZone = val.as<sol::function>();
-	else if (name == "OnZoned" && val.is<sol::function>())
-		m_OnZoned = val.as<sol::function>();
-	else if (name == "OnUpdateImGui" && val.is<sol::function>())
-		m_OnUpdateImGui = val.as<sol::function>();
-	else if (name == "OnMacroStart" && val.is<sol::function>())
-		m_OnMacroStart = val.as<sol::function>();
-	else if (name == "OnMacroStop" && val.is<sol::function>())
-		m_OnMacroStop = val.as<sol::function>();
-	else if (name == "OnLoadPlugin" && val.is<sol::function>())
-		m_OnLoadPlugin = val.as<sol::function>();
-	else if (name == "OnUnloadPlugin" && val.is<sol::function>())
-		m_OnUnloadPlugin = val.as<sol::function>();
+	if (val.is<sol::function>())
+	{
+		auto& func = val.as<sol::function>();
+		if (name == "InitializePlugin")
+		{
+			auto& [n, f] = SetFunction(m_pluginTable, func, 0);
+			if (n == 0)
+				m_InitializePlugin = [f = f]() { f(); };
+			else if (n == 1)
+				m_InitializePlugin = [f = f, this]() { f(m_pluginTable); };
+		}
+		else if (name == "ShutdownPlugin")
+		{
+			auto& [n, f] = SetFunction(m_pluginTable, func, 0);
+			if (n == 0)
+				m_ShutdownPlugin = [f = f]() { f(); };
+			else if (n == 1)
+				m_ShutdownPlugin = [f = f, this]() { f(m_pluginTable); };
+		}
+		else if (name == "OnCleanUI")
+		{
+			auto& [n, f] = SetFunction(m_pluginTable, func, 0);
+			if (n == 0)
+				m_OnCleanUI = [f = f]() { f(); };
+			else if (n == 1)
+				m_OnCleanUI = [f = f, this]() { f(m_pluginTable); };
+		}
+		else if (name == "OnReloadUI")
+		{
+			auto& [n, f] = SetFunction(m_pluginTable, func, 0);
+			if (n == 0)
+				m_OnReloadUI = [f = f]() { f(); };
+			else if (n == 1)
+				m_OnReloadUI = [f = f, this]() { f(m_pluginTable); };
+		}
+		else if (name == "OnDrawHUD")
+		{
+			auto& [n, f] = SetFunction(m_pluginTable, func, 0);
+			if (n == 0)
+				m_OnDrawHUD = [f = f]() { f(); };
+			else if (n == 1)
+				m_OnDrawHUD = [f = f, this]() { f(m_pluginTable); };
+		}
+		else if (name == "SetGameState")
+		{
+			auto& [n, f] = SetFunction(m_pluginTable, func, 0);
+			if (n == 0)
+				m_SetGameState = [f = f](int GameState) { f(GameState); };
+			else if (n == 1)
+				m_SetGameState = [f = f, this](int GameState) { f(m_pluginTable, GameState); };
+		}
+		else if (name == "OnPulse")
+		{
+			auto& [n, f] = SetFunction(m_pluginTable, func, 0);
+			if (n == 0)
+				m_OnPulse = [f = f]() { f(); };
+			else if (n == 1)
+				m_OnPulse = [f = f, this]() { f(m_pluginTable); };
+		}
+		else if (name == "OnWriteChatColor")
+		{
+			auto& [n, f] = SetFunction(m_pluginTable, func, 0);
+			if (n == 0)
+				m_OnWriteChatColor = [f = f](const char* Line, int Color, int Filter) { f(Line, Color, Filter); };
+			else if (n == 1)
+				m_OnWriteChatColor = [f = f, this](const char* Line, int Color, int Filter) { f(m_pluginTable, Line, Color, Filter); };
+		}
+		else if (name == "OnIncomingChat")
+		{
+			auto& [n, f] = SetFunction(m_pluginTable, func, 0);
+			if (n == 0)
+				m_OnIncomingChat = [f = f](const char* Line, unsigned long Color)
+				{
+					std::optional<bool> ret = f(Line, Color);
+					return ret ? *ret : false;
+				};
+			else if (n == 1)
+				m_OnIncomingChat = [f = f, this](const char* Line, unsigned long Color)
+				{
+					std::optional<bool> ret = f(m_pluginTable, Line, Color);
+					return ret ? *ret : false;
+				};
+		}
+		else if (name == "OnAddSpawn")
+		{
+			auto& [n, f] = SetFunction(m_pluginTable, func, 0);
+			if (n == 0)
+				m_OnAddSpawn = [f = f](PlayerClient* pNewSpawn) { pNewSpawn == nullptr ? f() : f(pNewSpawn->SpawnID); };
+			else if (n == 1)
+				m_OnAddSpawn = [f = f, this](PlayerClient* pNewSpawn) { pNewSpawn == nullptr ? f(m_pluginTable) : f(m_pluginTable, pNewSpawn->SpawnID); };
+		}
+		else if (name == "OnRemoveSpawn")
+		{
+			auto& [n, f] = SetFunction(m_pluginTable, func, 0);
+			if (n == 0)
+				m_OnRemoveSpawn = [f = f](PlayerClient* pSpawn) { pSpawn == nullptr ? f() : f(pSpawn->SpawnID); };
+			else if (n == 1)
+				m_OnRemoveSpawn = [f = f, this](PlayerClient* pSpawn) { pSpawn == nullptr ? f(m_pluginTable) : f(m_pluginTable, pSpawn->SpawnID); };
+		}
+		else if (name == "OnAddGroundItem")
+		{
+			auto& [n, f] = SetFunction(m_pluginTable, func, 0);
+			if (n == 0)
+				m_OnAddGroundItem = [f = f](EQGroundItem* pNewGroundItem) { pNewGroundItem == nullptr ? f() : f(pNewGroundItem->DropID); };
+			else if (n == 1)
+				m_OnAddGroundItem = [f = f, this](EQGroundItem* pNewGroundItem) { pNewGroundItem == nullptr ? f(m_pluginTable) : f(m_pluginTable, pNewGroundItem->DropID); };
+		}
+		else if (name == "OnRemoveGroundItem")
+		{
+			auto& [n, f] = SetFunction(m_pluginTable, func, 0);
+			if (n == 0)
+				m_OnRemoveGroundItem = [f = f](EQGroundItem* pGroundItem) { pGroundItem == nullptr ? f() : f(pGroundItem->DropID); };
+			else if (n == 1)
+				m_OnRemoveGroundItem = [f = f, this](EQGroundItem* pGroundItem) { pGroundItem == nullptr ? f(m_pluginTable) : f(m_pluginTable, pGroundItem->DropID); };
+		}
+		else if (name == "OnBeginZone")
+		{
+			auto& [n, f] = SetFunction(m_pluginTable, func, 0);
+			if (n == 0)
+				m_OnBeginZone = [f = f]() { f(); };
+			else if (n == 1)
+				m_OnBeginZone = [f = f, this]() { f(m_pluginTable); };
+		}
+		else if (name == "OnEndZone")
+		{
+			auto& [n, f] = SetFunction(m_pluginTable, func, 0);
+			if (n == 0)
+				m_OnEndZone = [f = f]() { f(); };
+			else if (n == 1)
+				m_OnEndZone = [f = f, this]() { f(m_pluginTable); };
+		}
+		else if (name == "OnZoned")
+		{
+			auto& [n, f] = SetFunction(m_pluginTable, func, 0);
+			if (n == 0)
+				m_OnZoned = [f = f]() { f(); };
+			else if (n == 1)
+				m_OnZoned = [f = f, this]() { f(m_pluginTable); };
+		}
+		else if (name == "OnUpdateImGui")
+		{
+			auto& [n, f] = SetFunction(m_pluginTable, func, 0);
+			if (n == 0)
+				m_OnUpdateImGui = [f = f]() { f(); };
+			else if (n == 1)
+				m_OnUpdateImGui = [f = f, this]() { f(m_pluginTable); };
+		}
+		else if (name == "OnMacroStart")
+		{
+			auto& [n, f] = SetFunction(m_pluginTable, func, 0);
+			if (n == 0)
+				m_OnMacroStart = [f = f](const char* Name) { f(Name); };
+			else if (n == 1)
+				m_OnMacroStart = [f = f, this](const char* Name) { f(m_pluginTable, Name); };
+		}
+		else if (name == "OnMacroStop")
+		{
+			auto& [n, f] = SetFunction(m_pluginTable, func, 0);
+			if (n == 0)
+				m_OnMacroStop = [f = f](const char* Name) { f(Name); };
+			else if (n == 1)
+				m_OnMacroStop = [f = f, this](const char* Name) { f(m_pluginTable, Name); };
+		}
+		else if (name == "OnLoadPlugin")
+		{
+			auto& [n, f] = SetFunction(m_pluginTable, func, 0);
+			if (n == 0)
+				m_OnLoadPlugin = [f = f](const char* Name) { f(Name); };
+			else if (n == 1)
+				m_OnLoadPlugin = [f = f, this](const char* Name) { f(m_pluginTable, Name); };
+		}
+		else if (name == "OnUnloadPlugin")
+		{
+			auto& [n, f] = SetFunction(m_pluginTable, func, 0);
+			if (n == 0)
+				m_OnUnloadPlugin = [f = f](const char* Name) { f(Name); };
+			else if (n == 1)
+				m_OnUnloadPlugin = [f = f, this](const char* Name) { f(m_pluginTable, Name); };
+		}
+	}
 }
 
 void LuaPlugin::InitializePlugin()
 {
-	if (m_InitializePlugin != sol::lua_nil) m_InitializePlugin(m_pluginTable);
+	if (m_InitializePlugin) (*m_InitializePlugin)();
 }
 
 void LuaPlugin::ShutdownPlugin()
 {
-	if (m_ShutdownPlugin != sol::lua_nil) m_ShutdownPlugin(m_pluginTable);
+	if (m_ShutdownPlugin) (*m_ShutdownPlugin)();
 }
 
 void LuaPlugin::OnCleanUI()
 {
 	for (const auto& [_, plugin] : s_pluginMap)
-		if (plugin->m_OnCleanUI != sol::lua_nil)
-			plugin->m_OnCleanUI(plugin->m_pluginTable);
+		if (plugin->m_OnCleanUI)
+			(*plugin->m_OnCleanUI)();
 }
 
 void LuaPlugin::OnReloadUI()
 {
 	for (const auto& [_, plugin] : s_pluginMap)
-		if (plugin->m_OnReloadUI != sol::lua_nil)
-			plugin->m_OnReloadUI(plugin->m_pluginTable);
+		if (plugin->m_OnReloadUI)
+			(*plugin->m_OnReloadUI)();
 }
 
 void LuaPlugin::OnDrawHUD()
 {
 	for (const auto& [_, plugin] : s_pluginMap)
-		if (plugin->m_OnDrawHUD != sol::lua_nil)
-			plugin->m_OnDrawHUD(plugin->m_pluginTable);
+		if (plugin->m_OnDrawHUD)
+			(*plugin->m_OnDrawHUD)();
 }
 
 void LuaPlugin::SetGameState(int GameState)
 {
 	for (const auto& [_, plugin] : s_pluginMap)
-		if (plugin->m_SetGameState != sol::lua_nil)
-			plugin->m_SetGameState(plugin->m_pluginTable, GameState);
+		if (plugin->m_SetGameState)
+			(*plugin->m_SetGameState)(GameState);
 }
 
 void LuaPlugin::OnPulse()
 {
 	for (const auto& [_, plugin] : s_pluginMap)
-		if (plugin->m_OnPulse != sol::lua_nil)
-			plugin->m_OnPulse(plugin->m_pluginTable);
+		if (plugin->m_OnPulse)
+			(*plugin->m_OnPulse)();
 }
 
 void LuaPlugin::OnWriteChatColor(const char* Line, int Color, int Filter)
 {
 	for (const auto& [_, plugin] : s_pluginMap)
-		if (plugin->m_OnWriteChatColor != sol::lua_nil)
-			plugin->m_OnWriteChatColor(plugin->m_pluginTable, Line, Color, Filter);
+		if (plugin->m_OnWriteChatColor)
+			(*plugin->m_OnWriteChatColor)(Line, Color, Filter);
 }
 
 bool LuaPlugin::OnIncomingChat(const char* Line, unsigned long Color)
@@ -442,14 +602,9 @@ bool LuaPlugin::OnIncomingChat(const char* Line, unsigned long Color)
 		[&Line, &Color](bool acc, const auto& pair)
 		{
 			const auto& plugin = pair.second;
-			if (plugin->m_OnIncomingChat != sol::lua_nil)
+			if (plugin->m_OnIncomingChat)
 			{
-				auto result = plugin->m_OnIncomingChat(plugin->m_pluginTable, Line, Color);
-				if (result.valid() && result.return_count() > 0)
-				{
-					std::optional<bool> r = result;
-					if (r) return *r || acc;
-				}
+				return (*plugin->m_OnIncomingChat)(Line, Color) || acc;
 			}
 
 			return acc;
@@ -459,85 +614,85 @@ bool LuaPlugin::OnIncomingChat(const char* Line, unsigned long Color)
 void LuaPlugin::OnAddSpawn(PlayerClient* pNewSpawn)
 {
 	for (const auto& [_, plugin] : s_pluginMap)
-		if (plugin->m_OnAddSpawn != sol::lua_nil && pNewSpawn != nullptr)
-			plugin->m_OnAddSpawn(plugin->m_pluginTable, pNewSpawn->SpawnID); // TODO: spawns could be userdata
+		if (plugin->m_OnAddSpawn && pNewSpawn != nullptr)
+			(*plugin->m_OnAddSpawn)(pNewSpawn); // TODO: spawns could be userdata
 }
 
 void LuaPlugin::OnRemoveSpawn(PlayerClient* pSpawn)
 {
 	for (const auto& [_, plugin] : s_pluginMap)
-		if (plugin->m_OnRemoveSpawn != sol::lua_nil && pSpawn != nullptr)
-			plugin->m_OnRemoveSpawn(plugin->m_pluginTable, pSpawn->SpawnID); // TODO: spawns could be userdata
+		if (plugin->m_OnRemoveSpawn && pSpawn != nullptr)
+			(*plugin->m_OnRemoveSpawn)(pSpawn); // TODO: spawns could be userdata
 }
 
 void LuaPlugin::OnAddGroundItem(EQGroundItem* pNewGroundItem)
 {
 	for (const auto& [_, plugin] : s_pluginMap)
-		if (plugin->m_OnAddGroundItem != sol::lua_nil && pNewGroundItem != nullptr && pNewGroundItem->Item)
-			plugin->m_OnAddGroundItem(plugin->m_pluginTable, pNewGroundItem->Item->ID); // TODO: needs to be userdata
+		if (plugin->m_OnAddGroundItem && pNewGroundItem != nullptr && pNewGroundItem->Item)
+			(*plugin->m_OnAddGroundItem)(pNewGroundItem); // TODO: needs to be userdata
 }
 
 void LuaPlugin::OnRemoveGroundItem(EQGroundItem* pGroundItem)
 {
 	for (const auto& [_, plugin] : s_pluginMap)
-		if (plugin->m_OnRemoveGroundItem != sol::lua_nil && pGroundItem != nullptr && pGroundItem->Item)
-			plugin->m_OnRemoveGroundItem(plugin->m_pluginTable, pGroundItem->Item->ID); // TODO: needs to be userdata
+		if (plugin->m_OnRemoveGroundItem && pGroundItem != nullptr && pGroundItem->Item)
+			(*plugin->m_OnRemoveGroundItem)(pGroundItem); // TODO: needs to be userdata
 }
 
 void LuaPlugin::OnBeginZone()
 {
 	for (const auto& [_, plugin] : s_pluginMap)
-		if (plugin->m_OnBeginZone != sol::lua_nil)
-			plugin->m_OnBeginZone(plugin->m_pluginTable);
+		if (plugin->m_OnBeginZone)
+			(*plugin->m_OnBeginZone)();
 }
 
 void LuaPlugin::OnEndZone()
 {
 	for (const auto& [_, plugin] : s_pluginMap)
-		if (plugin->m_OnEndZone != sol::lua_nil)
-			plugin->m_OnEndZone(plugin->m_pluginTable);
+		if (plugin->m_OnEndZone)
+			(*plugin->m_OnEndZone)();
 }
 
 void LuaPlugin::OnZoned()
 {
 	for (const auto& [_, plugin] : s_pluginMap)
-		if (plugin->m_OnZoned != sol::lua_nil)
-			plugin->m_OnZoned(plugin->m_pluginTable);
+		if (plugin->m_OnZoned)
+			(*plugin->m_OnZoned)();
 }
 
 void LuaPlugin::OnUpdateImGui()
 {
 	for (const auto& [_, plugin] : s_pluginMap)
-		if (plugin->m_OnUpdateImGui != sol::lua_nil)
-			plugin->m_OnUpdateImGui(plugin->m_pluginTable);
+		if (plugin->m_OnUpdateImGui)
+			(*plugin->m_OnUpdateImGui)();
 }
 
 void LuaPlugin::OnMacroStart(const char* Name)
 {
 	for (const auto& [_, plugin] : s_pluginMap)
-		if (plugin->m_OnMacroStart != sol::lua_nil)
-			plugin->m_OnMacroStart(plugin->m_pluginTable, Name);
+		if (plugin->m_OnMacroStart)
+			(*plugin->m_OnMacroStart)(Name);
 }
 
 void LuaPlugin::OnMacroStop(const char* Name)
 {
 	for (const auto& [_, plugin] : s_pluginMap)
-		if (plugin->m_OnMacroStop != sol::lua_nil)
-			plugin->m_OnMacroStop(plugin->m_pluginTable, Name);
+		if (plugin->m_OnMacroStop)
+			(*plugin->m_OnMacroStop)(Name);
 }
 
 void LuaPlugin::OnLoadPlugin(const char* Name)
 {
 	for (const auto& [_, plugin] : s_pluginMap)
-		if (plugin->m_OnLoadPlugin != sol::lua_nil)
-			plugin->m_OnLoadPlugin(plugin->m_pluginTable, Name);
+		if (plugin->m_OnLoadPlugin)
+			(*plugin->m_OnLoadPlugin)(Name);
 }
 
 void LuaPlugin::OnUnloadPlugin(const char* Name)
 {
 	for (const auto& [_, plugin] : s_pluginMap)
-		if (plugin->m_OnUnloadPlugin != sol::lua_nil)
-			plugin->m_OnUnloadPlugin(plugin->m_pluginTable, Name);
+		if (plugin->m_OnUnloadPlugin)
+			(*plugin->m_OnUnloadPlugin)(Name);
 }
 
 #pragma endregion
@@ -615,17 +770,32 @@ void LuaPlugin::RegisterDatatype(const std::string& name, sol::table datatype)
 	}
 	else
 	{
-		sol::table members = datatype.get_or("Members", sol::lua_nil);
-		sol::function toString = datatype.get_or("ToString", sol::lua_nil);
-		sol::function fromData = datatype.get_or("FromData", sol::lua_nil);
-		sol::function fromString = datatype.get_or("FromString", sol::lua_nil);
+		sol::table members = sol::lua_nil;
+		sol::function toString = sol::lua_nil;
+		sol::function fromData = sol::lua_nil;
+		sol::function fromString = sol::lua_nil;
+
+		for (auto& [k, v] : datatype)
+		{
+			auto key = k.as<std::optional<std::string_view>>();
+			if (key)
+			{
+				if (ci_equals(*key, "Members") && v.is<sol::table>())
+					members = v.as<sol::table>();
+				else if (ci_equals(*key, "ToString") && v.is<sol::function>())
+					toString = v.as<sol::function>();
+				else if (ci_equals(*key, "FromData") && v.is<sol::function>())
+					fromData = v.as<sol::function>();
+				else if (ci_equals(*key, "FromString") && v.is<sol::function>())
+					fromString = v.as<sol::function>();
+			}
+		}
 
 		// This breaks symmetry because the ctor for all types automatically registers the type.
 		// We can't defer the registration to the plugin start.
 		// This means that the datatypes will get registered even if the user fails to return the plugin
 		// from the script. Theoretically, the LuaPlugin will destruct and the type will get unregistered
 		// in that process, but it seems a bit shaky.
-		// TODO: Test this hypothesis
 		m_dataTypes.emplace(name, std::make_unique<MQ2LuaGenericType>(m_pluginTable, name, members, toString, fromData, fromString));
 	}
 }
@@ -648,34 +818,28 @@ void LuaPlugin::UnregisterDatatypes()
 
 #pragma region TLOs
 
-fMQData LuaPlugin::CreateData(sol::table plugin, sol::function func, int numargs)
+static bool CheckDataResult(sol::function_result& result, MQTypeVar& Dest)
 {
-	auto ret_func = [&plugin, &func, numargs](const char* Index, MQTypeVar& Dest) -> bool
+	if (result.valid() && result.return_count() > 1)
 	{
-		auto result = numargs == 1 ? func(Index) : func(plugin, Index);
-		if (result.valid() && result.return_count() > 1)
+		std::tuple<std::optional<std::string>, sol::object> r = result;
+		auto& [typeName, typeValue] = r;
+		if (typeName && typeValue != sol::lua_nil)
 		{
-			std::tuple<std::optional<std::string>, sol::object> r = result;
-			auto& [typeName, typeValue] = r;
-			if (typeName && typeValue != sol::lua_nil)
-			{
-				MQ2Type* type = FindMQ2DataType(typeName->c_str());
-				Dest.Type = type;
-				return EvaluateObject(type, typeValue, Dest);
-			}
+			MQ2Type* type = FindMQ2DataType(typeName->c_str());
+			Dest.Type = type;
+			return EvaluateObject(type, typeValue, Dest);
 		}
+	}
 
-		return false;
-	};
-
-	return FPtr::ptr(ret_func);
+	return false;
 }
 
 void LuaPlugin::RegisterData(const std::string& name, sol::function func)
 {
 	if (FindMQ2Data(name.c_str()) != nullptr)
 	{
-		LuaError("Cannot create TLO %s, already a datatype in MQ.", name.c_str());
+		LuaError("Cannot create TLO %s, already a TLO in MQ.", name.c_str());
 	}
 	else if (name.empty())
 	{
@@ -706,7 +870,11 @@ void LuaPlugin::AddData()
 		}
 		else
 		{
-			AddMQ2Data(tlo.c_str(), CreateData(m_pluginTable, func, numargs));
+			AddMQ2DataFunction(tlo.c_str(), [func = func, this, numargs = numargs](const char* Index, MQTypeVar& Dest)
+				{
+					auto result = numargs == 1 ? func(Index) : func(m_pluginTable, Index);
+					return CheckDataResult(result, Dest);
+				});
 			++it;
 		}
 	}
@@ -734,27 +902,27 @@ LuaPlugin::LuaPlugin(const std::string& name, const std::string& version, sol::t
 
 LuaPlugin::~LuaPlugin()
 {
-	m_InitializePlugin = sol::lua_nil;
-	m_ShutdownPlugin = sol::lua_nil;
-	m_OnCleanUI = sol::lua_nil;
-	m_OnReloadUI = sol::lua_nil;
-	m_OnDrawHUD = sol::lua_nil;
-	m_SetGameState = sol::lua_nil;
-	m_OnPulse = sol::lua_nil;
-	m_OnWriteChatColor = sol::lua_nil;
-	m_OnIncomingChat = sol::lua_nil;
-	m_OnAddSpawn = sol::lua_nil;
-	m_OnRemoveSpawn = sol::lua_nil;
-	m_OnAddGroundItem = sol::lua_nil;
-	m_OnRemoveGroundItem = sol::lua_nil;
-	m_OnBeginZone = sol::lua_nil;
-	m_OnEndZone = sol::lua_nil;
-	m_OnZoned = sol::lua_nil;
-	m_OnUpdateImGui = sol::lua_nil;
-	m_OnMacroStart = sol::lua_nil;
-	m_OnMacroStop = sol::lua_nil;
-	m_OnLoadPlugin = sol::lua_nil;
-	m_OnUnloadPlugin = sol::lua_nil;
+	m_InitializePlugin = std::nullopt;
+	m_ShutdownPlugin = std::nullopt;
+	m_OnCleanUI = std::nullopt;
+	m_OnReloadUI = std::nullopt;
+	m_OnDrawHUD = std::nullopt;
+	m_SetGameState = std::nullopt;
+	m_OnPulse = std::nullopt;
+	m_OnWriteChatColor = std::nullopt;
+	m_OnIncomingChat = std::nullopt;
+	m_OnAddSpawn = std::nullopt;
+	m_OnRemoveSpawn = std::nullopt;
+	m_OnAddGroundItem = std::nullopt;
+	m_OnRemoveGroundItem = std::nullopt;
+	m_OnBeginZone = std::nullopt;
+	m_OnEndZone = std::nullopt;
+	m_OnZoned = std::nullopt;
+	m_OnUpdateImGui = std::nullopt;
+	m_OnMacroStart = std::nullopt;
+	m_OnMacroStop = std::nullopt;
+	m_OnLoadPlugin = std::nullopt;
+	m_OnUnloadPlugin = std::nullopt;
 
 	UnregisterCommands();
 	UnregisterDatatypes();

@@ -72,27 +72,27 @@ public:
 	static void OnUnloadPlugin(const char* Name);
 
 private:
-	sol::function m_InitializePlugin = sol::lua_nil;
-	sol::function m_ShutdownPlugin = sol::lua_nil;
-	sol::function m_OnCleanUI = sol::lua_nil;
-	sol::function m_OnReloadUI = sol::lua_nil;
-	sol::function m_OnDrawHUD = sol::lua_nil;
-	sol::function m_SetGameState = sol::lua_nil;
-	sol::function m_OnPulse = sol::lua_nil;
-	sol::function m_OnWriteChatColor = sol::lua_nil;
-	sol::function m_OnIncomingChat = sol::lua_nil;
-	sol::function m_OnAddSpawn = sol::lua_nil;
-	sol::function m_OnRemoveSpawn = sol::lua_nil;
-	sol::function m_OnAddGroundItem = sol::lua_nil;
-	sol::function m_OnRemoveGroundItem = sol::lua_nil;
-	sol::function m_OnBeginZone = sol::lua_nil;
-	sol::function m_OnEndZone = sol::lua_nil;
-	sol::function m_OnZoned = sol::lua_nil;
-	sol::function m_OnUpdateImGui = sol::lua_nil;
-	sol::function m_OnMacroStart = sol::lua_nil;
-	sol::function m_OnMacroStop = sol::lua_nil;
-	sol::function m_OnLoadPlugin = sol::lua_nil;
-	sol::function m_OnUnloadPlugin = sol::lua_nil;
+	std::optional<std::function<void()>> m_InitializePlugin;
+	std::optional<std::function<void()>> m_ShutdownPlugin;
+	std::optional<std::function<void()>> m_OnCleanUI;
+	std::optional<std::function<void()>> m_OnReloadUI;
+	std::optional<std::function<void()>> m_OnDrawHUD;
+	std::optional<std::function<void(int)>> m_SetGameState;
+	std::optional<std::function<void()>> m_OnPulse;
+	std::optional<std::function<void(const char*, int, int)>> m_OnWriteChatColor;
+	std::optional<std::function<bool(const char*, unsigned long)>> m_OnIncomingChat;
+	std::optional<std::function<void(PlayerClient*)>> m_OnAddSpawn;
+	std::optional<std::function<void(PlayerClient*)>> m_OnRemoveSpawn;
+	std::optional<std::function<void(EQGroundItem*)>> m_OnAddGroundItem;
+	std::optional<std::function<void(EQGroundItem*)>> m_OnRemoveGroundItem;
+	std::optional<std::function<void()>> m_OnBeginZone;
+	std::optional<std::function<void()>> m_OnEndZone;
+	std::optional<std::function<void()>> m_OnZoned;
+	std::optional<std::function<void()>> m_OnUpdateImGui;
+	std::optional<std::function<void(const char*)>> m_OnMacroStart;
+	std::optional<std::function<void(const char*)>> m_OnMacroStop;
+	std::optional<std::function<void(const char*)>> m_OnLoadPlugin;
+	std::optional<std::function<void(const char*)>> m_OnUnloadPlugin;
 
 #pragma endregion
 
@@ -123,32 +123,6 @@ private:
 #pragma region TLOs
 
 private:
-	// this is a hack because you can't capture in a function pointer, but we need to capture the lua function
-	struct FPtr
-	{
-		template <typename T>
-		static bool func_ptr_exec(const char* Index, MQTypeVar& Dest)
-		{
-			return (bool)(*(T*)fn<T>())(Index, Dest);
-		}
-
-		template <typename T>
-		static fMQData ptr(T& t)
-		{
-			fn<T>(&t);
-			return func_ptr_exec<T>;
-		}
-
-		template <typename T>
-		static void* fn(void* new_fn = nullptr)
-		{
-			static void* fn;
-			if (new_fn != nullptr) fn = new_fn;
-			return fn;
-		}
-	};
-
-	static fMQData CreateData(sol::table plugin, sol::function func, int numargs);
 
 public:
 	void RegisterData(const std::string& name, sol::function func);
