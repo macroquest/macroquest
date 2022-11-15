@@ -47,25 +47,6 @@ static std::tuple<int, sol::function> SetFunction(sol::table plugin, sol::functi
 	return std::make_tuple(numargs, func);
 }
 
-static sol::function CheckCallback(sol::table plugin, sol::function func, int local_args)
-{
-	auto [name, namewhat, numargs, vararg] = GetArgInfo(plugin, func);
-	if (vararg)
-	{
-		LuaError("Invalid function %s %s: no support for variadic arguments.", namewhat.c_str(), name.c_str());
-		return sol::lua_nil;
-	}
-	else if (numargs != local_args && numargs != local_args + 1)
-	{
-		LuaError("Invalid number of arguments (%d) for function %s %s", numargs, namewhat.c_str(), name.c_str());
-		return sol::lua_nil;
-	}
-
-	return func;
-
-	plugin["InitializePlugin"] = [&func, &plugin, numargs = numargs]() { numargs == 0 ? func() : func(plugin); };
-}
-
 static sol::object CopyObject(sol::object object, lua_State* state)
 {
 	sol::type type = object.get_type();
@@ -258,7 +239,7 @@ void MQ2LuaGenericType::FillMembers(sol::table members)
 			}
 			else
 			{
-				m_memberMap[*maybe_name] = [func = *maybe_func, this, numargs = numargs](MQVarPtr VarPtr, char* Index, MQTypeVar& Dest)
+				m_memberMap[*maybe_name] = [func = std::move(*maybe_func), this, numargs = numargs](MQVarPtr VarPtr, char* Index, MQTypeVar& Dest)
 				{
 					auto ptr = VarPtr.Get<sol::object>();
 					if (ptr)
@@ -266,8 +247,7 @@ void MQ2LuaGenericType::FillMembers(sol::table members)
 						auto result = numargs == 2 ? func(*ptr, Index) : func(m_pluginTable, *ptr, Index);
 						if (result.valid() && result.return_count() > 1)
 						{
-							std::tuple<std::optional<std::string>, sol::object> r = result;
-							auto& [typeName, typeValue] = r;
+							auto& [typeName, typeValue] = result.get<std::tuple<std::optional<std::string>, sol::object>>();
 							if (typeName && typeValue != sol::lua_nil)
 							{
 								MQ2Type* type = FindMQ2DataType(typeName->c_str());
@@ -307,7 +287,7 @@ void MQ2LuaGenericType::FillMethods(sol::table methods)
 			}
 			else
 			{
-				m_methodMap[*maybe_name] = [func = *maybe_func, this, numargs = numargs](MQVarPtr VarPtr, char* Index)
+				m_methodMap[*maybe_name] = [func = std::move(*maybe_func), this, numargs = numargs](MQVarPtr VarPtr, char* Index)
 				{
 					auto ptr = VarPtr.Get<sol::object>();
 					if (ptr)
@@ -339,7 +319,7 @@ void MQ2LuaGenericType::SetToString(sol::function toString)
 	}
 	else
 	{
-		m_toString = [func = toString, this, numargs = numargs](MQVarPtr VarPtr, char* Destination)
+		m_toString = [func = std::move(toString), this, numargs = numargs](MQVarPtr VarPtr, char* Destination)
 		{
 			auto ptr = VarPtr.Get<sol::object>();
 			if (ptr)
@@ -375,7 +355,7 @@ void MQ2LuaGenericType::SetFromData(sol::function fromData)
 	}
 	else
 	{
-		m_fromData = [func = fromData, this, numargs = numargs](MQVarPtr& VarPtr, const MQTypeVar& Source)
+		m_fromData = [func = std::move(fromData), this, numargs = numargs](MQVarPtr& VarPtr, const MQTypeVar& Source)
 		{
 			if (Source.Type != nullptr && LuaPlugin::IsDatatype(Source.Type->GetName()))
 			{
@@ -419,7 +399,7 @@ void MQ2LuaGenericType::SetFromString(sol::function fromString)
 	}
 	else
 	{
-		m_fromString = [func = fromString, this, numargs = numargs](MQVarPtr& VarPtr, const char* Source)
+		m_fromString = [func = std::move(fromString), this, numargs = numargs](MQVarPtr& VarPtr, const char* Source)
 		{
 			auto result = numargs == 1 ? func(Source) : func(m_pluginTable, Source);
 			if (result.valid() && result.return_count() > 0)
@@ -967,8 +947,7 @@ static bool CheckDataResult(sol::function_result& result, MQTypeVar& Dest)
 {
 	if (result.valid() && result.return_count() > 1)
 	{
-		std::tuple<std::optional<std::string>, sol::object> r = result;
-		auto& [typeName, typeValue] = r;
+		auto& [typeName, typeValue] = result.get<std::tuple<std::optional<std::string>, sol::object>>();
 		if (typeName && typeValue != sol::lua_nil)
 		{
 			MQ2Type* type = FindMQ2DataType(typeName->c_str());
