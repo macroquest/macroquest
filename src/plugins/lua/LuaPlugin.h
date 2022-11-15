@@ -26,17 +26,23 @@ class MQ2LuaGenericType : public MQ2Type
 private:
 	sol::table m_pluginTable; // this is "self", which can be used for local data storage
 	std::string m_typeName;
-	ci_unordered::map<std::string, std::tuple<int, sol::function>> m_memberMap;
-	std::tuple<int, sol::function> m_toString;
-	std::tuple<int, sol::function> m_fromData;
-	std::tuple<int, sol::function> m_fromString;
+	ci_unordered::map<std::string, std::function<bool(MQVarPtr, char*, MQTypeVar&)>> m_memberMap;
+	std::optional<std::function<bool(MQVarPtr, char*)>> m_toString;
+	std::optional<std::function<bool(MQVarPtr&, const MQTypeVar&)>> m_fromData;
+	std::optional<std::function<bool(MQVarPtr&, const char*)>> m_fromString;
+	
+	// add some helper functions for the ctor
+	void FillMembers(sol::table members);
+	void SetToString(sol::function toString);
+	void SetFromData(sol::function fromData);
+	void SetFromString(sol::function fromString);
 
 public:
-	MQ2LuaGenericType(sol::table plugin, const std::string& typeName, sol::table members, sol::function toString, sol::function fromData, sol::function fromString);
+	MQ2LuaGenericType(sol::table plugin, const std::string& typeName, sol::table datatype);
 	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source);
-	bool FromString(MQVarPtr& VarPtr, const char* Source);
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
+	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 	lua_State* GetState();
 };
 
@@ -112,10 +118,12 @@ private:
 
 public:
 	void RegisterDatatype(const std::string& name, sol::table datatype);
+	void AddDatatypes();
 	static bool IsDatatype(const std::string& name);
 	void UnregisterDatatypes();
 
 private:
+	ci_unordered::map<std::string, sol::table> m_dataTypeDefs;
 	ci_unordered::map<std::string, std::unique_ptr<MQ2LuaGenericType>> m_dataTypes;
 
 #pragma endregion
@@ -141,18 +149,20 @@ public:
 	~LuaPlugin();
 	const std::string& Name() const { return m_name; }
 	sol::object Get(sol::object key, sol::this_state s) const;
+	std::chrono::system_clock::time_point GetStartTime() const { return m_startTime; }
 	static sol::table Create(sol::table, const std::string& name, const std::string& version, sol::this_state s);
 	static void Start(sol::table plugin);
 	static void Stop(std::string_view name);
 	static void StopAll();
 	static std::shared_ptr<LuaPlugin> Lookup(std::string_view name);
 	static bool IsRunning(std::string_view name);
-	static std::vector<std::string_view> GetRunning();
+	static std::vector<std::shared_ptr<LuaPlugin>> GetRunning();
 	static void RegisterLua(sol::table& mq);
 	static bool IsPlugin(sol::table table);
 
 private:
 	std::shared_ptr<LuaThread> m_thread;
+	std::chrono::system_clock::time_point m_startTime;
 	sol::table m_pluginTable;
 	std::string m_name;
 	std::string m_version;

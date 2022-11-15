@@ -455,7 +455,6 @@ bool MQ2LuaType::dataLua(const char* Index, MQTypeVar& Dest)
 
 #pragma region Commands
 
-static void LuaStopCommand(std::optional<std::string>);
 static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::string>& args)
 {
 	namespace fs = std::filesystem;
@@ -473,7 +472,7 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 	}
 
 	// methodology for duplicate scripts:
-	//   if a script with the same name is _currently_ running, stop it (and let it restart)
+	//   if a script with the same name is _currently_ running, inform and exit
 	//   if a script with the same name _has previously_ run, drop from infoMap and run
 	//   otherwise, run script as normal
 	auto info_it = std::find_if(s_infoMap.begin(), s_infoMap.end(),
@@ -486,8 +485,9 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 
 	if (info_it != s_infoMap.end() && info_it->second.status != LuaThreadStatus::Exited)
 	{
-		// script is currently running, stop it
-		LuaStopCommand(std::to_string(info_it->first)); // stop the script by PID
+		// script is currently running, inform and exit
+		WriteChatStatus("Lua script %s is already running, not starting another instance.", script.c_str());
+		return 0;
 	}
 
 	if (info_it != s_infoMap.end())
@@ -854,11 +854,11 @@ static void LuaPSCommand(const std::vector<std::string>& filters = {})
 		if (predicate(info))
 		{
 			fmt::memory_buffer line;
-			fmt::format_to(fmt::appender(line), "|{:^7}|{:^12}|{:^13}|{:^13}|{:^12}|",
+			fmt::format_to(fmt::appender(line), "|{:^7}|{:^12}|{:%m/%d %I:%M%p}|{:^13}|{:^12}|",
 				pid,
 				info.name.length() > 12 ? info.name.substr(0, 9) + "..." : info.name,
 				info.startTime,
-				info.endTime,
+				info.status == LuaThreadStatus::Exited ? fmt::format("{:%m/%d %I:%M%p}", info.endTime) : "",
 				static_cast<int>(info.status));
 			WriteChatStatus("%.*s", line.size(), line.data());
 		}
@@ -869,12 +869,12 @@ static void LuaPSCommand(const std::vector<std::string>& filters = {})
 		for (const auto& plugin : LuaPlugin::GetRunning())
 		{
 			fmt::memory_buffer line;
-			fmt::format_to(fmt::appender(line), "|{:^7}|{:^12}|{:^13}|{:^13}|{:^12}|",
-				"XXX",
-				plugin.length() > 12 ? plugin.substr(0, 12) : plugin,
+			fmt::format_to(fmt::appender(line), "|{:^7}|{:^12}|{:%m/%d %I:%M%p}|{:^13}|{:^12}|",
+				"plugin",
+				plugin->Name().length() > 12 ? plugin->Name().substr(0, 12) : plugin->Name(),
+				plugin->GetStartTime(),
 				"",
-				"",
-				"plugin");
+				1);
 			WriteChatStatus("%.*s", line.size(), line.data());
 		}
 	}

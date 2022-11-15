@@ -19,7 +19,6 @@
 
 #include <luajit.h>
 
-// TODO: Shore up unregistering of data/commands when a user loads the plugin without unloading it first (should perhaps not allow loading)
 // TODO: figure out why GetMember says "no such member" when returning nil. It shouldn't give any error and just gracefully return NULL
 namespace mq::lua {
 
@@ -239,21 +238,182 @@ static bool EvaluateObject(MQ2Type* type, sol::object object, MQVarPtr& Dest)
 
 #pragma region Type Helper
 
-MQ2LuaGenericType::MQ2LuaGenericType(sol::table plugin, const std::string& typeName, sol::table members, sol::function toString, sol::function fromData, sol::function fromString)
+void MQ2LuaGenericType::FillMembers(sol::table members)
+{
+	for (const auto& [key, value] : members)
+	{
+		auto maybe_name = key.as<std::optional<std::string>>();
+		auto maybe_func = value.as<std::optional<sol::function>>();
+		if (maybe_name && maybe_func)
+		{
+			auto [_1, _2, numargs, vararg] = GetArgInfo(m_pluginTable, *maybe_func);
+
+			if (vararg)
+			{
+				LuaError("Invalid member function %s: functions do not support variadic arguments.", maybe_name->c_str());
+			}
+			else if (numargs != 2 && numargs != 3)
+			{
+				LuaError("Invalid number of arguments (%d) for member function %s", numargs, maybe_name->c_str());
+			}
+			else
+			{
+				m_memberMap[*maybe_name] = [func = *maybe_func, this, numargs = numargs](MQVarPtr VarPtr, char* Index, MQTypeVar& Dest)
+				{
+					auto ptr = VarPtr.Get<sol::object>();
+					if (ptr)
+					{
+						auto result = numargs == 2 ? func(*ptr, Index) : func(m_pluginTable, *ptr, Index);
+						if (result.valid() && result.return_count() > 1)
+						{
+							std::tuple<std::optional<std::string>, sol::object> r = result;
+							auto& [typeName, typeValue] = r;
+							if (typeName && typeValue != sol::lua_nil)
+							{
+								MQ2Type* type = FindMQ2DataType(typeName->c_str());
+								Dest.Type = type;
+								return EvaluateObject(type, typeValue, Dest);
+							}
+						}
+					}
+
+					return false;
+				};
+			}
+		}
+	}
+}
+
+void MQ2LuaGenericType::SetToString(sol::function toString)
+{
+	auto [_1, _2, numargs, vararg] = GetArgInfo(m_pluginTable, toString);
+
+	if (vararg)
+	{
+		LuaError("Invalid ToString definition: functions do not support variadic arguments.");
+	}
+	else if (numargs != 1 && numargs != 2)
+	{
+		LuaError("Invalid number of arguments (%d) for ToString definition", numargs);
+	}
+	else
+	{
+		m_toString = [func = toString, this, numargs = numargs](MQVarPtr VarPtr, char* Destination)
+		{
+			auto ptr = VarPtr.Get<sol::object>();
+			if (ptr)
+			{
+				auto result = numargs == 1 ? func(*ptr) : func(m_pluginTable, *ptr);
+				if (result.valid() && result.return_count() > 0)
+				{
+					std::optional<std::string> r = result;
+					if (r)
+					{
+						strcpy_s(Destination, MAX_STRING, r->c_str());
+						return true;
+					}
+				}
+			}
+
+			return false;
+		};
+	}
+}
+
+void MQ2LuaGenericType::SetFromData(sol::function fromData)
+{
+	auto [_1, _2, numargs, vararg] = GetArgInfo(m_pluginTable, fromData);
+
+	if (vararg)
+	{
+		LuaError("Invalid ToString definition: functions do not support variadic arguments.");
+	}
+	else if (numargs != 1 && numargs != 2)
+	{
+		LuaError("Invalid number of arguments (%d) for ToString definition", numargs);
+	}
+	else
+	{
+		m_fromData = [func = fromData, this, numargs = numargs](MQVarPtr& VarPtr, const MQTypeVar& Source)
+		{
+			if (Source.Type != nullptr && LuaPlugin::IsDatatype(Source.Type->GetName()))
+			{
+				auto ptr = Source.Get<sol::object>();
+				if (ptr)
+				{
+					// we need to make sure to do this because we can't be sure the lua state is the same as
+					// the local lua state, we need to serde
+					sol::object val = CopyObject(*ptr, GetState());
+					auto result = numargs == 1 ? func(val) : func(m_pluginTable, val);
+					if (result.valid() && result.return_count() > 0)
+					{
+						sol::object r = result;
+						if (r != sol::lua_nil)
+						{
+							// we can directly set this here because the act of copying the source
+							// object into this state means that the result will be in this state
+							VarPtr.Set(r);
+							return true;
+						}
+					}
+				}
+			}
+
+			return false;
+		};
+	}
+}
+
+void MQ2LuaGenericType::SetFromString(sol::function fromString)
+{
+	auto [_1, _2, numargs, vararg] = GetArgInfo(m_pluginTable, fromString);
+
+	if (vararg)
+	{
+		LuaError("Invalid ToString definition: functions do not support variadic arguments.");
+	}
+	else if (numargs != 1 && numargs != 2)
+	{
+		LuaError("Invalid number of arguments (%d) for ToString definition", numargs);
+	}
+	else
+	{
+		m_fromString = [func = fromString, this, numargs = numargs](MQVarPtr& VarPtr, const char* Source)
+		{
+			auto result = numargs == 1 ? func(Source) : func(m_pluginTable, Source);
+			if (result.valid() && result.return_count() > 0)
+			{
+				sol::object r = result;
+				if (r != sol::lua_nil)
+				{
+					VarPtr.Set(r);
+					return true;
+				}
+			}
+
+			return false;
+		};
+	}
+}
+
+MQ2LuaGenericType::MQ2LuaGenericType(sol::table plugin, const std::string& typeName, sol::table datatype)
 	: m_pluginTable(plugin)
 	, m_typeName(typeName)
-	, m_toString(SetFunction(m_pluginTable, toString, 1))
-	, m_fromData(SetFunction(m_pluginTable, fromData, 1))
-	, m_fromString(SetFunction(m_pluginTable, fromString, 1))
 	, MQ2Type(typeName.c_str())
 {
-	for (const auto& [first, second] : members)
+	for (auto& [k, v] : datatype)
 	{
-		auto maybe_name = first.as<std::optional<std::string>>();
-		auto maybe_val = second.as<std::optional<sol::function>>();
-		if (maybe_name && maybe_val)
+		auto key = k.as<std::optional<std::string_view>>();
+		if (key)
 		{
-			m_memberMap[*maybe_name] = SetFunction(m_pluginTable, *maybe_val, 2);
+			if (ci_equals(*key, "Members") && v.is<sol::table>())
+				FillMembers(v.as<sol::table>());
+			else if (ci_equals(*key, "ToString") && v.is<sol::function>())
+				SetToString(v.as<sol::function>());
+			else if (ci_equals(*key, "FromData") && v.is<sol::function>())
+				SetFromData(v.as<sol::function>());
+			else if (ci_equals(*key, "FromString") && v.is<sol::function>())
+				SetFromString(v.as<sol::function>());
 		}
 	}
 }
@@ -261,22 +421,9 @@ MQ2LuaGenericType::MQ2LuaGenericType(sol::table plugin, const std::string& typeN
 bool MQ2LuaGenericType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	auto member_it = m_memberMap.find(Member);
-	auto ptr = VarPtr.Get<sol::object>();
-	if (member_it != m_memberMap.end() && ptr)
+	if (member_it != m_memberMap.end())
 	{
-		auto& [numargs, func] = member_it->second;
-		auto result = numargs == 2 ? func(*ptr, Index) : func(m_pluginTable, *ptr, Index);
-		if (result.valid() && result.return_count() > 1)
-		{
-			std::tuple<std::optional<std::string>, sol::object> r = result;
-			auto& [typeName, typeValue] = r;
-			if (typeName && typeValue != sol::lua_nil)
-			{
-				MQ2Type* type = FindMQ2DataType(typeName->c_str());
-				Dest.Type = type;
-				return EvaluateObject(type, typeValue, Dest);
-			}
-		}
+		return member_it->second(VarPtr, Index, Dest);
 	}
 
 	return false;
@@ -284,20 +431,9 @@ bool MQ2LuaGenericType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 
 bool MQ2LuaGenericType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	auto ptr = VarPtr.Get<sol::object>();
-	auto [numargs, func] = m_toString;
-	if (ptr && numargs >= 0)
+	if (m_toString)
 	{
-		auto result = numargs == 1 ? func(*ptr) : func(m_pluginTable, *ptr);
-		if (result.valid() && result.return_count() > 0)
-		{
-			std::optional<std::string> r = result;
-			if (r)
-			{
-				strcpy_s(Destination, MAX_STRING, r->c_str());
-				return true;
-			}
-		}
+		return (*m_toString)(VarPtr, Destination);
 	}
 
 	strcpy_s(Destination, MAX_STRING, m_typeName.c_str());
@@ -306,29 +442,9 @@ bool MQ2LuaGenericType::ToString(MQVarPtr VarPtr, char* Destination)
 
 bool MQ2LuaGenericType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
-	if (Source.Type != nullptr && LuaPlugin::IsDatatype(Source.Type->GetName()))
+	if (m_fromData)
 	{
-		auto ptr = Source.Get<sol::object>();
-		auto [numargs, func] = m_fromData;
-		if (ptr && numargs >= 0)
-		{
-			// we need to make sure to do this because we can't be sure the lua state is the same as
-			// the local lua state, we need to serde
-			sol::object val = CopyObject(*ptr, GetState());
-			MQTypeVar temp_var;
-			temp_var.Type = Source.Type;
-			auto result = numargs == 1 ? func(val) : func(m_pluginTable, val);
-			if (result.valid() && result.return_count() > 0)
-			{
-				sol::object r = result;
-				if (r != sol::lua_nil)
-				{
-					// we can directly set this here because the act of copying the source
-					// object into this state means that the result will be in this state
-					VarPtr.Set(r);
-				}
-			}
-		}
+		return (*m_fromData)(VarPtr, Source);
 	}
 
 	return false;
@@ -336,16 +452,9 @@ bool MQ2LuaGenericType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 
 bool MQ2LuaGenericType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
-	auto [numargs, func] = m_fromString;
-	auto result = numargs == 1 ? func(Source) : func(m_pluginTable, Source);
-	if (result.valid() && result.return_count() > 0)
+	if (m_fromString)
 	{
-		sol::object r = result;
-		if (r != sol::lua_nil)
-		{
-			VarPtr.Set(r);
-			return true;
-		}
+		return (*m_fromString)(VarPtr, Source);
 	}
 
 	return false;
@@ -701,18 +810,7 @@ void LuaPlugin::OnUnloadPlugin(const char* Name)
 
 void LuaPlugin::RegisterCommand(const std::string& name, sol::function func)
 {
-	if (IsCommand(name.c_str()) || m_commands.find(name) != m_commands.end())
-	{
-		LuaError("Cannot create command %s, already a command in MQ.", name.c_str());
-	}
-	else if (name.empty() || name[0] != '/')
-	{
-		LuaError("Cannot create command %s, not a valid command string.", name.c_str());
-	}
-	else
-	{
-		m_commands[name] = func;
-	}
+	m_commands[name] = func;
 }
 
 void LuaPlugin::AddCommands()
@@ -722,7 +820,17 @@ void LuaPlugin::AddCommands()
 		const auto& [command, func] = *it;
 		auto [_1, _2, numargs, vararg] = GetArgInfo(m_pluginTable, func);
 
-		if (vararg)
+		if (IsCommand(command.c_str()))
+		{
+			LuaError("Cannot create command %s, already a command in MQ.", command.c_str());
+			it = m_commands.erase(it);
+		}
+		else if (command.empty() || command[0] != '/')
+		{
+			LuaError("Cannot create command %s, not a valid command string.", command.c_str());
+			it = m_commands.erase(it);
+		}
+		else if (vararg)
 		{
 			LuaError("Invalid command %s: commands do not support variadic arguments.", command.c_str());
 			it = m_commands.erase(it);
@@ -760,43 +868,29 @@ void LuaPlugin::UnregisterCommands()
 //void LuaPlugin::RegisterDatatype(const std::string& name, sol::table members, sol::function toString, sol::function fromData, sol::function fromString)
 void LuaPlugin::RegisterDatatype(const std::string& name, sol::table datatype)
 {
-	if (FindMQ2DataType(name.c_str()) != nullptr)
-	{
-		LuaError("Cannot create datatype %s, already a datatype in MQ.", name.c_str());
-	}
-	else if (name.empty())
-	{
-		LuaError("Cannot create datatype %s, not a valid name.", name.c_str());
-	}
-	else
-	{
-		sol::table members = sol::lua_nil;
-		sol::function toString = sol::lua_nil;
-		sol::function fromData = sol::lua_nil;
-		sol::function fromString = sol::lua_nil;
+	m_dataTypeDefs[name] = datatype;
+}
 
-		for (auto& [k, v] : datatype)
+void LuaPlugin::AddDatatypes()
+{
+	for (auto it = m_dataTypeDefs.begin(); it != m_dataTypeDefs.end();)
+	{
+		const auto& [type, datatype] = *it;
+		if (FindMQ2DataType(type.c_str()) != nullptr)
 		{
-			auto key = k.as<std::optional<std::string_view>>();
-			if (key)
-			{
-				if (ci_equals(*key, "Members") && v.is<sol::table>())
-					members = v.as<sol::table>();
-				else if (ci_equals(*key, "ToString") && v.is<sol::function>())
-					toString = v.as<sol::function>();
-				else if (ci_equals(*key, "FromData") && v.is<sol::function>())
-					fromData = v.as<sol::function>();
-				else if (ci_equals(*key, "FromString") && v.is<sol::function>())
-					fromString = v.as<sol::function>();
-			}
+			LuaError("Cannot create datatype %s, already a datatype in MQ.", type.c_str());
+			it = m_dataTypeDefs.erase(it);
 		}
-
-		// This breaks symmetry because the ctor for all types automatically registers the type.
-		// We can't defer the registration to the plugin start.
-		// This means that the datatypes will get registered even if the user fails to return the plugin
-		// from the script. Theoretically, the LuaPlugin will destruct and the type will get unregistered
-		// in that process, but it seems a bit shaky.
-		m_dataTypes.emplace(name, std::make_unique<MQ2LuaGenericType>(m_pluginTable, name, members, toString, fromData, fromString));
+		else if (type.empty())
+		{
+			LuaError("Cannot create datatype %s, not a valid name.", type.c_str());
+			it = m_dataTypeDefs.erase(it);
+		}
+		else
+		{
+			m_dataTypes.emplace(type, std::make_unique<MQ2LuaGenericType>(m_pluginTable, type, datatype));
+			++it;
+		}
 	}
 }
 
@@ -837,18 +931,7 @@ static bool CheckDataResult(sol::function_result& result, MQTypeVar& Dest)
 
 void LuaPlugin::RegisterData(const std::string& name, sol::function func)
 {
-	if (FindMQ2Data(name.c_str()) != nullptr)
-	{
-		LuaError("Cannot create TLO %s, already a TLO in MQ.", name.c_str());
-	}
-	else if (name.empty())
-	{
-		LuaError("Cannot create TLO %s, not a valid name.", name.c_str());
-	}
-	else
-	{
-		m_dataTLOs.emplace(name, func);
-	}
+	m_dataTLOs[name] = func;
 }
 
 void LuaPlugin::AddData()
@@ -858,7 +941,17 @@ void LuaPlugin::AddData()
 		const auto& [tlo, func] = *it;
 		auto [_1, _2, numargs, vararg] = GetArgInfo(m_pluginTable, func);
 
-		if (vararg)
+		if (FindMQ2Data(tlo.c_str()) != nullptr)
+		{
+			LuaError("Cannot create TLO %s, already a TLO in MQ.", tlo.c_str());
+			it = m_dataTLOs.erase(it);
+		}
+		else if (tlo.empty())
+		{
+			LuaError("Cannot create TLO %s, not a valid name.", tlo.c_str());
+			it = m_dataTLOs.erase(it);
+		}
+		else if (vararg)
 		{
 			LuaError("Invalid TLO %s: TLOs do not support variadic arguments.", tlo.c_str());
 			it = m_dataTLOs.erase(it);
@@ -979,20 +1072,31 @@ void LuaPlugin::Start(sol::table plugin)
 	if (IsPlugin(plugin))
 	{
 		auto ptr = plugin.get<std::shared_ptr<LuaPlugin>>("__plugin");
-		for (const auto& [k, v] : plugin)
+		if (IsRunning(ptr->Name()))
 		{
-			if (k.is<std::string>() && v.get_type() == sol::type::function)
-				ptr->SetCallback(k.as<const std::string&>(), v, plugin.lua_state());
+			WriteChatStatus("Lua plugin %s is already running, not starting another instance.", ptr->Name().c_str());
 		}
+		else
+		{
+			WriteChatStatus("Starting lua plugin %s.", ptr->Name().c_str());
+			for (const auto& [k, v] : plugin)
+			{
+				if (k.is<std::string>() && v.get_type() == sol::type::function)
+					ptr->SetCallback(k.as<const std::string&>(), v, plugin.lua_state());
+			}
 
-		ptr->InitializePlugin();
-		ptr->AddCommands();
-		ptr->AddData();
-		s_pluginMap.insert_or_assign(ptr->Name(), ptr);
+			ptr->InitializePlugin();
+			ptr->AddCommands();
+			ptr->AddDatatypes();
+			ptr->AddData();
+			ptr->m_startTime = std::chrono::system_clock::now();
+			s_pluginMap.insert_or_assign(ptr->Name(), ptr);
+		}
 
 		// we no longer need to hold the pointer to the LuaPlugin, and if we don't get rid of it, we'll always have one ref
 		// which will cause the state to hold pointer which in turn is held by the LuaPlugin, need to make sure to get rid
 		// of this circular dependency
+		// do this even if we don't start the plugin to ensure that we don't leak memory
 		plugin["__plugin"] = sol::nil;
 
 		// force gc in case we assigned instead of inserted to prevent dual definitions
@@ -1030,11 +1134,11 @@ bool LuaPlugin::IsRunning(std::string_view name)
 	return s_pluginMap.find(name) != s_pluginMap.end();
 }
 
-std::vector<std::string_view> LuaPlugin::GetRunning()
+std::vector<std::shared_ptr<LuaPlugin>> LuaPlugin::GetRunning()
 {
-	std::vector<std::string_view> keys(s_pluginMap.size());
-	std::transform(s_pluginMap.begin(), s_pluginMap.end(), keys.begin(), [](const auto& pair) { return pair.first; });
-	return keys;
+	std::vector<std::shared_ptr<LuaPlugin>> values(s_pluginMap.size());
+	std::transform(s_pluginMap.begin(), s_pluginMap.end(), values.begin(), [](const auto& pair) { return pair.second; });
+	return values;
 }
 
 void LuaPlugin::RegisterLua(sol::table& mq)
