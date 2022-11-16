@@ -2815,7 +2815,7 @@ void LoadSpells(SPAWNINFO* pChar, char* szLine)
 
 static void CastSplash(int Index, SPELL* pSpell, const CVector3* pos)
 {
-	pEverQuest->CreateTargetIndicator(Index, pSpell, ItemGlobalIndex(), eActivatableSpell);
+	pEverQuest->CreateTargetIndicator(Index, pSpell, ItemGlobalIndex(), ItemSpellType_Clicky);
 	SPAWNINFO* pMySpawn = pLocalPlayer;
 
 	if (pEverQuest->freeTargetTracker)

@@ -208,11 +208,7 @@ bool MQ2KeyRingItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		return true;
 
 	case KeyRingItemTypeMembers::Item:
-		Dest.Type = pItemType;
-		if (ItemPtr item = pLocalPC->GetKeyRingItems(type).GetItem(n))
-		{
-			Dest.Ptr = item.get();
-		}
+		Dest = pItemType->MakeTypeVar(pLocalPC->GetKeyRingItems(type).GetItem(n));
 		return true;
 	}
 

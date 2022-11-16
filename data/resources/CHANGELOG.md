@@ -1,3 +1,12 @@
+November 16, 2022:
+- live: Updated for latest patch
+- Updated MQ2TargetInfoPHs.txt (#661)
+- Updated Fish.mac (#605)
+- Added refcounting to item and itemspell datatypes. This should fix a crash where a lua script
+  consumes the last charge of an item causing it to disappear.
+- plugins: Deprecated old item spell enum values. See deprecation warnings for replacements.
+- lua: Added imgui bindings for TableGetColumnFlags (#658)
+
 November 9, 2022:
 - test: Updated for patch
 
@@ -14,6 +23,9 @@ October 26, 2022:
 
 October 16, 2022:
 - test: Updated for patch
+
+October 15, 2022:
+- emu: Fix max pet buff count being incorrect
 
 October 14, 2022:
 - Add MaxFPS and MaxBGFPS to EverQuest TLO. Reports the settings found on the options window.

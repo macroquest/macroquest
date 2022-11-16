@@ -4545,7 +4545,7 @@ const char* GetLDoNTheme(int LDTheme)
 
 uint32_t GetItemTimer(ItemClient* pItem)
 {
-	uint32_t Timer = pLocalPC->GetItemRecastTimer(pItem, eActivatableSpell);
+	uint32_t Timer = pLocalPC->GetItemRecastTimer(pItem, ItemSpellType_Clicky);
 
 	if (Timer < GetFastTime())
 		return 0;
@@ -4702,7 +4702,7 @@ bool SpellEffectTest(SPELL* aSpell, SPELL* bSpell, int i, bool bIgnoreTriggering
 		|| (aAttrib == SPA_PROC_SKILL_MODIFIER || bAttrib == SPA_PROC_SKILL_MODIFIER)   // Skill_Proc_Modifier
 		|| (LargerEffectTest(aSpell, bSpell, i, bTriggeredEffectCheck))	                // Ignore if the new effect is greater than the old effect
 		|| (bIgnoreTriggeringEffects && (TriggeringEffectSpell(aSpell, i) || TriggeringEffectSpell(bSpell, i))) // Ignore triggering effects validation
-		|| ((aSpell->SpellType == eProcSpell || aSpell->SpellType == eWornSpell) && (bSpell->SpellType == eProcSpell || bSpell->SpellType == eWornSpell) && !(aSpell->DurationWindow == bSpell->DurationWindow)));
+		|| ((aSpell->SpellType == ItemSpellType_Proc || aSpell->SpellType == ItemSpellType_Worn) && (bSpell->SpellType == ItemSpellType_Proc || bSpell->SpellType == ItemSpellType_Worn) && !(aSpell->DurationWindow == bSpell->DurationWindow)));
 }
 
 template <typename ...Args>
