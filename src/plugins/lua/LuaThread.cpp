@@ -278,7 +278,7 @@ int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 	{
 		ImGui_RegisterLua(sv);
 
-		std::string script("return nil");
+		std::string script("return ImGui");
 		luaL_loadbuffer(sv, script.data(), script.size(), pkg.c_str());
 		return 1;
 	}
