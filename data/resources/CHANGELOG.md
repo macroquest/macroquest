@@ -1,3 +1,12 @@
+November 16, 2022:
+- live: Updated for latest patch
+- Updated MQ2TargetInfoPHs.txt (#661)
+- Updated Fish.mac (#605)
+- Added refcounting to item and itemspell datatypes. This should fix a crash where a lua script
+  consumes the last charge of an item causing it to disappear.
+- plugins: Deprecated old item spell enum values. See deprecation warnings for replacements.
+- lua: Added imgui bindings for TableGetColumnFlags (#658)
+
 October 31, 2022:
 - Added upper bounds check on ReagentID, NoExpendReagentID, and ReagentCount. The max number 
   of reagents for a spell is 4. ReagentCount[n] explains how many ReagentID[n] you need.
