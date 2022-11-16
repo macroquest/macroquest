@@ -48,6 +48,9 @@
     <ClCompile Include="LuaCoroutine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="bindings\lua_Serializer.cpp">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LuaThread.h">

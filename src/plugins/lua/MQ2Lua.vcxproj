@@ -119,6 +119,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="bindings\lua_MQBindings.cpp" />
+    <ClCompile Include="bindings\lua_Serializer.cpp" />
     <ClCompile Include="LuaCoroutine.cpp" />
     <ClCompile Include="LuaEvent.cpp" />
     <ClCompile Include="LuaImGui.cpp">

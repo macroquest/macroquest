@@ -574,6 +574,88 @@ static sol::table lua_getFilteredSpawns(sol::this_state L, std::optional<sol::fu
 
 #pragma endregion
 
+#pragma region Serialization
+
+static std::string serialize(sol::object obj, const std::string& prefix)
+{
+	switch (obj.get_type())
+	{
+	case sol::type::string:
+		if (ci_find_substr(obj.as<std::string_view>(), "'") >= 0)
+			return fmt::format("\"{}\"", obj.as<std::string_view>());
+
+		return fmt::format("'{}'", obj.as<std::string_view>());
+	case sol::type::number:
+		if (obj.is<int>())
+			return std::to_string(obj.as<int64_t>());
+
+		return std::to_string(obj.as<double>());
+	case sol::type::boolean:
+		return obj.as<bool>() ? "true" : "false";
+	case sol::type::table:
+	{
+		if (obj.as<sol::table>().empty())
+			return "{}";
+
+		fmt::memory_buffer buf;
+		fmt::format_to(fmt::appender(buf), "{{\n");
+
+		for (const auto& [key, val] : obj.as<sol::table>())
+		{
+			const std::string v = serialize(val, prefix + "\t");
+			if (!ci_equals(v, "nil"))
+			{
+				if (key.is<std::string>())
+				{
+					fmt::format_to(fmt::appender(buf), "{}\t{} = {},\n", prefix, key.as<std::string>(), v);
+				}
+				else
+				{
+					fmt::format_to(fmt::appender(buf), "{}\t[{}] = {},\n", prefix, serialize(key, prefix + "\t"), v);
+				}
+			}
+		}
+
+		fmt::format_to(fmt::appender(buf), "{}}}", prefix);
+
+		return fmt::to_string(buf);
+	}
+	// keep these here as reference. We don't want to serialize these things though, so they will all fall through to default (no serialization)
+	case sol::type::none:
+	case sol::type::lua_nil:
+	case sol::type::thread:
+	case sol::type::function:
+	case sol::type::userdata:
+	case sol::type::lightuserdata:
+	case sol::type::poly:
+	default:
+		return "nil"; // we don't ever actually want to serialize nil, because nil removes an entry from a table
+	}
+}
+
+static void lua_pickle(sol::this_state L, std::string_view file_path, sol::table table)
+{
+	fmt::memory_buffer buf;
+	fmt::format_to(fmt::appender(buf), "return {}", serialize(table, ""));
+
+	std::filesystem::path path = std::filesystem::path{ gPathConfig } / file_path;
+
+	std::error_code ec;
+	std::filesystem::create_directories(path.parent_path(), ec);
+	if (ec)
+	{
+		LuaError("Failed to create directory for pickling %.*s with error: %s", file_path.size(), file_path.data(), ec.message());
+		return;
+	}
+
+	std::ofstream ofs(path, std::ios_base::out | std::ios_base::trunc);
+	ofs << fmt::to_string(buf);
+	ofs.close();
+}
+
+#pragma endregion
+
+
 //============================================================================
 
 void MQ_RegisterLua_MQBindings(sol::table& mq)
@@ -651,6 +733,10 @@ void MQ_RegisterLua_MQBindings(sol::table& mq)
 	// Direct Data Bindings
 	mq.set_function("getAllSpawns", &lua_getAllSpawns);
 	mq.set_function("getFilteredSpawns", &lua_getFilteredSpawns);
+
+	//----------------------------------------------------------------------------
+	// Serialization Bindings
+	mq.set_function("pickle", &lua_pickle);
 }
 
 } // namespace mq::lua
