@@ -576,49 +576,67 @@ static sol::table lua_getFilteredSpawns(sol::this_state L, std::optional<sol::fu
 
 #pragma region Serialization
 
-static std::string serialize(sol::object obj, const std::string& prefix)
+static bool can_serialize(sol::object obj)
+{
+	switch (obj.get_type())
+	{
+	case sol::type::string:
+	case sol::type::number:
+	case sol::type::boolean:
+	case sol::type::table:
+		return true;
+	default:
+		return false;
+	}
+}
+static void serialize(sol::object obj, const std::string& prefix, fmt::appender& appender)
 {
 	switch (obj.get_type())
 	{
 	case sol::type::string:
 		if (ci_find_substr(obj.as<std::string_view>(), "'") >= 0)
-			return fmt::format("\"{}\"", obj.as<std::string_view>());
+			fmt::format_to(appender, "\"{}\"", obj.as<std::string_view>());
 
-		return fmt::format("'{}'", obj.as<std::string_view>());
+		fmt::format_to(appender, "'{}'", obj.as<std::string_view>());
+		return;
 	case sol::type::number:
 		if (obj.is<int>())
-			return std::to_string(obj.as<int64_t>());
+			fmt::format_to(appender, "{}", obj.as<int64_t>());
 
-		return std::to_string(obj.as<double>());
+		fmt::format_to(appender, "{}", obj.as<double>());
+		return;
 	case sol::type::boolean:
-		return obj.as<bool>() ? "true" : "false";
+		fmt::format_to(appender, "{}", obj.as<bool>());
+		return;
 	case sol::type::table:
 	{
 		if (obj.as<sol::table>().empty())
-			return "{}";
+			fmt::format_to(appender, "{{}}");
 
-		fmt::memory_buffer buf;
-		fmt::format_to(fmt::appender(buf), "{{\n");
+		fmt::format_to(appender, "{{\n");
 
 		for (const auto& [key, val] : obj.as<sol::table>())
 		{
-			const std::string v = serialize(val, prefix + "\t");
-			if (!ci_equals(v, "nil"))
+			if (can_serialize(val))
 			{
 				if (key.is<std::string>())
 				{
-					fmt::format_to(fmt::appender(buf), "{}\t{} = {},\n", prefix, key.as<std::string>(), v);
+					fmt::format_to(appender, "{}\t{} = ", prefix, key.as<std::string>());
 				}
 				else
 				{
-					fmt::format_to(fmt::appender(buf), "{}\t[{}] = {},\n", prefix, serialize(key, prefix + "\t"), v);
+					fmt::format_to(appender, "{}\t[", prefix);
+					serialize(key, prefix + "\t", appender);
+					fmt::format_to(appender, "] = ");
 				}
+
+				serialize(val, prefix + "\t", appender);
+				fmt::format_to(appender, ",\n");
 			}
 		}
 
-		fmt::format_to(fmt::appender(buf), "{}}}", prefix);
-
-		return fmt::to_string(buf);
+		fmt::format_to(appender, "{}}}", prefix);
+		return;
 	}
 	// keep these here as reference. We don't want to serialize these things though, so they will all fall through to default (no serialization)
 	case sol::type::none:
@@ -629,14 +647,16 @@ static std::string serialize(sol::object obj, const std::string& prefix)
 	case sol::type::lightuserdata:
 	case sol::type::poly:
 	default:
-		return "nil"; // we don't ever actually want to serialize nil, because nil removes an entry from a table
+		return; // we don't ever actually want to serialize nil, because nil removes an entry from a table
 	}
 }
 
 static void lua_pickle(sol::this_state L, std::string_view file_path, sol::table table)
 {
 	fmt::memory_buffer buf;
-	fmt::format_to(fmt::appender(buf), "return {}", serialize(table, ""));
+	fmt::appender appender(buf);
+	fmt::format_to(appender, "return ");
+	serialize(table, "", appender);
 
 	std::filesystem::path path = std::filesystem::path{ gPathConfig } / file_path;
 
