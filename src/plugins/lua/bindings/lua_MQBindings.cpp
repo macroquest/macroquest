@@ -594,11 +594,16 @@ static void serialize(sol::object obj, const std::string& prefix, fmt::appender&
 	switch (obj.get_type())
 	{
 	case sol::type::string:
-		if (ci_find_substr(obj.as<std::string_view>(), "'") >= 0)
-			fmt::format_to(appender, "\"{}\"", obj.as<std::string_view>());
-
-		fmt::format_to(appender, "'{}'", obj.as<std::string_view>());
+	{
+		auto str = obj.as<std::string>();
+		for (size_t pos = str.find("'"); pos != std::string::npos; pos = str.find("'", pos))
+		{
+			str.replace(pos, 1, "\\'");
+			pos += 2;
+		}
+		fmt::format_to(appender, "'{}'", str);
 		return;
+	}
 	case sol::type::number:
 		if (obj.is<int>())
 			fmt::format_to(appender, "{}", obj.as<int64_t>());
