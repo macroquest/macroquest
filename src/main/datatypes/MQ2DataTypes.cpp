@@ -370,120 +370,64 @@ void CDataArray::Delete()
 	m_totalElements = 0;
 }
 
-int CDataArray::GetElement(char* Index)
+int CDataArray::GetElement(std::string_view Index) const
 {
-	int Element = 0;
 	if (m_nExtents == 1)
 	{
-		if (strchr(Index, ','))
+		if (Index.find(',') != std::string_view::npos)
 			return -1;
 
-		Element = GetIntFromString(Index, Element) - 1;
-		if (Element >= m_totalElements)
+		int location = GetIntFromString(Index, 0) - 1;
+		if (location >= m_totalElements)
 			return -1;
 
-		return Element;
+		return location;
 	}
-
-	int nGetExtents = 1;
-
-	if (char* pComma = strchr(Index, ','))
-	{
-		nGetExtents++;
-		while (pComma = strchr(&pComma[1], ','))
-		{
-			nGetExtents++;
-		}
-	}
-
-	if (nGetExtents != m_nExtents)
+	
+	int num_extents = static_cast<int>(std::count(Index.begin(), Index.end(), ',') + 1);
+	if (num_extents != m_nExtents)
 		return -1;
 
-	// read extents
-	char* pStart = Index;
-	for (int index = 0; index < m_nExtents; index++)
-	{
-		char* pComma = strchr(pStart, ',');
-		if (pComma)
-			*pComma = 0;
-
-		int Temp = GetIntFromString(pStart, 0) - 1;
-		if (Temp >= m_pExtents[index] || Temp < 0)
-			return -1;
-
-		for (int i = index + 1; i < m_nExtents; i++)
-			Temp *= m_pExtents[i];
-		Element += Temp;
-
-		if (pComma)
+	auto tokens = split_view(Index, ',');
+	int extent = 0;
+	return std::accumulate(tokens.begin(), tokens.end(), 0, [&extent, this](int location, std::string_view token) -> int
 		{
-			*pComma = ',';
-			pStart = &pComma[1];
-		}
+			if (location < 0)
+				return -1;
+
+			int max_extent = m_pExtents[extent];
+			int next_location = GetIntFromString(token, 0) - 1;
+			if (next_location >= max_extent || next_location < 0)
+				return -1;
+
+			for (int extent_marker = extent + 1; extent_marker < m_nExtents; ++extent_marker)
+				next_location *= m_pExtents[extent_marker];
+
+			++extent;
+			return location + next_location;
+		});
+}
+
+int CDataArray::GetElement(char* Index)
+{
+	return GetElement(std::string_view(Index));
+}
+
+bool CDataArray::GetElement(std::string_view Index, MQTypeVar& Dest)
+{
+	int location = GetElement(std::string_view(Index));
+	if (location >= 0)
+	{
+		Dest.Type = m_pType;
+		Dest.VarPtr = m_pData[location];
 	}
 
-	return Element;
+	return location >= 0;
 }
 
 bool CDataArray::GetElement(char* Index, MQTypeVar& Dest)
 {
-	if (m_nExtents == 1)
-	{
-		if (strchr(Index, ','))
-			return false;
-
-		int Element = GetIntFromString(Index, 0) - 1;
-		if (Element >= m_totalElements || Element < 0)
-			return false;
-
-		Dest.Type = m_pType;
-		Dest.VarPtr = m_pData[Element];
-
-		return true;
-	}
-
-	int nGetExtents = 1;
-
-	if (char* pComma = strchr(Index, ','))
-	{
-		nGetExtents++;
-		while (pComma = strchr(&pComma[1], ','))
-		{
-			nGetExtents++;
-		}
-	}
-
-	if (nGetExtents != m_nExtents)
-		return false;
-
-	// read extents
-	char* pStart = Index;
-	int Element = 0;
-
-	for (int index = 0; index < m_nExtents; index++)
-	{
-		char* pComma = strchr(pStart, ',');
-		if (pComma)
-			*pComma = 0;
-
-		int Temp = GetIntFromString(pStart, 0) - 1;
-		if (Temp >= m_pExtents[index] || Temp < 0)
-			return false;
-
-		for (int i = index + 1; i < m_nExtents; i++)
-			Temp *= m_pExtents[i];
-
-		Element += Temp;
-		if (pComma)
-		{
-			*pComma = ',';
-			pStart = &pComma[1];
-		}
-	}
-
-	Dest.Type = m_pType;
-	Dest.VarPtr = m_pData[Element];
-	return true;
+	return GetElement(std::string_view(Index), Dest);
 }
 
 } // namespace mq::datatypes

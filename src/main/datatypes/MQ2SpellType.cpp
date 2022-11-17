@@ -933,11 +933,10 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			return false;
 
 		int nIndex = GetIntFromString(Index, 0) - 1;
-		if (nIndex < 0)
+		if (nIndex < 0 || nIndex >= MAX_SPELL_REAGENTS)
 			return false;
 
 		Dest.DWord = pSpell->ReagentID[nIndex];
-
 		return true;
 	}
 
@@ -949,11 +948,10 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			return false;
 
 		int nIndex = GetIntFromString(Index, 0) - 1;
-		if (nIndex < 0)
+		if (nIndex < 0 || nIndex >= MAX_SPELL_REAGENTS)
 			return false;
 
 		Dest.DWord = pSpell->NoExpendReagent[nIndex];
-
 		return true;
 	}
 
@@ -965,11 +963,10 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			return false;
 
 		int nIndex = GetIntFromString(Index, 0) - 1;
-		if (nIndex < 0)
+		if (nIndex < 0 || nIndex >= MAX_SPELL_REAGENTS)
 			return false;
 
 		Dest.DWord = pSpell->ReagentCount[nIndex];
-
 		return true;
 	}
 

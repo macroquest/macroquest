@@ -1342,7 +1342,7 @@ MQ2ArrayType::MQ2ArrayType() : MQ2Type("array")
 
 bool MQ2ArrayType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	CDataArray* pArray = static_cast<CDataArray*>(VarPtr.Ptr);
+	auto pArray = VarPtr.Get<CDataArray>();
 	if (!pArray)
 		return false;
 
@@ -1383,21 +1383,6 @@ bool MQ2ArrayType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	}
 
 	return false;
-}
-
-bool MQ2ArrayType::ToString(MQVarPtr VarPtr, char* Destination)
-{
-	return false;
-}
-
-void MQ2ArrayType::InitVariable(MQVarPtr& VarPtr)
-{
-}
-
-void MQ2ArrayType::FreeVariable(MQVarPtr& VarPtr)
-{
-	CDataArray* pArray = (CDataArray*)VarPtr.Ptr;
-	delete pArray;
 }
 
 //============================================================================

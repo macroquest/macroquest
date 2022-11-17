@@ -1,5 +1,31 @@
+November 16, 2022:
+- live: Updated for latest patch
+- Updated MQ2TargetInfoPHs.txt (#661)
+- Updated Fish.mac (#605)
+- Added refcounting to item and itemspell datatypes. This should fix a crash where a lua script
+  consumes the last charge of an item causing it to disappear.
+- plugins: Deprecated old item spell enum values. See deprecation warnings for replacements.
+- lua: Added imgui bindings for TableGetColumnFlags (#658)
+
+November 9, 2022:
+- test: Updated for patch
+
+November 3, 2022:
+- test: Updated for patch
+
+October 31, 2022:
+- Added upper bounds check on ReagentID, NoExpendReagentID, and ReagentCount. The max number 
+  of reagents for a spell is 4. ReagentCount[n] explains how many ReagentID[n] you need.
+  For NoExpendReagentID is always just need 1 of the item.
+
 October 26, 2022:
 - live: Updated for live patch
+
+October 16, 2022:
+- test: Updated for patch
+
+October 15, 2022:
+- emu: Fix max pet buff count being incorrect
 
 October 14, 2022:
 - Add MaxFPS and MaxBGFPS to EverQuest TLO. Reports the settings found on the options window.
@@ -16,6 +42,9 @@ October 9, 2022:
 October 6, 2022:
 - Remove Spell.SPA - this wasn't actually a SPA and was some other meaningless value.
 - Add Spell.CategoryID and Spell.SubcategoryID - the integer values of Category and Subcategory
+
+October 2, 2022 (test):
+- Updated for test patch
 
 October 2, 2022:
 - Autobank and related functionality has been moved from mq2main into its own autobank plugin. (#580)
@@ -43,6 +72,9 @@ September 18, 2022:
 - emu: Re-introduce support for LAMarkNPC, LANPCHealth, LADelegateMA, LADelegateMarkNPC,
   LAInspectBuffs, LASpellAwareness, LAOffenseEnhancement, LAManaEnhancement, LAHealthEnhancement,
   LAHealthRegen, LAFindPathPC, LAHoTT (#625)
+
+September 16, 2022 (test):
+- Updated for latest test patch
 
 September 7, 2022:
 - /captioncolor will work when typed in EQ chat windows again (#619)

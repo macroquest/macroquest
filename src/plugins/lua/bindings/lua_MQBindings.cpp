@@ -233,6 +233,30 @@ sol::object lua_MQTypeVar::CallVA(sol::this_state L, sol::variadic_args args) co
 	return Call(lua_join(L, ",", args), L);
 }
 
+static sol::table fill_extent(const std::shared_ptr<datatypes::CDataArray>& arr, int extent, int curr_index, sol::state_view s)
+{
+	int local_size = arr->GetExtents(extent);
+	auto table = s.create_table(local_size);
+	if (extent + 1 == arr->GetNumExtents())
+	{
+		// this is the final extent, we need to build values
+		for (int index = 0; index < local_size; ++index)
+		{
+			MQTypeVar var;
+			var.Type = arr->GetType();
+			var.SetVarPtr(arr->GetData((curr_index * local_size) + index));
+			table.add(lua_MQTypeVar(var));
+		}
+	}
+	else
+	{
+		for (int index = 0; index < local_size; ++index)
+			table.add(fill_extent(arr, extent + 1, index, s));
+	}
+
+	return table;
+}
+
 sol::object lua_MQTypeVar::CallEmpty(sol::this_state L) const
 {
 	MQTypeVar result = EvaluateMember();
@@ -240,6 +264,8 @@ sol::object lua_MQTypeVar::CallEmpty(sol::this_state L) const
 	if (result.Type == nullptr)
 		return sol::object(L, sol::in_place, sol::lua_nil);
 
+	if (result.Type == mq::datatypes::pArrayType)
+		return sol::object(L, sol::in_place, fill_extent(result.Get<datatypes::CDataArray>(), 0, 0, sol::state_view(L)));
 	if (result.Type == mq::datatypes::pBoolType)
 		return sol::object(L, sol::in_place, result.Get<bool>());
 	if (result.Type == mq::datatypes::pIntType)
@@ -270,12 +296,35 @@ sol::object lua_MQTypeVar::Get(sol::stack_object key, sol::this_state L) const
 {
 	lua_MQTypeVar var = EvaluateMember();
 
-	std::optional<std::string_view> maybe_key = key.as<std::optional<std::string_view>>();
-	if (maybe_key)
+	if (var.m_self->Type && var.m_self->Type == datatypes::pArrayType)
 	{
+		auto arr = var.m_self->Get<datatypes::CDataArray>();
+		if (auto maybe_index = key.as<std::optional<int>>())
+		{
+			// we have an integer -- let's just assume single extent for now
+			// TODO: will need to keep track of extents to allow for access like this: arr[2][1]
+			// would rather return an array with a subset, but that would require slicing and copying the underlying array data
+			var.m_member = "";
+			var.m_self->Type = arr->GetType();
+			var.m_self->SetVarPtr(arr->GetData(*maybe_index));
+		}
+		else if (auto maybe_index = key.as<std::optional<std::string_view>>())
+		{
+			// we have a string, so we can use the array's internal string index parsing here
+			if (!arr->GetElement(*maybe_index, *var.m_self))
+			{
+				return sol::object(L, sol::in_place, sol::lua_nil);
+			}
+
+			var.m_member = "";
+		}
+	}
+	else if (auto maybe_key = key.as<std::optional<std::string_view>>())
+	{
+		// the nominal case is that the index is the key to the type member
 		var.m_member = *maybe_key;
 
-		// Make sure that the macro data member even exists if we have the type info
+		// make sure the macro data member even exists if we have the type info
 		if (var.m_self->Type && !FindMacroDataMember(var.m_self->Type, var.m_member))
 		{
 			return sol::object(L, sol::in_place, sol::lua_nil);
@@ -574,6 +623,120 @@ static sol::table lua_getFilteredSpawns(sol::this_state L, std::optional<sol::fu
 
 #pragma endregion
 
+#pragma region Serialization
+
+static bool can_serialize(sol::object obj)
+{
+	switch (obj.get_type())
+	{
+	case sol::type::string:
+	case sol::type::number:
+	case sol::type::boolean:
+	case sol::type::table:
+		return true;
+	default:
+		return false;
+	}
+}
+static void serialize(sol::object obj, int prefix_count, fmt::appender& appender)
+{
+	switch (obj.get_type())
+	{
+	case sol::type::string:
+	{
+		auto str = obj.as<std::string>();
+		for (size_t pos = str.find("'"); pos != std::string::npos; pos = str.find("'", pos))
+		{
+			str.replace(pos, 1, "\\'");
+			pos += 2;
+		}
+		fmt::format_to(appender, "'{}'", str);
+		return;
+	}
+	case sol::type::number:
+		if (obj.is<int>())
+			fmt::format_to(appender, "{}", obj.as<int64_t>());
+
+		fmt::format_to(appender, "{}", obj.as<double>());
+		return;
+	case sol::type::boolean:
+		fmt::format_to(appender, "{}", obj.as<bool>());
+		return;
+	case sol::type::table:
+	{
+		if (obj.as<sol::table>().empty())
+			fmt::format_to(appender, "{{}}");
+
+		fmt::format_to(appender, "{{\n");
+
+		for (const auto& [key, val] : obj.as<sol::table>())
+		{
+			if (can_serialize(val))
+			{
+				if (key.is<std::string>())
+				{
+					fmt::format_to(appender, "{:\t>{}}\t{} = ", "", prefix_count, key.as<std::string>());
+				}
+				else
+				{
+					fmt::format_to(appender, "{:\t>{}}\t[", "", prefix_count);
+					serialize(key, prefix_count + 1, appender);
+					fmt::format_to(appender, "] = ");
+				}
+
+				serialize(val, prefix_count + 1, appender);
+				fmt::format_to(appender, ",\n");
+			}
+		}
+
+		fmt::format_to(appender, "{:\t>{}}}}", "", prefix_count);
+		return;
+	}
+	// keep these here as reference. We don't want to serialize these things though, so they will all fall through to default (no serialization)
+	case sol::type::none:
+	case sol::type::lua_nil:
+	case sol::type::thread:
+	case sol::type::function:
+	case sol::type::userdata:
+	case sol::type::lightuserdata:
+	case sol::type::poly:
+	default:
+		return; // we don't ever actually want to serialize nil, because nil removes an entry from a table
+	}
+}
+
+static void lua_pickle(sol::this_state L, std::string_view file_path, sol::table table)
+{
+	fmt::memory_buffer buf;
+	fmt::appender appender(buf);
+	fmt::format_to(appender, "return ");
+	serialize(table, 0, appender);
+
+	std::filesystem::path path = std::filesystem::path{ gPathConfig } / file_path;
+
+	std::error_code ec;
+	std::filesystem::create_directories(path.parent_path(), ec);
+	if (ec)
+	{
+		LuaError("Failed to create directory for pickling %.*s with error: %s", file_path.size(), file_path.data(), ec.message());
+		return;
+	}
+
+	try
+	{
+		std::ofstream ofs(path, std::ios_base::out | std::ios_base::trunc);
+		ofs << fmt::to_string(buf);
+		ofs.close();
+	}
+	catch (std::exception e)
+	{
+		LuaError("Failed to write to file %.*s with error: %s", file_path.size(), file_path.data(), e.what());
+	}
+}
+
+#pragma endregion
+
+
 //============================================================================
 
 void MQ_RegisterLua_MQBindings(sol::table& mq)
@@ -651,6 +814,10 @@ void MQ_RegisterLua_MQBindings(sol::table& mq)
 	// Direct Data Bindings
 	mq.set_function("getAllSpawns", &lua_getAllSpawns);
 	mq.set_function("getFilteredSpawns", &lua_getFilteredSpawns);
+
+	//----------------------------------------------------------------------------
+	// Serialization Bindings
+	mq.set_function("pickle", &lua_pickle);
 }
 
 } // namespace mq::lua
