@@ -630,14 +630,7 @@ static void serialize(sol::object obj, int prefix_count, fmt::appender& appender
 				}
 				else
 				{
-					try
-					{
-						fmt::format_to(appender, "{:\t>{}}\t[", "", prefix_count);
-					}
-					catch (std::exception e)
-					{
-						LuaError(e.what());
-					}
+					fmt::format_to(appender, "{:\t>{}}\t[", "", prefix_count);
 					serialize(key, prefix_count + 1, appender);
 					fmt::format_to(appender, "] = ");
 				}
