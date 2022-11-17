@@ -589,7 +589,7 @@ static bool can_serialize(sol::object obj)
 		return false;
 	}
 }
-static void serialize(sol::object obj, const std::string& prefix, fmt::appender& appender)
+static void serialize(sol::object obj, int prefix_count, fmt::appender& appender)
 {
 	switch (obj.get_type())
 	{
@@ -626,21 +626,28 @@ static void serialize(sol::object obj, const std::string& prefix, fmt::appender&
 			{
 				if (key.is<std::string>())
 				{
-					fmt::format_to(appender, "{}\t{} = ", prefix, key.as<std::string>());
+					fmt::format_to(appender, "{:\t>{}}\t{} = ", "", prefix_count, key.as<std::string>());
 				}
 				else
 				{
-					fmt::format_to(appender, "{}\t[", prefix);
-					serialize(key, prefix + "\t", appender);
+					try
+					{
+						fmt::format_to(appender, "{:\t>{}}\t[", "", prefix_count);
+					}
+					catch (std::exception e)
+					{
+						LuaError(e.what());
+					}
+					serialize(key, prefix_count + 1, appender);
 					fmt::format_to(appender, "] = ");
 				}
 
-				serialize(val, prefix + "\t", appender);
+				serialize(val, prefix_count + 1, appender);
 				fmt::format_to(appender, ",\n");
 			}
 		}
 
-		fmt::format_to(appender, "{}}}", prefix);
+		fmt::format_to(appender, "{:\t>{}}}}", "", prefix_count);
 		return;
 	}
 	// keep these here as reference. We don't want to serialize these things though, so they will all fall through to default (no serialization)
@@ -661,7 +668,7 @@ static void lua_pickle(sol::this_state L, std::string_view file_path, sol::table
 	fmt::memory_buffer buf;
 	fmt::appender appender(buf);
 	fmt::format_to(appender, "return ");
-	serialize(table, "", appender);
+	serialize(table, 0, appender);
 
 	std::filesystem::path path = std::filesystem::path{ gPathConfig } / file_path;
 
@@ -673,9 +680,16 @@ static void lua_pickle(sol::this_state L, std::string_view file_path, sol::table
 		return;
 	}
 
-	std::ofstream ofs(path, std::ios_base::out | std::ios_base::trunc);
-	ofs << fmt::to_string(buf);
-	ofs.close();
+	try
+	{
+		std::ofstream ofs(path, std::ios_base::out | std::ios_base::trunc);
+		ofs << fmt::to_string(buf);
+		ofs.close();
+	}
+	catch (std::exception e)
+	{
+		LuaError("Failed to write to file %.*s with error: %s", file_path.size(), file_path.data(), e.what());
+	}
 }
 
 #pragma endregion
