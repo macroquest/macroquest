@@ -4,7 +4,9 @@
 #include <sol/sol.hpp>
 #include <cstdint>
 
-static inline uint32_t band32(uint32_t a, sol::variadic_args va)
+namespace mq::lua::bindings {
+
+static uint32_t band32(uint32_t a, sol::variadic_args va)
 {
 	for (auto v : va)
 	{
@@ -16,7 +18,7 @@ static inline uint32_t band32(uint32_t a, sol::variadic_args va)
 	return a;
 }
 
-static inline uint32_t bor32(uint32_t a, sol::variadic_args va)
+static uint32_t bor32(uint32_t a, sol::variadic_args va)
 {
 	for (auto v : va)
 	{
@@ -28,7 +30,7 @@ static inline uint32_t bor32(uint32_t a, sol::variadic_args va)
 	return a;
 }
 
-static inline uint32_t bxor32(uint32_t a, sol::variadic_args va)
+static uint32_t bxor32(uint32_t a, sol::variadic_args va)
 {
 	for (auto v : va)
 	{
@@ -40,7 +42,7 @@ static inline uint32_t bxor32(uint32_t a, sol::variadic_args va)
 	return a;
 }
 
-static inline uint32_t rotl32(uint32_t n, uint32_t c)
+static uint32_t rotl32(uint32_t n, uint32_t c)
 {
 	const unsigned int mask = (CHAR_BIT * sizeof(n) - 1);  // assumes width is a power of 2.
 
@@ -49,7 +51,7 @@ static inline uint32_t rotl32(uint32_t n, uint32_t c)
 	return (n << c) | (n >> ((-(int)c) & mask));
 }
 
-static inline uint32_t rotr32(uint32_t n, uint32_t c)
+static uint32_t rotr32(uint32_t n, uint32_t c)
 {
 	const unsigned int mask = (CHAR_BIT * sizeof(n) - 1);
 
@@ -58,7 +60,7 @@ static inline uint32_t rotr32(uint32_t n, uint32_t c)
 	return (n >> c) | (n << ((-(int)c) & mask));
 }
 
-void RegisterBitwiseOps(sol::state_view state)
+void RegisterBindings_Bit32(sol::state_view state)
 {
 	sol::table bit = state.create_table();
 
@@ -80,3 +82,5 @@ void RegisterBitwiseOps(sol::state_view state)
 
 	state["bit32"] = bit;
 }
+
+} // namespace mq::lua::bindings

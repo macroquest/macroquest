@@ -15,10 +15,9 @@
 #include "pch.h"
 #include "LuaImGui.h"
 #include "LuaThread.h"
-#include "contrib/imgui/sol_ImGui.h"
 
+#include "bindings/lua_Bindings.h"
 #include <mq/Plugin.h>
-#include <mq/imgui/Widgets.h>
 
 namespace mq::lua {
 
@@ -66,52 +65,12 @@ void LuaImGuiProcessor::Pulse()
 
 //============================================================================
 
-static void lua_addimgui(std::string_view name, sol::function function, sol::this_state s)
-{
-	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
-	{
-		if (LuaImGuiProcessor* imgui = thread_ptr->GetImGuiProcessor())
-			imgui->AddCallback(name, function);
-	}
-}
-
-static void lua_removeimgui(std::string_view name, sol::this_state s)
-{
-	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
-	{
-		if (LuaImGuiProcessor* imgui = thread_ptr->GetImGuiProcessor())
-			imgui->RemoveCallback(name);
-	}
-}
-
-static bool lua_hasimgui(std::string_view name, sol::this_state s)
-{
-	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
-	{
-		if (LuaImGuiProcessor* imgui = thread_ptr->GetImGuiProcessor())
-			return imgui->HasCallback(name);
-	}
-
-	return false;
-}
-
-void MQ_RegisterLua_ImGui(sol::table& lua)
-{
-	lua["imgui"] = lua.create_with(
-		"init", &lua_addimgui,
-		"destroy", &lua_removeimgui,
-		"exists", &lua_hasimgui
-	);
-}
-
-//============================================================================
-
 LuaImGui::LuaImGui(std::string_view name, const sol::thread& parent_thread, const sol::function& callback)
 	: m_name(name)
 	, m_parentThread(parent_thread), m_callback(callback)
 {
 	m_thread = sol::thread::create(m_parentThread.state());
-	ImGui_RegisterLua(m_thread.state());
+	bindings::RegisterBindings_ImGui(m_thread.state());
 
 	m_coroutine = sol::coroutine(m_thread.state(), m_callback);
 }
@@ -198,32 +157,5 @@ bool LuaImGui::Pulse() const
 }
 
 //============================================================================
-
-// MQ-Specific functions
-inline bool DrawTextureAnimation(const std::unique_ptr<CTextureAnimation>& anim, int x, int y, bool drawBorder) { return mq::imgui::DrawTextureAnimation(anim.get(), CXSize(x, y), drawBorder); }
-inline bool DrawTextureAnimation(const std::unique_ptr<CTextureAnimation>& anim, int x, int y) { return mq::imgui::DrawTextureAnimation(anim.get(), CXSize(x, y)); }
-inline bool DrawTextureAnimation(const std::unique_ptr<CTextureAnimation>& anim) { return mq::imgui::DrawTextureAnimation(anim.get()); }
-
-void ImGui_RegisterLua(sol::state_view state)
-{
-	sol::table ImGui = state.get_or("ImGui", sol::lua_nil);
-
-	if (ImGui == sol::lua_nil)
-	{
-		ImGui = sol_ImGui::Init(state);
-
-#pragma region MQ Specific Functions
-		ImGui.set_function("DrawTextureAnimation", sol::overload(
-			sol::resolve<bool(const std::unique_ptr<CTextureAnimation>&, int, int, bool)>(DrawTextureAnimation),
-			sol::resolve<bool(const std::unique_ptr<CTextureAnimation>&, int, int)>(DrawTextureAnimation),
-			sol::resolve<bool(const std::unique_ptr<CTextureAnimation>&)>(DrawTextureAnimation)
-		));
-#pragma endregion
-
-		ImGui.set_function("Register", lua_addimgui);
-		ImGui.set_function("Unregister", lua_removeimgui);
-	}
-}
-
 
 } // namespace mq::lua
