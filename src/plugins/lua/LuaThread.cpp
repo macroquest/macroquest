@@ -184,7 +184,7 @@ void LuaThread::InjectMQNamespace()
 
 /*static*/ uint64_t LuaThread::lua_gettime(sol::this_state s)
 {
-	auto t = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch());
+	auto t = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch());
 	return t.count();
 }
 
