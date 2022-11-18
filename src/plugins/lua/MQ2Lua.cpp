@@ -1501,7 +1501,7 @@ PLUGIN_API void InitializePlugin()
 
 	s_pluginInterface = new LuaPluginInterfaceImpl();
 
-	MQ_Initialize_MQBindings();
+	bindings::MQ_Initialize_MQBindings();
 }
 
 PLUGIN_API void ShutdownPlugin()
@@ -1527,7 +1527,7 @@ PLUGIN_API void ShutdownPlugin()
 	delete s_pluginInterface;
 	s_pluginInterface = nullptr;
 
-	MQ_Cleanup_MQBindings();
+	bindings::MQ_Cleanup_MQBindings();
 }
 
 PLUGIN_API void OnCleanUI()

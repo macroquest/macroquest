@@ -18,7 +18,7 @@
 #include "LuaEvent.h"
 #include "LuaImGui.h"
 #include "LuaPlugin.h"
-#include "bindings/lua_MQBindings.h"
+#include "bindings/lua_Bindings.h"
 
 #include <mq/Plugin.h>
 #include <luajit.h>
@@ -41,8 +41,6 @@ bool lua_isyieldable(lua_State* L)
 	return (*(intptr_t*)((char*)L + offset) & 1);
 }
 #endif
-
-void RegisterBitwiseOps(sol::state_view state);
 
 namespace mq::lua {
 
@@ -133,22 +131,8 @@ LuaThread::LuaThread(this_is_private&&, LuaEnvironmentSettings* environment)
 
 void LuaThread::Initialize()
 {
-	RegisterBitwiseOps(m_globalState);
-
-	m_globalState["_old_dofile"] = m_globalState["dofile"];
-	m_globalState["dofile"] = [this](std::string_view file, sol::variadic_args args)
-	{
-		std::filesystem::path file_path = std::filesystem::path(m_luaEnvironmentSettings->luaDir) / file;
-		return m_globalState["_old_dofile"](file_path.string(), args);
-	};
-
-	// Replace os.exit with mq.exit
-	m_globalState["os"]["exit"] = LuaThread::lua_exit;
-
-	m_globalState["mqthread"] = LuaThreadRef(shared_from_this());
-	m_globalState["print"] = [](sol::variadic_args va, sol::this_state s) {
-		WriteChatColorf("%s", USERCOLOR_CHAT_CHANNEL, lua_join(s, "", va).c_str());
-	};
+	bindings::RegisterBindings_Globals(this, m_globalState);
+	bindings::RegisterBindings_Bit32(m_globalState);
 
 	m_globalState.add_package_loader(LuaThread::lua_PackageLoader);
 }
@@ -171,30 +155,9 @@ void LuaThread::EnableEvents()
 
 void LuaThread::InjectMQNamespace()
 {
-	if (m_mqTable.has_value())
-		return;
-
-	m_mqTable = m_globalState.create_table();
-	RegisterLuaBindings(*m_mqTable);
+	RegisterMQNamespace(m_globalState);
 
 	m_globalState["mq"] = *m_mqTable;
-}
-
-/*static*/ void LuaThread::lua_delay(sol::object delayObj, sol::object conditionObj, sol::this_state s)
-{
-	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
-	{
-		if (auto co_ptr = thread_ptr->GetCurrentCoroutine())
-		{
-			co_ptr->Delay(delayObj, conditionObj, s);
-		}
-	}
-}
-
-/*static*/ uint64_t LuaThread::lua_gettime(sol::this_state s)
-{
-	auto t = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch());
-	return t.count();
 }
 
 void LuaThread::Exit(LuaThreadExitReason reason)
@@ -219,28 +182,16 @@ void LuaThread::RemoveThread(uint32_t index)
 	m_threadTable[index] = sol::lua_nil;
 }
 
-/*static*/ void LuaThread::lua_exit(sol::this_state s)
+void LuaThread::RegisterMQNamespace(sol::state_view sv)
 {
-	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
+	if (!m_mqTable.has_value())
 	{
-		thread_ptr->Exit(LuaThreadExitReason::Exit);
+		auto mq = sv.create_table();
+		bindings::RegisterBindings_MQ(this, mq);
+		bindings::RegisterBindings_MQMacroData(mq);
+
+		m_mqTable = mq;
 	}
-}
-
-void LuaThread::RegisterLuaBindings(sol::table mq)
-{
-	MQ_RegisterLua_MQBindings(mq);
-
-	mq.set_function("gettime",                   &LuaThread::lua_gettime);
-	mq.set_function("delay",                     &LuaThread::lua_delay);
-	mq.set_function("exit",                      &LuaThread::lua_exit);
-	mq.set("luaDir",                             m_luaEnvironmentSettings->luaDir);
-	mq.set("moduleDir",                          m_luaEnvironmentSettings->moduleDir);
-
-	MQ_RegisterLua_Events(mq);
-	MQ_RegisterLua_ImGui(mq);
-
-	LuaPlugin::RegisterLua(mq);
 }
 
 int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
@@ -249,15 +200,10 @@ int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 
 	if (pkg == "mq")
 	{
-		if (!m_mqTable.has_value())
-		{
-			m_mqTable = sv.create_table();
-			RegisterLuaBindings(*m_mqTable);
-		}
-
+		RegisterMQNamespace(sv);
 		m_globalState.set("_mq_internal_table", *m_mqTable);
 
-		std::string script("return _mq_internal_table");
+		std::string_view script("return _mq_internal_table");
 		luaL_loadbuffer(sv, script.data(), script.size(), pkg.c_str());
 		return 1;
 	}
@@ -276,9 +222,9 @@ int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 	}
 	else if (pkg == "ImGui")
 	{
-		ImGui_RegisterLua(sv);
+		bindings::RegisterBindings_ImGui(sv);
 
-		std::string script("return ImGui");
+		std::string_view script("return ImGui");
 		luaL_loadbuffer(sv, script.data(), script.size(), pkg.c_str());
 		return 1;
 	}

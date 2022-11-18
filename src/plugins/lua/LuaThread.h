@@ -136,10 +136,13 @@ public:
 	LuaImGuiProcessor* GetImGuiProcessor() const { return m_imguiProcessor.get(); }
 	LuaEventProcessor* GetEventProcessor() const { return m_eventProcessor.get(); }
 
+	const std::string& GetLuaDir() const { return m_luaEnvironmentSettings->luaDir; }
+	const std::string& GetModuleDir() const { return m_luaEnvironmentSettings->moduleDir; }
+
 private:
 	RunResult RunOnce();
 
-	void RegisterLuaBindings(sol::table mq);
+	void RegisterMQNamespace(sol::state_view sv);
 	void Initialize();
 
 	void YieldAt(int count) const;
@@ -147,9 +150,6 @@ private:
 	int PackageLoader(const std::string& pkg, lua_State* L);
 
 	static int lua_PackageLoader(lua_State* L);
-	static void lua_exit(sol::this_state s);
-	static void lua_delay(sol::object delayObj, sol::object conditionObj, sol::this_state s);
-	static uint64_t lua_gettime(sol::this_state s);
 	static void lua_forceYield(lua_State* L, lua_Debug* D);
 
 private:
