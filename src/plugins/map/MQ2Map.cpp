@@ -42,8 +42,8 @@ bool HighlightPulseIncreasing = true;
 int HighlightPulseIndex = 0;
 int HighlightPulseDiff = HighlightSIDELEN / 10;
 extern MapObject* gpActiveMapObjects;
-MapFilterOption* mapfilterObjectOptions[100] = { nullptr };
-MapFilterOption* mapFilterOptions[100] = { nullptr };
+std::vector<MapFilterOption*> mapfilterObjectOptions;
+std::vector<MapFilterOption*> mapFilterOptions;
 
 #define INVALID_FLOOR ((float)-1.0e27)
 
@@ -97,7 +97,7 @@ MQSpawnSearch MapFilterNamed;
 MapFilterOption MapFilterInvalidOption =
 	{ nullptr,        false, MapFilter::Invalid, MQColor(255, 255, 255), MapFilter::Invalid, 0, nullptr };
 
-MapFilterOption MapFilterOptions[] =
+std::vector<MapFilterOption> MapFilterOptions =
 {
 	{ "All",          true,  MapFilter::All,			MQColor(),              MapFilter::Invalid, MapFilterOption::Toggle | MapFilterOption::NoColor | MapFilterOption::Regenerate,
 	                  "Enables/disables map functions" },

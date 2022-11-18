@@ -127,7 +127,7 @@ extern char maphideStr[MAX_STRING];
 extern MQSpawnSearch MapFilterCustom;
 extern MQSpawnSearch MapFilterNamed;
 
-extern MapFilterOption MapFilterOptions[];
+extern std::vector<MapFilterOption> MapFilterOptions;
 extern MapFilterOption MapFilterInvalidOption;
 
 constexpr int MAX_CLICK_STRINGS = 16;
@@ -136,8 +136,8 @@ extern char MapLeftClickString[MAX_CLICK_STRINGS][MAX_STRING];
 extern bool repeatMapshow;
 extern bool repeatMaphide;
 
-extern MapFilterOption* mapfilterObjectOptions[100];
-extern MapFilterOption* mapFilterOptions[100];
+extern std::vector<MapFilterOption*> mapfilterObjectOptions;
+extern std::vector<MapFilterOption*> mapFilterOptions;
 
 /* COMMANDS */
 void MapFilters(SPAWNINFO* pChar, char* szLine);

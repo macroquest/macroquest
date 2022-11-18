@@ -13,6 +13,8 @@
  */
 
 #include <mq/Plugin.h>
+#include <mq/base/Vector.h>
+#include <mq/base/String.h>
 
 #include "MQ2Map.h"
 #include "MapObject.h"
@@ -24,7 +26,6 @@
 
 #include <fmt/format.h>
 
-const int maxOptionsSize = 100;
 std::stack<MapFilterOption*> optionStack;
 
 int addMapLocX = 0;
@@ -1176,58 +1177,30 @@ char* FormatMarker(const char* szLine, char* szDest, size_t BufferSize)
 	return szDest;
 }
 
-static void DrawMapSetting_SingleFilter(MapFilter filter)
+static void BuildFilteredOptionArray(std::vector<MapFilterOption*> &options)
 {
-
-}
-
-static void BuildFilteredOptionArray(MapFilterOption* options[])
-{
-	for (int childIndex = 0; childIndex < maxOptionsSize; childIndex++)
+	for (size_t childIndex = 0; childIndex < options.size(); childIndex++)
 	{
-		if (options[childIndex] == nullptr)
-			break;
 		MapFilter parentFilter = options[childIndex]->RequiresOption;
 		if (parentFilter != MapFilter::Invalid)
 		{
-			MapFilterOption parent = GetMapFilterOption(parentFilter);
-			for (int parentIndex = 0; parentIndex < maxOptionsSize; parentIndex++)
+			MapFilterOption parentFilterOption = GetMapFilterOption(parentFilter);
+			for (size_t parentIndex = 0; parentIndex < options.size(); parentIndex++)
 			{
-				if (options[parentIndex] == nullptr) break;
-				if (std::strcmp(parent.szName, options[parentIndex]->szName) == 0)
+				if (std::strcmp(parentFilterOption.szName, options[parentIndex]->szName) == 0)
 				{
-					// Shift child to be immediately after parent
-					MapFilterOption* childToMove = options[childIndex];
-					if (childIndex < parentIndex)
-					{
-						// Moving child right until after parent
-						for (int i = childIndex; i < parentIndex; i++)
-						{
-							options[i] = options[i + 1];
-						}
-						options[parentIndex--] = childToMove;
-					}
-					else if(childIndex != parentIndex + 1) // If child is already immediately after parent, don't move
-					{
-						// Moving child left until after parent
-						for (int k = childIndex; k > parentIndex + 1; k--)
-						{
-							options[k] = options[k - 1];
-						}
-						options[parentIndex + 1] = childToMove;
-					}
-
-					// Shift child right if next element is also a child and higher alphabetically
-					for (int movedChildIndex = parentIndex + 1;
-						movedChildIndex < maxOptionsSize - 1 && 
+					// Find location to move child after parent, including sorting sub children alphabetically
+					int childNewIndex = parentIndex + 1;
+					for (size_t movedChildIndex = childNewIndex;
+						movedChildIndex < options.size() - 1 &&
 						options[movedChildIndex]->RequiresOption == options[movedChildIndex + 1]->RequiresOption &&
 						std::strcmp(options[movedChildIndex]->szName, options[movedChildIndex + 1]->szName) > 0;
 						movedChildIndex++)
 					{
-						MapFilterOption* temp = options[movedChildIndex + 1];
-						options[movedChildIndex + 1] = options[movedChildIndex];
-						options[movedChildIndex] = temp;
+						childNewIndex = movedChildIndex;
 					}
+
+					move(options, childIndex, childNewIndex);
 
 					// Adjust iterator for movement
 					if (childIndex < parentIndex)
@@ -1246,52 +1219,39 @@ static void BuildFilteredOptionArray(MapFilterOption* options[])
 static void BuildOptionArrays()
 {
 	// Build the lists once, cache them for future use
-	if (mapFilterOptions[0] != nullptr)
+	if (mapFilterOptions.size() > 0)
 		return;
 
 	// Copy MapFilterOptions
-	MapFilterOption* allFilterOptions[maxOptionsSize] = { };
-	for (int i = 0; i < maxOptionsSize; i++)
+	std::vector<MapFilterOption*> allFilterOptions;
+	for (MapFilterOption& option : MapFilterOptions)
 	{
-		if (MapFilterOptions[i].ThisFilter != MapFilter::Invalid && MapFilterOptions[i].ThisFilter != MapFilter::All)
-			allFilterOptions[i] = &MapFilterOptions[i];
+		if (option.ThisFilter != MapFilter::Invalid && option.ThisFilter != MapFilter::All)
+			allFilterOptions.push_back(&option);
 	}
 
 	// Sort copied array alphabetically
-	std::sort(allFilterOptions, allFilterOptions + maxOptionsSize,
+	std::sort(allFilterOptions.begin(), allFilterOptions.end(),
 		[](MapFilterOption* a, MapFilterOption* b) -> bool
 		{
 			if (a == nullptr || a->szName == nullptr) return false;
 			if (b == nullptr || b->szName == nullptr) return true;
-			for (int i = 0; ; i++)
-			{
-				if (tolower(a->szName[i]) < tolower(b->szName[i]))
-					return true;
-				if (tolower(a->szName[i]) > tolower(b->szName[i]))
-					return false;
-			}
-			return 0;
+			return ci_less()(a->szName, b->szName);
 		}
 	);
 
 	// Build filtered arrays by type
-	int iObj = 0;
-	int iOpt = 0;
-	for (int i = 0; i < maxOptionsSize; i++)
+	for (auto option : allFilterOptions)
 	{
-		if (allFilterOptions[i] == nullptr)
-			break;
-
-		if (allFilterOptions[i]->IsToggle() || allFilterOptions[i]->IsRadius())
+		if (option->IsToggle() || option->IsRadius())
 		{
-			if (allFilterOptions[i]->IsObject())
+			if (option->IsObject())
 			{
-				int temp = iObj;
-				mapfilterObjectOptions[iObj++] = allFilterOptions[i];
+				mapfilterObjectOptions.push_back(option);
 			}
 			else
 			{
-				mapFilterOptions[iOpt++] = allFilterOptions[i];
+				mapFilterOptions.push_back(option);
 			}
 		}
 	}
@@ -1445,9 +1405,8 @@ static void DrawMapSettings_Options()
 	{
 		ImGui::Indent();
 
-		for (int index = 0; mapfilterObjectOptions[index] != nullptr && mapfilterObjectOptions[index]->szName != nullptr; ++index)
+		for (auto option : mapfilterObjectOptions)
 		{
-			MapFilterOption* option = mapfilterObjectOptions[index];
 			if (option != nullptr && AddMapFilterOptionAsImGuiSetting(option))
 				regenerate = true;
 		}
@@ -1459,9 +1418,8 @@ static void DrawMapSettings_Options()
 	{
 		ImGui::Indent();
 
-		for (int index = 0; mapFilterOptions[index] != nullptr && mapFilterOptions[index]->szName != nullptr; ++index)
+		for (auto option : mapFilterOptions)
 		{
-			MapFilterOption* option = mapFilterOptions[index];
 			if (AddMapFilterOptionAsImGuiSetting(option))
 				regenerate = true;
 		}
