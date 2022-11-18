@@ -19,5 +19,7 @@
 namespace mq::lua {
 
 void MQ_RegisterLua_MQBindings(sol::table& lua);
+void MQ_Initialize_MQBindings();
+void MQ_Cleanup_MQBindings();
 
 } // namespace mq::lua

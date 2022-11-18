@@ -20,6 +20,7 @@
 #include "LuaPlugin.h"
 #include "LuaEvent.h"
 #include "LuaImGui.h"
+#include "bindings/lua_MQBindings.h"
 #include "imgui/ImGuiUtils.h"
 
 #include "imgui/ImGuiFileDialog.h"
@@ -1499,6 +1500,8 @@ PLUGIN_API void InitializePlugin()
 	AddSettingsPanel("plugins/Lua", DrawLuaSettings);
 
 	s_pluginInterface = new LuaPluginInterfaceImpl();
+
+	MQ_Initialize_MQBindings();
 }
 
 PLUGIN_API void ShutdownPlugin()
@@ -1523,6 +1526,8 @@ PLUGIN_API void ShutdownPlugin()
 
 	delete s_pluginInterface;
 	s_pluginInterface = nullptr;
+
+	MQ_Cleanup_MQBindings();
 }
 
 PLUGIN_API void OnCleanUI()
@@ -1558,9 +1563,6 @@ PLUGIN_API void OnPulse()
 	s_running.erase(std::remove_if(s_running.begin(), s_running.end(),
 		[](const std::shared_ptr<LuaThread>& thread) -> bool
 	{
-		// TODO: first do the OnPulse callbacks if they exist
-
-		// Now do the "main" functions
 		LuaThread::RunResult result = thread->Run();
 
 		if (result.first != sol::thread_status::yielded)
@@ -1592,6 +1594,8 @@ PLUGIN_API void OnPulse()
 
 		return false;
 	}), s_running.end());
+
+	LuaPlugin::OnPulse();
 
 	if (s_infoGC.count() > 0)
 	{

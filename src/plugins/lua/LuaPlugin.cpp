@@ -49,6 +49,13 @@ static std::tuple<int, sol::function> SetFunction(sol::table plugin, sol::functi
 
 static sol::object CopyObject(sol::object object, lua_State* state)
 {
+	// Try our best to copy things into another state. We can't generically handle everything,
+	// especially things like functions. But if we have the same state, just return the object
+	// back, which will allow us to call functions from outside our state, as long as we don't
+	// attempt to copy the object into a local state first.
+	if (object.lua_state() == state)
+		return object;
+
 	sol::type type = object.get_type();
 	if (type == sol::type::string)
 	{
@@ -66,19 +73,6 @@ static sol::object CopyObject(sol::object object, lua_State* state)
 	{
 		auto val = object.as<bool>();
 		return sol::make_object(state, val);
-	}
-
-	if (type == sol::type::function)
-	{
-		auto val = object.as<sol::function>();
-		sol::bytecode bc = val.dump();
-
-		auto result = sol::state_view(state).safe_script(bc.as_string_view(), sol::script_pass_on_error);
-		if (result.valid())
-		{
-			sol::function func = result;
-			return result;
-		}
 	}
 
 	if (type == sol::type::table)
@@ -1139,6 +1133,7 @@ void LuaPlugin::Stop(std::string_view name)
 	auto it = s_pluginMap.find(name);
 	if (it != s_pluginMap.end())
 	{
+		if (it->second) it->second->ShutdownPlugin();
 		s_pluginMap.erase(it);
 	}
 }

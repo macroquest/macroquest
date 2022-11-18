@@ -193,7 +193,7 @@ MQTypeVar lua_MQTypeVar::EvaluateMember(const char* index) const
 	// accept null pointers. They all seem to agree that an empty string is the same thing, though.
 	MQTypeVar var;
 	if (EvaluateMacroDataMember(m_self->Type, m_self->GetVarPtr(), var, m_member.c_str(), index ? index : "") == 1)
-		return std::move(var);
+		return var;
 
 	// can't guarantee result didn't Get modified, but we want to return nil if GetMember was false
 	return MQTypeVar();
@@ -581,8 +581,11 @@ static std::unique_ptr<CTextureAnimation> FindTextureAnimation(std::string_view 
 
 #pragma region MQ Data Bindings
 
+uint32_t s_luaSpawnBenchmark = 0;
+
 static sol::table lua_getAllSpawns(sol::this_state L)
 {
+	MQScopedBenchmark bm(s_luaSpawnBenchmark);
 	auto table = sol::state_view(L).create_table();
 
 	if (pSpawnManager)
@@ -600,8 +603,31 @@ static sol::table lua_getAllSpawns(sol::this_state L)
 	return table;
 }
 
+static sol::table lua_getAllSpawnInfo(sol::this_state L)
+{
+	MQScopedBenchmark bm(s_luaSpawnBenchmark);
+	auto table = sol::state_view(L).create_table();
+
+	for (int i = 0; i < gSpawnCount; ++i)
+	{
+		MQRank entry = EQP_DistArray[i];
+		PlayerClient* spawn = entry.VarPtr.Ptr;
+		if (spawn != nullptr)
+		{
+			auto lua_spawn = lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
+			table.add(sol::state_view(L).create_table_with(
+				"DistSquared", entry.Value.DistSq,
+				"SpawnVar", std::move(lua_spawn)
+			));
+		}
+	}
+
+	return table;
+}
+
 static sol::table lua_getFilteredSpawns(sol::this_state L, std::optional<sol::function> predicate)
 {
+	MQScopedBenchmark bm(s_luaSpawnBenchmark);
 	auto table = sol::state_view(L).create_table();
 
 	if (pSpawnManager && predicate)
@@ -615,6 +641,34 @@ static sol::table lua_getFilteredSpawns(sol::this_state L, std::optional<sol::fu
 				table.add(std::move(lua_spawn));
 
 			spawn = spawn->GetNext();
+		}
+	}
+
+	return table;
+}
+
+static sol::table lua_getFilteredSpawnInfo(sol::this_state L, std::optional<sol::function> predicate)
+{
+	MQScopedBenchmark bm(s_luaSpawnBenchmark);
+	auto table = sol::state_view(L).create_table();
+
+	if (predicate)
+	{
+		const auto& predicate_value = predicate.value();
+		for (int i = 0; i < gSpawnCount; ++i)
+		{
+			MQRank entry = EQP_DistArray[i];
+			PlayerClient* spawn = entry.VarPtr.Ptr;
+			if (spawn != nullptr)
+			{
+				auto lua_spawn = lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
+				bool result = predicate_value(lua_spawn);
+				if (result)
+					table.add(sol::state_view(L).create_table_with(
+						"DistSquared", entry.Value.DistSq,
+						"SpawnVar", std::move(lua_spawn)
+					));
+			}
 		}
 	}
 
@@ -656,8 +710,8 @@ static void serialize(sol::object obj, int prefix_count, fmt::appender& appender
 	case sol::type::number:
 		if (obj.is<int>())
 			fmt::format_to(appender, "{}", obj.as<int64_t>());
-
-		fmt::format_to(appender, "{}", obj.as<double>());
+		else
+			fmt::format_to(appender, "{}", obj.as<double>());
 		return;
 	case sol::type::boolean:
 		fmt::format_to(appender, "{}", obj.as<bool>());
@@ -666,30 +720,33 @@ static void serialize(sol::object obj, int prefix_count, fmt::appender& appender
 	{
 		if (obj.as<sol::table>().empty())
 			fmt::format_to(appender, "{{}}");
-
-		fmt::format_to(appender, "{{\n");
-
-		for (const auto& [key, val] : obj.as<sol::table>())
+		else
 		{
-			if (can_serialize(val))
-			{
-				if (key.is<std::string>())
-				{
-					fmt::format_to(appender, "{:\t>{}}\t{} = ", "", prefix_count, key.as<std::string>());
-				}
-				else
-				{
-					fmt::format_to(appender, "{:\t>{}}\t[", "", prefix_count);
-					serialize(key, prefix_count + 1, appender);
-					fmt::format_to(appender, "] = ");
-				}
+			fmt::format_to(appender, "{{\n");
 
-				serialize(val, prefix_count + 1, appender);
-				fmt::format_to(appender, ",\n");
+			for (const auto& [key, val] : obj.as<sol::table>())
+			{
+				if (can_serialize(val))
+				{
+					if (key.is<std::string>())
+					{
+						fmt::format_to(appender, "{:\t>{}}\t{} = ", "", prefix_count, key.as<std::string>());
+					}
+					else
+					{
+						fmt::format_to(appender, "{:\t>{}}\t[", "", prefix_count);
+						serialize(key, prefix_count + 1, appender);
+						fmt::format_to(appender, "] = ");
+					}
+
+					serialize(val, prefix_count + 1, appender);
+					fmt::format_to(appender, ",\n");
+				}
 			}
+
+			fmt::format_to(appender, "{:\t>{}}}}", "", prefix_count);
 		}
 
-		fmt::format_to(appender, "{:\t>{}}}}", "", prefix_count);
 		return;
 	}
 	// keep these here as reference. We don't want to serialize these things though, so they will all fall through to default (no serialization)
@@ -814,10 +871,22 @@ void MQ_RegisterLua_MQBindings(sol::table& mq)
 	// Direct Data Bindings
 	mq.set_function("getAllSpawns", &lua_getAllSpawns);
 	mq.set_function("getFilteredSpawns", &lua_getFilteredSpawns);
+	mq.set_function("getAllSpawnInfo", &lua_getAllSpawnInfo);
+	mq.set_function("getFilteredSpawnInfo", &lua_getFilteredSpawnInfo);
 
 	//----------------------------------------------------------------------------
 	// Serialization Bindings
 	mq.set_function("pickle", &lua_pickle);
+}
+
+void MQ_Initialize_MQBindings()
+{
+	s_luaSpawnBenchmark = AddMQ2Benchmark("Lua Spawn Info");
+}
+
+void MQ_Cleanup_MQBindings()
+{
+	RemoveMQ2Benchmark(s_luaSpawnBenchmark);
 }
 
 } // namespace mq::lua
