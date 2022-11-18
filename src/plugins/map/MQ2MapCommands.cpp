@@ -26,6 +26,8 @@
 
 #include <fmt/format.h>
 
+#include "imgui/ImGuiUtils.h"
+
 std::stack<MapFilterOption*> optionStack;
 
 int addMapLocX = 0;
@@ -1315,23 +1317,19 @@ static bool AddMapFilterOptionAsImGuiSetting(MapFilterOption* option)
 	if (!nested && requirement.szName != nullptr && requirement.ThisFilter != MapFilter::All)
 	{
 		ImGui::SameLine();
-		ImGui::TextDisabled("(?)");
-		if (ImGui::IsItemHovered())
-		{
-			ImGui::BeginTooltip();
-			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-			
-			std::string requireString = "Requires: ";
-			if (requirement.IsObject() != option->IsObject())
-				requireString += requirement.IsObject() ? "Object Filters -> " : "Options -> ";
+		
+		mq::imgui::HelpMarker(
+			[&]() -> const char*
+			{
+				std::string requireString = "Requires: ";
+				if (requirement.IsObject() != option->IsObject())
+					requireString += requirement.IsObject() ? "Object Filters -> " : "Options -> ";
 
-			requireString += std::string(requirement.szName);
-			char* requireArray = &requireString[0];
-
-			ImGui::TextUnformatted(requireArray);
-			ImGui::PopTextWrapPos();
-			ImGui::EndTooltip();
-		}
+				requireString += std::string(requirement.szName);
+				char* requireArray = &requireString[0];
+				return requireArray;
+			}
+		);
 	}
 
 	if (option->IsRadius())
