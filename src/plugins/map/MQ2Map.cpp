@@ -265,8 +265,7 @@ PLUGIN_API void InitializePlugin()
 	{
 		MapFilterOption& option = MapFilterOptions[i];
 
-		if (option.IsToggle())
-			option.Enabled = GetPrivateProfileBool("Map Filters", option.szName, option.Default, INIFileName);
+		option.Enabled = GetPrivateProfileBool("Map Filters", option.szName, option.Default, INIFileName);
 
 		if (option.IsRadius())
 			option.Radius = GetPrivateProfileFloat("Map Filters", option.szName, option.Default, INIFileName);
