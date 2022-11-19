@@ -1309,23 +1309,26 @@ static bool AddMapFilterOptionAsImGuiSetting(MapFilterOption* option)
 	if (!isRequirementMet)
 		ImGui::BeginDisabled();
 
+	std::string radiusName = "Radius";
 	if (option->IsToggle())
 	{
 		if (ImGui::Checkbox(option->szName, &option->Enabled))
 			changed = true;
-		if (option->IsRadius())
-		{
-			ImGui::SameLine();
-			ImGui::SetNextItemWidth(50);
-			if (ImGui::DragFloat("Radius", &option->Radius))
-				changed = true;
-		}
 	}
-	else if (option->IsRadius())
+	if (option->IsRadius())
 	{
-		ImGui::SetNextItemWidth(50);
-		if (ImGui::DragFloat(option->szName, &option->Radius))
+		if (option->IsToggle())
+			ImGui::SameLine();
+		else
+			radiusName = option->szName;
+
+		ImGui::SetNextItemWidth(40);
+		if (ImGui::InputFloat(radiusName.c_str(), &option->Radius, 0.0f, 0.0f, "%.0f"))
+		{
+			if (option->Radius < 0)
+				option->Radius = 0;
 			changed = true;
+		}
 	}
 
 	// Draw a tooltip (?) if this option has requirements from another option list
