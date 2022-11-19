@@ -672,7 +672,7 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 
 		std::string_view labelStr;
 		if (label[0] == 0)
-			labelStr = MapLocs[MapLocs.size() - 1]->GetLabelText();
+			labelStr = gMapLocs[gMapLocs.size() - 1]->GetLabelText();
 		else
 			labelStr = label;
 
@@ -1612,9 +1612,9 @@ static bool IsMapLocsStyleOverridden()
 
 static bool IsAnyMapLocSelected()
 {
-	for (size_t i = 0; i < MapLocs.size(); i++)
+	for (size_t i = 0; i < gMapLocs.size(); i++)
 	{
-		if (MapLocs[i]->m_isSelected)
+		if (gMapLocs[i]->m_isSelected)
 		{
 			return true;
 		}
@@ -1625,22 +1625,22 @@ static bool IsAnyMapLocSelected()
 
 static void DeleteSelectedMapLocs()
 {
-	for (size_t i = 0; i < MapLocs.size(); i++)
+	for (size_t i = 0; i < gMapLocs.size(); i++)
 	{
-		if (MapLocs[i]->m_isSelected)
+		if (gMapLocs[i]->m_isSelected)
 		{
-			DeleteMapLoc(GetMapLocByIndex(i + 1));
+			DeleteMapLoc(gMapLocs[i--]);
 		}
 	} 
 }
 
 static void ResetSelectedMapLocsToDefault()
 {
-	for (size_t i = 0; i < MapLocs.size(); i++)
+	for (size_t i = 0; i < gMapLocs.size(); i++)
 	{
-		if (MapLocs[i]->m_isSelected)
+		if (gMapLocs[i]->m_isSelected)
 		{
-			MapObjectMapLoc* thisMapLoc = GetMapLocByIndex(i + 1);
+			MapObjectMapLoc* thisMapLoc = gMapLocs[i];
 			thisMapLoc->SetCreatedFromDefaults(true);
 			thisMapLoc->UpdateFromParams(gDefaultMapLocParams);
 		}
@@ -1649,27 +1649,22 @@ static void ResetSelectedMapLocsToDefault()
 
 static void ApplyOverridesToSelected(MapLocParams params)
 {
-	for (size_t i = 0; i < MapLocs.size(); i++)
+	for (size_t i = 0; i < gMapLocs.size(); i++)
 	{
-		if (MapLocs[i]->m_isSelected)
+		if (gMapLocs[i]->m_isSelected)
 		{
-			MapObjectMapLoc* thisMapLoc = GetMapLocByIndex(i + 1);
+			MapObjectMapLoc* thisMapLoc = gMapLocs[i];
 			thisMapLoc->SetCreatedFromDefaults(false);
 			thisMapLoc->UpdateFromParams(params);
 		}
 	}
 }
 
-static void MapLocSelected(MapObjectMapLoc* mapLoc)
-{
-	mapLoc->Update(true);
-}
-
 static void DrawMapSettings_MapLocs()
 {
 	bool regenerate = false;
 
-	if (LocationsMap.size() < 1)
+	if (gMapLocs.size() < 1)
 	{
 		ImGui::BeginDisabled();
 	}
@@ -1677,7 +1672,7 @@ static void DrawMapSettings_MapLocs()
 	{
 		ImGui::OpenPopup("Delete?");
 	}
-	if (LocationsMap.size() < 1)
+	if (gMapLocs.size() < 1)
 	{
 		ImGui::EndDisabled();
 	}
@@ -1844,19 +1839,19 @@ static void DrawMapSettings_MapLocs()
 	ImGui::SameLine();
 	if (ImGui::Button("Select All"))
 	{
-		for (size_t i = 0; i < MapLocs.size(); i++)
+		for (size_t i = 0; i < gMapLocs.size(); i++)
 		{
-			MapLocs[i]->m_isSelected = true;
-			MapLocSelected(MapLocs[i]);
+			gMapLocs[i]->m_isSelected = true;
+			gMapLocs[i]->Update(true);
 		}
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("Deselect All"))
 	{
-		for (size_t i = 0; i < MapLocs.size(); i++)
+		for (size_t i = 0; i < gMapLocs.size(); i++)
 		{
-			MapLocs[i]->m_isSelected = false;
-			MapLocSelected(MapLocs[i]);
+			gMapLocs[i]->m_isSelected = false;
+			gMapLocs[i]->Update(true);
 		}
 	}
 
@@ -1868,25 +1863,25 @@ static void DrawMapSettings_MapLocs()
 		ImGui::TableSetupColumn("Uses Defaults?");
 		ImGui::TableHeadersRow();
 
-		for (size_t i = 0; i < MapLocs.size(); i++)
+		for (size_t i = 0; i < gMapLocs.size(); i++)
 		{
 			ImGui::TableNextRow();
 			ImGui::TableNextColumn();
-			if (ImGui::Selectable(std::to_string(i + 1).c_str(), &MapLocs[i]->m_isSelected, ImGuiSelectableFlags_SpanAllColumns))
+			if (ImGui::Selectable(std::to_string(i + 1).c_str(), &gMapLocs[i]->m_isSelected, ImGuiSelectableFlags_SpanAllColumns))
 			{
-				MapLocSelected(MapLocs[i]);
+				gMapLocs[i]->Update(true);
 			}
 
 			ImGui::TableNextColumn();
 			std::stringstream locStream;
-			locStream << MapLocs[i]->GetPosition().Y << ", " << MapLocs[i]->GetPosition().X << ", " << MapLocs[i]->GetPosition().Z;
+			locStream << gMapLocs[i]->GetPosition().Y << ", " << gMapLocs[i]->GetPosition().X << ", " << gMapLocs[i]->GetPosition().Z;
 			ImGui::Text(locStream.str().c_str());
 
 			ImGui::TableNextColumn();
-			ImGui::Text(MapLocs[i]->GetLabelText());
+			ImGui::Text(gMapLocs[i]->GetLabelText());
 
 			ImGui::TableNextColumn();
-			if (MapLocs[i]->IsCreatedFromDefaults())
+			if (gMapLocs[i]->IsCreatedFromDefaults())
 				ImGui::Text("Yes");
 			else
 				ImGui::Text("No");

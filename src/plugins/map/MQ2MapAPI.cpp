@@ -745,7 +745,7 @@ void MapRemoveLocation(char* szLine)
 	else // remove by index
 	{
 		int index = static_cast<int>(std::stof(yloc));
-		loc = GetMapLocByIndex(index);
+		loc = gMapLocs[index - 1];
 
 		if (!loc)
 		{

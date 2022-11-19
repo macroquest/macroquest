@@ -18,8 +18,7 @@ extern MapObject* pLastTarget;
 MapObject* gpActiveMapObjects = nullptr;
 
 MapLocParams gDefaultMapLocParams;
-std::map<std::string, MapObjectMapLoc*> LocationsMap;
-std::vector<MapObjectMapLoc*> MapLocs;
+std::vector<MapObjectMapLoc*> gMapLocs;
 MapLocParams gOverrideMapLocParams;
 
 //============================================================================
@@ -968,8 +967,7 @@ void MapObjects_Clear()
 {
 	GroundItemMap.clear();
 	SpawnMap.clear();
-	LocationsMap.clear();
-	MapLocs.clear();
+	gMapLocs.clear();
 
 	while (gpActiveMapObjects)
 	{
@@ -1058,7 +1056,7 @@ void ResetMapLocOverrides()
 
 void UpdateDefaultMapLocInstances()
 {
-	for (const auto& [tag, obj] : LocationsMap)
+	for (auto obj : gMapLocs)
 	{
 		if (obj->IsCreatedFromDefaults())
 		{
@@ -1263,51 +1261,40 @@ void MapObjectMapLoc::UpdateText()
 
 //----------------------------------------------------------------------------
 
-MapObjectMapLoc* GetMapLocByIndex(size_t index)
-{
-	--index;
-
-	if (index >= MapLocs.size())
-		return nullptr;
-
-	return MapLocs[index];
-}
-
 MapObjectMapLoc* GetMapLocByTag(const std::string& tag)
 {
-	auto iter = LocationsMap.find(tag);
-	if (iter == LocationsMap.end())
-		return nullptr;
+	for (auto maploc : gMapLocs)
+	{
+		if (!strcmp(maploc->GetTag().c_str(), tag.c_str()))
+			return maploc;
+	}
 
-	return iter->second;
+	return nullptr;
 }
 
 void DeleteAllMapLocs()
 {
-	LocationsMap.clear();
-
-	for (MapObjectMapLoc* loc : MapLocs)
+	for (MapObjectMapLoc* loc : gMapLocs)
 	{
 		delete loc;
 	}
 
-	MapLocs.clear();
+	gMapLocs.clear();
 }
 
 void UpdateMapLocIndexes()
 {
-	for (int i = 0; i < (int)MapLocs.size(); ++i)
+	for (int i = 0; i < (int)gMapLocs.size(); ++i)
 	{
-		MapLocs[i]->SetIndex(i + 1);
+		gMapLocs[i]->SetIndex(i + 1);
 	}
 }
 
 void DeleteMapLoc(MapObjectMapLoc* mapLoc)
 {
-	MapLocs.erase(
-		std::remove(MapLocs.begin(), MapLocs.end(), mapLoc),
-		MapLocs.end());
-	LocationsMap.erase(mapLoc->GetTag());
+	gMapLocs.erase(
+		std::remove(gMapLocs.begin(), gMapLocs.end(), mapLoc),
+		gMapLocs.end());
 
 	delete mapLoc;
 
@@ -1321,9 +1308,8 @@ void MakeMapLoc(const MapLocParams& params, const std::string& label, const std:
 	
 	newLoc->SetPosition(pos);
 
-	MapLocs.push_back(newLoc);
-	LocationsMap.emplace(tag, newLoc);
-	newLoc->SetIndex(static_cast<int>(MapLocs.size()));
+	gMapLocs.push_back(newLoc);
+	newLoc->SetIndex(static_cast<int>(gMapLocs.size()));
 	newLoc->SetLabel(label);
 
 	newLoc->PostInit();

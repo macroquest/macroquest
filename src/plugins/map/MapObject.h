@@ -229,8 +229,7 @@ private:
 	MapLocParams		  m_mapLocParams;
 };
 
-extern std::map<std::string, MapObjectMapLoc*> LocationsMap;
-extern std::vector<MapObjectMapLoc*> MapLocs;
+extern std::vector<MapObjectMapLoc*> gMapLocs;
 extern MapLocParams gOverrideMapLocParams;
 
 void UpdateDefaultMapLocParams();
@@ -240,7 +239,6 @@ void ResetMapLocOverrides();
 void MakeMapLoc(const MapLocParams& params, const std::string& label,
 	const std::string& tag, const CVector3& pos, bool isDefault);
 
-MapObjectMapLoc* GetMapLocByIndex(size_t index);
 MapObjectMapLoc* GetMapLocByTag(const std::string& tag);
 
 void DeleteAllMapLocs();
