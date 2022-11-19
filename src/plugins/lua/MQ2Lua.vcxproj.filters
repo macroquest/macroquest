@@ -60,7 +60,10 @@
     <ClCompile Include="bindings\lua_ImGuiWidgets.cpp">
       <Filter>Source Files\bindings</Filter>
     </ClCompile>
-    <ClCompile Include="bindings\lua_ImGuiGlobals.cpp">
+    <ClCompile Include="bindings\lua_ImGuiUserTypes.cpp">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="bindings\lua_ImGuiEnums.cpp">
       <Filter>Source Files\bindings</Filter>
     </ClCompile>
   </ItemGroup>

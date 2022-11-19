@@ -25,94 +25,11 @@ namespace mq::lua::bindings {
 
 //============================================================================
 
-#pragma region User Types
-static void InitUserTypes(sol::state_view lua)
-{
-	// ImVec2
-	lua.new_usertype<ImVec2>(
-		"ImVec2"                                        , sol::constructors<ImVec2(), ImVec2(float, float)>(),
-		"x"                                             , &ImVec2::x,
-		"y"                                             , &ImVec2::y
-	);
-
-	// ImVec4
-	lua.new_usertype<ImVec4>(
-		"ImVec4"                                        , sol::constructors<ImVec4(), ImVec4(float, float, float, float)>(),
-		"x"                                             , &ImVec4::x,
-		"y"                                             , &ImVec4::y,
-		"z"                                             , &ImVec4::z,
-		"w"                                             , &ImVec4::w
-	);
-
-	// ImGuiStyle
-	lua.new_usertype<ImGuiStyle>(
-		"ImGuiStyle"                                    , sol::no_constructor,
-		"Alpha"                                         , &ImGuiStyle::Alpha,
-		"WindowPadding"                                 , &ImGuiStyle::WindowPadding,
-		"WindowRounding"                                , &ImGuiStyle::WindowRounding,
-		"WindowBorderSize"                              , &ImGuiStyle::WindowBorderSize,
-		"WindowMinSize"                                 , &ImGuiStyle::WindowMinSize,
-		"WindowTitleAlign"                              , &ImGuiStyle::WindowTitleAlign,
-		"WindowMenuButtonPosition"                      , &ImGuiStyle::WindowMenuButtonPosition,
-		"ChildRounding"                                 , &ImGuiStyle::ChildRounding,
-		"ChildBorderSize"                               , &ImGuiStyle::ChildBorderSize,
-		"PopupRounding"                                 , &ImGuiStyle::PopupRounding,
-		"PopupBorderSize"                               , &ImGuiStyle::PopupBorderSize,
-		"FramePadding"                                  , &ImGuiStyle::FramePadding,
-		"FrameRounding"                                 , &ImGuiStyle::FrameRounding,
-		"FrameBorderSize"                               , &ImGuiStyle::FrameBorderSize,
-		"ItemSpacing"                                   , &ImGuiStyle::ItemSpacing,
-		"ItemInnerSpacing"                              , &ImGuiStyle::ItemInnerSpacing,
-		"CellPadding"                                   , &ImGuiStyle::CellPadding,
-		"TouchExtraPadding"                             , &ImGuiStyle::TouchExtraPadding,
-		"IndentSpacing"                                 , &ImGuiStyle::IndentSpacing,
-		"ColumnsMinSpacing"                             , &ImGuiStyle::ColumnsMinSpacing,
-		"ScrollbarSize"                                 , &ImGuiStyle::ScrollbarSize,
-		"ScrollbarRounding"                             , &ImGuiStyle::ScrollbarRounding,
-		"GrabMinSize"                                   , &ImGuiStyle::GrabMinSize,
-		"GrabRounding"                                  , &ImGuiStyle::GrabRounding,
-		"LogSliderDeadzone"                             , &ImGuiStyle::LogSliderDeadzone,
-		"TabRounding"                                   , &ImGuiStyle::TabRounding,
-		"TabBorderSize"                                 , &ImGuiStyle::TabBorderSize,
-		"TabMinWidthForCloseButton"                     , &ImGuiStyle::TabMinWidthForCloseButton,
-		"ColorButtonPosition"                           , &ImGuiStyle::ColorButtonPosition,
-		"ButtonTextAlign"                               , &ImGuiStyle::ButtonTextAlign,
-		"SelectableTextAlign"                           , &ImGuiStyle::SelectableTextAlign,
-		"DisplayWindowPadding"                          , &ImGuiStyle::DisplayWindowPadding,
-		"DisplaySafeAreaPadding"                        , &ImGuiStyle::DisplaySafeAreaPadding,
-		"MouseCursorScale"                              , &ImGuiStyle::MouseCursorScale,
-		"AntiAliasedLines"                              , &ImGuiStyle::AntiAliasedLines,
-		"AntiAliasedLinesUseTex"                        , &ImGuiStyle::AntiAliasedLinesUseTex,
-		"AntiAliasedFill"                               , &ImGuiStyle::AntiAliasedFill,
-		"CurveTessellationTol"                          , &ImGuiStyle::CurveTessellationTol,
-		"CircleSegmentMaxError"                         , &ImGuiStyle::CircleTessellationMaxError,
-		"TabBorderSize"                                 , &ImGuiStyle::TabBorderSize,
-		"Colors"                                        , &ImGuiStyle::Colors,
-
-		// Deprecated
-		"CircleSegmentMaxError"                         , &ImGuiStyle::CircleTessellationMaxError
-	);
-
-	// ImGuiListClipper
-	lua.new_usertype<ImGuiListClipper>(
-		"ImGuiListClipper"                              ,
-		"Begin"                                         , sol::overload(
-				[](ImGuiListClipper& mthis, int items_count) { mthis.Begin(items_count); },
-				&ImGuiListClipper::Begin
-			),
-		"End"                                           , &ImGuiListClipper::End,
-		"Step"                                          , &ImGuiListClipper::Step,
-		"DisplayStart"                                  , &ImGuiListClipper::DisplayStart,
-		"DisplayEnd"                                    , &ImGuiListClipper::DisplayEnd);
-}
-#pragma endregion
-
-#pragma region Enumerations
-static void InitEnums(sol::state_view lua)
+void RegisterBindings_ImGuiEnums(sol::state_view lua)
 {
 	// Window Flags
 	lua.new_enum("ImGuiWindowFlags",
-		"None"                       , ImGuiWindowFlags_None,
+		"None"                         , ImGuiWindowFlags_None,
 		"NoTitleBar"                   , ImGuiWindowFlags_NoTitleBar,
 		"NoResize"                     , ImGuiWindowFlags_NoResize,
 		"NoMove"                       , ImGuiWindowFlags_NoMove,
@@ -631,26 +548,38 @@ static void InitEnums(sol::state_view lua)
 		"NotAllowed"                   , ImGuiMouseCursor_NotAllowed,
 		"COUNT"                        , ImGuiMouseCursor_COUNT
 	);
-}
-#pragma endregion
 
-void RegisterBindings_ImGuiGlobals(sol::state_view state)
-{
-	InitEnums(state);
-	InitUserTypes(state);
-
-	state.new_usertype<ImGuiTableColumnSortSpecs>(
-		"ImGuiTableSortSpecsColumn"    , sol::no_constructor,
-		"ColumnUserID"                 , sol::readonly(&ImGuiTableColumnSortSpecs::ColumnUserID),
-		"ColumnIndex"                  , sol::readonly(&ImGuiTableColumnSortSpecs::ColumnIndex),
-		"SortOrder"                    , sol::readonly(&ImGuiTableColumnSortSpecs::SortOrder),
-		"SortDirection"                , sol::property([](ImGuiTableColumnSortSpecs* spec) { return spec->SortDirection;})
+	// ImDrawFlags
+	lua.new_enum("ImDrawFlags",
+		"None"                         , ImDrawFlags_None,
+		"Closed"                       , ImDrawFlags_Closed,
+		"RoundCornersTopLeft"          , ImDrawFlags_RoundCornersTopLeft,
+		"RoundCornersTopRight"         , ImDrawFlags_RoundCornersTopRight,
+		"RoundCornersBottomLeft"       , ImDrawFlags_RoundCornersBottomLeft,
+		"RoundCornersBottomRight"      , ImDrawFlags_RoundCornersBottomRight,
+		"RoundCornersNone"             , ImDrawFlags_RoundCornersNone,
+		"RoundCornersTop"              , ImDrawFlags_RoundCornersTop,
+		"RoundCornersBottom"           , ImDrawFlags_RoundCornersBottom,
+		"RoundCornersLeft"             , ImDrawFlags_RoundCornersLeft,
+		"RoundCornersRight"            , ImDrawFlags_RoundCornersRight,
+		"RoundCornersAll"              , ImDrawFlags_RoundCornersAll
 	);
-	state.new_usertype<ImGuiTableSortSpecs>(
-		"ImGuiTableSortSpecs"          , sol::no_constructor,
-		"Specs"                        , [](ImGuiTableSortSpecs* spec, int index) -> ImGuiTableColumnSortSpecs* { if (index > 0 && index <= spec->SpecsCount) return (ImGuiTableColumnSortSpecs*)&spec->Specs[index - 1]; return nullptr; },
-		"SpecsCount"                   , sol::readonly(&ImGuiTableSortSpecs::SpecsCount),
-		"SpecsDirty"                   , &ImGuiTableSortSpecs::SpecsDirty
+
+	// ImDrawListFlags
+	lua.new_enum("ImDrawListFlags",
+		"None", ImDrawListFlags_None,
+		"AntiAliasedLines", ImDrawListFlags_AntiAliasedLines,
+		"AntiAliasedLinesUseTex", ImDrawListFlags_AntiAliasedLinesUseTex,
+		"AntiAliasedFill", ImDrawListFlags_AntiAliasedFill,
+		"AllowVtxOffset", ImDrawListFlags_AllowVtxOffset
+	);
+
+	// ImGuiButtonFlags
+	lua.new_enum("ImGuiButtonFlags",
+		"None"                         , ImGuiButtonFlags_None,
+		"MouseButtonLeft"              , ImGuiButtonFlags_MouseButtonLeft,
+		"MouseButtonRight"             , ImGuiButtonFlags_MouseButtonRight,
+		"MouseButtonMiddle"            , ImGuiButtonFlags_MouseButtonMiddle
 	);
 }
 

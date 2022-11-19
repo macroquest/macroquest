@@ -28,7 +28,8 @@ namespace mq::lua::bindings {
 
 void RegisterBindings_ImGuiCustom(sol::table& ImGui);
 void RegisterBindings_ImGuiWidgets(sol::table& ImGui);
-void RegisterBindings_ImGuiGlobals(sol::state_view state);
+void RegisterBindings_ImGuiUserTypes(sol::state_view state);
+void RegisterBindings_ImGuiEnums(sol::state_view state);
 
 void lua_addimgui(std::string_view name, sol::function function, sol::this_state s);
 void lua_removeimgui(std::string_view name, sol::this_state s);
@@ -69,7 +70,6 @@ static bool IsWindowFocused()                                                   
 static bool IsWindowFocused(int flags)                                                              { return ImGui::IsWindowFocused(static_cast<ImGuiFocusedFlags>(flags)); }
 static bool IsWindowHovered()                                                                       { return ImGui::IsWindowHovered(); }
 static bool IsWindowHovered(int flags)                                                              { return ImGui::IsWindowHovered(static_cast<ImGuiHoveredFlags>(flags)); }
-static ImDrawList* GetWindowDrawList()                                                              { return nullptr; /* TODO: GetWindowDrawList() ==> UNSUPPORTED */ }
 static float GetWindowDpiScale()                                                                    { return ImGui::GetWindowDpiScale(); }
 static ImGuiViewport* GetWindowViewport()                                                           { return nullptr; /* TODO: GetWindowViewport() ==> UNSUPPORTED */ }
 static std::tuple<float, float> GetWindowPos()                                                      { const auto vec2{ ImGui::GetWindowPos() };  return std::make_tuple(vec2.x, vec2.y); }
@@ -147,6 +147,9 @@ static std::tuple<float, float> GetFontTexUvWhitePixel()                        
 static int GetColorU32(int idx, float alphaMul)                                                     { return ImGui::GetColorU32(static_cast<ImGuiCol>(idx), alphaMul); }
 static int GetColorU32(float colR, float colG, float colB, float colA)                              { return ImGui::GetColorU32({ colR, colG, colB, colA }); }
 static int GetColorU32(int col)                                                                     { return ImGui::GetColorU32(ImU32(col)); }
+static int GetColorU32(const ImVec4& imvec4)                                                        { return ImColor(imvec4); }
+
+static int GetColorU32_Int(int colR, int colG, int colB, int colA)                                  { return IM_COL32(colR, colG, colB, colA); }
 
 // Parameters stacks (current window)
 static void PushItemWidth(float itemWidth)                                                          { ImGui::PushItemWidth(itemWidth); }
@@ -251,7 +254,7 @@ static bool IsRectVisible(float sizeX, float sizeY)                             
 static bool IsRectVisible(float minX, float minY, float maxX, float maxY)                           { return ImGui::IsRectVisible({ minX, minY }, { maxX, maxY }); }
 static double GetTime()                                                                             { return ImGui::GetTime(); }
 static int GetFrameCount()                                                                          { return ImGui::GetFrameCount(); }
-/* TODO: GetBackgroundDrawList(), GetForeGroundDrawList(), GetDrawListSharedData() ==> UNSUPPORTED */
+/* TODO: GetDrawListSharedData() ==> UNSUPPORTED */
 static std::string GetStyleColorName(int idx)                                                       { return std::string(ImGui::GetStyleColorName(static_cast<ImGuiCol>(idx))); }
 /* TODO: SetStateStorage(), GetStateStorage(), CalcListClipping() ==> UNSUPPORTED */
 static bool BeginChildFrame(unsigned int id, float sizeX, float sizeY)                              { return ImGui::BeginChildFrame(id, { sizeX, sizeY }); }
@@ -345,6 +348,8 @@ static bool IsMouseDragging(int button, float lock_threshold)                   
 static std::tuple<float, float> GetMouseDragDelta()                                                 { const auto vec2{ ImGui::GetMouseDragDelta() }; return std::make_tuple(vec2.x, vec2.y); }
 static std::tuple<float, float> GetMouseDragDelta(int button)                                       { const auto vec2{ ImGui::GetMouseDragDelta(static_cast<ImGuiMouseButton>(button)) }; return std::make_tuple(vec2.x, vec2.y); }
 static std::tuple<float, float> GetMouseDragDelta(int button, float lock_threshold)                 { const auto vec2{ ImGui::GetMouseDragDelta(static_cast<ImGuiMouseButton>(button), lock_threshold) }; return std::make_tuple(vec2.x, vec2.y); }
+static ImVec2 GetMouseDragDeltaVec()                                                                { return ImGui::GetMouseDragDelta(); }
+static ImVec2 GetMouseDragDeltaVec(int button)                                                      { return ImGui::GetMouseDragDelta(static_cast<ImGuiMouseButton>(button)); }
 static void ResetMouseDragDelta()                                                                   { ImGui::ResetMouseDragDelta(); }
 static void ResetMouseDragDelta(int button)                                                         { ImGui::ResetMouseDragDelta(static_cast<ImGuiMouseButton>(button)); }
 static int GetMouseCursor()                                                                         { return ImGui::GetMouseCursor(); }
@@ -369,7 +374,8 @@ void RegisterBindings_ImGui(sol::state_view state)
 	if (ImGui != sol::lua_nil) return;
 
 	ImGui = state.create_named_table("ImGui");
-	bindings::RegisterBindings_ImGuiGlobals(state);
+	bindings::RegisterBindings_ImGuiEnums(state);
+	bindings::RegisterBindings_ImGuiUserTypes(state);
 
 	ImGui.set_function("Register", lua_addimgui);
 	ImGui.set_function("Unregister", lua_removeimgui);
@@ -378,7 +384,8 @@ void RegisterBindings_ImGui(sol::state_view state)
 
 	// Main
 
-	// GetIO()
+	// IO
+	ImGui.set_function("GetIO", ImGui::GetIO);
 	ImGui.set_function("GetStyle", GetStyle);
 
 	// Windows
@@ -410,9 +417,12 @@ void RegisterBindings_ImGui(sol::state_view state)
 		sol::resolve<bool()>(IsWindowHovered),
 		sol::resolve<bool(int)>(IsWindowHovered)
 	));
+	ImGui.set_function("GetWindowDrawList", ImGui::GetWindowDrawList);
 	ImGui.set_function("GetWindowDpiScale", GetWindowDpiScale);
 	ImGui.set_function("GetWindowPos", GetWindowPos);
+	ImGui.set_function("GetWindowPosVec", ImGui::GetWindowPos);
 	ImGui.set_function("GetWindowSize", GetWindowSize);
+	ImGui.set_function("GetWindowSizeVec", ImGui::GetWindowSize);
 	ImGui.set_function("GetWindowWidth", GetWindowWidth);
 	ImGui.set_function("GetWindowHeight", GetWindowHeight);
 
@@ -461,6 +471,7 @@ void RegisterBindings_ImGui(sol::state_view state)
 	// Content Region
 	ImGui.set_function("GetContentRegionMax", GetContentRegionMax);
 	ImGui.set_function("GetContentRegionAvail", GetContentRegionAvail);
+	ImGui.set_function("GetContentRegionAvailVec", ImGui::GetContentRegionAvail);
 	ImGui.set_function("GetWindowContentRegionMin", GetWindowContentRegionMin);
 	ImGui.set_function("GetWindowContentRegionMax", GetWindowContentRegionMax);
 	ImGui.set_function("GetWindowContentRegionWidth", GetWindowContentRegionWidth);
@@ -516,8 +527,12 @@ void RegisterBindings_ImGui(sol::state_view state)
 	ImGui.set_function("GetColorU32", sol::overload(
 		sol::resolve<int(int, float)>(GetColorU32),
 		sol::resolve<int(float, float, float, float)>(GetColorU32),
-		sol::resolve<int(int)>(GetColorU32)
-	));
+		sol::resolve<int(int)>(GetColorU32),
+		sol::resolve<int(const ImVec4&)>(GetColorU32))
+	);
+
+	// global "macro"
+	state.set_function("IM_COL32", GetColorU32_Int);
 
 	// Parameters stacks (current window)
 	ImGui.set_function("PushItemWidth", PushItemWidth);
@@ -562,6 +577,7 @@ void RegisterBindings_ImGui(sol::state_view state)
 	ImGui.set_function("SetCursorPosY", SetCursorPosY);
 	ImGui.set_function("GetCursorStartPos", GetCursorStartPos);
 	ImGui.set_function("GetCursorScreenPos", GetCursorScreenPos);
+	ImGui.set_function("GetCursorScreenPosVec", &ImGui::GetCursorScreenPos);
 	ImGui.set_function("SetCursorScreenPos", SetCursorScreenPos);
 	ImGui.set_function("AlignTextToFramePadding", AlignTextToFramePadding);
 	ImGui.set_function("GetTextLineHeight", GetTextLineHeight);
@@ -581,7 +597,6 @@ void RegisterBindings_ImGui(sol::state_view state)
 		sol::resolve<int(const std::string&)>(GetID),
 		sol::resolve<int(const std::string&, const std::string&)>(GetID)
 	));
-
 	#pragma endregion
 
 	#pragma region Utilities
@@ -647,6 +662,9 @@ void RegisterBindings_ImGui(sol::state_view state)
 	));
 	ImGui.set_function("GetTime", GetTime);
 	ImGui.set_function("GetFrameCount", GetFrameCount);
+	ImGui.set_function("GetBackgroundDrawList", sol::resolve<ImDrawList*()>(ImGui::GetBackgroundDrawList));
+	ImGui.set_function("GetForegroundDrawList", sol::resolve<ImDrawList*()>(ImGui::GetForegroundDrawList));
+	ImGui.set_function("GetDrawListSharedData", ImGui::GetDrawListSharedData);
 	ImGui.set_function("GetStyleColorName", GetStyleColorName);
 	ImGui.set_function("BeginChildFrame", sol::overload(
 		sol::resolve<bool(unsigned int, float, float)>(BeginChildFrame),
@@ -695,6 +713,7 @@ void RegisterBindings_ImGui(sol::state_view state)
 	));
 	ImGui.set_function("IsAnyMouseDown", IsAnyMouseDown);
 	ImGui.set_function("GetMousePos", GetMousePos);
+	ImGui.set_function("GetMousePosVec", ImGui::GetMousePos);
 	ImGui.set_function("GetMousePosOnOpeningCurrentPopup", GetMousePosOnOpeningCurrentPopup);
 	ImGui.set_function("IsMouseDragging", sol::overload(
 		sol::resolve<bool(int)>(IsMouseDragging),
@@ -704,6 +723,11 @@ void RegisterBindings_ImGui(sol::state_view state)
 		sol::resolve<std::tuple<float, float>()>(GetMouseDragDelta),
 		sol::resolve<std::tuple<float, float>(int)>(GetMouseDragDelta),
 		sol::resolve<std::tuple<float, float>(int, float)>(GetMouseDragDelta)
+	));
+	ImGui.set_function("GetMouseDragDeltaVec", sol::overload(
+		sol::resolve<ImVec2()>(GetMouseDragDeltaVec),
+		sol::resolve<ImVec2(int)>(GetMouseDragDeltaVec),
+		sol::resolve<ImVec2(int, float)>(ImGui::GetMouseDragDelta)
 	));
 	ImGui.set_function("ResetMouseDragDelta", sol::overload(
 		sol::resolve<void()>(ResetMouseDragDelta),

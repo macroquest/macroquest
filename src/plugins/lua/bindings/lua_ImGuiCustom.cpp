@@ -14,6 +14,7 @@
 
 #include "pch.h"
 
+#include <mq/imgui/ImGuiUtils.h>
 #include <mq/imgui/Widgets.h>
 #include <mq/Plugin.h>
 
@@ -28,12 +29,22 @@ namespace mq::lua::bindings {
 
 //============================================================================
 
+static void HelpMarker(const char* text) { mq::imgui::HelpMarker(text); }
+static void HelpMarker(const char* text, float width) { mq::imgui::HelpMarker(text, width); }
+static void HelpMarker(const char* text, float width, ImFont* font) { mq::imgui::HelpMarker(text, width, font); }
+
 void RegisterBindings_ImGuiCustom(sol::table& ImGui)
 {
 	ImGui.set_function("DrawTextureAnimation", sol::overload(
 		[](const std::unique_ptr<CTextureAnimation>& anim, int x, int y, bool drawBorder) { return mq::imgui::DrawTextureAnimation(anim.get(), CXSize(x, y), drawBorder); },
 		[](const std::unique_ptr<CTextureAnimation>& anim, int x, int y) { return mq::imgui::DrawTextureAnimation(anim.get(), CXSize(x, y)); },
 		[](const std::unique_ptr<CTextureAnimation>& anim) { return mq::imgui::DrawTextureAnimation(anim.get()); }
+	));
+
+	ImGui.set_function("HelpMarker", sol::overload(
+		[](const char* text) { mq::imgui::HelpMarker(text); },
+		[](const char* text, float width) { mq::imgui::HelpMarker(text, width); },
+		[](const char* text, float width, ImFont* font) { mq::imgui::HelpMarker(text, width, font); }
 	));
 }
 

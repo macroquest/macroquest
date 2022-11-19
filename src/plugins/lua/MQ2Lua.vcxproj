@@ -76,6 +76,7 @@
       <PreprocessorDefinitions>SOL_LUAJIT=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>yaml-cppd.lib;lua51.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -88,6 +89,7 @@
       <PreprocessorDefinitions>SOL_LUAJIT=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>yaml-cppd.lib;lua51.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -99,6 +101,7 @@
       <PreprocessorDefinitions>SOL_LUAJIT=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>yaml-cpp.lib;lua51.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -122,8 +125,9 @@
     <ClCompile Include="bindings\lua_Globals.cpp" />
     <ClCompile Include="bindings\lua_ImGuiCore.cpp" />
     <ClCompile Include="bindings\lua_ImGuiCustom.cpp" />
+    <ClCompile Include="bindings\lua_ImGuiEnums.cpp" />
     <ClCompile Include="bindings\lua_ImGuiWidgets.cpp" />
-    <ClCompile Include="bindings\lua_ImGuiGlobals.cpp" />
+    <ClCompile Include="bindings\lua_ImGuiUserTypes.cpp" />
     <ClCompile Include="bindings\lua_MQBindings.cpp" />
     <ClCompile Include="bindings\lua_MQMacroData.cpp" />
     <ClCompile Include="LuaCoroutine.cpp" />

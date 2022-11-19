@@ -41,6 +41,8 @@ static bool Button(const std::string& label)                                    
 static bool Button(const std::string& label, float sizeX, float sizeY)                              { return ImGui::Button(label.c_str(), { sizeX, sizeY }); }
 static bool SmallButton(const std::string& label)                                                   { return ImGui::SmallButton(label.c_str()); }
 static bool InvisibleButton(const std::string& stringID, float sizeX, float sizeY)                  { return ImGui::InvisibleButton(stringID.c_str(), { sizeX, sizeY }); }
+static bool InvisibleButton(const std::string& stringID, const ImVec2& size)                        { return ImGui::InvisibleButton(stringID.c_str(), size); }
+static bool InvisibleButton(const std::string& stringID, const ImVec2& size, int flags)             { return ImGui::InvisibleButton(stringID.c_str(), size, ImGuiButtonFlags(flags)); }
 static bool ArrowButton(const std::string& stringID, int dir)                                       { return ImGui::ArrowButton(stringID.c_str(), static_cast<ImGuiDir>(dir)); }
 static void Image()                                                                                 { /* TODO: Image(...) ==> UNSUPPORTED */ }
 static void ImageButton()                                                                           { /* TODO: ImageButton(...) ==> UNSUPPORTED */ }
@@ -1264,6 +1266,7 @@ static std::tuple<sol::as_table_t<std::vector<float>>, bool> ColorEdit3(const st
 
     return std::make_tuple(rgb, used);
 }
+
 static std::tuple<sol::as_table_t<std::vector<float>>, bool> ColorEdit4(const std::string& label, const sol::table& col)
 {
     const lua_Number    r{ col[1].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) },
@@ -1279,21 +1282,37 @@ static std::tuple<sol::as_table_t<std::vector<float>>, bool> ColorEdit4(const st
 
     return std::make_tuple(rgba, used);
 }
+
 static std::tuple<sol::as_table_t<std::vector<float>>, bool> ColorEdit4(const std::string& label, const sol::table& col, int flags)
 {
-    const lua_Number    r{ col[1].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) },
-                        g{ col[2].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) },
-                        b{ col[3].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) },
-                        a{ col[4].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) };
-    float color[4] = { float(r), float(g), float(b), float(a) };
-    bool used = ImGui::ColorEdit4(label.c_str(), color, static_cast<ImGuiColorEditFlags>(flags));
+	const lua_Number    r{ col[1].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) },
+		g{ col[2].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) },
+		b{ col[3].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) },
+		a{ col[4].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) };
+	float color[4] = { float(r), float(g), float(b), float(a) };
+	bool used = ImGui::ColorEdit4(label.c_str(), color, static_cast<ImGuiColorEditFlags>(flags));
 
-    sol::as_table_t rgba = sol::as_table(std::vector<float>{
-        color[0], color[1], color[2], color[3]
-    });
+	sol::as_table_t rgba = sol::as_table(std::vector<float>{
+		color[0], color[1], color[2], color[3]
+	});
 
-    return std::make_tuple(rgba, used);
+	return std::make_tuple(rgba, used);
 }
+
+static std::tuple<ImVec4, bool> ColorEdit4(const std::string& label, ImVec4 col)
+{
+	bool used = ImGui::ColorEdit4(label.c_str(), &col.x);
+
+	return std::make_tuple(col, used);
+}
+
+static std::tuple<ImVec4, bool> ColorEdit4(const std::string& label, ImVec4 col, int flags)
+{
+	bool used = ImGui::ColorEdit4(label.c_str(), &col.x, static_cast<ImGuiColorEditFlags>(flags));
+
+	return std::make_tuple(col, used);
+}
+
 static std::tuple<sol::as_table_t<std::vector<float>>, bool> ColorPicker3(const std::string& label, const sol::table& col)
 {
     const lua_Number    r{ col[1].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) },
@@ -1465,10 +1484,27 @@ static void EndMainMenuBar()                                                    
 static bool BeginMenu(const std::string& label)                                                     { return ImGui::BeginMenu(label.c_str()); }
 static bool BeginMenu(const std::string& label, bool enabled)                                       { return ImGui::BeginMenu(label.c_str(), enabled); }
 static void EndMenu()                                                                               { ImGui::EndMenu(); }
-static bool MenuItem(const std::string& label)                                                      { return ImGui::MenuItem(label.c_str()); }
-static bool MenuItem(const std::string& label, const std::string& shortcut)                         { return ImGui::MenuItem(label.c_str(), shortcut.c_str()); }
-static std::tuple<bool, bool> MenuItem(const std::string& label, const std::string& shortcut, bool selected) { bool activated = ImGui::MenuItem(label.c_str(), shortcut.c_str(), &selected); return std::make_tuple(selected, activated); }
-static std::tuple<bool, bool> MenuItem(const std::string& label, const std::string& shortcut, bool selected, bool enabled) { bool activated = ImGui::MenuItem(label.c_str(), shortcut.c_str(), &selected, enabled); return std::make_tuple(selected, activated); }
+
+static std::tuple<bool, bool> MenuItem(const std::string& label)
+{
+	bool activated = ImGui::MenuItem(label.c_str());
+	return std::make_tuple(activated, activated);
+}
+static std::tuple<bool, bool> MenuItem(const std::string& label, const char* shortcut)
+{
+	bool activated = ImGui::MenuItem(label.c_str(), shortcut);
+	return std::make_tuple(activated, activated);
+}
+static std::tuple<bool, bool> MenuItem(const std::string& label, const char* shortcut, bool selected)
+{
+	bool activated = ImGui::MenuItem(label.c_str(), shortcut, &selected);
+	return std::make_tuple(activated, selected);
+}
+static std::tuple<bool, bool> MenuItem(const std::string& label, const char* shortcut, bool selected, bool enabled)
+{
+	bool activated = ImGui::MenuItem(label.c_str(), shortcut, &selected, enabled);
+	return std::make_tuple(activated, selected);
+}
 
 // Tooltips
 static void BeginTooltip()                                                                          { ImGui::BeginTooltip(); }
@@ -1485,9 +1521,9 @@ static bool BeginPopupModal(const std::string& name, bool open, int flags)      
 static void EndPopup()                                                                              { ImGui::EndPopup(); }
 static void OpenPopup(const std::string& str_id)                                                    { ImGui::OpenPopup(str_id.c_str()); }
 static void OpenPopup(const std::string& str_id, int popup_flags)                                   { ImGui::OpenPopup(str_id.c_str(), static_cast<ImGuiPopupFlags>(popup_flags)); }
-//static bool OpenPopupContextItem()                                                                { return ImGui::OpenPopupContextItem(); }
-//static bool OpenPopupContextItem(const std::string& str_id)                                       { return ImGui::OpenPopupContextItem(str_id.c_str()); }
-//static bool OpenPopupContextItem(const std::string& str_id, int popup_flags)                      { return ImGui::OpenPopupContextItem(str_id.c_str(), static_cast<ImGuiPopupFlags>(popup_flags)); }
+static void OpenPopupOnItemClick()                                                                  { ImGui::OpenPopupOnItemClick(); }
+static void OpenPopupOnItemClick(const std::string& str_id)                                         { ImGui::OpenPopupOnItemClick(str_id.c_str()); }
+static void OpenPopupOnItemClick(const std::string& str_id, int flags)                              { ImGui::OpenPopupOnItemClick(str_id.c_str(), ImGuiPopupFlags(flags)); }
 static void CloseCurrentPopup()                                                                     { ImGui::CloseCurrentPopup(); }
 static bool BeginPopupContextItem()                                                                 { return ImGui::BeginPopupContextItem(); }
 static bool BeginPopupContextItem(const std::string& str_id)                                        { return ImGui::BeginPopupContextItem(str_id.c_str()); }
@@ -1635,7 +1671,10 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 		sol::resolve<bool(const std::string&, float, float)>(Button)
 	));
 	ImGui.set_function("SmallButton", SmallButton);
-	ImGui.set_function("InvisibleButton", InvisibleButton);
+	ImGui.set_function("InvisibleButton", sol::overload(
+		sol::resolve<bool(const std::string&, float, float)>(InvisibleButton),
+		sol::resolve<bool(const std::string&, const ImVec2&)>(InvisibleButton),
+		sol::resolve<bool(const std::string&, const ImVec2&, int)>(InvisibleButton)));
 	ImGui.set_function("ArrowButton", ArrowButton);
 	ImGui.set_function("Checkbox", Checkbox);
 	ImGui.set_function("CheckboxFlags", CheckboxFlags);
@@ -1852,8 +1891,10 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 		sol::resolve<std::tuple <sol::as_table_t<std::vector<float>>, bool>(const std::string&, const sol::table&, int)>(ColorEdit3)
 	));
 	ImGui.set_function("ColorEdit4", sol::overload(
-		sol::resolve<std::tuple <sol::as_table_t<std::vector<float>>, bool>(const std::string&, const sol::table&)>(ColorEdit4),
-		sol::resolve<std::tuple <sol::as_table_t<std::vector<float>>, bool>(const std::string&, const sol::table&, int)>(ColorEdit4)
+		sol::resolve<std::tuple<ImVec4, bool>(const std::string&, ImVec4)>(ColorEdit4),
+		sol::resolve<std::tuple<ImVec4, bool>(const std::string&, ImVec4, int)>(ColorEdit4),
+		sol::resolve<std::tuple<sol::as_table_t<std::vector<float>>, bool>(const std::string&, const sol::table&)>(ColorEdit4),
+		sol::resolve<std::tuple<sol::as_table_t<std::vector<float>>, bool>(const std::string&, const sol::table&, int)>(ColorEdit4)
 	));
 	ImGui.set_function("ColorPicker3", sol::overload(
 		sol::resolve<std::tuple <sol::as_table_t<std::vector<float>>, bool>(const std::string&, const sol::table&)>(ColorPicker3),
@@ -1934,10 +1975,10 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 	));
 	ImGui.set_function("EndMenu", EndMenu);
 	ImGui.set_function("MenuItem", sol::overload(
-		sol::resolve<bool(const std::string&)>(MenuItem),
-		sol::resolve<bool(const std::string&, const std::string&)>(MenuItem),
-		sol::resolve<std::tuple<bool, bool>(const std::string&, const std::string&, bool)>(MenuItem),
-		sol::resolve<std::tuple<bool, bool>(const std::string&, const std::string&, bool, bool)>(MenuItem)
+		sol::resolve<std::tuple<bool, bool>(const std::string&)>(MenuItem),
+		sol::resolve<std::tuple<bool, bool>(const std::string&, const char*)>(MenuItem),
+		sol::resolve<std::tuple<bool, bool>(const std::string&, const char*, bool)>(MenuItem),
+		sol::resolve<std::tuple<bool, bool>(const std::string&, const char*, bool, bool)>(MenuItem)
 	));
 	#pragma endregion
 
@@ -1962,11 +2003,11 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 		sol::resolve<void(const std::string&)>(OpenPopup),
 		sol::resolve<void(const std::string&, int)>(OpenPopup)
 	));
-	//ImGui.set_function("OpenPopupContextItem", sol::overload(
-	//    sol::resolve<bool()>(OpenPopupContextItem),
-	//    sol::resolve<bool(const std::string&)>(OpenPopupContextItem),
-	//    sol::resolve<bool(const std::string&, int)>(OpenPopupContextItem)
-	//));
+	ImGui.set_function("OpenPopupOnItemClick", sol::overload(
+		sol::resolve<void()>(OpenPopupOnItemClick),
+		sol::resolve<void(const std::string&)>(OpenPopupOnItemClick),
+		sol::resolve<void(const std::string&, int)>(OpenPopupOnItemClick)
+	));
 	ImGui.set_function("CloseCurrentPopup", CloseCurrentPopup);
 	ImGui.set_function("BeginPopupContextItem", sol::overload(
 		sol::resolve<bool()>(BeginPopupContextItem),
