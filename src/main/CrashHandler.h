@@ -45,3 +45,9 @@ void InitializeMQ2CrashHandler();
 void ShutdownMQ2CrashHandler();
 
 } // namespace mq
+
+typedef struct _EXCEPTION_POINTERS EXCEPTION_POINTERS;
+
+namespace mq {
+	void InvokeExceptionHandler(EXCEPTION_POINTERS* p);
+}

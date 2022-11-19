@@ -20,12 +20,6 @@ namespace mq::lua {
 
 class LuaThread;
 
-// Register ImGui
-void ImGui_RegisterLua(sol::state_view state);
-
-// Register imgui commands in mq namespace
-void MQ_RegisterLua_ImGui(sol::table& lua);
-
 class LuaImGui
 {
 public:

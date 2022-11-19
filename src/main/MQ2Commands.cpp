@@ -1067,7 +1067,7 @@ void Filter(SPAWNINFO* pChar, char* szLine)
 	{
 		cmdFilter(pChar, szArg);
 		if (gFilterMacro != FILTERMACRO_NONE)
-			WriteChatColor("skills, target, money, encumber, food, name, zrange, macros, mq, debug");
+			WriteChatColor("skills, target, money, encumber, food, name, zrange, macros, mq, mq2data, debug");
 		return;
 	}
 
@@ -2815,7 +2815,7 @@ void LoadSpells(SPAWNINFO* pChar, char* szLine)
 
 static void CastSplash(int Index, SPELL* pSpell, const CVector3* pos)
 {
-	pEverQuest->CreateTargetIndicator(Index, pSpell, ItemGlobalIndex(), eActivatableSpell);
+	pEverQuest->CreateTargetIndicator(Index, pSpell, ItemGlobalIndex(), ItemSpellType_Clicky);
 	SPAWNINFO* pMySpawn = pLocalPlayer;
 
 	if (pEverQuest->freeTargetTracker)

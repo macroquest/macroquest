@@ -276,7 +276,7 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 				return false;
 			}
 
-			CDataArray* pArray = (CDataArray*)pVar->Var.Ptr;
+			auto pArray = pVar->Var.Get<CDataArray>();
 			int index = pArray->GetElement(szIndex);
 			if (index == -1)
 			{
@@ -313,14 +313,9 @@ bool MQ2MacroType::ToString(MQVarPtr VarPtr, char* Destination)
 
 bool MQ2MacroType::dataMacro(const char* szIndex, MQTypeVar& Ret)
 {
-	if (gRunning)
-	{
-		Ret.Ptr = 0;
-		Ret.Type = pMacroType;
-		return true;
-	}
-
-	return false;
+	Ret.Ptr = 0;
+	Ret.Type = pMacroType;
+	return true;
 }
 
 } // namespace mq::datatypes

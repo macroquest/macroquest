@@ -216,27 +216,24 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 				if (nIndex < 0)
 					return false;
 
-				if (Dest.Ptr = page->GetItem(nIndex).get())
+				Dest = pItemType->MakeTypeVar(page->GetItem(nIndex));
+				return true;
+			}
+
+			// by name
+			for (int i = 0; i < page->GetItemCount(); ++i)
+			{
+				ItemPtr pItem = page->GetItem(i);
+
+				if (pItem && MaybeExactCompare(pItem->GetName(), Index))
 				{
+					Dest = pItemType->MakeTypeVar(pItem);
 					return true;
 				}
 			}
-			else
-			{
-				// by name
-				for (int i = 0; i < page->GetItemCount(); ++i)
-				{
-					ItemPtr pItem = page->GetItem(i);
-
-					if (pItem && MaybeExactCompare(pItem->GetName(), Index))
-					{
-						Dest.Ptr = pItem.get();
-						return true;
-					}
-				}
-			}
 		}
-		return false;
+
+		return true;
 
 	case MerchantMembers::Items:
 		Dest.DWord = pMerchantWnd->PageHandlers[RegularMerchantPage]->GetItemCount();
@@ -244,8 +241,7 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 		return true;
 
 	case MerchantMembers::SelectedItem:
-		Dest.Ptr = pMerchantWnd->pSelectedItem.get();
-		Dest.Type = pItemType;
+		Dest = pItemType->MakeTypeVar(pMerchantWnd->pSelectedItem);
 		return true;
 
 	case MerchantMembers::Markup:

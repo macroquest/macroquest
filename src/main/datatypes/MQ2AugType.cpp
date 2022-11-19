@@ -103,13 +103,8 @@ bool MQ2AugType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		return false;
 
 	case AugTypeMembers::Item:
-		Dest.Type = pItemType;
-		if (ItemClient* pCret = pCont->GetContent(index))
-		{
-			Dest.Ptr = pCret;
-			return true;
-		}
-		return false;
+		Dest = pItemType->MakeTypeVar(pCont->GetHeldItem(index));
+		return true;
 
 	case AugTypeMembers::Solvent:
 		Dest.DWord = 0;

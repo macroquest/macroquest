@@ -197,7 +197,7 @@ void DoEditKeyComboPopup()
 
 void DoKeybindSettings()
 {
-	ImGui::Text("Clicking a binding will allow you change it.");
+	ImGui::Text("Clicking a binding will allow you to change it.");
 
 	std::string clickedName;
 	bool clickedAlt = false;

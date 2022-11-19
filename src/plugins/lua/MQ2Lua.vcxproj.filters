@@ -19,9 +19,6 @@
     <Filter Include="Source Files\bindings">
       <UniqueIdentifier>{53a88389-1507-4c14-a59b-d23a6065ef33}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\imgui">
-      <UniqueIdentifier>{bfa4ae38-5f9f-4c60-9d54-1eae39a2d41d}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MQ2Lua.cpp">
@@ -39,14 +36,32 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="lua_Bit32.cpp">
-      <Filter>Source Files\bindings</Filter>
-    </ClCompile>
     <ClCompile Include="bindings\lua_MQBindings.cpp">
       <Filter>Source Files\bindings</Filter>
     </ClCompile>
     <ClCompile Include="LuaCoroutine.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bindings\lua_ImGuiCore.cpp">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="bindings\lua_Bit32.cpp">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="bindings\lua_MQMacroData.cpp">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="bindings\lua_Globals.cpp">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="bindings\lua_ImGuiCustom.cpp">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="bindings\lua_ImGuiWidgets.cpp">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="bindings\lua_ImGuiGlobals.cpp">
+      <Filter>Source Files\bindings</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -58,9 +73,6 @@
     </ClInclude>
     <ClInclude Include="LuaEvent.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="contrib\imgui\sol_ImGui.h">
-      <Filter>Header Files\imgui</Filter>
     </ClInclude>
     <ClInclude Include="LuaImGui.h">
       <Filter>Header Files</Filter>
@@ -76,6 +88,9 @@
     </ClInclude>
     <ClInclude Include="LuaCoroutine.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\lua_Bindings.h">
+      <Filter>Header Files\bindings</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

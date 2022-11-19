@@ -422,7 +422,7 @@ bool EvaluateDataExpression(MQTypeVar& Result, const char* pStart, char* pIndex,
 			{
 				if (DataVar->Var.Type == datatypes::pArrayType)
 				{
-					datatypes::CDataArray* dataArray = static_cast<datatypes::CDataArray*>(DataVar->Var.Ptr);
+					auto dataArray = DataVar->Var.Get<datatypes::CDataArray>();
 
 					if (!dataArray->GetElement(pIndex, Result))
 						return false;
@@ -519,7 +519,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("FindItemBankCount", datatypes::MQ2ItemType::dataFindItemBankCount);
 	AddMQ2Data("FindItemCount", datatypes::MQ2ItemType::dataFindItemCount);
 	AddMQ2Data("Friends", datatypes::MQ2FriendsType::dataFriends);
-	AddMQ2Data("GameTime", datatypes::dataGameTime);
+	AddMQ2Data("GameTime", datatypes::MQ2TimeType::dataGameTime);
 	AddMQ2Data("Ground", datatypes::MQ2GroundType::dataGroundItem);
 	AddMQ2Data("GroundItemCount", datatypes::MQ2GroundType::dataGroundItemCount);
 	AddMQ2Data("Group", datatypes::MQ2GroupType::dataGroup);
