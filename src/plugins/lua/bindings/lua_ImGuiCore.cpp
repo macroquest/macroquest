@@ -194,14 +194,12 @@ static float GetFrameHeight()                                                   
 static float GetFrameHeightWithSpacing()                                                            { return ImGui::GetFrameHeightWithSpacing(); }
 
 // ID stack / scopes
-static void PushID(const std::string& stringID)                                                     { ImGui::PushID(stringID.c_str()); }
-static void PushID(const std::string& stringIDBegin, const std::string& stringIDEnd)                { ImGui::PushID(stringIDBegin.c_str(), stringIDEnd.c_str()); }
+static void PushID(std::string_view stringID)                                                       { ImGui::PushID(stringID.data(), stringID.data() + stringID.length()); }
 static void PushID(int intID)                                                                       { ImGui::PushID(intID); }
 static void PushID(sol::object object)                                                              { ImGui::PushID(object.pointer()); }
 static void PopID()                                                                                 { ImGui::PopID(); }
-static int GetID(const std::string& stringID)                                                       { return ImGui::GetID(stringID.c_str()); }
-static int GetID(const std::string& stringIDBegin, const std::string& stringIDEnd)                  { return ImGui::GetID(stringIDBegin.c_str(), stringIDEnd.c_str()); }
-static int GetID(const void*)                                                                       { return 0;  /* TODO: GetID(void*) ==> UNSUPPORTED */ }
+static int GetID(std::string_view stringID)                                                        { return ImGui::GetID(stringID.data(), stringID.data() + stringID.length()); }
+static int GetID(sol::object object)                                                                { return ImGui::GetID(object.pointer()); }
 
 #pragma endregion
 
@@ -505,7 +503,8 @@ void RegisterBindings_ImGui(sol::state_view state)
 	ImGui.set_function("PopFont", PopFont);
 	ImGui.set_function("PushStyleColor", sol::overload(
 		sol::resolve<void(int, int)>(PushStyleColor),
-		sol::resolve<void(int, float, float, float, float)>(PushStyleColor)
+		sol::resolve<void(int, float, float, float, float)>(PushStyleColor),
+		sol::resolve<void(int, const ImVec4&)>(&ImGui::PushStyleColor)
 	));
 	ImGui.set_function("PopStyleColor", sol::overload(
 		sol::resolve<void()>(PopStyleColor),
@@ -521,6 +520,7 @@ void RegisterBindings_ImGui(sol::state_view state)
 		sol::resolve<void(int)>(PopStyleVar)
 	));
 	ImGui.set_function("GetStyleColorVec4", GetStyleColorVec4);
+	ImGui.set_function("GetStyleColor", ImGui::GetStyleColorVec4);
 	ImGui.set_function("GetFont", GetFont);
 	ImGui.set_function("GetFontSize", GetFontSize);
 	ImGui.set_function("GetFontTexUvWhitePixel", GetFontTexUvWhitePixel);
@@ -587,15 +587,14 @@ void RegisterBindings_ImGui(sol::state_view state)
 
 	// ID stack / scopes
 	ImGui.set_function("PushID", sol::overload(
-		sol::resolve<void(const std::string&)>(PushID),
-		sol::resolve<void(const std::string&, const std::string&)>(PushID),
+		sol::resolve<void(std::string_view)>(PushID),
 		sol::resolve<void(int)>(PushID),
 		sol::resolve<void(sol::object)>(PushID)
 	));
 	ImGui.set_function("PopID", PopID);
 	ImGui.set_function("GetID", sol::overload(
-		sol::resolve<int(const std::string&)>(GetID),
-		sol::resolve<int(const std::string&, const std::string&)>(GetID)
+		sol::resolve<int(std::string_view)>(GetID),
+		sol::resolve<int(sol::object)>(GetID)
 	));
 	#pragma endregion
 

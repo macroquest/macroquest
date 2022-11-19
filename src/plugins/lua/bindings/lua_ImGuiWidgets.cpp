@@ -26,114 +26,54 @@ namespace mq::lua::bindings {
 
 //============================================================================
 
-// Widgets: Text
-static void TextUnformatted(const std::string& text)                                                { ImGui::TextUnformatted(text.c_str()); }
-static void TextUnformatted(const std::string& text, const std::string& textEnd)                    { ImGui::TextUnformatted(text.c_str(), textEnd.c_str()); }
-static void Text(const std::string& text)                                                           { ImGui::Text("%s", text.c_str()); }
-static void TextColored(float colR, float colG, float colB, float colA, const std::string& text)    { ImGui::TextColored({ colR, colG, colB, colA }, text.c_str()); }
-static void TextDisabled(const std::string& text)                                                   { ImGui::TextDisabled(text.c_str()); }
-static void TextWrapped(const std::string text)                                                     { ImGui::TextWrapped(text.c_str()); }
-static void LabelText(const std::string& label, const std::string& text)                            { ImGui::LabelText(label.c_str(), text.c_str()); }
-static void BulletText(const std::string& text)                                                     { ImGui::BulletText(text.c_str()); }
-
-// Widgets: Main
-static bool Button(const std::string& label)                                                        { return ImGui::Button(label.c_str()); }
-static bool Button(const std::string& label, float sizeX, float sizeY)                              { return ImGui::Button(label.c_str(), { sizeX, sizeY }); }
-static bool SmallButton(const std::string& label)                                                   { return ImGui::SmallButton(label.c_str()); }
-static bool InvisibleButton(const std::string& stringID, float sizeX, float sizeY)                  { return ImGui::InvisibleButton(stringID.c_str(), { sizeX, sizeY }); }
-static bool InvisibleButton(const std::string& stringID, const ImVec2& size)                        { return ImGui::InvisibleButton(stringID.c_str(), size); }
-static bool InvisibleButton(const std::string& stringID, const ImVec2& size, int flags)             { return ImGui::InvisibleButton(stringID.c_str(), size, ImGuiButtonFlags(flags)); }
-static bool ArrowButton(const std::string& stringID, int dir)                                       { return ImGui::ArrowButton(stringID.c_str(), static_cast<ImGuiDir>(dir)); }
-static void Image()                                                                                 { /* TODO: Image(...) ==> UNSUPPORTED */ }
-static void ImageButton()                                                                           { /* TODO: ImageButton(...) ==> UNSUPPORTED */ }
-
-static std::tuple<bool, bool> Checkbox(const std::string& label, bool v)
-{
-	bool value{ v };
-	bool pressed = ImGui::Checkbox(label.c_str(), &value);
-
-	return std::make_tuple(value, pressed);
-}
-
-static std::tuple<uint32_t, bool> CheckboxFlags(const std::string& label, uint32_t flags, uint32_t flagsValue)
-{
-	uint32_t mutableFlags = flags;
-	bool pressed = ImGui::CheckboxFlags(label.c_str(), &mutableFlags, flagsValue);
-
-	return std::make_tuple(mutableFlags, pressed);
-}
-
-static bool RadioButton(const std::string& label, bool active)                                      { return ImGui::RadioButton(label.c_str(), active); }
-static std::tuple<int, bool> RadioButton(const std::string& label, int v, int vButton)              { bool ret{ ImGui::RadioButton(label.c_str(), &v, vButton) }; return std::make_tuple(v, ret); }
-
-static void ProgressBar(float fraction)                                                             { ImGui::ProgressBar(fraction); }
-static void ProgressBar(float fraction, float sizeX, float sizeY)                                   { ImGui::ProgressBar(fraction, { sizeX, sizeY }); }
-static void ProgressBar(float fraction, float sizeX, float sizeY, const std::string& overlay)       { ImGui::ProgressBar(fraction, { sizeX, sizeY }, overlay.c_str()); }
-
-static void Bullet()                                                                                { ImGui::Bullet(); }
-
 // Widgets: Combo Box
-static bool BeginCombo(const std::string& label, const std::string& previewValue)
-{
-	return ImGui::BeginCombo(label.c_str(), previewValue.c_str());
-}
 
-static bool BeginCombo(const std::string& label, const std::string& previewValue, int flags)
+// Combo 1: Takes list of items
+static std::tuple<int, bool> Combo(const char* label, int currentItem, const sol::table& items, int itemsCount, int popupMaxHeightInItems)
 {
-	return ImGui::BeginCombo(label.c_str(), previewValue.c_str(), static_cast<ImGuiComboFlags>(flags));
-}
-
-static void EndCombo()
-{
-	ImGui::EndCombo();
-}
-
-static std::tuple<int, bool> Combo(const std::string& label, int currentItem, const sol::table& items, int itemsCount)
-{
-	std::vector<std::string> strings;
-	for (int i{ 1 }; i <= itemsCount; i++)
+	std::vector<const char*> strings;
+	for (int i = 1; i <= itemsCount; i++)
 	{
-		const auto& stringItem = items.get<sol::optional<std::string>>(i);
-		strings.push_back(stringItem.value_or("Missing"));
+		const sol::optional<const char*>& stringItem = items.get<sol::optional<const char*>>(i);
+		strings.push_back(stringItem.value_or("Missing Value"));
 	}
 
-	std::vector<const char*> cstrings;
-	for (auto& string : strings)
-		cstrings.push_back(string.c_str());
-
-	bool clicked = ImGui::Combo(label.c_str(), &currentItem, cstrings.data(), itemsCount);
-	return std::make_tuple(currentItem, clicked);
+	currentItem -= 1;
+	bool clicked = ImGui::Combo(label, &currentItem, strings.data(), itemsCount, popupMaxHeightInItems);
+	return std::make_tuple(currentItem + 1, clicked);
 }
 
-static std::tuple<int, bool> Combo(const std::string& label, int currentItem, const sol::table& items, int itemsCount, int popupMaxHeightInItems)
+// Combo 2: Takes a string containing null separated items
+static std::tuple<int, bool> Combo(const char* label, int currentItem, const char* itemsSeparatedByZeros, int popupMaxHeightInItems)
 {
-	std::vector<std::string> strings;
-	for (int i{ 1 }; i <= itemsCount; i++)
-	{
-		const auto& stringItem = items.get<sol::optional<std::string>>(i);
-		strings.push_back(stringItem.value_or("Missing"));
-	}
-
-	std::vector<const char*> cstrings;
-	for (auto& string : strings)
-		cstrings.push_back(string.c_str());
-
-	bool clicked = ImGui::Combo(label.c_str(), &currentItem, cstrings.data(), itemsCount, popupMaxHeightInItems);
-	return std::make_tuple(currentItem, clicked);
+	currentItem -= 1;
+	bool clicked = ImGui::Combo(label, &currentItem, itemsSeparatedByZeros, popupMaxHeightInItems);
+	return std::make_tuple(currentItem + 1, clicked);
 }
 
-static std::tuple<int, bool> Combo(const std::string& label, int currentItem, const std::string& itemsSeparatedByZeros)
+
+static bool LuaComboGetter(void* ptr, int idx, const char** out_text)
 {
-	bool clicked = ImGui::Combo(label.c_str(), &currentItem, itemsSeparatedByZeros.c_str());
-	return std::make_tuple(currentItem, clicked);
+	auto& getter = *static_cast<sol::function*>(ptr);
+
+	sol::function_result result = getter(idx + 1);
+	const sol::optional<const char*>& value = result.get<sol::optional<const char*>>();
+
+	if (!value.has_value())
+		return false;
+
+	*out_text = *value;
+	return true;
 }
 
-static std::tuple<int, bool> Combo(const std::string& label, int currentItem, const std::string& itemsSeparatedByZeros, int popupMaxHeightInItems)
+// Combo 3: Takes callback function to get list of items
+static std::tuple<int, bool> Combo(const char* label, int currentItem, sol::function getter, int itemsCount, int popupMaxHeightInItems)
 {
-	bool clicked = ImGui::Combo(label.c_str(), &currentItem, itemsSeparatedByZeros.c_str(), popupMaxHeightInItems);
-	return std::make_tuple(currentItem, clicked);
+	currentItem -= 1;
+
+	bool clicked = ImGui::Combo(label, &currentItem, LuaComboGetter, &getter, itemsCount, popupMaxHeightInItems);
+	return std::make_tuple(currentItem + 1, clicked);
 }
-// TODO: 3rd Combo from ImGui not Supported
 
 // Widgets: Drags
 static std::tuple<float, bool> DragFloat(const std::string& label, float v)
@@ -1653,54 +1593,75 @@ static std::unique_ptr<LuaImGuiPayload> GetDragDropPayload()
 void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 {
 	#pragma region Widgets: Text
-	ImGui.set_function("TextUnformatted", sol::overload(
-		sol::resolve<void(const std::string&)>(TextUnformatted),
-		sol::resolve<void(const std::string&, const std::string&)>(TextUnformatted)
-	));
-	ImGui.set_function("Text", Text);
-	ImGui.set_function("TextColored", TextColored);
-	ImGui.set_function("TextDisabled", TextDisabled);
-	ImGui.set_function("TextWrapped", TextWrapped);
-	ImGui.set_function("LabelText", LabelText);
-	ImGui.set_function("BulletText", BulletText);
+	ImGui.set_function("TextUnformatted",   [](std::string_view text) { ImGui::TextUnformatted(text.data(), text.data() + text.size()); });
+	ImGui.set_function("Text",              [](std::string_view text) { ImGui::TextUnformatted(text.data(), text.data() + text.size()); });
+	ImGui.set_function("TextColored", sol::overload(
+		                                    [](float r, float g, float b, float a, const char* text) { ImGui::TextColored({ r, g, b, a }, text); },
+		                                    [](int col, const char* text) { ImGui::TextColored(ImColor(col), text); },
+		                                    [](const ImVec4& col, const char* text) { ImGui::TextColored(col, text); }));
+	ImGui.set_function("TextDisabled",      [](const char* text) { ImGui::TextDisabled("%s", text); });
+	ImGui.set_function("TextWrapped",       [](const char* text) { ImGui::TextWrapped("%s", text); });
+	ImGui.set_function("LabelText",         [](const char* label, const char* text) { ImGui::LabelText(label, "%s", text); });
+	ImGui.set_function("BulletText",        [](const char* text) { ImGui::BulletText("%s", text); });
 	#pragma endregion
 
 	#pragma region Widgets: Main
 	ImGui.set_function("Button", sol::overload(
-		sol::resolve<bool(const std::string&)>(Button),
-		sol::resolve<bool(const std::string&, float, float)>(Button)
-	));
-	ImGui.set_function("SmallButton", SmallButton);
+		                                    [](const char* label) { return ImGui::Button(label); },
+		                                    [](const char* label, float sizeX, float sizeY) { return ImGui::Button(label, { sizeX, sizeY }); },
+		                                    [](const char* label, const ImVec2& size) { return ImGui::Button(label, size); }));
+	ImGui.set_function("SmallButton",       [](const char* label) { return ImGui::SmallButton(label); });
 	ImGui.set_function("InvisibleButton", sol::overload(
-		sol::resolve<bool(const std::string&, float, float)>(InvisibleButton),
-		sol::resolve<bool(const std::string&, const ImVec2&)>(InvisibleButton),
-		sol::resolve<bool(const std::string&, const ImVec2&, int)>(InvisibleButton)));
-	ImGui.set_function("ArrowButton", ArrowButton);
-	ImGui.set_function("Checkbox", Checkbox);
-	ImGui.set_function("CheckboxFlags", CheckboxFlags);
+		                                    [](const char* stringID, float sizeX, float sizeY) { return ImGui::InvisibleButton(stringID, { sizeX, sizeY }); },
+		                                    [](const char* stringID, const ImVec2& size) { return ImGui::InvisibleButton(stringID, size); },
+		                                    [](const char* stringID, const ImVec2& size, int flags) { return ImGui::InvisibleButton(stringID, size, ImGuiButtonFlags(flags)); }));
+	ImGui.set_function("ArrowButton",       [](const char* stringID, int dir) { return ImGui::ArrowButton(stringID, ImGuiDir(dir));  });
+
+	ImGui.set_function("Image", sol::overload(
+		                                    [](ImTextureID texture_id, const ImVec2& size) { ImGui::Image(texture_id, size); },
+		                                    [](ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0) { ImGui::Image(texture_id, size, uv0); },
+		                                    [](ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1) { ImGui::Image(texture_id, size, uv0, uv1); },
+		                                    [](ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col) { ImGui::Image(texture_id, size, uv0, uv1, tint_col); },
+		                                    [](ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, const ImVec4& border_col) { ImGui::Image(texture_id, size, uv0, uv1, tint_col, border_col); }
+	));
+	ImGui.set_function("ImageButton", sol::overload(
+		                                    [](ImTextureID texture_id, const ImVec2& size) { ImGui::ImageButton(texture_id, size); },
+		                                    [](ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0) { ImGui::ImageButton(texture_id, size, uv0); },
+		                                    [](ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1) { ImGui::ImageButton(texture_id, size, uv0, uv1); },
+		                                    [](ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding) { ImGui::ImageButton(texture_id, size, uv0, uv1, frame_padding); },
+		                                    [](ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col) { ImGui::ImageButton(texture_id, size, uv0, uv1, frame_padding, bg_col); },
+		                                    [](ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col, const ImVec4& tint_col) { ImGui::ImageButton(texture_id, size, uv0, uv1, frame_padding, bg_col, tint_col); }
+	));
+
+	ImGui.set_function("Checkbox",          [](const char* label, bool v) -> std::tuple<bool, bool> { bool value{ v }, pressed = ImGui::Checkbox(label, &value); return std::make_tuple(value, pressed); });
+	ImGui.set_function("CheckboxFlags",     [](const char* label, uint32_t flags, uint32_t flagsValue) -> std::tuple<uint32_t, bool> { uint32_t mutableFlags = flags; bool pressed = ImGui::CheckboxFlags(label, &mutableFlags, flagsValue); return std::make_tuple(mutableFlags, pressed); });
 	ImGui.set_function("RadioButton", sol::overload(
-		sol::resolve<bool(const std::string&, bool)>(RadioButton),
-		sol::resolve<std::tuple<int, bool>(const std::string&, int, int)>(RadioButton)
+		                                    [](const char* label, bool active) { return ImGui::RadioButton(label, active); },
+		                                    [](const char* label, int v, int vButton) -> std::tuple<int, bool> { bool ret = ImGui::RadioButton(label, &v, vButton); return std::make_tuple(v, ret); }
 	));
 	ImGui.set_function("ProgressBar", sol::overload(
-		sol::resolve<void(float)>(ProgressBar),
-		sol::resolve<void(float, float, float)>(ProgressBar),
-		sol::resolve<void(float, float, float, const std::string&)>(ProgressBar)
+		                                    [](float fraction) { ImGui::ProgressBar(fraction); },
+		                                    [](float fraction, const ImVec2& size) { ImGui::ProgressBar(fraction, size); },
+		                                    [](float fraction, const ImVec2& size, const char* overlay) { ImGui::ProgressBar(fraction, size, overlay); },
+		                                    [](float fraction, float sizeX, float sizeY) { ImGui::ProgressBar(fraction, { sizeX, sizeY }); },
+		                                    [](float fraction, float sizeX, float sizeY, const char* overlay) { ImGui::ProgressBar(fraction, { sizeX, sizeY }, overlay); }
 	));
-	ImGui.set_function("Bullet", Bullet);
+	ImGui.set_function("Bullet",            &ImGui::Bullet);
 	#pragma endregion
 
 	#pragma region Widgets: Combo Box
 	ImGui.set_function("BeginCombo", sol::overload(
-		sol::resolve<bool(const std::string&, const std::string&)>(BeginCombo),
-		sol::resolve<bool(const std::string&, const std::string&, int)>(BeginCombo)
+		                                    [](const char* label, const char* previewValue) { return ImGui::BeginCombo(label, previewValue); },
+		                                    [](const char* label, const char* previewValue, int flags) {  return ImGui::BeginCombo(label, previewValue, ImGuiComboFlags(flags)); }
 	));
-	ImGui.set_function("EndCombo", EndCombo);
+	ImGui.set_function("EndCombo",          &ImGui::EndCombo);
 	ImGui.set_function("Combo", sol::overload(
-		sol::resolve<std::tuple<int, bool>(const std::string&, int, const sol::table&, int)>(Combo),
-		sol::resolve<std::tuple<int, bool>(const std::string&, int, const sol::table&, int, int)>(Combo),
-		sol::resolve<std::tuple<int, bool>(const std::string&, int, const std::string&)>(Combo),
-		sol::resolve<std::tuple<int, bool>(const std::string&, int, const std::string&, int)>(Combo)
+		                                    [](const char* label, int currentItem, const sol::table& items, int itemsCount) { return Combo(label, currentItem, items, itemsCount, -1); },
+		                                    sol::resolve<std::tuple<int, bool>(const char*, int, const sol::table&, int, int)>(Combo),
+		                                    [](const char* label, int currentItem, const char* itemsSeparatedByZeros) { return Combo(label, currentItem, itemsSeparatedByZeros, -1); },
+		                                    sol::resolve<std::tuple<int, bool>(const char*, int, const char*, int)>(Combo),
+		                                    [](const char* label, int currentItem, sol::function getter, int itemsCount) { return Combo(label, currentItem, getter, itemsCount, -1); },
+		                                    sol::resolve<std::tuple<int, bool>(const char*, int, sol::function, int, int)>(Combo)
 	));
 	#pragma endregion
 
