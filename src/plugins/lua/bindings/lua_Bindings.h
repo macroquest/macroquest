@@ -20,6 +20,7 @@ namespace mq::lua::bindings {
 
 void RegisterBindings_Globals(LuaThread* thread, sol::state_view sv);
 void RegisterBindings_MQ(LuaThread* thread, sol::table& lua);
+void RegisterBindings_MQMacroData(sol::table& lua);
 void RegisterBindings_ImGui(sol::state_view sv);
 void RegisterBindings_Bit32(sol::state_view sv);
 

@@ -53,7 +53,7 @@ std::string lua_join(sol::this_state L, std::string_view delim, sol::variadic_ar
 
 static uint64_t lua_gettime(sol::this_state s)
 {
-	auto t = std::chrono::duration_cast<std::chrono::microseconds>(
+	auto t = std::chrono::duration_cast<std::chrono::milliseconds>(
 		std::chrono::steady_clock::now().time_since_epoch());
 
 	return t.count();
@@ -487,8 +487,6 @@ static void lua_pickle(sol::this_state L, std::string_view file_path, sol::table
 
 
 //============================================================================
-
-void RegisterBindings_MQMacroData(sol::table& lua);
 
 void RegisterBindings_MQ(LuaThread* thread, sol::table& mq)
 {

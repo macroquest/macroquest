@@ -179,6 +179,7 @@ void LuaThread::RegisterMQNamespace(sol::state_view sv)
 	{
 		auto mq = sv.create_table();
 		bindings::RegisterBindings_MQ(this, mq);
+		bindings::RegisterBindings_MQMacroData(mq);
 
 		m_mqTable = mq;
 	}
