@@ -267,6 +267,7 @@ function plugin:PopulateSpawns()
     local id = spawn.SpawnVar.ID()
     local name = spawn.SpawnVar.Name()
     local dist = spawn.DistSquared
+
     if id and name and dist then
       -- not sure if we need to nilcheck here, but to be safe
       if not self.settings.filters or not self.settings.filters['radius_squared'] or dist <= self.settings.filters['radius_squared'] then
@@ -283,9 +284,9 @@ function plugin:SpawnInfoCommand(line)
   self.is_list_open = not self.is_list_open
 end
 
-plugin:bindcommand('/spawninfo', plugin.SpawnInfoCommand)
+plugin:registercommand('/spawninfo', plugin.SpawnInfoCommand)
 
--- finally let's create a datatype and bind it to a TLO for information
+-- finally let's create a datatype and register it to a TLO for information
 -- Members need to return a tuple of MQ typename (as a string) and the value
 local spawninfotype = {
   Members = {
@@ -303,13 +304,13 @@ local spawninfotype = {
   -- FromString = function(source) for function(self, source) -- same thing, no setter
 }
 
-plugin:bindtype('spawninfo', spawninfotype)
+plugin:registertype('spawninfo', spawninfotype)
 
 -- this is similar to members function in that it needs to return the type name in addition to the value
 function plugin:Data(index)
   return 'spawninfo', self
 end
 
-plugin:bindtlo('SpawnInfo', plugin.Data)
+plugin:registertlo('SpawnInfo', plugin.Data)
 
 return plugin

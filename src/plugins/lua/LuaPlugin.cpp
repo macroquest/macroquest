@@ -1068,11 +1068,11 @@ sol::table LuaPlugin::Create(sol::table, const std::string& name, const std::str
 	auto ptr = std::make_shared<LuaPlugin>(name, version, s);
 	ptr->m_pluginTable = sol::state_view(s).create_table_with(
 		"__plugin", ptr,
-		"bindcommand", [](sol::table self, const std::string& command, sol::function func)
+		"registercommand", [](sol::table self, const std::string& command, sol::function func)
 			{ self.get<std::shared_ptr<LuaPlugin>>("__plugin")->RegisterCommand(command, func); },
-		"bindtype", [](sol::table self, const std::string& name, sol::table datatype)
+		"registertype", [](sol::table self, const std::string& name, sol::table datatype)
 			{ self.get<std::shared_ptr<LuaPlugin>>("__plugin")->RegisterDatatype(name, datatype); },
-		"bindtlo", [](sol::table self, const std::string& name, sol::function func)
+		"registertlo", [](sol::table self, const std::string& name, sol::function func)
 			{ self.get<std::shared_ptr<LuaPlugin>>("__plugin")->RegisterData(name, func); },
 		"name", ptr->m_name,
 		"version", ptr->m_version
