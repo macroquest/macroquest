@@ -1309,15 +1309,31 @@ static bool AddMapFilterOptionAsImGuiSetting(MapFilterOption* option)
 	if (!isRequirementMet)
 		ImGui::BeginDisabled();
 
-	if (ImGui::Checkbox(option->szName, &option->Enabled))
-		changed = true;
+	if (option->IsToggle())
+	{
+		if (ImGui::Checkbox(option->szName, &option->Enabled))
+			changed = true;
+		if (option->IsRadius())
+		{
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(50);
+			if (ImGui::DragFloat("Radius", &option->Radius))
+				changed = true;
+		}
+	}
+	else if (option->IsRadius())
+	{
+		ImGui::SetNextItemWidth(50);
+		if (ImGui::DragFloat(option->szName, &option->Radius))
+			changed = true;
+	}
 
 	// Draw a tooltip (?) if this option has requirements from another option list
 	MapFilterOption& requirement = GetMapFilterOption(option->RequiresOption);
 	if (!nested && requirement.szName != nullptr && requirement.ThisFilter != MapFilter::All)
 	{
 		ImGui::SameLine();
-		
+
 		mq::imgui::HelpMarker(
 			[&]() -> const char*
 			{
@@ -1332,14 +1348,6 @@ static bool AddMapFilterOptionAsImGuiSetting(MapFilterOption* option)
 		);
 	}
 
-	if (option->IsRadius())
-	{
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(50);
-		if (ImGui::DragFloat("Radius", &option->Radius))
-			changed = true;
-	}
-
 	if (option->szHelpString)
 	{
 		ImGui::SameLine();
@@ -1349,7 +1357,13 @@ static bool AddMapFilterOptionAsImGuiSetting(MapFilterOption* option)
 	if (changed && option->IsRegenerateOnChange())
 		regenerate = true;
 	if (changed)
-		WritePrivateProfileBool("Map Filters", option->szName, option->Enabled, INIFileName);
+	{
+		if (option->IsRadius())
+			WritePrivateProfileFloat("Map Filters", option->szName, option->Radius, INIFileName);
+		if (option->IsToggle())
+			WritePrivateProfileBool("Map Filters", option->szName, option->Enabled, INIFileName);
+		// option->HasColor() managed via "Colors" tab
+	}
 
 	if (!isRequirementMet)
 		ImGui::EndDisabled();
