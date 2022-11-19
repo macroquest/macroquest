@@ -18,10 +18,9 @@ extern MapObject* pLastTarget;
 MapObject* gpActiveMapObjects = nullptr;
 
 MapLocParams gDefaultMapLocParams;
-std::map<std::string, MapObjectMapLoc*> sLocationsMap;
-std::vector<MapObjectMapLoc*> sMapLocs;
+std::map<std::string, MapObjectMapLoc*> LocationsMap;
+std::vector<MapObjectMapLoc*> MapLocs;
 MapLocParams gOverrideMapLocParams;
-bool mapLocListSelected[100] = { false };
 
 //============================================================================
 
@@ -969,8 +968,8 @@ void MapObjects_Clear()
 {
 	GroundItemMap.clear();
 	SpawnMap.clear();
-	sLocationsMap.clear();
-	sMapLocs.clear();
+	LocationsMap.clear();
+	MapLocs.clear();
 
 	while (gpActiveMapObjects)
 	{
@@ -1054,20 +1053,12 @@ void UpdateDefaultMapLocParams()
 
 void ResetMapLocOverrides()
 {
-	gOverrideMapLocParams.lineSize = gDefaultMapLocParams.lineSize;
-	gOverrideMapLocParams.width = gDefaultMapLocParams.width;
-	gOverrideMapLocParams.color.Red = gDefaultMapLocParams.color.Red;
-	gOverrideMapLocParams.color.Green = gDefaultMapLocParams.color.Green;
-	gOverrideMapLocParams.color.Blue = gDefaultMapLocParams.color.Blue;
-	gOverrideMapLocParams.circleRadius = gDefaultMapLocParams.circleRadius;
-	gOverrideMapLocParams.circleColor.Red = gDefaultMapLocParams.circleColor.Red;
-	gOverrideMapLocParams.circleColor.Green = gDefaultMapLocParams.circleColor.Green;
-	gOverrideMapLocParams.circleColor.Blue = gDefaultMapLocParams.circleColor.Blue;
+	gOverrideMapLocParams = gDefaultMapLocParams;
 }
 
 void UpdateDefaultMapLocInstances()
 {
-	for (const auto& [tag, obj] : sLocationsMap)
+	for (const auto& [tag, obj] : LocationsMap)
 	{
 		if (obj->IsCreatedFromDefaults())
 		{
@@ -1094,25 +1085,14 @@ MapObjectMapLoc::~MapObjectMapLoc()
 
 void MapObjectMapLoc::UpdateFromParams(const MapLocParams& params)
 {
-	m_mapLocParams.lineSize = params.lineSize;
-	m_mapLocParams.width = params.width;
-	m_mapLocParams.color = params.color;
-	m_mapLocParams.circleRadius = params.circleRadius;
-	m_mapLocParams.circleColor = params.circleColor;
+	m_mapLocParams = params;
 
 	Update(true);
 }
 
-MapLocParams MapObjectMapLoc::GetParamsClone() const
+MapLocParams MapObjectMapLoc::GetParams() const
 {
-	MapLocParams params;
-	params.lineSize = m_mapLocParams.lineSize;
-	params.width = m_mapLocParams.width;
-	params.color = m_mapLocParams.color;
-	params.circleRadius = m_mapLocParams.circleRadius;
-	params.circleColor = m_mapLocParams.circleColor;
-
-	return params;
+	return m_mapLocParams;
 }
 
 void MapObjectMapLoc::RemoveMapLoc()
@@ -1148,11 +1128,11 @@ void MapObjectMapLoc::UpdateMapLoc()
 	RemoveMapLoc();
 
 	MapViewLine* line = nullptr;
-	MQColor* color = new MQColor();
-	color->Red = m_mapLocParams.color.Red;
-	color->Green = m_mapLocParams.color.Green;
-	color->Blue = m_mapLocParams.color.Blue;
-	uint32_t colorARGB = color->ToARGB();
+	MQColor color = MQColor();
+	color.Red = m_mapLocParams.color.Red;
+	color.Green = m_mapLocParams.color.Green;
+	color.Blue = m_mapLocParams.color.Blue;
+	uint32_t colorARGB = color.ToARGB();
 
 	// Invert the color (highlight it) temporarily if this loc is selected in the imgui
 	if (m_isSelected)
@@ -1251,19 +1231,19 @@ void MapObjectMapLoc::UpdateMapLoc()
 		m_circle.Clear();
 	}
 
-	delete color;
+	delete &color;
 }
 
 void MapObjectMapLoc::SetIndex(int index)
 {
-	m_index = index;
-	UpdateText();
+	if (mq::test_and_set(m_index, index))
+		UpdateText();
 }
 
 void MapObjectMapLoc::SetLabel(const std::string& labelText)
 {
-	m_labelText = labelText;
-	UpdateText();
+	if (mq::test_and_set(m_labelText, labelText))
+		UpdateText();
 }
 
 void MapObjectMapLoc::UpdateText()
@@ -1287,16 +1267,16 @@ MapObjectMapLoc* GetMapLocByIndex(size_t index)
 {
 	--index;
 
-	if (index >= sMapLocs.size())
+	if (index >= MapLocs.size())
 		return nullptr;
 
-	return sMapLocs[index];
+	return MapLocs[index];
 }
 
 MapObjectMapLoc* GetMapLocByTag(const std::string& tag)
 {
-	auto iter = sLocationsMap.find(tag);
-	if (iter == sLocationsMap.end())
+	auto iter = LocationsMap.find(tag);
+	if (iter == LocationsMap.end())
 		return nullptr;
 
 	return iter->second;
@@ -1304,37 +1284,30 @@ MapObjectMapLoc* GetMapLocByTag(const std::string& tag)
 
 void DeleteAllMapLocs()
 {
-	sLocationsMap.clear();
+	LocationsMap.clear();
 
-	for (MapObjectMapLoc* loc : sMapLocs)
+	for (MapObjectMapLoc* loc : MapLocs)
 	{
 		delete loc;
 	}
 
-	sMapLocs.clear();
+	MapLocs.clear();
 }
 
 void UpdateMapLocIndexes()
 {
-	for (int i = 0; i < (int)sMapLocs.size(); ++i)
+	for (int i = 0; i < (int)MapLocs.size(); ++i)
 	{
-		sMapLocs[i]->SetIndex(i + 1);
+		MapLocs[i]->SetIndex(i + 1);
 	}
 }
 
 void DeleteMapLoc(MapObjectMapLoc* mapLoc)
 {
-	sMapLocs.erase(
-		std::remove(sMapLocs.begin(), sMapLocs.end(), mapLoc),
-		sMapLocs.end());
-	sLocationsMap.erase(mapLoc->GetTag());
-
-	// Shift items beyond removal loc left to effectively erase the entry
-	auto index = mapLoc->GetIndex() - 1; // Convert from 1-based display index to 0-based array index
-	for (size_t i = index; i < sMapLocs.size(); i++)
-	{
-		mapLocListSelected[i] = mapLocListSelected[i + 1];
-	}
+	MapLocs.erase(
+		std::remove(MapLocs.begin(), MapLocs.end(), mapLoc),
+		MapLocs.end());
+	LocationsMap.erase(mapLoc->GetTag());
 
 	delete mapLoc;
 
@@ -1348,9 +1321,9 @@ void MakeMapLoc(const MapLocParams& params, const std::string& label, const std:
 	
 	newLoc->SetPosition(pos);
 
-	sMapLocs.push_back(newLoc);
-	sLocationsMap.emplace(tag, newLoc);
-	newLoc->SetIndex(static_cast<int>(sMapLocs.size()));
+	MapLocs.push_back(newLoc);
+	LocationsMap.emplace(tag, newLoc);
+	newLoc->SetIndex(static_cast<int>(MapLocs.size()));
 	newLoc->SetLabel(label);
 
 	newLoc->PostInit();

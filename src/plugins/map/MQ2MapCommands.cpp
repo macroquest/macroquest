@@ -28,8 +28,6 @@
 
 #include "imgui/ImGuiUtils.h"
 
-std::stack<MapFilterOption*> optionStack;
-
 int addMapLocX = 0;
 int addMapLocY = 0;
 int addMapLocZ = 0;
@@ -520,7 +518,7 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 
 			std::stringstream targetLabel;
 			targetLabel << "Target: [" << pTarget->Name << "] was here";
-			sprintf_s(label, "%s", _strdup(targetLabel.str().c_str()));
+			sprintf_s(label, "%s", targetLabel.str().c_str());
 		}
 		else if (!_stricmp(arg, "label"))
 		{
@@ -598,11 +596,11 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 	MapObjectMapLoc* origLoc = GetMapLocByTag(tag);
 	if (origLoc)
 	{
-		params = origLoc->GetParamsClone();
+		params = origLoc->GetParams();
 	}
 	else
 	{
-		params = gDefaultMapLocParams.GetClone();
+		params = gDefaultMapLocParams;
 	}
 
 	if (size[0] != 0)
@@ -672,9 +670,9 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 
 		MakeMapLoc(params, label, tag, pos, isDefaultLocSettings);
 
-		std::string labelStr;
+		std::string_view labelStr;
 		if (label[0] == 0)
-			labelStr = sMapLocs[sMapLocs.size() - 1]->GetLabelText();
+			labelStr = MapLocs[MapLocs.size() - 1]->GetLabelText();
 		else
 			labelStr = label;
 
@@ -1267,7 +1265,7 @@ static void BuildOptionArrays()
 /// Adds ImGui setting object
 /// </summary>
 /// <returns>true if needs to regenerate</returns>
-static bool AddMapFilterOptionAsImGuiSetting(MapFilterOption* option)
+static bool AddMapFilterOptionAsImGuiSetting(MapFilterOption* option, std::stack<MapFilterOption*> &optionStack)
 {
 	bool changed = false;
 	bool regenerate = false;
@@ -1416,13 +1414,15 @@ static void DrawMapSettings_Options()
 
 	ImGui::NewLine();
 
+	std::stack<MapFilterOption*> optionStack;
+
 	if (ImGui::CollapsingHeader("Object Filters", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		ImGui::Indent();
 
 		for (auto option : mapfilterObjectOptions)
 		{
-			if (option != nullptr && AddMapFilterOptionAsImGuiSetting(option))
+			if (option != nullptr && AddMapFilterOptionAsImGuiSetting(option, optionStack))
 				regenerate = true;
 		}
 
@@ -1435,7 +1435,7 @@ static void DrawMapSettings_Options()
 
 		for (auto option : mapFilterOptions)
 		{
-			if (AddMapFilterOptionAsImGuiSetting(option))
+			if (AddMapFilterOptionAsImGuiSetting(option, optionStack))
 				regenerate = true;
 		}
 
@@ -1612,9 +1612,9 @@ static bool IsMapLocsStyleOverridden()
 
 static bool IsAnyMapLocSelected()
 {
-	for (size_t i = 0; i < sMapLocs.size(); i++)
+	for (size_t i = 0; i < MapLocs.size(); i++)
 	{
-		if (sMapLocs[i]->m_isSelected)
+		if (MapLocs[i]->m_isSelected)
 		{
 			return true;
 		}
@@ -1625,9 +1625,9 @@ static bool IsAnyMapLocSelected()
 
 static void DeleteSelectedMapLocs()
 {
-	for (size_t i = 0; i < sMapLocs.size(); i++)
+	for (size_t i = 0; i < MapLocs.size(); i++)
 	{
-		if (sMapLocs[i]->m_isSelected)
+		if (MapLocs[i]->m_isSelected)
 		{
 			DeleteMapLoc(GetMapLocByIndex(i + 1));
 		}
@@ -1636,9 +1636,9 @@ static void DeleteSelectedMapLocs()
 
 static void ResetSelectedMapLocsToDefault()
 {
-	for (size_t i = 0; i < sMapLocs.size(); i++)
+	for (size_t i = 0; i < MapLocs.size(); i++)
 	{
-		if (sMapLocs[i]->m_isSelected)
+		if (MapLocs[i]->m_isSelected)
 		{
 			MapObjectMapLoc* thisMapLoc = GetMapLocByIndex(i + 1);
 			thisMapLoc->SetCreatedFromDefaults(true);
@@ -1649,9 +1649,9 @@ static void ResetSelectedMapLocsToDefault()
 
 static void ApplyOverridesToSelected(MapLocParams params)
 {
-	for (size_t i = 0; i < sMapLocs.size(); i++)
+	for (size_t i = 0; i < MapLocs.size(); i++)
 	{
-		if (sMapLocs[i]->m_isSelected)
+		if (MapLocs[i]->m_isSelected)
 		{
 			MapObjectMapLoc* thisMapLoc = GetMapLocByIndex(i + 1);
 			thisMapLoc->SetCreatedFromDefaults(false);
@@ -1669,7 +1669,7 @@ static void DrawMapSettings_MapLocs()
 {
 	bool regenerate = false;
 
-	if (sLocationsMap.size() < 1)
+	if (LocationsMap.size() < 1)
 	{
 		ImGui::BeginDisabled();
 	}
@@ -1677,7 +1677,7 @@ static void DrawMapSettings_MapLocs()
 	{
 		ImGui::OpenPopup("Delete?");
 	}
-	if (sLocationsMap.size() < 1)
+	if (LocationsMap.size() < 1)
 	{
 		ImGui::EndDisabled();
 	}
@@ -1844,19 +1844,19 @@ static void DrawMapSettings_MapLocs()
 	ImGui::SameLine();
 	if (ImGui::Button("Select All"))
 	{
-		for (size_t i = 0; i < sMapLocs.size(); i++)
+		for (size_t i = 0; i < MapLocs.size(); i++)
 		{
-			sMapLocs[i]->m_isSelected = true;
-			MapLocSelected(sMapLocs[i]);
+			MapLocs[i]->m_isSelected = true;
+			MapLocSelected(MapLocs[i]);
 		}
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("Deselect All"))
 	{
-		for (size_t i = 0; i < sMapLocs.size(); i++)
+		for (size_t i = 0; i < MapLocs.size(); i++)
 		{
-			sMapLocs[i]->m_isSelected = false;
-			MapLocSelected(sMapLocs[i]);
+			MapLocs[i]->m_isSelected = false;
+			MapLocSelected(MapLocs[i]);
 		}
 	}
 
@@ -1868,25 +1868,25 @@ static void DrawMapSettings_MapLocs()
 		ImGui::TableSetupColumn("Uses Defaults?");
 		ImGui::TableHeadersRow();
 
-		for (size_t i = 0; i < sMapLocs.size(); i++)
+		for (size_t i = 0; i < MapLocs.size(); i++)
 		{
 			ImGui::TableNextRow();
 			ImGui::TableNextColumn();
-			if (ImGui::Selectable(std::to_string(i + 1).c_str(), &sMapLocs[i]->m_isSelected, ImGuiSelectableFlags_SpanAllColumns))
+			if (ImGui::Selectable(std::to_string(i + 1).c_str(), &MapLocs[i]->m_isSelected, ImGuiSelectableFlags_SpanAllColumns))
 			{
-				MapLocSelected(sMapLocs[i]);
+				MapLocSelected(MapLocs[i]);
 			}
 
 			ImGui::TableNextColumn();
 			std::stringstream locStream;
-			locStream << sMapLocs[i]->GetPosition().Y << ", " << sMapLocs[i]->GetPosition().X << ", " << sMapLocs[i]->GetPosition().Z;
+			locStream << MapLocs[i]->GetPosition().Y << ", " << MapLocs[i]->GetPosition().X << ", " << MapLocs[i]->GetPosition().Z;
 			ImGui::Text(locStream.str().c_str());
 
 			ImGui::TableNextColumn();
-			ImGui::Text(sMapLocs[i]->GetLabelText());
+			ImGui::Text(MapLocs[i]->GetLabelText());
 
 			ImGui::TableNextColumn();
-			if (sMapLocs[i]->IsCreatedFromDefaults())
+			if (MapLocs[i]->IsCreatedFromDefaults())
 				ImGui::Text("Yes");
 			else
 				ImGui::Text("No");

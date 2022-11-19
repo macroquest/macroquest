@@ -49,7 +49,7 @@ public:
 	virtual SPAWNINFO* GetSpawn() const { return nullptr; }
 	virtual GROUNDITEM* GetGroundItem() const { return nullptr; }
 
-	virtual char* GetLabelText() {
+	virtual const char* GetLabelText() {
 		if (m_label == nullptr) return "";
 		return m_label->Label;
 	}
@@ -183,17 +183,6 @@ struct MapLocParams
 	MQColor color = MQColor(255, 0, 0);
 	float   circleRadius = 0.f;
 	MQColor circleColor = MQColor(0, 0, 255);
-
-	MapLocParams GetClone()
-	{
-		MapLocParams result;
-		result.lineSize = lineSize;
-		result.width = width;
-		result.color = MQColor(color.Red, color.Green, color.Blue);
-		result.circleRadius = circleRadius;
-		result.circleColor = MQColor(circleColor.Red, circleColor.Green, circleColor.Blue);
-		return result;
-	}
 };
 extern MapLocParams gDefaultMapLocParams;
 
@@ -207,7 +196,7 @@ public:
 	virtual ~MapObjectMapLoc();
 
 	void UpdateFromParams(const MapLocParams& params);
-	MapLocParams GetParamsClone() const;
+	MapLocParams GetParams() const;
 
 	bool IsCreatedFromDefaults() { return m_isCreatedFromDefaultLoc; }
 	void SetCreatedFromDefaults(bool isCreatedFromDefaults) { m_isCreatedFromDefaultLoc = isCreatedFromDefaults; }
@@ -232,7 +221,7 @@ private:
 
 	bool                  m_isCreatedFromDefaultLoc;
 	bool                  m_initialized = false;
-	int                   m_index = 1;
+	int                   m_index = -1;
 	std::string           m_tag;
 	std::string           m_labelText;
 	std::vector<MapViewLine*> m_lines;
@@ -240,8 +229,8 @@ private:
 	MapLocParams		  m_mapLocParams;
 };
 
-extern std::map<std::string, MapObjectMapLoc*> sLocationsMap;
-extern std::vector<MapObjectMapLoc*> sMapLocs;
+extern std::map<std::string, MapObjectMapLoc*> LocationsMap;
+extern std::vector<MapObjectMapLoc*> MapLocs;
 extern MapLocParams gOverrideMapLocParams;
 
 void UpdateDefaultMapLocParams();
