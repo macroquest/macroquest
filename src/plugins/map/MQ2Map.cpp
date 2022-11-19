@@ -265,11 +265,15 @@ PLUGIN_API void InitializePlugin()
 	{
 		MapFilterOption& option = MapFilterOptions[i];
 
-		option.Enabled = GetPrivateProfileBool("Map Filters", option.szName, option.Default, INIFileName);
+		if (option.IsToggle())
+			option.Enabled = GetPrivateProfileBool("Map Filters", option.szName, option.Default, INIFileName);
+
+		if (option.IsRadius())
+			option.Radius = GetPrivateProfileFloat("Map Filters", option.szName, option.Default, INIFileName);
+
 		// If it's the CampRadius or PullRadius, set the radius value as well as the loc
 		if (!_stricmp(option.szName, "CampRadius"))
 		{
-			option.Radius = GetPrivateProfileFloat("Map Filters", option.szName, option.Default, INIFileName);
 			if (pLocalPlayer && option.Radius > 0.0f)
 			{
 				CampX = pLocalPlayer->X;
@@ -278,7 +282,6 @@ PLUGIN_API void InitializePlugin()
 		}
 		if (!_stricmp(option.szName, "PullRadius"))
 		{
-			option.Radius = GetPrivateProfileFloat("Map Filters", option.szName, option.Default, INIFileName);
 			if (pLocalPlayer && option.Radius > 0.0f)
 			{
 				PullX = pLocalPlayer->X;
@@ -286,11 +289,13 @@ PLUGIN_API void InitializePlugin()
 			}
 		}
 
-		// Lets see what color option was last saved as, if any. If none then use the default.
-		option.Color.SetARGB(GetPrivateProfileInt("Map Filters", fmt::format("{}-Color", option.szName), option.DefaultColor.ToARGB(), INIFileName));
-		option.Color.Alpha = 255; // always enforce 255 alpha channel
-		option.MarkerSize = GetPrivateProfileInt("Marker Filters", fmt::format("{}-Size", option.szName), 0, INIFileName);
+		if (option.HasColor())
+		{
+			option.Color.SetARGB(GetPrivateProfileInt("Map Filters", fmt::format("{}-Color", option.szName), option.DefaultColor.ToARGB(), INIFileName));
+			option.Color.Alpha = 255; // always enforce 255 alpha channel
+		}
 
+		option.MarkerSize = GetPrivateProfileInt("Marker Filters", fmt::format("{}-Size", option.szName), 0, INIFileName);
 		std::string markerString = GetPrivateProfileString("Marker Filters", option.szName, "None", INIFileName);
 		option.Marker = FindMarker(markerString, MarkerType::None);
 	}
