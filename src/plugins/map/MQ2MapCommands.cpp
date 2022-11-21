@@ -521,7 +521,7 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 			sprintf_s(tag, "%s,%s,%s", yloc, xloc, zloc);
 
 			std::stringstream targetLabel;
-			targetLabel << "Target: [" << pTarget->Name << "] was here";
+			targetLabel << "Target [" << pTarget->Name << "] was here";
 			sprintf_s(label, "%s", targetLabel.str().c_str());
 		}
 		else if (!_stricmp(arg, "label"))
@@ -678,16 +678,13 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 
 		UpdateMapLocIndexes();
 
-		std::string_view labelStr;
-		if (label[0] == 0)
-			labelStr = gMapLocTemplates[gMapLocTemplates.size() - 1]->GetMapLoc()->GetLabelText();
-		else
-			labelStr = label;
+		std::string_view labelStr = gMapLocTemplates[gMapLocTemplates.size() - 1]->GetMapLoc()->GetLabelText();
 
 		MapLocVars
 			<< "y:" << pos.Y
 			<< " x:" << pos.X
 			<< " z:" << pos.Z
+			<< ", Index: " << gMapLocTemplates[gMapLocTemplates.size() - 1]->GetMapLoc()->GetIndex()
 			<< ", Label: " << labelStr;
 	}
 
