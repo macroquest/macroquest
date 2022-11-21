@@ -245,6 +245,7 @@ public:
 		m_isCreatedFromDefaultLoc = isCreatedFromDefaults;
 		m_MapLoc->SetCreatedFromDefaults(m_isCreatedFromDefaultLoc);
 	}
+	void SetLabel(const std::string& labelText);
 
 private:
 	MapLocParams		  m_mapLocParams;

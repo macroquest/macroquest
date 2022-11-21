@@ -644,6 +644,8 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 	if (origLoc)
 	{
 		origLoc->UpdateFromParams(params);
+		origLoc->SetLabel(label);
+		MapLocVars << "Updating existing loc, Index: " << origLoc->GetIndex() + 1;
 	}
 
 	// not updating an existing thing. and we aren't placing a location, so update the defaults

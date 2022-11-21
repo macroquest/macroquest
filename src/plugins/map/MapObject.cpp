@@ -1258,6 +1258,12 @@ void MapObjectMapLoc::SetIndex(int index)
 		UpdateText();
 }
 
+void MapLocTemplate::SetLabel(const std::string& labelText)
+{
+	m_label = labelText;
+	m_MapLoc->SetLabel(labelText);
+}
+
 void MapObjectMapLoc::SetLabel(const std::string& labelText)
 {
 	if (mq::test_and_set(m_labelText, labelText))
