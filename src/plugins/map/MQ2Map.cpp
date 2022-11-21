@@ -301,7 +301,7 @@ PLUGIN_API void InitializePlugin()
 
 	activeLayer = GetPrivateProfileInt("Map Filters", "ActiveLayer", activeLayer, INIFileName);
 
-	UpdateDefaultMapLocParams();
+	InitDefaultMapLocParams();
 	ResetMapLocOverrides();
 
 	repeatMapshow = GetPrivateProfileBool("Map Filters", "Mapshow-Repeat", false, INIFileName);

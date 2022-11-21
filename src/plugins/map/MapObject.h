@@ -193,12 +193,11 @@ class MapObjectMapLoc : public MapObject
 {
 public:
 	MapObjectMapLoc(const MapLocParams& params, const std::string& tag, bool isDefault);
+	MapObjectMapLoc();
 	virtual ~MapObjectMapLoc();
-
 	void UpdateFromParams(const MapLocParams& params);
-	MapLocParams GetParams() const;
+	MapLocParams* GetParams();
 
-	bool IsCreatedFromDefaults() { return m_isCreatedFromDefaultLoc; }
 	void SetCreatedFromDefaults(bool isCreatedFromDefaults) { m_isCreatedFromDefaultLoc = isCreatedFromDefaults; }
 
 	int GetIndex() const { return m_index; }
@@ -212,14 +211,14 @@ public:
 
 	virtual bool CanDisplayObject() const override { return true; }
 
-	bool				  m_isSelected; // exposed directly for imgui reference
+	bool				  m_isSelected = false; // exposed directly for imgui reference
 
 private:
 	void UpdateMapLoc();
 	void RemoveMapLoc();
 	void UpdateText();
 
-	bool                  m_isCreatedFromDefaultLoc;
+	bool                  m_isCreatedFromDefaultLoc = false;
 	bool                  m_initialized = false;
 	int                   m_index = -1;
 	std::string           m_tag;
@@ -229,17 +228,41 @@ private:
 	MapLocParams		  m_mapLocParams;
 };
 
-extern std::vector<MapObjectMapLoc*> gMapLocs;
+class MapLocTemplate
+{
+public:
+	MapLocTemplate(const MapLocParams& params, const std::string& label,
+		const std::string& tag, const CVector3& pos, bool isDefault);
+
+	int GetIndex();
+	MapObjectMapLoc* GetMapLoc();
+	void MakeMapLocFromTemplate();
+	void ClearReferenceToMapLoc();
+	void UpdateFromParams(const MapLocParams& params);
+	bool IsCreatedFromDefaults() { return m_isCreatedFromDefaultLoc; }
+	void SetCreatedFromDefaults(bool isCreatedFromDefaults)
+	{
+		m_isCreatedFromDefaultLoc = isCreatedFromDefaults;
+		m_MapLoc->SetCreatedFromDefaults(m_isCreatedFromDefaultLoc);
+	}
+
+private:
+	MapLocParams		  m_mapLocParams;
+	std::string           m_label;
+	std::string           m_tag;
+	CVector3              m_pos;
+	bool                  m_isCreatedFromDefaultLoc = false;
+	MapObjectMapLoc*      m_MapLoc = nullptr;
+};
+
+extern std::vector<MapLocTemplate*> gMapLocTemplates;
 extern MapLocParams gOverrideMapLocParams;
 
-void UpdateDefaultMapLocParams();
+void InitDefaultMapLocParams();
 void UpdateDefaultMapLocInstances();
 void ResetMapLocOverrides();
 
-void MakeMapLoc(const MapLocParams& params, const std::string& label,
-	const std::string& tag, const CVector3& pos, bool isDefault);
-
-MapObjectMapLoc* GetMapLocByTag(const std::string& tag);
+MapLocTemplate* GetMapLocByTag(const std::string& tag);
 
 void DeleteAllMapLocs();
 void DeleteMapLoc(MapObjectMapLoc* mapLoc);

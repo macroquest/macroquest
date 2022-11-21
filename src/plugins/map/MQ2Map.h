@@ -138,6 +138,9 @@ extern bool repeatMaphide;
 
 extern std::vector<MapFilterOption*> mapfilterObjectOptions;
 extern std::vector<MapFilterOption*> mapFilterOptions;
+extern float mapLocSize;
+extern float mapLocWidth;
+extern float mapLocRadius;
 
 /* COMMANDS */
 void MapFilters(SPAWNINFO* pChar, char* szLine);
@@ -166,6 +169,7 @@ void MapDetach();
 
 void MapLocSyntaxOutput();
 void MapRemoveLocation(char* szLine);
+void UpdateMapLocIndexes();
 
 bool MapSelectTarget();
 void MapClickLocation(float x, float y, const std::vector<float>& z_hits);

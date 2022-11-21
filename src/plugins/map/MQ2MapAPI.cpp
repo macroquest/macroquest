@@ -146,6 +146,11 @@ void MapGenerate()
 			pItem = pItem->pNext;
 		}
 	}
+
+	for (auto maploc : gMapLocTemplates)
+	{
+		maploc->MakeMapLocFromTemplate();
+	}
 }
 
 void MapClear()
@@ -645,8 +650,6 @@ int MakeTime()
 
 void PrintDefaultMapLocSettings()
 {
-	UpdateDefaultMapLocParams();
-
 	WriteChatf("%s", fmt::format("MapLoc Defaults: Width:{}, Size:{}, Color:{},{},{}, Radius:{}, Radius Color:{},{},{}",
 		gDefaultMapLocParams.width,
 		gDefaultMapLocParams.lineSize,
@@ -740,18 +743,19 @@ void MapRemoveLocation(char* szLine)
 		strcpy_s(zloc, temp.substr(0, temp.find(delim)).c_str());
 
 		sprintf_s(tag, "%s,%s,%s", yloc, xloc, zloc);
-		loc = GetMapLocByTag(tag);
+		loc = GetMapLocByTag(tag)->GetMapLoc();
 	}
 	else // remove by index
 	{
-		int index = static_cast<int>(std::stof(yloc));
-		loc = gMapLocs[index - 1];
+		size_t index = static_cast<size_t>(std::stof(yloc)) - 1;
 
-		if (!loc)
+		if (index >= gMapLocTemplates.size())
 		{
 			WriteChatf("\arRemove loc by index out of bounds: %s", yloc);
 			return;
 		}
+
+		loc = gMapLocTemplates[index]->GetMapLoc();
 
 		strcpy_s(tag, loc->GetTag().c_str());
 	}

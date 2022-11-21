@@ -32,6 +32,10 @@ int addMapLocX = 0;
 int addMapLocY = 0;
 int addMapLocZ = 0;
 char addMapLocLabel[MAXCHAR] = "";
+static unsigned short initial_column_spacing = 0;
+float mapLocSize;
+float mapLocWidth;
+float mapLocRadius;
 
 // ***************************************************************************
 // Function:    MapFilters
@@ -593,10 +597,10 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 	// Init params either from MapLoc with matching tag, or the defaults.
 	MapLocParams params;
 
-	MapObjectMapLoc* origLoc = GetMapLocByTag(tag);
+	MapLocTemplate* origLoc = GetMapLocByTag(tag);
 	if (origLoc)
 	{
-		params = origLoc->GetParams();
+		params = *origLoc->GetMapLoc()->GetParams();
 	}
 	else
 	{
@@ -668,11 +672,15 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 		// FIXME: exception handling?
 		CVector3 pos{ std::stof(xloc), std::stof(yloc), std::stof(zloc) };
 
-		MakeMapLoc(params, label, tag, pos, isDefaultLocSettings);
+		MapLocTemplate* newMapLoc = new MapLocTemplate(params, label, tag, pos, isDefaultLocSettings);
+
+		gMapLocTemplates.push_back(newMapLoc);
+
+		UpdateMapLocIndexes();
 
 		std::string_view labelStr;
 		if (label[0] == 0)
-			labelStr = gMapLocs[gMapLocs.size() - 1]->GetLabelText();
+			labelStr = gMapLocTemplates[gMapLocTemplates.size() - 1]->GetMapLoc()->GetLabelText();
 		else
 			labelStr = label;
 
@@ -1177,6 +1185,21 @@ char* FormatMarker(const char* szLine, char* szDest, size_t BufferSize)
 	return szDest;
 }
 
+static bool IsMapLocsStyleOverridden()
+{
+	if (gOverrideMapLocParams.lineSize != gDefaultMapLocParams.lineSize) return true;
+	if (gOverrideMapLocParams.width != gDefaultMapLocParams.width) return true;
+	if (gOverrideMapLocParams.color.Red != gDefaultMapLocParams.color.Red) return true;
+	if (gOverrideMapLocParams.color.Green != gDefaultMapLocParams.color.Green) return true;
+	if (gOverrideMapLocParams.color.Blue != gDefaultMapLocParams.color.Blue) return true;
+	if (gOverrideMapLocParams.circleRadius != gDefaultMapLocParams.circleRadius) return true;
+	if (gOverrideMapLocParams.circleColor.Red != gDefaultMapLocParams.circleColor.Red) return true;
+	if (gOverrideMapLocParams.circleColor.Green != gDefaultMapLocParams.circleColor.Green) return true;
+	if (gOverrideMapLocParams.circleColor.Blue != gDefaultMapLocParams.circleColor.Blue) return true;
+
+	return false;
+}
+
 static void BuildFilteredOptionArray(std::vector<MapFilterOption*> &options)
 {
 	for (size_t childIndex = 0; childIndex < options.size(); childIndex++)
@@ -1466,24 +1489,42 @@ static void DrawMapSettings_Options()
 		ImGui::Indent();
 
 		ImGui::SetNextItemWidth(40);
-		if (ImGui::DragFloat("Line Size (10-200, default: 50)", &gDefaultMapLocParams.lineSize, 1.0f, 10, 200, "%.0f", ImGuiSliderFlags_None))
+		if (ImGui::DragFloat("Line Size (10-200, default: 50)", &mapLocSize, 1.0f, 10, 200, "%.0f", ImGuiSliderFlags_None))
 		{
+			if (!IsMapLocsStyleOverridden())
+			{
+				gOverrideMapLocParams.lineSize = mapLocSize;
+			}
+			gDefaultMapLocParams.lineSize = mapLocSize;
 			WritePrivateProfileFloat("MapLoc", "Size", gDefaultMapLocParams.lineSize, INIFileName);
 			UpdateDefaultMapLocInstances();
+			regenerate = true;
 		}
 
 		ImGui::SetNextItemWidth(40);
-		if (ImGui::DragFloat("Line Width (1-10, default: 10)", &gDefaultMapLocParams.width, 1.0f, 1, 10, "%.0f", ImGuiSliderFlags_None))
+		if (ImGui::DragFloat("Line Width (1-10, default: 10)", &mapLocWidth, 1.0f, 1, 10, "%.0f", ImGuiSliderFlags_None))
 		{
+			if (!IsMapLocsStyleOverridden())
+			{
+				gOverrideMapLocParams.width = mapLocWidth;
+			}
+			gDefaultMapLocParams.width = mapLocWidth;
 			WritePrivateProfileFloat("MapLoc", "Width", gDefaultMapLocParams.width, INIFileName);
 			UpdateDefaultMapLocInstances();
+			regenerate = true;
 		}
 
 		ImGui::SetNextItemWidth(40);
-		if (ImGui::DragFloat("Radius", &gDefaultMapLocParams.circleRadius, 1.0f, 0, 1000, "%.0f", ImGuiSliderFlags_None))
+		if (ImGui::DragFloat("Radius", &mapLocRadius, 1.0f, 0, 1000, "%.0f", ImGuiSliderFlags_None))
 		{
+			if (!IsMapLocsStyleOverridden())
+			{
+				gOverrideMapLocParams.circleRadius = mapLocRadius;
+			}
+			gDefaultMapLocParams.circleRadius = mapLocRadius;
 			WritePrivateProfileFloat("MapLoc", "Radius", gDefaultMapLocParams.circleRadius, INIFileName);
 			UpdateDefaultMapLocInstances();
+			regenerate = true;
 		}
 
 		ImGui::Unindent();
@@ -1559,6 +1600,14 @@ static void DrawMapSettings_Colors()
 	ImColor mapLocColor = gDefaultMapLocParams.color.ToImColor();
 	if (ImGui::ColorEdit3("MapLoc", &mapLocColor.Value.x))
 	{
+		if (!IsMapLocsStyleOverridden())
+		{
+			gOverrideMapLocParams.color.Blue = static_cast<uint8_t>(mapLocColor.Value.z * 255);
+			gOverrideMapLocParams.color.Green = static_cast<uint8_t>(mapLocColor.Value.y * 255);
+			gOverrideMapLocParams.color.Red = static_cast<uint8_t>(mapLocColor.Value.x * 255);
+			gOverrideMapLocParams.color.Alpha = 255;
+		}
+
 		gDefaultMapLocParams.color.Blue = static_cast<uint8_t>(mapLocColor.Value.z * 255);
 		gDefaultMapLocParams.color.Green = static_cast<uint8_t>(mapLocColor.Value.y * 255);
 		gDefaultMapLocParams.color.Red = static_cast<uint8_t>(mapLocColor.Value.x * 255);
@@ -1567,6 +1616,7 @@ static void DrawMapSettings_Colors()
 		WritePrivateProfileInt("MapLoc", "Red", gDefaultMapLocParams.color.Red, INIFileName);
 		WritePrivateProfileInt("MapLoc", "Green", gDefaultMapLocParams.color.Green, INIFileName);
 		WritePrivateProfileInt("MapLoc", "Blue", gDefaultMapLocParams.color.Blue, INIFileName);
+		UpdateDefaultMapLocInstances();
 		regenerate = true;
 	}
 
@@ -1575,6 +1625,14 @@ static void DrawMapSettings_Colors()
 	ImColor radiusColor = gDefaultMapLocParams.circleColor.ToImColor();
 	if (ImGui::ColorEdit3("MapLoc Radius", &radiusColor.Value.x))
 	{
+		if (!IsMapLocsStyleOverridden())
+		{
+			gOverrideMapLocParams.circleColor.Blue = static_cast<uint8_t>(radiusColor.Value.z * 255);
+			gOverrideMapLocParams.circleColor.Green = static_cast<uint8_t>(radiusColor.Value.y * 255);
+			gOverrideMapLocParams.circleColor.Red = static_cast<uint8_t>(radiusColor.Value.x * 255);
+			gOverrideMapLocParams.circleColor.Alpha = 255;
+		}
+
 		gDefaultMapLocParams.circleColor.Blue = static_cast<uint8_t>(radiusColor.Value.z * 255);
 		gDefaultMapLocParams.circleColor.Green = static_cast<uint8_t>(radiusColor.Value.y * 255);
 		gDefaultMapLocParams.circleColor.Red = static_cast<uint8_t>(radiusColor.Value.x * 255);
@@ -1583,6 +1641,7 @@ static void DrawMapSettings_Colors()
 		WritePrivateProfileInt("MapLoc", "RadiusRed", gDefaultMapLocParams.circleColor.Red, INIFileName);
 		WritePrivateProfileInt("MapLoc", "RadiusGreen", gDefaultMapLocParams.circleColor.Green, INIFileName);
 		WritePrivateProfileInt("MapLoc", "RadiusBlue", gDefaultMapLocParams.circleColor.Blue, INIFileName);
+		UpdateDefaultMapLocInstances();
 		regenerate = true;
 	}
 
@@ -1595,26 +1654,11 @@ static void DrawMapSettings_Colors()
 	}
 }
 
-static bool IsMapLocsStyleOverridden()
-{
-	if (gOverrideMapLocParams.lineSize != gDefaultMapLocParams.lineSize) return true;
-	if (gOverrideMapLocParams.width != gDefaultMapLocParams.width) return true;
-	if (gOverrideMapLocParams.color.Red != gDefaultMapLocParams.color.Red) return true;
-	if (gOverrideMapLocParams.color.Green != gDefaultMapLocParams.color.Green) return true;
-	if (gOverrideMapLocParams.color.Blue != gDefaultMapLocParams.color.Blue) return true;
-	if (gOverrideMapLocParams.circleRadius != gDefaultMapLocParams.circleRadius) return true;
-	if (gOverrideMapLocParams.circleColor.Red != gDefaultMapLocParams.circleColor.Red) return true;
-	if (gOverrideMapLocParams.circleColor.Green != gDefaultMapLocParams.circleColor.Green) return true;
-	if (gOverrideMapLocParams.circleColor.Blue != gDefaultMapLocParams.circleColor.Blue) return true;
-
-	return false;
-}
-
 static bool IsAnyMapLocSelected()
 {
-	for (size_t i = 0; i < gMapLocs.size(); i++)
+	for (size_t i = 0; i < gMapLocTemplates.size(); i++)
 	{
-		if (gMapLocs[i]->m_isSelected)
+		if (gMapLocTemplates[i]->GetMapLoc()->m_isSelected)
 		{
 			return true;
 		}
@@ -1625,37 +1669,37 @@ static bool IsAnyMapLocSelected()
 
 static void DeleteSelectedMapLocs()
 {
-	for (size_t i = 0; i < gMapLocs.size(); i++)
+	for (size_t i = 0; i < gMapLocTemplates.size(); i++)
 	{
-		if (gMapLocs[i]->m_isSelected)
+		if (gMapLocTemplates[i]->GetMapLoc()->m_isSelected)
 		{
-			DeleteMapLoc(gMapLocs[i--]);
+			DeleteMapLoc(gMapLocTemplates[i--]->GetMapLoc());
 		}
 	} 
 }
 
 static void ResetSelectedMapLocsToDefault()
 {
-	for (size_t i = 0; i < gMapLocs.size(); i++)
+	for (size_t i = 0; i < gMapLocTemplates.size(); i++)
 	{
-		if (gMapLocs[i]->m_isSelected)
+		if (gMapLocTemplates[i]->GetMapLoc()->m_isSelected)
 		{
-			MapObjectMapLoc* thisMapLoc = gMapLocs[i];
-			thisMapLoc->SetCreatedFromDefaults(true);
-			thisMapLoc->UpdateFromParams(gDefaultMapLocParams);
+			MapObjectMapLoc* thisMapLoc = gMapLocTemplates[i]->GetMapLoc();
+			gMapLocTemplates[i]->SetCreatedFromDefaults(true);
+			gMapLocTemplates[i]->UpdateFromParams(gDefaultMapLocParams);
 		}
 	}
 }
 
 static void ApplyOverridesToSelected(MapLocParams params)
 {
-	for (size_t i = 0; i < gMapLocs.size(); i++)
+	for (size_t i = 0; i < gMapLocTemplates.size(); i++)
 	{
-		if (gMapLocs[i]->m_isSelected)
+		if (gMapLocTemplates[i]->GetMapLoc()->m_isSelected)
 		{
-			MapObjectMapLoc* thisMapLoc = gMapLocs[i];
-			thisMapLoc->SetCreatedFromDefaults(false);
-			thisMapLoc->UpdateFromParams(params);
+			MapObjectMapLoc* thisMapLoc = gMapLocTemplates[i]->GetMapLoc();
+			gMapLocTemplates[i]->SetCreatedFromDefaults(false);
+			gMapLocTemplates[i]->UpdateFromParams(params);
 		}
 	}
 }
@@ -1663,18 +1707,21 @@ static void ApplyOverridesToSelected(MapLocParams params)
 static void DrawMapSettings_MapLocs()
 {
 	bool regenerate = false;
+	bool disable = false;
 
-	if (gMapLocs.size() < 1)
+	if (gMapLocTemplates.size() < 1)
 	{
 		ImGui::BeginDisabled();
+		disable = true;
 	}
 	if (ImGui::Button("Clear All Map Locs"))
 	{
 		ImGui::OpenPopup("Delete?");
 	}
-	if (gMapLocs.size() < 1)
+	if (disable)
 	{
 		ImGui::EndDisabled();
+		disable = false;
 	}
 
 	ImVec2 center = ImGui::GetMainViewport()->GetCenter();
@@ -1701,6 +1748,7 @@ static void DrawMapSettings_MapLocs()
 	if (pTarget.get() == nullptr)
 	{
 		ImGui::BeginDisabled();
+		disable = true;
 	}
 	if (ImGui::Button("Add MapLoc for Current Target"))
 	{
@@ -1717,9 +1765,10 @@ static void DrawMapSettings_MapLocs()
 		char* targetStr = _strdup(targetStream.str().c_str());
 		MapSetLocationCmd(nullptr, targetStr);
 	}
-	if (pTarget.get() == nullptr)
+	if (disable)
 	{
 		ImGui::EndDisabled();
+		disable = false;
 	}
 		
 	if (ImGui::CollapsingHeader("Map Loc Overrides"))
@@ -1731,27 +1780,23 @@ static void DrawMapSettings_MapLocs()
 		if (!IsMapLocsStyleOverridden())
 		{
 			ImGui::BeginDisabled();
+			disable = true;
 		}
 		if (ImGui::Button("Reset Overrides to Defaults"))
 		{
 			ResetMapLocOverrides();
 		}
-		if (!IsMapLocsStyleOverridden())
+		if (disable)
 		{
 			ImGui::EndDisabled();
+			disable = false;
 		}
 
 		ImGui::SetNextItemWidth(40);
-		if (ImGui::DragFloat(" Line Size (10-200, default: 50)", &gOverrideMapLocParams.lineSize, 1.0f, 10, 200, "%.0f", ImGuiSliderFlags_None))
-		{
-			UpdateDefaultMapLocInstances();
-		}
+		ImGui::DragFloat(" Line Size (10-200, default: 50)", &gOverrideMapLocParams.lineSize, 1.0f, 10, 200, "%.0f", ImGuiSliderFlags_None);
 
 		ImGui::SetNextItemWidth(40);
-		if (ImGui::DragFloat(" Line Width (1-10, default: 10)", &gOverrideMapLocParams.width, 1.0f, 1, 10, "%.0f", ImGuiSliderFlags_None))
-		{
-			UpdateDefaultMapLocInstances();
-		}
+		ImGui::DragFloat(" Line Width (1-10, default: 10)", &gOverrideMapLocParams.width, 1.0f, 1, 10, "%.0f", ImGuiSliderFlags_None);
 
 		ImColor mapLocColor = gOverrideMapLocParams.color.ToImColor();
 		ImGui::SetNextItemWidth(200);
@@ -1773,6 +1818,7 @@ static void DrawMapSettings_MapLocs()
 		if (gOverrideMapLocParams.circleRadius == 0)
 		{
 			ImGui::BeginDisabled();
+			disable = true;
 		}
 		ImGui::SameLine();
 		ImColor radiusColor = gOverrideMapLocParams.circleColor.ToImColor();
@@ -1785,9 +1831,10 @@ static void DrawMapSettings_MapLocs()
 			gOverrideMapLocParams.circleColor.Alpha = 255;
 			regenerate = true;
 		}
-		if (gOverrideMapLocParams.circleRadius == 0)
+		if (disable)
 		{
 			ImGui::EndDisabled();
+			disable = false;
 		}
 
 		ImGui::Unindent();
@@ -1822,12 +1869,13 @@ static void DrawMapSettings_MapLocs()
 
 		UpdateDefaultMapLocInstances();
 	}
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(40);
-	ImGui::InputInt("X", &addMapLocX, 0);
+	
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(40);
 	ImGui::InputInt("Y", &addMapLocY, 0);
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(40);
+	ImGui::InputInt("X", &addMapLocX, 0);
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(40);
 	ImGui::InputInt("Z", &addMapLocZ, 0);
@@ -1839,59 +1887,64 @@ static void DrawMapSettings_MapLocs()
 	ImGui::SameLine();
 	if (ImGui::Button("Select All"))
 	{
-		for (size_t i = 0; i < gMapLocs.size(); i++)
+		for (size_t i = 0; i < gMapLocTemplates.size(); i++)
 		{
-			gMapLocs[i]->m_isSelected = true;
-			gMapLocs[i]->Update(true);
+			gMapLocTemplates[i]->GetMapLoc()->m_isSelected = true;
+			gMapLocTemplates[i]->GetMapLoc()->Update(true);
 		}
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("Deselect All"))
 	{
-		for (size_t i = 0; i < gMapLocs.size(); i++)
+		for (size_t i = 0; i < gMapLocTemplates.size(); i++)
 		{
-			gMapLocs[i]->m_isSelected = false;
-			gMapLocs[i]->Update(true);
+			gMapLocTemplates[i]->GetMapLoc()->m_isSelected = false;
+			gMapLocTemplates[i]->GetMapLoc()->Update(true);
 		}
 	}
 
+	
 	if (ImGui::BeginTable("Map Loc Table", 4, ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
 	{
-		ImGui::TableSetupColumn("Index");
-		ImGui::TableSetupColumn("Loc");
-		ImGui::TableSetupColumn("Label");
+		ImGui::TableSetupColumn("Index", ImGuiTableColumnFlags_WidthFixed, 50);
+		ImGui::TableSetupColumn("Loc (y,x,z)", ImGuiTableColumnFlags_WidthFixed, 130);
+		ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 300);
 		ImGui::TableSetupColumn("Uses Defaults?");
 		ImGui::TableHeadersRow();
 
-		for (size_t i = 0; i < gMapLocs.size(); i++)
+		for (size_t i = 0; i < gMapLocTemplates.size(); i++)
 		{
+			MapObjectMapLoc* maploc = gMapLocTemplates[i]->GetMapLoc();
+
 			ImGui::TableNextRow();
 			ImGui::TableNextColumn();
-			if (ImGui::Selectable(std::to_string(i + 1).c_str(), &gMapLocs[i]->m_isSelected, ImGuiSelectableFlags_SpanAllColumns))
+			if (ImGui::Selectable(std::to_string(i + 1).c_str(), &maploc->m_isSelected, ImGuiSelectableFlags_SpanAllColumns))
 			{
-				gMapLocs[i]->Update(true);
-			}
+				maploc->Update(true);
+			}                                                              
 
 			ImGui::TableNextColumn();
 			std::stringstream locStream;
-			locStream << gMapLocs[i]->GetPosition().Y << ", " << gMapLocs[i]->GetPosition().X << ", " << gMapLocs[i]->GetPosition().Z;
+			locStream << maploc->GetPosition().Y << ", " << maploc->GetPosition().X << ", " << maploc->GetPosition().Z;
 			ImGui::Text(locStream.str().c_str());
 
 			ImGui::TableNextColumn();
-			ImGui::Text(gMapLocs[i]->GetLabelText());
+			ImGui::Text(maploc->GetLabelText());
 
 			ImGui::TableNextColumn();
-			if (gMapLocs[i]->IsCreatedFromDefaults())
+			if (gMapLocTemplates[i]->IsCreatedFromDefaults())
 				ImGui::Text("Yes");
 			else
 				ImGui::Text("No");
 		}
+
 		ImGui::EndTable();
 	}
-
+	
 	if (!IsAnyMapLocSelected())
 	{
 		ImGui::BeginDisabled();
+		disable = true;
 	}
 	if (ImGui::Button("Delete Selected"))
 	{
@@ -1905,9 +1958,10 @@ static void DrawMapSettings_MapLocs()
 	{
 		ApplyOverridesToSelected(gOverrideMapLocParams);
 	}
-	if (!IsAnyMapLocSelected())
+	if (disable)
 	{
 		ImGui::EndDisabled();
+		disable = false;
 	}
 
 	if (regenerate)
