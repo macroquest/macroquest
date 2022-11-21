@@ -1234,15 +1234,16 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case CharacterMembers::Inventory:
 		Dest.Type = pItemType;
+
 		if (Index[0])
 		{
 			if (IsNumber(Index))
 			{
 				int nSlot = GetIntFromString(Index, NUM_INV_SLOTS);
-				if (nSlot < NUM_INV_SLOTS && nSlot >= 0)
+				if (nSlot >= 0 && nSlot < NUM_INV_SLOTS)
 				{
-					if (Dest.Ptr = pProfile->GetInventorySlot(nSlot).get())
-						return true;
+					Dest = pItemType->MakeTypeVar(pProfile->GetInventorySlot(nSlot));
+					return true;
 				}
 			}
 			else
@@ -1251,60 +1252,64 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				{
 					if (!_stricmp(Index, szItemSlot[nSlot]))
 					{
-						if (Dest.Ptr = pProfile->GetInventorySlot(nSlot).get())
-							return true;
-
-						return false;
+						Dest = pItemType->MakeTypeVar(pProfile->GetInventorySlot(nSlot));
+						return true;
 					}
 				}
 			}
 		}
-		return false;
+
+		// return null item type
+		return true;
 
 	case CharacterMembers::Bank:
 		Dest.Type = pItemType;
+
 		if (Index[0])
 		{
 			if (IsNumber(Index))
 			{
 				int nSlot = GetIntFromString(Index, 0) - 1;
 				if (nSlot < 0)
-					return false;
+					return true;
 
 				if (nSlot < GetAvailableBankSlots())
 				{
-					if (Dest.Ptr = pLocalPC->BankItems.GetItem(nSlot).get())
-						return true;
+					Dest = pItemType->MakeTypeVar(pLocalPC->BankItems.GetItem(nSlot));
+					return true;
 				}
-				else if (nSlot >= NUM_BANK_SLOTS)
+		
+				if (nSlot >= NUM_BANK_SLOTS)
 				{
 					nSlot -= NUM_BANK_SLOTS;
 
-					if (Dest.Ptr = pLocalPC->SharedBankItems.GetItem(nSlot).get())
-						return true;
+					Dest = pItemType->MakeTypeVar(pLocalPC->SharedBankItems.GetItem(nSlot));
+					return true;
 				}
 			}
 		}
-		return false;
+
+		// return null item type
+		return true;
 
 	case CharacterMembers::SharedBank:
 		Dest.Type = pItemType;
+
 		if (Index[0])
 		{
 			if (IsNumber(Index))
 			{
 				int nSlot = GetIntFromString(Index, 0) - 1;
-				if (nSlot < 0)
-					return false;
-
-				if (nSlot < GetAvailableSharedBankSlots())
+				if (nSlot >= 0 && nSlot < GetAvailableSharedBankSlots())
 				{
-					if (Dest.Ptr = pLocalPC->SharedBankItems.GetItem(nSlot).get())
-						return true;
+					Dest = pItemType->MakeTypeVar(pLocalPC->SharedBankItems.GetItem(nSlot));
+					return true;
 				}
 			}
 		}
-		return false;
+
+		// return null item type
+		return true;
 
 	case CharacterMembers::PlatinumShared:
 		Dest.DWord = pLocalPC->BankSharedPlat;
