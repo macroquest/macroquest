@@ -743,11 +743,29 @@ void MapRemoveLocation(char* szLine)
 		strcpy_s(zloc, temp.substr(0, temp.find(delim)).c_str());
 
 		sprintf_s(tag, "%s,%s,%s", yloc, xloc, zloc);
-		loc = GetMapLocByTag(tag)->GetMapLoc();
+
+		auto maploc = GetMapLocByTag(tag);
+
+		if (maploc == nullptr)
+		{
+			SyntaxError("Could not find MapLoc: %s", tag);
+			return;
+		}
+
+		loc = maploc->GetMapLoc();
 	}
 	else // remove by index
 	{
-		size_t index = static_cast<size_t>(std::stof(yloc)) - 1;
+		size_t index;
+		try
+		{
+			index = static_cast<size_t>(std::stoul(yloc)) - 1;
+		}
+		catch (...)
+		{
+			SyntaxError("Could not find MapLoc: %s", tag);
+			return;
+		}
 
 		if (index >= gMapLocTemplates.size())
 		{

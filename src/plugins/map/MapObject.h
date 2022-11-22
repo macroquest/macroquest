@@ -193,10 +193,10 @@ class MapObjectMapLoc : public MapObject
 {
 public:
 	MapObjectMapLoc(const MapLocParams& params, const std::string& tag, bool isDefault);
-	MapObjectMapLoc();
+	MapObjectMapLoc() {}
 	virtual ~MapObjectMapLoc();
 	void UpdateFromParams(const MapLocParams& params);
-	MapLocParams* GetParams();
+	const MapLocParams& GetParams();
 
 	void SetCreatedFromDefaults(bool isCreatedFromDefaults) { m_isCreatedFromDefaultLoc = isCreatedFromDefaults; }
 
@@ -233,6 +233,7 @@ class MapLocTemplate
 public:
 	MapLocTemplate(const MapLocParams& params, const std::string& label,
 		const std::string& tag, const CVector3& pos, bool isDefault);
+	~MapLocTemplate();
 
 	int GetIndex();
 	MapObjectMapLoc* GetMapLoc();
@@ -248,7 +249,7 @@ public:
 	void SetLabel(const std::string& labelText);
 
 private:
-	MapLocParams		  m_mapLocParams;
+	MapLocParams          m_mapLocParams;
 	std::string           m_label;
 	std::string           m_tag;
 	CVector3              m_pos;
@@ -263,7 +264,7 @@ void InitDefaultMapLocParams();
 void UpdateDefaultMapLocInstances();
 void ResetMapLocOverrides();
 
-MapLocTemplate* GetMapLocByTag(const std::string& tag);
+MapLocTemplate* GetMapLocByTag(const std::string_view& tag);
 
 void DeleteAllMapLocs();
 void DeleteMapLoc(MapObjectMapLoc* mapLoc);

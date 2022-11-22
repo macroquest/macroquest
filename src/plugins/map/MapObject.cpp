@@ -1083,15 +1083,6 @@ MapObjectMapLoc::MapObjectMapLoc(const MapLocParams& params, const std::string& 
 	Update(true);
 }
 
-MapObjectMapLoc::MapObjectMapLoc()
-{
-	m_isCreatedFromDefaultLoc = false;
-	m_initialized = false;
-	m_index = -1;
-	m_tag = "";
-	m_labelText = "";
-}
-
 MapObjectMapLoc::~MapObjectMapLoc()
 {
 	RemoveMapLoc();
@@ -1110,9 +1101,9 @@ void MapLocTemplate::UpdateFromParams(const MapLocParams& params)
 	m_mapLoc->Update(true);
 }
 
-MapLocParams* MapObjectMapLoc::GetParams()
+const MapLocParams& MapObjectMapLoc::GetParams()
 {
-	return &m_mapLocParams;
+	return m_mapLocParams;
 }
 
 void MapObjectMapLoc::RemoveMapLoc()
@@ -1148,17 +1139,13 @@ void MapObjectMapLoc::UpdateMapLoc()
 	RemoveMapLoc();
 
 	MapViewLine* line = nullptr;
-	MQColor color = MQColor();
-	color.Red = m_mapLocParams.color.Red;
-	color.Green = m_mapLocParams.color.Green;
-	color.Blue = m_mapLocParams.color.Blue;
-	uint32_t colorARGB = color.ToARGB();
+	uint32_t colorARGB;
 
 	// Invert the color (highlight it) temporarily if this loc is selected in the imgui
 	if (m_isSelected)
-	{
-		colorARGB = (0xFFFFFF - colorARGB) | 0xFF000000;
-	}
+		colorARGB = m_mapLocParams.color.GetInvert().ToARGB();
+	else
+		colorARGB = m_mapLocParams.color.ToARGB();
 
 	// Create the X
 	for (int xWidth = 1; xWidth <= m_mapLocParams.width; xWidth++)
@@ -1292,11 +1279,11 @@ MapObjectMapLoc* MapLocTemplate::GetMapLoc()
 	return m_mapLoc;
 }
 
-MapLocTemplate* GetMapLocByTag(const std::string& tag)
+MapLocTemplate* GetMapLocByTag(const std::string_view& tag)
 {
 	for (auto maplocTemplate : gMapLocTemplates)
 	{
-		if (!strcmp(maplocTemplate->GetMapLoc()->GetTag().c_str(), tag.c_str()))
+		if (maplocTemplate->GetMapLoc()->GetTag() == tag)
 			return maplocTemplate;
 	}
 

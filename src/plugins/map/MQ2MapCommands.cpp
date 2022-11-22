@@ -600,7 +600,7 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 	MapLocTemplate* origLoc = GetMapLocByTag(tag);
 	if (origLoc)
 	{
-		params = *origLoc->GetMapLoc()->GetParams();
+		params = origLoc->GetMapLoc()->GetParams();
 	}
 	else
 	{
@@ -680,7 +680,7 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 
 		UpdateMapLocIndexes();
 
-		std::string_view labelStr = gMapLocTemplates[gMapLocTemplates.size() - 1]->GetMapLoc()->GetLabelText();
+		std::string_view labelStr = newMapLoc->GetMapLoc()->GetLabelText();
 
 		MapLocVars
 			<< "y:" << pos.Y
@@ -1553,9 +1553,7 @@ static void DrawMapSettings_Colors()
 
 		if (ImGui::ColorEdit3(option.szName, &color.Value.x))
 		{
-			option.Color.Blue = static_cast<uint8_t>(color.Value.z * 255);
-			option.Color.Green = static_cast<uint8_t>(color.Value.y * 255);
-			option.Color.Red = static_cast<uint8_t>(color.Value.x * 255);
+			option.Color = MQColor(color);
 			option.Color.Alpha = 255;
 
 			WritePrivateProfileInt("Map Filters", fmt::format("{}-Color", option.szName), option.Color.ToRGB(), INIFileName);
@@ -1584,9 +1582,7 @@ static void DrawMapSettings_Colors()
 	ImColor highColor = HighlightColor.ToImColor();
 	if (ImGui::ColorEdit3("Highlight", &highColor.Value.x))
 	{
-		HighlightColor.Blue = static_cast<uint8_t>(highColor.Value.z * 255);
-		HighlightColor.Green = static_cast<uint8_t>(highColor.Value.y * 255);
-		HighlightColor.Red = static_cast<uint8_t>(highColor.Value.x * 255);
+		HighlightColor = MQColor(highColor);
 		HighlightColor.Alpha = 255;
 
 		WritePrivateProfileInt("Map Filters", "High-Color", HighlightColor.ToRGB(), INIFileName);
@@ -1598,18 +1594,15 @@ static void DrawMapSettings_Colors()
 	ImColor mapLocColor = gDefaultMapLocParams.color.ToImColor();
 	if (ImGui::ColorEdit3("MapLoc", &mapLocColor.Value.x))
 	{
+		MQColor updatedColor = MQColor(mapLocColor);
+		updatedColor.Alpha = 255;
+
 		if (!IsMapLocsStyleOverridden())
 		{
-			gOverrideMapLocParams.color.Blue = static_cast<uint8_t>(mapLocColor.Value.z * 255);
-			gOverrideMapLocParams.color.Green = static_cast<uint8_t>(mapLocColor.Value.y * 255);
-			gOverrideMapLocParams.color.Red = static_cast<uint8_t>(mapLocColor.Value.x * 255);
-			gOverrideMapLocParams.color.Alpha = 255;
+			gOverrideMapLocParams.color = updatedColor;
 		}
 
-		gDefaultMapLocParams.color.Blue = static_cast<uint8_t>(mapLocColor.Value.z * 255);
-		gDefaultMapLocParams.color.Green = static_cast<uint8_t>(mapLocColor.Value.y * 255);
-		gDefaultMapLocParams.color.Red = static_cast<uint8_t>(mapLocColor.Value.x * 255);
-		gDefaultMapLocParams.color.Alpha = 255;
+		gDefaultMapLocParams.color = updatedColor;
 
 		WritePrivateProfileInt("MapLoc", "Red", gDefaultMapLocParams.color.Red, INIFileName);
 		WritePrivateProfileInt("MapLoc", "Green", gDefaultMapLocParams.color.Green, INIFileName);
@@ -1623,18 +1616,15 @@ static void DrawMapSettings_Colors()
 	ImColor radiusColor = gDefaultMapLocParams.circleColor.ToImColor();
 	if (ImGui::ColorEdit3("MapLoc Radius", &radiusColor.Value.x))
 	{
+		MQColor updatedColor = MQColor(radiusColor);
+		updatedColor.Alpha = 255;
+
 		if (!IsMapLocsStyleOverridden())
 		{
-			gOverrideMapLocParams.circleColor.Blue = static_cast<uint8_t>(radiusColor.Value.z * 255);
-			gOverrideMapLocParams.circleColor.Green = static_cast<uint8_t>(radiusColor.Value.y * 255);
-			gOverrideMapLocParams.circleColor.Red = static_cast<uint8_t>(radiusColor.Value.x * 255);
-			gOverrideMapLocParams.circleColor.Alpha = 255;
+			gOverrideMapLocParams.circleColor = updatedColor;
 		}
 
-		gDefaultMapLocParams.circleColor.Blue = static_cast<uint8_t>(radiusColor.Value.z * 255);
-		gDefaultMapLocParams.circleColor.Green = static_cast<uint8_t>(radiusColor.Value.y * 255);
-		gDefaultMapLocParams.circleColor.Red = static_cast<uint8_t>(radiusColor.Value.x * 255);
-		gDefaultMapLocParams.circleColor.Alpha = 255;
+		gDefaultMapLocParams.circleColor = updatedColor;
 
 		WritePrivateProfileInt("MapLoc", "RadiusRed", gDefaultMapLocParams.circleColor.Red, INIFileName);
 		WritePrivateProfileInt("MapLoc", "RadiusGreen", gDefaultMapLocParams.circleColor.Green, INIFileName);
@@ -1654,22 +1644,21 @@ static void DrawMapSettings_Colors()
 
 static bool IsAnyMapLocSelected()
 {
-	for (size_t i = 0; i < gMapLocTemplates.size(); i++)
-	{
-		if (gMapLocTemplates[i]->GetMapLoc()->m_isSelected)
-		{
-			return true;
+	return std::any_of(gMapLocTemplates.begin(), gMapLocTemplates.end(),
+		[](MapLocTemplate* p) -> bool
+		{ 
+			auto maploc = p->GetMapLoc();
+			return maploc != nullptr && maploc->m_isSelected;
 		}
-	}
-
-	return false;
+	);
 }
 
 static void DeleteSelectedMapLocs()
 {
 	for (size_t i = 0; i < gMapLocTemplates.size(); i++)
 	{
-		if (gMapLocTemplates[i]->GetMapLoc()->m_isSelected)
+		auto maploc = gMapLocTemplates[i]->GetMapLoc();
+		if (maploc != nullptr && maploc->m_isSelected)
 		{
 			DeleteMapLoc(gMapLocTemplates[i--]->GetMapLoc());
 		}
@@ -1678,26 +1667,26 @@ static void DeleteSelectedMapLocs()
 
 static void ResetSelectedMapLocsToDefault()
 {
-	for (size_t i = 0; i < gMapLocTemplates.size(); i++)
+	for (auto maplocTemplate : gMapLocTemplates)
 	{
-		if (gMapLocTemplates[i]->GetMapLoc()->m_isSelected)
+		auto maploc = maplocTemplate->GetMapLoc();
+		if (maploc != nullptr && maploc->m_isSelected)
 		{
-			MapObjectMapLoc* thisMapLoc = gMapLocTemplates[i]->GetMapLoc();
-			gMapLocTemplates[i]->SetCreatedFromDefaults(true);
-			gMapLocTemplates[i]->UpdateFromParams(gDefaultMapLocParams);
+			maplocTemplate->SetCreatedFromDefaults(true);
+			maplocTemplate->UpdateFromParams(gDefaultMapLocParams);
 		}
 	}
 }
 
 static void ApplyOverridesToSelected(MapLocParams params)
 {
-	for (size_t i = 0; i < gMapLocTemplates.size(); i++)
+	for (auto maplocTemplate : gMapLocTemplates)
 	{
-		if (gMapLocTemplates[i]->GetMapLoc()->m_isSelected)
+		auto maploc = maplocTemplate->GetMapLoc();
+		if (maploc != nullptr && maploc->m_isSelected)
 		{
-			MapObjectMapLoc* thisMapLoc = gMapLocTemplates[i]->GetMapLoc();
-			gMapLocTemplates[i]->SetCreatedFromDefaults(false);
-			gMapLocTemplates[i]->UpdateFromParams(params);
+			maplocTemplate->SetCreatedFromDefaults(false);
+			maplocTemplate->UpdateFromParams(params);
 		}
 	}
 }
@@ -1726,7 +1715,8 @@ static void DrawMapSettings_MapLocs()
 	ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 	if (ImGui::BeginPopupModal("Delete?", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ImGui::Text("Are you sure you want to delete all map locs?\n\n");
+		ImGui::Text("Are you sure you want to delete all map locs?");
+		ImGui::NewLine();
 		ImGui::Separator();
 
 		if (ImGui::Button("Yes", ImVec2(120, 0)))
@@ -1743,7 +1733,7 @@ static void DrawMapSettings_MapLocs()
 		ImGui::EndPopup();
 	}
 
-	if (pTarget.get() == nullptr)
+	if (pTarget == nullptr)
 	{
 		ImGui::BeginDisabled();
 		disable = true;
@@ -1756,12 +1746,11 @@ static void DrawMapSettings_MapLocs()
 		{
 			targetStream << " size " << gOverrideMapLocParams.lineSize
 				<< " width " << gOverrideMapLocParams.width
-				<< " color " << std::to_string(gOverrideMapLocParams.color.Red) << " " << std::to_string(gOverrideMapLocParams.color.Green) << " " << std::to_string(gOverrideMapLocParams.color.Blue)
+				<< " color " << gOverrideMapLocParams.color.Red << " " << gOverrideMapLocParams.color.Green << " " << gOverrideMapLocParams.color.Blue
 				<< " radius " << gOverrideMapLocParams.circleRadius
-				<< " rcolor " << std::to_string(gOverrideMapLocParams.circleColor.Red) << " " << std::to_string(gOverrideMapLocParams.circleColor.Green) << " " << std::to_string(gOverrideMapLocParams.circleColor.Blue);
+				<< " rcolor " << gOverrideMapLocParams.circleColor.Red << " " << gOverrideMapLocParams.circleColor.Green << " " << gOverrideMapLocParams.circleColor.Blue;
 		}
-		char* targetStr = _strdup(targetStream.str().c_str());
-		MapSetLocationCmd(nullptr, targetStr);
+		MapSetLocationCmd(nullptr, &targetStream.str()[0]);
 	}
 	if (disable)
 	{
@@ -1800,9 +1789,7 @@ static void DrawMapSettings_MapLocs()
 		ImGui::SetNextItemWidth(200);
 		if (ImGui::ColorEdit3("MapLoc Override", &mapLocColor.Value.x))
 		{
-			gOverrideMapLocParams.color.Blue = static_cast<uint8_t>(mapLocColor.Value.z * 255);
-			gOverrideMapLocParams.color.Green = static_cast<uint8_t>(mapLocColor.Value.y * 255);
-			gOverrideMapLocParams.color.Red = static_cast<uint8_t>(mapLocColor.Value.x * 255);
+			gOverrideMapLocParams.color = MQColor(mapLocColor);
 			gOverrideMapLocParams.color.Alpha = 255;
 			regenerate = true;
 		}
@@ -1823,9 +1810,7 @@ static void DrawMapSettings_MapLocs()
 		ImGui::SetNextItemWidth(200);
 		if (ImGui::ColorEdit3("MapLoc Radius Override", &radiusColor.Value.x))
 		{
-			gOverrideMapLocParams.circleColor.Blue = static_cast<uint8_t>(radiusColor.Value.z * 255);
-			gOverrideMapLocParams.circleColor.Green = static_cast<uint8_t>(radiusColor.Value.y * 255);
-			gOverrideMapLocParams.circleColor.Red = static_cast<uint8_t>(radiusColor.Value.x * 255);
+			gOverrideMapLocParams.circleColor = MQColor(radiusColor);
 			gOverrideMapLocParams.circleColor.Alpha = 255;
 			regenerate = true;
 		}
@@ -1848,9 +1833,9 @@ static void DrawMapSettings_MapLocs()
 		{
 			commandStream << " size " << gOverrideMapLocParams.lineSize
 				<< " width " << gOverrideMapLocParams.width
-				<< " color " << std::to_string(gOverrideMapLocParams.color.Red) << " " << std::to_string(gOverrideMapLocParams.color.Green) << " " << std::to_string(gOverrideMapLocParams.color.Blue)
+				<< " color " << gOverrideMapLocParams.color.Red << " " << gOverrideMapLocParams.color.Green << " " << gOverrideMapLocParams.color.Blue
 				<< " radius " << gOverrideMapLocParams.circleRadius
-				<< " rcolor " << std::to_string(gOverrideMapLocParams.circleColor.Red) << " " << std::to_string(gOverrideMapLocParams.circleColor.Green) << " " << std::to_string(gOverrideMapLocParams.circleColor.Blue);
+				<< " rcolor " << gOverrideMapLocParams.circleColor.Red << " " << gOverrideMapLocParams.circleColor.Green << " " << gOverrideMapLocParams.circleColor.Blue;
 		}
 		if (addMapLocLabel[0] != '\0')
 		{
@@ -1885,19 +1870,27 @@ static void DrawMapSettings_MapLocs()
 	ImGui::SameLine();
 	if (ImGui::Button("Select All"))
 	{
-		for (size_t i = 0; i < gMapLocTemplates.size(); i++)
+		for (auto locTemplate : gMapLocTemplates)
 		{
-			gMapLocTemplates[i]->GetMapLoc()->m_isSelected = true;
-			gMapLocTemplates[i]->GetMapLoc()->Update(true);
+			auto maploc = locTemplate->GetMapLoc();
+			if (maploc != nullptr)
+			{
+				maploc->m_isSelected = true;
+				maploc->Update(true);
+			}
 		}
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("Deselect All"))
 	{
-		for (size_t i = 0; i < gMapLocTemplates.size(); i++)
+		for (auto locTemplate : gMapLocTemplates)
 		{
-			gMapLocTemplates[i]->GetMapLoc()->m_isSelected = false;
-			gMapLocTemplates[i]->GetMapLoc()->Update(true);
+			auto maploc = locTemplate->GetMapLoc();
+			if (maploc != nullptr)
+			{
+				maploc->m_isSelected = false;
+				maploc->Update(true);
+			}
 		}
 	}
 
