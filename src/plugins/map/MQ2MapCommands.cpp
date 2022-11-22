@@ -1241,7 +1241,7 @@ static void BuildFilteredOptionArray(std::vector<MapFilterOption*> &options)
 static void BuildOptionArrays()
 {
 	// Build the lists once, cache them for future use
-	if (mapFilterOptions.size() > 0)
+	if (s_mapFilterOptions.size() > 0)
 		return;
 
 	// Copy MapFilterOptions
@@ -1256,8 +1256,8 @@ static void BuildOptionArrays()
 	std::sort(allFilterOptions.begin(), allFilterOptions.end(),
 		[](MapFilterOption* a, MapFilterOption* b) -> bool
 		{
-			if (a == nullptr || a->szName == nullptr) return false;
-			if (b == nullptr || b->szName == nullptr) return true;
+			if (a->szName == nullptr) return false;
+			if (b->szName == nullptr) return true;
 			return ci_less()(a->szName, b->szName);
 		}
 	);
@@ -1269,18 +1269,18 @@ static void BuildOptionArrays()
 		{
 			if (option->IsObject())
 			{
-				mapfilterObjectOptions.push_back(option);
+				s_mapFilterObjectOptions.push_back(option);
 			}
 			else
 			{
-				mapFilterOptions.push_back(option);
+				s_mapFilterOptions.push_back(option);
 			}
 		}
 	}
 
 	// Put children under parents
-	BuildFilteredOptionArray(mapfilterObjectOptions);
-	BuildFilteredOptionArray(mapFilterOptions);
+	BuildFilteredOptionArray(s_mapFilterObjectOptions);
+	BuildFilteredOptionArray(s_mapFilterOptions);
 }
 
 /// <summary>
@@ -1358,15 +1358,14 @@ static bool AddMapFilterOptionAsImGuiSetting(MapFilterOption* option, std::stack
 		ImGui::SameLine();
 
 		mq::imgui::HelpMarker(
-			[&]() -> const char*
+			[&]() -> const std::string
 			{
 				std::string requireString = "Requires: ";
 				if (requirement.IsObject() != option->IsObject())
 					requireString += requirement.IsObject() ? "Object Filters -> " : "Options -> ";
 
 				requireString += std::string(requirement.szName);
-				char* requireArray = &requireString[0];
-				return requireArray;
+				return requireString;
 			}
 		);
 	}
@@ -1442,7 +1441,7 @@ static void DrawMapSettings_Options()
 	{
 		ImGui::Indent();
 
-		for (auto option : mapfilterObjectOptions)
+		for (auto option : s_mapFilterObjectOptions)
 		{
 			if (option != nullptr && AddMapFilterOptionAsImGuiSetting(option, optionStack))
 				regenerate = true;
@@ -1455,7 +1454,7 @@ static void DrawMapSettings_Options()
 	{
 		ImGui::Indent();
 
-		for (auto option : mapFilterOptions)
+		for (auto option : s_mapFilterOptions)
 		{
 			if (AddMapFilterOptionAsImGuiSetting(option, optionStack))
 				regenerate = true;
@@ -1857,6 +1856,7 @@ static void DrawMapSettings_MapLocs()
 		{
 			commandStream << " label " << addMapLocLabel;
 		}
+
 		char* commandStr = _strdup(commandStream.str().c_str());
 		MapSetLocationCmd(nullptr, commandStr);
 

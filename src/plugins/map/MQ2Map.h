@@ -18,46 +18,46 @@
 #include <map>
 
 enum class MapFilter {
-	Invalid = -1,
-	All = 0,
-	PC = 1,
-	PCConColor = 2,
-	Group = 3,
-	Mount = 4,
-	NPC = 5,
-	NPCConColor = 6,
-	Untargetable = 7,
-	Pet = 8,
-	Corpse = 9,
-	Chest = 10,
-	Trigger = 11,
-	Trap = 12,
-	Timer = 13,
-	Ground = 14,
-	Target = 15,
-	TargetLine = 16,
-	TargetRadius = 17,
-	TargetMelee = 18,
-	Vector = 19,
-	Custom = 20,
-	CastRadius = 21,
-	NormalLabels = 22,
-	ContextMenu = 23,
-	SpellRadius = 24,
-	Aura = 25,
-	Object = 26,
-	Banner = 27,
-	Campfire = 28,
-	PCCorpse = 29,
-	NPCCorpse = 30,
-	Mercenary = 31,
-	Named = 32,
-	TargetPath = 33,
-	Marker = 34,
-	CampRadius = 35,
-	PullRadius = 36,
+    Invalid = -1,
+    All = 0,
+    PC = 1,
+    PCConColor = 2,
+    Group = 3,
+    Mount = 4,
+    NPC = 5,
+    NPCConColor = 6,
+    Untargetable = 7,
+    Pet = 8,
+    Corpse = 9,
+    Chest = 10,
+    Trigger = 11,
+    Trap = 12,
+    Timer = 13,
+    Ground = 14,
+    Target = 15,
+    TargetLine = 16,
+    TargetRadius = 17,
+    TargetMelee = 18,
+    Vector = 19,
+    Custom = 20,
+    CastRadius = 21,
+    NormalLabels = 22,
+    ContextMenu = 23,
+    SpellRadius = 24,
+    Aura = 25,
+    Object = 26,
+    Banner = 27,
+    Campfire = 28,
+    PCCorpse = 29,
+    NPCCorpse = 30,
+    Mercenary = 31,
+    Named = 32,
+    TargetPath = 33,
+    Marker = 34,
+    CampRadius = 35,
+    PullRadius = 36,
 
-	Last,
+    Last,
 };
 
 // normal labels
@@ -67,43 +67,43 @@ using MAPSPAWN = MapObject;
 
 enum class MarkerType
 {
-	None = 0,
-	Triangle,
-	Square,
-	Diamond,
-	Ring,
-	Unknown,
+    None = 0,
+    Triangle,
+    Square,
+    Diamond,
+    Ring,
+    Unknown,
 };
 
 struct MapFilterOption
 {
-	enum Flags {
-		Toggle       = 0x01,       // option is an on/off
-		NoColor      = 0x02,       // option has no color property
-		Regenerate   = 0x04,       // map is regenerated if this option is changed
-		UsesRadius   = 0x08,       // option has a radius (draws a circle)
-		Object		 = 0x10,	   // option is an Object filter
-	};
+    enum Flags {
+        Toggle       = 0x01,       // option is an on/off
+        NoColor      = 0x02,       // option has no color property
+        Regenerate   = 0x04,       // map is regenerated if this option is changed
+        UsesRadius   = 0x08,       // option has a radius (draws a circle)
+        Object		 = 0x10,	   // option is an Object filter
+    };
 
-	const char*      szName = nullptr;
-	bool             Default = false;
-	MapFilter		 ThisFilter = MapFilter::Invalid;
-	MQColor          DefaultColor;
-	MapFilter        RequiresOption = MapFilter::Invalid;
-	uint32_t         Flags = 0;
-	const char*      szHelpString = nullptr;
+    const char*      szName = nullptr;
+    bool             Default = false;
+    MapFilter        ThisFilter = MapFilter::Invalid;
+    MQColor          DefaultColor;
+    MapFilter        RequiresOption = MapFilter::Invalid;
+    uint32_t         Flags = 0;
+    const char*      szHelpString = nullptr;
 
-	MarkerType       Marker = MarkerType::None;
-	int              MarkerSize = 0;
-	bool             Enabled = false;
-	float            Radius = 0;
-	MQColor          Color;
+    MarkerType       Marker = MarkerType::None;
+    int              MarkerSize = 0;
+    bool             Enabled = false;
+    float            Radius = 0;
+    MQColor          Color;
 
-	bool IsToggle() const { return Flags & Toggle; }
-	bool IsRegenerateOnChange() const { return Flags & Regenerate; }
-	bool IsRadius() const { return Flags & UsesRadius; }
-	bool HasColor() const { return !(Flags & NoColor); }
-	bool IsObject() const { return Flags & Object; }
+    bool IsToggle() const { return Flags & Toggle; }
+    bool IsRegenerateOnChange() const { return Flags & Regenerate; }
+    bool IsRadius() const { return Flags & UsesRadius; }
+    bool HasColor() const { return !(Flags & NoColor); }
+    bool IsObject() const { return Flags & Object; }
 };
 
 extern uint32_t bmMapRefresh;
@@ -136,8 +136,8 @@ extern char MapLeftClickString[MAX_CLICK_STRINGS][MAX_STRING];
 extern bool repeatMapshow;
 extern bool repeatMaphide;
 
-extern std::vector<MapFilterOption*> mapfilterObjectOptions;
-extern std::vector<MapFilterOption*> mapFilterOptions;
+extern std::vector<MapFilterOption*> s_mapFilterObjectOptions;
+extern std::vector<MapFilterOption*> s_mapFilterOptions;
 extern float mapLocSize;
 extern float mapLocWidth;
 extern float mapLocRadius;
@@ -186,28 +186,28 @@ void RemoveGroundItem(GROUNDITEM* pGroundItem);
 
 inline MapFilterOption& GetMapFilterOption(MapFilter Option)
 {
-	if (Option < MapFilter::All || Option >= MapFilter::Last)
-		return MapFilterInvalidOption;
+    if (Option < MapFilter::All || Option >= MapFilter::Last)
+        return MapFilterInvalidOption;
 
-	return MapFilterOptions[static_cast<size_t>(Option)];
+    return MapFilterOptions[static_cast<size_t>(Option)];
 }
 
 inline bool IsOptionEnabled(MapFilter Option)
 {
-	if (Option == MapFilter::Invalid)
-		return true;
+    if (Option == MapFilter::Invalid)
+        return true;
 
-	MapFilterOption& option = GetMapFilterOption(Option);
-	return option.Enabled && IsOptionEnabled(option.RequiresOption);
+    MapFilterOption& option = GetMapFilterOption(Option);
+    return option.Enabled && IsOptionEnabled(option.RequiresOption);
 }
 
 inline bool RequirementsMet(MapFilter Option)
 {
-	if (Option == MapFilter::Invalid)
-		return true;
+    if (Option == MapFilter::Invalid)
+        return true;
 
-	MapFilterOption& option = GetMapFilterOption(Option);
-	return IsOptionEnabled(option.RequiresOption);
+    MapFilterOption& option = GetMapFilterOption(Option);
+    return IsOptionEnabled(option.RequiresOption);
 }
 
 MarkerType FindMarker(std::string_view szMark, MarkerType fallback = MarkerType::Unknown);

@@ -1105,9 +1105,9 @@ void MapObjectMapLoc::UpdateFromParams(const MapLocParams& params)
 void MapLocTemplate::UpdateFromParams(const MapLocParams& params)
 {
 	m_mapLocParams = params;
-	m_MapLoc->UpdateFromParams(params);
+	m_mapLoc->UpdateFromParams(params);
 
-	m_MapLoc->Update(true);
+	m_mapLoc->Update(true);
 }
 
 MapLocParams* MapObjectMapLoc::GetParams()
@@ -1261,7 +1261,7 @@ void MapObjectMapLoc::SetIndex(int index)
 void MapLocTemplate::SetLabel(const std::string& labelText)
 {
 	m_label = labelText;
-	m_MapLoc->SetLabel(labelText);
+	m_mapLoc->SetLabel(labelText);
 }
 
 void MapObjectMapLoc::SetLabel(const std::string& labelText)
@@ -1289,7 +1289,7 @@ void MapObjectMapLoc::UpdateText()
 
 MapObjectMapLoc* MapLocTemplate::GetMapLoc()
 {
-	return m_MapLoc;
+	return m_mapLoc;
 }
 
 MapLocTemplate* GetMapLocByTag(const std::string& tag)
@@ -1366,7 +1366,7 @@ int MapLocTemplate::GetIndex()
 
 void MapLocTemplate::MakeMapLocFromTemplate()
 {
-	if (m_MapLoc == nullptr)
+	if (m_mapLoc == nullptr)
 	{
 		MapObjectMapLoc* newLoc = new MapObjectMapLoc(m_mapLocParams, m_tag, m_isCreatedFromDefaultLoc);
 
@@ -1375,11 +1375,11 @@ void MapLocTemplate::MakeMapLocFromTemplate()
 		newLoc->SetLabel(m_label);
 
 		newLoc->PostInit();
-		m_MapLoc = newLoc;
+		m_mapLoc = newLoc;
 	}
 }
 
 void MapLocTemplate::ClearReferenceToMapLoc()
 {
-	m_MapLoc = nullptr;
+	m_mapLoc = nullptr;
 }

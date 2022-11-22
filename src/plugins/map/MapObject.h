@@ -49,7 +49,7 @@ public:
 	virtual SPAWNINFO* GetSpawn() const { return nullptr; }
 	virtual GROUNDITEM* GetGroundItem() const { return nullptr; }
 
-	virtual const char* GetLabelText() {
+    const char* GetLabelText() {
 		if (m_label == nullptr) return "";
 		return m_label->Label;
 	}
@@ -211,7 +211,7 @@ public:
 
 	virtual bool CanDisplayObject() const override { return true; }
 
-	bool				  m_isSelected = false; // exposed directly for imgui reference
+	bool m_isSelected = false; // exposed directly for imgui reference
 
 private:
 	void UpdateMapLoc();
@@ -243,7 +243,7 @@ public:
 	void SetCreatedFromDefaults(bool isCreatedFromDefaults)
 	{
 		m_isCreatedFromDefaultLoc = isCreatedFromDefaults;
-		m_MapLoc->SetCreatedFromDefaults(m_isCreatedFromDefaultLoc);
+		m_mapLoc->SetCreatedFromDefaults(m_isCreatedFromDefaultLoc);
 	}
 	void SetLabel(const std::string& labelText);
 
@@ -253,7 +253,7 @@ private:
 	std::string           m_tag;
 	CVector3              m_pos;
 	bool                  m_isCreatedFromDefaultLoc = false;
-	MapObjectMapLoc*      m_MapLoc = nullptr;
+	MapObjectMapLoc*      m_mapLoc = nullptr;
 };
 
 extern std::vector<MapLocTemplate*> gMapLocTemplates;
