@@ -42,8 +42,8 @@ bool HighlightPulseIncreasing = true;
 int HighlightPulseIndex = 0;
 int HighlightPulseDiff = HighlightSIDELEN / 10;
 extern MapObject* gpActiveMapObjects;
-std::vector<MapFilterOption*> s_mapFilterObjectOptions;
-std::vector<MapFilterOption*> s_mapFilterOptions;
+std::vector<MapFilterOption*> mapFilterObjectOptions;
+std::vector<MapFilterOption*> mapFilterGeneralOptions;
 
 #define INVALID_FLOOR ((float)-1.0e27)
 

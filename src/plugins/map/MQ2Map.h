@@ -136,8 +136,8 @@ extern char MapLeftClickString[MAX_CLICK_STRINGS][MAX_STRING];
 extern bool repeatMapshow;
 extern bool repeatMaphide;
 
-extern std::vector<MapFilterOption*> s_mapFilterObjectOptions;
-extern std::vector<MapFilterOption*> s_mapFilterOptions;
+extern std::vector<MapFilterOption*> mapFilterObjectOptions;
+extern std::vector<MapFilterOption*> mapFilterGeneralOptions;
 extern float mapLocSize;
 extern float mapLocWidth;
 extern float mapLocRadius;

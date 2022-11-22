@@ -1241,7 +1241,7 @@ static void BuildFilteredOptionArray(std::vector<MapFilterOption*> &options)
 static void BuildOptionArrays()
 {
 	// Build the lists once, cache them for future use
-	if (s_mapFilterOptions.size() > 0)
+	if (mapFilterGeneralOptions.size() > 0)
 		return;
 
 	// Copy MapFilterOptions
@@ -1269,18 +1269,18 @@ static void BuildOptionArrays()
 		{
 			if (option->IsObject())
 			{
-				s_mapFilterObjectOptions.push_back(option);
+				mapFilterObjectOptions.push_back(option);
 			}
 			else
 			{
-				s_mapFilterOptions.push_back(option);
+				mapFilterGeneralOptions.push_back(option);
 			}
 		}
 	}
 
 	// Put children under parents
-	BuildFilteredOptionArray(s_mapFilterObjectOptions);
-	BuildFilteredOptionArray(s_mapFilterOptions);
+	BuildFilteredOptionArray(mapFilterObjectOptions);
+	BuildFilteredOptionArray(mapFilterGeneralOptions);
 }
 
 /// <summary>
@@ -1441,7 +1441,7 @@ static void DrawMapSettings_Options()
 	{
 		ImGui::Indent();
 
-		for (auto option : s_mapFilterObjectOptions)
+		for (auto option : mapFilterObjectOptions)
 		{
 			if (option != nullptr && AddMapFilterOptionAsImGuiSetting(option, optionStack))
 				regenerate = true;
@@ -1454,7 +1454,7 @@ static void DrawMapSettings_Options()
 	{
 		ImGui::Indent();
 
-		for (auto option : s_mapFilterOptions)
+		for (auto option : mapFilterGeneralOptions)
 		{
 			if (AddMapFilterOptionAsImGuiSetting(option, optionStack))
 				regenerate = true;
