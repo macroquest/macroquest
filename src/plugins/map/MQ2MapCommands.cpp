@@ -1857,8 +1857,7 @@ static void DrawMapSettings_MapLocs()
 			commandStream << " label " << addMapLocLabel;
 		}
 
-		char* commandStr = _strdup(commandStream.str().c_str());
-		MapSetLocationCmd(nullptr, commandStr);
+		MapSetLocationCmd(nullptr, &commandStream.str()[0]);
 
 		// reset after adding
 		addMapLocX = 0;
