@@ -36,14 +36,14 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		sol::meta_function::to_string                   , [](ImVec2& mThis) { return fmt::format("({},{})", mThis.x, mThis.y); },
 		sol::meta_function::addition                    , sol::overload(
 			                                              [](ImVec2& a, ImVec2& b) { return ImVec2(a.x + b.x, a.y + b.y); },
-			                                              [](ImVec2& a, float b) { return ImVec2(a.x + b, a.y + b); })
+			                                              [](ImVec2& a, float b) { return ImVec2(a.x + b, a.y + b); }),
 		sol::meta_function::subtraction                 , sol::overload(
 			                                              [](ImVec2& a, ImVec2& b) { return ImVec2(a.x - b.x, a.y - b.y); },
 			                                              [](ImVec2& a, float b) { return ImVec2(a.x - b, a.y - b); }),
 		sol::meta_function::multiplication              , sol::overload(
 			                                              [](ImVec2& a, ImVec2& b) { return ImVec2(a.x * b.x, a.y * b.y); },
 			                                              [](ImVec2& a, float b) { return ImVec2(a.x * b, a.y * b); }),
-		sol::meta_function::division                    , sol::overlroad(
+		sol::meta_function::division                    , sol::overload(
 			                                              [](ImVec2& a, ImVec2& b) { return ImVec2(a.x / b.x, a.y / b.y); },
 			                                              [](ImVec2& a, float b) { return ImVec2(a.x / b, a.y / b); }),
 		sol::meta_function::equal_to                    , [](ImVec2& a, ImVec2& b) { return a.x == b.x && a.y == b.y; },
