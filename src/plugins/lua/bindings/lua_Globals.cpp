@@ -29,10 +29,12 @@ void lua_exit(sol::this_state s);
 void RegisterBindings_Globals(LuaThread* thread, sol::state_view state)
 {
 	state["_old_dofile"] = state["dofile"];
-	state["dofile"] = [thread, &state](std::string_view file, sol::variadic_args args)
+	state["dofile"] = [thread](std::string_view file, sol::variadic_args args, sol::this_state s)
 	{
 		std::filesystem::path file_path = std::filesystem::path(thread->GetLuaDir()) / file;
-		return state["_old_dofile"](file_path.string(), args);
+		sol::function dofile = sol::state_view(s)["_old_dofile"];
+
+		return dofile(file_path.string(), args);
 	};
 
 	// Replace os.exit with mq.exit
