@@ -334,7 +334,6 @@ static bool IsMouseDown(int button)                                             
 static bool IsMouseClicked(int button)                                                              { return ImGui::IsMouseClicked(static_cast<ImGuiMouseButton>(button)); }
 static bool IsMouseClicked(int button, bool repeat)                                                 { return ImGui::IsMouseClicked(static_cast<ImGuiMouseButton>(button), repeat); }
 static bool IsMouseReleased(int button)                                                             { return ImGui::IsMouseReleased(static_cast<ImGuiMouseButton>(button)); }
-static bool IsMouseDoubleClicked(int button)                                                        { return ImGui::IsMouseDoubleClicked(static_cast<ImGuiMouseButton>(button)); }
 static bool IsMouseHoveringRect(float min_x, float min_y, float max_x, float max_y)                 { return ImGui::IsMouseHoveringRect({ min_x, min_y }, { max_x, max_y }); }
 static bool IsMouseHoveringRect(float min_x, float min_y, float max_x, float max_y, bool clip)      { return ImGui::IsMouseHoveringRect({ min_x, min_y }, { max_x, max_y }, clip); }
 static bool IsMousePosValid()                                                                       { return false; /* TODO: IsMousePosValid() ==> UNSUPPORTED */ }
@@ -705,7 +704,7 @@ void RegisterBindings_ImGui(sol::state_view state)
 		sol::resolve<bool(int, bool)>(IsMouseClicked)
 	));
 	ImGui.set_function("IsMouseReleased", IsMouseReleased);
-	ImGui.set_function("IsMouseDoubleClicked", IsMouseDoubleClicked);
+	ImGui.set_function("IsMouseDoubleClicked", [](int button) { return ImGui::IsMouseDoubleClicked(static_cast<ImGuiMouseButton>(button)); });
 	ImGui.set_function("IsMouseHoveringRect", sol::overload(
 		sol::resolve<bool(float, float, float, float)>(IsMouseHoveringRect),
 		sol::resolve<bool(float, float, float, float, bool)>(IsMouseHoveringRect)

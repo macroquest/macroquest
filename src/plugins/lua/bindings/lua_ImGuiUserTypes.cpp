@@ -34,10 +34,18 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"x"                                             , &ImVec2::x,
 		"y"                                             , &ImVec2::y,
 		sol::meta_function::to_string                   , [](ImVec2& mThis) { return fmt::format("({},{})", mThis.x, mThis.y); },
-		sol::meta_function::addition                    , [](ImVec2& a, ImVec2& b) { return ImVec2(a.x + b.x, a.y + b.y); },
-		sol::meta_function::subtraction                 , [](ImVec2& a, ImVec2& b) { return ImVec2(a.x - b.x, a.y - b.y); },
-		sol::meta_function::multiplication              , [](ImVec2& a, ImVec2& b) { return ImVec2(a.x * b.x, a.y * b.y); },
-		sol::meta_function::division                    , [](ImVec2& a, ImVec2& b) { return ImVec2(a.x / b.x, a.y / b.y); },
+		sol::meta_function::addition                    , sol::overload(
+			                                              [](ImVec2& a, ImVec2& b) { return ImVec2(a.x + b.x, a.y + b.y); },
+			                                              [](ImVec2& a, float b) { return ImVec2(a.x + b, a.y + b); })
+		sol::meta_function::subtraction                 , sol::overload(
+			                                              [](ImVec2& a, ImVec2& b) { return ImVec2(a.x - b.x, a.y - b.y); },
+			                                              [](ImVec2& a, float b) { return ImVec2(a.x - b, a.y - b); }),
+		sol::meta_function::multiplication              , sol::overload(
+			                                              [](ImVec2& a, ImVec2& b) { return ImVec2(a.x * b.x, a.y * b.y); },
+			                                              [](ImVec2& a, float b) { return ImVec2(a.x * b, a.y * b); }),
+		sol::meta_function::division                    , sol::overlroad(
+			                                              [](ImVec2& a, ImVec2& b) { return ImVec2(a.x / b.x, a.y / b.y); },
+			                                              [](ImVec2& a, float b) { return ImVec2(a.x / b, a.y / b); }),
 		sol::meta_function::equal_to                    , [](ImVec2& a, ImVec2& b) { return a.x == b.x && a.y == b.y; },
 		sol::meta_function::less_than                   , [](ImVec2& a, ImVec2& b) { return std::tie(a.x, a.y) < std::tie(b.x, b.y); },
 		sol::meta_function::less_than_or_equal_to       , [](ImVec2& a, ImVec2& b) { return std::tie(a.x, a.y) <= std::tie(b.x, b.y); }
@@ -265,14 +273,31 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"SpecsDirty"                   , &ImGuiTableSortSpecs::SpecsDirty
 	);
 
+	// ImGuiFontAtlas
+	lua.new_usertype<ImFontAtlas>(
+		"ImFontAtlas"                  , sol::no_constructor,
+
+		"Flags"                        , &ImFontAtlas::Flags,
+		"TexID"                        , &ImFontAtlas::TexID,
+		"TexWidth"                     , sol::readonly(&ImFontAtlas::TexWidth),
+		"TexHeight"                    , sol::readonly(&ImFontAtlas::TexHeight)
+	);
+
+
 	// ImGuiIO
 	lua.new_usertype<ImGuiIO>(
-		"ImGuiIO", sol::no_constructor,
+		"ImGuiIO"                      , sol::no_constructor,
 
-		"DisplaySize", &ImGuiIO::DisplaySize,
-		"MouseDelta", &ImGuiIO::MouseDelta,
+		"DisplaySize"                  , sol::readonly(&ImGuiIO::DisplaySize),
+		"FontDefault"                  , sol::readonly(&ImGuiIO::FontDefault),
+		"Fonts"                        , sol::readonly(&ImGuiIO::Fonts),
+		"MouseDelta"                   , sol::readonly(&ImGuiIO::MouseDelta),
+		"MousePos"                     , sol::readonly(&ImGuiIO::MousePos),
 
-		"FontDefault", sol::readonly(&ImGuiIO::FontDefault)
+		"KeyCtrl"                      , sol::readonly(&ImGuiIO::KeyCtrl),
+		"KeyShift"                     , sol::readonly(&ImGuiIO::KeyShift),
+		"KeyAlt"                       , sol::readonly(&ImGuiIO::KeyAlt),
+		"KeySuper"                     , sol::readonly(&ImGuiIO::KeySuper)
 	);
 }
 

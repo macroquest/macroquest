@@ -76,41 +76,12 @@ static std::tuple<int, bool> Combo(const char* label, int currentItem, sol::func
 }
 
 // Widgets: Drags
-static std::tuple<float, bool> DragFloat(const std::string& label, float v)
-{
-	bool used = ImGui::DragFloat(label.c_str(), &v);
-	return std::make_tuple(v, used);
-}
-
-static std::tuple<float, bool> DragFloat(const std::string& label, float v, float v_speed)
-{
-	bool used = ImGui::DragFloat(label.c_str(), &v, v_speed);
-	return std::make_tuple(v, used);
-}
-
-static std::tuple<float, bool> DragFloat(const std::string& label, float v, float v_speed, float v_min)
-{
-	bool used = ImGui::DragFloat(label.c_str(), &v, v_speed, v_min);
-	return std::make_tuple(v, used);
-}
-
-static std::tuple<float, bool> DragFloat(const std::string& label, float v, float v_speed, float v_min, float v_max)
-{
-	bool used = ImGui::DragFloat(label.c_str(), &v, v_speed, v_min, v_max);
-	return std::make_tuple(v, used);
-}
-
-static std::tuple<float, bool> DragFloat(const std::string& label, float v, float v_speed, float v_min, float v_max, const std::string& format)
-{
-	bool used = ImGui::DragFloat(label.c_str(), &v, v_speed, v_min, v_max, format.c_str());
-	return std::make_tuple(v, used);
-}
-
-static std::tuple<float, bool> DragFloat(const std::string& label, float v, float v_speed, float v_min, float v_max, const std::string& format, float power)
-{
-	bool used = ImGui::DragFloat(label.c_str(), &v, v_speed, v_min, v_max, format.c_str(), power);
-	return std::make_tuple(v, used);
-}
+static std::tuple<float, bool> DragFloat(const char* label, float v) { bool used = ImGui::DragFloat(label, &v); return std::make_tuple(v, used); }
+static std::tuple<float, bool> DragFloat(const char* label, float v, float v_speed) { bool used = ImGui::DragFloat(label, &v, v_speed); return std::make_tuple(v, used); }
+static std::tuple<float, bool> DragFloat(const char* label, float v, float v_speed, float v_min) { bool used = ImGui::DragFloat(label, &v, v_speed, v_min); return std::make_tuple(v, used); }
+static std::tuple<float, bool> DragFloat(const char* label, float v, float v_speed, float v_min, float v_max) { bool used = ImGui::DragFloat(label, &v, v_speed, v_min, v_max); return std::make_tuple(v, used); }
+static std::tuple<float, bool> DragFloat(const char* label, float v, float v_speed, float v_min, float v_max, const char* format) { bool used = ImGui::DragFloat(label, &v, v_speed, v_min, v_max, format); return std::make_tuple(v, used); }
+static std::tuple<float, bool> DragFloat(const char* label, float v, float v_speed, float v_min, float v_max, const char* format, float power) { bool used = ImGui::DragFloat(label, &v, v_speed, v_min, v_max, format, power); return std::make_tuple(v, used); }
 
 static std::tuple<sol::as_table_t<std::vector<float>>, bool> DragFloat2(const std::string& label, const sol::table& v)
 {
@@ -1359,52 +1330,27 @@ static std::tuple<bool, bool> CollapsingHeader(const std::string& label, bool op
 static void SetNextItemOpen(bool is_open)                                                           { ImGui::SetNextItemOpen(is_open); }
 static void SetNextItemOpen(bool is_open, int cond)                                                 { ImGui::SetNextItemOpen(is_open, static_cast<ImGuiCond>(cond)); }
 
-// Widgets: Selectables
-// TODO: Only one of Selectable variations is possible due to same parameters for Lua
-static bool Selectable(const std::string& label)                                                    { return ImGui::Selectable(label.c_str()); }
-static bool Selectable(const std::string& label, bool selected)                                     { ImGui::Selectable(label.c_str(), &selected); return selected; }
-static bool Selectable(const std::string& label, bool selected, int flags)                          { ImGui::Selectable(label.c_str(), &selected, static_cast<ImGuiSelectableFlags>(flags)); return selected; }
-static bool Selectable(const std::string& label, bool selected, int flags, float sizeX, float sizeY){ ImGui::Selectable(label.c_str(), &selected, static_cast<ImGuiSelectableFlags>(flags), { sizeX, sizeY }); return selected; }
-
 // Widgets: List Boxes
-static std::tuple<int, bool> ListBox(const std::string& label, int current_item, const sol::table& items, int items_count)
+static std::tuple<int, bool> ListBox(const char* label, int current_item, const sol::table& items, int items_count, int height_in_items)
 {
-	std::vector<std::string> strings;
-	for (int i{ 1 }; i <= items_count; i++)
+	std::vector<const char*> strings;
+	strings.reserve(items_count);
+	for (int i = 1; i <= items_count; i++)
 	{
-		const auto& stringItem = items.get<sol::optional<std::string>>(i);
-		strings.push_back(stringItem.value_or("Missing"));
+		const sol::optional<const char*>& stringItem = items.get<sol::optional<const char*>>(i);
+		strings.push_back(stringItem.value_or("Missing String"));
 	}
 
-	std::vector<const char*> cstrings;
-	for (auto& string : strings)
-		cstrings.push_back(string.c_str());
-
-	bool clicked = ImGui::ListBox(label.c_str(), &current_item, cstrings.data(), items_count);
-	return std::make_tuple(current_item, clicked);
+	current_item -= 1;
+	bool clicked = ImGui::ListBox(label, &current_item, strings.data(), items_count);
+	return std::make_tuple(current_item + 1, clicked);
 }
 
-static std::tuple<int, bool> ListBox(const std::string& label, int current_item, const sol::table& items, int items_count, int height_in_items)
+static std::tuple<int, bool> ListBox(const char* label, int current_item, const sol::table& items, int items_count)
 {
-	std::vector<std::string> strings;
-	for (int i{ 1 }; i <= items_count; i++)
-	{
-		const auto& stringItem = items.get<sol::optional<std::string>>(i);
-		strings.push_back(stringItem.value_or("Missing"));
-	}
-
-	std::vector<const char*> cstrings;
-	for (auto& string : strings)
-		cstrings.push_back(string.c_str());
-
-	bool clicked = ImGui::ListBox(label.c_str(), &current_item, cstrings.data(), items_count, height_in_items);
-	return std::make_tuple(current_item, clicked);
+	return ListBox(label, current_item, items, items_count, -1);
 }
 
-static bool ListBoxHeader(const std::string& label, float sizeX, float sizeY)                       { return ImGui::ListBoxHeader(label.c_str(), { sizeX, sizeY }); }
-static bool ListBoxHeader(const std::string& label, int items_count)                                { return ImGui::ListBoxHeader(label.c_str(), items_count); }
-static bool ListBoxHeader(const std::string& label, int items_count, int height_in_items)           { return ImGui::ListBoxHeader(label.c_str(), items_count, height_in_items); }
-static void ListBoxFooter()                                                                         { ImGui::ListBoxFooter(); }
 
 // Widgets: Data Plotting
 /* TODO: Widgets Data Plotting ==> UNSUPPORTED (barely used and quite long functions) */
@@ -1625,12 +1571,12 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 		                                    [](ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, const ImVec4& border_col) { ImGui::Image(texture_id, size, uv0, uv1, tint_col, border_col); }
 	));
 	ImGui.set_function("ImageButton", sol::overload(
-		                                    [](ImTextureID texture_id, const ImVec2& size) { ImGui::ImageButton(texture_id, size); },
-		                                    [](ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0) { ImGui::ImageButton(texture_id, size, uv0); },
-		                                    [](ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1) { ImGui::ImageButton(texture_id, size, uv0, uv1); },
-		                                    [](ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding) { ImGui::ImageButton(texture_id, size, uv0, uv1, frame_padding); },
-		                                    [](ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col) { ImGui::ImageButton(texture_id, size, uv0, uv1, frame_padding, bg_col); },
-		                                    [](ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col, const ImVec4& tint_col) { ImGui::ImageButton(texture_id, size, uv0, uv1, frame_padding, bg_col, tint_col); }
+		                                    [](ImTextureID texture_id, const ImVec2& size) { return ImGui::ImageButton(texture_id, size); },
+		                                    [](ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0) { return ImGui::ImageButton(texture_id, size, uv0); },
+		                                    [](ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1) { return ImGui::ImageButton(texture_id, size, uv0, uv1); },
+		                                    [](ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding) { return ImGui::ImageButton(texture_id, size, uv0, uv1, frame_padding); },
+		                                    [](ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col) { return ImGui::ImageButton(texture_id, size, uv0, uv1, frame_padding, bg_col); },
+		                                    [](ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col, const ImVec4& tint_col) { return ImGui::ImageButton(texture_id, size, uv0, uv1, frame_padding, bg_col, tint_col); }
 	));
 
 	ImGui.set_function("Checkbox",          [](const char* label, bool v) -> std::tuple<bool, bool> { bool value{ v }, pressed = ImGui::Checkbox(label, &value); return std::make_tuple(value, pressed); });
@@ -1667,12 +1613,12 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 
 	#pragma region Widgets: Drags
 	ImGui.set_function("DragFloat", sol::overload(
-		sol::resolve<std::tuple<float, bool>(const std::string&, float)>(DragFloat),
-		sol::resolve<std::tuple<float, bool>(const std::string&, float, float)>(DragFloat),
-		sol::resolve<std::tuple<float, bool>(const std::string&, float, float, float)>(DragFloat),
-		sol::resolve<std::tuple<float, bool>(const std::string&, float, float, float, float)>(DragFloat),
-		sol::resolve<std::tuple<float, bool>(const std::string&, float, float, float, float, const std::string&)>(DragFloat),
-		sol::resolve<std::tuple<float, bool>(const std::string&, float, float, float, float, const std::string&, float)>(DragFloat)
+		sol::resolve<std::tuple<float, bool>(const char*, float)>(DragFloat),
+		sol::resolve<std::tuple<float, bool>(const char*, float, float)>(DragFloat),
+		sol::resolve<std::tuple<float, bool>(const char*, float, float, float)>(DragFloat),
+		sol::resolve<std::tuple<float, bool>(const char*, float, float, float, float)>(DragFloat),
+		sol::resolve<std::tuple<float, bool>(const char*, float, float, float, float, const char*)>(DragFloat),
+		sol::resolve<std::tuple<float, bool>(const char*, float, float, float, float, const char*, float)>(DragFloat)
 	));
 	ImGui.set_function("DragFloat2", sol::overload(
 		sol::resolve<std::tuple<sol::as_table_t<std::vector<float>>, bool>(const std::string&, const sol::table&)>(DragFloat2),
@@ -1895,24 +1841,24 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 
 	#pragma region Widgets: Selectables
 	ImGui.set_function("Selectable", sol::overload(
-		sol::resolve<bool(const std::string&)>(Selectable),
-		sol::resolve<bool(const std::string&, bool)>(Selectable),
-		sol::resolve<bool(const std::string&, bool, int)>(Selectable),
-		sol::resolve<bool(const std::string&, bool, int, float, float)>(Selectable)
+		[](const char* label) { return ImGui::Selectable(label); },
+		[](const char* label, bool selected) { bool clicked = ImGui::Selectable(label, &selected); return std::make_tuple(selected, clicked); },
+		[](const char* label, bool selected, int flags) { bool clicked = ImGui::Selectable(label, &selected, static_cast<ImGuiSelectableFlags>(flags)); return std::make_tuple(selected, clicked); },
+		[](const char* label, bool selected, int flags, const ImVec2& size) { bool clicked = ImGui::Selectable(label, &selected, static_cast<ImGuiSelectableFlags>(flags), size); return std::make_tuple(selected, clicked); },
+		[](const char* label, bool selected, int flags, float sizeX, float sizeY) { bool clicked = ImGui::Selectable(label, &selected, static_cast<ImGuiSelectableFlags>(flags), { sizeX, sizeY }); return std::make_tuple(selected, clicked); }
 	));
 	#pragma endregion
 
 	#pragma region Widgets: List Boxes
+	ImGui.set_function("BeginListBox", sol::overload(
+		[](const char* label) { return ImGui::BeginListBox(label); },
+		[](const char* label, const ImVec2& size) { return ImGui::BeginListBox(label, size); }
+	));
+	ImGui.set_function("EndListBox", &ImGui::EndListBox);
 	ImGui.set_function("ListBox", sol::overload(
-		sol::resolve<std::tuple<int, bool>(const std::string&, int, const sol::table&, int)>(ListBox),
-		sol::resolve<std::tuple<int, bool>(const std::string&, int, const sol::table&, int, int)>(ListBox)
+		sol::resolve<std::tuple<int, bool>(const char*, int, const sol::table&, int)>(ListBox),
+		sol::resolve<std::tuple<int, bool>(const char*, int, const sol::table&, int, int)>(ListBox)
 	));
-	ImGui.set_function("ListBoxHeader", sol::overload(
-		sol::resolve<bool(const std::string&, float, float)>(ListBoxHeader),
-		sol::resolve<bool(const std::string&, int)>(ListBoxHeader),
-		sol::resolve<bool(const std::string&, int, int)>(ListBoxHeader)
-	));
-	ImGui.set_function("ListBoxFooter", ListBoxFooter);
 	#pragma endregion
 
 	#pragma region Widgets: Value() Helpers

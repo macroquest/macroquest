@@ -509,6 +509,8 @@ void RegisterBindings_MQ(LuaThread* thread, sol::table& mq)
 	mq.set("parse",                              &lua_Parse);
 	mq.set_function("pickle",                    &lua_pickle);
 
+	mq.set_function("NumericLimits_Float",       [](){ return std::make_pair(FLT_MIN, FLT_MAX); });
+
 	// thread bindings
 	mq.set_function("delay",                     &lua_delay);
 	mq.set_function("exit",                      &lua_exit);
