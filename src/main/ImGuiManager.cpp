@@ -558,6 +558,46 @@ void ImGuiManager_DrawFrame()
 				MQScopedBenchmark bm2(bmPluginsUpdateImGui);
 				PluginsUpdateImGui();
 			}
+			else
+			{
+				ImGuiViewport* mainViewport = ImGui::GetMainViewport();
+				ImVec2 pos = ImVec2(mainViewport->Size.x / 2 - 180, 60);
+				ImVec2 size = ImVec2(360, 120);
+
+				ImGui::SetNextWindowPos(pos, ImGuiCond_Appearing);
+				ImGui::SetNextWindowSize(size, ImGuiCond_Appearing);
+
+				ImGui::Begin("MQOverlay Paused", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
+
+				float windowWidth = ImGui::GetWindowSize().x;
+
+				{
+					const char* message = "The Overlay is paused due to an ImGui error.";
+					float textWidth = ImGui::CalcTextSize(message).x;
+
+					ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+					ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), message);
+				}
+
+				{
+					const char* message = "Please fix the problem before resuming.";
+					float textWidth = ImGui::CalcTextSize(message).x;
+
+					ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+					ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), message);
+				}
+
+				ImGui::NewLine();
+
+				{
+					ImGui::SetCursorPosX((windowWidth - 160) * .5f);
+
+					if (ImGui::Button("Resume Overlay", ImVec2(160, 0)))
+						gbManualResetRequired = false;
+				}
+
+				ImGui::End();
+			}
 
 			if (s_bOverlayDebug)
 			{
@@ -669,7 +709,15 @@ void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 	}
 	else if (ci_equals(szArg, "resume"))
 	{
-		gbManualResetRequired = false;
+		if (gbManualResetRequired)
+		{
+			WriteChatf("Resuming overlay...");
+			gbManualResetRequired = false;
+		}
+		else
+		{
+			WriteChatf("Overlay is already running");
+		}
 	}
 	else if (ci_equals(szArg, "stop"))
 	{

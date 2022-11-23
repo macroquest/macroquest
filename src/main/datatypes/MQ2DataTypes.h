@@ -160,8 +160,10 @@ public:
 	~CDataArray();
 
 	void Delete();
-	int GetElement(char* Index);
-	bool GetElement(char* Index, MQTypeVar& Dest);
+	MQLIB_OBJECT int GetElement(std::string_view Index) const;
+	MQLIB_OBJECT int GetElement(char* Index);
+	MQLIB_OBJECT bool GetElement(std::string_view Index, MQTypeVar& Dest);
+	MQLIB_OBJECT bool GetElement(char* Index, MQTypeVar& Dest);
 
 	MQ2Type* GetType() { return m_pType; }
 	MQVarPtr& GetData(int index) { return m_pData[index]; }
@@ -352,10 +354,6 @@ public:
 	MQ2ArrayType();
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
-	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-
-	void InitVariable(MQVarPtr& VarPtr) override;
-	void FreeVariable(MQVarPtr& VarPtr) override;
 };
 
 //============================================================================
