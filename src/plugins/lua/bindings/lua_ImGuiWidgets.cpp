@@ -1314,21 +1314,10 @@ static void SetColorEditOptions(int flags)                                      
 // Widgets: Trees
 static bool TreeNode(const std::string& label)                                                      { return ImGui::TreeNode(label.c_str()); }
 static bool TreeNode(const std::string& label, const std::string& fmt)                              { return ImGui::TreeNode(label.c_str(), fmt.c_str()); }
-/* TODO: TreeNodeV(...) (2) ==> UNSUPPORTED */
 static bool TreeNodeEx(const std::string& label)                                                    { return ImGui::TreeNodeEx(label.c_str()); }
 static bool TreeNodeEx(const std::string& label, int flags)                                         { return ImGui::TreeNodeEx(label.c_str(), static_cast<ImGuiTreeNodeFlags>(flags)); }
 static bool TreeNodeEx(const std::string& label, int flags, const std::string& fmt)                 { return ImGui::TreeNodeEx(label.c_str(), static_cast<ImGuiTreeNodeFlags>(flags), fmt.c_str()); }
-/* TODO: TreeNodeExV(...) (2) ==> UNSUPPORTED */
-static void TreePush(const std::string& str_id)                                                     { ImGui::TreePush(str_id.c_str()); }
 /* TODO: TreePush(const void*) ==> UNSUPPORTED */
-static void TreePop()                                                                               { ImGui::TreePop(); }
-static float GetTreeNodeToLabelSpacing()                                                            { return ImGui::GetTreeNodeToLabelSpacing(); }
-static bool CollapsingHeader(const std::string& label)                                              { return ImGui::CollapsingHeader(label.c_str()); }
-static bool CollapsingHeader(const std::string& label, int flags)                                   { return ImGui::CollapsingHeader(label.c_str(), static_cast<ImGuiTreeNodeFlags>(flags)); }
-static std::tuple<bool, bool> CollapsingHeader(const std::string& label, bool open)                 { bool notCollapsed = ImGui::CollapsingHeader(label.c_str(), &open); return std::make_tuple(open, notCollapsed); }
-static std::tuple<bool, bool> CollapsingHeader(const std::string& label, bool open, int flags)      { bool notCollapsed = ImGui::CollapsingHeader(label.c_str(), &open, static_cast<ImGuiTreeNodeFlags>(flags)); return std::make_tuple(open, notCollapsed); }
-static void SetNextItemOpen(bool is_open)                                                           { ImGui::SetNextItemOpen(is_open); }
-static void SetNextItemOpen(bool is_open, int cond)                                                 { ImGui::SetNextItemOpen(is_open, static_cast<ImGuiCond>(cond)); }
 
 // Widgets: List Boxes
 static std::tuple<int, bool> ListBox(const char* label, int current_item, const sol::table& items, int items_count, int height_in_items)
@@ -1361,36 +1350,6 @@ static void Value(const std::string& prefix, int v)                             
 static void Value(const std::string& prefix, unsigned int v)                                        { ImGui::Value(prefix.c_str(), v); }
 static void Value(const std::string& prefix, float v)                                               { ImGui::Value(prefix.c_str(), v); }
 static void Value(const std::string& prefix, float v, const std::string& float_format)              { ImGui::Value(prefix.c_str(), v, float_format.c_str()); }
-
-// Widgets: Menus
-static bool BeginMenuBar()                                                                          { return ImGui::BeginMenuBar(); }
-static void EndMenuBar()                                                                            { ImGui::EndMenuBar(); }
-static bool BeginMainMenuBar()                                                                      { return ImGui::BeginMainMenuBar(); }
-static void EndMainMenuBar()                                                                        { ImGui::EndMainMenuBar(); }
-static bool BeginMenu(const std::string& label)                                                     { return ImGui::BeginMenu(label.c_str()); }
-static bool BeginMenu(const std::string& label, bool enabled)                                       { return ImGui::BeginMenu(label.c_str(), enabled); }
-static void EndMenu()                                                                               { ImGui::EndMenu(); }
-
-static std::tuple<bool, bool> MenuItem(const std::string& label)
-{
-	bool activated = ImGui::MenuItem(label.c_str());
-	return std::make_tuple(activated, activated);
-}
-static std::tuple<bool, bool> MenuItem(const std::string& label, const char* shortcut)
-{
-	bool activated = ImGui::MenuItem(label.c_str(), shortcut);
-	return std::make_tuple(activated, activated);
-}
-static std::tuple<bool, bool> MenuItem(const std::string& label, const char* shortcut, bool selected)
-{
-	bool activated = ImGui::MenuItem(label.c_str(), shortcut, &selected);
-	return std::make_tuple(activated, selected);
-}
-static std::tuple<bool, bool> MenuItem(const std::string& label, const char* shortcut, bool selected, bool enabled)
-{
-	bool activated = ImGui::MenuItem(label.c_str(), shortcut, &selected, enabled);
-	return std::make_tuple(activated, selected);
-}
 
 // Tooltips
 static void BeginTooltip()                                                                          { ImGui::BeginTooltip(); }
@@ -1540,7 +1499,10 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 {
 	#pragma region Widgets: Text
 	ImGui.set_function("TextUnformatted",   [](std::string_view text) { ImGui::TextUnformatted(text.data(), text.data() + text.size()); });
-	ImGui.set_function("Text",              [](std::string_view text) { ImGui::TextUnformatted(text.data(), text.data() + text.size()); });
+	ImGui.set_function("Text", sol::overload(
+		[](std::string_view text) { ImGui::TextUnformatted(text.data(), text.data() + text.size()); },
+		[](sol::variadic_args va, sol::this_state s) { sol::function string_format = sol::state_view(s)["string"]["format"]; std::string text = string_format(va); ImGui::Text("%s", text.c_str()); }
+	));
 	ImGui.set_function("TextColored", sol::overload(
 		                                    [](float r, float g, float b, float a, const char* text) { ImGui::TextColored({ r, g, b, a }, text); },
 		                                    [](int col, const char* text) { ImGui::TextColored(ImColor(col), text); },
@@ -1823,18 +1785,23 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 		sol::resolve<bool(const std::string&, int)>(TreeNodeEx),
 		sol::resolve<bool(const std::string&, int, const std::string&)>(TreeNodeEx)
 	));
-	ImGui.set_function("TreePush", TreePush);
-	ImGui.set_function("TreePop", TreePop);
-	ImGui.set_function("GetTreeNodeToLabelSpacing", GetTreeNodeToLabelSpacing);
+	ImGui.set_function("TreePush", sol::overload(
+		[]() { ImGui::TreePush(); },
+		[](const char* strId) { ImGui::TreePush(strId); },
+		[](sol::object obj) { ImGui::TreePush(obj.pointer()); }
+	));
+	ImGui.set_function("TreePop", &ImGui::TreePop);
+	ImGui.set_function("GetTreeNodeToLabelSpacing", &ImGui::GetTreeNodeToLabelSpacing);
 	ImGui.set_function("CollapsingHeader", sol::overload(
-		sol::resolve<bool(const std::string&)>(CollapsingHeader),
-		sol::resolve<bool(const std::string&, int)>(CollapsingHeader),
-		sol::resolve<std::tuple<bool, bool>(const std::string&, bool)>(CollapsingHeader),
-		sol::resolve<std::tuple<bool, bool>(const std::string&, bool, int)>(CollapsingHeader)
+		[](const char* label) { return ImGui::CollapsingHeader(label); },
+		[](const char* label, int flags) { return ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags(flags)); },
+		[](const char* label, nullptr_t, int flags) { bool show = ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags(flags)); return std::make_tuple(true, show); },
+		[](const char* label, bool open) { bool show = ImGui::CollapsingHeader(label, &open); return std::make_tuple(open, show); },
+		[](const char* label, bool open, int flags) { bool show = ImGui::CollapsingHeader(label, &open, ImGuiTreeNodeFlags(flags)); return std::make_tuple(open, show); }
 	));
 	ImGui.set_function("SetNextItemOpen", sol::overload(
-		sol::resolve<void(bool)>(SetNextItemOpen),
-		sol::resolve<void(bool, int)>(SetNextItemOpen)
+		[](bool is_open) { ImGui::SetNextItemOpen(is_open); },
+		[](bool is_open, int cond) { ImGui::SetNextItemOpen(is_open, static_cast<ImGuiCond>(cond)); }
 	));
 	ImGui.set_function("TreeAdvanceToLabelPos", ImGui::TreeAdvanceToLabelPos);
 	#pragma endregion
@@ -1872,20 +1839,21 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 	#pragma endregion
 
 	#pragma region Widgets: Menu
-	ImGui.set_function("BeginMenuBar", BeginMenuBar);
-	ImGui.set_function("EndMenuBar", EndMenuBar);
-	ImGui.set_function("BeginMainMenuBar", BeginMainMenuBar);
-	ImGui.set_function("EndMainMenuBar", EndMainMenuBar);
+	ImGui.set_function("BeginMenuBar", &ImGui::BeginMenuBar);
+	ImGui.set_function("EndMenuBar", &ImGui::EndMenuBar);
+	ImGui.set_function("BeginMainMenuBar", &ImGui::BeginMainMenuBar);
+	ImGui.set_function("EndMainMenuBar", &ImGui::EndMainMenuBar);
 	ImGui.set_function("BeginMenu", sol::overload(
-		sol::resolve<bool(const std::string&)>(BeginMenu),
-		sol::resolve<bool(const std::string&, bool)>(BeginMenu)
+		[](const char* label) { return ImGui::BeginMenu(label); },
+		[](const char* label, bool enabled) { return ImGui::BeginMenu(label, enabled); }
 	));
-	ImGui.set_function("EndMenu", EndMenu);
+	ImGui.set_function("EndMenu", &ImGui::EndMenu);
 	ImGui.set_function("MenuItem", sol::overload(
-		sol::resolve<std::tuple<bool, bool>(const std::string&)>(MenuItem),
-		sol::resolve<std::tuple<bool, bool>(const std::string&, const char*)>(MenuItem),
-		sol::resolve<std::tuple<bool, bool>(const std::string&, const char*, bool)>(MenuItem),
-		sol::resolve<std::tuple<bool, bool>(const std::string&, const char*, bool, bool)>(MenuItem)
+		[](const char* label) { bool activated = ImGui::MenuItem(label); return std::make_tuple(activated, activated); },
+		[](const char* label, const char* shortcut) { bool activated = ImGui::MenuItem(label, shortcut); return std::make_tuple(activated, activated); },
+		[](const char* label, const char* shortcut, nullptr_t, bool enabled) { bool activated = ImGui::MenuItem(label, shortcut, nullptr, enabled); return std::make_tuple(activated, activated); },
+		[](const char* label, const char* shortcut, bool selected) { bool activated = ImGui::MenuItem(label, shortcut, &selected); return std::make_tuple(activated, selected); },
+		[](const char* label, const char* shortcut, bool selected, bool enabled) { bool activated = ImGui::MenuItem(label, shortcut, &selected, enabled); return std::make_tuple(activated, selected); }
 	));
 	#pragma endregion
 

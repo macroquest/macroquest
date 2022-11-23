@@ -3,10 +3,6 @@ local mq = require('mq')
 ---@type ImGui
 local imgui = require 'ImGui'
 
-local w = {
-    disable_all = false
-}
-
 --
 -- Widgest Demo - Images
 --
@@ -188,7 +184,7 @@ function WidgetsDemo_ListBoxes:Draw()
 
     -- Custom size: use all width, 5 items tall
     imgui.Text('Full-width:')
-    if imgui.BeginListBox('##listbox 2', ImVec2(mq.NumericLimits_Float()[1], 5 * imgui.GetTextLineHeightWithSpacing())) then
+    if imgui.BeginListBox('##listbox 2', ImVec2(mq.NumericLimits_Float(), 5 * imgui.GetTextLineHeightWithSpacing())) then
         for n, item in ipairs(self.items) do
             local is_selected = n == self.item_current_idx
             local _, clicked = imgui.Selectable(item, is_selected)
@@ -376,11 +372,16 @@ function WidgetsDemo_Selectables:AllExampleFCellsSelected()
     return true
 end
 
-function ShowDemoWindowWidgets()
+local disable_all = false
 
-    -- if w.disable_all then
-    --     imgui.BeginDisabled()
-    -- end
+function ShowDemoWindowWidgets()
+    if not imgui.CollapsingHeader("Widgets") then
+        return
+    end
+
+    if disable_all then
+         imgui.BeginDisabled()
+    end
 
     if imgui.TreeNode('Text') then
 
@@ -406,21 +407,17 @@ function ShowDemoWindowWidgets()
         WidgetsDemo_Selectables:Draw()
         imgui.TreePop()
     end
-end
 
-local openGUI = true
-local shouldDrawGUI = true
-
-function DemoWidgets()
-    if not openGUI then return end
-    openGUI, shouldDrawGUI = ImGui.Begin('Example: Widgets', openGUI)
-    if shouldDrawGUI then
-        ShowDemoWindowWidgets()
+    if disable_all then
+        imgui.EndDisabled()
     end
-    ImGui.End()
-end
-ImGui.Register('DemoWidgets', DemoWidgets)
 
-while openGUI do
-    mq.delay(1000) -- equivalent to '1s'
+    if imgui.TreeNode("Disable block") then
+        disable_all = imgui.Checkbox("Disable entire section above", disable_all)
+        imgui.SameLine()
+        imgui.HelpMarker("Demonstrate using BeginDisabled()/EndDisabled() across this section")
+        imgui.TreePop()
+    end
 end
+
+return ShowDemoWindowWidgets

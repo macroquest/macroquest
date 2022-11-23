@@ -299,6 +299,23 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"KeyAlt"                       , sol::readonly(&ImGuiIO::KeyAlt),
 		"KeySuper"                     , sol::readonly(&ImGuiIO::KeySuper)
 	);
+
+	// ImGuiViewport
+	lua.new_usertype<ImGuiViewport>(
+		"ImGuiViewport"                , sol::no_constructor,
+
+		"ID"                           , sol::readonly(&ImGuiViewport::ID),
+		"Flags"                        , sol::readonly(&ImGuiViewport::Flags),
+		"Pos"                          , sol::readonly(&ImGuiViewport::Pos),
+		"Size"                         , sol::readonly(&ImGuiViewport::Size),
+		"WorkPos"                      , sol::readonly(&ImGuiViewport::WorkPos),
+		"WorkSize"                     , sol::readonly(&ImGuiViewport::WorkSize),
+		"DpiScale"                     , sol::readonly(&ImGuiViewport::DpiScale),
+		"ParentViewportId"             , sol::readonly(&ImGuiViewport::ParentViewportId),
+
+		"GetCenter"                    , &ImGuiViewport::GetCenter,
+		"GetWorkCenter"                , &ImGuiViewport::GetWorkCenter
+	);
 }
 
 } // namespace mq::lua::bindings

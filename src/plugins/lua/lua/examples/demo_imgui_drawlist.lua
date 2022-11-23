@@ -310,16 +310,4 @@ function ShowExampleAppCustomRendering()
     end
 end
 
-function DemoCustomRenderingGUI()
-    if not openGUI then return end
-    openGUI, shouldDrawGUI = ImGui.Begin('Example: Custom Rendering', openGUI)
-    if shouldDrawGUI then
-        ShowExampleAppCustomRendering()
-    end
-    ImGui.End()
-end
-ImGui.Register('DemoCustomRendering', DemoCustomRenderingGUI)
-
-while openGUI do
-    mq.delay(1000) -- equivalent to '1s'
-end
+return ShowExampleAppCustomRendering

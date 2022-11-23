@@ -6,8 +6,6 @@ require 'ImGui'
 local TEXT_BASE_WIDTH, _ = ImGui.CalcTextSize("A")
 local TEXT_BASE_HEIGHT = ImGui.GetTextLineHeightWithSpacing();
 
-local openGUI = true
-local shouldDrawGUI = true
 local disable_indent = false
 
 local function HelpMarker(desc)
@@ -23,8 +21,8 @@ end
 
 local function PushStyleCompact()
     local style = ImGui.GetStyle()
-    ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImVec2.new(style.FramePadding.x, style.FramePadding.y * 0.70))
-    ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImVec2.new(style.ItemSpacing.x, style.ItemSpacing.y * 0.70))
+    ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImVec2(style.FramePadding.x, style.FramePadding.y * 0.70))
+    ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImVec2(style.ItemSpacing.x, style.ItemSpacing.y * 0.70))
 end
 
 local function PopStyleCompact()
@@ -387,7 +385,7 @@ local function ShowTableDemoSorting(open_action)
 end
 
 -- Converted from imgui_demo.cpp
-local function ShowDemoWindowTables()
+function ShowDemoWindowTables()
     if not ImGui.CollapsingHeader('Tables & Columns') then
         return
     end
@@ -609,16 +607,4 @@ local function ShowDemoWindowTables()
     ImGui.PopID()
 end
 
-function DemoTablesGUI()
-    if not openGUI then return end
-    openGUI, shouldDrawGUI = ImGui.Begin('Tables Demo', openGUI)
-    if shouldDrawGUI then
-        ShowDemoWindowTables()
-    end
-    ImGui.End()
-end
-ImGui.Register('DemoTablesGUI', DemoTablesGUI)
-
-while openGUI do
-    mq.delay(1000) -- equivalent to '1s'
-end
+return ShowDemoWindowTables
