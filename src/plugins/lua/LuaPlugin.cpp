@@ -1001,6 +1001,7 @@ void LuaPlugin::UnregisterData()
 
 LuaPlugin::LuaPlugin(const std::string& name, const std::string& version, sol::this_state s)
 	: m_name(name)
+	, m_localName(name)
 	, m_version(version)
 	, m_thread(LuaThread::get_from(s))
 {}
@@ -1084,7 +1085,7 @@ sol::table LuaPlugin::Create(sol::table, const std::string& name, const std::str
 	return ptr->m_pluginTable;
 }
 
-void LuaPlugin::Start(sol::table plugin)
+void LuaPlugin::Start(const std::string& name, sol::table plugin)
 {
 	// this is where we would differ from a universal plugin interface. We can't just put it in a local map, we'd need to provide it to the larger interface
 	auto ptr = GetFrom(plugin);
@@ -1104,6 +1105,9 @@ void LuaPlugin::Start(sol::table plugin)
 			if (k.is<std::string>() && v.get_type() == sol::type::function)
 				ptr->SetCallback(k.as<const std::string&>(), v, plugin.lua_state());
 		}
+
+		// force the name to be what the user specified
+		ptr->m_name = name;
 
 		ptr->InitializePlugin();
 		ptr->m_startTime = std::chrono::system_clock::now();
@@ -1170,8 +1174,6 @@ void LuaPlugin::RegisterLua(sol::table& mq)
 	);
 
 	mq["plugin"] = sol::state_view(mq.lua_state()).create_table_with(
-		"start", &LuaPlugin::Start,
-		"stop", &LuaPlugin::Stop,
 		sol::metatable_key, sol::state_view(mq.lua_state()).create_table_with(
 			"__call", &LuaPlugin::Create
 		)

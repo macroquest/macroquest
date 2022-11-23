@@ -59,17 +59,27 @@ void LuaThreadInfo::SetResult(const sol::protected_function_result& result, bool
 {
 	if (result.status() != sol::call_status::yielded)
 	{
+		// first, lets see if we returned any plugins (run only the first one)
+		if (result.return_count() >= 1)
+		{
+			for (const auto& r : result)
+			{
+				if (r.is<sol::table>() && LuaPlugin::IsPlugin(r.as<sol::table>()))
+				{
+					exitStatus.clear();
+					status = LuaThreadStatus::Plugin;
+					LuaPlugin::Start(name, r.as<sol::table>());
+
+					LuaPlugin::ClearPlugins(result.lua_state());
+					return;
+				}
+			}
+		}
+
 		EndRun();
 
 		if (result.return_count() >= 1)
 		{
-			// first, lets see if we returned any plugins (run all of them, we should allow for multiple plugins in one file)
-			for (const auto& r : result)
-			{
-				if (r.is<sol::table>() && LuaPlugin::IsPlugin(r.as<sol::table>()))
-					LuaPlugin::Start(r.as<sol::table>());
-			}
-
 			// now we can do the normal stringification
 			returnValues = std::vector<std::string>(result.return_count());
 
@@ -102,8 +112,14 @@ void LuaThreadInfo::SetResult(const sol::protected_function_result& result, bool
 
 void LuaThreadInfo::EndRun()
 {
-	status = LuaThreadStatus::Exited;
-	endTime = std::chrono::system_clock::now();
+	if (status != LuaThreadStatus::Exited && status != LuaThreadStatus::Plugin)
+	{
+		if (!exitStatus.empty())
+			WriteChatStatus(exitStatus.c_str());
+
+		status = LuaThreadStatus::Exited;
+		endTime = std::chrono::system_clock::now();
+	}
 }
 
 //============================================================================

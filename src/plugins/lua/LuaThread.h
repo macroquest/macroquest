@@ -37,13 +37,15 @@ enum class LuaThreadStatus
 	Starting,
 	Running,
 	Paused,
-	Exited
+	Exited,
+	Plugin,
 };
 
 enum class LuaThreadExitReason
 {
 	Unspecified = 0,
 	Exit = 1,
+	Plugin = 2,
 };
 
 class LuaPlugin;
@@ -58,6 +60,7 @@ struct LuaThreadInfo
 	std::vector<std::string> returnValues;
 	LuaThreadStatus status;
 	bool isString;
+	std::string exitStatus;
 
 	std::string_view status_string() const
 	{
@@ -71,6 +74,8 @@ struct LuaThreadInfo
 			return "PAUSED";
 		case LuaThreadStatus::Exited:
 			return "EXITED";
+		case LuaThreadStatus::Plugin:
+			return "PLUGIN";
 		default:
 			return "UNKNOWN";
 		}
@@ -78,6 +83,7 @@ struct LuaThreadInfo
 
 	void SetResult(const sol::protected_function_result& result, bool evaluate);
 	void EndRun();
+	bool Exited() { return status == LuaThreadStatus::Exited || status == LuaThreadStatus::Plugin; }
 };
 
 //============================================================================

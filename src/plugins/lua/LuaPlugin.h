@@ -154,7 +154,7 @@ public:
 	sol::object Get(sol::object key, sol::this_state s) const;
 	std::chrono::system_clock::time_point GetStartTime() const { return m_startTime; }
 	static sol::table Create(sol::table, const std::string& name, const std::string& version, sol::this_state s);
-	static void Start(sol::table plugin);
+	static void Start(const std::string& name, sol::table plugin);
 	static void Stop(std::string_view name);
 	static void StopAll();
 	static std::shared_ptr<LuaPlugin> Lookup(std::string_view name);
@@ -169,6 +169,7 @@ private:
 	std::chrono::system_clock::time_point m_startTime;
 	sol::table m_pluginTable;
 	std::string m_name;
+	std::string m_localName;
 	std::string m_version;
 #pragma endregion
 };

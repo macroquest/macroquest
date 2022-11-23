@@ -504,7 +504,7 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 	std::optional<LuaThreadInfo> result = entry->StartFile(script_path, args);
 	if (result)
 	{
-		result->status = LuaThreadStatus::Running;
+		if (result->status == LuaThreadStatus::Starting) result->status = LuaThreadStatus::Running;
 		s_infoMap.emplace(result->pid, *result);
 		return result->pid;
 	}
@@ -549,7 +549,7 @@ static uint32_t LuaParseCommand(const std::string& script, std::string_view name
 	std::optional<LuaThreadInfo> result = entry->StartString(script, name);
 	if (result)
 	{
-		result->status = LuaThreadStatus::Running;
+		if (result->status == LuaThreadStatus::Starting) result->status = LuaThreadStatus::Running;
 		s_infoMap.emplace(result->pid, *result);
 		return result->pid;
 	}
@@ -589,6 +589,17 @@ static void LuaStopCommand(std::optional<std::string> script = std::nullopt)
 			WriteChatStatus("Ending running lua plugin '%s'", script->c_str());
 
 			LuaPlugin::Stop(*script);
+
+			auto info_it = std::find_if(s_infoMap.begin(), s_infoMap.end(), [script = std::string_view(*script)](const std::pair<uint32_t, LuaThreadInfo>& info)
+			{
+				return ci_equals(info.second.name, script);
+			});
+
+			if (info_it != s_infoMap.end())
+			{
+				info_it->second.status = LuaThreadStatus::Exited;
+				info_it->second.endTime = std::chrono::system_clock::now();
+			}
 		}
 		else
 		{
@@ -901,7 +912,7 @@ static void LuaPSCommand(const std::vector<std::string>& filters = {})
 	{
 		if (filters.empty())
 		{
-			return info.status == LuaThreadStatus::Running || info.status == LuaThreadStatus::Paused;
+			return info.status == LuaThreadStatus::Running || info.status == LuaThreadStatus::Paused || info.status == LuaThreadStatus::Plugin;
 		}
 
 		auto status = info.status_string();
@@ -921,22 +932,7 @@ static void LuaPSCommand(const std::vector<std::string>& filters = {})
 				info.name.length() > 12 ? info.name.substr(0, 9) + "..." : info.name,
 				info.startTime,
 				info.status == LuaThreadStatus::Exited ? fmt::format("{:%m/%d %I:%M%p}", info.endTime) : "",
-				static_cast<int>(info.status));
-			WriteChatStatus("%.*s", line.size(), line.data());
-		}
-	}
-
-	if (filters.empty() || std::find(filters.begin(), filters.end(), "plugin") != filters.end())
-	{
-		for (const auto& plugin : LuaPlugin::GetRunning())
-		{
-			fmt::memory_buffer line;
-			fmt::format_to(fmt::appender(line), "|{:^7}|{:^12}|{:%m/%d %I:%M%p}|{:^13}|{:^12}|",
-				"plugin",
-				plugin->Name().length() > 12 ? plugin->Name().substr(0, 12) : plugin->Name(),
-				plugin->GetStartTime(),
-				"",
-				1);
+				info.status_string());
 			WriteChatStatus("%.*s", line.size(), line.data());
 		}
 	}
@@ -1231,7 +1227,7 @@ public:
 		std::optional<LuaThreadInfo> result = thread->StartString(script, name);
 		if (result)
 		{
-			result->status = LuaThreadStatus::Running;
+			if (result->status == LuaThreadStatus::Starting) result->status = LuaThreadStatus::Running;
 			s_infoMap.emplace(result->pid, *result);
 		}
 
@@ -1639,15 +1635,15 @@ PLUGIN_API void OnPulse()
 
 		if (result.first != sol::thread_status::yielded)
 		{
-			if (!thread->IsString())
-			{
-				WriteChatStatus("Ending lua script '%s' with PID %d and status %d",
-					thread->GetName().c_str(), thread->GetPID(), static_cast<int>(result.first));
-			}
-
 			auto fin_it = s_infoMap.find(thread->GetPID());
 			if (fin_it != s_infoMap.end())
 			{
+				if (!thread->IsString())
+				{
+					fin_it->second.exitStatus = fmt::format("Ending lua script '{}' with PID {} and status {}",
+						thread->GetName(), thread->GetPID(), static_cast<int>(result.first));
+				}
+
 				if (result.second)
 					fin_it->second.SetResult(*result.second, thread->GetEvaluateResult());
 				else
@@ -1767,12 +1763,12 @@ PLUGIN_API void OnUpdateImGui()
 
 	// now update the lua menu window
 	ImGui::SetNextWindowSize(ImVec2(500, 440), ImGuiCond_FirstUseEver);
-	// TODO: Need a Lua Plugin Manager section as well
 	if (ImGui::Begin("Lua Task Manager", &s_showMenu, ImGuiWindowFlags_None))
 	{
 		static bool show_running = true;
 		static bool show_paused = true;
 		static bool show_exited = false;
+		static bool show_plugins = true;
 
 		auto should_show = [](const LuaThreadInfo& info)
 		{
@@ -1781,6 +1777,9 @@ PLUGIN_API void OnUpdateImGui()
 
 			if (info.status == LuaThreadStatus::Paused)
 				return show_paused;
+
+			if (info.status == LuaThreadStatus::Plugin)
+				return show_plugins;
 
 			return show_running;
 		};
@@ -1831,6 +1830,7 @@ PLUGIN_API void OnUpdateImGui()
 			};
 
 			doSection("Running", [](auto& info) { return info.status == LuaThreadStatus::Running || info.status == LuaThreadStatus::Starting;  }, show_running);
+			doSection("Plugins", [](auto& info) { return info.status == LuaThreadStatus::Plugin; }, show_plugins);
 			doSection("Paused", [](auto& info) { return info.status == LuaThreadStatus::Paused;  }, show_paused);
 			doSection("Exited", [](auto& info) { return info.status == LuaThreadStatus::Exited;  }, show_exited);
 
@@ -1914,7 +1914,9 @@ PLUGIN_API void OnUpdateImGui()
 					LuaStopCommand(fmt::format("{}", info.pid));
 				}
 
-				ImGui::SameLine();
+				if (info.status != LuaThreadStatus::Plugin)
+				{
+					ImGui::SameLine();
 
 				if (ImGui::Button(info.status == LuaThreadStatus::Paused ? "Resume" : "Pause"))
 				{
