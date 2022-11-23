@@ -10,6 +10,26 @@ plugin.settings = {}
 plugin.settings.check_interval_ms = nil
 plugin.settings.filters = nil
 
+function plugin:DrawArrow(draw_list, heading, size, corner, color)
+  local halfsize, quartersize, eigthsize, trunksize = 0.5 * size, 0.25 * size, 0.125 * size, 0.5154 * size
+  local center = { x = corner.x + halfsize, y = corner.y + halfsize }
+  local rad = math.rad(heading)
+  local trunkoffset = 2.896613991 -- radians
+  local sin, cos = math.sin(rad), math.cos(rad)
+
+  local coords = {
+    ImVec2(center.x + halfsize * sin, center.y - halfsize * cos),
+    ImVec2(center.x + quartersize * cos, center.y + quartersize * sin),
+    ImVec2(center.x + eigthsize * cos, center.y + eigthsize * sin),
+    ImVec2(center.x + trunksize * math.sin(rad + trunkoffset), center.y - trunksize * math.cos(rad + trunkoffset)),
+    ImVec2(center.x + trunksize * math.sin(rad - trunkoffset), center.y - trunksize * math.cos(rad - trunkoffset)),
+    ImVec2(center.x - eigthsize * cos, center.y - eigthsize * sin),
+    ImVec2(center.x - quartersize * cos, center.y - quartersize * sin),
+  }
+
+  draw_list:AddConvexPolyFilled(coords, color)
+end
+
 -- primary callback used in this plugin will be imgui
 function plugin.SpawnListCompare(sort_specs, column_id)
   return function(a, b)
@@ -57,11 +77,14 @@ function plugin:DrawSpawnList()
       ImGuiTableFlags.ScrollY
     )
 
+    imgui.Text(string.format('%.2f', imgui.GetTextLineHeightWithSpacing()))
+
     -- TODO: Add direction arrow based on heading once the draw list is implemented
-    if imgui.BeginTable('spawns_table##spawnlist', 2, flags, 0, imgui.GetTextLineHeightWithSpacing() * 15, 0) then
-      local column_id = { name = 1, distance = 2 }
+    if imgui.BeginTable('spawns_table##spawnlist', 3, flags, 0, imgui.GetTextLineHeightWithSpacing() * 15, 0) then
+      local column_id = { name = 1, distance = 2, direction = 3 }
       imgui.TableSetupColumn('Name##spawnlist', ImGuiTableColumnFlags.WidthStretch, 0, column_id.name)
       imgui.TableSetupColumn('Distance##spawnlist', bit32.bor(ImGuiTableColumnFlags.DefaultSort, ImGuiTableColumnFlags.WidthStretch, ImGuiTableColumnFlags.PreferSortAscending), 0, column_id.distance)
+      imgui.TableSetupColumn('Direction##spawnlist', ImGuiTableColumnFlags.WidthStretch, 0, column_id.direction)
       imgui.TableSetupScrollFreeze(0, 1)
 
       local sort_specs = imgui.TableGetSortSpecs()
@@ -76,6 +99,8 @@ function plugin:DrawSpawnList()
 
       imgui.TableHeadersRow()
 
+      local draw_list = imgui.GetWindowDrawList()
+
       local clipper = ImGuiListClipper.new()
       clipper:Begin(#self.spawns)
       while clipper:Step() do
@@ -83,13 +108,28 @@ function plugin:DrawSpawnList()
           local spawn = self.spawns[row_n + 1]
           imgui.PushID(spawn.ID)
           imgui.TableNextRow()
+
           imgui.TableNextColumn()
           if imgui.Selectable(spawn.Name, false, bit32.bor(ImGuiSelectableFlags.SpanAllColumns, ImGuiSelectableFlags.AllowDoubleClick)) and imgui.IsMouseDoubleClicked (0) then
             self.open_details[spawn.ID] = true
           end
+
           imgui.TableNextColumn()
           if not spawn.Distance then spawn.Distance = math.sqrt(spawn.DistSquared) end
           imgui.Text(string.format('%.2f', spawn.Distance))
+
+          imgui.TableNextColumn()
+          local spawn = mq.TLO.Spawn(spawn.ID)
+          if spawn() and mq.TLO.Me() then
+            self:DrawArrow(
+              draw_list,
+              mq.TLO.Me.Heading.DegreesCCW() - spawn.HeadingTo.DegreesCCW(), --spawn.Heading,
+              imgui.GetTextLineHeightWithSpacing(),
+              imgui.GetCursorScreenPosVec(),
+              imgui.GetColorU32(ImVec4(1.0, 1.0, 0.4, 1.0))
+            )
+          end
+
           imgui.PopID()
         end
       end
@@ -172,6 +212,8 @@ function plugin:DrawDetail(id, is_open)
       
       imgui.TableHeadersRow()
 
+      local draw_list = imgui.GetWindowDrawList()
+
       -- single entry table
       imgui.PushID(spawn.ID())
       imgui.TableNextRow()
@@ -180,9 +222,13 @@ function plugin:DrawDetail(id, is_open)
       imgui.TableNextColumn()
       imgui.Text(string.format('%.2f', spawn.Distance()))
       imgui.TableNextColumn()
-      local heading = mq.TLO.Me.Heading.DegreesCCW() - spawn.HeadingTo.DegreesCCW()
-      if heading < 0 then heading = heading + 360 end
-      imgui.Text(string.format('%.2f', heading))
+      self:DrawArrow(
+        draw_list,
+        mq.TLO.Me.Heading.DegreesCCW() - spawn.HeadingTo.DegreesCCW(),
+        imgui.GetTextLineHeightWithSpacing(),
+        imgui.GetCursorScreenPosVec(),
+        imgui.GetColorU32(ImVec4(1.0, 1.0, 0.4, 1.0))
+      )
       imgui.PopID()
 
       imgui.EndTable()
