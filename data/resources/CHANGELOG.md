@@ -1,4 +1,5 @@
 November 24, 2022:
+- test: fix zone count
 - test: fix keybinds
 
 November 23, 2022:
