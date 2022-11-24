@@ -1,3 +1,6 @@
+November 24, 2022:
+- test: fix keybinds
+
 November 23, 2022:
 - test: updated for test patch
 - Message box will now appear when overlay is stopped due to an error.
