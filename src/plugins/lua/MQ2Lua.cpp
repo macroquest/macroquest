@@ -454,14 +454,40 @@ bool MQ2LuaType::dataLua(const char* Index, MQTypeVar& Dest)
 
 #pragma region Commands
 
+static std::string GetCanonicalScriptName(std::string_view script)
+{
+	namespace fs = std::filesystem;
+
+	std::error_code ec;
+	auto script_path = fs::absolute(fs::path{ s_environment.luaDir } / script, ec).lexically_normal();
+
+	if (ec)
+	{
+		LuaError(fmt::format("Failed to convert {} into absolute path with error '{}'", script, ec.message()).c_str());
+		return {};
+	}
+
+	auto relative = script_path.lexically_relative(s_environment.luaDir);
+	if (!relative.empty() && relative.native()[0] != '.')
+		script_path = relative;
+
+	if (script_path.extension() == ".lua")
+		script_path.replace_extension("");
+
+	return script_path.string();
+}
+
 static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::string>& args)
 {
 	namespace fs = std::filesystem;
 
+	std::string script_name = GetCanonicalScriptName(script);
+	if (script_name.empty()) return 0; // we already get an error in the function
+
 	// Need to do this first to get the script path and compare paths instead of just the names
 	// since there are multiple valid ways to name the same script
-	auto script_path = fs::path{ s_environment.luaDir } / script;
-	if (!script_path.has_extension()) script_path.replace_extension(".lua");
+	auto script_path = fs::path{ s_environment.luaDir } / script_name;
+	script_path.replace_extension(".lua");
 
 	std::error_code ec;
 	if (!std::filesystem::exists(script_path, ec))
@@ -485,7 +511,7 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 	if (info_it != s_infoMap.end() && info_it->second.status != LuaThreadStatus::Exited)
 	{
 		// script is currently running, inform and exit
-		WriteChatStatus("Lua script %s is already running, not starting another instance.", script.c_str());
+		WriteChatStatus("Lua script %s is already running, not starting another instance.", script_name.c_str());
 		return 0;
 	}
 
@@ -501,9 +527,9 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 	entry->EnableImGui();
 	s_pending.push_back(entry);
 
-	WriteChatStatus("Running lua script '%s' with PID %d", script.c_str(), entry->GetPID());
+	WriteChatStatus("Running lua script '%s' with PID %d", script_name.c_str(), entry->GetPID());
 
-	std::optional<LuaThreadInfo> result = entry->StartFile(script, args);
+	std::optional<LuaThreadInfo> result = entry->StartFile(script_name, args);
 	if (result)
 	{
 		result->status = LuaThreadStatus::Running;
@@ -572,8 +598,9 @@ static void LuaStopCommand(std::optional<std::string> script = std::nullopt)
 		}
 		else
 		{
+			std::string script_name = GetCanonicalScriptName(*script);
 			thread_it = std::find_if(s_running.begin(), s_running.end(),
-				[&script](const std::shared_ptr<LuaThread>& thread) { return ci_equals(thread->GetName(), *script); });
+				[&script_name](const std::shared_ptr<LuaThread>& thread) { return ci_equals(thread->GetName(), script_name); });
 		}
 
 		if (thread_it != s_running.end())
@@ -587,7 +614,8 @@ static void LuaStopCommand(std::optional<std::string> script = std::nullopt)
 		}
 		else
 		{
-			WriteChatStatus("No lua script '%s' to end", script->c_str());
+			std::string script_name = GetCanonicalScriptName(*script);
+			WriteChatStatus("No lua script '%s' to end", script_name.c_str());
 		}
 	}
 	else
@@ -1121,11 +1149,15 @@ public:
 
 	void ExecuteFile(const LuaScriptPtr& thread, std::string_view filename, const std::vector<std::string>& arguments) override
 	{
-		std::optional<LuaThreadInfo> result = thread->StartFile(filename, arguments);
-		if (result)
+		std::string script_name = GetCanonicalScriptName(filename);
+		if (!script_name.empty())
 		{
-			result->status = LuaThreadStatus::Running;
-			s_infoMap.emplace(result->pid, *result);
+			std::optional<LuaThreadInfo> result = thread->StartFile(filename, arguments);
+			if (result)
+			{
+				result->status = LuaThreadStatus::Running;
+				s_infoMap.emplace(result->pid, *result);
+			}
 		}
 
 		// TODO: Return value?

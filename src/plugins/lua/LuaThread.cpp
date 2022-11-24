@@ -245,8 +245,9 @@ sol::thread LuaThread::GetLuaThread() const
 std::optional<LuaThreadInfo> LuaThread::StartFile(
 	std::string_view filename, const std::vector<std::string>& args)
 {
+	// filename here is canonical file name, but we need to reconstruct the path
 	std::filesystem::path script_path = std::filesystem::path{ m_luaEnvironmentSettings->luaDir } / filename;
-	if (!script_path.has_extension()) script_path.replace_extension(".lua");
+	script_path.replace_extension(".lua");
 
 	m_name = filename;
 	m_path = script_path.string();
