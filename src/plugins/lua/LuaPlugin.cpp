@@ -548,9 +548,9 @@ void LuaPlugin::SetCallback(const std::string& name, sol::object val, sol::this_
 		else if (name == "SetGameState")
 		{
 			auto& [n, f] = SetFunction(m_pluginTable, func, 1);
-			if (n == 0)
+			if (n == 1)
 				m_SetGameState = [f = f](int GameState) { f(GameState); };
-			else if (n == 1)
+			else if (n == 2)
 				m_SetGameState = [f = f, this](int GameState) { f(m_pluginTable, GameState); };
 		}
 		else if (name == "OnPulse")
@@ -564,21 +564,21 @@ void LuaPlugin::SetCallback(const std::string& name, sol::object val, sol::this_
 		else if (name == "OnWriteChatColor")
 		{
 			auto& [n, f] = SetFunction(m_pluginTable, func, 3);
-			if (n == 0)
+			if (n == 3)
 				m_OnWriteChatColor = [f = f](const char* Line, int Color, int Filter) { f(Line, Color, Filter); };
-			else if (n == 1)
+			else if (n == 4)
 				m_OnWriteChatColor = [f = f, this](const char* Line, int Color, int Filter) { f(m_pluginTable, Line, Color, Filter); };
 		}
 		else if (name == "OnIncomingChat")
 		{
 			auto& [n, f] = SetFunction(m_pluginTable, func, 2);
-			if (n == 0)
+			if (n == 2)
 				m_OnIncomingChat = [f = f](const char* Line, unsigned long Color)
 				{
 					std::optional<bool> ret = f(Line, Color);
 					return ret ? *ret : false;
 				};
-			else if (n == 1)
+			else if (n == 3)
 				m_OnIncomingChat = [f = f, this](const char* Line, unsigned long Color)
 				{
 					std::optional<bool> ret = f(m_pluginTable, Line, Color);
@@ -588,33 +588,33 @@ void LuaPlugin::SetCallback(const std::string& name, sol::object val, sol::this_
 		else if (name == "OnAddSpawn")
 		{
 			auto& [n, f] = SetFunction(m_pluginTable, func, 1);
-			if (n == 0)
+			if (n == 1)
 				m_OnAddSpawn = [f = f](PlayerClient* pNewSpawn) { pNewSpawn == nullptr ? f() : f(pNewSpawn->SpawnID); };
-			else if (n == 1)
+			else if (n == 2)
 				m_OnAddSpawn = [f = f, this](PlayerClient* pNewSpawn) { pNewSpawn == nullptr ? f(m_pluginTable) : f(m_pluginTable, pNewSpawn->SpawnID); };
 		}
 		else if (name == "OnRemoveSpawn")
 		{
 			auto& [n, f] = SetFunction(m_pluginTable, func, 1);
-			if (n == 0)
+			if (n == 1)
 				m_OnRemoveSpawn = [f = f](PlayerClient* pSpawn) { pSpawn == nullptr ? f() : f(pSpawn->SpawnID); };
-			else if (n == 1)
+			else if (n == 2)
 				m_OnRemoveSpawn = [f = f, this](PlayerClient* pSpawn) { pSpawn == nullptr ? f(m_pluginTable) : f(m_pluginTable, pSpawn->SpawnID); };
 		}
 		else if (name == "OnAddGroundItem")
 		{
 			auto& [n, f] = SetFunction(m_pluginTable, func, 1);
-			if (n == 0)
+			if (n == 1)
 				m_OnAddGroundItem = [f = f](EQGroundItem* pNewGroundItem) { pNewGroundItem == nullptr ? f() : f(pNewGroundItem->DropID); };
-			else if (n == 1)
+			else if (n == 2)
 				m_OnAddGroundItem = [f = f, this](EQGroundItem* pNewGroundItem) { pNewGroundItem == nullptr ? f(m_pluginTable) : f(m_pluginTable, pNewGroundItem->DropID); };
 		}
 		else if (name == "OnRemoveGroundItem")
 		{
 			auto& [n, f] = SetFunction(m_pluginTable, func, 1);
-			if (n == 0)
+			if (n == 1)
 				m_OnRemoveGroundItem = [f = f](EQGroundItem* pGroundItem) { pGroundItem == nullptr ? f() : f(pGroundItem->DropID); };
-			else if (n == 1)
+			else if (n == 2)
 				m_OnRemoveGroundItem = [f = f, this](EQGroundItem* pGroundItem) { pGroundItem == nullptr ? f(m_pluginTable) : f(m_pluginTable, pGroundItem->DropID); };
 		}
 		else if (name == "OnBeginZone")
@@ -652,33 +652,33 @@ void LuaPlugin::SetCallback(const std::string& name, sol::object val, sol::this_
 		else if (name == "OnMacroStart")
 		{
 			auto& [n, f] = SetFunction(m_pluginTable, func, 1);
-			if (n == 0)
+			if (n == 1)
 				m_OnMacroStart = [f = f](const char* Name) { f(Name); };
-			else if (n == 1)
+			else if (n == 2)
 				m_OnMacroStart = [f = f, this](const char* Name) { f(m_pluginTable, Name); };
 		}
 		else if (name == "OnMacroStop")
 		{
 			auto& [n, f] = SetFunction(m_pluginTable, func, 1);
-			if (n == 0)
+			if (n == 1)
 				m_OnMacroStop = [f = f](const char* Name) { f(Name); };
-			else if (n == 1)
+			else if (n == 2)
 				m_OnMacroStop = [f = f, this](const char* Name) { f(m_pluginTable, Name); };
 		}
 		else if (name == "OnLoadPlugin")
 		{
 			auto& [n, f] = SetFunction(m_pluginTable, func, 1);
-			if (n == 0)
+			if (n == 1)
 				m_OnLoadPlugin = [f = f](const char* Name) { f(Name); };
-			else if (n == 1)
+			else if (n == 2)
 				m_OnLoadPlugin = [f = f, this](const char* Name) { f(m_pluginTable, Name); };
 		}
 		else if (name == "OnUnloadPlugin")
 		{
 			auto& [n, f] = SetFunction(m_pluginTable, func, 1);
-			if (n == 0)
+			if (n == 1)
 				m_OnUnloadPlugin = [f = f](const char* Name) { f(Name); };
-			else if (n == 1)
+			else if (n == 2)
 				m_OnUnloadPlugin = [f = f, this](const char* Name) { f(m_pluginTable, Name); };
 		}
 	}
