@@ -839,14 +839,45 @@ static void LuaConfCommand(const std::string& setting, const std::string& value)
 {
 	if (!value.empty())
 	{
-		WriteChatStatus("Lua setting %s to %s and saving...", setting.c_str(), value.c_str());
-		s_configNode[setting] = value;
+		if (ci_equals(setting, luaRequirePaths) || ci_equals(setting, dllRequirePaths))
+		{
+			if (s_configNode[setting].IsNull())
+				s_configNode[setting] = YAML::Load("[]");
+
+			auto it = std::find_if(s_configNode[setting].begin(), s_configNode[setting].end(), [&value](const auto& node)
+				{
+					return node.IsScalar() && ci_equals(value, node.as<std::string>());
+				});
+			if (it != s_configNode[setting].end())
+			{
+				WriteChatStatus("Lua removing %s from %s and saving...", value.c_str(), setting.c_str());
+				s_configNode[setting].remove(std::distance(s_configNode[setting].begin(), it));
+				if (s_configNode[setting].size() == 0)
+					s_configNode.remove(setting);
+			}
+			else
+			{
+				WriteChatStatus("Lua adding %s to %s and saving...", value.c_str(), setting.c_str());
+				s_configNode[setting].push_back(value);
+			}
+		}
+		else
+		{
+			WriteChatStatus("Lua setting %s to %s and saving...", setting.c_str(), value.c_str());
+			s_configNode[setting] = value;
+		}
 		WriteSettings();
 		ReadSettings();
 	}
 	else if (s_configNode[setting])
 	{
-		WriteChatStatus("Lua setting %s is set to %s.", setting.c_str(), s_configNode[setting].as<std::string>().c_str());
+		if (s_configNode[setting].IsSequence())
+		{
+			auto vec = s_configNode[setting].as<std::vector<std::string>>();
+			WriteChatStatus("Lua setting %s is set to [%s].", setting.c_str(), join(vec, ", ").c_str());
+		}
+		else
+			WriteChatStatus("Lua setting %s is set to %s.", setting.c_str(), s_configNode[setting].as<std::string>().c_str());
 	}
 	else
 	{
