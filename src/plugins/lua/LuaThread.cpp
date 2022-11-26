@@ -397,6 +397,12 @@ std::string LuaThread::GetScriptPath(std::string_view canonical_script, const st
 	return script_path.string();
 }
 
+void LuaThread::UpdateLuaDir(std::string_view new_canonical_name, const std::filesystem::path& newLuaDir)
+{
+	m_name = new_canonical_name;
+	m_path = GetScriptPath(new_canonical_name, newLuaDir);
+}
+
 LuaThread::RunResult LuaThread::RunOnce()
 {
 	if (!m_coroutine->thread.valid())

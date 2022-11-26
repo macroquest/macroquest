@@ -747,6 +747,21 @@ static void ReadSettings()
 	if (mq::test_and_set(s_luaDirName, s_configNode[luaDir].as<std::string>(s_luaDirName)) || s_environment.luaDir.empty())
 	{
 		s_environment.luaDir = (std::filesystem::path(gPathMQRoot) / s_luaDirName).string();
+		for (auto& thread : s_running)
+		{
+			auto absolute = thread->GetScript();
+			auto canonical = GetCanonicalScriptName(absolute);
+
+			thread->UpdateLuaDir(canonical, s_environment.luaDir);
+		}
+
+		for (auto& thread : s_pending)
+		{
+			auto absolute = thread->GetScript();
+			auto canonical = GetCanonicalScriptName(absolute);
+
+			thread->UpdateLuaDir(canonical, s_environment.luaDir);
+		}
 
 		std::error_code ec;
 		if (!std::filesystem::exists(s_environment.luaDir, ec)
