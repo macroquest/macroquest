@@ -17,7 +17,7 @@ local ImGuiDemo = {
     show_app_log = false,
     show_app_layout = false,
     show_app_property_editor = false,
-    show_app_long_Text = false,
+    show_app_long_text = false,
     show_app_auto_resize = false,
     show_app_constrained_resize = false,
     show_app_simple_overlay = false,
@@ -43,6 +43,21 @@ local ImGuiDemo = {
     no_bring_to_front = false,
     no_docking = false,
     unsaved_document = false,
+
+    constrained_resize_state = {
+        test_desc = {
+            "Resize vertical only",
+            "Resize horizontal only",
+            "Width > 100, Height > 100",
+            "Width 400-500",
+            "Height 400-500",
+            "Custom: Always Square",
+            "Custom: Fixed Steps (100)",
+        },
+        auto_resize = false,
+        type = 1,
+        display_lines = 10,
+    }
 }
 
 function ImGuiDemo:ShowDemoWindow(open)
@@ -54,6 +69,11 @@ function ImGuiDemo:ShowDemoWindow(open)
         self.show_app_style_editor = imgui.Begin("Dear Imgui Style Editor (lua)", self.show_app_style_editor)
         imgui.ShowStyleEditor()
         imgui.End()
+    end
+
+    if self.show_app_constrained_resize then
+        self.show_app_constrained_resize = self:ShowExampleAppConstrainedResize(
+            self.constrained_resize_state, self.show_app_constrained_resize)
     end
 
     -- Demonstrate the various window flags. Typically you would just use the default!
@@ -105,20 +125,20 @@ function ImGuiDemo:ShowDemoWindow(open)
         end
 
         if imgui.BeginMenu("Examples") then
-            _, self.show_app_main_menu_bar = imgui.MenuItem("Main menu bar", nil, self.show_app_main_menu_bar)
-            _, self.show_app_console = imgui.MenuItem("Console", nil, self.show_app_console)
-            _, self.show_app_log = imgui.MenuItem("Log", nil, self.show_app_log)
-            _, self.show_app_layout = imgui.MenuItem("Simple layout", nil, self.show_app_layout)
-            _, self.show_app_property_editor = imgui.MenuItem("Property editor", nil, self.show_app_property_editor)
-            _, self.show_app_long_text = imgui.MenuItem("Long text display", nil, self.show_app_long_text)
-            _, self.show_app_auto_resize = imgui.MenuItem("Auto-resizing window", nil, self.show_app_auto_resize)
+            -- _, self.show_app_main_menu_bar = imgui.MenuItem("Main menu bar", nil, self.show_app_main_menu_bar)
+            -- _, self.show_app_console = imgui.MenuItem("Console", nil, self.show_app_console)
+            -- _, self.show_app_log = imgui.MenuItem("Log", nil, self.show_app_log)
+            -- _, self.show_app_layout = imgui.MenuItem("Simple layout", nil, self.show_app_layout)
+            -- _, self.show_app_property_editor = imgui.MenuItem("Property editor", nil, self.show_app_property_editor)
+            -- _, self.show_app_long_text = imgui.MenuItem("Long text display", nil, self.show_app_long_text)
+            -- _, self.show_app_auto_resize = imgui.MenuItem("Auto-resizing window", nil, self.show_app_auto_resize)
             _, self.show_app_constrained_resize = imgui.MenuItem("Constrained-resizing window", nil, self.show_app_constrained_resize)
-            _, self.show_app_simple_overlay = imgui.MenuItem("Simple overlay", nil, self.show_app_simple_overlay)
-            _, self.show_app_fullscreen = imgui.MenuItem("Fullscreen window", nil, self.show_app_fullscreen)
-            _, self.show_app_window_titles = imgui.MenuItem("Manipulating window titles", nil, self.show_app_window_titles)
+            -- _, self.show_app_simple_overlay = imgui.MenuItem("Simple overlay", nil, self.show_app_simple_overlay)
+            -- _, self.show_app_fullscreen = imgui.MenuItem("Fullscreen window", nil, self.show_app_fullscreen)
+            -- _, self.show_app_window_titles = imgui.MenuItem("Manipulating window titles", nil, self.show_app_window_titles)
             _, self.show_app_custom_rendering = imgui.MenuItem("Custom Rendering", nil, self.show_app_custom_rendering)
-            _, self.show_app_dockspace = imgui.MenuItem("Dockspace", nil, self.show_app_dockspace)
-            _, self.show_app_documents = imgui.MenuItem("Documents", nil, self.show_app_documents)
+            -- _, self.show_app_dockspace = imgui.MenuItem("Dockspace", nil, self.show_app_dockspace)
+            -- _, self.show_app_documents = imgui.MenuItem("Documents", nil, self.show_app_documents)
 
             imgui.EndMenu()
         end
@@ -170,6 +190,62 @@ function ImGuiDemo:ShowDemoWindow(open)
 end
 
 function ImGuiDemo:ShowExampleMenuFile()
+end
+
+---@param desiredSize ImVec2
+---@return ImVec2
+local function CustomSize_Square(_, _, desiredSize)
+    local m = math.max(desiredSize.x, desiredSize.y)
+    return ImVec2(m, m)
+end
+
+---@param step number
+---@param desiredSize ImVec2
+---@return ImVec2
+local function CustomSize_Step(step, _, _, desiredSize)
+    return ImVec2(
+        math.floor(desiredSize.x / step + 0.5) * step,
+        math.floor(desiredSize.y / step + 0.5) * step
+    )
+end
+
+-- Demonstrate creating a window with custom resize constraints
+function ImGuiDemo:ShowExampleAppConstrainedResize(state, open)
+    local FLT_MIN, FLT_MAX = mq.NumericLimits_Float()
+
+    if state.type == 1 then imgui.SetNextWindowSizeConstraints(ImVec2(-1, 0),    ImVec2(-1, FLT_MAX)) end       -- Vertical only
+    if state.type == 2 then imgui.SetNextWindowSizeConstraints(ImVec2(0, -1),    ImVec2(FLT_MAX, -1)) end       -- Horizontal only
+    if state.type == 3 then imgui.SetNextWindowSizeConstraints(ImVec2(100, 100), ImVec2(FLT_MAX, FLT_MAX)) end  -- Width > 100, Height > 100
+    if state.type == 4 then imgui.SetNextWindowSizeConstraints(ImVec2(400, -1),  ImVec2(500, -1)) end           -- Width 400-500
+    if state.type == 5 then imgui.SetNextWindowSizeConstraints(ImVec2(-1, 400),  ImVec2(-1, 500)) end           -- Height 400-500
+    if state.type == 6 then imgui.SetNextWindowSizeConstraints(ImVec2(0, 0),     ImVec2(FLT_MAX, FLT_MAX), CustomSize_Square) end  -- always square
+    if state.type == 7 then imgui.SetNextWindowSizeConstraints(ImVec2(0, 0),     ImVec2(FLT_MAX, FLT_MAX),
+        function(pos, currentSize, desiredSize) return CustomSize_Step(100, pos, currentSize, desiredSize) end) end  -- step
+
+    local flags = state.auto_resize and ImGuiWindowFlags.AlwaysAutoResize or 0
+    local show
+    open, show = imgui.Begin("Example: Constrained Resize", open, flags)
+    if show then
+        if imgui.IsWindowDocked() then
+            imgui.Text("Warning: Sizing Constraints won't work if the window is docked!")
+        end
+
+        if imgui.Button('200x200') then imgui.SetWindowSize(200, 200) end; imgui.SameLine()
+        if imgui.Button('500x500') then imgui.SetWindowSize(500, 500) end; imgui.SameLine()
+        if imgui.Button('800x200') then imgui.SetWindowSize(800, 200) end;
+        imgui.SetNextItemWidth(200)
+        state.type = imgui.Combo("Constraint", state.type, state.test_desc, #state.test_desc)
+        imgui.Text("State: %s", state.type)
+        imgui.SetNextItemWidth(200)
+        state.display_lines = imgui.DragInt("Lines", state.display_lines, 0.2, 1, 100)
+        state.auto_resize = imgui.Checkbox("Auto-resize", state.auto_resize)
+        for i = 1, state.display_lines do
+            imgui.Text("%sHello, sailor! Making this line long enough for the example.", string.rep(" ", i * 4))
+        end
+    end
+    imgui.End()
+
+    return open
 end
 
 local openGUI = true

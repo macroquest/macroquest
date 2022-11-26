@@ -1850,10 +1850,10 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 	ImGui.set_function("EndMenu", &ImGui::EndMenu);
 	ImGui.set_function("MenuItem", sol::overload(
 		[](const char* label) { bool activated = ImGui::MenuItem(label); return std::make_tuple(activated, activated); },
-		[](const char* label, const char* shortcut) { bool activated = ImGui::MenuItem(label, shortcut); return std::make_tuple(activated, activated); },
-		[](const char* label, const char* shortcut, nullptr_t, bool enabled) { bool activated = ImGui::MenuItem(label, shortcut, nullptr, enabled); return std::make_tuple(activated, activated); },
-		[](const char* label, const char* shortcut, bool selected) { bool activated = ImGui::MenuItem(label, shortcut, &selected); return std::make_tuple(activated, selected); },
-		[](const char* label, const char* shortcut, bool selected, bool enabled) { bool activated = ImGui::MenuItem(label, shortcut, &selected, enabled); return std::make_tuple(activated, selected); }
+		[](const char* label, sol::optional<const char*> shortcut) { bool activated = ImGui::MenuItem(label, shortcut.value_or(nullptr)); return std::make_tuple(activated, activated); },
+		[](const char* label, sol::optional<const char*> shortcut, nullptr_t, bool enabled) { bool activated = ImGui::MenuItem(label, shortcut.value_or(nullptr), nullptr, enabled); return std::make_tuple(activated, activated); },
+		[](const char* label, sol::optional<const char*> shortcut, bool selected) { bool activated = ImGui::MenuItem(label, shortcut.value_or(nullptr), &selected); return std::make_tuple(activated, selected); },
+		[](const char* label, sol::optional<const char*> shortcut, bool selected, bool enabled) { bool activated = ImGui::MenuItem(label, shortcut.value_or(nullptr), &selected, enabled); return std::make_tuple(activated, selected); }
 	));
 	#pragma endregion
 

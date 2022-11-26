@@ -43,8 +43,18 @@ static bool BeginChild(const std::string& name, float sizeX, float sizeY, bool b
 static bool BeginChild(const std::string& name, float sizeX, float sizeY, bool border, int flags)   { return ImGui::BeginChild(name.c_str(), { sizeX, sizeY }, border, static_cast<ImGuiWindowFlags>(flags)); }
 static void EndChild()                                                                              { ImGui::EndChild(); }
 
-// Prefer using SetNext...
-static void SetNextWindowSizeConstraints(float minX, float minY, float maxX, float maxY)            { ImGui::SetNextWindowSizeConstraints({ minX, minY }, { maxX, maxY }); }
+static void SetNextWindowSizeConstraintsWithLuaCallback(sol::this_state s, const ImVec2& min, const ImVec2& max, sol::function customCallback)
+{
+	ImGui::SetNextWindowSizeConstraints(min, max,
+		[customCallback, L = s.lua_state()](ImGuiSizeCallbackData* data)
+	{
+		sol::function_result result = sol::function(L, customCallback)(data->Pos, data->CurrentSize, data->DesiredSize);
+		const sol::optional<ImVec2>& value = result.get<sol::optional<ImVec2>>();
+		if (value.has_value())
+			data->DesiredSize = *value;
+	});
+}
+
 static void SetNextWindowContentSize(float sizeX, float sizeY)                                      { ImGui::SetNextWindowContentSize({ sizeX, sizeY }); }
 static void SetNextWindowCollapsed(bool collapsed)                                                  { ImGui::SetNextWindowCollapsed(collapsed); }
 static void SetNextWindowCollapsed(bool collapsed, int cond)                                        { ImGui::SetNextWindowCollapsed(collapsed, static_cast<ImGuiCond>(cond)); }
@@ -52,16 +62,12 @@ static void SetNextWindowFocus()                                                
 static void SetNextWindowBgAlpha(float alpha)                                                       { ImGui::SetNextWindowBgAlpha(alpha); }
 static void SetWindowPos(float posX, float posY)                                                    { ImGui::SetWindowPos({ posX, posY }); }
 static void SetWindowPos(float posX, float posY, int cond)                                          { ImGui::SetWindowPos({ posX, posY }, static_cast<ImGuiCond>(cond)); }
-static void SetWindowSize(float sizeX, float sizeY)                                                 { ImGui::SetWindowSize({ sizeX, sizeY }); }
-static void SetWindowSize(float sizeX, float sizeY, int cond)                                       { ImGui::SetWindowSize({ sizeX, sizeY }, static_cast<ImGuiCond>(cond)); }
 static void SetWindowCollapsed(bool collapsed)                                                      { ImGui::SetWindowCollapsed(collapsed); }
 static void SetWindowCollapsed(bool collapsed, int cond)                                            { ImGui::SetWindowCollapsed(collapsed, static_cast<ImGuiCond>(cond)); }
 static void SetWindowFocus()                                                                        { ImGui::SetWindowFocus(); }
 static void SetWindowFontScale(float scale)                                                         { ImGui::SetWindowFontScale(scale); }
 static void SetWindowPos(const std::string& name, float posX, float posY)                           { ImGui::SetWindowPos(name.c_str(), { posX, posY }); }
 static void SetWindowPos(const std::string& name, float posX, float posY, int cond)                 { ImGui::SetWindowPos(name.c_str(), { posX, posY }, static_cast<ImGuiCond>(cond)); }
-static void SetWindowSize(const std::string& name, float sizeX, float sizeY)                        { ImGui::SetWindowSize(name.c_str(), { sizeX, sizeY }); }
-static void SetWindowSize(const std::string& name, float sizeX, float sizeY, int cond)              { ImGui::SetWindowSize(name.c_str(), { sizeX, sizeY }, static_cast<ImGuiCond>(cond)); }
 static void SetWindowCollapsed(const std::string& name, bool collapsed)                             { ImGui::SetWindowCollapsed(name.c_str(), collapsed); }
 static void SetWindowCollapsed(const std::string& name, bool collapsed, int cond)                   { ImGui::SetWindowCollapsed(name.c_str(), collapsed, static_cast<ImGuiCond>(cond)); }
 static void SetWindowFocus(const std::string& name)                                                 { ImGui::SetWindowFocus(name.c_str()); }
@@ -402,7 +408,11 @@ void RegisterBindings_ImGui(sol::state_view state)
 		[](const ImVec2& size) { ImGui::SetNextWindowSize(size); },
 		[](const ImVec2& size, int cond) { ImGui::SetNextWindowSize(size, ImGuiCond(cond)); }
 	));
-	ImGui.set_function("SetNextWindowSizeConstraints", SetNextWindowSizeConstraints);
+	ImGui.set_function("SetNextWindowSizeConstraints", sol::overload(
+		[](const ImVec2& min, const ImVec2& max) { ImGui::SetNextWindowSizeConstraints(min, max); },
+		SetNextWindowSizeConstraintsWithLuaCallback,
+		[](float minX, float minY, float maxX, float maxY) { ImGui::SetNextWindowSizeConstraints({ minX, minY }, { maxX, maxY }); }
+	));
 	ImGui.set_function("SetNextWindowContentSize", SetNextWindowContentSize);
 	ImGui.set_function("SetNextWindowCollapsed", sol::overload(
 		sol::resolve<void(bool)>(SetNextWindowCollapsed),
@@ -417,10 +427,14 @@ void RegisterBindings_ImGui(sol::state_view state)
 		sol::resolve<void(const std::string&, float, float, int)>(SetWindowPos)
 	));
 	ImGui.set_function("SetWindowSize", sol::overload(
-		sol::resolve<void(float, float)>(SetWindowSize),
-		sol::resolve<void(float, float, int)>(SetWindowSize),
-		sol::resolve<void(const std::string&, float, float)>(SetWindowSize),
-		sol::resolve<void(const std::string&, float, float, int)>(SetWindowSize)
+		[](float sizeX, float sizeY) { ImGui::SetWindowSize({ sizeX, sizeY }); },
+		[](float sizeX, float sizeY, int cond) { ImGui::SetWindowSize({ sizeX, sizeY }, ImGuiCond(cond)); },
+		[](const char* name, float sizeX, float sizeY) { ImGui::SetWindowSize(name, { sizeX, sizeY }); },
+		[](const char* name, float sizeX, float sizeY, int cond) { ImGui::SetWindowSize(name, { sizeX, sizeY }, ImGuiCond(cond)); },
+		[](const ImVec2& size) { ImGui::SetWindowSize(size); },
+		[](const ImVec2& size, int cond) { ImGui::SetWindowSize(size, ImGuiCond(cond)); },
+		[](const char* name, const ImVec2& size) { ImGui::SetWindowSize(name, size); },
+		[](const char* name, const ImVec2& size, int cond) { ImGui::SetWindowSize(name, size, ImGuiCond(cond)); }
 	));
 	ImGui.set_function("SetWindowCollapsed", sol::overload(
 		sol::resolve<void(bool)>(SetWindowCollapsed),
