@@ -474,7 +474,7 @@ static std::string GetCanonicalScriptName(std::string_view script)
 	if (script_path.extension() == ".lua")
 		script_path.replace_extension("");
 
-	return script_path.string();
+	return mq::replace(script_path.string(), "\\", "/");
 }
 
 static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::string>& args)
