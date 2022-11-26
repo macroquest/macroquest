@@ -57,7 +57,11 @@ local ImGuiDemo = {
         auto_resize = false,
         type = 1,
         display_lines = 10,
-    }
+    },
+
+    simple_overlay_state = {
+        corner = 0,
+    },
 }
 
 function ImGuiDemo:ShowDemoWindow(open)
@@ -74,6 +78,10 @@ function ImGuiDemo:ShowDemoWindow(open)
     if self.show_app_constrained_resize then
         self.show_app_constrained_resize = self:ShowExampleAppConstrainedResize(
             self.constrained_resize_state, self.show_app_constrained_resize)
+    end
+    if self.show_app_simple_overlay then
+        self.show_app_simple_overlay = self:ShowExampleAppSimpleOverlay(
+            self.simple_overlay_state, self.show_app_simple_overlay)
     end
 
     -- Demonstrate the various window flags. Typically you would just use the default!
@@ -133,7 +141,7 @@ function ImGuiDemo:ShowDemoWindow(open)
             -- _, self.show_app_long_text = imgui.MenuItem("Long text display", nil, self.show_app_long_text)
             -- _, self.show_app_auto_resize = imgui.MenuItem("Auto-resizing window", nil, self.show_app_auto_resize)
             _, self.show_app_constrained_resize = imgui.MenuItem("Constrained-resizing window", nil, self.show_app_constrained_resize)
-            -- _, self.show_app_simple_overlay = imgui.MenuItem("Simple overlay", nil, self.show_app_simple_overlay)
+            _, self.show_app_simple_overlay = imgui.MenuItem("Simple overlay", nil, self.show_app_simple_overlay)
             -- _, self.show_app_fullscreen = imgui.MenuItem("Fullscreen window", nil, self.show_app_fullscreen)
             -- _, self.show_app_window_titles = imgui.MenuItem("Manipulating window titles", nil, self.show_app_window_titles)
             _, self.show_app_custom_rendering = imgui.MenuItem("Custom Rendering", nil, self.show_app_custom_rendering)
@@ -150,7 +158,7 @@ function ImGuiDemo:ShowDemoWindow(open)
 
             imgui.EndMenu()
         end
-        
+
         imgui.EndMenuBar()
     end
 
@@ -211,7 +219,7 @@ end
 
 -- Demonstrate creating a window with custom resize constraints
 function ImGuiDemo:ShowExampleAppConstrainedResize(state, open)
-    local FLT_MIN, FLT_MAX = mq.NumericLimits_Float()
+    local _, FLT_MAX = mq.NumericLimits_Float()
 
     if state.type == 1 then imgui.SetNextWindowSizeConstraints(ImVec2(-1, 0),    ImVec2(-1, FLT_MAX)) end       -- Vertical only
     if state.type == 2 then imgui.SetNextWindowSizeConstraints(ImVec2(0, -1),    ImVec2(FLT_MAX, -1)) end       -- Horizontal only
@@ -241,6 +249,59 @@ function ImGuiDemo:ShowExampleAppConstrainedResize(state, open)
         state.auto_resize = imgui.Checkbox("Auto-resize", state.auto_resize)
         for i = 1, state.display_lines do
             imgui.Text("%sHello, sailor! Making this line long enough for the example.", string.rep(" ", i * 4))
+        end
+    end
+    imgui.End()
+
+    return open
+end
+
+-- Demonstrate creating a simple static window with no decoration
+-- + a context-menu to choose which corner of the screen to use.
+function ImGuiDemo:ShowExampleAppSimpleOverlay(state, open)
+    local io = imgui.GetIO()
+    local window_flags = bit32.bor(ImGuiWindowFlags.NoDecoration, ImGuiWindowFlags.NoDocking, ImGuiWindowFlags.AlwaysAutoResize,
+        ImGuiWindowFlags.NoSavedSettings, ImGuiWindowFlags.NoFocusOnAppearing, ImGuiWindowFlags.NoNav)
+
+    if state.corner ~= -1 then
+        local PAD = 10.0
+        local viewport = imgui.GetMainViewport()
+
+        local work_pos = viewport.WorkPos
+        local work_size = viewport.WorkSize
+        local window_pos = ImVec2(
+            bit32.band(state.corner, 1) ~= 0 and (work_pos.x + work_size.x - PAD) or (work_pos.x + PAD),
+            bit32.band(state.corner, 2) ~= 0 and (work_pos.y + work_size.y - PAD) or (work_pos.y + PAD)
+        )
+        local window_pos_pivot = ImVec2(
+            bit32.band(state.corner, 1) ~= 0 and 1.0 or 0.0,
+            bit32.band(state.corner, 2) ~= 0 and 1.0 or 0.0
+        )
+
+        imgui.SetNextWindowPos(window_pos, ImGuiCond.Always, window_pos_pivot)
+        imgui.SetNextWindowViewport(viewport.ID)
+        window_flags = bit32.bor(window_flags, ImGuiWindowFlags.NoMove)
+    end
+    imgui.SetNextWindowBgAlpha(0.35)
+
+    local draw
+    open, draw = imgui.Begin("Example: Simple overlay (lua)", open, window_flags)
+    if draw then
+        imgui.Text("Simple overlay\nin the corner of the screen.\n(right-click to change)")
+        imgui.Separator()
+        if imgui.IsMousePosValid() then
+            imgui.Text("Mouse Position: (%.1f,%.1f)", io.MousePos.x, io.MousePos.y)
+        else
+            imgui.Text("Mouse Position: <invalid>")
+        end
+        if imgui.BeginPopupContextWindow() then
+            if imgui.MenuItem("Custom",       nil, state.corner == -1) then state.corner = -1 end
+            if imgui.MenuItem("Top-left",     nil, state.corner == 0) then state.corner = 0 end
+            if imgui.MenuItem("Top-right",    nil, state.corner == 1) then state.corner = 1 end
+            if imgui.MenuItem("Bottom-left",  nil, state.corner == 2) then state.corner = 2 end
+            if imgui.MenuItem("Bottom-right", nil, state.corner == 3) then state.corner = 3 end
+            if imgui.MenuItem("Close") then open = false end
+            imgui.EndPopup()
         end
     end
     imgui.End()

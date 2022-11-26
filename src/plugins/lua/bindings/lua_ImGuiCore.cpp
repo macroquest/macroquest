@@ -280,9 +280,6 @@ static bool IsMouseDown(int button)                                             
 static bool IsMouseClicked(int button)                                                              { return ImGui::IsMouseClicked(static_cast<ImGuiMouseButton>(button)); }
 static bool IsMouseClicked(int button, bool repeat)                                                 { return ImGui::IsMouseClicked(static_cast<ImGuiMouseButton>(button), repeat); }
 static bool IsMouseReleased(int button)                                                             { return ImGui::IsMouseReleased(static_cast<ImGuiMouseButton>(button)); }
-static bool IsMouseHoveringRect(float min_x, float min_y, float max_x, float max_y)                 { return ImGui::IsMouseHoveringRect({ min_x, min_y }, { max_x, max_y }); }
-static bool IsMouseHoveringRect(float min_x, float min_y, float max_x, float max_y, bool clip)      { return ImGui::IsMouseHoveringRect({ min_x, min_y }, { max_x, max_y }, clip); }
-static bool IsMousePosValid()                                                                       { return false; /* TODO: IsMousePosValid() ==> UNSUPPORTED */ }
 static bool IsAnyMouseDown()                                                                        { return ImGui::IsAnyMouseDown(); }
 static std::tuple<float, float> GetMousePos()                                                       { const auto vec2{ ImGui::GetMousePos() }; return std::make_tuple(vec2.x, vec2.y); }
 static std::tuple<float, float> GetMousePosOnOpeningCurrentPopup()                                  { const auto vec2{ ImGui::GetMousePosOnOpeningCurrentPopup() }; return std::make_tuple(vec2.x, vec2.y); }
@@ -393,7 +390,7 @@ void RegisterBindings_ImGui(sol::state_view state)
 	ImGui.set_function("GetWindowHeight", &ImGui::GetWindowHeight);
 	ImGui.set_function("GetWindowViewport", &ImGui::GetWindowViewport);
 
-	// Prefer  SetNext...
+	// Window Manipulation
 	ImGui.set_function("SetNextWindowPos", sol::overload(
 		[](float posX, float posY) { ImGui::SetNextWindowPos({ posX, posY }); },
 		[](float posX, float posY, int cond) { ImGui::SetNextWindowPos({ posX, posY }, static_cast<ImGuiCond>(cond)); },
@@ -420,6 +417,7 @@ void RegisterBindings_ImGui(sol::state_view state)
 	));
 	ImGui.set_function("SetNextWindowFocus", SetNextWindowFocus);
 	ImGui.set_function("SetNextWindowBgAlpha", SetNextWindowBgAlpha);
+	ImGui.set_function("SetNextWindowViewport", ImGui::SetNextWindowViewport);
 	ImGui.set_function("SetWindowPos", sol::overload(
 		sol::resolve<void(float, float)>(SetWindowPos),
 		sol::resolve<void(float, float, int)>(SetWindowPos),
@@ -703,8 +701,14 @@ void RegisterBindings_ImGui(sol::state_view state)
 	ImGui.set_function("IsMouseReleased", IsMouseReleased);
 	ImGui.set_function("IsMouseDoubleClicked", [](int button) { return ImGui::IsMouseDoubleClicked(static_cast<ImGuiMouseButton>(button)); });
 	ImGui.set_function("IsMouseHoveringRect", sol::overload(
-		sol::resolve<bool(float, float, float, float)>(IsMouseHoveringRect),
-		sol::resolve<bool(float, float, float, float, bool)>(IsMouseHoveringRect)
+		[](float min_x, float min_y, float max_x, float max_y) { return ImGui::IsMouseHoveringRect({ min_x, min_y }, { max_x, max_y }); },
+		[](float min_x, float min_y, float max_x, float max_y, bool clip) { return ImGui::IsMouseHoveringRect({ min_x, min_y }, { max_x, max_y }, clip); },
+		[](const ImVec2& min, const ImVec2& max) { return ImGui::IsMouseHoveringRect(min, max); },
+		&ImGui::IsMouseHoveringRect
+	));
+	ImGui.set_function("IsMousePosValid", sol::overload(
+		[]() { return ImGui::IsMousePosValid(); },
+		[](const ImVec2& pos) { return ImGui::IsMousePosValid(&pos); }
 	));
 	ImGui.set_function("IsAnyMouseDown", IsAnyMouseDown);
 	ImGui.set_function("GetMousePos", GetMousePos);
