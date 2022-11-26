@@ -486,13 +486,10 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 
 	// Need to do this first to get the script path and compare paths instead of just the names
 	// since there are multiple valid ways to name the same script
-	auto script_path = fs::path{ s_environment.luaDir } / script_name;
-	script_path.replace_extension(".lua");
-
-	std::error_code ec;
-	if (!std::filesystem::exists(script_path, ec))
+	auto script_path = LuaThread::GetScriptPath(script_name, s_environment.luaDir);
+	if (script_path.empty())
 	{
-		LuaError("Could not find script at path %s", script_path.string().c_str());
+		LuaError("Could not find script %s", script_name.c_str());
 		return 0;
 	}
 
@@ -1145,7 +1142,7 @@ void LuaEnvironmentSettings::ConfigureLuaState(sol::state_view sv)
 	}
 
 	// always search the local dir first, then luarocks in modules, then anything specified by the user, then the default paths
-	sv["package"]["path"] = fmt::format("{luaDir}\\?.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?\\init.lua;{additionalPaths}{originalPath}",
+	sv["package"]["path"] = fmt::format("{luaDir}\\?.lua;{luaDir}\\?\\init.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?\\init.lua;{additionalPaths}{originalPath}",
 		fmt::arg("luaDir", luaDir),
 		fmt::arg("moduleDir", moduleDir),
 		fmt::arg("luaVersion", m_version),
