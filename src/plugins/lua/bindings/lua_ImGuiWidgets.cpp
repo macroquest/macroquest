@@ -1420,9 +1420,6 @@ static void EndTabItem()                                                        
 static void SetTabItemClosed(const std::string& tab_or_docked_window_label)                         { ImGui::SetTabItemClosed(tab_or_docked_window_label.c_str()); }
 
 // Docking
-static void DockSpace(unsigned int id)                                                              { ImGui::DockSpace(id); }
-static void DockSpace(unsigned int id, float sizeX, float sizeY)                                    { ImGui::DockSpace(id, { sizeX, sizeY }); }
-static void DockSpace(unsigned int id, float sizeX, float sizeY, int flags)                         { ImGui::DockSpace(id, { sizeX, sizeY }, static_cast<ImGuiDockNodeFlags>(flags)); }
 static unsigned int DockSpaceOverViewport()                                                         { return 0; /* TODO: DockSpaceOverViwport(...) ==> UNSUPPORTED */ }
 static void SetNextWindowDockID(unsigned int dock_id)                                               { ImGui::SetNextWindowDockID(dock_id); }
 static void SetNextWindowDockID(unsigned int dock_id, int cond)                                     { ImGui::SetNextWindowDockID(dock_id, static_cast<ImGuiCond>(cond)); }
@@ -1969,9 +1966,11 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 
 	#pragma region Docking
 	ImGui.set_function("DockSpace", sol::overload(
-		sol::resolve<void(unsigned int)>(DockSpace),
-		sol::resolve<void(unsigned int, float, float)>(DockSpace),
-		sol::resolve<void(unsigned int, float, float, int)>(DockSpace)
+		[](ImGuiID id) { ImGui::DockSpace(id); },
+		[](ImGuiID id, float sizeX, float sizeY) { ImGui::DockSpace(id, { sizeX, sizeY }); },
+		[](ImGuiID id, float sizeX, float sizeY, int flags) { ImGui::DockSpace(id, { sizeX, sizeY }, ImGuiDockNodeFlags(flags)); },
+		[](ImGuiID id, const ImVec2& size) { ImGui::DockSpace(id, size); },
+		[](ImGuiID id, const ImVec2& size, int flags) { ImGui::DockSpace(id, size, ImGuiDockNodeFlags(flags)); }
 	));
 	ImGui.set_function("SetNextWindowDockID", sol::overload(
 		sol::resolve<void(unsigned int)>(SetNextWindowDockID),
