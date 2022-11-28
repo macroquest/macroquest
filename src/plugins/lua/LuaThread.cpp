@@ -245,14 +245,35 @@ sol::thread LuaThread::GetLuaThread() const
 std::optional<LuaThreadInfo> LuaThread::StartFile(
 	std::string_view filename, const std::vector<std::string>& args)
 {
+	namespace fs = std::filesystem;
+
 	// filename here is canonical file name, but we need to reconstruct the path
 	auto script_path = GetScriptPath(filename, m_luaEnvironmentSettings->luaDir);
+
+	// prefix the package paths with the runDir if it's different than the luaDir
+	std::string runDir;
+	std::error_code ec;
+	if (fs::exists(script_path, ec) && !ec)
+	{
+		runDir = fs::path{ script_path }.parent_path().string();
+	}
+
+	if (!runDir.empty() && fs::path{ runDir }.compare(m_luaEnvironmentSettings->luaDir) != 0)
+	{
+		m_globalState["package"]["path"] = fmt::format("{runDir}\\?.lua;{runDir}\\?\\init.lua;{existingPath}",
+			fmt::arg("runDir", runDir),
+			fmt::arg("existingPath", m_globalState["package"]["path"].get<std::string_view>()));
+
+		m_globalState["package"]["cpath"] = fmt::format("{runDir}\\?.dll;{existingPath}",
+			fmt::arg("runDir", runDir),
+			fmt::arg("existingPath", m_globalState["package"]["cpath"].get<std::string_view>()));
+	}
 
 	m_name = filename;
 	m_path = script_path;
 
-	std::error_code ec;
-	if (!std::filesystem::exists(script_path, ec))
+	ec.clear(); // we aren't returning after the last ec usage, need to clear it in case there was any error
+	if (!fs::exists(script_path, ec) || ec)
 	{
 		LuaError("Could not find script at path %s", script_path.c_str());
 		return std::nullopt;
