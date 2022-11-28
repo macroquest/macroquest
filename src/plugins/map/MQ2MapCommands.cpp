@@ -1688,64 +1688,106 @@ static void DrawMapSettings_MapLocs()
 	static MapLocParams editParams;
 	static char editLocLabel[256] = "";
 	static glm::ivec3 addMapLoc = { 0, 0, 0 };
-		
-	if (ImGui::CollapsingHeader("Map Loc Overrides"))
+
+	//----------------------------------------------------------------------------
+	// Maploc table
+
+	ImGui::TextColored(ImVec4(1.0, 1.0, 0, 1.0), "Map Loc List");
+	ImGui::Separator();
+
+	if (ImGui::Button("Select All"))
 	{
-		ImGui::Indent();
-
-		ImGui::TextWrapped("These options will override the Map Loc Settings defined in the Options Tab for any newly created map locs in this section.");
-
+		for (auto& mapLoc : gMapLocTemplates)
 		{
-			ImGui::BeginDisabled(!IsMapLocsStyleOverridden());
-
-			if (ImGui::Button("Reset Overrides to Defaults"))
-			{
-				ResetMapLocOverrides();
-			}
-
-			ImGui::EndDisabled();
+			mapLoc->SetSelected(true);
 		}
-
-		ImGui::SetNextItemWidth(40);
-		ImGui::DragFloat(" Line Size (10-200, default: 50)", &gOverrideMapLocParams.lineSize, 1.0f, 10, 200, "%.0f", ImGuiSliderFlags_None);
-
-		ImGui::SetNextItemWidth(40);
-		ImGui::DragFloat(" Line Width (1-10, default: 10)", &gOverrideMapLocParams.width, 1.0f, 1, 10, "%.0f", ImGuiSliderFlags_None);
-
-		ImColor mapLocColor = gOverrideMapLocParams.color.ToImColor();
-		ImGui::SetNextItemWidth(200);
-		if (ImGui::ColorEdit3("MapLoc Override", &mapLocColor.Value.x))
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Deselect All"))
+	{
+		for (auto& mapLoc : gMapLocTemplates)
 		{
-			gOverrideMapLocParams.color = MQColor(mapLocColor);
-			gOverrideMapLocParams.color.Alpha = 255;
-			regenerate = true;
+			mapLoc->SetSelected(false);
 		}
-
-		ImGui::SetNextItemWidth(40);
-		if (ImGui::DragFloat(" Radius", &gOverrideMapLocParams.circleRadius, 1.0f, 0, 1000, "%.0f", ImGuiSliderFlags_None))
-		{
-			UpdateDefaultMapLocInstances();
-		}
-
-		{
-			ImGui::BeginDisabled(gOverrideMapLocParams.circleRadius == 0);
-
-			ImGui::SameLine();
-			ImColor radiusColor = gOverrideMapLocParams.circleColor.ToImColor();
-			ImGui::SetNextItemWidth(200);
-			if (ImGui::ColorEdit3("MapLoc Radius Override", &radiusColor.Value.x))
-			{
-				gOverrideMapLocParams.circleColor = MQColor(radiusColor);
-				gOverrideMapLocParams.circleColor.Alpha = 255;
-				regenerate = true;
-			}
-
-			ImGui::EndDisabled();
-		}
-
-		ImGui::Unindent();
 	}
 
+	if (ImGui::BeginTable("Map Loc Table", 4, ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
+	{
+		ImGui::TableSetupColumn("Index", ImGuiTableColumnFlags_WidthFixed, 50);
+		ImGui::TableSetupColumn("Loc (y,x,z)", ImGuiTableColumnFlags_WidthFixed, 130);
+		ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn("Uses Defaults?", ImGuiTableColumnFlags_WidthFixed, 90);
+		ImGui::TableHeadersRow();
+
+		for (auto& mapLoc : gMapLocTemplates)
+		{
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+
+			bool selected = mapLoc->IsSelected();
+			if (ImGui::Selectable(std::to_string(mapLoc->GetIndex()).c_str(), &selected, ImGuiSelectableFlags_SpanAllColumns))
+			{
+				mapLoc->SetSelected(selected);
+			}
+
+			ImGui::TableNextColumn();
+			ImGui::Text("%d, %d, %d", (int)mapLoc->GetPosition().Y, (int)mapLoc->GetPosition().X, (int)mapLoc->GetPosition().Z);
+
+			ImGui::TableNextColumn();
+			ImGui::Text("%s", mapLoc->GetLabelText().c_str());
+
+			ImGui::TableNextColumn();
+			if (mapLoc->IsCreatedFromDefaults())
+				ImGui::Text("Yes");
+			else
+				ImGui::Text("No");
+		}
+
+		ImGui::EndTable();
+	}
+
+	bool anySelected = IsAnyMapLocSelected();
+
+	{
+		ImGui::BeginDisabled(!anySelected);
+		if (ImGui::Button("Delete Selected"))
+		{
+			DeleteSelectedMapLocs();
+		}
+		ImGui::EndDisabled();
+	}
+
+	{
+		ImGui::SameLine();
+
+		ImGui::BeginDisabled(gMapLocTemplates.empty());
+		if (ImGui::Button("Clear All Map Locs"))
+		{
+			ImGui::OpenPopup("Delete?");
+		}
+		ImGui::EndDisabled();
+	}
+
+	{
+		ImGui::BeginDisabled(!anySelected);
+		if (ImGui::Button("Reset Selected to Defaults"))
+		{
+			ResetSelectedMapLocsToDefault();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Apply Overrides to Selected"))
+		{
+			ApplyOverridesToSelected(gOverrideMapLocParams);
+		}
+		ImGui::EndDisabled();
+	}
+
+	//----------------------------------------------------------------------------
+	// Create new maploc
+
+	ImGui::NewLine();
+
+	ImGui::TextColored(ImVec4(1.0, 1.0, 0, 1.0), "Create New");
 	ImGui::Separator();
 
 	ImGui::InputInt3("Pos (YXZ)", &addMapLoc[0], 0);
@@ -1809,95 +1851,64 @@ static void DrawMapSettings_MapLocs()
 		ImGui::EndDisabled();
 	}
 
-	ImGui::Separator();
+	//----------------------------------------------------------------------------
+	// Overrides collapsing section
 
-	ImGui::TextWrapped("Map Loc List:");
-	ImGui::SameLine();
-	if (ImGui::Button("Select All"))
+	if (ImGui::CollapsingHeader("Map Loc Overrides"))
 	{
-		for (auto& mapLoc : gMapLocTemplates)
-		{
-			mapLoc->SetSelected(true);
-		}
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Deselect All"))
-	{
-		for (auto& mapLoc : gMapLocTemplates)
-		{
-			mapLoc->SetSelected(false);
-		}
-	}
+		ImGui::Indent();
 
-	if (ImGui::BeginTable("Map Loc Table", 4, ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
-	{
-		ImGui::TableSetupColumn("Index", ImGuiTableColumnFlags_WidthFixed, 50);
-		ImGui::TableSetupColumn("Loc (y,x,z)", ImGuiTableColumnFlags_WidthFixed, 130);
-		ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthStretch);
-		ImGui::TableSetupColumn("Uses Defaults?", ImGuiTableColumnFlags_WidthFixed, 50);
-		ImGui::TableHeadersRow();
+		ImGui::TextWrapped("These options will override the Map Loc Settings defined in the Options Tab for any newly created map locs in this section.");
 
-		for (auto& mapLoc : gMapLocTemplates)
 		{
-			ImGui::TableNextRow();
-			ImGui::TableNextColumn();
+			ImGui::BeginDisabled(!IsMapLocsStyleOverridden());
 
-			bool selected = mapLoc->IsSelected();
-			if (ImGui::Selectable(std::to_string(mapLoc->GetIndex()).c_str(), &selected, ImGuiSelectableFlags_SpanAllColumns))
+			if (ImGui::Button("Reset Overrides to Defaults"))
 			{
-				mapLoc->SetSelected(selected);
+				ResetMapLocOverrides();
 			}
 
-			ImGui::TableNextColumn();
-			ImGui::Text("%d, %d, %d", (int)mapLoc->GetPosition().Y, (int)mapLoc->GetPosition().X, (int)mapLoc->GetPosition().Z);
-
-			ImGui::TableNextColumn();
-			ImGui::Text("%s", mapLoc->GetLabelText().c_str());
-
-			ImGui::TableNextColumn();
-			if (mapLoc->IsCreatedFromDefaults())
-				ImGui::Text("Yes");
-			else
-				ImGui::Text("No");
+			ImGui::EndDisabled();
 		}
 
-		ImGui::EndTable();
-	}
+		ImGui::SetNextItemWidth(40);
+		ImGui::DragFloat(" Line Size (10-200, default: 50)", &gOverrideMapLocParams.lineSize, 1.0f, 10, 200, "%.0f", ImGuiSliderFlags_None);
 
-	bool anySelected = IsAnyMapLocSelected();
-	
-	{
-		ImGui::BeginDisabled(!anySelected);
-		if (ImGui::Button("Delete Selected"))
+		ImGui::SetNextItemWidth(40);
+		ImGui::DragFloat(" Line Width (1-10, default: 10)", &gOverrideMapLocParams.width, 1.0f, 1, 10, "%.0f", ImGuiSliderFlags_None);
+
+		ImColor mapLocColor = gOverrideMapLocParams.color.ToImColor();
+		ImGui::SetNextItemWidth(200);
+		if (ImGui::ColorEdit3("MapLoc Override", &mapLocColor.Value.x))
 		{
-			DeleteSelectedMapLocs();
+			gOverrideMapLocParams.color = MQColor(mapLocColor);
+			gOverrideMapLocParams.color.Alpha = 255;
+			regenerate = true;
 		}
-		ImGui::EndDisabled();
-	}
 
-	{
-		ImGui::SameLine();
+		ImGui::SetNextItemWidth(40);
+		if (ImGui::DragFloat(" Radius", &gOverrideMapLocParams.circleRadius, 1.0f, 0, 1000, "%.0f", ImGuiSliderFlags_None))
+		{
+			UpdateDefaultMapLocInstances();
+		}
 
-		ImGui::BeginDisabled(gMapLocTemplates.empty());
-		if (ImGui::Button("Clear All Map Locs"))
 		{
-			ImGui::OpenPopup("Delete?");
-		}
-		ImGui::EndDisabled();
-	}
+			ImGui::BeginDisabled(gOverrideMapLocParams.circleRadius == 0);
 
-	{
-		ImGui::BeginDisabled(!anySelected);
-		if (ImGui::Button("Reset Selected to Defaults"))
-		{
-			ResetSelectedMapLocsToDefault();
+			ImGui::SameLine();
+			ImColor radiusColor = gOverrideMapLocParams.circleColor.ToImColor();
+			ImGui::SetNextItemWidth(200);
+			if (ImGui::ColorEdit3("MapLoc Radius Override", &radiusColor.Value.x))
+			{
+				gOverrideMapLocParams.circleColor = MQColor(radiusColor);
+				gOverrideMapLocParams.circleColor.Alpha = 255;
+				regenerate = true;
+			}
+
+			ImGui::EndDisabled();
 		}
-		ImGui::SameLine();
-		if (ImGui::Button("Apply Overrides to Selected"))
-		{
-			ApplyOverridesToSelected(gOverrideMapLocParams);
-		}
-		ImGui::EndDisabled();
+
+		ImGui::Unindent();
 	}
 
 	ImVec2 center = ImGui::GetMainViewport()->GetCenter();
