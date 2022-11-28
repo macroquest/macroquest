@@ -597,7 +597,7 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 	// Init params either from MapLoc with matching tag, or the defaults.
 	MapLocParams params;
 
-	MapLocTemplate* origLoc = GetMapLocByTag(tag);
+	MapLocTemplate* origLoc = GetMapLocTemplateByTag(tag);
 	if (origLoc)
 	{
 		params = origLoc->GetMapLoc()->GetParams();
@@ -674,19 +674,20 @@ void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine)
 		// FIXME: exception handling?
 		CVector3 pos{ std::stof(xloc), std::stof(yloc), std::stof(zloc) };
 
-		MapLocTemplate* newMapLoc = new MapLocTemplate(params, label, tag, pos, isDefaultLocSettings);
+		std::unique_ptr<MapLocTemplate> newMapLocTemplate = std::make_unique<MapLocTemplate>(params, label, tag, pos, isDefaultLocSettings);
+		auto newMapLoc = newMapLocTemplate->GetMapLoc();
 
-		gMapLocTemplates.push_back(newMapLoc);
+		gMapLocTemplates.push_back(std::move(newMapLocTemplate));
 
 		UpdateMapLocIndexes();
 
-		std::string_view labelStr = newMapLoc->GetMapLoc()->GetLabelText();
+		std::string_view labelStr = newMapLoc->GetLabelText();
 
 		MapLocVars
 			<< "y:" << pos.Y
 			<< " x:" << pos.X
 			<< " z:" << pos.Z
-			<< ", Index: " << gMapLocTemplates[gMapLocTemplates.size() - 1]->GetMapLoc()->GetIndex()
+			<< ", Index: " << newMapLoc->GetIndex()
 			<< ", Label: " << labelStr;
 	}
 
@@ -1645,9 +1646,9 @@ static void DrawMapSettings_Colors()
 static bool IsAnyMapLocSelected()
 {
 	return std::any_of(gMapLocTemplates.begin(), gMapLocTemplates.end(),
-		[](MapLocTemplate* p) -> bool
+		[](auto& maplocTemplate) -> bool
 		{ 
-			auto maploc = p->GetMapLoc();
+			auto maploc = maplocTemplate->GetMapLoc();
 			return maploc != nullptr && maploc->m_isSelected;
 		}
 	);
@@ -1655,19 +1656,20 @@ static bool IsAnyMapLocSelected()
 
 static void DeleteSelectedMapLocs()
 {
-	for (size_t i = 0; i < gMapLocTemplates.size(); i++)
-	{
-		auto maploc = gMapLocTemplates[i]->GetMapLoc();
-		if (maploc != nullptr && maploc->m_isSelected)
-		{
-			DeleteMapLoc(gMapLocTemplates[i--]->GetMapLoc());
-		}
-	} 
+	gMapLocTemplates.erase(
+		std::remove_if(gMapLocTemplates.begin(), gMapLocTemplates.end(),
+			[](auto& maplocTemplate)
+			{
+				auto maploc = maplocTemplate->GetMapLoc();
+				return maploc != nullptr && maploc->m_isSelected;
+			}
+		), gMapLocTemplates.end()
+	);
 }
 
 static void ResetSelectedMapLocsToDefault()
 {
-	for (auto maplocTemplate : gMapLocTemplates)
+	for (auto& maplocTemplate : gMapLocTemplates)
 	{
 		auto maploc = maplocTemplate->GetMapLoc();
 		if (maploc != nullptr && maploc->m_isSelected)
@@ -1680,7 +1682,7 @@ static void ResetSelectedMapLocsToDefault()
 
 static void ApplyOverridesToSelected(MapLocParams params)
 {
-	for (auto maplocTemplate : gMapLocTemplates)
+	for (auto& maplocTemplate : gMapLocTemplates)
 	{
 		auto maploc = maplocTemplate->GetMapLoc();
 		if (maploc != nullptr && maploc->m_isSelected)
@@ -1833,9 +1835,9 @@ static void DrawMapSettings_MapLocs()
 		{
 			commandStream << " size " << gOverrideMapLocParams.lineSize
 				<< " width " << gOverrideMapLocParams.width
-				<< " color " << gOverrideMapLocParams.color.Red << " " << gOverrideMapLocParams.color.Green << " " << gOverrideMapLocParams.color.Blue
+				<< " color " << (int)gOverrideMapLocParams.color.Red << " " << (int)gOverrideMapLocParams.color.Green << " " << (int)gOverrideMapLocParams.color.Blue
 				<< " radius " << gOverrideMapLocParams.circleRadius
-				<< " rcolor " << gOverrideMapLocParams.circleColor.Red << " " << gOverrideMapLocParams.circleColor.Green << " " << gOverrideMapLocParams.circleColor.Blue;
+				<< " rcolor " << (int)gOverrideMapLocParams.circleColor.Red << " " << (int)gOverrideMapLocParams.circleColor.Green << " " << (int)gOverrideMapLocParams.circleColor.Blue;
 		}
 		if (addMapLocLabel[0] != '\0')
 		{
@@ -1870,7 +1872,7 @@ static void DrawMapSettings_MapLocs()
 	ImGui::SameLine();
 	if (ImGui::Button("Select All"))
 	{
-		for (auto locTemplate : gMapLocTemplates)
+		for (auto& locTemplate : gMapLocTemplates)
 		{
 			auto maploc = locTemplate->GetMapLoc();
 			if (maploc != nullptr)
@@ -1883,7 +1885,7 @@ static void DrawMapSettings_MapLocs()
 	ImGui::SameLine();
 	if (ImGui::Button("Deselect All"))
 	{
-		for (auto locTemplate : gMapLocTemplates)
+		for (auto& locTemplate : gMapLocTemplates)
 		{
 			auto maploc = locTemplate->GetMapLoc();
 			if (maploc != nullptr)
@@ -1906,6 +1908,8 @@ static void DrawMapSettings_MapLocs()
 		for (size_t i = 0; i < gMapLocTemplates.size(); i++)
 		{
 			MapObjectMapLoc* maploc = gMapLocTemplates[i]->GetMapLoc();
+			if (maploc == nullptr)
+				continue;
 
 			ImGui::TableNextRow();
 			ImGui::TableNextColumn();

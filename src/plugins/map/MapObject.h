@@ -237,7 +237,7 @@ public:
 
 	int GetIndex();
 	MapObjectMapLoc* GetMapLoc();
-	void MakeMapLocFromTemplate();
+	void CreateMapLoc();
 	void ClearReferenceToMapLoc();
 	void UpdateFromParams(const MapLocParams& params);
 	bool IsCreatedFromDefaults() { return m_isCreatedFromDefaultLoc; }
@@ -247,6 +247,7 @@ public:
 		m_mapLoc->SetCreatedFromDefaults(m_isCreatedFromDefaultLoc);
 	}
 	void SetLabel(const std::string& labelText);
+	std::string GetTag() { return m_tag; }
 
 private:
 	MapLocParams          m_mapLocParams;
@@ -257,14 +258,14 @@ private:
 	MapObjectMapLoc*      m_mapLoc = nullptr;
 };
 
-extern std::vector<MapLocTemplate*> gMapLocTemplates;
+extern std::vector<std::unique_ptr<MapLocTemplate>> gMapLocTemplates;
 extern MapLocParams gOverrideMapLocParams;
 
 void InitDefaultMapLocParams();
 void UpdateDefaultMapLocInstances();
 void ResetMapLocOverrides();
 
-MapLocTemplate* GetMapLocByTag(const std::string_view& tag);
+MapLocTemplate* GetMapLocTemplateByTag(const std::string_view& tag);
 
 void DeleteAllMapLocs();
 void DeleteMapLoc(MapObjectMapLoc* mapLoc);

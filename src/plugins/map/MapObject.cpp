@@ -17,7 +17,7 @@
 extern MapObject* pLastTarget;
 MapObject* gpActiveMapObjects = nullptr;
 
-std::vector<MapLocTemplate*> gMapLocTemplates;
+std::vector<std::unique_ptr<MapLocTemplate>> gMapLocTemplates;
 MapLocParams gDefaultMapLocParams;
 MapLocParams gOverrideMapLocParams;
 
@@ -967,7 +967,7 @@ void MapObjects_Clear()
 {
 	GroundItemMap.clear();
 	SpawnMap.clear();
-	for (auto maplocTemplate : gMapLocTemplates)
+	for (auto& maplocTemplate : gMapLocTemplates)
 	{
 		maplocTemplate->ClearReferenceToMapLoc();
 	}
@@ -1062,7 +1062,7 @@ void ResetMapLocOverrides()
 
 void UpdateDefaultMapLocInstances()
 {
-	for (auto obj : gMapLocTemplates)
+	for (auto& obj : gMapLocTemplates)
 	{
 		if (obj->IsCreatedFromDefaults())
 		{
@@ -1085,6 +1085,9 @@ MapObjectMapLoc::MapObjectMapLoc(const MapLocParams& params, const std::string& 
 
 MapObjectMapLoc::~MapObjectMapLoc()
 {
+	auto owningTemplate = GetMapLocTemplateByTag(m_tag);
+	if (owningTemplate != nullptr)
+		owningTemplate->ClearReferenceToMapLoc(); // if this doesn't run, it won't be cleared anywhere else and won't be deleted
 	RemoveMapLoc();
 }
 
@@ -1279,12 +1282,12 @@ MapObjectMapLoc* MapLocTemplate::GetMapLoc()
 	return m_mapLoc;
 }
 
-MapLocTemplate* GetMapLocByTag(const std::string_view& tag)
+MapLocTemplate* GetMapLocTemplateByTag(const std::string_view& tag)
 {
-	for (auto maplocTemplate : gMapLocTemplates)
+	for (auto& maplocTemplate : gMapLocTemplates)
 	{
-		if (maplocTemplate->GetMapLoc()->GetTag() == tag)
-			return maplocTemplate;
+		if (maplocTemplate && maplocTemplate->GetTag() == tag)
+			return maplocTemplate.get();
 	}
 
 	return nullptr;
@@ -1292,9 +1295,8 @@ MapLocTemplate* GetMapLocByTag(const std::string_view& tag)
 
 void DeleteAllMapLocs()
 {
-	for (auto mapLocTemplate : gMapLocTemplates)
+	for (auto& mapLocTemplate : gMapLocTemplates)
 	{
-		delete mapLocTemplate->GetMapLoc();
 		mapLocTemplate->ClearReferenceToMapLoc();
 	}
 
@@ -1312,16 +1314,10 @@ void UpdateMapLocIndexes()
 void DeleteMapLoc(MapObjectMapLoc* mapLoc)
 {
 	gMapLocTemplates.erase(std::remove_if(gMapLocTemplates.begin(), gMapLocTemplates.end(),
-		[mapLoc](MapLocTemplate* match) -> bool
+		[mapLoc](auto& match) -> bool
 		{
-			if (match->GetMapLoc()->GetTag() == mapLoc->GetTag())
-			{
-				delete match->GetMapLoc();
-				match->ClearReferenceToMapLoc();
-				return true;
-			}
-
-			return false;
+			auto maploc = match->GetMapLoc();
+			return maploc != nullptr && match->GetMapLoc()->GetTag() == mapLoc->GetTag();
 		}
 	));
 
@@ -1337,21 +1333,26 @@ MapLocTemplate::MapLocTemplate(const MapLocParams& params, const std::string& la
 	m_pos = pos;
 	m_isCreatedFromDefaultLoc = isDefault;
 
-	MakeMapLocFromTemplate();
+	CreateMapLoc();
+}
+
+MapLocTemplate::~MapLocTemplate()
+{
+	delete m_mapLoc;
 }
 
 int MapLocTemplate::GetIndex()
 {
 	for (size_t i = 0; i < gMapLocTemplates.size(); i++)
 	{
-		if (gMapLocTemplates[i] == this)
+		if (gMapLocTemplates[i].get() == this)
 			return i;
 	}
 
 	return -1;
 }
 
-void MapLocTemplate::MakeMapLocFromTemplate()
+void MapLocTemplate::CreateMapLoc()
 {
 	if (m_mapLoc == nullptr)
 	{

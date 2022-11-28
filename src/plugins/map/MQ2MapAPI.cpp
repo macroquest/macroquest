@@ -147,9 +147,9 @@ void MapGenerate()
 		}
 	}
 
-	for (auto maploc : gMapLocTemplates)
+	for (auto& maploc : gMapLocTemplates)
 	{
-		maploc->MakeMapLocFromTemplate();
+		maploc->CreateMapLoc();
 	}
 }
 
@@ -744,7 +744,7 @@ void MapRemoveLocation(char* szLine)
 
 		sprintf_s(tag, "%s,%s,%s", yloc, xloc, zloc);
 
-		auto maploc = GetMapLocByTag(tag);
+		auto maploc = GetMapLocTemplateByTag(tag);
 
 		if (maploc == nullptr)
 		{
