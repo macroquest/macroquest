@@ -158,7 +158,7 @@ MQDataItem* FindMQ2Data(const char* szName)
 	return iter->second.get();
 }
 
-bool AddMQ2DataFunction(const char* szName, std::function<bool(const char*, MQTypeVar&)> Function)
+bool AddMQ2Data(const char* szName, std::function<bool(const char*, MQTypeVar&)> Function)
 {
 	std::scoped_lock lock(s_variableMutex);
 
@@ -170,7 +170,7 @@ bool AddMQ2DataFunction(const char* szName, std::function<bool(const char*, MQTy
 	// create new MQ2DATAITEM inside a unique_ptr
 	auto newItem = std::make_unique<MQDataItem>();
 	strcpy_s(newItem->Name, szName);
-	newItem->Function = Function;
+	newItem->Function = std::move(Function);
 
 	// put the new item into the map
 	MQ2DataMap.emplace(szName, std::move(newItem));
@@ -179,7 +179,7 @@ bool AddMQ2DataFunction(const char* szName, std::function<bool(const char*, MQTy
 
 bool AddMQ2Data(const char* szName, fMQData Function)
 {
-	return AddMQ2DataFunction(szName, Function);
+	return AddMQ2Data(szName, std::function<bool(const char*, MQTypeVar&)>(Function));
 }
 
 bool RemoveMQ2Data(const char* szName)

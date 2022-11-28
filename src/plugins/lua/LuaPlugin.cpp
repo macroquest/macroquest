@@ -861,7 +861,7 @@ void LuaPlugin::AddCommand(const std::string& command, sol::function func)
 	}
 	else
 	{
-		AddFunction(command.c_str(), [func = func, this, numargs = numargs](PlayerClient*, char* Buffer) -> void
+		mq::AddCommand(command.c_str(), [func = func, this, numargs = numargs](PlayerClient*, const char* Buffer) -> void
 			{
 				numargs == 1 ? func(Buffer) : func(m_pluginTable, Buffer);
 			}); // TODO: we might want to pass the optional booleans here
@@ -969,7 +969,7 @@ void LuaPlugin::AddDatum(const std::string& tlo, sol::function func)
 	}
 	else
 	{
-		AddMQ2DataFunction(tlo.c_str(), [func = func, this, numargs = numargs](const char* Index, MQTypeVar& Dest)
+		AddMQ2Data(tlo.c_str(), [func = func, this, numargs = numargs](const char* Index, MQTypeVar& Dest)
 			{
 				auto result = numargs == 1 ? func(Index) : func(m_pluginTable, Index);
 				return CheckDataResult(result, Dest);

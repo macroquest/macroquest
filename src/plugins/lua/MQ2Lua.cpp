@@ -1917,6 +1917,7 @@ PLUGIN_API void OnUpdateImGui()
 				if (info.status != LuaThreadStatus::Plugin)
 				{
 					ImGui::SameLine();
+				}
 
 				if (ImGui::Button(info.status == LuaThreadStatus::Paused ? "Resume" : "Pause"))
 				{
