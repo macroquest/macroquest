@@ -1649,14 +1649,6 @@ static bool IsAnyMapLocSelected()
 		[](auto& maploc) { return maploc->IsSelected(); });
 }
 
-static void DeleteSelectedMapLocs()
-{
-	gMapLocTemplates.erase(
-		std::remove_if(gMapLocTemplates.begin(), gMapLocTemplates.end(),
-			[](auto& maploc) { return maploc->IsSelected(); }),
-		gMapLocTemplates.end());
-}
-
 static void ResetSelectedMapLocsToDefault()
 {
 	for (auto& maploc : gMapLocTemplates)

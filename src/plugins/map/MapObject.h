@@ -271,3 +271,4 @@ void DeleteAllMapLocs();
 
 void AddMapLoc(std::unique_ptr<MapLocTemplate> mapLoc);
 void DeleteMapLoc(MapLocTemplate* mapLoc);
+void DeleteSelectedMapLocs();

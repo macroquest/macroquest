@@ -1359,3 +1359,14 @@ void DeleteMapLoc(MapLocTemplate* mapLoc)
 	// Update index labels for remaining locs
 	UpdateMapLocIndexes();
 }
+
+void DeleteSelectedMapLocs()
+{
+	gMapLocTemplates.erase(
+		std::remove_if(gMapLocTemplates.begin(), gMapLocTemplates.end(),
+			[](auto& maploc) { return maploc->IsSelected(); }),
+		gMapLocTemplates.end());
+
+	// Update index labels for remaining locs
+	UpdateMapLocIndexes();
+}
