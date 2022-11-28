@@ -17,10 +17,9 @@
 extern MapObject* pLastTarget;
 MapObject* gpActiveMapObjects = nullptr;
 
+std::vector<std::unique_ptr<MapLocTemplate>> gMapLocTemplates;
 MapLocParams gDefaultMapLocParams;
-static std::map<std::string, MapObjectMapLoc*> sLocationsMap;
-static std::vector<MapObjectMapLoc*> sMapLocs;
-
+MapLocParams gOverrideMapLocParams;
 
 //============================================================================
 
@@ -968,8 +967,10 @@ void MapObjects_Clear()
 {
 	GroundItemMap.clear();
 	SpawnMap.clear();
-	sLocationsMap.clear();
-	sMapLocs.clear();
+	for (auto& maplocTemplate : gMapLocTemplates)
+	{
+		maplocTemplate->ClearReferenceToMapLoc();
+	}
 
 	while (gpActiveMapObjects)
 	{
@@ -1029,13 +1030,15 @@ void MapCircle::UpdateCircle(MQColor Color, float Radius, float X, float Y, floa
 
 //============================================================================
 
-void UpdateDefaultMapLocParams()
+void InitDefaultMapLocParams()
 {
 	float lineSize = GetPrivateProfileFloat("MapLoc", "Size", 50.f, INIFileName);
 	gDefaultMapLocParams.lineSize = lineSize;
+	mapLocSize = lineSize;
 
 	float width = GetPrivateProfileFloat("MapLoc", "Width", 10.f, INIFileName);
 	gDefaultMapLocParams.width = width;
+	mapLocWidth = width;
 
 	uint8_t r = static_cast<uint8_t>(GetPrivateProfileInt("MapLoc", "Red", 255, INIFileName));
 	uint8_t g = static_cast<uint8_t>(GetPrivateProfileInt("MapLoc", "Green", 0, INIFileName));
@@ -1044,6 +1047,7 @@ void UpdateDefaultMapLocParams()
 
 	float radius = GetPrivateProfileFloat("MapLoc", "Radius", 0, INIFileName);
 	gDefaultMapLocParams.circleRadius = radius;
+	mapLocRadius = radius;
 
 	r = static_cast<uint8_t>(GetPrivateProfileInt("MapLoc", "RadiusRed", 255, INIFileName));
 	g = static_cast<uint8_t>(GetPrivateProfileInt("MapLoc", "RadiusGreen", 0, INIFileName));
@@ -1051,9 +1055,14 @@ void UpdateDefaultMapLocParams()
 	gDefaultMapLocParams.circleColor = MQColor(r, g, b);
 }
 
+void ResetMapLocOverrides()
+{
+	gOverrideMapLocParams = gDefaultMapLocParams;
+}
+
 void UpdateDefaultMapLocInstances()
 {
-	for (const auto& [tag, obj] : sLocationsMap)
+	for (auto& obj : gMapLocTemplates)
 	{
 		if (obj->IsCreatedFromDefaults())
 		{
@@ -1070,35 +1079,34 @@ MapObjectMapLoc::MapObjectMapLoc(const MapLocParams& params, const std::string& 
 {
 	GenerateLabel();
 
-	UpdateFromParams(params);
+	m_mapLocParams = params;
+	Update(true);
 }
 
 MapObjectMapLoc::~MapObjectMapLoc()
 {
+	auto owningTemplate = GetMapLocTemplateByTag(m_tag);
+	if (owningTemplate != nullptr)
+		owningTemplate->ClearReferenceToMapLoc(); // if this doesn't run, it won't be cleared anywhere else and won't be deleted
 	RemoveMapLoc();
 }
 
 void MapObjectMapLoc::UpdateFromParams(const MapLocParams& params)
 {
-	m_lineSize = params.lineSize;
-	m_width = params.width;
-	m_color = params.color;
-	m_circleRadius = params.circleRadius;
-	m_circleColor = params.circleColor;
-
-	Update(true);
+	m_mapLocParams = params;
 }
 
-MapLocParams MapObjectMapLoc::GetParams() const
+void MapLocTemplate::UpdateFromParams(const MapLocParams& params)
 {
-	MapLocParams params;
-	params.lineSize = m_lineSize;
-	params.width = m_width;
-	params.color = m_color;
-	params.circleRadius = m_circleRadius;
-	params.circleColor = m_circleColor;
+	m_mapLocParams = params;
+	m_mapLoc->UpdateFromParams(params);
 
-	return params;
+	m_mapLoc->Update(true);
+}
+
+const MapLocParams& MapObjectMapLoc::GetParams()
+{
+	return m_mapLocParams;
 }
 
 void MapObjectMapLoc::RemoveMapLoc()
@@ -1134,33 +1142,40 @@ void MapObjectMapLoc::UpdateMapLoc()
 	RemoveMapLoc();
 
 	MapViewLine* line = nullptr;
+	uint32_t colorARGB;
+
+	// Invert the color (highlight it) temporarily if this loc is selected in the imgui
+	if (m_isSelected)
+		colorARGB = m_mapLocParams.color.GetInvert().ToARGB();
+	else
+		colorARGB = m_mapLocParams.color.ToARGB();
 
 	// Create the X
-	for (int xWidth = 1; xWidth <= m_width; xWidth++)
+	for (int xWidth = 1; xWidth <= m_mapLocParams.width; xWidth++)
 	{
 		if (xWidth == 1)
 		{
 			// Backslash
 			line = InitLine();
 			line->Layer = activeLayer;
-			line->Color.ARGB = m_color.ToARGB();
-			line->Start.X = -m_pos.X - m_lineSize;
-			line->Start.Y = -m_pos.Y - m_lineSize;
+			line->Color.ARGB = colorARGB;
+			line->Start.X = -m_pos.X - m_mapLocParams.lineSize;
+			line->Start.Y = -m_pos.Y - m_mapLocParams.lineSize;
 			line->Start.Z = m_pos.Z;
-			line->End.X = -m_pos.X + m_lineSize;
-			line->End.Y = -m_pos.Y + m_lineSize;
+			line->End.X = -m_pos.X + m_mapLocParams.lineSize;
+			line->End.Y = -m_pos.Y + m_mapLocParams.lineSize;
 			line->End.Z = m_pos.Z;
 			m_lines.push_back(line);
 
 			// Forwardslash
 			line = InitLine();
 			line->Layer = activeLayer;
-			line->Color.ARGB = m_color.ToARGB();
-			line->Start.X = -m_pos.X - m_lineSize;
-			line->Start.Y = -m_pos.Y + m_lineSize;
+			line->Color.ARGB = colorARGB;
+			line->Start.X = -m_pos.X - m_mapLocParams.lineSize;
+			line->Start.Y = -m_pos.Y + m_mapLocParams.lineSize;
 			line->Start.Z = m_pos.Z;
-			line->End.X = -m_pos.X + m_lineSize;
-			line->End.Y = -m_pos.Y - m_lineSize;
+			line->End.X = -m_pos.X + m_mapLocParams.lineSize;
+			line->End.Y = -m_pos.Y - m_mapLocParams.lineSize;
 			line->End.Z = m_pos.Z;
 			m_lines.push_back(line);
 		}
@@ -1169,57 +1184,57 @@ void MapObjectMapLoc::UpdateMapLoc()
 			// Backslash lower
 			line = InitLine();
 			line->Layer = activeLayer;
-			line->Color.ARGB = m_color.ToARGB();
-			line->Start.X = -m_pos.X - m_lineSize;
-			line->Start.Y = -m_pos.Y - m_lineSize + xWidth - 1;
+			line->Color.ARGB = colorARGB;
+			line->Start.X = -m_pos.X - m_mapLocParams.lineSize;
+			line->Start.Y = -m_pos.Y - m_mapLocParams.lineSize + xWidth - 1;
 			line->Start.Z = m_pos.Z;
-			line->End.X = -m_pos.X + m_lineSize - xWidth + 1;
-			line->End.Y = -m_pos.Y + m_lineSize;
+			line->End.X = -m_pos.X + m_mapLocParams.lineSize - xWidth + 1;
+			line->End.Y = -m_pos.Y + m_mapLocParams.lineSize;
 			line->End.Z = m_pos.Z;
 			m_lines.push_back(line);
 
 			// Forwardslash lower
 			line = InitLine();
 			line->Layer = activeLayer;
-			line->Color.ARGB = m_color.ToARGB();
-			line->Start.X = -m_pos.X - m_lineSize + xWidth - 1;
-			line->Start.Y = -m_pos.Y + m_lineSize;
+			line->Color.ARGB = colorARGB;
+			line->Start.X = -m_pos.X - m_mapLocParams.lineSize + xWidth - 1;
+			line->Start.Y = -m_pos.Y + m_mapLocParams.lineSize;
 			line->Start.Z = m_pos.Z;
-			line->End.X = -m_pos.X + m_lineSize;
-			line->End.Y = -m_pos.Y - m_lineSize + xWidth - 1;
+			line->End.X = -m_pos.X + m_mapLocParams.lineSize;
+			line->End.Y = -m_pos.Y - m_mapLocParams.lineSize + xWidth - 1;
 			line->End.Z = m_pos.Z;
 			m_lines.push_back(line);
 
 			// Backslash upper
 			line = InitLine();
 			line->Layer = activeLayer;
-			line->Color.ARGB = m_color.ToARGB();
-			line->Start.X = -m_pos.X - m_lineSize + xWidth - 1;
-			line->Start.Y = -m_pos.Y - m_lineSize;
+			line->Color.ARGB = colorARGB;
+			line->Start.X = -m_pos.X - m_mapLocParams.lineSize + xWidth - 1;
+			line->Start.Y = -m_pos.Y - m_mapLocParams.lineSize;
 			line->Start.Z = m_pos.Z;
-			line->End.X = -m_pos.X + m_lineSize;
-			line->End.Y = -m_pos.Y + m_lineSize - xWidth + 1;
+			line->End.X = -m_pos.X + m_mapLocParams.lineSize;
+			line->End.Y = -m_pos.Y + m_mapLocParams.lineSize - xWidth + 1;
 			line->End.Z = m_pos.Z;
 			m_lines.push_back(line);
 
 			// Forwardslash upper
 			line = InitLine();
 			line->Layer = activeLayer;
-			line->Color.ARGB = m_color.ToARGB();
-			line->Start.X = -m_pos.X - m_lineSize;
-			line->Start.Y = -m_pos.Y + m_lineSize - xWidth + 1;
+			line->Color.ARGB = colorARGB;
+			line->Start.X = -m_pos.X - m_mapLocParams.lineSize;
+			line->Start.Y = -m_pos.Y + m_mapLocParams.lineSize - xWidth + 1;
 			line->Start.Z = m_pos.Z;
-			line->End.X = -m_pos.X + m_lineSize - xWidth + 1;
-			line->End.Y = -m_pos.Y - m_lineSize;
+			line->End.X = -m_pos.X + m_mapLocParams.lineSize - xWidth + 1;
+			line->End.Y = -m_pos.Y - m_mapLocParams.lineSize;
 			line->End.Z = m_pos.Z;
 			m_lines.push_back(line);
 		}
 	}
 
 	// Create the Radius
-	if (m_circleRadius > 0)
+	if (m_mapLocParams.circleRadius > 0)
 	{
-		m_circle.UpdateCircle(m_circleColor, m_circleRadius, m_pos.X, m_pos.Y, m_pos.Z);
+		m_circle.UpdateCircle(m_mapLocParams.circleColor, m_mapLocParams.circleRadius, m_pos.X, m_pos.Y, m_pos.Z);
 	}
 	else
 	{
@@ -1230,17 +1245,19 @@ void MapObjectMapLoc::UpdateMapLoc()
 void MapObjectMapLoc::SetIndex(int index)
 {
 	if (mq::test_and_set(m_index, index))
-	{
 		UpdateText();
-	}
+}
+
+void MapLocTemplate::SetLabel(const std::string& labelText)
+{
+	m_label = labelText;
+	m_mapLoc->SetLabel(labelText);
 }
 
 void MapObjectMapLoc::SetLabel(const std::string& labelText)
 {
 	if (mq::test_and_set(m_labelText, labelText))
-	{
 		UpdateText();
-	}
 }
 
 void MapObjectMapLoc::UpdateText()
@@ -1260,67 +1277,97 @@ void MapObjectMapLoc::UpdateText()
 
 //----------------------------------------------------------------------------
 
-MapObjectMapLoc* GetMapLocByIndex(size_t index)
+MapObjectMapLoc* MapLocTemplate::GetMapLoc()
 {
-	--index;
-
-	if (index >= sMapLocs.size())
-		return nullptr;
-
-	return sMapLocs[index];
+	return m_mapLoc;
 }
 
-MapObjectMapLoc* GetMapLocByTag(const std::string& tag)
+MapLocTemplate* GetMapLocTemplateByTag(const std::string_view& tag)
 {
-	auto iter = sLocationsMap.find(tag);
-	if (iter == sLocationsMap.end())
-		return nullptr;
+	for (auto& maplocTemplate : gMapLocTemplates)
+	{
+		if (maplocTemplate && maplocTemplate->GetTag() == tag)
+			return maplocTemplate.get();
+	}
 
-	return iter->second;
+	return nullptr;
 }
 
 void DeleteAllMapLocs()
 {
-	sLocationsMap.clear();
-
-	for (MapObjectMapLoc* loc : sMapLocs)
+	for (auto& mapLocTemplate : gMapLocTemplates)
 	{
-		delete loc;
+		mapLocTemplate->ClearReferenceToMapLoc();
 	}
 
-	sMapLocs.clear();
+	gMapLocTemplates.clear();
 }
 
 void UpdateMapLocIndexes()
 {
-	for (int i = 0; i < (int)sMapLocs.size(); ++i)
+	for (size_t i = 0; i < gMapLocTemplates.size(); ++i)
 	{
-		sMapLocs[i]->SetIndex(i + 1);
+		gMapLocTemplates[i]->GetMapLoc()->SetIndex(i + 1);
 	}
 }
 
 void DeleteMapLoc(MapObjectMapLoc* mapLoc)
 {
-	sMapLocs.erase(
-		std::remove(sMapLocs.begin(), sMapLocs.end(), mapLoc),
-		sMapLocs.end());
-	sLocationsMap.erase(mapLoc->GetTag());
-
-	delete mapLoc;
+	gMapLocTemplates.erase(std::remove_if(gMapLocTemplates.begin(), gMapLocTemplates.end(),
+		[mapLoc](auto& match) -> bool
+		{
+			auto maploc = match->GetMapLoc();
+			return maploc != nullptr && match->GetMapLoc()->GetTag() == mapLoc->GetTag();
+		}
+	));
 
 	// Update index labels for remaining locs
 	UpdateMapLocIndexes();
 }
 
-void MakeMapLoc(const MapLocParams& params, const std::string& label, const std::string& tag, const CVector3& pos, bool isDefault)
+MapLocTemplate::MapLocTemplate(const MapLocParams& params, const std::string& label, const std::string& tag, const CVector3& pos, bool isDefault)
 {
-	MapObjectMapLoc* newLoc = new MapObjectMapLoc(params, tag, isDefault);
-	newLoc->SetLabel(label);
-	newLoc->SetPosition(pos);
+	m_mapLocParams = params;
+	m_label = label;
+	m_tag = tag;
+	m_pos = pos;
+	m_isCreatedFromDefaultLoc = isDefault;
 
-	sMapLocs.push_back(newLoc);
-	sLocationsMap.emplace(tag, newLoc);
-	newLoc->SetIndex(static_cast<int>(sMapLocs.size()));
+	CreateMapLoc();
+}
 
-	newLoc->PostInit();
+MapLocTemplate::~MapLocTemplate()
+{
+	delete m_mapLoc;
+}
+
+int MapLocTemplate::GetIndex()
+{
+	for (size_t i = 0; i < gMapLocTemplates.size(); i++)
+	{
+		if (gMapLocTemplates[i].get() == this)
+			return i;
+	}
+
+	return -1;
+}
+
+void MapLocTemplate::CreateMapLoc()
+{
+	if (m_mapLoc == nullptr)
+	{
+		MapObjectMapLoc* newLoc = new MapObjectMapLoc(m_mapLocParams, m_tag, m_isCreatedFromDefaultLoc);
+
+		newLoc->SetPosition(m_pos);
+		newLoc->SetIndex(static_cast<int>(GetIndex()));
+		newLoc->SetLabel(m_label);
+
+		newLoc->PostInit();
+		m_mapLoc = newLoc;
+	}
+}
+
+void MapLocTemplate::ClearReferenceToMapLoc()
+{
+	m_mapLoc = nullptr;
 }

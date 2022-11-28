@@ -175,6 +175,16 @@ public:
 		return ARGB & 0xffffff;
 	}
 
+	constexpr void Invert()
+	{
+		ARGB = (0xFFFFFF - ARGB) | 0xFF000000;
+	}
+
+	constexpr MQColor GetInvert()
+	{
+		return MQColor((0xFFFFFF - ARGB) | 0xFF000000);
+	}
+
 	// Layout matches ARGBCOLOR
 	union
 	{

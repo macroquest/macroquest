@@ -49,5 +49,4 @@ ipch/
 src/tools
 
 # ignore a specific sln file
-src/MacroQuest*.sln
-!src/MacroQuest.sln
+src/MacroQuestCustom.sln

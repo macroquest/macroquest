@@ -32,6 +32,7 @@
 #include <imgui_internal.h>
 
 #include <filesystem>
+#include <functional>
 
 
 namespace mq {
@@ -57,7 +58,7 @@ void ConfigureDefaultFont(ImFontAtlas* atlas)
 	faConfig.DstFont = DefaultFont;
 	faConfig.MergeMode = true;
 	strcpy_s(faConfig.Name, "FontAwesome");
-	faConfig.GlyphMinAdvanceX = 13.0f;
+	faConfig.GlyphMinAdvanceX = 14.0f;
 	faConfig.GlyphOffset.x = 0.0f;
 	static const ImWchar icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
 	atlas->AddFontFromMemoryCompressedTTF(GetFontAwesomeCompressedData(), GetFontAwesomeCompressedSize(), 14.0f, &faConfig, icon_ranges);
@@ -199,6 +200,33 @@ void HelpMarker(const char* desc, float width, ImFont* tooltipFont)
 		}
 
 		ImGui::TextUnformatted(desc);
+
+		if (tooltipFont)
+		{
+			ImGui::PopFont();
+		}
+
+		ImGui::PopTextWrapPos();
+		ImGui::EndTooltip();
+	}
+}
+
+void HelpMarker(const std::function<const std::string()>& getText, float width, ImFont* tooltipFont)
+{
+	ImGui::TextDisabled(ICON_FA_QUESTION_CIRCLE_O);
+
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::BeginTooltip();
+		ImGui::PushTextWrapPos(width);
+
+		if (tooltipFont)
+		{
+			ImGui::PushFont(tooltipFont);
+		}
+
+		std::string value = getText();
+		ImGui::TextUnformatted(value.data(), value.data() + value.size());
 
 		if (tooltipFont)
 		{
