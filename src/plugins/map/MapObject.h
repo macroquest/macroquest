@@ -49,11 +49,6 @@ public:
 	virtual SPAWNINFO* GetSpawn() const { return nullptr; }
 	virtual GROUNDITEM* GetGroundItem() const { return nullptr; }
 
-    const char* GetLabelText() {
-		if (m_label == nullptr) return "";
-		return m_label->Label;
-	}
-
 protected:
 	virtual void HandleFormatSpecifier(char spec, CXStr& output);
 
@@ -183,50 +178,12 @@ struct MapLocParams
 	MQColor color = MQColor(255, 0, 0);
 	float   circleRadius = 0.f;
 	MQColor circleColor = MQColor(0, 0, 255);
+
+	std::string MakeCommandString();
 };
 extern MapLocParams gDefaultMapLocParams;
 
-// MapObject that represents a "MapLoc". I don't have a better name for this, so
-// I'm choosing to name it for consistency rather than something that is more accurate.
-
-class MapObjectMapLoc : public MapObject
-{
-public:
-	MapObjectMapLoc(const MapLocParams& params, const std::string& tag, bool isDefault);
-	MapObjectMapLoc() {}
-	virtual ~MapObjectMapLoc();
-	void UpdateFromParams(const MapLocParams& params);
-	const MapLocParams& GetParams();
-
-	void SetCreatedFromDefaults(bool isCreatedFromDefaults) { m_isCreatedFromDefaultLoc = isCreatedFromDefaults; }
-
-	int GetIndex() const { return m_index; }
-	void SetIndex(int index);
-
-	const std::string& GetTag() const { return m_tag; }
-	void SetLabel(const std::string& labelText);
-
-	virtual void PostInit() override;
-	virtual void Update(bool forced) override;
-
-	virtual bool CanDisplayObject() const override { return true; }
-
-	bool m_isSelected = false; // exposed directly for imgui reference
-
-private:
-	void UpdateMapLoc();
-	void RemoveMapLoc();
-	void UpdateText();
-
-	bool                  m_isCreatedFromDefaultLoc = false;
-	bool                  m_initialized = false;
-	int                   m_index = -1;
-	std::string           m_tag;
-	std::string           m_labelText;
-	std::vector<MapViewLine*> m_lines;
-	MapCircle             m_circle;
-	MapLocParams		  m_mapLocParams;
-};
+class MapObjectMapLoc;
 
 class MapLocTemplate
 {
@@ -235,27 +192,68 @@ public:
 		const std::string& tag, const CVector3& pos, bool isDefault);
 	~MapLocTemplate();
 
-	int GetIndex();
-	MapObjectMapLoc* GetMapLoc();
-	void CreateMapLoc();
-	void ClearReferenceToMapLoc();
+	int GetIndex() const { return m_index; }
+	void SetIndex(int index);
+
+	const std::string& GetLabelText() const { return m_label; }
+
+	void CreateMapObject();
+
 	void UpdateFromParams(const MapLocParams& params);
-	bool IsCreatedFromDefaults() { return m_isCreatedFromDefaultLoc; }
-	void SetCreatedFromDefaults(bool isCreatedFromDefaults)
-	{
-		m_isCreatedFromDefaultLoc = isCreatedFromDefaults;
-		m_mapLoc->SetCreatedFromDefaults(m_isCreatedFromDefaultLoc);
-	}
+	const MapLocParams& GetParams() const { return m_mapLocParams; }
+
+	const CVector3& GetPosition() const { return m_pos; }
+
+	bool IsCreatedFromDefaults() const { return m_isCreatedFromDefaultLoc; }
+	void SetCreatedFromDefaults(bool isCreatedFromDefaults) { m_isCreatedFromDefaultLoc = isCreatedFromDefaults; }
+
 	void SetLabel(const std::string& labelText);
-	std::string GetTag() { return m_tag; }
+	const std::string& GetTag() const { return m_tag; }
+
+	void SetSelected(bool selected);
+	bool IsSelected() const { return m_isSelected; }
+
+	// Called when the map object is removed by the map code
+	void OnMapObjectRemoved() { m_mapObject = nullptr; }
 
 private:
+	void UpdateLabel();
+
+private:
+	int                   m_index = -1;
 	MapLocParams          m_mapLocParams;
 	std::string           m_label;
 	std::string           m_tag;
 	CVector3              m_pos;
 	bool                  m_isCreatedFromDefaultLoc = false;
-	MapObjectMapLoc*      m_mapLoc = nullptr;
+	MapObjectMapLoc*      m_mapObject = nullptr;
+	bool                  m_isSelected = false;
+};
+
+
+// MapObject that represents a "MapLoc". I don't have a better name for this, so
+// I'm choosing to name it for consistency rather than something that is more accurate.
+
+class MapObjectMapLoc : public MapObject
+{
+public:
+	MapObjectMapLoc(MapLocTemplate* pMapLoc);
+	virtual ~MapObjectMapLoc();
+
+	virtual void PostInit() override;
+	virtual void Update(bool forced) override;
+	virtual bool CanDisplayObject() const override { return true; }
+
+private:
+	void UpdateMapObject();
+	void RemoveMapObject();
+
+	const MapLocParams& GetParams() const { return m_mapLoc->GetParams(); }
+
+	bool                  m_initialized = false;
+	MapLocTemplate*       m_mapLoc;
+	std::vector<MapViewLine*> m_lines;
+	MapCircle             m_circle;
 };
 
 extern std::vector<std::unique_ptr<MapLocTemplate>> gMapLocTemplates;
@@ -265,8 +263,11 @@ void InitDefaultMapLocParams();
 void UpdateDefaultMapLocInstances();
 void ResetMapLocOverrides();
 
-MapLocTemplate* GetMapLocTemplateByTag(const std::string_view& tag);
+MapLocTemplate* GetMapLocTemplateByTag(std::string_view tag);
+MapLocTemplate* GetMapLocByIndex(int index);
 
+void CreateAllMapLocs();
 void DeleteAllMapLocs();
-void DeleteMapLoc(MapObjectMapLoc* mapLoc);
 
+void AddMapLoc(std::unique_ptr<MapLocTemplate> mapLoc);
+void DeleteMapLoc(MapLocTemplate* mapLoc);

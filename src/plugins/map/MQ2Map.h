@@ -82,7 +82,7 @@ struct MapFilterOption
 		NoColor      = 0x02,       // option has no color property
 		Regenerate   = 0x04,       // map is regenerated if this option is changed
 		UsesRadius   = 0x08,       // option has a radius (draws a circle)
-		Object		 = 0x10,	   // option is an Object filter
+		Object       = 0x10,       // option is an Object filter
 	};
 
 	const char*      szName = nullptr;
@@ -138,21 +138,18 @@ extern bool repeatMaphide;
 
 extern std::vector<MapFilterOption*> mapFilterObjectOptions;
 extern std::vector<MapFilterOption*> mapFilterGeneralOptions;
-extern float mapLocSize;
-extern float mapLocWidth;
-extern float mapLocRadius;
 
 /* COMMANDS */
-void MapFilters(SPAWNINFO* pChar, char* szLine);
-void MapFilterSetting(SPAWNINFO* pChar, MapFilter nMapFilter, const char* szValue = nullptr);
-void MapHighlightCmd(SPAWNINFO* pChar, char* szLine);
+void MapFilters(PlayerClient* pChar, const char* szLine);
+void MapFilterSetting(PlayerClient* pChar, MapFilter nMapFilter, const char* szValue = nullptr);
+void MapHighlightCmd(PlayerClient* pChar, const char* szLine);
 void PulseReset();
-void MapHideCmd(SPAWNINFO* pChar, char* szLine);
-void MapShowCmd(SPAWNINFO* pChar, char* szLine);
-void MapNames(SPAWNINFO* pChar, char* szLine);
-void MapClickCommand(SPAWNINFO* pChar, char* szLine);
-void MapActiveLayerCmd(SPAWNINFO* pChar, char* szLine);
-void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine);
+void MapHideCmd(PlayerClient* pChar, const char* szLine);
+void MapShowCmd(PlayerClient* pChar, const char* szLine);
+void MapNames(PlayerClient* pChar, const char* szLine);
+void MapClickCommand(PlayerClient* pChar, const char* szLine);
+void MapActiveLayerCmd(PlayerClient* pChar, const char* szLine);
+void MapSetLocationCmd(PlayerClient* pChar, const char* szLine);
 char* FormatMarker(const char* szLine, char* szDest, size_t BufferSize);
 bool IsFloat(const std::string& in);
 
@@ -168,8 +165,7 @@ void MapAttach();
 void MapDetach();
 
 void MapLocSyntaxOutput();
-void MapRemoveLocation(char* szLine);
-void UpdateMapLocIndexes();
+void MapRemoveLocation(const char* szLine);
 
 bool MapSelectTarget();
 void MapClickLocation(float x, float y, const std::vector<float>& z_hits);

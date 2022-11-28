@@ -147,10 +147,7 @@ void MapGenerate()
 		}
 	}
 
-	for (auto& maploc : gMapLocTemplates)
-	{
-		maploc->CreateMapLoc();
-	}
+	CreateAllMapLocs();
 }
 
 void MapClear()
@@ -674,7 +671,7 @@ bool IsFloat(const std::string& in)
 	return !((sstr >> std::noskipws >> f).rdstate() ^ std::ios_base::eofbit);
 }
 
-void MapRemoveLocation(char* szLine)
+void MapRemoveLocation(const char* szLine)
 {
 	char arg[MAX_STRING];
 	std::stringstream ss(szLine);
@@ -683,7 +680,7 @@ void MapRemoveLocation(char* szLine)
 	if (!ss || ss.eof())
 	{
 		DeleteAllMapLocs();
-		WriteChatColor("MapLocs removed", USERCOLOR_DEFAULT);
+		WriteChatf("%d MapLoc(s) removed", (int)gMapLocTemplates.size());
 		return;
 	}
 
@@ -702,7 +699,7 @@ void MapRemoveLocation(char* szLine)
 	}
 
 	strcpy_s(yloc, arg);
-	MapObjectMapLoc* loc = nullptr;
+	MapLocTemplate* loc = nullptr;
 
 	if (ss && !ss.eof())
 	{
@@ -752,28 +749,27 @@ void MapRemoveLocation(char* szLine)
 			return;
 		}
 
-		loc = maploc->GetMapLoc();
+		loc = maploc;
 	}
 	else // remove by index
 	{
 		size_t index;
 		try
 		{
-			index = static_cast<size_t>(std::stoul(yloc)) - 1;
+			index = static_cast<size_t>(std::stoul(yloc));
 		}
-		catch (...)
+		catch (const std::exception&)
 		{
-			SyntaxError("Could not find MapLoc: %s", tag);
+			SyntaxError("Could not parse index: %s", yloc);
 			return;
 		}
 
-		if (index >= gMapLocTemplates.size())
+		loc = GetMapLocByIndex(index);
+		if (!loc)
 		{
 			WriteChatf("\arRemove loc by index out of bounds: %s", yloc);
 			return;
 		}
-
-		loc = gMapLocTemplates[index]->GetMapLoc();
 
 		strcpy_s(tag, loc->GetTag().c_str());
 	}
@@ -784,8 +780,6 @@ void MapRemoveLocation(char* szLine)
 		return;
 	}
 
-	std::string index = std::to_string(loc->GetIndex());
-
 	DeleteMapLoc(loc);
-	WriteChatf("MapLoc removed: Index:%s, loc:%s", index.c_str(), tag);
+	WriteChatf("MapLoc removed: Index:%d, loc:%s", loc->GetIndex(), tag);
 }
