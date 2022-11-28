@@ -1146,7 +1146,7 @@ void MapObjectMapLoc::UpdateMapLoc()
 
 	// Invert the color (highlight it) temporarily if this loc is selected in the imgui
 	if (m_isSelected)
-		colorARGB = m_mapLocParams.color.GetInvert().ToARGB();
+		colorARGB = m_mapLocParams.color.GetInverted().ToARGB();
 	else
 		colorARGB = m_mapLocParams.color.ToARGB();
 

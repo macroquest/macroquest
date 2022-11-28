@@ -303,7 +303,7 @@ LuaBind::LuaBind(const std::string& name, const sol::function& func, LuaEventPro
 	, m_function(func)
 	, m_processor(processor)
 {
-	AddFunction(m_name.c_str(), [this](PlayerClient*, char* args) -> void
+	AddCommand(m_name.c_str(), [this](PlayerClient*, const char* args) -> void
 	{
 		this->GetEventProcessor()->HandleBindCallback(this, args);
 	});

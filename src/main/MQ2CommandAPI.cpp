@@ -31,7 +31,7 @@ struct MQTimedCommand
 struct MQCommand
 {
 	char                                      Command[64];
-	std::function<void(PlayerClient*, char*)> Function;
+	std::function<void(PlayerClient*, const char*)> Function;
 	bool                                      EQ;
 	bool                                      Parse;
 	bool                                      InGameOnly;
@@ -488,16 +488,16 @@ public:
 	}
 };
 
-void AddFunction(const char* Command, std::function<void(SPAWNINFO*, char*)> Function, bool EQ /* = false */, bool Parse /* = true */, bool InGame /* = false */)
+void AddCommand(const char* Command, std::function<void(PlayerClient*, const char*)> Function, bool EQ /* = false */, bool Parse /* = true */, bool InGame /* = false */)
 {
-	DebugSpew("AddCommand(%s, 0x%X)", Command, Function);
+	DebugSpew("AddCommand(%s)", Command);
 
 	MQCommand* pCommand = new MQCommand;
 	memset(pCommand, 0, sizeof(MQCommand));
 	strcpy_s(pCommand->Command, Command);
 	pCommand->EQ = EQ;
 	pCommand->Parse = Parse;
-	pCommand->Function = Function;
+	pCommand->Function = std::move(Function);
 	pCommand->InGameOnly = InGame;
 
 	// perform insertion sort
@@ -536,7 +536,7 @@ void AddFunction(const char* Command, std::function<void(SPAWNINFO*, char*)> Fun
 
 void AddCommand(const char* Command, fEQCommand Function, bool EQ /* = false */, bool Parse /* = true */, bool InGame /* = false */)
 {
-	AddFunction(Command, Function, EQ, Parse, InGame);
+	AddCommand(Command, (fEQCommandConstChar)Function, EQ, Parse, InGame);
 }
 
 bool RemoveCommand(const char* Command)
