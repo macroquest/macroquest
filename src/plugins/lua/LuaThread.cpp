@@ -390,7 +390,8 @@ std::string LuaThread::GetScriptPath(std::string_view script, const std::filesys
 	std::error_code ec;
 	auto script_path = fs::absolute(luaDir / script, ec).lexically_normal();
 
-	auto lua_path = script_path.replace_extension(".lua");
+	auto lua_path = script_path;
+	lua_path.replace_extension(".lua");
 	if (!fs::exists(script_path, ec) && fs::exists(lua_path, ec))
 	{
 		script_path = lua_path;
