@@ -259,7 +259,6 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(
 	}
 	else
 	{
-		LuaError("Could not find script at path %s", script_path.c_str());
 		return std::nullopt;
 	}
 
