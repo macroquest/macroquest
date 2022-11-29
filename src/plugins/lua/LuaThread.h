@@ -98,6 +98,7 @@ public:
 	bool IsString() const { return m_isString; }
 	int GetPID() const { return m_pid; }
 	const std::string& GetName() const { return m_name; }
+	const std::string& GetScript() const { return m_path; }
 	sol::state_view GetState() const;
 	sol::thread GetLuaThread() const;
 
@@ -136,6 +137,10 @@ public:
 
 	const std::string& GetLuaDir() const { return m_luaEnvironmentSettings->luaDir; }
 	const std::string& GetModuleDir() const { return m_luaEnvironmentSettings->moduleDir; }
+
+	static std::string GetScriptPath(std::string_view script, const std::filesystem::path& luaDir);
+	static std::string GetCanonicalScriptName(std::string_view script, const std::filesystem::path& luaDir);
+	void UpdateLuaDir(const std::filesystem::path& newLuaDir);
 
 private:
 	RunResult RunOnce();

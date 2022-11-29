@@ -1149,27 +1149,13 @@ static void InputScalar()    { /* TODO: InputScalar(...) ==> UNSUPPORTED */ }
 static void InputScalarN()   { /* TODO: InputScalarN(...) ==> UNSUPPORTED */ }
 
 // Widgets: Color Editor / Picker
-static std::tuple<sol::as_table_t<std::vector<float>>, bool> ColorEdit3(const std::string& label, const sol::table& col)
-{
-	const lua_Number    r{ col[1].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) },
-	                    g{ col[2].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) },
-	                    b{ col[3].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) };
-	float color[3] = { float(r), float(g), float(b) };
-	bool used = ImGui::ColorEdit3(label.c_str(), color);
-
-	sol::as_table_t rgb = sol::as_table(std::vector<float>{
-		color[0], color[1], color[2]
-	});
-
-    return std::make_tuple(rgb, used);
-}
-static std::tuple<sol::as_table_t<std::vector<float>>, bool> ColorEdit3(const std::string& label, const sol::table& col, int flags)
+static std::tuple<sol::as_table_t<std::vector<float>>, bool> ColorEdit3(const char* label, const sol::table& col, int flags)
 {
     const lua_Number    r{ col[1].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) },
                         g{ col[2].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) },
                         b{ col[3].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) };
     float color[3] = { float(r), float(g), float(b) };
-    bool used = ImGui::ColorEdit3(label.c_str(), color, static_cast<ImGuiColorEditFlags>(flags));
+    bool used = ImGui::ColorEdit3(label, color, ImGuiColorEditFlags(flags));
 
     sol::as_table_t rgb = sol::as_table(std::vector<float>{
         color[0], color[1], color[2]
@@ -1357,31 +1343,6 @@ static void EndTooltip()                                                        
 static void SetTooltip(const std::string& fmt)                                                      { ImGui::SetTooltip(fmt.c_str()); }
 static void SetTooltipV()                                                                           { /* TODO: SetTooltipV(...) ==> UNSUPPORTED */ }
 
-// Popups, Modals
-static bool BeginPopup(const std::string& str_id)                                                   { return ImGui::BeginPopup(str_id.c_str()); }
-static bool BeginPopup(const std::string& str_id, int flags)                                        { return ImGui::BeginPopup(str_id.c_str(), static_cast<ImGuiWindowFlags>(flags)); }
-static bool BeginPopupModal(const std::string& name)                                                { return ImGui::BeginPopupModal(name.c_str()); }
-static bool BeginPopupModal(const std::string& name, bool open)                                     { return ImGui::BeginPopupModal(name.c_str(), &open); }
-static bool BeginPopupModal(const std::string& name, bool open, int flags)                          { return ImGui::BeginPopupModal(name.c_str(), &open, static_cast<ImGuiWindowFlags>(flags)); }
-static void EndPopup()                                                                              { ImGui::EndPopup(); }
-static void OpenPopup(const std::string& str_id)                                                    { ImGui::OpenPopup(str_id.c_str()); }
-static void OpenPopup(const std::string& str_id, int popup_flags)                                   { ImGui::OpenPopup(str_id.c_str(), static_cast<ImGuiPopupFlags>(popup_flags)); }
-static void OpenPopupOnItemClick()                                                                  { ImGui::OpenPopupOnItemClick(); }
-static void OpenPopupOnItemClick(const std::string& str_id)                                         { ImGui::OpenPopupOnItemClick(str_id.c_str()); }
-static void OpenPopupOnItemClick(const std::string& str_id, int flags)                              { ImGui::OpenPopupOnItemClick(str_id.c_str(), ImGuiPopupFlags(flags)); }
-static void CloseCurrentPopup()                                                                     { ImGui::CloseCurrentPopup(); }
-static bool BeginPopupContextItem()                                                                 { return ImGui::BeginPopupContextItem(); }
-static bool BeginPopupContextItem(const std::string& str_id)                                        { return ImGui::BeginPopupContextItem(str_id.c_str()); }
-static bool BeginPopupContextItem(const std::string& str_id, int popup_flags)                       { return ImGui::BeginPopupContextItem(str_id.c_str(), static_cast<ImGuiPopupFlags>(popup_flags)); }
-static bool BeginPopupContextWindow()                                                               { return ImGui::BeginPopupContextWindow(); }
-static bool BeginPopupContextWindow(const std::string& str_id)                                      { return ImGui::BeginPopupContextWindow(str_id.c_str()); }
-static bool BeginPopupContextWindow(const std::string& str_id, int popup_flags)                     { return ImGui::BeginPopupContextWindow(str_id.c_str(), static_cast<ImGuiPopupFlags>(popup_flags)); }
-static bool BeginPopupContextVoid()                                                                 { return ImGui::BeginPopupContextVoid(); }
-static bool BeginPopupContextVoid(const std::string& str_id)                                        { return ImGui::BeginPopupContextVoid(str_id.c_str()); }
-static bool BeginPopupContextVoid(const std::string& str_id, int popup_flags)                       { return ImGui::BeginPopupContextVoid(str_id.c_str(), static_cast<ImGuiPopupFlags>(popup_flags)); }
-static bool IsPopupOpen(const std::string& str_id)                                                  { return ImGui::IsPopupOpen(str_id.c_str()); }
-static bool IsPopupOpen(const std::string& str_id, int popup_flags)                                 { return ImGui::IsPopupOpen(str_id.c_str(), popup_flags); }
-
 // Tables
 static bool BeginTable(const std::string& str_id, int columns_count)                                { return ImGui::BeginTable(str_id.c_str(), columns_count); }
 static bool BeginTable(const std::string& str_id, int columns_count, int flags)                     { return ImGui::BeginTable(str_id.c_str(), columns_count, static_cast<ImGuiTableFlags>(flags)); }
@@ -1445,9 +1406,6 @@ static void EndTabItem()                                                        
 static void SetTabItemClosed(const std::string& tab_or_docked_window_label)                         { ImGui::SetTabItemClosed(tab_or_docked_window_label.c_str()); }
 
 // Docking
-static void DockSpace(unsigned int id)                                                              { ImGui::DockSpace(id); }
-static void DockSpace(unsigned int id, float sizeX, float sizeY)                                    { ImGui::DockSpace(id, { sizeX, sizeY }); }
-static void DockSpace(unsigned int id, float sizeX, float sizeY, int flags)                         { ImGui::DockSpace(id, { sizeX, sizeY }, static_cast<ImGuiDockNodeFlags>(flags)); }
 static unsigned int DockSpaceOverViewport()                                                         { return 0; /* TODO: DockSpaceOverViwport(...) ==> UNSUPPORTED */ }
 static void SetNextWindowDockID(unsigned int dock_id)                                               { ImGui::SetNextWindowDockID(dock_id); }
 static void SetNextWindowDockID(unsigned int dock_id, int cond)                                     { ImGui::SetNextWindowDockID(dock_id, static_cast<ImGuiCond>(cond)); }
@@ -1504,11 +1462,21 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 		[](sol::variadic_args va, sol::this_state s) { sol::function string_format = sol::state_view(s)["string"]["format"]; std::string text = string_format(va); ImGui::Text("%s", text.c_str()); }
 	));
 	ImGui.set_function("TextColored", sol::overload(
-		                                    [](float r, float g, float b, float a, const char* text) { ImGui::TextColored({ r, g, b, a }, text); },
-		                                    [](int col, const char* text) { ImGui::TextColored(ImColor(col), text); },
-		                                    [](const ImVec4& col, const char* text) { ImGui::TextColored(col, text); }));
-	ImGui.set_function("TextDisabled",      [](const char* text) { ImGui::TextDisabled("%s", text); });
-	ImGui.set_function("TextWrapped",       [](const char* text) { ImGui::TextWrapped("%s", text); });
+		[](float r, float g, float b, float a, const char* text) { ImGui::TextColored({ r, g, b, a }, text); },
+		[](int col, const char* text) { ImGui::TextColored(ImColor(col), text); },
+		[](const ImVec4& col, const char* text) { ImGui::TextColored(col, text); },
+		[](float r, float g, float b, float a, sol::variadic_args va, sol::this_state s) { sol::function string_format = sol::state_view(s)["string"]["format"]; std::string text = string_format(va); ImGui::TextColored({ r, g, b, a }, text.c_str()); },
+		[](int col, sol::variadic_args va, sol::this_state s) { sol::function string_format = sol::state_view(s)["string"]["format"]; std::string text = string_format(va); ImGui::TextColored(ImColor(col), text.c_str()); },
+		[](const ImVec4& col, sol::variadic_args va, sol::this_state s) { sol::function string_format = sol::state_view(s)["string"]["format"]; std::string text = string_format(va); ImGui::TextColored(col, text.c_str()); }
+	));
+	ImGui.set_function("TextDisabled", sol::overload(
+		[](const char* text) { ImGui::TextDisabled("%s", text); },
+		[](sol::variadic_args va, sol::this_state s) { sol::function string_format = sol::state_view(s)["string"]["format"]; std::string text = string_format(va); ImGui::TextDisabled("%s", text.c_str()); }
+	));
+	ImGui.set_function("TextWrapped", sol::overload(
+		[](const char* text) { ImGui::TextWrapped("%s", text); },
+		[](sol::variadic_args va, sol::this_state s) { sol::function string_format = sol::state_view(s)["string"]["format"]; std::string text = string_format(va); ImGui::Text("%s", text.c_str()); }
+	));
 	ImGui.set_function("LabelText",         [](const char* label, const char* text) { ImGui::LabelText(label, "%s", text); });
 	ImGui.set_function("BulletText",        [](const char* text) { ImGui::BulletText("%s", text); });
 	#pragma endregion
@@ -1756,8 +1724,10 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 
 	#pragma region Widgets: Color Editor / Picker
 	ImGui.set_function("ColorEdit3", sol::overload(
-		sol::resolve<std::tuple <sol::as_table_t<std::vector<float>>, bool>(const std::string&, const sol::table&)>(ColorEdit3),
-		sol::resolve<std::tuple <sol::as_table_t<std::vector<float>>, bool>(const std::string&, const sol::table&, int)>(ColorEdit3)
+		[](const char* label, ImVec4 col) { bool used = ImGui::ColorEdit3(label, &col.x); return std::make_tuple(col, used); },
+		[](const char* label, ImVec4 col, int flags) { bool used = ImGui::ColorEdit3(label, &col.x); return std::make_tuple(col, used, ImGuiColorEditFlags(flags)); },
+		[](const char* label, const sol::table& col) { return ColorEdit3(label, col, 0); },
+		[](const char* label, const sol::table& col, int flags) { return ColorEdit3(label, col, flags); }
 	));
 	ImGui.set_function("ColorEdit4", sol::overload(
 		sol::resolve<std::tuple<ImVec4, bool>(const std::string&, ImVec4)>(ColorEdit4),
@@ -1850,10 +1820,10 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 	ImGui.set_function("EndMenu", &ImGui::EndMenu);
 	ImGui.set_function("MenuItem", sol::overload(
 		[](const char* label) { bool activated = ImGui::MenuItem(label); return std::make_tuple(activated, activated); },
-		[](const char* label, const char* shortcut) { bool activated = ImGui::MenuItem(label, shortcut); return std::make_tuple(activated, activated); },
-		[](const char* label, const char* shortcut, nullptr_t, bool enabled) { bool activated = ImGui::MenuItem(label, shortcut, nullptr, enabled); return std::make_tuple(activated, activated); },
-		[](const char* label, const char* shortcut, bool selected) { bool activated = ImGui::MenuItem(label, shortcut, &selected); return std::make_tuple(activated, selected); },
-		[](const char* label, const char* shortcut, bool selected, bool enabled) { bool activated = ImGui::MenuItem(label, shortcut, &selected, enabled); return std::make_tuple(activated, selected); }
+		[](const char* label, sol::optional<const char*> shortcut) { bool activated = ImGui::MenuItem(label, shortcut.value_or(nullptr)); return std::make_tuple(activated, activated); },
+		[](const char* label, sol::optional<const char*> shortcut, nullptr_t, bool enabled) { bool activated = ImGui::MenuItem(label, shortcut.value_or(nullptr), nullptr, enabled); return std::make_tuple(activated, activated); },
+		[](const char* label, sol::optional<const char*> shortcut, bool selected) { bool activated = ImGui::MenuItem(label, shortcut.value_or(nullptr), &selected); return std::make_tuple(activated, selected); },
+		[](const char* label, sol::optional<const char*> shortcut, bool selected, bool enabled) { bool activated = ImGui::MenuItem(label, shortcut.value_or(nullptr), &selected, enabled); return std::make_tuple(activated, selected); }
 	));
 	#pragma endregion
 
@@ -1865,43 +1835,44 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 
 	#pragma region Popups, Modals
 	ImGui.set_function("BeginPopup", sol::overload(
-		sol::resolve<bool(const std::string&)>(BeginPopup),
-		sol::resolve<bool(const std::string&, int)>(BeginPopup)
+		[](const char* str_id) { return ImGui::BeginPopup(str_id); },
+		[](const char* str_id, int flags) { return ImGui::BeginPopup(str_id, ImGuiWindowFlags(flags)); }
 	));
 	ImGui.set_function("BeginPopupModal", sol::overload(
-		sol::resolve<bool(const std::string&)>(BeginPopupModal),
-		sol::resolve<bool(const std::string&, bool)>(BeginPopupModal),
-		sol::resolve<bool(const std::string&, bool, int)>(BeginPopupModal)
+		[](const char* name) { return ImGui::BeginPopupModal(name); },
+		[](const char* name, nullptr_t, int flags) { return ImGui::BeginPopupModal(name, nullptr, flags); },
+		[](const char* name, bool open) { bool show = ImGui::BeginPopupModal(name, &open); return std::make_tuple(open, show); },
+		[](const char* name, bool open, int flags) { bool show = ImGui::BeginPopupModal(name, &open, ImGuiWindowFlags(flags)); return std::make_tuple(open, show); }
 	));
-	ImGui.set_function("EndPopup", EndPopup);
+	ImGui.set_function("EndPopup", &ImGui::EndPopup);
 	ImGui.set_function("OpenPopup", sol::overload(
-		sol::resolve<void(const std::string&)>(OpenPopup),
-		sol::resolve<void(const std::string&, int)>(OpenPopup)
+		[](const char* str_id) { ImGui::OpenPopup(str_id); },
+		[](const char* str_id, int popup_flags) { ImGui::OpenPopup(str_id, ImGuiPopupFlags(popup_flags)); }
 	));
 	ImGui.set_function("OpenPopupOnItemClick", sol::overload(
-		sol::resolve<void()>(OpenPopupOnItemClick),
-		sol::resolve<void(const std::string&)>(OpenPopupOnItemClick),
-		sol::resolve<void(const std::string&, int)>(OpenPopupOnItemClick)
+		[]() { ImGui::OpenPopupOnItemClick(); },
+		[](const char* str_id) { ImGui::OpenPopupOnItemClick(str_id); },
+		[](const char* str_id, int flags) { ImGui::OpenPopupOnItemClick(str_id, ImGuiPopupFlags(flags)); }
 	));
-	ImGui.set_function("CloseCurrentPopup", CloseCurrentPopup);
+	ImGui.set_function("CloseCurrentPopup", &ImGui::CloseCurrentPopup);
 	ImGui.set_function("BeginPopupContextItem", sol::overload(
-		sol::resolve<bool()>(BeginPopupContextItem),
-		sol::resolve<bool(const std::string&)>(BeginPopupContextItem),
-		sol::resolve<bool(const std::string&, int)>(BeginPopupContextItem)
+		[]() { return ImGui::BeginPopupContextItem(); },
+		[](const char* str_id) { return ImGui::BeginPopupContextItem(str_id); },
+		[](const char* str_id, int popup_flags) { return ImGui::BeginPopupContextItem(str_id, ImGuiPopupFlags(popup_flags)); }
 	));
 	ImGui.set_function("BeginPopupContextWindow", sol::overload(
-		sol::resolve<bool()>(BeginPopupContextWindow),
-		sol::resolve<bool(const std::string&)>(BeginPopupContextWindow),
-		sol::resolve<bool(const std::string&, int)>(BeginPopupContextWindow)
+		[]() { return ImGui::BeginPopupContextWindow(); },
+		[](const char* str_id) { return ImGui::BeginPopupContextWindow(str_id); },
+		[](const char* str_id, int popup_flags) { return ImGui::BeginPopupContextWindow(str_id, ImGuiPopupFlags(popup_flags)); }
 	));
 	ImGui.set_function("BeginPopupContextVoid", sol::overload(
-		sol::resolve<bool()>(BeginPopupContextVoid),
-		sol::resolve<bool(const std::string&)>(BeginPopupContextVoid),
-		sol::resolve<bool(const std::string&, int)>(BeginPopupContextVoid)
+		[]() { return ImGui::BeginPopupContextVoid(); },
+		[](const char* str_id) { return ImGui::BeginPopupContextVoid(str_id); },
+		[](const char* str_id, int popup_flags) { return ImGui::BeginPopupContextVoid(str_id, ImGuiPopupFlags(popup_flags)); }
 	));
 	ImGui.set_function("IsPopupOpen", sol::overload(
-		sol::resolve<bool(const std::string&)>(IsPopupOpen),
-		sol::resolve<bool(const std::string&, int)>(IsPopupOpen)
+		[](const char* str_id) { return ImGui::IsPopupOpen(str_id); },
+		[](const char* str_id, int popup_flags) { return ImGui::IsPopupOpen(str_id, popup_flags); }
 	));
 	#pragma endregion
 
@@ -1994,9 +1965,11 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 
 	#pragma region Docking
 	ImGui.set_function("DockSpace", sol::overload(
-		sol::resolve<void(unsigned int)>(DockSpace),
-		sol::resolve<void(unsigned int, float, float)>(DockSpace),
-		sol::resolve<void(unsigned int, float, float, int)>(DockSpace)
+		[](ImGuiID id) { ImGui::DockSpace(id); },
+		[](ImGuiID id, float sizeX, float sizeY) { ImGui::DockSpace(id, { sizeX, sizeY }); },
+		[](ImGuiID id, float sizeX, float sizeY, int flags) { ImGui::DockSpace(id, { sizeX, sizeY }, ImGuiDockNodeFlags(flags)); },
+		[](ImGuiID id, const ImVec2& size) { ImGui::DockSpace(id, size); },
+		[](ImGuiID id, const ImVec2& size, int flags) { ImGui::DockSpace(id, size, ImGuiDockNodeFlags(flags)); }
 	));
 	ImGui.set_function("SetNextWindowDockID", sol::overload(
 		sol::resolve<void(unsigned int)>(SetNextWindowDockID),

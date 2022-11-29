@@ -460,13 +460,10 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 
 	// Need to do this first to get the script path and compare paths instead of just the names
 	// since there are multiple valid ways to name the same script
-	auto script_path = fs::path{ s_environment.luaDir } / script;
-	if (!script_path.has_extension()) script_path.replace_extension(".lua");
-
-	std::error_code ec;
-	if (!std::filesystem::exists(script_path, ec))
+	auto script_path = LuaThread::GetScriptPath(script, s_environment.luaDir);
+	if (script_path.empty())
 	{
-		LuaError("Could not find script at path %s", script_path.string().c_str());
+		LuaError("Could not find script %s", script.c_str());
 		return 0;
 	}
 
@@ -503,7 +500,7 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 
 	WriteChatStatus("Running lua script '%s' with PID %d", script.c_str(), entry->GetPID());
 
-	std::optional<LuaThreadInfo> result = entry->StartFile(script, args);
+	std::optional<LuaThreadInfo> result = entry->StartFile(script_path, args);
 	if (result)
 	{
 		result->status = LuaThreadStatus::Running;
@@ -572,8 +569,9 @@ static void LuaStopCommand(std::optional<std::string> script = std::nullopt)
 		}
 		else
 		{
+			std::string script_name = LuaThread::GetCanonicalScriptName(*script, s_environment.luaDir);
 			thread_it = std::find_if(s_running.begin(), s_running.end(),
-				[&script](const std::shared_ptr<LuaThread>& thread) { return ci_equals(thread->GetName(), *script); });
+				[&script_name](const std::shared_ptr<LuaThread>& thread) { return ci_equals(thread->GetName(), script_name); });
 		}
 
 		if (thread_it != s_running.end())
@@ -587,7 +585,8 @@ static void LuaStopCommand(std::optional<std::string> script = std::nullopt)
 		}
 		else
 		{
-			WriteChatStatus("No lua script '%s' to end", script->c_str());
+			std::string script_name = LuaThread::GetCanonicalScriptName(*script, s_environment.luaDir);
+			WriteChatStatus("No lua script '%s' to end", script_name.c_str());
 		}
 	}
 	else
@@ -722,6 +721,15 @@ static void ReadSettings()
 	if (mq::test_and_set(s_luaDirName, s_configNode[luaDir].as<std::string>(s_luaDirName)) || s_environment.luaDir.empty())
 	{
 		s_environment.luaDir = (std::filesystem::path(gPathMQRoot) / s_luaDirName).string();
+		for (auto& thread : s_running)
+		{
+			thread->UpdateLuaDir(s_environment.luaDir);
+		}
+
+		for (auto& thread : s_pending)
+		{
+			thread->UpdateLuaDir(s_environment.luaDir);
+		}
 
 		std::error_code ec;
 		if (!std::filesystem::exists(s_environment.luaDir, ec)
@@ -811,14 +819,45 @@ static void LuaConfCommand(const std::string& setting, const std::string& value)
 {
 	if (!value.empty())
 	{
-		WriteChatStatus("Lua setting %s to %s and saving...", setting.c_str(), value.c_str());
-		s_configNode[setting] = value;
+		if (ci_equals(setting, luaRequirePaths) || ci_equals(setting, dllRequirePaths))
+		{
+			if (s_configNode[setting].IsNull())
+				s_configNode[setting] = YAML::Load("[]");
+
+			auto it = std::find_if(s_configNode[setting].begin(), s_configNode[setting].end(), [&value](const auto& node)
+				{
+					return node.IsScalar() && ci_equals(value, node.as<std::string>());
+				});
+			if (it != s_configNode[setting].end())
+			{
+				WriteChatStatus("Lua removing %s from %s and saving...", value.c_str(), setting.c_str());
+				s_configNode[setting].remove(std::distance(s_configNode[setting].begin(), it));
+				if (s_configNode[setting].size() == 0)
+					s_configNode.remove(setting);
+			}
+			else
+			{
+				WriteChatStatus("Lua adding %s to %s and saving...", value.c_str(), setting.c_str());
+				s_configNode[setting].push_back(value);
+			}
+		}
+		else
+		{
+			WriteChatStatus("Lua setting %s to %s and saving...", setting.c_str(), value.c_str());
+			s_configNode[setting] = value;
+		}
 		WriteSettings();
 		ReadSettings();
 	}
 	else if (s_configNode[setting])
 	{
-		WriteChatStatus("Lua setting %s is set to %s.", setting.c_str(), s_configNode[setting].as<std::string>().c_str());
+		if (s_configNode[setting].IsSequence())
+		{
+			auto vec = s_configNode[setting].as<std::vector<std::string>>();
+			WriteChatStatus("Lua setting %s is set to [%s].", setting.c_str(), join(vec, ", ").c_str());
+		}
+		else
+			WriteChatStatus("Lua setting %s is set to %s.", setting.c_str(), s_configNode[setting].as<std::string>().c_str());
 	}
 	else
 	{
@@ -1086,7 +1125,7 @@ void LuaEnvironmentSettings::ConfigureLuaState(sol::state_view sv)
 	}
 
 	// always search the local dir first, then luarocks in modules, then anything specified by the user, then the default paths
-	sv["package"]["path"] = fmt::format("{luaDir}\\?.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?\\init.lua;{additionalPaths}{originalPath}",
+	sv["package"]["path"] = fmt::format("{luaDir}\\?.lua;{luaDir}\\?\\init.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?\\init.lua;{additionalPaths}{originalPath}",
 		fmt::arg("luaDir", luaDir),
 		fmt::arg("moduleDir", moduleDir),
 		fmt::arg("luaVersion", m_version),

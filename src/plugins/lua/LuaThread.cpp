@@ -245,20 +245,39 @@ sol::thread LuaThread::GetLuaThread() const
 std::optional<LuaThreadInfo> LuaThread::StartFile(
 	std::string_view filename, const std::vector<std::string>& args)
 {
-	std::filesystem::path script_path = std::filesystem::path{ m_luaEnvironmentSettings->luaDir } / filename;
-	if (!script_path.has_extension()) script_path.replace_extension(".lua");
+	namespace fs = std::filesystem;
 
-	m_name = filename;
-	m_path = script_path.string();
+	// filename here is canonical file name, but we need to reconstruct the path
+	auto script_path = GetScriptPath(filename, m_luaEnvironmentSettings->luaDir);
 
+	// prefix the package paths with the runDir if it's different than the luaDir
+	std::string runDir;
 	std::error_code ec;
-	if (!std::filesystem::exists(script_path, ec))
+	if (fs::exists(script_path, ec) && !ec && !script_path.empty())
 	{
-		LuaError("Could not find script at path %s", script_path.string().c_str());
+		runDir = fs::path{ script_path }.parent_path().string();
+	}
+	else
+	{
+		LuaError("Could not find script at path %s", script_path.c_str());
 		return std::nullopt;
 	}
 
-	auto co = m_coroutine->thread.state().load_file(script_path.string());
+	if (!runDir.empty() && fs::path{ runDir }.compare(m_luaEnvironmentSettings->luaDir) != 0)
+	{
+		m_globalState["package"]["path"] = fmt::format("{runDir}\\?.lua;{runDir}\\?\\init.lua;{existingPath}",
+			fmt::arg("runDir", runDir),
+			fmt::arg("existingPath", m_globalState["package"]["path"].get<std::string_view>()));
+
+		m_globalState["package"]["cpath"] = fmt::format("{runDir}\\?.dll;{existingPath}",
+			fmt::arg("runDir", runDir),
+			fmt::arg("existingPath", m_globalState["package"]["cpath"].get<std::string_view>()));
+	}
+
+	m_name = GetCanonicalScriptName(script_path, m_luaEnvironmentSettings->luaDir);
+	m_path = script_path;
+
+	auto co = m_coroutine->thread.state().load_file(script_path);
 	if (!co.valid())
 	{
 		sol::error err = co;
@@ -275,7 +294,7 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(
 	LuaThreadInfo ret{
 		m_pid,
 		m_name,
-		script_path.string(),
+		m_path,
 		args,
 		start_time,
 		{},
@@ -363,6 +382,67 @@ LuaThread::RunResult LuaThread::Run()
 	}
 
 	return { static_cast<sol::thread_status>(m_coroutine->coroutine.status()), std::nullopt };
+}
+
+std::string LuaThread::GetScriptPath(std::string_view script, const std::filesystem::path& luaDir)
+{
+	namespace fs = std::filesystem;
+
+	std::error_code ec;
+	auto script_path = fs::absolute(luaDir / script, ec).lexically_normal();
+
+	auto lua_path = script_path.replace_extension(".lua");
+	if (!fs::exists(script_path, ec) && fs::exists(lua_path, ec))
+	{
+		script_path = lua_path;
+	}
+	else if (fs::is_directory(script_path, ec) && fs::exists(lua_path, ec) && !fs::is_directory(lua_path, ec))
+	{
+		script_path = lua_path;
+	}
+	else if (!fs::exists(script_path, ec))
+	{
+		LuaError("Cannot find %.*s in the filesystem.", script.size(), script.data());
+		return {};
+	}
+
+	if (fs::is_directory(script_path, ec))
+	{
+		script_path = script_path.append("init.lua");
+	}
+
+	if (!fs::exists(script_path, ec))
+	{
+		LuaError("Cannot find script at %s", script_path.string().c_str());
+		return {};
+	}
+
+	return script_path.string();
+}
+
+std::string LuaThread::GetCanonicalScriptName(std::string_view script, const std::filesystem::path& luaDir)
+{
+	namespace fs = std::filesystem;
+
+	std::error_code ec;
+	auto script_path = fs::absolute(luaDir / script, ec).lexically_normal();
+
+	auto relative = script_path.lexically_relative(luaDir);
+	if (!relative.empty() && relative.native()[0] != '.')
+		script_path = relative;
+
+	if (ci_equals(script_path.filename().string(), "init.lua"))
+		script_path = script_path.parent_path();
+	else if (script_path.extension() == ".lua")
+		script_path.replace_extension("");
+
+	return mq::replace(script_path.string(), "\\", "/");
+}
+
+void LuaThread::UpdateLuaDir(const std::filesystem::path& newLuaDir)
+{
+	m_name = GetCanonicalScriptName(m_path, newLuaDir);
+	m_luaEnvironmentSettings->luaDir = newLuaDir.string();
 }
 
 LuaThread::RunResult LuaThread::RunOnce()

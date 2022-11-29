@@ -209,7 +209,7 @@ MQLIB_API void TimedCommand(const char* Command, int msDelay);
 MQLIB_API bool IsCommand(const char* command);
 MQLIB_API bool IsAlias(const char* alias);
 
-MQLIB_OBJECT void AddFunction(const char* Command, std::function<void(SPAWNINFO*, char*)> Function, bool EQ = false, bool Parse = true, bool InGame = false);
+MQLIB_OBJECT void AddCommand(const char* Command, std::function<void(PlayerClient*, const char*)> Function, bool EQ = false, bool Parse = true, bool InGame = false);
 
 /* MACRO COMMANDS */
 MQLIB_API void DumpStack(SPAWNINFO*, char*);

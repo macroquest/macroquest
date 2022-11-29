@@ -288,6 +288,7 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 	lua.new_usertype<ImGuiIO>(
 		"ImGuiIO"                      , sol::no_constructor,
 
+		"ConfigFlags"                  , &ImGuiIO::ConfigFlags,
 		"DisplaySize"                  , sol::readonly(&ImGuiIO::DisplaySize),
 		"FontDefault"                  , sol::readonly(&ImGuiIO::FontDefault),
 		"Fonts"                        , sol::readonly(&ImGuiIO::Fonts),

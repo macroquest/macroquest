@@ -29,7 +29,14 @@ local adding_line = false
 local draw_bg = true
 local draw_fg = true
 
-function ShowExampleAppCustomRendering()
+function ShowExampleAppCustomRendering(open)
+    local show
+    open, show = imgui.Begin("Example: Custom rendering (lua)", open)
+    if not show then
+        imgui.End()
+        return open
+    end
+
     if imgui.BeginTabBar('##TabBar') then
         if imgui.BeginTabItem('Primitives') then
             imgui.PushItemWidth(-imgui.GetFontSize() * 15)
@@ -308,6 +315,9 @@ function ShowExampleAppCustomRendering()
 
         imgui.EndTabBar()
     end
+
+    imgui.End()
+    return open
 end
 
 return ShowExampleAppCustomRendering

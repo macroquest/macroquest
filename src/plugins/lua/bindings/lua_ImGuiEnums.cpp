@@ -567,11 +567,11 @@ void RegisterBindings_ImGuiEnums(sol::state_view lua)
 
 	// ImDrawListFlags
 	lua.new_enum("ImDrawListFlags",
-		"None", ImDrawListFlags_None,
-		"AntiAliasedLines", ImDrawListFlags_AntiAliasedLines,
-		"AntiAliasedLinesUseTex", ImDrawListFlags_AntiAliasedLinesUseTex,
-		"AntiAliasedFill", ImDrawListFlags_AntiAliasedFill,
-		"AllowVtxOffset", ImDrawListFlags_AllowVtxOffset
+		"None"                         , ImDrawListFlags_None,
+		"AntiAliasedLines"             , ImDrawListFlags_AntiAliasedLines,
+		"AntiAliasedLinesUseTex"       , ImDrawListFlags_AntiAliasedLinesUseTex,
+		"AntiAliasedFill"              , ImDrawListFlags_AntiAliasedFill,
+		"AllowVtxOffset"               , ImDrawListFlags_AllowVtxOffset
 	);
 
 	// ImGuiButtonFlags
@@ -580,6 +580,23 @@ void RegisterBindings_ImGuiEnums(sol::state_view lua)
 		"MouseButtonLeft"              , ImGuiButtonFlags_MouseButtonLeft,
 		"MouseButtonRight"             , ImGuiButtonFlags_MouseButtonRight,
 		"MouseButtonMiddle"            , ImGuiButtonFlags_MouseButtonMiddle
+	);
+
+	// ImGuiConfigFlags
+	lua.new_enum("ImGuiConfigFlags",
+		"None"                         , ImGuiConfigFlags_None,
+		"NavEnableKeyboard"            , ImGuiConfigFlags_NavEnableKeyboard,
+		"NavEnableGamepad"             , ImGuiConfigFlags_NavEnableGamepad,
+		"NavEnableSetMousePos"         , ImGuiConfigFlags_NavEnableSetMousePos,
+		"NavNoCaptureKeyboard"         , ImGuiConfigFlags_NavNoCaptureKeyboard,
+		"NoMouse"                      , ImGuiConfigFlags_NoMouse,
+		"NoMouseCursorChange"          , ImGuiConfigFlags_NoMouseCursorChange,
+		"DockingEnable"                , ImGuiConfigFlags_DockingEnable,
+		"ViewportsEnable"              , ImGuiConfigFlags_ViewportsEnable,
+		"DpiEnableScaleViewports"      , ImGuiConfigFlags_DpiEnableScaleViewports,
+		"DpiEnableScaleFonts"          , ImGuiConfigFlags_DpiEnableScaleFonts,
+		"IsSRGB"                       , ImGuiConfigFlags_IsSRGB,
+		"IsTouchScreen"                , ImGuiConfigFlags_IsTouchScreen
 	);
 }
 

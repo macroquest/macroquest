@@ -175,6 +175,16 @@ public:
 		return ARGB & 0xffffff;
 	}
 
+	constexpr void Invert()
+	{
+		ARGB = (0xFFFFFF - (ARGB & 0xFFFFFF)) | (ARGB & 0xFF000000);
+	}
+
+	constexpr MQColor GetInverted() const
+	{
+		return MQColor((0xFFFFFF - (ARGB & 0xFFFFFF)) | (ARGB & 0xFF000000));
+	}
+
 	// Layout matches ARGBCOLOR
 	union
 	{
@@ -204,6 +214,8 @@ inline bool operator!=(const MQColor& left, const MQColor& right)
 {
 	return left.ARGB != right.ARGB;
 }
+
+MQLIB_OBJECT std::string to_string(MQColor color);
 
 // Get the MQColor for a given chat color. Respects user preference if
 // it is available.

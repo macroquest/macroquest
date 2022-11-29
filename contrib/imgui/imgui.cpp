@@ -5560,7 +5560,7 @@ static ImVec2 CalcWindowSizeAfterConstraint(ImGuiWindow* window, const ImVec2& s
         if (g.NextWindowData.SizeCallback)
         {
             ImGuiSizeCallbackData data;
-            data.UserData = g.NextWindowData.SizeCallbackUserData;
+            //data.UserData = g.NextWindowData.SizeCallbackUserData;
             data.Pos = window->Pos;
             data.CurrentSize = window->SizeFull;
             data.DesiredSize = new_size;
@@ -6965,6 +6965,8 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
             IM_ASSERT(window->Appearing == false); // Please report on GitHub if this triggers: https://github.com/ocornut/imgui/issues/4177
     }
 
+    g.NextWindowData.SizeCallback = nullptr;
+
     return !window->SkipItems;
 }
 
@@ -7552,13 +7554,13 @@ void ImGui::SetNextWindowSize(const ImVec2& size, ImGuiCond cond)
     g.NextWindowData.SizeCond = cond ? cond : ImGuiCond_Always;
 }
 
-void ImGui::SetNextWindowSizeConstraints(const ImVec2& size_min, const ImVec2& size_max, ImGuiSizeCallback custom_callback, void* custom_callback_user_data)
+void ImGui::SetNextWindowSizeConstraints(const ImVec2& size_min, const ImVec2& size_max, ImGuiSizeCallback custom_callback)
 {
     ImGuiContext& g = *GImGui;
     g.NextWindowData.Flags |= ImGuiNextWindowDataFlags_HasSizeConstraint;
     g.NextWindowData.SizeConstraintRect = ImRect(size_min, size_max);
-    g.NextWindowData.SizeCallback = custom_callback;
-    g.NextWindowData.SizeCallbackUserData = custom_callback_user_data;
+    g.NextWindowData.SizeCallback = std::move(custom_callback);
+    //g.NextWindowData.SizeCallbackUserData = custom_callback_user_data;
 }
 
 // Content size = inner scrollable rectangle, padded with WindowPadding.
