@@ -1,3 +1,16 @@
+November 24, 2022:
+- test: fix zone count
+- test: fix keybinds
+
+November 23, 2022:
+- test: updated for test patch
+- Message box will now appear when overlay is stopped due to an error.
+- lua: Many improvements to imgui bindings for lua. Notably, ImDrawList support has been
+  added. Some of these features are evolving, check out examples/imgui_demo.lua for example lua code.
+- lua: Added support for converting macro array types to lua tables (#641).
+- lua: event and bind add/remove will now return true/false based on if the action was successful.
+  These actions may fail if the event already exists with the specified name, for example.
+
 November 16, 2022:
 - live: Updated for latest patch
 - Updated MQ2TargetInfoPHs.txt (#661)
