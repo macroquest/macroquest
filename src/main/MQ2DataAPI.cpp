@@ -422,7 +422,7 @@ bool EvaluateDataExpression(MQTypeVar& Result, const char* pStart, char* pIndex,
 			{
 				if (DataVar->Var.Type == datatypes::pArrayType)
 				{
-					datatypes::CDataArray* dataArray = static_cast<datatypes::CDataArray*>(DataVar->Var.Ptr);
+					auto dataArray = DataVar->Var.Get<datatypes::CDataArray>();
 
 					if (!dataArray->GetElement(pIndex, Result))
 						return false;

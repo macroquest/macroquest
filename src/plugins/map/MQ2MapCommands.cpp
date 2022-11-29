@@ -1203,7 +1203,7 @@ static void BuildFilteredOptionArray(std::vector<MapFilterOption*> &options)
 				if (std::strcmp(parentFilterOption.szName, options[parentIndex]->szName) == 0)
 				{
 					// Find location to move child after parent, including sorting sub children alphabetically
-					int childNewIndex = parentIndex + 1;
+					size_t childNewIndex = parentIndex + 1;
 					for (size_t movedChildIndex = childNewIndex;
 						movedChildIndex < options.size() - 1 &&
 						options[movedChildIndex]->RequiresOption == options[movedChildIndex + 1]->RequiresOption &&

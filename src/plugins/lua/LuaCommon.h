@@ -45,7 +45,10 @@ void ErrorMessage(ColorWriter writer, const char* format, int color, Args&&... a
 	writer(format, color, std::forward<Args>(args)...);
 }
 
-std::string lua_join(sol::this_state L, std::string_view delim, sol::variadic_args va);
+namespace bindings {
+	std::string lua_join(sol::this_state L, std::string_view delim, sol::variadic_args va);
+}
+using bindings::lua_join;
 
 class LuaEnvironmentSettings
 {
@@ -66,5 +69,7 @@ private:
 	std::string m_packageCPath;
 	std::string m_version;
 };
+
+class LuaThread;
 
 } // namespace mq::lua

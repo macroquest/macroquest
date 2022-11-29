@@ -115,11 +115,11 @@ public:
 	LuaEventProcessor(LuaThread* thread);
 	~LuaEventProcessor();
 
-	void AddEvent(std::string_view name, std::string_view expression, const sol::function& function);
-	void RemoveEvent(std::string_view name);
+	bool AddEvent(std::string_view name, std::string_view expression, const sol::function& function);
+	bool RemoveEvent(std::string_view name);
 
-	void AddBind(std::string_view name, const sol::function& function);
-	void RemoveBind(std::string_view name);
+	bool AddBind(std::string_view name, const sol::function& function);
+	bool RemoveBind(std::string_view name);
 
 	void Process(std::string_view line) const;
 

@@ -505,6 +505,7 @@ const char* szZoneExpansionName[] = {
 	"Torment of Velious",       // 26
 	"Claws of Veeshan",         // 27
 	"Terror of Luclin",         // 28
+	"Night of Shadows",         // 29
 };
 
 const char* GetZoneExpansionName(int expansion)

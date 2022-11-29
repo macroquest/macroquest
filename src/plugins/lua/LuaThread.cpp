@@ -17,7 +17,7 @@
 #include "LuaCoroutine.h"
 #include "LuaEvent.h"
 #include "LuaImGui.h"
-#include "bindings/lua_MQBindings.h"
+#include "bindings/lua_Bindings.h"
 
 #include <mq/Plugin.h>
 #include <luajit.h>
@@ -40,8 +40,6 @@ bool lua_isyieldable(lua_State* L)
 	return (*(intptr_t*)((char*)L + offset) & 1);
 }
 #endif
-
-void RegisterBitwiseOps(sol::state_view state);
 
 namespace mq::lua {
 
@@ -124,22 +122,8 @@ LuaThread::LuaThread(this_is_private&&, LuaEnvironmentSettings* environment)
 
 void LuaThread::Initialize()
 {
-	RegisterBitwiseOps(m_globalState);
-
-	m_globalState["_old_dofile"] = m_globalState["dofile"];
-	m_globalState["dofile"] = [this](std::string_view file, sol::variadic_args args)
-	{
-		std::filesystem::path file_path = std::filesystem::path(m_luaEnvironmentSettings->luaDir) / file;
-		return m_globalState["_old_dofile"](file_path.string(), args);
-	};
-
-	// Replace os.exit with mq.exit
-	m_globalState["os"]["exit"] = LuaThread::lua_exit;
-
-	m_globalState["mqthread"] = LuaThreadRef(shared_from_this());
-	m_globalState["print"] = [](sol::variadic_args va, sol::this_state s) {
-		WriteChatColorf("%s", USERCOLOR_CHAT_CHANNEL, lua_join(s, "", va).c_str());
-	};
+	bindings::RegisterBindings_Globals(this, m_globalState);
+	bindings::RegisterBindings_Bit32(m_globalState);
 
 	m_globalState.add_package_loader(LuaThread::lua_PackageLoader);
 }
@@ -162,30 +146,9 @@ void LuaThread::EnableEvents()
 
 void LuaThread::InjectMQNamespace()
 {
-	if (m_mqTable.has_value())
-		return;
-
-	m_mqTable = m_globalState.create_table();
-	RegisterLuaBindings(*m_mqTable);
+	RegisterMQNamespace(m_globalState);
 
 	m_globalState["mq"] = *m_mqTable;
-}
-
-/*static*/ void LuaThread::lua_delay(sol::object delayObj, sol::object conditionObj, sol::this_state s)
-{
-	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
-	{
-		if (auto co_ptr = thread_ptr->GetCurrentCoroutine())
-		{
-			co_ptr->Delay(delayObj, conditionObj, s);
-		}
-	}
-}
-
-/*static*/ uint64_t LuaThread::lua_gettime(sol::this_state s)
-{
-	auto t = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch());
-	return t.count();
 }
 
 void LuaThread::Exit(LuaThreadExitReason reason)
@@ -210,26 +173,16 @@ void LuaThread::RemoveThread(uint32_t index)
 	m_threadTable[index] = sol::lua_nil;
 }
 
-/*static*/ void LuaThread::lua_exit(sol::this_state s)
+void LuaThread::RegisterMQNamespace(sol::state_view sv)
 {
-	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
+	if (!m_mqTable.has_value())
 	{
-		thread_ptr->Exit(LuaThreadExitReason::Exit);
+		auto mq = sv.create_table();
+		bindings::RegisterBindings_MQ(this, mq);
+		bindings::RegisterBindings_MQMacroData(mq);
+
+		m_mqTable = mq;
 	}
-}
-
-void LuaThread::RegisterLuaBindings(sol::table mq)
-{
-	MQ_RegisterLua_MQBindings(mq);
-
-	mq.set_function("gettime",                   &LuaThread::lua_gettime);
-	mq.set_function("delay",                     &LuaThread::lua_delay);
-	mq.set_function("exit",                      &LuaThread::lua_exit);
-	mq.set("luaDir",                             m_luaEnvironmentSettings->luaDir);
-	mq.set("moduleDir",                          m_luaEnvironmentSettings->moduleDir);
-
-	MQ_RegisterLua_Events(mq);
-	MQ_RegisterLua_ImGui(mq);
 }
 
 int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
@@ -238,23 +191,18 @@ int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 
 	if (pkg == "mq")
 	{
-		if (!m_mqTable.has_value())
-		{
-			m_mqTable = sv.create_table();
-			RegisterLuaBindings(*m_mqTable);
-		}
-
+		RegisterMQNamespace(sv);
 		m_globalState.set("_mq_internal_table", *m_mqTable);
 
-		std::string script("return _mq_internal_table");
+		std::string_view script("return _mq_internal_table");
 		luaL_loadbuffer(sv, script.data(), script.size(), pkg.c_str());
 		return 1;
 	}
 	else if (pkg == "ImGui")
 	{
-		ImGui_RegisterLua(sv);
+		bindings::RegisterBindings_ImGui(sv);
 
-		std::string script("return nil");
+		std::string_view script("return ImGui");
 		luaL_loadbuffer(sv, script.data(), script.size(), pkg.c_str());
 		return 1;
 	}
@@ -297,20 +245,39 @@ sol::thread LuaThread::GetLuaThread() const
 std::optional<LuaThreadInfo> LuaThread::StartFile(
 	std::string_view filename, const std::vector<std::string>& args)
 {
-	std::filesystem::path script_path = std::filesystem::path{ m_luaEnvironmentSettings->luaDir } / filename;
-	if (!script_path.has_extension()) script_path.replace_extension(".lua");
+	namespace fs = std::filesystem;
 
-	m_name = filename;
-	m_path = script_path.string();
+	// filename here is canonical file name, but we need to reconstruct the path
+	auto script_path = GetScriptPath(filename, m_luaEnvironmentSettings->luaDir);
 
+	// prefix the package paths with the runDir if it's different than the luaDir
+	std::string runDir;
 	std::error_code ec;
-	if (!std::filesystem::exists(script_path, ec))
+	if (fs::exists(script_path, ec) && !ec && !script_path.empty())
 	{
-		LuaError("Could not find script at path %s", script_path.string().c_str());
+		runDir = fs::path{ script_path }.parent_path().string();
+	}
+	else
+	{
+		LuaError("Could not find script at path %s", script_path.c_str());
 		return std::nullopt;
 	}
 
-	auto co = m_coroutine->thread.state().load_file(script_path.string());
+	if (!runDir.empty() && fs::path{ runDir }.compare(m_luaEnvironmentSettings->luaDir) != 0)
+	{
+		m_globalState["package"]["path"] = fmt::format("{runDir}\\?.lua;{runDir}\\?\\init.lua;{existingPath}",
+			fmt::arg("runDir", runDir),
+			fmt::arg("existingPath", m_globalState["package"]["path"].get<std::string_view>()));
+
+		m_globalState["package"]["cpath"] = fmt::format("{runDir}\\?.dll;{existingPath}",
+			fmt::arg("runDir", runDir),
+			fmt::arg("existingPath", m_globalState["package"]["cpath"].get<std::string_view>()));
+	}
+
+	m_name = GetCanonicalScriptName(script_path, m_luaEnvironmentSettings->luaDir);
+	m_path = script_path;
+
+	auto co = m_coroutine->thread.state().load_file(script_path);
 	if (!co.valid())
 	{
 		sol::error err = co;
@@ -327,7 +294,7 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(
 	LuaThreadInfo ret{
 		m_pid,
 		m_name,
-		script_path.string(),
+		m_path,
 		args,
 		start_time,
 		{},
@@ -415,6 +382,67 @@ LuaThread::RunResult LuaThread::Run()
 	}
 
 	return { static_cast<sol::thread_status>(m_coroutine->coroutine.status()), std::nullopt };
+}
+
+std::string LuaThread::GetScriptPath(std::string_view script, const std::filesystem::path& luaDir)
+{
+	namespace fs = std::filesystem;
+
+	std::error_code ec;
+	auto script_path = fs::absolute(luaDir / script, ec).lexically_normal();
+
+	auto lua_path = script_path.replace_extension(".lua");
+	if (!fs::exists(script_path, ec) && fs::exists(lua_path, ec))
+	{
+		script_path = lua_path;
+	}
+	else if (fs::is_directory(script_path, ec) && fs::exists(lua_path, ec) && !fs::is_directory(lua_path, ec))
+	{
+		script_path = lua_path;
+	}
+	else if (!fs::exists(script_path, ec))
+	{
+		LuaError("Cannot find %.*s in the filesystem.", script.size(), script.data());
+		return {};
+	}
+
+	if (fs::is_directory(script_path, ec))
+	{
+		script_path = script_path.append("init.lua");
+	}
+
+	if (!fs::exists(script_path, ec))
+	{
+		LuaError("Cannot find script at %s", script_path.string().c_str());
+		return {};
+	}
+
+	return script_path.string();
+}
+
+std::string LuaThread::GetCanonicalScriptName(std::string_view script, const std::filesystem::path& luaDir)
+{
+	namespace fs = std::filesystem;
+
+	std::error_code ec;
+	auto script_path = fs::absolute(luaDir / script, ec).lexically_normal();
+
+	auto relative = script_path.lexically_relative(luaDir);
+	if (!relative.empty() && relative.native()[0] != '.')
+		script_path = relative;
+
+	if (ci_equals(script_path.filename().string(), "init.lua"))
+		script_path = script_path.parent_path();
+	else if (script_path.extension() == ".lua")
+		script_path.replace_extension("");
+
+	return mq::replace(script_path.string(), "\\", "/");
+}
+
+void LuaThread::UpdateLuaDir(const std::filesystem::path& newLuaDir)
+{
+	m_name = GetCanonicalScriptName(m_path, newLuaDir);
+	m_luaEnvironmentSettings->luaDir = newLuaDir.string();
 }
 
 LuaThread::RunResult LuaThread::RunOnce()

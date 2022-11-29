@@ -764,7 +764,7 @@ void MapRemoveLocation(const char* szLine)
 			return;
 		}
 
-		loc = GetMapLocByIndex(index);
+		loc = GetMapLocByIndex((int)index);
 		if (!loc)
 		{
 			WriteChatf("\arRemove loc by index out of bounds: %s", yloc);
