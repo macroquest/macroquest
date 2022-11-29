@@ -138,8 +138,9 @@ public:
 	const std::string& GetLuaDir() const { return m_luaEnvironmentSettings->luaDir; }
 	const std::string& GetModuleDir() const { return m_luaEnvironmentSettings->moduleDir; }
 
-	static std::string GetScriptPath(std::string_view canonical_script, const std::filesystem::path& luaDir);
-	void UpdateLuaDir(std::string_view new_canonical_name, const std::filesystem::path& newLuaDir);
+	static std::string GetScriptPath(std::string_view script, const std::filesystem::path& luaDir);
+	static std::string GetCanonicalScriptName(std::string_view script, const std::filesystem::path& luaDir);
+	void UpdateLuaDir(const std::filesystem::path& newLuaDir);
 
 private:
 	RunResult RunOnce();
