@@ -7187,6 +7187,19 @@ uint32_t mqGetColorForChatColor(uint32_t chatColor)
 	return GetColorForChatColor(chatColor).ARGB;
 }
 
+// TODO: We should move library code to its own tree
+std::string to_string(MQColor color)
+{
+	if (color.Alpha != 255)
+	{
+		return fmt::format("RGBA({}, {}, {}, {})",
+			static_cast<int>(color.Red), static_cast<int>(color.Green), static_cast<int>(color.Blue), static_cast<int>(color.Alpha));
+	}
+
+	return fmt::format("RGB({}, {}, {})",
+		static_cast<int>(color.Red), static_cast<int>(color.Green), static_cast<int>(color.Blue));
+}
+
 // TODO: Rewrite this using string_view
 uint64_t GetMoneyFromString(const char* str, GetMoneyFromStringFormat format)
 {

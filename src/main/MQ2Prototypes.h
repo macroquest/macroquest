@@ -21,8 +21,9 @@ struct MQGroundSpawn;
 using fEQGetMelee            = float  (*)(PlayerClient*, PlayerClient*);
 
 // MQ2 Callback types
-using fEQCommand             = void   (*)(SPAWNINFO*, char* Buffer);
-using fMQCommand             = void   (*)(SPAWNINFO*, char* Buffer, size_t BuffLen);
+using fEQCommand             = void   (*)(PlayerClient*, char* Buffer);
+using fEQCommandConstChar    = void   (*)(PlayerClient*, const char*);
+using fMQCommand             = void   (*)(PlayerClient*, char* Buffer, size_t BuffLen);
 using fCascadeItemFunction   = void   (*)();
 struct TokenTextParam;
 using fMQTokenMessageCmd     = void   (*)(const TokenTextParam&);
