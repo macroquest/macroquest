@@ -1070,7 +1070,7 @@ static InjectResult DoInject(uint32_t PID)
 	return InjectResult::Success;
 }
 
-void InjectorThread()
+void InjectorThread(bool injectOnce)
 {
 	SPDLOG_DEBUG("Injector thread started");
 
@@ -1083,6 +1083,8 @@ void InjectorThread()
 
 		// Grab a list of the requests that we should be processing *right now*
 		std::vector<InjectRequest> requests;
+
+		const auto startRequests = s_injectRequests.size();
 
 		// Check the request list. Any element that has its inject time being >= than current time
 		// should be injected and then removed from the list.
@@ -1136,6 +1138,12 @@ void InjectorThread()
 			s_injectRequests.push_back(request);
 
 		s_cv.wait_for(lock, wait_for);
+
+		if (injectOnce && s_injectRequests.size() < startRequests)
+		{
+			SPDLOG_DEBUG("Injected at least once, stopping");
+			PostMessage(hMainWnd, WM_QUIT, 0, 0);
+		}
 	} while (s_injectorRunning);
 
 	SPDLOG_DEBUG("Injector thread finished");
@@ -1169,7 +1177,7 @@ static bool CheckArchitecture(const std::string path)
 	return true;
 }
 
-bool InitializeInjector()
+bool InitializeInjector(bool injectOnce)
 {
 	SPDLOG_DEBUG("Initializing injector");
 
@@ -1198,7 +1206,7 @@ bool InitializeInjector()
 
 	// Start the injector thread
 	s_injectorRunning = true;
-	s_injectorThread = std::thread(InjectorThread);
+	s_injectorThread = std::thread(InjectorThread, injectOnce);
 
 	InjectAllRunningProcesses();
 	return true;
