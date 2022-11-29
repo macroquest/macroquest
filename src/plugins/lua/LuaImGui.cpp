@@ -52,6 +52,8 @@ bool LuaImGuiProcessor::HasCallback(std::string_view name)
 
 void LuaImGuiProcessor::Pulse()
 {
+	if (m_thread->IsPaused()) return;
+
 	// remove any existing hooks, they will be re-installed when running in onpulse
 	// this is to help prevent us from yielding from the thread while we're running imgui stuff.
 	lua_sethook(m_thread->GetLuaThread().lua_state(), nullptr, 0, 0);
