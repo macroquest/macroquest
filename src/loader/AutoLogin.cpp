@@ -826,7 +826,7 @@ void LoadIt(ProfileInfo& pi, int id)
 
 	if (pi.PID != 0 && IsEQGameProcessId(pi.PID)) // TODO: do we need to check for 0 here first?
 	{
-		// the PID alreay exists, just need to add to the map
+		// the PID already exists, just need to add to the map
 		Inject(pi.PID);
 		LoginMap[pi.profileName][id].Loaded = true;
 		LoginMap[pi.profileName][id].PID = pi.PID;

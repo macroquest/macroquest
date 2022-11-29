@@ -1,3 +1,9 @@
+November 29, 2022:
+- emu: Fix PctExp and PctAAExp calculations
+- tlo: Added BazaarItem.FullName
+- lua: Fixed bug where /lua pause would not pause imgui thread
+- lua: added :on and :off arguments to /lua pause
+
 November 28, 2022:
 - Huge update to settings window for MQ2Map plugin settings - /mqsettings plugin/map (#657)
 - lua: Many more improvements to imgui bindings for lua.

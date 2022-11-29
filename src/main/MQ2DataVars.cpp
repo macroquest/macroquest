@@ -770,9 +770,9 @@ static void TellCheck(const char* szClean)
 	if (!gbFlashOnTells && !gbBeepOnTells)
 		return;
 
-	if (!pLocalPC) return;
+	if (!pLocalPlayer) return;
 
-	char name[2048] = { 0 };
+	char name[MAX_STRING] = { 0 };
 	bool isTell = false;
 	if (const char* pDest = strstr(szClean, " tells you, "))
 	{
@@ -785,15 +785,15 @@ static void TellCheck(const char* szClean)
 		isTell = true;
 	}
 
-	if (!isTell || strlen(name) >= 64)
+	if (!isTell || strlen(name) >= EQ_MAX_NAME)
 		return;
 
 	// don't perform action if its us doing the tell
-	if (!_stricmp(pLocalPC->Name, name))
+	if (!_stricmp(pLocalPlayer->Name, name))
 		return;
 
 	// don't perform action if its our pet
-	if (pLocalPC->pSpawn->PetID != -1)
+	if (pLocalPlayer->PetID != -1)
 	{
 		if (SPAWNINFO* pPet = GetSpawnByID(pLocalPlayer->PetID))
 		{

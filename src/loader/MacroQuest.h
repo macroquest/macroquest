@@ -136,7 +136,7 @@ void Inject(uint32_t PID, std::chrono::milliseconds delay = std::chrono::millise
 std::vector<DWORD> GetAllEqGameSessions();
 bool ForceRemoteUnload();
 HWND GetEQWindowHandleForProcessId(DWORD processId);
-bool InitializeInjector();
+bool InitializeInjector(bool injectOnce);
 void RefreshInjections();
 void ShutdownInjector();
 std::string GetInjecteePath();
