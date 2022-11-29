@@ -772,7 +772,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::PctExp:
-		Dest.Float = (float)pLocalPC->Exp / 1000.0f;
+		Dest.Float = (float)pLocalPC->Exp / EXP_TO_PCT_RATIO;
 		Dest.Type = pFloatType;
 		return true;
 
@@ -782,7 +782,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::PctAAExp:
-		Dest.Float = (float)pLocalPC->AAExp / 1000.0f;
+		Dest.Float = (float)pLocalPC->AAExp / EXP_TO_PCT_RATIO;
 		Dest.Type = pFloatType;
 		return true;
 

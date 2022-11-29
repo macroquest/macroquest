@@ -1154,6 +1154,8 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 	// TODO:  Allow argument processing of passing ini file so the file can be launched from anywhere
 	std::string fullCommandLine = "";
 	bool spawnedProcess = false;
+	bool disableAppCompatCheck = false;
+	bool injectOnce = false;
 	for (int i = 1; i < __argc; ++i)
 	{
 		// Recreate the command line
@@ -1168,8 +1170,16 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 		}
 		fullCommandLine += thisArg;
 
+		if (ci_find_substr(thisArg, "noappcompat") != -1)
+		{
+			disableAppCompatCheck = true;
+		}
+		else if (ci_find_substr(thisArg, "injectonce") != -1)
+		{
+			injectOnce = true;
+		}
 		// Only need this if we're not already the spawned process
-		if (!spawnedProcess && ci_find_substr(thisArg, "spawnedprocess") != -1)
+		else if (!spawnedProcess && ci_find_substr(thisArg, "spawnedprocess") != -1)
 		{
 			spawnedProcess = true;
 		}
@@ -1322,12 +1332,12 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 	}
 
 	// This also initializes mqversion
-	if (!InitializeInjector())
+	if (!InitializeInjector(injectOnce))
 		PostQuitMessage(1);
 
 	CheckMQ2MainUpdate();
 
-	if (!GetPrivateProfileBool("MacroQuest", "DisableAppCompatCheck", false, internal_paths::MQini))
+	if (!GetPrivateProfileBool("MacroQuest", "DisableAppCompatCheck", disableAppCompatCheck, internal_paths::MQini))
 		CheckAppCompat();
 
 	SPDLOG_INFO("Waiting for events...");
@@ -1365,6 +1375,8 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 	ShutdownInjector();
 	ShutdownNamedPipeServer();
 	StopProcessMonitor();
+	if (injectOnce)
+		UpdateShowConsole(false, false);
 	ShutdownConsole();
 
 	UnregisterClass(gszWinClassName, hInstance);
