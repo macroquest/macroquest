@@ -1149,27 +1149,13 @@ static void InputScalar()    { /* TODO: InputScalar(...) ==> UNSUPPORTED */ }
 static void InputScalarN()   { /* TODO: InputScalarN(...) ==> UNSUPPORTED */ }
 
 // Widgets: Color Editor / Picker
-static std::tuple<sol::as_table_t<std::vector<float>>, bool> ColorEdit3(const std::string& label, const sol::table& col)
-{
-	const lua_Number    r{ col[1].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) },
-	                    g{ col[2].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) },
-	                    b{ col[3].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) };
-	float color[3] = { float(r), float(g), float(b) };
-	bool used = ImGui::ColorEdit3(label.c_str(), color);
-
-	sol::as_table_t rgb = sol::as_table(std::vector<float>{
-		color[0], color[1], color[2]
-	});
-
-    return std::make_tuple(rgb, used);
-}
-static std::tuple<sol::as_table_t<std::vector<float>>, bool> ColorEdit3(const std::string& label, const sol::table& col, int flags)
+static std::tuple<sol::as_table_t<std::vector<float>>, bool> ColorEdit3(const char* label, const sol::table& col, int flags)
 {
     const lua_Number    r{ col[1].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) },
                         g{ col[2].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) },
                         b{ col[3].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) };
     float color[3] = { float(r), float(g), float(b) };
-    bool used = ImGui::ColorEdit3(label.c_str(), color, static_cast<ImGuiColorEditFlags>(flags));
+    bool used = ImGui::ColorEdit3(label, color, ImGuiColorEditFlags(flags));
 
     sol::as_table_t rgb = sol::as_table(std::vector<float>{
         color[0], color[1], color[2]
@@ -1476,11 +1462,21 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 		[](sol::variadic_args va, sol::this_state s) { sol::function string_format = sol::state_view(s)["string"]["format"]; std::string text = string_format(va); ImGui::Text("%s", text.c_str()); }
 	));
 	ImGui.set_function("TextColored", sol::overload(
-		                                    [](float r, float g, float b, float a, const char* text) { ImGui::TextColored({ r, g, b, a }, text); },
-		                                    [](int col, const char* text) { ImGui::TextColored(ImColor(col), text); },
-		                                    [](const ImVec4& col, const char* text) { ImGui::TextColored(col, text); }));
-	ImGui.set_function("TextDisabled",      [](const char* text) { ImGui::TextDisabled("%s", text); });
-	ImGui.set_function("TextWrapped",       [](const char* text) { ImGui::TextWrapped("%s", text); });
+		[](float r, float g, float b, float a, const char* text) { ImGui::TextColored({ r, g, b, a }, text); },
+		[](int col, const char* text) { ImGui::TextColored(ImColor(col), text); },
+		[](const ImVec4& col, const char* text) { ImGui::TextColored(col, text); },
+		[](float r, float g, float b, float a, sol::variadic_args va, sol::this_state s) { sol::function string_format = sol::state_view(s)["string"]["format"]; std::string text = string_format(va); ImGui::TextColored({ r, g, b, a }, text.c_str()); },
+		[](int col, sol::variadic_args va, sol::this_state s) { sol::function string_format = sol::state_view(s)["string"]["format"]; std::string text = string_format(va); ImGui::TextColored(ImColor(col), text.c_str()); },
+		[](const ImVec4& col, sol::variadic_args va, sol::this_state s) { sol::function string_format = sol::state_view(s)["string"]["format"]; std::string text = string_format(va); ImGui::TextColored(col, text.c_str()); }
+	));
+	ImGui.set_function("TextDisabled", sol::overload(
+		[](const char* text) { ImGui::TextDisabled("%s", text); },
+		[](sol::variadic_args va, sol::this_state s) { sol::function string_format = sol::state_view(s)["string"]["format"]; std::string text = string_format(va); ImGui::TextDisabled("%s", text.c_str()); }
+	));
+	ImGui.set_function("TextWrapped", sol::overload(
+		[](const char* text) { ImGui::TextWrapped("%s", text); },
+		[](sol::variadic_args va, sol::this_state s) { sol::function string_format = sol::state_view(s)["string"]["format"]; std::string text = string_format(va); ImGui::Text("%s", text.c_str()); }
+	));
 	ImGui.set_function("LabelText",         [](const char* label, const char* text) { ImGui::LabelText(label, "%s", text); });
 	ImGui.set_function("BulletText",        [](const char* text) { ImGui::BulletText("%s", text); });
 	#pragma endregion
@@ -1728,8 +1724,10 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 
 	#pragma region Widgets: Color Editor / Picker
 	ImGui.set_function("ColorEdit3", sol::overload(
-		sol::resolve<std::tuple <sol::as_table_t<std::vector<float>>, bool>(const std::string&, const sol::table&)>(ColorEdit3),
-		sol::resolve<std::tuple <sol::as_table_t<std::vector<float>>, bool>(const std::string&, const sol::table&, int)>(ColorEdit3)
+		[](const char* label, ImVec4 col) { bool used = ImGui::ColorEdit3(label, &col.x); return std::make_tuple(col, used); },
+		[](const char* label, ImVec4 col, int flags) { bool used = ImGui::ColorEdit3(label, &col.x); return std::make_tuple(col, used, ImGuiColorEditFlags(flags)); },
+		[](const char* label, const sol::table& col) { return ColorEdit3(label, col, 0); },
+		[](const char* label, const sol::table& col, int flags) { return ColorEdit3(label, col, flags); }
 	));
 	ImGui.set_function("ColorEdit4", sol::overload(
 		sol::resolve<std::tuple<ImVec4, bool>(const std::string&, ImVec4)>(ColorEdit4),
@@ -1842,8 +1840,9 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 	));
 	ImGui.set_function("BeginPopupModal", sol::overload(
 		[](const char* name) { return ImGui::BeginPopupModal(name); },
-		[](const char* name, bool open) { return ImGui::BeginPopupModal(name, &open); },
-		[](const char* name, bool open, int flags) { return ImGui::BeginPopupModal(name, &open, ImGuiWindowFlags(flags)); }
+		[](const char* name, nullptr_t, int flags) { return ImGui::BeginPopupModal(name, nullptr, flags); },
+		[](const char* name, bool open) { bool show = ImGui::BeginPopupModal(name, &open); return std::make_tuple(open, show); },
+		[](const char* name, bool open, int flags) { bool show = ImGui::BeginPopupModal(name, &open, ImGuiWindowFlags(flags)); return std::make_tuple(open, show); }
 	));
 	ImGui.set_function("EndPopup", &ImGui::EndPopup);
 	ImGui.set_function("OpenPopup", sol::overload(

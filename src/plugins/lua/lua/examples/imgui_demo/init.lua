@@ -3,9 +3,11 @@ local mq = require('mq')
 ---@type ImGui
 local imgui = require 'ImGui'
 
-local ShowDemoWindowWidgets = require 'examples.demo_imgui_widgets'
-local ShowExampleAppCustomRendering = require 'examples.demo_imgui_drawlist'
-local ShowDemoWindowTables = require 'examples.demo_tables'
+local ShowDemoWindowWidgets = require '_demo_widgets'
+local ShowExampleAppCustomRendering = require '_demo_drawlist'
+local ShowDemoWindowTables = require '_demo_tables'
+
+local FLT_MIN, FLT_MAX = mq.NumericLimits_Float()
 
 local ImGuiDemo = {
     -- Example apps (accessible from the "Examples" menu)
@@ -111,6 +113,9 @@ function ImGuiDemo:ShowDemoWindow(open)
     if self.show_app_dockspace then
         self.show_app_dockspace = self:ShowExampleAppDockSpace(self.dockspace_state, self.show_app_dockspace)
     end
+    if self.show_app_documents then
+        self.show_app_documents = self:ShowExampleAppDocuments(self.show_app_documents)
+    end
 
     -- Demonstrate the various window flags. Typically you would just use the default!
     --- @type ImGuiWindowFlags
@@ -174,7 +179,7 @@ function ImGuiDemo:ShowDemoWindow(open)
             _, self.show_app_window_titles = imgui.MenuItem("Manipulating window titles", nil, self.show_app_window_titles)
             _, self.show_app_custom_rendering = imgui.MenuItem("Custom Rendering", nil, self.show_app_custom_rendering)
             _, self.show_app_dockspace = imgui.MenuItem("Dockspace", nil, self.show_app_dockspace)
-            -- _, self.show_app_documents = imgui.MenuItem("Documents", nil, self.show_app_documents)
+            _, self.show_app_documents = imgui.MenuItem("Documents", nil, self.show_app_documents)
 
             imgui.EndMenu()
         end
@@ -262,8 +267,6 @@ end
 
 -- Demonstrate creating a window with custom resize constraints
 function ImGuiDemo:ShowExampleAppConstrainedResize(state, open)
-    local _, FLT_MAX = mq.NumericLimits_Float()
-
     if state.type == 1 then imgui.SetNextWindowSizeConstraints(ImVec2(-1, 0),    ImVec2(-1, FLT_MAX)) end       -- Vertical only
     if state.type == 2 then imgui.SetNextWindowSizeConstraints(ImVec2(0, -1),    ImVec2(FLT_MAX, -1)) end       -- Horizontal only
     if state.type == 3 then imgui.SetNextWindowSizeConstraints(ImVec2(100, 100), ImVec2(FLT_MAX, FLT_MAX)) end  -- Width > 100, Height > 100
@@ -275,7 +278,7 @@ function ImGuiDemo:ShowExampleAppConstrainedResize(state, open)
 
     local flags = state.auto_resize and ImGuiWindowFlags.AlwaysAutoResize or 0
     local show
-    open, show = imgui.Begin("Example: Constrained Resize", open, flags)
+    open, show = imgui.Begin("Example: Constrained Resize (lua)", open, flags)
     if show then
         if imgui.IsWindowDocked() then
             imgui.Text("Warning: Sizing Constraints won't work if the window is docked!")
@@ -395,17 +398,17 @@ function ImGuiDemo:ShowExampleAppWindowTitles(state, open)
 
     -- Using "##" to display same titl ebut have unique identifier.
     imgui.SetNextWindowPos(base_pos.x + 100, base_pos.y + 100, ImGuiCond.FirstUseEver)
-    imgui.Begin("Same title as another window##1")
+    imgui.Begin("Same title as another window (lua)##1")
     imgui.Text("This is window 1.\nMy title is the same as window 2, but my identifier is unique.");
     imgui.End()
 
     imgui.SetNextWindowPos(base_pos.x + 100, base_pos.y + 200, ImGuiCond.FirstUseEver)
-    imgui.Begin("Same title as another window##2")
+    imgui.Begin("Same title as another window (lua)##2")
     imgui.Text("This is window 2.\nMy title is the same as window 1, but my identifier is unique.")
     imgui.End()
 
     -- Using "###" to display a changing title but keep a static identifier "AnimatedTitle"
-    local title = string.format("Animated title %s %d###AnimatedTitle", state.chars[bit32.band(math.floor(imgui.GetTime() / 0.25), 3) + 1], imgui.GetFrameCount())
+    local title = string.format("Animated title %s %d (lua)###AnimatedTitle", state.chars[bit32.band(math.floor(imgui.GetTime() / 0.25), 3) + 1], imgui.GetFrameCount())
     imgui.SetNextWindowPos(base_pos.x + 100, base_pos.y + 300, ImGuiCond.FirstUseEver)
     imgui.Begin(title)
     imgui.Text("This window has a changing title.")
@@ -471,7 +474,7 @@ function ImGuiDemo:ShowExampleAppDockSpace(state, open)
     -- Submit the DockSpace
     local io = imgui.GetIO()
     if bit32.band(io.ConfigFlags, ImGuiConfigFlags.DockingEnable) then
-        local dockspace_id = imgui.GetID("MyDockSpace")
+        local dockspace_id = imgui.GetID("MyDockSpace (lua)")
         imgui.DockSpace(dockspace_id, 0.0, 0.0, state.dockspace_flags)
     else
         self:ShowDockingDisabledMessage()
@@ -508,6 +511,385 @@ function ImGuiDemo:ShowExampleAppDockSpace(state, open)
             "Read comments in ShowExampleAppDockSpace() for more details.")
 
         imgui.EndMenuBar()
+    end
+
+    imgui.End()
+    return open
+end
+
+--
+-- Example App: Documents Handling
+--
+
+-- Simplified structure to mimic a document model
+
+---@class MyDocument
+---@field public Name string
+---@field public Open boolean
+---@field public OpenPrev boolean
+---@field public Dirty boolean
+---@field public WantClose boolean
+---@field public Color ImVec4
+local MyDocument = {}
+
+---@param name string
+---@param open? boolean
+---@param color? ImVec4
+---@return MyDocument
+function MyDocument.new(name, open, color)
+    MyDocument.__index = MyDocument
+    ---@type MyDocument
+    local o = setmetatable({}, MyDocument)
+    o.Name = name
+    o.Open = (open ~= nil and open or true)
+    o.OpenPrev = o.Open
+    o.Dirty = false
+    o.WantClose = false
+    o.Color = (color ~= nil and color or ImVec4(1.0, 1.0, 1.0, 1.0))
+    return o
+end
+
+function MyDocument:DoOpen()
+    self.Open = true
+end
+
+function MyDocument:DoQueueClose()
+    self.WantClose = true
+end
+
+function MyDocument:DoForceClose()
+    self.Open = false
+    self.Dirty = false
+end
+
+function MyDocument:DoSave()
+    self.Dirty = false
+end
+
+-- Display placeholder contents for the Document
+function MyDocument:DisplayContents()
+    imgui.PushID(self)
+    imgui.Text("Document \"%s\"", self.Name)
+    imgui.PushStyleColor(ImGuiCol.Text, self.Color)
+    imgui.TextWrapped("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.")
+    imgui.PopStyleColor()
+
+    if imgui.Button("Modify", ImVec2(100, 0)) then
+        self.Dirty = true
+    end
+    imgui.SameLine()
+    if imgui.Button("Save", ImVec2(100, 0)) then
+        self:DoSave()
+    end
+    self.Color = imgui.ColorEdit3("Color", self.Color)
+    imgui.PopID()
+end
+
+-- Display context menu for the document
+function MyDocument:DisplayContextMenu()
+    if not imgui.BeginPopupContextItem() then
+        return
+    end
+
+    if imgui.MenuItem(string.format("Save %s", self.Name), "CTRL+S", false, self.Open) then
+        self:DoSave()
+    end
+    if imgui.MenuItem("Close", "CTRL+W", false, self.Open) then
+        self:DoQueueClose()
+    end
+
+    imgui.EndPopup()
+end
+
+local Documents = {
+    MyDocument.new("Lettuce",             true,  ImVec4(0.4, 0.8, 0.4, 1.0)),
+    MyDocument.new("Eggplant",            true,  ImVec4(0.8, 0.5, 1.0, 1.0)),
+    MyDocument.new("Carrot",              true,  ImVec4(1.0, 0.8, 0.5, 1.0)),
+    MyDocument.new("Tomato",              false, ImVec4(1.0, 0.3, 0.4, 1.0)),
+    MyDocument.new("A Rather Long Title", false),
+    MyDocument.new("Some Document",       false),
+}
+
+local DocumentTarget = {
+    None = 1,
+    Tab = 2,                     -- Create documents as local tab in to a local tab bar
+    DockSpaceAndWindow = 3       -- Create documents as regular windows, and create an embedded dockspace
+}
+
+-- [Optional] Notify the system of Tabs/Windows closure that happened outside the regular tab interface.
+-- If a tab has been closed programmatically (aka closed from another source such as the Checkbox() in the demo,
+-- as opposed to clicking on the regular tab closing button) and stops being submitted, it will take a frame for
+-- the tab bar to notice its absence. During this frame there will be a gap in the tab bar, and if the tab that has
+-- disappeared was the selected one, the tab bar will report no selected tab during the frame. This will effectively
+-- give the impression of a flicker for one frame.
+-- We call SetTabItemClosed() to manually notify the Tab Bar or Docking system of removed tabs to avoid this glitch.
+-- Note that this completely optional, and only affect tab bars with the ImGuiTabBarFlags_Reorderable flag.
+
+---@param documents MyDocument[]
+local function NotifyOfDocumentsClosedElsewhere(documents)
+    for _, doc in ipairs(documents) do
+        if not doc.Open and doc.OpenPrev then
+            imgui.SetTabItemClosed(doc.Name)
+        end
+        doc.OpenPrev = doc.Open
+    end
+end
+
+local DocumentsState = {
+    opt_target = DocumentTarget.Tab,
+    opt_reorderable = true,
+    opt_fitting_flags = ImGuiTabBarFlags.FittingPolicyDefault_,
+
+    ---@type MyDocument[]
+    close_queue = {},
+}
+
+function ImGuiDemo:ShowExampleAppDocuments(open)
+    local state = DocumentsState
+    -- When (opt_target == Target_DockSpaceAndWindow) there is the possibily that one of our child Document window (e.g. "Eggplant")
+    -- that we emit gets docked into the same spot as the parent window ("Example: Documents").
+    -- This would create a problematic feedback loop because selecting the "Eggplant" tab would make the "Example: Documents" tab
+    -- not visible, which in turn would stop submitting the "Eggplant" window.
+    -- We avoid this problem by submitting our documents window even if our parent window is not currently visible.
+    -- Another solution may be to make the "Example: Documents" window use the ImGuiWindowFlags_NoDocking.
+    local window_contents_visible
+    open, window_contents_visible = imgui.Begin("Example: Documents (lua)", open, ImGuiWindowFlags.MenuBar)
+    if not window_contents_visible and state.opt_target ~= DocumentTarget.DockSpaceAndWindow then
+        imgui.End()
+        return open
+    end
+
+    -- Menu
+    if imgui.BeginMenuBar() then
+        if imgui.BeginMenu("File") then
+            local open_count = 0
+            for _, doc in ipairs(Documents) do
+                if doc.Open then
+                    open_count = open_count + 1
+                end
+            end
+
+            if imgui.BeginMenu("Open", open_count < #Documents) then
+                for _, doc in ipairs(Documents) do
+                    if not doc.Open then
+                        if imgui.MenuItem(doc.Name) then
+                            doc:DoOpen()
+                        end
+                    end
+                end
+                imgui.EndMenu()
+            end
+
+            if imgui.MenuItem("Close All Documents", nil, false, open_count > 0) then
+                for _, doc in ipairs(Documents) do
+                    doc:DoQueueClose()
+                end
+            end
+
+            if imgui.MenuItem("Exit", "Alt+F4") then
+                print("Requested to exit, but this is just a demo window")
+            end
+
+            imgui.EndMenu()
+        end
+
+        imgui.EndMenuBar()
+    end
+
+    -- [Debug] List documents with one checkbox for each
+    for i, doc in ipairs(Documents) do
+        if i > 1 then
+            imgui.SameLine()
+        end
+        imgui.PushID(doc)
+        local changed
+        doc.Open, changed = imgui.Checkbox(doc.Name, doc.Open)
+        if changed then
+            if not doc.Open then
+                doc:DoForceClose()
+            end
+        end
+        imgui.PopID()
+    end
+
+    imgui.PushItemWidth(imgui.GetFontSize() * 12)
+    state.opt_target = imgui.Combo("Output", state.opt_target, "None\0TabBar+Tabs\0DockSpace+Window\0")
+    imgui.PopItemWidth()
+
+    local redock_all = false
+    if state.opt_target == DocumentTarget.Tab then
+        imgui.SameLine()
+        state.opt_reorderable = imgui.Checkbox("Reorderable Tabs", state.opt_reorderable)
+    elseif state.opt_target == DocumentTarget.DockSpaceAndWindow then
+        imgui.SameLine()
+        redock_all = imgui.Button("Redock All")
+    end
+
+    imgui.Separator()
+
+    -- About the ImGuiWindowFlags_UnsavedDocument / ImGuiTabItemFlags_UnsavedDocument flags.
+    -- They have multiple effects:
+    -- - Display a dot next to the title.
+    -- - Tab is selected when clicking the X close button.
+    -- - Closure is not assumed (will wait for user to stop submitting the tab).
+    --   Otherwise closure is assumed when pressing the X, so if you keep submitting the tab may reappear at end of tab bar.
+    --   We need to assume closure by default otherwise waiting for "lack of submission" on the next frame would leave an empty
+    --   hole for one-frame, both in the tab-bar and in tab-contents when closing a tab/window.
+    --   The rarely used SetTabItemClosed() function is a way to notify of programmatic closure to avoid the one-frame hole.
+
+    -- Tabs
+    if state.opt_target == DocumentTarget.Tab then
+        local tab_bar_flags = bit32.bor(state.opt_fitting_flags, state.opt_reorderable and ImGuiTabBarFlags.Reorderable or 0)
+        if imgui.BeginTabBar("##tabs", tab_bar_flags) then
+            if state.opt_reorderable then
+                NotifyOfDocumentsClosedElsewhere(Documents)
+            end
+
+            -- Submit Tabs
+            for _, doc in ipairs(Documents) do
+                if doc.Open then
+                    local tab_flags = doc.Dirty and ImGuiTabItemFlags.UnsavedDocument or 0
+                    local visible
+                    doc.Open, visible = imgui.BeginTabItem(doc.Name, doc.Open, tab_flags)
+
+                    -- Cancel attempt to close when unsaved. add to save queue so we can display a popup
+                    if not doc.Open and doc.Dirty then
+                        doc.Open = true
+                        doc:DoQueueClose()
+                    end
+
+                    doc:DisplayContextMenu()
+
+                    if visible then
+                        doc:DisplayContents()
+                        imgui.EndTabItem()
+                    end
+                end
+            end
+            imgui.EndTabBar()
+        end
+    elseif state.opt_target == DocumentTarget.DockSpaceAndWindow then
+        if bit32.band(imgui.GetIO().ConfigFlags, ImGuiConfigFlags.DockingEnable) then
+            NotifyOfDocumentsClosedElsewhere(Documents)
+
+            -- Create a DockSpace node where any window can be docked.
+            local dockspace_id = imgui.GetID("MyDockSpace")
+            imgui.DockSpace(dockspace_id)
+
+            -- Create Windows
+            for _, doc in ipairs(Documents) do
+                if doc.Open then
+                    imgui.SetNextWindowDockID(dockspace_id, redock_all and ImGuiCond.Always or ImGuiCond.FirstUseEver)
+                    local window_flags = doc.Dirty and ImGuiWindowFlags.UnsavedDocument or 0
+                    local visible
+                    doc.Open, visible = imgui.Begin(doc.Name, doc.Open, window_flags)
+                    
+                    -- Cancel attempt to close when unsaved, add to save queue so we can display a popup.
+                    if not doc.Open and doc.Dirty then
+                        doc.Open = true
+                        doc:DoQueueClose()
+                    end
+
+                    doc:DisplayContextMenu()
+
+                    if visible then
+                        doc:DisplayContents()
+                    end
+
+                    imgui.End()
+                end
+            end
+        else
+            self:ShowDockingDisabledMessage()
+        end
+    end
+
+    -- Early out other contents
+    if not window_contents_visible then
+        imgui.End()
+        return open
+    end
+
+    -- Update closing queue
+    if #state.close_queue == 0 then
+        -- Close queue is locked once we started a popup
+        for _, doc in ipairs(Documents) do
+            if doc.WantClose then
+                doc.WantClose = false
+                table.insert(state.close_queue, doc)
+            end
+        end
+    end
+
+    -- Display closing confirmation UI
+    if #state.close_queue ~= 0 then
+        local close_queue_unsaved_documents = 0
+        for _, doc in ipairs(state.close_queue) do
+            if doc.Dirty then
+                close_queue_unsaved_documents = close_queue_unsaved_documents + 1
+            end
+        end
+
+        if close_queue_unsaved_documents == 0 then
+            -- Close documents when all are saved
+            for _, doc in ipairs(state.close_queue) do
+                doc:DoForceClose()
+            end
+
+            state.close_queue = {}
+        else
+            if not imgui.IsPopupOpen("Save?") then
+                imgui.OpenPopup("Save?")
+            end
+
+            if imgui.BeginPopupModal("Save?", nil, ImGuiWindowFlags.AlwaysAutoResize) then
+                imgui.Text("Save change to the following items?")
+                local item_height = imgui.GetTextLineHeightWithSpacing()
+                if imgui.BeginChildFrame(imgui.GetID("frame"), ImVec2(-FLT_MIN, 6.25 * item_height)) then
+                    for _, doc in ipairs(state.close_queue) do
+                        if doc.Dirty then
+                            imgui.Text(doc.Name)
+                        end
+                    end
+
+                    imgui.EndChildFrame()
+                end
+
+                local button_size = ImVec2(imgui.GetFontSize() * 7, 0.0)
+                if imgui.Button("Yes", button_size) then
+                    for _, doc in ipairs(state.close_queue) do
+                        if doc.Dirty then
+                            doc:DoSave()
+                        end
+
+                        doc:DoForceClose()
+                    end
+
+                    state.close_queue = {}
+                    imgui.CloseCurrentPopup()
+                end
+
+                imgui.SameLine()
+
+                if imgui.Button("No", button_size) then
+                    for _, doc in ipairs(state.close_queue) do
+                        doc:DoForceClose()
+                    end
+
+                    state.close_queue = {}
+                    imgui.CloseCurrentPopup()
+                end
+
+                imgui.SameLine()
+
+                if imgui.Button("Cancel", button_size) then
+                    state.close_queue = {}
+                    imgui.CloseCurrentPopup()
+                end
+
+                imgui.EndPopup()
+            end
+        end
     end
 
     imgui.End()

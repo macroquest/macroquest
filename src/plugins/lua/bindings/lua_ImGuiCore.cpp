@@ -198,12 +198,9 @@ static bool IsRectVisible(float sizeX, float sizeY)                             
 static bool IsRectVisible(float minX, float minY, float maxX, float maxY)                           { return ImGui::IsRectVisible({ minX, minY }, { maxX, maxY }); }
 static double GetTime()                                                                             { return ImGui::GetTime(); }
 static int GetFrameCount()                                                                          { return ImGui::GetFrameCount(); }
-/* TODO: GetDrawListSharedData() ==> UNSUPPORTED */
 static std::string GetStyleColorName(int idx)                                                       { return std::string(ImGui::GetStyleColorName(static_cast<ImGuiCol>(idx))); }
 /* TODO: SetStateStorage(), GetStateStorage(), CalcListClipping() ==> UNSUPPORTED */
-static bool BeginChildFrame(unsigned int id, float sizeX, float sizeY)                              { return ImGui::BeginChildFrame(id, { sizeX, sizeY }); }
-static bool BeginChildFrame(unsigned int id, float sizeX, float sizeY, int flags)                   { return ImGui::BeginChildFrame(id, { sizeX, sizeY }, static_cast<ImGuiWindowFlags>(flags)); }
-static void EndChildFrame()                                                                         { return ImGui::EndChildFrame(); }
+
 
 // Text Utilities
 static std::tuple<float, float> CalcTextSize(const std::string& text)
@@ -660,10 +657,12 @@ void RegisterBindings_ImGui(sol::state_view state)
 	ImGui.set_function("GetDrawListSharedData", ImGui::GetDrawListSharedData);
 	ImGui.set_function("GetStyleColorName", GetStyleColorName);
 	ImGui.set_function("BeginChildFrame", sol::overload(
-		sol::resolve<bool(unsigned int, float, float)>(BeginChildFrame),
-		sol::resolve<bool(unsigned int, float, float, int)>(BeginChildFrame)
+		[](unsigned int id, float sizeX, float sizeY) { return ImGui::BeginChildFrame(id, { sizeX, sizeY }); },
+		[](unsigned int id, float sizeX, float sizeY, int flags) { return ImGui::BeginChildFrame(id, { sizeX, sizeY }, ImGuiWindowFlags(flags)); },
+		[](unsigned int id, const ImVec2& size) { return ImGui::BeginChildFrame(id, size); },
+		[](unsigned int id, const ImVec2& size, int flags) { return ImGui::BeginChildFrame(id, size, ImGuiWindowFlags(flags)); }
 	));
-	ImGui.set_function("EndChildFrame", EndChildFrame);
+	ImGui.set_function("EndChildFrame", &ImGui::EndChildFrame);
 
 	// Text Utilities
 	ImGui.set_function("CalcTextSize", sol::overload(
