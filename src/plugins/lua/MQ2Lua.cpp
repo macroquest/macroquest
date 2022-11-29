@@ -988,7 +988,7 @@ static void LuaGuiCommand()
 
 static args::HelpFlag HelpFlag(args::Group& group)
 {
-	return args::HelpFlag(group, "help", "displays this help text", { 'h', '?', "help" });
+	return args::HelpFlag(group, "help", "displays this help text", { "h", "?", "help" });
 }
 
 void LuaCommand(SPAWNINFO* pChar, char* Buffer)
@@ -996,7 +996,7 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 	MQ2Args arg_parser("Lua: A lua script binding plugin.");
 	arg_parser.Prog("/lua");
 	arg_parser.RequireCommand(false);
-	arg_parser.LongPrefix(":");
+	arg_parser.LongPrefix("-");
 	args::Group commands(arg_parser, "", args::Group::Validators::AtMostOne);
 
 	args::Command run(commands, "run", "run lua script from file location",
