@@ -1085,36 +1085,6 @@ sol::table LuaPlugin::Create(sol::table, const std::string& name, const std::str
 	return ptr->m_pluginTable;
 }
 
-sol::table LuaPlugin::API(sol::state_view new_state)
-{
-	auto table = m_pluginTable.get<std::optional<sol::table>>("API");
-	if (table)
-	{
-		sol::table t = new_state.create_table();
-		for (const auto& [k, v] : *table)
-		{
-			auto key = CopyObject(k, new_state);
-			if (key != sol::lua_nil && v.is<sol::function>())
-			{
-				t.set_function(key, [plugin_state = m_thread->GetState(), func = v.as<sol::function>()](sol::variadic_args va, sol::this_state new_state) -> sol::object
-				{
-					std::vector<sol::object> args(va.size());
-					std::transform(va.begin(), va.end(), std::back_inserter(args),
-						[&plugin_state](sol::object arg) { return CopyObject(arg, plugin_state); }
-					);
-
-					sol::object result = sol::function(plugin_state, func)(sol::as_args(args));
-					return CopyObject(std::move(result), new_state);
-				});
-			}
-		}
-
-		return t;
-	}
-
-	return sol::lua_nil;
-}
-
 void LuaPlugin::Start(const std::string& name, sol::table plugin)
 {
 	// this is where we would differ from a universal plugin interface. We can't just put it in a local map, we'd need to provide it to the larger interface

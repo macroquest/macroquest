@@ -154,7 +154,6 @@ public:
 	sol::object Get(sol::object key, sol::this_state s) const;
 	std::chrono::system_clock::time_point GetStartTime() const { return m_startTime; }
 	static sol::table Create(sol::table, const std::string& name, const std::string& version, sol::this_state s);
-	sol::table API(sol::state_view new_state);
 	static void Start(const std::string& name, sol::table plugin);
 	static void Stop(std::string_view name);
 	static void StopAll();
