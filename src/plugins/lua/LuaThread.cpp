@@ -249,19 +249,11 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(
 
 	// filename here is canonical file name, but we need to reconstruct the path
 	auto script_path = GetScriptPath(filename, m_luaEnvironmentSettings->luaDir);
+	if (script_path.empty())
+		return std::nullopt;
 
 	// prefix the package paths with the runDir if it's different than the luaDir
-	std::string runDir;
-	std::error_code ec;
-	if (fs::exists(script_path, ec) && !ec && !script_path.empty())
-	{
-		runDir = fs::path{ script_path }.parent_path().string();
-	}
-	else
-	{
-		return std::nullopt;
-	}
-
+	std::string runDir = fs::path{ script_path }.parent_path().string();
 	if (!runDir.empty() && fs::path{ runDir }.compare(m_luaEnvironmentSettings->luaDir) != 0)
 	{
 		m_globalState["package"]["path"] = fmt::format("{runDir}\\?.lua;{runDir}\\?\\init.lua;{existingPath}",

@@ -463,7 +463,6 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 	auto script_path = LuaThread::GetScriptPath(script, s_environment.luaDir);
 	if (script_path.empty())
 	{
-		LuaError("Could not find script %s", script.c_str());
 		return 0;
 	}
 
