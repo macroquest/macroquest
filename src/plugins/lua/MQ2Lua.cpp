@@ -466,22 +466,22 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 		return 0;
 	}
 
+	auto script_name = LuaThread::GetCanonicalScriptName(script_path, s_environment.luaDir);
+
 	// methodology for duplicate scripts:
 	//   if a script with the same name is _currently_ running, inform and exit
 	//   if a script with the same name _has previously_ run, drop from infoMap and run
 	//   otherwise, run script as normal
 	auto info_it = std::find_if(s_infoMap.begin(), s_infoMap.end(),
-		[&script_path](const std::pair<uint32_t, mq::lua::LuaThreadInfo>& kv)
+		[&script_name](const std::pair<uint32_t, mq::lua::LuaThreadInfo>& kv)
 		{
-			auto info_path = fs::path(kv.second.path);
-			std::error_code ec;
-			return fs::exists(info_path, ec) && fs::equivalent(info_path, script_path, ec);
+			return ci_equals(kv.second.name, script_name);
 		});
 
 	if (info_it != s_infoMap.end() && info_it->second.status != LuaThreadStatus::Exited)
 	{
 		// script is currently running, inform and exit
-		WriteChatStatus("Lua script %s is already running, not starting another instance.", script.c_str());
+		WriteChatStatus("Lua script %s is already running, not starting another instance.", script_name.c_str());
 		return 0;
 	}
 
@@ -497,7 +497,7 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 	entry->EnableImGui();
 	s_pending.push_back(entry);
 
-	WriteChatStatus("Running lua script '%s' with PID %d", script.c_str(), entry->GetPID());
+	WriteChatStatus("Running lua script '%s' with PID %d", script_name.c_str(), entry->GetPID());
 
 	std::optional<LuaThreadInfo> result = entry->StartFile(script_path, args);
 	if (result)
@@ -1158,7 +1158,7 @@ void LuaEnvironmentSettings::ConfigureLuaState(sol::state_view sv)
 	}
 
 	// always search the local dir first, then luarocks in modules, then anything specified by the user, then the default paths
-	sv["package"]["path"] = fmt::format("{luaDir}\\?.lua;{luaDir}\\?\\init.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?\\init.lua;{additionalPaths}{originalPath}",
+	sv["package"]["path"] = fmt::format("{luaDir}\\?.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?\\init.lua;{additionalPaths}{originalPath}",
 		fmt::arg("luaDir", luaDir),
 		fmt::arg("moduleDir", moduleDir),
 		fmt::arg("luaVersion", m_version),

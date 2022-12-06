@@ -256,7 +256,7 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(
 	std::string runDir = fs::path{ script_path }.parent_path().string();
 	if (!runDir.empty() && fs::path{ runDir }.compare(m_luaEnvironmentSettings->luaDir) != 0)
 	{
-		m_globalState["package"]["path"] = fmt::format("{runDir}\\?.lua;{runDir}\\?\\init.lua;{existingPath}",
+		m_globalState["package"]["path"] = fmt::format("{runDir}\\?\\init.lua;{runDir}\\?.lua;{existingPath}",
 			fmt::arg("runDir", runDir),
 			fmt::arg("existingPath", m_globalState["package"]["path"].get<std::string_view>()));
 
@@ -380,32 +380,24 @@ std::string LuaThread::GetScriptPath(std::string_view script, const std::filesys
 	namespace fs = std::filesystem;
 
 	std::error_code ec;
-	auto script_path = fs::absolute(luaDir / script, ec).lexically_normal();
+	const auto script_path = fs::absolute(luaDir / script, ec).lexically_normal();
+	const auto lua_path = script_path.parent_path() / (script_path.filename().string() + ".lua");
 
-	auto lua_path = script_path;
-	lua_path.replace_extension(".lua");
-	if (!fs::exists(script_path, ec) && fs::exists(lua_path, ec))
+	if (fs::exists(script_path, ec) && fs::is_directory(script_path, ec) && fs::exists(script_path / "init.lua", ec))
 	{
-		script_path = lua_path;
+		return (script_path / "init.lua").string();
 	}
-	else if (fs::is_directory(script_path, ec) && fs::exists(lua_path, ec) && !fs::is_directory(lua_path, ec))
+	else if (!fs::exists(script_path, ec) && fs::exists(lua_path, ec) && fs::is_directory(lua_path, ec) && fs::exists(lua_path / "init.lua", ec))
 	{
-		script_path = lua_path;
+		return (lua_path / "init.lua").string();
+	}
+	else if (!fs::exists(script_path, ec) && fs::exists(lua_path, ec))
+	{
+		return lua_path.string();
 	}
 	else if (!fs::exists(script_path, ec))
 	{
 		LuaError("Cannot find %.*s in the filesystem.", script.size(), script.data());
-		return {};
-	}
-
-	if (fs::is_directory(script_path, ec))
-	{
-		script_path = script_path.append("init.lua");
-	}
-
-	if (!fs::exists(script_path, ec))
-	{
-		LuaError("Cannot find script at %s", script_path.string().c_str());
 		return {};
 	}
 
