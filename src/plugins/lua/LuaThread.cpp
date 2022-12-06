@@ -391,17 +391,17 @@ std::string LuaThread::GetScriptPath(std::string_view script, const std::filesys
 	{
 		return (lua_path / "init.lua").string();
 	}
-	else if (!fs::exists(script_path, ec) && fs::exists(lua_path, ec))
+	else if (fs::exists(script_path, ec) && !fs::is_directory(script_path, ec))
+	{
+		return script_path.string();
+	}
+	else if (fs::exists(lua_path, ec) && !fs::is_directory(lua_path, ec))
 	{
 		return lua_path.string();
 	}
-	else if (!fs::exists(script_path, ec))
-	{
-		LuaError("Cannot find %.*s in the filesystem.", script.size(), script.data());
-		return {};
-	}
 
-	return script_path.string();
+	LuaError("Cannot find %.*s in the filesystem.", script.size(), script.data());
+	return {};
 }
 
 std::string LuaThread::GetCanonicalScriptName(std::string_view script, const std::filesystem::path& luaDir)
