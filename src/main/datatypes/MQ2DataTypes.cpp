@@ -479,6 +479,7 @@ bool CDataArray::GetElement(char* Index, MQTypeVar& Dest)
 #include "MQ2TargetType.cpp"
 #include "MQ2TaskType.cpp"
 #include "MQ2TimerType.cpp"
+#include "MQ2TradeskillDepotType.cpp"
 #include "MQ2WindowType.cpp"
 #include "MQ2WorldLocationType.cpp"
 #include "MQ2XTargetType.cpp"

@@ -365,6 +365,9 @@
     <ClCompile Include="datatypes\MQIniType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
+    <ClCompile Include="datatypes\MQ2TradeskillDepotType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
@@ -528,6 +531,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\mq\base\Vector.h">
       <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\Items.h">
+      <Filter>Header Files\mq\api</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

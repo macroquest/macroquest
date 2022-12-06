@@ -319,18 +319,235 @@ InvSlotInspector* s_invSlotInspector = nullptr;
 
 #pragma endregion
 
+#pragma region ItemContainerInspector
+
+class ItemContainerInspector : public ImGuiWindowBase
+{
+	ItemContainerInstance m_selectedContainerType = eItemContainerPossessions;
+	std::unique_ptr<CTextureAnimation> m_iconsTexture;
+
+public:
+	ItemContainerInspector()
+		: ImGuiWindowBase("ItemContainer Inspector")
+	{
+		SetDefaultSize(ImVec2(640, 450));
+
+		
+	}
+
+	bool IsEnabled() const override
+	{
+		return pInvSlotMgr != nullptr;
+	}
+
+	void Draw() override
+	{
+		char comboLabel[64];
+		sprintf_s(comboLabel, "Container Type: %d###containerCombo", m_selectedContainerType);
+		if (ImGui::BeginCombo(comboLabel, GetNameForContainerInstance(m_selectedContainerType)))
+		{
+			for (ItemContainerInstance type = eItemContainerPossessions; type < eNumItemContainers;
+				type = (ItemContainerInstance)(type + 1))
+			{
+				bool isSelected = m_selectedContainerType == type;
+
+				if (ImGui::Selectable(GetNameForContainerInstance(type), isSelected))
+				{
+					m_selectedContainerType = type;
+				}
+
+				if (isSelected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+
+			ImGui::EndCombo();
+		}
+
+		ItemContainer* pItemContainer = GetItemContainerByType(m_selectedContainerType);
+		if (!pItemContainer)
+		{
+			ImGui::Text("No instance of item container found");
+			return;
+		}
+
+		int size = pItemContainer->GetSize();
+		int count = pItemContainer->GetCount();
+
+		ImGui::Text("Item Count: %d / %d", count, size);
+		if (pItemContainer->IsDynamic())
+		{
+			ImGui::SameLine();
+			ImGui::Text("(Dynamic)");
+		}
+
+		switch (m_selectedContainerType)
+		{
+#if HAS_DRAGON_HOARD
+		case eItemContainerDragonHoard:
+			ImGui::Text("Dragon Hoard Max Capacity: %d", pLocalPC->DragonHoardCapacity);
+			ImGui::Text("Dragon Hoard Populated: %d", pLocalPC->DragonHoardPopulated ? 1 : 0);
+			break;
+#endif
+
+#if HAS_TRADESKILL_DEPOT
+		case eItemContainerTradeskillDepot:
+			ImGui::Text("Tradeskill Depot Max Capacity: %d", pLocalPC->TradeskillDepotCapacity);
+			ImGui::Text("Tradeskill Depot Populated: %d", pLocalPC->TradeskillDepotPopulated);
+			break;
+#endif
+
+#if HAS_KEYRING_WINDOW
+		case eItemContainerMountKeyRingItems:
+			ImGui::Text("Mount Key Ring Max Capacity: %d (base)", pLocalPC->BaseKeyRingSlots[eMount]);
+			break;
+
+		case eItemContainerIllusionKeyRingItems:
+			ImGui::Text("Illusion Key Ring Max Capacity: %d (base)", pLocalPC->BaseKeyRingSlots[eIllusion]);
+			break;
+
+		case eItemContainerFamiliarKeyRingItems:
+			ImGui::Text("Familiar Key Ring Max Capacity: %d (base)", pLocalPC->BaseKeyRingSlots[eFamiliar]);
+			break;
+
+		case eItemContainerHeroForgeKeyRingItems:
+			ImGui::Text("Hero Forge Key Ring Max Capacity: %d (base)", pLocalPC->BaseKeyRingSlots[eHeroForge]);
+			break;
+
+#if HAS_TELEPORTATION_KEYRING
+		case eItemContainerTeleportationKeyRingItems:
+			ImGui::Text("Teleportation Key Ring Max Capacity: %d (base)", pLocalPC->BaseKeyRingSlots[eTeleportationItem]);
+			break;
+#endif
+#endif
+
+		default: break;
+		}
+
+		ImGuiTableFlags tableFlags = ImGuiTableFlags_SizingFixedFit
+			| ImGuiTableFlags_ScrollY
+			| ImGuiTableFlags_BordersV
+			| ImGuiTableFlags_BordersOuterH
+			| ImGuiTableFlags_Resizable
+			| ImGuiTableFlags_RowBg;
+
+		if (!m_iconsTexture)
+		{
+			if (CTextureAnimation* tex = pSidlMgr->FindAnimation("A_DragItem"))
+			{
+				m_iconsTexture = std::make_unique<CTextureAnimation>(*tex);
+			}
+		}
+
+		if (ImGui::BeginTable("##ItemTable", 5, tableFlags, ImGui::GetContentRegionAvail()))
+		{
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch, -1.0f);
+			ImGui::TableSetupColumn("##Icon", ImGuiTableColumnFlags_WidthFixed, -1.0f);
+			ImGui::TableSetupColumn("Item Index", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+			ImGui::TableSetupColumn("Count", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+			ImGui::TableSetupColumn("##View", ImGuiTableColumnFlags_WidthFixed, 60.0f);
+			ImGui::TableHeadersRow();
+
+			ItemIndex cursor = pItemContainer->CreateItemIndex(0);
+
+			for (const ItemPtr& pItem : *pItemContainer)
+			{
+				Draw_ItemRow(pItem, pItem->GetItemLocation());
+			}
+
+			ImGui::EndTable();
+		}
+	}
+
+	void Draw_ItemRow(const ItemPtr& itemPtr, const ItemGlobalIndex & index)
+	{
+		if (!itemPtr) return;
+
+		char szItemIndex[32];
+		ImGui::TableNextRow();
+		ImGui::PushID((void*)itemPtr.get());
+
+		ImGui::TableNextColumn(); // name and tree node
+
+		// If this item has childrent then we are a tree node.
+		bool hasChildren = !itemPtr->IsEmpty();
+		bool open = false;
+		ImGuiTreeNodeFlags flags = 0;
+
+		if (hasChildren)
+		{
+			open = ImGui::TreeNodeEx(itemPtr.get(), flags, "%s", itemPtr->GetName());
+		}
+		else
+		{
+			flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+			ImGui::TreeNodeEx(itemPtr.get(), flags, "%s", itemPtr->GetName());
+		}
+
+		ImGui::TableNextColumn(); // Item Name
+		if (m_iconsTexture)
+		{
+			m_iconsTexture->SetCurCell(itemPtr->GetIconID() ? itemPtr->GetIconID() - 500 : 336);
+			imgui::DrawTextureAnimation(m_iconsTexture.get(), CXSize(16, 16));
+		}
+
+		ImGui::TableNextColumn(); // ItemIndex
+		if (index.IsValidIndex())
+		{
+			index.GetIndex().FormatItemIndex(szItemIndex, lengthof(szItemIndex));
+			ImGui::Text("%s", szItemIndex);
+		}
+
+		ImGui::TableNextColumn(); // Item Count
+		ImGui::Text("%d", itemPtr->GetItemCount());
+
+		ImGui::TableNextColumn(); // View
+		if (ImGui::SmallButton("View"))
+		{
+			pItemDisplayManager->ShowItem(itemPtr);
+		}
+
+		if (open)
+		{
+			if (auto pChildContainer = itemPtr->GetChildItemContainer())
+			{
+				for (const ItemPtr& pItem : *pChildContainer)
+				{
+					Draw_ItemRow(pItem, pItem->GetItemLocation());
+				}
+			}
+
+			ImGui::TreePop();
+		}
+
+		ImGui::PopID();
+	}
+};
+
+ItemContainerInspector* s_itemContainerInspector = nullptr;
+
+#pragma endregion
+
 //----------------------------------------------------------------------------
 
 static void Items_Initialize()
 {
 	s_invSlotInspector = new InvSlotInspector();
 	DeveloperTools_RegisterMenuItem(s_invSlotInspector, "Inventory Slots", s_menuNameInspectors);
+
+	s_itemContainerInspector = new ItemContainerInspector();
+	DeveloperTools_RegisterMenuItem(s_itemContainerInspector, "Item Containers", s_menuNameInspectors);
 }
 
 static void Items_Shutdown()
 {
 	DeveloperTools_UnregisterMenuItem(s_invSlotInspector);
 	delete s_invSlotInspector; s_invSlotInspector = nullptr;
+
+	DeveloperTools_UnregisterMenuItem(s_itemContainerInspector);
+	delete s_itemContainerInspector; s_itemContainerInspector = nullptr;
 }
 
 static void Items_Pulse()
