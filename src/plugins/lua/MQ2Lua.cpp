@@ -93,7 +93,7 @@ std::unordered_map<uint32_t, LuaThreadInfo> s_infoMap;
 
 void DebugStackTrace(lua_State* L, const char* message)
 {
-	LuaError("%s", message);
+	LuaError("%s", message == nullptr ? "nil" : message);
 
 	if (s_verboseErrors)
 	{
