@@ -7117,7 +7117,11 @@ MQColor GetColorForChatColor(uint32_t chatColor)
 
 		// Ensure that alpha is set to fully opaque
 		MQColor color{ MQColor::format_bgr, CDisplay::GetUserDefinedColor(chatColor) };
-		if ((color.ARGB & 0x00ffffff) == 0x00ffffff) {
+		if (gGameState != GAMESTATE_CHARCREATE
+			|| gGameState != GAMESTATE_CHARSELECT
+			|| gGameState != GAMESTATE_INGAME
+			|| (color.ARGB & 0x00ffffff) == 0x00ffffff)
+		{
 			// Hasn't been set yet. Use defaults.
 			color = gUserColors[chatColor];
 		}
