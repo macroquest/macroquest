@@ -1543,8 +1543,6 @@ public:
 	static bool dataFrameLimiter(const char* szIndex, MQTypeVar& Ret);
 };
 
-//----------------------------------------------------------------------------
-
 //============================================================================
 // MQIniType
 
@@ -1588,6 +1586,20 @@ public:
 	static bool dataIni(const char* szIndex, MQTypeVar& Ret);
 };
 
+//============================================================================
+// MQ2TradeskillDepotType
+
+class MQ2TradeskillDepotType : public MQ2Type
+{
+public:
+	MQ2TradeskillDepotType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+
+	static bool dataTradeskillDepot(const char* szIndex, MQTypeVar& Ret);
+};
+
+//----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
 bool dataIf(const char* szIndex, MQTypeVar& Ret);

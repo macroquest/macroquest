@@ -255,13 +255,13 @@ static void ColumnTextType(const char* Label, const char* Type, const char* fmt,
 	ImGui::TableNextColumn();
 }
 
-static bool ColumnLinkTextType(const char* Label, const char* Type, const char* fmt, ...)
+static bool ColumnLinkTextType(const char* Label, const char* str_id, const char* Type, const char* fmt, ...)
 {
 	ImGui::TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
 
 	va_list args;
 	va_start(args, fmt);
-	bool clicked = ColumnLinkValue(Label, GetColorForChatColor(USERCOLOR_LINK), fmt, args);
+	bool clicked = ColumnLinkValue(str_id, GetColorForChatColor(USERCOLOR_LINK), fmt, args);
 	va_end(args);
 	ImGui::TableNextColumn();
 
@@ -1422,7 +1422,7 @@ void ColumnItemGlobalIndex(const char* Label, const ItemGlobalIndex& index)
 
 void ColumnItem(const char* Label, const ItemPtr& pItem)
 {
-	if (ColumnLinkTextType(Label, "ItemPtr", "%s", pItem ? pItem->GetName() : "(null)"))
+	if (ColumnLinkTextType(Label, pItem ? pItem->ItemGUID.guid : "blank", "ItemPtr", "%s", pItem ? pItem->GetName() : "(null)"))
 	{
 		if (pItemDisplayManager) pItemDisplayManager->ShowItem(pItem);
 	}
@@ -2090,7 +2090,14 @@ public:
 				ImGui::TreePop();
 			}
 
-			ColumnCheckBox("Visible", &pWnd->dShow);
+			bool show = pWnd->dShow;
+			if (ColumnCheckBox("Visible", &show))
+			{
+				if (show)
+					pWnd->Activate();
+				else
+					pWnd->Deactivate();
+			}
 			ColumnCheckBox("Enabled", &pWnd->Enabled);
 
 			CTextureFont* pFont = pWnd->pFont;
@@ -3913,6 +3920,34 @@ static void WindowProperties_ZonePathWnd(CSidlScreenWnd* pSidlWindow, ImGuiWindo
 	ColumnCheckBox("Zone path dirty", pWnd->zonePathDirty);
 }
 
+#if HAS_TRADESKILL_DEPOT
+static void WindowProperties_TradeskillDepotWnd(CSidlScreenWnd* pSidlWindow, ImGuiWindowPropertyViewer* viewer)
+{
+	CTradeskillDepotWnd* pWnd = (CTradeskillDepotWnd*)pSidlWindow;
+
+	ColumnCheckBox("Needs Update", &pWnd->bNeedsUpdate);
+	ColumnItem("Selected Item", pWnd->pSelectedItem);
+	ColumnText("Selected Item ID", "%d", pWnd->SelectedItemID);
+
+	auto elapsed = std::chrono::steady_clock::now() - std::chrono::steady_clock::time_point(
+		std::chrono::milliseconds(pWnd->lastUpdateTime));
+	ColumnElapsedTimestamp("Time since last Update", (int)std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count());
+
+	ColumnCheckBox("Unknown0x378", &pWnd->bUnknown5);
+}
+#endif
+
+#if HAS_DRAGON_HOARD
+static void WindowProperties_DragronHoardWnd(CSidlScreenWnd* pSidlWindow, ImGuiWindowPropertyViewer* viewer)
+{
+	CDragonHoardWnd* pWnd = (CDragonHoardWnd*)pSidlWindow;
+
+	ColumnCheckBox("Needs Update", &pWnd->bNeedsUpdate);
+	ColumnItem("Selected Item", pWnd->pSelectedItem);
+	ColumnText("Selected Item ID", "%d", pWnd->SelectedItemId);
+}
+#endif
+
 #pragma endregion
 
 //============================================================================
@@ -3922,11 +3957,17 @@ void DeveloperTools_WindowInspector_Initialize()
 	s_windowInspector = new WindowInspector();
 	DeveloperTools_RegisterMenuItem(s_windowInspector, "Windows", s_menuNameInspectors);
 
-	RegisterWindowPropertyViewer("ItemDisplayWindow", WindowProperties_ItemDisplayWindow);
 	RegisterWindowPropertyViewer("BuffWindow", WindowProperties_BuffWindow);
-	RegisterWindowPropertyViewer("ShortDurationBuffWindow", WindowProperties_BuffWindow);
 	RegisterWindowPropertyViewer("CompassWindow", WindowProperties_CompassWindow);
+#if HAS_DRAGON_HOARD
+	RegisterWindowPropertyViewer("DragonHoardWnd", WindowProperties_DragronHoardWnd);
+#endif
 	RegisterWindowPropertyViewer("FindLocationWnd", WindowProperties_FindLocationWnd);
+	RegisterWindowPropertyViewer("ItemDisplayWindow", WindowProperties_ItemDisplayWindow);
+	RegisterWindowPropertyViewer("ShortDurationBuffWindow", WindowProperties_BuffWindow);
+#if HAS_TRADESKILL_DEPOT
+	RegisterWindowPropertyViewer("TradeskillDepotWnd", WindowProperties_TradeskillDepotWnd);
+#endif
 	RegisterWindowPropertyViewer("ZoneGuideWnd", WindowProperties_ZoneGuideWnd);
 	RegisterWindowPropertyViewer("ZonePathWnd", WindowProperties_ZonePathWnd);
 }

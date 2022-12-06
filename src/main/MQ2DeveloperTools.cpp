@@ -1788,7 +1788,7 @@ public:
 
 				ImGui::TreePop();
 			}
-
+			ImGui::TableNextRow();
 			if (ImGui::TreeNode("Game Features"))
 			{
 

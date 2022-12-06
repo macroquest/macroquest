@@ -544,6 +544,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("SwitchTarget", datatypes::MQ2SwitchType::dataSwitchTarget);
 	AddMQ2Data("Target", datatypes::MQ2TargetType::dataTarget);
 	AddMQ2Data("Task", datatypes::MQ2TaskType::dataTask);
+	AddMQ2Data("TradeskillDepot", datatypes::MQ2TradeskillDepotType::dataTradeskillDepot);
 	AddMQ2Data("Window", datatypes::MQ2WindowType::dataWindow);
 	AddMQ2Data("Zone", datatypes::MQ2ZoneType::dataZone);
 
