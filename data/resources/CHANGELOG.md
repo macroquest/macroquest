@@ -1,5 +1,7 @@
 December 6, 2022:
 - live: Update for expansion patch
+- live: Fixed Switch ids and names
+- Added currency for NoS
 - Added ${TradeskillDepot}, see the docs for full description of the members:
   https://docs.macroquest.org/reference/top-level-objects/tlo-tradeskilldepot/
 - lua: Running "/lua run scriptname" will now prefer lua/scriptname/init.lua over
