@@ -1,8 +1,15 @@
+December 6, 2022:
+- live: Update for expansion patch
+- Added ${TradeskillDepot}, see the docs for full description of the members:
+  https://docs.macroquest.org/reference/top-level-objects/tlo-tradeskilldepot/
+- lua: Running "/lua run scriptname" will now prefer lua/scriptname/init.lua over
+  lua/scriptname.lua. this is to make it easier to transition to the new directory layout.
+
 November 29, 2022:
 - emu: Fix PctExp and PctAAExp calculations
 - tlo: Added BazaarItem.FullName
 - lua: Fixed bug where /lua pause would not pause imgui thread
-- lua: added :on and :off arguments to /lua pause
+- lua: added -on and -off arguments to /lua pause
 
 November 28, 2022:
 - Huge update to settings window for MQ2Map plugin settings - /mqsettings plugin/map (#657)
