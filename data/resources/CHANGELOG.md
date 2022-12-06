@@ -1,3 +1,10 @@
+December 6, 2022:
+- live: Update for expansion patch
+- Added ${TradeskillDepot}, see the docs for full description of the members:
+  https://docs.macroquest.org/reference/top-level-objects/tlo-tradeskilldepot/
+- lua: Running "/lua run scriptname" will now prefer lua/scriptname/init.lua over
+  lua/scriptname.lua. this is to make it easier to transition to the new directory layout.
+
 November 29, 2022:
 - emu: Fix PctExp and PctAAExp calculations
 - tlo: Added BazaarItem.FullName
