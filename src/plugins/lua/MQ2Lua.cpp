@@ -93,7 +93,7 @@ std::unordered_map<uint32_t, LuaThreadInfo> s_infoMap;
 
 void DebugStackTrace(lua_State* L, const char* message)
 {
-	LuaError("%s", message);
+	LuaError("%s", message == nullptr ? "nil" : message);
 
 	if (s_verboseErrors)
 	{
@@ -1158,7 +1158,7 @@ void LuaEnvironmentSettings::ConfigureLuaState(sol::state_view sv)
 	}
 
 	// always search the local dir first, then luarocks in modules, then anything specified by the user, then the default paths
-	sv["package"]["path"] = fmt::format("{luaDir}\\?.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?\\init.lua;{additionalPaths}{originalPath}",
+	sv["package"]["path"] = fmt::format("{luaDir}\\?\\init.lua;{luaDir}\\?.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?\\init.lua;{additionalPaths}{originalPath}",
 		fmt::arg("luaDir", luaDir),
 		fmt::arg("moduleDir", moduleDir),
 		fmt::arg("luaVersion", m_version),
