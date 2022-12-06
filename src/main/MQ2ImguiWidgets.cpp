@@ -195,7 +195,7 @@ bool ItemLinkTextV_Internal(const char* str_id, MQColor color, MQColor colorHove
 	ImGui::PushID(str_id);
 
 	static ImGuiID hoveredID = 0;
-	ImGuiID thisID = ImGui::GetItemID();
+	ImGuiID thisID = ImGui::GetID(str_id);
 
 	bool isHovered = (hoveredID == thisID);
 	MQColor textLinkColor = isHovered ? colorHovered : color;

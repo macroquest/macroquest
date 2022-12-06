@@ -232,7 +232,6 @@ bool MQ2KeyRingItemType::ToString(MQVarPtr VarPtr, char* Destination)
 	return false;
 }
 
-
 MQTypeVar MQ2KeyRingItemType::MakeTypeVar(int keyRingType, int itemIndex)
 {
 	MQTypeVar Ret;
