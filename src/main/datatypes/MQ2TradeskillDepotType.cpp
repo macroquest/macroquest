@@ -70,6 +70,7 @@ MQ2TradeskillDepotType::MQ2TradeskillDepotType() : MQ2Type("tradeskilldepot")
 {
 	ScopedTypeMember(TradeskillDepotTypeMembers, Count);
 	ScopedTypeMember(TradeskillDepotTypeMembers, Capacity);
+	ScopedTypeMember(TradeskillDepotTypeMembers, Enabled);
 	ScopedTypeMember(TradeskillDepotTypeMembers, ItemsReceived);
 	ScopedTypeMember(TradeskillDepotTypeMembers, FindItem);
 	ScopedTypeMember(TradeskillDepotTypeMembers, FindItemCount);
@@ -189,7 +190,7 @@ bool MQ2TradeskillDepotType::GetMember(MQVarPtr VarPtr, const char* Member, char
 
 	case TradeskillDepotTypeMembers::Enabled:
 		Dest.Type = pBoolType;
-		Dest.Set(pLocalPC->ConsumableFeatures.CanConsumeFeature(EQFEature_TradeskillDepot));
+		Dest.Set(pLocalPC->ConsumableFeatures.CanConsumeFeature(EQFeature_TradeskillDepot));
 		return true;
 
 	case TradeskillDepotTypeMembers::ItemsReceived:
