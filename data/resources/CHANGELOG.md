@@ -1,3 +1,6 @@
+December 8, 2022:
+- live: updated for patch
+
 December 6, 2022:
 - live: Update for expansion patch
 - live: Fixed Switch ids and names
