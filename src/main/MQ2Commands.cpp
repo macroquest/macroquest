@@ -2159,9 +2159,8 @@ void MacroLog(SPAWNINFO* pChar, char* szLine)
 
 	if (!_stricmp(szLine, "clear"))
 	{
-		FILE* fOut = nullptr;
-		const errno_t err = fopen_s(&fOut, logFilePath.string().c_str(), "wt");
-		if (err || !fOut)
+		FILE* fOut = _fsopen(logFilePath.string().c_str(), "wt", _SH_DENYWR);
+		if (!fOut)
 		{
 			MacroError("Couldn't open log file: %s", logFilePath.string().c_str());
 			return;
@@ -2176,9 +2175,8 @@ void MacroLog(SPAWNINFO* pChar, char* szLine)
 	std::error_code ec;
 	create_directories(logFilePath.parent_path(), ec);
 
-	FILE* fOut = nullptr;
-	const errno_t err = fopen_s(&fOut, logFilePath.string().c_str(), "at");
-	if (err || !fOut)
+	FILE* fOut = _fsopen(logFilePath.string().c_str(), "at", _SH_DENYWR);
+	if (!fOut)
 	{
 		MacroError("Couldn't open log file: %s", logFilePath.string().c_str());
 		return;

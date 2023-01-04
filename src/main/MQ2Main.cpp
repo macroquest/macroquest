@@ -1011,10 +1011,8 @@ void InsertMQ2News(const std::filesystem::path& pathChangeLog)
 	if (!pNewsWindow)
 		return;
 
-
-	FILE* file = nullptr;
-	const errno_t err = fopen_s(&file, pathChangeLog.string().c_str(), "rb");
-	if (err || !file)
+	FILE* file = _fsopen(pathChangeLog.string().c_str(), "rb", _SH_DENYNO);
+	if (!file)
 	{
 		DeleteMQ2NewsWindow();
 		return;
