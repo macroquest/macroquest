@@ -513,9 +513,8 @@ bool DumpBinds(const char* Filename)
 		pathFilename = mq::internal_paths::Config / pathFilename;
 	}
 
-	FILE* file = nullptr;
-	const errno_t err = fopen_s(&file, pathFilename.string().c_str(), "wt");
-	if (err || file == nullptr)
+	FILE* file = _fsopen(pathFilename.string().c_str(), "wt", _SH_DENYWR);
+	if (file == nullptr)
 	{
 		return false;
 	}

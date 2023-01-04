@@ -326,25 +326,23 @@ bool GenerateMQUI(const CXStr& strPath, const CXStr& strPathDefault)
 	{
 		DebugSpew("GenerateMQUI::Generating %s", pathMQUI.string().c_str());
 
-		FILE* forg = nullptr;
-		errno_t err = fopen_s(&forg, pathEQUI.string().c_str(), "rt");
-		if (err || forg == nullptr)
+		FILE* forig = _fsopen(pathEQUI.string().c_str(), "rt", _SH_DENYNO);
+		if (forig == nullptr)
 		{
 			DebugSpew("GenerateMQUI::could not open %s", pathEQUI.string().c_str());
 		}
 		else
 		{
-			FILE* fnew = nullptr;
-			err = fopen_s(&fnew, pathMQUI.string().c_str(), "wt");
-			if (err || fnew == nullptr)
+			FILE* fnew = _fsopen(pathMQUI.string().c_str(), "wt", _SH_DENYWR);
+			if (fnew == nullptr)
 			{
 				DebugSpew("GenerateMQUI::could not open %s", pathMQUI.string().c_str());
-				fclose(forg);
+				fclose(forig);
 			}
 			else
 			{
 				char Buffer[MAX_STRING] = { 0 };
-				while (fgets(Buffer, MAX_STRING, forg))
+				while (fgets(Buffer, MAX_STRING, forig))
 				{
 					if (strstr(Buffer, "</Composite>"))
 					{
@@ -359,7 +357,7 @@ bool GenerateMQUI(const CXStr& strPath, const CXStr& strPathDefault)
 					fprintf(fnew, "%s", Buffer);
 				}
 				fclose(fnew);
-				fclose(forg);
+				fclose(forig);
 				return true;
 			}
 		}
