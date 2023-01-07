@@ -1,3 +1,7 @@
+January 6, 2023:
+- lua:  Added mq/Icons.lua for Icon usage in imgui
+- tlo:  Added Spell.Dispellable which returns true if a spell can be dispelled (#655)
+
 December 8, 2022:
 - live: updated for patch
 

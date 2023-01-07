@@ -104,6 +104,7 @@ enum class SpellMembers
 	BaseEffectsFocusCap,
 	CategoryID,
 	SubcategoryID,
+	Dispellable,
 };
 
 enum class SpellMethods
@@ -197,6 +198,7 @@ MQ2SpellType::MQ2SpellType() : MQ2Type("spell")
 	ScopedTypeMember(SpellMembers, BaseEffectsFocusCap);
 	ScopedTypeMember(SpellMembers, CategoryID);
 	ScopedTypeMember(SpellMembers, SubcategoryID);
+	ScopedTypeMember(SpellMembers, Dispellable);
 	AddMember(static_cast<int>(SpellMembers::BaseEffectsFocusCap), "SongCap");
 }
 
@@ -1278,6 +1280,11 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	case SpellMembers::BaseEffectsFocusCap:
 		Dest.Type = pIntType;
 		Dest.Set(pSpell->BaseEffectsFocusCap);
+		return true;
+
+	case SpellMembers::Dispellable:
+		Dest.Set(!pSpell->IsNoDispell());
+		Dest.Type = pBoolType;
 		return true;
 	}
 
