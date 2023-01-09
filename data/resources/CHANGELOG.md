@@ -1,3 +1,11 @@
+January 8, 2023:
+- fix /removeaug (#669).
+- imgui: Fix nested BeginDisabled calls (#672).
+
+January 6, 2023:
+- lua: Added mq/Icons.lua for Icon usage in imgui
+- tlo: Added Spell.Dispellable which returns true if a spell can be dispelled (#655)
+
 December 14, 2022:
 - test: updated for patch
 

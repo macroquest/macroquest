@@ -43,9 +43,9 @@ static void LogToFile(const char* szOutput)
 	FILE* fOut = nullptr;
 
 	const std::filesystem::path pathDebugSpew = std::filesystem::path(mq::internal_paths::Logs) / "DebugSpew.log";
-	const errno_t err = fopen_s(&fOut, pathDebugSpew.string().c_str(), "at");
+	fOut = _fsopen(pathDebugSpew.string().c_str(), "at", _SH_DENYWR);
 
-	if (err || !fOut)
+	if (!fOut)
 		return;
 
 #ifdef DBG_CHARNAME
@@ -1983,9 +1983,8 @@ bool LoadCfgFile(const char* Filename, bool Delayed)
 
 	if (std::filesystem::exists(pathFilename, ec_exists))
 	{
-		FILE* file = nullptr;
-		errno_t err = 0;
-		if ((err = fopen_s(&file,pathFilename.string().c_str(),"rt")) == 0)
+		FILE* file = _fsopen(pathFilename.string().c_str(), "rt", _SH_DENYNO);
+		if (file)
 		{
 			char szBuffer[MAX_STRING] = { 0 };
 			while (fgets(szBuffer, MAX_STRING, file))

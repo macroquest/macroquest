@@ -1342,7 +1342,7 @@ void InitializeMQ2Plugins()
 
 	DebugSpew("Initializing plugins");
 
-	std::vector<std::string> plugins = GetPrivateProfileKeys("Plugins", mq::internal_paths::MQini);
+	const std::vector<std::string> plugins = GetPrivateProfileKeys<MAX_STRING * 2>("Plugins", mq::internal_paths::MQini);
 	for (const std::string& pluginName : plugins)
 	{
 		if (GetPrivateProfileBool("Plugins", pluginName, false, mq::internal_paths::MQini))
