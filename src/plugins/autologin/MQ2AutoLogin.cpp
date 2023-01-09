@@ -327,10 +327,9 @@ void AutoLoginDebug(std::string_view svLogMessage, const bool bDebugOn /* = AUTO
 		std::filesystem::path pathToDebugLog = gPathLogs;
 		pathToDebugLog /= "MQ2AutoLogin_DBG.log";
 
-		FILE* fLog = nullptr;
-		const errno_t err = fopen_s(&fLog, pathToDebugLog.string().c_str(), "a");
+		FILE* fLog = _fsopen(pathToDebugLog.string().c_str(), "a", _SH_DENYWR);
 
-		if (err || !fLog)
+		if (!fLog)
 		{
 			DebugSpewAlways("Could not open MQ2Autologin Debug log for appending.");
 		}

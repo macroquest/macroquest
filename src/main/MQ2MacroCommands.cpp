@@ -510,9 +510,8 @@ void CleanMacroLine(char* szLine)
 // TODO:  Switch this to take input of filesystem::path instead of const char*  Breaking change?
 bool Include(const char* szFile, int* LineNumber)
 {
-	FILE* fMacro = nullptr;
-	const errno_t err = fopen_s(&fMacro, szFile, "rt");
-	if (err || fMacro == nullptr)
+	FILE* fMacro = _fsopen(szFile, "rt", _SH_DENYNO);
+	if (fMacro == nullptr)
 	{
 		FatalError("Couldn't open include file: %s", szFile);
 		return false;
@@ -1025,10 +1024,9 @@ void Macro(PSPAWNINFO pChar, char* szLine)
 		macFilePath = mq::internal_paths::Macros / macFilePath;
 	}
 
-	FILE* fMacro = nullptr;
-	const errno_t err = fopen_s(&fMacro, macFilePath.string().c_str(), "rt");
+	FILE* fMacro = _fsopen(macFilePath.string().c_str(), "rt", _SH_DENYNO);
 
-	if (err || fMacro == nullptr)
+	if (fMacro == nullptr)
 	{
 		FatalError("Couldn't open macro file: %s", macFilePath.string().c_str());
 		gszMacroName[0] = 0;
@@ -1390,8 +1388,8 @@ void EndMacro(PSPAWNINFO pChar, char* szLine)
 			// Open new profiling log file
 			strcpy_s(Filename, i->second.SourceFile.c_str());
 			sprintf_s(Buffer, "%s\\%s.mqp", gszMacroPath, Filename);
-			errno_t err = fopen_s(&fMacro, Buffer, "w");
-			if (!err) {
+			fMacro = _fsopen(Buffer, "w", _SH_DENYWR);
+			if (fMacro) {
 				fprintf(fMacro, " Execute |  Total   | Avg uSec | Line | Macro Source Code\n");
 				fprintf(fMacro, " Count   |   uSec   | Per 1000 |\n");
 				fprintf(fMacro, "------------------------------------------------------------------------------------------------------------- \n");
