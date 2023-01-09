@@ -1,4 +1,5 @@
 January 8, 2023:
+- fix /removeaug (#669).
 - imgui: Fix nested BeginDisabled calls (#672).
 
 January 6, 2023:

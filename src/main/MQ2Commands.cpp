@@ -5696,7 +5696,7 @@ static ItemPtr FindAugmentSolvent(const ItemPtr& pAugItem)
 	{
 		int realID = pDistillerInfo.GetIDFromRecordNum(i, false);
 
-		if (ItemPtr pItemSolvent = pLocalPC->GetItemByID(realID))
+		if (ItemPtr pItemSolvent = FindItemByID(realID))
 		{
 			// found a distiller that will work...
 			return pItemSolvent;
@@ -5705,7 +5705,7 @@ static ItemPtr FindAugmentSolvent(const ItemPtr& pAugItem)
 
 	return ItemPtr();
 #else
-	return pLocalPC->GetItemByID(solventID);
+	return FindItemByID(solventID);
 #endif
 }
 
