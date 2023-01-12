@@ -1263,3 +1263,45 @@ Demonologist Sharra^a dark occulist researchers^hot^somnium^https://hot.eqresour
 High Priest Casmion^a royal high priests^hot^somnium^https://hot.eqresource.com/highpriestcasmion.php
 Knight Captain Rosch^a royal knight errant^hot^somnium^https://hot.eqresource.com/knightcaptainrosch.php
 Rites Master Lorett^a dark ritualist experts^hot^somnium^https://hot.eqresource.com/ritesmasterlorett.php
+Stoneclaw Broodmother^a stoneclaw crawler^nos^shadeweavertwo^https://nos.eqresource.com/stoneclawbroodmother.php
+Thorn Petal^a gloompetal thistle^nos^shadeweavertwo^https://nos.eqresource.com/thornpetal.php
+Bedrock Burrower^a Firefall hollower^nos^firefall^https://nos.eqresource.com/bedrockburrower.php
+Diabo Xi Vesta^Qua Liako,Qua Centien,Qua Zethon^nos^firefall^https://nos.eqresource.com/diaboxivesta.php
+Firefallizard^a cinderscale saurek^nos^firefall^https://nos.eqresource.com/firefallizard.php
+Fowl Matriarch^a soot-specked hawk,firefall falcon^nos^firefall^https://nos.eqresource.com/fowlmatriarch.php
+Igneous Insect^a ravine roamer^nos^firefall^https://nos.eqresource.com/igneousinsect.php
+Rock Lobber^a fissure fiend^nos^firefall^https://nos.eqresource.com/rocklobber.php
+Crimsonclaw^a rockhopper adolescent^nos^sharvahltwo^https://nos.eqresource.com/crimsonclaw.php
+Geerot Stabgut^a grimling invader^nos^sharvahltwo^https://nos.eqresource.com/geerotstabgut.php
+Gheg Gorespit^a grimling scout^nos^sharvahltwo^https://nos.eqresource.com/gheggorespit.php
+Kurati the Feral^a wrathful Sahtebi^nos^sharvahltwo^https://nos.eqresource.com/kuratitheferal.php
+Tailfang^a scorpion elder^nos^sharvahltwo^https://nos.eqresource.com/tailfang.php
+Toraji, Korath`s Warder^an ancient skeleton^nos^sharvahltwo^https://nos.eqresource.com/torajikorathswarder.php
+Wiggle^a hungry xakra worm^nos^sharvahltwo^https://nos.eqresource.com/wiggle.php
+Arly Golyeck^a recondite roughhouser^nos^paludaltwo^https://nos.eqresource.com/allnamepaludaldepths.php
+Herachuel^a royal guardian^nos^paludaltwo^https://nos.eqresource.com/herachuel.php
+Maricella Slithra^a recondite footpad^nos^paludaltwo^https://nos.eqresource.com/maricellaslithra.php
+Merrimore Ychansk^a recondite wanderer^nos^paludaltwo^https://nos.eqresource.com/merrimoreychansk.php
+Toxiplax^a dead eye shik'nar^nos^paludaltwo^https://nos.eqresource.com/toxiplax.php
+Vahlkamph^a fungal aberrant^nos^paludaltwo^https://nos.eqresource.com/vahlkamph.php
+Brute^a toughened phlarg fiend^nos^shadowhaventwo^https://nos.eqresource.com/brute.php
+Flail^spirit-touched scrap^nos^shadowhaventwo^https://nos.eqresource.com/flail.php
+Mace^animated scrap^nos^shadowhaventwo^https://nos.eqresource.com/mace.php
+Overgrowth^a contaminated digger^nos^shadowhaventwo^https://nos.eqresource.com/overgrowth.php
+Skitter^an elder shik'nar outcast^nos^shadowhaventwo^https://nos.eqresource.com/skitter.php
+Stone Chitin^a dour delver^nos^shadowhaventwo^https://nos.eqresource.com/stonechitin.php
+Velutipes^a sensate reishi^nos^shadowhaventwo^https://nos.eqresource.com/velutipes.php
+Agaricusus^a hearty saprophyte^nos^deepshade^https://nos.eqresource.com/agaricusus.php
+Ayoaenae^an apathetic thespian^nos^deepshade^https://nos.eqresource.com/ayoaenae.php
+Bavanjam^a spectral grizzly^nos^deepshade^https://nos.eqresource.com/bavanjam.php
+Drinil^a rowdy stand in^nos^deepshade^https://nos.eqresource.com/drinil.php
+Faceted Windra^a crystal medusa^nos^deepshade^https://nos.eqresource.com/facetedwindra.php
+Psylopsybyl^a pungent stinkhorn^nos^deepshade^https://nos.eqresource.com/psylopsybyl.php
+Sehtab Mahlinee^a disgrunted stagehand^nos^deepshade^https://nos.eqresource.com/sehtabmahlinee.php
+Chromatic Widow Queen^an ethereal widow^nos^darklight^https://nos.eqresource.com/chromaticwidowqueen.php
+Eelworm^an overgrown nematode^nos^darklight^https://nos.eqresource.com/eelworm.php
+Geoxyle^a root reaper^nos^darklight^https://nos.eqresource.com/geoxyle.php
+Kezhda the Frenzied^a spirit sapper^nos^darklight^https://nos.eqresource.com/kezhdathefrenzied.php
+Mycorrhizal Mutation^a spore stalker^nos^darklight^https://nos.eqresource.com/mycorrhizalmutation.php
+Rabid Rhizanthella^a prickly perennial^nos^darklight^https://nos.eqresource.com/rabidrhizanthella.php
+Variegated Monstera^an aberrant blossom^nos^darklight^https://nos.eqresource.com/variegatedmonstera.php
