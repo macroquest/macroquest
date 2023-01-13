@@ -963,7 +963,6 @@ void InitializeMQ2Commands()
 #if HAS_ADVANCED_LOOT
 		{ "/advloot",           AdvLootCmd,                 true,  true  },
 		{ "/setlootfilter",     SetLootFilterCmd,           true,  true  },
-		{ "/removelootfilter",  RemoveLootFilterCmd,        true,  true  },
 #endif
 		{ "/pickzone",          PickZoneCmd,                true,  true  },
 		{ "/assist",            AssistCmd,                  true,  true  },

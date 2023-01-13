@@ -4949,7 +4949,8 @@ void AdvLootCmd(SPAWNINFO* pChar, char* szLine)
 // Function:    SetLootFilterCmd
 // Description: '/setlootfilter' command
 //              Adds the ability to set advanced loot filters via command line
-// Usage: /setlootfilter AN|AG|NV|AR|ANAR|AGAR|NVAR "itemID^itemIconID^itemName"
+// Usage: /setlootfilter (AN|AG|NV) [AR] itemID itemIconID "itemName"
+//        /setlootfilter remove itemID
 // ***************************************************************************
 void SetLootFilterCmd(SPAWNINFO* pChar, char* szLine)
 {
@@ -4958,151 +4959,126 @@ void SetLootFilterCmd(SPAWNINFO* pChar, char* szLine)
 		// No arguments, display usage
 		if (!szLine[0])
 		{
-			WriteChatf("Usage: /setlootfilter (option) \"itemID^itemIconID^itemName\"");
+			WriteChatf("Usage: /setlootfilter (AN|AG|NV) [AR] itemID itemIconID \"itemName\"");
+			WriteChatf("Usage: /setlootfilter remove itemID");
 			WriteChatf("Options:");
 			WriteChatf("       AN - Always Need");
 			WriteChatf("       AG - Always Greed");
 			WriteChatf("       NV - Never");
 			WriteChatf("       AR - Always Roll");
-			WriteChatf("       ANAR - Always Need and Always Roll");
-			WriteChatf("       AGAR - Always Need and Always Greed");
-			WriteChatf("       NVAR - Never and Always Roll");
-			WriteChatf("Example: /setlootfilter ANAR \"13072^793^Rat Ears\"");
+			WriteChatf("Example: /setlootfilter AN AR 13072 793 \"Rat Ears\"");
 			WriteChatf("       Sets AdvLoot filter for \"Rat Ears\" to Always Need and Always Roll");
+			WriteChatf("Example: /setlootfilter remove 13072");
+			WriteChatf("       Removes AdvLoot filter for \"Rat Ears\"");
 			return;
 		}
 
-		// Grab user's selected filter type
-		char filterTypeArg[MAX_STRING] = { 0 };
-		GetArg(filterTypeArg, szLine, 1);
+		const char* szRest = szLine;
+		char szArg[MAX_STRING] = { 0 };
 
-		// Blank filter types, set by user below
-		int filterTypes = 0;
+		// Grab Filter Type or Remove
+		GetArg(szArg, szRest, 1);
+		szRest = GetNextArg(szRest, 1);
 
-		// Always Need
-		if (_stricmp(filterTypeArg, "AN") == 0)
+		// Check if we are doing a remove
+		if (ci_equals(szArg, "remove"))
 		{
-			filterTypes |= LootFilterBit(LootFilterType_AlwaysNeed);
-		}
-		// Always Greed
-		else if (_stricmp(filterTypeArg, "AG") == 0)
-		{
-			filterTypes |= LootFilterBit(LootFilterType_AlwaysGreed);
-		}
-		// Never
-		else if (_stricmp(filterTypeArg, "NV") == 0)
-		{
-			filterTypes |= LootFilterBit(LootFilterType_NeverLoot);
-		}
-		// Auto Roll
-		else if (_stricmp(filterTypeArg, "AR") == 0)
-		{
-			filterTypes |= LootFilterBit(LootFilterType_AutoRoll);
-		}
-		// Always Need / Auto Roll
-		else if (_stricmp(filterTypeArg, "ANAR") == 0)
-		{
-			filterTypes |= LootFilterBit(LootFilterType_AlwaysNeed);
-			filterTypes |= LootFilterBit(LootFilterType_AutoRoll);
-		}
-		// Always Greed / Auto Roll
-		else if (_stricmp(filterTypeArg, "AGAR") == 0)
-		{
-			filterTypes |= LootFilterBit(LootFilterType_AlwaysGreed);
-			filterTypes |= LootFilterBit(LootFilterType_AutoRoll);
-		}
-		// Never / Auto Roll
-		else if (_stricmp(filterTypeArg, "NVAR") == 0)
-		{
-			filterTypes |= LootFilterBit(LootFilterType_NeverLoot);
-			filterTypes |= LootFilterBit(LootFilterType_AutoRoll);
-		}
-		else
-		{
-			WriteChatf("Invalid Filter Type Entered, AN / AG / NV / AR / ANAR / AGAR / NVAR Required.");
-			return;
-		}
+			// Grab Item ID
+			GetArg(szArg, szRest, 1);
+			szRest = GetNextArg(szRest, 1);
 
-		// We properly set a filter type from argument, grab item filter string from rest
-		if (filterTypes != 0)
-		{
-			// Grab item filter argument from user
-			char itemFilterArg[MAX_STRING] = { 0 };
-			GetMaybeQuotedArg(itemFilterArg, MAX_STRING, szLine, 2);
-
-			if (itemFilterArg == nullptr)
+			// Grab/Check Int of Item ID
+			int itemID = GetIntFromString(szArg, -1);
+			if (itemID == -1)
 			{
-				WriteChatf("Invalid Item Filter Argument.");
-			}
-
-			// Split out each item in the item filter argument
-			std::vector<std::string> itemFilterStrSplit;
-			std::stringstream ss(itemFilterArg);
-			std::string item;
-			while (getline(ss, item, '^')) {
-				itemFilterStrSplit.push_back(item);
-			}
-
-			// Did not find 3 items in the item filter argument
-			if (itemFilterStrSplit.size() != 3)
-			{
-				WriteChatf("Invalid Item Filter Argument. Check Formatting.");
-				return;
-			}
-
-			// Grab out ItemID, Item IconID, and ItemName
-			int itemID = GetIntFromString(itemFilterStrSplit.at(0), -1);
-			int itemIconID = GetIntFromString(itemFilterStrSplit.at(1), -1);
-			std::string itemName = itemFilterStrSplit.at(2);
-
-			// If valid (actual numbers and some sort of text, set filter with selected types
-			if (itemID != -1 && itemIconID != -1 && !itemName.empty())
-			{
-				pLootFiltersManager->SetItemLootFilter(itemID, itemIconID, itemName.data(), filterTypes);
-				WriteChatf("Item Filter Set for \"%s\"", itemName);
+				WriteChatf("Unable to remove AdvLoot Filter, Item ID Invalid.");
 			}
 			else
 			{
-				WriteChatf("Invalid Item Filter Argument. Check Proper Item ID, Item Icon ID, and Item Name Entered.");
-				return;
+				// Call client function to remove advloot filter
+				pLootFiltersManager->RemoveItemLootFilter(itemID);
+				WriteChatf("AdvLoot Filter Removed for Item ID %d", itemID);
 			}
-		}
-	}
-}
 
-// ***************************************************************************
-// Function:    RemoveLootFilterCmd
-// Description: '/removelootfilter' command
-//              Adds the ability to remove advanced loot filters via command line
-// Usage: /removelootfilter itemID
-// ***************************************************************************
-void RemoveLootFilterCmd(SPAWNINFO* pChar, char* szLine)
-{
-	if (pLootFiltersManager)
-	{
-		if (!szLine[0])
-		{
-			WriteChatf("Usage: /removelootfilter itemID");
-			WriteChatf(R"(Example: /removelootfilter 13072)");
-			WriteChatf(R"(		Removes AdvLoot Filter for Rat Ears)");
+			// Nothing left to do
 			return;
 		}
 
-		// Grab ItemID from Arguments
-		char itemIDArg[MAX_STRING] = { 0 };
-		GetArg(itemIDArg, szLine, 1);
-		int itemID = GetIntFromString(itemIDArg, -1);
 
-		// Proper ItemID Found, Remove Filter
-		if (itemID != -1)
+		// Not doing a remove, check filter type
+		// Blank filter types
+		int filterTypes = 0;
+		// String to describe set filter
+		std::string filterDescStr;
+
+		// Always Need
+		if (ci_equals(szArg, "AN"))
 		{
-			pLootFiltersManager->RemoveItemLootFilter(itemID);
+			filterTypes |= LootFilterBit(LootFilterType_AlwaysNeed);
+			filterDescStr = "Always Need";
 		}
-		else
+		// Always Greed
+		else if (ci_equals(szArg, "AG"))
 		{
-			WriteChatf("Invalid ItemID Entered.");
+			filterTypes |= LootFilterBit(LootFilterType_AlwaysGreed);
+			filterDescStr = "Always Greed";
+		}
+		// Never
+		else if (ci_equals(szArg, "NV"))
+		{
+			filterTypes |= LootFilterBit(LootFilterType_NeverLoot);
+			filterDescStr = "Never";
+		}
+
+		// Grab AR or Item ID
+		GetArg(szArg, szRest, 1);
+		szRest = GetNextArg(szRest, 1);
+
+		// Check Arg is AR, set AutoRoll
+		if (ci_equals(szArg, "AR"))
+		{
+			filterTypes |= LootFilterBit(LootFilterType_AutoRoll);
+			filterDescStr.append(" and Always Roll");
+
+			// Grab Item ID
+			GetArg(szArg, szRest, 1);
+			szRest = GetNextArg(szRest, 1);
+		}
+
+		// Grab/Check Int of Item ID
+		int itemID = GetIntFromString(szArg, -1);
+		if (itemID == -1)
+		{
+			WriteChatf("Unable to set AdvLoot Filter, Item ID Invalid.");
 			return;
 		}
+
+		// Grab Item Icon ID
+		GetArg(szArg, szRest, 1);
+		szRest = GetNextArg(szRest, 1);
+
+		// Grab/Check Int of Item Icon ID
+		int itemIconID = GetIntFromString(szArg, -1);
+		if (itemIconID == -1)
+		{
+			WriteChatf("Unable to set AdvLoot Filter, Item Icon ID Invalid.");
+			return;
+		}
+
+		// Grab Item Name
+		GetMaybeQuotedArg(szArg, MAX_STRING, szRest, 1);
+
+		// Grab/Check String of Item Name
+		std::string itemName(szArg);
+		if (itemName.empty())
+		{
+			WriteChatf("Unable to set AdvLoot Filter, Item Name Invalid.");
+			return;
+		}
+
+		// Call client function to set advloot filter
+		pLootFiltersManager->SetItemLootFilter(itemID, itemIconID, itemName.data(), filterTypes);
+		WriteChatf("AdvLoot Filter Set for \"%s\" as %s", itemName, filterDescStr.data());
 	}
 }
 #endif // HAS_ADVANCED_LOOT
