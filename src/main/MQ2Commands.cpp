@@ -4991,7 +4991,7 @@ void SetLootFilterCmd(SPAWNINFO* pChar, char* szLine)
 			int itemID = GetIntFromString(szArg, -1);
 			if (itemID == -1)
 			{
-				WriteChatf("Unable to remove AdvLoot Filter, Item ID Invalid.");
+				WriteChatf("Unable to remove AdvLoot Filter, Item ID Invalid \"%s\".", szArg);
 			}
 			else
 			{
@@ -5029,6 +5029,11 @@ void SetLootFilterCmd(SPAWNINFO* pChar, char* szLine)
 			filterTypes |= LootFilterBit(LootFilterType_NeverLoot);
 			filterDescStr = "Never";
 		}
+		else
+		{
+			WriteChatf("Unable to set AdvLoot Filter, Filter Type Invalid \"%s\".", szArg);
+			return;
+		}
 
 		// Grab AR or Item ID
 		GetArg(szArg, szRest, 1);
@@ -5049,7 +5054,7 @@ void SetLootFilterCmd(SPAWNINFO* pChar, char* szLine)
 		int itemID = GetIntFromString(szArg, -1);
 		if (itemID == -1)
 		{
-			WriteChatf("Unable to set AdvLoot Filter, Item ID Invalid.");
+			WriteChatf("Unable to set AdvLoot Filter, Item ID Invalid \"%s\".", szArg);
 			return;
 		}
 
@@ -5061,7 +5066,7 @@ void SetLootFilterCmd(SPAWNINFO* pChar, char* szLine)
 		int itemIconID = GetIntFromString(szArg, -1);
 		if (itemIconID == -1)
 		{
-			WriteChatf("Unable to set AdvLoot Filter, Item Icon ID Invalid.");
+			WriteChatf("Unable to set AdvLoot Filter, Item Icon ID Invalid \"%s\".", szArg);
 			return;
 		}
 
@@ -5069,16 +5074,15 @@ void SetLootFilterCmd(SPAWNINFO* pChar, char* szLine)
 		GetMaybeQuotedArg(szArg, MAX_STRING, szRest, 1);
 
 		// Grab/Check String of Item Name
-		std::string itemName(szArg);
-		if (itemName.empty())
+		if (szArg[0] == 0)
 		{
 			WriteChatf("Unable to set AdvLoot Filter, Item Name Invalid.");
 			return;
 		}
 
 		// Call client function to set advloot filter
-		pLootFiltersManager->SetItemLootFilter(itemID, itemIconID, itemName.data(), filterTypes);
-		WriteChatf("AdvLoot Filter Set for \"%s\" as %s", itemName, filterDescStr.data());
+		pLootFiltersManager->SetItemLootFilter(itemID, itemIconID, szArg, filterTypes);
+		WriteChatf("AdvLoot Filter Set for \"%s\" as %s", szArg, filterDescStr.c_str());
 	}
 }
 #endif // HAS_ADVANCED_LOOT
