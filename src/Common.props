@@ -72,6 +72,10 @@
       <OptimizeReferences>false</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
     </Link>
+    <!-- Release only compiler settings -->
+    <Link Condition="'$(Configuration)'=='Release'">
+      <ImportLibrary>$(MQ2LibDir)$(TargetName).lib</ImportLibrary>
+    </Link>
 
     <NASM>
       <GenerateDebugInformation>true</GenerateDebugInformation>
