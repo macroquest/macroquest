@@ -1,3 +1,6 @@
+January 17, 2023:
+- Add Item.Inspect method to open item display window on a particular item.
+
 January 8, 2023:
 - fix /removeaug (#669).
 - imgui: Fix nested BeginDisabled calls (#672).

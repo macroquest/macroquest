@@ -188,6 +188,7 @@ enum class ItemMembers
 
 enum class ItemMethods
 {
+	Inspect,
 };
 
 MQ2ItemType::MQ2ItemType() : MQ2Type("item")
@@ -357,6 +358,8 @@ MQ2ItemType::MQ2ItemType() : MQ2Type("item")
 	ScopedTypeMember(ItemMembers, MaxLuck);
 	ScopedTypeMember(ItemMembers, IDFile);
 	ScopedTypeMember(ItemMembers, IDFile2);
+
+	ScopedTypeMethod(ItemMethods, Inspect);
 }
 
 bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -367,7 +370,22 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	MQTypeMember* pMember = MQ2ItemType::FindMember(Member);
 	if (!pMember)
+	{
+		MQTypeMember* pMethod = MQ2ItemType::FindMethod(Member);
+		if (pMethod)
+		{
+			switch (static_cast<ItemMethods>(pMethod->ID))
+			{
+			case ItemMethods::Inspect:
+				if (pItemDisplayManager)
+					pItemDisplayManager->ShowItem(pItem);
+				return true;
+
+			default: break;
+			}
+		}
 		return false;
+	}
 
 	switch (static_cast<ItemMembers>(pMember->ID))
 	{
