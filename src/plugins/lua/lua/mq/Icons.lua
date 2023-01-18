@@ -1,3 +1,5 @@
+---@diagnostic disable:err-esc
+
 local Icons = {
 	MD_3D_ROTATION = '\xee\xa1\x8d',
 	MD_AC_UNIT = '\xee\xac\xbb',
