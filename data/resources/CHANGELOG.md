@@ -1,3 +1,9 @@
+January 18, 2023:
+- live: Updated for live patch
+
+January 17, 2023:
+- Add Item.Inspect method to open item display window on a particular item.
+
 January 10, 2023:
 - test: updated for patch
 
