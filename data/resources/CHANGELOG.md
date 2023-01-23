@@ -1,3 +1,6 @@
+January 23, 2023:
+- Add /executelink command that will simulate a click from raw link text
+
 January 19, 2023:
 - live: Fix for broken world container
 
