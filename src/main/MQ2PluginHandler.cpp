@@ -1090,6 +1090,14 @@ static void PluginsLoadPlugin(const char* Name)
 				plugin->LoadPlugin(Name);
 			}
 		});
+
+	ForEachModule([Name](const MQModule* mod)
+		{
+			if (mod->LoadPlugin)
+			{
+				mod->LoadPlugin(Name);
+			}
+		});
 }
 
 static void PluginsUnloadPlugin(const char* Name)
@@ -1102,6 +1110,14 @@ static void PluginsUnloadPlugin(const char* Name)
 			{
 				DebugSpew("%s->UnloadPlugin(%s)", plugin->szFilename, Name);
 				plugin->UnloadPlugin(Name);
+			}
+		});
+
+	ForEachModule([Name](const MQModule* mod)
+		{
+			if (mod->UnloadPlugin)
+			{
+				mod->UnloadPlugin(Name);
 			}
 		});
 }
