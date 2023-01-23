@@ -33,6 +33,9 @@ static std::tuple<const std::string&, const std::string&, int, bool> GetArgInfo(
 
 static std::shared_ptr<LuaPlugin> GetFrom(sol::table t)
 {
+	if (t.is<sol::userdata>())
+		return {};
+
 	std::optional<std::weak_ptr<LuaPlugin>> plugin = t["__plugin"];
 	return plugin.value_or(std::weak_ptr<LuaPlugin>()).lock();
 }
