@@ -5816,11 +5816,8 @@ void RemoveAugCmd(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-void ExecuteLinkCommand(SPAWNINFO* pChar, char* szLine)
+void ExecuteLinkCommand(SPAWNINFO* pChar, char* arg)
 {
-	char arg[MAX_STRING] = { 0 };
-	GetArg(arg, szLine, 1);
-
 	if (arg[0] != 0)
 	{
 		TextTagInfo link_info = ExtractLink(arg);
