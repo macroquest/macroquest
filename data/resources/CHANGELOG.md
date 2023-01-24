@@ -1,5 +1,8 @@
 January 23, 2023:
 - Add /executelink command that will simulate a click from raw link text
+- Add .Link to spell datatype to generate link text
+- Add .Inspect method to spell datatype to simulate link click
+- Add .Inspect method to achievement datatype to simulate link click
 
 January 19, 2023:
 - live: Fix for broken world container

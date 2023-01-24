@@ -105,10 +105,12 @@ enum class SpellMembers
 	CategoryID,
 	SubcategoryID,
 	Dispellable,
+	Link,
 };
 
 enum class SpellMethods
 {
+	Inspect,
 };
 
 MQ2SpellType::MQ2SpellType() : MQ2Type("spell")
@@ -199,7 +201,9 @@ MQ2SpellType::MQ2SpellType() : MQ2Type("spell")
 	ScopedTypeMember(SpellMembers, CategoryID);
 	ScopedTypeMember(SpellMembers, SubcategoryID);
 	ScopedTypeMember(SpellMembers, Dispellable);
+	ScopedTypeMember(SpellMembers, Link);
 	AddMember(static_cast<int>(SpellMembers::BaseEffectsFocusCap), "SongCap");
+	ScopedTypeMethod(SpellMethods, Inspect);
 }
 
 bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -210,7 +214,28 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	MQTypeMember* pMember = MQ2SpellType::FindMember(Member);
 	if (!pMember)
-		return false;
+	{
+		MQTypeMember* pMethod = MQ2SpellType::FindMethod(Member);
+		if (pMethod)
+		{
+			switch (static_cast<SpellMethods>(pMethod->ID))
+			{
+			case SpellMethods::Inspect:
+			{
+				char buffer[512] = { 0 };
+				if (Index[0])
+					FormatSpellLink(buffer, 512, pSpell, Index);
+				else
+					FormatSpellLink(buffer, 512, pSpell);
+				TextTagInfo info = ExtractLink(buffer);
+				ExecuteTextLink(info);
+				return true;
+			}
+			default:
+				return false;
+			}
+		}
+	}
 
 	switch (static_cast<SpellMembers>(pMember->ID))
 	{
@@ -1285,6 +1310,15 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	case SpellMembers::Dispellable:
 		Dest.Set(!pSpell->IsNoDispell());
 		Dest.Type = pBoolType;
+		return true;
+
+	case SpellMembers::Link:
+		if (Index[0])
+			FormatSpellLink(DataTypeTemp, MAX_STRING, pSpell, Index);
+		else
+			FormatSpellLink(DataTypeTemp, MAX_STRING, pSpell);
+		Dest.Ptr = DataTypeTemp;
+		Dest.Type = pStringType;
 		return true;
 	}
 
