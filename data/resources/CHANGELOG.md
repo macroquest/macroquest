@@ -1,8 +1,10 @@
 January 23, 2023:
-- Add /executelink command that will simulate a click from raw link text
-- Add .Link to spell datatype to generate link text
-- Add .Inspect method to spell datatype to simulate link click
-- Add .Inspect method to achievement datatype to simulate link click
+- Add /executelink command that will simulate a click from raw link text.
+- spell datatype: Add Link member to generate clickable link text.
+- spell datatype: Add Inspect method to open the spell display window.
+- spell datatype: Added /vardata and /varset support for spell variables. Assigning
+  a string or number will reassign the spell variable by spell name or id.
+- achievement datatype: Add Inspect method to open achievement display window.
 
 January 19, 2023:
 - live: Fix for broken world container
@@ -11,7 +13,7 @@ January 18, 2023:
 - live: Updated for live patch
 
 January 17, 2023:
-- Add Item.Inspect method to open item display window on a particular item.
+- item datatype: Add Item.Inspect method to open item display window on a particular item.
 
 January 8, 2023:
 - fix /removeaug (#669).

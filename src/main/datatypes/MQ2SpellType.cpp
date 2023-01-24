@@ -1337,59 +1337,68 @@ bool MQ2SpellType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-void MQ2SpellType::InitVariable(MQVarPtr& VarPtr)
+static bool GetVarPtrFromString(MQVarPtr& VarPtr, const char* szIndex)
 {
-	// FIXME: Do not allocate a SPELL
-	VarPtr.Ptr = new SPELL();
-}
+	if (!szIndex[0])
+	{
+		VarPtr.Ptr = nullptr;
+		return false;
+	}
 
-void MQ2SpellType::FreeVariable(MQVarPtr& VarPtr)
-{
-	// FIXME: Do not allocate a SPELL
-	SPELL* pSpell = static_cast<SPELL*>(VarPtr.Ptr);
-	delete pSpell;
+	int spellID = GetIntFromString(szIndex, -1);
+	if (spellID >= 0)
+	{
+		if (VarPtr.Ptr = GetSpellByID(spellID))
+			return true;
+	}
+	else
+	{
+		// is it a spell?
+		if (VarPtr.Ptr = GetSpellByName(szIndex))
+			return true;
+
+		// is it an AA?
+		if (VarPtr.Ptr = GetSpellByAAName(szIndex))
+			return true;
+	}
+
+	return false;
 }
 
 bool MQ2SpellType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
-	if (Source.Type != pSpellType)
-		return false;
+	if (Source.Type == pSpellType)
+	{
+		VarPtr.Ptr = Source.Ptr;
+		return true;
+	}
 
-	memcpy(VarPtr.Ptr, Source.Ptr, sizeof(SPELL));
+	if (Source.Type == pIntType)
+	{
+		VarPtr.Ptr = GetSpellByID(Source.Int);
+		return true;
+	}
+
+	if (Source.Type == pStringType)
+	{
+		GetVarPtrFromString(VarPtr, pStringType->GetValue(Source));
+		return true;
+	}
+
+	return false;
+}
+
+bool MQ2SpellType::FromString(MQVarPtr& VarPtr, const char* Source)
+{
+	GetVarPtrFromString(VarPtr, Source);
 	return true;
 }
 
 bool MQ2SpellType::dataSpell(const char* szIndex, MQTypeVar& Ret)
 {
-	if (szIndex[0])
-	{
-		int spellID = GetIntFromString(szIndex, -1);
-		if (spellID >= 0)
-		{
-			if ((Ret.Ptr = GetSpellByID(spellID)))
-			{
-				Ret.Type = pSpellType;
-				return true;
-			}
-		}
-		else
-		{
-			if (Ret.Ptr = GetSpellByName(szIndex))
-			{
-				Ret.Type = pSpellType;
-				return true;
-			}
-
-			//is it an AA?
-			if (Ret.Ptr = GetSpellByAAName(szIndex))
-			{
-				Ret.Type = pSpellType;
-				return true;
-			}
-		}
-	}
-
-	return false;
+	GetVarPtrFromString(Ret, szIndex);
+	Ret.Type = pSpellType;
+	return true;
 }
 
 } // namespace mq::datatypes

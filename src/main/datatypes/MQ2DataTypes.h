@@ -281,6 +281,11 @@ public:
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 
 	static bool dataString(const char* szIndex, MQTypeVar& Ret);
+
+	const char* GetValue(const MQVarPtr& varPtr) const
+	{
+		return static_cast<const char*>(varPtr.Ptr);
+	}
 };
 
 //============================================================================
@@ -591,9 +596,8 @@ public:
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 
-	void InitVariable(MQVarPtr& VarPtr) override;
-	void FreeVariable(MQVarPtr& VarPtr) override;
 	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
+	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 
 	static bool dataSpell(const char* szIndex, MQTypeVar& Ret);
 };
