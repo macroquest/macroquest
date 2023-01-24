@@ -270,6 +270,8 @@ bool MQ2AchievementType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 				return false;
 			}
 		}
+
+		return false;
 	}
 
 	switch (static_cast<AchievementTypeMembers>(pMember->ID))

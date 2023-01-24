@@ -235,6 +235,8 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 				return false;
 			}
 		}
+		
+		return false;
 	}
 
 	switch (static_cast<SpellMembers>(pMember->ID))
