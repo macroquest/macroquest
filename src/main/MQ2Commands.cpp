@@ -5816,5 +5816,27 @@ void RemoveAugCmd(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
+void ExecuteLinkCommand(SPAWNINFO* pChar, char* arg)
+{
+	if (arg[0] != 0)
+	{
+		TextTagInfo link_info = ExtractLink(arg);
+
+		if (link_info.tagCode == ETAG_INVALID)
+		{
+			WriteChatf("\arInvalid Link Text: \ax%s", arg);
+		}
+		else
+		{
+			ExecuteTextLink(link_info);
+		}
+	}
+	else
+	{
+		WriteChatf("/executelink usage: /executelink <link text>");
+		WriteChatf("    <link text>: valid link text");
+	}
+}
+
 
 } // namespace mq

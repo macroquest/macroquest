@@ -139,6 +139,7 @@ MQLIB_API void ConvertItemCmd                      (PSPAWNINFO pChar, char* szLi
 #endif
 MQLIB_API void InsertAugCmd                        (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void RemoveAugCmd                        (PSPAWNINFO pChar, char* szLine);
+MQLIB_API void ExecuteLinkCommand                  (PSPAWNINFO pChar, char* szLine);
 
 MQLIB_API void RemoveBuff                          (SPAWNINFO* pChar, char* szLine);
 MQLIB_API void RemovePetBuff                       (SPAWNINFO* pChar, char* szLine);

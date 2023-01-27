@@ -1008,6 +1008,7 @@ void InitializeMQ2Commands()
 		{ "/insertaug",         InsertAugCmd,               true,  true  },
 		{ "/removeaug",         RemoveAugCmd,               true,  true  },
 		{ "/profile",           ProfileCommand,             true,  false },
+		{ "/executelink",       ExecuteLinkCommand,         true,  true  },
 
 		{ nullptr,              nullptr,                    false, true  },
 	};
