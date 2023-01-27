@@ -199,6 +199,7 @@ private:
 #pragma region Detours
 
 static bool RenderScene_Hook();
+static bool AreParticlesDisabled();
 static bool IsLimiterEnabled();
 static bool IsTieUiToSimulation();
 static bool UpdateDisplay_Hook();
@@ -296,6 +297,47 @@ public:
 				GetGaugeValueFromEQ(10, nullptr, &test, nullptr); // spell scribe gauge
 			}
 		}
+	}
+};
+
+class CParticleSystemHook
+{
+public:
+	DETOUR_TRAMPOLINE_DEF(int, CreateSpellEmitter_Trampoline, (int, unsigned long, int, float, float, CVector3 const&, CActor*, CBoneInterface*, CParticlePointInterface*, void**, float, bool, bool, int))
+	int CreateSpellEmitter_Detour(
+		int retval,
+		unsigned long a,
+		int b,
+		float particleDensity,
+		float particleOpacity,
+		CVector3 const& pos,
+		CActor* actor,
+		CBoneInterface* bone,
+		CParticlePointInterface* particlePoint,
+		void** emitter, // CEmitterInterface**
+		float k,
+		bool l,
+		bool m,
+		int previewMode) // enum EObjectPreviewMode
+	{
+		if (AreParticlesDisabled())
+			return retval;
+
+		return CreateSpellEmitter_Trampoline(
+			retval,
+			a,
+			b,
+			particleDensity,
+			particleOpacity,
+			pos,
+			actor,
+			bone,
+			particlePoint,
+			emitter,
+			k,
+			l,
+			m,
+			previewMode);
 	}
 };
 
@@ -1024,6 +1066,11 @@ static bool RenderScene_Hook()
 	return s_frameLimiter.DoRenderSceneHook();
 }
 
+static bool AreParticlesDisabled()
+{
+	return !s_frameLimiter.IsRenderingEnabled();
+}
+
 static bool IsLimiterEnabled()
 {
 	return s_frameLimiter.IsEnabled();
@@ -1180,6 +1227,8 @@ void FrameLimiterCommand(SPAWNINFO* pChar, char* szLine)
 
 #pragma region module
 
+const uintptr_t CParticleSystem_CreateEmitter = FixEQGraphicsOffset(0x10070440);
+
 static void InitializeFrameLimiter()
 {
 	AddSettingsPanel("FPS Limiter", FrameLimiterSettings);
@@ -1194,6 +1243,7 @@ static void InitializeFrameLimiter()
 	// Hook main render function
 	EzDetour(CRender__RenderScene, &CRenderHook::RenderScene_Detour, &CRenderHook::RenderScene_Trampoline);
 	EzDetour(CRender__RenderBlind, &CRenderHook::RenderBlind_Detour, &CRenderHook::RenderBlind_Trampoline);
+	EzDetour(CParticleSystem__CreateSpellEmitter, &CParticleSystemHook::CreateSpellEmitter_Detour, &CParticleSystemHook::CreateSpellEmitter_Trampoline);
 
 	// Hook update function (will begin scene if render isn't called)
 	EzDetour(CRender__UpdateDisplay, &CRenderHook::UpdateDisplay_Detour, &CRenderHook::UpdateDisplay_Trampoline);
@@ -1223,6 +1273,7 @@ static void ShutdownFrameLimiter()
 	RemoveDetour(CXWndManager__DrawWindows);
 	RemoveDetour(CRender__RenderScene);
 	RemoveDetour(CRender__RenderBlind);
+	RemoveDetour(CParticleSystem__CreateSpellEmitter);
 	RemoveDetour(CRender__UpdateDisplay);
 	RemoveDetour(CDisplay__RealRender_World);
 	RemoveDetour(__ThrottleFrameRate);
