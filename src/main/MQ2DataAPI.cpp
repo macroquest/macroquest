@@ -26,6 +26,7 @@ std::recursive_mutex s_variableMutex;
 std::mutex s_objectMapMutex;
 
 static void SetGameStateDataAPI(DWORD);
+static void UnloadPluginDataAPI(const char*);
 
 static MQModule s_DataAPIModule = {
 	"DataAPI",                      // Name
@@ -33,7 +34,16 @@ static MQModule s_DataAPIModule = {
 	nullptr,
 	nullptr,
 	nullptr,
-	SetGameStateDataAPI
+	SetGameStateDataAPI,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	UnloadPluginDataAPI
 };
 MQModule* GetDataAPIModule() { return &s_DataAPIModule; }
 
@@ -86,6 +96,14 @@ void InvalidateObservedEQObject(void* Object)
 		if (*weak.lock() == Object)
 			weak.lock()->Invalidate();
 	}
+}
+
+void UnloadPluginDataAPI(const char* Name)
+{
+	// if we attempt to prune objects held by plugins after the plugin
+	// is unloaded, we get a crash. Force a pruning every time a plugin
+	// is unloaded to prevent that.
+	PruneObservedEQObjects();
 }
 
 MQ2Type* FindMQ2DataType(const char* Name)

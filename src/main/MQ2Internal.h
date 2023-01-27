@@ -445,6 +445,8 @@ struct MQModule
 	fMQSpawn             SpawnRemoved = 0;
 	fMQBeginZone         BeginZone = 0;
 	fMQEndZone           EndZone = 0;
+	fMQLoadPlugin        LoadPlugin = 0;
+	fMQUnloadPlugin      UnloadPlugin = 0;
 
 	bool                 loaded = false;
 	bool                 manualUnload = false;

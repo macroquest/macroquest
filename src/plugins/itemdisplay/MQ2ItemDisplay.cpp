@@ -1528,8 +1528,15 @@ public:
 				ItemSpellType_Blessing,
 			};
 
+			bool spellTypeUsed[ItemSpellType_Max] = {};
+
 			for (eItemSpellType spellType : spellTypes)
 			{
+				// Some of these enums might be duplicates depending on the client
+				if (spellTypeUsed[spellType])
+					continue;
+				spellTypeUsed[spellType] = true;
+
 				ItemSpellData::SpellData* spellData = pItem->GetSpellData(spellType);
 				if (spellData->SpellID > 0)
 				{

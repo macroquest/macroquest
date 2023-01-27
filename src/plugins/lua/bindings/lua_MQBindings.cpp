@@ -413,8 +413,8 @@ static void serialize(sol::object obj, int prefix_count, fmt::appender& appender
 	case sol::type::number:
 		if (obj.is<int>())
 			fmt::format_to(appender, "{}", obj.as<int64_t>());
-
-		fmt::format_to(appender, "{}", obj.as<double>());
+		else
+			fmt::format_to(appender, "{}", obj.as<double>());
 		return;
 	case sol::type::boolean:
 		fmt::format_to(appender, "{}", obj.as<bool>());
@@ -423,30 +423,33 @@ static void serialize(sol::object obj, int prefix_count, fmt::appender& appender
 	{
 		if (obj.as<sol::table>().empty())
 			fmt::format_to(appender, "{{}}");
-
-		fmt::format_to(appender, "{{\n");
-
-		for (const auto& [key, val] : obj.as<sol::table>())
+		else
 		{
-			if (can_serialize(val))
-			{
-				if (key.is<std::string>())
-				{
-					fmt::format_to(appender, "{:\t>{}}\t{} = ", "", prefix_count, key.as<std::string>());
-				}
-				else
-				{
-					fmt::format_to(appender, "{:\t>{}}\t[", "", prefix_count);
-					serialize(key, prefix_count + 1, appender);
-					fmt::format_to(appender, "] = ");
-				}
+			fmt::format_to(appender, "{{\n");
 
-				serialize(val, prefix_count + 1, appender);
-				fmt::format_to(appender, ",\n");
+			for (const auto& [key, val] : obj.as<sol::table>())
+			{
+				if (can_serialize(val))
+				{
+					if (key.is<std::string>())
+					{
+						fmt::format_to(appender, "{:\t>{}}\t{} = ", "", prefix_count, key.as<std::string>());
+					}
+					else
+					{
+						fmt::format_to(appender, "{:\t>{}}\t[", "", prefix_count);
+						serialize(key, prefix_count + 1, appender);
+						fmt::format_to(appender, "] = ");
+					}
+
+					serialize(val, prefix_count + 1, appender);
+					fmt::format_to(appender, ",\n");
+				}
 			}
+
+			fmt::format_to(appender, "{:\t>{}}}}", "", prefix_count);
 		}
 
-		fmt::format_to(appender, "{:\t>{}}}}", "", prefix_count);
 		return;
 	}
 	// keep these here as reference. We don't want to serialize these things though, so they will all fall through to default (no serialization)

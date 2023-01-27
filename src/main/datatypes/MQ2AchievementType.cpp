@@ -212,6 +212,11 @@ enum class AchievementTypeMembers
 	CompletedTime,
 };
 
+enum class AchievementTypeMethods
+{
+	Inspect,
+};
+
 MQ2AchievementType::MQ2AchievementType() : MQ2Type("achievement")
 {
 	ScopedTypeMember(AchievementTypeMembers, ID);
@@ -230,15 +235,12 @@ MQ2AchievementType::MQ2AchievementType() : MQ2Type("achievement")
 	ScopedTypeMember(AchievementTypeMembers, Locked);
 	ScopedTypeMember(AchievementTypeMembers, Hidden);
 	ScopedTypeMember(AchievementTypeMembers, CompletedTime);
+	ScopedTypeMethod(AchievementTypeMethods, Inspect);
 }
 
 bool MQ2AchievementType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	if (!pLocalPC)
-		return false;
-
-	MQTypeMember* pMember = FindMember(Member);
-	if (!pMember)
 		return false;
 
 	AchievementManager& mgr = AchievementManager::Instance();
@@ -247,6 +249,30 @@ bool MQ2AchievementType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 	const eqlib::Achievement* achievement = mgr.GetAchievementByIndex(VarPtr.Int);
 	if (!achievement)
 		return false;
+
+	MQTypeMember* pMember = FindMember(Member);
+	if (!pMember)
+	{
+		MQTypeMember* pMethod = FindMethod(Member);
+		if (pMethod)
+		{
+			switch (static_cast<AchievementTypeMethods>(pMethod->ID))
+			{
+			case AchievementTypeMethods::Inspect:
+			{
+				char buffer[512] = { 0 };
+				FormatAchievementLink(buffer, 512, achievement, Index[0] ? Index : pLocalPC->Name);
+				TextTagInfo info = ExtractLink(buffer);
+				ExecuteTextLink(info);
+				return true;
+			}
+			default:
+				return false;
+			}
+		}
+
+		return false;
+	}
 
 	switch (static_cast<AchievementTypeMembers>(pMember->ID))
 	{
