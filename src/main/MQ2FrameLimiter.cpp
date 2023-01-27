@@ -1227,8 +1227,6 @@ void FrameLimiterCommand(SPAWNINFO* pChar, char* szLine)
 
 #pragma region module
 
-const uintptr_t CParticleSystem_CreateEmitter = FixEQGraphicsOffset(0x10070440);
-
 static void InitializeFrameLimiter()
 {
 	AddSettingsPanel("FPS Limiter", FrameLimiterSettings);
