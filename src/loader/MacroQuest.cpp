@@ -26,6 +26,7 @@
 #include <spdlog/sinks/wincolor_sink.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/msvc_sink.h>
+#include <wil/registry.h>
 #include <wil/resource.h>
 
 #include <filesystem>
@@ -662,10 +663,10 @@ int CheckAppCompatFlags(HKEY RegBase, const std::vector<std::string>& SearchItem
 				retVal = AppCompatFlagReturn::SUCCESS;
 				for (DWORD i = 0; i < n; ++i)
 				{
-					char value[MAX_PATH] = { 0 };
-					DWORD valueSize = MAX_PATH - 1;
+					char value[wil::max_registry_value_name_length + 1] = { 0 };
+					DWORD valueSize = wil::max_registry_value_name_length;
 					// We know we're done on the first error since they're sequential
-					if (int res = RegEnumValue(hRegKey, i, value, &valueSize, nullptr, nullptr, nullptr, nullptr) != ERROR_SUCCESS)
+					if (const int res = RegEnumValue(hRegKey, i, value, &valueSize, nullptr, nullptr, nullptr, nullptr) != ERROR_SUCCESS)
 					{
 						if (res != ERROR_NO_MORE_ITEMS)
 						{
@@ -676,15 +677,15 @@ int CheckAppCompatFlags(HKEY RegBase, const std::vector<std::string>& SearchItem
 
 					for (const std::string& searchItem : SearchItems)
 					{
-						// If it's in the value, we don't need to check the value (only valid for exe, but it's fast)
+						// If it's in the name value, we don't need to check the data (only valid for exe, but it's fast)
 						if (ci_find_substr(value, searchItem) != -1)
 						{
 							retVal++;
 						}
 						else
 						{
-							char data[MAX_PATH];
-							DWORD dataSize = MAX_PATH - 1;
+							char data[wil::max_registry_value_name_length + 1] = { 0 };
+							DWORD dataSize = wil::max_registry_value_name_length;
 							if (RegGetValue(hRegKey, nullptr, value, RRF_RT_REG_SZ, nullptr, data, &dataSize) == ERROR_SUCCESS)
 							{
 								if (ci_find_substr(value, searchItem) != -1)
@@ -696,6 +697,7 @@ int CheckAppCompatFlags(HKEY RegBase, const std::vector<std::string>& SearchItem
 					}
 				}
 			}
+			RegCloseKey(hRegKey);
 		}
 	}
 	return retVal;
