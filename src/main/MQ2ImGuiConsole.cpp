@@ -139,7 +139,7 @@ static std::pair<std::string_view, ImU32> ParseColorTags(std::string_view line, 
 		}
 		else
 		{
-			color = s_defaultColor;
+			color = defaultColor;
 		}
 
 		return { std::string_view{ pos, (size_t)(end - pos) }, color };
