@@ -1003,6 +1003,14 @@ void NamedPipeServer::SendMessage(int connectionId, MQMessageId messageId, const
 	}
 }
 
+void NamedPipeServer::BroadcastMessage(MQMessageId messageId, const void* data, size_t dataLength)
+{
+	for (const auto& id : GetConnectionIds())
+	{
+		SendMessage(id, messageId, data, dataLength);
+	}
+}
+
 //============================================================================
 //============================================================================
 

@@ -310,6 +310,7 @@ public:
 
 	void SendMessage(int connectionId, std::shared_ptr<PipeMessage> message);
 	void SendMessage(int connectionId, MQMessageId messageId, const void* data, size_t dataLength);
+	void BroadcastMessage(MQMessageId messageId, const void* data, size_t dataLength);
 private:
 	void NamedPipeThread() override;
 

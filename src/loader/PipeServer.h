@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-2022 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -14,11 +14,10 @@
 
 #pragma once
 
-// Initializes the crashpad handler.
-bool InitializeCrashpad();
+bool SendSetForegroundWindow(HWND hWnd, uint32_t processID);
+void SendUnloadAllCommand();
+void SendForceUnloadAllCommand();
+void ProcessPipeServer();
 
-// Retrieves the name of the named pipe used for crash handling.
-std::string GetHandlerIPCPipe();
-
-// Returns the current state of crashpad
-bool IsCrashpadInitialized();
+void InitializeNamedPipeServer();
+void ShutdownNamedPipeServer();

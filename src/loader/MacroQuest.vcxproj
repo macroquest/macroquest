@@ -135,6 +135,7 @@
     <ClCompile Include="Crashpad.cpp" />
     <ClCompile Include="HotKeyControl.cpp" />
     <ClCompile Include="MacroQuest.cpp" />
+    <ClCompile Include="PipeServer.cpp" />
     <ClCompile Include="ProcessList.cpp" />
     <ClCompile Include="ProcessMonitor.cpp" />
     <ClCompile Include="RemoteOps.cpp" />
@@ -151,6 +152,7 @@
     <ClInclude Include="Crashpad.h" />
     <ClInclude Include="HotKeyControl.h" />
     <ClInclude Include="MacroQuest.h" />
+    <ClInclude Include="PipeServer.h" />
     <ClInclude Include="ProcessMonitor.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
