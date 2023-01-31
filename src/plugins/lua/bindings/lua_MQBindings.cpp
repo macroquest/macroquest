@@ -79,6 +79,12 @@ static void lua_delay(sol::object delayObj, sol::object conditionObj, sol::this_
 {
 	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
+		if (!thread_ptr->GetAllowYield())
+		{
+			luaL_error(s.lua_state(), "Attempted to yield from non-yieldable thread");
+			return;
+		}
+
 		if (auto co_ptr = thread_ptr->GetCurrentCoroutine())
 		{
 			co_ptr->Delay(delayObj, conditionObj, s);
