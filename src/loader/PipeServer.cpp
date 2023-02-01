@@ -17,6 +17,7 @@
 #include "AutoLogin.h"
 #include "Crashpad.h"
 #include "common/NamedPipes.h"
+#include "common/proto/Shared.pb.h"
 
 #include <date/date.h>
 #include <fmt/format.h>
@@ -27,10 +28,26 @@
 
 mq::NamedPipeServer s_pipeServer{ mq::MQ2_PIPE_SERVER_PATH };
 
+struct Identity
+{
+	uint32_t pid;
+	std::string account;
+	std::string server;
+	std::string character;
+};
+std::unordered_map<uint32_t, Identity> s_identities;
+
 class MQ2NamedPipeEvents : public NamedPipeEvents
 {
 public:
 	// Handle messages from NamedPipeServer
+	// Need messages to handle routing from client to another client
+	// Need address system rethinking (use a struct with PID, and some client-internal address)
+	// First, create a mailbox where you specify the address, register it with the _client_
+	// This mailbox must have: an address (specify local address, chain up to PID for full address)
+	//                         a callback to handle incoming messages
+	//                         a FIFO queue for messages
+	//                         we should be able to validate messages upon receipt (to provide guarantees)
 	virtual void OnIncomingMessage(std::shared_ptr<PipeMessage> message) override
 	{
 		SPDLOG_TRACE("Received message: id={} length={} connectionId={}", message->GetMessageId(),
@@ -41,8 +58,26 @@ public:
 		case mq::MQMessageId::MSG_ECHO:
 		{
 			std::string str(message->get<const char>(), message->size() - 1);
-			message->SendReply(MQMessageId::MSG_ECHO, str.data(), (uint32_t)str.length() + 1);
+			message->SendReply(MQMessageId::MSG_ECHO, str.data(), (uint32_t)str.length() + 1, 0);
 			SPDLOG_INFO("Handling echo request: {}", str);
+			break;
+		}
+
+		case mq::MQMessageId::MSG_IDENTITY:
+		{
+			auto id = message->fill<mq::messages::identify>();
+			s_identities.insert_or_assign(id.pid(), Identity{
+				id.pid(),
+				id.has_account() ? id.account() : "",
+				id.has_server() ? id.server() : "",
+				id.has_character() ? id.character() : ""
+			});
+
+			SPDLOG_INFO("Got identification from {}: {} {} {}",
+				id.pid(),
+				id.has_account() ? id.account() : "N/A",
+				id.has_server() ? id.server() : "N/A",
+				id.has_character() ? id.character() : "N/A");
 			break;
 		}
 
@@ -65,7 +100,8 @@ public:
 		case mq::MQMessageId::MSG_MAIN_PROCESS_UNLOADED:
 			break;
 
-		case mq::MQMessageId::MSG_MAIN_PROCESS_LOADED: {
+		case mq::MQMessageId::MSG_MAIN_PROCESS_LOADED:
+		{
 			MQMessageProcessLoadedResponse response;
 			response.processId = GetCurrentProcessId();
 
@@ -114,6 +150,11 @@ public:
 		s_pipeServer.SendMessage(connectionId,
 			mq::MakeSimpleMessageV0(MQMessageId::MSG_MAIN_CRASHPAD_CONFIG,
 				namedPipe.c_str(), (uint32_t)namedPipe.length() + 1));
+	}
+
+	virtual void OnConnectionClosed(int connectionId, int processId) override
+	{
+		s_identities.erase(processId);
 	}
 };
 

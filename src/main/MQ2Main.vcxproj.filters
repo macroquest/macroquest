@@ -60,6 +60,15 @@
     <Filter Include="Header Files\mq\api">
       <UniqueIdentifier>{5a764db5-6fa5-456d-b603-465edf27eec0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Proto Files">
+      <UniqueIdentifier>{05ec9d56-60e1-4102-be8a-bdaa48df482f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Proto Files\common">
+      <UniqueIdentifier>{1710477e-61fe-4eee-8f3a-844d5e17fcba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Proto Files\common\Generated Files">
+      <UniqueIdentifier>{1cac039a-cb80-46f0-b9a0-3951872e1efa}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\api">
       <UniqueIdentifier>{eab18ae6-9d25-410f-a584-982be8ed8523}</UniqueIdentifier>
     </Filter>
@@ -371,6 +380,9 @@
     <ClCompile Include="datatypes\MQInventoryType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\proto\Shared.pb.cc">
+      <Filter>Proto Files\common\Generated Files</Filter>
+    </ClCompile>
     <ClCompile Include="api\Spawns.cpp">
       <Filter>Source Files\api</Filter>
     </ClCompile>
@@ -565,6 +577,9 @@
     <ClInclude Include="..\..\include\mq\base\GlobalBuffer.h">
       <Filter>Header Files\mq\base</Filter>
     </ClInclude>
+    <ClInclude Include="..\common\proto\Shared.pb.h">
+      <Filter>Proto Files\common\Generated Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\include\mq\api\Spawns.h">
       <Filter>Header Files\mq\api</Filter>
     </ClInclude>
@@ -605,5 +620,10 @@
     <NASM Include="AssemblyFunctions64.asm">
       <Filter>Source Files</Filter>
     </NASM>
+  </ItemGroup>
+  <ItemGroup>
+    <ProtocolBuffer Include="..\common\proto\Shared.proto">
+      <Filter>Proto Files\common</Filter>
+    </ProtocolBuffer>
   </ItemGroup>
 </Project>

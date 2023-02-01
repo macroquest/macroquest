@@ -80,7 +80,7 @@
     <Link />
     <Manifest />
     <Link>
-      <AdditionalDependencies>$(LoaderDependenciesDebug);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libprotobufd.lib;$(LoaderDependenciesDebug);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -92,7 +92,7 @@
     <Link />
     <Manifest />
     <Link>
-      <AdditionalDependencies>$(LoaderDependenciesDebug);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libprotobufd.lib;$(LoaderDependenciesDebug);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -107,7 +107,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>$(LoaderDependenciesRelease);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libprotobuf.lib;$(LoaderDependenciesRelease);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest />
   </ItemDefinitionGroup>
@@ -123,13 +123,14 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>$(LoaderDependenciesRelease);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libprotobuf.lib;$(LoaderDependenciesRelease);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest />
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\common\HotKeys.cpp" />
     <ClCompile Include="..\common\NamedPipes.cpp" />
+    <ClCompile Include="..\common\proto\Shared.pb.cc" />
     <ClCompile Include="..\plugins\autologin\AutoLoginShared.cpp" />
     <ClCompile Include="AutoLogin.cpp" />
     <ClCompile Include="Crashpad.cpp" />
@@ -147,6 +148,8 @@
     <ClInclude Include="..\common\HotKeys.h" />
     <ClInclude Include="..\common\NamedPipes.h" />
     <ClInclude Include="..\common\NamedPipesProtocol.h" />
+    <ClInclude Include="..\common\proto\Shared.pb.h" />
+    <ClInclude Include="..\common\Serialization.h" />
     <ClInclude Include="..\plugins\autologin\AutoLoginShared.h" />
     <ClInclude Include="AutoLogin.h" />
     <ClInclude Include="Crashpad.h" />
@@ -164,6 +167,9 @@
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="MacroQuest.exe.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProtocolBuffer Include="..\common\proto\Shared.proto" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

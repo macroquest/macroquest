@@ -163,7 +163,13 @@
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">pch.h</ForcedIncludeFiles>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</ForcedIncludeFiles>
     </ClCompile>
-    <ClCompile Include="api\Spawns.cpp" />
+    <ClCompile Include="..\common\proto\Shared.pb.cc">
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">pch.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">pch.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</ForcedIncludeFiles>
+    </ClCompile>
+	<ClCompile Include="api\Spawns.cpp" />
     <ClCompile Include="datatypes\MQ2AchievementType.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -590,6 +596,7 @@
     <ClInclude Include="..\common\HotKeys.h" />
     <ClInclude Include="..\common\NamedPipes.h" />
     <ClInclude Include="..\common\MiscUtils.h" />
+    <ClInclude Include="..\common\proto\Shared.pb.h" />
     <ClInclude Include="..\common\StringUtils.h" />
     <ClInclude Include="datatypes\DataTypeList.h" />
     <ClInclude Include="datatypes\MQ2DataTypes.h" />
@@ -647,6 +654,9 @@
   <ItemGroup>
     <Text Include="..\..\data\resources\GPL.txt" />
     <Text Include="..\..\data\resources\ItemDB.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProtocolBuffer Include="..\common\proto\Shared.proto" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

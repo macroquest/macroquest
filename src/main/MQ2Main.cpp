@@ -93,6 +93,7 @@ MQModule* GetGroundSpawnsModule();
 MQModule* GetSpawnsModule();
 MQModule* GetItemsModule();
 MQModule* GetWindowsModule();
+MQModule* GetPipeClientModule();
 
 void InitializeDetours();
 void ShutdownDetours();
@@ -595,6 +596,7 @@ void DoMainThreadInitialization()
 	AddInternalModule(GetGroundSpawnsModule());
 	AddInternalModule(GetSpawnsModule());
 	AddInternalModule(GetItemsModule());
+	AddInternalModule(GetPipeClientModule());
 	InitializeMQ2AutoInventory();
 	InitializeMQ2KeyBinds();
 	InitializeMQ2Plugins();

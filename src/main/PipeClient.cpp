@@ -19,12 +19,37 @@
 #include "MQ2Main.h"
 #include "common/NamedPipes.h"
 
+#include "common/proto/Shared.pb.h"
+
 namespace mq {
 
 NamedPipeClient gPipeClient{ mq::MQ2_PIPE_SERVER_PATH };
 DWORD dwLauncherProcessID = 0;
 
-// we can't use a MQModule here (at least not for init/shutdown) because initialization order matters.
+// MQModule forward declarations
+namespace pipeclient {
+static void SetGameStatePipeClient(DWORD);
+}
+
+// we can't use a MQModule here for init/shutdown because initialization order matters.
+static MQModule s_PipeClientModule = {
+	"PipeClient",
+	false,
+	nullptr,                                   // Initialize
+	nullptr,                                   // Shutdown
+	nullptr,                                   // Pulse
+	pipeclient::SetGameStatePipeClient,        // SetGameState
+	nullptr,                                   // UpdateImGui
+	nullptr,                                   // Zoned
+	nullptr,                                   // WriteChatColor
+	nullptr,                                   // SpawnAdded
+	nullptr,                                   // SpawnRemoved
+	nullptr,                                   // BeginZone
+	nullptr,                                   // EndZone
+	nullptr,                                   // LoadPlugin
+	nullptr                                    // UnloadPlugin
+};
+MQModule* GetPipeClientModule() { return &s_PipeClientModule; }
 
 class PipeEventsHandler : public NamedPipeEvents
 {
@@ -90,6 +115,8 @@ public:
 		MQMessageProcessLoadedFromMQ msg;
 		msg.processId = GetCurrentProcessId();
 		gPipeClient.SendMessage(MQMessageId::MSG_MAIN_PROCESS_LOADED, &msg, sizeof(msg));
+		
+		pipeclient::SetGameStatePipeClient(0);
 	}
 };
 
@@ -185,6 +212,30 @@ void RequestActivateWindow(HWND hWnd, bool sendMessage)
 	ShowWindow(hWnd, SW_RESTORE);
 }
 
+void SetGameStatePipeClient(DWORD GameState)
+{
+	mq::messages::identify id;
+	id.set_pid(GetCurrentProcessId()); // we should always have a pid
+
+	const char* login = GetLoginName();
+	if (login != nullptr)
+		id.set_account(login);
+
+	if (pEverQuestInfo != nullptr)
+	{
+		const char* server = GetServerShortName();
+		if (server != nullptr)
+			id.set_server(server);
+	}
+
+	if (pLocalPC != nullptr && pLocalPC->Name != nullptr)
+	{
+		id.set_character(pLocalPC->Name);
+	}
+
+	gPipeClient.SendMessage<mq::messages::identify>(MQMessageId::MSG_IDENTITY, id);
+}
+
 } // namespace pipeclient
 
 void InitializePipeClient()
@@ -198,5 +249,44 @@ void ShutdownPipeClient()
 {
 	gPipeClient.Stop();
 }
+
+namespace mailbox {
+
+std::unordered_map<std::string, std::unique_ptr<PostOffice::MailboxConcept>> s_mailboxes;
+
+bool PostOffice::RemoveMailbox(const std::string& localAddress)
+{
+	return s_mailboxes.erase(localAddress) == 1;
+}
+
+bool PostOffice::DeliverTo(const std::string& localAddress, const void* data, size_t length)
+{
+	auto mailbox_it = s_mailboxes.find(localAddress);
+	if (mailbox_it != s_mailboxes.end())
+		mailbox_it->second->Deliver(data, length);
+
+	return mailbox_it != s_mailboxes.end();
+}
+
+void PostOffice::Process(size_t howMany)
+{
+	size_t messages_per_mailbox = std::max(1, (int)std::round(howMany / s_mailboxes.size()));
+	for (const auto& mailbox : s_mailboxes)
+	{
+		mailbox.second->Process(messages_per_mailbox);
+	}
+}
+
+bool PostOffice::CanAddMailbox(const std::string& localAddress)
+{
+	return s_mailboxes.find(localAddress) == s_mailboxes.end();
+}
+
+void PostOffice::AddMailboxConcept(std::unique_ptr<MailboxConcept>&& mailbox)
+{
+	s_mailboxes.emplace(mailbox->Address(), std::move(mailbox));
+}
+
+} // namespace mailbox
 
 } // namespace mq

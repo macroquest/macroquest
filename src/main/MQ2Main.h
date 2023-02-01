@@ -26,8 +26,6 @@ using namespace eqlib;
 // uncomment this line to turn off the single-line benchmark macro
 // #define DISABLE_BENCHMARKS
 
-#define VersionString          __ExpectedVersionDate
-#define TimeString             __ExpectedVersionTime
 #define LoadedString           "MacroQuest Loaded."
 #define ToUnloadString         "MacroQuest Unloading..."
 #define UnloadedString         "MacroQuest Unloaded."

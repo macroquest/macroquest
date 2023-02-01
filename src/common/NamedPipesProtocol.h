@@ -25,6 +25,8 @@ enum class MQMessageId : uint16_t
 {
 	MSG_NULL                               = 0,     // An empty message, used for transmitting an acknowledgement response
 	MSG_ECHO                               = 1,     // Send an echo message. Server will reply with the same payload. For testing.
+	MSG_ROUTE                              = 2,     // Route a message to a mailbox in a client
+	MSG_IDENTITY                           = 3,     // Update routing information in server
 
 	// FIXME: We really should have message ids separated by plugins or services. For now we will use a single enum
 	// and just change it later.

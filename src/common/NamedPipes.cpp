@@ -143,7 +143,7 @@ int PipeMessage::GetConnectionId() const
 	return 0;
 }
 
-void PipeMessage::SendReply(uint8_t status /*=0*/)
+void PipeMessage::SendReply(uint8_t status)
 {
 	if (!m_header || m_header->mode != MQRequestMode::CallAndResponse)
 		return;
@@ -899,6 +899,8 @@ bool NamedPipeServer::CreateAndConnect()
 
 void NamedPipeServer::CloseConnection(PipeConnection* connection)
 {
+	if (m_handler)
+		m_handler->OnConnectionClosed(connection->GetConnectionId(), connection->GetProcessId());
 
 	// close the connection
 	if (connection->InternalClose(true))
@@ -1007,7 +1009,10 @@ void NamedPipeServer::BroadcastMessage(MQMessageId messageId, const void* data, 
 {
 	for (const auto& id : GetConnectionIds())
 	{
-		SendMessage(id, messageId, data, dataLength);
+		// we have to copy for each message because the send takes ownership (and moves it)
+		std::unique_ptr<uint8_t[]> data_copy(new uint8_t[dataLength]);
+		memcpy_s(&data_copy[0], dataLength, data, dataLength);
+		SendMessage(id, messageId, &data_copy[0], dataLength);
 	}
 }
 

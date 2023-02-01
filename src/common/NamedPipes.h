@@ -74,16 +74,34 @@ public:
 
 	size_t size() const { return m_header ? m_header->messageLength : 0; }
 
+	template <typename T>
+	T fill() const
+	{
+		T obj;
+		obj.ParseFromArray(get<void>(), (int)size());
+		return obj;
+	}
+
 	uint32_t GetSequenceId() const { return m_header ? m_header->sequenceId : 0; }
 	void SetSequenceId(uint32_t sequenceId) { if (m_header) m_header->sequenceId = sequenceId; }
 
 	int GetConnectionId() const;
 
 	// A simple helper to acknowledge a call-and-response message.
-	void SendReply(uint8_t status = 0);
+	void SendReply(uint8_t status);
 
 	// A more thorough message reply
-	void SendReply(MQMessageId messageId, void* data, size_t length, uint8_t status = 0);
+	void SendReply(MQMessageId messageId, void* data, size_t length, uint8_t status);
+
+	template <typename T>
+	void SendReply(MQMessageId messageId, const T& obj, uint8_t status)
+	{
+		size_t size = obj.ByteSizeLong();
+		std::unique_ptr<uint8_t[]> data(new uint8_t[size]);
+		obj.SerializeToArray(&data[0], static_cast<int>(size));
+
+		SendReply(messageId, &data[0], size, status);
+	}
 
 private:
 	void SetConnection(std::shared_ptr<PipeConnection> connection) { m_connection = connection; }
@@ -226,6 +244,9 @@ public:
 	// (optional) For NamedPipeServer: notification of an incoming connection.
 	virtual void OnIncomingConnection(int connectionId, int processid) {}
 
+	// (optional) For NamedPipeServer: notification of a closing connection
+	virtual void OnConnectionClosed(int connectionId, int processId) {}
+
 	// (optional) For NamedPipeClient: Called when connection is established
 	virtual void OnClientConnected() {}
 };
@@ -310,7 +331,28 @@ public:
 
 	void SendMessage(int connectionId, std::shared_ptr<PipeMessage> message);
 	void SendMessage(int connectionId, MQMessageId messageId, const void* data, size_t dataLength);
+
+	template <typename T>
+	void SendMessage(int connectionId, MQMessageId messageId, const T& obj)
+	{
+		size_t size = obj.ByteSizeLong();
+		std::unique_ptr<uint8_t[]> data(new uint8_t[size]);
+		obj.SerializeToArray(&data[0], static_cast<int>(size));
+
+		SendMessage(connectionId, messageId, &data[0], size);
+	}
+
 	void BroadcastMessage(MQMessageId messageId, const void* data, size_t dataLength);
+
+	template <typename T>
+	void BroadcastMessage(MQMessageId messageId, const T& obj)
+	{
+		size_t size = obj.ByteSizeLong();
+		std::unique_ptr<uint8_t[]> data(new uint8_t[size]);
+		obj.SerializeToArray(&data[0], static_cast<int>(size));
+
+		BroadcastMessage(messageId, &data[0], size);
+	}
 private:
 	void NamedPipeThread() override;
 
@@ -342,9 +384,30 @@ public:
 	// Send a simple message to the server
 	void SendMessage(MQMessageId messageId, const void* data, size_t dataLength);
 
+	template <typename T>
+	void SendMessage(MQMessageId messageId, const T& obj)
+	{
+		size_t size = obj.ByteSizeLong();
+		std::unique_ptr<uint8_t[]> data(new uint8_t[size]);
+		obj.SerializeToArray(&data[0], static_cast<int>(size));
+
+		SendMessage(messageId, &data[0], size);
+	}
+
 	// Send a call-and-response message to the server
 	void SendMessageWithResponse(MQMessageId messageId, const void* data, size_t dataLength,
 		const PipeMessageResponseCb& response);
+
+	template <typename T>
+	void SendMessageWithResponse(MQMessageId messageId, const T& obj,
+		const PipeMessageResponseCb& response)
+	{
+		size_t size = obj.ByteSizeLong();
+		std::unique_ptr<uint8_t[]> data(new uint8_t[size]);
+		obj.SerializeToArray(&data[0], static_cast<int>(size));
+
+		SendMessageWithResponse(messageId, &data[0], size, response);
+	}
 
 	// Checks if we're connected
 	bool IsConnected() const;
