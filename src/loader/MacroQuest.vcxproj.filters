@@ -104,9 +104,6 @@
     <ClInclude Include="PipeServer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\Serialization.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\common\proto\Shared.pb.h">
       <Filter>Proto Files\common\Generated Files</Filter>
     </ClInclude>

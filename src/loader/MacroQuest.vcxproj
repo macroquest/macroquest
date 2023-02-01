@@ -149,7 +149,6 @@
     <ClInclude Include="..\common\NamedPipes.h" />
     <ClInclude Include="..\common\NamedPipesProtocol.h" />
     <ClInclude Include="..\common\proto\Shared.pb.h" />
-    <ClInclude Include="..\common\Serialization.h" />
     <ClInclude Include="..\plugins\autologin\AutoLoginShared.h" />
     <ClInclude Include="AutoLogin.h" />
     <ClInclude Include="Crashpad.h" />

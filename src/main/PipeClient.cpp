@@ -214,7 +214,7 @@ void RequestActivateWindow(HWND hWnd, bool sendMessage)
 
 void SetGameStatePipeClient(DWORD GameState)
 {
-	mq::messages::identify id;
+	messages::Identification id;
 	id.set_pid(GetCurrentProcessId()); // we should always have a pid
 
 	const char* login = GetLoginName();
@@ -233,7 +233,7 @@ void SetGameStatePipeClient(DWORD GameState)
 		id.set_character(pLocalPC->Name);
 	}
 
-	gPipeClient.SendMessage<mq::messages::identify>(MQMessageId::MSG_IDENTITY, id);
+	gPipeClient.SendMessage(MQMessageId::MSG_IDENTIFICATION, id);
 }
 
 } // namespace pipeclient

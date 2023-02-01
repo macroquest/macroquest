@@ -4,14 +4,14 @@ import "google/protobuf/any.proto";
 
 package mq.messages;
 
-message envelope
+message Envelope
 {
 	uint32 pid = 1;
 	string address = 2;
 	google.protobuf.Any payload = 3;
 }
 
-message identify
+message Identification
 {
 	uint32 pid = 1;
 	optional string account = 2;

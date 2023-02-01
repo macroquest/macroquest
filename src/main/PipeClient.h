@@ -53,7 +53,7 @@ public:
 	public:
 		virtual void Deliver(const void* data, size_t length) const = 0;
 		virtual void Process(size_t howMany) const = 0;
-		virtual std::string_view Address() const = 0;
+		virtual const std::string& Address() const = 0;
 	};
 
 private:
@@ -90,7 +90,7 @@ private:
 			Process(howMany - 1);
 		}
 
-		std::string_view Address() const override { return m_localAddress; }
+		const std::string& Address() const override { return m_localAddress; }
 
 	private:
 

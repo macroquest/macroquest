@@ -28,14 +28,14 @@
 
 mq::NamedPipeServer s_pipeServer{ mq::MQ2_PIPE_SERVER_PATH };
 
-struct Identity
+struct ClientIdentification
 {
 	uint32_t pid;
 	std::string account;
 	std::string server;
 	std::string character;
 };
-std::unordered_map<uint32_t, Identity> s_identities;
+std::unordered_map<uint32_t, ClientIdentification> s_identities;
 
 class MQ2NamedPipeEvents : public NamedPipeEvents
 {
@@ -63,10 +63,10 @@ public:
 			break;
 		}
 
-		case mq::MQMessageId::MSG_IDENTITY:
+		case mq::MQMessageId::MSG_IDENTIFICATION:
 		{
-			auto id = message->fill<mq::messages::identify>();
-			s_identities.insert_or_assign(id.pid(), Identity{
+			auto id = message->fill<mq::messages::Identification>();
+			s_identities.insert_or_assign(id.pid(), ClientIdentification{
 				id.pid(),
 				id.has_account() ? id.account() : "",
 				id.has_server() ? id.server() : "",
