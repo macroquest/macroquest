@@ -580,6 +580,9 @@
     <ClInclude Include="..\common\proto\Shared.pb.h">
       <Filter>Proto Files\common\Generated Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\common\ProtoPipes.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\include\mq\api\Spawns.h">
       <Filter>Header Files\mq\api</Filter>
     </ClInclude>

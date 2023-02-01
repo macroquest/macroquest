@@ -17,13 +17,13 @@
 #include "CrashHandler.h"
 
 #include "MQ2Main.h"
-#include "common/NamedPipes.h"
+#include "common/ProtoPipes.h"
 
 #include "common/proto/Shared.pb.h"
 
 namespace mq {
 
-NamedPipeClient gPipeClient{ mq::MQ2_PIPE_SERVER_PATH };
+ProtoPipeClient gPipeClient{ mq::MQ2_PIPE_SERVER_PATH };
 DWORD dwLauncherProcessID = 0;
 
 // MQModule forward declarations
@@ -233,7 +233,7 @@ void SetGameStatePipeClient(DWORD GameState)
 		id.set_character(pLocalPC->Name);
 	}
 
-	gPipeClient.SendMessage(MQMessageId::MSG_IDENTIFICATION, id);
+	gPipeClient.SendProtoMessage(MQMessageId::MSG_IDENTIFICATION, id);
 }
 
 } // namespace pipeclient

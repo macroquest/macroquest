@@ -16,7 +16,7 @@
 #include "PipeServer.h"
 #include "AutoLogin.h"
 #include "Crashpad.h"
-#include "common/NamedPipes.h"
+#include "common/ProtoPipes.h"
 #include "common/proto/Shared.pb.h"
 
 #include <date/date.h>
@@ -26,7 +26,7 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/msvc_sink.h>
 
-mq::NamedPipeServer s_pipeServer{ mq::MQ2_PIPE_SERVER_PATH };
+mq::ProtoPipeServer s_pipeServer{ mq::MQ2_PIPE_SERVER_PATH };
 
 struct ClientIdentification
 {
@@ -65,7 +65,7 @@ public:
 
 		case mq::MQMessageId::MSG_IDENTIFICATION:
 		{
-			auto id = message->fill<mq::proto::Identification>();
+			auto id = ProtoPipeMessage(message).Parse<mq::proto::Identification>();
 			s_identities.insert_or_assign(id.pid(), ClientIdentification{
 				id.pid(),
 				id.has_account() ? id.account() : "",

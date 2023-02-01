@@ -17,7 +17,7 @@
 #include "CrashHandler.h"
 #include "ImGuiManager.h"
 
-#include "common/NamedPipes.h"
+#include "common/ProtoPipes.h"
 
 #include <wil/resource.h>
 
@@ -28,7 +28,7 @@ namespace mq {
 bool TurnNotDone = false;
 static std::recursive_mutex s_pulseMutex;
 
-extern NamedPipeClient gPipeClient;
+extern ProtoPipeClient gPipeClient;
 
 void UpdateMQ2SpawnSort();
 

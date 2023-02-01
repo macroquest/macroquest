@@ -596,6 +596,7 @@
     <ClInclude Include="..\common\HotKeys.h" />
     <ClInclude Include="..\common\NamedPipes.h" />
     <ClInclude Include="..\common\MiscUtils.h" />
+    <ClInclude Include="..\common\ProtoPipes.h" />
     <ClInclude Include="..\common\proto\Shared.pb.h" />
     <ClInclude Include="..\common\StringUtils.h" />
     <ClInclude Include="datatypes\DataTypeList.h" />

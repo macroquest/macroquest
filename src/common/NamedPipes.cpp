@@ -143,7 +143,7 @@ int PipeMessage::GetConnectionId() const
 	return 0;
 }
 
-void PipeMessage::SendReply(uint8_t status)
+void PipeMessage::SendReply(uint8_t status /*=0*/)
 {
 	if (!m_header || m_header->mode != MQRequestMode::CallAndResponse)
 		return;
