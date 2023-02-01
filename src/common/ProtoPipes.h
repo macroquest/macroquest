@@ -29,7 +29,14 @@ public:
 	T Parse()
 	{
 		T obj;
-		obj.ParseFromArray(m_message->get<void>(), (int)m_message->size());
+		obj.ParseFromArray(m_message->get<void>(), static_cast<int>(m_message->size()));
+		return obj;
+	}
+
+	template <typename T>
+	T& Parse(T& obj)
+	{
+		obj.ParseFromArray(m_message->get<void>(), static_cast<int>(m_message->size()));
 		return obj;
 	}
 
