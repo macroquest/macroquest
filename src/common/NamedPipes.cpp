@@ -1007,12 +1007,10 @@ void NamedPipeServer::SendMessage(int connectionId, MQMessageId messageId, const
 
 void NamedPipeServer::BroadcastMessage(MQMessageId messageId, const void* data, size_t dataLength)
 {
-	for (const auto& id : GetConnectionIds())
+	auto message = MakeSimpleMessageV0(messageId, data, dataLength);
+	for (const auto& connection : m_connections)
 	{
-		// we have to copy for each message because the send takes ownership (and moves it)
-		std::unique_ptr<uint8_t[]> data_copy(new uint8_t[dataLength]);
-		memcpy_s(&data_copy[0], dataLength, data, dataLength);
-		SendMessage(id, messageId, &data_copy[0], dataLength);
+		connection->SendMessage(message);
 	}
 }
 

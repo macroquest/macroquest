@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "google/protobuf/any.proto";
 
-package mq.messages;
+package mq.proto;
 
 message Envelope
 {

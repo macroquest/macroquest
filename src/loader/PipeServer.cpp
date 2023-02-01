@@ -65,7 +65,7 @@ public:
 
 		case mq::MQMessageId::MSG_IDENTIFICATION:
 		{
-			auto id = message->fill<mq::messages::Identification>();
+			auto id = message->fill<mq::proto::Identification>();
 			s_identities.insert_or_assign(id.pid(), ClientIdentification{
 				id.pid(),
 				id.has_account() ? id.account() : "",

@@ -214,7 +214,7 @@ void RequestActivateWindow(HWND hWnd, bool sendMessage)
 
 void SetGameStatePipeClient(DWORD GameState)
 {
-	messages::Identification id;
+	proto::Identification id;
 	id.set_pid(GetCurrentProcessId()); // we should always have a pid
 
 	const char* login = GetLoginName();
