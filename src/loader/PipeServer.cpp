@@ -162,7 +162,7 @@ public:
 		s_identities.erase(processId);
 	}
 
-	void SendMessageToPID(uint32_t pid, const PipeMessagePtr& message)
+	bool SendMessageToPID(uint32_t pid, const PipeMessagePtr& message)
 	{
 		auto connection = s_pipeServer.GetConnectionForProcessId(pid);
 		if (connection != nullptr)
@@ -173,18 +173,24 @@ public:
 		{
 			SPDLOG_WARN("Unable to get connection for PID {}, message route failed.", pid);
 		}
+
+		return connection != nullptr;
 	}
 
 	void RouteMessage(const PipeMessagePtr& message)
 	{
-		auto envelope = ProtoPipeMessage(message).Parse<proto::Envelope>();
+		auto proto_message = ProtoPipeMessage(message);
+		auto envelope = proto_message.Parse<proto::Envelope>();
 		if (envelope.has_address())
 		{
 			const auto& address = envelope.address();
 			if (address.has_pid())
 			{
 				// a PID is necessarily a singular identifier, avoid the loop
-				SendMessageToPID(address.pid(), message);
+				if (!SendMessageToPID(address.pid(), message))
+				{
+					proto_message.SendProtoReply(MQMessageId::MSG_NULL, address, MsgError_NoConnection);
+				}
 			}
 			else
 			{
@@ -196,13 +202,18 @@ public:
 						(!address.has_server() || ci_equals(address.server(), identity.second.server)) &&
 						(!address.has_character() || ci_equals(address.character(), identity.second.character))
 						)
-						SendMessageToPID(identity.first, message);
+					{
+						if (!SendMessageToPID(identity.first, message))
+						{
+							proto_message.SendProtoReply(MQMessageId::MSG_NULL, address, MsgError_NoConnection);
+						}
+					}
 				}
 			}
 		}
 		else
 		{
-			// no address is present, assume this is a broadcast
+			// no address is present, assume this is a broadcast (no error replies needed here)
 			s_pipeServer.BroadcastMessage(message);
 		}
 	}

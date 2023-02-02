@@ -58,6 +58,13 @@ public:
 	{
 		switch (message->GetMessageId())
 		{
+		case MQMessageId::MSG_ROUTE:
+			// read envelope message
+			// if mailbox is present, direct unpacked message to mailbox
+			//   if routing fails and a reply is requested, respond with an error state
+			// if mailbox is not present, handle unpacked message here
+			break;
+
 		case MQMessageId::MSG_MAIN_CRASHPAD_CONFIG:
 			// Message needs to at least have some substance...
 			if (message->size() > 0)
@@ -284,6 +291,7 @@ bool PostOffice::CanAddMailbox(const std::string& localAddress)
 
 void PostOffice::AddMailboxConcept(std::unique_ptr<MailboxConcept>&& mailbox)
 {
+	// TODO: Error on name collision (and do not add to mailboxes)
 	s_mailboxes.emplace(mailbox->Address(), std::move(mailbox));
 }
 
