@@ -50,6 +50,7 @@ public:
 	//                         we should be able to validate messages upon receipt (to provide guarantees)
 	virtual void OnIncomingMessage(std::shared_ptr<PipeMessage> message) override
 	{
+		using namespace mq::proto;
 		SPDLOG_TRACE("Received message: id={} length={} connectionId={}", message->GetMessageId(),
 			message->size(), message->GetConnectionId());
 
@@ -63,9 +64,13 @@ public:
 			break;
 		}
 
+		case mq::MQMessageId::MSG_ROUTE:
+			RouteMessage(message);
+			break;
+
 		case mq::MQMessageId::MSG_IDENTIFICATION:
 		{
-			auto id = ProtoPipeMessage(message).Parse<mq::proto::Identification>();
+			auto id = ProtoPipeMessage(message).Parse<Identification>();
 			s_identities.insert_or_assign(id.pid(), ClientIdentification{
 				id.pid(),
 				id.has_account() ? id.account() : "",
@@ -155,6 +160,51 @@ public:
 	virtual void OnConnectionClosed(int connectionId, int processId) override
 	{
 		s_identities.erase(processId);
+	}
+
+	void SendMessageToPID(uint32_t pid, const PipeMessagePtr& message)
+	{
+		auto connection = s_pipeServer.GetConnectionForProcessId(pid);
+		if (connection != nullptr)
+		{
+			connection->SendMessage(message);
+		}
+		else
+		{
+			SPDLOG_WARN("Unable to get connection for PID {}, message route failed.", pid);
+		}
+	}
+
+	void RouteMessage(const PipeMessagePtr& message)
+	{
+		auto envelope = ProtoPipeMessage(message).Parse<proto::Envelope>();
+		if (envelope.has_address())
+		{
+			const auto& address = envelope.address();
+			if (address.has_pid())
+			{
+				// a PID is necessarily a singular identifier, avoid the loop
+				SendMessageToPID(address.pid(), message);
+			}
+			else
+			{
+				// we don't have a PID, so we will send this message to all PIDs that match the address
+				for (const auto& identity : s_identities)
+				{
+					if (
+						(!address.has_account() || ci_equals(address.account(), identity.second.account)) &&
+						(!address.has_server() || ci_equals(address.server(), identity.second.server)) &&
+						(!address.has_character() || ci_equals(address.character(), identity.second.character))
+						)
+						SendMessageToPID(identity.first, message);
+				}
+			}
+		}
+		else
+		{
+			// no address is present, assume this is a broadcast
+			s_pipeServer.BroadcastMessage(message);
+		}
 	}
 };
 

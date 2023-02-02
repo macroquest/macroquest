@@ -1005,13 +1005,17 @@ void NamedPipeServer::SendMessage(int connectionId, MQMessageId messageId, const
 	}
 }
 
-void NamedPipeServer::BroadcastMessage(MQMessageId messageId, const void* data, size_t dataLength)
+void NamedPipeServer::BroadcastMessage(const std::shared_ptr<PipeMessage>& message)
 {
-	auto message = MakeSimpleMessageV0(messageId, data, dataLength);
 	for (const auto& connection : m_connections)
 	{
 		connection->SendMessage(message);
 	}
+}
+
+void NamedPipeServer::BroadcastMessage(MQMessageId messageId, const void* data, size_t dataLength)
+{
+	BroadcastMessage(MakeSimpleMessageV0(messageId, data, dataLength));
 }
 
 //============================================================================

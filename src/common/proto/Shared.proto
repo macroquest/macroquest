@@ -1,18 +1,28 @@
 syntax = "proto3";
 
-import "google/protobuf/any.proto";
-
 package mq.proto;
 
-message Envelope
-{
-	uint32 pid = 1;
-	string address = 2;
-	google.protobuf.Any payload = 3;
+message Address {
+	optional uint32 pid = 1;
+	optional string account = 2;
+	optional string server = 3;
+	optional string character = 4;
 }
 
-message Identification
-{
+message Return {
+	uint32 pid = 1;
+	optional string mailbox = 2;
+}
+
+message Envelope {
+	optional Address address = 1;
+	optional uint32 message_id = 2;
+	optional string mailbox = 3;
+	Return return = 4;
+	optional bytes payload = 99;
+}
+
+message Identification {
 	uint32 pid = 1;
 	optional string account = 2;
 	optional string server = 3;

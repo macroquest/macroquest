@@ -57,7 +57,7 @@ private:
 class ProtoPipeServer : public NamedPipeServer
 {
 public:
-	ProtoPipeServer(const char* pipeName) : NamedPipeServer(pipeName) {}
+	using NamedPipeServer::NamedPipeServer;
 
 	template <typename T>
 	void SendProtoMessage(int connectionId, MQMessageId messageId, const T& obj)
@@ -83,7 +83,7 @@ public:
 class ProtoPipeClient : public NamedPipeClient
 {
 public:
-	ProtoPipeClient(const char* pipeName) : NamedPipeClient(pipeName) {}
+	using NamedPipeClient::NamedPipeClient;
 
 	template <typename T>
 	void SendProtoMessage(MQMessageId messageId, const T& obj)
