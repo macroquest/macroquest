@@ -17,13 +17,13 @@
 #include "CrashHandler.h"
 
 #include "MQ2Main.h"
-#include "common/ProtoPipes.h"
 
 #include "common/proto/Shared.pb.h"
 
 namespace mq {
 
 ProtoPipeClient gPipeClient{ mq::MQ2_PIPE_SERVER_PATH };
+pipeclient::PipeClientPO s_postOffice;
 DWORD dwLauncherProcessID = 0;
 
 // MQModule forward declarations
@@ -243,6 +243,16 @@ void SetGameStatePipeClient(DWORD GameState)
 	gPipeClient.SendProtoMessage(MQMessageId::MSG_IDENTIFICATION, id);
 }
 
+bool AddMailbox(const std::string& localAddress, std::unique_ptr<PipeClientPO::MailboxConcept>&& mailbox)
+{
+	return s_postOffice.AddMailbox(localAddress, std::move(mailbox));
+}
+
+bool RemoveMailbox(const std::string& localAddress)
+{
+	return s_postOffice.RemoveMailbox(localAddress);
+}
+
 } // namespace pipeclient
 
 void InitializePipeClient()
@@ -256,45 +266,5 @@ void ShutdownPipeClient()
 {
 	gPipeClient.Stop();
 }
-
-namespace mailbox {
-
-std::unordered_map<std::string, std::unique_ptr<PostOffice::MailboxConcept>> s_mailboxes;
-
-bool PostOffice::RemoveMailbox(const std::string& localAddress)
-{
-	return s_mailboxes.erase(localAddress) == 1;
-}
-
-bool PostOffice::DeliverTo(const std::string& localAddress, const void* data, size_t length)
-{
-	auto mailbox_it = s_mailboxes.find(localAddress);
-	if (mailbox_it != s_mailboxes.end())
-		mailbox_it->second->Deliver(data, length);
-
-	return mailbox_it != s_mailboxes.end();
-}
-
-void PostOffice::Process(size_t howMany)
-{
-	size_t messages_per_mailbox = std::max(1, (int)std::round(howMany / s_mailboxes.size()));
-	for (const auto& mailbox : s_mailboxes)
-	{
-		mailbox.second->Process(messages_per_mailbox);
-	}
-}
-
-bool PostOffice::CanAddMailbox(const std::string& localAddress)
-{
-	return s_mailboxes.find(localAddress) == s_mailboxes.end();
-}
-
-void PostOffice::AddMailboxConcept(std::unique_ptr<MailboxConcept>&& mailbox)
-{
-	// TODO: Error on name collision (and do not add to mailboxes)
-	s_mailboxes.emplace(mailbox->Address(), std::move(mailbox));
-}
-
-} // namespace mailbox
 
 } // namespace mq

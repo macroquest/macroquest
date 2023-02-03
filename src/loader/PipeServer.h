@@ -14,6 +14,9 @@
 
 #pragma once
 
+#include "common/Mailbox.h"
+#include "common/ProtoPipes.h"
+
 bool SendSetForegroundWindow(HWND hWnd, uint32_t processID);
 void SendUnloadAllCommand();
 void SendForceUnloadAllCommand();
@@ -21,3 +24,16 @@ void ProcessPipeServer();
 
 void InitializeNamedPipeServer();
 void ShutdownNamedPipeServer();
+
+using PipeServerPO = mq::mailbox::PostOffice<PipeMessagePtr>;
+template <typename MessageType>
+bool AddMailbox(
+	const std::string& localAddress,
+	PipeServerPO::ParseCallback<MessageType> deliver,
+	PipeServerPO::ReceiveCallback<MessageType> receive)
+{
+	AddMailbox(localAddress, PipeServerPO::CreateMailbox(localAddress, deliver, receive));
+}
+
+bool AddMailbox(const std::string& localAddress, std::unique_ptr<PipeServerPO::MailboxConcept>&& mailbox);
+bool RemoveMailbox(const std::string& localAddress);

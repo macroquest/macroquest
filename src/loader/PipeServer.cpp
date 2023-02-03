@@ -16,7 +16,6 @@
 #include "PipeServer.h"
 #include "AutoLogin.h"
 #include "Crashpad.h"
-#include "common/ProtoPipes.h"
 #include "common/proto/Shared.pb.h"
 
 #include <date/date.h>
@@ -27,6 +26,7 @@
 #include <spdlog/sinks/msvc_sink.h>
 
 mq::ProtoPipeServer s_pipeServer{ mq::MQ2_PIPE_SERVER_PATH };
+PipeServerPO s_postOffice;
 
 struct ClientIdentification
 {
@@ -211,6 +211,14 @@ public:
 				}
 			}
 		}
+		else if (envelope.has_mailbox())
+		{
+			// no address is present, but there is a mailbox, which means forward to a server mailbox
+			if (!s_postOffice.DeliverTo(envelope.mailbox(), message))
+			{
+				message->SendReply(MsgError_NoConnection);
+			}
+		}
 		else
 		{
 			// no address is present, assume this is a broadcast (no error replies needed here)
@@ -270,4 +278,14 @@ void InitializeNamedPipeServer()
 void ShutdownNamedPipeServer()
 {
 	s_pipeServer.Stop();
+}
+
+bool AddMailbox(const std::string& localAddress, std::unique_ptr<PipeServerPO::MailboxConcept>&& mailbox)
+{
+	return s_postOffice.AddMailbox(localAddress, std::move(mailbox));
+}
+
+bool RemoveMailbox(const std::string& localAddress)
+{
+	return s_postOffice.RemoveMailbox(localAddress);
 }

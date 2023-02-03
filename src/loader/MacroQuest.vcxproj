@@ -146,6 +146,7 @@
     <ClInclude Include="..\..\include\mq\base\BuildInfo.h" />
     <ClInclude Include="..\..\include\mq\utils\Naming.h" />
     <ClInclude Include="..\common\HotKeys.h" />
+    <ClInclude Include="..\common\Mailbox.h" />
     <ClInclude Include="..\common\NamedPipes.h" />
     <ClInclude Include="..\common\NamedPipesProtocol.h" />
     <ClInclude Include="..\common\proto\Shared.pb.h" />
@@ -169,6 +170,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProtocolBuffer Include="..\common\proto\Shared.proto" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

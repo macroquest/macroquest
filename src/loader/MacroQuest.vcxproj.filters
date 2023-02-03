@@ -107,6 +107,9 @@
     <ClInclude Include="..\common\proto\Shared.pb.h">
       <Filter>Proto Files\common\Generated Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\common\Mailbox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="icon1.ico">
@@ -125,5 +128,8 @@
     <ProtocolBuffer Include="..\common\proto\Shared.proto">
       <Filter>Proto Files\common</Filter>
     </ProtocolBuffer>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>
