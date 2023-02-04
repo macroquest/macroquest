@@ -2084,8 +2084,36 @@ INT_PTR CALLBACK SettingsProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 	return FALSE;
 }
 
+#include "PipeServer.h"
+void ReadMessage(const PipeMessagePtr& message)
+{
+	switch (message->GetMessageId())
+	{
+		case mq::MQMessageId::MSG_AUTOLOGIN_PROFILE_LOADED:
+			HandleAutoLoginProfileLoaded(std::string(message->get<const char>(), message->size()));
+			break;
+
+		case mq::MQMessageId::MSG_AUTOLOGIN_PROFILE_UNLOADED:
+			HandleAutoLoginProfileUnloaded(std::string(message->get<const char>(), message->size()));
+			break;
+
+		case mq::MQMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO:
+			HandleAutoLoginUpdateCharacterDetails(std::string(message->get<const char>(), message->size()));
+			break;
+
+		case mq::MQMessageId::MSG_AUTOLOGIN_START_INSTANCE:
+			HandleAutoLoginStartInstance(std::string(message->get<const char>(), message->size()));
+			break;
+
+		default:
+			break;
+	}
+}
+
 void InitializeAutoLogin()
 {
+	AddMailbox<PipeMessagePtr>("autologin", [](const PipeMessagePtr& message) { return message; }, ReadMessage);
+
 	// Get path to mq2autologin.ini
 	fs::path pathAutoLoginIni = fs::path{ internal_paths::Config }  / "MQ2AutoLogin.ini";
 	internal_paths::AutoLoginIni = pathAutoLoginIni.string();
@@ -2161,4 +2189,5 @@ void InitializeAutoLogin()
 
 void ShutdownAutoLogin()
 {
+	RemoveMailbox("autologin");
 }

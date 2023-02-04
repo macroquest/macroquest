@@ -14,7 +14,6 @@
 
 #include "MacroQuest.h"
 #include "PipeServer.h"
-#include "AutoLogin.h"
 #include "Crashpad.h"
 #include "common/proto/Shared.pb.h"
 
@@ -85,22 +84,6 @@ public:
 				id.has_character() ? id.character() : "N/A");
 			break;
 		}
-
-		case mq::MQMessageId::MSG_AUTOLOGIN_PROFILE_LOADED:
-			HandleAutoLoginProfileLoaded(std::string(message->get<const char>(), message->size()));
-			break;
-
-		case mq::MQMessageId::MSG_AUTOLOGIN_PROFILE_UNLOADED:
-			HandleAutoLoginProfileUnloaded(std::string(message->get<const char>(), message->size()));
-			break;
-
-		case mq::MQMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO:
-			HandleAutoLoginUpdateCharacterDetails(std::string(message->get<const char>(), message->size()));
-			break;
-
-		case mq::MQMessageId::MSG_AUTOLOGIN_START_INSTANCE:
-			HandleAutoLoginStartInstance(std::string(message->get<const char>(), message->size()));
-			break;
 
 		case mq::MQMessageId::MSG_MAIN_PROCESS_UNLOADED:
 			break;
@@ -265,6 +248,7 @@ void SendForceUnloadAllCommand()
 void ProcessPipeServer()
 {
 	s_pipeServer.Process();
+	s_postOffice.Process(10);
 }
 
 //----------------------------------------------------------------------------

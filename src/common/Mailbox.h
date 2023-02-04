@@ -104,7 +104,7 @@ public:
 		ParseCallback<ParsedMessage> parse,
 		ReceiveCallback<ParsedMessage> receive)
 	{
-		return std::make_unique<Mailbox<ParsedMessage>(localAddress, deliver, receive);
+		return std::make_unique<Mailbox<ParsedMessage>>(localAddress, parse, receive);
 	}
 
 	bool AddMailbox(const std::string& localAddress, std::unique_ptr<MailboxConcept>&& mailbox)
@@ -130,9 +130,9 @@ public:
 	void Process(size_t howMany)
 	{
 		size_t messages_per_mailbox = std::max(1, (int)std::round(howMany / m_mailboxes.size()));
-		for (const auto& mailbox : m_mailboxes)
+		for (const auto& [_, mailbox] : m_mailboxes)
 		{
-			mailbox.second->Process(messages_per_mailbox);
+			mailbox->Process(messages_per_mailbox);
 		}
 	}
 

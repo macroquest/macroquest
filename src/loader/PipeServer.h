@@ -29,10 +29,10 @@ using PipeServerPO = mq::mailbox::PostOffice<PipeMessagePtr>;
 template <typename MessageType>
 bool AddMailbox(
 	const std::string& localAddress,
-	PipeServerPO::ParseCallback<MessageType> deliver,
+	PipeServerPO::ParseCallback<MessageType> parse,
 	PipeServerPO::ReceiveCallback<MessageType> receive)
 {
-	AddMailbox(localAddress, PipeServerPO::CreateMailbox(localAddress, deliver, receive));
+	return AddMailbox(localAddress, PipeServerPO::CreateMailbox(localAddress, parse, receive));
 }
 
 bool AddMailbox(const std::string& localAddress, std::unique_ptr<PipeServerPO::MailboxConcept>&& mailbox);
