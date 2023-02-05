@@ -16,6 +16,7 @@
 #include "MacroQuest.h"
 #include "resource.h"
 #include "HotKeyControl.h"
+#include "PipeServer.h"
 
 #include "plugins/autologin/AutoLoginShared.h"
 
@@ -835,8 +836,8 @@ void LoadIt(ProfileInfo& pi, int id)
 		{
 			// this isn't a valid eq process, so let's unload it from our map
 			ActOnPid(pi.PID, [](const DWORD id, ProfileInfo& pi) {
-				SendMessage(hMainWnd, WM_USER_UNREGISTER_HK, id, pi.PID);
-				SendMessage(hMainWnd, WM_USER_RESETLOADED, id, pi.PID);
+				SendMessageA(hMainWnd, WM_USER_UNREGISTER_HK, id, pi.PID);
+				SendMessageA(hMainWnd, WM_USER_RESETLOADED, id, pi.PID);
 				});
 		}
 		else
@@ -1650,8 +1651,8 @@ void AutoLoginRemoveProcess(DWORD processId)
 			{
 				if (j.second.PID == processId)
 				{
-					SendMessage(hMainWnd, WM_USER_UNREGISTER_HK, 0, j.second.PID);
-					SendMessage(hMainWnd, WM_USER_RESETLOADED, 0, j.second.PID);
+					SendMessageA(hMainWnd, WM_USER_UNREGISTER_HK, 0, j.second.PID);
+					SendMessageA(hMainWnd, WM_USER_RESETLOADED, 0, j.second.PID);
 
 					j.second.Loaded = false;
 					j.second.PID = 0;
@@ -1683,8 +1684,8 @@ void HandleAutoLoginProfileLoaded(std::string_view szMessage)
 		{
 			login_it->second.Loaded = true;
 			login_it->second.PID = pid;
-			SendMessage(hMainWnd, WM_USER_REGISTER_HK, login_it->first, login_it->second.PID);
-			SendMessage(hMainWnd, WM_USER_SETLOADED, login_it->first, login_it->second.PID);
+			SendMessageA(hMainWnd, WM_USER_REGISTER_HK, login_it->first, login_it->second.PID);
+			SendMessageA(hMainWnd, WM_USER_SETLOADED, login_it->first, login_it->second.PID);
 		}
 	}
 }
@@ -1706,8 +1707,8 @@ void HandleAutoLoginProfileUnloaded(std::string_view szMessage)
 
 		if (login_it != LoginMap[profile].end())
 		{
-			SendMessage(hMainWnd, WM_USER_UNREGISTER_HK, login_it->first, login_it->second.PID);
-			SendMessage(hMainWnd, WM_USER_RESETLOADED, login_it->first, login_it->second.PID);
+			SendMessageA(hMainWnd, WM_USER_UNREGISTER_HK, login_it->first, login_it->second.PID);
+			SendMessageA(hMainWnd, WM_USER_RESETLOADED, login_it->first, login_it->second.PID);
 		}
 	}
 }
@@ -1722,8 +1723,8 @@ void HandleAutoLoginMQ2Unload(std::string_view szMessage)
 		{
 			if (j.second.PID == pid)
 			{
-				SendMessage(hMainWnd, WM_USER_UNREGISTER_HK, j.first, j.second.PID);
-				SendMessage(hMainWnd, WM_USER_RESETLOADED, j.first, j.second.PID);
+				SendMessageA(hMainWnd, WM_USER_UNREGISTER_HK, j.first, j.second.PID);
+				SendMessageA(hMainWnd, WM_USER_RESETLOADED, j.first, j.second.PID);
 				break;
 			}
 		}
@@ -1748,8 +1749,8 @@ void HandleAutoLoginUpdateCharacterDetails(std::string_view szMessage)
 				auto& pi = login.second;
 				if (pi.PID == pid)
 				{
-					SendMessage(hMainWnd, WM_USER_UPDATELEVEL, playerLevel, pi.PID);
-					SendMessage(hMainWnd, WM_USER_UPDATECLASS, playerClass, pi.PID);
+					SendMessageA(hMainWnd, WM_USER_UPDATELEVEL, playerLevel, pi.PID);
+					SendMessageA(hMainWnd, WM_USER_UPDATECLASS, playerClass, pi.PID);
 					break;
 				}
 			}
@@ -1809,7 +1810,7 @@ INT_PTR CALLBACK ExportProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 
 		::SetWindowPos(hWnd, nullptr, ::GetSystemMetrics(SM_CXFULLSCREEN) / 2 - (rect.right - rect.left) / 2,
 			::GetSystemMetrics(SM_CYFULLSCREEN) / 2 - (rect.bottom - rect.top) / 2, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
-		::SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)::LoadIconA(g_hInst, MAKEINTRESOURCE(IDI_ICON1)));
+		::SendMessageA(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)::LoadIconA(g_hInst, MAKEINTRESOURCE(IDI_ICON1)));
 
 		return TRUE;
 	}
@@ -1917,7 +1918,7 @@ INT_PTR CALLBACK SettingsProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 
 		::SetWindowPos(hWnd, nullptr, ::GetSystemMetrics(SM_CXFULLSCREEN) / 2 - (rect.right - rect.left) / 2,
 			::GetSystemMetrics(SM_CYFULLSCREEN) / 2 - (rect.bottom - rect.top) / 2, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
-		::SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)::LoadIconA(g_hInst, MAKEINTRESOURCE(IDI_ICON1)));
+		::SendMessageA(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)::LoadIconA(g_hInst, MAKEINTRESOURCE(IDI_ICON1)));
 
 		::SetWindowTextA(hPathEdit, internal_paths::EQRoot.c_str());
 
@@ -2084,7 +2085,6 @@ INT_PTR CALLBACK SettingsProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 	return FALSE;
 }
 
-#include "PipeServer.h"
 void ReadMessage(const PipeMessagePtr& message)
 {
 	switch (message->GetMessageId())

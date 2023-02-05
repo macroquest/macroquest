@@ -164,48 +164,56 @@ public:
 	{
 		auto proto_message = ProtoPipeMessage(message);
 		auto envelope = proto_message.Parse<proto::Envelope>();
-		if (envelope.has_address())
+		const auto& address = envelope.address();
+		if (address.has_pid())
 		{
-			const auto& address = envelope.address();
-			if (address.has_pid())
+			// a PID is necessarily a singular identifier, avoid the loop
+			if (!SendMessageToPID(address.pid(), message))
 			{
-				// a PID is necessarily a singular identifier, avoid the loop
-				if (!SendMessageToPID(address.pid(), message))
+				proto_message.SendProtoReply(MQMessageId::MSG_NULL, address, MsgError_NoConnection);
+			}
+		}
+		else if (address.has_name())
+		{
+			// a name is also a singular identifier, avoid the loop here too
+			if (ci_equals(address.name(), "launcher"))
+			{
+				if (address.has_mailbox())
 				{
-					proto_message.SendProtoReply(MQMessageId::MSG_NULL, address, MsgError_NoConnection);
+					// this is a local message
+					SPDLOG_INFO("Found an envelope: {}", address.mailbox());
+					if (!s_postOffice.DeliverTo(address.mailbox(), message))
+					{
+						message->SendReply(MsgError_NoConnection);
+					}
+				}
+				else
+				{
+					// TODO: unwrap this message and send it back through the handler
 				}
 			}
 			else
 			{
-				// we don't have a PID, so we will send this message to all PIDs that match the address
-				for (const auto& identity : s_identities)
-				{
-					if (
-						(!address.has_account() || ci_equals(address.account(), identity.second.account)) &&
-						(!address.has_server() || ci_equals(address.server(), identity.second.server)) &&
-						(!address.has_character() || ci_equals(address.character(), identity.second.character))
-						)
-					{
-						if (!SendMessageToPID(identity.first, message))
-						{
-							proto_message.SendProtoReply(MQMessageId::MSG_NULL, address, MsgError_NoConnection);
-						}
-					}
-				}
-			}
-		}
-		else if (envelope.has_mailbox())
-		{
-			// no address is present, but there is a mailbox, which means forward to a server mailbox
-			if (!s_postOffice.DeliverTo(envelope.mailbox(), message))
-			{
-				message->SendReply(MsgError_NoConnection);
+				// TODO: create a map of name to pid and send this message to the correct PID
 			}
 		}
 		else
 		{
-			// no address is present, assume this is a broadcast (no error replies needed here)
-			s_pipeServer.BroadcastMessage(message);
+			// we don't have a PID or a name, so we will send this message to all clients that match the address
+			for (const auto& identity : s_identities)
+			{
+				if (
+					(!address.has_account() || ci_equals(address.account(), identity.second.account)) &&
+					(!address.has_server() || ci_equals(address.server(), identity.second.server)) &&
+					(!address.has_character() || ci_equals(address.character(), identity.second.character))
+					)
+				{
+					if (!SendMessageToPID(identity.first, message))
+					{
+						proto_message.SendProtoReply(MQMessageId::MSG_NULL, address, MsgError_NoConnection);
+					}
+				}
+			}
 		}
 	}
 };

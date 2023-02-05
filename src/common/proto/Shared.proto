@@ -3,22 +3,20 @@ syntax = "proto3";
 package mq.proto;
 
 message Address {
-	optional uint32 pid = 1;
-	optional string account = 2;
-	optional string server = 3;
-	optional string character = 4;
-}
-
-message Return {
-	uint32 pid = 1;
-	optional string mailbox = 2;
+	oneof target {
+		uint32 pid = 1;
+		string name = 2;
+	}
+	optional string account = 3;
+	optional string server = 4;
+	optional string character = 5;
+	optional string mailbox = 6;
 }
 
 message Envelope {
-	optional Address address = 1;
+	Address address = 1;
 	optional uint32 message_id = 2;
-	optional string mailbox = 3;
-	Return return = 4;
+	Address return_address = 4;
 	optional bytes payload = 99;
 }
 

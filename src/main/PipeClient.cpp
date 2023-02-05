@@ -142,39 +142,53 @@ namespace pipeclient {
 void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character)
 {
 	auto data = fmt::format("{}:{}:{}:{}:{}", Profile, Account, Server, Character, GetCurrentProcessId());
-	gPipeClient.SendMessage(MQMessageId::MSG_AUTOLOGIN_PROFILE_LOADED, data.c_str(), data.length());
+	auto message = PipePacker("autologin").Envelope(proto::Address(), "autologin", MQMessageId::MSG_AUTOLOGIN_PROFILE_LOADED, data);
+	gPipeClient.SendMessage(MQMessageId::MSG_ROUTE, &message[0], message.size());
+}
+
+proto::Address AddressLauncher()
+{
+	proto::Address address;
+	address.set_name("launcher");
+	address.set_mailbox("autologin");
+	return address;
 }
 
 // profile:account:server:char:pid
 void NotifyCharacterUnload(const char* Profile, const char* Account, const char* Server, const char* Character)
 {
 	auto data = fmt::format("{}:{}:{}:{}:{}", Profile, Account, Server, Character, GetCurrentProcessId());
-	gPipeClient.SendMessage(MQMessageId::MSG_AUTOLOGIN_PROFILE_UNLOADED, data.c_str(), data.length());
+	auto message = PipePacker("autologin").Envelope(AddressLauncher(), "autologin", MQMessageId::MSG_AUTOLOGIN_PROFILE_UNLOADED, data);
+	gPipeClient.SendMessage(MQMessageId::MSG_ROUTE, &message[0], message.size());
 }
 
 // pid:class:level
 void NotifyCharacterUpdate(int Class, int Level)
 {
 	auto data = fmt::format("{}:{}:{}", GetCurrentProcessId(), Class, Level);
-	gPipeClient.SendMessage(MQMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO, data.c_str(), data.length());
+	auto message = PipePacker("autologin").Envelope(AddressLauncher(), "autologin", MQMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO, data);
+	gPipeClient.SendMessage(MQMessageId::MSG_ROUTE, &message[0], message.size());
 }
 
 void LoginServer(const char* Login, const char* Pass, const char* Server)
 {
 	auto data = fmt::format("s:{}:{}:{}", Login, Pass, Server);
-	gPipeClient.SendMessage(MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data.c_str(), data.length());
+	auto message = PipePacker("autologin").Envelope(AddressLauncher(), "autologin", MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data);
+	gPipeClient.SendMessage(MQMessageId::MSG_ROUTE, &message[0], message.size());
 }
 
 void LoginCharacter(const char* Login, const char* Pass, const char* Server, const char* Character)
 {
 	auto data = fmt::format("c:{}:{}:{}:{}", Login, Pass, Server, Character);
-	gPipeClient.SendMessage(MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data.c_str(), data.length());
+	auto message = PipePacker("autologin").Envelope(AddressLauncher(), "autologin", MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data);
+	gPipeClient.SendMessage(MQMessageId::MSG_ROUTE, &message[0], message.size());
 }
 
 void LoginProfile(const char* Profile, const char* Server, const char* Character)
 {
 	auto data = fmt::format("p:{}:{}:{}", Profile, Server, Character);
-	gPipeClient.SendMessage(MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data.c_str(), data.length());
+	auto message = PipePacker("autologin").Envelope(AddressLauncher(), "autologin", MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data);
+	gPipeClient.SendMessage(MQMessageId::MSG_ROUTE, &message[0], message.size());
 }
 
 uint32_t GetLauncherProcessID()

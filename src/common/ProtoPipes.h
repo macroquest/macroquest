@@ -15,8 +15,10 @@
 #pragma once
 
 #include "NamedPipes.h"
+#include "common/proto/Shared.pb.h"
 
 #include <memory>
+#include <optional>
 
 namespace mq {
 
@@ -24,7 +26,7 @@ class ProtoPipeMessage
 {
 public:
 	ProtoPipeMessage(std::shared_ptr<PipeMessage> message) : m_message(message) {}
-
+	
 	template <typename T>
 	T Parse()
 	{
@@ -43,15 +45,46 @@ public:
 	template <typename T>
 	void SendProtoReply(MQMessageId messageId, const T& obj, uint8_t status = 0)
 	{
-		size_t size = obj.ByteSizeLong();
-		std::unique_ptr<uint8_t[]> data(new uint8_t[size]);
-		obj.SerializeToArray(&data[0], static_cast<int>(size));
-
-		m_message->SendReply(messageId, &data[0], size, status);
+		std::string data = obj.SerializeAsString();
+		m_message->SendReply(messageId, &data[0], data.size(), status);
 	}
 
 private:
 	std::shared_ptr<PipeMessage> m_message;
+};
+
+class PipePacker
+{
+public:
+	PipePacker(std::string_view homeMailbox)
+		: m_mailbox(homeMailbox)
+	{}
+
+	template <typename T>
+	std::string Envelope(const proto::Address& address, const std::string& mailbox, MQMessageId messageId, const T& obj)
+	{
+		return Envelope(address, mailbox, messageId, obj.SerializeAsString());
+	}
+
+	template <>
+	std::string Envelope(const proto::Address& address, const std::string& mailbox, MQMessageId messageId, const std::string& data)
+	{
+		proto::Envelope envelope;
+		*envelope.mutable_address() = address;
+
+		envelope.set_message_id(static_cast<uint32_t>(messageId));
+
+		proto::Address& ret = *envelope.mutable_return_address();
+		ret.set_pid(GetCurrentProcessId());
+		ret.set_mailbox(m_mailbox);
+
+		envelope.set_payload(data);
+
+		return envelope.SerializeAsString();
+	}
+
+private:
+	std::string m_mailbox;
 };
 
 class ProtoPipeServer : public NamedPipeServer
@@ -62,21 +95,15 @@ public:
 	template <typename T>
 	void SendProtoMessage(int connectionId, MQMessageId messageId, const T& obj)
 	{
-		size_t size = obj.ByteSizeLong();
-		std::unique_ptr<uint8_t[]> data(new uint8_t[size]);
-		obj.SerializeToArray(&data[0], static_cast<int>(size));
-
-		SendMessage(connectionId, messageId, &data[0], size);
+		std::string data = obj.SerializeAsString();
+		SendMessage(connectionId, messageId, &data[0], data.size());
 	}
 
 	template <typename T>
 	void BroadcastProtoMessage(MQMessageId messageId, const T& obj)
 	{
-		size_t size = obj.ByteSizeLong();
-		std::unique_ptr<uint8_t[]> data(new uint8_t[size]);
-		obj.SerializeToArray(&data[0], static_cast<int>(size));
-
-		BroadcastMessage(messageId, &data[0], size);
+		std::string data = obj.SerializeAsString();
+		BroadcastMessage(messageId, &data[0], data.size());
 	}
 };
 
@@ -88,22 +115,16 @@ public:
 	template <typename T>
 	void SendProtoMessage(MQMessageId messageId, const T& obj)
 	{
-		size_t size = obj.ByteSizeLong();
-		std::unique_ptr<uint8_t[]> data(new uint8_t[size]);
-		obj.SerializeToArray(&data[0], static_cast<int>(size));
-
-		SendMessage(messageId, &data[0], size);
+		std::string data = obj.SerializeAsString();
+		SendMessage(messageId, &data[0], data.size());
 	}
 
 	template <typename T>
 	void SendProtoMessageWithResponse(MQMessageId messageId, const T& obj,
 		const PipeMessageResponseCb& response)
 	{
-		size_t size = obj.ByteSizeLong();
-		std::unique_ptr<uint8_t[]> data(new uint8_t[size]);
-		obj.SerializeToArray(&data[0], static_cast<int>(size));
-
-		SendMessageWithResponse(messageId, &data[0], size, response);
+		std::string data = obj.SerializeAsString();
+		SendMessageWithResponse(messageId, &data[0], data.size(), response);
 	}
 };
 
