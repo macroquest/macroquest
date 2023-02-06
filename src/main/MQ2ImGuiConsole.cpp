@@ -29,6 +29,11 @@ namespace mq {
 
 //----------------------------------------------------------------------------
 
+// Benchmarks
+uint32_t bmPruneConsoleBuffer = 0;
+uint32_t bmInsertConsoleBuffer = 0;
+uint32_t bmImGuiConsole = 0;
+
 // Indicates that there has been a request to toggle the console.
 bool gbToggleConsoleRequested = false;
 
@@ -637,7 +642,11 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		}
 
 		Zep::ChangeRecord changeRecord;
-		m_buffer->Insert(position, text, changeRecord);
+
+		{
+			MQScopedBenchmark bm(bmInsertConsoleBuffer);
+			m_buffer->Insert(position, text, changeRecord);
+		}
 
 		return position.Move(static_cast<long>(text.length()));
 	}
@@ -736,6 +745,8 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		syntax->AddAttribute(position, std::move(attribute));
 
 		Zep::ChangeRecord changeRecord;
+
+		MQScopedBenchmark bm(bmInsertConsoleBuffer);
 		m_buffer->Insert(position, text, changeRecord);
 	}
 
@@ -811,7 +822,11 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		syntax->AddAttribute(position, std::move(attribute));
 
 		Zep::ChangeRecord changeRecord;
-		m_buffer->Insert(position, text + "\n", changeRecord);
+
+		{
+			MQScopedBenchmark bm(bmInsertConsoleBuffer);
+			m_buffer->Insert(position, text + "\n", changeRecord);
+		}
 
 		if (cursorAtEnd && m_autoScroll)
 		{
@@ -838,6 +853,8 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 				Zep::GlyphIterator end(m_buffer, range.first);
 
 				Zep::ChangeRecord changeRecord;
+				MQScopedBenchmark bm(bmPruneConsoleBuffer);
+
 				m_buffer->Delete(m_buffer->Begin(), end, changeRecord);
 			}
 		}
@@ -851,6 +868,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 			m_window->ScrollToBottom();
 		}
 
+		MQScopedBenchmark bm(bmImGuiConsole);
 		ImGuiZepEditor::Render(id, displaySize);
 	}
 
@@ -1495,6 +1513,10 @@ static void ConsoleSettings()
 
 void InitializeImGuiConsole()
 {
+	bmPruneConsoleBuffer = AddMQ2Benchmark("PruneConsoleBuffer");
+	bmInsertConsoleBuffer = AddMQ2Benchmark("InsertConsoleBuffer");
+	bmImGuiConsole = AddMQ2Benchmark("ImGuiConsole");
+
 	s_consoleVisibleOnStartup = GetPrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", false, mq::internal_paths::MQini);
 	s_consoleVisible = s_consoleVisibleOnStartup;
 	if (gbWriteAllConfig)
@@ -1515,6 +1537,10 @@ void ShutdownImGuiConsole()
 
 	RemoveSettingsPanel("Console");
 	RemoveCommand("/mqconsole");
+
+	RemoveMQ2Benchmark(bmPruneConsoleBuffer);
+	RemoveMQ2Benchmark(bmInsertConsoleBuffer);
+	RemoveMQ2Benchmark(bmImGuiConsole);
 }
 
 DWORD ImGuiConsoleAddText(const char* line, DWORD color, DWORD filter)
