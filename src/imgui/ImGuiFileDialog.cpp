@@ -952,6 +952,7 @@ namespace IGFD
 		if (m_ShowDialog && dlg_key == vKey)
 		{
 			bool res = false;
+			vFlags |= ImGuiWindowFlags_NoDocking;
 
 			// to be sure than only one dialog is displayed per frame
 			ImGuiContext& g = *GImGui;
