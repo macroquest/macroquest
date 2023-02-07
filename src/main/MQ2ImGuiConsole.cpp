@@ -29,11 +29,6 @@ namespace mq {
 
 //----------------------------------------------------------------------------
 
-// Benchmarks
-uint32_t bmPruneConsoleBuffer = 0;
-uint32_t bmInsertConsoleBuffer = 0;
-uint32_t bmImGuiConsole = 0;
-
 // Indicates that there has been a request to toggle the console.
 bool gbToggleConsoleRequested = false;
 
@@ -620,6 +615,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		m_buffer->SetFileFlags(Zep::FileFlags::ReadOnly | Zep::FileFlags::CrudeUtf8Vaidate);
 		m_autoScroll = GetPrivateProfileBool("Console", "AutoScroll", m_autoScroll, internal_paths::MQini);
 		m_localEcho = GetPrivateProfileBool("Console", "LocalEcho", m_localEcho, internal_paths::MQini);
+		m_maxBufferLines = GetPrivateProfileInt("Console", "MaxBufferLines", m_maxBufferLines, internal_paths::MQini);
 	}
 
 	void Clear()
@@ -642,11 +638,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		}
 
 		Zep::ChangeRecord changeRecord;
-
-		{
-			MQScopedBenchmark bm(bmInsertConsoleBuffer);
-			m_buffer->Insert(position, text, changeRecord);
-		}
+		m_buffer->Insert(position, text, changeRecord);
 
 		return position.Move(static_cast<long>(text.length()));
 	}
@@ -745,8 +737,6 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		syntax->AddAttribute(position, std::move(attribute));
 
 		Zep::ChangeRecord changeRecord;
-
-		MQScopedBenchmark bm(bmInsertConsoleBuffer);
 		m_buffer->Insert(position, text, changeRecord);
 	}
 
@@ -822,11 +812,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		syntax->AddAttribute(position, std::move(attribute));
 
 		Zep::ChangeRecord changeRecord;
-
-		{
-			MQScopedBenchmark bm(bmInsertConsoleBuffer);
-			m_buffer->Insert(position, text + "\n", changeRecord);
-		}
+		m_buffer->Insert(position, text + "\n", changeRecord);
 
 		if (cursorAtEnd && m_autoScroll)
 		{
@@ -853,8 +839,6 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 				Zep::GlyphIterator end(m_buffer, range.first);
 
 				Zep::ChangeRecord changeRecord;
-				MQScopedBenchmark bm(bmPruneConsoleBuffer);
-
 				m_buffer->Delete(m_buffer->Begin(), end, changeRecord);
 			}
 		}
@@ -868,7 +852,6 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 			m_window->ScrollToBottom();
 		}
 
-		MQScopedBenchmark bm(bmImGuiConsole);
 		ImGuiZepEditor::Render(id, displaySize);
 	}
 
@@ -910,6 +893,14 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 	{
 		m_localEcho = localEcho;
 		WritePrivateProfileBool("Console", "LocalEcho", m_localEcho, internal_paths::MQini);
+	}
+
+	int GetMaxBufferLines() const { return m_maxBufferLines; }
+
+	void SetMaxBufferLines(int maxBufferLines)
+	{
+		m_maxBufferLines = maxBufferLines;
+		WritePrivateProfileInt("Console", "MaxBufferLines", m_maxBufferLines, internal_paths::MQini);
 	}
 };
 
@@ -1504,6 +1495,22 @@ static void ConsoleSettings()
 
 	ImGui::NewLine();
 
+	if (gImGuiConsole != nullptr)
+	{
+		ImGui::Text("Maximum Number of Buffer Lines");
+
+		int maxBufferLines = gImGuiConsole->m_zepEditor->GetMaxBufferLines();
+		if (ImGui::InputInt("##BufferLineMaxEntry", &maxBufferLines))
+		{
+			gImGuiConsole->m_zepEditor->SetMaxBufferLines(maxBufferLines);
+		}
+
+		ImGui::SameLine();
+		mq::imgui::HelpMarker("You can set the number of buffer lines here if you are experiencing hitching from processing the number of lines.");
+
+		ImGui::NewLine();
+	}
+
 	if (ImGui::Button("Clear Saved Console Settings"))
 	{
 		s_consoleVisibleOnStartup = false;
@@ -1513,10 +1520,6 @@ static void ConsoleSettings()
 
 void InitializeImGuiConsole()
 {
-	bmPruneConsoleBuffer = AddMQ2Benchmark("PruneConsoleBuffer");
-	bmInsertConsoleBuffer = AddMQ2Benchmark("InsertConsoleBuffer");
-	bmImGuiConsole = AddMQ2Benchmark("ImGuiConsole");
-
 	s_consoleVisibleOnStartup = GetPrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", false, mq::internal_paths::MQini);
 	s_consoleVisible = s_consoleVisibleOnStartup;
 	if (gbWriteAllConfig)
@@ -1537,10 +1540,6 @@ void ShutdownImGuiConsole()
 
 	RemoveSettingsPanel("Console");
 	RemoveCommand("/mqconsole");
-
-	RemoveMQ2Benchmark(bmPruneConsoleBuffer);
-	RemoveMQ2Benchmark(bmInsertConsoleBuffer);
-	RemoveMQ2Benchmark(bmImGuiConsole);
 }
 
 DWORD ImGuiConsoleAddText(const char* line, DWORD color, DWORD filter)
