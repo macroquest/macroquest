@@ -555,8 +555,6 @@ void ZepWindow::UpdateLineSpans()
     float bufferPosYPx = 0.0f;
     float xOffset = m_xPad;
 
-    bool isMarkdown = m_pBuffer->GetFileExtension() == ".md";
-
     // Nuke the existing spans
     // In future we can in-place modify for speed
     std::for_each(m_windowLines.begin(), m_windowLines.end(), [](SpanInfo* pInfo) { delete pInfo; });
@@ -590,33 +588,6 @@ void ZepWindow::UpdateLineSpans()
 
         // TODO: Find a clean way to do this extra work during layout for extensions that need it
         ZepTextType type = ZepTextType::Text;
-        if (isMarkdown)
-        {
-            uint32_t headerCount = 0;
-            // Markdown experiment
-            for (auto ch = lineByteRange.first; ch < lineByteRange.second; ch += utf8_codepoint_length(textBuffer[ch]))
-            {
-                if (textBuffer[ch] != '#')
-                    break;
-                headerCount++;
-            }
-
-            switch (headerCount)
-            {
-            case 0:
-                break;
-            case 1:
-                type = ZepTextType::Heading1;
-                break;
-            case 2:
-                type = ZepTextType::Heading2;
-                break;
-            case 3:
-                type = ZepTextType::Heading3;
-                break;
-            }
-            // !Markdown experiment
-        }
 
         auto& font = GetEditor().GetDisplay().GetFont(type);
         int textHeight = font.GetPixelHeight();
