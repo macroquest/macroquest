@@ -278,7 +278,7 @@ private:
     std::vector<std::string> m_statusLines; // Status information, shown under the buffer
 
     // Setup of displayed lines
-    std::vector<SpanInfo*> m_windowLines;   // Information about the currently displayed lines
+    std::deque<SpanInfo*> m_windowLines;   // Information about the currently displayed lines
     float m_textOffsetPx = 0.0f;         // The Scroll position within the text
     NVec2f m_textSizePx;                    // The calculated size of the buffer text, containing just the text
     NVec2i m_visibleLineIndices = {0, 0};   // Index of the line spans that are visible 
