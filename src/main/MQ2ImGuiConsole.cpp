@@ -1506,7 +1506,7 @@ static void ConsoleSettings()
 		}
 
 		ImGui::SameLine();
-		mq::imgui::HelpMarker("You can set the number of buffer lines here if you are experiencing hitching from processing the number of lines.");
+		mq::imgui::HelpMarker("Set the number of lines to keep in the scrollback buffer. Any lines above this amount will be deleted from the top of the buffer and won't be available for viewing in the console. Larger numbers here may cause performance issues like hitching or FPS slowdowns.");
 
 		ImGui::NewLine();
 	}
