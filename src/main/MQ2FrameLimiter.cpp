@@ -1229,7 +1229,7 @@ void FrameLimiterCommand(SPAWNINFO* pChar, char* szLine)
 
 static void InitializeFrameLimiter()
 {
-	AddSettingsPanel("FPS Limiter", FrameLimiterSettings);
+	AddSettingsPanel("Frame Limiter", FrameLimiterSettings);
 
 	bmRenderScene = AddMQ2Benchmark("Render_Scene");
 	bmRealRenderWorld = AddMQ2Benchmark("Render_Simulation");
@@ -1266,7 +1266,7 @@ static void ShutdownFrameLimiter()
 {
 	RemoveCommand("/framelimiter");
 
-	RemoveSettingsPanel("FPS Limiter");
+	RemoveSettingsPanel("Frame Limiter");
 
 	RemoveDetour(CXWndManager__DrawWindows);
 	RemoveDetour(CRender__RenderScene);

@@ -793,7 +793,7 @@ void InitializeMQ2Commands()
 	EzDetour(CEverQuest__InterpretCmd, &CCommandHook::Detour, &CCommandHook::Trampoline);
 
 	// Import EQ commands
-	CMDLIST* pCmdListOrig = (CMDLIST*)EQADDR_CMDLIST;
+	CMDLIST* pCmdListOrig = EQADDR_CMDLIST;
 
 	for (int i = 0; pCmdListOrig[i].fAddress != nullptr; i++)
 	{

@@ -422,6 +422,8 @@ public:
 #endif
 #endif
 
+		// This case is just to remove warnings when all above cases are gated
+		case eItemContainerInvalid:
 		default: break;
 		}
 
