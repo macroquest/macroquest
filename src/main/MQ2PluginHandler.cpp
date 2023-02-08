@@ -47,7 +47,7 @@ static PluginMap g_pluginUnloadFailedMap;
 static const char EverQuestVersion[] = __ExpectedVersionDate " " __ExpectedVersionTime;
 
 // load failure string for reporting error message out of the plugin load command.
-static char szPluginLoadFailure[MAX_STRING];
+static std::string s_pluginLoadFailure;
 
 static bool s_hotReloadEnabled = true;
 
@@ -303,7 +303,7 @@ std::pair<wil::unique_hmodule, std::string> LoadPluginModule(std::string_view na
 	std::string fileName = FindPluginFile(name);
 	if (fileName.empty())
 	{
-		strcpy_s(szPluginLoadFailure, "Plugin not found");
+		s_pluginLoadFailure = "Plugin not found";
 		return {};
 	}
 
@@ -327,8 +327,7 @@ std::pair<wil::unique_hmodule, std::string> LoadPluginModule(std::string_view na
 			0,
 			nullptr);
 
-		sprintf_s(szPluginLoadFailure, "LoadLibrary failed with error 0x%08x : %s", lastError, szError);
-
+		s_pluginLoadFailure = fmt::format("LoadLibrary failed with error {:#08x}: {}", lastError, szError);
 		return {};
 	}
 
@@ -336,8 +335,7 @@ std::pair<wil::unique_hmodule, std::string> LoadPluginModule(std::string_view na
 	void* isBuildForNext = GetProcAddress(hModule.get(), "IsBuiltForNext");
 	if (isBuildForNext == nullptr)
 	{
-		strcpy_s(szPluginLoadFailure, "Plugin was not built for this version of MacroQuest");
-
+		s_pluginLoadFailure = "Plugin was not built for this version of MacroQuest";
 		return {};
 	}
 
@@ -345,15 +343,13 @@ std::pair<wil::unique_hmodule, std::string> LoadPluginModule(std::string_view na
 	const char* eqVersion = reinterpret_cast<const char*>(GetProcAddress(hModule.get(), "EverQuestVersion"));
 	if (eqVersion == nullptr)
 	{
-		strcpy_s(szPluginLoadFailure, "Plugin was not built for this version of EverQuest");
-
+		s_pluginLoadFailure = "Plugin was not built for this version of EverQuest";
 		return {};
 	}
 	else if (strcmp(eqVersion, EverQuestVersion) != 0)
 	{
-		sprintf_s(szPluginLoadFailure, "Plugin was not built for this version of EverQuest (was built for %s)",
+		s_pluginLoadFailure = fmt::format("Plugin was not built for this version of EverQuest (was built for {})",
 			eqVersion);
-
 		return {};
 	}
 
@@ -392,14 +388,14 @@ void RemovePluginFromList(MQPlugin* pPlugin)
 int LoadMQ2Plugin(const char* pszFilename, bool)
 {
 	// Clear the load error message;
-	szPluginLoadFailure[0] = 0;
+	s_pluginLoadFailure.clear();
 
 	std::string pluginName = pszFilename;
 
 	if (IsPluginLoaded(pluginName))
 	{
 		DebugSpew("LoadMQ2Plugin(%s) already loaded", pluginName.c_str());
-		strcpy_s(szPluginLoadFailure, "Plugin is already loaded");
+		s_pluginLoadFailure = "Plugin is already loaded";
 
 		return 2;
 	}
@@ -407,7 +403,7 @@ int LoadMQ2Plugin(const char* pszFilename, bool)
 	if (IsPluginUnloadFailed(pluginName))
 	{
 		DebugSpew("LoadMQ2Plugin(%s) previous instance failed unload", pluginName.c_str());
-		strcpy_s(szPluginLoadFailure, "Plugin failed unload from a previous instance, cannot load");
+		s_pluginLoadFailure = "Plugin failed unload from a previous instance, cannot load";
 
 		return 3;
 	}
@@ -416,7 +412,7 @@ int LoadMQ2Plugin(const char* pszFilename, bool)
 	if (!hModule)
 	{
 		// szPluginLoadFailure is set in LoadPluginModule
-		DebugSpew("LoadMQ2Plugin(%s) failed: %s", pluginName.c_str(), szPluginLoadFailure);
+		DebugSpew("LoadMQ2Plugin(%s) failed: %s", pluginName.c_str(), s_pluginLoadFailure.c_str());
 		return 0;
 	}
 
@@ -502,6 +498,9 @@ bool UnloadMQ2Plugin(const char* pszFilename)
 {
 	DebugSpew("UnloadMQ2Plugin(%s)", pszFilename);
 
+	// Clear the load error message;
+	s_pluginLoadFailure.clear();
+
 	MQPlugin* pPlugin = nullptr;
 	std::string_view canonicalName = GetCanonicalPluginName(pszFilename);
 
@@ -545,8 +544,9 @@ bool UnloadMQ2Plugin(const char* pszFilename)
 	{
 		if (IsInModuleList(pPlugin->szFilename))
 		{
-			sprintf_s(szPluginLoadFailure, "Plugin files still loaded.");
-			DebugSpew("UnloadMQ2Plugin(%s) failed: %s", pszFilename, szPluginLoadFailure);
+			s_pluginLoadFailure = "Plugin files still loaded.";
+			DebugSpew("UnloadMQ2Plugin(%s) failed: %s", pszFilename, s_pluginLoadFailure.c_str());
+
 			g_pluginUnloadFailedMap.emplace(canonicalName, pPlugin);
 			return false;
 		}
@@ -565,8 +565,9 @@ bool UnloadMQ2Plugin(const char* pszFilename)
 			0,
 			nullptr);
 
-		sprintf_s(szPluginLoadFailure, "FreeLibrary failed with error 0x%08x : %s", lastError, szError);
-		DebugSpew("UnloadMQ2Plugin(%s) failed: %s", pszFilename, szPluginLoadFailure);
+		s_pluginLoadFailure = fmt::format("FreeLibrary failed with error {:#08x}: {}", lastError, szError);
+		DebugSpew("UnloadMQ2Plugin(%s) failed: %s", pszFilename, s_pluginLoadFailure.c_str());
+
 		g_pluginUnloadFailedMap.emplace(canonicalName, pPlugin);
 		return false;
 	}
@@ -1274,13 +1275,13 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 							WritePrivateProfileBool("Plugins", origPluginName, false, mq::internal_paths::MQini);
 						}
 
-						if(UnloadMQ2Plugin(szName))
+						if (UnloadMQ2Plugin(szName))
 						{
 							WriteChatf("Plugin '%s' unloaded.", origPluginName.c_str());
 						}
-						else if (szPluginLoadFailure[0] == '\0')
+						else if (s_pluginLoadFailure.empty())
 						{
-							strcpy_s(szPluginLoadFailure, "Unknown Error");
+							s_pluginLoadFailure = "Unknown Error";
 						}
 					}
 					else
@@ -1306,20 +1307,23 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 								WritePrivateProfileBool("Plugins", plugin->szFilename, true, mq::internal_paths::MQini);
 							}
 						}
-						else if (szPluginLoadFailure[0] == '\0')
+						else if (s_pluginLoadFailure.empty())
 						{
-							strcpy_s(szPluginLoadFailure, "Unknown Error");
+							s_pluginLoadFailure = "Unknown Error";
 						}
 					}
 				}
 
-				if (szPluginLoadFailure[0] != 0)
+				if (!s_pluginLoadFailure.empty())
 				{
-					MacroError("Plugin '%s' could not be %sloaded: %s", szName, dounload ? "un" : "", szPluginLoadFailure);
+					MacroError("Plugin '%s' could not be %sloaded: %s", szName, dounload ? "un" : "", s_pluginLoadFailure.c_str());
+
+					s_pluginLoadFailure.clear();
 				}
 			}
 		}
 	}
+
 	if (show_usage)
 	{
 		SyntaxError("Usage: /plugin <pluginName> [load/unload/toggle] [noauto], or /plugin list [active|failed|dlls]");
