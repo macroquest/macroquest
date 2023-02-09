@@ -53,6 +53,7 @@ class PipeMessage : public std::enable_shared_from_this<PipeMessage>
 public:
 	PipeMessage() = default;
 	PipeMessage(MQMessageId messageId, const void* data, size_t length);
+	PipeMessage(const MQMessageHeader& header, const void* data, size_t length);
 
 	virtual ~PipeMessage();
 
@@ -61,7 +62,9 @@ public:
 	bool Parse(std::unique_ptr<uint8_t[]> buffer, size_t length);
 	bool Parse(const std::vector<std::pair<std::unique_ptr<uint8_t[]>, size_t>>& buffers);
 
+	void Init(const void* data, size_t length);
 	void Init(MQMessageId messageId, const void* data, size_t length);
+	void Init(const MQMessageHeader& header, const void* data, size_t length);
 
 	bool IsValid() const { return m_valid; }
 

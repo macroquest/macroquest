@@ -46,6 +46,11 @@ PipeMessage::PipeMessage(MQMessageId messageId, const void* data, size_t length)
 	Init(messageId, data, length);
 }
 
+PipeMessage::PipeMessage(const MQMessageHeader& header, const void* data, size_t length)
+{
+	Init(header, data, length);
+}
+
 PipeMessage::~PipeMessage()
 {
 }
@@ -103,7 +108,7 @@ bool PipeMessage::Parse(const std::vector<std::pair<std::unique_ptr<uint8_t[]>, 
 	return Parse(std::move(buffer), length);
 }
 
-void PipeMessage::Init(MQMessageId messageId, const void* data, size_t length)
+void PipeMessage::Init(const void* data, size_t length)
 {
 	m_dataOffset = sizeof(MQMessageHeader);
 	m_bufferLength = length + m_dataOffset;
@@ -111,17 +116,32 @@ void PipeMessage::Init(MQMessageId messageId, const void* data, size_t length)
 	// initialize buffer and header
 	m_buffer = std::make_unique<uint8_t[]>(m_bufferLength);
 	m_header = reinterpret_cast<MQMessageHeader*>(m_buffer.get());
-	memset(m_header, 0, sizeof(MQMessageHeader));
 
 	if (data && length > 0)
 	{
 		// copy data from buffer
 		memcpy(m_buffer.get() + m_dataOffset, data, length);
 	}
+}
+
+void PipeMessage::Init(MQMessageId messageId, const void* data, size_t length)
+{
+	Init(data, length);
+	memset(m_header, 0, sizeof(MQMessageHeader));
 
 	m_header->messageLength = static_cast<uint32_t>(length);
 	m_header->protoVersion = MQProtoVersion::V0;
 	m_header->messageId = messageId;
+	m_valid = true;
+}
+
+void PipeMessage::Init(const MQMessageHeader& header, const void* data, size_t length)
+{
+	Init(data, length);
+	memcpy(m_header, &header, sizeof(MQMessageHeader));
+
+	m_header->messageLength = static_cast<uint32_t>(length);
+	m_header->protoVersion = MQProtoVersion::V0;
 	m_valid = true;
 }
 

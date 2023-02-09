@@ -35,6 +35,7 @@ struct ClientIdentification
 	std::string character;
 };
 std::unordered_map<uint32_t, ClientIdentification> s_identities;
+ci_unordered::map<std::string, uint32_t> s_names;
 
 class MQ2NamedPipeEvents : public NamedPipeEvents
 {
@@ -69,19 +70,27 @@ public:
 
 		case mq::MQMessageId::MSG_IDENTIFICATION:
 		{
-			auto id = ProtoPipeMessage(message).Parse<Identification>();
-			s_identities.insert_or_assign(id.pid(), ClientIdentification{
-				id.pid(),
-				id.has_account() ? id.account() : "",
-				id.has_server() ? id.server() : "",
-				id.has_character() ? id.character() : ""
-			});
+			auto id = ProtoPipeMessage(message).Parse<proto::Identification>();
+			if (id.has_name())
+			{
+				s_names.insert_or_assign(id.name(), id.pid());
+				SPDLOG_INFO("Got name-based identification from {}: {}", id.pid(), id.name());
+			}
+			else
+			{
+				s_identities.insert_or_assign(id.pid(), ClientIdentification{
+					id.pid(),
+					id.has_account() ? id.account() : "",
+					id.has_server() ? id.server() : "",
+					id.has_character() ? id.character() : ""
+					});
 
-			SPDLOG_INFO("Got identification from {}: {} {} {}",
-				id.pid(),
-				id.has_account() ? id.account() : "N/A",
-				id.has_server() ? id.server() : "N/A",
-				id.has_character() ? id.character() : "N/A");
+				SPDLOG_INFO("Got identification from {}: {} {} {}",
+					id.pid(),
+					id.has_account() ? id.account() : "N/A",
+					id.has_server() ? id.server() : "N/A",
+					id.has_character() ? id.character() : "N/A");
+			}
 			break;
 		}
 
@@ -170,7 +179,7 @@ public:
 			// a PID is necessarily a singular identifier, avoid the loop
 			if (!SendMessageToPID(address.pid(), message))
 			{
-				proto_message.SendProtoReply(MQMessageId::MSG_NULL, address, MsgError_NoConnection);
+				proto_message.SendProtoReply(MQMessageId::MSG_NULL, address, MsgError_RoutingFailed);
 			}
 		}
 		else if (address.has_name())
@@ -184,17 +193,41 @@ public:
 					SPDLOG_INFO("Found an envelope: {}", address.mailbox());
 					if (!s_postOffice.DeliverTo(address.mailbox(), message))
 					{
-						message->SendReply(MsgError_NoConnection);
+						message->SendReply(MsgError_RoutingFailed);
 					}
 				}
 				else
 				{
-					// TODO: unwrap this message and send it back through the handler
+					// This is a failsafe action, we shouldn't expect to be here often. For this code to
+					// be reached, we would have to have a client that packages a message in an envelope
+					// that is intended to be parsed directly by the server and not routed anywhere (so
+					// no mailbox routing information is included), rather than just send the message
+					auto unwrap_message = [&envelope, &header = *message->GetHeader()]()
+					{
+						if (envelope.has_payload())
+						{
+							const std::string& data = envelope.payload();
+							return std::make_shared<PipeMessage>(header, &data[0], data.size());
+						}
+
+						return std::make_shared<PipeMessage>(header, nullptr, 0);
+					};
+
+					auto unwrapped = unwrap_message();
+					if (envelope.has_message_id())
+						unwrapped->GetHeader()->messageId = static_cast<MQMessageId>(envelope.message_id());
+
+					OnIncomingMessage(unwrapped);
 				}
 			}
 			else
 			{
-				// TODO: create a map of name to pid and send this message to the correct PID
+				// route the message to a registered (named) client
+				auto pid_it = s_names.find(address.name());
+				if (pid_it == s_names.end() || !SendMessageToPID(pid_it->second, message))
+				{
+					message->SendReply(MsgError_RoutingFailed);
+				}
 			}
 		}
 		else
@@ -210,7 +243,7 @@ public:
 				{
 					if (!SendMessageToPID(identity.first, message))
 					{
-						proto_message.SendProtoReply(MQMessageId::MSG_NULL, address, MsgError_NoConnection);
+						proto_message.SendProtoReply(MQMessageId::MSG_NULL, address, MsgError_RoutingFailed);
 					}
 				}
 			}

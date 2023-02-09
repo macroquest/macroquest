@@ -63,6 +63,7 @@ enum class MQRequestMode : uint8_t
 // codes should originate from the message itself.
 constexpr int MsgError_ConnectionClosed        = -1;                  // connection was closed
 constexpr int MsgError_NoConnection            = -2;                  // no connection established
+constexpr int MsgError_RoutingFailed           = -3;                  // message routing failed
 
 #pragma pack(push)
 #pragma pack(1)
