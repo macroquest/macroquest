@@ -165,37 +165,25 @@ int PipeMessage::GetConnectionId() const
 
 void PipeMessage::SendReply(uint8_t status /*=0*/)
 {
-	if (!m_header || m_header->mode != MQRequestMode::CallAndResponse)
-		return;
-	if (m_replied)
-		return;
-	m_replied = true;
-
-	auto message = MakeCallResponseReplyV0(MQMessageId::MSG_NULL, nullptr, 0,
-		status, m_header->sequenceId);
-
-	if (auto connection = m_connection.lock())
+	if (m_header && m_header->mode == MQRequestMode::CallAndResponse && !m_replied)
 	{
-		connection->SendMessage(std::move(message));
+		auto message = MakeCallResponseReplyV0(MQMessageId::MSG_NULL, nullptr, 0, m_header->sequenceId, status);
+		if (auto connection = m_connection.lock())
+		{
+			connection->SendMessage(std::move(message));
+		}
 	}
 }
 
 void PipeMessage::SendReply(MQMessageId messageId, void* data, size_t length, uint8_t status)
 {
-	if (!m_header || m_header->mode != MQRequestMode::CallAndResponse)
-		return;
-	if (m_replied)
-		return;
-	m_replied = true;
-
-	auto message = std::make_shared<PipeMessage>(messageId, data, length);
-	message->m_header->mode = MQRequestMode::MessageReply;
-	message->m_header->status = status;
-	message->m_header->sequenceId = m_header->sequenceId;
-
-	if (auto connection = m_connection.lock())
+	if (m_header && m_header->mode == MQRequestMode::CallAndResponse && !m_replied)
 	{
-		connection->SendMessage(std::move(message));
+		auto message = MakeCallResponseReplyV0(messageId, data, length, m_header->sequenceId, status);
+		if (auto connection = m_connection.lock())
+		{
+			connection->SendMessage(std::move(message));
+		}
 	}
 }
 
@@ -996,7 +984,7 @@ void NamedPipeServer::PostToMainThread(std::function<void()> callback)
 	}
 }
 
-void NamedPipeServer::SendMessage(int connectionId, std::shared_ptr<PipeMessage> message)
+void NamedPipeServer::SendMessage(int connectionId, PipeMessagePtr message)
 {
 	auto connection = GetConnection(connectionId);
 
@@ -1025,7 +1013,7 @@ void NamedPipeServer::SendMessage(int connectionId, MQMessageId messageId, const
 	}
 }
 
-void NamedPipeServer::BroadcastMessage(const std::shared_ptr<PipeMessage>& message)
+void NamedPipeServer::BroadcastMessage(const PipeMessagePtr& message)
 {
 	for (const auto& connection : m_connections)
 	{
@@ -1199,6 +1187,18 @@ void NamedPipeClient::CloseConnection(PipeConnection* connection)
 	}
 }
 
+void NamedPipeClient::SendMessage(PipeMessagePtr message)
+{
+	if (m_connection)
+	{
+		m_connection->SendMessage(message);
+	}
+	else
+	{
+		SPDLOG_WARN("Tried to send a message with id {0} on a null connection.", static_cast<int>(message->GetMessageId()));
+	}
+}
+
 void NamedPipeClient::SendMessage(MQMessageId messageId, const void* data, size_t dataLength)
 {
 	if (m_connection)
@@ -1208,6 +1208,18 @@ void NamedPipeClient::SendMessage(MQMessageId messageId, const void* data, size_
 	else
 	{
 		SPDLOG_WARN("Tried to send a message with id {0} on a null connection.", static_cast<int>(messageId));
+	}
+}
+
+void NamedPipeClient::SendMessageWithResponse(PipeMessagePtr message, const PipeMessageResponseCb& response)
+{
+	if (m_connection)
+	{
+		m_connection->SendMessageWithResponse(message, response);
+	}
+	else
+	{
+		SPDLOG_WARN("Tried to send a message with id {0} on a null connection.", static_cast<int>(message->GetMessageId()));
 	}
 }
 

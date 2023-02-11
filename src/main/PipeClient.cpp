@@ -23,7 +23,9 @@
 namespace mq {
 
 ProtoPipeClient gPipeClient{ mq::MQ2_PIPE_SERVER_PATH };
-pipeclient::PipeClientPO s_postOffice;
+mailbox::PostOffice s_postOffice{ &pipeclient::RouteMessage };
+std::shared_ptr<mailbox::PostOffice::Mailbox> s_clientMailbox;
+std::shared_ptr<mailbox::PostOffice::Mailbox> s_autologinMailbox;
 DWORD dwLauncherProcessID = 0;
 
 // MQModule forward declarations
@@ -59,11 +61,28 @@ public:
 		switch (message->GetMessageId())
 		{
 		case MQMessageId::MSG_ROUTE:
-			// read envelope message
-			// if mailbox is present, direct unpacked message to mailbox
-			//   if routing fails and a reply is requested, respond with an error state
-			// if mailbox is not present, handle unpacked message here
+		{
+			auto envelope = ProtoMessage::Parse<proto::Envelope>(message);
+			const auto& address = envelope.address();
+			// either this message is coming off the pipe, so assume it was routed correctly by the server,
+			// or it was routed internally after checking to make sure that the destination of the message
+			// was within the client. In either case, we can safely assume that we should route it to an
+			// internal mailbox
+			if (address.has_mailbox())
+			{
+				s_postOffice.DeliverTo(address.mailbox(), message);
+			}
+			else
+			{
+				// This is a failsafe action, we shouldn't expect to be here often. For this code to
+				// be reached, we would have to have a client that packages a message in an envelope
+				// that is intended to be parsed directly by the server and not routed anywhere (so
+				// no mailbox routing information is included), rather than just send the message
+				s_postOffice.DeliverTo("pipe_client", message);
+			}
+
 			break;
+		}
 
 		case MQMessageId::MSG_MAIN_CRASHPAD_CONFIG:
 			// Message needs to at least have some substance...
@@ -138,57 +157,52 @@ namespace pipeclient {
 // source data. If this needs to be performant in any way, then we will need to write actual
 // serialization of binary data (with the bonus that it's not all strings).
 
-// profile:account:server:char:pid
-void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character)
-{
-	auto data = fmt::format("{}:{}:{}:{}:{}", Profile, Account, Server, Character, GetCurrentProcessId());
-	auto message = PipePacker("autologin").Envelope(proto::Address(), "autologin", MQMessageId::MSG_AUTOLOGIN_PROFILE_LOADED, data);
-	gPipeClient.SendMessage(MQMessageId::MSG_ROUTE, &message[0], message.size());
-}
-
-proto::Address AddressLauncher()
+void MakeMessage(MQMessageId messageId, const std::string& data)
 {
 	proto::Address address;
 	address.set_name("launcher");
 	address.set_mailbox("autologin");
-	return address;
+
+	s_autologinMailbox->Post(address, messageId, data);
+}
+
+// profile:account:server:char:pid
+void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character)
+{
+	auto data = fmt::format("{}:{}:{}:{}:{}", Profile, Account, Server, Character, GetCurrentProcessId());
+	MakeMessage(MQMessageId::MSG_AUTOLOGIN_PROFILE_LOADED, data);
 }
 
 // profile:account:server:char:pid
 void NotifyCharacterUnload(const char* Profile, const char* Account, const char* Server, const char* Character)
 {
 	auto data = fmt::format("{}:{}:{}:{}:{}", Profile, Account, Server, Character, GetCurrentProcessId());
-	auto message = PipePacker("autologin").Envelope(AddressLauncher(), "autologin", MQMessageId::MSG_AUTOLOGIN_PROFILE_UNLOADED, data);
-	gPipeClient.SendMessage(MQMessageId::MSG_ROUTE, &message[0], message.size());
+	MakeMessage(MQMessageId::MSG_AUTOLOGIN_PROFILE_UNLOADED, data);
 }
 
 // pid:class:level
 void NotifyCharacterUpdate(int Class, int Level)
 {
 	auto data = fmt::format("{}:{}:{}", GetCurrentProcessId(), Class, Level);
-	auto message = PipePacker("autologin").Envelope(AddressLauncher(), "autologin", MQMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO, data);
-	gPipeClient.SendMessage(MQMessageId::MSG_ROUTE, &message[0], message.size());
+	MakeMessage(MQMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO, data);
 }
 
 void LoginServer(const char* Login, const char* Pass, const char* Server)
 {
 	auto data = fmt::format("s:{}:{}:{}", Login, Pass, Server);
-	auto message = PipePacker("autologin").Envelope(AddressLauncher(), "autologin", MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data);
-	gPipeClient.SendMessage(MQMessageId::MSG_ROUTE, &message[0], message.size());
+	MakeMessage(MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data);
 }
 
 void LoginCharacter(const char* Login, const char* Pass, const char* Server, const char* Character)
 {
 	auto data = fmt::format("c:{}:{}:{}:{}", Login, Pass, Server, Character);
-	auto message = PipePacker("autologin").Envelope(AddressLauncher(), "autologin", MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data);
-	gPipeClient.SendMessage(MQMessageId::MSG_ROUTE, &message[0], message.size());
+	MakeMessage(MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data);
 }
 
 void LoginProfile(const char* Profile, const char* Server, const char* Character)
 {
 	auto data = fmt::format("p:{}:{}:{}", Profile, Server, Character);
-	auto message = PipePacker("autologin").Envelope(AddressLauncher(), "autologin", MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data);
-	gPipeClient.SendMessage(MQMessageId::MSG_ROUTE, &message[0], message.size());
+	MakeMessage(MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data);
 }
 
 uint32_t GetLauncherProcessID()
@@ -257,14 +271,69 @@ void SetGameStatePipeClient(DWORD GameState)
 	gPipeClient.SendProtoMessage(MQMessageId::MSG_IDENTIFICATION, id);
 }
 
-bool AddMailbox(const std::string& localAddress, std::unique_ptr<PipeClientPO::MailboxConcept>&& mailbox)
+std::shared_ptr<mailbox::PostOffice::Mailbox> AddMailbox(const std::string& localAddress, mailbox::PostOffice::ReceiveCallback receive)
 {
-	return s_postOffice.AddMailbox(localAddress, std::move(mailbox));
+	auto mailbox = s_postOffice.CreateMailbox(localAddress, receive);
+	if (mailbox && s_postOffice.AddMailbox(localAddress, mailbox))
+		return mailbox;
+
+	return {};
 }
 
 bool RemoveMailbox(const std::string& localAddress)
 {
 	return s_postOffice.RemoveMailbox(localAddress);
+}
+
+void RouteMessage(PipeMessagePtr message)
+{
+	if (message->GetMessageId() == MQMessageId::MSG_ROUTE)
+	{
+		auto envelope = ProtoMessage::Parse<proto::Envelope>(message);
+		if (envelope.has_address())
+		{
+			auto address = envelope.address();
+			if ((address.has_pid() && address.pid() != GetCurrentProcessId()) || address.has_name() || address.has_account() || address.has_server() || address.has_character())
+			{
+				// we can't assume that even if we match the address (account/server/character) that this
+				// client is the only one that does. We need to route it through the server to ensure that
+				// it gets to all clients that match
+				gPipeClient.SendMessage(message);
+			}
+			else if (address.has_mailbox())
+			{
+				s_postOffice.DeliverTo(address.mailbox(), message);
+			}
+			else
+			{
+				s_postOffice.DeliverTo("pipe_client", message);
+			}
+		}
+		else
+		{
+			s_postOffice.DeliverTo("pipe_client", message);
+		}
+	}
+	else
+	{
+		// not a route, just send it to the server
+		gPipeClient.SendMessage(message);
+	}
+}
+
+void RouteMessage(MQMessageId messageId, const void* data, size_t length)
+{
+	RouteMessage(std::make_shared<PipeMessage>(messageId, data, length));
+}
+
+void RouteMessage(MQMessageId messageId, const std::string& data)
+{
+	RouteMessage(messageId, &data[0], data.size());
+}
+
+void RouteMessage(const std::string& data)
+{
+	RouteMessage(MQMessageId::MSG_ROUTE, data);
 }
 
 } // namespace pipeclient
@@ -274,10 +343,28 @@ void InitializePipeClient()
 	gPipeClient.SetHandler(std::make_shared<PipeEventsHandler>());
 	gPipeClient.Start();
 	::atexit([]() { gPipeClient.Stop(); });
+
+	s_clientMailbox = pipeclient::AddMailbox("pipe_client",
+		[](ProtoMessagePtr message)
+		{
+			gPipeClient.DispatchMessage(message);
+		});
+
+	s_autologinMailbox = pipeclient::AddMailbox("autologin",
+		[](ProtoMessagePtr message)
+		{
+			// autologin doesn't actually take message inputs yet...
+		});
 }
 
 void ShutdownPipeClient()
 {
+	pipeclient::RemoveMailbox("pipe_client");
+	s_clientMailbox.reset();
+
+	pipeclient::RemoveMailbox("autologin");
+	s_autologinMailbox.reset();
+
 	gPipeClient.Stop();
 }
 

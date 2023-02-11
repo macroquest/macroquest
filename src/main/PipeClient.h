@@ -37,18 +37,11 @@ MQLIB_API uint32_t GetLauncherProcessID();
 void NotifyIsForegroundWindow(bool isForeground);
 void RequestActivateWindow(HWND hWnd, bool sendMessage = true);
 
-using PipeClientPO = mailbox::PostOffice<PipeMessagePtr>;
-template <typename MessageType>
-bool AddMailbox(
-	const std::string& localAddress,
-	PipeClientPO::ParseCallback<MessageType> deliver,
-	PipeClientPO::ReceiveCallback<MessageType> receive)
-{
-	AddMailbox(localAddress, PipeClientPO::CreateMailbox(localAddress, deliver, receive));
-}
-
-MQLIB_OBJECT bool AddMailbox(const std::string& localAddress, std::unique_ptr<PipeClientPO::MailboxConcept>&& mailbox);
+MQLIB_OBJECT std::shared_ptr<mailbox::PostOffice::Mailbox> AddMailbox(const std::string& localAddress, mailbox::PostOffice::ReceiveCallback receive);
 MQLIB_OBJECT bool RemoveMailbox(const std::string& localAddress);
+MQLIB_OBJECT void RouteMessage(MQMessageId messageId, const void* data, size_t length);
+MQLIB_OBJECT void RouteMessage(MQMessageId messageId, const std::string& data);
+MQLIB_OBJECT void RouteMessage(const std::string& data); // envelopes come as strings, and will always want "ROUTE" message IDs
 
 } // namespace pipeclient
 

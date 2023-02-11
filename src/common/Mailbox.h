@@ -14,6 +14,9 @@
 
 #pragma once
 
+#include "ProtoPipes.h"
+#include "proto/Shared.pb.h"
+
 #include <string>
 #include <unordered_map>
 #include <queue>
@@ -22,94 +25,147 @@
 namespace mq {
 namespace mailbox {
 
-// a post office can only handle a single type of input message (like, a PipeMessage)
-// but it can output any type that the mailboxes need
-template <typename RawMessage>
+// we should assume that everything lives inside an Envelope here. All mail must be
+// in an envelope, no postcards (yet), but we open the Envelope to create ProtoMessages
+// when we put them on the queue
 class PostOffice
 {
 public:
-	template <typename ParsedMessage>
-	using ParseCallback = ParsedMessage(*)(const RawMessage&);
-
-	template <typename ParsedMessage>
-	using ReceiveCallback = void(*)(const ParsedMessage&);
+	using ReceiveCallback = void(*)(ProtoMessagePtr);
 
 public:
-	class MailboxConcept
+	class Mailbox
 	{
-	public:
-		virtual void Push(const RawMessage& message) const = 0;
-		virtual void Process(size_t howMany) const = 0;
-		virtual const std::string& Address() const = 0;
-	};
+		friend class PostOffice;
 
-private:
-	template <typename ParsedMessage>
-	class Mailbox : public MailboxConcept
-	{
 	public:
-		Mailbox(std::string_view localAddress, ParseCallback<ParsedMessage> parse, ReceiveCallback<ParsedMessage> receive)
+		Mailbox(
+			std::string_view localAddress,
+			ReceiveCallback receive,
+			void(*postCallback)(const std::string&)
+		)
 			: m_localAddress(localAddress)
-			, m_parse(parse)
 			, m_receive(receive)
+			, m_post(postCallback)
+		{}
+
+		template <typename T>
+		void Post(const proto::Address& address, MQMessageId messageId, const T& obj)
 		{
+			m_post(Stuff(address, messageId, obj));
 		}
 
-		// This function is called from an external source to deliver a raw message
-		// to this mailbox. The function will verify that `data` is a message in a
-		// format understood by the mailbox and then put it on the queue to be 
-		// handled by Receive. This method could potentially also Forward to other
-		// mailboxes during preprocessing, instead of adding to the receive queue.
-		void Push(const RawMessage& message) const override
+		template <typename T>
+		void PostReply(ProtoMessagePtr message, MQMessageId messageId, const T& obj, uint8_t status = 0)
 		{
-			m_receiveQueue.push(m_parse(message));
+			if (auto returnAddress = message->GetReturn())
+			{
+				PostReply(message, *returnAddress, messageId, obj, status);
+			}
+			else
+			{
+				message->SendProtoReply(messageId, obj, status);
+			}
 		}
 
-		// This function is called by whatever process does the determination of how
-		// much message processing to do. The intention is that since we don't need
-		// to create threads to do this, we can have a single processor act on a
-		// single thread dynamically determine throttling per actor.
-		void Process(size_t howMany) const override
+		template <typename T>
+		void PostReply(PipeMessagePtr message, const proto::Address& returnAddress, MQMessageId messageId, const T& obj, uint8_t status = 0)
 		{
-			if (howMany <= 0 || m_receiveQueue.empty())
-				return;
+			proto::Envelope envelope;
+			*envelope.mutable_address() = returnAddress;
 
-			Receive(m_receiveQueue.front());
-			m_receiveQueue.pop();
+			envelope.set_message_id(static_cast<uint32_t>(messageId));
 
-			Process(howMany - 1);
+			std::string payload = obj.SerializeAsString();
+			envelope.set_payload(payload);
+
+			std::string data = envelope.SerializeAsString();
+			message->SendReply(MQMessageId::MSG_ROUTE, &data[0], data.size(), status);
 		}
 
-		const std::string& Address() const override { return m_localAddress; }
+		const std::string& GetAddress() const { return m_localAddress; }
 
 	private:
+		void Deliver(PipeMessagePtr message) const
+		{
+			// Don't do anything if this isn't wrapped in an envelope
+			if (message->GetMessageId() == MQMessageId::MSG_ROUTE)
+			{
+				auto envelope = ProtoMessage::Parse<proto::Envelope>(message);
+				m_receiveQueue.push(Open(envelope, *message->GetHeader()));
+			}
+		}
 
-		// Individual message handling will be defined by the owner of the mailbox
-		// by overriding this, Deliver will have transformed raw data into the correct
-		// message format.
-		void Receive(const ParsedMessage& message) const { m_receive(message); }
+		void Process(size_t howMany) const
+		{
+			if (howMany > 0 && !m_receiveQueue.empty())
+			{
+				m_receive(m_receiveQueue.front());
+				m_receiveQueue.pop();
+
+				Process(howMany - 1);
+			}
+		}
+
+		ProtoMessagePtr Open(const proto::Envelope& envelope, const MQMessageHeader& header) const
+		{
+			auto unwrapped = envelope.has_payload() ?
+				std::make_shared<ProtoMessage>(header, &envelope.payload()[0], envelope.payload().size()) :
+				std::make_shared<ProtoMessage>(header, nullptr, 0);
+
+			if (envelope.has_message_id())
+				unwrapped->GetHeader()->messageId = static_cast<MQMessageId>(envelope.message_id());
+
+			if (envelope.has_return_address())
+				unwrapped->SetReturn(envelope.return_address());
+
+			return unwrapped;
+		}
+
+		template <typename T>
+		std::string Stuff(const proto::Address& address, MQMessageId messageId, const T& obj)
+		{
+			return Stuff(address, messageId, obj.SerializeAsString());
+		}
+
+		template <>
+		std::string Stuff(const proto::Address& address, MQMessageId messageId, const std::string& data)
+		{
+			proto::Envelope envelope;
+			*envelope.mutable_address() = address;
+
+			envelope.set_message_id(static_cast<uint32_t>(messageId));
+
+			proto::Address& ret = *envelope.mutable_return_address();
+			ret.set_pid(GetCurrentProcessId());
+			ret.set_mailbox(m_localAddress);
+
+			envelope.set_payload(data);
+
+			return envelope.SerializeAsString();
+		}
 
 	private:
+		void(*m_post)(const std::string&);
 		const std::string m_localAddress;
-		mutable std::queue<ParsedMessage> m_receiveQueue;
-		const ParseCallback<ParsedMessage> m_parse;
-		const ReceiveCallback<ParsedMessage> m_receive;
+		const ReceiveCallback m_receive;
 
+		mutable std::queue<ProtoMessagePtr> m_receiveQueue;
 	};
 
 public:
-	template <typename ParsedMessage>
-	static std::unique_ptr<MailboxConcept> CreateMailbox(
-		const std::string& localAddress,
-		ParseCallback<ParsedMessage> parse,
-		ReceiveCallback<ParsedMessage> receive)
+	PostOffice(void(*postAction)(const std::string&))
+		: m_post(postAction)
+	{}
+
+	std::shared_ptr<Mailbox> CreateMailbox(const std::string& localAddress, ReceiveCallback receive)
 	{
-		return std::make_unique<Mailbox<ParsedMessage>>(localAddress, parse, receive);
+		return std::make_shared<Mailbox>(localAddress, receive, m_post);
 	}
 
-	bool AddMailbox(const std::string& localAddress, std::unique_ptr<MailboxConcept>&& mailbox)
+	bool AddMailbox(const std::string& localAddress, std::shared_ptr<Mailbox> mailbox)
 	{
-		auto [_, added] = m_mailboxes.emplace(mailbox->Address(), std::move(mailbox));
+		auto [_, added] = m_mailboxes.emplace(mailbox->GetAddress(), mailbox);
 		return added;
 	}
 
@@ -118,26 +174,43 @@ public:
 		return m_mailboxes.erase(localAddress) == 1;
 	}
 
-	bool DeliverTo(const std::string& localAddress, const RawMessage& message)
+	bool DeliverTo(const std::string& localAddress, PipeMessagePtr message)
 	{
 		auto mailbox_it = m_mailboxes.find(localAddress);
 		if (mailbox_it != m_mailboxes.end())
-			mailbox_it->second->Push(message);
+		{
+			if (auto ptr = mailbox_it->second.lock())
+			{
+				ptr->Deliver(message);
+				return true;
+			}
 
-		return mailbox_it != m_mailboxes.end();
+			m_mailboxes.erase(mailbox_it);
+		}
+
+		return false;
 	}
 
 	void Process(size_t howMany)
 	{
 		size_t messages_per_mailbox = std::max(1, (int)std::round(howMany / m_mailboxes.size()));
-		for (const auto& [_, mailbox] : m_mailboxes)
+		for (auto it = m_mailboxes.begin(); it != m_mailboxes.end();)
 		{
-			mailbox->Process(messages_per_mailbox);
+			if (auto ptr = it->second.lock())
+			{
+				ptr->Process(messages_per_mailbox);
+				++it;
+			}
+			else
+			{
+				it = m_mailboxes.erase(it);
+			}
 		}
 	}
 
 private:
-	std::unordered_map<std::string, std::unique_ptr<MailboxConcept>> m_mailboxes;
+	std::unordered_map<std::string, std::weak_ptr<Mailbox>> m_mailboxes;
+	void(*m_post)(const std::string&);
 };
 
 } // namespace mailbox

@@ -314,10 +314,10 @@ public:
 
 	virtual void PostToMainThread(std::function<void()> callback) override;
 
-	void SendMessage(int connectionId, std::shared_ptr<PipeMessage> message);
+	void SendMessage(int connectionId, PipeMessagePtr message);
 	void SendMessage(int connectionId, MQMessageId messageId, const void* data, size_t dataLength);
 
-	void BroadcastMessage(const std::shared_ptr<PipeMessage>& message);
+	void BroadcastMessage(const PipeMessagePtr& message);
 	void BroadcastMessage(MQMessageId messageId, const void* data, size_t dataLength);
 
 private:
@@ -349,9 +349,11 @@ public:
 	~NamedPipeClient();
 
 	// Send a simple message to the server
+	void SendMessage(PipeMessagePtr message);
 	void SendMessage(MQMessageId messageId, const void* data, size_t dataLength);
 
 	// Send a call-and-response message to the server
+	void SendMessageWithResponse(PipeMessagePtr message, const PipeMessageResponseCb& response);
 	void SendMessageWithResponse(MQMessageId messageId, const void* data, size_t dataLength,
 		const PipeMessageResponseCb& response);
 

@@ -25,15 +25,8 @@ void ProcessPipeServer();
 void InitializeNamedPipeServer();
 void ShutdownNamedPipeServer();
 
-using PipeServerPO = mq::mailbox::PostOffice<PipeMessagePtr>;
-template <typename MessageType>
-bool AddMailbox(
-	const std::string& localAddress,
-	PipeServerPO::ParseCallback<MessageType> parse,
-	PipeServerPO::ReceiveCallback<MessageType> receive)
-{
-	return AddMailbox(localAddress, PipeServerPO::CreateMailbox(localAddress, parse, receive));
-}
-
-bool AddMailbox(const std::string& localAddress, std::unique_ptr<PipeServerPO::MailboxConcept>&& mailbox);
+std::shared_ptr<mailbox::PostOffice::Mailbox> AddMailbox(const std::string& localAddress, mailbox::PostOffice::ReceiveCallback receive);
 bool RemoveMailbox(const std::string& localAddress);
+void RouteMessage(MQMessageId messageId, const void* data, size_t length);
+void RouteMessage(MQMessageId messageId, const std::string& data);
+void RouteMessage(const std::string& data); // envelopes come as strings, and will always want "ROUTE" message IDs

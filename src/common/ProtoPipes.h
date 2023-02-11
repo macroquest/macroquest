@@ -22,70 +22,58 @@
 
 namespace mq {
 
-class ProtoPipeMessage
+class ProtoMessage : public PipeMessage
 {
 public:
-	ProtoPipeMessage(std::shared_ptr<PipeMessage> message) : m_message(message) {}
+	using PipeMessage::PipeMessage;
 	
 	template <typename T>
 	T Parse()
 	{
 		T obj;
-		obj.ParseFromArray(m_message->get<void>(), static_cast<int>(m_message->size()));
-		return obj;
+		return Parse(shared_from_this(), obj);
 	}
 
 	template <typename T>
 	T& Parse(T& obj)
 	{
-		obj.ParseFromArray(m_message->get<void>(), static_cast<int>(m_message->size()));
+		return Parse(shared_from_this(), obj);
+	}
+
+	template <typename T>
+	static T Parse(PipeMessagePtr message)
+	{
+		T obj;
+		return Parse(message, obj);
+	}
+
+	template <typename T>
+	static T& Parse(PipeMessagePtr message, T& obj)
+	{
+		obj.ParseFromArray(message->get<void>(), static_cast<int>(message->size()));
 		return obj;
 	}
 
 	template <typename T>
 	void SendProtoReply(MQMessageId messageId, const T& obj, uint8_t status = 0)
 	{
-		std::string data = obj.SerializeAsString();
-		m_message->SendReply(messageId, &data[0], data.size(), status);
+		SendProtoReply(shared_from_this(), messageId, obj, status);
 	}
-
-private:
-	std::shared_ptr<PipeMessage> m_message;
-};
-
-class PipePacker
-{
-public:
-	PipePacker(std::string_view homeMailbox)
-		: m_mailbox(homeMailbox)
-	{}
 
 	template <typename T>
-	std::string Envelope(const proto::Address& address, const std::string& mailbox, MQMessageId messageId, const T& obj)
+	static void SendProtoReply(PipeMessagePtr message, MQMessageId messageId, const T& obj, uint8_t status = 0)
 	{
-		return Envelope(address, mailbox, messageId, obj.SerializeAsString());
+		std::string data = obj.SerializeAsString();
+		message->SendReply(messageId, &data[0], data.size(), status);
 	}
 
-	template <>
-	std::string Envelope(const proto::Address& address, const std::string& mailbox, MQMessageId messageId, const std::string& data)
-	{
-		proto::Envelope envelope;
-		*envelope.mutable_address() = address;
-
-		envelope.set_message_id(static_cast<uint32_t>(messageId));
-
-		proto::Address& ret = *envelope.mutable_return_address();
-		ret.set_pid(GetCurrentProcessId());
-		ret.set_mailbox(m_mailbox);
-
-		envelope.set_payload(data);
-
-		return envelope.SerializeAsString();
-	}
+	const std::optional<proto::Address>& GetReturn() { return m_returnAddress; }
+	void SetReturn(const proto::Address& address) { m_returnAddress = address; }
 
 private:
-	std::string m_mailbox;
+	std::optional<proto::Address> m_returnAddress;
 };
+using ProtoMessagePtr = std::shared_ptr<ProtoMessage>;
 
 class ProtoPipeServer : public NamedPipeServer
 {

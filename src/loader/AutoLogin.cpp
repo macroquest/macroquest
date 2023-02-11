@@ -68,6 +68,8 @@ bool DecryptData(DATA_BLOB* DataIn, DATA_BLOB* DataOut);
 int gMenuItemCount = 0;
 HMENU hProfilesMenu = nullptr;
 
+std::shared_ptr<mailbox::PostOffice::Mailbox> s_mailbox;
+
 namespace internal_paths
 {
 	std::string AutoLoginIni;
@@ -2085,7 +2087,7 @@ INT_PTR CALLBACK SettingsProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 	return FALSE;
 }
 
-void ReadMessage(const PipeMessagePtr& message)
+void ReadMessage(ProtoMessagePtr message)
 {
 	switch (message->GetMessageId())
 	{
@@ -2112,7 +2114,7 @@ void ReadMessage(const PipeMessagePtr& message)
 
 void InitializeAutoLogin()
 {
-	AddMailbox<PipeMessagePtr>("autologin", [](const PipeMessagePtr& message) { return message; }, ReadMessage);
+	s_mailbox = AddMailbox("autologin", &ReadMessage);
 
 	// Get path to mq2autologin.ini
 	fs::path pathAutoLoginIni = fs::path{ internal_paths::Config }  / "MQ2AutoLogin.ini";

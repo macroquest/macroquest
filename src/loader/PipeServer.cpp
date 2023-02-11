@@ -25,7 +25,8 @@
 #include <spdlog/sinks/msvc_sink.h>
 
 mq::ProtoPipeServer s_pipeServer{ mq::MQ2_PIPE_SERVER_PATH };
-PipeServerPO s_postOffice;
+mailbox::PostOffice s_postOffice{ &RouteMessage };
+std::shared_ptr<mailbox::PostOffice::Mailbox> s_serverMailbox;
 
 struct ClientIdentification
 {
@@ -37,17 +38,95 @@ struct ClientIdentification
 std::unordered_map<uint32_t, ClientIdentification> s_identities;
 ci_unordered::map<std::string, uint32_t> s_names;
 
+bool SendMessageToPID(uint32_t pid, const PipeMessagePtr& message)
+{
+	auto connection = s_pipeServer.GetConnectionForProcessId(pid);
+	if (connection != nullptr)
+	{
+		connection->SendMessage(message);
+	}
+	else
+	{
+		SPDLOG_WARN("Unable to get connection for PID {}, message route failed.", pid);
+	}
+
+	return connection != nullptr;
+}
+
+void RouteMessage(PipeMessagePtr message)
+{
+	auto envelope = ProtoMessage::Parse<proto::Envelope>(message);
+	const auto& address = envelope.address();
+	auto routing_failed = [&message, &envelope, &address]()
+	{
+		if (envelope.has_return_address())
+			s_serverMailbox->PostReply(message, envelope.return_address(), MQMessageId::MSG_NULL, address, MsgError_RoutingFailed);
+	};
+
+	if (address.has_pid() && address.pid() != GetCurrentProcessId())
+	{
+		// a PID is necessarily a singular identifier, avoid the loop
+		if (!SendMessageToPID(address.pid(), message) && envelope.has_return_address())
+		{
+			routing_failed();
+		}
+	}
+	else if (address.has_name() && !ci_equals(address.name(), "launcher"))
+	{
+		// a name is also a singular identifier, avoid the loop here too
+			// route the message to a registered (named) client
+		auto pid_it = s_names.find(address.name());
+		if (pid_it == s_names.end() || !SendMessageToPID(pid_it->second, message))
+		{
+			routing_failed();
+		}
+	}
+	else if ((address.has_pid() && address.pid() == GetCurrentProcessId()) || (address.has_name() && ci_equals(address.name(), "launcher")))
+	{
+		if (address.has_mailbox())
+		{
+			// this is a local message
+			SPDLOG_INFO("Routing message to mailbox: {}", address.mailbox());
+			if (!s_postOffice.DeliverTo(address.mailbox(), message))
+			{
+				routing_failed();
+			}
+		}
+		else
+		{
+			// This is a failsafe action, we shouldn't expect to be here often. For this code to
+			// be reached, we would have to have a client that packages a message in an envelope
+			// that is intended to be parsed directly by the server and not routed anywhere (so
+			// no mailbox routing information is included), rather than just send the message
+			if (!s_postOffice.DeliverTo("pipe_server", message))
+			{
+				routing_failed();
+			}
+		}
+	}
+	else
+	{
+		// we don't have a PID or a name, so we will send this message to all clients that match the address
+		for (const auto& identity : s_identities)
+		{
+			if (
+				(!address.has_account() || ci_equals(address.account(), identity.second.account)) &&
+				(!address.has_server() || ci_equals(address.server(), identity.second.server)) &&
+				(!address.has_character() || ci_equals(address.character(), identity.second.character))
+				)
+			{
+				if (!SendMessageToPID(identity.first, message))
+				{
+					routing_failed();
+				}
+			}
+		}
+	}
+}
+
 class MQ2NamedPipeEvents : public NamedPipeEvents
 {
 public:
-	// Handle messages from NamedPipeServer
-	// Need messages to handle routing from client to another client
-	// Need address system rethinking (use a struct with PID, and some client-internal address)
-	// First, create a mailbox where you specify the address, register it with the _client_
-	// This mailbox must have: an address (specify local address, chain up to PID for full address)
-	//                         a callback to handle incoming messages
-	//                         a FIFO queue for messages
-	//                         we should be able to validate messages upon receipt (to provide guarantees)
 	virtual void OnIncomingMessage(std::shared_ptr<PipeMessage> message) override
 	{
 		using namespace mq::proto;
@@ -65,12 +144,14 @@ public:
 		}
 
 		case mq::MQMessageId::MSG_ROUTE:
+			// all we have to do here is route, this is the same as if an internal mailbox is
+			// attempting to route a message
 			RouteMessage(message);
 			break;
 
 		case mq::MQMessageId::MSG_IDENTIFICATION:
 		{
-			auto id = ProtoPipeMessage(message).Parse<proto::Identification>();
+			auto id = ProtoMessage::Parse<proto::Identification>(message);
 			if (id.has_name())
 			{
 				s_names.insert_or_assign(id.name(), id.pid());
@@ -153,102 +234,6 @@ public:
 	{
 		s_identities.erase(processId);
 	}
-
-	bool SendMessageToPID(uint32_t pid, const PipeMessagePtr& message)
-	{
-		auto connection = s_pipeServer.GetConnectionForProcessId(pid);
-		if (connection != nullptr)
-		{
-			connection->SendMessage(message);
-		}
-		else
-		{
-			SPDLOG_WARN("Unable to get connection for PID {}, message route failed.", pid);
-		}
-
-		return connection != nullptr;
-	}
-
-	void RouteMessage(const PipeMessagePtr& message)
-	{
-		auto proto_message = ProtoPipeMessage(message);
-		auto envelope = proto_message.Parse<proto::Envelope>();
-		const auto& address = envelope.address();
-		if (address.has_pid())
-		{
-			// a PID is necessarily a singular identifier, avoid the loop
-			if (!SendMessageToPID(address.pid(), message))
-			{
-				proto_message.SendProtoReply(MQMessageId::MSG_NULL, address, MsgError_RoutingFailed);
-			}
-		}
-		else if (address.has_name())
-		{
-			// a name is also a singular identifier, avoid the loop here too
-			if (ci_equals(address.name(), "launcher"))
-			{
-				if (address.has_mailbox())
-				{
-					// this is a local message
-					SPDLOG_INFO("Found an envelope: {}", address.mailbox());
-					if (!s_postOffice.DeliverTo(address.mailbox(), message))
-					{
-						message->SendReply(MsgError_RoutingFailed);
-					}
-				}
-				else
-				{
-					// This is a failsafe action, we shouldn't expect to be here often. For this code to
-					// be reached, we would have to have a client that packages a message in an envelope
-					// that is intended to be parsed directly by the server and not routed anywhere (so
-					// no mailbox routing information is included), rather than just send the message
-					auto unwrap_message = [&envelope, &header = *message->GetHeader()]()
-					{
-						if (envelope.has_payload())
-						{
-							const std::string& data = envelope.payload();
-							return std::make_shared<PipeMessage>(header, &data[0], data.size());
-						}
-
-						return std::make_shared<PipeMessage>(header, nullptr, 0);
-					};
-
-					auto unwrapped = unwrap_message();
-					if (envelope.has_message_id())
-						unwrapped->GetHeader()->messageId = static_cast<MQMessageId>(envelope.message_id());
-
-					OnIncomingMessage(unwrapped);
-				}
-			}
-			else
-			{
-				// route the message to a registered (named) client
-				auto pid_it = s_names.find(address.name());
-				if (pid_it == s_names.end() || !SendMessageToPID(pid_it->second, message))
-				{
-					message->SendReply(MsgError_RoutingFailed);
-				}
-			}
-		}
-		else
-		{
-			// we don't have a PID or a name, so we will send this message to all clients that match the address
-			for (const auto& identity : s_identities)
-			{
-				if (
-					(!address.has_account() || ci_equals(address.account(), identity.second.account)) &&
-					(!address.has_server() || ci_equals(address.server(), identity.second.server)) &&
-					(!address.has_character() || ci_equals(address.character(), identity.second.character))
-					)
-				{
-					if (!SendMessageToPID(identity.first, message))
-					{
-						proto_message.SendProtoReply(MQMessageId::MSG_NULL, address, MsgError_RoutingFailed);
-					}
-				}
-			}
-		}
-	}
 };
 
 //----------------------------------------------------------------------------
@@ -298,19 +283,46 @@ void InitializeNamedPipeServer()
 {
 	s_pipeServer.SetHandler(std::make_shared<MQ2NamedPipeEvents>());
 	s_pipeServer.Start();
+
+	s_serverMailbox = AddMailbox("pipe_server",
+		[](ProtoMessagePtr message)
+		{
+			s_pipeServer.DispatchMessage(message);
+		});
 }
 
 void ShutdownNamedPipeServer()
 {
+	RemoveMailbox("pipe_server");
+	s_serverMailbox.reset();
 	s_pipeServer.Stop();
 }
 
-bool AddMailbox(const std::string& localAddress, std::unique_ptr<PipeServerPO::MailboxConcept>&& mailbox)
+std::shared_ptr<mailbox::PostOffice::Mailbox> AddMailbox(const std::string& localAddress, mailbox::PostOffice::ReceiveCallback receive)
 {
-	return s_postOffice.AddMailbox(localAddress, std::move(mailbox));
+	auto mailbox = s_postOffice.CreateMailbox(localAddress, receive);
+	if (mailbox && s_postOffice.AddMailbox(localAddress, mailbox))
+		return mailbox;
+
+	return {};
 }
 
 bool RemoveMailbox(const std::string& localAddress)
 {
 	return s_postOffice.RemoveMailbox(localAddress);
+}
+
+void RouteMessage(MQMessageId messageId, const void* data, size_t length)
+{
+	RouteMessage(std::make_shared<PipeMessage>(messageId, data, length));
+}
+
+void RouteMessage(MQMessageId messageId, const std::string& data)
+{
+	RouteMessage(messageId, &data[0], data.size());
+}
+
+void RouteMessage(const std::string& data)
+{
+	RouteMessage(MQMessageId::MSG_ROUTE, data);
 }
