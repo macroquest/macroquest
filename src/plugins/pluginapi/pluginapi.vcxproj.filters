@@ -13,15 +13,29 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\common">
+      <UniqueIdentifier>{ce70a07e-2c26-4cd9-b12e-ac2697454461}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\common\proto">
+      <UniqueIdentifier>{55655db4-7821-454c-b163-987fc06d1244}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pluginapi.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\proto\Shared.pb.cc">
+      <Filter>Source Files\common\proto</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\mq\plugin\pluginapi.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ProtocolBuffer Include="..\..\common\proto\Shared.proto">
+      <Filter>Source Files\common\proto</Filter>
+    </ProtocolBuffer>
   </ItemGroup>
 </Project>

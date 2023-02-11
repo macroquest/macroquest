@@ -15,6 +15,7 @@
 // For list of changes, see CHANGELOG.md
 
 #include <mq/Plugin.h>
+#include <mq/Proto.h>
 
 #include "AutoLoginShared.h"
 #include "MQ2AutoLogin.h"
@@ -40,6 +41,7 @@ constexpr int STEP_DELAY = 1000;
 
 fs::path CustomIni;
 uint64_t ReenableTime = 0;
+std::shared_ptr<mailbox::PostOffice::Mailbox> s_autologinMailbox;
 
 class LoginProfileType : public MQ2Type
 {
@@ -196,9 +198,62 @@ bool MQ2AutoLoginType::dataAutoLogin(const char* szName, MQTypeVar& Ret)
 	return true;
 }
 
+void MakeMessage(MQMessageId messageId, const std::string& data)
+{
+	proto::Address address;
+	address.set_name("launcher");
+	address.set_mailbox("autologin");
+
+	s_autologinMailbox->Post(address, messageId, data);
+}
+
+// profile:account:server:char:pid
+void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character)
+{
+	auto data = fmt::format("{}:{}:{}:{}:{}", Profile, Account, Server, Character, GetCurrentProcessId());
+	MakeMessage(MQMessageId::MSG_AUTOLOGIN_PROFILE_LOADED, data);
+}
+
+// profile:account:server:char:pid
+void NotifyCharacterUnload(const char* Profile, const char* Account, const char* Server, const char* Character)
+{
+	auto data = fmt::format("{}:{}:{}:{}:{}", Profile, Account, Server, Character, GetCurrentProcessId());
+	MakeMessage(MQMessageId::MSG_AUTOLOGIN_PROFILE_UNLOADED, data);
+}
+
+// pid:class:level
+void NotifyCharacterUpdate(const char* Class, const char* Level)
+{
+	auto data = fmt::format("{}:{}:{}", GetCurrentProcessId(), Class, Level);
+	MakeMessage(MQMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO, data);
+}
+
+void LoginServer(const char* Login, const char* Pass, const char* Server)
+{
+	auto data = fmt::format("s:{}:{}:{}", Login, Pass, Server);
+	MakeMessage(MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data);
+}
+
+void LoginCharacter(const char* Login, const char* Pass, const char* Server, const char* Character)
+{
+	auto data = fmt::format("c:{}:{}:{}:{}", Login, Pass, Server, Character);
+	MakeMessage(MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data);
+}
+
+void LoginProfile(const char* Profile, const char* Server, const char* Character)
+{
+	auto data = fmt::format("p:{}:{}:{}", Profile, Server, Character);
+	MakeMessage(MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data);
+}
+
 void PerformSwitch(const std::string& ServerName, const std::string& CharacterName)
 {
-	pipeclient::NotifyCharacterUnload(Login::profile(), Login::account(), Login::server(), Login::character());
+	NotifyCharacterUnload(
+		std::string(Login::profile()).c_str(),
+		std::string(Login::account()).c_str(),
+		std::string(Login::server()).c_str(),
+		std::string(Login::character()).c_str()
+	);
 
 	if (GetGameState() == GAMESTATE_INGAME)
 	{
@@ -213,7 +268,12 @@ void PerformSwitch(const std::string& ServerName, const std::string& CharacterNa
 
 	Login::dispatch(SetLoginInformation(ServerName, CharacterName));
 
-	pipeclient::NotifyCharacterLoad(Login::profile(), Login::account(), Login::server(), Login::character());
+	NotifyCharacterLoad(
+		std::string(Login::profile()).c_str(),
+		std::string(Login::account()).c_str(),
+		std::string(Login::server()).c_str(),
+		std::string(Login::character()).c_str()
+	);
 }
 
 void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
@@ -341,7 +401,7 @@ void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 			fmt::format("{}:{}_Blob", record.serverName, record.characterName),
 			INIFileName);
 
-		pipeclient::LoginProfile(
+		LoginProfile(
 			record.profileName.c_str(),
 			record.serverName.c_str(),
 			record.characterName.c_str());
@@ -349,12 +409,12 @@ void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 	else if (!record.serverName.empty() && !record.accountName.empty() && !record.accountPassword.empty())
 	{
 		if (record.characterName.empty())
-			pipeclient::LoginServer(
+			LoginServer(
 				record.accountName.c_str(),
 				record.accountPassword.c_str(),
 				record.serverName.c_str());
 		else
-			pipeclient::LoginCharacter(
+			LoginCharacter(
 				record.accountName.c_str(),
 				record.accountPassword.c_str(),
 				record.serverName.c_str(),
@@ -382,7 +442,7 @@ void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 		}
 
 		if (!record.profileName.empty())
-			pipeclient::LoginProfile(
+			LoginProfile(
 				record.profileName.c_str(),
 				record.serverName.c_str(),
 				record.characterName.c_str());
@@ -568,11 +628,22 @@ PLUGIN_API void InitializePlugin()
 	}
 
 	ReenableTime = MQGetTickCount64() + STEP_DELAY;
+
+	s_autologinMailbox = pipeclient::AddMailbox("autologin",
+		[](ProtoMessagePtr message)
+		{
+			// autologin doesn't actually take message inputs yet...
+		});
 }
 
 PLUGIN_API void ShutdownPlugin()
 {
-	pipeclient::NotifyCharacterUnload(Login::profile(), Login::account(), Login::server(), Login::character());
+	NotifyCharacterUnload(
+		std::string(Login::profile()).c_str(),
+		std::string(Login::account()).c_str(),
+		std::string(Login::server()).c_str(),
+		std::string(Login::character()).c_str()
+	);
 
 	RemoveCommand("/switchserver");
 	RemoveCommand("/switchcharacter");
@@ -589,9 +660,9 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveDetour(pfnWritePrivateProfileStringA);
 
 	LoginReset();
-	RemoveMQ2Data("AutoLogin");
-	delete pAutoLoginType;
-	delete pLoginProfileType;
+
+	pipeclient::RemoveMailbox("autologin");
+	s_autologinMailbox.reset();
 }
 
 void SendWndNotification(CXWnd* pWnd, CXWnd* sender, uint32_t msg, void* data)
@@ -716,9 +787,9 @@ PLUGIN_API void OnPulse()
 {
 	if (pLocalPlayer && (pLocalPlayer->GetClass() != s_lastCharacterClass || pLocalPlayer->Level != s_lastCharacterLevel))
 	{
-		s_lastCharacterClass = pLocalPlayer->GetClass();
-		s_lastCharacterLevel = pLocalPlayer->Level;
-		pipeclient::NotifyCharacterUpdate(s_lastCharacterClass, s_lastCharacterLevel);
+		Class = pLocalPlayer->GetClass();
+		Level = pLocalPlayer->Level;
+		NotifyCharacterUpdate(std::to_string(Class).c_str(), std::to_string(Level).c_str());
 	}
 
 	if (gbInForeground && GetAsyncKeyState(VK_HOME) & 1)

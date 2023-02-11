@@ -70,10 +70,14 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClCompile Include="..\..\common\proto\Shared.pb.cc" />
     <ClCompile Include="pluginapi.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\mq\plugin\pluginapi.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProtocolBuffer Include="..\..\common\proto\Shared.proto" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

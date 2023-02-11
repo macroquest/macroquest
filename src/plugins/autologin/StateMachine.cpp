@@ -304,7 +304,7 @@ public:
 			{
 				SetProfileRecord(record);
 
-				pipeclient::NotifyCharacterLoad(
+				NotifyCharacterLoad(
 					record->profileName.c_str(),
 					record->accountName.c_str(),
 					record->serverName.c_str(),

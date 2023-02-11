@@ -21,6 +21,7 @@
 #include <variant>
 
 static bool AUTOLOGIN_DBG = false;
+void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character);
 
 void SendWndNotification(CXWnd* pWnd, CXWnd* sender, uint32_t msg, void* data = nullptr);
 CXStr GetWindowText(CXWnd* pWnd);

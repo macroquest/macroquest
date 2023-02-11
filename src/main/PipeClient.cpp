@@ -25,7 +25,6 @@ namespace mq {
 ProtoPipeClient gPipeClient{ mq::MQ2_PIPE_SERVER_PATH };
 mailbox::PostOffice s_postOffice{ &pipeclient::RouteMessage };
 std::shared_ptr<mailbox::PostOffice::Mailbox> s_clientMailbox;
-std::shared_ptr<mailbox::PostOffice::Mailbox> s_autologinMailbox;
 DWORD dwLauncherProcessID = 0;
 
 // MQModule forward declarations
@@ -156,54 +155,6 @@ namespace pipeclient {
 // This serialization is dead simple. Just separate fields with a colon. Assume no colons in the
 // source data. If this needs to be performant in any way, then we will need to write actual
 // serialization of binary data (with the bonus that it's not all strings).
-
-void MakeMessage(MQMessageId messageId, const std::string& data)
-{
-	proto::Address address;
-	address.set_name("launcher");
-	address.set_mailbox("autologin");
-
-	s_autologinMailbox->Post(address, messageId, data);
-}
-
-// profile:account:server:char:pid
-void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character)
-{
-	auto data = fmt::format("{}:{}:{}:{}:{}", Profile, Account, Server, Character, GetCurrentProcessId());
-	MakeMessage(MQMessageId::MSG_AUTOLOGIN_PROFILE_LOADED, data);
-}
-
-// profile:account:server:char:pid
-void NotifyCharacterUnload(const char* Profile, const char* Account, const char* Server, const char* Character)
-{
-	auto data = fmt::format("{}:{}:{}:{}:{}", Profile, Account, Server, Character, GetCurrentProcessId());
-	MakeMessage(MQMessageId::MSG_AUTOLOGIN_PROFILE_UNLOADED, data);
-}
-
-// pid:class:level
-void NotifyCharacterUpdate(int Class, int Level)
-{
-	auto data = fmt::format("{}:{}:{}", GetCurrentProcessId(), Class, Level);
-	MakeMessage(MQMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO, data);
-}
-
-void LoginServer(const char* Login, const char* Pass, const char* Server)
-{
-	auto data = fmt::format("s:{}:{}:{}", Login, Pass, Server);
-	MakeMessage(MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data);
-}
-
-void LoginCharacter(const char* Login, const char* Pass, const char* Server, const char* Character)
-{
-	auto data = fmt::format("c:{}:{}:{}:{}", Login, Pass, Server, Character);
-	MakeMessage(MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data);
-}
-
-void LoginProfile(const char* Profile, const char* Server, const char* Character)
-{
-	auto data = fmt::format("p:{}:{}:{}", Profile, Server, Character);
-	MakeMessage(MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data);
-}
 
 uint32_t GetLauncherProcessID()
 {
@@ -349,21 +300,12 @@ void InitializePipeClient()
 		{
 			gPipeClient.DispatchMessage(message);
 		});
-
-	s_autologinMailbox = pipeclient::AddMailbox("autologin",
-		[](ProtoMessagePtr message)
-		{
-			// autologin doesn't actually take message inputs yet...
-		});
 }
 
 void ShutdownPipeClient()
 {
 	pipeclient::RemoveMailbox("pipe_client");
 	s_clientMailbox.reset();
-
-	pipeclient::RemoveMailbox("autologin");
-	s_autologinMailbox.reset();
 
 	gPipeClient.Stop();
 }
