@@ -1786,8 +1786,10 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 bool MQ2ItemType::ToString(MQVarPtr VarPtr, char* Destination)
 {
 	ItemPtr pItem = GetItem(VarPtr);
-	strcpy_s(Destination, MAX_STRING, pItem->GetName());
+	if (!pItem)
+		return false;
 
+	strcpy_s(Destination, MAX_STRING, pItem->GetName());
 	return true;
 }
 
