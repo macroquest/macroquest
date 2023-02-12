@@ -442,13 +442,14 @@ public:
 			}
 		}
 
-		if (ImGui::BeginTable("##ItemTable", 5, tableFlags, ImGui::GetContentRegionAvail()))
+		if (ImGui::BeginTable("##ItemTable", 6, tableFlags, ImGui::GetContentRegionAvail()))
 		{
 			ImGui::TableSetupScrollFreeze(0, 1);
 			ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch, -1.0f);
 			ImGui::TableSetupColumn("##Icon", ImGuiTableColumnFlags_WidthFixed, -1.0f);
 			ImGui::TableSetupColumn("Item Index", ImGuiTableColumnFlags_WidthFixed, 40.0f);
 			ImGui::TableSetupColumn("Count", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+			ImGui::TableSetupColumn("RefCount", ImGuiTableColumnFlags_WidthFixed, 40.0f);
 			ImGui::TableSetupColumn("##View", ImGuiTableColumnFlags_WidthFixed, 60.0f);
 			ImGui::TableHeadersRow();
 
@@ -504,6 +505,9 @@ public:
 
 		ImGui::TableNextColumn(); // Item Count
 		ImGui::Text("%d", itemPtr->GetItemCount());
+
+		ImGui::TableNextColumn(); // Ref Count
+		ImGui::Text("%d", itemPtr.use_count());
 
 		ImGui::TableNextColumn(); // View
 		if (ImGui::SmallButton("View"))
