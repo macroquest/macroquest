@@ -1125,7 +1125,12 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return false;
 
 	case ItemMembers::RequiredLevel:
-		Dest.DWord = GetItemFromContents(pItem)->RequiredLevel;
+		Dest.DWord = pItem->GetItemDefinition()->RequiredLevel;
+		Dest.Type = pIntType;
+		return true;
+
+	case ItemMembers::RecommendedLevel:
+		Dest.DWord = pItem->GetItemDefinition()->RecommendedLevel;
 		Dest.Type = pIntType;
 		return true;
 

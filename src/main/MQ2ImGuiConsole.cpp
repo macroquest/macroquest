@@ -139,7 +139,7 @@ static std::pair<std::string_view, ImU32> ParseColorTags(std::string_view line, 
 		}
 		else
 		{
-			color = s_defaultColor;
+			color = defaultColor;
 		}
 
 		return { std::string_view{ pos, (size_t)(end - pos) }, color };
@@ -615,6 +615,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		m_buffer->SetFileFlags(Zep::FileFlags::ReadOnly | Zep::FileFlags::CrudeUtf8Vaidate);
 		m_autoScroll = GetPrivateProfileBool("Console", "AutoScroll", m_autoScroll, internal_paths::MQini);
 		m_localEcho = GetPrivateProfileBool("Console", "LocalEcho", m_localEcho, internal_paths::MQini);
+		m_maxBufferLines = GetPrivateProfileInt("Console", "MaxBufferLines", m_maxBufferLines, internal_paths::MQini);
 	}
 
 	void Clear()
@@ -892,6 +893,14 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 	{
 		m_localEcho = localEcho;
 		WritePrivateProfileBool("Console", "LocalEcho", m_localEcho, internal_paths::MQini);
+	}
+
+	int GetMaxBufferLines() const { return m_maxBufferLines; }
+
+	void SetMaxBufferLines(int maxBufferLines)
+	{
+		m_maxBufferLines = maxBufferLines;
+		WritePrivateProfileInt("Console", "MaxBufferLines", m_maxBufferLines, internal_paths::MQini);
 	}
 };
 
@@ -1485,6 +1494,22 @@ static void ConsoleSettings()
 	mq::imgui::HelpMarker("This feature allows you to automatically show the MacroQuest Console upon load.");
 
 	ImGui::NewLine();
+
+	if (gImGuiConsole != nullptr)
+	{
+		ImGui::Text("Maximum Number of Buffer Lines");
+
+		int maxBufferLines = gImGuiConsole->m_zepEditor->GetMaxBufferLines();
+		if (ImGui::InputInt("##BufferLineMaxEntry", &maxBufferLines))
+		{
+			gImGuiConsole->m_zepEditor->SetMaxBufferLines(maxBufferLines);
+		}
+
+		ImGui::SameLine();
+		mq::imgui::HelpMarker("Set the number of lines to keep in the scrollback buffer. Any lines above this amount will be deleted from the top of the buffer and won't be available for viewing in the console. Larger numbers here may cause performance issues like hitching or FPS slowdowns.");
+
+		ImGui::NewLine();
+	}
 
 	if (ImGui::Button("Clear Saved Console Settings"))
 	{

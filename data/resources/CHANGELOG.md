@@ -1,3 +1,12 @@
+January 30, 2023:
+- lua: calling mq.delay from an imgui thread will now throw an error (#692).
+- added missing RecommendedLevel to item (#691).
+
+January 28, 2023:
+- Frame limiter is now called Frame Limiter in the settings panel (previously FPS Limiter)
+- MQ Console: Fixed last \ax so that it uses the previous default color instead of white
+- Missing plugins will now report when the file is not found rather than the LoadLibrary error
+
 January 23, 2023:
 - Add /executelink command that will simulate a click from raw link text.
 - spell datatype: Add Link member to generate clickable link text.

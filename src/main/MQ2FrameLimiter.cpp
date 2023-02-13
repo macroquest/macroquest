@@ -305,7 +305,7 @@ class CParticleSystemHook
 public:
 	DETOUR_TRAMPOLINE_DEF(int, CreateSpellEmitter_Trampoline, (int, unsigned long, int, float, float, CVector3 const&, CActor*, CBoneInterface*, CParticlePointInterface*, void**, float, bool, bool, int))
 	int CreateSpellEmitter_Detour(
-		int retval,
+		int index,
 		unsigned long a,
 		int b,
 		float particleDensity,
@@ -321,10 +321,10 @@ public:
 		int previewMode) // enum EObjectPreviewMode
 	{
 		if (AreParticlesDisabled())
-			return retval;
+			return 0;
 
 		return CreateSpellEmitter_Trampoline(
-			retval,
+			index,
 			a,
 			b,
 			particleDensity,
@@ -1229,7 +1229,7 @@ void FrameLimiterCommand(SPAWNINFO* pChar, char* szLine)
 
 static void InitializeFrameLimiter()
 {
-	AddSettingsPanel("FPS Limiter", FrameLimiterSettings);
+	AddSettingsPanel("Frame Limiter", FrameLimiterSettings);
 
 	bmRenderScene = AddMQ2Benchmark("Render_Scene");
 	bmRealRenderWorld = AddMQ2Benchmark("Render_Simulation");
@@ -1266,7 +1266,7 @@ static void ShutdownFrameLimiter()
 {
 	RemoveCommand("/framelimiter");
 
-	RemoveSettingsPanel("FPS Limiter");
+	RemoveSettingsPanel("Frame Limiter");
 
 	RemoveDetour(CXWndManager__DrawWindows);
 	RemoveDetour(CRender__RenderScene);
