@@ -1,3 +1,6 @@
+February 14, 2023:
+- test: Fix tradeskill depot related crashes.
+
 February 11, 2023:
 - test: Updated for patch
 
