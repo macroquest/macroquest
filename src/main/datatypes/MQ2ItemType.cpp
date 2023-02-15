@@ -184,6 +184,7 @@ enum class ItemMembers
 	MaxLuck,
 	IDFile,
 	IDFile2,
+	RefCount,
 };
 
 enum class ItemMethods
@@ -358,6 +359,7 @@ MQ2ItemType::MQ2ItemType() : MQ2Type("item")
 	ScopedTypeMember(ItemMembers, MaxLuck);
 	ScopedTypeMember(ItemMembers, IDFile);
 	ScopedTypeMember(ItemMembers, IDFile2);
+	ScopedTypeMember(ItemMembers, RefCount);
 
 	ScopedTypeMethod(ItemMethods, Inspect);
 }
@@ -389,6 +391,11 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	switch (static_cast<ItemMembers>(pMember->ID))
 	{
+	case ItemMembers::RefCount:
+		Dest.DWord = pItem.use_count();
+		Dest.Type = pIntType;
+		return true;
+
 	case ItemMembers::ID:
 		Dest.DWord = pItem->GetID();
 		Dest.Type = pIntType;
@@ -1145,7 +1152,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::Evolving:
-		Dest.Ptr = pItem;
+		Dest.Item = pItem;
 		Dest.Type = pEvolvingItemType;
 		return true;
 
@@ -1778,31 +1785,21 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 bool MQ2ItemType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	if (!VarPtr.Ptr)
+	ItemPtr pItem = GetItem(VarPtr);
+	if (!pItem)
 		return false;
 
-	ItemClient* pItem = static_cast<ItemClient*>(VarPtr.Ptr);
 	strcpy_s(Destination, MAX_STRING, pItem->GetName());
 	return true;
 }
 
 void MQ2ItemType::InitVariable(MQVarPtr& VarPtr)
 {
-	ItemClient* pItem = eqNew<ItemClient>();
-
-	// manually increment since we are not using a VePointer
-	pItem->IncrementRefCount();
-	VarPtr.Ptr = pItem;
+	VarPtr = MakeVarPtr(ItemClient::Create());
 }
 
 void MQ2ItemType::FreeVariable(MQVarPtr& VarPtr)
 {
-	ItemClient* pItem = static_cast<ItemClient*>(VarPtr.Ptr);
-
-	// Manually decrement since we are not using a VePointer. This should
-	// delete the item if it is the last reference.
-	pItem->DecrementRefCount();
-	VarPtr.Ptr = nullptr;
 }
 
 bool MQ2ItemType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
@@ -1810,17 +1807,7 @@ bool MQ2ItemType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 	if (Source.Type != pItemType)
 		return false;
 
-	// Increment new object reference count.
-	ItemClient* pNewItem = static_cast<ItemClient*>(Source.Ptr);
-	if (pNewItem)
-		pNewItem->IncrementRefCount();
-
-	// Decrement old object reference count.
-	ItemClient* pOldItem = static_cast<ItemClient*>(VarPtr.Ptr);
-	if (pOldItem)
-		pOldItem->DecrementRefCount();
-
-	VarPtr.Ptr = pNewItem;
+	VarPtr = MakeTypeVar(GetItem(Source));
 	return true;
 }
 
@@ -1934,6 +1921,35 @@ bool MQ2ItemType::dataFindItemBankCount(const char* szIndex, MQTypeVar& Ret)
 	Ret.DWord = FindBankItemCountByName(pName, bExact);
 	Ret.Type = pIntType;
 	return true;
+}
+
+//----------------------------------------------------------------------------
+
+MQVarPtr MQ2ItemType::MakeVarPtr(const ItemPtr& pItem)
+{
+	MQVarPtr VarPtr;
+	VarPtr.Item = pItem;
+
+	return VarPtr;
+}
+
+MQTypeVar MQ2ItemType::MakeTypeVar(const ItemPtr& pItem)
+{
+	MQTypeVar Dest;
+
+	Dest.Type = this;
+	Dest.Item = pItem;
+
+	return Dest;
+}
+
+ItemPtr MQ2ItemType::GetItem(const MQVarPtr& VarPtr) const
+{
+	if (!VarPtr.IsType(MQVarPtr::VariantIdx::Item))
+		return ItemPtr();
+
+	ItemPtr pItem = VarPtr.Item;
+	return pItem;
 }
 
 } // namespace mq::datatypes

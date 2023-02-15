@@ -2302,6 +2302,34 @@ public:
 
 			ColumnText("Cooldown time", "%d", pWnd->CoolDownBeginTime);
 			ColumnText("Cooldown duration", "%d", pWnd->CoolDownDuration);
+
+
+			if (ColumnTreeNodeType("Radio Group", "CRadioGroup*", "%s", pWnd->pGroup ? pWnd->pGroup->Name.c_str() : "")
+				&& pWnd->pGroup)
+			{
+				ColumnCXStr("Name", pWnd->pGroup->Name);
+				if (ColumnTreeNodeType("Buttons", "CButtonWnd*[]", "%d", pWnd->pGroup->Buttons.GetLength()))
+				{
+					for (int i = 0; i < pWnd->pGroup->Buttons.GetLength(); ++i)
+					{
+						const auto& pButton = pWnd->pGroup->Buttons[i];
+
+						char szTemp[32];
+						sprintf_s(szTemp, "Button %d", i + 1);
+
+						ColumnWindow(szTemp, pButton.get());
+					}
+
+					ImGui::TreePop();
+				}
+
+				ColumnText("Current Selection", "%d", pWnd->pGroup->CurSel);
+				ColumnText("Selection limit", "%d", pWnd->pGroup->nSelectionLimit);
+				ColumnCheckBox("Allow Multi-select", &pWnd->pGroup->bAllowMultiSelect);
+				ColumnCheckBox("Allow None", &pWnd->pGroup->bAllowNullable);
+
+				ImGui::TreePop();
+			}
 			
 #if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COV)
 			ColumnCXStr("Indicator", pWnd->Indicator);
