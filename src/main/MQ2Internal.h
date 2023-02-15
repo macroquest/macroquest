@@ -713,7 +713,8 @@ struct MQVarPtr
 		double,
 		uint64_t,
 		std::shared_ptr<void>,
-		CXStr
+		CXStr,
+		ItemPtr
 	>;
 
 	MQVariant Data;
@@ -726,7 +727,8 @@ struct MQVarPtr
 		Double,
 		UInt64,
 		ComplexObject,
-		String
+		String,
+		Item,
 	};
 
 	bool IsType(VariantIdx Index) const { return Data.index() == static_cast<size_t>(Index); }
@@ -742,17 +744,19 @@ struct MQVarPtr
 	template <typename T>
 	T Cast() const
 	{
-		using ToType = T;
-		std::optional<ToType> to;
+		// These type aliases will mask the underlying type in diagnostic messages.
+		//using ToType = T;
+		//using FromType = ;
+
+		std::optional<T> to;
 
 		auto visitor = [&to, this](const auto& from)
 		{
-			using FromType = std::decay_t<decltype(from)>;
-			detail::ConvertData<FromType, ToType>(from, to);
+			detail::ConvertData<std::decay_t<decltype(from)>, T>(from, to);
 		};
 
 		std::visit(visitor, Data);
-		return to.value_or(ToType());
+		return to.value_or(T());
 	}
 
 	template <typename T>
@@ -764,14 +768,14 @@ struct MQVarPtr
 	template <typename T>
 	typename ReturnType<T>::type Set(T Object)
 	{
-		return std::static_pointer_cast<T>(std::get<std::shared_ptr<void>>(Data = std::shared_ptr<T>(new T(Object),
+		return std::static_pointer_cast<T>(std::get<std::shared_ptr<void>>(Data = std::shared_ptr<T>(new T(std::move(Object)),
 			[](T* ptr) { if constexpr (std::is_array_v<T>) delete[] ptr; else delete ptr; })));
 	}
 
 	template <typename T>
 	typename ReturnType<T>::type Set(std::shared_ptr<T> Object)
 	{
-		return std::static_pointer_cast<T>(std::get<std::shared_ptr<void>>(Data = Object));
+		return std::static_pointer_cast<T>(std::get<std::shared_ptr<void>>(Data = std::move(Object)));
 	}
 
 	template <typename T>
@@ -789,15 +793,15 @@ struct MQVarPtr
 	template <> struct ReturnType<CXStr> { using type = CXStr; };
 
 	template <>
-	CXStr Set<CXStr>(CXStr String)
+	CXStr Set<CXStr>(CXStr string)
 	{
-		return std::get<CXStr>(Data = String);
+		return std::get<CXStr>(Data = std::move(string));
 	}
 
 	// this function is special to allow us to set a CXStr from a string_view without needing extra allocations
-	CXStr SetString(std::string_view String)
+	CXStr SetString(std::string_view string)
 	{
-		return std::get<CXStr>(Data = CXStr(String));
+		return std::get<CXStr>(Data = CXStr(string));
 	}
 
 	template <>
@@ -807,6 +811,23 @@ struct MQVarPtr
 			return CXStr();
 
 		return std::get<CXStr>(Data);
+	}
+
+	template <> struct ReturnType<ItemPtr> { using type = ItemPtr; };
+
+	template <>
+	ItemPtr Set<ItemPtr>(ItemPtr pItem)
+	{
+		return std::get<ItemPtr>(Data = std::move(pItem));
+	}
+
+	template <>
+	ItemPtr Get<ItemPtr>() const
+	{
+		if (Data.index() != static_cast<size_t>(VariantIdx::Item))
+			return ItemPtr();
+
+		return std::get<ItemPtr>(Data);
 	}
 
 	// Specializations for integer types
@@ -846,6 +867,7 @@ struct MQVarPtr
 	MQVARPTR_PROPERTIES(double, Double);
 	MQVARPTR_PROPERTIES(int64_t, Int64);
 	MQVARPTR_PROPERTIES(uint64_t, UInt64);
+	MQVARPTR_PROPERTIES(ItemPtr, Item);
 #undef MQVARPTR_PROPERTIES
 
 	// TODO: Future work -- uncomment the deprecates and refactor all uses of high/low part
