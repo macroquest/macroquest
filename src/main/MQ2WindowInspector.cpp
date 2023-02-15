@@ -2312,12 +2312,12 @@ public:
 				{
 					for (int i = 0; i < pWnd->pGroup->Buttons.GetLength(); ++i)
 					{
-						const auto& pButton = pWnd->pGroup->Buttons[i];
+						CButtonWnd* pButton = pWnd->pGroup->GetButton(i);
 
 						char szTemp[32];
 						sprintf_s(szTemp, "Button %d", i + 1);
 
-						ColumnWindow(szTemp, pButton.get());
+						ColumnWindow(szTemp, pButton);
 					}
 
 					ImGui::TreePop();
