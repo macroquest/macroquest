@@ -262,6 +262,9 @@ MQLIB_OBJECT bool FindMacroDataMember(MQ2Type* Type, const std::string& Member);
 DEPRECATE("The data function's signature must be updated to bool functionName(const char* szIndex, MQTypeVar& ret)")
 inline bool AddMQ2Data(const char* szName, fMQDataOld Function)
 {
+	// This cast is safe only due to the fact that the function signature is equivalent with the key difference
+	// being we're adding a const to a param.
+#pragma warning(suppress: 4191)
 	return AddMQ2Data(szName, (fMQData)Function);
 }
 
