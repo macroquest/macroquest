@@ -1,8 +1,14 @@
-February 14, 2023:
-- test: Fix tradeskill depot related crashes.
+February 15, 2023:
+- live: Update for patch
 
-February 11, 2023:
-- test: Updated for patch
+February 10, 2023:
+- Made some improvements to the performance of the mq console window.
+- Added an option to the mq console window to adjust the number of lines
+  of history that are stored.
+- Fix bug where a file dialog could be docked in another window, resulting in
+  the window flickering and becoming unusable.
+- lua: Calling mq.delay in an ImGui callback will now trigger an error instead
+  of silently failing.
 
 January 30, 2023:
 - lua: calling mq.delay from an imgui thread will now throw an error (#692).
