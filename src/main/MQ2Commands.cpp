@@ -2871,7 +2871,7 @@ static void CastSplash(int Index, SPELL* pSpell, const CVector3* pos)
 // ***************************************************************************
 // Function:    Cast
 // Description: Our '/cast' command
-// Usage:       /cast [list|#|"name of spell"|item "name of item"] optional:<loc x y z> (spash location)
+// Usage:       /cast [list|#|"name of spell"|item "name of item"] optional:<loc x y z> (splash location)
 // ***************************************************************************
 void Cast(SPAWNINFO* pChar, char* szLine)
 {
@@ -2921,7 +2921,7 @@ void Cast(SPAWNINFO* pChar, char* szLine)
 		}
 		else {
 			// Display the MQ help in addition to the EQ help
-			WriteChatColor("/cast [list|#|\"name of spell\"|item \"name of item\"] optional:<loc x y z> (spash location)");
+			WriteChatColor("/cast [list|#|\"name of spell\"|item \"name of item\"] optional:<loc x y z> (splash location)");
 		}
 
 		cmdCast(pChar, szLine);
