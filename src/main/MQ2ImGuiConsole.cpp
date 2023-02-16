@@ -1114,7 +1114,7 @@ public:
 		if (m_zepEditor->GetLocalEcho())
 			AddLog(Zep::ZepColor(128, 128, 128), "> {0}\n", commandLine);
 
-		// Inhsert into history. First find match and delete it so i can be pushed to the back. This isn't
+		// Insert into history. First find match and delete it so i can be pushed to the back. This isn't
 		// trying to be smart or optimal.
 		m_historyPos = -1;
 

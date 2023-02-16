@@ -29,26 +29,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -65,8 +65,8 @@
     <LoaderAdditionalDeps Condition="'$(Configuration)|$(Platform)'=='Release|Win32' And Exists('$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\lib\libcrypto.lib')">libcrypto.lib;libssl.lib;</LoaderAdditionalDeps>
     <LoaderAdditionalDeps Condition="'$(Configuration)|$(Platform)'=='Debug|x64' And Exists('$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\debug\lib\libcrypto.lib')">libcrypto.lib;libssl.lib;</LoaderAdditionalDeps>
     <LoaderAdditionalDeps Condition="'$(Configuration)|$(Platform)'=='Release|x64' And Exists('$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\lib\libcrypto.lib')">libcrypto.lib;libssl.lib;</LoaderAdditionalDeps>
-    <LoaderDependenciesDebug>$(LoaderAdditionalDeps)pe-parse.lib;base.lib;client.lib;util.lib;libcurl-d.lib;cpr.lib;zlibd.lib;Ws2_32.lib;Wldap32.lib;version.lib;fmtd.lib</LoaderDependenciesDebug>
-    <LoaderDependenciesRelease>$(LoaderAdditionalDeps)pe-parse.lib;base.lib;client.lib;util.lib;libcurl.lib;cpr.lib;zlib.lib;Ws2_32.lib;Wldap32.lib;version.lib;fmt.lib</LoaderDependenciesRelease>
+    <LoaderDependenciesDebug>$(LoaderAdditionalDeps)pe-parse.lib;base.lib;common.lib;client.lib;util.lib;libcurl-d.lib;cpr.lib;zlibd.lib;Ws2_32.lib;Wldap32.lib;version.lib;fmtd.lib</LoaderDependenciesDebug>
+    <LoaderDependenciesRelease>$(LoaderAdditionalDeps)pe-parse.lib;base.lib;common.lib;client.lib;util.lib;libcurl.lib;cpr.lib;zlib.lib;Ws2_32.lib;Wldap32.lib;version.lib;fmt.lib</LoaderDependenciesRelease>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />

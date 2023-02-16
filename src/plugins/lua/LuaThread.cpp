@@ -198,7 +198,8 @@ int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 		luaL_loadbuffer(sv, script.data(), script.size(), pkg.c_str());
 		return 1;
 	}
-	else if (pkg == "ImGui")
+
+	if (pkg == "ImGui")
 	{
 		bindings::RegisterBindings_ImGui(sv);
 

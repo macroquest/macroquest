@@ -936,7 +936,7 @@ enum class InjectResult {
 
 static InjectResult DoInject(uint32_t PID)
 {
-	SPDLOG_DEBUG("Injecting MQ2 into eqgame.exe: pid={0}", PID);
+	SPDLOG_DEBUG("Injecting MQ into eqgame.exe: pid={0}", PID);
 
 	wil::unique_process_handle hEQGame(::OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION |
 		PROCESS_VM_WRITE | PROCESS_VM_READ | PROCESS_TERMINATE, FALSE, PID));

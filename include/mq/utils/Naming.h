@@ -31,7 +31,7 @@ inline std::string GetRandomString(const int stringLength)
 	std::string returnString;
 	returnString.reserve(stringLength);
 
-	const std::uniform_int_distribution<uint32_t> dist(0, (uint8_t)(lengthof(availableChars) - 2));
+	std::uniform_int_distribution<uint32_t> dist(0, static_cast<uint8_t>((lengthof(availableChars) - 2)));
 
 	static std::default_random_engine s_randomEngine(std::random_device{}());
 
