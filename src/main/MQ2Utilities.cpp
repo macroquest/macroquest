@@ -5154,6 +5154,8 @@ int GetHighestAvailableBagSlot()
 
 	int highestInvSlot = InvSlot_LastBonusBagSlot;
 
+	// GM accounts do not hide inventory slots based on expansion
+	// This is (most likely) only valid for Emu
 	if (pLocalPC->bGM)
 		return highestInvSlot;
 
