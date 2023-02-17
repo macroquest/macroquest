@@ -14,11 +14,14 @@
 
 #pragma once
 
-#include "../../src/common/Mailbox.h"
-#include "../../src/common/proto/Shared.pb.h"
+#include "Mailbox.h"
+#include "ProtoPipes.h"
+#include "Routing.pb.h"
 
 #ifdef _DEBUG
 #pragma comment(lib, "libprotobufd")
 #else
 #pragma comment(lib, "libprotobuf")
 #endif
+
+#pragma comment(lib, "routing")

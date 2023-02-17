@@ -18,7 +18,7 @@
 
 #include "MQ2Main.h"
 
-#include "common/proto/Shared.pb.h"
+#include <mq/proto/Routing.h>
 
 namespace mq {
 

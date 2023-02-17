@@ -14,8 +14,8 @@
 
 #pragma once
 
-#include "NamedPipes.h"
-#include "common/proto/Shared.pb.h"
+#include "common/NamedPipes.h"
+#include "Routing.pb.h"
 
 #include <memory>
 #include <optional>

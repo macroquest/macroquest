@@ -17,8 +17,6 @@
 #include "CrashHandler.h"
 #include "ImGuiManager.h"
 
-#include "common/ProtoPipes.h"
-
 #include <wil/resource.h>
 
 #pragma warning(disable : 4091) // 'keyword' : ignored on left of 'type' when no variable is declared

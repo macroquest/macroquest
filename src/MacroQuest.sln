@@ -60,6 +60,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NamedPipeClient", "tests\Na
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2AutoBank", "plugins\autobank\MQ2AutoBank.vcxproj", "{C0E145AB-4882-4FD4-8ADD-630FC678FBC0}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "routing", "routing\routing.vcxproj", "{6CE4F8D6-1709-47C5-9297-1619BBC4A71E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -232,6 +234,14 @@ Global
 		{C0E145AB-4882-4FD4-8ADD-630FC678FBC0}.Release|Win32.Build.0 = Release|Win32
 		{C0E145AB-4882-4FD4-8ADD-630FC678FBC0}.Release|x64.ActiveCfg = Release|x64
 		{C0E145AB-4882-4FD4-8ADD-630FC678FBC0}.Release|x64.Build.0 = Release|x64
+		{6CE4F8D6-1709-47C5-9297-1619BBC4A71E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6CE4F8D6-1709-47C5-9297-1619BBC4A71E}.Debug|Win32.Build.0 = Debug|Win32
+		{6CE4F8D6-1709-47C5-9297-1619BBC4A71E}.Debug|x64.ActiveCfg = Debug|x64
+		{6CE4F8D6-1709-47C5-9297-1619BBC4A71E}.Debug|x64.Build.0 = Debug|x64
+		{6CE4F8D6-1709-47C5-9297-1619BBC4A71E}.Release|Win32.ActiveCfg = Release|Win32
+		{6CE4F8D6-1709-47C5-9297-1619BBC4A71E}.Release|Win32.Build.0 = Release|Win32
+		{6CE4F8D6-1709-47C5-9297-1619BBC4A71E}.Release|x64.ActiveCfg = Release|x64
+		{6CE4F8D6-1709-47C5-9297-1619BBC4A71E}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -262,6 +272,7 @@ Global
 		{EAFB7791-F141-4B87-A0F9-B5685A90A2C1} = {42D9994B-93C6-4C4B-971A-A7C918CA4DB8}
 		{312C5DE6-34C8-4474-B186-12989694C780} = {EAFB7791-F141-4B87-A0F9-B5685A90A2C1}
 		{C0E145AB-4882-4FD4-8ADD-630FC678FBC0} = {A648B03F-7642-4857-A62A-AFABC7CAB451}
+		{6CE4F8D6-1709-47C5-9297-1619BBC4A71E} = {5BB58FDF-3760-4BAD-A147-D71E4EC66BE8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {330AC4A2-17BC-4784-AB3C-2B1DA71EB6A5}

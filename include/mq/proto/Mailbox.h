@@ -15,7 +15,7 @@
 #pragma once
 
 #include "ProtoPipes.h"
-#include "proto/Shared.pb.h"
+#include "Routing.pb.h"
 
 #include <string>
 #include <unordered_map>

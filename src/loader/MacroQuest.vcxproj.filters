@@ -13,15 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Proto Files">
-      <UniqueIdentifier>{aaeb9a51-d0cf-49a0-902b-608dc3849d94}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Proto Files\common">
-      <UniqueIdentifier>{6c8ae82d-7d32-4444-9892-c25e39f91d48}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Proto Files\common\Generated Files">
-      <UniqueIdentifier>{de2ad1be-a056-4aed-89ee-3b6e2582fbfd}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RemoteOps.cpp">
@@ -59,9 +50,6 @@
     </ClCompile>
     <ClCompile Include="PipeServer.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\proto\Shared.pb.cc">
-      <Filter>Proto Files\common\Generated Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -104,12 +92,6 @@
     <ClInclude Include="PipeServer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\proto\Shared.pb.h">
-      <Filter>Proto Files\common\Generated Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\Mailbox.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="icon1.ico">
@@ -123,11 +105,6 @@
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="MacroQuest.exe.manifest" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProtocolBuffer Include="..\common\proto\Shared.proto">
-      <Filter>Proto Files\common</Filter>
-    </ProtocolBuffer>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

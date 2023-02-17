@@ -15,7 +15,8 @@
 #include "MacroQuest.h"
 #include "PipeServer.h"
 #include "Crashpad.h"
-#include "common/proto/Shared.pb.h"
+
+#include <mq/proto/Routing.h>
 
 #include <date/date.h>
 #include <fmt/format.h>
@@ -166,11 +167,8 @@ public:
 					id.has_character() ? id.character() : ""
 					});
 
-				SPDLOG_INFO("Got identification from {}: {} {} {}",
-					id.pid(),
-					id.has_account() ? id.account() : "N/A",
-					id.has_server() ? id.server() : "N/A",
-					id.has_character() ? id.character() : "N/A");
+				// only include the PID here, otherwise it's pseudonym-identifiable information from the logs
+				SPDLOG_INFO("Got identification from {}", id.pid());
 			}
 			break;
 		}

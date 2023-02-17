@@ -15,8 +15,7 @@
 #pragma once
 
 #include "MQ2MainBase.h"
-#include "common/Mailbox.h"
-#include "common/ProtoPipes.h"
+#include <mq/proto/Mailbox.h>
 
 namespace mq {
 

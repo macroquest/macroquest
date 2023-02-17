@@ -14,8 +14,7 @@
 
 #pragma once
 
-#include "common/Mailbox.h"
-#include "common/ProtoPipes.h"
+#include <mq/proto/Mailbox.h>
 
 bool SendSetForegroundWindow(HWND hWnd, uint32_t processID);
 void SendUnloadAllCommand();
