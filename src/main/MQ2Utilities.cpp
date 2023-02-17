@@ -5154,6 +5154,9 @@ int GetHighestAvailableBagSlot()
 
 	int highestInvSlot = InvSlot_LastBonusBagSlot;
 
+	if (pLocalPC->bGM)
+		return highestInvSlot;
+
 	// If no HoT, subtract two slots.
 	if (!HasExpansion(EXPANSION_HoT))
 		highestInvSlot -= 2;
