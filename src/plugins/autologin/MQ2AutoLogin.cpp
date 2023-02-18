@@ -17,7 +17,7 @@
 #include <mq/Plugin.h>
 #include <mq/proto/Routing.h>
 
-#include "AutoLoginShared.h"
+#include <autologin/AutoLogin.h>
 #include "MQ2AutoLogin.h"
 
 #include <imgui.h>
@@ -198,52 +198,83 @@ bool MQ2AutoLoginType::dataAutoLogin(const char* szName, MQTypeVar& Ret)
 	return true;
 }
 
-void MakeMessage(MQMessageId messageId, const std::string& data)
+template <typename T>
+static void Post(MQMessageId messageId, const T& data)
 {
 	proto::Address address;
 	address.set_name("launcher");
 	address.set_mailbox("autologin");
 
+	proto::Address return_address;
+
 	s_autologinMailbox->Post(address, messageId, data);
 }
 
-// profile:account:server:char:pid
 void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character)
 {
-	auto data = fmt::format("{}:{}:{}:{}:{}", Profile, Account, Server, Character, GetCurrentProcessId());
-	MakeMessage(MQMessageId::MSG_AUTOLOGIN_PROFILE_LOADED, data);
+	proto::autologin::Profile profile;
+	profile.set_profile(Profile);
+	profile.set_account(Account);
+	proto::autologin::LoginTarget& target = *profile.mutable_target();
+	target.set_server(Server);
+	target.set_character(Character);
+
+	Post(MQMessageId::MSG_AUTOLOGIN_PROFILE_LOADED, profile);
 }
 
-// profile:account:server:char:pid
 void NotifyCharacterUnload(const char* Profile, const char* Account, const char* Server, const char* Character)
 {
-	auto data = fmt::format("{}:{}:{}:{}:{}", Profile, Account, Server, Character, GetCurrentProcessId());
-	MakeMessage(MQMessageId::MSG_AUTOLOGIN_PROFILE_UNLOADED, data);
-}
+	proto::autologin::Profile profile;
+	profile.set_profile(Profile);
+	profile.set_account(Account);
+	proto::autologin::LoginTarget& target = *profile.mutable_target();
+	target.set_server(Server);
+	target.set_character(Character);
 
+	Post(MQMessageId::MSG_AUTOLOGIN_PROFILE_UNLOADED, profile);
+}
 // pid:class:level
-void NotifyCharacterUpdate(const char* Class, const char* Level)
+void NotifyCharacterUpdate(int Class, int Level)
 {
-	auto data = fmt::format("{}:{}:{}", GetCurrentProcessId(), Class, Level);
-	MakeMessage(MQMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO, data);
+	proto::autologin::CharacterInfo info;
+	info.set_class_(Class);
+	info.set_level(Level);
+
+	Post(MQMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO, info);
 }
 
 void LoginServer(const char* Login, const char* Pass, const char* Server)
 {
-	auto data = fmt::format("s:{}:{}:{}", Login, Pass, Server);
-	MakeMessage(MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data);
+	proto::autologin::Manual manual;
+	manual.set_login(Login);
+	manual.set_password(Pass);
+	proto::autologin::LoginTarget& target = *manual.mutable_target();
+	target.set_server(Server);
+
+	Post(MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, manual);
 }
 
 void LoginCharacter(const char* Login, const char* Pass, const char* Server, const char* Character)
 {
-	auto data = fmt::format("c:{}:{}:{}:{}", Login, Pass, Server, Character);
-	MakeMessage(MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data);
+	proto::autologin::Manual manual;
+	manual.set_login(Login);
+	manual.set_password(Pass);
+	proto::autologin::LoginTarget& target = *manual.mutable_target();
+	target.set_server(Server);
+	target.set_character(Character);
+
+	Post(MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, manual);
 }
 
 void LoginProfile(const char* Profile, const char* Server, const char* Character)
 {
-	auto data = fmt::format("p:{}:{}:{}", Profile, Server, Character);
-	MakeMessage(MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, data);
+	proto::autologin::Profile profile;
+	profile.set_profile(Profile);
+	proto::autologin::LoginTarget& target = *profile.mutable_target();
+	target.set_server(Server);
+	target.set_character(Character);
+
+	Post(MQMessageId::MSG_AUTOLOGIN_START_INSTANCE, profile);
 }
 
 void PerformSwitch(const std::string& ServerName, const std::string& CharacterName)
@@ -789,7 +820,7 @@ PLUGIN_API void OnPulse()
 	{
 		Class = pLocalPlayer->GetClass();
 		Level = pLocalPlayer->Level;
-		NotifyCharacterUpdate(std::to_string(Class).c_str(), std::to_string(Level).c_str());
+		NotifyCharacterUpdate(Class, Level);
 	}
 
 	if (gbInForeground && GetAsyncKeyState(VK_HOME) & 1)

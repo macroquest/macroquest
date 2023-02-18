@@ -12,13 +12,12 @@
  * GNU General Public License for more details.
  */
 
-#include "AutoLogin.h"
 #include "MacroQuest.h"
 #include "resource.h"
 #include "HotKeyControl.h"
 #include "PipeServer.h"
 
-#include "plugins/autologin/AutoLoginShared.h"
+#include <autologin/AutoLogin.h>
 
 #include <commdlg.h>
 #include <shellapi.h>
@@ -31,6 +30,40 @@
 #include <fmt/format.h>
 
 namespace fs = std::filesystem;
+
+struct ProfileInfo
+{
+	std::string profileName;
+	std::string CharacterName;
+	std::string Inifile;
+	std::string Hotkey;
+	std::string PlayerClass;
+	bool Loaded = false;
+	DWORD PID = 0;
+	DWORD PlayerLevel = 0;
+};
+
+struct RawProfileRecord
+{
+	std::string profileName;
+	std::string serverName;
+	std::string characterName;
+
+	std::string eqPath;
+	std::string encryptedBlob;
+	bool checked;
+};
+
+struct ExportEntry
+{
+	std::string profileKey;
+	std::string profile;
+	std::string keyName;
+	std::string eqPath;
+	bool checked;
+	std::string blob;
+
+};
 
 std::map<std::string, std::map<DWORD, ProfileInfo>> LoginMap;
 
@@ -1665,139 +1698,6 @@ void AutoLoginRemoveProcess(DWORD processId)
 	}
 }
 
-// Handle IPC message when character profile is finished loading into game
-void HandleAutoLoginProfileLoaded(std::string_view szMessage)
-{
-	// profile:account:server:char:pid
-	auto tokens = split_view(szMessage, ':');
-	if (tokens.size() == 5)
-	{
-		// assume any other size is a malformed message and don't process
-		auto profile = std::string(tokens[0]);
-		auto charString = fmt::format("[{}] {}->{}", tokens[1], tokens[2], tokens[3]);
-		auto pid = GetIntFromString(tokens[4], 0);
-
-		auto login_it = std::find_if(LoginMap[profile].begin(), LoginMap[profile].end(),
-			[&charString](auto& login) {
-				return login.second.CharacterName == charString;
-			});
-
-		if (login_it != LoginMap[profile].cend())
-		{
-			login_it->second.Loaded = true;
-			login_it->second.PID = pid;
-			SendMessageA(hMainWnd, WM_USER_REGISTER_HK, login_it->first, login_it->second.PID);
-			SendMessageA(hMainWnd, WM_USER_SETLOADED, login_it->first, login_it->second.PID);
-		}
-	}
-}
-
-void HandleAutoLoginProfileUnloaded(std::string_view szMessage)
-{
-	// profile:account:server:char:pid
-	auto tokens = split_view(szMessage, ':');
-	if (tokens.size() == 5)
-	{
-		// assume any other size is a malformed message and don't process
-		auto profile = std::string(tokens[0]);
-		auto pid = GetIntFromString(tokens[4], 0);
-
-		auto login_it = std::find_if(LoginMap[profile].begin(), LoginMap[profile].end(),
-			[&pid](auto& login) {
-				return login.second.PID == pid;
-			});
-
-		if (login_it != LoginMap[profile].end())
-		{
-			SendMessageA(hMainWnd, WM_USER_UNREGISTER_HK, login_it->first, login_it->second.PID);
-			SendMessageA(hMainWnd, WM_USER_RESETLOADED, login_it->first, login_it->second.PID);
-		}
-	}
-}
-
-void HandleAutoLoginMQ2Unload(std::string_view szMessage)
-{
-	auto pid = GetIntFromString(szMessage, 0);
-
-	for (auto& i : LoginMap)
-	{
-		for (auto& j : i.second)
-		{
-			if (j.second.PID == pid)
-			{
-				SendMessageA(hMainWnd, WM_USER_UNREGISTER_HK, j.first, j.second.PID);
-				SendMessageA(hMainWnd, WM_USER_RESETLOADED, j.first, j.second.PID);
-				break;
-			}
-		}
-	}
-}
-
-void HandleAutoLoginUpdateCharacterDetails(std::string_view szMessage)
-{
-	// pid:class:level
-	auto tokens = split_view(szMessage, ':');
-	if (tokens.size() == 3)
-	{
-		// assume any other size is a malformed message and don't process
-		auto pid = GetIntFromString(tokens[0], 0);
-		auto playerClass = GetIntFromString(tokens[1], -1);
-		auto playerLevel = GetIntFromString(tokens[2], -1);
-
-		for (auto& profile : LoginMap)
-		{
-			for (auto& login : profile.second)
-			{
-				auto& pi = login.second;
-				if (pi.PID == pid)
-				{
-					SendMessageA(hMainWnd, WM_USER_UPDATELEVEL, playerLevel, pi.PID);
-					SendMessageA(hMainWnd, WM_USER_UPDATECLASS, playerClass, pi.PID);
-					break;
-				}
-			}
-		}
-	}
-}
-
-void HandleAutoLoginStartInstance(std::string_view szMessage)
-{
-	// s:login:pass:server -- load to character select
-	// c:login:pass:server:character -- load character
-	// p:profile:server:character -- load profile/server/character
-	auto tokens = split_view(szMessage, ':');
-	if (tokens.size() == 4)
-	{
-		if (tokens[0][0] == 's')
-		{
-			DoPlainLogin(tokens[3], tokens[1], tokens[2], "");
-		}
-		else if (tokens[0][0] == 'p')
-		{
-			// TODO: This is not a great way to do it, but it's not time critical, change this when ProfileInfo has actual discrete fields
-			auto profile = std::string(tokens[1]);
-			// we don't have account, but server/char is necessarily unique
-			auto charString = fmt::format("{}->{}", tokens[2], tokens[3]);
-
-			auto login_it = std::find_if(LoginMap[profile].begin(), LoginMap[profile].end(),
-				[&charString](auto& login) {
-					// CharacterName is `[account] server->char` -- assume none of the things have spaces, and grab only the server->char portion
-					auto s = login.second.CharacterName.substr(login.second.CharacterName.find_first_of(' ') + 1);
-					return s == charString;
-				});
-
-			if (login_it != LoginMap[profile].end())
-			{
-				LoadIt(login_it->second, login_it->first);
-			}
-		}
-	}
-	else if (tokens.size() == 5 && tokens[0][0] == 'c')
-	{
-		DoPlainLogin(tokens[3], tokens[1], tokens[2], tokens[4]);
-	}
-}
-
 INT_PTR CALLBACK ExportProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 {
 	switch (MSG)
@@ -2092,20 +1992,119 @@ void ReadMessage(ProtoMessagePtr message)
 	switch (message->GetMessageId())
 	{
 		case mq::MQMessageId::MSG_AUTOLOGIN_PROFILE_LOADED:
-			HandleAutoLoginProfileLoaded(std::string(message->get<const char>(), message->size()));
+		{
+			auto profile = ProtoMessage::Parse<proto::autologin::Profile>(message);
+			if (profile.has_target() && profile.target().has_character() && message->GetReturn() && message->GetReturn()->has_pid())
+			{
+				auto login = LoginMap[profile.profile()];
+				auto charString = fmt::format("[{}] {}->{}", profile.account(), profile.target().server(), profile.target().character());
+				auto login_it = std::find_if(login.begin(), login.end(),
+					[&charString](const auto& l)
+					{
+						return l.second.CharacterName == charString;
+					});
+
+				if (login_it != login.end() && message->GetReturn())
+				{
+					login_it->second.Loaded = true;
+					login_it->second.PID = message->GetReturn()->pid();
+					SendMessageA(hMainWnd, WM_USER_REGISTER_HK, login_it->first, login_it->second.PID);
+					SendMessageA(hMainWnd, WM_USER_SETLOADED, login_it->first, login_it->second.PID);
+				}
+			}
+
 			break;
+		}
 
 		case mq::MQMessageId::MSG_AUTOLOGIN_PROFILE_UNLOADED:
-			HandleAutoLoginProfileUnloaded(std::string(message->get<const char>(), message->size()));
+		{
+			auto profile = ProtoMessage::Parse<proto::autologin::Profile>(message);
+			if (message->GetReturn() && message->GetReturn()->has_pid())
+			{
+				auto pid = message->GetReturn()->pid();
+				auto login = LoginMap[profile.profile()];
+				auto login_it = std::find_if(login.begin(), login.end(),
+					[&pid](const auto& l)
+					{
+						return l.second.PID == pid;
+					});
+
+				if (login_it != login.end())
+				{
+					SendMessageA(hMainWnd, WM_USER_UNREGISTER_HK, login_it->first, login_it->second.PID);
+					SendMessageA(hMainWnd, WM_USER_RESETLOADED, login_it->first, login_it->second.PID);
+				}
+			}
+
 			break;
+		}
 
 		case mq::MQMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO:
-			HandleAutoLoginUpdateCharacterDetails(std::string(message->get<const char>(), message->size()));
+		{
+			auto charinfo = ProtoMessage::Parse<proto::autologin::CharacterInfo>(message);
+			if (message->GetReturn() && message->GetReturn()->has_pid())
+			{
+				auto pid = message->GetReturn()->pid();
+				for (const auto& profile : LoginMap)
+				{
+					for (const auto& login : profile.second)
+					{
+						if (login.second.PID == pid)
+						{
+							SendMessageA(hMainWnd, WM_USER_UPDATELEVEL, charinfo.level(), login.second.PID);
+							SendMessageA(hMainWnd, WM_USER_UPDATECLASS, charinfo.class_(), login.second.PID);
+							return;
+						}
+					}
+				}
+			}
+
 			break;
+		}
 
 		case mq::MQMessageId::MSG_AUTOLOGIN_START_INSTANCE:
-			HandleAutoLoginStartInstance(std::string(message->get<const char>(), message->size()));
+		{
+			auto start = ProtoMessage::Parse<proto::autologin::StartInstance>(message);
+			switch (start.method_case())
+			{
+			case proto::autologin::StartInstance::MethodCase::kManual:
+				if (start.manual().has_target())
+				{
+					DoPlainLogin(
+						start.manual().target().server(),
+						start.manual().login(),
+						start.manual().password(),
+						start.manual().target().has_character() ? start.manual().target().character() : ""
+					);
+				}
+				break;
+
+			case proto::autologin::StartInstance::MethodCase::kProfile:
+				if (start.profile().has_target() && start.profile().target().has_character())
+				{
+					auto login = LoginMap[start.profile().profile()];
+					auto charString = fmt::format("{}->{}", start.profile().target().server(), start.profile().target().character());
+					auto login_it = std::find_if(login.begin(), login.end(),
+						[&charString](const auto& login)
+						{
+							// CharacterName is `[account] server->char` -- assume none of the things have spaces, and grab only the server->char portion
+							auto s = login.second.CharacterName.substr(login.second.CharacterName.find_first_of(' ') + 1);
+							return s == charString;
+						});
+
+					if (login_it != login.end())
+					{
+						LoadIt(login_it->second, login_it->first);
+					}
+				}
+				break;
+
+			default:
+				break;
+			}
+
 			break;
+		}
 
 		default:
 			break;

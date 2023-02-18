@@ -75,7 +75,7 @@ void RouteMessage(PipeMessagePtr message)
 	else if (address.has_name() && !ci_equals(address.name(), "launcher"))
 	{
 		// a name is also a singular identifier, avoid the loop here too
-			// route the message to a registered (named) client
+		// route the message to a registered (named) client
 		auto pid_it = s_names.find(address.name());
 		if (pid_it == s_names.end() || !SendMessageToPID(pid_it->second, message))
 		{

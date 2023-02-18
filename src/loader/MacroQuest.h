@@ -78,15 +78,6 @@ constexpr int WM_USER_CALLBACK              = (WM_USER + 11);
 
 //----------------------------------------------------------------------------
 
-struct ProfileInfo;
-
-struct gHotkeyPair
-{
-	WORD modkey;
-	WORD hotkey;
-	ProfileInfo* ppi = nullptr;
-};
-
 // mirrors the implementation in mq2main. This could possibly be shared code
 // between them.
 namespace internal_paths
@@ -153,3 +144,10 @@ FARPROC WINAPI GetRemoteProcAddress(HANDLE hProcess, HMODULE hModule, LPCSTR lpP
 
 // Get the name of the player in the process specified by the pid.
 std::string GetLocalPlayer(DWORD pid);
+
+// AutoLogin
+extern HWND hEditProfileWnd;
+void InitializeAutoLogin();
+void ShutdownAutoLogin();
+void AutoLoginRemoveProcess(DWORD processId);
+bool HandleAutoLoginWindowMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* result);

@@ -12,14 +12,20 @@
  * GNU General Public License for more details.
  */
 
-// AutoLogin code shared between MacroQuest.exe and MQ2AutoLogin.dll
-
 #pragma once
 
-#include "../../common/Common.h"
+#include "AutoLogin.pb.h"
 
 #include <Windows.h>
 #include <wincrypt.h>
+
+#ifdef _DEBUG
+#pragma comment(lib, "libprotobufd")
+#else
+#pragma comment(lib, "libprotobuf")
+#endif
+
+#pragma comment(lib, "autologin")
 
 bool DecryptData(DATA_BLOB* DataIn, DATA_BLOB* DataOut);
 

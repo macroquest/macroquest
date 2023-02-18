@@ -64,7 +64,6 @@
     <_ProjectFileVersion>11.0.51106.1</_ProjectFileVersion>
   </PropertyGroup>
   <ItemGroup>
-    <ClCompile Include="AutoLoginShared.cpp" />
     <ClCompile Include="StateMachine.cpp" />
     <ClCompile Include="MQ2AutoLogin.cpp" />
   </ItemGroup>
@@ -74,7 +73,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AutoLoginShared.h" />
     <ClInclude Include="MQ2AutoLogin.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

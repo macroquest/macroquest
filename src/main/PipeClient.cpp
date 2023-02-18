@@ -147,15 +147,6 @@ public:
 
 namespace pipeclient {
 
-// mq::MQMessageId::MSG_AUTOLOGIN_PROFILE_LOADED:
-// mq::MQMessageId::MSG_AUTOLOGIN_PROFILE_UNLOADED:
-// mq::MQMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO:
-// mq::MQMessageId::MSG_AUTOLOGIN_START_INSTANCE:
-
-// This serialization is dead simple. Just separate fields with a colon. Assume no colons in the
-// source data. If this needs to be performant in any way, then we will need to write actual
-// serialization of binary data (with the bonus that it's not all strings).
-
 uint32_t GetLauncherProcessID()
 {
 	if (gPipeClient.IsConnected())

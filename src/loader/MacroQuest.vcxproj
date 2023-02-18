@@ -130,7 +130,6 @@
   <ItemGroup>
     <ClCompile Include="..\common\HotKeys.cpp" />
     <ClCompile Include="..\common\NamedPipes.cpp" />
-    <ClCompile Include="..\plugins\autologin\AutoLoginShared.cpp" />
     <ClCompile Include="AutoLogin.cpp" />
     <ClCompile Include="Crashpad.cpp" />
     <ClCompile Include="HotKeyControl.cpp" />
@@ -147,8 +146,6 @@
     <ClInclude Include="..\common\HotKeys.h" />
     <ClInclude Include="..\common\NamedPipes.h" />
     <ClInclude Include="..\common\NamedPipesProtocol.h" />
-    <ClInclude Include="..\plugins\autologin\AutoLoginShared.h" />
-    <ClInclude Include="AutoLogin.h" />
     <ClInclude Include="Crashpad.h" />
     <ClInclude Include="HotKeyControl.h" />
     <ClInclude Include="MacroQuest.h" />

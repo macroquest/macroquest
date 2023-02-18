@@ -14,7 +14,6 @@
 
 #include "MacroQuest.h"
 #include "ProcessMonitor.h"
-#include "Autologin.h"
 #include "Crashpad.h"
 #include "PipeServer.h"
 
@@ -1181,6 +1180,7 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 	UnregisterGlobalHotkey(hMainWnd);
 	Shell_NotifyIcon(NIM_DELETE, &NID);
 
+	ShutdownAutoLogin();
 	ShutdownInjector();
 	ShutdownNamedPipeServer();
 	StopProcessMonitor();
