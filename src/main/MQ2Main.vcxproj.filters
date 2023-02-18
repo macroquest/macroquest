@@ -371,8 +371,8 @@
     <ClCompile Include="datatypes\MQ2TradeskillDepotType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
-    <ClCompile Include="datatypes\MQInventoryType.cpp">
-      <Filter>Source Files\datatypes</Filter>
+    <ClCompile Include="..\common\proto\Shared.pb.cc">
+      <Filter>Proto Files\common\Generated Files</Filter>
     </ClCompile>
     <ClCompile Include="api\Spawns.cpp">
       <Filter>Source Files\api</Filter>

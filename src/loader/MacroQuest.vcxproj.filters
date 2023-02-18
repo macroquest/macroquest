@@ -45,7 +45,7 @@
     <ClCompile Include="MacroQuest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PipeServer.cpp">
+    <ClCompile Include="PostOffice.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -80,7 +80,7 @@
     <ClInclude Include="..\..\include\mq\base\BuildInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PipeServer.h">
+    <ClInclude Include="PostOffice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

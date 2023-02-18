@@ -2,35 +2,37 @@ syntax = "proto3";
 
 package mq.proto.autologin;
 
-// submessage for the login target state
+// submessage for the login target state, both targets are optional
 message LoginTarget {
-	string server = 1;
+	optional string server = 1;
 	optional string character = 2;
 }
 
-// Message to login via the character profile method
-message Profile {
+// First login method is via profiles
+message ProfileMethod {
 	string profile = 1;
 	optional string account = 2;
 	LoginTarget target = 3;
 }
 
-// message to login via the manual method
-message Manual {
+// Second login method is via direct login/pass
+message DirectMethod {
 	string login = 1;
 	string password = 2;
 	LoginTarget target = 3;
 }
 
-message StartInstance {
+// can add more login methods here... (like token)
+
+message StartInstanceMissive {
 	oneof method {
-		Profile profile = 1;
-		Manual manual = 2;
+		ProfileMethod profile = 1;
+		DirectMethod direct = 2;
 	}
 }
 
-// character info message for updating the UI
-message CharacterInfo {
+// character info for updating the UI
+message CharacterInfoMissive {
 	uint32 class = 1;
 	uint32 level = 2;
 }

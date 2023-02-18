@@ -31,8 +31,21 @@ void RequestActivateWindow(HWND hWnd, bool sendMessage = true);
 
 MQLIB_OBJECT std::shared_ptr<mailbox::PostOffice::Mailbox> AddMailbox(const std::string& localAddress, mailbox::PostOffice::ReceiveCallback receive);
 MQLIB_OBJECT bool RemoveMailbox(const std::string& localAddress);
+
 MQLIB_OBJECT void RouteMessage(MQMessageId messageId, const void* data, size_t length);
+template <typename ID>
+void RouteMessage(ID messageId, const void* data, size_t length)
+{
+	RouteMessage(static_cast<MQMessageId>(messageId), data, length);
+}
+
 MQLIB_OBJECT void RouteMessage(MQMessageId messageId, const std::string& data);
+template <typename ID>
+void RouteMessage(ID messageId, const std::string& data)
+{
+	RouteMessage(static_cast<MQMessageId>(messageId), data);
+}
+
 MQLIB_OBJECT void RouteMessage(const std::string& data); // envelopes come as strings, and will always want "ROUTE" message IDs
 
 } // namespace pipeclient

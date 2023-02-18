@@ -41,30 +41,30 @@ public:
 	}
 
 	template <typename T>
-	static T Parse(PipeMessagePtr message)
+	static T Parse(const PipeMessagePtr& message)
 	{
 		T obj;
 		return Parse(message, obj);
 	}
 
 	template <typename T>
-	static T& Parse(PipeMessagePtr message, T& obj)
+	static T& Parse(const PipeMessagePtr& message, T& obj)
 	{
 		obj.ParseFromArray(message->get<void>(), static_cast<int>(message->size()));
 		return obj;
 	}
 
-	template <typename T>
-	void SendProtoReply(MQMessageId messageId, const T& obj, uint8_t status = 0)
+	template <typename ID, typename T>
+	void SendProtoReply(ID messageId, const T& obj, uint8_t status = 0)
 	{
 		SendProtoReply(shared_from_this(), messageId, obj, status);
 	}
 
-	template <typename T>
-	static void SendProtoReply(PipeMessagePtr message, MQMessageId messageId, const T& obj, uint8_t status = 0)
+	template <typename ID, typename T>
+	static void SendProtoReply(const PipeMessagePtr& message, ID messageId, const T& obj, uint8_t status = 0)
 	{
 		std::string data = obj.SerializeAsString();
-		message->SendReply(messageId, &data[0], data.size(), status);
+		message->SendReply(static_cast<MQMessageId>(messageId), &data[0], data.size(), status);
 	}
 
 	const std::optional<proto::Address>& GetReturn() { return m_returnAddress; }
@@ -80,18 +80,18 @@ class ProtoPipeServer : public NamedPipeServer
 public:
 	using NamedPipeServer::NamedPipeServer;
 
-	template <typename T>
-	void SendProtoMessage(int connectionId, MQMessageId messageId, const T& obj)
+	template <typename ID, typename T>
+	void SendProtoMessage(int connectionId, ID messageId, const T& obj)
 	{
 		std::string data = obj.SerializeAsString();
-		SendMessage(connectionId, messageId, &data[0], data.size());
+		SendMessage(connectionId, static_cast<MQMessageId>(messageId), &data[0], data.size());
 	}
 
-	template <typename T>
-	void BroadcastProtoMessage(MQMessageId messageId, const T& obj)
+	template <typename ID, typename T>
+	void BroadcastProtoMessage(ID messageId, const T& obj)
 	{
 		std::string data = obj.SerializeAsString();
-		BroadcastMessage(messageId, &data[0], data.size());
+		BroadcastMessage(static_cast<MQMessageId>(messageId), &data[0], data.size());
 	}
 };
 
@@ -100,19 +100,19 @@ class ProtoPipeClient : public NamedPipeClient
 public:
 	using NamedPipeClient::NamedPipeClient;
 
-	template <typename T>
-	void SendProtoMessage(MQMessageId messageId, const T& obj)
+	template <typename ID, typename T>
+	void SendProtoMessage(ID messageId, const T& obj)
 	{
 		std::string data = obj.SerializeAsString();
-		SendMessage(messageId, &data[0], data.size());
+		SendMessage(static_cast<MQMessageId>(messageId), &data[0], data.size());
 	}
 
-	template <typename T>
-	void SendProtoMessageWithResponse(MQMessageId messageId, const T& obj,
+	template <typename ID, typename T>
+	void SendProtoMessageWithResponse(ID messageId, const T& obj,
 		const PipeMessageResponseCb& response)
 	{
 		std::string data = obj.SerializeAsString();
-		SendMessageWithResponse(messageId, &data[0], data.size(), response);
+		SendMessageWithResponse(static_cast<MQMessageId>(messageId), &data[0], data.size(), response);
 	}
 };
 

@@ -54,7 +54,7 @@ using namespace eqlib;
 #include "MQ2Commands.h"
 #include "MQ2DataContainers.h"
 #include "MQ2Utilities.h"
-#include "PipeClient.h"
+#include "MQ2PostOffice.h"
 #include "datatypes/MQ2DataTypes.h"
 
 // Link up ImGui

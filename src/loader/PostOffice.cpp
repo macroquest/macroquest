@@ -13,7 +13,7 @@
  */
 
 #include "MacroQuest.h"
-#include "PipeServer.h"
+#include "PostOffice.h"
 #include "Crashpad.h"
 
 #include <mq/proto/Routing.h>
@@ -26,7 +26,7 @@
 #include <spdlog/sinks/msvc_sink.h>
 
 mq::ProtoPipeServer s_pipeServer{ mq::MQ2_PIPE_SERVER_PATH };
-mailbox::PostOffice s_postOffice{ &RouteMessage };
+mailbox::PostOffice s_postOffice{ [](const std::string& data) { RouteMessage(data); } };
 std::shared_ptr<mailbox::PostOffice::Mailbox> s_serverMailbox;
 
 struct ClientIdentification
@@ -54,7 +54,7 @@ bool SendMessageToPID(uint32_t pid, const PipeMessagePtr& message)
 	return connection != nullptr;
 }
 
-void RouteMessage(PipeMessagePtr message)
+void RouteMessage(const PipeMessagePtr& message)
 {
 	auto envelope = ProtoMessage::Parse<proto::Envelope>(message);
 	const auto& address = envelope.address();
@@ -283,7 +283,7 @@ void InitializeNamedPipeServer()
 	s_pipeServer.Start();
 
 	s_serverMailbox = AddMailbox("pipe_server",
-		[](ProtoMessagePtr message)
+		[](const ProtoMessagePtr& message)
 		{
 			s_pipeServer.DispatchMessage(message);
 		});

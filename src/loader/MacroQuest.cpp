@@ -15,7 +15,7 @@
 #include "MacroQuest.h"
 #include "ProcessMonitor.h"
 #include "Crashpad.h"
-#include "PipeServer.h"
+#include "PostOffice.h"
 
 #include "resource.h"
 

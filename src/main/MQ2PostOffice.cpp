@@ -13,7 +13,7 @@
  */
 
 #include "pch.h"
-#include "PipeClient.h"
+#include "MQ2PostOffice.h"
 #include "CrashHandler.h"
 
 #include "MQ2Main.h"
@@ -23,23 +23,23 @@
 namespace mq {
 
 ProtoPipeClient gPipeClient{ mq::MQ2_PIPE_SERVER_PATH };
-mailbox::PostOffice s_postOffice{ &pipeclient::RouteMessage };
+mailbox::PostOffice s_postOffice{ [](const std::string& data) { pipeclient::RouteMessage(data); } };
 std::shared_ptr<mailbox::PostOffice::Mailbox> s_clientMailbox;
 DWORD dwLauncherProcessID = 0;
 
 // MQModule forward declarations
 namespace pipeclient {
-static void SetGameStatePipeClient(DWORD);
+static void SetGameStatePostOffice(DWORD);
 }
 
 // we can't use a MQModule here for init/shutdown because initialization order matters.
-static MQModule s_PipeClientModule = {
-	"PipeClient",
+static MQModule s_PostOfficeModule = {
+	"PostOffice",
 	false,
 	nullptr,                                   // Initialize
 	nullptr,                                   // Shutdown
 	nullptr,                                   // Pulse
-	pipeclient::SetGameStatePipeClient,        // SetGameState
+	pipeclient::SetGameStatePostOffice,        // SetGameState
 	nullptr,                                   // UpdateImGui
 	nullptr,                                   // Zoned
 	nullptr,                                   // WriteChatColor
@@ -50,7 +50,7 @@ static MQModule s_PipeClientModule = {
 	nullptr,                                   // LoadPlugin
 	nullptr                                    // UnloadPlugin
 };
-MQModule* GetPipeClientModule() { return &s_PipeClientModule; }
+MQModule* GetPostOfficeModule() { return &s_PostOfficeModule; }
 
 class PipeEventsHandler : public NamedPipeEvents
 {
@@ -141,7 +141,7 @@ public:
 		msg.processId = GetCurrentProcessId();
 		gPipeClient.SendMessage(MQMessageId::MSG_MAIN_PROCESS_LOADED, &msg, sizeof(msg));
 		
-		pipeclient::SetGameStatePipeClient(0);
+		pipeclient::SetGameStatePostOffice(0);
 	}
 };
 
@@ -189,7 +189,7 @@ void RequestActivateWindow(HWND hWnd, bool sendMessage)
 	ShowWindow(hWnd, SW_RESTORE);
 }
 
-void SetGameStatePipeClient(DWORD GameState)
+void SetGameStatePostOffice(DWORD GameState)
 {
 	proto::Identification id;
 	id.set_pid(GetCurrentProcessId()); // we should always have a pid
@@ -227,7 +227,7 @@ bool RemoveMailbox(const std::string& localAddress)
 	return s_postOffice.RemoveMailbox(localAddress);
 }
 
-void RouteMessage(PipeMessagePtr message)
+void RouteMessage(const PipeMessagePtr& message)
 {
 	if (message->GetMessageId() == MQMessageId::MSG_ROUTE)
 	{
@@ -287,7 +287,7 @@ void InitializePipeClient()
 	::atexit([]() { gPipeClient.Stop(); });
 
 	s_clientMailbox = pipeclient::AddMailbox("pipe_client",
-		[](ProtoMessagePtr message)
+		[](const ProtoMessagePtr& message)
 		{
 			gPipeClient.DispatchMessage(message);
 		});

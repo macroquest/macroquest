@@ -15,9 +15,9 @@
 #include "MacroQuest.h"
 #include "resource.h"
 #include "HotKeyControl.h"
-#include "PipeServer.h"
+#include "PostOffice.h"
 
-#include <autologin/AutoLogin.h>
+#include "autologin/AutoLogin.h"
 
 #include <commdlg.h>
 #include <shellapi.h>
@@ -1989,11 +1989,11 @@ INT_PTR CALLBACK SettingsProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 
 void ReadMessage(ProtoMessagePtr message)
 {
-	switch (message->GetMessageId())
+	switch (static_cast<AutoLoginMessageId>(message->GetMessageId()))
 	{
-		case mq::MQMessageId::MSG_AUTOLOGIN_PROFILE_LOADED:
+		case AutoLoginMessageId::MSG_AUTOLOGIN_PROFILE_LOADED:
 		{
-			auto profile = ProtoMessage::Parse<proto::autologin::Profile>(message);
+			auto profile = ProtoMessage::Parse<proto::autologin::ProfileMethod>(message);
 			if (profile.has_target() && profile.target().has_character() && message->GetReturn() && message->GetReturn()->has_pid())
 			{
 				auto login = LoginMap[profile.profile()];
@@ -2016,9 +2016,9 @@ void ReadMessage(ProtoMessagePtr message)
 			break;
 		}
 
-		case mq::MQMessageId::MSG_AUTOLOGIN_PROFILE_UNLOADED:
+		case AutoLoginMessageId::MSG_AUTOLOGIN_PROFILE_UNLOADED:
 		{
-			auto profile = ProtoMessage::Parse<proto::autologin::Profile>(message);
+			auto profile = ProtoMessage::Parse<proto::autologin::ProfileMethod>(message);
 			if (message->GetReturn() && message->GetReturn()->has_pid())
 			{
 				auto pid = message->GetReturn()->pid();
@@ -2039,9 +2039,9 @@ void ReadMessage(ProtoMessagePtr message)
 			break;
 		}
 
-		case mq::MQMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO:
+		case AutoLoginMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO:
 		{
-			auto charinfo = ProtoMessage::Parse<proto::autologin::CharacterInfo>(message);
+			auto charinfo = ProtoMessage::Parse<proto::autologin::CharacterInfoMissive>(message);
 			if (message->GetReturn() && message->GetReturn()->has_pid())
 			{
 				auto pid = message->GetReturn()->pid();
@@ -2062,24 +2062,24 @@ void ReadMessage(ProtoMessagePtr message)
 			break;
 		}
 
-		case mq::MQMessageId::MSG_AUTOLOGIN_START_INSTANCE:
+		case AutoLoginMessageId::MSG_AUTOLOGIN_START_INSTANCE:
 		{
-			auto start = ProtoMessage::Parse<proto::autologin::StartInstance>(message);
+			auto start = ProtoMessage::Parse<proto::autologin::StartInstanceMissive>(message);
 			switch (start.method_case())
 			{
-			case proto::autologin::StartInstance::MethodCase::kManual:
-				if (start.manual().has_target())
+			case proto::autologin::StartInstanceMissive::MethodCase::kDirect:
+				if (start.direct().has_target())
 				{
 					DoPlainLogin(
-						start.manual().target().server(),
-						start.manual().login(),
-						start.manual().password(),
-						start.manual().target().has_character() ? start.manual().target().character() : ""
+						start.direct().target().server(),
+						start.direct().login(),
+						start.direct().password(),
+						start.direct().target().has_character() ? start.direct().target().character() : ""
 					);
 				}
 				break;
 
-			case proto::autologin::StartInstance::MethodCase::kProfile:
+			case proto::autologin::StartInstanceMissive::MethodCase::kProfile:
 				if (start.profile().has_target() && start.profile().target().has_character())
 				{
 					auto login = LoginMap[start.profile().profile()];

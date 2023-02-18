@@ -31,7 +31,8 @@ namespace mailbox {
 class PostOffice
 {
 public:
-	using ReceiveCallback = void(*)(ProtoMessagePtr);
+	using ReceiveCallback = std::function<void(const ProtoMessagePtr&)>;
+	using PostCallback = std::function<void(const std::string&)>;
 
 public:
 	class Mailbox
@@ -42,21 +43,21 @@ public:
 		Mailbox(
 			std::string_view localAddress,
 			ReceiveCallback receive,
-			void(*postCallback)(const std::string&)
+			PostCallback post
 		)
 			: m_localAddress(localAddress)
 			, m_receive(receive)
-			, m_post(postCallback)
+			, m_post(post)
 		{}
 
-		template <typename T>
-		void Post(const proto::Address& address, MQMessageId messageId, const T& obj)
+		template <typename ID, typename T>
+		void Post(const proto::Address& address, ID messageId, const T& obj)
 		{
 			m_post(Stuff(address, messageId, obj));
 		}
 
-		template <typename T>
-		void PostReply(ProtoMessagePtr message, MQMessageId messageId, const T& obj, uint8_t status = 0)
+		template <typename ID, typename T>
+		void PostReply(const ProtoMessagePtr& message, ID messageId, const T& obj, uint8_t status = 0)
 		{
 			if (auto returnAddress = message->GetReturn())
 			{
@@ -68,8 +69,8 @@ public:
 			}
 		}
 
-		template <typename T>
-		void PostReply(PipeMessagePtr message, const proto::Address& returnAddress, MQMessageId messageId, const T& obj, uint8_t status = 0)
+		template <typename ID, typename T>
+		void PostReply(const PipeMessagePtr& message, const proto::Address& returnAddress, ID messageId, const T& obj, uint8_t status = 0)
 		{
 			proto::Envelope envelope;
 			*envelope.mutable_address() = returnAddress;
@@ -86,7 +87,7 @@ public:
 		const std::string& GetAddress() const { return m_localAddress; }
 
 	private:
-		void Deliver(PipeMessagePtr message) const
+		void Deliver(const PipeMessagePtr& message) const
 		{
 			// Don't do anything if this isn't wrapped in an envelope
 			if (message->GetMessageId() == MQMessageId::MSG_ROUTE)
@@ -122,14 +123,14 @@ public:
 			return unwrapped;
 		}
 
-		template <typename T>
-		std::string Stuff(const proto::Address& address, MQMessageId messageId, const T& obj)
+		template <typename ID, typename T>
+		std::string Stuff(const proto::Address& address, ID messageId, const T& obj)
 		{
 			return Stuff(address, messageId, obj.SerializeAsString());
 		}
 
-		template <>
-		std::string Stuff(const proto::Address& address, MQMessageId messageId, const std::string& data)
+		template <typename ID>
+		std::string Stuff(const proto::Address& address, ID messageId, const std::string& data)
 		{
 			proto::Envelope envelope;
 			*envelope.mutable_address() = address;
@@ -146,16 +147,16 @@ public:
 		}
 
 	private:
-		void(*m_post)(const std::string&);
 		const std::string m_localAddress;
 		const ReceiveCallback m_receive;
+		const PostCallback m_post;
 
 		mutable std::queue<ProtoMessagePtr> m_receiveQueue;
 	};
 
 public:
-	PostOffice(void(*postAction)(const std::string&))
-		: m_post(postAction)
+	PostOffice(PostCallback post)
+		: m_post(post)
 	{}
 
 	std::shared_ptr<Mailbox> CreateMailbox(const std::string& localAddress, ReceiveCallback receive)
@@ -174,7 +175,7 @@ public:
 		return m_mailboxes.erase(localAddress) == 1;
 	}
 
-	bool DeliverTo(const std::string& localAddress, PipeMessagePtr message)
+	bool DeliverTo(const std::string& localAddress, const PipeMessagePtr& message)
 	{
 		auto mailbox_it = m_mailboxes.find(localAddress);
 		if (mailbox_it != m_mailboxes.end())
@@ -210,7 +211,7 @@ public:
 
 private:
 	std::unordered_map<std::string, std::weak_ptr<Mailbox>> m_mailboxes;
-	void(*m_post)(const std::string&);
+	const PostCallback m_post;
 };
 
 } // namespace mailbox
