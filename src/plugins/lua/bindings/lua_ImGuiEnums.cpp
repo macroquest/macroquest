@@ -193,6 +193,7 @@ void RegisterBindings_ImGuiEnums(sol::state_view lua)
 		"ItemSpacing"                  , ImGuiStyleVar_ItemSpacing,
 		"ItemInnerSpacing"             , ImGuiStyleVar_ItemInnerSpacing,
 		"IndentSpacing"                , ImGuiStyleVar_IndentSpacing,
+		"CellPadding"                  , ImGuiStyleVar_CellPadding,
 		"ScrollbarSize"                , ImGuiStyleVar_ScrollbarSize,
 		"ScrollbarRounding"            , ImGuiStyleVar_ScrollbarRounding,
 		"GrabMinSize"                  , ImGuiStyleVar_GrabMinSize,
