@@ -9,8 +9,8 @@
 			Condition="'$(ConfigurationType)' != 'Makefile'">_SelectedFiles;$(ProtocolBufferDependsOn)</ProtocolBufferDependsOn>
 		<ProtoImportPath Condition="'$(Platform)'=='Win32'">$(MQ2Root)contrib\vcpkg\installed\x86-windows\include</ProtoImportPath>
 		<ProtoImportPath Condition="'$(Platform)'=='x64'">$(MQ2Root)contrib\vcpkg\installed\x64-windows\include</ProtoImportPath>
-		<ProtocPath Condition="'$(Platform)'=='Win32'">$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\tools\protobuf\protoc.exe</ProtocPath>
-		<ProtocPath Condition="'$(Platform)'=='x64'">$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\tools\protobuf\protoc.exe</ProtocPath>
+		<ProtocPath>$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\tools\protobuf\protoc.exe</ProtocPath>
+		<ProtocPath Condition="!Exists('$(ProtocPath)') and Exists('$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\tools\protobuf\protoc.exe')">$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\tools\protobuf\protoc.exe</ProtocPath>
 	</PropertyGroup>
 	<ItemDefinitionGroup>
 		<ProtocolBuffer>
