@@ -143,6 +143,11 @@ catch [System.Management.Automation.CommandNotFoundException]
     $gitAvailable = $false
 }
 
+if (!$gitAvailable)
+{
+    Write-Warning "vcpkg could not find git.  You will need to manually bootstrap and upgrade when there are vcpkg updates"
+}
+
 # If multiple vcpkg_mq processes are running, try to divide them up so they're not running at EXACTLY the same time.
 $ProcessList = @(Get-CimInstance Win32_Process -Filter "name = 'powershell.exe'" | Where-Object {$_.CommandLine -like "*vcpkg_mq.ps1*"} | Sort-Object -Property ProcessId)
 if ($ProcessList.Count -gt 1) {
