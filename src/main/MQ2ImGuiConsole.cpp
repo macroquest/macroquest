@@ -1151,6 +1151,10 @@ public:
 		{
 			mq::HideDoCommand(pLocalPlayer, commandLine, true);
 		}
+		else if (gBuild == static_cast<int>(BuildTarget::Emu) && strlen(commandLine) > 1 && commandLine[0] == '#')
+		{
+			mq::HideDoCommand(pLocalPlayer, fmt::format("/say {}", commandLine).c_str(), true);
+		}
 		else
 		{
 			AddLog(IM_COL32(255, 0, 0, 255), "Unknown command: '{0}'\n", commandLine);
