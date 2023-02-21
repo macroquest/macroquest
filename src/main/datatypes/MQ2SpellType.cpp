@@ -523,13 +523,13 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	}
 
 	case SpellMembers::MyDuration:
-		Dest.DWord = EQGetMySpellDuration(pSpell);
+		Dest.DWord = GetMySpellDuration(pSpell);
 		Dest.Type = pTicksType;
 		return true;
 
 	case SpellMembers::EQSpellDuration:
 	case SpellMembers::Duration:
-		Dest.DWord = EQGetSpellDuration(pSpell, pLocalPlayer ? pLocalPlayer->Level : 0, false);
+		Dest.DWord = GetSpellDuration(pSpell, pLocalPlayer ? pLocalPlayer->Level : 0, false);
 		Dest.Type = pTicksType;
 		return true;
 
@@ -631,7 +631,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		if (ret && SlotIndex != -1)
 		{
 			int duration = GetIntFromString(Index, 0);
-			if (duration == 0 || (duration > 0 && EQGetSpellDuration(pSpell, pLocalPlayer->Level, false) >= 1 && ret->Duration < duration))
+			if (duration == 0 || (duration > 0 && GetSpellDuration(pSpell, pLocalPlayer->Level, false) >= 1 && ret->Duration < duration))
 				Dest.Set(true);
 		}
 
@@ -677,7 +677,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 				// Blocking buff duration is greater than duration argument
 				int duration = GetIntFromString(Index, 0);
 				if (duration == 0 ||
-					(EQGetSpellDuration(pBuffSpell, pLocalPlayer->Level, false) < -1 || ceil(pPetInfoWnd->PetBuffTimer[nBuff] / 6000) > duration))
+					(GetSpellDuration(pBuffSpell, pLocalPlayer->Level, false) < -1 || ceil(pPetInfoWnd->PetBuffTimer[nBuff] / 6000) > duration))
 				{
 					Dest.Set(false);
 					return true;
