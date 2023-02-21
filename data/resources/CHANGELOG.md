@@ -1,3 +1,6 @@
+February 20, 2023:
+- emu: MQ Console will now allow GM commands (#zone)
+
 February 15, 2023:
 - live: Update for patch
 

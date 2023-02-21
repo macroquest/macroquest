@@ -114,7 +114,7 @@ bool InitializeCrashpad()
 	std::wstring handlerPath(utf8_to_wstring(mq::internal_paths::MQRoot + "\\crashpad_handler.exe"));
 
 	// This should point to your server dump submission port (labeled as "http/writer"
-	// in the listener configuration pane. Preferrably, the SSL enabled port should
+	// in the listener configuration pane. Preferably, the SSL enabled port should
 	// be used. If Backtrace is hosting your instance, the default port is 6098.
 	std::string url(gCrashpadSubmissionURL);
 
@@ -123,9 +123,9 @@ bool InitializeCrashpad()
 		arguments.emplace_back("--no-rate-limit");
 	}
 
-	base::FilePath db(dbPath);
-	base::FilePath handler(handlerPath);
-	std::unique_ptr<crashpad::CrashReportDatabase> database = crashpad::CrashReportDatabase::Initialize(db);
+	const base::FilePath db(dbPath);
+	const base::FilePath handler(handlerPath);
+	const std::unique_ptr<crashpad::CrashReportDatabase> database = crashpad::CrashReportDatabase::Initialize(db);
 
 	if (database == nullptr || database->GetSettings() == nullptr)
 	{
@@ -169,7 +169,7 @@ bool InitializeCrashpad()
 	}
 
 	// Wait for Crashpad to initialize.
-	bool success = gCrashpadClient->WaitForHandlerStart(INFINITE);
+	const bool success = gCrashpadClient->WaitForHandlerStart(INFINITE);
 
 	if (success)
 	{
@@ -200,8 +200,8 @@ void InitializeCrashpadPipe(const std::string& pipeName)
 		std::wstring wPipeName = mq::utf8_to_wstring(pipeName);
 
 		// Open database and read the guid.
-		std::wstring dbPath(utf8_to_wstring(mq::internal_paths::CrashDumps));
-		std::unique_ptr<crashpad::CrashReportDatabase> database = crashpad::CrashReportDatabase::Initialize(base::FilePath(dbPath));
+		const std::wstring dbPath(utf8_to_wstring(mq::internal_paths::CrashDumps));
+		const std::unique_ptr<crashpad::CrashReportDatabase> database = crashpad::CrashReportDatabase::Initialize(base::FilePath(dbPath));
 		if (!database || !database->GetSettings())
 		{
 			SPDLOG_ERROR("Failed to create crashpad::CrashReportDatabase");

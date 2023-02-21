@@ -770,7 +770,7 @@ static void CreateSpellTextDetails(fmt::memory_buffer& out, EQ_Spell* pSpell);
 static CXStr CreateItemSpellTag(ItemSpellData::SpellData* Effect, EQ_Spell* pSpell)
 {
 	fmt::memory_buffer buf;
-	fmt::format_to(fmt::appender(buf), "{:d}^{:d}^{:d}", 3, pSpell->ID, Effect->EffectType);
+	fmt::format_to(fmt::appender(buf), "{:d}^{:d}^{:d}", 3, pSpell->ID, static_cast<int>(Effect->EffectType));
 
 	return CStmlWnd::MakeWndNotificationTag(XWM_SPELL_LINK, Effect->OverrideName[0] ? Effect->OverrideName : pSpell->Name,
 		CXStr{ buf.data(), buf.size() });
@@ -854,7 +854,7 @@ struct class_name_level {
 template <>
 struct fmt::formatter<class_name_level> : fmt::formatter<string_view> {
 	template <typename FormatContext>
-	auto format(const class_name_level& r, FormatContext& ctx) {
+	auto format(const class_name_level& r, FormatContext& ctx) const {
 		return format_to(ctx.out(), "{}({})", GetClassDesc(r.class_id), r.level);
 	}
 };

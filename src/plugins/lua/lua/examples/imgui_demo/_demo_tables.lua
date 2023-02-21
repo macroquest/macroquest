@@ -113,7 +113,9 @@ MyTreeNode = {}
 
 ---@return MyTreeNode
 function MyTreeNode.new(name, type, size, childIdx, childCount)
-    local o = setmetatable({}, MyTreeNode)
+    MyTreeNode.__index = MyTreeNode
+    local o = {}
+    setmetatable(o, MyTreeNode)
     o.Name = name
     o.Type = type
     o.Size = size
