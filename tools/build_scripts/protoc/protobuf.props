@@ -11,12 +11,15 @@
 		<ProtoImportPath Condition="'$(Platform)'=='x64'">$(MQ2Root)contrib\vcpkg\installed\x64-windows\include</ProtoImportPath>
 		<!-- This is the most likely path to exist -->
 		<ProtocPath>$(MQ2Root)contrib\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe</ProtocPath>
+		<ExistsProtocPath>false</ExistsProtocPath>
 		<ExistsProtocPath Condition="Exists('$(ProtocPath)')">true</ExistsProtocPath>
 		<!-- This only matters if the first path doesn't exist -->
 		<ProtocPathx64Static>$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\tools\protobuf\protoc.exe</ProtocPathx64Static>
+		<ExistsProtocPathx64Static>false</ExistsProtocPathx64Static>
 		<ExistsProtocPathx64Static Condition="!$(ExistsProtocPath) and Exists('$(ProtocPathx64Static)')">true</ExistsProtocPathx64Static>
 		<!-- This only matters if neither of the two above paths exist -->
 		<ProtocPathx86Static>$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\tools\protobuf\protoc.exe</ProtocPathx86Static>
+		<ExistsProtocPathx86Static>false</ExistsProtocPathx86Static>
 		<ExistsProtocPathx86Static Condition="!$(ExistsProtocPath) and !$(ExistsProtocPathx64Static)">true</ExistsProtocPathx86Static>
 		<!-- Path search -->
 		<ProtocPath Condition="!$(ExistsProtocPath) and $(ExistsProtocPathx64Static)">$(ProtocPathx64Static)</ProtocPath>
