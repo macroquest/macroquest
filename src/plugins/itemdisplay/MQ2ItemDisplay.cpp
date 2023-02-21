@@ -868,7 +868,7 @@ static void CreateSpellTextDetails(fmt::memory_buffer& out, EQ_Spell* pSpell)
 
 	fmt::format_to(buffer, "ID: {:04d}{}", pSpell->ID, rep(28, "&nbsp;"));
 
-	int Ticks = GetSpellDuration(pSpell, pLocalPlayer);
+	int Ticks = EQGetSpellDuration(pSpell, pLocalPlayer ? pLocalPlayer->Level : 0, true);
 	if (Ticks == -1)
 		fmt::format_to(buffer, "Duration: Permanent<br>");
 	else if (Ticks == -2)

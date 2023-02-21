@@ -405,7 +405,6 @@ MQLIB_API ItemDefinition* GetItemFromContents(ItemClient* c);
 MQLIB_API bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineNumber, int localLine);
 
 MQLIB_API const char* GetLightForSpawn(SPAWNINFO* pSpawn);
-MQLIB_API int GetSpellDuration(EQ_Spell* pSpell, PlayerClient* pSpawn);
 MQLIB_API int GetDeityTeamByID(int DeityID);
 MQLIB_API int ConColor(SPAWNINFO* pSpawn);
 
