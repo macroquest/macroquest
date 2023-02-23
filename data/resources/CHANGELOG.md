@@ -1,5 +1,5 @@
 February 21, 2023:
-- Removed GetSpellDuration and CalcDuration because they were wrong
+- GetSpellDuration now returns correct duration. Deprecated EQGetSpellDuration.
 
 February 20, 2023:
 - emu: MQ Console will now allow GM commands (#zone)
