@@ -744,17 +744,19 @@ struct MQVarPtr
 	template <typename T>
 	T Cast() const
 	{
-		using ToType = T;
-		std::optional<ToType> to;
+		// These type aliases will mask the underlying type in diagnostic messages.
+		//using ToType = T;
+		//using FromType = ;
+
+		std::optional<T> to;
 
 		auto visitor = [&to, this](const auto& from)
 		{
-			using FromType = std::decay_t<decltype(from)>;
-			detail::ConvertData<FromType, ToType>(from, to);
+			detail::ConvertData<std::decay_t<decltype(from)>, T>(from, to);
 		};
 
 		std::visit(visitor, Data);
-		return to.value_or(ToType());
+		return to.value_or(T());
 	}
 
 	template <typename T>
