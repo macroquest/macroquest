@@ -1470,7 +1470,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 			}
 		}
 
-		return Dest.HighPart >= 0;
+		return true;
 
 	case SpawnMembers::CachedBuffCount:
 		Dest.Type = pIntType;
@@ -1499,7 +1499,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 				});
 		}
 
-		return Dest.HighPart >= 0;
+		return true;
 
 	case SpawnMembers::FindBuff:
 	{
@@ -1538,7 +1538,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 				});
 		}
 
-		return Dest.HighPart >= 0;
+		return true;
 
 	case SpawnMembers::BuffCount:
 		Dest.Type = pIntType;

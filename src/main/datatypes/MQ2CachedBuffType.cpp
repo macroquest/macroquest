@@ -45,6 +45,9 @@ MQ2CachedBuffType::MQ2CachedBuffType() : MQ2Type("cachedbuff")
 
 bool MQ2CachedBuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
+	if (static_cast<int>(VarPtr.HighPart) == -1)
+		return false;
+
 	auto pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
 	auto buff = GetCachedBuffAtSlot(pSpawn, VarPtr.HighPart);
 	if (!buff || buff->spellId <= 0)
