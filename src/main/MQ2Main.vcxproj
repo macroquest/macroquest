@@ -163,6 +163,12 @@
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">pch.h</ForcedIncludeFiles>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</ForcedIncludeFiles>
     </ClCompile>
+    <ClCompile Include="..\common\WStringUtils.cpp">
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">pch.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">pch.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</ForcedIncludeFiles>
+    </ClCompile>
     <ClCompile Include="datatypes\MQ2AchievementType.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -558,6 +564,7 @@
     <ClInclude Include="..\..\include\mq\base\Detours.h" />
     <ClInclude Include="..\..\include\mq\base\Signal.h" />
     <ClInclude Include="..\..\include\mq\base\SimpleLexer.h" />
+    <ClInclude Include="..\..\include\mq\base\String.h" />
     <ClInclude Include="..\..\include\mq\base\Threading.h" />
     <ClInclude Include="..\..\include\mq\base\Vector.h" />
     <ClInclude Include="..\..\include\mq\imgui\ImGuiUtils.h" />

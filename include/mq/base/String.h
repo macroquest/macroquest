@@ -14,8 +14,6 @@
 
 #pragma once
 
-#include <mq/base/Common.h>
-
 #include <algorithm>
 #include <charconv>
 #include <string>
@@ -25,8 +23,6 @@
 #include <numeric>
 #include <unordered_map>
 #include <unordered_set>
-
-#include <Windows.h>
 
 namespace mq {
 
@@ -694,31 +690,7 @@ inline bool GetBoolFromString(const std::string_view svString, const bool defaul
 	return returnValue;
 }
 
-
-// convert UTF-8 string to wstring
-inline std::wstring utf8_to_wstring(std::string_view s)
-{
-	if (s.empty()) return {};
-
-	int slength = (int)s.length();
-	int len = ::MultiByteToWideChar(CP_UTF8, 0, s.data(), slength, nullptr, 0);
-	std::wstring r;
-	r.resize(len);
-	::MultiByteToWideChar(CP_UTF8, 0, s.data(), slength, r.data(), len);
-	return r;
-}
-
-// convert UTF16 wstring to string
-inline std::string wstring_to_utf8(const std::wstring& s)
-{
-	if (s.empty())
-		return {};
-
-	int sizeNeeded = ::WideCharToMultiByte(CP_UTF8, 0, &s[0], (int)s.size(), nullptr, 0, nullptr, nullptr);
-	std::string r;
-	r.resize(sizeNeeded, 0);
-	::WideCharToMultiByte(CP_UTF8, 0, s.c_str(), (int)s.size(), &r[0], sizeNeeded, nullptr, nullptr);
-	return r;
-}
+std::wstring utf8_to_wstring(std::string_view s);
+std::string wstring_to_utf8(const std::wstring& s);
 
 } // namespace mq

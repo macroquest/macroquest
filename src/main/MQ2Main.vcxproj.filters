@@ -403,6 +403,9 @@
     <ClInclude Include="..\common\StringUtils.h">
       <Filter>Header Files\common</Filter>
     </ClInclude>
+    <ClCompile Include="..\common\WStringUtils.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
     <ClInclude Include="..\..\contrib\Blech\Blech.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -534,6 +537,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\mq\api\Items.h">
       <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\String.h">
+      <Filter>Header Files\mq\base</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
