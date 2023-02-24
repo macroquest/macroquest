@@ -27,6 +27,8 @@
 #include <wil/resource.h>
 #include <filesystem>
 
+#include "mq/base/WString.h"
+
 #include <dbghelp.h>
 #pragma comment(lib, "dbghelp.lib")
 

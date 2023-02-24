@@ -17,7 +17,8 @@
 
 #include "common/NamedPipes.h"
 #include "common/NamedPipesProtocol.h"
-#include "common/StringUtils.h"
+#include "common/Common.h"
+#include "mq/base/WString.h"
 
 #include <windows.h>
 #include <stdio.h>
@@ -28,8 +29,6 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/bin_to_hex.h>
 #include <wil/resource.h>
-
-#include <codecvt>
 
 using namespace std::chrono_literals;
 
@@ -601,10 +600,7 @@ void NamedPipeEndpointBase::Start()
 			auto SetThreadDescription = (fSetThreadDescription)GetProcAddress(GetModuleHandle("kernel32.dll"), "SetThreadDescription");
 			if (SetThreadDescription)
 			{
-				std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-				std::wstring wthreadName = converter.from_bytes(m_threadName);
-
-				SetThreadDescription(GetCurrentThread(), wthreadName.c_str());
+				SetThreadDescription(GetCurrentThread(), utf8_to_wstring(m_threadName).c_str());
 			}
 
 			m_pipeThreadId = std::this_thread::get_id();

@@ -16,6 +16,7 @@
 #include "Crashpad.h"
 
 #include "common/StringUtils.h"
+#include "mq/base/WString.h"
 
 #include <client/crash_report_database.h>
 #include <client/settings.h>

@@ -19,6 +19,7 @@
 #include "MQ2Utilities.h"
 
 #include <mq/api/Items.h>
+#include <mq/base/WString.h>
 
 #include <DbgHelp.h>
 #include <PathCch.h>
