@@ -403,9 +403,6 @@
     <ClInclude Include="..\common\StringUtils.h">
       <Filter>Header Files\common</Filter>
     </ClInclude>
-    <ClCompile Include="..\common\WStringUtils.cpp">
-      <Filter>Source Files\common</Filter>
-    </ClCompile>
     <ClInclude Include="..\..\contrib\Blech\Blech.h">
       <Filter>Header Files</Filter>
     </ClInclude>

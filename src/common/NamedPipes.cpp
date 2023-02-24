@@ -18,6 +18,7 @@
 #include "common/NamedPipes.h"
 #include "common/NamedPipesProtocol.h"
 #include "common/Common.h"
+#include "mq/base/WString.h"
 
 #include <windows.h>
 #include <stdio.h>

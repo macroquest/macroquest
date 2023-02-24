@@ -690,7 +690,4 @@ inline bool GetBoolFromString(const std::string_view svString, const bool defaul
 	return returnValue;
 }
 
-std::wstring utf8_to_wstring(std::string_view s);
-std::string wstring_to_utf8(const std::wstring& s);
-
 } // namespace mq

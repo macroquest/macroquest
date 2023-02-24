@@ -130,7 +130,6 @@
   <ItemGroup>
     <ClCompile Include="..\common\HotKeys.cpp" />
     <ClCompile Include="..\common\NamedPipes.cpp" />
-    <ClCompile Include="..\common\WStringUtils.cpp" />
     <ClCompile Include="..\plugins\autologin\AutoLoginShared.cpp" />
     <ClCompile Include="AutoLogin.cpp" />
     <ClCompile Include="Crashpad.cpp" />

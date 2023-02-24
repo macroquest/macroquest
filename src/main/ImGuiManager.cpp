@@ -28,6 +28,7 @@
 
 // move to mq/utils? or do we need a new static lib?
 #include "common/HotKeys.h"
+#include <mq/base/WString.h>
 #include <mq/utils/Benchmarks.h>
 
 #include <cfenv>

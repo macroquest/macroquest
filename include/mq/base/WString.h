@@ -18,7 +18,7 @@
 namespace mq {
 
 // convert UTF-8 string to wstring
-std::wstring utf8_to_wstring(std::string_view s)
+inline std::wstring utf8_to_wstring(std::string_view s)
 {
 	if (s.empty()) return {};
 
@@ -31,7 +31,7 @@ std::wstring utf8_to_wstring(std::string_view s)
 }
 
 // convert UTF16 wstring to string
-std::string wstring_to_utf8(const std::wstring& s)
+inline std::string wstring_to_utf8(const std::wstring& s)
 {
 	if (s.empty())
 		return {};
