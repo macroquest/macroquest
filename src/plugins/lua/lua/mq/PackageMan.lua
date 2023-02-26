@@ -40,7 +40,7 @@ local cliInstallPath = mq.TLO.Lua.Dir('modules')() .. '\\luarocks'
 --    3 - package install failed
 --    4 - no package
 --    5 - prompt timed out
----@param package_name string # The package name
+---@param package_name string The package name
 ---@return InstallResult
 PackageMan.Install = function(package_name)
     if not package_name then return 4 end
@@ -84,8 +84,8 @@ PackageMan.Install = function(package_name)
     return 0
 end
 
----@param package_name string # The package name
----@param require_name? string # The package internal export name
+---@param package_name string The package name
+---@param require_name? string The package internal export name
 ---@return nil | any
 PackageMan.InstallAndLoad = function(package_name, require_name)
     if package_name then
@@ -97,9 +97,9 @@ PackageMan.InstallAndLoad = function(package_name, require_name)
     return nil
 end
 
----@param package_name string # The package name
----@param require_name? string # The package internal export name
----@param fail_message? string # Oevrride fail message if package fails to load
+---@param package_name string The package name
+---@param require_name? string The package internal export name
+---@param fail_message? string Oevrride fail message if package fails to load
 ---@return any
 PackageMan.Require = function(package_name, require_name, fail_message)
     require_name = require_name or package_name
