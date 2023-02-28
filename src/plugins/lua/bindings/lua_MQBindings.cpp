@@ -437,16 +437,9 @@ static void serialize(sol::object obj, int prefix_count, fmt::appender& appender
 			{
 				if (can_serialize(val))
 				{
-					if (key.is<std::string>())
-					{
-						fmt::format_to(appender, "{:\t>{}}\t{} = ", "", prefix_count, key.as<std::string>());
-					}
-					else
-					{
-						fmt::format_to(appender, "{:\t>{}}\t[", "", prefix_count);
-						serialize(key, prefix_count + 1, appender);
-						fmt::format_to(appender, "] = ");
-					}
+					fmt::format_to(appender, "{:\t>{}}\t[", "", prefix_count);
+					serialize(key, prefix_count + 1, appender);
+					fmt::format_to(appender, "] = ");
 
 					serialize(val, prefix_count + 1, appender);
 					fmt::format_to(appender, ",\n");
