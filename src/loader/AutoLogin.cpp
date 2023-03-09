@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -192,12 +192,22 @@ std::string ReadEncryptedFile(const std::string& filename, const std::string& pa
 	wil::unique_hcryptprov hCryptProv;
 	if (!CryptAcquireContext(&hCryptProv, nullptr, MS_ENHANCED_PROV, PROV_RSA_FULL, 0))
 	{
-		DWORD lasterr = GetLastError();
+		if (!CryptAcquireContext(&hCryptProv, nullptr, MS_ENHANCED_PROV, PROV_RSA_FULL, CRYPT_NEWKEYSET))
+		{
+			DWORD lasterr = GetLastError();
 
-		// FIXME: Logging instead
-		char szErr[MAX_STRING] = { 0 };
-		sprintf_s(szErr, "CryptAcquireContext returned %d", lasterr);
-		MessageBox(nullptr, szErr, "Unexpected Error", MB_SYSTEMMODAL | MB_OK);
+			// FIXME: Logging instead
+			char szErr[MAX_STRING] = { 0 };
+			if (lasterr == NTE_BAD_KEYSET)
+			{
+				strcpy_s(szErr, "CryptAcquireContext: Access denied");
+			}
+			else
+			{
+				sprintf_s(szErr, "CryptAcquireContext returned: %x", lasterr);
+			}
+			MessageBox(nullptr, szErr, "Unexpected Error", MB_SYSTEMMODAL | MB_OK);
+		}
 	}
 
 	wil::unique_hcrypthash hHash;
@@ -417,11 +427,23 @@ bool WriteToFileEncrypted(const std::string& data, const std::string& filename, 
 	wil::unique_hcryptprov hCryptProv;
 	if (!CryptAcquireContext(&hCryptProv, nullptr, MS_ENHANCED_PROV, PROV_RSA_FULL, 0))
 	{
-		char szMessage[MAX_STRING] = { 0 };
-		sprintf_s(szMessage, "CryptAcquireContext Failed Error: %x", GetLastError());
-		MessageBox(hAskPassWnd, szMessage, "Unexpected Error", MB_OK | MB_SYSTEMMODAL);
+		if (!CryptAcquireContext(&hCryptProv, nullptr, MS_ENHANCED_PROV, PROV_RSA_FULL, CRYPT_NEWKEYSET))
+		{
+			char szMessage[MAX_STRING] = { 0 };
+			auto lasterr = GetLastError();
+			if (lasterr == NTE_BAD_KEYSET)
+			{
+				strcpy_s(szMessage, "CryptAcquireContext: Access denied");
+			}
+			else
+			{
+				sprintf_s(szMessage, "CryptAcquireContext returned: %x", lasterr);
+			}
 
-		return false;
+			MessageBox(hAskPassWnd, szMessage, "Unexpected Error", MB_OK | MB_SYSTEMMODAL);
+
+			return false;
+		}
 	}
 
 	wil::unique_hcrypthash hHash;

@@ -1,6 +1,9 @@
 March 8, 2023:
 - test: Updated for patch
 
+February 24, 2023:
+- Fix CryptAcquireContext error when importing Autologin profiles
+
 February 23, 2023:
 - test: Updated for patch
 

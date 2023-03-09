@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -437,16 +437,9 @@ static void serialize(sol::object obj, int prefix_count, fmt::appender& appender
 			{
 				if (can_serialize(val))
 				{
-					if (key.is<std::string>())
-					{
-						fmt::format_to(appender, "{:\t>{}}\t{} = ", "", prefix_count, key.as<std::string>());
-					}
-					else
-					{
-						fmt::format_to(appender, "{:\t>{}}\t[", "", prefix_count);
-						serialize(key, prefix_count + 1, appender);
-						fmt::format_to(appender, "] = ");
-					}
+					fmt::format_to(appender, "{:\t>{}}\t[", "", prefix_count);
+					serialize(key, prefix_count + 1, appender);
+					fmt::format_to(appender, "] = ");
 
 					serialize(val, prefix_count + 1, appender);
 					fmt::format_to(appender, ",\n");

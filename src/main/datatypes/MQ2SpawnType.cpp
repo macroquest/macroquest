@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -1470,7 +1470,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 			}
 		}
 
-		return Dest.HighPart >= 0;
+		return true;
 
 	case SpawnMembers::CachedBuffCount:
 		Dest.Type = pIntType;
@@ -1499,7 +1499,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 				});
 		}
 
-		return Dest.HighPart >= 0;
+		return true;
 
 	case SpawnMembers::FindBuff:
 	{
@@ -1538,7 +1538,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 				});
 		}
 
-		return Dest.HighPart >= 0;
+		return true;
 
 	case SpawnMembers::BuffCount:
 		Dest.Type = pIntType;

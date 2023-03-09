@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -19,6 +19,7 @@
 #include "MQ2Utilities.h"
 
 #include <mq/api/Items.h>
+#include <mq/base/WString.h>
 
 #include <DbgHelp.h>
 #include <PathCch.h>
