@@ -98,6 +98,7 @@ namespace internal_paths
 	extern std::string MQini;
 	extern std::string Macros;
 	extern std::string Logs;
+	extern std::string Lua;
 	extern std::string CrashDumps;
 	extern std::string Plugins;
 	extern std::string Resources;

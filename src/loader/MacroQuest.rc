@@ -25,18 +25,18 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE 
+1 TEXTINCLUDE
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE 
+2 TEXTINCLUDE
 BEGIN
     "#include ""winres.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE 
+3 TEXTINCLUDE
 BEGIN
     "\r\n"
     "\0"
@@ -107,9 +107,10 @@ BEGIN
     BEGIN
         POPUP "Open Folder"
         BEGIN
-            MENUITEM "MacroQuest Root",             ID_FILE_OPENFOLDERMQ2
+            MENUITEM "MacroQuest Root",             ID_FILE_OPENFOLDERMQ
             MENUITEM "Config",                      ID_FILE_OPENFOLDERCONFIG
             MENUITEM "Macros",                      ID_FILE_OPENFOLDERMACROS
+            MENUITEM "Lua",                         ID_FILE_OPENFOLDERLUA
             MENUITEM "Resources",                   ID_FILE_OPENFOLDERRESOURCES
             MENUITEM "Logs",                        ID_FILE_OPENFOLDERLOGS
             MENUITEM "Crash Dumps",                 ID_FILE_OPENFOLDERCRASHDUMPS
@@ -256,37 +257,37 @@ END
 IDD_PROFILE_EDIT DLGINIT
 BEGIN
     IDC_COMBO_CCLASS, 0x403, 4, 0
-0x4157, 0x0052, 
+0x4157, 0x0052,
     IDC_COMBO_CCLASS, 0x403, 4, 0
-0x4c43, 0x0052, 
+0x4c43, 0x0052,
     IDC_COMBO_CCLASS, 0x403, 4, 0
-0x4150, 0x004c, 
+0x4150, 0x004c,
     IDC_COMBO_CCLASS, 0x403, 4, 0
-0x4e52, 0x0047, 
+0x4e52, 0x0047,
     IDC_COMBO_CCLASS, 0x403, 4, 0
-0x4853, 0x0044, 
+0x4853, 0x0044,
     IDC_COMBO_CCLASS, 0x403, 4, 0
-0x5244, 0x0055, 
+0x5244, 0x0055,
     IDC_COMBO_CCLASS, 0x403, 4, 0
-0x4e4d, 0x004b, 
+0x4e4d, 0x004b,
     IDC_COMBO_CCLASS, 0x403, 4, 0
-0x5242, 0x0044, 
+0x5242, 0x0044,
     IDC_COMBO_CCLASS, 0x403, 4, 0
-0x4f52, 0x0047, 
+0x4f52, 0x0047,
     IDC_COMBO_CCLASS, 0x403, 4, 0
-0x4853, 0x004d, 
+0x4853, 0x004d,
     IDC_COMBO_CCLASS, 0x403, 4, 0
-0x454e, 0x0043, 
+0x454e, 0x0043,
     IDC_COMBO_CCLASS, 0x403, 4, 0
-0x4957, 0x005a, 
+0x4957, 0x005a,
     IDC_COMBO_CCLASS, 0x403, 4, 0
-0x414d, 0x0047, 
+0x414d, 0x0047,
     IDC_COMBO_CCLASS, 0x403, 4, 0
-0x4e45, 0x0043, 
+0x4e45, 0x0043,
     IDC_COMBO_CCLASS, 0x403, 4, 0
-0x5342, 0x0054, 
+0x5342, 0x0054,
     IDC_COMBO_CCLASS, 0x403, 4, 0
-0x4542, 0x0052, 
+0x4542, 0x0052,
     0
 END
 

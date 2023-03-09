@@ -42,12 +42,13 @@
 #define ID_CHARACTER_EDIT               6000
 #define ID_CHARACTER_DELETE             6001
 #define ID_CHARACTER_TOGGLE             6002
-#define ID_FILE_OPENFOLDERMQ2           40000
+#define ID_FILE_OPENFOLDERMQ            40000
 #define ID_FILE_OPENFOLDERCONFIG        40001
 #define ID_FILE_OPENFOLDERMACROS        40002
 #define ID_FILE_OPENFOLDERRESOURCES     40003
 #define ID_FILE_OPENFOLDERLOGS          40004
 #define ID_FILE_OPENFOLDERCRASHDUMPS    40005
+#define ID_FILE_OPENFOLDERLUA		    40006
 #define ID_ADVANCED_TOGGLECONSOLE       40009
 #define ID_MQSITES_DOWNLOAD             40014
 #define ID_MQSITES_WIKI                 40015
@@ -74,7 +75,7 @@
 #define ID_UNLOADALLMQ                  40061
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        111

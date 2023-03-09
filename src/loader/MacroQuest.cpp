@@ -212,6 +212,7 @@ std::string internal_paths::Logs = "Logs";
 std::string internal_paths::CrashDumps = internal_paths::Logs + "\\Dumps";
 std::string internal_paths::Plugins = "Plugins";
 std::string internal_paths::Resources = "Resources";
+std::string internal_paths::Lua = "Lua";
 
 bool InitializeDirectory(std::string& strPathToInit,
 	const std::string& iniKey, const std::string& iniFile,
@@ -847,7 +848,7 @@ void HandleCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 
-	case ID_FILE_OPENFOLDERMQ2:
+	case ID_FILE_OPENFOLDERMQ:
 		ShellExecute(hWnd, "explore", internal_paths::MQRoot.c_str(), nullptr, lpModulePath, SW_SHOW);
 		break;
 
@@ -869,6 +870,10 @@ void HandleCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 
 	case ID_FILE_OPENFOLDERCRASHDUMPS:
 		ShellExecute(hWnd, "explore", internal_paths::CrashDumps.c_str(), nullptr, lpModulePath, SW_SHOW);
+		break;
+
+	case ID_FILE_OPENFOLDERLUA:
+		ShellExecute(hWnd, "explore", internal_paths::Lua.c_str(), nullptr, lpModulePath, SW_SHOW);
 		break;
 
 	case ID_MENU_INI:
