@@ -1,8 +1,11 @@
+March 8, 2023:
+- test: Updated for patch
+
 February 23, 2023:
 - test: Updated for patch
 
 February 21, 2023:
-- GetSpellDuration now returns correct spell duration. Deprecated EQGetSpellDuration.
+- GetSpellDuration now returns correct duration. Deprecated EQGetSpellDuration.
 
 February 20, 2023:
 - emu: MQ Console will now allow GM commands (#zone)
