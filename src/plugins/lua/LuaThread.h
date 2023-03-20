@@ -16,6 +16,8 @@
 
 #include "LuaCommon.h"
 
+#include "mq/base/GlobalBuffer.h"
+
 #include <sol/sol.hpp>
 
 #include <chrono>
@@ -101,6 +103,8 @@ public:
 	const std::string& GetScript() const { return m_path; }
 	sol::state_view GetState() const;
 	sol::thread GetLuaThread() const;
+	// Buffer to get swapped in for DataTypeTemp
+	char buffer[SGlobalBuffer::bufferSize] = { 0 };
 
 	void InjectMQNamespace();
 	void SetTurbo(uint32_t turboVal) { m_turboNum = turboVal; }

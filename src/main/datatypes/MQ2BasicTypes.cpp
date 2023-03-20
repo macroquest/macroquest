@@ -128,7 +128,7 @@ bool MQ2IntType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 
 	case IntMembers::Prettify:
 		sprintf_s(DataTypeTemp, "%d", VarPtr.Int);
-		PrettifyNumber(DataTypeTemp, sizeof(DataTypeTemp), IsNumber(Index) ? atoi(Index) : 0);
+		PrettifyNumber(DataTypeTemp, DataTypeTemp.Size(), GetIntFromString(Index, 0));
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
@@ -231,7 +231,7 @@ bool MQ2Int64Type::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case Int64Members::Prettify:
 		sprintf_s(DataTypeTemp, "%lld", VarPtr.Int64);
-		PrettifyNumber(DataTypeTemp, sizeof(DataTypeTemp), IsNumber(Index) ? atoi(Index) : 0);
+		PrettifyNumber(DataTypeTemp, DataTypeTemp.Size(), GetIntFromString(Index, 0));
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
@@ -917,7 +917,7 @@ bool MQ2FloatType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case FloatMembers::Prettify:
 		sprintf_s(DataTypeTemp, "%lld", VarPtr.Int64);
-		PrettifyNumber(DataTypeTemp, sizeof(DataTypeTemp), IsNumber(Index) ? atoi(Index) : 2);
+		PrettifyNumber(DataTypeTemp, DataTypeTemp.Size(), GetIntFromString(Index, 2));
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
@@ -1024,7 +1024,7 @@ bool MQ2DoubleType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 
 	case DoubleMembers::Prettify:
 		sprintf_s(DataTypeTemp, "%lld", VarPtr.Int64);
-		PrettifyNumber(DataTypeTemp, sizeof(DataTypeTemp), IsNumber(Index) ? atoi(Index) : 2);
+		PrettifyNumber(DataTypeTemp, DataTypeTemp.Size(), GetIntFromString(Index, 2));
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;

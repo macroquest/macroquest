@@ -232,7 +232,7 @@ public:
 		case Members::StartTime: {
 			Dest.Type = pStringType;
 			time_t startTime = std::chrono::system_clock::to_time_t(info->startTime);
-			ctime_s(DataTypeTemp, MAX_STRING, &startTime);
+			ctime_s(DataTypeTemp, DataTypeTemp.Size(), &startTime);
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 		}
@@ -242,7 +242,7 @@ public:
 			{
 				Dest.Type = pStringType;
 				time_t endTime = std::chrono::system_clock::to_time_t(info->endTime);
-				ctime_s(DataTypeTemp, MAX_STRING, &endTime);
+				ctime_s(DataTypeTemp, DataTypeTemp.Size(), &endTime);
 				return true;
 			}
 

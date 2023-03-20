@@ -929,7 +929,7 @@ std::string GetMacroVarData(std::string_view strVarToParse)
 		// If the parse was successful and there is a result type and we could convert that type to a string
 		if (ParseMQ2DataPortion(&currentStr[0], Result) && Result.Type && Result.Type->ToString(Result.VarPtr, &currentStr[0]))
 		{
-			// Set our return whatever szCurrent was modified to be (removing the additional  null terminators
+			// Set our return whatever szCurrent was modified to be (removing the additional null terminators
 			// due to the above resize)
 			strReturn = currentStr.erase(currentStr.find('\0'));
 		}

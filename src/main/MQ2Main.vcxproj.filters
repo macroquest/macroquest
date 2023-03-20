@@ -541,6 +541,9 @@
     <ClInclude Include="..\..\include\mq\base\WString.h">
       <Filter>Header Files\mq\base</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\GlobalBuffer.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MQ2Main.rc">
