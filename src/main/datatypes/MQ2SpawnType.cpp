@@ -419,7 +419,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 
 	case SpawnMembers::CleanName:
 		strcpy_s(DataTypeTemp, pSpawn->Name);
-		CleanupName(DataTypeTemp, DataTypeTemp.Size(), false, false);
+		CleanupName(DataTypeTemp, DataTypeTemp.size(), false, false);
 		Dest.Type = pStringType;
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;

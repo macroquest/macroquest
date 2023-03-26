@@ -1715,7 +1715,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	case ItemMembers::ItemLink:
 		Dest.Type = pStringType;
-		if (GetItemLink(pItem, DataTypeTemp, DataTypeTemp.Size(), Index != nullptr && ci_equals(Index, "CLICKABLE")))
+		if (GetItemLink(pItem, DataTypeTemp, DataTypeTemp.size(), Index != nullptr && ci_equals(Index, "CLICKABLE")))
 		{
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;

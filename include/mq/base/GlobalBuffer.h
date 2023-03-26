@@ -42,7 +42,7 @@ struct SGlobalBuffer
 
     operator std::string_view() const { return { ptr }; }
 
-    [[nodiscard]] size_t Size() const { return bufferSize; }
+    constexpr [[nodiscard]] size_t size() const { return bufferSize; }
     [[nodiscard]] char* begin() const { return ptr; }
     [[nodiscard]] char* end() const { return ptr + strlen(ptr); }
 
@@ -61,33 +61,33 @@ struct SGlobalBuffer
 
 inline errno_t strcpy_s(SGlobalBuffer& dest, const char* src)
 {
-    return strcpy_s(dest, dest.Size(), src);
+    return strcpy_s(dest, dest.size(), src);
 }
 
 inline errno_t strncpy_s(SGlobalBuffer& dest, const char* src, size_t count)
 {
-    return strncpy_s(dest, dest.Size(), src, count);
+    return strncpy_s(dest, dest.size(), src, count);
 }
 
 inline void strcat_s(SGlobalBuffer& dest, const char* src)
 {
-    strcat_s(dest, dest.Size(), src);
+    strcat_s(dest, dest.size(), src);
 }
 
 inline void _strupr_s(SGlobalBuffer& dest)
 {
-    _strupr_s(dest, dest.Size());
+    _strupr_s(dest, dest.size());
 }
 
 inline void _strlwr_s(SGlobalBuffer& dest)
 {
-    _strlwr_s(dest, dest.Size());
+    _strlwr_s(dest, dest.size());
 }
 
 template <typename... Args>
 int sprintf_s(SGlobalBuffer& dest, const char* format, Args... args)
 {
-    return sprintf_s(dest, dest.Size(), format, args...);
+    return sprintf_s(dest, dest.size(), format, args...);
 }
 
 // end helpers
