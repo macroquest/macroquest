@@ -163,6 +163,11 @@ void NotifyIsForegroundWindow(bool isForeground)
 
 void RequestActivateWindow(HWND hWnd, bool sendMessage)
 {
+	if (IsIconic(hWnd))
+	{
+		ShowWindow(hWnd, SW_RESTORE);
+	}
+
 	if (::SetForegroundWindow(hWnd))
 		return;
 
