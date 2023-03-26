@@ -488,7 +488,6 @@ LuaThreadStatus LuaThread::Pause()
 
 		WriteChatStatus("Resuming paused lua script '%s' with PID %d", m_name.c_str(), m_pid);
 		m_paused = false;
-		m_coroutine->ClearDelay();
 
 		return LuaThreadStatus::Running;
 	}
