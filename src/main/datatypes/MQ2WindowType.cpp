@@ -496,7 +496,6 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			strcpy_s(DataTypeTemp, pWnd->GetWindowText().c_str());
 		}
 
-		DataTypeTemp[MAX_STRING - 1] = '\0';
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;

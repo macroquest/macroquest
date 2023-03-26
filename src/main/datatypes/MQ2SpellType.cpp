@@ -248,7 +248,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case SpellMembers::Name:
 		strcpy_s(DataTypeTemp, pSpell->Name);
-		Dest.Ptr = &DataTypeTemp;
+		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
@@ -835,8 +835,8 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		if (nIndex < 0)
 			return false;
 
-		memset(DataTypeTemp, 0, sizeof(DataTypeTemp));
-		const char* ptr = GetSpellRestrictions(pSpell, nIndex, DataTypeTemp, sizeof(DataTypeTemp));
+		memset(DataTypeTemp, 0, DataTypeTemp.size());
+		const char* ptr = GetSpellRestrictions(pSpell, nIndex, DataTypeTemp, DataTypeTemp.size());
 		if (!ptr)
 			strcpy_s(DataTypeTemp, "Unknown");
 
@@ -1312,9 +1312,9 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case SpellMembers::Link:
 		if (Index[0])
-			FormatSpellLink(DataTypeTemp, MAX_STRING, pSpell, Index);
+			FormatSpellLink(DataTypeTemp, DataTypeTemp.size(), pSpell, Index);
 		else
-			FormatSpellLink(DataTypeTemp, MAX_STRING, pSpell);
+			FormatSpellLink(DataTypeTemp, DataTypeTemp.size(), pSpell);
 		Dest.Ptr = DataTypeTemp;
 		Dest.Type = pStringType;
 		return true;

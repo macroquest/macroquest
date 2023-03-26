@@ -85,7 +85,7 @@ bool MQ2CurrentZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 
 	case CurrentZoneMembers::ShortName:
 		strcpy_s(DataTypeTemp, pCurrentZone->ShortName);
-		Dest.Ptr = &DataTypeTemp;
+		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
