@@ -297,3 +297,44 @@ int FreeSlotForItem(ItemClient* pItem)
 	}
 	return 0;
 }
+
+CItemLocation* FreeItemLocationForItem(CItemLocation* pFreeSlot, ItemClient* pItemClient)
+{
+	unsigned char  ucCurSize = 10;
+	ItemDefinition* pUnequipInfo = pItemClient->GetItemDefinition();
+	if (!pUnequipInfo) {
+		return nullptr;
+	}
+
+	for (unsigned short usSlot = InvSlot_FirstBagSlot; usSlot <= GetHighestAvailableBagSlot(); usSlot++)
+	{
+		if (ItemClient* pInvSlot = GetPcProfile()->GetInventorySlot(usSlot))
+		{
+			ItemDefinition* pItemInfo = pInvSlot->GetItemDefinition();
+
+			if (pItemInfo
+				&& pItemInfo->Combine != 2
+				&& pInvSlot->IsContainer()
+				&& pUnequipInfo->Size <= pItemInfo->SizeCapacity)
+			{
+				for (unsigned short usPack = 0; usPack < pItemInfo->Slots; usPack++) {
+					if (!pInvSlot->GetHeldItem(usPack)) {
+						pFreeSlot->InvSlot = usSlot;
+						pFreeSlot->BagSlot = usPack;
+						pFreeSlot->pBagSlot = pInvSlot->GetHeldItem(usPack);
+						pFreeSlot->pInvSlot = pInvSlot;
+						return pFreeSlot;
+					}
+				}
+			}
+		}
+		else {
+			pFreeSlot->InvSlot = usSlot;
+			pFreeSlot->BagSlot = INVALID_PACK;
+			pFreeSlot->pBagSlot = nullptr;
+			pFreeSlot->pInvSlot = nullptr;
+			return pFreeSlot;
+		}
+	}
+	return nullptr;
+}
