@@ -67,6 +67,16 @@ void CopyWindowChildTLO(CXWnd* pWindow)
 	WriteChatf("Copied: \ay%s", buffer);
 }
 
+static CXRect GetWndClientRect(CXWnd* pWnd)
+{
+#if defined (TEST)
+	if (GetGameState() == GAMESTATE_PRECHARSELECT)
+		return pWnd->GetClientRectNonVirtual();
+	else
+#endif
+		return pWnd->GetClientRect();
+}
+
 //----------------------------------------------------------------------------
 
 #pragma region Memory Viewer
@@ -3197,7 +3207,7 @@ public:
 			ImGuiViewport* viewport = ImGui::GetMainViewport();
 			ImDrawList* drawList = ImGui::GetBackgroundDrawList(viewport);
 
-			CXRect clientRect = m_pSelectedWnd->GetClientRect();
+			CXRect clientRect = GetWndClientRect(m_pSelectedWnd);
 			drawList->AddRect(
 				ImVec2(clientRect.left + viewport->Pos.x, clientRect.top + viewport->Pos.y),
 				ImVec2(clientRect.right + viewport->Pos.x, clientRect.bottom + viewport->Pos.y),
@@ -3211,7 +3221,7 @@ public:
 			ImGuiViewport* viewport = ImGui::GetMainViewport();
 			ImDrawList* drawList = ImGui::GetBackgroundDrawList(viewport);
 
-			CXRect clientRect = wnd->GetClientRect();
+			CXRect clientRect = GetWndClientRect(wnd);
 			drawList->AddRectFilled(
 				ImVec2(clientRect.left + viewport->Pos.x, clientRect.top + viewport->Pos.y),
 				ImVec2(clientRect.right + viewport->Pos.x, clientRect.bottom + viewport->Pos.y),
@@ -3223,7 +3233,7 @@ public:
 			ImGuiViewport* viewport = ImGui::GetMainViewport();
 			ImDrawList* drawList = ImGui::GetBackgroundDrawList(viewport);
 
-			CXRect clientRect = m_pHoveredWnd->GetClientRect();
+			CXRect clientRect = GetWndClientRect(m_pHoveredWnd);
 			drawList->AddRect(
 				ImVec2(clientRect.left + viewport->Pos.x, clientRect.top + viewport->Pos.y),
 				ImVec2(clientRect.right + viewport->Pos.x, clientRect.bottom + viewport->Pos.y),

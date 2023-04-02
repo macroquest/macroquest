@@ -1,3 +1,6 @@
+April 2, 2023:
+- test: Fix WindowOverride implementation. Fixes crashes in MQ2Map, MQ2ItemDisplay, etc.
+
 April 1, 2023:
 - Happy april fools
 - test: Updated for patch
