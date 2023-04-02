@@ -306,7 +306,7 @@ public:
 					pPasswordEditWnd->InputText = m_record->accountPassword;
 
 					if (CButtonWnd* pConnectButton = GetChildWindow<CButtonWnd>(m_currentWindow, "LOGIN_ConnectButton"))
-						pConnectButton->WndNotification(pConnectButton, XWM_LCLICK);
+						SendWndNotification(pConnectButton, pConnectButton, XWM_LCLICK);
 				}
 
 				ScreenMode = oldscreenmode;
@@ -349,7 +349,7 @@ public:
 			{
 				// kick off our offline trader
 				if (CXWnd* pButton = GetChildWindow(m_currentWindow, "YESNO_YesButton"))
-					pButton->WndNotification(pWnd, XWM_LCLICK);
+					SendWndNotification(pButton, pWnd, XWM_LCLICK);
 			}
 			else if (m_settings.ConnectRetries > 0 && m_retries > m_settings.ConnectRetries)
 			{
@@ -372,7 +372,7 @@ public:
 				//};
 
 				if (CXWnd* pButton = GetChildWindow(m_currentWindow, "OK_OKButton"))
-					pButton->WndNotification(pButton, XWM_LCLICK);
+					SendWndNotification(pButton, pButton, XWM_LCLICK);
 
 				++m_retries;
 
@@ -493,7 +493,7 @@ public:
 			//};
 
 			if (auto pButton = GetActiveChildWindow<CButtonWnd>(m_currentWindow, "OK_OKButton"))
-				pButton->WndNotification(pButton, XWM_LCLICK);
+				SendWndNotification(pButton, pButton, XWM_LCLICK);
 		}
 
 		transit<Wait>();
@@ -518,13 +518,13 @@ public:
 					dispatch(StopLogin());
 
 				if (pButton)
-					pButton->WndNotification(pButton, XWM_LCLICK);
+					SendWndNotification(pButton, pButton, XWM_LCLICK);
 			}
 			else if (str.find("You have a character logged into a world server as an OFFLINE TRADER from this account.") != CXStr::npos)
 			{
 				auto pButton = GetChildWindow<CButtonWnd>(m_currentWindow, "YESNO_YesButton");
 				if (pButton)
-					pButton->WndNotification(pButton, XWM_LCLICK);
+					SendWndNotification(pButton, pButton, XWM_LCLICK);
 				else
 					dispatch(StopLogin());
 			}

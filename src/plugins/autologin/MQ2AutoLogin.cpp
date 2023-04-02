@@ -454,6 +454,17 @@ PLUGIN_API void ShutdownPlugin()
 	LoginReset();
 }
 
+void SendWndNotification(CXWnd* pWnd, CXWnd* sender, uint32_t msg, void* data)
+{
+#if defined (TEST)
+	if (GetGameState() == GAMESTATE_PRECHARSELECT)
+		reinterpret_cast<eqlib::eqmain::CXWnd*>(pWnd)->WndNotification(
+			reinterpret_cast<eqlib::eqmain::CXWnd*>(sender), msg, data);
+	else
+#endif
+		pWnd->WndNotification(sender, msg, data);
+}
+
 PLUGIN_API void OnPulse()
 {
 	if (pLocalPlayer && (pLocalPlayer->GetClass() != Class || pLocalPlayer->Level != Level))
@@ -481,7 +492,7 @@ PLUGIN_API void OnPulse()
 			if (pText && pText->STMLText.find("Do you accept these rules?") != CXStr::npos)
 			{
 				if (auto pYes = GetChildWindow<CButtonWnd>(pWnd, "cd_yes_button"))
-					pYes->WndNotification(pYes, XWM_LCLICK);
+					SendWndNotification(pYes, pYes, XWM_LCLICK);
 			}
 		}
 		else if (CXWnd* pWnd = GetWindow("CLW_CharactersScreen"))
@@ -506,7 +517,7 @@ PLUGIN_API void OnPulse()
 		{
 			if (CButtonWnd* pButton = GetActiveChildWindow<CButtonWnd>(windowName, buttonName))
 			{
-				pButton->WndNotification(pButton, XWM_LCLICK);
+				SendWndNotification(pButton, pButton, XWM_LCLICK);
 				return;
 			}
 		}

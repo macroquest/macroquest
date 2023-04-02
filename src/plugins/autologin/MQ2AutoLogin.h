@@ -21,6 +21,8 @@
 
 static bool AUTOLOGIN_DBG = false;
 
+void SendWndNotification(CXWnd* pWnd, CXWnd* sender, uint32_t msg, void* data = nullptr);
+
 template <typename T = CXWnd>
 inline T* GetWindow(const std::string& name)
 {
