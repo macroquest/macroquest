@@ -25,6 +25,9 @@
 #include "mq/imgui/ImGuiUtils.h"
 #include "mq/imgui/Widgets.h"
 
+#include "eqlib/eqstd/unordered_map.h"
+#include "eqlib/eqstd/string.h"
+
 #include <fmt/format.h>
 #include <fmt/chrono.h>
 #include <spdlog/spdlog.h>
@@ -2036,6 +2039,7 @@ public:
 		// Add CXWnd specific details here
 		if (BeginColorSection("CXWnd Properties", open))
 		{
+			ColumnText("Type Name", "%s", pWnd->GetWndClassName());
 			DisplayDrawTemplate("Template", pWnd->DrawTemplate);
 
 			std::vector<int> runtimeTypeInts;
@@ -2247,6 +2251,42 @@ public:
 		}
 	}
 
+#if HAS_GAMEFACE_UI
+	void DisplayUIComponent(const char* label, UIComponent* component)
+	{
+		if (ColumnTreeNodeType(label, component->GetTypeName().c_str(), ""))
+		{
+			ColumnText("Name", "%s", component->name.c_str());
+			ColumnText("Full Name", "%s", component->fullName.c_str());
+			ColumnText("Model Prefix", "%s", component->modelPrefix.c_str());
+			ColumnWindow("Window", component->wnd);
+			ColumnWindow("Parent Window", component->parent);
+
+			ImGui::TreePop();
+		}
+	}
+
+	void DisplayCGFScreenWndProperties(CGFScreenWnd* pWnd, bool open = true)
+	{
+		// Add CGFScreenWnd specific details here
+		if (BeginColorSection("CGFScreenWnd Properties", open))
+		{
+			DisplayUIComponent("Window Component", &pWnd->WindowComponent);
+			ColumnText("u8_78", "%d", (int)pWnd->WindowComponent.u8_78);
+
+			if (ColumnTreeNode("Children Components", "%d", pWnd->ChildComponents.size()))
+			{
+				for (auto& [name, component] : pWnd->ChildComponents)
+				{
+					DisplayUIComponent(name.c_str(), component);
+				}
+
+				ImGui::TreePop();
+			}
+		}
+	}
+#endif
+
 	void DisplayCSidlScreenWndProperties(CSidlScreenWnd* pWnd, bool open = true)
 	{
 		DisplayCXWndProperties(static_cast<CXWnd*>(pWnd), open);
@@ -2279,6 +2319,13 @@ public:
 			//ColumnText("Context menu id", "%d", pWnd->ContextMenuID);
 			//ColumnText("Context menu tip id", "%d", pWnd->ContextMenuTipID);
 		}
+
+#if HAS_GAMEFACE_UI
+		if (string_equals(m_window->GetWndClassName(), "GFScreenWnd"))
+		{
+			DisplayCGFScreenWndProperties(static_cast<CGFScreenWnd*>(m_window));
+		}
+#endif
 
 		DisplayCustomWindowPropertyViewer(pWnd, this);
 	}
