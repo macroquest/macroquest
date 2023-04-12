@@ -1,5 +1,6 @@
 April 12, 2023:
 - test: Updated for patch
+- test: Fixes for autologin
 
 April 2, 2023:
 - test: Fix WindowOverride implementation. Fixes crashes in MQ2Map, MQ2ItemDisplay, etc.
