@@ -304,7 +304,7 @@ public:
 				);
 
 				DWORD oldscreenmode = std::exchange(ScreenMode, 3);
-				pUsernameEditWnd->InputText = m_record->accountName;
+				SetEditWndText(pUsernameEditWnd, m_record->accountName);
 
 				if (CEditWnd* pPasswordEditWnd = GetChildWindow<CEditWnd>(m_currentWindow, "LOGIN_PasswordEdit"))
 				{
