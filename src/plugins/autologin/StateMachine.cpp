@@ -62,8 +62,9 @@ static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 		}
 
 		// fallback method, the only case where we would hit this is if we manually entered the login string after eqgame started.
-		if (input.empty() && pEditWnd && !pEditWnd->InputText.empty())
-			input = pEditWnd->InputText;
+		CXStr inputText = GetEditWndText(pEditWnd);
+		if (input.empty() && !inputText.empty())
+			input = inputText;
 
 		AutoLoginDebug(fmt::format("UseMQ2Login() input({})", input));
 
@@ -85,8 +86,10 @@ static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 static std::optional<ProfileRecord> UseStationNames(CEditWnd* pEditWnd, std::string_view AccountName = "")
 {
 	std::string account(AccountName);
-	if (account.empty() && pEditWnd && !pEditWnd->InputText.empty())
-		account = pEditWnd->InputText;
+
+	CXStr inputText = GetEditWndText(pEditWnd);
+	if (account.empty() && !inputText.empty())
+		account = inputText;
 
 	if (!account.empty())
 	{
@@ -184,7 +187,7 @@ public:
 				CEditWnd* pEditWnd = GetChildWindow<CEditWnd>(m_currentWindow, "LOGIN_PasswordEdit");
 
 				// If we have an empty password input field, transit to connect. Otherwise, wait.
-				if (pEditWnd != nullptr && pEditWnd->InputText.empty())
+				if (GetEditWndText(pEditWnd).empty())
 					transit<Connect>();
 				else
 					transit<Wait>(); // this will reset the delay
@@ -210,7 +213,9 @@ public:
 			{
 				auto pWnd = GetWindow<CSidlScreenWnd>("ConfirmationDialogBox");
 				auto pChild = GetChildWindow<CStmlWnd>(pWnd, "cd_textoutput");
-				if (pWnd != nullptr && pWnd->IsVisible() == 1 && pChild && pChild->STMLText.find("Loading Characters") != CXStr::npos)
+
+				if (pWnd != nullptr && pWnd->IsVisible() == 1
+					&&  GetSTMLText(pChild).find("Loading Characters") != CXStr::npos)
 				{
 					// fix for the stuck at char select "Loading Characters" bug
 					// need to quit and re-enter the character select screen if we've already waited once
@@ -303,7 +308,7 @@ public:
 
 				if (CEditWnd* pPasswordEditWnd = GetChildWindow<CEditWnd>(m_currentWindow, "LOGIN_PasswordEdit"))
 				{
-					pPasswordEditWnd->InputText = m_record->accountPassword;
+					SetEditWndText(pPasswordEditWnd, m_record->accountPassword);
 
 					if (CButtonWnd* pConnectButton = GetChildWindow<CButtonWnd>(m_currentWindow, "LOGIN_ConnectButton"))
 						SendWndNotification(pConnectButton, pConnectButton, XWM_LCLICK);
@@ -329,10 +334,7 @@ public:
 	{
 		if (CXWnd* pWnd = GetChildWindow(m_currentWindow, "OK_Display"))
 		{
-			CXMLDataManager* pXmlMgr = pSidlMgr->GetParamManager();
-			CXStr str = pXmlMgr->GetWindowType(pWnd) == UI_STMLBox ?
-				static_cast<CStmlWnd*>(pWnd)->STMLText :
-				pWnd->GetWindowText();
+			CXStr str = GetWindowText(pWnd);
 
 			if (str.find("Logging in to the server.  Please wait....") != CXStr::npos)
 			{
@@ -391,14 +393,19 @@ public:
 	{
 		if (GetGameState() != GAMESTATE_PRECHARSELECT)
 			return nullptr;
+		if (!g_pLoginClient)
+			return nullptr;
 
-		auto server_list = GetChildWindow<CListWnd>("serverselect", "SERVERSELECT_ServerList");
-		if (server_list && !server_list->ItemsArray.IsEmpty() && g_pLoginClient)
+		if (auto server_list = GetChildWindow<CListWnd>("serverselect", "SERVERSELECT_ServerList"))
 		{
-			for (EQLS::EQClientServerData* pServer : g_pLoginClient->ServerList)
+			ArrayClass<SListWndLine>* server_items = GetItemsArray(server_list);
+			if (server_items && !server_items->IsEmpty())
 			{
-				if (predicate(pServer))
-					return pServer;
+				for (EQLS::EQClientServerData* pServer : g_pLoginClient->ServerList)
+				{
+					if (predicate(pServer))
+						return pServer;
+				}
 			}
 		}
 
@@ -463,7 +470,7 @@ public:
 	{
 		if (CXWnd* pWnd = GetChildWindow(m_currentWindow, "OK_Display"))
 		{
-			CXStr str = pWnd->GetType() == UI_STMLBox ? static_cast<CStmlWnd*>(pWnd)->STMLText : pWnd->GetWindowText();
+			CXStr str = GetWindowText(pWnd);
 
 			if (str.find("The world server is currently at maximum capacity") != CXStr::npos)
 			{
@@ -507,7 +514,7 @@ public:
 	{
 		if (CXWnd* pWnd = GetChildWindow(m_currentWindow, "YESNO_Display"))
 		{
-			CXStr str = pWnd->GetType() == UI_STMLBox ? static_cast<CStmlWnd*>(pWnd)->STMLText : pWnd->GetWindowText();
+			CXStr str = GetWindowText(pWnd);
 
 			if (str.find("You already have a character logged into a world server from this account.") != CXStr::npos)
 			{
@@ -600,9 +607,11 @@ public:
 				// no selection has been made yet, so make the selection and enter world
 				auto index = [&pCharList]()
 				{
-					for (int i = 0; i < pCharList->ItemsArray.Count; ++i)
+					auto itemsArray = GetItemsArray(pCharList);
+
+					for (int i = 0; i < itemsArray->Count; ++i)
 					{
-						if (m_record && ci_equals(m_record->characterName, pCharList->GetItemText(i, 2)))
+						if (m_record && ci_equals(m_record->characterName, GetListItemText(pCharList, i, 2)))
 							return i;
 					}
 
@@ -662,7 +671,7 @@ public:
 			case LoginState::CharacterSelect:
 				if (auto pCharList = GetChildWindow<CListWnd>(m_currentWindow, "Character_List"))
 				{
-					if (m_record && ci_equals(m_record->characterName, pCharList->GetItemText(pCharList->GetCurSel(), 2)))
+					if (m_record && ci_equals(m_record->characterName, GetListItemText(pCharList, GetListCurSel(pCharList), 2)))
 					{
 						// we've waited our 3 seconds, so enter world
 						if (pCharacterListWnd != nullptr)

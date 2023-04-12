@@ -22,6 +22,13 @@
 static bool AUTOLOGIN_DBG = false;
 
 void SendWndNotification(CXWnd* pWnd, CXWnd* sender, uint32_t msg, void* data = nullptr);
+CXStr GetWindowText(CXWnd* pWnd);
+CXStr GetEditWndText(CEditWnd* pWnd);
+CXStr GetSTMLText(CStmlWnd* pWnd);
+void SetEditWndText(CEditWnd* pWnd, std::string_view text);
+ArrayClass<SListWndLine>* GetItemsArray(CListWnd* pWnd);
+CXStr GetListItemText(CListWnd* pWnd, int row, int col);
+int GetListCurSel(CListWnd* pWnd);
 
 template <typename T = CXWnd>
 inline T* GetWindow(const std::string& name)

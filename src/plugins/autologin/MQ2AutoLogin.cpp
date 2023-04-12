@@ -465,6 +465,110 @@ void SendWndNotification(CXWnd* pWnd, CXWnd* sender, uint32_t msg, void* data)
 		pWnd->WndNotification(sender, msg, data);
 }
 
+CXStr GetWindowText(CXWnd* pWnd)
+{
+	if (!pWnd) return CXStr();
+
+	CXMLDataManager* pXmlMgr = pSidlMgr->GetParamManager();
+	auto type = pXmlMgr->GetWindowType(pWnd);
+
+#if defined (TEST)
+	if (GetGameState() == GAMESTATE_PRECHARSELECT)
+	{
+		return type == UI_STMLBox
+			? reinterpret_cast<eqlib::eqmain::CStmlWnd*>(pWnd)->STMLText
+			: reinterpret_cast<eqlib::eqmain::CXWnd*>(pWnd)->GetWindowText();
+	}
+#endif
+
+	return type == UI_STMLBox
+		? static_cast<CStmlWnd*>(pWnd)->STMLText
+		: pWnd->GetWindowText();
+}
+
+CXStr GetEditWndText(CEditWnd* pWnd)
+{
+	if (!pWnd) return CXStr();
+
+#if defined (TEST)
+	if (GetGameState() == GAMESTATE_PRECHARSELECT)
+	{
+		return reinterpret_cast<eqlib::eqmain::CEditBaseWnd*>(pWnd)->InputText;
+	}
+#endif
+
+	return pWnd->InputText;
+}
+
+void SetEditWndText(CEditWnd* pWnd, std::string_view text)
+{
+#if defined (TEST)
+	if (GetGameState() == GAMESTATE_PRECHARSELECT)
+	{
+		reinterpret_cast<eqlib::eqmain::CEditBaseWnd*>(pWnd)->InputText = text;
+	}
+	else
+#endif
+	{
+		pWnd->InputText = text;
+	}
+}
+
+CXStr GetSTMLText(CStmlWnd* pWnd)
+{
+	if (!pWnd) return CXStr();
+
+#if defined (TEST)
+	if (GetGameState() == GAMESTATE_PRECHARSELECT)
+	{
+		return reinterpret_cast<eqlib::eqmain::CStmlWnd*>(pWnd)->STMLText;
+	}
+#endif
+
+	return pWnd->STMLText;
+}
+
+ArrayClass<SListWndLine>* GetItemsArray(CListWnd* pWnd)
+{
+	if (!pWnd) return nullptr;
+
+#if defined (TEST)
+	if (GetGameState() == GAMESTATE_PRECHARSELECT)
+	{
+		return &reinterpret_cast<eqlib::eqmain::CListWnd*>(pWnd)->ItemsArray;
+	}
+#endif
+
+	return &pWnd->ItemsArray;
+}
+
+CXStr GetListItemText(CListWnd* pWnd, int row, int col)
+{
+	if (!pWnd) return CXStr();
+
+#if defined (TEST)
+	if (GetGameState() == GAMESTATE_PRECHARSELECT)
+	{
+		return reinterpret_cast<eqlib::eqmain::CListWnd*>(pWnd)->GetItemText(row, col);
+	}
+#endif
+
+	return pWnd->GetItemText(row, col);
+}
+
+int GetListCurSel(CListWnd* pWnd)
+{
+#if defined (TEST)
+	if (GetGameState() == GAMESTATE_PRECHARSELECT)
+	{
+		return reinterpret_cast<eqlib::eqmain::CListWnd*>(pWnd)->CurSel;
+	}
+#endif
+
+	return pWnd->GetCurSel();
+}
+
+
 PLUGIN_API void OnPulse()
 {
 	if (pLocalPlayer && (pLocalPlayer->GetClass() != Class || pLocalPlayer->Level != Level))
@@ -488,8 +592,9 @@ PLUGIN_API void OnPulse()
 		auto pWnd = GetWindow<CSidlScreenWnd>("ConfirmationDialogBox");
 		if (pWnd != nullptr && pWnd->IsVisible() == 1)
 		{
-			auto pText = GetChildWindow<CStmlWnd>(pWnd, "cd_textoutput");
-			if (pText && pText->STMLText.find("Do you accept these rules?") != CXStr::npos)
+			auto pStmlWnd = GetChildWindow<CStmlWnd>(pWnd, "cd_textoutput");
+
+			if (pStmlWnd && GetSTMLText(pStmlWnd).find("Do you accept these rules?") != CXStr::npos)
 			{
 				if (auto pYes = GetChildWindow<CButtonWnd>(pWnd, "cd_yes_button"))
 					SendWndNotification(pYes, pYes, XWM_LCLICK);
