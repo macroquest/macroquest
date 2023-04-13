@@ -302,26 +302,22 @@ CItemLocation* FreeItemLocationForItem(CItemLocation* pFreeSlot, ItemClient* pIt
 {
 	unsigned char  ucCurSize = 10;
 	ItemDefinition* pUnequipInfo = pItemClient->GetItemDefinition();
-	if (!pUnequipInfo) {
-		return nullptr;
-	}
 
 	for (unsigned short usSlot = InvSlot_FirstBagSlot; usSlot <= GetHighestAvailableBagSlot(); usSlot++)
 	{
 		if (ItemClient* pInvSlot = GetPcProfile()->GetInventorySlot(usSlot))
 		{
 			ItemDefinition* pItemInfo = pInvSlot->GetItemDefinition();
-
-			if (pItemInfo
-				&& pItemInfo->Combine != 2
+			if (pItemInfo->ContainerType != ContainerType_Quiver
 				&& pInvSlot->IsContainer()
 				&& pUnequipInfo->Size <= pItemInfo->SizeCapacity)
 			{
 				for (unsigned short usPack = 0; usPack < pItemInfo->Slots; usPack++) {
-					if (!pInvSlot->GetHeldItem(usPack)) {
+					auto pBagSlot = pInvSlot->GetHeldItem(usPack);
+					if (!pBagSlot) {
 						pFreeSlot->InvSlot = usSlot;
 						pFreeSlot->BagSlot = usPack;
-						pFreeSlot->pBagSlot = pInvSlot->GetHeldItem(usPack);
+						pFreeSlot->pBagSlot = pBagSlot;
 						pFreeSlot->pInvSlot = pInvSlot;
 						return pFreeSlot;
 					}
