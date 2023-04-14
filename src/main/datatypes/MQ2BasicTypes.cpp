@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -128,7 +128,7 @@ bool MQ2IntType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 
 	case IntMembers::Prettify:
 		sprintf_s(DataTypeTemp, "%d", VarPtr.Int);
-		PrettifyNumber(DataTypeTemp, sizeof(DataTypeTemp), IsNumber(Index) ? atoi(Index) : 0);
+		PrettifyNumber(DataTypeTemp, DataTypeTemp.size(), GetIntFromString(Index, 0));
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
@@ -231,7 +231,7 @@ bool MQ2Int64Type::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case Int64Members::Prettify:
 		sprintf_s(DataTypeTemp, "%lld", VarPtr.Int64);
-		PrettifyNumber(DataTypeTemp, sizeof(DataTypeTemp), IsNumber(Index) ? atoi(Index) : 0);
+		PrettifyNumber(DataTypeTemp, DataTypeTemp.size(), GetIntFromString(Index, 0));
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
@@ -917,7 +917,7 @@ bool MQ2FloatType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case FloatMembers::Prettify:
 		sprintf_s(DataTypeTemp, "%lld", VarPtr.Int64);
-		PrettifyNumber(DataTypeTemp, sizeof(DataTypeTemp), IsNumber(Index) ? atoi(Index) : 2);
+		PrettifyNumber(DataTypeTemp, DataTypeTemp.size(), GetIntFromString(Index, 2));
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
@@ -1024,7 +1024,7 @@ bool MQ2DoubleType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 
 	case DoubleMembers::Prettify:
 		sprintf_s(DataTypeTemp, "%lld", VarPtr.Int64);
-		PrettifyNumber(DataTypeTemp, sizeof(DataTypeTemp), IsNumber(Index) ? atoi(Index) : 2);
+		PrettifyNumber(DataTypeTemp, DataTypeTemp.size(), GetIntFromString(Index, 2));
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;

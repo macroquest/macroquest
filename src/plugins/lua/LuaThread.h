@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -15,6 +15,8 @@
 #pragma once
 
 #include "LuaCommon.h"
+
+#include "mq/base/GlobalBuffer.h"
 
 #include <sol/sol.hpp>
 
@@ -101,6 +103,8 @@ public:
 	const std::string& GetScript() const { return m_path; }
 	sol::state_view GetState() const;
 	sol::thread GetLuaThread() const;
+	// Buffer to get swapped in for DataTypeTemp
+	char buffer[SGlobalBuffer::bufferSize] = { 0 };
 
 	void InjectMQNamespace();
 	void SetTurbo(uint32_t turboVal) { m_turboNum = turboVal; }

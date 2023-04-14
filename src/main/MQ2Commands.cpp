@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -17,6 +17,7 @@
 
 #include "MQ2KeyBinds.h"
 #include "MQ2Mercenaries.h"
+#include "mq/base/WString.h"
 
 #pragma warning(push)
 #pragma warning(disable: 4244)
@@ -820,7 +821,7 @@ void SelectItem(SPAWNINFO* pChar, char* szLine)
 			else
 			{
 				WriteChatf("/selectitem Could NOT find \ay%s\ax in your inventory to select.\n"
-					"Use /invoke ${Merchant.SelectItem[%s]} if you want to select an item in the merchants inventory.", szBuffer, szBuffer);
+					"Use /invoke ${Merchant.SelectItem[%s]} if you want to select an item in the merchants inventory.", pName, szBuffer);
 			}
 
 			return;

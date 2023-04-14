@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -264,7 +264,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		HWND hEQWnd = GetEQWindowHandle();
 		if (hEQWnd)
 		{
-			GetWindowTextA(hEQWnd, DataTypeTemp, MAX_STRING);
+			GetWindowTextA(hEQWnd, DataTypeTemp, static_cast<int>(DataTypeTemp.size()));
 
 			if (DataTypeTemp[0] != 0)
 			{

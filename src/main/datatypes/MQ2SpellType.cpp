@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -248,7 +248,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case SpellMembers::Name:
 		strcpy_s(DataTypeTemp, pSpell->Name);
-		Dest.Ptr = &DataTypeTemp;
+		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
@@ -522,18 +522,14 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 	}
 
-	case SpellMembers::Duration:
-		Dest.DWord = GetSpellDuration(pSpell, pLocalPlayer);
-		Dest.Type = pTicksType;
-		return true;
-
 	case SpellMembers::MyDuration:
-		Dest.DWord = EQGetMySpellDuration(pSpell);
+		Dest.DWord = GetMySpellDuration(pSpell);
 		Dest.Type = pTicksType;
 		return true;
 
 	case SpellMembers::EQSpellDuration:
-		Dest.DWord = EQGetSpellDuration(pSpell, pLocalPlayer ? pLocalPlayer->Level : 0, false);
+	case SpellMembers::Duration:
+		Dest.DWord = GetSpellDuration(pSpell, pLocalPlayer ? pLocalPlayer->Level : 0, false);
 		Dest.Type = pTicksType;
 		return true;
 
@@ -635,7 +631,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		if (ret && SlotIndex != -1)
 		{
 			int duration = GetIntFromString(Index, 0);
-			if (duration == 0 || (duration > 0 && GetSpellDuration(pSpell, pLocalPlayer) >= 1 && ret->Duration < duration))
+			if (duration == 0 || (duration > 0 && GetSpellDuration(pSpell, pLocalPlayer->Level, false) >= 1 && ret->Duration < duration))
 				Dest.Set(true);
 		}
 
@@ -681,7 +677,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 				// Blocking buff duration is greater than duration argument
 				int duration = GetIntFromString(Index, 0);
 				if (duration == 0 ||
-					(GetSpellDuration(pBuffSpell, pLocalPlayer) < -1 || ceil(pPetInfoWnd->PetBuffTimer[nBuff] / 6000) > duration))
+					(GetSpellDuration(pBuffSpell, pLocalPlayer->Level, false) < -1 || ceil(pPetInfoWnd->PetBuffTimer[nBuff] / 6000) > duration))
 				{
 					Dest.Set(false);
 					return true;
@@ -839,8 +835,8 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		if (nIndex < 0)
 			return false;
 
-		memset(DataTypeTemp, 0, sizeof(DataTypeTemp));
-		const char* ptr = GetSpellRestrictions(pSpell, nIndex, DataTypeTemp, sizeof(DataTypeTemp));
+		memset(DataTypeTemp, 0, DataTypeTemp.size());
+		const char* ptr = GetSpellRestrictions(pSpell, nIndex, DataTypeTemp, DataTypeTemp.size());
 		if (!ptr)
 			strcpy_s(DataTypeTemp, "Unknown");
 
@@ -1316,9 +1312,9 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case SpellMembers::Link:
 		if (Index[0])
-			FormatSpellLink(DataTypeTemp, MAX_STRING, pSpell, Index);
+			FormatSpellLink(DataTypeTemp, DataTypeTemp.size(), pSpell, Index);
 		else
-			FormatSpellLink(DataTypeTemp, MAX_STRING, pSpell);
+			FormatSpellLink(DataTypeTemp, DataTypeTemp.size(), pSpell);
 		Dest.Ptr = DataTypeTemp;
 		Dest.Type = pStringType;
 		return true;

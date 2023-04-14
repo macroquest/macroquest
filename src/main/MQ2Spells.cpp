@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -1013,49 +1013,6 @@ EQ_Spell* GetSpellByName(std::string_view name)
 	return pSpell;
 }
 
-int GetSpellDuration(EQ_Spell* pSpell, PlayerClient* pSpawn)
-{
-	// TODO: turn these types into an enum class
-	switch (pSpell->DurationType)
-	{
-	case 0:
-		return 0;
-	case 1:
-	case 6:
-		return std::min<unsigned int>((unsigned int)std::ceil(pSpawn->Level / 2.), pSpell->DurationCap);
-	case 3:
-	case 4:
-	case 11:
-	case 12:
-	case 15:
-		if (pSpell->DurationCap)
-			return (pSpell->DurationCap);
-		else
-			return (pSpell->DurationType * 10);
-	case 2:
-		return std::min<unsigned int>((unsigned int)std::ceil(pSpawn->Level * 0.6), pSpell->DurationCap);
-	case 5:
-		return 3;
-	case 7:
-		return std::min<unsigned int>(pSpawn->Level, pSpell->DurationCap ? pSpell->DurationCap : pSpawn->Level);
-	case 8:
-		return std::min<unsigned int>(pSpawn->Level + 10, pSpell->DurationCap);
-	case 9:
-		return std::min<unsigned int>(pSpawn->Level * 2 + 10, pSpell->DurationCap);
-	case 10:
-		return std::min<unsigned int>(pSpawn->Level * 3 + 10, pSpell->DurationCap);
-	case 13:
-		return pSpell->DurationCap * 6 / 10;
-	case 50:
-		return -1;
-	case 3600:
-		return 6000;
-	default:
-		return -2;
-	}
-}
-
-
 
 // ***************************************************************************
 // Function:    IsBardSong
@@ -1424,48 +1381,6 @@ static char* GetFactionName(int FactionID, char(&szBuffer)[Size])
 	}
 
 	return szBuffer;
-}
-
-// See also: GetSpellDuration
-static int CalcDuration(int calc, int max, int level)
-{
-	int value = 0;
-
-	switch (calc)
-	{
-	case 0:  value = 0; break;
-	case 1:
-	case 12:
-		value = level / 2;
-		if (value < 1)
-			value = 1;
-		break;
-	case 2:
-		value = (level / 2) + 5;
-		if (value < 6)
-			value = 6;
-		break;
-	case 3:  value = level * 30; break;
-	case 4:  value = 50; break;
-	case 5:  value = 2; break;
-	case 6:  value = level / 2; break;
-	case 7:  value = level; break;
-	case 8:  value = level + 10; break;
-	case 9:  value = level * 2 + 10; break;
-	case 10: value = level * 30 + 10; break;
-	case 11: value = (level + 3) * 30; break;
-	case 13: value = level * 3 + 10; break;
-	case 14: value = (level + 2) * 5; break;
-	case 15: value = (level + 10) * 10; break;
-	case 50: value = 72000; break;
-	case 3600: value = 3600; break;
-	default: value = max;
-	}
-
-	if (max > 0 && value > max)
-		value = max;
-
-	return value;
 }
 
 int64_t CalcValue(int calc, int64_t base, int64_t max, int tick, int minlevel, int level)

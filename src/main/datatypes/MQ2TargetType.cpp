@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -193,49 +193,49 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		Dest.Type = pCachedBuffType;
 		Dest.Ptr = pTarget;
 		Dest.HighPart = GetCachedBuff(pTarget, SpellAffect(SPA_HASTE, false));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Rooted:
 		Dest.Type = pCachedBuffType;
 		Dest.Ptr = pTarget;
 		Dest.HighPart = GetCachedBuff(pTarget, SpellAffect(SPA_ROOT, false));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Mezzed:
 		Dest.Type = pCachedBuffType;
 		Dest.Ptr = pTarget;
 		Dest.HighPart = GetCachedBuff(pTarget, SpellAffect(SPA_ENTHRALL, false));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Crippled:
 		Dest.Type = pCachedBuffType;
 		Dest.Ptr = pTarget;
 		Dest.HighPart = GetCachedBuff(pTarget, SpellSubCat(SPELLCAT_DISEMPOWERING));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Maloed:
 		Dest.Type = pCachedBuffType;
 		Dest.Ptr = pTarget;
 		Dest.HighPart = GetCachedBuff(pTarget, SpellSubCat(SPELLCAT_RESIST_DEBUFFS) && SpellClassMask(Shaman, Mage));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Tashed:
 		Dest.Type = pCachedBuffType;
 		Dest.Ptr = pTarget;
 		Dest.HighPart = GetCachedBuff(pTarget, SpellSubCat(SPELLCAT_RESIST_DEBUFFS) && SpellClassMask(Enchanter));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Snared:
 		Dest.Type = pCachedBuffType;
 		Dest.Ptr = pTarget;
 		Dest.HighPart = GetCachedBuff(pTarget, SpellAffect(SPA_MOVEMENT_RATE, false));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Hasted:
 		Dest.Type = pCachedBuffType;
 		Dest.Ptr = pTarget;
 		Dest.HighPart = GetCachedBuff(pTarget, SpellAffect(SPA_HASTE));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Beneficial:
 		Dest.Type = pCachedBuffType;
@@ -243,25 +243,25 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		Dest.HighPart = GetCachedBuff(pTarget, [](CachedBuff buff) {
 			auto spell = GetSpellByID(buff.spellId);
 			return spell && spell->SpellType != 0;});
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::DSed:
 		Dest.Type = pCachedBuffType;
 		Dest.Ptr = pTarget;
 		Dest.HighPart = GetCachedBuff(pTarget, SpellAffect(SPA_DAMAGE_SHIELD));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::RevDSed:
 		Dest.Type = pCachedBuffType;
 		Dest.Ptr = pTarget;
 		Dest.HighPart = GetCachedBuff(pTarget, SpellAffect(SPA_IRONMAIDEN));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Charmed:
 		Dest.Type = pCachedBuffType;
 		Dest.Ptr = pTarget;
 		Dest.HighPart = GetCachedBuff(pTarget, SpellAffect(SPA_CHARM, false));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Aego:
 		Dest.Type = pCachedBuffType;
@@ -270,7 +270,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			SpellCategory(SPELLCAT_HP_BUFFS) &&
 			(SpellSubCat(SPELLCAT_AEGOLISM) || SpellSubCat(SPELLCAT_SYMBOL)) &&
 			SpellClassMask(Cleric));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Skin:
 		Dest.Type = pCachedBuffType;
@@ -278,7 +278,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		Dest.HighPart = GetCachedBuff(pTarget, SpellCategory(SPELLCAT_HP_BUFFS) &&
 			SpellSubCat(SPELLCAT_HP_TYPE_ONE) &&
 			SpellClassMask(Druid));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Focus:
 		Dest.Type = pCachedBuffType;
@@ -286,37 +286,37 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		Dest.HighPart = GetCachedBuff(pTarget, SpellCategory(SPELLCAT_HP_BUFFS) &&
 			SpellSubCat(SPELLCAT_SHIELDING) &&
 			SpellClassMask(Shaman));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Regen:
 		Dest.Type = pCachedBuffType;
 		Dest.Ptr = pTarget;
 		Dest.HighPart = GetCachedBuff(pTarget, SpellAffect(SPA_HP) && !SpellClassMask(Beastlord));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Diseased:
 		Dest.Type = pCachedBuffType;
 		Dest.Ptr = pTarget;
 		Dest.HighPart = GetCachedBuff(pTarget, SpellAffect(SPA_DISEASE, false));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Poisoned:
 		Dest.Type = pCachedBuffType;
 		Dest.Ptr = pTarget;
 		Dest.HighPart = GetCachedBuff(pTarget, SpellAffect(SPA_POISON, false));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Cursed:
 		Dest.Type = pCachedBuffType;
 		Dest.Ptr = pTarget;
 		Dest.HighPart = GetCachedBuff(pTarget, SpellAffect(SPA_CURSE, false));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Corrupted:
 		Dest.Type = pCachedBuffType;
 		Dest.Ptr = pTarget;
 		Dest.HighPart = GetCachedBuff(pTarget, SpellAffect(SPA_CORRUPTION, false));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Symbol:
 		Dest.Type = pCachedBuffType;
@@ -324,13 +324,13 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		Dest.HighPart = GetCachedBuff(pTarget, SpellCategory(SPELLCAT_HP_BUFFS) &&
 			SpellSubCat(SPELLCAT_SYMBOL) &&
 			SpellClassMask(Cleric));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Clarity:
 		Dest.Type = pCachedBuffType;
 		Dest.Ptr = pTarget;
 		Dest.HighPart = GetCachedBuff(pTarget, SpellAffect(SPA_MANA) && SpellClassMask(Enchanter));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Pred:
 		Dest.Type = pCachedBuffType;
@@ -338,7 +338,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		Dest.HighPart = GetCachedBuff(pTarget, SpellCategory(SPELLCAT_STATISTIC_BUFFS) &&
 			SpellSubCat(SPELLCAT_ATTACK) &&
 			SpellClassMask(Ranger));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Strength:
 		Dest.Type = pCachedBuffType;
@@ -346,7 +346,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		Dest.HighPart = GetCachedBuff(pTarget, SpellCategory(SPELLCAT_HP_BUFFS) &&
 			SpellSubCat(SPELLCAT_HP_TYPE_TWO) &&
 			SpellClassMask(Ranger));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Brells:
 		Dest.Type = pCachedBuffType;
@@ -354,7 +354,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		Dest.HighPart = GetCachedBuff(pTarget, SpellCategory(SPELLCAT_HP_BUFFS) &&
 			SpellSubCat(SPELLCAT_HP_TYPE_TWO) &&
 			SpellClassMask(Paladin));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::SV:
 		Dest.Type = pCachedBuffType;
@@ -362,7 +362,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		Dest.HighPart = GetCachedBuff(pTarget, SpellCategory(SPELLCAT_REGEN) &&
 			SpellSubCat(SPELLCAT_MANA) &&
 			SpellClassMask(Beastlord));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::SE:
 		Dest.Type = pCachedBuffType;
@@ -370,7 +370,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		Dest.HighPart = GetCachedBuff(pTarget, SpellCategory(SPELLCAT_REGEN) &&
 			SpellSubCat(SPELLCAT_HEALTH_MANA) &&
 			SpellClassMask(Beastlord));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::HybridHP:
 		Dest.Type = pCachedBuffType;
@@ -378,7 +378,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		Dest.HighPart = GetCachedBuff(pTarget, SpellCategory(SPELLCAT_HP_BUFFS) &&
 			SpellSubCat(SPELLCAT_HP_TYPE_ONE) &&
 			SpellClassMask(Ranger));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Growth:
 		Dest.Type = pCachedBuffType;
@@ -386,7 +386,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		Dest.HighPart = GetCachedBuff(pTarget, SpellCategory(SPELLCAT_HP_BUFFS) &&
 			SpellSubCat(SPELLCAT_TEMPORARY) &&
 			SpellClassMask(Druid));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Shining:
 		Dest.Type = pCachedBuffType;
@@ -394,25 +394,25 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		Dest.HighPart = GetCachedBuff(pTarget, SpellCategory(SPELLCAT_UTILITY_BENEFICIAL) &&
 			SpellSubCat(SPELLCAT_MELEE_GUARD) &&
 			SpellClassMask(Cleric));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Feared:
 		Dest.Type = pCachedBuffType;
 		Dest.Ptr = pTarget;
 		Dest.HighPart = GetCachedBuff(pTarget, SpellAffect(SPA_FEAR, false));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Silenced:
 		Dest.Type = pCachedBuffType;
 		Dest.Ptr = pTarget;
 		Dest.HighPart = GetCachedBuff(pTarget, SpellAffect(SPA_SILENCE, false));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Invulnerable:
 		Dest.Type = pCachedBuffType;
 		Dest.Ptr = pTarget;
 		Dest.HighPart = GetCachedBuff(pTarget, SpellAffect(SPA_INVULNERABILITY, false));
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::Dotted:
 		Dest.Type = pCachedBuffType;
@@ -423,7 +423,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 				auto spell = GetSpellByID(buff.spellId);
 				return SpellAffect(SPA_HP, false)(spell) && spell && spell->IsDetrimentalSpell() && spell->IsDoTSpell();
 			});
-		return Dest.HighPart >= 0;
+		return true;
 
 	case TargetMembers::MaxMeleeTo:
 		Dest.Float = get_melee_range(pControlledPlayer, pTarget);

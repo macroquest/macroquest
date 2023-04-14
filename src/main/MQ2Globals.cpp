@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -285,7 +285,7 @@ fEQCommand cmdQuit = nullptr;
 const char* szEQMappableCommands[nEQMappableCommands];
 decltype(ItemSlotMap) ItemSlotMap;
 
-char DataTypeTemp[MAX_STRING] = { 0 };
+SGlobalBuffer DataTypeTemp;
 
 MQRank* EQP_DistArray = nullptr;
 int gSpawnCount = 0;

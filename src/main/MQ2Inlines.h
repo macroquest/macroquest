@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -505,19 +505,30 @@ inline int GetMemorizedSpell(int index)
 	return pLocalPC ? pLocalPC->GetMemorizedSpell(index) : -1;
 }
 
-inline int EQGetSpellDuration(EQ_Spell* pSpell, unsigned char casterLevel, bool isItemEffect)
+inline int GetSpellDuration(EQ_Spell* pSpell, unsigned char casterLevel, bool isItemEffect)
 {
 	return pLocalPC ? pLocalPC->SpellDuration(pSpell, casterLevel, isItemEffect) : 0;
 }
 
-inline int EQGetMySpellDuration(EQ_Spell* pSpell)
+inline int GetSpellDuration(EQ_Spell* pSpell, PlayerClient* pSpawn)
+{
+	return GetSpellDuration(pSpell, pSpawn ? pSpawn->Level : 0, false);
+}
+
+DEPRECATE("Use GetSpellDuration instead of EQGetSpellDuration")
+inline int EQGetSpellDuration(EQ_Spell* pSpell, unsigned char casterLevel, bool isItemEffect)
+{
+	return GetSpellDuration(pSpell, casterLevel, isItemEffect);
+}
+
+inline int GetMySpellDuration(EQ_Spell* pSpell)
 {
 	if (!pLocalPlayer)
 		return 0;
 	if (!pSpell)
 		return 0;
 
-	int origDuration = EQGetSpellDuration(pSpell, pLocalPlayer->Level, false);
+	int origDuration = GetSpellDuration(pSpell, pLocalPlayer->Level, false);
 
 	int out1 = 0, out2 = 0;
 	ItemPtr pContents;
@@ -525,6 +536,12 @@ inline int EQGetMySpellDuration(EQ_Spell* pSpell)
 	int durationMod = pLocalPC->GetFocusDurationMod(pSpell, pContents, pLocalPlayer, origDuration, &out1, &out2);
 
 	return origDuration + durationMod;
+}
+
+DEPRECATE("Use GetMySpellDuration instead of EQGetMySpellDuration")
+inline int EQGetMySpellDuration(EQ_Spell* pSpell)
+{
+	GetMySpellDuration(pSpell);
 }
 
 inline int GetSpellNumEffects(SPELL* pSpell)

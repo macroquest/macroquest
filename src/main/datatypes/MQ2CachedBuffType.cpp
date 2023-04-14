@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -45,6 +45,9 @@ MQ2CachedBuffType::MQ2CachedBuffType() : MQ2Type("cachedbuff")
 
 bool MQ2CachedBuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
+	if (static_cast<int>(VarPtr.HighPart) == -1)
+		return false;
+
 	auto pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
 	auto buff = GetCachedBuffAtSlot(pSpawn, VarPtr.HighPart);
 	if (!buff || buff->spellId <= 0)

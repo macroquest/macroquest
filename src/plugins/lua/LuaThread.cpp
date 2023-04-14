@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -440,6 +440,8 @@ LuaThread::RunResult LuaThread::RunOnce()
 		return { m_coroutine->thread.status(), std::nullopt };
 	}
 
+	DataTypeTemp.push_buffer(buffer);
+
 	if (m_eventProcessor)
 	{
 		// TODO: allow the user to set "aggressive" events (which gets prepared here) and "passive" binds (which would Get prepared in `doevents`)
@@ -456,6 +458,7 @@ LuaThread::RunResult LuaThread::RunOnce()
 
 	if (!m_coroutine->ShouldRun())
 	{
+		DataTypeTemp.pop_buffer();
 		return { m_coroutine->thread.status(), std::nullopt };
 	}
 
@@ -463,8 +466,11 @@ LuaThread::RunResult LuaThread::RunOnce()
 	{
 		CoroutineResult result = m_coroutine->RunCoroutine();
 		sol::thread_status status = result ? static_cast<sol::thread_status>(result->status()) : sol::thread_status::dead;
+		DataTypeTemp.pop_buffer();
 		return std::make_pair(std::move(status), std::move(result));
 	}
+
+	DataTypeTemp.pop_buffer();
 
 	if (!m_coroutine->thread.valid())
 	{
@@ -482,7 +488,6 @@ LuaThreadStatus LuaThread::Pause()
 
 		WriteChatStatus("Resuming paused lua script '%s' with PID %d", m_name.c_str(), m_pid);
 		m_paused = false;
-		m_coroutine->ClearDelay();
 
 		return LuaThreadStatus::Running;
 	}

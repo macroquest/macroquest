@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -232,7 +232,7 @@ public:
 		case Members::StartTime: {
 			Dest.Type = pStringType;
 			time_t startTime = std::chrono::system_clock::to_time_t(info->startTime);
-			ctime_s(DataTypeTemp, MAX_STRING, &startTime);
+			ctime_s(DataTypeTemp, DataTypeTemp.size(), &startTime);
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 		}
@@ -242,7 +242,7 @@ public:
 			{
 				Dest.Type = pStringType;
 				time_t endTime = std::chrono::system_clock::to_time_t(info->endTime);
-				ctime_s(DataTypeTemp, MAX_STRING, &endTime);
+				ctime_s(DataTypeTemp, DataTypeTemp.size(), &endTime);
 				return true;
 			}
 

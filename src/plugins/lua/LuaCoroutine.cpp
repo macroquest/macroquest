@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -115,7 +115,7 @@ void LuaCoroutine::Delay(sol::object delayObj, sol::object conditionObj, sol::st
 
 void LuaCoroutine::SetDelay(uint64_t time, std::optional<sol::function> condition /* = std::nullopt */)
 {
-	if (luaThread == nullptr || luaThread->IsPaused())
+	if (luaThread == nullptr)
 		return;
 
 	if (time > MQGetTickCount64() && !CheckCondition(condition))
