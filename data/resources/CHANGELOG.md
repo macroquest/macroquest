@@ -1,3 +1,6 @@
+April 19, 2023:
+- live: Updated for patch
+
 March 15, 2023:
 - live: Updated for patch
 - live: fixed zone guide structure
