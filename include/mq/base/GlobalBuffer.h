@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include "mq/base/Common.h"
+
 #include <cstddef>
 #include <cstring>
 #include <stack>
@@ -22,13 +24,10 @@
 struct SGlobalBuffer
 {
 	static constexpr size_t bufferSize = 2048;
-
 	char buffer[bufferSize] = { 0 };
-	char* ptr = nullptr;
-	std::stack<char*> m_stack;
 
-	SGlobalBuffer() : ptr(&buffer[0]) { }
-	~SGlobalBuffer() {}
+	SGlobalBuffer();
+	~SGlobalBuffer();
 
 	template <typename Index>
 	char& operator[](Index index) { return ptr[static_cast<size_t>(index)]; }
@@ -47,15 +46,12 @@ struct SGlobalBuffer
 	[[nodiscard]] char* begin() const { return ptr; }
 	[[nodiscard]] char* end() const { return ptr + strlen(ptr); }
 
-	void push_buffer(char* new_buffer) {
-		m_stack.push(ptr);
-		ptr = new_buffer;
-	}
+	MQLIB_OBJECT void push_buffer(char* new_buffer);
+	MQLIB_OBJECT void pop_buffer();
 
-	void pop_buffer() {
-		ptr = m_stack.top();
-		m_stack.pop();
-	}
+private:
+	char* ptr = nullptr;
+	std::stack<char*> m_stack;
 };
 
 // Provide helpers to go with SGlobalBuffer to allow for these operations without specifying a size

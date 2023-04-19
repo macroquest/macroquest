@@ -1132,6 +1132,28 @@ void InjectDisable()
 
 } // namespace mq
 
+// FIXME: Put this somewhere more appropriate
+SGlobalBuffer::SGlobalBuffer()
+	: ptr(&buffer[0])
+{
+}
+
+SGlobalBuffer::~SGlobalBuffer()
+{
+}
+
+void SGlobalBuffer::push_buffer(char* new_buffer)
+{
+	m_stack.push(ptr);
+	ptr = new_buffer;
+}
+
+void SGlobalBuffer::pop_buffer()
+{
+	ptr = m_stack.top();
+	m_stack.pop();
+}
+
 #if __has_include("../private/MQ2Main-private.cpp")
 #include "../private/MQ2Main-private.cpp"
 #endif
