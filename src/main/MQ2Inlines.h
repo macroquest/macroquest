@@ -16,6 +16,8 @@
 
 #include "../common/Common.h"
 
+#include "mq/api/Spawns.h"
+
  // string trim includes:
 #include <algorithm>
 #include <cctype>
@@ -165,30 +167,6 @@ inline const char* GetTypeDesc(eSpawnType TypeID)
 	default:
 		return "Unknown Type";
 	}
-}
-
-inline bool IsMarkedNPC(SPAWNINFO* pSpawn)
-{
-	if (pLocalPlayer && pSpawn)
-	{
-		for (uint32_t id : pLocalPlayer->RaidMarkNPC)
-		{
-			if (id == pSpawn->SpawnID)
-			{
-				return true;
-			}
-		}
-
-		for (uint32_t id : pLocalPlayer->GroupMarkNPC)
-		{
-			if (id == pSpawn->SpawnID)
-			{
-				return true;
-			}
-		}
-	}
-
-	return false;
 }
 
 inline int GetEnduranceRegen()

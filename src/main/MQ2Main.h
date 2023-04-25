@@ -383,8 +383,6 @@ MQLIB_API bool IsGuildMember(const char* SpawnName);
 MQLIB_API int GetGroupMercenaryCount(uint32_t ClassMASK);
 MQLIB_API SPAWNINFO* GetRaidMember(int index);
 MQLIB_API SPAWNINFO* GetGroupMember(int index);
-MQLIB_API uint32_t GetGroupMainAssistTargetID();
-MQLIB_API uint32_t GetRaidMainAssistTargetID(int index);
 MQLIB_API uint32_t GetGroupMarkedTargetID(int index);
 MQLIB_API uint32_t GetRaidMarkedTargetID(int index);
 MQLIB_API bool IsAssistNPC(SPAWNINFO* pSpawn);
