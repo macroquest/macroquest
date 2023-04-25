@@ -99,6 +99,9 @@ static bool s_enableImGuiViewports = false;
 static bool s_enableImGuiDocking = true;
 static bool s_deferredClearSettings = false;
 
+extern bool gbAutoDockspaceViewport;
+void ResetDockspaceGameViewport();
+
 //============================================================================
 // Detour helpers
 
@@ -1206,6 +1209,20 @@ static void OverlaySettings()
 		"\n"
 		"Viewports are disabled when running in full screen mode.");
 
+	if (ImGui::Checkbox("Resize EverQuest viewport to fit dockspace (Experimental)", &gbAutoDockspaceViewport))
+	{
+		if (!gbAutoDockspaceViewport)
+		{
+			ResetDockspaceGameViewport();
+		}
+
+		WritePrivateProfileBool("Overlay", "ResizeEQViewport", gbAutoDockspaceViewport, mq::internal_paths::MQini);
+	}
+
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("When enabled, if a window is docked to the side of the screen,\n"
+		"the EverQuest viewport will be resized to fit the available screen space");
+
 	ImGui::NewLine();
 
 	if (ImGui::Button("Clear Saved ImGui Window Settings"))
@@ -1221,11 +1238,12 @@ void InitializeMQ2Overlay()
 		return;
 
 	s_enableImGuiViewports = GetPrivateProfileBool("Overlay", "EnableViewports", false, mq::internal_paths::MQini);
-	//gbEnableImGuiDocking = GetPrivateProfileBool("Overlay", "EnableDocking", true, mq::internal_paths::MQini);
+	gbAutoDockspaceViewport = GetPrivateProfileBool("Overlay", "ResizeEQViewport", false, mq::internal_paths::MQini);
+
 	if (gbWriteAllConfig)
 	{
 		WritePrivateProfileBool("Overlay", "EnableViewports", s_enableImGuiViewports, mq::internal_paths::MQini);
-		//WritePrivateProfileBool("Overlay", "EnableDocking", gbEnableImGuiDocking, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Overlay", "ResizeEQViewport", gbAutoDockspaceViewport, mq::internal_paths::MQini);
 	}
 
 	// Intercept mouse events

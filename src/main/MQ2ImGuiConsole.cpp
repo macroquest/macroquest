@@ -35,6 +35,10 @@ bool gbToggleConsoleRequested = false;
 // Indicates that there has been a request to hide/show the console
 std::optional<bool> gbSetConsoleVisibilityRequest = std::nullopt;
 
+// If true, we will autosize the everquest window viewport to match the dockspace central node.
+bool gbAutoDockspaceViewport = false;
+
+
 static const ImU32 s_defaultColor = Zep::ZepColor(240, 240, 240, 255);
 static ImGuiID s_dockspaceId = 0;
 static ImGuiID s_dockspaceTopSegmentId = 0;
@@ -1450,14 +1454,54 @@ void UpdateImGuiConsole()
 			}
 		}
 	}
+
+	if (gbAutoDockspaceViewport)
+	{
+		if (auto node = ImGui::DockBuilderGetCentralNode(s_dockspaceId))
+		{
+			int sizeX = (int)node->Size.x;
+			int sizeY = (int)node->Size.y;
+			int posX = (int)node->Pos.x;
+			int posY = (int)node->Pos.y;
+
+			if (ImGuiWindow* hostWindow = node->HostWindow)
+			{
+				posX = posX - hostWindow->Pos.x;
+				posY = posY - hostWindow->Pos.y;
+
+				pEverQuestInfo->Render_MinX = posX;
+				pEverQuestInfo->Render_MinY = posY;
+
+				pEverQuestInfo->Render_MaxX = posX + sizeX;
+				pEverQuestInfo->Render_MaxY = posY + sizeY;
+
+				pEverQuestInfo->Render_XScale = 0;
+				pEverQuestInfo->Render_YScale = 0;
+				pEverQuestInfo->Render_WidthScale = 0;
+				pEverQuestInfo->Render_HeightScale = 0;
+			}
+		}
+	}
 }
+
+void ResetDockspaceGameViewport()
+{
+	if (pEverQuestInfo)
+	{
+		pEverQuestInfo->Render_MinX = 0;
+		pEverQuestInfo->Render_MinY = 0;
+		pEverQuestInfo->Render_MaxX = pEverQuestInfo->ScreenXRes;
+		pEverQuestInfo->Render_MaxY = pEverQuestInfo->ScreenYRes;
+	}
+}
+
 
 void MQConsoleCommand(SPAWNINFO* pChar, char* Line)
 {
 	char szCommand[MAX_STRING] = { 0 };
 	GetArg(szCommand, Line, 1);
 
-	if (!_stricmp("clear", szCommand))
+	if (ci_equals("clear", szCommand))
 	{
 		if (gImGuiConsole != nullptr)
 			gImGuiConsole->ClearLog();
@@ -1465,19 +1509,19 @@ void MQConsoleCommand(SPAWNINFO* pChar, char* Line)
 		return;
 	}
 
-	if (!_stricmp("toggle", szCommand))
+	if (ci_equals("toggle", szCommand))
 	{
 		gbToggleConsoleRequested = true;
 		return;
 	}
 
-	if (!_stricmp("show", szCommand))
+	if (ci_equals("show", szCommand))
 	{
 		gbSetConsoleVisibilityRequest = true;
 		return;
 	}
 
-	if (!_stricmp("hide", szCommand))
+	if (ci_equals("hide", szCommand))
 	{
 		gbSetConsoleVisibilityRequest = false;
 		return;
@@ -1541,6 +1585,11 @@ void ShutdownImGuiConsole()
 {
 	delete gImGuiConsole;
 	gImGuiConsole = nullptr;
+
+	if (gbAutoDockspaceViewport)
+	{
+		ResetDockspaceGameViewport();
+	}
 
 	RemoveSettingsPanel("Console");
 	RemoveCommand("/mqconsole");
