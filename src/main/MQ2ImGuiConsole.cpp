@@ -37,6 +37,7 @@ std::optional<bool> gbSetConsoleVisibilityRequest = std::nullopt;
 
 // If true, we will autosize the everquest window viewport to match the dockspace central node.
 bool gbAutoDockspaceViewport = false;
+bool gbAutoDockspacePreserveRatio = false;
 
 
 static const ImU32 s_defaultColor = Zep::ZepColor(240, 240, 240, 255);
@@ -1459,15 +1460,30 @@ void UpdateImGuiConsole()
 	{
 		if (auto node = ImGui::DockBuilderGetCentralNode(s_dockspaceId))
 		{
-			int sizeX = (int)node->Size.x;
-			int sizeY = (int)node->Size.y;
-			int posX = (int)node->Pos.x;
-			int posY = (int)node->Pos.y;
-
 			if (ImGuiWindow* hostWindow = node->HostWindow)
 			{
-				posX = posX - hostWindow->Pos.x;
-				posY = posY - hostWindow->Pos.y;
+				int sizeX = static_cast<int>(node->Size.x);
+				int sizeY = static_cast<int>(node->Size.y);
+				int posX = static_cast<int>(node->Pos.x);
+				int posY = static_cast<int>(node->Pos.y);
+
+				posX = posX - static_cast<int>(hostWindow->Pos.x);
+				posY = posY - static_cast<int>(hostWindow->Pos.y);
+
+				if (gbAutoDockspacePreserveRatio)
+				{
+					float heightRatio = static_cast<float>(pEverQuestInfo->ScreenYRes) / static_cast<float>(pEverQuestInfo->ScreenXRes);
+					float widthRatio = 1.0f / heightRatio;
+
+					if (sizeY * widthRatio <= sizeX)
+					{
+						sizeX = static_cast<int>(sizeY * widthRatio);
+					}
+					else if (sizeX * heightRatio <= sizeY)
+					{
+						sizeY = static_cast<int>(sizeX * heightRatio);
+					}
+				}
 
 				pEverQuestInfo->Render_MinX = posX;
 				pEverQuestInfo->Render_MinY = posY;
