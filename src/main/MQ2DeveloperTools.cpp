@@ -3591,18 +3591,30 @@ public:
 
 			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 9);
 
-			DisplaySwitchData();
+			if (!pSwitchMgr)
+			{
+				open = false;
+			}
+			else
+			{
+				EQSwitch* pSwitch = pSwitchMgr->GetSwitchById(m_id);
+				if (!pSwitch)
+				{
+					open = false;
+				}
+				else
+				{
+					DisplaySwitchData(pSwitch);
+				}
+			}
 		}
 		ImGui::End();
 
 		return open;
 	}
 
-	void DisplaySwitchData()
+	void DisplaySwitchData(EQSwitch* pSwitch)
 	{
-		if (!pSwitchMgr) return;
-		EQSwitch* pSwitch = pSwitchMgr->GetSwitchById(m_id);
-
 		if (ImGui::SmallButton("Click"))
 		{
 			pSwitch->UseSwitch(pLocalPlayer->SpawnID, -1, 0, nullptr);
