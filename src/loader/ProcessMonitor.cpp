@@ -244,6 +244,25 @@ void WmiProcessMonitor::Stop()
 	}
 }
 
+bool StartWMIProcessMonitor()
+{
+	// Try to start a WmiProcess monitor
+	try
+	{
+		auto monitor = std::make_unique<WmiProcessMonitor>();
+		monitor->Start();
+		pMonitor = std::move(monitor);
+		SPDLOG_INFO("Process monitor using WMI started");
+		return true;
+	}
+	catch (const std::exception& err)
+	{
+		SPDLOG_ERROR("Failed to start wmi process monitor: {}", err.what());
+
+		return false;
+	}
+}
+
 #pragma endregion
 
 #pragma region ToolHelp Process Monitor
@@ -291,7 +310,8 @@ void ToolHelpProcessMonitor::Stop()
 
 	m_running = false;
 	m_event.SetEvent();
-	m_thread.join();
+	if (m_thread.joinable())
+		m_thread.join();
 }
 
 void ToolHelpProcessMonitor::ThreadProc()
@@ -303,6 +323,7 @@ void ToolHelpProcessMonitor::ThreadProc()
 	std::vector<HANDLE> waitList;
 	waitList.push_back(m_event.get());
 	bool initial = true;
+	bool switchToWMI = false;
 
 	do
 	{
@@ -353,8 +374,18 @@ void ToolHelpProcessMonitor::ThreadProc()
 
 		if (result == WAIT_FAILED)
 		{
-			SPDLOG_DEBUG("{}",
-				fmt::windows_error(GetLastError(), "ToolHelpThread: failed in WaitForMultipleObjects").what());
+			if (waitList.size() >= MAXIMUM_WAIT_OBJECTS)
+			{
+				SPDLOG_ERROR("Encountered more than the maximum number of proesses while waiting on ToolhelpThread: {}! "
+					"Switching to WMI process monitor.", waitList.size());
+				switchToWMI = true;
+				m_running = false;
+			}
+			else
+			{
+				SPDLOG_WARN("{}",
+					fmt::windows_error(GetLastError(), "ToolHelpThread: failed in WaitForMultipleObjects").what());
+			}
 		}
 		else if (result != WAIT_TIMEOUT)
 		{
@@ -375,10 +406,36 @@ void ToolHelpProcessMonitor::ThreadProc()
 				}
 			}
 		}
+
 		initial = false;
 	} while (m_running);
 
 	SPDLOG_DEBUG("Process Monitor Thread Exit");
+
+	if (switchToWMI)
+	{
+		// Detach this thread so we can destroy the process monitor.
+		m_thread.detach();
+
+		StartWMIProcessMonitor();
+	}
+}
+
+bool StartToolHelpProcessMonitor()
+{
+	try
+	{
+		auto monitor = std::make_unique<ToolHelpProcessMonitor>();
+		monitor->Start();
+		pMonitor = std::move(monitor);
+		SPDLOG_INFO("Process monitor using ToolHelp started");
+		return true;
+	}
+	catch (const std::exception& err)
+	{
+		SPDLOG_ERROR("Failed to start toolhelp process monitor: {}", err.what());
+		return false;
+	}
 }
 
 #pragma endregion
@@ -387,37 +444,17 @@ void StartProcessMonitor(ProcessMonitorEvents* pEvents)
 {
 	gpProcessMonitorEvents = pEvents;
 
-#if 0
-	// Try to start a WmiProcess monitor
-	try
-	{
-		auto monitor = std::make_unique<WmiProcessMonitor>();
-		monitor->Start();
-		pMonitor = std::move(monitor);
-		SPDLOG_INFO("Process monitor using WMI started");
-		return;
-	}
-	catch (const std::exception& err)
-	{
-		SPDLOG_ERROR("Failed to start wmi process monitor: {}", err.what());
-	}
-#endif
-
 	// Try to start the tooltip process monitor
-	try
+	bool success = StartToolHelpProcessMonitor();
+	if (!success)
 	{
-		auto monitor = std::make_unique<ToolHelpProcessMonitor>();
-		monitor->Start();
-		pMonitor = std::move(monitor);
-		SPDLOG_INFO("Process monitor started");
-		return;
-	}
-	catch (const std::exception & err)
-	{
-		SPDLOG_ERROR("Failed to start toolhelp process monitor: {}", err.what());
+		success = StartWMIProcessMonitor();
 	}
 
-	SPDLOG_ERROR("Unable to start a process monitor. Will not be able to inject!!");
+	if (!success)
+	{
+		SPDLOG_ERROR("Unable to start a process monitor. Will not be able to inject!!");
+	}
 }
 
 void StopProcessMonitor()
