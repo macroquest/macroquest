@@ -1,3 +1,6 @@
+April 26, 2023:
+- test: Updated for patch
+
 April 24, 2023:
 - Fix an issue where the loader would spam the log file with an error if more than
   64 eqgame.exe processes were running. Instead, it will swap to the WMI process
