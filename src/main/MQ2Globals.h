@@ -16,6 +16,7 @@
 
 #include "../eqlib/EQLib.h"
 #include "MQ2Internal.h"
+#include "mq/base/GlobalBuffer.h"
 
 #include <memory>
 #include <unordered_map>
@@ -75,7 +76,7 @@ MQLIB_VAR MQDataVar* pMacroVariables;
 MQLIB_VAR bool bAllErrorsFatal;
 MQLIB_VAR bool bAllErrorsDumpStack;
 MQLIB_VAR bool bAllErrorsLog;
-MQLIB_API char DataTypeTemp[MAX_STRING];
+MQLIB_API SGlobalBuffer DataTypeTemp;
 MQLIB_API char gszVersion[32];
 MQLIB_API char gszTime[32];
 MQLIB_API int gBuild;

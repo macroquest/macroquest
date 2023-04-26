@@ -285,7 +285,7 @@ fEQCommand cmdQuit = nullptr;
 const char* szEQMappableCommands[nEQMappableCommands];
 decltype(ItemSlotMap) ItemSlotMap;
 
-char DataTypeTemp[MAX_STRING] = { 0 };
+SGlobalBuffer DataTypeTemp;
 
 MQRank* EQP_DistArray = nullptr;
 int gSpawnCount = 0;

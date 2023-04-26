@@ -47,7 +47,7 @@ bool MQ2ZoneType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	{
 	case ZoneMembers::Name:
 		strcpy_s(DataTypeTemp, pZone->LongName);
-		Dest.Ptr = &DataTypeTemp;
+		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 

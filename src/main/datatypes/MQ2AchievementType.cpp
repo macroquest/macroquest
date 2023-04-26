@@ -388,7 +388,7 @@ bool MQ2AchievementType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		return true;
 
 	case AchievementTypeMembers::Link:
-		FormatAchievementLink(DataTypeTemp, MAX_STRING, achievement, Index[0] ? Index : pLocalPC->Name);
+		FormatAchievementLink(DataTypeTemp, DataTypeTemp.size(), achievement, Index[0] ? Index : pLocalPC->Name);
 		Dest.Ptr = DataTypeTemp;
 		Dest.Type = pStringType;
 		return true;

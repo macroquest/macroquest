@@ -821,7 +821,7 @@ void SelectItem(SPAWNINFO* pChar, char* szLine)
 			else
 			{
 				WriteChatf("/selectitem Could NOT find \ay%s\ax in your inventory to select.\n"
-					"Use /invoke ${Merchant.SelectItem[%s]} if you want to select an item in the merchants inventory.", szBuffer, szBuffer);
+					"Use /invoke ${Merchant.SelectItem[%s]} if you want to select an item in the merchants inventory.", pName, szBuffer);
 			}
 
 			return;

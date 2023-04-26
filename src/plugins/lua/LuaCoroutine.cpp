@@ -115,7 +115,7 @@ void LuaCoroutine::Delay(sol::object delayObj, sol::object conditionObj, sol::st
 
 void LuaCoroutine::SetDelay(uint64_t time, std::optional<sol::function> condition /* = std::nullopt */)
 {
-	if (luaThread == nullptr || luaThread->IsPaused())
+	if (luaThread == nullptr)
 		return;
 
 	if (time > MQGetTickCount64() && !CheckCondition(condition))

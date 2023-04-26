@@ -266,7 +266,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		HWND hEQWnd = GetEQWindowHandle();
 		if (hEQWnd)
 		{
-			GetWindowTextA(hEQWnd, DataTypeTemp, MAX_STRING);
+			GetWindowTextA(hEQWnd, DataTypeTemp, static_cast<int>(DataTypeTemp.size()));
 
 			if (DataTypeTemp[0] != 0)
 			{
