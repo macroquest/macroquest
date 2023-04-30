@@ -551,6 +551,7 @@
     <ClInclude Include="..\..\include\moveitem.h" />
     <ClInclude Include="..\..\include\mq\api\Achievements.h" />
     <ClInclude Include="..\..\include\mq\api\Items.h" />
+    <ClInclude Include="..\..\include\mq\api\MacroAPI.h" />
     <ClInclude Include="..\..\include\mq\api\Spawns.h" />
     <ClInclude Include="..\..\include\mq\base\BuildInfo.h" />
     <ClInclude Include="..\..\include\mq\base\Color.h" />

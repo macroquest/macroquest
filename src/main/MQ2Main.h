@@ -70,10 +70,9 @@ using namespace eqlib;
 // TODO: Move these to mq/Plugin.h so that they are not globally included -- include them
 // only where they are needed.
 
-#include <mq/utils/Benchmarks.h>
-#include <mq/utils/Keybinds.h>
-
-#include <mq/base/Detours.h>
+#include "mq/base/Detours.h"
+#include "mq/utils/Benchmarks.h"
+#include "mq/utils/Keybinds.h"
 
 namespace mq {
 
@@ -219,8 +218,14 @@ MQLIB_API void EchoClean(SPAWNINFO*, char*);
 
 /* MACRO PARSING */
 void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValues);
-
 MQLIB_API char* ParseMacroParameter(SPAWNINFO* pChar, char* szOriginal, size_t BufferSize);
+MQLIB_API bool ParseMacroData(char* szOriginal, size_t BufferSize);
+MQLIB_API bool ParseMQ2DataPortion(char* szOriginal, MQTypeVar& Result);
+
+// Returns -1 if member doesn't exist. 0 if it fails, and 1 if it succeeds.
+MQLIB_API int EvaluateMacroDataMember(MQ2Type* Type, MQVarPtr VarPtr, MQTypeVar& Result, const char* Member, char* pIndex);
+// Returns false if the given name is neither a member nor a method of the given type.
+MQLIB_OBJECT bool FindMacroDataMember(MQ2Type* Type, const std::string& Member);
 
 template <unsigned int _Size>
 inline char* ParseMacroParameter(SPAWNINFO* pChar, char(&szOriginal)[_Size])
@@ -228,45 +233,14 @@ inline char* ParseMacroParameter(SPAWNINFO* pChar, char(&szOriginal)[_Size])
 	return ParseMacroParameter(pChar, szOriginal, _Size);
 }
 
+std::string HandleParseParam(std::string_view strOriginal, bool bParseOnce = false);
+
+enum class ModifyMacroMode { Default, Wrap, WrapNoDoubles };
+
+std::string ModifyMacroString(std::string_view strOriginal, bool bParseOnce = false,
+	ModifyMacroMode iOperation = ModifyMacroMode::Default);
+
 MQLIB_API void FailIf(SPAWNINFO* pChar, const char* szCommand, int pStartLine, bool All = false);
-MQLIB_API void InitializeParser();
-MQLIB_API void ShutdownParser();
-
-namespace datatypes {
-MQLIB_API void InitializeMQ2DataTypes();
-MQLIB_API void ShutdownMQ2DataTypes();
-}
-
-MQLIB_API void InitializeMQ2Data();
-MQLIB_API void ShutdownMQ2Data();
-MQLIB_API bool ParseMacroData(char* szOriginal, size_t BufferSize);
-MQLIB_API bool AddMQ2Data(const char* szName, fMQData Function);
-MQLIB_API bool RemoveMQ2Data(const char* szName);
-MQLIB_API void AddObservedEQObject(const std::shared_ptr<MQTransient>& Object);
-MQLIB_API void InvalidateObservedEQObject(void* Object);
-MQLIB_API MQ2Type* FindMQ2DataType(const char* szName);
-MQLIB_API MQDataItem* FindMQ2Data(const char* szName);
-MQLIB_API MQDataVar* FindMQ2DataVariable(const char* szName);
-MQLIB_API bool AddMQ2Type(MQ2Type& type);
-MQLIB_API bool RemoveMQ2Type(MQ2Type& type);
-MQLIB_API bool ParseMQ2DataPortion(char* szOriginal, MQTypeVar& Result);
-MQLIB_API bool AddMQ2TypeExtension(const char* typeName, MQ2Type* extension);
-MQLIB_API bool RemoveMQ2TypeExtension(const char* typeName, MQ2Type* extension);
-
-// Returns -1 if member doesn't exist. 0 if it fails, and 1 if it succeeds.
-MQLIB_API int EvaluateMacroDataMember(MQ2Type* Type, MQVarPtr VarPtr, MQTypeVar& Result, const char* Member, char* pIndex);
-// Returns false if the given name is neither a member nor a method of the given type.
-MQLIB_OBJECT bool FindMacroDataMember(MQ2Type* Type, const std::string& Member);
-
-// Compatibility shims
-DEPRECATE("The data function's signature must be updated to bool functionName(const char* szIndex, MQTypeVar& ret)")
-inline bool AddMQ2Data(const char* szName, fMQDataOld Function)
-{
-	// This cast is safe only due to the fact that the function signature is equivalent with the key difference
-	// being we're adding a const to a param.
-#pragma warning(suppress: 4191)
-	return AddMQ2Data(szName, (fMQData)Function);
-}
 
 /* MOUSE */
 MQLIB_API bool IsMouseWaiting();
@@ -465,12 +439,7 @@ MQLIB_API bool LoH_HT_Ready();
 
 /* MQ2DATAVARS */
 MQLIB_API char* GetFuncParam(const char* szMacroLine, int ParamNum, char* szParamName, size_t ParamNameLen, char* szParamType, size_t ParamTypeLen);
-MQLIB_API MQDataVar* FindMQ2DataVariable(const char* Name);
-MQLIB_API bool AddMQ2DataVariable(const char* Name, const char* Index, MQ2Type* pType, MQDataVar** ppHead, const char* Default);
-MQLIB_API bool AddMQ2DataVariableFromData(const char* Name, const char* Index, MQ2Type* pType, MQDataVar** ppHead, MQTypeVar Default);
-MQLIB_API MQDataVar** FindVariableScope(const char* Name);
-MQLIB_API bool DeleteMQ2DataVariable(const char* Name);
-MQLIB_API void ClearMQ2DataVariables(MQDataVar** ppHead);
+
 MQLIB_API void DropTimers();
 
 /*                 */
@@ -576,6 +545,9 @@ MQLIB_API char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, si
 
 inline int EQObjectID(SPAWNINFO* pSpawn) { return pSpawn->SpawnID; }
 using ObservedSpawnPtr = MQEQObjectPtr<SPAWNINFO>;
+
+MQLIB_API void AddObservedEQObject(const std::shared_ptr<MQTransient>& Object);
+MQLIB_API void InvalidateObservedEQObject(void* Object);
 
 // A.k.a. "Door target"
 MQLIB_API void SetSwitchTarget(EQSwitch* pSwitch);
@@ -785,14 +757,6 @@ MQLIB_API void EndAllMacros();
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Parse Operations
-std::string HandleParseParam(std::string_view strOriginal, bool bParseOnce = false);
-
-enum class ModifyMacroMode { Default, Wrap, WrapNoDoubles };
-
-std::string ModifyMacroString(std::string_view strOriginal, bool bParseOnce = false,
-	ModifyMacroMode iOperation = ModifyMacroMode::Default);
-
 MQLIB_API bool Calculate(const char* szFormula, double& Dest);
 
 // Given a string that contains a number, make the number "pretty" by adding things like
@@ -818,21 +782,6 @@ constexpr int GAMESTATE_UNLOADING      = 255;
 #define XKF_LALT                4
 #define XKF_RALT                8
 
-#define CHATMENU_NEW			42
-#define CHATMENU_ALWAYS_CHAT_HERE	43
-#define CHATMENU_RENAME			44
-#define CHATMENU_SCROLLBAR		45
-
-// DO NOT CHANGE these user message id's.
-// They must be identical between MQ2 and the
-// injector process (MacroQuest.exe).
-//#define WM_USER_REGISTER_HK		(WM_USER + 1000)
-//#define WM_USER_UNREGISTER_HK	(WM_USER + 1001)
-//#define WM_USER_RESETLOADED		(WM_USER + 1002)
-//#define WM_USER_SETLOADED		(WM_USER + 1003)
-
-MQLIB_API void memchecks_tramp(char*, DWORD, void*, DWORD, bool);
-MQLIB_API void memchecks(char*, DWORD, void*, DWORD, bool);
 MQLIB_API void RemoveFindItemMenu();
 MQLIB_API bool WillFitInBank(ItemClient* pContent);
 MQLIB_API bool WillFitInInventory(ItemClient* pContent);
@@ -881,7 +830,8 @@ MQLIB_API int GetSubscriptionLevel();
 
 } // namespace mq
 
-#include <mq/api/Achievements.h>
+#include "mq/api/Achievements.h"
+#include "mq/api/MacroAPI.h"
 
 #if __has_include("../private/MQ2Main-private.h")
 #include "../private/MQ2Main-private.h"

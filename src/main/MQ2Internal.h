@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include "mq/api/MacroAPI.h"
+
 #include <map>
 #include <memory>
 #include <mutex>
@@ -1027,13 +1029,10 @@ struct MQTypeMember
 using MQ2TYPEMEMBER DEPRECATE("Use MQTypeMember instead of MQ2TYPEMEMBER") = MQTypeMember;
 using PMQ2TYPEMEMBER DEPRECATE("Use MQTypeMember* instead of PMQ2TYPEMEMBER") = MQTypeMember*;
 
-using fMQData = bool(*)(const char*, MQTypeVar&);
-using fMQDataOld = BOOL(*)(char*, MQTypeVar&);
-
 struct MQDataItem
 {
-	char Name[64];
-	fMQData Function;
+	std::string Name;
+	MQTopLevelObjectFunction Function;
 };
 using MQ2DATAITEM DEPRECATE("Use MQDataItem instead of MQ2DATAITEM") = MQDataItem;
 using PMQ2DATAITEM DEPRECATE("Use MQDataItem* instead of PMQ2DATAITEM") = MQDataItem*;
@@ -1049,6 +1048,15 @@ struct MQDataVar
 };
 using PDATAVAR DEPRECATE("Use MQDataVar* instead of PDATAVAR") = MQDataVar*;
 using DATAVAR DEPRECATE("Use MQDataVar instead of DATAVAR") = MQDataVar;
+
+// MQ2Hud is using this...
+MQLIB_VAR MQDataVar* FindMQ2DataVariable(const char* Name);
+
+bool AddMQ2DataVariable(const char* Name, const char* Index, MQ2Type* pType, MQDataVar** ppHead, const char* Default);
+bool AddMQ2DataVariableFromData(const char* Name, const char* Index, MQ2Type* pType, MQDataVar** ppHead, MQTypeVar Default);
+MQDataVar** FindVariableScope(const char* Name);
+bool DeleteMQ2DataVariable(const char* Name);
+void ClearMQ2DataVariables(MQDataVar** ppHead);
 
 //============================================================================
 

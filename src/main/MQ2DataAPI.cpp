@@ -17,6 +17,7 @@
 
 namespace mq {
 
+std::unordered_map<std::string, std::unique_ptr<MQDataItem>> MQ2DataMap;
 std::unordered_map<std::string, MQ2Type*> MQ2DataTypeMap;
 std::unordered_map<std::string, std::vector<MQ2Type*>> MQ2DataExtensions;
 
@@ -158,7 +159,7 @@ MQDataItem* FindMQ2Data(const char* szName)
 	return iter->second.get();
 }
 
-bool AddMQ2Data(const char* szName, fMQData Function)
+bool AddMQ2Data(const char* szName, MQTopLevelObjectFunction Function)
 {
 	std::scoped_lock lock(s_variableMutex);
 
@@ -167,14 +168,19 @@ bool AddMQ2Data(const char* szName, fMQData Function)
 	if (MQ2DataMap.find(szName) != MQ2DataMap.end())
 		return false;
 
-	// create new MQ2DATAITEM inside a unique_ptr
+	// create new MQDataItem inside a unique_ptr
 	auto newItem = std::make_unique<MQDataItem>();
-	strcpy_s(newItem->Name, szName);
-	newItem->Function = Function;
+	newItem->Name = szName;
+	newItem->Function = std::move(Function);
 
 	// put the new item into the map
 	MQ2DataMap.emplace(szName, std::move(newItem));
 	return true;
+}
+
+bool AddMQ2Data(const char* szName, fMQData Function)
+{
+	return AddMQ2Data(szName, MQTopLevelObjectFunction(Function));
 }
 
 bool RemoveMQ2Data(const char* szName)

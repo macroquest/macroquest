@@ -79,6 +79,10 @@ namespace mq {
 void InitializeLoginFrontend();
 void ShutdownLoginFrontend();
 
+// From MQ2ParseAPI.cpp
+void InitializeParser();
+void ShutdownParser();
+
 // From MQ2PluginHandler.cpp
 void ShutdownInternalModules();
 
