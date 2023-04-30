@@ -60,6 +60,9 @@
     <Filter Include="Header Files\mq\api">
       <UniqueIdentifier>{5a764db5-6fa5-456d-b603-465edf27eec0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\api">
+      <UniqueIdentifier>{eab18ae6-9d25-410f-a584-982be8ed8523}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MQ2AutoInventory.cpp">
@@ -368,6 +371,9 @@
     <ClCompile Include="datatypes\MQ2TradeskillDepotType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
+    <ClCompile Include="api\Spawns.cpp">
+      <Filter>Source Files\api</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
@@ -543,6 +549,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\mq\base\GlobalBuffer.h">
       <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\Spawns.h">
+      <Filter>Header Files\mq\api</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

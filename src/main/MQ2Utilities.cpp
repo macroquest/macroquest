@@ -6870,24 +6870,6 @@ inline SPAWNINFO* GetGroupMember(int index)
 	return nullptr;
 }
 
-uint32_t GetGroupMainAssistTargetID()
-{
-	if (!pLocalPC || !pLocalPC->Group) return 0;
-	if (!pLocalPlayer) return 0;
-
-	return pLocalPlayer->GroupAssistNPC[0];
-}
-
-uint32_t GetRaidMainAssistTargetID(int index)
-{
-	if (!pLocalPlayer) return 0;
-
-	if (index < 0 || index >= (int)lengthof(pLocalPlayer->RaidAssistNPC))
-		return 0;
-
-	return pLocalPlayer->RaidAssistNPC[index];
-}
-
 uint32_t GetGroupMarkedTargetID(int index)
 {
 	if (!pLocalPlayer || !pLocalPC->Group) return 0;
@@ -6906,33 +6888,6 @@ uint32_t GetRaidMarkedTargetID(int index)
 		return 0;
 
 	return pLocalPlayer->RaidMarkNPC[index];
-}
-
-bool IsAssistNPC(SPAWNINFO* pSpawn)
-{
-	if (!pSpawn)
-		return false;
-
-	if (uint32_t AssistID = GetGroupMainAssistTargetID())
-	{
-		if (AssistID == pSpawn->SpawnID)
-		{
-			return true;
-		}
-	}
-
-	for (int nAssist = 0; nAssist < MAX_RAID_ASSISTS; nAssist++)
-	{
-		if (uint32_t AssistID = GetRaidMainAssistTargetID(nAssist))
-		{
-			if (AssistID == pSpawn->SpawnID)
-			{
-				return true;
-			}
-		}
-	}
-
-	return false;
 }
 
 void DoFace(SPAWNINFO* pChar, CVector3 Position)

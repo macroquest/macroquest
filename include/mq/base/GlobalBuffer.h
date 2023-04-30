@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include "mq/base/Common.h"
+
 #include <cstddef>
 #include <cstring>
 #include <stack>
@@ -22,12 +24,10 @@
 struct SGlobalBuffer
 {
 	static constexpr size_t bufferSize = 2048;
+	char buffer[bufferSize] = { 0 };
 
-    char buffer[bufferSize] = { 0 };
-	char* ptr = nullptr;
-    std::stack<char*> m_stack;
-
-    SGlobalBuffer() : ptr(&buffer[0]) { }
+	SGlobalBuffer();
+	~SGlobalBuffer();
 
 	template <typename Index>
 	char& operator[](Index index) { return ptr[static_cast<size_t>(index)]; }
@@ -40,54 +40,51 @@ struct SGlobalBuffer
 
 	operator char* () const { return ptr; }
 
-    operator std::string_view() const { return { ptr }; }
+	operator std::string_view() const { return { ptr }; }
 
-    constexpr [[nodiscard]] size_t size() const { return bufferSize; }
-    [[nodiscard]] char* begin() const { return ptr; }
-    [[nodiscard]] char* end() const { return ptr + strlen(ptr); }
+	[[nodiscard]] constexpr size_t size() const { return bufferSize; }
+	[[nodiscard]] char* begin() const { return ptr; }
+	[[nodiscard]] char* end() const { return ptr + strlen(ptr); }
 
-    void push_buffer(char* new_buffer) {
-        m_stack.push(ptr);
-        ptr = new_buffer;
-    }
+	MQLIB_OBJECT void push_buffer(char* new_buffer);
+	MQLIB_OBJECT void pop_buffer();
 
-    void pop_buffer() {
-        ptr = m_stack.top();
-        m_stack.pop();
-    }
+private:
+	char* ptr = nullptr;
+	std::stack<char*> m_stack;
 };
 
 // Provide helpers to go with SGlobalBuffer to allow for these operations without specifying a size
 
 inline errno_t strcpy_s(SGlobalBuffer& dest, const char* src)
 {
-    return strcpy_s(dest, dest.size(), src);
+	return strcpy_s(dest, dest.size(), src);
 }
 
 inline errno_t strncpy_s(SGlobalBuffer& dest, const char* src, size_t count)
 {
-    return strncpy_s(dest, dest.size(), src, count);
+	return strncpy_s(dest, dest.size(), src, count);
 }
 
 inline void strcat_s(SGlobalBuffer& dest, const char* src)
 {
-    strcat_s(dest, dest.size(), src);
+	strcat_s(dest, dest.size(), src);
 }
 
 inline void _strupr_s(SGlobalBuffer& dest)
 {
-    _strupr_s(dest, dest.size());
+	_strupr_s(dest, dest.size());
 }
 
 inline void _strlwr_s(SGlobalBuffer& dest)
 {
-    _strlwr_s(dest, dest.size());
+	_strlwr_s(dest, dest.size());
 }
 
 template <typename... Args>
 int sprintf_s(SGlobalBuffer& dest, const char* format, Args... args)
 {
-    return sprintf_s(dest, dest.size(), format, args...);
+	return sprintf_s(dest, dest.size(), format, args...);
 }
 
 // end helpers

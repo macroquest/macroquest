@@ -861,13 +861,10 @@ void ForceUnload()
 	WriteChatColor(UnloadedString, USERCOLOR_DEFAULT);
 	DebugSpewAlways("ForceUnload() called, this is not good %s", UnloadedString);
 
-	// dont do this here ShutdownMQ2Plugins() will do it and its called from MQ2Shutdown();
-	//UnloadMQ2Plugins();
-
 	MQ2Shutdown();
 
 	g_Loaded = false;
-	ScreenMode = 2;
+	ScreenMode = oldscreenmode;
 }
 
 // ***************************************************************************
@@ -927,9 +924,6 @@ getout:
 		SPDLOG_WARN("I am unloading in MQ2Start this will probably crash");
 		ForceUnload();
 	}
-
-	if (ScreenMode)
-		ScreenMode = 2;
 
 	UninstallUnhandledExceptionFilter();
 
@@ -1131,6 +1125,28 @@ void InjectDisable()
 }
 
 } // namespace mq
+
+// FIXME: Put this somewhere more appropriate
+SGlobalBuffer::SGlobalBuffer()
+	: ptr(&buffer[0])
+{
+}
+
+SGlobalBuffer::~SGlobalBuffer()
+{
+}
+
+void SGlobalBuffer::push_buffer(char* new_buffer)
+{
+	m_stack.push(ptr);
+	ptr = new_buffer;
+}
+
+void SGlobalBuffer::pop_buffer()
+{
+	ptr = m_stack.top();
+	m_stack.pop();
+}
 
 #if __has_include("../private/MQ2Main-private.cpp")
 #include "../private/MQ2Main-private.cpp"
