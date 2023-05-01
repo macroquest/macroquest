@@ -721,6 +721,10 @@ struct MQVarPtr
 
 	MQVariant Data;
 
+	// HighPart is slightly more complicated, but only just. We just save off the HighPart in this member variable unless
+	// the underlying data is uint64_t -- and we will prefer to store the uint32_t variant when setting
+	uint32_t HighPart_ = 0;
+
 	enum class VariantIdx
 	{
 		Ptr = 0,
@@ -904,10 +908,6 @@ struct MQVarPtr
 #pragma warning(suppress: 4996)
 	__declspec(property(get = get_LowPart, put = set_LowPart)) uint32_t LowPart;
 
-	// HighPart is slightly more complicated, but only just. We just save off the HighPart in this member variable unless
-	// the underlying data is uint64_t -- and we will prefer to store the uint32_t variant when setting
-	uint32_t HighPart_ = 0;
-
 	//DEPRECATE("For data needing High and Low part, create a data structure instead.")
 	uint32_t get_HighPart() const
 	{
@@ -1014,6 +1014,8 @@ struct MQTypeVar : public MQVarPtr
 	}
 
 	MQVarPtr& GetVarPtr() { return *this; }
+	const MQVarPtr& GetVarPtr() const { return *this; }
+
 	MQVarPtr& SetVarPtr(const MQVarPtr& VarPtr) { static_cast<MQVarPtr&>(*this) = VarPtr; return *this; }
 	__declspec(property(get = GetVarPtr, put = SetVarPtr)) MQVarPtr VarPtr;
 };
@@ -1023,8 +1025,13 @@ using PMQ2TYPEVAR DEPRECATE("Use MQTypeVar* instead of PMQ2TYPEVAR") = MQTypeVar
 struct MQTypeMember
 {
 	int          ID;
-	const char*  Name;
 	uint32_t     Type;
+	const char*  Name;
+
+	MQTypeMember(int ID, const char* Name)
+		: ID(ID), Name(Name), Type(0) {}
+	MQTypeMember(int ID, const char* Name, uint32_t Type)
+		: ID(ID), Name(Name), Type(Type) {}
 };
 using MQ2TYPEMEMBER DEPRECATE("Use MQTypeMember instead of MQ2TYPEMEMBER") = MQTypeMember;
 using PMQ2TYPEMEMBER DEPRECATE("Use MQTypeMember* instead of PMQ2TYPEMEMBER") = MQTypeMember*;
