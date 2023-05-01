@@ -112,6 +112,11 @@ LuaThread::LuaThread(this_is_private&&, LuaEnvironmentSettings* environment)
 	m_threadTable = m_globalState.create_table();
 }
 
+LuaThread::~LuaThread()
+{
+	RemoveAllDataObjects();
+}
+
 /*static*/ std::shared_ptr<LuaThread> LuaThread::Create(LuaEnvironmentSettings* environment)
 {
 	std::shared_ptr<LuaThread> luaThread = std::make_shared<LuaThread>(this_is_private{}, environment);
@@ -526,6 +531,35 @@ void LuaThread::YieldAt(int count) const
 	{
 		lua_sethook(m_coroutine->thread.state(), &LuaThread::lua_forceYield, count == 0 ? LUA_MASKLINE : LUA_MASKCOUNT, count);
 	}
+}
+
+//============================================================================
+
+bool LuaThread::AddTopLevelObject(const char* name, MQTopLevelObjectFunction func)
+{
+	if (AddMQ2Data(name, std::move(func)))
+	{
+		m_registeredTLOs.emplace(name);
+		return true;
+	}
+
+	return false;
+}
+
+bool LuaThread::RemoveTopLevelObject(const char* name)
+{
+	m_registeredTLOs.erase(name);
+	return RemoveMQ2Data(name);
+}
+
+void LuaThread::RemoveAllDataObjects()
+{
+	for (const std::string& name : m_registeredTLOs)
+	{
+		RemoveMQ2Data(name.c_str());
+	}
+
+	m_registeredTLOs.clear();
 }
 
 //============================================================================

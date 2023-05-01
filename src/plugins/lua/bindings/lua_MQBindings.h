@@ -15,6 +15,7 @@
 #pragma once
 
 #include "LuaCommon.h"
+#include <mq/Plugin.h>
 
 namespace mq {
 	struct MQTypeVar;
@@ -23,6 +24,10 @@ namespace mq {
 
 namespace mq::datatypes {
 	class MQ2Type;
+}
+
+namespace mq::lua {
+	std::tuple<const std::string&, const std::string&, int, bool> GetArgInfo(sol::function func);
 }
 
 namespace mq::lua::bindings {
@@ -102,5 +107,45 @@ public:
 private:
 	const MQDataItem* const self = nullptr;
 };
+
+//----------------------------------------------------------------------------
+
+class LuaAbstractDataType;
+
+// A custom DataType implementation that serves as a proxy between the Macro
+// interface and the lua bindings.
+class LuaProxyType : public MQ2Type
+{
+public:
+	LuaProxyType(const std::string& typeName, LuaAbstractDataType* luaType);
+	virtual ~LuaProxyType();
+
+	virtual bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
+	virtual bool FromString(MQVarPtr& VarPTr, const char* Source) override;
+
+	virtual void InitVariable(MQVarPtr& VarPtr) override {}
+	virtual void FreeVariable(MQVarPtr& VarPtr) override {}
+
+	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	virtual bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
+	void RegisterMembers();
+
+private:
+	LuaAbstractDataType* m_luaType;
+};
+
+//----------------------------------------------------------------------------
+
+class LuaTableType : public MQ2Type
+{
+public:
+	LuaTableType();
+
+	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+};
+
+//----------------------------------------------------------------------------
 
 } // namespace mq::lua::bindings

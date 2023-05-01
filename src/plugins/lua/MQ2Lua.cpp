@@ -19,8 +19,8 @@
 #include "LuaThread.h"
 #include "LuaEvent.h"
 #include "LuaImGui.h"
+#include "bindings/lua_Bindings.h"
 #include "imgui/ImGuiUtils.h"
-
 #include "imgui/ImGuiFileDialog.h"
 #include "imgui/ImGuiTextEditor.h"
 
@@ -42,11 +42,6 @@ PreSetup("MQ2Lua");
 PLUGIN_VERSION(0.1);
 
 using namespace std::chrono_literals;
-
-// TODO: Add aggressive bind/event options that scriptwriters can set with functions
-// TODO: Add OnExit callbacks (potentially both as an explicit argument to exit and a set callback)
-
-// TODO: Add UI for start/stop/info/config
 
 using MQ2Args = Args<&WriteChatf>;
 using MQ2HelpArgument = HelpArgument;
@@ -1568,11 +1563,15 @@ PLUGIN_API void InitializePlugin()
 	AddSettingsPanel("plugins/Lua", DrawLuaSettings);
 
 	s_pluginInterface = new LuaPluginInterfaceImpl();
+
+	bindings::InitializeBindings_MQMacroData();
 }
 
 PLUGIN_API void ShutdownPlugin()
 {
 	using namespace mq::lua;
+
+	bindings::ShutdownBindings_MQMacroData();
 
 	RemoveCommand("/lua");
 
