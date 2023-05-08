@@ -249,7 +249,8 @@ inline int GetFocusRangeModifier(const EQ_Spell* pSpell, ItemPtr& pItemOut)
 
 inline bool HasSkill(int nSkill)
 {
-	return pLocalPC ? pLocalPC->HasSkill(nSkill) : 0;
+	asd
+	return pLocalPC ? pLocalPC->HasSkill(nSkill) : false;
 }
 
 inline float GetDistance(float X1, float Y1)
