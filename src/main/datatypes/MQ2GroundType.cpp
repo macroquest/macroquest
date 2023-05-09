@@ -377,4 +377,17 @@ bool MQ2GroundType::dataItemTarget(const char* szIndex, MQTypeVar& Ret)
 	return true;
 }
 
+MQTypeVar MQ2GroundType::MakeTypeVar(MQGroundSpawn groundSpawn)
+{
+	MQTypeVar Dest;
+
+	Dest.Type = pGroundType;
+	if (groundSpawn)
+		Dest.Set(groundSpawn);
+	else
+		Dest.Ptr = nullptr;
+
+	return Dest;
+}
+
 } // namespace mq::datatypes
