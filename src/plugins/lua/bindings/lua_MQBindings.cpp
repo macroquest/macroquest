@@ -247,7 +247,7 @@ static sol::table lua_getFilteredSpawns(sol::this_state L, std::optional<sol::fu
 	return table;
 }
 
-static sol::table getFilteredGroundItems(sol::this_state L, std::optional<sol::function> predicate)
+static sol::table lua_getFilteredGroundItems(sol::this_state L, std::optional<sol::function> predicate)
 {
 	auto table = sol::state_view(L).create_table();
 
@@ -579,7 +579,7 @@ void RegisterBindings_MQ(LuaThread* thread, sol::table& mq)
 	// Direct Data Bindings
 	mq.set_function("getAllSpawns", &lua_getAllSpawns);
 	mq.set_function("getFilteredSpawns", &lua_getFilteredSpawns);
-	mq.set_function("getFilteredGroundItems", &getFilteredGroundItems);
+	mq.set_function("getFilteredGroundItems", &lua_getFilteredGroundItems);
 }
 
 } // namespace mq::lua::bindings
