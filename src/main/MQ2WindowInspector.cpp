@@ -3369,7 +3369,9 @@ public:
 		}
 
 #if HAS_GAMEFACE_UI
-		if (string_equals(typeName, "Screen") && string_equals(pWnd->GetWndClassName(), "GFScreenWnd"))
+		if (static_cast<int>(gGameState) >= GAMESTATE_CHARSELECT
+			&& string_equals(typeName, "Screen")
+			&& string_equals(pWnd->GetWndClassName(), "GFScreenWnd"))
 		{
 			typeName = "GameFace Screen";
 		}

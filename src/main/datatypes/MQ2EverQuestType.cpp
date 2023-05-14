@@ -422,7 +422,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	case EverQuestMembers::UiScale: {
 		Dest.Type = pFloatType;
 #if defined(TEST)
-		Dest.Float = pEverQuestInfo->UiScale;
+		Dest.Float = static_cast<float>(pEverQuestInfo->UiScale);
 #else
 		Dest.Float = 1.0f;
 #endif
