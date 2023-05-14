@@ -2261,6 +2261,7 @@ public:
 			ColumnText("Model Prefix", "%s", component->modelPrefix.c_str());
 			ColumnWindow("Window", component->wnd);
 			ColumnWindow("Parent Window", component->parent);
+			ColumnText("Unknown String", "%s", component->str_78.c_str());
 
 			ImGui::TreePop();
 		}
@@ -2272,7 +2273,7 @@ public:
 		if (BeginColorSection("CGFScreenWnd Properties", open))
 		{
 			DisplayUIComponent("Window Component", &pWnd->WindowComponent);
-			ColumnText("u8_78", "%d", (int)pWnd->WindowComponent.u8_78);
+			ColumnText("u8_98", "%d", (int)pWnd->WindowComponent.u8_98);
 
 			if (ColumnTreeNode("Children Components", "%d", pWnd->ChildComponents.size()))
 			{
@@ -3366,6 +3367,13 @@ public:
 				name = "(no name)";
 			}
 		}
+
+#if HAS_GAMEFACE_UI
+		if (string_equals(typeName, "Screen") && string_equals(pWnd->GetWndClassName(), "GFScreenWnd"))
+		{
+			typeName = "GameFace Screen";
+		}
+#endif
 
 		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_SpanAvailWidth;
 		bool open = false;
