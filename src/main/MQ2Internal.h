@@ -409,7 +409,7 @@ struct MQPlugin
 	fMQCleanUI           CleanUI = 0;
 	fMQReloadUI          ReloadUI = 0;
 	fMQDrawHUD           DrawHUD = 0;
-	fMQSetGameState      SetGameState =0;
+	fMQSetGameState      SetGameState = 0;
 	fMQSpawn             AddSpawn = 0;
 	fMQSpawn             RemoveSpawn = 0;
 	fMQGroundItem        AddGroundItem = 0;
