@@ -359,8 +359,8 @@ void SetNameSpriteTint(SPAWNINFO* pSpawn);
 class PlayerManagerBaseHook : public eqlib::PlayerManagerBase
 {
 public:
-	DETOUR_TRAMPOLINE_DEF(PlayerClient*, PrepForDestroyPlayer_Trampoline, (PlayerClient*, void* a))
-	PlayerClient* PrepForDestroyPlayer_Detour(PlayerClient* spawn, void* a)
+	DETOUR_TRAMPOLINE_DEF(PlayerClient*, PrepForDestroyPlayer_Trampoline, (PlayerClient*))
+	PlayerClient* PrepForDestroyPlayer_Detour(PlayerClient* spawn)
 	{
 		// PrepForDestroyPlayer can be called twice through the same code path
 		static unsigned int lastSpawnID = 0;
@@ -369,7 +369,7 @@ public:
 			lastSpawnID = spawn->GetId();
 			PluginsRemoveSpawn(spawn);
 		}
-		return PrepForDestroyPlayer_Trampoline(spawn, a);
+		return PrepForDestroyPlayer_Trampoline(spawn);
 	}
 
 #if !IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
