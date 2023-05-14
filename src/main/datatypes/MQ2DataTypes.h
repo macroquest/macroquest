@@ -38,7 +38,7 @@ namespace mq::datatypes {
 class MQ2Type
 {
 public:
-	MQLIB_OBJECT MQ2Type(const char* NewName);
+	MQLIB_OBJECT MQ2Type(std::string_view typeName);
 	MQLIB_OBJECT virtual ~MQ2Type();
 
 	MQLIB_OBJECT void InitializeMembers(MQTypeMember* MemberArray);
@@ -57,7 +57,7 @@ public:
 
 	virtual bool ToString(MQVarPtr VarPtr, char* Destination)
 	{
-		strcpy_s(Destination, MAX_STRING, TypeName);
+		strcpy_s(Destination, MAX_STRING, m_typeName.c_str());
 		return true;
 	}
 
@@ -137,8 +137,9 @@ protected:
 	MQLIB_OBJECT bool AddMethod(int ID, const char* Name);
 	MQLIB_OBJECT bool RemoveMethod(const char* Name);
 
-	char TypeName[32];
+	std::string m_typeName;
 	bool m_owned = false;
+	bool m_initialized = false;
 	MQ2Type* m_parent = nullptr;
 	mutable std::mutex m_mutex;
 

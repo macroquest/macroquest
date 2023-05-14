@@ -33,7 +33,6 @@
   </PropertyGroup>
   <PropertyGroup>
     <IntDir>$(MQ2BuildDirectory)obj\$(Platform)\$(MQ2BinaryDirName)\$(ProjectName)\</IntDir>
-    <BaseIntermediateOutputPath>$(MQ2BuildDirectory)obj\$(Platform)\$(MQ2BinaryDirName)\$(ProjectName)\</BaseIntermediateOutputPath>
     <OutDir Condition="'$(ConfigurationType)'!='StaticLibrary'">$(MQ2BuildDirectory)bin\$(MQ2BinaryDirName)\</OutDir>
     <OutDir Condition="'$(ConfigurationType)'=='StaticLibrary'">$(MQ2LibDir)</OutDir>
     <LinkIncremental Condition="'$(Configuration)'=='Debug'">true</LinkIncremental>

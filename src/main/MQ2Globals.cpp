@@ -743,7 +743,6 @@ bool gbMQ2LoadingMsg = true;
 bool gbExactSearchCleanNames = false;
 
 std::map<std::string, MQDataVar*> VariableMap;
-std::unordered_map<std::string, std::unique_ptr<MQDataItem>> MQ2DataMap;
 
 size_t g_eqgameimagesize = 0;
 bool gUseTradeOnTarget = true;

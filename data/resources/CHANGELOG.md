@@ -1,3 +1,10 @@
+May 13, 2023:
+- Fix issue where OnRemoveSpawn would be called twice in some instances
+
+May 4, 2023:
+- Disable previous launcher change pending further refinement. For now, the log
+  spam should be disabled. (#717)
+
 April 26, 2023:
 - test: Updated for patch
 
