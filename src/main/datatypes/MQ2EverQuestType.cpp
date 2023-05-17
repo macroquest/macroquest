@@ -52,6 +52,7 @@ enum class EverQuestMembers
 	Path,
 	MaxFPS,
 	MaxBGFPS,
+	UiScale,
 };
 
 MQ2EverQuestType::MQ2EverQuestType() : MQ2Type("everquest")
@@ -89,6 +90,7 @@ MQ2EverQuestType::MQ2EverQuestType() : MQ2Type("everquest")
 	ScopedTypeMember(EverQuestMembers, Path);
 	ScopedTypeMember(EverQuestMembers, MaxFPS);
 	ScopedTypeMember(EverQuestMembers, MaxBGFPS);
+	ScopedTypeMember(EverQuestMembers, UiScale);
 }
 
 bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -414,6 +416,16 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	case EverQuestMembers::Path: {
 		Dest.Type = pStringType;
 		Dest.Ptr = &mq::internal_paths::EverQuest[0];
+		return true;
+	}
+
+	case EverQuestMembers::UiScale: {
+		Dest.Type = pFloatType;
+#if defined(TEST)
+		Dest.Float = static_cast<float>(pEverQuestInfo->UiScale);
+#else
+		Dest.Float = 1.0f;
+#endif
 		return true;
 	}
 
