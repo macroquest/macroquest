@@ -4314,6 +4314,189 @@ static MacroExpressionEvaluator* s_macroEvaluator = nullptr;
 
 #pragma endregion
 
+#pragma region GameFace Inspector
+#if HAS_GAMEFACE_UI
+
+class GameFaceInspector : public ImGuiWindowBase
+{
+public:
+	GameFaceInspector() : ImGuiWindowBase("GameFace Inspector")
+	{
+		SetDefaultSize(ImVec2(600, 400));
+	}
+
+	~GameFaceInspector()
+	{
+	}
+
+	bool IsEnabled() const override
+	{
+		return GetPcProfile() != nullptr && GetGameState() == GAMESTATE_INGAME;
+	}
+
+	void Draw() override
+	{
+		if (ImGui::BeginTable("##GameFaceUI", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
+		{
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn("Data", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableHeadersRow();
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+
+#define TableRow(label, format, ...) \
+	ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text(label); \
+	ImGui::TableNextColumn(); ImGui::Text(format, __VA_ARGS__);
+
+			auto gf = pGFViewListener.get();
+
+			if (ImGui::TreeNode("object1"))
+			{
+				auto& object1 = gf->object1;
+
+				TableRow("unordered_map", "%d Items", object1.unordered_map_00.size());
+
+				ImGui::TableNextRow(); ImGui::TableNextColumn();
+				if (ImGui::TreeNode("Items##map00"))
+				{
+					for (auto& [key, value] : object1.unordered_map_00)
+					{
+						ImGui::TableNextRow();
+
+						ImGui::TableNextColumn(); ImGui::Text("%s", key.c_str());
+						ImGui::TableNextColumn(); ImGui::Text("%p", value);
+
+					}
+					ImGui::TreePop();
+				}
+
+				TableRow("pointer_40", "%p", object1.pointer_40);
+				TableRow("pointer_48", "%p", object1.pointer_48);
+				TableRow("pointer_50", "%p", object1.pointer_50);
+
+				ImGui::TreePop();
+			}
+
+			TableRow("map_1e0", "%d Items", gf->map_1e0.size());
+			ImGui::TableNextRow(); ImGui::TableNextColumn();
+			if (ImGui::TreeNode("Items##map1e0"))
+			{
+				for (auto& [key, value] : gf->map_1e0)
+				{
+					ImGui::TableNextRow();
+
+					ImGui::TableNextColumn(); ImGui::Text("%p", key);
+					ImGui::TableNextColumn(); ImGui::Text("%p", value);
+
+				}
+				ImGui::TreePop();
+			}
+
+			GF::ViewListener_Object3* objects[3] = {
+				&gf->object3,
+				&gf->object4,
+				&gf->object5
+			};
+
+			TableRow("u64_220[0]", "%p", gf->u64_220[0]);
+			TableRow("u64_220[1]", "%p", gf->u64_220[1]);
+			TableRow("u32_238[0]", "%d", gf->u32_238[0]);
+			TableRow("u32_238[1]", "%d", gf->u32_238[1]);
+
+			int i = 3;
+
+			for (auto object : objects)
+			{
+				char label[26];
+				sprintf_s(label, "object%d", i++);
+
+				ImGui::TableNextRow(); ImGui::TableNextColumn();
+				if (ImGui::TreeNode(label))
+				{
+					TableRow("string_00", "%s", object->string_00.c_str());
+					TableRow("map_20", "%d Items", object->map_20.size());
+
+					ImGui::TableNextRow(); ImGui::TableNextColumn();
+					ImGui::PushID(i);
+					if (ImGui::TreeNode("Items##map_20"))
+					{
+						for (auto& [key, value] : object->map_20)
+						{
+							ImGui::TableNextRow(); ImGui::TableNextColumn();
+							if (ImGui::TreeNode(key.c_str()))
+							{
+								TableRow("fileName", "%s", value.fileName.c_str());
+								TableRow("size", "%d, %d", value.width, value.height);
+
+								if (value.string_ptr_28)
+								{
+									TableRow("string_ptr_28", "%s", value.string_ptr_28->c_str());
+								}
+								else
+								{
+									TableRow("string_ptr_28", "NULL");
+								}
+
+								TableRow("data[0]", "%p", value.data[0]);
+								TableRow("data[1]", "%p", value.data[1]);
+
+								ImGui::TreePop();
+							}
+						}
+						ImGui::TreePop();
+					}
+					ImGui::PopID();
+
+					TableRow("map_60", "%d Items", object->map_60.size());
+					ImGui::TableNextRow(); ImGui::TableNextColumn();
+					if (ImGui::TreeNode("Items##map_60"))
+					{
+						for (auto& [key, value] : object->map_60)
+						{
+							ImGui::TableNextRow(); ImGui::TableNextColumn();
+							if (ImGui::TreeNode(key.c_str()))
+							{
+								TableRow("pieceName", "%s", value.pieceName.c_str());
+								TableRow("data[0]", "%p", value.data[0]);
+								TableRow("data[1]", "%p", value.data[1]);
+								TableRow("data[2]", "%p", value.data[2]);
+								TableRow("data[3]", "%p", value.data[3]);
+								TableRow("data[4]", "%p", value.data[4]);
+
+								ImGui::TreePop();
+							}
+						}
+						ImGui::TreePop();
+					}
+
+					ImGui::TreePop();
+				}
+			}
+
+			TableRow("string_420", "%s", gf->string_420.c_str());
+			TableRow("bool_440", "%d", (int)gf->bool_440);
+			TableRow("string_448", "%s", gf->string_448.c_str());
+			TableRow("bool_468", "%d", (int)gf->bool_468);
+			TableRow("u32_46c", "%d", (int)gf->u32_46c);
+
+			for (int i = 0; i < 5; ++i)
+			{
+				TableRow("u64_470", "[%d] %p", i, gf->u64_470[i]);
+			}
+
+#undef TableRow
+
+			ImGui::EndTable();
+		}
+	}
+};
+static GameFaceInspector* s_gameFaceInspector = nullptr;
+
+#endif
+#pragma endregion
+
 //============================================================================
 //============================================================================
 
@@ -4432,6 +4615,11 @@ static void DeveloperTools_Initialize()
 	s_macroEvaluator = new MacroExpressionEvaluator();
 	DeveloperTools_RegisterMenuItem(s_macroEvaluator, "Macro Expression Evaluator", s_menuNameTools);
 
+#if HAS_GAMEFACE_UI
+	s_gameFaceInspector = new GameFaceInspector();
+	DeveloperTools_RegisterMenuItem(s_gameFaceInspector, "GameFace UI Inspector", s_menuNameInspectors);
+#endif
+
 	DeveloperTools_WindowInspector_Initialize();
 }
 
@@ -4466,6 +4654,11 @@ static void DeveloperTools_Shutdown()
 
 	DeveloperTools_UnregisterMenuItem(s_macroEvaluator);
 	delete s_macroEvaluator; s_macroEvaluator = nullptr;
+
+#if HAS_GAMEFACE_UI
+	DeveloperTools_UnregisterMenuItem(s_gameFaceInspector);
+	delete s_gameFaceInspector; s_gameFaceInspector = nullptr;
+#endif
 
 	DeveloperTools_WindowInspector_Shutdown();
 }

@@ -1,3 +1,22 @@
+May 17, 2023:
+- test: Updated for test patch
+- live: Updated for live patch. This patch introduces the new UI system,
+  there may be issues involving UI components.
+
+May 14, 2023:
+- test: Updated for test patch
+- test: Fixed Me.Combat again
+
+May 13, 2023:
+- Fix issue where OnRemoveSpawn would be called twice in some instances
+
+May 4, 2023:
+- Disable previous launcher change pending further refinement. For now, the log
+  spam should be disabled. (#717)
+
+April 26, 2023:
+- test: Updated for patch
+
 April 24, 2023:
 - Fix an issue where the loader would spam the log file with an error if more than
   64 eqgame.exe processes were running. Instead, it will swap to the WMI process
@@ -8,6 +27,18 @@ April 24, 2023:
 
 April 19, 2023:
 - live: Updated for patch
+
+April 12, 2023:
+- test: Updated for patch
+- test: Fixes for autologin
+- test: Fix Me.Combat, add EverQuest.UiScale
+
+April 2, 2023:
+- test: Fix WindowOverride implementation. Fixes crashes in MQ2Map, MQ2ItemDisplay, etc.
+
+April 1, 2023:
+- Happy april fools
+- test: Updated for patch
 
 March 15, 2023:
 - live: Updated for patch

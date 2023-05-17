@@ -8,6 +8,10 @@
     <MQ2BinaryDirName Condition="'$(Configuration)'=='Debug'">debug</MQ2BinaryDirName>
     <MQ2BinaryDirName Condition="'$(Configuration)'=='Release'">release</MQ2BinaryDirName>
     <eqlibClientTarget Condition="'$(eqlibClientTarget)' == ''">Unknown</eqlibClientTarget>
+    <eqlibClientDefine Condition="'$(eqlibClientTarget)' == 'Live'">LIVE</eqlibClientDefine>
+    <eqlibClientDefine Condition="'$(eqlibClientTarget)' == 'Test'">TEST</eqlibClientDefine>
+    <eqlibClientDefine Condition="'$(eqlibClientTarget)' == 'Emu'">EMULATOR</eqlibClientDefine>
+    <eqlibClientDefine Condition="'$(eqlibClientTarget)' == ''"></eqlibClientDefine>
     <MQ2Root>$(MQ2SolutionDirectory)..\</MQ2Root>
     <!-- MQ_BUILD_SEPARATE is an environment variable to allow for turning the separate ClientTarget folders on and off -->
     <MQ2BuildDirectory Condition="'$(MQ_BUILD_SEPARATE)' == '1'">$(MQ2Root)build\$(eqlibClientTarget)\</MQ2BuildDirectory>
@@ -29,7 +33,6 @@
   </PropertyGroup>
   <PropertyGroup>
     <IntDir>$(MQ2BuildDirectory)obj\$(Platform)\$(MQ2BinaryDirName)\$(ProjectName)\</IntDir>
-    <BaseIntermediateOutputPath>$(MQ2BuildDirectory)obj\$(Platform)\$(MQ2BinaryDirName)\$(ProjectName)\</BaseIntermediateOutputPath>
     <OutDir Condition="'$(ConfigurationType)'!='StaticLibrary'">$(MQ2BuildDirectory)bin\$(MQ2BinaryDirName)\</OutDir>
     <OutDir Condition="'$(ConfigurationType)'=='StaticLibrary'">$(MQ2LibDir)</OutDir>
     <LinkIncremental Condition="'$(Configuration)'=='Debug'">true</LinkIncremental>
@@ -76,6 +79,7 @@
 
     <NASM>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <PreprocessorDefinitions>$(eqlibClientDefine)</PreprocessorDefinitions>
     </NASM>
   </ItemDefinitionGroup>
   <ItemGroup />

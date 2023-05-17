@@ -55,9 +55,9 @@ void ShutdownMQ2DataTypes()
 //============================================================================
 // MQ2Type
 
-MQ2Type::MQ2Type(const char* newName)
+MQ2Type::MQ2Type(std::string_view newName)
 {
-	strcpy_s(TypeName, newName);
+	m_typeName = newName;
 	m_owned = AddMQ2Type(*this);
 }
 
@@ -79,10 +79,7 @@ void MQ2Type::InitializeMembers(MQTypeMember* memberArray)
 
 const char* MQ2Type::GetName() const
 {
-	if (TypeName)
-		return &TypeName[0];
-
-	return nullptr;
+	return m_typeName.c_str();
 }
 
 const char* MQ2Type::GetMemberName(int ID) const
@@ -191,11 +188,7 @@ bool MQ2Type::AddMember(int id, const char* Name)
 		index = static_cast<int>(Members.size()) - 1;
 	}
 
-	auto pMember = std::make_unique<MQTypeMember>();
-	pMember->Name = Name;
-	pMember->ID = id;
-	pMember->Type = 0;
-	Members[index] = std::move(pMember);
+	Members[index] = std::make_unique<MQTypeMember>(id, Name, 0);
 	MemberMap[Name] = index;
 	return true;
 }
@@ -241,11 +234,7 @@ bool MQ2Type::AddMethod(int ID, const char* Name)
 		index = static_cast<int>(Methods.size()) - 1;
 	}
 
-	auto pMethod = std::make_unique<MQTypeMember>();
-	pMethod->Name = Name;
-	pMethod->ID = ID;
-	pMethod->Type = 1;
-	Methods[index] = std::move(pMethod);
+	Methods[index] = std::make_unique<MQTypeMember>(ID, Name, 1);
 	MethodMap[Name] = index;
 	return true;
 }

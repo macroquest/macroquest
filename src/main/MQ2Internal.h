@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include "mq/api/MacroAPI.h"
+
 #include <map>
 #include <memory>
 #include <mutex>
@@ -407,7 +409,7 @@ struct MQPlugin
 	fMQCleanUI           CleanUI = 0;
 	fMQReloadUI          ReloadUI = 0;
 	fMQDrawHUD           DrawHUD = 0;
-	fMQSetGameState      SetGameState =0;
+	fMQSetGameState      SetGameState = 0;
 	fMQSpawn             AddSpawn = 0;
 	fMQSpawn             RemoveSpawn = 0;
 	fMQGroundItem        AddGroundItem = 0;
@@ -719,6 +721,10 @@ struct MQVarPtr
 
 	MQVariant Data;
 
+	// HighPart is slightly more complicated, but only just. We just save off the HighPart in this member variable unless
+	// the underlying data is uint64_t -- and we will prefer to store the uint32_t variant when setting
+	uint32_t HighPart_ = 0;
+
 	enum class VariantIdx
 	{
 		Ptr = 0,
@@ -902,10 +908,6 @@ struct MQVarPtr
 #pragma warning(suppress: 4996)
 	__declspec(property(get = get_LowPart, put = set_LowPart)) uint32_t LowPart;
 
-	// HighPart is slightly more complicated, but only just. We just save off the HighPart in this member variable unless
-	// the underlying data is uint64_t -- and we will prefer to store the uint32_t variant when setting
-	uint32_t HighPart_ = 0;
-
 	//DEPRECATE("For data needing High and Low part, create a data structure instead.")
 	uint32_t get_HighPart() const
 	{
@@ -1012,6 +1014,8 @@ struct MQTypeVar : public MQVarPtr
 	}
 
 	MQVarPtr& GetVarPtr() { return *this; }
+	const MQVarPtr& GetVarPtr() const { return *this; }
+
 	MQVarPtr& SetVarPtr(const MQVarPtr& VarPtr) { static_cast<MQVarPtr&>(*this) = VarPtr; return *this; }
 	__declspec(property(get = GetVarPtr, put = SetVarPtr)) MQVarPtr VarPtr;
 };
@@ -1021,19 +1025,21 @@ using PMQ2TYPEVAR DEPRECATE("Use MQTypeVar* instead of PMQ2TYPEVAR") = MQTypeVar
 struct MQTypeMember
 {
 	int          ID;
-	const char*  Name;
 	uint32_t     Type;
+	const char*  Name;
+
+	MQTypeMember(int ID, const char* Name)
+		: ID(ID), Name(Name), Type(0) {}
+	MQTypeMember(int ID, const char* Name, uint32_t Type)
+		: ID(ID), Name(Name), Type(Type) {}
 };
 using MQ2TYPEMEMBER DEPRECATE("Use MQTypeMember instead of MQ2TYPEMEMBER") = MQTypeMember;
 using PMQ2TYPEMEMBER DEPRECATE("Use MQTypeMember* instead of PMQ2TYPEMEMBER") = MQTypeMember*;
 
-using fMQData = bool(*)(const char*, MQTypeVar&);
-using fMQDataOld = BOOL(*)(char*, MQTypeVar&);
-
 struct MQDataItem
 {
-	char Name[64];
-	fMQData Function;
+	std::string Name;
+	MQTopLevelObjectFunction Function;
 };
 using MQ2DATAITEM DEPRECATE("Use MQDataItem instead of MQ2DATAITEM") = MQDataItem;
 using PMQ2DATAITEM DEPRECATE("Use MQDataItem* instead of PMQ2DATAITEM") = MQDataItem*;
@@ -1049,6 +1055,15 @@ struct MQDataVar
 };
 using PDATAVAR DEPRECATE("Use MQDataVar* instead of PDATAVAR") = MQDataVar*;
 using DATAVAR DEPRECATE("Use MQDataVar instead of DATAVAR") = MQDataVar;
+
+// MQ2Hud is using this...
+MQLIB_VAR MQDataVar* FindMQ2DataVariable(const char* Name);
+
+bool AddMQ2DataVariable(const char* Name, const char* Index, MQ2Type* pType, MQDataVar** ppHead, const char* Default);
+bool AddMQ2DataVariableFromData(const char* Name, const char* Index, MQ2Type* pType, MQDataVar** ppHead, MQTypeVar Default);
+MQDataVar** FindVariableScope(const char* Name);
+bool DeleteMQ2DataVariable(const char* Name);
+void ClearMQ2DataVariables(MQDataVar** ppHead);
 
 //============================================================================
 

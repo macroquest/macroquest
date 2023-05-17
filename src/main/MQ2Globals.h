@@ -309,7 +309,6 @@ MQLIB_VAR const char* szItemSlot[InvSlot_Max + 1];
 MQLIB_VAR const char* szEquipmentSlot[];
 
 MQLIB_VAR std::map<std::string, MQDataVar*> VariableMap;
-MQLIB_VAR std::unordered_map<std::string, std::unique_ptr<MQDataItem>> MQ2DataMap;
 MQLIB_VAR MQPlugin* pPlugins;
 
 // Prefer using gSpawnArray over these for internal usage

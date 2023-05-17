@@ -18,6 +18,15 @@
 using namespace mq::datatypes;
 namespace mq {
 
+// Forward decls
+namespace datatypes {
+	void InitializeMQ2DataTypes();
+	void ShutdownMQ2DataTypes();
+}
+// From MQ2DataAPI.cpp
+void InitializeMQ2Data();
+void ShutdownMQ2Data();
+
 void InitializeParser()
 {
 	DebugSpewNoFile("InitializeParser()");

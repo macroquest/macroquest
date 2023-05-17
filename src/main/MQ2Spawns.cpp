@@ -362,7 +362,13 @@ public:
 	DETOUR_TRAMPOLINE_DEF(PlayerClient*, PrepForDestroyPlayer_Trampoline, (PlayerClient*))
 	PlayerClient* PrepForDestroyPlayer_Detour(PlayerClient* spawn)
 	{
-		PluginsRemoveSpawn(spawn);
+		// PrepForDestroyPlayer can be called twice through the same code path
+		static unsigned int lastSpawnID = 0;
+		if (lastSpawnID != spawn->GetId())
+		{
+			lastSpawnID = spawn->GetId();
+			PluginsRemoveSpawn(spawn);
+		}
 		return PrepForDestroyPlayer_Trampoline(spawn);
 	}
 

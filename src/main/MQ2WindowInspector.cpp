@@ -25,6 +25,9 @@
 #include "mq/imgui/ImGuiUtils.h"
 #include "mq/imgui/Widgets.h"
 
+#include "eqlib/eqstd/unordered_map.h"
+#include "eqlib/eqstd/string.h"
+
 #include <fmt/format.h>
 #include <fmt/chrono.h>
 #include <spdlog/spdlog.h>
@@ -65,6 +68,16 @@ void CopyWindowChildTLO(CXWnd* pWindow)
 
 	ImGui::SetClipboardText(buffer);
 	WriteChatf("Copied: \ay%s", buffer);
+}
+
+static CXRect GetWndClientRect(CXWnd* pWnd)
+{
+#if HAS_GAMEFACE_UI
+	if (GetGameState() == GAMESTATE_PRECHARSELECT)
+		return pWnd->GetClientRectNonVirtual();
+	else
+#endif
+		return pWnd->GetClientRect();
 }
 
 //----------------------------------------------------------------------------
@@ -2026,6 +2039,9 @@ public:
 		// Add CXWnd specific details here
 		if (BeginColorSection("CXWnd Properties", open))
 		{
+#if HAS_GAMEFACE_UI
+			ColumnText("Type Name", "%s", pWnd->GetWndClassName());
+#endif
 			DisplayDrawTemplate("Template", pWnd->DrawTemplate);
 
 			std::vector<int> runtimeTypeInts;
@@ -2237,6 +2253,43 @@ public:
 		}
 	}
 
+#if HAS_GAMEFACE_UI
+	void DisplayUIComponent(const char* label, UIComponent* component)
+	{
+		if (ColumnTreeNodeType(label, component->GetTypeName().c_str(), ""))
+		{
+			ColumnText("Name", "%s", component->name.c_str());
+			ColumnText("Full Name", "%s", component->fullName.c_str());
+			ColumnText("Model Prefix", "%s", component->modelPrefix.c_str());
+			ColumnWindow("Window", component->wnd);
+			ColumnWindow("Parent Window", component->parent);
+			ColumnText("Unknown String", "%s", component->str_78.c_str());
+
+			ImGui::TreePop();
+		}
+	}
+
+	void DisplayCGFScreenWndProperties(CGFScreenWnd* pWnd, bool open = true)
+	{
+		// Add CGFScreenWnd specific details here
+		if (BeginColorSection("CGFScreenWnd Properties", open))
+		{
+			DisplayUIComponent("Window Component", &pWnd->WindowComponent);
+			ColumnText("u8_98", "%d", (int)pWnd->WindowComponent.u8_98);
+
+			if (ColumnTreeNode("Children Components", "%d", pWnd->ChildComponents.size()))
+			{
+				for (auto& [name, component] : pWnd->ChildComponents)
+				{
+					DisplayUIComponent(name.c_str(), component);
+				}
+
+				ImGui::TreePop();
+			}
+		}
+	}
+#endif
+
 	void DisplayCSidlScreenWndProperties(CSidlScreenWnd* pWnd, bool open = true)
 	{
 		DisplayCXWndProperties(static_cast<CXWnd*>(pWnd), open);
@@ -2269,6 +2322,13 @@ public:
 			//ColumnText("Context menu id", "%d", pWnd->ContextMenuID);
 			//ColumnText("Context menu tip id", "%d", pWnd->ContextMenuTipID);
 		}
+
+#if HAS_GAMEFACE_UI
+		if (string_equals(m_window->GetWndClassName(), "GFScreenWnd"))
+		{
+			DisplayCGFScreenWndProperties(static_cast<CGFScreenWnd*>(m_window));
+		}
+#endif
 
 		DisplayCustomWindowPropertyViewer(pWnd, this);
 	}
@@ -3197,7 +3257,7 @@ public:
 			ImGuiViewport* viewport = ImGui::GetMainViewport();
 			ImDrawList* drawList = ImGui::GetBackgroundDrawList(viewport);
 
-			CXRect clientRect = m_pSelectedWnd->GetClientRect();
+			CXRect clientRect = GetWndClientRect(m_pSelectedWnd);
 			drawList->AddRect(
 				ImVec2(clientRect.left + viewport->Pos.x, clientRect.top + viewport->Pos.y),
 				ImVec2(clientRect.right + viewport->Pos.x, clientRect.bottom + viewport->Pos.y),
@@ -3211,7 +3271,7 @@ public:
 			ImGuiViewport* viewport = ImGui::GetMainViewport();
 			ImDrawList* drawList = ImGui::GetBackgroundDrawList(viewport);
 
-			CXRect clientRect = wnd->GetClientRect();
+			CXRect clientRect = GetWndClientRect(wnd);
 			drawList->AddRectFilled(
 				ImVec2(clientRect.left + viewport->Pos.x, clientRect.top + viewport->Pos.y),
 				ImVec2(clientRect.right + viewport->Pos.x, clientRect.bottom + viewport->Pos.y),
@@ -3223,7 +3283,7 @@ public:
 			ImGuiViewport* viewport = ImGui::GetMainViewport();
 			ImDrawList* drawList = ImGui::GetBackgroundDrawList(viewport);
 
-			CXRect clientRect = m_pHoveredWnd->GetClientRect();
+			CXRect clientRect = GetWndClientRect(m_pHoveredWnd);
 			drawList->AddRect(
 				ImVec2(clientRect.left + viewport->Pos.x, clientRect.top + viewport->Pos.y),
 				ImVec2(clientRect.right + viewport->Pos.x, clientRect.bottom + viewport->Pos.y),
@@ -3309,6 +3369,15 @@ public:
 				name = "(no name)";
 			}
 		}
+
+#if HAS_GAMEFACE_UI
+		if (static_cast<int>(gGameState) >= GAMESTATE_CHARSELECT
+			&& string_equals(typeName, "Screen")
+			&& string_equals(pWnd->GetWndClassName(), "GFScreenWnd"))
+		{
+			typeName = "GameFace Screen";
+		}
+#endif
 
 		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_SpanAvailWidth;
 		bool open = false;
