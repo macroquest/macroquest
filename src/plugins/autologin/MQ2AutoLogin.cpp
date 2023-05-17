@@ -456,7 +456,7 @@ PLUGIN_API void ShutdownPlugin()
 
 void SendWndNotification(CXWnd* pWnd, CXWnd* sender, uint32_t msg, void* data)
 {
-#if defined (TEST)
+#if HAS_GAMEFACE_UI
 	if (GetGameState() == GAMESTATE_PRECHARSELECT)
 		reinterpret_cast<eqlib::eqmain::CXWnd*>(pWnd)->WndNotification(
 			reinterpret_cast<eqlib::eqmain::CXWnd*>(sender), msg, data);
@@ -472,7 +472,7 @@ CXStr GetWindowText(CXWnd* pWnd)
 	CXMLDataManager* pXmlMgr = pSidlMgr->GetParamManager();
 	auto type = pXmlMgr->GetWindowType(pWnd);
 
-#if defined (TEST)
+#if HAS_GAMEFACE_UI
 	if (GetGameState() == GAMESTATE_PRECHARSELECT)
 	{
 		return type == UI_STMLBox
@@ -490,7 +490,7 @@ CXStr GetEditWndText(CEditWnd* pWnd)
 {
 	if (!pWnd) return CXStr();
 
-#if defined (TEST)
+#if HAS_GAMEFACE_UI
 	if (GetGameState() == GAMESTATE_PRECHARSELECT)
 	{
 		return reinterpret_cast<eqlib::eqmain::CEditBaseWnd*>(pWnd)->InputText;
@@ -502,7 +502,7 @@ CXStr GetEditWndText(CEditWnd* pWnd)
 
 void SetEditWndText(CEditWnd* pWnd, std::string_view text)
 {
-#if defined (TEST)
+#if HAS_GAMEFACE_UI
 	if (GetGameState() == GAMESTATE_PRECHARSELECT)
 	{
 		reinterpret_cast<eqlib::eqmain::CEditBaseWnd*>(pWnd)->InputText = text;
@@ -518,7 +518,7 @@ CXStr GetSTMLText(CStmlWnd* pWnd)
 {
 	if (!pWnd) return CXStr();
 
-#if defined (TEST)
+#if HAS_GAMEFACE_UI
 	if (GetGameState() == GAMESTATE_PRECHARSELECT)
 	{
 		return reinterpret_cast<eqlib::eqmain::CStmlWnd*>(pWnd)->STMLText;
@@ -532,7 +532,7 @@ ArrayClass<SListWndLine>* GetItemsArray(CListWnd* pWnd)
 {
 	if (!pWnd) return nullptr;
 
-#if defined (TEST)
+#if HAS_GAMEFACE_UI
 	if (GetGameState() == GAMESTATE_PRECHARSELECT)
 	{
 		return &reinterpret_cast<eqlib::eqmain::CListWnd*>(pWnd)->ItemsArray;
@@ -546,7 +546,7 @@ CXStr GetListItemText(CListWnd* pWnd, int row, int col)
 {
 	if (!pWnd) return CXStr();
 
-#if defined (TEST)
+#if HAS_GAMEFACE_UI
 	if (GetGameState() == GAMESTATE_PRECHARSELECT)
 	{
 		return reinterpret_cast<eqlib::eqmain::CListWnd*>(pWnd)->GetItemText(row, col);
@@ -558,7 +558,7 @@ CXStr GetListItemText(CListWnd* pWnd, int row, int col)
 
 int GetListCurSel(CListWnd* pWnd)
 {
-#if defined (TEST)
+#if HAS_GAMEFACE_UI
 	if (GetGameState() == GAMESTATE_PRECHARSELECT)
 	{
 		return reinterpret_cast<eqlib::eqmain::CListWnd*>(pWnd)->CurSel;
