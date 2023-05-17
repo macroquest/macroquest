@@ -48,7 +48,7 @@ void RemoveMQ2Benchmark(uint32_t BMHandle)
 {
 	DebugSpewAlways("RemoveMQ2Benchmark()");
 
-	if (BMHandle && gBenchmarks[BMHandle])
+	if (BMHandle < gBenchmarks.size() && gBenchmarks[BMHandle])
 	{
 		gBenchmarks[BMHandle].reset();
 	}
@@ -60,7 +60,7 @@ void RemoveMQ2Benchmark(uint32_t BMHandle)
 
 void EnterMQ2Benchmark(uint32_t BMHandle)
 {
-	if (gBenchmarks[BMHandle])
+	if (BMHandle < gBenchmarks.size() && gBenchmarks[BMHandle])
 	{
 		gBenchmarks[BMHandle]->Entry = std::chrono::steady_clock::now();
 	}
@@ -68,7 +68,7 @@ void EnterMQ2Benchmark(uint32_t BMHandle)
 
 void ExitMQ2Benchmark(uint32_t BMHandle)
 {
-	if (gBenchmarks[BMHandle])
+	if (BMHandle < gBenchmarks.size() && gBenchmarks[BMHandle])
 	{
 		MQBenchmark& benchmark = *gBenchmarks[BMHandle];
 
@@ -91,7 +91,7 @@ void ExitMQ2Benchmark(uint32_t BMHandle)
 
 bool GetMQ2Benchmark(uint32_t BMHandle, MQBenchmark& Dest)
 {
-	if (gBenchmarks[BMHandle])
+	if (BMHandle < gBenchmarks.size() && gBenchmarks[BMHandle])
 	{
 		Dest = *gBenchmarks[BMHandle]; // give them a copy of the data.
 		return true;
