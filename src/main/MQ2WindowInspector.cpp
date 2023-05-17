@@ -72,7 +72,7 @@ void CopyWindowChildTLO(CXWnd* pWindow)
 
 static CXRect GetWndClientRect(CXWnd* pWnd)
 {
-#if defined (TEST)
+#if HAS_GAMEFACE_UI
 	if (GetGameState() == GAMESTATE_PRECHARSELECT)
 		return pWnd->GetClientRectNonVirtual();
 	else
@@ -2039,7 +2039,9 @@ public:
 		// Add CXWnd specific details here
 		if (BeginColorSection("CXWnd Properties", open))
 		{
+#if HAS_GAMEFACE_UI
 			ColumnText("Type Name", "%s", pWnd->GetWndClassName());
+#endif
 			DisplayDrawTemplate("Template", pWnd->DrawTemplate);
 
 			std::vector<int> runtimeTypeInts;
