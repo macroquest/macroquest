@@ -248,51 +248,51 @@ bool MQ2MathType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 			if (char* pColon = strchr(Index, ':'))
 			{
 				*pColon = 0;
-				if (char* pComma = strchr(&pColon[1], ','))
+				if (char* pSeparator = strpbrk(pColon+1 + strspn(pColon+1, " ,"), " ,"))
 				{
-					*pComma = 0;
-					P2[0] = GetFloatFromString(&pColon[1], P2[0]);
-					*pComma = ',';
+					*pSeparator = 0;
+					P2[0] = GetFloatFromString(pColon+1 + strspn(pColon+1, " ,"), P2[0]);
+					*pSeparator = ',';
 
-					if (char* pComma2 = strchr(&pComma[1], ','))
+					if (char* pSeparator2 = strpbrk(pSeparator + strspn(pSeparator, " ,"), " ,"))
 					{
-						*pComma2 = 0;
-						P2[1] = GetFloatFromString(&pComma[1], P2[1]);
-						*pComma2 = ',';
-						P2[2] = GetFloatFromString(&pComma2[1], P2[2]);
+						*pSeparator2 = 0;
+						P2[1] = GetFloatFromString(pSeparator + strspn(pSeparator, " ,"), P2[1]);
+						*pSeparator2 = ',';
+						P2[2] = GetFloatFromString(pSeparator2 + strspn(pSeparator2, " ,"), P2[2]);
 					}
 					else
 					{
-						P2[1] = GetFloatFromString(&pComma[1], P2[1]);
+						P2[1] = GetFloatFromString(pSeparator + strspn(pSeparator, " ,"), P2[1]);
 					}
 				}
-				else
+				else 
 				{
-					P2[0] = GetFloatFromString(&pColon[1], P2[0]);
+					P2[0] = GetFloatFromString(pColon+1 + strspn(pColon + 1, " ,"), P2[0]);
 				}
 			}
 
-			if (char* pComma = strchr(Index, ','))
+			if (char* pSeparator = strpbrk(Index + strspn(Index, " ,"), " ,"))
 			{
-				*pComma = 0;
-				P1[0] = GetFloatFromString(Index, P1[0]);
-				*pComma = ',';
+				*pSeparator = 0;
+				P1[0] = GetFloatFromString(Index + strspn(Index, " ,"), P1[0]);
+				*pSeparator = ',';
 
-				if (char* pComma2 = strchr(&pComma[1], ','))
+				if (char* pSeparator2 = strpbrk(pSeparator + strspn(pSeparator, " ,"), " ,"))
 				{
-					*pComma2 = 0;
-					P1[1] = GetFloatFromString(&pComma[1], P1[1]);
-					*pComma2 = ',';
-					P1[2] = GetFloatFromString(&pComma2[1], P1[2]);
+					*pSeparator2 = 0;
+					P1[1] = GetFloatFromString(pSeparator + strspn(pSeparator, " ,"), P1[1]);
+					*pSeparator2 = ',';
+					P1[2] = GetFloatFromString(pSeparator2 + strspn(pSeparator2, " ,"), P1[2]);
 				}
 				else
 				{
-					P1[1] = GetFloatFromString(&pComma[1], P1[1]);
+					P1[1] = GetFloatFromString(pSeparator + strspn(pSeparator, " ,"), P1[1]);
 				}
 			}
 			else
 			{
-				P1[0] = GetFloatFromString(Index, P1[0]);
+				P1[0] = GetFloatFromString(Index + strspn(Index, " ,"), P1[0]);
 			}
 
 			Dest.Float = (float)GetDistance3D(P1[0], P1[1], P1[2], P2[0], P2[1], P2[2]);
