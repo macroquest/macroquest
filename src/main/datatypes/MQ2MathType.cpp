@@ -245,7 +245,7 @@ bool MQ2MathType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 			//auto sv_index = std::string_view(cleaned_index);				// Create a view of cleaned index
 			auto p_list = split_view(cleaned_index, ':', true);				// create a list of points, ignore empty
 
-			float P[3][3];													// Create 2d array, [Loc][Dimension]
+			float P[2][3];													// Create 2d array, [Loc][Dimension]
 			P[0][0] = P[1][0] = pControlledPlayer->Y;
 			P[0][1] = P[1][1] = pControlledPlayer->X;
 			P[0][2] = P[1][2] = pControlledPlayer->Z;
