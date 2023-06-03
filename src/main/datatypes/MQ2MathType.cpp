@@ -14,7 +14,7 @@
 
 #include "pch.h"
 #include "MQ2DataTypes.h"
-#include "string_view"
+#include <string_view>
 
 namespace mq::datatypes {
 
