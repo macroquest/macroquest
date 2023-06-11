@@ -1346,7 +1346,6 @@ void EndMacro(PSPAWNINFO pChar, char* szLine)
 	{
 		if (!_stricmp(":OnExit", i->second.Command.c_str()))
 		{
-			i++;
 			pBlock->CurrIndex = i->first;
 			// Force unpause to finish processing
 			pBlock->Paused = false;
