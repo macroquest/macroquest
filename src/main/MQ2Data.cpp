@@ -148,6 +148,7 @@ bool dataSubDefined(const char* szIndex, MQTypeVar& Ret)
 	return true;
 }
 
+// Arguments are passed in as Y, X, Z per documentation
 bool dataLineOfSight(const char* szIndex, MQTypeVar& Ret)
 {
 	if (!pControlledPlayer)
@@ -155,68 +156,23 @@ bool dataLineOfSight(const char* szIndex, MQTypeVar& Ret)
 
 	if (szIndex[0])
 	{
-		CVector3 SourcePos, DestPos;
-		SourcePos.X = DestPos.X = pControlledPlayer->Y;
-		SourcePos.Y = DestPos.Y = pControlledPlayer->X;
-		SourcePos.Z = DestPos.Z = pControlledPlayer->Z;
-
-		char szTemp[MAX_STRING];
-		strcpy_s(szTemp, szIndex);
-
-		// TODO:  This code appears in MQ2MathType Distance, possibly clean and combine
-		if (char* pColon = strchr(szTemp, ':'))
+		const auto args = split_view(szIndex, ':');
+		if (!args.empty())
 		{
-			*pColon = 0;
-			if (char* pComma = strchr(&pColon[1], ','))
-			{
-				*pComma = 0;
-				DestPos.X = GetFloatFromString(&pColon[1], DestPos.X);
-				*pComma = ',';
-				if (char* pComma2 = strchr(&pComma[1], ','))
-				{
-					*pComma2 = 0;
-					DestPos.Y = GetFloatFromString(&pComma[1], DestPos.Y);
-					*pComma2 = ',';
-					DestPos.Z = GetFloatFromString(&pComma2[1], DestPos.Z);
-				}
-				else
-				{
-					DestPos.Y = GetFloatFromString(&pComma[1], DestPos.Y);
-				}
-			}
-			else
-			{
-				DestPos.X = GetFloatFromString(&pColon[1], DestPos.X);
-			}
-		}
+			const glm::vec3 first_loc = GetVec3FromString(args[0], { pControlledPlayer->Y, pControlledPlayer->X, pControlledPlayer->Z });
+			glm::vec3 second_loc = { 0.0f, 0.0f, 0.0f };
 
-		if (char* pComma = strchr(szTemp, ','))
-		{
-			*pComma = 0;
-			SourcePos.X = GetFloatFromString(szTemp, SourcePos.X);
-			*pComma = ',';
-			if (char* pComma2 = strchr(&pComma[1], ','))
+			if (args.size() > 1)
 			{
-				*pComma2 = 0;
-				SourcePos.Y = GetFloatFromString(&pComma[1], SourcePos.Y);
-				*pComma2 = ',';
-				SourcePos.Z = GetFloatFromString(&pComma2[1], SourcePos.Z);
+				second_loc = GetVec3FromString(args[1], { pControlledPlayer->Y, pControlledPlayer->X, pControlledPlayer->Z });
 			}
-			else
-			{
-				SourcePos.Y = GetFloatFromString(&pComma[1], SourcePos.Y);
-			}
-		}
-		else
-		{
-			SourcePos.X = GetFloatFromString(szTemp, SourcePos.X);
-		}
 
-		// This is possibly inaccurate because it adjusts the ray for the player model,
-		// despite not necessarily using player model as the source location.
-		Ret.Set(CastRayLoc(SourcePos, pControlledPlayer->GetRace(), DestPos.X, DestPos.Y, DestPos.Z));
-		Ret.Type = pBoolType;
-		return true;
+			// This is possibly inaccurate because it adjusts the ray for the player model,
+			// despite not necessarily using player model as the source location.
+			Ret.Set(CastRayLoc({ first_loc[0], first_loc[1], first_loc[2] }, pControlledPlayer->GetRace(), second_loc[0], second_loc[1], second_loc[2]));
+			Ret.Type = pBoolType;
+			return true;
+		}
 	}
 
 	return false;

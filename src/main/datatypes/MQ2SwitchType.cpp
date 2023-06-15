@@ -215,14 +215,14 @@ bool MQ2SwitchType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 
 		if (BoundingRadius)
 		{
-			float thedist = GetDistance(pTheSwitch->X, pTheSwitch->Y) - (BoundingRadius / 2);
+			float thedist = GetDistanceFromPlayer(pTheSwitch->X, pTheSwitch->Y) - (BoundingRadius / 2);
 			if (thedist < 0.0f)
 				thedist = 0.0f;
 			Dest.Float = thedist;
 		}
 		else
 		{
-			Dest.Float = GetDistance(pTheSwitch->X, pTheSwitch->Y);
+			Dest.Float = GetDistanceFromPlayer(pTheSwitch->X, pTheSwitch->Y);
 		}
 		Dest.Type = pFloatType;
 		return true;

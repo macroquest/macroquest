@@ -238,29 +238,23 @@ bool MQ2MathType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	{
 		Dest.Float = 0.0;
 		Dest.Type = pFloatType;
-		// TODO: This code appears in LineOfSight function, possibly clean and combine
-		auto cleaned_index = replace(Index, ",", " ");						// Replace commas with spaces
-		if (cleaned_index.size() > 0)
+		if (Index[0] != '\0')
 		{
-			//auto sv_index = std::string_view(cleaned_index);				// Create a view of cleaned index
-			auto p_list = split_view(cleaned_index, ':', true);				// create a list of points, ignore empty
+			const auto args = split_view(Index, ':');
 
-			float P[2][3];													// Create 2d array, [Loc][Dimension]
-			P[0][0] = P[1][0] = pControlledPlayer->Y;
-			P[0][1] = P[1][1] = pControlledPlayer->X;
-			P[0][2] = P[1][2] = pControlledPlayer->Z;
-
-			for (int i = 0; i < p_list.size() && i < 2; i++)				// for ever separate location
+			if (!args.empty())
 			{
-				auto pointList = split_view(p_list[i], ' ', true);			// create a string view list of each float
-				for (int j = 0; j < pointList.size() && j < 3; j++)			// for every string broken by spaces
-				{
-					P[i][j] = GetFloatFromString(pointList[j], P[i][j]);	// Convert jth float and store in ith array
-				}
-			}
+				const glm::vec3 first_loc = GetVec3FromString(args[0]);
+				glm::vec3 second_loc = { 0.0f, 0.0f, 0.0f };
 
-			Dest.Float = (float)GetDistance3D(P[0][0], P[0][1], P[0][2], P[1][0], P[1][1], P[1][2]);  // parse distance from p[0] to p[1]
-			return true;
+				if (args.size() > 1)
+				{
+					second_loc = GetVec3FromString(args[1]);
+				}
+
+				Dest.Float = GetDistance(first_loc, second_loc);
+				return true;
+			}
 		}
 		return false;
 	}

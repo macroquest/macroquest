@@ -267,7 +267,7 @@ void UpdatedExtDistance()
 				if (SPAWNINFO* pSpawn = GetSpawnByID(spID))
 				{
 					char szTargetDist[EQ_MAX_NAME] = { 0 };
-					float dist = Distance3DToSpawn(pLocalPlayer, pSpawn);
+					float dist = GetDistance3D(pLocalPlayer, pSpawn);
 					sprintf_s(szTargetDist, "%.2f", dist);
 
 					if (dist < 250)
