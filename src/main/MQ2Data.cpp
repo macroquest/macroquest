@@ -14,6 +14,7 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
+#include "mq/libutils/glmUtils.h"
 
 #include <date/date.h>
 
@@ -156,23 +157,15 @@ bool dataLineOfSight(const char* szIndex, MQTypeVar& Ret)
 
 	if (szIndex[0])
 	{
-		const auto args = split_view(szIndex, ':');
-		if (!args.empty())
-		{
-			const glm::vec3 first_loc = GetVec3FromString(args[0], { pControlledPlayer->Y, pControlledPlayer->X, pControlledPlayer->Z });
-			glm::vec3 second_loc = { 0.0f, 0.0f, 0.0f };
+		const glm::vec3 player_loc = { pLocalPlayer->Y, pLocalPlayer->X, pLocalPlayer->Z };
+		const auto coordinates = GetVec3SetFromString(szIndex, player_loc, player_loc);
 
-			if (args.size() > 1)
-			{
-				second_loc = GetVec3FromString(args[1], { pControlledPlayer->Y, pControlledPlayer->X, pControlledPlayer->Z });
-			}
-
-			// This is possibly inaccurate because it adjusts the ray for the player model,
-			// despite not necessarily using player model as the source location.
-			Ret.Set(CastRayLoc({ first_loc[0], first_loc[1], first_loc[2] }, pControlledPlayer->GetRace(), second_loc[0], second_loc[1], second_loc[2]));
-			Ret.Type = pBoolType;
-			return true;
-		}
+		// This is possibly inaccurate because it adjusts the ray for the player model,
+		// despite not necessarily using player model as the source location. Need to
+		// evaluate CastRayLoc and see what it expects for that as well as x/y/z coordinates
+		Ret.Set(CastRayLoc({ coordinates[0][0], coordinates[0][1], coordinates[0][2] }, pControlledPlayer->GetRace(), coordinates[1][0], coordinates[1][1], coordinates[1][2]));
+		Ret.Type = pBoolType;
+		return true;
 	}
 
 	return false;

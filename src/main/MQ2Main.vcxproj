@@ -560,6 +560,7 @@
     <ClInclude Include="..\..\include\mq\base\Deprecation.h" />
     <ClInclude Include="..\..\include\mq\base\Detours.h" />
     <ClInclude Include="..\..\include\mq\base\GlobalBuffer.h" />
+    <ClInclude Include="..\..\include\mq\base\Math.h" />
     <ClInclude Include="..\..\include\mq\base\Signal.h" />
     <ClInclude Include="..\..\include\mq\base\SimpleLexer.h" />
     <ClInclude Include="..\..\include\mq\base\String.h" />
@@ -568,6 +569,7 @@
     <ClInclude Include="..\..\include\mq\base\WString.h" />
     <ClInclude Include="..\..\include\mq\imgui\ImGuiUtils.h" />
     <ClInclude Include="..\..\include\mq\imgui\Widgets.h" />
+    <ClInclude Include="..\..\include\mq\libutils\glmUtils.h" />
     <ClInclude Include="..\..\include\mq\Plugin.h" />
     <ClInclude Include="..\..\include\mq\utils\Args.h" />
     <ClInclude Include="..\..\include\mq\utils\Benchmarks.h" />

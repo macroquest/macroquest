@@ -16,6 +16,8 @@
 #include "MQ2DataTypes.h"
 #include <string_view>
 
+#include "mq/libutils/glmUtils.h"
+
 namespace mq::datatypes {
 
 enum class MathMembers
@@ -234,27 +236,17 @@ bool MQ2MathType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		}
 		return false;
 
+	// Coordinates passed to this are in the form Y1, X1, Z1 : Y2, X2, Z2 per documentation
 	case MathMembers::Distance:
 	{
 		Dest.Float = 0.0;
 		Dest.Type = pFloatType;
 		if (Index[0] != '\0')
 		{
-			const auto args = split_view(Index, ':');
-
-			if (!args.empty())
-			{
-				const glm::vec3 first_loc = GetVec3FromString(args[0]);
-				glm::vec3 second_loc = { 0.0f, 0.0f, 0.0f };
-
-				if (args.size() > 1)
-				{
-					second_loc = GetVec3FromString(args[1]);
-				}
-
-				Dest.Float = GetDistance(first_loc, second_loc);
-				return true;
-			}
+			const glm::vec3 player_loc = { pLocalPlayer->Y, pLocalPlayer->X, pLocalPlayer->Z };
+			const auto coordinates = GetVec3SetFromString(Index, player_loc, player_loc);
+			Dest.Float = GetDistance(coordinates[0], coordinates[1]);
+			return true;
 		}
 		return false;
 	}

@@ -1463,7 +1463,7 @@ const char* GetLightForSpawn(SPAWNINFO* pSpawn)
 // Function:    DistanceToSpawn3D
 // Description: Return the distance between two spawns, including Z
 // ***************************************************************************
-[[deprecated("Use GetDistance3D instead")]]
+DEPRECATE("Use GetDistance3D instead")
 float DistanceToSpawn3D(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
 {
 	if (pSpawn != nullptr)
