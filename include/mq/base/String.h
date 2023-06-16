@@ -15,7 +15,6 @@
 #pragma once
 
 // Functions in this file should have no dependencies on third party libraries.
-// Those functions belong in StringUtils.h
 
 #include <algorithm>
 #include <charconv>
