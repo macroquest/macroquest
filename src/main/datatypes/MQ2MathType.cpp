@@ -244,8 +244,8 @@ bool MQ2MathType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		if (Index[0] != '\0')
 		{
 			const glm::vec3 player_loc = { pLocalPlayer->Y, pLocalPlayer->X, pLocalPlayer->Z };
-			const auto coordinates = GetVec3SetFromString(Index, player_loc, player_loc);
-			Dest.Float = GetDistance(coordinates[0], coordinates[1]);
+			const auto [coord1, coord2] = GetVec3SetFromString(Index, player_loc, player_loc);
+			Dest.Float = GetDistance(coord1, coord2);
 			return true;
 		}
 		return false;

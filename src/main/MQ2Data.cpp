@@ -158,12 +158,12 @@ bool dataLineOfSight(const char* szIndex, MQTypeVar& Ret)
 	if (szIndex[0])
 	{
 		const glm::vec3 player_loc = { pLocalPlayer->Y, pLocalPlayer->X, pLocalPlayer->Z };
-		const auto coordinates = GetVec3SetFromString(szIndex, player_loc, player_loc);
+		const auto [coord1, coord2] = GetVec3SetFromString(szIndex, player_loc, player_loc);
 
 		// This is possibly inaccurate because it adjusts the ray for the player model,
 		// despite not necessarily using player model as the source location. Need to
 		// evaluate CastRayLoc and see what it expects for that as well as x/y/z coordinates
-		Ret.Set(CastRayLoc({ coordinates[0][0], coordinates[0][1], coordinates[0][2] }, pControlledPlayer->GetRace(), coordinates[1][0], coordinates[1][1], coordinates[1][2]));
+		Ret.Set(CastRayLoc({ coord1[0], coord1[1], coord1[2] }, pControlledPlayer->GetRace(), coord2[0], coord2[1], coord2[2]));
 		Ret.Type = pBoolType;
 		return true;
 	}
