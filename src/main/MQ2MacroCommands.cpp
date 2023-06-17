@@ -1351,22 +1351,20 @@ void EndMacro(PSPAWNINFO pChar, char* szLine)
 			pBlock->Paused = false;
 			if (gReturn)            // return to the macro the first time around
 			{
-				// We dont need stack.  Get rid of it to avoid continuing main after finishing.
-				pStack = gMacroStack;  // get the global stack
-				while (pStack->pNext)  // while there are more things on the stack, 
+				while (gMacroStack->pNext)  // while there are more things on the stack, 
 				{
-					// Does this cause a memory leak if I don't delete these?
-					if (gMacroStack->LocalVariables)
-						ClearMQ2DataVariables(&gMacroStack->LocalVariables);
-					if (gMacroStack->Parameters)
-						ClearMQ2DataVariables(&gMacroStack->Parameters);
+					pStack = gMacroStack->pNext;  // get plate 2 on the stack
+					if (pStack->LocalVariables)
+						ClearMQ2DataVariables(&pStack->LocalVariables);
+					if (pStack->Parameters)
+						ClearMQ2DataVariables(&pStack->Parameters);
 
-					// Delete Stack Item since i have more on stack and variables are clear
-					delete gMacroStack;
-					// Advance to next stack item
-					pStack = gMacroStack->pNext;
-					// Update global stack location to current personal stack
-					gMacroStack = pStack;
+					// collapse down the stack.
+					gMacroStack->pNext = pStack->pNext;
+
+					// Delete Stack Item in the middle 
+					delete pStack;
+
 				}
 
 				gReturn = false;    // We don't want to return the 2nd time.
