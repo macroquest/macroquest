@@ -1,3 +1,9 @@
+May 24, 2023:
+- live: Updated for live patch
+
+May 19, 2023:
+- live: Updated for live patch
+
 May 17, 2023:
 - test: Updated for test patch
 - live: Updated for live patch. This patch introduces the new UI system,
