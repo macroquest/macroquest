@@ -1,3 +1,6 @@
+June 21, 2023:
+- live: Updated for live patch
+
 June 19, 2023:
 - test: Updated for test patch
 
