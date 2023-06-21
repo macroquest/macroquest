@@ -2263,7 +2263,8 @@ public:
 			ColumnText("Model Prefix", "%s", component->modelPrefix.c_str());
 			ColumnWindow("Window", component->wnd);
 			ColumnWindow("Parent Window", component->parent);
-			ColumnText("Unknown String", "%s", component->str_78.c_str());
+			ColumnText("str_78", "%s", component->str_78.c_str());
+			ColumnText("u64_98", "%p", (uintptr_t)component->u64_98);
 
 			ImGui::TreePop();
 		}
@@ -2275,7 +2276,7 @@ public:
 		if (BeginColorSection("CGFScreenWnd Properties", open))
 		{
 			DisplayUIComponent("Window Component", &pWnd->WindowComponent);
-			ColumnText("u8_98", "%d", (int)pWnd->WindowComponent.u8_98);
+			ColumnText("u8_a0", "%d", (int)pWnd->WindowComponent.u8_a0);
 
 			if (ColumnTreeNode("Children Components", "%d", pWnd->ChildComponents.size()))
 			{
