@@ -52,6 +52,15 @@ void RegisterBindings_Globals(LuaThread* thread, sol::state_view state)
 
 		WriteChatColorf("%s", USERCOLOR_CHAT_CHANNEL, message.c_str());
 	};
+
+	state["_old_require"] = state["require"];
+	state["require"] = [](sol::variadic_args args, sol::this_state s)
+	{
+		ScopedYieldDisabler disabler(s, YieldDisabledReason::Require);
+
+		sol::unsafe_function require = sol::state_view(s)["_old_require"];
+		return require(args);
+	};
 }
 
 } // namespace mq::lua::bindings

@@ -81,7 +81,16 @@ static void lua_delay(sol::object delayObj, sol::object conditionObj, sol::this_
 	{
 		if (!thread_ptr->GetAllowYield())
 		{
-			luaL_error(s.lua_state(), "Attempted to yield from non-yieldable thread");
+			switch (thread_ptr->GetYieldDisabledReason())
+			{
+			case YieldDisabledReason::Default:
+				luaL_error(s.lua_state(), "Cannot delay from non-yieldable thread");
+				break;
+
+			case YieldDisabledReason::Require:
+				luaL_error(s.lua_state(), "Cannot delay while importing a module");
+				break;
+			}
 			return;
 		}
 
