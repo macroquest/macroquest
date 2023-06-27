@@ -961,6 +961,9 @@ void DisplayTextureAnimation(const char* Label, const CTextureAnimation* texture
 				ColumnCXSize("Cell size", CXSize(textureAnim->CellWidth, textureAnim->CellHeight));
 				ColumnCXRect("Cell rect", textureAnim->CellRect);
 				ColumnText("Current cell", "%d", textureAnim->CurCell);
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_NOS)
+				ColumnText("Current cell in frame", "%d", textureAnim->CurCellInFrame);
+#endif
 			}
 
 			if (textureAnim->ZeroFrame != 0)

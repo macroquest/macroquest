@@ -1,3 +1,6 @@
+Jun 26, 2023:
+- Fix CTextureAnimation (#729). This should fix ImGui drawing of game icons
+
 June 21, 2023:
 - live: Updated for live patch
 
