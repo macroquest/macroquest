@@ -46,6 +46,12 @@ enum class LuaThreadExitReason
 	Exit = 1,
 };
 
+enum class YieldDisabledReason
+{
+	Default,
+	Require,
+};
+
 struct LuaThreadInfo
 {
 	uint32_t pid;
@@ -126,8 +132,12 @@ public:
 
 	LuaThreadStatus Pause();
 
-	void SetAllowYield(bool allowYield) { m_allowYield = allowYield; }
+	void SetAllowYield(bool allowYield, YieldDisabledReason reason = YieldDisabledReason::Default)
+	{
+		m_allowYield = allowYield; m_yieldDisabledReason = reason;
+	}
 	bool GetAllowYield() const { return m_allowYield; }
+	YieldDisabledReason GetYieldDisabledReason() const { return m_yieldDisabledReason; }
 
 	bool ShouldYield() const { return m_yieldToFrame; }
 	void DoYield() { YieldAt(0); }
@@ -179,6 +189,7 @@ private:
 	bool m_paused = false;
 	bool m_evaluateResult = false;
 	bool m_allowYield = true;
+	YieldDisabledReason m_yieldDisabledReason = YieldDisabledReason::Default;
 	LuaThreadExitReason m_exitReason = LuaThreadExitReason::Unspecified;
 
 	std::unique_ptr<LuaEventProcessor> m_eventProcessor;
@@ -199,5 +210,46 @@ inline std::shared_ptr<LuaThread> LuaThread::get_from(sol::state_view s)
 	std::optional<LuaThreadRef> thread = s["mqthread"];
 	return thread.value_or(LuaThreadRef()).lock();
 }
+
+//============================================================================
+
+class ScopedYieldDisabler
+{
+public:
+	ScopedYieldDisabler(const std::shared_ptr<LuaThread>& thread_ptr, YieldDisabledReason reason = YieldDisabledReason::Default)
+		: m_threadPtr(thread_ptr)
+	{
+		if (m_threadPtr)
+		{
+			m_origAllowYield = m_threadPtr->GetAllowYield();
+			m_origReason = m_threadPtr->GetYieldDisabledReason();
+			m_threadPtr->SetAllowYield(false, reason);
+		}
+	}
+
+	ScopedYieldDisabler(sol::state_view s, YieldDisabledReason reason = YieldDisabledReason::Default)
+		: m_threadPtr(LuaThread::get_from(s))
+	{
+		if (m_threadPtr)
+		{
+			m_origAllowYield = m_threadPtr->GetAllowYield();
+			m_origReason = m_threadPtr->GetYieldDisabledReason();
+			m_threadPtr->SetAllowYield(false, reason);
+		}
+	}
+
+	~ScopedYieldDisabler()
+	{
+		if (m_threadPtr)
+		{
+			m_threadPtr->SetAllowYield(m_origAllowYield, m_origReason);
+		}
+	}
+
+private:
+	bool m_origAllowYield = true;
+	YieldDisabledReason m_origReason = YieldDisabledReason::Default;
+	std::shared_ptr<LuaThread> m_threadPtr;
+};
 
 } // namespace mq::lua

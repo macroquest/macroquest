@@ -81,7 +81,16 @@ static void lua_delay(sol::object delayObj, sol::object conditionObj, sol::this_
 	{
 		if (!thread_ptr->GetAllowYield())
 		{
-			luaL_error(s.lua_state(), "Attempted to yield from non-yieldable thread");
+			switch (thread_ptr->GetYieldDisabledReason())
+			{
+			case YieldDisabledReason::Default:
+				luaL_error(s.lua_state(), "Cannot delay from non-yieldable thread");
+				break;
+
+			case YieldDisabledReason::Require:
+				luaL_error(s.lua_state(), "Cannot delay while importing a module");
+				break;
+			}
 			return;
 		}
 
@@ -241,6 +250,28 @@ static sol::table lua_getFilteredSpawns(sol::this_state L, std::optional<sol::fu
 				table.add(std::move(lua_spawn));
 
 			spawn = spawn->GetNext();
+		}
+	}
+
+	return table;
+}
+
+static sol::table lua_getFilteredGroundItems(sol::this_state L, std::optional<sol::function> predicate)
+{
+	auto table = sol::state_view(L).create_table();
+
+	if (pItemList && predicate)
+	{
+		auto pGroundItem = pItemList->Top;
+		const auto& predicate_value = predicate.value();
+		while (pGroundItem != nullptr)
+		{
+			auto groundTypeVar = datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(pGroundItem));
+			auto lua_ground = lua_MQTypeVar(groundTypeVar);
+			if (predicate_value(lua_ground))
+				table.add(std::move(lua_ground));
+
+			pGroundItem = pGroundItem->pNext;
 		}
 	}
 
@@ -557,6 +588,7 @@ void RegisterBindings_MQ(LuaThread* thread, sol::table& mq)
 	// Direct Data Bindings
 	mq.set_function("getAllSpawns", &lua_getAllSpawns);
 	mq.set_function("getFilteredSpawns", &lua_getFilteredSpawns);
+	mq.set_function("getFilteredGroundItems", &lua_getFilteredGroundItems);
 }
 
 } // namespace mq::lua::bindings
