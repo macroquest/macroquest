@@ -556,6 +556,9 @@
     <ClInclude Include="..\..\include\mq\api\MacroAPI.h">
       <Filter>Header Files\mq\api</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\Spells.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MQ2Main.rc">

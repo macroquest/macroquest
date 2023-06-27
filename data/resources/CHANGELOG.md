@@ -1,6 +1,7 @@
 Jun 26, 2023:
 - Fix CTextureAnimation (#729). This should fix ImGui drawing of game icons
 - lua: Disallow the use of mq.delay while a module is being imported (#730)
+- Add spell.MinLevel to report the minimum class level of a spell (#722).
 
 June 21, 2023:
 - live: Updated for live patch
