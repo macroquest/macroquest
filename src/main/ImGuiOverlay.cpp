@@ -65,6 +65,9 @@ int gReInitFrameDelay = 0;
 
 bool gbImGuiReady = false;
 
+// global imgui toggle
+extern bool gbRenderImGui;
+
 //----------------------------------------------------------------------------
 // statics
 
@@ -579,7 +582,7 @@ public:
 DETOUR_TRAMPOLINE_DEF(void, ProcessMouseEvents_Trampoline, ())
 void ProcessMouseEvents_Detour()
 {
-	if (ImGui::GetCurrentContext() != nullptr && *EQADDR_DIMOUSE != nullptr)
+	if (gbRenderImGui && ImGui::GetCurrentContext() != nullptr && *EQADDR_DIMOUSE != nullptr)
 	{
 		auto pMouse = (*EQADDR_DIMOUSE);
 
@@ -660,7 +663,7 @@ void ProcessMouseEvents_Detour()
 DETOUR_TRAMPOLINE_DEF(void, HandleMouseWheel_Trampoline, (int))
 void HandleMouseWheel_Detour(int offset)
 {
-	if (ImGui::GetCurrentContext() != nullptr)
+	if (gbRenderImGui && ImGui::GetCurrentContext() != nullptr)
 	{
 		ImGuiIO& io = ImGui::GetIO();
 
@@ -682,7 +685,7 @@ void HandleMouseWheel_Detour(int offset)
 DETOUR_TRAMPOLINE_DEF(uint32_t, ProcessKeyboardEvents_Trampoline, ())
 uint32_t ProcessKeyboardEvents_Detour()
 {
-	if (ImGui::GetCurrentContext() != nullptr)
+	if (gbRenderImGui && ImGui::GetCurrentContext() != nullptr)
 	{
 		ImGuiIO& io = ImGui::GetIO();
 
@@ -701,6 +704,9 @@ uint32_t ProcessKeyboardEvents_Detour()
 
 bool OverlayWndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+	if (!gbRenderImGui)
+		return false;
+
 	if (ImGuiManager_HandleWndProc(msg, wParam, lParam))
 		return true;
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
