@@ -1,5 +1,6 @@
 Jun 26, 2023:
 - Fix CTextureAnimation (#729). This should fix ImGui drawing of game icons
+- Fix MQMouseInfo, should fix crashes with /mouseto (#698).
 - lua: Disallow the use of mq.delay while a module is being imported (#730)
 - Add spell.MinLevel to report the minimum class level of a spell (#722).
 
