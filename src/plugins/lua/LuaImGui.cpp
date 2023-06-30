@@ -81,31 +81,6 @@ LuaImGui::~LuaImGui()
 {
 }
 
-class ScopedYieldDisabler
-{
-	bool m_origAllowYield = true;
-	std::shared_ptr<LuaThread> m_threadPtr;
-
-public:
-	ScopedYieldDisabler(const std::shared_ptr<LuaThread>& thread_ptr)
-		: m_threadPtr(thread_ptr)
-	{
-		if (m_threadPtr)
-		{
-			m_origAllowYield = m_threadPtr->GetAllowYield();
-			thread_ptr->SetAllowYield(false);
-		}
-	}
-
-	~ScopedYieldDisabler()
-	{
-		if (m_threadPtr)
-		{
-			m_threadPtr->SetAllowYield(m_origAllowYield);
-		}
-	}
-};
-
 bool LuaImGui::Pulse() const
 {
 	bool success = true;

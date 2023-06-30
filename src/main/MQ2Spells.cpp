@@ -1575,9 +1575,10 @@ static int CalcMaxSpellLevel(int calc, int64_t base, int64_t max, int tick, int 
 	return MAX_PC_LEVEL;
 }
 
-static int CalcMinSpellLevel(EQ_Spell* pSpell)
+// Exported by mq/api/Spells.h
+int CalcMinSpellLevel(EQ_Spell* pSpell)
 {
-	int minspelllvl = pSpell->GetSpellLevelNeeded(Warrior);
+	int minspelllvl = 255;
 
 	for (int j = Warrior; j <= Berserker; j++)
 	{
