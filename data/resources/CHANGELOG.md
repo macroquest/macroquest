@@ -1,3 +1,6 @@
+Jun 29, 2023:
+- test: updated for test patch
+
 Jun 26, 2023:
 - Fix CTextureAnimation (#729). This should fix ImGui drawing of game icons
 - Fix MQMouseInfo, should fix crashes with /mouseto (#698).
