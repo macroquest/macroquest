@@ -1,4 +1,4 @@
-Utils = { _version = '1.0', author = 'Knightly' }
+local Utils = { _version = '1.0', author = 'Knightly' }
 
 Utils.File = {
     -- Need to rely on the OS for this
