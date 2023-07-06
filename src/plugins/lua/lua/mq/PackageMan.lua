@@ -8,8 +8,8 @@ PackageMan.repoUrl = 'https://luarocks.macroquest.org/'
 PackageMan.repoName = 'MacroQuest'
 
 -- Requirements
-local ImguiHelper = require('ImguiHelper')
-local Utils = require('Utils')
+local ImguiHelper = require('mq/ImguiHelper')
+local Utils = require('mq/Utils')
 
 -- Internal settings
 local mqRepoUrl = 'https://luarocks.macroquest.org/'
