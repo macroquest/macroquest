@@ -1,3 +1,6 @@
+Jul 6, 2023:
+- Fix scoping issues in PackageMan causing lua errors (#731)
+
 Jun 26, 2023:
 - Fix CTextureAnimation (#729). This should fix ImGui drawing of game icons
 - Fix MQMouseInfo, should fix crashes with /mouseto (#698).
