@@ -89,6 +89,32 @@ PackageMan.InstallAndLoad = function(package_name, require_name)
     return nil
 end
 
+-- BEGIN WORKAROUND CODE ---
+local function search_paths(require_name, paths)
+    for path in string.gmatch(paths, "([^;]+)") do
+        local file = string.gsub(path, "?", require_name)
+        if Utils.File.Exists(file) then
+            return file
+        end
+    end
+    return nil
+end
+
+local function require_if_exists(require_name)
+    local file = search_paths(require_name, package.cpath)
+    if file then
+        return require(require_name)
+    end
+
+    file = search_paths(require_name, package.path)
+    if file ~= nil then
+        return require(require_name)
+    end
+
+    return nil
+end
+-- END WORKAROUND CODE ---
+
 ---@param package_name string The package name
 ---@param require_name? string The package internal export name
 ---@param fail_message? string Oevrride fail message if package fails to load
@@ -104,11 +130,13 @@ PackageMan.Require = function(package_name, require_name, fail_message)
     end
 
     if package_name then
-        local my_package = Utils.Library.Include(require_name)
+        -- This code is working around an issue using the pcall directly, see above workaround code
+        local my_package = require_if_exists(require_name)
         if not my_package then
-            my_package = PackageMan.InstallAndLoad(package_name, require_name)
-        end
-        if my_package then
+            if PackageMan.Install(package_name) == 0 then
+                return Utils.Library.Include(require_name)
+            end
+        else
             return my_package
         end
     end
