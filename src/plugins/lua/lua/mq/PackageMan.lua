@@ -91,8 +91,10 @@ end
 
 -- BEGIN WORKAROUND CODE ---
 local function search_paths(require_name, paths)
+    local file_name, _ = string.match(require_name, "([^%.]+)%.(.*)")
+    file_name = file_name or require_name
     for path in string.gmatch(paths, "([^;]+)") do
-        local file = string.gsub(path, "?", require_name)
+        local file = string.gsub(path, "?", file_name)
         if Utils.File.Exists(file) then
             return file
         end
