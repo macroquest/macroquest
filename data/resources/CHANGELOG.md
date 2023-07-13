@@ -1,9 +1,15 @@
+Jul 8, 2023:
+  Fix PackageMan issue with loading submodules in a single line
+
+Jul 6, 2023:
+- Fix scoping issues in PackageMan causing lua errors (#731)
+
 Jun 26, 2023:
 - Fix CTextureAnimation (#729). This should fix ImGui drawing of game icons
 - Fix MQMouseInfo, should fix crashes with /mouseto (#698).
 - Fix overlay blocking input while it is hidden (#699).
 - lua: Disallow the use of mq.delay while a module is being imported (#730)
-- Add spell.MinLevel to report the minimum class level of a spell (#722).
+- Add spell.MinCasterLevel to report the minimum class level of a spell (#722).
 
 June 21, 2023:
 - live: Updated for live patch

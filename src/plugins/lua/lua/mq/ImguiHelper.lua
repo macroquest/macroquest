@@ -1,4 +1,4 @@
-ImguiHelper = { _version = '1.0', author = 'Knightly' }
+local ImguiHelper = { _version = '1.0', author = 'Knightly' }
 
 local mq = require('mq')
 require 'ImGui'

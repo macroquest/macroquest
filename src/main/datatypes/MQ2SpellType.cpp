@@ -106,7 +106,7 @@ enum class SpellMembers
 	SubcategoryID,
 	Dispellable,
 	Link,
-	MinLevel,
+	MinCasterLevel,
 };
 
 enum class SpellMethods
@@ -204,7 +204,7 @@ MQ2SpellType::MQ2SpellType() : MQ2Type("spell")
 	ScopedTypeMember(SpellMembers, Dispellable);
 	ScopedTypeMember(SpellMembers, Link);
 	AddMember(static_cast<int>(SpellMembers::BaseEffectsFocusCap), "SongCap");
-	ScopedTypeMember(SpellMembers, MinLevel);
+	ScopedTypeMember(SpellMembers, MinCasterLevel);
 
 	ScopedTypeMethod(SpellMethods, Inspect);
 }
@@ -1322,7 +1322,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.Type = pStringType;
 		return true;
 
-	case SpellMembers::MinLevel:
+	case SpellMembers::MinCasterLevel:
 		Dest.Int = CalcMinSpellLevel(pSpell);
 		Dest.Type = pIntType;
 		return true;
