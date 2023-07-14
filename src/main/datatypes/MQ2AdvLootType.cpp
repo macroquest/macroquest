@@ -212,7 +212,7 @@ enum class AdvLootItemMembers
 	Never,
 	IconID,
 	NoDrop,
-	FG
+	FreeGrab
 };
 
 MQ2AdvLootItemType::MQ2AdvLootItemType() : MQ2Type("advlootitem")
@@ -231,7 +231,7 @@ MQ2AdvLootItemType::MQ2AdvLootItemType() : MQ2Type("advlootitem")
 	ScopedTypeMember(AdvLootItemMembers, Never);
 	ScopedTypeMember(AdvLootItemMembers, IconID);
 	ScopedTypeMember(AdvLootItemMembers, NoDrop);
-	ScopedTypeMember(AdvLootItemMembers, FG);
+	ScopedTypeMember(AdvLootItemMembers, FreeGrab);
 }
 
 bool MQ2AdvLootItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -265,12 +265,6 @@ bool MQ2AdvLootItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		Dest.DWord = lootIndex;
 		Dest.Type = pIntType;
 		return true;
-
-	case AdvLootItemMembers::FG:
-		Dest.DWord = item.FG;
-		Dest.Type = pBoolType;
-		return true;
-
 
 	case AdvLootItemMembers::Name:
 		Dest.Type = pStringType;
@@ -343,6 +337,11 @@ bool MQ2AdvLootItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 
 	case AdvLootItemMembers::NoDrop:
 		Dest.Set(item.NoDrop);
+		Dest.Type = pBoolType;
+		return true;
+
+	case AdvLootItemMembers::FreeGrab:
+		Dest.DWord = item.FG;
 		Dest.Type = pBoolType;
 		return true;
 
