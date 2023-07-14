@@ -211,7 +211,8 @@ enum class AdvLootItemMembers
 	AlwaysGreed,
 	Never,
 	IconID,
-	NoDrop
+	NoDrop,
+	FG
 };
 
 MQ2AdvLootItemType::MQ2AdvLootItemType() : MQ2Type("advlootitem")
@@ -230,6 +231,7 @@ MQ2AdvLootItemType::MQ2AdvLootItemType() : MQ2Type("advlootitem")
 	ScopedTypeMember(AdvLootItemMembers, Never);
 	ScopedTypeMember(AdvLootItemMembers, IconID);
 	ScopedTypeMember(AdvLootItemMembers, NoDrop);
+	ScopedTypeMember(AdvLootItemMembers, FG);
 }
 
 bool MQ2AdvLootItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -263,6 +265,12 @@ bool MQ2AdvLootItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		Dest.DWord = lootIndex;
 		Dest.Type = pIntType;
 		return true;
+
+	case AdvLootItemMembers::FG:
+		Dest.DWord = item.FG;
+		Dest.Type = pBoolType;
+		return true;
+
 
 	case AdvLootItemMembers::Name:
 		Dest.Type = pStringType;
