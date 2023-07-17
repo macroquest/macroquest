@@ -365,6 +365,9 @@ static void SetForegroundWindowInternal(HWND hWnd)
 	if (!IsWindow(hWnd))
 		return;
 
+	if (IsIconic(hWnd))
+		ShowWindow(hWnd, SW_RESTORE);
+
 	if (::SetForegroundWindow(hWnd))
 		return;
 
