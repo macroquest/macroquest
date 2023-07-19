@@ -1,8 +1,18 @@
+Jul 19, 2023:
+- Add FreeGrab to AdvLootType (#733)
+- Hotkey will now restore minimized window (#735)
+
+Jul 10, 2023:
+- test: updated for test patch
+
 Jul 8, 2023:
-  Fix PackageMan issue with loading submodules in a single line
+- Fix PackageMan issue with loading submodules in a single line
 
 Jul 6, 2023:
 - Fix scoping issues in PackageMan causing lua errors (#731)
+
+Jun 29, 2023:
+- test: updated for test patch
 
 Jun 26, 2023:
 - Fix CTextureAnimation (#729). This should fix ImGui drawing of game icons
