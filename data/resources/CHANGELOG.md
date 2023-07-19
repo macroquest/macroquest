@@ -1,3 +1,7 @@
+Jul 19, 2023:
+- Add FreeGrab to AdvLootType (#733)
+- Hotkey will now restore minimized window (#735)
+
 Jul 10, 2023:
 - test: updated for test patch
 
