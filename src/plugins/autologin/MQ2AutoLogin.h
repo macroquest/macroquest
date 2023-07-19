@@ -237,6 +237,10 @@ public:
 	static std::string_view server() { return m_record ? m_record->serverName.c_str() : ""; }
 	static std::string_view profile() { return m_record ? m_record->profileName.c_str() : ""; }
 	static std::string_view account() { return m_record ? m_record->accountName.c_str() : ""; }
+	static std::string_view hotkey() { return m_record ? m_record->hotkey.c_str() : ""; }
+	static std::string_view characterClass() { return m_record ? m_record->characterClass.c_str() : ""; }
+	static int characterLevel() { return m_record ? m_record->characterLevel : 0; }
+	static std::optional<ProfileRecord>* getrecord() { return &m_record; }
 	static bool has_entry() { return m_record.has_value(); }
 	static const CXWnd* current_window() { return m_currentWindow; }
 	static const bool paused() { return m_paused; }
