@@ -45,6 +45,82 @@ uint64_t ReenableTime = 0;
 int Level = -1;
 int Class = -1;
 
+class MQ2AutoLoginType* pAutoLoginType = nullptr;
+
+class MQ2AutoLoginType : public MQ2Type
+{
+public:
+	enum class AutoLoginMembers
+	{
+		HotKey,
+		Server,
+		Character,
+		Profile,
+		Account
+	};
+
+	MQ2AutoLoginType() : MQ2Type("AutoLogin")
+	{
+		ScopedTypeMember(AutoLoginMembers, HotKey);
+		ScopedTypeMember(AutoLoginMembers, Server);
+		ScopedTypeMember(AutoLoginMembers, Character);
+		ScopedTypeMember(AutoLoginMembers, Profile);
+		ScopedTypeMember(AutoLoginMembers, Account);
+	}
+
+	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
+	{
+		MQTypeMember* pMember = MQ2AutoLoginType::FindMember(Member);
+		if (!pMember)
+			return false;
+
+		switch ((AutoLoginMembers)pMember->ID)
+		{
+		case AutoLoginMembers::HotKey:
+			strcpy_s(DataTypeTemp, std::string(Login::hotkey()).c_str());
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = mq::datatypes::pStringType;
+			return true;
+		case AutoLoginMembers::Server:
+			strcpy_s(DataTypeTemp, std::string(Login::server()).c_str());
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = mq::datatypes::pStringType;
+			return true;
+		case AutoLoginMembers::Character:
+			strcpy_s(DataTypeTemp, std::string(Login::character()).c_str());
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = mq::datatypes::pStringType;
+			return true;
+		case AutoLoginMembers::Profile:
+			strcpy_s(DataTypeTemp, std::string(Login::profile()).c_str());
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = mq::datatypes::pStringType;
+			return true;
+		case AutoLoginMembers::Account:
+			strcpy_s(DataTypeTemp, std::string(Login::account()).c_str());
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = mq::datatypes::pStringType;
+			return true;
+		}
+
+		return false;
+	}
+
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
+	{
+		strcpy_s(Destination, MAX_STRING, "TRUE");
+		return true;
+	}
+
+	static bool dataAutoLogin(const char* szName, MQTypeVar& Ret)
+	{
+		Ret.DWord = 1;
+		Ret.Type = pAutoLoginType;
+		return true;
+	}
+
+};
+
 void PerformSwitch(const std::string& ServerName, const std::string& CharacterName)
 {
 	pipeclient::NotifyCharacterUnload(
@@ -400,6 +476,9 @@ PLUGIN_API void InitializePlugin()
 {
 	DebugSpewAlways("MQ2AutoLogin: InitializePlugin()");
 
+	pAutoLoginType = new MQ2AutoLoginType;
+	AddMQ2Data("AutoLogin", MQ2AutoLoginType::dataAutoLogin);
+
 	Login::set_initial_state();
 	ReadINI();
 
@@ -452,6 +531,8 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveDetour(pfnWritePrivateProfileStringA);
 
 	LoginReset();
+	RemoveMQ2Data("AutoLogin");
+	delete pAutoLoginType;
 }
 
 void SendWndNotification(CXWnd* pWnd, CXWnd* sender, uint32_t msg, void* data)
@@ -722,6 +803,9 @@ static void ShowAutoLoginOverlay(bool* p_open)
 
 			if (Login::m_settings.LoginType == Login::Settings::Type::Profile)
 				ImGui::Text("Profile: %s", Login::profile().data());
+
+			if (strlen(Login::hotkey().data()))
+				ImGui::Text("HotKey: %s", Login::hotkey().data());
 
 			if (bAutoLoginEnabled)
 			{
