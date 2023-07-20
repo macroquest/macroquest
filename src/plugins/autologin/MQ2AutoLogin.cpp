@@ -45,12 +45,13 @@ uint64_t ReenableTime = 0;
 int Level = -1;
 int Class = -1;
 
+std::optional<ProfileRecord> m_record_tlo = std::nullopt;
+
 class MQ2AutoLoginType* pAutoLoginType = nullptr;
 
 class MQ2AutoLoginType : public MQ2Type
 {
 public:
-	std::optional<ProfileRecord> m_record;
 	enum class AutoLoginMembers
 	{
 		HotKey,
@@ -79,40 +80,43 @@ public:
 		if (!pMember)
 			return false;
 
+		if (!m_record_tlo)
+			return false;
+
 		switch ((AutoLoginMembers)pMember->ID)
 		{
 		case AutoLoginMembers::HotKey:
-			strcpy_s(DataTypeTemp, m_record->hotkey.data());
+			strcpy_s(DataTypeTemp, m_record_tlo->hotkey.data());
 			Dest.Ptr = &DataTypeTemp[0];
 			Dest.Type = mq::datatypes::pStringType;
 			return true;
 		case AutoLoginMembers::Server:
-			strcpy_s(DataTypeTemp, m_record->serverName.data());
+			strcpy_s(DataTypeTemp, m_record_tlo->serverName.data());
 			Dest.Ptr = &DataTypeTemp[0];
 			Dest.Type = mq::datatypes::pStringType;
 			return true;
 		case AutoLoginMembers::Character:
-			strcpy_s(DataTypeTemp, m_record->characterName.data());
+			strcpy_s(DataTypeTemp, m_record_tlo->characterName.data());
 			Dest.Ptr = &DataTypeTemp[0];
 			Dest.Type = mq::datatypes::pStringType;
 			return true;
 		case AutoLoginMembers::Profile:
-			strcpy_s(DataTypeTemp, m_record->profileName.data());
+			strcpy_s(DataTypeTemp, m_record_tlo->profileName.data());
 			Dest.Ptr = &DataTypeTemp[0];
 			Dest.Type = mq::datatypes::pStringType;
 			return true;
 		case AutoLoginMembers::Account:
-			strcpy_s(DataTypeTemp, m_record->accountName.data());
+			strcpy_s(DataTypeTemp, m_record_tlo->accountName.data());
 			Dest.Ptr = &DataTypeTemp[0];
 			Dest.Type = mq::datatypes::pStringType;
 			return true;
 		case AutoLoginMembers::Class:
-			strcpy_s(DataTypeTemp, m_record->characterClass.data());
+			strcpy_s(DataTypeTemp, m_record_tlo->characterClass.data());
 			Dest.Ptr = &DataTypeTemp[0];
 			Dest.Type = mq::datatypes::pStringType;
 			return true;
 		case AutoLoginMembers::Level:
-			Dest.Int = m_record->characterLevel;
+			Dest.Int = m_record_tlo->characterLevel;
 			Dest.Type = mq::datatypes::pIntType;
 			return true;
 		}
@@ -712,7 +716,6 @@ PLUGIN_API void OnPulse()
 			{ "news",                 "NEWS_OKButton"}
 		};
 
-		memcpy_s(&pAutoLoginType->m_record, sizeof(std::optional<ProfileRecord>), (const void *)Login::getrecord(), sizeof(std::optional<ProfileRecord>));
 		// Click through any dialogs, don't need a whole state for this
 		for (const auto& [windowName, buttonName] : PromptWindows)
 		{
@@ -743,7 +746,7 @@ PLUGIN_API void OnPulse()
 			else
 				Login::dispatch(LoginStateSensor(LoginState::ServerSelect, pServerWnd));
 		}
-
+		m_record_tlo = Login::getrecord();
 		ReenableTime = MQGetTickCount64() + STEP_DELAY;
 	}
 }
