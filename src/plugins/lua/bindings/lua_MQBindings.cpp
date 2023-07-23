@@ -588,6 +588,7 @@ void RegisterBindings_MQ(LuaThread* thread, sol::table& mq)
 	// Direct Data Bindings
 	mq.set_function("getAllSpawns", &lua_getAllSpawns);
 	mq.set_function("getFilteredSpawns", &lua_getFilteredSpawns);
+	mq.set_function("getAllGroundItems", &lua_getAllGroundItems);
 	mq.set_function("getFilteredGroundItems", &lua_getFilteredGroundItems);
 }
 
