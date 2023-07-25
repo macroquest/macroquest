@@ -3531,9 +3531,9 @@ public:
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
 
-					if (ImGui::TreeNodeEx(&line, rowFlags, "Row %d", rowNum - 1))
+					if (ImGui::TreeNodeEx(&line, rowFlags, "Row %d", rowNum))
 					{
-						int colNum = 0;
+						int colNum = 1;
 						for (const SListWndCell& cell : line.Cells)
 						{
 							// The children of the list are stored in wrapper windows. They show up
