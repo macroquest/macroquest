@@ -41,18 +41,10 @@ constexpr int STEP_DELAY = 1000;
 fs::path CustomIni;
 uint64_t ReenableTime = 0;
 
-// save off class and level so we know when to push updates
-int Level = -1;
-int Class = -1;
-
-std::optional<ProfileRecord> m_record_tlo = std::nullopt;
-
-class MQ2AutoLoginType* pAutoLoginType = nullptr;
-
-class MQ2AutoLoginType : public MQ2Type
+class LoginProfileType : public MQ2Type
 {
 public:
-	enum class AutoLoginMembers
+	enum class LoginProfileMembers
 	{
 		HotKey,
 		Server,
@@ -63,60 +55,70 @@ public:
 		Level
 	};
 
-	MQ2AutoLoginType() : MQ2Type("AutoLogin")
+	LoginProfileType() : MQ2Type("LoginProfile")
 	{
-		ScopedTypeMember(AutoLoginMembers, HotKey);
-		ScopedTypeMember(AutoLoginMembers, Server);
-		ScopedTypeMember(AutoLoginMembers, Character);
-		ScopedTypeMember(AutoLoginMembers, Profile);
-		ScopedTypeMember(AutoLoginMembers, Account);
-		ScopedTypeMember(AutoLoginMembers, Class);
-		ScopedTypeMember(AutoLoginMembers, Level);
+		ScopedTypeMember(LoginProfileMembers, HotKey);
+		ScopedTypeMember(LoginProfileMembers, Server);
+		ScopedTypeMember(LoginProfileMembers, Character);
+		ScopedTypeMember(LoginProfileMembers, Profile);
+		ScopedTypeMember(LoginProfileMembers, Account);
+		ScopedTypeMember(LoginProfileMembers, Class);
+		ScopedTypeMember(LoginProfileMembers, Level);
 	}
 
 	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
 	{
-		MQTypeMember* pMember = MQ2AutoLoginType::FindMember(Member);
+		MQTypeMember* pMember = FindMember(Member);
 		if (!pMember)
 			return false;
 
-		if (!m_record_tlo)
+		std::shared_ptr<ProfileRecord> record = Login::get_last_record();
+		if (!record)
 			return false;
 
-		switch ((AutoLoginMembers)pMember->ID)
+		switch (static_cast<LoginProfileMembers>(pMember->ID))
 		{
-		case AutoLoginMembers::HotKey:
-			strcpy_s(DataTypeTemp, m_record_tlo->hotkey.data());
+		case LoginProfileMembers::HotKey:
+			strcpy_s(DataTypeTemp, record->hotkey.c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			Dest.Type = mq::datatypes::pStringType;
 			return true;
-		case AutoLoginMembers::Server:
-			strcpy_s(DataTypeTemp, m_record_tlo->serverName.data());
+		case LoginProfileMembers::Server:
+			strcpy_s(DataTypeTemp, record->serverName.c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			Dest.Type = mq::datatypes::pStringType;
 			return true;
-		case AutoLoginMembers::Character:
-			strcpy_s(DataTypeTemp, m_record_tlo->characterName.data());
+		case LoginProfileMembers::Character:
+			strcpy_s(DataTypeTemp, record->characterName.c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			Dest.Type = mq::datatypes::pStringType;
 			return true;
-		case AutoLoginMembers::Profile:
-			strcpy_s(DataTypeTemp, m_record_tlo->profileName.data());
+		case LoginProfileMembers::Profile:
+			strcpy_s(DataTypeTemp, record->profileName.c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			Dest.Type = mq::datatypes::pStringType;
 			return true;
-		case AutoLoginMembers::Account:
-			strcpy_s(DataTypeTemp, m_record_tlo->accountName.data());
+		case LoginProfileMembers::Account:
+			strcpy_s(DataTypeTemp, record->accountName.c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			Dest.Type = mq::datatypes::pStringType;
 			return true;
-		case AutoLoginMembers::Class:
-			strcpy_s(DataTypeTemp, m_record_tlo->characterClass.data());
-			Dest.Ptr = &DataTypeTemp[0];
-			Dest.Type = mq::datatypes::pStringType;
+		case LoginProfileMembers::Class: {
+			// Probably better off storing this as enum type...
+			int classIndex = 0;
+			for (int i = 0; i < TotalPlayerClasses; ++i)
+			{
+				if (ci_equals(ClassInfo[i].UCShortName, record->characterClass))
+				{
+					classIndex = i;
+				}
+			}
+			Dest.DWord = classIndex;
+			Dest.Type = mq::datatypes::pClassType;
 			return true;
-		case AutoLoginMembers::Level:
-			Dest.Int = m_record_tlo->characterLevel;
+		}
+		case LoginProfileMembers::Level:
+			Dest.Int = record->characterLevel;
 			Dest.Type = mq::datatypes::pIntType;
 			return true;
 		}
@@ -126,27 +128,77 @@ public:
 
 	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
-		strcpy_s(Destination, MAX_STRING, "TRUE");
+		std::shared_ptr<ProfileRecord> record = Login::get_last_record();
+		if (!record)
+			return false;
+
+		record->FormatTo(Destination, MAX_STRING);
 		return true;
 	}
-
-	static bool dataAutoLogin(const char* szName, MQTypeVar& Ret)
-	{
-		Ret.DWord = 1;
-		Ret.Type = pAutoLoginType;
-		return true;
-	}
-
 };
+
+LoginProfileType* pLoginProfileType = nullptr;
+
+class MQ2AutoLoginType : public MQ2Type
+{
+public:
+	enum class AutoLoginMembers
+	{
+		Profile,
+		Active,
+	};
+
+	MQ2AutoLoginType() : MQ2Type("AutoLogin")
+	{
+		ScopedTypeMember(AutoLoginMembers, Profile);
+		ScopedTypeMember(AutoLoginMembers, Active);
+	}
+
+	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
+	{
+		MQTypeMember* pMember = FindMember(Member);
+		if (!pMember)
+			return false;
+
+		switch (static_cast<AutoLoginMembers>(pMember->ID))
+		{
+		case AutoLoginMembers::Profile:
+			Dest.Type = pLoginProfileType;
+			return true;
+
+		case AutoLoginMembers::Active:
+			Dest.Type = mq::datatypes::pBoolType;
+			Dest.Set(Login::has_entry());
+			return true;
+
+		default:
+			break;
+		}
+
+		return false;
+	}
+
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
+	{
+		strcpy_s(Destination, MAX_STRING, "AutoLogin");
+		return true;
+	}
+
+	static bool dataAutoLogin(const char* szName, MQTypeVar& Ret);
+};
+
+MQ2AutoLoginType* pAutoLoginType = nullptr;
+
+bool MQ2AutoLoginType::dataAutoLogin(const char* szName, MQTypeVar& Ret)
+{
+	Ret.DWord = 1;
+	Ret.Type = pAutoLoginType;
+	return true;
+}
 
 void PerformSwitch(const std::string& ServerName, const std::string& CharacterName)
 {
-	pipeclient::NotifyCharacterUnload(
-		std::string(Login::profile()).c_str(),
-		std::string(Login::account()).c_str(),
-		std::string(Login::server()).c_str(),
-		std::string(Login::character()).c_str()
-	);
+	pipeclient::NotifyCharacterUnload(Login::profile(), Login::account(), Login::server(), Login::character());
 
 	if (GetGameState() == GAMESTATE_INGAME)
 	{
@@ -161,12 +213,7 @@ void PerformSwitch(const std::string& ServerName, const std::string& CharacterNa
 
 	Login::dispatch(SetLoginInformation(ServerName, CharacterName));
 
-	pipeclient::NotifyCharacterLoad(
-		std::string(Login::profile()).c_str(),
-		std::string(Login::account()).c_str(),
-		std::string(Login::server()).c_str(),
-		std::string(Login::character()).c_str()
-	);
+	pipeclient::NotifyCharacterLoad(Login::profile(), Login::account(), Login::server(), Login::character());
 }
 
 void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
@@ -457,7 +504,6 @@ void ReadINI()
 	}
 
 	AUTOLOGIN_DBG = GetPrivateProfileBool("Settings", "Debug", AUTOLOGIN_DBG, INIFileName);
-	AutoLoginDebug("MQ2AutoLogin: InitializePlugin()");
 
 	Login::m_settings.NotifyOnServerUp = static_cast<Login::Settings::ServerUpNotification>(GetPrivateProfileInt("Settings", "NotifyOnServerUp", 0, INIFileName));
 	Login::m_settings.KickActiveCharacter = GetPrivateProfileBool("Settings", "KickActiveCharacter", true, INIFileName);
@@ -492,9 +538,8 @@ void LoginReset()
 
 PLUGIN_API void InitializePlugin()
 {
-	DebugSpewAlways("MQ2AutoLogin: InitializePlugin()");
-
 	pAutoLoginType = new MQ2AutoLoginType;
+	pLoginProfileType = new LoginProfileType;
 	AddMQ2Data("AutoLogin", MQ2AutoLoginType::dataAutoLogin);
 
 	Login::set_initial_state();
@@ -527,12 +572,7 @@ PLUGIN_API void InitializePlugin()
 
 PLUGIN_API void ShutdownPlugin()
 {
-	pipeclient::NotifyCharacterUnload(
-		std::string(Login::profile()).c_str(),
-		std::string(Login::account()).c_str(),
-		std::string(Login::server()).c_str(),
-		std::string(Login::character()).c_str()
-	);
+	pipeclient::NotifyCharacterUnload(Login::profile(), Login::account(), Login::server(), Login::character());
 
 	RemoveCommand("/switchserver");
 	RemoveCommand("/switchcharacter");
@@ -551,6 +591,7 @@ PLUGIN_API void ShutdownPlugin()
 	LoginReset();
 	RemoveMQ2Data("AutoLogin");
 	delete pAutoLoginType;
+	delete pLoginProfileType;
 }
 
 void SendWndNotification(CXWnd* pWnd, CXWnd* sender, uint32_t msg, void* data)
@@ -667,14 +708,17 @@ int GetListCurSel(CListWnd* pWnd)
 	return pWnd->GetCurSel();
 }
 
+// save off class and level so we know when to push updates
+int s_lastCharacterLevel = -1;
+int s_lastCharacterClass = -1;
 
 PLUGIN_API void OnPulse()
 {
-	if (pLocalPlayer && (pLocalPlayer->GetClass() != Class || pLocalPlayer->Level != Level))
+	if (pLocalPlayer && (pLocalPlayer->GetClass() != s_lastCharacterClass || pLocalPlayer->Level != s_lastCharacterLevel))
 	{
-		Class = pLocalPlayer->GetClass();
-		Level = pLocalPlayer->Level;
-		pipeclient::NotifyCharacterUpdate(std::to_string(Class).c_str(), std::to_string(Level).c_str());
+		s_lastCharacterClass = pLocalPlayer->GetClass();
+		s_lastCharacterLevel = pLocalPlayer->Level;
+		pipeclient::NotifyCharacterUpdate(s_lastCharacterClass, s_lastCharacterLevel);
 	}
 
 	if (gbInForeground && GetAsyncKeyState(VK_HOME) & 1)
@@ -746,7 +790,7 @@ PLUGIN_API void OnPulse()
 			else
 				Login::dispatch(LoginStateSensor(LoginState::ServerSelect, pServerWnd));
 		}
-		m_record_tlo = Login::getrecord();
+
 		ReenableTime = MQGetTickCount64() + STEP_DELAY;
 	}
 }
@@ -816,14 +860,14 @@ static void ShowAutoLoginOverlay(bool* p_open)
 			else
 				ImGui::TextColored(ImColor(255, 255, 0), "paused");
 
-			ImGui::Text("Server: %s", Login::server().data());
-			ImGui::Text("Character: %s", Login::character().data());
+			ImGui::Text("Server: %s", Login::server());
+			ImGui::Text("Character: %s", Login::character());
 
 			if (Login::m_settings.LoginType == Login::Settings::Type::Profile)
-				ImGui::Text("Profile: %s", Login::profile().data());
+				ImGui::Text("Profile: %s", Login::profile());
 
-			if (!Login::hotkey().empty())
-				ImGui::Text("HotKey: %s", Login::hotkey().data());
+			if (strlen(Login::hotkey()) > 0)
+				ImGui::Text("HotKey: %s", Login::hotkey());
 
 			if (bAutoLoginEnabled)
 			{
@@ -881,11 +925,7 @@ static void ShowAutoLoginOverlay(bool* p_open)
 							for (const ProfileRecord& record : pg.records)
 							{
 								char buffer[256] = { 0 };
-								if (!record.characterClass.empty())
-									fmt::format_to(buffer, "[{}] {}->{} [{:d} {}]", record.accountName, record.serverName,
-										record.characterName, record.characterLevel, record.characterClass);
-								else
-									fmt::format_to(buffer, "[{}] {}->{}", record.accountName, record.serverName, record.characterName);
+								record.FormatTo(buffer, 256);
 
 								if (ImGui::MenuItem(buffer))
 								{
