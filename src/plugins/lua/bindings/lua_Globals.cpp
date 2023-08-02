@@ -58,8 +58,13 @@ void RegisterBindings_Globals(LuaThread* thread, sol::state_view state)
 	{
 		ScopedYieldDisabler disabler(s, YieldDisabledReason::Require);
 
-		sol::unsafe_function require = sol::state_view(s)["_old_require"];
-		return require(args);
+		sol::safe_function require = sol::state_view(s)["_old_require"];
+		sol::safe_function_result result = require(args);
+		if (!result.valid())
+		{
+			LuaError("%s", sol::stack::get<std::string>(result.lua_state(), result.stack_index()).c_str());
+		}
+		return result;
 	};
 }
 
