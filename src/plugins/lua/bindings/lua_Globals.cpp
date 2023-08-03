@@ -56,10 +56,14 @@ void RegisterBindings_Globals(LuaThread* thread, sol::state_view state)
 	state["_old_require"] = state["require"];
 	state["require"] = [](sol::variadic_args args, sol::this_state s)
 	{
-		ScopedYieldDisabler disabler(s, YieldDisabledReason::Require);
+		sol::safe_function_result result;
 
-		sol::safe_function require = sol::state_view(s)["_old_require"];
-		sol::safe_function_result result = require(args);
+		{
+			ScopedYieldDisabler disabler(s, YieldDisabledReason::Require);
+
+			sol::safe_function require = sol::state_view(s)["_old_require"];
+			result = require(args);
+		}
 
 		if (!result.valid())
 		{
