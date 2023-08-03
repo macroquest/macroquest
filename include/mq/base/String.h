@@ -107,14 +107,14 @@ inline std::string trim_copy(std::string s)
 [[nodiscard]]
 inline std::string_view ltrim(std::string_view s)
 {
-	s.remove_prefix(std::min(s.find_first_not_of(" \t\n"), s.size()));
+	s.remove_prefix(std::min(s.find_first_not_of(" \t\r\n"), s.size()));
 	return s;
 }
 
 [[nodiscard]]
 inline std::string_view rtrim(std::string_view s)
 {
-	s.remove_suffix(std::min(s.size() - s.find_last_not_of(" \t\n") - 1, s.size()));
+	s.remove_suffix(std::min(s.size() - s.find_last_not_of(" \t\r\n") - 1, s.size()));
 	return s;
 }
 

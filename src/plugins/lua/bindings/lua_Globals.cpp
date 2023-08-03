@@ -60,9 +60,23 @@ void RegisterBindings_Globals(LuaThread* thread, sol::state_view state)
 
 		sol::safe_function require = sol::state_view(s)["_old_require"];
 		sol::safe_function_result result = require(args);
+
 		if (!result.valid())
 		{
-			LuaError("%s", sol::stack::get<std::string>(result.lua_state(), result.stack_index()).c_str());
+			// If we failed here, we already got an error message, but we need to re-raise. Not sure
+			// how to do that without reproducing the stack trace, so just grab the message and trim the
+			// stack part off and re-raise it
+
+			std::string message = sol::stack::pop<std::string>(result.lua_state());
+			std::string_view svMessage = message;
+			auto pos = svMessage.find("stack traceback:");
+			if (pos != std::string_view::npos)
+			{
+				svMessage = svMessage.substr(0, pos);
+				svMessage = rtrim(svMessage);
+			}
+
+			luaL_error(s, "%s", std::string(svMessage).c_str());
 		}
 		return result;
 	};
