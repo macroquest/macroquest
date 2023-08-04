@@ -618,7 +618,6 @@ public:
 		if (m_typeName.empty())
 		{
 			luaL_error(s, "DataType must have a name.");
-			return;
 		}
 
 		// Initialize members
@@ -646,10 +645,22 @@ public:
 		m_proxyType->RegisterMembers();
 	}
 
+	~LuaAbstractDataType()
+	{
+	}
+
+	static std::shared_ptr<LuaAbstractDataType> MakeLuaAbstractDataType(
+		const std::string& typeName,
+		sol::table parameters,
+		sol::this_state s)
+	{
+		return std::make_shared<LuaAbstractDataType>(typeName, parameters, s);
+	}
+
 	static void RegisterType(sol::table& mq)
 	{
 		mq.new_usertype<LuaAbstractDataType>("DataType",
-			sol::constructors<LuaAbstractDataType(const std::string& typeName, sol::table, sol::this_state)>(),
+			sol::factories(MakeLuaAbstractDataType),
 			"TypeName", sol::readonly(&LuaAbstractDataType::m_typeName),
 			"ToString", &LuaAbstractDataType::m_toString,
 			"FromData", &LuaAbstractDataType::m_fromData,
@@ -960,7 +971,7 @@ bool LuaTableType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	switch (static_cast<TypeMembers>(pMember->ID))
 	{
 	case TypeMembers::Length:
-		Dest.Int = (int)table.size();
+		Dest.Int = static_cast<int>(table.size());
 		Dest.Type = datatypes::pIntType;
 		return true;
 
