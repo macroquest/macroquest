@@ -19,7 +19,8 @@
 
 namespace mq {
 	struct MQTypeVar;
-	struct MQDataItem;
+	struct MQTopLevelObject;
+	using MQDataItem = MQTopLevelObject;
 }
 
 namespace mq::datatypes {

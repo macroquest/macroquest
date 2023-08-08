@@ -420,6 +420,8 @@ int LoadMQ2Plugin(const char* pszFilename, bool)
 	strcpy_s(pPlugin->szFilename, pluginPath.c_str());
 	pPlugin->name              = std::string{ GetCanonicalPluginName(pluginName) };
 	pPlugin->hModule           = hModule.release();
+
+	pPlugin->Self              = (MQPlugin**)GetProcAddress(pPlugin->hModule, "ThisPlugin");
 	pPlugin->Initialize        = (fMQInitializePlugin)GetProcAddress(pPlugin->hModule, "InitializePlugin");
 	pPlugin->Shutdown          = (fMQShutdownPlugin)GetProcAddress(pPlugin->hModule, "ShutdownPlugin");
 	pPlugin->IncomingChat      = (fMQIncomingChat)GetProcAddress(pPlugin->hModule, "OnIncomingChat");
@@ -448,6 +450,9 @@ int LoadMQ2Plugin(const char* pszFilename, bool)
 		pPlugin->fpVersion = *ftmp;
 	else
 		pPlugin->fpVersion = 1.0;
+
+	if (pPlugin->Self)
+		*pPlugin->Self = pPlugin;
 
 	// initialize plugin
 	if (pPlugin->Initialize)

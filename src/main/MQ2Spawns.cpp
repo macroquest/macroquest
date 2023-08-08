@@ -912,7 +912,7 @@ static void Spawns_Initialize()
 		}
 	}
 
-	AddMQ2Data("NamingSpawn", dataNamingSpawn);
+	pDataAPI->AddTopLevelObject("NamingSpawn", dataNamingSpawn);
 
 	AddCommand("/caption", CaptionCmd, false, false);
 	AddCommand("/captioncolor", CaptionColorCmd, false, false);
@@ -922,7 +922,7 @@ static void Spawns_Shutdown()
 {
 	DebugSpew("Shutting Down Spawn-related Hooks");
 
-	RemoveMQ2Data("NamingSpawn");
+	pDataAPI->RemoveTopLevelObject("NamingSpawn");
 
 	RemoveCommand("/caption");
 	RemoveCommand("/captioncolor");

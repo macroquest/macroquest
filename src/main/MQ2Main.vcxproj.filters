@@ -92,7 +92,7 @@
     <ClCompile Include="MQ2Data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2DataAPI.cpp">
+    <ClCompile Include="MQDataAPI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2DataVars.cpp">
@@ -114,9 +114,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2Mouse.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MQ2ParseAPI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2PluginHandler.cpp">
@@ -583,14 +580,26 @@
     <ClInclude Include="..\..\include\mq\api\Spells.h">
       <Filter>Header Files\mq\api</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\mq\imgui\ConsoleWidget.h">
+      <Filter>Header Files\mq\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\Main.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\MacroDataTypes.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="MQDataAPI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\Plugin.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
     <ClInclude Include="GraphicsEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MQ2PostOffice.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\mq\imgui\ConsoleWidget.h">
-      <Filter>Header Files\mq\imgui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
