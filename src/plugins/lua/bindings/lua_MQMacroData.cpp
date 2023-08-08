@@ -1087,7 +1087,7 @@ void RegisterBindings_MQMacroData(sol::table& mq)
 	LuaAbstractDataType::RegisterType(mq);
 
 	mq.set_function("AddTopLevelObject", &lua_AddTopLevelObject);
-	mq.set_function("RemoveTopLevelObjecT", &lua_RemoveTopLevelObject);
+	mq.set_function("RemoveTopLevelObject", &lua_RemoveTopLevelObject);
 }
 
 void InitializeBindings_MQMacroData()
