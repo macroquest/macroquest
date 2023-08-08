@@ -408,17 +408,17 @@ sol::object lua_MQTypeVar::Get(sol::stack_object key, sol::this_state L) const
 
 //----------------------------------------------------------------------------
 
-lua_MQDataItem::lua_MQDataItem(const std::string& str)
-	: self(FindMQ2Data(str.c_str()))
+lua_MQTopLevelObject::lua_MQTopLevelObject(const std::string& str)
+	: self(FindTopLevelObject(str.c_str()))
 {
 }
 
-lua_MQDataItem::lua_MQDataItem(const MQDataItem* const self)
+lua_MQTopLevelObject::lua_MQTopLevelObject(const MQTopLevelObject* const self)
 	: self(self)
 {
 }
 
-lua_MQTypeVar lua_MQDataItem::EvaluateSelf() const
+lua_MQTypeVar lua_MQTopLevelObject::EvaluateSelf() const
 {
 	MQTypeVar result;
 	if (self != nullptr)
@@ -427,32 +427,32 @@ lua_MQTypeVar lua_MQDataItem::EvaluateSelf() const
 	return lua_MQTypeVar(result);
 }
 
-bool lua_MQDataItem::operator==(const lua_MQDataItem& right) const
+bool lua_MQTopLevelObject::operator==(const lua_MQTopLevelObject& right) const
 {
 	return EvaluateSelf() == right.EvaluateSelf();
 }
 
-bool lua_MQDataItem::EqualVar(const lua_MQTypeVar& right) const
+bool lua_MQTopLevelObject::EqualVar(const lua_MQTypeVar& right) const
 {
 	return EvaluateSelf() == right;
 }
 
-bool lua_MQDataItem::EqualNil(const sol::lua_nil_t&) const
+bool lua_MQTopLevelObject::EqualNil(const sol::lua_nil_t&) const
 {
 	return EvaluateSelf().m_self->Type == nullptr;
 }
 
-std::string lua_MQDataItem::ToString(const lua_MQDataItem& data)
+std::string lua_MQTopLevelObject::ToString(const lua_MQTopLevelObject& data)
 {
 	return lua_MQTypeVar::ToString(data.EvaluateSelf());
 }
 
-MQ2Type* lua_MQDataItem::GetType() const
+MQ2Type* lua_MQTopLevelObject::GetType() const
 {
 	return EvaluateSelf().m_self->Type;
 }
 
-sol::object lua_MQDataItem::Call(const std::string& index, sol::this_state L) const
+sol::object lua_MQTopLevelObject::Call(const std::string& index, sol::this_state L) const
 {
 	MQTypeVar result;
 	if (self != nullptr && self->Function(index.c_str(), result))
@@ -461,17 +461,17 @@ sol::object lua_MQDataItem::Call(const std::string& index, sol::this_state L) co
 	return sol::object(L, sol::in_place, lua_MQTypeVar(MQTypeVar()));
 }
 
-sol::object lua_MQDataItem::CallInt(int index, sol::this_state L) const
+sol::object lua_MQTopLevelObject::CallInt(int index, sol::this_state L) const
 {
 	return Call(std::to_string(index), L);
 }
 
-sol::object lua_MQDataItem::CallVA(sol::this_state L, sol::variadic_args args) const
+sol::object lua_MQTopLevelObject::CallVA(sol::this_state L, sol::variadic_args args) const
 {
 	return Call(lua_join(L, ",", args), L);
 }
 
-sol::object lua_MQDataItem::CallEmpty(sol::this_state L) const
+sol::object lua_MQTopLevelObject::CallEmpty(sol::this_state L) const
 {
 	MQTypeVar result;
 	if (self != nullptr && self->Function("", result))
@@ -480,7 +480,7 @@ sol::object lua_MQDataItem::CallEmpty(sol::this_state L) const
 	return sol::object(L, sol::in_place, sol::lua_nil);
 }
 
-sol::object lua_MQDataItem::Get(sol::stack_object key, sol::this_state L) const
+sol::object lua_MQTopLevelObject::Get(sol::stack_object key, sol::this_state L) const
 {
 	MQTypeVar result;
 	if (self != nullptr && self->Function("", result))
@@ -490,9 +490,9 @@ sol::object lua_MQDataItem::Get(sol::stack_object key, sol::this_state L) const
 }
 
 template <typename Handler>
-bool sol_lua_check(sol::types<lua_MQDataItem>, lua_State* L, int index, Handler&& handler, sol::stack::record& tracking)
+bool sol_lua_check(sol::types<lua_MQTopLevelObject>, lua_State* L, int index, Handler&& handler, sol::stack::record& tracking)
 {
-	if (!sol::stack::check_usertype<lua_MQDataItem>(L, index) &&
+	if (!sol::stack::check_usertype<lua_MQTopLevelObject>(L, index) &&
 		!sol::stack::check<sol::lua_nil_t>(L, index))
 	{
 		handler(L, index, sol::type_of(L, index), sol::type::userdata, "Expected an MQ type");
@@ -502,18 +502,18 @@ bool sol_lua_check(sol::types<lua_MQDataItem>, lua_State* L, int index, Handler&
 	return true;
 }
 
-lua_MQDataItem sol_lua_get(sol::types<lua_MQDataItem>, lua_State* L, int index, sol::stack::record& tracking)
+lua_MQTopLevelObject sol_lua_get(sol::types<lua_MQTopLevelObject>, lua_State* L, int index, sol::stack::record& tracking)
 {
-	if (sol::stack::check_usertype<lua_MQDataItem>(L, index))
+	if (sol::stack::check_usertype<lua_MQTopLevelObject>(L, index))
 	{
-		lua_MQDataItem& data = sol::stack::get_usertype<lua_MQDataItem>(L, index, tracking);
+		lua_MQTopLevelObject& data = sol::stack::get_usertype<lua_MQTopLevelObject>(L, index, tracking);
 		return data;
 	}
 
-	return lua_MQDataItem();
+	return lua_MQTopLevelObject();
 }
 
-bool lua_MQTypeVar::EqualData(const lua_MQDataItem& right) const
+bool lua_MQTypeVar::EqualData(const lua_MQTopLevelObject& right) const
 {
 	return *this == right.EvaluateSelf();
 }
@@ -524,7 +524,7 @@ template <typename Handler>
 bool sol_lua_check(sol::types<lua_MQTypeVar>, lua_State* L, int index, Handler&& handler, sol::stack::record& tracking)
 {
 	if (!sol::stack::check_usertype<lua_MQTypeVar>(L, index) &&
-		!sol::stack::check_usertype<lua_MQDataItem>(L, index) &&
+		!sol::stack::check_usertype<lua_MQTopLevelObject>(L, index) &&
 		!sol::stack::check<sol::lua_nil_t>(L, index))
 	{
 		handler(L, index, sol::type_of(L, index), sol::type::userdata, "Expected an MQ type");
@@ -542,9 +542,9 @@ lua_MQTypeVar sol_lua_get(sol::types<lua_MQTypeVar>, lua_State* L, int index, so
 		return lua_MQTypeVar(var.EvaluateMember());
 	}
 
-	if (sol::stack::check_usertype<lua_MQDataItem>(L, index))
+	if (sol::stack::check_usertype<lua_MQTopLevelObject>(L, index))
 	{
-		lua_MQDataItem& data = sol::stack::get_usertype<lua_MQDataItem>(L, index, tracking);
+		lua_MQTopLevelObject& data = sol::stack::get_usertype<lua_MQTopLevelObject>(L, index, tracking);
 		return data.EvaluateSelf();
 	}
 
@@ -558,18 +558,18 @@ struct lua_MQTLO
 		auto maybe_key = key.as<std::optional<std::string>>();
 		if (maybe_key)
 		{
-			MQDataItem* result = FindMQ2Data(maybe_key->c_str());
+			MQTopLevelObject* result = FindMQ2Data(maybe_key->c_str());
 			if (result != nullptr)
-				return sol::object(L, sol::in_place, lua_MQDataItem(result));
+				return sol::object(L, sol::in_place, lua_MQTopLevelObject(result));
 		}
 
 		return sol::object(L, sol::in_place, sol::lua_nil);
 	}
 };
 
-std::string to_string(const lua_MQDataItem& item)
+std::string to_string(const lua_MQTopLevelObject& item)
 {
-	return lua_MQDataItem::ToString(item);
+	return lua_MQTopLevelObject::ToString(item);
 }
 
 std::string to_string(const lua_MQTypeVar& item)
@@ -582,7 +582,7 @@ std::string to_string(const lua_MQTLO& item)
 	return "TLO";
 }
 
-std::optional<std::string> mq_gettype_MQDataItem(const lua_MQDataItem& item)
+std::optional<std::string> mq_gettype_MQTopLevelObject(const lua_MQTopLevelObject& item)
 {
 	MQ2Type* type = item.GetType();
 	if (!type)
@@ -1058,19 +1058,19 @@ void RegisterBindings_MQMacroData(sol::table& mq)
 			                                         &lua_MQTypeVar::EqualData,
 			                                         &lua_MQTypeVar::EqualNil));
 
-	mq.new_usertype<lua_MQDataItem>(
+	mq.new_usertype<lua_MQTopLevelObject>(
 		"data",                                  sol::constructors<
-		                                             lua_MQDataItem(const std::string&)>(),
+		                                             lua_MQTopLevelObject(const std::string&)>(),
 		sol::meta_function::call,                sol::overload(
-			                                         &lua_MQDataItem::Call,
-			                                         &lua_MQDataItem::CallInt,
-			                                         &lua_MQDataItem::CallEmpty,
-			                                         &lua_MQDataItem::CallVA),
-		sol::meta_function::index,               &lua_MQDataItem::Get,
+			                                         &lua_MQTopLevelObject::Call,
+			                                         &lua_MQTopLevelObject::CallInt,
+			                                         &lua_MQTopLevelObject::CallEmpty,
+			                                         &lua_MQTopLevelObject::CallVA),
+		sol::meta_function::index,               &lua_MQTopLevelObject::Get,
 		sol::meta_function::equal_to,            sol::overload(
-			                                         &lua_MQDataItem::operator==,
-			                                         &lua_MQDataItem::EqualVar,
-			                                         &lua_MQDataItem::EqualNil));
+			                                         &lua_MQTopLevelObject::operator==,
+			                                         &lua_MQTopLevelObject::EqualVar,
+			                                         &lua_MQTopLevelObject::EqualNil));
 
 	mq.new_usertype<lua_MQTLO>(
 		"tlo",                                   sol::no_constructor,
@@ -1078,7 +1078,7 @@ void RegisterBindings_MQMacroData(sol::table& mq)
 	mq.set("TLO",                                lua_MQTLO());
 	mq.set("null",                               lua_MQTypeVar(MQTypeVar()));
 	mq.set("gettype",                            sol::overload(
-		                                             mq_gettype_MQDataItem,
+		                                             mq_gettype_MQTopLevelObject,
 		                                             mq_gettype_MQTypeVar));
 
 	//----------------------------------------------------------------------------

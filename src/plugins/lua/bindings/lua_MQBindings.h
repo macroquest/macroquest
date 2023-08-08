@@ -20,7 +20,6 @@
 namespace mq {
 	struct MQTypeVar;
 	struct MQTopLevelObject;
-	using MQDataItem = MQTopLevelObject;
 }
 
 namespace mq::datatypes {
@@ -47,11 +46,11 @@ public:
 
 //----------------------------------------------------------------------------
 
-class lua_MQDataItem;
+class lua_MQTopLevelObject;
 
 class lua_MQTypeVar
 {
-	friend class lua_MQDataItem;
+	friend class lua_MQTopLevelObject;
 
 public:
 	lua_MQTypeVar(const std::string& str);
@@ -63,7 +62,7 @@ public:
 	lua_MQTypeVar(const MQTypeVar& self);
 
 	bool operator==(const lua_MQTypeVar& right) const;
-	bool EqualData(const lua_MQDataItem& right) const;
+	bool EqualData(const lua_MQTopLevelObject& right) const;
 	bool EqualNil(const sol::lua_nil_t&) const;
 	MQTypeVar EvaluateMember(const char* index = nullptr) const;
 	static std::string ToString(const lua_MQTypeVar& obj);
@@ -81,21 +80,21 @@ private:
 
 //----------------------------------------------------------------------------
 
-class lua_MQDataItem
+class lua_MQTopLevelObject
 {
 public:
-	lua_MQDataItem() = default;
+	lua_MQTopLevelObject() = default;
 
 	// this will allow users an alternate way to Get data items
-	lua_MQDataItem(const std::string& str);
-	lua_MQDataItem(const MQDataItem* const self);
+	lua_MQTopLevelObject(const std::string& str);
+	lua_MQTopLevelObject(const MQTopLevelObject* const self);
 
 	lua_MQTypeVar EvaluateSelf() const;
-	bool operator==(const lua_MQDataItem& right) const;
+	bool operator==(const lua_MQTopLevelObject& right) const;
 	bool EqualVar(const lua_MQTypeVar& right) const;
 	bool EqualNil(const sol::lua_nil_t&) const;
 
-	static std::string ToString(const lua_MQDataItem& data);
+	static std::string ToString(const lua_MQTopLevelObject& data);
 
 	sol::object Call(const std::string& index, sol::this_state L) const;
 	sol::object CallInt(int index, sol::this_state L) const;
@@ -106,7 +105,7 @@ public:
 	datatypes::MQ2Type* GetType() const;
 
 private:
-	const MQDataItem* const self = nullptr;
+	const MQTopLevelObject* const self = nullptr;
 };
 
 //----------------------------------------------------------------------------
