@@ -466,11 +466,11 @@ void InitializeCrashHandler()
 
 	// Set some annotations.
 
-#pragma warning(suppress: 4996)
-	buildTypeAnnotation.Set(GetBuildTargetName(static_cast<BuildTarget>(gBuild)));
-#pragma warning(suppress: 4996)
-	buildVersionAnnotation.Set(MQMAIN_VERSION);
-	buildTimestampAnnotation.Set(__ExpectedVersionDate " " __ExpectedVersionTime);
+	// Using base::StringPiece here to select an implementation that doesn't trigger usage of strncpy,
+	// leading to deprecation warnings from crashpad.
+	buildTypeAnnotation.Set(base::StringPiece(GetBuildTargetName(static_cast<BuildTarget>(gBuild))));
+	buildVersionAnnotation.Set(base::StringPiece(MQMAIN_VERSION));
+	buildTimestampAnnotation.Set(base::StringPiece(__ExpectedVersionDate " " __ExpectedVersionTime));
 	SetCrashId();
 }
 
@@ -483,7 +483,7 @@ void DoCrash(SPAWNINFO* pChar, char* szLine)
 
 	// Indicate to crash reporting that this is a synthetic crash
 	auto pAnno = new crashpad::StringAnnotation<32>("synthesized");
-	pAnno->Set("true");
+	pAnno->Set(base::StringPiece("true"));
 
 	if (ci_equals(szArg1, "force"))
 	{
