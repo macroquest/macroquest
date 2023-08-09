@@ -1134,6 +1134,7 @@ void InjectDisable()
 MainImpl::MainImpl()
 {
 	pDataAPI = new MQDataAPI();
+	pDataAPI->Initialize();
 }
 
 MainImpl::~MainImpl()
