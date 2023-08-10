@@ -22,6 +22,7 @@
 #include <mq/Plugin.h>
 #include <luajit.h>
 #include <chrono>
+#include <fmt/format.h>
 
 #if LUAJIT_VERSION_NUM == 20005
 bool lua_isyieldable(lua_State* L)
@@ -51,6 +52,14 @@ static uint32_t NextID()
 	static uint32_t current = 0;
 	return ++current;
 }
+
+std::shared_ptr<mq::lua::LuaThread> GetLuaThreadByPID(int pid);
+void OnLuaThreadDestroyed(LuaThread* thread);
+void OnLuaTLORemoved(MQTopLevelObject* tlo, int pidOwner);
+
+
+// Mapping of TLOs to the pid of the script that created it
+std::unordered_map<const MQTopLevelObject*, int> s_allRegisteredTLOs;
 
 //============================================================================
 
@@ -160,6 +169,8 @@ void LuaThread::Exit(LuaThreadExitReason reason)
 {
 	m_exitReason = reason;
 	YieldAt(0);
+
+	OnLuaThreadDestroyed(this);
 	m_coroutine->thread.abandon();
 }
 
@@ -381,6 +392,14 @@ LuaThread::RunResult LuaThread::Run()
 	return { static_cast<sol::thread_status>(m_coroutine->coroutine.status()), std::nullopt };
 }
 
+sol::thread_status LuaThread::GetThreadStatus() const
+{
+	if (!m_coroutine->thread.valid())
+		return sol::thread_status::dead;
+
+	return m_coroutine->thread.status();
+}
+
 std::string LuaThread::GetScriptPath(std::string_view script, const std::filesystem::path& luaDir)
 {
 	namespace fs = std::filesystem;
@@ -537,9 +556,12 @@ void LuaThread::YieldAt(int count) const
 
 bool LuaThread::AddTopLevelObject(const char* name, MQTopLevelObjectFunction func)
 {
-	if (AddMQ2Data(name, std::move(func)))
+	if (mq::AddTopLevelObject(name, std::move(func)))
 	{
 		m_registeredTLOs.emplace(name);
+
+		MQTopLevelObject* tlo = FindTopLevelObject(name);
+		s_allRegisteredTLOs.emplace(tlo, m_pid);
 		return true;
 	}
 
@@ -548,18 +570,77 @@ bool LuaThread::AddTopLevelObject(const char* name, MQTopLevelObjectFunction fun
 
 bool LuaThread::RemoveTopLevelObject(const char* name)
 {
-	m_registeredTLOs.erase(name);
-	return RemoveMQ2Data(name);
+	if (m_registeredTLOs.erase(name) == 0)
+		return false;
+
+	MQTopLevelObject* tlo = FindTopLevelObject(name);
+
+	auto iter = s_allRegisteredTLOs.find(tlo);
+	if (iter != end(s_allRegisteredTLOs))
+	{
+		int pid = iter->second;
+		s_allRegisteredTLOs.erase(iter);
+
+		OnLuaTLORemoved(tlo, pid);
+	}
+
+	return mq::RemoveTopLevelObject(name);
 }
 
 void LuaThread::RemoveAllDataObjects()
 {
 	for (const std::string& name : m_registeredTLOs)
 	{
-		RemoveMQ2Data(name.c_str());
+		MQTopLevelObject* tlo = FindTopLevelObject(name.c_str());
+
+		auto iter = s_allRegisteredTLOs.find(tlo);
+		if (iter != end(s_allRegisteredTLOs))
+		{
+			int pid = iter->second;
+			s_allRegisteredTLOs.erase(iter);
+
+			OnLuaTLORemoved(tlo, pid);
+		}
+
+		mq::RemoveTopLevelObject(name.c_str());
 	}
 
 	m_registeredTLOs.clear();
+}
+
+//----------------------------------------------------------------------------
+
+void LuaThread::AssociateTopLevelObject(const MQTopLevelObject* tlo)
+{
+	if (tlo->Owner != nullptr)
+	{
+		if (tlo->Owner == mqplugin::ThisPlugin)
+		{
+			if (AddDependency(tlo))
+			{
+				AddNamedDependency(fmt::format("tlo:{}", tlo->Name.c_str()));
+			}
+
+			// TLO is owned by lua. Probably a lua script.
+			auto it = s_allRegisteredTLOs.find(tlo);
+			if (it != end(s_allRegisteredTLOs))
+			{
+				int pid = it->second;
+				if (const auto& luaThread = GetLuaThreadByPID(pid))
+				{
+					if (AddDependency(luaThread.get()))
+					{
+						AddNamedDependency(fmt::format("lua:{}", luaThread->GetName()));
+					}
+				}
+			}
+		}
+		else
+		{
+			if (AddDependency(tlo->Owner))
+				AddNamedDependency(fmt::format("plugin:{}", tlo->Owner->name));
+		}
+	}
 }
 
 //============================================================================

@@ -159,6 +159,96 @@ bool DoStatus()
 	return !s_squelchStatus;
 }
 
+void EndScript(const std::shared_ptr<LuaThread>& thread, const LuaThread::RunResult& result,
+	bool announce)
+{
+	if (!thread->IsString() && announce)
+	{
+		WriteChatStatus("Ending lua script '%s' with PID %d and status %d",
+			thread->GetName().c_str(), thread->GetPID(), static_cast<int>(result.first));
+	}
+
+	auto fin_it = s_infoMap.find(thread->GetPID());
+	if (fin_it != s_infoMap.end())
+	{
+		if (result.second)
+			fin_it->second.SetResult(*result.second, thread->GetEvaluateResult());
+		else
+			fin_it->second.EndRun();
+	}
+}
+
+std::shared_ptr<LuaThread> GetLuaThreadByPID(int pid)
+{
+	for (const auto& thread : s_running)
+	{
+		if (thread && thread->GetPID() == pid)
+			return thread;
+	}
+
+	for (const auto& thread : s_pending)
+	{
+		if (thread && thread->GetPID() == pid)
+			return thread;
+	}
+
+	return nullptr;
+}
+
+void OnLuaThreadDestroyed(LuaThread* destroyedThread)
+{
+	s_running.erase(std::remove_if(s_running.begin(), s_running.end(),
+		[&](const std::shared_ptr<LuaThread>& thread) -> bool
+		{
+			if (thread && thread.get() != destroyedThread
+				&& thread->IsDependency(destroyedThread))
+			{
+				// Exit the thread immediately
+				thread->Exit(lua::LuaThreadExitReason::DependencyRemoved);
+
+				EndScript(thread, { sol::thread_status::dead, std::nullopt }, false);
+
+				WriteChatStatus("Running lua script '%s' with PID %d terminated due to stopping of '%s'",
+					thread->GetName().c_str(), thread->GetPID(), destroyedThread->GetName().c_str());
+
+				return true;
+			}
+			return false;
+		}), end(s_running));
+}
+
+void OnLuaTLORemoved(MQTopLevelObject* tlo, int pidOwner)
+{
+	auto iter = std::find_if(begin(mq::lua::s_running), end(mq::lua::s_running),
+		[pidOwner](const auto& thread) { return thread && thread->GetPID() == pidOwner; });
+
+	s_running.erase(std::remove_if(s_running.begin(), s_running.end(),
+		[&](const std::shared_ptr<LuaThread>& thread) -> bool
+		{
+			if (thread && thread->GetPID() != pidOwner
+				&& thread->IsDependency(tlo))
+			{
+				// Exit the thread immediately
+				thread->Exit(lua::LuaThreadExitReason::DependencyRemoved);
+
+				EndScript(thread, { sol::thread_status::dead, std::nullopt }, false);
+
+				if (iter != end(mq::lua::s_running))
+				{
+					WriteChatStatus("Running lua script '%s' with PID %d terminated due to removal of '%s' from '%s'",
+						thread->GetName().c_str(), thread->GetPID(), tlo->Name.c_str(), (*iter)->GetName().c_str());
+				}
+				else
+				{
+					WriteChatStatus("Running lua script '%s' with PID %d terminated due to removal of '%s'",
+						thread->GetName().c_str(), thread->GetPID(), tlo->Name.c_str());
+				}
+				return true;
+			}
+			return false;
+		}), end(s_running));
+}
+
 #pragma endregion
 
 #pragma region TLO
@@ -1602,31 +1692,17 @@ PLUGIN_API void OnPulse()
 
 	s_running.erase(std::remove_if(s_running.begin(), s_running.end(),
 		[](const std::shared_ptr<LuaThread>& thread) -> bool
-	{
-		LuaThread::RunResult result = thread->Run();
-
-		if (result.first != sol::thread_status::yielded)
 		{
-			if (!thread->IsString())
+			LuaThread::RunResult result = thread->Run();
+
+			if (result.first != sol::thread_status::yielded)
 			{
-				WriteChatStatus("Ending lua script '%s' with PID %d and status %d",
-					thread->GetName().c_str(), thread->GetPID(), static_cast<int>(result.first));
+				EndScript(thread, result, true);
+				return true;
 			}
 
-			auto fin_it = s_infoMap.find(thread->GetPID());
-			if (fin_it != s_infoMap.end())
-			{
-				if (result.second)
-					fin_it->second.SetResult(*result.second, thread->GetEvaluateResult());
-				else
-					fin_it->second.EndRun();
-			}
-
-			return true;
-		}
-
-		return false;
-	}), s_running.end());
+			return false;
+		}), s_running.end());
 
 	if (s_infoGC.count() > 0)
 	{
@@ -1953,4 +2029,30 @@ PLUGIN_API bool OnIncomingChat(const char* Line, DWORD Color)
 PLUGIN_API PluginInterface* GetPluginInterface()
 {
 	return mq::lua::s_pluginInterface;
+}
+
+PLUGIN_API void OnUnloadPlugin(const char* pluginName)
+{
+	using namespace mq::lua;
+
+	// Visit all of our currently running scripts and terminate any that might be utilizing this plugin as a dependency.
+	MQPlugin* plugin = GetPlugin(pluginName);
+
+	s_running.erase(std::remove_if(s_running.begin(), s_running.end(),
+		[&](const std::shared_ptr<LuaThread>& thread) -> bool
+		{
+			if (thread && thread->IsDependency(plugin))
+			{
+				// Exit the thread immediately
+				thread->Exit(lua::LuaThreadExitReason::DependencyRemoved);
+
+				EndScript(thread, { sol::thread_status::dead, std::nullopt }, false);
+
+				WriteChatStatus("Running lua script '%s' with PID %d terminated due to unloading of %s",
+					thread->GetName().c_str(), thread->GetPID(), pluginName);
+				return true;
+			}
+
+			return false;
+		}), end(s_running));
 }

@@ -40,7 +40,7 @@ class LuaTableType;
 static LuaTableType* s_luaTableType = nullptr;
 
 class LuaProxyType;
-std::unordered_set<MQ2Type*> s_proxyTypes;
+std::vector<LuaProxyType*> s_proxyTypes;
 
 static sol::object CloneObject(sol::object object, lua_State* state)
 {
@@ -197,7 +197,7 @@ static bool ConvertLuaToMacroType(sol::object object, MQTypeVar& Dest)
 
 	// we want to specifically specialize the lua generic type because we need to copy from
 	// another lua state in general.
-	if (s_proxyTypes.count(Dest.Type))
+	if (sorted_contains(s_proxyTypes, Dest.Type))
 	{
 		Dest.Set(object);
 		return true;
@@ -286,12 +286,12 @@ lua_MQTypeVar::lua_MQTypeVar(const std::string& str)
 	auto* const type = FindMQ2DataType(str.c_str());
 	if (type != nullptr)
 	{
-		m_self->Type = type;
+		m_self.Type = type;
 	}
 }
 
 lua_MQTypeVar::lua_MQTypeVar(const MQTypeVar& self)
-	: m_self(std::make_unique<MQTypeVar>(self))
+	: m_self(self)
 {
 }
 
@@ -302,7 +302,7 @@ bool lua_MQTypeVar::operator==(const lua_MQTypeVar& right) const
 
 bool lua_MQTypeVar::EqualNil(const sol::lua_nil_t&) const
 {
-	if (!m_self || m_self->Type == nullptr)
+	if (m_self.Type == nullptr)
 		return true;
 
 	return EvaluateMember().Type == nullptr;
@@ -310,13 +310,13 @@ bool lua_MQTypeVar::EqualNil(const sol::lua_nil_t&) const
 
 MQTypeVar lua_MQTypeVar::EvaluateMember(const char* index) const
 {
-	if (m_self->Type == nullptr || m_member.empty())
-		return *m_self;
+	if (m_self.Type == nullptr || m_member.empty())
+		return m_self;
 
 	// the ternary in index is because datatypes are all over the place on whether or not they can
 	// accept null pointers. They all seem to agree that an empty string is the same thing, though.
 	MQTypeVar var;
-	if (EvaluateMacroDataMember(m_self->Type, m_self->GetVarPtr(), var, m_member.c_str(), index ? index : "") == 1)
+	if (EvaluateMacroDataMember(m_self.Type, m_self.GetVarPtr(), var, m_member.c_str(), index ? index : "") == 1)
 		return std::move(var);
 
 	// can't guarantee result didn't Get modified, but we want to return nil if GetMember was false
@@ -368,22 +368,22 @@ sol::object lua_MQTypeVar::Get(sol::stack_object key, sol::this_state L) const
 {
 	lua_MQTypeVar var = EvaluateMember();
 
-	if (var.m_self->Type && var.m_self->Type == datatypes::pArrayType)
+	if (var.m_self.Type && var.m_self.Type == datatypes::pArrayType)
 	{
-		auto arr = var.m_self->Get<datatypes::CDataArray>();
+		auto arr = var.m_self.Get<datatypes::CDataArray>();
 		if (auto maybe_index = key.as<std::optional<int>>())
 		{
 			// we have an integer -- let's just assume single extent for now
 			// TODO: will need to keep track of extents to allow for access like this: arr[2][1]
 			// would rather return an array with a subset, but that would require slicing and copying the underlying array data
 			var.m_member = "";
-			var.m_self->Type = arr->GetType();
-			var.m_self->SetVarPtr(arr->GetData(*maybe_index));
+			var.m_self.Type = arr->GetType();
+			var.m_self.SetVarPtr(arr->GetData(*maybe_index));
 		}
 		else if (auto maybe_index = key.as<std::optional<std::string_view>>())
 		{
 			// we have a string, so we can use the array's internal string index parsing here
-			if (!arr->GetElement(*maybe_index, *var.m_self))
+			if (!arr->GetElement(*maybe_index, var.m_self))
 			{
 				return sol::object(L, sol::in_place, sol::lua_nil);
 			}
@@ -397,7 +397,7 @@ sol::object lua_MQTypeVar::Get(sol::stack_object key, sol::this_state L) const
 		var.m_member = *maybe_key;
 
 		// make sure that the macro data member even exists if we have the type info
-		if (var.m_self->Type && !FindMacroDataMember(var.m_self->Type, var.m_member))
+		if (var.m_self.Type && !FindMacroDataMember(var.m_self.Type, var.m_member))
 		{
 			return sol::object(L, sol::in_place, sol::lua_nil);
 		}
@@ -408,14 +408,28 @@ sol::object lua_MQTypeVar::Get(sol::stack_object key, sol::this_state L) const
 
 //----------------------------------------------------------------------------
 
-lua_MQTopLevelObject::lua_MQTopLevelObject(const std::string& str)
+lua_MQTopLevelObject::lua_MQTopLevelObject(sol::this_state L, const std::string& str)
 	: self(FindTopLevelObject(str.c_str()))
 {
+	if (self)
+	{
+		if (auto thread_ptr = LuaThread::get_from(L))
+		{
+			thread_ptr->AssociateTopLevelObject(self);
+		}
+	}
 }
 
-lua_MQTopLevelObject::lua_MQTopLevelObject(const MQTopLevelObject* const self)
+lua_MQTopLevelObject::lua_MQTopLevelObject(sol::this_state L, const MQTopLevelObject* const self)
 	: self(self)
 {
+	if (self && self->Owner != nullptr)
+	{
+		if (auto thread_ptr = LuaThread::get_from(L))
+		{
+			thread_ptr->AssociateTopLevelObject(self);
+		}
+	}
 }
 
 lua_MQTypeVar lua_MQTopLevelObject::EvaluateSelf() const
@@ -439,7 +453,7 @@ bool lua_MQTopLevelObject::EqualVar(const lua_MQTypeVar& right) const
 
 bool lua_MQTopLevelObject::EqualNil(const sol::lua_nil_t&) const
 {
-	return EvaluateSelf().m_self->Type == nullptr;
+	return EvaluateSelf().m_self.Type == nullptr;
 }
 
 std::string lua_MQTopLevelObject::ToString(const lua_MQTopLevelObject& data)
@@ -449,7 +463,7 @@ std::string lua_MQTopLevelObject::ToString(const lua_MQTopLevelObject& data)
 
 MQ2Type* lua_MQTopLevelObject::GetType() const
 {
-	return EvaluateSelf().m_self->Type;
+	return EvaluateSelf().m_self.Type;
 }
 
 sol::object lua_MQTopLevelObject::Call(const std::string& index, sol::this_state L) const
@@ -560,7 +574,7 @@ struct lua_MQTLO
 		{
 			MQTopLevelObject* result = FindMQ2Data(maybe_key->c_str());
 			if (result != nullptr)
-				return sol::object(L, sol::in_place, lua_MQTopLevelObject(result));
+				return sol::object(L, sol::in_place, lua_MQTopLevelObject(L, result));
 		}
 
 		return sol::object(L, sol::in_place, sol::lua_nil);
@@ -713,12 +727,12 @@ LuaProxyType::LuaProxyType(const std::string& typeName, LuaAbstractDataType* lua
 	: MQ2Type(typeName)
 	, m_luaType(luaType)
 {
-	s_proxyTypes.insert(this);
+	insert_unique_sorted(s_proxyTypes, this);
 }
 
 LuaProxyType::~LuaProxyType()
 {
-	s_proxyTypes.erase(this);
+	remove_sorted(s_proxyTypes, this);
 }
 
 bool LuaProxyType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
@@ -1060,7 +1074,7 @@ void RegisterBindings_MQMacroData(sol::table& mq)
 
 	mq.new_usertype<lua_MQTopLevelObject>(
 		"data",                                  sol::constructors<
-		                                             lua_MQTopLevelObject(const std::string&)>(),
+		                                             lua_MQTopLevelObject(sol::this_state, const std::string&)>(),
 		sol::meta_function::call,                sol::overload(
 			                                         &lua_MQTopLevelObject::Call,
 			                                         &lua_MQTopLevelObject::CallInt,

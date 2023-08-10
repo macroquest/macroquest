@@ -74,7 +74,7 @@ public:
 	datatypes::MQ2Type* GetType() const;
 
 private:
-	std::unique_ptr<MQTypeVar> m_self;
+	MQTypeVar m_self;
 	std::string m_member;
 };
 
@@ -86,8 +86,8 @@ public:
 	lua_MQTopLevelObject() = default;
 
 	// this will allow users an alternate way to Get data items
-	lua_MQTopLevelObject(const std::string& str);
-	lua_MQTopLevelObject(const MQTopLevelObject* const self);
+	lua_MQTopLevelObject(sol::this_state L, const std::string& str);
+	lua_MQTopLevelObject(sol::this_state L, const MQTopLevelObject* const self);
 
 	lua_MQTypeVar EvaluateSelf() const;
 	bool operator==(const lua_MQTopLevelObject& right) const;

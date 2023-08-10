@@ -41,7 +41,7 @@ bool sorted_contains(const std::vector<T>& vec, const U& v)
 		end(vec),
 		v,
 		[](const T& l, const U& r) { return l < r; });
-	return it != begin(vec) && *it == v;
+	return it != end(vec) && *it == v;
 }
 
 template <typename T, typename U>
@@ -61,7 +61,7 @@ bool remove_sorted(std::vector<T>& vec, const U& item)
 {
 	auto it = std::lower_bound(begin(vec), end(vec), item);
 
-	if (it != vec.end() && *it == item) {
+	if (it != end(vec) && *it == item) {
 		vec.erase(it);
 		return true;
 	}
