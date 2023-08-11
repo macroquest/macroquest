@@ -1,3 +1,10 @@
+Aug 10, 2023:
+- autologin: Add AutoLogin TLO to provide access to profile data (#737)
+- lua: add mq.getAllGroundItems (#740)
+- lua: Fix some issues caused by errors while requiring a file
+- window datatype: Add Window.SetText, which can be used to change the
+  contents of edit controls
+
 Jul 19, 2023:
 - live: Updated for patch
 - Add FreeGrab to AdvLootType (#733)
