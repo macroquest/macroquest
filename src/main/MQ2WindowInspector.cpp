@@ -3296,6 +3296,7 @@ public:
 	}
 
 	std::vector<std::pair<std::string_view, CXWnd*>> m_windows;
+	std::unordered_set<CXWnd*> m_traversedWindows;
 
 	void DisplayWindowTree()
 	{
@@ -3304,6 +3305,8 @@ public:
 			| ImGuiTableFlags_BordersOuterH
 			| ImGuiTableFlags_Resizable
 			| ImGuiTableFlags_RowBg;
+
+		m_traversedWindows.clear();
 
 		if (ImGui::BeginTable("##WindowTable", 2, tableFlags))
 		{
@@ -3336,7 +3339,7 @@ public:
 
 				for (const auto& [_, pWnd] : m_windows)
 				{
-					DisplayWindowTreeNode(pWnd);
+					DisplayWindowTreeNode(pWnd, true);
 				}
 
 				m_lastWindowCount = static_cast<int>(m_windows.size());
@@ -3346,15 +3349,26 @@ public:
 		}
 	}
 
-	void DisplayWindowTreeNode(CXWnd* pWnd)
+	void DisplayWindowTreeNode(CXWnd* pWnd, bool isRoot = false, const char* nameOverride = nullptr)
 	{
+		if (!isRoot)
+		{
+			if (m_traversedWindows.count(pWnd) != 0)
+				return;
+			m_traversedWindows.insert(pWnd);
+		}
+
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
 
 		const bool hasChildren = pWnd->GetFirstChildWnd() != nullptr;
 
-		CXStr name = pWnd->GetXMLName();
-		CXStr typeName = pWnd->GetTypeName();
+		std::string_view name;
+		if (nameOverride != nullptr)
+			name = nameOverride;
+		else
+			name = pWnd->GetXMLNameSv();
+		std::string_view typeName = pWnd->GetTypeNameSv();
 
 		if (name.empty())
 		{
@@ -3422,11 +3436,11 @@ public:
 				}
 			}
 
-			open = ImGui::TreeNodeEx(pWnd, flags, "%s", name.c_str());
+			open = ImGui::TreeNodeEx(pWnd, flags, "%.*s", name.length(), name.data());
 		}
 		else
 		{
-			ImGui::TreeNodeEx(pWnd, flags, "%s", name.c_str());
+			ImGui::TreeNodeEx(pWnd, flags, "%.*s", name.length(), name.data());
 		}
 
 		bool openNew = false;
@@ -3471,38 +3485,89 @@ public:
 		}
 
 		ImGui::TableNextColumn();
-		ImGui::Text("%s", typeName.c_str());
+		ImGui::TextUnformatted(typeName.data(), typeName.data() + typeName.length());
 
 		if (open)
 		{
+			// If this is a list box, then also traverse its child list windows.
+			if (pWnd->GetType() == UI_Listbox || pWnd->GetType() == UI_TreeView)
+			{
+				CListWnd* listWnd = static_cast<CListWnd*>(pWnd);
+				int rowNum = 0;
+
+				for (const SListWndLine& line : listWnd->ItemsArray)
+				{
+					bool hasWndCell = false;
+					int rowFlags = 0;
+					++rowNum;
+
+					for (const SListWndCell& cell : line.Cells)
+					{
+						if (cell.pWnd)
+						{
+							CXWnd* pListChildWnd = cell.pWnd;
+
+							if (m_pPickingWnd)
+							{
+								if (m_pPickingWnd->IsDescendantOf(pListChildWnd))
+									rowFlags |= ImGuiTreeNodeFlags_DefaultOpen;
+							}
+							else if (m_pSelectedWnd && m_selectionChanged)
+							{
+								if (m_pSelectedWnd == pListChildWnd
+									|| m_pSelectedWnd->IsDescendantOf(pListChildWnd))
+								{
+									ImGui::SetNextItemOpen(true);
+								}
+							}
+
+							hasWndCell = true;
+						}
+					}
+
+					if (!hasWndCell)
+						continue;
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+
+					if (ImGui::TreeNodeEx(&line, rowFlags, "Row %d", rowNum))
+					{
+						int colNum = 1;
+						for (const SListWndCell& cell : line.Cells)
+						{
+							// The children of the list are stored in wrapper windows. They show up
+							// as Unknown types. We just skip past them.
+							if (cell.pWnd && cell.pWnd->GetFirstChildWnd())
+							{
+								CXWnd* pListChildWnd = cell.pWnd;
+
+								char columnName[64];
+								sprintf_s(columnName, "Col %d", colNum);
+
+								DisplayWindowTreeNode(pListChildWnd, false, columnName);
+							}
+							colNum++;
+						}
+						ImGui::TreePop();
+					}
+					else
+					{
+						for (const SListWndCell& cell : line.Cells)
+						{
+							if (cell.pWnd)
+								m_traversedWindows.insert(cell.pWnd);
+						}
+					}
+				}
+			}
+
 			CXWnd* pChild = pWnd->GetFirstChildWnd();
 			while (pChild)
 			{
 				DisplayWindowTreeNode(pChild);
 				pChild = pChild->GetNextSiblingWnd();
 			}
-
-#if 0
-			// If this is a list box, then also traverse its child list windows.
-			if (pWnd->GetType() == UI_Listbox || pWnd->GetType() == UI_TreeView)
-			{
-				CListWnd* listWnd = static_cast<CListWnd*>(pWnd);
-
-				for (const SListWndLine& line : listWnd->ItemsArray)
-				{
-					// TODO: Expand into columns/rows but for now just list the children.
-					for (const SListWndCell& cell : line.Cells)
-					{
-						// The children of the list are stored in wrapper windows. They show up
-						// as Unknown types. We just skip past them.
-						if (cell.pWnd && cell.pWnd->GetFirstChildWnd())
-						{
-							DisplayWindowTreeNode(cell.pWnd->GetFirstChildWnd());
-						}
-					}
-				}
-			}
-#endif
 
 			ImGui::TreePop();
 		}

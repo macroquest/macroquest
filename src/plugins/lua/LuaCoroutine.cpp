@@ -29,7 +29,9 @@ CoroutineResult LuaCoroutine::RunCoroutine(const std::vector<std::string>& args)
 		if (result.valid())
 			return result;
 
-		DebugStackTrace(result.lua_state(), sol::stack::get<std::optional<std::string>>(result.lua_state(), result.stack_index()).value_or("nil").c_str());
+		std::string message = sol::stack::get<std::optional<std::string>>(result.lua_state(), result.stack_index()).value_or("nil");
+
+		DebugStackTrace(result.lua_state(), message.c_str());
 		result.abandon();
 	}
 	catch (const sol::error& ex)

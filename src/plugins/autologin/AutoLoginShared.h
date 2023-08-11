@@ -40,6 +40,8 @@ struct ProfileRecord
 	static ProfileRecord FromString(const std::string& input);
 	static ProfileRecord FromBlob(const std::string& blob);
 	static ProfileRecord FromINI(const std::string& profile, const std::string& blobKey, const std::string& iniFile);
+
+	void FormatTo(char* buffer, size_t length) const;
 };
 
 struct ProfileGroup

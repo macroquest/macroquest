@@ -79,6 +79,7 @@ enum class WindowMethods
 	SetAlpha,
 	SetFadeAlpha,
 	SetCurrentTab,
+	SetText,
 };
 
 MQ2WindowType::MQ2WindowType() : MQ2Type("window")
@@ -140,6 +141,7 @@ MQ2WindowType::MQ2WindowType() : MQ2Type("window")
 	ScopedTypeMethod(WindowMethods, SetAlpha);
 	ScopedTypeMethod(WindowMethods, SetFadeAlpha);
 	ScopedTypeMethod(WindowMethods, SetCurrentTab);
+	ScopedTypeMethod(WindowMethods, SetText);
 }
 
 bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -335,6 +337,15 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 						}
 					}
 				}
+			}
+			return true;
+
+		case WindowMethods::SetText:
+			if (pWnd->GetType() == UI_EditBox)
+			{
+				CEditWnd* pEditWnd = static_cast<CEditWnd*>(pWnd);
+
+				pEditWnd->SetWindowText(Index);
 			}
 			return true;
 
