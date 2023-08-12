@@ -756,14 +756,16 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 
-	case CharacterMembers::Origin:
-		if (pLocalPC->StartingCity > 0 && pLocalPC->StartingCity < MAX_ZONES)
+	case CharacterMembers::Origin: {
+		int startingCity = pLocalPC->GetStartingCity();
+		if (startingCity > 0 && startingCity < MAX_ZONES)
 		{
 			Dest.Type = pZoneType;
-			Dest.Ptr = pWorldData->ZoneArray[pLocalPC->StartingCity];
+			Dest.Ptr = pWorldData->ZoneArray[startingCity];
 			return true;
 		}
 		return false;
+	}
 
 	case CharacterMembers::SubscriptionDays:
 		Dest.Int = pLocalPC->SubscriptionDays;
