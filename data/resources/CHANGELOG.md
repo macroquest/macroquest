@@ -1,3 +1,6 @@
+Aug 12, 2023:
+- test: updated for latest patch
+
 Aug 10, 2023:
 - autologin: Add AutoLogin TLO to provide access to profile data (#737)
 - lua: add mq.getAllGroundItems (#740)
