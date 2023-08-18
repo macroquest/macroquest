@@ -1346,12 +1346,27 @@ void EndMacro(PSPAWNINFO pChar, char* szLine)
 	{
 		if (!_stricmp(":OnExit", i->second.Command.c_str()))
 		{
-			i++;
 			pBlock->CurrIndex = i->first;
 			// Force unpause to finish processing
 			pBlock->Paused = false;
 			if (gReturn)            // return to the macro the first time around
 			{
+				while (gMacroStack->pNext)  // while there are more things on the stack, 
+				{
+					pStack = gMacroStack->pNext;  // get plate 2 on the stack
+					if (pStack->LocalVariables)
+						ClearMQ2DataVariables(&pStack->LocalVariables);
+					if (pStack->Parameters)
+						ClearMQ2DataVariables(&pStack->Parameters);
+
+					// collapse down the stack.
+					gMacroStack->pNext = pStack->pNext;
+
+					// Delete Stack Item in the middle 
+					delete pStack;
+
+				}
+
 				gReturn = false;    // We don't want to return the 2nd time.
 				return;
 			}
