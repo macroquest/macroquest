@@ -1342,40 +1342,44 @@ void EndMacro(PSPAWNINFO pChar, char* szLine)
 	strcpy_s(MacroName, pBlock->Name.c_str());
 
 	// Code allowing for a routine for "OnExit"
-	for (auto i = pBlock->Line.begin(); i != pBlock->Line.end(); i++)
+	for (auto i = pBlock->Line.begin(); i != pBlock->Line.end(); ++i)
 	{
-		if (!_stricmp(":OnExit", i->second.Command.c_str()))
+		if (!_strnicmp(i->second.Command.c_str(), ":OnExit", 7))
 		{
 			pBlock->CurrIndex = i->first;
 			// Force unpause to finish processing
 			pBlock->Paused = false;
-			if (gReturn)            // return to the macro the first time around
+			// Return to the macro the first time around
+			if (gReturn)
 			{
-				while (gMacroStack->pNext)  // while there are more things on the stack, 
+				// While there are more items in the global macro stack
+				while (gMacroStack->pNext)
 				{
-					pStack = gMacroStack->pNext;  // get plate 2 on the stack
-					if (pStack->LocalVariables)
-						ClearMQ2DataVariables(&pStack->LocalVariables);
-					if (pStack->Parameters)
-						ClearMQ2DataVariables(&pStack->Parameters);
+					if (gMacroStack->LocalVariables)
+						ClearMQ2DataVariables(&gMacroStack->LocalVariables);
+					if (gMacroStack->Parameters)
+						ClearMQ2DataVariables(&gMacroStack->Parameters);
 
-					// collapse down the stack.
-					gMacroStack->pNext = pStack->pNext;
+					// Save the next pointer before deleting the current stack item
+					MQMacroStack* pNext = gMacroStack->pNext;
 
-					// Delete Stack Item in the middle 
-					delete pStack;
+					// Delete the current stack item
+					delete gMacroStack;
 
+					// Move to the next item in the stack
+					gMacroStack = pNext;
 				}
 
-				gReturn = false;    // We don't want to return the 2nd time.
+				// We don't want to return the 2nd time
+				gReturn = false;
 				return;
 			}
-			else
-				break;
+
+			break;
 		}
 	}
 
-	// Set the parse back to whatever the default is
+	// Set the parser back to whatever the default is
 	const int iTemp = GetPrivateProfileInt("MacroQuest", "ParserEngine", 1, mq::internal_paths::MQini);
 	if (iTemp != gParserVersion)
 	{
