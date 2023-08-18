@@ -1,3 +1,46 @@
+Aug 16, 2023:
+- live: updated for latest patch
+
+Aug 12, 2023:
+- test: updated for latest patch
+
+Aug 10, 2023:
+- autologin: Add AutoLogin TLO to provide access to profile data (#737)
+- lua: add mq.getAllGroundItems (#740)
+- lua: Fix some issues caused by errors while requiring a file
+- window datatype: Add Window.SetText, which can be used to change the
+  contents of edit controls
+
+Jul 19, 2023:
+- live: Updated for patch
+- Add FreeGrab to AdvLootType (#733)
+- Hotkey will now restore minimized window (#735)
+
+Jul 10, 2023:
+- test: updated for test patch
+
+Jul 8, 2023:
+- Fix PackageMan issue with loading submodules in a single line
+
+Jul 6, 2023:
+- Fix scoping issues in PackageMan causing lua errors (#731)
+
+Jun 29, 2023:
+- test: updated for test patch
+
+Jun 26, 2023:
+- Fix CTextureAnimation (#729). This should fix ImGui drawing of game icons
+- Fix MQMouseInfo, should fix crashes with /mouseto (#698).
+- Fix overlay blocking input while it is hidden (#699).
+- lua: Disallow the use of mq.delay while a module is being imported (#730)
+- Add spell.MinCasterLevel to report the minimum class level of a spell (#722).
+
+June 21, 2023:
+- live: Updated for live patch
+
+June 19, 2023:
+- test: Updated for test patch
+
 May 24, 2023:
 - live: Updated for live patch
 

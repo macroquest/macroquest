@@ -756,6 +756,7 @@ public:
 	static bool dataGroundItem(const char* szIndex, MQTypeVar& Ret);
 	static bool dataGroundItemCount(const char* szIndex, MQTypeVar& Ret);
 	static bool dataItemTarget(const char* szIndex, MQTypeVar& Ret);
+	MQLIB_OBJECT static MQTypeVar MakeTypeVar(MQGroundSpawn groundSpawn);
 };
 
 //============================================================================

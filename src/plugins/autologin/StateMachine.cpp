@@ -159,7 +159,7 @@ protected:
 		if (m_paused)
 			return false; // do not continue if we're paused
 
-		return m_record.has_value() || e.State == LoginState::Connect;
+		return m_record != nullptr || e.State == LoginState::Connect;
 	}
 
 public:
@@ -264,7 +264,8 @@ public:
 		// enter the username into the field
 		if (auto pUsernameEditWnd = GetChildWindow<CEditWnd>(m_currentWindow, "LOGIN_UsernameEdit"))
 		{
-			std::optional<ProfileRecord> record = std::nullopt;
+			std::shared_ptr<ProfileRecord> record = nullptr;
+
 			if (m_record)
 			{
 				// this only matters during connect. Once we have connected, the client
@@ -274,19 +275,26 @@ public:
 			}
 			else
 			{
+				std::optional<ProfileRecord> tempProfile;
+
 				switch (m_settings.LoginType)
 				{
 				case Settings::Type::Profile:
-					record = UseMQ2Login(pUsernameEditWnd);
+					tempProfile = UseMQ2Login(pUsernameEditWnd);
 					break;
 				case Settings::Type::StationNames:
-					record = UseStationNames(pUsernameEditWnd);
+					tempProfile = UseStationNames(pUsernameEditWnd);
 					break;
 				case Settings::Type::Sessions:
-					record = UseSessions(pUsernameEditWnd);
+					tempProfile = UseSessions(pUsernameEditWnd);
 					break;
 				default:
 					break;
+				}
+
+				if (tempProfile.has_value())
+				{
+					record = std::make_unique<ProfileRecord>(std::move(*tempProfile));
 				}
 			}
 
@@ -294,7 +302,7 @@ public:
 				&& !record->accountName.empty()
 				&& !record->accountPassword.empty())
 			{
-				m_record = record;
+				SetProfileRecord(record);
 
 				pipeclient::NotifyCharacterLoad(
 					record->profileName.c_str(),
@@ -704,7 +712,8 @@ public:
 	}
 };
 
-std::optional<ProfileRecord> Login::m_record = std::nullopt;
+std::shared_ptr<ProfileRecord> Login::m_record;
+std::shared_ptr<ProfileRecord> Login::m_lastRecord;
 std::vector<ProfileGroup> Login::m_profiles;
 CXWnd* Login::m_currentWindow = nullptr;
 bool Login::m_paused = false;

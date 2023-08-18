@@ -354,7 +354,7 @@ void Click(SPAWNINFO* pChar, char* szLine)
 	// This check protects against many of the pointers in this function being uninitialized
 	if (GetGameState() != GAMESTATE_INGAME)
 	{
-		WriteChatf("Dont /click stuff(%s) when not in game... Gamestate is %d", szLine, GetGameState());
+		WriteChatf("/click cannot be used when not in game");
 		return;
 	}
 

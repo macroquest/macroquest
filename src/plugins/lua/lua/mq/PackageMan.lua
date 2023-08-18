@@ -1,4 +1,4 @@
-PackageMan = { _version = '1.0', author = 'Knightly' }
+local PackageMan = { _version = '1.0', author = 'Knightly' }
 -- This script uses ImguiHelper which currently relies on mq, so we can bring this in for ease of 
 -- other functions (like paths)
 local mq = require('mq')
@@ -7,17 +7,9 @@ local mq = require('mq')
 PackageMan.repoUrl = 'https://luarocks.macroquest.org/'
 PackageMan.repoName = 'MacroQuest'
 
--- Make includes relative to this directory (preferring those found here)
-local scriptPath = (debug.getinfo(1, "S").source:sub(2)):match("(.*[\\|/]).*$")
-local package_path_inc = scriptPath .. '?.lua'
-
-if not string.find(package.path, package_path_inc) then
-    package.path = package_path_inc .. ';' .. package.path
-end
-
 -- Requirements
-local ImguiHelper = require('ImguiHelper')
-local Utils = require('Utils')
+local ImguiHelper = require('mq/ImguiHelper')
+local Utils = require('mq/Utils')
 
 -- Internal settings
 local mqRepoUrl = 'https://luarocks.macroquest.org/'
@@ -97,6 +89,34 @@ PackageMan.InstallAndLoad = function(package_name, require_name)
     return nil
 end
 
+-- BEGIN WORKAROUND CODE ---
+local function search_paths(require_name, paths)
+    local file_name, _ = string.match(require_name, "([^%.]+)%.(.*)")
+    file_name = file_name or require_name
+    for path in string.gmatch(paths, "([^;]+)") do
+        local file = string.gsub(path, "?", file_name)
+        if Utils.File.Exists(file) then
+            return file
+        end
+    end
+    return nil
+end
+
+local function require_if_exists(require_name)
+    local file = search_paths(require_name, package.cpath)
+    if file then
+        return require(require_name)
+    end
+
+    file = search_paths(require_name, package.path)
+    if file ~= nil then
+        return require(require_name)
+    end
+
+    return nil
+end
+-- END WORKAROUND CODE ---
+
 ---@param package_name string The package name
 ---@param require_name? string The package internal export name
 ---@param fail_message? string Oevrride fail message if package fails to load
@@ -112,12 +132,14 @@ PackageMan.Require = function(package_name, require_name, fail_message)
     end
 
     if package_name then
-        local package = Utils.Library.Include(require_name)
-        if not package then
-            package = PackageMan.InstallAndLoad(package_name, require_name)
-        end
-        if package then
-            return package
+        -- This code is working around an issue using the pcall directly, see above workaround code
+        local my_package = require_if_exists(require_name)
+        if not my_package then
+            if PackageMan.Install(package_name) == 0 then
+                return Utils.Library.Include(require_name)
+            end
+        else
+            return my_package
         end
     end
 

@@ -14,34 +14,16 @@
 
 #pragma once
 
-#include "Telnet.h"
+#include "mq/base/Common.h"
 
-class CWinTelnet : public CTelnet
-{
-public:
-	CWinTelnet();
-	~CWinTelnet();
+namespace mq {
 
-	virtual bool Connect(char*, int) override;
-	virtual bool Disconnect() override;
+/**
+ * Returns the minimum class level of the specified spell.
+ *
+ * @param pSpell The spell
+ * @return The minimum class level of the spell.
+ */
+MQLIB_API int CalcMinSpellLevel(EQ_Spell* pSpell);
 
-	virtual bool Open(int) override;
-	virtual bool Close() override;
-
-	bool Write(char) override;
-
-	int Write(const void*, int) override;
-	int CWinTelnet::WriteStr(const char* csend);
-
-	bool Read(char*) override;
-	int Read(void*, int) override;
-
-	bool isOpen() override;
-	bool isConnected() override;
-	long isData() override;
-
-	SOCKET m_Socket;
-
-private:
-	bool m_valid;
-};
+} // namespace mq

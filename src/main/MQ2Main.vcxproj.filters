@@ -553,14 +553,17 @@
     <ClInclude Include="..\..\include\mq\base\GlobalBuffer.h">
       <Filter>Header Files\mq\base</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\Math.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\include\mq\api\Spawns.h">
       <Filter>Header Files\mq\api</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\api\MacroAPI.h">
       <Filter>Header Files\mq\api</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\mq\base\Math.h">
-      <Filter>Header Files\mq\base</Filter>
+    <ClInclude Include="..\..\include\mq\api\Spells.h">
+      <Filter>Header Files\mq\api</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\libutils\glmUtils.h">
       <Filter>Header Files\mq\libutils</Filter>

@@ -52,6 +52,38 @@ void RegisterBindings_Globals(LuaThread* thread, sol::state_view state)
 
 		WriteChatColorf("%s", USERCOLOR_CHAT_CHANNEL, message.c_str());
 	};
+
+	state["_old_require"] = state["require"];
+	state["require"] = [](sol::variadic_args args, sol::this_state s)
+	{
+		sol::safe_function_result result;
+
+		{
+			ScopedYieldDisabler disabler(s, YieldDisabledReason::Require);
+
+			sol::safe_function require = sol::state_view(s)["_old_require"];
+			result = require(args);
+		}
+
+		if (!result.valid())
+		{
+			// If we failed here, we already got an error message, but we need to re-raise. Not sure
+			// how to do that without reproducing the stack trace, so just grab the message and trim the
+			// stack part off and re-raise it
+
+			std::string message = sol::stack::pop<std::string>(result.lua_state());
+			std::string_view svMessage = message;
+			auto pos = svMessage.find("stack traceback:");
+			if (pos != std::string_view::npos)
+			{
+				svMessage = svMessage.substr(0, pos);
+				svMessage = rtrim(svMessage);
+			}
+
+			luaL_error(s, "%s", std::string(svMessage).c_str());
+		}
+		return result;
+	};
 }
 
 } // namespace mq::lua::bindings

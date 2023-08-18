@@ -252,3 +252,16 @@ std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& szIniFileName
 
 	return profiles;
 }
+
+void ProfileRecord::FormatTo(char* buffer, size_t length) const
+{
+	fmt::format_to_n_result<char*> result;
+
+	if (!characterClass.empty())
+		result = fmt::format_to_n(buffer, length - 1, "[{}] {}->{} [{:d} {}]", accountName, serverName,
+			characterName, characterLevel, characterClass);
+	else
+		result = fmt::format_to_n(buffer, length - 1, "[{}] {}->{}", accountName, serverName, characterName);
+
+	*result.out = 0;
+}

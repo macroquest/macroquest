@@ -832,6 +832,7 @@ MQLIB_API int GetSubscriptionLevel();
 
 #include "mq/api/Achievements.h"
 #include "mq/api/MacroAPI.h"
+#include "mq/api/Spells.h"
 #include "mq/base/Math.h"
 
 #if __has_include("../private/MQ2Main-private.h")

@@ -93,7 +93,8 @@ std::unordered_map<uint32_t, LuaThreadInfo> s_infoMap;
 
 void DebugStackTrace(lua_State* L, const char* message)
 {
-	LuaError("%s", message == nullptr ? "nil" : message);
+	std::string_view svMessage{ message ? message : "nil" };
+	LuaError("%.*s", svMessage.length(), svMessage.data());
 
 	if (s_verboseErrors)
 	{
@@ -145,12 +146,16 @@ void DebugStackTrace(lua_State* L, const char* message)
 				break;
 			}
 		}
-		LuaError("---- Begin Stack (size: %i) ----", lines.size());
-		for (const StackLine& line : lines)
+
+		if (lines.size() > 0)
 		{
-			LuaError("%i -- (%i) ---- %s", line.a, line.b, line.str.c_str());
+			LuaError("---- Begin Stack (size: %i) ----", lines.size());
+			for (const StackLine& line : lines)
+			{
+				LuaError("%i -- (%i) ---- %s", line.a, line.b, line.str.c_str());
+			}
+			LuaError("---- End Stack ----\n");
 		}
-		LuaError("---- End Stack ----\n");
 	}
 }
 
