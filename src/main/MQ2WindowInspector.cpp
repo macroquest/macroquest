@@ -2043,7 +2043,9 @@ public:
 		if (BeginColorSection("CXWnd Properties", open))
 		{
 #if HAS_GAMEFACE_UI
-			ColumnText("Type Name", "%s", pWnd->GetWndClassName());
+			// Don't render if we're still at login
+			if (g_pLoginClient == nullptr)
+				ColumnText("Type Name", "%s", pWnd->GetWndClassName());
 #endif
 			DisplayDrawTemplate("Template", pWnd->DrawTemplate);
 
