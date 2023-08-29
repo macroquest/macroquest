@@ -14,6 +14,8 @@
 
 #pragma once
 
+// Functions in this file should have no dependencies on third party libraries.
+
 #include <algorithm>
 #include <charconv>
 #include <string>
@@ -138,6 +140,27 @@ inline std::vector<std::string> split(const std::string& s, char delim)
 	return elems;
 }
 
+/**
+ * @fn split_view
+ *
+ * @brief Splits a string_view into a vector of substrings (views)
+ * using a specified delimiter
+ *
+ * This function separates the input string_view `s` based on the
+ * provided character delimiter `delim`. If `skipAdjacent` is set
+ * to true, it skips over adjacent delimiters.
+ *
+ * @warning The lifetime of the string_view and the resulting
+ * vector elements depends on the lifetime of the input string.
+ * Be sure to use the result of this function before `s` goes
+ * out of scope, or create a copy as necessary.
+ *
+ * @param s The string_view to be split
+ * @param delim The character delimiter used for splitting the string_view
+ * @param skipAdjacent If true adjacent delimiters are counted as one
+ *
+ * @return std::vector<std::string_view> A vector of substrings split on the delimiter
+ */
 inline std::vector<std::string_view> split_view(std::string_view s, char delim, bool skipAdjacent = false)
 {
 	std::vector<std::string_view> elems;

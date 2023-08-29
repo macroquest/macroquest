@@ -14,6 +14,7 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
+#include "mq/libutils/glmUtils.h"
 
 #include <date/date.h>
 
@@ -148,6 +149,7 @@ bool dataSubDefined(const char* szIndex, MQTypeVar& Ret)
 	return true;
 }
 
+// Arguments are passed in as Y, X, Z per documentation
 bool dataLineOfSight(const char* szIndex, MQTypeVar& Ret)
 {
 	if (!pControlledPlayer)
@@ -155,66 +157,13 @@ bool dataLineOfSight(const char* szIndex, MQTypeVar& Ret)
 
 	if (szIndex[0])
 	{
-		CVector3 SourcePos, DestPos;
-		SourcePos.X = DestPos.X = pControlledPlayer->Y;
-		SourcePos.Y = DestPos.Y = pControlledPlayer->X;
-		SourcePos.Z = DestPos.Z = pControlledPlayer->Z;
-
-		char szTemp[MAX_STRING];
-		strcpy_s(szTemp, szIndex);
-
-		// TODO:  This code appears in MQ2MathType Distance, possibly clean and combine
-		if (char* pColon = strchr(szTemp, ':'))
-		{
-			*pColon = 0;
-			if (char* pComma = strchr(&pColon[1], ','))
-			{
-				*pComma = 0;
-				DestPos.X = GetFloatFromString(&pColon[1], DestPos.X);
-				*pComma = ',';
-				if (char* pComma2 = strchr(&pComma[1], ','))
-				{
-					*pComma2 = 0;
-					DestPos.Y = GetFloatFromString(&pComma[1], DestPos.Y);
-					*pComma2 = ',';
-					DestPos.Z = GetFloatFromString(&pComma2[1], DestPos.Z);
-				}
-				else
-				{
-					DestPos.Y = GetFloatFromString(&pComma[1], DestPos.Y);
-				}
-			}
-			else
-			{
-				DestPos.X = GetFloatFromString(&pColon[1], DestPos.X);
-			}
-		}
-
-		if (char* pComma = strchr(szTemp, ','))
-		{
-			*pComma = 0;
-			SourcePos.X = GetFloatFromString(szTemp, SourcePos.X);
-			*pComma = ',';
-			if (char* pComma2 = strchr(&pComma[1], ','))
-			{
-				*pComma2 = 0;
-				SourcePos.Y = GetFloatFromString(&pComma[1], SourcePos.Y);
-				*pComma2 = ',';
-				SourcePos.Z = GetFloatFromString(&pComma2[1], SourcePos.Z);
-			}
-			else
-			{
-				SourcePos.Y = GetFloatFromString(&pComma[1], SourcePos.Y);
-			}
-		}
-		else
-		{
-			SourcePos.X = GetFloatFromString(szTemp, SourcePos.X);
-		}
+		const glm::vec3 player_loc = { pLocalPlayer->Y, pLocalPlayer->X, pLocalPlayer->Z };
+		const auto [coord1, coord2] = GetVec3SetFromString(szIndex, player_loc, player_loc);
 
 		// This is possibly inaccurate because it adjusts the ray for the player model,
-		// despite not necessarily using player model as the source location.
-		Ret.Set(CastRayLoc(SourcePos, pControlledPlayer->GetRace(), DestPos.X, DestPos.Y, DestPos.Z));
+		// despite not necessarily using player model as the source location. Need to
+		// evaluate CastRayLoc and see what it expects for that as well as x/y/z coordinates
+		Ret.Set(CastRayLoc({ coord1[0], coord1[1], coord1[2] }, pControlledPlayer->GetRace(), coord2[0], coord2[1], coord2[2]));
 		Ret.Type = pBoolType;
 		return true;
 	}

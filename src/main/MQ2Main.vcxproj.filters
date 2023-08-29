@@ -63,6 +63,9 @@
     <Filter Include="Source Files\api">
       <UniqueIdentifier>{eab18ae6-9d25-410f-a584-982be8ed8523}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\mq\libutils">
+      <UniqueIdentifier>{f64a4be1-5971-4052-96b4-0e4e33ebe83b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MQ2AutoInventory.cpp">
@@ -550,6 +553,9 @@
     <ClInclude Include="..\..\include\mq\base\GlobalBuffer.h">
       <Filter>Header Files\mq\base</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\Math.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\include\mq\api\Spawns.h">
       <Filter>Header Files\mq\api</Filter>
     </ClInclude>
@@ -558,6 +564,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\mq\api\Spells.h">
       <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\libutils\glmUtils.h">
+      <Filter>Header Files\mq\libutils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
