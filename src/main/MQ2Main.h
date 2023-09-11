@@ -826,7 +826,8 @@ enum class GetMoneyFromStringFormat {
 MQLIB_API uint64_t GetMoneyFromString(const char* string, GetMoneyFromStringFormat format = GetMoneyFromStringFormat::Long);
 MQLIB_API void FormatMoneyString(char* szBuffer, size_t bufferLength, uint64_t moneyAmount, GetMoneyFromStringFormat format = GetMoneyFromStringFormat::Long);
 
-MQLIB_API int GetSubscriptionLevel();
+MQLIB_API MembershipLevel GetMembershipLevel();
+inline DEPRECATE("Use GetMembershipLevel isntead of GetSubscriptionLevel") int GetSubscriptionLevel() { return (int)GetMembershipLevel(); }
 
 } // namespace mq
 

@@ -3417,26 +3417,24 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	case CharacterMembers::Subscription:
 		strcpy_s(DataTypeTemp, "UNKNOWN");
 
-		// TODO: Fix this. Its a struct not an int*
-		if (EQADDR_SUBSCRIPTIONTYPE && *EQADDR_SUBSCRIPTIONTYPE)
+		switch (GetMembershipLevel())
 		{
-			uintptr_t dwsubtype = *EQADDR_SUBSCRIPTIONTYPE;
-			if (dwsubtype)
-			{
-				uint8_t subtype = *(uint8_t*)dwsubtype;
-				switch (subtype)
-				{
-				case MembershipFreeToPlay:
-					strcpy_s(DataTypeTemp, "FREE");
-					break;
-				case MembershipSilver:
-					strcpy_s(DataTypeTemp, "SILVER");
-					break;
-				case MembershipGold:
-					strcpy_s(DataTypeTemp, "GOLD");
-					break;
-				}
-			}
+		case MembershipLevel::Free:
+			strcpy_s(DataTypeTemp, "FREE");
+			break;
+		case MembershipLevel::Silver:
+			strcpy_s(DataTypeTemp, "SILVER");
+			break;
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_ROF + 1)
+		case MembershipLevel::AllAccess:
+		case MembershipLevel::LifetimeAllAccess:
+#else
+		case MembershipLevel::Gold:
+#endif
+			strcpy_s(DataTypeTemp, "GOLD");
+			break;
+
+		default: break;
 		}
 
 		Dest.Ptr = &DataTypeTemp[0];
@@ -3967,7 +3965,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.Type = pIntType;
 		if (pLocalPC)
 		{
-			int value = pLocalPC->GetGameFeature(GameFeature_SpellRank);
+			int value = pLocalPC->GetGameFeature(GameFeature::SpellTier);
 			if (value == -1 || value >= 10)
 				Dest.DWord = 3;
 			else if (value >= 5)
