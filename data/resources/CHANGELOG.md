@@ -1,3 +1,8 @@
+Latest changes:
+- Fixed calculation of HasSPA, which should fix some properties such as Me.Silenced (#739)
+- Expand the coverage of game feature and claim data (developer tools)
+- Lifetime All-access should now appear as GOLD in ${Me.Subscription} instead of UNKNOWN
+
 Aug 24, 2023:
 - live: updated for latest patch
 

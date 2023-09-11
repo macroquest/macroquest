@@ -7642,15 +7642,11 @@ const char* GetTeleportName(DWORD id)
 	return "UNKNOWN";
 }
 
-int GetSubscriptionLevel()
+MembershipLevel GetMembershipLevel()
 {
-	if (EQADDR_SUBSCRIPTIONTYPE) {
-		if (uintptr_t dwsubtype = *(uintptr_t*)EQADDR_SUBSCRIPTIONTYPE) {
-			BYTE subtype = *(BYTE*)dwsubtype;
-			return subtype;
-		}
-	}
-	return 0;
+	FreeToPlayClient& client = FreeToPlayClient::Instance();
+
+	return client.MembershipLevel;
 }
 
 std::string GetCurrentUI()
