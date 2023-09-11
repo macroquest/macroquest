@@ -119,7 +119,7 @@ void NotifyCharacterUnload(const char* Profile, const char* Account, const char*
 }
 
 // pid:class:level
-void NotifyCharacterUpdate(const char* Class, const char* Level)
+void NotifyCharacterUpdate(int Class, int Level)
 {
 	auto data = fmt::format("{}:{}:{}", GetCurrentProcessId(), Class, Level);
 	gPipeClient.SendMessage(MQMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO, data.c_str(), data.length());

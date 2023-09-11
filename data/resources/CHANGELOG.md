@@ -1,4 +1,26 @@
+Latest changes:
+- Fixed calculation of HasSPA, which should fix some properties such as Me.Silenced (#739)
+- Expand the coverage of game feature and claim data (developer tools)
+- Lifetime All-access should now appear as GOLD in ${Me.Subscription} instead of UNKNOWN
+
+Aug 24, 2023:
+- live: updated for latest patch
+
+Aug 16, 2023:
+- live: updated for latest patch
+
+Aug 12, 2023:
+- test: updated for latest patch
+
+Aug 10, 2023:
+- autologin: Add AutoLogin TLO to provide access to profile data (#737)
+- lua: add mq.getAllGroundItems (#740)
+- lua: Fix some issues caused by errors while requiring a file
+- window datatype: Add Window.SetText, which can be used to change the
+  contents of edit controls
+
 Jul 19, 2023:
+- live: Updated for patch
 - Add FreeGrab to AdvLootType (#733)
 - Hotkey will now restore minimized window (#735)
 

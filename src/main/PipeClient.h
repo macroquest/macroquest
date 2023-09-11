@@ -25,7 +25,7 @@ namespace pipeclient {
 
 MQLIB_API void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character);
 MQLIB_API void NotifyCharacterUnload(const char* Profile, const char* Account, const char* Server, const char* Character);
-MQLIB_API void NotifyCharacterUpdate(const char* Class, const char* Level);
+MQLIB_API void NotifyCharacterUpdate(int Class, int Level);
 MQLIB_API void LoginServer(const char* Login, const char* Pass, const char* Server);
 MQLIB_API void LoginCharacter(const char* Login, const char* Pass, const char* Server, const char* Character);
 MQLIB_API void LoginProfile(const char* Profile, const char* Server, const char* Character);

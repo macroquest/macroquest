@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -107,14 +107,14 @@ inline std::string trim_copy(std::string s)
 [[nodiscard]]
 inline std::string_view ltrim(std::string_view s)
 {
-	s.remove_prefix(std::min(s.find_first_not_of(" \t\n"), s.size()));
+	s.remove_prefix(std::min(s.find_first_not_of(" \t\r\n"), s.size()));
 	return s;
 }
 
 [[nodiscard]]
 inline std::string_view rtrim(std::string_view s)
 {
-	s.remove_suffix(std::min(s.size() - s.find_last_not_of(" \t\n") - 1, s.size()));
+	s.remove_suffix(std::min(s.size() - s.find_last_not_of(" \t\r\n") - 1, s.size()));
 	return s;
 }
 

@@ -68,6 +68,7 @@ private:
 	std::string m_packagePath;
 	std::string m_packageCPath;
 	std::string m_version;
+	std::string m_jitversion;
 };
 
 class LuaThread;
