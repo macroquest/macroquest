@@ -552,8 +552,10 @@ static sol::table lua_unpickle(sol::this_state L, std::string_view file_path)
 	std::string pathString = fullPath.string();
 
 	// Escape backslashes:
-	for (size_t pos = 0; (pos = pathString.find("\\", pos)) != std::string::npos; pos += 2)
+	for (size_t pos = 0; (pos = pathString.find("\\", pos)) != std::string::npos; pos += 2) 
+	{
 		pathString.replace(pos, 1, "\\\\");
+	}
 
 	// Concatenate strings and run Lua code:
 	std::string luaCode =
@@ -563,11 +565,6 @@ static sol::table lua_unpickle(sol::this_state L, std::string_view file_path)
 
 	return sol::state_view(L).script(luaCode);
 }
-
-
-
-
-
 #pragma endregion
 
 
