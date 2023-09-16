@@ -515,7 +515,7 @@ static void serialize(sol::object obj, int prefix_count, fmt::appender& appender
 	}
 }
 
-static void lua_pickle(sol::this_state L, std::string_view file_path, sol::table table)
+static bool lua_pickle(sol::this_state L, std::string_view file_path, sol::table table)
 {
 	fmt::memory_buffer buf;
 	fmt::appender appender(buf);
@@ -529,7 +529,7 @@ static void lua_pickle(sol::this_state L, std::string_view file_path, sol::table
 	if (ec)
 	{
 		LuaError("Failed to create directory for pickling %.*s with error: %s", file_path.size(), file_path.data(), ec.message());
-		return;
+		return false;
 	}
 
 	try
@@ -537,12 +537,36 @@ static void lua_pickle(sol::this_state L, std::string_view file_path, sol::table
 		std::ofstream ofs(path, std::ios_base::out | std::ios_base::trunc);
 		ofs << fmt::to_string(buf);
 		ofs.close();
+		return true;
 	}
 	catch (std::exception e)
 	{
 		LuaError("Failed to write to file %.*s with error: %s", file_path.size(), file_path.data(), e.what());
+		return false;
 	}
 }
+
+static sol::table lua_unpickle(sol::this_state L, std::string_view file_path)
+{
+	std::filesystem::path fullPath = std::filesystem::path{ gPathConfig } / file_path;
+	std::string pathString = fullPath.string();
+
+	// Escape backslashes:
+	for (size_t pos = 0; (pos = pathString.find("\\", pos)) != std::string::npos; pos += 2)
+		pathString.replace(pos, 1, "\\\\");
+
+	// Concatenate strings and run Lua code:
+	std::string luaCode =
+		"local fn, err = loadfile('" + pathString + "')\n"
+		"if not fn then error(err or '') end\n"
+		"return fn()";
+
+	return sol::state_view(L).script(luaCode);
+}
+
+
+
+
 
 #pragma endregion
 
@@ -561,6 +585,7 @@ void RegisterBindings_MQ(LuaThread* thread, sol::table& mq)
 	mq.set_function("gettime",                   &lua_gettime);
 	mq.set("parse",                              &lua_Parse);
 	mq.set_function("pickle",                    &lua_pickle);
+	mq.set_function("unpickle",					 &lua_unpickle);
 
 	mq.set_function("NumericLimits_Float",       [](){ return std::make_pair(FLT_MIN, FLT_MAX); });
 
