@@ -19,128 +19,130 @@ namespace mq::datatypes {
 
 enum class WindowMembers
 {
-	Open = 1,
-	Child,
-	VScrollMax,
-	VScrollPos,
-	VScrollPct,
-	HScrollMax,
-	HScrollPos,
-	HScrollPct,
-	Children,
-	Siblings,
-	Parent,
-	FirstChild,
-	Next,
-	Minimized,
-	X,
-	Y,
-	Height,
-	Width,
-	MouseOver,
 	BGColor,
-	Text,
-	Tooltip,
-	List,
 	Checked,
-	Style,
-	Enabled,
-	Highlighted,
-	Name,
-	ScreenID,
-	Type,
-	Items,
-	HisTradeReady,
-	MyTradeReady,
-	GetCurSel,
-	Size,
-	Value,
-	TabCount,
-	Tab,
+	Child,
+	Children,
 	CurrentTab,
 	CurrentTabIndex,
+	Enabled,
+	FirstChild,
+	GetCurSel,
+	Height,
+	Highlighted,
+	HisTradeReady,
+	HScrollMax,
+	HScrollPct,
+	HScrollPos,
+	Items,
+	List,
+	Minimized,
+	MouseOver,
+	MyTradeReady,
+	Name,
+	Next,
+	Open,
+	Parent,
+	ScreenID,
+	SelectedIndex,
+	Siblings,
+	Size,
+	Style,
+	Tab,
+	TabCount,
+	Text,
+	Tooltip,
+	Type,
+	Value,
+	VScrollMax,
+	VScrollPct,
+	VScrollPos,
+	Width,
+	X,
+	Y,
 };
 
 enum class WindowMethods
 {
-	LeftMouseDown = 1,
-	LeftMouseUp,
+	DoClose,
+	DoOpen,
+	LeftMouseDown,
 	LeftMouseHeld,
 	LeftMouseHeldUp,
+	LeftMouseUp,
+	Move,
 	RightMouseDown,
-	RightMouseUp,
 	RightMouseHeld,
 	RightMouseHeldUp,
-	DoOpen,
-	DoClose,
+	RightMouseUp,
 	Select,
-	Move,
-	SetBGColor,
 	SetAlpha,
-	SetFadeAlpha,
+	SetBGColor,
 	SetCurrentTab,
+	SetFadeAlpha,
 	SetText,
 };
 
 MQ2WindowType::MQ2WindowType() : MQ2Type("window")
 {
-	ScopedTypeMember(WindowMembers, Open);
-	ScopedTypeMember(WindowMembers, Child);
-	ScopedTypeMember(WindowMembers, VScrollMax);
-	ScopedTypeMember(WindowMembers, VScrollPos);
-	ScopedTypeMember(WindowMembers, VScrollPct);
-	ScopedTypeMember(WindowMembers, HScrollMax);
-	ScopedTypeMember(WindowMembers, HScrollPos);
-	ScopedTypeMember(WindowMembers, HScrollPct);
-	ScopedTypeMember(WindowMembers, Children);
-	ScopedTypeMember(WindowMembers, Parent);
-	ScopedTypeMember(WindowMembers, Siblings);
-	ScopedTypeMember(WindowMembers, FirstChild);
-	ScopedTypeMember(WindowMembers, Next);
-	ScopedTypeMember(WindowMembers, Minimized);
-	ScopedTypeMember(WindowMembers, X);
-	ScopedTypeMember(WindowMembers, Y);
-	ScopedTypeMember(WindowMembers, Height);
-	ScopedTypeMember(WindowMembers, Width);
-	ScopedTypeMember(WindowMembers, MouseOver);
 	ScopedTypeMember(WindowMembers, BGColor);
-	ScopedTypeMember(WindowMembers, Text);
-	ScopedTypeMember(WindowMembers, Tooltip);
-	ScopedTypeMember(WindowMembers, List);
 	ScopedTypeMember(WindowMembers, Checked);
-	ScopedTypeMember(WindowMembers, Style);
-	ScopedTypeMember(WindowMembers, Enabled);
-	ScopedTypeMember(WindowMembers, Highlighted);
-	ScopedTypeMember(WindowMembers, Name);
-	ScopedTypeMember(WindowMembers, ScreenID);
-	ScopedTypeMember(WindowMembers, Type);
-	ScopedTypeMember(WindowMembers, Items);
-	ScopedTypeMember(WindowMembers, HisTradeReady);
-	ScopedTypeMember(WindowMembers, MyTradeReady);
-	ScopedTypeMember(WindowMembers, GetCurSel);
-	ScopedTypeMember(WindowMembers, Size);
-	ScopedTypeMember(WindowMembers, Value);
-	ScopedTypeMember(WindowMembers, TabCount);
-	ScopedTypeMember(WindowMembers, Tab);
+	ScopedTypeMember(WindowMembers, Child);
+	ScopedTypeMember(WindowMembers, Children);
 	ScopedTypeMember(WindowMembers, CurrentTab);
 	ScopedTypeMember(WindowMembers, CurrentTabIndex);
+	ScopedTypeMember(WindowMembers, Enabled);
+	ScopedTypeMember(WindowMembers, FirstChild);
+	ScopedTypeMember(WindowMembers, GetCurSel);
+	ScopedTypeMember(WindowMembers, Height);
+	ScopedTypeMember(WindowMembers, Highlighted);
+	ScopedTypeMember(WindowMembers, HisTradeReady);
+	ScopedTypeMember(WindowMembers, HScrollMax);
+	ScopedTypeMember(WindowMembers, HScrollPct);
+	ScopedTypeMember(WindowMembers, HScrollPos);
+	ScopedTypeMember(WindowMembers, Items);
+	ScopedTypeMember(WindowMembers, List);
+	ScopedTypeMember(WindowMembers, Minimized);
+	ScopedTypeMember(WindowMembers, MouseOver);
+	ScopedTypeMember(WindowMembers, MyTradeReady);
+	ScopedTypeMember(WindowMembers, Name);
+	ScopedTypeMember(WindowMembers, Next);
+	ScopedTypeMember(WindowMembers, Open);
+	ScopedTypeMember(WindowMembers, Parent);
+	ScopedTypeMember(WindowMembers, ScreenID);
+	ScopedTypeMember(WindowMembers, SelectedIndex);
+	ScopedTypeMember(WindowMembers, Siblings);
+	ScopedTypeMember(WindowMembers, Size);
+	ScopedTypeMember(WindowMembers, Style);
+	ScopedTypeMember(WindowMembers, Tab);
+	ScopedTypeMember(WindowMembers, TabCount);
+	ScopedTypeMember(WindowMembers, Text);
+	ScopedTypeMember(WindowMembers, Tooltip);
+	ScopedTypeMember(WindowMembers, Type);
+	ScopedTypeMember(WindowMembers, Value);
+	ScopedTypeMember(WindowMembers, VScrollMax);
+	ScopedTypeMember(WindowMembers, VScrollPct);
+	ScopedTypeMember(WindowMembers, VScrollPos);
+	ScopedTypeMember(WindowMembers, Width);
+	ScopedTypeMember(WindowMembers, X);
+	ScopedTypeMember(WindowMembers, Y);
 
+	ScopedTypeMethod(WindowMethods, DoClose);
+	ScopedTypeMethod(WindowMethods, DoOpen);
 	ScopedTypeMethod(WindowMethods, LeftMouseDown);
-	ScopedTypeMethod(WindowMethods, LeftMouseUp);
 	ScopedTypeMethod(WindowMethods, LeftMouseHeld);
 	ScopedTypeMethod(WindowMethods, LeftMouseHeldUp);
+	ScopedTypeMethod(WindowMethods, LeftMouseUp);
+	ScopedTypeMethod(WindowMethods, Move);
 	ScopedTypeMethod(WindowMethods, RightMouseDown);
-	ScopedTypeMethod(WindowMethods, RightMouseUp);
 	ScopedTypeMethod(WindowMethods, RightMouseHeld);
 	ScopedTypeMethod(WindowMethods, RightMouseHeldUp);
-	ScopedTypeMethod(WindowMethods, DoOpen);
-	ScopedTypeMethod(WindowMethods, DoClose);
+	ScopedTypeMethod(WindowMethods, RightMouseUp);
 	ScopedTypeMethod(WindowMethods, Select);
-	ScopedTypeMethod(WindowMethods, Move);
-	ScopedTypeMethod(WindowMethods, SetBGColor);
 	ScopedTypeMethod(WindowMethods, SetAlpha);
-	ScopedTypeMethod(WindowMethods, SetFadeAlpha);
+	ScopedTypeMethod(WindowMethods, SetBGColor);
 	ScopedTypeMethod(WindowMethods, SetCurrentTab);
+	ScopedTypeMethod(WindowMethods, SetFadeAlpha);
 	ScopedTypeMethod(WindowMethods, SetText);
 }
 
@@ -704,6 +706,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		}
 		return true;
 
+	case WindowMembers::SelectedIndex:
 	case WindowMembers::GetCurSel: {
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
