@@ -1,3 +1,6 @@
+Sep 21, 2023:
+- live: Fix crash in CDragonHoardWnd and CBarterSearchWnd.
+
 Sep 20, 2023:
 - live: updated for latest patch
 - Fixed calculation of HasSPA, which should fix some properties such as Me.Silenced (#739)
