@@ -1,5 +1,8 @@
 Test has switched to DirectX 11. The overlay is not available until it can be re-implemented for DX11.
 
+Sep 21, 2023:
+- test: Fix crash in CDragonHoardWnd and CBarterSearchWnd.
+
 Sep 20, 2023:
 - test: updated for latest patch
 - Fixed calculation of HasSPA, which should fix some properties such as Me.Silenced (#739)
