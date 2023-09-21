@@ -362,7 +362,7 @@
     <ClCompile Include="ImGuiManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ImGuiBackend.cpp">
+    <ClCompile Include="ImGuiBackendDX9.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQIniType.cpp">
@@ -373,6 +373,12 @@
     </ClCompile>
     <ClCompile Include="api\Spawns.cpp">
       <Filter>Source Files\api</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGuiBackendDX11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGuiBackendWin32.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

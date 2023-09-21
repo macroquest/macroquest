@@ -219,61 +219,9 @@ void RemoveRenderCallbacks(uint32_t id)
 	}
 }
 
-static void Renderer_InvalidateDeviceObjects()
-{
-	SPDLOG_DEBUG("MQ2Overlay: InvalidateDeviceObjects");
-
-	gbDeviceAcquired = false;
-	ImGui_ImplDX9_InvalidateDeviceObjects();
-	gbImGuiReady = false;
-
-	for (const auto& pCallbacks : s_renderCallbacks)
-	{
-		if (pCallbacks && pCallbacks->callbacks.InvalidateDeviceObjects)
-		{
-			pCallbacks->callbacks.InvalidateDeviceObjects();
-		}
-	}
-}
-
-static bool Renderer_CreateDeviceObjects()
-{
-	SPDLOG_DEBUG("MQ2Overlay: CreateDeviceObjects");
-
-	gbDeviceAcquired = true;
-	gbImGuiReady = ImGui_ImplDX9_CreateDeviceObjects();
-
-	for (const auto& pCallbacks : s_renderCallbacks)
-	{
-		if (pCallbacks && pCallbacks->callbacks.CreateDeviceObjects)
-		{
-			pCallbacks->callbacks.CreateDeviceObjects();
-		}
-	}
-
-	return gbImGuiReady;
-}
-
-static void Renderer_UpdateScene()
-{
-	if (s_renderCallbacks.empty())
-		return;
-
-	// Perform the render within a stateblock so we don't upset the rest
-	// of the rendering pipeline
-	wil::com_ptr_nothrow<IDirect3DStateBlock9> stateBlock;
-	gpD3D9Device->CreateStateBlock(D3DSBT_ALL, &stateBlock);
-
-	for (const auto& pCallbacks : s_renderCallbacks)
-	{
-		if (pCallbacks && pCallbacks->callbacks.GraphicsSceneRender)
-		{
-			pCallbacks->callbacks.GraphicsSceneRender();
-		}
-	}
-
-	stateBlock->Apply();
-}
+static void Renderer_InvalidateDeviceObjects();
+static bool Renderer_CreateDeviceObjects();
+static void Renderer_UpdateScene();
 
 //============================================================================
 
@@ -303,54 +251,12 @@ bool ImGuiOverlay_HandleMouseEvent(int mouseButton, bool pressed)
 	return consume;
 }
 
-static bool IsFullScreen(IDirect3DDevice9* device)
-{
-	if (!device)
-		return false;
-
-	// Detect full screen and disable viewports if we're in full screen mode.
-	bool fullscreen = true;
-	wil::com_ptr_nothrow<IDirect3DSwapChain9> pSwapChain;
-	if (SUCCEEDED(device->GetSwapChain(0, &pSwapChain)) && pSwapChain != nullptr)
-	{
-		D3DPRESENT_PARAMETERS params;
-		pSwapChain->GetPresentParameters(&params);
-
-		fullscreen = !params.Windowed;
-	}
-
-	return fullscreen;
-}
-
-static void InitializeImGui(IDirect3DDevice9* device)
-{
-	if (gbInitializedImGui)
-		return;
-
-	// Enable Multi-Viewport / Platform Windows
-	gbLastFullScreenState = IsFullScreen(device);
-	ImGui_EnableViewports(!gbLastFullScreenState && s_enableImGuiViewports);
-
-	// Enable Docking
-	ImGui_EnableDocking(s_enableImGuiDocking);
-
-	// Retrieve window handle from device
-	D3DDEVICE_CREATION_PARAMETERS params;
-	device->GetCreationParameters(&params);
-
-	// Initialize the platform backend and renderer bindings
-	ImGui_ImplWin32_Init(params.hFocusWindow);
-	ImGui_ImplDX9_Init(device);
-
-	gbInitializedImGui = true;
-}
-
 void ShutdownImGui()
 {
 	if (!gbInitializedImGui)
 		return;
 
-	ImGui_ImplDX9_Shutdown();
+	Renderer::Shutdown()
 	ImGui_ImplWin32_Shutdown();
 
 	gbImGuiReady = false;
@@ -379,161 +285,6 @@ static bool RenderImGui()
 
 //============================================================================
 //============================================================================
-
-class RenderHooks
-{
-public:
-	//------------------------------------------------------------------------
-	// d3d9 hooks
-
-	// this is only valid during a d3d9 hook detour
-	IDirect3DDevice9* GetThisDevice() { return reinterpret_cast<IDirect3DDevice9*>(this); }
-
-	// Install hooks on actual instance of the device once we have it.
-	bool DetectResetDeviceHook()
-	{
-		bool changed = false;
-
-		// IDirect3DDevice9 virtual function hooks
-		uintptr_t* d3dDevice_vftable = *(uintptr_t**)this;
-
-		uintptr_t resetDevice = d3dDevice_vftable[0x10];
-
-		if (resetDevice != gResetDeviceAddress)
-		{
-			if (gResetDeviceAddress != 0)
-			{
-				SPDLOG_DEBUG("Detected a change in the rendering device. Attempting to recover.");
-			}
-
-			gResetDeviceAddress = resetDevice;
-
-			InstallDetour(d3dDevice_vftable[0x10], &RenderHooks::Reset_Detour, RenderHooks::Reset_Trampoline_Ptr, "d3dDevice_Reset");
-
-			changed = true;
-		}
-
-		return changed;
-	}
-
-	DETOUR_TRAMPOLINE_DEF(HRESULT WINAPI, Reset_Trampoline, (D3DPRESENT_PARAMETERS*))
-	HRESULT WINAPI Reset_Detour(D3DPRESENT_PARAMETERS* pPresentationParameters)
-	{
-		if (gpD3D9Device != GetThisDevice())
-		{
-			SPDLOG_INFO("IDirect3DDevice9::Reset hook: instance does not match acquired device, skipping.");
-			return Reset_Trampoline(pPresentationParameters);
-		}
-
-		SPDLOG_INFO("IDirect3DDevice9::Reset hook: device instance is the acquired device.");
-		Renderer_InvalidateDeviceObjects();
-
-		return Reset_Trampoline(pPresentationParameters);
-	}
-
-	DETOUR_TRAMPOLINE_DEF(HRESULT WINAPI, BeginScene_Trampoline, ())
-	HRESULT WINAPI BeginScene_Detour()
-	{
-		// Whenever a BeginScene occurs, we know that this is the device we want to use.
-		gpD3D9Device = GetThisDevice();
-		s_numBeginSceneCalls++;
-
-		return BeginScene_Trampoline();
-	}
-
-	DETOUR_TRAMPOLINE_DEF(HRESULT WINAPI, EndScene_Trampoline, ())
-	HRESULT WINAPI EndScene_Detour()
-	{
-		// Don't try to use the device if it changed between BeginScene and EndScene.
-		if (GetThisDevice() != gpD3D9Device || !gpD3D9Device)
-		{
-			return EndScene_Trampoline();
-		}
-
-		// Prevent re-entrancy. This was happening due to the mumble overlay.
-		static bool sbInEndSceneDetour = false;
-		if (sbInEndSceneDetour)
-		{
-			return EndScene_Trampoline();
-		}
-
-		bool isMainRenderTarget = false;
-
-		// Make sure that we're hooking the main render target
-		wil::com_ptr_nothrow<IDirect3DSurface9> backBuffer;
-		HRESULT hr = gpD3D9Device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
-		if (hr == D3D_OK)
-		{
-			wil::com_ptr_nothrow<IDirect3DSurface9> renderTarget = nullptr;
-			HRESULT hr = gpD3D9Device->GetRenderTarget(0, &renderTarget);
-			if (hr == D3D_OK)
-			{
-				isMainRenderTarget = renderTarget == backBuffer;
-			}
-		}
-
-		sbInEndSceneDetour = true;
-
-		if (isMainRenderTarget)
-		{
-			// Check if a full screen mode change occurred before this frame.
-			// If it did, we should not render, and instead re-initialize imgui.
-			if (test_and_set(gbLastFullScreenState, IsFullScreen(gpD3D9Device)))
-			{
-				// For some reason, maybe due to a bug, toggling viewports off and
-				// then calling CreateDeviceObjects will cause it to still create
-				// the additional swap chains, which causes errors. So instead of
-				// disabling viewports, we are simply rebooting imgui.
-				gbNeedResetOverlay = true;
-			}
-			// When TestCooperativeLevel returns all good, then we can reinitialize.
-			// This will let the renderer control our flow instead of having to
-			// poll for the state ourselves.
-			else if (!gbDeviceAcquired)
-			{
-				if (gReInitFrameDelay == 0)
-				{
-					HRESULT result = GetThisDevice()->TestCooperativeLevel();
-
-					if (result == D3D_OK)
-					{
-						SPDLOG_INFO("IDirect3DDevice9::EndScene: TestCooperativeLevel was successful, reacquiring device.");
-
-						InitializeImGui(gpD3D9Device);
-
-						if (DetectResetDeviceHook())
-						{
-							Renderer_InvalidateDeviceObjects();
-						}
-
-						Renderer_CreateDeviceObjects();
-					}
-				}
-				else
-				{
-					--gReInitFrameDelay;
-				}
-			}
-
-			// Perform the render within a stateblock so we don't upset the
-			// rest of the rendering pipeline
-			if (gbDeviceAcquired)
-			{
-				RenderImGui();
-			}
-		}
-
-		HRESULT result = EndScene_Trampoline();
-
-		if (isMainRenderTarget && gbDeviceAcquired)
-		{
-			ImGuiRenderDebug_UpdateRenderTargets();
-		}
-
-		sbInEndSceneDetour = false;
-		return result;
-	}
-};
 
 // This hooks into an area of the rendering pipeline that is suitable to perform
 // our own 3d rendering before the scene is completed.
@@ -725,90 +476,375 @@ LRESULT WINAPI WndProc_Detour(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return WndProc_Trampoline(hWnd, msg, wParam, lParam);
 }
 
-static IDirect3DDevice9* AcquireDevice()
-{
-	IDirect3DDevice9* pDevice = nullptr;
+//----------------------------------------------------------------------------
+// DirectX 9 Hooks
+//----------------------------------------------------------------------------
 
-	if (pGraphicsEngine && pGraphicsEngine->pRender && pGraphicsEngine->pRender->pD3DDevice)
+#pragma region DirectX 9 Support
+
+class RendererDX9
+{
+public:
+	//------------------------------------------------------------------------
+	// d3d9 hooks
+
+	// this is only valid during a d3d9 hook detour
+	IDirect3DDevice9* GetThisDevice() { return reinterpret_cast<IDirect3DDevice9*>(this); }
+
+	// Install hooks on actual instance of the device once we have it.
+	bool DetectResetDeviceHook()
 	{
-		return pGraphicsEngine->pRender->pD3DDevice;
+		bool changed = false;
+
+		// IDirect3DDevice9 virtual function hooks
+		uintptr_t* d3dDevice_vftable = *(uintptr_t**)this;
+
+		uintptr_t resetDevice = d3dDevice_vftable[0x10];
+
+		if (resetDevice != gResetDeviceAddress)
+		{
+			if (gResetDeviceAddress != 0)
+			{
+				SPDLOG_DEBUG("Detected a change in the rendering device. Attempting to recover.");
+			}
+
+			gResetDeviceAddress = resetDevice;
+
+			InstallDetour(d3dDevice_vftable[0x10], &Renderer::Reset_Detour, Renderer::Reset_Trampoline_Ptr, "d3dDevice_Reset");
+
+			changed = true;
+		}
+
+		return changed;
 	}
 
-	return nullptr;
+	DETOUR_TRAMPOLINE_DEF(HRESULT WINAPI, Reset_Trampoline, (D3DPRESENT_PARAMETERS*))
+		HRESULT WINAPI Reset_Detour(D3DPRESENT_PARAMETERS* pPresentationParameters)
+	{
+		if (gpD3D9Device != GetThisDevice())
+		{
+			SPDLOG_INFO("IDirect3DDevice9::Reset hook: instance does not match acquired device, skipping.");
+			return Reset_Trampoline(pPresentationParameters);
+		}
+
+		SPDLOG_INFO("IDirect3DDevice9::Reset hook: device instance is the acquired device.");
+		Renderer_InvalidateDeviceObjects();
+
+		return Reset_Trampoline(pPresentationParameters);
+	}
+
+	DETOUR_TRAMPOLINE_DEF(HRESULT WINAPI, BeginScene_Trampoline, ())
+		HRESULT WINAPI BeginScene_Detour()
+	{
+		// Whenever a BeginScene occurs, we know that this is the device we want to use.
+		gpD3D9Device = GetThisDevice();
+		s_numBeginSceneCalls++;
+
+		return BeginScene_Trampoline();
+	}
+
+	DETOUR_TRAMPOLINE_DEF(HRESULT WINAPI, EndScene_Trampoline, ())
+		HRESULT WINAPI EndScene_Detour()
+	{
+		// Don't try to use the device if it changed between BeginScene and EndScene.
+		if (GetThisDevice() != gpD3D9Device || !gpD3D9Device)
+		{
+			return EndScene_Trampoline();
+		}
+
+		// Prevent re-entrancy. This was happening due to the mumble overlay.
+		static bool sbInEndSceneDetour = false;
+		if (sbInEndSceneDetour)
+		{
+			return EndScene_Trampoline();
+		}
+
+		bool isMainRenderTarget = false;
+
+		// Make sure that we're hooking the main render target
+		wil::com_ptr_nothrow<IDirect3DSurface9> backBuffer;
+		HRESULT hr = gpD3D9Device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
+		if (hr == D3D_OK)
+		{
+			wil::com_ptr_nothrow<IDirect3DSurface9> renderTarget = nullptr;
+			HRESULT hr = gpD3D9Device->GetRenderTarget(0, &renderTarget);
+			if (hr == D3D_OK)
+			{
+				isMainRenderTarget = renderTarget == backBuffer;
+			}
+		}
+
+		sbInEndSceneDetour = true;
+
+		if (isMainRenderTarget)
+		{
+			// Check if a full screen mode change occurred before this frame.
+			// If it did, we should not render, and instead re-initialize imgui.
+			if (test_and_set(gbLastFullScreenState, IsFullScreen(gpD3D9Device)))
+			{
+				// For some reason, maybe due to a bug, toggling viewports off and
+				// then calling CreateDeviceObjects will cause it to still create
+				// the additional swap chains, which causes errors. So instead of
+				// disabling viewports, we are simply rebooting imgui.
+				gbNeedResetOverlay = true;
+			}
+			// When TestCooperativeLevel returns all good, then we can reinitialize.
+			// This will let the renderer control our flow instead of having to
+			// poll for the state ourselves.
+			else if (!gbDeviceAcquired)
+			{
+				if (gReInitFrameDelay == 0)
+				{
+					HRESULT result = GetThisDevice()->TestCooperativeLevel();
+
+					if (result == D3D_OK)
+					{
+						SPDLOG_INFO("IDirect3DDevice9::EndScene: TestCooperativeLevel was successful, reacquiring device.");
+
+						InitializeImGui(gpD3D9Device);
+
+						if (DetectResetDeviceHook())
+						{
+							Renderer_InvalidateDeviceObjects();
+						}
+
+						Renderer_CreateDeviceObjects();
+					}
+				}
+				else
+				{
+					--gReInitFrameDelay;
+				}
+			}
+
+			// Perform the render within a stateblock so we don't upset the
+			// rest of the rendering pipeline
+			if (gbDeviceAcquired)
+			{
+				RenderImGui();
+			}
+		}
+
+		HRESULT result = EndScene_Trampoline();
+
+		if (isMainRenderTarget && gbDeviceAcquired)
+		{
+			ImGuiRenderDebug_UpdateRenderTargets();
+		}
+
+		sbInEndSceneDetour = false;
+		return result;
+	}
+
+	static IDirect3DDevice9* AcquireDevice()
+	{
+		IDirect3DDevice9* pDevice = nullptr;
+
+		if (pGraphicsEngine && pGraphicsEngine->pRender && pGraphicsEngine->pRender->pD3DDevice)
+		{
+			return pGraphicsEngine->pRender->pD3DDevice;
+		}
+
+		return nullptr;
+	}
+
+	static bool InstallHooks()
+	{
+		bool success = false;
+		HMODULE hD3D9Module = nullptr;
+
+		if (!hD3D9Module)
+		{
+			hD3D9Module = GetModuleHandle("d3d9.dll");
+		}
+
+		// Acquire the address of the virtual function table by creating an instance of IDirect3DDevice9Ex.
+		if (hD3D9Module)
+		{
+			D3D9CREATEEXPROC d3d9CreateEx = (D3D9CREATEEXPROC)GetProcAddress(hD3D9Module, "Direct3DCreate9Ex");
+			if (!d3d9CreateEx)
+			{
+				DebugSpewAlways("InstallD3D9Hooks: Failed to get address of Direct3DCreate9Ex");
+				return false;
+			}
+
+			wil::com_ptr_nothrow<IDirect3D9Ex> d3d9ex;
+			HRESULT hResult = (*d3d9CreateEx)(D3D_SDK_VERSION, &d3d9ex);
+
+			if (!SUCCEEDED(hResult))
+			{
+				DebugSpewAlways("InstallD3D9Hooks: Call to Direct3DCreate9Ex failed. Result: %x", hResult);
+				return false;
+			}
+
+			D3DPRESENT_PARAMETERS pp;
+			ZeroMemory(&pp, sizeof(pp));
+			pp.Windowed = 1;
+			pp.SwapEffect = D3DSWAPEFFECT_FLIP;
+			pp.BackBufferFormat = D3DFMT_A8R8G8B8;
+			pp.BackBufferCount = 1;
+			pp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
+
+			// save the rounding state. We'll restore it after we're done here.
+			// For some reason, CreateDeviceEx seems to tamper with it.
+			int round = fegetround();
+
+			wil::com_ptr_nothrow<IDirect3DDevice9> device;
+			hResult = d3d9ex->CreateDeviceEx(
+				D3DADAPTER_DEFAULT,
+				D3DDEVTYPE_NULLREF,
+				nullptr,
+				D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_NOWINDOWCHANGES,
+				&pp, nullptr, (IDirect3DDevice9Ex**)&device);
+
+			if (!SUCCEEDED(hResult))
+			{
+				DebugSpewAlways("InstallD3D9Hooks: failed to CreateDeviceEx. Result: %x", hResult);
+
+				device = AcquireDevice();
+			}
+
+			if (device)
+			{
+				success = true;
+
+				// IDirect3DDevice9 virtual function hooks
+				uintptr_t* d3dDevice_vftable = *(uintptr_t**)device.get();
+
+				InstallDetour(d3dDevice_vftable[0x29], &RendererDX9::BeginScene_Detour, RendererDX9::BeginScene_Trampoline_Ptr, "d3dDevice_BeginScene");
+				InstallDetour(d3dDevice_vftable[0x2a], &RendererDX9::EndScene_Detour, RendererDX9::EndScene_Trampoline_Ptr, "d3dDevice_EndScene");
+			}
+
+			// restore floating point rounding state
+			fesetround(round);
+		}
+
+		return success;
+	}
+
+	static void InvalidateDeviceObjects()
+	{
+		ImGui_ImplDX9_InvalidateDeviceObjects();
+	}
+
+	static bool CreateDeviceObjects()
+	{
+		return ImGui_ImplDX9_CreateDeviceObjects();
+	}
+
+
+
+	static void UpdateScene()
+	{
+		// Perform the render within a stateblock so we don't upset the rest
+		// of the rendering pipeline
+		wil::com_ptr_nothrow<IDirect3DStateBlock9> stateBlock;
+		gpD3D9Device->CreateStateBlock(D3DSBT_ALL, &stateBlock);
+
+		for (const auto& pCallbacks : s_renderCallbacks)
+		{
+			if (pCallbacks && pCallbacks->callbacks.GraphicsSceneRender)
+			{
+				pCallbacks->callbacks.GraphicsSceneRender();
+			}
+		}
+
+		stateBlock->Apply();
+	}
+
+	static void InitializeImGui(IDirect3DDevice9* device)
+	{
+		if (gbInitializedImGui)
+			return;
+
+		// Enable Multi-Viewport / Platform Windows
+		gbLastFullScreenState = IsFullScreen(device);
+		ImGui_EnableViewports(!gbLastFullScreenState && s_enableImGuiViewports);
+
+		// Enable Docking
+		ImGui_EnableDocking(s_enableImGuiDocking);
+
+		// Retrieve window handle from device
+		D3DDEVICE_CREATION_PARAMETERS params;
+		device->GetCreationParameters(&params);
+
+		// Initialize the platform backend and renderer bindings
+		ImGui_ImplWin32_Init(params.hFocusWindow);
+		ImGui_ImplDX9_Init(device);
+
+		gbInitializedImGui = true;
+	}
+
+	static bool IsFullScreen(IDirect3DDevice9* device)
+	{
+		if (!device)
+			return false;
+
+		// Detect full screen and disable viewports if we're in full screen mode.
+		bool fullscreen = true;
+		wil::com_ptr_nothrow<IDirect3DSwapChain9> pSwapChain;
+		if (SUCCEEDED(device->GetSwapChain(0, &pSwapChain)) && pSwapChain != nullptr)
+		{
+			D3DPRESENT_PARAMETERS params;
+			pSwapChain->GetPresentParameters(&params);
+
+			fullscreen = !params.Windowed;
+		}
+
+		return fullscreen;
+	}
+
+	static void Shutdown()
+	{
+		ImGui_ImplDX9_Shutdown();
+	}
+};
+
+using Renderer = RendererDX9;
+
+#pragma endregion
+
+static void Renderer_InvalidateDeviceObjects()
+{
+	SPDLOG_DEBUG("MQ2Overlay: InvalidateDeviceObjects");
+
+	gbDeviceAcquired = false;
+	Renderer::InvalidateDeviceObjects();
+	gbImGuiReady = false;
+
+	for (const auto& pCallbacks : s_renderCallbacks)
+	{
+		if (pCallbacks && pCallbacks->callbacks.InvalidateDeviceObjects)
+		{
+			pCallbacks->callbacks.InvalidateDeviceObjects();
+		}
+	}
 }
 
-static bool InstallD3D9Hooks()
+static bool Renderer_CreateDeviceObjects()
 {
-	bool success = false;
-	HMODULE hD3D9Module = nullptr;
+	SPDLOG_DEBUG("MQ2Overlay: CreateDeviceObjects");
 
-	if (!hD3D9Module)
+	gbDeviceAcquired = true;
+	gbImGuiReady = Renderer::CreateDeviceObjects();
+
+	for (const auto& pCallbacks : s_renderCallbacks)
 	{
-		hD3D9Module = GetModuleHandle("d3d9.dll");
+		if (pCallbacks && pCallbacks->callbacks.CreateDeviceObjects)
+		{
+			pCallbacks->callbacks.CreateDeviceObjects();
+		}
 	}
 
-	// Acquire the address of the virtual function table by creating an instance of IDirect3DDevice9Ex.
-	if (hD3D9Module)
-	{
-		D3D9CREATEEXPROC d3d9CreateEx = (D3D9CREATEEXPROC)GetProcAddress(hD3D9Module, "Direct3DCreate9Ex");
-		if (!d3d9CreateEx)
-		{
-			DebugSpewAlways("InstallD3D9Hooks: Failed to get address of Direct3DCreate9Ex");
-			return false;
-		}
+	return gbImGuiReady;
+}
 
-		wil::com_ptr_nothrow<IDirect3D9Ex> d3d9ex;
-		HRESULT hResult = (*d3d9CreateEx)(D3D_SDK_VERSION, &d3d9ex);
+static void Renderer_UpdateScene()
+{
+	if (s_renderCallbacks.empty())
+		return;
 
-		if (!SUCCEEDED(hResult))
-		{
-			DebugSpewAlways("InstallD3D9Hooks: Call to Direct3DCreate9Ex failed. Result: %x", hResult);
-			return false;
-		}
-
-		D3DPRESENT_PARAMETERS pp;
-		ZeroMemory(&pp, sizeof(pp));
-		pp.Windowed = 1;
-		pp.SwapEffect = D3DSWAPEFFECT_FLIP;
-		pp.BackBufferFormat = D3DFMT_A8R8G8B8;
-		pp.BackBufferCount = 1;
-		pp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
-
-		// save the rounding state. We'll restore it after we're done here.
-		// For some reason, CreateDeviceEx seems to tamper with it.
-		int round = fegetround();
-
-		wil::com_ptr_nothrow<IDirect3DDevice9> device;
-		hResult = d3d9ex->CreateDeviceEx(
-			D3DADAPTER_DEFAULT,
-			D3DDEVTYPE_NULLREF,
-			nullptr,
-			D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_NOWINDOWCHANGES,
-			&pp, nullptr, (IDirect3DDevice9Ex**)&device);
-
-		if (!SUCCEEDED(hResult))
-		{
-			DebugSpewAlways("InstallD3D9Hooks: failed to CreateDeviceEx. Result: %x", hResult);
-
-			device = AcquireDevice();
-		}
-
-		if (device)
-		{
-			success = true;
-
-			// IDirect3DDevice9 virtual function hooks
-			uintptr_t* d3dDevice_vftable = *(uintptr_t**)device.get();
-
-			InstallDetour(d3dDevice_vftable[0x29], &RenderHooks::BeginScene_Detour, RenderHooks::BeginScene_Trampoline_Ptr, "d3dDevice_BeginScene");
-			InstallDetour(d3dDevice_vftable[0x2a], &RenderHooks::EndScene_Detour, RenderHooks::EndScene_Trampoline_Ptr, "d3dDevice_EndScene");
-		}
-
-		// restore floating point rounding state
-		fesetround(round);
-	}
-
-	return success;
+	Renderer::UpdateScene();
 }
 
 enum class eOverlayHookStatus
@@ -835,7 +871,7 @@ static eOverlayHookStatus InitializeOverlayHooks()
 		return eOverlayHookStatus::MissingDevice;
 	}
 
-	if (!InstallD3D9Hooks())
+	if (!Renderer::InstallHooks())
 	{
 		DebugSpewAlways("Failed to hook DirectX, We won't be able to render into the game!");
 		return eOverlayHookStatus::Failed;
