@@ -2,6 +2,7 @@ Test has switched to DirectX 11. The overlay is not available until it can be re
 
 Sep 21, 2023:
 - test: Fix crash in CDragonHoardWnd and CBarterSearchWnd.
+- test: Fix crash in GetMembershipLevel
 
 Sep 20, 2023:
 - test: updated for latest patch
