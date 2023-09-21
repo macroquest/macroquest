@@ -827,7 +827,7 @@ MQLIB_API uint64_t GetMoneyFromString(const char* string, GetMoneyFromStringForm
 MQLIB_API void FormatMoneyString(char* szBuffer, size_t bufferLength, uint64_t moneyAmount, GetMoneyFromStringFormat format = GetMoneyFromStringFormat::Long);
 
 MQLIB_API MembershipLevel GetMembershipLevel();
-inline DEPRECATE("Use GetMembershipLevel isntead of GetSubscriptionLevel") int GetSubscriptionLevel() { return (int)GetMembershipLevel(); }
+inline DEPRECATE("Use GetMembershipLevel instead of GetSubscriptionLevel") int GetSubscriptionLevel() { return (int)GetMembershipLevel(); }
 
 } // namespace mq
 
