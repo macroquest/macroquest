@@ -1,3 +1,6 @@
+Sep 25, 2023:
+- live: Update eqlib, should fix reading some game options. (#755, #756)
+
 Sep 21, 2023:
 - live: Fix crash in CDragonHoardWnd and CBarterSearchWnd.
 
