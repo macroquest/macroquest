@@ -1,4 +1,7 @@
-Test has switched to DirectX 11. The overlay is not available until it can be re-implemented for DX11.
+Test has switched to DirectX 11. The overlay and other graphics related features are not available until it can be re-implemented for DX11.
+
+Sep 28, 2023:
+- test: updated for latest patch
 
 Sep 21, 2023:
 - test: Fix crash in CDragonHoardWnd and CBarterSearchWnd.
