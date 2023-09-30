@@ -533,6 +533,7 @@ void InitializeMQ2Data()
 	// EQ Types
 	AddMQ2Data("Achievement", datatypes::MQ2AchievementManagerType::dataAchievement);
 	AddMQ2Data("AltAbility", datatypes::MQ2AltAbilityType::dataAltAbility);
+	AddMQ2Data("Bank", datatypes::MQ2BankType::dataBank);
 	AddMQ2Data("Corpse", datatypes::MQ2CorpseType::dataCorpse);
 	AddMQ2Data("Cursor", datatypes::MQ2ItemType::dataCursor);
 	AddMQ2Data("DoorTarget", datatypes::MQ2SwitchType::dataSwitchTarget);

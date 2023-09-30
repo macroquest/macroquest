@@ -374,6 +374,9 @@
     <ClCompile Include="api\Spawns.cpp">
       <Filter>Source Files\api</Filter>
     </ClCompile>
+    <ClCompile Include="datatypes\MQ2BankType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
