@@ -86,8 +86,8 @@ bool MQ2BankType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		if (Index[0])
 		{
 			nSize = GetIntFromString(Index, 0);
-			if (nSize > 4)
-				nSize = 4;
+			if (nSize > ItemSize_Giant)
+				nSize = ItemSize_Giant;
 		}
 
 		Dest.DWord = GetNumFreeBankSlots(nSize);
@@ -137,7 +137,7 @@ bool MQ2BankType::dataBank(const char* szIndex, MQTypeVar& Ret)
 	if (szIndex[0])
 	{
 		Ret.Type = pItemType;
-		// If an index is provided we are looking up an achievement by id or name.
+		// If an index is provided we are looking up an itemtype by slot index.
 		if (IsNumber(szIndex))
 		{
 			int nSlot = GetIntFromString(szIndex, 0) - 1;
@@ -152,7 +152,7 @@ bool MQ2BankType::dataBank(const char* szIndex, MQTypeVar& Ret)
 		}
 	}
 
-	// If no index is provided then we're utilizing the achievement manager type
+	// If no index is provided then we're utilizing the bank type
 	Ret.Type = pBankType;
 	return true;
 }
