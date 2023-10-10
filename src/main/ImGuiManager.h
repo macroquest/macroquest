@@ -44,7 +44,5 @@ extern bool gbManualResetRequired;
 // global imgui toggle
 extern bool gbRenderImGui;
 
-// Indicates that we need to reset the overlay next frame
-extern bool gbNeedResetOverlay;
 
 } // namespace mq

@@ -28,11 +28,9 @@
 
 namespace mq {
 
-extern bool gbEnableImGuiViewports;
-
-namespace engine {
-
 //============================================================================
+
+extern bool gbEnableImGuiViewports;
 
 enum class OverlayHookStatus
 {
@@ -41,11 +39,24 @@ enum class OverlayHookStatus
 	MissingDevice,
 };
 
-class MQRendererBase
+// Overlay function types
+using fMQCreateDeviceObjects = std::function<void()>;
+using fMQInvalidateDeviceObjects = std::function<void()>;
+using fMQImGuiRender = std::function<void()>;
+using fMQGraphicsSceneRender = std::function<void()>;
+
+struct MQRenderCallbacks
+{
+	fMQCreateDeviceObjects     CreateDeviceObjects = nullptr;
+	fMQInvalidateDeviceObjects InvalidateDeviceObjects = nullptr;
+	fMQGraphicsSceneRender     GraphicsSceneRender = nullptr;
+};
+
+class MQGraphicsEngine
 {
 public:
-	MQRendererBase();
-	virtual ~MQRendererBase();
+	MQGraphicsEngine();
+	virtual ~MQGraphicsEngine();
 
 	virtual void Initialize();
 	virtual void Shutdown();
@@ -84,7 +95,7 @@ public:
 	void RemoveDetours();
 
 	template <typename T>
-	static void InstallDetour(uintptr_t address, T detour, T& trampoline_ptr, const char* name)
+	void InstallDetour(uintptr_t address, T detour, T& trampoline_ptr, const char* name)
 	{
 		HookInfo hookInfo;
 		hookInfo.name = name;
@@ -156,46 +167,44 @@ private:
 
 #if HAS_DIRECTX_9
 
-MQRendererBase* CreateRendererDX9();
+MQGraphicsEngine* CreateRendererDX9();
 
 #endif // HAS_DIRECTX_9
 
 #if HAS_DIRECTX_11
 
-class MQRendererDX11 : public MQRendererBase
-{
-public:
-	using MQD3DDevice = ID3D11Device;
-
-	MQRendererDX11();
-
-	virtual void Initialize() override;
-	virtual void Shutdown() override;
-
-	virtual void InvalidateDeviceObjects() override;
-	virtual void CreateDeviceObjects() override;
-	virtual void UpdateScene() override;
-	virtual void PostUpdateScene() override;
-	virtual void OnUpdateFrame() override;
-	virtual OverlayHookStatus InitializeOverlayHooks() override;
-};
+//class MQRendererDX11 : public MQGraphicsEngine
+//{
+//public:
+//	using MQD3DDevice = ID3D11Device;
+//
+//	MQRendererDX11();
+//
+//	virtual void Initialize() override;
+//	virtual void Shutdown() override;
+//
+//	virtual void InvalidateDeviceObjects() override;
+//	virtual void CreateDeviceObjects() override;
+//	virtual void UpdateScene() override;
+//	virtual void PostUpdateScene() override;
+//	virtual void OnUpdateFrame() override;
+//	virtual OverlayHookStatus InitializeOverlayHooks() override;
+//};
 
 #endif // HAS_DIRECTX_11
+
+namespace engine {
 
 void Initialize();
 void Shutdown();
 
-void InvalidateDeviceObjects();
-bool CreateDeviceObjects();
-void UpdateScene();
-void PostUpdateScene();
-void PostEndScene();
-void ImGuiRenderDebug_UpdateImGui();
 
-void ResetInputState();
+void ImGuiRenderDebug_UpdateImGui();
 void OnUpdateFrame();
 
 void ResetOverlay();
+
+} // namespace engine
 
 //============================================================================
 
@@ -213,26 +222,10 @@ public:
 };
 
 //============================================================================
-} // namespace engine
-
-//============================================================================
 // Exports
 
 /* OVERLAY GLOBALS */
 MQLIB_VAR IDirect3DDevice9* gpD3D9Device;
-
-// Overlay function types
-using fMQCreateDeviceObjects     = std::function<void()>;
-using fMQInvalidateDeviceObjects = std::function<void()>;
-using fMQImGuiRender             = std::function<void()>;
-using fMQGraphicsSceneRender     = std::function<void()>;
-
-struct MQRenderCallbacks
-{
-	fMQCreateDeviceObjects     CreateDeviceObjects = nullptr;
-	fMQInvalidateDeviceObjects InvalidateDeviceObjects = nullptr;
-	fMQGraphicsSceneRender     GraphicsSceneRender = nullptr;
-};
 
 MQLIB_API int AddRenderCallbacks(const MQRenderCallbacks& callbacks);
 MQLIB_API void RemoveRenderCallbacks(int id);

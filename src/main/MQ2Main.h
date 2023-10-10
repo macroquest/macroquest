@@ -92,7 +92,6 @@ MQLIB_API bool AreNameSpritesCustomized();
 MQLIB_API bool IsImGuiForeground();
 MQLIB_API void SetOverlayEnabled(bool visible);
 MQLIB_API bool IsOverlayEnabled();
-MQLIB_API void ResetOverlay();
 
 using fPanelDrawFunction = void(*)();
 MQLIB_API void AddSettingsPanel(const char* name, fPanelDrawFunction drawFunction);

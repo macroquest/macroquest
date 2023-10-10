@@ -32,32 +32,21 @@ IDirect3DDevice9* gpD3D9Device = nullptr;
 //============================================================================
 
 static uintptr_t gResetDeviceAddress = 0;
-
-class ImGuiRenderDebug;
-static ImGuiRenderDebug* s_renderDebug = nullptr;
-
-static int s_renderCallbacksId = -1;
 static int s_numBeginSceneCalls = 0;
 static bool s_enableImGuiDocking = true;
-
-// Last known full screen state
-static bool s_lastFullScreenState = false;
-
-static bool gbInitializedImGui = false;
-
-using engine::OverlayHookStatus;
-using engine::MQRendererBase;
 
 using D3D9CREATEEXPROC = HRESULT(WINAPI*)(UINT, IDirect3D9Ex**);
 
 class ImGuiRenderDebugDX9;
+class RendererDX9Hooks;
 
-class MQRendererDX9 : public MQRendererBase
+class MQGraphicsEngineDX9 : public MQGraphicsEngine
 {
 public:
 	using MQD3DDevice = IDirect3DDevice9;
 
-	MQRendererDX9();
+	MQGraphicsEngineDX9();
+	~MQGraphicsEngineDX9();
 
 	virtual void Initialize() override;
 	virtual void Shutdown() override;
@@ -88,7 +77,7 @@ private:
 	int m_renderDebugCallbacksId = -1;
 };
 
-MQRendererDX9* s_renderer = nullptr;
+static MQGraphicsEngineDX9* s_gfxEngine = nullptr;
 
 class RendererDX9Hooks
 {
@@ -109,7 +98,7 @@ public:
 		}
 
 		SPDLOG_INFO("IDirect3DDevice9::Reset hook: device instance is the acquired device.");
-		s_renderer->InvalidateDeviceObjects();
+		s_gfxEngine->InvalidateDeviceObjects();
 
 		return Reset_Trampoline(pPresentationParameters);
 	}
@@ -135,12 +124,12 @@ public:
 			return EndScene_Trampoline();
 		}
 
-		return s_renderer->EndScene_Hook(this);
+		return s_gfxEngine->EndScene_Hook(this);
 	}
 };
 
 // Install hooks on actual instance of the device once we have it.
-bool MQRendererDX9::DetectResetDeviceHook(void* thisPtr)
+bool MQGraphicsEngineDX9::DetectResetDeviceHook(void* thisPtr)
 {
 	bool changed = false;
 
@@ -166,7 +155,7 @@ bool MQRendererDX9::DetectResetDeviceHook(void* thisPtr)
 	return changed;
 }
 
-HRESULT MQRendererDX9::EndScene_Hook(RendererDX9Hooks* hooks)
+HRESULT MQGraphicsEngineDX9::EndScene_Hook(RendererDX9Hooks* hooks)
 {
 	// Prevent re-entrancy. This was happening due to the mumble overlay.
 	static bool sbInEndSceneDetour = false;
@@ -196,7 +185,7 @@ HRESULT MQRendererDX9::EndScene_Hook(RendererDX9Hooks* hooks)
 	{
 		// Check if a full screen mode change occurred before this frame.
 		// If it did, we should not render, and instead re-initialize imgui.
-		if (test_and_set(s_lastFullScreenState, IsFullScreen()))
+		if (test_and_set(m_lastFullScreenState, IsFullScreen()))
 		{
 			// For some reason, maybe due to a bug, toggling viewports off and
 			// then calling CreateDeviceObjects will cause it to still create
@@ -501,54 +490,17 @@ public:
 
 //============================================================================
 
-static void InitializeImGui(IDirect3DDevice9* device)
+MQGraphicsEngineDX9::MQGraphicsEngineDX9()
 {
-	if (gbInitializedImGui)
-		return;
-
-	// Enable Multi-Viewport / Platform Windows
-	s_lastFullScreenState = IsFullScreen(device);
-	ImGui_EnableViewports(!s_lastFullScreenState && engine::gbEnableImGuiViewports);
-
-	// Enable Docking
-	ImGui_EnableDocking(s_enableImGuiDocking);
-
-	// Retrieve window handle from device
-	D3DDEVICE_CREATION_PARAMETERS params;
-	device->GetCreationParameters(&params);
-
-	// Initialize the platform backend and renderer bindings
-	ImGui_ImplWin32_Init(params.hFocusWindow);
-	ImGui_ImplDX9_Init(device);
-
-	gbInitializedImGui = true;
+	s_gfxEngine = this;
 }
 
-void ShutdownImGui()
+MQGraphicsEngineDX9::~MQGraphicsEngineDX9()
 {
-	if (!gbInitializedImGui)
-		return;
-
-	engine::Shutdown();
-	ImGui_ImplWin32_Shutdown();
-
-	m_imguiReady = false;
-	gbInitializedImGui = false;
+	s_gfxEngine = nullptr;
 }
 
-//============================================================================
-
-MQRendererDX9::MQRendererDX9()
-{
-	s_renderer = this;
-}
-
-MQRendererDX9::~MQRendererDX9()
-{
-	s_renderer = nullptr;
-}
-
-void MQRendererDX9::Initialize()
+void MQGraphicsEngineDX9::Initialize()
 {
 	m_renderDebug = new ImGuiRenderDebugDX9();
 	m_renderDebugCallbacksId = AddRenderCallbacks({
@@ -557,10 +509,10 @@ void MQRendererDX9::Initialize()
 		[this]() { m_renderDebug->Render(); }
 	});
 
-	MQRendererBase::Initialize();
+	MQGraphicsEngine::Initialize();
 }
 
-void MQRendererDX9::Shutdown()
+void MQGraphicsEngineDX9::Shutdown()
 {
 	RemoveRenderCallbacks(m_renderDebugCallbacksId);
 	m_renderDebugCallbacksId = -1;
@@ -573,7 +525,7 @@ void MQRendererDX9::Shutdown()
 
 //----------------------------------------------------------------------------
 
-void MQRendererDX9::InitializeImGui_Internal()
+void MQGraphicsEngineDX9::InitializeImGui_Internal()
 {
 	assert(gpD3D9Device != nullptr);
 
@@ -586,49 +538,52 @@ void MQRendererDX9::InitializeImGui_Internal()
 	ImGui_ImplDX9_Init(gpD3D9Device);
 }
 
-void MQRendererDX9::ShutdownImGui_Internal()
+void MQGraphicsEngineDX9::ShutdownImGui_Internal()
 {
-	
+	ImGui_ImplDX9_Shutdown();
+
+	gpD3D9Device = nullptr;
+	gResetDeviceAddress = 0;
 }
 
 //----------------------------------------------------------------------------
 
-void MQRendererDX9::InvalidateDeviceObjects_Internal()
+void MQGraphicsEngineDX9::InvalidateDeviceObjects_Internal()
 {
 	ImGui_ImplDX9_InvalidateDeviceObjects();
 	m_imguiReady = false;
 }
 
-void MQRendererDX9::CreateDeviceObjects_Internal()
+void MQGraphicsEngineDX9::CreateDeviceObjects_Internal()
 {
 	m_imguiReady = ImGui_ImplDX9_CreateDeviceObjects();
 
-	MQRendererBase::CreateDeviceObjects();
+	MQGraphicsEngine::CreateDeviceObjects();
 }
 
-void MQRendererDX9::UpdateScene_Internal()
+void MQGraphicsEngineDX9::UpdateScene_Internal()
 {
 	// Perform the render within a stateblock so we don't upset the rest
 	// of the rendering pipeline
 	wil::com_ptr_nothrow<IDirect3DStateBlock9> stateBlock;
 	gpD3D9Device->CreateStateBlock(D3DSBT_ALL, &stateBlock);
 
-	MQRendererBase::UpdateScene_Internal();
+	MQGraphicsEngine::UpdateScene_Internal();
 
 	stateBlock->Apply();
 }
 
-void MQRendererDX9::PostEndScene_Internal()
+void MQGraphicsEngineDX9::PostEndScene_Internal()
 {
 	m_renderDebug->UpdateRenderTargets();
 }
 
-void MQRendererDX9::OnUpdateFrame_Internal()
+void MQGraphicsEngineDX9::OnUpdateFrame_Internal()
 {
 	s_numBeginSceneCalls = 0;
 }
 
-OverlayHookStatus MQRendererDX9::InitializeOverlayHooks()
+OverlayHookStatus MQGraphicsEngineDX9::InitializeOverlayHooks()
 {
 	if (m_deviceHooksInstalled)
 	{
@@ -657,7 +612,7 @@ OverlayHookStatus MQRendererDX9::InitializeOverlayHooks()
 	return !gpD3D9Device ? OverlayHookStatus::MissingDevice : OverlayHookStatus::Success;
 }
 
-bool MQRendererDX9::IsFullScreen() const
+bool MQGraphicsEngineDX9::IsFullScreen() const
 {
 	if (!gpD3D9Device)
 		return false;
@@ -676,7 +631,7 @@ bool MQRendererDX9::IsFullScreen() const
 	return fullscreen;
 }
 
-void MQRendererDX9::ImGuiRenderDebug_UpdateImGui()
+void MQGraphicsEngineDX9::ImGuiRenderDebug_UpdateImGui()
 {
 	m_renderDebug->RenderImGui();
 }
@@ -693,7 +648,7 @@ static IDirect3DDevice9* AcquireDevice()
 	return nullptr;
 }
 
-bool MQRendererDX9::InstallHooks()
+bool MQGraphicsEngineDX9::InstallHooks()
 {
 	bool success = false;
 	HMODULE hD3D9Module = nullptr;
@@ -767,9 +722,9 @@ bool MQRendererDX9::InstallHooks()
 	return success;
 }
 
-MQRendererBase* CreateRendererDX9()
+MQGraphicsEngine* CreateRendererDX9()
 {
-	return new MQRendererDX9();
+	return new MQGraphicsEngineDX9();
 }
 
 } // namespace mq

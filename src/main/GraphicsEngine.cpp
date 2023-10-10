@@ -28,7 +28,7 @@ namespace mq {
 static bool s_flushNextMouse = false;
 
 // Pointer to our MQ graphics engine
-static engine::MQRendererBase* s_renderer = nullptr;
+static MQGraphicsEngine* s_gfxEngine = nullptr;
 
 static bool s_enableImGuiDocking = true;
 bool gbEnableImGuiViewports = false;
@@ -48,9 +48,9 @@ public:
 	DETOUR_TRAMPOLINE_DEF(void, Render_Trampoline, ())
 	void Render_Detour()
 	{
-		if (s_renderer)
+		if (s_gfxEngine)
 		{
-			s_renderer->UpdateScene();
+			s_gfxEngine->UpdateScene();
 		}
 
 		Render_Trampoline();
@@ -73,9 +73,9 @@ public:
 		{
 			SPDLOG_DEBUG("CRender::ResetDevice: Reset failed, invalidating device objects and trying again.");
 
-			if (s_renderer)
+			if (s_gfxEngine)
 			{
-				s_renderer->InvalidateDeviceObjects();
+				s_gfxEngine->InvalidateDeviceObjects();
 			}
 
 			success = ResetDevice_Trampoline(a);
@@ -215,7 +215,7 @@ class C2DPrimitiveManager_Hook
 {
 public:
 	DETOUR_TRAMPOLINE_DEF(void, AddCachedText_Trampoline, (CTextObjectBase* obj))
-		void AddCachedText_Detour(CTextObjectBase* obj)
+	void AddCachedText_Detour(CTextObjectBase* obj)
 	{
 		if (this == nullptr)
 			return;
@@ -276,17 +276,17 @@ bool ImGuiOverlay_HandleMouseEvent(int mouseButton, bool pressed)
 
 //============================================================================
 
-engine::MQRendererBase::MQRendererBase()
+MQGraphicsEngine::MQGraphicsEngine()
 {
 }
 
-engine::MQRendererBase::~MQRendererBase()
+MQGraphicsEngine::~MQGraphicsEngine()
 {
 }
 
 //============================================================================
 
-void engine::MQRendererBase::InstallHook(HookInfo hi)
+void MQGraphicsEngine::InstallHook(HookInfo hi)
 {
 	auto iter = std::find_if(std::begin(m_hooks), std::end(m_hooks),
 		[&hi](const HookInfo& hookInfo)
@@ -304,7 +304,7 @@ void engine::MQRendererBase::InstallHook(HookInfo hi)
 	m_hooks.push_back(hi);
 }
 
-void engine::MQRendererBase::RemoveDetours()
+void MQGraphicsEngine::RemoveDetours()
 {
 	for (HookInfo& hook : m_hooks)
 	{
@@ -317,7 +317,7 @@ void engine::MQRendererBase::RemoveDetours()
 }
 
 /* static */
-int engine::MQRendererBase::AddRenderCallbacks(const MQRenderCallbacks& callbacks)
+int MQGraphicsEngine::AddRenderCallbacks(const MQRenderCallbacks& callbacks)
 {
 	// Find an unused index.
 	int index = -1;
@@ -342,7 +342,7 @@ int engine::MQRendererBase::AddRenderCallbacks(const MQRenderCallbacks& callback
 
 	// Make sure that we initialize if we're already acquired by
 	// calling CreateDeviceObjects.
-	if (m_deviceAcquired && pCallbacks->callbacks.CreateDeviceObjects)
+	if (s_gfxEngine && s_gfxEngine->m_deviceAcquired && pCallbacks->callbacks.CreateDeviceObjects)
 	{
 		pCallbacks->callbacks.CreateDeviceObjects();
 	}
@@ -352,7 +352,7 @@ int engine::MQRendererBase::AddRenderCallbacks(const MQRenderCallbacks& callback
 }
 
 /* static */
-void engine::MQRendererBase::RemoveRenderCallbacks(int id)
+void MQGraphicsEngine::RemoveRenderCallbacks(int id)
 {
 	if (id >= 0 && id < s_renderCallbacks.size())
 	{
@@ -368,7 +368,7 @@ void engine::MQRendererBase::RemoveRenderCallbacks(int id)
 
 //============================================================================
 
-void engine::MQRendererBase::Initialize()
+void MQGraphicsEngine::Initialize()
 {
 	// Should this go to ImGuiManager?
 	ImGuiManager_CreateContext();
@@ -376,14 +376,14 @@ void engine::MQRendererBase::Initialize()
 	InitializeOverlay_Internal();
 }
 
-void engine::MQRendererBase::Shutdown()
+void MQGraphicsEngine::Shutdown()
 {
 	ShutdownOverlay_Internal();
 
 	ImGuiManager_DestroyContext();
 }
 
-void engine::MQRendererBase::InvalidateDeviceObjects()
+void MQGraphicsEngine::InvalidateDeviceObjects()
 {
 	SPDLOG_DEBUG("MQGraphicsEngine: InvalidateDeviceObjects");
 
@@ -391,7 +391,7 @@ void engine::MQRendererBase::InvalidateDeviceObjects()
 
 	InvalidateDeviceObjects_Internal();
 
-	for (const auto& pCallbacks : MQRendererBase::s_renderCallbacks)
+	for (const auto& pCallbacks : MQGraphicsEngine::s_renderCallbacks)
 	{
 		if (pCallbacks && pCallbacks->callbacks.InvalidateDeviceObjects)
 		{
@@ -400,7 +400,7 @@ void engine::MQRendererBase::InvalidateDeviceObjects()
 	}
 }
 
-void engine::MQRendererBase::CreateDeviceObjects()
+void MQGraphicsEngine::CreateDeviceObjects()
 {
 	SPDLOG_DEBUG("MQGraphicsEngine: CreateDeviceObjects");
 
@@ -416,7 +416,7 @@ void engine::MQRendererBase::CreateDeviceObjects()
 	}
 }
 
-void engine::MQRendererBase::UpdateScene()
+void MQGraphicsEngine::UpdateScene()
 {
 	if (!m_deviceAcquired)
 		return;
@@ -424,7 +424,7 @@ void engine::MQRendererBase::UpdateScene()
 	UpdateScene_Internal();
 }
 
-void engine::MQRendererBase::UpdateScene_Internal()
+void MQGraphicsEngine::UpdateScene_Internal()
 {
 	for (const auto& pCallbacks : s_renderCallbacks)
 	{
@@ -435,7 +435,7 @@ void engine::MQRendererBase::UpdateScene_Internal()
 	}
 }
 
-void engine::MQRendererBase::PostUpdateScene()
+void MQGraphicsEngine::PostUpdateScene()
 {
 	if (m_deviceAcquired && m_imguiReady && !m_needResetOverlay)
 	{
@@ -446,12 +446,12 @@ void engine::MQRendererBase::PostUpdateScene()
 	}
 }
 
-void engine::MQRendererBase::PostEndScene()
+void MQGraphicsEngine::PostEndScene()
 {
 	PostEndScene_Internal();
 }
 
-void engine::MQRendererBase::OnUpdateFrame()
+void MQGraphicsEngine::OnUpdateFrame()
 {
 	OnUpdateFrame_Internal();
 
@@ -481,34 +481,36 @@ void engine::MQRendererBase::OnUpdateFrame()
 
 //============================================================================
 
-void engine::MQRendererBase::InitializeOverlay_Internal()
+void MQGraphicsEngine::InitializeOverlay_Internal()
 {
-	engine::OverlayHookStatus status = InitializeOverlayHooks();
+	OverlayHookStatus status = InitializeOverlayHooks();
 
-	if (status != engine::OverlayHookStatus::Success)
+	if (status != OverlayHookStatus::Success)
 	{
-		m_retryHooks = (status == engine::OverlayHookStatus::MissingDevice);
-		m_initializationFailed = (status == engine::OverlayHookStatus::Failed);
+		m_retryHooks = (status == OverlayHookStatus::MissingDevice);
+		m_initializationFailed = (status == OverlayHookStatus::Failed);
 	}
 }
 
-void engine::MQRendererBase::ShutdownOverlay_Internal()
+void MQGraphicsEngine::ShutdownOverlay_Internal()
 {
 	if (!m_deviceHooksInstalled)
 		return;
 
 	RemoveDetours();
-
 	m_deviceHooksInstalled = false;
 	m_hooks.clear();
 
+	ShutdownImGui();
+
 	m_initializationFailed = false;
 	m_retryHooks = false;
+	m_deviceAcquired = false;
 
-	engine::ResetInputState();
+	s_flushNextMouse = false;
 }
 
-void engine::MQRendererBase::RestartOverlay()
+void MQGraphicsEngine::RestartOverlay()
 {
 	if (!m_deviceHooksInstalled)
 		return;
@@ -523,12 +525,9 @@ void engine::MQRendererBase::RestartOverlay()
 
 	ShutdownImGui();
 	ImGuiManager_ReloadContext();
-
-	gpD3D9Device = nullptr;
-	gResetDeviceAddress = 0;
 }
 
-void engine::MQRendererBase::InitializeImGui()
+void MQGraphicsEngine::InitializeImGui()
 {
 	if (m_imguiInitialized)
 		return;
@@ -545,7 +544,7 @@ void engine::MQRendererBase::InitializeImGui()
 	m_imguiInitialized = true;
 }
 
-void engine::MQRendererBase::ShutdownImGui()
+void MQGraphicsEngine::ShutdownImGui()
 {
 	if (!m_imguiInitialized)
 		return;
@@ -561,7 +560,7 @@ void engine::MQRendererBase::ShutdownImGui()
 
 void engine::Initialize()
 {
-	if (s_renderer) {
+	if (s_gfxEngine) {
 		return;
 	}
 
@@ -588,22 +587,22 @@ void engine::Initialize()
 	EzDetour(C2DPrimitiveManager__AddCachedText, &C2DPrimitiveManager_Hook::AddCachedText_Detour, &C2DPrimitiveManager_Hook::AddCachedText_Trampoline);
 
 #if HAS_DIRECTX_11 && 0
-	s_renderer = new MQRendererDX11();
+	s_gfxEngine = new MQRendererDX11();
 #else
-	s_renderer = CreateRendererDX9();
+	s_gfxEngine = CreateRendererDX9();
 #endif
-	s_renderer->Initialize();
+	s_gfxEngine->Initialize();
 }
 
 void engine::Shutdown()
 {
-	if (!s_renderer)
+	if (!s_gfxEngine)
 		return;
 
-	s_renderer->Shutdown();
+	s_gfxEngine->Shutdown();
 
-	delete s_renderer;
-	s_renderer = nullptr;
+	delete s_gfxEngine;
+	s_gfxEngine = nullptr;
 
 	RemoveDetour(__ProcessMouseEvents);
 #if defined(__HandleMouseWheel_x)
@@ -616,57 +615,24 @@ void engine::Shutdown()
 	RemoveDetour(C2DPrimitiveManager__AddCachedText);
 }
 
-void engine::InvalidateDeviceObjects()
-{
-	if (s_renderer) {
-		s_renderer->InvalidateDeviceObjects();
-	}
-}
-
-bool engine::CreateDeviceObjects()
-{
-	if (s_renderer) {
-		s_renderer->CreateDeviceObjects();
-	}
-}
-
-void engine::UpdateScene()
-{
-	if (s_renderer) {
-		s_renderer->UpdateScene();
-	}
-}
-
-void engine::PostUpdateScene()
-{
-	if (s_renderer) {
-		s_renderer->PostUpdateScene();
-	}
-}
-
-void engine::PostEndScene()
-{
-	if (s_renderer) {
-		s_renderer->PostEndScene();
-	}
-}
-
-void engine::ResetInputState()
-{
-	s_flushNextMouse = false;
-}
-
 void engine::OnUpdateFrame()
 {
-	if (!s_renderer) {
-		s_renderer->OnUpdateFrame();
+	if (!s_gfxEngine) {
+		s_gfxEngine->OnUpdateFrame();
 	}
 }
 
 void engine::ResetOverlay()
 {
-	if (s_renderer) {
-		s_renderer->ResetOverlay();
+	if (s_gfxEngine) {
+		s_gfxEngine->ResetOverlay();
+	}
+}
+
+void engine::ImGuiRenderDebug_UpdateImGui()
+{
+	if (s_gfxEngine) {
+		s_gfxEngine->ImGuiRenderDebug_UpdateImGui();
 	}
 }
 
@@ -675,13 +641,13 @@ void engine::ResetOverlay()
 // Exported
 int AddRenderCallbacks(const MQRenderCallbacks& callbacks)
 {
-	return engine::MQRendererBase::AddRenderCallbacks(callbacks);
+	return MQGraphicsEngine::AddRenderCallbacks(callbacks);
 }
 
 // Exported
 void RemoveRenderCallbacks(int id)
 {
-	engine::MQRendererBase::RemoveRenderCallbacks(id);
+	MQGraphicsEngine::RemoveRenderCallbacks(id);
 }
 
 
