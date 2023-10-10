@@ -23,14 +23,28 @@ void ImGuiManager_Shutdown();
 void ImGuiManager_Pulse();
 
 void ImGuiManager_DrawFrame();
-bool ImGuiManager_HandleWndProc(uint32_t msg, uintptr_t wparam, intptr_t lparam);
+bool ImGuiManager_HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wparam, intptr_t lparam);
 
 void ImGuiManager_BuildFonts(ImFontAtlas* fontAtlas);
+
+void ImGuiManager_ReloadContext();
+void ImGuiManager_CreateContext();
+void ImGuiManager_DestroyContext();
+
+void ImGuiManager_OverlaySettings();
+
+void ImGuiManager_ResetGameViewport();
 
 // Returns HCURSOR
 void* ImGuiManager_GetCursorForImGui(ImGuiMouseCursor imguiCursor);
 
 // Set to true to put imgui into partial recovery mode.
 extern bool gbManualResetRequired;
+
+// global imgui toggle
+extern bool gbRenderImGui;
+
+// Indicates that we need to reset the overlay next frame
+extern bool gbNeedResetOverlay;
 
 } // namespace mq

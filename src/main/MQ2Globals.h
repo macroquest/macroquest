@@ -335,11 +335,6 @@ const std::string PARSE_PARAM_END = "]}";
 
 MQLIB_VAR int gParserVersion;
 
-/* OVERLAY GLOBALS */
-MQLIB_VAR IDirect3DDevice9* gpD3D9Device;
-MQLIB_VAR bool gbDeviceAcquired;
-MQLIB_VAR bool gbDeviceHooksInstalled;
-
 /* DEPRECATION GLOBALS */
 MQLIB_VAR int gbGroundDeprecateCount;
 

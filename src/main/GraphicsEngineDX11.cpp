@@ -12,24 +12,21 @@
  * GNU General Public License for more details.
  */
 
-#pragma once
+#include "pch.h"
+
+#include <d3d11.h>
+#include <d3dcompiler.h>
+#ifdef _MSC_VER
+#pragma comment(lib, "d3dcompiler") // Automatically link with d3dcompiler.lib as we are using D3DCompile() below.
+#endif
 
 namespace mq {
 
-struct MQGroundSpawn;
-
-using fEQGetMelee            = float  (*)(PlayerClient*, PlayerClient*);
-
-// MQ2 Callback types
-using fEQCommand             = void   (*)(PlayerClient*, char* Buffer);
-using fEQCommandConstChar    = void   (*)(PlayerClient*, const char*);
-using fMQCommand             = void   (*)(PlayerClient*, char* Buffer, size_t BuffLen);
-using fCascadeItemFunction   = void   (*)();
-struct TokenTextParam;
-using fMQTokenMessageCmd     = void   (*)(const TokenTextParam&);
+#if HAS_DIRECTX_11
 
 
-// Misc Function types
-using fEQW_GetDisplayWindow  = HWND(CALLBACK*)();
+
+
+#endif // HAS_DIRECTX_11
 
 } // namespace mq

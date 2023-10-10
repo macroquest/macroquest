@@ -66,8 +66,6 @@ bool     ImGui_IsImGuiForeground();
 // Implemented by ImGuiOverlay.cpp
 bool     ImGuiOverlay_HandleMouseEvent(int mouseButton, bool pressed);
 
-void     ImGuiRenderDebug_UpdateImGui();
-
 struct ImGuiViewportData
 {
 	HWND hDeviceWindow;

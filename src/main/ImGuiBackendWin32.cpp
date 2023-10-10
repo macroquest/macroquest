@@ -976,7 +976,7 @@ static void ImGui_ImplWin32_OnChangedViewport(ImGuiViewport* viewport)
 
 static LRESULT CALLBACK ImGui_ImplWin32_WndProcHandler_PlatformWindow(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	if (ImGuiManager_HandleWndProc(msg, wParam, lParam))
+	if (ImGuiManager_HandleWndProc(hWnd, msg, wParam, lParam))
 		return true;
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
 		return true;

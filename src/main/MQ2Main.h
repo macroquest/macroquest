@@ -94,15 +94,6 @@ MQLIB_API void SetOverlayEnabled(bool visible);
 MQLIB_API bool IsOverlayEnabled();
 MQLIB_API void ResetOverlay();
 
-struct MQRenderCallbacks
-{
-	fMQCreateDeviceObjects CreateDeviceObjects = nullptr;
-	fMQInvalidateDeviceObjects InvalidateDeviceObjects = nullptr;
-	fMQGraphicsSceneRender GraphicsSceneRender = nullptr;
-};
-MQLIB_API int AddRenderCallbacks(const MQRenderCallbacks& callbacks);
-MQLIB_API void RemoveRenderCallbacks(uint32_t id);
-
 using fPanelDrawFunction = void(*)();
 MQLIB_API void AddSettingsPanel(const char* name, fPanelDrawFunction drawFunction);
 MQLIB_API void RemoveSettingsPanel(const char* name);
@@ -834,6 +825,8 @@ inline DEPRECATE("Use GetMembershipLevel instead of GetSubscriptionLevel") int G
 #include "mq/api/Achievements.h"
 #include "mq/api/MacroAPI.h"
 #include "mq/api/Spells.h"
+
+#include "GraphicsEngine.h"  // TODO: Move exports to mq/api header
 
 #if __has_include("../private/MQ2Main-private.h")
 #include "../private/MQ2Main-private.h"
