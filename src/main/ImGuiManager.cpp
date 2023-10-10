@@ -762,7 +762,7 @@ void ImGuiManager_OverlaySettings()
 	if (ImGui::Checkbox("Enable Viewports", &gbEnableImGuiViewports))
 	{
 		WritePrivateProfileBool("Overlay", "EnableViewports", gbEnableImGuiViewports, mq::internal_paths::MQini);
-		engine::ResetOverlay();
+		ResetOverlay();
 	}
 
 	ImGui::SameLine();
@@ -801,7 +801,7 @@ void ImGuiManager_OverlaySettings()
 	if (ImGui::Button("Clear Saved ImGui Window Settings"))
 	{
 		s_deferredClearSettings = true;
-		engine::ResetOverlay();
+		ResetOverlay();
 	}
 }
 
@@ -826,7 +826,7 @@ void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 
 	if (ci_equals(szArg, "reload"))
 	{
-		engine::ResetOverlay();
+		ResetOverlay();
 	}
 	else if (ci_equals(szArg, "resume"))
 	{

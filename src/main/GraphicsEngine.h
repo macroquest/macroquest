@@ -202,8 +202,6 @@ void Shutdown();
 void ImGuiRenderDebug_UpdateImGui();
 void OnUpdateFrame();
 
-void ResetOverlay();
-
 } // namespace engine
 
 //============================================================================
@@ -226,8 +224,11 @@ public:
 
 /* OVERLAY GLOBALS */
 MQLIB_VAR IDirect3DDevice9* gpD3D9Device;
+MQLIB_VAR bool gbDeviceAcquired;
 
 MQLIB_API int AddRenderCallbacks(const MQRenderCallbacks& callbacks);
 MQLIB_API void RemoveRenderCallbacks(int id);
+
+MQLIB_API void ResetOverlay();
 
 } // namespace mq

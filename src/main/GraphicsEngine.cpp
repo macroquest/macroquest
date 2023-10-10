@@ -32,6 +32,7 @@ static MQGraphicsEngine* s_gfxEngine = nullptr;
 
 static bool s_enableImGuiDocking = true;
 bool gbEnableImGuiViewports = false;
+bool gbDeviceAcquired = false;
 
 //============================================================================
 //============================================================================
@@ -388,6 +389,7 @@ void MQGraphicsEngine::InvalidateDeviceObjects()
 	SPDLOG_DEBUG("MQGraphicsEngine: InvalidateDeviceObjects");
 
 	m_deviceAcquired = false;
+	gbDeviceAcquired = false;
 
 	InvalidateDeviceObjects_Internal();
 
@@ -405,6 +407,8 @@ void MQGraphicsEngine::CreateDeviceObjects()
 	SPDLOG_DEBUG("MQGraphicsEngine: CreateDeviceObjects");
 
 	m_deviceAcquired = true;
+	gbDeviceAcquired = true;
+
 	CreateDeviceObjects_Internal();
 
 	for (const auto& pCallbacks : s_renderCallbacks)
@@ -506,6 +510,7 @@ void MQGraphicsEngine::ShutdownOverlay_Internal()
 	m_initializationFailed = false;
 	m_retryHooks = false;
 	m_deviceAcquired = false;
+	gbDeviceAcquired = false;
 
 	s_flushNextMouse = false;
 }
@@ -520,7 +525,6 @@ void MQGraphicsEngine::RestartOverlay()
 	if (m_deviceAcquired)
 	{
 		InvalidateDeviceObjects();
-		m_deviceAcquired = false;
 	}
 
 	ShutdownImGui();
@@ -617,15 +621,8 @@ void engine::Shutdown()
 
 void engine::OnUpdateFrame()
 {
-	if (!s_gfxEngine) {
-		s_gfxEngine->OnUpdateFrame();
-	}
-}
-
-void engine::ResetOverlay()
-{
 	if (s_gfxEngine) {
-		s_gfxEngine->ResetOverlay();
+		s_gfxEngine->OnUpdateFrame();
 	}
 }
 
@@ -633,6 +630,13 @@ void engine::ImGuiRenderDebug_UpdateImGui()
 {
 	if (s_gfxEngine) {
 		s_gfxEngine->ImGuiRenderDebug_UpdateImGui();
+	}
+}
+
+void ResetOverlay()
+{
+	if (s_gfxEngine) {
+		s_gfxEngine->ResetOverlay();
 	}
 }
 

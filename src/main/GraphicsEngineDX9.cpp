@@ -502,14 +502,14 @@ MQGraphicsEngineDX9::~MQGraphicsEngineDX9()
 
 void MQGraphicsEngineDX9::Initialize()
 {
+	MQGraphicsEngine::Initialize();
+
 	m_renderDebug = new ImGuiRenderDebugDX9();
 	m_renderDebugCallbacksId = AddRenderCallbacks({
 		[this]() { m_renderDebug->CreateObjects(); },
 		[this]() { m_renderDebug->InvalidateObjects(); },
 		[this]() { m_renderDebug->Render(); }
 	});
-
-	MQGraphicsEngine::Initialize();
 }
 
 void MQGraphicsEngineDX9::Shutdown()
@@ -520,7 +520,7 @@ void MQGraphicsEngineDX9::Shutdown()
 	delete m_renderDebug;
 	m_renderDebug = nullptr;
 
-	ImGui_ImplDX9_Shutdown();
+	MQGraphicsEngine::Shutdown();
 }
 
 //----------------------------------------------------------------------------
@@ -557,8 +557,6 @@ void MQGraphicsEngineDX9::InvalidateDeviceObjects_Internal()
 void MQGraphicsEngineDX9::CreateDeviceObjects_Internal()
 {
 	m_imguiReady = ImGui_ImplDX9_CreateDeviceObjects();
-
-	MQGraphicsEngine::CreateDeviceObjects();
 }
 
 void MQGraphicsEngineDX9::UpdateScene_Internal()
