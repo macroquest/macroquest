@@ -14,7 +14,7 @@
 
 #include "pch.h"
 
-//#if HAS_DIRECTX_9
+#if HAS_DIRECTX_9
 
 #include "GraphicsEngine.h"
 #include "ImGuiBackend.h"
@@ -53,6 +53,9 @@ public:
 
 	virtual OverlayHookStatus InitializeOverlayHooks() override;
 	virtual void ImGuiRenderDebug_UpdateImGui() override;
+
+	virtual void ImGui_DrawFrame() override;
+	virtual void ImGui_RenderDrawData() override;
 
 	// Install hooks on actual instance of the device once we have it.
 	bool DetectResetDeviceHook(void* thisPtr);
@@ -108,6 +111,7 @@ public:
 	{
 		// Whenever a BeginScene occurs, we know that this is the device we want to use.
 		gpD3D9Device = GetThisDevice();
+		gpGraphicsDevice = gpD3D9Device;
 		s_numBeginSceneCalls++;
 
 		return BeginScene_Trampoline();
@@ -206,7 +210,7 @@ HRESULT MQGraphicsEngineDX9::EndScene_Hook(RendererDX9Hooks* hooks)
 				{
 					SPDLOG_INFO("IDirect3DDevice9::EndScene: TestCooperativeLevel was successful, reacquiring device.");
 
-					InitializeImGui();
+					ImGui_Initialize();
 
 					if (DetectResetDeviceHook(hooks))
 					{
@@ -543,6 +547,7 @@ void MQGraphicsEngineDX9::ShutdownImGui_Internal()
 	ImGui_ImplDX9_Shutdown();
 
 	gpD3D9Device = nullptr;
+	gpGraphicsDevice = nullptr;
 	gResetDeviceAddress = 0;
 }
 
@@ -725,6 +730,26 @@ MQGraphicsEngine* CreateRendererDX9()
 	return new MQGraphicsEngineDX9();
 }
 
+void MQGraphicsEngineDX9::ImGui_DrawFrame()
+{
+	IDirect3DStateBlock9* stateBlock = nullptr;
+	gpD3D9Device->CreateStateBlock(D3DSBT_ALL, &stateBlock);
+
+	// Prepare the new frame
+	ImGui_ImplDX9_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+
+	MQGraphicsEngine::ImGui_DrawFrame();
+
+	stateBlock->Apply();
+	stateBlock->Release();
+}
+
+void MQGraphicsEngineDX9::ImGui_RenderDrawData()
+{
+	ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+}
+
 } // namespace mq
 
-//#endif // HAS_DIRECTX_9
+#endif // HAS_DIRECTX_9

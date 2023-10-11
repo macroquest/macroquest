@@ -21,6 +21,8 @@
 
 #include "mq/base/Detours.h"
 
+#include <cfenv>
+
 namespace mq {
 
 //============================================================================
@@ -29,6 +31,7 @@ static bool s_flushNextMouse = false;
 
 // Pointer to our MQ graphics engine
 static MQGraphicsEngine* s_gfxEngine = nullptr;
+MQGraphicsDevice* gpGraphicsDevice = nullptr;;
 
 static bool s_enableImGuiDocking = true;
 bool gbEnableImGuiViewports = false;
@@ -443,10 +446,47 @@ void MQGraphicsEngine::PostUpdateScene()
 {
 	if (m_deviceAcquired && m_imguiReady && !m_needResetOverlay)
 	{
-		if (gGameState != GAMESTATE_LOGGINGIN)
+		if (gGameState != GAMESTATE_LOGGINGIN && gbRenderImGui)
 		{
-			ImGuiManager_DrawFrame();
+			// we can't expect that the rounding mode is valid, and imgui respects the rounding mode so set
+			// it here and ensure that we reset it before the return
+			auto round = fegetround();
+			fesetround(FE_TONEAREST);
+
+			ImGui_DrawFrame();
+
+			fesetround(round);
 		}
+	}
+}
+
+void MQGraphicsEngine::ImGui_DrawFrame()
+{
+	try
+	{
+		ImGui::NewFrame();
+
+		ImGuiManager_DrawFrame();
+
+		// Render the ui
+		ImGui::Render();
+		ImGui_RenderDrawData();
+
+		ImGui::UpdatePlatformWindows();
+
+		// Update and Render additional Platform Windows
+		ImGuiIO& io = ImGui::GetIO();
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			ImGui::RenderPlatformWindowsDefault();
+		}
+	}
+	catch (const ImGuiException& ex)
+	{
+		gbManualResetRequired = true;
+
+		WriteChatf("\arImGui Critical Failure: %s", ex.what());
+		WriteChatf("\arPlugin ImGui has been temporarily paused. To resume imgui, run: \ay/mqoverlay resume\ar");
 	}
 }
 
@@ -505,7 +545,7 @@ void MQGraphicsEngine::ShutdownOverlay_Internal()
 	m_deviceHooksInstalled = false;
 	m_hooks.clear();
 
-	ShutdownImGui();
+	ImGui_Shutdown();
 
 	m_initializationFailed = false;
 	m_retryHooks = false;
@@ -527,11 +567,11 @@ void MQGraphicsEngine::RestartOverlay()
 		InvalidateDeviceObjects();
 	}
 
-	ShutdownImGui();
+	ImGui_Shutdown();
 	ImGuiManager_ReloadContext();
 }
 
-void MQGraphicsEngine::InitializeImGui()
+void MQGraphicsEngine::ImGui_Initialize()
 {
 	if (m_imguiInitialized)
 		return;
@@ -548,7 +588,7 @@ void MQGraphicsEngine::InitializeImGui()
 	m_imguiInitialized = true;
 }
 
-void MQGraphicsEngine::ShutdownImGui()
+void MQGraphicsEngine::ImGui_Shutdown()
 {
 	if (!m_imguiInitialized)
 		return;
@@ -590,8 +630,8 @@ void engine::Initialize()
 
 	EzDetour(C2DPrimitiveManager__AddCachedText, &C2DPrimitiveManager_Hook::AddCachedText_Detour, &C2DPrimitiveManager_Hook::AddCachedText_Trampoline);
 
-#if HAS_DIRECTX_11 && 0
-	s_gfxEngine = new MQRendererDX11();
+#if HAS_DIRECTX_11
+	s_gfxEngine = CreateRendererDX11();
 #else
 	s_gfxEngine = CreateRendererDX9();
 #endif

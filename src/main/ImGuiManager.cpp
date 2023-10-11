@@ -32,8 +32,6 @@
 #include <mq/base/WString.h>
 #include <mq/utils/Benchmarks.h>
 
-#include <cfenv>
-
 namespace ImGui
 {
 	// https://github.com/forrestthewoods/lib_fts
@@ -542,106 +540,60 @@ void UpdateImGuiDebugInfo()
 
 void ImGuiManager_DrawFrame()
 {
-	if (!gbRenderImGui)
-		return;
+	MQScopedBenchmark bm1(bmUpdateImGui);
+	DoImGuiUpdateInternal();
 
-	// we can't expect that the rounding mode is valid, and imgui respects the rounding mode so set it here and ensure that we reset it before the return
-	auto round = fegetround();
-	fesetround(FE_TONEAREST);
-
-	IDirect3DStateBlock9* stateBlock = nullptr;
-	gpD3D9Device->CreateStateBlock(D3DSBT_ALL, &stateBlock);
-
-	// Prepare the new frame
-	ImGui_ImplDX9_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-
-	try
+	// Plugins will get disabled if an error occurs.
+	if (!gbManualResetRequired)
 	{
-		ImGui::NewFrame();
+		MQScopedBenchmark bm2(bmPluginsUpdateImGui);
+		PluginsUpdateImGui();
+	}
+	else
+	{
+		ImGuiViewport* mainViewport = ImGui::GetMainViewport();
+		ImVec2 pos = ImVec2(mainViewport->Size.x / 2 - 180, 60);
+		ImVec2 size = ImVec2(360, 120);
+
+		ImGui::SetNextWindowPos(pos, ImGuiCond_Appearing);
+		ImGui::SetNextWindowSize(size, ImGuiCond_Appearing);
+
+		ImGui::Begin("MQOverlay Paused", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
+
+		float windowWidth = ImGui::GetWindowSize().x;
 
 		{
-			MQScopedBenchmark bm1(bmUpdateImGui);
-			DoImGuiUpdateInternal();
+			const char* message = "The Overlay is paused due to an ImGui error.";
+			float textWidth = ImGui::CalcTextSize(message).x;
 
-			// Plugins will get disabled if an error occurs.
-			if (!gbManualResetRequired)
-			{
-				MQScopedBenchmark bm2(bmPluginsUpdateImGui);
-				PluginsUpdateImGui();
-			}
-			else
-			{
-				ImGuiViewport* mainViewport = ImGui::GetMainViewport();
-				ImVec2 pos = ImVec2(mainViewport->Size.x / 2 - 180, 60);
-				ImVec2 size = ImVec2(360, 120);
-
-				ImGui::SetNextWindowPos(pos, ImGuiCond_Appearing);
-				ImGui::SetNextWindowSize(size, ImGuiCond_Appearing);
-
-				ImGui::Begin("MQOverlay Paused", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
-
-				float windowWidth = ImGui::GetWindowSize().x;
-
-				{
-					const char* message = "The Overlay is paused due to an ImGui error.";
-					float textWidth = ImGui::CalcTextSize(message).x;
-
-					ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
-					ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), message);
-				}
-
-				{
-					const char* message = "Please fix the problem before resuming.";
-					float textWidth = ImGui::CalcTextSize(message).x;
-
-					ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
-					ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), message);
-				}
-
-				ImGui::NewLine();
-
-				{
-					ImGui::SetCursorPosX((windowWidth - 160) * .5f);
-
-					if (ImGui::Button("Resume Overlay", ImVec2(160, 0)))
-						gbManualResetRequired = false;
-				}
-
-				ImGui::End();
-			}
-
-			if (s_bOverlayDebug)
-			{
-				UpdateImGuiDebugInfo();
-			}
+			ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+			ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), message);
 		}
 
-		// Render the ui
-		ImGui::Render();
-		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
-
-		ImGui::UpdatePlatformWindows();
-
-		// Update and Render additional Platform Windows
-		ImGuiIO& io = ImGui::GetIO();
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
-			ImGui::RenderPlatformWindowsDefault();
+			const char* message = "Please fix the problem before resuming.";
+			float textWidth = ImGui::CalcTextSize(message).x;
+
+			ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+			ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), message);
 		}
+
+		ImGui::NewLine();
+
+		{
+			ImGui::SetCursorPosX((windowWidth - 160) * .5f);
+
+			if (ImGui::Button("Resume Overlay", ImVec2(160, 0)))
+				gbManualResetRequired = false;
+		}
+
+		ImGui::End();
 	}
-	catch (const ImGuiException& ex)
+
+	if (s_bOverlayDebug)
 	{
-		gbManualResetRequired = true;
-
-		WriteChatf("\arImGui Critical Failure: %s", ex.what());
-		WriteChatf("\arPlugin ImGui has been temporarily paused. To resume imgui, run: \ay/mqoverlay resume\ar");
+		UpdateImGuiDebugInfo();
 	}
-
-	stateBlock->Apply();
-	stateBlock->Release();
-
-	fesetround(round);
 }
 
 bool ImGuiManager_HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wParam, intptr_t lParam)

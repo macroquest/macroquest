@@ -112,9 +112,6 @@ public:
 	void ResetOverlay() { m_needResetOverlay = true; }
 
 protected:
-	void InitializeImGui();
-	void ShutdownImGui();
-
 	virtual void InitializeImGui_Internal() {}
 	virtual void ShutdownImGui_Internal() {}
 	virtual void InvalidateDeviceObjects_Internal() {}
@@ -124,6 +121,11 @@ protected:
 	virtual void OnUpdateFrame_Internal() {}
 
 	virtual bool IsFullScreen() const = 0;
+
+	void ImGui_Initialize();
+	void ImGui_Shutdown();
+	virtual void ImGui_DrawFrame();
+	virtual void ImGui_RenderDrawData() {}
 
 private:
 	virtual void InitializeOverlay_Internal();
@@ -169,27 +171,15 @@ private:
 
 MQGraphicsEngine* CreateRendererDX9();
 
+using MQGraphicsDevice = IDirect3DDevice9;
+
 #endif // HAS_DIRECTX_9
 
 #if HAS_DIRECTX_11
 
-//class MQRendererDX11 : public MQGraphicsEngine
-//{
-//public:
-//	using MQD3DDevice = ID3D11Device;
-//
-//	MQRendererDX11();
-//
-//	virtual void Initialize() override;
-//	virtual void Shutdown() override;
-//
-//	virtual void InvalidateDeviceObjects() override;
-//	virtual void CreateDeviceObjects() override;
-//	virtual void UpdateScene() override;
-//	virtual void PostUpdateScene() override;
-//	virtual void OnUpdateFrame() override;
-//	virtual OverlayHookStatus InitializeOverlayHooks() override;
-//};
+MQGraphicsEngine* CreateRendererDX11();
+
+using MQGraphicsDevice = ID3D11Device;
 
 #endif // HAS_DIRECTX_11
 
@@ -223,7 +213,15 @@ public:
 // Exports
 
 /* OVERLAY GLOBALS */
+
+#if HAS_DIRECTX_9
 MQLIB_VAR IDirect3DDevice9* gpD3D9Device;
+#endif
+#if HAS_DIRECTX_11
+MQLIB_VAR ID3D11Device* gpD3D11Device;
+#endif
+
+MQLIB_VAR MQGraphicsDevice* gpGraphicsDevice;
 MQLIB_VAR bool gbDeviceAcquired;
 
 MQLIB_API int AddRenderCallbacks(const MQRenderCallbacks& callbacks);
