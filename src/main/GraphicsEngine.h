@@ -179,7 +179,7 @@ using MQGraphicsDevice = IDirect3DDevice9;
 
 MQGraphicsEngine* CreateRendererDX11();
 
-using MQGraphicsDevice = ID3D11Device;
+using MQGraphicsDevice = IDXGISwapChain;
 
 #endif // HAS_DIRECTX_11
 
@@ -218,7 +218,7 @@ public:
 MQLIB_VAR IDirect3DDevice9* gpD3D9Device;
 #endif
 #if HAS_DIRECTX_11
-MQLIB_VAR ID3D11Device* gpD3D11Device;
+MQLIB_VAR IDXGISwapChain* gpDXGISwapChain;
 #endif
 
 MQLIB_VAR MQGraphicsDevice* gpGraphicsDevice;

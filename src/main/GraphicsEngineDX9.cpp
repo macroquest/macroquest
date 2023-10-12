@@ -13,6 +13,7 @@
  */
 
 #include "pch.h"
+#include "eqlib/BuildType.h"
 
 #if HAS_DIRECTX_9
 
@@ -43,8 +44,6 @@ class RendererDX9Hooks;
 class MQGraphicsEngineDX9 : public MQGraphicsEngine
 {
 public:
-	using MQD3DDevice = IDirect3DDevice9;
-
 	MQGraphicsEngineDX9();
 	~MQGraphicsEngineDX9();
 
@@ -246,6 +245,8 @@ HRESULT MQGraphicsEngineDX9::EndScene_Hook(RendererDX9Hooks* hooks)
 }
 
 //============================================================================
+
+#pragma region Render Debugger
 
 class ImGuiRenderDebugDX9
 {
@@ -492,6 +493,8 @@ public:
 	}
 };
 
+#pragma endregion
+
 //============================================================================
 
 MQGraphicsEngineDX9::MQGraphicsEngineDX9()
@@ -566,6 +569,9 @@ void MQGraphicsEngineDX9::CreateDeviceObjects_Internal()
 
 void MQGraphicsEngineDX9::UpdateScene_Internal()
 {
+	if (s_renderCallbacks.empty())
+		return;
+
 	// Perform the render within a stateblock so we don't upset the rest
 	// of the rendering pipeline
 	wil::com_ptr_nothrow<IDirect3DStateBlock9> stateBlock;

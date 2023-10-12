@@ -448,14 +448,7 @@ void MQGraphicsEngine::PostUpdateScene()
 	{
 		if (gGameState != GAMESTATE_LOGGINGIN && gbRenderImGui)
 		{
-			// we can't expect that the rounding mode is valid, and imgui respects the rounding mode so set
-			// it here and ensure that we reset it before the return
-			auto round = fegetround();
-			fesetround(FE_TONEAREST);
-
 			ImGui_DrawFrame();
-
-			fesetround(round);
 		}
 	}
 }

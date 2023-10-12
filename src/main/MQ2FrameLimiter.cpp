@@ -606,6 +606,7 @@ public:
 		{
 			m_resetOnNextPulse = false;
 
+#if HAS_DIRECTX_9
 			if (gpD3D9Device)
 			{
 				IDirect3DSwapChain9* pSwapChain = nullptr;
@@ -618,6 +619,7 @@ public:
 					gpD3D9Device->Reset(&params);
 				}
 			}
+#endif
 		}
 
 		bool updateForeground = mq::test_and_set(m_lastInForeground, gbInForeground || ImGui_IsImGuiForeground());
@@ -870,6 +872,7 @@ private:
 
 	void RenderImGuiScene()
 	{
+#if HAS_DIRECTX_9
 		// This is pretty simple. We just begin/end scene with error checking as appropriate.
 		if (!gpD3D9Device)
 			return; // ???
@@ -894,6 +897,7 @@ private:
 		// Draw Hud
 		gpD3D9Device->EndScene();
 		gpD3D9Device->Present(nullptr, nullptr, nullptr, nullptr);
+#endif
 	}
 
 	// settings
