@@ -2330,9 +2330,12 @@ public:
 		}
 
 #if HAS_GAMEFACE_UI
-		if (string_equals(m_window->GetWndClassName(), "GFScreenWnd"))
+		if (GetGameState() != GAMESTATE_PRECHARSELECT)
 		{
-			DisplayCGFScreenWndProperties(static_cast<CGFScreenWnd*>(m_window));
+			if (string_equals(m_window->GetWndClassName(), "GFScreenWnd"))
+			{
+				DisplayCGFScreenWndProperties(static_cast<CGFScreenWnd*>(m_window));
+			}
 		}
 #endif
 
