@@ -31,7 +31,7 @@ static bool s_flushNextMouse = false;
 
 // Pointer to our MQ graphics engine
 static MQGraphicsEngine* s_gfxEngine = nullptr;
-MQGraphicsDevice* gpGraphicsDevice = nullptr;;
+eqlib::Direct3DDevice9* gpD3D9Device = nullptr;
 
 static bool s_enableImGuiDocking = true;
 bool gbEnableImGuiViewports = false;

@@ -29,8 +29,6 @@ struct CaseInsensitiveLess
 	}
 };
 
-struct IDirect3DDevice9;
-
 // Probably move these to eqlib but for now these are all contained within MQ
 #if defined(EMULATOR)
 #define HAS_CHAT_TIMESTAMPS 1

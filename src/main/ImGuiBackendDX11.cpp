@@ -13,6 +13,9 @@
  */
 
 #include "pch.h"
+#include "eqlib/BuildType.h"
+
+#if HAS_DIRECTX_11
 
 #include "ImGuiBackend.h"
 #include "ImGuiManager.h"
@@ -760,3 +763,5 @@ static void ImGui_ImplDX11_ShutdownPlatformInterface()
 }
 
 } // namespace mq
+
+#endif // HAS_DIRECTX_11

@@ -24,11 +24,17 @@
 #include <wil/com.h>
 #include <cfenv>
 
+#pragma comment(lib, "d3d9")
+#ifdef _DEBUG
+#pragma comment(lib, "d3dx9d")
+#else
+#pragma comment(lib, "d3dx9")
+#endif
+
 namespace mq {
 
 // The global direct 3d device that we are using. This belongs to EQ, so we
 // need to hook into it to understand when states change.
-IDirect3DDevice9* gpD3D9Device = nullptr;
 
 //============================================================================
 
@@ -110,7 +116,6 @@ public:
 	{
 		// Whenever a BeginScene occurs, we know that this is the device we want to use.
 		gpD3D9Device = GetThisDevice();
-		gpGraphicsDevice = gpD3D9Device;
 		s_numBeginSceneCalls++;
 
 		return BeginScene_Trampoline();
@@ -550,7 +555,6 @@ void MQGraphicsEngineDX9::ShutdownImGui_Internal()
 	ImGui_ImplDX9_Shutdown();
 
 	gpD3D9Device = nullptr;
-	gpGraphicsDevice = nullptr;
 	gResetDeviceAddress = 0;
 }
 

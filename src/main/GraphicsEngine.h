@@ -171,15 +171,11 @@ private:
 
 MQGraphicsEngine* CreateRendererDX9();
 
-using MQGraphicsDevice = IDirect3DDevice9;
-
 #endif // HAS_DIRECTX_9
 
 #if HAS_DIRECTX_11
 
 MQGraphicsEngine* CreateRendererDX11();
-
-using MQGraphicsDevice = IDXGISwapChain;
 
 #endif // HAS_DIRECTX_11
 
@@ -214,14 +210,12 @@ public:
 
 /* OVERLAY GLOBALS */
 
-#if HAS_DIRECTX_9
-MQLIB_VAR IDirect3DDevice9* gpD3D9Device;
-#endif
+MQLIB_VAR eqlib::Direct3DDevice9* gpD3D9Device;
+
 #if HAS_DIRECTX_11
 MQLIB_VAR IDXGISwapChain* gpDXGISwapChain;
 #endif
 
-MQLIB_VAR MQGraphicsDevice* gpGraphicsDevice;
 MQLIB_VAR bool gbDeviceAcquired;
 
 MQLIB_API int AddRenderCallbacks(const MQRenderCallbacks& callbacks);

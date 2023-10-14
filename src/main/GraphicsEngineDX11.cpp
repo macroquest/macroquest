@@ -415,6 +415,18 @@ OverlayHookStatus MQGraphicsEngineDX11::InitializeOverlayHooks()
 	return !m_deviceAcquired ? OverlayHookStatus::MissingDevice : OverlayHookStatus::Success;
 }
 
+static Direct3DDevice9* GetDeviceFromEQ()
+{
+	Direct3DDevice9* pDevice = nullptr;
+
+	if (pGraphicsEngine && pGraphicsEngine->pRender && pGraphicsEngine->pRender->pD3DDevice)
+	{
+		return pGraphicsEngine->pRender->pD3DDevice;
+	}
+
+	return nullptr;
+}
+
 void MQGraphicsEngineDX11::AcquireDevice(IDXGISwapChain* SwapChain)
 {
 	if (SwapChain == m_swapChain)
@@ -438,7 +450,8 @@ void MQGraphicsEngineDX11::AcquireDevice(IDXGISwapChain* SwapChain)
 			m_device->GetImmediateContext(&m_deviceContext);
 			m_swapChain = SwapChain;
 			gpDXGISwapChain = SwapChain;
-			gpGraphicsDevice = SwapChain;
+			gpD3D9Device = GetDeviceFromEQ();
+
 			m_deviceAcquired = true;
 
 			SPDLOG_INFO("MQGraphicsEngineDX11::AcquireDevice: Device acquired.");
@@ -472,7 +485,7 @@ void MQGraphicsEngineDX11::OnDeviceLost(IDXGISwapChain* SwapChain)
 		m_deviceContext.reset();
 
 		gpDXGISwapChain = nullptr;
-		gpGraphicsDevice = nullptr;
+		gpD3D9Device = nullptr;
 
 		m_deviceAcquired = false;
 	}
