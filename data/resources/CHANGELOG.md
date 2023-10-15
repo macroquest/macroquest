@@ -1,14 +1,22 @@
+Oct 14, 2023:
+- test: updated for latest patch
+- Added DX11 support and re-enabled the ImGui overlay. Nav rendering is still disabled.
+
 Sep 25, 2023:
 - live: Update eqlib, should fix reading some game options. (#755, #756)
 
 Sep 21, 2023:
-- live: Fix crash in CDragonHoardWnd and CBarterSearchWnd.
+- Fix crash in CDragonHoardWnd and CBarterSearchWnd.
+- test: Fix crash in GetMembershipLevel
 
 Sep 20, 2023:
 - live: updated for latest patch
 - Fixed calculation of HasSPA, which should fix some properties such as Me.Silenced (#739)
 - Expand the coverage of game feature and claim data (developer tools)
 - Lifetime All-access should now appear as GOLD in ${Me.Subscription} instead of UNKNOWN
+
+Aug 26, 2023:
+- test: updated for latest patch
 
 Aug 24, 2023:
 - live: updated for latest patch

@@ -15,7 +15,7 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
-#include <d3dx9math.h>
+#include <DirectXMath.h>
 
 namespace mq {
 
@@ -522,61 +522,68 @@ void MouseTo(SPAWNINFO* pChar, char* szLine)
 	DebugSpew("Help invoked or Bad MouseTo command: %s", szLine);
 }
 
-D3DXVECTOR3 g_vWorldLocation;
-D3DVIEWPORT9 g_viewPort;
-D3DXMATRIX g_projection, g_view, g_world;
 
-// ok now the function that use all the stuff above
 bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick)
 {
-	if (pPlayer)
+	if (!gpD3D9Device || !pPlayer)
 	{
-		if (g_pDrawHandler)
-		{
-			g_vWorldLocation.x = pPlayer->Y;
-			g_vWorldLocation.y = pPlayer->X;
-			g_vWorldLocation.z = pPlayer->Z; // smack in the middle...
-
-			if (position == 1)
-			{
-				// head
-				g_vWorldLocation.z = pPlayer->FloorHeight + pPlayer->AvatarHeight;
-			}
-
-			if (position == 2)
-			{
-				// feet
-				g_vWorldLocation.z = pPlayer->FloorHeight;
-			}
-
-			IDirect3DDevice9* pDevice = g_pDrawHandler->pD3DDevice;
-
-			D3DXVECTOR3 v3ScreenCoord;
-			pDevice->GetTransform(D3DTS_VIEW, &g_view);
-			pDevice->GetTransform(D3DTS_PROJECTION, &g_projection);
-			pDevice->GetTransform(D3DTS_WORLD, &g_world);
-			pDevice->GetViewport(&g_viewPort);
-
-			D3DXVec3Project(&v3ScreenCoord, &g_vWorldLocation, &g_viewPort, &g_projection, &g_view, &g_world);
-
-			if (v3ScreenCoord.z >= 1)
-			{
-				WriteChatf("%s is not within view %.2f", pPlayer->DisplayedName, v3ScreenCoord.z);
-				return false;
-			}
-
-			WriteChatf("%s is at %.2f, %.2f, %.2f before adjustment", pPlayer->DisplayedName, v3ScreenCoord.x, v3ScreenCoord.y, v3ScreenCoord.z);
-
-			int x = (int)v3ScreenCoord.x;
-			int y = (int)v3ScreenCoord.y;
-
-			MoveMouse(x, y, bClick);
-			WriteChatf("%s is at %d, %d, %.2f after adjustment and mouse is at %d, %d",
-				pPlayer->DisplayedName, x, y, v3ScreenCoord.z, EQADDR_MOUSE->X, EQADDR_MOUSE->Y);
-		}
+		return false;
 	}
 
-	return false;
+	DirectX::XMVECTOR worldLocation;
+
+	if (position == 1)
+	{
+		// head
+		worldLocation = DirectX::XMVectorSet(pPlayer->Y, pPlayer->X, pPlayer->FloorHeight + pPlayer->AvatarHeight, 0);
+	}
+	else if (position == 2)
+	{
+		// feet
+		worldLocation = DirectX::XMVectorSet(pPlayer->Y, pPlayer->X, pPlayer->FloorHeight, 0);
+	}
+	else
+	{
+		worldLocation = DirectX::XMVectorSet(pPlayer->Y, pPlayer->X, pPlayer->Z, 0);
+	}
+
+	eqlib::Direct3DDevice9* pDevice = g_pDrawHandler->pD3DDevice;
+
+	D3DVIEWPORT9 viewport;
+	pDevice->GetViewport(&viewport);
+
+	D3DMATRIX mtxProj;
+	pDevice->GetTransform(D3DTS_PROJECTION, &mtxProj);
+	DirectX::FXMMATRIX projection = XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&mtxProj));
+
+	D3DMATRIX mtxView;
+	pDevice->GetTransform(D3DTS_VIEW, &mtxView);
+	DirectX::CXMMATRIX view = XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&mtxView));
+
+	D3DMATRIX mtxWorld;
+	pDevice->GetTransform(D3DTS_WORLD, &mtxWorld);
+	DirectX::CXMMATRIX world = XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&mtxWorld));
+
+	DirectX::XMVECTOR v3ScreenCoord = DirectX::XMVector3Project(worldLocation,
+		(float)viewport.X, (float)viewport.Y, (float)viewport.Width, (float)viewport.Height, viewport.MinZ, viewport.MaxZ,
+		projection, view, world);
+
+	int x = DirectX::XMVectorGetIntX(v3ScreenCoord);
+	int y = DirectX::XMVectorGetIntY(v3ScreenCoord);
+	int z = DirectX::XMVectorGetIntZ(v3ScreenCoord);
+	if (z >= 1)
+	{
+		WriteChatf("%s is not within view %.2f", pPlayer->DisplayedName, z);
+		return false;
+	}
+
+	WriteChatf("%s is at %.2f, %.2f, %.2f before adjustment", pPlayer->DisplayedName, x, y, z);
+
+	MoveMouse(x, y, bClick);
+	WriteChatf("%s is at %d, %d, %.2f after adjustment and mouse is at %d, %d",
+		pPlayer->DisplayedName, x, y, z, EQADDR_MOUSE->X, EQADDR_MOUSE->Y);
+
+	return true;
 }
 
 } // namespace mq

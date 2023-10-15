@@ -52,8 +52,10 @@ bool DrawUITexture(const CUITextureInfo& textureInfo, const CXRect& rect/* = CXR
 	if (!pEQGBitmap)
 		return false;
 
-	if (pEQGBitmap->pD3DTexture == nullptr)
+	ImTextureID TexID = (ImTextureID)pEQGBitmap->GetTexture();
+	if (TexID == nullptr)
 		return false;
+
 
 	ImVec2 minUV = ImVec2(0, 0);
 	ImVec2 maxUV = ImVec2(1, 1);
@@ -78,7 +80,7 @@ bool DrawUITexture(const CUITextureInfo& textureInfo, const CXRect& rect/* = CXR
 	}
 
 	ImGui::Image(
-		(ImTextureID)pEQGBitmap->pD3DTexture, imageSize,
+		TexID, imageSize,
 		minUV, maxUV,
 		ImVec4(1, 1, 1, 1),
 		drawBorder ? ImVec4(1, 1, 1, 0.5f) : ImVec4()

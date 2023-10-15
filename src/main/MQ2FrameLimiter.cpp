@@ -602,6 +602,7 @@ public:
 		gCurrentFPS = static_cast<float>(1000000 / m_renderFPS.Average());
 		gCurrentCPU = static_cast<float>(m_cpuUsage.Average() / 1000.f);
 
+#if HAS_DIRECTX_9
 		if (m_resetOnNextPulse)
 		{
 			m_resetOnNextPulse = false;
@@ -619,6 +620,7 @@ public:
 				}
 			}
 		}
+#endif
 
 		bool updateForeground = mq::test_and_set(m_lastInForeground, gbInForeground || ImGui_IsImGuiForeground());
 
@@ -834,10 +836,12 @@ public:
 				"\n"
 				"NOT RECOMMENDED if you have epilepsy");
 
+#if HAS_DIRECTX_9
 			if (ImGui::Button("Reset Device"))
 			{
 				m_resetOnNextPulse = true;
 			}
+#endif
 
 			ImGui::SameLine(); mq::imgui::HelpMarker(
 				"This is meant as a debugging tool. Resetting the device should *not* crash, but "
