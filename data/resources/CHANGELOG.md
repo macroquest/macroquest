@@ -1,4 +1,6 @@
-Test has switched to DirectX 11. The overlay and other graphics related features are not available until it can be re-implemented for DX11.
+Oct 14, 2023:
+- test: updated for latest patch
+- Added DX11 support and re-enabled the ImGui overlay. Nav rendering is still disabled.
 
 Sep 28, 2023:
 - test: updated for latest patch
