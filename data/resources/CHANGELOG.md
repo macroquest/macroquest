@@ -1,3 +1,6 @@
+Oct 15, 2023:
+- Fix double input on imgui windows
+
 Oct 14, 2023:
 - test: updated for latest patch
 - Added DX11 support and re-enabled the ImGui overlay. Nav rendering is still disabled.
