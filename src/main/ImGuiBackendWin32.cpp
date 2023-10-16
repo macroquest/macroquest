@@ -978,8 +978,6 @@ static LRESULT CALLBACK ImGui_ImplWin32_WndProcHandler_PlatformWindow(HWND hWnd,
 {
 	if (ImGuiManager_HandleWndProc(hWnd, msg, wParam, lParam))
 		return true;
-	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
-		return true;
 
 	if (ImGuiViewport* viewport = ImGui::FindViewportByPlatformHandle((void*)hWnd))
 	{
