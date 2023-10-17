@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "ImGuiManager.h"
 
+#include "GraphicsEngine.h"
 #include "ImGuiBackend.h"
 #include "imgui/ImGuiUtils.h"
 #include "MQ2ImGuiTools.h"
@@ -30,8 +31,6 @@
 #include "common/HotKeys.h"
 #include <mq/base/WString.h>
 #include <mq/utils/Benchmarks.h>
-
-#include <cfenv>
 
 namespace ImGui
 {
@@ -365,11 +364,17 @@ static bool gbToggleConsoleHotkeyReady = false;
 // Critical error occurred and imgui needs to be reset
 bool gbManualResetRequired = false;
 
-extern bool gbToggleConsoleRequested;
+static ImFontAtlas* s_fontAtlas = nullptr;
 
-void InitializeMQ2Overlay();
-void ShutdownMQ2Overlay();
-void PulseMQ2Overlay();
+static char ImGuiSettingsFile[MAX_PATH] = { 0 };
+
+static bool s_deferredClearSettings = false;
+extern bool gbToggleConsoleRequested;
+extern bool gbAutoDockspaceViewport;
+extern bool gbAutoDockspacePreserveRatio;
+
+// We forward declare this so that we don't need windows.h types in the header
+LRESULT  ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 void SetOverlayEnabled(bool visible)
 {
@@ -383,14 +388,18 @@ bool IsOverlayEnabled()
 
 static void StartupOverlayComponents()
 {
-	InitializeMQ2Overlay();
+	engine::Initialize();
 	InitializeImGuiConsole();
+
+	AddSettingsPanel("Overlay", ImGuiManager_OverlaySettings);
 }
 
 static void ShutdownOverlayComponents()
 {
-	ShutdownMQ2Overlay();
+	RemoveSettingsPanel("Overlay");
+
 	ShutdownImGuiConsole();
+	engine::Shutdown();
 }
 
 void DoImGuiUpdateInternal()
@@ -507,7 +516,7 @@ void UpdateImGuiDebugInfo()
 
 			if (ImGui::BeginTabItem("Graphics", nullptr, (s_selectDebugTab == DebugTab::Graphics) ? ImGuiTabItemFlags_SetSelected : 0))
 			{
-				ImGuiRenderDebug_UpdateImGui();
+				engine::ImGuiRenderDebug_UpdateImGui();
 				ImGui::EndTabItem();
 			}
 
@@ -531,118 +540,72 @@ void UpdateImGuiDebugInfo()
 
 void ImGuiManager_DrawFrame()
 {
-	if (!gbRenderImGui)
-		return;
+	MQScopedBenchmark bm1(bmUpdateImGui);
+	DoImGuiUpdateInternal();
 
-	// we can't expect that the rounding mode is valid, and imgui respects the rounding mode so set it here and ensure that we reset it before the return
-	auto round = fegetround();
-	fesetround(FE_TONEAREST);
-
-	IDirect3DStateBlock9* stateBlock = nullptr;
-	gpD3D9Device->CreateStateBlock(D3DSBT_ALL, &stateBlock);
-
-	// Prepare the new frame
-	ImGui_ImplDX9_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-
-	try
+	// Plugins will get disabled if an error occurs.
+	if (!gbManualResetRequired)
 	{
-		ImGui::NewFrame();
+		MQScopedBenchmark bm2(bmPluginsUpdateImGui);
+		PluginsUpdateImGui();
+	}
+	else
+	{
+		ImGuiViewport* mainViewport = ImGui::GetMainViewport();
+		ImVec2 pos = ImVec2(mainViewport->Size.x / 2 - 180, 60);
+		ImVec2 size = ImVec2(360, 120);
+
+		ImGui::SetNextWindowPos(pos, ImGuiCond_Appearing);
+		ImGui::SetNextWindowSize(size, ImGuiCond_Appearing);
+
+		ImGui::Begin("MQOverlay Paused", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
+
+		float windowWidth = ImGui::GetWindowSize().x;
 
 		{
-			MQScopedBenchmark bm1(bmUpdateImGui);
-			DoImGuiUpdateInternal();
+			const char* message = "The Overlay is paused due to an ImGui error.";
+			float textWidth = ImGui::CalcTextSize(message).x;
 
-			// Plugins will get disabled if an error occurs.
-			if (!gbManualResetRequired)
-			{
-				MQScopedBenchmark bm2(bmPluginsUpdateImGui);
-				PluginsUpdateImGui();
-			}
-			else
-			{
-				ImGuiViewport* mainViewport = ImGui::GetMainViewport();
-				ImVec2 pos = ImVec2(mainViewport->Size.x / 2 - 180, 60);
-				ImVec2 size = ImVec2(360, 120);
-
-				ImGui::SetNextWindowPos(pos, ImGuiCond_Appearing);
-				ImGui::SetNextWindowSize(size, ImGuiCond_Appearing);
-
-				ImGui::Begin("MQOverlay Paused", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
-
-				float windowWidth = ImGui::GetWindowSize().x;
-
-				{
-					const char* message = "The Overlay is paused due to an ImGui error.";
-					float textWidth = ImGui::CalcTextSize(message).x;
-
-					ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
-					ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), message);
-				}
-
-				{
-					const char* message = "Please fix the problem before resuming.";
-					float textWidth = ImGui::CalcTextSize(message).x;
-
-					ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
-					ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), message);
-				}
-
-				ImGui::NewLine();
-
-				{
-					ImGui::SetCursorPosX((windowWidth - 160) * .5f);
-
-					if (ImGui::Button("Resume Overlay", ImVec2(160, 0)))
-						gbManualResetRequired = false;
-				}
-
-				ImGui::End();
-			}
-
-			if (s_bOverlayDebug)
-			{
-				UpdateImGuiDebugInfo();
-			}
+			ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+			ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), message);
 		}
 
-		// Render the ui
-		ImGui::Render();
-		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
-
-		ImGui::UpdatePlatformWindows();
-
-		// Update and Render additional Platform Windows
-		ImGuiIO& io = ImGui::GetIO();
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
-			ImGui::RenderPlatformWindowsDefault();
+			const char* message = "Please fix the problem before resuming.";
+			float textWidth = ImGui::CalcTextSize(message).x;
+
+			ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+			ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), message);
 		}
+
+		ImGui::NewLine();
+
+		{
+			ImGui::SetCursorPosX((windowWidth - 160) * .5f);
+
+			if (ImGui::Button("Resume Overlay", ImVec2(160, 0)))
+				gbManualResetRequired = false;
+		}
+
+		ImGui::End();
 	}
-	catch (const ImGuiException& ex)
+
+	if (s_bOverlayDebug)
 	{
-		gbManualResetRequired = true;
-
-		WriteChatf("\arImGui Critical Failure: %s", ex.what());
-		WriteChatf("\arPlugin ImGui has been temporarily paused. To resume imgui, run: \ay/mqoverlay resume\ar");
+		UpdateImGuiDebugInfo();
 	}
-
-	stateBlock->Apply();
-	stateBlock->Release();
-
-	fesetround(round);
 }
 
-bool ImGuiManager_HandleWndProc(uint32_t msg, uintptr_t wparam, intptr_t lparam)
+bool ImGuiManager_HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wParam, intptr_t lParam)
 {
 	if (msg == WM_KEYDOWN
 		&& gbToggleConsoleHotkeyReady)
 	{
 		// Match the vkey and modifiers
-		if (wparam == gToggleConsoleHotkey.virtualKey)
+		if (wParam == gToggleConsoleHotkey.virtualKey)
 		{
 			// Check the modifiers, don't allow repeats.
-			if ((HIWORD(lparam) & KF_REPEAT) == 0
+			if ((HIWORD(lParam) & KF_REPEAT) == 0
 				&& mq::IsHotKeyModifiersPressed(gToggleConsoleHotkey))
 			{
 				gbToggleConsoleRequested = true;
@@ -650,6 +613,9 @@ bool ImGuiManager_HandleWndProc(uint32_t msg, uintptr_t wparam, intptr_t lparam)
 			}
 		}
 	}
+
+	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
+		return true;
 
 	return false;
 }
@@ -696,6 +662,112 @@ void* ImGuiManager_GetCursorForImGui(ImGuiMouseCursor imguiCursor)
 
 	return nullptr;
 }
+
+void ImGuiManager_ReloadContext()
+{
+	if (ImGui::GetCurrentContext() != nullptr)
+	{
+		ImGui::DestroyContext();
+	}
+
+	ImGuiManager_CreateContext();
+}
+
+void ImGuiManager_CreateContext()
+{
+	if (s_fontAtlas == nullptr)
+	{
+		s_fontAtlas = new ImFontAtlas();
+
+		ImGuiManager_BuildFonts(s_fontAtlas);
+	}
+
+	// Initialize ImGui context
+	ImGui::CreateContext(s_fontAtlas);
+
+	ImGuiIO& io = ImGui::GetIO();
+
+	fmt::format_to(ImGuiSettingsFile, "{}/MacroQuest_Overlay.ini", mq::internal_paths::Config);
+
+	if (s_deferredClearSettings)
+	{
+		std::error_code ec;
+		if (std::filesystem::is_regular_file(ImGuiSettingsFile, ec))
+			std::filesystem::remove(ImGuiSettingsFile, ec);
+	}
+	io.IniFilename = &ImGuiSettingsFile[0];
+
+	ImGui::StyleColorsDark();
+	mq::imgui::ConfigureStyle();
+}
+
+void ImGuiManager_DestroyContext()
+{
+	ImGui::DestroyContext();
+
+	delete s_fontAtlas;
+	s_fontAtlas = nullptr;
+}
+
+void ImGuiManager_OverlaySettings()
+{
+	if (ImGui::Checkbox("Enable Viewports", &gbEnableImGuiViewports))
+	{
+		WritePrivateProfileBool("Overlay", "EnableViewports", gbEnableImGuiViewports, mq::internal_paths::MQini);
+		ResetOverlay();
+	}
+
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("The viewports feature allows ImGui windows to be dragged out of the window into "
+		"their own floating windows. This feature is BETA quality and has some known issues.\n"
+		"\n"
+		"Viewports are disabled when running in full screen mode.");
+
+	if (ImGui::Checkbox("Resize EverQuest viewport to fit dockspace (Experimental)", &gbAutoDockspaceViewport))
+	{
+		if (!gbAutoDockspaceViewport)
+		{
+			ImGuiManager_ResetGameViewport();
+		}
+
+		WritePrivateProfileBool("Overlay", "ResizeEQViewport", gbAutoDockspaceViewport, mq::internal_paths::MQini);
+	}
+
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("When enabled, if a window is docked to the side of the screen,\n"
+		"the EverQuest viewport will be resized to fit the available screen space");
+
+	ImGui::BeginDisabled(!gbAutoDockspaceViewport);
+	ImGui::Indent();
+	{
+		if (ImGui::Checkbox("Preserve aspect ratio", &gbAutoDockspacePreserveRatio))
+		{
+			WritePrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", gbAutoDockspacePreserveRatio, mq::internal_paths::MQini);
+		}
+	}
+	ImGui::Unindent();
+	ImGui::EndDisabled();
+
+	ImGui::NewLine();
+
+	if (ImGui::Button("Clear Saved ImGui Window Settings"))
+	{
+		s_deferredClearSettings = true;
+		ResetOverlay();
+	}
+}
+
+void ImGuiManager_ResetGameViewport()
+{
+	if (pEverQuestInfo)
+	{
+		pEverQuestInfo->Render_MinX = 0;
+		pEverQuestInfo->Render_MinY = 0;
+		pEverQuestInfo->Render_MaxX = pEverQuestInfo->ScreenXRes;
+		pEverQuestInfo->Render_MaxY = pEverQuestInfo->ScreenYRes;
+	}
+}
+
 
 //============================================================================
 
@@ -770,6 +842,16 @@ void ImGuiManager_Initialize()
 
 	gbRenderImGui = GetPrivateProfileBool("MacroQuest", "RenderImGui", gbRenderImGui, mq::internal_paths::MQini);
 	s_bOverlayDebug = GetPrivateProfileBool("MacroQuest", "OverlayDebug", s_bOverlayDebug, mq::internal_paths::MQini);
+	gbEnableImGuiViewports = GetPrivateProfileBool("Overlay", "EnableViewports", false, mq::internal_paths::MQini);
+	gbAutoDockspaceViewport = GetPrivateProfileBool("Overlay", "ResizeEQViewport", false, mq::internal_paths::MQini);
+	gbAutoDockspacePreserveRatio = GetPrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", false, mq::internal_paths::MQini);
+
+	if (gbWriteAllConfig)
+	{
+		WritePrivateProfileBool("Overlay", "EnableViewports", gbEnableImGuiViewports, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Overlay", "ResizeEQViewport", gbAutoDockspaceViewport, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", gbAutoDockspacePreserveRatio, mq::internal_paths::MQini);
+	}
 
 	// TODO: application-wide keybinds could use an encapsulated interface. For now I'm just dumping his here since we need it to
 	// connect to the win32 hook and control the imgui console.
@@ -816,7 +898,7 @@ void ImGuiManager_Shutdown()
 
 void ImGuiManager_Pulse()
 {
-	PulseMQ2Overlay();
+	engine::OnUpdateFrame();
 	PulseFonts();
 }
 

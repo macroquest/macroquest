@@ -137,9 +137,6 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ImGuiOverlay.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MQ2LoginFrontend.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -362,7 +359,7 @@
     <ClCompile Include="ImGuiManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ImGuiBackend.cpp">
+    <ClCompile Include="ImGuiBackendDX9.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQIniType.cpp">
@@ -376,6 +373,21 @@
     </ClCompile>
     <ClCompile Include="datatypes\MQ2BankType.cpp">
       <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGuiBackendDX11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGuiBackendWin32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsEngineDX9.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsEngineDX11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsEngine.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -561,6 +573,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\mq\api\Spells.h">
       <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsEngine.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
