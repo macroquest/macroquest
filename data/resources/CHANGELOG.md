@@ -1,3 +1,7 @@
+Oct18, 2023:
+- live: Updated for latest patch
+- live: Additional servers that are no longer flagged as truebox are now supported
+
 Oct 15, 2023:
 - Fix double input on imgui windows
 

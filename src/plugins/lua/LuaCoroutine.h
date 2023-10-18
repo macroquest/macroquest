@@ -32,7 +32,7 @@ struct LuaCoroutine
 	std::optional<sol::function> m_delayCondition = std::nullopt;
 
 	bool CheckCondition(std::optional<sol::function>& func);
-	void Delay(sol::object delayObj, sol::object conditionObj, sol::state_view s);
+	void Delay(sol::object delayObj, std::optional<sol::object> conditionObj, sol::state_view s);
 	void SetDelay(uint64_t time, std::optional<sol::function> condition = std::nullopt);
 	void ClearDelay();
 
