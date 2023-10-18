@@ -183,14 +183,14 @@ inline namespace deprecated
 		return AddMQ2Data(szName, (fMQData)Function);
 	}
 
-	//DEPRECATE("ParseMacroParameter no longer takes a PlayerClient parameter. It can be safely removed")
+	DEPRECATE("ParseMacroParameter no longer takes a PlayerClient parameter. It can be safely removed")
 	inline char* ParseMacroParameter(eqlib::PlayerClient* pChar, char* szOriginal, size_t BufferSize)
 	{
 		return mq::ParseMacroParameter(szOriginal, BufferSize);
 	}
 
 	template <unsigned int Size>
-	//DEPRECATE("ParseMacroParameter no longer takes a PlayerClient parameter.It can be safely removed")
+	DEPRECATE("ParseMacroParameter no longer takes a PlayerClient parameter.It can be safely removed")
 	inline char* ParseMacroParameter(eqlib::PlayerClient* pChar, char(&szOriginal)[Size])
 	{
 		return mq::ParseMacroParameter(szOriginal, Size);

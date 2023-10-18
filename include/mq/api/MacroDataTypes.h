@@ -327,9 +327,8 @@ struct MQVarPtr
 		return HighPart_;
 	}
 
-#pragma warning(disable: 4996)
+#pragma warning(suppress: 4996)
 	__declspec(property(get = get_HighPart, put = set_HighPart)) uint32_t HighPart;
-#pragma warning(default: 4996)
 
 	eqlib::ARGBCOLOR get_Argb() const
 	{

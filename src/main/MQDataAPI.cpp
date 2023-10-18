@@ -21,13 +21,15 @@ namespace mq {
 
 std::vector<std::weak_ptr<MQTransient>> s_objectMap;
 std::mutex s_objectMapMutex;
+uint32_t bmParseMacroData;
 
 static void SetGameStateDataAPI(DWORD);
 static void UnloadPluginDataAPI(const char*);
 
+
 static MQModule s_DataAPIModule = {
 	"DataAPI",                      // Name
-	false,                         // CanUnload
+	false,                          // CanUnload
 	nullptr,
 	nullptr,
 	nullptr,
@@ -118,13 +120,13 @@ MQDataAPI* pDataAPI = nullptr;
 
 MQDataAPI::MQDataAPI()
 {
-	bmParseMacroParameter = AddMQ2Benchmark("ParseMacroParameter");
+	bmParseMacroData = AddMQ2Benchmark("ParseMacroParameter");
 }
 
 MQDataAPI::~MQDataAPI()
 {
 	datatypes::UnregisterDataTypes();
-	RemoveMQ2Benchmark(bmParseMacroParameter);
+	RemoveMQ2Benchmark(bmParseMacroData);
 }
 
 void MQDataAPI::Initialize()
@@ -1404,6 +1406,8 @@ std::string ModifyMacroString(std::string_view strOriginal, bool bParseOnce, Mod
  */
 bool ParseMacroData(char* szOriginal, size_t BufferSize)
 {
+	MQScopedBenchmark bm(bmParseMacroData);
+
 	if (gParserVersion == 2)
 	{
 		// Pass it off to our String Parser

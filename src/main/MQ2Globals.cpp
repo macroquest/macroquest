@@ -31,7 +31,6 @@ HANDLE ghInitializeSpellDbThread = nullptr;
 
 /* BENCHMARKS */
 uint32_t bmRenderScene = 0;
-uint32_t bmParseMacroParameter = 0;
 uint32_t bmUpdateSpawnSort = 0;
 uint32_t bmUpdateSpawnCaptions = 0;
 uint32_t bmSpellLoad = 0;
