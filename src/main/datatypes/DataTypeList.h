@@ -110,6 +110,7 @@ DATATYPE(MQIniFileSectionType, pIniFileSectionType, nullptr);
 DATATYPE(MQIniFileType, pIniFileType, nullptr);
 DATATYPE(MQIniType, pIniType, nullptr);
 DATATYPE(MQ2TradeskillDepotType, pTradeskillDepotType, nullptr);
+DATATYPE(MQ2BankType, pBankType, nullptr);
 
 #if HAS_ADVANCED_LOOT
 DATATYPE(MQ2AdvLootType, pAdvLootType, nullptr);
