@@ -1,4 +1,9 @@
-Oct18, 2023:
+Oct 21, 2023:
+- tlo: Add Inventory TLO (currently only has the Bank datatype)
+- Inventory.Bank has members: BagSlots, FreeSlots, TotalSlots, and each currency
+- See https://docs.macroquest.org/reference/top-level-objects/tlo-inventory/
+
+Oct 18, 2023:
 - live: Updated for latest patch
 - live: Additional servers that are no longer flagged as truebox are now supported
 

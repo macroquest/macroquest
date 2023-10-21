@@ -533,7 +533,6 @@ void InitializeMQ2Data()
 	// EQ Types
 	AddMQ2Data("Achievement", datatypes::MQ2AchievementManagerType::dataAchievement);
 	AddMQ2Data("AltAbility", datatypes::MQ2AltAbilityType::dataAltAbility);
-	AddMQ2Data("Bank", datatypes::MQ2BankType::dataBank);
 	AddMQ2Data("Corpse", datatypes::MQ2CorpseType::dataCorpse);
 	AddMQ2Data("Cursor", datatypes::MQ2ItemType::dataCursor);
 	AddMQ2Data("DoorTarget", datatypes::MQ2SwitchType::dataSwitchTarget);
@@ -548,6 +547,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("Ground", datatypes::MQ2GroundType::dataGroundItem);
 	AddMQ2Data("GroundItemCount", datatypes::MQ2GroundType::dataGroundItemCount);
 	AddMQ2Data("Group", datatypes::MQ2GroupType::dataGroup);
+	AddMQ2Data("Inventory", datatypes::MQInventoryType::dataInventory);
 	AddMQ2Data("InvSlot", datatypes::MQ2InvSlotType::dataInvSlot);
 	AddMQ2Data("ItemTarget", datatypes::MQ2GroundType::dataItemTarget);
 	AddMQ2Data("LastSpawn", datatypes::MQ2SpawnType::dataLastSpawn);

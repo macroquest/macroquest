@@ -368,11 +368,11 @@
     <ClCompile Include="datatypes\MQ2TradeskillDepotType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
+    <ClCompile Include="datatypes\MQInventoryType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
     <ClCompile Include="api\Spawns.cpp">
       <Filter>Source Files\api</Filter>
-    </ClCompile>
-    <ClCompile Include="datatypes\MQ2BankType.cpp">
-      <Filter>Source Files\datatypes</Filter>
     </ClCompile>
     <ClCompile Include="ImGuiBackendDX11.cpp">
       <Filter>Source Files</Filter>
