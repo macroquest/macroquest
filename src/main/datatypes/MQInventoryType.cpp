@@ -33,8 +33,8 @@ enum class BankTypeMembers
 
 MQBankType::MQBankType() : MQ2Type("bank")
 {
-	ScopedTypeMember(BankTypeMembers, FreeSlots);
 	ScopedTypeMember(BankTypeMembers, BagSlots);
+	ScopedTypeMember(BankTypeMembers, FreeSlots);
 	ScopedTypeMember(BankTypeMembers, TotalSlots);
 	ScopedTypeMember(BankTypeMembers, Platinum);
 	ScopedTypeMember(BankTypeMembers, Gold);
