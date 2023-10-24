@@ -2378,8 +2378,8 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		if (Index[0])
 		{
 			nSize = GetIntFromString(Index, 0);
-			if (nSize > 4)
-				nSize = 4;
+			if (nSize > ItemSize_Giant)
+				nSize = ItemSize_Giant;
 		}
 
 		Dest.DWord = GetFreeInventory(nSize);

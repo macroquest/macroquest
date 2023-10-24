@@ -1568,6 +1568,29 @@ public:
 	static bool dataTradeskillDepot(const char* szIndex, MQTypeVar& Ret);
 };
 
+//============================================================================
+// MQInventoryType
+
+class MQBankType : public MQ2Type
+{
+public:
+	MQBankType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+
+	static bool dataBank(const char* szIndex, MQTypeVar& Ret);
+};
+
+class MQInventoryType : public MQ2Type
+{
+public:
+	MQInventoryType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+
+	static bool dataInventory(const char* szIndex, MQTypeVar& Ret);
+};
+
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 

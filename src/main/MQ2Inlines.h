@@ -169,6 +169,37 @@ inline const char* GetTypeDesc(eSpawnType TypeID)
 	}
 }
 
+/**
+ * Convert a string representation of item size to its corresponding integer value.
+ *
+ * This function maps size descriptors to their integer representations.
+ * If the input string doesn't match any known descriptors, it returns -1.
+ *
+ * @param String A std::string_view representing the descriptor of the item's size.
+ *               Expected values are: "tiny", "small", "medium", "large", "giant".
+ *
+ * @return Integer value representing the item's size. Returns -1 for unrecognized descriptors.
+ */
+inline int GetItemSizeDesc(std::string_view String)
+{
+	if (ci_equals(String, "tiny"))
+		return ItemSize_Tiny;
+
+	if (ci_equals(String, "small"))
+		return ItemSize_Small;
+
+	if (ci_equals(String, "medium"))
+		return ItemSize_Medium;
+
+	if (ci_equals(String, "large"))
+		return ItemSize_Large;
+
+	if (ci_equals(String, "giant"))
+		return ItemSize_Giant;
+
+	return -1;
+}
+
 inline int GetEnduranceRegen()
 {
 	return pLocalPC ? pLocalPC->GetEnduranceRegen(true, false) : 0;

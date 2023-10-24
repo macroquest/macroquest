@@ -29,8 +29,6 @@ struct CaseInsensitiveLess
 	}
 };
 
-struct IDirect3DDevice9;
-
 // Probably move these to eqlib but for now these are all contained within MQ
 #if defined(EMULATOR)
 #define HAS_CHAT_TIMESTAMPS 1
@@ -334,11 +332,6 @@ const std::string PARSE_PARAM_BEG = "${Parse[";
 const std::string PARSE_PARAM_END = "]}";
 
 MQLIB_VAR int gParserVersion;
-
-/* OVERLAY GLOBALS */
-MQLIB_VAR IDirect3DDevice9* gpD3D9Device;
-MQLIB_VAR bool gbDeviceAcquired;
-MQLIB_VAR bool gbDeviceHooksInstalled;
 
 /* DEPRECATION GLOBALS */
 MQLIB_VAR int gbGroundDeprecateCount;

@@ -75,7 +75,7 @@ static std::string lua_Parse(const char* text)
 
 #pragma region Thread Bindings
 
-static void lua_delay(sol::object delayObj, sol::object conditionObj, sol::this_state s)
+static void lua_delay(sol::object delayObj, std::optional<sol::object> conditionObj, sol::this_state s)
 {
 	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{

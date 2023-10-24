@@ -18,6 +18,7 @@
 #include "MQ2ImGuiTools.h"
 #include "MQ2Utilities.h"
 #include "ImGuiZepEditor.h"
+#include "ImGuiManager.h"
 
 #include "imgui/ImGuiTreePanelWindow.h"
 #include <imgui/imgui_internal.h>
@@ -1500,18 +1501,6 @@ void UpdateImGuiConsole()
 	}
 }
 
-void ResetDockspaceGameViewport()
-{
-	if (pEverQuestInfo)
-	{
-		pEverQuestInfo->Render_MinX = 0;
-		pEverQuestInfo->Render_MinY = 0;
-		pEverQuestInfo->Render_MaxX = pEverQuestInfo->ScreenXRes;
-		pEverQuestInfo->Render_MaxY = pEverQuestInfo->ScreenYRes;
-	}
-}
-
-
 void MQConsoleCommand(SPAWNINFO* pChar, char* Line)
 {
 	char szCommand[MAX_STRING] = { 0 };
@@ -1604,7 +1593,7 @@ void ShutdownImGuiConsole()
 
 	if (gbAutoDockspaceViewport)
 	{
-		ResetDockspaceGameViewport();
+		ImGuiManager_ResetGameViewport();
 	}
 
 	RemoveSettingsPanel("Console");

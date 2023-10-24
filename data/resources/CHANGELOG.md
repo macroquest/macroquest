@@ -1,7 +1,34 @@
-Latest changes:
+Oct 21, 2023:
+- tlo: Add Inventory TLO (currently only has the Bank datatype)
+- Inventory.Bank has members: BagSlots, FreeSlots, TotalSlots, and each currency
+- See https://docs.macroquest.org/reference/top-level-objects/tlo-inventory/
+
+Oct 18, 2023:
+- live: Updated for latest patch
+- live: Additional servers that are no longer flagged as truebox are now supported
+
+Oct 15, 2023:
+- Fix double input on imgui windows
+
+Oct 14, 2023:
+- test: updated for latest patch
+- Added DX11 support and re-enabled the ImGui overlay. Nav rendering is still disabled.
+
+Sep 25, 2023:
+- live: Update eqlib, should fix reading some game options. (#755, #756)
+
+Sep 21, 2023:
+- Fix crash in CDragonHoardWnd and CBarterSearchWnd.
+- test: Fix crash in GetMembershipLevel
+
+Sep 20, 2023:
+- live: updated for latest patch
 - Fixed calculation of HasSPA, which should fix some properties such as Me.Silenced (#739)
 - Expand the coverage of game feature and claim data (developer tools)
 - Lifetime All-access should now appear as GOLD in ${Me.Subscription} instead of UNKNOWN
+
+Aug 26, 2023:
+- test: updated for latest patch
 
 Aug 24, 2023:
 - live: updated for latest patch

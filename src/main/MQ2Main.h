@@ -92,16 +92,6 @@ MQLIB_API bool AreNameSpritesCustomized();
 MQLIB_API bool IsImGuiForeground();
 MQLIB_API void SetOverlayEnabled(bool visible);
 MQLIB_API bool IsOverlayEnabled();
-MQLIB_API void ResetOverlay();
-
-struct MQRenderCallbacks
-{
-	fMQCreateDeviceObjects CreateDeviceObjects = nullptr;
-	fMQInvalidateDeviceObjects InvalidateDeviceObjects = nullptr;
-	fMQGraphicsSceneRender GraphicsSceneRender = nullptr;
-};
-MQLIB_API int AddRenderCallbacks(const MQRenderCallbacks& callbacks);
-MQLIB_API void RemoveRenderCallbacks(uint32_t id);
 
 using fPanelDrawFunction = void(*)();
 MQLIB_API void AddSettingsPanel(const char* name, fPanelDrawFunction drawFunction);
@@ -338,6 +328,7 @@ MQLIB_API CXWnd* GetAdvLootSharedListItem(DWORD ListIndex, DWORD type);
 MQLIB_API bool LootInProgress(CAdvancedLootWnd* pAdvLoot, CListWnd* pPersonalList, CListWnd* pSharedList);
 MQLIB_API void WeDidStuff();
 MQLIB_API int GetFreeInventory(int nSize);
+MQLIB_API int GetBankSlotCount(int nSize, bool bEmptyOnly = false);
 MQLIB_API int GetFreeStack(ItemClient* pContents);
 MQLIB_API int RangeRandom(int min, int max);
 
@@ -827,13 +818,15 @@ MQLIB_API uint64_t GetMoneyFromString(const char* string, GetMoneyFromStringForm
 MQLIB_API void FormatMoneyString(char* szBuffer, size_t bufferLength, uint64_t moneyAmount, GetMoneyFromStringFormat format = GetMoneyFromStringFormat::Long);
 
 MQLIB_API MembershipLevel GetMembershipLevel();
-inline DEPRECATE("Use GetMembershipLevel isntead of GetSubscriptionLevel") int GetSubscriptionLevel() { return (int)GetMembershipLevel(); }
+inline DEPRECATE("Use GetMembershipLevel instead of GetSubscriptionLevel") int GetSubscriptionLevel() { return (int)GetMembershipLevel(); }
 
 } // namespace mq
 
 #include "mq/api/Achievements.h"
 #include "mq/api/MacroAPI.h"
 #include "mq/api/Spells.h"
+
+#include "GraphicsEngine.h"  // TODO: Move exports to mq/api header
 
 #if __has_include("../private/MQ2Main-private.h")
 #include "../private/MQ2Main-private.h"

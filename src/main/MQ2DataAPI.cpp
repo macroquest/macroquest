@@ -547,6 +547,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("Ground", datatypes::MQ2GroundType::dataGroundItem);
 	AddMQ2Data("GroundItemCount", datatypes::MQ2GroundType::dataGroundItemCount);
 	AddMQ2Data("Group", datatypes::MQ2GroupType::dataGroup);
+	AddMQ2Data("Inventory", datatypes::MQInventoryType::dataInventory);
 	AddMQ2Data("InvSlot", datatypes::MQ2InvSlotType::dataInvSlot);
 	AddMQ2Data("ItemTarget", datatypes::MQ2GroundType::dataItemTarget);
 	AddMQ2Data("LastSpawn", datatypes::MQ2SpawnType::dataLastSpawn);

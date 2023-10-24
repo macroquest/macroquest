@@ -2238,6 +2238,70 @@ public:
 				ImGui::TableNextColumn(); ImGui::Text("Auto Range Attack");
 				ImGui::TableNextColumn(); ImGui::Text("%d", eq.bAutoRangeAttack);
 
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Show Names Level");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.iShowNamesLevel);
+
+				ImGui::TreePop();
+			}
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			if (ImGui::TreeNode("Game Options"))
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Gamma");
+				ImGui::TableNextColumn(); ImGui::Text("%.2f", eq.gOpt.gamma);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Anonymous");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.anonymous);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Trade");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.trade);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("GuildInvites");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.guildInvites);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Sky");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.sky);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("LoD");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.lod);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("PCNames");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.pcNames);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("NPCNames");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.npcNames);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("PetOwnerNames");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.petNames);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("MercOwnerNames");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.mercNames);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("TargetHealth");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.targetHealth);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("ItemPlacementHideUI");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.itemPalcementHideUI);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("ItemPlacementDefaultModeCursor");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.itemPlacementDefaultModeCursor);
+
+
 				ImGui::TreePop();
 			}
 
