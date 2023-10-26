@@ -72,8 +72,6 @@ LuaImGui::LuaImGui(std::string_view name, const sol::thread& parent_thread, cons
 	, m_parentThread(parent_thread), m_callback(callback)
 {
 	m_thread = sol::thread::create(m_parentThread.state());
-	bindings::RegisterBindings_ImGui(m_thread.state());
-
 	m_coroutine = sol::coroutine(m_thread.state(), m_callback);
 }
 
