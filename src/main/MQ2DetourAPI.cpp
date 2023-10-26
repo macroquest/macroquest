@@ -344,7 +344,7 @@ void HookMemChecker(bool Patch)
 #endif
 #endif
 
-		EzDetour(CPacketScrambler__ntoh, &CPacketScrambler_Detours::ntoh_Detour, &CPacketScrambler_Detours::ntoh_Trampoline);
+		//EzDetour(CPacketScrambler__ntoh, &CPacketScrambler_Detours::ntoh_Detour, &CPacketScrambler_Detours::ntoh_Trampoline);
 		EzDetour(Spellmanager__LoadTextSpells, &SpellManager_Detours::LoadTextSpells_Detour, &SpellManager_Detours::LoadTextSpells_Trampoline);
 		EzDetour(CDisplay__ZoneMainUI, &CDisplay_Detours::ZoneMainUI_Detour, &CDisplay_Detours::ZoneMainUI_Trampoline);
 		EzDetour(CDisplay__PreZoneMainUI, &CDisplay_Detours::PreZoneMainUI_Detour, &CDisplay_Detours::PreZoneMainUI_Trampoline);
@@ -365,7 +365,7 @@ void HookMemChecker(bool Patch)
 #endif
 #endif
 
-		RemoveDetour(CPacketScrambler__ntoh);
+		//RemoveDetour(CPacketScrambler__ntoh);
 		RemoveDetour(Spellmanager__LoadTextSpells);
 		RemoveDetour(CDisplay__ZoneMainUI);
 		RemoveDetour(CDisplay__PreZoneMainUI);
