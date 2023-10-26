@@ -212,7 +212,8 @@ enum class AdvLootItemMembers
 	Never,
 	IconID,
 	NoDrop,
-	FreeGrab
+	FreeGrab,
+	Status
 };
 
 MQ2AdvLootItemType::MQ2AdvLootItemType() : MQ2Type("advlootitem")
@@ -232,6 +233,7 @@ MQ2AdvLootItemType::MQ2AdvLootItemType() : MQ2Type("advlootitem")
 	ScopedTypeMember(AdvLootItemMembers, IconID);
 	ScopedTypeMember(AdvLootItemMembers, NoDrop);
 	ScopedTypeMember(AdvLootItemMembers, FreeGrab);
+	ScopedTypeMember( AdvLootItemMembers, Status );
 }
 
 bool MQ2AdvLootItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -345,7 +347,43 @@ bool MQ2AdvLootItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		Dest.Type = pBoolType;
 		return true;
 
-	default: break;
+	case AdvLootItemMembers::Status:
+	{
+		Dest.Type = pStringType;
+
+		if( itemList == pAdvancedLootWnd->pPLootList )
+		{
+			Dest.Ptr = "INVALID";
+			return true;
+		}
+		switch( item.Unknown0x64 )
+		{
+		case 0:
+			Dest.Ptr = "WAITING";
+			return true;
+		case 1:
+			Dest.Ptr = "ASKING";
+			return true;
+		case 2:
+			Dest.Ptr = "ROLLING";
+			return true;
+		case 3:
+			Dest.Ptr = "STOPPED";
+			return true;
+		case 4:
+			Dest.Ptr = "CLICKROLL";
+			return true;
+		case 5:
+			Dest.Ptr = "FREEGRAB";
+			return true;
+		default:
+			Dest.Ptr = "UNKNOWN";
+			return true;
+		}
+	}
+
+	default: 
+		break;
 	}
 
 	return false;
