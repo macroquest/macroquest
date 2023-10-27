@@ -351,35 +351,41 @@ bool MQ2AdvLootItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 	{
 		Dest.Type = pStringType;
 
+		std::string tmp_str = "INVALID";
+
+		// Check to make sure we aren't trying to access the personal loot window and if so return INVALID.
 		if( itemList == pAdvancedLootWnd->pPLootList )
 		{
-			Dest.Ptr = "INVALID";
+			strcpy_s(DataTypeTemp, tmp_str.c_str());
+			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 		}
+
 		switch( item.Unknown0x64 )
 		{
 		case 0:
-			Dest.Ptr = "WAITING";
-			return true;
+			tmp_str = "WAITING";
+			break;
 		case 1:
-			Dest.Ptr = "ASKING";
-			return true;
+			tmp_str = "ASKING";
+			break;
 		case 2:
-			Dest.Ptr = "ROLLING";
-			return true;
+			tmp_str = "ROLLING";
+			break;
 		case 3:
-			Dest.Ptr = "STOPPED";
-			return true;
+			tmp_str = "STOPPED";
+			break;
 		case 4:
-			Dest.Ptr = "CLICKROLL";
-			return true;
+			tmp_str = "CLICKROLL";
+			break;
 		case 5:
-			Dest.Ptr = "FREEGRAB";
-			return true;
-		default:
-			Dest.Ptr = "UNKNOWN";
-			return true;
+			tmp_str = "FREEGRAB";
+			break;
 		}
+
+		strcpy_s(DataTypeTemp, tmp_str.c_str());
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
 	}
 
 	default: 
