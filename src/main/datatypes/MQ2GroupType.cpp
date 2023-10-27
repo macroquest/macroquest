@@ -39,26 +39,8 @@ enum class GroupMembers
 	AvgHPs,
 	Injured,
 	LowMana,
-	Cleric,
-	Shaman,
-	Warrior,
-	Paladin,
-	Ranger,
-	Shadowknight,
-	Druid,
-	Monk,
-	Bard,
-	Rogue,
-	Necromancer,
-	Wizard,
-	Mage,
-	Magician,
-	Enchanter,
-	Beastlord,
-	Berserker,
-	Furthest,
-	FurthestMelee,
-	FurthestPureCaster
+	ClassInGroup,
+	FurthestMember
 };
 
 MQ2GroupType::MQ2GroupType() : MQ2Type("group")
@@ -83,26 +65,66 @@ MQ2GroupType::MQ2GroupType() : MQ2Type("group")
 	ScopedTypeMember(GroupMembers, AvgHPs);
 	ScopedTypeMember(GroupMembers, Injured);
 	ScopedTypeMember(GroupMembers, LowMana);
-	ScopedTypeMember(GroupMembers, Cleric);
-	ScopedTypeMember(GroupMembers, Shaman);
-	ScopedTypeMember(GroupMembers, Warrior);
-	ScopedTypeMember(GroupMembers, Paladin);
-	ScopedTypeMember(GroupMembers, Ranger);
-	ScopedTypeMember(GroupMembers, Shadowknight);
-	ScopedTypeMember(GroupMembers, Druid);
-	ScopedTypeMember(GroupMembers, Monk);
-	ScopedTypeMember(GroupMembers, Bard);
-	ScopedTypeMember(GroupMembers, Rogue);
-	ScopedTypeMember(GroupMembers, Necromancer);
-	ScopedTypeMember(GroupMembers, Wizard);
-	ScopedTypeMember(GroupMembers, Mage);
-	ScopedTypeMember(GroupMembers, Magician);
-	ScopedTypeMember(GroupMembers, Enchanter);
-	ScopedTypeMember(GroupMembers, Beastlord);
-	ScopedTypeMember(GroupMembers, Berserker);
-	ScopedTypeMember(GroupMembers, Furthest);
-	ScopedTypeMember(GroupMembers, FurthestMelee);
-	ScopedTypeMember(GroupMembers, FurthestPureCaster);
+	ScopedTypeMember(GroupMembers, ClassInGroup);
+	ScopedTypeMember(GroupMembers, FurthestMember);
+}
+
+PlayerClass GetClassIDFromClassName(const char* class_name)
+{
+	static const mq::ci_unordered::map<std::string_view, PlayerClass> class_mapping{
+		{"warrior", Warrior},
+		{"cleric", Cleric},
+		{"paladin", Paladin},
+		{"ranger", Ranger},
+		{"shadowknight", Shadowknight},
+		{"druid", Druid},
+		{"monk", Monk},
+		{"bard", Bard},
+		{"rogue", Rogue},
+		{"shaman", Shaman},
+		{"necromancer", Necromancer},
+		{"wizard", Wizard},
+		{"magician", Magician},
+		{"enchanter", Enchanter},
+		{"beastlord", Beastlord},
+		{"berserker", Berserker}
+	};
+
+	// Convert the input class_name to lowercase
+	std::string lowercase_class_name(class_name);
+	std::transform(lowercase_class_name.begin(), lowercase_class_name.end(), lowercase_class_name.begin(), ::tolower);
+
+	auto iter = class_mapping.find(lowercase_class_name);
+	if(iter != class_mapping.end())
+		return iter->second;
+
+	return Unknown;
+}
+
+bool CheckForValidClassID(PlayerClass player_class)
+{
+	switch(player_class)
+	{
+	case Warrior:
+	case Cleric:
+	case Paladin:
+	case Ranger:
+	case Shadowknight:
+	case Druid:
+	case Monk:
+	case Bard:
+	case Rogue:
+	case Shaman:
+	case Necromancer:
+	case Wizard:
+	case Magician:
+	case Enchanter:
+	case Beastlord:
+	case Berserker:
+		return true;
+
+	}
+	return false;
 }
 
 bool MQ2GroupType::ToString(MQVarPtr VarPtr, char* Destination)
@@ -134,8 +156,6 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 		return false;
 	}
-
-	float furthest_dist = 0;
 
 	switch (static_cast<GroupMembers>(pMember->ID))
 	{
@@ -441,277 +461,6 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		}
 		return true;
 
-	case GroupMembers::Cleric:
-		for (auto& member : *pLocalPC->Group)
-		{
-			if (member
-				&& member->Type == EQP_PC
-				&& member->pSpawn
-				&& member->pSpawn->GetClass() == Cleric)
-			{
-				Dest = pSpawnType->MakeTypeVar(member->pSpawn);
-				return true;
-			}
-		}
-
-		Dest = pSpawnType->MakeTypeVar();
-		return true;
-	case GroupMembers::Shaman:
-		for(auto& member : *pLocalPC->Group)
-		{
-			if(member
-			   && member->Type == EQP_PC
-			   && member->pSpawn
-			   && member->pSpawn->GetClass() == Shaman)
-			{
-				Dest = pSpawnType->MakeTypeVar(member->pSpawn);
-				return true;
-			}
-		}
-
-		Dest = pSpawnType->MakeTypeVar();
-		return true;
-
-	case GroupMembers::Warrior:
-		for(auto& member : *pLocalPC->Group)
-		{
-			if(member
-			   && member->Type == EQP_PC
-			   && member->pSpawn
-			   && member->pSpawn->GetClass() == Warrior)
-			{
-				Dest = pSpawnType->MakeTypeVar(member->pSpawn);
-				return true;
-			}
-		}
-
-		Dest = pSpawnType->MakeTypeVar();
-		return true;
-
-	case GroupMembers::Paladin:
-		for(auto& member : *pLocalPC->Group)
-		{
-			if(member
-			   && member->Type == EQP_PC
-			   && member->pSpawn
-			   && member->pSpawn->GetClass() == Paladin)
-			{
-				Dest = pSpawnType->MakeTypeVar(member->pSpawn);
-				return true;
-			}
-		}
-
-		Dest = pSpawnType->MakeTypeVar();
-		return true;
-
-	case GroupMembers::Ranger:
-		for(auto& member : *pLocalPC->Group)
-		{
-			if(member
-			   && member->Type == EQP_PC
-			   && member->pSpawn
-			   && member->pSpawn->GetClass() == Ranger)
-			{
-				Dest = pSpawnType->MakeTypeVar(member->pSpawn);
-				return true;
-			}
-		}
-
-		Dest = pSpawnType->MakeTypeVar();
-		return true;
-
-	case GroupMembers::Shadowknight:
-		for(auto& member : *pLocalPC->Group)
-		{
-			if(member
-			   && member->Type == EQP_PC
-			   && member->pSpawn
-			   && member->pSpawn->GetClass() == Shadowknight)
-			{
-				Dest = pSpawnType->MakeTypeVar(member->pSpawn);
-				return true;
-			}
-		}
-
-		Dest = pSpawnType->MakeTypeVar();
-		return true;
-
-	case GroupMembers::Druid:
-		for(auto& member : *pLocalPC->Group)
-		{
-			if(member
-			   && member->Type == EQP_PC
-			   && member->pSpawn
-			   && member->pSpawn->GetClass() == Druid)
-			{
-				Dest = pSpawnType->MakeTypeVar(member->pSpawn);
-				return true;
-			}
-		}
-
-		Dest = pSpawnType->MakeTypeVar();
-		return true;
-
-	case GroupMembers::Bard:
-		for(auto& member : *pLocalPC->Group)
-		{
-			if(member
-			   && member->Type == EQP_PC
-			   && member->pSpawn
-			   && member->pSpawn->GetClass() == Bard)
-			{
-				Dest = pSpawnType->MakeTypeVar(member->pSpawn);
-				return true;
-			}
-		}
-
-		Dest = pSpawnType->MakeTypeVar();
-		return true;
-
-	case GroupMembers::Monk:
-		for(auto& member : *pLocalPC->Group)
-		{
-			if(member
-			   && member->Type == EQP_PC
-			   && member->pSpawn
-			   && member->pSpawn->GetClass() == Monk)
-			{
-				Dest = pSpawnType->MakeTypeVar(member->pSpawn);
-				return true;
-			}
-		}
-
-		Dest = pSpawnType->MakeTypeVar();
-		return true;
-
-	case GroupMembers::Rogue:
-		for(auto& member : *pLocalPC->Group)
-		{
-			if(member
-			   && member->Type == EQP_PC
-			   && member->pSpawn
-			   && member->pSpawn->GetClass() == Rogue)
-			{
-				Dest = pSpawnType->MakeTypeVar(member->pSpawn);
-				return true;
-			}
-		}
-
-		Dest = pSpawnType->MakeTypeVar();
-		return true;
-
-	case GroupMembers::Necromancer:
-		for(auto& member : *pLocalPC->Group)
-		{
-			if(member
-			   && member->Type == EQP_PC
-			   && member->pSpawn
-			   && member->pSpawn->GetClass() == Necromancer)
-			{
-				Dest = pSpawnType->MakeTypeVar(member->pSpawn);
-				return true;
-			}
-		}
-
-		Dest = pSpawnType->MakeTypeVar();
-		return true;
-
-	case GroupMembers::Wizard:
-		for(auto& member : *pLocalPC->Group)
-		{
-			if(member
-			   && member->Type == EQP_PC
-			   && member->pSpawn
-			   && member->pSpawn->GetClass() == Wizard)
-			{
-				Dest = pSpawnType->MakeTypeVar(member->pSpawn);
-				return true;
-			}
-		}
-
-		Dest = pSpawnType->MakeTypeVar();
-		return true;
-
-	case GroupMembers::Mage:
-		for(auto& member : *pLocalPC->Group)
-		{
-			if(member
-			   && member->Type == EQP_PC
-			   && member->pSpawn
-			   && member->pSpawn->GetClass() == Mage)
-			{
-				Dest = pSpawnType->MakeTypeVar(member->pSpawn);
-				return true;
-			}
-		}
-
-		Dest = pSpawnType->MakeTypeVar();
-		return true;
-
-	case GroupMembers::Magician:
-		for(auto& member : *pLocalPC->Group)
-		{
-			if(member
-			   && member->Type == EQP_PC
-			   && member->pSpawn
-			   && member->pSpawn->GetClass() == Magician)
-			{
-				Dest = pSpawnType->MakeTypeVar(member->pSpawn);
-				return true;
-			}
-		}
-
-		Dest = pSpawnType->MakeTypeVar();
-		return true;
-
-	case GroupMembers::Enchanter:
-		for(auto& member : *pLocalPC->Group)
-		{
-			if(member
-			   && member->Type == EQP_PC
-			   && member->pSpawn
-			   && member->pSpawn->GetClass() == Enchanter)
-			{
-				Dest = pSpawnType->MakeTypeVar(member->pSpawn);
-				return true;
-			}
-		}
-
-		Dest = pSpawnType->MakeTypeVar();
-		return true;
-
-	case GroupMembers::Beastlord:
-		for(auto& member : *pLocalPC->Group)
-		{
-			if(member
-			   && member->Type == EQP_PC
-			   && member->pSpawn
-			   && member->pSpawn->GetClass() == Beastlord)
-			{
-				Dest = pSpawnType->MakeTypeVar(member->pSpawn);
-				return true;
-			}
-		}
-
-		Dest = pSpawnType->MakeTypeVar();
-		return true;
-
-	case GroupMembers::Berserker:
-		for(auto& member : *pLocalPC->Group)
-		{
-			if(member
-			   && member->Type == EQP_PC
-			   && member->pSpawn
-			   && member->pSpawn->GetClass() == Berserker)
-			{
-				Dest = pSpawnType->MakeTypeVar(member->pSpawn);
-				return true;
-			}
-		}
-
-		Dest = pSpawnType->MakeTypeVar();
-		return true;
-
 	case GroupMembers::MouseOver:
 		Dest.DWord = 0;
 		Dest.Type = pGroupMemberType;
@@ -750,64 +499,70 @@ bool MQ2GroupType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			}
 		}
 		return false;
-		
-	case GroupMembers::Furthest:
-		Dest.DWord = 0;
-		Dest.Type = pFloatType;
 
-		for(auto& member : *pLocalPC->Group)
+	case GroupMembers::ClassInGroup:
+	{
+		if (Index[0])
 		{
-			if(member && member->pSpawn)
+			PlayerClass class_to_check;
+
+			if (IsNumber(Index))
+				class_to_check = static_cast<PlayerClass>(atoi(Index));
+			else
+				class_to_check = GetClassIDFromClassName(Index);
+
+			if (!CheckForValidClassID(class_to_check)) return false;
+
+			CGroupMember* member;
+
+			for (int i = 1; i < MAX_GROUP_SIZE; i++)
 			{
-				auto distance = Distance3DToSpawn(pLocalPC->pSpawn, member->pSpawn);
-				if(distance > furthest_dist)
-					furthest_dist = distance;
+				member = pLocalPC->Group->GetGroupMember(i);
+
+				if (member
+				    && member->Type == EQP_PC
+				    && member->pSpawn
+				    && member->pSpawn->GetClass() == class_to_check)
+				{
+					Dest = pSpawnType->MakeTypeVar(member->pSpawn);
+					return true;
+				}
 			}
+
+			return false;
 		}
-		Dest.Float = furthest_dist;
-		return true;
+		return false;
+	}
 
-	case GroupMembers::FurthestMelee:
-		Dest.DWord = 0;
+	case GroupMembers::FurthestMember:
+	{
+		std::string lowercase_index(Index);
+		std::transform(lowercase_index.begin(), lowercase_index.end(), lowercase_index.begin(), ::tolower);
+
 		Dest.Type = pFloatType;
+		float furthest_dist = 0;
 
-		for(auto& member : *pLocalPC->Group)
+		CGroupMember* member;
+
+		for (int i = 1; i < MAX_GROUP_SIZE; i++)
 		{
-			if(member && member->pSpawn)
+			member = pLocalPC->Group->GetGroupMember(i);
+			if (member && member->pSpawn)
 			{
 				auto class_value = member->pSpawn->GetClass();
-				if(class_value <= TotalPlayerClasses && !ClassInfo[class_value].PureCaster)
-				{
-					auto distance = Distance3DToSpawn(pLocalPC->pSpawn, member->pSpawn);
+				auto distance = DistanceToSpawn(pLocalPC->pSpawn, member->pSpawn);
 
-					if(distance > furthest_dist)
+				if (lowercase_index.empty() || (lowercase_index == "purecaster" && ClassInfo[class_value].PureCaster) || (lowercase_index == "melee" && !ClassInfo[class_value].PureCaster))
+				{
+					if (distance > furthest_dist)
 						furthest_dist = distance;
 				}
 			}
 		}
+
 		Dest.Float = furthest_dist;
 		return true;
-
-	case GroupMembers::FurthestPureCaster:
-		Dest.DWord = 0;
-		Dest.Type = pFloatType;
-
-		for(auto& member : *pLocalPC->Group)
-		{
-			if(member && member->pSpawn)
-			{
-				auto class_value = member->pSpawn->GetClass();
-				if(class_value <= TotalPlayerClasses && ClassInfo[class_value].PureCaster)
-				{
-					auto distance = Distance3DToSpawn(pLocalPC->pSpawn, member->pSpawn);
-
-					if(distance > furthest_dist)
-						furthest_dist = distance;
-				}
-			}
-		}
-		Dest.Float = furthest_dist;
-		return true;
+	}
 	}
 	return false;
 }
