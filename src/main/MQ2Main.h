@@ -26,8 +26,6 @@ using namespace eqlib;
 // uncomment this line to turn off the single-line benchmark macro
 // #define DISABLE_BENCHMARKS
 
-#define VersionString          __ExpectedVersionDate
-#define TimeString             __ExpectedVersionTime
 #define LoadedString           "MacroQuest Loaded."
 #define ToUnloadString         "MacroQuest Unloading..."
 #define UnloadedString         "MacroQuest Unloaded."
@@ -56,7 +54,7 @@ using namespace eqlib;
 #include "MQ2Commands.h"
 #include "MQ2DataContainers.h"
 #include "MQ2Utilities.h"
-#include "PipeClient.h"
+#include "MQ2PostOffice.h"
 #include "datatypes/MQ2DataTypes.h"
 
 // Link up ImGui

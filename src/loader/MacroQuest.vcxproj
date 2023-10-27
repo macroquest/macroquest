@@ -74,25 +74,25 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>MQ2MAIN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(VCPKG_IncludeDirs)\crashpad-backtrace;$(MQ2Root)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link />
     <Manifest />
     <Link>
-      <AdditionalDependencies>$(LoaderDependenciesDebug);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libprotobufd.lib;$(LoaderDependenciesDebug);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>MQ2MAIN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(VCPKG_IncludeDirs)\crashpad-backtrace;$(MQ2Root)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link />
     <Manifest />
     <Link>
-      <AdditionalDependencies>$(LoaderDependenciesDebug);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libprotobufd.lib;$(LoaderDependenciesDebug);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -101,13 +101,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>MQ2MAIN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(VCPKG_IncludeDirs)\crashpad-backtrace;$(MQ2Root)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>$(LoaderDependenciesRelease);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libprotobuf.lib;$(LoaderDependenciesRelease);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest />
   </ItemDefinitionGroup>
@@ -117,24 +117,24 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>MQ2MAIN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(VCPKG_IncludeDirs)\crashpad-backtrace;$(MQ2Root)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>$(LoaderDependenciesRelease);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libprotobuf.lib;$(LoaderDependenciesRelease);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest />
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\common\HotKeys.cpp" />
     <ClCompile Include="..\common\NamedPipes.cpp" />
-    <ClCompile Include="..\plugins\autologin\AutoLoginShared.cpp" />
     <ClCompile Include="AutoLogin.cpp" />
     <ClCompile Include="Crashpad.cpp" />
     <ClCompile Include="HotKeyControl.cpp" />
     <ClCompile Include="MacroQuest.cpp" />
+    <ClCompile Include="PostOffice.cpp" />
     <ClCompile Include="ProcessList.cpp" />
     <ClCompile Include="ProcessMonitor.cpp" />
     <ClCompile Include="RemoteOps.cpp" />
@@ -146,11 +146,10 @@
     <ClInclude Include="..\common\HotKeys.h" />
     <ClInclude Include="..\common\NamedPipes.h" />
     <ClInclude Include="..\common\NamedPipesProtocol.h" />
-    <ClInclude Include="..\plugins\autologin\AutoLoginShared.h" />
-    <ClInclude Include="AutoLogin.h" />
     <ClInclude Include="Crashpad.h" />
     <ClInclude Include="HotKeyControl.h" />
     <ClInclude Include="MacroQuest.h" />
+    <ClInclude Include="PostOffice.h" />
     <ClInclude Include="ProcessMonitor.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
@@ -162,6 +161,9 @@
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="MacroQuest.exe.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

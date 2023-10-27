@@ -42,8 +42,8 @@ MQDataVar* pGlobalVariables = nullptr;
 MQDataVar* pMacroVariables = nullptr;
 
 ePVPServer PVPServer = PVP_NONE;
-char gszVersion[32] = VersionString;
-char gszTime[32] = TimeString;
+char gszVersion[32] = __ExpectedVersionDate;
+char gszTime[32] = __ExpectedVersionTime;
 
 #if defined(EMULATOR)
 int gBuild = static_cast<int>(BuildTarget::Emu);                // EMU (ROF2)

@@ -14,7 +14,6 @@
 
 #include "MacroQuest.h"
 #include "ProcessMonitor.h"
-#include "AutoLogin.h"
 
 #include <comutil.h>
 #include <fmt/os.h>

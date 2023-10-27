@@ -12,14 +12,28 @@
  * GNU General Public License for more details.
  */
 
-// AutoLogin code shared between MacroQuest.exe and MQ2AutoLogin.dll
-
 #pragma once
 
-#include "../../common/Common.h"
+#include "Login.pb.h"
 
 #include <Windows.h>
 #include <wincrypt.h>
+
+#ifdef _DEBUG
+#pragma comment(lib, "libprotobufd")
+#else
+#pragma comment(lib, "libprotobuf")
+#endif
+
+#pragma comment(lib, "login")
+
+enum class AutoLoginMessageId : uint16_t
+{ 
+	MSG_AUTOLOGIN_PROFILE_LOADED           = 2000,  // profile has been loaded
+	MSG_AUTOLOGIN_PROFILE_UNLOADED         = 2001,  // profile has been uploaded
+	MSG_AUTOLOGIN_PROFILE_CHARINFO         = 2002,  // update the character info
+	MSG_AUTOLOGIN_START_INSTANCE           = 2003,  // create a new process, optionally with params
+};
 
 bool DecryptData(DATA_BLOB* DataIn, DATA_BLOB* DataOut);
 

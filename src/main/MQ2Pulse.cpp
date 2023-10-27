@@ -17,8 +17,6 @@
 #include "CrashHandler.h"
 #include "ImGuiManager.h"
 
-#include "common/NamedPipes.h"
-
 #include <wil/resource.h>
 
 #pragma warning(disable : 4091) // 'keyword' : ignored on left of 'type' when no variable is declared
@@ -27,8 +25,6 @@ namespace mq {
 
 bool TurnNotDone = false;
 static std::recursive_mutex s_pulseMutex;
-
-extern NamedPipeClient gPipeClient;
 
 void UpdateMQ2SpawnSort();
 
@@ -627,8 +623,6 @@ static HeartbeatState Heartbeat()
 			PluginsEndZone();
 		}
 	}
-
-	gPipeClient.Process();
 
 	UpdateMQ2SpawnSort();
 

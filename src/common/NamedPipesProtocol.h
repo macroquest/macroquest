@@ -25,6 +25,8 @@ enum class MQMessageId : uint16_t
 {
 	MSG_NULL                               = 0,     // An empty message, used for transmitting an acknowledgement response
 	MSG_ECHO                               = 1,     // Send an echo message. Server will reply with the same payload. For testing.
+	MSG_ROUTE                              = 2,     // Route a message to a mailbox in a client
+	MSG_IDENTIFICATION                     = 3,     // Update routing information in server
 
 	// FIXME: We really should have message ids separated by plugins or services. For now we will use a single enum
 	// and just change it later.
@@ -37,11 +39,6 @@ enum class MQMessageId : uint16_t
 	MSG_MAIN_FOCUS_REQUEST                 = 1004,  // to/from mq: i have focus or i want focus.
 	MSG_MAIN_FOCUS_ACTIVATE_WND            = 1005,  // to mq: activate requested window
 	MSG_MAIN_REQ_FORCEUNLOAD               = 1006,  // to mq: ask mq to less nicely unload.
-
-	MSG_AUTOLOGIN_PROFILE_LOADED           = 2000,  // profile has been loaded
-	MSG_AUTOLOGIN_PROFILE_UNLOADED         = 2001,  // profile has been uploaded
-	MSG_AUTOLOGIN_PROFILE_CHARINFO         = 2002,  // update the character info
-	MSG_AUTOLOGIN_START_INSTANCE           = 2003,  // create a new process, optionally with params
 };
 
 enum class MQProtoVersion : uint8_t
@@ -61,6 +58,7 @@ enum class MQRequestMode : uint8_t
 // codes should originate from the message itself.
 constexpr int MsgError_ConnectionClosed        = -1;                  // connection was closed
 constexpr int MsgError_NoConnection            = -2;                  // no connection established
+constexpr int MsgError_RoutingFailed           = -3;                  // message routing failed
 
 #pragma pack(push)
 #pragma pack(1)

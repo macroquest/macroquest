@@ -535,7 +535,7 @@
     <ClCompile Include="MQ2Main.cpp" />
     <ClCompile Include="MQ2Mouse.cpp" />
     <ClCompile Include="MQ2ParseAPI.cpp" />
-    <ClCompile Include="PipeClient.cpp" />
+    <ClCompile Include="MQ2PostOffice.cpp" />
     <ClCompile Include="MQ2PluginHandler.cpp" />
     <ClCompile Include="MQ2Pulse.cpp" />
     <ClCompile Include="MQ2Spawns.cpp" />
@@ -580,6 +580,9 @@
     <ClInclude Include="..\..\include\mq\imgui\ImGuiUtils.h" />
     <ClInclude Include="..\..\include\mq\imgui\Widgets.h" />
     <ClInclude Include="..\..\include\mq\Plugin.h" />
+    <ClInclude Include="..\..\include\mq\proto\PostOffice.h" />
+    <ClInclude Include="..\..\include\mq\proto\ProtoPipes.h" />
+    <ClInclude Include="..\..\include\mq\proto\Routing.h" />
     <ClInclude Include="..\..\include\mq\utils\Args.h" />
     <ClInclude Include="..\..\include\mq\utils\Benchmarks.h" />
     <ClInclude Include="..\..\include\mq\utils\Keybinds.h" />
@@ -615,7 +618,7 @@
     <ClInclude Include="MQ2Utilities.h" />
     <ClInclude Include="MQVersionInfo.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="PipeClient.h" />
+    <ClInclude Include="MQ2PostOffice.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
@@ -643,6 +646,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\data\resources\CHANGELOG.md" />
+    <None Include="cpp.hint" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\data\resources\GPL.txt" />

@@ -48,8 +48,6 @@
 
 using namespace mq;
 
-constexpr size_t PIPE_BUFFER_SIZE = 512;
-
 // Constants
 
 #define WinClassName "__MacroQuestTray"
@@ -79,15 +77,6 @@ constexpr int WM_USER_CALLBACK              = (WM_USER + 11);
 
 
 //----------------------------------------------------------------------------
-
-struct ProfileInfo;
-
-struct gHotkeyPair
-{
-	WORD modkey;
-	WORD hotkey;
-	ProfileInfo* ppi = nullptr;
-};
 
 // mirrors the implementation in mq2main. This could possibly be shared code
 // between them.
@@ -119,8 +108,6 @@ extern bool gEnableSilentCrashpad;
 extern bool gEnableCrashSubmissions;
 extern bool gEnableRateLimit;
 
-DWORD CALLBACK PipeListenerThread(void* pData);
-
 HWND LocateHotkeyWindow(WORD modkey, WORD hotkey);
 void RegisterGlobalHotkey(HWND hWnd, std::string_view hotkeyString);
 void UnregisterGlobalHotkey(std::string_view hotkeyString);
@@ -148,6 +135,8 @@ std::string GetVersionStringRemote(const std::string& versionURL);
 void ShowWarningBlocking(const std::string& Message);
 void ShowErrorBlocking(const std::string& Message);
 void ThreadedMessage(const std::string& Message, int MessageType);
+void SetFocusWindowPID(uint32_t pid, bool state);
+void SetForegroundWindowInternal(HWND hWnd);
 
 // RemoteOps
 HMODULE WINAPI GetRemoteModuleHandle(HANDLE hProcess, LPCSTR lpModuleName);
@@ -156,6 +145,9 @@ FARPROC WINAPI GetRemoteProcAddress(HANDLE hProcess, HMODULE hModule, LPCSTR lpP
 // Get the name of the player in the process specified by the pid.
 std::string GetLocalPlayer(DWORD pid);
 
-// NamedPipeServer
-void InitializeNamedPipeServer();
-void ShutdownNamedPipeServer();
+// AutoLogin
+extern HWND hEditProfileWnd;
+void InitializeAutoLogin();
+void ShutdownAutoLogin();
+void AutoLoginRemoveProcess(DWORD processId);
+bool HandleAutoLoginWindowMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* result);

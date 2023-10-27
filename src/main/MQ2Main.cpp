@@ -93,6 +93,7 @@ MQModule* GetGroundSpawnsModule();
 MQModule* GetSpawnsModule();
 MQModule* GetItemsModule();
 MQModule* GetWindowsModule();
+MQModule* GetPostOfficeModule();
 
 void InitializeDetours();
 void ShutdownDetours();
@@ -575,7 +576,6 @@ void SetMainThreadId()
 // Perform first time initialization on the main thread.
 void DoMainThreadInitialization()
 {
-	InitializePipeClient();
 	InitializeMQ2Commands();
 	InitializeDisplayHook();
 	InitializeMouseHooks();
@@ -595,6 +595,7 @@ void DoMainThreadInitialization()
 	AddInternalModule(GetGroundSpawnsModule());
 	AddInternalModule(GetSpawnsModule());
 	AddInternalModule(GetItemsModule());
+	AddInternalModule(GetPostOfficeModule());
 	InitializeMQ2AutoInventory();
 	InitializeMQ2KeyBinds();
 	InitializeMQ2Plugins();
@@ -804,7 +805,6 @@ void MQ2Shutdown()
 	ShutdownStringDB();
 	ShutdownDetours();
 	ShutdownMQ2Benchmarks();
-	ShutdownPipeClient();
 
 	DebugSpew("Shutdown completed");
 	ShutdownLogging();
