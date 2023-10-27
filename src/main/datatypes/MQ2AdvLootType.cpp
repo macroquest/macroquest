@@ -216,6 +216,18 @@ enum class AdvLootItemMembers
 	Status
 };
 
+//============================================================================
+
+enum class AdvLootStatus
+{
+	Waiting = 0,
+	Asking,
+	Rolling,
+	Stopped,
+	Clickroll,
+	Freegrab
+};
+
 MQ2AdvLootItemType::MQ2AdvLootItemType() : MQ2Type("advlootitem")
 {
 	ScopedTypeMember(AdvLootItemMembers, Index);
@@ -351,39 +363,37 @@ bool MQ2AdvLootItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 	{
 		Dest.Type = pStringType;
 
-		std::string tmp_str = "INVALID";
+		strcpy_s(DataTypeTemp, "INVALID");
 
 		// Check to make sure we aren't trying to access the personal loot window and if so return INVALID.
 		if( itemList == pAdvancedLootWnd->pPLootList )
 		{
-			strcpy_s(DataTypeTemp, tmp_str.c_str());
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 		}
 
-		switch( item.Unknown0x64 )
+		switch(static_cast<AdvLootStatus>(item.Unknown0x64))
 		{
-		case 0:
-			tmp_str = "WAITING";
+		case AdvLootStatus::Waiting:
+			strcpy_s(DataTypeTemp, "WAITING");
 			break;
-		case 1:
-			tmp_str = "ASKING";
+		case AdvLootStatus::Asking:
+			strcpy_s(DataTypeTemp, "ASKING");
 			break;
-		case 2:
-			tmp_str = "ROLLING";
+		case AdvLootStatus::Rolling:
+			strcpy_s(DataTypeTemp, "ROLLING");
 			break;
-		case 3:
-			tmp_str = "STOPPED";
+		case AdvLootStatus::Stopped:
+			strcpy_s(DataTypeTemp, "STOPPED");
 			break;
-		case 4:
-			tmp_str = "CLICKROLL";
+		case AdvLootStatus::Clickroll:
+			strcpy_s(DataTypeTemp, "CLICKROLL");
 			break;
-		case 5:
-			tmp_str = "FREEGRAB";
+		case AdvLootStatus::Freegrab:
+			strcpy_s(DataTypeTemp, "FREEGRAB");
 			break;
 		}
-
-		strcpy_s(DataTypeTemp, tmp_str.c_str());
+;
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 	}
