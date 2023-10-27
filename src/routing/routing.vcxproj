@@ -24,15 +24,15 @@
     <ClInclude Include="..\..\include\mq\proto\Routing.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProtocolBuffer Include="..\..\include\mq\proto\Routing.proto" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="..\..\include\mq\proto\Routing.pb.cc">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4267</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4267</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4267</DisableSpecificWarnings>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProtocolBuffer Include="Routing.proto" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

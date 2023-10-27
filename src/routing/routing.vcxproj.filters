@@ -29,13 +29,13 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ProtocolBuffer Include="..\..\include\mq\proto\Routing.proto">
-      <Filter>Proto Files</Filter>
-    </ProtocolBuffer>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="..\..\include\mq\proto\Routing.pb.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProtocolBuffer Include="Routing.proto">
+      <Filter>Proto Files</Filter>
+    </ProtocolBuffer>
   </ItemGroup>
 </Project>
