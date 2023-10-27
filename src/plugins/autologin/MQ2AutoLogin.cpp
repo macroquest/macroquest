@@ -41,7 +41,7 @@ constexpr int STEP_DELAY = 1000;
 
 fs::path CustomIni;
 uint64_t ReenableTime = 0;
-std::shared_ptr<mailbox::PostOffice::Mailbox> s_autologinMailbox;
+std::shared_ptr<postoffice::PostOffice::Mailbox> s_autologinMailbox;
 
 class LoginProfileType : public MQ2Type
 {
@@ -653,8 +653,8 @@ PLUGIN_API void InitializePlugin()
 
 	ReenableTime = MQGetTickCount64() + STEP_DELAY;
 
-	s_autologinMailbox = pipeclient::AddMailbox("autologin",
-		[](ProtoMessagePtr message)
+	s_autologinMailbox = postoffice::GetPostOffice().CreateAndAddMailbox("autologin",
+		[](ProtoMessagePtr&& message)
 		{
 			// autologin doesn't actually take message inputs yet...
 		});
@@ -683,7 +683,7 @@ PLUGIN_API void ShutdownPlugin()
 	delete pAutoLoginType;
 	delete pLoginProfileType;
 
-	pipeclient::RemoveMailbox("autologin");
+	postoffice::GetPostOffice().RemoveMailbox("autologin");
 	s_autologinMailbox.reset();
 }
 

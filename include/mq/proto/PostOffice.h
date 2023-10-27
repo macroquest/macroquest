@@ -23,7 +23,7 @@
 #include <memory>
 
 namespace mq {
-namespace mailbox {
+namespace postoffice {
 
 // we should assume that everything lives inside an Envelope here. All mail must be
 // in an envelope, no postcards (yet), but we open the Envelope to create ProtoMessages
@@ -42,12 +42,12 @@ public:
 	public:
 		Mailbox(
 			std::string_view localAddress,
-			const ReceiveCallback& receive,
-			const PostCallback& post
+			ReceiveCallback&& receive,
+			PostCallback&& post
 		)
 			: m_localAddress(localAddress)
 			, m_receive(receive)
-			, m_post(post)
+			, m_post(std::move(post))
 		{}
 
 		template <typename ID, typename T>
@@ -147,26 +147,39 @@ public:
 
 	private:
 		const std::string m_localAddress;
-		const ReceiveCallback& m_receive;
-		const PostCallback& m_post;
+		ReceiveCallback m_receive;
+		PostCallback m_post;
 
 		mutable std::queue<ProtoMessagePtr> m_receiveQueue;
 	};
 
 public:
-	PostOffice(PostCallback&& post)
-		: m_post(std::move(post))
-	{}
 
-	std::shared_ptr<Mailbox> CreateMailbox(const std::string& localAddress, const ReceiveCallback& receive)
+	virtual void RouteMessage(PipeMessagePtr&& message) = 0;
+	virtual void RouteMessage(const void* data, size_t length) = 0;
+	void RouteMessage(const std::string& data)
 	{
-		return std::make_shared<Mailbox>(localAddress, receive, m_post);
+		RouteMessage(&data[0], data.size());
+	}
+
+	std::shared_ptr<Mailbox> CreateMailbox(const std::string& localAddress, ReceiveCallback&& receive)
+	{
+		return std::make_shared<Mailbox>(localAddress, std::move(receive), [this](const std::string& data) { RouteMessage(data); });
 	}
 
 	bool AddMailbox(const std::shared_ptr<Mailbox>& mailbox)
 	{
 		auto [_, added] = m_mailboxes.emplace(mailbox->GetAddress(), mailbox);
 		return added;
+	}
+
+	std::shared_ptr<Mailbox> CreateAndAddMailbox(const std::string& localAddress, ReceiveCallback&& receive)
+	{
+		auto mailbox = CreateMailbox(localAddress, std::move(receive));
+		if (mailbox && AddMailbox(mailbox))
+			return mailbox;
+
+		return {};
 	}
 
 	bool RemoveMailbox(const std::string& localAddress)
@@ -213,9 +226,10 @@ public:
 
 private:
 	std::unordered_map<std::string, std::weak_ptr<Mailbox>> m_mailboxes;
-	const PostCallback m_post;
 };
 
-} // namespace mailbox
+MQLIB_OBJECT PostOffice& GetPostOffice();
+
+} // namespace postoffice
 
 } // namespace mq

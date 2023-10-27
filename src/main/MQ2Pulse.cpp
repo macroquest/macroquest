@@ -26,8 +26,6 @@ namespace mq {
 bool TurnNotDone = false;
 static std::recursive_mutex s_pulseMutex;
 
-extern ProtoPipeClient gPipeClient;
-
 void UpdateMQ2SpawnSort();
 
 //----------------------------------------------------------------------------
@@ -625,8 +623,6 @@ static HeartbeatState Heartbeat()
 			PluginsEndZone();
 		}
 	}
-
-	gPipeClient.Process();
 
 	UpdateMQ2SpawnSort();
 

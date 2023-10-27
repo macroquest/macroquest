@@ -21,23 +21,3 @@ void SendUnloadAllCommand();
 void SendForceUnloadAllCommand();
 void ProcessPipeServer();
 
-void InitializeNamedPipeServer();
-void ShutdownNamedPipeServer();
-
-std::shared_ptr<mailbox::PostOffice::Mailbox> AddMailbox(const std::string& localAddress, const mailbox::PostOffice::ReceiveCallback& receive);
-bool RemoveMailbox(const std::string& localAddress);
-void RouteMessage(MQMessageId messageId, const void* data, size_t length);
-template <typename ID>
-void RouteMessage(ID messageId, const void* data, size_t length)
-{
-	RouteMessage(static_cast<MQMessageId>(messageId), data, length);
-}
-
-void RouteMessage(MQMessageId messageId, const std::string& data);
-template <typename ID>
-void RouteMessage(ID messageId, const std::string& data)
-{
-	RouteMessage(static_cast<MQMessageId>(messageId), data);
-}
-
-void RouteMessage(const std::string& data); // envelopes come as strings, and will always want "ROUTE" message IDs

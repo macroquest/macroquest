@@ -31,7 +31,8 @@ public:
 	T Parse()
 	{
 		T obj;
-		return Parse(obj);
+		Parse(obj);
+		return obj;
 	}
 
 	template <typename T>
@@ -45,7 +46,8 @@ public:
 	static T Parse(const PipeMessagePtr& message)
 	{
 		T obj;
-		return Parse(message, obj);
+		Parse(message, obj);
+		return obj;
 	}
 
 	template <typename T>
