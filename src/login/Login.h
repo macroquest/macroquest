@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "AutoLogin.pb.h"
+#include "Login.pb.h"
 
 #include <Windows.h>
 #include <wincrypt.h>
@@ -25,7 +25,7 @@
 #pragma comment(lib, "libprotobuf")
 #endif
 
-#pragma comment(lib, "autologin")
+#pragma comment(lib, "login")
 
 enum class AutoLoginMessageId : uint16_t
 { 

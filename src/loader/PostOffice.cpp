@@ -39,12 +39,12 @@ struct ClientIdentification
 std::unordered_map<uint32_t, ClientIdentification> s_identities;
 ci_unordered::map<std::string, uint32_t> s_names;
 
-bool SendMessageToPID(uint32_t pid, const PipeMessagePtr& message)
+bool SendMessageToPID(uint32_t pid, PipeMessagePtr&& message)
 {
 	auto connection = s_pipeServer.GetConnectionForProcessId(pid);
 	if (connection != nullptr)
 	{
-		connection->SendMessage(message);
+		connection->SendMessage(std::move(message));
 	}
 	else
 	{
@@ -54,7 +54,7 @@ bool SendMessageToPID(uint32_t pid, const PipeMessagePtr& message)
 	return connection != nullptr;
 }
 
-void RouteMessage(const PipeMessagePtr& message)
+void RouteMessage(PipeMessagePtr&& message)
 {
 	auto envelope = ProtoMessage::Parse<proto::Envelope>(message);
 	const auto& address = envelope.address();
@@ -67,7 +67,7 @@ void RouteMessage(const PipeMessagePtr& message)
 	if (address.has_pid() && address.pid() != GetCurrentProcessId())
 	{
 		// a PID is necessarily a singular identifier, avoid the loop
-		if (!SendMessageToPID(address.pid(), message) && envelope.has_return_address())
+		if (!SendMessageToPID(address.pid(), std::move(message)) && envelope.has_return_address())
 		{
 			routing_failed();
 		}
@@ -77,7 +77,7 @@ void RouteMessage(const PipeMessagePtr& message)
 		// a name is also a singular identifier, avoid the loop here too
 		// route the message to a registered (named) client
 		auto pid_it = s_names.find(address.name());
-		if (pid_it == s_names.end() || !SendMessageToPID(pid_it->second, message))
+		if (pid_it == s_names.end() || !SendMessageToPID(pid_it->second, std::move(message)))
 		{
 			routing_failed();
 		}
@@ -116,7 +116,7 @@ void RouteMessage(const PipeMessagePtr& message)
 				(!address.has_character() || ci_equals(address.character(), identity.second.character))
 				)
 			{
-				if (!SendMessageToPID(identity.first, message))
+				if (!SendMessageToPID(identity.first, std::move(message)))
 				{
 					routing_failed();
 				}
@@ -128,7 +128,7 @@ void RouteMessage(const PipeMessagePtr& message)
 class MQ2NamedPipeEvents : public NamedPipeEvents
 {
 public:
-	virtual void OnIncomingMessage(std::shared_ptr<PipeMessage> message) override
+	virtual void OnIncomingMessage(PipeMessagePtr&& message) override
 	{
 		using namespace mq::proto;
 		SPDLOG_TRACE("Received message: id={} length={} connectionId={}", message->GetMessageId(),
@@ -147,7 +147,7 @@ public:
 		case mq::MQMessageId::MSG_ROUTE:
 			// all we have to do here is route, this is the same as if an internal mailbox is
 			// attempting to route a message
-			RouteMessage(message);
+			RouteMessage(std::move(message));
 			break;
 
 		case mq::MQMessageId::MSG_IDENTIFICATION:
@@ -283,9 +283,9 @@ void InitializeNamedPipeServer()
 	s_pipeServer.Start();
 
 	s_serverMailbox = AddMailbox("pipe_server",
-		[](const ProtoMessagePtr& message)
+		[](ProtoMessagePtr&& message)
 		{
-			s_pipeServer.DispatchMessage(message);
+			s_pipeServer.DispatchMessage(std::move(message));
 		});
 }
 
@@ -312,7 +312,7 @@ bool RemoveMailbox(const std::string& localAddress)
 
 void RouteMessage(MQMessageId messageId, const void* data, size_t length)
 {
-	RouteMessage(std::make_shared<PipeMessage>(messageId, data, length));
+	RouteMessage(std::make_unique<PipeMessage>(messageId, data, length));
 }
 
 void RouteMessage(MQMessageId messageId, const std::string& data)

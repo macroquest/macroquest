@@ -17,7 +17,7 @@
 #include "HotKeyControl.h"
 #include "PostOffice.h"
 
-#include "autologin/AutoLogin.h"
+#include "login/Login.h"
 
 #include <commdlg.h>
 #include <shellapi.h>
@@ -1987,13 +1987,13 @@ INT_PTR CALLBACK SettingsProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 	return FALSE;
 }
 
-void ReadMessage(ProtoMessagePtr message)
+void ReadMessage(ProtoMessagePtr&& message)
 {
 	switch (static_cast<AutoLoginMessageId>(message->GetMessageId()))
 	{
 		case AutoLoginMessageId::MSG_AUTOLOGIN_PROFILE_LOADED:
 		{
-			auto profile = ProtoMessage::Parse<proto::autologin::ProfileMethod>(message);
+			auto profile = message->Parse<proto::login::ProfileMethod>();
 			if (profile.has_target() && profile.target().has_character() && message->GetReturn() && message->GetReturn()->has_pid())
 			{
 				auto login = LoginMap[profile.profile()];
@@ -2018,7 +2018,7 @@ void ReadMessage(ProtoMessagePtr message)
 
 		case AutoLoginMessageId::MSG_AUTOLOGIN_PROFILE_UNLOADED:
 		{
-			auto profile = ProtoMessage::Parse<proto::autologin::ProfileMethod>(message);
+			auto profile = message->Parse<proto::login::ProfileMethod>();
 			if (message->GetReturn() && message->GetReturn()->has_pid())
 			{
 				auto pid = message->GetReturn()->pid();
@@ -2041,7 +2041,7 @@ void ReadMessage(ProtoMessagePtr message)
 
 		case AutoLoginMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO:
 		{
-			auto charinfo = ProtoMessage::Parse<proto::autologin::CharacterInfoMissive>(message);
+			auto charinfo = message->Parse<proto::login::CharacterInfoMissive>();
 			if (message->GetReturn() && message->GetReturn()->has_pid())
 			{
 				auto pid = message->GetReturn()->pid();
@@ -2064,10 +2064,10 @@ void ReadMessage(ProtoMessagePtr message)
 
 		case AutoLoginMessageId::MSG_AUTOLOGIN_START_INSTANCE:
 		{
-			auto start = ProtoMessage::Parse<proto::autologin::StartInstanceMissive>(message);
+			auto start = message->Parse<proto::login::StartInstanceMissive>();
 			switch (start.method_case())
 			{
-			case proto::autologin::StartInstanceMissive::MethodCase::kDirect:
+			case proto::login::StartInstanceMissive::MethodCase::kDirect:
 				if (start.direct().has_target())
 				{
 					DoPlainLogin(
@@ -2079,7 +2079,7 @@ void ReadMessage(ProtoMessagePtr message)
 				}
 				break;
 
-			case proto::autologin::StartInstanceMissive::MethodCase::kProfile:
+			case proto::login::StartInstanceMissive::MethodCase::kProfile:
 				if (start.profile().has_target() && start.profile().target().has_character())
 				{
 					auto login = LoginMap[start.profile().profile()];

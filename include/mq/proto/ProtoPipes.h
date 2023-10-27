@@ -31,13 +31,14 @@ public:
 	T Parse()
 	{
 		T obj;
-		return Parse(shared_from_this(), obj);
+		return Parse(obj);
 	}
 
 	template <typename T>
 	T& Parse(T& obj)
 	{
-		return Parse(shared_from_this(), obj);
+		obj.ParseFromArray(get(), static_cast<int>(size()));
+		return obj;
 	}
 
 	template <typename T>
@@ -73,7 +74,7 @@ public:
 private:
 	std::optional<proto::Address> m_returnAddress;
 };
-using ProtoMessagePtr = std::shared_ptr<ProtoMessage>;
+using ProtoMessagePtr = std::unique_ptr<ProtoMessage>;
 
 class ProtoPipeServer : public NamedPipeServer
 {

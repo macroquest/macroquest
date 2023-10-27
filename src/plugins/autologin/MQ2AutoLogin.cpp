@@ -17,7 +17,7 @@
 #include <mq/Plugin.h>
 #include <mq/proto/Routing.h>
 
-#include "autologin/AutoLogin.h"
+#include "login/Login.h"
 #include "MQ2AutoLogin.h"
 
 #include <imgui.h>
@@ -212,10 +212,10 @@ static void Post(AutoLoginMessageId messageId, const T& data)
 // This can be revisited later when we think a little bit about autologin
 void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character)
 {
-	proto::autologin::ProfileMethod profile;
+	proto::login::ProfileMethod profile;
 	profile.set_profile(Profile);
 	profile.set_account(Account);
-	proto::autologin::LoginTarget& target = *profile.mutable_target();
+	proto::login::LoginTarget& target = *profile.mutable_target();
 	target.set_server(Server);
 	target.set_character(Character);
 
@@ -224,10 +224,10 @@ void NotifyCharacterLoad(const char* Profile, const char* Account, const char* S
 
 void NotifyCharacterUnload(const char* Profile, const char* Account, const char* Server, const char* Character)
 {
-	proto::autologin::ProfileMethod profile;
+	proto::login::ProfileMethod profile;
 	profile.set_profile(Profile);
 	profile.set_account(Account);
-	proto::autologin::LoginTarget& target = *profile.mutable_target();
+	proto::login::LoginTarget& target = *profile.mutable_target();
 	target.set_server(Server);
 	target.set_character(Character);
 
@@ -236,7 +236,7 @@ void NotifyCharacterUnload(const char* Profile, const char* Account, const char*
 
 void NotifyCharacterUpdate(int Class, int Level)
 {
-	proto::autologin::CharacterInfoMissive info;
+	proto::login::CharacterInfoMissive info;
 	info.set_class_(Class);
 	info.set_level(Level);
 
@@ -245,11 +245,11 @@ void NotifyCharacterUpdate(int Class, int Level)
 
 void LoginServer(const char* Login, const char* Pass, const char* Server)
 {
-	proto::autologin::StartInstanceMissive start;
-	proto::autologin::DirectMethod& method = *start.mutable_direct();
+	proto::login::StartInstanceMissive start;
+	proto::login::DirectMethod& method = *start.mutable_direct();
 	method.set_login(Login);
 	method.set_password(Pass);
-	proto::autologin::LoginTarget& target = *method.mutable_target();
+	proto::login::LoginTarget& target = *method.mutable_target();
 	target.set_server(Server);
 
 	Post(AutoLoginMessageId::MSG_AUTOLOGIN_START_INSTANCE, start);
@@ -257,11 +257,11 @@ void LoginServer(const char* Login, const char* Pass, const char* Server)
 
 void LoginCharacter(const char* Login, const char* Pass, const char* Server, const char* Character)
 {
-	proto::autologin::StartInstanceMissive start;
-	proto::autologin::DirectMethod& method = *start.mutable_direct();
+	proto::login::StartInstanceMissive start;
+	proto::login::DirectMethod& method = *start.mutable_direct();
 	method.set_login(Login);
 	method.set_password(Pass);
-	proto::autologin::LoginTarget& target = *method.mutable_target();
+	proto::login::LoginTarget& target = *method.mutable_target();
 	target.set_server(Server);
 	target.set_character(Character);
 
@@ -270,10 +270,10 @@ void LoginCharacter(const char* Login, const char* Pass, const char* Server, con
 
 void LoginProfile(const char* Profile, const char* Server, const char* Character)
 {
-	proto::autologin::StartInstanceMissive start;
-	proto::autologin::ProfileMethod& method = *start.mutable_profile();
+	proto::login::StartInstanceMissive start;
+	proto::login::ProfileMethod& method = *start.mutable_profile();
 	method.set_profile(Profile);
-	proto::autologin::LoginTarget& target = *method.mutable_target();
+	proto::login::LoginTarget& target = *method.mutable_target();
 	target.set_server(Server);
 	target.set_character(Character);
 

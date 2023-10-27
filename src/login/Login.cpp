@@ -14,7 +14,7 @@
 
 // AutoLogin code shared between MacroQuest.exe and MQ2AutoLogin.dll
 
-#include "AutoLogin.h"
+#include "Login.h"
 
 #include "common/Common.h"
 

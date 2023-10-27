@@ -31,7 +31,7 @@ namespace mailbox {
 class PostOffice
 {
 public:
-	using ReceiveCallback = std::function<void(const ProtoMessagePtr&)>;
+	using ReceiveCallback = std::function<void(ProtoMessagePtr&&)>;
 	using PostCallback = std::function<void(const std::string&)>;
 
 public:
@@ -101,7 +101,7 @@ public:
 		{
 			if (howMany > 0 && !m_receiveQueue.empty())
 			{
-				m_receive(m_receiveQueue.front());
+				m_receive(std::move(m_receiveQueue.front()));
 				m_receiveQueue.pop();
 
 				Process(howMany - 1);
@@ -111,8 +111,8 @@ public:
 		ProtoMessagePtr Open(const proto::Envelope& envelope, const MQMessageHeader& header) const
 		{
 			auto unwrapped = envelope.has_payload() ?
-				std::make_shared<ProtoMessage>(header, &envelope.payload()[0], envelope.payload().size()) :
-				std::make_shared<ProtoMessage>(header, nullptr, 0);
+				std::make_unique<ProtoMessage>(header, &envelope.payload()[0], envelope.payload().size()) :
+				std::make_unique<ProtoMessage>(header, nullptr, 0);
 
 			if (envelope.has_message_id())
 				unwrapped->GetHeader()->messageId = static_cast<MQMessageId>(envelope.message_id());

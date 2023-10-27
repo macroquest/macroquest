@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AutoLogin.cpp" />
-    <ClCompile Include="AutoLogin.pb.cc">
+    <ClCompile Include="Login.cpp" />
+    <ClCompile Include="Login.pb.cc">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4267</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4267</DisableSpecificWarnings>
@@ -28,10 +28,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProtocolBuffer Include="AutoLogin.proto" />
+    <ProtocolBuffer Include="Login.proto" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AutoLogin.h" />
+    <ClInclude Include="Login.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -39,7 +39,7 @@
     <ProjectGuid>{b85c18a8-0d53-4e32-917e-f9bf30080b16}</ProjectGuid>
     <RootNamespace>autologin</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>autologin</ProjectName>
+    <ProjectName>login</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

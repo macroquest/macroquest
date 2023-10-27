@@ -12,7 +12,7 @@
  * GNU General Public License for more details.
  */
 
-#include <autologin/AutoLogin.h>
+#include <login/Login.h>
 #include "MQ2AutoLogin.h"
 
 #include <optional>

@@ -18,20 +18,20 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AutoLogin.pb.cc">
+    <ClCompile Include="Login.pb.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AutoLogin.cpp">
+    <ClCompile Include="Login.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProtocolBuffer Include="AutoLogin.proto">
+    <ProtocolBuffer Include="Login.proto">
       <Filter>Proto Files</Filter>
     </ProtocolBuffer>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AutoLogin.h">
+    <ClInclude Include="Login.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

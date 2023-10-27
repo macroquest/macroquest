@@ -55,7 +55,7 @@ MQModule* GetPostOfficeModule() { return &s_PostOfficeModule; }
 class PipeEventsHandler : public NamedPipeEvents
 {
 public:
-	virtual void OnIncomingMessage(std::shared_ptr<PipeMessage> message) override
+	virtual void OnIncomingMessage(PipeMessagePtr&& message) override
 	{
 		switch (message->GetMessageId())
 		{
@@ -227,7 +227,7 @@ bool RemoveMailbox(const std::string& localAddress)
 	return s_postOffice.RemoveMailbox(localAddress);
 }
 
-void RouteMessage(const PipeMessagePtr& message)
+void RouteMessage(PipeMessagePtr&& message)
 {
 	if (message->GetMessageId() == MQMessageId::MSG_ROUTE)
 	{
@@ -240,7 +240,7 @@ void RouteMessage(const PipeMessagePtr& message)
 				// we can't assume that even if we match the address (account/server/character) that this
 				// client is the only one that does. We need to route it through the server to ensure that
 				// it gets to all clients that match
-				gPipeClient.SendMessage(message);
+				gPipeClient.SendMessage(std::move(message));
 			}
 			else if (address.has_mailbox())
 			{
@@ -259,13 +259,13 @@ void RouteMessage(const PipeMessagePtr& message)
 	else
 	{
 		// not a route, just send it to the server
-		gPipeClient.SendMessage(message);
+		gPipeClient.SendMessage(std::move(message));
 	}
 }
 
 void RouteMessage(MQMessageId messageId, const void* data, size_t length)
 {
-	RouteMessage(std::make_shared<PipeMessage>(messageId, data, length));
+	RouteMessage(std::make_unique<PipeMessage>(messageId, data, length));
 }
 
 void RouteMessage(MQMessageId messageId, const std::string& data)
@@ -287,9 +287,9 @@ void InitializePipeClient()
 	::atexit([]() { gPipeClient.Stop(); });
 
 	s_clientMailbox = pipeclient::AddMailbox("pipe_client",
-		[](const ProtoMessagePtr& message)
+		[](ProtoMessagePtr&& message)
 		{
-			gPipeClient.DispatchMessage(message);
+			gPipeClient.DispatchMessage(std::move(message));
 		});
 }
 
