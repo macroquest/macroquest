@@ -18,7 +18,7 @@
 
 #include "MQ2Main.h"
 
-#include <mq/proto/Routing.h>
+#include <mq/proto/PostOffice.h>
 
 namespace mq {
 using namespace postoffice;

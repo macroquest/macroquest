@@ -15,7 +15,7 @@
 // For list of changes, see CHANGELOG.md
 
 #include <mq/Plugin.h>
-#include <mq/proto/Routing.h>
+#include <mq/proto/PostOffice.h>
 
 #include "login/Login.h"
 #include "MQ2AutoLogin.h"

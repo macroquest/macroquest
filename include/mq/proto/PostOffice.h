@@ -14,8 +14,7 @@
 
 #pragma once
 
-#include "ProtoPipes.h"
-#include "Routing.pb.h"
+#include "Routing.h"
 
 #include <string>
 #include <unordered_map>
@@ -25,9 +24,18 @@
 namespace mq {
 namespace postoffice {
 
-// we should assume that everything lives inside an Envelope here. All mail must be
-// in an envelope, no postcards (yet), but we open the Envelope to create ProtoMessages
-// when we put them on the queue
+/**
+ * Abstract post office class for handling routing of messages
+ * 
+ * Each application's post office (for instance, MQ and Launcher) will need to implement
+ * this class, specifying how to route proto messages. They will also need to define the
+ * singleton that the application can use to get the post office to do things like create
+ * mailboxes or send mail to other actors (nominally through the launcher).
+ * 
+ * we should assume that everything lives inside an Envelope here. All mail must be
+ * in an envelope, no postcards (yet), but we open the Envelope to create ProtoMessages
+ * when we put them on the queue
+ */
 class PostOffice
 {
 public:
@@ -50,12 +58,33 @@ public:
 			, m_post(std::move(post))
 		{}
 
+		/**
+		 * Sends a message to an address
+		 * 
+		 * @tparam ID an identifier to be used by the receiver, must cast to uint32_t
+		 * @tparam T the message being sent, usually some kind of proto
+		 * 
+		 * @param address the address to send the message
+		 * @param messageId a message ID used to route the message at the receiver
+		 * @param obj the message (as an object)
+		 */
 		template <typename ID, typename T>
 		void Post(const proto::Address& address, ID messageId, const T& obj)
 		{
 			m_post(Stuff(address, messageId, obj));
 		}
 
+		/**
+		 * Sends a reply to the sender of a message
+		 * 
+		 * @tparam ID an identifier to be used by the receiver, must cast to uint32_t
+		 * @tparam T the message being sent, usually some kind of proto
+		 * 
+		 * @param message the original message to reply to (contains the sender address)
+		 * @param messageId a message ID used to rout the message at the receiver
+		 * @param obj the message (as an object)
+		 * @param status a return status, sometimes used by reply handling logic
+		 */
 		template <typename ID, typename T>
 		void PostReply(ProtoMessagePtr&& message, ID messageId, const T& obj, uint8_t status = 0)
 		{
@@ -69,6 +98,18 @@ public:
 			}
 		}
 
+		/**
+		 * Sends a reply to the sender of a message
+		 * 
+		 * @tparam ID an identifier to be used by the receiver, must cast to uint32_t
+		 * @tparam T the message being sent, usually some kind of proto
+		 * 
+		 * @param message the original message to reply to
+		 * @param returnAddress the address to reply to
+		 * @param messageId a message ID used to rout the message at the receiver
+		 * @param obj the message (as an object)
+		 * @param status a return status, sometimes used by reply handling logic
+		 */
 		template <typename ID, typename T>
 		void PostReply(PipeMessagePtr&& message, const proto::Address& returnAddress, ID messageId, const T& obj, uint8_t status = 0)
 		{
@@ -84,6 +125,11 @@ public:
 			message->SendReply(MQMessageId::MSG_ROUTE, &data[0], data.size(), status);
 		}
 
+		/**
+		 * Gets the address of this mailbox
+		 * 
+		 * @return the local address of this mailbox
+		 */
 		const std::string& GetAddress() const { return m_localAddress; }
 
 	private:
@@ -155,24 +201,62 @@ public:
 
 public:
 
+	/**
+	 * The interface to route a message, to be implemented in the post office instantiation
+	 * 
+	 * @param message the message to route -- it should be in an envelope and have the ID of ROUTE
+	 */
 	virtual void RouteMessage(PipeMessagePtr&& message) = 0;
+
+	/**
+	 * The interface to route a message, to be implemented in the post office instantiation
+	 * 
+	 * @param data the data buffer of the message to route 
+	 * @param length the length of the data buffer
+	 */
 	virtual void RouteMessage(const void* data, size_t length) = 0;
+
+	/**
+	 * A helper interface to route a message
+	 * 
+	 * @param data a string of data (which embeds its length)
+	 */
 	void RouteMessage(const std::string& data)
 	{
 		RouteMessage(&data[0], data.size());
 	}
 
+	/**
+	 * Create a mailbox and return the pointer
+	 * 
+	 * @param localAddress the string address to create the address at
+	 * @param receive a callback rvalue that will process messages as they are received in this mailbox
+	 * @return a shared_ptr of the newly created mailbox
+	 */
 	std::shared_ptr<Mailbox> CreateMailbox(const std::string& localAddress, ReceiveCallback&& receive)
 	{
 		return std::make_shared<Mailbox>(localAddress, std::move(receive), [this](const std::string& data) { RouteMessage(data); });
 	}
 
+	/**
+	 * Register an already created mailbox with the post office
+	 * 
+	 * @param mailbox the shared_ptr ref of an already created mailbox
+	 * @return true if the mailbox was able to be placed into the post office (with a unique address)
+	 */
 	bool AddMailbox(const std::shared_ptr<Mailbox>& mailbox)
 	{
 		auto [_, added] = m_mailboxes.emplace(mailbox->GetAddress(), mailbox);
 		return added;
 	}
 
+	/**
+	 * Creates and registers a mailbox with the post office
+	 * 
+	 * @param localAddress the string address to create the address at
+	 * @param receive a callback rvalue that will process messages as they are received in this mailbox
+	 * @return a shared_ptr of the newly created mailbox, or nullptr if it wasn't able to be added at the address
+	 */
 	std::shared_ptr<Mailbox> CreateAndAddMailbox(const std::string& localAddress, ReceiveCallback&& receive)
 	{
 		auto mailbox = CreateMailbox(localAddress, std::move(receive));
@@ -182,13 +266,25 @@ public:
 		return {};
 	}
 
+	/**
+	 * Removes a mailbox from the post office
+	 * 
+	 * @param localAddress the string address that identifies the mailbox to be removed
+	 * @return true if the mailbox was removed
+	 */
 	bool RemoveMailbox(const std::string& localAddress)
 	{
 		return m_mailboxes.erase(localAddress) == 1;
 	}
 
-	// no reason to have a default reply for routing failures because we would need to handle the failure in
-	// the derived PostOffice anyway. Let those PostOffice implementations create a failure function callback.
+	/**
+	 * Delivers a message to a local mailbox
+	 * 
+	 * @param localAddress the local address to deliver the message to
+	 * @param message the message to send
+	 * @param failed a callback for failure (since message is moved)
+	 * @return true if routing was successful
+	 */
 	bool DeliverTo(const std::string& localAddress, PipeMessagePtr&& message, const std::function<void(PipeMessagePtr&&)>& failed = [](const auto&) {})
 	{
 		auto mailbox_it = m_mailboxes.find(localAddress);
@@ -207,6 +303,11 @@ public:
 		return false;
 	}
 
+	/**
+	 * Processes messages waiting in the queue
+	 * 
+	 * @param howMany how many messages to process (up to)
+	 */
 	void Process(size_t howMany)
 	{
 		size_t messages_per_mailbox = std::max(1, (int)std::round(howMany / m_mailboxes.size()));
@@ -228,6 +329,11 @@ private:
 	std::unordered_map<std::string, std::weak_ptr<Mailbox>> m_mailboxes;
 };
 
+/**
+ * Returns this application's post office singleton
+ * 
+ * @return the single post office that is used in this application
+ */
 MQLIB_OBJECT PostOffice& GetPostOffice();
 
 } // namespace postoffice
