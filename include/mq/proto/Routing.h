@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "Mailbox.h"
+#include "PostOffice.h"
 #include "ProtoPipes.h"
 #include "Routing.pb.h"
 

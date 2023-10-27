@@ -1994,7 +1994,7 @@ void ReadMessage(ProtoMessagePtr&& message)
 		case AutoLoginMessageId::MSG_AUTOLOGIN_PROFILE_LOADED:
 		{
 			auto profile = message->Parse<proto::login::ProfileMethod>();
-			if (profile.has_target() && profile.target().has_character() && message->GetReturn() && message->GetReturn()->has_pid())
+			if (profile.has_target() && profile.target().has_character() && message->GetSender() && message->GetSender()->has_pid())
 			{
 				auto login = LoginMap[profile.profile()];
 				auto charString = fmt::format("[{}] {}->{}", profile.account(), profile.target().server(), profile.target().character());
@@ -2004,10 +2004,10 @@ void ReadMessage(ProtoMessagePtr&& message)
 						return l.second.CharacterName == charString;
 					});
 
-				if (login_it != login.end() && message->GetReturn())
+				if (login_it != login.end() && message->GetSender())
 				{
 					login_it->second.Loaded = true;
-					login_it->second.PID = message->GetReturn()->pid();
+					login_it->second.PID = message->GetSender()->pid();
 					SendMessageA(hMainWnd, WM_USER_REGISTER_HK, login_it->first, login_it->second.PID);
 					SendMessageA(hMainWnd, WM_USER_SETLOADED, login_it->first, login_it->second.PID);
 				}
@@ -2019,9 +2019,9 @@ void ReadMessage(ProtoMessagePtr&& message)
 		case AutoLoginMessageId::MSG_AUTOLOGIN_PROFILE_UNLOADED:
 		{
 			auto profile = message->Parse<proto::login::ProfileMethod>();
-			if (message->GetReturn() && message->GetReturn()->has_pid())
+			if (message->GetSender() && message->GetSender()->has_pid())
 			{
-				auto pid = message->GetReturn()->pid();
+				auto pid = message->GetSender()->pid();
 				auto login = LoginMap[profile.profile()];
 				auto login_it = std::find_if(login.begin(), login.end(),
 					[&pid](const auto& l)
@@ -2042,9 +2042,9 @@ void ReadMessage(ProtoMessagePtr&& message)
 		case AutoLoginMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO:
 		{
 			auto charinfo = message->Parse<proto::login::CharacterInfoMissive>();
-			if (message->GetReturn() && message->GetReturn()->has_pid())
+			if (message->GetSender() && message->GetSender()->has_pid())
 			{
-				auto pid = message->GetReturn()->pid();
+				auto pid = message->GetSender()->pid();
 				for (const auto& profile : LoginMap)
 				{
 					for (const auto& login : profile.second)

@@ -323,9 +323,6 @@
     <ClCompile Include="MQ2DeveloperTools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PipeClient.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MQ2Items.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -371,9 +368,6 @@
     <ClCompile Include="datatypes\MQ2TradeskillDepotType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\proto\Shared.pb.cc">
-      <Filter>Proto Files\common\Generated Files</Filter>
-    </ClCompile>
     <ClCompile Include="api\Spawns.cpp">
       <Filter>Source Files\api</Filter>
     </ClCompile>
@@ -390,6 +384,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GraphicsEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQInventoryType.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MQ2PostOffice.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -535,9 +535,6 @@
     <ClInclude Include="..\..\include\mq\base\Detours.h">
       <Filter>Header Files\mq\base</Filter>
     </ClInclude>
-    <ClInclude Include="PipeClient.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\mq\base\Config.h">
       <Filter>Header Files\mq\base</Filter>
     </ClInclude>
@@ -568,10 +565,7 @@
     <ClInclude Include="..\..\include\mq\base\GlobalBuffer.h">
       <Filter>Header Files\mq\base</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\proto\Shared.pb.h">
-      <Filter>Proto Files\common\Generated Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\mq\proto\Mailbox.h">
+    <ClInclude Include="..\..\include\mq\proto\PostOffice.h">
       <Filter>Header Files\mq\proto</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\proto\ProtoPipes.h">
@@ -590,6 +584,9 @@
       <Filter>Header Files\mq\api</Filter>
     </ClInclude>
     <ClInclude Include="GraphicsEngine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MQ2PostOffice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

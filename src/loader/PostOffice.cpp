@@ -39,7 +39,7 @@ struct ClientIdentification
 std::unordered_map<uint32_t, ClientIdentification> s_identities;
 ci_unordered::map<std::string, uint32_t> s_names;
 
-bool SendMessageToPID(uint32_t pid, PipeMessagePtr&& message)
+bool SendMessageToPID(uint32_t pid, PipeMessagePtr&& message, const std::function<void(PipeMessagePtr&&)>& failed)
 {
 	auto connection = s_pipeServer.GetConnectionForProcessId(pid);
 	if (connection != nullptr)
@@ -49,6 +49,7 @@ bool SendMessageToPID(uint32_t pid, PipeMessagePtr&& message)
 	else
 	{
 		SPDLOG_WARN("Unable to get connection for PID {}, message route failed.", pid);
+		failed(std::move(message));
 	}
 
 	return connection != nullptr;
@@ -58,28 +59,29 @@ void RouteMessage(PipeMessagePtr&& message)
 {
 	auto envelope = ProtoMessage::Parse<proto::Envelope>(message);
 	const auto& address = envelope.address();
-	auto routing_failed = [&message, &envelope, &address]()
+	auto routing_failed = [&envelope, &address](PipeMessagePtr&& message)
 	{
 		if (envelope.has_return_address())
-			s_serverMailbox->PostReply(message, envelope.return_address(), MQMessageId::MSG_NULL, address, MsgError_RoutingFailed);
+			s_serverMailbox->PostReply(std::move(message), envelope.return_address(), MQMessageId::MSG_NULL, address, MsgError_RoutingFailed);
 	};
 
 	if (address.has_pid() && address.pid() != GetCurrentProcessId())
 	{
 		// a PID is necessarily a singular identifier, avoid the loop
-		if (!SendMessageToPID(address.pid(), std::move(message)) && envelope.has_return_address())
-		{
-			routing_failed();
-		}
+		SendMessageToPID(address.pid(), std::move(message), routing_failed);
 	}
 	else if (address.has_name() && !ci_equals(address.name(), "launcher"))
 	{
 		// a name is also a singular identifier, avoid the loop here too
 		// route the message to a registered (named) client
 		auto pid_it = s_names.find(address.name());
-		if (pid_it == s_names.end() || !SendMessageToPID(pid_it->second, std::move(message)))
+		if (pid_it == s_names.end())
 		{
-			routing_failed();
+			routing_failed(std::move(message));
+		}
+		else
+		{
+			SendMessageToPID(pid_it->second, std::move(message), routing_failed);
 		}
 	}
 	else if ((address.has_pid() && address.pid() == GetCurrentProcessId()) || (address.has_name() && ci_equals(address.name(), "launcher")))
@@ -88,10 +90,7 @@ void RouteMessage(PipeMessagePtr&& message)
 		{
 			// this is a local message
 			SPDLOG_INFO("Routing message to mailbox: {}", address.mailbox());
-			if (!s_postOffice.DeliverTo(address.mailbox(), message))
-			{
-				routing_failed();
-			}
+			s_postOffice.DeliverTo(address.mailbox(), std::move(message), routing_failed);
 		}
 		else
 		{
@@ -99,10 +98,7 @@ void RouteMessage(PipeMessagePtr&& message)
 			// be reached, we would have to have a client that packages a message in an envelope
 			// that is intended to be parsed directly by the server and not routed anywhere (so
 			// no mailbox routing information is included), rather than just send the message
-			if (!s_postOffice.DeliverTo("pipe_server", message))
-			{
-				routing_failed();
-			}
+			s_postOffice.DeliverTo("pipe_server", std::move(message), routing_failed);
 		}
 	}
 	else
@@ -116,10 +112,7 @@ void RouteMessage(PipeMessagePtr&& message)
 				(!address.has_character() || ci_equals(address.character(), identity.second.character))
 				)
 			{
-				if (!SendMessageToPID(identity.first, std::move(message)))
-				{
-					routing_failed();
-				}
+				SendMessageToPID(identity.first, std::move(message), routing_failed);
 			}
 		}
 	}
@@ -296,10 +289,10 @@ void ShutdownNamedPipeServer()
 	s_pipeServer.Stop();
 }
 
-std::shared_ptr<mailbox::PostOffice::Mailbox> AddMailbox(const std::string& localAddress, mailbox::PostOffice::ReceiveCallback receive)
+std::shared_ptr<mailbox::PostOffice::Mailbox> AddMailbox(const std::string& localAddress, const mailbox::PostOffice::ReceiveCallback& receive)
 {
 	auto mailbox = s_postOffice.CreateMailbox(localAddress, receive);
-	if (mailbox && s_postOffice.AddMailbox(localAddress, mailbox))
+	if (mailbox && s_postOffice.AddMailbox(mailbox))
 		return mailbox;
 
 	return {};

@@ -15,7 +15,7 @@
 #pragma once
 
 #include "MQ2MainBase.h"
-#include <mq/proto/Mailbox.h>
+#include <mq/proto/PostOffice.h>
 
 namespace mq {
 
@@ -29,7 +29,7 @@ MQLIB_API uint32_t GetLauncherProcessID();
 void NotifyIsForegroundWindow(bool isForeground);
 void RequestActivateWindow(HWND hWnd, bool sendMessage = true);
 
-MQLIB_OBJECT std::shared_ptr<mailbox::PostOffice::Mailbox> AddMailbox(const std::string& localAddress, mailbox::PostOffice::ReceiveCallback receive);
+MQLIB_OBJECT std::shared_ptr<mailbox::PostOffice::Mailbox> AddMailbox(const std::string& localAddress, const mailbox::PostOffice::ReceiveCallback& receive);
 MQLIB_OBJECT bool RemoveMailbox(const std::string& localAddress);
 
 MQLIB_OBJECT void RouteMessage(MQMessageId messageId, const void* data, size_t length);

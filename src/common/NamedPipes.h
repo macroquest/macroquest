@@ -46,7 +46,7 @@ class PipeConnection;
 // to separate the header from the message, since different clients are going
 // to have different headers (maybe..?)
 
-class PipeMessage : public std::enable_shared_from_this<PipeMessage>
+class PipeMessage
 {
 	friend class PipeConnection;
 
@@ -106,7 +106,7 @@ private:
 };
 using PipeMessagePtr = std::unique_ptr<PipeMessage>;
 
-using PipeMessageResponseCb = std::function<void(int status, const PipeMessagePtr& message)>;
+using PipeMessageResponseCb = std::function<void(int status, PipeMessagePtr&& message)>;
 
 // Create a v0 simple message
 PipeMessagePtr MakeSimpleMessageV0(MQMessageId messageId, const void* data, size_t dataLength);
@@ -254,10 +254,10 @@ public:
 	virtual void Stop();
 
 	// Handle sending work to the main thread
-	virtual void PostToMainThread(std::function<void()> callback);
+	virtual void PostToMainThread(std::function<void()>&& callback);
 
 	// Handle sending work to the named pipe thread
-	virtual void PostToPipeThread(std::function<void()> callback);
+	virtual void PostToPipeThread(std::function<void()>&& callback);
 
 	// dispatches a message to be handled by the client.
 	void DispatchMessage(PipeMessagePtr&& message);
@@ -312,7 +312,7 @@ public:
 
 	std::shared_ptr<PipeConnection> GetConnectionForProcessId(uint32_t processId) const;
 
-	virtual void PostToMainThread(std::function<void()> callback) override;
+	virtual void PostToMainThread(std::function<void()>&& callback) override;
 
 	void SendMessage(int connectionId, PipeMessagePtr&& message);
 	void SendMessage(int connectionId, MQMessageId messageId, const void* data, size_t dataLength);

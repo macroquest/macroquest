@@ -69,7 +69,7 @@ public:
 			// internal mailbox
 			if (address.has_mailbox())
 			{
-				s_postOffice.DeliverTo(address.mailbox(), message);
+				s_postOffice.DeliverTo(address.mailbox(), std::move(message));
 			}
 			else
 			{
@@ -77,7 +77,7 @@ public:
 				// be reached, we would have to have a client that packages a message in an envelope
 				// that is intended to be parsed directly by the server and not routed anywhere (so
 				// no mailbox routing information is included), rather than just send the message
-				s_postOffice.DeliverTo("pipe_client", message);
+				s_postOffice.DeliverTo("pipe_client", std::move(message));
 			}
 
 			break;
@@ -213,10 +213,10 @@ void SetGameStatePostOffice(DWORD GameState)
 	gPipeClient.SendProtoMessage(MQMessageId::MSG_IDENTIFICATION, id);
 }
 
-std::shared_ptr<mailbox::PostOffice::Mailbox> AddMailbox(const std::string& localAddress, mailbox::PostOffice::ReceiveCallback receive)
+std::shared_ptr<mailbox::PostOffice::Mailbox> AddMailbox(const std::string& localAddress, const mailbox::PostOffice::ReceiveCallback& receive)
 {
 	auto mailbox = s_postOffice.CreateMailbox(localAddress, receive);
-	if (mailbox && s_postOffice.AddMailbox(localAddress, mailbox))
+	if (mailbox && s_postOffice.AddMailbox(mailbox))
 		return mailbox;
 
 	return {};
@@ -244,16 +244,16 @@ void RouteMessage(PipeMessagePtr&& message)
 			}
 			else if (address.has_mailbox())
 			{
-				s_postOffice.DeliverTo(address.mailbox(), message);
+				s_postOffice.DeliverTo(address.mailbox(), std::move(message));
 			}
 			else
 			{
-				s_postOffice.DeliverTo("pipe_client", message);
+				s_postOffice.DeliverTo("pipe_client", std::move(message));
 			}
 		}
 		else
 		{
-			s_postOffice.DeliverTo("pipe_client", message);
+			s_postOffice.DeliverTo("pipe_client", std::move(message));
 		}
 	}
 	else

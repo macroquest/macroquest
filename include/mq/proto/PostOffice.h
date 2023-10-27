@@ -42,8 +42,8 @@ public:
 	public:
 		Mailbox(
 			std::string_view localAddress,
-			ReceiveCallback receive,
-			PostCallback post
+			const ReceiveCallback& receive,
+			const PostCallback& post
 		)
 			: m_localAddress(localAddress)
 			, m_receive(receive)
@@ -57,11 +57,11 @@ public:
 		}
 
 		template <typename ID, typename T>
-		void PostReply(const ProtoMessagePtr& message, ID messageId, const T& obj, uint8_t status = 0)
+		void PostReply(ProtoMessagePtr&& message, ID messageId, const T& obj, uint8_t status = 0)
 		{
-			if (auto returnAddress = message->GetReturn())
+			if (auto returnAddress = message->GetSender())
 			{
-				PostReply(message, *returnAddress, messageId, obj, status);
+				PostReply(std::move(message), *returnAddress, messageId, obj, status);
 			}
 			else
 			{
@@ -70,7 +70,7 @@ public:
 		}
 
 		template <typename ID, typename T>
-		void PostReply(const PipeMessagePtr& message, const proto::Address& returnAddress, ID messageId, const T& obj, uint8_t status = 0)
+		void PostReply(PipeMessagePtr&& message, const proto::Address& returnAddress, ID messageId, const T& obj, uint8_t status = 0)
 		{
 			proto::Envelope envelope;
 			*envelope.mutable_address() = returnAddress;
@@ -87,13 +87,12 @@ public:
 		const std::string& GetAddress() const { return m_localAddress; }
 
 	private:
-		void Deliver(const PipeMessagePtr& message) const
+		void Deliver(PipeMessagePtr&& message) const
 		{
 			// Don't do anything if this isn't wrapped in an envelope
 			if (message->GetMessageId() == MQMessageId::MSG_ROUTE)
 			{
-				auto envelope = ProtoMessage::Parse<proto::Envelope>(message);
-				m_receiveQueue.push(Open(envelope, *message->GetHeader()));
+				m_receiveQueue.push(Open(ProtoMessage::Parse<proto::Envelope>(message), *message->GetHeader()));
 			}
 		}
 
@@ -108,7 +107,7 @@ public:
 			}
 		}
 
-		ProtoMessagePtr Open(const proto::Envelope& envelope, const MQMessageHeader& header) const
+		ProtoMessagePtr Open(proto::Envelope&& envelope, const MQMessageHeader& header) const
 		{
 			auto unwrapped = envelope.has_payload() ?
 				std::make_unique<ProtoMessage>(header, &envelope.payload()[0], envelope.payload().size()) :
@@ -118,7 +117,7 @@ public:
 				unwrapped->GetHeader()->messageId = static_cast<MQMessageId>(envelope.message_id());
 
 			if (envelope.has_return_address())
-				unwrapped->SetReturn(envelope.return_address());
+				unwrapped->SetSender(envelope.return_address());
 
 			return unwrapped;
 		}
@@ -148,23 +147,23 @@ public:
 
 	private:
 		const std::string m_localAddress;
-		const ReceiveCallback m_receive;
-		const PostCallback m_post;
+		const ReceiveCallback& m_receive;
+		const PostCallback& m_post;
 
 		mutable std::queue<ProtoMessagePtr> m_receiveQueue;
 	};
 
 public:
-	PostOffice(PostCallback post)
-		: m_post(post)
+	PostOffice(PostCallback&& post)
+		: m_post(std::move(post))
 	{}
 
-	std::shared_ptr<Mailbox> CreateMailbox(const std::string& localAddress, ReceiveCallback receive)
+	std::shared_ptr<Mailbox> CreateMailbox(const std::string& localAddress, const ReceiveCallback& receive)
 	{
 		return std::make_shared<Mailbox>(localAddress, receive, m_post);
 	}
 
-	bool AddMailbox(const std::string& localAddress, std::shared_ptr<Mailbox> mailbox)
+	bool AddMailbox(const std::shared_ptr<Mailbox>& mailbox)
 	{
 		auto [_, added] = m_mailboxes.emplace(mailbox->GetAddress(), mailbox);
 		return added;
@@ -175,20 +174,23 @@ public:
 		return m_mailboxes.erase(localAddress) == 1;
 	}
 
-	bool DeliverTo(const std::string& localAddress, const PipeMessagePtr& message)
+	// no reason to have a default reply for routing failures because we would need to handle the failure in
+	// the derived PostOffice anyway. Let those PostOffice implementations create a failure function callback.
+	bool DeliverTo(const std::string& localAddress, PipeMessagePtr&& message, const std::function<void(PipeMessagePtr&&)>& failed = [](const auto&) {})
 	{
 		auto mailbox_it = m_mailboxes.find(localAddress);
 		if (mailbox_it != m_mailboxes.end())
 		{
 			if (auto ptr = mailbox_it->second.lock())
 			{
-				ptr->Deliver(message);
+				ptr->Deliver(std::move(message));
 				return true;
 			}
 
 			m_mailboxes.erase(mailbox_it);
 		}
 
+		failed(std::move(message));
 		return false;
 	}
 

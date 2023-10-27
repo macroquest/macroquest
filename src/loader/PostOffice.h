@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include <mq/proto/Mailbox.h>
+#include <mq/proto/PostOffice.h>
 
 bool SendSetForegroundWindow(HWND hWnd, uint32_t processID);
 void SendUnloadAllCommand();
@@ -24,7 +24,7 @@ void ProcessPipeServer();
 void InitializeNamedPipeServer();
 void ShutdownNamedPipeServer();
 
-std::shared_ptr<mailbox::PostOffice::Mailbox> AddMailbox(const std::string& localAddress, mailbox::PostOffice::ReceiveCallback receive);
+std::shared_ptr<mailbox::PostOffice::Mailbox> AddMailbox(const std::string& localAddress, const mailbox::PostOffice::ReceiveCallback& receive);
 bool RemoveMailbox(const std::string& localAddress);
 void RouteMessage(MQMessageId messageId, const void* data, size_t length);
 template <typename ID>

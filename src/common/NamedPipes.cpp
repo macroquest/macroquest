@@ -370,14 +370,15 @@ void PipeConnection::SendMessage(PipeMessagePtr&& message)
 {
 	std::weak_ptr<PipeConnection> weakPtr = shared_from_this();
 
-	m_parent->PostToPipeThread(
-		[&message = std::move(message), weakPtr]() mutable
-	{
-		if (auto ptr = weakPtr.lock())
+	auto func = [message = std::move(message), weakPtr]() mutable
 		{
-			ptr->InternalSendMessage(std::move(message));
-		}
-	});
+			if (auto ptr = weakPtr.lock())
+			{
+				ptr->InternalSendMessage(std::move(message));
+			}
+		};
+
+	m_parent->PostToPipeThread(std::ref(func));
 }
 
 void PipeConnection::SendMessageWithResponse(MQMessageId messageId, const void* data, size_t dataLength,
@@ -392,19 +393,20 @@ void PipeConnection::SendMessageWithResponse(PipeMessagePtr&& message,
 	std::weak_ptr<PipeConnection> weakPtr = shared_from_this();
 	auto parent = m_parent;
 
-	m_parent->PostToPipeThread(
-		[&message = std::move(message), callback, weakPtr, parent]() mutable
-	{
-		if (auto ptr = weakPtr.lock())
+	auto func = [message = std::move(message), callback, weakPtr, parent]() mutable
 		{
-			ptr->InternalSendMessage(std::move(message), callback);
-		}
-		else
-		{
-			parent->PostToMainThread(
-				[callback]() { callback(MsgError_ConnectionClosed, nullptr); });
-		}
-	});
+			if (auto ptr = weakPtr.lock())
+			{
+				ptr->InternalSendMessage(std::move(message), callback);
+			}
+			else
+			{
+				parent->PostToMainThread(
+					[callback]() { callback(MsgError_ConnectionClosed, nullptr); });
+			}
+		};
+
+	m_parent->PostToPipeThread(std::ref(func));
 }
 
 void PipeConnection::Close()
@@ -561,8 +563,12 @@ void PipeConnection::InternalReceiveMessage(PipeMessagePtr&& message)
 			auto callback = iter->second.callback;
 			m_rpcRequests.erase(iter);
 
-			m_parent->PostToMainThread(
-				[callback, &message = std::move(message)]() { callback(message->GetHeader()->status, message); });
+			auto func = [callback, message = std::move(message)]() mutable
+				{
+					callback(message->GetHeader()->status, std::move(message));
+				};
+
+			m_parent->PostToMainThread(std::ref(func));
 			return;
 		}
 	}
@@ -642,14 +648,15 @@ void NamedPipeEndpointBase::Stop()
 
 void NamedPipeEndpointBase::DispatchMessage(PipeMessagePtr&& message)
 {
-	PostToMainThread(
-		[&message = std::move(message), this]() mutable
-	{
-		if (m_handler)
+	auto func = [message = std::move(message), this]() mutable
 		{
-			m_handler->OnIncomingMessage(std::move(message));
-		}
-	});
+			if (m_handler)
+			{
+				m_handler->OnIncomingMessage(std::move(message));
+			}
+		};
+
+	PostToMainThread(std::ref(func));
 }
 
 static inline void ProcessQueuedCallbacks(std::mutex& mutex, std::atomic_bool& dirty, std::vector<std::function<void()>>& callbacks)
@@ -671,7 +678,7 @@ static inline void ProcessQueuedCallbacks(std::mutex& mutex, std::atomic_bool& d
 		cb();
 }
 
-void NamedPipeEndpointBase::PostToPipeThread(std::function<void()> callback)
+void NamedPipeEndpointBase::PostToPipeThread(std::function<void()>&& callback)
 {
 	if (std::this_thread::get_id() == m_pipeThreadId)
 	{
@@ -695,7 +702,7 @@ void NamedPipeEndpointBase::ProcessPipeThreadQueue()
 	ProcessQueuedCallbacks(m_threadQueueMutex, m_threadQueueDirty, m_threadQueue);
 }
 
-void NamedPipeEndpointBase::PostToMainThread(std::function<void()> callback)
+void NamedPipeEndpointBase::PostToMainThread(std::function<void()>&& callback)
 {
 	if (std::this_thread::get_id() == m_mainThreadId)
 	{
@@ -974,7 +981,7 @@ std::shared_ptr<PipeConnection> NamedPipeServer::GetConnectionForProcessId(uint3
 	return nullptr;
 }
 
-void NamedPipeServer::PostToMainThread(std::function<void()> callback)
+void NamedPipeServer::PostToMainThread(std::function<void()>&& callback)
 {
 	NamedPipeEndpointBase::PostToMainThread(std::move(callback));
 
