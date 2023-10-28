@@ -163,6 +163,11 @@
       <Project>{b85c18a8-0d53-4e32-917e-f9bf30080b16}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\login\login.vcxproj">
+      <Project>{b85c18a8-0d53-4e32-917e-f9bf30080b16}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -637,6 +637,9 @@
     <ProjectReference Include="..\imgui\imgui.vcxproj">
       <Project>{1777e251-0f50-496a-b8c5-ec7f41a0b186}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\routing\routing.vcxproj">
+      <Project>{6ce4f8d6-1709-47c5-9297-1619bbc4a71e}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <NASM Include="AssemblyFunctions64.asm">
