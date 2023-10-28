@@ -21,21 +21,21 @@
     <ClInclude Include="..\..\include\mq\proto\ProtoPipes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\mq\proto\Routing.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\mq\proto\PostOffice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\include\mq\proto\Routing.pb.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    <ClInclude Include="Routing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ProtocolBuffer Include="Routing.proto">
       <Filter>Proto Files</Filter>
     </ProtocolBuffer>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Routing.pb.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

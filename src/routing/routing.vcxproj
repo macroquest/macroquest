@@ -21,18 +21,13 @@
   <ItemGroup>
     <ClInclude Include="..\..\include\mq\proto\PostOffice.h" />
     <ClInclude Include="..\..\include\mq\proto\ProtoPipes.h" />
-    <ClInclude Include="..\..\include\mq\proto\Routing.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\include\mq\proto\Routing.pb.cc">
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4267</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4267</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4267</DisableSpecificWarnings>
-    </ClCompile>
+    <ClInclude Include="Routing.h" />
   </ItemGroup>
   <ItemGroup>
     <ProtocolBuffer Include="Routing.proto" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Routing.pb.cc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
