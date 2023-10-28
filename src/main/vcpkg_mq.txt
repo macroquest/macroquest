@@ -3,4 +3,5 @@ fmt
 wil
 date
 detours
+directxsdk
 protobuf

@@ -54,7 +54,7 @@ public:
 			PostCallback&& post
 		)
 			: m_localAddress(localAddress)
-			, m_receive(receive)
+			, m_receive(std::move(receive))
 			, m_post(std::move(post))
 		{}
 
