@@ -75,6 +75,11 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\include\mq\plugin\pluginapi.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\routing\routing.vcxproj">
+      <Project>{6ce4f8d6-1709-47c5-9297-1619bbc4a71e}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

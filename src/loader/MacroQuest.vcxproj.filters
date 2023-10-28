@@ -97,7 +97,4 @@
   <ItemGroup>
     <Manifest Include="MacroQuest.exe.manifest" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="cpp.hint" />
-  </ItemGroup>
 </Project>

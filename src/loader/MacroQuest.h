@@ -14,6 +14,8 @@
 
 #pragma once
 
+#define MQ_NO_EXPORTS
+
 #include "../common/Common.h"
 #include "../common/HotKeys.h"
 

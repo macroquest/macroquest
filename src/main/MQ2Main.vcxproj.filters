@@ -612,7 +612,6 @@
     <None Include="..\..\data\resources\CHANGELOG.md">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="cpp.hint" />
   </ItemGroup>
   <ItemGroup>
     <NASM Include="AssemblyFunctions64.asm">
