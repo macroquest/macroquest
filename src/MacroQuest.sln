@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29209.62
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34202.233
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "plugins", "plugins", "{A648B03F-7642-4857-A62A-AFABC7CAB451}"
 EndProject
@@ -9,6 +9,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Bzsrch", "plugins\bzsrch\MQ2Bzsrch.vcxproj", "{E0A98D60-D694-4E6E-836B-E41AB5737D1D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Main", "main\MQ2Main.vcxproj", "{2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}"
+	ProjectSection(ProjectDependencies) = postProject
+		{70752189-B826-4E5D-816B-61B9147881CB} = {70752189-B826-4E5D-816B-61B9147881CB}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Chat", "plugins\chat\MQ2Chat.vcxproj", "{D43171FB-8208-4E52-860A-6BAE2A2FA573}"
 EndProject
