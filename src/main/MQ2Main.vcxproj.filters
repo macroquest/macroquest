@@ -589,6 +589,9 @@
     <ClInclude Include="MQ2PostOffice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\mq\imgui\ConsoleWidget.h">
+      <Filter>Header Files\mq\imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MQ2Main.rc">
