@@ -372,9 +372,10 @@ void PipeConnection::SendMessage(PipeMessagePtr&& message)
 
 	m_parent->PostToPipeThread([message = message.release(), weakPtr]() mutable
 		{
+			auto msg = std::unique_ptr<PipeMessage>(message);
 			if (auto ptr = weakPtr.lock())
 			{
-				ptr->InternalSendMessage(std::unique_ptr<PipeMessage>(message));
+				ptr->InternalSendMessage(std::move(msg));
 			}
 		});
 }
@@ -393,9 +394,10 @@ void PipeConnection::SendMessageWithResponse(PipeMessagePtr&& message,
 
 	m_parent->PostToPipeThread([message = message.release(), callback, weakPtr, parent]() mutable
 		{
+			auto msg = std::unique_ptr<PipeMessage>(message);
 			if (auto ptr = weakPtr.lock())
 			{
-				ptr->InternalSendMessage(std::unique_ptr<PipeMessage>(message), callback);
+				ptr->InternalSendMessage(std::move(msg), callback);
 			}
 			else
 			{
@@ -644,9 +646,10 @@ void NamedPipeEndpointBase::DispatchMessage(PipeMessagePtr&& message)
 {
 	PostToMainThread([message = message.release(), this]() mutable
 		{
+			auto msg = std::unique_ptr<PipeMessage>(message);
 			if (m_handler)
 			{
-				m_handler->OnIncomingMessage(std::unique_ptr<PipeMessage>(message));
+				m_handler->OnIncomingMessage(std::move(msg));
 			}
 		});
 }
