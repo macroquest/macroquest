@@ -370,15 +370,13 @@ void PipeConnection::SendMessage(PipeMessagePtr&& message)
 {
 	std::weak_ptr<PipeConnection> weakPtr = shared_from_this();
 
-	auto func = [message = std::move(message), weakPtr]() mutable
+	m_parent->PostToPipeThread([message = message.release(), weakPtr]() mutable
 		{
 			if (auto ptr = weakPtr.lock())
 			{
-				ptr->InternalSendMessage(std::move(message));
+				ptr->InternalSendMessage(std::unique_ptr<PipeMessage>(message));
 			}
-		};
-
-	m_parent->PostToPipeThread(std::ref(func));
+		});
 }
 
 void PipeConnection::SendMessageWithResponse(MQMessageId messageId, const void* data, size_t dataLength,
@@ -393,20 +391,18 @@ void PipeConnection::SendMessageWithResponse(PipeMessagePtr&& message,
 	std::weak_ptr<PipeConnection> weakPtr = shared_from_this();
 	auto parent = m_parent;
 
-	auto func = [message = std::move(message), callback, weakPtr, parent]() mutable
+	m_parent->PostToPipeThread([message = message.release(), callback, weakPtr, parent]() mutable
 		{
 			if (auto ptr = weakPtr.lock())
 			{
-				ptr->InternalSendMessage(std::move(message), callback);
+				ptr->InternalSendMessage(std::unique_ptr<PipeMessage>(message), callback);
 			}
 			else
 			{
 				parent->PostToMainThread(
 					[callback]() { callback(MsgError_ConnectionClosed, nullptr); });
 			}
-		};
-
-	m_parent->PostToPipeThread(std::ref(func));
+		});
 }
 
 void PipeConnection::Close()
@@ -563,12 +559,10 @@ void PipeConnection::InternalReceiveMessage(PipeMessagePtr&& message)
 			auto callback = iter->second.callback;
 			m_rpcRequests.erase(iter);
 
-			auto func = [callback, message = std::move(message)]() mutable
+			m_parent->PostToMainThread([callback, message = message.release()]() mutable
 				{
-					callback(message->GetHeader()->status, std::move(message));
-				};
-
-			m_parent->PostToMainThread(std::ref(func));
+					callback(message->GetHeader()->status, std::unique_ptr<PipeMessage>(message));
+				});
 			return;
 		}
 	}
@@ -648,15 +642,13 @@ void NamedPipeEndpointBase::Stop()
 
 void NamedPipeEndpointBase::DispatchMessage(PipeMessagePtr&& message)
 {
-	auto func = [message = std::move(message), this]() mutable
+	PostToMainThread([message = message.release(), this]() mutable
 		{
 			if (m_handler)
 			{
-				m_handler->OnIncomingMessage(std::move(message));
+				m_handler->OnIncomingMessage(std::unique_ptr<PipeMessage>(message));
 			}
-		};
-
-	PostToMainThread(std::ref(func));
+		});
 }
 
 static inline void ProcessQueuedCallbacks(std::mutex& mutex, std::atomic_bool& dirty, std::vector<std::function<void()>>& callbacks)
