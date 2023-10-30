@@ -19,8 +19,10 @@
     <MQ2LibDir>$(MQ2BuildDirectory)lib\$(Platform)\$(MQ2BinaryDirName)\</MQ2LibDir>
     <NASMPATH>$(MQ2Root)tools\NASM\</NASMPATH>
     <!-- vcpkg paths -->
-    <VCPKG_IncludeDirs Condition="'$(Platform)'=='Win32'">$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\include</VCPKG_IncludeDirs>
-    <VCPKG_IncludeDirs Condition="'$(Platform)'=='x64'">$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\include</VCPKG_IncludeDirs>
+    <VCPKG_IncludeStatic Condition="'$(Platform)'=='Win32'">$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\include</VCPKG_IncludeStatic>
+    <VCPKG_IncludeDynamic Condition="'$(Platform)'=='Win32'">$(MQ2Root)contrib\vcpkg\installed\x86-windows\include</VCPKG_IncludeDynamic>
+    <VCPKG_IncludeStatic Condition="'$(Platform)'=='x64'">$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\include</VCPKG_IncludeStatic>
+    <VCPKG_IncludeDynamic Condition="'$(Platform)'=='x64'">$(MQ2Root)contrib\vcpkg\installed\x64-windows\include</VCPKG_IncludeDynamic>
     <VCPKG_LibraryDirs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\debug\lib;$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\debug\lib\manual-link;$(MQ2Root)contrib\vcpkg\installed\x86-windows\debug\lib</VCPKG_LibraryDirs>
     <VCPKG_LibraryDirs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\lib;$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\lib\manual-link;$(MQ2Root)contrib\vcpkg\installed\x86-windows\lib</VCPKG_LibraryDirs>
     <VCPKG_LibraryDirs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\debug\lib;$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\debug\lib\manual-link;$(MQ2Root)contrib\vcpkg\installed\x64-windows\debug\lib</VCPKG_LibraryDirs>
@@ -57,7 +59,7 @@
     </ClCompile>
     <!-- Shared compiler settings -->
     <ClCompile>
-      <AdditionalIncludeDirectories>$(MQ2Root)include;$(MQ2Root)contrib;$(MQ2Root)contrib\imgui;$(MQ2Root)contrib\imgui\misc\cpp;$(MQ2Root)contrib\tinyfsm\include;$(MQ2Root)contrib\dxsdk90\include;$(MQ2Root)contrib\zep\include;$(MQ2Root)src;$(MQ2Root)plugins;$(VCPKG_IncludeDirs);$(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MQ2Root)include;$(MQ2Root)contrib;$(MQ2Root)contrib\imgui;$(MQ2Root)contrib\imgui\misc\cpp;$(MQ2Root)contrib\tinyfsm\include;$(MQ2Root)contrib\dxsdk90\include;$(MQ2Root)contrib\zep\include;$(MQ2Root)src;$(MQ2Root)plugins;$(VCPKG_IncludeStatic);$(VCPKG_IncludeDynamic);$(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <WarningLevel>Level3</WarningLevel>
       <CompileAs>CompileAsCpp</CompileAs>
