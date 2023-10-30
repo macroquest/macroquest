@@ -21,6 +21,8 @@
 #include "ImGuiManager.h"
 
 #include "imgui/ImGuiTreePanelWindow.h"
+#include "mq/imgui/ConsoleWidget.h"
+
 #include <imgui/imgui_internal.h>
 
 #include "zep.h"
@@ -569,6 +571,7 @@ public:
 	{
 		return "Console";
 	}
+
 	virtual const char* Name() const override
 	{
 		return StaticName();
@@ -578,7 +581,7 @@ public:
 //----------------------------------------------------------------------------
 
 // This is the imgui container for the Zep component.
-struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
+struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGuiZepEditor
 {
 	Zep::ZepBuffer* m_buffer = nullptr;
 	Zep::ZepWindow* m_window = nullptr;
@@ -587,9 +590,10 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 	std::shared_ptr<ZepConsoleSyntax> m_syntax;
 	int m_maxBufferLines = 10000;
 	bool m_autoScroll = true;
-	bool m_localEcho = true;
+	std::string m_id;
 
-	ImGuiZepConsole()
+	ImGuiZepConsole(std::string_view id)
+		: m_id(std::string(id))
 	{
 		SetFont(Zep::ZepTextType::UI, mq::imgui::DefaultFont, 16);
 		SetFont(Zep::ZepTextType::Text, mq::imgui::ConsoleFont, 13);
@@ -619,15 +623,15 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		m_window->SetBufferCursor(m_buffer->End());
 		m_window->ToggleFlag(Zep::WindowFlags::HideTrailingNewline);
 		m_buffer->SetFileFlags(Zep::FileFlags::ReadOnly | Zep::FileFlags::CrudeUtf8Vaidate);
-		m_autoScroll = GetPrivateProfileBool("Console", "AutoScroll", m_autoScroll, internal_paths::MQini);
-		m_localEcho = GetPrivateProfileBool("Console", "LocalEcho", m_localEcho, internal_paths::MQini);
-		m_maxBufferLines = GetPrivateProfileInt("Console", "MaxBufferLines", m_maxBufferLines, internal_paths::MQini);
 	}
 
-	void Clear()
+	void Clear() override
 	{
 		m_buffer->Clear();
 	}
+
+	Zep::ZepWindow* GetWindow() const { return m_window; }
+	Zep::ZepBuffer* GetBuffer() const { return m_buffer; }
 
 	Zep::GlyphIterator InsertText(Zep::GlyphIterator position, std::string_view text, ImU32 color = -1)
 	{
@@ -791,45 +795,33 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 
 		PruneBuffer();
 
-		if (cursorAtEnd && m_autoScroll)
+		if (cursorAtEnd)
+		{
+			TriggerAutoScroll();
+		}
+	}
+
+	void AppendText(std::string_view text, MQColor defaultColor /* = DEFAULT_COLOR */, bool appendNewLine /* = false */) override
+	{
+		AppendFormattedText(text, defaultColor.ToImU32(), appendNewLine);
+	}
+
+	void TriggerAutoScroll()
+	{
+		if (m_autoScroll)
 		{
 			m_deferredCursorToEnd = true;
 		}
 	}
 
-	void DoHyperlinkTest()
+	void ScrollToBottom() override
 	{
-		Zep::GlyphIterator cursor = m_window->GetBufferCursor();
-		bool cursorAtEnd = m_window->IsAtBottom();
-
-		static int hyperlinkNum = 1;
-		std::string text = fmt::format("This is hyperlink {}", hyperlinkNum++);
-
-		ZepTextAttribute attribute;
-		attribute.startIndex = 0;
-		attribute.endIndex = static_cast<int>(text.length());
-		attribute.attribute.type = ZepAttributeType::Hyperlink;
-		attribute.attribute.data = ZepAttribute::HyperlinkAttributeData{ fmt::format("testlink:{}'s data", text) };
-
-		// Append to end of buffer
-		Zep::GlyphIterator position = m_buffer->End();
-
-		ZepConsoleSyntax* syntax = static_cast<ZepConsoleSyntax*>(m_buffer->GetSyntax());
-		syntax->AddAttribute(position, std::move(attribute));
-
-		Zep::ChangeRecord changeRecord;
-		m_buffer->Insert(position, text + "\n", changeRecord);
-
-		if (cursorAtEnd && m_autoScroll)
-		{
-			m_deferredCursorToEnd = true;
-		}
+		m_deferredCursorToEnd = true;
 	}
 
-	void DoAchievementLinkTest()
+	bool IsCursorAtEnd() const override
 	{
-		std::string_view line = "You say to your guild, '\x12" "3TestToon^500010200^1^0^0^0^0^0^'Welcome to Crescent Reach (1+)\x12'";
-		AppendFormattedText(line, s_defaultColor, true);
+		return m_window->IsAtBottom();
 	}
 
 	void PruneBuffer()
@@ -850,7 +842,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		}
 	}
 
-	void Render(const char* id, const ImVec2& displaySize = ImVec2()) override
+	void Render(const ImVec2& displaySize = ImVec2()) override
 	{
 		if (m_deferredCursorToEnd)
 		{
@@ -858,7 +850,7 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 			m_window->ScrollToBottom();
 		}
 
-		ImGuiZepEditor::Render(id, displaySize);
+		ImGuiZepEditor::Render(m_id.c_str(), displaySize);
 	}
 
 	void Notify(std::shared_ptr<Zep::ZepMessage> message) override
@@ -885,32 +877,31 @@ struct ImGuiZepConsole : public mq::imgui::ImGuiZepEditor
 		ImGuiZepEditor::Notify(message);
 	}
 
-	bool GetAutoScroll() const { return m_autoScroll; }
+	bool GetAutoScroll() const override { return m_autoScroll; }
 
-	void SetAutoScroll(bool autoScroll)
+	void SetAutoScroll(bool autoScroll) override
 	{
 		m_autoScroll = autoScroll;
 		WritePrivateProfileBool("Console", "AutoScroll", m_autoScroll, internal_paths::MQini);
 	}
 
-	bool GetLocalEcho() const { return m_localEcho; }
+	int GetMaxBufferLines() const override { return m_maxBufferLines; }
 
-	void SetLocalEcho(bool localEcho)
-	{
-		m_localEcho = localEcho;
-		WritePrivateProfileBool("Console", "LocalEcho", m_localEcho, internal_paths::MQini);
-	}
-
-	int GetMaxBufferLines() const { return m_maxBufferLines; }
-
-	void SetMaxBufferLines(int maxBufferLines)
+	void SetMaxBufferLines(int maxBufferLines) override
 	{
 		m_maxBufferLines = maxBufferLines;
-		WritePrivateProfileInt("Console", "MaxBufferLines", m_maxBufferLines, internal_paths::MQini);
 	}
 };
 
 #pragma endregion
+
+namespace imgui
+{
+	std::shared_ptr<mq::imgui::ConsoleWidget> ConsoleWidget::Create(std::string_view id)
+	{
+		return std::make_shared<ImGuiZepConsole>(id);
+	}
+}
 
 //============================================================================
 
@@ -925,11 +916,21 @@ public:
 	int m_historyPos = -1;    // -1: new line, 0..History.Size-1 browsing history.
 	bool m_scrollToBottom = true;
 	std::unique_ptr<ImGuiZepConsole> m_zepEditor;
+	bool m_localEcho = true;
+
 
 	ImGuiConsole()
 	{
 		ZeroMemory(m_inputBuffer, lengthof(m_inputBuffer));
-		m_zepEditor = std::make_unique<ImGuiZepConsole>();
+		m_zepEditor = std::make_unique<ImGuiZepConsole>("##ZepConsole");
+
+		m_localEcho = GetPrivateProfileBool("Console", "LocalEcho", m_localEcho, internal_paths::MQini);
+
+		bool autoScroll = GetPrivateProfileBool("Console", "AutoScroll", m_zepEditor->GetAutoScroll(), internal_paths::MQini);
+		m_zepEditor->SetAutoScroll(autoScroll);
+
+		int maxBufferLines = GetPrivateProfileInt("Console", "MaxBufferLines", m_zepEditor->GetMaxBufferLines(), internal_paths::MQini);
+		m_zepEditor->SetMaxBufferLines(maxBufferLines);
 	}
 
 	~ImGuiConsole()
@@ -991,9 +992,9 @@ public:
 				if (ImGui::MenuItem("Auto-scroll", nullptr, &autoScroll))
 					m_zepEditor->SetAutoScroll(autoScroll);
 
-				bool localEcho = m_zepEditor->GetLocalEcho();
-				if (ImGui::MenuItem("Local Echo", nullptr, &localEcho))
-					m_zepEditor->SetLocalEcho(localEcho);
+				bool localEcho = GetLocalEcho();
+				if (ImGui::MenuItem("Local Echo", nullptr, &m_localEcho))
+					SetLocalEcho(localEcho);
 
 				ImGui::Separator();
 
@@ -1029,11 +1030,11 @@ public:
 					{
 						if (ImGui::MenuItem("Hyperlink Test"))
 						{
-							m_zepEditor->DoHyperlinkTest();
+							DoHyperlinkTest();
 						}
 						if (ImGui::MenuItem("Achievement link Test"))
 						{
-							m_zepEditor->DoAchievementLinkTest();
+							DoAchievementLinkTest();
 						}
 					}
 
@@ -1069,7 +1070,7 @@ public:
 		ImVec2 contentSize = ImGui::GetContentRegionAvail();
 		contentSize.y -= footer_height_to_reserve;
 
-		m_zepEditor->Render("##ZepConsole", contentSize);
+		m_zepEditor->Render(contentSize);
 
 		// Command-line
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 4));
@@ -1117,7 +1118,7 @@ public:
 
 	void ExecCommand(const char* commandLine)
 	{
-		if (m_zepEditor->GetLocalEcho())
+		if (GetLocalEcho())
 			AddLog(Zep::ZepColor(128, 128, 128), "> {0}\n", commandLine);
 
 		// Insert into history. First find match and delete it so i can be pushed to the back. This isn't
@@ -1273,6 +1274,48 @@ public:
 		}
 		}
 		return 0;
+	}
+
+	void DoAchievementLinkTest()
+	{
+		std::string_view line = "You say to your guild, '\x12" "3TestToon^500010200^1^0^0^0^0^0^'Welcome to Crescent Reach (1+)\x12'";
+		m_zepEditor->AppendFormattedText(line, s_defaultColor, true);
+	}
+
+	void DoHyperlinkTest()
+	{
+		bool cursorAtEnd = m_zepEditor->GetWindow()->IsAtBottom();
+
+		static int hyperlinkNum = 1;
+		std::string text = fmt::format("This is hyperlink {}", hyperlinkNum++);
+
+		ZepTextAttribute attribute;
+		attribute.startIndex = 0;
+		attribute.endIndex = static_cast<int>(text.length());
+		attribute.attribute.type = ZepAttributeType::Hyperlink;
+		attribute.attribute.data = ZepAttribute::HyperlinkAttributeData{ fmt::format("testlink:{}'s data", text) };
+
+		// Append to end of buffer
+		Zep::GlyphIterator position = m_zepEditor->GetBuffer()->End();
+
+		ZepConsoleSyntax* syntax = static_cast<ZepConsoleSyntax*>(m_zepEditor->GetBuffer()->GetSyntax());
+		syntax->AddAttribute(position, std::move(attribute));
+
+		Zep::ChangeRecord changeRecord;
+		m_zepEditor->GetBuffer()->Insert(position, text + "\n", changeRecord);
+
+		if (cursorAtEnd)
+		{
+			m_zepEditor->TriggerAutoScroll();
+		}
+	}
+
+	bool GetLocalEcho() const { return m_localEcho; }
+
+	void SetLocalEcho(bool localEcho)
+	{
+		m_localEcho = localEcho;
+		WritePrivateProfileBool("Console", "LocalEcho", m_localEcho, internal_paths::MQini);
 	}
 };
 
@@ -1555,6 +1598,7 @@ static void ConsoleSettings()
 		int maxBufferLines = gImGuiConsole->m_zepEditor->GetMaxBufferLines();
 		if (ImGui::InputInt("##BufferLineMaxEntry", &maxBufferLines))
 		{
+			WritePrivateProfileInt("Console", "MaxBufferLines", maxBufferLines, internal_paths::MQini);
 			gImGuiConsole->m_zepEditor->SetMaxBufferLines(maxBufferLines);
 		}
 
