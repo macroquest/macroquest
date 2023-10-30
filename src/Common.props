@@ -28,7 +28,7 @@
     <VCPKG_LibraryDirs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\debug\lib;$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\debug\lib\manual-link;$(MQ2Root)contrib\vcpkg\installed\x64-windows\debug\lib</VCPKG_LibraryDirs>
     <VCPKG_LibraryDirs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\lib;$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\lib\manual-link;$(MQ2Root)contrib\vcpkg\installed\x64-windows\lib</VCPKG_LibraryDirs>
     <!-- 32-bit linker settings -->
-    <PlatformLibraryDirectories Condition="'$(Platform)'=='Win32'">$(MQ2Root)contrib\detours\lib;$(MQ2Root)contrib\dxsdk90\lib</PlatformLibraryDirectories>
+    <PlatformLibraryDirectories Condition="'$(Platform)'=='Win32'">$(MQ2Root)contrib\detours\lib</PlatformLibraryDirectories>
     <!-- 64-bit linker settings -->
     <PlatformLibraryDirectories Condition="'$(Platform)'=='x64'">
     </PlatformLibraryDirectories>
