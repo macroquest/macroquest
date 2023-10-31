@@ -382,7 +382,7 @@ void InitializeNamedPipeServer()
 
 void ShutdownNamedPipeServer()
 {
-	s_postOffice.release();
+	s_postOffice.reset();
 }
 
 //----------------------------------------------------------------------------

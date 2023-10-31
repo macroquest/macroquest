@@ -427,7 +427,7 @@ void InitializePipeClient()
 
 void ShutdownPipeClient()
 {
-	s_postOffice.release();
+	s_postOffice.reset();
 }
 
 } // namespace mq
