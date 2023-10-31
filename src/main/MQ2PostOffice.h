@@ -26,4 +26,7 @@ void RequestActivateWindow(HWND hWnd, bool sendMessage = true);
 
 } // namespace pipeclient
 
+void InitializePipeClient();
+void ShutdownPipeClient();
+
 } // namespace mq

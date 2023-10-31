@@ -75,6 +75,20 @@ public:
 		}
 
 		/**
+		 * Sends an empty message to an address
+		 * 
+		 * @tparam ID an identifier to be used by the receiver, must cast to uint32_t
+		 * 
+		 * @param address the address to send the message
+		 * @param messageId a message ID used to route the message at the receiver
+		 */
+		template <typename ID>
+		void Post(const proto::Address& address, ID messageId)
+		{
+			m_post(StuffData(address, messageId, ""));
+		}
+
+		/**
 		 * Sends a reply to the sender of a message
 		 * 
 		 * @tparam ID an identifier to be used by the receiver, must cast to uint32_t
@@ -99,7 +113,8 @@ public:
 		}
 
 		/**
-		 * Sends a reply to the sender of a message
+		 * Sends a reply to the sender of a message -- the message can be anything
+		 * because we make no assumption about what is wrapped in the envelope
 		 * 
 		 * @tparam ID an identifier to be used by the receiver, must cast to uint32_t
 		 * @tparam T the message being sent, usually some kind of proto
@@ -171,11 +186,11 @@ public:
 		template <typename ID, typename T>
 		std::string Stuff(const proto::Address& address, ID messageId, const T& obj)
 		{
-			return Stuff(address, messageId, obj.SerializeAsString());
+			return StuffData(address, messageId, obj.SerializeAsString());
 		}
 
 		template <typename ID>
-		std::string Stuff(const proto::Address& address, ID messageId, const std::string& data)
+		std::string StuffData(const proto::Address& address, ID messageId, const std::string& data)
 		{
 			proto::Envelope envelope;
 			*envelope.mutable_address() = address;
@@ -301,6 +316,46 @@ public:
 
 		failed(std::move(message));
 		return false;
+	}
+
+	/**
+	 * Delivers a message to all local mailboxes from a particular mailbox
+	 * 
+	 * @param message the message to send -- only the message ID and the payload is used (the header is rebuilt per message)
+	 * @param the mailbox from where to send the messages -- important because this is the return address
+	 */
+	void DeliverAll(PipeMessagePtr&& message, const std::shared_ptr<Mailbox>& from)
+	{
+		// the actual address doesn't matter here, we are delivering directly to the mailboxes
+		// we can also discard the header, it doesn't matter since these are all local deliveries
+		auto envelope = from->StuffData(
+			proto::Address{},
+			message->GetMessageId(),
+			std::string(message->get<char>(), message->size())
+		);
+
+		for (auto mailbox_it = m_mailboxes.begin(); mailbox_it != m_mailboxes.end();)
+		{
+			if (mailbox_it->first != from->GetAddress())
+			{
+				if (auto ptr = mailbox_it->second.lock())
+				{
+					ptr->Deliver(
+						std::make_unique<PipeMessage>(MQMessageId::MSG_ROUTE, &envelope[0], envelope.size())
+					);
+
+					++mailbox_it;
+				}
+				else
+				{
+					mailbox_it = m_mailboxes.erase(mailbox_it);
+				}
+			}
+			else
+			{
+				++mailbox_it;
+			}
+		}
 	}
 
 	/**

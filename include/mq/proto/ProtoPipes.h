@@ -26,7 +26,7 @@ class ProtoMessage : public PipeMessage
 {
 public:
 	using PipeMessage::PipeMessage;
-	
+
 	template <typename T>
 	T Parse()
 	{

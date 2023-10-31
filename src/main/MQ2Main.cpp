@@ -576,6 +576,7 @@ void SetMainThreadId()
 // Perform first time initialization on the main thread.
 void DoMainThreadInitialization()
 {
+	InitializePipeClient();
 	InitializeMQ2Commands();
 	InitializeDisplayHook();
 	InitializeMouseHooks();
@@ -805,6 +806,7 @@ void MQ2Shutdown()
 	ShutdownStringDB();
 	ShutdownDetours();
 	ShutdownMQ2Benchmarks();
+	ShutdownPipeClient();
 
 	DebugSpew("Shutdown completed");
 	ShutdownLogging();

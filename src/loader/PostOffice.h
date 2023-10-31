@@ -21,3 +21,6 @@ void SendUnloadAllCommand();
 void SendForceUnloadAllCommand();
 void ProcessPipeServer();
 
+void InitializeNamedPipeServer();
+void ShutdownNamedPipeServer();
+

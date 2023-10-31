@@ -52,6 +52,17 @@ class MQ2PostOffice : public PostOffice
 {
 private:
 
+	struct ClientIdentification
+	{
+		uint32_t pid;
+		std::string account;
+		std::string server;
+		std::string character;
+	};
+
+	std::unordered_map<uint32_t, ClientIdentification> m_identities;
+	ci_unordered::map<std::string, uint32_t> m_names;
+
 	class PipeEventsHandler : public NamedPipeEvents
 	{
 	public:
@@ -84,6 +95,43 @@ private:
 
 				break;
 			}
+
+			case MQMessageId::MSG_IDENTIFICATION:
+				if (message->GetHeader()->messageLength > 0)
+				{
+					// this is a message from the server to update or add an ID
+					auto id = ProtoMessage::Parse<proto::Identification>(message);
+					if (id.has_name())
+					{
+						m_postOffice->m_names.insert_or_assign(id.name(), id.pid());
+						SPDLOG_INFO("Got name-based identification from {}: {}", id.pid(), id.name());
+					}
+					else
+					{
+						m_postOffice->m_identities.insert_or_assign(id.pid(), ClientIdentification{
+							id.pid(),
+							id.has_account() ? id.account() : "",
+							id.has_server() ? id.server() : "",
+							id.has_character() ? id.character() : ""
+							});
+
+						// only include the PID here, otherwise it's pseudonym-identifiable information from the logs
+						SPDLOG_INFO("Got identification from {}", id.pid());
+					}
+
+					// for any mailbox that is keeping track, update them as well
+					std::string data = id.SerializeAsString();
+					auto a1 = id.pid();
+					auto a2 = id.account();
+					auto a3 = id.server();
+					auto a4 = id.character();
+
+					m_postOffice->DeliverAll(
+						std::make_unique<PipeMessage>(MQMessageId::MSG_IDENTIFICATION, &data[0], data.size()),
+						m_postOffice->m_clientMailbox
+					);
+				}
+				break;
 
 			case MQMessageId::MSG_MAIN_CRASHPAD_CONFIG:
 				// Message needs to at least have some substance...
@@ -144,6 +192,11 @@ private:
 			m_postOffice->m_pipeClient.SendMessage(MQMessageId::MSG_MAIN_PROCESS_LOADED, &msg, sizeof(msg));
 
 			pipeclient::SetGameStatePostOffice(0);
+
+			proto::Address address;
+			address.set_name("launcher");
+
+			m_postOffice->m_clientMailbox->Post(address, MQMessageId::MSG_IDENTIFICATION);
 		}
 
 	private:
@@ -161,6 +214,17 @@ public:
 		m_clientMailbox = CreateAndAddMailbox("pipe_client",
 			[this](ProtoMessagePtr&& message)
 			{
+				// we want to discard any message sent from self
+				if (message->GetSender())
+				{
+					auto sender = *message->GetSender();
+					if (sender.has_pid() &&
+						sender.pid() == GetCurrentProcessId() &&
+						sender.has_mailbox() &&
+						sender.mailbox() == m_clientMailbox->GetAddress())
+						return;
+				}
+
 				m_pipeClient.DispatchMessage(std::move(message));
 			});
 	}
@@ -199,6 +263,37 @@ public:
 			else
 			{
 				DeliverTo("pipe_client", std::move(message));
+			}
+		}
+		else if (message->GetMessageId() == MQMessageId::MSG_IDENTIFICATION)
+		{
+			// we are getting an internal request to send all IDs, do so sequentially
+			for (const auto& [_, client] : m_identities)
+			{
+				proto::Identification id;
+				id.set_pid(client.pid);
+
+				if (!client.account.empty())
+					id.set_account(client.account);
+
+				if (!client.server.empty())
+					id.set_server(client.server);
+
+				if (!client.character.empty())
+					id.set_character(client.character);
+
+				std::string data = id.SerializeAsString();
+				message->SendReply(mq::MQMessageId::MSG_IDENTIFICATION, &data[0], data.size());
+			}
+
+			for (const auto& [name, pid] : m_names)
+			{
+				proto::Identification id;
+				id.set_pid(pid);
+				id.set_name(name);
+
+				std::string data = id.SerializeAsString();
+				message->SendReply(mq::MQMessageId::MSG_IDENTIFICATION, &data[0], data.size());
 			}
 		}
 		else
@@ -288,9 +383,18 @@ private:
 	}
 };
 
+std::unique_ptr<MQ2PostOffice> s_postOffice;
+
 PostOffice& postoffice::GetPostOffice() {
-	static MQ2PostOffice s_postOffice;
-	return s_postOffice;
+	// this is okay to be lazily constructed, because we don't need this until we register our first mailbox
+	// do it like this so that we can control the shutdown order (specifically to ensure we shut it down
+	// before logging gets turned off to avoid a crash)
+	if (!s_postOffice)
+	{
+		s_postOffice = std::make_unique<MQ2PostOffice>();
+	}
+
+	return *s_postOffice;
 }
 
 namespace pipeclient {
@@ -316,5 +420,14 @@ void SetGameStatePostOffice(DWORD GameState)
 }
 
 } // namespace pipeclient
+
+void InitializePipeClient()
+{
+}
+
+void ShutdownPipeClient()
+{
+	s_postOffice.release();
+}
 
 } // namespace mq

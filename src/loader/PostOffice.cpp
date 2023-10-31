@@ -70,27 +70,63 @@ private:
 				break;
 
 			case mq::MQMessageId::MSG_IDENTIFICATION:
-			{
-				auto id = ProtoMessage::Parse<proto::Identification>(message);
-				if (id.has_name())
+				if (message->GetHeader()->messageLength > 0)
 				{
-					m_postOffice->m_names.insert_or_assign(id.name(), id.pid());
-					SPDLOG_INFO("Got name-based identification from {}: {}", id.pid(), id.name());
+					// if there is a payload, then we are getting a notification of ID
+					auto id = ProtoMessage::Parse<proto::Identification>(message);
+					if (id.has_name())
+					{
+						m_postOffice->m_names.insert_or_assign(id.name(), id.pid());
+						SPDLOG_INFO("Got name-based identification from {}: {}", id.pid(), id.name());
+					}
+					else
+					{
+						m_postOffice->m_identities.insert_or_assign(id.pid(), ClientIdentification{
+							id.pid(),
+							id.has_account() ? id.account() : "",
+							id.has_server() ? id.server() : "",
+							id.has_character() ? id.character() : ""
+							});
+
+						// only include the PID here, otherwise it's pseudonym-identifiable information from the logs
+						SPDLOG_INFO("Got identification from {}", id.pid());
+					}
+
+					// we also need to update all the clients
+					m_postOffice->m_pipeServer.BroadcastProtoMessage(mq::MQMessageId::MSG_IDENTIFICATION, id);
 				}
 				else
 				{
-					m_postOffice->m_identities.insert_or_assign(id.pid(), ClientIdentification{
-						id.pid(),
-						id.has_account() ? id.account() : "",
-						id.has_server() ? id.server() : "",
-						id.has_character() ? id.character() : ""
-						});
+					// otherwise, we are getting a request to send all IDs, do so sequentially
+					for (const auto& [_, client] : m_postOffice->m_identities)
+					{
+						proto::Identification id;
+						id.set_pid(client.pid);
 
-					// only include the PID here, otherwise it's pseudonym-identifiable information from the logs
-					SPDLOG_INFO("Got identification from {}", id.pid());
+						if (!client.account.empty())
+							id.set_account(client.account);
+
+						if (!client.server.empty())
+							id.set_server(client.server);
+
+						if (!client.character.empty())
+							id.set_character(client.character);
+
+						std::string data = id.SerializeAsString();
+						message->SendReply(mq::MQMessageId::MSG_IDENTIFICATION, &data[0], data.size());
+					}
+
+					for (const auto& [name, pid] : m_postOffice->m_names)
+					{
+						proto::Identification id;
+						id.set_pid(pid);
+						id.set_name(name);
+
+						std::string data = id.SerializeAsString();
+						message->SendReply(mq::MQMessageId::MSG_IDENTIFICATION, &data[0], data.size());
+					}
 				}
 				break;
-			}
 
 			case mq::MQMessageId::MSG_MAIN_PROCESS_UNLOADED:
 				break;
@@ -302,9 +338,18 @@ private:
 	}
 };
 
+std::unique_ptr<LauncherPostOffice> s_postOffice;
+
 PostOffice& postoffice::GetPostOffice() {
-	static LauncherPostOffice s_postOffice;
-	return s_postOffice;
+	// this is okay to be lazily constructed, because we don't need this until we register our first mailbox
+	// do it like this so that we can control the shutdown order (specifically to ensure we shut it down
+	// before logging gets turned off to avoid a crash)
+	if (!s_postOffice)
+	{
+		s_postOffice = std::make_unique<LauncherPostOffice>();
+	}
+
+	return *s_postOffice;
 }
 
 //----------------------------------------------------------------------------
@@ -329,6 +374,15 @@ void SendForceUnloadAllCommand()
 void ProcessPipeServer()
 {
 	static_cast<LauncherPostOffice&>(GetPostOffice()).ProcessPipeServer();
+}
+
+void InitializeNamedPipeServer()
+{
+}
+
+void ShutdownNamedPipeServer()
+{
+	s_postOffice.release();
 }
 
 //----------------------------------------------------------------------------

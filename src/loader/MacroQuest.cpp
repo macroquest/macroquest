@@ -1094,6 +1094,7 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 	const std::string cyclePrevWindowKey = GetPrivateProfileString("MacroQuest", "CyclePrevWindow", "", internal_paths::MQini);
 	const std::string bossModeKey = GetPrivateProfileString("MacroQuest", "BossMode", "", internal_paths::MQini);
 
+	InitializeNamedPipeServer();
 	InitializeWindows();
 	InitializeAutoLogin();
 
@@ -1181,6 +1182,7 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 
 	ShutdownAutoLogin();
 	ShutdownInjector();
+	ShutdownNamedPipeServer();
 	StopProcessMonitor();
 	if (injectOnce)
 		UpdateShowConsole(false, false);
