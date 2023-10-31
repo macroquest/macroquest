@@ -111,6 +111,13 @@ public:
 	{
 	}
 
+	constexpr MQColor(const ImVec4& imColor)
+		: Red(static_cast<uint8_t>(imColor.x * 255))
+		, Green(static_cast<uint8_t>(imColor.y * 255))
+		, Blue(static_cast<uint8_t>(imColor.z * 255))
+		, Alpha(static_cast<uint8_t>(imColor.w * 255))
+	{
+	}
 
 	constexpr MQColor& operator=(uint32_t argbcolor)
 	{

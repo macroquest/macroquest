@@ -14,6 +14,7 @@
 
 #include "pch.h"
 
+#include <mq/imgui/ConsoleWidget.h>
 #include <mq/imgui/ImGuiUtils.h>
 #include <mq/imgui/Widgets.h>
 #include <mq/Plugin.h>
@@ -46,6 +47,50 @@ void RegisterBindings_ImGuiCustom(sol::table& ImGui)
 		[](const char* text, float width) { mq::imgui::HelpMarker(text, width); },
 		[](const char* text, float width, ImFont* font) { mq::imgui::HelpMarker(text, width, font); }
 	));
+
+	ImGui.set("ConsoleFont", mq::imgui::ConsoleFont);
+
+	ImGui.new_usertype<mq::imgui::ConsoleWidget>(
+		"ConsoleWidget"              , sol::factories(&mq::imgui::ConsoleWidget::Create),
+		"Render", sol::overload(
+			                         [](mq::imgui::ConsoleWidget* pThis) { pThis->Render(); },
+			                         [](mq::imgui::ConsoleWidget* pThis, ImVec2 displaySize) { pThis->Render(displaySize); }
+		),
+		"Clear"                      , &mq::imgui::ConsoleWidget::Clear,
+		"IsCursorAtEnd"              , &mq::imgui::ConsoleWidget::IsCursorAtEnd,
+		"ScrollToBottom"             , &mq::imgui::ConsoleWidget::ScrollToBottom,
+		"autoScroll"                 , sol::property(&mq::imgui::ConsoleWidget::GetAutoScroll, &mq::imgui::ConsoleWidget::SetAutoScroll),
+		"maxBufferLines"             , sol::property(&mq::imgui::ConsoleWidget::GetMaxBufferLines, &mq::imgui::ConsoleWidget::SetMaxBufferLines),
+
+		"AppendText",                sol::overload(
+			[](mq::imgui::ConsoleWidget* pThis, std::string_view text) { pThis->AppendText(text, mq::imgui::ConsoleWidget::DEFAULT_COLOR, true); },
+			[](mq::imgui::ConsoleWidget* pThis, std::string_view format, sol::variadic_args va, sol::this_state s) {
+				sol::function string_format = sol::state_view(s)["string"]["format"];
+				std::string text = string_format(format, va);
+
+				pThis->AppendText(text, mq::imgui::ConsoleWidget::DEFAULT_COLOR, true);
+			},
+			[](mq::imgui::ConsoleWidget* pThis, int col, std::string_view text) { pThis->AppendText(text, MQColor(MQColor::format_bgra, col), true); },
+			[](mq::imgui::ConsoleWidget* pThis, int col, std::string_view format, sol::variadic_args va, sol::this_state s) {
+				sol::function string_format = sol::state_view(s)["string"]["format"];
+				std::string text = string_format(format, va);
+
+				pThis->AppendText(text, MQColor(MQColor::format_bgra, col), true);
+			},
+			[](mq::imgui::ConsoleWidget* pThis, const ImVec4& col, std::string_view text) { pThis->AppendText(text, MQColor(col), true); },
+			[](mq::imgui::ConsoleWidget* pThis, const ImVec4& col, std::string_view format, sol::variadic_args va, sol::this_state s) {
+				sol::function string_format = sol::state_view(s)["string"]["format"];
+				std::string text = string_format(format, va);
+
+				pThis->AppendText(text, MQColor(col), true);
+			}
+		),
+		"AppendTextUnformatted", sol::overload(
+			[](mq::imgui::ConsoleWidget* pThis, std::string_view text) { pThis->AppendText(text, mq::imgui::ConsoleWidget::DEFAULT_COLOR, false); },
+			[](mq::imgui::ConsoleWidget* pThis, int col, std::string_view text) { pThis->AppendText(text, MQColor(MQColor::format_bgra, col), false); },
+			[](mq::imgui::ConsoleWidget* pThis, const ImVec4& col, std::string_view text) { pThis->AppendText(text, MQColor(col), false); }
+		)
+	);
 }
 
 } // namespace mq::lua::bindings

@@ -116,8 +116,6 @@ static int GetColorU32(float colR, float colG, float colB, float colA)          
 static int GetColorU32(int col)                                                                     { return ImGui::GetColorU32(ImU32(col)); }
 static int GetColorU32(const ImVec4& imvec4)                                                        { return ImColor(imvec4); }
 
-static int GetColorU32_Int(int colR, int colG, int colB, int colA)                                  { return IM_COL32(colR, colG, colB, colA); }
-
 // Parameters stacks (current window)
 static void PushItemWidth(float itemWidth)                                                          { ImGui::PushItemWidth(itemWidth); }
 static void PopItemWidth()                                                                          { ImGui::PopItemWidth(); }
@@ -509,7 +507,10 @@ void RegisterBindings_ImGui(sol::state_view state)
 	);
 
 	// global "macro"
-	state.set_function("IM_COL32", GetColorU32_Int);
+	state.set_function("IM_COL32", sol::overload(
+		[](int colR, int colG, int colB, int colA) -> int { return IM_COL32(colR, colG, colB, colA); },
+		[](int colR, int colG, int colB) -> int { return IM_COL32(colR, colG, colB, 255); }
+	));
 
 	// Parameters stacks (current window)
 	ImGui.set_function("PushItemWidth", PushItemWidth);
