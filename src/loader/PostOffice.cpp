@@ -194,23 +194,7 @@ private:
 
 public:
 	LauncherPostOffice() : m_pipeServer{ mq::MQ2_PIPE_SERVER_PATH }
-	{
-		m_pipeServer.SetHandler(std::make_shared<PipeEventsHandler>(this));
-		m_pipeServer.Start();
-
-		m_serverMailbox = CreateAndAddMailbox("pipe_server",
-			[this](ProtoMessagePtr&& message)
-			{
-				m_pipeServer.DispatchMessage(std::move(message));
-			});
-	}
-
-	~LauncherPostOffice()
-	{
-		RemoveMailbox("pipe_server");
-		m_serverMailbox.reset();
-		m_pipeServer.Stop();
-	}
+	{}
 
 	void RouteMessage(PipeMessagePtr&& message) override
 	{
@@ -218,8 +202,14 @@ public:
 		const auto& address = envelope.address();
 		auto routing_failed = [&envelope, &address, this](PipeMessagePtr&& message)
 			{
-				if (envelope.has_return_address())
-					m_serverMailbox->PostReply(std::move(message), envelope.return_address(), MQMessageId::MSG_NULL, address, MsgError_RoutingFailed);
+				// we can't assume that the mailbox exists here, so manually create the reply
+				proto::Envelope envelope;
+				*envelope.mutable_address() = envelope.return_address();
+				envelope.set_message_id(static_cast<uint32_t>(message->GetMessageId()));
+				envelope.set_payload(address.SerializeAsString());
+
+				std::string data = envelope.SerializeAsString();
+				message->SendReply(MQMessageId::MSG_ROUTE, &data[0], data.size(), MsgError_RoutingFailed);
 			};
 
 		if (address.has_pid() && address.pid() != GetCurrentProcessId())
@@ -317,6 +307,31 @@ public:
 		m_pipeServer.BroadcastMessage(mq::MQMessageId::MSG_MAIN_REQ_FORCEUNLOAD, nullptr, 0);
 	}
 
+	void Initialize()
+	{
+		m_pipeServer.SetHandler(std::make_shared<PipeEventsHandler>(this));
+		m_pipeServer.Start();
+
+		m_serverMailbox = CreateAndAddMailbox("pipe_server",
+			[this](ProtoMessagePtr&& message)
+			{
+				m_pipeServer.DispatchMessage(std::move(message));
+			});
+	}
+
+	void Shutdown()
+	{
+		// after the mailbox is removed from the post office, it won't get any more messages, and lets
+		// make sure all remaining messages get discarded by dropping the last reference so we stop
+		// processing
+		RemoveMailbox("pipe_server");
+		m_serverMailbox.reset();
+
+		// we don't need to worry about sending messages after we stop because the pipe client will log
+		// and handle this situation.
+		m_pipeServer.Stop();
+	}
+
 private:
 	mq::ProtoPipeServer m_pipeServer;
 	std::shared_ptr<PostOffice::Mailbox> m_serverMailbox;
@@ -340,16 +355,10 @@ private:
 
 std::unique_ptr<LauncherPostOffice> s_postOffice;
 
-PostOffice& postoffice::GetPostOffice() {
-	// this is okay to be lazily constructed, because we don't need this until we register our first mailbox
-	// do it like this so that we can control the shutdown order (specifically to ensure we shut it down
-	// before logging gets turned off to avoid a crash)
-	if (!s_postOffice)
-	{
-		s_postOffice = std::make_unique<LauncherPostOffice>();
-	}
-
-	return *s_postOffice;
+PostOffice& postoffice::GetPostOffice()
+{
+	static LauncherPostOffice s_postOffice;
+	return s_postOffice;
 }
 
 //----------------------------------------------------------------------------
@@ -378,11 +387,12 @@ void ProcessPipeServer()
 
 void InitializeNamedPipeServer()
 {
+	static_cast<LauncherPostOffice&>(GetPostOffice()).Initialize();
 }
 
 void ShutdownNamedPipeServer()
 {
-	s_postOffice.reset();
+	static_cast<LauncherPostOffice&>(GetPostOffice()).Shutdown();
 }
 
 //----------------------------------------------------------------------------

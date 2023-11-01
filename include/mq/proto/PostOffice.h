@@ -359,6 +359,30 @@ public:
 	}
 
 	/**
+	 * Delivers a message to all local mailboxes without routing information
+	 * 
+	 * @param message the message to send
+	 */
+	void DeliverAll(PipeMessagePtr&& message)
+	{
+		for (auto mailbox_it = m_mailboxes.begin(); mailbox_it != m_mailboxes.end();)
+		{
+			if (auto ptr = mailbox_it->second.lock())
+			{
+				ptr->Deliver(
+					std::make_unique<PipeMessage>(*message->GetHeader(), message->get(), message->size())
+				);
+
+				++mailbox_it;
+			}
+			else
+			{
+				mailbox_it = m_mailboxes.erase(mailbox_it);
+			}
+		}
+	}
+
+	/**
 	 * Processes messages waiting in the queue
 	 * 
 	 * @param howMany how many messages to process (up to)

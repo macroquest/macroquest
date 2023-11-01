@@ -126,10 +126,22 @@ private:
 					auto a3 = id.server();
 					auto a4 = id.character();
 
-					m_postOffice->DeliverAll(
-						std::make_unique<PipeMessage>(MQMessageId::MSG_IDENTIFICATION, &data[0], data.size()),
-						m_postOffice->m_clientMailbox
-					);
+					if (m_postOffice->m_clientMailbox)
+					{
+						// if we have a mailbox, we need to ensure we add routing information so we don't
+						// update ourselves
+						m_postOffice->DeliverAll(
+							std::make_unique<PipeMessage>(MQMessageId::MSG_IDENTIFICATION, &data[0], data.size()),
+							m_postOffice->m_clientMailbox
+						);
+					}
+					else
+					{
+						// otherwise, just send it to all the connected mailboxes
+						m_postOffice->DeliverAll(
+							std::make_unique<PipeMessage>(MQMessageId::MSG_IDENTIFICATION, &data[0], data.size())
+						);
+					}
 				}
 				break;
 
@@ -185,18 +197,13 @@ private:
 
 		virtual void OnClientConnected() override
 		{
-			//SPDLOG_DEBUG("Connection to named pipe created, Sending process loaded message.");
+			SPDLOG_DEBUG("Connection to named pipe created, Sending process loaded message.");
 
 			MQMessageProcessLoadedFromMQ msg;
 			msg.processId = GetCurrentProcessId();
 			m_postOffice->m_pipeClient.SendMessage(MQMessageId::MSG_MAIN_PROCESS_LOADED, &msg, sizeof(msg));
 
 			pipeclient::SetGameStatePostOffice(0);
-
-			proto::Address address;
-			address.set_name("launcher");
-
-			m_postOffice->m_clientMailbox->Post(address, MQMessageId::MSG_IDENTIFICATION);
 		}
 
 	private:
@@ -205,36 +212,10 @@ private:
 
 public:
 
-	MQ2PostOffice() : m_pipeClient{ mq::MQ2_PIPE_SERVER_PATH }, m_launcherProcessID(0)
-	{
-		m_pipeClient.SetHandler(std::make_shared<PipeEventsHandler>(this));
-		m_pipeClient.Start();
-		::atexit(StopPipeClient);
-
-		m_clientMailbox = CreateAndAddMailbox("pipe_client",
-			[this](ProtoMessagePtr&& message)
-			{
-				// we want to discard any message sent from self
-				if (message->GetSender())
-				{
-					auto sender = *message->GetSender();
-					if (sender.has_pid() &&
-						sender.pid() == GetCurrentProcessId() &&
-						sender.has_mailbox() &&
-						sender.mailbox() == m_clientMailbox->GetAddress())
-						return;
-				}
-
-				m_pipeClient.DispatchMessage(std::move(message));
-			});
-	}
-
-	~MQ2PostOffice()
-	{
-		RemoveMailbox("pipe_client");
-		m_clientMailbox.reset();
-		m_pipeClient.Stop();
-	}
+	MQ2PostOffice()
+		: m_pipeClient{ mq::MQ2_PIPE_SERVER_PATH }
+		, m_launcherProcessID(0)
+	{}
 
 	void RouteMessage(PipeMessagePtr&& message) override
 	{
@@ -372,6 +353,49 @@ public:
 		m_pipeClient.SendProtoMessage(MQMessageId::MSG_IDENTIFICATION, id);
 	}
 
+	void Initialize()
+	{
+		m_pipeClient.SetHandler(std::make_shared<PipeEventsHandler>(this));
+		m_pipeClient.Start();
+		::atexit(StopPipeClient);
+
+		m_clientMailbox = CreateAndAddMailbox("pipe_client",
+			[this](ProtoMessagePtr&& message)
+			{
+				// we want to discard any message sent from self
+				if (message->GetSender())
+				{
+					auto sender = *message->GetSender();
+					if (sender.has_pid() &&
+						sender.pid() == GetCurrentProcessId() &&
+						sender.has_mailbox() &&
+						sender.mailbox() == m_clientMailbox->GetAddress())
+						return;
+				}
+
+				m_pipeClient.DispatchMessage(std::move(message));
+			});
+
+		// once we set up the mailbox, get a list of all connected peers
+		proto::Address address;
+		address.set_name("launcher");
+
+		m_clientMailbox->Post(address, MQMessageId::MSG_IDENTIFICATION);
+	}
+
+	void Shutdown()
+	{
+		// after the mailbox is removed from the post office, it won't get any more messages, and lets
+		// make sure all remaining messages get discarded by dropping the last reference so we stop
+		// processing
+		RemoveMailbox("pipe_client");
+		m_clientMailbox.reset();
+
+		// we don't need to worry about sending messages after we stop because the pipe client will log
+		// and handle this situation.
+		m_pipeClient.Stop();
+	}
+
 private:
 	ProtoPipeClient m_pipeClient;
 	std::shared_ptr<PostOffice::Mailbox> m_clientMailbox;
@@ -383,18 +407,10 @@ private:
 	}
 };
 
-std::unique_ptr<MQ2PostOffice> s_postOffice;
-
-PostOffice& postoffice::GetPostOffice() {
-	// this is okay to be lazily constructed, because we don't need this until we register our first mailbox
-	// do it like this so that we can control the shutdown order (specifically to ensure we shut it down
-	// before logging gets turned off to avoid a crash)
-	if (!s_postOffice)
-	{
-		s_postOffice = std::make_unique<MQ2PostOffice>();
-	}
-
-	return *s_postOffice;
+PostOffice& postoffice::GetPostOffice()
+{
+	static MQ2PostOffice s_postOffice;
+	return s_postOffice;
 }
 
 namespace pipeclient {
@@ -423,11 +439,12 @@ void SetGameStatePostOffice(DWORD GameState)
 
 void InitializePipeClient()
 {
+	static_cast<MQ2PostOffice&>(GetPostOffice()).Initialize();
 }
 
 void ShutdownPipeClient()
 {
-	s_postOffice.reset();
+	static_cast<MQ2PostOffice&>(GetPostOffice()).Shutdown();
 }
 
 } // namespace mq
