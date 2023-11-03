@@ -1509,7 +1509,7 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 		                                    [](ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col, const ImVec4& tint_col) { return ImGui::ImageButton(texture_id, size, uv0, uv1, frame_padding, bg_col, tint_col); }
 	));
 
-	ImGui.set_function("Checkbox",          [](const char* label, bool v) -> std::tuple<bool, bool> { bool value{ v }, pressed = ImGui::Checkbox(label, &value); return std::make_tuple(value, pressed); });
+	ImGui.set_function("Checkbox",          [](const char* label, bool v) -> std::tuple<bool, bool> { bool value = v; bool pressed = ImGui::Checkbox(label, &value); return std::make_tuple(value, pressed); });
 	ImGui.set_function("CheckboxFlags",     [](const char* label, uint32_t flags, uint32_t flagsValue) -> std::tuple<uint32_t, bool> { uint32_t mutableFlags = flags; bool pressed = ImGui::CheckboxFlags(label, &mutableFlags, flagsValue); return std::make_tuple(mutableFlags, pressed); });
 	ImGui.set_function("RadioButton", sol::overload(
 		                                    [](const char* label, bool active) { return ImGui::RadioButton(label, active); },
@@ -1818,13 +1818,13 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 		[](const char* label, bool enabled) { return ImGui::BeginMenu(label, enabled); }
 	));
 	ImGui.set_function("EndMenu", &ImGui::EndMenu);
-	ImGui.set_function("MenuItem", sol::overload(
-		[](const char* label) { bool activated = ImGui::MenuItem(label); return std::make_tuple(activated, activated); },
-		[](const char* label, sol::optional<const char*> shortcut) { bool activated = ImGui::MenuItem(label, shortcut.value_or(nullptr)); return std::make_tuple(activated, activated); },
-		[](const char* label, sol::optional<const char*> shortcut, nullptr_t, bool enabled) { bool activated = ImGui::MenuItem(label, shortcut.value_or(nullptr), nullptr, enabled); return std::make_tuple(activated, activated); },
-		[](const char* label, sol::optional<const char*> shortcut, bool selected) { bool activated = ImGui::MenuItem(label, shortcut.value_or(nullptr), &selected); return std::make_tuple(activated, selected); },
-		[](const char* label, sol::optional<const char*> shortcut, bool selected, bool enabled) { bool activated = ImGui::MenuItem(label, shortcut.value_or(nullptr), &selected, enabled); return std::make_tuple(activated, selected); }
-	));
+	ImGui.set_function("MenuItem",
+		[](const char* label, sol::optional<const char*> shortcut, sol::optional<bool> selected, std::optional<bool> enabled) {
+			bool value = selected.value_or(false);
+			bool activated = ImGui::MenuItem(label, shortcut.value_or(nullptr), &value, enabled.value_or(true));
+			return std::make_tuple(activated, selected.has_value() ? value : activated);
+		}
+	);
 	#pragma endregion
 
 	#pragma region Tooltips
