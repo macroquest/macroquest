@@ -145,14 +145,6 @@ void PipeMessage::Init(const MQMessageHeader& header, const void* data, size_t l
 	m_valid = true;
 }
 
-MQMessageId PipeMessage::GetMessageId() const
-{
-	if (!m_header)
-		return MQMessageId::MSG_NULL;
-
-	return m_header->messageId;
-}
-
 int PipeMessage::GetConnectionId() const
 {
 	if (auto connection = m_connection.lock())

@@ -225,7 +225,7 @@ public:
 			if (envelope.has_address())
 			{
 				auto address = envelope.address();
-				if ((address.has_pid() && address.pid() != GetCurrentProcessId()) || address.has_name() || address.has_account() || address.has_server() || address.has_character())
+				if ((address.has_pid() && address.pid() != GetCurrentProcessId()) || address.has_name() || address.has_account() || address.has_server() || address.has_character() || address.has_mailbox())
 				{
 					// we can't assume that even if we match the address (account/server/character) that this
 					// client is the only one that does. We need to route it through the server to ensure that

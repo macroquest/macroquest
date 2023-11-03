@@ -259,7 +259,10 @@ public:
 					(!address.has_character() || ci_equals(address.character(), identity.second.character))
 					)
 				{
-					SendMessageToPID(identity.first, std::move(message), routing_failed);
+					SendMessageToPID(
+						identity.first,
+						std::make_unique<PipeMessage>(*message->GetHeader(), message->get(), message->size()),
+						routing_failed);
 				}
 			}
 		}

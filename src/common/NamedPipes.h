@@ -70,7 +70,13 @@ public:
 
 	MQMessageHeader* GetHeader() { return m_header; }
 	const MQMessageHeader* GetHeader() const { return m_header; }
-	MQMessageId GetMessageId() const;
+	MQMessageId GetMessageId() const
+	{
+		if (!m_header)
+			return MQMessageId::MSG_NULL;
+
+		return m_header->messageId;
+	}
 
 	template <typename T = void>
 	const T* get() const { return reinterpret_cast<T*>(m_buffer.get() + m_dataOffset); }
