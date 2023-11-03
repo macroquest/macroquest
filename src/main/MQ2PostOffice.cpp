@@ -121,10 +121,6 @@ private:
 
 					// for any mailbox that is keeping track, update them as well
 					std::string data = id.SerializeAsString();
-					auto a1 = id.pid();
-					auto a2 = id.account();
-					auto a3 = id.server();
-					auto a4 = id.character();
 
 					if (m_postOffice->m_clientMailbox)
 					{
@@ -144,6 +140,40 @@ private:
 					}
 				}
 				break;
+
+			case MQMessageId::MSG_DROPPED:
+			{
+				auto id = ProtoMessage::Parse<proto::Identification>(message);
+				if (id.has_name())
+				{
+					m_postOffice->m_names.erase(id.name());
+				}
+				else
+				{
+					m_postOffice->m_identities.erase(id.pid());
+				}
+
+				// forward the message to all mailboxes
+				std::string data = id.SerializeAsString();
+
+				if (m_postOffice->m_clientMailbox)
+				{
+					// if we have a mailbox, we need to ensure we add routing information so we don't
+					// update ourselves
+					m_postOffice->DeliverAll(
+						std::make_unique<PipeMessage>(MQMessageId::MSG_DROPPED, &data[0], data.size()),
+						m_postOffice->m_clientMailbox
+					);
+				}
+				else
+				{
+					// otherwise, just send it to all the connected mailboxes
+					m_postOffice->DeliverAll(
+						std::make_unique<PipeMessage>(MQMessageId::MSG_DROPPED, &data[0], data.size())
+					);
+				}
+				break;
+			}
 
 			case MQMessageId::MSG_MAIN_CRASHPAD_CONFIG:
 				// Message needs to at least have some substance...

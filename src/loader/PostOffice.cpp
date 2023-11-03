@@ -185,7 +185,52 @@ private:
 
 		virtual void OnConnectionClosed(int connectionId, int processId) override
 		{
-			m_postOffice->m_identities.erase(processId);
+			// we need to make sure not to send to the connection that is closing
+			auto broadcast = [&pipe = m_postOffice->m_pipeServer, connectionId](proto::Identification&& id)
+				{
+					std::string data = id.SerializeAsString();
+					for (auto conn : pipe.GetConnectionIds())
+					{
+						if (conn != connectionId)
+							pipe.SendMessage(conn, mq::MQMessageId::MSG_DROPPED, &data[0], data.size());
+					}
+				};
+
+			for (auto& name_it = m_postOffice->m_names.begin(); name_it != m_postOffice->m_names.end();)
+			{
+				if (name_it->second == processId)
+				{
+					proto::Identification id;
+					id.set_pid(name_it->second);
+					id.set_name(name_it->first);
+
+					broadcast(std::move(id));
+
+					name_it = m_postOffice->m_names.erase(name_it);
+				}
+				else
+					++name_it;
+			}
+
+			auto& ident_it = m_postOffice->m_identities.find(processId);
+			if (ident_it != m_postOffice->m_identities.end())
+			{
+				proto::Identification id;
+				id.set_pid(ident_it->first);
+
+				if (!ident_it->second.account.empty())
+					id.set_account(ident_it->second.account);
+
+				if (!ident_it->second.server.empty())
+					id.set_server(ident_it->second.server);
+
+				if (!ident_it->second.character.empty())
+					id.set_character(ident_it->second.character);
+
+				broadcast(std::move(id));
+
+				m_postOffice->m_identities.erase(ident_it);
+			}
 		}
 
 		private:
