@@ -620,6 +620,11 @@ std::optional<std::string> mq_gettype_MQTypeVar(const lua_MQTypeVar& item)
 
 #pragma region Lua DataTypes
 
+static std::string DefaultToString(const sol::object&)
+{
+	return "NULL";
+}
+
 class LuaAbstractDataType
 {
 public:
@@ -646,6 +651,22 @@ public:
 		if (methods)
 		{
 			InitializeMembers(*methods, true);
+		}
+
+		// Initialize ToString
+		auto toString = parameters.get<sol::function>("ToString");
+		if (toString)
+		{
+			m_toString = toString;
+		}
+		else
+		{
+			auto state = sol::state_view{ s };
+			m_toString = state.script(R"(
+				return function()
+					return 'NULL'
+				end
+			)");
 		}
 
 		// Create a thread for our data type so that it always has its own stack.

@@ -100,5 +100,8 @@
     <Natvis Include="LuaJIT.natvis">
       <Filter>Resource Files</Filter>
     </Natvis>
+    <Natvis Include="LuaJIT-x86.natvis">
+      <Filter>Resource Files</Filter>
+    </Natvis>
   </ItemGroup>
 </Project>
