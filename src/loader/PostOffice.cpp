@@ -196,7 +196,7 @@ private:
 					}
 				};
 
-			for (auto& name_it = m_postOffice->m_names.begin(); name_it != m_postOffice->m_names.end();)
+			for (auto name_it = m_postOffice->m_names.begin(); name_it != m_postOffice->m_names.end();)
 			{
 				if (name_it->second == processId)
 				{
@@ -212,7 +212,7 @@ private:
 					++name_it;
 			}
 
-			auto& ident_it = m_postOffice->m_identities.find(processId);
+			auto ident_it = m_postOffice->m_identities.find(processId);
 			if (ident_it != m_postOffice->m_identities.end())
 			{
 				proto::Identification id;
