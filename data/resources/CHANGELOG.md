@@ -1,3 +1,11 @@
+Nov 7, 2023:
+- Added support for datatypes implemented in lua scripts. This includes support
+  for lua tables in lua datatypes. See examples and definitions for details.
+  Detailed documentation coming soon. (#716)
+- Added preliminary support for actors in c++ plugins. (#674)
+- Exposed ConsoleWidget to c++ and lua (see definitions for details)
+- lua: Added Set helper class (#770)
+
 Oct 21, 2023:
 - tlo: Add Inventory TLO (currently only has the Bank datatype)
 - Inventory.Bank has members: BagSlots, FreeSlots, TotalSlots, and each currency
