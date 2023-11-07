@@ -305,10 +305,11 @@ static void SetClipboardText(const std::string& text)                           
 
 void RegisterBindings_ImGui(sol::state_view state)
 {
-	sol::table ImGui = state.get_or("ImGui", sol::lua_nil);
-	if (ImGui != sol::lua_nil) return;
+	bool imguiRegistered = state.get_or("_imgui_registered", false);
+	if (imguiRegistered) return;
+	state["_imgui_registered"] = true;
 
-	ImGui = state.create_named_table("ImGui");
+	sol::table ImGui = state.create_named_table("ImGui");
 	bindings::RegisterBindings_ImGuiEnums(state);
 	bindings::RegisterBindings_ImGuiUserTypes(state);
 

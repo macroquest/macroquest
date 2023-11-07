@@ -73,6 +73,9 @@ LuaImGui::LuaImGui(std::string_view name, const sol::thread& parent_thread, cons
 {
 	m_thread = sol::thread::create(m_parentThread.state());
 	m_coroutine = sol::coroutine(m_thread.state(), m_callback);
+
+	// This implements the automatic registration of ImGui namespace when calling mq.imgui.init
+	bindings::RegisterBindings_ImGui(m_thread.state());
 }
 
 LuaImGui::~LuaImGui()
