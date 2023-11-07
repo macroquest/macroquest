@@ -76,19 +76,19 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <CodeAnalysisRuleSet>..\VisualStudioAnalysis.ruleset</CodeAnalysisRuleSet>
-    <IncludePath>$(VCPKG_IncludeDirs)\crashpad-backtrace;$(IncludePath)</IncludePath>
+    <IncludePath>$(VCPKG_IncludeStatic)\crashpad-backtrace;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <CodeAnalysisRuleSet>..\VisualStudioAnalysis.ruleset</CodeAnalysisRuleSet>
-    <IncludePath>$(VCPKG_IncludeDirs)\crashpad-backtrace;$(IncludePath)</IncludePath>
+    <IncludePath>$(VCPKG_IncludeStatic)\crashpad-backtrace;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <CodeAnalysisRuleSet>..\VisualStudioAnalysis.ruleset</CodeAnalysisRuleSet>
-    <IncludePath>$(VCPKG_IncludeDirs)\crashpad-backtrace;$(IncludePath)</IncludePath>
+    <IncludePath>$(VCPKG_IncludeStatic)\crashpad-backtrace;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <CodeAnalysisRuleSet>..\VisualStudioAnalysis.ruleset</CodeAnalysisRuleSet>
-    <IncludePath>$(VCPKG_IncludeDirs)\crashpad-backtrace;$(IncludePath)</IncludePath>
+    <IncludePath>$(VCPKG_IncludeStatic)\crashpad-backtrace;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -495,6 +495,12 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="datatypes\MQInventoryType.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="GraphicsEngine.cpp" />
     <ClCompile Include="GraphicsEngineDX11.cpp" />
     <ClCompile Include="GraphicsEngineDX9.cpp" />
@@ -513,7 +519,7 @@
     <ClCompile Include="MQ2DeveloperTools.cpp" />
     <ClCompile Include="MQ2DInput.cpp" />
     <ClCompile Include="MQ2Data.cpp" />
-    <ClCompile Include="MQ2DataAPI.cpp" />
+    <ClCompile Include="MQDataAPI.cpp" />
     <ClCompile Include="MQ2DataVars.cpp" />
     <ClCompile Include="MQ2DetourAPI.cpp" />
     <ClCompile Include="MQ2FrameLimiter.cpp" />
@@ -528,8 +534,7 @@
     <ClCompile Include="MQ2MacroCommands.cpp" />
     <ClCompile Include="MQ2Main.cpp" />
     <ClCompile Include="MQ2Mouse.cpp" />
-    <ClCompile Include="MQ2ParseAPI.cpp" />
-    <ClCompile Include="PipeClient.cpp" />
+    <ClCompile Include="MQ2PostOffice.cpp" />
     <ClCompile Include="MQ2PluginHandler.cpp" />
     <ClCompile Include="MQ2Pulse.cpp" />
     <ClCompile Include="MQ2Spawns.cpp" />
@@ -556,6 +561,9 @@
     <ClInclude Include="..\..\include\mq\api\Achievements.h" />
     <ClInclude Include="..\..\include\mq\api\Items.h" />
     <ClInclude Include="..\..\include\mq\api\MacroAPI.h" />
+    <ClInclude Include="..\..\include\mq\api\MacroDataTypes.h" />
+    <ClInclude Include="..\..\include\mq\api\Main.h" />
+    <ClInclude Include="..\..\include\mq\api\Plugin.h" />
     <ClInclude Include="..\..\include\mq\api\Spawns.h" />
     <ClInclude Include="..\..\include\mq\api\Spells.h" />
     <ClInclude Include="..\..\include\mq\base\BuildInfo.h" />
@@ -575,6 +583,9 @@
     <ClInclude Include="..\..\include\mq\imgui\ImGuiUtils.h" />
     <ClInclude Include="..\..\include\mq\imgui\Widgets.h" />
     <ClInclude Include="..\..\include\mq\Plugin.h" />
+    <ClInclude Include="..\..\include\mq\proto\PostOffice.h" />
+    <ClInclude Include="..\..\include\mq\proto\ProtoPipes.h" />
+    <ClInclude Include="..\..\include\mq\proto\Routing.h" />
     <ClInclude Include="..\..\include\mq\utils\Args.h" />
     <ClInclude Include="..\..\include\mq\utils\Benchmarks.h" />
     <ClInclude Include="..\..\include\mq\utils\Keybinds.h" />
@@ -595,6 +606,7 @@
     <ClInclude Include="ImGuiManager.h" />
     <ClInclude Include="ImGuiZepEditor.h" />
     <ClInclude Include="MQ2Commands.h" />
+    <ClInclude Include="MQDataAPI.h" />
     <ClInclude Include="MQ2DataContainers.h" />
     <ClInclude Include="MQ2DeveloperTools.h" />
     <ClInclude Include="MQ2Globals.h" />
@@ -610,7 +622,7 @@
     <ClInclude Include="MQ2Utilities.h" />
     <ClInclude Include="MQVersionInfo.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="PipeClient.h" />
+    <ClInclude Include="MQ2PostOffice.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
@@ -628,6 +640,9 @@
     </ProjectReference>
     <ProjectReference Include="..\imgui\imgui.vcxproj">
       <Project>{1777e251-0f50-496a-b8c5-ec7f41a0b186}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\routing\routing.vcxproj">
+      <Project>{6ce4f8d6-1709-47c5-9297-1619bbc4a71e}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

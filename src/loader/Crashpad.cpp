@@ -49,6 +49,8 @@ bool gEnableSilentCrashpad = false;                           // If using crashp
 bool gEnableCrashSubmissions = CRASHPAD_SUBMISSIONS_ENABLED;  // If using crashpad, we will submit them.
 bool gEnableRateLimit = false;                                // If using crashpad, upload rate limiting.
 
+bool gCrashpadInitialized = false;                            // Internal state-tracking of initialization
+
 static std::string gCrashpadSubmissionURL = CRASHPAD_SUBMISSIONS_URL;
 
 bool InitializeCrashpad()
@@ -132,7 +134,8 @@ bool InitializeCrashpad()
 	}
 
 	// Wait for Crashpad to initialize.
-	return client.WaitForHandlerStart(INFINITE);
+	gCrashpadInitialized = client.WaitForHandlerStart(INFINITE);
+	return gCrashpadInitialized;
 }
 
 std::string GetHandlerIPCPipe()
@@ -140,4 +143,9 @@ std::string GetHandlerIPCPipe()
 	std::wstring pipeName = client.GetHandlerIPCPipe();
 
 	return mq::wstring_to_utf8(pipeName);
+}
+
+bool IsCrashpadInitialized()
+{
+	return gCrashpadInitialized;
 }

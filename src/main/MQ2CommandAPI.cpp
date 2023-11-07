@@ -19,6 +19,9 @@ namespace mq {
 
 static std::recursive_mutex s_commandMutex;
 
+// Defined in MQ2MacroCommands.cpp
+void FailIf(SPAWNINFO* pChar, const char* szCommand, int pStartLine, bool All);
+
 struct MQTimedCommand
 {
 	uint64_t      Time;
@@ -181,7 +184,7 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 			// the parser version is 2 or It's not version 2 and we're allowing command parses
 			if (pCommand->Parse && (gParserVersion == 2 || (gParserVersion != 2 && bAllowCommandParse)))
 			{
-				pCommand->Function(pChar, ParseMacroParameter(pChar, szParam));
+				pCommand->Function(pChar, ParseMacroParameter(szParam));
 			}
 			else
 			{
@@ -407,7 +410,7 @@ public:
 					// the parser version is 2 or It's not version 2 and we're allowing command parses
 					if (pCommand->Parse && (gParserVersion == 2 || (gParserVersion != 2 && bAllowCommandParse)))
 					{
-						ParseMacroParameter(pChar, szArgs);
+						ParseMacroParameter(szArgs);
 					}
 
 					if (pCommand->EQ)

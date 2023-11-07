@@ -16,7 +16,11 @@
 
 #include <cstdint>
 
-#ifdef MQ2MAIN_EXPORTS
+#if defined(MQ_NO_EXPORTS)
+#define MQLIB_API
+#define MQLIB_VAR
+#define MQLIB_OBJECT
+#elif defined(MQ2MAIN_EXPORTS)
 #define MQLIB_API extern "C" __declspec(dllexport)
 #define MQLIB_VAR extern "C" __declspec(dllexport)
 #define MQLIB_OBJECT __declspec(dllexport)

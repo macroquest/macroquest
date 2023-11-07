@@ -16,12 +16,19 @@
 
 #include "LuaCommon.h"
 
+#include "mq/api/MacroAPI.h"
 #include "mq/base/GlobalBuffer.h"
+#include "mq/base/String.h"
+#include "mq/base/Vector.h"
 
 #include <sol/sol.hpp>
 
 #include <chrono>
 #include <stack>
+
+namespace mq {
+	struct MQPlugin;
+}
 
 namespace mq::lua {
 
@@ -44,6 +51,7 @@ enum class LuaThreadExitReason
 {
 	Unspecified = 0,
 	Exit = 1,
+	DependencyRemoved = 2,
 };
 
 enum class YieldDisabledReason
@@ -85,6 +93,7 @@ struct LuaThreadInfo
 	void EndRun();
 };
 
+
 //============================================================================
 
 class LuaThread : public std::enable_shared_from_this<LuaThread>
@@ -95,6 +104,8 @@ private:
 public:
 	LuaThread(this_is_private&&, LuaEnvironmentSettings* environment);
 	static std::shared_ptr<LuaThread> Create(LuaEnvironmentSettings* environment);
+
+	~LuaThread();
 
 	LuaThread(const LuaThread&) = delete;
 	LuaThread& operator=(const LuaThread&) = delete;
@@ -109,6 +120,8 @@ public:
 	const std::string& GetScript() const { return m_path; }
 	sol::state_view GetState() const;
 	sol::thread GetLuaThread() const;
+	sol::thread_status GetThreadStatus() const;
+
 	// Buffer to get swapped in for DataTypeTemp
 	char buffer[SGlobalBuffer::bufferSize] = { 0 };
 
@@ -156,6 +169,28 @@ public:
 	static std::string GetCanonicalScriptName(std::string_view script, const std::filesystem::path& luaDir);
 	void UpdateLuaDir(const std::filesystem::path& newLuaDir);
 
+	// TLOs
+	bool AddTopLevelObject(const char* name, MQTopLevelObjectFunction func);
+	bool RemoveTopLevelObject(const char* name);
+
+	void RemoveAllDataObjects();
+
+	void AssociateTopLevelObject(const MQTopLevelObject* tlo);
+
+	bool AddDependency(const void* dep) {
+		return mq::insert_unique_sorted(m_dependencies, dep) != end(m_dependencies);
+	}
+	void RemoveDependency(const void* dep) {
+		mq::remove_sorted(m_dependencies, dep);
+	}
+	bool IsDependency(const void* dep) const {
+		return mq::sorted_contains(m_dependencies, dep);
+	}
+
+	void AddNamedDependency(const std::string& name) {
+		m_namedDependencies.insert(name);
+	}
+
 private:
 	RunResult RunOnce();
 
@@ -191,10 +226,15 @@ private:
 	bool m_allowYield = true;
 	YieldDisabledReason m_yieldDisabledReason = YieldDisabledReason::Default;
 	LuaThreadExitReason m_exitReason = LuaThreadExitReason::Unspecified;
+	std::vector<const void*> m_dependencies;
+	std::unordered_set<std::string> m_namedDependencies;
 
 	std::unique_ptr<LuaEventProcessor> m_eventProcessor;
 	std::unique_ptr<LuaImGuiProcessor> m_imguiProcessor;
 	LuaCoroutine* m_currentCoroutine = nullptr;
+
+	// datatypes
+	ci_unordered::set<std::string> m_registeredTLOs;
 };
 
 //============================================================================

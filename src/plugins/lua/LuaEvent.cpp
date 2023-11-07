@@ -173,7 +173,9 @@ void LuaEventProcessor::RunEvents(LuaThread& thread)
 }
 
 template <typename R>
-static void emplace_running(std::vector<std::shared_ptr<LuaEventFunction>>& running_vec, LuaEventInstance<R>& to_run)
+static void emplace_running(
+	std::vector<std::shared_ptr<LuaEventFunction>>& running_vec,
+	LuaEventInstance<R>& to_run)
 {
 	running_vec.emplace_back(std::make_shared<LuaEventFunction>(to_run));
 }

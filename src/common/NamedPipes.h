@@ -46,13 +46,14 @@ class PipeConnection;
 // to separate the header from the message, since different clients are going
 // to have different headers (maybe..?)
 
-class PipeMessage : public std::enable_shared_from_this<PipeMessage>
+class PipeMessage
 {
 	friend class PipeConnection;
 
 public:
 	PipeMessage() = default;
 	PipeMessage(MQMessageId messageId, const void* data, size_t length);
+	PipeMessage(const MQMessageHeader& header, const void* data, size_t length);
 
 	virtual ~PipeMessage();
 
@@ -61,13 +62,21 @@ public:
 	bool Parse(std::unique_ptr<uint8_t[]> buffer, size_t length);
 	bool Parse(const std::vector<std::pair<std::unique_ptr<uint8_t[]>, size_t>>& buffers);
 
+	void Init(const void* data, size_t length);
 	void Init(MQMessageId messageId, const void* data, size_t length);
+	void Init(const MQMessageHeader& header, const void* data, size_t length);
 
 	bool IsValid() const { return m_valid; }
 
 	MQMessageHeader* GetHeader() { return m_header; }
 	const MQMessageHeader* GetHeader() const { return m_header; }
-	MQMessageId GetMessageId() const;
+	MQMessageId GetMessageId() const
+	{
+		if (!m_header)
+			return MQMessageId::MSG_NULL;
+
+		return m_header->messageId;
+	}
 
 	template <typename T = void>
 	const T* get() const { return reinterpret_cast<T*>(m_buffer.get() + m_dataOffset); }
@@ -101,18 +110,18 @@ private:
 
 	std::weak_ptr<PipeConnection> m_connection;
 };
-using PipeMessagePtr = std::shared_ptr<PipeMessage>;
+using PipeMessagePtr = std::unique_ptr<PipeMessage>;
 
-using PipeMessageResponseCb = std::function<void(int status, const PipeMessagePtr& message)>;
+using PipeMessageResponseCb = std::function<void(int status, PipeMessagePtr&& message)>;
 
 // Create a v0 simple message
-std::shared_ptr<PipeMessage> MakeSimpleMessageV0(MQMessageId messageId, const void* data, size_t dataLength);
+PipeMessagePtr MakeSimpleMessageV0(MQMessageId messageId, const void* data, size_t dataLength);
 
 // Create a v0 rpc message
-std::shared_ptr<PipeMessage> MakeCallResponseMessageV0(MQMessageId messageId, const void* data, size_t dataLength);
+PipeMessagePtr MakeCallResponseMessageV0(MQMessageId messageId, const void* data, size_t dataLength);
 
 // Create a v0 rpc response
-std::shared_ptr<PipeMessage> MakeCallResponseReplyV0(MQMessageId messageId, const void* data, size_t dataLength,
+PipeMessagePtr MakeCallResponseReplyV0(MQMessageId messageId, const void* data, size_t dataLength,
 	uint32_t sequenceId, uint8_t status = 0);
 
 //============================================================================
@@ -144,12 +153,12 @@ public:
 
 	// Send a simple message
 	void SendMessage(MQMessageId messageId, const void* data, size_t dataLength);
-	void SendMessage(std::shared_ptr<PipeMessage> message);
+	void SendMessage(PipeMessagePtr&& message);
 
 	// Send a call-and-response message to the server
 	void SendMessageWithResponse(MQMessageId messageId, const void* data, size_t dataLength,
 		const PipeMessageResponseCb& response);
-	void SendMessageWithResponse(std::shared_ptr<PipeMessage> message,
+	void SendMessageWithResponse(PipeMessagePtr&& message,
 		const PipeMessageResponseCb& response);
 
 	void Close();
@@ -159,7 +168,7 @@ private:
 	{
 		OVERLAPPED overlapped;
 		std::shared_ptr<PipeConnection> ref;
-		std::shared_ptr<PipeMessage> message;
+		std::unique_ptr<PipeMessage> message;
 	};
 
 	// After a read is completed, start a write.
@@ -169,10 +178,10 @@ private:
 	void HandleReadComplete(uint32_t dwErrorCode, uint32_t dwNumBytes);
 
 	// This sends the message to the named pipe. It expects to be called from the named pipe thread.
-	void InternalSendMessage(PipeMessagePtr message,
+	void InternalSendMessage(PipeMessagePtr&& message,
 		const PipeMessageResponseCb& response = nullptr);
 
-	void InternalReceiveMessage(PipeMessagePtr message);
+	void InternalReceiveMessage(PipeMessagePtr&& message);
 
 	void InternalBeginRead();
 	void ProcessBuffers();
@@ -217,7 +226,7 @@ public:
 	virtual ~NamedPipeEvents() {}
 
 	// (required) Handle an incoming message
-	virtual void OnIncomingMessage(std::shared_ptr<PipeMessage> message) = 0;
+	virtual void OnIncomingMessage(PipeMessagePtr&& message) = 0;
 
 	// (optional) Handle a request to process events immediately. Called from the
 	// named pipe thread.
@@ -225,6 +234,9 @@ public:
 
 	// (optional) For NamedPipeServer: notification of an incoming connection.
 	virtual void OnIncomingConnection(int connectionId, int processid) {}
+
+	// (optional) For NamedPipeServer: notification of a closing connection
+	virtual void OnConnectionClosed(int connectionId, int processId) {}
 
 	// (optional) For NamedPipeClient: Called when connection is established
 	virtual void OnClientConnected() {}
@@ -248,13 +260,13 @@ public:
 	virtual void Stop();
 
 	// Handle sending work to the main thread
-	virtual void PostToMainThread(std::function<void()> callback);
+	virtual void PostToMainThread(std::function<void()>&& callback);
 
 	// Handle sending work to the named pipe thread
-	virtual void PostToPipeThread(std::function<void()> callback);
+	virtual void PostToPipeThread(std::function<void()>&& callback);
 
 	// dispatches a message to be handled by the client.
-	void DispatchMessage(std::shared_ptr<PipeMessage> message);
+	void DispatchMessage(PipeMessagePtr&& message);
 
 protected:
 	virtual void NamedPipeThread() = 0;
@@ -306,10 +318,14 @@ public:
 
 	std::shared_ptr<PipeConnection> GetConnectionForProcessId(uint32_t processId) const;
 
-	virtual void PostToMainThread(std::function<void()> callback) override;
+	virtual void PostToMainThread(std::function<void()>&& callback) override;
 
-	void SendMessage(int connectionId, std::shared_ptr<PipeMessage> message);
+	void SendMessage(int connectionId, PipeMessagePtr&& message);
 	void SendMessage(int connectionId, MQMessageId messageId, const void* data, size_t dataLength);
+
+	void BroadcastMessage(PipeMessagePtr&& message);
+	void BroadcastMessage(MQMessageId messageId, const void* data, size_t dataLength);
+
 private:
 	void NamedPipeThread() override;
 
@@ -339,9 +355,11 @@ public:
 	~NamedPipeClient();
 
 	// Send a simple message to the server
+	void SendMessage(PipeMessagePtr&& message);
 	void SendMessage(MQMessageId messageId, const void* data, size_t dataLength);
 
 	// Send a call-and-response message to the server
+	void SendMessageWithResponse(PipeMessagePtr&& message, const PipeMessageResponseCb& response);
 	void SendMessageWithResponse(MQMessageId messageId, const void* data, size_t dataLength,
 		const PipeMessageResponseCb& response);
 

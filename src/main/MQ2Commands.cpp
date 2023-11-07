@@ -28,6 +28,9 @@ namespace mq {
 
 CMQ2Alerts CAlerts;
 
+// Defined in MQ2PluginHandler.cpp
+int GetPluginUnloadFailedCount();
+
 // ***************************************************************************
 // Function:    Unload
 // Description: Our '/unload' command
@@ -2132,7 +2135,7 @@ void MQMsgBox(SPAWNINFO* pChar, char* szLine)
 	bRunNextCommand = true;
 
 	sprintf_s(szBuffer, "${Time.Date} ${Time}\r\n%s", szLine);
-	ParseMacroParameter(pChar, szBuffer);
+	ParseMacroData(szBuffer, MAX_STRING );
 
 	CreateThread(nullptr, 0, thrMsgBox, _strdup(szBuffer), 0, nullptr);
 }

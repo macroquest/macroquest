@@ -13,13 +13,24 @@
  */
 
 #include <mq/plugin/pluginapi.h>
+#include <mq/api/Main.h>
 
 char INIFileName[MAX_STRING] = { 0 };
 
 namespace mqplugin {
 
 HINSTANCE ghPluginModule = nullptr;
+mq::MQPlugin* ThisPlugin = nullptr;
+mq::MainInterface* MainInterface = nullptr;
 
+// This is a sentinel that is used to identify a plugin as being built with the
+// mqnext codebase.
+PLUGIN_API bool IsBuiltForNext = true;
+
+// Exported symbol that ensures that the plugin was built for the specified version of the game
+PLUGIN_API const char EverQuestVersion[] = __ExpectedVersionDate " " __ExpectedVersionTime;
+
+// Plugin Entrypoint
 bool PluginMain(HINSTANCE hModule, DWORD dwReason, void* lpReserved)
 {
 	if (dwReason == DLL_PROCESS_ATTACH)
@@ -27,6 +38,8 @@ bool PluginMain(HINSTANCE hModule, DWORD dwReason, void* lpReserved)
 		ghPluginModule = hModule;
 		mq::DebugSpewAlways("%s Module Loaded", mqplugin::PluginName);
 		sprintf_s(INIFileName, "%s\\%s.ini", mq::gPathConfig, mqplugin::PluginName);
+
+		mqplugin::MainInterface = mq::GetMainInterface();
 	}
 	else if (dwReason == DLL_PROCESS_DETACH)
 	{
@@ -36,13 +49,27 @@ bool PluginMain(HINSTANCE hModule, DWORD dwReason, void* lpReserved)
 	return true;
 }
 
-// This is a sentinel that is used to identify a plugin as being built with the
-// mqnext codebase.
-PLUGIN_API bool IsBuiltForNext = true;
-
-PLUGIN_API const char EverQuestVersion[] = __ExpectedVersionDate " " __ExpectedVersionTime;
-
 } // namespace mqplugin
+
+//============================================================================
+//============================================================================
+
+bool mq::AddTopLevelObject(const char* szName, mq::MQTopLevelObjectFunction Function)
+{
+	return mqplugin::MainInterface->AddTopLevelObject(szName, std::move(Function), mqplugin::ThisPlugin);
+}
+
+bool mq::RemoveTopLevelObject(const char* szName)
+{
+	return mqplugin::MainInterface->RemoveTopLevelObject(szName, mqplugin::ThisPlugin);
+}
+
+mq::MQTopLevelObject* mq::FindTopLevelObject(const char* szName)
+{
+	return mqplugin::MainInterface->FindTopLevelObject(szName);
+}
+
+//============================================================================
 
 #if __has_include("../../private/pluginapi-private.cpp")
 #include "../../private/pluginapi-private.cpp"

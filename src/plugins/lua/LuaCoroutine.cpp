@@ -74,7 +74,7 @@ bool LuaCoroutine::CheckCondition(std::optional<sol::function>& func)
 	return false;
 }
 
-void LuaCoroutine::Delay(sol::object delayObj, sol::object conditionObj, sol::state_view s)
+void LuaCoroutine::Delay(sol::object delayObj, std::optional<sol::object> conditionObj, sol::state_view s)
 {
 	using namespace std::chrono_literals;
 
@@ -109,9 +109,15 @@ void LuaCoroutine::Delay(sol::object delayObj, sol::object conditionObj, sol::st
 	if (delay_int.has_value())
 	{
 		uint64_t delay_ms = std::max(0ms, std::chrono::milliseconds(*delay_int)).count();
-		std::optional<sol::function> condition = conditionObj.as<std::optional<sol::function>>();
+		std::optional<sol::function> condition;
+		if (conditionObj)
+			condition = conditionObj->as<std::optional<sol::function>>();
 
 		SetDelay(delay_ms + MQGetTickCount64(), condition);
+	}
+	else
+	{
+		luaL_error(s, "Invalid argument passed to mq.delay");
 	}
 }
 

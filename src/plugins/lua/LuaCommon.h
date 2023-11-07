@@ -18,8 +18,8 @@
 #include <utility>
 
 // define some macros so that we don't have to depends on MQ headers in this file
-#define WriteChatStatus(format, ...) StatusMessage(&WriteChatf, format, __VA_ARGS__)
-#define LuaError(format, ...) ErrorMessage(&WriteChatColorf, format, CONCOLOR_RED, __VA_ARGS__)
+#define WriteChatStatus(format, ...) mq::lua::StatusMessage(&WriteChatf, format, __VA_ARGS__)
+#define LuaError(format, ...) mq::lua::ErrorMessage(&WriteChatColorf, format, CONCOLOR_RED, __VA_ARGS__)
 
 namespace mq::lua {
 

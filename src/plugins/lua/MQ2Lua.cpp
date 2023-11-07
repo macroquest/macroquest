@@ -19,8 +19,8 @@
 #include "LuaThread.h"
 #include "LuaEvent.h"
 #include "LuaImGui.h"
+#include "bindings/lua_Bindings.h"
 #include "imgui/ImGuiUtils.h"
-
 #include "imgui/ImGuiFileDialog.h"
 #include "imgui/ImGuiTextEditor.h"
 
@@ -42,11 +42,6 @@ PreSetup("MQ2Lua");
 PLUGIN_VERSION(0.1);
 
 using namespace std::chrono_literals;
-
-// TODO: Add aggressive bind/event options that scriptwriters can set with functions
-// TODO: Add OnExit callbacks (potentially both as an explicit argument to exit and a set callback)
-
-// TODO: Add UI for start/stop/info/config
 
 using MQ2Args = Args<&WriteChatf>;
 using MQ2HelpArgument = HelpArgument;
@@ -162,6 +157,96 @@ void DebugStackTrace(lua_State* L, const char* message)
 bool DoStatus()
 {
 	return !s_squelchStatus;
+}
+
+void EndScript(const std::shared_ptr<LuaThread>& thread, const LuaThread::RunResult& result,
+	bool announce)
+{
+	if (!thread->IsString() && announce)
+	{
+		WriteChatStatus("Ending lua script '%s' with PID %d and status %d",
+			thread->GetName().c_str(), thread->GetPID(), static_cast<int>(result.first));
+	}
+
+	auto fin_it = s_infoMap.find(thread->GetPID());
+	if (fin_it != s_infoMap.end())
+	{
+		if (result.second)
+			fin_it->second.SetResult(*result.second, thread->GetEvaluateResult());
+		else
+			fin_it->second.EndRun();
+	}
+}
+
+std::shared_ptr<LuaThread> GetLuaThreadByPID(int pid)
+{
+	for (const auto& thread : s_running)
+	{
+		if (thread && thread->GetPID() == pid)
+			return thread;
+	}
+
+	for (const auto& thread : s_pending)
+	{
+		if (thread && thread->GetPID() == pid)
+			return thread;
+	}
+
+	return nullptr;
+}
+
+void OnLuaThreadDestroyed(LuaThread* destroyedThread)
+{
+	s_running.erase(std::remove_if(s_running.begin(), s_running.end(),
+		[&](const std::shared_ptr<LuaThread>& thread) -> bool
+		{
+			if (thread && thread.get() != destroyedThread
+				&& thread->IsDependency(destroyedThread))
+			{
+				// Exit the thread immediately
+				thread->Exit(lua::LuaThreadExitReason::DependencyRemoved);
+
+				EndScript(thread, { sol::thread_status::dead, std::nullopt }, false);
+
+				WriteChatStatus("Running lua script '%s' with PID %d terminated due to stopping of '%s'",
+					thread->GetName().c_str(), thread->GetPID(), destroyedThread->GetName().c_str());
+
+				return true;
+			}
+			return false;
+		}), end(s_running));
+}
+
+void OnLuaTLORemoved(MQTopLevelObject* tlo, int pidOwner)
+{
+	auto iter = std::find_if(begin(mq::lua::s_running), end(mq::lua::s_running),
+		[pidOwner](const auto& thread) { return thread && thread->GetPID() == pidOwner; });
+
+	s_running.erase(std::remove_if(s_running.begin(), s_running.end(),
+		[&](const std::shared_ptr<LuaThread>& thread) -> bool
+		{
+			if (thread && thread->GetPID() != pidOwner
+				&& thread->IsDependency(tlo))
+			{
+				// Exit the thread immediately
+				thread->Exit(lua::LuaThreadExitReason::DependencyRemoved);
+
+				EndScript(thread, { sol::thread_status::dead, std::nullopt }, false);
+
+				if (iter != end(mq::lua::s_running))
+				{
+					WriteChatStatus("Running lua script '%s' with PID %d terminated due to removal of '%s' from '%s'",
+						thread->GetName().c_str(), thread->GetPID(), tlo->Name.c_str(), (*iter)->GetName().c_str());
+				}
+				else
+				{
+					WriteChatStatus("Running lua script '%s' with PID %d terminated due to removal of '%s'",
+						thread->GetName().c_str(), thread->GetPID(), tlo->Name.c_str());
+				}
+				return true;
+			}
+			return false;
+		}), end(s_running));
 }
 
 #pragma endregion
@@ -709,6 +794,47 @@ static void LuaPauseCommand(std::optional<std::string> script, bool on, bool off
 	}
 }
 
+void SetLuaDirName(const std::string& luaDir)
+{
+	s_luaDirName = luaDir;
+	s_environment.luaDir = (std::filesystem::path(gPathMQRoot) / s_luaDirName).string();
+	s_configNode[luaDir] = s_luaDirName;
+
+	for (auto& thread : s_running)
+	{
+		thread->UpdateLuaDir(s_environment.luaDir);
+	}
+
+	for (auto& thread : s_pending)
+	{
+		thread->UpdateLuaDir(s_environment.luaDir);
+	}
+
+	std::error_code ec;
+	if (!std::filesystem::exists(s_environment.luaDir, ec)
+		&& !std::filesystem::create_directories(s_environment.luaDir, ec))
+	{
+		WriteChatf("Failed to open or create directory at %s. Scripts will not run.", s_environment.luaDir.c_str());
+		WriteChatf("Error was %s", ec.message().c_str());
+	}
+}
+
+void SetModuleDirName(const std::string& moduleDir)
+{
+	s_moduleDirName = moduleDir;
+	s_environment.moduleDir = (std::filesystem::path(gPathMQRoot) / s_moduleDirName).string();
+
+	std::error_code ec;
+	if (!std::filesystem::exists(s_environment.moduleDir, ec)
+		&& !std::filesystem::create_directories(s_environment.moduleDir, ec))
+	{
+		WriteChatf("Failed to open or create directory at %s. Modules will not load.", s_environment.moduleDir.c_str());
+		WriteChatf("Error was %s", ec.message().c_str());
+	}
+
+	s_configNode[moduleDir] = s_moduleDirName;
+}
+
 static void WriteSettings()
 {
 	std::fstream file(s_configPath, std::ios::out);
@@ -745,43 +871,16 @@ static void ReadSettings()
 
 	s_verboseErrors = s_configNode["verboseErrors"].as<bool>(false);
 
-	if (mq::test_and_set(s_luaDirName, s_configNode[luaDir].as<std::string>(s_luaDirName)) || s_environment.luaDir.empty())
+	std::string tempDirName = s_luaDirName;
+	if (mq::test_and_set(tempDirName, s_configNode[luaDir].as<std::string>(tempDirName)) || s_environment.luaDir.empty())
 	{
-		s_environment.luaDir = (std::filesystem::path(gPathMQRoot) / s_luaDirName).string();
-		for (auto& thread : s_running)
-		{
-			thread->UpdateLuaDir(s_environment.luaDir);
-		}
-
-		for (auto& thread : s_pending)
-		{
-			thread->UpdateLuaDir(s_environment.luaDir);
-		}
-
-		std::error_code ec;
-		if (!std::filesystem::exists(s_environment.luaDir, ec)
-			&& !std::filesystem::create_directories(s_environment.luaDir, ec))
-		{
-			WriteChatf("Failed to open or create directory at %s. Scripts will not run.", s_environment.luaDir.c_str());
-			WriteChatf("Error was %s", ec.message().c_str());
-		}
-
-		s_configNode[luaDir] = s_luaDirName;
+		SetLuaDirName(tempDirName);
 	}
 
-	if (mq::test_and_set(s_moduleDirName, s_configNode[moduleDir].as<std::string>(s_moduleDirName)) || s_environment.moduleDir.empty())
+	std::string tempModuleDirName = s_moduleDirName;
+	if (mq::test_and_set(tempModuleDirName, s_configNode[moduleDir].as<std::string>(tempModuleDirName)) || s_environment.moduleDir.empty())
 	{
-		s_environment.moduleDir = (std::filesystem::path(gPathMQRoot) / s_moduleDirName).string();
-
-		std::error_code ec;
-		if (!std::filesystem::exists(s_environment.moduleDir, ec)
-			&& !std::filesystem::create_directories(s_environment.moduleDir, ec))
-		{
-			WriteChatf("Failed to open or create directory at %s. Modules will not load.", s_environment.moduleDir.c_str());
-			WriteChatf("Error was %s", ec.message().c_str());
-		}
-
-		s_configNode[moduleDir] = s_moduleDirName;
+		SetModuleDirName(tempModuleDirName);
 	}
 
 	s_environment.luaRequirePaths.clear();
@@ -1353,8 +1452,7 @@ static void DrawLuaSettings()
 					? lua_path
 					: clean_name(std::string(luaEnd, lua_path.end()));
 
-				s_luaDirName = lua_name;
-				s_configNode[luaDir] = s_luaDirName;
+				SetLuaDirName(lua_name);
 			}
 		}
 
@@ -1403,8 +1501,7 @@ static void DrawLuaSettings()
 					? module_path
 					: clean_name(std::string(luaEnd, module_path.end()));
 
-				s_moduleDirName = module_name;
-				s_configNode[moduleDir] = s_moduleDirName;
+				SetModuleDirName(module_name);
 			}
 		}
 
@@ -1568,11 +1665,15 @@ PLUGIN_API void InitializePlugin()
 	AddSettingsPanel("plugins/Lua", DrawLuaSettings);
 
 	s_pluginInterface = new LuaPluginInterfaceImpl();
+
+	bindings::InitializeBindings_MQMacroData();
 }
 
 PLUGIN_API void ShutdownPlugin()
 {
 	using namespace mq::lua;
+
+	bindings::ShutdownBindings_MQMacroData();
 
 	RemoveCommand("/lua");
 
@@ -1603,31 +1704,17 @@ PLUGIN_API void OnPulse()
 
 	s_running.erase(std::remove_if(s_running.begin(), s_running.end(),
 		[](const std::shared_ptr<LuaThread>& thread) -> bool
-	{
-		LuaThread::RunResult result = thread->Run();
-
-		if (result.first != sol::thread_status::yielded)
 		{
-			if (!thread->IsString())
+			LuaThread::RunResult result = thread->Run();
+
+			if (result.first != sol::thread_status::yielded)
 			{
-				WriteChatStatus("Ending lua script '%s' with PID %d and status %d",
-					thread->GetName().c_str(), thread->GetPID(), static_cast<int>(result.first));
+				EndScript(thread, result, true);
+				return true;
 			}
 
-			auto fin_it = s_infoMap.find(thread->GetPID());
-			if (fin_it != s_infoMap.end())
-			{
-				if (result.second)
-					fin_it->second.SetResult(*result.second, thread->GetEvaluateResult());
-				else
-					fin_it->second.EndRun();
-			}
-
-			return true;
-		}
-
-		return false;
-	}), s_running.end());
+			return false;
+		}), s_running.end());
 
 	if (s_infoGC.count() > 0)
 	{
@@ -1954,4 +2041,30 @@ PLUGIN_API bool OnIncomingChat(const char* Line, DWORD Color)
 PLUGIN_API PluginInterface* GetPluginInterface()
 {
 	return mq::lua::s_pluginInterface;
+}
+
+PLUGIN_API void OnUnloadPlugin(const char* pluginName)
+{
+	using namespace mq::lua;
+
+	// Visit all of our currently running scripts and terminate any that might be utilizing this plugin as a dependency.
+	MQPlugin* plugin = GetPlugin(pluginName);
+
+	s_running.erase(std::remove_if(s_running.begin(), s_running.end(),
+		[&](const std::shared_ptr<LuaThread>& thread) -> bool
+		{
+			if (thread && thread->IsDependency(plugin))
+			{
+				// Exit the thread immediately
+				thread->Exit(lua::LuaThreadExitReason::DependencyRemoved);
+
+				EndScript(thread, { sol::thread_status::dead, std::nullopt }, false);
+
+				WriteChatStatus("Running lua script '%s' with PID %d terminated due to unloading of %s",
+					thread->GetName().c_str(), thread->GetPID(), pluginName);
+				return true;
+			}
+
+			return false;
+		}), end(s_running));
 }
