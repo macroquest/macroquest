@@ -861,13 +861,6 @@ static std::tuple<int, bool> VSliderInt(const std::string& label, float sizeX, f
 static void VSliderScalar()                                                                         { /* TODO: VSliderScalar(...) ==> UNSUPPORTED */ }
 
 // Widgets: Input with Keyboard
-static std::tuple<std::string, bool> InputText(const std::string& label, std::string text)          { bool selected = ImGui::InputText(label.c_str(), &text); return std::make_tuple(text, selected); }
-static std::tuple<std::string, bool> InputText(const std::string& label, std::string text, int flags) { bool selected = ImGui::InputText(label.c_str(), &text, static_cast<ImGuiInputTextFlags>(flags)); return std::make_tuple(text, selected); }
-static std::tuple<std::string, bool> InputTextMultiline(const std::string& label, std::string text) { bool selected = ImGui::InputTextMultiline(label.c_str(), &text); return std::make_tuple(text, selected); }
-static std::tuple<std::string, bool> InputTextMultiline(const std::string& label, std::string text, float sizeX, float sizeY) { bool selected = ImGui::InputTextMultiline(label.c_str(), &text, { sizeX, sizeY }); return std::make_tuple(text, selected); }
-static std::tuple<std::string, bool> InputTextMultiline(const std::string& label, std::string text, float sizeX, float sizeY, int flags) { bool selected = ImGui::InputTextMultiline(label.c_str(), &text, { sizeX, sizeY }, static_cast<ImGuiInputTextFlags>(flags)); return std::make_tuple(text, selected); }
-static std::tuple<std::string, bool> InputTextWithHint(const std::string& label, const std::string& hint, std::string text) { bool selected = ImGui::InputTextWithHint(label.c_str(), hint.c_str(), &text); return std::make_tuple(text, selected); }
-static std::tuple<std::string, bool> InputTextWithHint(const std::string& label, const std::string& hint, std::string text, int flags) { bool selected = ImGui::InputTextWithHint(label.c_str(), hint.c_str(), &text, static_cast<ImGuiInputTextFlags>(flags)); return std::make_tuple(text, selected); }
 static std::tuple<float, bool> InputFloat(const std::string& label, float v)                        { bool selected = ImGui::InputFloat(label.c_str(), &v); return std::make_tuple(v, selected); }
 static std::tuple<float, bool> InputFloat(const std::string& label, float v, float step)            { bool selected = ImGui::InputFloat(label.c_str(), &v, step); return std::make_tuple(v, selected); }
 static std::tuple<float, bool> InputFloat(const std::string& label, float v, float step, float step_fast) { bool selected = ImGui::InputFloat(label.c_str(), &v, step, step_fast); return std::make_tuple(v, selected); }
@@ -1660,17 +1653,19 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 
 	#pragma region Widgets: Inputs using Keyboard
 	ImGui.set_function("InputText", sol::overload(
-		sol::resolve<std::tuple<std::string, bool>(const std::string&, std::string)>(InputText),
-		sol::resolve<std::tuple<std::string, bool>(const std::string&, std::string, int)>(InputText)
+		[](const char* label, std::string text) { bool selected = ImGui::InputText(label, &text); return std::make_tuple(text, selected); },
+		[](const char* label, std::string text, int flags) { bool selected = ImGui::InputText(label, &text, static_cast<ImGuiInputTextFlags>(flags)); return std::make_tuple(text, selected); }
 	));
 	ImGui.set_function("InputTextMultiline", sol::overload(
-		sol::resolve<std::tuple<std::string, bool>(const std::string&, std::string)>(InputTextMultiline),
-		sol::resolve<std::tuple<std::string, bool>(const std::string&, std::string, float, float)>(InputTextMultiline),
-		sol::resolve<std::tuple<std::string, bool>(const std::string&, std::string, float, float, int)>(InputTextMultiline)
+		[](const char* label, std::string text) { bool selected = ImGui::InputTextMultiline(label, &text); return std::make_tuple(text, selected); },
+		[](const char* label, std::string text, float sizeX, float sizeY) { bool selected = ImGui::InputTextMultiline(label, &text, { sizeX, sizeY }); return std::make_tuple(text, selected); },
+		[](const char* label, std::string text, float sizeX, float sizeY, int flags) { bool selected = ImGui::InputTextMultiline(label, &text, { sizeX, sizeY }, static_cast<ImGuiInputTextFlags>(flags)); return std::make_tuple(text, selected); },
+		[](const char* label, std::string text, const ImVec2& size) { bool selected = ImGui::InputTextMultiline(label, &text, size); return std::make_tuple(text, selected); },
+		[](const char* label, std::string text, const ImVec2& size, int flags) { bool selected = ImGui::InputTextMultiline(label, &text, size, static_cast<ImGuiInputTextFlags>(flags)); return std::make_tuple(text, selected); }
 	));
 	ImGui.set_function("InputTextWithHint", sol::overload(
-		sol::resolve<std::tuple<std::string, bool>(const std::string&, const std::string&, std::string)>(InputTextWithHint),
-		sol::resolve<std::tuple<std::string, bool>(const std::string&, const std::string&, std::string, int)>(InputTextWithHint)
+		[](const char* label, const char* hint, std::string text) { bool selected = ImGui::InputTextWithHint(label, hint, &text); return std::make_tuple(text, selected); },
+		[](const char* label, const char* hint, std::string text, int flags) { bool selected = ImGui::InputTextWithHint(label, hint, &text, static_cast<ImGuiInputTextFlags>(flags)); return std::make_tuple(text, selected); }
 	));
 	ImGui.set_function("InputFloat", sol::overload(
 		sol::resolve<std::tuple<float, bool>(const std::string&, float)>(InputFloat),
