@@ -1,123 +1,115 @@
-
 local mq = require 'mq'
 
-local counter = 1
+---A simple datatype that holds a counter that can be increased. Provides access
+---to the counter's current value as well as its name, and a method to increase
+---the count and to clear it.
+---@class ExampleCounterType
+---@field value integer
+---@field name string
 
----An example data member
----@param index string The string parameter for the data member
----@param value any The value for the instance of the custom data type being accessed.
----@return string|DataType type The datatype being returned
----@return any value The value of the datatype being returned
-function ExampleMember(index, value)
-    if index == 'demo' then
-        return 'string', 'demo value'
-    end
-
-    return 'string', tostring(value)
-end
-
----An example method
----@param index string The string parameter for the method
----@param value any The value for the instance of the custom data type being accessed.
-function ResetCounter()
-    counter = 0
-end
-
---[[
-Construct a new DataType in lua. The first parameter is the name of the
-datatype. it must be unique. The second parameter is a table containing the
-list of Members and Methods that are available to the datatype.
-
-Each Member function takes up to two parameters:
-* index: The index string passed to the data member
-* value: The value for the instance of the datatype being queried.
-
-For Methods, the return value is ignored. For Members, two values are
-expected to be returned:
-* string: The name of the datatype that is being returned. An instance of a datatype
-          can be returned here as well, if one is available.
-* value:  The value for this new instance of the datatype. This corresponds with
-          the value argument in the parameter list.
---]]
-local myType = mq.DataType.new('ExampleDataType', {
+---@type DataType
+local counterType = mq.DataType.new('ExampleCounterType', {
     Members = {
-        -- See the function above
-        Value = ExampleMember,
-
-        -- Return a value that is continually changing
-        Counter = function ()
-            return 'int', counter
+        --- Data Member: Value retrieves the counter's current value.
+        ---@param counter ExampleCounterType The current counter object
+        Value = function(_, counter)
+            return 'int', counter.value
         end,
 
-        -- Test the table datatype
-        TableTest = function (index)
-            if index == 'indexed' then
-                return 'table', { 'hello', 'world' }
-            elseif index == 'keyed' then
-                return 'table', { a = 1, b = 2, c = 3.5, d = true, e = 'tacos' }
-            elseif index == 'nil' then
-                return 'table', nil
-            elseif index == 'empty' then
-                return 'table', {}
-            elseif index == 'values' then
-                return 'table', { 1, 3.5, 'hello', true, { 1, 2 } }
-            elseif index == 'invalid' then
-                return 'table', 3
-            end
+        --- Data Member: Name retrieves the counter's name.
+        ---@param counter ExampleCounterType The current counter object
+        Name = function(_, counter)
+            return 'string', counter.name
         end
     },
 
     Methods = {
-        Echo = function (value) printf('Echo: %s', value) end,
-        ResetCounter = ResetCounter,
-    }
+        ---A method to reset the counter
+        ---@param counter ExampleCounterType
+        Reset = function(_, counter)
+            counter.value = 0
+        end,
+
+        ---A method to increment the counter
+        ---@param amount string The amount to increase the counter by
+        ---@param counter ExampleCounterType The counter object
+        Increment = function(amount, counter)
+            local value = nil
+            if #amount == 0 then
+                value = 1
+            else
+                value = tonumber(amount)
+            end
+
+            if value ~= nil then
+                counter.value = counter.value + value
+            end
+        end
+    },
+
+    ---@param counter ExampleCounterType
+    ToString = function(counter)
+        return string.format('Counter %s: %d', counter.name, counter.value)
+    end
 })
 
--- Additionally, the ToString function may be overridden to customize the stringified
--- representation of your datatype
-function myType.ToString(value)
-    local result = '(Nothing)'
-    if type(value) == 'string' then
-        result = value
-    elseif type(value) == 'table' then
-        if value.bad then
-            return nil
-        end
+---@type { [string]: ExampleCounterType }
+local activeCounters = {
+    default = { name = 'default', value = 0 }
+}
 
-        result = tostring(value.a)
-    end
-
-    return 'ExampleDataType.ToString(): ' .. result
-end
-
---- An example TLO function. Similar to a data member, takes an input as a string, and
---- returns a tuple of datatype, value.
+--- Our ExampleCounter TLO function
+--- This function implements a TLO that accepts an optional parameter which specifies
+--- the name of the counter to retrieve.
 ---
----@param index string The input string passed to the TLO
----@return string|DataType type The datatype being returned
----@return any value The value of the datatype being returned
-local function Test(index)
-    if index == 'table' then
-        return myType, { a = 1, b = 2 }
-    elseif index == 'table_bad' then
-        return myType, { bad = true }
-    elseif index == 'tablestring' then
-        return 'string', { a = 1, b = 2 }
-    elseif index == 'string' then
-        return 'string', 'Test TLO created from script'
+--- Example usage, in macro syntax:
+--- ```plaintext
+--- > /echo ${ExampleCounter.Increment}
+--- Counter default: 1
+--- > /echo ${ExampleCounter[test]}
+--- Counter test: 0
+--- > /invoke ${ExampleCounter[test].Increment}
+--- > /echo ${ExampleCounter[test].Value}
+--- 1
+--- > /invoke ${ExampleCounter[test].Increment[5]}
+--- > /echo ${ExampleCounter[test].Value}
+--- 6
+--- > /invoke ${ExampleCounter[test].Reset}
+--- > /echo ${ExampleCounter[test].Value}
+--- 0
+--- ```
+---@param param string
+---@return MQType, ExampleCounterType
+local function CounterDemo(param)
+    local name = param
+    if param == nil or #param == 0 then
+        name = 'default'
     end
 
-    -- We can also refer to our custom type by name.
-    return 'ExampleDataType', { a = 1, b = 2 }
+    local counter = activeCounters[name]
+    if counter ~= nil then
+        return counterType, counter
+    else
+        activeCounters[name] = {name = name, value = 0}
+        return counterType, activeCounters[name]
+    end
 end
 
--- Register the new TLO with the macro system. DataTypes are automatically registered
--- when they are created. TLOs are not and need to be manually associated with a name.
--- The TLO will stay registered as long as the script is running. It can also be manually
--- unregistered with mq.RemoveTopLevelObject('Example').
-mq.AddTopLevelObject('Example', Test)
+--- Our ExampleAllCounters TLO function.
+--- This TLO implements a TLO that returns a table containing all of our counters.
+--- 
+--- See examples/datatypes_consumer.lua for examples of how this data could be consumed.
+---@return MQType, table
+local function AllCounters(_)
+    return 'table', activeCounters
+end
+
+-- Register our TLO functions
+mq.AddTopLevelObject('ExampleCounter', CounterDemo)
+mq.AddTopLevelObject('ExampleAllCounters', AllCounters)
+
+print('Example datatypes demo script started. Now run examples/datatypes_consumer to see it in action!')
 
 while true do
-    mq.delay(500)
-    counter = counter + 1
+    mq.delay(1000)
 end
