@@ -557,13 +557,6 @@ typedef gsl_CONFIG_SPAN_INDEX_TYPE index;   // p0122r3 uses std::ptrdiff_t
 
 #define gsl_HAVE_OWNER_TEMPLATE  gsl_HAVE_ALIAS_TEMPLATE
 
-#if gsl_FEATURE( HAVE_OWNER_MACRO )
-# if gsl_HAVE( OWNER_TEMPLATE )
-#  define Owner(t)  ::gsl::owner<t>
-# else
-#  define Owner(t)  ::gsl::owner<t>::type
-# endif
-#endif
 
 //
 // GSL.assert: assertions

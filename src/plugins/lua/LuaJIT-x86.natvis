@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	<Type Name="lua_State">
+		<Intrinsic Name="valid" Expression="gct == 6" />
+		
+		<!-- all lua_States are gct 6 (thread) -->
+		<DisplayString Condition="!valid()">lua_State (invalid)</DisplayString>
+		<DisplayString>lua_State</DisplayString>
+		<Expand>
+			<Synthetic Name="[stack]" Condition="valid()">
+				<DisplayString>{top-base} items</DisplayString>
+				<Expand>
+					<Item Name="[size]">top-base</Item>
+					<IndexListItems>
+						<Size>top-base</Size>
+						<ValueNode>base[$i]</ValueNode>
+					</IndexListItems>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="[status]" Condition="valid()">
+				<DisplayString Condition="status == 0">OK</DisplayString>
+				<DisplayString Condition="status == 1">LUA_YIELD</DisplayString>
+				<DisplayString Condition="status == 2">LUA_ERRRUN</DisplayString>
+				<DisplayString Condition="status == 3">LUA_ERRSYNTAX</DisplayString>
+				<DisplayString Condition="status == 4">LUA_ERRMEM</DisplayString>
+				<DisplayString Condition="status == 5">LUA_ERRERR</DisplayString>
+			</Synthetic>
+			<Item Name="[curr_func]" Condition="valid()">((GCobj*)((base-1)->fr.func).gcptr32)->fn</Item>
+			<Item Name="[registry]" Condition="valid()">((global_State*)(glref.ptr32))->registrytv</Item>
+			<Item Name="[global state]" Condition="valid()">(global_State*)(glref.ptr32)</Item>
+			<Item Name="[env]" Condition="valid()">*(GCobj*)(env.gcptr32)</Item>
+			<!-- <Item Name="[call]" -->
+		</Expand>
+	</Type>
+
+	<Type Name="global_State">
+	</Type>
+
+	<Type Name="GCRef">
+		<DisplayString Condition="gcptr32 != 0">GCRef { (GCobj*)gcptr32 }</DisplayString>
+		<DisplayString Condition="gcptr32 == 0">GCRef {{ null }}</DisplayString>
+		<Expand>
+			<ExpandedItem>((GCobj*)gcptr32)</ExpandedItem>
+		</Expand>
+	</Type>
+
+	<Type Name="TValue">
+		<!-- LJ_TNIL (~0u) -->
+		<DisplayString Condition="it == 0xffffffff">nil</DisplayString>
+		<!-- LJ_TFALSE (~1u) -->
+		<DisplayString Condition="it == 0xfffffffe">false</DisplayString>
+		<!-- LJ_TTRUE (~2u) -->
+		<DisplayString Condition="it == 0xfffffffd">true</DisplayString>
+		<!-- LJ_TLIGHTUD (~3u) -->
+		<DisplayString Condition="it == 0xfffffffc">userdata: { (void*)(u64 &amp; 0xffffffff) }</DisplayString>
+		<!-- GC types -->
+		<DisplayString Condition="it &lt;= 0xfffffffb &amp;&amp; it &gt; 0xfffffff2">{ *((GCobj*)gcr.gcptr32) }</DisplayString>
+		<!-- LJ_TNUMX (~13u)-->
+		<DisplayString Condition="it &lt; 0xfffffff2">{n,g}</DisplayString>
+
+		<Expand>
+			<!--<Item Name="GCobj" Condition="it &lt;= 0xfffffffb &amp;&amp; it &gt; 0xfffffff2">((GCobj*)gcr.gcptr32)</Item>-->
+			<ExpandedItem Condition="it &lt;= 0xfffffffb &amp;&amp; it &gt; 0xfffffff2">((GCobj*)gcr.gcptr32)</ExpandedItem>
+			<Item Name="value" Condition="it == 0xfffffffc">(void*)(u64 &amp; 0xffffffff)</Item>
+		</Expand>
+	</Type>
+
+	<Type Name="GCobj">
+		<DisplayString Condition="gch.gct == 4">{ str }</DisplayString>
+		<DisplayString Condition="gch.gct == 5">{uv}</DisplayString>
+		<DisplayString Condition="gch.gct == 6">thread: {(void*)this,x}</DisplayString>
+		<DisplayString Condition="gch.gct == 7">proto: {(void*)this,x}</DisplayString>
+		<DisplayString Condition="gch.gct == 8">{fn}</DisplayString>
+		<DisplayString Condition="gch.gct == 9">trace: {(void*)this,x}</DisplayString>
+		<DisplayString Condition="gch.gct == 10">cdata: {(void*)this,x}</DisplayString>
+		<DisplayString Condition="gch.gct == 11">table: {(void*)this,x}</DisplayString>
+		<DisplayString Condition="gch.gct == 12">userdata: {(void*)this,x}</DisplayString>
+		<DisplayString>!! Unknown Type !! {gch.gct}</DisplayString>
+		<Expand>
+			<Item Name="string" Condition="gch.gct == 4">str</Item>
+			<ExpandedItem Condition="gch.gct == 5">uv</ExpandedItem>
+			<ExpandedItem Condition="gch.gct == 6">th</ExpandedItem>
+			<ExpandedItem Condition="gch.gct == 8">fn</ExpandedItem>
+			<ExpandedItem Condition="gch.gct == 11">tab</ExpandedItem>
+			<ExpandedItem Condition="gch.gct == 12">ud</ExpandedItem>
+			
+			<!-- shared gc header data -->
+			<Synthetic Name="[gc]">
+				<Expand>
+					<Item Name="next">gch.nextgc</Item>
+					<Synthetic Name="marked">
+						<DisplayString>{(int)gch.marked,d}</DisplayString>
+						<Expand>
+							<Item Name="LG_GC_WHITE0">gch.marked &amp; 1 ? 1 : 0,d</Item>
+							<Item Name="LG_GC_WHITE1">gch.marked &amp; 2 ? 1 : 0,d</Item>
+							<Item Name="LG_GC_BLACK">gch.marked &amp; 4 ? 1 : 0,d</Item>
+							<Item Name="LJ_GC_FINALIZED">gch.marked &amp; 8 ? 1 : 0,d</Item>
+							<Item Name="LJ_GC_WEAKKEY">gch.marked &amp; 16 ? 1 : 0,d</Item>
+							<Item Name="LJ_GC_WEAKVAL">gch.marked &amp; 32 ? 1 : 0,d</Item>
+							<Item Name="LJ_GC_CDATA_FIN">gch.marked &amp; 64 ? 1 : 0,d</Item>
+							<Item Name="LJ_GC_FIXED">gch.marked &amp; 128 ? 1 : 0,d</Item>
+							<Item Name="LJ_GC_SFIXED">gch.marked &amp; 256 ? 1 : 0,d</Item>
+						</Expand>
+					</Synthetic>
+					<Synthetic Name="gct">
+						<DisplayString Condition="gch.gct == 3">LJ_TLIGHTUD (3)</DisplayString>
+						<DisplayString Condition="gch.gct == 4">LJ_TSTR (4)</DisplayString>
+						<DisplayString Condition="gch.gct == 5">LJ_UPVAL (5)</DisplayString>
+						<DisplayString Condition="gch.gct == 6">LJ_TTHREAD (6)</DisplayString>
+						<DisplayString Condition="gch.gct == 7">LJ_TPROTO (7)</DisplayString>
+						<DisplayString Condition="gch.gct == 8">LJ_TFUNC (8)</DisplayString>
+						<DisplayString Condition="gch.gct == 9">LJ_TTRACE (9)</DisplayString>
+						<DisplayString Condition="gch.gct == 10">LJ_TCDATA (10)</DisplayString>
+						<DisplayString Condition="gch.gct == 11">LJ_TTAB (11)</DisplayString>
+						<DisplayString Condition="gch.gct == 12">LJ_TUDATA (12)</DisplayString>
+					</Synthetic>
+				</Expand>
+			</Synthetic>
+		</Expand>
+	</Type>
+
+	<Type Name="GCfunc">
+		<Intrinsic Name="isL" Expression="c.ffid == 0" />
+		<Intrinsic Name="isC" Expression="c.ffid == 1" />
+		<Intrinsic Name="isFF" Expression="c.ffid &gt; 1" />
+
+		<DisplayString Condition="isL()">{l}</DisplayString>
+		<DisplayString Condition="isC()">{c}</DisplayString>
+		<DisplayString Condition="isFF()">function: builtin#{(int)c.ffid,d}</DisplayString>
+		<Expand>
+			<ExpandedItem Condition="isL()">l</ExpandedItem>
+			<ExpandedItem Condition="isC()">c</ExpandedItem>
+			
+			<Item Name="[proto]" Condition="isL()">((GCproto*)l.pc.ptr32) - 1</Item>
+			<Item Name="[pc]">(void*)c.pc.ptr32</Item>
+			<Item Name="[env]">&amp;((GCobj*)(c.env.gcptr32))->tab</Item>
+		</Expand>
+	</Type>
+
+	<Type Name="GCfuncL">
+		<DisplayString>function (Lua): {(void*)this,x}</DisplayString>
+		<Expand>
+			<Synthetic Name="[upvalues]" Condition="nupvalues > 0">
+				<DisplayString>{(int)nupvalues}</DisplayString>
+				<Expand>
+					<IndexListItems>
+						<Size>nupvalues</Size>
+						<ValueNode>*(GCobj*)uvptr[$i].gcptr32</ValueNode>
+					</IndexListItems>
+				</Expand>
+			</Synthetic>
+		</Expand>
+	</Type>
+
+	<Type Name="GCfuncC">
+		<DisplayString>function (C): {f}</DisplayString>
+		<Expand>
+			<Item Name="f" Condition="f != 0">*f</Item>
+			<Synthetic Name="f" Condition="f == 0">
+				<DisplayString>empty</DisplayString>
+			</Synthetic>
+			<Synthetic Name="[upvalues]" Condition="nupvalues > 0">
+				<DisplayString>{(int)nupvalues}</DisplayString>
+				<Expand>
+					<IndexListItems>
+						<Size>nupvalues</Size>
+						<ValueNode>upvalue[$i]</ValueNode>
+					</IndexListItems>
+				</Expand>
+			</Synthetic>
+		</Expand>
+	</Type>
+
+	<!-- string -->
+	<Type Name="GCstr">
+		<DisplayString Condition="len > 0">{(const char*)(&amp;len + 1),[len]s}</DisplayString>
+		<DisplayString Condition="len == 0">empty</DisplayString>
+		<StringView>(const char*)(&amp;len + 1),[len]s</StringView>
+		<Expand>
+			<Item Name="[size]">len</Item>
+			<Item Name="[hash]">hash,x</Item>
+			<IndexListItems>
+				<Size>len</Size>
+				<ValueNode>((char*)(&amp;len + 1))[$i]</ValueNode>
+			</IndexListItems>
+		</Expand>
+	</Type>
+
+	<!-- table -->
+	<Type Name="Node">
+		<DisplayString>{val}</DisplayString>
+		<Expand>
+			<Item Name="[key]">key</Item>
+			<Item Name="[value]">val</Item>
+		</Expand>
+	</Type>
+
+	<Type Name="GCtab">
+		<DisplayString>table</DisplayString>
+		<Expand>
+			<Synthetic Name="[metatable]" Condition="metatable.gcptr32 != 0">
+				<DisplayString>table: {(void*)metatable.gcptr32,x}</DisplayString>
+				<Expand>
+					<ExpandedItem>((GCobj*)metatable.gcptr32)->tab</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<CustomListItems Condition="hmask > 0 || asize > 0">
+				<Variable Name="index" InitialValue="0" />
+				<Variable Name="nodes" InitialValue="(Node*)(node.ptr32)" />
+				<Variable Name="array" InitialValue="(TValue*)(array.ptr32)" />
+				<Variable Name="count" InitialValue="0" />
+				<Loop>
+					<Break Condition="index &gt;= hmask" />
+
+					<!-- don't display nil values -->
+					<If Condition="(*((Node*)(nodes + index))).val.it != 0xffffffff">
+						<Item Name="[{((Node*)(nodes + index))->key}]">*((Node*)(nodes + index))</Item>
+						<Exec>count = count + 1</Exec>
+					</If>
+					<Exec>index = index + 1</Exec>
+				</Loop>
+				<Exec>index = 0</Exec>
+				<Loop>
+					<Break Condition="index &gt;= asize" />
+
+					<!-- don't display nil values -->
+					<If Condition="(*(array + index)).it != 0xffffffff">
+						<Item Name="[{index}]">*(array + index)</Item>
+						<Exec>count = count + 1</Exec>
+					</If>
+					<Exec>index = index + 1</Exec>
+				</Loop>
+				<Item Name="[count]">count</Item>
+			</CustomListItems>
+			<Item Name="[count]" Condition="hmask == 0 &amp;&amp; asize == 0">asize</Item>
+		</Expand>
+	</Type>
+
+	<Type Name="GCudata">
+		<DisplayString>userdata</DisplayString>
+		<Expand>
+			<!-- metatable -->
+			<Synthetic Name="[metatable]" Condition="metatable.gcptr32 != 0">
+				<DisplayString>table: {(void*)metatable.gcptr32,x}</DisplayString>
+				<Expand>
+					<ExpandedItem>((GCobj*)metatable.gcptr32)->tab</ExpandedItem>
+				</Expand>
+			</Synthetic>
+
+			<!-- userdata -->
+			<Item Name="payload">(void*)(this + 1)</Item>
+			<Item Name="length">len</Item>
+
+			<!-- type -->
+			<Synthetic Name="[type]">
+				<DisplayString Condition="udtype == 0">UDTYPE_USERDATA</DisplayString>
+				<DisplayString Condition="udtype == 1">UDTYPE_IO_FILE</DisplayString>
+				<DisplayString Condition="udtype == 2">UDTYPE_FFI_CLIB</DisplayString>
+			</Synthetic>
+		</Expand>
+	</Type>
+	
+	<Type Name="GCupval">
+		<DisplayString Condition="v.ptr32 != 0">{*(TValue*)v.ptr32}</DisplayString>
+		<DisplayString Condition="v.ptr32 == 0">nil</DisplayString>
+		<Expand>
+			<Item Name="[value]" Condition="v.ptr32 != 0">*(TValue*)(v.ptr32)</Item>
+			<Item Name="closed">(bool)closed</Item>
+			<Item Name="immutable">(bool)immutable</Item>
+		</Expand>
+	</Type>
+
+	<!-- ************************************************************************* -->
+	<!-- sol Wrappers                                                              -->
+	<!-- ************************************************************************* -->
+
+	<!-- sol::protected_function -->
+	<Type Name="sol::basic_protected_function&lt;*&gt;">
+		<DisplayString Condition="luastate != 0">sol::protected_function</DisplayString>
+		<DisplayString Condition="luastate == 0">nil</DisplayString>
+		<Expand>
+			<Item Name="[error_handler]">error_handler</Item>
+			<Item Condition="luastate != 0" Name="[value]">
+				((TValue*)((GCobj*)((global_State*)(luastate->glref.ptr32))->registrytv.gcr.gcptr32)->tab.array.ptr32)[ref]
+			</Item>
+			<Synthetic Condition="luastate == 0" Name="[value]">
+				<DisplayString>nil</DisplayString>
+			</Synthetic>
+		</Expand>
+	</Type>
+
+	<!-- sol::reference -->
+	<Type Name="sol::basic_reference&lt;*&gt;">
+		<Intrinsic Name="isArrayVal" Expression="ref >= 0 &amp;&amp; ref &lt; ((GCobj*)((global_State*)(luastate->glref.ptr32))->registrytv.gcr.gcptr32)->tab.asize" />
+		<Intrinsic Name="registryValue"
+			Expression="((TValue*)((GCobj*)((global_State*)(luastate->glref.ptr32))->registrytv.gcr.gcptr32)->tab.array.ptr32)[ref]" />
+		
+		<DisplayString Condition="luastate == 0 &amp;&amp; ref == -1">nil</DisplayString>
+		<DisplayString Condition="luastate == 0 &amp;&amp; ref == -2">noref</DisplayString>
+		<DisplayString Condition="luastate != 0 &amp;&amp; isArrayVal()">{registryValue()}</DisplayString>
+		<DisplayString>cannot display registry ref={ref}</DisplayString>
+		<Expand>
+			<Item Condition="luastate != 0 &amp;&amp; isArrayVal()" Name="[value]">registryValue()</Item>
+			<Synthetic Condition="luastate == 0 || ref &lt; 0" Name="[value]">
+				<DisplayString Condition="ref == -1">nil</DisplayString>
+				<DisplayString Condition="ref == -2">noref</DisplayString>
+			</Synthetic>
+			<Synthetic Condition="luastate != 0 &amp;&amp; !isArrayVal()" Name="[value]">
+				<DisplayString>cannot display registry ref={ref}</DisplayString>
+			</Synthetic>
+			<Item Name="[index]">ref</Item>
+			<Item Name="[state]">(GCobj*)luastate</Item>
+		</Expand>
+	</Type>
+	
+	<!-- sol::stack_reference -->
+	<Type Name="sol::stack_reference">
+		<Intrinsic Name="nilnode" Expression="(TValue*)&amp;((global_State*)luastate->glref.ptr32)->nilnode.val" />
+		
+		<!-- index2adr -->
+		<Intrinsic Name="isStackBase" Expression="index > 0" />
+		<Intrinsic Name="stackValueBase" Expression="
+				   ((luastate->base + (index - 1)) &lt; luastate->top)
+				   ? (luastate->base + (index - 1)) : nilnode()" />
+		<Intrinsic Name="isStackTop" Expression="index > -10000" />
+		<Intrinsic Name="stackValueTop" Expression="luastate->top + index" />
+
+		<Intrinsic Name="value" Expression="
+				   *(TValue*)(isStackBase() ? stackValueBase() : isStackTop() ? stackValueTop() : nilnode())
+				   " />
+
+		<Intrinsic Name="hasValue" Expression="isStackBase() || isStackTop()" />
+
+		<DisplayString Condition="hasValue()">{value()}</DisplayString>
+		<Expand>
+			<Item Name="[value]">value()</Item>
+			<Item Name="index">index</Item>
+		</Expand>
+	</Type>
+
+	<!-- sol::this_state -->
+	<Type Name="sol::this_state">
+		<DisplayString Condition="L == 0">nil</DisplayString>
+		<DisplayString Condition="L != 0">{L}</DisplayString>
+		<Expand>
+			<ExpandedItem>L</ExpandedItem>
+		</Expand>
+	</Type>
+	
+	<!-- sol::protected_function_result -->
+	
+</AutoVisualizer>

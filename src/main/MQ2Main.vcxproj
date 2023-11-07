@@ -519,7 +519,7 @@
     <ClCompile Include="MQ2DeveloperTools.cpp" />
     <ClCompile Include="MQ2DInput.cpp" />
     <ClCompile Include="MQ2Data.cpp" />
-    <ClCompile Include="MQ2DataAPI.cpp" />
+    <ClCompile Include="MQDataAPI.cpp" />
     <ClCompile Include="MQ2DataVars.cpp" />
     <ClCompile Include="MQ2DetourAPI.cpp" />
     <ClCompile Include="MQ2FrameLimiter.cpp" />
@@ -534,7 +534,6 @@
     <ClCompile Include="MQ2MacroCommands.cpp" />
     <ClCompile Include="MQ2Main.cpp" />
     <ClCompile Include="MQ2Mouse.cpp" />
-    <ClCompile Include="MQ2ParseAPI.cpp" />
     <ClCompile Include="MQ2PostOffice.cpp" />
     <ClCompile Include="MQ2PluginHandler.cpp" />
     <ClCompile Include="MQ2Pulse.cpp" />
@@ -562,6 +561,9 @@
     <ClInclude Include="..\..\include\mq\api\Achievements.h" />
     <ClInclude Include="..\..\include\mq\api\Items.h" />
     <ClInclude Include="..\..\include\mq\api\MacroAPI.h" />
+    <ClInclude Include="..\..\include\mq\api\MacroDataTypes.h" />
+    <ClInclude Include="..\..\include\mq\api\Main.h" />
+    <ClInclude Include="..\..\include\mq\api\Plugin.h" />
     <ClInclude Include="..\..\include\mq\api\Spawns.h" />
     <ClInclude Include="..\..\include\mq\api\Spells.h" />
     <ClInclude Include="..\..\include\mq\base\BuildInfo.h" />
@@ -604,6 +606,7 @@
     <ClInclude Include="ImGuiManager.h" />
     <ClInclude Include="ImGuiZepEditor.h" />
     <ClInclude Include="MQ2Commands.h" />
+    <ClInclude Include="MQDataAPI.h" />
     <ClInclude Include="MQ2DataContainers.h" />
     <ClInclude Include="MQ2DeveloperTools.h" />
     <ClInclude Include="MQ2Globals.h" />

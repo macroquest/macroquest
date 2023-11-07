@@ -14,17 +14,22 @@
 
 #pragma once
 
-#include "LuaCommon.h"
+#include "mq/api/MacroAPI.h"
+#include "mq/api/Plugin.h"
 
-namespace mq::lua::bindings {
+namespace mq {
 
-void RegisterBindings_Globals(LuaThread* thread, sol::state_view sv);
-void RegisterBindings_MQ(LuaThread* thread, sol::table& lua);
-void RegisterBindings_ImGui(sol::state_view sv);
-void RegisterBindings_Bit32(sol::state_view sv);
+class MainInterface
+{
+public:
+	virtual ~MainInterface() {}
 
-void RegisterBindings_MQMacroData(sol::table& lua);
-void InitializeBindings_MQMacroData();
-void ShutdownBindings_MQMacroData();
+	// TLO Access
+	virtual bool AddTopLevelObject(const char* name, MQTopLevelObjectFunction callback, MQPlugin* owner) = 0;
+	virtual bool RemoveTopLevelObject(const char* name, MQPlugin* owner) = 0;
+	virtual MQTopLevelObject* FindTopLevelObject(const char* name) = 0;
+};
 
-} // namespace mq::lua::bindings
+MQLIB_OBJECT MainInterface* GetMainInterface();
+
+} // namespace mq

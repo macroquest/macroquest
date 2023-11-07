@@ -55,7 +55,6 @@ MQLIB_API uint32_t bmPluginsCleanUI;
 MQLIB_API uint32_t bmPluginsReloadUI;
 MQLIB_API uint32_t bmPluginsDrawHUD;
 MQLIB_API uint32_t bmPluginsSetGameState;
-MQLIB_API uint32_t bmParseMacroParameter;
 MQLIB_API uint32_t bmUpdateSpawnSort;
 MQLIB_API uint32_t bmUpdateSpawnCaptions;
 MQLIB_API uint32_t bmCalculate;

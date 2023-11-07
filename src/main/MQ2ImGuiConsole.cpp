@@ -882,7 +882,6 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 	void SetAutoScroll(bool autoScroll) override
 	{
 		m_autoScroll = autoScroll;
-		WritePrivateProfileBool("Console", "AutoScroll", m_autoScroll, internal_paths::MQini);
 	}
 
 	int GetMaxBufferLines() const override { return m_maxBufferLines; }
@@ -990,7 +989,10 @@ public:
 			{
 				bool autoScroll = m_zepEditor->GetAutoScroll();
 				if (ImGui::MenuItem("Auto-scroll", nullptr, &autoScroll))
+				{
 					m_zepEditor->SetAutoScroll(autoScroll);
+					WritePrivateProfileBool("Console", "AutoScroll", autoScroll, internal_paths::MQini);
+				}
 
 				bool localEcho = GetLocalEcho();
 				if (ImGui::MenuItem("Local Echo", nullptr, &m_localEcho))

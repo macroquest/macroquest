@@ -148,7 +148,7 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case MacroMembers::IsTLO:
 		Dest.Type = pBoolType;
-		Dest.Set(FindMQ2Data(Index) != nullptr);
+		Dest.Set(pDataAPI->FindTopLevelObject(Index) != nullptr);
 		return true;
 
 	case MacroMembers::IsOuterVariable:
