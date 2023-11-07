@@ -16,7 +16,7 @@
 #include "MQ2Main.h"
 
 #define DIRECTINPUT_VERSION    0x800
-#include <dxsdk90\include\dinput.h>
+#include <dinput.h>
 
 namespace mq {
 

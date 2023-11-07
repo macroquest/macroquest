@@ -51,3 +51,6 @@ src/tools
 # ignore a specific sln file
 src/MacroQuest*.sln
 !src/MacroQuest.sln
+
+# ignore generated protobuf files
+*.pb.*

@@ -19,3 +19,6 @@ bool InitializeCrashpad();
 
 // Retrieves the name of the named pipe used for crash handling.
 std::string GetHandlerIPCPipe();
+
+// Returns the current state of crashpad
+bool IsCrashpadInitialized();

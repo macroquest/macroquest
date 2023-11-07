@@ -304,7 +304,6 @@ static sol::table lua_getFilteredGroundItems(sol::this_state L, std::optional<so
 
 #pragma region Event Bindings
 
-
 static void lua_doevents(sol::variadic_args va, sol::this_state s)
 {
 	if (auto thread_ptr = LuaThread::get_from(s))
@@ -545,7 +544,6 @@ static void lua_pickle(sol::this_state L, std::string_view file_path, sol::table
 }
 
 #pragma endregion
-
 
 //============================================================================
 

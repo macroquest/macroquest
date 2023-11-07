@@ -79,10 +79,6 @@ namespace mq {
 void InitializeLoginFrontend();
 void ShutdownLoginFrontend();
 
-// From MQ2ParseAPI.cpp
-void InitializeParser();
-void ShutdownParser();
-
 // From MQ2PluginHandler.cpp
 void ShutdownInternalModules();
 
@@ -93,6 +89,7 @@ MQModule* GetGroundSpawnsModule();
 MQModule* GetSpawnsModule();
 MQModule* GetItemsModule();
 MQModule* GetWindowsModule();
+MQModule* GetPostOfficeModule();
 
 void InitializeDetours();
 void ShutdownDetours();
@@ -575,6 +572,8 @@ void SetMainThreadId()
 // Perform first time initialization on the main thread.
 void DoMainThreadInitialization()
 {
+	gpMainAPI = new MainImpl();
+
 	InitializePipeClient();
 	InitializeMQ2Commands();
 	InitializeDisplayHook();
@@ -595,6 +594,7 @@ void DoMainThreadInitialization()
 	AddInternalModule(GetGroundSpawnsModule());
 	AddInternalModule(GetSpawnsModule());
 	AddInternalModule(GetItemsModule());
+	AddInternalModule(GetPostOfficeModule());
 	InitializeMQ2AutoInventory();
 	InitializeMQ2KeyBinds();
 	InitializeMQ2Plugins();
@@ -768,7 +768,6 @@ bool MQ2Initialize()
 
 	InitializeDetours();
 	InitializeMQ2Benchmarks();
-	InitializeParser();
 
 	// These two sub-systems will get us onto the main thread.
 	InitializeMQ2Pulse();
@@ -795,7 +794,6 @@ void MQ2Shutdown()
 	ShutdownMQ2AutoInventory();
 	ShutdownMouseHooks();
 	ShutdownMQ2CrashHandler();
-	ShutdownParser();
 	ShutdownMQ2Commands();
 	ShutdownAnonymizer();
 	ShutdownMQ2Plugins();
@@ -808,6 +806,9 @@ void MQ2Shutdown()
 
 	DebugSpew("Shutdown completed");
 	ShutdownLogging();
+
+	delete gpMainAPI;
+	gpMainAPI = nullptr;
 }
 
 HMODULE GetCurrentModule()
@@ -1128,29 +1129,43 @@ void InjectDisable()
 	g_hHook = nullptr;
 }
 
+//============================================================================
+
+MainImpl::MainImpl()
+{
+	pDataAPI = new MQDataAPI();
+	pDataAPI->Initialize();
+}
+
+MainImpl::~MainImpl()
+{
+	delete pDataAPI;
+	pDataAPI = nullptr;
+}
+
+bool MainImpl::AddTopLevelObject(const char* name, MQTopLevelObjectFunction callback, MQPlugin* owner)
+{
+	return pDataAPI->AddTopLevelObject(name, std::move(callback), owner);
+}
+
+bool MainImpl::RemoveTopLevelObject(const char* name, MQPlugin* owner)
+{
+	return pDataAPI->RemoveTopLevelObject(name, owner);
+}
+
+MQTopLevelObject* MainImpl::FindTopLevelObject(const char* name)
+{
+	return pDataAPI->FindTopLevelObject(name);
+}
+
+MainImpl* gpMainAPI = nullptr;
+
+MainInterface* GetMainInterface()
+{
+	return gpMainAPI;
+}
+
 } // namespace mq
-
-// FIXME: Put this somewhere more appropriate
-SGlobalBuffer::SGlobalBuffer()
-	: ptr(&buffer[0])
-{
-}
-
-SGlobalBuffer::~SGlobalBuffer()
-{
-}
-
-void SGlobalBuffer::push_buffer(char* new_buffer)
-{
-	m_stack.push(ptr);
-	ptr = new_buffer;
-}
-
-void SGlobalBuffer::pop_buffer()
-{
-	ptr = m_stack.top();
-	m_stack.pop();
-}
 
 #if __has_include("../private/MQ2Main-private.cpp")
 #include "../private/MQ2Main-private.cpp"

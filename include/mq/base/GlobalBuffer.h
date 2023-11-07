@@ -20,6 +20,8 @@
 #include <cstring>
 #include <stack>
 
+namespace mq {
+
 // This allows us to swap out the underlying buffer for DataTypeTemp
 struct SGlobalBuffer
 {
@@ -54,37 +56,38 @@ private:
 	std::stack<char*> m_stack;
 };
 
+} // namespace mq
+
+
 // Provide helpers to go with SGlobalBuffer to allow for these operations without specifying a size
 
-inline errno_t strcpy_s(SGlobalBuffer& dest, const char* src)
+inline errno_t strcpy_s(mq::SGlobalBuffer& dest, const char* src)
 {
 	return strcpy_s(dest, dest.size(), src);
 }
 
-inline errno_t strncpy_s(SGlobalBuffer& dest, const char* src, size_t count)
+inline errno_t strncpy_s(mq::SGlobalBuffer& dest, const char* src, size_t count)
 {
 	return strncpy_s(dest, dest.size(), src, count);
 }
 
-inline void strcat_s(SGlobalBuffer& dest, const char* src)
+inline void strcat_s(mq::SGlobalBuffer& dest, const char* src)
 {
 	strcat_s(dest, dest.size(), src);
 }
 
-inline void _strupr_s(SGlobalBuffer& dest)
+inline void _strupr_s(mq::SGlobalBuffer& dest)
 {
 	_strupr_s(dest, dest.size());
 }
 
-inline void _strlwr_s(SGlobalBuffer& dest)
+inline void _strlwr_s(mq::SGlobalBuffer& dest)
 {
 	_strlwr_s(dest, dest.size());
 }
 
 template <typename... Args>
-int sprintf_s(SGlobalBuffer& dest, const char* format, Args... args)
+int sprintf_s(mq::SGlobalBuffer& dest, const char* format, Args... args)
 {
 	return sprintf_s(dest, dest.size(), format, args...);
 }
-
-// end helpers

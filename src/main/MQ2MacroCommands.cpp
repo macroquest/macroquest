@@ -22,6 +22,9 @@
 
 namespace mq {
 
+// Defined in MQ2DataVars.cpp
+void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValues);
+
 static std::map<std::string, MQMacroBlockPtr> MacroBlockMap;
 uint64_t s_commandCount = 0;
 
@@ -260,7 +263,7 @@ void ProfileCommand(PlayerClient* pPlayer, char* szLine)
 	g_pProfile->Call("Main", std::move(args));
 }
 
-void FailIf(SPAWNINFO* pChar, const char* szCommand, int StartLine, bool All)
+void FailIf(SPAWNINFO* pChar, const char* szCommand, int StartLine, bool All = false)
 {
 	int Scope = 1;
 
@@ -366,7 +369,7 @@ void Delay(SPAWNINFO* pChar, char* szLine)
 	char szVal[MAX_STRING] = { 0 };
 	GetArg(szVal, szLine, 1);
 
-	ParseMacroParameter(pLocalPlayer, szVal);
+	ParseMacroData(szVal, MAX_STRING);
 	strcpy_s(gDelayCondition, GetNextArg(szLine));
 
 	int VarValue = GetIntFromString(szVal, 0);
@@ -391,7 +394,7 @@ void Delay(SPAWNINFO* pChar, char* szLine)
 		char szCond[MAX_STRING];
 		strcpy_s(szCond, gDelayCondition);
 
-		ParseMacroParameter(pLocalPlayer, szCond);
+		ParseMacroData(szCond, MAX_STRING);
 
 		double Result;
 		if (!Calculate(szCond, Result))
@@ -1630,7 +1633,7 @@ void Call(PSPAWNINFO pChar, char* szLine)
 
 			GetFuncParam(name, StackNum, szParamName, MAX_STRING, szParamType, MAX_STRING);
 
-			MQ2Type* pType = FindMQ2DataType(szParamType);
+			MQ2Type* pType = pDataAPI->FindDataType(szParamType);
 			if (!pType)
 				pType = datatypes::pStringType;
 
@@ -2214,7 +2217,7 @@ void Next(PSPAWNINFO pChar, char* szLine)
 	char ForLine[MAX_STRING];
 	strcpy_s(ForLine, iter->second.Command.c_str());
 
-	ParseMacroParameter(pChar, ForLine);
+	ParseMacroData(ForLine, MAX_STRING);
 	int VarNum = GetIntFromString(&szLine[1], 0);
 	int StepSize = 1;
 

@@ -13,10 +13,9 @@
  */
 
 #include "MacroQuest.h"
-#include "AutoLogin.h"
 #include "ProcessMonitor.h"
 #include "Crashpad.h"
-#include "common/NamedPipes.h"
+#include "PostOffice.h"
 
 #include "resource.h"
 
@@ -78,7 +77,6 @@ const int HOTKEY_EQWIN_BOSSKEY = 3;
 
 bool gbConsoleVisible = false;
 bool gbConsoleCreated = false;
-mq::NamedPipeServer* gPipeServer = nullptr;
 bool gCrashPadInitialized = false;
 
 std::map<std::tuple<uint16_t, uint16_t>, HWND> hotkeyMap;
@@ -290,210 +288,36 @@ bool InitializePaths()
 
 //----------------------------------------------------------------------------
 
-// This routine is a simple function to print the client request to the console
-// and populate the reply buffer with a default data string. This is where you
-// would put the actual client request processing code that runs in the context
-// of an instance thread. Keep in mind the main thread will continue to wait for
-// and receive other client connections while the instance thread is working.
-
-// TODO: This isn't currently used -- do we need it?
-void GetAnswerToRequest(char* pchRequest, char* pchReply, size_t* pchBytes)
+void SetFocusWindowPID(uint32_t pid, bool state)
 {
-	char szMessage[MAX_STRING];
-
-	if (char* pDest = strchr(pchRequest, ' '))
+	if (state)
 	{
-		pDest[0] = '\0';
-		pDest++;
-		strcpy_s(szMessage, pDest);
+		gFocusProcessID = pid;
+		SPDLOG_TRACE("Process has focus: {}", gFocusProcessID);
 	}
-
-	DWORD msgID = atoi(pchRequest);
-
-	switch (msgID)
+	else if (pid == gFocusProcessID)
 	{
-	case MSG_LOGINCHAR:
-		// FIXME: These are WIP
-		break;
-
-	case MSG_LOADED:
-		HandleAutoLoginProfileLoaded(szMessage);
-		break;
-
-	case MSG_UNLOADED:
-		HandleAutoLoginProfileUnloaded(szMessage);
-		break;
-
-	case MSG_MQ2UNLOAD:
-		HandleAutoLoginMQ2Unload(szMessage);
-		break;
-
-	case MSG_CLASSLVL:
-		HandleAutoLoginUpdateCharacterDetails(szMessage);
-		break;
-
-	default:
-		if (FAILED(StringCchCopy(pchReply, PIPE_BUFFER_SIZE, TEXT("invalid/missing msg id passed"))))
-		{
-			*pchBytes = 0;
-			pchReply[0] = 0;
-			SPDLOG_DEBUG("StringCchCopy failed, no outgoing message.");
-			return;
-		}
-		*pchBytes = (lstrlen(pchReply) + 1) * sizeof(TCHAR);
-		return;
-
+		SPDLOG_TRACE("Process no longer has focus: {}", gFocusProcessID);
+		gFocusProcessID = 0;
 	}
-
-	// OutputDebugString("Client Request String:\"%s\"\n", pchRequest );
-	SPDLOG_DEBUG("Client request string: \"{}\'", pchRequest);
-
-	// Check the outgoing message to make sure it's not too long for the buffer.
-	if (FAILED(StringCchCopy(pchReply, PIPE_BUFFER_SIZE, TEXT("default answer from server"))))
-	{
-		*pchBytes = 0;
-		pchReply[0] = 0;
-		SPDLOG_DEBUG("StringCchCopy failed, no outgoing message.");
-		return;
-	}
-
-	*pchBytes = (lstrlen(pchReply) + 1) * sizeof(TCHAR);
 }
 
-static void SetForegroundWindowInternal(HWND hWnd)
+void SetForegroundWindowInternal(HWND hWnd)
 {
-	if (!IsWindow(hWnd))
-		return;
-
-	if (IsIconic(hWnd))
-		ShowWindow(hWnd, SW_RESTORE);
-
-	if (::SetForegroundWindow(hWnd))
-		return;
-
-	if (gFocusProcessID != 0)
+	if (IsWindow(hWnd))
 	{
-		// Send request to focus to the correct client
-		if (auto connection = gPipeServer->GetConnectionForProcessId(gFocusProcessID))
-		{
-			MQMessageActivateWnd message;
-			message.hWnd = hWnd;
+		if (IsIconic(hWnd))
+			ShowWindow(hWnd, SW_RESTORE);
 
-			gPipeServer->SendMessage(connection->GetConnectionId(),
-				mq::MQMessageId::MSG_MAIN_FOCUS_ACTIVATE_WND, &message, sizeof(message));
-			return;
+		if (!::SetForegroundWindow(hWnd) && !SendSetForegroundWindow(hWnd, gFocusProcessID))
+		{
+			SPDLOG_DEBUG("Failed to set foreground window. Doing it with min/restore.");
+
+			ShowWindow(hWnd, SW_MINIMIZE);
+			ShowWindow(hWnd, SW_RESTORE);
 		}
 	}
-
-	SPDLOG_DEBUG("Failed to set foreground window. Doing it with min/restore.");
-
-	ShowWindow(hWnd, SW_MINIMIZE);
-	ShowWindow(hWnd, SW_RESTORE);
 }
-
-
-class MQ2NamedPipeEvents : public NamedPipeEvents
-{
-public:
-	// Handle messages from NamedPipeServer
-	virtual void OnIncomingMessage(std::shared_ptr<PipeMessage> message) override
-	{
-		SPDLOG_TRACE("Received message: id={} length={} connectionId={}", message->GetMessageId(),
-			message->size(), message->GetConnectionId());
-
-		switch (message->GetMessageId())
-		{
-		case mq::MQMessageId::MSG_ECHO:
-		{
-			std::string str(message->get<const char>(), message->size() - 1);
-			message->SendReply(MQMessageId::MSG_ECHO, str.data(), (uint32_t)str.length() + 1);
-			SPDLOG_INFO("Handling echo request: {}", str);
-			break;
-		}
-
-		case mq::MQMessageId::MSG_AUTOLOGIN_PROFILE_LOADED:
-			HandleAutoLoginProfileLoaded(std::string(message->get<const char>(), message->size()));
-			break;
-
-		case mq::MQMessageId::MSG_AUTOLOGIN_PROFILE_UNLOADED:
-			HandleAutoLoginProfileUnloaded(std::string(message->get<const char>(), message->size()));
-			break;
-
-		case mq::MQMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO:
-			HandleAutoLoginUpdateCharacterDetails(std::string(message->get<const char>(), message->size()));
-			break;
-
-		case mq::MQMessageId::MSG_AUTOLOGIN_START_INSTANCE:
-			HandleAutoLoginStartInstance(std::string(message->get<const char>(), message->size()));
-			break;
-
-		case mq::MQMessageId::MSG_MAIN_PROCESS_UNLOADED:
-			break;
-
-		case mq::MQMessageId::MSG_MAIN_PROCESS_LOADED: {
-			MQMessageProcessLoadedResponse response;
-			response.processId = GetCurrentProcessId();
-
-			gPipeServer->SendMessage(message->GetConnectionId(), mq::MQMessageId::MSG_MAIN_PROCESS_LOADED,
-				&response, sizeof(response));
-			break;
-		}
-
-		case mq::MQMessageId::MSG_MAIN_FOCUS_REQUEST: {
-			if (message->size() >= sizeof(MQMessageFocusRequest))
-			{
-				const MQMessageFocusRequest* request = message->get<MQMessageFocusRequest>();
-				if (request->focusMode == MQMessageFocusRequest::FocusMode::HasFocus)
-				{
-					if (request->state)
-					{
-						gFocusProcessID = request->processId;
-						SPDLOG_TRACE("Process has focus: {}", gFocusProcessID);
-					}
-					else if (request->processId == gFocusProcessID)
-					{
-						SPDLOG_TRACE("Process no longer has focus: {}", gFocusProcessID);
-						gFocusProcessID = 0;
-					}
-				}
-				else if (request->focusMode == MQMessageFocusRequest::FocusMode::WantFocus)
-				{
-					HWND hWnd = (HWND)request->hWnd;
-
-					SetForegroundWindowInternal(hWnd);
-				}
-			}
-			break;
-		}
-
-		default: break;
-		}
-	}
-
-	virtual void OnRequestProcessEvents() override
-	{
-		PostMessageA(hMainWnd, WM_USER_CALLBACK, 0, 0);
-	}
-
-	virtual void OnIncomingConnection(int connectionId, int processid) override
-	{
-		std::string namedPipe;
-
-		if (gCrashPadInitialized && gEnableSharedCrashpad)
-		{
-			namedPipe = GetHandlerIPCPipe();
-		}
-
-		// send the name of the named pipe to the connected client. If crashpad isn't
-		// enabled, or shared is disabled, this will send an empty string, which basically
-		// tells the process that its own its own.
-		gPipeServer->SendMessage(connectionId,
-			mq::MakeSimpleMessageV0(MQMessageId::MSG_MAIN_CRASHPAD_CONFIG,
-				namedPipe.c_str(), (uint32_t)namedPipe.length() + 1));
-	}
-};
-
-//----------------------------------------------------------------------------
 
 LRESULT HandleHotkey(WPARAM wParam, LPARAM lParam)
 {
@@ -907,19 +731,11 @@ void HandleCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case ID_FORCEUNLOADOFALLMQ2:
-		for (int connId : gPipeServer->GetConnectionIds())
-		{
-			SPDLOG_DEBUG("Requesting forced unload to connection Id {0}", connId);
-			gPipeServer->SendMessage(connId, MQMessageId::MSG_MAIN_REQ_FORCEUNLOAD, nullptr, 0);
-		}
+		SendForceUnloadAllCommand();
 		break;
 
 	case ID_UNLOADALLMQ:
-		for (int connId : gPipeServer->GetConnectionIds())
-		{
-			SPDLOG_DEBUG("Requesting unload to connection Id {0}", connId);
-			gPipeServer->SendMessage(connId, MQMessageId::MSG_MAIN_REQ_UNLOAD, nullptr, 0);
-		}
+		SendUnloadAllCommand();
 		break;
 
 	case ID_MENU_CHECKAPPCOMPAT:
@@ -1003,7 +819,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 	}
 
 	case WM_USER_CALLBACK:
-		gPipeServer->Process();
+		ProcessPipeServer();
 		break;
 
 	default:
@@ -1089,19 +905,6 @@ public:
 		SendMessageA(hMainWnd, WM_USER_PROCESS_REMOVED, processId, 0);
 	}
 };
-
-void InitializeNamedPipeServer()
-{
-	gPipeServer = new NamedPipeServer(MQ2_PIPE_SERVER_PATH);
-	gPipeServer->SetHandler(std::make_shared<MQ2NamedPipeEvents>());
-	gPipeServer->Start();
-}
-
-void ShutdownNamedPipeServer()
-{
-	gPipeServer->Stop();
-	delete gPipeServer;
-}
 
 void InitializeVersionInfo()
 {
@@ -1377,6 +1180,7 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 	UnregisterGlobalHotkey(hMainWnd);
 	Shell_NotifyIcon(NIM_DELETE, &NID);
 
+	ShutdownAutoLogin();
 	ShutdownInjector();
 	ShutdownNamedPipeServer();
 	StopProcessMonitor();

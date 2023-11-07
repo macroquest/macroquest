@@ -56,34 +56,22 @@ void RegisterBindings_Globals(LuaThread* thread, sol::state_view state)
 	state["_old_require"] = state["require"];
 	state["require"] = [](sol::variadic_args args, sol::this_state s)
 	{
-		sol::safe_function_result result;
+		ScopedYieldDisabler disabler(s, YieldDisabledReason::Require);
 
-		{
-			ScopedYieldDisabler disabler(s, YieldDisabledReason::Require);
-
-			sol::safe_function require = sol::state_view(s)["_old_require"];
-			result = require(args);
-		}
-
-		if (!result.valid())
-		{
-			// If we failed here, we already got an error message, but we need to re-raise. Not sure
-			// how to do that without reproducing the stack trace, so just grab the message and trim the
-			// stack part off and re-raise it
-
-			std::string message = sol::stack::pop<std::string>(result.lua_state());
-			std::string_view svMessage = message;
-			auto pos = svMessage.find("stack traceback:");
-			if (pos != std::string_view::npos)
-			{
-				svMessage = svMessage.substr(0, pos);
-				svMessage = rtrim(svMessage);
-			}
-
-			luaL_error(s, "%s", std::string(svMessage).c_str());
-		}
-		return result;
+		sol::unsafe_function require = sol::state_view(s)["_old_require"];
+		return require(args);
 	};
+
+	//----------------------------------------------------------------------------
+	// Internal helpers
+
+	sol::function arginfo = state.script(R"(
+		return function(f)
+			local info = debug.getinfo(f, "nu")
+			return info.name or 'unknown', info.namewhat or 'unk', info.nparams or -1, info.isvararg or false
+		end
+	)");
+	state.set_function("__command_arginfo", arginfo);
 }
 
 } // namespace mq::lua::bindings

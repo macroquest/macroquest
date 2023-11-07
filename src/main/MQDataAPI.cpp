@@ -15,23 +15,21 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+#include "MQDataAPI.h"
+
 namespace mq {
 
-std::unordered_map<std::string, std::unique_ptr<MQDataItem>> MQ2DataMap;
-std::unordered_map<std::string, MQ2Type*> MQ2DataTypeMap;
-std::unordered_map<std::string, std::vector<MQ2Type*>> MQ2DataExtensions;
-
 std::vector<std::weak_ptr<MQTransient>> s_objectMap;
-
-std::recursive_mutex s_variableMutex;
 std::mutex s_objectMapMutex;
+uint32_t bmParseMacroData;
 
 static void SetGameStateDataAPI(DWORD);
 static void UnloadPluginDataAPI(const char*);
 
+
 static MQModule s_DataAPIModule = {
 	"DataAPI",                      // Name
-	false,                         // CanUnload
+	false,                          // CanUnload
 	nullptr,
 	nullptr,
 	nullptr,
@@ -47,6 +45,9 @@ static MQModule s_DataAPIModule = {
 	UnloadPluginDataAPI
 };
 MQModule* GetDataAPIModule() { return &s_DataAPIModule; }
+
+//============================================================================
+// Observed objects (Why are these here under MQDataAPI?)
 
 // This guarantees the validity of all weak pointers inside the map, while keeping the size from growing without bound as we add pointers
 static void PruneObservedEQObjects()
@@ -107,31 +108,54 @@ void UnloadPluginDataAPI(const char* Name)
 	PruneObservedEQObjects();
 }
 
-MQ2Type* FindMQ2DataType(const char* Name)
-{
-	std::scoped_lock lock(s_variableMutex);
+//============================================================================
+//============================================================================
 
-	auto iter = MQ2DataTypeMap.find(Name);
-	if (iter == MQ2DataTypeMap.end())
-		return nullptr;
-
-	return iter->second;
+namespace datatypes {
+	void RegisterDataTypes();
+	void UnregisterDataTypes();
 }
 
-bool AddMQ2Type(MQ2Type& Type)
+MQDataAPI* pDataAPI = nullptr;
+
+MQDataAPI::MQDataAPI()
 {
-	std::scoped_lock lock(s_variableMutex);
+	bmParseMacroData = AddMQ2Benchmark("ParseMacroParameter");
+}
+
+MQDataAPI::~MQDataAPI()
+{
+	datatypes::UnregisterDataTypes();
+	RemoveMQ2Benchmark(bmParseMacroData);
+}
+
+void MQDataAPI::Initialize()
+{
+	RegisterTopLevelObjects();
+	datatypes::RegisterDataTypes();
+}
+
+bool MQDataAPI::IsReservedName(const std::string& name) const
+{
+	std::scoped_lock lock(m_mutex);
+
+	return m_tloMap.find(name) != end(m_tloMap) || m_dataTypeMap.find(name) != end(m_dataTypeMap);
+}
+
+bool MQDataAPI::AddDataType(MQ2Type& Type, MQPlugin* Owner)
+{
+	std::scoped_lock lock(m_mutex);
 
 	// returns pair with iterator pointing to the constructed
 	// element, and a bool indicating if it was actually inserted.
 	// this will not replace existing elements.
-	auto result = MQ2DataTypeMap.emplace(Type.GetName(), &Type);
+	auto result = m_dataTypeMap.emplace(Type.GetName(), &Type);
 	return result.second;
 }
 
-bool RemoveMQ2Type(MQ2Type& Type)
+bool MQDataAPI::RemoveDataType(MQ2Type& Type, MQPlugin* Owner)
 {
-	std::scoped_lock lock(s_variableMutex);
+	std::scoped_lock lock(m_mutex);
 
 	// use iterator to erase. allows us to check for existence
 	// and erase it without any waste
@@ -139,66 +163,74 @@ bool RemoveMQ2Type(MQ2Type& Type)
 	if (!thetypename)
 		return false;
 
-	auto iter = MQ2DataTypeMap.find(thetypename);
-	if (iter == MQ2DataTypeMap.end())
+	auto iter = m_dataTypeMap.find(thetypename);
+	if (iter == m_dataTypeMap.end())
 		return false;
 
 	// The type existed. Erase it.
-	MQ2DataTypeMap.erase(iter);
+	m_dataTypeMap.erase(iter);
 	return true;
 }
 
-MQDataItem* FindMQ2Data(const char* szName)
+MQ2Type* MQDataAPI::FindDataType(const char* Name) const
 {
-	std::scoped_lock lock(s_variableMutex);
+	std::scoped_lock lock(m_mutex);
 
-	auto iter = MQ2DataMap.find(szName);
-	if (iter == MQ2DataMap.end())
+	auto iter = m_dataTypeMap.find(Name);
+	if (iter == m_dataTypeMap.end())
+		return nullptr;
+
+	return iter->second;
+}
+
+bool MQDataAPI::AddTopLevelObject(const char* szName, MQTopLevelObjectFunction Function, MQPlugin* owner)
+{
+	std::scoped_lock lock(m_mutex);
+
+	// check if the item exists first, so we don't construct
+	// something we don't actually need.
+	if (m_tloMap.find(szName) != m_tloMap.end())
+		return false;
+
+	// create new MQTopLevelObject inside a unique_ptr
+	auto newItem = std::make_unique<MQTopLevelObject>();
+	newItem->Name = szName;
+	newItem->Function = std::move(Function);
+	newItem->Owner = owner;
+
+	// put the new item into the map
+	m_tloMap.emplace(szName, std::move(newItem));
+	return true;
+}
+
+bool MQDataAPI::RemoveTopLevelObject(const char* szName, MQPlugin* owner)
+{
+	std::scoped_lock lock(m_mutex);
+
+	auto iter = m_tloMap.find(szName);
+	if (iter == m_tloMap.end())
+		return false;
+
+	m_tloMap.erase(iter);
+	return true;
+}
+
+MQTopLevelObject* MQDataAPI::FindTopLevelObject(const char* szName) const
+{
+	std::scoped_lock lock(m_mutex);
+
+	auto iter = m_tloMap.find(szName);
+	if (iter == m_tloMap.end())
 		return nullptr;
 
 	return iter->second.get();
 }
 
-bool AddMQ2Data(const char* szName, MQTopLevelObjectFunction Function)
-{
-	std::scoped_lock lock(s_variableMutex);
 
-	// check if the item exists first, so we don't construct
-	// something we don't actually need.
-	if (MQ2DataMap.find(szName) != MQ2DataMap.end())
-		return false;
-
-	// create new MQDataItem inside a unique_ptr
-	auto newItem = std::make_unique<MQDataItem>();
-	newItem->Name = szName;
-	newItem->Function = std::move(Function);
-
-	// put the new item into the map
-	MQ2DataMap.emplace(szName, std::move(newItem));
-	return true;
-}
-
-bool AddMQ2Data(const char* szName, fMQData Function)
-{
-	return AddMQ2Data(szName, MQTopLevelObjectFunction(Function));
-}
-
-bool RemoveMQ2Data(const char* szName)
-{
-	std::scoped_lock lock(s_variableMutex);
-
-	auto iter = MQ2DataMap.find(szName);
-	if (iter == MQ2DataMap.end())
-		return false;
-
-	MQ2DataMap.erase(iter);
-	return true;
-}
-
-bool AddMQ2TypeExtension(const char* szName, MQ2Type* extension)
+bool MQDataAPI::AddTypeExtension(const char* szName, MQ2Type* extension, MQPlugin* Owner)
 {
 	// get the extension record for this type name
-	auto& record = MQ2DataExtensions[szName];
+	auto& record = m_typeExtensions[szName];
 
 	// check if we already have this extension added
 	if (std::find(record.begin(), record.end(), extension) != record.end())
@@ -209,11 +241,11 @@ bool AddMQ2TypeExtension(const char* szName, MQ2Type* extension)
 	return true;
 }
 
-bool RemoveMQ2TypeExtension(const char* szName, MQ2Type* extension)
+bool MQDataAPI::RemoveTypeExtension(const char* szName, MQ2Type* extension, MQPlugin* Owner)
 {
 	// check if we have a record for this type name
-	auto iter = MQ2DataExtensions.find(szName);
-	if (iter == MQ2DataExtensions.end())
+	auto iter = m_typeExtensions.find(szName);
+	if (iter == m_typeExtensions.end())
 		return false;
 
 	// check if this extension is registered in this record
@@ -227,16 +259,16 @@ bool RemoveMQ2TypeExtension(const char* szName, MQ2Type* extension)
 
 	// if the record is empty, remove it
 	if (record.empty())
-		MQ2DataExtensions.erase(iter);
+		m_typeExtensions.erase(iter);
 
 	return true;
 }
 
-bool FindMacroDataMember(MQ2Type* Type, const std::string& strMember)
+bool MQDataAPI::FindMacroDataMember(MQ2Type* Type, const std::string& strMember) const
 {
 	// search for extensions on this type
-	auto extIter = MQ2DataExtensions.find(Type->GetName());
-	if (extIter != MQ2DataExtensions.end())
+	auto extIter = m_typeExtensions.find(Type->GetName());
+	if (extIter != m_typeExtensions.end())
 	{
 		// we have at least one extension. process each one until a match is found
 		for (MQ2Type* ext : extIter->second)
@@ -264,21 +296,20 @@ bool FindMacroDataMember(MQ2Type* Type, const std::string& strMember)
 	return false;
 }
 
-
 // -1 = no exists, 0 = fail, 1 = success
-int EvaluateMacroDataMember(MQ2Type* type, MQVarPtr& VarPtr, MQTypeVar& Result, const std::string& Member, char* pIndex,
-	bool checkFirst)
+MQDataAPI::EvaluateResult MQDataAPI::EvaluateMacroDataMember(MQ2Type* type, MQVarPtr& VarPtr,
+	MQTypeVar& Result, const std::string& Member, char* pIndex, bool checkFirst) const
 {
 	// search for extensions on this type
-	auto extIter = MQ2DataExtensions.find(type->GetName());
-	if (extIter != MQ2DataExtensions.end())
+	auto extIter = m_typeExtensions.find(type->GetName());
+	if (extIter != m_typeExtensions.end())
 	{
 		// we have at least one extension. process each one until a match is found
 		for (MQ2Type* ext : extIter->second)
 		{
 			// optimize for failure case, check if exists first
-			int result = EvaluateMacroDataMember(ext, VarPtr, Result, Member, pIndex, true);
-			if (result != -1)
+			auto result = EvaluateMacroDataMember(ext, VarPtr, Result, Member, pIndex, true);
+			if (result != EvaluateResult::NotFound)
 				return result;
 		}
 	}
@@ -291,26 +322,27 @@ int EvaluateMacroDataMember(MQ2Type* type, MQVarPtr& VarPtr, MQTypeVar& Result, 
 	{
 		if (!type->FindMember(Member) && !type->InheritedMember(Member))
 		{
-			return -1;
+			return EvaluateResult::NotFound;
 		}
 
-		return type->GetMember(std::move(VarPtr), Member.c_str(), pIndex, Result) ? 1 : 0;
+		return type->GetMember(std::move(VarPtr), Member.c_str(), pIndex, Result)
+			? EvaluateResult::Success : EvaluateResult::Failure;
 	}
 
 	if (type->GetMember(std::move(VarPtr), Member.c_str(), pIndex, Result))
 	{
-		return 1;
+		return EvaluateResult::Success;
 	}
 
 	if (!type->FindMember(Member) && !type->InheritedMember(Member))
 	{
-		return -1;
+		return EvaluateResult::NotFound;
 	}
 
-	return 0;
+	return EvaluateResult::Failure;
 }
 
-void DumpWarning(const char* pStart, int index)
+static void DumpWarning(const char* pStart, int index)
 {
 	if (MQMacroBlockPtr pBlock = GetCurrentMacroBlock())
 	{
@@ -362,7 +394,7 @@ static bool CallFunction(const char* name, const char* args)
 	}
 
 	MQMacroBlockPtr saved_block = GetCurrentMacroBlock();
-	const auto saved_block_line = gMacroBlock->CurrIndex;
+	const int saved_block_line = gMacroBlock->CurrIndex;
 
 	char subLine[MAX_STRING];
 	strcpy_s(subLine, name);
@@ -424,7 +456,8 @@ static bool CallFunction(const char* name, const char* args)
 	return false;
 }
 
-bool EvaluateDataExpression(MQTypeVar& Result, const char* pStart, char* pIndex, bool function_allowed = false)
+bool MQDataAPI::EvaluateDataExpression(MQTypeVar& Result, const char* pStart, char* pIndex,
+	bool allowFunction/* = false*/) const
 {
 	if (!Result.Type)
 	{
@@ -435,9 +468,9 @@ bool EvaluateDataExpression(MQTypeVar& Result, const char* pStart, char* pIndex,
 				return false; // its a undefined variable no point in moving on further.
 		}
 
-		if (MQDataItem* DataItem = FindMQ2Data(pStart))
+		if (MQTopLevelObject* tlo = FindTopLevelObject(pStart))
 		{
-			if (!DataItem->Function(pIndex, Result))
+			if (!tlo->Function(pIndex, Result))
 				return false;
 		}
 		else if (MQDataVar* DataVar = FindMQ2DataVariable(pStart))
@@ -457,7 +490,7 @@ bool EvaluateDataExpression(MQTypeVar& Result, const char* pStart, char* pIndex,
 				Result = DataVar->Var;
 			}
 		}
-		else if (function_allowed && FunctionExists(pStart))
+		else if (allowFunction && FunctionExists(pStart))
 		{
 			if (!CallFunction(pStart, pIndex))
 				return false;
@@ -486,114 +519,100 @@ bool EvaluateDataExpression(MQTypeVar& Result, const char* pStart, char* pIndex,
 		MQVarPtr VarPtr = Result;
 		MQ2Type* pType = Result.Type;
 
-		int result = EvaluateMacroDataMember(pType, std::move(VarPtr), Result, pStart, pIndex, false);
-		if (result < 0)
-		{
+		auto result = EvaluateMacroDataMember(pType, std::move(VarPtr), Result, pStart, pIndex, false);
+		if (result == EvaluateResult::NotFound)
 			MQ2DataError("No such '%s' member '%s'", pType->GetName(), pStart);
-		}
 
-		if (result <= 0)
+		if (result != EvaluateResult::Success)
 			return false;
 	}
 
 	return true;
 }
 
-int EvaluateMacroDataMember(MQ2Type* pType, MQVarPtr VarPtr, MQTypeVar& Result, const char* Member, char* pIndex)
-{
-	return EvaluateMacroDataMember(pType, std::move(VarPtr), Result, Member, pIndex, false);
-}
-
-void InitializeMQ2Data()
+void MQDataAPI::RegisterTopLevelObjects()
 {
 	// Basic types
-	AddMQ2Data("Bool", datatypes::MQ2BoolType::dataBool);
-	AddMQ2Data("Float", datatypes::MQ2FloatType::dataFloat);
-	AddMQ2Data("Heading", datatypes::MQ2HeadingType::dataHeading);
-	AddMQ2Data("Int", datatypes::MQ2IntType::dataInt);
-	AddMQ2Data("Range", datatypes::MQ2RangeType::dataRange);
-	AddMQ2Data("String", datatypes::MQ2StringType::dataString);
-	AddMQ2Data("Time", datatypes::MQ2TimeType::dataTime);
-	AddMQ2Data("Type", datatypes::MQ2TypeType::dataType);
+	AddTopLevelObject("Bool", datatypes::MQ2BoolType::dataBool);
+	AddTopLevelObject("Float", datatypes::MQ2FloatType::dataFloat);
+	AddTopLevelObject("Heading", datatypes::MQ2HeadingType::dataHeading);
+	AddTopLevelObject("Int", datatypes::MQ2IntType::dataInt);
+	AddTopLevelObject("Range", datatypes::MQ2RangeType::dataRange);
+	AddTopLevelObject("String", datatypes::MQ2StringType::dataString);
+	AddTopLevelObject("Time", datatypes::MQ2TimeType::dataTime);
+	AddTopLevelObject("Type", datatypes::MQ2TypeType::dataType);
 
 	// MQ Types
-	AddMQ2Data("Alert", datatypes::MQ2AlertType::dataAlert);
-	AddMQ2Data("Alias", datatypes::dataAlias);
-	AddMQ2Data("Defined", datatypes::dataDefined);
-	AddMQ2Data("FrameLimiter", datatypes::MQ2FrameLimiterType::dataFrameLimiter);
-	AddMQ2Data("If", datatypes::dataIf);
-	AddMQ2Data("Ini", datatypes::MQIniType::dataIni);
-	AddMQ2Data("Macro", datatypes::MQ2MacroType::dataMacro);
-	AddMQ2Data("MacroQuest", datatypes::MQ2MacroQuestType::dataMacroQuest);
-	AddMQ2Data("Math", datatypes::MQ2MathType::dataMath);
-	AddMQ2Data("Plugin", datatypes::MQ2PluginType::dataPlugin);
-	AddMQ2Data("Select", datatypes::dataSelect);
-	AddMQ2Data("SubDefined", datatypes::dataSubDefined);
+	AddTopLevelObject("Alert", datatypes::MQ2AlertType::dataAlert);
+	AddTopLevelObject("Alias", datatypes::dataAlias);
+	AddTopLevelObject("Defined", datatypes::dataDefined);
+	AddTopLevelObject("FrameLimiter", datatypes::MQ2FrameLimiterType::dataFrameLimiter);
+	AddTopLevelObject("If", datatypes::dataIf);
+	AddTopLevelObject("Ini", datatypes::MQIniType::dataIni);
+	AddTopLevelObject("Macro", datatypes::MQ2MacroType::dataMacro);
+	AddTopLevelObject("MacroQuest", datatypes::MQ2MacroQuestType::dataMacroQuest);
+	AddTopLevelObject("Math", datatypes::MQ2MathType::dataMath);
+	AddTopLevelObject("Plugin", datatypes::MQ2PluginType::dataPlugin);
+	AddTopLevelObject("Select", datatypes::dataSelect);
+	AddTopLevelObject("SubDefined", datatypes::dataSubDefined);
 
 	// EQ Types
-	AddMQ2Data("Achievement", datatypes::MQ2AchievementManagerType::dataAchievement);
-	AddMQ2Data("AltAbility", datatypes::MQ2AltAbilityType::dataAltAbility);
-	AddMQ2Data("Corpse", datatypes::MQ2CorpseType::dataCorpse);
-	AddMQ2Data("Cursor", datatypes::MQ2ItemType::dataCursor);
-	AddMQ2Data("DoorTarget", datatypes::MQ2SwitchType::dataSwitchTarget);
-	AddMQ2Data("DynamicZone", datatypes::MQ2DynamicZoneType::dataDynamicZone);
-	AddMQ2Data("EverQuest", datatypes::MQ2EverQuestType::dataEverQuest);
-	AddMQ2Data("FindItem", datatypes::MQ2ItemType::dataFindItem);
-	AddMQ2Data("FindItemBank", datatypes::MQ2ItemType::dataFindItemBank);
-	AddMQ2Data("FindItemBankCount", datatypes::MQ2ItemType::dataFindItemBankCount);
-	AddMQ2Data("FindItemCount", datatypes::MQ2ItemType::dataFindItemCount);
-	AddMQ2Data("Friends", datatypes::MQ2FriendsType::dataFriends);
-	AddMQ2Data("GameTime", datatypes::MQ2TimeType::dataGameTime);
-	AddMQ2Data("Ground", datatypes::MQ2GroundType::dataGroundItem);
-	AddMQ2Data("GroundItemCount", datatypes::MQ2GroundType::dataGroundItemCount);
-	AddMQ2Data("Group", datatypes::MQ2GroupType::dataGroup);
-	AddMQ2Data("Inventory", datatypes::MQInventoryType::dataInventory);
-	AddMQ2Data("InvSlot", datatypes::MQ2InvSlotType::dataInvSlot);
-	AddMQ2Data("ItemTarget", datatypes::MQ2GroundType::dataItemTarget);
-	AddMQ2Data("LastSpawn", datatypes::MQ2SpawnType::dataLastSpawn);
-	AddMQ2Data("LineOfSight", datatypes::dataLineOfSight);
-	AddMQ2Data("Me", datatypes::MQ2CharacterType::dataCharacter);
-	AddMQ2Data("Menu", datatypes::MQ2MenuType::dataMenu);
-	AddMQ2Data("Mercenary", datatypes::MQ2MercenaryType::dataMercenary);
-	AddMQ2Data("Merchant", datatypes::MQ2MerchantType::dataMerchant);
-	AddMQ2Data("NearestSpawn", datatypes::MQ2SpawnType::dataNearestSpawn);
-	AddMQ2Data("Pet", datatypes::MQ2PetType::dataPet);
-	AddMQ2Data("PointMerchant", datatypes::MQ2PointMerchantType::dataPointMerchant);
-	AddMQ2Data("Raid", datatypes::MQ2RaidType::dataRaid);
-	AddMQ2Data("SelectedItem", datatypes::MQ2ItemType::dataSelectedItem);
-	AddMQ2Data("Skill", datatypes::MQ2SkillType::dataSkill);
-	AddMQ2Data("Spawn", datatypes::MQ2SpawnType::dataSpawn);
-	AddMQ2Data("SpawnCount", datatypes::MQ2SpawnType::dataSpawnCount);
-	AddMQ2Data("Spell", datatypes::MQ2SpellType::dataSpell);
-	AddMQ2Data("Switch", datatypes::MQ2SwitchType::dataSwitch);
-	AddMQ2Data("SwitchTarget", datatypes::MQ2SwitchType::dataSwitchTarget);
-	AddMQ2Data("Target", datatypes::MQ2TargetType::dataTarget);
-	AddMQ2Data("Task", datatypes::MQ2TaskType::dataTask);
-	AddMQ2Data("TradeskillDepot", datatypes::MQ2TradeskillDepotType::dataTradeskillDepot);
-	AddMQ2Data("Window", datatypes::MQ2WindowType::dataWindow);
-	AddMQ2Data("Zone", datatypes::MQ2ZoneType::dataZone);
+	AddTopLevelObject("Achievement", datatypes::MQ2AchievementManagerType::dataAchievement);
+	AddTopLevelObject("AltAbility", datatypes::MQ2AltAbilityType::dataAltAbility);
+	AddTopLevelObject("Corpse", datatypes::MQ2CorpseType::dataCorpse);
+	AddTopLevelObject("Cursor", datatypes::MQ2ItemType::dataCursor);
+	AddTopLevelObject("DoorTarget", datatypes::MQ2SwitchType::dataSwitchTarget);
+	AddTopLevelObject("DynamicZone", datatypes::MQ2DynamicZoneType::dataDynamicZone);
+	AddTopLevelObject("EverQuest", datatypes::MQ2EverQuestType::dataEverQuest);
+	AddTopLevelObject("FindItem", datatypes::MQ2ItemType::dataFindItem);
+	AddTopLevelObject("FindItemBank", datatypes::MQ2ItemType::dataFindItemBank);
+	AddTopLevelObject("FindItemBankCount", datatypes::MQ2ItemType::dataFindItemBankCount);
+	AddTopLevelObject("FindItemCount", datatypes::MQ2ItemType::dataFindItemCount);
+	AddTopLevelObject("Friends", datatypes::MQ2FriendsType::dataFriends);
+	AddTopLevelObject("GameTime", datatypes::MQ2TimeType::dataGameTime);
+	AddTopLevelObject("Ground", datatypes::MQ2GroundType::dataGroundItem);
+	AddTopLevelObject("GroundItemCount", datatypes::MQ2GroundType::dataGroundItemCount);
+	AddTopLevelObject("Group", datatypes::MQ2GroupType::dataGroup);
+	AddTopLevelObject("Inventory", datatypes::MQInventoryType::dataInventory);
+	AddTopLevelObject("InvSlot", datatypes::MQ2InvSlotType::dataInvSlot);
+	AddTopLevelObject("ItemTarget", datatypes::MQ2GroundType::dataItemTarget);
+	AddTopLevelObject("LastSpawn", datatypes::MQ2SpawnType::dataLastSpawn);
+	AddTopLevelObject("LineOfSight", datatypes::dataLineOfSight);
+	AddTopLevelObject("Me", datatypes::MQ2CharacterType::dataCharacter);
+	AddTopLevelObject("Menu", datatypes::MQ2MenuType::dataMenu);
+	AddTopLevelObject("Mercenary", datatypes::MQ2MercenaryType::dataMercenary);
+	AddTopLevelObject("Merchant", datatypes::MQ2MerchantType::dataMerchant);
+	AddTopLevelObject("NearestSpawn", datatypes::MQ2SpawnType::dataNearestSpawn);
+	AddTopLevelObject("Pet", datatypes::MQ2PetType::dataPet);
+	AddTopLevelObject("PointMerchant", datatypes::MQ2PointMerchantType::dataPointMerchant);
+	AddTopLevelObject("Raid", datatypes::MQ2RaidType::dataRaid);
+	AddTopLevelObject("SelectedItem", datatypes::MQ2ItemType::dataSelectedItem);
+	AddTopLevelObject("Skill", datatypes::MQ2SkillType::dataSkill);
+	AddTopLevelObject("Spawn", datatypes::MQ2SpawnType::dataSpawn);
+	AddTopLevelObject("SpawnCount", datatypes::MQ2SpawnType::dataSpawnCount);
+	AddTopLevelObject("Spell", datatypes::MQ2SpellType::dataSpell);
+	AddTopLevelObject("Switch", datatypes::MQ2SwitchType::dataSwitch);
+	AddTopLevelObject("SwitchTarget", datatypes::MQ2SwitchType::dataSwitchTarget);
+	AddTopLevelObject("Target", datatypes::MQ2TargetType::dataTarget);
+	AddTopLevelObject("Task", datatypes::MQ2TaskType::dataTask);
+	AddTopLevelObject("TradeskillDepot", datatypes::MQ2TradeskillDepotType::dataTradeskillDepot);
+	AddTopLevelObject("Window", datatypes::MQ2WindowType::dataWindow);
+	AddTopLevelObject("Zone", datatypes::MQ2ZoneType::dataZone);
 
 #if HAS_ADVANCED_LOOT
-	AddMQ2Data("AdvLoot", datatypes::MQ2AdvLootType::dataAdvLoot);
+	AddTopLevelObject("AdvLoot", datatypes::MQ2AdvLootType::dataAdvLoot);
 #endif
 #if HAS_KEYRING_WINDOW
-	AddMQ2Data("Familiar", datatypes::MQ2KeyRingType::dataFamiliar);
-	AddMQ2Data("Illusion", datatypes::MQ2KeyRingType::dataIllusion);
-	AddMQ2Data("Mount", datatypes::MQ2KeyRingType::dataMount);
+	AddTopLevelObject("Familiar", datatypes::MQ2KeyRingType::dataFamiliar);
+	AddTopLevelObject("Illusion", datatypes::MQ2KeyRingType::dataIllusion);
+	AddTopLevelObject("Mount", datatypes::MQ2KeyRingType::dataMount);
 #if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
-	AddMQ2Data("TeleportationItem", datatypes::MQ2KeyRingType::dataTeleportationItem);
+	AddTopLevelObject("TeleportationItem", datatypes::MQ2KeyRingType::dataTeleportationItem);
 #endif
 #endif // HAS_KEYRING_WINDOW
 }
 
-void ShutdownMQ2Data()
-{
-	std::scoped_lock lock(s_variableMutex);
-
-	MQ2DataMap.clear();
-}
-
-bool ParseMQ2DataPortion(char* szOriginal, MQTypeVar& Result)
+bool MQDataAPI::ParseMQ2DataPortion(char* szOriginal, MQTypeVar& Result) const
 {
 	Result.Type = nullptr;
 	Result.Int64 = 0;
@@ -672,7 +691,7 @@ bool ParseMQ2DataPortion(char* szOriginal, MQTypeVar& Result)
 
 			*pPos = 0;
 
-			MQ2Type* pNewType = FindMQ2DataType(pType);
+			MQ2Type* pNewType = FindDataType(pType);
 			if (!pNewType)
 			{
 				// error
@@ -934,7 +953,7 @@ std::string GetMacroVarData(std::string_view strVarToParse)
 		MQTypeVar Result;
 
 		// If the parse was successful and there is a result type and we could convert that type to a string
-		if (ParseMQ2DataPortion(&currentStr[0], Result) && Result.Type && Result.Type->ToString(Result.VarPtr, &currentStr[0]))
+		if (pDataAPI->ParseMQ2DataPortion(&currentStr[0], Result) && Result.Type && Result.Type->ToString(Result.VarPtr, &currentStr[0]))
 		{
 			// Set our return whatever szCurrent was modified to be (removing the additional null terminators
 			// due to the above resize)
@@ -1387,6 +1406,8 @@ std::string ModifyMacroString(std::string_view strOriginal, bool bParseOnce, Mod
  */
 bool ParseMacroData(char* szOriginal, size_t BufferSize)
 {
+	MQScopedBenchmark bm(bmParseMacroData);
+
 	if (gParserVersion == 2)
 	{
 		// Pass it off to our String Parser
@@ -1498,7 +1519,7 @@ bool ParseMacroData(char* szOriginal, size_t BufferSize)
 		{
 			MQTypeVar Result;
 
-			if (!ParseMQ2DataPortion(szCurrent, Result) || !Result.Type || !Result.Type->ToString(Result.VarPtr, szCurrent))
+			if (!pDataAPI->ParseMQ2DataPortion(szCurrent, Result) || !Result.Type || !Result.Type->ToString(Result.VarPtr, szCurrent))
 			{
 				strcpy_s(szCurrent, "NULL");
 			}
@@ -1550,5 +1571,285 @@ bool ParseMacroData(char* szOriginal, size_t BufferSize)
 
 	return Changed;
 }
+
+//============================================================================
+
+namespace datatypes {
+
+//============================================================================
+// MQ2Type
+
+MQ2Type::MQ2Type(std::string_view newName)
+{
+	m_typeName = newName;
+	m_owned = pDataAPI->AddDataType(*this);
+}
+
+MQ2Type::~MQ2Type()
+{
+	if (m_owned)
+	{
+		pDataAPI->RemoveDataType(*this);
+	}
+}
+
+void MQ2Type::InitializeMembers(MQTypeMember* memberArray)
+{
+	for (int i = 0; memberArray[i].ID; i++)
+	{
+		AddMember(memberArray[i].ID, memberArray[i].Name);
+	}
+}
+
+const char* MQ2Type::GetName() const
+{
+	return m_typeName.c_str();
+}
+
+const char* MQ2Type::GetMemberName(int ID) const
+{
+	for (const auto& pMember : Members)
+	{
+		if (pMember && pMember->ID == ID)
+		{
+			return &pMember->Name[0];
+		}
+	}
+
+	return nullptr;
+}
+
+bool MQ2Type::GetMemberID(const char* Name, int& result) const
+{
+	std::scoped_lock lock(m_mutex);
+
+	auto iter = MemberMap.find(Name);
+	if (iter == MemberMap.end())
+		return false;
+
+	int index = iter->second;
+	result = Members[index]->ID;
+	return true;
+}
+
+mq::MQTypeMember* MQ2Type::FindMember(const char* Name)
+{
+	std::scoped_lock lock(m_mutex);
+
+	auto iter = MemberMap.find(Name);
+	if (iter == MemberMap.end())
+		return nullptr;
+
+	int index = MemberMap[Name];
+	return Members[index].get();
+}
+
+mq::MQTypeMember* MQ2Type::FindMember(const std::string& Name)
+{
+	std::scoped_lock lock(m_mutex);
+
+	auto iter = MemberMap.find(Name);
+	if (iter == MemberMap.end())
+		return nullptr;
+
+	int index = MemberMap[Name];
+	return Members[index].get();
+}
+
+mq::MQTypeMember* MQ2Type::FindMethod(const char* Name)
+{
+	std::scoped_lock lock(m_mutex);
+
+	auto iter = MethodMap.find(Name);
+	if (iter == MethodMap.end())
+		return nullptr;
+
+	int index = iter->second;
+	return Methods[index].get();
+}
+
+mq::MQTypeMember* MQ2Type::FindMethod(const std::string& Name)
+{
+	std::scoped_lock lock(m_mutex);
+
+	auto iter = MethodMap.find(Name);
+	if (iter == MethodMap.end())
+		return nullptr;
+
+	int index = iter->second;
+	return Methods[index].get();
+}
+
+bool MQ2Type::CanEvaluateMethodOrMember(const std::string& Name)
+{
+	std::scoped_lock lock(m_mutex);
+
+	// exists in method map?
+	return MemberMap.count(Name) != 0 || MethodMap.count(Name) != 0;
+}
+
+bool MQ2Type::AddMember(int id, const char* Name)
+{
+	std::scoped_lock lock(m_mutex);
+
+	if (MemberMap.find(Name) != MemberMap.end())
+		return false;
+
+	// find an unused index from members.
+	int index = -1;
+	for (int i = 0; i < (int)Members.size(); ++i)
+	{
+		if (Members[i] == nullptr)
+		{
+			index = i;
+			break;
+		}
+	}
+
+	if (index == -1)
+	{
+		Members.emplace_back();
+		index = static_cast<int>(Members.size()) - 1;
+	}
+
+	Members[index] = std::make_unique<MQTypeMember>(id, Name, 0);
+	MemberMap[Name] = index;
+	return true;
+}
+
+bool MQ2Type::RemoveMember(const char* Name)
+{
+	std::scoped_lock lock(m_mutex);
+
+	auto iter = MemberMap.find(Name);
+	if (iter == MemberMap.end())
+		return false;
+
+	int index = iter->second;
+	MemberMap.erase(iter);
+
+	if (index < 0)
+		return false;
+	Members[index].reset();
+	return true;
+}
+
+bool MQ2Type::AddMethod(int ID, const char* Name)
+{
+	std::scoped_lock lock(m_mutex);
+
+	if (MethodMap.find(Name) != MethodMap.end())
+		return false;
+
+	// find an unused index from members.
+	int index = -1;
+	for (int i = 0; i < (int)Methods.size(); ++i)
+	{
+		if (Methods[i] == nullptr)
+		{
+			index = i;
+			break;
+		}
+	}
+
+	if (index == -1)
+	{
+		Methods.emplace_back();
+		index = static_cast<int>(Methods.size()) - 1;
+	}
+
+	Methods[index] = std::make_unique<MQTypeMember>(ID, Name, 1);
+	MethodMap[Name] = index;
+	return true;
+}
+
+bool MQ2Type::RemoveMethod(const char* Name)
+{
+	std::scoped_lock lock(m_mutex);
+
+	auto iter = MethodMap.find(Name);
+	if (iter == MethodMap.end())
+		return false;
+
+	int index = iter->second;
+	MethodMap.erase(iter);
+
+	if (index < 0)
+		return false;
+	Methods[index].reset();
+	return true;
+}
+
+} // namespace datatypes
+
+//============================================================================
+// Exported public functions
+
+bool AddMQ2Type(MQ2Type& type)
+{
+	return pDataAPI->AddDataType(type);
+}
+
+bool RemoveMQ2Type(MQ2Type& type)
+{
+	return pDataAPI->RemoveDataType(type);
+}
+
+MQ2Type* FindMQ2DataType(const char* name)
+{
+	return pDataAPI->FindDataType(name);
+}
+
+bool AddMQ2TypeExtension(const char* typeName, MQ2Type* extension)
+{
+	return pDataAPI->AddTypeExtension(typeName, extension);
+}
+
+bool RemoveMQ2TypeExtension(const char* typeName, MQ2Type* extension)
+{
+	return pDataAPI->RemoveTypeExtension(typeName, extension);
+}
+
+int EvaluateMacroDataMember(MQ2Type* pType, MQVarPtr VarPtr, MQTypeVar& Result, const char* Member, char* pIndex)
+{
+	auto result = pDataAPI->EvaluateMacroDataMember(pType, std::move(VarPtr), Result, Member, pIndex, false);
+
+	return MQDataAPI::EvaluateResultToInt(result);
+}
+
+char* ParseMacroParameter(char* szOriginal, size_t BufferSize)
+{
+	ParseMacroData(szOriginal, BufferSize);
+	return szOriginal;
+}
+
+bool FindMacroDataMember(MQ2Type* Type, const std::string& Member)
+{
+	return pDataAPI->FindMacroDataMember(Type, Member);
+}
+
+//============================================================================
+
+SGlobalBuffer::SGlobalBuffer()
+	: ptr(&buffer[0])
+{
+}
+
+SGlobalBuffer::~SGlobalBuffer()
+{
+}
+
+void SGlobalBuffer::push_buffer(char* new_buffer)
+{
+	m_stack.push(ptr);
+	ptr = new_buffer;
+}
+
+void SGlobalBuffer::pop_buffer()
+{
+	ptr = m_stack.top();
+	m_stack.pop();
+}
+
 
 } // namespace mq

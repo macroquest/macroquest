@@ -198,7 +198,7 @@ unsigned int CALLBACK MQ2DataVariableLookup(char* VarName, char* Value, size_t V
 
 	if (pLocalPlayer)
 	{
-		return static_cast<uint32_t>(strlen(ParseMacroParameter(pLocalPlayer, Value, ValueLen)));
+		return static_cast<uint32_t>(strlen(ParseMacroParameter(Value, ValueLen)));
 	}
 
 	return static_cast<uint32_t>(strlen(Value));

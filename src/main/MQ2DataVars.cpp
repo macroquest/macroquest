@@ -141,8 +141,9 @@ static bool AddMQ2DataEventVariable(const char* Name, char* Index, MQ2Type* pTyp
 	if (!Index)
 		Index = "";
 
-	if (FindMQ2Data(Name) || FindMQ2DataType(Name))
-		return false; // name in use
+	// Make sure that the name isn't already in use.
+	if (pDataAPI->FindTopLevelObject(Name) != nullptr || pDataAPI->FindDataType(Name) != nullptr)
+		return false;
 	if (!pType)
 		return false;
 
@@ -189,7 +190,7 @@ static bool AddMQ2DataVariableBy(const char* Name, const char* Index, MQ2Type* p
 	if (!Index)
 		Index = "";
 
-	if (FindMQ2DataVariable(Name) || FindMQ2Data(Name) || FindMQ2DataType(Name))
+	if (FindMQ2DataVariable(Name) || pDataAPI->IsReservedName(Name))
 		return false; // name in use
 	if (!pType)
 		return false;
@@ -312,7 +313,7 @@ void NewDeclareVar(SPAWNINFO* pChar, char* szLine)
 		// scope comes AFTER type, so next must be default
 		pDefault = GetNextArg(szLine, 2);
 	}
-	else if (pType = FindMQ2DataType(Arg))
+	else if (pType = pDataAPI->FindDataType(Arg))
 	{
 		// next is either scope or default
 		GetArg(Arg, szLine, 3);
@@ -574,7 +575,7 @@ void NewVardata(SPAWNINFO* pChar, char* szLine)
 	}
 
 	MQTypeVar sourceVar;
-	if (!ParseMQ2DataPortion(szRest, sourceVar))
+	if (!pDataAPI->ParseMQ2DataPortion(szRest, sourceVar))
 	{
 		MacroError("/vardata '%s' failed, MQ2Data portion '%s' unparsable", szName, szRest);
 		return;
@@ -666,7 +667,7 @@ static void AddEvent(MQEventType Event, const char* FirstArg, ...)
 
 				GetFuncParam(&line.Command[0], i, szParamName, MAX_STRING, szParamType, MAX_STRING);
 
-				MQ2Type* pType = FindMQ2DataType(szParamType);
+				MQ2Type* pType = pDataAPI->FindDataType(szParamType);
 				if (!pType)
 					pType = pStringType;
 
@@ -720,7 +721,7 @@ void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValu
 		GetFuncParam(&eventIter->second.Command[0], 0, szParamName, MAX_STRING, szParamType, MAX_STRING);
 	}
 
-	MQ2Type* pType = FindMQ2DataType(szParamType);
+	MQ2Type* pType = pDataAPI->FindDataType(szParamType);
 	if (!pType)
 		pType = pStringType;
 
@@ -736,7 +737,7 @@ void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValu
 				GetFuncParam(&eventIter2->second.Command[0], GetIntFromString(pValues->Name, 0), szParamName, MAX_STRING, szParamType, MAX_STRING);
 			}
 
-			MQ2Type* pType2 = FindMQ2DataType(szParamType);
+			MQ2Type* pType2 = pDataAPI->FindDataType(szParamType);
 			if (!pType2)
 				pType2 = pStringType;
 

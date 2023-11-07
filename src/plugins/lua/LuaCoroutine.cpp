@@ -115,6 +115,10 @@ void LuaCoroutine::Delay(sol::object delayObj, std::optional<sol::object> condit
 
 		SetDelay(delay_ms + MQGetTickCount64(), condition);
 	}
+	else
+	{
+		luaL_error(s, "Invalid argument passed to mq.delay");
+	}
 }
 
 void LuaCoroutine::SetDelay(uint64_t time, std::optional<sol::function> condition /* = std::nullopt */)

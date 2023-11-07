@@ -18,11 +18,6 @@
 
 namespace mq::datatypes {
 
-#define TypeMember(name) AddMember(static_cast<int>(name), #name)
-#define ScopedTypeMember(scope, name) AddMember(static_cast<int>(scope::name), #name)
-#define TypeMethod(name) AddMethod(static_cast<int>(name), #name)
-#define ScopedTypeMethod(scope, name) AddMethod(static_cast<int>(scope::name), #name)
-
 //----------------------------------------------------------------------------
 // Datatype Declarations
 
@@ -31,124 +26,6 @@ namespace mq::datatypes {
 	MQLIB_VAR Class* Var;
 #include "DataTypeList.h"
 #undef DATATYPE
-
-//============================================================================
-// MQ2Type
-
-class MQ2Type
-{
-public:
-	MQLIB_OBJECT MQ2Type(std::string_view typeName);
-	MQLIB_OBJECT virtual ~MQ2Type();
-
-	MQLIB_OBJECT void InitializeMembers(MQTypeMember* MemberArray);
-
-	virtual bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) { return false; }
-	virtual bool FromString(MQVarPtr& VarPtr, const char* Source) { return false; }
-
-	virtual void InitVariable(MQVarPtr& VarPtr)
-	{
-		VarPtr.Ptr = nullptr;
-	}
-
-	virtual void FreeVariable(MQVarPtr& VarPtr) {}
-
-	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) = 0;
-
-	virtual bool ToString(MQVarPtr VarPtr, char* Destination)
-	{
-		strcpy_s(Destination, MAX_STRING, m_typeName.c_str());
-		return true;
-	}
-
-	MQLIB_OBJECT const char* GetName() const;
-	MQLIB_OBJECT const char* GetMemberName(int ID) const;
-
-	MQLIB_OBJECT bool GetMemberID(const char* Name, int& Result) const;
-
-	MQLIB_OBJECT MQTypeMember* FindMember(const char* Name);
-	MQLIB_OBJECT MQTypeMember* FindMember(const std::string& Name);
-	MQLIB_OBJECT MQTypeMember* FindMethod(const char* Name);
-	MQLIB_OBJECT MQTypeMember* FindMethod(const std::string& Name);
-
-	MQLIB_OBJECT bool CanEvaluateMethodOrMember(const std::string& Name);
-
-	inline bool InheritsFrom(MQ2Type* testType)
-	{
-		MQ2Type* parentType = m_parent;
-		int limit = 10; // arbitrary limit to avoid infinite looping with cyclical references
-		while (parentType)
-		{
-			if (parentType == testType)
-				return true;
-
-			if (--limit == 0)
-				return false;
-			parentType = parentType->m_parent;
-		}
-		return false;
-	}
-
-	inline bool InheritedMember(const char* Name) { return m_parent && m_parent->FindMember(Name); }
-	inline bool InheritedMember(const std::string& Name) { return m_parent && m_parent->FindMember(Name); }
-
-	inline void SetInheritance(MQ2Type* pNewInherit)
-	{
-		m_parent = pNewInherit;
-	}
-	inline  MQ2Type* GetParent() const { return m_parent; }
-
-	// Override this function to convert this type to the requested type. Return true if the conversion is successful. The
-	// Result should be placed in VarPtr and its type should match that of toType.
-	virtual bool Downcast(const MQVarPtr& fromVar, MQVarPtr& toVar, MQ2Type* toType) { return false; }
-
-	//----------------------------------------------------------------------------
-	// deprecated virtual functions
-
-	// If you encounter an error here, you've derived from MQ2Type using a non-const Source. Change
-	// your FromString function to take a const char* as the second parameter.
-	virtual bool FromString(MQVarPtr& VarPtr, char* Source) final {
-		return FromString(VarPtr, (const char*)Source);
-	}
-
-	// If you encounter an error here, you've derived from MQ2Type and implemented GetMember using a non-const Member. Change
-	// your GetMember function to take a const char* as the second parameter.
-	virtual bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) final {
-		return GetMember(VarPtr, (const char*)Member, Index, Dest);
-	}
-
-	// If you encounter an error here, you've derived from MQ2Type and implemented FromData using a non-const Source. Change
-	// your FromData function to take a const MQTypeVar& as the second parameter.
-	virtual bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) final {
-		return FromData(VarPtr, (const MQTypeVar&)Source);
-	}
-
-	// There used to exist an old macro that would turn GETMEMBER into an actual function signature. This has been removed,
-	// so you need to update your signature yourself.
-	// It should be of the form:
-	// virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
-	virtual bool GETMEMBER() final {
-		return false;
-	}
-
-protected:
-	MQLIB_OBJECT bool AddMember(int id, const char* Name);
-	MQLIB_OBJECT bool RemoveMember(const char* Name);
-	MQLIB_OBJECT bool AddMethod(int ID, const char* Name);
-	MQLIB_OBJECT bool RemoveMethod(const char* Name);
-
-	std::string m_typeName;
-	bool m_owned = false;
-	bool m_initialized = false;
-	MQ2Type* m_parent = nullptr;
-	mutable std::mutex m_mutex;
-
-private:
-	std::vector<std::unique_ptr<MQTypeMember>> Members;
-	std::vector<std::unique_ptr<MQTypeMember>> Methods;
-	std::unordered_map<std::string, int> MemberMap;
-	std::unordered_map<std::string, int> MethodMap;
-};
 
 //============================================================================
 // CDataArray
