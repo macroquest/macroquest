@@ -668,7 +668,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 		for (int nBuff = 0; nBuff < pPetInfoWnd->GetMaxBuffs(); nBuff++)
 		{
-			auto pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
+			auto pBuffSpell = GetSpellByID(pPetInfoWnd->GetBuff(nBuff));
 			if (!pBuffSpell)
 				continue;
 
@@ -680,7 +680,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 				// Blocking buff duration is greater than duration argument
 				int duration = GetIntFromString(Index, 0);
 				if (duration == 0 ||
-					(GetSpellDuration(pBuffSpell, pLocalPlayer->Level, false) < -1 || ceil(pPetInfoWnd->PetBuffTimer[nBuff] / 6000) > duration))
+					(GetSpellDuration(pBuffSpell, pLocalPlayer->Level, false) < -1 || ceil(pPetInfoWnd->GetBuffTimer(nBuff) / 6000) > duration))
 				{
 					Dest.Set(false);
 					return true;
@@ -702,7 +702,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 		for (int nBuff = 0; nBuff < pPetInfoWnd->GetMaxBuffs(); nBuff++)
 		{
-			auto pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
+			auto pBuffSpell = GetSpellByID(pPetInfoWnd->GetBuff(nBuff));
 
 			// Spell does NOT stack (will NOT land)
 			if (pBuffSpell && !WillStackWith(pSpell, pBuffSpell))

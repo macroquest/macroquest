@@ -2311,10 +2311,10 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			if (nBuff < 0 || nBuff >= pPetInfoWnd->GetMaxBuffs())
 				return false;
 
-			if (pPetInfoWnd->Buff[nBuff] == -1 || pPetInfoWnd->Buff[nBuff] == 0)
+			if (pPetInfoWnd->GetBuff(nBuff) == -1 || pPetInfoWnd->GetBuff(nBuff) == 0)
 				return false;
 
-			if (Dest.Ptr = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
+			if (Dest.Ptr = GetSpellByID(pPetInfoWnd->GetBuff(nBuff)))
 			{
 				Dest.Type = pSpellType;
 				return true;
@@ -2324,7 +2324,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		{
 			for (int nBuff = 0; nBuff < pPetInfoWnd->GetMaxBuffs(); nBuff++)
 			{
-				if (SPELL* pSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
+				if (SPELL* pSpell = GetSpellByID(pPetInfoWnd->GetBuff(nBuff)))
 				{
 					if (!_stricmp(Index, pSpell->Name))
 					{
