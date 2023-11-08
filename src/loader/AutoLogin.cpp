@@ -1997,7 +1997,7 @@ void ReadMessage(ProtoMessagePtr&& message)
 			auto profile = message->Parse<proto::login::ProfileMethod>();
 			if (profile.has_target() && profile.target().has_character() && message->GetSender() && message->GetSender()->has_pid())
 			{
-				auto login = LoginMap[profile.profile()];
+				auto& login = LoginMap[profile.profile()];
 				auto charString = fmt::format("[{}] {}->{}", profile.account(), profile.target().server(), profile.target().character());
 				auto login_it = std::find_if(login.begin(), login.end(),
 					[&charString](const auto& l)
@@ -2023,7 +2023,7 @@ void ReadMessage(ProtoMessagePtr&& message)
 			if (message->GetSender() && message->GetSender()->has_pid())
 			{
 				auto pid = message->GetSender()->pid();
-				auto login = LoginMap[profile.profile()];
+				auto& login = LoginMap[profile.profile()];
 				auto login_it = std::find_if(login.begin(), login.end(),
 					[&pid](const auto& l)
 					{
@@ -2083,7 +2083,7 @@ void ReadMessage(ProtoMessagePtr&& message)
 			case proto::login::StartInstanceMissive::MethodCase::kProfile:
 				if (start.profile().has_target() && start.profile().target().has_character())
 				{
-					auto login = LoginMap[start.profile().profile()];
+					auto& login = LoginMap[start.profile().profile()];
 					auto charString = fmt::format("{}->{}", start.profile().target().server(), start.profile().target().character());
 					auto login_it = std::find_if(login.begin(), login.end(),
 						[&charString](const auto& login)
