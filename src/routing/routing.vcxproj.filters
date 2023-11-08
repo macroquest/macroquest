@@ -18,13 +18,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\include\mq\proto\ProtoPipes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\mq\proto\PostOffice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Routing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ProtoPipes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

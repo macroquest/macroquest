@@ -14,8 +14,6 @@
 
 #pragma once
 
-#include <mq/proto/PostOffice.h>
-
 bool SendSetForegroundWindow(HWND hWnd, uint32_t processID);
 void SendUnloadAllCommand();
 void SendForceUnloadAllCommand();

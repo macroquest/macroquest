@@ -14,8 +14,7 @@
 
 #pragma once
 
-#include "mq/proto/ProtoPipes.h"
-#include "Routing.pb.h"
+#include "ProtoPipes.h"
 
 #ifdef _DEBUG
 #pragma comment(lib, "libprotobufd")
