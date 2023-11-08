@@ -15,7 +15,7 @@
 #pragma once
 
 #include "common/NamedPipes.h"
-#include "routing/Routing.pb.h"
+#include "Routing.pb.h"
 
 #include <memory>
 #include <optional>

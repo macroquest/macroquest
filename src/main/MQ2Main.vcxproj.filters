@@ -565,12 +565,6 @@
     <ClInclude Include="..\..\include\mq\proto\PostOffice.h">
       <Filter>Header Files\mq\proto</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\mq\proto\ProtoPipes.h">
-      <Filter>Header Files\mq\proto</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\mq\proto\Routing.h">
-      <Filter>Header Files\mq\proto</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\mq\api\Spawns.h">
       <Filter>Header Files\mq\api</Filter>
     </ClInclude>

@@ -15,7 +15,6 @@
 #pragma once
 
 #include "MQ2MainBase.h"
-#include <mq/proto/PostOffice.h>
 
 namespace mq {
 

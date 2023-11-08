@@ -15,9 +15,10 @@
 #include "MacroQuest.h"
 #include "resource.h"
 #include "HotKeyControl.h"
-#include "PostOffice.h"
 
 #include "login/Login.h"
+
+#include <mq/proto/PostOffice.h>
 
 #include <commdlg.h>
 #include <shellapi.h>
