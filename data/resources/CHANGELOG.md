@@ -1,3 +1,6 @@
+Nov 8, 2023:
+- test: Updated for latest patch
+
 Nov 7, 2023:
 - Added support for datatypes implemented in lua scripts. This includes support
   for lua tables in lua datatypes. See examples and definitions for details.
