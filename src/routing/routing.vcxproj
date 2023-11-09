@@ -20,7 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\mq\proto\PostOffice.h" />
-    <ClInclude Include="..\..\include\mq\proto\ProtoPipes.h" />
+    <ClInclude Include="ProtoPipes.h" />
     <ClInclude Include="Routing.h" />
   </ItemGroup>
   <ItemGroup>
