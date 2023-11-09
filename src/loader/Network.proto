@@ -2,19 +2,14 @@ syntax = "proto3";
 
 package mq.peernetwork;
 
-enum Version {
-	V0 = 0;
-}
-
 enum MessageType {
 	ID = 0;
 	Route = 1;
 }
 
 message Header {
-	Version version = 1;
-	MessageType type = 2;
-	uint32 length = 3;
+	MessageType type = 1;
+	uint32 length = 2;
 }
 
 message Identification {

@@ -69,16 +69,6 @@ mq::MQTopLevelObject* mq::FindTopLevelObject(const char* szName)
 	return mqplugin::MainInterface->FindTopLevelObject(szName);
 }
 
-mq::postoffice::Dropbox* mq::AddActor(const char* localAddress, ReceiveCallback&& receive)
-{
-	return mqplugin::MainInterface->AddActor(localAddress, std::move(receive));
-}
-
-void mq::RemoveActor(mq::postoffice::Dropbox*& dropbox)
-{
-	mqplugin::MainInterface->RemoveActor(dropbox);
-}
-
 //============================================================================
 //============================================================================
 

@@ -13,6 +13,9 @@
 
 #include "Network.h"
 
+// for settings
+#include "MacroQuest.h"
+
 using asio::ip::tcp;
 
 namespace mq {
@@ -83,7 +86,6 @@ public:
 
 	void InitHeader()
 	{
-		m_parsedHeader.set_version(peernetwork::V0);
 		m_parsedHeader.set_length(static_cast<uint32_t>(m_length));
 		m_headerLength = m_parsedHeader.ByteSizeLong();
 
@@ -569,6 +571,19 @@ std::string NetworkPeer::CreateUUID()
 
 void Test()
 {
+	auto hosts = []()
+		{
+			auto hosts_enabled = GetPrivateProfileKeyValues("NetworkHosts", internal_paths::MQini);
+			hosts_enabled.erase(std::remove_if(hosts_enabled.begin(), hosts_enabled.end(),
+				[](const std::pair<std::string, std::string>& pair) { return !ci_equals("1", pair.second); }));
+
+			std::vector<std::string> hosts(hosts_enabled.size());
+			std::transform(hosts_enabled.begin(), hosts_enabled.end(), std::back_inserter(hosts),
+				[](const std::pair<std::string, std::string>& pair) { return pair.first; });
+
+			return hosts;
+		}();
+
 	NetworkPeer peer1("127.0.0.1", 7781, [](const peernetwork::Header& header, uint8_t* message)
 		{
 			peernetwork::RoutedMessage data;
