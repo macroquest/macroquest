@@ -1,3 +1,7 @@
+Nov 9, 2023:
+- Lua modules will no longer be loaded relative to the lua folder.
+- Developers should use PackageMan or (for their own internal use) the modules folder.
+
 Nov 8, 2023:
 - Fixed some issues with autologin
 

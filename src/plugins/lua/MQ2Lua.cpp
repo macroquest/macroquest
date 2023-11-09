@@ -1278,8 +1278,7 @@ void LuaEnvironmentSettings::ConfigureLuaState(sol::state_view sv)
 		fmt::arg("additionalPaths", luaRequirePaths.empty() ? "" : join(luaRequirePaths, ";") + ";"),
 		fmt::arg("originalPath", m_packagePath));
 
-	sv["package"]["cpath"] = fmt::format("{luaDir}\\?.dll;{moduleDir}\\{jitVersion}\\luarocks\\lib\\lua\\{luaVersion}\\?.dll;{dllPaths}{originalPath}",
-		fmt::arg("luaDir", luaDir),
+	sv["package"]["cpath"] = fmt::format("{moduleDir}\\{jitVersion}\\luarocks\\lib\\lua\\{luaVersion}\\?.dll;{dllPaths}{originalPath}",
 		fmt::arg("moduleDir", moduleDir),
 		fmt::arg("jitVersion", m_jitversion),
 		fmt::arg("luaVersion", m_version),
