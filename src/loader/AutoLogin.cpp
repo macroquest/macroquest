@@ -66,7 +66,10 @@ struct ExportEntry
 
 };
 
-std::map<std::string, std::map<DWORD, ProfileInfo>> LoginMap;
+using ProfileMap = std::map<DWORD, ProfileInfo>;
+using ProfileSetMap = std::map<std::string, ProfileMap>;
+
+ProfileSetMap LoginMap;
 
 // profile editor dialog controls
 HWND hEditProfileWnd;
@@ -1995,15 +1998,14 @@ void ReadMessage(ProtoMessagePtr&& message)
 		case AutoLoginMessageId::MSG_AUTOLOGIN_PROFILE_LOADED:
 		{
 			auto profile = message->Parse<proto::login::ProfileMethod>();
+
 			if (profile.has_target() && profile.target().has_character() && message->GetSender() && message->GetSender()->has_pid())
 			{
-				auto& login = LoginMap[profile.profile()];
-				auto charString = fmt::format("[{}] {}->{}", profile.account(), profile.target().server(), profile.target().character());
+				ProfileMap& login = LoginMap[profile.profile()];
+
+				std::string charString = fmt::format("[{}] {}->{}", profile.account(), profile.target().server(), profile.target().character());
 				auto login_it = std::find_if(login.begin(), login.end(),
-					[&charString](const auto& l)
-					{
-						return l.second.CharacterName == charString;
-					});
+					[&charString](const auto& l) { return l.second.CharacterName == charString; });
 
 				if (login_it != login.end() && message->GetSender())
 				{
@@ -2022,13 +2024,11 @@ void ReadMessage(ProtoMessagePtr&& message)
 			auto profile = message->Parse<proto::login::ProfileMethod>();
 			if (message->GetSender() && message->GetSender()->has_pid())
 			{
-				auto pid = message->GetSender()->pid();
-				auto& login = LoginMap[profile.profile()];
+				uint32_t pid = message->GetSender()->pid();
+
+				ProfileMap& login = LoginMap[profile.profile()];
 				auto login_it = std::find_if(login.begin(), login.end(),
-					[&pid](const auto& l)
-					{
-						return l.second.PID == pid;
-					});
+					[&pid](const auto& l) { return l.second.PID == pid; });
 
 				if (login_it != login.end())
 				{
@@ -2045,15 +2045,16 @@ void ReadMessage(ProtoMessagePtr&& message)
 			auto charinfo = message->Parse<proto::login::CharacterInfoMissive>();
 			if (message->GetSender() && message->GetSender()->has_pid())
 			{
-				auto pid = message->GetSender()->pid();
-				for (const auto& profile : LoginMap)
+				uint32_t pid = message->GetSender()->pid();
+
+				for (const auto& [profileKey, profile] : LoginMap)
 				{
-					for (const auto& login : profile.second)
+					for (const auto& [id, profileInfo] : profile)
 					{
-						if (login.second.PID == pid)
+						if (profileInfo.PID == pid)
 						{
-							SendMessageA(hMainWnd, WM_USER_UPDATELEVEL, charinfo.level(), login.second.PID);
-							SendMessageA(hMainWnd, WM_USER_UPDATECLASS, charinfo.class_(), login.second.PID);
+							SendMessageA(hMainWnd, WM_USER_UPDATELEVEL, charinfo.level(), profileInfo.PID);
+							SendMessageA(hMainWnd, WM_USER_UPDATECLASS, charinfo.class_(), profileInfo.PID);
 							return;
 						}
 					}
@@ -2083,8 +2084,9 @@ void ReadMessage(ProtoMessagePtr&& message)
 			case proto::login::StartInstanceMissive::MethodCase::kProfile:
 				if (start.profile().has_target() && start.profile().target().has_character())
 				{
-					auto& login = LoginMap[start.profile().profile()];
-					auto charString = fmt::format("{}->{}", start.profile().target().server(), start.profile().target().character());
+					ProfileMap& login = LoginMap[start.profile().profile()];
+
+					std::string charString = fmt::format("{}->{}", start.profile().target().server(), start.profile().target().character());
 					auto login_it = std::find_if(login.begin(), login.end(),
 						[&charString](const auto& login)
 						{
@@ -2157,7 +2159,7 @@ void InitializeAutoLogin()
 	// make the editmenu
 	hEditPopup = CreatePopupMenu();
 
-	auto& popupMap = LoginMap["Popups"];
+	ProfileMap& popupMap = LoginMap["Popups"];
 	AppendMenuA(hEditPopup, MF_STRING, ID_CHARACTER_EDIT, "&Edit");
 	popupMap[ID_CHARACTER_EDIT].profileName = "Edit";
 	AppendMenuA(hEditPopup, MF_STRING, ID_CHARACTER_DELETE, "&Delete");
