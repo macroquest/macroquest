@@ -1991,7 +1991,7 @@ INT_PTR CALLBACK SettingsProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 	return FALSE;
 }
 
-void ReadMessage(ProtoMessagePtr&& message)
+void ReceivedMessageHandler(ProtoMessagePtr&& message)
 {
 	switch (static_cast<AutoLoginMessageId>(message->GetMessageId()))
 	{
@@ -2116,7 +2116,7 @@ void ReadMessage(ProtoMessagePtr&& message)
 
 void InitializeAutoLogin()
 {
-	s_mailbox = postoffice::GetPostOffice().CreateAndAddMailbox("autologin", [](auto&& m) { ReadMessage(std::move(m)); });
+	s_mailbox = postoffice::GetPostOffice().CreateAndAddMailbox("autologin", ReceivedMessageHandler);
 
 	// Get path to mq2autologin.ini
 	fs::path pathAutoLoginIni = fs::path{ internal_paths::Config }  / "MQ2AutoLogin.ini";

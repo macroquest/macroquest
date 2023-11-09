@@ -30,7 +30,6 @@ using namespace postoffice;
 class LauncherPostOffice : public PostOffice
 {
 private:
-
 	struct ClientIdentification
 	{
 		uint32_t pid;
@@ -41,6 +40,8 @@ private:
 
 	std::unordered_map<uint32_t, ClientIdentification> m_identities;
 	ci_unordered::map<std::string, uint32_t> m_names;
+	bool m_processing = false;
+	bool m_needsProcessing = false;
 
 	class PipeEventsHandler : public NamedPipeEvents
 	{
@@ -320,8 +321,24 @@ public:
 
 	void ProcessPipeServer()
 	{
+		if (m_processing)
+		{
+			m_needsProcessing = true;
+			return;
+		}
+
+		m_processing = true;
+
 		m_pipeServer.Process();
 		Process(10);
+
+		m_processing = false;
+
+		if (m_needsProcessing)
+		{
+			m_needsProcessing = false;
+			PostMessageA(hMainWnd, WM_USER_CALLBACK, 0, 0);
+		}
 	}
 
 	bool SendSetForegroundWindow(HWND hWnd, uint32_t processID)
