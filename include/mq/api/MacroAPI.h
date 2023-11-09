@@ -190,7 +190,7 @@ inline namespace deprecated
 	}
 
 	template <unsigned int Size>
-	DEPRECATE("ParseMacroParameter no longer takes a PlayerClient parameter.It can be safely removed")
+	DEPRECATE("ParseMacroParameter no longer takes a PlayerClient parameter. It can be safely removed")
 	inline char* ParseMacroParameter(eqlib::PlayerClient* pChar, char(&szOriginal)[Size])
 	{
 		return mq::ParseMacroParameter(szOriginal, Size);
