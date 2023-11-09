@@ -50,9 +50,9 @@ bool MQ2PetBuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 	switch (static_cast<PetBuffMembers>(pMember->ID))
 	{
 	case PetBuffMembers::Caster:
-		if (const PlayerBuffInfo* pBuffInfo = pPetInfoWnd->GetBuffInfoBySpellID(pSpell->ID))
+		if (PlayerBuffInfoRef pBuffInfo = pPetInfoWnd->GetBuffInfoBySpellID(pSpell->ID))
 		{
-			strcpy_s(DataTypeTemp, pBuffInfo->GetCaster());
+			strcpy_s(DataTypeTemp, pBuffInfo.GetCaster());
 			Dest.Type = pStringType;
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
@@ -61,9 +61,9 @@ bool MQ2PetBuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 		return false;
 
 	case PetBuffMembers::Duration:
-		if (const PlayerBuffInfo* pBuffInfo = pPetInfoWnd->GetBuffInfoBySpellID(pSpell->ID))
+		if (PlayerBuffInfoRef pBuffInfo = pPetInfoWnd->GetBuffInfoBySpellID(pSpell->ID))
 		{
-			Dest.UInt64 = pBuffInfo->BuffTimer;
+			Dest.UInt64 = pBuffInfo.GetBuffTimer();
 			Dest.Type = pTimeStampType;
 			return true;
 		}
