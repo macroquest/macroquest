@@ -16,6 +16,7 @@
 #include "ProcessMonitor.h"
 #include "Crashpad.h"
 #include "PostOffice.h"
+#include "Network.h"
 
 #include "resource.h"
 
@@ -1149,6 +1150,7 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 		CheckAppCompat();
 
 	SPDLOG_INFO("Waiting for events...");
+	Test();
 
 	MSG msg;
 	BOOL bRet;

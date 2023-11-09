@@ -129,6 +129,8 @@
     <ClCompile Include="Crashpad.cpp" />
     <ClCompile Include="HotKeyControl.cpp" />
     <ClCompile Include="MacroQuest.cpp" />
+    <ClCompile Include="Network.cpp" />
+    <ClCompile Include="Network.pb.cc" />
     <ClCompile Include="PostOffice.cpp" />
     <ClCompile Include="ProcessList.cpp" />
     <ClCompile Include="ProcessMonitor.cpp" />
@@ -142,6 +144,7 @@
     <ClInclude Include="Crashpad.h" />
     <ClInclude Include="HotKeyControl.h" />
     <ClInclude Include="MacroQuest.h" />
+    <ClInclude Include="Network.h" />
     <ClInclude Include="PostOffice.h" />
     <ClInclude Include="ProcessMonitor.h" />
     <ClInclude Include="resource.h" />
@@ -162,6 +165,9 @@
     <ProjectReference Include="..\routing\routing.vcxproj">
       <Project>{6ce4f8d6-1709-47c5-9297-1619bbc4a71e}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProtocolBuffer Include="Network.proto" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
