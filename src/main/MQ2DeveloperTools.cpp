@@ -4642,7 +4642,7 @@ protected:
 			// Evaluate the row
 			static char szTemp[MAX_STRING];
 			strcpy_s(szTemp, m_expressions[i].get());
-			ParseMacroParameter(nullptr, szTemp);
+			ParseMacroParameter(szTemp);
 
 			ImGui::Text("%s", szTemp);
 			ImGui::Separator();

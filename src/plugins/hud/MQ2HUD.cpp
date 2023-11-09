@@ -675,10 +675,7 @@ PLUGIN_API void OnDrawHUD()
 
 				if (bOkToCheck)
 				{
-					if (CHARINFO* pChar = GetCharInfo())
-					{
-						ParseMacroParameter(pChar->pSpawn, pElement->PreParsed);
-					}
+					ParseMacroParameter(pElement->PreParsed);
 				}
 				else
 				{
