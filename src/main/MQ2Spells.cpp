@@ -3828,8 +3828,10 @@ const char* GetPetSpellCaster(const EQ_Affect& buff)
 {
 	if (pPetInfoWnd != nullptr)
 	{
-		if (auto whocast = pPetInfoWnd->WhoCast.FindFirst(buff.SpellID); whocast != nullptr)
-			return whocast->c_str();
+		if (PlayerBuffInfoRef pBuffInfo = pPetInfoWnd->GetBuffInfoBySpellID(buff.SpellID))
+		{
+			return pBuffInfo.GetCaster();
+		}
 	}
 
 	return "";
@@ -4200,7 +4202,7 @@ void RemovePetBuff(SPAWNINFO* pChar, char* szLine)
 
 	for (int nBuff = 0; nBuff < pPetInfoWnd->GetMaxBuffs(); ++nBuff)
 	{
-		EQ_Spell* pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
+		EQ_Spell* pBuffSpell = GetSpellByID(pPetInfoWnd->GetBuff(nBuff));
 		if (pBuffSpell && MaybeExactCompare(pBuffSpell->Name, szArg))
 		{
 			pLocalPC->RemovePetEffect(nBuff);

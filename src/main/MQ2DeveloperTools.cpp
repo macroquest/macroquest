@@ -3238,6 +3238,149 @@ public:
 		return count;
 	}
 
+	template <typename T>
+	void DoTargetBuffsTable(const char* name, const T* BuffWnd)
+	{
+		ImGuiTableFlags tableFlags = 0
+			| ImGuiTableFlags_SizingFixedFit
+			| ImGuiTableFlags_ScrollY | ImGuiTableFlags_ScrollX
+			| ImGuiTableFlags_RowBg
+			| ImGuiTableFlags_Borders
+			| ImGuiTableFlags_Resizable;
+
+		if (ImGui::BeginTable(name, 6, tableFlags))
+		{
+			ImGui::TableSetupScrollFreeze(2, 1);
+			
+			ImGui::TableSetupColumn("Index");
+			ImGui::TableSetupColumn("Icon");
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupColumn("ID");
+			ImGui::TableSetupColumn("Duration");
+			ImGui::TableSetupColumn("Caster", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableHeadersRow();
+
+			int i = 0;
+			uint32_t currentTime = EQGetTime();
+
+			for (int i = 0; i < BuffWnd->GetMaxBuffs(); ++i)
+			{
+				PlayerBuffInfoRef buff = BuffWnd->GetBuffInfo(i);
+				EQ_Spell* spell = GetSpellByID(buff.GetSpellID());
+				if (!spell)
+					continue;
+
+				ImGui::PushID(i);
+
+				if (!m_pTASpellIcon)
+				{
+					m_pTASpellIcon = new CTextureAnimation();
+					if (CTextureAnimation* temp = pSidlMgr->FindAnimation("A_SpellGems"))
+						*m_pTASpellIcon = *temp;
+				}
+
+				ImGui::TableNextRow();
+
+				// Index
+				ImGui::TableNextColumn();
+				ImGui::Text("%d", i);
+
+				// Icon
+				ImGui::TableNextColumn();
+				if (spell)
+				{
+					m_pTASpellIcon->SetCurCell(spell->SpellIcon);
+					imgui::DrawTextureAnimation(m_pTASpellIcon);
+				}
+
+				// Name
+				ImGui::TableNextColumn();
+				if (spell)
+				{
+					ImGui::Text("%s", spell->Name);
+				}
+				else
+				{
+					ImGui::Text("");
+				}
+
+				// ID
+				ImGui::TableNextColumn();
+				ImGui::Text("%d", buff.GetSpellID());
+
+				// Duration
+				ImGui::TableNextColumn();
+				int buffTimer = buff.GetBuffTimer();
+				if (buffTimer == -1)
+				{
+					ImGui::Text("Permanent");
+				}
+				else
+				{
+					int hours = 0;
+					int minutes = 0;
+					int seconds = 0;
+
+					int totalSeconds = buffTimer / 1000;
+
+					if (totalSeconds > 0)
+					{
+						hours = totalSeconds / 3600;
+						minutes = (totalSeconds % 3600) / 60;
+						seconds = totalSeconds % 60;
+					}
+
+					char timeLabel[64];
+
+					if (hours > 0)
+					{
+						if (minutes > 0 && seconds > 0)
+						{
+							sprintf_s(timeLabel, "%dh %dm %ds", hours, minutes, seconds);
+						}
+						else if (minutes > 0)
+						{
+							sprintf_s(timeLabel, "%dh %dm", hours, minutes);
+						}
+						else if (seconds > 0)
+						{
+							sprintf_s(timeLabel, "%dh %ds", hours, seconds);
+						}
+						else
+						{
+							sprintf_s(timeLabel, "%dh", hours);
+						}
+					}
+					else if (minutes > 0)
+					{
+						if (seconds > 0)
+						{
+							sprintf_s(timeLabel, "%dm %ds", minutes, seconds);
+						}
+						else
+						{
+							sprintf_s(timeLabel, "%dm", minutes);
+						}
+					}
+					else
+					{
+						sprintf_s(timeLabel, "%ds", seconds);
+					}
+
+					ImGui::Text("%s", timeLabel);
+				}
+
+				// Caster
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", buff.GetCaster());
+
+				ImGui::PopID();
+			}
+
+			ImGui::EndTable();
+		}
+	}
+
 	virtual bool IsEnabled() const override
 	{
 		PcProfile* pcProfile = GetPcProfile();
@@ -3376,6 +3519,30 @@ public:
 			{
 				DoSpellAffectTable("SpellAffectBuffsTable", std::begin(pcProfile->Buffs), std::end(pcProfile->Buffs), arrayLength);
 				ImGui::EndTabItem();
+			}
+
+			if (pPetInfoWnd)
+			{
+				sprintf_s(szLabel, "Pet Buffs (%d)###PetBuffs", pPetInfoWnd->GetTotalBuffCount());
+
+				if (ImGui::BeginTabItem(szLabel))
+				{
+					DoTargetBuffsTable("PetBuffsTable", pPetInfoWnd.get());
+
+					ImGui::EndTabItem();
+				}
+			}
+
+			if (pTargetWnd)
+			{
+				sprintf_s(szLabel, "Target Buffs (%d)###TargetBuffs", pTargetWnd->GetTotalBuffCount());
+
+				if (ImGui::BeginTabItem(szLabel))
+				{
+					DoTargetBuffsTable("TargetBuffsTable", pTargetWnd.get());
+
+					ImGui::EndTabItem();
+				}
 			}
 
 			if (ImGui::BeginTabItem("Stacking Tests"))
@@ -4475,7 +4642,7 @@ protected:
 			// Evaluate the row
 			static char szTemp[MAX_STRING];
 			strcpy_s(szTemp, m_expressions[i].get());
-			ParseMacroParameter(nullptr, szTemp);
+			ParseMacroParameter(szTemp);
 
 			ImGui::Text("%s", szTemp);
 			ImGui::Separator();

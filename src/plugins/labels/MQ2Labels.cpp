@@ -133,7 +133,7 @@ public:
 			{
 				STMLToPlainText(tooltip.mutable_data(), buffer);
 
-				ParseMacroParameter(pLocalPlayer, buffer, MAX_STRING);
+				ParseMacroParameter(buffer, MAX_STRING);
 				if (strcmp(buffer, "NULL") == 0)
 					buffer[0] = 0;
 			}
@@ -155,7 +155,7 @@ public:
 					char buffer[MAX_STRING] = { 0 };
 					strcpy_s(buffer, Id_PMP[index].PMP);
 
-					ParseMacroParameter(pLocalPlayer, buffer, MAX_STRING);
+					ParseMacroParameter(buffer, MAX_STRING);
 					if (strcmp(buffer, "NULL") == 0)
 						buffer[0] = 0;
 
