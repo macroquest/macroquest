@@ -3265,8 +3265,8 @@ public:
 
 			for (int i = 0; i < BuffWnd->GetMaxBuffs(); ++i)
 			{
-				const PlayerBuffInfo* buff = BuffWnd->GetBuffInfo(i);
-				EQ_Spell* spell = GetSpellByID(buff->SpellID);
+				PlayerBuffInfoRef buff = BuffWnd->GetBuffInfo(i);
+				EQ_Spell* spell = GetSpellByID(buff.GetSpellID());
 				if (!spell)
 					continue;
 
@@ -3287,8 +3287,11 @@ public:
 
 				// Icon
 				ImGui::TableNextColumn();
-				m_pTASpellIcon->SetCurCell(spell->SpellIcon);
-				imgui::DrawTextureAnimation(m_pTASpellIcon);
+				if (spell)
+				{
+					m_pTASpellIcon->SetCurCell(spell->SpellIcon);
+					imgui::DrawTextureAnimation(m_pTASpellIcon);
+				}
 
 				// Name
 				ImGui::TableNextColumn();
@@ -3298,16 +3301,17 @@ public:
 				}
 				else
 				{
-					ImGui::Text("null");
+					ImGui::Text("");
 				}
 
 				// ID
 				ImGui::TableNextColumn();
-				ImGui::Text("%d", buff->SpellID);
+				ImGui::Text("%d", buff.GetSpellID());
 
 				// Duration
 				ImGui::TableNextColumn();
-				if (buff->BuffTimer == -1)
+				int buffTimer = buff.GetBuffTimer();
+				if (buffTimer == -1)
 				{
 					ImGui::Text("Permanent");
 				}
@@ -3317,7 +3321,7 @@ public:
 					int minutes = 0;
 					int seconds = 0;
 
-					int totalSeconds = buff->BuffTimer / 1000;
+					int totalSeconds = buffTimer / 1000;
 
 					if (totalSeconds > 0)
 					{
@@ -3368,7 +3372,7 @@ public:
 
 				// Caster
 				ImGui::TableNextColumn();
-				ImGui::Text("%s", buff->GetCaster());
+				ImGui::Text("%s", buff.GetCaster());
 
 				ImGui::PopID();
 			}

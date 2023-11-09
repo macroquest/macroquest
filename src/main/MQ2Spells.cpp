@@ -3828,9 +3828,9 @@ const char* GetPetSpellCaster(const EQ_Affect& buff)
 {
 	if (pPetInfoWnd != nullptr)
 	{
-		if (const PlayerBuffInfo* pBuffInfo = pPetInfoWnd->GetBuffInfoBySpellID(buff.SpellID))
+		if (PlayerBuffInfoRef pBuffInfo = pPetInfoWnd->GetBuffInfoBySpellID(buff.SpellID))
 		{
-			return pBuffInfo->GetCaster();
+			return pBuffInfo.GetCaster();
 		}
 	}
 
