@@ -15,8 +15,7 @@
 // Uncomment to see super spammy read/write trace logging
 //#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 
-#include "common/NamedPipes.h"
-#include "common/NamedPipesProtocol.h"
+#include "NamedPipes.h"
 #include "common/Common.h"
 #include "mq/base/WString.h"
 

@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "./NamedPipesProtocol.h"
+#include "NamedPipesProtocol.h"
 
 #include <wil/resource.h>
 #include <atomic>

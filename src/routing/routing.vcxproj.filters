@@ -27,6 +27,12 @@
     <ClInclude Include="PostOffice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="NamedPipes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NamedPipesProtocol.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ProtocolBuffer Include="Routing.proto">
@@ -40,7 +46,7 @@
     <ClCompile Include="PostOffice.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\NamedPipes.cpp">
+    <ClCompile Include="NamedPipes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

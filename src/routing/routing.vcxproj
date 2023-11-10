@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="NamedPipes.h" />
+    <ClInclude Include="NamedPipesProtocol.h" />
     <ClInclude Include="PostOffice.h" />
     <ClInclude Include="ProtoPipes.h" />
     <ClInclude Include="Routing.h" />
@@ -27,7 +29,7 @@
     <ProtocolBuffer Include="Routing.proto" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\common\NamedPipes.cpp" />
+    <ClCompile Include="NamedPipes.cpp" />
     <ClCompile Include="PostOffice.cpp" />
     <ClCompile Include="Routing.pb.cc">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267</DisableSpecificWarnings>

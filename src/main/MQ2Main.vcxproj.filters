@@ -296,9 +296,6 @@
     <ClCompile Include="..\..\contrib\mini-yaml\yaml\Yaml.cpp">
       <Filter>Source Files\Contrib\mini-yaml</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\NamedPipes.cpp">
-      <Filter>Source Files\common</Filter>
-    </ClCompile>
     <ClCompile Include="CrashHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -441,9 +438,6 @@
     </ClInclude>
     <ClInclude Include="..\..\contrib\args\args.hxx">
       <Filter>Header Files\contrib\args</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\NamedPipes.h">
-      <Filter>Header Files\common</Filter>
     </ClInclude>
     <ClInclude Include="CrashHandler.h">
       <Filter>Header Files</Filter>
