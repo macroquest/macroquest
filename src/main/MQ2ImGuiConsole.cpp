@@ -27,6 +27,7 @@
 
 #include "zep.h"
 #include <optional>
+#include "sqlite3.h"
 
 namespace mq {
 
@@ -72,6 +73,7 @@ static bool s_consoleVisible = false;
 static bool s_consoleVisibleOnStartup = false;
 static bool s_resetConsolePosition = false;
 static bool s_setFocus = false;
+static bool s_consoleFileLog = false;
 
 class ImGuiConsole;
 ImGuiConsole* gImGuiConsole = nullptr;
@@ -902,6 +904,142 @@ namespace imgui
 	}
 }
 
+std::vector<std::string> initConsoleDatabase(sqlite3*& db, int process_id)
+{
+	std::vector<std::string> history;
+	if (s_consoleFileLog)
+	{
+		const std::string db_path = internal_paths::Logs + "\\ConsoleBuffer.db";
+		if (sqlite3_open_v2(db_path.c_str(), &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_WAL, nullptr) != SQLITE_OK)
+		{
+			WriteChatf("MQ Console Error opening console buffer database: %s", sqlite3_errmsg(db));
+			sqlite3_close(db);
+			db = nullptr;
+		}
+		else
+		{
+			char* err_msg = nullptr;
+			if (sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS entries (entry_timestamp TEXT, pid INTEGER, command TEXT)", nullptr, nullptr, &err_msg) != SQLITE_OK)
+			{
+				WriteChatf("MQ Console Error creating console buffer table: %s", err_msg);
+				sqlite3_free(err_msg);
+				sqlite3_close(db);
+				db = nullptr;
+			}
+			else
+			{
+				if (sqlite3_exec(db, "PRAGMA journal_mode=WAL;", nullptr, nullptr, &err_msg) != SQLITE_OK)
+				{
+					WriteChatf("MQ Console Error setting console buffer journal mode: %s", err_msg);
+					sqlite3_free(err_msg);
+					sqlite3_close(db);
+					db = nullptr;
+				}
+				else
+				{
+					// Fill the history buffer prioritizing this PID and limiting result sets from other PIDs.
+					const char* query = R"(
+						WITH PriorityEntries AS (
+							SELECT entry_timestamp,
+								pid,
+								command,
+								1 AS Priority,
+								MAX(entry_timestamp) OVER() AS LastTimestamp
+							FROM entries
+							WHERE pid = ? -- Prioritize the current PID
+						),
+
+						OtherPIDs AS (
+							SELECT pid,
+								MAX(entry_timestamp) AS LastTimestamp
+							FROM entries
+							WHERE pid != ? -- exclude the current PID
+							GROUP BY pid
+							ORDER BY LastTimeStamp DESC
+							LIMIT 3 -- only get the last 3 processes
+						),
+
+						OtherEntries AS (
+							SELECT oe.entry_timestamp,
+								oe.pid,
+								oe.command,
+								2 AS Priority,
+								op.LastTimeStamp
+							FROM entries oe
+							INNER JOIN OtherPIDs op ON oe.pid = op.pid
+						)
+
+						SELECT command
+						FROM (
+							SELECT *
+							FROM PriorityEntries
+
+							UNION ALL
+
+							SELECT *
+							FROM OtherEntries
+							ORDER BY LastTimestamp DESC -- get the latest entries first
+							LIMIT 50 -- we only want 50 commands since this isn't our original pid anyway
+						)
+						--ORDER BY Priority ASC, LastTimeStamp DESC, pid ASC, entry_timestamp DESC
+						ORDER BY
+							Priority DESC,       -- Sort by the current PID first
+							LastTimeStamp ASC,   -- Then sort by the last timestamp of the other PIDs
+							pid DESC,            -- Then sort by the PID in case there's a tie
+							entry_timestamp ASC  -- Then sort by the timestamp of the entry so they're in order
+					)";
+
+					sqlite3_stmt* stmt;
+			        if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK)
+			        {
+						WriteChatf("MQ Console Error preparing query for console buffer retrieval: %s", sqlite3_errmsg(db));
+					}
+					else
+					{
+						sqlite3_bind_int(stmt, 1, process_id);
+						sqlite3_bind_int(stmt, 2, process_id);
+
+						while (sqlite3_step(stmt) == SQLITE_ROW)
+						{
+							if (const char* text = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)))
+							{
+								history.emplace_back(text);
+							}
+						}
+
+						sqlite3_finalize(stmt);
+					}
+				}
+			}
+		}
+	}
+	return history;
+}
+
+void AddEntryToDatabase(sqlite3*& db, int process_id, const char* entry)
+{
+	if (db != nullptr)
+	{
+		const char* query = "INSERT INTO entries (entry_timestamp, pid, command) VALUES (strftime('%Y-%m-%d %H:%M:%f', 'now', 'localtime'), ?, ?);";
+		sqlite3_stmt* stmt;
+		if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK)
+		{
+			WriteChatf("MQ Console Error preparing query for console buffer insertion: %s", sqlite3_errmsg(db));
+		}
+		else
+		{
+			sqlite3_bind_int(stmt, 1, process_id);
+			sqlite3_bind_text(stmt, 2, entry, -1, SQLITE_STATIC);
+
+			if (sqlite3_step(stmt) != SQLITE_DONE)
+			{
+				WriteChatf("MQ Console Error inserting into console buffer: %s", sqlite3_errmsg(db));
+			}
+
+			sqlite3_finalize(stmt);
+		}
+	}
+}
 //============================================================================
 
 #pragma region ImGui Console
@@ -912,6 +1050,8 @@ public:
 	char m_inputBuffer[2048];
 	ImVector<const char*> m_commands;
 	std::vector<std::string> m_history;
+	sqlite3* m_db = nullptr;
+	int current_pid = GetCurrentProcessId();
 	int m_historyPos = -1;    // -1: new line, 0..History.Size-1 browsing history.
 	bool m_scrollToBottom = true;
 	std::unique_ptr<ImGuiZepConsole> m_zepEditor;
@@ -930,11 +1070,16 @@ public:
 
 		int maxBufferLines = GetPrivateProfileInt("Console", "MaxBufferLines", m_zepEditor->GetMaxBufferLines(), internal_paths::MQini);
 		m_zepEditor->SetMaxBufferLines(maxBufferLines);
+		m_history = initConsoleDatabase(m_db, current_pid);
 	}
 
 	~ImGuiConsole()
 	{
 		ClearLog();
+		if (m_db != nullptr)
+		{
+			sqlite3_close(m_db);
+		}
 	}
 
 	void ClearLog()
@@ -1136,6 +1281,7 @@ public:
 			}
 		}
 		m_history.emplace_back(commandLine);
+		AddEntryToDatabase(m_db, current_pid, commandLine);
 
 		// Process command
 		if (ci_equals(commandLine, "clear"))
@@ -1591,6 +1737,15 @@ static void ConsoleSettings()
 	ImGui::SameLine();
 	mq::imgui::HelpMarker("This feature allows you to automatically show the MacroQuest Console upon load.");
 
+	ImGui::SameLine();
+	if (ImGui::Checkbox("Developer: Command Logging", &s_consoleFileLog))
+	{
+		WritePrivateProfileBool("Console", "FileLog", s_consoleFileLog, mq::internal_paths::MQini);
+	}
+
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("This feature stores commands between sessions.  Use at your own risk.");
+
 	ImGui::NewLine();
 
 	if (gImGuiConsole != nullptr)
@@ -1613,7 +1768,9 @@ static void ConsoleSettings()
 	if (ImGui::Button("Clear Saved Console Settings"))
 	{
 		s_consoleVisibleOnStartup = false;
+		s_consoleFileLog = false;
 		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Console", "FileLog", s_consoleFileLog, mq::internal_paths::MQini);
 	}
 }
 
@@ -1621,9 +1778,11 @@ void InitializeImGuiConsole()
 {
 	s_consoleVisibleOnStartup = GetPrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", false, mq::internal_paths::MQini);
 	s_consoleVisible = s_consoleVisibleOnStartup;
+	s_consoleFileLog = GetPrivateProfileBool("Console", "FileLog", false, mq::internal_paths::MQini);
 	if (gbWriteAllConfig)
 	{
 		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Console", "FileLog", s_consoleFileLog, mq::internal_paths::MQini);
 	}
 
 	AddSettingsPanel("Console", ConsoleSettings);
