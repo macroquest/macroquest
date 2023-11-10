@@ -17,8 +17,7 @@
 #include "HotKeyControl.h"
 
 #include "login/Login.h"
-
-#include <mq/proto/PostOffice.h>
+#include "routing/PostOffice.h"
 
 #include <commdlg.h>
 #include <shellapi.h>
@@ -105,7 +104,7 @@ bool DecryptData(DATA_BLOB* DataIn, DATA_BLOB* DataOut);
 int gMenuItemCount = 0;
 HMENU hProfilesMenu = nullptr;
 
-std::shared_ptr<postoffice::PostOffice::Mailbox> s_mailbox;
+postoffice::PostOffice::Dropbox s_mailbox;
 
 namespace internal_paths
 {
@@ -2116,7 +2115,9 @@ void ReceivedMessageHandler(ProtoMessagePtr&& message)
 
 void InitializeAutoLogin()
 {
-	s_mailbox = postoffice::GetPostOffice().CreateAndAddMailbox("autologin", ReceivedMessageHandler);
+	auto mailbox = postoffice::GetPostOffice().CreateAndAddMailbox("autologin", ReceivedMessageHandler);
+	if (mailbox)
+		s_mailbox = std::move(*mailbox);
 
 	// Get path to mq2autologin.ini
 	fs::path pathAutoLoginIni = fs::path{ internal_paths::Config }  / "MQ2AutoLogin.ini";

@@ -18,7 +18,7 @@
 
 #include "MQ2Main.h"
 
-#include <mq/proto/PostOffice.h>
+#include "routing/PostOffice.h"
 
 namespace mq {
 using namespace postoffice;
@@ -122,22 +122,11 @@ private:
 					// for any mailbox that is keeping track, update them as well
 					std::string data = id.SerializeAsString();
 
-					if (m_postOffice->m_clientMailbox)
-					{
-						// if we have a mailbox, we need to ensure we add routing information so we don't
-						// update ourselves
-						m_postOffice->DeliverAll(
-							std::make_unique<PipeMessage>(MQMessageId::MSG_IDENTIFICATION, &data[0], data.size()),
-							m_postOffice->m_clientMailbox
-						);
-					}
-					else
-					{
-						// otherwise, just send it to all the connected mailboxes
-						m_postOffice->DeliverAll(
-							std::make_unique<PipeMessage>(MQMessageId::MSG_IDENTIFICATION, &data[0], data.size())
-						);
-					}
+					// exclude us so we don't update ourselves
+					m_postOffice->DeliverAll(
+						std::make_unique<PipeMessage>(MQMessageId::MSG_IDENTIFICATION, &data[0], data.size()),
+						"pipe_client"
+					);
 				}
 				break;
 
@@ -156,23 +145,11 @@ private:
 				// forward the message to all mailboxes
 				std::string data = id.SerializeAsString();
 
-				if (m_postOffice->m_clientMailbox)
-				{
-					// if we have a mailbox, we need to ensure we add routing information so we don't
-					// update ourselves
-					m_postOffice->DeliverAll(
-						std::make_unique<PipeMessage>(MQMessageId::MSG_DROPPED, &data[0], data.size()),
-						m_postOffice->m_clientMailbox
-					);
-				}
-				else
-				{
-					// otherwise, just send it to all the connected mailboxes
-					m_postOffice->DeliverAll(
-						std::make_unique<PipeMessage>(MQMessageId::MSG_DROPPED, &data[0], data.size())
-					);
-				}
-				break;
+				// exclude us so we don't update ourselves
+				m_postOffice->DeliverAll(
+					std::make_unique<PipeMessage>(MQMessageId::MSG_DROPPED, &data[0], data.size()),
+					"pipe_client"
+				);
 			}
 
 			case MQMessageId::MSG_MAIN_CRASHPAD_CONFIG:
@@ -389,7 +366,7 @@ public:
 		m_pipeClient.Start();
 		::atexit(StopPipeClient);
 
-		m_clientMailbox = CreateAndAddMailbox("pipe_client",
+		auto dropbox = CreateAndAddMailbox("pipe_client",
 			[this](ProtoMessagePtr&& message)
 			{
 				// we want to discard any message sent from self
@@ -399,18 +376,22 @@ public:
 					if (sender.has_pid() &&
 						sender.pid() == GetCurrentProcessId() &&
 						sender.has_mailbox() &&
-						sender.mailbox() == m_clientMailbox->GetAddress())
+						sender.mailbox() == "pipe_client")
 						return;
 				}
 
 				m_pipeClient.DispatchMessage(std::move(message));
 			});
 
-		// once we set up the mailbox, get a list of all connected peers
-		proto::Address address;
-		address.set_name("launcher");
+		if (dropbox)
+		{
+			m_clientDropbox = std::move(std::move(*dropbox));
+			// once we set up the mailbox, get a list of all connected peers
+			proto::Address address;
+			address.set_name("launcher");
 
-		m_clientMailbox->Post(address, MQMessageId::MSG_IDENTIFICATION);
+			m_clientDropbox.Post(address, MQMessageId::MSG_IDENTIFICATION);
+		}
 	}
 
 	void Shutdown()
@@ -419,7 +400,6 @@ public:
 		// make sure all remaining messages get discarded by dropping the last reference so we stop
 		// processing
 		RemoveMailbox("pipe_client");
-		m_clientMailbox.reset();
 
 		// we don't need to worry about sending messages after we stop because the pipe client will log
 		// and handle this situation.
@@ -428,7 +408,7 @@ public:
 
 private:
 	ProtoPipeClient m_pipeClient;
-	std::shared_ptr<PostOffice::Mailbox> m_clientMailbox;
+	Dropbox m_clientDropbox;
 	DWORD m_launcherProcessID;
 
 	static void StopPipeClient()

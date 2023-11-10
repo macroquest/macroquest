@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\include\mq\proto\PostOffice.h" />
+    <ClInclude Include="PostOffice.h" />
     <ClInclude Include="ProtoPipes.h" />
     <ClInclude Include="Routing.h" />
   </ItemGroup>

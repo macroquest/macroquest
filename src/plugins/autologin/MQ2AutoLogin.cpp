@@ -15,9 +15,9 @@
 // For list of changes, see CHANGELOG.md
 
 #include <mq/Plugin.h>
-#include <mq/proto/PostOffice.h>
 
 #include "login/Login.h"
+#include "routing/PostOffice.h"
 #include "MQ2AutoLogin.h"
 
 #include <imgui.h>
@@ -41,7 +41,7 @@ constexpr int STEP_DELAY = 1000;
 
 fs::path CustomIni;
 uint64_t ReenableTime = 0;
-std::shared_ptr<postoffice::PostOffice::Mailbox> s_autologinMailbox;
+postoffice::PostOffice::Dropbox s_autologinMailbox;
 
 class LoginProfileType : public MQ2Type
 {
@@ -205,7 +205,7 @@ static void Post(AutoLoginMessageId messageId, const T& data)
 	address.set_name("launcher");
 	address.set_mailbox("autologin");
 
-	s_autologinMailbox->Post(address, messageId, data);
+	s_autologinMailbox.Post(address, messageId, data);
 }
 
 // Notify on load/unload _only_ happens with the profile method, so we can reuse that proto
@@ -653,11 +653,14 @@ PLUGIN_API void InitializePlugin()
 
 	ReenableTime = MQGetTickCount64() + STEP_DELAY;
 
-	s_autologinMailbox = postoffice::GetPostOffice().CreateAndAddMailbox("autologin",
+	auto mailbox = postoffice::GetPostOffice().CreateAndAddMailbox("autologin",
 		[](ProtoMessagePtr&& message)
 		{
 			// autologin doesn't actually take message inputs yet...
 		});
+
+	if (mailbox)
+		s_autologinMailbox = std::move(*mailbox);
 }
 
 PLUGIN_API void ShutdownPlugin()
@@ -684,7 +687,6 @@ PLUGIN_API void ShutdownPlugin()
 	delete pLoginProfileType;
 
 	postoffice::GetPostOffice().RemoveMailbox("autologin");
-	s_autologinMailbox.reset();
 }
 
 void SendWndNotification(CXWnd* pWnd, CXWnd* sender, uint32_t msg, void* data)

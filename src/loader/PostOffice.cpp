@@ -16,7 +16,7 @@
 #include "PostOffice.h"
 #include "Crashpad.h"
 
-#include <mq/proto/PostOffice.h>
+#include "routing/PostOffice.h"
 
 #include <date/date.h>
 #include <fmt/format.h>
@@ -377,11 +377,14 @@ public:
 		m_pipeServer.SetHandler(std::make_shared<PipeEventsHandler>(this));
 		m_pipeServer.Start();
 
-		m_serverMailbox = CreateAndAddMailbox("pipe_server",
+		auto mailbox = CreateAndAddMailbox("pipe_server",
 			[this](ProtoMessagePtr&& message)
 			{
 				m_pipeServer.DispatchMessage(std::move(message));
 			});
+
+		if (mailbox)
+			m_serverMailbox = std::move(*mailbox);
 	}
 
 	void Shutdown()
@@ -390,7 +393,6 @@ public:
 		// make sure all remaining messages get discarded by dropping the last reference so we stop
 		// processing
 		RemoveMailbox("pipe_server");
-		m_serverMailbox.reset();
 
 		// we don't need to worry about sending messages after we stop because the pipe client will log
 		// and handle this situation.
@@ -399,7 +401,7 @@ public:
 
 private:
 	mq::ProtoPipeServer m_pipeServer;
-	std::shared_ptr<PostOffice::Mailbox> m_serverMailbox;
+	PostOffice::Dropbox m_serverMailbox;
 
 	bool SendMessageToPID(uint32_t pid, PipeMessagePtr&& message, const std::function<void(PipeMessagePtr&&)>& failed)
 	{
