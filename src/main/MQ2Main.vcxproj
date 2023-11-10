@@ -544,6 +544,7 @@
     <ClCompile Include="MQ2WindowInspector.cpp" />
     <ClCompile Include="MQ2Windows.cpp" />
     <ClCompile Include="MQAchievements.cpp" />
+    <ClCompile Include="MQInventory.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -559,6 +560,7 @@
     <ClInclude Include="..\..\contrib\tinyfsm\include\tinyfsm.hpp" />
     <ClInclude Include="..\..\include\moveitem.h" />
     <ClInclude Include="..\..\include\mq\api\Achievements.h" />
+    <ClInclude Include="..\..\include\mq\api\Inventory.h" />
     <ClInclude Include="..\..\include\mq\api\Items.h" />
     <ClInclude Include="..\..\include\mq\api\MacroAPI.h" />
     <ClInclude Include="..\..\include\mq\api\MacroDataTypes.h" />
