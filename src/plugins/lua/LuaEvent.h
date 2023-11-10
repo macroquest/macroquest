@@ -23,8 +23,6 @@ struct BLECHVALUE;
 
 namespace mq::lua {
 
-void MQ_RegisterLua_Events(sol::table& lua);
-
 class LuaThread;
 class LuaEventProcessor;
 struct LuaCoroutine;

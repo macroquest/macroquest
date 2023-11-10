@@ -1,0 +1,550 @@
+/*
+ * MacroQuest: The extension platform for EverQuest
+ * Copyright (C) 2002-2022 MacroQuest Authors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+#include "pch.h"
+
+#include "mq/base/Common.h"
+#include "mq/api/ActorAPI.h"
+#include "mq/Plugin.h"
+
+#include "Actor.pb.h"
+
+#include "LuaActor.h"
+#include "LuaThread.h"
+#include "LuaCoroutine.h"
+
+// includes for datatype conversions to proto
+#include "imgui.h"
+
+#include "common/StringUtils.h"
+
+#ifdef _DEBUG
+#pragma comment(lib, "libprotobufd")
+#else
+#pragma comment(lib, "libprotobuf")
+#endif
+
+namespace mq::lua {
+using namespace mq::postoffice;
+
+namespace messaging = proto::lua::actor;
+
+// kind of boring for now, every message we expect is a LuaMessage
+// we can expand this later, but routing within actors will probably
+// be the main method of routing, not in the main dropbox
+enum class LuaMessageID : uint16_t
+{
+	LuaMessage = 0, // message payload is a Variant (an arbitrary lua data)
+};
+
+sol::object DeserializeProto(const messaging::Variant& data, sol::state_view s)
+{
+	switch (data.value_case())
+	{
+	case messaging::Variant::ValueCase::kNumber:
+		return sol::make_object(s, data.number());
+	case messaging::Variant::ValueCase::kBoolean:
+		return sol::make_object(s, data.boolean());
+	case messaging::Variant::ValueCase::kStr:
+		return sol::make_object(s, data.str());
+	case messaging::Variant::ValueCase::kTable:
+	{
+		if (data.has_table())
+		{
+			auto table = s.create_table(0, static_cast<int>(data.table().entries().size() + data.table().arr().size()));
+
+			for (const auto& [k, v] : data.table().entries())
+			{
+				table[k] = DeserializeProto(v, s);
+			}
+
+			for (const auto& [k, v] : data.table().arr())
+			{
+				table[k] = DeserializeProto(v, s);
+			}
+
+			return sol::make_object(s, table);
+		}
+		
+		return sol::lua_nil;
+	}
+	case messaging::Variant::ValueCase::kImvec2:
+		return sol::make_object(s, ImVec2(
+			data.imvec2().x(),
+			data.imvec2().y()));
+	case messaging::Variant::ValueCase::kImvec4:
+		return sol::make_object(s, ImVec4(
+			data.imvec4().x(),
+			data.imvec4().y(),
+			data.imvec4().z(),
+			data.imvec4().w()
+		));
+	default:
+		return sol::nil;
+	}
+}
+
+messaging::Variant SerializeProto(const sol::object& data)
+{
+	messaging::Variant variant;
+
+	switch (data.get_type())
+	{
+	case sol::type::string:
+		variant.set_str(data.as<std::string>());
+		break;
+	case sol::type::number:
+		variant.set_number(data.as<double>());
+		break;
+	case sol::type::boolean:
+		variant.set_boolean(data.as<bool>());
+		break;
+	case sol::type::table:
+	{
+		messaging::Table table;
+		google::protobuf::Map<std::string, messaging::Variant> entries;
+		google::protobuf::Map<uint32_t, messaging::Variant> arr;
+		for (const auto& [k, v] : data.as<sol::table>())
+		{
+			// a limitation of proto: keys can't be messages, so we have to limit it here
+			if (k.is<std::string_view>())
+			{
+				entries[k.as<std::string_view>()] = SerializeProto(v);
+			}
+			else if (k.is<uint32_t>())
+			{
+				arr[k.as<uint32_t>()] = SerializeProto(v);
+			}
+		}
+
+		if (!entries.empty())
+			*table.mutable_entries() = entries;
+
+		if (!arr.empty())
+			*table.mutable_arr() = arr;
+
+		if (!entries.empty() || !arr.empty())
+			*variant.mutable_table() = table;
+		break;
+	}
+	case sol::type::userdata:
+		if (data.is<ImVec2>())
+		{
+			auto vec = data.as<ImVec2>();
+			*variant.mutable_imvec2() = messaging::ImVec2();
+			(*variant.mutable_imvec2()).set_x(vec.x);
+			(*variant.mutable_imvec2()).set_y(vec.y);
+		}
+		else if (data.is<ImVec4>())
+		{
+			auto vec = data.as<ImVec4>();
+			*variant.mutable_imvec4() = messaging::ImVec4();
+			(*variant.mutable_imvec4()).set_x(vec.x);
+			(*variant.mutable_imvec4()).set_y(vec.y);
+			(*variant.mutable_imvec4()).set_z(vec.z);
+			(*variant.mutable_imvec4()).set_w(vec.w);
+		}
+		break;
+	default:
+		break;
+	}
+
+	return variant;
+}
+
+class LuaDropbox;
+struct LuaMessage
+{
+	const LuaDropbox& dropbox;
+	std::shared_ptr<Message> message;
+	messaging::Variant data;
+	bool has_data = false;
+
+	LuaMessage(const LuaDropbox& dropbox_, const std::shared_ptr<Message>& message_)
+		: dropbox(dropbox_)
+		, message(message_)
+	{
+		has_data = message && message->Payload && data.ParseFromString(*message->Payload);
+	}
+
+	sol::object Get(sol::this_state s)
+	{
+		if (has_data)
+			return DeserializeProto(data, s);
+
+		return sol::lua_nil;
+	}
+
+	sol::table Sender(sol::this_state s)
+	{
+		if (message && message->Sender)
+		{
+			sol::table table = sol::state_view(s).create_table();
+			if (message->Sender->PID) table["pid"] = *message->Sender->PID;
+			if (message->Sender->Name) table["name"] = *message->Sender->Name;
+			if (message->Sender->Mailbox) table["mailbox"] = *message->Sender->Mailbox;
+			if (message->Sender->Account) table["account"] = *message->Sender->Account;
+			if (message->Sender->Server) table["server"] = *message->Sender->Server;
+			if (message->Sender->Character) table["character"] = *message->Sender->Character;
+			table["absolute_mailbox"] = message->Sender->AbsoluteMailbox;
+
+			return table;
+		}
+
+		return sol::lua_nil;
+	}
+
+	void Reply(sol::object reply);
+	void ReplyWithStatus(int status, sol::object reply);
+};
+
+struct CallbackInstance
+{
+	std::shared_ptr<LuaCoroutine> coroutine;
+	std::optional<int> status;
+	LuaMessage message;
+	bool run_started = false;
+
+	// the thread lifetime is necessarily longer than this CallbackInstance because if the thread goes
+	// down, the dropboxes will be closed
+	CallbackInstance(const std::shared_ptr<LuaThread>& thread, const sol::function& callback, LuaMessage&& message)
+		: message(std::move(message))
+	{
+		auto [_, lua_thread] = thread->CreateThread();
+		coroutine = LuaCoroutine::Create(lua_thread, thread.get());
+		coroutine->coroutine = sol::coroutine(lua_thread.state(), callback);
+	}
+
+	~CallbackInstance()
+	{
+		//lua_gc(coroutine->thread.lua_state(), LUA_GCCOLLECT, 0);
+	}
+};
+
+/**
+ * A local lua driobox type. The postoffice dropbox will route messages to these dropboxes and provide
+ * addressing to route messages from these dropboxes. These are the actual lua interfaces into userland,
+ * and they will have message processing callbacks defined in lua space by the user.
+ */
+class LuaDropbox
+{
+public:
+	static std::shared_ptr<LuaDropbox> Register(const std::string& name, const sol::function& callback, sol::this_state s);
+	void Unregister();
+
+	Address ParseHeader(sol::table header) const;
+	void Send(sol::table header, sol::object payload) const;
+	void SendWithResponse(sol::table header, sol::object payload, sol::function response_callback);
+	void Reply(const std::shared_ptr<Message>& message, const sol::object& reply, int status) const;
+	void Receive(const std::shared_ptr<Message>& message);
+	bool Process();
+
+	const std::string& GetName() { return m_name; }
+	std::shared_ptr<LuaThread> GetThread() { return m_thread.lock(); }
+
+	LuaDropbox(std::string_view name, const sol::function& callback, const std::shared_ptr<LuaThread>& thread);
+	~LuaDropbox();
+
+private:
+	std::string m_name;
+	sol::function m_callback;
+	std::weak_ptr<LuaThread> m_thread;
+	std::vector<std::unique_ptr<CallbackInstance>> m_queue;
+	std::vector<LuaMessage> m_deadLetterQueue;
+
+	DropboxAPI m_dropbox;
+};
+
+// now create a map of script dropboxes to route to
+static ci_unordered::map<std::string, std::weak_ptr<LuaDropbox>> s_dropboxes;
+
+void LuaMessage::Reply(sol::object reply)
+{
+	if (message) dropbox.Reply(message, reply, 0);
+}
+
+void LuaMessage::ReplyWithStatus(int status, sol::object reply)
+{
+	if (message) dropbox.Reply(message, reply, status);
+}
+
+std::shared_ptr<LuaDropbox> LuaDropbox::Register(const std::string& name, const sol::function& callback, sol::this_state s)
+{
+	if (auto thread = LuaThread::get_from(s))
+	{
+		auto full_name = fmt::format("{}:{}", thread->GetName(), name);
+		auto dropbox = std::make_shared<LuaDropbox>(full_name, callback, thread);
+
+		// if we can't place the dropbox in the map for some reason, then return a nullptr
+		if (!s_dropboxes.emplace(full_name, dropbox).second)
+			dropbox.reset();
+
+		return dropbox;
+	}
+
+	return nullptr;
+}
+
+// TODO: This doesn't actually remove the dropbox from the post office
+void LuaDropbox::Unregister()
+{
+	s_dropboxes.erase(m_name);
+}
+
+LuaDropbox::LuaDropbox(std::string_view name, const sol::function& callback, const std::shared_ptr<LuaThread>& thread)
+	: m_name(name)
+	, m_callback(callback)
+	, m_thread(thread) // this can potentially be empty, we will need to account for that
+	, m_dropbox(AddActor(m_name.c_str(), [this](const std::shared_ptr<Message>& message) { Receive(message); }))
+{}
+
+LuaDropbox::~LuaDropbox()
+{
+	m_dropbox.Remove();
+}
+
+// TODO: create a helper function to create well-formed headers
+Address LuaDropbox::ParseHeader(sol::table header) const
+{
+	// parse the header for routing information
+	Address addr;
+	addr.Mailbox = header.get<std::optional<std::string>>("mailbox");
+	addr.AbsoluteMailbox = header.get<std::optional<bool>>("absolute_mailbox").value_or(false);
+
+	// if the mailbox contains a colon delimiter, then it's an absolute, but we still
+	// need to detect if it's script to script or script to anywhere
+	// of course, do nothing to Mailbox if it is declared absolute
+	if (!addr.AbsoluteMailbox)
+	{
+		if (addr.Mailbox)
+		{
+			size_t count = std::count_if(addr.Mailbox->begin(), addr.Mailbox->end(),
+				[](const char& c) { return c == ':'; });
+
+			if (count == 0)
+			{
+				std::optional<std::string_view> script = header["script"];
+				if (script)
+					addr.Mailbox = fmt::format("{}:{}", *script, *addr.Mailbox);
+				else if (auto thread = m_thread.lock())
+					addr.Mailbox = fmt::format("{}:{}", thread->GetName(), *addr.Mailbox);
+			}
+			else if (count > 1)
+			{
+				addr.AbsoluteMailbox = true;
+			}
+
+			// if count == 1 (and absolute is not set), then the mailbox is already well-formed
+		}
+		else
+		{
+			addr.Mailbox = m_name; // script:mailbox, not absolute
+		}
+	}
+
+	// it's not likely these are set, but if they are we want to make sure they get routed correctly
+	addr.PID = header.get<std::optional<uint32_t>>("pid");
+	addr.Name = header.get<std::optional<std::string>>("name");
+
+	// any ambiguity in address means that it will get sent to all mailboxes
+	// that match. In this way, Send is simultaneously a "tell" and a "shout"
+	// these are optionals, so it's safe to set them directly
+	addr.Account = header.get<std::optional<std::string>>("account");
+	addr.Server = header.get<std::optional<std::string>>("server");
+	addr.Character = header.get<std::optional<std::string>>("character");
+
+	return addr;
+}
+
+void LuaDropbox::Send(sol::table header, sol::object payload) const
+{
+	m_dropbox.Post(ParseHeader(header), LuaMessageID::LuaMessage, SerializeProto(payload));
+}
+
+void LuaDropbox::SendWithResponse(sol::table header, sol::object payload, sol::function response_callback)
+{
+	if (auto thread = m_thread.lock())
+	{
+		auto callback = std::make_unique<CallbackInstance>(thread, response_callback, LuaMessage(*this, nullptr));
+		m_dropbox.Post(ParseHeader(header), LuaMessageID::LuaMessage, SerializeProto(payload),
+			[callback = callback.release(), this](int status, const std::shared_ptr<Message>& message)
+			{
+				callback->status = status;
+				callback->message.message = message;
+				callback->message.has_data = message && message->Payload && callback->message.data.ParseFromString(*message->Payload);
+				m_queue.push_back(std::unique_ptr<CallbackInstance>(callback));
+			});
+	}
+}
+
+void LuaDropbox::Reply(const std::shared_ptr<Message>& message, const sol::object& reply, int status) const
+{
+	m_dropbox.PostReply(message, LuaMessageID::LuaMessage, SerializeProto(reply), static_cast<uint8_t>(status));
+}
+
+void LuaDropbox::Receive(const std::shared_ptr<Message>& message)
+{
+	if (auto thread = m_thread.lock())
+	{
+		// first empty the DLQ in order
+		for (auto& dead_letter : m_deadLetterQueue)
+		{
+			m_queue.emplace_back(std::make_unique<CallbackInstance>(thread, m_callback, std::move(dead_letter)));
+		}
+
+		m_deadLetterQueue.clear();
+
+		// then add the new message
+		m_queue.emplace_back(std::make_unique<CallbackInstance>(thread, m_callback, LuaMessage(*this, message)));
+	}
+	else
+	{
+		m_deadLetterQueue.emplace_back(*this, message);
+	}
+}
+
+bool LuaDropbox::Process()
+{
+	if (auto thread = m_thread.lock())
+	{
+		m_queue.erase(std::remove_if(m_queue.begin(), m_queue.end(),
+			[this, &thread](std::unique_ptr<CallbackInstance>& callback)
+			{
+				if (thread->ShouldYield()) return false;
+
+				if (!callback->coroutine) return true;
+				if (!callback->coroutine->ShouldRun()) return false;
+
+				// this breaks if we don't remove the message after the first call
+				CoroutineResult result;
+				if (callback->run_started)
+				{
+					result = callback->coroutine->RunCoroutine();
+				}
+				else
+				{
+					if (callback->status)
+						result = callback->coroutine->RunCoroutine({
+							sol::make_object(callback->coroutine->thread.lua_state(), *callback->status),
+							sol::make_object(callback->coroutine->thread.lua_state(), callback->message)
+						});
+					else
+						result = callback->coroutine->RunCoroutine({
+							sol::make_object(callback->coroutine->thread.lua_state(), callback->message)
+						});
+
+					callback->run_started = true; // note the mutation, this is why we have a ref instead of a constref
+				}
+
+				return !result || result->status() != sol::call_status::yielded;
+			}), m_queue.end());
+
+		return true;
+	}
+
+	return false;
+}
+
+// TODO: are these useful?
+sol::object StatelessIterator(sol::object, sol::object k, sol::this_state s)
+{
+	if (s_dropboxes.begin() == s_dropboxes.end())
+		return sol::lua_nil;
+
+	if (k == sol::lua_nil)
+	{
+		// if any of these mailboxes are invalid, just erase them from the map, this will
+		// return as soon as a valid mailbox is found.
+		for (auto& it = s_dropboxes.begin(); it != s_dropboxes.end(); it = s_dropboxes.erase(it))
+		{
+			if (auto ptr = it->second.lock())
+				return sol::make_object(s, ptr);
+		}
+	}
+
+	if (k.is<std::shared_ptr<LuaDropbox>>())
+	{
+		auto ptr = k.as<std::shared_ptr<LuaDropbox>>();
+		auto dropbox = std::find_if(s_dropboxes.begin(), s_dropboxes.end(),
+			[&ptr](const std::pair<std::string, std::weak_ptr<LuaDropbox>>& pair)
+			{
+				return pair.second.lock() == ptr;
+			});
+
+		// grab the next one, if we are at end we need to return nil though
+		if (dropbox != s_dropboxes.end())
+		{
+			// erase any that are expired in the process
+			for (auto& it = ++dropbox; it != s_dropboxes.end(); it = s_dropboxes.erase(it))
+			{
+				if (auto ptr = it->second.lock())
+					return sol::make_object(s, ptr);
+			}
+		}
+	}
+
+	return sol::lua_nil;
+}
+
+sol::object Iterator(sol::this_state s)
+{
+	return sol::make_object(s, std::make_tuple(StatelessIterator, sol::lua_nil, sol::lua_nil));
+}
+
+// TODO: add address storage for connected remote actors (parse ident and drop messages from the pipe_client)
+void LuaActors::RegisterLua(std::optional<sol::table>& actors, sol::state_view s)
+{
+	if (!actors)
+	{
+		actors = s.create_table();
+		actors->new_usertype<LuaDropbox>(
+			"dropbox", sol::no_constructor,
+			"send", sol::overload(&LuaDropbox::Send, &LuaDropbox::SendWithResponse),
+			"unregister", &LuaDropbox::Unregister);
+
+		actors->new_usertype<LuaMessage>(
+			"message", sol::no_constructor,
+			"content", sol::property(&LuaMessage::Get),
+			"reply", sol::overload(&LuaMessage::Reply, &LuaMessage::ReplyWithStatus),
+			"sender", sol::property(&LuaMessage::Sender),
+			sol::meta_function::call, &LuaMessage::Get);
+
+		actors->set_function("register", &LuaDropbox::Register);
+		actors->set_function("iter", &Iterator);
+	}
+}
+
+void LuaActors::Start()
+{
+}
+
+void LuaActors::Stop()
+{
+}
+
+void LuaActors::Process()
+{
+	for (auto& dropbox_it = s_dropboxes.begin(); dropbox_it != s_dropboxes.end();)
+	{
+		auto ptr = dropbox_it->second.lock();
+		if (ptr && ptr->Process())
+			++dropbox_it;
+		else
+		{
+			dropbox_it = s_dropboxes.erase(dropbox_it);
+		}
+	}
+}
+
+} // namespace mq::lua
