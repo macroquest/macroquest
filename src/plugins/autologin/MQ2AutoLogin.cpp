@@ -205,7 +205,7 @@ static void Post(AutoLoginMessageId messageId, const T& data)
 	address.Mailbox = "autologin";
 	address.AbsoluteMailbox = true;
 
-	s_autologinDropbox.Post(address, messageId, data);
+	s_autologinDropbox->Post(address, messageId, data);
 }
 
 // Notify on load/unload _only_ happens with the profile method, so we can reuse that proto
@@ -683,7 +683,7 @@ PLUGIN_API void ShutdownPlugin()
 	delete pAutoLoginType;
 	delete pLoginProfileType;
 
-	s_autologinDropbox.Remove();
+	RemoveActor(s_autologinDropbox);
 }
 
 void SendWndNotification(CXWnd* pWnd, CXWnd* sender, uint32_t msg, void* data)

@@ -592,7 +592,6 @@
     <ClInclude Include="..\common\HotKeys.h" />
     <ClInclude Include="..\common\MiscUtils.h" />
     <ClInclude Include="..\common\StringUtils.h" />
-    <ClInclude Include="ActorAPI.h" />
     <ClInclude Include="datatypes\DataTypeList.h" />
     <ClInclude Include="datatypes\MQ2DataTypes.h" />
     <ClInclude Include="CrashHandler.h" />
