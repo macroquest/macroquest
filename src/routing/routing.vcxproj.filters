@@ -37,5 +37,11 @@
     <ClCompile Include="Routing.pb.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PostOffice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\NamedPipes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

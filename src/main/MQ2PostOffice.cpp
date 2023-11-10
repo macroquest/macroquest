@@ -369,17 +369,6 @@ public:
 		m_clientDropbox = CreateAndAddMailbox("pipe_client",
 			[this](ProtoMessagePtr&& message)
 			{
-				// we want to discard any message sent from self
-				if (message->GetSender())
-				{
-					auto sender = *message->GetSender();
-					if (sender.has_pid() &&
-						sender.pid() == GetCurrentProcessId() &&
-						sender.has_mailbox() &&
-						sender.mailbox() == "pipe_client")
-						return;
-				}
-
 				m_pipeClient.DispatchMessage(std::move(message));
 			});
 
@@ -395,7 +384,8 @@ public:
 		// after the mailbox is removed from the post office, it won't get any more messages, and lets
 		// make sure all remaining messages get discarded by dropping the last reference so we stop
 		// processing
-		RemoveMailbox("pipe_client");
+		//RemoveMailbox("pipe_client");
+		m_clientDropbox.Remove();
 
 		// we don't need to worry about sending messages after we stop because the pipe client will log
 		// and handle this situation.

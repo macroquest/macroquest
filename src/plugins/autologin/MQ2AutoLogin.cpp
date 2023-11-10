@@ -683,7 +683,8 @@ PLUGIN_API void ShutdownPlugin()
 	delete pAutoLoginType;
 	delete pLoginProfileType;
 
-	postoffice::GetPostOffice().RemoveMailbox("autologin");
+	//postoffice::GetPostOffice().RemoveMailbox("autologin");
+	s_autologinMailbox.Remove();
 }
 
 void SendWndNotification(CXWnd* pWnd, CXWnd* sender, uint32_t msg, void* data)

@@ -21,8 +21,7 @@
 #include <queue>
 #include <memory>
 
-namespace mq {
-namespace postoffice {
+namespace mq::postoffice {
 
 /**
  * Abstract post office class for handling routing of messages
@@ -46,10 +45,12 @@ public:
 	class Mailbox
 	{
 	public:
-		Mailbox(std::string_view localAddress, ReceiveCallback&& receive)
+		Mailbox(std::string localAddress, ReceiveCallback&& receive)
 			: m_localAddress(localAddress)
 			, m_receive(std::move(receive))
 		{}
+
+		~Mailbox() {}
 
 		/**
 		 * Gets the address of this mailbox
@@ -63,46 +64,17 @@ public:
 		 * 
 		 * @param message the message to deliver
 		 */
-		void Deliver(PipeMessagePtr&& message) const
-		{
-			// Don't do anything if this isn't wrapped in an envelope
-			if (message->GetMessageId() == MQMessageId::MSG_ROUTE)
-			{
-				m_receiveQueue.push(Open(ProtoMessage::Parse<proto::Envelope>(message), *message->GetHeader()));
-			}
-		}
+		void Deliver(PipeMessagePtr&& message) const;
 
 		/**
 		 * Process some messages that have been delivered
 		 * 
 		 * @param howMany how many messages to process off the queue
 		 */
-		void Process(size_t howMany) const
-		{
-			if (howMany > 0 && !m_receiveQueue.empty())
-			{
-				m_receive(std::move(m_receiveQueue.front()));
-				m_receiveQueue.pop();
-
-				Process(howMany - 1);
-			}
-		}
+		void Process(size_t howMany) const;
 
 	private:
-		static ProtoMessagePtr Open(proto::Envelope&& envelope, const MQMessageHeader& header)
-		{
-			auto unwrapped = envelope.has_payload() ?
-				std::make_unique<ProtoMessage>(header, &envelope.payload()[0], envelope.payload().size()) :
-				std::make_unique<ProtoMessage>(header, nullptr, 0);
-
-			if (envelope.has_message_id())
-				unwrapped->GetHeader()->messageId = static_cast<MQMessageId>(envelope.message_id());
-
-			if (envelope.has_return_address())
-				unwrapped->SetSender(envelope.return_address());
-
-			return unwrapped;
-		}
+		static ProtoMessagePtr Open(proto::Envelope&& envelope, const MQMessageHeader& header);
 
 		const std::string m_localAddress;
 		const ReceiveCallback m_receive;
@@ -116,36 +88,16 @@ public:
 
 	public:
 		Dropbox()
-			: m_post(nullptr)
+			: m_valid(false)
 		{}
 
-		Dropbox(std::string_view localAddress, PostCallback&& post)
-			: m_localAddress(localAddress)
-			, m_post(std::move(post))
-		{}
+		~Dropbox() {}
 
-		Dropbox(const Dropbox& other)
-			: m_localAddress(other.m_localAddress)
-			, m_post(other.m_post)
-		{}
-
-		Dropbox(Dropbox&& other) noexcept
-			: m_localAddress(std::move(other.m_localAddress))
-			, m_post(std::exchange(other.m_post, nullptr))
-		{}
-
-		Dropbox& operator=(const Dropbox& other)
-		{
-			return *this = Dropbox(other);
-		}
-
-		Dropbox& operator=(Dropbox&& other) noexcept
-		{
-			using std::swap;
-			swap(m_localAddress, other.m_localAddress);
-			swap(m_post, other.m_post);
-			return *this;
-		}
+		Dropbox(std::string localAddress, const PostCallback& post, const std::function<void(const std::string&)>& unregister);
+		Dropbox(const Dropbox& other);
+		Dropbox(Dropbox&& other) noexcept;
+		//Dropbox& operator=(const Dropbox& other);
+		Dropbox& operator=(Dropbox other) noexcept;
 
 		/**
 		 * Sends a message to an address
@@ -232,7 +184,12 @@ public:
 		 * 
 		 * @return this dropbox is valid and will send messages
 		 */
-		bool IsValid() { return m_post != nullptr && !m_localAddress.empty(); }
+		bool IsValid() { return m_valid; }
+
+		/**
+		 * Removes the mailbox with the same name from the post office
+		 */
+		void Remove();
 
 	private:
 		template <typename ID, typename T>
@@ -260,9 +217,12 @@ public:
 
 		std::string m_localAddress;
 		PostCallback m_post;
+		std::function<void(const std::string&)> m_unregister;
+		bool m_valid;
 	};
 
 public:
+	~PostOffice() {}
 
 	/**
 	 * The interface to route a message, to be implemented in the post office instantiation
@@ -296,16 +256,7 @@ public:
 	 * @param receive a callback rvalue that will process messages as they are received in this mailbox
 	 * @return an dropbox that the creator can use to send addressed messages. will be invalid if it failed to add
 	 */
-	Dropbox CreateAndAddMailbox(const std::string& localAddress, ReceiveCallback&& receive)
-	{
-		auto [mailbox, added] = m_mailboxes.emplace(localAddress, std::make_unique<Mailbox>(localAddress, std::move(receive)));
-		if (added)
-		{
-			return Dropbox(localAddress, [this](const std::string& data) { RouteMessage(data); });
-		}
-
-		return Dropbox();
-	}
+	Dropbox CreateAndAddMailbox(const std::string& localAddress, ReceiveCallback&& receive);
 
 	/**
 	 * Removes a mailbox from the post office
@@ -313,10 +264,7 @@ public:
 	 * @param localAddress the string address that identifies the mailbox to be removed
 	 * @return true if the mailbox was removed
 	 */
-	bool RemoveMailbox(const std::string& localAddress)
-	{
-		return m_mailboxes.erase(localAddress) == 1;
-	}
+	bool RemoveMailbox(const std::string& localAddress);
 
 	/**
 	 * Delivers a message to a local mailbox
@@ -326,18 +274,7 @@ public:
 	 * @param failed a callback for failure (since message is moved)
 	 * @return true if routing was successful
 	 */
-	bool DeliverTo(const std::string& localAddress, PipeMessagePtr&& message, const std::function<void(PipeMessagePtr&&)>& failed = [](const auto&) {})
-	{
-		auto mailbox_it = m_mailboxes.find(localAddress);
-		if (mailbox_it != m_mailboxes.end())
-		{
-			mailbox_it->second->Deliver(std::move(message));
-			return true;
-		}
-
-		failed(std::move(message));
-		return false;
-	}
+	bool DeliverTo(const std::string& localAddress, PipeMessagePtr&& message, const std::function<void(PipeMessagePtr&&)>& failed = [](const auto&) {});
 
 	/**
 	 * Delivers a message to all local mailboxes, optionally excluding self
@@ -345,35 +282,17 @@ public:
 	 * @param message the message to send -- only the message ID and the payload is used (the header is rebuilt per message)
 	 * @param fromAddress the address to exclude from the delivery
 	 */
-	void DeliverAll(PipeMessagePtr& message, std::optional<std::string_view> fromAddress = {})
-	{
-		for (const auto& [name, mailbox] : m_mailboxes)
-		{
-			if (fromAddress && name != *fromAddress)
-			{
-				mailbox->Deliver(
-					std::make_unique<PipeMessage>(*message->GetHeader(), message->get(), message->size())
-				);
-			}
-		}
-	}
+	void DeliverAll(PipeMessagePtr& message, std::optional<std::string_view> fromAddress = {});
 
 	/**
 	 * Processes messages waiting in the queue
 	 * 
 	 * @param howMany how many messages to process (up to)
 	 */
-	void Process(size_t howMany)
-	{
-		size_t messages_per_mailbox = std::max(1, (int)std::round(howMany / m_mailboxes.size()));
-		for (const auto& [_, mailbox] : m_mailboxes)
-		{
-			mailbox->Process(messages_per_mailbox);
-		}
-	}
+	void Process(size_t howMany);
 
 private:
-	std::unordered_map<std::string, std::unique_ptr<Mailbox>> m_mailboxes;
+	std::unordered_map<std::string, std::shared_ptr<Mailbox>> m_mailboxes;
 };
 
 /**
@@ -383,6 +302,4 @@ private:
  */
 MQLIB_OBJECT PostOffice& GetPostOffice();
 
-} // namespace postoffice
-
-} // namespace mq
+} // namespace mq::postoffice

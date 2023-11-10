@@ -27,6 +27,8 @@
     <ProtocolBuffer Include="Routing.proto" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\NamedPipes.cpp" />
+    <ClCompile Include="PostOffice.cpp" />
     <ClCompile Include="Routing.pb.cc">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4267</DisableSpecificWarnings>
