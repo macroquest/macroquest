@@ -4,3 +4,4 @@ wil
 date
 detours
 protobuf
+sqlite3
