@@ -43,21 +43,22 @@ static int CountContainerItems(ItemContainer& container, int fromSlot, int toSlo
  *
  * @return Integer value representing the item's size. Returns -1 for unrecognized descriptors.
  */
-inline int GetItemSizeDesc(std::string_view String)
+inline int GetItemSizeFromDesc(std::string_view String)
 {
-	static const std::unordered_map<std::string_view, int> sizeMap = {
-		{ "tiny", ItemSize_Tiny },
-		{ "small", ItemSize_Small },
-		{ "medium", ItemSize_Medium },
-		{ "large", ItemSize_Large },
-		{ "giant", ItemSize_Giant }
-	};
+	if (ci_equals(String, "tiny"))
+		return ItemSize_Tiny;
 
-	const auto it = sizeMap.find(String);
-	if (it != sizeMap.end())
-	{
-		return it->second;
-	}
+	if (ci_equals(String, "small"))
+		return ItemSize_Small;
+
+	if (ci_equals(String, "medium"))
+		return ItemSize_Medium;
+
+	if (ci_equals(String, "large"))
+		return ItemSize_Large;
+
+	if (ci_equals(String, "giant"))
+		return ItemSize_Giant;
 
 	return -1;
 }

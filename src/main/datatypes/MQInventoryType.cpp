@@ -66,7 +66,7 @@ bool MQBankType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		}
 		else
 		{
-			const int sizeEnum = GetItemSizeDesc(Index);
+			const int sizeEnum = GetItemSizeFromDesc(Index);
 			if (sizeEnum == -1)
 				return false;
 			Dest.Set<int>(GetBankSlotCount(sizeEnum, true));
@@ -86,7 +86,7 @@ bool MQBankType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		}
 		else
 		{
-			const int sizeEnum = GetItemSizeDesc(Index);
+			const int sizeEnum = GetItemSizeFromDesc(Index);
 			if (sizeEnum == -1)
 				return false;
 			Dest.Set<int>(GetBankSlotCount(sizeEnum));
