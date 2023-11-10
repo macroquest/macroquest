@@ -41,6 +41,9 @@ void MQActorAPI::RemoveActor(postoffice::Dropbox*& dropbox)
 		auto iter = std::find_if(m_dropboxes.begin(), m_dropboxes.end(),
 			[dropbox](const std::unique_ptr<postoffice::Dropbox>& ptr) { return ptr.get() == dropbox; });
 
+		if (iter != m_dropboxes.end())
+			m_dropboxes.erase(iter);
+
 		dropbox = nullptr;
 	}
 }
