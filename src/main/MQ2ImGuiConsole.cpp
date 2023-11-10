@@ -907,7 +907,7 @@ namespace imgui
 std::vector<std::string> initConsoleDatabase(sqlite3*& db, int process_id)
 {
 	std::vector<std::string> history;
-	if (s_consoleFileLog)
+	if (s_consoleCommandHistoryLog)
 	{
 		const std::string db_path = internal_paths::Logs + "\\ConsoleBuffer.db";
 		if (sqlite3_open_v2(db_path.c_str(), &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_WAL, nullptr) != SQLITE_OK)
@@ -1016,7 +1016,7 @@ std::vector<std::string> initConsoleDatabase(sqlite3*& db, int process_id)
 	return history;
 }
 
-void AddEntryToDatabase(sqlite3*& db, int process_id, const char* entry)
+void AddEntryToDatabase(sqlite3* db, int process_id, const char* entry)
 {
 	if (db != nullptr)
 	{
@@ -1070,7 +1070,7 @@ public:
 
 		int maxBufferLines = GetPrivateProfileInt("Console", "MaxBufferLines", m_zepEditor->GetMaxBufferLines(), internal_paths::MQini);
 		m_zepEditor->SetMaxBufferLines(maxBufferLines);
-		m_history = initConsoleDatabase(m_db, current_pid);
+		m_history = InitConsoleDatabase(m_db, current_pid);
 	}
 
 	~ImGuiConsole()
@@ -1738,9 +1738,9 @@ static void ConsoleSettings()
 	mq::imgui::HelpMarker("This feature allows you to automatically show the MacroQuest Console upon load.");
 
 	ImGui::SameLine();
-	if (ImGui::Checkbox("Developer: Command Logging", &s_consoleFileLog))
+	if (ImGui::Checkbox("Developer: Command History Log", &s_consoleCommandHistoryLog))
 	{
-		WritePrivateProfileBool("Console", "FileLog", s_consoleFileLog, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Console", "CommandHistoryLog", s_consoleCommandHistoryLog, mq::internal_paths::MQini);
 	}
 
 	ImGui::SameLine();
@@ -1768,9 +1768,9 @@ static void ConsoleSettings()
 	if (ImGui::Button("Clear Saved Console Settings"))
 	{
 		s_consoleVisibleOnStartup = false;
-		s_consoleFileLog = false;
+		s_consoleCommandHistoryLog = false;
 		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
-		WritePrivateProfileBool("Console", "FileLog", s_consoleFileLog, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Console", "CommandHistoryLog", s_consoleCommandHistoryLog, mq::internal_paths::MQini);
 	}
 }
 
@@ -1778,11 +1778,11 @@ void InitializeImGuiConsole()
 {
 	s_consoleVisibleOnStartup = GetPrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", false, mq::internal_paths::MQini);
 	s_consoleVisible = s_consoleVisibleOnStartup;
-	s_consoleFileLog = GetPrivateProfileBool("Console", "FileLog", false, mq::internal_paths::MQini);
+	s_consoleCommandHistoryLog = GetPrivateProfileBool("Console", "CommandHistoryLog", false, mq::internal_paths::MQini);
 	if (gbWriteAllConfig)
 	{
 		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
-		WritePrivateProfileBool("Console", "FileLog", s_consoleFileLog, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Console", "CommandHistoryLog", s_consoleCommandHistoryLog, mq::internal_paths::MQini);
 	}
 
 	AddSettingsPanel("Console", ConsoleSettings);
