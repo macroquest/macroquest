@@ -32,4 +32,34 @@ static int CountContainerItems(ItemContainer& container, int fromSlot, int toSlo
 	return count;
 }
 
+/**
+ * Convert a string representation of item size to its corresponding integer value.
+ *
+ * This function maps size descriptors to their integer representations.
+ * If the input string doesn't match any known descriptors, it returns -1.
+ *
+ * @param String A std::string_view representing the descriptor of the item's size.
+ *               Expected values are: "tiny", "small", "medium", "large", "giant".
+ *
+ * @return Integer value representing the item's size. Returns -1 for unrecognized descriptors.
+ */
+inline int GetItemSizeDesc(std::string_view String)
+{
+	static const std::unordered_map<std::string_view, int> sizeMap = {
+		{ "tiny", ItemSize_Tiny },
+		{ "small", ItemSize_Small },
+		{ "medium", ItemSize_Medium },
+		{ "large", ItemSize_Large },
+		{ "giant", ItemSize_Giant }
+	};
+
+	const auto it = sizeMap.find(String);
+	if (it != sizeMap.end())
+	{
+		return it->second;
+	}
+
+	return -1;
+}
+
 } // namespace mq

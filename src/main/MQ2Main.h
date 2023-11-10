@@ -298,7 +298,6 @@ MQLIB_API CXWnd* GetAdvLootSharedListItem(DWORD ListIndex, DWORD type);
 MQLIB_API bool LootInProgress(CAdvancedLootWnd* pAdvLoot, CListWnd* pPersonalList, CListWnd* pSharedList);
 MQLIB_API void WeDidStuff();
 MQLIB_API int GetFreeInventory(int nSize);
-MQLIB_API int GetBankSlotCount(int nSize, bool bEmptyOnly = false);
 MQLIB_API int GetFreeStack(ItemClient* pContents);
 MQLIB_API int RangeRandom(int min, int max);
 
