@@ -386,6 +386,9 @@
     <ClCompile Include="datatypes\MQInventoryType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
+    <ClCompile Include="MQActorAPI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="GraphicsResources.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -592,8 +595,11 @@
     <ClInclude Include="..\..\include\mq\api\Inventory.h">
       <Filter>Header Files\mq\api</Filter>
     </ClInclude>
-    <ClInclude Include="ActorAPI.h">
+    <ClInclude Include="..\..\include\mq\api\ActorAPI.h">
       <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="MQActorAPI.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GraphicsResources.h">
       <Filter>Header Files</Filter>

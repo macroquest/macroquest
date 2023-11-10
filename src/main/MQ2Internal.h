@@ -882,6 +882,10 @@ public:
 	bool AddTopLevelObject(const char* name, MQTopLevelObjectFunction callback, MQPlugin* owner) override;
 	bool RemoveTopLevelObject(const char* name, MQPlugin* owner) override;
 	MQTopLevelObject* FindTopLevelObject(const char* name) override;
+
+	postoffice::Dropbox* AddActor(const char* localAddress, ReceiveCallback&& receive) override;
+	void RemoveActor(postoffice::Dropbox*& dropbox) override;
+
 };
 
 extern MainImpl* gpMainAPI;

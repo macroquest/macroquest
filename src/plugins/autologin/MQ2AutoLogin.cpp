@@ -41,7 +41,7 @@ constexpr int STEP_DELAY = 1000;
 
 fs::path CustomIni;
 uint64_t ReenableTime = 0;
-postoffice::Dropbox s_autologinDropbox;
+postoffice::Dropbox* s_autologinDropbox;
 
 class LoginProfileType : public MQ2Type
 {
@@ -205,7 +205,7 @@ static void Post(AutoLoginMessageId messageId, const T& data)
 	address.set_name("launcher");
 	address.set_mailbox("autologin");
 
-	s_autologinDropbox.Post(address, messageId, data);
+	s_autologinDropbox->Post(address, messageId, data);
 }
 
 // Notify on load/unload _only_ happens with the profile method, so we can reuse that proto
@@ -653,7 +653,7 @@ PLUGIN_API void InitializePlugin()
 
 	ReenableTime = MQGetTickCount64() + STEP_DELAY;
 
-	s_autologinDropbox = postoffice::GetPostOffice().RegisterAddress("autologin",
+	s_autologinDropbox = AddActor("autologin",
 		[](ProtoMessagePtr&& message)
 		{
 			// autologin doesn't actually take message inputs yet...
@@ -683,7 +683,7 @@ PLUGIN_API void ShutdownPlugin()
 	delete pAutoLoginType;
 	delete pLoginProfileType;
 
-	s_autologinDropbox.Remove();
+	RemoveActor(s_autologinDropbox);
 }
 
 void SendWndNotification(CXWnd* pWnd, CXWnd* sender, uint32_t msg, void* data)

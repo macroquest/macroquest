@@ -14,27 +14,21 @@
 
 #pragma once
 
-#include "mq/api/MacroAPI.h"
+#include "mq/base/Common.h"
 #include "mq/api/ActorAPI.h"
-#include "mq/api/Plugin.h"
 
 namespace mq {
 
-class MainInterface
+class MQActorAPI
 {
 public:
-	virtual ~MainInterface() {}
+	postoffice::Dropbox* AddActor(const char* localAddress, ReceiveCallback&& receive);
+	void RemoveActor(postoffice::Dropbox*& dropbox);
 
-	// TLO Access
-	virtual bool AddTopLevelObject(const char* name, MQTopLevelObjectFunction callback, MQPlugin* owner) = 0;
-	virtual bool RemoveTopLevelObject(const char* name, MQPlugin* owner) = 0;
-	virtual MQTopLevelObject* FindTopLevelObject(const char* name) = 0;
-
-	// Actor Access
-	virtual postoffice::Dropbox* AddActor(const char* localAddress, ReceiveCallback&& receive) = 0;
-	virtual void RemoveActor(postoffice::Dropbox*& dropbox) = 0;
+private:
+	std::vector<std::unique_ptr<postoffice::Dropbox>> m_dropboxes;
 };
 
-MQLIB_OBJECT MainInterface* GetMainInterface();
+extern MQActorAPI* pActorAPI;
 
 } // namespace mq

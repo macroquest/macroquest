@@ -16,6 +16,9 @@
 #include "MQ2Main.h"
 #include "CrashHandler.h"
 
+#include "routing/PostOffice.h"
+#include "MQActorAPI.h"
+
 #include "MQ2KeyBinds.h"
 #include "ImGuiManager.h"
 #include "GraphicsResources.h"
@@ -1138,12 +1141,17 @@ MainImpl::MainImpl()
 {
 	pDataAPI = new MQDataAPI();
 	pDataAPI->Initialize();
+
+	pActorAPI = new MQActorAPI();
 }
 
 MainImpl::~MainImpl()
 {
 	delete pDataAPI;
 	pDataAPI = nullptr;
+
+	delete pActorAPI;
+	pActorAPI = nullptr;
 }
 
 bool MainImpl::AddTopLevelObject(const char* name, MQTopLevelObjectFunction callback, MQPlugin* owner)
@@ -1159,6 +1167,16 @@ bool MainImpl::RemoveTopLevelObject(const char* name, MQPlugin* owner)
 MQTopLevelObject* MainImpl::FindTopLevelObject(const char* name)
 {
 	return pDataAPI->FindTopLevelObject(name);
+}
+
+postoffice::Dropbox* MainImpl::AddActor(const char* localAddress, ReceiveCallback&& receive)
+{
+	return pActorAPI->AddActor(localAddress, std::move(receive));
+}
+
+void MainImpl::RemoveActor(postoffice::Dropbox*& dropbox)
+{
+	pActorAPI->RemoveActor(dropbox);
 }
 
 MainImpl* gpMainAPI = nullptr;

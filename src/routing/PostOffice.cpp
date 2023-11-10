@@ -73,29 +73,12 @@ Dropbox::Dropbox(Dropbox&& other) noexcept
 	, m_valid(other.m_valid)
 {}
 
-//Dropbox& PostOffice::Dropbox::operator=(const Dropbox& other)
-//{
-//	if (this != &other)
-//	{
-//		m_localAddress = other.m_localAddress;
-//		m_post = other.m_post;
-//		m_unregister = other.m_unregister;
-//		m_valid = other.m_valid;
-//	}
-
-//	return *this;
-//}
-
 Dropbox& Dropbox::operator=(Dropbox other) noexcept
 {
-	//m_localAddress = std::move(other.m_localAddress);
-	//m_post = std::move(other.m_post);
-	//m_unregister = std::move(other.m_unregister);
-	//m_valid = other.m_valid;
-	std::swap(m_localAddress, other.m_localAddress);
-	std::swap(m_post, other.m_post);
-	std::swap(m_unregister, other.m_unregister);
-	std::swap(m_valid, other.m_valid);
+	m_localAddress = std::move(other.m_localAddress);
+	m_post = std::move(other.m_post);
+	m_unregister = std::move(other.m_unregister);
+	m_valid = other.m_valid;
 	return *this;
 }
 
