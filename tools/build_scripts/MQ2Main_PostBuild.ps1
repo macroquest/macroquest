@@ -81,6 +81,8 @@ try {
 
 	# Copy crash reporter
 	Copy-LatestFile "$Src\..\contrib\vcpkg\installed\$Arch-windows-static\tools\crashpad_handler.exe" "$Dst\crashpad_handler.exe" "crashpad_handler.exe"
+	# Copy license
+	Copy-Latestfile "$Src\..\LICENSE.md" "$Dst\resources\LICENSE.md" "LICENSE.md"
 	$DstLeaf = $Dst|Split-Path -leaf
 	# Copy DX files
 	if ($Dst -like '*debug*')
