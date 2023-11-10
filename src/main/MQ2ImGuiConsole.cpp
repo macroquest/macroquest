@@ -73,7 +73,7 @@ static bool s_consoleVisible = false;
 static bool s_consoleVisibleOnStartup = false;
 static bool s_resetConsolePosition = false;
 static bool s_setFocus = false;
-static bool s_consoleFileLog = false;
+static bool s_consoleCommandHistoryLog = false;
 
 class ImGuiConsole;
 ImGuiConsole* gImGuiConsole = nullptr;
@@ -904,7 +904,7 @@ namespace imgui
 	}
 }
 
-std::vector<std::string> initConsoleDatabase(sqlite3*& db, int process_id)
+std::vector<std::string> InitConsoleDatabase(sqlite3*& db, int process_id)
 {
 	std::vector<std::string> history;
 	if (s_consoleCommandHistoryLog)
