@@ -653,14 +653,11 @@ PLUGIN_API void InitializePlugin()
 
 	ReenableTime = MQGetTickCount64() + STEP_DELAY;
 
-	auto mailbox = postoffice::GetPostOffice().CreateAndAddMailbox("autologin",
+	s_autologinMailbox = postoffice::GetPostOffice().CreateAndAddMailbox("autologin",
 		[](ProtoMessagePtr&& message)
 		{
 			// autologin doesn't actually take message inputs yet...
 		});
-
-	if (mailbox)
-		s_autologinMailbox = std::move(*mailbox);
 }
 
 PLUGIN_API void ShutdownPlugin()

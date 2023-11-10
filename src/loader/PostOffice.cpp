@@ -377,14 +377,11 @@ public:
 		m_pipeServer.SetHandler(std::make_shared<PipeEventsHandler>(this));
 		m_pipeServer.Start();
 
-		auto mailbox = CreateAndAddMailbox("pipe_server",
+		m_serverMailbox = CreateAndAddMailbox("pipe_server",
 			[this](ProtoMessagePtr&& message)
 			{
 				m_pipeServer.DispatchMessage(std::move(message));
 			});
-
-		if (mailbox)
-			m_serverMailbox = std::move(*mailbox);
 	}
 
 	void Shutdown()

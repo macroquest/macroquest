@@ -2115,9 +2115,7 @@ void ReceivedMessageHandler(ProtoMessagePtr&& message)
 
 void InitializeAutoLogin()
 {
-	auto mailbox = postoffice::GetPostOffice().CreateAndAddMailbox("autologin", ReceivedMessageHandler);
-	if (mailbox)
-		s_mailbox = std::move(*mailbox);
+	s_mailbox = postoffice::GetPostOffice().CreateAndAddMailbox("autologin", ReceivedMessageHandler);
 
 	// Get path to mq2autologin.ini
 	fs::path pathAutoLoginIni = fs::path{ internal_paths::Config }  / "MQ2AutoLogin.ini";

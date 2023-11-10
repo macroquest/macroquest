@@ -294,9 +294,9 @@ public:
 	 * 
 	 * @param localAddress the string address to create the address at
 	 * @param receive a callback rvalue that will process messages as they are received in this mailbox
-	 * @return an optional dropbox that the creator can use to send addressed messages. will be none if it failed to add
+	 * @return an dropbox that the creator can use to send addressed messages. will be invalid if it failed to add
 	 */
-	std::optional<Dropbox> CreateAndAddMailbox(const std::string& localAddress, ReceiveCallback&& receive)
+	Dropbox CreateAndAddMailbox(const std::string& localAddress, ReceiveCallback&& receive)
 	{
 		auto [mailbox, added] = m_mailboxes.emplace(localAddress, std::make_unique<Mailbox>(localAddress, std::move(receive)));
 		if (added)
@@ -304,7 +304,7 @@ public:
 			return Dropbox(localAddress, [this](const std::string& data) { RouteMessage(data); });
 		}
 
-		return {};
+		return Dropbox();
 	}
 
 	/**

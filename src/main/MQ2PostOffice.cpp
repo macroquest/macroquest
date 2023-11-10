@@ -366,7 +366,7 @@ public:
 		m_pipeClient.Start();
 		::atexit(StopPipeClient);
 
-		auto dropbox = CreateAndAddMailbox("pipe_client",
+		m_clientDropbox = CreateAndAddMailbox("pipe_client",
 			[this](ProtoMessagePtr&& message)
 			{
 				// we want to discard any message sent from self
@@ -383,15 +383,11 @@ public:
 				m_pipeClient.DispatchMessage(std::move(message));
 			});
 
-		if (dropbox)
-		{
-			m_clientDropbox = std::move(std::move(*dropbox));
-			// once we set up the mailbox, get a list of all connected peers
-			proto::Address address;
-			address.set_name("launcher");
+		// once we set up the mailbox, get a list of all connected peers
+		proto::Address address;
+		address.set_name("launcher");
 
-			m_clientDropbox.Post(address, MQMessageId::MSG_IDENTIFICATION);
-		}
+		m_clientDropbox.Post(address, MQMessageId::MSG_IDENTIFICATION);
 	}
 
 	void Shutdown()
