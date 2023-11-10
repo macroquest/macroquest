@@ -17,7 +17,7 @@
 
 namespace mq::postoffice {
 
-void PostOffice::Mailbox::Deliver(PipeMessagePtr&& message) const
+void Mailbox::Deliver(PipeMessagePtr&& message) const
 {
 	// Don't do anything if this isn't wrapped in an envelope
 	if (message->GetMessageId() == MQMessageId::MSG_ROUTE)
@@ -26,7 +26,7 @@ void PostOffice::Mailbox::Deliver(PipeMessagePtr&& message) const
 	}
 }
 
-void PostOffice::Mailbox::Process(size_t howMany) const
+void Mailbox::Process(size_t howMany) const
 {
 	if (howMany > 0 && !m_receiveQueue.empty())
 	{
@@ -37,7 +37,7 @@ void PostOffice::Mailbox::Process(size_t howMany) const
 	}
 }
 
-ProtoMessagePtr PostOffice::Mailbox::Open(proto::Envelope&& envelope, const MQMessageHeader& header)
+ProtoMessagePtr Mailbox::Open(proto::Envelope&& envelope, const MQMessageHeader& header)
 {
 	auto unwrapped = envelope.has_payload() ?
 		std::make_unique<ProtoMessage>(header, &envelope.payload()[0], envelope.payload().size()) :
@@ -52,28 +52,28 @@ ProtoMessagePtr PostOffice::Mailbox::Open(proto::Envelope&& envelope, const MQMe
 	return unwrapped;
 }
 
-PostOffice::Dropbox::Dropbox(std::string localAddress, const PostCallback& post, const std::function<void(const std::string&)>& unregister)
+Dropbox::Dropbox(std::string localAddress, const PostCallback& post, const std::function<void(const std::string&)>& unregister)
 	: m_localAddress(localAddress)
 	, m_post(post)
 	, m_unregister(unregister)
 	, m_valid(true)
 {}
 
-PostOffice::Dropbox::Dropbox(const Dropbox& other)
+Dropbox::Dropbox(const Dropbox& other)
 	: m_localAddress(other.m_localAddress)
 	, m_post(other.m_post)
 	, m_unregister(other.m_unregister)
 	, m_valid(other.m_valid)
 {}
 
-PostOffice::Dropbox::Dropbox(Dropbox&& other) noexcept
+Dropbox::Dropbox(Dropbox&& other) noexcept
 	: m_localAddress(std::move(other.m_localAddress))
 	, m_post(std::move(other.m_post))
 	, m_unregister(std::move(other.m_unregister))
 	, m_valid(other.m_valid)
 {}
 
-//PostOffice::Dropbox& PostOffice::Dropbox::operator=(const Dropbox& other)
+//Dropbox& PostOffice::Dropbox::operator=(const Dropbox& other)
 //{
 //	if (this != &other)
 //	{
@@ -86,7 +86,7 @@ PostOffice::Dropbox::Dropbox(Dropbox&& other) noexcept
 //	return *this;
 //}
 
-PostOffice::Dropbox& PostOffice::Dropbox::operator=(Dropbox other) noexcept
+Dropbox& Dropbox::operator=(Dropbox other) noexcept
 {
 	//m_localAddress = std::move(other.m_localAddress);
 	//m_post = std::move(other.m_post);
@@ -99,7 +99,7 @@ PostOffice::Dropbox& PostOffice::Dropbox::operator=(Dropbox other) noexcept
 	return *this;
 }
 
-void PostOffice::Dropbox::Remove()
+void Dropbox::Remove()
 {
 	if (m_valid)
 		m_unregister(m_localAddress);
@@ -109,7 +109,7 @@ void PostOffice::Dropbox::Remove()
 	m_valid = false;
 }
 
-PostOffice::Dropbox PostOffice::CreateAndAddMailbox(const std::string& localAddress, ReceiveCallback&& receive)
+Dropbox PostOffice::RegisterAddress(const std::string& localAddress, ReceiveCallback&& receive)
 {
 	auto [mailbox, added] = m_mailboxes.emplace(localAddress, std::make_shared<Mailbox>(localAddress, std::move(receive)));
 	if (added)

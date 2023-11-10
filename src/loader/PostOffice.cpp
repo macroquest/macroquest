@@ -377,7 +377,7 @@ public:
 		m_pipeServer.SetHandler(std::make_shared<PipeEventsHandler>(this));
 		m_pipeServer.Start();
 
-		m_serverMailbox = CreateAndAddMailbox("pipe_server",
+		m_serverDropbox = RegisterAddress("pipe_server",
 			[this](ProtoMessagePtr&& message)
 			{
 				m_pipeServer.DispatchMessage(std::move(message));
@@ -389,7 +389,7 @@ public:
 		// after the mailbox is removed from the post office, it won't get any more messages, and lets
 		// make sure all remaining messages get discarded by dropping the last reference so we stop
 		// processing
-		RemoveMailbox("pipe_server");
+		m_serverDropbox.Remove();
 
 		// we don't need to worry about sending messages after we stop because the pipe client will log
 		// and handle this situation.
@@ -398,7 +398,7 @@ public:
 
 private:
 	mq::ProtoPipeServer m_pipeServer;
-	PostOffice::Dropbox m_serverMailbox;
+	Dropbox m_serverDropbox;
 
 	bool SendMessageToPID(uint32_t pid, PipeMessagePtr&& message, const std::function<void(PipeMessagePtr&&)>& failed)
 	{

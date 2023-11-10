@@ -592,6 +592,9 @@
     <ClInclude Include="..\..\include\mq\api\Inventory.h">
       <Filter>Header Files\mq\api</Filter>
     </ClInclude>
+    <ClInclude Include="ActorAPI.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
     <ClInclude Include="GraphicsResources.h">
       <Filter>Header Files</Filter>
     </ClInclude>

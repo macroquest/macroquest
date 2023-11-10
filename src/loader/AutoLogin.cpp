@@ -104,7 +104,7 @@ bool DecryptData(DATA_BLOB* DataIn, DATA_BLOB* DataOut);
 int gMenuItemCount = 0;
 HMENU hProfilesMenu = nullptr;
 
-postoffice::PostOffice::Dropbox s_mailbox;
+postoffice::Dropbox s_dropbox;
 
 namespace internal_paths
 {
@@ -2115,7 +2115,7 @@ void ReceivedMessageHandler(ProtoMessagePtr&& message)
 
 void InitializeAutoLogin()
 {
-	s_mailbox = postoffice::GetPostOffice().CreateAndAddMailbox("autologin", ReceivedMessageHandler);
+	s_dropbox = postoffice::GetPostOffice().RegisterAddress("autologin", ReceivedMessageHandler);
 
 	// Get path to mq2autologin.ini
 	fs::path pathAutoLoginIni = fs::path{ internal_paths::Config }  / "MQ2AutoLogin.ini";
@@ -2192,5 +2192,5 @@ void InitializeAutoLogin()
 
 void ShutdownAutoLogin()
 {
-	postoffice::GetPostOffice().RemoveMailbox("autologin");
+	s_dropbox.Remove();
 }

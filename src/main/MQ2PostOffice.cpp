@@ -366,7 +366,7 @@ public:
 		m_pipeClient.Start();
 		::atexit(StopPipeClient);
 
-		m_clientDropbox = CreateAndAddMailbox("pipe_client",
+		m_clientDropbox = RegisterAddress("pipe_client",
 			[this](ProtoMessagePtr&& message)
 			{
 				m_pipeClient.DispatchMessage(std::move(message));
@@ -384,7 +384,6 @@ public:
 		// after the mailbox is removed from the post office, it won't get any more messages, and lets
 		// make sure all remaining messages get discarded by dropping the last reference so we stop
 		// processing
-		//RemoveMailbox("pipe_client");
 		m_clientDropbox.Remove();
 
 		// we don't need to worry about sending messages after we stop because the pipe client will log
