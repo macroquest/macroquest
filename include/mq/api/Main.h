@@ -32,7 +32,7 @@ public:
 
 	// Actor Access
 	virtual void SendToActor(postoffice::Dropbox* dropbox, const postoffice::Address& address, uint16_t messageId, const std::string& data, MQPlugin* owner) = 0;
-	virtual postoffice::Dropbox* AddActor(const char* localAddress, ReceiveCallback&& receive, MQPlugin* owner) = 0;
+	virtual postoffice::Dropbox* AddActor(const char* localAddress, postoffice::ReceiveCallback&& receive, MQPlugin* owner) = 0;
 	virtual void RemoveActor(postoffice::Dropbox*& dropbox, MQPlugin* owner) = 0;
 };
 

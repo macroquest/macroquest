@@ -654,7 +654,7 @@ PLUGIN_API void InitializePlugin()
 
 	ReenableTime = MQGetTickCount64() + STEP_DELAY;
 
-	s_autologinDropbox = AddActor("autologin",
+	s_autologinDropbox = postoffice::AddActor("autologin",
 		[](ProtoMessagePtr&& message)
 		{
 			// autologin doesn't actually take message inputs yet...

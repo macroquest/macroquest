@@ -16,6 +16,9 @@
 
 namespace mq {
 
+class ProtoMessage;
+using ProtoMessagePtr = std::unique_ptr<ProtoMessage>;
+
 namespace postoffice {
 	class Dropbox;
 
@@ -50,14 +53,11 @@ namespace postoffice {
 		void Remove();
 	};
 
-} // namespace postoffice
-
-class ProtoMessage;
-using ProtoMessagePtr = std::unique_ptr<ProtoMessage>;
-
 using ReceiveCallback = std::function<void(ProtoMessagePtr&&)>;
 
-postoffice::DropboxAPI AddActor(ReceiveCallback&& receive);
-postoffice::DropboxAPI AddActor(const char* localAddress, ReceiveCallback&& receive);
+DropboxAPI AddActor(ReceiveCallback&& receive);
+DropboxAPI AddActor(const char* localAddress, ReceiveCallback&& receive);
+
+} // namespace postoffice
 
 } // namespace mq

@@ -79,7 +79,7 @@ void mq::postoffice::DropboxAPI::Remove()
 	mqplugin::MainInterface->RemoveActor(Dropbox, mqplugin::ThisPlugin);
 }
 
-mq::postoffice::DropboxAPI mq::AddActor(ReceiveCallback&& receive)
+mq::postoffice::DropboxAPI mq::postoffice::AddActor(ReceiveCallback&& receive)
 {
 	if (mqplugin::ThisPlugin != nullptr)
 	{
@@ -91,7 +91,7 @@ mq::postoffice::DropboxAPI mq::AddActor(ReceiveCallback&& receive)
 	return mq::postoffice::DropboxAPI{ nullptr };
 }
 
-mq::postoffice::DropboxAPI mq::AddActor(const char* localAddress, ReceiveCallback&& receive)
+mq::postoffice::DropboxAPI mq::postoffice::AddActor(const char* localAddress, ReceiveCallback&& receive)
 {
 	std::string address(localAddress);
 	if (mqplugin::ThisPlugin != nullptr)
