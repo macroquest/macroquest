@@ -102,6 +102,22 @@ public:
 	}
 
 	/**
+	 * Sends a message to an address
+	 *
+	 * @tparam ID an identifier to be used by the receiver, must cast to uint32_t
+	 * @tparam T the message being sent, usually some kind of proto
+	 *
+	 * @param address the address to send the message
+	 * @param messageId a message ID used to route the message at the receiver
+	 * @param obj the message (as a data string)
+	 */
+	template <typename ID>
+	inline void Post(const proto::routing::Address& address, ID messageId, const std::string& obj)
+	{
+		if (IsValid()) m_post(StuffData(address, messageId, obj));
+	}
+
+	/**
 	 * Sends an empty message to an address
 	 *
 	 * @tparam ID an identifier to be used by the receiver, must cast to uint32_t

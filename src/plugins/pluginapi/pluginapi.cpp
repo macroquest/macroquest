@@ -69,11 +69,21 @@ mq::MQTopLevelObject* mq::FindTopLevelObject(const char* szName)
 	return mqplugin::MainInterface->FindTopLevelObject(szName);
 }
 
-mq::postoffice::Dropbox* AddActor(mq::ReceiveCallback&& receive)
+void mq::postoffice::DropboxAPI::PostData(const Address& address, uint16_t messageId, const std::string& data)
+{
+	mqplugin::MainInterface->SendToActor(Dropbox, address, messageId, data, mqplugin::ThisPlugin);
+}
+
+void mq::postoffice::DropboxAPI::Remove()
+{
+	mqplugin::MainInterface->RemoveActor(Dropbox, mqplugin::ThisPlugin);
+}
+
+mq::postoffice::DropboxAPI mq::AddActor(ReceiveCallback&& receive)
 {
 	if (mqplugin::ThisPlugin != nullptr)
 	{
-		return mqplugin::MainInterface->AddActor(mqplugin::ThisPlugin->name.c_str(), std::move(receive),
+		return mq::postoffice::DropboxAPI{ mqplugin::MainInterface->AddActor(mqplugin::ThisPlugin->name.c_str(), std::move(receive),
 			[&name = mqplugin::ThisPlugin->name](const std::string& mailbox)
 			{
 				if (mailbox.empty())
@@ -83,13 +93,13 @@ mq::postoffice::Dropbox* AddActor(mq::ReceiveCallback&& receive)
 					return mailbox;
 
 				return fmt::format("{}:{}", name, mailbox);
-			}, mqplugin::ThisPlugin);
+			}, mqplugin::ThisPlugin) };
 	}
 
-	return nullptr;
+	return mq::postoffice::DropboxAPI{ nullptr };
 }
 
-mq::postoffice::Dropbox* mq::AddActor(const char* localAddress, mq::ReceiveCallback&& receive)
+mq::postoffice::DropboxAPI mq::AddActor(const char* localAddress, ReceiveCallback&& receive)
 {
 	std::string address(localAddress);
 	MailboxMutator mutator = nullptr;
@@ -109,12 +119,9 @@ mq::postoffice::Dropbox* mq::AddActor(const char* localAddress, mq::ReceiveCallb
 	}
 
 
-	return mqplugin::MainInterface->AddActor(address.c_str(), std::move(receive), std::move(mutator), mqplugin::ThisPlugin);
-}
-
-void mq::RemoveActor(mq::postoffice::Dropbox*& dropbox)
-{
-	mqplugin::MainInterface->RemoveActor(dropbox, mqplugin::ThisPlugin);
+	return mq::postoffice::DropboxAPI{
+		mqplugin::MainInterface->AddActor(address.c_str(), std::move(receive), std::move(mutator), mqplugin::ThisPlugin)
+	};
 }
 
 //============================================================================

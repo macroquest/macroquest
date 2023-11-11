@@ -18,6 +18,38 @@ namespace mq {
 
 namespace postoffice {
 	class Dropbox;
+
+	struct Address
+	{
+		std::optional<uint32_t> PID;
+		std::optional<std::string> Name;
+		std::optional<std::string> Mailbox;
+		std::optional<std::string> Account;
+		std::optional<std::string> Server;
+		std::optional<std::string> Character;
+		bool Explicit = false;
+	};
+
+	struct DropboxAPI
+	{
+		Dropbox* Dropbox;
+
+		template <typename ID, typename T>
+		void Post(const Address& address, ID messageId, const T& obj)
+		{
+			PostData(address, static_cast<uint16_t>(messageId), obj.SerializeAsString());
+		}
+
+		template <typename ID>
+		void Post(const Address& address, ID messageId, const std::string& obj)
+		{
+			PostData(address, static_cast<uint16_t>(messageId), obj);
+		}
+
+		void PostData(const Address& address, uint16_t messageId, const std::string& data);
+		void Remove();
+	};
+
 } // namespace postoffice
 
 class ProtoMessage;
@@ -26,8 +58,7 @@ using ProtoMessagePtr = std::unique_ptr<ProtoMessage>;
 using ReceiveCallback = std::function<void(ProtoMessagePtr&&)>;
 using MailboxMutator = std::function<std::string(const std::string&)>;
 
-postoffice::Dropbox* AddActor(ReceiveCallback&& receive);
-postoffice::Dropbox* AddActor(const char* localAddress, ReceiveCallback&& receive);
-void RemoveActor(postoffice::Dropbox*& dropbox);
+postoffice::DropboxAPI AddActor(ReceiveCallback&& receive);
+postoffice::DropboxAPI AddActor(const char* localAddress, ReceiveCallback&& receive);
 
 } // namespace mq

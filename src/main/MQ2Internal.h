@@ -883,6 +883,7 @@ public:
 	bool RemoveTopLevelObject(const char* name, MQPlugin* owner) override;
 	MQTopLevelObject* FindTopLevelObject(const char* name) override;
 
+	void SendToActor(postoffice::Dropbox* dropbox, const postoffice::Address& address, uint16_t messageId, const std::string& data, MQPlugin* owner) override;
 	postoffice::Dropbox* AddActor(const char* localAddress, ReceiveCallback&& receive, MailboxMutator&& mutator, MQPlugin* owner) override;
 	void RemoveActor(postoffice::Dropbox*& dropbox, MQPlugin* owner) override;
 

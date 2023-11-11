@@ -31,6 +31,7 @@ public:
 	virtual MQTopLevelObject* FindTopLevelObject(const char* name) = 0;
 
 	// Actor Access
+	virtual void SendToActor(postoffice::Dropbox* dropbox, const postoffice::Address& address, uint16_t messageId, const std::string& data, MQPlugin* owner) = 0;
 	virtual postoffice::Dropbox* AddActor(const char* localAddress, ReceiveCallback&& receive, MailboxMutator&& mutator, MQPlugin* owner) = 0;
 	virtual void RemoveActor(postoffice::Dropbox*& dropbox, MQPlugin* owner) = 0;
 };

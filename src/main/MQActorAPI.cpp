@@ -57,6 +57,37 @@ static void UnloadPluginActorAPI(const char* pluginName)
 
 MQActorAPI* pActorAPI = nullptr;
 
+void MQActorAPI::SendToActor(postoffice::Dropbox* dropbox, const postoffice::Address& address, uint16_t messageId, const std::string& data, MQPlugin* owner)
+{
+	if (dropbox != nullptr)
+	{
+		proto::routing::Address	addr;
+
+		if (address.PID)
+			addr.set_pid(*address.PID);
+		else if (address.Name)
+			addr.set_name(*address.Name);
+
+		if (address.Mailbox && (address.Explicit || owner == nullptr))
+			addr.set_mailbox(*address.Mailbox);
+		else if (address.Mailbox && owner != nullptr)
+			addr.set_mailbox(fmt::format("{}:{}", owner->name, *address.Mailbox));
+		else if (owner != nullptr)
+			addr.set_mailbox(owner->name);
+
+		if (address.Account)
+			addr.set_account(*address.Account);
+
+		if (address.Server)
+			addr.set_server(*address.Server);
+
+		if (address.Character)
+			addr.set_character(*address.Character);
+
+		dropbox->Post(addr, static_cast<MQMessageId>(messageId), data);
+	}
+}
+
 postoffice::Dropbox* MQActorAPI::AddActor(const char* localAddress, ReceiveCallback&& receive, MailboxMutator&& mutator, MQPlugin* owner)
 {
 	auto dropbox = std::make_unique<Dropbox>(GetPostOffice().RegisterAddress(localAddress, std::move(receive), std::move(mutator)));
