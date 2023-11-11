@@ -26,7 +26,6 @@ namespace mq::postoffice {
 using ReceiveCallback = std::function<void(ProtoMessagePtr&&)>;
 using PostCallback = std::function<void(const std::string&)>;
 using DropboxDropper = std::function<void(const std::string&)>;
-using MailboxMutator = std::function<std::string(const std::string&)>;
 
 class Mailbox
 {
@@ -79,7 +78,7 @@ public:
 
 	~Dropbox() {}
 
-	Dropbox(std::string localAddress, PostCallback&& post, DropboxDropper&& unregister, MailboxMutator&& mutator);
+	Dropbox(std::string localAddress, PostCallback&& post, DropboxDropper&& unregister);
 	Dropbox(const Dropbox& other);
 	Dropbox(Dropbox&& other) noexcept;
 	//Dropbox& operator=(const Dropbox& other);
@@ -206,9 +205,6 @@ private:
 		proto::routing::Envelope envelope;
 		*envelope.mutable_address() = address;
 
-		if (m_mutator != nullptr)
-			*envelope.mutable_address()->mutable_mailbox() = m_mutator(envelope.address().mailbox());
-
 		envelope.set_message_id(static_cast<uint32_t>(messageId));
 
 		proto::routing::Address& ret = *envelope.mutable_return_address();
@@ -222,7 +218,6 @@ private:
 
 	std::string m_localAddress;
 	PostCallback m_post;
-	MailboxMutator m_mutator;
 	DropboxDropper m_unregister;
 	bool m_valid;
 };
@@ -278,7 +273,7 @@ public:
 	 * @param mailboxMutator a callback rvalue that will amend the mailbox name universally for handling by the postoffice
 	 * @return an dropbox that the creator can use to send addressed messages. will be invalid if it failed to add
 	 */
-	Dropbox RegisterAddress(const std::string& localAddress, ReceiveCallback&& receive, MailboxMutator&& mailboxMutator = nullptr);
+	Dropbox RegisterAddress(const std::string& localAddress, ReceiveCallback&& receive);
 
 	/**
 	 * Removes a mailbox from the post office

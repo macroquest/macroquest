@@ -204,6 +204,7 @@ static void Post(AutoLoginMessageId messageId, const T& data)
 	postoffice::Address address;
 	address.Name = "launcher";
 	address.Mailbox = "autologin";
+	address.Explicit = true; // this is not being sent to the autologin plugin
 
 	s_autologinDropbox.Post(address, messageId, data);
 }
@@ -683,7 +684,7 @@ PLUGIN_API void ShutdownPlugin()
 	delete pAutoLoginType;
 	delete pLoginProfileType;
 
-	s_autologinDropbox.Dropbox->Remove();
+	s_autologinDropbox.Remove();
 }
 
 void SendWndNotification(CXWnd* pWnd, CXWnd* sender, uint32_t msg, void* data)

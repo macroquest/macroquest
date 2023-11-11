@@ -83,17 +83,9 @@ mq::postoffice::DropboxAPI mq::AddActor(ReceiveCallback&& receive)
 {
 	if (mqplugin::ThisPlugin != nullptr)
 	{
-		return mq::postoffice::DropboxAPI{ mqplugin::MainInterface->AddActor(mqplugin::ThisPlugin->name.c_str(), std::move(receive),
-			[&name = mqplugin::ThisPlugin->name](const std::string& mailbox)
-			{
-				if (mailbox.empty())
-					return name;
-
-				if (mailbox.find(":") != std::string::npos)
-					return mailbox;
-
-				return fmt::format("{}:{}", name, mailbox);
-			}, mqplugin::ThisPlugin) };
+		return mq::postoffice::DropboxAPI{
+			mqplugin::MainInterface->AddActor(mqplugin::ThisPlugin->name.c_str(), std::move(receive), mqplugin::ThisPlugin)
+		};
 	}
 
 	return mq::postoffice::DropboxAPI{ nullptr };
@@ -102,25 +94,12 @@ mq::postoffice::DropboxAPI mq::AddActor(ReceiveCallback&& receive)
 mq::postoffice::DropboxAPI mq::AddActor(const char* localAddress, ReceiveCallback&& receive)
 {
 	std::string address(localAddress);
-	MailboxMutator mutator = nullptr;
 	if (mqplugin::ThisPlugin != nullptr)
-	{
 		address = fmt::format("{}:{}", mqplugin::ThisPlugin->name, address);
-		mutator = [&name = mqplugin::ThisPlugin->name](const std::string& mailbox)
-			{
-				if (mailbox.empty())
-					return name;
-
-				if (mailbox.find(":") != std::string::npos)
-					return mailbox;
-
-				return fmt::format("{}:{}", name, mailbox);
-			};
-	}
 
 
 	return mq::postoffice::DropboxAPI{
-		mqplugin::MainInterface->AddActor(address.c_str(), std::move(receive), std::move(mutator), mqplugin::ThisPlugin)
+		mqplugin::MainInterface->AddActor(address.c_str(), std::move(receive), mqplugin::ThisPlugin)
 	};
 }
 

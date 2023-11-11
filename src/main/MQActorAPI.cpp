@@ -88,9 +88,9 @@ void MQActorAPI::SendToActor(postoffice::Dropbox* dropbox, const postoffice::Add
 	}
 }
 
-postoffice::Dropbox* MQActorAPI::AddActor(const char* localAddress, ReceiveCallback&& receive, MailboxMutator&& mutator, MQPlugin* owner)
+postoffice::Dropbox* MQActorAPI::AddActor(const char* localAddress, ReceiveCallback&& receive, MQPlugin* owner)
 {
-	auto dropbox = std::make_unique<Dropbox>(GetPostOffice().RegisterAddress(localAddress, std::move(receive), std::move(mutator)));
+	auto dropbox = std::make_unique<Dropbox>(GetPostOffice().RegisterAddress(localAddress, std::move(receive)));
 
 	// return even if it's invalid so users don't have to null check
 	// note that owner can be nullptr here (which would be for mq2main)

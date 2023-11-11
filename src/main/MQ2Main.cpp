@@ -1176,9 +1176,9 @@ void MainImpl::SendToActor(postoffice::Dropbox* dropbox, const postoffice::Addre
 	return pActorAPI->SendToActor(dropbox, address, messageId, data, owner);
 }
 
-postoffice::Dropbox* MainImpl::AddActor(const char* localAddress, ReceiveCallback&& receive, MailboxMutator&& mutator, MQPlugin* owner)
+postoffice::Dropbox* MainImpl::AddActor(const char* localAddress, ReceiveCallback&& receive, MQPlugin* owner)
 {
-	return pActorAPI->AddActor(localAddress, std::move(receive), std::move(mutator), owner);
+	return pActorAPI->AddActor(localAddress, std::move(receive), owner);
 }
 
 void MainImpl::RemoveActor(postoffice::Dropbox*& dropbox, MQPlugin* owner)

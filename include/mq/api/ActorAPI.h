@@ -56,7 +56,6 @@ class ProtoMessage;
 using ProtoMessagePtr = std::unique_ptr<ProtoMessage>;
 
 using ReceiveCallback = std::function<void(ProtoMessagePtr&&)>;
-using MailboxMutator = std::function<std::string(const std::string&)>;
 
 postoffice::DropboxAPI AddActor(ReceiveCallback&& receive);
 postoffice::DropboxAPI AddActor(const char* localAddress, ReceiveCallback&& receive);

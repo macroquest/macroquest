@@ -884,7 +884,7 @@ public:
 	MQTopLevelObject* FindTopLevelObject(const char* name) override;
 
 	void SendToActor(postoffice::Dropbox* dropbox, const postoffice::Address& address, uint16_t messageId, const std::string& data, MQPlugin* owner) override;
-	postoffice::Dropbox* AddActor(const char* localAddress, ReceiveCallback&& receive, MailboxMutator&& mutator, MQPlugin* owner) override;
+	postoffice::Dropbox* AddActor(const char* localAddress, ReceiveCallback&& receive, MQPlugin* owner) override;
 	void RemoveActor(postoffice::Dropbox*& dropbox, MQPlugin* owner) override;
 
 };

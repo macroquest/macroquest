@@ -52,11 +52,10 @@ ProtoMessagePtr Mailbox::Open(proto::routing::Envelope&& envelope, const MQMessa
 	return unwrapped;
 }
 
-Dropbox::Dropbox(std::string localAddress, PostCallback&& post, DropboxDropper&& unregister, MailboxMutator&& mutator)
+Dropbox::Dropbox(std::string localAddress, PostCallback&& post, DropboxDropper&& unregister)
 	: m_localAddress(localAddress)
 	, m_post(post)
 	, m_unregister(unregister)
-	, m_mutator(mutator)
 	, m_valid(true)
 {}
 
@@ -64,7 +63,6 @@ Dropbox::Dropbox(const Dropbox& other)
 	: m_localAddress(other.m_localAddress)
 	, m_post(other.m_post)
 	, m_unregister(other.m_unregister)
-	, m_mutator(other.m_mutator)
 	, m_valid(other.m_valid)
 {}
 
@@ -72,7 +70,6 @@ Dropbox::Dropbox(Dropbox&& other) noexcept
 	: m_localAddress(std::move(other.m_localAddress))
 	, m_post(std::move(other.m_post))
 	, m_unregister(std::move(other.m_unregister))
-	, m_mutator(std::move(other.m_mutator))
 	, m_valid(other.m_valid)
 {}
 
@@ -81,7 +78,6 @@ Dropbox& Dropbox::operator=(Dropbox other) noexcept
 	m_localAddress = std::move(other.m_localAddress);
 	m_post = std::move(other.m_post);
 	m_unregister = std::move(other.m_unregister);
-	m_mutator = std::move(other.m_mutator);
 	m_valid = other.m_valid;
 	return *this;
 }
@@ -94,7 +90,7 @@ void Dropbox::Remove()
 	m_valid = false;
 }
 
-Dropbox PostOffice::RegisterAddress(const std::string& localAddress, ReceiveCallback&& receive, MailboxMutator&& mailboxMutator)
+Dropbox PostOffice::RegisterAddress(const std::string& localAddress, ReceiveCallback&& receive)
 {
 	auto [mailbox, added] = m_mailboxes.emplace(localAddress, std::make_unique<Mailbox>(localAddress, std::move(receive)));
 	if (added)
@@ -102,8 +98,7 @@ Dropbox PostOffice::RegisterAddress(const std::string& localAddress, ReceiveCall
 		return Dropbox(
 			localAddress,
 			[this](const std::string& data) { RouteMessage(data); },
-			[this](const std::string& localAddress) { RemoveMailbox(localAddress); },
-			std::move(mailboxMutator));
+			[this](const std::string& localAddress) { RemoveMailbox(localAddress); });
 	}
 
 	return Dropbox();
