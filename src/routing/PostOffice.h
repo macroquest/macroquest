@@ -25,6 +25,8 @@ namespace mq::postoffice {
 
 using ReceiveCallback = std::function<void(ProtoMessagePtr&&)>;
 using PostCallback = std::function<void(const std::string&)>;
+using DropboxDropper = std::function<void(const std::string&)>;
+using MailboxMutator = std::function<std::string(const std::string&)>;
 
 class Mailbox
 {
@@ -58,7 +60,7 @@ public:
 	void Process(size_t howMany) const;
 
 private:
-	static ProtoMessagePtr Open(proto::Envelope&& envelope, const MQMessageHeader& header);
+	static ProtoMessagePtr Open(proto::routing::Envelope&& envelope, const MQMessageHeader& header);
 
 	const std::string m_localAddress;
 	const ReceiveCallback m_receive;
@@ -77,7 +79,7 @@ public:
 
 	~Dropbox() {}
 
-	Dropbox(std::string localAddress, const PostCallback& post, const std::function<void(const std::string&)>& unregister);
+	Dropbox(std::string localAddress, PostCallback&& post, DropboxDropper&& unregister, MailboxMutator&& mutator);
 	Dropbox(const Dropbox& other);
 	Dropbox(Dropbox&& other) noexcept;
 	//Dropbox& operator=(const Dropbox& other);
@@ -94,7 +96,7 @@ public:
 	 * @param obj the message (as an object)
 	 */
 	template <typename ID, typename T>
-	void Post(const proto::Address& address, ID messageId, const T& obj)
+	void Post(const proto::routing::Address& address, ID messageId, const T& obj)
 	{
 		if (IsValid()) m_post(Stuff(address, messageId, obj));
 	}
@@ -108,7 +110,7 @@ public:
 	 * @param messageId a message ID used to route the message at the receiver
 	 */
 	template <typename ID>
-	void Post(const proto::Address& address, ID messageId)
+	void Post(const proto::routing::Address& address, ID messageId)
 	{
 		if (IsValid()) m_post(StuffData(address, messageId, ""));
 	}
@@ -154,7 +156,7 @@ public:
 	 * @param status a return status, sometimes used by reply handling logic
 	 */
 	template <typename ID, typename T>
-	void PostReply(PipeMessagePtr&& message, const proto::Address& returnAddress, ID messageId, const T& obj, uint8_t status = 0)
+	void PostReply(PipeMessagePtr&& message, const proto::routing::Address& returnAddress, ID messageId, const T& obj, uint8_t status = 0)
 	{
 		if (IsValid())
 		{
@@ -177,20 +179,23 @@ public:
 
 private:
 	template <typename ID, typename T>
-	std::string Stuff(const proto::Address& address, ID messageId, const T& obj)
+	std::string Stuff(const proto::routing::Address& address, ID messageId, const T& obj)
 	{
 		return StuffData(address, messageId, obj.SerializeAsString());
 	}
 
 	template <typename ID>
-	std::string StuffData(const proto::Address& address, ID messageId, const std::string& data)
+	std::string StuffData(const proto::routing::Address& address, ID messageId, const std::string& data)
 	{
-		proto::Envelope envelope;
+		proto::routing::Envelope envelope;
 		*envelope.mutable_address() = address;
+
+		if (m_mutator != nullptr)
+			*envelope.mutable_address()->mutable_mailbox() = m_mutator(envelope.address().mailbox());
 
 		envelope.set_message_id(static_cast<uint32_t>(messageId));
 
-		proto::Address& ret = *envelope.mutable_return_address();
+		proto::routing::Address& ret = *envelope.mutable_return_address();
 		ret.set_pid(GetCurrentProcessId());
 		ret.set_mailbox(m_localAddress);
 
@@ -201,7 +206,8 @@ private:
 
 	std::string m_localAddress;
 	PostCallback m_post;
-	std::function<void(const std::string&)> m_unregister;
+	MailboxMutator m_mutator;
+	DropboxDropper m_unregister;
 	bool m_valid;
 };
 
@@ -253,9 +259,10 @@ public:
 	 *
 	 * @param localAddress the string address to create the address at
 	 * @param receive a callback rvalue that will process messages as they are received in this mailbox
+	 * @param mailboxMutator a callback rvalue that will amend the mailbox name universally for handling by the postoffice
 	 * @return an dropbox that the creator can use to send addressed messages. will be invalid if it failed to add
 	 */
-	Dropbox RegisterAddress(const std::string& localAddress, ReceiveCallback&& receive);
+	Dropbox RegisterAddress(const std::string& localAddress, ReceiveCallback&& receive, MailboxMutator&& mailboxMutator = nullptr);
 
 	/**
 	 * Removes a mailbox from the post office
@@ -291,7 +298,7 @@ public:
 	void Process(size_t howMany);
 
 private:
-	std::unordered_map<std::string, std::shared_ptr<Mailbox>> m_mailboxes;
+	std::unordered_map<std::string, std::unique_ptr<Mailbox>> m_mailboxes;
 };
 
 /**

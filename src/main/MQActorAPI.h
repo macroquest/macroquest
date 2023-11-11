@@ -22,11 +22,12 @@ namespace mq {
 class MQActorAPI
 {
 public:
-	postoffice::Dropbox* AddActor(const char* localAddress, ReceiveCallback&& receive);
-	void RemoveActor(postoffice::Dropbox*& dropbox);
+	postoffice::Dropbox* AddActor(const char* localAddress, ReceiveCallback&& receive, MailboxMutator&& mutator, MQPlugin* owner = nullptr);
+	void RemoveActor(postoffice::Dropbox*& dropbox, MQPlugin* owner = nullptr);
+	void OnUnloadPlugin(MQPlugin* plugin);
 
 private:
-	std::vector<std::unique_ptr<postoffice::Dropbox>> m_dropboxes;
+	std::map<MQPlugin*, std::vector<std::unique_ptr<postoffice::Dropbox>>> m_dropboxes;
 };
 
 extern MQActorAPI* pActorAPI;

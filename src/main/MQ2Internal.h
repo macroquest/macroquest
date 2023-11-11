@@ -883,8 +883,8 @@ public:
 	bool RemoveTopLevelObject(const char* name, MQPlugin* owner) override;
 	MQTopLevelObject* FindTopLevelObject(const char* name) override;
 
-	postoffice::Dropbox* AddActor(const char* localAddress, ReceiveCallback&& receive) override;
-	void RemoveActor(postoffice::Dropbox*& dropbox) override;
+	postoffice::Dropbox* AddActor(const char* localAddress, ReceiveCallback&& receive, MailboxMutator&& mutator, MQPlugin* owner) override;
+	void RemoveActor(postoffice::Dropbox*& dropbox, MQPlugin* owner) override;
 
 };
 

@@ -31,8 +31,8 @@ public:
 	virtual MQTopLevelObject* FindTopLevelObject(const char* name) = 0;
 
 	// Actor Access
-	virtual postoffice::Dropbox* AddActor(const char* localAddress, ReceiveCallback&& receive) = 0;
-	virtual void RemoveActor(postoffice::Dropbox*& dropbox) = 0;
+	virtual postoffice::Dropbox* AddActor(const char* localAddress, ReceiveCallback&& receive, MailboxMutator&& mutator, MQPlugin* owner) = 0;
+	virtual void RemoveActor(postoffice::Dropbox*& dropbox, MQPlugin* owner) = 0;
 };
 
 MQLIB_OBJECT MainInterface* GetMainInterface();

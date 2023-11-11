@@ -89,6 +89,7 @@ void ShutdownInternalModules();
 MQModule* GetSpellsModule();
 MQModule* GetImGuiToolsModule();
 MQModule* GetDataAPIModule();
+MQModule* GetActorAPIModule();
 MQModule* GetGroundSpawnsModule();
 MQModule* GetSpawnsModule();
 MQModule* GetItemsModule();
@@ -596,6 +597,7 @@ void DoMainThreadInitialization()
 	AddInternalModule(GetImGuiToolsModule());
 	AddInternalModule(GetSpellsModule());
 	AddInternalModule(GetDataAPIModule());
+	AddInternalModule(GetActorAPIModule());
 	AddInternalModule(GetGroundSpawnsModule());
 	AddInternalModule(GetSpawnsModule());
 	AddInternalModule(GetItemsModule());
@@ -1169,14 +1171,14 @@ MQTopLevelObject* MainImpl::FindTopLevelObject(const char* name)
 	return pDataAPI->FindTopLevelObject(name);
 }
 
-postoffice::Dropbox* MainImpl::AddActor(const char* localAddress, ReceiveCallback&& receive)
+postoffice::Dropbox* MainImpl::AddActor(const char* localAddress, ReceiveCallback&& receive, MailboxMutator&& mutator, MQPlugin* owner)
 {
-	return pActorAPI->AddActor(localAddress, std::move(receive));
+	return pActorAPI->AddActor(localAddress, std::move(receive), std::move(mutator), owner);
 }
 
-void MainImpl::RemoveActor(postoffice::Dropbox*& dropbox)
+void MainImpl::RemoveActor(postoffice::Dropbox*& dropbox, MQPlugin* owner)
 {
-	pActorAPI->RemoveActor(dropbox);
+	pActorAPI->RemoveActor(dropbox, owner);
 }
 
 MainImpl* gpMainAPI = nullptr;

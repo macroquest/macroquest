@@ -22,7 +22,7 @@ void Mailbox::Deliver(PipeMessagePtr&& message) const
 	// Don't do anything if this isn't wrapped in an envelope
 	if (message->GetMessageId() == MQMessageId::MSG_ROUTE)
 	{
-		m_receiveQueue.push(Open(ProtoMessage::Parse<proto::Envelope>(message), *message->GetHeader()));
+		m_receiveQueue.push(Open(ProtoMessage::Parse<proto::routing::Envelope>(message), *message->GetHeader()));
 	}
 }
 
@@ -37,7 +37,7 @@ void Mailbox::Process(size_t howMany) const
 	}
 }
 
-ProtoMessagePtr Mailbox::Open(proto::Envelope&& envelope, const MQMessageHeader& header)
+ProtoMessagePtr Mailbox::Open(proto::routing::Envelope&& envelope, const MQMessageHeader& header)
 {
 	auto unwrapped = envelope.has_payload() ?
 		std::make_unique<ProtoMessage>(header, &envelope.payload()[0], envelope.payload().size()) :
@@ -52,10 +52,11 @@ ProtoMessagePtr Mailbox::Open(proto::Envelope&& envelope, const MQMessageHeader&
 	return unwrapped;
 }
 
-Dropbox::Dropbox(std::string localAddress, const PostCallback& post, const std::function<void(const std::string&)>& unregister)
+Dropbox::Dropbox(std::string localAddress, PostCallback&& post, DropboxDropper&& unregister, MailboxMutator&& mutator)
 	: m_localAddress(localAddress)
 	, m_post(post)
 	, m_unregister(unregister)
+	, m_mutator(mutator)
 	, m_valid(true)
 {}
 
@@ -63,6 +64,7 @@ Dropbox::Dropbox(const Dropbox& other)
 	: m_localAddress(other.m_localAddress)
 	, m_post(other.m_post)
 	, m_unregister(other.m_unregister)
+	, m_mutator(other.m_mutator)
 	, m_valid(other.m_valid)
 {}
 
@@ -70,6 +72,7 @@ Dropbox::Dropbox(Dropbox&& other) noexcept
 	: m_localAddress(std::move(other.m_localAddress))
 	, m_post(std::move(other.m_post))
 	, m_unregister(std::move(other.m_unregister))
+	, m_mutator(std::move(other.m_mutator))
 	, m_valid(other.m_valid)
 {}
 
@@ -78,6 +81,7 @@ Dropbox& Dropbox::operator=(Dropbox other) noexcept
 	m_localAddress = std::move(other.m_localAddress);
 	m_post = std::move(other.m_post);
 	m_unregister = std::move(other.m_unregister);
+	m_mutator = std::move(other.m_mutator);
 	m_valid = other.m_valid;
 	return *this;
 }
@@ -86,21 +90,20 @@ void Dropbox::Remove()
 {
 	if (m_valid)
 		m_unregister(m_localAddress);
-
-	m_post = nullptr;
-	m_unregister = nullptr;
+	
 	m_valid = false;
 }
 
-Dropbox PostOffice::RegisterAddress(const std::string& localAddress, ReceiveCallback&& receive)
+Dropbox PostOffice::RegisterAddress(const std::string& localAddress, ReceiveCallback&& receive, MailboxMutator&& mailboxMutator)
 {
-	auto [mailbox, added] = m_mailboxes.emplace(localAddress, std::make_shared<Mailbox>(localAddress, std::move(receive)));
+	auto [mailbox, added] = m_mailboxes.emplace(localAddress, std::make_unique<Mailbox>(localAddress, std::move(receive)));
 	if (added)
 	{
 		return Dropbox(
 			localAddress,
 			[this](const std::string& data) { RouteMessage(data); },
-			[this](const std::string& localAddress) { RemoveMailbox(localAddress); });
+			[this](const std::string& localAddress) { RemoveMailbox(localAddress); },
+			std::move(mailboxMutator));
 	}
 
 	return Dropbox();

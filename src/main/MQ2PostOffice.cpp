@@ -74,7 +74,7 @@ private:
 			{
 			case MQMessageId::MSG_ROUTE:
 			{
-				auto envelope = ProtoMessage::Parse<proto::Envelope>(message);
+				auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
 				const auto& address = envelope.address();
 				// either this message is coming off the pipe, so assume it was routed correctly by the server,
 				// or it was routed internally after checking to make sure that the destination of the message
@@ -100,7 +100,7 @@ private:
 				if (message->GetHeader()->messageLength > 0)
 				{
 					// this is a message from the server to update or add an ID
-					auto id = ProtoMessage::Parse<proto::Identification>(message);
+					auto id = ProtoMessage::Parse<proto::routing::Identification>(message);
 					if (id.has_name())
 					{
 						m_postOffice->m_names.insert_or_assign(id.name(), id.pid());
@@ -132,7 +132,7 @@ private:
 
 			case MQMessageId::MSG_DROPPED:
 			{
-				auto id = ProtoMessage::Parse<proto::Identification>(message);
+				auto id = ProtoMessage::Parse<proto::routing::Identification>(message);
 				if (id.has_name())
 				{
 					m_postOffice->m_names.erase(id.name());
@@ -228,7 +228,7 @@ public:
 	{
 		if (message->GetMessageId() == MQMessageId::MSG_ROUTE)
 		{
-			auto envelope = ProtoMessage::Parse<proto::Envelope>(message);
+			auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
 			if (envelope.has_address())
 			{
 				auto address = envelope.address();
@@ -258,7 +258,7 @@ public:
 			// we are getting an internal request to send all IDs, do so sequentially
 			for (const auto& [_, client] : m_identities)
 			{
-				proto::Identification id;
+				proto::routing::Identification id;
 				id.set_pid(client.pid);
 
 				if (!client.account.empty())
@@ -276,7 +276,7 @@ public:
 
 			for (const auto& [name, pid] : m_names)
 			{
-				proto::Identification id;
+				proto::routing::Identification id;
 				id.set_pid(pid);
 				id.set_name(name);
 
@@ -338,7 +338,7 @@ public:
 
 	void SetGameStatePostOffice(DWORD GameState)
 	{
-		proto::Identification id;
+		proto::routing::Identification id;
 		id.set_pid(GetCurrentProcessId()); // we should always have a pid
 
 		const char* login = GetLoginName();
@@ -373,7 +373,7 @@ public:
 			});
 
 		// once we set up the mailbox, get a list of all connected peers
-		proto::Address address;
+		proto::routing::Address address;
 		address.set_name("launcher");
 
 		m_clientDropbox.Post(address, MQMessageId::MSG_IDENTIFICATION);

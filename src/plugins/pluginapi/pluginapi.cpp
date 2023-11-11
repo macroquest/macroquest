@@ -69,14 +69,52 @@ mq::MQTopLevelObject* mq::FindTopLevelObject(const char* szName)
 	return mqplugin::MainInterface->FindTopLevelObject(szName);
 }
 
-mq::postoffice::Dropbox* mq::AddActor(const char* localAddress, ReceiveCallback&& receive)
+mq::postoffice::Dropbox* AddActor(mq::ReceiveCallback&& receive)
 {
-	return mqplugin::MainInterface->AddActor(localAddress, std::move(receive));
+	if (mqplugin::ThisPlugin != nullptr)
+	{
+		return mqplugin::MainInterface->AddActor(mqplugin::ThisPlugin->name.c_str(), std::move(receive),
+			[&name = mqplugin::ThisPlugin->name](const std::string& mailbox)
+			{
+				if (mailbox.empty())
+					return name;
+
+				if (mailbox.find(":") != std::string::npos)
+					return mailbox;
+
+				return fmt::format("{}:{}", name, mailbox);
+			}, mqplugin::ThisPlugin);
+	}
+
+	return nullptr;
+}
+
+mq::postoffice::Dropbox* mq::AddActor(const char* localAddress, mq::ReceiveCallback&& receive)
+{
+	std::string address(localAddress);
+	MailboxMutator mutator = nullptr;
+	if (mqplugin::ThisPlugin != nullptr)
+	{
+		address = fmt::format("{}:{}", mqplugin::ThisPlugin->name, address);
+		mutator = [&name = mqplugin::ThisPlugin->name](const std::string& mailbox)
+			{
+				if (mailbox.empty())
+					return name;
+
+				if (mailbox.find(":") != std::string::npos)
+					return mailbox;
+
+				return fmt::format("{}:{}", name, mailbox);
+			};
+	}
+
+
+	return mqplugin::MainInterface->AddActor(address.c_str(), std::move(receive), std::move(mutator), mqplugin::ThisPlugin);
 }
 
 void mq::RemoveActor(mq::postoffice::Dropbox*& dropbox)
 {
-	mqplugin::MainInterface->RemoveActor(dropbox);
+	mqplugin::MainInterface->RemoveActor(dropbox, mqplugin::ThisPlugin);
 }
 
 //============================================================================

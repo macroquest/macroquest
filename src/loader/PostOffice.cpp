@@ -74,7 +74,7 @@ private:
 				if (message->GetHeader()->messageLength > 0)
 				{
 					// if there is a payload, then we are getting a notification of ID
-					auto id = ProtoMessage::Parse<proto::Identification>(message);
+					auto id = ProtoMessage::Parse<proto::routing::Identification>(message);
 					if (id.has_name())
 					{
 						m_postOffice->m_names.insert_or_assign(id.name(), id.pid());
@@ -101,7 +101,7 @@ private:
 					// otherwise, we are getting a request to send all IDs, do so sequentially
 					for (const auto& [_, client] : m_postOffice->m_identities)
 					{
-						proto::Identification id;
+						proto::routing::Identification id;
 						id.set_pid(client.pid);
 
 						if (!client.account.empty())
@@ -119,7 +119,7 @@ private:
 
 					for (const auto& [name, pid] : m_postOffice->m_names)
 					{
-						proto::Identification id;
+						proto::routing::Identification id;
 						id.set_pid(pid);
 						id.set_name(name);
 
@@ -187,7 +187,7 @@ private:
 		virtual void OnConnectionClosed(int connectionId, int processId) override
 		{
 			// we need to make sure not to send to the connection that is closing
-			auto broadcast = [&pipe = m_postOffice->m_pipeServer, connectionId](proto::Identification&& id)
+			auto broadcast = [&pipe = m_postOffice->m_pipeServer, connectionId](proto::routing::Identification&& id)
 				{
 					std::string data = id.SerializeAsString();
 					for (auto conn : pipe.GetConnectionIds())
@@ -201,7 +201,7 @@ private:
 			{
 				if (name_it->second == processId)
 				{
-					proto::Identification id;
+					proto::routing::Identification id;
 					id.set_pid(name_it->second);
 					id.set_name(name_it->first);
 
@@ -216,7 +216,7 @@ private:
 			auto ident_it = m_postOffice->m_identities.find(processId);
 			if (ident_it != m_postOffice->m_identities.end())
 			{
-				proto::Identification id;
+				proto::routing::Identification id;
 				id.set_pid(ident_it->first);
 
 				if (!ident_it->second.account.empty())
@@ -244,12 +244,12 @@ public:
 
 	void RouteMessage(PipeMessagePtr&& message) override
 	{
-		auto envelope = ProtoMessage::Parse<proto::Envelope>(message);
+		auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
 		const auto& address = envelope.address();
 		auto routing_failed = [&envelope, &address, this](PipeMessagePtr&& message)
 			{
 				// we can't assume that the mailbox exists here, so manually create the reply
-				proto::Envelope envelope;
+				proto::routing::Envelope envelope;
 				*envelope.mutable_address() = envelope.return_address();
 				envelope.set_message_id(static_cast<uint32_t>(message->GetMessageId()));
 				envelope.set_payload(address.SerializeAsString());

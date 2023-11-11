@@ -70,11 +70,11 @@ public:
 		message->SendProtoReply(messageId, obj, status);
 	}
 
-	const std::optional<proto::Address>& GetSender() { return m_returnAddress; }
-	void SetSender(const proto::Address& address) { m_returnAddress = address; }
+	const std::optional<proto::routing::Address>& GetSender() { return m_returnAddress; }
+	void SetSender(const proto::routing::Address& address) { m_returnAddress = address; }
 
 private:
-	std::optional<proto::Address> m_returnAddress;
+	std::optional<proto::routing::Address> m_returnAddress;
 };
 using ProtoMessagePtr = std::unique_ptr<ProtoMessage>;
 

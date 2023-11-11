@@ -201,7 +201,7 @@ bool MQ2AutoLoginType::dataAutoLogin(const char* szName, MQTypeVar& Ret)
 template <typename T>
 static void Post(AutoLoginMessageId messageId, const T& data)
 {
-	proto::Address address;
+	proto::routing::Address address;
 	address.set_name("launcher");
 	address.set_mailbox("autologin");
 
