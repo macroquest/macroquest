@@ -5019,30 +5019,16 @@ uint32_t GetSpellGemTimer(int nGem)
 
 uint32_t GetSpellBuffTimer(int SpellID)
 {
-	for (int nBuff = 0; nBuff < NUM_LONG_BUFFS; nBuff++)
+	if (auto buffInfo = pBuffWnd->GetBuffInfoBySpellID(SpellID))
 	{
-		if (pBuffWnd->BuffId[nBuff] == SpellID)
-		{
-			if (pBuffWnd->BuffTimer[nBuff]) {
-				return pBuffWnd->BuffTimer[nBuff];
-			}
-		}
+		return buffInfo.GetBuffTimer();
 	}
 
-	// look, this probably is an oversight by the eqdevs
-	// but the struct only have 0x2a BuffTimers so...
-	// even though there could be 0x37 shortbuffs
-	// we can only check up to 0x2a...
-	for (int nBuff = 0; nBuff < NUM_LONG_BUFFS; nBuff++)
+	if (auto buffInfo = pSongWnd->GetBuffInfoBySpellID(SpellID))
 	{
-		if (pSongWnd->BuffId[nBuff] == SpellID)
-		{
-			if (pSongWnd->BuffTimer[nBuff])
-			{
-				return pSongWnd->BuffTimer[nBuff];
-			}
-		}
+		return buffInfo.GetBuffTimer();
 	}
+
 	return 0;
 }
 

@@ -3089,10 +3089,6 @@ public:
 		ImGui::TableNextColumn();
 		m_pTASpellIcon->SetCurCell(spell->SpellIcon);
 		imgui::DrawTextureAnimation(m_pTASpellIcon);
-		//m_pTASpellIcon->SetCurCell(spell->GemIcon);
-		//RenderTextureAnimation(m_pTASpellIcon);
-		//m_pTASpellIcon->SetCurCell(spell->BookIcon);
-		//RenderTextureAnimation(m_pTASpellIcon);
 
 		// Name
 		ImGui::TableNextColumn();
@@ -3107,9 +3103,13 @@ public:
 
 		if (ImGui::BeginPopupContextItem("BuffContextMenu"))
 		{
-			if (ImGui::Selectable("Inspect (NYI)"))
+			if (ImGui::Selectable("Inspect"))
 			{
-				// TODO: trigger spell/buff viewer
+				char buffer[512] = { 0 };
+				FormatSpellLink(buffer, 512, spell);
+
+				TextTagInfo info = ExtractLink(buffer);
+				ExecuteTextLink(info);
 			}
 
 			ImGui::Separator();
@@ -3238,8 +3238,70 @@ public:
 		return count;
 	}
 
-	template <typename T>
-	void DoTargetBuffsTable(const char* name, const T* BuffWnd)
+	static void FormatBuffDuration(char* timeLabel, size_t size, int buffTimer)
+	{
+		if (buffTimer < 0)
+		{
+			strcpy_s(timeLabel, size, "Permanent");
+		}
+		else if (buffTimer > 0)
+		{
+			int hours = 0;
+			int minutes = 0;
+			int seconds = 0;
+
+			int totalSeconds = buffTimer / 1000;
+
+			if (totalSeconds > 0)
+			{
+				hours = totalSeconds / 3600;
+				minutes = (totalSeconds % 3600) / 60;
+				seconds = totalSeconds % 60;
+			}
+
+			if (hours > 0)
+			{
+				if (minutes > 0 && seconds > 0)
+				{
+					sprintf_s(timeLabel, size, "%dh %dm %ds", hours, minutes, seconds);
+				}
+				else if (minutes > 0)
+				{
+					sprintf_s(timeLabel, size, "%dh %dm", hours, minutes);
+				}
+				else if (seconds > 0)
+				{
+					sprintf_s(timeLabel, size, "%dh %ds", hours, seconds);
+				}
+				else
+				{
+					sprintf_s(timeLabel, size, "%dh", hours);
+				}
+			}
+			else if (minutes > 0)
+			{
+				if (seconds > 0)
+				{
+					sprintf_s(timeLabel, size, "%dm %ds", minutes, seconds);
+				}
+				else
+				{
+					sprintf_s(timeLabel, size, "%dm", minutes);
+				}
+			}
+			else
+			{
+				sprintf_s(timeLabel, size, "%ds", seconds);
+			}
+		}
+		else
+		{
+			strcpy_s(timeLabel, size, "0s");
+		}
+	}
+
+	void DoTargetBuffsTable(const char* name, eqlib::IteratorRange<PlayerBuffInfoWrapper::Iterator<>> Buffs,
+		bool petBuffs)
 	{
 		ImGuiTableFlags tableFlags = 0
 			| ImGuiTableFlags_SizingFixedFit
@@ -3260,17 +3322,15 @@ public:
 			ImGui::TableSetupColumn("Caster", ImGuiTableColumnFlags_WidthStretch);
 			ImGui::TableHeadersRow();
 
-			int i = 0;
 			uint32_t currentTime = EQGetTime();
 
-			for (int i = 0; i < BuffWnd->GetMaxBuffs(); ++i)
+			for (const auto& buffInfo : Buffs)
 			{
-				PlayerBuffInfoRef buff = BuffWnd->GetBuffInfo(i);
-				EQ_Spell* spell = GetSpellByID(buff.GetSpellID());
+				EQ_Spell* spell = buffInfo.GetSpell();
 				if (!spell)
 					continue;
 
-				ImGui::PushID(i);
+				ImGui::PushID(buffInfo.GetIndex());
 
 				if (!m_pTASpellIcon)
 				{
@@ -3283,7 +3343,7 @@ public:
 
 				// Index
 				ImGui::TableNextColumn();
-				ImGui::Text("%d", i);
+				ImGui::Text("%d", buffInfo.GetIndex());
 
 				// Icon
 				ImGui::TableNextColumn();
@@ -3304,75 +3364,41 @@ public:
 					ImGui::Text("");
 				}
 
+				if (ImGui::BeginPopupContextItem("BuffContextMenu"))
+				{
+					if (ImGui::Selectable("Inspect"))
+					{
+						char buffer[512] = { 0 };
+						FormatSpellLink(buffer, 512, spell);
+
+						TextTagInfo info = ExtractLink(buffer);
+						ExecuteTextLink(info);
+					}
+
+					if (petBuffs && spell && ImGui::Selectable("Remove Pet Buff"))
+					{
+						ImGui::Separator();
+
+						RemovePetBuffByName(spell->Name);
+					}
+
+					ImGui::EndPopup();
+				}
+
 				// ID
 				ImGui::TableNextColumn();
-				ImGui::Text("%d", buff.GetSpellID());
+				ImGui::Text("%d", buffInfo.GetSpellID());
 
 				// Duration
 				ImGui::TableNextColumn();
-				int buffTimer = buff.GetBuffTimer();
-				if (buffTimer == -1)
-				{
-					ImGui::Text("Permanent");
-				}
-				else
-				{
-					int hours = 0;
-					int minutes = 0;
-					int seconds = 0;
 
-					int totalSeconds = buffTimer / 1000;
-
-					if (totalSeconds > 0)
-					{
-						hours = totalSeconds / 3600;
-						minutes = (totalSeconds % 3600) / 60;
-						seconds = totalSeconds % 60;
-					}
-
-					char timeLabel[64];
-
-					if (hours > 0)
-					{
-						if (minutes > 0 && seconds > 0)
-						{
-							sprintf_s(timeLabel, "%dh %dm %ds", hours, minutes, seconds);
-						}
-						else if (minutes > 0)
-						{
-							sprintf_s(timeLabel, "%dh %dm", hours, minutes);
-						}
-						else if (seconds > 0)
-						{
-							sprintf_s(timeLabel, "%dh %ds", hours, seconds);
-						}
-						else
-						{
-							sprintf_s(timeLabel, "%dh", hours);
-						}
-					}
-					else if (minutes > 0)
-					{
-						if (seconds > 0)
-						{
-							sprintf_s(timeLabel, "%dm %ds", minutes, seconds);
-						}
-						else
-						{
-							sprintf_s(timeLabel, "%dm", minutes);
-						}
-					}
-					else
-					{
-						sprintf_s(timeLabel, "%ds", seconds);
-					}
-
-					ImGui::Text("%s", timeLabel);
-				}
+				char timeLabel[64];
+				FormatBuffDuration(timeLabel, 64, buffInfo.GetBuffTimer());
+				ImGui::Text("%s", timeLabel);
 
 				// Caster
 				ImGui::TableNextColumn();
-				ImGui::Text("%s", buff.GetCaster());
+				ImGui::Text("%s", buffInfo.GetCaster());
 
 				ImGui::PopID();
 			}
@@ -3527,7 +3553,7 @@ public:
 
 				if (ImGui::BeginTabItem(szLabel))
 				{
-					DoTargetBuffsTable("PetBuffsTable", pPetInfoWnd.get());
+					DoTargetBuffsTable("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
 
 					ImGui::EndTabItem();
 				}
@@ -3539,7 +3565,7 @@ public:
 
 				if (ImGui::BeginTabItem(szLabel))
 				{
-					DoTargetBuffsTable("TargetBuffsTable", pTargetWnd.get());
+					DoTargetBuffsTable("TargetBuffsTable", pTargetWnd->GetBuffRange(), false);
 
 					ImGui::EndTabItem();
 				}

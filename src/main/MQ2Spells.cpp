@@ -3806,14 +3806,14 @@ const char* GetSpellCaster(const EQ_Affect& buff)
 {
 	if (pBuffWnd != nullptr)
 	{
-		if (auto whocast = pBuffWnd->WhoCast.FindFirst(buff.SpellID); whocast != nullptr)
-			return whocast->c_str();
+		if (auto buffInfo = pBuffWnd->GetBuffInfoBySpellID(buff.SpellID))
+			return buffInfo.GetCaster();
 	}
 
 	if (pSongWnd != nullptr)
 	{
-		if (auto whocast = pSongWnd->WhoCast.FindFirst(buff.SpellID); whocast != nullptr)
-			return whocast->c_str();
+		if (auto buffInfo = pSongWnd->GetBuffInfoBySpellID(buff.SpellID))
+			return buffInfo.GetCaster();
 	}
 
 	return "";
@@ -3828,7 +3828,7 @@ const char* GetPetSpellCaster(const EQ_Affect& buff)
 {
 	if (pPetInfoWnd != nullptr)
 	{
-		if (PlayerBuffInfoRef pBuffInfo = pPetInfoWnd->GetBuffInfoBySpellID(buff.SpellID))
+		if (auto pBuffInfo = pPetInfoWnd->GetBuffInfoBySpellID(buff.SpellID))
 		{
 			return pBuffInfo.GetCaster();
 		}
@@ -4076,18 +4076,15 @@ bool RemoveBuffByName(std::string_view buffName)
 	{
 		if (!pBuffWnd) return false;
 
-		for (int nBuff = pBuffWnd->firstEffectSlot; nBuff <= pBuffWnd->lastEffectSlot; ++nBuff)
+		for (const auto& buffInfo : pBuffWnd->GetBuffRange())
 		{
-			int spellId = pBuffWnd->spellIds[nBuff - pBuffWnd->firstEffectSlot];
-			if (spellId <= 0) continue;
-
-			EQ_Spell* pSpell = GetSpellByID(spellId);
-			if (!pSpell) continue;
-
-			if (ci_equals(buffName, pSpell->Name))
+			if (EQ_Spell* pSpell = buffInfo.GetSpell())
 			{
-				pLocalPC->RemoveBuffEffect(nBuff, pLocalPlayer->SpawnID);
-				return true;
+				if (ci_equals(buffName, pSpell->Name))
+				{
+					pLocalPC->RemoveBuffEffect(pBuffWnd->firstEffectSlot + buffInfo.GetIndex(), pLocalPlayer->SpawnID);
+					return true;
+				}
 			}
 		}
 
@@ -4109,13 +4106,15 @@ bool RemoveBuffBySpellID(int spellId)
 	{
 		if (!pBuffWnd) return false;
 
-		for (int nBuff = pBuffWnd->firstEffectSlot; nBuff <= pBuffWnd->lastEffectSlot; ++nBuff)
+		for (const auto& buffInfo : pBuffWnd->GetBuffRange())
 		{
-			if (spellId == pBuffWnd->spellIds[nBuff - pBuffWnd->firstEffectSlot])
+			if (spellId == buffInfo.GetSpellID())
 			{
-				pLocalPC->RemoveBuffEffect(nBuff, pLocalPlayer->SpawnID);
+				pLocalPC->RemoveBuffEffect(pBuffWnd->firstEffectSlot + buffInfo.GetIndex(), pLocalPlayer->SpawnID);
 				return true;
 			}
+
+			return false;
 		}
 
 		return false;
@@ -4129,7 +4128,7 @@ bool RemoveBuffBySpellID(int spellId)
 
 bool RemoveBuffByIndex(int buffIndex)
 {
-	if (buffIndex < 0 && buffIndex >= NUM_LONG_BUFFS + NUM_SHORT_BUFFS)
+	if (buffIndex < 0 && buffIndex >= MAX_TOTAL_BUFFS)
 		return false;
 
 	// the Buff index for this function is defined to be based on the local PC data.
@@ -4144,13 +4143,12 @@ bool RemoveBuffByIndex(int buffIndex)
 			return false;
 
 		// Indices might not be in the correct order, so always use the order of the buff window
-		for (int nBuff = pBuffWnd->firstEffectSlot; nBuff <= pBuffWnd->lastEffectSlot; ++nBuff)
+		for (const auto& buffInfo : pBuffWnd->GetBuffRange())
 		{
 			// If the spell id matches then remove it.
-			int spellId = pBuffWnd->spellIds[nBuff - pBuffWnd->firstEffectSlot];
-			if (spellId == affect.SpellID)
+			if (buffInfo.GetSpellID() == affect.SpellID)
 			{
-				pLocalPC->RemoveBuffEffect(nBuff, pLocalPlayer->SpawnID);
+				pLocalPC->RemoveBuffEffect(pBuffWnd->firstEffectSlot + buffInfo.GetIndex(), pLocalPlayer->SpawnID);
 				return true;
 			}
 		}
@@ -4160,6 +4158,25 @@ bool RemoveBuffByIndex(int buffIndex)
 
 	if (checkBuffWnd(pBuffWnd)) return true;
 	if (checkBuffWnd(pSongWnd)) return true;
+
+	return false;
+}
+
+bool RemovePetBuffByName(std::string_view buffName)
+{
+	if (!pPetInfoWnd) return false;
+
+	for (const auto& buffInfo : pPetInfoWnd->GetBuffRange())
+	{
+		if (EQ_Spell* pSpell = buffInfo.GetSpell())
+		{
+			if (ci_equals(buffName, pSpell->Name))
+			{
+				pLocalPC->RemovePetEffect(buffInfo.GetIndex());
+				return true;
+			}
+		}
+	}
 
 	return false;
 }
