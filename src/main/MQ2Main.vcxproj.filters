@@ -383,11 +383,14 @@
     <ClCompile Include="GraphicsEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="datatypes\MQInventoryType.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MQ2PostOffice.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MQInventory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQInventoryType.cpp">
+      <Filter>Source Files\datatypes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -595,6 +598,9 @@
     <ClInclude Include="MQ2PostOffice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\Inventory.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MQ2Main.rc">
@@ -607,15 +613,15 @@
     </Natvis>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\data\resources\GPL.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
     <Text Include="..\..\data\resources\ItemDB.txt">
       <Filter>Resource Files</Filter>
     </Text>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\data\resources\CHANGELOG.md">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\..\LICENSE.md">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
