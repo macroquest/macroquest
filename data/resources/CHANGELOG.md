@@ -1,3 +1,6 @@
+Nov 11, 2023:
+- test: Fixed some crashes involving the buff window
+
 Nov 9, 2023:
 - Lua modules will no longer be loaded relative to the lua folder.
 - Developers should use PackageMan or (for their own internal use) the modules folder.
