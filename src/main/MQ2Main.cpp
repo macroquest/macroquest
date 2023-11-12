@@ -1171,9 +1171,14 @@ MQTopLevelObject* MainImpl::FindTopLevelObject(const char* name)
 	return pDataAPI->FindTopLevelObject(name);
 }
 
-void MainImpl::SendToActor(postoffice::Dropbox* dropbox, const postoffice::Address& address, uint16_t messageId, const std::string& data, MQPlugin* owner)
+void MainImpl::SendToActor(postoffice::Dropbox* dropbox, const proto::routing::Address& address, uint16_t messageId, const std::string& data, MQPlugin* owner)
 {
 	return pActorAPI->SendToActor(dropbox, address, messageId, data, owner);
+}
+
+void MainImpl::ReplyToActor(postoffice::Dropbox* dropbox, ProtoMessagePtr&& message, uint16_t messageId, const std::string& data, uint8_t status, MQPlugin* owner)
+{
+	return pActorAPI->ReplyToActor(dropbox, std::move(message), messageId, data, status, owner);
 }
 
 postoffice::Dropbox* MainImpl::AddActor(const char* localAddress, postoffice::ReceiveCallback&& receive, MQPlugin* owner)

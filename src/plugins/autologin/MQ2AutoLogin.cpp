@@ -201,10 +201,10 @@ bool MQ2AutoLoginType::dataAutoLogin(const char* szName, MQTypeVar& Ret)
 template <typename T>
 static void Post(AutoLoginMessageId messageId, const T& data)
 {
-	postoffice::Address address;
-	address.Name = "launcher";
-	address.Mailbox = "autologin";
-	address.Explicit = true; // this is not being sent to the autologin plugin
+	proto::routing::Address address;
+	address.set_name("launcher");
+	address.set_mailbox("autologin");
+	address.set_absolute_mailbox(true);
 
 	s_autologinDropbox.Post(address, messageId, data);
 }

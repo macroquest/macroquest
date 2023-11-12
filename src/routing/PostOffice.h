@@ -101,22 +101,6 @@ public:
 	}
 
 	/**
-	 * Sends a message to an address
-	 *
-	 * @tparam ID an identifier to be used by the receiver, must cast to uint32_t
-	 * @tparam T the message being sent, usually some kind of proto
-	 *
-	 * @param address the address to send the message
-	 * @param messageId a message ID used to route the message at the receiver
-	 * @param obj the message (as a data string)
-	 */
-	template <typename ID>
-	inline void Post(const proto::routing::Address& address, ID messageId, const std::string& obj)
-	{
-		if (IsValid()) m_post(StuffData(address, messageId, obj));
-	}
-
-	/**
 	 * Sends an empty message to an address
 	 *
 	 * @tparam ID an identifier to be used by the receiver, must cast to uint32_t
@@ -127,7 +111,7 @@ public:
 	template <typename ID>
 	void Post(const proto::routing::Address& address, ID messageId)
 	{
-		if (IsValid()) m_post(StuffData(address, messageId, ""));
+		if (IsValid()) m_post(Stuff(address, messageId, std::string()));
 	}
 
 	/**
@@ -196,11 +180,11 @@ private:
 	template <typename ID, typename T>
 	std::string Stuff(const proto::routing::Address& address, ID messageId, const T& obj)
 	{
-		return StuffData(address, messageId, obj.SerializeAsString());
+		return Stuff(address, messageId, obj.SerializeAsString());
 	}
 
 	template <typename ID>
-	std::string StuffData(const proto::routing::Address& address, ID messageId, const std::string& data)
+	std::string Stuff(const proto::routing::Address& address, ID messageId, const std::string& data)
 	{
 		proto::routing::Envelope envelope;
 		*envelope.mutable_address() = address;
@@ -270,7 +254,6 @@ public:
 	 *
 	 * @param localAddress the string address to create the address at
 	 * @param receive a callback rvalue that will process messages as they are received in this mailbox
-	 * @param mailboxMutator a callback rvalue that will amend the mailbox name universally for handling by the postoffice
 	 * @return an dropbox that the creator can use to send addressed messages. will be invalid if it failed to add
 	 */
 	Dropbox RegisterAddress(const std::string& localAddress, ReceiveCallback&& receive);

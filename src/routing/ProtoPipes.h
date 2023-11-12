@@ -64,6 +64,13 @@ public:
 		SendReply(static_cast<MQMessageId>(messageId), &data[0], data.size(), status);
 	}
 
+	template <typename ID>
+	void SendProtoReply(ID messageId, const std::string& obj, uint8_t status = 0)
+	{
+		std::string data(obj);
+		SendReply(static_cast<MQMessageId>(messageId), &data[0], data.size(), status);
+	}
+
 	template <typename ID, typename T>
 	static void SendProtoReply(PipeMessagePtr&& message, ID messageId, const T& obj, uint8_t status = 0)
 	{

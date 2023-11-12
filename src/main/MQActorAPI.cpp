@@ -57,34 +57,32 @@ static void UnloadPluginActorAPI(const char* pluginName)
 
 MQActorAPI* pActorAPI = nullptr;
 
-void MQActorAPI::SendToActor(postoffice::Dropbox* dropbox, const postoffice::Address& address, uint16_t messageId, const std::string& data, MQPlugin* owner)
+void MQActorAPI::SendToActor(postoffice::Dropbox* dropbox, const proto::routing::Address& address, uint16_t messageId, const std::string& data, MQPlugin* owner)
 {
 	if (dropbox != nullptr)
 	{
-		proto::routing::Address	addr;
-
-		if (address.PID)
-			addr.set_pid(*address.PID);
-		else if (address.Name)
-			addr.set_name(*address.Name);
-
-		if (address.Mailbox && (address.Explicit || owner == nullptr))
-			addr.set_mailbox(*address.Mailbox);
-		else if (address.Mailbox && owner != nullptr)
-			addr.set_mailbox(fmt::format("{}:{}", owner->name, *address.Mailbox));
-		else if (owner != nullptr)
-			addr.set_mailbox(owner->name);
-
-		if (address.Account)
-			addr.set_account(*address.Account);
-
-		if (address.Server)
-			addr.set_server(*address.Server);
-
-		if (address.Character)
-			addr.set_character(*address.Character);
+		proto::routing::Address addr(address);
+		if (owner != nullptr)
+		{
+			if (!addr.has_absolute_mailbox() || !addr.absolute_mailbox())
+			{
+				if (addr.has_mailbox())
+					addr.set_mailbox(fmt::format("{}:{}", owner->name, addr.mailbox()));
+				else
+					addr.set_mailbox(owner->name);
+			}
+		}
 
 		dropbox->Post(addr, static_cast<MQMessageId>(messageId), data);
+	}
+}
+
+void MQActorAPI::ReplyToActor(postoffice::Dropbox* dropbox, ProtoMessagePtr&& message, uint16_t messageId, const std::string& data, uint8_t status, MQPlugin* owner)
+{
+	if (dropbox != nullptr && dropbox->IsValid())
+	{
+		// we don't want to do any address mangling here because a reply is always going to be fully qualified
+		dropbox->PostReply(std::move(message), messageId, data, status);
 	}
 }
 

@@ -22,7 +22,8 @@ namespace mq {
 class MQActorAPI
 {
 public:
-	void SendToActor(postoffice::Dropbox* dropbox, const postoffice::Address& address, uint16_t messageId, const std::string& data, MQPlugin* owner = nullptr);
+	void SendToActor(postoffice::Dropbox* dropbox, const proto::routing::Address& address, uint16_t messageId, const std::string& data, MQPlugin* owner = nullptr);
+	void ReplyToActor(postoffice::Dropbox* dropbox, ProtoMessagePtr&& message, uint16_t messageId, const std::string& data, uint8_t status, MQPlugin* owner = nullptr);
 	postoffice::Dropbox* AddActor(const char* localAddress, postoffice::ReceiveCallback&& receive, MQPlugin* owner = nullptr);
 	void RemoveActor(postoffice::Dropbox*& dropbox, MQPlugin* owner = nullptr);
 	void OnUnloadPlugin(MQPlugin* plugin);
