@@ -213,9 +213,9 @@ bool MQ2BuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		Dest.Type = pStringType;
 		if (VarPtr.HighPart == SpellDisplayType_BuffWnd && pBuffWnd)
 		{
-			if (CXStr* pName = pBuffWnd->WhoCast.FindFirst(buff->SpellID))
+			if (auto buffInfo = pBuffWnd->GetBuffInfoBySpellID(buff->SpellID))
 			{
-				strcpy_s(DataTypeTemp, pName->c_str());
+				strcpy_s(DataTypeTemp, buffInfo.GetCaster());
 				Dest.Ptr = &DataTypeTemp[0];
 				return true;
 			}
