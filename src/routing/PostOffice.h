@@ -300,6 +300,6 @@ private:
  *
  * @return the single post office that is used in this application
  */
-MQLIB_OBJECT PostOffice& GetPostOffice();
+PostOffice& GetPostOffice();
 
 } // namespace mq::postoffice
