@@ -3023,12 +3023,12 @@ class SpellsInspector : public ImGuiWindowBase
 {
 	CTextureAnimation* m_pTASpellIcon = nullptr;
 public:
-	SpellsInspector() : ImGuiWindowBase("Spells Developer Tools")
+	SpellsInspector() : ImGuiWindowBase("Spells & Buffs Developer Tools")
 	{
 		SetDefaultSize(ImVec2(700, 400));
 	}
 
-	~SpellsInspector()
+	~SpellsInspector() override
 	{
 		if (m_pTASpellIcon)
 		{
@@ -3037,7 +3037,7 @@ public:
 		}
 	}
 
-	void DoSpellBuffTableHeaders()
+	static void DoSpellBuffTableHeaders()
 	{
 		ImGui::TableSetupColumn("Index");
 		ImGui::TableSetupColumn("Icon");
@@ -3300,8 +3300,9 @@ public:
 		}
 	}
 
-	void DoTargetBuffsTable(const char* name, eqlib::IteratorRange<PlayerBuffInfoWrapper::Iterator<>> Buffs,
-		bool petBuffs)
+	template <typename T>
+	void DoBuffsTable(const char* name, IteratorRange<PlayerBuffInfoWrapper::Iterator<T>> Buffs,
+		bool petBuffs = false, bool playerBuffs = false, int baseIndex = 0)
 	{
 		ImGuiTableFlags tableFlags = 0
 			| ImGuiTableFlags_SizingFixedFit
@@ -3314,15 +3315,13 @@ public:
 		{
 			ImGui::TableSetupScrollFreeze(2, 1);
 			
-			ImGui::TableSetupColumn("Index");
-			ImGui::TableSetupColumn("Icon");
+			ImGui::TableSetupColumn("Index", ImGuiTableColumnFlags_WidthFixed, 30.0f);
+			ImGui::TableSetupColumn("Icon", ImGuiTableColumnFlags_WidthFixed, 24.0f);
 			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
-			ImGui::TableSetupColumn("ID");
-			ImGui::TableSetupColumn("Duration");
+			ImGui::TableSetupColumn("Spell ID", ImGuiTableColumnFlags_WidthFixed, 46.0f);
+			ImGui::TableSetupColumn("Duration", ImGuiTableColumnFlags_WidthFixed, 78.0f);
 			ImGui::TableSetupColumn("Caster", ImGuiTableColumnFlags_WidthStretch);
 			ImGui::TableHeadersRow();
-
-			uint32_t currentTime = EQGetTime();
 
 			for (const auto& buffInfo : Buffs)
 			{
@@ -3343,7 +3342,7 @@ public:
 
 				// Index
 				ImGui::TableNextColumn();
-				ImGui::Text("%d", buffInfo.GetIndex());
+				ImGui::Text("%d", buffInfo.GetIndex() + 1 + baseIndex);
 
 				// Icon
 				ImGui::TableNextColumn();
@@ -3364,25 +3363,48 @@ public:
 					ImGui::Text("");
 				}
 
-				if (ImGui::BeginPopupContextItem("BuffContextMenu"))
+				if (spell)
 				{
-					if (ImGui::Selectable("Inspect"))
+					if (ImGui::BeginPopupContextItem("BuffContextMenu"))
 					{
-						char buffer[512] = { 0 };
-						FormatSpellLink(buffer, 512, spell);
+						if (ImGui::Selectable("Inspect"))
+						{
+							char buffer[512] = { 0 };
+							FormatSpellLink(buffer, 512, spell);
 
-						TextTagInfo info = ExtractLink(buffer);
-						ExecuteTextLink(info);
+							TextTagInfo info = ExtractLink(buffer);
+							ExecuteTextLink(info);
+						}
+
+						if (petBuffs)
+						{
+							ImGui::Separator();
+
+							if (ImGui::Selectable("Remove Pet Buff"))
+							{
+								RemovePetBuffByName(spell->Name);
+							}
+						}
+						else if (playerBuffs)
+						{
+							if (ImGui::Selectable("Remove by Index"))
+							{
+								RemoveBuffByIndex(buffInfo.GetIndex() + baseIndex);
+							}
+
+							if (ImGui::Selectable("Remove by Name"))
+							{
+								RemoveBuffByName(spell->Name);
+							}
+
+							if (ImGui::Selectable("Remove by Spell ID"))
+							{
+								RemoveBuffBySpellID(buffInfo.GetSpellID());
+							}
+						}
+
+						ImGui::EndPopup();
 					}
-
-					if (petBuffs && spell && ImGui::Selectable("Remove Pet Buff"))
-					{
-						ImGui::Separator();
-
-						RemovePetBuffByName(spell->Name);
-					}
-
-					ImGui::EndPopup();
 				}
 
 				// ID
@@ -3539,12 +3561,29 @@ public:
 			}
 
 			char szLabel[64];
-			sprintf_s(szLabel, "Spell Buffs (%d)###SpellBuffs", count);
 
-			if (ImGui::BeginTabItem(szLabel))
+			if (pBuffWnd)
 			{
-				DoSpellAffectTable("SpellAffectBuffsTable", std::begin(pcProfile->Buffs), std::end(pcProfile->Buffs), arrayLength);
-				ImGui::EndTabItem();
+				sprintf_s(szLabel, "Buffs (%d)###Buffs", pBuffWnd->GetTotalBuffCount());
+
+				if (ImGui::BeginTabItem(szLabel))
+				{
+					DoBuffsTable("BuffsTable", pBuffWnd->GetBuffRange(), false, true, pBuffWnd->firstEffectSlot);
+
+					ImGui::EndTabItem();
+				}
+			}
+
+			if (pSongWnd)
+			{
+				sprintf_s(szLabel, "Short Buffs (%d)###ShortBuffs", pSongWnd->GetTotalBuffCount());
+
+				if (ImGui::BeginTabItem(szLabel))
+				{
+					DoBuffsTable("ShortBuffsTable", pSongWnd->GetBuffRange(), false, true, pSongWnd->firstEffectSlot);
+
+					ImGui::EndTabItem();
+				}
 			}
 
 			if (pPetInfoWnd)
@@ -3553,7 +3592,7 @@ public:
 
 				if (ImGui::BeginTabItem(szLabel))
 				{
-					DoTargetBuffsTable("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
+					DoBuffsTable("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
 
 					ImGui::EndTabItem();
 				}
@@ -3565,7 +3604,7 @@ public:
 
 				if (ImGui::BeginTabItem(szLabel))
 				{
-					DoTargetBuffsTable("TargetBuffsTable", pTargetWnd->GetBuffRange(), false);
+					DoBuffsTable("TargetBuffsTable", pTargetWnd->GetBuffRange(), false);
 
 					ImGui::EndTabItem();
 				}
@@ -3575,6 +3614,14 @@ public:
 			{
 				DoSpellStackingTests();
 
+				ImGui::EndTabItem();
+			}
+
+			sprintf_s(szLabel, "Spell Affects (%d)###SpellBuffs", count);
+
+			if (ImGui::BeginTabItem(szLabel))
+			{
+				DoSpellAffectTable("SpellAffectBuffsTable", std::begin(pcProfile->Buffs), std::end(pcProfile->Buffs), arrayLength);
 				ImGui::EndTabItem();
 			}
 
@@ -4982,7 +5029,7 @@ static void DeveloperTools_Initialize()
 	DeveloperTools_RegisterMenuItem(s_realEstateInspector, "Real Estate", s_menuNameInspectors);
 
 	s_spellsInspector = new SpellsInspector();
-	DeveloperTools_RegisterMenuItem(s_spellsInspector, "Spells", s_menuNameInspectors);
+	DeveloperTools_RegisterMenuItem(s_spellsInspector, "Spells & Buffs", s_menuNameInspectors);
 
 	s_switchInspector = new SwitchInspector();
 	DeveloperTools_RegisterMenuItem(s_switchInspector, "Switches", s_menuNameInspectors);
