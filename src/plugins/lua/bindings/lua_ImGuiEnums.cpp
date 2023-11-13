@@ -165,13 +165,18 @@ void RegisterBindings_ImGuiEnums(sol::state_view lua)
 		"PlotLinesHovered"             , ImGuiCol_PlotLinesHovered,
 		"PlotHistogram"                , ImGuiCol_PlotHistogram,
 		"PlotHistogramHovered"         , ImGuiCol_PlotHistogramHovered,
+		"TableHeaderBg"                , ImGuiCol_TableHeaderBg,
+		"TableBorderStrong"            , ImGuiCol_TableBorderStrong,
+		"TableBorderLight"             , ImGuiCol_TableBorderLight,
+		"TableRowBg"                   , ImGuiCol_TableRowBg,
+		"TableRowBgAlt"                , ImGuiCol_TableRowBgAlt,
 		"TextSelectedBg"               , ImGuiCol_TextSelectedBg,
 		"DragDropTarget"               , ImGuiCol_DragDropTarget,
 		"NavHighlight"                 , ImGuiCol_NavHighlight,
 		"NavWindowingHighlight"        , ImGuiCol_NavWindowingHighlight,
 		"NavWindowingDimBg"            , ImGuiCol_NavWindowingDimBg,
 		"ModalWindowDimBg"             , ImGuiCol_ModalWindowDimBg,
-		"ModalWindowDarkening"         , ImGuiCol_ModalWindowDimBg,
+		"ModalWindowDarkening"         , ImGuiCol_ModalWindowDimBg, // Previous deprecated/removed
 		"COUNT"                        , ImGuiCol_COUNT
 	);
 
