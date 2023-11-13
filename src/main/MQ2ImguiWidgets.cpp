@@ -21,7 +21,14 @@
 
 namespace mq::imgui {
 
-bool DrawUITexture(const CUITextureInfo& textureInfo, const CXRect& rect/* = CXRect(0, 0, -1, -1)*/,
+//
+// Handle drawing of a UITexture.
+//
+
+static bool DrawUITextureInternal(ImDrawList* drawList,
+	const CUITextureInfo& textureInfo,
+	const CXPoint& pos,
+	const CXRect& rect/* = CXRect(0, 0, -1, -1)*/,
 	const CXSize& size /* = CXSize()*/,
 	bool drawBorder /* = false */)
 {
@@ -59,7 +66,10 @@ bool DrawUITexture(const CUITextureInfo& textureInfo, const CXRect& rect/* = CXR
 
 	ImVec2 minUV = ImVec2(0, 0);
 	ImVec2 maxUV = ImVec2(1, 1);
-	ImVec2 textureSize = ImVec2((float)textureInfo.TextureSize.cx, (float)textureInfo.TextureSize.cy);
+	ImVec2 textureSize = ImVec2(
+		static_cast<float>(textureInfo.TextureSize.cx),
+		static_cast<float>(textureInfo.TextureSize.cy)
+	);
 
 	ImVec2 imageSize;
 	if (size.cx != 0 && size.cy != 0)
@@ -74,31 +84,78 @@ bool DrawUITexture(const CUITextureInfo& textureInfo, const CXRect& rect/* = CXR
 
 		maxUV.x = rect.right / textureSize.x;
 		maxUV.y = rect.bottom / textureSize.y;
-
-		textureSize.x = (float)rect.GetWidth();
-		textureSize.y = (float)rect.GetHeight();
 	}
 
-	ImGui::Image(
-		TexID, imageSize,
-		minUV, maxUV,
-		ImVec4(1, 1, 1, 1),
-		drawBorder ? ImVec4(1, 1, 1, 0.5f) : ImVec4()
-	);
+	if (drawList != nullptr)
+	{
+		ImVec2 p_min(static_cast<float>(pos.x), static_cast<float>(pos.y));
+		ImVec2 p_max(pos.x + imageSize.x, pos.y + imageSize.y);
+
+		drawList->AddImage(TexID, p_min, p_max, minUV, maxUV);
+	}
+	else
+	{
+		ImGui::Image(
+			TexID, imageSize,
+			minUV, maxUV,
+			ImVec4(1, 1, 1, 1),
+			drawBorder ? ImVec4(1, 1, 1, 0.5f) : ImVec4()
+		);
+	}
+
 	return true;
 }
 
+bool AddUITexture(ImDrawList* drawList,
+	const CUITextureInfo& textureInfo,
+	const CXPoint& pos,
+	const CXRect& rect/* = CXRect(0, 0, -1, -1)*/,
+	const CXSize& size /* = CXSize()*/)
+{
+	return DrawUITextureInternal(drawList, textureInfo, pos, rect, size, false);
+}
+
+static bool DrawUITexture(const CUITextureInfo& textureInfo,
+	const CXRect& rect/* = CXRect(0, 0, -1, -1)*/,
+	const CXSize& size /* = CXSize()*/,
+	bool drawBorder /* = false */)
+{
+	return DrawUITextureInternal(nullptr, textureInfo, CXPoint(), rect, size, drawBorder);
+}
+
+//
+// Handle drawing of a CUITexturePiece
+//
+
 bool DrawTexturePiece(const CUITexturePiece& texturePiece, const CXRect& srcRect, const CXSize& imageSize, bool drawBorder)
 {
-	return DrawUITexture(texturePiece.GetTextureInfo(), srcRect, imageSize, drawBorder);
+	return DrawUITextureInternal(nullptr, texturePiece.GetTextureInfo(), CXPoint(), srcRect, imageSize, drawBorder);
 }
 
 bool DrawTexturePiece(const CUITexturePiece& texturePiece, const CXSize& imageSize, bool drawBorder)
 {
-	return DrawTexturePiece(texturePiece, texturePiece.GetRect(), imageSize, drawBorder);
+	return DrawUITextureInternal(nullptr, texturePiece.GetTextureInfo(), CXPoint(), texturePiece.GetRect(), imageSize, drawBorder);
 }
 
-bool DrawTextureAnimation(const CTextureAnimation* pAnim, const CXSize& size, bool drawBorder)
+bool AddTexturePiece(ImDrawList* drawList, const CUITexturePiece& texturePiece, const CXPoint& pos, const CXRect& srcRect, const CXSize& imageSize)
+{
+	return DrawUITextureInternal(drawList, texturePiece.GetTextureInfo(), pos, srcRect, imageSize, false);
+}
+
+bool AddTexturePiece(ImDrawList* drawList, const CUITexturePiece& texturePiece, const CXPoint& pos, const CXSize& imageSize)
+{
+	return DrawUITextureInternal(drawList, texturePiece.GetTextureInfo(), pos, texturePiece.GetRect(), imageSize, false);
+}
+
+//
+// Handle drawing of a CTextureAnimation
+//
+
+static bool DrawTextureAnimationInternal(ImDrawList* drawList,
+	const CTextureAnimation* pAnim,
+	const CXPoint& pos,
+	const CXSize& size /* = CXSize() */,
+	bool drawBorder /* = false */)
 {
 	CXSize theSize = size.cx != 0 && size.cy != 0 ? size : (pAnim->bGrid ? pAnim->CellRect.GetSize() : pAnim->Size);
 
@@ -119,15 +176,27 @@ bool DrawTextureAnimation(const CTextureAnimation* pAnim, const CXSize& size, bo
 	{
 		if (pAnim->CurCell != -1)
 		{
-			return DrawTexturePiece(frame.Piece, pAnim->CellRect, theSize, drawBorder);
+			return DrawUITextureInternal(drawList, frame.Piece.GetTextureInfo(), pos, pAnim->CellRect, theSize, drawBorder);
 		}
 	}
 	else
 	{
-		return DrawTexturePiece(frame.Piece, theSize, drawBorder);
+		return DrawUITextureInternal(drawList, frame.Piece.GetTextureInfo(), pos, frame.Piece.GetRect(), theSize, drawBorder);
 	}
 
 	return false;
+}
+
+bool DrawTextureAnimation(const CTextureAnimation* textureAnimation, const CXSize& size /*= CXSize()*/,
+	bool drawBorder /*= false*/)
+{
+	return DrawTextureAnimationInternal(nullptr, textureAnimation, CXPoint(), size, drawBorder);
+}
+
+bool AddTextureAnimation(ImDrawList* drawList, const CTextureAnimation* textureAnimation, const CXPoint& pos,
+	const CXSize& size /*= CXSize(*/)
+{
+	return DrawTextureAnimationInternal(drawList, textureAnimation, pos, size, false);
 }
 
 //----------------------------------------------------------------------------
