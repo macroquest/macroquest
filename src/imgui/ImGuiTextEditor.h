@@ -33,6 +33,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <vector>
+#include <cassert>
 
 namespace mq::imgui::texteditor {
 
