@@ -16,7 +16,6 @@
 #include "MQ2Main.h"
 #include "CrashHandler.h"
 
-#include "routing/PostOffice.h"
 #include "MQActorAPI.h"
 
 #include "MQ2KeyBinds.h"
@@ -1173,15 +1172,15 @@ MQTopLevelObject* MainImpl::FindTopLevelObject(const char* name)
 
 void MainImpl::SendToActor(postoffice::Dropbox* dropbox, const postoffice::Address& address, uint16_t messageId, const std::string& data, MQPlugin* owner)
 {
-	return pActorAPI->SendToActor(dropbox, address, messageId, data, owner);
+	pActorAPI->SendToActor(dropbox, address, messageId, data, owner);
 }
 
-void MainImpl::ReplyToActor(postoffice::Dropbox* dropbox, ProtoMessagePtr&& message, uint16_t messageId, const std::string& data, uint8_t status, MQPlugin* owner)
+void MainImpl::ReplyToActor(postoffice::Dropbox* dropbox, postoffice::Message&& message, uint16_t messageId, const std::string& data, uint8_t status, MQPlugin* owner)
 {
-	return pActorAPI->ReplyToActor(dropbox, std::move(message), messageId, data, status, owner);
+	pActorAPI->ReplyToActor(dropbox, std::move(message), messageId, data, status, owner);
 }
 
-postoffice::Dropbox* MainImpl::AddActor(const char* localAddress, postoffice::ReceiveCallback&& receive, MQPlugin* owner)
+postoffice::Dropbox* MainImpl::AddActor(const char* localAddress, postoffice::ReceiveCallbackAPI&& receive, MQPlugin* owner)
 {
 	return pActorAPI->AddActor(localAddress, std::move(receive), owner);
 }

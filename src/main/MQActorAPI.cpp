@@ -57,6 +57,8 @@ static void UnloadPluginActorAPI(const char* pluginName)
 
 MQActorAPI* pActorAPI = nullptr;
 
+std::map<MQPlugin*, std::vector<std::unique_ptr<postoffice::Dropbox>>> s_dropboxes;
+
 void MQActorAPI::SendToActor(postoffice::Dropbox* dropbox, const postoffice::Address& address, uint16_t messageId, const std::string& data, MQPlugin* owner)
 {
 	if (dropbox != nullptr)
@@ -89,22 +91,46 @@ void MQActorAPI::SendToActor(postoffice::Dropbox* dropbox, const postoffice::Add
 	}
 }
 
-void MQActorAPI::ReplyToActor(postoffice::Dropbox* dropbox, ProtoMessagePtr&& message, uint16_t messageId, const std::string& data, uint8_t status, MQPlugin* owner)
+void MQActorAPI::ReplyToActor(postoffice::Dropbox* dropbox, postoffice::Message&& message, uint16_t messageId, const std::string& data, uint8_t status, MQPlugin* owner)
 {
 	if (dropbox != nullptr && dropbox->IsValid())
 	{
 		// we don't want to do any address mangling here because a reply is always going to be fully qualified
-		dropbox->PostReply(std::move(message), messageId, data, status);
+		dropbox->PostReply(std::move(message.Original), messageId, data, status);
 	}
 }
 
-postoffice::Dropbox* MQActorAPI::AddActor(const char* localAddress, ReceiveCallback&& receive, MQPlugin* owner)
+postoffice::Dropbox* MQActorAPI::AddActor(const char* localAddress, ReceiveCallbackAPI&& receive, MQPlugin* owner)
 {
-	auto dropbox = std::make_unique<Dropbox>(GetPostOffice().RegisterAddress(localAddress, std::move(receive)));
+	auto dropbox = std::make_unique<Dropbox>(GetPostOffice().RegisterAddress(localAddress,
+		[receive = std::move(receive)](ProtoMessagePtr&& message)
+		{
+			auto sender = message->GetSender().value_or(proto::routing::Address());
+			auto envelope = message->Parse<proto::routing::Envelope>();
+			// we can discard the address here because the message has been routed already.
+
+			std::string data;
+			if (envelope.has_payload())
+				data = envelope.payload();
+
+			receive(postoffice::Message{
+				std::move(message),
+				postoffice::Address{
+					sender.has_pid() ? std::make_optional(sender.pid()) : std::nullopt,
+					sender.has_name() ? std::make_optional(sender.name()) : std::nullopt,
+					sender.has_mailbox() ? std::make_optional(sender.mailbox()) : std::nullopt,
+					sender.has_account() ? std::make_optional(sender.account()) : std::nullopt,
+					sender.has_server() ? std::make_optional(sender.server()) : std::nullopt,
+					sender.has_character() ? std::make_optional(sender.character()) : std::nullopt,
+					true
+				},
+				data
+			});
+		}));
 
 	// return even if it's invalid so users don't have to null check
 	// note that owner can be nullptr here (which would be for mq2main)
-	return m_dropboxes[owner].emplace_back(std::move(dropbox)).get();
+	return s_dropboxes[owner].emplace_back(std::move(dropbox)).get();
 }
 
 void MQActorAPI::RemoveActor(postoffice::Dropbox*& dropbox, MQPlugin* owner)
@@ -112,8 +138,8 @@ void MQActorAPI::RemoveActor(postoffice::Dropbox*& dropbox, MQPlugin* owner)
 	if (dropbox != nullptr)
 	{
 		dropbox->Remove();
-		auto dropboxes_it = m_dropboxes.find(owner);
-		if (dropboxes_it != m_dropboxes.end())
+		auto dropboxes_it = s_dropboxes.find(owner);
+		if (dropboxes_it != s_dropboxes.end())
 		{
 			auto dropbox_it = std::find_if(dropboxes_it->second.begin(), dropboxes_it->second.end(),
 				[dropbox](const std::unique_ptr<postoffice::Dropbox>& ptr) { return ptr.get() == dropbox; });
@@ -122,7 +148,7 @@ void MQActorAPI::RemoveActor(postoffice::Dropbox*& dropbox, MQPlugin* owner)
 				dropboxes_it->second.erase(dropbox_it);
 
 			if (dropboxes_it->second.empty())
-				m_dropboxes.erase(dropboxes_it);
+				s_dropboxes.erase(dropboxes_it);
 		}
 
 		dropbox = nullptr;

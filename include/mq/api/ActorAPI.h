@@ -33,10 +33,22 @@ namespace postoffice {
 		bool AbsoluteMailbox = false;
 	};
 
-	using ReceiveCallback = std::function<void(ProtoMessagePtr&&)>;
+	struct Message
+	{
+		// the original message is used internally for setting sequence ID on reply.
+		// this won't be usable by plugins unless they link against routing
+		ProtoMessagePtr Original;
+
+		std::optional<Address> Sender;
+		std::optional<std::string> Payload;
+	};
+
+	using ReceiveCallbackAPI = std::function<void(Message&&)>;
 
 	struct DropboxAPI
 	{
+		// the actual dropbox is used internally for routing
+		// this won't be usable by plugins unless they link against routing
 		Dropbox* Dropbox;
 
 		/**
@@ -92,7 +104,7 @@ namespace postoffice {
 		 * @param status a return status, sometimes used by reply handling logic
 		 */
 		template <typename ID, typename T>
-		void PostReply(ProtoMessagePtr&& message, ID messageId, const T& obj, uint8_t status = 0)
+		void PostReply(Message&& message, ID messageId, const T& obj, uint8_t status = 0)
 		{
 			PostReply(std::move(message), static_cast<uint16_t>(messageId), obj.SerializeAsString(), status);
 		}
@@ -108,7 +120,7 @@ namespace postoffice {
 		 * @param status a return status, sometimes used by reply handling logic
 		 */
 		template <typename ID>
-		void PostReply(ProtoMessagePtr&& message, ID messageId, const std::string& data, uint8_t status = 0)
+		void PostReply(Message&& message, ID messageId, const std::string& data, uint8_t status = 0)
 		{
 			PostReply(std::move(message), static_cast<uint16_t>(messageId), data, status);
 		}
@@ -121,7 +133,7 @@ namespace postoffice {
 		 * @param obj the message (as a data string)
 		 * @param status a return status, sometimes used by reply handling logic
 		 */
-		void PostReply(ProtoMessagePtr&& message, uint16_t messageId, const std::string& data, uint8_t status = 0);
+		void PostReply(Message&& message, uint16_t messageId, const std::string& data, uint8_t status = 0);
 
 		/**
 		 * Removes the mailbox with the same name from the post office
@@ -135,7 +147,7 @@ namespace postoffice {
  * @param receive a callback rvalue that will process messages as they are received in this mailbox
  * @return an dropbox that the creator can use to send addressed messages. will be invalid if it failed to add
  */
-DropboxAPI AddActor(ReceiveCallback&& receive);
+DropboxAPI AddActor(ReceiveCallbackAPI&& receive);
 
 /**
  * Creates and registers a mailbox with the post office
@@ -144,7 +156,7 @@ DropboxAPI AddActor(ReceiveCallback&& receive);
  * @param receive a callback rvalue that will process messages as they are received in this mailbox
  * @return an dropbox that the creator can use to send addressed messages. will be invalid if it failed to add
  */
-DropboxAPI AddActor(const char* localAddress, ReceiveCallback&& receive);
+DropboxAPI AddActor(const char* localAddress, ReceiveCallbackAPI&& receive);
 
 } // namespace postoffice
 
