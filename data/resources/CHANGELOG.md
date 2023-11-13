@@ -1,9 +1,14 @@
+Nov 11, 2023:
+- test: Fixed some crashes involving the buff window
+
 Nov 9, 2023:
 - Lua modules will no longer be loaded relative to the lua folder.
 - Developers should use PackageMan or (for their own internal use) the modules folder.
 
 Nov 8, 2023:
 - Fixed some issues with autologin
+- Fixed some crashes related to target window
+- test: Updated for latest patch
 
 Nov 7, 2023:
 - Added support for datatypes implemented in lua scripts. This includes support

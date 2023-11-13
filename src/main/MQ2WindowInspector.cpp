@@ -3689,42 +3689,31 @@ static void WindowProperties_BuffWindow(CSidlScreenWnd* pSidlWindow, ImGuiWindow
 	DisplayTextureAnimation("Red Icon Background", pWindow->ptaRedIconBackground);
 	DisplayTextureAnimation("Yellow Icon Background", pWindow->ptaYellowIconBackground);
 
-	int count = 0;
-	for (int i = 0; i < MAX_BUFF_ICONS; ++i)
-	{
-		if (pWindow->spellIds[count] > 0)
-			count++;
-	}
+	int count = pWindow->GetTotalBuffCount();
 
 	if (ColumnTreeNode("Buffs", "%d", count))
 	{
-		for (int i = 0; i < MAX_BUFF_ICONS; ++i)
+		for (const auto& buffInfo : pWindow->GetBuffRange())
 		{
-			if (pWindow->spellIds[i] <= 0)
-				continue;
-
-			EQ_Spell* pSpell = GetSpellByID(pWindow->spellIds[i]);
+			EQ_Spell* pSpell = buffInfo.GetSpell();
 
 			char szName[32];
-			sprintf_s(szName, "Buff %d", i + 1);
+			sprintf_s(szName, "Buff %d", buffInfo.GetIndex() + 1);
 
 			if (ColumnTreeNode(szName, "%s", pSpell->Name))
 			{
-				ColumnTextType("SpellId", "int", "%d", pWindow->spellIds[i]);
+				ColumnTextType("SpellId", "int", "%d", buffInfo.GetSpellID());
 				ColumnTextType("Name", "char[64]", "%s", pSpell->Name);
-				if (pWindow->buffTimers[i] == -1)
+				if (buffInfo.GetBuffTimer() < 0)
 					ColumnText("Buff Timer", "Permanent");
 				else
-					ColumnElapsedTimestamp("Buff Timer", pWindow->buffTimers[i]);
-				DisplayTextureAnimation("Buff Icon", pWindow->ptaBuffIcons[i]);
-				ColumnWindow("Button", pWindow->pBuffButtons[i]);
-				DisplayTextObject("Time Remaining", pWindow->pTimeRemainingTexts[i]);
-				DisplayTextObject("Counter", pWindow->pCounterTexts[i]);
-				DisplayTextObject("Limited Uses", pWindow->pLimitedUseTexts[i]);
-				if (CXStr* pWhoCast = pWindow->whoCastHash.FindFirst(pWindow->spellIds[i]))
-				{
-					ColumnCXStr("Caster", *pWhoCast, false);
-				}
+					ColumnElapsedTimestamp("Buff Timer", buffInfo.GetBuffTimer());
+				DisplayTextureAnimation("Buff Icon", buffInfo.GetBuffIcon());
+				ColumnWindow("Button", buffInfo.GetBuffButton());
+				DisplayTextObject("Time Remaining", buffInfo.GetTimeRemainingText());
+				DisplayTextObject("Counter", buffInfo.GetCounterText());
+				DisplayTextObject("Limited Uses", buffInfo.GetLimitUseText());
+				ColumnText("Caster", "%s", buffInfo.GetCaster());
 
 				ImGui::TreePop();
 			}

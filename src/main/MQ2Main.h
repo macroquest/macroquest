@@ -282,6 +282,7 @@ MQLIB_API int FindBuffIndex(std::string_view Name, int minSlot = 0, int maxSlot 
 MQLIB_API bool RemoveBuffByName(std::string_view buffName);
 MQLIB_API bool RemoveBuffBySpellID(int buffName);
 MQLIB_API bool RemoveBuffByIndex(int buffIndex);
+MQLIB_API bool RemovePetBuffByName(std::string_view buffName);
 MQLIB_API bool StripQuotes(char* str);
 MQLIB_API int GetKeyRingCount(KeyRingType keyRingType);
 MQLIB_API int GetMountCount();
@@ -298,7 +299,6 @@ MQLIB_API CXWnd* GetAdvLootSharedListItem(DWORD ListIndex, DWORD type);
 MQLIB_API bool LootInProgress(CAdvancedLootWnd* pAdvLoot, CListWnd* pPersonalList, CListWnd* pSharedList);
 MQLIB_API void WeDidStuff();
 MQLIB_API int GetFreeInventory(int nSize);
-MQLIB_API int GetBankSlotCount(int nSize, bool bEmptyOnly = false);
 MQLIB_API int GetFreeStack(ItemClient* pContents);
 MQLIB_API int RangeRandom(int min, int max);
 
