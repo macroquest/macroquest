@@ -19,12 +19,19 @@ namespace mq {
 class ProtoMessage;
 using ProtoMessagePtr = std::unique_ptr<ProtoMessage>;
 
-namespace proto::routing {
-class Address;
-}
-
 namespace postoffice {
 	class Dropbox;
+
+	struct Address
+	{
+		std::optional<uint32_t> PID;
+		std::optional<std::string> Name;
+		std::optional<std::string> Mailbox;
+		std::optional<std::string> Account;
+		std::optional<std::string> Server;
+		std::optional<std::string> Character;
+		bool AbsoluteMailbox = false;
+	};
 
 	using ReceiveCallback = std::function<void(ProtoMessagePtr&&)>;
 
@@ -43,7 +50,7 @@ namespace postoffice {
 		 * @param obj the message (as an object)
 		 */
 		template <typename ID, typename T>
-		void Post(const proto::routing::Address& address, ID messageId, const T& obj)
+		void Post(const Address& address, ID messageId, const T& obj)
 		{
 			Post(address, static_cast<uint16_t>(messageId), obj.SerializeAsString());
 		}
@@ -58,7 +65,7 @@ namespace postoffice {
 		 * @param data the message (as a data string)
 		 */
 		template <typename ID>
-		void Post(const proto::routing::Address& address, ID messageId, const std::string& data)
+		void Post(const Address& address, ID messageId, const std::string& data)
 		{
 			Post(address, static_cast<uint16_t>(messageId), data);
 		}
@@ -71,7 +78,7 @@ namespace postoffice {
 		 * @param messageId a message ID used to route the message at the receiver
 		 * @param data the message (as a data string)
 		 */
-		void Post(const proto::routing::Address& address, uint16_t messageId, const std::string& data);
+		void Post(const Address& address, uint16_t messageId, const std::string& data);
 
 		/**
 		 * Sends a reply to the sender of a message

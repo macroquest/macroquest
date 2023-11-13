@@ -17,7 +17,6 @@
 #include <mq/Plugin.h>
 
 #include "login/Login.h"
-#include "routing/PostOffice.h"
 #include "MQ2AutoLogin.h"
 
 #include <imgui.h>
@@ -201,10 +200,10 @@ bool MQ2AutoLoginType::dataAutoLogin(const char* szName, MQTypeVar& Ret)
 template <typename T>
 static void Post(AutoLoginMessageId messageId, const T& data)
 {
-	proto::routing::Address address;
-	address.set_name("launcher");
-	address.set_mailbox("autologin");
-	address.set_absolute_mailbox(true);
+	postoffice::Address address;
+	address.Name = "launcher";
+	address.Mailbox = "autologin";
+	address.AbsoluteMailbox = true;
 
 	s_autologinDropbox.Post(address, messageId, data);
 }
