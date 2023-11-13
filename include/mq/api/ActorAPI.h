@@ -22,29 +22,54 @@ using ProtoMessagePtr = std::unique_ptr<ProtoMessage>;
 namespace postoffice {
 	class Dropbox;
 
+	/**
+	 * An address shim to be used to fill out the address on the envelope in the MQ post office.
+	 */
 	struct Address
 	{
+		/** The PID of the target. If this is specified, all other addressing will be ignored. */
 		std::optional<uint32_t> PID;
+
+		/** The name of the target, used for addressing external applications. */
 		std::optional<std::string> Name;
+
+		/** The mailbox of the target, if this is fully qualified then make sure to set AbsoluteMailbox */
 		std::optional<std::string> Mailbox;
+
+		/** The account of the target post office */
 		std::optional<std::string> Account;
+
+		/** The server of the target post office */
 		std::optional<std::string> Server;
+
+		/** The character of the target post office */
 		std::optional<std::string> Character;
+
+		/** Used to specify if the mailbox is fully qualified (default to false) */
 		bool AbsoluteMailbox = false;
 	};
 
+	/**
+	 * A message shim used to store the original message while allowing parsing without needing the routing library.
+	 */
 	struct Message
 	{
 		// the original message is used internally for setting sequence ID on reply.
 		// this won't be usable by plugins unless they link against routing
 		ProtoMessagePtr Original;
 
+		/** The address of the sender of the message in case message handling requires this */
 		std::optional<Address> Sender;
+
+		/** The data of the message to be parsed by the message handler */
 		std::optional<std::string> Payload;
 	};
 
 	using ReceiveCallbackAPI = std::function<void(Message&&)>;
 
+	/**
+	 * A dropbox shim used to store a reference to the actual dropbox and provide functions to interact with it
+	 */
 	struct DropboxAPI
 	{
 		// the actual dropbox is used internally for routing
