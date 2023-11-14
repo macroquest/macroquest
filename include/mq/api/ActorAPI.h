@@ -87,7 +87,7 @@ namespace postoffice {
 		 * @param obj the message (as an object)
 		 */
 		template <typename ID, typename T>
-		void Post(const Address& address, ID messageId, const T& obj)
+		void Post(const Address& address, ID messageId, const T& obj) const
 		{
 			Post(address, static_cast<uint16_t>(messageId), obj.SerializeAsString());
 		}
@@ -102,7 +102,7 @@ namespace postoffice {
 		 * @param data the message (as a data string)
 		 */
 		template <typename ID>
-		void Post(const Address& address, ID messageId, const std::string& data)
+		void Post(const Address& address, ID messageId, const std::string& data) const
 		{
 			Post(address, static_cast<uint16_t>(messageId), data);
 		}
@@ -115,7 +115,7 @@ namespace postoffice {
 		 * @param messageId a message ID used to route the message at the receiver
 		 * @param data the message (as a data string)
 		 */
-		void Post(const Address& address, uint16_t messageId, const std::string& data);
+		void Post(const Address& address, uint16_t messageId, const std::string& data) const;
 
 		/**
 		 * Sends a reply to the sender of a message
@@ -129,7 +129,7 @@ namespace postoffice {
 		 * @param status a return status, sometimes used by reply handling logic
 		 */
 		template <typename ID, typename T>
-		void PostReply(Message&& message, ID messageId, const T& obj, uint8_t status = 0)
+		void PostReply(Message&& message, ID messageId, const T& obj, uint8_t status = 0) const
 		{
 			PostReply(std::move(message), static_cast<uint16_t>(messageId), obj.SerializeAsString(), status);
 		}
@@ -145,7 +145,7 @@ namespace postoffice {
 		 * @param status a return status, sometimes used by reply handling logic
 		 */
 		template <typename ID>
-		void PostReply(Message&& message, ID messageId, const std::string& data, uint8_t status = 0)
+		void PostReply(Message&& message, ID messageId, const std::string& data, uint8_t status = 0) const
 		{
 			PostReply(std::move(message), static_cast<uint16_t>(messageId), data, status);
 		}
@@ -158,7 +158,7 @@ namespace postoffice {
 		 * @param obj the message (as a data string)
 		 * @param status a return status, sometimes used by reply handling logic
 		 */
-		void PostReply(Message&& message, uint16_t messageId, const std::string& data, uint8_t status = 0);
+		void PostReply(Message&& message, uint16_t messageId, const std::string& data, uint8_t status = 0) const;
 
 		/**
 		 * Removes the mailbox with the same name from the post office
