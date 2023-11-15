@@ -1,3 +1,6 @@
+Nov 15, 2023:
+- live: Updated for latest patch
+
 Nov 11, 2023:
 - test: Fixed some crashes involving the buff window
 
