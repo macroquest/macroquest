@@ -59,6 +59,9 @@ MQActorAPI* pActorAPI = nullptr;
 
 std::map<MQPlugin*, std::vector<std::unique_ptr<postoffice::Dropbox>>> s_dropboxes;
 
+// this is to allow for replies while not exposing message internals to the API
+std::map<ProtoMessage*, std::unique_ptr<ProtoMessage>> s_messageStorage;
+
 void MQActorAPI::SendToActor(postoffice::Dropbox* dropbox, const postoffice::Address& address, uint16_t messageId, const std::string& data, MQPlugin* owner)
 {
 	if (dropbox != nullptr)
@@ -91,13 +94,20 @@ void MQActorAPI::SendToActor(postoffice::Dropbox* dropbox, const postoffice::Add
 	}
 }
 
-void MQActorAPI::ReplyToActor(postoffice::Dropbox* dropbox, postoffice::Message&& message, uint16_t messageId, const std::string& data, uint8_t status, MQPlugin* owner)
+void MQActorAPI::ReplyToActor(postoffice::Dropbox* dropbox, const std::shared_ptr<postoffice::Message>& message, uint16_t messageId, const std::string& data, uint8_t status, MQPlugin* owner)
 {
 	if (dropbox != nullptr && dropbox->IsValid())
 	{
-		// we don't want to do any address mangling here because a reply is always going to be fully qualified
-		dropbox->PostReply(std::move(message.Original), messageId, data, status);
+		auto& message_ptr = s_messageStorage.find(message->Original);
+
+		if (message_ptr != s_messageStorage.end())
+		{
+			// we don't want to do any address mangling here because a reply is always going to be fully qualified
+			dropbox->PostReply(std::move(message_ptr->second), messageId, data, status);
+		}
 	}
+
+	// we don't need to erase the message from storage, the message destructor handles that for us
 }
 
 postoffice::Dropbox* MQActorAPI::AddActor(const char* localAddress, ReceiveCallbackAPI&& receive, MQPlugin* owner)
@@ -105,27 +115,35 @@ postoffice::Dropbox* MQActorAPI::AddActor(const char* localAddress, ReceiveCallb
 	auto dropbox = std::make_unique<Dropbox>(GetPostOffice().RegisterAddress(localAddress,
 		[receive = std::move(receive)](ProtoMessagePtr&& message)
 		{
-			auto sender = message->GetSender().value_or(proto::routing::Address());
-			auto envelope = message->Parse<proto::routing::Envelope>();
-			// we can discard the address here because the message has been routed already.
-
-			std::string data;
-			if (envelope.has_payload())
-				data = envelope.payload();
-
-			receive(postoffice::Message{
-				std::move(message),
-				postoffice::Address{
-					sender.has_pid() ? std::make_optional(sender.pid()) : std::nullopt,
-					sender.has_name() ? std::make_optional(sender.name()) : std::nullopt,
-					sender.has_mailbox() ? std::make_optional(sender.mailbox()) : std::nullopt,
-					sender.has_account() ? std::make_optional(sender.account()) : std::nullopt,
-					sender.has_server() ? std::make_optional(sender.server()) : std::nullopt,
-					sender.has_character() ? std::make_optional(sender.character()) : std::nullopt,
+			//auto sender = message->GetSender().value_or(proto::routing::Address());
+			std::optional<postoffice::Address> sender;
+			if (auto s = message->GetSender())
+			{
+				sender = postoffice::Address{
+					s->has_pid() ? std::make_optional(s->pid()) : std::nullopt,
+					s->has_name() ? std::make_optional(s->name()) : std::nullopt,
+					s->has_mailbox() ? std::make_optional(s->mailbox()) : std::nullopt,
+					s->has_account() ? std::make_optional(s->account()) : std::nullopt,
+					s->has_server() ? std::make_optional(s->server()) : std::nullopt,
+					s->has_character() ? std::make_optional(s->character()) : std::nullopt,
 					true
-				},
-				data
-			});
+				};
+			}
+
+			std::optional<std::string> data;
+			if (message->size() > 0)
+				data = std::string(message->get<char>(), message->size());
+
+			ProtoMessage* message_ptr = message.get();
+			s_messageStorage.emplace(message_ptr, std::move(message));
+
+			receive(std::shared_ptr<postoffice::Message>(
+				new postoffice::Message{ message_ptr, sender, data },
+				[](postoffice::Message* message)
+				{
+					s_messageStorage.erase(message->Original);
+					delete message;
+				}));
 		}));
 
 	// return even if it's invalid so users don't have to null check

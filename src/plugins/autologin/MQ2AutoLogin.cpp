@@ -654,7 +654,7 @@ PLUGIN_API void InitializePlugin()
 	ReenableTime = MQGetTickCount64() + STEP_DELAY;
 
 	s_autologinDropbox = postoffice::AddActor("autologin",
-		[](postoffice::Message&& message)
+		[](const std::shared_ptr<postoffice::Message>& message)
 		{
 			// autologin doesn't actually take message inputs yet...
 		});

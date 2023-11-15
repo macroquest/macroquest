@@ -69,14 +69,17 @@ mq::MQTopLevelObject* mq::FindTopLevelObject(const char* szName)
 	return mqplugin::MainInterface->FindTopLevelObject(szName);
 }
 
+//============================================================================
+//============================================================================
+
 void mq::postoffice::DropboxAPI::Post(const mq::postoffice::Address& address, uint16_t messageId, const std::string& data) const
 {
 	mqplugin::MainInterface->SendToActor(Dropbox, address, messageId, data, mqplugin::ThisPlugin);
 }
 
-void mq::postoffice::DropboxAPI::PostReply(mq::postoffice::Message&& message, uint16_t messageId, const std::string& data, uint8_t status) const
+void mq::postoffice::DropboxAPI::PostReply(const std::shared_ptr<mq::postoffice::Message>& message, uint16_t messageId, const std::string& data, uint8_t status) const
 {
-	mqplugin::MainInterface->ReplyToActor(Dropbox, std::move(message), messageId, data, status, mqplugin::ThisPlugin);
+	mqplugin::MainInterface->ReplyToActor(Dropbox, message, messageId, data, status, mqplugin::ThisPlugin);
 }
 
 void mq::postoffice::DropboxAPI::Remove()

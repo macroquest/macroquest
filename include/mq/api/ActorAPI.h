@@ -52,11 +52,12 @@ namespace postoffice {
 	/**
 	 * A message shim used to store the original message while allowing parsing without needing the routing library.
 	 */
-	struct Message
+	class Message
 	{
+	public:
 		// the original message is used internally for setting sequence ID on reply.
 		// this won't be usable by plugins unless they link against routing
-		ProtoMessagePtr Original;
+		ProtoMessage* Original;
 
 		/** The address of the sender of the message in case message handling requires this */
 		std::optional<Address> Sender;
@@ -65,7 +66,7 @@ namespace postoffice {
 		std::optional<std::string> Payload;
 	};
 
-	using ReceiveCallbackAPI = std::function<void(Message&&)>;
+	using ReceiveCallbackAPI = std::function<void(const std::shared_ptr<Message>&)>;
 
 	/**
 	 * A dropbox shim used to store a reference to the actual dropbox and provide functions to interact with it
@@ -129,7 +130,7 @@ namespace postoffice {
 		 * @param status a return status, sometimes used by reply handling logic
 		 */
 		template <typename ID, typename T>
-		void PostReply(Message&& message, ID messageId, const T& obj, uint8_t status = 0) const
+		void PostReply(const std::shared_ptr<Message>& message, ID messageId, const T& obj, uint8_t status = 0) const
 		{
 			PostReply(std::move(message), static_cast<uint16_t>(messageId), obj.SerializeAsString(), status);
 		}
@@ -145,7 +146,7 @@ namespace postoffice {
 		 * @param status a return status, sometimes used by reply handling logic
 		 */
 		template <typename ID>
-		void PostReply(Message&& message, ID messageId, const std::string& data, uint8_t status = 0) const
+		void PostReply(const std::shared_ptr<Message>& message, ID messageId, const std::string& data, uint8_t status = 0) const
 		{
 			PostReply(std::move(message), static_cast<uint16_t>(messageId), data, status);
 		}
@@ -158,7 +159,7 @@ namespace postoffice {
 		 * @param obj the message (as a data string)
 		 * @param status a return status, sometimes used by reply handling logic
 		 */
-		void PostReply(Message&& message, uint16_t messageId, const std::string& data, uint8_t status = 0) const;
+		void PostReply(const std::shared_ptr<Message>& message, uint16_t messageId, const std::string& data, uint8_t status = 0) const;
 
 		/**
 		 * Removes the mailbox with the same name from the post office
