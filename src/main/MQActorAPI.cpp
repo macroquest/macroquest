@@ -133,6 +133,7 @@ void MQActorAPI::ReplyToActor(
 		{
 			// we don't want to do any address mangling here because a reply is always going to be fully qualified
 			dropbox->PostReply(std::move(message_ptr->second), messageId, data, status);
+			s_messageStorage.erase(message_ptr);
 		}
 	}
 

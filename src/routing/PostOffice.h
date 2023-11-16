@@ -115,33 +115,6 @@ public:
 	}
 
 	/**
-	 * Sends a reply to the sender of a message
-	 *
-	 * @tparam ID an identifier to be used by the receiver, must cast to uint32_t
-	 * @tparam T the message being sent, usually some kind of proto
-	 *
-	 * @param message the original message to reply to (contains the sender address)
-	 * @param messageId a message ID used to rout the message at the receiver
-	 * @param obj the message (as an object)
-	 * @param status a return status, sometimes used by reply handling logic
-	 */
-	template <typename ID, typename T>
-	void PostReply(ProtoMessagePtr&& message, ID messageId, const T& obj, uint8_t status = 0)
-	{
-		if (IsValid())
-		{
-			if (auto returnAddress = message->GetSender())
-			{
-				PostReply(std::move(message), *returnAddress, messageId, obj, status);
-			}
-			else
-			{
-				message->SendProtoReply(messageId, obj, status);
-			}
-		}
-	}
-
-	/**
 	 * Sends a reply to the sender of a message -- the message can be anything
 	 * because we make no assumption about what is wrapped in the envelope
 	 *
@@ -155,11 +128,33 @@ public:
 	 * @param status a return status, sometimes used by reply handling logic
 	 */
 	template <typename ID, typename T>
-	void PostReply(PipeMessagePtr&& message, const proto::routing::Address& returnAddress, ID messageId, const T& obj, uint8_t status = 0)
+	void PostReply(PipeMessagePtr&& message, ID messageId, const T& obj, uint8_t status = 0)
 	{
 		if (IsValid())
 		{
-			std::string data = Stuff(returnAddress, messageId, obj);
+			PostReply(std::move(message), returnAddress, messageId, obj.SerializeAsString(), status);
+		}
+	}
+
+	/**
+	 * Sends a reply to the sender of a message -- the message can be anything
+	 * because we make no assumption about what is wrapped in the envelope
+	 *
+	 * @tparam ID an identifier to be used by the receiver, must cast to uint32_t
+	 * @tparam T the message being sent, usually some kind of proto
+	 *
+	 * @param message the original message to reply to
+	 * @param returnAddress the address to reply to
+	 * @param messageId a message ID used to rout the message at the receiver
+	 * @param obj the message (as a string of data)
+	 * @param status a return status, sometimes used by reply handling logic
+	 */
+	template <typename ID>
+	void PostReply(PipeMessagePtr&& message, ID messageId, const std::string& obj, uint8_t status = 0)
+	{
+		if (IsValid())
+		{
+			std::string data(obj);
 			message->SendReply(MQMessageId::MSG_ROUTE, &data[0], data.size(), status);
 		}
 	}

@@ -57,26 +57,6 @@ public:
 		return obj;
 	}
 
-	template <typename ID, typename T>
-	void SendProtoReply(ID messageId, const T& obj, uint8_t status = 0)
-	{
-		std::string data = obj.SerializeAsString();
-		SendReply(static_cast<MQMessageId>(messageId), &data[0], data.size(), status);
-	}
-
-	template <typename ID>
-	void SendProtoReply(ID messageId, const std::string& obj, uint8_t status = 0)
-	{
-		std::string data(obj);
-		SendReply(static_cast<MQMessageId>(messageId), &data[0], data.size(), status);
-	}
-
-	template <typename ID, typename T>
-	static void SendProtoReply(PipeMessagePtr&& message, ID messageId, const T& obj, uint8_t status = 0)
-	{
-		message->SendProtoReply(messageId, obj, status);
-	}
-
 	const std::optional<proto::routing::Address>& GetSender() { return m_returnAddress; }
 	void SetSender(const proto::routing::Address& address) { m_returnAddress = address; }
 
