@@ -133,7 +133,8 @@ public:
 	{
 		if (IsValid())
 		{
-			PostReply(std::move(message), returnAddress, messageId, obj.SerializeAsString(), status);
+			std::string data(Data(obj));
+			message->SendReply(messageId, &data[0], data.size(), status);
 		}
 	}
 
@@ -145,16 +146,24 @@ public:
 	 *
 	 * @param message the original message to reply to
 	 * @param messageId a message ID used to rout the message at the receiver
-	 * @param obj the message (as a string of data)
+	 * @param obj the message (as an object)
 	 * @param status a return status, sometimes used by reply handling logic
 	 */
-	template <typename ID>
-	void PostReply(PipeMessagePtr&& message, ID messageId, const std::string& obj, uint8_t status = 0)
+	template <typename ID, typename T>
+	void PostReply(ProtoMessagePtr&& message, ID messageId, const T& obj, uint8_t status = 0)
 	{
 		if (IsValid())
 		{
-			std::string data(obj);
-			message->SendReply(MQMessageId::MSG_ROUTE, &data[0], data.size(), status);
+			if (auto sender = message->GetSender())
+			{
+				std::string data(Stuff(*sender, messageId, obj));
+				message->SendReply(MQMessageId::MSG_ROUTE, &data[0], data.size(), status);
+			}
+			else
+			{
+				std::string data(Data(obj));
+				message->SendReply(static_cast<MQMessageId>(messageId), &data[0], data.size(), status);
+			}
 		}
 	}
 
@@ -171,6 +180,17 @@ public:
 	void Remove();
 
 private:
+	template <typename T>
+	std::string Data(const T& obj)
+	{
+		return obj.SerializeAsString();
+	}
+
+	std::string Data(const std::string& obj)
+	{
+		return obj;
+	}
+
 	template <typename ID, typename T>
 	std::string Stuff(const proto::routing::Address& address, ID messageId, const T& obj)
 	{
