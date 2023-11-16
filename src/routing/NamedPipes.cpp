@@ -50,6 +50,16 @@ PipeMessage::PipeMessage(const MQMessageHeader& header, const void* data, size_t
 	Init(header, data, length);
 }
 
+PipeMessage::PipeMessage(const PipeMessage& message, const void* data, size_t length)
+{
+	if (message.m_header)
+		Init(*message.m_header, data, length);
+	else
+		Init(message.GetMessageId(), data, length);
+
+	SetConnection(message.m_connection.lock());
+}
+
 PipeMessage::~PipeMessage()
 {
 }

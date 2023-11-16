@@ -54,6 +54,7 @@ public:
 	PipeMessage() = default;
 	PipeMessage(MQMessageId messageId, const void* data, size_t length);
 	PipeMessage(const MQMessageHeader& header, const void* data, size_t length);
+	PipeMessage(const PipeMessage& message, const void* data, size_t length);
 
 	virtual ~PipeMessage();
 

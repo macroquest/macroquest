@@ -24,7 +24,7 @@
 namespace mq::postoffice {
 
 using ReceiveCallback = std::function<void(ProtoMessagePtr&&)>;
-using PostCallback = std::function<void(const std::string&)>;
+using PostCallback = std::function<void(const std::string&, const PipeMessageResponseCb&)>;
 using DropboxDropper = std::function<void(const std::string&)>;
 
 class Mailbox
@@ -59,7 +59,7 @@ public:
 	void Process(size_t howMany) const;
 
 private:
-	static ProtoMessagePtr Open(proto::routing::Envelope&& envelope, const MQMessageHeader& header);
+	static ProtoMessagePtr Open(proto::routing::Envelope&& envelope, const PipeMessagePtr& header);
 
 	const std::string m_localAddress;
 	const ReceiveCallback m_receive;
@@ -95,9 +95,9 @@ public:
 	 * @param obj the message (as an object)
 	 */
 	template <typename ID, typename T>
-	void Post(const proto::routing::Address& address, ID messageId, const T& obj)
+	void Post(const proto::routing::Address& address, ID messageId, const T& obj, const PipeMessageResponseCb& callback = nullptr)
 	{
-		if (IsValid()) m_post(Stuff(address, messageId, obj));
+		if (IsValid()) m_post(Stuff(address, messageId, obj), callback);
 	}
 
 	/**
@@ -109,9 +109,9 @@ public:
 	 * @param messageId a message ID used to route the message at the receiver
 	 */
 	template <typename ID>
-	void Post(const proto::routing::Address& address, ID messageId)
+	void Post(const proto::routing::Address& address, ID messageId, const PipeMessageResponseCb& callback = nullptr)
 	{
-		if (IsValid()) m_post(Stuff(address, messageId, std::string()));
+		if (IsValid()) m_post(Stuff(address, messageId, std::string()), callback);
 	}
 
 	/**
@@ -229,7 +229,7 @@ public:
 	 *
 	 * @param message the message to route -- it should be in an envelope and have the ID of ROUTE
 	 */
-	virtual void RouteMessage(PipeMessagePtr&& message) = 0;
+	virtual void RouteMessage(PipeMessagePtr&& message, const PipeMessageResponseCb& callback) = 0;
 
 	/**
 	 * The interface to route a message, to be implemented in the post office instantiation
@@ -237,17 +237,14 @@ public:
 	 * @param data the data buffer of the message to route
 	 * @param length the length of the data buffer
 	 */
-	virtual void RouteMessage(const void* data, size_t length) = 0;
+	void RouteMessage(const void* data, size_t length, const PipeMessageResponseCb& callback);
 
 	/**
 	 * A helper interface to route a message
 	 *
 	 * @param data a string of data (which embeds its length)
 	 */
-	void RouteMessage(const std::string& data)
-	{
-		RouteMessage(&data[0], data.size());
-	}
+	void RouteMessage(const std::string& data, const PipeMessageResponseCb& callback);
 
 	/**
 	 * Creates and registers a mailbox with the post office

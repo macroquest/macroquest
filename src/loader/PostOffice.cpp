@@ -67,7 +67,7 @@ private:
 			case mq::MQMessageId::MSG_ROUTE:
 				// all we have to do here is route, this is the same as if an internal mailbox is
 				// attempting to route a message
-				GetPostOffice().RouteMessage(std::move(message));
+				m_postOffice->RouteMessage(std::move(message));
 				break;
 
 			case mq::MQMessageId::MSG_IDENTIFICATION:
@@ -95,37 +95,6 @@ private:
 
 					// we also need to update all the clients
 					m_postOffice->m_pipeServer.BroadcastProtoMessage(mq::MQMessageId::MSG_IDENTIFICATION, id);
-				}
-				else
-				{
-					// otherwise, we are getting a request to send all IDs, do so sequentially
-					for (const auto& [_, client] : m_postOffice->m_identities)
-					{
-						proto::routing::Identification id;
-						id.set_pid(client.pid);
-
-						if (!client.account.empty())
-							id.set_account(client.account);
-
-						if (!client.server.empty())
-							id.set_server(client.server);
-
-						if (!client.character.empty())
-							id.set_character(client.character);
-
-						std::string data = id.SerializeAsString();
-						message->SendReply(mq::MQMessageId::MSG_IDENTIFICATION, &data[0], data.size());
-					}
-
-					for (const auto& [name, pid] : m_postOffice->m_names)
-					{
-						proto::routing::Identification id;
-						id.set_pid(pid);
-						id.set_name(name);
-
-						std::string data = id.SerializeAsString();
-						message->SendReply(mq::MQMessageId::MSG_IDENTIFICATION, &data[0], data.size());
-					}
 				}
 				break;
 
@@ -242,7 +211,25 @@ public:
 	LauncherPostOffice() : m_pipeServer{ mq::MQ2_PIPE_SERVER_PATH }
 	{}
 
-	void RouteMessage(PipeMessagePtr&& message) override
+	void RouteMessage(PipeMessagePtr&& message, const PipeMessageResponseCb& callback) override
+	{
+		if (callback == nullptr)
+		{
+			if (message->GetHeader())
+				message->GetHeader()->mode = MQRequestMode::SimpleMessage;
+
+		}
+		else
+		{
+			if (message->GetHeader())
+				message->GetHeader()->mode = MQRequestMode::CallAndResponse;
+		}
+
+		RouteMessage(std::move(message));
+	}
+
+	void RouteMessage(
+		PipeMessagePtr&& message)
 	{
 		auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
 		const auto& address = envelope.address();
@@ -282,7 +269,7 @@ public:
 			if (address.has_mailbox())
 			{
 				// this is a local message
-				SPDLOG_INFO("Routing message to mailbox: {}", address.mailbox());
+				SPDLOG_DEBUG("Routing message to mailbox: {}", address.mailbox());
 				DeliverTo(address.mailbox(), std::move(message), routing_failed);
 			}
 			else
@@ -312,11 +299,6 @@ public:
 				}
 			}
 		}
-	}
-
-	void RouteMessage(const void* data, size_t length) override
-	{
-		RouteMessage(std::make_unique<PipeMessage>(MQMessageId::MSG_ROUTE, data, length));
 	}
 
 	void ProcessPipeServer()
@@ -380,7 +362,39 @@ public:
 		m_serverDropbox = RegisterAddress("pipe_server",
 			[this](ProtoMessagePtr&& message)
 			{
-				m_pipeServer.DispatchMessage(std::move(message));
+				// if we've gotten here, then something is delivering a message to this
+				// post office ("pipe_server"), so handle messages directly
+				auto sender = message->GetSender();
+				if (sender && message->GetMessageId() == MQMessageId::MSG_IDENTIFICATION)
+				{
+					// we are getting a request to send all IDs, do so sequentially and asynchronously
+					for (const auto& [_, client] : m_identities)
+					{
+						proto::routing::Identification id;
+						id.set_pid(client.pid);
+
+						if (!client.account.empty())
+							id.set_account(client.account);
+
+						if (!client.server.empty())
+							id.set_server(client.server);
+
+						if (!client.character.empty())
+							id.set_character(client.character);
+						
+						m_serverDropbox.Post(*sender, MQMessageId::MSG_IDENTIFICATION, id);
+					}
+
+					for (const auto& [name, pid] : m_names)
+					{
+						proto::routing::Identification id;
+						id.set_pid(pid);
+						id.set_name(name);
+
+						m_serverDropbox.Post(*sender, MQMessageId::MSG_IDENTIFICATION, id);
+					}
+				}
+				// if we ever have a usecase for updating ID from a route, put it here (check for messageLength)
 			});
 	}
 
@@ -400,7 +414,10 @@ private:
 	mq::ProtoPipeServer m_pipeServer;
 	Dropbox m_serverDropbox;
 
-	bool SendMessageToPID(uint32_t pid, PipeMessagePtr&& message, const std::function<void(PipeMessagePtr&&)>& failed)
+	bool SendMessageToPID(
+		uint32_t pid,
+		PipeMessagePtr&& message,
+		const std::function<void(PipeMessagePtr&&)>& failed)
 	{
 		auto connection = m_pipeServer.GetConnectionForProcessId(pid);
 		if (connection != nullptr)

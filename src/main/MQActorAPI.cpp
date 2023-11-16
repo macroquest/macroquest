@@ -60,9 +60,15 @@ MQActorAPI* pActorAPI = nullptr;
 std::map<MQPlugin*, std::vector<std::unique_ptr<postoffice::Dropbox>>> s_dropboxes;
 
 // this is to allow for replies while not exposing message internals to the API
-std::map<ProtoMessage*, std::unique_ptr<ProtoMessage>> s_messageStorage;
+std::map<PipeMessage*, std::unique_ptr<ProtoMessage>> s_messageStorage;
 
-void MQActorAPI::SendToActor(postoffice::Dropbox* dropbox, const postoffice::Address& address, uint16_t messageId, const std::string& data, MQPlugin* owner)
+void MQActorAPI::SendToActor(
+	postoffice::Dropbox* dropbox,
+	const postoffice::Address& address,
+	uint16_t messageId,
+	const std::string& data,
+	const postoffice::ResponseCallbackAPI& callback,
+	MQPlugin* owner)
 {
 	if (dropbox != nullptr)
 	{
@@ -90,11 +96,34 @@ void MQActorAPI::SendToActor(postoffice::Dropbox* dropbox, const postoffice::Add
 		if (address.Character)
 			addr.set_character(*address.Character);
 
-		dropbox->Post(addr, static_cast<MQMessageId>(messageId), data);
+		PipeMessageResponseCb pipe_callback = nullptr;
+		if (callback != nullptr)
+		{
+			pipe_callback = [&address, callback](int status, PipeMessagePtr&& message)
+				{
+					std::optional<std::string> data;
+					if (message->size() > 0)
+						data = std::string(message->get<char>(), message->size());
+
+					// no need to store this message in the message storage since we know it
+					// can't be replied to -- which means we also don't need the custom deleter
+					// assume that the sender is the address we sent to
+					callback(status, std::shared_ptr<postoffice::Message>(
+						new postoffice::Message{ message.get(), address, data }));
+				};
+		}
+
+		dropbox->Post(addr, static_cast<MQMessageId>(messageId), data, pipe_callback);
 	}
 }
 
-void MQActorAPI::ReplyToActor(postoffice::Dropbox* dropbox, const std::shared_ptr<postoffice::Message>& message, uint16_t messageId, const std::string& data, uint8_t status, MQPlugin* owner)
+void MQActorAPI::ReplyToActor(
+	postoffice::Dropbox* dropbox,
+	const std::shared_ptr<postoffice::Message>& message,
+	uint16_t messageId,
+	const std::string& data,
+	uint8_t status,
+	MQPlugin* owner)
 {
 	if (dropbox != nullptr && dropbox->IsValid())
 	{
@@ -110,7 +139,10 @@ void MQActorAPI::ReplyToActor(postoffice::Dropbox* dropbox, const std::shared_pt
 	// we don't need to erase the message from storage, the message destructor handles that for us
 }
 
-postoffice::Dropbox* MQActorAPI::AddActor(const char* localAddress, ReceiveCallbackAPI&& receive, MQPlugin* owner)
+postoffice::Dropbox* MQActorAPI::AddActor(
+	const char* localAddress,
+	ReceiveCallbackAPI&& receive,
+	MQPlugin* owner)
 {
 	auto dropbox = std::make_unique<Dropbox>(GetPostOffice().RegisterAddress(localAddress,
 		[receive = std::move(receive)](ProtoMessagePtr&& message)
@@ -151,7 +183,9 @@ postoffice::Dropbox* MQActorAPI::AddActor(const char* localAddress, ReceiveCallb
 	return s_dropboxes[owner].emplace_back(std::move(dropbox)).get();
 }
 
-void MQActorAPI::RemoveActor(postoffice::Dropbox*& dropbox, MQPlugin* owner)
+void MQActorAPI::RemoveActor(
+	postoffice::Dropbox*& dropbox,
+	MQPlugin* owner)
 {
 	if (dropbox != nullptr)
 	{

@@ -1170,22 +1170,39 @@ MQTopLevelObject* MainImpl::FindTopLevelObject(const char* name)
 	return pDataAPI->FindTopLevelObject(name);
 }
 
-void MainImpl::SendToActor(postoffice::Dropbox* dropbox, const postoffice::Address& address, uint16_t messageId, const std::string& data, MQPlugin* owner)
+void MainImpl::SendToActor(
+	postoffice::Dropbox* dropbox,
+	const postoffice::Address& address,
+	uint16_t messageId,
+	const std::string& data,
+	const postoffice::ResponseCallbackAPI& callback,
+	MQPlugin* owner)
 {
-	pActorAPI->SendToActor(dropbox, address, messageId, data, owner);
+	pActorAPI->SendToActor(dropbox, address, messageId, data, callback, owner);
 }
 
-void MainImpl::ReplyToActor(postoffice::Dropbox* dropbox, const std::shared_ptr<postoffice::Message>& message, uint16_t messageId, const std::string& data, uint8_t status, MQPlugin* owner)
+void MainImpl::ReplyToActor(
+	postoffice::Dropbox* dropbox,
+	const std::shared_ptr<postoffice::Message>& message,
+	uint16_t messageId,
+	const std::string& data,
+	uint8_t status,
+	MQPlugin* owner)
 {
 	pActorAPI->ReplyToActor(dropbox, message, messageId, data, status, owner);
 }
 
-postoffice::Dropbox* MainImpl::AddActor(const char* localAddress, postoffice::ReceiveCallbackAPI&& receive, MQPlugin* owner)
+postoffice::Dropbox* MainImpl::AddActor(
+	const char* localAddress,
+	postoffice::ReceiveCallbackAPI&& receive,
+	MQPlugin* owner)
 {
 	return pActorAPI->AddActor(localAddress, std::move(receive), owner);
 }
 
-void MainImpl::RemoveActor(postoffice::Dropbox*& dropbox, MQPlugin* owner)
+void MainImpl::RemoveActor(
+	postoffice::Dropbox*& dropbox,
+	MQPlugin* owner)
 {
 	pActorAPI->RemoveActor(dropbox, owner);
 }

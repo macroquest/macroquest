@@ -16,6 +16,7 @@
 
 namespace mq {
 
+class PipeMessage;
 class ProtoMessage;
 using ProtoMessagePtr = std::unique_ptr<ProtoMessage>;
 
@@ -57,7 +58,7 @@ namespace postoffice {
 	public:
 		// the original message is used internally for setting sequence ID on reply.
 		// this won't be usable by plugins unless they link against routing
-		ProtoMessage* Original;
+		PipeMessage* Original;
 
 		/** The address of the sender of the message in case message handling requires this */
 		std::optional<Address> Sender;
@@ -67,6 +68,7 @@ namespace postoffice {
 	};
 
 	using ReceiveCallbackAPI = std::function<void(const std::shared_ptr<Message>&)>;
+	using ResponseCallbackAPI = std::function<void(int, const std::shared_ptr<Message>&)>;
 
 	/**
 	 * A dropbox shim used to store a reference to the actual dropbox and provide functions to interact with it
@@ -88,9 +90,9 @@ namespace postoffice {
 		 * @param obj the message (as an object)
 		 */
 		template <typename ID, typename T>
-		void Post(const Address& address, ID messageId, const T& obj) const
+		void Post(const Address& address, ID messageId, const T& obj, const ResponseCallbackAPI& callback = nullptr) const
 		{
-			Post(address, static_cast<uint16_t>(messageId), obj.SerializeAsString());
+			Post(address, static_cast<uint16_t>(messageId), obj.SerializeAsString(), callback);
 		}
 
 		/**
@@ -103,9 +105,9 @@ namespace postoffice {
 		 * @param data the message (as a data string)
 		 */
 		template <typename ID>
-		void Post(const Address& address, ID messageId, const std::string& data) const
+		void Post(const Address& address, ID messageId, const std::string& data, const ResponseCallbackAPI& callback = nullptr) const
 		{
-			Post(address, static_cast<uint16_t>(messageId), data);
+			Post(address, static_cast<uint16_t>(messageId), data, callback);
 		}
 
 
@@ -116,7 +118,7 @@ namespace postoffice {
 		 * @param messageId a message ID used to route the message at the receiver
 		 * @param data the message (as a data string)
 		 */
-		void Post(const Address& address, uint16_t messageId, const std::string& data) const;
+		void Post(const Address& address, uint16_t messageId, const std::string& data, const ResponseCallbackAPI& callback = nullptr) const;
 
 		/**
 		 * Sends a reply to the sender of a message

@@ -883,10 +883,30 @@ public:
 	bool RemoveTopLevelObject(const char* name, MQPlugin* owner) override;
 	MQTopLevelObject* FindTopLevelObject(const char* name) override;
 
-	void SendToActor(postoffice::Dropbox* dropbox, const postoffice::Address& address, uint16_t messageId, const std::string& data, MQPlugin* owner) override;
-	void ReplyToActor(postoffice::Dropbox* dropbox, const std::shared_ptr<postoffice::Message>& message, uint16_t messageId, const std::string& data, uint8_t status, MQPlugin* owner) override;
-	postoffice::Dropbox* AddActor(const char* localAddress, postoffice::ReceiveCallbackAPI&& receive, MQPlugin* owner) override;
-	void RemoveActor(postoffice::Dropbox*& dropbox, MQPlugin* owner) override;
+	void SendToActor(
+		postoffice::Dropbox* dropbox,
+		const postoffice::Address& address,
+		uint16_t messageId,
+		const std::string& data,
+		const postoffice::ResponseCallbackAPI& callback,
+		MQPlugin* owner) override;
+
+	void ReplyToActor(
+		postoffice::Dropbox* dropbox,
+		const std::shared_ptr<postoffice::Message>& message,
+		uint16_t messageId,
+		const std::string& data,
+		uint8_t status,
+		MQPlugin* owner) override;
+
+	postoffice::Dropbox* AddActor(
+		const char* localAddress,
+		postoffice::ReceiveCallbackAPI&& receive,
+		MQPlugin* owner) override;
+
+	void RemoveActor(
+		postoffice::Dropbox*& dropbox,
+		MQPlugin* owner) override;
 
 };
 

@@ -22,7 +22,7 @@ void Mailbox::Deliver(PipeMessagePtr&& message) const
 	// Don't do anything if this isn't wrapped in an envelope
 	if (message->GetMessageId() == MQMessageId::MSG_ROUTE)
 	{
-		m_receiveQueue.push(Open(ProtoMessage::Parse<proto::routing::Envelope>(message), *message->GetHeader()));
+		m_receiveQueue.push(Open(ProtoMessage::Parse<proto::routing::Envelope>(message), message));
 	}
 }
 
@@ -37,11 +37,22 @@ void Mailbox::Process(size_t howMany) const
 	}
 }
 
-ProtoMessagePtr Mailbox::Open(proto::routing::Envelope&& envelope, const MQMessageHeader& header)
+ProtoMessagePtr Mailbox::Open(proto::routing::Envelope&& envelope, const PipeMessagePtr& message)
 {
-	auto unwrapped = envelope.has_payload() ?
-		std::make_unique<ProtoMessage>(header, &envelope.payload()[0], envelope.payload().size()) :
-		std::make_unique<ProtoMessage>(header, nullptr, 0);
+	ProtoMessagePtr unwrapped;
+
+	const void* data = nullptr;
+	size_t length = 0;
+	if (envelope.has_payload())
+	{
+		data = &envelope.payload()[0];
+		length = envelope.payload().size();
+	}
+
+	if (message != nullptr)
+		unwrapped = std::make_unique<ProtoMessage>(*message, data, length);
+	else
+		unwrapped = std::make_unique<ProtoMessage>(MQMessageId::MSG_NULL, data, length);
 
 	if (envelope.has_message_id())
 		unwrapped->GetHeader()->messageId = static_cast<MQMessageId>(envelope.message_id());
@@ -90,6 +101,16 @@ void Dropbox::Remove()
 	m_valid = false;
 }
 
+void PostOffice::RouteMessage(const void* data, size_t length, const PipeMessageResponseCb& callback)
+{
+	RouteMessage(std::make_unique<PipeMessage>(MQMessageId::MSG_ROUTE, data, length), callback);
+}
+
+void PostOffice::RouteMessage(const std::string& data, const PipeMessageResponseCb& callback)
+{
+	RouteMessage(&data[0], data.size(), callback);
+}
+
 Dropbox PostOffice::RegisterAddress(const std::string& localAddress, ReceiveCallback&& receive)
 {
 	auto [mailbox, added] = m_mailboxes.emplace(localAddress, std::make_unique<Mailbox>(localAddress, std::move(receive)));
@@ -97,7 +118,7 @@ Dropbox PostOffice::RegisterAddress(const std::string& localAddress, ReceiveCall
 	{
 		return Dropbox(
 			localAddress,
-			[this](const std::string& data) { RouteMessage(data); },
+			[this](const std::string& data, const PipeMessageResponseCb& callback) { RouteMessage(data, callback); },
 			[this](const std::string& localAddress) { RemoveMailbox(localAddress); });
 	}
 
