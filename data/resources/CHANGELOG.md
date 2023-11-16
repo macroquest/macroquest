@@ -1,4 +1,6 @@
 Nov 15, 2023:
+- live: Fix spell display window (#782).
+- autologin: Enable /camp fast when switching characters
 - live: Updated for latest patch
 
 Nov 11, 2023:
