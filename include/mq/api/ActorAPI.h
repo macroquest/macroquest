@@ -88,6 +88,7 @@ namespace postoffice {
 		 * @param address the address to send the message
 		 * @param messageId a message ID used to route the message at the receiver
 		 * @param obj the message (as an object)
+		 * @param callback optional callback for an expected response
 		 */
 		template <typename ID, typename T>
 		void Post(const Address& address, ID messageId, const T& obj, const ResponseCallbackAPI& callback = nullptr) const
@@ -103,6 +104,7 @@ namespace postoffice {
 		 * @param address the address to send the message
 		 * @param messageId a message ID used to route the message at the receiver
 		 * @param data the message (as a data string)
+		 * @param callback optional callback for an expected response
 		 */
 		template <typename ID>
 		void Post(const Address& address, ID messageId, const std::string& data, const ResponseCallbackAPI& callback = nullptr) const
@@ -117,6 +119,7 @@ namespace postoffice {
 		 * @param address the address to send the message
 		 * @param messageId a message ID used to route the message at the receiver
 		 * @param data the message (as a data string)
+		 * @param callback optional callback for an expected response
 		 */
 		void Post(const Address& address, uint16_t messageId, const std::string& data, const ResponseCallbackAPI& callback = nullptr) const;
 
@@ -144,7 +147,7 @@ namespace postoffice {
 		 *
 		 * @param message the original message to reply to (contains the sender address)
 		 * @param messageId a message ID used to rout the message at the receiver
-		 * @param obj the message (as a data string)
+		 * @param data the message (as a data string)
 		 * @param status a return status, sometimes used by reply handling logic
 		 */
 		template <typename ID>
@@ -158,7 +161,7 @@ namespace postoffice {
 		 *
 		 * @param message the original message to reply to (contains the sender address)
 		 * @param messageId a message ID used to rout the message at the receiver
-		 * @param obj the message (as a data string)
+		 * @param data the message (as a data string)
 		 * @param status a return status, sometimes used by reply handling logic
 		 */
 		void PostReply(const std::shared_ptr<Message>& message, uint16_t messageId, const std::string& data, uint8_t status = 0) const;

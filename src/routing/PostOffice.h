@@ -93,6 +93,7 @@ public:
 	 * @param address the address to send the message
 	 * @param messageId a message ID used to route the message at the receiver
 	 * @param obj the message (as an object)
+	 * @param callback optional callback for an expected response
 	 */
 	template <typename ID, typename T>
 	void Post(const proto::routing::Address& address, ID messageId, const T& obj, const PipeMessageResponseCb& callback = nullptr)
@@ -107,6 +108,7 @@ public:
 	 *
 	 * @param address the address to send the message
 	 * @param messageId a message ID used to route the message at the receiver
+	 * @param callback optional callback for an expected response
 	 */
 	template <typename ID>
 	void Post(const proto::routing::Address& address, ID messageId, const PipeMessageResponseCb& callback = nullptr)
@@ -122,7 +124,6 @@ public:
 	 * @tparam T the message being sent, usually some kind of proto
 	 *
 	 * @param message the original message to reply to
-	 * @param returnAddress the address to reply to
 	 * @param messageId a message ID used to rout the message at the receiver
 	 * @param obj the message (as an object)
 	 * @param status a return status, sometimes used by reply handling logic
@@ -141,10 +142,8 @@ public:
 	 * because we make no assumption about what is wrapped in the envelope
 	 *
 	 * @tparam ID an identifier to be used by the receiver, must cast to uint32_t
-	 * @tparam T the message being sent, usually some kind of proto
 	 *
 	 * @param message the original message to reply to
-	 * @param returnAddress the address to reply to
 	 * @param messageId a message ID used to rout the message at the receiver
 	 * @param obj the message (as a string of data)
 	 * @param status a return status, sometimes used by reply handling logic
