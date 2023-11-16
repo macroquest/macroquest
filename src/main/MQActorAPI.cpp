@@ -99,7 +99,7 @@ void MQActorAPI::SendToActor(
 		PipeMessageResponseCb pipe_callback = nullptr;
 		if (callback != nullptr)
 		{
-			pipe_callback = [&address, callback](int status, PipeMessagePtr&& message)
+			pipe_callback = [address, callback](int status, PipeMessagePtr&& message)
 				{
 					std::optional<std::string> data;
 					if (message->size() > 0)
@@ -109,7 +109,7 @@ void MQActorAPI::SendToActor(
 					// can't be replied to -- which means we also don't need the custom deleter
 					// assume that the sender is the address we sent to
 					callback(status, std::shared_ptr<postoffice::Message>(
-						new postoffice::Message{ message.get(), address, data }));
+						new postoffice::Message{ message.get(), address, data}));
 				};
 		}
 
