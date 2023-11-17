@@ -155,6 +155,9 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 	imDrawList.set_function("PopTextureID", &ImDrawList::PopTextureID);
 	imDrawList.set_function("GetClipRectMin", &ImDrawList::GetClipRectMin);
 	imDrawList.set_function("GetClipRectMax", &ImDrawList::GetClipRectMax);
+	imDrawList.set_function("ChannelsSplit", &ImDrawList::ChannelsSplit);
+	imDrawList.set_function("ChannelsSetCurrent", &ImDrawList::ChannelsSetCurrent);
+	imDrawList.set_function("ChannelsMerge", &ImDrawList::ChannelsMerge);
 
 	// Primitives
 	imDrawList.set_function("AddLine", sol::overload(
