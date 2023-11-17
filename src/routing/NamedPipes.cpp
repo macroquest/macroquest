@@ -564,7 +564,7 @@ void PipeConnection::InternalReceiveMessage(PipeMessagePtr&& message)
 
 			m_parent->PostToMainThread([callback, message = message.release()]() mutable
 				{
-					callback(message->GetHeader()->status, std::unique_ptr<PipeMessage>(message));
+					callback(static_cast<int8_t>(message->GetHeader()->status), std::unique_ptr<PipeMessage>(message));
 				});
 			return;
 		}

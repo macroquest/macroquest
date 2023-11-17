@@ -284,6 +284,7 @@ public:
 		else
 		{
 			// we don't have a PID or a name, so we will send this message to all clients that match the address
+			bool sent = false;
 			for (const auto& identity : m_identities)
 			{
 				if (
@@ -292,12 +293,16 @@ public:
 					(!address.has_character() || ci_equals(address.character(), identity.second.character))
 					)
 				{
+					sent = true;
 					SendMessageToPID(
 						identity.first,
 						std::make_unique<PipeMessage>(*message->GetHeader(), message->get(), message->size()),
 						routing_failed);
 				}
 			}
+			
+			// if no address was found, make sure to reply to RPC messages
+			if (!sent) routing_failed(std::move(message));
 		}
 	}
 
