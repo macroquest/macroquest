@@ -25,6 +25,7 @@
 #include <spdlog/sinks/wincolor_sink.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/msvc_sink.h>
+#include <mq/libutils/wilUtils.h>
 #include <wil/registry.h>
 #include <wil/resource.h>
 
