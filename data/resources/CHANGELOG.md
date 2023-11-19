@@ -1,3 +1,6 @@
+Nov 19, 2023:
+- Add ability to create textures from image files. See examples/texture.lua for example usage.
+
 Nov 15, 2023:
 - live: Fix spell display window (#782).
 - autologin: Enable /camp fast when switching characters
