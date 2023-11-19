@@ -23,6 +23,8 @@
 
 #include <mq/Plugin.h>
 
+#include "lua_Bindings.h"
+
 namespace mq::lua::bindings {
 
 //============================================================================
@@ -194,109 +196,6 @@ struct lua_MQDoCommand
 		command(va, s);
 	}
 };
-
-#pragma endregion
-
-//============================================================================
-
-static std::unique_ptr<CTextureAnimation> FindTextureAnimation(std::string_view name, sol::this_state s)
-{
-	auto anim = std::make_unique<CTextureAnimation>();
-
-	if (pSidlMgr)
-	{
-		if (CTextureAnimation* temp = pSidlMgr->FindAnimation(CXStr(name)))
-			*anim = *temp;
-	}
-
-	return anim;
-}
-
-//============================================================================
-
-#pragma region MQ Data Bindings
-
-static sol::table lua_getAllSpawns(sol::this_state L)
-{
-	auto table = sol::state_view(L).create_table();
-
-	if (pSpawnManager)
-	{
-		auto spawn = pSpawnManager->FirstSpawn;
-		while (spawn != nullptr)
-		{
-			auto lua_spawn = lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
-			table.add(std::move(lua_spawn));
-
-			spawn = spawn->GetNext();
-		}
-	}
-
-	return table;
-}
-
-static sol::table lua_getFilteredSpawns(sol::this_state L, std::optional<sol::function> predicate)
-{
-	auto table = sol::state_view(L).create_table();
-
-	if (pSpawnManager && predicate)
-	{
-		auto spawn = pSpawnManager->FirstSpawn;
-		const auto& predicate_value = predicate.value();
-		while (spawn != nullptr)
-		{
-			auto lua_spawn = lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
-			if (predicate_value(lua_spawn))
-				table.add(std::move(lua_spawn));
-
-			spawn = spawn->GetNext();
-		}
-	}
-
-	return table;
-}
-
-static sol::table lua_getAllGroundItems(sol::this_state L)
-{
-    auto table = sol::state_view(L).create_table();
-
-    if (pItemList)
-    {
-        auto pGroundItem = pItemList->Top;
-        while (pGroundItem != nullptr)
-        {
-            auto groundTypeVar = datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(pGroundItem));
-            auto lua_ground = lua_MQTypeVar(groundTypeVar);
-            table.add(std::move(lua_ground));
-
-            pGroundItem = pGroundItem->pNext;
-        }
-    }
-
-    return table;
-}
-
-static sol::table lua_getFilteredGroundItems(sol::this_state L, std::optional<sol::function> predicate)
-{
-	auto table = sol::state_view(L).create_table();
-
-	if (pItemList && predicate)
-	{
-		auto pGroundItem = pItemList->Top;
-		const auto& predicate_value = predicate.value();
-		while (pGroundItem != nullptr)
-		{
-			auto groundTypeVar = datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(pGroundItem));
-			auto lua_ground = lua_MQTypeVar(groundTypeVar);
-			if (predicate_value(lua_ground))
-				table.add(std::move(lua_ground));
-
-			pGroundItem = pGroundItem->pNext;
-		}
-	}
-
-	return table;
-}
 
 #pragma endregion
 
@@ -582,6 +481,10 @@ void RegisterBindings_MQ(LuaThread* thread, sol::table& mq)
 	);
 
 	//----------------------------------------------------------------------------
+
+	RegisterBindings_EQ(thread, mq);
+
+	//----------------------------------------------------------------------------
 	// command bindings
 
 	mq.new_usertype<lua_MQCommand>(
@@ -595,19 +498,13 @@ void RegisterBindings_MQ(LuaThread* thread, sol::table& mq)
 
 	//----------------------------------------------------------------------------
 
-	mq.new_usertype<CTextureAnimation>(
-		"CTextureAnimation",                     sol::no_constructor,
-		"SetTextureCell",                        &CTextureAnimation::SetCurCell
+	mq.new_usertype<mq::MQTexture>(
+		"MQTexture"                  , sol::no_constructor,
+		"size"                       , sol::property([](const MQTexture& mThis) { CXSize size = mThis.GetTextureSize(); return ImVec2((float)size.cx, (float)size.cy); }),
+		"fileName"                   , sol::property(&mq::MQTexture::GetFilename),
+		"GetTextureID"               , &mq::MQTexture::GetTextureID
 	);
-
-	mq.set_function("FindTextureAnimation",      &FindTextureAnimation);
-
-	//----------------------------------------------------------------------------
-	// Direct Data Bindings
-	mq.set_function("getAllSpawns", &lua_getAllSpawns);
-	mq.set_function("getFilteredSpawns", &lua_getFilteredSpawns);
-	mq.set_function("getAllGroundItems", &lua_getAllGroundItems);
-	mq.set_function("getFilteredGroundItems", &lua_getFilteredGroundItems);
+	mq.set_function("CreateTexture", [](const std::string& name) { return CreateTexturePtr(name); });
 }
 
 } // namespace mq::lua::bindings

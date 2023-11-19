@@ -286,6 +286,7 @@ MQGraphicsEngine::MQGraphicsEngine()
 
 MQGraphicsEngine::~MQGraphicsEngine()
 {
+	
 }
 
 //============================================================================

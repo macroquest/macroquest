@@ -2058,7 +2058,7 @@ public:
 				for (int pool = 0; pool < bitmapsByPool.size(); ++pool)
 				{
 					auto& bitmaps = bitmapsByPool[pool];
-					EMemPoolManagerType poolType = static_cast<EMemPoolManagerType>(pool);
+					EMemoryPoolManagerType poolType = static_cast<EMemoryPoolManagerType>(pool);
 
 					char label[64];
 					switch (poolType)
@@ -2597,6 +2597,97 @@ public:
 				ImGui::TableNextColumn(); ImGui::Text("ItemPlacementDefaultModeCursor");
 				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.itemPlacementDefaultModeCursor);
 
+
+				ImGui::TreePop();
+			}
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			if (ImGui::TreeNode("Server"))
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Ruleset");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.Ruleset);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Rp Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##RpServer", &eq.bRpServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Accelerated Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##AccelServer", &eq.bAcceleratedServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Progression Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##ProgServer", &eq.bProgressionServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Progression Expansions");
+				ImGui::TableNextColumn(); ImGui::Text("%08x", eq.ProgressionOpenExpansions);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Heroic Flag");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.bHeroicCharacterFlag);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Progression Level Cap");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.ProgressionLevelCap);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Dev Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##DevServer", &eq.bIsDevServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Beta Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##BetaServer", &eq.bIsBetaServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Test Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##TestServer", &eq.bIsTestServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Staging Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##StageServer", &eq.bIsStageServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Mail System");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##MailSystem", &eq.bUseMailSystem);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Escape Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##EscServer", &eq.bIsEscapeServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Tutorial Enabled");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##Tutorial", &eq.bIsTutorialEnabled);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Heroic Character Related");
+				ImGui::TableNextColumn(); ImGui::Text("%d", (int32_t)eq.bHeroicCharacterRelated);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Head Start Char");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##HeadStart", &eq.bCanCreateHeadStartCharacter);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Heroic Char");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##HeroicChar", &eq.bCanCreateHeroicCharacter);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Monthly Claim");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.nMonthlyClaim);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Marketplace Related");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.MarketPlaceRelated);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Heroic 85 Slots");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.Heroic85Slots);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Heroic 100 Slots");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.Heroic100Slots);
 
 				ImGui::TreePop();
 			}

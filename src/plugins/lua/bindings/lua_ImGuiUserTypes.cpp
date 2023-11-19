@@ -21,6 +21,7 @@
 
 #include <string>
 
+#include "eqlib/UITextures.h"
 #include "mq/imgui/Widgets.h"
 
 namespace mq::lua::bindings {
@@ -236,8 +237,8 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 	));
 
 	imDrawList.set_function("AddTextureAnimation",
-		[](ImDrawList& mThis, const std::unique_ptr<CTextureAnimation>& anim, const ImVec2& pos, const sol::optional<ImVec2>& size) {
-			return imgui::AddTextureAnimation(&mThis, anim.get(), eqlib::CXPoint(pos.x, pos.y), size.has_value() ? CXPoint(size->x, size->y) : CXPoint());
+		[](ImDrawList& mThis, const std::unique_ptr<eqlib::CTextureAnimation>& anim, const ImVec2& pos, const sol::optional<ImVec2>& size) {
+			return imgui::AddTextureAnimation(&mThis, anim.get(), eqlib::CXPoint((int)pos.x, (int)pos.y), size.has_value() ? eqlib::CXSize((int)size->x, (int)size->y) : eqlib::CXSize());
 		});
 
 

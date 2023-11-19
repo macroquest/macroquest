@@ -126,6 +126,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="bindings\lua_Bit32.cpp" />
+    <ClCompile Include="bindings\lua_EQBindings.cpp" />
     <ClCompile Include="bindings\lua_Globals.cpp" />
     <ClCompile Include="bindings\lua_ImGuiCore.cpp" />
     <ClCompile Include="bindings\lua_ImGuiCustom.cpp" />
