@@ -12,22 +12,33 @@
  * GNU General Public License for more details.
  */
 
-#pragma once
+#include "pch.h"
 
-#include "LuaCommon.h"
+#include <mq/imgui/ConsoleWidget.h>
+#include <mq/imgui/ImGuiUtils.h>
+#include <mq/imgui/Widgets.h>
+#include <mq/Plugin.h>
+
+#include <imgui/implot/implot.h>
+#include <sol/sol.hpp>
+
+#include <string>
 
 namespace mq::lua::bindings {
 
-void RegisterBindings_EQ(LuaThread* thread, sol::table& mq);
-void RegisterBindings_Globals(LuaThread* thread, sol::state_view sv);
-void RegisterBindings_MQ(LuaThread* thread, sol::table& mq);
-void RegisterBindings_ImGui(sol::state_view sv);
-void RegisterBindings_Bit32(sol::state_view sv);
+//============================================================================
 
-sol::table RegisterBindings_ImPlot(sol::this_state L);
+sol::table RegisterBindings_ImPlot(sol::this_state L)
+{
+	// The creation of this namespace is gated by the ImGui namespace.
+	sol::state_view state{ L };
 
-void RegisterBindings_MQMacroData(sol::table& lua);
-void InitializeBindings_MQMacroData();
-void ShutdownBindings_MQMacroData();
+	sol::table ImPlot = state.create_table();
+
+	ImPlot["hello"] = 3;
+
+	return ImPlot;
+
+}
 
 } // namespace mq::lua::bindings

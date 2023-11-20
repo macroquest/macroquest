@@ -195,7 +195,7 @@ public:
 private:
 	RunResult RunOnce();
 
-	void RegisterMQNamespace(sol::state_view sv);
+	sol::table RegisterMQNamespace(sol::this_state L);
 	void Initialize();
 
 	void YieldAt(int count) const;
@@ -212,7 +212,6 @@ private:
 	sol::state m_globalState;
 	std::shared_ptr<LuaCoroutine> m_coroutine;
 	sol::environment m_environment;
-	std::optional<sol::table> m_mqTable;
 	sol::table m_threadTable;
 	uint32_t m_threadIndex = 0;
 
