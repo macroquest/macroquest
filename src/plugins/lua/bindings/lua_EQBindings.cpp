@@ -25,22 +25,6 @@ namespace mq::lua::bindings {
 
 //============================================================================
 
-ImVec2 SizeToImVec2(const CXSize& size)
-{
-	return ImVec2(
-		static_cast<float>(size.cx),
-		static_cast<float>(size.cy)
-	);
-}
-
-ImVec2 SizeToImVec2(int width, int height)
-{
-	return ImVec2(
-		static_cast<float>(width),
-		static_cast<float>(height)
-	);
-}
-
 static std::unique_ptr<CTextureAnimation> FindTextureAnimation(std::string_view name, sol::this_state s)
 {
 	auto anim = std::make_unique<CTextureAnimation>();
@@ -150,8 +134,8 @@ void RegisterBindings_EQ(LuaThread* thread, sol::table& mq)
 		"CTextureAnimation", sol::no_constructor,
 		"SetTextureCell", &CTextureAnimation::SetCurCell,
 		"GetTextureCell", &CTextureAnimation::GetCurCell,
-		"GetSize", [](CTextureAnimation& mThis) -> ImVec2 { return SizeToImVec2(mThis.Size); },
-		"GetCellSize", [](CTextureAnimation& mThis) -> ImVec2 { return SizeToImVec2(mThis.CellWidth, mThis.CellHeight); }
+		"GetSize", [](CTextureAnimation& mThis) -> ImVec2 { return mThis.Size; },
+		"GetCellSize", [](CTextureAnimation& mThis) -> ImVec2 { return ImVec2(mThis.CellWidth, mThis.CellHeight); }
 	);
 
 	mq.set_function("FindTextureAnimation", &FindTextureAnimation);

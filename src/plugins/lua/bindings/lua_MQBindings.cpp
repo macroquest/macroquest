@@ -500,7 +500,7 @@ void RegisterBindings_MQ(LuaThread* thread, sol::table& mq)
 
 	mq.new_usertype<mq::MQTexture>(
 		"MQTexture"                  , sol::no_constructor,
-		"size"                       , sol::property([](const MQTexture& mThis) { CXSize size = mThis.GetTextureSize(); return ImVec2((float)size.cx, (float)size.cy); }),
+		"size"                       , sol::property([](const MQTexture& mThis) -> ImVec2 { return mThis.GetTextureSize(); }),
 		"fileName"                   , sol::property(&mq::MQTexture::GetFilename),
 		"GetTextureID"               , &mq::MQTexture::GetTextureID
 	);

@@ -238,7 +238,7 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 
 	imDrawList.set_function("AddTextureAnimation",
 		[](ImDrawList& mThis, const std::unique_ptr<eqlib::CTextureAnimation>& anim, const ImVec2& pos, const sol::optional<ImVec2>& size) {
-			return imgui::AddTextureAnimation(&mThis, anim.get(), eqlib::CXPoint((int)pos.x, (int)pos.y), size.has_value() ? eqlib::CXSize((int)size->x, (int)size->y) : eqlib::CXSize());
+			return imgui::AddTextureAnimation(&mThis, anim.get(), pos, size.has_value() ? *size : eqlib::CXSize());
 		});
 
 
