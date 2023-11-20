@@ -135,7 +135,7 @@ void RegisterBindings_EQ(LuaThread* thread, sol::table& mq)
 		"SetTextureCell", &CTextureAnimation::SetCurCell,
 		"GetTextureCell", &CTextureAnimation::GetCurCell,
 		"GetSize", [](CTextureAnimation& mThis) -> ImVec2 { return mThis.Size; },
-		"GetCellSize", [](CTextureAnimation& mThis) -> ImVec2 { return ImVec2(mThis.CellWidth, mThis.CellHeight); }
+		"GetCellSize", [](CTextureAnimation& mThis) -> ImVec2 { return ImVec2((float)mThis.CellWidth, (float)mThis.CellHeight); }
 	);
 
 	mq.set_function("FindTextureAnimation", &FindTextureAnimation);
