@@ -66,6 +66,9 @@
     <ClCompile Include="bindings\lua_ImGuiEnums.cpp">
       <Filter>Source Files\bindings</Filter>
     </ClCompile>
+    <ClCompile Include="bindings\lua_EQBindings.cpp">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LuaThread.h">

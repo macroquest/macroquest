@@ -18,6 +18,7 @@
 
 #include "MQ2KeyBinds.h"
 #include "ImGuiManager.h"
+#include "GraphicsResources.h"
 
 #include "EQLib/Logging.h"
 
@@ -578,6 +579,7 @@ void DoMainThreadInitialization()
 	InitializeMQ2Commands();
 	InitializeDisplayHook();
 	InitializeMouseHooks();
+	GraphicsResources_Initialize();
 	ImGuiManager_Initialize();
 
 	// this needs to be done before anything that would need to add a callback to string message parsing
@@ -799,6 +801,7 @@ void MQ2Shutdown()
 	ShutdownMQ2Plugins();
 	ShutdownFailedPlugins();
 	ImGuiManager_Shutdown();
+	GraphicsResources_Shutdown();
 	ShutdownStringDB();
 	ShutdownDetours();
 	ShutdownMQ2Benchmarks();
