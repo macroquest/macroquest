@@ -1911,6 +1911,7 @@ PLUGIN_API void InitializePlugin()
 	AddCommand("/inote", ItemNoteCmd);
 
 	pDisplayItemType = new MQ2DisplayItemType;
+	pDisplayItemType->SetInheritance(pItemType);
 	AddMQ2Data("DisplayItem", MQ2DisplayItemType::dataDisplayItem);
 
 	AddSettingsPanel("plugins/ItemDisplay", DrawItemDisplaySettingsPanel);

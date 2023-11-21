@@ -286,6 +286,7 @@ MQGraphicsEngine::MQGraphicsEngine()
 
 MQGraphicsEngine::~MQGraphicsEngine()
 {
+	
 }
 
 //============================================================================
@@ -358,7 +359,7 @@ int MQGraphicsEngine::AddRenderCallbacks(const MQRenderCallbacks& callbacks)
 /* static */
 void MQGraphicsEngine::RemoveRenderCallbacks(int id)
 {
-	if (id >= 0 && id < s_renderCallbacks.size())
+	if (id >= 0 && id < static_cast<int>(s_renderCallbacks.size()))
 	{
 		// not sure if we should do this here or in the calling plugin...
 		if (s_renderCallbacks[id] && s_renderCallbacks[id]->callbacks.InvalidateDeviceObjects)

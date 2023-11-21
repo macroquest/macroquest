@@ -21,6 +21,9 @@
 
 #include <string>
 
+#include "eqlib/UITextures.h"
+#include "mq/imgui/Widgets.h"
+
 namespace mq::lua::bindings {
 
 //============================================================================
@@ -155,6 +158,9 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 	imDrawList.set_function("PopTextureID", &ImDrawList::PopTextureID);
 	imDrawList.set_function("GetClipRectMin", &ImDrawList::GetClipRectMin);
 	imDrawList.set_function("GetClipRectMax", &ImDrawList::GetClipRectMax);
+	imDrawList.set_function("ChannelsSplit", &ImDrawList::ChannelsSplit);
+	imDrawList.set_function("ChannelsSetCurrent", &ImDrawList::ChannelsSetCurrent);
+	imDrawList.set_function("ChannelsMerge", &ImDrawList::ChannelsMerge);
 
 	// Primitives
 	imDrawList.set_function("AddLine", sol::overload(
@@ -229,6 +235,12 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		[](ImDrawList& mThis, ImTextureID user_texture_id, const ImVec2& p_min, const ImVec2& p_max, const ImVec2& uv_min, const ImVec2& uv_max, int col, float rounding) { mThis.AddImageRounded(user_texture_id, p_min, p_max, uv_min, uv_max, ImU32(col), rounding); },
 		[](ImDrawList& mThis, ImTextureID user_texture_id, const ImVec2& p_min, const ImVec2& p_max, const ImVec2& uv_min, const ImVec2& uv_max, int col, float rounding, int flags) { mThis.AddImageRounded(user_texture_id, p_min, p_max, uv_min, uv_max, ImU32(col), rounding, ImDrawFlags(flags)); }
 	));
+
+	imDrawList.set_function("AddTextureAnimation",
+		[](ImDrawList& mThis, const std::unique_ptr<eqlib::CTextureAnimation>& anim, const ImVec2& pos, const sol::optional<ImVec2>& size) {
+			return imgui::AddTextureAnimation(&mThis, anim.get(), pos, size.has_value() ? *size : eqlib::CXSize());
+		});
+
 
 	// Stateful Path API
 	imDrawList.set_function("PathClear", &ImDrawList::PathClear);

@@ -292,7 +292,7 @@ void PerformSwitch(const std::string& ServerName, const std::string& CharacterNa
 			EzCommand("/stand");
 		}
 
-		EzCommand("/camp");
+		EzCommand("/camp fast");
 	}
 
 	Login::dispatch(SetLoginInformation(ServerName, CharacterName));
