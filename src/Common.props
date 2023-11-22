@@ -65,7 +65,7 @@
       <CompileAs>CompileAsCpp</CompileAs>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <PreprocessorDefinitions>_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING;SOL_SAFE_FUNCTIONS;SOL_SAFE_USERTYPE;GLM_FORCE_CTOR_INIT;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;WIN32_LEAN_AND_MEAN;NOMINMAX;_WINNT_WIN32=0x0601;WINVER=0x0601;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SOL_SAFE_FUNCTIONS;SOL_SAFE_USERTYPE;GLM_FORCE_CTOR_INIT;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;WIN32_LEAN_AND_MEAN;NOMINMAX;_WINNT_WIN32=0x0601;WINVER=0x0601;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SupportJustMyCode>false</SupportJustMyCode>
     </ClCompile>
     <!-- Shared linker settings -->
