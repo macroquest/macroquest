@@ -130,7 +130,7 @@ bool PostOffice::RemoveMailbox(const std::string& localAddress)
 	return m_mailboxes.erase(localAddress) == 1;
 }
 
-bool PostOffice::DeliverTo(const std::string& localAddress, PipeMessagePtr&& message, const std::function<void(PipeMessagePtr&&)>& failed)
+bool PostOffice::DeliverTo(const std::string& localAddress, PipeMessagePtr&& message, const std::function<void(int, PipeMessagePtr&&)>& failed)
 {
 	auto mailbox_it = m_mailboxes.find(localAddress);
 	if (mailbox_it != m_mailboxes.end())
@@ -139,7 +139,7 @@ bool PostOffice::DeliverTo(const std::string& localAddress, PipeMessagePtr&& mes
 		return true;
 	}
 
-	failed(std::move(message));
+	failed(MsgError_RoutingFailed, std::move(message));
 	return false;
 }
 

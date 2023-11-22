@@ -79,6 +79,23 @@ public:
 		return m_header->messageId;
 	}
 
+	MQRequestMode GetRequestMode() const
+	{
+		if (!m_header)
+			return MQRequestMode::SimpleMessage;
+
+		return m_header->mode;
+	}
+
+	bool SetRequestMode(MQRequestMode mode)
+	{
+		if (!m_header)
+			return false;
+
+		m_header->mode = mode;
+		return true;
+	}
+
 	template <typename T = void>
 	const T* get() const { return reinterpret_cast<T*>(m_buffer.get() + m_dataOffset); }
 

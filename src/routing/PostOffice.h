@@ -134,7 +134,7 @@ public:
 		if (IsValid())
 		{
 			std::string data(Data(obj));
-			message->SendReply(messageId, &data[0], data.size(), status);
+			message->SendReply(static_cast<MQMessageId>(messageId), &data[0], data.size(), status);
 		}
 	}
 
@@ -285,7 +285,7 @@ public:
 	 * @param failed a callback for failure (since message is moved)
 	 * @return true if routing was successful
 	 */
-	bool DeliverTo(const std::string& localAddress, PipeMessagePtr&& message, const std::function<void(PipeMessagePtr&&)>& failed = [](const auto&) {});
+	bool DeliverTo(const std::string& localAddress, PipeMessagePtr&& message, const std::function<void(int, PipeMessagePtr&&)>& failed = [](int, const auto&) {});
 
 	/**
 	 * Delivers a message to all local mailboxes, optionally excluding self
@@ -302,7 +302,7 @@ public:
 	 */
 	void Process(size_t howMany);
 
-private:
+protected:
 	std::unordered_map<std::string, std::unique_ptr<Mailbox>> m_mailboxes;
 };
 

@@ -60,6 +60,7 @@ enum class MQRequestMode : uint8_t
 constexpr int MsgError_ConnectionClosed        = -1;                  // connection was closed
 constexpr int MsgError_NoConnection            = -2;                  // no connection established
 constexpr int MsgError_RoutingFailed           = -3;                  // message routing failed
+constexpr int MsgError_AmbiguousRecipient      = -4;                  // RPC message couldn't determine single recipient
 
 #pragma pack(push)
 #pragma pack(1)

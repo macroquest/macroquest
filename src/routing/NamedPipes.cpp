@@ -395,9 +395,10 @@ void PipeConnection::SendMessageWithResponse(PipeMessagePtr&& message,
 
 	m_parent->PostToPipeThread([message = message.release(), callback, weakPtr, parent]() mutable
 		{
-			auto msg = std::unique_ptr<PipeMessage>(message);
 			if (auto ptr = weakPtr.lock())
 			{
+				auto msg = std::unique_ptr<PipeMessage>(message);
+				msg->SetRequestMode(MQRequestMode::CallAndResponse);
 				ptr->InternalSendMessage(std::move(msg), callback);
 			}
 			else
@@ -552,7 +553,7 @@ void PipeConnection::InternalReceiveMessage(PipeMessagePtr&& message)
 {
 	message->SetConnection(shared_from_this());
 
-	if (message->GetHeader()->mode == MQRequestMode::MessageReply)
+	if (message->GetRequestMode() == MQRequestMode::MessageReply)
 	{
 		// Check if sequence id is in our map
 		auto iter = m_rpcRequests.find(message->GetHeader()->sequenceId);
@@ -566,10 +567,12 @@ void PipeConnection::InternalReceiveMessage(PipeMessagePtr&& message)
 				{
 					callback(static_cast<int8_t>(message->GetHeader()->status), std::unique_ptr<PipeMessage>(message));
 				});
+
 			return;
 		}
 	}
 
+	// if we get here with a reply, we didn't have a callback -- so it needs to be routed
 	m_parent->DispatchMessage(std::move(message));
 }
 

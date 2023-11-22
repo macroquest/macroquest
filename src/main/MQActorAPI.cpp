@@ -99,37 +99,49 @@ void MQActorAPI::SendToActor(
 		PipeMessageResponseCb pipe_callback = nullptr;
 		if (callback != nullptr)
 		{
-			pipe_callback = [callback](int status, PipeMessagePtr&& message)
+			pipe_callback = [callback, address](int status, PipeMessagePtr&& message)
 				{
-					auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
-
-					std::optional<postoffice::Address> sender;
-					if (envelope.has_return_address())
-					{
-						auto s = envelope.return_address();
-						sender = postoffice::Address{
-							s.has_pid() ? std::make_optional(s.pid()) : std::nullopt,
-							s.has_name() ? std::make_optional(s.name()) : std::nullopt,
-							s.has_mailbox() ? std::make_optional(s.mailbox()) : std::nullopt,
-							s.has_account() ? std::make_optional(s.account()) : std::nullopt,
-							s.has_server() ? std::make_optional(s.server()) : std::nullopt,
-							s.has_character() ? std::make_optional(s.character()) : std::nullopt,
-							true
-						};
-					}
-
-					std::optional<std::string> data;
-					if (envelope.has_payload())
-						data = envelope.payload();
-
 					// no need to store this message in the message storage since we know it
 					// can't be replied to -- which means we also don't need the custom deleter
 					// assume that the sender is the address we sent to
-					callback(status, std::shared_ptr<postoffice::Message>(
-						new postoffice::Message{ message.get(), sender, data}));
+					if (message->GetMessageId() == MQMessageId::MSG_ROUTE)
+					{
+						auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
+
+						std::optional<postoffice::Address> sender;
+						if (envelope.has_return_address())
+						{
+							auto s = envelope.return_address();
+							sender = postoffice::Address{
+								s.has_pid() ? std::make_optional(s.pid()) : std::nullopt,
+								s.has_name() ? std::make_optional(s.name()) : std::nullopt,
+								s.has_mailbox() ? std::make_optional(s.mailbox()) : std::nullopt,
+								s.has_account() ? std::make_optional(s.account()) : std::nullopt,
+								s.has_server() ? std::make_optional(s.server()) : std::nullopt,
+								s.has_character() ? std::make_optional(s.character()) : std::nullopt,
+								true
+							};
+						}
+
+						std::optional<std::string> data;
+						if (envelope.has_payload())
+							data = envelope.payload();
+
+						callback(status, std::shared_ptr<postoffice::Message>(
+							new postoffice::Message{ message.get(), sender, data }));
+					}
+					else
+					{
+						callback(status, std::shared_ptr<postoffice::Message>(
+							new postoffice::Message{ message.get(), address, std::string(message->get<const char>(), message->size()) }));
+					}
 				};
 		}
 
+		// this addr can be ambiguous to allow multi-send -- rely on the post office to check for
+		// ambiguity in the mailbox, the router to check for ambiguity in the client address, and
+		// the receiving post office to check local ambiguity in the mailbox _for RPC messages
+		// only_
 		dropbox->Post(addr, static_cast<MQMessageId>(messageId), data, pipe_callback);
 	}
 }

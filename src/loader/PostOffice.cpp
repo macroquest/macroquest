@@ -211,21 +211,64 @@ public:
 	LauncherPostOffice() : m_pipeServer{ mq::MQ2_PIPE_SERVER_PATH }
 	{}
 
+	static void RoutingFailed(
+		const proto::routing::Envelope& envelope,
+		int status,
+		PipeMessagePtr&& message,
+		const PipeMessageResponseCb& callback)
+	{
+		// we can't assume that the mailbox exists here, so manually create the reply
+		proto::routing::Envelope outbound;
+		*outbound.mutable_address() = envelope.return_address();
+		outbound.set_message_id(static_cast<uint32_t>(message->GetMessageId()));
+		outbound.set_payload(envelope.address().SerializeAsString());
+
+		std::string data = outbound.SerializeAsString();
+		if (callback == nullptr)
+			message->SendReply(MQMessageId::MSG_ROUTE, &data[0], data.size(), status);
+		else
+			callback(status, std::make_unique<PipeMessage>(MQMessageId::MSG_ROUTE, &data[0], data.size()));
+	}
+
+	static bool IsRecipient(const proto::routing::Address& address, const ClientIdentification& id)
+	{
+		return (!address.has_account() || ci_equals(address.account(), id.account)) &&
+			(!address.has_server() || ci_equals(address.server(), id.server)) &&
+			(!address.has_character() || ci_equals(address.character(), id.character));
+	}
+
+	auto FindIdentity(
+		const proto::routing::Address& address,
+		const std::unordered_map<uint32_t, ClientIdentification>::iterator& from)
+	{
+		return std::find_if(from, m_identities.end(),
+			[&address](const std::pair<uint32_t, ClientIdentification>& pair)
+			{ return IsRecipient(address, pair.second); });
+	}
+
 	void RouteMessage(PipeMessagePtr&& message, const PipeMessageResponseCb& callback) override
 	{
-		if (callback == nullptr)
+		if (callback == nullptr) // simple message, just route it
+			RouteMessage(std::move(message));
+		else // routing will fail here if there are too many recipients
 		{
-			if (message->GetHeader())
-				message->GetHeader()->mode = MQRequestMode::SimpleMessage;
+			auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
+			auto identity = FindIdentity(envelope.address(), m_identities.begin());
 
+			if (identity == m_identities.end())
+				RoutingFailed(envelope, MsgError_RoutingFailed, std::move(message), callback);
+			else if (FindIdentity(envelope.address(), std::next(identity)) != m_identities.end())
+				RoutingFailed(envelope, MsgError_AmbiguousRecipient, std::move(message), callback);
+			else
+			{
+				message->SetRequestMode(MQRequestMode::CallAndResponse);
+				SendMessageToPID(identity->first, std::move(message),
+					[callback](const PipeConnectionPtr& connection, PipeMessagePtr&& message)
+					{ connection->SendMessageWithResponse(std::move(message), callback); },
+					[&envelope, callback](int status, PipeMessagePtr&& message)
+					{ RoutingFailed(envelope, status, std::move(message), callback); });
+			}
 		}
-		else
-		{
-			if (message->GetHeader())
-				message->GetHeader()->mode = MQRequestMode::CallAndResponse;
-		}
-
-		RouteMessage(std::move(message));
 	}
 
 	void RouteMessage(
@@ -233,22 +276,20 @@ public:
 	{
 		auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
 		const auto& address = envelope.address();
-		auto routing_failed = [&envelope, &address, this](PipeMessagePtr&& message)
+		auto routing_failed = [&envelope, this](int status, PipeMessagePtr&& message)
 			{
-				// we can't assume that the mailbox exists here, so manually create the reply
-				proto::routing::Envelope envelope;
-				*envelope.mutable_address() = envelope.return_address();
-				envelope.set_message_id(static_cast<uint32_t>(message->GetMessageId()));
-				envelope.set_payload(address.SerializeAsString());
+				RoutingFailed(envelope, status, std::move(message), nullptr);
+			};
 
-				std::string data = envelope.SerializeAsString();
-				message->SendReply(MQMessageId::MSG_ROUTE, &data[0], data.size(), MsgError_RoutingFailed);
+		auto single_send = [](const PipeConnectionPtr& connection, PipeMessagePtr&& message)
+			{
+				connection->SendMessage(std::move(message));
 			};
 
 		if (address.has_pid() && address.pid() != GetCurrentProcessId())
 		{
 			// a PID is necessarily a singular identifier, avoid the loop
-			SendMessageToPID(address.pid(), std::move(message), routing_failed);
+			SendMessageToPID(address.pid(), std::move(message), single_send, routing_failed);
 		}
 		else if (address.has_name() && !ci_equals(address.name(), "launcher"))
 		{
@@ -257,11 +298,11 @@ public:
 			auto pid_it = m_names.find(address.name());
 			if (pid_it == m_names.end())
 			{
-				routing_failed(std::move(message));
+				routing_failed(MsgError_RoutingFailed, std::move(message));
 			}
 			else
 			{
-				SendMessageToPID(pid_it->second, std::move(message), routing_failed);
+				SendMessageToPID(pid_it->second, std::move(message), single_send, routing_failed);
 			}
 		}
 		else if ((address.has_pid() && address.pid() == GetCurrentProcessId()) || (address.has_name() && ci_equals(address.name(), "launcher")))
@@ -281,28 +322,32 @@ public:
 				DeliverTo("pipe_server", std::move(message), routing_failed);
 			}
 		}
+		else if (message->GetRequestMode() == MQRequestMode::CallAndResponse)
+		{
+			auto identity = FindIdentity(envelope.address(), m_identities.begin());
+
+			if (identity == m_identities.end())
+				RoutingFailed(envelope, MsgError_RoutingFailed, std::move(message), nullptr);
+			else if (FindIdentity(envelope.address(), std::next(identity)) != m_identities.end())
+				RoutingFailed(envelope, MsgError_AmbiguousRecipient, std::move(message), nullptr);
+			else
+				SendMessageToPID(identity->first, std::move(message), single_send, routing_failed);
+		}
 		else
 		{
-			// we don't have a PID or a name, so we will send this message to all clients that match the address
-			bool sent = false;
+			// we don't have a PID or a name and this is not an RPC, so we will send this message to 
+			// all clients that match the address -- it's important to copy these messages
 			for (const auto& identity : m_identities)
 			{
-				if (
-					(!address.has_account() || ci_equals(address.account(), identity.second.account)) &&
-					(!address.has_server() || ci_equals(address.server(), identity.second.server)) &&
-					(!address.has_character() || ci_equals(address.character(), identity.second.character))
-					)
+				if (IsRecipient(address, identity.second))
 				{
-					sent = true;
 					SendMessageToPID(
 						identity.first,
 						std::make_unique<PipeMessage>(*message->GetHeader(), message->get(), message->size()),
+						single_send,
 						routing_failed);
 				}
 			}
-			
-			// if no address was found, make sure to reply to RPC messages
-			if (!sent) routing_failed(std::move(message));
 		}
 	}
 
@@ -422,17 +467,18 @@ private:
 	bool SendMessageToPID(
 		uint32_t pid,
 		PipeMessagePtr&& message,
-		const std::function<void(PipeMessagePtr&&)>& failed)
+		const std::function<void(const PipeConnectionPtr&, PipeMessagePtr&&)> send,
+		const std::function<void(int, PipeMessagePtr&&)>& failed)
 	{
 		auto connection = m_pipeServer.GetConnectionForProcessId(pid);
 		if (connection != nullptr)
 		{
-			connection->SendMessage(std::move(message));
+			send(connection, std::move(message));
 		}
 		else
 		{
 			SPDLOG_WARN("Unable to get connection for PID {}, message route failed.", pid);
-			failed(std::move(message));
+			failed(MsgError_NoConnection, std::move(message));
 		}
 
 		return connection != nullptr;
