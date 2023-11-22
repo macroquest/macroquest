@@ -917,9 +917,6 @@ bool MQ2InvSlotWindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 	if (pWnd->GetType() != UI_InvSlot)
 		return false;
 
-	if (!Index || !Index[0])
-		return false;
-
 	CInvSlotWnd* pInvWnd = static_cast<CInvSlotWnd*>(pWnd);
 
 	MQTypeMember* pMember = MQ2InvSlotWindowType::FindMember(Member);
@@ -1017,12 +1014,14 @@ bool MQ2InvSlotWindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 
 bool MQ2InvSlotWindowType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	CXWnd* pWnd = static_cast<CXWnd*>(VarPtr.Ptr);
+	CInvSlotWnd* pWnd = static_cast<CInvSlotWnd*>(VarPtr.Ptr);
 
 	if (pWnd)
 	{
-		if (pWnd->IsVisible())
-			strcpy_s(Destination, MAX_STRING, "TRUE");
+		ItemPtr pItem = pWnd->LinkedItem ? pWnd->LinkedItem : pLocalPC->GetItemByGlobalIndex(pWnd->ItemLocation);
+
+		if (pItem && pWnd->IsVisible())
+			strcpy_s(Destination, MAX_STRING, pItem->GetName());
 		else
 			strcpy_s(Destination, MAX_STRING, "FALSE");
 	}
@@ -1042,20 +1041,6 @@ bool MQ2InvSlotWindowType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
 	if (VarPtr.Ptr = FindMQ2WindowPath(Source))
 		return true;
-
-	return false;
-}
-
-bool MQ2InvSlotWindowType::dataWindow(const char* szIndex, MQTypeVar& Ret)
-{
-	if (szIndex[0])
-	{
-		if (Ret.Ptr = FindMQ2Window(szIndex))
-		{
-			Ret.Type = pInvSlotWindowType;
-			return true;
-		}
-	}
 
 	return false;
 }

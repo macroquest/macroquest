@@ -766,8 +766,6 @@ public:
 
 	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
-
-	static bool dataWindow(const char* szIndex, MQTypeVar& Ret);
 };
 
 //============================================================================
