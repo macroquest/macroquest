@@ -1091,7 +1091,7 @@ void DisplayDrawTemplate(const char* label, const CXWndDrawTemplate* drawTemplat
 	}
 }
 
-void DisplayDynamicTemplateExpand(const char* label, const CScreenPieceTemplate* pTemplate);
+void DisplayDynamicTemplateExpand(const char* label, const CScreenPieceTemplate* pTemplate, const char* szTypeString = "CScreenPieceTemplate*");
 
 void DisplayLayoutStrategyTemplate(const CLayoutStrategyTemplate* pTemplate)
 {
@@ -1281,11 +1281,11 @@ void DisplayDynamicTemplate(CXMLData* pXMLData, const CScreenPieceTemplate* pTem
 	}
 }
 
-void DisplayDynamicTemplateExpand(const char* label, const CScreenPieceTemplate* pTemplate)
+void DisplayDynamicTemplateExpand(const char* label, const CScreenPieceTemplate* pTemplate, const char* szTypeString)
 {
 	if (!pTemplate)
 	{
-		ColumnTextType(label, "CScreenPieceTemplate*", "(null)");
+		ColumnTextType(label, szTypeString, "(null)");
 		return;
 	}
 
@@ -1301,7 +1301,7 @@ void DisplayDynamicTemplateExpand(const char* label, const CScreenPieceTemplate*
 	}
 	else
 	{
-		if (ColumnTreeNodeType(label, "CScreenPieceTemplate*", "%s", pTemplate->strName.c_str()))
+		if (ColumnTreeNodeType(label, szTypeString, "%s", pTemplate->strName.c_str()))
 		{
 			DisplayScreenPieceTemplate(pTemplate);
 
@@ -1588,26 +1588,26 @@ class ImGuiWindowStringEditor
 {
 public:
 	ImGuiWindowStringEditor(std::string_view name, const CXStr& readOnlyString)
-		: m_readOnlyString(readOnlyString)
-		, m_readOnly(true)
+		: m_string(nullptr)
+		, m_readOnlyString(readOnlyString)
 		, m_stringName(name)
+		, m_readOnly(true)
 	{
 	}
 
 	ImGuiWindowStringEditor(std::string_view name, CXStr* mutableString)
 		: m_string(mutableString)
-		, m_readOnly(false)
 		, m_stringName(name)
 	{
 	}
 
 	ImGuiWindowStringEditor(ImGuiWindowStringEditor&& other)
-		: m_readOnly(other.m_readOnly)
-		, m_string(other.m_string)
+		: m_string(other.m_string)
 		, m_readOnlyString(other.m_readOnlyString)
 		, m_stringName(std::move(other.m_stringName))
-		, m_closeRequested(other.m_closeRequested)
 		, m_textEditor(std::move(other.m_textEditor))
+		, m_readOnly(other.m_readOnly)
+		, m_closeRequested(other.m_closeRequested)
 		, m_changed(other.m_changed)
 		, m_requestFocus(other.m_requestFocus)
 	{
@@ -2266,7 +2266,7 @@ public:
 			ColumnText("Name", "%s", component->name.c_str());
 			ColumnText("Full Name", "%s", component->fullName.c_str());
 			ColumnText("Model Prefix", "%s", component->modelPrefix.c_str());
-			ColumnWindow("Window", component->wnd);
+			ColumnWindow("Window", component->parent);
 			ColumnWindow("Parent Window", component->parent);
 			ColumnText("str_78", "%s", component->str_78.c_str());
 			ColumnText("u64_98", "%p", (uintptr_t)component->u64_98);
@@ -3754,6 +3754,36 @@ static void WindowProperties_CompassWindow(CSidlScreenWnd* pSidlWindow, ImGuiWin
 	});
 }
 
+// Property Viewer for CCursorAttachment
+static void WindowProperty_CursorAttachment(CSidlScreenWnd* pSidlWindow, ImGuiWindowPropertyViewer* viewer)
+{
+	// TODO: Need to update test/emu
+#if IS_LIVE_CLIENT
+	CCursorAttachment* pCursorAttachment = static_cast<CCursorAttachment*>(pSidlWindow);
+	DisplayDynamicTemplateExpand("Static Anim", pCursorAttachment->pBGStaticAnim, "CStaticAnimationTemplate*");
+	DisplayDynamicTemplateExpand("Static Anim 2", pCursorAttachment->pOverlayStaticAnim, "CStaticAnimationTemplate*");
+
+#if HAS_GAMEFACE_UI
+	if (!pEverQuestInfo->bUseNewUIEngine)
+	{
+		DisplayTextObject("Text Object", pCursorAttachment->pTextObjectInterface);
+		DisplayTextObject("Button Text Object", pCursorAttachment->pButtonTextObjectInterface);
+		ColumnText("Text Font Style", "%d", pCursorAttachment->TextFontStyle);
+	}
+#endif
+
+	ColumnText("Type", "%d", pCursorAttachment->Type);
+	ColumnText("Index", "%d", pCursorAttachment->Index);
+	ColumnText("Item Guid", "%s", pCursorAttachment->ItemGuid.guid);
+	ColumnText("Item ID", "%d", pCursorAttachment->ItemID);
+	ColumnText("Quantity", "%d", pCursorAttachment->Qty);
+	ColumnText("IconID", "%d", pCursorAttachment->IconID);
+	ColumnText("Assigned Name", pCursorAttachment->AssignedName.c_str());
+	ColumnCXStr("Button Text", pCursorAttachment->ButtonText);
+	ColumnWindow("Spell Gem", pCursorAttachment->pSpellGem);
+#endif
+}
+
 // Property Viewer for FindLocationWnd
 static void WindowProperties_FindLocationWnd(CSidlScreenWnd* pSidlWindow, ImGuiWindowPropertyViewer* viewer)
 {
@@ -4119,6 +4149,7 @@ void DeveloperTools_WindowInspector_Initialize()
 
 	RegisterWindowPropertyViewer("BuffWindow", WindowProperties_BuffWindow);
 	RegisterWindowPropertyViewer("CompassWindow", WindowProperties_CompassWindow);
+	RegisterWindowPropertyViewer("CursorAttachment", WindowProperty_CursorAttachment);
 #if HAS_DRAGON_HOARD
 	RegisterWindowPropertyViewer("DragonHoardWnd", WindowProperties_DragronHoardWnd);
 #endif

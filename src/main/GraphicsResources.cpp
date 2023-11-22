@@ -106,6 +106,12 @@ void MQTexture::AcquireTexture()
 		else
 		{
 			m_bmi = bmi;
+
+#if HAS_DIRECTX_11
+			// Force the creation of the device state for this texture
+			gpD3D9Device->SetTexture(0, bmi->pBmp->GetD3DTexture());
+			gpD3D9Device->SetTexture(0, nullptr);
+#endif
 		}
 	}
 }
