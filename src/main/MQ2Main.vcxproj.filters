@@ -607,6 +607,9 @@
     <ClInclude Include="GraphicsResources.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\Textures.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MQ2Main.rc">

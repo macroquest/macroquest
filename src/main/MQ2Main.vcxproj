@@ -569,6 +569,7 @@
     <ClInclude Include="..\..\include\mq\api\Plugin.h" />
     <ClInclude Include="..\..\include\mq\api\Spawns.h" />
     <ClInclude Include="..\..\include\mq\api\Spells.h" />
+    <ClInclude Include="..\..\include\mq\api\Textures.h" />
     <ClInclude Include="..\..\include\mq\base\BuildInfo.h" />
     <ClInclude Include="..\..\include\mq\base\Color.h" />
     <ClInclude Include="..\..\include\mq\base\Common.h" />
