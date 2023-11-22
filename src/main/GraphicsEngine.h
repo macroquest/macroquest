@@ -220,6 +220,7 @@ MQLIB_VAR eqlib::Direct3DDevice9* gpD3D9Device;
 
 #if HAS_DIRECTX_11
 MQLIB_VAR IDXGISwapChain* gpDXGISwapChain;
+MQLIB_VAR ID3D11Device* gpD3D11Device;
 #endif
 
 MQLIB_VAR bool gbDeviceAcquired;
