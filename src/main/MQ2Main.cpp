@@ -578,7 +578,6 @@ void DoMainThreadInitialization()
 {
 	gpMainAPI = new MainImpl();
 
-	InitializePipeClient();
 	InitializeMQ2Commands();
 	InitializeDisplayHook();
 	InitializeMouseHooks();
@@ -809,7 +808,6 @@ void MQ2Shutdown()
 	ShutdownStringDB();
 	ShutdownDetours();
 	ShutdownMQ2Benchmarks();
-	ShutdownPipeClient();
 
 	DebugSpew("Shutdown completed");
 	ShutdownLogging();
@@ -1173,23 +1171,21 @@ MQTopLevelObject* MainImpl::FindTopLevelObject(const char* name)
 void MainImpl::SendToActor(
 	postoffice::Dropbox* dropbox,
 	const postoffice::Address& address,
-	uint16_t messageId,
 	const std::string& data,
 	const postoffice::ResponseCallbackAPI& callback,
 	MQPlugin* owner)
 {
-	pActorAPI->SendToActor(dropbox, address, messageId, data, callback, owner);
+	pActorAPI->SendToActor(dropbox, address, data, callback, owner);
 }
 
 void MainImpl::ReplyToActor(
 	postoffice::Dropbox* dropbox,
 	const std::shared_ptr<postoffice::Message>& message,
-	uint16_t messageId,
 	const std::string& data,
 	uint8_t status,
 	MQPlugin* owner)
 {
-	pActorAPI->ReplyToActor(dropbox, message, messageId, data, status, owner);
+	pActorAPI->ReplyToActor(dropbox, message, data, status, owner);
 }
 
 postoffice::Dropbox* MainImpl::AddActor(

@@ -15,8 +15,7 @@ message Address {
 
 message Envelope {
 	Address address = 1;
-	optional uint32 message_id = 2;
-	Address return_address = 4;
+	Address return_address = 2;
 	optional bytes payload = 99;
 }
 
@@ -26,4 +25,8 @@ message Identification {
 	optional string account = 3;
 	optional string server = 4;
 	optional string character = 5;
+}
+
+message Identifications {
+	repeated Identification ids = 1;
 }

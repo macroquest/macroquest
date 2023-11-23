@@ -25,7 +25,6 @@ public:
 	void SendToActor(
 		postoffice::Dropbox* dropbox,
 		const postoffice::Address& address,
-		uint16_t messageId,
 		const std::string& data,
 		const postoffice::ResponseCallbackAPI& callback,
 		MQPlugin* owner = nullptr);
@@ -33,7 +32,6 @@ public:
 	void ReplyToActor(
 		postoffice::Dropbox* dropbox,
 		const std::shared_ptr<postoffice::Message>& message,
-		uint16_t messageId,
 		const std::string& data,
 		uint8_t status,
 		MQPlugin* owner = nullptr);

@@ -530,7 +530,7 @@
     <ClCompile Include="MQ2MacroCommands.cpp" />
     <ClCompile Include="MQ2Main.cpp" />
     <ClCompile Include="MQ2Mouse.cpp" />
-    <ClCompile Include="MQ2PostOffice.cpp" />
+    <ClCompile Include="MQPostOffice.cpp" />
     <ClCompile Include="MQ2PluginHandler.cpp" />
     <ClCompile Include="MQ2Pulse.cpp" />
     <ClCompile Include="MQ2Spawns.cpp" />
@@ -621,7 +621,7 @@
     <ClInclude Include="MQ2Utilities.h" />
     <ClInclude Include="MQVersionInfo.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="MQ2PostOffice.h" />
+    <ClInclude Include="MQPostOffice.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

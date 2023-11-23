@@ -198,14 +198,23 @@ bool MQ2AutoLoginType::dataAutoLogin(const char* szName, MQTypeVar& Ret)
 }
 
 template <typename T>
-static void Post(AutoLoginMessageId messageId, const T& data)
+static void Post(const proto::login::MessageId& messageId, const T& data)
 {
+	Post(messageId, data.SerializeAsString());
+}
+
+static void Post(const proto::login::MessageId& messageId, const std::string& data)
+{
+	proto::login::LoginMessage message;
+	message.set_id(messageId);
+	message.set_payload(data);
+
 	postoffice::Address address;
 	address.Name = "launcher";
 	address.Mailbox = "autologin";
 	address.AbsoluteMailbox = true;
 
-	s_autologinDropbox.Post(address, messageId, data);
+	s_autologinDropbox.Post(address, message);
 }
 
 // Notify on load/unload _only_ happens with the profile method, so we can reuse that proto
@@ -219,7 +228,7 @@ void NotifyCharacterLoad(const char* Profile, const char* Account, const char* S
 	target.set_server(Server);
 	target.set_character(Character);
 
-	Post(AutoLoginMessageId::MSG_AUTOLOGIN_PROFILE_LOADED, profile);
+	Post(proto::login::ProfileLoaded, profile);
 }
 
 void NotifyCharacterUnload(const char* Profile, const char* Account, const char* Server, const char* Character)
@@ -231,7 +240,7 @@ void NotifyCharacterUnload(const char* Profile, const char* Account, const char*
 	target.set_server(Server);
 	target.set_character(Character);
 
-	Post(AutoLoginMessageId::MSG_AUTOLOGIN_PROFILE_UNLOADED, profile);
+	Post(proto::login::ProfileUnloaded, profile);
 }
 
 void NotifyCharacterUpdate(int Class, int Level)
@@ -240,7 +249,7 @@ void NotifyCharacterUpdate(int Class, int Level)
 	info.set_class_(Class);
 	info.set_level(Level);
 
-	Post(AutoLoginMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO, info);
+	Post(proto::login::ProfileCharInfo, info);
 }
 
 void LoginServer(const char* Login, const char* Pass, const char* Server)
@@ -252,7 +261,7 @@ void LoginServer(const char* Login, const char* Pass, const char* Server)
 	proto::login::LoginTarget& target = *method.mutable_target();
 	target.set_server(Server);
 
-	Post(AutoLoginMessageId::MSG_AUTOLOGIN_START_INSTANCE, start);
+	Post(proto::login::StartInstance, start);
 }
 
 void LoginCharacter(const char* Login, const char* Pass, const char* Server, const char* Character)
@@ -265,7 +274,7 @@ void LoginCharacter(const char* Login, const char* Pass, const char* Server, con
 	target.set_server(Server);
 	target.set_character(Character);
 
-	Post(AutoLoginMessageId::MSG_AUTOLOGIN_START_INSTANCE, start);
+	Post(proto::login::StartInstance, start);
 }
 
 void LoginProfile(const char* Profile, const char* Server, const char* Character)
@@ -277,7 +286,7 @@ void LoginProfile(const char* Profile, const char* Server, const char* Character
 	target.set_server(Server);
 	target.set_character(Character);
 
-	Post(AutoLoginMessageId::MSG_AUTOLOGIN_START_INSTANCE, start);
+	Post(proto::login::StartInstance, start);
 }
 
 void PerformSwitch(const std::string& ServerName, const std::string& CharacterName)

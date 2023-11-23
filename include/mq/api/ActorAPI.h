@@ -17,11 +17,17 @@
 namespace mq {
 
 class PipeMessage;
-class ProtoMessage;
-using ProtoMessagePtr = std::unique_ptr<ProtoMessage>;
 
 namespace postoffice {
 	class Dropbox;
+
+	/**
+	 * IDs for messages sent to the local post office to request information
+	 */
+	enum class APIMessageID : uint8_t
+	{
+		IDENTIFICATION = 0, // just send the ID here to request the post office send you its internal ID list
+	};
 
 	/**
 	 * An address shim to be used to fill out the address on the envelope in the MQ post office.
@@ -82,89 +88,50 @@ namespace postoffice {
 		/**
 		 * Sends a message to an address
 		 *
-		 * @tparam ID an identifier to be used by the receiver, must cast to uint32_t
 		 * @tparam T the message being sent, usually some kind of proto
 		 *
 		 * @param address the address to send the message
-		 * @param messageId a message ID used to route the message at the receiver
 		 * @param obj the message (as an object)
 		 * @param callback optional callback for an expected response
 		 */
-		template <typename ID, typename T>
-		void Post(const Address& address, ID messageId, const T& obj, const ResponseCallbackAPI& callback = nullptr) const
+		template <typename T>
+		void Post(const Address& address, const T& obj, const ResponseCallbackAPI& callback = nullptr) const
 		{
-			Post(address, static_cast<uint16_t>(messageId), obj.SerializeAsString(), callback);
+			Post(address, obj.SerializeAsString(), callback);
 		}
 
 		/**
 		 * Sends a message to an address
 		 *
-		 * @tparam ID an identifier to be used by the receiver, must cast to uint32_t
-		 *
 		 * @param address the address to send the message
-		 * @param messageId a message ID used to route the message at the receiver
 		 * @param data the message (as a data string)
 		 * @param callback optional callback for an expected response
 		 */
-		template <typename ID>
-		void Post(const Address& address, ID messageId, const std::string& data, const ResponseCallbackAPI& callback = nullptr) const
-		{
-			Post(address, static_cast<uint16_t>(messageId), data, callback);
-		}
-
-
-		/**
-		 * Sends a message to an address
-		 *
-		 * @param address the address to send the message
-		 * @param messageId a message ID used to route the message at the receiver
-		 * @param data the message (as a data string)
-		 * @param callback optional callback for an expected response
-		 */
-		void Post(const Address& address, uint16_t messageId, const std::string& data, const ResponseCallbackAPI& callback = nullptr) const;
+		void Post(const Address& address, const std::string& data, const ResponseCallbackAPI& callback = nullptr) const;
 
 		/**
 		 * Sends a reply to the sender of a message
 		 *
-		 * @tparam ID an identifier to be used by the receiver, must cast to uint32_t
 		 * @tparam T the message being sent, usually some kind of proto
 		 *
 		 * @param message the original message to reply to (contains the sender address)
-		 * @param messageId a message ID used to rout the message at the receiver
 		 * @param obj the message (as an object)
 		 * @param status a return status, sometimes used by reply handling logic
 		 */
-		template <typename ID, typename T>
-		void PostReply(const std::shared_ptr<Message>& message, ID messageId, const T& obj, uint8_t status = 0) const
+		template <typename T>
+		void PostReply(const std::shared_ptr<Message>& message, const T& obj, uint8_t status = 0) const
 		{
-			PostReply(std::move(message), static_cast<uint16_t>(messageId), obj.SerializeAsString(), status);
-		}
-
-		/**
-		 * Sends a reply to the sender of a message
-		 *
-		 * @tparam ID an identifier to be used by the receiver, must cast to uint32_t
-		 *
-		 * @param message the original message to reply to (contains the sender address)
-		 * @param messageId a message ID used to rout the message at the receiver
-		 * @param data the message (as a data string)
-		 * @param status a return status, sometimes used by reply handling logic
-		 */
-		template <typename ID>
-		void PostReply(const std::shared_ptr<Message>& message, ID messageId, const std::string& data, uint8_t status = 0) const
-		{
-			PostReply(std::move(message), static_cast<uint16_t>(messageId), data, status);
+			PostReply(message, obj.SerializeAsString(), status);
 		}
 
 		/**
 		 * Sends a reply to the sender of a message
 		 *
 		 * @param message the original message to reply to (contains the sender address)
-		 * @param messageId a message ID used to rout the message at the receiver
 		 * @param data the message (as a data string)
 		 * @param status a return status, sometimes used by reply handling logic
 		 */
-		void PostReply(const std::shared_ptr<Message>& message, uint16_t messageId, const std::string& data, uint8_t status = 0) const;
+		void PostReply(const std::shared_ptr<Message>& message, const std::string& data, uint8_t status = 0) const;
 
 		/**
 		 * Removes the mailbox with the same name from the post office

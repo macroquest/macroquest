@@ -87,54 +87,46 @@ public:
 	/**
 	 * Sends a message to an address
 	 *
-	 * @tparam ID an identifier to be used by the receiver, must cast to uint32_t
 	 * @tparam T the message being sent, usually some kind of proto
 	 *
 	 * @param address the address to send the message
-	 * @param messageId a message ID used to route the message at the receiver
 	 * @param obj the message (as an object)
 	 * @param callback optional callback for an expected response
 	 */
-	template <typename ID, typename T>
-	void Post(const proto::routing::Address& address, ID messageId, const T& obj, const PipeMessageResponseCb& callback = nullptr)
+	template <typename T>
+	void Post(const proto::routing::Address& address, const T& obj, const PipeMessageResponseCb& callback = nullptr)
 	{
-		if (IsValid()) m_post(Stuff(address, messageId, obj), callback);
+		if (IsValid()) m_post(Stuff(address, obj), callback);
 	}
 
 	/**
 	 * Sends an empty message to an address
 	 *
-	 * @tparam ID an identifier to be used by the receiver, must cast to uint32_t
-	 *
 	 * @param address the address to send the message
-	 * @param messageId a message ID used to route the message at the receiver
 	 * @param callback optional callback for an expected response
 	 */
-	template <typename ID>
-	void Post(const proto::routing::Address& address, ID messageId, const PipeMessageResponseCb& callback = nullptr)
+	void Post(const proto::routing::Address& address, const PipeMessageResponseCb& callback = nullptr)
 	{
-		if (IsValid()) m_post(Stuff(address, messageId, std::string()), callback);
+		if (IsValid()) m_post(Stuff(address, std::string()), callback);
 	}
 
 	/**
 	 * Sends a reply to the sender of a message -- the message can be anything
 	 * because we make no assumption about what is wrapped in the envelope
 	 *
-	 * @tparam ID an identifier to be used by the receiver, must cast to uint32_t
 	 * @tparam T the message being sent, usually some kind of proto
 	 *
 	 * @param message the original message to reply to
-	 * @param messageId a message ID used to rout the message at the receiver
 	 * @param obj the message (as an object)
 	 * @param status a return status, sometimes used by reply handling logic
 	 */
-	template <typename ID, typename T>
-	void PostReply(PipeMessagePtr&& message, ID messageId, const T& obj, uint8_t status = 0)
+	template <typename T>
+	void PostReply(PipeMessagePtr&& message, const T& obj, uint8_t status = 0)
 	{
 		if (IsValid())
 		{
 			std::string data(Data(obj));
-			message->SendReply(static_cast<MQMessageId>(messageId), &data[0], data.size(), status);
+			message->SendReply(message->GetMessageId(), &data[0], data.size(), status);
 		}
 	}
 
@@ -142,27 +134,24 @@ public:
 	 * Sends a reply to the sender of a message -- the message can be anything
 	 * because we make no assumption about what is wrapped in the envelope
 	 *
-	 * @tparam ID an identifier to be used by the receiver, must cast to uint32_t
-	 *
 	 * @param message the original message to reply to
-	 * @param messageId a message ID used to rout the message at the receiver
 	 * @param obj the message (as an object)
 	 * @param status a return status, sometimes used by reply handling logic
 	 */
-	template <typename ID, typename T>
-	void PostReply(ProtoMessagePtr&& message, ID messageId, const T& obj, uint8_t status = 0)
+	template <typename T>
+	void PostReply(ProtoMessagePtr&& message, const T& obj, uint8_t status = 0)
 	{
 		if (IsValid())
 		{
 			if (auto sender = message->GetSender())
 			{
-				std::string data(Stuff(*sender, messageId, obj));
+				std::string data(Stuff(*sender, obj));
 				message->SendReply(MQMessageId::MSG_ROUTE, &data[0], data.size(), status);
 			}
 			else
 			{
 				std::string data(Data(obj));
-				message->SendReply(static_cast<MQMessageId>(messageId), &data[0], data.size(), status);
+				message->SendReply(message->GetMessageId(), &data[0], data.size(), status);
 			}
 		}
 	}
@@ -191,19 +180,16 @@ private:
 		return obj;
 	}
 
-	template <typename ID, typename T>
-	std::string Stuff(const proto::routing::Address& address, ID messageId, const T& obj)
+	template <typename T>
+	std::string Stuff(const proto::routing::Address& address, const T& obj)
 	{
-		return Stuff(address, messageId, obj.SerializeAsString());
+		return Stuff(address, obj.SerializeAsString());
 	}
 
-	template <typename ID>
-	std::string Stuff(const proto::routing::Address& address, ID messageId, const std::string& data)
+	std::string Stuff(const proto::routing::Address& address, const std::string& data)
 	{
 		proto::routing::Envelope envelope;
 		*envelope.mutable_address() = address;
-
-		envelope.set_message_id(static_cast<uint32_t>(messageId));
 
 		proto::routing::Address& ret = *envelope.mutable_return_address();
 		ret.set_pid(GetCurrentProcessId());

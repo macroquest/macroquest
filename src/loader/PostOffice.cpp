@@ -96,6 +96,41 @@ private:
 					// we also need to update all the clients
 					m_postOffice->m_pipeServer.BroadcastProtoMessage(mq::MQMessageId::MSG_IDENTIFICATION, id);
 				}
+				else
+				{
+					// we are getting a request to send all IDs, do so sequentially and asynchronously
+					for (const auto& [_, client] : m_postOffice->m_identities)
+					{
+						proto::routing::Identification id;
+						id.set_pid(client.pid);
+
+						if (!client.account.empty())
+							id.set_account(client.account);
+
+						if (!client.server.empty())
+							id.set_server(client.server);
+
+						if (!client.character.empty())
+							id.set_character(client.character);
+						
+						m_postOffice->m_pipeServer.SendProtoMessage(
+							message->GetConnectionId(),
+							MQMessageId::MSG_IDENTIFICATION,
+							id);
+					}
+
+					for (const auto& [name, pid] : m_postOffice->m_names)
+					{
+						proto::routing::Identification id;
+						id.set_pid(pid);
+						id.set_name(name);
+						
+						m_postOffice->m_pipeServer.SendProtoMessage(
+							message->GetConnectionId(),
+							MQMessageId::MSG_IDENTIFICATION,
+							id);
+					}
+				}
 				break;
 
 			case mq::MQMessageId::MSG_MAIN_PROCESS_UNLOADED:
@@ -220,7 +255,6 @@ public:
 		// we can't assume that the mailbox exists here, so manually create the reply
 		proto::routing::Envelope outbound;
 		*outbound.mutable_address() = envelope.return_address();
-		outbound.set_message_id(static_cast<uint32_t>(message->GetMessageId()));
 		outbound.set_payload(envelope.address().SerializeAsString());
 
 		std::string data = outbound.SerializeAsString();
@@ -414,37 +448,6 @@ public:
 			{
 				// if we've gotten here, then something is delivering a message to this
 				// post office ("pipe_server"), so handle messages directly
-				auto sender = message->GetSender();
-				if (sender && message->GetMessageId() == MQMessageId::MSG_IDENTIFICATION)
-				{
-					// we are getting a request to send all IDs, do so sequentially and asynchronously
-					for (const auto& [_, client] : m_identities)
-					{
-						proto::routing::Identification id;
-						id.set_pid(client.pid);
-
-						if (!client.account.empty())
-							id.set_account(client.account);
-
-						if (!client.server.empty())
-							id.set_server(client.server);
-
-						if (!client.character.empty())
-							id.set_character(client.character);
-						
-						m_serverDropbox.Post(*sender, MQMessageId::MSG_IDENTIFICATION, id);
-					}
-
-					for (const auto& [name, pid] : m_names)
-					{
-						proto::routing::Identification id;
-						id.set_pid(pid);
-						id.set_name(name);
-
-						m_serverDropbox.Post(*sender, MQMessageId::MSG_IDENTIFICATION, id);
-					}
-				}
-				// if we ever have a usecase for updating ID from a route, put it here (check for messageLength)
 			});
 	}
 
