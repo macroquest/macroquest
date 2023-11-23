@@ -3,7 +3,7 @@ name: CI Emu
 on:
   push:
     branches:
-      - master
+      - emu
     tags-ignore:
       - rel-*
 

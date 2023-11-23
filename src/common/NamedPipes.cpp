@@ -267,9 +267,12 @@ void PipeConnection::InternalBeginRead()
 
 	if (!readStarted)
 	{
-		SPDLOG_ERROR("{} connectionId={}",
-			fmt::windows_error(GetLastError(), "Failed at ::ReadFileEx").what(), m_connectionId);
-		m_parent->CloseConnection(this);
+		auto error = GetLastError();
+		if(error != ERROR_MORE_DATA) {
+			SPDLOG_ERROR("{} connectionId={}",
+				fmt::windows_error(error, "Failed at ::ReadFileEx").what(), m_connectionId);
+			m_parent->CloseConnection(this);
+		}
 	}
 }
 
@@ -331,11 +334,12 @@ void PipeConnection::HandleReadComplete(uint32_t errorCode, uint32_t bytesRead)
 
 	case ERROR_INSUFFICIENT_BUFFER:
 	case ERROR_SUCCESS:
+	case ERROR_MORE_DATA:
 		// Store the data in our buffers, and try to read more. If we've got all the
 		// data we need we can process it right after the next call to ReadFileEx.
 		m_readBuffers.emplace_back(std::move(m_readBuffer), bytesRead);
 
-		if (!moreData)
+		if (!moreData && errorCode != ERROR_MORE_DATA)
 		{
 			ProcessBuffers();
 		}
