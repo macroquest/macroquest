@@ -586,6 +586,7 @@
     <ClInclude Include="..\..\include\mq\imgui\ConsoleWidget.h" />
     <ClInclude Include="..\..\include\mq\imgui\ImGuiUtils.h" />
     <ClInclude Include="..\..\include\mq\imgui\Widgets.h" />
+    <ClInclude Include="..\..\include\mq\libutils\wilUtils.h" />
     <ClInclude Include="..\..\include\mq\Plugin.h" />
     <ClInclude Include="..\..\include\mq\proto\PostOffice.h" />
     <ClInclude Include="..\..\include\mq\utils\Args.h" />

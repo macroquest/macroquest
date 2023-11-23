@@ -1,3 +1,6 @@
+Nov 22, 2023:
+- Update vcpkg dependencies
+
 Nov 19, 2023:
 - Add ability to create textures from image files. See examples/texture.lua for example usage.
 
