@@ -209,6 +209,7 @@ private:
 					id.set_pid(name_it->second);
 					id.set_name(name_it->first);
 
+					SPDLOG_INFO("Disconnection detected, dropping name from {}: {}", id.pid(), id.name());
 					broadcast(std::move(id));
 
 					name_it = m_postOffice->m_names.erase(name_it);
@@ -232,6 +233,8 @@ private:
 				if (!ident_it->second.character.empty())
 					id.set_character(ident_it->second.character);
 
+						// only include the PID here, otherwise it's pseudonym-identifiable information from the logs
+						SPDLOG_INFO("Disconnection detected, dropping ID from {}", id.pid());
 				broadcast(std::move(id));
 
 				m_postOffice->m_identities.erase(ident_it);
@@ -344,7 +347,6 @@ public:
 			if (address.has_mailbox())
 			{
 				// this is a local message
-				SPDLOG_DEBUG("Routing message to mailbox: {}", address.mailbox());
 				DeliverTo(address.mailbox(), std::move(message), routing_failed);
 			}
 			else

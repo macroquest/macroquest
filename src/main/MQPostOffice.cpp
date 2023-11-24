@@ -123,7 +123,7 @@ private:
 					if (id.has_name())
 					{
 						m_postOffice->m_names.insert_or_assign(id.name(), id.pid());
-						SPDLOG_DEBUG("Got name-based identification from {}: {}", id.pid(), id.name());
+						SPDLOG_INFO("Got name-based identification from {}: {}", id.pid(), id.name());
 					}
 					else
 					{
@@ -135,7 +135,7 @@ private:
 							});
 
 						// only include the PID here, otherwise it's pseudonym-identifiable information from the logs
-						SPDLOG_DEBUG("Got identification from {}", id.pid());
+						SPDLOG_INFO("Got identification from {}", id.pid());
 					}
 
 					// TODO: forward new ID to all mailboxes here
@@ -371,26 +371,45 @@ public:
 
 	void SetGameStatePostOffice(DWORD GameState)
 	{
-		proto::routing::Identification id;
-		id.set_pid(GetCurrentProcessId()); // we should always have a pid
+		static bool logged_in = false;
 
-		const char* login = GetLoginName();
-		if (login != nullptr)
-			id.set_account(login);
-
-		if (pEverQuestInfo != nullptr)
+		// 0 is sent from init
+		if (GameState == 0)
 		{
-			const char* server = GetServerShortName();
-			if (server != nullptr)
-				id.set_server(server);
+			proto::routing::Identification id;
+			id.set_pid(GetCurrentProcessId());
+
+			if (pLocalPC && pLocalPC->Name)
+			{
+				logged_in = true;
+				id.set_account(GetLoginName());
+				id.set_server(GetServerShortName());
+				id.set_character(pLocalPC->Name);
+			}
+
+			m_pipeClient.SendProtoMessage(MQMessageId::MSG_IDENTIFICATION, id);
 		}
-
-		if (pLocalPC != nullptr && pLocalPC->Name != nullptr)
+		else if (logged_in && GameState != GAMESTATE_LOGGINGIN && GameState != GAMESTATE_INGAME)
 		{
+			logged_in = false;
+
+			proto::routing::Identification id;
+			id.set_pid(GetCurrentProcessId());
+
+			m_pipeClient.SendProtoMessage(MQMessageId::MSG_IDENTIFICATION, id);
+		}
+		else if (!logged_in && (GameState == GAMESTATE_LOGGINGIN || GameState == GAMESTATE_INGAME))
+		{
+			logged_in = true;
+
+			proto::routing::Identification id;
+			id.set_pid(GetCurrentProcessId());
+			id.set_account(GetLoginName());
+			id.set_server(GetServerShortName());
 			id.set_character(pLocalPC->Name);
-		}
 
-		m_pipeClient.SendProtoMessage(MQMessageId::MSG_IDENTIFICATION, id);
+			m_pipeClient.SendProtoMessage(MQMessageId::MSG_IDENTIFICATION, id);
+		}
 	}
 
 	void Initialize()
