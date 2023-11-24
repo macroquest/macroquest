@@ -270,6 +270,7 @@ bool CDataArray::GetElement(char* Index, MQTypeVar& Dest)
 #include "MQ2ZoneType.cpp"
 #include "MQIniType.cpp"
 #include "MQInventoryType.cpp"
+#include "MQCursorAttachmentType.cpp"
 
 #if HAS_ADVANCED_LOOT
 #include "MQ2AdvLootType.cpp"

@@ -561,6 +561,7 @@ void MQDataAPI::RegisterTopLevelObjects()
 	AddTopLevelObject("AltAbility", datatypes::MQ2AltAbilityType::dataAltAbility);
 	AddTopLevelObject("Corpse", datatypes::MQ2CorpseType::dataCorpse);
 	AddTopLevelObject("Cursor", datatypes::MQ2ItemType::dataCursor);
+	AddTopLevelObject("CursorAttachment", datatypes::MQCursorAttachmentType::dataCursorAttachment);
 	AddTopLevelObject("DoorTarget", datatypes::MQ2SwitchType::dataSwitchTarget);
 	AddTopLevelObject("DynamicZone", datatypes::MQ2DynamicZoneType::dataDynamicZone);
 	AddTopLevelObject("EverQuest", datatypes::MQ2EverQuestType::dataEverQuest);

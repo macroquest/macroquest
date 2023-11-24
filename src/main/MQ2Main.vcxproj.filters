@@ -395,6 +395,9 @@
     <ClCompile Include="GraphicsResources.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="datatypes\MQCursorAttachmentType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
