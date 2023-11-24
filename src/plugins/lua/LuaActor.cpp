@@ -40,14 +40,6 @@ using namespace mq::postoffice;
 
 namespace messaging = proto::lua::actor;
 
-// kind of boring for now, every message we expect is a LuaMessage
-// we can expand this later, but routing within actors will probably
-// be the main method of routing, not in the main dropbox
-enum class LuaMessageID : uint16_t
-{
-	LuaMessage = 0, // message payload is a Variant (an arbitrary lua data)
-};
-
 sol::object DeserializeProto(const messaging::Variant& data, sol::state_view s)
 {
 	switch (data.value_case())
@@ -369,7 +361,7 @@ Address LuaDropbox::ParseHeader(sol::table header) const
 
 void LuaDropbox::Send(sol::table header, sol::object payload) const
 {
-	m_dropbox.Post(ParseHeader(header), LuaMessageID::LuaMessage, SerializeProto(payload));
+	m_dropbox.Post(ParseHeader(header), SerializeProto(payload));
 }
 
 void LuaDropbox::SendWithResponse(sol::table header, sol::object payload, sol::function response_callback)
@@ -377,7 +369,7 @@ void LuaDropbox::SendWithResponse(sol::table header, sol::object payload, sol::f
 	if (auto thread = m_thread.lock())
 	{
 		auto callback = std::make_unique<CallbackInstance>(thread, response_callback, LuaMessage(*this, nullptr));
-		m_dropbox.Post(ParseHeader(header), LuaMessageID::LuaMessage, SerializeProto(payload),
+		m_dropbox.Post(ParseHeader(header), SerializeProto(payload),
 			[callback = callback.release(), this](int status, const std::shared_ptr<Message>& message)
 			{
 				callback->status = status;
@@ -390,7 +382,7 @@ void LuaDropbox::SendWithResponse(sol::table header, sol::object payload, sol::f
 
 void LuaDropbox::Reply(const std::shared_ptr<Message>& message, const sol::object& reply, int status) const
 {
-	m_dropbox.PostReply(message, LuaMessageID::LuaMessage, SerializeProto(reply), static_cast<uint8_t>(status));
+	m_dropbox.PostReply(message, SerializeProto(reply), static_cast<uint8_t>(status));
 }
 
 void LuaDropbox::Receive(const std::shared_ptr<Message>& message)
