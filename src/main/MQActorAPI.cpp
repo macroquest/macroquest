@@ -65,7 +65,6 @@ std::map<PipeMessage*, std::unique_ptr<ProtoMessage>> s_messageStorage;
 void MQActorAPI::SendToActor(
 	postoffice::Dropbox* dropbox,
 	const postoffice::Address& address,
-	uint16_t messageId,
 	const std::string& data,
 	const postoffice::ResponseCallbackAPI& callback,
 	MQPlugin* owner)
@@ -142,14 +141,13 @@ void MQActorAPI::SendToActor(
 		// ambiguity in the mailbox, the router to check for ambiguity in the client address, and
 		// the receiving post office to check local ambiguity in the mailbox _for RPC messages
 		// only_
-		dropbox->Post(addr, static_cast<MQMessageId>(messageId), data, pipe_callback);
+		dropbox->Post(addr, data, pipe_callback);
 	}
 }
 
 void MQActorAPI::ReplyToActor(
 	postoffice::Dropbox* dropbox,
 	const std::shared_ptr<postoffice::Message>& message,
-	uint16_t messageId,
 	const std::string& data,
 	uint8_t status,
 	MQPlugin* owner)
@@ -161,7 +159,7 @@ void MQActorAPI::ReplyToActor(
 		if (message_ptr != s_messageStorage.end())
 		{
 			// we don't want to do any address mangling here because a reply is always going to be fully qualified
-			dropbox->PostReply(std::move(message_ptr->second), messageId, data, status);
+			dropbox->PostReply(std::move(message_ptr->second), data, status);
 			s_messageStorage.erase(message_ptr);
 		}
 	}

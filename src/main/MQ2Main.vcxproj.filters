@@ -380,7 +380,7 @@
     <ClCompile Include="GraphicsEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2PostOffice.cpp">
+    <ClCompile Include="MQPostOffice.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQInventory.cpp">
@@ -394,6 +394,9 @@
     </ClCompile>
     <ClCompile Include="GraphicsResources.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQCursorAttachmentType.cpp">
+      <Filter>Source Files\datatypes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -592,7 +595,7 @@
     <ClInclude Include="GraphicsEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MQ2PostOffice.h">
+    <ClInclude Include="MQPostOffice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\api\Inventory.h">
@@ -609,6 +612,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\mq\api\Textures.h">
       <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\libutils\wilUtils.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

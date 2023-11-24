@@ -49,13 +49,10 @@ ProtoMessagePtr Mailbox::Open(proto::routing::Envelope&& envelope, const PipeMes
 		length = envelope.payload().size();
 	}
 
-	if (message != nullptr)
+	if (message != nullptr) // this resets the m_replied member, but it couldn't have become true before this anyway
 		unwrapped = std::make_unique<ProtoMessage>(*message, data, length);
 	else
 		unwrapped = std::make_unique<ProtoMessage>(MQMessageId::MSG_NULL, data, length);
-
-	if (envelope.has_message_id())
-		unwrapped->GetHeader()->messageId = static_cast<MQMessageId>(envelope.message_id());
 
 	if (envelope.has_return_address())
 		unwrapped->SetSender(envelope.return_address());

@@ -13,7 +13,7 @@
  */
 
 #include "pch.h"
-#include "MQ2PostOffice.h"
+#include "MQPostOffice.h"
 #include "CrashHandler.h"
 
 #include "MQ2Main.h"
@@ -25,6 +25,8 @@ using namespace postoffice;
 
 // MQModule forward declarations
 namespace pipeclient {
+static void InitializePostOffice();
+static void ShutdownPostOffice();
 static void PulsePostOffice();
 static void SetGameStatePostOffice(DWORD);
 }
@@ -32,8 +34,8 @@ static void SetGameStatePostOffice(DWORD);
 static MQModule s_PostOfficeModule = {
 	"PostOffice",
 	false,
-	nullptr,                                   // Initialize
-	nullptr,                                   // Shutdown
+	pipeclient::InitializePostOffice,          // Initialize
+	pipeclient::ShutdownPostOffice,            // Shutdown
 	pipeclient::PulsePostOffice,               // Pulse
 	pipeclient::SetGameStatePostOffice,        // SetGameState
 	nullptr,                                   // UpdateImGui
@@ -136,14 +138,7 @@ private:
 						SPDLOG_INFO("Got identification from {}", id.pid());
 					}
 
-					// for any mailbox that is keeping track, update them as well
-					std::string data = id.SerializeAsString();
-
-					// exclude us so we don't update ourselves
-					m_postOffice->DeliverAll(
-						std::make_unique<PipeMessage>(MQMessageId::MSG_IDENTIFICATION, &data[0], data.size()),
-						"pipe_client"
-					);
+					// TODO: forward new ID to all mailboxes here
 				}
 				break;
 
@@ -159,14 +154,7 @@ private:
 					m_postOffice->m_identities.erase(id.pid());
 				}
 
-				// forward the message to all mailboxes
-				std::string data = id.SerializeAsString();
-
-				// exclude us so we don't update ourselves
-				m_postOffice->DeliverAll(
-					std::make_unique<PipeMessage>(MQMessageId::MSG_DROPPED, &data[0], data.size()),
-					"pipe_client"
-				);
+				// TODO: forward the message to all mailboxes
 			}
 
 			case MQMessageId::MSG_MAIN_CRASHPAD_CONFIG:
@@ -239,7 +227,18 @@ public:
 	MQ2PostOffice()
 		: m_pipeClient{ mq::MQ2_PIPE_SERVER_PATH }
 		, m_launcherProcessID(0)
-	{}
+	{
+		m_clientDropbox = RegisterAddress("pipe_client",
+			[this](ProtoMessagePtr&& message)
+			{
+				// if we've gotten here, then something is delivering a message to this
+				// post office ("pipe_client"), so handle messages directly
+				// TODO: add message handling to request IDs (note that we can't use proto without
+				//       requiring that all plugins start linking the same proto compile, so let's
+				//       try to avoid that with some simple object casts, assuming this will always
+				//       be local.
+			});
+	}
 
 	static void RoutingFailed(
 		const proto::routing::Envelope& envelope,
@@ -250,7 +249,6 @@ public:
 		// we can't assume that the mailbox exists here, so manually create the reply
 		proto::routing::Envelope outbound;
 		*outbound.mutable_address() = envelope.return_address();
-		outbound.set_message_id(static_cast<uint32_t>(message->GetMessageId()));
 		outbound.set_payload(envelope.address().SerializeAsString());
 
 		std::string data = outbound.SerializeAsString();
@@ -373,26 +371,45 @@ public:
 
 	void SetGameStatePostOffice(DWORD GameState)
 	{
-		proto::routing::Identification id;
-		id.set_pid(GetCurrentProcessId()); // we should always have a pid
+		static bool logged_in = false;
 
-		const char* login = GetLoginName();
-		if (login != nullptr)
-			id.set_account(login);
-
-		if (pEverQuestInfo != nullptr)
+		// 0 is sent from init
+		if (GameState == 0)
 		{
-			const char* server = GetServerShortName();
-			if (server != nullptr)
-				id.set_server(server);
+			proto::routing::Identification id;
+			id.set_pid(GetCurrentProcessId());
+
+			if (pLocalPC && pLocalPC->Name)
+			{
+				logged_in = true;
+				id.set_account(GetLoginName());
+				id.set_server(GetServerShortName());
+				id.set_character(pLocalPC->Name);
+			}
+
+			m_pipeClient.SendProtoMessage(MQMessageId::MSG_IDENTIFICATION, id);
 		}
-
-		if (pLocalPC != nullptr && pLocalPC->Name != nullptr)
+		else if (logged_in && GameState != GAMESTATE_LOGGINGIN && GameState != GAMESTATE_INGAME)
 		{
+			logged_in = false;
+
+			proto::routing::Identification id;
+			id.set_pid(GetCurrentProcessId());
+
+			m_pipeClient.SendProtoMessage(MQMessageId::MSG_IDENTIFICATION, id);
+		}
+		else if (!logged_in && (GameState == GAMESTATE_LOGGINGIN || GameState == GAMESTATE_INGAME))
+		{
+			logged_in = true;
+
+			proto::routing::Identification id;
+			id.set_pid(GetCurrentProcessId());
+			id.set_account(GetLoginName());
+			id.set_server(GetServerShortName());
 			id.set_character(pLocalPC->Name);
-		}
 
-		m_pipeClient.SendProtoMessage(MQMessageId::MSG_IDENTIFICATION, id);
+			m_pipeClient.SendProtoMessage(MQMessageId::MSG_IDENTIFICATION, id);
+		}
 	}
 
 	void Initialize()
@@ -401,49 +418,8 @@ public:
 		m_pipeClient.Start();
 		::atexit(StopPipeClient);
 
-		m_clientDropbox = RegisterAddress("pipe_client",
-			[this](ProtoMessagePtr&& message)
-			{
-				// if we've gotten here, then something is delivering a message to this
-				// post office ("pipe_client"), so handle messages directly
-				auto sender = message->GetSender();
-				if (sender && message->GetMessageId() == MQMessageId::MSG_IDENTIFICATION)
-				{
-					// we are getting a request to send all IDs, do so sequentially and asynchronously
-					for (const auto& [_, client] : m_identities)
-					{
-						proto::routing::Identification id;
-						id.set_pid(client.pid);
-
-						if (!client.account.empty())
-							id.set_account(client.account);
-
-						if (!client.server.empty())
-							id.set_server(client.server);
-
-						if (!client.character.empty())
-							id.set_character(client.character);
-						
-						m_clientDropbox.Post(*sender, MQMessageId::MSG_IDENTIFICATION, id);
-					}
-
-					for (const auto& [name, pid] : m_names)
-					{
-						proto::routing::Identification id;
-						id.set_pid(pid);
-						id.set_name(name);
-
-						m_clientDropbox.Post(*sender, MQMessageId::MSG_IDENTIFICATION, id);
-					}
-				}
-				// if we ever have a usecase for updating ID from a route, put it here (check for messageLength)
-			});
-
 		// once we set up the mailbox, get a list of all connected peers
-		proto::routing::Address address;
-		address.set_name("launcher");
-
-		m_clientDropbox.Post(address, MQMessageId::MSG_IDENTIFICATION);
+		m_pipeClient.SendMessage(MQMessageId::MSG_IDENTIFICATION, nullptr, 0);
 	}
 
 	void Shutdown()
@@ -487,6 +463,16 @@ void RequestActivateWindow(HWND hWnd, bool sendMessage)
 	static_cast<MQ2PostOffice&>(GetPostOffice()).RequestActivateWindow(hWnd, sendMessage);
 }
 
+void InitializePostOffice()
+{
+	static_cast<MQ2PostOffice&>(GetPostOffice()).Initialize();
+}
+
+void ShutdownPostOffice()
+{
+	static_cast<MQ2PostOffice&>(GetPostOffice()).Shutdown();
+}
+
 void PulsePostOffice()
 {
 	static_cast<MQ2PostOffice&>(GetPostOffice()).ProcessPipeClient();
@@ -498,15 +484,5 @@ void SetGameStatePostOffice(DWORD GameState)
 }
 
 } // namespace pipeclient
-
-void InitializePipeClient()
-{
-	static_cast<MQ2PostOffice&>(GetPostOffice()).Initialize();
-}
-
-void ShutdownPipeClient()
-{
-	static_cast<MQ2PostOffice&>(GetPostOffice()).Shutdown();
-}
 
 } // namespace mq
