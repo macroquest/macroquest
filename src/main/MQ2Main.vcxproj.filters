@@ -398,6 +398,9 @@
     <ClCompile Include="GraphicsResources.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="datatypes\MQCursorAttachmentType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
@@ -612,6 +615,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\mq\api\Textures.h">
       <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\libutils\wilUtils.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

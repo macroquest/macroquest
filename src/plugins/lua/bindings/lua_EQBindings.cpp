@@ -140,6 +140,21 @@ void RegisterBindings_EQ(LuaThread* thread, sol::table& mq)
 
 	mq.set_function("FindTextureAnimation", &FindTextureAnimation);
 
+	mq.set_function("AttachSpellToCursor", [](int SpellID)
+		{
+			if (pCursorAttachment) return pCursorAttachment->AttachSpellToCursor(SpellID);
+			return false;
+		});
+	mq.set_function("RemoveCursorAttachment", []()
+		{
+			if (pCursorAttachment && pCursorAttachment->IsOkToActivate(-1))
+			{
+				pCursorAttachment->RemoveAttachment();
+				return true;
+			}
+			return false;
+		});
+
 	//----------------------------------------------------------------------------
 	// Direct Data Bindings
 	mq.set_function("getAllSpawns", &lua_getAllSpawns);
