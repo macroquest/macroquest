@@ -18,13 +18,19 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\include\mq\proto\PostOffice.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Routing.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ProtoPipes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PostOffice.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NamedPipes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NamedPipesProtocol.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -35,6 +41,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Routing.pb.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PostOffice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NamedPipes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -18,12 +18,9 @@
     <ClCompile Include="App.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\NamedPipes.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\common\NamedPipes.h">
+    <ClInclude Include="..\..\routing\NamedPipes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

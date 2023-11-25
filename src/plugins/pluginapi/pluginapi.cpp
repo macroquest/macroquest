@@ -70,6 +70,47 @@ mq::MQTopLevelObject* mq::FindTopLevelObject(const char* szName)
 }
 
 //============================================================================
+//============================================================================
+
+void mq::postoffice::DropboxAPI::Post(const mq::postoffice::Address& address, const std::string& data, const ResponseCallbackAPI& callback) const
+{
+	mqplugin::MainInterface->SendToActor(Dropbox, address, data, callback, mqplugin::ThisPlugin);
+}
+
+void mq::postoffice::DropboxAPI::PostReply(const std::shared_ptr<mq::postoffice::Message>& message, const std::string& data, uint8_t status) const
+{
+	mqplugin::MainInterface->ReplyToActor(Dropbox, message, data, status, mqplugin::ThisPlugin);
+}
+
+void mq::postoffice::DropboxAPI::Remove()
+{
+	mqplugin::MainInterface->RemoveActor(Dropbox, mqplugin::ThisPlugin);
+}
+
+mq::postoffice::DropboxAPI mq::postoffice::AddActor(ReceiveCallbackAPI&& receive)
+{
+	if (mqplugin::ThisPlugin != nullptr)
+	{
+		return mq::postoffice::DropboxAPI{
+			mqplugin::MainInterface->AddActor(mqplugin::ThisPlugin->name.c_str(), std::move(receive), mqplugin::ThisPlugin)
+		};
+	}
+
+	return mq::postoffice::DropboxAPI{ nullptr };
+}
+
+mq::postoffice::DropboxAPI mq::postoffice::AddActor(const char* localAddress, ReceiveCallbackAPI&& receive)
+{
+	std::string address(localAddress);
+	if (mqplugin::ThisPlugin != nullptr)
+		address = fmt::format("{}:{}", mqplugin::ThisPlugin->name, address);
+
+	return mq::postoffice::DropboxAPI{
+		mqplugin::MainInterface->AddActor(address.c_str(), std::move(receive), mqplugin::ThisPlugin)
+	};
+}
+
+//============================================================================
 
 #if __has_include("../../private/pluginapi-private.cpp")
 #include "../../private/pluginapi-private.cpp"

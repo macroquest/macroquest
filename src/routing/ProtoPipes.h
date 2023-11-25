@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "common/NamedPipes.h"
+#include "NamedPipes.h"
 #include "Routing.pb.h"
 
 #include <memory>
@@ -57,24 +57,11 @@ public:
 		return obj;
 	}
 
-	template <typename ID, typename T>
-	void SendProtoReply(ID messageId, const T& obj, uint8_t status = 0)
-	{
-		std::string data = obj.SerializeAsString();
-		SendReply(static_cast<MQMessageId>(messageId), &data[0], data.size(), status);
-	}
-
-	template <typename ID, typename T>
-	static void SendProtoReply(PipeMessagePtr&& message, ID messageId, const T& obj, uint8_t status = 0)
-	{
-		message->SendProtoReply(messageId, obj, status);
-	}
-
-	const std::optional<proto::Address>& GetSender() { return m_returnAddress; }
-	void SetSender(const proto::Address& address) { m_returnAddress = address; }
+	const std::optional<proto::routing::Address>& GetSender() { return m_returnAddress; }
+	void SetSender(const proto::routing::Address& address) { m_returnAddress = address; }
 
 private:
-	std::optional<proto::Address> m_returnAddress;
+	std::optional<proto::routing::Address> m_returnAddress;
 };
 using ProtoMessagePtr = std::unique_ptr<ProtoMessage>;
 

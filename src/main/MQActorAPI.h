@@ -14,47 +14,40 @@
 
 #pragma once
 
-#include "mq/api/MacroAPI.h"
+#include "mq/base/Common.h"
 #include "mq/api/ActorAPI.h"
-#include "mq/api/Plugin.h"
 
 namespace mq {
 
-class MainInterface
+class MQActorAPI
 {
 public:
-	virtual ~MainInterface() {}
-
-	// TLO Access
-	virtual bool AddTopLevelObject(const char* name, MQTopLevelObjectFunction callback, MQPlugin* owner) = 0;
-	virtual bool RemoveTopLevelObject(const char* name, MQPlugin* owner) = 0;
-	virtual MQTopLevelObject* FindTopLevelObject(const char* name) = 0;
-
-	// Actor Access
-	virtual void SendToActor(
+	void SendToActor(
 		postoffice::Dropbox* dropbox,
 		const postoffice::Address& address,
 		const std::string& data,
 		const postoffice::ResponseCallbackAPI& callback,
-		MQPlugin* owner) = 0;
+		MQPlugin* owner = nullptr);
 
-	virtual void ReplyToActor(
+	void ReplyToActor(
 		postoffice::Dropbox* dropbox,
 		const std::shared_ptr<postoffice::Message>& message,
 		const std::string& data,
 		uint8_t status,
-		MQPlugin* owner) = 0;
+		MQPlugin* owner = nullptr);
 
-	virtual postoffice::Dropbox* AddActor(
+	postoffice::Dropbox* AddActor(
 		const char* localAddress,
 		postoffice::ReceiveCallbackAPI&& receive,
-		MQPlugin* owner) = 0;
+		MQPlugin* owner = nullptr);
 
-	virtual void RemoveActor(
+	void RemoveActor(
 		postoffice::Dropbox*& dropbox,
-		MQPlugin* owner) = 0;
+		MQPlugin* owner = nullptr);
+
+	void OnUnloadPlugin(MQPlugin* plugin);
 };
 
-MQLIB_OBJECT MainInterface* GetMainInterface();
+extern MQActorAPI* pActorAPI;
 
 } // namespace mq
