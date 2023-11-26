@@ -203,24 +203,47 @@ struct LuaMessage
 
 struct CallbackInstance
 {
-	std::shared_ptr<LuaCoroutine> coroutine;
-	std::optional<int> status;
-	LuaMessage message;
-	bool run_started = false;
+	sol::function m_callback;
+	sol::thread m_thread;
+	sol::thread m_parentThread;
+	sol::coroutine m_coroutine;
+
+	int m_status = 0;
+	LuaMessage m_message;
 
 	// the thread lifetime is necessarily longer than this CallbackInstance because if the thread goes
 	// down, the dropboxes will be closed
-	CallbackInstance(const std::shared_ptr<LuaThread>& thread, const sol::function& callback, LuaMessage&& message)
-		: message(std::move(message))
+	CallbackInstance(const sol::thread& parent_thread, const sol::function& callback, LuaMessage&& message)
+		: m_message(std::move(message))
+		, m_callback(callback)
+		, m_parentThread(parent_thread)
 	{
-		auto [_, lua_thread] = thread->CreateThread();
-		coroutine = LuaCoroutine::Create(lua_thread, thread.get());
-		coroutine->coroutine = sol::coroutine(lua_thread.state(), callback);
+		m_thread = sol::thread::create(parent_thread.state());
+		m_coroutine = sol::coroutine(m_thread.state(), m_callback);
 	}
 
 	~CallbackInstance()
 	{
 		//lua_gc(coroutine->thread.lua_state(), LUA_GCCOLLECT, 0);
+	}
+
+	void Run()
+	{
+		try
+		{
+			ScopedYieldDisabler disableYield(LuaThread::get_from(m_thread.state()));
+
+			sol::function_result result = m_coroutine(m_status, m_message);
+			if (!result.valid())
+			{
+				LuaError("Lua Actor Failure:\n%s", sol::stack::get<std::string>(result.lua_state(), result.stack_index()).c_str());
+				result.abandon();
+			}
+		}
+		catch (std::runtime_error& e)
+		{
+			LuaError("Lua Actor Failure:\n%s", e.what());
+		}
 	}
 };
 
@@ -240,20 +263,20 @@ public:
 	void SendWithResponse(sol::table header, sol::object payload, sol::function response_callback);
 	void Reply(const std::shared_ptr<Message>& message, const sol::object& reply, int status) const;
 	void Receive(const std::shared_ptr<Message>& message);
-	bool Process();
+	void Process();
 
 	const std::string& GetName() { return m_name; }
-	std::shared_ptr<LuaThread> GetThread() { return m_thread.lock(); }
 
-	LuaDropbox(std::string_view name, const sol::function& callback, const std::shared_ptr<LuaThread>& thread);
+	LuaDropbox(std::string_view name, const sol::function& callback, const sol::thread& parent_thread);
 	~LuaDropbox();
 
 private:
 	std::string m_name;
 	sol::function m_callback;
-	std::weak_ptr<LuaThread> m_thread;
+	sol::thread m_thread;
+	sol::thread m_parentThread;
+	sol::coroutine m_coroutine;
 	std::vector<std::unique_ptr<CallbackInstance>> m_queue;
-	std::vector<LuaMessage> m_deadLetterQueue;
 
 	DropboxAPI m_dropbox;
 };
@@ -276,7 +299,7 @@ std::shared_ptr<LuaDropbox> LuaDropbox::Register(const std::string& name, const 
 	if (auto thread = LuaThread::get_from(s))
 	{
 		auto full_name = fmt::format("{}:{}", thread->GetName(), name);
-		auto dropbox = std::make_shared<LuaDropbox>(full_name, callback, thread);
+		auto dropbox = std::make_shared<LuaDropbox>(full_name, callback, thread->GetLuaThread());
 
 		// if we can't place the dropbox in the map for some reason, then return a nullptr
 		if (!s_dropboxes.emplace(full_name, dropbox).second)
@@ -294,12 +317,15 @@ void LuaDropbox::Unregister()
 	s_dropboxes.erase(m_name);
 }
 
-LuaDropbox::LuaDropbox(std::string_view name, const sol::function& callback, const std::shared_ptr<LuaThread>& thread)
+LuaDropbox::LuaDropbox(std::string_view name, const sol::function& callback, const sol::thread& parent_thread)
 	: m_name(name)
 	, m_callback(callback)
-	, m_thread(thread) // this can potentially be empty, we will need to account for that
+	, m_parentThread(parent_thread)
 	, m_dropbox(AddActor(m_name.c_str(), [this](const std::shared_ptr<Message>& message) { Receive(message); }))
-{}
+{
+	m_thread = sol::thread::create(parent_thread.state());
+	m_coroutine = sol::coroutine(m_thread.state(), m_callback);
+}
 
 LuaDropbox::~LuaDropbox()
 {
@@ -329,7 +355,7 @@ Address LuaDropbox::ParseHeader(sol::table header) const
 				std::optional<std::string_view> script = header["script"];
 				if (script)
 					addr.Mailbox = fmt::format("{}:{}", *script, *addr.Mailbox);
-				else if (auto thread = m_thread.lock())
+				else if (auto thread = LuaThread::get_from(m_parentThread.state()))
 					addr.Mailbox = fmt::format("{}:{}", thread->GetName(), *addr.Mailbox);
 			}
 			else if (count > 1)
@@ -366,18 +392,16 @@ void LuaDropbox::Send(sol::table header, sol::object payload) const
 
 void LuaDropbox::SendWithResponse(sol::table header, sol::object payload, sol::function response_callback)
 {
-	if (auto thread = m_thread.lock())
-	{
-		auto callback = std::make_unique<CallbackInstance>(thread, response_callback, LuaMessage(*this, nullptr));
-		m_dropbox.Post(ParseHeader(header), SerializeProto(payload),
-			[callback = callback.release(), this](int status, const std::shared_ptr<Message>& message)
-			{
-				callback->status = status;
-				callback->message.message = message;
-				callback->message.has_data = message && message->Payload && callback->message.data.ParseFromString(*message->Payload);
-				m_queue.push_back(std::unique_ptr<CallbackInstance>(callback));
-			});
-	}
+	// need to create the callback instance before response_callback goes out of scope in lua
+	auto callback = std::make_unique<CallbackInstance>(m_parentThread, response_callback, LuaMessage(*this, nullptr));
+	m_dropbox.Post(ParseHeader(header), SerializeProto(payload),
+		[callback = callback.release(), this](int status, const std::shared_ptr<Message>& message)
+		{
+			callback->m_status = status;
+			callback->m_message.message = message;
+			callback->m_message.has_data = message && message->Payload && callback->m_message.data.ParseFromString(*message->Payload);
+			m_queue.push_back(std::unique_ptr<CallbackInstance>(callback));
+		});
 }
 
 void LuaDropbox::Reply(const std::shared_ptr<Message>& message, const sol::object& reply, int status) const
@@ -387,65 +411,31 @@ void LuaDropbox::Reply(const std::shared_ptr<Message>& message, const sol::objec
 
 void LuaDropbox::Receive(const std::shared_ptr<Message>& message)
 {
-	if (auto thread = m_thread.lock())
+	try
 	{
-		// first empty the DLQ in order
-		for (auto& dead_letter : m_deadLetterQueue)
+		ScopedYieldDisabler disableYield(LuaThread::get_from(m_thread.state()));
+
+		sol::function_result result = m_coroutine(LuaMessage(*this, message));
+		if (!result.valid())
 		{
-			m_queue.emplace_back(std::make_unique<CallbackInstance>(thread, m_callback, std::move(dead_letter)));
+			LuaError("Lua Actor Failure:\n%s", sol::stack::get<std::string>(result.lua_state(), result.stack_index()).c_str());
+			result.abandon();
 		}
-
-		m_deadLetterQueue.clear();
-
-		// then add the new message
-		m_queue.emplace_back(std::make_unique<CallbackInstance>(thread, m_callback, LuaMessage(*this, message)));
 	}
-	else
+	catch (std::runtime_error& e)
 	{
-		m_deadLetterQueue.emplace_back(*this, message);
+		LuaError("Lua Actor Failure:\n%s", e.what());
 	}
 }
 
-bool LuaDropbox::Process()
+void LuaDropbox::Process()
 {
-	if (auto thread = m_thread.lock())
+	for (auto& callback : m_queue)
 	{
-		m_queue.erase(std::remove_if(m_queue.begin(), m_queue.end(),
-			[this, &thread](std::unique_ptr<CallbackInstance>& callback)
-			{
-				if (thread->ShouldYield()) return false;
-
-				if (!callback->coroutine) return true;
-				if (!callback->coroutine->ShouldRun()) return false;
-
-				// this breaks if we don't remove the message after the first call
-				CoroutineResult result;
-				if (callback->run_started)
-				{
-					result = callback->coroutine->RunCoroutine();
-				}
-				else
-				{
-					if (callback->status)
-						result = callback->coroutine->RunCoroutine({
-							sol::make_object(callback->coroutine->thread.lua_state(), *callback->status),
-							sol::make_object(callback->coroutine->thread.lua_state(), callback->message)
-						});
-					else
-						result = callback->coroutine->RunCoroutine({
-							sol::make_object(callback->coroutine->thread.lua_state(), callback->message)
-						});
-
-					callback->run_started = true; // note the mutation, this is why we have a ref instead of a constref
-				}
-
-				return !result || result->status() != sol::call_status::yielded;
-			}), m_queue.end());
-
-		return true;
+		callback->Run();
 	}
 
-	return false;
+	m_queue.clear();
 }
 
 // TODO: are these useful?
@@ -530,8 +520,11 @@ void LuaActors::Process()
 	for (auto& dropbox_it = s_dropboxes.begin(); dropbox_it != s_dropboxes.end();)
 	{
 		auto ptr = dropbox_it->second.lock();
-		if (ptr && ptr->Process())
+		if (ptr)
+		{
+			ptr->Process();
 			++dropbox_it;
+		}
 		else
 		{
 			dropbox_it = s_dropboxes.erase(dropbox_it);

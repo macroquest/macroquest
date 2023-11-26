@@ -332,7 +332,7 @@ public:
 	void ProcessPipeClient()
 	{
 		m_pipeClient.Process();
-		Process(10);
+		Process(1000); // make this large just to prevent overflows
 	}
 
 	void NotifyIsForegroundWindow(bool isForeground)
@@ -369,6 +369,8 @@ public:
 		ShowWindow(hWnd, SW_RESTORE);
 	}
 
+	// TODO: Also update all registered mailboxes with self-address (so that return addresses can
+	//       be fully qualified
 	void SetGameStatePostOffice(DWORD GameState)
 	{
 		static bool logged_in = false;
