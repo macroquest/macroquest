@@ -198,7 +198,8 @@ struct LuaMessage
 	}
 
 	void Reply(sol::object reply);
-	void ReplyWithStatus(int status, sol::object reply);
+	void Reply(int status, sol::object reply);
+	void Send(sol::object reply, sol::this_state s);
 };
 
 struct CallbackInstance
@@ -255,12 +256,15 @@ struct CallbackInstance
 class LuaDropbox
 {
 public:
-	static std::shared_ptr<LuaDropbox> Register(const std::string& name, const sol::function& callback, sol::this_state s);
+	static std::shared_ptr<LuaDropbox> RegisterWithName(const std::string& name, const sol::function& callback, sol::this_state s);
+	static std::shared_ptr<LuaDropbox> Register(const sol::function& callback, sol::this_state s);
 	void Unregister();
 
 	Address ParseHeader(sol::table header) const;
+	void Send(sol::object payload) const;
 	void Send(sol::table header, sol::object payload) const;
-	void SendWithResponse(sol::table header, sol::object payload, sol::function response_callback);
+	void Send(sol::object payload, sol::function response_callback);
+	void Send(sol::table header, sol::object payload, sol::function response_callback);
 	void Reply(const std::shared_ptr<Message>& message, const sol::object& reply, int status) const;
 	void Receive(const std::shared_ptr<Message>& message);
 	void Process();
@@ -289,12 +293,17 @@ void LuaMessage::Reply(sol::object reply)
 	if (message) dropbox.Reply(message, reply, 0);
 }
 
-void LuaMessage::ReplyWithStatus(int status, sol::object reply)
+void LuaMessage::Reply(int status, sol::object reply)
 {
 	if (message) dropbox.Reply(message, reply, status);
 }
 
-std::shared_ptr<LuaDropbox> LuaDropbox::Register(const std::string& name, const sol::function& callback, sol::this_state s)
+void LuaMessage::Send(sol::object reply, sol::this_state s)
+{
+	if (message) dropbox.Send(Sender(s), reply);
+}
+
+std::shared_ptr<LuaDropbox> LuaDropbox::RegisterWithName(const std::string& name, const sol::function& callback, sol::this_state s)
 {
 	if (auto thread = LuaThread::get_from(s))
 	{
@@ -303,6 +312,21 @@ std::shared_ptr<LuaDropbox> LuaDropbox::Register(const std::string& name, const 
 
 		// if we can't place the dropbox in the map for some reason, then return a nullptr
 		if (!s_dropboxes.emplace(full_name, dropbox).second)
+			dropbox.reset();
+
+		return dropbox;
+	}
+
+	return nullptr;
+}
+
+std::shared_ptr<LuaDropbox> LuaDropbox::Register(const sol::function& callback, sol::this_state s)
+{
+	if (auto thread = LuaThread::get_from(s))
+	{
+		auto dropbox = std::make_shared<LuaDropbox>(thread->GetName(), callback, thread->GetLuaThread());
+
+		if (!s_dropboxes.emplace(thread->GetName(), dropbox).second)
 			dropbox.reset();
 
 		return dropbox;
@@ -367,7 +391,7 @@ Address LuaDropbox::ParseHeader(sol::table header) const
 		}
 		else
 		{
-			addr.Mailbox = m_name; // script:mailbox, not absolute
+			addr.Mailbox = m_name; // script:mailbox, or just script
 		}
 	}
 
@@ -385,12 +409,22 @@ Address LuaDropbox::ParseHeader(sol::table header) const
 	return addr;
 }
 
+void LuaDropbox::Send(sol::object payload) const
+{
+	Send(sol::state_view(payload.lua_state()).create_table(), payload);
+}
+
 void LuaDropbox::Send(sol::table header, sol::object payload) const
 {
 	m_dropbox.Post(ParseHeader(header), SerializeProto(payload));
 }
 
-void LuaDropbox::SendWithResponse(sol::table header, sol::object payload, sol::function response_callback)
+void LuaDropbox::Send(sol::object payload, sol::function response_callback)
+{
+	Send(sol::state_view(payload.lua_state()).create_table(), payload, response_callback);
+}
+
+void LuaDropbox::Send(sol::table header, sol::object payload, sol::function response_callback)
 {
 	// need to create the callback instance before response_callback goes out of scope in lua
 	auto callback = std::make_unique<CallbackInstance>(m_parentThread, response_callback, LuaMessage(*this, nullptr));
@@ -492,17 +526,23 @@ void LuaActors::RegisterLua(std::optional<sol::table>& actors, sol::state_view s
 		actors = s.create_table();
 		actors->new_usertype<LuaDropbox>(
 			"dropbox", sol::no_constructor,
-			"send", sol::overload(&LuaDropbox::Send, &LuaDropbox::SendWithResponse),
+			"send", sol::overload(
+				sol::resolve<void(sol::object) const>(&LuaDropbox::Send),
+				sol::resolve<void(sol::object, sol::function)>(&LuaDropbox::Send),
+				sol::resolve<void(sol::table, sol::object) const>(&LuaDropbox::Send),
+				sol::resolve<void(sol::table, sol::object, sol::function)>(&LuaDropbox::Send)),
 			"unregister", &LuaDropbox::Unregister);
 
 		actors->new_usertype<LuaMessage>(
 			"message", sol::no_constructor,
 			"content", sol::property(&LuaMessage::Get),
-			"reply", sol::overload(&LuaMessage::Reply, &LuaMessage::ReplyWithStatus),
+			"reply", sol::overload(
+				sol::resolve<void(sol::object)>(&LuaMessage::Reply),
+				sol::resolve<void(int, sol::object)>(&LuaMessage::Reply)),
 			"sender", sol::property(&LuaMessage::Sender),
 			sol::meta_function::call, &LuaMessage::Get);
 
-		actors->set_function("register", &LuaDropbox::Register);
+		actors->set_function("register", sol::overload(&LuaDropbox::RegisterWithName, &LuaDropbox::Register));
 		actors->set_function("iter", &Iterator);
 
 		actors->new_enum("ResponseStatus",

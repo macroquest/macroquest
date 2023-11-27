@@ -10,9 +10,24 @@ local mybuffs = {
 }
 mybuffs = mybuffs[mq.TLO.Me.Class.ShortName()]
 
+local buff_queue = {}
+local function dobuffs()
+    for name, buff in pairs(buff_queue) do
+        printf('Casting %s on %s...', buff, name)
+        mq.cmdf('/target %s', name)
+        mq.delay(5000, function() return mq.TLO.Target.CleanName() == name end)
+        if mq.TLO.Target.CleanName() == name then
+            mq.cmdf('/cast "%s"', buff)
+        end
+    end
+
+    buff_queue = {}
+end
+
 -- store a list of buffs and who can cast them
 local buffers = {}
 local function addbuffer(buff, sender)
+    printf('Received buffer %s casting %s', sender.character, buff)
     if buff and sender then
         if not buffers[buff] then buffers[buff] = {} end
 
@@ -29,43 +44,25 @@ local function removebuffer(sender)
     end
 end
 
--- these are message handlers, so handle all messages we expect
--- this could be safer if we test the type to be a table, I'll
--- leave that as an exercise for the reader
-local buffer
-if mybuffs then
-    -- only register the buffer actor if we have buffs to give
-    buffer = actors.register('buffer', function (message)
-        if message.content then
-            -- this message is a request to send a list of buffs I can cast
-            if message.content.id == 'buffs' and message.sender and mybuffs then
-                for _, buff in ipairs(mybuffs) do
-                    buffer:send(message.sender, {id='announce', buff=buff})
-                end
-            -- this message is a request to buff someone else
-            elseif message.content.id == 'beg' then
-                -- make sure to notify the beggar that we are still here
-                message:reply(0, {})
-                printf('Casting %s on %s...', message.content.buff, message.content.name)
-                mq.cmdf('/target %s', message.content.name)
-                mq.delay(5000, function () return mq.TLO.Target.CleanName() == message.content.name end)
-                if mq.TLO.Target.CleanName() == message.content.name then
-                    mq.cmdf('/cast "%s"', message.content.buff)
-                end
-            end
+-- this is then message handler, so handle all messages we expect
+-- we are guaranteed that the only messages here we receive are
+-- ones that we send, so assume the structure of the message
+local actor = actors.register(function (message)
+    if message.content.id == 'buffs' and message.sender and mybuffs then
+        -- request to send a list of buffs I can cast
+        for _, buff in ipairs(mybuffs) do
+            message.send({id='announce', buff=buff })
         end
-    end)
-end
-
--- always register ther beggar actor, everyone can receive buffs
-local beggar = actors.register('beggar', function (message)
-    -- the message we receive here are simply tracking potential buffers (self included)
-    if message.content then
-        if message.content.id == 'announce' then
-            addbuffer(message.content.buff, message.sender)
-        elseif message.content.id == 'drop' then
-            removebuffer(message.sender)
-        end
+    elseif message.content.id == 'beg' then
+        -- request for a buff, send back a reply to indicate we are a valid buffer
+        message:reply(0, {})
+        buff_queue[message.sender.character] = message.content.buff
+    elseif message.content.id == 'announce' then
+        -- a buffer has announced themselves, add them to the list
+        addbuffer(message.content.buff, message.sender)
+    elseif message.content.id == 'drop' then
+        -- a buffer has dropped, remove them from the list
+        removebuffer(message.sender)
     end
 end)
 
@@ -75,13 +72,14 @@ local function bufferlogin()
         -- need to specify the actor here because we're sending to beggars
         -- from the buffer actor but leave it loose so that _all_ beggars
         -- receive this message
-        buffer:send({mailbox='beggar'}, {id='announce', buff=buff})
+        printf('Registering %s on beggars', buff)
+        actor:send({id='announce', buff=buff})
     end
 end
 
 -- beggar login, request buffer buffs
 local function beggarlogin()
-    beggar:send({mailbox='buffer'}, {id='buffs'})
+    actor:send({id='buffs'})
 end
 
 -- beggar buff request, choose from local list of buffers
@@ -89,16 +87,16 @@ local function checkbuffs()
     for buff, senders in pairs(buffers) do
         if not mq.TLO.Me.Buff(buff)() then
             -- get a random buffer that can cast the buff we want
-            local buffers = {}
+            local candidates = {}
             for buffer, _ in pairs(senders) do
-                table.insert(buffers, buffer)
+                table.insert(candidates, buffer)
             end
 
             -- once we have the random buffer, ask them to cast the buff
-            local random_buffer = buffers[math.random(#buffers)]
+            local random_buffer = candidates[math.random(#candidates)]
             if random_buffer then
-                printf('Requesting %s from %d...', buff, random_buffer.pid)
-                beggar:send(random_buffer, {id='beg', buff=buff, name=mq.TLO.Me.CleanName()}, function (status, message)
+                printf('Requesting %s from %s...', buff, random_buffer.character)
+                actor:send(random_buffer, {id='beg', buff=buff}, function (status, message)
                     -- we have a reply here so that we can remove any buffers that didn't
                     -- clean up nicely (by calling /stopbuffbeg)
                     if status < 0 then removebuffer(random_buffer) end
@@ -108,7 +106,8 @@ local function checkbuffs()
     end
 end
 
-if buffer then bufferlogin() end
+if mybuffs then bufferlogin() end
+mq.delay(100)
 beggarlogin()
 
 -- we want to cleanup nicely so that all beggars know that we are done buffing
@@ -117,7 +116,8 @@ mq.bind('/stopbuffbeg', function () runscript = false end)
 
 while runscript do
     checkbuffs()
-    mq.delay(10000)
+    dobuffs()
+    mq.delay(1000)
 end
 
-if buffer then buffer:send({mailbox='beggar'}, {id='drop'}) end
+actor:send({id='drop'})
