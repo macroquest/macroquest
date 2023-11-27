@@ -519,38 +519,37 @@ sol::object Iterator(sol::this_state s)
 }
 
 // TODO: add address storage for connected remote actors (parse ident and drop messages from the pipe_client)
-void LuaActors::RegisterLua(std::optional<sol::table>& actors, sol::state_view s)
+sol::table LuaActors::RegisterLua(sol::state_view s)
 {
-	if (!actors)
-	{
-		actors = s.create_table();
-		actors->new_usertype<LuaDropbox>(
-			"dropbox", sol::no_constructor,
-			"send", sol::overload(
-				sol::resolve<void(sol::object) const>(&LuaDropbox::Send),
-				sol::resolve<void(sol::object, sol::function)>(&LuaDropbox::Send),
-				sol::resolve<void(sol::table, sol::object) const>(&LuaDropbox::Send),
-				sol::resolve<void(sol::table, sol::object, sol::function)>(&LuaDropbox::Send)),
-			"unregister", &LuaDropbox::Unregister);
+	auto actors = s.create_table();
+	actors.new_usertype<LuaDropbox>(
+		"dropbox", sol::no_constructor,
+		"send", sol::overload(
+			sol::resolve<void(sol::object) const>(&LuaDropbox::Send),
+			sol::resolve<void(sol::object, sol::function)>(&LuaDropbox::Send),
+			sol::resolve<void(sol::table, sol::object) const>(&LuaDropbox::Send),
+			sol::resolve<void(sol::table, sol::object, sol::function)>(&LuaDropbox::Send)),
+		"unregister", &LuaDropbox::Unregister);
 
-		actors->new_usertype<LuaMessage>(
-			"message", sol::no_constructor,
-			"content", sol::property(&LuaMessage::Get),
-			"reply", sol::overload(
-				sol::resolve<void(sol::object)>(&LuaMessage::Reply),
-				sol::resolve<void(int, sol::object)>(&LuaMessage::Reply)),
-			"sender", sol::property(&LuaMessage::Sender),
-			sol::meta_function::call, &LuaMessage::Get);
+	actors.new_usertype<LuaMessage>(
+		"message", sol::no_constructor,
+		"content", sol::property(&LuaMessage::Get),
+		"reply", sol::overload(
+			sol::resolve<void(sol::object)>(&LuaMessage::Reply),
+			sol::resolve<void(int, sol::object)>(&LuaMessage::Reply)),
+		"sender", sol::property(&LuaMessage::Sender),
+		sol::meta_function::call, &LuaMessage::Get);
 
-		actors->set_function("register", sol::overload(&LuaDropbox::RegisterWithName, &LuaDropbox::Register));
-		actors->set_function("iter", &Iterator);
+	actors.set_function("register", sol::overload(&LuaDropbox::RegisterWithName, &LuaDropbox::Register));
+	actors.set_function("iter", &Iterator);
 
-		actors->new_enum("ResponseStatus",
-			"ConnectionClosed", postoffice::ResponseStatus::ConnectionClosed,
-			"NoConnection", postoffice::ResponseStatus::NoConnection,
-			"RoutingFailed", postoffice::ResponseStatus::RoutingFailed,
-			"AmbiguousRecipient", postoffice::ResponseStatus::AmbiguousRecipient);
-	}
+	actors.new_enum("ResponseStatus",
+		"ConnectionClosed", postoffice::ResponseStatus::ConnectionClosed,
+		"NoConnection", postoffice::ResponseStatus::NoConnection,
+		"RoutingFailed", postoffice::ResponseStatus::RoutingFailed,
+		"AmbiguousRecipient", postoffice::ResponseStatus::AmbiguousRecipient);
+
+	return actors;
 }
 
 void LuaActors::Start()

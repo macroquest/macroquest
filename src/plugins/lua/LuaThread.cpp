@@ -218,11 +218,7 @@ int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 
 	if (pkg == "actors")
 	{
-		LuaActors::RegisterLua(m_actorTable, sv);
-		m_globalState.set("_mq_internal_actors", *m_actorTable);
-
-		std::string_view script("return _mq_internal_actors");
-		luaL_loadbuffer(sv, script.data(), script.size(), pkg.c_str());
+		sol::stack::push(L, std::function([](sol::this_state L) { return LuaActors::RegisterLua(L); }));
 		return 1;
 	}
 

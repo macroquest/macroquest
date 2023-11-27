@@ -21,7 +21,7 @@ namespace mq::lua {
 class LuaActors
 {
 public:
-	static void RegisterLua(std::optional<sol::table>& actors, sol::state_view s);
+	static sol::table RegisterLua(sol::state_view s);
 	static void Start();
 	static void Stop();
 	static void Process();
