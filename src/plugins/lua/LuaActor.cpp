@@ -504,6 +504,12 @@ void LuaActors::RegisterLua(std::optional<sol::table>& actors, sol::state_view s
 
 		actors->set_function("register", &LuaDropbox::Register);
 		actors->set_function("iter", &Iterator);
+
+		actors->new_enum("ResponseStatus",
+			"ConnectionClosed", postoffice::ResponseStatus::ConnectionClosed,
+			"NoConnection", postoffice::ResponseStatus::NoConnection,
+			"RoutingFailed", postoffice::ResponseStatus::RoutingFailed,
+			"AmbiguousRecipient", postoffice::ResponseStatus::AmbiguousRecipient);
 	}
 }
 
