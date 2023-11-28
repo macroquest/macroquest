@@ -175,8 +175,8 @@ public:
 		}
 		else if (pWnd == OutputBox)
 		{
-			if (Message == XWM_LINK || Message == XWM_SPELL_LINK
-				|| Message == XWM_ACHIEVEMENTLINK || Message == XWM_DIALOGRESPONSELINK)
+			if (pChatManager && (Message == XWM_LINK || Message == XWM_SPELL_LINK
+				|| Message == XWM_ACHIEVEMENTLINK || Message == XWM_DIALOGRESPONSELINK))
 			{
 				for (auto wnd : pChatManager->ChannelMap)
 				{
@@ -875,6 +875,7 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveCommand("/mqmin");
 	RemoveCommand("/mqclear");
 	RemoveMQ2KeyBind("MQ2CHAT");
+	RemoveMQ2KeyBind("MQ2CSCHAT");
 	RemoveMQ2Data("ChatWnd");
 	delete pChatWndType;
 	DestroyChatWnd();
