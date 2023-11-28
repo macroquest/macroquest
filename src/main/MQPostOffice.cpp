@@ -215,7 +215,11 @@ private:
 			msg.processId = GetCurrentProcessId();
 			m_postOffice->m_pipeClient.SendMessage(MQMessageId::MSG_MAIN_PROCESS_LOADED, &msg, sizeof(msg));
 
+			// send a self-identification
 			pipeclient::SetGameStatePostOffice(0);
+
+			// and then ask for the list of all ID's
+			m_postOffice->m_pipeClient.SendMessage(MQMessageId::MSG_IDENTIFICATION, nullptr, 0);
 		}
 
 	private:
@@ -429,9 +433,6 @@ public:
 		m_pipeClient.SetHandler(std::make_shared<PipeEventsHandler>(this));
 		m_pipeClient.Start();
 		::atexit(StopPipeClient);
-
-		// once we set up the mailbox, get a list of all connected peers
-		m_pipeClient.SendMessage(MQMessageId::MSG_IDENTIFICATION, nullptr, 0);
 	}
 
 	void Shutdown()
