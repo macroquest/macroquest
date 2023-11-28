@@ -159,6 +159,30 @@ DropboxAPI AddActor(ReceiveCallbackAPI&& receive);
  */
 DropboxAPI AddActor(const char* localAddress, ReceiveCallbackAPI&& receive);
 
+/**
+ * Sends a message to an address
+ *
+ * @tparam T the message being sent, usually some kind of proto
+ *
+ * @param address the address to send the message
+ * @param obj the message (as an object)
+ * @param callback optional callback for an expected response
+ */
+template <typename T>
+void SendToActor(const Address& address, const T& obj, const ResponseCallbackAPI& callback = nullptr)
+{
+	SendToActor(address, obj.SerializeAsString(), callback);
+}
+
+/**
+ * Sends a message to an address
+ *
+ * @param address the address to send the message
+ * @param data the message (as a data string)
+ * @param callback optional callback for an expected response
+ */
+void SendToActor(const Address& address, const std::string& data, const ResponseCallbackAPI& callback = nullptr);
+
 } // namespace postoffice
 
 } // namespace mq

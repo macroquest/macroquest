@@ -155,15 +155,21 @@ messaging::Variant SerializeProto(const sol::object& data)
 	return variant;
 }
 
+
+void Send(sol::object payload);
+void Send(sol::table header, sol::object payload);
+void Send(sol::object payload, sol::function response_callback);
+void Send(sol::table header, sol::object payload, sol::function response_callback);
+
 class LuaDropbox;
 struct LuaMessage
 {
-	const LuaDropbox& dropbox;
+	const LuaDropbox* const dropbox;
 	std::shared_ptr<Message> message;
 	messaging::Variant data;
 	bool has_data = false;
 
-	LuaMessage(const LuaDropbox& dropbox_, const std::shared_ptr<Message>& message_)
+	LuaMessage(const LuaDropbox* const dropbox_, const std::shared_ptr<Message>& message_)
 		: dropbox(dropbox_)
 		, message(message_)
 	{
@@ -248,6 +254,9 @@ struct CallbackInstance
 	}
 };
 
+// global callbacks for anonymous sends
+std::vector<std::unique_ptr<CallbackInstance>> s_queue;
+
 /**
  * A local lua driobox type. The postoffice dropbox will route messages to these dropboxes and provide
  * addressing to route messages from these dropboxes. These are the actual lua interfaces into userland,
@@ -261,6 +270,7 @@ public:
 	void Unregister();
 
 	Address ParseHeader(sol::table header) const;
+	static Address ParseHeader(sol::table header, const std::shared_ptr<LuaThread>& thread, std::string_view script_name);
 	void Send(sol::object payload) const;
 	void Send(sol::table header, sol::object payload) const;
 	void Send(sol::object payload, sol::function response_callback);
@@ -290,17 +300,20 @@ static ci_unordered::map<std::string, std::weak_ptr<LuaDropbox>> s_dropboxes;
 
 void LuaMessage::Reply(sol::object reply)
 {
-	if (message) dropbox.Reply(message, reply, 0);
+	if (message && dropbox != nullptr) dropbox->Reply(message, reply, 0);
 }
 
 void LuaMessage::Reply(int status, sol::object reply)
 {
-	if (message) dropbox.Reply(message, reply, status);
+	if (message && dropbox != nullptr) dropbox->Reply(message, reply, status);
 }
 
 void LuaMessage::Send(sol::object reply, sol::this_state s)
 {
-	if (message) dropbox.Send(Sender(s), reply);
+	if (dropbox != nullptr)
+		dropbox->Send(Sender(s), reply);
+	else
+		mq::lua::Send(Sender(s), reply);
 }
 
 std::shared_ptr<LuaDropbox> LuaDropbox::RegisterWithName(const std::string& name, const sol::function& callback, sol::this_state s)
@@ -356,13 +369,20 @@ LuaDropbox::~LuaDropbox()
 	m_dropbox.Remove();
 }
 
-// TODO: create a helper function to create well-formed headers
 Address LuaDropbox::ParseHeader(sol::table header) const
+{
+	return ParseHeader(header, LuaThread::get_from(m_parentThread.state()), m_name);
+}
+
+Address LuaDropbox::ParseHeader(sol::table header, const std::shared_ptr<LuaThread>& thread, std::string_view script_name)
 {
 	// parse the header for routing information
 	Address addr;
 	addr.Mailbox = header.get<std::optional<std::string>>("mailbox");
 	addr.AbsoluteMailbox = header.get<std::optional<bool>>("absolute_mailbox").value_or(false);
+	
+	// also grab the script if its available for mailbox construction
+	std::optional<std::string_view> script = header["script"];
 
 	// if the mailbox contains a colon delimiter, then it's an absolute, but we still
 	// need to detect if it's script to script or script to anywhere
@@ -371,27 +391,20 @@ Address LuaDropbox::ParseHeader(sol::table header) const
 	{
 		if (addr.Mailbox)
 		{
-			size_t count = std::count_if(addr.Mailbox->begin(), addr.Mailbox->end(),
-				[](const char& c) { return c == ':'; });
-
-			if (count == 0)
-			{
-				std::optional<std::string_view> script = header["script"];
-				if (script)
-					addr.Mailbox = fmt::format("{}:{}", *script, *addr.Mailbox);
-				else if (auto thread = LuaThread::get_from(m_parentThread.state()))
-					addr.Mailbox = fmt::format("{}:{}", thread->GetName(), *addr.Mailbox);
-			}
-			else if (count > 1)
-			{
-				addr.AbsoluteMailbox = true;
-			}
-
-			// if count == 1 (and absolute is not set), then the mailbox is already well-formed
+			if (script)
+				addr.Mailbox = fmt::format("{}:{}", *script, *addr.Mailbox);
+			else if (thread)
+				addr.Mailbox = fmt::format("{}:{}", thread->GetName(), *addr.Mailbox);
+		}
+		else if (script)
+		{
+			// we have a script but not a mailbox, so that means we want to send to the script's mailbox
+			addr.Mailbox = *script;
 		}
 		else
 		{
-			addr.Mailbox = m_name; // script:mailbox, or just script
+			// we have nothing, so send to "self"
+			addr.Mailbox = script_name;
 		}
 	}
 
@@ -427,7 +440,7 @@ void LuaDropbox::Send(sol::object payload, sol::function response_callback)
 void LuaDropbox::Send(sol::table header, sol::object payload, sol::function response_callback)
 {
 	// need to create the callback instance before response_callback goes out of scope in lua
-	auto callback = std::make_unique<CallbackInstance>(m_parentThread, response_callback, LuaMessage(*this, nullptr));
+	auto callback = std::make_unique<CallbackInstance>(m_parentThread, response_callback, LuaMessage(this, nullptr));
 	m_dropbox.Post(ParseHeader(header), SerializeProto(payload),
 		[callback = callback.release(), this](int status, const std::shared_ptr<Message>& message)
 		{
@@ -449,7 +462,7 @@ void LuaDropbox::Receive(const std::shared_ptr<Message>& message)
 	{
 		ScopedYieldDisabler disableYield(LuaThread::get_from(m_thread.state()));
 
-		sol::function_result result = m_coroutine(LuaMessage(*this, message));
+		sol::function_result result = m_coroutine(LuaMessage(this, message));
 		if (!result.valid())
 		{
 			LuaError("Lua Actor Failure:\n%s", sol::stack::get<std::string>(result.lua_state(), result.stack_index()).c_str());
@@ -470,6 +483,40 @@ void LuaDropbox::Process()
 	}
 
 	m_queue.clear();
+}
+
+void Send(sol::object payload)
+{
+	Send(sol::state_view(payload.lua_state()).create_table(), payload);
+}
+
+void Send(sol::table header, sol::object payload)
+{
+	auto thread = LuaThread::get_from(header.lua_state());
+	postoffice::SendToActor(LuaDropbox::ParseHeader(header, thread, thread ? thread->GetName() : ""), SerializeProto(payload));
+}
+
+void Send(sol::object payload, sol::function response_callback)
+{
+	Send(sol::state_view(payload.lua_state()).create_table(), payload, response_callback);
+}
+
+void Send(sol::table header, sol::object payload, sol::function response_callback)
+{
+	// need to create the callback instance before response_callback goes out of scope in lua
+	auto thread = LuaThread::get_from(header.lua_state());
+	if (thread)
+	{
+		auto callback = std::make_unique<CallbackInstance>(thread->GetLuaThread(), response_callback, LuaMessage(nullptr, nullptr));
+		postoffice::SendToActor(LuaDropbox::ParseHeader(header, thread, thread->GetName()), SerializeProto(payload),
+			[callback = callback.release()](int status, const std::shared_ptr<Message>& message)
+			{
+				callback->m_status = status;
+				callback->m_message.message = message;
+				callback->m_message.has_data = message && message->Payload && callback->m_message.data.ParseFromString(*message->Payload);
+				s_queue.push_back(std::unique_ptr<CallbackInstance>(callback));
+			});
+	}
 }
 
 // TODO: are these useful?
@@ -542,6 +589,11 @@ sol::table LuaActors::RegisterLua(sol::state_view s)
 
 	actors.set_function("register", sol::overload(&LuaDropbox::RegisterWithName, &LuaDropbox::Register));
 	actors.set_function("iter", &Iterator);
+	actors.set_function("send", sol::overload(
+		sol::resolve<void(sol::object)>(&Send),
+		sol::resolve<void(sol::object, sol::function)>(&Send),
+		sol::resolve<void(sol::table, sol::object)>(&Send),
+		sol::resolve<void(sol::table, sol::object, sol::function)>(&Send)));
 
 	actors.new_enum("ResponseStatus",
 		"ConnectionClosed", postoffice::ResponseStatus::ConnectionClosed,
@@ -575,6 +627,13 @@ void LuaActors::Process()
 			dropbox_it = s_dropboxes.erase(dropbox_it);
 		}
 	}
+
+	for (auto& callback : s_queue)
+	{
+		callback->Run();
+	}
+
+	s_queue.clear();
 }
 
 } // namespace mq::lua
