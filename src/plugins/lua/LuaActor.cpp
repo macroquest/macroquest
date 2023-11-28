@@ -348,7 +348,6 @@ std::shared_ptr<LuaDropbox> LuaDropbox::Register(const sol::function& callback, 
 	return nullptr;
 }
 
-// TODO: This doesn't actually remove the dropbox from the post office
 void LuaDropbox::Unregister()
 {
 	s_dropboxes.erase(m_name);
