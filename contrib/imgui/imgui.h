@@ -1117,7 +1117,7 @@ enum ImGuiInputTextFlags_
     ImGuiInputTextFlags_EscapeClearsAll     = 1 << 20,  // Escape key clears content if not empty, and deactivate otherwise (contrast to default behavior of Escape to revert)
 
     // Obsolete names
-    //ImGuiInputTextFlags_AlwaysInsertMode  = ImGuiInputTextFlags_AlwaysOverwrite   // [renamed in 1.82] name was not matching behavior
+    ImGuiInputTextFlags_AlwaysInsertMode DEPRECATE("Use ImGuiInputTextFlags_AlwaysOverwrite instead of ImGuiInputTextFlags_AlwaysInsertMode") = ImGuiInputTextFlags_AlwaysOverwrite   // [renamed in 1.82] name was not matching behavior
 };
 
 // Flags for ImGui::TreeNodeEx(), ImGui::CollapsingHeader*()
@@ -1848,7 +1848,9 @@ enum ImGuiColorEditFlags_
     ImGuiColorEditFlags_InputMask_      = ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_InputHSV,
 
     // Obsolete names
-    //ImGuiColorEditFlags_RGB = ImGuiColorEditFlags_DisplayRGB, ImGuiColorEditFlags_HSV = ImGuiColorEditFlags_DisplayHSV, ImGuiColorEditFlags_HEX = ImGuiColorEditFlags_DisplayHex  // [renamed in 1.69]
+    ImGuiColorEditFlags_RGB DEPRECATE("Use ImGuiColorEditFlags_DisplayRGB instead of ImGuiColorEditFlags_RGB") = ImGuiColorEditFlags_DisplayRGB,
+    ImGuiColorEditFlags_HSV DEPRECATE("Use ImGuiColorEditFlags_DisplayHSV instead of ImGuiColorEditFlags_HSV") = ImGuiColorEditFlags_DisplayHSV,
+    ImGuiColorEditFlags_HEX DEPRECATE("Use ImGuiColorEditFlags_DisplayHex instead of ImGuiColorEditFlags_HEX") = ImGuiColorEditFlags_DisplayHex  // [renamed in 1.69]
 };
 
 // Flags for DragFloat(), DragInt(), SliderFloat(), SliderInt() etc.
@@ -3446,11 +3448,15 @@ namespace ImGui
 
     // Some of the older obsolete names along with their replacement (commented out so they are not reported in IDE)
     //-- OBSOLETED in 1.85 (from August 2021)
-    //static inline float GetWindowContentRegionWidth()                                               { return GetWindowContentRegionMax().x - GetWindowContentRegionMin().x; }
+    DEPRECATE("GetWindowContentRegionWidth is obsolete. See implementation for replacement.")
+    static inline float GetWindowContentRegionWidth()                                               { return GetWindowContentRegionMax().x - GetWindowContentRegionMin().x; }
     //-- OBSOLETED in 1.81 (from February 2021)
-    //static inline bool  ListBoxHeader(const char* label, const ImVec2& size = ImVec2(0, 0))         { return BeginListBox(label, size); }
-    //static inline bool  ListBoxHeader(const char* label, int items_count, int height_in_items = -1) { float height = GetTextLineHeightWithSpacing() * ((height_in_items < 0 ? ImMin(items_count, 7) : height_in_items) + 0.25f) + GetStyle().FramePadding.y * 2.0f; return BeginListBox(label, ImVec2(0.0f, height)); } // Helper to calculate size from items_count and height_in_items
-    //static inline void  ListBoxFooter()                                                             { EndListBox(); }
+    DEPRECATE("Use BeginListBox instead of ListBoxHeader")
+    static inline bool  ListBoxHeader(const char* label, const ImVec2& size = ImVec2(0, 0))         { return BeginListBox(label, size); }
+    DEPRECATE("Use BeginListBox instead of ListBoxHeader")
+    static inline bool  ListBoxHeader(const char* label, int items_count, int height_in_items = -1) { float height = GetTextLineHeightWithSpacing() * ((height_in_items < 0 ? (items_count < 7 ? items_count : 7) : height_in_items) + 0.25f) + GetStyle().FramePadding.y * 2.0f; return BeginListBox(label, ImVec2(0.0f, height)); } // Helper to calculate size from items_count and height_in_items
+    DEPRECATE("Use EndListBox instead of ListBoxFooter")
+    static inline void  ListBoxFooter()                                                             { EndListBox(); }
     //-- OBSOLETED in 1.79 (from August 2020)
     //static inline void  OpenPopupContextItem(const char* str_id = NULL, ImGuiMouseButton mb = 1)    { OpenPopupOnItemClick(str_id, mb); } // Bool return value removed. Use IsWindowAppearing() in BeginPopup() instead. Renamed in 1.77, renamed back in 1.79. Sorry!
     //-- OBSOLETED in 1.78 (from June 2020): Old drag/sliders functions that took a 'float power > 1.0f' argument instead of ImGuiSliderFlags_Logarithmic. See github.com/ocornut/imgui/issues/3361 for details.
@@ -3458,19 +3464,29 @@ namespace ImGui
     //IMGUI_API bool      DragScalarN(const char* label, ImGuiDataType data_type, void* p_data, int components, float v_speed, const void* p_min, const void* p_max, const char* format, float power = 1.0f);                                          // OBSOLETED in 1.78 (from June 2020)
     //IMGUI_API bool      SliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, float power = 1.0f);                                                                        // OBSOLETED in 1.78 (from June 2020)
     //IMGUI_API bool      SliderScalarN(const char* label, ImGuiDataType data_type, void* p_data, int components, const void* p_min, const void* p_max, const char* format, float power = 1.0f);                                                       // OBSOLETED in 1.78 (from June 2020)
-    //static inline bool  DragFloat(const char* label, float* v, float v_speed, float v_min, float v_max, const char* format, float power = 1.0f)    { return DragScalar(label, ImGuiDataType_Float, v, v_speed, &v_min, &v_max, format, power); }     // OBSOLETED in 1.78 (from June 2020)
-    //static inline bool  DragFloat2(const char* label, float v[2], float v_speed, float v_min, float v_max, const char* format, float power = 1.0f) { return DragScalarN(label, ImGuiDataType_Float, v, 2, v_speed, &v_min, &v_max, format, power); } // OBSOLETED in 1.78 (from June 2020)
-    //static inline bool  DragFloat3(const char* label, float v[3], float v_speed, float v_min, float v_max, const char* format, float power = 1.0f) { return DragScalarN(label, ImGuiDataType_Float, v, 3, v_speed, &v_min, &v_max, format, power); } // OBSOLETED in 1.78 (from June 2020)
-    //static inline bool  DragFloat4(const char* label, float v[4], float v_speed, float v_min, float v_max, const char* format, float power = 1.0f) { return DragScalarN(label, ImGuiDataType_Float, v, 4, v_speed, &v_min, &v_max, format, power); } // OBSOLETED in 1.78 (from June 2020)
-    //static inline bool  SliderFloat(const char* label, float* v, float v_min, float v_max, const char* format, float power = 1.0f)                 { return SliderScalar(label, ImGuiDataType_Float, v, &v_min, &v_max, format, power); }            // OBSOLETED in 1.78 (from June 2020)
-    //static inline bool  SliderFloat2(const char* label, float v[2], float v_min, float v_max, const char* format, float power = 1.0f)              { return SliderScalarN(label, ImGuiDataType_Float, v, 2, &v_min, &v_max, format, power); }        // OBSOLETED in 1.78 (from June 2020)
-    //static inline bool  SliderFloat3(const char* label, float v[3], float v_min, float v_max, const char* format, float power = 1.0f)              { return SliderScalarN(label, ImGuiDataType_Float, v, 3, &v_min, &v_max, format, power); }        // OBSOLETED in 1.78 (from June 2020)
-    //static inline bool  SliderFloat4(const char* label, float v[4], float v_min, float v_max, const char* format, float power = 1.0f)              { return SliderScalarN(label, ImGuiDataType_Float, v, 4, &v_min, &v_max, format, power); }        // OBSOLETED in 1.78 (from June 2020)
+    DEPRECATE("This form of DragFloat is deprecated")
+    static inline bool  DragFloat(const char* label, float* v, float v_speed, float v_min, float v_max, const char* format, float power)    { return DragScalar(label, ImGuiDataType_Float, v, v_speed, &v_min, &v_max, format, power != 1.0f ? ImGuiSliderFlags_Logarithmic : ImGuiSliderFlags_None); }     // OBSOLETED in 1.78 (from June 2020)
+    DEPRECATE("This form of DragFloat2 is deprecated")
+    static inline bool  DragFloat2(const char* label, float v[2], float v_speed, float v_min, float v_max, const char* format, float power) { return DragScalarN(label, ImGuiDataType_Float, v, 2, v_speed, &v_min, &v_max, format, power != 1.0f ? ImGuiSliderFlags_Logarithmic : ImGuiSliderFlags_None); } // OBSOLETED in 1.78 (from June 2020)
+    DEPRECATE("This form of DragFloat3 is deprecated")
+    static inline bool  DragFloat3(const char* label, float v[3], float v_speed, float v_min, float v_max, const char* format, float power) { return DragScalarN(label, ImGuiDataType_Float, v, 3, v_speed, &v_min, &v_max, format, power != 1.0f ? ImGuiSliderFlags_Logarithmic : ImGuiSliderFlags_None); } // OBSOLETED in 1.78 (from June 2020)
+    DEPRECATE("This form of DragFloat4 is deprecated")
+    static inline bool  DragFloat4(const char* label, float v[4], float v_speed, float v_min, float v_max, const char* format, float power) { return DragScalarN(label, ImGuiDataType_Float, v, 4, v_speed, &v_min, &v_max, format, power != 1.0f ? ImGuiSliderFlags_Logarithmic : ImGuiSliderFlags_None); } // OBSOLETED in 1.78 (from June 2020)
+    DEPRECATE("This form of SliderFloat is deprecated")
+    static inline bool  SliderFloat(const char* label, float* v, float v_min, float v_max, const char* format, float power)                 { return SliderScalar(label, ImGuiDataType_Float, v, &v_min, &v_max, format, power != 1.0f ? ImGuiSliderFlags_Logarithmic : ImGuiSliderFlags_None); }            // OBSOLETED in 1.78 (from June 2020)
+    DEPRECATE("This form of SliderFloat2 is deprecated")
+    static inline bool  SliderFloat2(const char* label, float v[2], float v_min, float v_max, const char* format, float power)              { return SliderScalarN(label, ImGuiDataType_Float, v, 2, &v_min, &v_max, format, power != 1.0f ? ImGuiSliderFlags_Logarithmic : ImGuiSliderFlags_None); }        // OBSOLETED in 1.78 (from June 2020)
+    DEPRECATE("This form of SliderFloat3 is deprecated")
+    static inline bool  SliderFloat3(const char* label, float v[3], float v_min, float v_max, const char* format, float power)              { return SliderScalarN(label, ImGuiDataType_Float, v, 3, &v_min, &v_max, format, power != 1.0f ? ImGuiSliderFlags_Logarithmic : ImGuiSliderFlags_None); }        // OBSOLETED in 1.78 (from June 2020)
+    DEPRECATE("This form of SliderFloat4 is deprecated")
+    static inline bool  SliderFloat4(const char* label, float v[4], float v_min, float v_max, const char* format, float power)              { return SliderScalarN(label, ImGuiDataType_Float, v, 4, &v_min, &v_max, format, power != 1.0f ? ImGuiSliderFlags_Logarithmic : ImGuiSliderFlags_None); }        // OBSOLETED in 1.78 (from June 2020)
     //-- OBSOLETED in 1.77 and before
     //static inline bool  BeginPopupContextWindow(const char* str_id, ImGuiMouseButton mb, bool over_items) { return BeginPopupContextWindow(str_id, mb | (over_items ? 0 : ImGuiPopupFlags_NoOpenOverItems)); } // OBSOLETED in 1.77 (from June 2020)
-    //static inline void  TreeAdvanceToLabelPos()               { SetCursorPosX(GetCursorPosX() + GetTreeNodeToLabelSpacing()); }   // OBSOLETED in 1.72 (from July 2019)
+    DEPRECATE("TreeAdvanceToLabelPos is obsolete")
+    static inline void  TreeAdvanceToLabelPos()               { SetCursorPosX(GetCursorPosX() + GetTreeNodeToLabelSpacing()); }   // OBSOLETED in 1.72 (from July 2019)
     //static inline void  SetNextTreeNodeOpen(bool open, ImGuiCond cond = 0) { SetNextItemOpen(open, cond); }                       // OBSOLETED in 1.71 (from June 2019)
-    //static inline float GetContentRegionAvailWidth()          { return GetContentRegionAvail().x; }                               // OBSOLETED in 1.70 (from May 2019)
+    DEPRECATE("Use GetContentRegionAvail().x instead of GetContentRegionAvailWidth()")
+    static inline float GetContentRegionAvailWidth()          { return GetContentRegionAvail().x; }                               // OBSOLETED in 1.70 (from May 2019)
     //static inline ImDrawList* GetOverlayDrawList()            { return GetForegroundDrawList(); }                                 // OBSOLETED in 1.69 (from Mar 2019)
     //static inline void  SetScrollHere(float ratio = 0.5f)     { SetScrollHereY(ratio); }                                          // OBSOLETED in 1.66 (from Nov 2018)
     //static inline bool  IsItemDeactivatedAfterChange()        { return IsItemDeactivatedAfterEdit(); }                            // OBSOLETED in 1.63 (from Aug 2018)

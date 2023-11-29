@@ -2170,6 +2170,8 @@ struct IGFD_Selection {
 IGFD_C_API IGFD_Selection IGFD_Selection_Get();                             // return an initialized IGFD_Selection
 IGFD_C_API void IGFD_Selection_DestroyContent(IGFD_Selection* vSelection);  // destroy the content of a IGFD_Selection
 
+IGFD_C_API void IGFD_DestroyString(char* str);               // destroy string created by IGFD_GetCurrentPath
+
 // constructor / destructor
 IGFD_C_API ImGuiFileDialog* IGFD_Create(void);               // create the filedialog context
 IGFD_C_API void IGFD_Destroy(ImGuiFileDialog* vContextPtr);  // destroy the filedialog context

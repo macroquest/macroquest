@@ -30,26 +30,28 @@ namespace mq::lua::bindings {
 
 //============================================================================
 
-static void HelpMarker(const char* text) { mq::imgui::HelpMarker(text); }
-static void HelpMarker(const char* text, float width) { mq::imgui::HelpMarker(text, width); }
-static void HelpMarker(const char* text, float width, ImFont* font) { mq::imgui::HelpMarker(text, width, font); }
+void lua_addimgui(std::string_view name, sol::function function, sol::this_state s);
+void lua_removeimgui(std::string_view name, sol::this_state s);
 
 void RegisterBindings_ImGuiCustom(sol::table& ImGui)
 {
-	ImGui.set_function("DrawTextureAnimation", sol::overload(
-		[](const std::unique_ptr<CTextureAnimation>& anim, int x, int y, bool drawBorder) { return mq::imgui::DrawTextureAnimation(anim.get(), CXSize(x, y), drawBorder); },
-		[](const std::unique_ptr<CTextureAnimation>& anim, int x, int y) { return mq::imgui::DrawTextureAnimation(anim.get(), CXSize(x, y)); },
-		[](const std::unique_ptr<CTextureAnimation>& anim) { return mq::imgui::DrawTextureAnimation(anim.get()); }
-	));
-
-	ImGui.set_function("HelpMarker", sol::overload(
-		[](const char* text) { mq::imgui::HelpMarker(text); },
-		[](const char* text, float width) { mq::imgui::HelpMarker(text, width); },
-		[](const char* text, float width, ImFont* font) { mq::imgui::HelpMarker(text, width, font); }
-	));
-
+	// Variables
 	ImGui.set("ConsoleFont", mq::imgui::ConsoleFont);
 
+	// Core: Register/Unregister
+	ImGui.set_function("Register", lua_addimgui);
+	ImGui.set_function("Unregister", lua_removeimgui);
+
+	ImGui.set_function("DrawTextureAnimation", sol::overload(
+		[](CTextureAnimation* anim, const ImVec2& size, const std::optional<bool>& drawBorder) { return mq::imgui::DrawTextureAnimation(anim, size, drawBorder.value_or(false)); },
+		[](CTextureAnimation* anim, int x, int y, const std::optional<bool>& drawBorder) { return mq::imgui::DrawTextureAnimation(anim, CXSize(x, y), drawBorder.value_or(false)); },
+		[](CTextureAnimation* anim) { return mq::imgui::DrawTextureAnimation(anim); }
+	));
+
+	// Widgets: Utility
+	ImGui.set_function("HelpMarker", [](const char* text, const std::optional<float>& width, const std::optional<ImFont*>& font) { mq::imgui::HelpMarker(text, width.value_or(450), font.value_or(nullptr)); });
+
+	// Widgets: Console Widget
 	ImGui.new_usertype<mq::imgui::ConsoleWidget>(
 		"ConsoleWidget"              , sol::factories(&mq::imgui::ConsoleWidget::Create),
 		"Render", sol::overload(

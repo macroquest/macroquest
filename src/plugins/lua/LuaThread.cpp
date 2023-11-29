@@ -205,7 +205,7 @@ int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 
 	if (pkg == "mq")
 	{
-		sol::stack::push(L, [this](sol::this_state L) { return RegisterMQNamespace(L); });
+		sol::stack::push(L, std::function([this](sol::this_state L) { return RegisterMQNamespace(L); }));
 		return 1;
 	}
 

@@ -99,6 +99,9 @@
     <ClInclude Include="implot\implot_internal.h">
       <Filter>Header Files\implot</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\contrib\imgui\imgui_user.h">
+      <Filter>Header Files\imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -155,5 +158,8 @@
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\contrib\imgui\misc\debuggers\imgui.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\contrib\imgui\misc\debuggers\imgui.natstepfilter" />
   </ItemGroup>
 </Project>

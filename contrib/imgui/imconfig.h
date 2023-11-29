@@ -14,7 +14,11 @@
 
 #pragma once
 
+#include <mq/base/Deprecation.h>
+
 #include <stdexcept>
+
+#include "imgui.h"
 
 //---- Define assertion handler. Defaults to calling assert().
 // If your macro uses multiple statements, make sure is enclosed in a 'do { .. } while (0)' block so it can be used as a single statement.
@@ -34,6 +38,7 @@
 #endif
 
 #define IMGUI_IMPL_API
+#define IMPLOT_API IMGUI_API
 
 class ImGuiException : public std::exception {
 public:
@@ -67,7 +72,7 @@ public:
 //#define IMGUI_DISABLE_SSE                                 // Disable use of SSE intrinsics even if available
 
 //---- Include imgui_user.h at the end of imgui.h as a convenience
-//#define IMGUI_INCLUDE_IMGUI_USER_H
+#define IMGUI_INCLUDE_IMGUI_USER_H
 
 //---- Pack colors to BGRA8 instead of RGBA8 (to avoid converting from one to another)
 //#define IMGUI_USE_BGRA_PACKED_COLOR
@@ -114,8 +119,13 @@ public:
         constexpr ImVec4(const MyVec4& f) : x(f.x), y(f.y), z(f.z), w(f.w) {}   \
         operator MyVec4() const { return MyVec4(x,y,z,w); }
 */
+
+#define IM_VEC4_CLASS_EXTRA \
+    static ImVec4 FromImU32(ImU32 u32); \
+    ImU32 ToImU32() const;
+
 //---- ...Or use Dear ImGui's own very basic math operators.
-//#define IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
 
 //---- Use 32-bit vertex indices (default is 16-bit) is one way to allow large meshes with more than 64K vertices.
 // Your renderer backend will need to support it (most example renderer backends support both 16/32-bit indices).

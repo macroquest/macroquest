@@ -16,12 +16,10 @@
 #include "ImGuiManager.h"
 
 #include "GraphicsEngine.h"
-#include "ImGuiBackend.h"
 #include "imgui/ImGuiUtils.h"
 #include "MQ2ImGuiTools.h"
 
 #include <imgui/imgui.h>
-#define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui/imgui_internal.h>
 
  // I was trying to avoid including main, but we just got too many globals
@@ -305,12 +303,13 @@ namespace ImGui
 			}
 
 			int show_count = isNeedFilter ? static_cast<int>(itemScoreVector.size()) : items_count;
-			if (ImGui::ListBoxHeader("##ComboWithFilter_itemList", show_count))
+			float height = GetTextLineHeightWithSpacing() * ((items_count < 7 ? items_count : 7) + 0.25f) + GetStyle().FramePadding.y * 2.0f;
+			if (ImGui::BeginListBox("##ComboWithFilter_itemList", ImVec2(0.0f, height)))
 			{
 				for (int i = 0; i < show_count; i++)
 				{
 					int idx = isNeedFilter ? itemScoreVector[i].first : i;
-					PushID((void*)(intptr_t)idx);
+					PushID(idx);
 					const bool item_selected = (idx == *current_item);
 					const char* item_text = accessor(items, idx).c_str();
 					if (Selectable(item_text, item_selected))
@@ -323,7 +322,7 @@ namespace ImGui
 						SetItemDefaultFocus();
 					PopID();
 				}
-				ImGui::ListBoxFooter();
+				ImGui::EndListBox();
 			}
 			ImGui::PopItemWidth();
 			ImGui::EndPopup();
@@ -678,12 +677,12 @@ void ImGuiManager_CreateContext()
 	if (s_fontAtlas == nullptr)
 	{
 		s_fontAtlas = new ImFontAtlas();
-
-		ImGuiManager_BuildFonts(s_fontAtlas);
 	}
 
 	// Initialize ImGui context
 	ImGui::CreateContext(s_fontAtlas);
+
+	ImGuiManager_BuildFonts(s_fontAtlas);
 
 	ImGuiIO& io = ImGui::GetIO();
 

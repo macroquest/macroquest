@@ -23,7 +23,6 @@
 
 #pragma once
 
-#include "imconfig.h"
 #include "imgui.h"
 
 #include "fonts/IconsFontAwesome.h"

@@ -4776,6 +4776,12 @@ IGFD_C_API void IGFD_Selection_DestroyContent(IGFD_Selection* vSelection) {
     }
 }
 
+IGFD_C_API void IGFD_DestroyString(char* str) {
+    if (str) {
+        free(str);
+    }
+}
+
 // create an instance of ImGuiFileDialog
 IGFD_C_API ImGuiFileDialog* IGFD_Create(void) {
     return new ImGuiFileDialog();

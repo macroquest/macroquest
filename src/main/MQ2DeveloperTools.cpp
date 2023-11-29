@@ -292,7 +292,7 @@ public:
 			hovered = true;
 		ImGui::SameLine();
 
-		float widthAvail = ImGui::GetContentRegionAvailWidth();
+		float widthAvail = ImGui::GetContentRegionAvail().x;
 		ImGui::PushTextWrapPos(widthAvail - 60.0f);
 		ImGui::Text("%s", component.description.c_str());
 		if (ImGui::IsItemHovered())
@@ -4209,40 +4209,44 @@ public:
 			}
 		}
 
-		ImPlot::SetNextPlotLimitsX(static_cast<double>(m_time) - m_history, m_time, ImGuiCond_Always);
-		ImPlot::SetNextPlotLimitsY(0, 20, ImGuiCond_Once, 0);
-		ImPlot::SetNextPlotLimitsY(0, 100, ImGuiCond_Always, 1);
+		ImPlot::SetNextAxisLimits(ImAxis_X1, static_cast<double>(m_time) - m_history, m_time, ImGuiCond_Always);
+		ImPlot::SetNextAxisLimits(ImAxis_Y1, 0, 20, ImGuiCond_Once);
+		ImPlot::SetNextAxisLimits(ImAxis_Y2, 0, 100, ImGuiCond_Always);
 
-		static int rt_axis = ImPlotAxisFlags_Default;
-
-		if (ImPlot::BeginPlot("##Benchmarks", "Time", "Milliseconds", ImVec2(-1, -1), ImPlotFlags_Default | ImPlotFlags_YAxis2,
-			rt_axis, rt_axis | ImPlotAxisFlags_LockMin, ImPlotAxisFlags_LockMin | ImPlotAxisFlags_TickLabels))
+		if (ImPlot::BeginPlot("##Benchmarks", ImVec2(-1, -1), 0))
 		{
-			ImPlot::SetPlotYAxis(0);
+			ImPlot::SetupAxis(ImAxis_X1, "Time");
+			ImPlot::SetupAxis(ImAxis_Y1, "Milliseconds", ImPlotAxisFlags_LockMin);
+			ImPlot::SetupAxis(ImAxis_Y2, "Percent", ImPlotAxisFlags_LockMin);
+
+			ImPlot::SetAxes(ImAxis_X1, ImAxis_Y1);
 
 			for (const auto& p : m_data)
 			{
 				auto& data = p.second;
 
-				ImPlot::PlotLine(data->Name.c_str(), &data->Data[0], data->Data.size(), data->Offset);
+				ImPlot::PlotLine(data->Name.c_str(), &data->Data[0].x, &data->Data[0].y,
+					data->Data.size(), ImPlotLineFlags_None, data->Offset, sizeof(ImVec2));
 			}
 
 			if (!m_fpsData.Data.empty())
 			{
-				ImPlot::SetPlotYAxis(1);
+				ImPlot::SetAxes(ImAxis_X1, ImAxis_Y2);
 				ImPlot::PushStyleColor(ImPlotCol_Line, IM_COL32(127, 255, 0, 255));
 				ImPlot::PushStyleVar(ImPlotStyleVar_LineWeight, 2);
-				ImPlot::PlotLine("Frame Rate", &m_fpsData.Data[0], m_fpsData.Data.size(), m_fpsData.Offset);
+				ImPlot::PlotLine("Frame Rate", &m_fpsData.Data[0].x, &m_fpsData.Data[0].y,
+					m_fpsData.Data.size(), ImPlotLineFlags_None, m_fpsData.Offset, sizeof(ImVec2));
 				ImPlot::PopStyleVar();
 				ImPlot::PopStyleColor();
 			}
 
 			if (!m_cpuData.Data.empty())
 			{
-				ImPlot::SetPlotYAxis(1);
+				ImPlot::SetAxes(ImAxis_X1, ImAxis_Y2);
 				ImPlot::PushStyleColor(ImPlotCol_Line, IM_COL32(127, 127, 255, 255));
 				ImPlot::PushStyleVar(ImPlotStyleVar_LineWeight, 2);
-				ImPlot::PlotLine("CPU Usage %", &m_cpuData.Data[0], m_cpuData.Data.size(), m_cpuData.Offset);
+				ImPlot::PlotLine("CPU Usage %", &m_cpuData.Data[0].x, &m_cpuData.Data[0].y,
+					m_cpuData.Data.size(), ImPlotLineFlags_None, m_cpuData.Offset, sizeof(ImVec2));
 				ImPlot::PopStyleVar();
 				ImPlot::PopStyleColor();
 			}

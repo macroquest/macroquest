@@ -152,6 +152,7 @@
     <ClInclude Include="..\..\contrib\imgui\imconfig.h" />
     <ClInclude Include="..\..\contrib\imgui\imgui.h" />
     <ClInclude Include="..\..\contrib\imgui\imgui_internal.h" />
+    <ClInclude Include="..\..\contrib\imgui\imgui_user.h" />
     <ClInclude Include="..\..\contrib\imgui\imstb_rectpack.h" />
     <ClInclude Include="..\..\contrib\imgui\imstb_textedit.h" />
     <ClInclude Include="..\..\contrib\imgui\imstb_truetype.h" />
@@ -257,6 +258,9 @@
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\contrib\imgui\misc\debuggers\imgui.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\contrib\imgui\misc\debuggers\imgui.natstepfilter" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

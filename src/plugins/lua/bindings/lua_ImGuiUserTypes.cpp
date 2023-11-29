@@ -19,6 +19,7 @@
 #include <imgui/misc/cpp/imgui_stdlib.h>
 #include <sol/sol.hpp>
 
+#include <optional>
 #include <string>
 
 #include "eqlib/UITextures.h"
@@ -38,20 +39,22 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"y"                                             , &ImVec2::y,
 		sol::meta_function::to_string                   , [](ImVec2& mThis) { return fmt::format("({},{})", mThis.x, mThis.y); },
 		sol::meta_function::addition                    , sol::overload(
-			                                              [](ImVec2& a, ImVec2& b) { return ImVec2(a.x + b.x, a.y + b.y); },
-			                                              [](ImVec2& a, float b) { return ImVec2(a.x + b, a.y + b); }),
+			                                              [](const ImVec2& a, const ImVec2& b) { return a + b; },
+			                                              [](const ImVec2& a, float b)         { return ImVec2(a.x + b, a.y + b); }),
 		sol::meta_function::subtraction                 , sol::overload(
-			                                              [](ImVec2& a, ImVec2& b) { return ImVec2(a.x - b.x, a.y - b.y); },
-			                                              [](ImVec2& a, float b) { return ImVec2(a.x - b, a.y - b); }),
+			                                              [](const ImVec2& a, const ImVec2& b) { return a - b; },
+			                                              [](const ImVec2& a, float b)         { return ImVec2(a.x - b, a.y - b); }),
 		sol::meta_function::multiplication              , sol::overload(
-			                                              [](ImVec2& a, ImVec2& b) { return ImVec2(a.x * b.x, a.y * b.y); },
-			                                              [](ImVec2& a, float b) { return ImVec2(a.x * b, a.y * b); }),
+			                                              [](const ImVec2& a, const ImVec2& b) { return a * b; },
+			                                              [](const ImVec2& a, float b)         { return a * b; }),
 		sol::meta_function::division                    , sol::overload(
-			                                              [](ImVec2& a, ImVec2& b) { return ImVec2(a.x / b.x, a.y / b.y); },
-			                                              [](ImVec2& a, float b) { return ImVec2(a.x / b, a.y / b); }),
-		sol::meta_function::equal_to                    , [](ImVec2& a, ImVec2& b) { return a.x == b.x && a.y == b.y; },
-		sol::meta_function::less_than                   , [](ImVec2& a, ImVec2& b) { return std::tie(a.x, a.y) < std::tie(b.x, b.y); },
-		sol::meta_function::less_than_or_equal_to       , [](ImVec2& a, ImVec2& b) { return std::tie(a.x, a.y) <= std::tie(b.x, b.y); }
+			                                              [](const ImVec2& a, const ImVec2& b) { return a / b; },
+			                                              [](const ImVec2& a, float b)         { return a / b; }),
+		sol::meta_function::equal_to                    , [](const ImVec2& a, const ImVec2& b) { return a.x == b.x && a.y == b.y; },
+		sol::meta_function::less_than                   , [](const ImVec2& a, const ImVec2& b) { return std::tie(a.x, a.y) < std::tie(b.x, b.y); },
+		sol::meta_function::less_than_or_equal_to       , [](const ImVec2& a, const ImVec2& b) { return std::tie(a.x, a.y) <= std::tie(b.x, b.y); }
+
+		// TODO: operator[] ?
 	);
 
 	// ImVec4
@@ -62,13 +65,34 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"y"                                             , &ImVec4::y,
 		"z"                                             , &ImVec4::z,
 		"w"                                             , &ImVec4::w,
-		sol::meta_function::to_string                   , [](ImVec4& mThis) { return fmt::format("({},{},{},{})", mThis.x, mThis.y, mThis.z, mThis.w); }
+
+		"FromImU32"                                     , &ImVec4::FromImU32,
+		"ToImU32"                                       , &ImVec4::ToImU32,
+
+		sol::meta_function::to_string                   , [](ImVec4& a) { return fmt::format("({},{},{},{})", a.x, a.y, a.z, a.w); },
+
+		sol::meta_function::addition                    , sol::overload(
+			                                              [](const ImVec4& a, const ImVec4& b) { return a + b; },
+			                                              [](const ImVec4& a, float b) { return ImVec4(a.x + b, a.y + b, a.z + b, a.w + b); }),
+		sol::meta_function::subtraction                 , sol::overload(
+			                                              [](const ImVec4& a, const ImVec4& b) { return a - b; },
+			                                              [](const ImVec4& a, float b) { return ImVec4(a.x - b, a.y - b, a.z - b, a.w - b); }),
+		sol::meta_function::multiplication              , sol::overload(
+			                                              [](const ImVec4& a, const ImVec4& b) { return a * b; },
+			                                              [](const ImVec4& a, float b) { return ImVec4(a.x * b, a.y * b, a.z * b, a.w * b); }),
+		sol::meta_function::division                    , sol::overload(
+			                                              [](const ImVec4& a, const ImVec4& b) { return ImVec4(a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w); },
+			                                              [](const ImVec4& a, float b) { return ImVec4(a.x / b, a.y / b, a.z / b, a.w / b); }),
+		sol::meta_function::equal_to                    , [](const ImVec4& a, const ImVec4& b) { return a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w; },
+		sol::meta_function::less_than                   , [](const ImVec4& a, const ImVec4& b) { return std::tie(a.x, a.y, a.z, a.w) < std::tie(b.x, b.y, b.z, b.w); },
+		sol::meta_function::less_than_or_equal_to       , [](const ImVec4& a, const ImVec4& b) { return std::tie(a.x, a.y, a.z, a.w) <= std::tie(b.x, b.y, b.z, b.w); }
 	);
 
 	// ImGuiStyle
 	lua.new_usertype<ImGuiStyle>(
 		"ImGuiStyle"                                    , sol::no_constructor,
 		"Alpha"                                         , &ImGuiStyle::Alpha,
+		"DisabledAlpha"                                 , &ImGuiStyle::DisabledAlpha,
 		"WindowPadding"                                 , &ImGuiStyle::WindowPadding,
 		"WindowRounding"                                , &ImGuiStyle::WindowRounding,
 		"WindowBorderSize"                              , &ImGuiStyle::WindowBorderSize,
@@ -96,22 +120,58 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"TabRounding"                                   , &ImGuiStyle::TabRounding,
 		"TabBorderSize"                                 , &ImGuiStyle::TabBorderSize,
 		"TabMinWidthForCloseButton"                     , &ImGuiStyle::TabMinWidthForCloseButton,
+		"TabBarBorderSize"                              , &ImGuiStyle::TabBarBorderSize,
+		"TableAngledHeadersAngle"                       , &ImGuiStyle::TableAngledHeadersAngle,
 		"ColorButtonPosition"                           , &ImGuiStyle::ColorButtonPosition,
 		"ButtonTextAlign"                               , &ImGuiStyle::ButtonTextAlign,
 		"SelectableTextAlign"                           , &ImGuiStyle::SelectableTextAlign,
+		"SeparatorTextBorderSize"                       , &ImGuiStyle::SeparatorTextBorderSize,
+		"SeparatorTextAlign"                            , &ImGuiStyle::SeparatorTextAlign,
+		"SeparatorTextPadding"                          , &ImGuiStyle::SeparatorTextPadding,
 		"DisplayWindowPadding"                          , &ImGuiStyle::DisplayWindowPadding,
 		"DisplaySafeAreaPadding"                        , &ImGuiStyle::DisplaySafeAreaPadding,
+		"DockingSeparatorSize"                          , &ImGuiStyle::DockingSeparatorSize,
 		"MouseCursorScale"                              , &ImGuiStyle::MouseCursorScale,
 		"AntiAliasedLines"                              , &ImGuiStyle::AntiAliasedLines,
 		"AntiAliasedLinesUseTex"                        , &ImGuiStyle::AntiAliasedLinesUseTex,
 		"AntiAliasedFill"                               , &ImGuiStyle::AntiAliasedFill,
 		"CurveTessellationTol"                          , &ImGuiStyle::CurveTessellationTol,
 		"CircleSegmentMaxError"                         , &ImGuiStyle::CircleTessellationMaxError,
-		"TabBorderSize"                                 , &ImGuiStyle::TabBorderSize,
 		"Colors"                                        , &ImGuiStyle::Colors,
+
+		// Behaviors
+		"HoverStationaryDelay"                          , &ImGuiStyle::HoverStationaryDelay,
+		"HoverDelayShort"                               , &ImGuiStyle::HoverDelayShort,
+		"HoverDelayNormal"                              , &ImGuiStyle::HoverDelayNormal,
+		"HoverFlagsForTooltipMouse"                     , &ImGuiStyle::HoverFlagsForTooltipMouse,
+		"HoverFlagsForTooltipNav"                       , &ImGuiStyle::HoverFlagsForTooltipNav,
+
+		"ScaleAllSizes"                                 , &ImGuiStyle::ScaleAllSizes,
 
 		// Deprecated
 		"CircleSegmentMaxError"                         , &ImGuiStyle::CircleTessellationMaxError
+	);
+
+	// ImGuiIO
+	lua.new_usertype<ImGuiIO>(
+		"ImGuiIO"                                       , sol::no_constructor,
+
+		"ConfigFlags"                                   , sol::readonly(&ImGuiIO::ConfigFlags),
+		"DisplaySize"                                   , sol::readonly(&ImGuiIO::DisplaySize),
+		"DeltaTime"                                     , sol::readonly(&ImGuiIO::DeltaTime),
+
+		"Fonts"                                         , sol::readonly(&ImGuiIO::Fonts),
+		"FontGlobalScale"                               , sol::readonly(&ImGuiIO::FontGlobalScale),
+		"FontDefault"                                   , sol::readonly(&ImGuiIO::FontDefault),
+
+		"Framerate"                                     , sol::readonly(&ImGuiIO::Framerate),
+		"MouseDelta"                                    , sol::readonly(&ImGuiIO::MouseDelta),
+		"MousePos"                                      , sol::readonly(&ImGuiIO::MousePos),
+
+		"KeyCtrl"                                       , sol::readonly(&ImGuiIO::KeyCtrl),
+		"KeyShift"                                      , sol::readonly(&ImGuiIO::KeyShift),
+		"KeyAlt"                                        , sol::readonly(&ImGuiIO::KeyAlt),
+		"KeySuper"                                      , sol::readonly(&ImGuiIO::KeySuper)
 	);
 
 	// ImGuiListClipper
@@ -123,7 +183,11 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"End"                                           , &ImGuiListClipper::End,
 		"Step"                                          , &ImGuiListClipper::Step,
 		"DisplayStart"                                  , &ImGuiListClipper::DisplayStart,
-		"DisplayEnd"                                    , &ImGuiListClipper::DisplayEnd);
+		"DisplayEnd"                                    , &ImGuiListClipper::DisplayEnd,
+
+		"IncludeItemByIndex"                            , &ImGuiListClipper::IncludeItemByIndex,
+		"IncludeItemsByIndex"                           , &ImGuiListClipper::IncludeItemsByIndex
+	);
 
 	//----------------------------------------------------------------------------
 	// ImDrawListSharedData
@@ -136,13 +200,15 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"CurveTessellationTol"                          , &ImDrawListSharedData::CurveTessellationTol,
 		"CircleSegmentMaxError"                         , &ImDrawListSharedData::CircleSegmentMaxError,
 		"ClipRectFullscreen"                            , &ImDrawListSharedData::ClipRectFullscreen,
-		"InitialFlags"                                  , &ImDrawListSharedData::InitialFlags
+		"InitialFlags"                                  , &ImDrawListSharedData::InitialFlags,
+
+		"SetCircleTessellationMaxError"                 , &ImDrawListSharedData::SetCircleTessellationMaxError
 	);
 
 	//----------------------------------------------------------------------------
 	// ImDrawList
 	auto imDrawList = lua.new_usertype<ImDrawList>(
-		"ImDrawList", sol::constructors<ImDrawList(const ImDrawListSharedData*)>(),
+		"ImDrawList", sol::constructors<ImDrawList(ImDrawListSharedData*)>(),
 
 		// Variables
 		"Flags", &ImDrawList::Flags
@@ -237,7 +303,7 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 	));
 
 	imDrawList.set_function("AddTextureAnimation",
-		[](ImDrawList& mThis, const std::unique_ptr<eqlib::CTextureAnimation>& anim, const ImVec2& pos, const sol::optional<ImVec2>& size) {
+		[](ImDrawList& mThis, const std::unique_ptr<eqlib::CTextureAnimation>& anim, const ImVec2& pos, const std::optional<ImVec2>& size) {
 			return imgui::AddTextureAnimation(&mThis, anim.get(), pos, size.has_value() ? *size : eqlib::CXSize());
 		});
 
@@ -296,23 +362,6 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 	);
 
 
-	// ImGuiIO
-	lua.new_usertype<ImGuiIO>(
-		"ImGuiIO"                      , sol::no_constructor,
-
-		"ConfigFlags"                  , &ImGuiIO::ConfigFlags,
-		"DisplaySize"                  , sol::readonly(&ImGuiIO::DisplaySize),
-		"FontDefault"                  , sol::readonly(&ImGuiIO::FontDefault),
-		"Fonts"                        , sol::readonly(&ImGuiIO::Fonts),
-		"MouseDelta"                   , sol::readonly(&ImGuiIO::MouseDelta),
-		"MousePos"                     , sol::readonly(&ImGuiIO::MousePos),
-
-		"KeyCtrl"                      , sol::readonly(&ImGuiIO::KeyCtrl),
-		"KeyShift"                     , sol::readonly(&ImGuiIO::KeyShift),
-		"KeyAlt"                       , sol::readonly(&ImGuiIO::KeyAlt),
-		"KeySuper"                     , sol::readonly(&ImGuiIO::KeySuper)
-	);
-
 	// ImGuiViewport
 	lua.new_usertype<ImGuiViewport>(
 		"ImGuiViewport"                , sol::no_constructor,
@@ -328,6 +377,27 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 
 		"GetCenter"                    , &ImGuiViewport::GetCenter,
 		"GetWorkCenter"                , &ImGuiViewport::GetWorkCenter
+	);
+
+	// ImGuiInputTextCallbackData
+	lua.new_usertype<ImGuiInputTextCallbackData>(
+		"ImGuiInputTextCallbackData"   , sol::no_constructor,
+
+		"EventFlag"                    , sol::readonly(&ImGuiInputTextCallbackData::EventFlag),
+		"Flags"                        , sol::readonly(&ImGuiInputTextCallbackData::Flags),
+
+		"EventChar"                    , sol::property([](ImGuiInputTextCallbackData* pThis) { return (wchar_t)pThis->EventChar; }, [](ImGuiInputTextCallbackData* pThis, wchar_t value) { pThis->EventChar = (ImWchar)value; }),
+		"EventKey"                     , sol::readonly(&ImGuiInputTextCallbackData::EventKey),
+		"Buffer"                       , sol::readonly(&ImGuiInputTextCallbackData::Buf),
+		"CursorPos"                    , &ImGuiInputTextCallbackData::CursorPos,
+		"SelectionStart"               , &ImGuiInputTextCallbackData::SelectionStart,
+		"SelectionEnd"                 , &ImGuiInputTextCallbackData::SelectionEnd,
+
+		"DeleteChars"                  , [](ImGuiInputTextCallbackData& mThis, int pos, int bytesCount) { mThis.DeleteChars(pos, bytesCount); },
+		"InsertChars"                  , [](ImGuiInputTextCallbackData& mThis, int pos, const char* text) { mThis.InsertChars(pos, text); },
+		"SelectAll"                    , [](ImGuiInputTextCallbackData& mThis) { mThis.SelectAll(); },
+		"ClearSelection"               , [](ImGuiInputTextCallbackData& mThis) { mThis.ClearSelection(); },
+		"HasSelection"                 , [](ImGuiInputTextCallbackData& mThis) { return mThis.HasSelection(); }
 	);
 }
 
