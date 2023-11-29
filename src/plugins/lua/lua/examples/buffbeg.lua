@@ -51,7 +51,7 @@ local actor = actors.register(function (message)
     if message.content.id == 'buffs' and message.sender and mybuffs then
         -- request to send a list of buffs I can cast
         for _, buff in ipairs(mybuffs) do
-            message.send({id='announce', buff=buff })
+            message:send({id='announce', buff=buff })
         end
     elseif message.content.id == 'beg' then
         -- request for a buff, send back a reply to indicate we are a valid buffer
