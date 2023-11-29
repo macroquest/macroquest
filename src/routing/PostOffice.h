@@ -228,6 +228,7 @@ public:
 	 * The interface to route a message, to be implemented in the post office instantiation
 	 *
 	 * @param message the message to route -- it should be in an envelope and have the ID of ROUTE
+	 * @param callback an optional callback for RPC responses
 	 */
 	virtual void RouteMessage(PipeMessagePtr&& message, const PipeMessageResponseCb& callback) = 0;
 
@@ -236,13 +237,60 @@ public:
 	 *
 	 * @param data the data buffer of the message to route
 	 * @param length the length of the data buffer
+	 * @param callback an optional callback for RPC responses
 	 */
 	void RouteMessage(const void* data, size_t length, const PipeMessageResponseCb& callback);
+
+	/**
+	 * A helper interface to route a message directly
+	 *
+	 * @param address the address to send the message to
+	 * @param obj a protobuf object to route
+	 * @param callback an optional callback for RPC responses
+	 */
+	template <typename T>
+	void RouteMessage(const proto::routing::Address& address, const T& obj, const PipeMessageResponseCb& callback)
+	{
+		RouteMessage(address, obj.SerializeAsString(), callback);
+	}
+
+	/**
+	 * A helper interface to route a message directly
+	 *
+	 * @param address the address to send the message to
+	 * @param data a string of data (which embeds its length)
+	 * @param callback an optional callback for RPC responses
+	 */
+	void RouteMessage(const proto::routing::Address& address, const std::string& data, const PipeMessageResponseCb& callback)
+	{
+		proto::routing::Envelope envelope;
+		*envelope.mutable_address() = address;
+
+		proto::routing::Address& ret = *envelope.mutable_return_address();
+		ret.set_pid(GetCurrentProcessId());
+
+		envelope.set_payload(data);
+
+		RouteMessage(envelope, callback);
+	}
+
+	/**
+	 * A helper interface to route a message
+	 *
+	 * @param obj a protobuf object to route
+	 * @param callback an optional callback for RPC responses
+	 */
+	template <typename T>
+	void RouteMessage(const T& obj, const PipeMessageResponseCb& callback)
+	{
+		RouteMessage(obj.SerializeAsString(), callback);
+	}
 
 	/**
 	 * A helper interface to route a message
 	 *
 	 * @param data a string of data (which embeds its length)
+	 * @param callback an optional callback for RPC responses
 	 */
 	void RouteMessage(const std::string& data, const PipeMessageResponseCb& callback);
 

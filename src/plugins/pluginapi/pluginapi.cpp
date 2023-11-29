@@ -110,6 +110,11 @@ mq::postoffice::DropboxAPI mq::postoffice::AddActor(const char* localAddress, Re
 	};
 }
 
+void mq::postoffice::SendToActor(const Address& address, const std::string& data, const ResponseCallbackAPI& callback)
+{
+	mqplugin::MainInterface->SendToActor(nullptr, address, data, callback, mqplugin::ThisPlugin);
+}
+
 //============================================================================
 
 #if __has_include("../../private/pluginapi-private.cpp")

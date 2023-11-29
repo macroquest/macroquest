@@ -34,6 +34,7 @@ namespace mq::lua {
 
 class LuaEventProcessor;
 class LuaImGuiProcessor;
+class LuaActors;
 class LuaThread;
 struct LuaCoroutine;
 

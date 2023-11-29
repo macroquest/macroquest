@@ -22,11 +22,14 @@ namespace postoffice {
 	class Dropbox;
 
 	/**
-	 * IDs for messages sent to the local post office to request information
+	 * Status codes for routing reply
 	 */
-	enum class APIMessageID : uint8_t
+	enum class ResponseStatus : int8_t
 	{
-		IDENTIFICATION = 0, // just send the ID here to request the post office send you its internal ID list
+		ConnectionClosed        = -1,                  // connection was closed
+		NoConnection            = -2,                  // no connection established
+		RoutingFailed           = -3,                  // message routing failed
+		AmbiguousRecipient      = -4,                  // RPC message couldn't determine single recipient
 	};
 
 	/**
@@ -155,6 +158,30 @@ DropboxAPI AddActor(ReceiveCallbackAPI&& receive);
  * @return an dropbox that the creator can use to send addressed messages. will be invalid if it failed to add
  */
 DropboxAPI AddActor(const char* localAddress, ReceiveCallbackAPI&& receive);
+
+/**
+ * Sends a message to an address
+ *
+ * @tparam T the message being sent, usually some kind of proto
+ *
+ * @param address the address to send the message
+ * @param obj the message (as an object)
+ * @param callback optional callback for an expected response
+ */
+template <typename T>
+void SendToActor(const Address& address, const T& obj, const ResponseCallbackAPI& callback = nullptr)
+{
+	SendToActor(address, obj.SerializeAsString(), callback);
+}
+
+/**
+ * Sends a message to an address
+ *
+ * @param address the address to send the message
+ * @param data the message (as a data string)
+ * @param callback optional callback for an expected response
+ */
+void SendToActor(const Address& address, const std::string& data, const ResponseCallbackAPI& callback = nullptr);
 
 } // namespace postoffice
 
