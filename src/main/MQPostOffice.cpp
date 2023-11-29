@@ -50,7 +50,7 @@ static MQModule s_PostOfficeModule = {
 };
 MQModule* GetPostOfficeModule() { return &s_PostOfficeModule; }
 
-class MQ2PostOffice : public PostOffice
+class MQPostOffice : public PostOffice
 {
 private:
 
@@ -68,7 +68,7 @@ private:
 	class PipeEventsHandler : public NamedPipeEvents
 	{
 	public:
-		PipeEventsHandler(MQ2PostOffice* postOffice) : m_postOffice(postOffice) {}
+		PipeEventsHandler(MQPostOffice* postOffice) : m_postOffice(postOffice) {}
 
 		virtual void OnIncomingMessage(PipeMessagePtr&& message) override
 		{
@@ -223,12 +223,12 @@ private:
 		}
 
 	private:
-		MQ2PostOffice* m_postOffice;
+		MQPostOffice* m_postOffice;
 	};
 
 public:
 
-	MQ2PostOffice()
+	MQPostOffice()
 		: m_pipeClient{ mq::MQ2_PIPE_SERVER_PATH }
 		, m_launcherProcessID(0)
 	{
@@ -454,13 +454,13 @@ private:
 
 	static void StopPipeClient()
 	{
-		static_cast<MQ2PostOffice&>(GetPostOffice()).m_pipeClient.Stop();
+		static_cast<MQPostOffice&>(GetPostOffice()).m_pipeClient.Stop();
 	}
 };
 
 PostOffice& postoffice::GetPostOffice()
 {
-	static MQ2PostOffice s_postOffice;
+	static MQPostOffice s_postOffice;
 	return s_postOffice;
 }
 
@@ -468,32 +468,32 @@ namespace pipeclient {
 
 void NotifyIsForegroundWindow(bool isForeground)
 {
-	static_cast<MQ2PostOffice&>(GetPostOffice()).NotifyIsForegroundWindow(isForeground);
+	static_cast<MQPostOffice&>(GetPostOffice()).NotifyIsForegroundWindow(isForeground);
 }
 
 void RequestActivateWindow(HWND hWnd, bool sendMessage)
 {
-	static_cast<MQ2PostOffice&>(GetPostOffice()).RequestActivateWindow(hWnd, sendMessage);
+	static_cast<MQPostOffice&>(GetPostOffice()).RequestActivateWindow(hWnd, sendMessage);
 }
 
 void InitializePostOffice()
 {
-	static_cast<MQ2PostOffice&>(GetPostOffice()).Initialize();
+	static_cast<MQPostOffice&>(GetPostOffice()).Initialize();
 }
 
 void ShutdownPostOffice()
 {
-	static_cast<MQ2PostOffice&>(GetPostOffice()).Shutdown();
+	static_cast<MQPostOffice&>(GetPostOffice()).Shutdown();
 }
 
 void PulsePostOffice()
 {
-	static_cast<MQ2PostOffice&>(GetPostOffice()).ProcessPipeClient();
+	static_cast<MQPostOffice&>(GetPostOffice()).ProcessPipeClient();
 }
 
 void SetGameStatePostOffice(DWORD GameState)
 {
-	static_cast<MQ2PostOffice&>(GetPostOffice()).SetGameStatePostOffice(GameState);
+	static_cast<MQPostOffice&>(GetPostOffice()).SetGameStatePostOffice(GameState);
 }
 
 } // namespace pipeclient
