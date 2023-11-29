@@ -584,6 +584,7 @@ sol::table LuaActors::RegisterLua(sol::state_view s)
 			sol::resolve<void(sol::object)>(&LuaMessage::Reply),
 			sol::resolve<void(int, sol::object)>(&LuaMessage::Reply)),
 		"sender", sol::property(&LuaMessage::Sender),
+		"send", &LuaMessage::Send,
 		sol::meta_function::call, &LuaMessage::Get);
 
 	actors.set_function("register", sol::overload(&LuaDropbox::RegisterWithName, &LuaDropbox::Register));
