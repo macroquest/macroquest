@@ -17,8 +17,7 @@
 #include "HotKeyControl.h"
 
 #include "login/Login.h"
-
-#include <mq/proto/PostOffice.h>
+#include "routing/PostOffice.h"
 
 #include <commdlg.h>
 #include <shellapi.h>
@@ -105,7 +104,7 @@ bool DecryptData(DATA_BLOB* DataIn, DATA_BLOB* DataOut);
 int gMenuItemCount = 0;
 HMENU hProfilesMenu = nullptr;
 
-std::shared_ptr<postoffice::PostOffice::Mailbox> s_mailbox;
+postoffice::Dropbox s_dropbox;
 
 namespace internal_paths
 {
@@ -1993,11 +1992,14 @@ INT_PTR CALLBACK SettingsProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 
 void ReceivedMessageHandler(ProtoMessagePtr&& message)
 {
-	switch (static_cast<AutoLoginMessageId>(message->GetMessageId()))
+	auto login_message = message->Parse<proto::login::LoginMessage>();
+	switch (login_message.id())
 	{
-		case AutoLoginMessageId::MSG_AUTOLOGIN_PROFILE_LOADED:
+	case proto::login::MessageId::ProfileLoaded:
+		if (login_message.has_payload())
 		{
-			auto profile = message->Parse<proto::login::ProfileMethod>();
+			proto::login::ProfileMethod profile;
+			profile.ParseFromString(login_message.payload());
 
 			if (profile.has_target() && profile.target().has_character() && message->GetSender() && message->GetSender()->has_pid())
 			{
@@ -2015,13 +2017,16 @@ void ReceivedMessageHandler(ProtoMessagePtr&& message)
 					SendMessageA(hMainWnd, WM_USER_SETLOADED, login_it->first, login_it->second.PID);
 				}
 			}
-
-			break;
 		}
 
-		case AutoLoginMessageId::MSG_AUTOLOGIN_PROFILE_UNLOADED:
+		break;
+
+	case proto::login::MessageId::ProfileUnloaded:
+		if (login_message.has_payload())
 		{
-			auto profile = message->Parse<proto::login::ProfileMethod>();
+			proto::login::ProfileMethod profile;
+			profile.ParseFromString(login_message.payload());
+
 			if (message->GetSender() && message->GetSender()->has_pid())
 			{
 				uint32_t pid = message->GetSender()->pid();
@@ -2036,13 +2041,16 @@ void ReceivedMessageHandler(ProtoMessagePtr&& message)
 					SendMessageA(hMainWnd, WM_USER_RESETLOADED, login_it->first, login_it->second.PID);
 				}
 			}
-
-			break;
 		}
 
-		case AutoLoginMessageId::MSG_AUTOLOGIN_PROFILE_CHARINFO:
+		break;
+
+	case proto::login::MessageId::ProfileCharInfo:
+		if (login_message.has_payload())
 		{
-			auto charinfo = message->Parse<proto::login::CharacterInfoMissive>();
+			proto::login::CharacterInfoMissive charinfo;
+			charinfo.ParseFromString(login_message.payload());
+
 			if (message->GetSender() && message->GetSender()->has_pid())
 			{
 				uint32_t pid = message->GetSender()->pid();
@@ -2060,13 +2068,16 @@ void ReceivedMessageHandler(ProtoMessagePtr&& message)
 					}
 				}
 			}
-
-			break;
 		}
 
-		case AutoLoginMessageId::MSG_AUTOLOGIN_START_INSTANCE:
+		break;
+
+	case proto::login::MessageId::StartInstance:
+		if (login_message.has_payload())
 		{
-			auto start = message->Parse<proto::login::StartInstanceMissive>();
+			proto::login::StartInstanceMissive start;
+			start.ParseFromString(login_message.payload());
+
 			switch (start.method_case())
 			{
 			case proto::login::StartInstanceMissive::MethodCase::kDirect:
@@ -2109,14 +2120,16 @@ void ReceivedMessageHandler(ProtoMessagePtr&& message)
 			break;
 		}
 
-		default:
-			break;
+		break;
+
+	default:
+		break;
 	}
 }
 
 void InitializeAutoLogin()
 {
-	s_mailbox = postoffice::GetPostOffice().CreateAndAddMailbox("autologin", ReceivedMessageHandler);
+	s_dropbox = postoffice::GetPostOffice().RegisterAddress("autologin", ReceivedMessageHandler);
 
 	// Get path to mq2autologin.ini
 	fs::path pathAutoLoginIni = fs::path{ internal_paths::Config }  / "MQ2AutoLogin.ini";
@@ -2193,5 +2206,5 @@ void InitializeAutoLogin()
 
 void ShutdownAutoLogin()
 {
-	postoffice::GetPostOffice().RemoveMailbox("autologin");
+	s_dropbox.Remove();
 }

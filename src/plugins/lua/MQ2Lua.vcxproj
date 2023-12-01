@@ -125,6 +125,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Actor.pb.cc">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="bindings\lua_Bit32.cpp" />
     <ClCompile Include="bindings\lua_EQBindings.cpp" />
     <ClCompile Include="bindings\lua_Globals.cpp" />
@@ -135,6 +141,7 @@
     <ClCompile Include="bindings\lua_ImGuiUserTypes.cpp" />
     <ClCompile Include="bindings\lua_MQBindings.cpp" />
     <ClCompile Include="bindings\lua_MQMacroData.cpp" />
+    <ClCompile Include="LuaActor.cpp" />
     <ClCompile Include="LuaCoroutine.cpp" />
     <ClCompile Include="LuaEvent.cpp" />
     <ClCompile Include="LuaImGui.cpp">
@@ -157,6 +164,7 @@
   <ItemGroup>
     <ClInclude Include="bindings\lua_Bindings.h" />
     <ClInclude Include="bindings\lua_MQBindings.h" />
+    <ClInclude Include="LuaActor.h" />
     <ClInclude Include="LuaCommon.h" />
     <ClInclude Include="LuaEvent.h" />
     <ClInclude Include="LuaCoroutine.h" />
@@ -174,6 +182,9 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </Natvis>
+  </ItemGroup>
+  <ItemGroup>
+    <ProtocolBuffer Include="Actor.proto" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -19,6 +19,9 @@
     <Filter Include="Source Files\bindings">
       <UniqueIdentifier>{53a88389-1507-4c14-a59b-d23a6065ef33}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Proto Files">
+      <UniqueIdentifier>{7da86d2b-e23d-48de-89c4-4e40fd87f1c5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MQ2Lua.cpp">
@@ -66,6 +69,12 @@
     <ClCompile Include="bindings\lua_ImGuiEnums.cpp">
       <Filter>Source Files\bindings</Filter>
     </ClCompile>
+    <ClCompile Include="LuaActor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Actor.pb.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="bindings\lua_EQBindings.cpp">
       <Filter>Source Files\bindings</Filter>
     </ClCompile>
@@ -98,6 +107,9 @@
     <ClInclude Include="bindings\lua_Bindings.h">
       <Filter>Header Files\bindings</Filter>
     </ClInclude>
+    <ClInclude Include="LuaActor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="LuaJIT.natvis">
@@ -106,5 +118,10 @@
     <Natvis Include="LuaJIT-x86.natvis">
       <Filter>Resource Files</Filter>
     </Natvis>
+  </ItemGroup>
+  <ItemGroup>
+    <ProtocolBuffer Include="Actor.proto">
+      <Filter>Proto Files</Filter>
+    </ProtocolBuffer>
   </ItemGroup>
 </Project>

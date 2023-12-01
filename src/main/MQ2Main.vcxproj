@@ -157,12 +157,6 @@
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">pch.h</ForcedIncludeFiles>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</ForcedIncludeFiles>
     </ClCompile>
-    <ClCompile Include="..\common\NamedPipes.cpp">
-      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">pch.h</ForcedIncludeFiles>
-      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch.h</ForcedIncludeFiles>
-      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">pch.h</ForcedIncludeFiles>
-      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</ForcedIncludeFiles>
-    </ClCompile>
     <ClCompile Include="api\Spawns.cpp" />
     <ClCompile Include="datatypes\MQ2AchievementType.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -489,6 +483,12 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="datatypes\MQCursorAttachmentType.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="datatypes\MQIniType.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -520,6 +520,7 @@
     <ClCompile Include="MQ2DeveloperTools.cpp" />
     <ClCompile Include="MQ2DInput.cpp" />
     <ClCompile Include="MQ2Data.cpp" />
+    <ClCompile Include="MQActorAPI.cpp" />
     <ClCompile Include="MQDataAPI.cpp" />
     <ClCompile Include="MQ2DataVars.cpp" />
     <ClCompile Include="MQ2DetourAPI.cpp" />
@@ -535,7 +536,7 @@
     <ClCompile Include="MQ2MacroCommands.cpp" />
     <ClCompile Include="MQ2Main.cpp" />
     <ClCompile Include="MQ2Mouse.cpp" />
-    <ClCompile Include="MQ2PostOffice.cpp" />
+    <ClCompile Include="MQPostOffice.cpp" />
     <ClCompile Include="MQ2PluginHandler.cpp" />
     <ClCompile Include="MQ2Pulse.cpp" />
     <ClCompile Include="MQ2Spawns.cpp" />
@@ -561,6 +562,7 @@
     <ClInclude Include="..\..\contrib\tinyfsm\include\tinyfsm.hpp" />
     <ClInclude Include="..\..\include\moveitem.h" />
     <ClInclude Include="..\..\include\mq\api\Achievements.h" />
+    <ClInclude Include="..\..\include\mq\api\ActorAPI.h" />
     <ClInclude Include="..\..\include\mq\api\Inventory.h" />
     <ClInclude Include="..\..\include\mq\api\Items.h" />
     <ClInclude Include="..\..\include\mq\api\MacroAPI.h" />
@@ -588,7 +590,6 @@
     <ClInclude Include="..\..\include\mq\imgui\Widgets.h" />
     <ClInclude Include="..\..\include\mq\libutils\wilUtils.h" />
     <ClInclude Include="..\..\include\mq\Plugin.h" />
-    <ClInclude Include="..\..\include\mq\proto\PostOffice.h" />
     <ClInclude Include="..\..\include\mq\utils\Args.h" />
     <ClInclude Include="..\..\include\mq\utils\Benchmarks.h" />
     <ClInclude Include="..\..\include\mq\utils\Keybinds.h" />
@@ -597,7 +598,6 @@
     <ClInclude Include="..\common\Common.h" />
     <ClInclude Include="..\common\ConfigUtils.h" />
     <ClInclude Include="..\common\HotKeys.h" />
-    <ClInclude Include="..\common\NamedPipes.h" />
     <ClInclude Include="..\common\MiscUtils.h" />
     <ClInclude Include="..\common\StringUtils.h" />
     <ClInclude Include="datatypes\DataTypeList.h" />
@@ -610,6 +610,7 @@
     <ClInclude Include="ImGuiManager.h" />
     <ClInclude Include="ImGuiZepEditor.h" />
     <ClInclude Include="MQ2Commands.h" />
+    <ClInclude Include="MQActorAPI.h" />
     <ClInclude Include="MQDataAPI.h" />
     <ClInclude Include="MQ2DataContainers.h" />
     <ClInclude Include="MQ2DeveloperTools.h" />
@@ -626,7 +627,7 @@
     <ClInclude Include="MQ2Utilities.h" />
     <ClInclude Include="MQVersionInfo.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="MQ2PostOffice.h" />
+    <ClInclude Include="MQPostOffice.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

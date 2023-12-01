@@ -12,7 +12,8 @@
  * GNU General Public License for more details.
  */
 
-#include "common/NamedPipes.h"
+#include "routing/NamedPipes.h"
+#include "routing/Routing.h"
 
 #include <spdlog/spdlog.h>
 #include <fmt/format.h>

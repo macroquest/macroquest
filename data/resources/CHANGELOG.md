@@ -1,3 +1,7 @@
+Nov 28, 2023:
+- Actors are now live for use in plugins, see https://docs.macroquest.org/plugins/developing/actors/
+- Actors are also now live for use in lua scripts, see examples/buffbeg.lua for example usage.
+
 Nov 22, 2023:
 - Update vcpkg dependencies
 

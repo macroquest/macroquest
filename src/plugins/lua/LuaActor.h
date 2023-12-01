@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-2022 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -14,18 +14,18 @@
 
 #pragma once
 
-#include "MQ2MainBase.h"
+#include "LuaCommon.h"
 
-namespace mq {
+namespace mq::lua {
 
-namespace pipeclient {
+class LuaActors
+{
+public:
+	static sol::table RegisterLua(sol::state_view s);
+	static void Start();
+	static void Stop();
+	static void Process();
 
-void NotifyIsForegroundWindow(bool isForeground);
-void RequestActivateWindow(HWND hWnd, bool sendMessage = true);
-
-} // namespace pipeclient
-
-void InitializePipeClient();
-void ShutdownPipeClient();
-
-} // namespace mq
+private:
+};
+} // namespace mq::lua

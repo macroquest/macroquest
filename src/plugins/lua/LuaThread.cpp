@@ -17,6 +17,7 @@
 #include "LuaCoroutine.h"
 #include "LuaEvent.h"
 #include "LuaImGui.h"
+#include "LuaActor.h"
 #include "bindings/lua_Bindings.h"
 
 #include <mq/Plugin.h>
@@ -212,6 +213,12 @@ int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 
 		std::string_view script("return _mq_internal_table");
 		luaL_loadbuffer(sv, script.data(), script.size(), pkg.c_str());
+		return 1;
+	}
+
+	if (pkg == "actors")
+	{
+		sol::stack::push(L, std::function([](sol::this_state L) { return LuaActors::RegisterLua(L); }));
 		return 1;
 	}
 

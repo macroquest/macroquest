@@ -224,7 +224,7 @@ void Settings::SetItemColor(MQColor color)
 	m_itemColor = color;
 
 	WritePrivateProfileString("Settings", "CustomColor_Item",
-		fmt::format("#{:6X}", color.ToRGB()), INIFileName);
+		fmt::format("#{:06X}", color.ToRGB()), INIFileName);
 
 	s_refreshItemDisplay = true;
 }

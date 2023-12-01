@@ -2,6 +2,18 @@ syntax = "proto3";
 
 package mq.proto.login;
 
+enum MessageId {
+	ProfileLoaded = 0;
+	ProfileUnloaded = 1;
+	ProfileCharInfo = 2;
+	StartInstance = 3;
+}
+
+message LoginMessage {
+	MessageId id = 1;
+	optional bytes payload = 2;
+}
+
 // submessage for the login target state, both targets are optional
 message LoginTarget {
 	optional string server = 1;

@@ -945,11 +945,15 @@ void DisplayTextureAnimation(const char* Label, const CTextureAnimation* texture
 					ImGui::TreePop();
 				}
 			}
-			else
+			else if (textureAnim->Frames.GetLength() == 1)
 			{
 				const STextureAnimationFrame& frame = textureAnim->Frames[0];
 
 				DisplaySTextureAnimationFrame(0, frame, false);
+			}
+			else
+			{
+				ColumnText("Frames", "No frames");
 			}
 
 			ColumnText("Paused", textureAnim->bPaused ? "true" : "false");
@@ -3757,20 +3761,18 @@ static void WindowProperties_CompassWindow(CSidlScreenWnd* pSidlWindow, ImGuiWin
 // Property Viewer for CCursorAttachment
 static void WindowProperty_CursorAttachment(CSidlScreenWnd* pSidlWindow, ImGuiWindowPropertyViewer* viewer)
 {
-	// TODO: Need to update test/emu
-#if IS_LIVE_CLIENT
 	CCursorAttachment* pCursorAttachment = static_cast<CCursorAttachment*>(pSidlWindow);
-	DisplayDynamicTemplateExpand("Static Anim", pCursorAttachment->pBGStaticAnim, "CStaticAnimationTemplate*");
-	DisplayDynamicTemplateExpand("Static Anim 2", pCursorAttachment->pOverlayStaticAnim, "CStaticAnimationTemplate*");
 
 #if HAS_GAMEFACE_UI
 	if (!pEverQuestInfo->bUseNewUIEngine)
+#endif
 	{
+		DisplayDynamicTemplateExpand("Background", pCursorAttachment->pBGStaticAnim, "CStaticAnimationTemplate*");
+		DisplayDynamicTemplateExpand("Overlay", pCursorAttachment->pOverlayStaticAnim, "CStaticAnimationTemplate*");
 		DisplayTextObject("Text Object", pCursorAttachment->pTextObjectInterface);
 		DisplayTextObject("Button Text Object", pCursorAttachment->pButtonTextObjectInterface);
 		ColumnText("Text Font Style", "%d", pCursorAttachment->TextFontStyle);
 	}
-#endif
 
 	ColumnText("Type", "%d", pCursorAttachment->Type);
 	ColumnText("Index", "%d", pCursorAttachment->Index);
@@ -3781,7 +3783,6 @@ static void WindowProperty_CursorAttachment(CSidlScreenWnd* pSidlWindow, ImGuiWi
 	ColumnText("Assigned Name", pCursorAttachment->AssignedName.c_str());
 	ColumnCXStr("Button Text", pCursorAttachment->ButtonText);
 	ColumnWindow("Spell Gem", pCursorAttachment->pSpellGem);
-#endif
 }
 
 // Property Viewer for FindLocationWnd

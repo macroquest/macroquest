@@ -1468,6 +1468,19 @@ public:
 	static bool dataInventory(const char* szIndex, MQTypeVar& Ret);
 };
 
+//============================================================================
+// MQCursorAttachmentType
+
+class MQCursorAttachmentType : public MQ2Type
+{
+public:
+	MQCursorAttachmentType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+
+	static bool dataCursorAttachment(const char* szIndex, MQTypeVar& Ret);
+};
+
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 

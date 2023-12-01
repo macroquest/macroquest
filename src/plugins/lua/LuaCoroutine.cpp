@@ -20,12 +20,13 @@
 
 namespace mq::lua {
 
-CoroutineResult LuaCoroutine::RunCoroutine(const std::vector<std::string>& args)
+template <typename T>
+CoroutineResult Run(const std::vector<T>& args, LuaCoroutine* co)
 {
 	try
 	{
-		luaThread->SetCurrentCoroutine(this);
-		auto result = coroutine(sol::as_args(args));
+		co->luaThread->SetCurrentCoroutine(co);
+		auto result = co->coroutine(sol::as_args(args));
 		if (result.valid())
 			return result;
 
@@ -36,10 +37,25 @@ CoroutineResult LuaCoroutine::RunCoroutine(const std::vector<std::string>& args)
 	}
 	catch (const sol::error& ex)
 	{
-		DebugStackTrace(coroutine.lua_state(), ex.what());
+		DebugStackTrace(co->coroutine.lua_state(), ex.what());
 	}
 
 	return std::nullopt;
+}
+
+CoroutineResult LuaCoroutine::RunCoroutine()
+{
+	return Run(std::vector<std::string>{}, this);
+}
+
+CoroutineResult LuaCoroutine::RunCoroutine(const std::vector<std::string>& args)
+{
+	return Run(args, this);
+}
+
+CoroutineResult LuaCoroutine::RunCoroutine(const std::vector<sol::object>& args)
+{
+	return Run(args, this);
 }
 
 LuaCoroutine::LuaCoroutine(sol::thread& thread, LuaThread* luaThread)
