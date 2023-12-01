@@ -674,15 +674,25 @@ void ImGuiManager_ReloadContext()
 
 void ImGuiManager_CreateContext()
 {
+	bool buildFonts = false;
 	if (s_fontAtlas == nullptr)
 	{
 		s_fontAtlas = new ImFontAtlas();
+		buildFonts = true;
+	}
+	else
+	{
+		// If we crashed in the middle of a frame, the atlas might be locked.
+		s_fontAtlas->Locked = false;
 	}
 
 	// Initialize ImGui context
 	ImGui::CreateContext(s_fontAtlas);
 
-	ImGuiManager_BuildFonts(s_fontAtlas);
+	if (buildFonts)
+	{
+		ImGuiManager_BuildFonts(s_fontAtlas);
+	}
 
 	ImGuiIO& io = ImGui::GetIO();
 

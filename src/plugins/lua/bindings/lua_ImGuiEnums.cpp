@@ -66,7 +66,7 @@ void RegisterBindings_ImGuiEnums(sol::state_view lua)
 	);
 
 	// Child Window Flags
-	lua.new_enum("ImGuiWindowFlags",
+	lua.new_enum("ImGuiChildFlags",
 		"None"                         , ImGuiChildFlags_None,
 		"Border"                       , ImGuiChildFlags_Border,
 		"AlwaysUseWindowPadding"       , ImGuiChildFlags_AlwaysUseWindowPadding,

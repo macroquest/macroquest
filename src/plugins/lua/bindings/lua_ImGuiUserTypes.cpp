@@ -178,8 +178,8 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 	lua.new_usertype<ImGuiListClipper>(
 		"ImGuiListClipper"                              ,
 		"Begin"                                         , sol::overload(
-				[](ImGuiListClipper& mthis, int items_count) { mthis.Begin(items_count); },
-				&ImGuiListClipper::Begin),
+			                                              [](ImGuiListClipper& mthis, int items_count) { mthis.Begin(items_count); },
+			                                              &ImGuiListClipper::Begin),
 		"End"                                           , &ImGuiListClipper::End,
 		"Step"                                          , &ImGuiListClipper::Step,
 		"DisplayStart"                                  , &ImGuiListClipper::DisplayStart,

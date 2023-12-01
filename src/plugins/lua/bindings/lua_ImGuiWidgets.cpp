@@ -601,8 +601,8 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 		[](const char* label, sol::variadic_args va, sol::this_state s) { std::string text = format_text(s, va); ImGui::LabelText(label, "%s", text.c_str()); }
 	));
 	ImGui.set_function("BulletText", sol::overload(
-		[](const char* label, const char* text) { ImGui::BulletText(label, "%s", text); },
-		[](const char* label, sol::variadic_args va, sol::this_state s) { std::string text = format_text(s, va); ImGui::BulletText(label, "%s", text.c_str()); }
+		[](const char* text) { ImGui::BulletText("%s", text); },
+		[](sol::variadic_args va, sol::this_state s) { std::string text = format_text(s, va); ImGui::BulletText("%s", text.c_str()); }
 	));
 	ImGui.set_function("SeparatorText", sol::overload(
 		[](const char* text) { ImGui::SeparatorText(text); },
