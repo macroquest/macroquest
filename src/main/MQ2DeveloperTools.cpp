@@ -2689,6 +2689,24 @@ public:
 				ImGui::TableNextColumn(); ImGui::Text("Heroic 100 Slots");
 				ImGui::TableNextColumn(); ImGui::Text("%d", eq.Heroic100Slots);
 
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Legacy Characters Ruleset");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.LegacyCharactersRuleset);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Num Max Characters");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.NumMaxCharacters);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Legacy Experience Bonus");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.LegacyExperienceBonus);
+
+#if HAS_ALTERNATE_PERSONAS
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Num Available Personas");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.NumAvailablePersonas);
+#endif
+
 				ImGui::TreePop();
 			}
 
