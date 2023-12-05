@@ -1920,6 +1920,28 @@ public:
 				ImGui::TreePop();
 			}
 
+#if HAS_ALTERNATE_PERSONAS
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+
+			if (ImGui::TreeNode("Personas"))
+			{
+				for (int i = 0; i < MAX_PLAYER_CLASSES; ++i)
+				{
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+
+					ImGui::Text("%s", GetClassDesc(i + 1));
+
+					ImGui::TableNextColumn();
+					ImGui::Text("%d", pLocalPC->ProfileManager.GetAltClassLevel(i));
+					
+				}
+
+				ImGui::TreePop();
+			}
+#endif
+
 			ImGui::EndTable();
 		}
 	}

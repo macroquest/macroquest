@@ -43,7 +43,7 @@
 
 #define CLIENT_OVERRIDE 0
 
-#if defined(LIVE)
+#if IS_LIVE_CLIENT
 
 #if !defined(_M_AMD64)
 #error Live build is only for x64
@@ -52,7 +52,7 @@
 #define MacroQuestWinClassName "__MacroQuestTray(Live)"
 #define MacroQuestWinName "MacroQuest(Live)"
 
-#elif defined(TEST)
+#elif IS_TEST_CLIENT
 
 #if !defined(_M_AMD64)
 #error Test build is only for x64
@@ -61,7 +61,16 @@
 #define MacroQuestWinClassName "__MacroQuestTray(Test)"
 #define MacroQuestWinName "MacroQuest(Test)"
 
-#elif defined(EMULATOR)
+#elif IS_BETA_CLIENT
+
+#if !defined(_M_AMD64)
+#error Beta build is only for x64
+#endif
+#pragma message("Building MacroQuest for BETA (x64)")
+#define MacroQuestWinClassName "__MacroQuestTray(Beta)"
+#define MacroQuestWinName "MacroQuest(Beta)"
+
+#elif IS_EMU_CLIENT
 
 #if defined(_M_AMD64)
 #error Emulator Build is only for x86
