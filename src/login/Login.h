@@ -31,7 +31,7 @@ bool DecryptData(DATA_BLOB* DataIn, DATA_BLOB* DataOut);
 
 struct ProfileRecord
 {
-	std::string profileName;
+	std::string profileName; // this is the group of characters
 	std::string serverName;
 
 	std::string accountName;
@@ -41,6 +41,8 @@ struct ProfileRecord
 	std::string hotkey;
 	std::string characterClass;
 	int characterLevel = 0;
+
+	std::optional<std::filesystem::path> eqPath;
 	bool checked = false;
 
 	static ProfileRecord FromString(const std::string& input);
@@ -53,6 +55,7 @@ struct ProfileRecord
 struct ProfileGroup
 {
 	std::string profileName;
+	std::optional<std::filesystem::path> eqPath;
 	std::vector<ProfileRecord> records;
 };
 

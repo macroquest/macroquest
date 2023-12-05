@@ -23,10 +23,17 @@
 #pragma comment(lib, "Crypt32.lib")
 
 #include <wil/resource.h>
+#include <wil/registry.h>
 #include <filesystem>
 #include <regex>
 
 #include <fmt/format.h>
+#include <spdlog/spdlog.h>
+
+#include "sqlite3.h"
+#include "argon2.h"
+
+#pragma comment(lib, "argon2")
 
 using namespace mq;
 namespace fs = std::filesystem;
@@ -267,3 +274,247 @@ void ProfileRecord::FormatTo(char* buffer, size_t length) const
 
 	*result.out = 0;
 }
+
+// TODO: better encryption
+std::string XorEncryptDecrypt(std::string_view str, std::string_view key)
+{
+	std::string out(str);
+
+	auto mod_val = key.size() / sizeof(char);
+	int i = 0;
+	for (char& c : out)
+	{
+		c = c ^ key[++i % mod_val];
+	}
+}
+
+// TODO: AutoLogin.cpp will pop up a dialog at startup if the registry key fails
+// this will only try to read from the registry, and then validate against the master key hash
+std::optional<std::string> GetMasterPass(sqlite3*& db, const std::filesystem::path& path)
+{
+	wil::unique_hkey pass_hkey;
+	std::optional<DWORD> pass_timestamp;
+	std::optional<std::wstring> pass;
+	if (wil::reg::open_unique_key_nothrow(HKEY_CURRENT_USER, L"Software\\MacroQuest\\AutoLogin", pass_hkey, wil::reg::key_access::read) != S_OK || !pass_hkey)
+	{
+		SPDLOG_ERROR("AutoLogin Error failed to open registry key.");
+	}
+	else if (!(pass_timestamp = wil::reg::try_get_value_dword(pass_hkey.get(), L"MasterPassTimestamp")))
+	{
+		SPDLOG_ERROR("AutoLogin Error master pass is missing date.");
+	}
+	else if (*pass_timestamp + 720 > std::chrono::duration_cast<std::chrono::hours>(std::chrono::steady_clock::now().time_since_epoch()).count())
+	{
+		SPDLOG_ERROR("AutoLogin Error master pass has expired."); // 720 hours is 30 days
+	}
+	else if (!(pass = wil::reg::try_get_value_string(pass_hkey.get(), L"MasterPass")))
+	{
+		SPDLOG_ERROR("AutoLogin Error master pass is missing.");
+	}
+	else if (sqlite3_open_v2(path.string().c_str(), &db, SQLITE_OPEN_READONLY, nullptr) != SQLITE_OK)
+	{
+		SPDLOG_ERROR("AutoLogin Error opening login database: %s", sqlite3_errmsg(db));
+		sqlite3_close(db);
+		db = nullptr;
+	}
+	else
+	{
+		sqlite3_stmt* stmt;
+		sqlite3_prepare_v2(db, R"(SELECT master_pass FROM login)", -1, &stmt, nullptr);
+
+		if (sqlite3_step(stmt) == SQLITE_ROW)
+		{
+			// TODO: so many magic number, let's give these names
+			uint8_t* stored_hash = (uint8_t*)sqlite3_column_blob(stmt, 0);
+			if (sqlite3_column_bytes(stmt, 0) == 32)
+			{
+				std::string entered_pass(pass->begin(), pass->end());
+
+				// TODO: what to salt with?
+				const uint8_t salt[16] = { 0 };
+				uint8_t entered_hash[32];
+				argon2i_hash_raw(2, 1 << 16, 1, entered_pass.c_str(), entered_pass.length(), salt, 16, entered_hash, 32);
+
+				if (std::equal(stored_hash, stored_hash + 32, entered_hash))
+					return entered_pass;
+			}
+		}
+
+		sqlite3_finalize(stmt);
+	}
+
+	return {};
+}
+
+std::vector<ProfileGroup> GetProfileGroups(sqlite3*& db, const std::filesystem::path& path)
+{
+	std::vector<ProfileGroup> profile_groups;
+	std::optional<std::string> pass;
+	if (sqlite3_open_v2(path.string().c_str(), &db, SQLITE_OPEN_READONLY, nullptr) != SQLITE_OK)
+	{
+		SPDLOG_ERROR("AutoLogin Error opening login database: %s", sqlite3_errmsg(db));
+		sqlite3_close(db);
+		db = nullptr;
+	}
+	else if (!(pass = GetMasterPass(db, path)))
+	{
+		SPDLOG_ERROR("AutoLogin Error failed to get password.");
+	}
+	else
+	{
+		sqlite3_stmt* groups_stmt;
+		sqlite3_prepare_v2(db, R"(SELECT id, name, eq_path FROM profile_groups)", -1, &groups_stmt, nullptr);
+
+		std::map<unsigned int, ProfileGroup> group_map;
+		while (sqlite3_step(groups_stmt) == SQLITE_ROW)
+		{
+			auto id = (unsigned int)sqlite3_column_int(groups_stmt, 0);
+			std::string name((const char*)sqlite3_column_text(groups_stmt, 1));
+
+			// TODO: this is nullable, need to make it an optional
+			std::string eq_path((const char*)sqlite3_column_text(groups_stmt, 2));
+
+			group_map[id] = ProfileGroup{ name, eq_path, {} };
+		}
+
+		sqlite3_finalize(groups_stmt);
+
+		for (auto& [id, group] : group_map)
+		{
+			sqlite3_stmt* stmt;
+			sqlite3_prepare_v2(db, R"(
+SELECT a.account, a.password, c.server, c.character, p.hotkey, p.selected, p.eq_path, l.class, l.level
+FROM profiles p
+JOIN characters c
+ON p.character_id = c.id
+JOIN accounts a
+ON c.account = a.account
+JOIN personas l
+ON l.character_id = c.id
+			)", -1, &stmt, nullptr);
+
+			while (sqlite3_step(stmt) == SQLITE_ROW)
+			{
+				std::string account((const char*)sqlite3_column_text(stmt, 0));
+				std::string password(XorEncryptDecrypt((const char*)sqlite3_column_text(stmt, 1), *pass));
+
+				std::string server((const char*)sqlite3_column_text(stmt, 2));
+				std::string character((const char*)sqlite3_column_text(stmt, 3));
+
+				std::string hotkey((const char*)sqlite3_column_text(stmt, 4));
+				auto selected = (bool)sqlite3_column_int(stmt, 5);
+
+				// TODO: this is nullable, need to make it optional
+				std::string eq_path((const char*)sqlite3_column_text(stmt, 6));
+
+				std::string cls((const char*)sqlite3_column_text(stmt, 7));
+				auto level = sqlite3_column_int(stmt, 8);
+
+				group.records.push_back(ProfileRecord{
+					group.profileName,
+					server,
+					account,
+					password,
+					character,
+					hotkey,
+					cls,
+					level,
+					eq_path,
+					selected
+				});
+			}
+
+			sqlite3_finalize(stmt);
+		}
+	}
+
+	if (db != nullptr) sqlite3_close(db);
+	return profile_groups;
+}
+
+std::vector<ProfileGroup> InitDatabase(sqlite3*& db, const std::filesystem::path& path)
+{
+	if (sqlite3_open_v2(path.string().c_str(), &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr) != SQLITE_OK)
+	{
+		SPDLOG_ERROR("AutoLogin Error opening login database: %s", sqlite3_errmsg(db));
+		sqlite3_close(db);
+		db = nullptr;
+	}
+	else
+	{
+		char* err_msg = nullptr;
+		auto err = [&err_msg, &db](std::string_view text)
+			{
+				SPDLOG_ERROR("%s: %s", text, err_msg);
+				sqlite3_free(err_msg);
+				sqlite3_close(db);
+				db = nullptr;
+			};
+
+		// TODO: This uses a lot of foreign keys -- test if we need to enable them
+
+		if (sqlite3_exec(db, R"(
+CREATE TABLE IF NOT EXISTS login (
+  master_pass blob not null -- just the hash, of course
+  eq_path text
+) WITHOUT ROWID;
+		)", nullptr, nullptr, &err_msg) != SQLITE_OK)
+			err("AutoLogin Error creating login master table");
+		else if (sqlite3_exec(db, R"(
+CREATE TABLE IF NOT EXISTS accounts (
+  account text primary key,
+  password blob not null -- this will be encrypted internally with master_pass as key
+) WITHOUT ROWID;
+		)", nullptr, nullptr, &err_msg) != SQLITE_OK)
+			err("");
+		else if (sqlite3_exec(db, R"(
+CREATE TABLE IF NOT EXISTS characters (
+  id integer primary key,
+  character text not null,
+  server text not null,
+  account text not null,
+  foreign key (account) references accounts(account) on delete cascade,
+  unique (character, server)
+) WITHOUT ROWID;
+		)", nullptr, nullptr, &err_msg) != SQLITE_OK)
+			err("");
+		else if (sqlite3_exec(db, R"(
+CREATE TABLE IF NOT EXISTS profile_groups (
+  id integer primary key,
+  name text not null,
+  eq_path text,
+  unique (name)
+) WITHOUT ROWID;
+		)", nullptr, nullptr, &err_msg) != SQLITE_OK)
+			err("");
+		else if (sqlite3_exec(db, R"(
+CREATE TABLE IF NOT EXISTS profiles (
+  character_id integer not null,
+  group_id integer not null,
+  eq_path text,
+  hotkey text,
+  selected integer not null, -- if the character is selected to login (boolean)
+  foreign key (character_id) references characters(id) on delete cascade,
+  foreign key (group_id) references profile_groups(id) on delete cascade
+) WITHOUT ROWID;
+		)", nullptr, nullptr, &err_msg) != SQLITE_OK)
+			err("");
+		else if (sqlite3_exec(db, R"(
+CREATE TABLE IF NOT EXISTS personas (
+  character_id integer not null,
+  class text not null,
+  level text not null,
+  foreign key (character_id) references characters(id) on delete cascade
+) WITHOUT ROWID;
+		)", nullptr, nullptr, &err_msg) != SQLITE_OK)
+			err("");
+		else
+		{
+			return GetProfileGroups(db, path);
+		}
+	}
+
+	if (db != nullptr) sqlite3_close(db);
+	return {};
+}
+
