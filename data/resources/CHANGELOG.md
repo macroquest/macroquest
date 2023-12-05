@@ -1,3 +1,8 @@
+Dec 4, 2023:
+- test: Fix ZoneGuide
+- Add Me.PersonaLevel - takes class shortname as param, returns level of that class persona.
+  e.g. ${Me.PersonaLevel[DRU]} returns level of druid class persona.
+
 Dec 2, 2023:
 - test: Updated for latest patch
 
