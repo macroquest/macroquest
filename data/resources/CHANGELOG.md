@@ -1,3 +1,6 @@
+Dec 5, 2023:
+- live: Updated for latest expansion
+
 Dec 4, 2023:
 - test: Fix ZoneGuide
 - Add Me.PersonaLevel - takes class shortname as param, returns level of that class persona.
