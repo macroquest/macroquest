@@ -391,7 +391,10 @@ JOIN accounts a
 ON c.account = a.account
 JOIN personas l
 ON l.character_id = c.id
+WHERE p.group_id = ?
 			)", -1, &stmt, nullptr);
+
+			sqlite3_bind_int(stmt, 1, id);
 
 			while (sqlite3_step(stmt) == SQLITE_ROW)
 			{
