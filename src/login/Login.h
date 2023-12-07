@@ -64,6 +64,14 @@ struct ProfileGroup
 
 std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& szIniFileName);
 
+// TODO:
+//	master pass should be stored in launcher and gotten via a message
+//	need to write conversion tool that will convert all old configs to database
+//		conversion should automatically happen after first master password entry
+//		allow deletion of db to trigger a reimport of config files
+//	force "old style" if people cancel the password entry
+//	smart eq path selection (profile -> group -> base)
+
 namespace login::db {
 std::optional<std::string> GetMasterPass();
 bool UpdateMasterPass(std::string_view pass);
