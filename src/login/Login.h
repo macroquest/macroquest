@@ -20,7 +20,6 @@
 #include <wincrypt.h>
 
 #include <optional>
-#include <filesystem>
 
 #ifdef _DEBUG
 #pragma comment(lib, "libprotobufd")
@@ -66,17 +65,19 @@ std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& szIniFileName
 
 // TODO:
 //	master pass should be stored in launcher and gotten via a message
-//	need to write conversion tool that will convert all old configs to database
-//		conversion should automatically happen after first master password entry
-//		allow deletion of db to trigger a reimport of config files
-//	force "old style" if people cancel the password entry
-//	smart eq path selection (profile -> group -> base)
+//		reset message when new pass is entered
+//		can store locally once retrieved
+//		only the launcher should be retrieving it from the registry/db
+//		allow people to just get pass from the registry easily (it doesn't need to be _that_ secure)
 
 namespace login::db {
+void MemoizeMasterPass(std::string_view pass);
 std::optional<std::string> GetMasterPass();
-bool UpdateMasterPass(std::string_view pass);
-std::string GetEQPath();
-void UpdateEQPath(std::string_view path);
+
+bool CreateMasterPass(std::string_view pass);
+std::optional<std::string> ReadMasterPass();
+void CreateEQPath(std::string_view path);
+std::string ReadEQPath();
 
 void CreateProfileGroup(const ProfileGroup& group);
 std::optional<unsigned int> ReadProfileGroup(ProfileGroup& group);
@@ -107,5 +108,6 @@ void DeleteProfile(std::string_view server, std::string_view name, std::string_v
 
 std::optional<std::string> GetEQPath(std::string_view group, std::string_view server, std::string_view name);
 std::vector<ProfileGroup> GetProfileGroups();
-std::vector<ProfileGroup> InitDatabase(const std::filesystem::path& path);
+void WriteProfileGroups(const std::vector<ProfileGroup>& groups);
+std::vector<ProfileGroup> InitDatabase(const std::string& path, const std::string& ini);
 } // namespace login::db
