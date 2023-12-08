@@ -6492,7 +6492,11 @@ int GetCharMaxLevel()
 {
 	int MaxLevel = 50;
 
-	if (HasExpansion(EXPANSION_TOL) || HasExpansion(EXPANSION_NOS))
+	if (HasExpansion(EXPANSION_LS))
+	{
+		MaxLevel = 125;
+	}
+	else if (HasExpansion(EXPANSION_TOL) || HasExpansion(EXPANSION_NOS))
 	{
 		MaxLevel = 120;
 	}
