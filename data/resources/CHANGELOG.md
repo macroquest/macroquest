@@ -1,5 +1,6 @@
 Dec 8, 2023:
 - live: Fix spawn manager crash
+- test: Fix spawn manager crash
 
 Dec 5, 2023:
 - live: Updated for latest expansion
