@@ -415,9 +415,9 @@ void RegisterBindings_ImGui(sol::state_view state)
 	));
 	ImGui.set_function("OpenPopupOnItemClick", [](const std::optional<const char*>& str_id, const std::optional<int>& popup_flags) { ImGui::OpenPopupOnItemClick(str_id.value_or(nullptr), popup_flags.value_or(ImGuiPopupFlags_MouseButtonRight)); });
 	ImGui.set_function("CloseCurrentPopup", &ImGui::CloseCurrentPopup);
-	ImGui.set_function("BeginPopupContextItem", [](const std::optional<const char*>& str_id, const std::optional<int>& popup_flags) { ImGui::BeginPopupContextItem(str_id.value_or(nullptr), popup_flags.value_or(ImGuiPopupFlags_MouseButtonRight)); });
-	ImGui.set_function("BeginPopupContextWindow", [](const std::optional<const char*>& str_id, const std::optional<int>& popup_flags) { ImGui::BeginPopupContextWindow(str_id.value_or(nullptr), popup_flags.value_or(ImGuiPopupFlags_MouseButtonRight)); });
-	ImGui.set_function("BeginPopupContextVoid", [](const std::optional<const char*>& str_id, const std::optional<int>& popup_flags) { ImGui::BeginPopupContextVoid(str_id.value_or(nullptr), popup_flags.value_or(ImGuiPopupFlags_MouseButtonRight)); });
+	ImGui.set_function("BeginPopupContextItem", [](const std::optional<const char*>& str_id, const std::optional<int>& popup_flags) { return ImGui::BeginPopupContextItem(str_id.value_or(nullptr), popup_flags.value_or(ImGuiPopupFlags_MouseButtonRight)); });
+	ImGui.set_function("BeginPopupContextWindow", [](const std::optional<const char*>& str_id, const std::optional<int>& popup_flags) { return ImGui::BeginPopupContextWindow(str_id.value_or(nullptr), popup_flags.value_or(ImGuiPopupFlags_MouseButtonRight)); });
+	ImGui.set_function("BeginPopupContextVoid", [](const std::optional<const char*>& str_id, const std::optional<int>& popup_flags) { return ImGui::BeginPopupContextVoid(str_id.value_or(nullptr), popup_flags.value_or(ImGuiPopupFlags_MouseButtonRight)); });
 	ImGui.set_function("IsPopupOpen", [](const char* str_id, const std::optional<int>& flags) { return ImGui::IsPopupOpen(str_id, flags.value_or(0)); });
 #pragma endregion
 
@@ -469,7 +469,11 @@ void RegisterBindings_ImGui(sol::state_view state)
 	#pragma region Tab Bars, Tabs
 	ImGui.set_function("BeginTabBar", [](const char* str_id, const std::optional<int>& flags) { return ImGui::BeginTabBar(str_id, flags.value_or(0)); });
 	ImGui.set_function("EndTabBar", &ImGui::EndTabBar);
-	ImGui.set_function("BeginTabItem", [](const char* label, const std::optional<bool>& open, const std::optional<int>& flags) { bool open_ = open.value_or(true); bool show = ImGui::BeginTabItem(label, open.has_value() ? &open_ : nullptr, flags.value_or(0)); return std::make_tuple(open_, show); });
+	ImGui.set_function("BeginTabItem",
+		[](const char* label, const std::optional<bool>& open, const std::optional<int>& flags) {
+			bool open_ = open.value_or(true); bool show = ImGui::BeginTabItem(label, open.has_value() ? &open_ : nullptr, flags.value_or(0));
+			return std::make_tuple(open.has_value() ? open_ : show, show);
+		});
 	ImGui.set_function("EndTabItem", &ImGui::EndTabItem);
 	ImGui.set_function("SetTabItemClosed", &ImGui::SetTabItemClosed);
 	#pragma endregion
