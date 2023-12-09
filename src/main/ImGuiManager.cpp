@@ -21,6 +21,7 @@
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+#include "imgui/implot/implot.h"
 
  // I was trying to avoid including main, but we just got too many globals
 #include "MQ2Main.h"
@@ -688,6 +689,7 @@ void ImGuiManager_CreateContext()
 
 	// Initialize ImGui context
 	ImGui::CreateContext(s_fontAtlas);
+	ImPlot::CreateContext();
 
 	if (buildFonts)
 	{
@@ -712,6 +714,7 @@ void ImGuiManager_CreateContext()
 
 void ImGuiManager_DestroyContext()
 {
+	ImPlot::DestroyContext();
 	ImGui::DestroyContext();
 
 	delete s_fontAtlas;
