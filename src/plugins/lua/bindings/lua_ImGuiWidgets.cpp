@@ -757,7 +757,7 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 	ImGui.set_function("EndMenuBar", &ImGui::EndMenuBar);
 	ImGui.set_function("BeginMainMenuBar", &ImGui::BeginMainMenuBar);
 	ImGui.set_function("EndMainMenuBar", &ImGui::EndMainMenuBar);
-	ImGui.set_function("BeginMenu", [](const char* label, std::optional<bool>& enabled) { ImGui::BeginMenu(label, enabled.value_or(true)); });
+	ImGui.set_function("BeginMenu", [](const char* label, std::optional<bool>& enabled) { return ImGui::BeginMenu(label, enabled.value_or(true)); });
 	ImGui.set_function("EndMenu", &ImGui::EndMenu);
 	ImGui.set_function("MenuItem",
 		[](const char* label, std::optional<const char*> shortcut, std::optional<bool> selected, std::optional<bool> enabled) {
