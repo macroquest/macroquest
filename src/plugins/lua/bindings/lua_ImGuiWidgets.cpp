@@ -33,19 +33,20 @@ std::string format_text(sol::this_state s, sol::variadic_args va);
 // Widgets: Combo Box
 
 // Combo 1: Takes list of items
-static std::tuple<int, bool> Combo1(const char* label, int currentItem, const sol::table& items, int itemsCount, const std::optional<int>& popupMaxHeightInItems)
+static std::tuple<int, bool> Combo1(const char* label, int currentItem, const sol::table& items, const std::optional<int> itemsCount, const std::optional<int>& popupMaxHeightInItems)
 {
 	std::vector<const char*> strings;
-	strings.reserve(itemsCount);
+	int count = itemsCount.value_or(items.size());
+	strings.reserve(count);
 
-	for (int i = 1; i <= itemsCount; i++)
+	for (int i = 1; i <= count; i++)
 	{
 		const std::optional<const char*>& stringItem = items.get<std::optional<const char*>>(i);
 		strings.push_back(stringItem.value_or("Missing Value"));
 	}
 
 	currentItem -= 1;
-	bool clicked = ImGui::Combo(label, &currentItem, strings.data(), itemsCount, popupMaxHeightInItems.value_or(-1));
+	bool clicked = ImGui::Combo(label, &currentItem, strings.data(), count, popupMaxHeightInItems.value_or(-1));
 	return std::make_tuple(currentItem + 1, clicked);
 }
 
@@ -538,19 +539,20 @@ static bool ColorButton3(const char* desc_id, ImU32 color, const std::optional<i
 
 #pragma region Widgets: List Boxes
 // Widgets: List Boxes
-static std::tuple<int, bool> ListBox1(const char* label, int current_item, const sol::table& items, int items_count, const std::optional<int>& height_in_items)
+static std::tuple<int, bool> ListBox1(const char* label, int current_item, const sol::table& items, const std::optional<int> items_count, const std::optional<int>& height_in_items)
 {
 	std::vector<const char*> strings;
-	strings.reserve(items_count);
+	int count = items_count.value_or(items.size());
+	strings.reserve(count);
 
-	for (int i = 1; i <= items_count; i++)
+	for (int i = 1; i <= count; i++)
 	{
 		const std::optional<const char*>& stringItem = items.get<std::optional<const char*>>(i);
 		strings.push_back(stringItem.value_or("Missing String"));
 	}
 
 	current_item -= 1;
-	bool changed = ImGui::ListBox(label, &current_item, strings.data(), items_count, height_in_items.value_or(-1));
+	bool changed = ImGui::ListBox(label, &current_item, strings.data(), count, height_in_items.value_or(-1));
 	return std::make_tuple(current_item + 1, changed);
 }
 
@@ -569,6 +571,66 @@ static std::tuple<int, bool> ListBox2(const char* label, int current_item, sol::
 	current_item -= 1;
 	bool changed = ImGui::ListBox(label, &current_item, LuaListboxGetter, &getter, itemsCount, height_in_items.value_or(-1));
 	return std::make_tuple(current_item + 1, changed);
+}
+#pragma endregion
+
+#pragma region Widgets:: Data Plotting
+static void PlotLines1(const char* label, const sol::table& values_, const std::optional<int>& values_count, const std::optional<int>& values_offset,
+	const std::optional<const char*>& overlay_text, const std::optional<float>& scale_min, const std::optional<float>& scale_max, const std::optional<ImVec2>& graph_size)
+{
+	std::vector<float> values;
+	int count = values_count.value_or(values_.size());
+	values.reserve(count);
+
+	for (int i = 1; i <= count; i++)
+	{
+		values.push_back(values_.get<std::optional<float>>(i).value_or(0.0f));
+	}
+
+	ImGui::PlotLines(label, values.data(), count, values_offset.value_or(0), overlay_text.value_or(nullptr),
+		scale_min.value_or(FLT_MAX), scale_max.value_or(FLT_MAX), graph_size.value_or(ImVec2(0, 0)), sizeof(float));
+}
+
+static float LuaPlotLinesGetter(void* ptr, int idx)
+{
+	auto& getter = *static_cast<sol::function*>(ptr);
+
+	sol::function_result result = getter(idx + 1);
+	const std::optional<float>& value = result.get<std::optional<float>>();
+
+	return value.value_or(0.0f);
+}
+
+static void PlotLines2(const char* label, sol::function getter, int values_count, const std::optional<int>& values_offset,
+	const std::optional<const char*>& overlay_text, const std::optional<float>& scale_min, const std::optional<float>& scale_max,
+	const std::optional<ImVec2>& graph_size)
+{
+	ImGui::PlotLines(label, LuaPlotLinesGetter, &getter, values_count, values_offset.value_or(0), overlay_text.value_or(nullptr),
+		scale_min.value_or(FLT_MAX), scale_max.value_or(FLT_MAX), graph_size.value_or(ImVec2(0, 0)));
+}
+
+static void PlotHistogram1(const char* label, const sol::table& values_, const std::optional<int>& values_count, const std::optional<int>& values_offset,
+	const std::optional<const char*>& overlay_text, const std::optional<float>& scale_min, const std::optional<float>& scale_max, const std::optional<ImVec2>& graph_size)
+{
+	std::vector<float> values;
+	int count = values_count.value_or(values_.size());
+	values.reserve(count);
+
+	for (int i = 1; i <= count; i++)
+	{
+		values.push_back(values_.get<std::optional<float>>(i).value_or(0.0f));
+	}
+
+	ImGui::PlotHistogram(label, values.data(), count, values_offset.value_or(0), overlay_text.value_or(nullptr),
+		scale_min.value_or(FLT_MAX), scale_max.value_or(FLT_MAX), graph_size.value_or(ImVec2(0, 0)), sizeof(float));
+}
+
+static void PlotHistogram2(const char* label, sol::function getter, int values_count, const std::optional<int>& values_offset,
+	const std::optional<const char*>& overlay_text, const std::optional<float>& scale_min, const std::optional<float>& scale_max,
+	const std::optional<ImVec2>& graph_size)
+{
+	ImGui::PlotHistogram(label, LuaPlotLinesGetter, &getter, values_count, values_offset.value_or(0), overlay_text.value_or(nullptr),
+		scale_min.value_or(FLT_MAX), scale_max.value_or(FLT_MAX), graph_size.value_or(ImVec2(0, 0)));
 }
 #pragma endregion
 
@@ -741,6 +803,11 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 	ImGui.set_function("BeginListBox", [](const char* label, const std::optional<ImVec2>& size) { return ImGui::BeginListBox(label, size.value_or(ImVec2(0, 0))); });
 	ImGui.set_function("EndListBox", &ImGui::EndListBox);
 	ImGui.set_function("ListBox", sol::overload(&ListBox1, &ListBox2));
+	#pragma endregion
+
+	#pragma region Widgets: Data Plotting
+	ImGui.set_function("PlotLines", sol::overload(&PlotLines1, &PlotLines2));
+	ImGui.set_function("PlotHistogram", sol::overload(&PlotHistogram1, &PlotHistogram2));
 	#pragma endregion
 
 	#pragma region Widgets: Value() Helpers
