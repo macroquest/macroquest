@@ -1,3 +1,6 @@
+Dec 9, 2023:
+- Fix formatting of links in console when line contains multiple links
+
 Dec 8, 2023:
 - live: Fix spawn manager crash
 
