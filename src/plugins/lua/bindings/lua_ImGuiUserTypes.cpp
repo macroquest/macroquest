@@ -37,7 +37,7 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		                                                , sol::constructors<ImVec2(), ImVec2(float, float)>(),
 		"x"                                             , &ImVec2::x,
 		"y"                                             , &ImVec2::y,
-		sol::meta_function::to_string                   , [](ImVec2& mThis) { return fmt::format("({},{})", mThis.x, mThis.y); },
+		sol::meta_function::to_string                   , [](const ImVec2& mThis) { return fmt::format("({},{})", mThis.x, mThis.y); },
 		sol::meta_function::addition                    , sol::overload(
 			                                              [](const ImVec2& a, const ImVec2& b) { return a + b; },
 			                                              [](const ImVec2& a, float b)         { return ImVec2(a.x + b, a.y + b); }),
