@@ -1,0 +1,6 @@
+[submodule "external/imgui"]
+	path = external/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "external/ios-cmake"]
+	path = hello_imgui_cmake/ios-cmake
+	url = https://github.com/leetal/ios-cmake.git
