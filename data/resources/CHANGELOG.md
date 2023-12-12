@@ -1,3 +1,6 @@
+Dec 12, 2023:
+- live: Updated for latest patch
+
 Dec 9, 2023:
 - Fix formatting of links in console when line contains multiple links
 
