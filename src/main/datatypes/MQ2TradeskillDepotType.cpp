@@ -156,8 +156,7 @@ bool MQ2TradeskillDepotType::GetMember(MQVarPtr VarPtr, const char* Member, char
 				if (pCursorAttachment && pCursorAttachment->Type == eCursorAttachment_Item)
 				{
 					CXPoint pt = pTradeskillDepotWnd->pItemList->GetClientRect().CenterPoint();
-					sprintf_s(DataTypeTemp, "%d %d", pt.x, pt.y);
-					MouseTo(pLocalPlayer, DataTypeTemp);
+					MoveMouse(pt.x, pt.y);
 					Click(pLocalPlayer, "left");
 				}
 			}
