@@ -1360,6 +1360,8 @@ int GetCurrencyIDByName(char* szName)
 	if (!_stricmp(szName, "Medals of Conflict")) return ALTCURRENCY_MEDALSOFCONFLICT;
 	if (!_stricmp(szName, "Shaded Specie")) return ALTCURRENCY_SHADEDSPECIE;
 	if (!_stricmp(szName, "Spiritual Medallion")) return ALTCURRENCY_SPIRITUALMEDALLION;
+	if (!_stricmp(szName, "Laurion Inn Voucher")) return ALTCURRENCY_LAURIONINNVOUCHER;
+	if (!_stricmp(szName, "Shalowains Private Reserve")) return ALTCURRENCY_SHALOWAINSPRIVATERESERVE;
 	return -1;
 }
 
