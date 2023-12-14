@@ -33,7 +33,7 @@ std::string format_text(sol::this_state s, sol::variadic_args va);
 // Widgets: Combo Box
 
 // Combo 1: Takes list of items
-static std::tuple<int, bool> Combo1(const char* label, int currentItem, const sol::table& items, const std::optional<int> itemsCount, const std::optional<int>& popupMaxHeightInItems)
+static std::tuple<int, bool> Combo1(const char* label, int currentItem, const sol::table& items, std::optional<int> itemsCount, std::optional<int> popupMaxHeightInItems)
 {
 	std::vector<const char*> strings;
 	int count = itemsCount.value_or(items.size());
@@ -41,7 +41,7 @@ static std::tuple<int, bool> Combo1(const char* label, int currentItem, const so
 
 	for (int i = 1; i <= count; i++)
 	{
-		const std::optional<const char*>& stringItem = items.get<std::optional<const char*>>(i);
+		std::optional<const char*> stringItem = items.get<std::optional<const char*>>(i);
 		strings.push_back(stringItem.value_or("Missing Value"));
 	}
 
@@ -51,7 +51,7 @@ static std::tuple<int, bool> Combo1(const char* label, int currentItem, const so
 }
 
 // Combo 2: Takes a string containing null separated items
-static std::tuple<int, bool> Combo2(const char* label, int currentItem, const char* itemsSeparatedByZeros, const std::optional<int>& popupMaxHeightInItems)
+static std::tuple<int, bool> Combo2(const char* label, int currentItem, const char* itemsSeparatedByZeros, std::optional<int> popupMaxHeightInItems)
 {
 	currentItem -= 1;
 	bool clicked = ImGui::Combo(label, &currentItem, itemsSeparatedByZeros, popupMaxHeightInItems.value_or(-1));
@@ -63,7 +63,7 @@ static bool LuaComboGetter(void* ptr, int idx, const char** out_text)
 	auto& getter = *static_cast<sol::function*>(ptr);
 
 	sol::function_result result = getter(idx + 1);
-	const std::optional<const char*>& value = result.get<std::optional<const char*>>();
+	std::optional<const char*> value = result.get<std::optional<const char*>>();
 
 	if (!value.has_value())
 		return false;
@@ -73,7 +73,7 @@ static bool LuaComboGetter(void* ptr, int idx, const char** out_text)
 }
 
 // Combo 3: Takes callback function to get list of items
-static std::tuple<int, bool> Combo3(const char* label, int currentItem, sol::function getter, int itemsCount, const std::optional<int>& popupMaxHeightInItems)
+static std::tuple<int, bool> Combo3(const char* label, int currentItem, sol::function getter, int itemsCount, std::optional<int> popupMaxHeightInItems)
 {
 	currentItem -= 1;
 
@@ -86,8 +86,8 @@ static std::tuple<int, bool> Combo3(const char* label, int currentItem, sol::fun
 // Widgets: Drag Sliders
 
 static std::tuple<float, bool> DragFloat(const char* label, float v,
-	const std::optional<float>& v_speed, const std::optional<float>& v_min, const std::optional<float>& v_max,
-	const std::optional<const char*>& format, const std::optional<int>& flags)
+	std::optional<float> v_speed, std::optional<float> v_min, std::optional<float> v_max,
+	std::optional<const char*> format, std::optional<int> flags)
 {
 	bool changed = ImGui::DragFloat(label, &v, v_speed.value_or(1.0f), v_min.value_or(0.0f), v_max.value_or(0.0f), format.value_or("%.3f"), flags.value_or(0));
 	return std::make_tuple(v, changed);
@@ -100,8 +100,8 @@ static std::tuple<float, bool> DragFloat_Obsolete(const char* label, float v, fl
 
 template <int N>
 static std::tuple<sol::as_table_t<std::vector<float>>, bool> DragFloatN(const char* label, const sol::table& v,
-	const std::optional<float>& v_speed, const std::optional<float>& v_min, const std::optional<float>& v_max,
-	const std::optional<const char*>& format, const std::optional<int>& flags)
+	std::optional<float> v_speed, std::optional<float> v_min, std::optional<float> v_max,
+	std::optional<const char*> format, std::optional<int> flags)
 {
 	float value[N];
 	for (int i = 0; i < N; ++i)
@@ -128,9 +128,9 @@ static std::tuple<sol::as_table_t<std::vector<float>>, bool> DragFloatN_Obsolete
 	return DragFloatN<N>(label, v, v_speed, v_min, v_max, format, power != 1.0f ? ImGuiSliderFlags_Logarithmic : ImGuiSliderFlags_None);
 }
 
-static std::tuple<float, float, bool> DragFloatRange2(const char* label, float v_current_min, float v_current_max, const std::optional<float>& v_speed,
-	const std::optional<float>& v_min, const std::optional<float>& v_max, const std::optional<const char*>& format,
-	const std::optional<const char*>& format_max, const std::optional<int>& flags)
+static std::tuple<float, float, bool> DragFloatRange2(const char* label, float v_current_min, float v_current_max, std::optional<float> v_speed,
+	std::optional<float> v_min, std::optional<float> v_max, std::optional<const char*> format,
+	std::optional<const char*> format_max, std::optional<int> flags)
 {
 	bool changed = ImGui::DragFloatRange2(label, &v_current_min, &v_current_max, v_speed.value_or(1.0f), v_min.value_or(0.0f), v_max.value_or(0.0f), format.value_or("%.3f"),
 		format_max.value_or(nullptr), flags.value_or(0));
@@ -139,8 +139,8 @@ static std::tuple<float, float, bool> DragFloatRange2(const char* label, float v
 }
 
 static std::tuple<int, bool> DragInt(const char* label, int v,
-	const std::optional<float>& v_speed, const std::optional<int>& v_min, const std::optional<int>& v_max,
-	const std::optional<const char*>& format, const std::optional<int>& flags)
+	std::optional<float> v_speed, std::optional<int> v_min, std::optional<int> v_max,
+	std::optional<const char*> format, std::optional<int> flags)
 {
 	bool changed = ImGui::DragInt(label, &v, v_speed.value_or(1.0f), v_min.value_or(0), v_max.value_or(0), format.value_or("%d"), flags.value_or(0));
 	return std::make_tuple(v, changed);
@@ -148,8 +148,8 @@ static std::tuple<int, bool> DragInt(const char* label, int v,
 
 template <int N>
 static std::tuple<sol::as_table_t<std::vector<int>>, bool> DragIntN(const char* label, const sol::table& v,
-	const std::optional<float>& v_speed, const std::optional<int>& v_min, const std::optional<int>& v_max,
-	const std::optional<const char*>& format, const std::optional<int>& flags)
+	std::optional<float> v_speed, std::optional<int> v_min, std::optional<int> v_max,
+	std::optional<const char*> format, std::optional<int> flags)
 {
 	int value[N];
 	for (int i = 0; i < N; ++i)
@@ -168,9 +168,9 @@ static std::tuple<sol::as_table_t<std::vector<int>>, bool> DragIntN(const char* 
 	return std::make_tuple(int2, changed);
 }
 
-static std::tuple<int, int, bool> DragIntRange2(const char* label, int v_current_min, int v_current_max, const std::optional<float>& v_speed,
-	const std::optional<int>& v_min, const std::optional<int>& v_max, const std::optional<const char*>& format,
-	const std::optional<const char*>& format_max, const std::optional<int>& flags)
+static std::tuple<int, int, bool> DragIntRange2(const char* label, int v_current_min, int v_current_max, std::optional<float> v_speed,
+	std::optional<int> v_min, std::optional<int> v_max, std::optional<const char*> format,
+	std::optional<const char*> format_max, std::optional<int> flags)
 {
 	bool changed = ImGui::DragIntRange2(label, &v_current_min, &v_current_max, v_speed.value_or(1.0f), v_min.value_or(0), v_max.value_or(0), format.value_or("%d"),
 		format_max.value_or(nullptr), flags.value_or(0));
@@ -183,7 +183,7 @@ static std::tuple<int, int, bool> DragIntRange2(const char* label, int v_current
 // Widgets: Sliders
 
 static std::tuple<float, bool> SliderFloat(const char* label, float v,
-	const std::optional<float>& v_min, const std::optional<float>& v_max, const std::optional<const char*>& format, const std::optional<int>& flags)
+	std::optional<float> v_min, std::optional<float> v_max, std::optional<const char*> format, std::optional<int> flags)
 {
 	bool changed = ImGui::SliderFloat(label, &v, v_min.value_or(0.0f), v_max.value_or(0.0f), format.value_or("%.3f"), flags.value_or(0));
 	return std::make_tuple(v, changed);
@@ -196,7 +196,7 @@ static std::tuple<float, bool> SliderFloat_Obsolete(const char* label, float v, 
 
 template <int N>
 static std::tuple<sol::as_table_t<std::vector<float>>, bool> SliderFloatN(const char* label, const sol::table& v,
-	const std::optional<float>& v_min, const std::optional<float>& v_max, const std::optional<const char*>& format, const std::optional<int>& flags)
+	std::optional<float> v_min, std::optional<float> v_max, std::optional<const char*> format, std::optional<int> flags)
 {
 	float value[N];
 	for (int i = 0; i < N; ++i)
@@ -224,7 +224,7 @@ static std::tuple<sol::as_table_t<std::vector<float>>, bool> SliderFloatN_Obsole
 }
 
 static std::tuple<int, bool> SliderInt(const char* label, int v,
-	const std::optional<int>& v_min, const std::optional<int>& v_max, const std::optional<const char*>& format, const std::optional<int>& flags)
+	std::optional<int> v_min, std::optional<int> v_max, std::optional<const char*> format, std::optional<int> flags)
 {
 	bool changed = ImGui::SliderInt(label, &v, v_min.value_or(0), v_max.value_or(0), format.value_or("%d"), flags.value_or(0));
 	return std::make_tuple(v, changed);
@@ -232,7 +232,7 @@ static std::tuple<int, bool> SliderInt(const char* label, int v,
 
 template <int N>
 static std::tuple<sol::as_table_t<std::vector<int>>, bool> SliderIntN(const char* label, const sol::table& v,
-	const std::optional<int>& v_min, const std::optional<int>& v_max, const std::optional<const char*>& format, const std::optional<int>& flags)
+	std::optional<int> v_min, std::optional<int> v_max, std::optional<const char*> format, std::optional<int> flags)
 {
 	int value[N];
 	for (int i = 0; i < N; ++i)
@@ -252,7 +252,7 @@ static std::tuple<sol::as_table_t<std::vector<int>>, bool> SliderIntN(const char
 }
 
 static std::tuple<float, bool> SliderAngle(const char* label, float v_rad,
-	const std::optional<float>& v_degrees_min, const std::optional<float>& v_degrees_max, const std::optional<const char*>& format, const std::optional<int>& flags)
+	std::optional<float> v_degrees_min, std::optional<float> v_degrees_max, std::optional<const char*> format, std::optional<int> flags)
 {
 	bool changed = ImGui::SliderAngle(label, &v_rad, v_degrees_min.value_or(-360.0f), v_degrees_max.value_or(360.0f), format.value_or("%.0f deg"), flags.value_or(0));
 
@@ -260,27 +260,27 @@ static std::tuple<float, bool> SliderAngle(const char* label, float v_rad,
 }
 
 static std::tuple<float, bool> VSliderFloatVec2(const char* label, const ImVec2& size, float value, float v_min, float v_max,
-	const std::optional<const char*>& format, const std::optional<int>& flags)
+	std::optional<const char*> format, std::optional<int> flags)
 {
 	bool changed = ImGui::VSliderFloat(label, size, &value, v_min, v_max, format.value_or("%.3f"), flags.value_or(0));
 	return std::make_tuple(value, changed);
 }
 
 static std::tuple<float, bool> VSliderFloat(const char* label, float sizeX, float sizeY, float value, float v_min, float v_max,
-	std::optional<const char*>& format, const std::optional<int>& flags)
+	std::optional<const char*>& format, std::optional<int> flags)
 {
 	return VSliderFloatVec2(label, { sizeX, sizeY }, value, v_min, v_max, format, flags);
 }
 
 static std::tuple<int, bool> VSliderIntVec2(const char* label, const ImVec2& size, int value, int v_min, int v_max,
-	const std::optional<const char*>& format, const std::optional<int>& flags)
+	std::optional<const char*> format, std::optional<int> flags)
 {
 	bool changed = ImGui::VSliderInt(label, size, &value, v_min, v_max, format.value_or("%d"), flags.value_or(0));
 	return std::make_tuple(value, changed);
 }
 
 static std::tuple<int, bool> VSliderInt(const char* label, float sizeX, float sizeY, int value, int v_min, int v_max,
-	const std::optional<const char*>& format, const std::optional<int>& flags)
+	std::optional<const char*> format, std::optional<int> flags)
 {
 	return VSliderIntVec2(label, { sizeX, sizeY }, value, v_min, v_max, format, flags);
 }
@@ -294,12 +294,12 @@ static int LuaInputTextCallback(ImGuiInputTextCallbackData* data)
 	ImGuiInputTextFlags EventFlag = data->EventFlag;
 
 	sol::function_result result = getter(EventFlag, data);
-	const std::optional<int>& value = result.get<std::optional<int>>();
+	std::optional<int> value = result.get<std::optional<int>>();
 
 	return value.value_or(0);
 }
 
-static std::tuple<std::string, bool> InputText1(const char* label, std::string text, const std::optional<int>& flags, const std::optional<sol::function>& callback)
+static std::tuple<std::string, bool> InputText1(const char* label, std::string text, std::optional<int> flags, std::optional<sol::function> callback)
 {
 	bool changed = false;
 
@@ -316,7 +316,7 @@ static std::tuple<std::string, bool> InputText1(const char* label, std::string t
 	return std::make_tuple(text, changed);
 }
 
-static std::tuple<std::string, bool> InputTextMultiline1(const char* label, std::string text, float sizeX, float sizeY, const std::optional<int>& flags, const std::optional<sol::function>& callback)
+static std::tuple<std::string, bool> InputTextMultiline1(const char* label, std::string text, float sizeX, float sizeY, std::optional<int> flags, std::optional<sol::function> callback)
 {
 	bool changed = false;
 	if (callback.has_value())
@@ -332,7 +332,7 @@ static std::tuple<std::string, bool> InputTextMultiline1(const char* label, std:
 	return std::make_tuple(text, changed);
 }
 
-static std::tuple<std::string, bool> InputTextMultiline2(const char* label, std::string text, const std::optional<ImVec2>& size, const std::optional<int>& flags, const std::optional<sol::function>& callback)
+static std::tuple<std::string, bool> InputTextMultiline2(const char* label, std::string text, std::optional<ImVec2> size, std::optional<int> flags, std::optional<sol::function> callback)
 {
 	bool changed = false;
 	if (callback.has_value())
@@ -348,7 +348,7 @@ static std::tuple<std::string, bool> InputTextMultiline2(const char* label, std:
 	return std::make_tuple(text, changed);
 }
 
-static std::tuple<std::string, bool> InputTextWithHint(const char* label, const char* hint, std::string text, const std::optional<int>& flags, const std::optional<sol::function>& callback)
+static std::tuple<std::string, bool> InputTextWithHint(const char* label, const char* hint, std::string text, std::optional<int> flags, std::optional<sol::function> callback)
 {
 	bool changed = false;
 	if (callback.has_value())
@@ -364,8 +364,8 @@ static std::tuple<std::string, bool> InputTextWithHint(const char* label, const 
 	return std::make_tuple(text, changed);
 }
 
-static std::tuple<float, bool> InputFloat(const char* label, float value, const std::optional<float>& step, const std::optional<float>& step_fast,
-	const std::optional<const char*>& format, const std::optional<int>& flags)
+static std::tuple<float, bool> InputFloat(const char* label, float value, std::optional<float> step, std::optional<float> step_fast,
+	std::optional<const char*> format, std::optional<int> flags)
 {
 	bool changed = ImGui::InputFloat(label, &value, step.value_or(0.0f), step_fast.value_or(0.0f), format.value_or("%.3f"), flags.value_or(0));
 	return std::make_tuple(value, changed);
@@ -373,7 +373,7 @@ static std::tuple<float, bool> InputFloat(const char* label, float value, const 
 
 template <int N>
 static std::tuple<sol::as_table_t<std::vector<float>>, bool> InputFloatN(const char* label, const sol::table& v,
-	const std::optional<const char*>& format, const std::optional<int>& flags)
+	std::optional<const char*> format, std::optional<int> flags)
 {
 	float value[N];
 	for (int i = 0; i < N; ++i)
@@ -393,14 +393,14 @@ static std::tuple<sol::as_table_t<std::vector<float>>, bool> InputFloatN(const c
 	return std::make_tuple(float2, changed);
 }
 
-static std::tuple<int, bool> InputInt(const char* label, int value, const std::optional<int>& step, const std::optional<int>& step_fast, const std::optional<int>& flags)
+static std::tuple<int, bool> InputInt(const char* label, int value, std::optional<int> step, std::optional<int> step_fast, std::optional<int> flags)
 {
 	bool changed = ImGui::InputInt(label, &value, step.value_or(1), step_fast.value_or(100), flags.value_or(0));
 	return std::make_tuple(value, changed);
 }
 
 template <int N>
-static std::tuple<sol::as_table_t<std::vector<int>>, bool> InputIntN(const char* label, const sol::table& v, const std::optional<int>& flags)
+static std::tuple<sol::as_table_t<std::vector<int>>, bool> InputIntN(const char* label, const sol::table& v, std::optional<int> flags)
 {
 	int value[N];
 	for (int i = 0; i < N; ++i)
@@ -420,7 +420,7 @@ static std::tuple<sol::as_table_t<std::vector<int>>, bool> InputIntN(const char*
 }
 
 static std::tuple<double, bool> InputDouble(const char* label, double value,
-	const std::optional<double>& step, const std::optional<double>& step_fast, const std::optional<const char*>& format, const std::optional<int>& flags)
+	std::optional<double> step, std::optional<double> step_fast, std::optional<const char*> format, std::optional<int> flags)
 {
 	bool changed = ImGui::InputDouble(label, &value, step.value_or(0.0), step_fast.value_or(0.0), format.value_or("%.6f"), flags.value_or(0));
 	return std::make_tuple(value, changed);
@@ -430,7 +430,7 @@ static std::tuple<double, bool> InputDouble(const char* label, double value,
 #pragma region Widgets: Color Editor / Picker
 // Widgets: Color Editor / Picker
 template <int N>
-static std::tuple<sol::as_table_t<std::vector<float>>, bool> ColorEditN1(const char* label, const sol::table& col, const std::optional<int>& flags)
+static std::tuple<sol::as_table_t<std::vector<float>>, bool> ColorEditN1(const char* label, const sol::table& col, std::optional<int> flags)
 {
 	float color[N];
 	for (int i = 0; i < N; ++i)
@@ -447,7 +447,7 @@ static std::tuple<sol::as_table_t<std::vector<float>>, bool> ColorEditN1(const c
 }
 
 template <int N>
-static std::tuple<ImVec4, bool> ColorEditN2(const char* label, ImVec4 col, const std::optional<int>& flags)
+static std::tuple<ImVec4, bool> ColorEditN2(const char* label, ImVec4 col, std::optional<int> flags)
 {
 	bool changed = false;
 	if constexpr (N == 3)
@@ -459,7 +459,7 @@ static std::tuple<ImVec4, bool> ColorEditN2(const char* label, ImVec4 col, const
 }
 
 template <int N>
-static std::tuple<ImU32, bool> ColorEditN3(const char* label, ImU32 col, const std::optional<int>& flags)
+static std::tuple<ImU32, bool> ColorEditN3(const char* label, ImU32 col, std::optional<int> flags)
 {
 	ImVec4 vec4 = ImGui::ColorConvertU32ToFloat4(col);
 
@@ -473,7 +473,7 @@ static std::tuple<ImU32, bool> ColorEditN3(const char* label, ImU32 col, const s
 }
 
 template <int N>
-static std::tuple<sol::as_table_t<std::vector<float>>, bool> ColorPickerN1(const char* label, const sol::table& col, const std::optional<int>& flags)
+static std::tuple<sol::as_table_t<std::vector<float>>, bool> ColorPickerN1(const char* label, const sol::table& col, std::optional<int> flags)
 {
 	float color[N];
 	for (int i = 0; i < N; ++i)
@@ -490,7 +490,7 @@ static std::tuple<sol::as_table_t<std::vector<float>>, bool> ColorPickerN1(const
 }
 
 template <int N>
-static std::tuple<ImVec4, bool> ColorPickerN2(const char* label, ImVec4 col, const std::optional<int>& flags)
+static std::tuple<ImVec4, bool> ColorPickerN2(const char* label, ImVec4 col, std::optional<int> flags)
 {
 	bool changed = false;
 	if constexpr (N == 3)
@@ -502,7 +502,7 @@ static std::tuple<ImVec4, bool> ColorPickerN2(const char* label, ImVec4 col, con
 }
 
 template <int N>
-static std::tuple<ImU32, bool> ColorPickerN3(const char* label, ImU32 col, const std::optional<int>& flags)
+static std::tuple<ImU32, bool> ColorPickerN3(const char* label, ImU32 col, std::optional<int> flags)
 {
 	ImVec4 vec4 = ImGui::ColorConvertU32ToFloat4(col);
 
@@ -515,7 +515,7 @@ static std::tuple<ImU32, bool> ColorPickerN3(const char* label, ImU32 col, const
 	return std::make_tuple(ImGui::ColorConvertFloat4ToU32(vec4), changed);
 }
 
-static bool ColorButton1(const char* desc_id, const sol::table& col, const std::optional<int>& flags, const std::optional<ImVec2>& size)
+static bool ColorButton1(const char* desc_id, const sol::table& col, std::optional<int> flags, std::optional<ImVec2> size)
 {
 	ImVec4 color;
 	for (int i = 0; i < 4; ++i)
@@ -524,12 +524,12 @@ static bool ColorButton1(const char* desc_id, const sol::table& col, const std::
 	return ImGui::ColorButton(desc_id, color, flags.value_or(0), size.value_or(ImVec2(0, 0)));
 }
 
-static bool ColorButton2(const char* desc_id, const ImVec4& color, const std::optional<int>& flags, const std::optional<ImVec2>& size)
+static bool ColorButton2(const char* desc_id, const ImVec4& color, std::optional<int> flags, std::optional<ImVec2> size)
 {
 	return ImGui::ColorButton(desc_id, color, flags.value_or(0), size.value_or(ImVec2(0, 0)));
 }
 
-static bool ColorButton3(const char* desc_id, ImU32 color, const std::optional<int>& flags, const std::optional<ImVec2>& size)
+static bool ColorButton3(const char* desc_id, ImU32 color, std::optional<int> flags, std::optional<ImVec2> size)
 {
 	ImVec4 vec4 = ImGui::ColorConvertU32ToFloat4(color);
 
@@ -539,7 +539,7 @@ static bool ColorButton3(const char* desc_id, ImU32 color, const std::optional<i
 
 #pragma region Widgets: List Boxes
 // Widgets: List Boxes
-static std::tuple<int, bool> ListBox1(const char* label, int current_item, const sol::table& items, const std::optional<int> items_count, const std::optional<int>& height_in_items)
+static std::tuple<int, bool> ListBox1(const char* label, int current_item, const sol::table& items, std::optional<int> items_count, std::optional<int> height_in_items)
 {
 	std::vector<const char*> strings;
 	int count = items_count.value_or(items.size());
@@ -547,7 +547,7 @@ static std::tuple<int, bool> ListBox1(const char* label, int current_item, const
 
 	for (int i = 1; i <= count; i++)
 	{
-		const std::optional<const char*>& stringItem = items.get<std::optional<const char*>>(i);
+		std::optional<const char*> stringItem = items.get<std::optional<const char*>>(i);
 		strings.push_back(stringItem.value_or("Missing String"));
 	}
 
@@ -561,12 +561,12 @@ static const char* LuaListboxGetter(void* ptr, int idx)
 	auto& getter = *static_cast<sol::function*>(ptr);
 
 	sol::function_result result = getter(idx + 1);
-	const std::optional<const char*>& value = result.get<std::optional<const char*>>();
+	std::optional<const char*> value = result.get<std::optional<const char*>>();
 
 	return value.value_or("");
 }
 
-static std::tuple<int, bool> ListBox2(const char* label, int current_item, sol::function getter, int itemsCount, const std::optional<int>& height_in_items)
+static std::tuple<int, bool> ListBox2(const char* label, int current_item, sol::function getter, int itemsCount, std::optional<int> height_in_items)
 {
 	current_item -= 1;
 	bool changed = ImGui::ListBox(label, &current_item, LuaListboxGetter, &getter, itemsCount, height_in_items.value_or(-1));
@@ -575,8 +575,8 @@ static std::tuple<int, bool> ListBox2(const char* label, int current_item, sol::
 #pragma endregion
 
 #pragma region Widgets:: Data Plotting
-static void PlotLines1(const char* label, const sol::table& values_, const std::optional<int>& values_count, const std::optional<int>& values_offset,
-	const std::optional<const char*>& overlay_text, const std::optional<float>& scale_min, const std::optional<float>& scale_max, const std::optional<ImVec2>& graph_size)
+static void PlotLines1(const char* label, const sol::table& values_, std::optional<int> values_count, std::optional<int> values_offset,
+	std::optional<const char*> overlay_text, std::optional<float> scale_min, std::optional<float> scale_max, std::optional<ImVec2> graph_size)
 {
 	std::vector<float> values;
 	int count = values_count.value_or(values_.size());
@@ -596,21 +596,21 @@ static float LuaPlotLinesGetter(void* ptr, int idx)
 	auto& getter = *static_cast<sol::function*>(ptr);
 
 	sol::function_result result = getter(idx + 1);
-	const std::optional<float>& value = result.get<std::optional<float>>();
+	std::optional<float> value = result.get<std::optional<float>>();
 
 	return value.value_or(0.0f);
 }
 
-static void PlotLines2(const char* label, sol::function getter, int values_count, const std::optional<int>& values_offset,
-	const std::optional<const char*>& overlay_text, const std::optional<float>& scale_min, const std::optional<float>& scale_max,
-	const std::optional<ImVec2>& graph_size)
+static void PlotLines2(const char* label, sol::function getter, int values_count, std::optional<int> values_offset,
+	std::optional<const char*> overlay_text, std::optional<float> scale_min, std::optional<float> scale_max,
+	std::optional<ImVec2> graph_size)
 {
 	ImGui::PlotLines(label, LuaPlotLinesGetter, &getter, values_count, values_offset.value_or(0), overlay_text.value_or(nullptr),
 		scale_min.value_or(FLT_MAX), scale_max.value_or(FLT_MAX), graph_size.value_or(ImVec2(0, 0)));
 }
 
-static void PlotHistogram1(const char* label, const sol::table& values_, const std::optional<int>& values_count, const std::optional<int>& values_offset,
-	const std::optional<const char*>& overlay_text, const std::optional<float>& scale_min, const std::optional<float>& scale_max, const std::optional<ImVec2>& graph_size)
+static void PlotHistogram1(const char* label, const sol::table& values_, std::optional<int> values_count, std::optional<int> values_offset,
+	std::optional<const char*> overlay_text, std::optional<float> scale_min, std::optional<float> scale_max, std::optional<ImVec2> graph_size)
 {
 	std::vector<float> values;
 	int count = values_count.value_or(values_.size());
@@ -625,9 +625,9 @@ static void PlotHistogram1(const char* label, const sol::table& values_, const s
 		scale_min.value_or(FLT_MAX), scale_max.value_or(FLT_MAX), graph_size.value_or(ImVec2(0, 0)), sizeof(float));
 }
 
-static void PlotHistogram2(const char* label, sol::function getter, int values_count, const std::optional<int>& values_offset,
-	const std::optional<const char*>& overlay_text, const std::optional<float>& scale_min, const std::optional<float>& scale_max,
-	const std::optional<ImVec2>& graph_size)
+static void PlotHistogram2(const char* label, sol::function getter, int values_count, std::optional<int> values_offset,
+	std::optional<const char*> overlay_text, std::optional<float> scale_min, std::optional<float> scale_max,
+	std::optional<ImVec2> graph_size)
 {
 	ImGui::PlotHistogram(label, LuaPlotLinesGetter, &getter, values_count, values_offset.value_or(0), overlay_text.value_or(nullptr),
 		scale_min.value_or(FLT_MAX), scale_max.value_or(FLT_MAX), graph_size.value_or(ImVec2(0, 0)));
@@ -674,13 +674,13 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 
 	#pragma region Widgets: Main
 	ImGui.set_function("Button", sol::overload(
-		[](const char* label, const std::optional<ImVec2>& size) { return ImGui::Button(label, size.value_or(ImVec2(0, 0))); },
+		[](const char* label, std::optional<ImVec2> size) { return ImGui::Button(label, size.value_or(ImVec2(0, 0))); },
 		[](const char* label, float sizeX, float sizeY) { return ImGui::Button(label, { sizeX, sizeY }); }
 	));
 	ImGui.set_function("SmallButton", &ImGui::SmallButton);
 	ImGui.set_function("InvisibleButton", sol::overload(
-		[](const char* str_id, float sizeX, float sizeY, const std::optional<int>& flags) { return ImGui::InvisibleButton(str_id, { sizeX, sizeY }, flags.value_or(0)); },
-		[](const char* str_id, const ImVec2& size, const std::optional<int>& flags) { return ImGui::InvisibleButton(str_id, size, flags.value_or(0)); }
+		[](const char* str_id, float sizeX, float sizeY, std::optional<int> flags) { return ImGui::InvisibleButton(str_id, { sizeX, sizeY }, flags.value_or(0)); },
+		[](const char* str_id, const ImVec2& size, std::optional<int> flags) { return ImGui::InvisibleButton(str_id, size, flags.value_or(0)); }
 	));
 	ImGui.set_function("ArrowButton", &ImGui::ArrowButton);
 	ImGui.set_function("Checkbox", [](const char* label, bool v) -> std::tuple<bool, bool> { bool value = v; bool pressed = ImGui::Checkbox(label, &value); return std::make_tuple(value, pressed); });
@@ -690,27 +690,27 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 		[](const char* label, int v, int vButton) -> std::tuple<int, bool> { bool ret = ImGui::RadioButton(label, &v, vButton); return std::make_tuple(v, ret); }
 	));
 	ImGui.set_function("ProgressBar", sol::overload(
-		[](float fraction, const std::optional<ImVec2>& size, const std::optional<const char*>& overlay) { ImGui::ProgressBar(fraction, size.value_or(ImVec2(-FLT_MIN, 0)), overlay.value_or(nullptr)); },
-		[](float fraction, float sizeX, float sizeY, const std::optional<const char*>& overlay) { ImGui::ProgressBar(fraction, { sizeX, sizeY }, overlay.value_or(nullptr)); }
+		[](float fraction, std::optional<ImVec2> size, std::optional<const char*> overlay) { ImGui::ProgressBar(fraction, size.value_or(ImVec2(-FLT_MIN, 0)), overlay.value_or(nullptr)); },
+		[](float fraction, float sizeX, float sizeY, std::optional<const char*> overlay) { ImGui::ProgressBar(fraction, { sizeX, sizeY }, overlay.value_or(nullptr)); }
 	));
 	ImGui.set_function("Bullet", &ImGui::Bullet);
 	#pragma endregion
 
 	#pragma region Widgets: Images
-	ImGui.set_function("Image", [](ImTextureID texture_id, const ImVec2& size, const std::optional<ImVec2>& uv0, const std::optional<ImVec2>& uv1, const std::optional<ImVec4>& tint_col, const std::optional<ImVec4>& border_col) {
+	ImGui.set_function("Image", [](ImTextureID texture_id, const ImVec2& size, std::optional<ImVec2> uv0, std::optional<ImVec2> uv1, std::optional<ImVec4> tint_col, std::optional<ImVec4> border_col) {
 		ImGui::Image(texture_id, size, uv0.value_or(ImVec2(0, 0)), uv1.value_or(ImVec2(1, 1)), tint_col.value_or(ImVec4(1, 1, 1, 1)), border_col.value_or(ImVec4(0, 0, 0, 0)));
 	});
 	ImGui.set_function("ImageButton", sol::overload(
-		[](const char* str_id, ImTextureID texture_id, const ImVec2& image_size, const std::optional<ImVec2>& uv0, const std::optional<ImVec2>& uv1,
-			const std::optional<ImVec4>& bg_col, const std::optional<ImVec4>& tint_col) { return ImGui::ImageButton(str_id, texture_id, image_size, uv0.value_or(ImVec2(0, 0)), uv1.value_or(ImVec2(1, 1)), bg_col.value_or(ImVec4(1, 1, 1, 1)), tint_col.value_or(ImVec4(0, 0, 0, 0))); },
+		[](const char* str_id, ImTextureID texture_id, const ImVec2& image_size, std::optional<ImVec2> uv0, std::optional<ImVec2> uv1,
+			std::optional<ImVec4> bg_col, std::optional<ImVec4> tint_col) { return ImGui::ImageButton(str_id, texture_id, image_size, uv0.value_or(ImVec2(0, 0)), uv1.value_or(ImVec2(1, 1)), bg_col.value_or(ImVec4(1, 1, 1, 1)), tint_col.value_or(ImVec4(0, 0, 0, 0))); },
 		// OBSOLETE:
-		[](ImTextureID texture_id, const ImVec2& size, const std::optional<ImVec2>& uv0, const std::optional<ImVec2>& uv1, const std::optional<int> frame_padding,
-			const std::optional<ImVec4>& bg_col, const std::optional<ImVec4>& tint_col) { return ImGui::ImageButton(texture_id, size, uv0.value_or(ImVec2(0, 0)), uv1.value_or(ImVec2(1, 1)), frame_padding.value_or(-1), bg_col.value_or(ImVec4(0, 0, 0, 0)), tint_col.value_or(ImVec4(1, 1, 1, 1))); }
+		[](ImTextureID texture_id, const ImVec2& size, std::optional<ImVec2> uv0, std::optional<ImVec2> uv1, std::optional<int> frame_padding,
+			std::optional<ImVec4> bg_col, std::optional<ImVec4> tint_col) { return ImGui::ImageButton(texture_id, size, uv0.value_or(ImVec2(0, 0)), uv1.value_or(ImVec2(1, 1)), frame_padding.value_or(-1), bg_col.value_or(ImVec4(0, 0, 0, 0)), tint_col.value_or(ImVec4(1, 1, 1, 1))); }
 	));
 	#pragma endregion
 
 	#pragma region Widgets: Combo Box
-	ImGui.set_function("BeginCombo", [](const char* label, const char* previewValue, const std::optional<int>& flags) { return ImGui::BeginCombo(label, previewValue, flags.value_or(0)); });
+	ImGui.set_function("BeginCombo", [](const char* label, const char* previewValue, std::optional<int> flags) { return ImGui::BeginCombo(label, previewValue, flags.value_or(0)); });
 	ImGui.set_function("EndCombo", &ImGui::EndCombo);
 	ImGui.set_function("Combo", sol::overload(&Combo1, &Combo2, &Combo3));
 	#pragma endregion
@@ -773,34 +773,34 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 		[](sol::object obj, sol::variadic_args va, sol::this_state s) { std::string text = format_text(s, va); return ImGui::TreeNode(obj.pointer(), "%s", text.c_str()); }
 	));
 	ImGui.set_function("TreeNodeEx", sol::overload(
-		[](const char* label, const std::optional<int>& flags) { return ImGui::TreeNodeEx(label, flags.value_or(0)); },
+		[](const char* label, std::optional<int> flags) { return ImGui::TreeNodeEx(label, flags.value_or(0)); },
 		[](const char* str_id, int flags, sol::variadic_args va, sol::this_state s) { std::string text = format_text(s, va); return ImGui::TreeNodeEx(str_id, flags, "%s", text.c_str()); },
 		[](sol::object obj, int flags, sol::variadic_args va, sol::this_state s) { std::string text = format_text(s, va); return ImGui::TreeNodeEx(obj.pointer(), flags, "%s", text.c_str()); }
 	));
 	ImGui.set_function("TreePush", sol::overload(
-		[](const std::optional<const char*>& strId) { ImGui::TreePush(strId.value_or(nullptr)); },
+		[](std::optional<const char*> strId) { ImGui::TreePush(strId.value_or(nullptr)); },
 		[](sol::object obj) { ImGui::TreePush(obj.pointer()); }
 	));
 	ImGui.set_function("TreePop", &ImGui::TreePop);
 	ImGui.set_function("GetTreeNodeToLabelSpacing", &ImGui::GetTreeNodeToLabelSpacing);
 	ImGui.set_function("CollapsingHeader", sol::overload(
-		[](const char* label, const std::optional<int>& flags) { return ImGui::CollapsingHeader(label, flags.value_or(0)); },
-		[](const char* label, const std::optional<bool>& open_, const std::optional<int>& flags) { bool open = open_.value_or(true); bool show = ImGui::CollapsingHeader(label, open_.has_value() ? &open : nullptr, flags.value_or(0)); return std::make_tuple(open, show); }
+		[](const char* label, std::optional<int> flags) { return ImGui::CollapsingHeader(label, flags.value_or(0)); },
+		[](const char* label, std::optional<bool> open_, std::optional<int> flags) { bool open = open_.value_or(true); bool show = ImGui::CollapsingHeader(label, open_.has_value() ? &open : nullptr, flags.value_or(0)); return std::make_tuple(open, show); }
 	));
-	ImGui.set_function("SetNextItemOpen", [](bool is_open, const std::optional<int>& cond) { ImGui::SetNextItemOpen(is_open, cond.value_or(0)); });
+	ImGui.set_function("SetNextItemOpen", [](bool is_open, std::optional<int> cond) { ImGui::SetNextItemOpen(is_open, cond.value_or(0)); });
 	ImGui.set_function("TreeAdvanceToLabelPos", []() { ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetTreeNodeToLabelSpacing()); });
 	#pragma endregion
 
 	#pragma region Widgets: Selectables
 	ImGui.set_function("Selectable", sol::overload(
-		[](const char* label, const std::optional<bool>& selected_, const std::optional<int>& flags, const std::optional<ImVec2>& size){
+		[](const char* label, std::optional<bool> selected_, std::optional<int> flags, std::optional<ImVec2> size){
 			bool selected = selected_.value_or(false); bool pressed = ImGui::Selectable(label, &selected, flags.value_or(0), size.value_or(ImVec2(0, 0))); return std::make_tuple(selected, pressed); },
 		[](const char* label, bool selected, int flags, float sizeX, float sizeY) { bool pressed = ImGui::Selectable(label, &selected, flags, { sizeX, sizeY }); return std::make_tuple(selected, pressed); }
 	));
 	#pragma endregion
 
 	#pragma region Widgets: List Boxes
-	ImGui.set_function("BeginListBox", [](const char* label, const std::optional<ImVec2>& size) { return ImGui::BeginListBox(label, size.value_or(ImVec2(0, 0))); });
+	ImGui.set_function("BeginListBox", [](const char* label, std::optional<ImVec2> size) { return ImGui::BeginListBox(label, size.value_or(ImVec2(0, 0))); });
 	ImGui.set_function("EndListBox", &ImGui::EndListBox);
 	ImGui.set_function("ListBox", sol::overload(&ListBox1, &ListBox2));
 	#pragma endregion
@@ -815,7 +815,7 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 		[](const char* prefix, bool b) { ImGui::Value(prefix, b); },
 		[](const char* prefix, int v) { ImGui::Value(prefix, v); },
 		[](const char* prefix, unsigned int v) { ImGui::Value(prefix, v); },
-		[](const char* prefix, float v, const std::optional<const char*>& float_format) { ImGui::Value(prefix, v, float_format.value_or(nullptr)); }
+		[](const char* prefix, float v, std::optional<const char*> float_format) { ImGui::Value(prefix, v, float_format.value_or(nullptr)); }
 	));
 	#pragma endregion
 
