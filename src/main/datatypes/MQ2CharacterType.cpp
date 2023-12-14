@@ -257,6 +257,8 @@ enum class CharacterMembers
 	MedalsOfConflict,
 	ShadedSpecie,
 	SpiritualMedallions,
+	LaurionInnVoucher,
+	ShalowainsPrivateReserve,
 	LoyaltyTokens,
 	SpellInCooldown,
 	Slowed,
@@ -601,6 +603,8 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, MedalsOfConflict);
 	ScopedTypeMember(CharacterMembers, ShadedSpecie);
 	ScopedTypeMember(CharacterMembers, SpiritualMedallions);
+	ScopedTypeMember(CharacterMembers, LaurionInnVoucher);
+	ScopedTypeMember(CharacterMembers, ShalowainsPrivateReserve);
 	ScopedTypeMember(CharacterMembers, LoyaltyTokens);
 	ScopedTypeMember(CharacterMembers, SpellInCooldown);
 	ScopedTypeMember(CharacterMembers, Slowed);
@@ -3044,6 +3048,16 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case CharacterMembers::SpiritualMedallions:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_SPIRITUALMEDALLION);
+		Dest.Type = pIntType;
+		return true;
+
+	case CharacterMembers::LaurionInnVoucher:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_LAURIONINNVOUCHER);
+		Dest.Type = pIntType;
+		return true;
+
+	case CharacterMembers::ShalowainsPrivateReserve:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_SHALOWAINSPRIVATERESERVE);
 		Dest.Type = pIntType;
 		return true;
 
