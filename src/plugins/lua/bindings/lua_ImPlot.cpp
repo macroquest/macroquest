@@ -789,7 +789,7 @@ sol::table RegisterBindings_ImPlot(sol::this_state L)
 	ImPlot.set_function("SetupAxisLimitsConstraints", &ImPlot::SetupAxisLimitsConstraints);
 	ImPlot.set_function("SetupAxisZoomConstraints", &ImPlot::SetupAxisZoomConstraints);
 
-	ImPlot.set_function("SetupAxes", [](const char* x_label, const char* y_label, std::optional<int> x_flags, std::optional<int> y_flags) { ImPlot::SetupAxes(x_label, y_label, x_flags.value_or(0), y_flags.value_or(0)); });
+	ImPlot.set_function("SetupAxes", [](std::optional<const char*> x_label, std::optional<const char*> y_label, std::optional<int> x_flags, std::optional<int> y_flags) { ImPlot::SetupAxes(x_label.value_or(nullptr), y_label.value_or(nullptr), x_flags.value_or(0), y_flags.value_or(0)); });
 	ImPlot.set_function("SetupAxesLimits", [](double x_min, double x_max, double y_min, double y_max, std::optional<int> cond) { ImPlot::SetupAxesLimits(x_min, x_max, y_min, y_max, cond.value_or(ImPlotCond_Once)); });
 
 	ImPlot.set_function("SetupLegend", [](int location, std::optional<int> flags) { ImPlot::SetupLegend(location, flags.value_or(0)); });
