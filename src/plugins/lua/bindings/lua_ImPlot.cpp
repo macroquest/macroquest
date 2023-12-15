@@ -160,6 +160,18 @@ void PlotBarsG(const char* label_id, sol::function getter, int count, double bar
 
 //----------------------------------------------------------------------------
 
+void PlotBarGroups(std::vector<const char*> label_ids, std::vector<double> values, int item_count, int group_count, std::optional<double> group_size, std::optional<double> shift, std::optional<int> flags)
+{
+	if (values.size() < item_count * group_count)
+		values.resize(item_count * group_count, 0);
+	if (label_ids.size() < item_count)
+		label_ids.resize(item_count, "");
+
+	ImPlot::PlotBarGroups(label_ids.data(), values.data(), item_count, group_count, group_size.value_or(0.67), shift.value_or(0), flags.value_or(0));
+}
+
+//----------------------------------------------------------------------------
+
 void PlotErrorBars1(const char* label_id, std::vector<double> xs, std::vector<double> ys, std::vector<double> err, std::optional<int> flags, std::optional<int> offset, int stride)
 {
 	int count = (int)std::min({ xs.size(), ys.size(), err.size() });
@@ -743,27 +755,33 @@ sol::table RegisterBindings_ImPlot(sol::this_state L)
 	// Missing SetupAxisFormat with callback
 	ImPlot.set_function("SetupAxisFormat", [](int axis, const char* fmt) { ImPlot::SetupAxisFormat(axis, fmt); });
 	ImPlot.set_function("SetupAxisTicks", sol::overload(
-		[](int axis, std::vector<double> values, std::optional<std::vector<const char*>> labels_, std::optional<bool> keepDefault)
+		[](int axis, std::vector<double> values, std::optional<sol::table> labelsTable, std::optional<bool> keepDefault)
 		{
-			std::vector<const char*>* labels = nullptr;
-			if (labels_.has_value())
+			const char** labels = nullptr;
+			std::vector<const char*> labels_;
+			if (labelsTable.has_value())
 			{
-				labels = &labels_.value();
-				if (labels->size() != values.size())
-					labels->resize(values.size());
+				labels_ = labelsTable->as<std::vector<const char*>>();
+
+				if (labels_.size() != values.size())
+					labels_.resize(values.size(), "");
+				labels = labels_.data();
 			}
-			ImPlot::SetupAxisTicks(axis, values.data(), (int)values.size(), labels ? labels->data() : nullptr, keepDefault.value_or(false));
+			ImPlot::SetupAxisTicks(axis, values.data(), (int)values.size(), labels, keepDefault.value_or(false));
 		},
-		[](int axis, double v_min, double v_max, int n_ticks, std::optional<std::vector<const char*>> labels_, std::optional<bool> keepDefault)
+		[](int axis, double v_min, double v_max, int n_ticks, std::optional<sol::table> labelsTable, std::optional<bool> keepDefault)
 		{
-			std::vector<const char*>* labels = nullptr;
-			if (labels_.has_value())
+			const char** labels = nullptr;
+			std::vector<const char*> labels_;
+			if (labelsTable.has_value())
 			{
-				labels = &labels_.value();
-				if (labels->size() != n_ticks)
-					labels->resize(n_ticks);
+				labels_ = labelsTable->as<std::vector<const char*>>();
+
+				if (labels_.size() != values.size())
+					labels_.resize(values.size(), "");
+				labels = labels_.data();
 			}
-			ImPlot::SetupAxisTicks(axis, v_min, v_max, n_ticks, labels ? labels->data() : nullptr, keepDefault.value_or(false));
+			ImPlot::SetupAxisTicks(axis, v_min, v_max, n_ticks, labels, keepDefault.value_or(false));
 		}
 	));
 	// Missing SetupAxisScale with transform
@@ -793,7 +811,7 @@ sol::table RegisterBindings_ImPlot(sol::this_state L)
 	ImPlot.set_function("PlotStairs", sol::overload(&PlotStairs1, &PlotStairs2, &PlotStairsG));
 	ImPlot.set_function("PlotShaded", sol::overload(&PlotShaded1, &PlotShaded2, &PlotShaded3, &PlotShadedG));
 	ImPlot.set_function("PlotBars", sol::overload(&PlotBars1, &PlotBars2, &PlotBarsG));
-	// PlotBarGroups
+	ImPlot.set_function("PlotBarGroups", &PlotBarGroups);
 	ImPlot.set_function("PlotErrorBars", sol::overload(&PlotErrorBars1, &PlotErrorBars2));
 	ImPlot.set_function("PlotStems", sol::overload(&PlotStems1, &PlotStems2));
 	ImPlot.set_function("PlotInfLines", &PlotInfLines);
