@@ -763,7 +763,7 @@ sol::table RegisterBindings_ImPlot(sol::this_state L)
 			{
 				labels_ = labelsTable->as<std::vector<const char*>>();
 
-				if (labels_.size() != values.size())
+				if (labels_.size() < values.size())
 					labels_.resize(values.size(), "");
 				labels = labels_.data();
 			}
@@ -777,8 +777,8 @@ sol::table RegisterBindings_ImPlot(sol::this_state L)
 			{
 				labels_ = labelsTable->as<std::vector<const char*>>();
 
-				if (labels_.size() != values.size())
-					labels_.resize(values.size(), "");
+				if (labels_.size() < n_ticks)
+					labels_.resize(n_ticks, "");
 				labels = labels_.data();
 			}
 			ImPlot::SetupAxisTicks(axis, v_min, v_max, n_ticks, labels, keepDefault.value_or(false));
