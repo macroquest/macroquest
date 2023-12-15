@@ -172,16 +172,16 @@ void PlotBarGroups(std::vector<const char*> label_ids, std::vector<double> value
 
 //----------------------------------------------------------------------------
 
-void PlotErrorBars1(const char* label_id, std::vector<double> xs, std::vector<double> ys, std::vector<double> err, std::optional<int> flags, std::optional<int> offset, int stride)
+void PlotErrorBars1(const char* label_id, std::vector<double> xs, std::vector<double> ys, std::vector<double> err, std::optional<int> flags, std::optional<int> offset)
 {
 	int count = (int)std::min({ xs.size(), ys.size(), err.size() });
-	ImPlot::PlotErrorBars(label_id, xs.data(), ys.data(), err.data(), flags.value_or(0), offset.value_or(0));
+	ImPlot::PlotErrorBars<double>(label_id, xs.data(), ys.data(), err.data(), count, flags.value_or(0), offset.value_or(0));
 }
 
 void PlotErrorBars2(const char* label_id, std::vector<double> xs, std::vector<double> ys, std::vector<double> neg, std::vector<double> pos, std::optional<int> flags, std::optional<int> offset)
 {
 	int count = (int)std::min({ xs.size(), ys.size(), neg.size(), pos.size() });
-	ImPlot::PlotErrorBars(label_id, xs.data(), ys.data(), neg.data(), pos.data(), count, flags.value_or(0), offset.value_or(0));
+	ImPlot::PlotErrorBars<double>(label_id, xs.data(), ys.data(), neg.data(), pos.data(), count, flags.value_or(0), offset.value_or(0));
 }
 
 //----------------------------------------------------------------------------
@@ -220,14 +220,27 @@ void PlotPieChart2(std::vector<const char*> label_ids, std::vector<double> value
 
 //----------------------------------------------------------------------------
 
+void PlotHeatmap(const char* label_id, std::vector<double> values, int rows, int cols, std::optional<double> scale_min, std::optional<double> scale_max,
+	std::optional<const char*> label_fmt, std::optional<ImPlotPoint> bounds_min, std::optional<ImPlotPoint> bounds_max, std::optional<int>flags)
+{
+	int size = rows * cols;
+	if ((int)values.size() < size)
+		values.resize(size, 0);
+
+	ImPlot::PlotHeatmap(label_id, values.data(), rows, cols, scale_min.value_or(0), scale_max.value_or(0), label_fmt.value_or("%.1f"),
+		bounds_min.value_or(ImPlotPoint(0, 0)), bounds_max.value_or(ImPlotPoint(1, 1)), flags.value_or(0));
+}
+
+//----------------------------------------------------------------------------
+
 double PlotHistogram(const char* label_id, std::vector<double> values, std::optional<int> bins, std::optional<double> bar_scale, std::optional<ImPlotRange> range, std::optional<int> flags)
 {
 	return ImPlot::PlotHistogram(label_id, values.data(), (int)values.size(), bins.value_or(ImPlotBin_Sturges), bar_scale.value_or(1.0), range.value_or(ImPlotRange()), flags.value_or(0));
 }
 
-double PlotHistogram2D(const char* label_id, std::vector<double> xs, std::vector<double> ys, std::optional<int> x_bins, std::optional<int> y_bins, std::optional<ImPlotRect> range, std::optional<int> flags)
+double PlotHistogram2D(const char* label_id, std::vector<double> xs, std::vector<double> ys, int count, std::optional<int> x_bins, std::optional<int> y_bins, std::optional<ImPlotRect> range, std::optional<int> flags)
 {
-	int count = (int)std::min(xs.size(), ys.size());
+	count = std::min({(int)xs.size(), (int)ys.size(), count});
 	return ImPlot::PlotHistogram2D(label_id, xs.data(), ys.data(), count, x_bins.value_or(ImPlotBin_Sturges), y_bins.value_or(ImPlotBin_Sturges), range.value_or(ImPlotRect()), flags.value_or(0));
 }
 
@@ -816,7 +829,7 @@ sol::table RegisterBindings_ImPlot(sol::this_state L)
 	ImPlot.set_function("PlotStems", sol::overload(&PlotStems1, &PlotStems2));
 	ImPlot.set_function("PlotInfLines", &PlotInfLines);
 	ImPlot.set_function("PlotPieChart", sol::overload(&PlotPieChart1, &PlotPieChart2));
-	// PlotHeatmap
+	ImPlot.set_function("PlotHeatmap", &PlotHeatmap);
 	ImPlot.set_function("PlotHistogram", &PlotHistogram);
 	ImPlot.set_function("PlotHistogram2D", &PlotHistogram2D);
 	ImPlot.set_function("PlotDigital", sol::overload(&PlotDigital, &PlotDigitalG));
@@ -918,8 +931,8 @@ sol::table RegisterBindings_ImPlot(sol::this_state L)
 
 	// [SECTION] Colormaps
 	ImPlot.set_function("AddColormap", sol::overload(
-		[](const char* name, std::vector<ImVec4> cols, std::optional<bool> qual) { return ImPlot::AddColormap(name, cols.data(), (int)cols.size(), qual.value_or(true)); },
-		[](const char* name, std::vector<ImU32> cols, std::optional<bool> qual) { return ImPlot::AddColormap(name, cols.data(), (int)cols.size(), qual.value_or(true)); }
+		[](const char* name, std::vector<ImU32> cols, std::optional<bool> qual) { return ImPlot::AddColormap(name, cols.data(), (int)cols.size(), qual.value_or(true)); },
+		[](const char* name, std::vector<ImVec4> cols, std::optional<bool> qual) { return ImPlot::AddColormap(name, cols.data(), (int)cols.size(), qual.value_or(true)); }
 	));
 	ImPlot.set_function("GetColormapCount", &ImPlot::GetColormapCount);
 	ImPlot.set_function("GetColormapName", &ImPlot::GetColormapName);

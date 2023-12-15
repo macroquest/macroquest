@@ -21,6 +21,117 @@ function RandomRange(min, max)
     return min + math.random() * (max - min)
 end
 
+---@class ScrollingBuffer
+---@field MaxSize number
+---@field Offset number
+---@field DataX number[]
+---@field DataY number[]
+local ScrollingBuffer = {}
+
+---@param max_size? number
+---@return ScrollingBuffer
+function ScrollingBuffer:new(max_size)
+    max_size = max_size or 2000
+    local newObject = setmetatable({}, self)
+    self.__index = self
+    newObject.MaxSize = max_size
+    newObject.Offset = 1
+    newObject.DataX = {}
+    newObject.DataY = {}
+    return newObject
+end
+
+---@param x number
+---@param y number
+function ScrollingBuffer:AddPoint(x, y)
+    if #self.DataX < self.MaxSize then
+        table.insert(self.DataX, x)
+        table.insert(self.DataY, y)
+    else
+        self.DataX[self.Offset] = x
+        self.DataY[self.Offset] = y
+        self.Offset = self.Offset + 1
+        if self.Offset > self.MaxSize then
+            self.Offset = 1
+        end
+    end
+end
+
+function ScrollingBuffer:Erase()
+    self.DataX = {}
+    self.DataY = {}
+end
+
+
+---@class RollingBuffer
+---@field DataX number[]
+---@field DataY number[]
+---@field Span number
+local RollingBuffer = {}
+
+---@return RollingBuffer
+function RollingBuffer:new()
+    local newObject = setmetatable({}, self)
+    self.__index = self
+    newObject.Span = 10.0
+    newObject.DataX = {}
+    newObject.DataY = {}
+    return newObject
+end
+
+---@param x number
+---@param y number
+function RollingBuffer:AddPoint(x, y)
+    local xmod = math.fmod(x, self.Span)
+    if #self.DataX > 0 and xmod < self.DataX[#self.DataX] then
+        self.DataX = {}
+        self.DataY = {}
+    end
+
+    table.insert(self.DataX, xmod)
+    table.insert(self.DataY, y)
+end
+
+local RandomGauss_Data = {
+    V1 = 0,
+    V2 = 0,
+    S = 0,
+    X = 0,
+    phase = 0,
+}
+
+function RandomGauss()
+    local data = RandomGauss_Data
+
+    if data.phase == 0 then
+        repeat
+            local U1 = RandomRange(0, 1)
+            local U2 = RandomRange(0, 1)
+            data.V1 = 2 * U1 - 1
+            data.V2 = 2 * U2 - 1
+            data.S = data.V1 * data.V1 + data.V2 * data.V2
+        until data.S ~= 0 and data.S < 1
+
+        data.X = data.V1 * math.sqrt(-2 * math.log(data.S) / data.S)
+    else
+        data.X = data.V2 * math.sqrt(-2 * math.log(data.S) / data.S)
+    end
+
+    data.phase = 1 - data.phase
+    return data.X
+end
+
+function NormalDistribution(mean, sd, count)
+    local data = {}
+    for i = 1, count do
+        data[i] = RandomGauss() * sd + mean
+    end
+    return data
+end
+
+
+
+
 ---@param label string
 ---@param demo fun(ImPlotDemo): nil
 function ImPlotDemo:DemoHeader(label, demo)
@@ -78,9 +189,22 @@ function ImPlotDemo:ShowDemoWindow(open)
             self:DemoHeader("Filled Line Plots", self.Demo_FilledLinePlots);
             self:DemoHeader("Shaded Plots##", self.Demo_ShadedPlots)
             self:DemoHeader("Scatter Plots", self.Demo_ScatterPlots)
+            self:DemoHeader("Realtime Plots", self.Demo_RealtimePlots)
             self:DemoHeader("Stairstep Plots", self.Demo_StairstepPlots)
             self:DemoHeader("Bar Plots", self.Demo_BarPlots)
             self:DemoHeader("Bar Groups", self.Demo_BarGroups)
+            self:DemoHeader("Bar Stacks", self.Demo_BarStacks)
+            self:DemoHeader("Error Bars", self.Demo_ErrorBars)
+            self:DemoHeader("Stem Plots", self.Demo_StemPlots)
+            self:DemoHeader("Infinite Lines", self.Demo_InfiniteLines)
+            self:DemoHeader("Pie Charts", self.Demo_PieCharts)
+            self:DemoHeader("Heatmaps", self.Demo_Heatmaps)
+            self:DemoHeader("Histogram", self.Demo_Histogram)
+            self:DemoHeader("Histogram 2D", self.Demo_Histogram2D)
+            self:DemoHeader("Digital Plots", self.Demo_DigitalPlots)
+            self:DemoHeader("Images", self.Demo_Images)
+            self:DemoHeader("Markers and Text", self.Demo_MarkersAndText)
+            self:DemoHeader("NaN Values", self.Demo_NaNValues)
 
             imgui.EndTabItem()
         end
@@ -100,6 +224,7 @@ function ImPlotDemo:ShowDemoWindow(open)
             imgui.EndTabItem()
         end
         if imgui.BeginTabItem('Help') then
+            ImPlotDemo:Demo_Help()
             imgui.EndTabItem()
         end
         imgui.EndTabBar()
@@ -108,6 +233,17 @@ function ImPlotDemo:ShowDemoWindow(open)
     imgui.End()
 
     return open
+end
+
+function ImPlotDemo:Demo_Help()
+    imgui.Text("ABOUT THIS DEMO:");
+    imgui.BulletText("Sections below are demonstrating many aspects of the library.")
+    imgui.BulletText("The \"Tools\" menu above gives access to: Style Editors (ImPlot/ImGui)\n" ..
+                        "and Metrics (general purpose Dear ImGui debugging tool).");
+
+    imgui.Separator()
+    imgui.Text("USER GUIDE:")
+    implot.ShowUserGuide();
 end
 
 
@@ -374,7 +510,569 @@ function ImPlotDemo:Demo_BarGroups()
     end
 end
 
+local Demo_BarStacks_Data = {
+    Liars_Data = {4282515870, 4282609140, 4287357182, 4294630301, 4294945280, 4294921472},
+    Liars = -1,
 
+    diverging = true,
+    politicians = {"Trump","Bachman","Cruz","Gingrich","Palin","Santorum","Walker","Perry","Ryan","McCain","Rubio","Romney","Rand Paul","Christie","Biden","Kasich","Sanders","J Bush","H Clinton","Obama"},
+    data_reg = {18,26,7,14,10,8,6,11,4,4,3,8,6,8,6,5,0,3,1,2,                -- Pants on Fire
+                43,36,30,21,30,27,25,17,11,22,15,16,16,17,12,12,14,6,13,12,  -- False
+                16,13,28,22,15,21,15,18,30,17,24,18,13,10,14,15,17,22,14,12, -- Mostly False
+                17,10,13,25,12,22,19,26,23,17,22,27,20,26,29,17,18,22,21,27, -- Half True
+                5,7,16,10,10,12,23,13,17,20,22,16,23,19,20,26,36,29,27,26,   -- Mostly True
+                1,8,6,8,23,10,12,15,15,20,14,15,22,20,19,25,15,18,24,21},    -- True
+    labels_reg = {"Pants on Fire","False","Mostly False","Half True","Mostly True","True"},
+    data_div = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,                                         -- Pants on Fire (dummy, to order legend logically)
+                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,                                         -- False         (dummy, to order legend logically)
+                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,                                         -- Mostly False  (dummy, to order legend logically)
+                -16,-13,-28,-22,-15,-21,-15,-18,-30,-17,-24,-18,-13,-10,-14,-15,-17,-22,-14,-12, -- Mostly False
+                -43,-36,-30,-21,-30,-27,-25,-17,-11,-22,-15,-16,-16,-17,-12,-12,-14,-6,-13,-12,  -- False
+                -18,-26,-7,-14,-10,-8,-6,-11,-4,-4,-3,-8,-6,-8,-6,-5,0,-3,-1,-2,                 -- Pants on Fire
+                17,10,13,25,12,22,19,26,23,17,22,27,20,26,29,17,18,22,21,27,                     -- Half True
+                5,7,16,10,10,12,23,13,17,20,22,16,23,19,20,26,36,29,27,26,                       -- Mostly True
+                1,8,6,8,23,10,12,15,15,20,14,15,22,20,19,25,15,18,24,21},                        -- True
+    labels_div = {"Pants on Fire","False","Mostly False","Mostly False","False","Pants on Fire","Half True","Mostly True","True"},
+}
+
+function ImPlotDemo:Demo_BarStacks()
+    local data = Demo_BarStacks_Data
+
+    if data.Liars == -1 then
+        data.Liars = implot.AddColormap("Liars", data.Liars_Data)
+    end
+
+    data.diverging = imgui.Checkbox("Diverging", data.diverging)
+    implot.PushColormap(data.Liars)
+    if implot.BeginPlot("PolitiFact: Who Lies More?", ImVec2(-1, 400), ImPlotFlags.NoMouseText) then
+        implot.SetupLegend(ImPlotLocation.South, bit32.bor(ImPlotLegendFlags.Outside, ImPlotLegendFlags.Horizontal))
+        implot.SetupAxes(nil, nil, bit32.bor(ImPlotAxisFlags.AutoFit, ImPlotAxisFlags.NoDecorations), bit32.bor(ImPlotAxisFlags.AutoFit, ImPlotAxisFlags.Invert))
+        implot.SetupAxisTicks(ImAxis.Y1, 0, 19, 20, data.politicians, false)
+        if data.diverging then
+            implot.PlotBarGroups(data.labels_div, data.data_div, 9, 20, 0.75, 0, bit32.bor(ImPlotBarGroupsFlags.Stacked, ImPlotBarGroupsFlags.Horizontal))
+        else
+            implot.PlotBarGroups(data.labels_reg, data.data_reg, 6, 20, 0.75, 0, bit32.bor(ImPlotBarGroupsFlags.Stacked, ImPlotBarGroupsFlags.Horizontal))
+        end
+        implot.EndPlot()
+    end
+
+    implot.PopColormap()
+end
+
+local Demo_ErrorBars_Data = {
+    xs = {1,2,3,4,5},
+    bar = {1,2,5,3,4},
+    lin1 = {8,8,9,7,8},
+    lin2 = {6,7,6,9,6},
+    err1 = {0.2, 0.4, 0.2, 0.6, 0.4},
+    err2 = {0.4, 0.2, 0.4, 0.8, 0.6},
+    err3 = {0.09, 0.14, 0.09, 0.12, 0.16},
+    err4 = {0.02, 0.08, 0.15, 0.05, 0.2},
+}
+
+function ImPlotDemo:Demo_ErrorBars()
+    local data = Demo_ErrorBars_Data
+
+    if implot.BeginPlot("##ErrorBars") then
+        implot.SetupAxesLimits(0, 6, 0, 10)
+        implot.PlotBars("Bar", data.xs, data.bar, 0.5)
+        implot.PlotErrorBars("Bar", data.xs, data.bar, data.err1)
+        implot.SetNextErrorBarStyle(implot.GetColormapColor(1), 0)
+        implot.PlotErrorBars("Line", data.xs, data.lin1, data.err1, data.err2)
+        implot.SetNextMarkerStyle(ImPlotMarker.Square)
+        implot.PlotLine("Line", data.xs, data.lin1)
+        implot.PushStyleColor(ImPlotCol.ErrorBar, implot.GetColormapColor(2))
+        implot.PlotErrorBars("Scatter", data.xs, data.lin2, data.err2)
+        implot.PlotErrorBars("Scatter", data.xs, data.lin2, data.err3, data.err4, ImPlotErrorBarsFlags.Horizontal)
+        implot.PopStyleColor()
+        implot.PlotScatter("Scatter", data.xs, data.lin2)
+        implot.EndPlot()
+    end
+end
+
+local Demo_StemPlots_Data = {
+    xs = {},
+    ys1 = {},
+    ys2 = {},
+    init = false,
+}
+
+function ImPlotDemo:Demo_StemPlots()
+    local data = Demo_StemPlots_Data
+
+    if not data.init then
+        data.init = true
+        for i = 0, 50 do
+            data.xs[i] = i * 0.02
+            data.ys1[i] = 1.0 + 0.5 * math.sin(25 * data.xs[i]) * math.cos(2 * data.xs[i]);
+            data.ys2[i] = 0.5 + 0.25  * math.sin(10 * data.xs[i]) * math.sin(data.xs[i]);
+        end
+    end
+
+    if implot.BeginPlot("Stem Plots") then
+        implot.SetupAxisLimits(ImAxis.X1, 0, 1.0)
+        implot.SetupAxisLimits(ImAxis.Y1, 0, 1.6)
+        implot.PlotStems("Stems 1", data.xs, data.ys1)
+        implot.SetNextMarkerStyle(ImPlotMarker.Circle)
+        implot.PlotStems("Stems 2", data.xs, data.ys2)
+        implot.EndPlot()
+    end
+end
+
+local Demo_InfiniteLines_Data = {
+    vals = {0.25, 0.5, 0.75}
+}
+
+function ImPlotDemo:Demo_InfiniteLines()
+    local data = Demo_InfiniteLines_Data
+
+    if implot.BeginPlot("##Infinite") then
+        implot.SetupAxes(nil, nil, ImPlotAxisFlags.NoInitialFit, ImPlotAxisFlags.NoInitialFit)
+        implot.PlotInfLines("Vertical", data.vals)
+        implot.PlotInfLines("Horizontal", data.vals, ImPlotInfLinesFlags.Horizontal)
+        implot.EndPlot()
+    end
+end
+
+local Demo_PieCharts_Data = {
+    labels1 = {"Frogs","Hogs","Dogs","Logs"},
+    data1   = {0.15,  0.30,  0.2, 0.05},
+    labels2 = {"A","B","C","D","E"},
+    data2   = {1,1,2,3,5},
+    flags = 0
+}
+
+function ImPlotDemo:Demo_PieCharts()
+    local data = Demo_PieCharts_Data
+
+    imgui.SetNextItemWidth(250)
+    data.data1 = imgui.DragFloat4("Values", data.data1, 0.01, 1)
+    data.flags = imgui.CheckboxFlags("ImPlotPieChartFlags.Normalize", data.flags, ImPlotPieChartFlags.Normalize)
+    data.flags = imgui.CheckboxFlags("ImPlotPieChartFlags.IgnoreHidden", data.flags, ImPlotPieChartFlags.IgnoreHidden)
+
+    if implot.BeginPlot("##Pei1", ImVec2(250, 250), bit32.bor(ImPlotFlags.Equal, ImPlotFlags.NoMouseText)) then
+        implot.SetupAxes(nil, nil, ImPlotAxisFlags.NoDecorations, ImPlotAxisFlags.NoDecorations)
+        implot.SetupAxesLimits(0, 1, 0, 1)
+        implot.PlotPieChart(data.labels1, data.data1, 0.5, 0.5, 0.4, "%.2f", 90, data.flags)
+        implot.EndPlot()
+    end
+
+    imgui.SameLine()
+
+    implot.PushColormap(ImPlotColormap.Pastel)
+    if implot.BeginPlot("##Pie2", ImVec2(250, 250), bit32.bor(ImPlotFlags.Equal, ImPlotFlags.NoMouseText)) then
+        implot.SetupAxes(nil, nil, ImPlotAxisFlags.NoDecorations, ImPlotAxisFlags.NoDecorations)
+        implot.SetupAxesLimits(0, 1, 0, 1)
+        implot.PlotPieChart(data.labels2, data.data2, 0.5, 0.5, 0.4, "%.0f", 180, data.flags)
+        implot.EndPlot()
+    end
+    implot.PopColormap()
+end
+
+local Demo_Heatmaps_Data = {
+    values1         = {0.8, 2.4, 2.5, 3.9, 0.0, 4.0, 0.0,
+                       2.4, 0.0, 4.0, 1.0, 2.7, 0.0, 0.0,
+                       1.1, 2.4, 0.8, 4.3, 1.9, 4.4, 0.0,
+                       0.6, 0.0, 0.3, 0.0, 3.1, 0.0, 0.0,
+                       0.7, 1.7, 0.6, 2.6, 2.2, 6.2, 0.0,
+                       1.3, 1.2, 0.0, 0.0, 0.0, 3.2, 5.1,
+                       0.1, 2.0, 0.0, 1.4, 0.0, 1.9, 6.3},
+    scale_min       = 0,
+    scale_max       = 6.3,
+    xlabels         = {"C1","C2","C3","C4","C5","C6","C7"},
+    ylabels         = {"R1","R2","R3","R4","R5","R6","R7"},
+    map             = ImPlotColormap.Viridis,
+    hm_flags        = 0,
+    axes_flags      = bit32.bor(ImPlotAxisFlags.Lock, ImPlotAxisFlags.NoGridLines, ImPlotAxisFlags.NoTickMarks),
+
+    size            = 80,
+    values2         = {},
+}
+
+function ImPlotDemo:Demo_Heatmaps()
+    local data = Demo_Heatmaps_Data
+
+    if implot.ColormapButton(implot.GetColormapName(data.map), ImVec2(225, 0), data.map) then
+        data.map = math.fmod(data.map, implot.GetColormapCount())
+
+        -- We bust the color cache of our plots so that item colors will
+        -- resample the new colormap in the event that they have already
+        -- been created. See documentation in implot.h
+        implot.BustColorCache("##Heatmap1")
+        implot.BustColorCache("##Heatmap2")
+    end
+
+    imgui.SameLine()
+    imgui.LabelText("##Colormap Index", "%s", "Change Colormap")
+    imgui.SetNextItemWidth(225)
+    data.scale_min, data.scale_max = imgui.DragFloatRange2("Min / Max", data.scale_min, data.scale_max, 0.01, -20, 20)
+
+    data.hm_flags = imgui.CheckboxFlags("Column Major", data.hm_flags, ImPlotHeatmapFlags.ColMajor)
+
+    implot.PushColormap(data.map)
+    
+    if implot.BeginPlot("##Heatmap1", ImVec2(225, 225), bit32.bor(ImPlotFlags.NoLegend, ImPlotFlags.NoMouseText)) then
+        implot.SetupAxes(nil, nil, data.axes_flags, data.axes_flags)
+        implot.SetupAxisTicks(ImAxis.X1, 0 + 1.0 / 14.0, 1 - 1.0 / 14.0, 7, data.xlabels)
+        implot.SetupAxisTicks(ImAxis.Y1, 1 - 1.0 / 14.0, 0 + 1.0 / 14.0, 7, data.ylabels)
+        implot.PlotHeatmap("heat", data.values1, 7, 7, data.scale_min, data.scale_max, "%g", ImPlotPoint(0, 0), ImPlotPoint(1, 1), data.hm_flags)
+        implot.EndPlot()
+    end
+
+    imgui.SameLine()
+    implot.ColormapScale("##HeadScale", data.scale_min, data.scale_max, ImVec2(60, 226))
+
+    imgui.SameLine()
+
+    math.randomseed(imgui.GetTime() * 1000000)
+    for i = 1, data.size * data.size do
+        data.values2[i] = RandomRange(0.0, 1.0)
+    end
+
+    if implot.BeginPlot("##Heatmap2", ImVec2(225, 225)) then
+        implot.SetupAxes(nil, nil, ImPlotAxisFlags.NoDecorations, ImPlotAxisFlags.NoDecorations)
+        implot.SetupAxesLimits(-1, 1, -1, 1)
+        implot.PlotHeatmap("heat1", data.values2, data.size, data.size, 0, 1, "")
+        implot.PlotHeatmap("heat2", data.values2, data.size, data.size, 0, 1, "", ImPlotPoint(-1, -1), ImPlotPoint(0, 0))
+        implot.EndPlot()
+    end
+
+    implot.PopColormap()
+end
+
+local Demo_Histogram_Data = {
+    hist_flags = ImPlotHistogramFlags.Density,
+    bins = 50,
+    mu = 5,
+    sigma = 2,
+    range = false,
+    r = {-3, 13},
+    dist = NormalDistribution(5, 2, 10000),
+    x = {},
+    y = {},
+}
+
+function ImPlotDemo:Demo_Histogram()
+    local data = Demo_Histogram_Data
+
+    imgui.SetNextItemWidth(200)
+
+    if imgui.RadioButton("Sqrt", data.bins == ImPlotBin.Sqrt) then
+        data.bins = ImPlotBin.Sturges
+    end
+    imgui.SameLine()
+    if imgui.RadioButton("Sturges", data.bins == ImPlotBin.Sturges) then
+        data.bins = ImPlotBin.Sturges
+    end
+    imgui.SameLine()
+    if imgui.RadioButton("Rice", data.bins == ImPlotBin.Rice) then
+        data.bins = ImPlotBin.Rice
+    end
+    imgui.SameLine()
+    if imgui.RadioButton("Scott", data.bins == ImPlotBin.Scott) then
+        data.bins = ImPlotBin.Scott
+    end
+    imgui.SameLine()
+    if imgui.RadioButton("N Bins", data.bins >= 0) then
+        data.bins = 50
+    end
+
+    if data.bins >= 0 then
+        imgui.SameLine()
+        imgui.SetNextItemWidth(200)
+        data.bins = imgui.SliderInt("##Bins", data.bins, 1, 100)
+    end
+    
+    data.hist_flags = imgui.CheckboxFlags("Horizontal", data.hist_flags, ImPlotHistogramFlags.Horizontal); imgui.SameLine()
+    data.hist_flags = imgui.CheckboxFlags("Density", data.hist_flags, ImPlotHistogramFlags.Density); imgui.SameLine()
+    data.hist_flags = imgui.CheckboxFlags("Cumulative", data.hist_flags, ImPlotHistogramFlags.Cumulative)
+
+    data.range = imgui.Checkbox("Range", data.range)
+    if data.range then
+        imgui.SameLine()
+        imgui.SetNextItemWidth(200)
+        data.r = imgui.DragFloat2("##Range", data.r, 0.1, -3, 13)
+        imgui.SameLine()
+        data.hist_flags = imgui.CheckboxFlags("Exclude Outliers", data.hist_flags, ImPlotHistogramFlags.NoOutliers)
+    end
+
+    if bit32.band(data.hist_flags, ImPlotHistogramFlags.Density) ~= 0 then
+        for i = 1,  100 do
+            data.x[i] = -3 + 16 * i/99.0;
+            data.y[i] = math.exp( - (data.x[i]-data.mu)*(data.x[i]-data.mu) / (2*data.sigma*data.sigma)) / (data.sigma * math.sqrt(2*3.141592653589793238));
+        end
+        if bit32.band(data.hist_flags, ImPlotHistogramFlags.Cumulative) ~= 0 then
+            for i = 2, 100 do
+                data.y[i] = data.y[i] + data.y[i-1];
+            end
+            for i = 1, 100 do
+                data.y[i] = data.y[i] / data.y[100];
+            end
+        end
+    end
+
+    if implot.BeginPlot("##Histograms") then
+        implot.SetupAxes(nil, nil, ImPlotAxisFlags.AutoFit, ImPlotAxisFlags.AutoFit)
+        implot.SetNextFillStyle(IMPLOT_AUTO_COL, 0.5)
+        implot.PlotHistogram("Empirical", data.dist, data.bins, 1.0, data.range and ImPlotRange(data.r[1], data.r[2]) or ImPlotRange(), data.hist_flags)
+
+        if bit32.band(data.hist_flags, ImPlotHistogramFlags.Density) ~= 0 and bit32.band(data.hist_flags, ImPlotHistogramFlags.NoOutliers) == 0 then
+            if bit32.band(data.hist_flags, ImPlotHistogramFlags.Horizontal) ~= 0 then
+                implot.PlotLine("Theoretical", data.y, data.x)
+            else
+                implot.PlotLine("Theoretical", data.x, data.y)
+            end
+        end
+
+        implot.EndPlot()
+    end
+end
+
+local Demo_Histogram2D_Data = {
+    count = 50000,
+    xybins = {100, 100},
+    hist_flags = 0,
+    dist1 = NormalDistribution(1, 2, 100000),
+    dist2 = NormalDistribution(1, 1, 100000),
+    max_count = 0,
+}
+
+function ImPlotDemo:Demo_Histogram2D()
+    local data = Demo_Histogram2D_Data
+
+    data.count = imgui.SliderInt("Count", data.count, 100, 100000)
+    data.xybins = imgui.SliderInt2("Bins", data.xybins, 1, 500)
+    imgui.SameLine()
+    data.hist_flags = imgui.CheckboxFlags("Density", data.hist_flags, ImPlotHistogramFlags.Density)
+
+    local flags = bit32.bor(ImPlotAxisFlags.AutoFit, ImPlotAxisFlags.Foreground)
+    implot.PushColormap("Hot")
+    if implot.BeginPlot("##Hist2D", ImVec2(imgui.GetContentRegionAvailVec().x - 100 - imgui.GetStyle().ItemSpacing.x, 0)) then
+        implot.SetupAxes(nil, nil, flags, flags)
+        implot.SetupAxesLimits(-6, 6, -6, 6)
+        data.max_count = implot.PlotHistogram2D("Hist2D", data.dist1, data.dist2, data.count, data.xybins[1], data.xybins[2], ImPlotRect(-6, 6, -6, 6), data.hist_flags)
+        implot.EndPlot()
+    end
+    imgui.SameLine()
+    implot.ColormapScale(bit32.band(data.hist_flags, ImPlotHistogramFlags.Density) ~= 0 and "Density" or "Count", 0, data.max_count, ImVec2(100, 0))
+
+    implot.PopColormap()
+end
+
+local Demo_DigitalPlots_Data = {
+    paused = false,
+    dataDigital = { ScrollingBuffer:new(), ScrollingBuffer:new() },
+    dataAnalog = { ScrollingBuffer:new(), ScrollingBuffer:new() },
+    showDigital = { true, false },
+    showAnalog = { true, false },
+    t = 0,
+}
+
+function ImPlotDemo:Demo_DigitalPlots()
+    local data = Demo_DigitalPlots_Data
+
+    imgui.BulletText("Digital plots do not respond to Y drag and zoom, so that")
+    imgui.Indent()
+    imgui.Text("you can drag analog plots over the rising/falling digital edge.")
+    imgui.Unindent()
+
+    data.showDigital[1] = imgui.Checkbox("digital_0", data.showDigital[1]); imgui.SameLine()
+    data.showDigital[2] = imgui.Checkbox("digital_1", data.showDigital[2]); imgui.SameLine()
+    data.showAnalog[1] = imgui.Checkbox("analog_0", data.showAnalog[1]); imgui.SameLine()
+    data.showAnalog[2] = imgui.Checkbox("analog_1", data.showAnalog[2])
+
+    if not data.paused then
+        data.t = data.t + imgui.GetIO().DeltaTime
+
+        -- digital signal values
+        if data.showDigital[1] then
+            data.dataDigital[1]:AddPoint(data.t, math.sin(2 * data.t) > 0.45 and 1 or 0)
+        end
+        if data.showDigital[2] then
+            data.dataDigital[2]:AddPoint(data.t, math.sin(2 * data.t) < 0.45 and 1 or 0)
+        end
+
+        -- analog signal values
+        if data.showAnalog[1] then
+            data.dataAnalog[1]:AddPoint(data.t, math.sin(2 * data.t))
+        end
+        if data.showAnalog[2] then
+            data.dataAnalog[2]:AddPoint(data.t, math.cos(2 * data.t))
+        end
+    end
+
+    if implot.BeginPlot("##Digital") then
+        implot.SetupAxisLimits(ImAxis.X1, data.t - 10.0, data.t, data.paused and ImGuiCond.Once or ImGuiCond.Always)
+        implot.SetupAxisLimits(ImAxis.Y1, -1, 1)
+
+        for i = 1, 2 do
+            if data.showDigital[i] and #data.dataDigital[i].DataX > 0 then
+                implot.PlotDigital(string.format("digital_%d", i - 1), data.dataDigital[i].DataX, data.dataDigital[i].DataY, 0, data.dataDigital[i].Offset - 1)
+            end
+        end
+
+        for i = 1, 2 do
+            if data.showAnalog[i] and #data.dataAnalog[i].DataX > 0 then
+                implot.PlotLine(string.format("analog_%d", i - 1), data.dataAnalog[i].DataX, data.dataAnalog[i].DataY, 0, data.dataAnalog[i].Offset - 1)
+            end
+        end
+
+        implot.EndPlot()
+    end
+end
+
+local Demo_Images_Data = {
+    bmin = ImVec2(0, 0),
+    bmax = ImVec2(1, 1),
+    uv0 = ImVec2(0, 0),
+    uv1 = ImVec2(1, 1),
+    tint = ImVec4(1, 1, 1, 1)
+}
+
+function ImPlotDemo:Demo_Images()
+    local data = Demo_Images_Data
+
+    imgui.BulletText("Below we are displaying the font texture, which is the only texture we have\naccess to in this demo.")
+    imgui.BulletText("Use the 'ImTextureID' type as storage to pass pointers or identifiers to your\nown texture data.")
+    imgui.BulletText("See ImGui Wiki page 'Image Loading and Displaying Examples'.")
+
+    data.bmin = imgui.SliderFloatVec2("Min", data.bmin, -2, 2, "%.1f")
+    data.bmax = imgui.SliderFloatVec2("Max", data.bmax, -2, 2, "%.1f")
+    data.uv0 = imgui.SliderFloatVec2("UV0", data.uv0, -2, 2, "%.1f")
+    data.uv1 = imgui.SliderFloatVec2("UV1", data.uv1, -2, 2, "%.1f")
+    data.tint = imgui.ColorEdit4("Tint", data.tint)
+
+    if implot.BeginPlot("##image") then
+        implot.PlotImage("my image", imgui.GetIO().Fonts.TexID, ImPlotPoint(data.bmin), ImPlotPoint(data.bmax), data.uv0, data.uv1, data.tint)
+        implot.EndPlot()
+    end
+end
+
+local Demo_RealtimePlots_Data = {
+    sdata1 = ScrollingBuffer:new(),
+    sdata2 = ScrollingBuffer:new(),
+    rdata1 = RollingBuffer:new(),
+    rdata2 = RollingBuffer:new(),
+    t = 0,
+    history = 10.0,
+    flags = ImPlotAxisFlags.NoTickLabels,
+}
+
+function ImPlotDemo:Demo_RealtimePlots()
+    local data = Demo_RealtimePlots_Data
+
+    imgui.BulletText("Move your mouse to change the data!")
+    imgui.BulletText("This example assumes 60 FPS. Higher FPS requires larger buffer size.")
+
+    local mouse = imgui.GetMousePosVec()
+    data.t = data.t + imgui.GetIO().DeltaTime
+    data.sdata1:AddPoint(data.t, mouse.x * 0.0005)
+    data.rdata1:AddPoint(data.t, mouse.x * 0.0005)
+    data.sdata2:AddPoint(data.t, mouse.y * 0.0005)
+    data.rdata2:AddPoint(data.t, mouse.y * 0.0005)
+
+    data.history = imgui.SliderFloat("History", data.history, 1, 30, "%.1f s")
+    data.rdata1.Span = data.history
+    data.rdata2.Span = data.history
+
+    if implot.BeginPlot("##Scrolling", ImVec2(-1, 150)) then
+        implot.SetupAxes(nil, nil, data.flags, data.flags)
+        implot.SetupAxisLimits(ImAxis.X1, data.t - data.history, data.t, ImGuiCond.Always)
+        implot.SetupAxisLimits(ImAxis.Y1, 0, 1)
+        implot.SetNextFillStyle(IMPLOT_AUTO_COL, 0.5)
+        implot.PlotShaded("Mouse X", data.sdata1.DataX, data.sdata1.DataY, -math.huge, 0, data.sdata1.Offset - 1)
+        implot.PlotLine("Mouse Y", data.sdata2.DataX, data.sdata2.DataY, 0, data.sdata2.Offset - 1)
+        implot.EndPlot()
+    end
+
+    if implot.BeginPlot("##Rolling", ImVec2(-1, 150)) then
+        implot.SetupAxes(nil, nil, data.flags, data.flags)
+        implot.SetupAxisLimits(ImAxis.X1, 0, data.history, ImGuiCond.Always)
+        implot.SetupAxisLimits(ImAxis.Y1, 0, 1)
+        implot.PlotLine("Mouse X", data.rdata1.DataX, data.rdata1.DataY, 0, 0)
+        implot.PlotLine("Mouse Y", data.rdata2.DataX, data.rdata2.DataY, 0, 0)
+        implot.EndPlot()
+    end
+end
+
+local Demo_MarkersAndText_Data = {
+    mk_size = implot.GetStyle().MarkerSize,
+    mk_weight = implot.GetStyle().MarkerWeight,
+}
+
+function ImPlotDemo:Demo_MarkersAndText()
+    local data = Demo_MarkersAndText_Data
+
+    data.mk_size = imgui.DragFloat("Marker Size", data.mk_size, 0.1, 2.0, 10.0, "%.2f px")
+    data.mk_weight = imgui.DragFloat("Marker Weight", data.mk_weight, 0.05, 0.5, 3.0, "%.2f px")
+
+    if implot.BeginPlot("##MarkerStyles", ImVec2(-1, 0), ImPlotFlags.CanvasOnly) then
+        implot.SetupAxes(nil, nil, ImPlotAxisFlags.NoDecorations, ImPlotAxisFlags.NoDecorations)
+        implot.SetupAxesLimits(0, 10, 0, 12)
+
+        local xs = {1, 4}
+        local ys = {10, 11}
+
+        for m = 0, ImPlotMarker.COUNT - 1 do
+            imgui.PushID(m)
+            implot.SetNextMarkerStyle(m, data.mk_size, IMPLOT_AUTO_COL, data.mk_weight)
+            implot.PlotLine("##Filled", xs, ys)
+            imgui.PopID()
+
+            ys[1] = ys[1] - 1
+            ys[2] = ys[2] - 1
+        end
+
+        xs = {6, 9}
+        ys = {10, 11}
+
+        for m = 0, ImPlotMarker.COUNT - 1 do
+            imgui.PushID(m)
+            implot.SetNextMarkerStyle(m, data.mk_size, ImVec4(0, 0, 0, 0), data.mk_weight)
+            implot.PlotLine("##Open", xs, ys)
+            imgui.PopID()
+
+            ys[1] = ys[1] - 1
+            ys[2] = ys[2] - 1
+        end
+
+        implot.PlotText("Filled Markers", 2.5, 6.0)
+        implot.PlotText("Open Markers", 7.5, 6.0)
+
+        implot.PushStyleColor(ImPlotCol.InlayText, ImVec4(1, 0, 1, 1))
+        implot.PlotText("Vertical Text", 5.0, 6.0, ImVec2(0, 0), ImPlotTextFlags.Vertical)
+        implot.PopStyleColor()
+        implot.EndPlot()
+    end
+end
+
+local Demo_NaNValues_Data = {
+    include_nan = true,
+    flags = 0,
+    data1 = {0.0, 0.25, 0.5, 0.75, 1.0},
+    data2 = {0.0, 0.25, 0.5, 0.75, 1.0},
+}
+
+function ImPlotDemo:Demo_NaNValues()
+    local data = Demo_NaNValues_Data
+
+    if data.include_nan then
+        data.data1[3] = 0/0
+    else
+        data.data1[3] = 0.5
+    end
+
+    data.include_nan = imgui.Checkbox("Include NaN", data.include_nan)
+    imgui.SameLine()
+    data.flags = imgui.CheckboxFlags("Skip NaN", data.flags, ImPlotLineFlags.SkipNaN)
+
+    if implot.BeginPlot("##NaNValues") then
+        implot.SetNextMarkerStyle(ImPlotMarker.Square)
+        implot.PlotLine("line", data.data1, data.data2, data.flags)
+        implot.PlotBars("bars", data.data1)
+        implot.EndPlot()
+    end
+end
 
 --
 -- Main Loop

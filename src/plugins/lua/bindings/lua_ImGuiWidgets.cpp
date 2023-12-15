@@ -194,9 +194,23 @@ static std::tuple<float, bool> SliderFloat_Obsolete(const char* label, float v, 
 	return SliderFloat(label, v, v_min, v_max, format, power != 1.0f ? ImGuiSliderFlags_Logarithmic : ImGuiSliderFlags_None);
 }
 
+static std::tuple<ImVec2, bool> SliderFloat2_ImVec2(const char* label, ImVec2 value, float v_min, float v_max,
+	std::optional<const char*> format, std::optional<int> flags)
+{
+	bool changed = ImGui::SliderFloat2(label, &value.x, v_min, v_max, format.value_or("%.3f"), flags.value_or(0));
+	return std::make_tuple(value, changed);
+}
+
+static std::tuple<ImVec4, bool> SliderFloat4_ImVec4(const char* label, ImVec4 value, float v_min, float v_max,
+	std::optional<const char*> format, std::optional<int> flags)
+{
+	bool changed = ImGui::SliderFloat4(label, &value.x, v_min, v_max, format.value_or("%.3f"), flags.value_or(0));
+	return std::make_tuple(value, changed);
+}
+
 template <int N>
 static std::tuple<sol::as_table_t<std::vector<float>>, bool> SliderFloatN(const char* label, const sol::table& v,
-	std::optional<float> v_min, std::optional<float> v_max, std::optional<const char*> format, std::optional<int> flags)
+	float v_min, float v_max, std::optional<const char*> format, std::optional<int> flags)
 {
 	float value[N];
 	for (int i = 0; i < N; ++i)
@@ -205,11 +219,11 @@ static std::tuple<sol::as_table_t<std::vector<float>>, bool> SliderFloatN(const 
 	bool changed = false;
 
 	if constexpr (N == 2)
-		changed = ImGui::SliderFloat2(label, value, v_min.value_or(0.0f), v_max.value_or(0.0f), format.value_or("%.3f"), flags.value_or(0));
+		changed = ImGui::SliderFloat2(label, value, v_min, v_max, format.value_or("%.3f"), flags.value_or(0));
 	else if constexpr (N == 3)
-		changed = ImGui::SliderFloat3(label, value, v_min.value_or(0.0f), v_max.value_or(0.0f), format.value_or("%.3f"), flags.value_or(0));
+		changed = ImGui::SliderFloat3(label, value, v_min, v_max, format.value_or("%.3f"), flags.value_or(0));
 	else if constexpr (N == 4)
-		changed = ImGui::SliderFloat4(label, value, v_min.value_or(0.0f), v_max.value_or(0.0f), format.value_or("%.3f"), flags.value_or(0));
+		changed = ImGui::SliderFloat4(label, value, v_min, v_max, format.value_or("%.3f"), flags.value_or(0));
 
 	sol::as_table_t float2 = sol::as_table(std::vector<float>(std::begin(value), std::end(value)));
 
@@ -430,7 +444,19 @@ static std::tuple<double, bool> InputDouble(const char* label, double value,
 #pragma region Widgets: Color Editor / Picker
 // Widgets: Color Editor / Picker
 template <int N>
-static std::tuple<sol::as_table_t<std::vector<float>>, bool> ColorEditN1(const char* label, const sol::table& col, std::optional<int> flags)
+static std::tuple<ImVec4, bool> ColorEditN1(const char* label, ImVec4 col, std::optional<int> flags)
+{
+	bool changed = false;
+	if constexpr (N == 3)
+		changed = ImGui::ColorEdit3(label, &col.x, flags.value_or(0));
+	else if constexpr (N == 4)
+		changed = ImGui::ColorEdit4(label, &col.x, flags.value_or(0));
+
+	return std::make_tuple(col, changed);
+}
+
+template <int N>
+static std::tuple<sol::as_table_t<std::vector<float>>, bool> ColorEditN2(const char* label, const sol::table& col, std::optional<int> flags)
 {
 	float color[N];
 	for (int i = 0; i < N; ++i)
@@ -444,18 +470,6 @@ static std::tuple<sol::as_table_t<std::vector<float>>, bool> ColorEditN1(const c
 
 	sol::as_table_t rgb = sol::as_table(std::vector<float>(std::begin(color), std::end(color)));
 	return std::make_tuple(rgb, changed);
-}
-
-template <int N>
-static std::tuple<ImVec4, bool> ColorEditN2(const char* label, ImVec4 col, std::optional<int> flags)
-{
-	bool changed = false;
-	if constexpr (N == 3)
-		changed = ImGui::ColorEdit3(label, &col.x, flags.value_or(0));
-	else if constexpr (N == 4)
-		changed = ImGui::ColorEdit4(label, &col.x, flags.value_or(0));
-
-	return std::make_tuple(col, changed);
 }
 
 template <int N>
@@ -473,7 +487,19 @@ static std::tuple<ImU32, bool> ColorEditN3(const char* label, ImU32 col, std::op
 }
 
 template <int N>
-static std::tuple<sol::as_table_t<std::vector<float>>, bool> ColorPickerN1(const char* label, const sol::table& col, std::optional<int> flags)
+static std::tuple<ImVec4, bool> ColorPickerN1(const char* label, ImVec4 col, std::optional<int> flags)
+{
+	bool changed = false;
+	if constexpr (N == 3)
+		changed = ImGui::ColorPicker3(label, &col.x, flags.value_or(0));
+	else if constexpr (N == 4)
+		changed = ImGui::ColorPicker4(label, &col.x, flags.value_or(0));
+
+	return std::make_tuple(col, changed);
+}
+
+template <int N>
+static std::tuple<sol::as_table_t<std::vector<float>>, bool> ColorPickerN2(const char* label, const sol::table& col, std::optional<int> flags)
 {
 	float color[N];
 	for (int i = 0; i < N; ++i)
@@ -490,18 +516,6 @@ static std::tuple<sol::as_table_t<std::vector<float>>, bool> ColorPickerN1(const
 }
 
 template <int N>
-static std::tuple<ImVec4, bool> ColorPickerN2(const char* label, ImVec4 col, std::optional<int> flags)
-{
-	bool changed = false;
-	if constexpr (N == 3)
-		changed = ImGui::ColorPicker3(label, &col.x, flags.value_or(0));
-	else if constexpr (N == 4)
-		changed = ImGui::ColorPicker4(label, &col.x, flags.value_or(0));
-
-	return std::make_tuple(col, changed);
-}
-
-template <int N>
 static std::tuple<ImU32, bool> ColorPickerN3(const char* label, ImU32 col, std::optional<int> flags)
 {
 	ImVec4 vec4 = ImGui::ColorConvertU32ToFloat4(col);
@@ -515,17 +529,17 @@ static std::tuple<ImU32, bool> ColorPickerN3(const char* label, ImU32 col, std::
 	return std::make_tuple(ImGui::ColorConvertFloat4ToU32(vec4), changed);
 }
 
-static bool ColorButton1(const char* desc_id, const sol::table& col, std::optional<int> flags, std::optional<ImVec2> size)
+static bool ColorButton1(const char* desc_id, const ImVec4& color, std::optional<int> flags, std::optional<ImVec2> size)
+{
+	return ImGui::ColorButton(desc_id, color, flags.value_or(0), size.value_or(ImVec2(0, 0)));
+}
+
+static bool ColorButton2(const char* desc_id, const sol::table& col, std::optional<int> flags, std::optional<ImVec2> size)
 {
 	ImVec4 color;
 	for (int i = 0; i < 4; ++i)
 		(&color.x)[i] = (float)col[i + 1].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0));
 
-	return ImGui::ColorButton(desc_id, color, flags.value_or(0), size.value_or(ImVec2(0, 0)));
-}
-
-static bool ColorButton2(const char* desc_id, const ImVec4& color, std::optional<int> flags, std::optional<ImVec2> size)
-{
 	return ImGui::ColorButton(desc_id, color, flags.value_or(0), size.value_or(ImVec2(0, 0)));
 }
 
@@ -731,8 +745,10 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 	#pragma region Widgets: Sliders
 	ImGui.set_function("SliderFloat", sol::overload(&SliderFloat, &SliderFloat_Obsolete));
 	ImGui.set_function("SliderFloat2", sol::overload(&SliderFloatN<2>, &SliderFloatN_Obsolete<2>));
+	ImGui.set_function("SliderFloatVec2", &SliderFloat2_ImVec2);
 	ImGui.set_function("SliderFloat3", sol::overload(&SliderFloatN<3>, &SliderFloatN_Obsolete<3>));
 	ImGui.set_function("SliderFloat4", sol::overload(&SliderFloatN<4>, &SliderFloatN_Obsolete<4>));
+	ImGui.set_function("SliderFloatVec4", &SliderFloat4_ImVec4);
 	ImGui.set_function("SliderAngle", &SliderAngle);
 	ImGui.set_function("SliderInt", &SliderInt);
 	ImGui.set_function("SliderInt2", &SliderIntN<2>);
