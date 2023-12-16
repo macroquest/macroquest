@@ -32,8 +32,16 @@ std::string format_text(sol::this_state s, sol::variadic_args va);
 #pragma region Widgets: Combo Box
 // Widgets: Combo Box
 
-// Combo 1: Takes list of items
-static std::tuple<int, bool> Combo1(const char* label, int currentItem, const sol::table& items, std::optional<int> itemsCount, std::optional<int> popupMaxHeightInItems)
+// Combo 1: Takes a string containing null separated items
+static std::tuple<int, bool> Combo1(const char* label, int currentItem, const char* itemsSeparatedByZeros, std::optional<int> popupMaxHeightInItems)
+{
+	currentItem -= 1;
+	bool clicked = ImGui::Combo(label, &currentItem, itemsSeparatedByZeros, popupMaxHeightInItems.value_or(-1));
+	return std::make_tuple(currentItem + 1, clicked);
+}
+
+// Combo 2: Takes list of items
+static std::tuple<int, bool> Combo2(const char* label, int currentItem, const sol::table& items, std::optional<int> itemsCount, std::optional<int> popupMaxHeightInItems)
 {
 	std::vector<const char*> strings;
 	int count = itemsCount.value_or(items.size());
@@ -47,14 +55,6 @@ static std::tuple<int, bool> Combo1(const char* label, int currentItem, const so
 
 	currentItem -= 1;
 	bool clicked = ImGui::Combo(label, &currentItem, strings.data(), count, popupMaxHeightInItems.value_or(-1));
-	return std::make_tuple(currentItem + 1, clicked);
-}
-
-// Combo 2: Takes a string containing null separated items
-static std::tuple<int, bool> Combo2(const char* label, int currentItem, const char* itemsSeparatedByZeros, std::optional<int> popupMaxHeightInItems)
-{
-	currentItem -= 1;
-	bool clicked = ImGui::Combo(label, &currentItem, itemsSeparatedByZeros, popupMaxHeightInItems.value_or(-1));
 	return std::make_tuple(currentItem + 1, clicked);
 }
 
@@ -177,6 +177,56 @@ static std::tuple<int, int, bool> DragIntRange2(const char* label, int v_current
 
 	return std::make_tuple(v_current_min, v_current_max, changed);
 }
+
+template <typename T>
+static std::tuple<sol::object, bool> DragScalarNT(sol::this_state L, const char* label, int dataType, sol::table table, int components, std::optional<float> v_speed, std::optional<double> p_min, std::optional<double> p_max, std::optional<const char*> format, std::optional<int> flags)
+{
+	std::vector<T> data = table.as<std::vector<T>>();
+	data.resize(components, T());
+
+	T min_val = (T)(p_min.value_or(0));
+	T max_val = (T)(p_max.value_or(0));
+
+	bool changed = ImGui::DragScalarN(label, dataType, data.data(), components, v_speed.value_or(1), p_min.has_value() ? &min_val : nullptr, p_max.has_value() ? &max_val : nullptr, format.value_or(nullptr), flags.value_or(0));
+
+	sol::table t = sol::state_view(L).create_table();
+	for (T v : data)
+		t.add(v);
+
+	return std::make_tuple(t, changed);
+}
+
+static std::tuple<sol::object, bool> DragScalarN(const char* label, int dataType, sol::table data, int components, std::optional<float> v_speed, std::optional<double> p_min, std::optional<double> p_max, std::optional<const char*> format, std::optional<int> flags, sol::this_state L)
+{
+	switch (dataType)
+	{
+	case ImGuiDataType_S8:
+		return DragScalarNT<int8_t>(L, label, dataType, data, components, v_speed, p_min, p_max, format, flags);
+	case ImGuiDataType_U8:
+		return DragScalarNT<uint8_t>(L, label, dataType, data, components, v_speed, p_min, p_max, format, flags);
+	case ImGuiDataType_S16:
+		return DragScalarNT<int16_t>(L, label, dataType, data, components, v_speed, p_min, p_max, format, flags);
+	case ImGuiDataType_U16:
+		return DragScalarNT<uint16_t>(L, label, dataType, data, components, v_speed, p_min, p_max, format, flags);
+	case ImGuiDataType_S32:
+		return DragScalarNT<int32_t>(L, label, dataType, data, components, v_speed, p_min, p_max, format, flags);
+	case ImGuiDataType_U32:
+		return DragScalarNT<uint32_t>(L, label, dataType, data, components, v_speed, p_min, p_max, format, flags);
+	case ImGuiDataType_S64:
+		return DragScalarNT<int64_t>(L, label, dataType, data, components, v_speed, p_min, p_max, format, flags);
+	case ImGuiDataType_U64:
+		return DragScalarNT<uint16_t>(L, label, dataType, data, components, v_speed, p_min, p_max, format, flags);
+	case ImGuiDataType_Float:
+		return DragScalarNT<float>(L, label, dataType, data, components, v_speed, p_min, p_max, format, flags);
+	case ImGuiDataType_Double:
+		return DragScalarNT<double>(L, label, dataType, data, components, v_speed, p_min, p_max, format, flags);
+	default:
+		luaL_error(L, "Invalid datatype: %d", dataType);
+	}
+
+	return std::make_tuple(sol::nil, false);
+}
+
 #pragma endregion
 
 #pragma region Widgets: Sliders
@@ -740,6 +790,8 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 	ImGui.set_function("DragInt3", &DragIntN<3>);
 	ImGui.set_function("DragInt4", &DragIntN<4>);
 	ImGui.set_function("DragIntRange2", &DragIntRange2);
+	// DragScalar
+	ImGui.set_function("DragScalarN", &DragScalarN);
 	#pragma endregion
 
 	#pragma region Widgets: Sliders
@@ -754,8 +806,11 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 	ImGui.set_function("SliderInt2", &SliderIntN<2>);
 	ImGui.set_function("SliderInt3", &SliderIntN<3>);
 	ImGui.set_function("SliderInt4", &SliderIntN<4>);
+	// SliderScalar
+	// SliderScalarN
 	ImGui.set_function("VSliderFloat", sol::overload(&VSliderFloatVec2, &VSliderFloat));
 	ImGui.set_function("VSliderInt", sol::overload(&VSliderIntVec2, &VSliderInt));
+	// VSliderScalar
 	#pragma endregion
 
 	#pragma region Widgets: Inputs using Keyboard

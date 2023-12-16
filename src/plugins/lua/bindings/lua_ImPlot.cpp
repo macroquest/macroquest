@@ -20,6 +20,8 @@
 
 #include <string>
 
+#include "lua_MQBindings.h"
+
 namespace mq::lua::bindings {
 
 //============================================================================
@@ -54,9 +56,10 @@ static int LuaImPlotFormatter(double value, char* buff, int size, void* user_dat
 
 static ImPlotPoint LuaImPlotGetter(int index, void* user_data)
 {
-	auto& getter = *static_cast<sol::function*>(user_data);
+	auto getter = *static_cast<sol::unsafe_function*>(user_data);
 
 	sol::function_result result = getter(index);
+
 	std::optional<ImPlotPoint> point = result.get<std::optional<ImPlotPoint>>();
 
 	return point.value_or(ImPlotPoint(0, 0));
@@ -75,7 +78,7 @@ void PlotLine2(const char* label_id, std::vector<double> xs, std::vector<double>
 	ImPlot::PlotLine<double>(label_id, xs.data(), ys.data(), (int)count, flags.value_or(0), offset.value_or(0));
 }
 
-void PlotLineG(const char* label_id, sol::function getter, int count, std::optional<int> flags)
+void PlotLineG(const char* label_id, sol::unsafe_function getter, int count, std::optional<int> flags)
 {
 	ImPlot::PlotLineG(label_id, &LuaImPlotGetter, &getter, count, flags.value_or(0));
 }
@@ -93,7 +96,7 @@ void PlotScatter2(const char* label_id, std::vector<double> xs, std::vector<doub
 	ImPlot::PlotScatter<double>(label_id, xs.data(), ys.data(), (int)count, flags.value_or(0), offset.value_or(0));
 }
 
-void PlotScatterG(const char* label_id, sol::function getter, int count, std::optional<int> flags)
+void PlotScatterG(const char* label_id, sol::unsafe_function getter, int count, std::optional<int> flags)
 {
 	ImPlot::PlotScatterG(label_id, &LuaImPlotGetter, &getter, count, flags.value_or(0));
 }
@@ -111,7 +114,7 @@ void PlotStairs2(const char* label_id, std::vector<double> xs, std::vector<doubl
 	ImPlot::PlotStairs<double>(label_id, xs.data(), ys.data(), (int)count, flags.value_or(0), offset.value_or(0));
 }
 
-void PlotStairsG(const char* label_id, sol::function getter, int count, std::optional<int> flags)
+void PlotStairsG(const char* label_id, sol::unsafe_function getter, int count, std::optional<int> flags)
 {
 	ImPlot::PlotStairsG(label_id, &LuaImPlotGetter, &getter, count, flags.value_or(0));
 }
@@ -135,7 +138,7 @@ void PlotShaded3(const char* label_id, std::vector<double> xs, std::vector<doubl
 	ImPlot::PlotShaded<double>(label_id, xs.data(), ys1.data(), ys2.data(), count, flags.value_or(0), offset.value_or(0));
 }
 
-void PlotShadedG(const char* label_id, sol::function getter1, sol::function getter2, int count, std::optional<int> flags)
+void PlotShadedG(const char* label_id, sol::unsafe_function getter1, sol::unsafe_function getter2, int count, std::optional<int> flags)
 {
 	ImPlot::PlotShadedG(label_id, &LuaImPlotGetter, &getter1, &LuaImPlotGetter, &getter2, count, flags.value_or(0));
 }
@@ -153,7 +156,7 @@ void PlotBars2(const char* label_id, std::vector<double> xs, std::vector<double>
 	ImPlot::PlotBars<double>(label_id, xs.data(), ys.data(), count, bar_size, flags.value_or(0), offset.value_or(0));
 }
 
-void PlotBarsG(const char* label_id, sol::function getter, int count, double bar_size, std::optional<int> flags)
+void PlotBarsG(const char* label_id, sol::unsafe_function getter, int count, double bar_size, std::optional<int> flags)
 {
 	ImPlot::PlotBarsG(label_id, &LuaImPlotGetter, &getter, count, bar_size, flags.value_or(0));
 }
@@ -252,7 +255,7 @@ void PlotDigital(const char* label_id, std::vector<double> xs, std::vector<doubl
 	ImPlot::PlotDigital(label_id, xs.data(), ys.data(), count, flags.value_or(0), offset.value_or(0));
 }
 
-void PlotDigitalG(const char* label_id, sol::function getter, int count, std::optional<int> flags)
+void PlotDigitalG(const char* label_id, sol::unsafe_function getter, int count, std::optional<int> flags)
 {
 	ImPlot::PlotDigitalG(label_id, &LuaImPlotGetter, &getter, count, flags.value_or(0));
 }
@@ -737,27 +740,27 @@ sol::table RegisterBindings_ImPlot(sol::this_state L)
 
 	// [SECTION] Begin/End Subplots
 	ImPlot.set_function("BeginSubplots", [](const char* title_id, int rows, int cols, const ImVec2& size, std::optional<int> flags,
-		std::optional<std::vector<float>> row_ratios_vec, std::optional<std::vector<float>> col_ratios_vec)
+		std::optional<sol::table> row_ratios_vec, std::optional<sol::table> col_ratios_vec)
 		{
-			float* row_ratios = nullptr;
+			std::vector<float> row_ratios;
 			if (row_ratios_vec.has_value())
 			{
-				auto& vec = row_ratios_vec.value();
-				if (vec.size() < rows)
-					vec.resize(rows);
-				row_ratios = vec.data();
+				row_ratios = row_ratios_vec->as<std::vector<float>>();
+				if (row_ratios.size() < rows)
+					row_ratios.resize(rows, 0);
 			}
 
-			float* col_ratios = nullptr;
+			std::vector<float> col_ratios;
 			if (col_ratios_vec.has_value())
 			{
-				auto& vec = col_ratios_vec.value();
-				if (vec.size() < rows)
-					vec.resize(rows);
-				col_ratios = vec.data();
+				col_ratios = col_ratios_vec->as<std::vector<float>>();
+				if (col_ratios.size() < cols)
+					col_ratios.resize(cols);
 			}
 
-			return ImPlot::BeginSubplots(title_id, rows, cols, size, flags.value_or(0), row_ratios, col_ratios);
+			return ImPlot::BeginSubplots(title_id, rows, cols, size, flags.value_or(0),
+				row_ratios_vec.has_value() ? row_ratios.data() : nullptr,
+				col_ratios_vec.has_value() ? col_ratios.data() : nullptr);
 		});
 	ImPlot.set_function("EndSubplots", &ImPlot::EndSubplots);
 
