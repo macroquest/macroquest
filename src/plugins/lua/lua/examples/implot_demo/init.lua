@@ -129,6 +129,25 @@ function NormalDistribution(mean, sd, count)
     return data
 end
 
+---@param id string
+---@param values number[]
+---@param minValue number
+---@param maxValue number
+---@param offset integer
+---@param col ImVec4
+---@param size ImVec2
+function Sparkline(id, values, minValue, maxValue, offset, col, size)
+    implot.PushStyleVar(ImPlotStyleVar.PlotPadding, ImVec2(0, 0))
+    if implot.BeginPlot(id, size, ImPlotFlags.CanvasOnly) then
+        implot.SetupAxes(nil, nil, ImPlotAxisFlags.NoDecorations, ImPlotAxisFlags.NoDecorations)
+        implot.SetupAxesLimits(0, #values, minValue, maxValue, ImGuiCond.Always)
+        implot.SetNextLineStyle(col)
+        implot.SetNextFillStyle(col, 0.25)
+        implot.PlotLine(id, values, 1, 0, ImPlotLineFlags.Shaded, offset)
+        implot.EndPlot()
+    end
+    implot.PopStyleVar()
+end
 
 
 
@@ -183,9 +202,9 @@ function ImPlotDemo:ShowDemoWindow(open)
     imgui.Text('ImPlot says hello. (%s)', implot.GetVersion())
     imgui.Spacing()
 
-    if imgui.BeginTabBar('ImPlotDemoTabs') then
+    if imgui.BeginTabBar("ImPlotDemoTabs") then
         if imgui.BeginTabItem('Plots') then
-            self:DemoHeader('Line Plots', self.Demo_LinePlots)
+            self:DemoHeader("Line Plots", self.Demo_LinePlots)
             self:DemoHeader("Filled Line Plots", self.Demo_FilledLinePlots);
             self:DemoHeader("Shaded Plots##", self.Demo_ShadedPlots)
             self:DemoHeader("Scatter Plots", self.Demo_ScatterPlots)
@@ -208,10 +227,24 @@ function ImPlotDemo:ShowDemoWindow(open)
 
             imgui.EndTabItem()
         end
-        if imgui.BeginTabItem('Subplots') then
+        if imgui.BeginTabItem("Subplots") then
+            self:DemoHeader("Sizing", self.Demo_SubplotsSizing)
+            self:DemoHeader("Item Sharing", self.Demo_SubplotItemSharing)
+            self:DemoHeader("Axis Linking", self.Demo_SubplotAxisLinking)
+            self:DemoHeader("Tables", self.Demo_Tables)
             imgui.EndTabItem()
         end
-        if imgui.BeginTabItem('Axes') then
+        if imgui.BeginTabItem("Axes") then
+            self:DemoHeader("Log Scale", self.Demo_LogScale)
+            self:DemoHeader("Symmetric Log Scale", self.Demo_SymmetricLogScale)
+            self:DemoHeader("Time Scale", self.Demo_TimeScale)
+            self:DemoHeader("Custom Scale", self.Demo_CustomScale)
+            self:DemoHeader("Multiple Axes", self.Demo_MultipleAxes)
+            self:DemoHeader("Tick Labels", self.Demo_TickLabels)
+            self:DemoHeader("Linked Axes", self.Demo_LinkedAxes)
+            self:DemoHeader("Axis Constraints", self.Demo_AxisConstraints)
+            self:DemoHeader("Equal Axes", self.Demo_EqualAxes)
+            self:DemoHeader("Auto-Fitting Data", self.Demo_AutoFittingData)
             imgui.EndTabItem()
         end
         if imgui.BeginTabItem('Tools') then
@@ -1073,6 +1106,349 @@ function ImPlotDemo:Demo_NaNValues()
         implot.EndPlot()
     end
 end
+
+local Demo_SubplotsSizing_Data = {
+    flags = bit32.bor(ImPlotSubplotFlags.ShareItems, ImPlotSubplotFlags.NoLegend),
+    rows = 3,
+    cols = 3,
+    rratios = {5, 1, 1, 1, 1, 1},
+    cratios = {5, 1, 1, 1, 1, 1},
+}
+
+---@param idx number
+---@param fi number
+---@return ImPlotPoint
+function SinewaveGetter(idx, fi)
+    return ImPlotPoint(idx, math.sin(fi * idx * 10))
+end
+
+function ImPlotDemo:Demo_SubplotsSizing()
+    local data = Demo_SubplotsSizing_Data
+
+    data.flags = imgui.CheckboxFlags("ImPlotSubplotFlags.NoResize", data.flags, ImPlotSubplotFlags.NoResize)
+    data.flags = imgui.CheckboxFlags("ImPlotSubplotFlags.NoTitle", data.flags, ImPlotSubplotFlags.NoTitle)
+
+    data.rows = imgui.SliderInt("Rows", data.rows, 1, 5)
+    data.cols = imgui.SliderInt("Cols", data.cols, 1, 5)
+    if data.rows < 1 or data.cols < 1 then
+        imgui.TextColored(ImVec4(1, 0, 0, 1), "Nice try, but the number of rows and columns must be greater than 0!")
+        return
+    end
+
+    data.rratios = imgui.DragScalarN("Row Ratios", ImGuiDataType.Float, data.rratios, data.rows, 0.01)
+    data.cratios = imgui.DragScalarN("Col Ratios", ImGuiDataType.Float, data.cratios, data.cols, 0.01)
+    if implot.BeginSubplots("My Subplots", data.rows, data.cols, ImVec2(-1, 400), data.flags, data.rratios, data.cratios) then
+        local id = 0
+        for i = 1, data.rows * data.cols do
+            if implot.BeginPlot("", ImVec2(), ImPlotFlags.NoLegend) then
+                implot.SetupAxes(nil, nil, ImPlotAxisFlags.NoDecorations, ImPlotAxisFlags.NoDecorations)
+                local fi = 0.01 * i
+                if data.rows * data.cols > 1 then
+                    implot.SetNextLineStyle(implot.SampleColormap(i / (data.rows * data.cols - 1), ImPlotColormap.Jet))
+                end
+                local label = string.format("data%d", id)
+                implot.PlotLine(label, function(idx) return SinewaveGetter(idx, fi) end, 100)
+                implot.EndPlot()
+            end
+        end
+        implot.EndSubplots()
+    end
+end
+
+local Demo_SubplotItemSharing_Data = {
+    flags = ImPlotSubplotFlags.ShareItems,
+    rows = 2,
+    cols = 3,
+    id = {1, 2, 3, 4, 5, 6},
+    curj = -1,
+}
+
+function ImPlotDemo:Demo_SubplotItemSharing()
+    local data = Demo_SubplotItemSharing_Data
+
+    data.flags = imgui.CheckboxFlags("ImPlotSubplotFlags.ShareItems", data.flags, ImPlotSubplotFlags.ShareItems)
+    data.flags = imgui.CheckboxFlags("ImPlotSubplotFlags.ColMajor", data.flags, ImPlotSubplotFlags.ColMajor)
+
+    imgui.BulletText("Drag and drop items from the legend onto plots (except for 'common')")
+
+    if implot.BeginSubplots("##ItemSharing", data.rows, data.cols, ImVec2(-1, 400), data.flags) then
+        implot.SetupLegend(ImPlotLocation.South, bit32.bor(ImPlotLegendFlags.Sort, ImPlotLegendFlags.Horizontal))
+
+        for i = 1, data.rows * data.cols do
+            if implot.BeginPlot("") then
+                local fc = 0.01
+                implot.PlotLine("common", function(idx) return SinewaveGetter(idx, fc) end, 100)
+                for j = 1, 6 do
+                    if data.id[j] == i then
+                        local fj = 0.01 * (j + 2)
+                        local label = string.format("data%d", j)
+                        implot.PlotLine(label, function(idx) return SinewaveGetter(idx, fj) end, 100)
+                        if implot.BeginDragDropSourceItem(label) then
+                            data.curj = j
+                            imgui.SetDragDropPayload("MY_DND", nil, 0)
+                            implot.ItemIcon(implot.GetLastItemColor()); imgui.SameLine()
+                            imgui.TextUnformatted(label)
+                            implot.EndDragDropSource()
+                        end
+                    end
+                end
+                if implot.BeginDragDropTargetPlot() then
+                    if imgui.AcceptDragDropPayload("MY_DND") then
+                        data.id[data.curj] = i
+                    end
+                    implot.EndDragDropTarget()
+                end
+                implot.EndPlot()
+            end
+        end
+
+        implot.EndSubplots()
+    end
+end
+
+local Demo_SubplotAxisLinking_Data = {
+    flags = bit32.bor(ImPlotSubplotFlags.LinkRows, ImPlotSubplotFlags.LinkCols),
+    rows = 2,
+    cols = 2,
+}
+
+function ImPlotDemo:Demo_SubplotAxisLinking()
+    local data = Demo_SubplotAxisLinking_Data
+
+    data.flags = imgui.CheckboxFlags("ImPlotSubplotFlags.LinkRows", data.flags, ImPlotSubplotFlags.LinkRows)
+    data.flags = imgui.CheckboxFlags("ImPlotSubplotFlags.LinkCols", data.flags, ImPlotSubplotFlags.LinkCols)
+    data.flags = imgui.CheckboxFlags("ImPlotSubplotFlags.LinkAllX", data.flags, ImPlotSubplotFlags.LinkAllX)
+    data.flags = imgui.CheckboxFlags("ImPlotSubplotFlags.LinkAllY", data.flags, ImPlotSubplotFlags.LinkAllY)
+
+    if implot.BeginSubplots("##AxisLinking", data.rows, data.cols, ImVec2(-1, 400), data.flags) then
+        for i = 1, data.rows * data.cols do
+            if implot.BeginPlot("") then
+                implot.SetupAxesLimits(0, 100, -1, 1)
+                implot.PlotLine("common", function(idx) return SinewaveGetter(idx, 0.01) end, 100)
+                implot.EndPlot()
+            end
+        end
+        implot.EndSubplots()
+    end
+end
+
+local Demo_Tables_Data = {
+    flags = bit32.bor(ImGuiTableFlags.BordersOuter, ImGuiTableFlags.BordersV,
+        ImGuiTableFlags.RowBg, ImGuiTableFlags.Resizable, ImGuiTableFlags.Reorderable),
+    anim = true,
+    offset = 0,
+    data = {}
+}
+
+function ImPlotDemo:Demo_Tables()
+    local data = Demo_Tables_Data
+
+    imgui.BulletText("Plots can be used inside of ImGui tables as another means of creating subplots.")
+    data.anim = imgui.Checkbox("Animate", data.anim)
+
+    if data.anim then
+        data.offset = (data.offset + 1) % 100
+    end
+
+    if imgui.BeginTable("##table", 3, data.flags, ImVec2(-1, 0)) then
+        imgui.TableSetupColumn("Electrode", ImGuiTableColumnFlags.WidthFixed, 75.0)
+        imgui.TableSetupColumn("Voltage", ImGuiTableColumnFlags.WidthFixed, 75.0)
+        imgui.TableSetupColumn("EMG Signal")
+        imgui.TableHeadersRow()
+
+        implot.PushColormap(ImPlotColormap.Cool)
+        for row = 1, 10 do
+            imgui.TableNextRow()
+            math.randomseed(row)
+            for i = 1, 100 do
+                data.data[i] = math.random(0, 10)
+            end
+            imgui.TableSetColumnIndex(0)
+            imgui.Text("EMG %d", row)
+            imgui.TableSetColumnIndex(1)
+            imgui.Text("%.3f V", data.data[data.offset + 1])
+            imgui.TableSetColumnIndex(2)
+            imgui.PushID(row)
+            Sparkline("##spark", data.data, 0, 11, data.offset, implot.GetColormapColor(row), ImVec2(-1, 35))
+            imgui.PopID()
+        end
+        implot.PopColormap()
+        imgui.EndTable()
+    end
+end
+
+local Demo_LogScale_Data = {
+    xs = {},
+    ys1 = {},
+    ys2 = {},
+    ys3 = {},
+    init = false
+}
+
+function ImPlotDemo:Demo_LogScale()
+    local data = Demo_LogScale_Data
+
+    if not data.init then
+        data.init = true
+
+        for i = 1, 1001 do
+            data.xs[i] = i * 0.1
+            data.ys1[i] = math.sin(data.xs[i]) + 1
+            data.ys2[i] = math.log(data.xs[i])
+            data.ys3[i] = math.pow(1.0, data.xs[i])
+        end
+    end
+
+    if implot.BeginPlot("Log Plot", ImVec2(-1, 0)) then
+        implot.SetupAxisScale(ImAxis.X1, ImPlotScale.Log10)
+        implot.SetupAxesLimits(0.1, 100, 0, 10)
+        implot.PlotLine("f(x) = x", data.xs, data.xs)
+        implot.PlotLine("f(x) = sin(x) + 1", data.xs, data.ys1)
+        implot.PlotLine("f(x) = log(x)", data.xs, data.ys2)
+        implot.PlotLine("f(x) = 10^x", data.xs, data.ys3)
+        implot.EndPlot()
+    end
+end
+
+local Demo_SymmetricLogScale_Data = {
+    xs = {},
+    ys1 = {},
+    ys2 = {},
+    init = false,
+}
+
+function ImPlotDemo:Demo_SymmetricLogScale()
+    local data = Demo_SymmetricLogScale_Data
+
+    if not data.init then
+        data.init = true
+        for i = 1, 1001 do
+            data.xs[i] = i * 0.1 - 50
+            data.ys1[i] = math.sin(data.xs[i])
+            data.ys2[i] = i * 0.002 - 1
+        end
+    end
+
+    if implot.BeginPlot("SymLog Plot", ImVec2(-1, 0)) then
+        implot.SetupAxisScale(ImAxis.X1, ImPlotScale.SymLog)
+        implot.PlotLine("f(x) = a*x + b", data.xs, data.ys2)
+        implot.PlotLine("f(x) = sin(x)", data.xs, data.ys1)
+        implot.EndPlot()
+    end
+end
+
+local Demo_TimeScale_Data = {
+    t_min = 1609459200, -- 01/01/2021 @ 12:00:00am (UTC)
+    t_max = 1640995200, -- 01/01/2022 @ 12:00:00am (UTC)
+    init = false,
+    data = {
+        Ts = {},
+        Ys = {},
+    },
+    size = 60 * 60 * 24 * 366,
+
+    GetY = function (t)
+        return 0.5 + 0.25 * math.sin(t / 86400 / 12) + 0.005 * math.sin(t / 3600)
+    end
+}
+
+function ImPlotDemo:Demo_TimeScale()
+    local data = Demo_TimeScale_Data
+
+    if not data.init then
+        data.init = true
+
+        local Ts = data.data.Ts
+        local Ys = data.data.Ys
+
+        for i = 1, data.size do
+            Ts[i] = data.t_min + i
+            Ys[i] = data.GetY(Ts[i])
+        end
+    end
+
+    imgui.BulletText("When ImPlotAxisFlags_Time is enabled on the X-Axis, values are interpreted as\n" ..
+                     "UNIX timestamps in seconds and axis labels are formated as date/time.")
+    imgui.BulletText("By default, labels are in UTC time but can be set to use local time instead.")
+
+    local Style = implot.GetStyle()
+
+    Style.UseLocalTime = imgui.Checkbox("Local Time", Style.UseLocalTime)
+    imgui.SameLine()
+    Style.UseISO8601 = imgui.Checkbox("ISO 8601", Style.UseISO8601)
+    imgui.SameLine()
+    Style.Use24HourClock = imgui.Checkbox("24 Hour CLock", Style.Use24HourClock)
+
+    if implot.BeginPlot("##Time", ImVec2(-1, 0)) then
+        implot.SetupAxisScale(ImAxis.X1, ImPlotScale.Time)
+        implot.SetupAxesLimits(data.t_min, data.t_max, 0, 1)
+
+        -- downsample data
+        -- local downsample = implot.GetPlotLimits().X:Size() / 1000 + 1
+        -- local start = implot.GetPlotLimits().X.Min - data.t_min
+        -- start = start < 0 and 0 or (start > data.size)
+
+        -- need to add size and stride...
+        implot.EndPlot()
+    end
+end
+
+local Demo_CustomScale_Data = {
+}
+
+function ImPlotDemo:Demo_CustomScale()
+    local data = Demo_CustomScale_Data
+
+end
+
+local Demo_MultipleAxes_Data = {
+}
+
+function ImPlotDemo:Demo_MultipleAxes()
+    local data = Demo_MultipleAxes_Data
+
+end
+
+local Demo_TickLabels_Data = {
+}
+
+function ImPlotDemo:Demo_TickLabels()
+    local data = Demo_TickLabels_Data
+
+end
+
+local Demo_LinkedAxes_Data = {
+}
+
+function ImPlotDemo:Demo_LinkedAxes()
+    local data = Demo_LinkedAxes_Data
+
+end
+
+local Demo_AxisConstraints_Data = {
+}
+
+function ImPlotDemo:Demo_AxisConstraints()
+    local data = Demo_AxisConstraints_Data
+
+end
+
+local Demo_EqualAxes_Data = {
+}
+
+function ImPlotDemo:Demo_EqualAxes()
+    local data = Demo_EqualAxes_Data
+
+end
+
+local Demo_AutoFittingData_Data = {
+}
+
+function ImPlotDemo:Demo_AutoFittingData()
+    local data = Demo_AutoFittingData_Data
+
+end
+
 
 --
 -- Main Loop
