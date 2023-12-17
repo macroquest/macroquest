@@ -65,17 +65,19 @@ static ImPlotPoint LuaImPlotGetter(int index, void* user_data)
 	return point.value_or(ImPlotPoint(0, 0));
 }
 
+// Custom type used for creating links between plots. Must remain alive for as long as the links are active
+
+
 //----------------------------------------------------------------------------
 
-void PlotLine1(const char* label_id, std::vector<double> values, std::optional<double> xscale, std::optional<double> xstart, std::optional<int> flags, std::optional<int> offset)
+void PlotLine1(const char* label_id, std::vector<double> values, int count, std::optional<double> xscale, std::optional<double> xstart, std::optional<int> flags, std::optional<int> offset, std::optional<int> stride)
 {
-	ImPlot::PlotLine<double>(label_id, values.data(), (int)values.size(), xscale.value_or(1), xstart.value_or(0), flags.value_or(0), offset.value_or(0));
+	ImPlot::PlotLine<double>(label_id, values.data(), count, xscale.value_or(1), xstart.value_or(0), flags.value_or(0), offset.value_or(0), stride.value_or(1) * sizeof(double));
 }
 
-void PlotLine2(const char* label_id, std::vector<double> xs, std::vector<double> ys, std::optional<int> flags, std::optional<int> offset)
+void PlotLine2(const char* label_id, std::vector<double> xs, std::vector<double> ys, int count, std::optional<int> flags, std::optional<int> offset, std::optional<int> stride)
 {
-	size_t count = std::min(xs.size(), ys.size());
-	ImPlot::PlotLine<double>(label_id, xs.data(), ys.data(), (int)count, flags.value_or(0), offset.value_or(0));
+	ImPlot::PlotLine<double>(label_id, xs.data(), ys.data(), count, flags.value_or(0), offset.value_or(0), stride.value_or(1) * sizeof(double));
 }
 
 void PlotLineG(const char* label_id, sol::unsafe_function getter, int count, std::optional<int> flags)
@@ -85,15 +87,14 @@ void PlotLineG(const char* label_id, sol::unsafe_function getter, int count, std
 
 //----------------------------------------------------------------------------
 
-void PlotScatter1(const char* label_id, std::vector<double> values, std::optional<double> xscale, std::optional<double> xstart, std::optional<int> flags, std::optional<int> offset)
+void PlotScatter1(const char* label_id, std::vector<double> values, int count, std::optional<double> xscale, std::optional<double> xstart, std::optional<int> flags, std::optional<int> offset, std::optional<int> stride)
 {
-	ImPlot::PlotScatter<double>(label_id, values.data(), (int)values.size(), xscale.value_or(1), xstart.value_or(0), flags.value_or(0), offset.value_or(0));
+	ImPlot::PlotScatter<double>(label_id, values.data(), count, xscale.value_or(1), xstart.value_or(0), flags.value_or(0), offset.value_or(0), stride.value_or(1) * sizeof(double));
 }
 
-void PlotScatter2(const char* label_id, std::vector<double> xs, std::vector<double> ys, std::optional<int> flags, std::optional<int> offset)
+void PlotScatter2(const char* label_id, std::vector<double> xs, std::vector<double> ys, int count, std::optional<int> flags, std::optional<int> offset, std::optional<int> stride)
 {
-	size_t count = std::min(xs.size(), ys.size());
-	ImPlot::PlotScatter<double>(label_id, xs.data(), ys.data(), (int)count, flags.value_or(0), offset.value_or(0));
+	ImPlot::PlotScatter<double>(label_id, xs.data(), ys.data(), count, flags.value_or(0), offset.value_or(0), stride.value_or(1) * sizeof(double));
 }
 
 void PlotScatterG(const char* label_id, sol::unsafe_function getter, int count, std::optional<int> flags)
@@ -103,15 +104,14 @@ void PlotScatterG(const char* label_id, sol::unsafe_function getter, int count, 
 
 //----------------------------------------------------------------------------
 
-void PlotStairs1(const char* label_id, std::vector<double> values, std::optional<double> xscale, std::optional<double> xstart, std::optional<int> flags, std::optional<int> offset)
+void PlotStairs1(const char* label_id, std::vector<double> values, int count, std::optional<double> xscale, std::optional<double> xstart, std::optional<int> flags, std::optional<int> offset, std::optional<int> stride)
 {
-	ImPlot::PlotStairs<double>(label_id, values.data(), (int)values.size(), xscale.value_or(1), xstart.value_or(0), flags.value_or(0), offset.value_or(0));
+	ImPlot::PlotStairs<double>(label_id, values.data(), count, xscale.value_or(1), xstart.value_or(0), flags.value_or(0), offset.value_or(0), stride.value_or(1) * sizeof(double));
 }
 
-void PlotStairs2(const char* label_id, std::vector<double> xs, std::vector<double> ys, std::optional<int> flags, std::optional<int> offset)
+void PlotStairs2(const char* label_id, std::vector<double> xs, std::vector<double> ys, int count, std::optional<int> flags, std::optional<int> offset, std::optional<int> stride)
 {
-	size_t count = std::min(xs.size(), ys.size());
-	ImPlot::PlotStairs<double>(label_id, xs.data(), ys.data(), (int)count, flags.value_or(0), offset.value_or(0));
+	ImPlot::PlotStairs<double>(label_id, xs.data(), ys.data(), count, flags.value_or(0), offset.value_or(0), stride.value_or(1) * sizeof(double));
 }
 
 void PlotStairsG(const char* label_id, sol::unsafe_function getter, int count, std::optional<int> flags)
@@ -121,21 +121,19 @@ void PlotStairsG(const char* label_id, sol::unsafe_function getter, int count, s
 
 //----------------------------------------------------------------------------
 
-void PlotShaded1(const char* label_id, std::vector<double> values, std::optional<double> yref, std::optional<double> xscale, std::optional<double> xstart, std::optional<int> flags, std::optional<int> offset)
+void PlotShaded1(const char* label_id, std::vector<double> values, int count, std::optional<double> yref, std::optional<double> xscale, std::optional<double> xstart, std::optional<int> flags, std::optional<int> offset, std::optional<int> stride)
 {
-	ImPlot::PlotShaded<double>(label_id, values.data(), (int)values.size(), yref.value_or(0), xscale.value_or(1), xstart.value_or(0), flags.value_or(0), offset.value_or(0));
+	ImPlot::PlotShaded<double>(label_id, values.data(), count, yref.value_or(0), xscale.value_or(1), xstart.value_or(0), flags.value_or(0), offset.value_or(0), stride.value_or(1) * sizeof(double));
 }
 
-void PlotShaded2(const char* label_id, std::vector<double> xs, std::vector<double> ys, std::optional<double> yref, std::optional<int> flags, std::optional<int> offset)
+void PlotShaded2(const char* label_id, std::vector<double> xs, std::vector<double> ys, int count, std::optional<double> yref, std::optional<int> flags, std::optional<int> offset, std::optional<int> stride)
 {
-	int count = (int)std::min(xs.size(), ys.size());
-	ImPlot::PlotShaded<double>(label_id, xs.data(), ys.data(), count, yref.value_or(0), flags.value_or(0), offset.value_or(0));
+	ImPlot::PlotShaded<double>(label_id, xs.data(), ys.data(), count, yref.value_or(0), flags.value_or(0), offset.value_or(0), stride.value_or(1) * sizeof(double));
 }
 
-void PlotShaded3(const char* label_id, std::vector<double> xs, std::vector<double> ys1, std::vector<double> ys2, std::optional<int> flags = 0, std::optional<int> offset = 0)
+void PlotShaded3(const char* label_id, std::vector<double> xs, std::vector<double> ys1, std::vector<double> ys2, int count, std::optional<int> flags, std::optional<int> offset, std::optional<int> stride)
 {
-	int count = (int)std::min({ xs.size(), ys1.size(), ys2.size() });
-	ImPlot::PlotShaded<double>(label_id, xs.data(), ys1.data(), ys2.data(), count, flags.value_or(0), offset.value_or(0));
+	ImPlot::PlotShaded<double>(label_id, xs.data(), ys1.data(), ys2.data(), count, flags.value_or(0), offset.value_or(0), stride.value_or(1) * sizeof(double));
 }
 
 void PlotShadedG(const char* label_id, sol::unsafe_function getter1, sol::unsafe_function getter2, int count, std::optional<int> flags)
@@ -145,15 +143,14 @@ void PlotShadedG(const char* label_id, sol::unsafe_function getter1, sol::unsafe
 
 //----------------------------------------------------------------------------
 
-void PlotBars1(const char* label_id, std::vector<double> values, std::optional<double> bar_size, std::optional<double> shift, std::optional<int> flags, std::optional<int> offset)
+void PlotBars1(const char* label_id, std::vector<double> values, int count, std::optional<double> bar_size, std::optional<double> shift, std::optional<int> flags, std::optional<int> offset, std::optional<int> stride)
 {
-	ImPlot::PlotBars<double>(label_id, values.data(), (int)values.size(), bar_size.value_or(0.67), shift.value_or(0), flags.value_or(0), offset.value_or(0));
+	ImPlot::PlotBars<double>(label_id, values.data(), count, bar_size.value_or(0.67), shift.value_or(0), flags.value_or(0), offset.value_or(0), stride.value_or(1) * sizeof(double));
 }
 
-void PlotBars2(const char* label_id, std::vector<double> xs, std::vector<double> ys, double bar_size, std::optional<int> flags, std::optional<int> offset)
+void PlotBars2(const char* label_id, std::vector<double> xs, std::vector<double> ys, int count, double bar_size, std::optional<int> flags, std::optional<int> offset, std::optional<int> stride)
 {
-	int count = (int)std::min(xs.size(), ys.size());
-	ImPlot::PlotBars<double>(label_id, xs.data(), ys.data(), count, bar_size, flags.value_or(0), offset.value_or(0));
+	ImPlot::PlotBars<double>(label_id, xs.data(), ys.data(), count, bar_size, flags.value_or(0), offset.value_or(0), stride.value_or(1) * sizeof(double));
 }
 
 void PlotBarsG(const char* label_id, sol::unsafe_function getter, int count, double bar_size, std::optional<int> flags)
@@ -175,49 +172,44 @@ void PlotBarGroups(std::vector<const char*> label_ids, std::vector<double> value
 
 //----------------------------------------------------------------------------
 
-void PlotErrorBars1(const char* label_id, std::vector<double> xs, std::vector<double> ys, std::vector<double> err, std::optional<int> flags, std::optional<int> offset)
+void PlotErrorBars1(const char* label_id, std::vector<double> xs, std::vector<double> ys, std::vector<double> err, int count, std::optional<int> flags, std::optional<int> offset, std::optional<int> stride)
 {
-	int count = (int)std::min({ xs.size(), ys.size(), err.size() });
-	ImPlot::PlotErrorBars<double>(label_id, xs.data(), ys.data(), err.data(), count, flags.value_or(0), offset.value_or(0));
+	ImPlot::PlotErrorBars<double>(label_id, xs.data(), ys.data(), err.data(), count, flags.value_or(0), offset.value_or(0), stride.value_or(1) * sizeof(double));
 }
 
-void PlotErrorBars2(const char* label_id, std::vector<double> xs, std::vector<double> ys, std::vector<double> neg, std::vector<double> pos, std::optional<int> flags, std::optional<int> offset)
+void PlotErrorBars2(const char* label_id, std::vector<double> xs, std::vector<double> ys, std::vector<double> neg, std::vector<double> pos, int count, std::optional<int> flags, std::optional<int> offset, std::optional<int> stride)
 {
-	int count = (int)std::min({ xs.size(), ys.size(), neg.size(), pos.size() });
-	ImPlot::PlotErrorBars<double>(label_id, xs.data(), ys.data(), neg.data(), pos.data(), count, flags.value_or(0), offset.value_or(0));
-}
-
-//----------------------------------------------------------------------------
-
-void PlotStems1(const char* label_id, std::vector<double> values, std::optional<double> ref, std::optional<double> scale, std::optional<double> start, std::optional<int> flags, std::optional<int> offset)
-{
-	ImPlot::PlotStems(label_id, values.data(), (int)values.size(), ref.value_or(0), scale.value_or(1), start.value_or(0), flags.value_or(0), offset.value_or(0));
-}
-
-void PlotStems2(const char* label_id, std::vector<double> xs, std::vector<double> ys, std::optional<double> ref, std::optional<int> flags, std::optional<int> offset)
-{
-	int count = (int)std::min(xs.size(), ys.size());
-	ImPlot::PlotStems(label_id, xs.data(), ys.data(), count, ref.value_or(0), flags.value_or(0), offset.value_or(0));
+	ImPlot::PlotErrorBars<double>(label_id, xs.data(), ys.data(), neg.data(), pos.data(), count, flags.value_or(0), offset.value_or(0), stride.value_or(1) * sizeof(double));
 }
 
 //----------------------------------------------------------------------------
 
-void PlotInfLines(const char* label_id, std::vector<double> values, std::optional<int> flags, std::optional<int> offset)
+void PlotStems1(const char* label_id, std::vector<double> values, int count, std::optional<double> ref, std::optional<double> scale, std::optional<double> start, std::optional<int> flags, std::optional<int> offset, std::optional<int> stride)
 {
-	ImPlot::PlotInfLines(label_id, values.data(), (int)values.size(), flags.value_or(0), offset.value_or(0));
+	ImPlot::PlotStems(label_id, values.data(), count, ref.value_or(0), scale.value_or(1), start.value_or(0), flags.value_or(0), offset.value_or(0), stride.value_or(1) * sizeof(double));
+}
+
+void PlotStems2(const char* label_id, std::vector<double> xs, std::vector<double> ys, int count, std::optional<double> ref, std::optional<int> flags, std::optional<int> offset, std::optional<int> stride)
+{
+	ImPlot::PlotStems(label_id, xs.data(), ys.data(), count, ref.value_or(0), flags.value_or(0), offset.value_or(0), stride.value_or(1) * sizeof(double));
 }
 
 //----------------------------------------------------------------------------
 
-void PlotPieChart1(std::vector<const char*> label_ids, std::vector<double> values, double x, double y, double radius, sol::function fmt, std::optional<double> angle0, std::optional<int> flags)
+void PlotInfLines(const char* label_id, std::vector<double> values, int count, std::optional<int> flags, std::optional<int> offset, std::optional<int> stride)
 {
-	int count = (int)std::min(label_ids.size(), values.size());
+	ImPlot::PlotInfLines(label_id, values.data(), count, flags.value_or(0), offset.value_or(0), stride.value_or(1) * sizeof(double));
+}
+
+//----------------------------------------------------------------------------
+
+void PlotPieChart1(std::vector<const char*> label_ids, std::vector<double> values, int count, double x, double y, double radius, sol::function fmt, std::optional<double> angle0, std::optional<int> flags)
+{
 	ImPlot::PlotPieChart(label_ids.data(), values.data(), count, x, y, radius, &LuaImPlotFormatter, &fmt, angle0.value_or(90), flags.value_or(0));
 }
 
-void PlotPieChart2(std::vector<const char*> label_ids, std::vector<double> values, double x, double y, double radius, std::optional<const char*> label_fmt, std::optional<double> angle0, std::optional<int> flags)
+void PlotPieChart2(std::vector<const char*> label_ids, std::vector<double> values, int count, double x, double y, double radius, std::optional<const char*> label_fmt, std::optional<double> angle0, std::optional<int> flags)
 {
-	int count = (int)std::min(label_ids.size(), values.size());
 	ImPlot::PlotPieChart(label_ids.data(), values.data(), count, x, y, radius, label_fmt.value_or("%.1f"), angle0.value_or(90), flags.value_or(0));
 }
 
@@ -243,16 +235,14 @@ double PlotHistogram(const char* label_id, std::vector<double> values, std::opti
 
 double PlotHistogram2D(const char* label_id, std::vector<double> xs, std::vector<double> ys, int count, std::optional<int> x_bins, std::optional<int> y_bins, std::optional<ImPlotRect> range, std::optional<int> flags)
 {
-	count = std::min({(int)xs.size(), (int)ys.size(), count});
 	return ImPlot::PlotHistogram2D(label_id, xs.data(), ys.data(), count, x_bins.value_or(ImPlotBin_Sturges), y_bins.value_or(ImPlotBin_Sturges), range.value_or(ImPlotRect()), flags.value_or(0));
 }
 
 //----------------------------------------------------------------------------
 
-void PlotDigital(const char* label_id, std::vector<double> xs, std::vector<double> ys, std::optional<int> flags, std::optional<int> offset)
+void PlotDigital(const char* label_id, std::vector<double> xs, std::vector<double> ys, int count, std::optional<int> flags, std::optional<int> offset, std::optional<int> stride)
 {
-	int count = (int)std::min(xs.size(), ys.size());
-	ImPlot::PlotDigital(label_id, xs.data(), ys.data(), count, flags.value_or(0), offset.value_or(0));
+	ImPlot::PlotDigital(label_id, xs.data(), ys.data(), count, flags.value_or(0), offset.value_or(0), stride.value_or(1) * sizeof(double));
 }
 
 void PlotDigitalG(const char* label_id, sol::unsafe_function getter, int count, std::optional<int> flags)
