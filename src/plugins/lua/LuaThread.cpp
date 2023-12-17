@@ -217,16 +217,13 @@ int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 
 	if (pkg == "ImGui")
 	{
-		bindings::RegisterBindings_ImGui(sv);
-
-		std::string_view script("return ImGui");
-		luaL_loadbuffer(sv, script.data(), script.size(), pkg.c_str());
+		sol::stack::push(L, std::function([](sol::this_state L) { return bindings::RegisterBindings_ImGui(L); }));
 		return 1;
 	}
 
 	if (pkg == "ImPlot")
 	{
-		sol::stack::push(L, &bindings::RegisterBindings_ImPlot);
+		sol::stack::push(L, std::function([](sol::this_state L) { return bindings::RegisterBindings_ImPlot(L); }));
 		return 1;
 	}
 

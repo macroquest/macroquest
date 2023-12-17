@@ -97,10 +97,10 @@ static unsigned int ColorConvertFloat4ToU32(const sol::table& rgba)
 }
 #pragma endregion
 
-void RegisterBindings_ImGui(sol::state_view state)
+sol::table RegisterBindings_ImGui(sol::state_view state)
 {
 	bool imguiRegistered = state.get_or("_imgui_registered", false);
-	if (imguiRegistered) return;
+	if (imguiRegistered) return state["ImGui"];
 	state["_imgui_registered"] = true;
 
 	sol::table ImGui = state.create_named_table("ImGui");
@@ -653,6 +653,8 @@ void RegisterBindings_ImGui(sol::state_view state)
 
 	bindings::RegisterBindings_ImGuiWidgets(ImGui);
 	bindings::RegisterBindings_ImGuiCustom(ImGui);
+
+	return ImGui;
 }
 
 } // namespace mq::lua::bindings
