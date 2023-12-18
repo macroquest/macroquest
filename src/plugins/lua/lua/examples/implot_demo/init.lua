@@ -143,7 +143,7 @@ function Sparkline(id, values, minValue, maxValue, offset, col, size)
         implot.SetupAxesLimits(0, #values, minValue, maxValue, ImGuiCond.Always)
         implot.SetNextLineStyle(col)
         implot.SetNextFillStyle(col, 0.25)
-        implot.PlotLine(id, values, 1, 0, ImPlotLineFlags.Shaded, offset)
+        implot.PlotLine(id, values, #values, 1, 0, ImPlotLineFlags.Shaded, offset)
         implot.EndPlot()
     end
     implot.PopStyleVar()
@@ -294,22 +294,23 @@ local Demo_LinePlots_Data = {
 function ImPlotDemo:Demo_LinePlots()
     local data = Demo_LinePlots_Data
 
-    for i = 1, 1001 do
-        data.xs1[i] = (i - 1) * 0.001
-        data.ys1[i] = 0.5 + 0.5 * math.sin(50 * (data.xs1[i] + imgui.GetTime() / 10))
+    for i = 0, 1000 do
+        local x = i * 0.001
+        data.xs1[i+1] = x
+        data.ys1[i+1] = 0.5 + 0.5 * math.sin(50 * (x + imgui.GetTime() / 10))
     end
 
-    for i = 1, 20 do
-        local x = (i - 1) * 1/19.0
-        data.xs2[i] = x
-        data.ys2[i] = x * x
+    for i = 0, 19 do
+        local x = i * 1/19.0
+        data.xs2[i+1] = x
+        data.ys2[i+1] = x * x
     end
 
     if implot.BeginPlot("Line Plots") then
         implot.SetupAxes('x', 'y')
-        implot.PlotLine('f(x)', data.xs1, data.ys1)
+        implot.PlotLine('f(x)', data.xs1, data.ys1, 1001)
         implot.SetNextMarkerStyle(ImPlotMarker.Circle)
-        implot.PlotLine('g(x)', data.xs2, data.ys2, ImPlotLineFlags.Segments)
+        implot.PlotLine('g(x)', data.xs2, data.ys2, 20, ImPlotLineFlags.Segments)
 
         implot.EndPlot()
     end
@@ -332,10 +333,10 @@ function ImPlotDemo:Demo_FilledLinePlots()
     local data = Demo_FilledLinePlots_Data
     math.randomseed(0)
     for i = 0, 100 do
-        data.xs1[i] = i
-        data.ys1[i] = RandomRange(400, 450)
-        data.ys2[i] = RandomRange(275, 350)
-        data.ys3[i] = RandomRange(150, 225)
+        data.xs1[i+1] = i
+        data.ys1[i+1] = RandomRange(400, 450)
+        data.ys2[i+1] = RandomRange(275, 350)
+        data.ys3[i+1] = RandomRange(150, 225)
     end
 
     data.show_lines = imgui.Checkbox("Lines", data.show_lines); imgui.SameLine()
@@ -368,16 +369,16 @@ function ImPlotDemo:Demo_FilledLinePlots()
         if data.show_fills then
             implot.PushStyleVar(ImPlotStyleVar.FillAlpha, 0.25)
             local shade_mode = (data.shade_mode == 0 and -math.huge) or (data.shade_mode == 1 and math.huge) or data.fill_ref
-            implot.PlotShaded("Stock 1", data.xs1, data.ys1, shade_mode, data.flags)
-            implot.PlotShaded("Stock 2", data.xs1, data.ys2, shade_mode, data.flags)
-            implot.PlotShaded("Stock 3", data.xs1, data.ys3, shade_mode, data.flags)
+            implot.PlotShaded("Stock 1", data.xs1, data.ys1, 101, shade_mode, data.flags)
+            implot.PlotShaded("Stock 2", data.xs1, data.ys2, 101, shade_mode, data.flags)
+            implot.PlotShaded("Stock 3", data.xs1, data.ys3, 101, shade_mode, data.flags)
             implot.PopStyleVar()
         end
 
         if data.show_lines then
-            implot.PlotLine("Stock 1", data.xs1, data.ys1)
-            implot.PlotLine("Stock 2", data.xs1, data.ys2)
-            implot.PlotLine("Stock 3", data.xs1, data.ys3)
+            implot.PlotLine("Stock 1", data.xs1, data.ys1, 101)
+            implot.PlotLine("Stock 2", data.xs1, data.ys2, 101)
+            implot.PlotLine("Stock 3", data.xs1, data.ys3, 101)
         end
         implot.EndPlot()
     end
@@ -392,31 +393,37 @@ local Demo_ShadedPlots_Data = {
     ys4 = {},
 
     alpha = .25,
+    init = false
 }
 
 function ImPlotDemo:Demo_ShadedPlots()
     local data = Demo_ShadedPlots_Data
-    math.randomseed(3)
 
-    for i = 0, 1000 do
-        data.xs[i] = i * 0.001
-        data.ys[i] = 0.25 + 0.25 * math.sin(25 * data.xs[i]) * math.sin(5 * data.xs[i]) + RandomRange(-0.01, 0.01);
-        data.ys1[i] = data.ys[i] + RandomRange(0.1, 0.12)
-        data.ys2[i] = data.ys[i] - RandomRange(0.1, 0.12)
-        data.ys3[i] = 0.75 + 0.2 * math.sin(25 * data.xs[i])
-        data.ys4[i] = 0.75 + 0.1 * math.cos(25 * data.xs[i])
+    if not data.init then
+        data.init = true
+        math.randomseed(0)
+
+        for i = 0, 1000 do
+            local x = i * 0.001
+            data.xs[i+1] = x
+            data.ys[i+1] = 0.25 + 0.25 * math.sin(25 * x) * math.sin(5 * x) + RandomRange(-0.01, 0.01);
+            data.ys1[i+1] = data.ys[i+1] + RandomRange(0.1, 0.12)
+            data.ys2[i+1] = data.ys[i+1] - RandomRange(0.1, 0.12)
+            data.ys3[i+1] = 0.75 + 0.2 * math.sin(25 * x)
+            data.ys4[i+1] = 0.75 + 0.1 * math.cos(25 * x)
+        end
     end
 
     data.alpha = imgui.DragFloat("Alpha", data.alpha, 0.01, 0, 1)
 
     if implot.BeginPlot("Shaded Plots") then
         implot.PushStyleVar(ImPlotStyleVar.FillAlpha, data.alpha)
-        implot.PlotShaded("Uncertain Data", data.xs, data.ys1, data.ys2)
-        implot.PlotLine("Uncertain Data", data.xs, data.ys)
+        implot.PlotShaded("Uncertain Data", data.xs, data.ys1, data.ys2, 1001)
+        implot.PlotLine("Uncertain Data", data.xs, data.ys, 1001)
 
-        implot.PlotShaded("Overlapping", data.xs, data.ys3, data.ys4)
-        implot.PlotLine("Overlapping", data.xs, data.ys3)
-        implot.PlotLine("Overlapping", data.xs, data.ys4)
+        implot.PlotShaded("Overlapping", data.xs, data.ys3, data.ys4, 1001)
+        implot.PlotLine("Overlapping", data.xs, data.ys3, 1001)
+        implot.PlotLine("Overlapping", data.xs, data.ys4, 1001)
         implot.PopStyleVar()
         implot.EndPlot()
     end
@@ -427,27 +434,33 @@ local Demo_ScatterPlots_Data = {
     ys1 = {},
     xs2 = {},
     ys2 = {},
+    init = false,
 }
 
 function ImPlotDemo:Demo_ScatterPlots()
     local data = Demo_ScatterPlots_Data
-    math.randomseed(0)
 
-    for i = 0, 99 do
-        data.xs1[i] = i * 0.01
-        data.ys1[i] = data.xs1[i] + 0.1 * math.random()
-    end
+    if not data.init then
+        data.init = true
+        math.randomseed(0)
 
-    for i = 0, 49 do
-        data.xs2[i] = .25 + 0.2 * math.random()
-        data.ys2[i] = .75 + 0.2 * math.random()
+        for i = 0, 99 do
+            local x = i * 0.01
+            data.xs1[i+1] = x
+            data.ys1[i+1] = x + 0.1 * math.random()
+        end
+
+        for i = 0, 49 do
+            data.xs2[i+1] = .25 + 0.2 * math.random()
+            data.ys2[i+1] = .75 + 0.2 * math.random()
+        end
     end
 
     if implot.BeginPlot("Scatter Plot") then
-        implot.PlotScatter("Data 1", data.xs1, data.ys1)
+        implot.PlotScatter("Data 1", data.xs1, data.ys1, 100)
         implot.PushStyleVar(ImPlotStyleVar.FillAlpha, 0.25)
         implot.SetNextMarkerStyle(ImPlotMarker.Square, 6, implot.GetColormapColor(1), IMPLOT_AUTO, implot.GetColormapColor(1))
-        implot.PlotScatter("Data 2", data.xs2, data.ys2)
+        implot.PlotScatter("Data 2", data.xs2, data.ys2, 50)
         implot.PopStyleVar()
         implot.EndPlot()
     end
@@ -457,32 +470,36 @@ local Demo_StairstepPlots_Data = {
     ys1 = {},
     ys2 = {},
     flags = 0,
+    init = false
 }
 
 function ImPlotDemo:Demo_StairstepPlots()
     local data = Demo_StairstepPlots_Data
 
-    for i = 0, 20 do
-        data.ys1[i] = 0.75 + 0.2 * math.sin(10 * i * 0.05)
-        data.ys2[i] = 0.25 + 0.2 * math.sin(10 * i * 0.05)
+    if not data.init then
+        data.init = true
+        for i = 0, 20 do
+            data.ys1[i+1] = 0.75 + 0.2 * math.sin(10 * i * 0.05)
+            data.ys2[i+1] = 0.25 + 0.2 * math.sin(10 * i * 0.05)
+        end
     end
 
     data.flags = imgui.CheckboxFlags("ImPlotStairsFlags.Shaded", data.flags, ImPlotStairsFlags.Shaded)
     if implot.BeginPlot("Stairstep Plot") then
         implot.SetupAxes("x", "f(x)")
         implot.SetupAxesLimits(0, 1, 0, 1)
-        
+
         implot.PushStyleColor(ImPlotCol.Line, ImVec4(0.5, 0.5, 0.5, 1.0))
-        implot.PlotLine("##1", data.ys1, 0.05)
-        implot.PlotLine("##2", data.ys2, 0.05)
+        implot.PlotLine("##1", data.ys1, 21, 0.05)
+        implot.PlotLine("##2", data.ys2, 21, 0.05)
         implot.PopStyleColor()
 
         implot.SetNextMarkerStyle(ImPlotMarker.Circle)
         implot.SetNextFillStyle(IMPLOT_AUTO_COL, 0.25)
-        implot.PlotStairs("Post Step (default)", data.ys1, 0.05, 0, data.flags)
+        implot.PlotStairs("Post Step (default)", data.ys1, 21, 0.05, 0, data.flags)
         implot.SetNextMarkerStyle(ImPlotMarker.Circle)
         implot.SetNextFillStyle(IMPLOT_AUTO_COL, 0.25)
-        implot.PlotStairs("Pre Step", data.ys2, 0.05, 0, bit32.bor(data.flags, ImPlotStairsFlags.PreStep))
+        implot.PlotStairs("Pre Step", data.ys2, 21, 0.05, 0, bit32.bor(data.flags, ImPlotStairsFlags.PreStep))
 
         implot.EndPlot()
     end
@@ -494,10 +511,10 @@ local Demo_BarPlots_Data = {
 
 function ImPlotDemo:Demo_BarPlots()
     local data = Demo_BarPlots_Data
-    
+
     if implot.BeginPlot("Bar Plot") then
-        implot.PlotBars("Vertical", data, 0.7, 1)
-        implot.PlotBars("Horizontal", data, 0.4, 1, ImPlotBarsFlags.Horizontal)
+        implot.PlotBars("Vertical", data, 10, 0.7, 1)
+        implot.PlotBars("Horizontal", data, 10, 0.4, 1, ImPlotBarsFlags.Horizontal)
         implot.EndPlot()
     end
 end
@@ -608,17 +625,17 @@ function ImPlotDemo:Demo_ErrorBars()
 
     if implot.BeginPlot("##ErrorBars") then
         implot.SetupAxesLimits(0, 6, 0, 10)
-        implot.PlotBars("Bar", data.xs, data.bar, 0.5)
-        implot.PlotErrorBars("Bar", data.xs, data.bar, data.err1)
+        implot.PlotBars("Bar", data.xs, data.bar, 5, 0.5)
+        implot.PlotErrorBars("Bar", data.xs, data.bar, data.err1, 5)
         implot.SetNextErrorBarStyle(implot.GetColormapColor(1), 0)
-        implot.PlotErrorBars("Line", data.xs, data.lin1, data.err1, data.err2)
+        implot.PlotErrorBars("Line", data.xs, data.lin1, data.err1, data.err2, 5)
         implot.SetNextMarkerStyle(ImPlotMarker.Square)
-        implot.PlotLine("Line", data.xs, data.lin1)
+        implot.PlotLine("Line", data.xs, data.lin1, 5)
         implot.PushStyleColor(ImPlotCol.ErrorBar, implot.GetColormapColor(2))
-        implot.PlotErrorBars("Scatter", data.xs, data.lin2, data.err2)
-        implot.PlotErrorBars("Scatter", data.xs, data.lin2, data.err3, data.err4, ImPlotErrorBarsFlags.Horizontal)
+        implot.PlotErrorBars("Scatter", data.xs, data.lin2, data.err2, 5)
+        implot.PlotErrorBars("Scatter", data.xs, data.lin2, data.err3, data.err4, 5, ImPlotErrorBarsFlags.Horizontal)
         implot.PopStyleColor()
-        implot.PlotScatter("Scatter", data.xs, data.lin2)
+        implot.PlotScatter("Scatter", data.xs, data.lin2, 5)
         implot.EndPlot()
     end
 end
@@ -636,18 +653,19 @@ function ImPlotDemo:Demo_StemPlots()
     if not data.init then
         data.init = true
         for i = 0, 50 do
-            data.xs[i] = i * 0.02
-            data.ys1[i] = 1.0 + 0.5 * math.sin(25 * data.xs[i]) * math.cos(2 * data.xs[i]);
-            data.ys2[i] = 0.5 + 0.25  * math.sin(10 * data.xs[i]) * math.sin(data.xs[i]);
+            local x = i * 0.02
+            data.xs[i+1] = x
+            data.ys1[i+1] = 1.0 + 0.5 * math.sin(25 * x) * math.cos(2 * x);
+            data.ys2[i+1] = 0.5 + 0.25  * math.sin(10 * x) * math.sin(x);
         end
     end
 
     if implot.BeginPlot("Stem Plots") then
         implot.SetupAxisLimits(ImAxis.X1, 0, 1.0)
         implot.SetupAxisLimits(ImAxis.Y1, 0, 1.6)
-        implot.PlotStems("Stems 1", data.xs, data.ys1)
+        implot.PlotStems("Stems 1", data.xs, data.ys1, 51)
         implot.SetNextMarkerStyle(ImPlotMarker.Circle)
-        implot.PlotStems("Stems 2", data.xs, data.ys2)
+        implot.PlotStems("Stems 2", data.xs, data.ys2, 51)
         implot.EndPlot()
     end
 end
@@ -661,8 +679,8 @@ function ImPlotDemo:Demo_InfiniteLines()
 
     if implot.BeginPlot("##Infinite") then
         implot.SetupAxes(nil, nil, ImPlotAxisFlags.NoInitialFit, ImPlotAxisFlags.NoInitialFit)
-        implot.PlotInfLines("Vertical", data.vals)
-        implot.PlotInfLines("Horizontal", data.vals, ImPlotInfLinesFlags.Horizontal)
+        implot.PlotInfLines("Vertical", data.vals, 3)
+        implot.PlotInfLines("Horizontal", data.vals, 3, ImPlotInfLinesFlags.Horizontal)
         implot.EndPlot()
     end
 end
@@ -686,7 +704,7 @@ function ImPlotDemo:Demo_PieCharts()
     if implot.BeginPlot("##Pei1", ImVec2(250, 250), bit32.bor(ImPlotFlags.Equal, ImPlotFlags.NoMouseText)) then
         implot.SetupAxes(nil, nil, ImPlotAxisFlags.NoDecorations, ImPlotAxisFlags.NoDecorations)
         implot.SetupAxesLimits(0, 1, 0, 1)
-        implot.PlotPieChart(data.labels1, data.data1, 0.5, 0.5, 0.4, "%.2f", 90, data.flags)
+        implot.PlotPieChart(data.labels1, data.data1, 4, 0.5, 0.5, 0.4, "%.2f", 90, data.flags)
         implot.EndPlot()
     end
 
@@ -696,7 +714,7 @@ function ImPlotDemo:Demo_PieCharts()
     if implot.BeginPlot("##Pie2", ImVec2(250, 250), bit32.bor(ImPlotFlags.Equal, ImPlotFlags.NoMouseText)) then
         implot.SetupAxes(nil, nil, ImPlotAxisFlags.NoDecorations, ImPlotAxisFlags.NoDecorations)
         implot.SetupAxesLimits(0, 1, 0, 1)
-        implot.PlotPieChart(data.labels2, data.data2, 0.5, 0.5, 0.4, "%.0f", 180, data.flags)
+        implot.PlotPieChart(data.labels2, data.data2, 5, 0.5, 0.5, 0.4, "%.0f", 180, data.flags)
         implot.EndPlot()
     end
     implot.PopColormap()
@@ -743,7 +761,7 @@ function ImPlotDemo:Demo_Heatmaps()
     data.hm_flags = imgui.CheckboxFlags("Column Major", data.hm_flags, ImPlotHeatmapFlags.ColMajor)
 
     implot.PushColormap(data.map)
-    
+
     if implot.BeginPlot("##Heatmap1", ImVec2(225, 225), bit32.bor(ImPlotFlags.NoLegend, ImPlotFlags.NoMouseText)) then
         implot.SetupAxes(nil, nil, data.axes_flags, data.axes_flags)
         implot.SetupAxisTicks(ImAxis.X1, 0 + 1.0 / 14.0, 1 - 1.0 / 14.0, 7, data.xlabels)
@@ -815,7 +833,7 @@ function ImPlotDemo:Demo_Histogram()
         imgui.SetNextItemWidth(200)
         data.bins = imgui.SliderInt("##Bins", data.bins, 1, 100)
     end
-    
+
     data.hist_flags = imgui.CheckboxFlags("Horizontal", data.hist_flags, ImPlotHistogramFlags.Horizontal); imgui.SameLine()
     data.hist_flags = imgui.CheckboxFlags("Density", data.hist_flags, ImPlotHistogramFlags.Density); imgui.SameLine()
     data.hist_flags = imgui.CheckboxFlags("Cumulative", data.hist_flags, ImPlotHistogramFlags.Cumulative)
@@ -830,9 +848,10 @@ function ImPlotDemo:Demo_Histogram()
     end
 
     if bit32.band(data.hist_flags, ImPlotHistogramFlags.Density) ~= 0 then
-        for i = 1,  100 do
-            data.x[i] = -3 + 16 * i/99.0;
-            data.y[i] = math.exp( - (data.x[i]-data.mu)*(data.x[i]-data.mu) / (2*data.sigma*data.sigma)) / (data.sigma * math.sqrt(2*3.141592653589793238));
+        for i = 1, 100 do
+            local x = -3 + 16 * i/99.0
+            data.x[i] = x;
+            data.y[i] = math.exp(-(x-data.mu)*(x-data.mu) / (2*data.sigma*data.sigma)) / (data.sigma * math.sqrt(2*3.141592653589793238));
         end
         if bit32.band(data.hist_flags, ImPlotHistogramFlags.Cumulative) ~= 0 then
             for i = 2, 100 do
@@ -851,9 +870,9 @@ function ImPlotDemo:Demo_Histogram()
 
         if bit32.band(data.hist_flags, ImPlotHistogramFlags.Density) ~= 0 and bit32.band(data.hist_flags, ImPlotHistogramFlags.NoOutliers) == 0 then
             if bit32.band(data.hist_flags, ImPlotHistogramFlags.Horizontal) ~= 0 then
-                implot.PlotLine("Theoretical", data.y, data.x)
+                implot.PlotLine("Theoretical", data.y, data.x, 100)
             else
-                implot.PlotLine("Theoretical", data.x, data.y)
+                implot.PlotLine("Theoretical", data.x, data.y, 100)
             end
         end
 
@@ -940,13 +959,13 @@ function ImPlotDemo:Demo_DigitalPlots()
 
         for i = 1, 2 do
             if data.showDigital[i] and #data.dataDigital[i].DataX > 0 then
-                implot.PlotDigital(string.format("digital_%d", i - 1), data.dataDigital[i].DataX, data.dataDigital[i].DataY, 0, data.dataDigital[i].Offset - 1)
+                implot.PlotDigital(string.format("digital_%d", i - 1), data.dataDigital[i].DataX, data.dataDigital[i].DataY, #data.dataDigital[i].DataX, 0, data.dataDigital[i].Offset - 1)
             end
         end
 
         for i = 1, 2 do
             if data.showAnalog[i] and #data.dataAnalog[i].DataX > 0 then
-                implot.PlotLine(string.format("analog_%d", i - 1), data.dataAnalog[i].DataX, data.dataAnalog[i].DataY, 0, data.dataAnalog[i].Offset - 1)
+                implot.PlotLine(string.format("analog_%d", i - 1), data.dataAnalog[i].DataX, data.dataAnalog[i].DataY, #data.dataAnalog[i].DataX, 0, data.dataAnalog[i].Offset - 1)
             end
         end
 
@@ -1013,8 +1032,8 @@ function ImPlotDemo:Demo_RealtimePlots()
         implot.SetupAxisLimits(ImAxis.X1, data.t - data.history, data.t, ImGuiCond.Always)
         implot.SetupAxisLimits(ImAxis.Y1, 0, 1)
         implot.SetNextFillStyle(IMPLOT_AUTO_COL, 0.5)
-        implot.PlotShaded("Mouse X", data.sdata1.DataX, data.sdata1.DataY, -math.huge, 0, data.sdata1.Offset - 1)
-        implot.PlotLine("Mouse Y", data.sdata2.DataX, data.sdata2.DataY, 0, data.sdata2.Offset - 1)
+        implot.PlotShaded("Mouse X", data.sdata1.DataX, data.sdata1.DataY, #data.sdata1.DataX, -math.huge, 0, data.sdata1.Offset - 1)
+        implot.PlotLine("Mouse Y", data.sdata2.DataX, data.sdata2.DataY, #data.sdata2.DataX, 0, data.sdata2.Offset - 1)
         implot.EndPlot()
     end
 
@@ -1022,8 +1041,8 @@ function ImPlotDemo:Demo_RealtimePlots()
         implot.SetupAxes(nil, nil, data.flags, data.flags)
         implot.SetupAxisLimits(ImAxis.X1, 0, data.history, ImGuiCond.Always)
         implot.SetupAxisLimits(ImAxis.Y1, 0, 1)
-        implot.PlotLine("Mouse X", data.rdata1.DataX, data.rdata1.DataY, 0, 0)
-        implot.PlotLine("Mouse Y", data.rdata2.DataX, data.rdata2.DataY, 0, 0)
+        implot.PlotLine("Mouse X", data.rdata1.DataX, data.rdata1.DataY, #data.rdata1.DataX, 0, 0)
+        implot.PlotLine("Mouse Y", data.rdata2.DataX, data.rdata2.DataY, #data.rdata2.DataX, 0, 0)
         implot.EndPlot()
     end
 end
@@ -1049,7 +1068,7 @@ function ImPlotDemo:Demo_MarkersAndText()
         for m = 0, ImPlotMarker.COUNT - 1 do
             imgui.PushID(m)
             implot.SetNextMarkerStyle(m, data.mk_size, IMPLOT_AUTO_COL, data.mk_weight)
-            implot.PlotLine("##Filled", xs, ys)
+            implot.PlotLine("##Filled", xs, ys, 2)
             imgui.PopID()
 
             ys[1] = ys[1] - 1
@@ -1062,7 +1081,7 @@ function ImPlotDemo:Demo_MarkersAndText()
         for m = 0, ImPlotMarker.COUNT - 1 do
             imgui.PushID(m)
             implot.SetNextMarkerStyle(m, data.mk_size, ImVec4(0, 0, 0, 0), data.mk_weight)
-            implot.PlotLine("##Open", xs, ys)
+            implot.PlotLine("##Open", xs, ys, 2)
             imgui.PopID()
 
             ys[1] = ys[1] - 1
@@ -1101,8 +1120,8 @@ function ImPlotDemo:Demo_NaNValues()
 
     if implot.BeginPlot("##NaNValues") then
         implot.SetNextMarkerStyle(ImPlotMarker.Square)
-        implot.PlotLine("line", data.data1, data.data2, data.flags)
-        implot.PlotBars("bars", data.data1)
+        implot.PlotLine("line", data.data1, data.data2, 5, data.flags)
+        implot.PlotBars("bars", data.data1, 5)
         implot.EndPlot()
     end
 end
@@ -1292,20 +1311,21 @@ function ImPlotDemo:Demo_LogScale()
         data.init = true
 
         for i = 1, 1001 do
-            data.xs[i] = i * 0.1
-            data.ys1[i] = math.sin(data.xs[i]) + 1
-            data.ys2[i] = math.log(data.xs[i])
-            data.ys3[i] = math.pow(1.0, data.xs[i])
+            local x = i * 0.1
+            data.xs[i] = x
+            data.ys1[i] = math.sin(x) + 1
+            data.ys2[i] = math.log(x)
+            data.ys3[i] = math.pow(1.0, x)
         end
     end
 
     if implot.BeginPlot("Log Plot", ImVec2(-1, 0)) then
         implot.SetupAxisScale(ImAxis.X1, ImPlotScale.Log10)
         implot.SetupAxesLimits(0.1, 100, 0, 10)
-        implot.PlotLine("f(x) = x", data.xs, data.xs)
-        implot.PlotLine("f(x) = sin(x) + 1", data.xs, data.ys1)
-        implot.PlotLine("f(x) = log(x)", data.xs, data.ys2)
-        implot.PlotLine("f(x) = 10^x", data.xs, data.ys3)
+        implot.PlotLine("f(x) = x", data.xs, data.xs, 1001)
+        implot.PlotLine("f(x) = sin(x) + 1", data.xs, data.ys1, 1001)
+        implot.PlotLine("f(x) = log(x)", data.xs, data.ys2, 1001)
+        implot.PlotLine("f(x) = 10^x", data.xs, data.ys3, 1001)
         implot.EndPlot()
     end
 end
@@ -1331,8 +1351,8 @@ function ImPlotDemo:Demo_SymmetricLogScale()
 
     if implot.BeginPlot("SymLog Plot", ImVec2(-1, 0)) then
         implot.SetupAxisScale(ImAxis.X1, ImPlotScale.SymLog)
-        implot.PlotLine("f(x) = a*x + b", data.xs, data.ys2)
-        implot.PlotLine("f(x) = sin(x)", data.xs, data.ys1)
+        implot.PlotLine("f(x) = a*x + b", data.xs, data.ys2, 1001)
+        implot.PlotLine("f(x) = sin(x)", data.xs, data.ys1, 1001)
         implot.EndPlot()
     end
 end
