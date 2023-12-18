@@ -1375,17 +1375,20 @@ local Demo_TimeScale_Data = {
 function ImPlotDemo:Demo_TimeScale()
     local data = Demo_TimeScale_Data
 
-    if not data.init then
-        data.init = true
+    -- if not data.init then
+    --     data.init = true
 
-        local Ts = data.data.Ts
-        local Ys = data.data.Ys
+    --     local Ts = {}
+    --     local Ys = {}
 
-        for i = 1, data.size do
-            Ts[i] = data.t_min + i
-            Ys[i] = data.GetY(Ts[i])
-        end
-    end
+    --     for i = 1, data.size do
+    --         Ts[i] = data.t_min + i
+    --         Ys[i] = data.GetY(Ts[i])
+    --     end
+
+    --     data.Ts = slice.make(double_t, Ts)
+    --     data.Ys = slice.make(double_t, Ys)
+    -- end
 
     imgui.BulletText("When ImPlotAxisFlags_Time is enabled on the X-Axis, values are interpreted as\n" ..
                      "UNIX timestamps in seconds and axis labels are formated as date/time.")
@@ -1403,70 +1406,235 @@ function ImPlotDemo:Demo_TimeScale()
         implot.SetupAxisScale(ImAxis.X1, ImPlotScale.Time)
         implot.SetupAxesLimits(data.t_min, data.t_max, 0, 1)
 
-        -- downsample data
-        -- local downsample = implot.GetPlotLimits().X:Size() / 1000 + 1
-        -- local start = implot.GetPlotLimits().X.Min - data.t_min
-        -- start = start < 0 and 0 or (start > data.size)
+        imgui.Text("Not Implemented")
+        --
+        -- TODO: Its just too big right now. Need a native collection type
+        --
 
-        -- need to add size and stride...
+        -- -- downsample data
+        -- local downsample = implot.GetPlotLimits().X:Size() / 1000 + 1
+        -- local start = math.floor(implot.GetPlotLimits().X.Min) - data.t_min
+        -- start = start < 0 and 0 or (start > data.size and data.size or start)
+        -- local end_ = math.floor(implot.GetPlotLimits().X.Max) - data.t_min  + 1000
+        -- end_ = end_ < 0 and 0 or (end_ > data.size and data.size or end_)
+        -- local size = math.floor((end_ - start) / downsample)
+
+        -- -- plot it
+        -- implot.PlotLine("Time Series", data.Ts.table, data.Ys.table, size, 0, 0, downsample)
+
+        -- plot time now
+        local t_now = implot.GetTime()
+        local y_now = data.GetY(t_now)
+
+        implot.PlotScatter("Now", {t_now}, {y_now}, 1)
+        implot.Annotation(t_now, y_now, implot.GetLastItemColor(), ImVec2(10, 10), false, "Now")
         implot.EndPlot()
     end
 end
 
+
+
 local Demo_CustomScale_Data = {
+    v = {},
 }
 
 function ImPlotDemo:Demo_CustomScale()
     local data = Demo_CustomScale_Data
 
+    --
+    -- TODO: The SetAxisScale function with callbacks is not implemented
+    --
+
+    imgui.Text("Not Implemented")
 end
 
 local Demo_MultipleAxes_Data = {
+    xs = {},
+    xs2 = {},
+    ys1 = {},
+    ys2 = {},
+    ys3 = {},
+    x2_axis = true,
+    y2_axis = true,
+    y3_axis = true,
+    init = false,
 }
 
 function ImPlotDemo:Demo_MultipleAxes()
     local data = Demo_MultipleAxes_Data
 
+    if not data.init then
+        data.init = true
+
+        for i = 1, 1001 do
+            local x = (i - 1) * 0.1
+            data.xs[i] = x
+            data.xs2[i] = x + 10
+            data.ys1[i] = math.sin(x) * 3 + 1
+            data.ys2[i] = math.cos(x) * 0.2 + 0.5
+            data.ys3[i] = math.sin(x + 0.5) * 100 + 200
+        end
+    end
+
+    data.x2_axis = imgui.Checkbox("X-Axis 2", data.x2_axis); imgui.SameLine()
+    data.y2_axis = imgui.Checkbox("Y-Axis 2", data.y2_axis); imgui.SameLine()
+    data.y3_axis = imgui.Checkbox("Y-Axis 3", data.y3_axis)
+
+    imgui.BulletText("You can drag axes to the opposite side of the plot.")
+    imgui.BulletText("Hover over legend items to see which axis they are plotted on.")
+
+    if implot.BeginPlot("Multi-Axis Plot", ImVec2(-1, 0)) then
+        implot.SetupAxes("X-Axis 1", "Y-Axis 1")
+        implot.SetupAxesLimits(0, 100, 0, 10)
+        if data.x2_axis then
+            implot.SetupAxis(ImAxis.X2, "X-Axis 2", ImPlotAxisFlags.AuxDefault)
+            implot.SetupAxisLimits(ImAxis.X2, 0, 100)
+        end
+        if data.y2_axis then
+            implot.SetupAxis(ImAxis.Y2, "Y-Axis 2", ImPlotAxisFlags.AuxDefault)
+            implot.SetupAxisLimits(ImAxis.Y2, 0, 1)
+        end
+        if data.y3_axis then
+            implot.SetupAxis(ImAxis.Y3, "Y-Axis 3", ImPlotAxisFlags.AuxDefault)
+            implot.SetupAxisLimits(ImAxis.Y3, 0, 300)
+        end
+
+        implot.PlotLine("f(x) = x", data.xs, data.xs, 1001)
+        if data.x2_axis then
+            implot.SetAxes(ImAxis.X2, ImAxis.Y1)
+            implot.PlotLine("f(x) = sin(x) * 3 + 1", data.xs2, data.ys1, 1001)
+        end
+        if data.y2_axis then
+            implot.SetAxes(ImAxis.X1, ImAxis.Y2)
+            implot.PlotLine("f(x) = cos(x) * .25 + .5)", data.xs, data.ys2, 1001)
+        end
+        if data.y3_axis and data.x2_axis then
+            implot.SetAxes(ImAxis.X2, ImAxis.Y3)
+            implot.PlotLine("f(x) = sin(x + 0.5) * 100 + 200", data.xs2, data.ys3, 1001)
+        end
+        implot.EndPlot()
+    end
 end
 
 local Demo_TickLabels_Data = {
+
 }
 
 function ImPlotDemo:Demo_TickLabels()
     local data = Demo_TickLabels_Data
 
+    --
+    -- TODO
+    --
+
+    imgui.Text("Not Implemented")
 end
 
 local Demo_LinkedAxes_Data = {
+    lims = ImPlotRect(0, 1, 0, 1),
+    linkx = true,
+    linky = true
 }
 
 function ImPlotDemo:Demo_LinkedAxes()
     local data = Demo_LinkedAxes_Data
 
+    --
+    -- TODO: Need to implement SetupAxisLinks
+    --
+
+    imgui.Text("Not Implemented")
 end
 
 local Demo_AxisConstraints_Data = {
+    constraints1 = {-10, 10},
+    constraints2 = {  1, 20},
+    flags = 0,
 }
 
 function ImPlotDemo:Demo_AxisConstraints()
     local data = Demo_AxisConstraints_Data
 
+    data.constraints1 = imgui.DragFloat2("Limits Constraints", data.constraints1, 0.01)
+    data.constraints2 = imgui.DragFloat2("Zoom Constraints", data.constraints2, 0.01)
+    data.flags = imgui.CheckboxFlags("ImPlotAxisFlags.PanStretch", data.flags, ImPlotAxisFlags.PanStretch)
+
+    if implot.BeginPlot("##AxisConstraints", ImVec2(-1, 0)) then
+        implot.SetupAxes("X", "Y", data.flags, data.flags)
+        implot.SetupAxesLimits(-1, 1, -1, 1)
+        implot.SetupAxisLimitsConstraints(ImAxis.X1, data.constraints1[1], data.constraints1[2])
+        implot.SetupAxisZoomConstraints(ImAxis.X1, data.constraints2[1], data.constraints2[2])
+        implot.SetupAxisLimitsConstraints(ImAxis.Y1, data.constraints1[1], data.constraints1[2])
+        implot.SetupAxisZoomConstraints(ImAxis.Y1, data.constraints2[1], data.constraints2[2])
+        implot.EndPlot()
+    end
 end
 
 local Demo_EqualAxes_Data = {
+    xs1 = {},
+    xs2 = {-1, 0, 1, 0, -1},
+    ys1 = {},
+    ys2 = {0, 1, 0, -1, 0},
+    init = false,
 }
 
 function ImPlotDemo:Demo_EqualAxes()
     local data = Demo_EqualAxes_Data
 
+    if not data.init then
+        data.init = true
+        for i = 1, 360 do
+            local angle = (i - 1) * 2 * math.pi / 359
+            data.xs1[i] = math.cos(angle)
+            data.ys1[i] = math.sin(angle)
+        end
+    end
+
+    if implot.BeginPlot("##EqualAxes", ImVec2(-1, 0), ImPlotFlags.Equal) then
+        implot.SetupAxis(ImAxis.X2, nil, ImPlotAxisFlags.AuxDefault)
+        implot.SetupAxis(ImAxis.Y2, nil, ImPlotAxisFlags.AuxDefault)
+        implot.PlotLine("Circle", data.xs1, data.ys1, 360)
+        implot.SetAxes(ImAxis.X2, ImAxis.Y2)
+        implot.PlotLine("Diamond", data.xs2, data.ys2, 5)
+        implot.EndPlot()
+    end
 end
 
 local Demo_AutoFittingData_Data = {
+    xflags = ImPlotAxisFlags.None,
+    yflags = bit32.bor(ImPlotAxisFlags.AutoFit, ImPlotAxisFlags.RangeFit),
+    data = {},
+    init = false
 }
 
 function ImPlotDemo:Demo_AutoFittingData()
     local data = Demo_AutoFittingData_Data
 
+    if not data.init then
+        data.init = true
+        math.randomseed(0)
+        for i = 1, 101 do
+            data.data[i] = 1 + math.sin((i - 1) / 10.0)
+        end
+    end
+
+    imgui.BulletText("The Y-axis has been configured to auto-fit to only the data visible in X-axis range.")
+    imgui.BulletText("Zoom and pan the X-axis. Disable Stems to see a difference in fit.")
+    imgui.BulletText("If ImPlotAxisFlags_RangeFit is disabled, the axis will fit ALL data.")
+
+    imgui.TextUnformatted("X: "); imgui.SameLine()
+    data.xflags = imgui.CheckboxFlags("ImPlotAxisFlags.AutoFit##X", data.xflags, ImPlotAxisFlags.AutoFit); imgui.SameLine()
+    data.xflags = imgui.CheckboxFlags("ImPlotAxisFlags.RangeFit##X", data.xflags, ImPlotAxisFlags.RangeFit)
+    imgui.TextUnformatted("Y: "); imgui.SameLine()
+    data.yflags = imgui.CheckboxFlags("ImPlotAxisFlags.AutoFit##Y", data.yflags, ImPlotAxisFlags.AutoFit); imgui.SameLine()
+    data.yflags = imgui.CheckboxFlags("ImPlotAxisFlags.RangeFit##Y", data.yflags, ImPlotAxisFlags.RangeFit)
+
+    if implot.BeginPlot("##DataFitting") then
+        implot.SetupAxes("X", "Y", data.xflags, data.yflags)
+        implot.PlotLine("Line", data.data, 101)
+        implot.PlotStems("Stems", data.data, 101)
+        implot.EndPlot()
+    end
 end
 
 

@@ -969,6 +969,7 @@ sol::table RegisterBindings_ImPlot(sol::this_state L)
 
 	// [SECTION] Demo
 	ImPlot.set_function("ShowDemoWindow", [](std::optional<bool> open) { bool open_ = open.value_or(true); ImPlot::ShowDemoWindow(open.has_value() ? &open_ : nullptr); return open_; });
+	ImPlot.set_function("GetTime", []() { return (double)time(nullptr); });
 	#pragma endregion
 
 	return ImPlot;
