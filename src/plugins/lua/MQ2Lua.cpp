@@ -21,6 +21,7 @@
 #include "LuaActor.h"
 #include "LuaImGui.h"
 #include "bindings/lua_Bindings.h"
+#include <bindings/lua_MQBindings.h>
 #include "imgui/ImGuiUtils.h"
 #include "imgui/ImGuiFileDialog.h"
 #include "imgui/ImGuiTextEditor.h"
@@ -2086,4 +2087,115 @@ PLUGIN_API void OnUnloadPlugin(const char* pluginName)
 
 			return false;
 		}), end(s_running));
+}
+
+PLUGIN_API void OnAddSpawn(PSPAWNINFO pNewSpawn)
+{
+	for (const std::shared_ptr<mq::lua::LuaThread>& thread : mq::lua::s_running)
+	{
+		if (thread && !thread->IsPaused())
+		{
+			auto state = thread->GetLuaThread().state();
+			auto onAddSpawn = sol::state_view(state)["OnAddSpawn"].get<std::optional<sol::function>>();
+			if (onAddSpawn.has_value()) {
+				auto lua_spawn = mq::lua::bindings::lua_MQTypeVar::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(pNewSpawn));
+				onAddSpawn.value()(lua_spawn);
+			}
+		}
+	}
+}
+
+PLUGIN_API void OnRemoveSpawn(PSPAWNINFO pNewSpawn)
+{
+	for (const std::shared_ptr<mq::lua::LuaThread>& thread : mq::lua::s_running)
+	{
+		if (thread && !thread->IsPaused())
+		{
+			auto state = thread->GetLuaThread().state();
+			auto onRemoveSpawn = sol::state_view(state)["OnRemoveSpawn"].get<std::optional<sol::function>>();
+			if (onRemoveSpawn.has_value()) {
+				auto lua_spawn = mq::lua::bindings::lua_MQTypeVar::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(pNewSpawn));
+				onRemoveSpawn.value()(lua_spawn);
+			}
+		}
+	}
+}
+
+PLUGIN_API void OnAddGroundItem(PGROUNDITEM pNewGroundItem)
+{
+	for (const std::shared_ptr<mq::lua::LuaThread>& thread : mq::lua::s_running)
+	{
+		if (thread && !thread->IsPaused())
+		{
+			auto state = thread->GetLuaThread().state();
+			auto onAddGroundItem = sol::state_view(state)["OnAddGroundItem"].get<std::optional<sol::function>>();
+			if (onAddGroundItem.has_value()) {
+				auto groundTypeVar = datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(pNewGroundItem));
+				auto lua_ground = mq::lua::bindings::lua_MQTypeVar::lua_MQTypeVar(groundTypeVar);
+				onAddGroundItem.value()(lua_ground);
+			}
+		}
+	}
+}
+
+PLUGIN_API void OnRemoveGroundItem(PGROUNDITEM pGroundItem)
+{
+	for (const std::shared_ptr<mq::lua::LuaThread>& thread : mq::lua::s_running)
+	{
+		if (thread && !thread->IsPaused())
+		{
+			auto state = thread->GetLuaThread().state();
+			auto onRemoveGroundItem = sol::state_view(state)["OnRemoveGroundItem"].get<std::optional<sol::function>>();
+			if (onRemoveGroundItem.has_value()) {
+				auto groundTypeVar = datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(pGroundItem));
+				auto lua_ground = mq::lua::bindings::lua_MQTypeVar::lua_MQTypeVar(groundTypeVar);
+				onRemoveGroundItem.value()(lua_ground);
+			}
+		}
+	}
+}
+
+PLUGIN_API void OnBeginZone()
+{
+	for (const std::shared_ptr<mq::lua::LuaThread>& thread : mq::lua::s_running)
+	{
+		if (thread && !thread->IsPaused())
+		{
+			auto state = thread->GetLuaThread().state();
+			auto onBeginZone = sol::state_view(state)["OnBeginZone"].get<std::optional<sol::function>>();
+			if (onBeginZone.has_value()) {
+				onBeginZone.value()();
+			}
+		}
+	}
+}
+
+PLUGIN_API void OnEndZone()
+{
+	for (const std::shared_ptr<mq::lua::LuaThread>& thread : mq::lua::s_running)
+	{
+		if (thread && !thread->IsPaused())
+		{
+			auto state = thread->GetLuaThread().state();
+			auto onEndZone = sol::state_view(state)["OnEndZone"].get<std::optional<sol::function>>();
+			if (onEndZone.has_value()) {
+				onEndZone.value()();
+			}
+		}
+	}
+}
+
+PLUGIN_API void OnZoned()
+{
+	for (const std::shared_ptr<mq::lua::LuaThread>& thread : mq::lua::s_running)
+	{
+		if (thread && !thread->IsPaused())
+		{
+			auto state = thread->GetLuaThread().state();
+			auto onZoned = sol::state_view(state)["OnZoned"].get<std::optional<sol::function>>();
+			if (onZoned.has_value()) {
+				onZoned.value()();
+			}
+		}
+	}
 }
