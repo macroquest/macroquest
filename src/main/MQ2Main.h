@@ -78,9 +78,24 @@ using namespace eqlib;
 
 namespace mq {
 
-/* BENCHMARKING */
+// Initialize/shutdown subsystems
 void ShutdownMQ2Benchmarks();
 void InitializeMQ2Benchmarks();
+
+void InitializeInputAPI();
+void ShutdownInputAPI();
+
+void InitializeDisplayHook();
+void ShutdownDisplayHook();
+
+void InitializeMQ2Commands();
+void ShutdownMQ2Commands();
+
+void InitializeMQ2Pulse();
+void ShutdownMQ2Pulse();
+
+void InitializeChatHook();
+void ShutdownChatHook();
 
 /* SPAWN HANDLING */
 MQLIB_API bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show);
@@ -125,8 +140,6 @@ MQLIB_API void CreateMQ2NewsWindow();
 MQLIB_API void DeleteMQ2NewsWindow();
 
 /* CHAT HOOK */
-MQLIB_API void InitializeChatHook();
-MQLIB_API void ShutdownChatHook();
 MQLIB_API void dsp_chat_no_events(const char* Text, int Color, bool EqLog = true, bool dopercentsubst = true);
 
 MQLIB_API void WriteChatColor(const char* Line, int Color = USERCOLOR_DEFAULT, int Filter = 0);
@@ -165,19 +178,10 @@ void ModulesUpdateImGui();
 void PluginsMacroStart(const char* Name);
 void PluginsMacroStop(const char* Name);
 
-
-/* DIRECT INPUT */
-MQLIB_API void InitializeMQ2DInput();
-MQLIB_API void ShutdownMQ2DInput();
-
 /* CLEAN UI */
-MQLIB_API void InitializeDisplayHook();
-MQLIB_API void ShutdownDisplayHook();
 MQLIB_API void DrawHUD();
 
 /* COMMAND HANDLING */
-MQLIB_API void InitializeMQ2Commands();
-MQLIB_API void ShutdownMQ2Commands();
 MQLIB_API void AddCommand(const char* Command, fEQCommand Function, bool EQ = false, bool Parse = true, bool InGame = false);
 MQLIB_API void AddAlias(const char* ShortCommand, const char* LongCommand);
 MQLIB_API bool RemoveAlias(const char* ShortCommand);
@@ -201,16 +205,11 @@ MQLIB_API void EchoClean(SPAWNINFO*, char*);
 /* MOUSE */
 MQLIB_API bool IsMouseWaiting();
 MQLIB_API bool IsMouseWaitingForButton();
-void InitializeMouseHooks();
-void ShutdownMouseHooks();
-MQLIB_API bool MoveMouse(int x, int y, bool bClick = false);
+MQLIB_API bool MoveMouse(int x, int y);
+MQLIB_API bool ClickMouseButton(int mouseButton); // Uses DirectInput to simulate a mouse click at the current mouse position.
 MQLIB_API bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick = false);
 MQLIB_API bool ClickMouseItem(const MQGroundSpawn& pGroundSpawn, bool left);
    inline bool ClickMouseItem(SPAWNINFO* pChar, const MQGroundSpawn& pGroundSpawn, bool left) { return ClickMouseItem(pGroundSpawn, left); }
-
-/* PULSING */
-MQLIB_API void InitializeMQ2Pulse();
-MQLIB_API void ShutdownMQ2Pulse();
 
 /* UTILITIES */
 MQLIB_API void ConvertCR(char* Text, size_t LineLen);

@@ -95,10 +95,8 @@ public:
 DETOUR_TRAMPOLINE_DEF(void, ProcessMouseEvents_Trampoline, ())
 void ProcessMouseEvents_Detour()
 {
-	if (gbRenderImGui && ImGui::GetCurrentContext() != nullptr && *EQADDR_DIMOUSE != nullptr)
+	if (gbRenderImGui && ImGui::GetCurrentContext() != nullptr && g_pDIMouse != nullptr)
 	{
-		auto pMouse = (*EQADDR_DIMOUSE);
-
 		ImGuiIO& io = ImGui::GetIO();
 		bool consumeMouse = io.WantCaptureMouse;
 
@@ -106,7 +104,7 @@ void ProcessMouseEvents_Detour()
 		DIDEVICEOBJECTDATA data[128];
 		DWORD num = 128;
 
-		HRESULT hr = pMouse->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), data, &num, DIGDD_PEEK);
+		HRESULT hr = g_pDIMouse->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), data, &num, DIGDD_PEEK);
 
 		if (SUCCEEDED(hr))
 		{
@@ -141,26 +139,24 @@ void ProcessMouseEvents_Detour()
 			s_flushNextMouse = true;
 
 			// Consume the mouse state. This won't be very effective for sustained mouse clicks though.
-			pMouse->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), data, &num, 0);
+			g_pDIMouse->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), data, &num, 0);
 			return;
 		}
 	}
 
 	// Its time to detour GetDeviceState and have it return the inputs from WndProc that we didn't handle.
 
-	if (s_flushNextMouse && *EQADDR_DIMOUSE != nullptr)
+	if (s_flushNextMouse && g_pDIMouse != nullptr)
 	{
-		auto pMouse = (*EQADDR_DIMOUSE);
-
 		// Flush the direct input device state so that the wheel data doesn't get
 		// picked up by the game later.
 		DIDEVICEOBJECTDATA data[128];
 		DWORD num = 128;
 
-		pMouse->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), data, &num, 0);
+		g_pDIMouse->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), data, &num, 0);
 
 		DIMOUSESTATE2 dims;
-		pMouse->GetDeviceState(sizeof(DIMOUSESTATE2), &dims);
+		g_pDIMouse->GetDeviceState(sizeof(DIMOUSESTATE2), &dims);
 	}
 
 	ProcessMouseEvents_Trampoline();
@@ -306,7 +302,7 @@ void MQGraphicsEngine::InstallHook(HookInfo hi)
 	}
 
 	hi.patch(hi);
-	m_hooks.push_back(hi);
+	m_hooks.push_back(std::move(hi));
 }
 
 void MQGraphicsEngine::RemoveDetours()
