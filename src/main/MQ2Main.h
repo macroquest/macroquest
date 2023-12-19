@@ -78,9 +78,6 @@ using namespace eqlib;
 
 namespace mq {
 
-/* DETOURS */
-MQLIB_OBJECT void SetAssist(BYTE* address);
-
 /* BENCHMARKING */
 void ShutdownMQ2Benchmarks();
 void InitializeMQ2Benchmarks();
