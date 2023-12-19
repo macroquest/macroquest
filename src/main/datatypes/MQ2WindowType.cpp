@@ -1015,17 +1015,21 @@ bool MQ2InvSlotWindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 bool MQ2InvSlotWindowType::ToString(MQVarPtr VarPtr, char* Destination)
 {
 	CInvSlotWnd* pWnd = static_cast<CInvSlotWnd*>(VarPtr.Ptr);
+	bool bFound = false;
 
 	if (pWnd)
 	{
 		ItemPtr pItem = pWnd->LinkedItem ? pWnd->LinkedItem : pLocalPC->GetItemByGlobalIndex(pWnd->ItemLocation);
 
 		if (pItem && pWnd->IsVisible())
+		{
 			strcpy_s(Destination, MAX_STRING, pItem->GetName());
+			bFound = true;
+		}
 		else
-			strcpy_s(Destination, MAX_STRING, "FALSE");
+			strcpy_s(Destination, MAX_STRING, "NULL");
 	}
-	return true;
+	return bFound;
 }
 
 bool MQ2InvSlotWindowType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
@@ -1035,14 +1039,6 @@ bool MQ2InvSlotWindowType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 
 	VarPtr.Ptr = Source.Ptr;
 	return true;
-}
-
-bool MQ2InvSlotWindowType::FromString(MQVarPtr& VarPtr, const char* Source)
-{
-	if (VarPtr.Ptr = FindMQ2WindowPath(Source))
-		return true;
-
-	return false;
 }
 
 } // namespace mq::datatypes

@@ -765,7 +765,6 @@ public:
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 
 	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
-	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 };
 
 //============================================================================
