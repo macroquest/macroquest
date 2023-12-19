@@ -113,6 +113,7 @@ DATATYPE(MQ2TradeskillDepotType, pTradeskillDepotType, nullptr);
 DATATYPE(MQBankType, pBankType, nullptr);
 DATATYPE(MQInventoryType, pInventoryType, nullptr);
 DATATYPE(MQCursorAttachmentType, pCursorAttachmentType, nullptr);
+DATATYPE(MQInvSlotWindowType, pInvSlotWindowType, nullptr);
 
 #if HAS_ADVANCED_LOOT
 DATATYPE(MQ2AdvLootType, pAdvLootType, nullptr);

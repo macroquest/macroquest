@@ -148,43 +148,6 @@ MQ2WindowType::MQ2WindowType() : MQ2Type("window")
 	ScopedTypeMethod(WindowMethods, SetText);
 }
 
-/* SubWindow Type: MQ2InvSlotWindowType */
-enum class InvSlotWindowMembers
-{
-	Background,
-	ItemLocation,
-	ItemIndexSlot,
-	Item,
-	ItemOffsetX,
-	ItemOffsetY,
-	ItemTexture,
-	Quantity,
-	Selected,
-	FindSelected,
-	HotButton,
-	InventorySlotLinked,
-	Text,
-	Mode,
-};
-
-MQ2InvSlotWindowType::MQ2InvSlotWindowType() : MQ2Type("invslotwindow")
-{
-	ScopedTypeMember(InvSlotWindowMembers, Background);
-	ScopedTypeMember(InvSlotWindowMembers, ItemLocation);
-	ScopedTypeMember(InvSlotWindowMembers, ItemIndexSlot);
-	ScopedTypeMember(InvSlotWindowMembers, Item);
-	ScopedTypeMember(InvSlotWindowMembers, ItemOffsetX);
-	ScopedTypeMember(InvSlotWindowMembers, ItemOffsetY);
-	ScopedTypeMember(InvSlotWindowMembers, Quantity);
-	ScopedTypeMember(InvSlotWindowMembers, Selected);
-	ScopedTypeMember(InvSlotWindowMembers, FindSelected);
-	ScopedTypeMember(InvSlotWindowMembers, HotButton);
-	ScopedTypeMember(InvSlotWindowMembers, InventorySlotLinked);
-	ScopedTypeMember(InvSlotWindowMembers, Text);
-	ScopedTypeMember(InvSlotWindowMembers, Mode);
-
-}
-
 bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	CXWnd* pWnd = static_cast<CXWnd*>(VarPtr.Ptr);
@@ -908,7 +871,43 @@ bool MQ2WindowType::dataWindow(const char* szIndex, MQTypeVar& Ret)
 	return false;
 }
 
-bool MQ2InvSlotWindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
+/* SubWindow Type: MQ2InvSlotWindowType */
+enum class InvSlotWindowMembers
+{
+	Background,
+	ItemLocation,
+	ItemIndexSlot,
+	Item,
+	ItemOffsetX,
+	ItemOffsetY,
+	ItemTexture,
+	Quantity,
+	Selected,
+	FindSelected,
+	HotButton,
+	InventorySlotLinked,
+	Text,
+	Mode,
+};
+
+MQInvSlotWindowType::MQInvSlotWindowType() : MQ2Type("invslotwindow")
+{
+	ScopedTypeMember(InvSlotWindowMembers, Background);
+	ScopedTypeMember(InvSlotWindowMembers, ItemLocation);
+	ScopedTypeMember(InvSlotWindowMembers, ItemIndexSlot);
+	ScopedTypeMember(InvSlotWindowMembers, Item);
+	ScopedTypeMember(InvSlotWindowMembers, ItemOffsetX);
+	ScopedTypeMember(InvSlotWindowMembers, ItemOffsetY);
+	ScopedTypeMember(InvSlotWindowMembers, Quantity);
+	ScopedTypeMember(InvSlotWindowMembers, Selected);
+	ScopedTypeMember(InvSlotWindowMembers, FindSelected);
+	ScopedTypeMember(InvSlotWindowMembers, HotButton);
+	ScopedTypeMember(InvSlotWindowMembers, InventorySlotLinked);
+	ScopedTypeMember(InvSlotWindowMembers, Text);
+	ScopedTypeMember(InvSlotWindowMembers, Mode);
+}
+
+bool MQInvSlotWindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	CXWnd* pWnd = static_cast<CXWnd*>(VarPtr.Ptr);
 	if (!VarPtr.Ptr)
@@ -919,7 +918,7 @@ bool MQ2InvSlotWindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 
 	CInvSlotWnd* pInvWnd = static_cast<CInvSlotWnd*>(pWnd);
 
-	MQTypeMember* pMember = MQ2InvSlotWindowType::FindMember(Member);
+	MQTypeMember* pMember = MQInvSlotWindowType::FindMember(Member);
 	if (!pMember)
 		return false;
 
@@ -931,7 +930,6 @@ bool MQ2InvSlotWindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 		strcpy_s(DataTypeTemp, pInvWnd->pBackground->GetName().c_str());
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
-
 
 	case InvSlotWindowMembers::ItemLocation:
 		Dest.Type = pIntType;
@@ -947,7 +945,6 @@ bool MQ2InvSlotWindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 			return true;
 		}
 		return false;
-
 
 	case InvSlotWindowMembers::Item:
 		Dest.Type = pItemType;
@@ -980,7 +977,6 @@ bool MQ2InvSlotWindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 		Dest.DWord = pInvWnd->bSelected;
 		return true;
 
-
 	case InvSlotWindowMembers::FindSelected:
 		Dest.Type = pBoolType;
 		Dest.DWord = pInvWnd->bFindSelected;
@@ -1002,17 +998,15 @@ bool MQ2InvSlotWindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 
-
 	case InvSlotWindowMembers::Mode:
 		Dest.Type = pIntType;
 		Dest.DWord = pInvWnd->Mode;
 		return true;
-
 	}
 	return false;
 }
 
-bool MQ2InvSlotWindowType::ToString(MQVarPtr VarPtr, char* Destination)
+bool MQInvSlotWindowType::ToString(MQVarPtr VarPtr, char* Destination)
 {
 	CInvSlotWnd* pWnd = static_cast<CInvSlotWnd*>(VarPtr.Ptr);
 	bool bFound = false;
@@ -1032,7 +1026,7 @@ bool MQ2InvSlotWindowType::ToString(MQVarPtr VarPtr, char* Destination)
 	return bFound;
 }
 
-bool MQ2InvSlotWindowType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
+bool MQInvSlotWindowType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pInvSlotWindowType)
 		return false;

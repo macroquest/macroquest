@@ -756,10 +756,10 @@ public:
 //============================================================================
 // MQ2InvSlotWindowType
 
-class MQ2InvSlotWindowType : public MQ2Type
+class MQInvSlotWindowType : public MQ2Type
 {
 public:
-	MQ2InvSlotWindowType();
+	MQInvSlotWindowType();
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
