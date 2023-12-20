@@ -97,7 +97,8 @@ std::unordered_map<uint32_t, sol::function> m_OnZonedMap;
 #pragma region Shared Function Definitions
 
 
-static void ClearCallback(std::shared_ptr<LuaThread> thread) {
+static void ClearCallback(std::shared_ptr<LuaThread> thread) 
+{
 	m_OnAddSpawnMap.erase(thread->GetPID());
 	m_OnRemoveSpawnMap.erase(thread->GetPID());
 	m_OnAddGroundItemMap.erase(thread->GetPID());
@@ -570,7 +571,8 @@ bool MQ2LuaType::dataLua(const char* Index, MQTypeVar& Dest)
 static void SetCallback(const std::string& name, std::shared_ptr<LuaThread> thread, std::unordered_map<uint32_t, sol::function>* cache) {
 	auto state = thread->GetLuaThread().state();
 	auto callback = sol::state_view(state)[name].get<std::optional<sol::function>>();
-	if (callback.has_value()) {
+	if (callback.has_value()) 
+	{
 		cache->emplace(thread->GetPID(), callback.value());
 	}
 }
@@ -2124,7 +2126,8 @@ PLUGIN_API void OnUnloadPlugin(const char* pluginName)
 
 PLUGIN_API void OnAddSpawn(PSPAWNINFO pNewSpawn)
 {
-	if (mq::lua::m_OnAddSpawnMap.empty()) {
+	if (mq::lua::m_OnAddSpawnMap.empty()) 
+	{
 		return;
 	}
 
@@ -2137,7 +2140,8 @@ PLUGIN_API void OnAddSpawn(PSPAWNINFO pNewSpawn)
 
 PLUGIN_API void OnRemoveSpawn(PSPAWNINFO pNewSpawn)
 {
-	if (mq::lua::m_OnRemoveSpawnMap.empty()) {
+	if (mq::lua::m_OnRemoveSpawnMap.empty()) 
+	{
 		return;
 	}
 
@@ -2150,7 +2154,8 @@ PLUGIN_API void OnRemoveSpawn(PSPAWNINFO pNewSpawn)
 
 PLUGIN_API void OnAddGroundItem(PGROUNDITEM pNewGroundItem)
 {
-	if (mq::lua::m_OnAddGroundItemMap.empty()) {
+	if (mq::lua::m_OnAddGroundItemMap.empty()) 
+	{
 		return;
 	}
 
@@ -2164,7 +2169,8 @@ PLUGIN_API void OnAddGroundItem(PGROUNDITEM pNewGroundItem)
 
 PLUGIN_API void OnRemoveGroundItem(PGROUNDITEM pGroundItem)
 {
-	if (mq::lua::m_OnRemoveGroundItemMap.empty()) {
+	if (mq::lua::m_OnRemoveGroundItemMap.empty()) 
+	{
 		return;
 	}
 
