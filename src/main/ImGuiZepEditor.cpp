@@ -414,7 +414,7 @@ void ZepEditor_ImGui::HandleKeyboardInput()
 	{
 		for (int ch = 'A'; ch <= 'Z'; ch++)
 		{
-			if (ImGui::IsKeyPressed((ImGuiKey)(ch - 'A')))
+			if (ImGui::IsKeyPressed(static_cast<ImGuiKey>(ch)))
 			{
 				buffer.GetMode()->AddKeyPress(ch - 'A' + 'a', mod);
 				handled = true;

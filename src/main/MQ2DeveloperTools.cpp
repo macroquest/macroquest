@@ -5195,6 +5195,14 @@ public:
 
 	void Draw() override
 	{
+		auto gf = pGFViewListener.get();
+
+		if (!gf)
+		{
+			ImGui::Text("GameFace is not running");
+			return;
+		}
+
 		if (ImGui::BeginTable("##GameFaceUI", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
 		{
 			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed);
@@ -5208,8 +5216,6 @@ public:
 #define TableRow(label, format, ...) \
 	ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text(label); \
 	ImGui::TableNextColumn(); ImGui::Text(format, __VA_ARGS__);
-
-			auto gf = pGFViewListener.get();
 
 			if (ImGui::TreeNode("object1"))
 			{

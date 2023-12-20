@@ -31,6 +31,8 @@
 #include <mq/base/WString.h>
 #include <mq/utils/Benchmarks.h>
 
+#include "imgui/implot/implot_internal.h"
+
 namespace ImGui
 {
 	// https://github.com/forrestthewoods/lib_fts
@@ -538,6 +540,18 @@ void UpdateImGuiDebugInfo()
 	ImGui::End();
 }
 
+static void ResumeOverlay()
+{
+	// Reset Implot context because it might be dirty after unexpected abort.
+	if (auto imPlotContext = ImPlot::GetCurrentContext())
+	{
+		ImPlot::ResetCtxForNextPlot(imPlotContext);
+		ImPlot::ResetCtxForNextSubplot(imPlotContext);
+	}
+
+	gbManualResetRequired = false;
+}
+
 void ImGuiManager_DrawFrame()
 {
 	MQScopedBenchmark bm1(bmUpdateImGui);
@@ -584,7 +598,7 @@ void ImGuiManager_DrawFrame()
 			ImGui::SetCursorPosX((windowWidth - 160) * .5f);
 
 			if (ImGui::Button("Resume Overlay", ImVec2(160, 0)))
-				gbManualResetRequired = false;
+				ResumeOverlay();
 		}
 
 		ImGui::End();
@@ -797,7 +811,7 @@ void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 		if (gbManualResetRequired)
 		{
 			WriteChatf("Resuming overlay...");
-			gbManualResetRequired = false;
+			ResumeOverlay();
 		}
 		else
 		{

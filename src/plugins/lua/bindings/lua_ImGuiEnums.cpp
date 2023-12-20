@@ -415,7 +415,22 @@ void RegisterBindings_ImGuiEnums(sol::state_view lua)
 		"AcceptPeekOnly"               , ImGuiDragDropFlags_AcceptPeekOnly
 	);
 
-		// Dir
+	// A primary data type
+	lua.new_enum("ImGuiDataType",
+		"S8"                           ,  ImGuiDataType_S8,
+		"U8"                           , ImGuiDataType_U8,
+		"S16"                          , ImGuiDataType_S16,
+		"U16"                          , ImGuiDataType_U16,
+		"S32"                          , ImGuiDataType_S32,
+		"U32"                          , ImGuiDataType_U32,
+		"S64"                          , ImGuiDataType_S64,
+		"U64"                          , ImGuiDataType_U64,
+		"Float"                        , ImGuiDataType_Float,
+		"Double"                       , ImGuiDataType_Double,
+		"COUNT"                        , ImGuiDataType_COUNT
+	);
+
+	// Dir
 	lua.new_enum("ImGuiDir",
 		"None"                         , ImGuiDir_None,
 		"Left"                         , ImGuiDir_Left,

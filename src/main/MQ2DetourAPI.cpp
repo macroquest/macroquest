@@ -171,22 +171,23 @@ void RemoveDetours()
 	}
 }
 
-void SetAssist(BYTE* address)
-{
-	gbAssistComplete = AS_AssistReceived;
-
-	if (!address) return;
-	int Assistee = *(int*)address;
-
-	if (SPAWNINFO* pSpawn = GetSpawnByID(Assistee))
-	{
-		//DebugSpew("Assist Result: %d => %s", Assistee, pSpawn->Name);
-		gbAssistComplete = AS_AssistSent;
-	}
-}
+// TODO: Maybe someday revisit detection of assist completion...
+//void SetAssist(BYTE* address)
+//{
+//	gbAssistComplete = AS_AssistReceived;
+//
+//	if (!address) return;
+//	int Assistee = *(int*)address;
+//
+//	if (SPAWNINFO* pSpawn = GetSpawnByID(Assistee))
+//	{
+//		//DebugSpew("Assist Result: %d => %s", Assistee, pSpawn->Name);
+//		gbAssistComplete = AS_AssistSent;
+//	}
+//}
 
 // Defined in AssemblyFunctions.asm, need the forward declare
-void GetAssistParam();
+//void GetAssistParam();
 
 //============================================================================
 

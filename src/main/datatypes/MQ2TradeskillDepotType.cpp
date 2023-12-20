@@ -35,7 +35,7 @@ enum class TradeskillDepotTypeMethods
 	SelectItem,
 	WithdrawItem,
 	WithdrawStack,
-	//DepositItem
+	DepositItem
 };
 
 #if HAS_TRADESKILL_DEPOT
@@ -79,7 +79,7 @@ MQ2TradeskillDepotType::MQ2TradeskillDepotType() : MQ2Type("tradeskilldepot")
 	ScopedTypeMethod(TradeskillDepotTypeMethods, SelectItem);
 	ScopedTypeMethod(TradeskillDepotTypeMethods, WithdrawItem);
 	ScopedTypeMethod(TradeskillDepotTypeMethods, WithdrawStack);
-	//ScopedTypeMethod(TradeskillDepotTypeMethods, DepositItem);
+	ScopedTypeMethod(TradeskillDepotTypeMethods, DepositItem);
 }
 
 bool MQ2TradeskillDepotType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -148,22 +148,22 @@ bool MQ2TradeskillDepotType::GetMember(MQVarPtr VarPtr, const char* Member, char
 			return true;
 		}
 
-//		case TradeskillDepotTypeMethods::DepositItem:
-//		{
-//#if HAS_TRADESKILL_DEPOT
-//			if (pTradeskillDepotWnd->IsVisible() && pActiveBanker)
-//			{
-//				if (pCursorAttachment && pCursorAttachment->Type == eCursorAttachment_Item)
-//				{
-//					CXPoint pt = pTradeskillDepotWnd->pItemList->GetClientRect().CenterPoint();
-//
-//					pTradeskillDepotWnd->pItemList->HandleLButtonDown(pt, 0);
-//					pTradeskillDepotWnd->pItemList->HandleLButtonUp(pt, 0);
-//				}
-//			}
-//#endif
-//			return true;
-//		}
+		case TradeskillDepotTypeMethods::DepositItem:
+		{
+#if HAS_TRADESKILL_DEPOT
+			if (pTradeskillDepotWnd->IsVisible() && pActiveBanker)
+			{
+				if (pCursorAttachment && pCursorAttachment->Type == eCursorAttachment_Item)
+				{
+					CXPoint pt = pTradeskillDepotWnd->pItemList->GetClientRect().CenterPoint();
+
+					MoveMouse(pt.x, pt.y);
+					ClickMouseButton(0);
+				}
+			}
+#endif
+			return true;
+		}
 
 		default: break;
 		}
