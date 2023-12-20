@@ -162,9 +162,9 @@ void PlotBarsG(const char* label_id, sol::unsafe_function getter, int count, dou
 
 void PlotBarGroups(std::vector<const char*> label_ids, std::vector<double> values, int item_count, int group_count, std::optional<double> group_size, std::optional<double> shift, std::optional<int> flags)
 {
-	if (values.size() < item_count * group_count)
+	if (static_cast<int>(values.size()) < item_count * group_count)
 		values.resize(item_count * group_count, 0);
-	if (label_ids.size() < item_count)
+	if (static_cast<int>(label_ids.size()) < item_count)
 		label_ids.resize(item_count, "");
 
 	ImPlot::PlotBarGroups(label_ids.data(), values.data(), item_count, group_count, group_size.value_or(0.67), shift.value_or(0), flags.value_or(0));
@@ -736,7 +736,7 @@ sol::table RegisterBindings_ImPlot(sol::this_state L)
 			if (row_ratios_vec.has_value())
 			{
 				row_ratios = row_ratios_vec->as<std::vector<float>>();
-				if (row_ratios.size() < rows)
+				if (static_cast<int>(row_ratios.size()) < rows)
 					row_ratios.resize(rows, 0);
 			}
 
@@ -744,7 +744,7 @@ sol::table RegisterBindings_ImPlot(sol::this_state L)
 			if (col_ratios_vec.has_value())
 			{
 				col_ratios = col_ratios_vec->as<std::vector<float>>();
-				if (col_ratios.size() < cols)
+				if (static_cast<int>(col_ratios.size()) < cols)
 					col_ratios.resize(cols);
 			}
 
@@ -783,7 +783,7 @@ sol::table RegisterBindings_ImPlot(sol::this_state L)
 			{
 				labels_ = labelsTable->as<std::vector<const char*>>();
 
-				if (labels_.size() < n_ticks)
+				if (static_cast<int>(labels_.size()) < n_ticks)
 					labels_.resize(n_ticks, "");
 				labels = labels_.data();
 			}
