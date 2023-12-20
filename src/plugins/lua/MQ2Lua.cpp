@@ -568,12 +568,12 @@ bool MQ2LuaType::dataLua(const char* Index, MQTypeVar& Dest)
 
 #pragma region Commands
 
-static void SetCallback(const std::string& name, std::shared_ptr<LuaThread> thread, std::unordered_map<uint32_t, sol::function>* cache) {
+static void SetCallback(const std::string& name, std::shared_ptr<LuaThread> thread, std::unordered_map<uint32_t, sol::function>& cache) {
 	auto state = thread->GetLuaThread().state();
 	auto callback = sol::state_view(state)[name].get<std::optional<sol::function>>();
 	if (callback.has_value()) 
 	{
-		cache->emplace(thread->GetPID(), callback.value());
+		cache.emplace(thread->GetPID(), callback.value());
 	}
 }
 
@@ -628,13 +628,13 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 		result->status = LuaThreadStatus::Running;
 		s_infoMap.emplace(result->pid, *result);
 
-		SetCallback("OnAddSpawn", entry, &mq::lua::m_OnAddSpawnMap);
-		SetCallback("OnRemoveSpawn", entry, &mq::lua::m_OnRemoveSpawnMap);
-		SetCallback("OnAddGroundItem", entry, &mq::lua::m_OnAddGroundItemMap);
-		SetCallback("OnRemoveGroundItem", entry, &mq::lua::m_OnRemoveGroundItemMap);
-		SetCallback("OnBeginZone", entry, &mq::lua::m_OnBeginZoneMap);
-		SetCallback("OnEndZone", entry, &mq::lua::m_OnEndZoneMap);
-		SetCallback("OnZoned", entry, &mq::lua::m_OnZonedMap);
+		SetCallback("OnAddSpawn", entry, mq::lua::m_OnAddSpawnMap);
+		SetCallback("OnRemoveSpawn", entry, mq::lua::m_OnRemoveSpawnMap);
+		SetCallback("OnAddGroundItem", entry, mq::lua::m_OnAddGroundItemMap);
+		SetCallback("OnRemoveGroundItem", entry, mq::lua::m_OnRemoveGroundItemMap);
+		SetCallback("OnBeginZone", entry, mq::lua::m_OnBeginZoneMap);
+		SetCallback("OnEndZone", entry, mq::lua::m_OnEndZoneMap);
+		SetCallback("OnZoned", entry, mq::lua::m_OnZonedMap);
 
 		return result->pid;
 	}
