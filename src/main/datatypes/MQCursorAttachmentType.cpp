@@ -66,7 +66,11 @@ bool MQCursorAttachmentType::GetMember(MQVarPtr VarPtr, const char* Member, char
 
 	case CursorAttachmentTypeMembers::IconID:
 		Dest.Type = pIntType;
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TBL) // Rough approximation -- Added in 2018/06/19
 		Dest.Int = pCursorAttachment->IconID;
+#else
+		Dest.Int = -1;
+#endif
 		return true;
 
 	case CursorAttachmentTypeMembers::ItemID:
@@ -97,8 +101,10 @@ bool MQCursorAttachmentType::GetMember(MQVarPtr VarPtr, const char* Member, char
 #endif
 		case eCursorAttachment_ItemLink: strcpy_s(DataTypeTemp, "ITEM_LINK"); return true;
 		case eCursorAttachment_KronoSlot: strcpy_s(DataTypeTemp, "KRONO_SLOT"); return true;
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TBM)
 		case eCursorAttachment_Command: strcpy_s(DataTypeTemp, "COMMAND"); return true;
 		case eCursorAttachment_CombatAbility: strcpy_s(DataTypeTemp, "COMBAT_ABILITY"); return true;
+#endif
 #if HAS_KEYRING_WINDOW
 		case eCursorAttachment_MountKeyRingLink: strcpy_s(DataTypeTemp, "MOUNT_KEYRING"); return true;
 		case eCursorAttachment_IllusionKeyRingLink: strcpy_s(DataTypeTemp, "ILLUSION_KEYRING"); return true;

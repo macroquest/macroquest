@@ -2077,7 +2077,7 @@ public:
 
 
 
-				for (int pool = 0; pool < bitmapsByPool.size(); ++pool)
+				for (int pool = 0; pool < (int)bitmapsByPool.size(); ++pool)
 				{
 					auto& bitmaps = bitmapsByPool[pool];
 					EMemoryPoolManagerType poolType = static_cast<EMemoryPoolManagerType>(pool);
@@ -2105,7 +2105,7 @@ public:
 
 					if (ImGui::TreeNodeEx(reinterpret_cast<void*>(poolType), 0, "%s", label))
 					{
-						for (int i = 0; i < bitmaps.size(); ++i)
+						for (int i = 0; i < (int)bitmaps.size(); ++i)
 						{
 							bool selectThis = false;
 							const CEQGBitmap* pEQBitmap = bitmaps[i];
@@ -2711,6 +2711,7 @@ public:
 				ImGui::TableNextColumn(); ImGui::Text("Heroic 100 Slots");
 				ImGui::TableNextColumn(); ImGui::Text("%d", eq.Heroic100Slots);
 
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Legacy Characters Ruleset");
 				ImGui::TableNextColumn(); ImGui::Text("%d", eq.LegacyCharactersRuleset);
@@ -2722,7 +2723,7 @@ public:
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Legacy Experience Bonus");
 				ImGui::TableNextColumn(); ImGui::Text("%d", eq.LegacyExperienceBonus);
-
+#endif
 #if HAS_ALTERNATE_PERSONAS
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Num Available Personas");
