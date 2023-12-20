@@ -86,26 +86,66 @@ std::vector<std::shared_ptr<LuaThread>> s_pending;
 
 std::unordered_map<uint32_t, LuaThreadInfo> s_infoMap;
 
-std::unordered_map<uint32_t, sol::function> m_OnAddSpawnMap;
-std::unordered_map<uint32_t, sol::function> m_OnRemoveSpawnMap;
-std::unordered_map<uint32_t, sol::function> m_OnAddGroundItemMap;
-std::unordered_map<uint32_t, sol::function> m_OnRemoveGroundItemMap;
-std::unordered_map<uint32_t, sol::function> m_OnBeginZoneMap;
-std::unordered_map<uint32_t, sol::function> m_OnEndZoneMap;
-std::unordered_map<uint32_t, sol::function> m_OnZonedMap;
+struct CallbackInstance
+{
+	sol::function m_callback;
+	sol::thread m_thread;
+	sol::thread m_parentThread;
+	sol::coroutine m_coroutine;
+
+	CallbackInstance(const sol::thread& parent_thread, const sol::function& callback)
+		: m_callback(callback)
+		, m_parentThread(parent_thread)
+	{
+		m_thread = sol::thread::create(parent_thread.state());
+		m_coroutine = sol::coroutine(m_thread.state(), m_callback);
+	}
+
+	~CallbackInstance()
+	{
+	}
+
+	template <typename... Args>
+	void Exectue(Args&&... args)
+	{
+		try
+		{
+			ScopedYieldDisabler disableYield(LuaThread::get_from(m_thread.state()));
+
+			sol::function_result result = m_coroutine(std::forward<Args>(args)...);
+			if (!result.valid())
+			{
+				LuaError("Lua Failure:\n%s", sol::stack::get<std::string>(result.lua_state(), result.stack_index()).c_str());
+				result.abandon();
+			}
+		}
+		catch (std::runtime_error& e)
+		{
+			LuaError("Lua Failure:\n%s", e.what());
+		}
+	}
+};
+
+std::unordered_map<uint32_t, std::unique_ptr<CallbackInstance>> s_OnAddSpawnCallbacks;
+std::unordered_map<uint32_t, std::unique_ptr<CallbackInstance>> s_OnRemoveSpawnCallbacks;
+std::unordered_map<uint32_t, std::unique_ptr<CallbackInstance>> s_OnAddGroundItemCallbacks;
+std::unordered_map<uint32_t, std::unique_ptr<CallbackInstance>> s_OnRemoveGroundItemCallbacks;
+std::unordered_map<uint32_t, std::unique_ptr<CallbackInstance>> s_OnBeginZoneCallbacks;
+std::unordered_map<uint32_t, std::unique_ptr<CallbackInstance>> s_OnEndZoneCallbacks;
+std::unordered_map<uint32_t, std::unique_ptr<CallbackInstance>> s_OnZonedCallbacks;
+
 
 #pragma region Shared Function Definitions
 
-
-static void ClearCallback(std::shared_ptr<LuaThread> thread) 
+static void ClearCallback(std::shared_ptr<LuaThread> thread)
 {
-	m_OnAddSpawnMap.erase(thread->GetPID());
-	m_OnRemoveSpawnMap.erase(thread->GetPID());
-	m_OnAddGroundItemMap.erase(thread->GetPID());
-	m_OnRemoveGroundItemMap.erase(thread->GetPID());
-	m_OnBeginZoneMap.erase(thread->GetPID());
-	m_OnEndZoneMap.erase(thread->GetPID());
-	m_OnZonedMap.erase(thread->GetPID());
+	s_OnAddSpawnCallbacks.erase(thread->GetPID());
+	s_OnRemoveSpawnCallbacks.erase(thread->GetPID());
+	s_OnAddGroundItemCallbacks.erase(thread->GetPID());
+	s_OnRemoveGroundItemCallbacks.erase(thread->GetPID());
+	s_OnBeginZoneCallbacks.erase(thread->GetPID());
+	s_OnEndZoneCallbacks.erase(thread->GetPID());
+	s_OnZonedCallbacks.erase(thread->GetPID());
 }
 
 void DebugStackTrace(lua_State* L, const char* message)
@@ -568,12 +608,13 @@ bool MQ2LuaType::dataLua(const char* Index, MQTypeVar& Dest)
 
 #pragma region Commands
 
-static void SetCallback(const std::string& name, std::shared_ptr<LuaThread> thread, std::unordered_map<uint32_t, sol::function>& cache) {
+static void SetCallback(const std::string& name, std::shared_ptr<LuaThread> thread, std::unordered_map<uint32_t, std::unique_ptr<CallbackInstance>>& cache) {
 	auto state = thread->GetLuaThread().state();
-	auto callback = sol::state_view(state)[name].get<std::optional<sol::function>>();
-	if (callback.has_value()) 
+	std::optional<sol::function> callback = sol::state_view(state)[name].get<std::optional<sol::function>>();
+	if (callback.has_value())
 	{
-		cache.emplace(thread->GetPID(), callback.value());
+		auto m_callback_instance = std::make_unique<CallbackInstance>(thread->GetLuaThread(), callback.value());
+		cache.emplace(thread->GetPID(), std::move(m_callback_instance));
 	}
 }
 
@@ -628,13 +669,13 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 		result->status = LuaThreadStatus::Running;
 		s_infoMap.emplace(result->pid, *result);
 
-		SetCallback("OnAddSpawn", entry, mq::lua::m_OnAddSpawnMap);
-		SetCallback("OnRemoveSpawn", entry, mq::lua::m_OnRemoveSpawnMap);
-		SetCallback("OnAddGroundItem", entry, mq::lua::m_OnAddGroundItemMap);
-		SetCallback("OnRemoveGroundItem", entry, mq::lua::m_OnRemoveGroundItemMap);
-		SetCallback("OnBeginZone", entry, mq::lua::m_OnBeginZoneMap);
-		SetCallback("OnEndZone", entry, mq::lua::m_OnEndZoneMap);
-		SetCallback("OnZoned", entry, mq::lua::m_OnZonedMap);
+		SetCallback("OnAddSpawn", entry, s_OnAddSpawnCallbacks);
+		SetCallback("OnRemoveSpawn", entry, s_OnRemoveSpawnCallbacks);
+		SetCallback("OnAddGroundItem", entry, s_OnAddGroundItemCallbacks);
+		SetCallback("OnRemoveGroundItem", entry, s_OnRemoveGroundItemCallbacks);
+		SetCallback("OnBeginZone", entry, s_OnBeginZoneCallbacks);
+		SetCallback("OnEndZone", entry, s_OnEndZoneCallbacks);
+		SetCallback("OnZoned", entry, s_OnZonedCallbacks);
 
 		return result->pid;
 	}
@@ -2126,82 +2167,91 @@ PLUGIN_API void OnUnloadPlugin(const char* pluginName)
 
 PLUGIN_API void OnAddSpawn(PSPAWNINFO pNewSpawn)
 {
-	if (mq::lua::m_OnAddSpawnMap.empty()) 
+	using namespace mq::lua;
+
+	if (s_OnAddSpawnCallbacks.empty())
 	{
 		return;
 	}
 
-	auto lua_spawn = mq::lua::bindings::lua_MQTypeVar::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(pNewSpawn));
-	for (const auto& [_, callback] : mq::lua::m_OnAddSpawnMap)
+	for (const auto& [_, callback] : s_OnAddSpawnCallbacks)
 	{
-		callback(lua_spawn);
+		auto lua_spawn = bindings::lua_MQTypeVar::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(pNewSpawn));
+		callback->Exectue(lua_spawn);
 	}
 }
 
 PLUGIN_API void OnRemoveSpawn(PSPAWNINFO pNewSpawn)
 {
-	if (mq::lua::m_OnRemoveSpawnMap.empty()) 
+	using namespace mq::lua;
+
+	if (s_OnRemoveSpawnCallbacks.empty())
 	{
 		return;
 	}
 
-	auto lua_spawn = mq::lua::bindings::lua_MQTypeVar::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(pNewSpawn));
-	for (const auto& [_, callback] : mq::lua::m_OnRemoveSpawnMap)
+	for (const auto& [_, callback] : s_OnRemoveSpawnCallbacks)
 	{
-		callback(lua_spawn);
+		auto lua_spawn = bindings::lua_MQTypeVar::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(pNewSpawn));
+		callback->Exectue(lua_spawn);
 	}
 }
 
 PLUGIN_API void OnAddGroundItem(PGROUNDITEM pNewGroundItem)
 {
-	if (mq::lua::m_OnAddGroundItemMap.empty()) 
+	using namespace mq::lua;
+
+	if (s_OnAddGroundItemCallbacks.empty())
 	{
 		return;
 	}
 
-	auto groundTypeVar = datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(pNewGroundItem));
-	auto lua_ground = mq::lua::bindings::lua_MQTypeVar::lua_MQTypeVar(groundTypeVar);
-	for (const auto& [_, callback] : mq::lua::m_OnAddGroundItemMap)
+	for (const auto& [_, callback] : s_OnAddGroundItemCallbacks)
 	{
-		callback(lua_ground);
+		auto groundTypeVar = datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(pNewGroundItem));
+		auto lua_ground = bindings::lua_MQTypeVar::lua_MQTypeVar(groundTypeVar);
+		callback->Exectue(lua_ground);
 	}
 }
 
 PLUGIN_API void OnRemoveGroundItem(PGROUNDITEM pGroundItem)
 {
-	if (mq::lua::m_OnRemoveGroundItemMap.empty()) 
+	using namespace mq::lua;
+
+	if (s_OnRemoveGroundItemCallbacks.empty())
 	{
 		return;
 	}
 
-	auto groundTypeVar = datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(pGroundItem));
-	auto lua_ground = mq::lua::bindings::lua_MQTypeVar::lua_MQTypeVar(groundTypeVar);
-	for (const auto& [_, callback] : mq::lua::m_OnRemoveGroundItemMap)
+	for (const auto& [_, callback] : s_OnRemoveGroundItemCallbacks)
 	{
-		callback(lua_ground);
+		auto groundTypeVar = datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(pGroundItem));
+		auto lua_ground = bindings::lua_MQTypeVar::lua_MQTypeVar(groundTypeVar);
+		callback->Exectue(lua_ground);
 	}
 }
 
 PLUGIN_API void OnBeginZone()
 {
-	for (const auto& [_, callback] : mq::lua::m_OnBeginZoneMap)
+	using namespace mq::lua;
+	for (const auto& [_, callback] : mq::lua::s_OnBeginZoneCallbacks)
 	{
-		callback();
+		callback->Exectue();
 	}
 }
 
 PLUGIN_API void OnEndZone()
 {
-	for (const auto& [_, callback] : mq::lua::m_OnAddGroundItemMap)
+	for (const auto& [_, callback] : mq::lua::s_OnEndZoneCallbacks)
 	{
-		callback();
+		callback->Exectue();
 	}
 }
 
 PLUGIN_API void OnZoned()
 {
-	for (const auto& [_, callback] : mq::lua::m_OnZonedMap)
+	for (const auto& [_, callback] : mq::lua::s_OnZonedCallbacks)
 	{
-		callback();
+		callback->Exectue();
 	}
 }
